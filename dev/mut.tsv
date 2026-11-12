@@ -1,0 +1,29 @@
+# kernel	text in core.cpp	replacement
+vod	ratio[i] = (day[i] / day[ref]) / (night[i] / night[ref]);	ratio[i] = (day[i] / day[ref]) * (night[i] / night[ref]);
+vod.guard	if (!(day[ref] > 0.0)) return CLAB_EDOM;	
+orrisk	*hi = orr * root / (1.0 + c * root);	*hi = orr * root / (1.0 - c * root);
+orrisk.inv	orrsolve(inv, q, 1.0 - s, s, b, a);	orrsolve(inv, q, s, 1.0 - s, b, a);
+outtst	*stop_rate = sw / tw;	*stop_rate = sw / (tw + 1.0);
+outtst.edge	if (q[i] > t) {	if (q[i] >= t) {
+dspbm	fd[i] = (force[i] / contact[i]) / fr;	fd[i] = (force[i] / contact[i]) / cr;
+dyadrt	null_off[k] = pooled * pop[vic[k]] / total;	null_off[k] = pooled * pop[off[k]] / total;
+gtmp	locus[i] = (theta + a) * (2.0 * theta + a) / den;	locus[i] = (theta + a) * (theta + a) / den;
+cllr	cd += std::log1p(diff[i]);	cd += std::log1p(1.0 / diff[i]);
+lrcal	cs += std::log1p((1.0 - pr) / pr * (ns / nd));	cs += std::log1p((1.0 - pr) / pr * (nd / ns));
+# equivalent: pooling blocks of equal share leaves every share as it was
+#lrcal.pool	while (k > 1 && sum[k - 2] * cnt[k - 1] >= sum[k - 1] * cnt[k - 2]) {	while (k > 1 && sum[k - 2] * cnt[k - 1] > sum[k - 1] * cnt[k - 2]) {
+mixp	const double term = std::pow(rest, 2.0 * x);	const double term = std::pow(rest, 1.0 * x);
+kinidx	const double w = c == d ? 1.0 : 0.5;	const double w = c == d ? 0.5 : 0.5;
+patidx	if (g == c1) den += 0.5 * p2;	if (g == c1) den += 0.5 * p1;
+clrsmp	meff[k] = (0.5 * (ra[k] + rb[k]) - centre) * (wb[k] - wa[k]);	meff[k] = (0.5 * (ra[k] + rb[k])) * (wb[k] - wa[k]);
+clrsmp.type	type = 1;  // the aggregate	type = 0;  // the aggregate
+expbnd	rlo[i] = ratio[i] / g2;	rlo[i] = ratio[i] / gamma;
+misrd	out[2] = (se + sp - 1.0) * p * (1.0 - p) / (d1 * d0);	out[2] = (se + sp) * p * (1.0 - p) / (d1 * d0);
+rtmhs	s2 -= w[i] * d;	s2 += w[i] * d;
+incap	marg[i] = lam[i] * k / (d * (d + k));	marg[i] = lam[i] * k / (d * d);
+incapr	later += lam[t0 + 1 + j];	later += lam[t0 + j];
+sellab	out[3] = (fi + mu) / mm;	out[3] = (fi + mu) / mr;
+losbnd	out[3] = static_cast<double>(m) /	out[3] = static_cast<double>(n) /
+sntbnd	const double lo1 = j[1], hi1 = j[1] + p[0];	const double lo1 = j[1], hi1 = j[1] + p[1];
+hzdsel	out[4] = out[3] / out[2];	out[4] = out[2] / out[3];
+strerror	return "unknown error";	return "no error";
