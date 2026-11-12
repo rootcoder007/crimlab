@@ -2,7 +2,7 @@
 % Please edit documentation in R/frns2.R
 \name{cllrmin}
 \alias{cllrmin}
-\title{Minimum log-likelihood-ratio cost}
+\title{Log-likelihood-ratio cost after recalibration}
 \usage{
 cllrmin(same, diff)
 }
@@ -18,11 +18,14 @@ A named numeric vector: \code{cllr}, \code{min} and \code{cal}, with
 \code{cllr = min + cal}.
 }
 \description{
-Splits the cost of a set of likelihood ratios into what their ordering
-alone would cost (\code{min}, found by recalibrating them with the
-pool-adjacent-violators algorithm) and what their miscalibration adds
-(\code{cal}). A system can separate the two kinds of comparison well and still
-report ratios that are too large or too small.
+Splits the cost of a set of likelihood ratios into \code{min}, their cost after
+recalibration with the pool-adjacent-violators algorithm, which keeps
+their order and gives each block of pooled ratios the value that costs
+that block least, and \code{cal}, the rest (\code{cllr - min}). That \code{min} is the
+least cost of every order-keeping recalibration, so that \code{cal} is never
+negative, is not proved. A system can separate the two kinds of comparison
+well and still report ratios that are too large or too small. See
+\code{proof("cllrmin")} and \code{proof("lrcal")}.
 }
 \examples{
 cllrmin(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))

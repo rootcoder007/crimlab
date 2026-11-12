@@ -79,9 +79,11 @@ expbnd <- function(y, m, gamma, ref = 1) {
 #' whatever the outcome, the measured groups are mixtures of the true ones.
 #' The measured risk difference is then the true one times the factor
 #' `(se + sp - 1) p (1 - p) / (d1 d0)`, where `d1` and `d0` are the shares
-#' recorded in each group: with `se + sp >= 1` it never has the opposite
-#' sign to the true difference and is never larger in size, so a
-#' disparity in recorded data understates the true one. See `proof("misrd")`.
+#' recorded in each group. For any sensitivity and specificity it is never
+#' larger in size than the true difference, so a disparity in recorded data
+#' understates the true one; with `se + sp >= 1` it never has the opposite
+#' sign, while with `se + sp < 1` a difference other than 0 has it. See
+#' `proof("misrd")`.
 #'
 #' @param r1 The true risk in group 1: one number from 0 to 1.
 #' @param r0 The true risk in group 0: one number from 0 to 1.

@@ -20,7 +20,8 @@ given.
 \description{
 Recalibrates a set of likelihood ratios against the truth with the
 pool-adjacent-violators algorithm, keeping their order. The result can
-hold 0 and \code{Inf}: the data never contradicted those ratios.
+hold 0 and \code{Inf}: the data never contradicted those ratios. See
+\code{proof("lrcal")}.
 }
 \examples{
 lrcal(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))

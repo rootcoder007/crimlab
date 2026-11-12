@@ -19,9 +19,10 @@ One number, the cost in bits.
 \description{
 Scores a set of likelihood ratios against the truth. Ratios from
 same-source comparisons should be large and ratios from different-source
-comparisons small; the cost is 0 for a perfect system, 1 for one that
-always answers 1, and above 1 for one that misleads. See \code{proof("cllr")}
-and \code{\link[=cllrmin]{cllrmin()}}.
+comparisons small. The cost is 1 for a system that always answers 1. It
+is above 0 for any set of ratios, and tends to 0 as the ratios of a
+system that separates the two kinds perfectly grow without bound. See
+\code{proof("cllr")} and \code{\link[=cllrmin]{cllrmin()}}.
 }
 \examples{
 cllr(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))

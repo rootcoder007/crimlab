@@ -25,7 +25,8 @@ The information a set of likelihood ratios still leaves missing, across
 prior odds: for the ratios as reported, for the same ratios after
 calibration, and for a system that always reports 1. Reported ratios above
 the last curve do harm at that prior. At even prior odds the first two
-curves pass through the values of \code{\link[=cllrmin]{cllrmin()}}.
+curves pass through the values of \code{\link[=cllrmin]{cllrmin()}}. \code{proof()} records no
+theorem for this plot.
 }
 \examples{
 eceplt(same = c(50, 200, 8, 0.5), diff = c(0.01, 0.2, 1.5, 0.001))

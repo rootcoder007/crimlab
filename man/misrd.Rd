@@ -30,9 +30,11 @@ say) differs at random from the true one, with the same error rates
 whatever the outcome, the measured groups are mixtures of the true ones.
 The measured risk difference is then the true one times the factor
 \verb{(se + sp - 1) p (1 - p) / (d1 d0)}, where \code{d1} and \code{d0} are the shares
-recorded in each group: with \code{se + sp >= 1} it never has the opposite
-sign to the true difference and is never larger in size, so a
-disparity in recorded data understates the true one. See \code{proof("misrd")}.
+recorded in each group. For any sensitivity and specificity it is never
+larger in size than the true difference, so a disparity in recorded data
+understates the true one; with \code{se + sp >= 1} it never has the opposite
+sign, while with \code{se + sp < 1} a difference other than 0 has it. See
+\code{proof("misrd")}.
 }
 \examples{
 misrd(r1 = 0.3, r0 = 0.1, prev = 0.4, se = 0.8, sp = 0.9)

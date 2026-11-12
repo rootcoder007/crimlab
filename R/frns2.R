@@ -99,13 +99,16 @@ dbsrch <- function(mp, n, pop = NULL) {
   .Call(C_clab_r_dbsrch, mp, n, pop)
 }
 
-#' Minimum log-likelihood-ratio cost
+#' Log-likelihood-ratio cost after recalibration
 #'
-#' Splits the cost of a set of likelihood ratios into what their ordering
-#' alone would cost (`min`, found by recalibrating them with the
-#' pool-adjacent-violators algorithm) and what their miscalibration adds
-#' (`cal`). A system can separate the two kinds of comparison well and still
-#' report ratios that are too large or too small.
+#' Splits the cost of a set of likelihood ratios into `min`, their cost after
+#' recalibration with the pool-adjacent-violators algorithm, which keeps
+#' their order and gives each block of pooled ratios the value that costs
+#' that block least, and `cal`, the rest (`cllr - min`). That `min` is the
+#' least cost of every order-keeping recalibration, so that `cal` is never
+#' negative, is not proved. A system can separate the two kinds of comparison
+#' well and still report ratios that are too large or too small. See
+#' `proof("cllrmin")` and `proof("lrcal")`.
 #'
 #' @inheritParams cllr
 #' @return A named numeric vector: `cllr`, `min` and `cal`, with
@@ -124,7 +127,8 @@ cllrmin <- function(same, diff) {
 #'
 #' Recalibrates a set of likelihood ratios against the truth with the
 #' pool-adjacent-violators algorithm, keeping their order. The result can
-#' hold 0 and `Inf`: the data never contradicted those ratios.
+#' hold 0 and `Inf`: the data never contradicted those ratios. See
+#' `proof("lrcal")`.
 #'
 #' @inheritParams cllr
 #' @return A list: `same` and `diff`, the calibrated ratios in the order
@@ -142,6 +146,7 @@ lrcal <- function(same, diff) {
 #' different-source likelihood ratios above it. A good system keeps the
 #' same-source curve high to the right of 0 and the different-source curve
 #' low; where each crosses 0 shows the rate of misleading evidence.
+#' `proof()` records no theorem for this plot.
 #'
 #' @inheritParams cllr
 #' @param ... Passed to [graphics::plot()].
@@ -171,7 +176,8 @@ tipplt <- function(same, diff, ...) {
 #' prior odds: for the ratios as reported, for the same ratios after
 #' calibration, and for a system that always reports 1. Reported ratios above
 #' the last curve do harm at that prior. At even prior odds the first two
-#' curves pass through the values of [cllrmin()].
+#' curves pass through the values of [cllrmin()]. `proof()` records no
+#' theorem for this plot.
 #'
 #' @inheritParams cllr
 #' @param lo The prior log10 odds to draw at.
