@@ -6,6 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Criminology and Sociolegal Statistics • crimlab</title>
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="icon" sizes="any" href="favicon.ico">
+<link rel="manifest" href="site.webmanifest">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -13,6 +18,7 @@
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Criminology and Sociolegal Statistics">
 <meta name="description" content="Statistical methods for courts, corrections, policing, forensics and sociolegal research, computed in a compiled core with a thin R layer. Where an identity or bound has a machine-checked proof (Lean), the package names it. This development version holds the disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006) &lt;doi:10.1198/016214506000000168&gt;, the outcome test and its infra-marginality problem, benchmark decomposition of resident disparities, dyadic offending rates, and the bounds a relative risk obeys given an odds ratio; and the first forensic methods: genotype match probabilities with the correction of Balding and Nichols (1994) &lt;doi:10.1016/0379-0738(94)90222-4&gt;, the log-likelihood-ratio cost of Brummer and du Preez (2006) &lt;doi:10.1016/j.csl.2005.08.001&gt; with its calibrated minimum, mixture likelihood ratios, kinship and paternity indices, database-search corrections, and Tippett and empirical-cross-entropy plots.">
 <meta property="og:description" content="Statistical methods for courts, corrections, policing, forensics and sociolegal research, computed in a compiled core with a thin R layer. Where an identity or bound has a machine-checked proof (Lean), the package names it. This development version holds the disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006) &lt;doi:10.1198/016214506000000168&gt;, the outcome test and its infra-marginality problem, benchmark decomposition of resident disparities, dyadic offending rates, and the bounds a relative risk obeys given an odds ratio; and the first forensic methods: genotype match probabilities with the correction of Balding and Nichols (1994) &lt;doi:10.1016/0379-0738(94)90222-4&gt;, the log-likelihood-ratio cost of Brummer and du Preez (2006) &lt;doi:10.1016/j.csl.2005.08.001&gt; with its calibrated minimum, mixture likelihood ratios, kinship and paternity indices, database-search corrections, and Tippett and empirical-cross-entropy plots.">
+<meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -48,10 +54,12 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="crimlab">crimlab<a class="anchor" aria-label="anchor" href="#crimlab"></a>
-</h1></div>
+<div class="page-header">
+<img src="logo.svg" class="logo" alt=""><h1 id="crimlab-">crimlab <a class="anchor" aria-label="anchor" href="#crimlab-"></a>
+</h1>
+</div>
 <p><a href="https://github.com/rootcoder007/crimlab/actions/workflows/check.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/check.yml/badge.svg" alt="check"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/coverage.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/coverage.yml/badge.svg" alt="coverage"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml/badge.svg" alt="srr"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml/badge.svg" alt="pkgdown"></a></p>
-<p>Criminology and Sociolegal Statistics: statistical methods for courts, corrections, policing, forensics and sociolegal research. The computations run in a compiled C++17 core with a plain C interface (<code>src/crimlab.h</code>); the R functions check their arguments and call it. Where an identity or a bound has a machine-checked proof in Lean, <code><a href="reference/proof.html">proof()</a></code> names the theorem.</p>
+<p>Statistical methods for courts, corrections, policing, forensics and sociolegal research. The computations run in a compiled C++17 core with a plain C interface (<code>src/crimlab.h</code>); the R functions check their arguments and call it. Where an identity or a bound has a machine-checked proof in Lean, <code><a href="reference/proof.html">proof()</a></code> names the theorem.</p>
 <p>It is written for researchers and analysts in criminology, sociolegal studies, policing, corrections and forensic science who need these quantities computed correctly and want to know what each one does and does not show. <code><a href="articles/crimlab.html">vignette("crimlab")</a></code> walks through one example from each family.</p>
 <div class="section level2">
 <h2 id="what-it-takes">What it takes<a class="anchor" aria-label="anchor" href="#what-it-takes"></a>
@@ -193,6 +201,14 @@
 <span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
 <span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
 <p>A build with no error and no <code>sorry</code> is the check.</p>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<p><code>citation("crimlab")</code> gives the reference for the installed version:</p>
+<blockquote>
+<p>Ruhela, V. S. (2026). <em>crimlab: Criminology and Sociolegal Statistics.</em> R package. <a href="https://github.com/rootcoder007/crimlab" class="external-link uri">https://github.com/rootcoder007/crimlab</a></p>
+</blockquote>
 </div>
 <div class="section level2">
 <h2 id="licence">Licence<a class="anchor" aria-label="anchor" href="#licence"></a>

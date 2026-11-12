@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/rootcoder007/crimlab/blob/main/DESCRIPTION)
+[`inst/CITATION`](https://github.com/rootcoder007/crimlab/blob/main/inst/CITATION)
 
 Ruhela VS (2026). *crimlab: Criminology and Sociolegal Statistics*. R
 package version 0.0.0.9000, <https://github.com/rootcoder007/crimlab>.

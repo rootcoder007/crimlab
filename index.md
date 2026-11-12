@@ -5,11 +5,11 @@
 [![srr](https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml/badge.svg)](https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml)
 [![pkgdown](https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml/badge.svg)](https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml)
 
-Criminology and Sociolegal Statistics: statistical methods for courts,
-corrections, policing, forensics and sociolegal research. The
-computations run in a compiled C++17 core with a plain C interface
-(`src/crimlab.h`); the R functions check their arguments and call it.
-Where an identity or a bound has a machine-checked proof in Lean,
+Statistical methods for courts, corrections, policing, forensics and
+sociolegal research. The computations run in a compiled C++17 core with
+a plain C interface (`src/crimlab.h`); the R functions check their
+arguments and call it. Where an identity or a bound has a
+machine-checked proof in Lean,
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
 names the theorem.
 
@@ -186,6 +186,13 @@ lake build
 ```
 
 A build with no error and no `sorry` is the check.
+
+## Citation
+
+`citation("crimlab")` gives the reference for the installed version:
+
+> Ruhela, V. S. (2026). *crimlab: Criminology and Sociolegal
+> Statistics.* R package. <https://github.com/rootcoder007/crimlab>
 
 ## Licence
 
