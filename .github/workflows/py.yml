@@ -57,8 +57,10 @@ jobs:
         working-directory: ${{ runner.temp }}
         run: python -m pytest -q --doctest-modules --pyargs crimlab -o doctest_optionflags=NORMALIZE_WHITESPACE
       - name: README examples
-        working-directory: py
-        run: python -m pytest -q --doctest-glob=README.md README.md -o doctest_optionflags=NORMALIZE_WHITESPACE
+        # from another directory, so that crimlab is the installed package
+        # and not the source folder py/crimlab, which has no compiled module
+        working-directory: ${{ runner.temp }}
+        run: python -m pytest -q -p no:cacheprovider --doctest-glob=README.md "${{ github.workspace }}/py/README.md" -o doctest_optionflags=NORMALIZE_WHITESPACE
 
   wheels:
     name: wheels (${{ matrix.os }})

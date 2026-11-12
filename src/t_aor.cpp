@@ -71,7 +71,7 @@ void run(tk &tt) {
     static double f[300], t[300], wr[300 * 168];
     for (int i = 0; i < 300; ++i) {
       f[i] = 1672617600 + 60.0 * ((i * 7919LL) % 200000);
-      double sp = 2 + (i * 104729LL) % 480;
+      double sp = 2.0 + static_cast<double>((i * 104729LL) % 480);
       if (i % 50 == 7) sp = 8 * 1440;
       if (i % 50 == 21) sp = -30;
       if (i % 50 == 33) sp = 1;
