@@ -75,8 +75,8 @@ mismatch.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame with one row per dyad: <code>off</code>, <code>vic</code>, <code>count</code>,
-<code>rate_off</code>, <code>rate_pair</code>, <code>null_off</code> (the rate per offender under random
-mixing) and <code>ratio</code> (<code>rate_pair</code> over the pooled pair rate; 1 under
+<code>rtoff</code>, <code>rtpair</code>, <code>nulloff</code> (the rate per offender under random
+mixing) and <code>ratio</code> (<code>rtpair</code> over the pooled pair rate; 1 under
 random mixing).</p>
     </div>
 
@@ -84,11 +84,11 @@ random mixing).</p>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">800</span>, b <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">dyadrt</span><span class="op">(</span>count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">pop</span><span class="op">)</span> <span class="op">/</span> <span class="fl">1000</span>, pop <span class="op">=</span> <span class="va">pop</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   off vic count rate_off rate_pair null_off ratio</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1   a   a   640      0.8         1      0.8     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2   b   a   160      0.8         1      0.8     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3   a   b   160      0.2         1      0.2     1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4   b   b    40      0.2         1      0.2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   off vic count rtoff rtpair nulloff ratio</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1   a   a   640   0.8      1     0.8     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2   b   a   160   0.8      1     0.8     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   a   b   160   0.2      1     0.2     1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4   b   b    40   0.2      1     0.2     1</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

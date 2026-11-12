@@ -83,8 +83,8 @@ over darkness exposure, in the forms of <code>day</code>, matched by name.</p></
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame with one row per group, in the order of <code>day</code>:
-<code>group</code>, <code>ref</code> (<code>TRUE</code> for the reference group), <code>share_day</code>,
-<code>share_night</code>, <code>ratio</code>, <code>sign</code> (the sign of <code>share_day - share_night</code>)
+<code>group</code>, <code>ref</code> (<code>TRUE</code> for the reference group), <code>shday</code>,
+<code>shnight</code>, <code>ratio</code>, <code>sign</code> (the sign of <code>shday - shnight</code>)
 and, when <code>shift</code> is given, <code>adj</code>.</p>
     </div>
     <div class="section level2">
@@ -106,16 +106,16 @@ the American Statistical Association</em>, 101(475), 878-887.
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">vodtst</span><span class="op">(</span>day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>white <span class="op">=</span> <span class="fl">600</span>, black <span class="op">=</span> <span class="fl">400</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>       night <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>white <span class="op">=</span> <span class="fl">700</span>, black <span class="op">=</span> <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   group   ref share_day share_night    ratio sign</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 white  TRUE       0.6         0.7 1.000000   -1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 black FALSE       0.4         0.3 1.555556    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   group   ref shday shnight    ratio sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 white  TRUE   0.6     0.7 1.000000   -1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 black FALSE   0.4     0.3 1.555556    1</span>
 <span class="r-in"><span><span class="co"># one table of groups by day and night</span></span></span>
 <span class="r-in"><span><span class="va">stops</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>day <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">600</span>, <span class="fl">400</span><span class="op">)</span>, night <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">700</span>, <span class="fl">300</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                    row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"white"</span>, <span class="st">"black"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">vodtst</span><span class="op">(</span><span class="va">stops</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   group   ref share_day share_night    ratio sign</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1 white  TRUE       0.6         0.7 1.000000   -1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2 black FALSE       0.4         0.3 1.555556    1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   group   ref shday shnight    ratio sign</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 white  TRUE   0.6     0.7 1.000000   -1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 black FALSE   0.4     0.3 1.555556    1</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

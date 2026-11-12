@@ -38,9 +38,9 @@ day <- c(white = 600, black = 400)
 night <- c(white = 700, black = 300)
 v <- vodtst(day, night)
 v
-#>   group   ref share_day share_night    ratio sign
-#> 1 white  TRUE       0.6         0.7 1.000000   -1
-#> 2 black FALSE       0.4         0.3 1.555556    1
+#>   group   ref shday shnight    ratio sign
+#> 1 white  TRUE   0.6     0.7 1.000000   -1
+#> 2 black FALSE   0.4     0.3 1.555556    1
 pc <- function(x) paste(round(100 * x), "per cent")
 ```
 
@@ -64,9 +64,9 @@ stops <- data.frame(race = c("black", "white", "white", "black"),
                     light = c("day", "day", "night", "night"),
                     n = c(400, 600, 700, 300))
 vodtst(xtabs(n ~ race + light, stops), ref = "white")
-#>   group   ref share_day share_night    ratio sign
-#> 1 black FALSE       0.4         0.3 1.555556    1
-#> 2 white  TRUE       0.6         0.7 1.000000   -1
+#>   group   ref shday shnight    ratio sign
+#> 1 black FALSE   0.4     0.3 1.555556    1
+#> 2 white  TRUE   0.6     0.7 1.000000   -1
 ```
 
 What this does not license: the ratio isolates the effect of visibility
@@ -262,6 +262,85 @@ so the two groups differ before sentencing. Narrowing the interval needs
 an assumption that the data cannot check, such as random assignment, and
 the conclusions are only as good as that assumption.
 
+## Networks: who offends with whom
+
+Police records list the offenders of each incident. Joining offenders
+who were recorded together gives a co-offending network, the tie
+weighted by the incidents they share (Reiss 1988):
+
+``` r
+
+inc <- c(1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6)
+off <- c("ana", "ben", "cy", "ana", "ben", "cy", "dee", "dee", "eli",
+         "eli", "fay", "gus")
+g <- coofg(inc, off)
+e <- g$edges
+e
+#>   from  to w
+#> 1  ana ben 2
+#> 2  ana  cy 1
+#> 3  ben  cy 1
+#> 4   cy dee 1
+#> 5  dee eli 1
+#> 6  eli fay 1
+```
+
+Gus offended alone: he is a node of the network but in no tie, so the
+network functions are given `nodes` to keep him. Results come back by
+name, in the order offenders first appear:
+
+``` r
+
+ntdeg(e$from, e$to, w = e$w, nodes = g$nodes)
+#>   node deg wdeg
+#> 1  ana   2    3
+#> 2  ben   2    3
+#> 3   cy   3    3
+#> 4  dee   2    2
+#> 5  eli   2    2
+#> 6  fay   1    1
+#> 7  gus   0    0
+ntbtw(e$from, e$to, nodes = g$nodes)
+#>   node btw
+#> 1  ana   0
+#> 2  ben   0
+#> 3   cy   6
+#> 4  dee   6
+#> 5  eli   4
+#> 6  fay   0
+#> 7  gus   0
+ntlvn(e$from, e$to, w = e$w, nodes = g$nodes)$memb
+#>   node comm
+#> 1  ana    1
+#> 2  ben    1
+#> 3   cy    1
+#> 4  dee    2
+#> 5  eli    2
+#> 6  fay    2
+#> 7  gus    3
+```
+
+Cy and Dee each lie on every path between the two halves, and the
+Louvain method splits the network there.
+[`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md)
+measures how cleanly it splits: the conductance of the best cut lies
+between the two Cheeger bounds, and the lower one is proved in Lean
+(`proof("ntchg")`).
+
+``` r
+
+big <- !(e$from %in% "gus" | e$to %in% "gus")
+ntchg(e$from[big], e$to[big], w = e$w[big])$bound
+#>    lambda2      lower      upper      sweep 
+#> 0.17307222 0.08653611 0.58834041 0.20000000
+```
+
+What this does not license: a recorded tie is two people arrested or
+charged for the same incident, so the network shows police attention as
+much as offending. Offenders never caught are missing, and a missing
+node can change who appears central; betweenness in particular is
+fragile when ties are missing.
+
 ## Proofs
 
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
@@ -310,6 +389,9 @@ other things:
   world, not about the proof.
 
 ## References
+
+Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
+Justice*, 10, 117-170.
 
 Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in
 traffic stops from behind a veil of darkness. *Journal of the American

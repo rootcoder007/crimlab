@@ -76,6 +76,34 @@ hazards after selection.
 - [`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md)
   : Period-two hazards after selective depletion
 
+## Networks
+
+Co-offending graphs, centrality, cores, components, communities,
+brokerage and the Cheeger bounds.
+
+- [`coofg()`](https://rootcoder007.github.io/crimlab/reference/coofg.md)
+  : Co-offending graph from an incident table
+- [`ntdeg()`](https://rootcoder007.github.io/crimlab/reference/ntdeg.md)
+  : Degree and strength of each node
+- [`ntbtw()`](https://rootcoder007.github.io/crimlab/reference/ntbtw.md)
+  : Betweenness of each node
+- [`ntcls()`](https://rootcoder007.github.io/crimlab/reference/ntcls.md)
+  : Closeness of each node
+- [`ntevc()`](https://rootcoder007.github.io/crimlab/reference/ntevc.md)
+  : Eigenvector centrality of each node
+- [`ntcore()`](https://rootcoder007.github.io/crimlab/reference/ntcore.md)
+  : k-core of each node
+- [`ntcmp()`](https://rootcoder007.github.io/crimlab/reference/ntcmp.md)
+  : Connected components
+- [`ntlvn()`](https://rootcoder007.github.io/crimlab/reference/ntlvn.md)
+  : Communities by the Louvain method
+- [`ntmod()`](https://rootcoder007.github.io/crimlab/reference/ntmod.md)
+  : Modularity of a partition
+- [`ntbrk()`](https://rootcoder007.github.io/crimlab/reference/ntbrk.md)
+  : Brokerage roles
+- [`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md)
+  : Cheeger bounds on a network's bottleneck
+
 ## Proofs
 
 - [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)

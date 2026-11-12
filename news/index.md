@@ -44,6 +44,28 @@
   assumptions.
 - [`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md)
   shows how period-two hazards differ after selective depletion.
+- Networks:
+  [`coofg()`](https://rootcoder007.github.io/crimlab/reference/coofg.md)
+  builds the co-offending graph of an incident table;
+  [`ntdeg()`](https://rootcoder007.github.io/crimlab/reference/ntdeg.md),
+  [`ntbtw()`](https://rootcoder007.github.io/crimlab/reference/ntbtw.md),
+  [`ntcls()`](https://rootcoder007.github.io/crimlab/reference/ntcls.md)
+  and
+  [`ntevc()`](https://rootcoder007.github.io/crimlab/reference/ntevc.md)
+  give degree, betweenness, closeness and eigenvector centrality;
+  [`ntcore()`](https://rootcoder007.github.io/crimlab/reference/ntcore.md)
+  cores,
+  [`ntcmp()`](https://rootcoder007.github.io/crimlab/reference/ntcmp.md)
+  components,
+  [`ntlvn()`](https://rootcoder007.github.io/crimlab/reference/ntlvn.md)
+  and
+  [`ntmod()`](https://rootcoder007.github.io/crimlab/reference/ntmod.md)
+  Louvain communities and modularity,
+  [`ntbrk()`](https://rootcoder007.github.io/crimlab/reference/ntbrk.md)
+  Gould-Fernandez brokerage and
+  [`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md)
+  the Cheeger bounds. Results are by node label in order of first
+  appearance.
 - [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
   names the Lean theorem behind each function; the proofs ship in
   `inst/lean`.

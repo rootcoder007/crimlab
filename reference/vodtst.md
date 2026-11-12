@@ -42,9 +42,9 @@ vodtst(day, night = NULL, ref = 1, shift = NULL)
 ## Value
 
 A data frame with one row per group, in the order of `day`: `group`,
-`ref` (`TRUE` for the reference group), `share_day`, `share_night`,
-`ratio`, `sign` (the sign of `share_day - share_night`) and, when
-`shift` is given, `adj`.
+`ref` (`TRUE` for the reference group), `shday`, `shnight`, `ratio`,
+`sign` (the sign of `shday - shnight`) and, when `shift` is given,
+`adj`.
 
 ## Details
 
@@ -65,14 +65,14 @@ Statistical Association*, 101(475), 878-887.
 ``` r
 vodtst(day = c(white = 600, black = 400),
        night = c(white = 700, black = 300))
-#>   group   ref share_day share_night    ratio sign
-#> 1 white  TRUE       0.6         0.7 1.000000   -1
-#> 2 black FALSE       0.4         0.3 1.555556    1
+#>   group   ref shday shnight    ratio sign
+#> 1 white  TRUE   0.6     0.7 1.000000   -1
+#> 2 black FALSE   0.4     0.3 1.555556    1
 # one table of groups by day and night
 stops <- data.frame(day = c(600, 400), night = c(700, 300),
                     row.names = c("white", "black"))
 vodtst(stops)
-#>   group   ref share_day share_night    ratio sign
-#> 1 white  TRUE       0.6         0.7 1.000000   -1
-#> 2 black FALSE       0.4         0.3 1.555556    1
+#>   group   ref shday shnight    ratio sign
+#> 1 white  TRUE   0.6     0.7 1.000000   -1
+#> 2 black FALSE   0.4     0.3 1.555556    1
 ```

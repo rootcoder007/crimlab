@@ -69,7 +69,8 @@
 <li>counts by group: stops, searches, uses of force, offences recorded and cleared, residents, offenders and victims;</li>
 <li>individual outcomes coded 0 or 1, with a group or a decision for each person: release, sentence, reconviction;</li>
 <li>allele frequencies and genotypes at one or more loci;</li>
-<li>likelihood ratios from validation comparisons whose source is known.</li>
+<li>likelihood ratios from validation comparisons whose source is known;</li>
+<li>networks as edge lists of labels (who offended with whom, who passed what to whom), or incident tables that list the offenders of each incident.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -80,6 +81,7 @@
 <li>Forensics: how rare a DNA profile is, what a likelihood ratio is worth and what it is not, how well a system’s ratios are calibrated, kinship, paternity, mixtures and database searches.</li>
 <li>Policing: why an aggregate clearance rate can fall while every offence type clears better, what a proxy for exposure allows, what misrecorded group membership does, regression to the mean at hot spots.</li>
 <li>Corrections: what incapacitation prevents, what a release rule’s failure rate can be when only the released are seen, mean time in custody from current stays, and what observational data alone say about a sentence’s effect.</li>
+<li>Networks: who co-offends with whom, who sits between groups, which offenders form the core and the communities of a network, and how cleanly it splits in two.</li>
 </ul>
 </div>
 <div class="section level2">
@@ -203,9 +205,25 @@
 <span><span class="fu"><a href="reference/eceplt.html">eceplt</a></span><span class="op">(</span><span class="va">same</span>, <span class="va">diff</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
+<h3 id="co-offending-networks">Co-offending networks<a class="anchor" aria-label="anchor" href="#co-offending-networks"></a>
 </h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># offenders recorded together in an incident are tied, weighted by the</span></span>
+<span><span class="co"># number of incidents they share</span></span>
+<span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">3</span>, <span class="fl">3</span>, <span class="fl">4</span>, <span class="fl">4</span>, <span class="fl">5</span><span class="op">)</span></span>
+<span><span class="va">off</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ana"</span>, <span class="st">"ben"</span>, <span class="st">"cy"</span>, <span class="st">"ana"</span>, <span class="st">"ben"</span>, <span class="st">"cy"</span>, <span class="st">"dee"</span>, <span class="st">"dee"</span>, <span class="st">"eli"</span>, <span class="st">"fay"</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/coofg.html">coofg</a></span><span class="op">(</span><span class="va">inc</span>, <span class="va">off</span><span class="op">)</span></span>
+<span><span class="va">e</span> <span class="op">&lt;-</span> <span class="va">g</span><span class="op">$</span><span class="va">edges</span></span>
+<span><span class="fu"><a href="reference/ntdeg.html">ntdeg</a></span><span class="op">(</span><span class="va">e</span><span class="op">$</span><span class="va">from</span>, <span class="va">e</span><span class="op">$</span><span class="va">to</span>, w <span class="op">=</span> <span class="va">e</span><span class="op">$</span><span class="va">w</span>, nodes <span class="op">=</span> <span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/ntbtw.html">ntbtw</a></span><span class="op">(</span><span class="va">e</span><span class="op">$</span><span class="va">from</span>, <span class="va">e</span><span class="op">$</span><span class="va">to</span>, nodes <span class="op">=</span> <span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/ntlvn.html">ntlvn</a></span><span class="op">(</span><span class="va">e</span><span class="op">$</span><span class="va">from</span>, <span class="va">e</span><span class="op">$</span><span class="va">to</span>, w <span class="op">=</span> <span class="va">e</span><span class="op">$</span><span class="va">w</span>, nodes <span class="op">=</span> <span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/ntbrk.html">ntbrk</a></span><span class="op">(</span><span class="va">e</span><span class="op">$</span><span class="va">from</span>, <span class="va">e</span><span class="op">$</span><span class="va">to</span>, grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>ana <span class="op">=</span> <span class="st">"x"</span>, ben <span class="op">=</span> <span class="st">"x"</span>, cy <span class="op">=</span> <span class="st">"x"</span>, dee <span class="op">=</span> <span class="st">"y"</span>,</span>
+<span>                            eli <span class="op">=</span> <span class="st">"y"</span>, fay <span class="op">=</span> <span class="st">"z"</span><span class="op">)</span>, nodes <span class="op">=</span> <span class="va">g</span><span class="op">$</span><span class="va">nodes</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
+</h3>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/proof.html">proof</a></span><span class="op">(</span><span class="st">"vodtst"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -213,9 +231,9 @@
 <h2 id="checking-the-proofs">Checking the proofs<a class="anchor" aria-label="anchor" href="#checking-the-proofs"></a>
 </h2>
 <p>The Lean 4 files are in <code>inst/lean</code> (installed under <code>system.file("lean", package = "crimlab")</code>). With <a href="https://github.com/leanprover/elan" class="external-link">elan</a> installed:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="bu">cd</span> inst/lean</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="bu">cd</span> inst/lean</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
 <p>A build with no error and no <code>sorry</code> is the check.</p>
 </div>
 <div class="section level2">

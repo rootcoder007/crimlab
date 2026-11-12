@@ -29,18 +29,18 @@ dyadrt(count, pop)
 
 ## Value
 
-A data frame with one row per dyad: `off`, `vic`, `count`, `rate_off`,
-`rate_pair`, `null_off` (the rate per offender under random mixing) and
-`ratio` (`rate_pair` over the pooled pair rate; 1 under random mixing).
+A data frame with one row per dyad: `off`, `vic`, `count`, `rtoff`,
+`rtpair`, `nulloff` (the rate per offender under random mixing) and
+`ratio` (`rtpair` over the pooled pair rate; 1 under random mixing).
 
 ## Examples
 
 ``` r
 pop <- c(a = 800, b = 200)
 dyadrt(count = outer(pop, pop) / 1000, pop = pop)
-#>   off vic count rate_off rate_pair null_off ratio
-#> 1   a   a   640      0.8         1      0.8     1
-#> 2   b   a   160      0.8         1      0.8     1
-#> 3   a   b   160      0.2         1      0.2     1
-#> 4   b   b    40      0.2         1      0.2     1
+#>   off vic count rtoff rtpair nulloff ratio
+#> 1   a   a   640   0.8      1     0.8     1
+#> 2   b   a   160   0.8      1     0.8     1
+#> 3   a   b   160   0.2      1     0.2     1
+#> 4   b   b    40   0.2      1     0.2     1
 ```
