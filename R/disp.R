@@ -28,23 +28,7 @@
 #'        night = c(white = 700, black = 300))
 #' @export
 vodtst <- function(day, night, ref = 1, shift = NULL) {
-  nms <- .grp(day)
-  day <- .num(day, "day", lo = 0)
-  n <- length(day)
-  night <- .num(night, "night", len = n, lo = 0, open = TRUE)
-  if (!is.null(shift)) {
-    shift <- .num(shift, "shift", len = n, lo = 0, open = TRUE)
-  }
-  i <- .ref(ref, nms, n)
-  if (day[i] <= 0) {
-    stop("the reference group has no daylight stops.", call. = FALSE)
-  }
-  r <- .Call(C_clab_vod, day, night, i - 1L, shift)
-  out <- data.frame(group = nms, share_day = r[["share_day"]],
-                    share_night = r[["share_night"]], ratio = r[["ratio"]],
-                    sign = r[["sign"]])
-  if (!is.null(shift)) out[["adj"]] <- r[["adj"]]
-  out
+  .Call(C_clab_r_vodtst, day, night, ref, shift)
 }
 
 #' Risks behind an odds ratio
@@ -64,14 +48,7 @@ vodtst <- function(day, night, ref = 1, shift = NULL) {
 #' orrisk(or = 3, rate = 0.4, share = 0.5)
 #' @export
 orrisk <- function(or, rate, share) {
-  or <- .num(or, "or", len = 1L, lo = 0, open = TRUE)
-  if (!is.finite(1 / or)) {
-    stop("`or` is too small: its reciprocal is not finite.", call. = FALSE)
-  }
-  rate <- .one(rate, "rate", 0, 1)
-  share <- .one(share, "share", 0, 1)
-  r <- .Call(C_clab_orrisk, or, rate, share)
-  c(exposed = r[1L], unexposed = r[2L], rr = r[1L] / r[2L], or = or)
+  .Call(C_clab_r_orrisk, or, rate, share)
 }
 
 #' Outcome test
@@ -93,17 +70,7 @@ orrisk <- function(or, rate, share) {
 #' outtst(q = c(0.1, 0.5, 0.9), t = 0.3)
 #' @export
 outtst <- function(q, t, w = NULL) {
-  q <- .num(q, "q", lo = 0)
-  if (any(q > 1)) stop("`q` must be at most 1.", call. = FALSE)
-  t <- .num(t, "t", len = 1L)
-  w <- if (is.null(w)) {
-    rep(1, length(q))
-  } else {
-    .num(w, "w", len = length(q), lo = 0)
-  }
-  if (sum(w) <= 0) stop("`w` must have a positive total.", call. = FALSE)
-  r <- .Call(C_clab_outtst, q, w, t)
-  c(stop = r[1L], hit = r[2L])
+  .Call(C_clab_r_outtst, q, t, w)
 }
 
 #' Benchmark decomposition of a disparity
@@ -124,14 +91,7 @@ outtst <- function(q, t, w = NULL) {
 #'       force = c(a = 9, b = 6))
 #' @export
 dspbm <- function(pop, contact, force, ref = 1) {
-  nms <- .grp(pop)
-  pop <- .num(pop, "pop", lo = 0, open = TRUE)
-  n <- length(pop)
-  contact <- .num(contact, "contact", len = n, lo = 0, open = TRUE)
-  force <- .num(force, "force", len = n, lo = 0, open = TRUE)
-  i <- .ref(ref, nms, n)
-  r <- .Call(C_clab_dspbm, pop, contact, force, i - 1L)
-  data.frame(group = nms, cd = r[["cd"]], fd = r[["fd"]], rd = r[["rd"]])
+  .Call(C_clab_r_dspbm, pop, contact, force, ref)
 }
 
 #' Dyadic offending rates
@@ -155,18 +115,5 @@ dspbm <- function(pop, contact, force, ref = 1) {
 #' dyadrt(count = outer(pop, pop) / 1000, pop = pop)
 #' @export
 dyadrt <- function(count, pop) {
-  nms <- .grp(pop)
-  pop <- .num(pop, "pop", lo = 0, open = TRUE)
-  g <- length(pop)
-  if (!is.matrix(count) || nrow(count) != g || ncol(count) != g) {
-    stop("`count` must be a ", g, " by ", g, " matrix.", call. = FALSE)
-  }
-  x <- .num(as.vector(count), "count", lo = 0)
-  if (sum(x) <= 0) stop("`count` holds no offences.", call. = FALSE)
-  off <- rep(seq_len(g), times = g)
-  vic <- rep(seq_len(g), each = g)
-  r <- .Call(C_clab_dyadrt, x, off - 1L, vic - 1L, pop)
-  data.frame(off = nms[off], vic = nms[vic], count = x,
-             rate_off = r[["rate_off"]], rate_pair = r[["rate_pair"]],
-             null_off = r[["null_off"]], ratio = r[["ratio"]])
+  .Call(C_clab_r_dyadrt, count, pop)
 }

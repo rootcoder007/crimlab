@@ -265,6 +265,12 @@ SEXP C_clab_selftest(void) {
   UNPROTECT(1);
   return out;
 }
+// The entry points of the exported functions (bind.cpp).
+SEXP C_clab_r_vodtst(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_orrisk(SEXP, SEXP, SEXP);
+SEXP C_clab_r_outtst(SEXP, SEXP, SEXP);
+SEXP C_clab_r_dspbm(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dyadrt(SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", (DL_FUNC)&C_clab_vod, 4},
@@ -289,6 +295,11 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_sntbnd", (DL_FUNC)&C_clab_sntbnd, 3},
     {"C_clab_hzdsel", (DL_FUNC)&C_clab_hzdsel, 5},
     {"C_clab_selftest", (DL_FUNC)&C_clab_selftest, 0},
+    {"C_clab_r_vodtst", (DL_FUNC)&C_clab_r_vodtst, 4},
+    {"C_clab_r_orrisk", (DL_FUNC)&C_clab_r_orrisk, 3},
+    {"C_clab_r_outtst", (DL_FUNC)&C_clab_r_outtst, 3},
+    {"C_clab_r_dspbm", (DL_FUNC)&C_clab_r_dspbm, 4},
+    {"C_clab_r_dyadrt", (DL_FUNC)&C_clab_r_dyadrt, 2},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {
