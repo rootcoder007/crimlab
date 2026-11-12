@@ -87,5 +87,7 @@ void t_jtc(tk &t, int big);
 void b_jtc();
 void t_hsp(tk &t, int big);
 void b_hsp();
+void t_stm(tk &t, int big);
+void b_stm();
 
 #endif

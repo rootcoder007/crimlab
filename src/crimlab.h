@@ -563,6 +563,34 @@ int clab_stacel(const double *x, const double *y, int n, const double *win,
                 int nx, int ny, double r, int top, int minpts, int k, double c,
                 int *iwork, double *work, int *cl, int *ncl, double *cs);
 
+
+/* Mantel's space-time test (Mantel 1967, Cancer Research 27: 209-220):
+ * the Pearson correlation r over all n (n - 1) / 2 pairs of events
+ * between their spatial dissimilarity X (the distance, or 1 / (distance +
+ * cs) when cs > 0, Mantel's reciprocal transform) and their temporal one
+ * Y (|t_i - t_j|, or 1 / (|t_i - t_j| + ct) when ct > 0). x, y: planar
+ * locations, t: times, n in [3, 46340]. The test permutes the times over
+ * the fixed locations, nsim >= 0 times from seed (Fisher-Yates); drawing
+ * distances and intervals independently instead does not preserve the
+ * dependence among the pairs of one distance matrix and gives no test of
+ * stated size. Out, 5: r; the number of pairs; the permutation p-values
+ * (1 + #{r_perm >= r}) / (nsim + 1), (1 + #{r_perm <= r}) / (nsim + 1)
+ * and (1 + #{|r_perm| >= |r|}) / (nsim + 1) (NaN without permutations).
+ * CLAB_EDOM when either dissimilarity is constant. iwork: n ints. Memory
+ * O(n), no distance matrix; time O(n^2 (nsim + 1)). */
+int clab_mantst(const double *x, const double *y, const double *t, int n,
+                double cs, double ct, int nsim, unsigned int seed, int *iwork,
+                double *out);
+
+/* Spatial-temporal moving average: the events in time order (ties in
+ * input order), and for each the mean centre of the span (odd, >= 1)
+ * events centred on it, the window shortened at the ends of the series.
+ * x, y: n >= 1 planar locations, t: times. iwork: n ints. Out, 4 n, one
+ * row per event in time order: its input index, the window's mean x and
+ * y, and the number of events in the window. O(n log n + n span). */
+int clab_stmavg(const double *x, const double *y, const double *t, int n,
+                int span, int *iwork, double *out);
+
 #ifdef __cplusplus
 }
 #endif
