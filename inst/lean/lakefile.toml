@@ -1,0 +1,19 @@
+name = "csls"
+version = "0.1.0"
+keywords = ["math"]
+defaultTargets = ["Csls"]
+
+[leanOptions]
+pp.unicode.fun = true
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.34.0"
+
+[[lean_lib]]
+name = "Csls"
+roots = ["Veil", "RelRisk", "OutcomeTest", "Benchmark", "Dyad", "Forensics"]

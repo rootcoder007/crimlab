@@ -1,0 +1,59 @@
+# Compiles every theorem proof() names against Mathlib. A proof that stops
+# compiling, or a `sorry`, fails the job.
+name: lean
+
+on:
+  push:
+    branches: [main]
+    paths: ['inst/lean/**', 'R/proof.R', '.github/workflows/lean.yml']
+  pull_request:
+    branches: [main]
+    paths: ['inst/lean/**', 'R/proof.R', '.github/workflows/lean.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lean-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: lake build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: inst/lean
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: |
+            ~/.elan
+            inst/lean/.lake
+          key: lean-${{ hashFiles('inst/lean/lean-toolchain', 'inst/lean/lake-manifest.json') }}
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -o /tmp/elan-init.sh
+          sh /tmp/elan-init.sh -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Prebuilt Mathlib
+        run: lake exe cache get
+      - name: Build the proofs
+        run: |
+          set -o pipefail
+          lake build 2>&1 | tee build.log
+          if grep -n "declaration uses 'sorry'\|^error" build.log; then
+            echo "::error::a proof is incomplete or broken"
+            exit 1
+          fi
+      - name: No sorry in any source
+        run: |
+          if grep -n "sorry" ./*.lean; then
+            echo "::error::sorry found"
+            exit 1
+          fi

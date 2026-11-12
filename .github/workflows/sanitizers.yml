@@ -1,0 +1,60 @@
+# AddressSanitizer + UndefinedBehaviorSanitizer over the compiled core.
+# rocker/r-devel-san ships R-devel built with both sanitizers as `RD`.
+name: sanitizers
+
+on:
+  push:
+    branches: [main]
+    paths: ['src/**', 'tests/**', 'R/**', 'DESCRIPTION', '.github/workflows/sanitizers.yml']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'tests/**', 'R/**', 'DESCRIPTION', '.github/workflows/sanitizers.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sanitizers-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  asan-ubsan:
+    name: ASAN + UBSAN (rocker/r-devel-san)
+    runs-on: ubuntu-24.04
+    # unpinned on purpose: the job exists to test against today's R-devel
+    container: rocker/r-devel-san  # zizmor: ignore[unpinned-images]
+    timeout-minutes: 30
+    env:
+      # R itself leaks by design at exit; a leak report would drown the signal
+      ASAN_OPTIONS: detect_leaks=0:abort_on_error=0:print_summary=1
+      UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=0
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # libuv for fs, a testthat dependency the image does not ship
+      - name: System libraries
+        run: apt-get update && apt-get install -y --no-install-recommends libuv1-dev pkg-config
+      - name: Test dependencies
+        run: |
+          RDscript -e 'install.packages("testthat", repos = "https://cloud.r-project.org"); if (!requireNamespace("testthat", quietly = TRUE)) stop("could not install testthat")'
+      - name: Install under the sanitizers
+        shell: bash
+        run: |
+          set -o pipefail
+          RD CMD INSTALL --preclean . 2>&1 | tee install.log
+          if grep -E "runtime error:|ERROR: AddressSanitizer" install.log; then
+            echo "::error::sanitizer report during install"
+            exit 1
+          fi
+      - name: Run the test suite under ASAN + UBSAN
+        shell: bash
+        run: |
+          set -o pipefail
+          RDscript -e 'library(testthat); library(csls); test_dir("tests/testthat", package = "csls", reporter = "summary", stop_on_failure = TRUE)' 2>&1 | tee san.log
+          # the sanitizers report to stderr and keep going; any report fails the job
+          if grep -E "runtime error:|ERROR: AddressSanitizer|SUMMARY: (Address|UndefinedBehavior)Sanitizer" san.log; then
+            echo "::error::sanitizer report above"
+            exit 1
+          fi

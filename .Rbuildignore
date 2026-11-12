@@ -4,3 +4,5 @@
 ^\.github$
 ^\.lintr$
 ^air\.toml$
+^inst/lean/\.lake$
+^inst/lean/build\.log$

@@ -98,7 +98,8 @@ test_that("proof names real theorems", {
     expect_true(any(src == paste("namespace", ns)), info = ns)
   }
   expect_false(any(grepl("sorry", unlist(lapply(
-    list.files(system.file("lean", package = "csls"), full.names = TRUE),
+    list.files(system.file("lean", package = "csls"), "\\.lean$",
+               full.names = TRUE),
     readLines, warn = FALSE
   )))))
 })

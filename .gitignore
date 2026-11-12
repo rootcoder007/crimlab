@@ -2,3 +2,5 @@ src/*.o
 src/*.so
 *.tar.gz
 *.Rcheck
+inst/lean/.lake
+inst/lean/build.log
