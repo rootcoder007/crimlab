@@ -1,0 +1,50 @@
+# The checks the rOpenSci review bot runs on a submission: pkgcheck() in
+# the bot's own image, with goodpractice's full R CMD check and covr. It
+# needs only the job's own token, which can read this repository while it
+# is private. Run by hand: it fails until the package has an HTML
+# vignette and a website, which pkgcheck requires.
+name: pkgcheck
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: pkgcheck-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pkgcheck:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: pkgcheck in the bot's image
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p .pkgcheck
+          cat > .pkgcheck/run.R <<'RSCRIPT'
+          pkgstats::ctags_install(sudo = TRUE)
+          x <- pkgcheck::pkgcheck(".")
+          s <- capture.output(summary(x), type = "message")
+          writeLines(s)
+          rc <- x$goodpractice$rcmdcheck
+          if (inherits(rc, "try-error")) cat(rc) else {
+            cat("errors:", length(rc$errors), " warnings:",
+                length(rc$warnings), " notes:", length(rc$notes), "\n")
+            writeLines(c(rc$errors, rc$warnings))
+          }
+          # a cross (U+2716) is a failing check
+          quit(status = as.integer(any(grepl("✖", s))))
+          RSCRIPT
+          docker run --rm -e GITHUB_TOKEN -e PKG_SYSREQS=false \
+            -v "$PWD:/pkg" -w /pkg --entrypoint Rscript \
+            ghcr.io/ropensci-review-tools/pkgcheck-action:latest \
+            .pkgcheck/run.R
