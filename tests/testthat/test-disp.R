@@ -23,7 +23,7 @@ test_that("orrisk returns the pair with that odds ratio and that rate", {
         expect_true(a > 0 && a < 1 && b > 0 && b < 1)
         expect_equal(a * (1 - b) / (b * (1 - a)), or, tolerance = 1e-9)
         expect_equal(s * a + (1 - s) * b, q, tolerance = 1e-12)
-        # Research.P2.or_overstates: the relative risk sits between 1 and OR
+        # Csls.RelRisk.or_overstates: the relative risk sits between 1 and OR
         expect_true(abs(log(r[["rr"]])) <= abs(log(or)) + 1e-12)
       }
     }
@@ -87,23 +87,20 @@ test_that("proof names real theorems", {
   expect_error(proof(1), "function names")
   # every function proof() names is exported
   expect_true(all(p[["fn"]] %in% getNamespaceExports("csls")))
-  has <- function(path, thm) {
-    src <- readLines(path, warn = FALSE)
-    any(grepl(paste0("^theorem ", sub(".*\\.", "", thm), "\\b"), src))
+  for (k in seq_len(nrow(p))) {
+    f <- system.file(p[["file"]][k], package = "csls")
+    expect_true(nzchar(f), info = p[["file"]][k])
+    src <- readLines(f, warn = FALSE)
+    nm <- sub(".*\\.", "", p[["theorem"]][k])
+    expect_true(any(grepl(paste0("^theorem ", nm, "\\b"), src)), info = nm)
+    # the namespace in the file is the one proof() gives
+    ns <- sub("\\.[^.]*$", "", p[["theorem"]][k])
+    expect_true(any(src == paste("namespace", ns)), info = ns)
   }
-  own <- p[p[["src"]] == "csls", ]
-  for (k in seq_len(nrow(own))) {
-    f <- system.file(own[["file"]][k], package = "csls")
-    expect_true(nzchar(f))
-    expect_true(has(f, own[["theorem"]][k]), info = own[["theorem"]][k])
-  }
-  lean <- Sys.getenv("CSLS_LEAN")  # path to rmorie research/lean, when present
-  skip_if(!nzchar(lean) || !dir.exists(lean), "Lean ledger not present")
-  led <- p[p[["src"]] == "rmorie", ]
-  for (k in seq_len(nrow(led))) {
-    expect_true(has(file.path(lean, led[["file"]][k]), led[["theorem"]][k]),
-                info = led[["theorem"]][k])
-  }
+  expect_false(any(grepl("sorry", unlist(lapply(
+    list.files(system.file("lean", package = "csls"), full.names = TRUE),
+    readLines, warn = FALSE
+  )))))
 })
 
 test_that("results agree with rmorie", {

@@ -10,14 +10,12 @@ proof(fn = NULL)
 \item{fn}{\code{NULL} for every function, or function names.}
 }
 \value{
-A data frame: \code{fn}, \code{theorem}, \code{src} and \code{file}.
+A data frame: \code{fn}, \code{theorem} and \code{file}.
 }
 \description{
-Names the 'Lean' theorem each function rests on. Theorems with source
-\code{"rmorie"} are part of the 'rmorie' research ledger, and \code{file} is the path
-inside its \code{research/lean} directory. Theorems with source \code{"csls"} ship
-with this package, and \code{file} is the path below
-\code{system.file(package = "csls")}.
+Names the 'Lean' theorem each function rests on. The theorems ship with
+the package: \code{file} is the path below \code{system.file(package = "csls")}, and
+each file compiles against 'Mathlib'.
 }
 \examples{
 proof("vodtst")
