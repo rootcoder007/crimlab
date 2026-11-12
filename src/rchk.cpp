@@ -21,18 +21,25 @@
 namespace clab {
 
 void fail(const char *f, ...) {
-  // The message is formatted into R's transient memory, sized exactly, and
-  // handed to R as stop() hands it: R truncates a long one the same way.
+  // The message is formatted into R's transient memory (first 256 bytes,
+  // then exactly the size needed) and handed to R as stop() hands it: R
+  // truncates a long one the same way.
+  // (f is never null; saying so keeps gcc's -fsanitize=undefined
+  // instrumentation from inventing a null-format path)
+  if (f == nullptr) f = "";
+  std::size_t len = 256;
+  char *buf = R_alloc(len, 1);
   std::va_list ap;
   va_start(ap, f);
-  const int n = std::vsnprintf(nullptr, 0, f, ap);
+  const int n = std::vsnprintf(buf, len, f, ap);
   va_end(ap);
-  const std::size_t len = n < 0 ? 1 : static_cast<std::size_t>(n) + 1;
-  char *buf = R_alloc(len, 1);
-  buf[0] = '\0';
-  va_start(ap, f);
-  std::vsnprintf(buf, len, f, ap);
-  va_end(ap);
+  if (n >= 0 && static_cast<std::size_t>(n) >= len) {
+    len = static_cast<std::size_t>(n) + 1;
+    buf = R_alloc(len, 1);
+    va_start(ap, f);
+    std::vsnprintf(buf, len, f, ap);
+    va_end(ap);
+  }
   Rf_errorcall(R_NilValue, "%s", buf);
 }
 

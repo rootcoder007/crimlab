@@ -148,6 +148,12 @@ test_that("z must be two labels, ordered by code point", {
   expect_error(sntbnd(c(0, 1), c("a", "b"), treat = list("a")), "`treat`")
 })
 
+test_that("a long message is kept whole, as stop() keeps it", {
+  long <- strrep("x", 300)
+  expect_error(proof(c(long, "y")), paste0("no proof recorded for: ", long,
+                                           ", y."), fixed = TRUE)
+})
+
 test_that("names are matched as R matches strings", {
   p <- stats::setNames(c(0.1, 0.2), c("a", NA))
   expect_identical(mixlr(p, "a", 1, "a", 1)[["lr"]], 1)

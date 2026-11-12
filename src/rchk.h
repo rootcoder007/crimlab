@@ -17,8 +17,9 @@ namespace clab {
 
 constexpr double ninf = -std::numeric_limits<double>::infinity();
 
-// stop(<message>, call. = FALSE).
-[[noreturn]] void fail(const char *fmt, ...);
+// stop(<message>, call. = FALSE). R_PRINTF_FORMAT (R's own macro) lets the
+// compiler check every format against its arguments.
+[[noreturn]] void fail(const char *fmt, ...) R_PRINTF_FORMAT(1, 2);
 // The R call in src, parsed (for conditions rebuilt on error paths).
 SEXP lang(const char *src);
 // A kernel's error code, raised with the call the old R wrapper made, src.
