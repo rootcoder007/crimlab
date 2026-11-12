@@ -62,6 +62,21 @@ int csls_dyadrt(const double *count, const int *off, const int *vic, int m,
                 const double *pop, int g, double *rate_off,
                 double *rate_pair, double *null_off, double *ratio);
 
+/* Genotype match probability with the Balding-Nichols correction for
+ * shared ancestry (NRC II recommendation 4.2). p, q: allele frequencies in
+ * (0, 1] at n loci; hom[i] non-zero for a homozygote (q[i] is then not
+ * read), otherwise p[i] + q[i] <= 1; theta in [0, 1). Out: locus, n match
+ * probabilities, and log10mp, the base-10 logarithm of their product. */
+int csls_gtmp(const double *p, const double *q, const int *hom, int n,
+              double theta, double *locus, double *log10mp);
+
+/* Log-likelihood-ratio cost of a set of likelihood ratios (Brummer and du
+ * Preez 2006). same: ns positive ratios from same-source comparisons; diff:
+ * nd positive ratios from different-source comparisons. Out: cllr, 0 for a
+ * perfect system and 1 for one that always reports a ratio of 1. */
+int csls_cllr(const double *same, int ns, const double *diff, int nd,
+              double *cllr);
+
 #ifdef __cplusplus
 }
 #endif

@@ -143,4 +143,41 @@ int csls_dyadrt(const double *count, const int *off, const int *vic, int m,
   return CSLS_OK;
 }
 
+int csls_gtmp(const double *p, const double *q, const int *hom, int n,
+              double theta, double *locus, double *log10mp) {
+  if (n < 1) return CSLS_EARG;
+  if (!(theta >= 0.0 && theta < 1.0)) return CSLS_EDOM;
+  const double den = (1.0 + theta) * (1.0 + 2.0 * theta);
+  double sum = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (!(p[i] > 0.0 && p[i] <= 1.0)) return CSLS_EDOM;
+    const double a = theta + (1.0 - theta) * p[i];
+    if (hom[i] != 0) {
+      locus[i] = (theta + a) * (2.0 * theta + a) / den;
+    } else {
+      if (!(q[i] > 0.0 && p[i] + q[i] <= 1.0 + 1e-12)) return CSLS_EDOM;
+      locus[i] = 2.0 * a * (theta + (1.0 - theta) * q[i]) / den;
+    }
+    sum += std::log10(locus[i]);
+  }
+  *log10mp = sum;
+  return CSLS_OK;
+}
+
+int csls_cllr(const double *same, int ns, const double *diff, int nd,
+              double *cllr) {
+  if (ns < 1 || nd < 1) return CSLS_EARG;
+  double cs = 0.0, cd = 0.0;
+  for (int i = 0; i < ns; ++i) {
+    if (!pos(same[i])) return CSLS_EDOM;
+    cs += std::log1p(1.0 / same[i]);
+  }
+  for (int i = 0; i < nd; ++i) {
+    if (!pos(diff[i])) return CSLS_EDOM;
+    cd += std::log1p(diff[i]);
+  }
+  *cllr = 0.5 * (cs / ns + cd / nd) / std::log(2.0);
+  return CSLS_OK;
+}
+
 }  // extern "C"

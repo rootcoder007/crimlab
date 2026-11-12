@@ -88,12 +88,34 @@ SEXP C_csls_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
   return out;
 }
 
+SEXP C_csls_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
+  const int n = static_cast<int>(XLENGTH(p));
+  static const char *const names[] = {"locus", "log10mp"};
+  SEXP out = PROTECT(named_list(2, names));
+  SET_VECTOR_ELT(out, 0, Rf_allocVector(REALSXP, n));
+  SET_VECTOR_ELT(out, 1, Rf_allocVector(REALSXP, 1));
+  check(csls_gtmp(REAL(p), REAL(q), LOGICAL(hom), n, Rf_asReal(theta),
+                  REAL(VECTOR_ELT(out, 0)), REAL(VECTOR_ELT(out, 1))));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_cllr(SEXP same, SEXP diff) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
+  check(csls_cllr(REAL(same), static_cast<int>(XLENGTH(same)), REAL(diff),
+                  static_cast<int>(XLENGTH(diff)), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
 static const R_CallMethodDef calls[] = {
     {"C_csls_vod", (DL_FUNC)&C_csls_vod, 4},
     {"C_csls_orrisk", (DL_FUNC)&C_csls_orrisk, 3},
     {"C_csls_outtst", (DL_FUNC)&C_csls_outtst, 3},
     {"C_csls_dspbm", (DL_FUNC)&C_csls_dspbm, 4},
     {"C_csls_dyadrt", (DL_FUNC)&C_csls_dyadrt, 4},
+    {"C_csls_gtmp", (DL_FUNC)&C_csls_gtmp, 4},
+    {"C_csls_cllr", (DL_FUNC)&C_csls_cllr, 2},
     {nullptr, nullptr, 0}};
 
 void R_init_csls(DllInfo *dll) {
