@@ -6,15 +6,27 @@
 # 1-minute load average has fallen below 1.0. "faster" compares with
 # third-party packages only (base R, stats, spatstat, spdep, geosphere);
 # none of the maintainer's own packages is a counterpart here.
+# the load before anything is loaded or run
+load <- function() as.numeric(strsplit(readLines("/proc/loadavg"), " ")[[1]][1])
+load0 <- load()
 suppressMessages({
   library(crimlab)
   library(spdep)
   library(spatstat.explore)
 })
-load <- function() as.numeric(strsplit(readLines("/proc/loadavg"), " ")[[1]][1])
-load0 <- load()
+# seconds per call: each of k timings repeats f for at least 0.2 s
 med <- function(f, k = 3) {
-  median(vapply(seq_len(k), function(i) system.time(f())[["elapsed"]], 0))
+  median(vapply(seq_len(k), function(i) {
+    r <- 0
+    t0 <- proc.time()[["elapsed"]]
+    repeat {
+      f()
+      r <- r + 1
+      t <- proc.time()[["elapsed"]] - t0
+      if (t >= 0.2) break
+    }
+    t / r
+  }, 0))
 }
 pts <- function(n) {
   set.seed(n)
@@ -108,6 +120,14 @@ for (n in c(1e3, 1e4, 1e5)) {
   }
 }
 out <- do.call(rbind, rows)
+# why a function is not faster, where it is not
+why <- c(
+  cgstat = "two passes with compensated sums, weights and geometric and harmonic means, against two plain sums",
+  sdell = "compensated two-pass moments and the eigen-decomposition, against base's single cov() and eigen()",
+  cvhull = "an exact orientation predicate (expansion arithmetic), so near-collinear points never turn wrong; chull uses a floating-point test",
+  nnidx = "also computes the k-order expectations and the edge-corrected index")
+slow <- !is.na(out$faster) & !out$faster
+out$note[slow] <- paste0("not faster: ", why[out$fn[slow]])
 cpu <- sub(".*: ", "", grep("^model name", readLines("/proc/cpuinfo"),
                             value = TRUE)[1])
 out$mach <- Sys.info()[["nodename"]]
