@@ -271,6 +271,17 @@ SEXP C_clab_r_orrisk(SEXP, SEXP, SEXP);
 SEXP C_clab_r_outtst(SEXP, SEXP, SEXP);
 SEXP C_clab_r_dspbm(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dyadrt(SEXP, SEXP);
+SEXP C_clab_r_gtmp(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cllr(SEXP, SEXP);
+SEXP C_clab_r_lrpost(SEXP, SEXP);
+SEXP C_clab_r_mixlr(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dbsrch(SEXP, SEXP, SEXP);
+SEXP C_clab_r_cllrmin(SEXP, SEXP);
+SEXP C_clab_r_lrcal(SEXP, SEXP);
+SEXP C_clab_r_tipplt(SEXP, SEXP);
+SEXP C_clab_r_eceplt(SEXP, SEXP, SEXP);
+SEXP C_clab_r_kinidx(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_patidx(SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", (DL_FUNC)&C_clab_vod, 4},
@@ -300,6 +311,17 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_outtst", (DL_FUNC)&C_clab_r_outtst, 3},
     {"C_clab_r_dspbm", (DL_FUNC)&C_clab_r_dspbm, 4},
     {"C_clab_r_dyadrt", (DL_FUNC)&C_clab_r_dyadrt, 2},
+    {"C_clab_r_gtmp", (DL_FUNC)&C_clab_r_gtmp, 4},
+    {"C_clab_r_cllr", (DL_FUNC)&C_clab_r_cllr, 2},
+    {"C_clab_r_lrpost", (DL_FUNC)&C_clab_r_lrpost, 2},
+    {"C_clab_r_mixlr", (DL_FUNC)&C_clab_r_mixlr, 5},
+    {"C_clab_r_dbsrch", (DL_FUNC)&C_clab_r_dbsrch, 3},
+    {"C_clab_r_cllrmin", (DL_FUNC)&C_clab_r_cllrmin, 2},
+    {"C_clab_r_lrcal", (DL_FUNC)&C_clab_r_lrcal, 2},
+    {"C_clab_r_tipplt", (DL_FUNC)&C_clab_r_tipplt, 2},
+    {"C_clab_r_eceplt", (DL_FUNC)&C_clab_r_eceplt, 3},
+    {"C_clab_r_kinidx", (DL_FUNC)&C_clab_r_kinidx, 4},
+    {"C_clab_r_patidx", (DL_FUNC)&C_clab_r_patidx, 4},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

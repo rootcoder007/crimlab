@@ -17,12 +17,7 @@
 #' kinidx(g1 = c(12, 14), g2 = c(12, 14), freq = c(0.1, 0.2), rel = "sibling")
 #' @export
 kinidx <- function(g1, g2, freq, rel = "parent") {
-  g1 <- .gt(g1, "g1")
-  g2 <- .gt(g2, "g2", nrow(g1))
-  f <- .gf(freq, g1, "g1")
-  k <- .kin(rel)
-  u <- unique(c(as.character(g1), as.character(g2)))
-  .idx(g1, .Call(C_clab_kinidx, .code(g1, u), .code(g2, u), f, k))
+  .Call(C_clab_r_kinidx, g1, g2, freq, rel)
 }
 
 #' Paternity index
@@ -46,16 +41,7 @@ kinidx <- function(g1, g2, freq, rel = "parent") {
 #'        mother = c(12, 12))
 #' @export
 patidx <- function(child, father, freq, mother = NULL) {
-  if (is.null(mother)) return(kinidx(child, father, freq, "parent"))
-  child <- .gt(child, "child")
-  n <- nrow(child)
-  father <- .gt(father, "father", n)
-  mother <- .gt(mother, "mother", n)
-  f <- .gf(freq, child, "child")
-  u <- unique(c(as.character(child), as.character(father),
-                as.character(mother)))
-  .idx(child, .Call(C_clab_patidx, .code(child, u), .code(mother, u),
-                    .code(father, u), f))
+  .Call(C_clab_r_patidx, child, father, freq, mother)
 }
 
 #' Mixture likelihood ratio
@@ -84,14 +70,7 @@ patidx <- function(child, father, freq, mother = NULL) {
 #' mixlr(p, np = character(0), xp = 0, nd = c("c", "d"), xd = 1)
 #' @export
 mixlr <- function(p, np, xp, nd, xd) {
-  nms <- names(p)
-  p <- .num(p, "p", lo = 0, open = TRUE)
-  if (is.null(nms) || anyDuplicated(nms) || sum(p) > 1 + 1e-12) {
-    stop("`p` must be uniquely named with a sum of at most 1.", call. = FALSE)
-  }
-  num <- .mix(p, nms, np, xp, "np", "xp")
-  den <- .mix(p, nms, nd, xd, "nd", "xd")
-  c(num = num, den = den, lr = num / den)
+  .Call(C_clab_r_mixlr, p, np, xp, nd, xd)
 }
 
 #' Database search
@@ -117,15 +96,7 @@ mixlr <- function(p, np, xp, nd, xd) {
 #' dbsrch(mp = 1e-9, n = 5e6, pop = 3e7)
 #' @export
 dbsrch <- function(mp, n, pop = NULL) {
-  mp <- .num(mp, "mp", len = 1L, lo = 0, open = TRUE)
-  if (mp > 1) stop("`mp` must be at most 1.", call. = FALSE)
-  n <- .num(n, "n", len = 1L, lo = 1)
-  out <- c(np = min(1, n * mp), any = -expm1(n * log1p(-mp)))
-  if (!is.null(pop)) {
-    pop <- .num(pop, "pop", len = 1L, lo = n)
-    out[["post"]] <- 1 / (1 + (pop - n) * mp)
-  }
-  out
+  .Call(C_clab_r_dbsrch, mp, n, pop)
 }
 
 #' Minimum log-likelihood-ratio cost
@@ -146,9 +117,7 @@ dbsrch <- function(mp, n, pop = NULL) {
 #' cllrmin(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))
 #' @export
 cllrmin <- function(same, diff) {
-  r <- .cal(same, diff)
-  full <- cllr(r[["same"]], r[["diff"]])
-  c(cllr = full, min = r[["min"]], cal = full - r[["min"]])
+  .Call(C_clab_r_cllrmin, same, diff)
 }
 
 #' Calibrated likelihood ratios
@@ -164,8 +133,7 @@ cllrmin <- function(same, diff) {
 #' lrcal(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))
 #' @export
 lrcal <- function(same, diff) {
-  r <- .cal(same, diff)
-  list(same = r[["csame"]], diff = r[["cdiff"]])
+  .Call(C_clab_r_lrcal, same, diff)
 }
 
 #' Tippett plot
@@ -183,14 +151,9 @@ lrcal <- function(same, diff) {
 #' tipplt(same = c(50, 200, 8, 0.5), diff = c(0.01, 0.2, 1.5, 0.001))
 #' @export
 tipplt <- function(same, diff, ...) {
-  same <- .num(same, "same", lo = 0, open = TRUE)
-  diff <- .num(diff, "diff", lo = 0, open = TRUE)
-  curve <- function(x) {
-    x <- sort(log10(x))
-    data.frame(log10lr = x, share = rev(seq_along(x)) / length(x))
-  }
-  s <- curve(same)
-  d <- curve(diff)
+  r <- .Call(C_clab_r_tipplt, same, diff)
+  s <- r[["same"]]
+  d <- r[["diff"]]
   graphics::plot(range(s[["log10lr"]], d[["log10lr"]]), c(0, 1), type = "n",
                  xlab = "log10 likelihood ratio",
                  ylab = "share of ratios at or above", ...)
@@ -199,7 +162,7 @@ tipplt <- function(same, diff, ...) {
   graphics::abline(v = 0, lty = 3)
   graphics::legend("bottomleft", c("same source", "different source"),
                    lty = 1:2, bty = "n")
-  invisible(list(same = s, diff = d))
+  invisible(r)
 }
 
 #' Empirical cross-entropy plot
@@ -221,118 +184,14 @@ tipplt <- function(same, diff, ...) {
 #' eceplt(same = c(50, 200, 8, 0.5), diff = c(0.01, 0.2, 1.5, 0.001))
 #' @export
 eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
-  r <- .cal(same, diff)
-  lo <- .num(lo, "lo")
-  ece <- function(s, d) {
-    vapply(lo, function(l) {
-      odds <- 10^l
-      pr <- odds / (1 + odds)
-      (pr * mean(.l1pinv(s * odds)) +
-         (1 - pr) * mean(log1p(d * odds))) / log(2)
-    }, numeric(1))
-  }
-  out <- data.frame(lo = lo, ece = ece(r[["same"]], r[["diff"]]),
-                    min = ece(r[["csame"]], r[["cdiff"]]), ref = ece(1, 1))
-  graphics::plot(range(lo), c(0, max(out[["ece"]], out[["ref"]])), type = "n",
-                 xlab = "prior log10 odds", ylab = "empirical cross-entropy",
-                 ...)
-  graphics::lines(lo, out[["ece"]], lty = 1)
-  graphics::lines(lo, out[["min"]], lty = 2)
-  graphics::lines(lo, out[["ref"]], lty = 3)
+  out <- .Call(C_clab_r_eceplt, same, diff, lo)
+  graphics::plot(range(out[["lo"]]), c(0, max(out[["ece"]], out[["ref"]])),
+                 type = "n", xlab = "prior log10 odds",
+                 ylab = "empirical cross-entropy", ...)
+  graphics::lines(out[["lo"]], out[["ece"]], lty = 1)
+  graphics::lines(out[["lo"]], out[["min"]], lty = 2)
+  graphics::lines(out[["lo"]], out[["ref"]], lty = 3)
   graphics::legend("topleft", c("reported", "calibrated", "always 1"),
                    lty = 1:3, bty = "n")
   invisible(out)
-}
-
-# A genotype table: one row per locus, two alleles. Returns the labels as
-# characters, row by row.
-.gt <- function(x, nm, n = NULL) {
-  if (is.null(dim(x)) && length(x) == 2L) x <- matrix(x, 1L)
-  if (!is.matrix(x) || ncol(x) != 2L || anyNA(x) ||
-        !(is.numeric(x) || is.character(x))) {
-    stop("`", nm, "` must be a two-column matrix of alleles, one row per ",
-         "locus, with no missing values.", call. = FALSE)
-  }
-  if (!is.null(n) && nrow(x) != n) {
-    stop("`", nm, "` must have ", n, " rows, not ", nrow(x), ".",
-         call. = FALSE)
-  }
-  x
-}
-
-# Frequencies of the alleles of a genotype table, same shape.
-.gf <- function(freq, g, nm) {
-  if (is.null(dim(freq)) && length(freq) == 2L) freq <- matrix(freq, 1L)
-  if (!is.matrix(freq) || !is.numeric(freq) || !identical(dim(freq), dim(g)) ||
-        anyNA(freq) || any(freq <= 0) || any(freq > 1)) {
-    stop("`freq` must hold the frequencies of the alleles of `", nm,
-         "`, same shape, above 0 and at most 1.", call. = FALSE)
-  }
-  if (any(g[, 1L] == g[, 2L] & freq[, 1L] != freq[, 2L])) {
-    stop("`freq` gives two frequencies for one allele of a homozygote.",
-         call. = FALSE)
-  }
-  as.double(t(freq))
-}
-
-.code <- function(g, u) {
-  as.integer(t(matrix(match(as.character(g), u), ncol = 2L)))
-}
-
-.idx <- function(g, idx) {
-  l10 <- sum(log10(idx))
-  list(locus = data.frame(locus = .grp(g[, 1L]), idx = idx), log10idx = l10,
-       post = 1 / (1 + 10^(-l10)))
-}
-
-# The identity-by-descent probabilities of a relationship, by name or given.
-.kin <- function(rel) {
-  ks <- list(parent = c(0, 1, 0), sibling = c(0.25, 0.5, 0.25),
-             half = c(0.5, 0.5, 0), cousin = c(0.75, 0.25, 0))
-  if (is.character(rel) && length(rel) == 1L && rel %in% names(ks)) {
-    return(ks[[rel]])
-  }
-  if (is.numeric(rel) && length(rel) == 3L && !anyNA(rel) &&
-        all(rel >= 0) && abs(sum(rel) - 1) < 1e-9) {
-    return(as.double(rel))
-  }
-  stop("`rel` must be one of ", toString(names(ks)),
-       ", or three probabilities that sum to 1.", call. = FALSE)
-}
-
-# One side of a mixture ratio: the chance for alleles `need` and `x` unknowns.
-.mix <- function(p, nms, need, x, a, b) {
-  if (!is.character(need) || anyNA(need) || !all(need %in% nms) ||
-        length(unique(need)) > 20L) {
-    stop("`", a, "` must be names of `p`, at most 20.", call. = FALSE)
-  }
-  if (!is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 ||
-        x != round(x) || x > 50) {
-    stop("`", b, "` must be a whole number from 0 to 50.", call. = FALSE)
-  }
-  .Call(C_clab_mixp, p, nms %in% need, as.integer(x))
-}
-
-# Calibrated ratios, in the order given.
-.cal <- function(same, diff) {
-  same <- .num(same, "same", lo = 0, open = TRUE)
-  diff <- .num(diff, "diff", lo = 0, open = TRUE)
-  lr <- c(same, diff)
-  is <- rep(c(TRUE, FALSE), c(length(same), length(diff)))
-  o <- order(lr)
-  r <- .Call(C_clab_lrcal, lr[o], is[o])
-  post <- numeric(length(lr))
-  post[o] <- r[["post"]]
-  cal <- post / (1 - post) * length(diff) / length(same)
-  list(same = same, diff = diff, csame = cal[is], cdiff = cal[!is],
-       min = r[["min"]])
-}
-
-
-# log(1 + 1 / x) without forming 1 / x where it would overflow.
-.l1pinv <- function(x) {
-  small <- x < 1
-  out <- log1p(1 / x)
-  out[small] <- log1p(x[small]) - log(x[small])
-  out
 }

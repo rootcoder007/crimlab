@@ -28,15 +28,7 @@
 #'      theta = 0.03)
 #' @export
 gtmp <- function(p, q = NULL, hom = FALSE, theta = 0) {
-  nms <- .grp(p)
-  p <- .num(p, "p", lo = 0, open = TRUE)
-  n <- length(p)
-  if (any(p > 1)) stop("`p` must be at most 1.", call. = FALSE)
-  hom <- .hom(hom, n)
-  q <- .gq(q, p, hom)
-  r <- .Call(C_clab_gtmp, p, q, hom, .theta(theta))
-  list(locus = data.frame(locus = nms, hom = hom, mp = r[["locus"]]),
-       log10mp = r[["log10mp"]], log10lr = -r[["log10mp"]])
+  .Call(C_clab_r_gtmp, p, q, hom, theta)
 }
 
 #' Log-likelihood-ratio cost
@@ -59,9 +51,7 @@ gtmp <- function(p, q = NULL, hom = FALSE, theta = 0) {
 #' cllr(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))
 #' @export
 cllr <- function(same, diff) {
-  same <- .num(same, "same", lo = 0, open = TRUE)
-  diff <- .num(diff, "diff", lo = 0, open = TRUE)
-  .Call(C_clab_cllr, same, diff)
+  .Call(C_clab_r_cllr, same, diff)
 }
 
 #' Posterior probability from a likelihood ratio
@@ -79,46 +69,5 @@ cllr <- function(same, diff) {
 #' lrpost(lr = 1e6, prior = 1 / 5e6)
 #' @export
 lrpost <- function(lr, prior) {
-  lr <- .num(lr, "lr", lo = 0, open = TRUE)
-  prior <- .num(prior, "prior", lo = 0, open = TRUE)
-  if (any(prior >= 1) || !length(prior) %in% c(1L, length(lr))) {
-    stop("`prior` must be below 1, once or once per ratio.", call. = FALSE)
-  }
-  # 1 / (1 + 1 / odds): no overflow for a huge ratio
-  1 / (1 + (1 - prior) / (prior * lr))
-}
-
-# Homozygosity, one value per locus.
-.hom <- function(hom, n) {
-  if (!is.logical(hom) || anyNA(hom) || !length(hom) %in% c(1L, n)) {
-    stop("`hom` must be TRUE or FALSE, once or once per locus.", call. = FALSE)
-  }
-  rep_len(hom, n)
-}
-
-# The second allele's frequency at each locus, 0 where it is not read.
-.gq <- function(q, p, hom) {
-  n <- length(p)
-  if (is.null(q)) q <- rep(NA_real_, n)
-  if (!is.numeric(q) && !all(is.na(q)) || length(q) != n) {
-    stop("`q` must be numbers, one per locus.", call. = FALSE)
-  }
-  q <- as.double(q)
-  q[hom] <- 0
-  het <- !hom
-  if (anyNA(q) || any(q[het] <= 0) || any(p[het] + q[het] > 1 + 1e-12)) {
-    stop("`q` must be above 0 with `p + q` at most 1 at every heterozygous ",
-         "locus.", call. = FALSE)
-  }
-  q
-}
-
-# The coancestry coefficient, in [0, 1).
-.theta <- function(theta) {
-  if (!is.numeric(theta) || length(theta) != 1L || is.na(theta) ||
-        theta < 0 || theta >= 1) {
-    stop("`theta` must be one number from 0 up to, not including, 1.",
-         call. = FALSE)
-  }
-  as.double(theta)
+  .Call(C_clab_r_lrpost, lr, prior)
 }
