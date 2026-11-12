@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_zipll and clab_zipem (src/trj.cpp). Built only
+// Standalone tests for clab_zgll and clab_zgem (src/trj.cpp). Built only
 // with -DCLAB_MAIN.
 #ifdef CLAB_MAIN
 
@@ -87,7 +87,7 @@ void t_trj() {
   }
   // 1. parity with crimCV at its own estimates: log-likelihood and the
   // posterior memberships
-  TK("trj.ll.rc", clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_OK);
+  TK("trj.ll.rc", clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_OK);
   TKN("trj.ll.crimcv", ll / cllike, 1, 1e-12);
   for (int i = 0; i < 5; ++i)
     for (int k = 0; k < 2; ++k) TKN("trj.gwt", w[i + 100 * k], cgwt[i + 5 * k], 1e-9);
@@ -105,9 +105,9 @@ void t_trj() {
       double pp[10], lp, lm;
       for (int l = 0; l < 10; ++l) pp[l] = par[l];
       pp[j] = par[j] + 1e-6;
-      clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, prob, w, &lp, work);
+      clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, prob, w, &lp, work);
       pp[j] = par[j] - 1e-6;
-      clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, prob, w, &lm, work);
+      clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, prob, w, &lm, work);
       gmax = std::fabs(lp - lm) / 2e-6 > gmax ? std::fabs(lp - lm) / 2e-6 : gmax;
     }
     TK("trj.crimcv.stationary", gmax < 1e-4);
@@ -115,7 +115,7 @@ void t_trj() {
     for (int j = 0; j < 10; ++j) p2[j] = par[j];
     pr2[0] = prob[0];
     pr2[1] = prob[1];
-    TK("trj.em.rc", clab_zipem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 2000, 1e-14,
+    TK("trj.em.rc", clab_zgem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 2000, 1e-14,
                                &it, work) == CLAB_OK);
     TK("trj.em.higher", ll > cllike + 30);
     TKN("trj.em.brute", ll / brute(yc, 100, 6, Xb, 3, Zb, 2, 2, p2, pr2), 1, 1e-12);
@@ -125,31 +125,31 @@ void t_trj() {
   // glm(poisson) in base R
   {
     double b[3] = {0, 0, 0}, pr1[1] = {1};
-    clab_zipem(yc, 100, 6, nullptr, Xb, 3, nullptr, 0, 1, b, pr1, w, &ll, 50, 1e-14, &it, work);
+    clab_zgem(yc, 100, 6, nullptr, Xb, 3, nullptr, 0, 1, b, pr1, w, &ll, 50, 1e-14, &it, work);
     for (int j = 0; j < 3; ++j) TKN("trj.glm.beta", b[j], pbeta[j], 1e-8);
     TKN("trj.glm.ll", ll / pll, 1, 1e-12);
   }
   // 5. EM is monotone, and at its fixed point the observed log-likelihood
-  // is stationary (central differences of clab_zipll, step 1e-5)
+  // is stationary (central differences of clab_zgll, step 1e-5)
   {
     double p2[10] = {0.5, 0.5, 0.5, -1, -1, 1, 0.5, 0, -2, -2}, pr2[2] = {0.5, 0.5};
     double prev = -HUGE_VAL;
     bool mono = true;
     for (int r = 0; r < 300; ++r) {
-      clab_zipem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 1, 1e-300, &it, work);
+      clab_zgem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 1, 1e-300, &it, work);
       mono = mono && ll >= prev - 1e-10 * std::fabs(ll);
       prev = ll;
     }
     TK("trj.monotone", mono);
-    clab_zipem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 5000, 1e-15, &it, work);
+    clab_zgem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 5000, 1e-15, &it, work);
     double gmax = 0;
     for (int j = 0; j < 10; ++j) {
       double pp[10], lp, lm;
       for (int l = 0; l < 10; ++l) pp[l] = p2[l];
       pp[j] = p2[j] + 1e-5;
-      clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, pr2, w, &lp, work);
+      clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, pr2, w, &lp, work);
       pp[j] = p2[j] - 1e-5;
-      clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, pr2, w, &lm, work);
+      clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, pr2, w, &lm, work);
       const double gr = (lp - lm) / 2e-5;
       gmax = std::fabs(gr) > gmax ? std::fabs(gr) : gmax;
     }
@@ -164,9 +164,9 @@ void t_trj() {
     for (int j = 0; j < 600; ++j) y2[j] = yc[j];
     y2[4 + 100 * 1] = std::nan("");
     double l1, l2;
-    clab_zipll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &l1, work);
+    clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &l1, work);
     y2[4 + 100 * 1] = -1;
-    clab_zipll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &l2, work);
+    clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &l2, work);
     TKN("trj.nan", l1, l2, 0);
     double ys[12], p2[10], pr2[2] = {0.5, 0.5};
     for (int t = 0; t < 6; ++t) {
@@ -174,7 +174,7 @@ void t_trj() {
       ys[1 + 2 * t] = yc[1 + 100 * t] < 0 ? 0 : yc[1 + 100 * t];
     }
     for (int j = 0; j < 10; ++j) p2[j] = 0.1 * j - 0.5;
-    TK("trj.n2", clab_zipem(ys, 2, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 100, 1e-10, &it,
+    TK("trj.n2", clab_zgem(ys, 2, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 100, 1e-10, &it,
                             work) == CLAB_OK && std::isfinite(ll));
   }
   // 7. offsets: log exposure 2 everywhere is the same as adding log 2 to
@@ -184,10 +184,10 @@ void t_trj() {
     for (int j = 0; j < 600; ++j) off[j] = std::log(2.0);
     double p2[10], l1, l2;
     for (int j = 0; j < 10; ++j) p2[j] = par[j];
-    clab_zipll(yc, 100, 6, off, Xb, 3, Zb, 2, 2, p2, prob, w, &l1, work);
+    clab_zgll(yc, 100, 6, off, Xb, 3, Zb, 2, 2, p2, prob, w, &l1, work);
     for (int k = 0; k < 2; ++k)
       for (int j = 0; j < 3; ++j) p2[5 * k + j] += std::log(2.0);
-    clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, prob, w, &l2, work);
+    clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, prob, w, &l2, work);
     TKN("trj.offset", l1 / l2, 1, 1e-12);
   }
   // 8. guards
@@ -195,10 +195,10 @@ void t_trj() {
     double y2[600];
     for (int j = 0; j < 600; ++j) y2[j] = yc[j];
     y2[7] = 1.5;
-    TK("trj.guard.int", clab_zipll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EDOM);
+    TK("trj.guard.int", clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EDOM);
     const double bad[2] = {0.5, 0.6};
-    TK("trj.guard.prob", clab_zipll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, bad, w, &ll, work) == CLAB_EDOM);
-    TK("trj.guard.p", clab_zipll(yc, 100, 6, nullptr, Xb, 0, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EARG);
+    TK("trj.guard.prob", clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, bad, w, &ll, work) == CLAB_EDOM);
+    TK("trj.guard.p", clab_zgll(yc, 100, 6, nullptr, Xb, 0, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EARG);
   }
 }
 
@@ -238,12 +238,12 @@ void b_trj() {
       double par[ng * m], prob[ng] = {0.5, 0.5}, ll;
       int it;
       for (int j = 0; j < ng * m; ++j) par[j] = (r.unif() - 0.5) * (j % m == 0 ? 2.0 : 1.0) - (j % m >= p ? 1.5 : 0.0);
-      clab_zipem(y, n, nt, nullptr, x, p, z, q, ng, par, prob, w, &ll, 500, 1e-9, &it, work);
+      clab_zgem(y, n, nt, nullptr, x, p, z, q, ng, par, prob, w, &ll, 500, 1e-9, &it, work);
       best = ll > best ? ll : best;
     }
     t[rep] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
-  std::printf("BENCH clab_zipem n=1000x10 ng=2 p=q=4, 40 starts: median %.3f s (k=5), best ll %.4f\n",
+  std::printf("BENCH clab_zgem n=1000x10 ng=2 p=q=4, 40 starts: median %.3f s (k=5), best ll %.4f\n",
               tk::med5(t), best);
 }
 

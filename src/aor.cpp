@@ -57,7 +57,7 @@ int tzidx(const double *tt, int nt, double t) {
 
 extern "C" {
 
-int clab_aor(const double *from, const double *to, int n, const double *tt,
+int clab_aorwt(const double *from, const double *to, int n, const double *tt,
              const double *toff, int nt, double off0, double origin,
              double bw, int nb, double lo, double hi, double *w, double *tot,
              int *cnt) {

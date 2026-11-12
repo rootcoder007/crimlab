@@ -260,7 +260,7 @@ int check(const dat &D, int ng) {
 
 extern "C" {
 
-int clab_zipll(const double *y, int n, int nt, const double *off,
+int clab_zgll(const double *y, int n, int nt, const double *off,
                const double *x, int p, const double *z, int q, int ng,
                const double *par, const double *prob, double *w, double *ll,
                double *work) {
@@ -279,13 +279,13 @@ int clab_zipll(const double *y, int n, int nt, const double *off,
   return CLAB_OK;
 }
 
-int clab_zipem(const double *y, int n, int nt, const double *off,
+int clab_zgem(const double *y, int n, int nt, const double *off,
                const double *x, int p, const double *z, int q, int ng,
                double *par, double *prob, double *w, double *ll, int maxit,
                double tol, int *iter, double *work) {
   const dat D{y, off, x, z, n, nt, p, q};
   if (maxit < 1 || !(tol > 0.0)) return CLAB_EARG;
-  int rc = clab_zipll(y, n, nt, off, x, p, z, q, ng, par, prob, w, ll, work);
+  int rc = clab_zgll(y, n, nt, off, x, p, z, q, ng, par, prob, w, ll, work);
   if (rc != CLAB_OK) return rc;
   const int m = p + q;
   double cur = *ll;

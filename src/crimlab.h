@@ -671,7 +671,7 @@ int clab_tlvlr(const double *u, const double *c, const double *mu, int p,
  * out, without end, reversed, short, long. n = 0 is allowed.
  * Time O(n log(nt + 1) + sum of bins touched) <= O(n (log(nt + 1) + nt +
  * nb)); no workspace. */
-int clab_aor(const double *from, const double *to, int n, const double *tt,
+int clab_aorwt(const double *from, const double *to, int n, const double *tt,
              const double *toff, int nt, double off0, double origin,
              double bw, int nb, double lo, double hi, double *w, double *tot,
              int *cnt);
@@ -790,12 +790,12 @@ int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
  * B-spline bases of time). par: ng blocks of (beta (p), gamma (q)); prob:
  * ng positive shares summing to 1.
  *
- * clab_zipll: the log-likelihood sum_i log sum_k prob_k prod_t f_k(y_it),
+ * clab_zgll: the log-likelihood sum_i log sum_k prob_k prod_t f_k(y_it),
  * with each cell in closed form, log(e^a + e^-lam) and log(1 + e^a)
  * without overflow, and log-sum-exp over groups. Out: w (n x ng posterior
  * memberships), ll. work: 2 nt doubles. Time O(n nt ng + nt ng (p + q)).
  *
- * clab_zipem: EM from the given par and prob (updated in place): the
+ * clab_zgem: EM from the given par and prob (updated in place): the
  * E-step above; the M-step sets prob to the mean memberships and raises
  * each group's expected complete-data log-likelihood by up to four damped
  * Newton steps on (beta, gamma) with the analytic Hessian, accepting a step
@@ -808,11 +808,11 @@ int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
  * caller's loop. work: 2 (p + q)^2 + 3 (p + q) + 7 nt doubles. Time per
  * iteration O(ng (n nt + nt (p + q)^2 + (p + q)^3)) times the Newton
  * steps. */
-int clab_zipll(const double *y, int n, int nt, const double *off,
+int clab_zgll(const double *y, int n, int nt, const double *off,
                const double *x, int p, const double *z, int q, int ng,
                const double *par, const double *prob, double *w, double *ll,
                double *work);
-int clab_zipem(const double *y, int n, int nt, const double *off,
+int clab_zgem(const double *y, int n, int nt, const double *off,
                const double *x, int p, const double *z, int q, int ng,
                double *par, double *prob, double *w, double *ll, int maxit,
                double tol, int *iter, double *work);
