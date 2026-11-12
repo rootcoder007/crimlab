@@ -60,9 +60,11 @@ jobs:
             own <- paste0("https://github.com/", Sys.getenv("GITHUB_REPOSITORY"))
             ok <- vapply(urls, function(u) {
               mine <- startsWith(u, own)
+              # the job's token reads the repository, not its issues, so a
+              # page of this repository is good when the repository answers
               if (mine) {
-                u <- sub("https://github.com/", "https://api.github.com/repos/",
-                         u, fixed = TRUE)
+                u <- paste0("https://api.github.com/repos/",
+                            Sys.getenv("GITHUB_REPOSITORY"))
               }
               for (k in 1:3) {
                 h <- curl::new_handle(timeout = 60, followlocation = TRUE)

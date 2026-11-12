@@ -44,8 +44,10 @@ jobs:
         run: |
           cov <- covr::package_coverage(quiet = FALSE)
           print(cov)
-          z <- covr::zero_coverage(cov)
-          if (nrow(z)) print(z[, c("filename", "line")], row.names = FALSE)
+          # not covr::zero_coverage(): outside a terminal it wants rstudioapi
+          z <- covr::tally_coverage(cov)
+          z <- z[z[["value"]] == 0, c("filename", "line")]
+          if (nrow(z)) print(z, row.names = FALSE)
           pct <- covr::percent_coverage(cov)
           floor <- as.numeric(Sys.getenv("FLOOR"))
           cat(sprintf("coverage %.2f%%, floor %.1f%%\n", pct, floor))
