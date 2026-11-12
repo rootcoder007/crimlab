@@ -1,4 +1,4 @@
-# Reference values and defect reproducer for src/tlv.cpp (clab_tlvc,
+# Reference values for src/tlv.cpp (clab_tlvc,
 # clab_tlvlr). Field package: comparison 1.0.8 (CRAN), R 4.5.0.
 source("dev/doss/pre.R")
 suppressMessages(library(comparison))
@@ -17,14 +17,9 @@ carr("gctl", ctl$item.means); carr("gr1", r1$item.means); carr("gr2", r2$item.me
 cat("// two.level.normal.LR(ctl, r1, Z), (ctl, r2, Z)\n")
 carr("glr", c(two.level.normal.LR(ctl, r1, Z), two.level.normal.LR(ctl, r2, Z)))
 
-# 2. defect: natural-scale LR (dossier comparison.md section 3)
+# 2. items 40 between-item SDs out: the log LR by the joint density of the
+# two item means under each hypothesis (2p-variate normal, base R)
 sh <- function(it, k) { it$item.means <- it$item.means + k * sqrt(diag(Z$v.between)); it }
-cat("\n# defect: both items 40 between-SD from the mean (same source): ",
-    two.level.normal.LR(sh(ctl, 40), sh(ctl, 40), Z), "\n")
-cat("# defect: items 40 between-SD apart: ",
-    two.level.normal.LR(sh(ctl, 20), sh(ctl, -20), Z), "\n")
-# an independent log-space value for the same inputs: the joint density of
-# the two item means under each hypothesis (2p-variate normal)
 ljoint <- function(a, b, U, C, mu, na, nb, same) {
   p <- length(a)
   S <- rbind(cbind(U / na + C, if (same) C else 0 * C),
@@ -69,21 +64,6 @@ C <- (SB - (m - 1) * U) / (N - sum(ni^2) / N)
 cat("// ANOVA estimates by base R (crossprod, rowsum)\n")
 carr("sU", U); carr("sC", C)
 
-# 4. bias of comparison's within estimate on unbalanced data, by simulation:
-# true U = diag(1, 1, 1), C = diag(4, 4, 4); 400 data sets
-set.seed(7); acc <- matrix(0, 3, 3); acc2 <- acc
-for (r in 1:400) {
-  th <- matrix(rnorm(30 * 3, 0, 2), 30, 3)
-  X <- th[rep(1:30, nub), ] + matrix(rnorm(sum(nub) * 3), ncol = 3)
-  d <- data.frame(item = factor(rep(1:30, nub)), X)
-  acc <- acc + suppressWarnings(two.level.components(d, 2:4, 1))$v.within / 400
-  mi <- rowsum(X, d$item) / nub
-  acc2 <- acc2 + crossprod(X - mi[rep(1:30, nub), ]) / (sum(nub) - 30) / 400
-}
-cat("\n# unbalanced bias, mean of 400 within estimates (truth 1): comparison",
-    round(diag(acc), 3), " pooled within:", round(diag(acc2), 3), "\n")
-cat("# expected factor (m/N) sum n_i (n_i - 1) / (N - m) =",
-    (30 / sum(nub)) * sum(nub * (nub - 1)) / (sum(nub) - 30), "\n")
 
 t <- replicate(5, system.time(two.level.components(glass, c(7, 8, 9), 1))[["elapsed"]])
 cat(sprintf("\nTIME two.level.components glass 200 items x 12 x 3: median %.3f s (k=5)\n", median(t)))

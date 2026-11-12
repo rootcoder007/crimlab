@@ -48,7 +48,7 @@ cat(sprintf("const double ref_ex_lo[5] = {%s};\nconst double ref_ex_hi[5] = {%s}
 taus <- seq(-3, 4, by = 1 / 64)
 dev <- max(abs(sapply(taus, ttau) - sapply(taus, function(t) sum(W > t) + sum(W == t) / 2)))
 cat("# max |T(tau) - (#{W > tau} + #{W = tau}/2)| over", length(taus), "grid points:", dev, "\n")
-cat("# hlsens pr = 0.1 off the exact bounds by up to", max(abs(c(h1[, 2] - elo, h1[, 3] - ehi))), "\n")
+
 
 set.seed(1); n <- 50000; x <- rnorm(n, 0.3); y <- rnorm(n)
 cat(sprintf("\nTIME psens 50,000 pairs: %.3f s (1 run)\n",

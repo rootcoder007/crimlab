@@ -1,4 +1,4 @@
-# Reference values and defect reproducer for src/mvt.cpp (clab_mvtll,
+# Reference values for src/mvt.cpp (clab_mvtll,
 # clab_mvtem). Field package: gbmt 0.1.4 (CRAN), R 4.5.0.
 source("dev/doss/pre.R")
 suppressMessages(library(gbmt))
@@ -28,25 +28,7 @@ carr("gpost", fit$posterior[1:5, ])
 cat(sprintf("const double gll = %s;\n", f17(fit$logLik)))
 cat("# components:", paste(names(fit), collapse = " "), "\n")
 
-# defect probe: the unit log-densities are clamped to [-745, 709.8] before
-# exp (pldBound); with long panels in large units every unit is clamped in
-# every group and the posteriors become uniform
-set.seed(6); n2 <- 40; nt2 <- 20; g2 <- rep(1:2, each = 20)
-d2 <- do.call(rbind, lapply(1:n2, function(i) t(sapply(1:nt2, function(t)
-  c(i, t, 1e5 * ((if (g2[i] == 1) c(1, 2, 3, 4) + 0.1 * t else c(4, 3, 2, 1) - 0.1 * t) + rnorm(4)))))))
-d2 <- as.data.frame(d2); names(d2) <- c("id", "time", "a", "b", "c", "e")
-f2 <- gbmt(c("a", "b", "c", "e"), "id", "time", ng = 2, d = 1, data = d2, scaling = 0,
-           pruning = FALSE, quiet = TRUE)
-cl <- apply(f2$posterior, 1, which.max)
-cat("\n# large units (x 1e5), 20 x 4 per unit, scaling = 0: posterior range",
-    range(f2$posterior), " agreement with truth", max(mean(cl == g2), mean(cl != g2)),
-    " logLik", f2$logLik, "\n")
-f3 <- gbmt(c("a", "b", "c", "e"), "id", "time", ng = 2, d = 1, data = d2, scaling = 2,
-           pruning = FALSE, quiet = TRUE)
-cl3 <- apply(f3$posterior, 1, which.max)
-cat("# same data, scaling = 2: agreement", max(mean(cl3 == g2), mean(cl3 != g2)), "\n")
-
-# timing: the dossier's sizes
+# timing
 set.seed(1)
 big <- function(n, ng) {
   gg <- sample(ng, n, TRUE)

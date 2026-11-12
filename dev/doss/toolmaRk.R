@@ -1,4 +1,4 @@
-# Reference values and defect reproducer for src/lws.cpp (clab_lwss) and
+# Reference values for src/lws.cpp (clab_lwss) and
 # src/chm.cpp (clab_chmb). Reference implementations: stats::lowess (R
 # 4.5.0) and toolmaRk 0.0.2 (CRAN).
 # driver: optional path of a compiled crimlab driver (dev/doss/chmdrv.cpp)
@@ -38,16 +38,7 @@ cat(sprintf("const double ch12[4] = {%s};\n", f17(unlist(r12))))
 cat(sprintf("const double ch13[4] = {%s};\n", f17(unlist(r13))))
 cat(sprintf("const double ch12d[4] = {%s}; // defaults 500, 50, 0.25\n", f17(unlist(r12d))))
 
-# 3. defects (dossier toolmaRk.md section 3)
-cat("\n# profile shorter than window_opt:", tryCatch({chumbley_non_random(matrix(m1[1:300]), matrix(m2[1:300])); "ran"},
-    error = conditionMessage), "\n")
-mn <- m1; mn[700] <- NA
-cat("# NA inside a profile:", tryCatch(paste(unlist(chumbley_non_random(matrix(mn), matrix(m2), 300, 30)), collapse = " "),
-    error = conditionMessage), "\n")
-set.seed(1); pv <- replicate(20, chumbley_non_random(matrix(cumsum(rnorm(2000))), matrix(cumsum(rnorm(2000))))$p_value)
-cat("# null p-values, 20 independent pairs: NA count", sum(is.na(pv)), "\n")
-
-# 4. ameslab: the package's own data, through a compiled driver if given
+# 3. ameslab: the package's own data, through a compiled driver if given
 data(ameslab)
 pr <- lapply(ameslab$profile, function(d) d[[1]])
 args <- commandArgs(TRUE)

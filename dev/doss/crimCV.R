@@ -1,4 +1,4 @@
-# Reference values and defect reproducer for src/trj.cpp (clab_zipll,
+# Reference values for src/trj.cpp (clab_zipll,
 # clab_zipem). Field package: crimCV 1.0.0 (CRAN), R 4.5.0.
 source("dev/doss/pre.R")
 suppressMessages(library(crimCV))
@@ -33,14 +33,7 @@ gl <- glm(yy ~ XX - 1, family = poisson)
 cat("// glm(y ~ X - 1, poisson) over the observed cells\n")
 carr("pbeta", coef(gl)); cat(sprintf("const double pll = %s;\n", f17(as.numeric(logLik(gl)))))
 
-# defects (dossier crimCV.md section 3)
-Yn <- Y; Yn[5, 2] <- NA
-cat("\n# NA in one cell:", tryCatch({q(crimCV(Yn, 2, dpolyp = 2, dpolyl = 1, model = "ZIP", init = 2)); "ran"},
-    error = conditionMessage), "\n")
-cat("# n = 2 units:", tryCatch({q(crimCV(Y[1:2, ], 2, dpolyp = 2, dpolyl = 1, model = "ZIP", init = 2)); "ran"},
-    error = conditionMessage), "\n")
-
-# timing: the dossier's case, ZIPt ng = 2, n = 1,000 x 10, init = 20 (default),
+# timing: ZIPt ng = 2, n = 1,000 x 10, init = 20 (default),
 # and the ZIP model with the same data
 set.seed(1); n2 <- 1000; nt2 <- 10; o2 <- 0:(nt2 - 1) / (nt2 - 1); g2 <- rbinom(n2, 1, 0.4) + 1
 l2 <- cbind(exp(0.2 + 1.5 * o2), exp(1.2 - 1.0 * o2))
@@ -49,20 +42,3 @@ t1 <- system.time(q(crimCV(Y2, 2, model = "ZIPt")))[["elapsed"]]
 t2 <- system.time(f2 <- q(crimCV(Y2, 2, dpolyp = 3, dpolyl = 3, model = "ZIP")))[["elapsed"]]
 cat(sprintf("\nTIME crimCV ZIPt ng=2 n=1000x10 init=20: %.3f s (1 run)\n", t1))
 cat(sprintf("TIME crimCV ZIP ng=2 n=1000x10 dpolyp=3 dpolyl=3 init=20: %.3f s (1 run), llike %.6f\n", t2, f2$llike))
-
-# check (base R, independent of crimlab): the log-likelihood at the point
-# clab_zipem reaches from crimCV's estimate (parameters rounded to 5
-# decimals, from src/t_trj.cpp), against crimCV's reported maximum
-llz <- function(beta, gamma, prob) {
-  sum(sapply(1:nrow(Y), function(i) {
-    o <- Y[i, ] >= 0
-    log(sum(sapply(1:2, function(k) {
-      lam <- exp(X %*% beta[, k]); rho <- plogis(Z %*% gamma[, k])
-      prob[k] * prod((Y[i, o] == 0) * rho[o] + (1 - rho[o]) * dpois(Y[i, o], lam[o]))
-    })))
-  }))
-}
-cat("\n# base-R log-likelihood at crimCV's estimate:", llz(fit$beta, fit$gamma, fit$prob), "\n")
-cat("# base-R log-likelihood at the EM point:",
-    llz(matrix(c(0.17000, 1.18680, 1.60814, 1.24426, 0.63853, 0.25274), 3),
-        matrix(c(-1.30619, -0.64623, -1.99047, -2.34619), 2), c(0.4201, 0.5799)), "\n")

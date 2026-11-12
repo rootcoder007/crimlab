@@ -1,6 +1,6 @@
-# Reference values and defect reproducer for src/fair.cpp (clab_fair).
+# Reference values for src/fair.cpp (clab_fair).
 # Field package: fairness 1.2.3 (CRAN), run on R 4.5.0.
-# Prints: the defect, C arrays for src/t_fair.cpp, and a timing.
+# Prints C arrays for src/t_fair.cpp and a timing.
 source("dev/doss/pre.R")
 suppressMessages(library(fairness))
 cat("fairness", format(packageVersion("fairness")), "\n")
@@ -32,22 +32,7 @@ cat(sprintf("static const double ref_wlo[6] = {%s};\n", f17(ci[1, ])))
 cat(sprintf("static const double ref_whi[6] = {%s};\n", f17(ci[2, ])))
 cat(sprintf("static const double ref_z = %s; // qnorm(0.975)\n", f17(qnorm(0.975))))
 
-# defect (dossier fairness.md section 3): every score above the cutoff
-set.seed(1); n <- 1000
-dp <- data.frame(y = factor(rbinom(n, 1, .4), levels = 0:1),
-                 g = sample(c("a", "b"), n, TRUE), p = runif(n, 0.6, 1))
-cat("\n# defect: all scores > cutoff 0.5\n")
-cat("equal_odds sensitivity:", equal_odds(dp, "y", "g", probs = "p")$Metric[1, ], "\n")
-cat("truth (hand):", tapply(dp$p > .5 & dp$y == 1, dp$g, sum) /
-  tapply(dp$y == 1, dp$g, sum), "\n")
-cat("dem_parity positives:", dem_parity(dp, "y", "g", probs = "p")$Metric[1, ], "\n")
-cat("truth (hand):", tapply(dp$p > .5, dp$g, sum), "\n")
-# the same defect on the deterministic sample, for the C test
-cat("deterministic sample with cutoff -1: equal_odds",
-    equal_odds(d, "y", "g", probs = "p", cutoff = -1)$Metric[1, ],
-    " dem_parity", dem_parity(d, "y", "g", probs = "p", cutoff = -1)$Metric[1, ], "\n")
-
-# timing: the dossier's standard case
+# timing
 set.seed(1)
 big <- data.frame(y = factor(rbinom(1e5, 1, .4), levels = 0:1),
                   g = sample(letters[1:4], 1e5, TRUE), p = runif(1e5))
