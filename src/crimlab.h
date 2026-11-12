@@ -742,6 +742,40 @@ int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
 int clab_rptc(const int *unit, const int *year, const int *rep, int n, int a,
               int y0, int y1, int minrep, int *flag, int *nc, int *work);
 
+/* Rosenbaum sensitivity bounds for matched pairs (Rosenbaum 1987,
+ * doi:10.1093/biomet/74.1.13). d: n finite treated-minus-control
+ * differences; gam: ng values Gamma >= 1, the odds of differential
+ * assignment.
+ *
+ * clab_rswp: the Wilcoxon signed-rank statistic T (zeros dropped, midranks
+ * for tied |d|) and, for each Gamma, the normal-approximation bounds on its
+ * one-sided p-value: with p = Gamma / (1 + Gamma) (upper) or 1 / (1 + Gamma)
+ * (lower), 1 - Phi((T - p S1) / sqrt(p (1 - p) S2)), S1 and S2 the sums of
+ * the ranks and of their squares; tails by erfc, so small p-values keep
+ * their digits. gcrit: the Gamma at which the upper bound equals
+ * 1 - Phi(z) (z > 0), in closed form from the quadratic in p (below 1 when
+ * the test is not significant without bias). Out: plo, pup (ng each),
+ * gcrit, tsum (T). NaN when every difference is 0. work: n doubles; iwork:
+ * n ints. Time O(n log n + ng).
+ *
+ * clab_rshl: the bounds on the Hodges-Lehmann estimate under Gamma
+ * (Rosenbaum 1993, doi:10.1080/01621459.1993.10476405), exactly. With
+ * M = n (n + 1) / 2 and T(tau) = #{Walsh averages (d_i + d_j) / 2, i <= j,
+ * above tau} (the signed-rank statistic of d - tau where no difference is
+ * tied or zero), the estimate at mu is (sup{tau: T > mu} +
+ * inf{tau: T < mu}) / 2 = (W_(ceil a) + W_(floor a + 1)) / 2, a = M - mu;
+ * the upper bound takes mu = M / (1 + Gamma), the lower mu = Gamma M /
+ * (1 + Gamma), and Gamma = 1 gives the usual estimate. The ceilings are
+ * decided exactly (fma) and each order statistic of the Walsh averages is
+ * found by bisection on the doubles with an O(n) count, so no grid and
+ * no tolerance. n <= 2^26. Out: lo, hi (ng each). work: n doubles. Time
+ * O(n log n + ng n 64). */
+int clab_rswp(const double *d, int n, const double *gam, int ng, double z,
+              double *plo, double *pup, double *gcrit, double *tsum,
+              double *work, int *iwork);
+int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
+              double *hi, double *work);
+
 #ifdef __cplusplus
 }
 #endif
