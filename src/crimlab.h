@@ -968,6 +968,30 @@ int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
               int nsim, unsigned int seed, double *out, double *work,
               int *iwork);
 
+/* Andresen's spatial point pattern test (Andresen 2009,
+ * doi:10.1016/j.apgeog.2008.12.004), streamed. a, b: n units' counts of a
+ * base and a test pattern (whole numbers >= 0; a unit with a NaN count in
+ * either is left out entirely and counted, never treated as zero). Per
+ * unit: the difference of shares (b_i / N_b - a_i / N_a) times scale (100:
+ * percentage points), and its bootstrap p-value: nboot multinomial
+ * resamples of each pattern from its own shares, differences centred on
+ * their replicate mean, p = (1 + #{|centred| >= |observed|}) / (nboot + 1);
+ * units empty in both patterns get no p. The replicates are generated
+ * twice from the seed (xorshift64* seeded by splitmix64, draws by Walker
+ * alias tables, all base draws then all test draws per replicate), once
+ * for the means and once for the counts, so memory is O(n), not O(n
+ * nboot). Out, 3n: differences, p-values, signed flags (p <= alpha: the
+ * sign of the difference; 0 otherwise; NaN where there is no p). glob, 8:
+ * units left out (NaN), units empty in both, eligible units, flagged
+ * units, the S index 1 - flagged / eligible, its z against 1 - alpha with
+ * sd sqrt(alpha (1 - alpha) / eligible), the exact sameness p-value
+ * P(Binomial(eligible, alpha) >= flagged) (by tail sums), and nboot; NaN
+ * when either pattern is empty (no inference). work: 6n doubles; iwork:
+ * 4n ints. Time O(nboot (N_a + N_b + n)). */
+int clab_sptst(const double *a, const double *b, int n, int nboot,
+               unsigned int seed, double alpha, double scale, double *out,
+               double *glob, double *work, int *iwork);
+
 #ifdef __cplusplus
 }
 #endif
