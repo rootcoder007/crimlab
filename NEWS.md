@@ -32,3 +32,13 @@
 * `sntbnd()` orders the two values of `z` by Unicode code point, so the
   default `treat` and the order of the terms are the same on every machine
   and in every locale (`"B"` sorts before `"a"`).
+* Every error message starts with the name of the function that raised it
+  (``"outtst: `q` must be at most 1."``); the words after it are unchanged.
+* A matrix with more than one row and column is refused where a vector is
+  expected, naming the argument; it used to be read as one long vector.
+* `eceplt()` labels its vertical axis in bits.
+* `proof()` names the theorems now proved for `gtmp()`, `cllr()`,
+  `dbsrch()`, `mixlr()`, `kinidx()`, `patidx()`, `misrd()`, `incap()`,
+  `lrcal()` and `cllrmin()`. The help pages of `misrd()`, `cllr()` and
+  `cllrmin()` say what is proved and what is not.
+* `vignette("crimlab")` walks through one example per family.

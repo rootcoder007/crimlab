@@ -16,8 +16,10 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 crimlab computes statistics that come up again and again in criminology and
 sociolegal research: disparity measures for policing, the weight of forensic
 evidence, clearance rates, and what can and cannot be learnt about release
-rules and sentences from administrative records. Most of them are short
-formulas. They are easy to get slightly wrong, and easier still to read as
+rules and sentences from administrative records. It is written for
+researchers and analysts in criminology, sociolegal studies, policing,
+corrections and forensic science. Most of the statistics are short formulas.
+They are easy to get slightly wrong, and easier still to read as
 showing more than they do.
 
 Each function checks its arguments, computes the quantity in a compiled
@@ -41,13 +43,16 @@ of two groups of drivers, in daylight and in darkness:
 ```{r}
 day <- c(white = 600, black = 400)
 night <- c(white = 700, black = 300)
-vodtst(day, night)
+v <- vodtst(day, night)
+v
+pc <- function(x) paste(round(100 * x), "per cent")
 ```
 
-Black drivers are 40 per cent of daylight stops and 30 per cent of stops in
-darkness. The `ratio` column compares each group's odds of being the one
-stopped in daylight with its odds in darkness, against the reference group
-(the first, here): about 1.56 for black drivers. The idea, due to Grogger and
+Black drivers are `r pc(v$share_day[2])` of daylight stops and
+`r pc(v$share_night[2])` of stops in darkness. The `ratio` column compares
+each group's odds of being the one stopped in daylight with its odds in
+darkness, against the reference group (the first, here): about
+`r round(v$ratio[2], 2)` for black drivers. The idea, due to Grogger and
 Ridgeway (2006), is that an officer can see a driver's race more easily in
 daylight, so if race affects who is stopped, the group it works against makes
 up a larger share of daylight stops.
@@ -62,20 +67,25 @@ much a difference in exposure would explain. If, say, black drivers' share of
 traffic were 1.3 times as large in daylight as in darkness:
 
 ```{r}
-vodtst(day, night, shift = c(white = 1, black = 1.3))[["adj"]]
+adj <- vodtst(day, night, shift = c(white = 1, black = 1.3))[["adj"]]
+adj
 ```
 
-the adjusted ratio is about 1.2. A shift of about 1.56 would explain the
-whole contrast. The counts alone cannot tell bias from a change in who
+the adjusted ratio is about `r round(adj[2], 2)`. A shift equal to the ratio,
+about `r round(v$ratio[2], 2)`, would explain the whole contrast.
+The counts alone cannot tell bias from a change in who
 drives; `proof("vodtst")` names the theorem that says so.
 
 A related trap is reading an odds ratio as a relative risk. With an outcome
-as common as 40 per cent, an odds ratio of 3 corresponds to a relative risk
-of under 2:
+as common as 40 per cent, an odds ratio of 3 corresponds to a much smaller
+relative risk:
 
 ```{r}
-orrisk(or = 3, rate = 0.4, share = 0.5)
+r <- orrisk(or = 3, rate = 0.4, share = 0.5)
+r
 ```
+
+The relative risk is `r round(r[["rr"]], 2)`, not 3.
 
 ## Forensics: a match and what it is worth
 
@@ -91,9 +101,10 @@ m
 ```
 
 The match probability is the chance that an unrelated person from the same
-population would share the profile. Its reciprocal, about 200 here, is the
-likelihood ratio for a single-source match: the profile is about 200 times as
-probable if the suspect is the source as if an unrelated person is.
+population would share the profile. Its reciprocal, about
+`r signif(10^m$log10lr, 2)` here, is the likelihood ratio for a single-source
+match: the profile is that many times as probable if the suspect is the source
+as if an unrelated person is.
 
 What this does not license: a likelihood ratio is not the probability that
 the suspect is the source. That needs a prior, and the same ratio gives very
@@ -110,22 +121,27 @@ profiles for a stated relationship.
 
 How good is a system that reports likelihood ratios? Given ratios from
 validation comparisons whose truth is known, the log-likelihood-ratio cost
-scores them: 0 is perfect, 1 is a system that always reports 1. `cllrmin()`
-splits the cost into the part due to how well the ratios separate the two
-kinds of comparison (`min`) and the part due to miscalibration (`cal`):
+scores them, in bits: 1 for a system that always reports 1, and close to 0
+for one that separates the two kinds of comparison perfectly with ratios far
+from 1. `cllrmin()` recalibrates the ratios with the pool-adjacent-violators
+algorithm, which keeps their order, and splits the cost into the cost after
+recalibration (`min`) and the rest (`cal`):
 
 ```{r}
 same <- c(50, 200, 8, 0.5)
 diff <- c(0.01, 0.2, 1.5, 0.001)
-cllrmin(same, diff)
+cm <- cllrmin(same, diff)
+cm
 ```
 
 With these made-up ratios one different-source ratio (1.5) is larger than
-one same-source ratio (0.5), so even ratios perfectly calibrated to this
-ordering would cost about a quarter of a bit; the rest of the cost, about
-0.17 bits, comes from the ratios being too large or too small for what they
-separate. With four comparisons of each kind this says nothing about any
-real system; validation needs many
+one same-source ratio (0.5), so recalibration cannot remove all the cost:
+`r round(cm[["min"]], 2)` bits remain after it, and the other
+`r round(cm[["cal"]], 2)` come from the ratios being too large or too small
+for what they separate. That no order-keeping recalibration could do better
+than the pool-adjacent-violators one is the usual reading of `min`, but it is
+not among the theorems `proof("cllrmin")` names. With four comparisons of
+each kind this says nothing about any real system; validation needs many
 comparisons, made under the conditions of casework. A Tippett plot shows the
 same ratios as two curves:
 
@@ -143,15 +159,17 @@ cl <- clrsmp(clra = c(minor = 90, serious = 20),
              clrb = c(minor = 19, serious = 60),
              recb = c(minor = 20, serious = 140))
 cl[["parts"]]
-cl[["total"]]
+tot <- cl[["total"]]
+tot
 ```
 
 Both types clear better in year B than in year A, yet the aggregate rate falls
-from about 0.73 to about 0.49. The decomposition shows why: the rate effect
+from about `r round(tot[["ratea"]], 2)` to about `r round(tot[["rateb"]], 2)`.
+The decomposition shows why: the rate effect
 is positive, and the mix effect is negative and larger than the fall, because
 recorded work moved toward serious offences, which clear less often.
-`simpson` is 2 because every type moved one way and the aggregate the
-other.
+`simpson` is `r tot[["simpson"]]` because every type moved one way and the
+aggregate the other.
 
 What this does not license: the decomposition is arithmetic on the recorded
 counts. It says nothing about whether the service worked better or worse.
@@ -171,10 +189,12 @@ set.seed(1)
 z <- sample(c("community", "custody"), 500, replace = TRUE,
             prob = c(0.6, 0.4))
 y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-sntbnd(y, z)
+sb <- sntbnd(y, z)
+sb
 ```
 
-The observed reconviction rates differ by about 0.18. But each person is seen
+The observed reconviction rates differ by about
+`r round(sb$observed[3], 2)`. But each person is seen
 under one sentence only. Without assumptions about who receives which
 sentence, the reconviction rate everyone would have had under custody is
 known only to lie within an interval as wide as the share who did not
@@ -220,6 +240,19 @@ hypotheses over the real numbers. It does not guarantee three other things:
   theorem holds when exposure is the same in daylight and darkness; whether
   it is for a given force and year is a question about the world, not about
   the proof.
+
+```{r srr, include = FALSE}
+#' srr_stats
+#'
+#' @srrstats {G1.0} This vignette and each help page cite the primary
+#'   sources of the methods.
+#' @srrstats {G1.3} The vignette says what each result means and what it
+#'   does not; each help page defines the quantities it returns.
+#' @srrstats {EA1.0} The users are named in the first section.
+#' @srrstats {EA1.2} The questions are stated one family at a time.
+#' @noRd
+NULL
+```
 
 ## References
 
