@@ -7,7 +7,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from . import _clab
-from ._out import Record, Table, Vector, rec, tab, vec
+from ._out import Ece, Record, Table, Tip, Vector, rec, vec
 from ._util import Vec, align, flat, isseq, named, nrows, rows, table
 
 #: The prior log10 odds eceplt() draws at by default: R's
@@ -225,7 +225,7 @@ def lrcal(same: Vec, diff: Vec) -> Record:
     return Record(_clab.lrcal(same, diff))
 
 
-def tipplt(same: Vec, diff: Vec) -> Record:
+def tipplt(same: Vec, diff: Vec) -> Tip:
     """Tippett plot: the data it draws.
 
     For each value on the axis, the share of same-source and of
@@ -251,7 +251,7 @@ def tipplt(same: Vec, diff: Vec) -> Record:
     >>> r["same"]["share"]
     [1.0, 0.75, 0.5, 0.25]
     """
-    return rec(_clab.tipplt(same, diff))
+    return Tip(rec(_clab.tipplt(same, diff)))
 
 
 def eceplt(same: Vec, diff: Vec, lo: Vec = LO) -> Table:
@@ -281,7 +281,7 @@ def eceplt(same: Vec, diff: Vec, lo: Vec = LO) -> Table:
     >>> [round(r[k][0], 6) for k in ("ece", "min", "ref")]
     [0.423926, 0.25, 1.0]
     """
-    return tab(_clab.eceplt(same, diff, lo))
+    return Ece(_clab.eceplt(same, diff, lo))
 
 
 def _freq(f: Any) -> tuple[list[Any] | None, list[Any] | None]:

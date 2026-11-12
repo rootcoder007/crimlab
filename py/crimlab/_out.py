@@ -4,7 +4,7 @@
 A table is a dict of equal-length columns (lists), a vector a dict of
 numbers, a record a dict of results; each is still the dict it was, so
 ``r["ratio"]`` and ``dict(r)`` work as before. Printing, CSV, JSON, sort,
-filter and join run in the compiled module.
+filter, join and the SVG pictures run in the compiled module.
 """
 
 from __future__ import annotations
@@ -181,6 +181,36 @@ class Record(dict[str, Any]):
     def json(self) -> str:
         """JSON text: an object, by the rule of :meth:`Table.json`."""
         return str(_clab.json(self))
+
+
+class Tip(Record):
+    """The data of a Tippett plot (:func:`crimlab.tipplt`), with its
+    picture: :meth:`svg`."""
+
+    def svg(self, title: str = "Tippett plot") -> str:
+        """The plot as a standalone SVG document (text): the share of
+        same-source and of different-source ratios at or above each log10
+        ratio, as steps, a dotted line at 0, a legend."""
+        s, d = self["same"], self["diff"]
+        return str(_clab.svg([(s["log10lr"], s["share"], True, 0, "same source"),
+                              (d["log10lr"], d["share"], True, 1, "different source")],
+                             title, "log10 likelihood ratio", "share of ratios at or above",
+                             True, 0.0, 2))
+
+
+class Ece(Table):
+    """The data of an empirical cross-entropy plot (:func:`crimlab.eceplt`),
+    with its picture: :meth:`svg`."""
+
+    def svg(self, title: str = "Empirical cross-entropy") -> str:
+        """The plot as a standalone SVG document (text): the reported, the
+        calibrated and the always-1 curves against the prior log10 odds."""
+        lo = self["lo"]
+        return str(_clab.svg([(lo, self["ece"], False, 0, "reported"),
+                              (lo, self["min"], False, 1, "calibrated"),
+                              (lo, self["ref"], False, 2, "always 1")],
+                             title, "prior log10 odds", "empirical cross-entropy (bits)",
+                             False, 0.0, 0))
 
 
 def tab(x: Mapping[str, Any]) -> Table:

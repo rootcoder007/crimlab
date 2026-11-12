@@ -111,12 +111,14 @@ for i, c in enumerate(CASES):
             if got != want:
                 sys.exit(f"case {i} ({c['fn']}): {name}: allocation {start}: {got} instead of {want}")
             break
-# the table entry points, on a small table
+# the table and picture entry points, on a small table
 t = {"g": ["b", "a", None], "x": [2.0, float("nan"), 1.0], "s": ["x,y", "q", "z"]}
 calls = [("show", (t, 10, 5)), ("show", (t, 1, 1)), ("vshow", ({"a": 1.5, "b": 2.0}, 80)),
          ("csv", (t,)), ("json", (t,)), ("order", ([t["g"], t["x"]], ["g", "x"], [False, True])),
          ("test", (t["x"], "x", ">", 1.0)), ("test", (t["g"], "g", "in", ["a", "b"])),
-         ("pairs", ([t["g"]], [["a", "b", "b"]], "full"))]
+         ("pairs", ([t["g"]], [["a", "b", "b"]], "full")),
+         ("svg", ([([0.0, 1.0], [1.0, 0.5], True, 0, "a"), ([0.5], [0.2], False, 1, "b")],
+                  "t", "x", "y", True, 0.0, 2))]
 for name, a in calls:
     f = real[name]
     want = repr(f(*a))

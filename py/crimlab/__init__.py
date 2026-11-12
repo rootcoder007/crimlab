@@ -17,14 +17,16 @@ from . import _clab
 from ._corr import hzdsel, incap, incapr, losbnd, sellab, sntbnd
 from ._disp import dspbm, dyadrt, orrisk, outtst, vodtst
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
-from ._out import Record, Table, Vector
+from ._out import Ece, Record, Table, Tip, Vector
 from ._pol import clrsmp, expbnd, misrd, rtmhs
 from ._proof import proof
 from ._version import __version__
 
 __all__ = [
+    "Ece",
     "Record",
     "Table",
+    "Tip",
     "Vector",
     "__version__",
     "cllr",

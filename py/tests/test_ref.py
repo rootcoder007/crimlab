@@ -11,7 +11,7 @@ FNS = sorted({c["fn"] for c in CASES})
 
 
 def test_every_exported_function_has_cases():
-    extra = {"selftest", "__version__", "Table", "Vector", "Record"}
+    extra = {"selftest", "__version__", "Table", "Vector", "Record", "Tip", "Ece"}
     assert set(FNS) == set(crimlab.__all__) - extra
     assert len(FNS) == 27
 

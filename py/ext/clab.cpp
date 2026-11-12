@@ -1534,6 +1534,66 @@ PyObject *tlen(PyObject *const *a) {
   return PyLong_FromLong(ilen(v, s));
 }
 
+// Plots: clab_svgln on the curves Python gives.
+
+// a: list of curves, each (xs, ys, step, dash, label); title, xlab, ylab,
+// vline (bool), vx, the legend's corner
+PyObject *svg(PyObject *const *a) {
+  who = "svg";
+  const Py_ssize_t k = PyList_Size(a[0]);
+  if (k < 0) throw Raised{};
+  std::vector<double> x, y;
+  std::vector<int> off, np, st, da;
+  std::vector<std::string> lab;
+  for (Py_ssize_t j = 0; j < k; ++j) {
+    PyObject *c = PyList_GetItem(a[0], j);
+    if (!PyTuple_Check(c) || PyTuple_Size(c) != 5) fail(true, "a curve must be (x, y, step, dash, label).");
+    Dv cx, cy;
+    // non-finite values reach the kernel, which refuses them itself
+    if (readd(PyTuple_GetItem(c, 0), cx) != NUM || readd(PyTuple_GetItem(c, 1), cy) != NUM ||
+        cx.n != cy.n) {
+      fail(true, "a curve must be two lists of numbers of one length.");
+    }
+    if (static_cast<double>(x.size()) + static_cast<double>(cx.n) > INT_MAX) {
+      fail(false, "a curve is too long.");
+    }
+    off.push_back(static_cast<int>(x.size()));
+    np.push_back(static_cast<int>(cx.n));
+    x.insert(x.end(), cx.p, cx.p + cx.n);
+    y.insert(y.end(), cy.p, cy.p + cy.n);
+    const int stp = PyObject_IsTrue(PyTuple_GetItem(c, 2));
+    const long dsh = PyLong_AsLong(PyTuple_GetItem(c, 3));
+    if (stp < 0 || (dsh == -1 && PyErr_Occurred())) throw Raised{};
+    if (dsh < 0 || dsh > 2) fail(false, "a curve's dash must be 0, 1 or 2.");
+    st.push_back(stp);
+    da.push_back(static_cast<int>(dsh));
+    const char *s = PyUnicode_AsUTF8AndSize(PyTuple_GetItem(c, 4), nullptr);
+    if (s == nullptr) throw Raised{};
+    lab.emplace_back(s);
+  }
+  if (PyErr_Occurred()) throw Raised{};
+  std::vector<const char *> lp;
+  for (const auto &s : lab) lp.push_back(s.c_str());
+  const char *t[3];
+  for (int i = 0; i < 3; ++i) {
+    t[i] = PyUnicode_AsUTF8AndSize(a[1 + i], nullptr);
+    if (t[i] == nullptr) throw Raised{};
+  }
+  const int vl = PyObject_IsTrue(a[4]);
+  const double vx = PyFloat_AsDouble(a[5]);
+  const long cn = PyLong_AsLong(a[6]);
+  if (vl < 0 || (vx == -1.0 && PyErr_Occurred()) || (cn == -1 && PyErr_Occurred())) throw Raised{};
+  const int corner = cn < 0 || cn > 3 ? -1 : static_cast<int>(cn);
+  int n = 0;
+  const int kk = static_cast<int>(k);
+  kchk(clab_svgln(kk, off.data(), np.data(), x.data(), y.data(), st.data(), da.data(), lp.data(),
+                  t[0], t[1], t[2], vl, vx, corner, nullptr, 0, &n));
+  std::vector<char> b(static_cast<std::size_t>(n) + 1);
+  kchk(clab_svgln(kk, off.data(), np.data(), x.data(), y.data(), st.data(), da.data(), lp.data(),
+                  t[0], t[1], t[2], vl, vx, corner, b.data(), n + 1, &n));
+  return PyUnicode_FromStringAndSize(b.data(), n);
+}
+
 // Tables: a dict of equal-length columns (lists). Printing, CSV and JSON,
 // and the cores of sort, filter and join.
 
@@ -2126,6 +2186,7 @@ PyMethodDef methods[] = {
     CLAB_FN(selftest, 0),
     CLAB_FN(rchar, 1),
     CLAB_FN(tlen, 2),
+    CLAB_FN(svg, 7),
     CLAB_FN(show, 3),
     CLAB_FN(vshow, 2),
     CLAB_FN(csv, 1),

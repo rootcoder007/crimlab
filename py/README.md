@@ -9,7 +9,8 @@ number in the parity tests (`tests/data/ref.json`, written by
 The package imports nothing outside Python's standard library: no
 runtime dependencies, no optional ones. Results are dicts of its own that
 print as R prints them, export themselves as CSV or JSON, and (tables)
-sort, filter and join.
+sort, filter and join; the two plots draw themselves as SVG, by the same
+compiled code every binding can use.
 
 ## Install
 
@@ -147,9 +148,24 @@ Each returns a new table and leaves the first unchanged. There is no
 
 ## Plots
 
-`tipplt()` and `eceplt()` return the data of the plot and draw nothing:
-any plotting library draws it, `share` against `log10lr` as steps for the
-Tippett plot, `ece`, `min` and `ref` against `lo` for the cross-entropy.
+`tipplt()` and `eceplt()` return the data of the plot. Their result has
+`svg()`, which returns the plot as a standalone SVG document: axes with
+tick labels, the curves, a legend, a title and axis labels; text as text
+(a system sans-serif stack) and colours that read on light and dark
+backgrounds; the same bytes on every machine. A method, not a file
+argument: the result stays data first, the picture is asked for when it is
+wanted, and where it goes (a file, a web page, a notebook) is the
+caller's choice, with no paths or file handling in the package.
+
+```python
+>>> from crimlab import tipplt
+>>> svg = tipplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001]).svg()
+>>> svg.splitlines()[1][:40]
+'<svg xmlns="http://www.w3.org/2000/svg" '
+
+```
+
+![A Tippett plot drawn by crimlab](tipplt.svg)
 
 ## Optional packages (never required)
 
@@ -269,9 +285,9 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
 4. `ref`: a bool or None is refused with a TypeError; a number is always a
    position, so a group named by a number cannot be chosen by name. R
    reads a factor `ref` by its label; Python has no one-value categorical.
-5. `tipplt()` and `eceplt()` return the plotted data and draw nothing (R
-   draws on the current device with base graphics and returns the data
-   invisibly).
+5. `tipplt()` and `eceplt()` return the plotted data and draw nothing; the
+   picture is `svg()` on the result (R draws on the current device with
+   base graphics and returns the data invisibly).
 6. None and NaN are both R's `NA` on input. On output R's `NA` is None and
    `NaN` is NaN.
 7. A nested list where a vector is expected is refused as not numbers
