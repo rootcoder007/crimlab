@@ -84,8 +84,12 @@ void weber(const double *x, const double *y, const double *w, int n,
 
 // A uniform grid over the rectangle [x0, x1] x [y0, y1] holding n points
 // by counting sort: the points of cell c are ord[start[c] .. start[c + 1]).
-// The cell side is at least `cell` and the grid has at most n + 1 cells,
-// so iwork needs n + (n + 2) ints. Points must lie in the rectangle.
+// The rectangle is split into ceil(width / c) by ceil(height / c) cells,
+// c being `cell` grown by factors of 1.25 until there are at most n + 1
+// cells, so a cell's side is at most c and may be shorter than `cell`: a
+// search to distance r must reach from cx(x - r) to cx(x + r), not one
+// cell either way. iwork needs n + (n + 2) ints. Points must lie in the
+// rectangle.
 struct grid {
   double x0, y0, wx, wy;
   int gx, gy;
