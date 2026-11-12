@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // Standalone tests for clab_sptst (src/spt.cpp). Built only with
-// -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// the self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -26,7 +23,7 @@ const double sp_p[100] = {0.0032000000000000002, 0.88400000000000001, 0.66959999
 const double sp_pmin[100] = {0.0032000000000000002, 0.88180000000000003, 0.66500000000000004, 0.61280000000000001, 0.0060000000000000001, 0.12859999999999999, 0.002, 0.14399999999999999, 0.25259999999999999, 0.036999999999999998, 0.094600000000000004, 0.093399999999999997, 0.077200000000000005, 0.0055999999999999999, 0.36099999999999999, 0.87260000000000004, 0.37640000000000001, 0.00020000000000000001, 0.86299999999999999, 0.46920000000000001, 0.79659999999999997, 0.50600000000000001, 0.15079999999999999, 0.80200000000000005, 0.0089999999999999993, 0.45760000000000001, 0.1158, 0.56299999999999994, 0.12740000000000001, 0.011599999999999999, 0.010200000000000001, 0.45079999999999998, 0.1046, 0.32200000000000001, 0.58740000000000003, 0.59199999999999997, 0.35720000000000002, 0.060999999999999999, 0.66100000000000003, 0.4506, kNaN, kNaN, 0.44679999999999997, 0.0124, 0.10299999999999999, 0.0097999999999999997, 0.10299999999999999, 0.082400000000000001, 0.038399999999999997, 0.034200000000000001, 0.158, 0.88200000000000001, 0.065199999999999994, 0.16220000000000001, 0.90480000000000005, 0.68379999999999996, 0.49640000000000001, 0.51160000000000005, 0.25380000000000003, 0.39660000000000001, 0.24740000000000001, 0.0050000000000000001, 0.32040000000000002, 0.093200000000000005, 0.059799999999999999, 0.55940000000000001, 0.0016000000000000001, 0.60199999999999998, 0.0118, 0.1178, 0.051799999999999999, 0.40460000000000002, 0.17960000000000001, 0.45700000000000002, 0.41699999999999998, 0.25700000000000001, 0.88819999999999999, 0.13300000000000001, 0.48120000000000002, 0.0095999999999999992, 0.51939999999999997, 0.2112, 0.27479999999999999, 0.67759999999999998, 0.80159999999999998, 0.42999999999999999, kNaN, 0.1774, 0.16039999999999999, 0.625, 0.43180000000000002, 0.086999999999999994, 0.031800000000000002, 0.17999999999999999, 0.039, 0.83360000000000001, 0.1754, 0.0016000000000000001, 0.077600000000000002, 0.82720000000000005};
 const double sp_pmax[100] = {0.0091999999999999998, 0.91400000000000003, 0.69479999999999997, 0.63260000000000005, 0.0124, 0.1724, 0.0061999999999999998, 0.18279999999999999, 0.46579999999999999, 0.050999999999999997, 0.13, 0.13239999999999999, 0.085800000000000001, 0.014, 0.43559999999999999, 0.8982, 0.56279999999999997, 0.00040000000000000002, 0.96699999999999997, 0.51880000000000004, 0.99099999999999999, 0.59319999999999995, 0.17380000000000001, 1, 0.017600000000000001, 0.49419999999999997, 0.1812, 0.58660000000000001, 0.1822, 0.025399999999999999, 0.0206, 0.48620000000000002, 0.1414, 0.3488, 0.75119999999999998, 0.64339999999999997, 0.38919999999999999, 0.078200000000000006, 0.81079999999999997, 0.52980000000000005, kNaN, kNaN, 0.47699999999999998, 0.024199999999999999, 0.1164, 0.017000000000000001, 0.12939999999999999, 0.11219999999999999, 0.049399999999999999, 0.057599999999999998, 0.20899999999999999, 0.91520000000000001, 0.1032, 0.20580000000000001, 0.91579999999999995, 0.70299999999999996, 0.54420000000000002, 0.55940000000000001, 0.44340000000000002, 0.45739999999999997, 0.308, 0.013599999999999999, 0.39960000000000001, 0.11600000000000001, 0.10539999999999999, 0.64759999999999995, 0.0050000000000000001, 0.70220000000000005, 0.0218, 0.18379999999999999, 0.081199999999999994, 0.51819999999999999, 0.21260000000000001, 0.48920000000000002, 0.48980000000000001, 0.45519999999999999, 0.91000000000000003, 0.19, 0.52200000000000002, 0.0172, 0.53339999999999999, 0.26719999999999999, 0.33439999999999998, 0.70999999999999996, 0.95920000000000005, 0.48659999999999998, kNaN, 0.23119999999999999, 0.20979999999999999, 0.70820000000000005, 0.44540000000000002, 0.12759999999999999, 0.050599999999999999, 0.25259999999999999, 0.066799999999999998, 0.87060000000000004, 0.25280000000000002, 0.0055999999999999999, 0.084599999999999995, 0.87939999999999996};
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -54,7 +51,7 @@ void counts100(double *a, double *b) {
   a[40] = a[41] = b[40] = b[41] = 0;
 }
 
-int poisson(rng &r, double lam) {
+int poisson(xrng &r, double lam) {
   double u = r.unif(), pk = std::exp(-lam), c = pk;
   int k = 0;
   while (u > c && k < 1000) {
@@ -65,7 +62,7 @@ int poisson(rng &r, double lam) {
   return k;
 }
 
-void t_spt() {
+void run(tk &tt) {
   double a[100], b[100];
   counts100(a, b);
   // 1. parity with sppt: the observed differences (sppt reports them
@@ -75,10 +72,10 @@ void t_spt() {
   // observed difference are decided by the noise of the replicate mean),
   // so the ranges of p over 8 seeds are compared, unit by unit (they must
   // meet within 4 standard errors, the 3-decimal rounding and one step).
-  TK("spt.rc", clab_sptst(a, b, 100, 4999, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK);
+  tk_true(tt, "spt.rc", clab_sptst(a, b, 100, 4999, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK);
   int bad = 0, nanok = 1;
   for (int i = 0; i < 100; ++i) {
-    TKN("spt.diff", out[i], sp_diff[i], 5e-7);
+    tk_near(tt, "spt.diff", out[i], sp_diff[i], 5e-7);
     const double p = out[100 + i];
     if (std::isnan(sp_p[i])) {
       nanok &= std::isnan(p);
@@ -86,16 +83,16 @@ void t_spt() {
     }
     (void)p;
   }
-  const double g4 = glob[4], g3 = glob[3], g2 = glob[2];
   {
-    // this kernel's own range over seeds 1..8, against sppt's
+    // this kernel's own range over seeds 1..6 (B = 1999, to keep the
+    // self-test short), against sppt's over 8 seeds
     static double lo[100], hi[100], o8[300], g8[8];
     for (int i = 0; i < 100; ++i) {
       lo[i] = 2;
       hi[i] = -1;
     }
-    for (unsigned sd = 1; sd <= 8; ++sd) {
-      clab_sptst(a, b, 100, 4999, sd, 0.05, 100, o8, g8, work, iwork);
+    for (unsigned sd = 1; sd <= 6; ++sd) {
+      clab_sptst(a, b, 100, 1999, sd, 0.05, 100, o8, g8, work, iwork);
       for (int i = 0; i < 100; ++i) {
         const double v = o8[100 + i];
         if (std::isnan(v)) continue;
@@ -105,15 +102,13 @@ void t_spt() {
     }
     for (int i = 0; i < 100; ++i) {
       if (std::isnan(sp_p[i])) continue;
-      const double sl = 4 * std::sqrt(0.25 / 4999) + 5e-4 + 2.0 / 5000;
+      const double sl = 4 * std::sqrt(0.25 / 1999) + 5e-4 + 2.0 / 2000;
       bad += hi[i] < sp_pmin[i] - sl || lo[i] > sp_pmax[i] + sl;  // ranges do not meet
     }
   }
-  std::printf("  spt: %d of %d units whose 8-seed p range misses sppt's; S %.4f (%g of %g)\n",
-              bad, static_cast<int>(g2), g4, g3, g2);
-  TK("spt.p", bad <= 1 && nanok);
-  TK("spt.elig", glob[2] == 97 && glob[1] == 3 && glob[0] == 0);
-  TK("spt.nsig", std::fabs(glob[3] - 19) <= 4);
+  tk_true(tt, "spt.p", bad <= 1 && nanok);
+  tk_true(tt, "spt.elig", glob[2] == 97 && glob[1] == 3 && glob[0] == 0);
+  tk_true(tt, "spt.nsig", std::fabs(glob[3] - 19) <= 4);
   // 2. the sameness p-value is the exact binomial upper tail of the
   // flags: a direct sum
   {
@@ -122,7 +117,7 @@ void t_spt() {
     for (int k = ns; k <= ne; ++k)
       t += std::exp(std::lgamma(ne + 1.0) - std::lgamma(k + 1.0) - std::lgamma(ne - k + 1.0) +
                     k * std::log(0.05) + (ne - k) * std::log(0.95));
-    TKN("spt.same", glob[6] / t, 1, 1e-10);
+    tk_near(tt, "spt.same", glob[6] / t, 1, 1e-10);
   }
   // 3. reproducible from the seed, and the streaming two passes see the
   // same replicates: with B = 1 every unit's centred replicate is 0, so p
@@ -133,7 +128,7 @@ void t_spt() {
     clab_sptst(a, b, 100, 999, 7, 0.05, 100, o2, g2, work, iwork);
     bool same = true;
     for (int i = 0; i < 300; ++i) same = same && (out[i] == o2[i] || (std::isnan(out[i]) && std::isnan(o2[i])));
-    TK("spt.repro", same);
+    tk_true(tt, "spt.repro", same);
     clab_sptst(a, b, 100, 1, 7, 0.05, 100, out, glob, work, iwork);
     bool ok = true;
     for (int i = 0; i < 100; ++i) {
@@ -141,12 +136,12 @@ void t_spt() {
       if (std::isnan(p)) continue;
       ok = ok && ((p == 0.5 && out[i] != 0) || (p == 1.0 && out[i] == 0));
     }
-    TK("spt.b1", ok);
+    tk_true(tt, "spt.b1", ok);
   }
   // 4. calibration: base and test from the same Poisson(5) surface, 40
   // grids of 100 units, B = 199: flag rate at 0.05 within 0.03..0.07
   {
-    rng r{55};
+    xrng r{55};
     double f = 0, n = 0;
     for (int rep = 0; rep < 40; ++rep) {
       for (int i = 0; i < 100; ++i) {
@@ -157,8 +152,7 @@ void t_spt() {
       f += glob[3];
       n += glob[2];
     }
-    std::printf("  spt: null flag rate %.4f\n", f / n);
-    TK("spt.null", f / n > 0.03 && f / n < 0.07);
+    tk_true(tt, "spt.null", f / n > 0.03 && f / n < 0.07);
   }
   // 5. disagreement (dossier csls/d/sppt.md section 3, reproduced in
   // dev/doss/sppt.R): sppt 1.0.0 turns an NA count into 0 events without a
@@ -168,7 +162,7 @@ void t_spt() {
     counts100(a, b);
     b[5] = std::nan("");
     clab_sptst(a, b, 100, 99, 1, 0.05, 100, out, glob, work, iwork);
-    TK("spt.na.count", glob[0] == 1 && std::isnan(out[5]) && std::isnan(out[105]));
+    tk_true(tt, "spt.na.count", glob[0] == 1 && std::isnan(out[5]) && std::isnan(out[105]));
     double a2[99], b2[99], o3[297], g3[8];
     for (int i = 0, k = 0; i < 100; ++i)
       if (i != 5) {
@@ -179,25 +173,34 @@ void t_spt() {
     bool eq = true;
     for (int i = 0, k = 0; i < 100; ++i)
       if (i != 5) eq = eq && out[i] == o3[k++];
-    TK("spt.na.same", eq);
+    tk_true(tt, "spt.na.same", eq);
   }
   // 6. guards and the no-inference case
   {
     counts100(a, b);
     a[3] = 1.5;
-    TK("spt.guard.int", clab_sptst(a, b, 100, 9, 1, 0.05, 100, out, glob, work, iwork) == CLAB_EDOM);
+    tk_true(tt, "spt.guard.int", clab_sptst(a, b, 100, 9, 1, 0.05, 100, out, glob, work, iwork) == CLAB_EDOM);
     for (int i = 0; i < 100; ++i) a[i] = 0;
-    TK("spt.zero", clab_sptst(a, b, 100, 9, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK && std::isnan(glob[4]));
-    TK("spt.guard.B", clab_sptst(a, b, 100, 0, 1, 0.05, 100, out, glob, work, iwork) == CLAB_EARG);
+    tk_true(tt, "spt.zero", clab_sptst(a, b, 100, 9, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK && std::isnan(glob[4]));
+    tk_true(tt, "spt.guard.B", clab_sptst(a, b, 100, 0, 1, 0.05, 100, out, glob, work, iwork) == CLAB_EARG);
   }
 }
+
+
+}  // namespace
+
+void t_spt(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's standard case: 10,000 units, Poisson(5) each, B = 999
 // (sppt 5.012 s median of 3 on zeus, memory O(units x B) in the field
 // package; here O(units))
 void b_spt() {
   static double a[10000], b[10000];
-  rng r{9};
+  xrng r{9};
   for (int i = 0; i < 10000; ++i) {
     a[i] = poisson(r, 5);
     b[i] = poisson(r, 5);
@@ -208,11 +211,6 @@ void b_spt() {
     clab_sptst(a, b, 10000, 999, 1, 0.05, 100, out, glob, work, iwork);
     t[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
   }
-  std::printf("BENCH clab_sptst 10,000 units, B = 999: median %.3f s (k=5), S %.4f\n", tk::med5(t), glob[4]);
+  std::printf("BENCH clab_sptst 10,000 units, B = 999: median %.3f s (k=5), S %.4f\n", tk_med5(t), glob[4]);
 }
-
-}  // namespace
-
-TK_FAMILY("spt", t_spt, b_spt);
-
 #endif

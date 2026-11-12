@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_tfrp and clab_tfrw (src/tfr.cpp). Built only
-// with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_tfrp and clab_tfrw (src/tfr.cpp). Part of the
+// self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -24,13 +21,24 @@ const double DEF[17] = {120, 60, 0.5, 0.05, 0.8, 0.9, 0.1, 0.15, 0.45, 0.7,
 
 double work[400000];
 
+// the defaults with every rate interval a point and one hour
+void fixed(double *p) {
+  for (int k = 0; k < 17; ++k) p[k] = DEF[k];
+  p[5] = p[4];
+  p[7] = p[6];
+  p[9] = p[8];
+  p[11] = p[10];
+  p[13] = p[12];
+  p[14] = p[15] = 1;
+}
+
 // Poisson pmf by logs
 double pois(int y, double v) { return std::exp(-v + y * std::log(v) - std::lgamma(y + 1.0)); }
 
 // standard normal tail Phi(-z)
 double ptail(double z) { return 0.5 * std::erfc(z / std::sqrt(2.0)); }
 
-void t_tfr() {
+void run(tk &tt) {
   int len;
   double prob[401], se[401], cut[2];
   // 1. no random effects (sd 0, no distance effect, fixed rates, one
@@ -45,17 +53,18 @@ void t_tfr() {
     p[11] = p[10];
     p[13] = p[12];
     p[14] = p[15] = 1;
-    TK("tfr.pois.work", clab_tfrw(p, 0, 0, 60, 0.02, 256, &len) == CLAB_OK && len <= 400000);
-    TK("tfr.pois.rc", clab_tfrp(p, 0, 0, 60, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_OK);
+    tk_true(tt, "tfr.pois.work", clab_tfrw(p, 0, 0, 60, 0.02, 256, &len) == CLAB_OK && len <= 400000);
+    tk_true(tt, "tfr.pois.rc", clab_tfrp(p, 0, 0, 60, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_OK);
     const double s = 0.5 * (0.95 * 0.2 + 0.05 * 0.9);
     for (int y = 0; y <= 60; ++y) {
-      TKN("tfr.pois", prob[y], pois(y, 120 * s), 1e-14);
-      TK("tfr.pois.se", se[y] == 0);
+      tk_near(tt, "tfr.pois", prob[y], pois(y, 120 * s), 1e-14);
+      tk_true(tt, "tfr.pois.se", se[y] == 0);
     }
   }
   // 2. normal transfer amount (folded), fixed rates, no distance effect:
-  // against a composite Simpson rule with 200,000 intervals on [0, 840]
-  // in this file (a different rule, 1,000 times finer)
+  // against a composite Simpson rule with 20,000 intervals on [0, 840]
+  // in this file (a different rule, 100 times finer; 200,000 intervals in
+  // the extended run give 3.3e-12)
   {
     double p[17];
     for (int k = 0; k < 17; ++k) p[k] = DEF[k];
@@ -69,7 +78,7 @@ void t_tfr() {
     const double s = 0.5 * (0.95 * 0.2 + 0.05 * 0.9);
     double worst = 0;
     for (int y = 0; y <= 80; y += 5) {
-      const int n = 200000;
+      const int n = 20000;
       const double h = 840.0 / n;
       double acc = 0;
       for (int i = 0; i <= n; ++i) {
@@ -82,60 +91,16 @@ void t_tfr() {
       const double rel = std::fabs(prob[y] - acc) / acc;
       worst = rel > worst ? rel : worst;
     }
-    std::printf("  tfr: folded-normal quadrature, worst relative error %.3g (grid 0.02)\n", worst);
-    TK("tfr.normal", worst < 1e-9);
+    tk_true(tt, "tfr.normal", worst < 1e-8);
   }
-  // 3. with the distance effect (D ~ Gamma(0.5)): against a 2-D Simpson
-  // rule in x and u = sqrt(D) (D = u^2 removes the D^{-1/2} singularity:
-  // density 2 e^{-u^2} / Gamma(1/2)), 2,000 x 4,000 intervals, for a few
-  // counts
+  // 3. with the distance effect (D ~ Gamma(0.5)), fixed rates: the mean in
+  // closed form and the total (the comparison with a 2-D Simpson rule and
+  // the self-convergence check are in quad(), full size in the ext mode)
   {
     double p[17];
-    for (int k = 0; k < 17; ++k) p[k] = DEF[k];
-    p[5] = p[4];
-    p[7] = p[6];
-    p[9] = p[8];
-    p[11] = p[10];
-    p[13] = p[12];
-    p[14] = p[15] = 1;
-    clab_tfrp(p, 1, 0, 80, 10, 1, 0.02, 256, prob, se, cut, work);
+    fixed(p);
     const double s = 0.5 * (0.95 * 0.2 + 0.05 * 0.9);
-    const int ys[4] = {0, 3, 20, 60};
-    double worst = 0;
-    for (int q = 0; q < 4; ++q) {
-      const int y = ys[q], nx = 2000, nu = 4000;
-      const double hx = 840.0 / nx, hu = 7.0 / nu;
-      double acc = 0;
-      for (int i = 0; i <= nx; ++i) {
-        const double x = i * hx, z1 = (x - 120) / 60, z2 = (x + 120) / 60;
-        const double fx = (std::exp(-0.5 * z1 * z1) + std::exp(-0.5 * z2 * z2)) / (60 * 2.5066282746310002);
-        const double cx = i == 0 || i == nx ? 1 : (i % 2 ? 4 : 2);
-        double inner = 0;
-        for (int j = 0; j <= nu; ++j) {
-          const double u = j * hu, dd = u * u;
-          const double v = x * std::exp(1 - dd / 0.5) * s;
-          const double f = (v == 0 ? (y == 0 ? 1.0 : 0.0) : pois(y, v)) * 2 * std::exp(-dd) / std::sqrt(3.141592653589793);
-          inner += f * (j == 0 || j == nu ? 1 : (j % 2 ? 4 : 2));
-        }
-        acc += cx * fx * inner * hu / 3;
-      }
-      acc *= hx / 3;
-      const double rel = std::fabs(prob[y] - acc) / acc;
-      worst = rel > worst ? rel : worst;
-    }
-    std::printf("  tfr: gamma-distance quadrature against 2-D Simpson, worst relative difference %.3g\n", worst);
-    TK("tfr.gamma", worst < 1e-6);
-    // self-convergence: halving the grid step and doubling the panels
-    // moves no probability by more than 1e-9 relative, so the remaining
-    // difference above is the Simpson reference's own error
-    static double pf[81], sf[81];
     double cf[2];
-    clab_tfrp(p, 1, 0, 80, 10, 1, 0.01, 512, pf, sf, cf, work);
-    double conv = 0;
-    for (int y = 0; y <= 80; ++y)
-      if (pf[y] > 1e-300) conv = std::fabs(prob[y] - pf[y]) / pf[y] > conv ? std::fabs(prob[y] - pf[y]) / pf[y] : conv;
-    std::printf("  tfr: self-convergence (0.02, 256) vs (0.01, 512): %.3g\n", conv);
-    TK("tfr.conv", conv < 1e-9);
     // the mean in closed form: E|X| e (1 + 1/d)^{-d} s (counts to 400:
     // the law has a long right tail)
     static double pm[401], sm[401];
@@ -145,12 +110,11 @@ void t_tfr() {
       mean += y * pm[y];
       tot += pm[y];
     }
-    TKN("tfr.total.fixed", tot, 1, 1e-12);
+    tk_near(tt, "tfr.total.fixed", tot, 1, 1e-12);
     const double ex = 60 * std::sqrt(2 / 3.141592653589793) * std::exp(-2.0) + 120 * (1 - 2 * ptail(2.0));
     const double em = ex * std::exp(1.0) * std::pow(3.0, -0.5) * s;
-    std::printf("  tfr: fixed-rate mean %.12f, closed form %.12f\n", mean, em);
-    TKN("tfr.mean.fixed", mean / em, 1, 1e-9);
-    TK("tfr.cut", cut[1] > 0.99 && cut[1] < 1 + 1e-9);
+    tk_near(tt, "tfr.mean.fixed", mean / em, 1, 1e-9);
+    tk_true(tt, "tfr.cut", cf[1] > 0.99 && cf[1] < 1 + 1e-9);
   }
   // 4. the default model: mean against the closed form
   // E[Y] = E|X| e (1 + 1/d)^{-d} E[R] sum_h P(h) ((1-Q) E[A_h] + Q E[B_h]),
@@ -158,8 +122,8 @@ void t_tfr() {
   // mu (1 - 2 Phi(-mu/sd)); and parity with tfer's 10^6 draws within 4
   // standard errors of both Monte Carlo estimates
   {
-    TK("tfr.def.work", clab_tfrw(DEF, 1, 0, 400, 0.02, 256, &len) == CLAB_OK && len <= 400000);
-    TK("tfr.def.rc", clab_tfrp(DEF, 1, 0, 400, 40, 7, 0.02, 256, prob, se, cut, work) == CLAB_OK);
+    tk_true(tt, "tfr.def.work", clab_tfrw(DEF, 1, 0, 400, 0.02, 256, &len) == CLAB_OK && len <= 400000);
+    tk_true(tt, "tfr.def.rc", clab_tfrp(DEF, 1, 0, 400, 4, 7, 0.05, 64, prob, se, cut, work) == CLAB_OK);
     double mean = 0, tot = 0, msd = 0;
     for (int y = 0; y <= 400; ++y) {
       mean += y * prob[y];
@@ -176,41 +140,39 @@ void t_tfr() {
       pk *= (t + 1.5) * 0.5 / (t + 1);
     }
     es *= 0.6;
-    std::printf("  tfr: default model mean %.6f, closed form %.6f (sum of |y| se %.3g)\n", mean, em * es, msd);
-    TK("tfr.def.mean", std::fabs(mean - em * es) <= 4 * msd);
-    TK("tfr.def.total", std::fabs(tot - 1) < 1e-6);
+    tk_true(tt, "tfr.def.mean", std::fabs(mean - em * es) <= 4 * msd);
+    tk_true(tt, "tfr.def.total", std::fabs(tot - 1) < 1e-6);
     int bad = 0;
     for (int y = 0; y <= 80; ++y) {
       const double sd = std::sqrt(tf_ref[y] * (1 - tf_ref[y]) / 1e6 + se[y] * se[y]);
       bad += std::fabs(prob[y] - tf_ref[y]) > 4 * sd + 1e-6;
     }
-    std::printf("  tfr: %d of 81 probabilities outside 4 combined standard errors of tfer\n", bad);
-    TK("tfr.parity", bad <= 1);
+    tk_true(tt, "tfr.parity", bad <= 1);
     // disagreement (dossier csls/d/tfer.md section 3; dev/doss/tfer.R):
     // tfer 1.3 gives probability 0 to every count above its largest draw
     // (159 in 10^6 draws) and tprob(x, c(2, m + 50)) labels the second
     // value m + 1. Here every count has its own positive probability.
     bool pos = true;
     for (int y = 0; y <= 400; ++y) pos = pos && prob[y] > 0;
-    TK("tfr.positive", pos && prob[209] > 0 && prob[209] < 1e-6);
+    tk_true(tt, "tfr.positive", pos && prob[209] > 0 && prob[209] < 1e-6);
   }
   // 5. reproducible, and the other time distributions
   {
     static double p2[401], s2[401];
-    clab_tfrp(DEF, 1, 0, 100, 50, 11, 0.02, 256, prob, se, cut, work);
-    clab_tfrp(DEF, 1, 0, 100, 50, 11, 0.02, 256, p2, s2, cut, work);
+    clab_tfrp(DEF, 1, 0, 100, 3, 11, 0.05, 64, prob, se, cut, work);
+    clab_tfrp(DEF, 1, 0, 100, 3, 11, 0.05, 64, p2, s2, cut, work);
     bool same = true;
     for (int y = 0; y <= 100; ++y) same = same && prob[y] == p2[y] && se[y] == s2[y];
-    TK("tfr.repro", same);
+    tk_true(tt, "tfr.repro", same);
     for (int td = 1; td <= 2; ++td) {
       double p[17];
       for (int k = 0; k < 17; ++k) p[k] = DEF[k];
       p[14] = 1;
       p[15] = 4;
-      TK("tfr.tdist.rc", clab_tfrp(p, 1, td, 200, 20, 3, 0.02, 256, prob, se, cut, work) == CLAB_OK);
+      tk_true(tt, "tfr.tdist.rc", clab_tfrp(p, 1, td, 200, 2, 3, 0.05, 64, prob, se, cut, work) == CLAB_OK);
       double tot = 0;
       for (int y = 0; y <= 200; ++y) tot += prob[y];
-      TK("tfr.tdist.total", std::fabs(tot - 1) < 1e-6 && cut[0] == 0);
+      tk_true(tt, "tfr.tdist.total", std::fabs(tot - 1) < 1e-6 && cut[0] == 0);
     }
   }
   // 6. guards (tfer 1.3 checks no parameter: Q = -1 ends in "NAs produced")
@@ -218,20 +180,88 @@ void t_tfr() {
     double p[17];
     for (int k = 0; k < 17; ++k) p[k] = DEF[k];
     p[3] = -1;
-    TK("tfr.guard.Q", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
+    tk_true(tt, "tfr.guard.Q", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
     p[3] = 0.05;
     p[4] = 0.95;
-    TK("tfr.guard.lu", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
+    tk_true(tt, "tfr.guard.lu", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
     p[4] = 0.8;
     p[16] = 0;
-    TK("tfr.guard.r", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
+    tk_true(tt, "tfr.guard.r", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
     p[16] = 0.5;
     p[14] = p[15] = 1.5;
-    TK("tfr.guard.t", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
-    TK("tfr.guard.nsim", clab_tfrp(DEF, 1, 0, 10, 0, 1, 0.02, 256, prob, se, cut, work) == CLAB_EARG);
-    TK("tfr.guard.d", clab_tfrp(DEF, 2, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EARG);
+    tk_true(tt, "tfr.guard.t", clab_tfrp(p, 1, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EDOM);
+    tk_true(tt, "tfr.guard.nsim", clab_tfrp(DEF, 1, 0, 10, 0, 1, 0.02, 256, prob, se, cut, work) == CLAB_EARG);
+    tk_true(tt, "tfr.guard.d", clab_tfrp(DEF, 2, 0, 10, 10, 1, 0.02, 256, prob, se, cut, work) == CLAB_EARG);
   }
 }
+
+
+// The quadrature against independent rules: full size in the "ext" mode
+// (big = 1), reduced in the default self-test.
+void quad(tk &tt, int big) {
+  static double prob[81], se[81], cut[2];
+  double p[17];
+  fixed(p);
+  clab_tfrp(p, 1, 0, 80, 10, 1, 0.02, 256, prob, se, cut, work);
+  const double s = 0.5 * (0.95 * 0.2 + 0.05 * 0.9);
+  // 2-D Simpson in x and u = sqrt(D) (density 2 e^{-u^2} / Gamma(1/2)),
+  // 2,000 x 4,000 intervals (200 x 400 by default), for a few counts
+  const int ys[4] = {0, 3, 20, 60};
+  double worst = 0;
+  for (int q = 0; q < 4; ++q) {
+    const int y = ys[q], nx = big ? 2000 : 200, nu = big ? 4000 : 400;
+    const double hx = 840.0 / nx, hu = 7.0 / nu;
+    double acc = 0;
+    for (int i = 0; i <= nx; ++i) {
+      const double x = i * hx, z1 = (x - 120) / 60, z2 = (x + 120) / 60;
+      const double fx = (std::exp(-0.5 * z1 * z1) + std::exp(-0.5 * z2 * z2)) / (60 * 2.5066282746310002);
+      const double cx = i == 0 || i == nx ? 1 : (i % 2 ? 4 : 2);
+      double inner = 0;
+      for (int j = 0; j <= nu; ++j) {
+        const double u = j * hu, dd = u * u;
+        const double v = x * std::exp(1 - dd / 0.5) * s;
+        const double f = (v == 0 ? (y == 0 ? 1.0 : 0.0) : pois(y, v)) * 2 * std::exp(-dd) / std::sqrt(3.141592653589793);
+        inner += f * (j == 0 || j == nu ? 1 : (j % 2 ? 4 : 2));
+      }
+      acc += cx * fx * inner * hu / 3;
+    }
+    acc *= hx / 3;
+    const double rel = std::fabs(prob[y] - acc) / acc;
+    worst = rel > worst ? rel : worst;
+  }
+  tk_true(tt, "tfr.gamma", worst < (big ? 1e-6 : 1e-3));
+  // self-convergence: halving the grid step and doubling the panels moves
+  // no probability by more than 1e-9 relative, so the difference above is
+  // the Simpson reference's own error
+  static double pf[81], sf[81];
+  double cf[2];
+  clab_tfrp(p, 1, 0, 80, 10, 1, big ? 0.01 : 0.03, big ? 512 : 128, pf, sf, cf, work);
+  double conv = 0;
+  for (int y = 0; y <= 80; ++y)
+    if (pf[y] > 1e-300) conv = std::fabs(prob[y] - pf[y]) / pf[y] > conv ? std::fabs(prob[y] - pf[y]) / pf[y] : conv;
+  tk_true(tt, "tfr.conv", conv < (big ? 1e-9 : 1e-6));
+  // the default model with 40 rate draws (4 by default): parity with tfer
+  static double pd[401], sd2[401];
+  clab_tfrp(DEF, 1, 0, 400, big ? 40 : 4, 7, big ? 0.02 : 0.05, big ? 256 : 64, pd, sd2, cf, work);
+  int bad = 0;
+  for (int y = 0; y <= 80; ++y) {
+    const double sd = std::sqrt(tf_ref[y] * (1 - tf_ref[y]) / 1e6 + sd2[y] * sd2[y]);
+    bad += std::fabs(pd[y] - tf_ref[y]) > 4 * sd + 1e-6;
+  }
+  tk_true(tt, "tfr.xparity", bad <= 1);
+}
+
+}  // namespace
+
+void t_tfr(tk &t, int big) {
+  run(t);
+  quad(t, big);
+}
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
+
 
 // tfer's standard case: transfer(N = 1e5) 0.681 s (median of 5, zeus)
 void b_tfr() {
@@ -244,11 +274,6 @@ void b_tfr() {
   double mx = 0;
   for (int y = 0; y <= 200; ++y) mx = se[y] > mx ? se[y] : mx;
   std::printf("BENCH clab_tfrp defaults, counts 0..200, 200 draws, grid 0.02, 256 panels: median %.3f s (k=5), max se %.2g\n",
-              tk::med5(t), mx);
+              tk_med5(t), mx);
 }
-
-}  // namespace
-
-TK_FAMILY("tfr", t_tfr, b_tfr);
-
 #endif

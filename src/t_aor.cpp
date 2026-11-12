@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_aorwt (src/aor.cpp). Built only with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_aorwt (src/aor.cpp). Part of the self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -28,7 +25,7 @@ const double WEEK = 604800.0;
 // 01:00 UTC (R: as.POSIXct(..., tz = "UTC"))
 const double LON_T[2] = {1679792400, 1698541200}, LON_O[2] = {3600, 0};
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -38,19 +35,19 @@ struct rng {
   }
 };
 
-void t_aor() {
+void run(tk &tt) {
   double w[168], tot[168];
   int cnt[5];
   // 1. closed form (Ratcliffe's example shape): Monday 2023-01-02 10:30 to
   // 12:30 UTC puts .25, .5, .25 in Monday 10h, 11h, 12h (bins 34, 35, 36)
   {
     const double f = 1672617600 + 10.5 * 3600, t = f + 7200;
-    TK("aor.hand.rc", clab_aorwt(&f, &t, 1, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
+    tk_true(tt, "aor.hand.rc", clab_aorwt(&f, &t, 1, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
                                120, WEEK, w, tot, cnt) == CLAB_OK);
     for (int j = 0; j < 168; ++j) {
       const double want = j == 34 || j == 36 ? .25 : (j == 35 ? .5 : 0);
-      TKN("aor.hand", w[j], want, 1e-15);
-      TKN("aor.hand.tot", tot[j], w[j], 0);
+      tk_near(tt, "aor.hand", w[j], want, 1e-15);
+      tk_near(tt, "aor.hand.tot", tot[j], w[j], 0);
     }
   }
   // 2. disagreement (dossier csls/d/aoristic.md section 3, reproduced in
@@ -65,11 +62,11 @@ void t_aor() {
     const double f = 1679790600, t = 1679797800;
     clab_aorwt(&f, &t, 1, LON_T, LON_O, 2, 0, SUN0, 3600, 168, 120, WEEK, w, nullptr, cnt);
     const double sp[4] = {.25, 0, .5, .25};
-    for (int j = 0; j < 4; ++j) TKN("aor.dst.spring", w[j], sp[j], 1e-15);
+    for (int j = 0; j < 4; ++j) tk_near(tt, "aor.dst.spring", w[j], sp[j], 1e-15);
     const double f2 = 1698535800, t2 = 1698550200;
     clab_aorwt(&f2, &t2, 1, LON_T, LON_O, 2, 0, SUN0, 3600, 168, 120, WEEK, w, nullptr, cnt);
     const double fb[5] = {.125, .5, .25, .125, 0};
-    for (int j = 0; j < 5; ++j) TKN("aor.dst.fall", w[j], fb[j], 1e-15);
+    for (int j = 0; j < 5; ++j) tk_near(tt, "aor.dst.fall", w[j], fb[j], 1e-15);
   }
   // 3. parity with aoristic 2.0.0 on 300 deterministic UTC events (whole
   // minutes, so its minute rounding is exact): totals and three rows
@@ -83,20 +80,20 @@ void t_aor() {
       if (i % 50 == 33) sp = 1;
       t[i] = i % 50 == 13 ? std::nan("") : f[i] + 60 * sp;
     }
-    TK("aor.parity.rc", clab_aorwt(f, t, 300, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
+    tk_true(tt, "aor.parity.rc", clab_aorwt(f, t, 300, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
                                  120, WEEK, wr, tot, cnt) == CLAB_OK);
     for (int j = 0; j < 168; ++j) {
-      TKN("aor.parity.tot", tot[j], ref_tot[j], 1e-12);
-      TKN("aor.parity.row0", wr[0 + 300 * j], ref_row0[j], 1e-14);
-      TKN("aor.parity.row1", wr[1 + 300 * j], ref_row1[j], 1e-14);
-      TKN("aor.parity.row2", wr[2 + 300 * j], ref_row2[j], 1e-14);
+      tk_near(tt, "aor.parity.tot", tot[j], ref_tot[j], 1e-12);
+      tk_near(tt, "aor.parity.row0", wr[0 + 300 * j], ref_row0[j], 1e-14);
+      tk_near(tt, "aor.parity.row1", wr[1 + 300 * j], ref_row1[j], 1e-14);
+      tk_near(tt, "aor.parity.row2", wr[2 + 300 * j], ref_row2[j], 1e-14);
     }
-    TK("aor.parity.cnt", cnt[0] == 0 && cnt[1] == 6 && cnt[2] == 6 && cnt[3] == 6 && cnt[4] == 6);
+    tk_true(tt, "aor.parity.cnt", cnt[0] == 0 && cnt[1] == 6 && cnt[2] == 6 && cnt[3] == 6 && cnt[4] == 6);
     // every row sums to one
     for (int i = 0; i < 300; ++i) {
       double s = 0;
       for (int j = 0; j < 168; ++j) s += wr[i + 300 * j];
-      TKN("aor.rowsum", s, 1, 1e-13);
+      tk_near(tt, "aor.rowsum", s, 1, 1e-13);
     }
   }
   // 4. brute force: random events on a whole-minute grid and random clock
@@ -104,12 +101,12 @@ void t_aor() {
   // its wall-clock time and divided by the length. 24 hourly bins and 7
   // daily bins.
   {
-    rng r{77};
-    double tt[6], to[6];
+    xrng r{77};
+    double ttr[6], to[6];
     double a = 1672617600;
     for (int k = 0; k < 6; ++k) {
       a += 60.0 * std::floor(r.unif() * 4000 + 30);
-      tt[k] = a;
+      ttr[k] = a;
       to[k] = 1800.0 * std::floor(r.unif() * 9 - 4);
     }
     const double off0 = 3600;
@@ -120,17 +117,17 @@ void t_aor() {
         const double bw = kind == 0 ? 3600 : 86400;
         const int nb = kind == 0 ? 24 : 7;
         double got[24], want[24] = {0};
-        clab_aorwt(&f, &t, 1, tt, to, 6, off0, SUN0, bw, nb, 0, 1e300, got, nullptr, cnt);
+        clab_aorwt(&f, &t, 1, ttr, to, 6, off0, SUN0, bw, nb, 0, 1e300, got, nullptr, cnt);
         const double m = (t - f) / 60;
         for (double u = f; u < t; u += 60) {
           double o = off0;
           for (int k = 0; k < 6; ++k)
-            if (tt[k] <= u) o = to[k];
+            if (ttr[k] <= u) o = to[k];
           double v = std::fmod(u + o - SUN0, bw * nb);
           if (v < 0) v += bw * nb;
           want[static_cast<int>(v / bw)] += 1 / m;
         }
-        for (int j = 0; j < nb; ++j) TKN("aor.brute", got[j], want[j], 1e-12);
+        for (int j = 0; j < nb; ++j) tk_near(tt, "aor.brute", got[j], want[j], 1e-12);
       }
     }
   }
@@ -142,22 +139,31 @@ void t_aor() {
     double g[7];
     clab_aorwt(&f, &t, 1, nullptr, nullptr, 0, 0, SUN0, 86400, 7, 0, 1e300, g, nullptr, cnt);
     const double want[7] = {2 / 10.5, 2 / 10.5, 2 / 10.5, 1.5 / 10.5, 1 / 10.5, 1 / 10.5, 1 / 10.5};
-    for (int j = 0; j < 7; ++j) TKN("aor.long", g[j], want[j], 1e-15);
+    for (int j = 0; j < 7; ++j) tk_near(tt, "aor.long", g[j], want[j], 1e-15);
   }
   // 6. n = 0 (aoristic 2.0.0 stops with "subscript out of bounds") and guards
   {
-    TK("aor.n0", clab_aorwt(nullptr, nullptr, 0, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
+    tk_true(tt, "aor.n0", clab_aorwt(nullptr, nullptr, 0, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
                           120, WEEK, nullptr, tot, cnt) == CLAB_OK && tot[5] == 0);
     const double f = 0, inf = HUGE_VAL, bad[2] = {5, 5}, o2[2] = {0, 0};
-    TK("aor.guard.nb", clab_aorwt(&f, &f, 1, nullptr, nullptr, 0, 0, 0, 3600, 0, 0, 1, w, tot, cnt) == CLAB_EARG);
-    TK("aor.guard.bw", clab_aorwt(&f, &f, 1, nullptr, nullptr, 0, 0, 0, 0, 24, 0, 1, w, tot, cnt) == CLAB_EDOM);
-    TK("aor.guard.inf", clab_aorwt(&f, &inf, 1, nullptr, nullptr, 0, 0, 0, 3600, 24, 0, 1, w, tot, cnt) == CLAB_EDOM);
-    TK("aor.guard.tt", clab_aorwt(&f, &f, 1, bad, o2, 2, 0, 0, 3600, 24, 0, 1, w, tot, cnt) == CLAB_EDOM);
+    tk_true(tt, "aor.guard.nb", clab_aorwt(&f, &f, 1, nullptr, nullptr, 0, 0, 0, 3600, 0, 0, 1, w, tot, cnt) == CLAB_EARG);
+    tk_true(tt, "aor.guard.bw", clab_aorwt(&f, &f, 1, nullptr, nullptr, 0, 0, 0, 0, 24, 0, 1, w, tot, cnt) == CLAB_EDOM);
+    tk_true(tt, "aor.guard.inf", clab_aorwt(&f, &inf, 1, nullptr, nullptr, 0, 0, 0, 3600, 24, 0, 1, w, tot, cnt) == CLAB_EDOM);
+    tk_true(tt, "aor.guard.tt", clab_aorwt(&f, &f, 1, bad, o2, 2, 0, 0, 3600, 24, 0, 1, w, tot, cnt) == CLAB_EDOM);
     const double nanv = std::nan("");
     clab_aorwt(&nanv, &f, 1, nullptr, nullptr, 0, 0, 0, 3600, 24, 0, 1, w, tot, cnt);
-    TK("aor.nostart", cnt[0] == 1 && tot[0] == 0);
+    tk_true(tt, "aor.nostart", cnt[0] == 1 && tot[0] == 0);
   }
 }
+
+
+}  // namespace
+
+void t_aor(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's standard case: n = 10,000 events, spans up to 8 h, row
 // weights over 168 hours (aoristic::aoristic.df 6.319 s, 1 run, zeus)
@@ -166,7 +172,7 @@ void b_aor() {
   static double f[n], t[n], w[n * 168];
   double tot[168], tm[5];
   int cnt[5];
-  rng r{3};
+  xrng r{3};
   for (int i = 0; i < n; ++i) {
     f[i] = 1672617600 + r.unif() * 3e7;
     t[i] = f[i] + r.unif() * 8 * 3600;
@@ -176,11 +182,6 @@ void b_aor() {
     clab_aorwt(f, t, n, LON_T, LON_O, 2, 0, SUN0, 3600, 168, 120, WEEK, w, tot, cnt);
     tm[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
-  std::printf("BENCH clab_aorwt n=1e4 (row weights + totals): median %.6f s (k=5)\n", tk::med5(tm));
+  std::printf("BENCH clab_aorwt n=1e4 (row weights + totals): median %.6f s (k=5)\n", tk_med5(tm));
 }
-
-}  // namespace
-
-TK_FAMILY("aor", t_aor, b_aor);
-
 #endif

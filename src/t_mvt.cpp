@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_mvtll and clab_mvtem (src/mvt.cpp). Built only
-// with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_mvtll and clab_mvtem (src/mvt.cpp). Part of the
+// self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -28,7 +25,7 @@ const double gprob[2] = {0.41666666666666669, 0.58333333333333337};
 const double gpost[10] = {1, 1, 1, 1, 1, 0, 0, 0, 0, 0};
 const double gll = -567.68434587517129;
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -78,7 +75,7 @@ double brute(const double *y, int n, int nt, const double *beta, const double *s
   return ll;
 }
 
-void t_mvt() {
+void run(tk &tt) {
   load();
   static double w[2 * 400], work[64];
   double beta[8], sig[8], prob[2] = {gprob[0], gprob[1]}, ll;
@@ -90,11 +87,11 @@ void t_mvt() {
     sig[4 + j] = gS2[j];
   }
   // 1. parity with gbmt at its estimates: log-likelihood and posteriors
-  TK("mvt.ll.rc", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, sig, prob, w, &ll, work) == CLAB_OK);
-  TKN("mvt.ll.gbmt", ll / gll, 1, 1e-12);
+  tk_true(tt, "mvt.ll.rc", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, sig, prob, w, &ll, work) == CLAB_OK);
+  tk_near(tt, "mvt.ll.gbmt", ll / gll, 1, 1e-12);
   for (int i = 0; i < 5; ++i)
-    for (int k = 0; k < 2; ++k) TKN("mvt.post", w[i + 60 * k], gpost[i + 5 * k], 1e-9);
-  TKN("mvt.ll.brute", ll / brute(Y, 60, 6, beta, sig, prob), 1, 1e-12);
+    for (int k = 0; k < 2; ++k) tk_near(tt, "mvt.post", w[i + 60 * k], gpost[i + 5 * k], 1e-9);
+  tk_near(tt, "mvt.ll.brute", ll / brute(Y, 60, 6, beta, sig, prob), 1, 1e-12);
   // 2. EM from there: not lower (gbmt stops at tol 1e-4), and the closed
   // M-step reproduces its estimates closely
   {
@@ -103,10 +100,10 @@ void t_mvt() {
       b2[j] = beta[j];
       s2[j] = sig[j];
     }
-    TK("mvt.em.rc", clab_mvtem(Y, 60, 6, 2, X, 2, 2, b2, s2, p2, w, &ll, 500, 1e-14, &it, work) == CLAB_OK);
-    TK("mvt.em.notlower", ll >= gll - 1e-9 * std::fabs(gll));
-    for (int j = 0; j < 8; ++j) TKN("mvt.em.beta", b2[j], beta[j], 1e-6);
-    for (int j = 0; j < 8; ++j) TKN("mvt.em.sig", s2[j], sig[j], 1e-6);
+    tk_true(tt, "mvt.em.rc", clab_mvtem(Y, 60, 6, 2, X, 2, 2, b2, s2, p2, w, &ll, 500, 1e-14, &it, work) == CLAB_OK);
+    tk_true(tt, "mvt.em.notlower", ll >= gll - 1e-9 * std::fabs(gll));
+    for (int j = 0; j < 8; ++j) tk_near(tt, "mvt.em.beta", b2[j], beta[j], 1e-6);
+    for (int j = 0; j < 8; ++j) tk_near(tt, "mvt.em.sig", s2[j], sig[j], 1e-6);
     // stationary: central differences of the log-likelihood in beta
     double gmax = 0;
     for (int j = 0; j < 8; ++j) {
@@ -118,7 +115,7 @@ void t_mvt() {
       clab_mvtll(Y, 60, 6, 2, X, 2, 2, bb, s2, p2, w, &lm, work);
       gmax = std::fabs(lp - lm) / 2e-6 > gmax ? std::fabs(lp - lm) / 2e-6 : gmax;
     }
-    TK("mvt.stationary", gmax < 1e-4);
+    tk_true(tt, "mvt.stationary", gmax < 1e-4);
   }
   // 3. EM is monotone from a poor start
   {
@@ -130,8 +127,8 @@ void t_mvt() {
       mono = mono && ll >= prev - 1e-10 * std::fabs(ll);
       prev = ll;
     }
-    TK("mvt.monotone", mono);
-    TKN("mvt.from.poor", ll / gll, 1, 1e-9);  // reaches the same maximum
+    tk_true(tt, "mvt.monotone", mono);
+    tk_near(tt, "mvt.from.poor", ll / gll, 1, 1e-9);  // reaches the same maximum
   }
   // 4. scale equivariance (the disagreement): gbmt 0.1.4 clamps each unit's
   // log density to [-745, 709.8] before exp, so data in large units (x 1e5,
@@ -150,14 +147,14 @@ void t_mvt() {
     }
     clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, sig, prob, w, &ll, work);
     clab_mvtll(y5, 60, 6, 2, X, 2, 2, b5, s5, prob, w5, &l5, work);
-    TKN("mvt.scale.ll", l5 - ll, -720 * std::log(1e5), 1e-9);
+    tk_near(tt, "mvt.scale.ll", l5 - ll, -720 * std::log(1e5), 1e-9);
     double dmax = 0;
     for (int j = 0; j < 120; ++j) dmax = std::fabs(w5[j] - w[j]) > dmax ? std::fabs(w5[j] - w[j]) : dmax;
-    TK("mvt.scale.post", dmax < 1e-9);
+    tk_true(tt, "mvt.scale.post", dmax < 1e-9);
     // and a fit on large-unit data of the probe's shape: 40 units, 20
     // periods, 4 indicators, x 1e5, classifies every unit
     static double yb[40 * 20 * 4], xb[40], wb[80];
-    rng r{6};
+    xrng r{6};
     for (int t = 0; t < 20; ++t) {
       xb[t] = 1;
       xb[t + 20] = t + 1;
@@ -176,10 +173,10 @@ void t_mvt() {
       }
       for (int j = 0; j < 16; ++j) sb[16 * k + j] = (j % 5 == 0) ? 1e10 : 0;
     }
-    TK("mvt.big.rc", clab_mvtem(yb, 40, 20, 4, xb, 2, 2, bb, sb, pb, wb, &lb, 200, 1e-12, &it, work) == CLAB_OK);
+    tk_true(tt, "mvt.big.rc", clab_mvtem(yb, 40, 20, 4, xb, 2, 2, bb, sb, pb, wb, &lb, 200, 1e-12, &it, work) == CLAB_OK);
     int agree = 0;
     for (int i = 0; i < 40; ++i) agree += (wb[i] > 0.5) == (i < 20);
-    TK("mvt.big.classify", agree == 40 || agree == 0);
+    tk_true(tt, "mvt.big.classify", agree == 40 || agree == 0);
   }
   // 5. a period with a missing indicator drops out
   {
@@ -188,7 +185,7 @@ void t_mvt() {
     y2[3 + 60 * (2 + 6 * 1)] = std::nan("");
     double l1;
     clab_mvtll(y2, 60, 6, 2, X, 2, 2, beta, sig, prob, w, &l1, work);
-    TK("mvt.missing", std::isfinite(l1) && l1 > ll);
+    tk_true(tt, "mvt.missing", std::isfinite(l1) && l1 > ll);
   }
   // 6. a constant indicator (gbmt 0.1.4 stops with "0 (non-NA) cases",
   // dossier csls/d/gbmt.md section 3): its residual covariance is singular,
@@ -201,17 +198,26 @@ void t_mvt() {
       b2[j] = beta[j];
       s2[j] = sig[j];
     }
-    TK("mvt.constant", clab_mvtem(yc, 60, 6, 2, X, 2, 2, b2, s2, p2, w, &ll, 50, 1e-12, &it, work) == CLAB_EDOM);
+    tk_true(tt, "mvt.constant", clab_mvtem(yc, 60, 6, 2, X, 2, 2, b2, s2, p2, w, &ll, 50, 1e-12, &it, work) == CLAB_EDOM);
   }
   // 7. guards
   {
     double bad[8] = {1, 2, 2, 1, 1, 0, 0, 1};  // first covariance not positive definite
-    TK("mvt.guard.pd", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, bad, prob, w, &ll, work) == CLAB_EDOM);
+    tk_true(tt, "mvt.guard.pd", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, bad, prob, w, &ll, work) == CLAB_EDOM);
     const double pr[2] = {0.3, 0.3};
-    TK("mvt.guard.prob", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, sig, pr, w, &ll, work) == CLAB_EDOM);
-    TK("mvt.guard.r", clab_mvtll(Y, 60, 6, 0, X, 2, 2, beta, sig, prob, w, &ll, work) == CLAB_EARG);
+    tk_true(tt, "mvt.guard.prob", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, sig, pr, w, &ll, work) == CLAB_EDOM);
+    tk_true(tt, "mvt.guard.r", clab_mvtll(Y, 60, 6, 0, X, 2, 2, beta, sig, prob, w, &ll, work) == CLAB_EARG);
   }
 }
+
+
+}  // namespace
+
+void t_mvt(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's sizes: 200 units x 8 periods x 2 indicators, ng = 2, d = 1
 // (gbmt 4.667 s, one run with its Ward start, zeus); and 1,000 units,
@@ -219,7 +225,7 @@ void t_mvt() {
 // rough start, tol 1e-10.
 void b_mvt() {
   static double y[1000 * 8 * 2], x[24], w[3000], work[64];
-  rng r{1};
+  xrng r{1};
   for (int t = 0; t < 8; ++t) {
     x[t] = 1;
     x[t + 8] = t + 1;
@@ -250,12 +256,7 @@ void b_mvt() {
       tm[rep] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
     }
     std::printf("BENCH clab_mvtem n=%d ng=%d d=%d: median %.6f s (k=5), %d iterations\n", n, ng, p - 1,
-                tk::med5(tm), it);
+                tk_med5(tm), it);
   }
 }
-
-}  // namespace
-
-TK_FAMILY("mvt", t_mvt, b_mvt);
-
 #endif

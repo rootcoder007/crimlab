@@ -20,6 +20,21 @@ src/rpk.cpp src/t_rpk.cpp
 src/jtc.cpp src/t_jtc.cpp
 src/hsp.cpp src/t_hsp.cpp
 src/stm.cpp src/t_stm.cpp
+src/fair.cpp src/t_fair.cpp
+src/tlv.cpp src/t_tlv.cpp
+src/aor.cpp src/t_aor.cpp
+src/bnf.cpp src/t_bnf.cpp
+src/tfr.cpp src/t_tfr.cpp
+src/sk.cpp src/t_sk.cpp
+src/rpt.cpp src/t_rpt.cpp
+src/sens.cpp src/t_sens.cpp
+src/trj.cpp src/t_trj.cpp
+src/mvt.cpp src/t_mvt.cpp
+src/lws.cpp src/t_lws.cpp
+src/chm.cpp src/t_chm.cpp
+src/gst.cpp src/t_gst.cpp
+src/spt.cpp src/t_spt.cpp
+src/t_orc.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$

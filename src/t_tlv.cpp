@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_tlvc and clab_tlvlr (src/tlv.cpp). Built only
-// with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_tlvc and clab_tlvlr (src/tlv.cpp). Part of the
+// self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -42,7 +39,7 @@ const double uC[9] = {0.2376928737417188, 0.07353947616016944, 0.189371074536086
 const double sU[9] = {0.00089448904616081534, -4.1955214802495819e-05, -8.0635826245155956e-05, -4.1955214802495819e-05, 0.00078905299226618138, -8.2856124695310251e-05, -8.0635826245155956e-05, -8.2856124695310251e-05, 0.00088611526329112884};
 const double sC[9] = {0.24000621071588024, 0.074220936528557074, 0.19113347225086691, 0.074220936528557074, 0.21501805699611853, 0.13364981943910245, 0.19113347225086691, 0.13364981943910245, 0.43949944418779197};
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -119,16 +116,16 @@ double ljoint(const double *u, const double *c, const double *mu, int p,
   return -0.5 * (ld + qf);  // the (2 pi)^p factors cancel in a ratio
 }
 
-void t_tlv() {
+void run(tk &tt) {
   double out[2], work[9 + 6];
   // 1. parity with comparison 1.0.8 on its glass example
-  TK("tlv.glass.rc", clab_tlvlr(gU, gC, gmu, 3, gctl, 6, gr1, 6, out, work) == CLAB_OK);
-  TKN("tlv.glass.same", out[0], std::log(glr[0]), 1e-12);
-  TKN("tlv.glass.log10", out[1], std::log10(glr[0]), 1e-12);
+  tk_true(tt, "tlv.glass.rc", clab_tlvlr(gU, gC, gmu, 3, gctl, 6, gr1, 6, out, work) == CLAB_OK);
+  tk_near(tt, "tlv.glass.same", out[0], std::log(glr[0]), 1e-12);
+  tk_near(tt, "tlv.glass.log10", out[1], std::log10(glr[0]), 1e-12);
   clab_tlvlr(gU, gC, gmu, 3, gctl, 6, gr2, 6, out, work);
-  TKN("tlv.glass.diff", out[0], std::log(glr[1]), 1e-12);
+  tk_near(tt, "tlv.glass.diff", out[0], std::log(glr[1]), 1e-12);
   // 2. the joint-density route on the same inputs
-  TKN("tlv.joint.same", out[0],
+  tk_near(tt, "tlv.joint.same", out[0],
       ljoint(gU, gC, gmu, 3, gctl, 6, gr2, 6, 1) - ljoint(gU, gC, gmu, 3, gctl, 6, gr2, 6, 0),
       1e-12);
   // 3. disagreement (dossier csls/d/comparison.md section 3, reproduced in
@@ -136,12 +133,12 @@ void t_tlv() {
   // between-item SDs from the mean (same source) and for items 40 SDs
   // apart; the log LR is finite and equals the joint-density value.
   clab_tlvlr(gU, gC, gmu, 3, gs40, 6, gs40, 6, out, work);
-  TKN("tlv.far.same", out[0], gfar[0], 1e-12);
-  TKN("tlv.far.same.c", out[0],
+  tk_near(tt, "tlv.far.same", out[0], gfar[0], 1e-12);
+  tk_near(tt, "tlv.far.same.c", out[0],
       ljoint(gU, gC, gmu, 3, gs40, 6, gs40, 6, 1) - ljoint(gU, gC, gmu, 3, gs40, 6, gs40, 6, 0),
       1e-12);
   clab_tlvlr(gU, gC, gmu, 3, gp20, 6, gm20, 6, out, work);
-  TKN("tlv.far.apart", out[0], gfar[1], 1e-12);
+  tk_near(tt, "tlv.far.apart", out[0], gfar[1], 1e-12);
   // 4. identities: a common shift of the items and the mean leaves the LR
   // unchanged; exchanging the items (with their counts) too
   {
@@ -153,9 +150,9 @@ void t_tlv() {
     }
     clab_tlvlr(gU, gC, gmu, 3, gctl, 3, gr1, 7, out, work);
     clab_tlvlr(gU, gC, m2, 3, a, 3, b, 7, o2, work);
-    TKN("tlv.shift", o2[0], out[0], 1e-12);
+    tk_near(tt, "tlv.shift", o2[0], out[0], 1e-12);
     clab_tlvlr(gU, gC, gmu, 3, gr1, 7, gctl, 3, o2, work);
-    TKN("tlv.swap", o2[0], out[0], 1e-13);
+    tk_near(tt, "tlv.swap", o2[0], out[0], 1e-13);
   }
   // 5. univariate closed form: U = 1, C = 4, mu = 0, n = 1 and 1, x = 1, 3:
   // ln LR = -1/2 [4/2 + ln 2 + 4/4.5 + ln 4.5] + 1/2 [1/5 + 9/5 + 2 ln 5]
@@ -164,7 +161,7 @@ void t_tlv() {
     clab_tlvlr(&u, &c, &mu, 1, &xa, 1, &xb, 1, out, work);
     const double want = -0.5 * (2.0 + std::log(2.0) + 4.0 / 4.5 + std::log(4.5)) +
                         0.5 * (2.0 + 2.0 * std::log(5.0));
-    TKN("tlv.uni", out[0], want, 1e-14);
+    tk_near(tt, "tlv.uni", out[0], want, 1e-14);
   }
   // 6. components: parity on the balanced sample, the ANOVA estimates on
   // the unbalanced one
@@ -173,25 +170,27 @@ void t_tlv() {
     static int item[200], nrep[30];
     for (int i = 0; i < 30; ++i) nrep[i] = 4;
     int n = mksample(30, nrep, x, item);
-    TK("tlv.comp.rc", clab_tlvc(x, n, 3, item, 30, mu, u, c, w) == CLAB_OK);
+    tk_true(tt, "tlv.comp.rc", clab_tlvc(x, n, 3, item, 30, mu, u, c, w) == CLAB_OK);
     for (int k = 0; k < 9; ++k) {
-      TKN("tlv.comp.C", c[k], bC[k], 1e-12);
+      tk_near(tt, "tlv.comp.C", c[k], bC[k], 1e-12);
     }
-    for (int k = 0; k < 3; ++k) TKN("tlv.comp.mu", mu[k], bmu[k], 1e-14);
+    for (int k = 0; k < 3; ++k) tk_near(tt, "tlv.comp.mu", mu[k], bmu[k], 1e-14);
     // U is of order 1e-3: compared relative to its own entries
-    for (int k = 0; k < 9; ++k) TKN("tlv.comp.U", u[k] / bU[k], 1, 1e-11);
+    for (int k = 0; k < 9; ++k) tk_near(tt, "tlv.comp.U", u[k] / bU[k], 1, 1e-11);
     const int pat[4] = {2, 3, 5, 8};
     for (int i = 0; i < 30; ++i) nrep[i] = pat[i % 4];
     n = mksample(30, nrep, x, item);
     clab_tlvc(x, n, 3, item, 30, mu, u, c, w);
     for (int k = 0; k < 9; ++k) {
-      TKN("tlv.unbal.U", u[k] / sU[k], 1, 1e-11);
-      TKN("tlv.unbal.C", c[k], sC[k], 1e-12);
+      tk_near(tt, "tlv.unbal.U", u[k] / sU[k], 1, 1e-11);
+      tk_near(tt, "tlv.unbal.C", c[k], sC[k], 1e-12);
     }
     // disagreement: comparison 1.0.8 weights each item's within
     // cross-products by its size, which inflates U on unbalanced data
     // (factor 1.35 here, confirmed by simulation in dev/doss/comparison.R)
-    TK("tlv.unbal.differs", std::fabs(uU[0] / u[0] - 1) > 0.2);
+    tk_true(tt, "tlv.unbal.differs", std::fabs(uU[0] / u[0] - 1) > 0.2);
+    // its between-item C differs too, through U (about 1% here)
+    tk_true(tt, "tlv.unbal.C.differs", std::fabs(uC[0] / c[0] - 1) > 0.005);
   }
   // 7. seeded simulation: unbiasedness on the unbalanced design, true
   // U = I, C = 4 I, 30 items, 400 data sets. One U_kk estimate has
@@ -204,7 +203,7 @@ void t_tlv() {
     int nrep[30], n = 0;
     const int pat[4] = {2, 3, 5, 8};
     for (int i = 0; i < 30; ++i) n += nrep[i] = pat[i % 4];
-    rng r{2026};
+    xrng r{2026};
     double su[3] = {0, 0, 0}, sc[3] = {0, 0, 0};
     for (int rep = 0; rep < 400; ++rep) {
       int row = 0;
@@ -224,25 +223,34 @@ void t_tlv() {
       }
     }
     for (int k = 0; k < 3; ++k) {
-      TKN("tlv.sim.U", su[k], 1.0, 0.03);
-      TK("tlv.sim.C", std::fabs(sc[k] - 4.0) < 0.25);
+      tk_near(tt, "tlv.sim.U", su[k], 1.0, 0.03);
+      tk_true(tt, "tlv.sim.C", std::fabs(sc[k] - 4.0) < 0.25);
     }
   }
   // 8. guards and a non-positive-definite C
   {
     const double u = 1, c = -2, mu = 0, xa = 0, xb = 0;
-    TK("tlv.guard.pd", clab_tlvlr(&u, &c, &mu, 1, &xa, 1, &xb, 1, out, work) == CLAB_EDOM);
+    tk_true(tt, "tlv.guard.pd", clab_tlvlr(&u, &c, &mu, 1, &xa, 1, &xb, 1, out, work) == CLAB_EDOM);
     const double c2 = 1;
-    TK("tlv.guard.n", clab_tlvlr(&u, &c2, &mu, 1, &xa, 0, &xb, 1, out, work) == CLAB_EDOM);
-    TK("tlv.guard.p", clab_tlvlr(&u, &c2, &mu, 0, &xa, 1, &xb, 1, out, work) == CLAB_EARG);
+    tk_true(tt, "tlv.guard.n", clab_tlvlr(&u, &c2, &mu, 1, &xa, 0, &xb, 1, out, work) == CLAB_EDOM);
+    tk_true(tt, "tlv.guard.p", clab_tlvlr(&u, &c2, &mu, 0, &xa, 1, &xb, 1, out, work) == CLAB_EARG);
     double x[3] = {1, 2, 3}, w[10], m3[1], u3[1], c3[1];
     int it[3] = {0, 1, 1}, it2[3] = {0, 2, 2};
-    TK("tlv.guard.nm", clab_tlvc(x, 2, 1, it, 2, m3, u3, c3, w) == CLAB_EARG);
-    TK("tlv.guard.empty", clab_tlvc(x, 3, 1, it2, 3, m3, u3, c3, w) == CLAB_EARG);
+    tk_true(tt, "tlv.guard.nm", clab_tlvc(x, 2, 1, it, 2, m3, u3, c3, w) == CLAB_EARG);
+    tk_true(tt, "tlv.guard.empty", clab_tlvc(x, 3, 1, it2, 3, m3, u3, c3, w) == CLAB_EARG);
     x[1] = std::nan("");
-    TK("tlv.guard.nan", clab_tlvc(x, 3, 1, it, 2, m3, u3, c3, w) == CLAB_EDOM);
+    tk_true(tt, "tlv.guard.nan", clab_tlvc(x, 3, 1, it, 2, m3, u3, c3, w) == CLAB_EDOM);
   }
 }
+
+
+}  // namespace
+
+void t_tlv(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's standard case: components of 200 items x 12 replicates x 3
 // variables (comparison::two.level.components on glass: 2.423 s median of
@@ -250,7 +258,7 @@ void t_tlv() {
 void b_tlv() {
   static double x[2400 * 3], w[200 * 3 + 400];
   static int item[2400];
-  rng r{99};
+  xrng r{99};
   for (int i = 0; i < 2400; ++i) {
     item[i] = i / 12;
     for (int k = 0; k < 3; ++k) x[i + 2400 * k] = r.norm() + 3.0 * (item[i] % 7);
@@ -264,12 +272,7 @@ void b_tlv() {
     for (int j = 0; j < 1000; ++j) clab_tlvlr(gU, gC, gmu, 3, gctl, 6, gr1, 6, out, wk);
     t2[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count() / 1000;
   }
-  std::printf("BENCH clab_tlvc 200 x 12 x 3: median %.6f s (k=5)\n", tk::med5(t));
-  std::printf("BENCH clab_tlvlr p=3: %.9f s per call (median of 5 x 1000)\n", tk::med5(t2));
+  std::printf("BENCH clab_tlvc 200 x 12 x 3: median %.6f s (k=5)\n", tk_med5(t));
+  std::printf("BENCH clab_tlvlr p=3: %.9f s per call (median of 5 x 1000)\n", tk_med5(t2));
 }
-
-}  // namespace
-
-TK_FAMILY("tlv", t_tlv, b_tlv);
-
 #endif

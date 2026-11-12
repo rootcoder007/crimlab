@@ -176,6 +176,21 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_jtc(t, 0);
   t_hsp(t, 0);
   t_stm(t, 0);
+  t_fair(t, 0);
+  t_tlv(t, 0);
+  t_aor(t, 0);
+  t_bnf(t, 0);
+  t_tfr(t, 0);
+  t_sk(t, 0);
+  t_rpt(t, 0);
+  t_sens(t, 0);
+  t_trj(t, 0);
+  t_mvt(t, 0);
+  t_lws(t, 0);
+  t_chm(t, 0);
+  t_gst(t, 0);
+  t_spt(t, 0);
+  t_orc(t, 0);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
 }
@@ -342,10 +357,23 @@ int main(int argc, char **argv) {
     b_jtc();
     b_hsp();
     b_stm();
+    b_fair();
+    b_tlv();
+    b_aor();
+    b_bnf();
+    b_tfr();
+    b_sk();
+    b_rpt();
+    b_sens();
+    b_trj();
+    b_mvt();
+    b_chm();
+    b_gst();
+    b_spt();
     return rc;
   }
   if (argc > 1 && std::strcmp(argv[1], "ext") == 0) {
-    // the spatial families with their full-size simulations
+    // the spatial and dossier families with their full-size simulations
     static char xs[1 << 16];
     tk t = {0, 0, xs, sizeof xs, 0};
     xs[0] = '\0';
@@ -356,6 +384,21 @@ int main(int argc, char **argv) {
     t_jtc(t, 1);
     t_hsp(t, 1);
     t_stm(t, 1);
+    t_fair(t, 1);
+    t_tlv(t, 1);
+    t_aor(t, 1);
+    t_bnf(t, 1);
+    t_tfr(t, 1);
+    t_sk(t, 1);
+    t_rpt(t, 1);
+    t_sens(t, 1);
+    t_trj(t, 1);
+    t_mvt(t, 1);
+    t_lws(t, 1);
+    t_chm(t, 1);
+    t_gst(t, 1);
+    t_spt(t, 1);
+    t_orc(t, 1);
     std::fputs(xs, stdout);
     std::printf("%ld checks, %ld failed\n", t.n, t.nf);
     return t.nf == 0 ? 0 : 1;

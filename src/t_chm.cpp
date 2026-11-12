@@ -1,17 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // Standalone tests for clab_chmb (src/chm.cpp). Built only with
-// -DCLAB_MAIN.
-// tk-deps: lws
-#ifdef CLAB_MAIN
+// the self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -52,25 +48,25 @@ void marks() {
   }
 }
 
-void t_chm() {
+void run(tk &tt) {
   marks();
   int ns, nd;
   double u, p;
   // 1. parity with toolmaRk (same source, different sources, defaults).
   // The field's p-value is 1 - pnorm(U), which keeps about 16 - |log10 p|
   // significant digits; here p is erfc(U / sqrt 2) / 2.
-  TK("chm.rc", clab_chmb(m1, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_OK);
-  TK("chm.12.n", ns == ch12[0] && nd == ch12[1]);
-  TKN("chm.12.U", u, ch12[2], 1e-12);
-  TKN("chm.12.p", p / ch12[3], 1, 1e-6);
+  tk_true(tt, "chm.rc", clab_chmb(m1, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_OK);
+  tk_true(tt, "chm.12.n", ns == ch12[0] && nd == ch12[1]);
+  tk_near(tt, "chm.12.U", u, ch12[2], 1e-12);
+  tk_near(tt, "chm.12.p", p / ch12[3], 1, 1e-6);
   clab_chmb(m1, 1500, m3, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work);
-  TK("chm.13.n", ns == ch13[0] && nd == ch13[1]);
-  TKN("chm.13.U", u, ch13[2], 1e-12);
-  TKN("chm.13.p", p, ch13[3], 1e-12);
+  tk_true(tt, "chm.13.n", ns == ch13[0] && nd == ch13[1]);
+  tk_near(tt, "chm.13.U", u, ch13[2], 1e-12);
+  tk_near(tt, "chm.13.p", p, ch13[3], 1e-12);
   clab_chmb(m1, 1500, m2, 1500, 500, 50, 0.25, &ns, &nd, &u, &p, work);
-  TK("chm.12d.n", ns == ch12d[0] && nd == ch12d[1]);
-  TKN("chm.12d.U", u, ch12d[2], 1e-12);
-  TKN("chm.12d.p", p / ch12d[3], 1, 1e-9);
+  tk_true(tt, "chm.12d.n", ns == ch12d[0] && nd == ch12d[1]);
+  tk_near(tt, "chm.12d.U", u, ch12d[2], 1e-12);
+  tk_near(tt, "chm.12d.p", p / ch12d[3], 1, 1e-9);
   // 2. a bound from the closed form of the rank sum: its largest value,
   // with every same-shift correlation above every different-shift one, is
   // n m + n (n + 1) / 2, so U <= (n m / 2) / sqrt(n m (n + m + 1) / 12)
@@ -78,21 +74,21 @@ void t_chm() {
   {
     clab_chmb(m1, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work);
     const double n = ns, m = nd, umax = (n * m / 2) / std::sqrt(n * m * (n + m + 1) / 12);
-    TK("chm.bound", u <= umax + 1e-12);
+    tk_true(tt, "chm.bound", u <= umax + 1e-12);
   }
   // 3. defined behaviour where the field package stops (dossier
   // csls/d/toolmaRk.md section 3; dev/doss/toolmaRk.R section 3): a
   // 300-point profile with the 500-point window stops toolmaRk 0.0.2 with
   // "only 0's may be mixed with negative subscripts"; an NA stops it with
   // "missing value where TRUE/FALSE needed". Here: CLAB_EARG and CLAB_EDOM.
-  TK("chm.short", clab_chmb(m1, 300, m2, 300, 500, 50, 0.25, &ns, &nd, &u, &p, work) == CLAB_EARG);
+  tk_true(tt, "chm.short", clab_chmb(m1, 300, m2, 300, 500, 50, 0.25, &ns, &nd, &u, &p, work) == CLAB_EARG);
   {
     static double mn[1500];
     for (int i = 0; i < 1500; ++i) mn[i] = m1[i];
     mn[699] = std::nan("");
-    TK("chm.nan", clab_chmb(mn, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_EDOM);
+    tk_true(tt, "chm.nan", clab_chmb(mn, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_EDOM);
     for (int i = 0; i < 1500; ++i) mn[i] = 1.0;
-    TK("chm.flat", clab_chmb(mn, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_EDOM);
+    tk_true(tt, "chm.flat", clab_chmb(mn, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_EDOM);
   }
   // 4. symmetry of the detrending: adding a smooth trend to a mark leaves
   // the score almost unchanged (lowess removes it); exact for a constant
@@ -103,9 +99,18 @@ void t_chm() {
     int a, b;
     clab_chmb(m1, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work);
     clab_chmb(m1, 1500, mc, 1500, 300, 30, 0.25, &a, &b, &u2, &p2, work);
-    TK("chm.shift", a == ns && b == nd && std::fabs(u2 - u) < 1e-9);
+    tk_true(tt, "chm.shift", a == ns && b == nd && std::fabs(u2 - u) < 1e-9);
   }
 }
+
+
+}  // namespace
+
+void t_chm(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's sizes: 2,000- and 9,500-point profiles at the defaults
 // (toolmaRk 0.423 s and 5.267 s, medians on zeus)
@@ -132,12 +137,7 @@ void b_chm() {
       clab_chmb(a, len[q], b, len[q], 500, 50, 0.25, &ns, &nd, &u, &p, w);
       t[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - t0).count();
     }
-    std::printf("BENCH clab_chmb %d-point profiles: median %.4f s (k=5)\n", len[q], tk::med5(t));
+    std::printf("BENCH clab_chmb %d-point profiles: median %.4f s (k=5)\n", len[q], tk_med5(t));
   }
 }
-
-}  // namespace
-
-TK_FAMILY("chm", t_chm, b_chm);
-
 #endif

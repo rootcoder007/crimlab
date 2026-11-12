@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_bdig and clab_bnft (src/bnf.cpp). Built only
-// with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_bdig and clab_bnft (src/bnf.cpp). Part of the
+// self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -28,7 +25,7 @@ const double ref_chib[2] = {0.0013828772800778026, 0.99999999999999045};
 const double ref_chi2[3] = {501.68220140807284, 89, 8.2333645048997026e-59};
 const double ref_mad2 = 0.0062786528295698191;
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -46,7 +43,7 @@ std::int64_t lead(std::int64_t k, int nd) {
   return k;
 }
 
-void t_bnf() {
+void run(tk &tt) {
   int cnt[4];
   // 1. disagreement (dossiers csls/d/benford.analysis.md and
   // BenfordTests.md section 3, reproduced in dev/doss/benford.R): both
@@ -57,8 +54,8 @@ void t_bnf() {
     const int want[5] = {29, 57, 58, 11, 70};
     int d[5];
     for (int dp = -1; dp <= 2; dp += 3) {
-      TK("bnf.dig.rc", clab_bdig(x, 5, 2, dp, 0, d, cnt) == CLAB_OK);
-      for (int i = 0; i < 5; ++i) TK("bnf.dig.dossier", d[i] == want[i]);
+      tk_true(tt, "bnf.dig.rc", clab_bdig(x, 5, 2, dp, 0, d, cnt) == CLAB_OK);
+      for (int i = 0; i < 5; ++i) tk_true(tt, "bnf.dig.dossier", d[i] == want[i]);
     }
   }
   // 2. exhaustive: every 2-decimal value 0.10 .. 999.99 as k / 100 (the
@@ -79,14 +76,14 @@ void t_bnf() {
       // the truncation formula of existing practice, for the record
       naive += static_cast<std::int64_t>(std::trunc(std::pow(10.0, 1 - std::floor(std::log10(x))) * x)) != lead(k, 2);
     }
-    TK("bnf.dig.exhaustive", bad == 0);
-    TK("bnf.dig.naive_fails", naive > 0);
+    tk_true(tt, "bnf.dig.exhaustive", bad == 0);
+    tk_true(tt, "bnf.dig.naive_fails", naive > 0);
   }
   // 3. shortest-decimal route on random decimals k / 10^p (k with 1..15
   // digits, no shorter decimal rounds to the same double) and 17-digit
   // doubles
   {
-    rng r{31};
+    xrng r{31};
     int bad = 0, oor = 0;
     for (int t = 0; t < 100000; ++t) {
       const int s = 1 + static_cast<int>(r.unif() * 15);
@@ -110,36 +107,36 @@ void t_bnf() {
         bad += d != lead(k, nd);
       }
     }
-    TK("bnf.short.random", bad == 0);
-    TK("bnf.short.oor", oor > 0 && oor < 5000);
+    tk_true(tt, "bnf.short.random", bad == 0);
+    tk_true(tt, "bnf.short.oor", oor > 0 && oor < 5000);
     const double x[3] = {0.1 + 0.2, 2.0 / 3.0, 1e21 / 3.0};
     const int want[3] = {300000000, 666666666, 333333333};
     int d[3];
     clab_bdig(x, 3, 9, -1, 0, d, cnt);
-    for (int i = 0; i < 3; ++i) TK("bnf.short.17", d[i] == want[i]);
+    for (int i = 0; i < 3; ++i) tk_true(tt, "bnf.short.17", d[i] == want[i]);
   }
   // 4. zeros, non-finite values and signs are set aside and counted
   {
     const double x[7] = {0.0, -0.0, std::nan(""), HUGE_VAL, -3.5, 4.5, 0.001};
     int d[7];
     clab_bdig(x, 7, 1, 2, 1, d, cnt);
-    TK("bnf.cnt", cnt[0] == 3 && cnt[1] == 2 && cnt[2] == 1 && cnt[3] == 0);
-    TK("bnf.cnt.dig", d[5] == 4 && d[4] == 0 && d[6] == 0);
+    tk_true(tt, "bnf.cnt", cnt[0] == 3 && cnt[1] == 2 && cnt[2] == 1 && cnt[3] == 0);
+    tk_true(tt, "bnf.cnt.dig", d[5] == 4 && d[4] == 0 && d[6] == 0);
     clab_bdig(x, 7, 1, -1, 0, d, cnt);
-    TK("bnf.cnt.both", cnt[0] == 2 && cnt[2] == 0 && d[4] == 3 && d[6] == 1);
+    tk_true(tt, "bnf.cnt.both", cnt[0] == 2 && cnt[2] == 0 && d[4] == 3 && d[6] == 1);
   }
   // 5. tests: parity and the zeros disagreement
   {
     static int dg[30000];
     double obs[90], work[90], out[6];
     for (int i = 0; i < 1000; ++i) dg[i] = 1 + ((i * 7 + (i * i) % 13) % 9);
-    TK("bnf.t.rc", clab_bnft(dg, 1000, 1, 0, 1, obs, work, out) == CLAB_OK);
-    TKN("bnf.t.chi1", out[1], ref_chi1, 1e-13);
+    tk_true(tt, "bnf.t.rc", clab_bnft(dg, 1000, 1, 0, 1, obs, work, out) == CLAB_OK);
+    tk_near(tt, "bnf.t.chi1", out[1], ref_chi1, 1e-13);
     // df = 8 closed form e^-y (1 + y + y^2/2 + y^3/6), y = chi / 2: the
     // reference package prints 1 - pchisq = 0 here
     {
       const double y = ref_chi1 / 2;
-      TKN("bnf.t.p1", out[3] / (std::exp(-y) * (1 + y + y * y / 2 + y * y * y / 6)), 1, 1e-12);
+      tk_near(tt, "bnf.t.p1", out[3] / (std::exp(-y) * (1 + y + y * y / 2 + y * y * y / 6)), 1, 1e-12);
     }
     // the near-Benford sample, then with 2000 zeros (digit 0 = excluded)
     int m = 0;
@@ -150,22 +147,22 @@ void t_bnf() {
     clab_bnft(dg, m, 1, 0, 1, obs, work, out);
     // the statistic is a sum of squares of differences of order 1e-5:
     // relative agreement to 1e-9 is what binary64 allows either side
-    TKN("bnf.t.chib", out[1] / ref_chib[0], 1, 1e-9);
-    TKN("bnf.t.pb", out[3], ref_chib[1], 1e-15);
+    tk_near(tt, "bnf.t.chib", out[1] / ref_chib[0], 1, 1e-9);
+    tk_near(tt, "bnf.t.pb", out[3], ref_chib[1], 1e-15);
     for (int j = 0; j < 2000; ++j) dg[m + j] = 0;
     clab_bnft(dg, m + 2000, 1, 0, 1, obs, work, out);
     // disagreement: BenfordTests 1.2.0 counts the zeros in n and reports
     // statistic 333.33 and p 0 (dev/doss/benford.R); here they are left out
-    TKN("bnf.t.zeros.m", out[0], m, 0);
-    TKN("bnf.t.zeros.chi", out[1] / ref_chib[0], 1, 1e-9);
-    TKN("bnf.t.zeros.p", out[3], ref_chib[1], 1e-15);
+    tk_near(tt, "bnf.t.zeros.m", out[0], m, 0);
+    tk_near(tt, "bnf.t.zeros.chi", out[1] / ref_chib[0], 1, 1e-9);
+    tk_near(tt, "bnf.t.zeros.p", out[3], ref_chib[1], 1e-15);
     // two digits
     for (int i = 0; i < 1000; ++i) dg[i] = 10 + ((i * 37 + (i * i) % 31) % 90);
     clab_bnft(dg, 1000, 2, 0, 1, obs, work, out);
-    TKN("bnf.t.chi2", out[1], ref_chi2[0], 1e-13);
-    TKN("bnf.t.df2", out[2], ref_chi2[1], 0);
-    TKN("bnf.t.p2", out[3] / ref_chi2[2], 1, 1e-10);
-    TKN("bnf.t.mad2", out[5], ref_mad2, 1e-15);
+    tk_near(tt, "bnf.t.chi2", out[1], ref_chi2[0], 1e-13);
+    tk_near(tt, "bnf.t.df2", out[2], ref_chi2[1], 0);
+    tk_near(tt, "bnf.t.p2", out[3] / ref_chi2[2], 1, 1e-10);
+    tk_near(tt, "bnf.t.mad2", out[5], ref_mad2, 1e-15);
   }
   // 6. Monte Carlo: never 0, calibrated under the null (400 Benford
   // samples of 50 drawn here by a linear search of the cumulative
@@ -173,7 +170,7 @@ void t_bnf() {
   // each; the rejection rate at 0.05 has sd 0.011, tolerance 4 sd), and
   // close to the asymptotic p for n = 2000 (sd sqrt(p (1 - p) / 999)).
   {
-    rng r{8};
+    xrng r{8};
     double cum[9], acc = 0;
     for (int d = 1; d <= 9; ++d) cum[d - 1] = acc += std::log10(1 + 1.0 / d);
     int rej = 0;
@@ -187,34 +184,43 @@ void t_bnf() {
         dg[i] = d + 1;
       }
       clab_bnft(dg, 50, 1, 199, static_cast<unsigned>(rep), obs, work, out);
-      TK("bnf.mc.pos", out[4] >= 1.0 / 200);
+      tk_true(tt, "bnf.mc.pos", out[4] >= 1.0 / 200);
       rej += out[4] <= 0.05;
     }
-    TK("bnf.mc.size", rej >= 0.006 * 400 && rej <= 0.094 * 400);
+    tk_true(tt, "bnf.mc.size", rej >= 0.006 * 400 && rej <= 0.094 * 400);
     for (int i = 0; i < 2000; ++i) dg[i] = 1 + (i * 7919 % 2000 < 650 ? 0 : (i % 9));
     clab_bnft(dg, 2000, 1, 999, 5, obs, work, out);
     const double p = out[3], sd = std::sqrt(p * (1 - p) / 999);
-    TK("bnf.mc.asym", std::fabs(out[4] - p) <= 4 * sd + 1.0 / 1000);
+    tk_true(tt, "bnf.mc.asym", std::fabs(out[4] - p) <= 4 * sd + 1.0 / 1000);
     // a gross departure: p is 1 / (B + 1), not 0
     for (int i = 0; i < 2000; ++i) dg[i] = 9;
     clab_bnft(dg, 2000, 1, 99, 5, obs, work, out);
-    TKN("bnf.mc.min", out[4], 1.0 / 100, 0);
+    tk_near(tt, "bnf.mc.min", out[4], 1.0 / 100, 0);
   }
   // 7. guards and the empty sample
   {
     int d[2] = {0, 0};
     double obs[9], work[9], out[6];
-    TK("bnf.empty", clab_bnft(d, 2, 1, 0, 1, obs, work, out) == CLAB_OK && out[0] == 0 &&
+    tk_true(tt, "bnf.empty", clab_bnft(d, 2, 1, 0, 1, obs, work, out) == CLAB_OK && out[0] == 0 &&
                         std::isnan(out[1]));
     d[0] = 12;
-    TK("bnf.guard.dig", clab_bnft(d, 2, 1, 0, 1, obs, work, out) == CLAB_EDOM);
-    TK("bnf.guard.nd", clab_bdig(nullptr, 0, 10, 0, 0, d, cnt) == CLAB_EARG);
-    TK("bnf.guard.dp", clab_bdig(nullptr, 0, 1, 23, 0, d, cnt) == CLAB_EARG);
+    tk_true(tt, "bnf.guard.dig", clab_bnft(d, 2, 1, 0, 1, obs, work, out) == CLAB_EDOM);
+    tk_true(tt, "bnf.guard.nd", clab_bdig(nullptr, 0, 10, 0, 0, d, cnt) == CLAB_EARG);
+    tk_true(tt, "bnf.guard.dp", clab_bdig(nullptr, 0, 1, 23, 0, d, cnt) == CLAB_EARG);
     const double big = 1e15;
     clab_bdig(&big, 1, 1, 2, 0, d, cnt);
-    TK("bnf.range", cnt[3] == 1 && d[0] == 0);
+    tk_true(tt, "bnf.range", cnt[3] == 1 && d[0] == 0);
   }
 }
+
+
+}  // namespace
+
+void t_bnf(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossiers' standard case: n = 1e6, first two digits
 // (benford.analysis::benford 1.622 s, BenfordTests::chisq.benftest
@@ -225,7 +231,7 @@ void b_bnf() {
   static int d[n];
   double obs[90], work[90], out[6], t[5], t2[5];
   int cnt[4];
-  rng r{5};
+  xrng r{5};
   for (int i = 0; i < n; ++i) x[i] = std::floor(std::pow(10.0, 6 * r.unif()) * 100) / 100;
   for (int k = 0; k < 5; ++k) {
     auto a = std::chrono::steady_clock::now();
@@ -237,12 +243,7 @@ void b_bnf() {
     clab_bnft(d, n, 2, 0, 1, obs, work, out);
     t2[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
-  std::printf("BENCH clab_bdig+bnft n=1e6 2 digits, shortest decimal: median %.6f s (k=5)\n", tk::med5(t));
-  std::printf("BENCH clab_bdig+bnft n=1e6 2 digits, dp = 2: median %.6f s (k=5)\n", tk::med5(t2));
+  std::printf("BENCH clab_bdig+bnft n=1e6 2 digits, shortest decimal: median %.6f s (k=5)\n", tk_med5(t));
+  std::printf("BENCH clab_bdig+bnft n=1e6 2 digits, dp = 2: median %.6f s (k=5)\n", tk_med5(t2));
 }
-
-}  // namespace
-
-TK_FAMILY("bnf", t_bnf, b_bnf);
-
 #endif

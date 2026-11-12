@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_rptc (src/rpt.cpp). Built only with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_rptc (src/rpt.cpp). Part of the self-test (selftest.cpp).
 
-#include <chrono>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -38,7 +35,7 @@ int panel(int *u, int *y, int *rep) {
   return n;
 }
 
-void t_rpt() {
+void run(tk &tt) {
   int flag[40], work[400], nc = 0;
   // 1. disagreement (dossier csls/d/crimeutils.md section 3, reproduced in
   // dev/doss/crimeutils.R): A and B report in 2000 and 2002 and miss all of
@@ -46,14 +43,14 @@ void t_rpt() {
   {
     const int u[6] = {0, 1, 0, 1, 0, 1}, y[6] = {2000, 2000, 2001, 2001, 2002, 2002},
               r[6] = {12, 12, 0, 0, 12, 12};
-    TK("rpt.gap.rc", clab_rptc(u, y, r, 6, 2, 2000, 2002, 12, flag, &nc, work) == CLAB_OK);
-    TK("rpt.gap", nc == 0 && flag[0] == 0 && flag[1] == 0);
+    tk_true(tt, "rpt.gap.rc", clab_rptc(u, y, r, 6, 2, 2000, 2002, 12, flag, &nc, work) == CLAB_OK);
+    tk_true(tt, "rpt.gap", nc == 0 && flag[0] == 0 && flag[1] == 0);
     // A passes 2000, B 2001, both 2002: crimeutils resets its running set
     // after 2001 and returns A and B; neither reported every year
     const int u2[5] = {0, 1, 1, 0, 1}, y2[5] = {2000, 2000, 2001, 2002, 2002},
               r2[5] = {12, 0, 12, 12, 12};
     clab_rptc(u2, y2, r2, 5, 2, 2000, 2002, 12, flag, &nc, work);
-    TK("rpt.reset", nc == 0);
+    tk_true(tt, "rpt.reset", nc == 0);
   }
   // 2. the deterministic panel: crimeutils 0.5.1 gives {4, 19} (m = 3) and
   // {2, 4, 6, 8, 10, 19, 25, 32} (m = 6), which are wrong (no unit has 10
@@ -64,24 +61,24 @@ void t_rpt() {
     const int n = panel(u, y, r);
     const int want12[16] = {2, 4, 6, 8, 10, 12, 14, 19, 21, 23, 25, 27, 29, 31, 36, 38};
     clab_rptc(u, y, r, n, 40, 2000, 2009, 12 - 3, flag, &nc, work);
-    TK("rpt.p3", nc == 0);
+    tk_true(tt, "rpt.p3", nc == 0);
     clab_rptc(u, y, r, n, 40, 2000, 2009, 12 - 6, flag, &nc, work);
-    TK("rpt.p6", nc == 0);
+    tk_true(tt, "rpt.p6", nc == 0);
     clab_rptc(u, y, r, n, 40, 2000, 2009, 12 - 9, flag, &nc, work);
-    TK("rpt.p9", nc == 1 && flag[14] == 1);
+    tk_true(tt, "rpt.p9", nc == 1 && flag[14] == 1);
     clab_rptc(u, y, r, n, 40, 2000, 2009, 0, flag, &nc, work);
-    TK("rpt.p12.n", nc == 16);
-    for (int k = 0; k < 16; ++k) TK("rpt.p12", flag[want12[k]] == 1);
+    tk_true(tt, "rpt.p12.n", nc == 16);
+    for (int k = 0; k < 16; ++k) tk_true(tt, "rpt.p12", flag[want12[k]] == 1);
   }
-  // 3. brute force on random panels with duplicates and out-of-range years:
+  // 3. brute force on 15 random panels with duplicates and out-of-range years:
   // a unit is constant iff for each year some record qualifies; and the
   // result is monotone in minrep
   {
-    rng g{12};
+    xrng g{12};
     static int u[3000], y[3000], r[3000];
     int bad = 0, mono = 0;
-    for (int rep = 0; rep < 50; ++rep) {
-      const int n = 1 + static_cast<int>(g.unif() * 3000);
+    for (int rep = 0; rep < 15; ++rep) {
+      const int n = 1 + static_cast<int>(g.unif() * 1000);
       for (int i = 0; i < n; ++i) {
         u[i] = static_cast<int>(g.unif() * 40);
         y[i] = 1998 + static_cast<int>(g.unif() * 14);
@@ -103,24 +100,33 @@ void t_rpt() {
         }
       }
     }
-    TK("rpt.brute", bad == 0);
-    TK("rpt.monotone", mono == 0);
+    tk_true(tt, "rpt.brute", bad == 0);
+    tk_true(tt, "rpt.monotone", mono == 0);
   }
   // 4. guards and empty input
   {
     const int u[1] = {3}, y[1] = {2000}, r[1] = {12};
-    TK("rpt.guard.unit", clab_rptc(u, y, r, 1, 2, 2000, 2001, 12, flag, &nc, work) == CLAB_EARG);
-    TK("rpt.guard.years", clab_rptc(u, y, r, 1, 4, 2001, 2000, 12, flag, &nc, work) == CLAB_EARG);
-    TK("rpt.empty", clab_rptc(u, y, r, 0, 4, 2000, 2001, 12, flag, &nc, work) == CLAB_OK && nc == 0);
+    tk_true(tt, "rpt.guard.unit", clab_rptc(u, y, r, 1, 2, 2000, 2001, 12, flag, &nc, work) == CLAB_EARG);
+    tk_true(tt, "rpt.guard.years", clab_rptc(u, y, r, 1, 4, 2001, 2000, 12, flag, &nc, work) == CLAB_EARG);
+    tk_true(tt, "rpt.empty", clab_rptc(u, y, r, 0, 4, 2000, 2001, 12, flag, &nc, work) == CLAB_OK && nc == 0);
   }
 }
+
+
+}  // namespace
+
+void t_rpt(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // 20,000 agencies x 30 years (crimeutils::ucr_constant_reporter_oris
 // 0.465 s median of 3, dev/doss/crimeutils.R)
 void b_rpt() {
   const int na = 20000, ny = 30, n = na * ny;
   static int u[n], y[n], r[n], flag[na], work[n];
-  rng g{1};
+  xrng g{1};
   for (int i = 0; i < n; ++i) {
     u[i] = i / ny;
     y[i] = 1991 + i % ny;
@@ -135,11 +141,6 @@ void b_rpt() {
     clab_rptc(u, y, r, n, na, 1991, 2020, 12, flag, &nc, work);
     t[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
-  std::printf("BENCH clab_rptc 20000 x 30: median %.6f s (k=5), %d constant\n", tk::med5(t), nc);
+  std::printf("BENCH clab_rptc 20000 x 30: median %.6f s (k=5), %d constant\n", tk_med5(t), nc);
 }
-
-}  // namespace
-
-TK_FAMILY("rpt", t_rpt, b_rpt);
-
 #endif

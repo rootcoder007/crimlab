@@ -3,15 +3,12 @@
 // Parity of crimlab's existing forensic kernels (src/core.cpp: clab_gtmp,
 // clab_kinidx, clab_patidx, clab_mixp, clab_cllr, clab_lrcal) with
 // independent implementations in other packages. Built only with
-// -DCLAB_MAIN.
-// tk-deps: core fair
-#ifdef CLAB_MAIN
+// the self-test (selftest.cpp).
 
 #include <cmath>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -57,15 +54,15 @@ const int PAIR[7][4] = {{0, 1, 0, 1}, {0, 0, 0, 1}, {0, 1, 2, 3}, {2, 3, 2, 2},
                         {4, 4, 4, 4}, {1, 5, 5, 1}, {0, 2, 2, 4}};
 const int GT[5][2] = {{0, 0}, {0, 1}, {2, 5}, {5, 5}, {3, 4}};
 
-void t_orc() {
+void run(tk &tt) {
   // 1. paternity index against Familias
   for (int k = 0; k < 8; ++k) {
     const int *t = TRIO[k];
     const int c[2] = {t[2], t[3]}, m[2] = {t[0], t[1]}, af[2] = {t[4], t[5]};
     const double f[2] = {FR[c[0]], FR[c[1]]};
     double idx;
-    TK("orc.pi.rc", clab_patidx(c, m, af, f, 1, &idx) == CLAB_OK);
-    TKN("orc.pi.familias", idx, ref_pi[k], 1e-13);
+    tk_true(tt, "orc.pi.rc", clab_patidx(c, m, af, f, 1, &idx) == CLAB_OK);
+    tk_near(tt, "orc.pi.familias", idx, ref_pi[k], 1e-13);
   }
   // 2. kinship index (full sibs, half sibs, parent-child) against Familias
   {
@@ -75,8 +72,8 @@ void t_orc() {
         const int g1[2] = {PAIR[k][0], PAIR[k][1]}, g2[2] = {PAIR[k][2], PAIR[k][3]};
         const double f[2] = {FR[g1[0]], FR[g1[1]]};
         double idx;
-        TK("orc.ki.rc", clab_kinidx(g1, g2, f, 1, kap[r], &idx) == CLAB_OK);
-        TKN("orc.ki.familias", idx, ref_ki[7 * r + k], 1e-13);
+        tk_true(tt, "orc.ki.rc", clab_kinidx(g1, g2, f, 1, kap[r], &idx) == CLAB_OK);
+        tk_near(tt, "orc.ki.familias", idx, ref_ki[7 * r + k], 1e-13);
       }
   }
   // 3. match probability with the coancestry correction (NRC II 4.10)
@@ -88,8 +85,8 @@ void t_orc() {
         const double p = FR[GT[k][0]], q = FR[GT[k][1]];
         const int hom = GT[k][0] == GT[k][1];
         double loc, l10;
-        TK("orc.mp.rc", clab_gtmp(&p, &q, &hom, 1, th[j], &loc, &l10) == CLAB_OK);
-        TKN("orc.mp.familias", loc, ref_mp[5 * j + k], 1e-13);
+        tk_true(tt, "orc.mp.rc", clab_gtmp(&p, &q, &hom, 1, th[j], &loc, &l10) == CLAB_OK);
+        tk_near(tt, "orc.mp.familias", loc, ref_mp[5 * j + k], 1e-13);
       }
   }
   // 4. mixture probabilities: summing clab_mixp (the chance that x unknown
@@ -115,8 +112,8 @@ void t_orc() {
       }
       const double *dna = x == 1 ? ref_dna1 : (x == 2 ? ref_dna2 : ref_dna3);
       for (int k = 1; k <= 6; ++k) {
-        TKN("orc.nd", pk[k], ref[x - 1][k - 1], 1e-13);
-        if (k <= 2 * x) TKN("orc.dnatools", pk[k], dna[k - 1], 1e-13);
+        tk_near(tt, "orc.nd", pk[k], ref[x - 1][k - 1], 1e-13);
+        if (k <= 2 * x) tk_near(tt, "orc.dnatools", pk[k], dna[k - 1], 1e-13);
       }
     }
   }
@@ -127,8 +124,8 @@ void t_orc() {
     int same[33];
     for (int i = 0; i < 15; ++i) ss[i] = std::exp(-1 + 4.0 * i / 14);
     for (int i = 0; i < 18; ++i) ds[i] = std::exp(-4 + 5.2 * i / 17);
-    TK("orc.cllr.rc", clab_cllr(ss, 15, ds, 18, &c) == CLAB_OK);
-    TKN("orc.cllr.ece", c, ref_ece[0], 1e-13);
+    tk_true(tt, "orc.cllr.rc", clab_cllr(ss, 15, ds, 18, &c) == CLAB_OK);
+    tk_near(tt, "orc.cllr.ece", c, ref_ece[0], 1e-13);
     // merge in ascending order
     int a = 0, b = 0;
     for (int k = 0; k < 33; ++k) {
@@ -136,9 +133,8 @@ void t_orc() {
       lr[k] = takes ? ss[a++] : ds[b++];
       same[k] = takes;
     }
-    TK("orc.lrcal.rc", clab_lrcal(lr, same, 33, post, work, &cmin) == CLAB_OK);
-    std::printf("  orc: cllrmin %.17g, comparison ece.cal %.17g\n", cmin, ref_ece[1]);
-    TKN("orc.lrcal.ece", cmin, ref_ece[1], 1e-12);
+    tk_true(tt, "orc.lrcal.rc", clab_lrcal(lr, same, 33, post, work, &cmin) == CLAB_OK);
+    tk_near(tt, "orc.lrcal.ece", cmin, ref_ece[1], 1e-12);
   }
   // 6. clab_fair against fairmodels (a second oracle for it, one that is
   // right where a nearly all-positive cutoff breaks the other)
@@ -155,13 +151,11 @@ void t_orc() {
       const double *ref = c == 0 ? ref_fm : ref_fm_low;
       clab_fair(p, y, g, 1000, 3, c == 0 ? 0.5 : 0.001, 0, 1.96, cnt, met, rat, nullptr, nullptr);
       for (int k = 0; k < 8; ++k)
-        for (int j = 0; j < 3; ++j) TKN("orc.fairmodels", met[3 * k + j], ref[3 * k + j], 1e-14);
+        for (int j = 0; j < 3; ++j) tk_near(tt, "orc.fairmodels", met[3 * k + j], ref[3 * k + j], 1e-14);
     }
   }
 }
 
 }  // namespace
 
-TK_FAMILY("orc", t_orc, nullptr);
-
-#endif
+void t_orc(tk &t, int) { run(t); }

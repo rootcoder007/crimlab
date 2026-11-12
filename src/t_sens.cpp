@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_rswp and clab_rshl (src/sens.cpp). Built only
-// with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_rswp and clab_rshl (src/sens.cpp). Part of the
+// self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -33,7 +30,7 @@ const double ref_ex_lo[5] = {0.90625, 0.59375, 0.3125, 0.125, -0.03125};
 const double ref_ex_hi[5] = {0.90625, 1.234375, 1.5, 1.6875, 1.84375};
 const double G[5] = {1, 1.5, 2, 2.5, 3};
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -47,27 +44,27 @@ void dsample(double *d) {
   for (int i = 0; i < 60; ++i) d[i] = (((i * 37) % 101) - 35) / 16.0;
 }
 
-void t_sens() {
+void run(tk &tt) {
   static double d[600], w[600];
   static int iw[600];
   double plo[5], pup[5], lo[5], hi[5], gc, ts;
   dsample(d);
   // 1. p-value bounds: parity with rbounds (its 4-digit rounding) and with
   // the unrounded formulas
-  TK("sens.p.rc", clab_rswp(d, 60, G, 5, 1.6448536269514722, plo, pup, &gc, &ts, w, iw) == CLAB_OK);
+  tk_true(tt, "sens.p.rc", clab_rswp(d, 60, G, 5, 1.6448536269514722, plo, pup, &gc, &ts, w, iw) == CLAB_OK);
   for (int k = 0; k < 5; ++k) {
-    TKN("sens.p.up4", pup[k], ref_pup[k], 5e-5);
-    TKN("sens.p.lo4", plo[k], ref_plo[k], 5e-5);
-    TKN("sens.p.up", pup[k] / ref_pup_u[k], 1, 1e-12);
-    TKN("sens.p.lo", plo[k] / ref_plo_u[k], 1, 1e-10);
+    tk_near(tt, "sens.p.up4", pup[k], ref_pup[k], 5e-5);
+    tk_near(tt, "sens.p.lo4", plo[k], ref_plo[k], 5e-5);
+    tk_near(tt, "sens.p.up", pup[k] / ref_pup_u[k], 1, 1e-12);
+    tk_near(tt, "sens.p.lo", plo[k] / ref_plo_u[k], 1, 1e-10);
   }
-  TKN("sens.p.g1", pup[0], plo[0], 0);
+  tk_near(tt, "sens.p.g1", pup[0], plo[0], 0);
   // 2. the critical Gamma: the upper bound there equals 1 - Phi(z)
   for (double z = 0.5; z < 4; z += 0.7) {
     clab_rswp(d, 60, G, 0, z, plo, pup, &gc, &ts, w, iw);
     double p2[1], q2[1];
     clab_rswp(d, 60, &gc, gc >= 1 ? 1 : 0, z, q2, p2, &gc, &ts, w, iw);
-    if (gc >= 1) TKN("sens.gcrit", p2[0] / (0.5 * std::erfc(z / std::sqrt(2.0))), 1, 1e-12);
+    if (gc >= 1) tk_near(tt, "sens.gcrit", p2[0] / (0.5 * std::erfc(z / std::sqrt(2.0))), 1, 1e-12);
   }
   // 3. the rank sums against a direct O(n^2) midrank count
   {
@@ -83,7 +80,7 @@ void t_sens() {
       t += less + (eq + 1) / 2;
     }
     clab_rswp(d, 60, G, 0, 1.0, plo, pup, &gc, &ts, w, iw);
-    TKN("sens.T", ts, t, 0);
+    tk_near(tt, "sens.T", ts, t, 0);
   }
   // 4. Hodges-Lehmann bounds: exact equality with the sorted Walsh
   // averages; parity with rbounds at its fine grid where the bound is a
@@ -92,19 +89,25 @@ void t_sens() {
   // a flat of T(tau) = mu, where the estimate is the midpoint of the flat
   // (Hodges and Lehmann; Rosenbaum 1993): 1.234375, not rbounds' first
   // point 1.2188 (pr = 1e-4)
-  TK("sens.hl.rc", clab_rshl(d, 60, G, 5, lo, hi, w) == CLAB_OK);
+  tk_true(tt, "sens.hl.rc", clab_rshl(d, 60, G, 5, lo, hi, w) == CLAB_OK);
   for (int k = 0; k < 5; ++k) {
-    TKN("sens.hl.ex.lo", lo[k], ref_ex_lo[k], 0);
-    TKN("sens.hl.ex.hi", hi[k], ref_ex_hi[k], 0);
-    TKN("sens.hl.fine.lo", lo[k], ref_hl4_lo[k], 2e-4);
-    if (k != 1) TKN("sens.hl.fine.hi", hi[k], ref_hl4_hi[k], 2e-4);
+    tk_near(tt, "sens.hl.ex.lo", lo[k], ref_ex_lo[k], 0);
+    tk_near(tt, "sens.hl.ex.hi", hi[k], ref_ex_hi[k], 0);
+    tk_near(tt, "sens.hl.fine.lo", lo[k], ref_hl4_lo[k], 2e-4);
+    if (k != 1) tk_near(tt, "sens.hl.fine.hi", hi[k], ref_hl4_hi[k], 2e-4);
   }
-  TK("sens.hl.flat", std::fabs(hi[1] - ref_hl4_hi[1]) > 0.01);
-  TK("sens.hl.grid", std::fabs(lo[1] - ref_hl1_lo[1]) > 0.08);
+  tk_true(tt, "sens.hl.flat", std::fabs(hi[1] - ref_hl4_hi[1]) > 0.01);
+  tk_true(tt, "sens.hl.grid", std::fabs(lo[1] - ref_hl1_lo[1]) > 0.08);
+  // and every default-grid bound lies within one grid step (0.1) of the
+  // exact one
+  for (int k = 0; k < 5; ++k) {
+    tk_true(tt, "sens.hl.grid.lo", std::fabs(lo[k] - ref_hl1_lo[k]) <= 0.1);
+    tk_true(tt, "sens.hl.grid.hi", std::fabs(hi[k] - ref_hl1_hi[k]) <= 0.1);
+  }
   // 5. brute force: random differences, all Walsh averages sorted
   // directly, Gamma including values that make a an integer
   {
-    rng r{21};
+    xrng r{21};
     int bad = 0;
     for (int rep = 0; rep < 30; ++rep) {
       const int n = 2 + static_cast<int>(r.unif() * 40);
@@ -129,17 +132,26 @@ void t_sens() {
         bad += lo[k] != 0.5 * all[cl - 1] + 0.5 * all[fl - 1];
       }
     }
-    TK("sens.hl.brute", bad == 0);
+    tk_true(tt, "sens.hl.brute", bad == 0);
   }
   // 6. guards
   {
     const double g0[1] = {0.5};
-    TK("sens.guard.g", clab_rshl(d, 5, g0, 1, lo, hi, w) == CLAB_EDOM);
-    TK("sens.guard.z", clab_rswp(d, 5, G, 1, 0, plo, pup, &gc, &ts, w, iw) == CLAB_EDOM);
+    tk_true(tt, "sens.guard.g", clab_rshl(d, 5, g0, 1, lo, hi, w) == CLAB_EDOM);
+    tk_true(tt, "sens.guard.z", clab_rswp(d, 5, G, 1, 0, plo, pup, &gc, &ts, w, iw) == CLAB_EDOM);
     const double z0[2] = {0, 0};
-    TK("sens.zero", clab_rswp(z0, 2, G, 1, 1, plo, pup, &gc, &ts, w, iw) == CLAB_OK && std::isnan(pup[0]));
+    tk_true(tt, "sens.zero", clab_rswp(z0, 2, G, 1, 1, plo, pup, &gc, &ts, w, iw) == CLAB_OK && std::isnan(pup[0]));
   }
 }
+
+
+}  // namespace
+
+void t_sens(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's standard case: 50,000 pairs, Gamma 1 to 2 by 0.25
 // (rbounds psens 0.024 s, hlsens 3.112 s, one run each, zeus)
@@ -147,7 +159,7 @@ void b_sens() {
   const int n = 50000;
   static double d[n], w[n];
   static int iw[n];
-  rng r{1};
+  xrng r{1};
   for (int i = 0; i < n; ++i) {
     const double a = 1.0 - r.unif(), b = r.unif(), c = 1.0 - r.unif(), e = r.unif();
     d[i] = 0.3 + std::sqrt(-2 * std::log(a)) * std::cos(6.283185307179586 * b) -
@@ -163,12 +175,7 @@ void b_sens() {
     clab_rshl(d, n, g, 5, lo, hi, w);
     t2[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
-  std::printf("BENCH clab_rswp n=5e4, 5 Gammas: median %.6f s (k=5)\n", tk::med5(t));
-  std::printf("BENCH clab_rshl n=5e4, 5 Gammas: median %.6f s (k=5)\n", tk::med5(t2));
+  std::printf("BENCH clab_rswp n=5e4, 5 Gammas: median %.6f s (k=5)\n", tk_med5(t));
+  std::printf("BENCH clab_rshl n=5e4, 5 Gammas: median %.6f s (k=5)\n", tk_med5(t2));
 }
-
-}  // namespace
-
-TK_FAMILY("sens", t_sens, b_sens);
-
 #endif

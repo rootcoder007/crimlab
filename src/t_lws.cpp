@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
 // Standalone tests for clab_lwss (src/lws.cpp). Built only with
-// -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// the self-test (selftest.cpp).
 
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -44,7 +42,7 @@ int lcase(int k, double *x, double *y, double *f, int *iter, double *delta) {
   return n;
 }
 
-void t_lws() {
+void run(tk &tt) {
   double x[150], y[150], ys[150], w[450], f, delta;
   int iter, off = 0, bad = 0;
   double worst = 0;
@@ -52,7 +50,7 @@ void t_lws() {
   // to 1, 0 to 3 robustness steps, delta 0 to 0.2 of the range)
   for (int k = 0; k < 40; ++k) {
     const int n = lcase(k, x, y, &f, &iter, &delta);
-    TK("lws.rc", clab_lwss(x, y, n, f, iter, delta, ys, w) == CLAB_OK);
+    tk_true(tt, "lws.rc", clab_lwss(x, y, n, f, iter, delta, ys, w) == CLAB_OK);
     for (int i = 0; i < n; ++i) {
       const double d = std::fabs(ys[i] - lw_ref[off + i]) / (1 + std::fabs(lw_ref[off + i]));
       worst = d > worst ? d : worst;
@@ -60,8 +58,7 @@ void t_lws() {
     }
     off += n;
   }
-  std::printf("  lws: worst relative difference from stats::lowess %.3g over %d values\n", worst, off);
-  TK("lws.parity", bad == 0 && off == 1305);
+  tk_true(tt, "lws.parity", bad == 0 && off == 1305);
   // 2. a straight line is reproduced by local linear fits (no robustness
   // steps: on a perfect fit the residuals are rounding noise, and
   // bisquare weights computed from noise, in this kernel as in the
@@ -74,7 +71,7 @@ void t_lws() {
     clab_lwss(x, y, 50, 0.3, 0, 0, ys, w);
     double e = 0;
     for (int i = 0; i < 50; ++i) e = std::fabs(ys[i] - y[i]) > e ? std::fabs(ys[i] - y[i]) : e;
-    TK("lws.line", e < 1e-12);
+    tk_true(tt, "lws.line", e < 1e-12);
   }
   // 3. hand case: x = 0, 1, 2, f = 1 (all three points), no robustness.
   // At the middle point the bandwidth is h = max(1 - 0, 2 - 1) = 1 and both
@@ -83,21 +80,19 @@ void t_lws() {
   {
     const double xx[3] = {0, 1, 2}, yy[3] = {0, 5, 1};
     clab_lwss(xx, yy, 3, 1.0, 0, 0, ys, w);
-    TKN("lws.three.mid", ys[1], 5, 1e-15);
+    tk_near(tt, "lws.three.mid", ys[1], 5, 1e-15);
   }
   // 4. guards
   {
     const double xx[3] = {0, 2, 1}, yy[3] = {0, 1, 2};
-    TK("lws.guard.sort", clab_lwss(xx, yy, 3, 0.5, 0, 0, ys, w) == CLAB_EDOM);
+    tk_true(tt, "lws.guard.sort", clab_lwss(xx, yy, 3, 0.5, 0, 0, ys, w) == CLAB_EDOM);
     const double xn[2] = {0, 1}, yn[2] = {0, std::nan("")};
-    TK("lws.guard.nan", clab_lwss(xn, yn, 2, 0.5, 0, 0, ys, w) == CLAB_EDOM);
-    TK("lws.guard.f", clab_lwss(xn, xn, 2, 0, 0, 0, ys, w) == CLAB_EDOM);
-    TK("lws.one", clab_lwss(xn, xn, 1, 0.5, 3, 0, ys, w) == CLAB_OK && ys[0] == 0);
+    tk_true(tt, "lws.guard.nan", clab_lwss(xn, yn, 2, 0.5, 0, 0, ys, w) == CLAB_EDOM);
+    tk_true(tt, "lws.guard.f", clab_lwss(xn, xn, 2, 0, 0, 0, ys, w) == CLAB_EDOM);
+    tk_true(tt, "lws.one", clab_lwss(xn, xn, 1, 0.5, 3, 0, ys, w) == CLAB_OK && ys[0] == 0);
   }
 }
 
 }  // namespace
 
-TK_FAMILY("lws", t_lws, nullptr);
-
-#endif
+void t_lws(tk &t, int) { run(t); }

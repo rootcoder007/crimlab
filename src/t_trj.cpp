@@ -1,16 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 //
-// Standalone tests for clab_zgll and clab_zgem (src/trj.cpp). Built only
-// with -DCLAB_MAIN.
-#ifdef CLAB_MAIN
+// Standalone tests for clab_zgll and clab_zgem (src/trj.cpp). Part of the
+// self-test (selftest.cpp).
 
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 
 #include "crimlab.h"
-#include "tk.h"
+#include "tchk.h"
 
 namespace {
 
@@ -32,7 +29,7 @@ const double cgwt[10] = {0.030190941184994758, 0.90413223315639546, 0.4286504822
 const double pbeta[3] = {0.78434452946132105, 0.48451707169193858, 0.74883243333068827};
 const double pll = -1203.1411172776643;
 
-struct rng {
+struct xrng {
   std::uint64_t s;
   double unif() {
     s ^= s >> 12;
@@ -75,7 +72,7 @@ double brute(const double *y, int n, int nt, const double *x, int p, const doubl
   return ll;
 }
 
-void t_trj() {
+void run(tk &tt) {
   load();
   static double w[100 * 3], work[256];
   double par[10], prob[2], ll;
@@ -87,12 +84,12 @@ void t_trj() {
   }
   // 1. parity with crimCV at its own estimates: log-likelihood and the
   // posterior memberships
-  TK("trj.ll.rc", clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_OK);
-  TKN("trj.ll.crimcv", ll / cllike, 1, 1e-12);
+  tk_true(tt, "trj.ll.rc", clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_OK);
+  tk_near(tt, "trj.ll.crimcv", ll / cllike, 1, 1e-12);
   for (int i = 0; i < 5; ++i)
-    for (int k = 0; k < 2; ++k) TKN("trj.gwt", w[i + 100 * k], cgwt[i + 5 * k], 1e-9);
+    for (int k = 0; k < 2; ++k) tk_near(tt, "trj.gwt", w[i + 100 * k], cgwt[i + 5 * k], 1e-9);
   // 2. the direct product formula on the same parameters
-  TKN("trj.ll.brute", ll / brute(yc, 100, 6, Xb, 3, Zb, 2, 2, par, prob), 1, 1e-12);
+  tk_near(tt, "trj.ll.brute", ll / brute(yc, 100, 6, Xb, 3, Zb, 2, 2, par, prob), 1, 1e-12);
   // 3. crimCV's estimate is a stationary point (central differences of
   // the log-likelihood vanish), but not the maximum: its best of 20 random
   // starts has a zero-inflation intercept of -21 in one group (rho ~ 7e-10)
@@ -110,24 +107,24 @@ void t_trj() {
       clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, pp, prob, w, &lm, work);
       gmax = std::fabs(lp - lm) / 2e-6 > gmax ? std::fabs(lp - lm) / 2e-6 : gmax;
     }
-    TK("trj.crimcv.stationary", gmax < 1e-4);
+    tk_true(tt, "trj.crimcv.stationary", gmax < 1e-4);
     double p2[10], pr2[2];
     for (int j = 0; j < 10; ++j) p2[j] = par[j];
     pr2[0] = prob[0];
     pr2[1] = prob[1];
-    TK("trj.em.rc", clab_zgem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 2000, 1e-14,
+    tk_true(tt, "trj.em.rc", clab_zgem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 2000, 1e-14,
                                &it, work) == CLAB_OK);
-    TK("trj.em.higher", ll > cllike + 30);
-    TKN("trj.em.brute", ll / brute(yc, 100, 6, Xb, 3, Zb, 2, 2, p2, pr2), 1, 1e-12);
-    TK("trj.em.shares", std::fabs(pr2[0] - 0.42) < 0.01 || std::fabs(pr2[1] - 0.42) < 0.01);
+    tk_true(tt, "trj.em.higher", ll > cllike + 30);
+    tk_near(tt, "trj.em.brute", ll / brute(yc, 100, 6, Xb, 3, Zb, 2, 2, p2, pr2), 1, 1e-12);
+    tk_true(tt, "trj.em.shares", std::fabs(pr2[0] - 0.42) < 0.01 || std::fabs(pr2[1] - 0.42) < 0.01);
   }
   // 4. one Poisson group (q = 0) is a Poisson regression: parity with
   // glm(poisson) in base R
   {
     double b[3] = {0, 0, 0}, pr1[1] = {1};
     clab_zgem(yc, 100, 6, nullptr, Xb, 3, nullptr, 0, 1, b, pr1, w, &ll, 50, 1e-14, &it, work);
-    for (int j = 0; j < 3; ++j) TKN("trj.glm.beta", b[j], pbeta[j], 1e-8);
-    TKN("trj.glm.ll", ll / pll, 1, 1e-12);
+    for (int j = 0; j < 3; ++j) tk_near(tt, "trj.glm.beta", b[j], pbeta[j], 1e-8);
+    tk_near(tt, "trj.glm.ll", ll / pll, 1, 1e-12);
   }
   // 5. EM is monotone, and at its fixed point the observed log-likelihood
   // is stationary (central differences of clab_zgll, step 1e-5)
@@ -140,7 +137,7 @@ void t_trj() {
       mono = mono && ll >= prev - 1e-10 * std::fabs(ll);
       prev = ll;
     }
-    TK("trj.monotone", mono);
+    tk_true(tt, "trj.monotone", mono);
     clab_zgem(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 5000, 1e-15, &it, work);
     double gmax = 0;
     for (int j = 0; j < 10; ++j) {
@@ -153,7 +150,7 @@ void t_trj() {
       const double gr = (lp - lm) / 2e-5;
       gmax = std::fabs(gr) > gmax ? std::fabs(gr) : gmax;
     }
-    TK("trj.stationary", gmax < 1e-3);
+    tk_true(tt, "trj.stationary", gmax < 1e-3);
   }
   // 6. disagreement (dossier csls/d/crimCV.md section 3, reproduced in
   // dev/doss/crimCV.R): crimCV 1.0.0 stops on NA ("NA/NaN/Inf in foreign
@@ -167,14 +164,14 @@ void t_trj() {
     clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &l1, work);
     y2[4 + 100 * 1] = -1;
     clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &l2, work);
-    TKN("trj.nan", l1, l2, 0);
+    tk_near(tt, "trj.nan", l1, l2, 0);
     double ys[12], p2[10], pr2[2] = {0.5, 0.5};
     for (int t = 0; t < 6; ++t) {
       ys[0 + 2 * t] = yc[0 + 100 * t] < 0 ? 0 : yc[0 + 100 * t];
       ys[1 + 2 * t] = yc[1 + 100 * t] < 0 ? 0 : yc[1 + 100 * t];
     }
     for (int j = 0; j < 10; ++j) p2[j] = 0.1 * j - 0.5;
-    TK("trj.n2", clab_zgem(ys, 2, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 100, 1e-10, &it,
+    tk_true(tt, "trj.n2", clab_zgem(ys, 2, 6, nullptr, Xb, 3, Zb, 2, 2, p2, pr2, w, &ll, 100, 1e-10, &it,
                             work) == CLAB_OK && std::isfinite(ll));
   }
   // 7. offsets: log exposure 2 everywhere is the same as adding log 2 to
@@ -188,19 +185,28 @@ void t_trj() {
     for (int k = 0; k < 2; ++k)
       for (int j = 0; j < 3; ++j) p2[5 * k + j] += std::log(2.0);
     clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, p2, prob, w, &l2, work);
-    TKN("trj.offset", l1 / l2, 1, 1e-12);
+    tk_near(tt, "trj.offset", l1 / l2, 1, 1e-12);
   }
   // 8. guards
   {
     double y2[600];
     for (int j = 0; j < 600; ++j) y2[j] = yc[j];
     y2[7] = 1.5;
-    TK("trj.guard.int", clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EDOM);
+    tk_true(tt, "trj.guard.int", clab_zgll(y2, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EDOM);
     const double bad[2] = {0.5, 0.6};
-    TK("trj.guard.prob", clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, bad, w, &ll, work) == CLAB_EDOM);
-    TK("trj.guard.p", clab_zgll(yc, 100, 6, nullptr, Xb, 0, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EARG);
+    tk_true(tt, "trj.guard.prob", clab_zgll(yc, 100, 6, nullptr, Xb, 3, Zb, 2, 2, par, bad, w, &ll, work) == CLAB_EDOM);
+    tk_true(tt, "trj.guard.p", clab_zgll(yc, 100, 6, nullptr, Xb, 0, Zb, 2, 2, par, prob, w, &ll, work) == CLAB_EARG);
   }
 }
+
+
+}  // namespace
+
+void t_trj(tk &t, int) { run(t); }
+
+#ifdef CLAB_MAIN
+#include <chrono>
+#include <cstdio>
 
 // the dossier's size: 1,000 units x 10 periods, 2 groups, cubic bases for
 // the counts and the zero inflation (crimCV ZIP, dpolyp = dpolyl = 3,
@@ -211,7 +217,7 @@ void b_trj() {
   const int n = 1000, nt = 10, ng = 2, p = 4, q = 4, m = p + q;
   static double y[n * nt], w[n * ng], work[256];
   double x[nt * p], z[nt * q];
-  rng r{1};
+  xrng r{1};
   for (int t = 0; t < nt; ++t) {
     const double o = t / 9.0;
     for (int j = 0; j < p; ++j) x[t + nt * j] = z[t + nt * j] = std::pow(o, j);
@@ -244,11 +250,6 @@ void b_trj() {
     t[rep] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
   std::printf("BENCH clab_zgem n=1000x10 ng=2 p=q=4, 40 starts: median %.3f s (k=5), best ll %.4f\n",
-              tk::med5(t), best);
+              tk_med5(t), best);
 }
-
-}  // namespace
-
-TK_FAMILY("trj", t_trj, b_trj);
-
 #endif

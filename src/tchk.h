@@ -69,7 +69,7 @@ int rpois(rng &r, double mu);
 // The sample quantile of type 7, R's default; x is sorted in place.
 double tk_q7(double *x, int n, double p);
 
-// The four families, each adding its checks to t.
+// The families, each adding its checks to t.
 void t_disp(tk &t);
 void t_frns(tk &t);
 void t_pol(tk &t);
@@ -92,6 +92,37 @@ void t_hsp(tk &t, int big);
 void b_hsp();
 void t_stm(tk &t, int big);
 void b_stm();
+
+// The dossier families, the same way: t_<family>(t, big), b_<family>.
+void t_fair(tk &t, int big);
+void b_fair();
+void t_tlv(tk &t, int big);
+void b_tlv();
+void t_aor(tk &t, int big);
+void b_aor();
+void t_bnf(tk &t, int big);
+void b_bnf();
+void t_tfr(tk &t, int big);
+void b_tfr();
+void t_sk(tk &t, int big);
+void b_sk();
+void t_rpt(tk &t, int big);
+void b_rpt();
+void t_sens(tk &t, int big);
+void b_sens();
+void t_trj(tk &t, int big);
+void b_trj();
+void t_mvt(tk &t, int big);
+void b_mvt();
+void t_lws(tk &t, int big);
+void t_chm(tk &t, int big);
+void b_chm();
+void t_gst(tk &t, int big);
+void b_gst();
+void t_spt(tk &t, int big);
+void b_spt();
+void t_orc(tk &t, int big);
+
 #ifdef CLAB_MAIN
 // The standalone program only: the median of five timings (sorts t).
 double tk_med5(double *t);
