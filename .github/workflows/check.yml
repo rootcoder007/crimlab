@@ -27,6 +27,11 @@ jobs:
           - {os: ubuntu-24.04, r: release}
           - {os: ubuntu-24.04, r: devel}
           - {os: ubuntu-24.04, r: oldrel-1}
+          # the oldest R the DESCRIPTION admits, with the hard dependencies
+          # and the test and vignette tools only: the suggested spatial
+          # packages are not all installable there, and their tests skip
+          - {os: ubuntu-24.04, r: '4.1', deps: '"hard"',
+             extra: 'any::rcmdcheck, any::testthat, any::knitr, any::rmarkdown'}
           - {os: macos-latest, r: release}
           - {os: windows-latest, r: release}
     env:
@@ -43,9 +48,12 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages: ${{ matrix.extra || 'any::rcmdcheck' }}
+          dependencies: ${{ matrix.deps || '"all"' }}
           needs: check
       - uses: r-lib/actions/check-r-package@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        env:
+          _R_CHECK_FORCE_SUGGESTS_: ${{ matrix.deps && 'false' || 'true' }}
         with:
           args: 'c("--no-manual", "--as-cran")'
           error-on: '"warning"'
