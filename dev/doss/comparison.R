@@ -1,11 +1,8 @@
 # Reference values and defect reproducer for src/tlv.cpp (clab_tlvc,
-# clab_tlvlr). Field package: comparison 1.0.8 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/comparison.R
+# clab_tlvlr). Field package: comparison 1.0.8 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages(library(comparison))
 cat("comparison", format(packageVersion("comparison")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
-carr <- function(nm, x) cat(sprintf("const double %s[%d] = {%s};\n", nm, length(x), f17(x)))
 
 # 1. the documented glass example (K, Ca, Fe)
 data(glass)
@@ -45,7 +42,6 @@ cat("// check of that route on the finite example: log(glr) =", f17(log(two.leve
     " joint:", f17(llr(ctl$item.means, r1$item.means)), "\n")
 
 # 3. components on deterministic data (MINSTD generator, rebuilt in C)
-minstd <- function(n, s) { u <- numeric(n); for (i in 1:n) { s <- (48271 * s) %% 2147483647; u[i] <- s / 2147483647 }; u }
 mk <- function(m, nrep) {
   u <- minstd(sum(nrep) * 3 + m * 3, 12345)
   eff <- matrix(u[1:(m * 3)], m, 3) * c(1, 2, 0.5)

@@ -1,7 +1,6 @@
 # Reference values and defect reproducer for src/sk.cpp (clab_skp). Field
-# package: SK4FGA 0.1.1 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/SK4FGA.R
+# package: SK4FGA 0.1.1 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 library(SK4FGA)
 cat("SK4FGA", format(packageVersion("SK4FGA")), "\n")
 # deterministic refractive indices, rebuilt in src/t_sk.cpp: three groups

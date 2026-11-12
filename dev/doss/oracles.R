@@ -2,14 +2,11 @@
 # forensic kernels (clab_gtmp, clab_kinidx, clab_patidx, clab_mixp,
 # clab_cllr, clab_lrcal), for src/t_orc.cpp. R 4.5.0, with the user's
 # ~/.Renviron (DNAtools in the dossier library needs Rcpp >= 1.1.0, which
-# only the user library on zeus has):
-#   R_LIBS=/mnt/nvme/work/csls/lib R_PROFILE_USER=/dev/null \
-#   nice -n 10 /usr/bin/Rscript dev/doss/oracles.R
+# only the user library on zeus has).
 # DNAtools first: it needs a newer Rcpp than the other packages load
+source("dev/doss/pre.R")
 suppressMessages({library(DNAtools); library(Familias); library(numberofalleles); library(comparison)})
 for (p in c("Familias", "numberofalleles", "comparison")) cat(p, format(packageVersion(p)), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
-carr <- function(nm, x) cat(sprintf("const double %s[%d] = {%s};\n", nm, length(x), f17(x)))
 
 # one locus, alleles A..F with these frequencies, no mutation
 fr <- c(0.05, 0.1, 0.15, 0.2, 0.22, 0.28); al <- LETTERS[1:6]

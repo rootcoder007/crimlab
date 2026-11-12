@@ -1,12 +1,10 @@
 # Reference values and defect reproducer for src/bnf.cpp (clab_bdig,
 # clab_bnft). Field packages: benford.analysis 0.1.5 and BenfordTests 1.2.0
-# (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/benford.R
+# (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages({library(benford.analysis); library(BenfordTests)})
 cat("benford.analysis", format(packageVersion("benford.analysis")),
     "BenfordTests", format(packageVersion("BenfordTests")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
 
 # 1. digits (dossier benford.analysis.md and BenfordTests.md section 3)
 v <- c(0.29, 0.57, 0.58, 1.15, 0.07)

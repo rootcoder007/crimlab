@@ -1,10 +1,9 @@
 # Defect probe for Gi* calibration (no crimlab kernel yet; see
-# dev/wip-h-doss.md). Field package: sfhotspot 1.1.1 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/sfhotspot.R
+# dev/wip-h-doss.md). Field package: sfhotspot 1.1.1 (CRAN), R 4.5.0.
 # Under complete spatial randomness on [0, 1000]^2 with 50 m cells, the
 # share of cells with unadjusted p < 0.05, overall and for core cells whose
 # 3 x 3 neighbourhood lies inside the study square.
+source("dev/doss/pre.R")
 suppressMessages({library(sfhotspot); library(sf)})
 cat("sfhotspot", format(packageVersion("sfhotspot")), "\n")
 pts <- function(n, seed) { set.seed(seed); st_as_sf(data.frame(x = runif(n, 0, 1000), y = runif(n, 0, 1000)), coords = c("x", "y"), crs = 27700) }

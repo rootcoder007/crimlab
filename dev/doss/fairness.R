@@ -1,11 +1,9 @@
 # Reference values and defect reproducer for src/fair.cpp (clab_fair).
-# Field package: fairness 1.2.3 (CRAN), run on R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/fairness.R
+# Field package: fairness 1.2.3 (CRAN), run on R 4.5.0.
 # Prints: the defect, C arrays for src/t_fair.cpp, and a timing.
+source("dev/doss/pre.R")
 suppressMessages(library(fairness))
 cat("fairness", format(packageVersion("fairness")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
 
 # the deterministic sample src/t_fair.cpp rebuilds (i = 0, ..., 999)
 i <- 0:999

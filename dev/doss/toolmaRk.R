@@ -1,14 +1,11 @@
 # Reference values and defect reproducer for src/lws.cpp (clab_lwss) and
 # src/chm.cpp (clab_chmb). Reference implementations: stats::lowess (R
-# 4.5.0) and toolmaRk 0.0.2 (CRAN):
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/toolmaRk.R [driver]
+# 4.5.0) and toolmaRk 0.0.2 (CRAN).
 # driver: optional path of a compiled crimlab driver (dev/doss/chmdrv.cpp)
 # to compare clab_chmb with chumbley_non_random on the ameslab profiles.
+source("dev/doss/pre.R")
 suppressMessages(library(toolmaRk))
 cat("toolmaRk", format(packageVersion("toolmaRk")), " R", format(getRversion()), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
-minstd <- function(n, s) { u <- numeric(n); for (i in 1:n) { s <- (48271 * s) %% 2147483647; u[i] <- s / 2147483647 }; u }
 
 # 1. lowess cases, rebuilt in src/t_lws.cpp: case k = 0..39
 ns <- c(2, 3, 4, 7, 10, 25, 60, 150); fs <- c(0.05, 0.3, 2 / 3, 1)

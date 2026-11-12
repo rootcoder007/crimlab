@@ -1,7 +1,6 @@
 # Defect reproducer for the transfer model (no crimlab kernel yet; see
-# dev/wip-h-doss.md). Field package: tfer 1.3 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/tfer.R
+# dev/wip-h-doss.md). Field package: tfer 1.3 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 library(tfer)
 cat("tfer", format(packageVersion("tfer")), "\n")
 set.seed(1); a <- transfer(N = 2000); m <- length(tprob(a)) - 1

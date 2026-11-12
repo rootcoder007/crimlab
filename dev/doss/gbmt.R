@@ -1,11 +1,8 @@
 # Reference values and defect reproducer for src/mvt.cpp (clab_mvtll,
-# clab_mvtem). Field package: gbmt 0.1.4 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/gbmt.R
+# clab_mvtem). Field package: gbmt 0.1.4 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages(library(gbmt))
 cat("gbmt", format(packageVersion("gbmt")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
-carr <- function(nm, x) cat(sprintf("const double %s[%d] = {%s};\n", nm, length(x), f17(x)))
 
 # 60 units x 6 times x 2 indicators, two groups; values rounded to 1/8 so
 # that they print exactly

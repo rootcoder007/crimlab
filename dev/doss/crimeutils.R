@@ -1,9 +1,8 @@
 # Reference values and defect reproducer for src/rpt.cpp (clab_rptc).
 # Field package: crimeutils 0.5.1 (CRAN). It does not install on zeus (gt
 # needs V8), so its file R/ucr_constant_reporters.R is sourced from the
-# CRAN tarball unpacked in /mnt/nvme/work/csls/src/crimeutils, R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/crimeutils.R
+# CRAN tarball unpacked in /mnt/nvme/work/csls/src/crimeutils, R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages({library(dplyr); library(magrittr)})
 e <- new.env()
 sys.source("/mnt/nvme/work/csls/src/crimeutils/R/ucr_constant_reporters.R", e)

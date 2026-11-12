@@ -1,11 +1,8 @@
 # Reference values and defect reproducer for src/spt.cpp (clab_sptst).
-# Field package: sppt 1.0.0 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/sppt.R
+# Field package: sppt 1.0.0 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages({library(sppt); library(sf)})
 cat("sppt", format(packageVersion("sppt")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
-minstd <- function(n, s) { u <- numeric(n); for (i in 1:n) { s <- (48271 * s) %% 2147483647; u[i] <- s / 2147483647 }; u }
 grid <- st_make_grid(st_sfc(st_polygon(list(rbind(c(0, 0), c(10, 0), c(10, 10), c(0, 10), c(0, 0))))), n = c(10, 10))
 # deterministic counts, rebuilt in src/t_spt.cpp: a = floor(10 u), b =
 # floor(10 u') for units 0..99 (MINSTD from 31), b + 30 at unit 17, both

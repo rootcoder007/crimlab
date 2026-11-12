@@ -1,10 +1,8 @@
 # Reference values and checks for src/sens.cpp (clab_rswp, clab_rshl).
-# Field package: rbounds 2.2 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/rbounds.R
+# Field package: rbounds 2.2 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 library(rbounds)
 cat("rbounds", format(packageVersion("rbounds")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
 
 # deterministic pair differences, rebuilt in src/t_sens.cpp: multiples of
 # 1/16 (exact in binary), with ties and two zero differences

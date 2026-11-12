@@ -1,11 +1,8 @@
 # Reference values and defect reproducer for src/trj.cpp (clab_zipll,
-# clab_zipem). Field package: crimCV 1.0.0 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/crimCV.R
+# clab_zipem). Field package: crimCV 1.0.0 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages(library(crimCV))
 cat("crimCV", format(packageVersion("crimCV")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
-carr <- function(nm, x) cat(sprintf("const double %s[%d] = {%s};\n", nm, length(x), f17(x)))
 q <- function(e) { capture.output(r <- e); r }
 
 # simulated two-group ZIP trajectories: 100 units x 6 periods

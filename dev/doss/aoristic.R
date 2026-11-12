@@ -1,10 +1,8 @@
 # Reference values and defect reproducer for src/aor.cpp (clab_aor).
-# Field package: aoristic 2.0.0 (CRAN), R 4.5.0:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/aoristic.R
+# Field package: aoristic 2.0.0 (CRAN), R 4.5.0.
+source("dev/doss/pre.R")
 suppressMessages(library(aoristic))
 cat("aoristic", format(packageVersion("aoristic")), "\n")
-f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
 q <- function(e) suppressMessages(e)
 
 # deterministic sample, rebuilt in src/t_aor.cpp (i = 0, ..., 299), UTC
