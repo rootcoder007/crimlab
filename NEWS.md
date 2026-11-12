@@ -1,4 +1,4 @@
-# csls (development version)
+# csls 0.0.0.9000
 
 * Disparity tests: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`,
   `dyadrt()`.
