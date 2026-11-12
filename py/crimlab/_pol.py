@@ -6,10 +6,11 @@ from __future__ import annotations
 from typing import Any
 
 from . import _clab
-from ._util import Frame, Named, Vec, named, vals
+from ._out import Record, Table, Vector, rec, tab, vec
+from ._util import Vec, named
 
 
-def clrsmp(clra: Vec, reca: Vec, clrb: Vec, recb: Vec) -> dict[str, Any]:
+def clrsmp(clra: Vec, reca: Vec, clrb: Vec, recb: Vec) -> Record:
     """Clearance-rate decomposition and Simpson's paradox.
 
     Splits the change in the clearance rate between two areas or services
@@ -46,10 +47,10 @@ def clrsmp(clra: Vec, reca: Vec, clrb: Vec, recb: Vec) -> dict[str, Any]:
     """
     (a, b, c, d), g = named("clrsmp", [("clra", clra), ("reca", reca), ("clrb", clrb),
                                        ("recb", recb)])
-    return _clab.clrsmp(a, b, c, d, g)
+    return rec(_clab.clrsmp(a, b, c, d, g))
 
 
-def expbnd(y: Vec, m: Vec, gamma: float, ref: Any = 1) -> Frame:
+def expbnd(y: Vec, m: Vec, gamma: float, ref: Any = 1) -> Table:
     """Rates and disparities when exposure is measured by a proxy.
 
     If each group's true exposure lies within a factor ``gamma`` of an
@@ -84,10 +85,10 @@ def expbnd(y: Vec, m: Vec, gamma: float, ref: Any = 1) -> Frame:
     ([1.0, 3.0], [0, 1])
     """
     (a, b), g = named("expbnd", [("y", y), ("m", m)])
-    return _clab.expbnd(a, b, vals(gamma), ref, g)
+    return tab(_clab.expbnd(a, b, gamma, ref, g))
 
 
-def misrd(r1: float, r0: float, prev: float, se: float, sp: float) -> Named:
+def misrd(r1: float, r0: float, prev: float, se: float, sp: float) -> Vector:
     """Risk difference when group membership is misrecorded.
 
     When group membership is recorded with error at random, the measured
@@ -113,10 +114,10 @@ def misrd(r1: float, r0: float, prev: float, se: float, sp: float) -> Named:
     >>> {k: round(v, 4) for k, v in misrd(0.3, 0.1, 0.4, 0.8, 0.9).items()}
     {'true': 0.2, 'measured': 0.1426, 'factor': 0.7131, 'd1': 0.38, 'd0': 0.62}
     """
-    return _clab.misrd(vals(r1), vals(r0), vals(prev), vals(se), vals(sp))
+    return vec(_clab.misrd(r1, r0, prev, se, sp))
 
 
-def rtmhs(x1: Vec, x2: Vec, cut: float, w: Vec | None = None) -> Named:
+def rtmhs(x1: Vec, x2: Vec, cut: float, w: Vec | None = None) -> Vector:
     """Regression to the mean at selected hot spots.
 
     Places selected for a high count in one period tend to fall in the
@@ -149,4 +150,4 @@ def rtmhs(x1: Vec, x2: Vec, cut: float, w: Vec | None = None) -> Named:
      'excess': -0.1667, 'low': 1.0, 'lowsym': 0.0}
     """
     (a, b, c), _ = named("rtmhs", [("x1", x1), ("x2", x2), ("w", w)], strict=False)
-    return _clab.rtmhs(a, b, vals(cut), c)
+    return vec(_clab.rtmhs(a, b, cut, c))

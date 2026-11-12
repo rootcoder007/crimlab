@@ -6,10 +6,11 @@ from __future__ import annotations
 from typing import Any
 
 from . import _clab
-from ._util import Frame, Named, Vec, grp, label1, labels, named, vals
+from ._out import Table, Vector, tab, vec
+from ._util import Vec, grp, label1, labels, named
 
 
-def incap(lam: Vec, q: Vec, s: Vec, share: Vec | None = None) -> Frame:
+def incap(lam: Vec, q: Vec, s: Vec, share: Vec | None = None) -> Table:
     """Incapacitation: crime rate, share prevented and the marginal year.
 
     An offender commits crimes at rate ``lam`` a year while free, and each
@@ -46,10 +47,10 @@ def incap(lam: Vec, q: Vec, s: Vec, share: Vec | None = None) -> Frame:
     (['low', 'high', 'all'], [0.1667, 0.5, 0.3519])
     """
     (lv, qv, sv, hv), g = named("incap", [("lam", lam), ("q", q), ("s", s), ("share", share)])
-    return _clab.incap(lv, qv, sv, hv, g)
+    return tab(_clab.incap(lv, qv, sv, hv, g))
 
 
-def incapr(lam: Vec, t0: int, s: int, r: float = 0) -> Named:
+def incapr(lam: Vec, t0: int, s: int, r: float = 0) -> Vector:
     """Incapacitation under desistance and replacement.
 
     Crimes prevented by a sentence of ``s`` periods served from career age
@@ -77,12 +78,13 @@ def incapr(lam: Vec, t0: int, s: int, r: float = 0) -> Named:
     Examples
     --------
     >>> incapr([12, 10, 8, 6, 5, 4, 3, 2, 2, 1], t0=2, s=3, r=0.25)
-    {'prev': 19.0, 'net': 14.25, 'upper': 24.0, 'lower': 12.0, 'later': 15.0}
+     prev   net upper lower later
+    19.00 14.25 24.00 12.00 15.00
     """
-    return _clab.incapr(vals(lam), vals(t0), vals(s), vals(r))
+    return vec(_clab.incapr(lam, t0, s, r))
 
 
-def sellab(y: Vec, rel: Any, rule: Any, w: Vec | None = None) -> Named:
+def sellab(y: Vec, rel: Any, rule: Any, w: Vec | None = None) -> Vector:
     """Evaluating a release rule from the released alone.
 
     Failures are seen only for the defendants a judge released. A rule
@@ -112,14 +114,15 @@ def sellab(y: Vec, rel: Any, rule: Any, w: Vec | None = None) -> Named:
     --------
     >>> sellab([1, 0, None, 0], [True, True, False, True],
     ...        [True, False, True, True])
-    {'obs': 0.3333333333333333, 'unobs': 0.3333333333333333, 'lower': 0.3333333333333333, 'upper': 0.6666666666666666, 'width': 0.3333333333333333, 'naive': 0.5}
+          obs     unobs     lower     upper     width     naive
+    0.3333333 0.3333333 0.3333333 0.6666667 0.3333333 0.5000000
     """
     (a, b, c, d), _ = named("sellab", [("y", y), ("rel", rel), ("rule", rule), ("w", w)],
                             strict=False)
-    return _clab.sellab(a, b, c, d)
+    return vec(_clab.sellab(a, b, c, d))
 
 
-def losbnd(done: Vec, open: Vec) -> Named:
+def losbnd(done: Vec, open: Vec) -> Vector:
     """Mean time in custody from completed and current stays.
 
     The mean length of the completed stays leaves out everyone still
@@ -141,12 +144,13 @@ def losbnd(done: Vec, open: Vec) -> Named:
     Examples
     --------
     >>> losbnd([30, 45, 60, 90, 120], [100, 150, 200])
-    {'mean': 69.0, 'age': 150.0, 'lower': 99.375, 'bias': 30.375}
+      mean     age   lower    bias
+    69.000 150.000  99.375  30.375
     """
-    return _clab.losbnd(vals(done), vals(open))
+    return vec(_clab.losbnd(done, open))
 
 
-def sntbnd(y: Vec, z: Any, treat: Any = None, w: Vec | None = None) -> Frame:
+def sntbnd(y: Vec, z: Any, treat: Any = None, w: Vec | None = None) -> Table:
     """Bounds on a sentence's effect without assumptions.
 
     Each person receives one of two sentences and shows the outcome under
@@ -183,10 +187,10 @@ def sntbnd(y: Vec, z: Any, treat: Any = None, w: Vec | None = None) -> Frame:
     """
     (a, b, c), _ = named("sntbnd", [("y", y), ("z", z), ("w", w)], strict=False)
     lv, kind = labels("sntbnd", "z", b)
-    return _clab.sntbnd(a, lv, None if treat is None else label1(treat), c, kind)
+    return tab(_clab.sntbnd(a, lv, None if treat is None else label1(treat), c, kind))
 
 
-def hzdsel(s: float, h: float, l: float, surh: Vec, surl: Vec) -> Named:
+def hzdsel(s: float, h: float, l: float, surh: Vec, surl: Vec) -> Vector:
     """Period-two hazards after selective depletion.
 
     A share ``s`` of a cohort is at high risk, ``h`` a period, and the rest
@@ -223,4 +227,4 @@ def hzdsel(s: float, h: float, l: float, surh: Vec, surl: Vec) -> Named:
     # name, in either order; otherwise the first is the control arm
     if g == ["treated", "control"] and grp(surh)[1] is not None and grp(surl)[1] is not None:
         a, b = list(a)[::-1], list(b)[::-1]
-    return _clab.hzdsel(vals(s), vals(h), vals(l), a, b)
+    return vec(_clab.hzdsel(s, h, l, a, b))

@@ -4,12 +4,13 @@ behaviour (see README.md, "Inputs")."""
 
 import array
 import math
+import sys
 from decimal import Decimal
 from fractions import Fraction
 
 import pytest
 
-from crimlab import cllr, gtmp, hzdsel, losbnd, lrpost, outtst, sellab, vodtst
+from crimlab import cllr, gtmp, hzdsel, losbnd, lrpost, outtst, sellab
 
 DONE = [30.0, 45.0, 60.0, 90.0, 120.0]
 WANT = losbnd(DONE, [100, 150, 200])
@@ -78,85 +79,53 @@ def test_very_long_inputs():
     assert outtst([0.5] * n, 0.3) == {"stop": 1.0, "hit": 0.5}
 
 
-np = pytest.importorskip("numpy")
+class Arr:
+    """An array over memory the test owns: what an array library offers
+    through __array_interface__, built from array.array."""
+
+    def __init__(self, code, values, typestr, shape=None, strides=None):
+        self.buf = array.array(code, values)
+        addr, n = self.buf.buffer_info()
+        self.__array_interface__ = {"typestr": typestr, "shape": shape or (n,),
+                                    "strides": strides, "data": (addr, True), "version": 3}
 
 
-def test_numpy_arrays_of_every_numeric_type():
+E = "<" if sys.byteorder == "little" else ">"
+
+
+def test_array_interfaces_of_every_numeric_type():
     want = losbnd(DONE, 100)
-    for t in ("float64", "float32", "int64", "int32", "int16", "int8", "uint8", "uint16",
-              "uint32", "uint64", "float16"):
-        assert losbnd(np.array(DONE).astype(t), 100) == want, t
-    assert losbnd(np.array(DONE).astype(">f8"), 100) == want
-    assert losbnd(np.array(DONE, dtype=object), 100) == want
-    assert losbnd(np.float64(30), 100) == losbnd(30, 100)
-    assert losbnd(np.array(30.0), np.int64(100)) == losbnd(30, 100)
+    for code, ts in (("d", "f8"), ("f", "f4"), ("b", "i1"), ("h", "i2"), ("i", "i4"),
+                     ("q", "i8"), ("B", "u1"), ("H", "u2"), ("I", "u4"), ("Q", "u8")):
+        assert losbnd(Arr(code, [int(v) for v in DONE] if code not in "df" else DONE,
+                          E + ts), 100) == want, ts
 
 
-def test_numpy_arrays_not_contiguous_and_of_more_dimensions():
-    x = np.arange(20, dtype=float) + 1
-    assert losbnd(x[::2], 5) == losbnd(list(x[::2]), 5)
-    assert losbnd(x[::-1], 5) == losbnd(list(x[::-1]), 5)
-    assert losbnd(x[::3].astype("int32"), 5) == losbnd(list(x[::3]), 5)
-    assert losbnd(x.reshape(20, 1), 5) == losbnd(x, 5)
-    assert losbnd(x.reshape(1, 20), 5) == losbnd(x, 5)
-    assert losbnd(x.reshape(1, 20, 1), 5) == losbnd(x, 5)
-    assert losbnd(np.asfortranarray(x.reshape(20, 1)), 5) == losbnd(x, 5)
+def test_array_interfaces_strided_and_of_more_dimensions():
+    x = [float(v) for v in range(1, 21)]
+    assert losbnd(Arr("d", x, E + "f8", (10,), (16,)), 5) == losbnd(x[::2], 5)
+    assert losbnd(Arr("i", list(range(1, 21)), E + "i4", (10,), (8,)), 5) == \
+        losbnd(x[::2], 5)
+    assert losbnd(Arr("d", x, E + "f8", (20, 1)), 5) == losbnd(x, 5)
+    assert losbnd(Arr("d", x, E + "f8", (1, 20, 1)), 5) == losbnd(x, 5)
     m = "must be a vector, not a matrix with more than one row and column"
     with pytest.raises(ValueError, match=m):
-        losbnd(x.reshape(4, 5), 5)
+        losbnd(Arr("d", x, E + "f8", (4, 5)), 5)
     with pytest.raises(ValueError, match=m):
-        vodtst(np.array([[6.0, 4.0], [5.0, 5.0]]), [5, 5, 4, 6])
+        sellab([1, 0, 1, 0], Arr("b", [1, 0, 1, 1], "|b1", (2, 2)), [True] * 4)
     with pytest.raises(ValueError, match=m):
-        losbnd(np.array([[1, None], [3, 4]], dtype=object), 5)
-    with pytest.raises(ValueError, match=m):
-        sellab([1, 0, 1, 0], np.array([[True, False], [True, True]]), [True] * 4)
-    with pytest.raises(ValueError, match=m):
-        sellab([1, 0, 1, 0], np.array([[True, False], [True, True]], dtype=object), [True] * 4)
-    with pytest.raises(ValueError, match=m):
-        sellab(np.ones((2, 2)), [True] * 4, [True] * 4)
-    with pytest.raises(ValueError, match=m):
-        gtmp([0.1, 0.2, 0.1, 0.2], np.ones((2, 2)) / 20)
-    with pytest.raises(ValueError, match=m):
-        gtmp([0.1, 0.2, 0.1, 0.2], hom=np.ones((2, 2), dtype=bool))
+        gtmp([0.1, 0.2, 0.1, 0.2], Arr("d", [0.05] * 4, E + "f8", (2, 2)))
+    # a byte order not the machine's is not read from memory: an object
+    # that is no sequence as well is then not numbers
+    with pytest.raises(TypeError, match="`done` must be finite numbers"):
+        losbnd(Arr("d", x, ("<" if E == ">" else ">") + "f8"), 5)
 
 
-def test_numpy_arrays_that_are_not_numbers():
-    for bad in (np.array([True, False]), np.array(["1", "2"]), np.array([1 + 1j, 2]),
-                np.array(["2020-01-01", "2020-01-02"], dtype="datetime64[D]")):
+def test_array_interfaces_that_are_not_numbers():
+    for ts in ("|b1", E + "c16", E + "M8[D]", "<U1"):
         with pytest.raises(TypeError, match="`done` must be finite numbers"):
-            losbnd(bad, 1)
-    with pytest.raises(ValueError, match="`done` must be finite numbers"):
-        losbnd(np.array([1.0, np.nan]), 1)
-    assert sellab(np.array([1.0, 0.0]), np.array([True, True]), np.array([True, False])) == \
+            losbnd(Arr("d", [1.0, 2.0], ts), 1)
+    assert sellab([1, 0], Arr("b", [1, 1], "|b1"), Arr("b", [1, 0], "|b1")) == \
         sellab([1, 0], [True, True], [True, False])
     with pytest.raises(TypeError, match="`rel` must be TRUE or FALSE"):
-        sellab([1, 0], np.array([1, 0]), [True, True])
-    assert sellab([1, 0], np.array([True, True], dtype=object), [np.bool_(True), True]) == \
-        sellab([1, 0], [True, True], [True, True])
-    with pytest.raises(TypeError, match="`done` must be finite numbers"):
-        losbnd([np.bool_(True)], 1)
-
-
-def test_numpy_results_and_inputs_agree_with_lists():
-    rng = np.random.default_rng(1)
-    s = rng.lognormal(1, 1, 1000)
-    d = rng.lognormal(-1, 1, 1000)
-    assert cllr(s, d) == cllr(s.tolist(), d.tolist())
-
-
-pd = pytest.importorskip("pandas")
-
-
-def test_pandas_series_and_missing_values():
-    assert losbnd(pd.Series(DONE), 100) == losbnd(DONE, 100)
-    assert losbnd(pd.Series([30, 45, 60, 90, 120], dtype="Int64"), 100) == losbnd(DONE, 100)
-    with pytest.raises(ValueError, match="`done` must be finite numbers"):
-        losbnd(pd.Series([30, None], dtype="Float64"), 100)
-    with pytest.raises(ValueError, match="`done` must be finite numbers"):
-        losbnd([30, pd.NA], 100)
-    with pytest.raises(TypeError, match="`done` must be finite numbers"):
-        losbnd(pd.Series(["a", "b"]), 100)
-    with pytest.raises(TypeError, match="`done` must be finite numbers"):
-        losbnd(pd.Series([True, False]), 100)
-    assert sellab(pd.Series([1, 0]), pd.Series([True, True]), pd.Series([True, False])) == \
-        sellab([1, 0], [True, True], [True, False])
+        sellab([1, 0], Arr("i", [1, 0], E + "i4"), [True, True])

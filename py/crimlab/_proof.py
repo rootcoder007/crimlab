@@ -5,11 +5,12 @@ from __future__ import annotations
 
 from typing import Any
 
+from ._out import Table
 from ._thm import THM
 from ._util import flat, isseq
 
 
-def proof(fn: Any = None) -> dict[str, list[str]]:
+def proof(fn: Any = None) -> Table:
     """Machine-checked proofs behind the package.
 
     Names the Lean theorem each function rests on. The theorems ship with
@@ -39,8 +40,8 @@ def proof(fn: Any = None) -> dict[str, list[str]]:
         if miss:
             raise ValueError(f"proof: no proof recorded for: {', '.join(miss)}.")
         rows = tuple(t for t in THM if t[0] in set(fn))
-    return {
+    return Table({
         "fn": [t[0] for t in rows],
         "theorem": [f"Crimlab.{t[1]}.{t[2]}" for t in rows],
         "file": [f"lean/{t[1]}.lean" for t in rows],
-    }
+    })

@@ -7,14 +7,15 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from . import _clab
-from ._util import Frame, Named, Vec, align, flat, isseq, named, nrows, rows, table, vals
+from ._out import Record, Table, Vector, rec, tab, vec
+from ._util import Vec, align, flat, isseq, named, nrows, rows, table
 
 #: The prior log10 odds eceplt() draws at by default: R's
 #: seq(-2.5, 2.5, by = 0.05).
 LO = [min(-2.5 + i * 0.05, 2.5) for i in range(101)]
 
 
-def gtmp(p: Vec, q: Vec | None = None, hom: Any = False, theta: float = 0) -> dict[str, Any]:
+def gtmp(p: Vec, q: Vec | None = None, hom: Any = False, theta: float = 0) -> Record:
     """Genotype match probability.
 
     The chance that an unrelated person from the same population shares a
@@ -46,7 +47,7 @@ def gtmp(p: Vec, q: Vec | None = None, hom: Any = False, theta: float = 0) -> di
     (['D3', 'vWA'], 2.3068)
     """
     (pv, qv, hv), g = named("gtmp", [("p", p), ("q", q), ("hom", hom)])
-    return _clab.gtmp(pv, qv, hv, vals(theta), g)
+    return rec(_clab.gtmp(pv, qv, hv, theta, g))
 
 
 def cllr(same: Vec, diff: Vec) -> float:
@@ -71,7 +72,7 @@ def cllr(same: Vec, diff: Vec) -> float:
     >>> round(cllr([50, 200, 8], [0.01, 0.2, 1.5]), 6)
     0.300835
     """
-    return _clab.cllr(vals(same), vals(diff))
+    return _clab.cllr(same, diff)
 
 
 def lrpost(lr: Vec, prior: Vec) -> list[float]:
@@ -112,7 +113,7 @@ def _names(x: Any) -> Any:
 
 
 def mixlr(p: Mapping[Any, float] | Any, np: str | Sequence[Any], xp: int,
-          nd: str | Sequence[Any], xd: int) -> Named:
+          nd: str | Sequence[Any], xd: int) -> Vector:
     """Mixture likelihood ratio.
 
     The weight of a DNA mixture at one locus for one account of who
@@ -124,7 +125,7 @@ def mixlr(p: Mapping[Any, float] | Any, np: str | Sequence[Any], xp: int,
     Parameters
     ----------
     p : the population frequencies of the alleles in the mixture, named
-        (a mapping or a Series), above 0 with a sum of at most 1.
+        (a mapping, or a sequence of (name, value) tuples), above 0 with a sum of at most 1.
     np, nd : the alleles left unexplained under the first and the second
         account: names of ``p`` (one name, or a list, possibly empty), at
         most 20.
@@ -141,10 +142,10 @@ def mixlr(p: Mapping[Any, float] | Any, np: str | Sequence[Any], xp: int,
     {'num': 1.0, 'den': 0.015, 'lr': 66.6667}
     """
     (pv,), g = named("mixlr", [("p", p)])
-    return _clab.mixlr(pv, g, _names(np), vals(xp), _names(nd), vals(xd))
+    return vec(_clab.mixlr(pv, g, _names(np), xp, _names(nd), xd))
 
 
-def dbsrch(mp: float, n: float, pop: float | None = None) -> Named:
+def dbsrch(mp: float, n: float, pop: float | None = None) -> Vector:
     """Database search.
 
     What a match found by trawling a database is worth: ``np``, the match
@@ -169,10 +170,10 @@ def dbsrch(mp: float, n: float, pop: float | None = None) -> Named:
     >>> {k: round(v, 6) for k, v in dbsrch(1e-9, 5e6, pop=3e7).items()}
     {'np': 0.005, 'any': 0.004988, 'post': 0.97561}
     """
-    return _clab.dbsrch(vals(mp), vals(n), vals(pop))
+    return vec(_clab.dbsrch(mp, n, pop))
 
 
-def cllrmin(same: Vec, diff: Vec) -> Named:
+def cllrmin(same: Vec, diff: Vec) -> Vector:
     """Log-likelihood-ratio cost after recalibration.
 
     Splits the cost of a set of likelihood ratios into ``min``, their cost
@@ -193,10 +194,10 @@ def cllrmin(same: Vec, diff: Vec) -> Named:
     >>> {k: round(v, 6) for k, v in cllrmin([50, 200, 8], [0.01, 0.2, 1.5]).items()}
     {'cllr': 0.300835, 'min': 0.0, 'cal': 0.300835}
     """
-    return _clab.cllrmin(vals(same), vals(diff))
+    return vec(_clab.cllrmin(same, diff))
 
 
-def lrcal(same: Vec, diff: Vec) -> dict[str, list[float]]:
+def lrcal(same: Vec, diff: Vec) -> Record:
     """Calibrated likelihood ratios.
 
     Recalibrates a set of likelihood ratios against the truth with the
@@ -215,39 +216,29 @@ def lrcal(same: Vec, diff: Vec) -> dict[str, list[float]]:
     Examples
     --------
     >>> lrcal([3, 0.7, 20, 5], [0.2, 1, 4, 0.05])
-    {'same': [1.0, 1.0, inf, inf], 'diff': [0.0, 1.0, 1.0, 0.0]}
+    $same
+    [1.0, 1.0, inf, inf]
+    <BLANKLINE>
+    $diff
+    [0.0, 1.0, 1.0, 0.0]
     """
-    return _clab.lrcal(vals(same), vals(diff))
+    return Record(_clab.lrcal(same, diff))
 
 
-def _axes(draw: bool, ax: Any) -> Any:
-    """The axes to draw on: ax, or the current ones; None when there is
-    nothing to draw or matplotlib is not installed."""
-    if not draw:
-        return None
-    if ax is not None:
-        return ax
-    try:
-        import matplotlib.pyplot as plt
-    except ImportError:
-        return None
-    return plt.gca()
-
-
-def tipplt(same: Vec, diff: Vec, *, draw: bool = True, ax: Any = None,
-           **kwargs: Any) -> dict[str, Frame]:
-    """Tippett plot.
+def tipplt(same: Vec, diff: Vec) -> Record:
+    """Tippett plot: the data it draws.
 
     For each value on the axis, the share of same-source and of
     different-source likelihood ratios at or above it. ``proof()`` records
-    no theorem for this plot.
+    no theorem for this plot. The package draws nothing: with any plotting
+    library, draw ``share`` against ``log10lr`` as a step line (each step
+    taken after the point) for ``same`` and for ``diff``, with a vertical
+    line at 0; where each curve crosses 0 shows the rate of misleading
+    evidence.
 
     Parameters
     ----------
     same, diff : as for :func:`cllr`.
-    draw : draw the plot (when matplotlib is installed).
-    ax : the matplotlib axes to draw on; the current axes by default.
-    **kwargs : passed to ``ax.set()`` (``title=...``, ``xlim=...``).
 
     Returns
     -------
@@ -256,39 +247,29 @@ def tipplt(same: Vec, diff: Vec, *, draw: bool = True, ax: Any = None,
 
     Examples
     --------
-    >>> r = tipplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001], draw=False)
+    >>> r = tipplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001])
     >>> r["same"]["share"]
     [1.0, 0.75, 0.5, 0.25]
     """
-    r = _clab.tipplt(vals(same), vals(diff))
-    a = _axes(draw, ax)
-    if a is not None:
-        s, d = r["same"], r["diff"]
-        a.step(s["log10lr"], s["share"], where="post", linestyle="-", label="same source")
-        a.step(d["log10lr"], d["share"], where="post", linestyle="--",
-               label="different source")
-        a.axvline(0, linestyle=":")
-        a.set(xlabel="log10 likelihood ratio", ylabel="share of ratios at or above",
-              ylim=(0, 1), **kwargs)
-        a.legend(loc="lower left", frameon=False)
-    return r
+    return rec(_clab.tipplt(same, diff))
 
 
-def eceplt(same: Vec, diff: Vec, lo: Vec = LO, *, draw: bool = True, ax: Any = None,
-           **kwargs: Any) -> Frame:
-    """Empirical cross-entropy plot.
+def eceplt(same: Vec, diff: Vec, lo: Vec = LO) -> Table:
+    """Empirical cross-entropy plot: the data it draws.
 
     The information a set of likelihood ratios still leaves missing, across
     prior odds: for the ratios as reported, after calibration, and for a
     system that always reports 1. At even prior odds the first two curves
     pass through the values of :func:`cllrmin`. ``proof()`` records no
-    theorem for this plot.
+    theorem for this plot. The package draws nothing: with any plotting
+    library, draw ``ece``, ``min`` and ``ref`` against ``lo`` as three
+    lines from 0 up; reported ratios above the ``ref`` line do harm at
+    that prior.
 
     Parameters
     ----------
     same, diff : as for :func:`cllr`.
-    lo : the prior log10 odds to draw at; by default -2.5 to 2.5 by 0.05.
-    draw, ax, **kwargs : as for :func:`tipplt`.
+    lo : the prior log10 odds to compute at; by default -2.5 to 2.5 by 0.05.
 
     Returns
     -------
@@ -296,26 +277,17 @@ def eceplt(same: Vec, diff: Vec, lo: Vec = LO, *, draw: bool = True, ax: Any = N
 
     Examples
     --------
-    >>> r = eceplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001], lo=[0], draw=False)
+    >>> r = eceplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001], lo=[0])
     >>> [round(r[k][0], 6) for k in ("ece", "min", "ref")]
     [0.423926, 0.25, 1.0]
     """
-    r = _clab.eceplt(vals(same), vals(diff), vals(lo))
-    a = _axes(draw, ax)
-    if a is not None:
-        a.plot(r["lo"], r["ece"], linestyle="-", label="reported")
-        a.plot(r["lo"], r["min"], linestyle="--", label="calibrated")
-        a.plot(r["lo"], r["ref"], linestyle=":", label="always 1")
-        a.set(xlabel="prior log10 odds", ylabel="empirical cross-entropy (bits)",
-              ylim=(0, max(r["ece"] + r["ref"])), **kwargs)
-        a.legend(loc="upper left", frameon=False)
-    return r
+    return tab(_clab.eceplt(same, diff, lo))
 
 
 def _freq(f: Any) -> tuple[list[Any] | None, list[Any] | None]:
     """freq as rows of two, and its row names; rows None when it is not a
     table of pairs."""
-    r, fl = rows(f)
+    r, fl, _ = rows(f)
     if r is None or any(len(e) != 2 for e in r):
         return None, fl
     return r, fl
@@ -345,7 +317,7 @@ def _loci(fn: str, tabs: list[tuple[str, list[str], list[Any] | None]], freq: An
     return out, f, loci
 
 
-def kinidx(g1: Any, g2: Any, freq: Any, rel: Any = "parent") -> dict[str, Any]:
+def kinidx(g1: Any, g2: Any, freq: Any, rel: Any = "parent") -> Record:
     """Kinship index.
 
     The weight of two DNA profiles for a stated relationship against no
@@ -356,7 +328,7 @@ def kinidx(g1: Any, g2: Any, freq: Any, rel: Any = "parent") -> dict[str, Any]:
     Parameters
     ----------
     g1, g2 : the two genotypes: tables of allele labels with two columns,
-        one row per locus (a sequence of pairs, a 2-D array, a DataFrame,
+        one row per locus (a sequence of pairs, a 2-D array,
         or a mapping from locus to pair), or two alleles for one locus.
         When both name their loci, ``g2`` is matched to ``g1`` by name.
     freq : the population frequencies of the alleles of ``g1``, same shape.
@@ -381,10 +353,10 @@ def kinidx(g1: Any, g2: Any, freq: Any, rel: Any = "parent") -> dict[str, Any]:
     nrows("kinidx", "g2", b, len(a) // 2)
     (a, b), f, loci = _loci("kinidx", [("g1", a, l1), ("g2", b, l2)], freq, "g1")
     c = _codes(a, b)
-    return _clab.kinidx(c[0], c[1], f, flat(rel), loci)
+    return rec(_clab.kinidx(c[0], c[1], f, flat(rel), loci))
 
 
-def patidx(child: Any, father: Any, freq: Any, mother: Any = None) -> dict[str, Any]:
+def patidx(child: Any, father: Any, freq: Any, mother: Any = None) -> Record:
     """Paternity index.
 
     The weight of the DNA evidence that an alleged father is the father of
@@ -419,7 +391,7 @@ def patidx(child: Any, father: Any, freq: Any, mother: Any = None) -> dict[str, 
         nrows("patidx", "g2", b, len(a) // 2)
         (a, b), f, loci = _loci("patidx", [("g1", a, l1), ("g2", b, l2)], freq, "g1")
         c = _codes(a, b)
-        return _clab.patidx(c[0], c[1], None, f, loci)
+        return rec(_clab.patidx(c[0], c[1], None, f, loci))
     a, l1 = table("patidx", "child", child)
     b, l2 = table("patidx", "father", father)
     nrows("patidx", "father", b, len(a) // 2)
@@ -428,4 +400,4 @@ def patidx(child: Any, father: Any, freq: Any, mother: Any = None) -> dict[str, 
     (a, b, m), f, loci = _loci("patidx", [("child", a, l1), ("father", b, l2),
                                           ("mother", m, l3)], freq, "child")
     c = _codes(a, b, m)
-    return _clab.patidx(c[0], c[1], c[2], f, loci)
+    return rec(_clab.patidx(c[0], c[1], c[2], f, loci))

@@ -123,26 +123,26 @@ def test_calibrated_ratios_are_exact():
 
 def test_the_plots_return_what_they_draw():
     s, d = [50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001]
-    t = tipplt(s, d, draw=False)
+    t = tipplt(s, d)
     assert t["same"]["share"] == [1, 0.75, 0.5, 0.25]
     assert t["same"]["log10lr"] == pytest.approx(sorted(math.log10(v) for v in s), rel=1e-12)
-    e = eceplt(s, d, lo=[-1, 0, 1], draw=False)
+    e = eceplt(s, d, lo=[-1, 0, 1])
     m = cllrmin(s, d)
     assert e["ece"][1] == pytest.approx(m["cllr"], rel=1e-10)
     assert e["min"][1] == pytest.approx(m["min"], rel=1e-10)
     assert e["ref"][1] == pytest.approx(1, rel=1e-10)
     assert all(a <= b + 1e-12 for a, b in zip(e["min"], e["ece"]))
     assert all(a <= b + 1e-12 for a, b in zip(e["min"], e["ref"]))
-    assert len(eceplt(s, d, draw=False)["lo"]) == 101
+    assert len(eceplt(s, d)["lo"]) == 101
 
 
 def test_eceplt_takes_the_limits_at_extreme_odds():
-    e = eceplt([2, 3], 0.5, lo=[-400, 0, 400], draw=False)
+    e = eceplt([2, 3], 0.5, lo=[-400, 0, 400])
     assert e["min"] == [0.0, 0.0, 0.0]
     want = (1e-100 * 400 * math.log(10) + 1e-100) / math.log(2)
-    assert eceplt(1e-300, 1, lo=-100, draw=False)["ece"][0] == pytest.approx(want, rel=1e-12)
+    assert eceplt(1e-300, 1, lo=-100)["ece"][0] == pytest.approx(want, rel=1e-12)
     want = 0.5 * (310 * math.log2(10) + 1)
-    assert eceplt(1e-310, 1, lo=0, draw=False)["ece"][0] == pytest.approx(want, rel=1e-12)
+    assert eceplt(1e-310, 1, lo=0)["ece"][0] == pytest.approx(want, rel=1e-12)
 
 
 def test_evidence_weights_never_underflow():

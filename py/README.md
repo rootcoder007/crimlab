@@ -6,10 +6,10 @@ function names, the same argument names and the same results. Every
 number in the parity tests (`tests/data/ref.json`, written by
 `dev/pyref.R` from the R package) is bit-for-bit what R returns.
 
-There are no runtime dependencies. NumPy arrays and pandas objects are
-accepted when you pass them; results are plain Python objects, and
-`frame()` / `arrays()` turn them into pandas or NumPy objects when those
-are installed. Plots are drawn with matplotlib when it is installed.
+The package imports nothing outside Python's standard library: no
+runtime dependencies, no optional ones. Results are dicts of its own that
+print as R prints them, export themselves as CSV or JSON, and (tables)
+sort, filter and join.
 
 ## Install
 
@@ -27,9 +27,11 @@ Disparity:
 
 ```python
 >>> from crimlab import vodtst, dspbm
->>> r = vodtst(day={"white": 600, "black": 400}, night={"white": 700, "black": 300})
->>> r["group"], [round(x, 4) for x in r["ratio"]]
-(['white', 'black'], [1.0, 1.5556])
+>>> vodtst(day={"white": 600, "black": 400}, night={"white": 700, "black": 300})
+  group   ref shday shnight    ratio sign
+1 white  TRUE   0.6     0.7 1.000000   -1
+2 black FALSE   0.4     0.3 1.555556    1
+
 >>> dspbm(pop={"a": 9000, "b": 1000}, contact={"a": 900, "b": 300},
 ...       force={"a": 9, "b": 6})["rd"]
 [1.0, 6.0]
@@ -44,9 +46,11 @@ Forensics:
 ...            theta=0.03)["log10lr"], 4)
 2.3068
 >>> kinidx({"D3": [12, 14]}, {"D3": [12, 14]}, {"D3": [0.1, 0.2]}, rel="sibling")["locus"]
-{'locus': ['D3'], 'idx': [8.375]}
->>> {k: round(v, 4) for k, v in cllrmin([50, 200, 8], [0.01, 0.2, 1.5]).items()}
-{'cllr': 0.3008, 'min': 0.0, 'cal': 0.3008}
+  locus   idx
+1    D3 8.375
+>>> cllrmin([50, 200, 8], [0.01, 0.2, 1.5])
+     cllr       min       cal
+0.3008346 0.0000000 0.3008346
 
 ```
 
@@ -88,58 +92,129 @@ Proofs and the self-test:
 
 | R | Python |
 |---|---|
-| data frame | dict of columns (lists), in R's column order |
-| named numeric vector | dict of floats |
-| list | dict |
+| data frame | `Table`: a dict of columns (lists), in R's column order |
+| named numeric vector | `Vector`: a dict of floats |
+| list | `Record`: a dict of results |
 | `NA` | `None` |
 | `NaN`, `Inf` | `float("nan")`, `float("inf")` |
 
-`crimlab.frame(x)` gives a pandas DataFrame (or a Series for a dict of
-numbers); `crimlab.arrays(x)` gives NumPy arrays, with `None` as NaN in a
-numeric column.
+Each is still the dict it was (`r["ratio"]`, `dict(r)`, `r.items()` work
+as for any dict) and prints as R prints it: a table with row numbers
+first, numbers to 7 significant digits, a long table cut to its first 10
+and last 5 rows with the row count; a vector with names above values; a
+record part by part under `$name`. A `Table` also has:
+
+- `shape`, `rows()` (a list of dicts), `row(i)`;
+- `csv()`: RFC 4180 text, CRLF line ends, numbers in full (the shortest
+  text that reads back to the same double), None as an empty field, NaN
+  and the infinities as `NaN`, `Inf`, `-Inf`, bools as `TRUE`, `FALSE`;
+- `json()` (also on `Vector` and `Record`): None is `null`; NaN and the
+  infinities, which JSON has no numbers for, are the strings `"NaN"`,
+  `"Inf"` and `"-Inf"`;
+- `sort(by, desc=False)`: by a column or a list of them; stable; `desc` one
+  bool or one per column; None and NaN last either way; text by code point,
+  numbers (bools as 0 and 1) numerically; text and numbers in one column is
+  an error;
+- `filter(f=None, **conds)`: `col=(op, value)` with op one of `==`, `!=`,
+  `<`, `<=`, `>`, `>=`, `in` (value a list), `col=value` for `==`, and f a
+  function of a row (a dict); conditions combine with and; a missing value
+  never passes; an unknown column or operator is an error;
+- `join(other, on, how="inner")`: with another table or any dict of
+  equal-length columns, on one key column or a list; `how` is inner, left,
+  right or full. Keys match by exact equality, text with text, numbers with
+  numbers (1 with 1.0), bools with bools; a missing key (None or NaN)
+  matches nothing. Rows come in this table's order, each with its matches
+  in the other's order, then the other's unmatched rows (right, full); a key
+  on n rows here and m there gives n * m rows; unmatched cells are None.
+  Columns: the keys once, then this table's, then the other's; a name in
+  both that is not a key gets `.x` here and `.y` there. Hash-based, linear
+  time.
+
+Each returns a new table and leaves the first unchanged. There is no
+`select`: a dict comprehension is one, `Table({k: t[k] for k in cols})`.
+
+```python
+>>> from crimlab import expbnd
+>>> r = expbnd(y={"a": 100, "b": 300, "c": 7}, m={"a": 1000, "b": 1000, "c": 70},
+...            gamma=1.5)
+>>> r.filter(ratio=(">", 1)).sort("rate", desc=True)
+  group   ref rate  lo   hi ratio      rlo  rhi sign
+1     b FALSE  0.3 0.2 0.45     3 1.333333 6.75    1
+>>> r.csv().splitlines()[1]
+'a,TRUE,0.1,0.06666666666666667,0.15000000000000002,1.0,0.4444444444444444,2.25,0'
+
+```
+
+## Plots
+
+`tipplt()` and `eceplt()` return the data of the plot and draw nothing:
+any plotting library draws it, `share` against `log10lr` as steps for the
+Tippett plot, `ece`, `min` and `ref` against `lo` for the cross-entropy.
+
+## Optional packages (never required)
+
+NumPy, pandas and matplotlib are never imported by crimlab, but work with
+it through their own generic protocols:
+
+```python
+import numpy, pandas
+vodtst(numpy.array([600.0, 400.0]), [700, 300])   # an array as input, zero copy
+pandas.DataFrame(vodtst({"w": 600, "b": 400}, {"w": 700, "b": 300}))  # a result as a frame
+plt.step(t["same"]["log10lr"], t["same"]["share"], where="post")  # t = tipplt(...)
+```
+
+A pandas Series is read as its values, by position; for its index as group
+names, pass `dict(s)`. A DataFrame is a table of rows by
+`df.to_dict("index")` (a mapping of mappings).
 
 ## Inputs
 
 **Numbers** are one number (Python has no vector of one), a sequence
-(list, tuple, `array.array`, `memoryview`, `range`), a NumPy array or a
-pandas Series. A NumPy array of float64 that is contiguous is read in
-place, without a copy (through NumPy's array interface); other numeric
-dtypes (float32, any integer type), non-contiguous arrays, byte orders not
-the machine's and object arrays are converted. A 2-D array with one row or
-one column is the vector it holds; an array with more than one dimension
-above 1 is refused with R's message ("must be a vector, not a matrix ...").
-A nested list is not flattened: it is refused as not numbers.
+(list, tuple, `array.array`, `memoryview`, `range`) or an array: any
+object with `__array_interface__` (a NumPy array, for one). An array of
+contiguous float64 is read in place, without a copy; other numeric types
+(float32, any integer type), strided arrays and object arrays are
+converted; an array whose byte order is not the machine's is read as a
+sequence when it is one. A 2-D array with one row or one column is the
+vector it holds; an array with more than one dimension above 1 is refused
+with R's message ("must be a vector, not a matrix ..."). A nested list is
+not flattened: it is refused as not numbers.
 
 Not numbers (TypeError): text, bytes, bools (as in R, a logical is not a
 number), dates, complex numbers, dicts and sets where numbers are expected,
 iterators and generators, nested sequences.
 
-**Missing values** are `None`, `float("nan")` and `pandas.NA`, all read as
-R's `NA`. Where R refuses `NA` they are refused with R's message
-(ValueError); where R accepts it (`q` at a homozygous locus of `gtmp()`,
-`y` for a detained defendant in `sellab()`), so does Python.
+**Missing values** are `None` and `float("nan")`, both read as R's `NA`.
+Where R refuses `NA` they are refused with R's message (ValueError); where
+R accepts it (`q` at a homozygous locus of `gtmp()`, `y` for a detained
+defendant in `sellab()`), so does Python.
 
-**Logical** arguments (`hom`, `rel`, `rule`) take `True` and `False`
-(Python's or NumPy's), one or a sequence or a bool array; numbers are
+**Logical** arguments (`hom`, `rel`, `rule`) take bools (any type named
+`bool`, so NumPy's too), one or a sequence or a bool array; numbers are
 refused as in R.
 
 **Labels** (the sentences `z` of `sntbnd()`, alleles) are text, numbers or
 bools, written as R's `as.character()` writes them: `2.0` is `"2"`,
-`0.1 + 0.2` is `"0.3"`, `1e5` is `"1e+05"`, `True` is `"TRUE"`. A
-categorical (pandas) is read by its labels, never its integer codes; a
-categorical given where numbers are expected is refused, as R refuses a
-factor.
+`0.1 + 0.2` is `"0.3"`, `1e5` is `"1e+05"`, `True` is `"TRUE"`.
 
-**Genotypes** are tables with two columns, one row per locus: a sequence of
-pairs, a 2-D array, a DataFrame (its index names the loci unless it is a
-RangeIndex) or a mapping from locus to pair; two values are one locus.
+**Named values** are a mapping (dict) from name to value, or, where a name
+repeats (which a dict cannot hold), a list of `(name, value)` tuples:
+`[("a", 1), ("a", 2)]`.
+
+**Tables** (`count` of `dyadrt()`, genotypes, `freq`, the one-table form of
+`vodtst()`) are a sequence of rows, a 2-D array, or a mapping from row name
+to row; a row is a sequence, or a mapping from column name to value (every
+row naming the same columns), so a table with row and column names is a
+mapping of mappings: `{"a": {"a": 640, "b": 160}, "b": {"a": 100, "b": 40}}`.
+Row names that repeat: a list of `(row name, row)` tuples. Genotypes have
+two columns, one row per locus; two values are one locus.
 
 ## Names
 
 Names are the identity of a group, under the rule of the R package
 (`src/bind.cpp`, `align()`). An argument is named when it is a mapping
-(dict) or a pandas Series whose index is not a RangeIndex; a DataFrame's
-index names its rows.
+(dict) or a list of `(name, value)` tuples; a table names its rows when it
+is a mapping (see Inputs).
 
 - All the arguments of a call that hold one value per group (or per unit,
   per locus, per arm) named, with the same names: each is matched to the
@@ -161,9 +236,10 @@ index names its rows.
   otherwise, and is never chosen by sorting; `vodtst()`, `dspbm()` and
   `expbnd()` mark it in their `ref` column.
 - `vodtst(day=table)`: with `night` left out, `day` is one table whose two
-  columns are named `day` and `night`, a DataFrame (its index names the
-  groups) or a dict of the two columns.
-- `dyadrt()`: a DataFrame `count` that labels its rows and its columns has
+  columns are named `day` and `night`: a dict of the two columns, or a
+  mapping from group to `{"day": ..., "night": ...}`.
+- `dyadrt()`: a `count` that names its rows and its columns (a mapping of
+  mappings) has
   its columns matched to its rows by name, and both to `pop` when `pop` is
   named.
 - Genotype tables and `freq` that all name their loci are matched by locus
@@ -184,29 +260,31 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
 1. `orrisk()`'s first argument is `or`, as in R, but `or` is a Python
    keyword: give it by position, or as `orrisk(**{"or": 3}, rate=0.4,
    share=0.5)`.
-2. Results are dicts and lists (see Results). An unnamed result of one
-   number is a float for `cllr()`; `lrpost()` always returns a list.
+2. Results are dicts of the package's own classes (see Results). An
+   unnamed result of one number is a float for `cllr()`; `lrpost()` always
+   returns a list; `lrcal()` returns a `Record` of two lists.
 3. R's forms of a named vector (a 1-d table, a list of single numbers, a
-   one-row data frame) are a dict or a Series in Python.
+   one-row data frame) are a dict, or a list of `(name, value)` tuples, in
+   Python; a matrix with row and column names is a mapping of mappings.
 4. `ref`: a bool or None is refused with a TypeError; a number is always a
    position, so a group named by a number cannot be chosen by name. R
    reads a factor `ref` by its label; Python has no one-value categorical.
-5. `tipplt()` and `eceplt()` return the plotted data (R returns it
-   invisibly) and draw only when matplotlib is installed; `draw=False`
-   skips drawing, `ax` picks the axes and other keyword arguments go to
-   `ax.set()` (R passes `...` to `plot()`).
-6. None, NaN and pandas.NA are all R's `NA` on input. On output R's `NA`
-   is None and `NaN` is NaN.
+5. `tipplt()` and `eceplt()` return the plotted data and draw nothing (R
+   draws on the current device with base graphics and returns the data
+   invisibly).
+6. None and NaN are both R's `NA` on input. On output R's `NA` is None and
+   `NaN` is NaN.
 7. A nested list where a vector is expected is refused as not numbers
-   (TypeError); R's message for a matrix is given for NumPy arrays with
-   more than one dimension above 1. For the allele names of `mixlr()` a
-   2-D array is refused as not names of `p`.
+   (TypeError); R's message for a matrix is given for arrays with more
+   than one dimension above 1. For the allele names of `mixlr()` a 2-D
+   array is refused as not names of `p`.
 8. `treat` in `sntbnd()` must be one label; a list, even of one label, is
    refused (R accepts a vector of length 1). The default (True for bools,
    1 for numbers 0 and 1) follows R.
 9. A one-row genotype table is named `"1"` unless it is named (mapping
-   key, DataFrame index); R names a one-row matrix by its only column name
-   when it has column names but no row names.
+   key); R names a one-row matrix by its only column name when it has
+   column names but no row names. Column names that repeat cannot be
+   given as a mapping; such a table is given by position.
 10. `proof()`: `None` means every function (R's `NULL`); R's `NA` has no
     Python spelling, and `[None]` is refused. `proof()` lists the network
     functions too, which are not bound in Python yet.
@@ -218,8 +296,10 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
     `.Call`).
 14. R-only kinds of input have no counterpart: `"bytes"`-encoded strings,
     classed numbers with units, labelled vectors (R refuses them with a
-    message of its own), environments.
-15. Not bound yet: the network functions `ntdeg`, `ntbtw`, `ntcls`,
+    message of its own), factors, environments.
+15. Tables print with R's layout but are not R's printing in every detail
+    (column widths, the choice between fixed and scientific per column).
+16. Not bound yet: the network functions `ntdeg`, `ntbtw`, `ntcls`,
     `ntevc`, `ntcore`, `ntcmp`, `ntlvn`, `ntmod`, `ntbrk`, `ntchg` and
     `coofg`. Their kernels are compiled into the module and run in
     `selftest()`.
@@ -229,7 +309,8 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
 From the repository root:
 
     pip install ./py pytest
-    cd py/tests && python -m pytest
+    cd py/tests && python -m pytest        # pytest only, nothing else
+    python -m pytest opt.py                # NumPy, pandas, matplotlib, if installed
     python -m pytest --doctest-modules --pyargs crimlab
     Rscript dev/pyref.R LIB     # regenerate tests/data/ref.json from R
 

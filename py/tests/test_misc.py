@@ -5,6 +5,8 @@ the shapes and types of results, and the length hook."""
 import gc
 import math
 import re
+import subprocess
+import sys
 import tracemalloc
 from pathlib import Path
 
@@ -108,37 +110,23 @@ def test_results_have_the_documented_shapes_and_types():
     assert math.isnan(p["locus"]["idx"][0])
 
 
-def test_frame_and_arrays():
-    pd = pytest.importorskip("pandas")
-    np = pytest.importorskip("numpy")
-    r = crimlab.incap({"low": 2, "high": 10}, 0.1, 1, share=[0.8, 0.2])
-    f = crimlab.frame(r)
-    assert list(f.columns) == list(r) and f.shape == (3, 7) and math.isnan(f["marg"][2])
-    s = crimlab.frame(crimlab.orrisk(3, 0.4, 0.5))
-    assert isinstance(s, pd.Series) and list(s.index) == ["exposed", "unexposed", "rr", "or"]
-    a = crimlab.arrays(r)
-    assert a["lam"].dtype == np.float64 and math.isnan(a["marg"][2])
-    assert a["group"].tolist() == ["low", "high", "all"]
-    v = crimlab.arrays(crimlab.vodtst([6, 4], [5, 5]))
-    assert v["sign"].dtype.kind == "i"
-    assert crimlab.arrays(crimlab.cllr(2, 0.5)) == crimlab.cllr(2, 0.5)
-    assert crimlab.arrays(crimlab.lrpost([1, 3], 0.5)).tolist() == [0.5, 0.75]
-
-
-def test_the_plots_draw_when_matplotlib_is_installed():
-    mpl = pytest.importorskip("matplotlib")
-    mpl.use("Agg")
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots()
-    r = crimlab.tipplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001], ax=ax, title="t")
-    assert len(ax.lines) == 3 and ax.get_title() == "t"
-    assert r["same"]["share"] == [1.0, 0.75, 0.5, 0.25]
-    plt.close(fig)
-    plt.figure()
-    e = crimlab.eceplt([50, 200, 8, 0.5], [0.01, 0.2, 1.5, 0.001])
-    assert len(plt.gca().lines) == 3 and len(e["lo"]) == 101
-    plt.close("all")
+def test_no_third_party_package_is_imported():
+    # in a fresh interpreter: import crimlab, run every reference case
+    code = (
+        "import sys, crimlab\n"
+        "from ref import CASES, args\n"
+        "for c in CASES:\n"
+        "    try:\n"
+        "        getattr(crimlab, c['fn'])(**args(c))\n"
+        "    except (ValueError, TypeError):\n"
+        "        pass\n"
+        "crimlab.selftest(); crimlab.proof()\n"
+        "print(sorted(m for m in ('pandas', 'numpy', 'matplotlib') if m in sys.modules))\n"
+    )
+    r = subprocess.run([sys.executable, "-c", code], cwd=Path(__file__).parent,
+                       capture_output=True, text=True, check=False, timeout=600)
+    assert r.returncode == 0, r.stderr[-2000:]
+    assert r.stdout.strip() == "[]"
 
 
 def test_no_memory_is_kept_by_calls_or_errors():

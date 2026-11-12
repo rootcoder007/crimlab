@@ -20,11 +20,6 @@ from crimlab import (
 )
 
 
-def pd_series(v, idx):
-    pd = pytest.importorskip("pandas")
-    return pd.Series(v, index=idx)
-
-
 def rev(d):
     return dict(reversed(list(d.items())))
 
@@ -72,7 +67,7 @@ def test_different_names_are_an_error_listing_them():
     with pytest.raises(ValueError, match="`q` must name the same groups as `p`"):
         gtmp({"D3": 0.1, "TH01": 0.2}, {"vWA": 0.2, "TH01": 0.3})
     with pytest.raises(ValueError, match="`day` names a group twice: a"):
-        vodtst(pd_series([1, 2], ["a", "a"]), [1, 1])
+        vodtst([("a", 1), ("a", 2)], [1, 1])
     # a wrong length is not matched by name: the length check refuses it
     with pytest.raises(ValueError, match="`contact` must have length 3, not 2"):
         dspbm({"a": 1, "b": 1, "c": 1}, {"a": 1, "b": 1}, [1, 1, 1])
@@ -126,45 +121,73 @@ def test_mixture_alleles_are_names():
         mixlr({str(i): 0.01 for i in range(21)}, [str(i) for i in range(21)], 1, "0", 1)
 
 
-pd = pytest.importorskip("pandas")
-
-
-def test_series_are_matched_by_their_index():
-    day = pd.Series(DAY)
-    night = pd.Series(NIGHT)[["h", "w", "b"]]
-    assert vodtst(day, night) == vodtst(DAY, NIGHT)
-    # a RangeIndex is positions, not names
-    assert vodtst(pd.Series([6, 4]), pd.Series([5, 5]))["group"] == ["1", "2"]
+def test_names_that_repeat_are_tuples_of_name_and_value():
+    assert vodtst([("w", 600), ("b", 400)], [("b", 300), ("w", 700)]) == \
+        vodtst({"w": 600, "b": 400}, {"w": 700, "b": 300})
     with pytest.raises(ValueError, match="`day` names a group twice: a"):
-        vodtst(pd.Series([1, 2], index=["a", "a"]), pd.Series([1, 2], index=["a", "b"]))
+        vodtst([("a", 1), ("a", 2)], [("a", 1), ("b", 2)])
 
 
-def test_a_categorical_is_read_by_its_labels():
-    y = [0, 1, 1, 0]
-    z = ["x", "y", "x", "y"]
-    want = sntbnd(y, z, "y")
-    assert sntbnd(y, pd.Categorical(z, categories=["y", "x"]), "y") == want
-    assert sntbnd(y, pd.Series(z, dtype="category"), "y") == want
-    with pytest.raises(ValueError, match="`treat` must name"):
-        sntbnd(y, pd.Categorical([0, 1, 0, 1]))
-    with pytest.raises(TypeError, match="`day` must be finite numbers"):
-        vodtst(pd.Series([1, 2], dtype="category"), [1, 1])
-
-
-def test_a_labelled_count_table_follows_pop():
+def test_a_table_with_row_and_column_names_is_a_mapping_of_columns():
     pop = {"a": 800, "b": 200}
-    c = pd.DataFrame([[640, 160], [100, 40]], index=["a", "b"], columns=["a", "b"])
-    want = dyadrt(c.to_numpy(), pop)
-    assert dyadrt(c.loc[["b", "a"], ["b", "a"]], pop) == want
-    with pytest.raises(ValueError, match="the row names of `count` must name the same groups"):
-        dyadrt(c.rename(index={"b": "c"}), pop)
+    # columns (victim group), each a mapping from row (offending group)
+    c = {"a": {"a": 640, "b": 100}, "b": {"a": 160, "b": 40}}
+    want = dyadrt([[640, 160], [100, 40]], pop)
+    assert dyadrt({"b": {"b": 40, "a": 160}, "a": {"b": 100, "a": 640}}, pop) == want
+    assert dyadrt(c, pop) == want
+    with pytest.raises(ValueError, match="the column names of `count` must name the same"):
+        dyadrt({"a": c["a"], "c": c["b"]}, pop)
+    with pytest.raises(ValueError, match="the row names of `count` names a group twice: a"):
+        dyadrt([("a", [640, 160]), ("a", [100, 40])], pop)
+    # vodtst: one table of the columns day and night
+    t = {"night": {"b": 300, "w": 700}, "day": {"w": 600, "b": 400}}
+    assert vodtst(t) == vodtst({"w": 600, "b": 400}, {"w": 700, "b": 300})
 
 
-def test_genotypes_and_frequencies_as_data_frames():
-    g = pd.DataFrame({"a1": [1, 3], "a2": [2, 3]}, index=["D3", "vWA"])
-    f = pd.DataFrame({"a1": [0.1, 0.3], "a2": [0.2, 0.3]}, index=["D3", "vWA"])
-    r = kinidx(g, g.iloc[::-1], f.iloc[::-1])
+class Items:
+    """A stand-in for any object with items() only (a pandas Series, a
+    DataFrame read as columns)."""
+
+    def __init__(self, pairs):
+        self.p = list(pairs)
+
+    def items(self):
+        return iter(self.p)
+
+
+def test_anything_with_items_is_a_mapping():
+    day = Items([("w", 600), ("b", 400)])
+    night = Items([("b", 300), ("w", 700)])  # another order: matched by name
+    assert vodtst(day, night) == vodtst({"w": 600, "b": 400}, {"w": 700, "b": 300})
+    with pytest.raises(ValueError, match="`day` names a group twice: w"):
+        vodtst(Items([("w", 1), ("w", 2)]), [1, 1])
+    # a mapping of columns, each with items(), as a DataFrame reads
+    frame = Items([("night", Items([("w", 700), ("b", 300)])),
+                   ("day", Items([("w", 600), ("b", 400)]))])
+    assert vodtst(frame) == vodtst({"w": 600, "b": 400}, {"w": 700, "b": 300})
+    g = Items([("a1", Items([("D3", 1), ("vWA", 3)])), ("a2", Items([("D3", 2), ("vWA", 3)]))])
+    assert kinidx(g, g, [[0.1, 0.2], [0.3, 0.3]]) == \
+        kinidx({"D3": [1, 2], "vWA": [3, 3]}, {"D3": [1, 2], "vWA": [3, 3]},
+               [[0.1, 0.2], [0.3, 0.3]])
+    assert sntbnd(Items([("u", 1), ("v", 0)]), Items([("v", "x"), ("u", "y")]), "y") == \
+        sntbnd([1, 0], ["y", "x"], "y")
+
+
+class Missing:
+    """A missing value that is not None or NaN (as pandas.NA is)."""
+
+    def __float__(self):
+        raise TypeError("missing")
+
+
+def test_a_value_that_is_not_a_number_is_a_type_error():
+    with pytest.raises(TypeError, match="`night` must be finite numbers"):
+        vodtst({"w": 600, "b": 400}, Items([("w", 700), ("b", Missing())]))
+
+
+def test_genotypes_and_frequencies_as_mappings():
+    g = {"a1": {"D3": 1, "vWA": 3}, "a2": {"D3": 2, "vWA": 3}}
+    f = {"vWA": [0.3, 0.3], "D3": [0.1, 0.2]}
+    r = kinidx(g, {"vWA": [3, 3], "D3": [1, 2]}, f)
     assert r == kinidx({"D3": [1, 2], "vWA": [3, 3]}, {"D3": [1, 2], "vWA": [3, 3]},
                        {"D3": [0.1, 0.2], "vWA": [0.3, 0.3]})
-    cat = g.astype("category")
-    assert kinidx(cat, g, f) == kinidx(g, g, f)

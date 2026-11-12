@@ -9,6 +9,7 @@ copies are build output, never edited or committed; an sdist carries them,
 so it builds on its own.
 """
 
+import os
 import re
 import shutil
 from pathlib import Path
@@ -53,11 +54,15 @@ def sync():
 
 
 class Build(build_ext):
-    """C++17 on every compiler; warnings shown (CI adds -Werror or /WX)."""
+    """C++17 on every compiler; warnings shown, and errors with CLAB_WERROR=1
+    (set here rather than through CXXFLAGS, which would replace Python's
+    own compile flags, the optimisation among them)."""
 
     def build_extensions(self):
         msvc = self.compiler.compiler_type == "msvc"
         flags = ["/std:c++17", "/EHsc", "/W3"] if msvc else ["-std=c++17", "-Wall", "-Wextra"]
+        if os.environ.get("CLAB_WERROR") == "1":
+            flags.append("/WX" if msvc else "-Werror")
         for e in self.extensions:
             e.extra_compile_args = flags
         super().build_extensions()

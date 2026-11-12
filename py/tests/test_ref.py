@@ -3,7 +3,7 @@
 dev/pyref.R) gives the R result, or stops with R's message."""
 
 import pytest
-from ref import CASES, Tally, args, needs, same
+from ref import CASES, Tally, args, same
 
 import crimlab
 
@@ -11,7 +11,7 @@ FNS = sorted({c["fn"] for c in CASES})
 
 
 def test_every_exported_function_has_cases():
-    extra = {"selftest", "frame", "arrays", "__version__"}
+    extra = {"selftest", "__version__", "Table", "Vector", "Record"}
     assert set(FNS) == set(crimlab.__all__) - extra
     assert len(FNS) == 27
 
@@ -19,8 +19,6 @@ def test_every_exported_function_has_cases():
 @pytest.mark.parametrize("case", [c for c in CASES if "out" in c],
                          ids=lambda c: c["fn"])
 def test_result_matches_r(case):
-    if needs(case):
-        pytest.importorskip(needs(case))
     same(getattr(crimlab, case["fn"])(**args(case)), case["out"], case["fn"])
 
 
@@ -29,8 +27,6 @@ def test_result_matches_r(case):
 def test_error_matches_r(case):
     if case["fn"] == "proof" and case["args"]["fn"] == {"chr": [None], "names": None}:
         pytest.skip("proof(NA): None is proof()'s default in Python; test_misc checks [None]")
-    if needs(case):
-        pytest.importorskip(needs(case))
     with pytest.raises((ValueError, TypeError)) as e:
         getattr(crimlab, case["fn"])(**args(case))
     assert str(e.value) == case["err"]

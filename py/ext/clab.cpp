@@ -30,6 +30,7 @@
 #include <exception>
 #include <limits>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -73,6 +74,13 @@ class Obj {
 Obj own(PyObject *p) {
   if (p == nullptr) throw Raised{};
   return Obj(p);
+}
+
+// Clear the error a probe raised (no such attribute, not a sequence, not
+// hashable), but never a MemoryError: that one is the caller's.
+void clr() {
+  if (PyErr_ExceptionMatches(PyExc_MemoryError)) throw Raised{};
+  PyErr_Clear();
 }
 
 std::string vfmt(const char *f, std::va_list ap) {
@@ -219,7 +227,7 @@ bool little() {
 bool arrif(PyObject *o, Ai &a) {
   PyObject *raw = PyObject_GetAttrString(o, "__array_interface__");
   if (raw == nullptr) {
-    PyErr_Clear();
+    clr();
     return false;
   }
   Obj ai(raw);
@@ -309,7 +317,7 @@ bool isbool(PyObject *o) {
   return t == "bool_" || t == "bool";
 }
 
-// One element read as a number: None and pandas.NA are missing (NaN); a
+// One element read as a number: None is missing (NaN); a
 // bool, text or anything float() refuses is not a number.
 bool elt(PyObject *e, double &x) {
   if (e == Py_None) {
@@ -324,7 +332,7 @@ bool elt(PyObject *e, double &x) {
   if (PyLong_Check(e)) {
     x = PyLong_AsDouble(e);
     if (x == -1.0 && PyErr_Occurred()) {  // too large for a double
-      PyErr_Clear();
+      clr();
       Obj z = own(PyLong_FromLong(0));
       const int neg = PyObject_RichCompareBool(e, z.get(), Py_LT);
       if (neg < 0) throw Raised{};
@@ -332,13 +340,9 @@ bool elt(PyObject *e, double &x) {
     }
     return true;
   }
-  if (tname(e) == "NAType") {
-    x = NaN;
-    return true;
-  }
   PyObject *f = PyNumber_Float(e);
   if (f == nullptr) {
-    PyErr_Clear();
+    clr();
     return false;
   }
   x = PyFloat_AsDouble(f);
@@ -399,7 +403,7 @@ Got readd(PyObject *o, Dv &d) {
   }
   PyObject *raw = PySequence_Fast(o, "not a sequence");
   if (raw == nullptr) {
-    PyErr_Clear();
+    clr();
     return NOTNUM;
   }
   Obj f(raw);
@@ -438,7 +442,7 @@ Got readb(PyObject *o, std::vector<int> &b) {
   if (PyUnicode_Check(o) || PyBytes_Check(o) || !PySequence_Check(o)) return NOTNUM;
   PyObject *raw = PySequence_Fast(o, "not a sequence");
   if (raw == nullptr) {
-    PyErr_Clear();
+    clr();
     return NOTNUM;
   }
   Obj f(raw);
@@ -859,7 +863,7 @@ PyObject *lrpost(PyObject *const *a) {
 // hashed.
 Obj set(PyObject *l) {
   PyObject *s = PySet_New(l);
-  if (s == nullptr) PyErr_Clear();
+  if (s == nullptr) clr();
   return Obj(s);
 }
 
@@ -875,7 +879,7 @@ double mix(const Dv &p, PyObject *names, const Obj &nset, PyObject *need, PyObje
       bad = e == Py_None;
       if (!bad) {
         const int in = PySet_Contains(nset.get(), e);
-        if (in < 0) PyErr_Clear();
+        if (in < 0) clr();
         bad = in != 1;
       }
     }
@@ -1530,6 +1534,544 @@ PyObject *tlen(PyObject *const *a) {
   return PyLong_FromLong(ilen(v, s));
 }
 
+// Tables: a dict of equal-length columns (lists). Printing, CSV and JSON,
+// and the cores of sort, filter and join.
+
+// A cell's kind: missing (None, NaN), a bool, a number, text, other.
+enum Kind { MISS, BOOL, NUMK, TEXT, OTHER };
+
+Kind kind(PyObject *v, double *d = nullptr) {
+  if (v == Py_None) return MISS;
+  if (PyBool_Check(v)) {
+    if (d) *d = v == Py_True;
+    return BOOL;
+  }
+  if (PyFloat_Check(v)) {
+    const double x = PyFloat_AsDouble(v);
+    if (d) *d = x;
+    return std::isnan(x) ? MISS : NUMK;
+  }
+  if (PyLong_Check(v)) {
+    const double x = PyLong_AsDouble(v);
+    if (x == -1.0 && PyErr_Occurred()) throw Raised{};
+    if (d) *d = x;
+    return NUMK;
+  }
+  if (PyUnicode_Check(v)) return TEXT;
+  return OTHER;
+}
+
+std::string utf8(PyObject *v) {
+  Py_ssize_t n = 0;
+  const char *s = PyUnicode_AsUTF8AndSize(v, &n);
+  if (s == nullptr) throw Raised{};
+  return std::string(s, static_cast<std::size_t>(n));
+}
+
+std::string str(PyObject *v) {
+  Obj s = own(PyObject_Str(v));
+  return utf8(s.get());
+}
+
+// the columns of a table: names and lists, all of one length
+struct Tab {
+  std::vector<std::string> nm;
+  std::vector<PyObject *> col;  // borrowed lists
+  Py_ssize_t n = 0;
+};
+
+Tab tab(PyObject *d) {
+  Tab t;
+  PyObject *k, *v;
+  Py_ssize_t pos = 0;
+  bool first = true;
+  while (PyDict_Next(d, &pos, &k, &v)) {
+    if (!PyList_Check(v)) fail(true, "a table's columns must be lists.");
+    t.nm.push_back(PyUnicode_Check(k) ? utf8(k) : str(k));
+    t.col.push_back(v);
+    const Py_ssize_t m = PyList_Size(v);
+    if (first) t.n = m;
+    else if (m != t.n) fail(false, "the columns of a table must have one length.");
+    first = false;
+  }
+  return t;
+}
+
+// as.character()-like text of a number with at most dg significant digits
+// (fixed or scientific, whichever is shorter), the way R prints.
+struct Sig {
+  int sig, e;
+};
+
+Sig sig(double x, int dg) {
+  char b[64];
+  std::snprintf(b, sizeof b, "%.*e", dg - 1, x);
+  const double v = std::strtod(b, nullptr);
+  int d = 1;
+  for (; d < dg; ++d) {
+    std::snprintf(b, sizeof b, "%.*e", d - 1, x);
+    if (std::strtod(b, nullptr) == v) break;
+  }
+  std::snprintf(b, sizeof b, "%.*e", d - 1, x);
+  return {d, std::atoi(std::strchr(b, 'e') + 1)};
+}
+
+// One column as text, numbers in a common format (7 significant digits).
+std::vector<std::string> cells(PyObject *c, Py_ssize_t a, Py_ssize_t b) {
+  std::vector<std::string> out;
+  int rgt = 0, mxsig = 1, mxe = 0, mne = 0;
+  bool neg = false, fin = false;
+  for (Py_ssize_t i = a; i < b; ++i) {
+    PyObject *v = PyList_GetItem(c, i);
+    double d = 0;
+    if (kind(v, &d) == NUMK && std::isfinite(d)) {
+      fin = true;
+      if (d == 0) continue;
+      const Sig s = sig(d, 7);
+      rgt = std::max(rgt, std::max(0, s.sig - s.e - 1));
+      mxsig = std::max(mxsig, s.sig);
+      mxe = std::max(mxe, s.e);
+      mne = std::min(mne, s.e);
+      neg = neg || d < 0;
+    }
+  }
+  rgt = std::min(rgt, 15);
+  const int fixw = neg + std::max(mxe, 0) + 1 + (rgt > 0 ? rgt + 1 : 0);
+  const int sciw = neg + mxsig + (mxsig > 1) + ((mxe >= 100 || mne <= -100) ? 5 : 4);
+  const bool sci = fin && fixw > sciw;
+  for (Py_ssize_t i = a; i < b; ++i) {
+    PyObject *v = PyList_GetItem(c, i);
+    double d = 0;
+    const Kind k = kind(v, &d);
+    char buf[64];
+    if (k == MISS) {
+      out.emplace_back(v == Py_None ? "NA" : "NaN");
+    } else if (k == BOOL) {
+      out.emplace_back(d != 0 ? "TRUE" : "FALSE");
+    } else if (k == NUMK && !std::isfinite(d)) {
+      out.emplace_back(d > 0 ? "Inf" : "-Inf");
+    } else if (k == NUMK && PyLong_Check(v)) {
+      out.push_back(str(v));
+    } else if (k == NUMK) {
+      if (sci) std::snprintf(buf, sizeof buf, "%.*e", mxsig - 1, d);
+      else std::snprintf(buf, sizeof buf, "%.*f", rgt, d);
+      out.emplace_back(buf);
+    } else {
+      out.push_back(k == TEXT ? utf8(v) : str(v));
+    }
+  }
+  return out;
+}
+
+// display width of UTF-8 text: code points
+std::size_t width(const std::string &s) {
+  std::size_t w = 0;
+  for (unsigned char c : s) w += (c & 0xC0) != 0x80;
+  return w;
+}
+
+void pad(std::string &o, const std::string &s, std::size_t w) {
+  for (std::size_t i = width(s); i < w; ++i) o += ' ';
+  o += s;
+}
+
+// a: the table (dict of lists), the rows shown at the head and the tail of
+// a long table (all of them when the table has at most head + tail + 5)
+PyObject *show(PyObject *const *a) {
+  who = "show";
+  const Tab t = tab(a[0]);
+  const long hd = PyLong_AsLong(a[1]), tl = PyLong_AsLong(a[2]);
+  if (PyErr_Occurred()) throw Raised{};
+  const Py_ssize_t n = t.n;
+  const bool cut = n > hd + tl + 5;
+  std::vector<Py_ssize_t> rows;
+  for (Py_ssize_t i = 0; i < n; ++i) {
+    if (!cut || i < hd || i >= n - tl) rows.push_back(i);
+  }
+  const std::size_t nc = t.nm.size();
+  std::vector<std::vector<std::string>> c(nc + 1);
+  for (Py_ssize_t i : rows) c[0].push_back(std::to_string(i + 1));
+  for (std::size_t j = 0; j < nc; ++j) {
+    std::vector<std::string> h = cut ? cells(t.col[j], 0, hd) : cells(t.col[j], 0, n);
+    if (cut) {
+      std::vector<std::string> u = cells(t.col[j], n - tl, n);
+      h.insert(h.end(), u.begin(), u.end());
+    }
+    c[j + 1] = h;
+  }
+  std::vector<std::size_t> w(nc + 1, 0);
+  for (std::size_t j = 0; j <= nc; ++j) {
+    if (j > 0) w[j] = width(t.nm[j - 1]);
+    for (const auto &s : c[j]) w[j] = std::max(w[j], width(s));
+  }
+  std::string o;
+  for (std::size_t j = 0; j <= nc; ++j) {
+    if (j > 0) o += ' ';
+    pad(o, j == 0 ? std::string() : t.nm[j - 1], w[j]);
+  }
+  o += '\n';
+  for (std::size_t r = 0; r < rows.size(); ++r) {
+    if (cut && r == static_cast<std::size_t>(hd)) {
+      pad(o, "...", w[0]);
+      o += '\n';
+    }
+    for (std::size_t j = 0; j <= nc; ++j) {
+      if (j > 0) o += ' ';
+      pad(o, c[j][r], w[j]);
+    }
+    o += '\n';
+  }
+  if (cut || n == 0) o += "(" + std::to_string(n) + (n == 1 ? " row)\n" : " rows)\n");
+  o.pop_back();
+  return PyUnicode_FromStringAndSize(o.data(), static_cast<Py_ssize_t>(o.size()));
+}
+
+// a: a named vector (dict of numbers), the line width: R's print of a
+// named vector, names above values, right-aligned, wrapped
+PyObject *vshow(PyObject *const *a) {
+  who = "show";
+  Obj ks = own(PyDict_Keys(a[0])), vs = own(PyDict_Values(a[0]));
+  const long lw = PyLong_AsLong(a[1]);
+  if (PyErr_Occurred()) throw Raised{};
+  const std::vector<std::string> v = cells(vs.get(), 0, PyList_Size(vs.get()));
+  std::vector<std::string> k;
+  std::size_t w = 0;
+  for (Py_ssize_t i = 0; i < PyList_Size(ks.get()); ++i) {
+    PyObject *x = PyList_GetItem(ks.get(), i);
+    k.push_back(PyUnicode_Check(x) ? utf8(x) : str(x));
+    w = std::max({w, width(k.back()), width(v[static_cast<std::size_t>(i)])});
+  }
+  const std::size_t per = std::max<std::size_t>(1, static_cast<std::size_t>(lw) / (w + 1));
+  std::string o;
+  for (std::size_t s = 0; s < v.size(); s += per) {
+    const std::size_t e = std::min(v.size(), s + per);
+    for (std::size_t i = s; i < e; ++i) {
+      pad(o, k[i], w);
+      o += i + 1 < e ? " " : "\n";
+    }
+    for (std::size_t i = s; i < e; ++i) {
+      pad(o, v[i], w);
+      o += i + 1 < e ? " " : "\n";
+    }
+  }
+  if (!o.empty()) o.pop_back();
+  return PyUnicode_FromStringAndSize(o.data(), static_cast<Py_ssize_t>(o.size()));
+}
+
+// a number written in full: Python's repr (the shortest text that reads
+// back to the same double); NaN and the infinities as R writes them
+std::string full(PyObject *v, double d) {
+  if (std::isnan(d)) return "NaN";
+  if (std::isinf(d)) return d > 0 ? "Inf" : "-Inf";
+  Obj r = own(PyObject_Repr(v));
+  return utf8(r.get());
+}
+
+void csvfield(std::string &o, const std::string &s) {
+  if (s.find_first_of(",\"\r\n") == std::string::npos) {
+    o += s;
+    return;
+  }
+  o += '"';
+  for (char c : s) {
+    if (c == '"') o += '"';
+    o += c;
+  }
+  o += '"';
+}
+
+// a: the table: RFC 4180 text, CRLF line ends, a header row
+PyObject *csv(PyObject *const *a) {
+  who = "csv";
+  const Tab t = tab(a[0]);
+  std::string o;
+  for (std::size_t j = 0; j < t.nm.size(); ++j) {
+    if (j > 0) o += ',';
+    csvfield(o, t.nm[j]);
+  }
+  o += "\r\n";
+  for (Py_ssize_t i = 0; i < t.n; ++i) {
+    for (std::size_t j = 0; j < t.col.size(); ++j) {
+      if (j > 0) o += ',';
+      PyObject *v = PyList_GetItem(t.col[j], i);
+      double d = 0;
+      const Kind k = kind(v, &d);
+      if (v == Py_None) continue;
+      if (k == BOOL) o += d != 0 ? "TRUE" : "FALSE";
+      else if (k == NUMK || k == MISS) csvfield(o, PyLong_Check(v) ? str(v) : full(v, d));
+      else csvfield(o, k == TEXT ? utf8(v) : str(v));
+    }
+    o += "\r\n";
+  }
+  return PyUnicode_FromStringAndSize(o.data(), static_cast<Py_ssize_t>(o.size()));
+}
+
+void jstr(std::string &o, const std::string &s) {
+  o += '"';
+  for (unsigned char c : s) {
+    if (c == '"') o += "\\\"";
+    else if (c == '\\') o += "\\\\";
+    else if (c == '\n') o += "\\n";
+    else if (c == '\r') o += "\\r";
+    else if (c == '\t') o += "\\t";
+    else if (c < 0x20) {
+      char b[8];
+      std::snprintf(b, sizeof b, "\\u%04x", static_cast<unsigned>(c));
+      o += b;
+    } else {
+      o += static_cast<char>(c);
+    }
+  }
+  o += '"';
+}
+
+void jval(std::string &o, PyObject *v, int depth) {
+  if (depth > 64) fail(false, "too deeply nested.");
+  if (PyDict_Check(v)) {
+    o += '{';
+    PyObject *k, *x;
+    Py_ssize_t pos = 0;
+    bool first = true;
+    while (PyDict_Next(v, &pos, &k, &x)) {
+      if (!first) o += ',';
+      first = false;
+      jstr(o, PyUnicode_Check(k) ? utf8(k) : str(k));
+      o += ':';
+      jval(o, x, depth + 1);
+    }
+    o += '}';
+    return;
+  }
+  if (PyList_Check(v) || PyTuple_Check(v)) {
+    o += '[';
+    Obj f = own(PySequence_Fast(v, "a list"));
+    for (Py_ssize_t i = 0; i < size(f.get()); ++i) {
+      if (i > 0) o += ',';
+      jval(o, item(f.get(), i), depth + 1);
+    }
+    o += ']';
+    return;
+  }
+  double d = 0;
+  const Kind k = kind(v, &d);
+  if (v == Py_None) o += "null";
+  else if (k == BOOL) o += d != 0 ? "true" : "false";
+  else if (k == MISS || (k == NUMK && !std::isfinite(d))) jstr(o, full(v, d));
+  else if (k == NUMK) o += PyLong_Check(v) ? str(v) : full(v, d);
+  else jstr(o, k == TEXT ? utf8(v) : str(v));
+}
+
+// a: any result: JSON text; None is null, NaN and the infinities the
+// strings "NaN", "Inf" and "-Inf"
+PyObject *json(PyObject *const *a) {
+  who = "json";
+  std::string o;
+  jval(o, a[0], 0);
+  return PyUnicode_FromStringAndSize(o.data(), static_cast<Py_ssize_t>(o.size()));
+}
+
+// A key column for sorting: numbers (bools as 0 and 1) or text, missing
+// values marked; a column of both is refused.
+struct Key {
+  std::vector<double> d;
+  std::vector<std::string> s;
+  std::vector<char> miss;
+  bool text = false;
+};
+
+Key keycol(PyObject *c, const char *nm, const char *fn) {
+  Key k;
+  const Py_ssize_t n = PyList_Size(c);
+  bool num = false;
+  k.miss.assign(static_cast<std::size_t>(n), 0);
+  k.d.assign(static_cast<std::size_t>(n), 0);
+  k.s.resize(static_cast<std::size_t>(n));
+  for (Py_ssize_t i = 0; i < n; ++i) {
+    const std::size_t u = static_cast<std::size_t>(i);
+    double d = 0;
+    const Kind t = kind(PyList_GetItem(c, i), &d);
+    if (t == MISS) k.miss[u] = 1;
+    else if (t == TEXT) { k.text = true; k.s[u] = utf8(PyList_GetItem(c, i)); }
+    else if (t == NUMK || t == BOOL) { num = true; k.d[u] = d; }
+    else fail(true, "%s: column `%s` holds values that are neither text nor numbers.", fn, nm);
+  }
+  if (num && k.text) fail(true, "%s: column `%s` mixes text and numbers.", fn, nm);
+  return k;
+}
+
+// a: the key columns (list of lists), their names, desc (list of bools):
+// the stable order of the rows, missing values last either way
+PyObject *order(PyObject *const *a) {
+  who = "sort";
+  const Py_ssize_t m = PyList_Size(a[0]);
+  std::vector<Key> ks;
+  std::vector<int> desc;
+  for (Py_ssize_t j = 0; j < m; ++j) {
+    const std::string nm = utf8(PyList_GetItem(a[1], j));
+    ks.push_back(keycol(PyList_GetItem(a[0], j), nm.c_str(), "sort"));
+    desc.push_back(PyObject_IsTrue(PyList_GetItem(a[2], j)));
+  }
+  const Py_ssize_t n = m > 0 ? PyList_Size(PyList_GetItem(a[0], 0)) : 0;
+  std::vector<std::size_t> o(static_cast<std::size_t>(n));
+  for (std::size_t i = 0; i < o.size(); ++i) o[i] = i;
+  std::stable_sort(o.begin(), o.end(), [&](std::size_t x, std::size_t y) {
+    for (std::size_t j = 0; j < ks.size(); ++j) {
+      const Key &k = ks[j];
+      if (k.miss[x] != k.miss[y]) return k.miss[x] < k.miss[y];
+      if (k.miss[x]) continue;
+      const int c = k.text ? k.s[x].compare(k.s[y]) : (k.d[x] < k.d[y] ? -1 : k.d[x] > k.d[y]);
+      if (c != 0) return desc[j] ? c > 0 : c < 0;
+    }
+    return false;
+  });
+  Obj out = own(PyList_New(n));
+  for (std::size_t i = 0; i < o.size(); ++i) {
+    PyList_SetItem(out.get(), static_cast<Py_ssize_t>(i), own(PyLong_FromSize_t(o[i])).release());
+  }
+  return out.release();
+}
+
+// a: a column, its name, an operator (== != < <= > >= in), a value (a
+// list for in): one bool per row. Missing cells are never kept; text and
+// numbers are not ordered against each other.
+PyObject *test(PyObject *const *a) {
+  who = "filter";
+  PyObject *c = a[0], *v = a[3];
+  const std::string nm = utf8(a[1]), op = utf8(a[2]);
+  const Py_ssize_t n = PyList_Size(c);
+  static const char *const ops[] = {"==", "!=", "<", "<=", ">", ">=", "in"};
+  int k = -1;
+  for (int i = 0; i < 7; ++i) {
+    if (op == ops[i]) k = i;
+  }
+  if (k < 0) fail(false, "filter: unknown operator `%s` for column `%s`: one of ==, !=, <, <=, >, >=, in.", op.c_str(), nm.c_str());
+  Obj vs;
+  if (k == 6) {
+    vs = Obj(PySequence_Fast(v, "x"));
+    if (!vs.get() || PyUnicode_Check(v)) {
+      clr();
+      fail(true, "filter: `in` for column `%s` needs a list of values.", nm.c_str());
+    }
+  }
+  Obj out = own(PyList_New(n));
+  for (Py_ssize_t i = 0; i < n; ++i) {
+    PyObject *x = PyList_GetItem(c, i);
+    double dx = 0, dv = 0;
+    const Kind kx = kind(x, &dx);
+    bool keep = false;
+    if (kx != MISS) {
+      if (k == 6) {
+        for (Py_ssize_t j = 0; j < size(vs.get()) && !keep; ++j) {
+          PyObject *y = item(vs.get(), j);
+          double dy = 0;
+          const Kind ky = kind(y, &dy);
+          keep = ky == kx && (kx == TEXT ? utf8(x) == utf8(y) : kx == OTHER ? eq(x, y) : dx == dy);
+        }
+      } else {
+        const Kind kv = kind(v, &dv);
+        if (kv == MISS) keep = false;
+        else if (k < 2) {
+          const bool e = kv == kx && (kx == TEXT ? utf8(x) == utf8(v) : kx == OTHER ? eq(x, v) : dx == dv);
+          keep = k == 0 ? e : !e;
+        } else {
+          if (kv != kx || kx == OTHER) {
+            fail(true, "filter: column `%s` cannot be compared with %s.", nm.c_str(), str(v).c_str());
+          }
+          const int c2 = kx == TEXT ? utf8(x).compare(utf8(v)) : (dx < dv ? -1 : dx > dv);
+          keep = k == 2 ? c2 < 0 : k == 3 ? c2 <= 0 : k == 4 ? c2 > 0 : c2 >= 0;
+        }
+      }
+    }
+    PyList_SetItem(out.get(), i, own(PyBool_FromLong(keep)).release());
+  }
+  return out.release();
+}
+
+// A row's join key as bytes: per column a tag and the value (numbers by
+// their bits, -0 as 0; text with its length); false when a key cell is
+// missing (None or NaN), which matches nothing.
+bool jkey(const std::vector<PyObject *> &cols, Py_ssize_t i, std::string &key) {
+  key.clear();
+  for (PyObject *c : cols) {
+    PyObject *x = PyList_GetItem(c, i);
+    double d = 0;
+    const Kind k = kind(x, &d);
+    if (k == MISS) return false;
+    if (k == TEXT) {
+      const std::string s = utf8(x);
+      key += 'T';
+      key += std::to_string(s.size());
+      key += ':';
+      key += s;
+    } else if (k == NUMK || k == BOOL) {
+      if (d == 0) d = 0;
+      char b[sizeof d];
+      std::memcpy(b, &d, sizeof d);
+      key += k == BOOL ? 'B' : 'N';
+      key.append(b, sizeof b);
+    } else {
+      fail(true, "join: a key holds values that are neither text, numbers nor bools.");
+    }
+  }
+  return true;
+}
+
+// a: left key columns, right key columns (lists of lists), how (inner,
+// left, right, full): the row pairs, left index and right index (-1 where
+// a side has no row). Left order, matches in right order; then right rows
+// never matched (right, full). Hash-based: linear in the rows and pairs.
+PyObject *pairs(PyObject *const *a) {
+  who = "join";
+  const std::string how = utf8(a[2]);
+  const bool keepl = how == "left" || how == "full", keepr = how == "right" || how == "full";
+  if (!keepl && !keepr && how != "inner") {
+    fail(false, "join: `how` must be inner, left, right or full, not %s.", how.c_str());
+  }
+  std::vector<PyObject *> lc, rc;
+  for (Py_ssize_t j = 0; j < PyList_Size(a[0]); ++j) lc.push_back(PyList_GetItem(a[0], j));
+  for (Py_ssize_t j = 0; j < PyList_Size(a[1]); ++j) rc.push_back(PyList_GetItem(a[1], j));
+  const Py_ssize_t nl = lc.empty() ? 0 : PyList_Size(lc[0]);
+  const Py_ssize_t nr = rc.empty() ? 0 : PyList_Size(rc[0]);
+  std::unordered_map<std::string, std::vector<Py_ssize_t>> h;
+  h.reserve(static_cast<std::size_t>(nr));
+  std::string key;
+  for (Py_ssize_t i = 0; i < nr; ++i) {
+    if (jkey(rc, i, key)) h[key].push_back(i);
+  }
+  std::vector<char> used(static_cast<std::size_t>(nr), 0);
+  std::vector<Py_ssize_t> li, ri;
+  for (Py_ssize_t i = 0; i < nl; ++i) {
+    const auto f = jkey(lc, i, key) ? h.find(key) : h.end();
+    if (f == h.end()) {
+      if (keepl) {
+        li.push_back(i);
+        ri.push_back(-1);
+      }
+      continue;
+    }
+    for (Py_ssize_t r : f->second) {
+      li.push_back(i);
+      ri.push_back(r);
+      used[static_cast<std::size_t>(r)] = 1;
+    }
+  }
+  if (keepr) {
+    for (Py_ssize_t r = 0; r < nr; ++r) {
+      if (!used[static_cast<std::size_t>(r)]) {
+        li.push_back(-1);
+        ri.push_back(r);
+      }
+    }
+  }
+  Obj l = own(PyList_New(static_cast<Py_ssize_t>(li.size())));
+  Obj r = own(PyList_New(static_cast<Py_ssize_t>(ri.size())));
+  for (std::size_t i = 0; i < li.size(); ++i) {
+    PyList_SetItem(l.get(), static_cast<Py_ssize_t>(i), own(PyLong_FromSsize_t(li[i])).release());
+    PyList_SetItem(r.get(), static_cast<Py_ssize_t>(i), own(PyLong_FromSsize_t(ri[i])).release());
+  }
+  return PyTuple_Pack(2, l.get(), r.get());
+}
+
 using Fn = PyObject *(*)(PyObject *const *);
 
 // Entry point f, which takes n arguments, called with the tuple args: the
@@ -1584,6 +2126,13 @@ PyMethodDef methods[] = {
     CLAB_FN(selftest, 0),
     CLAB_FN(rchar, 1),
     CLAB_FN(tlen, 2),
+    CLAB_FN(show, 3),
+    CLAB_FN(vshow, 2),
+    CLAB_FN(csv, 1),
+    CLAB_FN(json, 1),
+    CLAB_FN(order, 3),
+    CLAB_FN(test, 4),
+    CLAB_FN(pairs, 3),
     {nullptr, nullptr, 0, nullptr}};
 #undef CLAB_FN
 

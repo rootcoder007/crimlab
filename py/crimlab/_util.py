@@ -10,7 +10,6 @@ as R's as.character() writes them.
 from __future__ import annotations
 
 import math
-import sys
 from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 
@@ -18,16 +17,16 @@ from . import _clab
 
 
 class Arr(Protocol):
-    """Anything NumPy can read as an array (an ndarray, a pandas Series)."""
+    """An array: an object that offers __array_interface__ (or __array__)."""
 
     def __array__(self, *args: Any, **kwargs: Any) -> Any: ...
 
 
 Num = int | float
-#: Numbers: one number, a sequence (None and NaN are missing), a NumPy
-#: array, a pandas Series, or, for a per-group argument, a mapping from
-#: group name to number.
-Vec = Num | Sequence[Num | None] | Mapping[Any, Num | None] | Arr
+#: Numbers: one number, a sequence (None and NaN are missing), an array,
+#: or, for a per-group argument, a mapping from group name to number or a
+#: sequence of (name, number) tuples (a name may repeat there).
+Vec = Num | Sequence[Num | None] | Mapping[Any, Num | None] | Sequence[tuple[Any, Num | None]] | Arr
 #: A data frame: column name to column.
 Frame = dict[str, list[Any]]
 #: A named numeric vector: name to value.
@@ -37,47 +36,41 @@ Named = dict[str, float]
 NEVER = object()
 
 
-def _pd() -> Any:
-    # pandas only when the caller has imported it: it is never a dependency
-    return sys.modules.get("pandas")
+def items(x: Any) -> list[tuple[Any, Any]] | None:
+    """The (name, value) pairs of a mapping, in iteration order: any object
+    but text that has a callable items() (a dict, any Mapping, an object
+    such as a pandas Series that yields (label, value)); None otherwise.
+    Names may repeat."""
+    if isinstance(x, (str, bytes)):
+        return None
+    f = getattr(x, "items", None)
+    return list(f()) if callable(f) else None
 
 
-def series(x: Any) -> bool:
-    pd = _pd()
-    return pd is not None and isinstance(x, pd.Series)
+def mapping(x: Any) -> bool:
+    return not isinstance(x, (str, bytes)) and callable(getattr(x, "items", None))
 
 
-def dframe(x: Any) -> bool:
-    pd = _pd()
-    return pd is not None and isinstance(x, pd.DataFrame)
+def scalar(v: Any) -> bool:
+    return not isseq(v) and not mapping(v) and not hasattr(v, "__array__")
 
 
-def labelled(idx: Any) -> list[Any] | None:
-    """The labels of a pandas index, None for a RangeIndex (positions)."""
-    return None if isinstance(idx, _pd().RangeIndex) else list(idx)
-
-
-def vals(x: Any) -> Any:
-    """A Series' values for a numeric argument; others unchanged.
-
-    A categorical is read by its labels, as text: never as numbers.
-    """
-    if not series(x):
-        return x
-    if isinstance(x.dtype, _pd().CategoricalDtype):
-        return [str(v) for v in x]
-    if getattr(x.dtype, "kind", "O") in "fiu":
-        return x.to_numpy(dtype="float64", na_value=math.nan)
-    return x.to_numpy(dtype=object, na_value=None)
+def pairs(x: Any) -> bool:
+    """True for a list or tuple of (name, value) tuples: named values whose
+    names may repeat, which a dict cannot hold."""
+    return isinstance(x, (list, tuple)) and len(x) > 0 and all(
+        isinstance(e, tuple) and len(e) == 2 and scalar(e[0]) and scalar(e[1]) for e in x)
 
 
 def grp(x: Any) -> tuple[Any, list[Any] | None]:
-    """The values and the group names of a per-group argument: the keys of
-    a mapping, the index of a Series (unless a RangeIndex), else None."""
-    if isinstance(x, Mapping):
-        return list(x.values()), list(x.keys())
-    if series(x):
-        return vals(x), labelled(x.index)
+    """The values and the group names of a per-group argument: the pairs
+    of a mapping (items()), or of a sequence of (name, value) tuples; no
+    names otherwise."""
+    p = items(x)
+    if p is None and pairs(x):
+        p = list(x)
+    if p is not None:
+        return [v for _, v in p], [k for k, _ in p]
     return x, None
 
 
@@ -144,8 +137,8 @@ def align(fn: str, args: list[tuple[str, Any, list[Any] | None]],
 
 def named(fn: str, args: list[tuple[str, Any]],
           strict: bool = True) -> tuple[list[Any], list[Any] | None]:
-    """align() on arguments given as they come: a mapping or a Series is
-    split into its values and names (grp())."""
+    """align() on arguments given as they come: a mapping or a sequence of
+    (name, value) tuples is split into its values and names (grp())."""
     return align(fn, [(nm, *grp(x)) for nm, x in args], strict)
 
 
@@ -156,7 +149,7 @@ def isbool(v: Any) -> bool:
 def lab(v: Any) -> str | None:
     """as.character() of one label: None when missing. TypeError for a
     value that is not text, a number or a bool."""
-    if v is None or type(v).__name__ == "NAType":
+    if v is None:
         return None
     if isinstance(v, str):
         return str(v)
@@ -171,9 +164,7 @@ def lab(v: Any) -> str | None:
 
 
 def flat(x: Any) -> Any:
-    """A list of x's items: x itself unless it is an array or a Series."""
-    if series(x):
-        return x.to_numpy(dtype=object, na_value=None).tolist()
+    """A list of x's items: x itself unless it is an array (.tolist())."""
     return x.tolist() if hasattr(x, "tolist") and hasattr(x, "__array__") else x
 
 
@@ -193,13 +184,11 @@ def notvec(fn: str, nm: str) -> ValueError:
 def labels(fn: str, nm: str, z: Any) -> tuple[list[str | None], str]:
     """The labels of z, as.character() of each (None where missing), and
     its kind: "l" when every label is a bool, "n" when they are numbers
-    (bools among them), "s" otherwise (text, a categorical)."""
+    (bools among them), "s" otherwise."""
     bad = TypeError(f"{fn}: `{nm}` must be labels: a character, numeric or logical vector or a factor.")
     if matrix(z):
         raise notvec(fn, nm)
-    cat = series(z) and isinstance(z.dtype, _pd().CategoricalDtype) or \
-        type(z).__name__ == "Categorical"
-    if hasattr(z, "ravel") and hasattr(z, "__array__") and not series(z):
+    if hasattr(z, "ravel") and hasattr(z, "__array__"):
         z = z.ravel()
     z = flat(z)
     if isinstance(z, (str, bytes)):
@@ -210,11 +199,11 @@ def labels(fn: str, nm: str, z: Any) -> tuple[list[str | None], str]:
         out = [lab(v) for v in z]
     except TypeError:
         raise bad from None
-    vals = [v for v in z if v is not None and type(v).__name__ != "NAType"]
+    vals = [v for v in z if v is not None]
     kind = "s"
-    if not cat and vals and all(isbool(v) for v in vals):
+    if vals and all(isbool(v) for v in vals):
         kind = "l"
-    elif not cat and vals and all(not isinstance(v, (str, bytes)) for v in vals):
+    elif vals and all(not isinstance(v, (str, bytes)) for v in vals):
         kind = "n"
     return out, kind
 
@@ -222,7 +211,7 @@ def labels(fn: str, nm: str, z: Any) -> tuple[list[str | None], str]:
 def label1(t: Any) -> Any:
     """The label of treat: one text, number or bool; NEVER for anything
     else (or a missing value), which matches no label."""
-    if isseq(t) or isinstance(t, Mapping):
+    if isseq(t) or mapping(t):
         return NEVER
     try:
         v = lab(t)
@@ -231,33 +220,72 @@ def label1(t: Any) -> Any:
     return NEVER if v is None else v
 
 
-def rows(x: Any) -> tuple[list[Any] | None, list[Any] | None]:
-    """The rows of a table and its row names: a mapping (row name to row),
-    a DataFrame, a 2-D array or a sequence of rows; a sequence of two
-    values is one row. Rows are None when x is no table."""
+def row(v: Any, keys: list[Any] | None) -> Any:
+    """One row of a table: a sequence, or a mapping read in the order keys
+    (None when its keys are not those)."""
+    p = items(v)
+    if p is not None:
+        d = dict(p)
+        return [d[k] for k in keys] if keys is not None and set(d) == set(keys) else None
+    return flat(v)
+
+
+def bycol(p: list[tuple[Any, Any]]) -> tuple[list[Any] | None, list[Any] | None, list[Any]]:
+    """A table given as a mapping of columns, each a mapping from row label
+    to value (a pandas DataFrame reads so through items()): its rows (None
+    when the columns do not label the same rows), row names and columns."""
+    cols = [k for k, _ in p]
+    lab = [items(c) or [] for _, c in p]
+    names = [k for k, _ in lab[0]] if lab else []
+    out = []
+    for c in lab:
+        ks = [k for k, _ in c]
+        if ks == names:
+            out.append([v for _, v in c])
+        elif sorted(map(repr, ks)) == sorted(map(repr, names)) and len(set(ks)) == len(ks):
+            d = dict(c)
+            out.append([d[k] for k in names])
+        else:
+            return None, names, cols
+    return [list(r) for r in zip(*out)] if out else [], names, cols
+
+
+def rows(x: Any) -> tuple[list[Any] | None, list[Any] | None, list[Any] | None]:
+    """The rows of a table, its row names and its column names. A table is
+    a mapping of columns, each a mapping from row label to value (row and
+    column names); a mapping from row name to row; a sequence of (row name,
+    row) tuples (row names that repeat); a 2-D array; or a sequence of rows,
+    each a sequence or a mapping from column name to value (every row
+    naming the same columns). A sequence of two values is one row. Rows are
+    None when x is no table."""
     names = None
-    if isinstance(x, Mapping):
-        names, r = list(x.keys()), [flat(v) for v in x.values()]
-    elif dframe(x):
-        names = labelled(x.index)
-        r = x.to_numpy(dtype=object, na_value=None).tolist()
+    p = items(x)
+    if p is not None and p and all(mapping(v) for _, v in p):
+        return bycol(p)
+    if p is not None:
+        names, r = [k for k, _ in p], [v for _, v in p]
+    elif isinstance(x, (list, tuple)) and x and all(
+            isinstance(e, tuple) and len(e) == 2 and scalar(e[0]) and not scalar(e[1])
+            for e in x):
+        names, r = [e[0] for e in x], [e[1] for e in x]
     else:
         x = flat(x)
         if not isseq(x):
-            return None, None
+            return None, None, None
         r = list(x)
-        if len(r) == 2 and not any(isseq(flat(e)) for e in r):
+        if len(r) == 2 and not any(isseq(flat(e)) or mapping(e) for e in r):
             r = [r]
-        else:
-            r = [flat(e) for e in r]
+    first = items(r[0]) if r else None
+    cols = [k for k, _ in first] if first is not None else None
+    r = [row(e, cols) for e in r]
     if not all(isseq(e) for e in r):
-        return None, names
-    return [list(e) for e in r], names
+        return None, names, cols
+    return [list(e) for e in r], names, cols
 
 
 def table(fn: str, nm: str, g: Any) -> tuple[list[str], list[Any] | None]:
     """A genotype table: the alleles row by row as labels, and the loci."""
-    r, loci = rows(g)
+    r, loci, _ = rows(g)
     msg = f"{fn}: `{nm}` must be a two-column matrix of alleles, one row per locus, with no missing values."
     if r is None or any(len(e) != 2 for e in r):
         raise ValueError(msg)

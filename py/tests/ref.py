@@ -6,8 +6,6 @@ import json
 import math
 from pathlib import Path
 
-import pytest
-
 CASES = json.loads((Path(__file__).parent / "data" / "ref.json").read_text(encoding="utf-8"))
 
 # R's argument `or` is a Python keyword
@@ -24,12 +22,22 @@ def el(kind, e):
     return e
 
 
+def named(names, values):
+    """Names and values as the package takes them: a dict, or a list of
+    (name, value) tuples where a name repeats (a dict cannot)."""
+    if len(set(names)) < len(names):
+        return list(zip(names, values))
+    return dict(zip(names, values))
+
+
 def dec(x):
-    """An R value as the Python argument that stands for it: a named vector
-    is a dict, a vector of one a scalar, a matrix a list of rows (a dict of
-    rows when it has row names; a pandas DataFrame when it has row and
-    column names), a data frame a dict of columns (each a dict by row name
-    when it has row names)."""
+    """An R value as the Python argument that stands for it, in built-in
+    types only: a named vector is a dict (a list of (name, value) tuples
+    when a name repeats), a vector of one a scalar, a matrix a list of rows
+    (a mapping from row name to row with row names; a mapping of columns,
+    each a mapping from row name, with row and column names, both unique),
+    a data frame a dict of columns (each named by the row names when it has
+    them)."""
     if x is None:
         return None
     if "mat" in x:
@@ -37,46 +45,25 @@ def dec(x):
         r, c = m["dim"]
         v = [float(e) if isinstance(e, (int, float)) else e for e in m["v"]]
         rows = [[v[i + j * r] for j in range(c)] for i in range(r)]
-        if m["rn"] and m.get("cn"):
-            pd = pytest.importorskip("pandas")
-            return pd.DataFrame(rows, index=m["rn"], columns=m["cn"])
-        return dict(zip(m["rn"], rows)) if m["rn"] else rows
+        rn, cn = m["rn"], m.get("cn")
+        if rn and cn and len(set(rn)) == len(rn) and len(set(cn)) == len(cn):
+            # row and column names: a mapping of columns, each by row name
+            return {k: dict(zip(rn, (e[j] for e in rows))) for j, k in enumerate(cn)}
+        return named(rn, rows) if rn else rows
     if "df" in x:
         cols = {k: dec(v) for k, v in x["df"].items()}
         if x["rn"]:
-            cols = {k: dict(zip(x["rn"], v)) for k, v in cols.items()}
+            cols = {k: named(x["rn"], v) for k, v in cols.items()}
         return cols
     kind = next(k for k in x if k != "names")
     v = [el(kind, e) for e in x[kind]]
-    nm = x["names"]
-    if nm is not None and len(set(nm)) < len(nm):  # a dict cannot repeat a name
-        pd = pytest.importorskip("pandas")
-        return pd.Series(v, index=nm)
-    if nm is not None:
-        return dict(zip(nm, v))
+    if x["names"] is not None:
+        return named(x["names"], v)
     return v[0] if len(v) == 1 else v
-
-
-def needs(case):
-    """The optional package a case needs to be written in Python: pandas
-    for a table with row and column names or a name given twice."""
-    def dup(x):
-        if isinstance(x, dict):
-            nm = x.get("names")
-            if isinstance(nm, list) and len(set(nm)) < len(nm):
-                return True
-            return any(dup(v) for v in x.values())
-        return False
-
-    if '"cn": [' in json.dumps(case["args"]) or dup(case["args"]):
-        return "pandas"
-    return None
 
 
 def args(case):
     a = {RENAME.get(k, k): dec(v) for k, v in case["args"].items()}
-    if case["fn"] in ("tipplt", "eceplt"):
-        a["draw"] = False
     return a
 
 
