@@ -995,6 +995,144 @@ int clab_sptst(const double *a, const double *b, int n, int nboot,
                unsigned int seed, double alpha, double scale, double *out,
                double *glob, double *work, int *iwork);
 
+/* Networks (src/net.cpp). A graph is held in compressed sparse rows: n >= 1
+ * nodes; node i's neighbours are adj[off[i]] .. adj[off[i + 1] - 1] with
+ * weights wt at the same positions (wt NULL: every weight 1; given: positive
+ * and finite). An undirected graph holds each edge in both rows; a directed
+ * one in the row of its tail (out-neighbours), and its in-neighbours in a
+ * second CSR built from the reversed edges. Results are by node index. */
+
+/* The CSR of an edge list a[k] - b[k], k < m, over nodes 0 .. n - 1, with
+ * weights w (NULL: 1 each). Self-loops are dropped and counted (nloop);
+ * repeated edges (the same unordered pair when dir is 0, the same ordered
+ * pair otherwise) are merged into one whose weight is their sum, counted in
+ * ndup. Each row lists neighbours in the order their edges first appear.
+ * off: n + 1; adj, wt: m entries when dir, 2m otherwise; iwork: n ints.
+ * O(n + m). */
+int clab_ntcsr(const int *a, const int *b, const double *w, int m, int n,
+               int dir, int *off, int *adj, double *wt, int *iwork,
+               int *nloop, int *ndup);
+
+/* Degree (the row length) and strength (the row's summed weight). */
+int clab_ntdeg(int n, const int *off, const double *wt, int *deg,
+               double *str);
+
+/* Betweenness by Brandes' algorithm (Brandes 2001,
+ * doi:10.1080/0022250X.2001.9990249) on hop counts: the sum over ordered
+ * pairs s != t of others of the share of shortest s-t paths through the
+ * node, halved when dir is 0. norm divides by (n - 1)(n - 2) (directed) or
+ * (n - 1)(n - 2) / 2 (undirected); NaN when n < 3. work: 2n doubles;
+ * iwork: 2n ints. O(n m). */
+int clab_ntbtw(int n, const int *off, const int *adj, int dir, int norm,
+               double *bc, double *work, int *iwork);
+
+/* Closeness on hop counts to the nodes each node reaches along its rows:
+ * reach (how many), cls (1 / summed distance), ncls (reach / summed
+ * distance), both NaN when nothing is reached, and hrm (the harmonic
+ * centrality, the sum of 1 / distance; 0 when nothing is reached).
+ * iwork: 2n ints. O(n m). */
+int clab_ntcls(int n, const int *off, const int *adj, double *cls,
+               double *ncls, double *hrm, int *reach, int *iwork);
+
+/* Eigenvector centrality of an undirected graph by power iteration on
+ * A + c I, c the largest weight (so that a bipartite component converges),
+ * each connected component scaled to a maximum of 1 at every step, from
+ * x = 1; stops when no entry changes by tol or more, or after maxit steps
+ * (conv 0). val: the largest of the components' eigenvalues (Rayleigh
+ * quotients); a component whose own leading eigenvalue is below it by more
+ * than 1e-10 of it gets 0. An edgeless graph gives 1 everywhere and val 0.
+ * work: 4n doubles; iwork: 2n ints. O(maxit m). */
+int clab_ntevc(int n, const int *off, const int *adj, const double *wt,
+               double tol, int maxit, double *x, double *val, int *iter,
+               int *conv, double *work, int *iwork);
+
+/* Coreness of each node of an undirected graph (Batagelj and Zaversnik
+ * 2003, arXiv:cs/0310049). iwork: 3n ints. O(n + m). */
+int clab_ntcore(int n, const int *off, const int *adj, int *core,
+                int *iwork);
+
+/* Connected components following the rows of off and, when ioff is not
+ * NULL, those of ioff too (the weak components of a directed graph).
+ * Components are numbered 0, 1, ... in the order of their first node; nc
+ * counts them. iwork: n ints. O(n + m). */
+int clab_ntwcc(int n, const int *off, const int *adj, const int *ioff,
+               const int *iadj, int *comp, int *nc, int *iwork);
+
+/* Strong components of a directed graph (Tarjan 1972,
+ * doi:10.1137/0201010), without recursion, numbered as clab_ntwcc
+ * numbers them. iwork: 6n ints. O(n + m). */
+int clab_ntscc(int n, const int *off, const int *adj, int *comp, int *nc,
+               int *iwork);
+
+/* Modularity of the partition memb (codes 0 .. n - 1) of an undirected
+ * graph at resolution res >= 0 (Newman and Girvan 2004,
+ * doi:10.1103/PhysRevE.69.026113): the sum over communities of
+ * in / 2m - res (tot / 2m)^2, in the weight inside (both directions), tot
+ * the summed strength, 2m the total. NaN for a graph without edges.
+ * work: 2n doubles. */
+int clab_ntmod(int n, const int *off, const int *adj, const double *wt,
+               const int *memb, double res, double *q, double *work);
+
+/* The Louvain method (Blondel et al. 2008,
+ * doi:10.1088/1742-5468/2008/10/P10008) at resolution res > 0. Each level
+ * visits its nodes in node order (useseed 0) or in a permutation drawn from
+ * seed (xorshift64*, one stream for the whole run) and moves each to the
+ * neighbouring community of largest modularity gain (the first met, in row
+ * order, among equal gains) when the gain beats staying by more than 1e-12
+ * of the node's strength; passes repeat until none moves a node. A level
+ * that moves nothing ends the run; otherwise its communities, numbered by
+ * their first node, become the nodes of the next level. Out: memb
+ * (communities numbered by first node), q (clab_ntmod of memb) and lev
+ * (levels that moved a node). clab_ntlvnw gives the lengths of work
+ * (doubles) and iwork (ints) for nnz = off[n]. */
+int clab_ntlvnw(int n, int nnz, double *len, double *ilen);
+int clab_ntlvn(int n, const int *off, const int *adj, const double *wt,
+               double res, unsigned int seed, int useseed, int *memb,
+               double *q, int *lev, double *work, int *iwork);
+
+/* Gould-Fernandez brokerage (Gould and Fernandez 1989, doi:10.2307/270949):
+ * for each node v, the two-paths i -> v -> j with i != j and no tie
+ * i -> j, by role: cnt[v] coordinator (i, v, j in one group), cnt[n + v]
+ * itinerant (i and j in one group, v in another), cnt[2n + v]
+ * representative (i with v, j apart), cnt[3n + v] gatekeeper (v with j, i
+ * apart), cnt[4n + v] liaison (three groups). off/adj: out-neighbours,
+ * ioff/iadj: in-neighbours (the same arrays for an undirected graph); grp:
+ * any int per node. iwork: n ints. O(sum over v of indeg(v) (outdeg(i) +
+ * outdeg(v))). */
+int clab_ntbrk(int n, const int *off, const int *adj, const int *ioff,
+               const int *iadj, const int *grp, double *cnt, int *iwork);
+
+/* The Cheeger bounds of a connected undirected graph with n >= 2 nodes
+ * (Lean: Crimlab.Network.cheeger_lower). lambda2, the second-smallest
+ * eigenvalue of the normalised Laplacian I - D^-1/2 A D^-1/2, by power
+ * iteration on (I + D^-1/2 A D^-1/2) / 2 kept orthogonal to D^1/2 1, from a
+ * fixed pseudo-random start, until the residual norm is below tol or maxit
+ * steps (conv 0); lambda2 is then the Rayleigh quotient of the result. The
+ * conductance h = min over node sets S of w(S, not S) / min(vol S, vol not
+ * S) satisfies lambda2 / 2 <= h <= sqrt(2 lambda2) (Chung 1997, Spectral
+ * Graph Theory, ch. 2). Out, 4: lambda2, lambda2 / 2, sqrt(2 lambda2) and
+ * the least conductance of a sweep set (a prefix of the nodes ordered by
+ * the eigenvector over D^1/2, which h never exceeds); set: 1 for the nodes
+ * of that set. CLAB_EDOM when the graph is not connected. work: 4n doubles;
+ * iwork: n ints. O(maxit m). */
+int clab_ntchg(int n, const int *off, const int *adj, const double *wt,
+               double tol, int maxit, double *out, int *set, int *iter,
+               int *conv, double *work, int *iwork);
+
+/* The co-offending graph of an incident table: k rows, row r naming
+ * offender off[r] (0 .. no - 1) in incident inc[r] (0 .. ni - 1). An
+ * offender named twice in one incident counts once. clab_coofw gives
+ * npair, the number of offender pairs met over all incidents (an upper
+ * bound on the edges), and ilen, the ints of iwork clab_coofg needs.
+ * clab_coofg writes the one-mode projection: np pairs (pa < pb by code)
+ * with pw, the number of incidents they share, in the order each pair is
+ * first met (incidents by code, offenders within one by row); cap >=
+ * npair. O(k + npair). */
+int clab_coofw(const int *inc, const int *off, int k, int ni, int no,
+               double *npair, double *ilen, int *iwork);
+int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
+               int cap, int *pa, int *pb, double *pw, int *np, int *iwork);
+
 #ifdef __cplusplus
 }
 #endif
