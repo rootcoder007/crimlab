@@ -37,12 +37,14 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
-          extra-packages: any::goodpractice, any::curl
+          extra-packages: any::goodpractice, any::curl, any::srr
           needs: check
 
       - name: goodpractice (all but covr and rcmdcheck)
         shell: Rscript {0}
         run: |
+          # the srr roclet (DESCRIPTION) defines the @srrstats tags roxygen reads
+          loadNamespace("srr")
           ck <- goodpractice::all_checks()
           ck <- ck[!grepl("^(covr|rcmdcheck)", ck)]
           g <- goodpractice::gp(".", checks = ck)
