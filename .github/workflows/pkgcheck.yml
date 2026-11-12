@@ -1,8 +1,9 @@
 # The checks the rOpenSci review bot runs on a submission: pkgcheck() in
 # the bot's own image, with goodpractice's full R CMD check and covr. It
-# needs only the job's own token, which can read this repository while it
-# is private. Run by hand: it fails until the package has an HTML
-# vignette and a website, which pkgcheck requires.
+# needs only the job's own token. Run by hand: pkgcheck fails until the
+# site is the repository's website (About, Website) and the workflows have
+# run on main, which it reads from GitHub. Then it can run on push and pull
+# request.
 name: pkgcheck
 
 on:
