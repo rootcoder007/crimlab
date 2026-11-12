@@ -102,7 +102,7 @@ test_that("the compiled self-test passes every check", {
   r <- .Call(C_clab_selftest)
   expect_identical(r[["report"]], "")
   expect_identical(r[["nfail"]], 0L)
-  expect_gte(r[["n"]], 880L)
+  expect_gte(r[["n"]], 9500L)
 })
 
 test_that("every exported function answers one valid call in its shape", {

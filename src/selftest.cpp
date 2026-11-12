@@ -158,6 +158,7 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_self(t);
   t_disp(t);
   t_frns(t);
+  t_pol(t);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
 }
