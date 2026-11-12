@@ -25,6 +25,25 @@
   components, `ntlvn()` and `ntmod()` Louvain communities and modularity,
   `ntbrk()` Gould-Fernandez brokerage and `ntchg()` the Cheeger bounds.
   Results are by node label in order of first appearance.
+* Spatial: `hvdist()` and `eqproj()`/`eqinv()` for longitude and latitude;
+  `cgstat()`, `cgmedn()`, `webpt()`, `sdell()` and `cvhull()` for centres,
+  spread and hulls; `nnidx()`, `ripk()` and `ripenv()` for nearest
+  neighbours and K functions; `fzmode()`, `kmpart()`, `nnhclu()` and
+  `stacel()` for hot spots; `mantst()` and `stmavg()` in space and time;
+  `jtdecay()`, `jtsurf()`, `jtcal()`, `jtacc()` and `bjtc()` for journey to
+  crime. Points come as vectors, tables or sf points; longitude and
+  latitude only with `lonlat = TRUE`.
+* Spatial weights and autocorrelation: `spwt()` (k nearest, distance band,
+  contiguity; binary or inverse distance), `gearc()` (Geary's C), `gorg()`
+  (the Getis-Ord G), `lmorn()` (local Moran with conditional permutations),
+  `locgi()` (local G and G*) and `dirmn()` (directional mean).
+* `fair()` (fairness of a risk tool by group), `tlvc()` and `tlvlr()`
+  (trace evidence), `aorwt()` (aoristic weights), `bdig()` and `bnft()`
+  (Benford screens), `skp()` (Scott-Knott grouping), `rptc()` (constant
+  reporters), `rswp()` and `rshl()` (Rosenbaum bounds), `zgll()`, `zgem()`,
+  `mvtll()` and `mvtem()` (group-based trajectories), `tfrp()` (glass
+  transfer), `lwss()` (lowess), `chmb()` (tool marks), `gstr()` (grid Gi*)
+  and `sptst()` (Andresen's point pattern test).
 * `proof()` names the Lean theorem behind each function; the proofs ship
   in `inst/lean`.
 * A vector longer than the largest integer is refused with an error, by the

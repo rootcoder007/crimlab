@@ -29,6 +29,11 @@ The functions work on summary data, not on raw records:
 * networks as edge lists of labels (who offended with whom, who passed
   what to whom), or incident tables that list the offenders of each
   incident.
+* point locations of incidents, planar or longitude and latitude (vectors,
+  tables or sf points), with times, weights or counts by area;
+* risk scores with outcomes and groups, trace-evidence measurements,
+  event time windows, reported figures, matched-pair differences and
+  counts over time.
 
 ## What it asks
 
@@ -48,6 +53,16 @@ The functions work on summary data, not on raw records:
 * Networks: who co-offends with whom, who sits between groups, which
   offenders form the core and the communities of a network, and how
   cleanly it splits in two.
+* Places: where incidents centre and how far they spread, whether they
+  cluster more than chance, where the hot spots are, whether places close
+  together have similar rates (Geary's C, the Getis-Ord G, local Moran),
+  whether incidents close in space are close in time, and where to search
+  first for the base of a series.
+* Methods from the forensic and sociolegal literature: the fairness of a
+  risk tool by group, the weight of glass and other trace evidence, when
+  an event known only within a window happened, whether reported figures
+  follow Benford's law, how strong hidden bias must be to explain a
+  matched result away, and group-based trajectories of offending.
 
 ## Algorithms
 
