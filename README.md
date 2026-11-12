@@ -45,6 +45,28 @@ pop <- c(a = 800, b = 200)
 dyadrt(count = outer(pop, pop) / 1000, pop = pop)
 ```
 
+### Clearance rates
+
+```r
+# both offence types clear better in B, yet B's aggregate rate is lower
+clrsmp(clra = c(minor = 90, serious = 20), reca = c(minor = 100, serious = 50),
+       clrb = c(minor = 19, serious = 60), recb = c(minor = 20, serious = 140))
+```
+
+### Corrections
+
+```r
+# custody against a community sentence, with no assumption about who got which
+y <- c(1, 0, 1, 1, 0, 0, 1, 0)
+z <- c("community", "community", "custody", "custody", "custody",
+       "community", "custody", "community")
+sntbnd(y, z)
+
+# a release rule scored from the outcomes of those the judge released
+sellab(y = c(0, 1, 0, NA, NA), rel = c(TRUE, TRUE, TRUE, FALSE, FALSE),
+       rule = c(TRUE, FALSE, TRUE, TRUE, FALSE))
+```
+
 ### DNA match statistics
 
 ```r
