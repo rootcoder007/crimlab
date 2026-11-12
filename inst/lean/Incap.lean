@@ -20,7 +20,9 @@
     * rate_antitone_in_S, rate_antitone_in_q: longer sentences and higher
       certainty lower the rate.
     * marginal_prevention_eq: one more year of sentence prevents
-      λ²q/((1 + λqS)(1 + λq(S+1))) crimes per year.
+      λ²q/((1 + λqS)(1 + λq(S+1))) crimes per year; kernel_marginal_is: the
+      kernel's λk/(d(d+k)) is that number; marginal_strict_anti,
+      marginal_anti: each further year prevents strictly less.
     * high_rate_more_prevented: a sentence rule uniform across offenders
       removes the larger share from the higher-rate group.
 
@@ -145,6 +147,47 @@ theorem marginal_prevention_pos : 0 < marginalPrevention C := by
   have := mul_nonneg (mul_nonneg C.lam_pos.le C.q_pos.le) C.S_nonneg
   have h2 : 0 < 1 + C.lam * C.q * (C.S + 1) := by nlinarith [mul_pos C.lam_pos C.q_pos]
   exact div_pos (mul_pos (pow_pos C.lam_pos 2) C.q_pos) (mul_pos (denom_pos C) h2)
+
+/-! ### Diminishing returns -/
+
+/-- The kernel's expression `λ k / (d (d + k))`, `k = λq`, `d = 1 + kS`. -/
+def kernelMarg (lam q S : ℝ) : ℝ := lam * (lam * q) / ((1 + lam * q * S) * ((1 + lam * q * S) + lam * q))
+
+/-- Each further year prevents less: the marginal effect is strictly decreasing in `S`. -/
+theorem marginal_strict_anti (lam q S₁ S₂ : ℝ) (hl : 0 < lam) (hq : 0 < q) (h0 : 0 ≤ S₁) (h : S₁ < S₂) :
+    kernelMarg lam q S₂ < kernelMarg lam q S₁ := by
+  unfold kernelMarg
+  have hk : 0 < lam * q := mul_pos hl hq
+  have hd1 : 0 < 1 + lam * q * S₁ := by nlinarith
+  have hd2 : 0 < 1 + lam * q * S₂ := by nlinarith
+  have hn : 0 < lam * (lam * q) := mul_pos hl hk
+  apply div_lt_div_of_pos_left hn (by positivity)
+  have : lam * q * S₁ < lam * q * S₂ := mul_lt_mul_of_pos_left h hk
+  nlinarith
+
+theorem marginal_anti (lam q : ℝ) (hl : 0 < lam) (hq : 0 < q) :
+    AntitoneOn (kernelMarg lam q) (Set.Ici 0) := by
+  intro a ha b _ hab
+  rcases hab.lt_or_eq with h | h
+  · exact (marginal_strict_anti lam q a b hl hq ha h).le
+  · rw [h]
+
+/-- The kernel's `marg` is the rate drop from one more year. -/
+theorem kernel_marginal_eq (lam q S : ℝ) (hl : 0 < lam) (hq : 0 < q) (hS : 0 ≤ S) :
+    kernelMarg lam q S = lam / (1 + lam * q * S) - lam / (1 + lam * q * (S + 1)) := by
+  unfold kernelMarg
+  have hk : 0 < lam * q := mul_pos hl hq
+  have hd1 : 0 < 1 + lam * q * S := by nlinarith
+  have hd2 : 0 < 1 + lam * q * (S + 1) := by nlinarith
+  have hd3 : (1 + lam * q * S) + lam * q = 1 + lam * q * (S + 1) := by ring
+  rw [hd3]
+  field_simp
+  ring
+
+/-- The kernel's `marg` is `marginalPrevention`. -/
+theorem kernel_marginal_is (C : Career) : kernelMarg C.lam C.q C.S = marginalPrevention C := by
+  rw [kernel_marginal_eq C.lam C.q C.S C.lam_pos C.q_pos C.S_nonneg]
+  rfl
 
 /-! ### Heterogeneous offenders -/
 
