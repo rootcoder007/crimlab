@@ -1,7 +1,7 @@
 # Time and peak memory of every exported function on one large input
 # (cases in dev/bench.txt; n = 1e6 where n applies; scalar functions are timed over 1e4 calls,
 # proof() over 1e3).
-#   Rscript dev/bench.R LIB      prints: fn, median seconds of 5, peak MB
+#   Rscript dev/ab.R LIB      prints: fn, median seconds of 5, peak MB
 # Run it once with the reference build and once with the new one.
 .libPaths(c(commandArgs(TRUE)[1], .libPaths()))
 library(crimlab)

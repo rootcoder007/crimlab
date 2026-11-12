@@ -6,7 +6,7 @@ fns=$(cut -f1 dev/bench.txt)
 R_ENVIRON_USER=/dev/null
 export R_ENVIRON_USER
 for f in $fns; do
-  o=$(nice Rscript dev/bench.R "$1" "$f")
-  n=$(nice Rscript dev/bench.R "$2" "$f")
+  o=$(nice Rscript dev/ab.R "$1" "$f")
+  n=$(nice Rscript dev/ab.R "$2" "$f")
   echo "$o | $n"
 done
