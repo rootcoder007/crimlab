@@ -275,7 +275,9 @@ SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
   const int ty = TYPEOF(count);
   const bool data = (ty == INTSXP || ty == REALSXP) && !Rf_isFactor(count);
   if (!data) fail("`count` must be finite numbers with no missing values.");
-  SEXP cv = PROTECT(Rf_isObject(count) ? (ty == REALSXP ? dcopy(count) : clab::dbl(count)) : count);
+  // the copy has no dim, as as.vector() leaves none, so num() reads it as
+  // the vector it is
+  SEXP cv = PROTECT(ty == REALSXP ? dcopy(count) : clab::dbl(count));
   SEXP x = PROTECT(num(cv, "count", -1, 0.0));
   const R_xlen_t m = XLENGTH(x);
   if (!pos(REAL_RO(x), m)) fail("`count` holds no offences.");
@@ -378,6 +380,7 @@ SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
   if (TYPEOF(hom) != LGLSXP || clab::anyna(hom) || (nh != 1 && nh != n)) {
     fail("`hom` must be TRUE or FALSE, once or once per locus.");
   }
+  clab::vec(hom, "hom");
   SEXP h = PROTECT(Rf_allocVector(LGLSXP, n));
   int *hh = LOGICAL(h);
   const int *h0 = LOGICAL_RO(hom);
@@ -393,6 +396,7 @@ SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
     if ((!nq && !allna(q)) || Rf_xlength(q) != n) {
       fail("`q` must be numbers, one per locus.");
     }
+    clab::vec(q, "q");
   }
   if (nq && TYPEOF(q) == REALSXP) {
     std::memcpy(qq, REAL_RO(q), static_cast<std::size_t>(n) * sizeof(double));
@@ -487,6 +491,7 @@ double mix(SEXP pv, const Keys &nk, SEXP need, SEXP x, const char *a,
     bad = bad || nd.nd > 20;
   }
   if (bad) fail("`%s` must be names of `p`, at most 20.", a);
+  clab::vec(need, a);
   // !is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 ||
   //   x != round(x) || x > 50
   const double v = clab::val1(x);
@@ -1200,6 +1205,7 @@ SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
   if (!clab::isnum(y) || XLENGTH(y) != n) {
     fail("`y` must be numbers, one per defendant.");
   }
+  clab::vec(y, "y");
   SEXP yv = PROTECT(TYPEOF(y) == REALSXP ? dcopy(y) : clab::dbl(y));
   double *yp = REAL(yv);
   const int *rp = LOGICAL_RO(rel), *up = LOGICAL_RO(rule);
@@ -1247,6 +1253,7 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
   if (Rf_xlength(z) != n || clab::anyna(z)) {
     fail("`z` must have length %d and no missing values.", n);
   }
+  clab::vec(z, "z");
   // z <- as.character(z); lv <- sort(unique(z)): z must take two values,
   // ordered by code point (not by the locale's collation)
   SEXP zc = PROTECT(Rf_isVectorAtomic(z) || TYPEOF(z) == VECSXP ? clab::labs(z) : R_NilValue);  // NOLINT

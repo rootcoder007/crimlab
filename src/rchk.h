@@ -54,6 +54,10 @@ SEXP dcopy(SEXP x);
 // (above lo when open). Returns as.double(x).
 SEXP num(SEXP x, const char *nm, R_xlen_t len = -1, double lo = ninf,
          bool open = false);
+// A vector argument given as a matrix or array with more than one
+// dimension above 1 is refused, naming argument nm; a one-row or
+// one-column matrix is read as the vector it holds.
+void vec(SEXP x, const char *nm);
 // x[1] as a double when is.numeric(x) and length(x) == 1, NA otherwise.
 double val1(SEXP x);
 // .one(): one number strictly between lo and hi.

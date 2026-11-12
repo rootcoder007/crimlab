@@ -172,6 +172,7 @@ SEXP num(SEXP x, const char *nm, R_xlen_t len, double lo, bool open) {
   if (!isnum(x) || XLENGTH(x) < 1) {
     fail("`%s` must be finite numbers with no missing values.", nm);
   }
+  vec(x, nm);
   SEXP v = PROTECT(dbl(x));
   const double *p = REAL_RO(v);
   const R_xlen_t n = XLENGTH(v);
@@ -195,6 +196,17 @@ SEXP num(SEXP x, const char *nm, R_xlen_t len, double lo, bool open) {
   }
   UNPROTECT(1);
   return v;
+}
+
+void vec(SEXP x, const char *nm) {
+  SEXP d = Rf_getAttrib(x, R_DimSymbol);
+  if (TYPEOF(d) != INTSXP) return;
+  int big = 0;
+  for (R_xlen_t i = 0; i < XLENGTH(d); ++i) big += INTEGER_RO(d)[i] > 1;
+  if (big > 1) {
+    fail("`%s` must be a vector, not a matrix with more than one row and "
+         "column.", nm);
+  }
 }
 
 double val1(SEXP x) {
@@ -242,6 +254,7 @@ void lgl(SEXP x, const char *nm, R_xlen_t n) {
     fail("`%s` must be TRUE or FALSE, one per unit, with no missing values.",
          nm);
   }
+  vec(x, nm);
 }
 
 int ref(SEXP r, SEXP nms, int n) {
