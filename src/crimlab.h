@@ -839,7 +839,9 @@ int clab_zipem(const double *y, int n, int nt, const double *off,
  * indicators (the design is shared), the weighted residual covariance, and
  * the mean memberships; the log-likelihood never decreases. Stops when an
  * iteration gains at most tol (1 + |ll|) or after maxit. CLAB_EDOM when a
- * weighted design or covariance is singular. work: p^2 + p r + r^2 + r
+ * weighted design is singular or a residual variance is zero to rounding
+ * (its sd below 64 ulps of the indicator's root mean square, e.g. a
+ * constant indicator). work: p^2 + p r + r^2 + r
  * doubles. Time per iteration O(ng (n nt r (r + p) + nt p (p + r) + p^3 +
  * r^3)). */
 int clab_mvtll(const double *y, int n, int nt, int r, const double *x, int p,

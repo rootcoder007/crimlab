@@ -98,7 +98,8 @@ double estep(const mdat &D, const double *beta, const double *sig,
 // M-step for group k: weighted least squares (the design is the same for
 // every indicator, so the multivariate fit is one p x p solve with r right
 // sides) and the weighted residual covariance. False when the weighted
-// design is singular. work: p^2 + p r + r^2.
+// design is singular or a residual variance is zero to rounding. work:
+// p^2 + p r + r^2 + r.
 bool mstep(const mdat &D, const double *wk, double *b, double *s, double *work) {
   const int p = D.p, r = D.r, nt = D.nt;
   double *a = work, *bn = a + p * p, *sc = bn + p * r;
@@ -145,7 +146,9 @@ bool mstep(const mdat &D, const double *wk, double *b, double *s, double *work) 
     for (int i = 0; i < p; ++i) b[i + p * j] = c[i];
   }
   // residual covariance, weighted by w_ik over the used periods
+  double *m2 = sc + r * r;  // r: weighted mean squares of the indicators
   for (int j = 0; j < r * r; ++j) sc[j] = 0.0;
+  for (int j = 0; j < r; ++j) m2[j] = 0.0;
   double tw = 0.0;
   for (int i = 0; i < D.n; ++i) {
     if (!(wk[i] > 0.0)) continue;
@@ -156,6 +159,7 @@ bool mstep(const mdat &D, const double *wk, double *b, double *s, double *work) 
         double mj = 0.0;
         for (int c = 0; c < p; ++c) mj += D.xv(t, c) * b[c + p * j];
         const double ej = D.yv(i, t, j) - mj;
+        m2[j] += wk[i] * D.yv(i, t, j) * D.yv(i, t, j);
         for (int l = 0; l <= j; ++l) {
           double ml = 0.0;
           for (int c = 0; c < p; ++c) ml += D.xv(t, c) * b[c + p * l];
@@ -166,6 +170,12 @@ bool mstep(const mdat &D, const double *wk, double *b, double *s, double *work) 
   }
   for (int j = 0; j < r; ++j)
     for (int l = 0; l <= j; ++l) s[j + r * l] = s[l + r * j] = sc[j + r * l] / tw;
+  // a residual variance below the rounding level of its indicator (sd under
+  // 64 ulps of the root mean square) is zero in all but rounding: refused,
+  // so the outcome does not depend on how the arithmetic was contracted
+  const double e64 = 64.0 * std::numeric_limits<double>::epsilon();
+  for (int j = 0; j < r; ++j)
+    if (!(s[j + r * j] > e64 * e64 * (m2[j] / tw))) return false;
   return true;
 }
 

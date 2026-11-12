@@ -190,7 +190,20 @@ void t_mvt() {
     clab_mvtll(y2, 60, 6, 2, X, 2, 2, beta, sig, prob, w, &l1, work);
     TK("mvt.missing", std::isfinite(l1) && l1 > ll);
   }
-  // 6. guards
+  // 6. a constant indicator (gbmt 0.1.4 stops with "0 (non-NA) cases",
+  // dossier csls/d/gbmt.md section 3): its residual covariance is singular,
+  // reported as CLAB_EDOM instead of a crash
+  {
+    static double yc[720];
+    for (int j = 0; j < 720; ++j) yc[j] = j < 360 ? Y[j] : 1.0;
+    double b2[8], s2[8], p2[2] = {prob[0], prob[1]};
+    for (int j = 0; j < 8; ++j) {
+      b2[j] = beta[j];
+      s2[j] = sig[j];
+    }
+    TK("mvt.constant", clab_mvtem(yc, 60, 6, 2, X, 2, 2, b2, s2, p2, w, &ll, 50, 1e-12, &it, work) == CLAB_EDOM);
+  }
+  // 7. guards
   {
     double bad[8] = {1, 2, 2, 1, 1, 0, 0, 1};  // first covariance not positive definite
     TK("mvt.guard.pd", clab_mvtll(Y, 60, 6, 2, X, 2, 2, beta, bad, prob, w, &ll, work) == CLAB_EDOM);
