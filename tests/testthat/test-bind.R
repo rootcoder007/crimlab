@@ -69,6 +69,18 @@ test_that("a genotype of two values becomes a one-row table", {
                    kinidx(c(0.3, 0.3), c(0.3, 0.3), c(0.1, 0.1)))
 })
 
+test_that("many alleles are coded alike by value and by label", {
+  # whole numbers are coded by value, other labels as text; both must agree
+  # on every locus, however many alleles share the hash table
+  g <- cbind(1:3000, 3001:6000)
+  h <- cbind(3001:6000, 1:3000)
+  f <- matrix(0.001, 3000, 2)
+  t <- function(x) matrix(as.character(x), ncol = 2)
+  expect_identical(kinidx(g, h, f), kinidx(t(g), t(h), f))
+  expect_identical(patidx(g, h, f, g), patidx(t(g), t(h), f, t(g)))
+  expect_error(kinidx(c(1, 2), c(1, 2), c(0.1, 0.2), NA_character_), "`rel`")
+})
+
 test_that("loci are named as names(g[, 1L]) names them", {
   f <- c(0.1, 0.2)
   m <- function(...) matrix(1:2, 1, dimnames = list(...))

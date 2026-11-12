@@ -57,6 +57,8 @@ int whole(SEXP x, const char *nm, int lo);
 void lgl(SEXP x, const char *nm, R_xlen_t n);
 // .ref(): the group named or numbered by ref, one-based.
 int ref(SEXP r, SEXP nms, int n);
+// as.character(seq_len(n)).
+SEXP seqs(R_xlen_t n);
 // .grp(): names(x), or "1", "2", ... for each value of x.
 SEXP grp(SEXP x);
 
@@ -64,7 +66,7 @@ SEXP grp(SEXP x);
 // every platform. R's sum() accumulates in long double where the platform
 // has one, so the old values could differ from these in the last bits.
 double nsum(const double *x, R_xlen_t n);
-// mean(): the sum over n, then one correction pass, as R does.
+// mean(): the sum over n, then one correction pass, as R does (in double).
 double nmean(const double *x, R_xlen_t n);
 // 10^y as R's ^ gives it (y == 2 is x * x, otherwise R_pow).
 double rpow(double x, double y);

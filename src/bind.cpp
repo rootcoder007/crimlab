@@ -11,7 +11,9 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdio>
+#include <cstdint>
 #include <cstring>
+#include <utility>
 
 #include "crimlab.h"
 #include "rchk.h"
@@ -45,45 +47,120 @@ bool pos(const double *p, R_xlen_t n, const int *keep = nullptr) {
   return false;
 }
 
-// The keys of a character vector and the positions in key order, in R's
-// transient memory: string sets are matched by sorting, never pairwise.
+// A string set: the keys of a character vector in an open-addressing hash
+// table, in R's transient memory, so matching is one pass (as R's match()
+// hashes), never pairwise. first[i] marks the first appearance of a value;
+// nd counts the distinct values.
 struct Keys {
   Key *k;
-  R_xlen_t *o;
-  R_xlen_t n;
+  R_xlen_t *slot;
+  char *first;
+  R_xlen_t cap, n, nd;
 };
 
-Keys keys(SEXP s) {
-  const R_xlen_t n = XLENGTH(s);
-  Keys r{reinterpret_cast<Key *>(R_alloc(static_cast<std::size_t>(n), sizeof(Key))),
-         reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(R_xlen_t))), n};
-  for (R_xlen_t i = 0; i < n; ++i) {
-    r.k[i] = clab::key(STRING_ELT(s, i));
-    r.o[i] = i;
+std::uint64_t hash(const Key &x) {
+  // FNV-1a over the UTF-8 bytes; NA and "bytes" strings hash apart
+  std::uint64_t h = x.s == nullptr ? 1u : (x.b ? 2u : 3u);
+  for (const unsigned char *p = reinterpret_cast<const unsigned char *>(x.s); p && *p; ++p) {
+    h = (h ^ *p) * 1099511628211u;
   }
-  const Key *k = r.k;
-  std::stable_sort(r.o, r.o + n, [k](R_xlen_t a, R_xlen_t b) {
-    return clab::kcmp(k[a], k[b]) < 0;
-  });
-  return r;
+  return h;
+}
+
+// the slot that holds x, or the empty slot where x would go
+R_xlen_t probe(const Keys &s, const Key &x) {
+  R_xlen_t i = static_cast<R_xlen_t>(hash(x) & static_cast<std::uint64_t>(s.cap - 1));
+  while (s.slot[i] >= 0 && clab::kcmp(s.k[s.slot[i]], x) != 0) i = (i + 1) & (s.cap - 1);
+  return i;
+}
+
+Keys keys(SEXP v) {
+  const R_xlen_t n = XLENGTH(v);
+  Keys s{nullptr, nullptr, nullptr, 2, n, 0};
+  while (s.cap < 2 * n) s.cap *= 2;
+  s.k = reinterpret_cast<Key *>(R_alloc(static_cast<std::size_t>(n), sizeof(Key)));
+  s.first = R_alloc(static_cast<std::size_t>(n), 1);
+  s.slot = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(s.cap), sizeof(R_xlen_t)));
+  for (R_xlen_t i = 0; i < s.cap; ++i) s.slot[i] = -1;
+  for (R_xlen_t i = 0; i < n; ++i) {
+    s.k[i] = clab::key(STRING_ELT(v, i));
+    const R_xlen_t j = probe(s, s.k[i]);
+    s.first[i] = s.slot[j] < 0;
+    if (s.first[i]) {
+      s.slot[j] = i;
+      ++s.nd;
+    }
+  }
+  return s;
 }
 
 // x %in% the set
-bool has(const Keys &s, const Key &x) {
-  const Key *k = s.k;
-  const R_xlen_t *p = std::lower_bound(
-      s.o, s.o + s.n, x,
-      [k](R_xlen_t a, const Key &v) { return clab::kcmp(k[a], v) < 0; });
-  return p != s.o + s.n && clab::kcmp(k[*p], x) == 0;
+bool has(const Keys &s, const Key &x) { return s.n > 0 && s.slot[probe(s, x)] >= 0; }
+
+// Doubles (no NaN) as unsigned integers in the same order: the IEEE 754
+// bit pattern (R requires IEEE 754), sign bit flipped for positives and
+// all bits for negatives; -0 is read as 0 so that the two tie, as they
+// compare equal.
+constexpr std::uint64_t top = std::uint64_t{1} << 63;
+
+std::uint64_t ukey(double x) {
+  const double v = x == 0 ? 0.0 : x;
+  std::uint64_t u;
+  std::memcpy(&u, &v, sizeof u);
+  return (u & top) ? ~u : (u | top);
 }
 
-// the number of distinct values
-R_xlen_t ndist(const Keys &s) {
-  R_xlen_t d = 0;
-  for (R_xlen_t i = 0; i < s.n; ++i) {
-    if (i == 0 || clab::kcmp(s.k[s.o[i - 1]], s.k[s.o[i]]) != 0) ++d;
+// LSD radix sort of n keys, 16 bits a pass, carrying the int tags o along
+// when o is given (stable); a pass on which every key has the same digit
+// is skipped. The result is left in k (and o).
+void radix(std::uint64_t *k, int *o, int n) {
+  std::uint64_t *k2 = reinterpret_cast<std::uint64_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(std::uint64_t)));  // NOLINT
+  int *o2 = o ? reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int))) : nullptr;
+  int *cnt = reinterpret_cast<int *>(R_alloc(65536, sizeof(int)));
+  std::uint64_t *ka = k;
+  int *oa = o;
+  for (int sh = 0; sh < 64; sh += 16) {
+    std::memset(cnt, 0, 65536 * sizeof(int));
+    for (int i = 0; i < n; ++i) ++cnt[(ka[i] >> sh) & 0xffff];
+    if (n == 0 || cnt[(ka[0] >> sh) & 0xffff] == n) continue;
+    for (int d = 0, t = 0; d < 65536; ++d) {
+      const int c = cnt[d];
+      cnt[d] = t;
+      t += c;
+    }
+    for (int i = 0; i < n; ++i) {
+      const int p = cnt[(ka[i] >> sh) & 0xffff]++;
+      k2[p] = ka[i];
+      if (o) o2[p] = oa[i];
+    }
+    std::swap(ka, k2);
+    std::swap(oa, o2);
   }
-  return d;
+  if (ka != k) {
+    std::memcpy(k, ka, static_cast<std::size_t>(n) * sizeof(std::uint64_t));
+    if (o) std::memcpy(o, oa, static_cast<std::size_t>(n) * sizeof(int));
+  }
+}
+
+// order(x) for n doubles without NaN: stable, as R's radix order is
+void rorder(const double *x, int n, int *o) {
+  std::uint64_t *k = reinterpret_cast<std::uint64_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(std::uint64_t)));  // NOLINT
+  for (int i = 0; i < n; ++i) {
+    k[i] = ukey(x[i]);
+    o[i] = i;
+  }
+  radix(k, o, n);
+}
+
+// sort(x) in place for n doubles without NaN
+void rsort(double *x, int n) {
+  std::uint64_t *k = reinterpret_cast<std::uint64_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(std::uint64_t)));  // NOLINT
+  for (int i = 0; i < n; ++i) k[i] = ukey(x[i]);
+  radix(k, nullptr, n);
+  for (int i = 0; i < n; ++i) {
+    const std::uint64_t u = (k[i] & top) ? (k[i] & ~top) : ~k[i];
+    std::memcpy(x + i, &u, sizeof u);
+  }
 }
 
 const char *const vodnm[] = {"group", "share_day", "share_night", "ratio",
@@ -395,11 +472,11 @@ double mix(SEXP pv, const Keys &nk, SEXP need, SEXP x, const char *a,
   // !is.character(need) || anyNA(need) || !all(need %in% nms) ||
   //   length(unique(need)) > 20L
   bool bad = TYPEOF(need) != STRSXP || clab::anyna(need);
-  Keys nd{nullptr, nullptr, 0};
+  Keys nd{};
   if (!bad) {
     nd = keys(need);
     for (R_xlen_t i = 0; i < nd.n && !bad; ++i) bad = !has(nk, nd.k[i]);
-    bad = bad || ndist(nd) > 20;
+    bad = bad || nd.nd > 20;
   }
   if (bad) fail("`%s` must be names of `p`, at most 20.", a);
   // !is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 ||
@@ -428,10 +505,10 @@ SEXP C_clab_r_mixlr(SEXP p, SEXP np, SEXP xp, SEXP nd, SEXP xd) {
   const int n = ilen(XLENGTH(pv), "p");
   // is.null(nms) || anyDuplicated(nms) || sum(p) > 1 + 1e-12
   bool bad = Rf_isNull(nms);
-  Keys nk{nullptr, nullptr, 0};
+  Keys nk{};
   if (!bad) {
     nk = keys(nms);
-    bad = ndist(nk) != nk.n;
+    bad = nk.nd != nk.n;
   }
   if (bad || clab::nsum(REAL_RO(pv), n) > 1 + 1e-12) {
     fail("`p` must be uniquely named with a sum of at most 1.");
@@ -490,16 +567,17 @@ Cal cal(SEXP same, SEXP diff) {
   const int n = ns + nd;
   const double *sp = REAL_RO(c.s), *dp = REAL_RO(c.d);
   // lr <- c(same, diff); o <- order(lr): a stable order, as R's radix sort
-  int *o = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
-  for (int j = 0; j < n; ++j) o[j] = j;
-  auto v = [sp, dp, ns](int j) { return j < ns ? sp[j] : dp[j - ns]; };
-  std::stable_sort(o, o + n, [&v](int a, int b) { return v(a) < v(b); });
   double *lr = reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(n), sizeof(double)));
+  std::memcpy(lr, sp, static_cast<std::size_t>(ns) * sizeof(double));
+  std::memcpy(lr + ns, dp, static_cast<std::size_t>(nd) * sizeof(double));
+  int *o = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
+  rorder(lr, n, o);
   int *is = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
-  for (int k = 0; k < n; ++k) {
-    lr[k] = v(o[k]);
-    is[k] = o[k] < ns;
-  }
+  for (int k = 0; k < n; ++k) is[k] = o[k] < ns;
+  // lr[o], in place through the stable order: copy the sorted values
+  double *ls = reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(n), sizeof(double)));
+  for (int k = 0; k < n; ++k) ls[k] = lr[o[k]];
+  lr = ls;
   double *post = reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(n), sizeof(double)));
   double *work = reinterpret_cast<double *>(R_alloc(2 * static_cast<std::size_t>(n), sizeof(double)));
   kchk(clab_lrcal(lr, is, n, post, work, &c.min), ".cal(same, diff)");
@@ -522,8 +600,9 @@ SEXP curve(SEXP x) {
   SET_VECTOR_ELT(out, 0, l);
   double *lp = REAL(l);
   const double *xp = REAL_RO(x);
+  // sort(log10(x)); x passed ilen() in the caller
   for (R_xlen_t i = 0; i < n; ++i) lp[i] = std::log10(xp[i]);
-  std::sort(lp, lp + n);
+  rsort(lp, static_cast<int>(n));
   SEXP s = real(n);
   SET_VECTOR_ELT(out, 1, s);
   double *sp = REAL(s);
@@ -594,6 +673,8 @@ SEXP C_clab_r_lrcal(SEXP same, SEXP diff) {
 SEXP C_clab_r_tipplt(SEXP same, SEXP diff) {
   SEXP s = PROTECT(num(same, "same", -1, 0.0, true));
   SEXP d = PROTECT(num(diff, "diff", -1, 0.0, true));
+  ilen(XLENGTH(s), "same");
+  ilen(XLENGTH(d), "diff");
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(out, 0, curve(s));
   SET_VECTOR_ELT(out, 1, curve(d));
@@ -758,29 +839,55 @@ void kin(SEXP rel, double *k) {
 // codes, so a code is the label's rank in code-point order (R numbered
 // labels by first appearance), found by one sort, not pairwise.
 void codes(SEXP *g, int m, int nr, int **out) {
-  if (nr > INT_MAX / (2 * m)) fail("`%s` is too long for crimlab: more than %d values.", "g1", INT_MAX);  // NOLINT
-  const R_xlen_t w = 2 * static_cast<R_xlen_t>(nr), all = m * w;
-  Key *k = reinterpret_cast<Key *>(R_alloc(static_cast<std::size_t>(all), sizeof(Key)));
-  for (int j = 0; j < m; ++j) {
-    SEXP s = PROTECT(clab::labs(g[j]));
-    for (R_xlen_t i = 0; i < w; ++i) k[j * w + i] = clab::key(STRING_ELT(s, i));
-    UNPROTECT(1);
-  }
-  R_xlen_t *o = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(all), sizeof(R_xlen_t)));
-  for (R_xlen_t i = 0; i < all; ++i) o[i] = i;
-  std::sort(o, o + all, [k](R_xlen_t a, R_xlen_t b) { return clab::kcmp(k[a], k[b]) < 0; });
-  int *cls = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(all), sizeof(int)));
-  int id = 0;
-  for (R_xlen_t i = 0; i < all; ++i) {
-    if (i > 0 && clab::kcmp(k[o[i - 1]], k[o[i]]) != 0) ++id;
-    cls[o[i]] = id + 1;
-  }
+  if (nr > INT_MAX / (8 * m)) fail("`%s` is too long for crimlab: more than %d values.", "g1", INT_MAX);  // NOLINT
+  const int w = 2 * nr, all = m * w;
   for (int j = 0; j < m; ++j) {
     out[j] = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(w), sizeof(int)));
-    for (int i = 0; i < nr; ++i) {
-      out[j][2 * i] = cls[j * w + i];
-      out[j][2 * i + 1] = cls[j * w + nr + i];
+  }
+  // u <- unique(c(as.character(g1), ...)); match(as.character(g), u), by
+  // one open-addressing hash table: a label's code is one plus the flat
+  // position of its first appearance (R numbered the labels 1, 2, ...;
+  // the kernels only compare codes). Allele p of the flat order (table j,
+  // column c, row i) gets its code in out[j][2 * i + c].
+  int cap = 2, bits = 1;
+  while (cap < 2 * all) {
+    cap *= 2;
+    ++bits;
+  }
+  int *slot = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(cap), sizeof(int)));
+  for (int i = 0; i < cap; ++i) slot[i] = -1;
+  // Whole numbers below 1e15 in size have one text each, and two of them
+  // have the same text exactly when they are equal: such tables are coded
+  // by value, without making a string.
+  bool whole = true;
+  for (int j = 0; j < m && whole; ++j) whole = TYPEOF(g[j]) != STRSXP;
+  auto val = [g, w](int p) {
+    SEXP x = g[p / w];
+    return TYPEOF(x) == INTSXP ? INTEGER_RO(x)[p % w] : REAL_RO(x)[p % w];
+  };
+  for (int p = 0; p < all && whole; ++p) {
+    const double v = val(p);
+    whole = v == std::floor(v) && std::fabs(v) < 1e15;
+  }
+  Key *k = nullptr;
+  if (!whole) {
+    k = reinterpret_cast<Key *>(R_alloc(static_cast<std::size_t>(all), sizeof(Key)));
+    for (int j = 0; j < m; ++j) {
+      SEXP s = PROTECT(clab::labs(g[j]));
+      for (int i = 0; i < w; ++i) k[j * w + i] = clab::key(STRING_ELT(s, i));
+      UNPROTECT(1);
     }
+  }
+  for (int p = 0; p < all; ++p) {
+    // Fibonacci hashing: the top bits of the product mix every key bit
+    const std::uint64_t h = (whole ? ukey(val(p)) : hash(k[p])) * 0x9e3779b97f4a7c15u;
+    int i = static_cast<int>(h >> (64 - bits));
+    while (slot[i] >= 0 && (whole ? val(slot[i]) != val(p) : clab::kcmp(k[slot[i]], k[p]) != 0)) {
+      i = (i + 1) & (cap - 1);
+    }
+    if (slot[i] < 0) slot[i] = p;
+    const int j = p / w, c = (p % w) / nr, r = p % nr;
+    out[j][2 * r + c] = slot[i] + 1;
   }
 }
 
@@ -793,18 +900,15 @@ SEXP idx(SEXP g, SEXP ix) {
   SEXP dn = Rf_getAttrib(g, R_DimNamesSymbol);
   SEXP rn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 0);
   SEXP cn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 1);
-  SEXP nm = PROTECT(Rf_allocVector(STRSXP, nr));
+  SEXP nm;
   if (nr == 1 && Rf_isNull(rn) != Rf_isNull(cn)) {
-    SET_STRING_ELT(nm, 0, STRING_ELT(Rf_isNull(rn) ? cn : rn, 0));
+    nm = Rf_ScalarString(STRING_ELT(Rf_isNull(rn) ? cn : rn, 0));
   } else if (nr > 1 && !Rf_isNull(rn)) {
-    for (int i = 0; i < nr; ++i) SET_STRING_ELT(nm, i, STRING_ELT(rn, i));
+    nm = rn;
   } else {
-    char b[16];
-    for (int i = 0; i < nr; ++i) {
-      std::snprintf(b, sizeof b, "%d", i + 1);
-      SET_STRING_ELT(nm, i, Rf_mkChar(b));
-    }
+    nm = clab::seqs(nr);
   }
+  PROTECT(nm);
   // l10 <- sum(log10(idx)); post = 1 / (1 + 10^(-l10))
   double *lg = reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(nr), sizeof(double)));
   for (int i = 0; i < nr; ++i) lg[i] = std::log10(REAL_RO(ix)[i]);
@@ -1284,26 +1388,20 @@ SEXP C_clab_r_proof(SEXP fn) {
   if (!all && (TYPEOF(fn) != STRSXP || clab::anyna(fn))) {
     fail("`fn` must be function names.");
   }
-  Keys fk{nullptr, nullptr, 0};
+  Keys fk{};
   if (!all) {
     fk = keys(fn);
     // miss <- setdiff(fn, t[["fn"]]): the first appearance of each unknown
-    // name, in the order given. The sort is stable, so the first of a run
-    // of equal keys is the first appearance.
+    // name, in the order given
     char *miss = R_alloc(static_cast<std::size_t>(fk.n), 1);
     std::size_t len = 0;
-    for (R_xlen_t j = 0; j < fk.n; ++j) {
-      const R_xlen_t i = fk.o[j];
-      miss[i] = 0;
-      if (j > 0 && clab::kcmp(fk.k[fk.o[j - 1]], fk.k[i]) == 0) continue;
-      bool known = false;
+    for (R_xlen_t i = 0; i < fk.n; ++i) {
+      bool known = !fk.first[i];
       for (int t = 0; t < nthm && !known; ++t) {
         known = clab::kcmp(fk.k[i], Key{thms[t].fn, 0}) == 0;
       }
-      if (!known) {
-        miss[i] = 1;
-        len += std::strlen(Rf_translateChar(STRING_ELT(fn, i))) + 2;
-      }
+      miss[i] = !known;
+      if (!known) len += std::strlen(Rf_translateChar(STRING_ELT(fn, i))) + 2;
     }
     if (len > 0) {
       // toString(miss): joined by ", "

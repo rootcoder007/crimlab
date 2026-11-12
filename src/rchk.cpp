@@ -249,19 +249,24 @@ int ref(SEXP r, SEXP nms, int n) {
   return static_cast<int>(v);
 }
 
+SEXP seqs(R_xlen_t n) {
+  // as.character(seq_len(n)): integers (doubles past INT_MAX) coerced as
+  // as.character() coerces them; R defers the conversion of a vector
+  // without attributes, so no string is made until one is read
+  const bool big = n > INT_MAX;
+  SEXP v = PROTECT(Rf_allocVector(big ? REALSXP : INTSXP, n));
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (big) REAL(v)[i] = static_cast<double>(i + 1); else INTEGER(v)[i] = static_cast<int>(i + 1);  // NOLINT
+  }
+  SEXP s = Rf_coerceVector(v, STRSXP);
+  UNPROTECT(1);
+  return s;
+}
+
 SEXP grp(SEXP x) {
   // if (is.null(names(x))) as.character(seq_along(x)) else names(x)
   SEXP nm = Rf_getAttrib(x, R_NamesSymbol);
-  if (!Rf_isNull(nm)) return nm;
-  const R_xlen_t n = Rf_xlength(x);
-  SEXP out = PROTECT(Rf_allocVector(STRSXP, n));
-  char b[32];
-  for (R_xlen_t i = 0; i < n; ++i) {
-    std::snprintf(b, sizeof b, "%lld", static_cast<long long>(i) + 1);
-    SET_STRING_ELT(out, i, Rf_mkChar(b));
-  }
-  UNPROTECT(1);
-  return out;
+  return Rf_isNull(nm) ? seqs(Rf_xlength(x)) : nm;
 }
 
 double nsum(const double *x, R_xlen_t n) {
@@ -282,8 +287,12 @@ double nmean(const double *x, R_xlen_t n) {
   // terms averaged here are logarithms (below 2000 in size) of at most
   // INT_MAX ratios, so the sum cannot overflow and that branch is not
   // needed.
+  // The first sum is plain, left to right: the correction pass that
+  // follows compensates it, as in R.
   const double dn = static_cast<double>(n);
-  double s = nsum(x, n) / dn;
+  double s = 0.0;
+  for (R_xlen_t i = 0; i < n; ++i) s += x[i];
+  s /= dn;
   if (!std::isfinite(s)) return s;
   double t = 0.0;
   for (R_xlen_t i = 0; i < n; ++i) t += x[i] - s;
@@ -314,6 +323,8 @@ bool seql(SEXP a, SEXP b) {
   // NA; a "bytes" string equals only a "bytes" string of the same bytes
   if (a == b) return true;
   if (a == NA_STRING || b == NA_STRING) return false;
+  // two strings of one encoding are one CHARSXP when they are equal
+  if (Rf_getCharCE(a) == Rf_getCharCE(b)) return false;
   const void *v = vmaxget();
   const bool eq = kcmp(key(a), key(b)) == 0;
   vmaxset(v);
