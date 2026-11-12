@@ -38,14 +38,14 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Build and install, warnings as errors
         shell: bash
-        run: |
-          # setuptools passes CXXFLAGS to g++ and clang++; cl.exe reads CL
-          if [ "$RUNNER_OS" = Windows ]; then export CL=/WX; else export CXXFLAGS=-Werror; fi
-          python -m pip install -v ./py 2>&1 | tail -n 40
+        # setup.py adds -Werror or /WX; CXXFLAGS would replace Python's own
+        # compile flags, -O2 among them
+        env:
+          CLAB_WERROR: '1'
+        run: python -m pip install -v ./py 2>&1 | tail -n 40
       - name: Test dependencies
-        # optional for the package; the tests of arrays, pandas and plots
-        # are skipped without them
-        run: python -m pip install pytest numpy pandas matplotlib
+        # pytest only: the package and its tests need nothing else
+        run: python -m pip install pytest
       - name: Tests
         working-directory: py/tests
         # The failed-allocation sweep (CLAB_NOMEM=1) is off here: its
@@ -56,6 +56,13 @@ jobs:
         env:
           CLAB_NOMEM: '0'
         run: python -X dev -m pytest -q -ra
+      - name: Optional packages
+        # NumPy, pandas and matplotlib work with crimlab without being
+        # imported by it: tests/opt.py, the one file that imports them
+        working-directory: py/tests
+        run: |
+          python -m pip install numpy pandas matplotlib
+          python -m pytest -q -ra opt.py
       - name: Doctests
         working-directory: ${{ runner.temp }}
         run: python -m pytest -q --doctest-modules --pyargs crimlab -o doctest_optionflags=NORMALIZE_WHITESPACE
@@ -87,9 +94,7 @@ jobs:
           CIBW_BUILD: cp310-*
           CIBW_ARCHS: auto64
           CIBW_ARCHS_MACOS: arm64 x86_64
-          CIBW_ENVIRONMENT_LINUX: CXXFLAGS=-Werror
-          CIBW_ENVIRONMENT_MACOS: CXXFLAGS=-Werror
-          CIBW_ENVIRONMENT_WINDOWS: CL=/WX
+          CIBW_ENVIRONMENT: CLAB_WERROR=1
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: python -m pytest -q {package}/tests
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
