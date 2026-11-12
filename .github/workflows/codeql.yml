@@ -1,0 +1,68 @@
+# Static analysis with CodeQL (security-extended queries): the C++ kernels
+# and both bindings as they are compiled for R and for Python, the Python
+# package, and the workflows themselves. On every push and pull request to
+# main and weekly. Findings appear under Security > Code scanning.
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "23 6 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  analyze:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: c-cpp
+            mode: manual
+          - language: python
+            mode: none
+          - language: actions
+            mode: none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        if: matrix.language == 'c-cpp'
+        with:
+          r-version: release
+          use-public-rspm: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        if: matrix.language == 'c-cpp'
+        with:
+          python-version: '3.13'
+      - uses: github/codeql-action/init@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.mode }}
+          queries: security-extended
+      - name: build the R package and the Python extension
+        if: matrix.language == 'c-cpp'
+        # both compile the same kernels; the R build adds the R binding
+        # (src/bind.cpp, src/rchk.cpp), the Python build its extension
+        run: |
+          R CMD INSTALL --no-docs --no-test-load .
+          python -m pip install -v ./py
+      - uses: github/codeql-action/analyze@33d7b85da1a04171e211befe2c739303b9a4c066 # v4.39.3
+        with:
+          category: "/language:${{ matrix.language }}"
