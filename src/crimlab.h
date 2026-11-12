@@ -1242,6 +1242,31 @@ int clab_locgi(const double *x, int n, const int *rp, const int *ci,
  * sqrt(-2 log R) (Mardia and Jupp 2000, doi:10.1002/9780470316979, ch. 2),
  * and the total weight. Out, 5. O(n). */
 int clab_dirmn(const double *a, const double *w, int n, double *out);
+/* A line chart as a standalone SVG document (UTF-8), the picture of the
+ * plots of every binding. k (1 to 3) curves: curve j has np[j] >= 1 points
+ * (x[i], y[i]) from i = off[j], drawn as steps (step[j] 1: across to the
+ * next x, then up or down) or as straight lines (0), dash[j] 0 solid, 1
+ * dashed, 2 dotted, with lab[j] in the legend. title, xlab, ylab: text,
+ * escaped here. vline 1 adds a dotted vertical line at x = vx. corner puts
+ * the legend top left (0), top right (1), bottom left (2) or bottom right
+ * (3) inside the plot box. The canvas
+ * is 640 x 400 px; the plot box spans x 64 to 624 and y 40 to 348. The x
+ * axis spans the data (and vx), the y axis the data and 0, each padded 4%
+ * either way (a single value is first widened by 1 either way); ticks fall
+ * at 1, 2 or 5 times a power of 10. Text is real text (a system sans-serif
+ * stack); colours suit light and dark backgrounds (prefers-color-scheme).
+ * Two passes: with cap 0, *len receives the length of the document
+ * (without its NUL); with cap > *len the document is written into out,
+ * NUL-terminated. Numbers are written without printf: the bytes do not
+ * depend on the locale or the platform. CLAB_EDOM for a non-finite point
+ * or vx; CLAB_EARG for k or corner out of range, an empty curve or a cap
+ * too small. */
+int clab_svgln(int k, const int *off, const int *np, const double *x,
+               const double *y, const int *step, const int *dash,
+               const char *const *lab, const char *title, const char *xlab,
+               const char *ylab, int vline, double vx, int corner, char *out,
+               int cap, int *len);
+
 #ifdef __cplusplus
 }
 #endif

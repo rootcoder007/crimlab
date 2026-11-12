@@ -123,6 +123,7 @@ void t_spt(tk &t, int big);
 void b_spt();
 void t_orc(tk &t, int big);
 void t_net(tk &t, int big);
+void t_svg(tk &t, int big);
 
 #ifdef CLAB_MAIN
 // The standalone program only: the median of five timings (sorts t).
