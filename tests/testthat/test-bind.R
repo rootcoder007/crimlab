@@ -114,18 +114,15 @@ test_that("kernel errors keep the call the R helper made", {
                    "crimlab: a size or an index is out of range")
 })
 
-test_that("t0 + s past the integers warns and stops as R did", {
-  e <- tryCatch(
-    withCallingHandlers(incapr(c(2, 1), 2147483647, 1), warning = function(w) {
-      expect_identical(conditionMessage(w), "NAs produced by integer overflow")
-      expect_identical(conditionCall(w), quote(t0 + s))
-      invokeRestart("muffleWarning")
-    }),
-    error = identity
+test_that("t0 + s past the largest integer is refused, without a warning", {
+  # the old R code added the two as integers: NA with a warning, then an
+  # error from if (); the sum is now formed in double and checked
+  expect_no_warning(
+    expect_error(incapr(c(2, 1), .Machine$integer.max, 1),
+                 "`lam` must have length at least t0 + s + 1.", fixed = TRUE)
   )
-  expect_identical(conditionMessage(e), "missing value where TRUE/FALSE needed")
-  expect_identical(deparse(conditionCall(e))[1],
-                   "if (t0 + s > length(lam) - 1) {")
+  expect_error(incapr(c(2, 1), 1, .Machine$integer.max),
+               "`lam` must have length at least t0 + s + 1.", fixed = TRUE)
 })
 
 test_that("z must be two labels, ordered by code point", {

@@ -1157,19 +1157,9 @@ SEXP C_clab_r_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
   }
   const int sv = clab::whole(s, "s", 1);
   const int tv = clab::whole(t0, "t0", 0);
-  if (tv > INT_MAX - sv) {
-    // t0 + s overflows R's integers: NA with a warning, and if () stops
-    // on the NA. Both conditions are rebuilt as R raised them.
-    Rf_warningcall(PROTECT(clab::lang("t0 + s")),
-                   "NAs produced by integer overflow");
-    SEXP cl = PROTECT(clab::lang(
-        "if (t0 + s > length(lam) - 1) {\n"
-        "  stop(\"`lam` must have length at least t0 + s + 1.\", call. = FALSE)\n"
-        "}"));
-    Rf_errorcall(cl, "missing value where TRUE/FALSE needed");
-  }
-  // t0 + s > length(lam) - 1
-  if (static_cast<double>(tv + sv) > static_cast<double>(n) - 1) {
+  // t0 + s > length(lam) - 1, summed in double: t0 and s are each at most
+  // INT_MAX, so the sum is exact and cannot overflow
+  if (static_cast<double>(tv) + sv > static_cast<double>(n) - 1) {
     fail("`lam` must have length at least t0 + s + 1.");
   }
   const double rv = clab::p01(r, "r");

@@ -26,3 +26,6 @@
   code used to truncate its length.
 * `eceplt()` gives the calibrated curve its limits at extreme prior odds:
   a calibrated ratio of 0 or infinity used to give `NaN`, or an error.
+* `incapr()` refuses a `t0 + s` beyond the length of `lam` however large
+  the two are; past the largest integer it used to warn of an integer
+  overflow and stop with an unrelated error.
