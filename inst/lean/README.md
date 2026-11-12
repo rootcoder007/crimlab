@@ -1,6 +1,6 @@
 # Proofs
 
-The Lean 4 theorems `csls::proof()` names. Each file imports Mathlib and
+The Lean 4 theorems `crimlab::proof()` names. Each file imports Mathlib and
 nothing else.
 
 To check them (the first run downloads a prebuilt Mathlib, about 5 GB):

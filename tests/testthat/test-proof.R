@@ -5,7 +5,7 @@ test_that("proof() selects rows by function name", {
   two <- proof(c("cllr", "dbsrch"))
   expect_identical(two[["fn"]], c("cllr", "dbsrch"))
   expect_identical(rownames(two), c("1", "2"))
-  expect_true(all(startsWith(p[["theorem"]], "Csls.")))
+  expect_true(all(startsWith(p[["theorem"]], "Crimlab.")))
   expect_error(proof(NA_character_), "function names")
   expect_error(proof(c("cllr", "nope", "zzz")), "nope, zzz")
 })

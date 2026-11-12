@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Select.lean
+  crimlab: inst/lean/Select.lean
 
   Selective labels: evaluating a release rule when outcomes are seen only
   for the released (Lakkaraju, Kleinberg, Leskovec, Ludwig & Mullainathan
@@ -37,7 +37,7 @@ set_option linter.style.header false
 noncomputable section
 open Finset
 
-namespace Csls.Select
+namespace Crimlab.Select
 
 /-- A finite weighted population of defendants with a failure indicator `y ∈ {0,1}`. -/
 structure Pop (Ω : Type*) [Fintype Ω] where
@@ -196,4 +196,4 @@ theorem chain_width_zero_iff {release : ℕ → Finset Ω} (k : ℕ) (M : Finset
     exact Finset.sdiff_eq_empty_iff_subset.1 this
   · intro hsub; rw [Finset.sdiff_eq_empty_iff_subset.2 hsub, Finset.sum_empty]
 
-end Csls.Select
+end Crimlab.Select

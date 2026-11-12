@@ -1,8 +1,8 @@
-# csls
+# crimlab
 
 Criminology and Sociolegal Statistics: statistical methods for courts,
 corrections, policing, forensics and sociolegal research. The computations
-run in a compiled C++17 core with a plain C interface (`src/csls.h`); the R
+run in a compiled C++17 core with a plain C interface (`src/crimlab.h`); the R
 functions check their arguments and call it. Where an identity or a bound
 has a machine-checked proof in Lean, `proof()` names the theorem.
 
@@ -14,7 +14,7 @@ From GitHub:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("rootcoder007/csls")
+remotes::install_github("rootcoder007/crimlab")
 ```
 
 The package needs a C++17 compiler and no R package beyond those that ship
@@ -25,7 +25,7 @@ with R.
 ### Disparities in policing
 
 ```r
-library(csls)
+library(crimlab)
 
 # veil of darkness: does visibility change who is stopped?
 vodtst(day = c(white = 600, black = 400), night = c(white = 700, black = 300))
@@ -113,7 +113,7 @@ proof("vodtst")
 ## Checking the proofs
 
 The Lean 4 files are in `inst/lean` (installed under
-`system.file("lean", package = "csls")`). With
+`system.file("lean", package = "crimlab")`). With
 [elan](https://github.com/leanprover/elan) installed:
 
 ```sh

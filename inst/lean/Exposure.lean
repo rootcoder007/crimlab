@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Exposure.lean
+  crimlab: inst/lean/Exposure.lean
 
   Police-recorded outcomes are conditional on exposure to police.
 
@@ -29,7 +29,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.Exposure
+namespace Crimlab.Exposure
 
 /-- One group: recorded count, true exposure, observed proxy. -/
 structure Grp where
@@ -119,4 +119,4 @@ theorem disparity_sign_identified (A B : Grp) (γ : ℝ) (hγ : 1 ≤ γ) (hA : 
     rw [lt_div_iff₀ (by positivity)]; linarith
   linarith
 
-end Csls.Exposure
+end Crimlab.Exposure

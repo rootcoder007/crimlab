@@ -1,7 +1,7 @@
 #' Machine-checked proofs behind the package
 #'
 #' Names the 'Lean' theorem each function rests on. The theorems ship with
-#' the package: `file` is the path below `system.file(package = "csls")`, and
+#' the package: `file` is the path below `system.file(package = "crimlab")`, and
 #' each file compiles against 'Mathlib'.
 #'
 #' @param fn `NULL` for every function, or function names.
@@ -27,7 +27,7 @@ proof <- function(fn = NULL) {
 
 # One row per theorem of function fn, from lean/<mod>.lean.
 .prow <- function(fn, mod, thm) {
-  data.frame(fn = fn, theorem = paste0("Csls.", mod, ".", thm),
+  data.frame(fn = fn, theorem = paste0("Crimlab.", mod, ".", thm),
              file = paste0("lean/", mod, ".lean"))
 }
 

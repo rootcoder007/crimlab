@@ -1,7 +1,7 @@
-# Contributing to csls
+# Contributing to crimlab
 
 Bug reports and pull requests are welcome at
-<https://github.com/rootcoder007/csls/issues>.
+<https://github.com/rootcoder007/crimlab/issues>.
 
 A bug report is most useful with a small reproducible example: the call,
 what it returned, and what you expected.
@@ -9,7 +9,7 @@ what it returned, and what you expected.
 Before a pull request:
 
 * Computation belongs in the C++ core (`src/core.cpp`, declared in
-  `src/csls.h`); the R functions check arguments and call it.
+  `src/crimlab.h`); the R functions check arguments and call it.
 * Every change comes with tests in `tests/testthat`. Coverage of R and C++
   must not fall below the floor in `.github/workflows/coverage.yml`.
 * `lintr::lint_package()` must report no lints, and

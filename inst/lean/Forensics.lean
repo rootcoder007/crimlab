@@ -1,5 +1,5 @@
 /-
-  csls: the identities and bounds the forensic functions rest on.
+  crimlab: the identities and bounds the forensic functions rest on.
 
   Compiles against Mathlib (Lean 4). Each theorem is named by proof() in the
   R package next to the function that relies on it.
@@ -23,7 +23,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.Forensics
+namespace Crimlab.Forensics
 
 /-- Balding-Nichols match probability of a homozygote. -/
 def bnHom (θ p : ℝ) : ℝ :=
@@ -113,4 +113,4 @@ theorem po_identical_het (p q : ℝ) (hp : 0 < p) (hq : 0 < q) :
   field_simp
   ring
 
-end Csls.Forensics
+end Crimlab.Forensics

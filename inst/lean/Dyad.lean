@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Dyad.lean
+  crimlab: inst/lean/Dyad.lean
 
   P2, continued: interracial crime rates with race-of-offender
   denominators (Stolzenberg, Eitle & D'Alessio 2006; Blau's random-mixing
@@ -25,7 +25,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.Dyad
+namespace Crimlab.Dyad
 
 /-- Expected A-on-B offences under random mixing. -/
 def mixing (k pA pB N : ℝ) : ℝ := k * pA * pB * N
@@ -50,4 +50,4 @@ theorem pair_exposure_rate_constant (k pA pB N : ℝ) (hA : 0 < pA) (hB : 0 < pB
     mixing k pA pB N / (pA * pB * N) = k := by
   unfold mixing; field_simp
 
-end Csls.Dyad
+end Crimlab.Dyad

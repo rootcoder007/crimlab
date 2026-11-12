@@ -34,7 +34,7 @@ gtmp <- function(p, q = NULL, hom = FALSE, theta = 0) {
   if (any(p > 1)) stop("`p` must be at most 1.", call. = FALSE)
   hom <- .hom(hom, n)
   q <- .gq(q, p, hom)
-  r <- .Call(C_csls_gtmp, p, q, hom, .theta(theta))
+  r <- .Call(C_clab_gtmp, p, q, hom, .theta(theta))
   list(locus = data.frame(locus = nms, hom = hom, mp = r[["locus"]]),
        log10mp = r[["log10mp"]], log10lr = -r[["log10mp"]])
 }
@@ -61,7 +61,7 @@ gtmp <- function(p, q = NULL, hom = FALSE, theta = 0) {
 cllr <- function(same, diff) {
   same <- .num(same, "same", lo = 0, open = TRUE)
   diff <- .num(diff, "diff", lo = 0, open = TRUE)
-  .Call(C_csls_cllr, same, diff)
+  .Call(C_clab_cllr, same, diff)
 }
 
 #' Posterior probability from a likelihood ratio

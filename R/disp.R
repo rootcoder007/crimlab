@@ -39,7 +39,7 @@ vodtst <- function(day, night, ref = 1, shift = NULL) {
   if (day[i] <= 0) {
     stop("the reference group has no daylight stops.", call. = FALSE)
   }
-  r <- .Call(C_csls_vod, day, night, i - 1L, shift)
+  r <- .Call(C_clab_vod, day, night, i - 1L, shift)
   out <- data.frame(group = nms, share_day = r[["share_day"]],
                     share_night = r[["share_night"]], ratio = r[["ratio"]],
                     sign = r[["sign"]])
@@ -70,7 +70,7 @@ orrisk <- function(or, rate, share) {
   }
   rate <- .one(rate, "rate", 0, 1)
   share <- .one(share, "share", 0, 1)
-  r <- .Call(C_csls_orrisk, or, rate, share)
+  r <- .Call(C_clab_orrisk, or, rate, share)
   c(exposed = r[1L], unexposed = r[2L], rr = r[1L] / r[2L], or = or)
 }
 
@@ -102,7 +102,7 @@ outtst <- function(q, t, w = NULL) {
     .num(w, "w", len = length(q), lo = 0)
   }
   if (sum(w) <= 0) stop("`w` must have a positive total.", call. = FALSE)
-  r <- .Call(C_csls_outtst, q, w, t)
+  r <- .Call(C_clab_outtst, q, w, t)
   c(stop = r[1L], hit = r[2L])
 }
 
@@ -130,7 +130,7 @@ dspbm <- function(pop, contact, force, ref = 1) {
   contact <- .num(contact, "contact", len = n, lo = 0, open = TRUE)
   force <- .num(force, "force", len = n, lo = 0, open = TRUE)
   i <- .ref(ref, nms, n)
-  r <- .Call(C_csls_dspbm, pop, contact, force, i - 1L)
+  r <- .Call(C_clab_dspbm, pop, contact, force, i - 1L)
   data.frame(group = nms, cd = r[["cd"]], fd = r[["fd"]], rd = r[["rd"]])
 }
 
@@ -165,7 +165,7 @@ dyadrt <- function(count, pop) {
   if (sum(x) <= 0) stop("`count` holds no offences.", call. = FALSE)
   off <- rep(seq_len(g), times = g)
   vic <- rep(seq_len(g), each = g)
-  r <- .Call(C_csls_dyadrt, x, off - 1L, vic - 1L, pop)
+  r <- .Call(C_clab_dyadrt, x, off - 1L, vic - 1L, pop)
   data.frame(off = nms[off], vic = nms[vic], count = x,
              rate_off = r[["rate_off"]], rate_pair = r[["rate_pair"]],
              null_off = r[["null_off"]], ratio = r[["ratio"]])

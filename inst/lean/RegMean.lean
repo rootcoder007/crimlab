@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/RegMean.lean
+  crimlab: inst/lean/RegMean.lean
 
   Regression to the mean at selected hot spots: crime falls at the places
   chosen for being high, with no treatment at all (Galton 1886; Campbell &
@@ -34,7 +34,7 @@ set_option linter.style.header false
 noncomputable section
 open Finset
 
-namespace Csls.RegMean
+namespace Crimlab.RegMean
 
 /-- Places with weights and two period counts, with an exchange `σ` swapping the periods. -/
 structure Places (Ω : Type*) [Fintype Ω] where
@@ -109,4 +109,4 @@ theorem low_selected_change_nonneg :
     simp only [this]; ring
   linarith
 
-end Csls.RegMean
+end Crimlab.RegMean

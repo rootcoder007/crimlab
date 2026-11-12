@@ -1,7 +1,7 @@
 # Test coverage of R/ and src/ with covr, computed here and nowhere else:
 # the job fails when it falls below the floor. Nothing is uploaded.
-# Four lines of src/core.cpp cannot be reached from R: csls_strerror()
-# for CSLS_OK and for an unknown code (the binding asks for words only
+# Four lines of src/core.cpp cannot be reached from R: clab_strerror()
+# for CLAB_OK and for an unknown code (the binding asks for words only
 # when a kernel fails, and the kernels return no other code).
 name: coverage
 

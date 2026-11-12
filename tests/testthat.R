@@ -1,4 +1,4 @@
 library(testthat)
-library(csls)
+library(crimlab)
 
-test_check("csls")
+test_check("crimlab")

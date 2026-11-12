@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Veil.lean
+  crimlab: inst/lean/Veil.lean
 
   P2, continued: the veil-of-darkness contrast as a formal sign test
   (Grogger & Ridgeway 2006).
@@ -30,7 +30,7 @@ import Mathlib
 set_option linter.style.longLine false
 set_option linter.style.header false
 
-namespace Csls.Veil
+namespace Crimlab.Veil
 
 /-- Daylight count. -/
 def D (E r δ : ℝ) : ℝ := E * r * (1 + δ)
@@ -109,4 +109,4 @@ theorem bias_not_absolute (E₁ E₂ r₁ r₂ δ₁ δ₂ c : ℝ) (hc : 0 < c)
     · rw [h]; simp
     · field_simp
 
-end Csls.Veil
+end Crimlab.Veil

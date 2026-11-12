@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/OutcomeTest.lean
+  crimlab: inst/lean/OutcomeTest.lean
 
   P2/P5, continued: equal hit rates with unequal stop rates are consistent with
   bias or with none (library scan A24; TPS "From Impact to Action";
@@ -27,7 +27,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.OutcomeTest
+namespace Crimlab.OutcomeTest
 
 /-- Hit rate and stop rate of a two-type group `(q₁, w₁), (q₂, w₂)` at threshold `t`. -/
 def stopped (q w t : ℝ) : ℝ := if t < q then w else 0
@@ -64,4 +64,4 @@ theorem uniform_equal_hits_equal_thresholds (t s : ℝ) (ht : t < 1) (hs : s < 1
   rw [uniform_hit_rate t ht, uniform_hit_rate s hs] at h
   linarith
 
-end Csls.OutcomeTest
+end Crimlab.OutcomeTest

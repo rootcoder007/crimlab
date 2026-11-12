@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Hazard.lean
+  crimlab: inst/lean/Hazard.lean
 
   The built-in selection of period-by-period hazard ratios (Hernán 2010;
   Hernán & Robins, Causal Inference: What If, Fine Point 17.2).
@@ -21,7 +21,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.Hazard
+namespace Crimlab.Hazard
 
 /-- Period-2 hazard among survivors when a share `w` of survivors is high-risk. -/
 def survivorHazard (h l w : ℝ) : ℝ := w * h + (1 - w) * l
@@ -55,4 +55,4 @@ theorem hr2_witness :
     survivorHazard (1/2) (1/10) (survivingShare (1/2) (1/2) (9/10)) < survivorHazard (1/2) (1/10) (survivingShare (1/2) (4/5) (9/10)) := by
   unfold survivorHazard survivingShare; norm_num
 
-end Csls.Hazard
+end Crimlab.Hazard

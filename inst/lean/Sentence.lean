@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Sentence.lean
+  crimlab: inst/lean/Sentence.lean
 
   Sentencing effects as intervals (Manski, Identification for Prediction
   and Decision, §7.2; Manski & Nagin 1998).
@@ -28,7 +28,7 @@ set_option linter.style.header false
 noncomputable section
 open Finset
 
-namespace Csls.Sentence
+namespace Crimlab.Sentence
 
 /-- A finite population: weights, observed sentence (`true` = b, `false` = a) and observed outcome. -/
 structure Pop (Ω : Type*) [Fintype Ω] where
@@ -104,4 +104,4 @@ theorem ate_contains_zero :
   · linarith [hj false, hn true]
 
 
-end Csls.Sentence
+end Crimlab.Sentence

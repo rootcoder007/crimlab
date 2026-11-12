@@ -21,7 +21,7 @@ test_that("clrsmp decomposes the toy Simpson case by hand", {
   expect_equal(unname(tot[["up"]]), 2, tolerance = 1e-15)
   expect_equal(unname(tot[["down"]]), 0, tolerance = 1e-15)
   expect_equal(unname(tot[["simpson"]]), 2, tolerance = 1e-15)
-  # Csls.Clearance.change_ge_mix: every type up, so the fall is all mix
+  # Crimlab.Clearance.change_ge_mix: every type up, so the fall is all mix
   expect_gt(tot[["rateeff"]], 0)
   expect_lt(tot[["mixeff"]], tot[["change"]] + 1e-15)
 })
@@ -41,12 +41,12 @@ test_that("clrsmp terms add up and the mix total ignores the centre", {
     expect_equal(unname(tot[["change"]]), chg, tolerance = 1e-12)
     expect_equal(tot[["rateeff"]] + tot[["mixeff"]], chg, tolerance = 1e-12)
     expect_equal(tot[["rateeff"]], sum(p[["rateeff"]]), tolerance = 1e-12)
-    # the uncentred mix effect has the same total (Csls.Clearance.kitagawa)
+    # the uncentred mix effect has the same total (Crimlab.Clearance.kitagawa)
     unc <- sum((na / da + nb / db) / 2 * (db / sum(db) - da / sum(da)))
     expect_equal(tot[["mixeff"]], unc, tolerance = 1e-12)
-    # Csls.Clearance.agg_eq_weighted
+    # Crimlab.Clearance.agg_eq_weighted
     expect_equal(tot[["ratea"]], sum(da / sum(da) * na / da), tolerance = 1e-12)
-    # Csls.Clearance.change_ge_mix whenever no rate falls
+    # Crimlab.Clearance.change_ge_mix whenever no rate falls
     if (all(nb / db >= na / da)) {
       expect_gte(tot[["change"]] - tot[["mixeff"]], -1e-12)
     }
@@ -141,7 +141,7 @@ test_that("misrd matches the 2 x 2 tables enumerated cell by cell", {
     if (d1 <= 0 || d1 >= 1) next
     x <- misrd(r1, r0, p, se, sp)
     expect_equal(x[["measured"]], cells(r1, r0, p, se, sp), tolerance = 1e-12)
-    # Csls.Misclass.binary_attenuation
+    # Crimlab.Misclass.binary_attenuation
     expect_equal(x[["measured"]], x[["factor"]] * (r1 - r0),
                  tolerance = 1e-12)
     expect_equal(x[["d1"]] + x[["d0"]], 1, tolerance = 1e-15)
@@ -180,7 +180,7 @@ test_that("rtmhs equals the statistic on the data with its swapped copy", {
   expect_true(is.nan(rtmhs(c(5, 6), c(7, 8), 4)[["low"]]))
 })
 
-test_that("rtmhs: Csls.RegMean signs hold on any data", {
+test_that("rtmhs: Crimlab.RegMean signs hold on any data", {
   set.seed(19)
   for (k in 1:300) {
     n <- sample(5:60, 1)

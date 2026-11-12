@@ -43,7 +43,7 @@ clrsmp <- function(clra, reca, clrb, recb) {
   reca <- .num(reca, "reca", len = n, lo = 0, open = TRUE)
   clrb <- .num(clrb, "clrb", len = n, lo = 0)
   recb <- .num(recb, "recb", len = n, lo = 0, open = TRUE)
-  r <- .Call(C_csls_clrsmp, clra, reca, clrb, recb)
+  r <- .Call(C_clab_clrsmp, clra, reca, clrb, recb)
   tot <- r[["tot"]]
   cnt <- r[["cnt"]]
   list(
@@ -91,7 +91,7 @@ expbnd <- function(y, m, gamma, ref = 1) {
   m <- .num(m, "m", len = n, lo = 0, open = TRUE)
   gamma <- .num(gamma, "gamma", len = 1L, lo = 1)
   i <- .ref(ref, nms, n)
-  r <- .Call(C_csls_expbnd, y, m, i - 1L, gamma)
+  r <- .Call(C_clab_expbnd, y, m, i - 1L, gamma)
   data.frame(group = nms, rate = r[["rate"]], lo = r[["lo"]], hi = r[["hi"]],
              ratio = r[["ratio"]], rlo = r[["rlo"]], rhi = r[["rhi"]],
              sign = r[["sign"]])
@@ -133,7 +133,7 @@ misrd <- function(r1, r0, prev, se, sp) {
   if (d1 <= 0 || d1 >= 1) {
     stop("`se` and `sp` leave a recorded group empty.", call. = FALSE)
   }
-  r <- .Call(C_csls_misrd, r1, r0, prev, se, sp)
+  r <- .Call(C_clab_misrd, r1, r0, prev, se, sp)
   c(true = r[1L], measured = r[2L], factor = r[3L], d1 = r[4L], d0 = r[5L])
 }
 
@@ -180,7 +180,7 @@ rtmhs <- function(x1, x2, cut, w = NULL) {
   if (sum(w[x1 > cut]) <= 0) {
     stop("no place with weight exceeds `cut`.", call. = FALSE)
   }
-  r <- .Call(C_csls_rtmhs, x1, x2, w, cut)
+  r <- .Call(C_clab_rtmhs, x1, x2, w, cut)
   c(nsel = r[1L], change = r[2L], mirror = r[3L], sym = r[4L],
     excess = r[5L], low = r[6L], lowsym = r[7L])
 }

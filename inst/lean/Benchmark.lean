@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Benchmark.lean
+  crimlab: inst/lean/Benchmark.lean
 
   P2, continued: two identities that police-oversight reports get wrong,
   and one they get right only by accident.
@@ -28,7 +28,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.Benchmark
+namespace Crimlab.Benchmark
 
 /-- The exposure-offset shift: same expected count, exposure scaled by `κ`, coefficient moves by `−log κ`. -/
 theorem offset_shift (E κ μ : ℝ) (hE : 0 < E) (hκ : 0 < κ) (hμ : 0 < μ) :
@@ -57,4 +57,4 @@ theorem benchmark_not_additive :
     (frc_g / pop_g) / (frc_r / pop_r) = 6 ∧ (frc_g / pop_g) / (frc_r / pop_r) ≠ 3 + 2 := by
   refine ⟨by norm_num, by norm_num, by norm_num, by norm_num⟩
 
-end Csls.Benchmark
+end Crimlab.Benchmark

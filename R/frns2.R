@@ -22,7 +22,7 @@ kinidx <- function(g1, g2, freq, rel = "parent") {
   f <- .gf(freq, g1, "g1")
   k <- .kin(rel)
   u <- unique(c(as.character(g1), as.character(g2)))
-  .idx(g1, .Call(C_csls_kinidx, .code(g1, u), .code(g2, u), f, k))
+  .idx(g1, .Call(C_clab_kinidx, .code(g1, u), .code(g2, u), f, k))
 }
 
 #' Paternity index
@@ -54,7 +54,7 @@ patidx <- function(child, father, freq, mother = NULL) {
   f <- .gf(freq, child, "child")
   u <- unique(c(as.character(child), as.character(father),
                 as.character(mother)))
-  .idx(child, .Call(C_csls_patidx, .code(child, u), .code(mother, u),
+  .idx(child, .Call(C_clab_patidx, .code(child, u), .code(mother, u),
                     .code(father, u), f))
 }
 
@@ -310,7 +310,7 @@ eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
         x != round(x) || x > 50) {
     stop("`", b, "` must be a whole number from 0 to 50.", call. = FALSE)
   }
-  .Call(C_csls_mixp, p, nms %in% need, as.integer(x))
+  .Call(C_clab_mixp, p, nms %in% need, as.integer(x))
 }
 
 # Calibrated ratios, in the order given.
@@ -320,7 +320,7 @@ eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
   lr <- c(same, diff)
   is <- rep(c(TRUE, FALSE), c(length(same), length(diff)))
   o <- order(lr)
-  r <- .Call(C_csls_lrcal, lr[o], is[o])
+  r <- .Call(C_clab_lrcal, lr[o], is[o])
   post <- numeric(length(lr))
   post[o] <- r[["post"]]
   cal <- post / (1 - post) * length(diff) / length(same)

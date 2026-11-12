@@ -14,7 +14,7 @@ A data frame: \code{fn}, \code{theorem} and \code{file}.
 }
 \description{
 Names the 'Lean' theorem each function rests on. The theorems ship with
-the package: \code{file} is the path below \code{system.file(package = "csls")}, and
+the package: \code{file} is the path below \code{system.file(package = "crimlab")}, and
 each file compiles against 'Mathlib'.
 }
 \examples{

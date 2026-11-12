@@ -52,7 +52,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          RDscript -e 'library(testthat); library(csls); test_dir("tests/testthat", package = "csls", reporter = "summary", stop_on_failure = TRUE)' 2>&1 | tee san.log
+          RDscript -e 'library(testthat); library(crimlab); test_dir("tests/testthat", package = "crimlab", reporter = "summary", stop_on_failure = TRUE)' 2>&1 | tee san.log
           # the sanitizers report to stderr and keep going; any report fails the job
           if grep -E "runtime error:|ERROR: AddressSanitizer|SUMMARY: (Address|UndefinedBehavior)Sanitizer" san.log; then
             echo "::error::sanitizer report above"

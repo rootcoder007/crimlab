@@ -1,6 +1,6 @@
 # Failure modes recorded for other packages computing the same quantities
 # (dossiers in the author's notes; the file is named in each comment). Each
-# test shows csls does not share the failure.
+# test shows crimlab does not share the failure.
 
 test_that("evidence weights are summed as logarithms and never underflow", {
   # comparison.md: a likelihood ratio formed as exp(a) / exp(b) is 0 / 0
@@ -26,7 +26,7 @@ test_that("evidence weights are summed as logarithms and never underflow", {
 
 test_that("allele frequencies outside their range are refused, not used", {
   # DNAtools.md: frequencies that do not form a distribution were used
-  # silently. csls stops on any frequency that cannot be one.
+  # silently. crimlab stops on any frequency that cannot be one.
   expect_error(mixlr(c(a = 0.5, b = 0.5 + 1e-9), "a", 1, "a", 1), "at most 1")
   expect_error(gtmp(0.5, 0.5 + 1e-9), "`q`")
   expect_error(kinidx(c(1, 2), c(1, 2), c(0, 0.2)), "`freq`")
@@ -54,7 +54,7 @@ test_that("a group never seen in daylight gives a ratio of 0, not a fit", {
                tolerance = 1e-10)
 })
 
-# Two defects these tests found in csls itself, now fixed in the kernels.
+# Two defects these tests found in crimlab itself, now fixed in the kernels.
 
 test_that("cllr is finite for a subnormal same-source ratio", {
   # log1p(1 / same) overflowed once 1 / same passed the largest double; the
@@ -93,6 +93,6 @@ test_that("orrisk stays in [0, 1] for a tiny odds ratio", {
   expect_equal(lo[["exposed"]], hi[["unexposed"]], tolerance = 1e-14)
   expect_equal(lo[["unexposed"]], hi[["exposed"]], tolerance = 1e-14)
   expect_error(orrisk(1e-320, 0.5, 0.5), "reciprocal")
-  expect_error(.Call(C_csls_orrisk, 1e-320, 0.5, 0.5),
+  expect_error(.Call(C_clab_orrisk, 1e-320, 0.5, 0.5),
                "outside the domain")
 })

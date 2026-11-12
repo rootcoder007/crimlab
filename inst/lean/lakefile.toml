@@ -1,7 +1,7 @@
-name = "csls"
+name = "crimlab"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["Csls"]
+defaultTargets = ["Crimlab"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -15,5 +15,5 @@ scope = "leanprover-community"
 rev = "v4.34.0"
 
 [[lean_lib]]
-name = "Csls"
+name = "Crimlab"
 roots = ["Veil", "RelRisk", "OutcomeTest", "Benchmark", "Dyad", "Forensics", "Clearance", "Exposure", "Misclass", "RegMean", "Incap", "Select", "Censor", "Sentence", "Hazard"]

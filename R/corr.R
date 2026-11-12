@@ -51,7 +51,7 @@ incap <- function(lam, q, s, share = NULL) {
       stop("`share` must sum to 1.", call. = FALSE)
     }
   }
-  r <- .Call(C_csls_incap, lam, q, s, share)
+  r <- .Call(C_clab_incap, lam, q, s, share)
   out <- data.frame(group = nms, lam = lam, q = q, s = s, rate = r[["rate"]],
                     prev = r[["prev"]], marg = r[["marg"]])
   if (!is.null(share)) {
@@ -101,7 +101,7 @@ incapr <- function(lam, t0, s, r = 0) {
     stop("`lam` must have length at least t0 + s + 1.", call. = FALSE)
   }
   r <- .p01(r, "r")
-  o <- .Call(C_csls_incapr, lam, as.integer(t0), as.integer(s), r)
+  o <- .Call(C_clab_incapr, lam, as.integer(t0), as.integer(s), r)
   c(prev = o[1L], net = o[2L], upper = o[3L], lower = o[4L], later = o[5L])
 }
 
@@ -153,7 +153,7 @@ sellab <- function(y, rel, rule, w = NULL) {
   w <- if (is.null(w)) rep(1, n) else .num(w, "w", len = n, lo = 0)
   if (sum(w[rel]) <= 0) stop("the judge released nobody.", call. = FALSE)
   if (sum(w[rule]) <= 0) stop("the rule releases nobody.", call. = FALSE)
-  r <- .Call(C_csls_sellab, y, rel, rule, w)
+  r <- .Call(C_clab_sellab, y, rel, rule, w)
   c(obs = r[1L], unobs = r[2L], lower = r[3L], upper = r[4L], width = r[5L],
     naive = r[6L])
 }
@@ -184,7 +184,7 @@ sellab <- function(y, rel, rule, w = NULL) {
 losbnd <- function(done, open) {
   done <- .num(done, "done", lo = 0)
   open <- .num(open, "open", lo = 0)
-  r <- .Call(C_csls_losbnd, done, open)
+  r <- .Call(C_clab_losbnd, done, open)
   c(mean = r[1L], age = r[2L], lower = r[3L], bias = r[4L])
 }
 
@@ -240,7 +240,7 @@ sntbnd <- function(y, z, treat = NULL, w = NULL) {
   treat <- as.character(treat)
   w <- if (is.null(w)) rep(1, n) else .num(w, "w", len = n, lo = 0)
   if (sum(w) <= 0) stop("`w` must have a positive total.", call. = FALSE)
-  r <- .Call(C_csls_sntbnd, y, as.integer(z == treat), w)
+  r <- .Call(C_clab_sntbnd, y, as.integer(z == treat), w)
   data.frame(term = c(setdiff(lv, treat), treat, "effect"),
              share = c(r[3L], r[4L], NA_real_),
              lower = c(r[5L], r[7L], r[9L]), upper = c(r[6L], r[8L], r[10L]),
@@ -284,7 +284,7 @@ hzdsel <- function(s, h, l, surh, surl) {
   surl <- .num(surl, "surl", len = 2L, lo = 0, open = TRUE)
   if (any(surh > 1)) stop("`surh` must be at most 1.", call. = FALSE)
   if (any(surl > 1)) stop("`surl` must be at most 1.", call. = FALSE)
-  r <- .Call(C_csls_hzdsel, s, h, l, surh, surl)
+  r <- .Call(C_clab_hzdsel, s, h, l, surh, surl)
   c(share0 = r[1L], share1 = r[2L], haz0 = r[3L], haz1 = r[4L], ratio = r[5L])
 }
 

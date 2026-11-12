@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Incap.lean
+  crimlab: inst/lean/Incap.lean
 
   Incapacitation: what a sentence length buys in crimes not committed
   (Avi-Itzhak & Shinnar 1973; Shinnar & Shinnar 1975; Blumstein, Cohen &
@@ -48,7 +48,7 @@ set_option linter.style.header false
 noncomputable section
 open Finset
 
-namespace Csls.Incap
+namespace Crimlab.Incap
 
 /-- Offending rate `λ`, sentence probability per crime `q`, sentence length `S`. -/
 structure Career where
@@ -223,4 +223,4 @@ theorem prevented_net_le (lam : ℕ → ℝ) (hanti : Antitone lam) (hnn : ∀ t
         mul_le_mul_of_nonneg_right (by linarith) h0
     _ ≤ S * lam t₀ := by linarith
 
-end Csls.Incap
+end Crimlab.Incap

@@ -28,7 +28,7 @@ test_that("orrisk returns the pair with that odds ratio and that rate", {
         expect_lt(b, 1)
         expect_equal(a * (1 - b) / (b * (1 - a)), or, tolerance = 1e-9)
         expect_equal(s * a + (1 - s) * b, q, tolerance = 1e-12)
-        # Csls.RelRisk.or_overstates: the relative risk sits between 1 and OR
+        # Crimlab.RelRisk.or_overstates: the relative risk sits between 1 and OR
         expect_lte(abs(log(r[["rr"]])), abs(log(or)) + 1e-12)
       }
     }
@@ -92,9 +92,9 @@ test_that("proof names real theorems", {
   expect_error(proof("nope"), "no proof recorded")
   expect_error(proof(1), "function names")
   # every function proof() names is exported
-  expect_true(all(p[["fn"]] %in% getNamespaceExports("csls")))
+  expect_true(all(p[["fn"]] %in% getNamespaceExports("crimlab")))
   for (k in seq_len(nrow(p))) {
-    f <- system.file(p[["file"]][k], package = "csls")
+    f <- system.file(p[["file"]][k], package = "crimlab")
     expect_true(nzchar(f), info = p[["file"]][k])
     src <- readLines(f, warn = FALSE)
     nm <- sub(".*\\.", "", p[["theorem"]][k])
@@ -104,7 +104,7 @@ test_that("proof names real theorems", {
     expect_true(any(src == paste("namespace", ns)), info = ns)
   }
   expect_false(any(grepl("sorry", unlist(lapply(
-    list.files(system.file("lean", package = "csls"), "\\.lean$",
+    list.files(system.file("lean", package = "crimlab"), "\\.lean$",
                full.names = TRUE),
     readLines, warn = FALSE
   )), fixed = TRUE)))

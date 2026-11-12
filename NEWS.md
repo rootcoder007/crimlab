@@ -1,4 +1,4 @@
-# csls 0.0.0.9000
+# crimlab 0.0.0.9000
 
 * Disparity tests: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`,
   `dyadrt()`.

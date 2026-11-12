@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/RelRisk.lean
+  crimlab: inst/lean/RelRisk.lean
 
   P2, continued: what an odds ratio says about a relative risk (Manski,
   Identification for Prediction and Decision, §6.2).
@@ -20,7 +20,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.RelRisk
+namespace Crimlab.RelRisk
 
 def oddsRatio (a b : ℝ) : ℝ := (a / (1 - a)) / (b / (1 - b))
 def relRisk (a b : ℝ) : ℝ := a / b
@@ -74,4 +74,4 @@ theorem or_overstates (a b : ℝ) (ha0 : 0 < a) (ha1 : a < 1) (hb0 : 0 < b) (hb1
     rw [abs_of_nonpos l1, abs_of_nonpos (by linarith)]
     linarith
 
-end Csls.RelRisk
+end Crimlab.RelRisk

@@ -88,7 +88,7 @@ test_that("sellab bounds are the extremes over every filling of the unknown", {
   expect_equal(r[["lower"]], min(rates), tolerance = 1e-15)
   expect_equal(r[["upper"]], max(rates), tolerance = 1e-15)
   expect_equal(r[["unobs"]], 2 / 6, tolerance = 1e-15)
-  # Csls.Select.unobserved_width
+  # Crimlab.Select.unobserved_width
   expect_equal(r[["width"]], r[["unobs"]], tolerance = 1e-15)
   expect_equal(r[["naive"]], 1 / 4, tolerance = 1e-15)
   # a rule inside the judge's releases is identified
@@ -108,7 +108,7 @@ test_that("sellab bounds are the extremes over every filling of the unknown", {
   r <- sellab(c(1, NA), c(TRUE, FALSE), c(FALSE, TRUE))
   expect_equal(unname(r[c("lower", "upper")]), c(0, 1), tolerance = 1e-15)
   expect_true(is.nan(r[["naive"]]))
-  # Csls.Select.naive_between: the naive score never leaves the interval
+  # Crimlab.Select.naive_between: the naive score never leaves the interval
   set.seed(9)
   for (k in 1:300) {
     n <- sample(2:40, 1)
@@ -129,7 +129,7 @@ test_that("losbnd: the bound by hand, and never above a completed cohort", {
   expect_equal(r[["mean"]], 69, tolerance = 1e-15)
   expect_equal(r[["age"]], 150, tolerance = 1e-15)
   expect_equal(r[["lower"]], (345 + 450) / 8, tolerance = 1e-15)
-  # Csls.Censor.lower_bound_sub
+  # Crimlab.Censor.lower_bound_sub
   expect_equal(r[["bias"]], r[["lower"]] - r[["mean"]], tolerance = 1e-12)
   set.seed(8)
   for (k in 1:200) {
@@ -163,7 +163,7 @@ test_that("sntbnd bounds are the extremes over every counterfactual filling", {
   })
   expect_equal(r[["lower"]], apply(eff, 1, min), tolerance = 1e-14)
   expect_equal(r[["upper"]], apply(eff, 1, max), tolerance = 1e-14)
-  # Csls.Sentence.ate_width_one, ate_contains_zero
+  # Crimlab.Sentence.ate_width_one, ate_contains_zero
   expect_equal(r[["upper"]][3] - r[["lower"]][3], 1, tolerance = 1e-15)
   expect_lte(r[["lower"]][3], 0)
   expect_gte(r[["upper"]][3], 0)
@@ -198,7 +198,7 @@ test_that("hzdsel matches survivors counted by hand", {
     lo <- 1e4 * (1 - s) * sl
     hz <- (hi * h + lo * l) / (hi + lo)
     expect_equal(unname(r[c("haz0", "haz1")]), hz, tolerance = 1e-12)
-    # Csls.Hazard.hr2_gt_one_of_depletion, same low-risk survival
+    # Crimlab.Hazard.hr2_gt_one_of_depletion, same low-risk survival
     r2 <- hzdsel(s, h, l, sort(sh), c(sl[1], sl[1]))
     if (sh[1] != sh[2]) expect_gt(r2[["ratio"]], 1)
   }
@@ -263,7 +263,7 @@ test_that("corrections results agree with rmorie", {
                c(o[["prevented"]], o[["prevented_net"]], o[["upper"]],
                  o[["lower"]], o[["later"]]), tolerance = 1e-14)
   # rmorie returns NA for `later` when the path is exactly t0 + s + 1 long,
-  # although the sum needs ages up to t0 + s only; csls computes it
+  # although the sum needs ages up to t0 + s only; crimlab computes it
   o <- rmorie::morie_incapacitation_career(c(5, 4, 3), 0, 2)
   expect_true(is.na(o[["later"]]))
   expect_equal(incapr(c(5, 4, 3), 0, 2)[["later"]], 7, tolerance = 1e-15)

@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Misclass.lean
+  crimlab: inst/lean/Misclass.lean
 
   Nondifferential misclassification of a binary group attenuates the risk
   difference by sensitivity + specificity − 1; an ordinal classification
@@ -27,7 +27,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Csls.Misclass
+namespace Crimlab.Misclass
 
 /-- The measured risk difference under nondifferential misclassification of a binary
 exposure, written out from the two mixtures: outcome mass over group share in each
@@ -64,4 +64,4 @@ theorem ordinal_witness : ((0 : ℝ) + 1) / 2 - 1 / 2 = 0 ∧ (1 : ℝ) - 0 = 1 
 `1/4`): the measured contrast `1/4 − 1` is negative while the true contrast is positive. -/
 theorem ordinal_reversal : ((0 : ℝ) + 1 / 2) / 2 - 1 < 0 ∧ (0 : ℝ) < 1 - 0 := by norm_num
 
-end Csls.Misclass
+end Crimlab.Misclass

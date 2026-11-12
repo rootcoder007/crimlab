@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Clearance.lean
+  crimlab: inst/lean/Clearance.lean
 
   Simpson's paradox in clearance rates, and Kitagawa's decomposition of a
   change in an aggregate rate (Kitagawa 1955).
@@ -29,7 +29,7 @@ set_option linter.style.header false
 noncomputable section
 open Finset
 
-namespace Csls.Clearance
+namespace Crimlab.Clearance
 
 variable {ι : Type*} [Fintype ι]
 
@@ -79,4 +79,4 @@ theorem simpson_witness :
       ((19 : ℝ) + 60) / (20 + 140) < (90 + 20) / (100 + 50) := by
   norm_num
 
-end Csls.Clearance
+end Crimlab.Clearance

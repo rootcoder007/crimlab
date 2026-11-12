@@ -1,5 +1,5 @@
 /-
-  csls: inst/lean/Censor.lean
+  crimlab: inst/lean/Censor.lean
 
   The mean over completed spells as a bound problem.
 
@@ -32,7 +32,7 @@ set_option linter.style.header false
 noncomputable section
 open Finset
 
-namespace Csls.Censor
+namespace Crimlab.Censor
 
 variable {n m : ℕ} (t : Fin n → ℝ) (a u : Fin m → ℝ)
 
@@ -121,4 +121,4 @@ theorem band_floor_shares (b : Fin n → Fin K) (f : Fin K → ℝ) :
   rw [h, Finset.sum_const, nsmul_eq_mul]
   ring
 
-end Csls.Censor
+end Crimlab.Censor

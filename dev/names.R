@@ -1,6 +1,6 @@
 # Name gate: stops when an exported name is already a function in a CRAN
 # package. Run from the package root before adding an export.
-ex <- getNamespaceExports(asNamespace("csls"))
+ex <- getNamespaceExports(asNamespace("crimlab"))
 hit <- get("fn_names_on_cran", asNamespace("pkgcheck"))(ex)
 if (nrow(hit)) {
   print(hit)
