@@ -24,3 +24,5 @@
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.
+* `eceplt()` gives the calibrated curve its limits at extreme prior odds:
+  a calibrated ratio of 0 or infinity used to give `NaN`, or an error.

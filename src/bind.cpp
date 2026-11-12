@@ -616,28 +616,39 @@ SEXP curve(SEXP x) {
   return out;
 }
 
+// log(1 + e^z), without overflow for large z
+double softplus(double z) {
+  return z > 0 ? z + std::log1p(std::exp(-z)) : std::log1p(std::exp(z));
+}
+
 // One empirical cross-entropy:
-// (pr * mean(.l1pinv(s * odds)) + (1 - pr) * mean(log1p(d * odds))) / log(2)
+// (pr * mean(log(1 + 1 / (s * odds))) + (1 - pr) * mean(log1p(d * odds)))
+//   / log(2), lo the prior log10 odds, odds = 10^lo.
+// Where s * odds (or d * odds) is a positive finite number the terms are
+// computed as before. Where it is not (a calibrated ratio of Inf or 0,
+// odds that overflow to Inf or underflow to 0, or a product out of range)
+// the term is taken in logs, log x = log(s) + lo * log(10), so that no
+// 0 * Inf is formed: log(1 + 1 / x) = softplus(-log x) and
+// log(1 + x) = softplus(log x). A same-source ratio of Inf and a
+// different-source ratio of 0 then add 0, their limit, at any odds.
 double ece(const double *s, R_xlen_t ns, const double *d, R_xlen_t nd,
-           double odds, double pr, double *t) {
-  // .l1pinv(x): log(1 + 1 / x) without forming 1 / x where it overflows:
-  //   small <- x < 1; out <- log1p(1 / x)
-  //   out[small] <- log1p(x[small]) - log(x[small])
-  // A NaN x (0 * Inf) makes small NA, and R refuses that assignment when
-  // more than one value is assigned.
-  R_xlen_t nsm = 0, nna = 0;
+           double lo, double odds, double pr, double *t) {
+  const double lg = lo * std::log(10.0);
+  const bool fin = std::isfinite(odds) && odds > 0;
   for (R_xlen_t k = 0; k < ns; ++k) {
-    const double x = s[k] * odds;
-    nna += std::isnan(x);
-    nsm += x < 1;
-    t[k] = x < 1 ? std::log1p(x) - std::log(x) : std::log1p(1 / x);
-  }
-  if (nna > 0 && nsm + nna > 1) {
-    Rf_errorcall(PROTECT(clab::lang("out[small] <- log1p(x[small]) - log(x[small])")),  // NOLINT
-                 "NAs are not allowed in subscripted assignments");
+    const double x = fin && std::isfinite(s[k]) && s[k] > 0 ? s[k] * odds : 0;
+    if (std::isfinite(x) && x > 0) {
+      // log(1 + 1 / x) without forming 1 / x where it overflows
+      t[k] = x < 1 ? std::log1p(x) - std::log(x) : std::log1p(1 / x);
+    } else {
+      t[k] = softplus(-(std::log(s[k]) + lg));
+    }
   }
   const double a = clab::nmean(t, ns);
-  for (R_xlen_t k = 0; k < nd; ++k) t[k] = std::log1p(d[k] * odds);
+  for (R_xlen_t k = 0; k < nd; ++k) {
+    const double x = fin && std::isfinite(d[k]) && d[k] > 0 ? d[k] * odds : 0;
+    t[k] = std::isfinite(x) && x > 0 ? std::log1p(x) : softplus(std::log(d[k]) + lg);
+  }
   const double b = clab::nmean(t, nd);
   return (clab::rd(pr * a) + clab::rd((1 - pr) * b)) / std::log(2.0);
 }
@@ -697,10 +708,11 @@ SEXP C_clab_r_eceplt(SEXP same, SEXP diff, SEXP lo) {
   const double *lv = REAL_RO(l), one = 1.0;
   for (R_xlen_t i = 0; i < nl; ++i) {
     const double odds = clab::rpow(10.0, lv[i]);
-    const double pr = odds / (1 + odds);
-    e[i] = ece(REAL_RO(c.s), ns, REAL_RO(c.d), nd, odds, pr, t);
-    m[i] = ece(REAL_RO(c.cs), ns, REAL_RO(c.cd), nd, odds, pr, t);
-    r[i] = ece(&one, 1, &one, 1, odds, pr, t);
+    // the prior: odds / (1 + odds), 1 where the odds overflow
+    const double pr = std::isinf(odds) ? 1.0 : odds / (1 + odds);
+    e[i] = ece(REAL_RO(c.s), ns, REAL_RO(c.d), nd, lv[i], odds, pr, t);
+    m[i] = ece(REAL_RO(c.cs), ns, REAL_RO(c.cd), nd, lv[i], odds, pr, t);
+    r[i] = ece(&one, 1, &one, 1, lv[i], odds, pr, t);
   }
   static const char *const nm[] = {"lo", "ece", "min", "ref"};
   clab::frame(out, nm);

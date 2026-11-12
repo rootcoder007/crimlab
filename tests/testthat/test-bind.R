@@ -40,19 +40,23 @@ test_that("q is NA in every form all(is.na(q)) accepts", {
   expect_identical(gtmp(0.2, 0L, hom = TRUE), gtmp(0.2, hom = TRUE))
 })
 
-test_that("a NaN ratio in eceplt fails as R's subassignment did", {
+test_that("eceplt takes the limits of calibrated ratios at extreme odds", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
-  # a calibrated ratio of 0 times odds of Inf is NaN: small <- x < 1 is NA,
-  # and out[small] <- <more than one value> is an error in R
-  expect_error(eceplt(c(2, 3), 0.5, lo = -400),
-               "NAs are not allowed in subscripted assignments")
-  e <- tryCatch(eceplt(c(2, 3), 0.5, lo = -400), error = identity)
-  expect_identical(conditionCall(e),
-                   quote(out[small] <- log1p(x[small]) - log(x[small])))
-  # with one value assigned R skips the NA, and the result is NaN
-  expect_true(is.nan(eceplt(2, 0.5, lo = -400)[["min"]]))
-  expect_true(is.nan(eceplt(c(2, 3), 0.5, lo = 400)[["ece"]]))
+  s <- c(2, 3)
+  d <- 0.5
+  # the ratios separate perfectly: calibrated, same-source ratios are Inf
+  # and different-source ratios 0, and their cost is 0 at any odds (it was
+  # NaN, or an error, at odds of 10^-400 and 10^400)
+  e <- eceplt(s, d, lo = c(-400, 0, 400))
+  expect_identical(e[["min"]], c(0, 0, 0))
+  # at even odds the cost is cllr; far out it tends to 0
+  cl <- 0.5 * (mean(log2(1 + 1 / s)) + mean(log2(1 + d)))
+  expect_equal(e[["ece"]], c(0, cl, 0), tolerance = 1e-12)
+  expect_equal(e[["ref"]], c(0, 1, 0), tolerance = 1e-12)
+  # s * odds underflows: log(1 + 1 / x) is taken as -log(s) - lo * log(10)
+  want <- (1e-100 * 400 * log(10) + 1e-100) / log(2)
+  expect_equal(eceplt(1e-300, 1, lo = -100)[["ece"]], want, tolerance = 1e-12)
 })
 
 test_that("a genotype of two values becomes a one-row table", {
