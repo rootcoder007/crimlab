@@ -590,6 +590,32 @@ int clab_mantst(const double *x, const double *y, const double *t, int n,
  * y, and the number of events in the window. O(n log n + n span). */
 int clab_stmavg(const double *x, const double *y, const double *t, int n,
                 int span, int *iwork, double *out);
+/* Fairness of a binary risk tool by group (confusion-matrix metrics).
+ * score: n scores (any value but NaN); a case is predicted positive when
+ * score > cut (cut not NaN; +Inf predicts nobody positive, -Inf everybody
+ * with a finite score). y: n outcomes, 0 or 1. grp: n group codes in
+ * [0, g). base in [0, g): the group the ratios are taken against. z > 0:
+ * the normal quantile of the intervals (1.959963984540054 for 95%); read
+ * only when lo and hi are both non-NULL.
+ * Out (k-th metric of group j at [k * g + j]):
+ *   cnt, 5g: tp, fp, tn, fn and the group size, exact counts;
+ *   met, 10g: accuracy, sensitivity (TPR), specificity (TNR), FPR, FNR,
+ *     PPV, NPV, share predicted positive, number predicted positive, and
+ *     the Matthews correlation; NaN where a rate has an empty denominator
+ *     or MCC has an empty margin (0 / 0);
+ *   rat, 10g: met over the base group's met (IEEE: x / 0 = Inf, 0 / 0 =
+ *     NaN);
+ *   lo, hi, 8g each (may be NULL): Wilson score intervals of the first
+ *     eight metrics (Wilson 1927, doi:10.1080/01621459.1927.10502953), the
+ *     inversion of the score test, computed without cancellation; lo = 0
+ *     exactly at 0 successes and hi = 1 at all successes; NaN on an empty
+ *     denominator.
+ * A group predicted all positive or all negative is reported as such (a
+ * one-sided prediction is never relabelled). The MCC numerator is formed
+ * in 64-bit integers, exact for n < 2^31. Time O(n + g), no workspace. */
+int clab_fair(const double *score, const int *y, const int *grp, int n, int g,
+              double cut, int base, double z, double *cnt, double *met,
+              double *rat, double *lo, double *hi);
 
 #ifdef __cplusplus
 }
