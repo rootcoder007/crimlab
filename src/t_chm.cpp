@@ -53,8 +53,8 @@ void run(tk &tt) {
   int ns, nd;
   double u, p;
   // 1. parity with toolmaRk (same source, different sources, defaults).
-  // The field's p-value is 1 - pnorm(U), which keeps about 16 - |log10 p|
-  // significant digits; here p is erfc(U / sqrt 2) / 2.
+  // The reference p-value is 1 - pnorm(U); here p is erfc(U / sqrt 2) / 2,
+  // so tiny p-values are compared relative to 1e-6.
   tk_true(tt, "chm.rc", clab_chmb(m1, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_OK);
   tk_true(tt, "chm.12.n", ns == ch12[0] && nd == ch12[1]);
   tk_near(tt, "chm.12.U", u, ch12[2], 1e-12);
@@ -76,11 +76,8 @@ void run(tk &tt) {
     const double n = ns, m = nd, umax = (n * m / 2) / std::sqrt(n * m * (n + m + 1) / 12);
     tk_true(tt, "chm.bound", u <= umax + 1e-12);
   }
-  // 3. defined behaviour where the field package stops (dossier
-  // csls/d/toolmaRk.md section 3; dev/doss/toolmaRk.R section 3): a
-  // 300-point profile with the 500-point window stops toolmaRk 0.0.2 with
-  // "only 0's may be mixed with negative subscripts"; an NA stops it with
-  // "missing value where TRUE/FALSE needed". Here: CLAB_EARG and CLAB_EDOM.
+  // 3. defined behaviour: a 300-point profile with the 500-point window is
+  // CLAB_EARG, a missing value CLAB_EDOM.
   tk_true(tt, "chm.short", clab_chmb(m1, 300, m2, 300, 500, 50, 0.25, &ns, &nd, &u, &p, work) == CLAB_EARG);
   {
     static double mn[1500];
@@ -121,8 +118,8 @@ void t_chm(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's sizes: 2,000- and 9,500-point profiles at the defaults
-// (toolmaRk 0.423 s and 5.267 s, medians on zeus)
+// timing: 2,000- and 9,500-point profiles at the defaults (toolmaRk took
+// 0.423 s and 5.267 s, medians on zeus)
 void b_chm() {
   static double a[9500], b[9500], w[250000];
   std::int64_t s = 7;

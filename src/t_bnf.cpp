@@ -45,17 +45,15 @@ std::int64_t lead(std::int64_t k, int nd) {
 
 void run(tk &tt) {
   int cnt[4];
-  // 1. disagreement (dossiers csls/d/benford.analysis.md and
-  // BenfordTests.md section 3, reproduced in dev/doss/benford.R): both
-  // packages give 28 56 57 11 70 for the first two digits of 0.29 0.57 0.58
-  // 1.15 0.07, by truncating 10^(1 - floor(log10 x)) x after rounding.
+  // 1. the first two digits of 0.29 0.57 0.58 1.15 0.07 are 29 57 58 11 70
+  // (the decimals as recorded, by both routes).
   {
     const double x[5] = {0.29, 0.57, 0.58, 1.15, 0.07};
     const int want[5] = {29, 57, 58, 11, 70};
     int d[5];
     for (int dp = -1; dp <= 2; dp += 3) {
       tk_true(tt, "bnf.dig.rc", clab_bdig(x, 5, 2, dp, 0, d, cnt) == CLAB_OK);
-      for (int i = 0; i < 5; ++i) tk_true(tt, "bnf.dig.dossier", d[i] == want[i]);
+      for (int i = 0; i < 5; ++i) tk_true(tt, "bnf.dig.dec", d[i] == want[i]);
     }
   }
   // 2. exhaustive: every 2-decimal value 0.10 .. 999.99 as k / 100 (the
@@ -73,7 +71,7 @@ void run(tk &tt) {
         clab_bdig(xs, 1, nd, -1, 1, d, c);
         bad += d[0] != lead(k, nd);
       }
-      // the truncation formula of existing practice, for the record
+      // the truncation formula 10^(1 - floor(log10 x)) x, which is not exact
       naive += static_cast<std::int64_t>(std::trunc(std::pow(10.0, 1 - std::floor(std::log10(x))) * x)) != lead(k, 2);
     }
     tk_true(tt, "bnf.dig.exhaustive", bad == 0);
@@ -125,7 +123,7 @@ void run(tk &tt) {
     clab_bdig(x, 7, 1, -1, 0, d, cnt);
     tk_true(tt, "bnf.cnt.both", cnt[0] == 2 && cnt[2] == 0 && d[4] == 3 && d[6] == 1);
   }
-  // 5. tests: parity and the zeros disagreement
+  // 5. tests: parity, and zeros left out of the count
   {
     static int dg[30000];
     double obs[90], work[90], out[6];
@@ -151,8 +149,8 @@ void run(tk &tt) {
     tk_near(tt, "bnf.t.pb", out[3], ref_chib[1], 1e-15);
     for (int j = 0; j < 2000; ++j) dg[m + j] = 0;
     clab_bnft(dg, m + 2000, 1, 0, 1, obs, work, out);
-    // disagreement: BenfordTests 1.2.0 counts the zeros in n and reports
-    // statistic 333.33 and p 0 (dev/doss/benford.R); here they are left out
+    // zeros are set aside (digit 0): the statistic and p are those of the
+    // sample without them
     tk_near(tt, "bnf.t.zeros.m", out[0], m, 0);
     tk_near(tt, "bnf.t.zeros.chi", out[1] / ref_chib[0], 1, 1e-9);
     tk_near(tt, "bnf.t.zeros.p", out[3], ref_chib[1], 1e-15);
@@ -222,9 +220,9 @@ void t_bnf(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossiers' standard case: n = 1e6, first two digits
-// (benford.analysis::benford 1.622 s, BenfordTests::chisq.benftest
-// 0.639 s, medians of 3 on zeus, dev/doss/benford.R)
+// timing: n = 1e6, first two digits
+// (benford.analysis::benford took 1.622 s, BenfordTests::chisq.benftest
+// 0.639 s, medians of 3 on zeus)
 void b_bnf() {
   const int n = 1000000;
   static double x[n];

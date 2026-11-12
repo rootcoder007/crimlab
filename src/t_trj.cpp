@@ -90,12 +90,10 @@ void run(tk &tt) {
     for (int k = 0; k < 2; ++k) tk_near(tt, "trj.gwt", w[i + 100 * k], cgwt[i + 5 * k], 1e-9);
   // 2. the direct product formula on the same parameters
   tk_near(tt, "trj.ll.brute", ll / brute(yc, 100, 6, Xb, 3, Zb, 2, 2, par, prob), 1, 1e-12);
-  // 3. crimCV's estimate is a stationary point (central differences of
-  // the log-likelihood vanish), but not the maximum: its best of 20 random
-  // starts has a zero-inflation intercept of -21 in one group (rho ~ 7e-10)
-  // and shares 0.13 / 0.87 (the data have 0.4 / 0.6). EM started from it
-  // leaves the flat ridge and climbs 31.6 log-likelihood units to shares
-  // 0.42 / 0.58; the higher value is confirmed by the direct formula.
+  // 3. the reference estimate is a stationary point (central differences
+  // of the log-likelihood vanish) on a flat ridge (a zero-inflation
+  // intercept of -21); EM started from it reaches a higher maximum (shares
+  // 0.42 / 0.58), confirmed by the direct formula.
   {
     double gmax = 0;
     for (int j = 0; j < 10; ++j) {
@@ -152,10 +150,7 @@ void run(tk &tt) {
     }
     tk_true(tt, "trj.stationary", gmax < 1e-3);
   }
-  // 6. disagreement (dossier csls/d/crimCV.md section 3, reproduced in
-  // dev/doss/crimCV.R): crimCV 1.0.0 stops on NA ("NA/NaN/Inf in foreign
-  // function call") and on 2 units ("object 'Frtr' not found"). Here NaN is
-  // missing, exactly like a negative count, and 2 units fit.
+  // 6. NaN is missing, exactly like a negative count, and 2 units fit.
   {
     double y2[600];
     for (int j = 0; j < 600; ++j) y2[j] = yc[j];
@@ -208,11 +203,11 @@ void t_trj(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's size: 1,000 units x 10 periods, 2 groups, cubic bases for
-// the counts and the zero inflation (crimCV ZIP, dpolyp = dpolyl = 3,
-// init = 20, i.e. 40 starts: 32.544 s, one run, zeus; its default ZIPt
-// 22.262 s). Here 40 EM runs from random starts on a polynomial basis of
-// the same size.
+// timing: 1,000 units x 10 periods, 2 groups, cubic bases for the counts
+// and the zero inflation (crimCV ZIP, dpolyp = dpolyl = 3, init = 20, i.e.
+// 40 starts, took 32.544 s, one run, zeus; its default ZIPt 22.262 s).
+// Here 40 EM runs from random starts on a polynomial basis of the same
+// size.
 void b_trj() {
   const int n = 1000, nt = 10, ng = 2, p = 4, q = 4, m = p + q;
   static double y[n * nt], w[n * ng], work[256];

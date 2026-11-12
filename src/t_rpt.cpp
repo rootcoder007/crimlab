@@ -37,25 +37,22 @@ int panel(int *u, int *y, int *rep) {
 
 void run(tk &tt) {
   int flag[40], work[400], nc = 0;
-  // 1. disagreement (dossier csls/d/crimeutils.md section 3, reproduced in
-  // dev/doss/crimeutils.R): A and B report in 2000 and 2002 and miss all of
-  // 2001; crimeutils 0.5.1 returns both as constant reporters
+  // 1. A and B report in 2000 and 2002 and miss all of 2001: neither is a
+  // constant reporter.
   {
     const int u[6] = {0, 1, 0, 1, 0, 1}, y[6] = {2000, 2000, 2001, 2001, 2002, 2002},
               r[6] = {12, 12, 0, 0, 12, 12};
     tk_true(tt, "rpt.gap.rc", clab_rptc(u, y, r, 6, 2, 2000, 2002, 12, flag, &nc, work) == CLAB_OK);
     tk_true(tt, "rpt.gap", nc == 0 && flag[0] == 0 && flag[1] == 0);
-    // A passes 2000, B 2001, both 2002: crimeutils resets its running set
-    // after 2001 and returns A and B; neither reported every year
+    // A passes 2000, B 2001, both 2002: neither reported every year
     const int u2[5] = {0, 1, 1, 0, 1}, y2[5] = {2000, 2000, 2001, 2002, 2002},
               r2[5] = {12, 0, 12, 12, 12};
     clab_rptc(u2, y2, r2, 5, 2, 2000, 2002, 12, flag, &nc, work);
     tk_true(tt, "rpt.reset", nc == 0);
   }
-  // 2. the deterministic panel: crimeutils 0.5.1 gives {4, 19} (m = 3) and
-  // {2, 4, 6, 8, 10, 19, 25, 32} (m = 6), which are wrong (no unit has 10
-  // qualifying years: its running set emptied and reset), and {14} (m = 9)
-  // and {2, 4, ..., 38} below (m = 12), which are right: parity there
+  // 2. the deterministic panel at four thresholds: no unit at m = 3 and
+  // m = 6, {14} at m = 9 and {2, 4, ..., 38} at m = 12 (reference sets from
+  // crimeutils 0.5.1 at m = 9 and m = 12, dev/doss/crimeutils.R)
   {
     static int u[400], y[400], r[400];
     const int n = panel(u, y, r);

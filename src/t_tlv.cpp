@@ -128,10 +128,9 @@ void run(tk &tt) {
   tk_near(tt, "tlv.joint.same", out[0],
       ljoint(gU, gC, gmu, 3, gctl, 6, gr2, 6, 1) - ljoint(gU, gC, gmu, 3, gctl, 6, gr2, 6, 0),
       1e-12);
-  // 3. disagreement (dossier csls/d/comparison.md section 3, reproduced in
-  // dev/doss/comparison.R): comparison 1.0.8 returns NaN for items 40
-  // between-item SDs from the mean (same source) and for items 40 SDs
-  // apart; the log LR is finite and equals the joint-density value.
+  // 3. items 40 between-item SDs from the mean (same source) and 40 SDs
+  // apart: the log LR is finite and equals the joint-density value from
+  // base R (dev/doss/comparison.R).
   clab_tlvlr(gU, gC, gmu, 3, gs40, 6, gs40, 6, out, work);
   tk_near(tt, "tlv.far.same", out[0], gfar[0], 1e-12);
   tk_near(tt, "tlv.far.same.c", out[0],
@@ -185,9 +184,8 @@ void run(tk &tt) {
       tk_near(tt, "tlv.unbal.U", u[k] / sU[k], 1, 1e-11);
       tk_near(tt, "tlv.unbal.C", c[k], sC[k], 1e-12);
     }
-    // disagreement: comparison 1.0.8 weights each item's within
-    // cross-products by its size, which inflates U on unbalanced data
-    // (factor 1.35 here, confirmed by simulation in dev/doss/comparison.R)
+    // the size-weighted within estimate (uU, uC) is a different estimator:
+    // they must not coincide on unbalanced data
     tk_true(tt, "tlv.unbal.differs", std::fabs(uU[0] / u[0] - 1) > 0.2);
     // its between-item C differs too, through U (about 1% here)
     tk_true(tt, "tlv.unbal.C.differs", std::fabs(uC[0] / c[0] - 1) > 0.005);
@@ -254,9 +252,9 @@ void t_tlv(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: components of 200 items x 12 replicates x 3
-// variables (comparison::two.level.components on glass: 2.423 s median of
-// 5 on zeus), and one LR (0.00019 s per call)
+// timing: components of 200 items x 12 replicates x 3
+// variables (comparison::two.level.components on glass took 2.423 s,
+// median of 5 on zeus), and one LR (0.00019 s per call)
 void b_tlv() {
   static double x[2400 * 3], w[200 * 3 + 400];
   static int item[2400];

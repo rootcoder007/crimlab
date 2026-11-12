@@ -130,10 +130,8 @@ void run(tk &tt) {
     for (int k = 0; k < 10; ++k) {
       for (int j = 0; j < 3; ++j) tk_near(tt, "fair.parity", met[k * 3 + j], ref[k][j], 1e-14);
     }
-    // 4. disagreement (dossier csls/d/fairness.md section 3; reproduced in
-    // dev/doss/fairness.R): with every score above the cutoff, fairness
-    // 1.2.3 relabels all predictions as negative and returns sensitivity
-    // 0 0 0 and 0 positives per group. The truth is 1 and the group sizes.
+    // 4. every score above the cutoff: every case is predicted positive, so
+    // the sensitivity is 1 and the positives are the group sizes.
     clab_fair(p, y, g, 1000, 3, -1.0, 0, Z, cnt, met, rat, nullptr, nullptr);
     for (int j = 0; j < 3; ++j) {
       tk_near(tt, "fair.allpos.tpr", met[1 * 3 + j], 1, 0);
@@ -201,8 +199,8 @@ void t_fair(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: n = 1e5, 4 groups (fairness::equal_odds
-// 0.106 s median of 5 on zeus, dev/doss/fairness.R)
+// timing: n = 1e5, 4 groups (fairness::equal_odds took 0.106 s, median
+// of 5 on zeus)
 void b_fair() {
   const int n = 100000;
   static double s[n];

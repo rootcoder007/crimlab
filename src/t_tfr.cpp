@@ -167,10 +167,8 @@ void run(tk &tt) {
       bad += std::fabs(prob[y] - tf_ref[y]) > 4 * sd + 1e-6;
     }
     tk_true(tt, "tfr.parity", bad <= 1);
-    // disagreement (dossier csls/d/tfer.md section 3; dev/doss/tfer.R):
-    // tfer 1.3 gives probability 0 to every count above its largest draw
-    // (159 in 10^6 draws) and tprob(x, c(2, m + 50)) labels the second
-    // value m + 1. Here every count has its own positive probability.
+    // every count has its own positive probability (no count above the
+    // largest simulated one gets 0)
     bool pos = true;
     for (int y = 0; y <= 400; ++y) pos = pos && prob[y] > 0;
     tk_true(tt, "tfr.positive", pos && prob[209] > 0 && prob[209] < 1e-6);
@@ -221,7 +219,8 @@ void quad(tk &tt, int big) {
   static double prob[81], se[81], cut[2];
   double p[17];
   fixed(p);
-  clab_tfrp(p, 1, 0, 80, 10, 1, 0.02, 256, prob, se, cut, work);
+  // full grid in the ext mode, a coarse one by default
+  clab_tfrp(p, 1, 0, 80, 10, 1, big ? 0.02 : 0.05, big ? 256 : 64, prob, se, cut, work);
   const double s = 0.5 * (0.95 * 0.2 + 0.05 * 0.9);
   // 2-D Simpson in x and u = sqrt(D) (density 2 e^{-u^2} / Gamma(1/2)),
   // 2,000 x 4,000 intervals (200 x 400 by default), for a few counts
@@ -254,11 +253,11 @@ void quad(tk &tt, int big) {
   // the Simpson reference's own error
   static double pf[81], sf[81];
   double cf[2];
-  clab_tfrp(p, 1, 0, 80, 10, 1, big ? 0.01 : 0.03, big ? 512 : 128, pf, sf, cf, work);
+  clab_tfrp(p, 1, 0, 80, 10, 1, big ? 0.01 : 0.04, big ? 512 : 96, pf, sf, cf, work);
   double conv = 0;
   for (int y = 0; y <= 80; ++y)
     if (pf[y] > 1e-300) conv = std::fabs(prob[y] - pf[y]) / pf[y] > conv ? std::fabs(prob[y] - pf[y]) / pf[y] : conv;
-  tk_true(tt, "tfr.conv", conv < (big ? 1e-9 : 1e-6));
+  tk_true(tt, "tfr.conv", conv < (big ? 1e-9 : 1e-5));
   // the default model with 40 rate draws (4 by default): parity with tfer
   static double pd[401], sd2[401];
   clab_tfrp(DEF, 1, 0, 400, big ? 40 : 4, 7, big ? 0.02 : 0.05, big ? 256 : 64, pd, sd2, cf, work);

@@ -92,7 +92,7 @@ void run(tk &tt) {
   for (int i = 0; i < 5; ++i)
     for (int k = 0; k < 2; ++k) tk_near(tt, "mvt.post", w[i + 60 * k], gpost[i + 5 * k], 1e-9);
   tk_near(tt, "mvt.ll.brute", ll / brute(Y, 60, 6, beta, sig, prob), 1, 1e-12);
-  // 2. EM from there: not lower (gbmt stops at tol 1e-4), and the closed
+  // 2. EM from there: not lower (the reference stopped at tol 1e-4), and the closed
   // M-step reproduces its estimates closely
   {
     double b2[8], s2[8], p2[2] = {prob[0], prob[1]};
@@ -130,12 +130,10 @@ void run(tk &tt) {
     tk_true(tt, "mvt.monotone", mono);
     tk_near(tt, "mvt.from.poor", ll / gll, 1, 1e-9);  // reaches the same maximum
   }
-  // 4. scale equivariance (the disagreement): gbmt 0.1.4 clamps each unit's
-  // log density to [-745, 709.8] before exp, so data in large units (x 1e5,
-  // 20 periods x 4 indicators, dev/doss/gbmt.R) give posteriors 0.5 for
-  // every unit and 50% agreement with the truth. Here multiplying the data
-  // by 1e5 (and the parameters accordingly) leaves the posteriors unchanged
-  // and shifts the log-likelihood by -(observed cells) log 1e5 exactly.
+  // 4. scale equivariance: multiplying the data by 1e5 (and the
+  // parameters accordingly) leaves the posteriors unchanged and shifts the
+  // log-likelihood by -(observed cells) log 1e5 exactly; and large-unit
+  // data of 20 periods x 4 indicators are classified.
   {
     static double y5[720];
     for (int j = 0; j < 720; ++j) y5[j] = Y[j] * 1e5;
@@ -187,9 +185,8 @@ void run(tk &tt) {
     clab_mvtll(y2, 60, 6, 2, X, 2, 2, beta, sig, prob, w, &l1, work);
     tk_true(tt, "mvt.missing", std::isfinite(l1) && l1 > ll);
   }
-  // 6. a constant indicator (gbmt 0.1.4 stops with "0 (non-NA) cases",
-  // dossier csls/d/gbmt.md section 3): its residual covariance is singular,
-  // reported as CLAB_EDOM instead of a crash
+  // 6. a constant indicator: its residual covariance is singular,
+  // reported as CLAB_EDOM
   {
     static double yc[720];
     for (int j = 0; j < 720; ++j) yc[j] = j < 360 ? Y[j] : 1.0;
@@ -219,9 +216,9 @@ void t_mvt(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's sizes: 200 units x 8 periods x 2 indicators, ng = 2, d = 1
-// (gbmt 4.667 s, one run with its Ward start, zeus); and 1,000 units,
-// ng = 3, d = 2 (gbmt did not finish in 600 s). Here one EM run from a
+// timing: 200 units x 8 periods x 2 indicators, ng = 2, d = 1 (gbmt took
+// 4.667 s, one run with its Ward start, zeus); and 1,000 units, ng = 3,
+// d = 2. Here one EM run from a
 // rough start, tol 1e-10.
 void b_mvt() {
   static double y[1000 * 8 * 2], x[24], w[3000], work[64];

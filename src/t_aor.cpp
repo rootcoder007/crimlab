@@ -50,14 +50,11 @@ void run(tk &tt) {
       tk_near(tt, "aor.hand.tot", tot[j], w[j], 0);
     }
   }
-  // 2. disagreement (dossier csls/d/aoristic.md section 3, reproduced in
-  // dev/doss/aoristic.R): aoristic 2.0.0 walks elapsed minutes through
-  // successive hours, so across a clock change the weights shift by an
-  // hour. Spring forward, 00:30 to 03:30 local (2 h elapsed): aoristic
-  // gives Sunday 00h, 01h, 02h = .25 .5 .25; the wall-clock hours covered
-  // are 00h (30 min), 02h (60), 03h (30). Fall back, 00:30 to 03:30 local
-  // (4 h elapsed): aoristic gives 00h..04h = .125 .25 .25 .25 .125; the
-  // truth is 00h 30 min, 01h 120 (twice), 02h 60, 03h 30.
+  // 2. across a clock change each real minute counts in the hour its wall
+  // clock shows. Spring forward, 00:30 to 03:30 local (2 h elapsed): the
+  // wall-clock hours are 00h (30 min), 02h (60) and 03h (30). Fall back,
+  // 00:30 to 03:30 local (4 h elapsed): 00h 30 min, 01h 120 (twice), 02h
+  // 60, 03h 30.
   {
     const double f = 1679790600, t = 1679797800;
     clab_aorwt(&f, &t, 1, LON_T, LON_O, 2, 0, SUN0, 3600, 168, 120, WEEK, w, nullptr, cnt);
@@ -141,7 +138,7 @@ void run(tk &tt) {
     const double want[7] = {2 / 10.5, 2 / 10.5, 2 / 10.5, 1.5 / 10.5, 1 / 10.5, 1 / 10.5, 1 / 10.5};
     for (int j = 0; j < 7; ++j) tk_near(tt, "aor.long", g[j], want[j], 1e-15);
   }
-  // 6. n = 0 (aoristic 2.0.0 stops with "subscript out of bounds") and guards
+  // 6. n = 0 and guards
   {
     tk_true(tt, "aor.n0", clab_aorwt(nullptr, nullptr, 0, nullptr, nullptr, 0, 0, SUN0, 3600, 168,
                           120, WEEK, nullptr, tot, cnt) == CLAB_OK && tot[5] == 0);
@@ -165,8 +162,8 @@ void t_aor(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: n = 10,000 events, spans up to 8 h, row
-// weights over 168 hours (aoristic::aoristic.df 6.319 s, 1 run, zeus)
+// timing: n = 10,000 events, spans up to 8 h, row weights over 168 hours
+// (aoristic::aoristic.df took 6.319 s, 1 run, zeus)
 void b_aor() {
   const int n = 10000;
   static double f[n], t[n], w[n * 168];

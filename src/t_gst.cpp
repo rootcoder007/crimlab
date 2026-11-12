@@ -50,8 +50,8 @@ double btail_ref(int g, int n, double p, bool up) {
 }
 
 // one CSR replicate on [0, 1000]^2 with 50 m cells and a grid overhanging
-// by half a cell (origin -25, 21 x 21 cells, as the field package lays it
-// out); exposure = area share of each cell inside the square
+// by half a cell (origin -25, 21 x 21 cells, the layout of
+// a common default); exposure = area share of each cell inside the square
 void csr(xrng &r, int npts, double *cnt, double *ex) {
   for (int i = 0; i < 441; ++i) cnt[i] = 0;
   for (int k = 0; k < npts; ++k) {
@@ -125,9 +125,9 @@ void run(tk &tt) {
     tk_true(tt, "gst.bh", bad == 0);
   }
   // 4. calibration under complete spatial randomness, 40 replicates of
-  // 4,000 points on the overhanging 21 x 21 grid (the dossier's setting):
+  // 4,000 points on the overhanging 21 x 21 grid:
   // the exposure test flags interior and edge cells at the nominal rate;
-  // the classic G* (exposure ignored, as in the field package) does not.
+  // the classic G* (exposure ignored) does not.
   // Interior: the whole 3 x 3 neighbourhood inside the square. Flag rates
   // of correlated cells; tolerance 0.035..0.06 (the exact test is a
   // little conservative from discreteness).
@@ -214,8 +214,8 @@ void t_gst(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: 1e5 points on 10,000 cells (sfhotspot
-// hotspot_gistar without KDE 17.3 s on zeus, its own gridding included);
+// timing: 1e5 points on 10,000 cells (sfhotspot hotspot_gistar without
+// KDE took 17.3 s on zeus, its own gridding included);
 // here gridding plus G* with the exact test, and with 99 permutations
 void b_gst() {
   static double cnt[10000], ex[10000];

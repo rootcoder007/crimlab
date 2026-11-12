@@ -53,9 +53,8 @@ void run(tk &tt) {
   tk_true(tt, "sk.ri.ng", ng == 3);
   tk_true(tt, "sk.ri.same", same(g, ref_ri, 24));
   for (int j = 0; j < 24; ++j) tk_true(tt, "sk.ri.order", g[j] == 1 + j / 8);
-  // 2. disagreement (dossier csls/d/SK4FGA.md section 3, reproduced in
-  // dev/doss/SK4FGA.R): rescaled data with the rescaled variance give the
-  // same three groups; SK4FGA 0.1.1 keeps 1.6e-9 and returns 24 singletons
+  // 2. rescaled data with the rescaled variance give the same three groups
+  // (SK4FGA's own result for them, ref_resc, is a different partition)
   for (int j = 0; j < 24; ++j) x[j] = (x[j] - 1.5) * 1000;
   clab_skp(x, 24, 1.6e-9 * 1e6, 0.05, 999, 1, g2, &ng, iw, w);
   tk_true(tt, "sk.resc", ng == 3 && same(g, g2, 24));
@@ -108,7 +107,7 @@ void run(tk &tt) {
     }
     tk_true(tt, "sk.size", rej >= 0.006 * 400 && rej <= 0.094 * 400);
   }
-  // 7. guards: NaN is refused (no silent drop that would misalign labels)
+  // 7. guards: NaN is refused, so labels stay aligned with the input
   {
     double y[3] = {1, std::nan(""), 2};
     tk_true(tt, "sk.guard.nan", clab_skp(y, 3, 1, 0.05, 9, 1, g, &ng, iw, w) == CLAB_EDOM);
@@ -128,8 +127,9 @@ void t_sk(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: n = 5,000 values N(1.518, 1e-4^2) at the
-// fixed variance 1.6e-9 (SK4FGA::partition 0.294 s median of 3, 6 groups)
+// timing: n = 5,000 values N(1.518, 1e-4^2) at the
+// fixed variance 1.6e-9 (SK4FGA::partition took 0.294 s,
+// median of 3, 6 groups)
 void b_sk() {
   const int n = 5000;
   static double x[n], w[2 * n];

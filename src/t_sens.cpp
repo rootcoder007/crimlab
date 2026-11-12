@@ -84,11 +84,11 @@ void run(tk &tt) {
   }
   // 4. Hodges-Lehmann bounds: exact equality with the sorted Walsh
   // averages; parity with rbounds at its fine grid where the bound is a
-  // single Walsh average; and the disagreements: its default grid (pr =
-  // 0.1) is off by up to 0.087, and at Gamma = 1.5 the upper bound falls on
+  // single Walsh average; at its default grid (pr = 0.1) its bounds lie within
+  // one grid step of the exact ones; at Gamma = 1.5 the upper bound falls on
   // a flat of T(tau) = mu, where the estimate is the midpoint of the flat
-  // (Hodges and Lehmann; Rosenbaum 1993): 1.234375, not rbounds' first
-  // point 1.2188 (pr = 1e-4)
+  // (Hodges and Lehmann; Rosenbaum 1993): 1.234375, while the grid search
+  // stops at its first point, 1.2188 (pr = 1e-4)
   tk_true(tt, "sens.hl.rc", clab_rshl(d, 60, G, 5, lo, hi, w) == CLAB_OK);
   for (int k = 0; k < 5; ++k) {
     tk_near(tt, "sens.hl.ex.lo", lo[k], ref_ex_lo[k], 0);
@@ -153,8 +153,8 @@ void t_sens(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: 50,000 pairs, Gamma 1 to 2 by 0.25
-// (rbounds psens 0.024 s, hlsens 3.112 s, one run each, zeus)
+// timing: 50,000 pairs, Gamma 1 to 2 by 0.25 (rbounds psens took 0.024 s,
+// hlsens 3.112 s, one run each, zeus)
 void b_sens() {
   const int n = 50000;
   static double d[n], w[n];

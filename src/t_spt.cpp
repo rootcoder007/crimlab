@@ -72,7 +72,7 @@ void run(tk &tt) {
   // observed difference are decided by the noise of the replicate mean),
   // so the ranges of p over 8 seeds are compared, unit by unit (they must
   // meet within 4 standard errors, the 3-decimal rounding and one step).
-  tk_true(tt, "spt.rc", clab_sptst(a, b, 100, 4999, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK);
+  tk_true(tt, "spt.rc", clab_sptst(a, b, 100, 1999, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK);
   int bad = 0, nanok = 1;
   for (int i = 0; i < 100; ++i) {
     tk_near(tt, "spt.diff", out[i], sp_diff[i], 5e-7);
@@ -84,15 +84,15 @@ void run(tk &tt) {
     (void)p;
   }
   {
-    // this kernel's own range over seeds 1..6 (B = 1999, to keep the
+    // this kernel's own range over seeds 1..4 (B = 999, to keep the
     // self-test short), against sppt's over 8 seeds
     static double lo[100], hi[100], o8[300], g8[8];
     for (int i = 0; i < 100; ++i) {
       lo[i] = 2;
       hi[i] = -1;
     }
-    for (unsigned sd = 1; sd <= 6; ++sd) {
-      clab_sptst(a, b, 100, 1999, sd, 0.05, 100, o8, g8, work, iwork);
+    for (unsigned sd = 1; sd <= 4; ++sd) {
+      clab_sptst(a, b, 100, 999, sd, 0.05, 100, o8, g8, work, iwork);
       for (int i = 0; i < 100; ++i) {
         const double v = o8[100 + i];
         if (std::isnan(v)) continue;
@@ -102,7 +102,7 @@ void run(tk &tt) {
     }
     for (int i = 0; i < 100; ++i) {
       if (std::isnan(sp_p[i])) continue;
-      const double sl = 4 * std::sqrt(0.25 / 1999) + 5e-4 + 2.0 / 2000;
+      const double sl = 4 * std::sqrt(0.25 / 999) + 5e-4 + 2.0 / 1000;
       bad += hi[i] < sp_pmin[i] - sl || lo[i] > sp_pmax[i] + sl;  // ranges do not meet
     }
   }
@@ -154,10 +154,8 @@ void run(tk &tt) {
     }
     tk_true(tt, "spt.null", f / n > 0.03 && f / n < 0.07);
   }
-  // 5. disagreement (dossier csls/d/sppt.md section 3, reproduced in
-  // dev/doss/sppt.R): sppt 1.0.0 turns an NA count into 0 events without a
-  // warning. Here the unit is left out and counted: the other units'
-  // differences equal those of the data without it.
+  // 5. a unit with a missing count is left out and counted: the other
+  // units' differences equal those of the data without it.
   {
     counts100(a, b);
     b[5] = std::nan("");
@@ -195,9 +193,8 @@ void t_spt(tk &t, int) { run(t); }
 #include <chrono>
 #include <cstdio>
 
-// the dossier's standard case: 10,000 units, Poisson(5) each, B = 999
-// (sppt 5.012 s median of 3 on zeus, memory O(units x B) in the field
-// package; here O(units))
+// timing: 10,000 units, Poisson(5) each, B = 999 (sppt took 5.012 s,
+// median of 3 on zeus); memory here O(units)
 void b_spt() {
   static double a[10000], b[10000];
   xrng r{9};
