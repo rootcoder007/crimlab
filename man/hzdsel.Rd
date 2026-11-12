@@ -14,9 +14,12 @@ hzdsel(s, h, l, surh, surl)
 \item{l}{The period hazard of the low-risk type: from 0, below \code{h}.}
 
 \item{surh}{Period-one survival of the high-risk type in the control and
-treated arms: two numbers above 0 and at most 1.}
+treated arms: two numbers above 0 and at most 1, the control arm first,
+or named \code{control} and \code{treated} in either order (with \code{surl} named
+too). A list of single numbers or a one-row data frame is accepted.}
 
-\item{surl}{Period-one survival of the low-risk type, the same way.}
+\item{surl}{Period-one survival of the low-risk type, the same way;
+named inputs are matched to \code{surh} by name.}
 }
 \value{
 A named numeric vector: \code{share0}, \code{share1} (the high-risk share

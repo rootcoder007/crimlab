@@ -26,7 +26,10 @@ test_that("q is NA in every form all(is.na(q)) accepts", {
                  as.Date(c(NA, NA)), list(NA, NA_real_))) {
     expect_identical(gtmp(c(0.2, 0.3), q, hom = TRUE), ref)
   }
-  expect_error(gtmp(c(0.2, 0.3), list(NA, 1), hom = TRUE), "`q`")
+  # a list is read as numbers (a list of single numbers is a form of every
+  # per-locus argument); q is not read where hom is TRUE
+  expect_identical(gtmp(c(0.2, 0.3), list(NA, 1), hom = TRUE), ref)
+  expect_error(gtmp(c(0.2, 0.3), list(NA, "a"), hom = TRUE), "`q`")
   expect_error(gtmp(c(0.2, 0.3), factor(c(NA, "a")), hom = TRUE), "`q`")
   expect_error(gtmp(c(0.2, 0.3), as.Date(c(NA, 1)), hom = TRUE), "`q`")
   # is.na() warns on a type that is not a vector, and all() of a length-0
@@ -125,15 +128,14 @@ test_that("t0 + s past the largest integer is refused, without a warning", {
                "`lam` must have length at least t0 + s + 1.", fixed = TRUE)
 })
 
-test_that("z must be two labels, ordered by code point", {
-  expect_identical(sntbnd(c(0, 1), c("b", "a"))[["term"]],
+test_that("z must be two labels; treat names the treatment", {
+  expect_identical(sntbnd(c(0, 1), c("b", "a"), "b")[["term"]],
                    c("a", "b", "effect"))
-  # upper case sorts before lower case on every machine
-  expect_identical(sntbnd(c(0, 1), c("a", "B"))[["term"]],
+  expect_identical(sntbnd(c(0, 1), c("a", "B"), "a")[["term"]],
                    c("B", "a", "effect"))
-  expect_identical(sntbnd(c(0, 1, 1, 0), factor(c("x", "y", "x", "y"))),
-                   sntbnd(c(0, 1, 1, 0), c("x", "y", "x", "y")))
-  expect_identical(sntbnd(c(0, 1), c(2, 10))[["term"]],
+  expect_identical(sntbnd(c(0, 1, 1, 0), factor(c("x", "y", "x", "y")), "y"),
+                   sntbnd(c(0, 1, 1, 0), c("x", "y", "x", "y"), "y"))
+  expect_identical(sntbnd(c(0, 1), c(2, 10), 2)[["term"]],
                    c("10", "2", "effect"))
   expect_error(sntbnd(c(0, 1, 1), c("a", "b", "c")), "exactly two")
   expect_error(sntbnd(c(0, 1), as.Date("2020-01-01") + 0:1), "labels")
@@ -144,8 +146,8 @@ test_that("z must be two labels, ordered by code point", {
   assign("b", 2, e)
   expect_error(sntbnd(c(0, 1), e), "labels")
   expect_error(sntbnd(c(0, 1), list("a", NA)), "`z`")
-  expect_identical(sntbnd(c(0, 1), list("a", "b")),
-                   sntbnd(c(0, 1), c("a", "b")))
+  expect_identical(sntbnd(c(0, 1), list("a", "b"), "b"),
+                   sntbnd(c(0, 1), c("a", "b"), "b"))
   expect_error(sntbnd(c(0, 1), c("a", "b"), treat = list("a")), "`treat`")
 })
 
@@ -225,7 +227,7 @@ test_that("the kernel entry points still give the exported results", {
   expect_identical(.Call(C_clab_losbnd, c(1, 2), 0.5),
                    unname(losbnd(c(1, 2), 0.5)))
   expect_identical(.Call(C_clab_sntbnd, c(0, 1), c(0L, 1L), c(1, 1))[5],
-                   sntbnd(c(0, 1), c("a", "b"))[["lower"]][1])
+                   sntbnd(c(0, 1), c("a", "b"), "b")[["lower"]][1])
   expect_identical(.Call(C_clab_hzdsel, 0.3, 0.4, 0.1, c(0.9, 0.8),
                          c(0.95, 0.9)),
                    unname(hzdsel(0.3, 0.4, 0.1, c(0.9, 0.8), c(0.95, 0.9))))

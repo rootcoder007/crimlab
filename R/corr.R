@@ -12,12 +12,16 @@
 #' both. See `proof("incap")`.
 #'
 #' @param lam Offending rates while free (crimes a year): positive numbers,
-#'   one per group, optionally named.
+#'   one per group, as a numeric vector, a 1-d table, a list of single
+#'   numbers or a one-row data frame.
 #' @param q The chance a crime leads to a custodial sentence: numbers in the
-#'   interval from 0 (excluded) to 1, recycled to the length of `lam`.
-#' @param s Sentence lengths in years: non-negative numbers, recycled.
+#'   interval from 0 (excluded) to 1, recycled to the length of `lam`; one
+#'   per group, in the forms of `lam` and matched to it by name when both are
+#'   named (unnamed, by position: only names protect against a mismatch).
+#' @param s Sentence lengths in years: non-negative numbers, recycled; one
+#'   per group, in the forms of `lam`, matched by name.
 #' @param share `NULL`, or one non-negative population share per group,
-#'   summing to 1.
+#'   summing to 1, in the forms of `lam`, matched by name.
 #' @return A data frame with one row per group: `group`, `lam`, `q`, `s`,
 #'   `rate` (the long-run crime rate), `prev` (the share prevented) and
 #'   `marg` (the crimes a year one more year of sentence prevents). With
@@ -82,6 +86,8 @@ incapr <- function(lam, t0, s, r = 0) {
 #' @param y Failures: 1 or 0 for each released defendant; values for
 #'   detained defendants are ignored and may be `NA`.
 #' @param rel Released by the judge: `TRUE` or `FALSE` for each defendant.
+#'   When `y`, `rel`, `rule` (and `w`) are all named with unique names, they
+#'   are matched by name; otherwise by position.
 #' @param rule Released by the rule: `TRUE` or `FALSE`, same length.
 #' @param w `NULL` for equal weights, or one non-negative weight per
 #'   defendant.
@@ -144,11 +150,13 @@ losbnd <- function(done, open) {
 #' @param y Outcomes: 0 or 1 for each person.
 #' @param z Sentences: a vector with exactly two distinct values, same
 #'   length: character, numbers, logical or a factor (its labels; level order
-#'   and whether it is ordered are ignored), not dates.
-#' @param treat The value of `z` taken as the treatment, matched exactly;
-#'   `NULL` for the second in sorted order. The values are sorted as text
-#'   by Unicode code point (`"B"` before `"a"`, `"10"` before `"2"`), the
-#'   same on every machine whatever its locale.
+#'   and whether it is ordered are ignored), not dates nor a labelled vector
+#'   of codes. When `y`, `z` (and `w`) are all named with unique names, they
+#'   are matched by name.
+#' @param treat The value of `z` taken as the treatment, matched exactly.
+#'   `NULL` is allowed only where the treatment is explicit in `z`: `TRUE`
+#'   for a logical `z`, `1` for a `z` of 0 and 1; otherwise it must be given,
+#'   since a treatment chosen by sorting the values would be arbitrary.
 #' @param w `NULL` for equal weights, or one non-negative weight per person
 #'   with a positive total.
 #' @return A data frame with three rows, the comparison sentence, the
@@ -164,7 +172,7 @@ losbnd <- function(done, open) {
 #' set.seed(1)
 #' z <- sample(c("community", "custody"), 500, TRUE, c(0.6, 0.4))
 #' y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-#' sntbnd(y, z)
+#' sntbnd(y, z, treat = "custody")
 #' @export
 sntbnd <- function(y, z, treat = NULL, w = NULL) {
   .Call(C_clab_r_sntbnd, y, z, treat, w)
@@ -186,8 +194,11 @@ sntbnd <- function(y, z, treat = NULL, w = NULL) {
 #' @param h The period hazard of the high-risk type: at most 1.
 #' @param l The period hazard of the low-risk type: from 0, below `h`.
 #' @param surh Period-one survival of the high-risk type in the control and
-#'   treated arms: two numbers above 0 and at most 1.
-#' @param surl Period-one survival of the low-risk type, the same way.
+#'   treated arms: two numbers above 0 and at most 1, the control arm first,
+#'   or named `control` and `treated` in either order (with `surl` named
+#'   too). A list of single numbers or a one-row data frame is accepted.
+#' @param surl Period-one survival of the low-risk type, the same way;
+#'   named inputs are matched to `surh` by name.
 #' @return A named numeric vector: `share0`, `share1` (the high-risk share
 #'   among the survivors of each arm), `haz0`, `haz1` (the period-two hazard
 #'   in each arm) and `ratio` (`haz1 / haz0`).

@@ -10,7 +10,8 @@ lrpost(lr, prior)
 \item{lr}{Likelihood ratios: positive numbers.}
 
 \item{prior}{The prior probability of the first hypothesis, strictly
-between 0 and 1: one value, or one per ratio.}
+between 0 and 1: one value, or one per ratio, matched to \code{lr} by name
+when both are named with unique names.}
 }
 \value{
 The posterior probabilities.

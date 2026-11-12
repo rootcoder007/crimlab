@@ -14,13 +14,18 @@
 #' clears below average; the centre changes how the mix effect is shared
 #' among the parts, never its total.
 #'
-#' @param clra Offences cleared in A, by type: non-negative numbers,
-#'   optionally named.
-#' @param reca Offences recorded in A, by type: positive numbers, same length.
-#' @param clrb Offences cleared in B, by type: non-negative numbers, same
-#'   length.
-#' @param recb Offences recorded in B, by type: positive numbers, same length.
-#' @return A list. `parts`, a data frame with one row per type: `part`,
+#' @param clra Offences cleared in A, by type: non-negative numbers, as a
+#'   numeric vector, a 1-d table, a list of single numbers or a one-row data
+#'   frame.
+#' @param reca Offences recorded in A, by type: positive numbers, in the
+#'   forms of `clra`; named inputs are matched to `clra` by name, unnamed ones
+#'   by position (only names protect against a mismatch).
+#' @param clrb Offences cleared in B, by type: non-negative numbers, in the
+#'   forms of `clra`, matched by name.
+#' @param recb Offences recorded in B, by type: positive numbers, in the
+#'   forms of `clra`, matched by name.
+#' @return A list. `parts`, a data frame with one row per type, in the order
+#'   of `clra`: `part`,
 #'   `ratea`, `rateb` (clearance rates), `sharea`, `shareb` (shares of the
 #'   recorded workload), `rateeff` and `mixeff`. `total`, a named numeric
 #'   vector: `ratea`, `rateb` (aggregate rates), `change`, `rateeff`,
@@ -51,12 +56,17 @@ clrsmp <- function(clra, reca, clrb, recb) {
 #' a disparity is settled only when the proxy ratio lies outside that band.
 #' See `proof("expbnd")`.
 #'
-#' @param y Recorded counts by group: positive numbers, optionally named.
-#' @param m The exposure proxy by group: positive numbers, same length.
-#' @inheritParams vodtst
+#' @param y Recorded counts by group: positive numbers, as a numeric vector,
+#'   a 1-d table, a list of single numbers or a one-row data frame.
+#' @param m The exposure proxy by group: positive numbers, in the forms of
+#'   `y`; named inputs are matched to `y` by name, unnamed ones by position
+#'   (only names protect against a mismatch).
+#' @param ref The reference group, by name (matched exactly, case included;
+#'   a factor by its label) or by position in `y` as given.
 #' @param gamma The factor within which true exposure lies around the
 #'   proxy: one number, at least 1.
-#' @return A data frame with one row per group: `group`, `rate` (`y / m`),
+#' @return A data frame with one row per group, in the order of `y`:
+#'   `group`, `ref` (`TRUE` for the reference group), `rate` (`y / m`),
 #'   `lo` and `hi` (the bounds on the true rate), `ratio` (the proxy rate
 #'   against the reference group), `rlo` and `rhi` (the bounds on the true
 #'   ratio; every end is reached by some admissible exposure), and `sign`: 1
@@ -118,7 +128,9 @@ misrd <- function(r1, r0, prev, se, sp) {
 #' `proof("rtmhs")`.
 #'
 #' @param x1 Counts by place in the first period: finite numbers.
-#' @param x2 Counts by place in the second period: same length.
+#' @param x2 Counts by place in the second period: same length; when `x1`,
+#'   `x2` (and `w`) are all named with unique names, they are matched by
+#'   name.
 #' @param cut The selection cut: places with `x1 > cut` are selected.
 #' @param w `NULL` for equal weights, or one non-negative weight per place.
 #' @return A named numeric vector: `nsel` (the weight selected), `change`

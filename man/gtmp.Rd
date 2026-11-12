@@ -8,13 +8,15 @@ gtmp(p, q = NULL, hom = FALSE, theta = 0)
 }
 \arguments{
 \item{p}{Frequency of the first allele at each locus: numbers above 0 and
-at most 1, optionally named by locus.}
+at most 1, optionally named by locus, as a numeric vector, a 1-d table, a
+list of single numbers or a one-row data frame.}
 
 \item{q}{Frequency of the second allele at each locus; not read where
-\code{hom} is \code{TRUE}.}
+\code{hom} is \code{TRUE}. Named inputs are matched to \code{p} by locus name, unnamed
+ones by position (only names protect against a mismatch).}
 
 \item{hom}{\code{TRUE} where the genotype is homozygous: one value, or one per
-locus.}
+locus, matched to \code{p} by name when both are named.}
 
 \item{theta}{The coancestry coefficient: one number from 0 up to, not
 including, 1.}

@@ -50,6 +50,11 @@ SEXP dbl(SEXP x);
 // A fresh double copy of a double vector without its attributes.
 SEXP dcopy(SEXP x);
 
+// A labelled vector (one with a "labels" attribute, as haven makes) holds
+// codes, not values: it is refused, naming argument nm, with a request to
+// decode it first. num(), one(), p01(), whole(), lgl() and ref() call it.
+void unlab(SEXP x, const char *nm);
+
 // .num(): finite numbers, of length len (unless len < 0), all at least lo
 // (above lo when open). Returns as.double(x).
 SEXP num(SEXP x, const char *nm, R_xlen_t len = -1, double lo = ninf,
@@ -68,12 +73,11 @@ double p01(SEXP x, const char *nm);
 int whole(SEXP x, const char *nm, int lo);
 // .lgl(): TRUE or FALSE, n of them, no NA.
 void lgl(SEXP x, const char *nm, R_xlen_t n);
-// .ref(): the group named or numbered by ref, one-based.
+// .ref(): the group named or numbered by ref, one-based. A factor ref is
+// read by its label, never by its code.
 int ref(SEXP r, SEXP nms, int n);
 // as.character(seq_len(n)).
 SEXP seqs(R_xlen_t n);
-// .grp(): names(x), or "1", "2", ... for each value of x.
-SEXP grp(SEXP x);
 
 // Sums in a fixed order, compensated (Neumaier) while finite: the same on
 // every platform. R's sum() accumulates in long double where the platform

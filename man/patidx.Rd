@@ -12,7 +12,9 @@ row per locus, or two alleles for one locus.}
 
 \item{freq}{The population frequencies of the child's alleles, same shape.}
 
-\item{mother}{\code{NULL}, or the mother's genotype in the same form.}
+\item{mother}{\code{NULL}, or the mother's genotype in the same form. When all
+the tables have row names, their rows are matched to \code{child} by locus
+name; otherwise by position.}
 }
 \value{
 A list: \code{locus}, a data frame with \code{locus} and \code{idx} (\code{NaN} where

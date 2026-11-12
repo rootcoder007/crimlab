@@ -7,18 +7,23 @@
 clrsmp(clra, reca, clrb, recb)
 }
 \arguments{
-\item{clra}{Offences cleared in A, by type: non-negative numbers,
-optionally named.}
+\item{clra}{Offences cleared in A, by type: non-negative numbers, as a
+numeric vector, a 1-d table, a list of single numbers or a one-row data
+frame.}
 
-\item{reca}{Offences recorded in A, by type: positive numbers, same length.}
+\item{reca}{Offences recorded in A, by type: positive numbers, in the
+forms of \code{clra}; named inputs are matched to \code{clra} by name, unnamed ones
+by position (only names protect against a mismatch).}
 
-\item{clrb}{Offences cleared in B, by type: non-negative numbers, same
-length.}
+\item{clrb}{Offences cleared in B, by type: non-negative numbers, in the
+forms of \code{clra}, matched by name.}
 
-\item{recb}{Offences recorded in B, by type: positive numbers, same length.}
+\item{recb}{Offences recorded in B, by type: positive numbers, in the
+forms of \code{clra}, matched by name.}
 }
 \value{
-A list. \code{parts}, a data frame with one row per type: \code{part},
+A list. \code{parts}, a data frame with one row per type, in the order
+of \code{clra}: \code{part},
 \code{ratea}, \code{rateb} (clearance rates), \code{sharea}, \code{shareb} (shares of the
 recorded workload), \code{rateeff} and \code{mixeff}. \code{total}, a named numeric
 vector: \code{ratea}, \code{rateb} (aggregate rates), \code{change}, \code{rateeff},

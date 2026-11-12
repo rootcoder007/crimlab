@@ -35,10 +35,10 @@ test_that("results have the documented class, shape and types", {
   f <- "data.frame 2"
   x <- list(
     v = list(vodtst(d, n), f,
-             "group:c share_day:d share_night:d ratio:d sign:i"),
+             "group:c ref:l share_day:d share_night:d ratio:d sign:i"),
     o = list(orrisk(3, 0.4, 0.5), "numeric 4",
              "exposed:d unexposed:d rr:d or:d"),
-    b = list(dspbm(d, n, c(9, 6)), f, "group:c cd:d fd:d rd:d"),
+    b = list(dspbm(d, n, c(9, 6)), f, "group:c ref:l cd:d fd:d rd:d"),
     y = list(dyadrt(outer(d, d) / 1e3, d), "data.frame 4",
              "off:c vic:c count:d rate_off:d rate_pair:d null_off:d ratio:d"),
     g = list(gtmp(c(0.1, 0.2), c(0.3, NA), c(FALSE, TRUE))$locus, f,
@@ -48,10 +48,10 @@ test_that("results have the documented class, shape and types", {
     c = list(clrsmp(c(90, 20), c(100, 50), c(19, 60), c(20, 140))$parts, f,
              "part:c ratea:d rateb:d sharea:d shareb:d rateeff:d mixeff:d"),
     e = list(expbnd(d, n, 1.5), f,
-             "group:c rate:d lo:d hi:d ratio:d rlo:d rhi:d sign:i"),
+             "group:c ref:l rate:d lo:d hi:d ratio:d rlo:d rhi:d sign:i"),
     i = list(incap(c(2, 10), 0.1, 1), f,
              "group:c lam:d q:d s:d rate:d prev:d marg:d"),
-    s = list(sntbnd(c(1, 0, 1, 0), c("x", "x", "y", "y"))[1:2, ], f,
+    s = list(sntbnd(c(1, 0, 1, 0), c("x", "x", "y", "y"), "y")[1:2, ], f,
              "term:c share:d lower:d upper:d observed:d"),
     p = list(proof("orrisk"), "data.frame 3", "fn:c theorem:c file:c")
   )

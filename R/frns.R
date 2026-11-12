@@ -9,11 +9,13 @@
 #' `proof("gtmp")`.
 #'
 #' @param p Frequency of the first allele at each locus: numbers above 0 and
-#'   at most 1, optionally named by locus.
+#'   at most 1, optionally named by locus, as a numeric vector, a 1-d table, a
+#'   list of single numbers or a one-row data frame.
 #' @param q Frequency of the second allele at each locus; not read where
-#'   `hom` is `TRUE`.
+#'   `hom` is `TRUE`. Named inputs are matched to `p` by locus name, unnamed
+#'   ones by position (only names protect against a mismatch).
 #' @param hom `TRUE` where the genotype is homozygous: one value, or one per
-#'   locus.
+#'   locus, matched to `p` by name when both are named.
 #' @param theta The coancestry coefficient: one number from 0 up to, not
 #'   including, 1.
 #' @return A list: `locus`, a data frame with `locus`, `hom` and `mp`;
@@ -64,7 +66,8 @@ cllr <- function(same, diff) {
 #'
 #' @param lr Likelihood ratios: positive numbers.
 #' @param prior The prior probability of the first hypothesis, strictly
-#'   between 0 and 1: one value, or one per ratio.
+#'   between 0 and 1: one value, or one per ratio, matched to `lr` by name
+#'   when both are named with unique names.
 #' @return The posterior probabilities.
 #' @examples
 #' lrpost(lr = 1e6, prior = 1 / 5e6)

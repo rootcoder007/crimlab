@@ -7,18 +7,22 @@
 expbnd(y, m, gamma, ref = 1)
 }
 \arguments{
-\item{y}{Recorded counts by group: positive numbers, optionally named.}
+\item{y}{Recorded counts by group: positive numbers, as a numeric vector,
+a 1-d table, a list of single numbers or a one-row data frame.}
 
-\item{m}{The exposure proxy by group: positive numbers, same length.}
+\item{m}{The exposure proxy by group: positive numbers, in the forms of
+\code{y}; named inputs are matched to \code{y} by name, unnamed ones by position
+(only names protect against a mismatch).}
 
 \item{gamma}{The factor within which true exposure lies around the
 proxy: one number, at least 1.}
 
-\item{ref}{The reference group, by name (matched exactly, case included)
-or position.}
+\item{ref}{The reference group, by name (matched exactly, case included;
+a factor by its label) or by position in \code{y} as given.}
 }
 \value{
-A data frame with one row per group: \code{group}, \code{rate} (\code{y / m}),
+A data frame with one row per group, in the order of \code{y}:
+\code{group}, \code{ref} (\code{TRUE} for the reference group), \code{rate} (\code{y / m}),
 \code{lo} and \code{hi} (the bounds on the true rate), \code{ratio} (the proxy rate
 against the reference group), \code{rlo} and \code{rhi} (the bounds on the true
 ratio; every end is reached by some admissible exposure), and \code{sign}: 1

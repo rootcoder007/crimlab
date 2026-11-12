@@ -13,6 +13,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 #include <utility>
 
 #include "crimlab.h"
@@ -97,6 +98,224 @@ Keys keys(SEXP v) {
 // x %in% the set
 bool has(const Keys &s, const Key &x) { return s.n > 0 && s.slot[probe(s, x)] >= 0; }
 
+// Group arguments.
+//
+// One rule for the arguments of a call that hold one value per group (or
+// per unit, per locus, per arm), applied by every entry point that takes
+// two or more of them. Names are the identity of a group:
+//   - all named, the same set of names: every later argument is put in
+//     the order of the first, by name;
+//   - all named, different sets: an error that lists the names missing
+//     and extra; nothing is dropped, padded or matched by position;
+//   - some named, some not: positions, as before; the groups are named by
+//     the first named argument;
+//   - none named: positions; the groups are "1", "2", ...;
+//   - a name given twice in one argument: an error.
+// Only arguments of the length of the first take part (one value to be
+// recycled, or a wrong length that the checks after refuse, keep their
+// place). A matrix is matched by its rows, and only with other matrices.
+
+const char *const forms =
+    "a numeric vector, a 1-d table, a list of single numbers or a one-row "
+    "data frame";
+
+// The labels of the rows of x: the row names of a matrix, otherwise
+// names(x), which for a 1-d table or array are its dimnames.
+SEXP rnames(SEXP x) {
+  if (Rf_isMatrix(x)) {
+    SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+    return Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 0);
+  }
+  return Rf_getAttrib(x, R_NamesSymbol);
+}
+
+R_xlen_t rows(SEXP x) { return Rf_isMatrix(x) ? Rf_nrows(x) : Rf_xlength(x); }
+
+// The types take() reorders; any other is left in place, to be refused.
+bool movable(SEXP x) {
+  const int t = TYPEOF(x);
+  return t == REALSXP || t == INTSXP || t == LGLSXP || t == STRSXP || t == VECSXP;
+}
+
+// x with its rows (the elements of a vector) in the order o, n rows; its
+// attributes but names and dimnames are kept (a factor keeps its levels).
+SEXP take(SEXP x, const R_xlen_t *o, R_xlen_t n) {
+  const R_xlen_t len = XLENGTH(x), nc = len / n;
+  const int t = TYPEOF(x);
+  SEXP v = PROTECT(Rf_allocVector(t, len));
+  for (R_xlen_t c = 0; c < nc; ++c) {
+    for (R_xlen_t i = 0; i < n; ++i) {
+      const R_xlen_t a = c * n + i, b = c * n + o[i];
+      if (t == REALSXP) REAL(v)[a] = REAL_RO(x)[b];
+      else if (t == INTSXP) INTEGER(v)[a] = INTEGER_RO(x)[b];
+      else if (t == LGLSXP) LOGICAL(v)[a] = LOGICAL_RO(x)[b];
+      else if (t == STRSXP) SET_STRING_ELT(v, a, STRING_ELT(x, b));
+      else SET_VECTOR_ELT(v, a, VECTOR_ELT(x, b));
+    }
+  }
+  Rf_copyMostAttrib(x, v);
+  if (Rf_isMatrix(x)) Rf_setAttrib(v, R_DimSymbol, Rf_getAttrib(x, R_DimSymbol));
+  UNPROTECT(1);
+  return v;
+}
+
+// The names nm (keys k) that are not in the set other, joined by ", ".
+const char *absent(SEXP nm, const Keys &k, const Keys &other) {
+  std::size_t len = 1;
+  for (R_xlen_t i = 0; i < k.n; ++i) {
+    if (!has(other, k.k[i])) len += std::strlen(Rf_translateChar(STRING_ELT(nm, i))) + 2;
+  }
+  char *s = R_alloc(len, 1), *e = s;
+  for (R_xlen_t i = 0; i < k.n; ++i) {
+    if (has(other, k.k[i])) continue;
+    if (e != s) {
+      std::memcpy(e, ", ", 2);
+      e += 2;
+    }
+    const char *c = Rf_translateChar(STRING_ELT(nm, i));
+    const std::size_t m = std::strlen(c);
+    std::memcpy(e, c, m);
+    e += m;
+  }
+  *e = '\0';
+  return s;
+}
+
+// The keys of the names nm of argument an, refused when a name repeats
+// (strict) or returned with nd < n (not strict).
+Keys uniq(SEXP nm, const char *an, bool strict) {
+  Keys k = keys(nm);
+  for (R_xlen_t i = 0; strict && i < k.n; ++i) {
+    if (!k.first[i]) {
+      fail("%s names a group twice: %s.", an, Rf_translateChar(STRING_ELT(nm, i)));
+    }
+  }
+  return k;
+}
+
+// o such that b[o[i]] is a[i], for two sets of unique names (keys ka, kb)
+// of one length; refused, listing the names, when the sets differ. Returns
+// whether o is the identity.
+bool order(SEXP a, const Keys &ka, SEXP b, const Keys &kb, const char *an,
+           const char *bn, R_xlen_t *o) {
+  bool id = true;
+  for (R_xlen_t i = 0; i < ka.n; ++i) {
+    const R_xlen_t j = kb.slot[probe(kb, ka.k[i])];
+    if (j < 0) {
+      fail("%s must name the same groups as %s; missing: %s; extra: %s.", bn,
+           an, absent(a, ka, kb), absent(b, kb, ka));
+    }
+    o[i] = j;
+    id = id && j == i;
+  }
+  return id;
+}
+
+// list(NULL, x...): the arguments of one call, in a list that align()
+// fills in place (slot 0 for the group names).
+SEXP args(std::initializer_list<SEXP> xs) {
+  SEXP a = Rf_allocVector(VECSXP, static_cast<R_xlen_t>(xs.size()) + 1);
+  R_xlen_t j = 0;
+  for (SEXP x : xs) SET_VECTOR_ELT(a, ++j, x);
+  return a;
+}
+
+// The rule above on the arguments in a (from args()), named nm: later
+// arguments are reordered in place and slot 0 receives the group names.
+// strict: a repeated name is an error; otherwise (per-unit arguments,
+// whose names may be labels that repeat) it leaves positions in use.
+SEXP align(SEXP a, const char *const *nm, bool strict) {
+  PROTECT(a);
+  const int k = static_cast<int>(XLENGTH(a)) - 1;
+  SEXP x0 = VECTOR_ELT(a, 1);
+  const R_xlen_t n = rows(x0);
+  const bool mat = Rf_isMatrix(x0);
+  Keys ks[5];
+  char an[5][64];
+  bool use[5];
+  int nu = 0, nn = 0, first = -1;
+  bool dup = false;
+  for (int j = 0; j < k; ++j) {
+    SEXP x = VECTOR_ELT(a, j + 1);
+    use[j] = !Rf_isNull(x) && movable(x) && Rf_isMatrix(x) == mat && rows(x) == n;
+    std::snprintf(an[j], sizeof an[j], "`%s`", nm[j]);
+    if (!use[j]) continue;
+    ++nu;
+    SEXP r = rnames(x);
+    if (Rf_isNull(r)) continue;
+    ++nn;
+    if (first < 0) first = j;
+    ks[j] = uniq(r, an[j], strict);
+    dup = dup || ks[j].nd != ks[j].n;
+  }
+  if (nn == nu && nu > 1 && !dup) {
+    R_xlen_t *o = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(R_xlen_t)));
+    for (int j = 1; j < k; ++j) {
+      if (!use[j]) continue;
+      SEXP x = VECTOR_ELT(a, j + 1);
+      if (!order(rnames(x0), ks[0], rnames(x), ks[j], an[0], an[j], o)) {
+        SET_VECTOR_ELT(a, j + 1, take(x, o, n));
+      }
+    }
+  }
+  SET_VECTOR_ELT(a, 0, first < 0 ? clab::seqs(n) : rnames(VECTOR_ELT(a, first + 1)));
+  UNPROTECT(1);
+  return a;
+}
+
+// A per-group argument in any of its forms, as a vector with names: a
+// list of single numbers (or NA) and a one-row data frame of numbers give
+// their values with their names, a one-row or one-column numeric matrix
+// its values named by its column or row names (a 1-d table already has
+// names). Any other input is returned as it is; one that is not numeric is
+// refused with the forms listed.
+SEXP gvec(SEXP x, const char *nm) {
+  if (Rf_isNull(x)) return x;
+  SEXP v = x;
+  if (TYPEOF(x) == VECSXP) {
+    // each element (each column of a data frame) one number
+    const R_xlen_t n = XLENGTH(x);
+    v = PROTECT(Rf_allocVector(REALSXP, n));
+    for (R_xlen_t i = 0; i < n; ++i) {
+      SEXP e = VECTOR_ELT(x, i);
+      clab::unlab(e, nm);
+      const bool na = TYPEOF(e) == LGLSXP && XLENGTH(e) == 1 && LOGICAL_RO(e)[0] == NA_LOGICAL;
+      if (!na && (!clab::isnum(e) || XLENGTH(e) != 1)) {
+        fail("`%s` must be finite numbers, one per group: %s.", nm, forms);
+      }
+      REAL(v)[i] = clab::val1(e);
+    }
+    Rf_setAttrib(v, R_NamesSymbol, Rf_getAttrib(x, R_NamesSymbol));
+    UNPROTECT(1);
+  } else if (Rf_isMatrix(x) && clab::isnum(x) && (Rf_nrows(x) == 1 || Rf_ncols(x) == 1)) {
+    SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+    clab::unlab(x, nm);
+    v = PROTECT(TYPEOF(x) == REALSXP ? dcopy(x) : clab::dbl(x));
+    if (!Rf_isNull(dn)) Rf_setAttrib(v, R_NamesSymbol, VECTOR_ELT(dn, Rf_nrows(x) == 1 && Rf_ncols(x) != 1 ? 1 : 0));
+    UNPROTECT(1);
+  } else if (!clab::isnum(x)) {
+    fail("`%s` must be finite numbers, one per group: %s.", nm, forms);
+  }
+  return v;
+}
+
+// gvec() on each argument in a (from args()), then align() strictly.
+SEXP group(SEXP a, const char *const *nm) {
+  PROTECT(a);
+  for (R_xlen_t j = 1; j < XLENGTH(a); ++j) {
+    SET_VECTOR_ELT(a, j, gvec(VECTOR_ELT(a, j), nm[j - 1]));
+  }
+  UNPROTECT(1);
+  return align(a, nm, true);
+}
+
+// A logical column, TRUE at the reference group i (one-based) of n.
+SEXP refcol(int n, int i) {
+  SEXP v = Rf_allocVector(LGLSXP, n);
+  for (int k = 0; k < n; ++k) LOGICAL(v)[k] = k == i - 1;
+  return v;
+}
+
 // Doubles (no NaN) as unsigned integers in the same order: the IEEE 754
 // bit pattern (R requires IEEE 754), sign bit flipped for positives and
 // all bits for negatives; -0 is read as 0 so that the two tie, as they
@@ -163,8 +382,61 @@ void rsort(double *x, int n) {
   }
 }
 
-const char *const vodnm[] = {"group", "share_day", "share_night", "ratio",
-                             "sign", "adj"};
+const char *const vodnm[] = {"group", "ref", "share_day", "share_night",
+                             "ratio", "sign", "adj"};
+
+// vodtst(day = <table>) with night left out: one table of groups by
+// {day, night}, a matrix (a 2-d table) or a data frame whose two columns
+// are named day and night, in either order; never taken by position. The
+// rows are named by the row names (character row names of a data frame).
+// Returns list(day, night).
+SEXP split2(SEXP x) {
+  const bool df = Rf_inherits(x, "data.frame");
+  const bool mt = !df && Rf_isMatrix(x);
+  SEXP cn = R_NilValue, rn = R_NilValue;
+  if (df) {
+    cn = Rf_getAttrib(x, R_NamesSymbol);
+    rn = Rf_getAttrib(x, R_RowNamesSymbol);
+  } else if (mt) {
+    SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+    if (!Rf_isNull(dn)) {
+      rn = VECTOR_ELT(dn, 0);
+      cn = VECTOR_ELT(dn, 1);
+    }
+  }
+  int col[2] = {-1, -1};
+  if (Rf_xlength(cn) == 2) {
+    static const char *const want[] = {"day", "night"};
+    for (int c = 0; c < 2; ++c) {
+      for (int w = 0; w < 2; ++w) {
+        if (clab::kcmp(clab::key(STRING_ELT(cn, c)), Key{want[w], 0}) == 0) col[w] = c;
+      }
+    }
+  }
+  if (col[0] < 0 || col[1] < 0) {
+    fail("`night` is missing: give `night`, or `day` as one table (a matrix "
+         "or a data frame) with two columns named day and night.");
+  }
+  clab::unlab(x, "day");
+  if (mt && !clab::isnum(x)) fail("`day` must be finite numbers, one per group: %s.", forms);
+  const R_xlen_t n = mt ? Rf_nrows(x) : Rf_xlength(VECTOR_ELT(x, 0));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
+  for (int w = 0; w < 2; ++w) {
+    SEXP v;
+    if (df) {
+      v = Rf_duplicate(VECTOR_ELT(x, col[w]));
+    } else {
+      SEXP m = PROTECT(clab::dbl(x));
+      v = real(n);
+      std::memcpy(REAL(v), REAL_RO(m) + col[w] * n, static_cast<std::size_t>(n) * sizeof(double));
+      UNPROTECT(1);
+    }
+    SET_VECTOR_ELT(out, w, v);
+    if (TYPEOF(rn) == STRSXP) Rf_setAttrib(v, R_NamesSymbol, rn);
+  }
+  UNPROTECT(1);
+  return out;
+}
 
 }  // namespace
 
@@ -174,29 +446,37 @@ extern "C" {
 
 SEXP C_clab_r_vodtst(SEXP day, SEXP night, SEXP ref, SEXP shift) {
   clab::who = "vodtst";
-  SEXP nms = PROTECT(clab::grp(day));
-  SEXP d = PROTECT(num(day, "day", -1, 0.0));
+  SEXP dn = PROTECT(Rf_isNull(night) ? split2(day) : R_NilValue);
+  if (!Rf_isNull(dn)) {
+    day = VECTOR_ELT(dn, 0);
+    night = VECTOR_ELT(dn, 1);
+  }
+  static const char *const an[] = {"day", "night", "shift"};
+  SEXP a = PROTECT(group(args({day, night, shift}), an));
+  SEXP nms = VECTOR_ELT(a, 0);
+  SEXP d = PROTECT(num(VECTOR_ELT(a, 1), "day", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(d)), "day");
-  SEXP ni = PROTECT(num(night, "night", n, 0.0, true));
+  SEXP ni = PROTECT(num(VECTOR_ELT(a, 2), "night", n, 0.0, true));
   const bool has = !Rf_isNull(shift);
-  SEXP sh = PROTECT(has ? num(shift, "shift", n, 0.0, true) : R_NilValue);
+  SEXP sh = PROTECT(has ? num(VECTOR_ELT(a, 3), "shift", n, 0.0, true) : R_NilValue);
   const int i = clab::ref(ref, nms, n);
   if (REAL_RO(d)[i - 1] <= 0) {
     fail("the reference group has no daylight stops.");
   }
-  SEXP out = PROTECT(Rf_allocVector(VECSXP, has ? 6 : 5));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, has ? 7 : 6));
   SET_VECTOR_ELT(out, 0, nms);
-  for (int k = 1; k < 4; ++k) SET_VECTOR_ELT(out, k, real(n));
-  SET_VECTOR_ELT(out, 4, Rf_allocVector(INTSXP, n));
-  if (has) SET_VECTOR_ELT(out, 5, real(n));
+  SET_VECTOR_ELT(out, 1, refcol(n, i));
+  for (int k = 2; k < 5; ++k) SET_VECTOR_ELT(out, k, real(n));
+  SET_VECTOR_ELT(out, 5, Rf_allocVector(INTSXP, n));
+  if (has) SET_VECTOR_ELT(out, 6, real(n));
   kchk(clab_vod(REAL_RO(d), REAL_RO(ni), n, i - 1, has ? REAL_RO(sh) : nullptr,
-                REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
-                REAL(VECTOR_ELT(out, 3)), INTEGER(VECTOR_ELT(out, 4)),
-                has ? REAL(VECTOR_ELT(out, 5)) : nullptr),
+                REAL(VECTOR_ELT(out, 2)), REAL(VECTOR_ELT(out, 3)),
+                REAL(VECTOR_ELT(out, 4)), INTEGER(VECTOR_ELT(out, 5)),
+                has ? REAL(VECTOR_ELT(out, 6)) : nullptr),
        nullptr);
   // out[["adj"]] <- ... on a data frame leaves row.names before class
   clab::frame(out, vodnm, has);
-  UNPROTECT(5);
+  UNPROTECT(6);
   return out;
 }
 
@@ -220,6 +500,10 @@ SEXP C_clab_r_orrisk(SEXP orr, SEXP rate, SEXP share) {
 
 SEXP C_clab_r_outtst(SEXP q, SEXP t, SEXP w) {
   clab::who = "outtst";
+  static const char *const an[] = {"q", "w"};
+  SEXP a = PROTECT(align(args({q, w}), an, false));
+  q = VECTOR_ELT(a, 1);
+  w = VECTOR_ELT(a, 2);
   SEXP qv = PROTECT(num(q, "q", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(qv)), "q");
   const double *p = REAL_RO(qv);
@@ -232,26 +516,29 @@ SEXP C_clab_r_outtst(SEXP q, SEXP t, SEXP w) {
   double r[2];
   kchk(clab_outtst(p, REAL_RO(wv), n, REAL_RO(tv)[0], r, r + 1), nullptr);
   static const char *const nm[] = {"stop", "hit"};
-  UNPROTECT(3);
+  UNPROTECT(4);
   return clab::nvec(2, nm, r);
 }
 
 SEXP C_clab_r_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
   clab::who = "dspbm";
-  SEXP nms = PROTECT(clab::grp(pop));
-  SEXP p = PROTECT(num(pop, "pop", -1, 0.0, true));
+  static const char *const an[] = {"pop", "contact", "force"};
+  SEXP a = PROTECT(group(args({pop, contact, force}), an));
+  SEXP nms = VECTOR_ELT(a, 0);
+  SEXP p = PROTECT(num(VECTOR_ELT(a, 1), "pop", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(p)), "pop");
-  SEXP c = PROTECT(num(contact, "contact", n, 0.0, true));
-  SEXP f = PROTECT(num(force, "force", n, 0.0, true));
+  SEXP c = PROTECT(num(VECTOR_ELT(a, 2), "contact", n, 0.0, true));
+  SEXP f = PROTECT(num(VECTOR_ELT(a, 3), "force", n, 0.0, true));
   const int i = clab::ref(ref, nms, n);
-  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
   SET_VECTOR_ELT(out, 0, nms);
-  for (int k = 1; k < 4; ++k) SET_VECTOR_ELT(out, k, real(n));
+  SET_VECTOR_ELT(out, 1, refcol(n, i));
+  for (int k = 2; k < 5; ++k) SET_VECTOR_ELT(out, k, real(n));
   kchk(clab_dspbm(REAL_RO(p), REAL_RO(c), REAL_RO(f), n, i - 1,
-                  REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
-                  REAL(VECTOR_ELT(out, 3))),
+                  REAL(VECTOR_ELT(out, 2)), REAL(VECTOR_ELT(out, 3)),
+                  REAL(VECTOR_ELT(out, 4))),
        nullptr);
-  static const char *const nm[] = {"group", "cd", "fd", "rd"};
+  static const char *const nm[] = {"group", "ref", "cd", "fd", "rd"};
   clab::frame(out, nm);
   UNPROTECT(5);
   return out;
@@ -259,8 +546,8 @@ SEXP C_clab_r_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
 
 SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
   clab::who = "dyadrt";
-  SEXP nms = PROTECT(clab::grp(pop));
-  SEXP p = PROTECT(num(pop, "pop", -1, 0.0, true));
+  SEXP pv = PROTECT(gvec(pop, "pop"));
+  SEXP p = PROTECT(num(pv, "pop", -1, 0.0, true));
   const int g = ilen(static_cast<double>(XLENGTH(p)), "pop");
   // !is.matrix(count) || nrow(count) != g || ncol(count) != g
   bool ok = Rf_isMatrix(count);
@@ -275,12 +562,37 @@ SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
   const int ty = TYPEOF(count);
   const bool data = (ty == INTSXP || ty == REALSXP) && !Rf_isFactor(count);
   if (!data) fail("`count` must be finite numbers with no missing values.");
+  clab::unlab(count, "count");
   // the copy has no dim, as as.vector() leaves none, so num() reads it as
   // the vector it is
   SEXP cv = PROTECT(ty == REALSXP ? dcopy(count) : clab::dbl(count));
   SEXP x = PROTECT(num(cv, "count", -1, 0.0));
   const R_xlen_t m = XLENGTH(x);
   if (!pos(REAL_RO(x), m)) fail("`count` holds no offences.");
+  // The groups by name: when count names both its rows and its columns,
+  // the columns are put in the order of the rows, and both in the order of
+  // pop when pop is named too. The groups are named by pop, else by the
+  // rows, else by the columns.
+  SEXP dn = Rf_getAttrib(count, R_DimNamesSymbol);
+  SEXP rn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 0);
+  SEXP cn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 1);
+  SEXP pn = Rf_getAttrib(pv, R_NamesSymbol);
+  const char *rd = "the row names of `count`", *cd = "the column names of `count`";
+  const Keys kp = Rf_isNull(pn) ? Keys{} : uniq(pn, "`pop`", true);
+  const Keys kr = Rf_isNull(rn) ? Keys{} : uniq(rn, rd, true);
+  const Keys kc = Rf_isNull(cn) ? Keys{} : uniq(cn, cd, true);
+  R_xlen_t *orow = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(g), sizeof(R_xlen_t)));
+  R_xlen_t *ocol = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(g), sizeof(R_xlen_t)));
+  for (int i = 0; i < g; ++i) orow[i] = ocol[i] = i;
+  if (!Rf_isNull(rn) && !Rf_isNull(cn)) {
+    if (!Rf_isNull(pn)) order(pn, kp, rn, kr, "`pop`", rd, orow);
+    if (Rf_isNull(pn)) order(rn, kr, cn, kc, rd, cd, ocol);
+    else order(pn, kp, cn, kc, "`pop`", cd, ocol);
+    double *y = reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(m), sizeof(double)));
+    for (R_xlen_t k = 0; k < m; ++k) y[k] = REAL_RO(x)[orow[k % g] + g * ocol[k / g]];
+    std::memcpy(REAL(x), y, static_cast<std::size_t>(m) * sizeof(double));
+  }
+  SEXP nms = PROTECT(!Rf_isNull(pn) ? pn : !Rf_isNull(rn) ? rn : !Rf_isNull(cn) ? cn : clab::seqs(g));
   // off <- rep(seq_len(g), times = g); vic <- rep(seq_len(g), each = g)
   int *off = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(m), sizeof(int)));
   int *vic = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(m), sizeof(int)));
@@ -304,7 +616,7 @@ SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
   static const char *const nm[] = {"off",       "vic",      "count", "rate_off",
                                    "rate_pair", "null_off", "ratio"};
   clab::frame(out, nm);
-  UNPROTECT(5);
+  UNPROTECT(6);
   return out;
 }
 
@@ -315,7 +627,8 @@ SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
 namespace {
 
 // all(is.na(x)) of a q that is not numeric (is.na() on each type as R's
-// do_isna has it, the warning included)
+// do_isna has it, the warning included); a list q never comes here, gvec()
+// has made it numbers
 bool allna(SEXP x) {
   const R_xlen_t n = Rf_xlength(x);
   switch (TYPEOF(x)) {
@@ -344,12 +657,6 @@ bool allna(SEXP x) {
       }
       return true;
     }
-    case VECSXP:
-      for (R_xlen_t i = 0; i < n; ++i) {
-        SEXP e = VECTOR_ELT(x, i);
-        if (!(Rf_isVectorAtomic(e) && XLENGTH(e) == 1 && clab::anyna(e))) return false;
-      }
-      return true;
     case RAWSXP:
       return n == 0;
     default:
@@ -367,8 +674,15 @@ extern "C" {
 
 SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
   clab::who = "gtmp";
-  SEXP nms = PROTECT(clab::grp(p));
-  SEXP pv = PROTECT(num(p, "p", -1, 0.0, true));
+  SEXP p0 = PROTECT(gvec(p, "p"));
+  // q may be all NA of any type; only a list (or data frame) is converted
+  SEXP q0 = PROTECT(TYPEOF(q) == VECSXP ? gvec(q, "q") : q);
+  static const char *const an[] = {"p", "q", "hom"};
+  SEXP a = PROTECT(align(args({p0, q0, hom}), an, true));
+  SEXP nms = VECTOR_ELT(a, 0);
+  q = VECTOR_ELT(a, 2);
+  hom = VECTOR_ELT(a, 3);
+  SEXP pv = PROTECT(num(VECTOR_ELT(a, 1), "p", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(pv)), "p");
   const double *pp = REAL_RO(pv);
   for (int i = 0; i < n; ++i) {
@@ -392,6 +706,7 @@ SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
   double *qq = REAL(qv);
   bool nq = false;
   if (!Rf_isNull(q)) {
+    clab::unlab(q, "q");
     nq = clab::isnum(q);
     if ((!nq && !allna(q)) || Rf_xlength(q) != n) {
       fail("`q` must be numbers, one per locus.");
@@ -436,7 +751,7 @@ SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
   SET_VECTOR_ELT(out, 1, Rf_ScalarReal(l10));
   SET_VECTOR_ELT(out, 2, Rf_ScalarReal(-l10));
   static const char *const nm[] = {"locus", "log10mp", "log10lr"};
-  UNPROTECT(6);
+  UNPROTECT(8);
   return clab::nlist(out, nm);
 }
 
@@ -454,6 +769,10 @@ SEXP C_clab_r_cllr(SEXP same, SEXP diff) {
 
 SEXP C_clab_r_lrpost(SEXP lr, SEXP prior) {
   clab::who = "lrpost";
+  static const char *const an[] = {"lr", "prior"};
+  SEXP a = PROTECT(align(args({lr, prior}), an, false));
+  lr = VECTOR_ELT(a, 1);
+  prior = VECTOR_ELT(a, 2);
   SEXP l = PROTECT(num(lr, "lr", -1, 0.0, true));
   SEXP p = PROTECT(num(prior, "prior", -1, 0.0, true));
   const R_xlen_t nl = XLENGTH(l), np = XLENGTH(p);
@@ -469,7 +788,7 @@ SEXP C_clab_r_lrpost(SEXP lr, SEXP prior) {
     const double q = pv[np == 1 ? 0 : i];
     o[i] = 1 / (1 + (1 - q) / (q * lv[i]));
   }
-  UNPROTECT(3);
+  UNPROTECT(4);
   return out;
 }
 
@@ -770,6 +1089,7 @@ int nrow(SEXP x) { return INTEGER_RO(Rf_getAttrib(x, R_DimSymbol))[0]; }
 // .gt(): a genotype table, one row per locus, two alleles; n rows if n >= 0
 SEXP gt(SEXP x, const char *nm, int n) {
   // if (is.null(dim(x)) && length(x) == 2L) x <- matrix(x, 1L)
+  clab::unlab(x, nm);
   if (Rf_isNull(Rf_getAttrib(x, R_DimSymbol)) && Rf_xlength(x) == 2) x = mat12(x);
   PROTECT(x);
   // !is.matrix(x) || ncol(x) != 2L || anyNA(x) ||
@@ -788,11 +1108,9 @@ SEXP gt(SEXP x, const char *nm, int n) {
   return x;
 }
 
-// .gf(): the frequencies of the alleles of g, same shape, row by row
+// .gf(): the frequencies of the alleles of g, same shape, row by row; a
+// pair of frequencies is already a one-row table (loci() makes it one)
 const double *gf(SEXP freq, SEXP g, const char *nm) {
-  if (Rf_isNull(Rf_getAttrib(freq, R_DimSymbol)) && Rf_xlength(freq) == 2) {
-    freq = mat12(freq);
-  }
   PROTECT(freq);
   // !is.matrix(freq) || !is.numeric(freq) || !identical(dim(freq), dim(g))
   //   || anyNA(freq) || any(freq <= 0) || any(freq > 1)
@@ -967,11 +1285,39 @@ SEXP idx(SEXP g, SEXP ix) {
   return clab::nlist(out, onm);
 }
 
+// The genotype tables and freq, matched by locus (row names) under the
+// rule of align(): list(loci, tables..., freq), each table from gt() and
+// freq made a table as gf() makes it. src receives the table whose row
+// names name the loci (the first one named, else the first).
+SEXP loci(std::initializer_list<SEXP> gs, SEXP freq, const char *const *nm,
+          SEXP *src) {
+  if (Rf_isNull(Rf_getAttrib(freq, R_DimSymbol)) && Rf_xlength(freq) == 2) {
+    freq = mat12(freq);
+  }
+  PROTECT(freq);
+  SEXP a = PROTECT(args(gs));
+  const R_xlen_t k = XLENGTH(a);
+  SEXP b = PROTECT(Rf_allocVector(VECSXP, k + 1));
+  for (R_xlen_t j = 1; j < k; ++j) SET_VECTOR_ELT(b, j, VECTOR_ELT(a, j));
+  SET_VECTOR_ELT(b, k, freq);
+  align(b, nm, true);
+  *src = VECTOR_ELT(b, 1);
+  for (R_xlen_t j = k; j >= 1; --j) {
+    if (!Rf_isNull(rnames(VECTOR_ELT(b, j)))) *src = VECTOR_ELT(b, j);
+  }
+  UNPROTECT(3);
+  return b;
+}
+
 SEXP kinidx(SEXP g1, SEXP g2, SEXP freq, SEXP rel) {
   SEXP a = PROTECT(gt(g1, "g1", -1));
   const int nr = nrow(a);
   SEXP b = PROTECT(gt(g2, "g2", nr));
-  const double *f = gf(freq, a, "g1");
+  static const char *const an[] = {"g1", "g2", "freq"};
+  SEXP src;
+  SEXP al = PROTECT(loci({a, b}, freq, an, &src));
+  b = VECTOR_ELT(al, 2);
+  const double *f = gf(VECTOR_ELT(al, 3), a, "g1");
   double k[3];
   kin(rel, k);
   SEXP g[2] = {a, b};
@@ -980,8 +1326,8 @@ SEXP kinidx(SEXP g1, SEXP g2, SEXP freq, SEXP rel) {
   SEXP ix = PROTECT(real(nr));
   kchk(clab_kinidx(c[0], c[1], f, nr, k, REAL(ix)),
        ".idx(g1, .Call(C_clab_kinidx, .code(g1, u), .code(g2, u), f, k))");
-  SEXP out = idx(a, ix);
-  UNPROTECT(3);
+  SEXP out = idx(src, ix);
+  UNPROTECT(4);
   return out;
 }
 
@@ -1007,7 +1353,12 @@ SEXP C_clab_r_patidx(SEXP child, SEXP father, SEXP freq, SEXP mother) {
   const int nr = nrow(c);
   SEXP fa = PROTECT(gt(father, "father", nr));
   SEXP mo = PROTECT(gt(mother, "mother", nr));
-  const double *f = gf(freq, c, "child");
+  static const char *const an[] = {"child", "father", "mother", "freq"};
+  SEXP src;
+  SEXP al = PROTECT(loci({c, fa, mo}, freq, an, &src));
+  fa = VECTOR_ELT(al, 2);
+  mo = VECTOR_ELT(al, 3);
+  const double *f = gf(VECTOR_ELT(al, 4), c, "child");
   SEXP g[3] = {c, fa, mo};
   int *k[3];
   codes(g, 3, nr, k, "child");
@@ -1015,8 +1366,8 @@ SEXP C_clab_r_patidx(SEXP child, SEXP father, SEXP freq, SEXP mother) {
   kchk(clab_patidx(k[0], k[2], k[1], f, nr, REAL(ix)),
        ".idx(child, .Call(C_clab_patidx, .code(child, u), .code(mother, u), "
        ".code(father, u), f))");
-  SEXP out = idx(c, ix);
-  UNPROTECT(4);
+  SEXP out = idx(src, ix);
+  UNPROTECT(5);
   return out;
 }
 
@@ -1028,7 +1379,13 @@ extern "C" {
 
 SEXP C_clab_r_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
   clab::who = "clrsmp";
-  SEXP nms = PROTECT(clab::grp(clra));
+  static const char *const an[] = {"clra", "reca", "clrb", "recb"};
+  SEXP al = PROTECT(group(args({clra, reca, clrb, recb}), an));
+  clra = VECTOR_ELT(al, 1);
+  reca = VECTOR_ELT(al, 2);
+  clrb = VECTOR_ELT(al, 3);
+  recb = VECTOR_ELT(al, 4);
+  SEXP nms = PROTECT(VECTOR_ELT(al, 0));
   SEXP a = PROTECT(num(clra, "clra", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(a)), "clra");
   SEXP ra = PROTECT(num(reca, "reca", n, 0.0, true));
@@ -1056,32 +1413,37 @@ SEXP C_clab_r_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
   SET_VECTOR_ELT(out, 0, parts);
   SET_VECTOR_ELT(out, 1, clab::nvec(8, tnm, tot));
   static const char *const nm[] = {"parts", "total"};
-  UNPROTECT(7);
+  UNPROTECT(8);
   return clab::nlist(out, nm);
 }
 
 SEXP C_clab_r_expbnd(SEXP y, SEXP m, SEXP gamma, SEXP ref) {
   clab::who = "expbnd";
-  SEXP nms = PROTECT(clab::grp(y));
+  static const char *const an[] = {"y", "m"};
+  SEXP a = PROTECT(group(args({y, m}), an));
+  y = VECTOR_ELT(a, 1);
+  m = VECTOR_ELT(a, 2);
+  SEXP nms = PROTECT(VECTOR_ELT(a, 0));
   SEXP yv = PROTECT(num(y, "y", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(yv)), "y");
   SEXP mv = PROTECT(num(m, "m", n, 0.0, true));
   SEXP g = PROTECT(num(gamma, "gamma", 1, 1.0));
   const int i = clab::ref(ref, nms, n);
-  SEXP out = PROTECT(Rf_allocVector(VECSXP, 8));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 9));
   SET_VECTOR_ELT(out, 0, nms);
-  for (int k = 1; k < 7; ++k) SET_VECTOR_ELT(out, k, real(n));
-  SET_VECTOR_ELT(out, 7, Rf_allocVector(INTSXP, n));
+  SET_VECTOR_ELT(out, 1, refcol(n, i));
+  for (int k = 2; k < 8; ++k) SET_VECTOR_ELT(out, k, real(n));
+  SET_VECTOR_ELT(out, 8, Rf_allocVector(INTSXP, n));
   kchk(clab_expbnd(REAL_RO(yv), REAL_RO(mv), n, i - 1, REAL_RO(g)[0],
-                   REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
-                   REAL(VECTOR_ELT(out, 3)), REAL(VECTOR_ELT(out, 4)),
-                   REAL(VECTOR_ELT(out, 5)), REAL(VECTOR_ELT(out, 6)),
-                   INTEGER(VECTOR_ELT(out, 7))),
+                   REAL(VECTOR_ELT(out, 2)), REAL(VECTOR_ELT(out, 3)),
+                   REAL(VECTOR_ELT(out, 4)), REAL(VECTOR_ELT(out, 5)),
+                   REAL(VECTOR_ELT(out, 6)), REAL(VECTOR_ELT(out, 7)),
+                   INTEGER(VECTOR_ELT(out, 8))),
        nullptr);
-  static const char *const nm[] = {"group", "rate", "lo",  "hi",
-                                   "ratio", "rlo",  "rhi", "sign"};
+  static const char *const nm[] = {"group", "ref", "rate", "lo",  "hi",
+                                   "ratio", "rlo", "rhi",  "sign"};
   clab::frame(out, nm);
-  UNPROTECT(5);
+  UNPROTECT(6);
   return out;
 }
 
@@ -1105,6 +1467,11 @@ SEXP C_clab_r_misrd(SEXP r1, SEXP r0, SEXP prev, SEXP se, SEXP sp) {
 
 SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
   clab::who = "rtmhs";
+  static const char *const an[] = {"x1", "x2", "w"};
+  SEXP al = PROTECT(align(args({x1, x2, w}), an, false));
+  x1 = VECTOR_ELT(al, 1);
+  x2 = VECTOR_ELT(al, 2);
+  w = VECTOR_ELT(al, 3);
   SEXP a = PROTECT(num(x1, "x1"));
   const int n = ilen(static_cast<double>(XLENGTH(a)), "x1");
   SEXP b = PROTECT(num(x2, "x2", n));
@@ -1119,7 +1486,7 @@ SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
   kchk(clab_rtmhs(ap, REAL_RO(b), wp, n, cv, r), nullptr);
   static const char *const nm[] = {"nsel",   "change", "mirror", "sym",
                                    "excess", "low",    "lowsym"};
-  UNPROTECT(4);
+  UNPROTECT(5);
   return clab::nvec(7, nm, r);
 }
 
@@ -1127,7 +1494,13 @@ SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
 
 SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
   clab::who = "incap";
-  SEXP nms = PROTECT(clab::grp(lam));
+  static const char *const an[] = {"lam", "q", "s", "share"};
+  SEXP a = PROTECT(group(args({lam, q, s, share}), an));
+  lam = VECTOR_ELT(a, 1);
+  q = VECTOR_ELT(a, 2);
+  s = VECTOR_ELT(a, 3);
+  share = VECTOR_ELT(a, 4);
+  SEXP nms = PROTECT(VECTOR_ELT(a, 0));
   SEXP l = PROTECT(num(lam, "lam", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(l)), "lam");
   SEXP qv = PROTECT(num(q, "q", -1, 0.0, true));
@@ -1177,7 +1550,7 @@ SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
   static const char *const nm[] = {"group", "lam",  "q",   "s",
                                    "rate",  "prev", "marg"};
   clab::frame(out, nm, has);
-  UNPROTECT(6);
+  UNPROTECT(7);
   return out;
 }
 
@@ -1207,9 +1580,16 @@ SEXP C_clab_r_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
 
 SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
   clab::who = "sellab";
+  static const char *const an[] = {"y", "rel", "rule", "w"};
+  SEXP a = PROTECT(align(args({y, rel, rule, w}), an, false));
+  y = VECTOR_ELT(a, 1);
+  rel = VECTOR_ELT(a, 2);
+  rule = VECTOR_ELT(a, 3);
+  w = VECTOR_ELT(a, 4);
   const R_xlen_t n = Rf_xlength(rel);
   clab::lgl(rel, "rel", n);
   clab::lgl(rule, "rule", n);
+  clab::unlab(y, "y");
   if (!clab::isnum(y) || XLENGTH(y) != n) {
     fail("`y` must be numbers, one per defendant.");
   }
@@ -1233,7 +1613,7 @@ SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
   kchk(clab_sellab(yp, rp, up, REAL_RO(wv), ilen(static_cast<double>(n), "rel"), r), nullptr);
   static const char *const nm[] = {"obs",   "unobs", "lower",
                                    "upper", "width", "naive"};
-  UNPROTECT(2);
+  UNPROTECT(3);
   return clab::nvec(6, nm, r);
 }
 
@@ -1258,6 +1638,11 @@ SEXP C_clab_r_losbnd(SEXP done, SEXP open) {
 //' @noRd
 SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
   clab::who = "sntbnd";
+  static const char *const an[] = {"y", "z", "w"};
+  SEXP a = PROTECT(align(args({y, z, w}), an, false));
+  y = VECTOR_ELT(a, 1);
+  z = VECTOR_ELT(a, 2);
+  w = VECTOR_ELT(a, 3);
   SEXP yv = PROTECT(num(y, "y", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(yv)), "y");
   const double *yp = REAL_RO(yv);
@@ -1268,6 +1653,8 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
     fail("`z` must have length %d and no missing values.", n);
   }
   clab::vec(z, "z");
+  clab::unlab(z, "z");
+  if (!Rf_isNull(treat)) clab::unlab(treat, "treat");
   // z <- as.character(z); lv <- sort(unique(z)): z must take two values,
   // ordered by code point (not by the locale's collation)
   SEXP zc = PROTECT(Rf_isVectorAtomic(z) || TYPEOF(z) == VECSXP ? clab::labs(z) : R_NilValue);  // NOLINT
@@ -1294,8 +1681,19 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
     if (clab::kcmp(clab::key(lv[1]), clab::key(lv[0])) < 0) std::swap(lv[0], lv[1]);
     vmaxset(v);
   }
-  // treat: one of lv, lv[2L] by default
+  // treat: one of lv, never chosen by sorting; by default TRUE for a
+  // logical z and 1 for a numeric z of 0 and 1, otherwise required
   SEXP tr = lv[1];
+  if (Rf_isNull(treat)) {
+    const bool l = TYPEOF(z) == LGLSXP;
+    const bool b = clab::isnum(z) && clab::kcmp(clab::key(lv[0]), Key{"0", 0}) == 0 &&
+                   clab::kcmp(clab::key(lv[1]), Key{"1", 0}) == 0;
+    if (!l && !b) {
+      fail("`treat` must name the treatment, %s or %s: it is chosen by "
+           "default only for a logical `z` (TRUE) or a `z` of 0 and 1 (1).",
+           Rf_translateChar(lv[0]), Rf_translateChar(lv[1]));
+    }
+  }
   SEXP tc = PROTECT(!Rf_isNull(treat) && Rf_isVectorAtomic(treat) && XLENGTH(treat) == 1 ? clab::labs(treat) : R_NilValue);  // NOLINT
   if (!Rf_isNull(treat)) {
     // !is.atomic(treat) || length(treat) != 1L || !as.character(treat) %in% lv
@@ -1329,12 +1727,16 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
   static const char *const nm[] = {"term", "share", "lower", "upper",
                                    "observed"};
   clab::frame(out, nm);
-  UNPROTECT(5);
+  UNPROTECT(6);
   return out;
 }
 
 SEXP C_clab_r_hzdsel(SEXP s, SEXP h, SEXP l, SEXP surh, SEXP surl) {
   clab::who = "hzdsel";
+  static const char *const an[] = {"surh", "surl"};
+  SEXP al = PROTECT(group(args({surh, surl}), an));
+  surh = VECTOR_ELT(al, 1);
+  surl = VECTOR_ELT(al, 2);
   const double sv = clab::one(s, "s", 0, 1);
   const double hv = clab::p01(h, "h");
   const double lv = clab::p01(l, "l");
@@ -1348,10 +1750,18 @@ SEXP C_clab_r_hzdsel(SEXP s, SEXP h, SEXP l, SEXP surh, SEXP surl) {
   for (int i = 0; i < 2; ++i) {
     if (REAL_RO(b)[i] > 1) fail("`surl` must be at most 1.");
   }
+  // arms named control and treated (both arguments named) are read by
+  // name, in either order; otherwise the first is the control arm
+  SEXP g = VECTOR_ELT(al, 0);
+  const bool sw = !Rf_isNull(rnames(surh)) && !Rf_isNull(rnames(surl)) &&
+                  clab::kcmp(clab::key(STRING_ELT(g, 0)), Key{"treated", 0}) == 0 &&
+                  clab::kcmp(clab::key(STRING_ELT(g, 1)), Key{"control", 0}) == 0;
+  const double ah[2] = {REAL_RO(a)[sw], REAL_RO(a)[!sw]};
+  const double bl[2] = {REAL_RO(b)[sw], REAL_RO(b)[!sw]};
   double r[5];
-  kchk(clab_hzdsel(sv, hv, lv, REAL_RO(a), REAL_RO(b), r), nullptr);
+  kchk(clab_hzdsel(sv, hv, lv, ah, bl, r), nullptr);
   static const char *const nm[] = {"share0", "share1", "haz0", "haz1", "ratio"};
-  UNPROTECT(2);
+  UNPROTECT(3);
   return clab::nvec(5, nm, r);
 }
 

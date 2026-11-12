@@ -11,12 +11,14 @@ sntbnd(y, z, treat = NULL, w = NULL)
 
 \item{z}{Sentences: a vector with exactly two distinct values, same
 length: character, numbers, logical or a factor (its labels; level order
-and whether it is ordered are ignored), not dates.}
+and whether it is ordered are ignored), not dates nor a labelled vector
+of codes. When \code{y}, \code{z} (and \code{w}) are all named with unique names, they
+are matched by name.}
 
-\item{treat}{The value of \code{z} taken as the treatment, matched exactly;
-\code{NULL} for the second in sorted order. The values are sorted as text
-by Unicode code point (\code{"B"} before \code{"a"}, \code{"10"} before \code{"2"}), the
-same on every machine whatever its locale.}
+\item{treat}{The value of \code{z} taken as the treatment, matched exactly.
+\code{NULL} is allowed only where the treatment is explicit in \code{z}: \code{TRUE}
+for a logical \code{z}, \code{1} for a \code{z} of 0 and 1; otherwise it must be given,
+since a treatment chosen by sorting the values would be arbitrary.}
 
 \item{w}{\code{NULL} for equal weights, or one non-negative weight per person
 with a positive total.}
@@ -41,7 +43,7 @@ even sign it. See \code{proof("sntbnd")}.
 set.seed(1)
 z <- sample(c("community", "custody"), 500, TRUE, c(0.6, 0.4))
 y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-sntbnd(y, z)
+sntbnd(y, z, treat = "custody")
 }
 \references{
 Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements

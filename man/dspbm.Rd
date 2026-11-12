@@ -7,17 +7,22 @@
 dspbm(pop, contact, force, ref = 1)
 }
 \arguments{
-\item{pop}{Residents by group: positive numbers, optionally named.}
+\item{pop}{Residents by group: positive numbers, as a numeric vector, a
+1-d table, a list of single numbers or a one-row data frame.}
 
-\item{contact}{Police contacts by group: positive numbers, same length.}
+\item{contact}{Police contacts by group: positive numbers, in the forms of
+\code{pop}; named inputs are matched to \code{pop} by name, unnamed ones by
+position (only names protect against a mismatch).}
 
-\item{force}{Uses of force by group: positive numbers, same length.}
+\item{force}{Uses of force by group: positive numbers, in the forms of
+\code{pop}, matched by name.}
 
-\item{ref}{The reference group, by name (matched exactly, case included)
-or position.}
+\item{ref}{The reference group, by name (matched exactly, case included;
+a factor by its label) or by position in \code{pop} as given.}
 }
 \value{
-A data frame with one row per group: \code{group}, \code{cd} (contact per
+A data frame with one row per group, in the order of \code{pop}:
+\code{group}, \code{ref} (\code{TRUE} for the reference group), \code{cd} (contact per
 resident), \code{fd} (force per contact) and \code{rd} (force per resident), each
 against the reference group, with \code{rd = cd * fd}.
 }

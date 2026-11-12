@@ -4,22 +4,29 @@
 \alias{vodtst}
 \title{Veil-of-darkness test}
 \usage{
-vodtst(day, night, ref = 1, shift = NULL)
+vodtst(day, night = NULL, ref = 1, shift = NULL)
 }
 \arguments{
-\item{day}{Stops by group in daylight: non-negative numbers, optionally
-named.}
+\item{day}{Stops by group in daylight: non-negative numbers, as a numeric
+vector, a 1-d table, a list of single numbers or a one-row data frame.
+With \code{night} left out, one table of groups by stops: a matrix, 2-d table
+or data frame whose two columns are named \code{day} and \code{night}, in either
+order (columns are never taken by position).}
 
-\item{night}{Stops by group in darkness: positive numbers, same length.}
+\item{night}{Stops by group in darkness: positive numbers, in the forms of
+\code{day}; named inputs are matched to \code{day} by name, and an error lists any
+group named in one and not the other. Unnamed inputs are matched by
+position: only names protect against a mismatch.}
 
-\item{ref}{The reference group, by name (matched exactly, case included)
-or position.}
+\item{ref}{The reference group, by name (matched exactly, case included;
+a factor by its label) or by position in \code{day} as given.}
 
 \item{shift}{\code{NULL}, or one positive number per group: daylight exposure
-over darkness exposure.}
+over darkness exposure, in the forms of \code{day}, matched by name.}
 }
 \value{
-A data frame with one row per group: \code{group}, \code{share_day},
+A data frame with one row per group, in the order of \code{day}:
+\code{group}, \code{ref} (\code{TRUE} for the reference group), \code{share_day},
 \code{share_night}, \code{ratio}, \code{sign} (the sign of \code{share_day - share_night})
 and, when \code{shift} is given, \code{adj}.
 }
@@ -38,6 +45,10 @@ difference taken out. See \code{proof("vodtst")}.
 \examples{
 vodtst(day = c(white = 600, black = 400),
        night = c(white = 700, black = 300))
+# one table of groups by day and night
+stops <- data.frame(day = c(600, 400), night = c(700, 300),
+                    row.names = c("white", "black"))
+vodtst(stops)
 }
 \references{
 Grogger, J. and Ridgeway, G. (2006). Testing for racial

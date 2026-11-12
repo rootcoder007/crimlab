@@ -42,3 +42,26 @@
   `lrcal()` and `cllrmin()`. The help pages of `misrd()`, `cllr()` and
   `cllrmin()` say what is proved and what is not.
 * `vignette("crimlab")` walks through one example per family.
+* Arguments that hold one value per group are matched by name. Named
+  inputs whose names come in another order were read by position, a wrong
+  answer: `vodtst(c(white = 600, black = 400), c(black = 300, white = 700))`
+  read 300 as the white night count. Now every later argument is put in the
+  order of the first by name; names that differ, or a name given twice, are
+  an error that lists them. Unnamed inputs are still matched by position.
+  This holds in `vodtst()`, `dspbm()`, `dyadrt()` (the row and column names
+  of `count` too), `clrsmp()`, `expbnd()`, `incap()`, `gtmp()`, `hzdsel()`,
+  and for loci in `kinidx()` and `patidx()`; per-unit arguments of
+  `outtst()`, `rtmhs()`, `lrpost()`, `sellab()` and `sntbnd()` are matched
+  by name when every one has unique names.
+* Per-group arguments also accept a list of single numbers and a one-row
+  data frame; a one-row or one-column matrix gives its names.
+* `vodtst()` takes one table of groups by day and night (a matrix, 2-d
+  table or data frame with columns named `day` and `night`) with `night`
+  left out.
+* `vodtst()`, `dspbm()` and `expbnd()` return a `ref` column marking the
+  reference group; a factor `ref` is read by its label.
+* `sntbnd()` no longer picks the treatment by sorting the values of `z`:
+  `treat` is required unless `z` is logical (`TRUE` is the treatment) or 0
+  and 1 (1 is).
+* A labelled vector (with a `labels` attribute, as haven makes) is refused
+  with a request to decode it first: its numbers are category codes.

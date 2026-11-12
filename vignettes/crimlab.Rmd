@@ -57,6 +57,18 @@ Ridgeway (2006), is that an officer can see a driver's race more easily in
 daylight, so if race affects who is stopped, the group it works against makes
 up a larger share of daylight stops.
 
+Counts usually come from records, not typed-in vectors. A table of groups
+by `day` and `night` can be given whole, and every input is matched by group
+name, never by position, so the order in which the groups arrive does not
+matter; the `ref` column marks the reference group:
+
+```{r}
+stops <- data.frame(race = c("black", "white", "white", "black"),
+                    light = c("day", "day", "night", "night"),
+                    n = c(400, 600, 700, 300))
+vodtst(xtabs(n ~ race + light, stops), ref = "white")
+```
+
 What this does not license: the ratio isolates the effect of visibility only
 if the same people are on the road, in the same proportions, in daylight and
 in darkness. If black drivers made up a larger share of daytime traffic than
@@ -189,7 +201,7 @@ set.seed(1)
 z <- sample(c("community", "custody"), 500, replace = TRUE,
             prob = c(0.6, 0.4))
 y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-sb <- sntbnd(y, z)
+sb <- sntbnd(y, z, treat = "custody")
 sb
 ```
 

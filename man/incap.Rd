@@ -8,15 +8,19 @@ incap(lam, q, s, share = NULL)
 }
 \arguments{
 \item{lam}{Offending rates while free (crimes a year): positive numbers,
-one per group, optionally named.}
+one per group, as a numeric vector, a 1-d table, a list of single
+numbers or a one-row data frame.}
 
 \item{q}{The chance a crime leads to a custodial sentence: numbers in the
-interval from 0 (excluded) to 1, recycled to the length of \code{lam}.}
+interval from 0 (excluded) to 1, recycled to the length of \code{lam}; one
+per group, in the forms of \code{lam} and matched to it by name when both are
+named (unnamed, by position: only names protect against a mismatch).}
 
-\item{s}{Sentence lengths in years: non-negative numbers, recycled.}
+\item{s}{Sentence lengths in years: non-negative numbers, recycled; one
+per group, in the forms of \code{lam}, matched by name.}
 
 \item{share}{\code{NULL}, or one non-negative population share per group,
-summing to 1.}
+summing to 1, in the forms of \code{lam}, matched by name.}
 }
 \value{
 A data frame with one row per group: \code{group}, \code{lam}, \code{q}, \code{s},

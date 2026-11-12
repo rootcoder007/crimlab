@@ -9,7 +9,9 @@ rtmhs(x1, x2, cut, w = NULL)
 \arguments{
 \item{x1}{Counts by place in the first period: finite numbers.}
 
-\item{x2}{Counts by place in the second period: same length.}
+\item{x2}{Counts by place in the second period: same length; when \code{x1},
+\code{x2} (and \code{w}) are all named with unique names, they are matched by
+name.}
 
 \item{cut}{The selection cut: places with \code{x1 > cut} are selected.}
 

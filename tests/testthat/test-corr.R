@@ -14,7 +14,7 @@ test_that("sntbnd names its terms and divides the observed rates in R", {
   y <- c(1, 0, 1, 1, 0, 0)
   z <- c("a", "a", "b", "b", "b", "a")
   w <- c(1, 2, 1, 0.5, 1, 1.5)
-  r <- sntbnd(y, z, w = w)
+  r <- sntbnd(y, z, treat = "b", w = w)
   expect_identical(r[["term"]], c("a", "b", "effect"))
   expect_equal(r[["observed"]], c(1 / 4.5, 1.5 / 2.5, 1.5 / 2.5 - 1 / 4.5),
                tolerance = 1e-15)
@@ -61,7 +61,7 @@ test_that("corrections functions stop on bad input, naming the argument", {
     list("exactly two", c(0, 1), c("a", "a")),
     list("`z`", c(0, 1), c("a", NA)),
     list("`treat`", c(0, 1), c("a", "b"), treat = "c"),
-    list("positive total", c(0, 1), c("a", "b"), w = c(0, 0))
+    list("positive total", c(0, 1), c("a", "b"), "b", w = c(0, 0))
   ))
   errs("hzdsel", list(
     list("`s`", 1, 0.5, 0.1, c(1, 1), c(1, 1)),
@@ -118,7 +118,7 @@ test_that("corrections results agree with rmorie", {
   z <- sample(c("community", "custody"), 500, TRUE, c(0.6, 0.4))
   y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
   o <- rmorie::morie_sentence_effect_bounds(y, z)
-  d <- sntbnd(y, z)
+  d <- sntbnd(y, z, treat = "custody")
   expect_equal(d[["lower"]][3], o[["ate_bounds"]][["lower"]], tolerance = 1e-14)
   expect_equal(d[["upper"]][3], o[["ate_bounds"]][["upper"]], tolerance = 1e-14)
   expect_equal(d[["observed"]][3], o[["naive_difference"]], tolerance = 1e-14)

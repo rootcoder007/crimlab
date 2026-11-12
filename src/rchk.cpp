@@ -2,7 +2,7 @@
 //
 // The argument checks and result builders of the R binding. Each check
 // keeps the wording and the order of tests of the R helper it replaced
-// (.num, .one, .p01, .whole, .lgl, .ref, .grp); the R expression is quoted
+// (.num, .one, .p01, .whole, .lgl, .ref); the R expression is quoted
 // above each one.
 #include "rchk.h"
 
@@ -186,7 +186,19 @@ SEXP dcopy(SEXP x) {
 //'   kernels (pos() and nonneg() in core.cpp call std::isfinite(), and
 //'   range tests fail for NaN), which return CLAB_EDOM, not a number.
 //' @noRd
+//' @srrstats {G2.4e} A labelled vector (haven's labelled class, or any
+//'   vector with a labels attribute) holds category codes: unlab() refuses
+//'   it rather than read the codes as numbers or as group labels.
+//' @noRd
+void unlab(SEXP x, const char *nm) {
+  if (!Rf_isNull(Rf_getAttrib(x, Rf_install("labels")))) {
+    fail("`%s` has value labels: its numbers are category codes. Decode it "
+         "first (haven::as_factor(), say).", nm);
+  }
+}
+
 SEXP num(SEXP x, const char *nm, R_xlen_t len, double lo, bool open) {
+  unlab(x, nm);
   // if (!is.numeric(x) || length(x) < 1L || anyNA(x) || !all(is.finite(x)))
   //   stop("`", nm, "` must be finite numbers with no missing values.")
   // if (!is.null(len) && length(x) != len)
@@ -247,6 +259,7 @@ double val1(SEXP x) {
 
 double one(SEXP x, const char *nm, double lo, double hi) {
   // !is.numeric(x) || length(x) != 1L || is.na(x) || x <= lo || x >= hi
+  unlab(x, nm);
   const double v = val1(x);
   if (std::isnan(v) || v <= lo || v >= hi) {
     char a[48], b[48];
@@ -259,6 +272,7 @@ double one(SEXP x, const char *nm, double lo, double hi) {
 
 double p01(SEXP x, const char *nm) {
   // !is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 || x > 1
+  unlab(x, nm);
   const double v = val1(x);
   if (std::isnan(v) || v < 0 || v > 1) {
     fail("`%s` must be one number from 0 to 1.", nm);
@@ -272,6 +286,7 @@ int whole(SEXP x, const char *nm, int lo) {
   // !is.numeric(x) || length(x) != 1L || is.na(x) || x != round(x) ||
   //   x < lo || x > .Machine[["integer.max"]]
   // x == round(x) holds exactly when x is a whole number, as floor() says.
+  unlab(x, nm);
   const double v = val1(x);
   if (std::isnan(v) || v != std::floor(v) || v < lo || v > INT_MAX) {
     fail("`%s` must be one whole number from %d.", nm, lo);
@@ -281,6 +296,7 @@ int whole(SEXP x, const char *nm, int lo) {
 
 void lgl(SEXP x, const char *nm, R_xlen_t n) {
   // !is.logical(x) || length(x) != n || anyNA(x)
+  unlab(x, nm);
   if (TYPEOF(x) != LGLSXP || XLENGTH(x) != n || anyna(x)) {
     fail("`%s` must be TRUE or FALSE, one per unit, with no missing values.",
          nm);
@@ -295,14 +311,22 @@ int ref(SEXP r, SEXP nms, int n) {
   // }
   // is.numeric(ref) && length(ref) == 1L && !is.na(ref) &&
   //   ref == round(ref) && ref >= 1 && ref <= n
+  // A factor is read by its label (its code would be a position).
+  unlab(r, "ref");
+  if (Rf_isFactor(r) && XLENGTH(r) == 1) r = labs(r);
+  PROTECT(r);
   if (TYPEOF(r) == STRSXP && XLENGTH(r) == 1 && STRING_ELT(r, 0) != NA_STRING) {
     SEXP c = STRING_ELT(r, 0);
     const R_xlen_t m = Rf_xlength(nms);
     for (R_xlen_t i = 0; i < m; ++i) {
-      if (seql(c, STRING_ELT(nms, i))) return static_cast<int>(i + 1);
+      if (seql(c, STRING_ELT(nms, i))) {
+        UNPROTECT(1);
+        return static_cast<int>(i + 1);
+      }
     }
     fail("`ref` names no group: %s.", Rf_translateChar(c));
   }
+  UNPROTECT(1);
   const double v = val1(r);
   if (std::isnan(v) || v != std::floor(v) || v < 1 || v > n) {
     fail("`ref` must be one group name or a position from 1 to %d.", n);
@@ -322,12 +346,6 @@ SEXP seqs(R_xlen_t n) {
   SEXP s = Rf_coerceVector(v, STRSXP);
   UNPROTECT(1);
   return s;
-}
-
-SEXP grp(SEXP x) {
-  // if (is.null(names(x))) as.character(seq_along(x)) else names(x)
-  SEXP nm = Rf_getAttrib(x, R_NamesSymbol);
-  return Rf_isNull(nm) ? seqs(Rf_xlength(x)) : nm;
 }
 
 double nsum(const double *x, R_xlen_t n) {

@@ -10,14 +10,21 @@
 #' group's exposure differs between the two, and `adj` is the ratio with that
 #' difference taken out. See `proof("vodtst")`.
 #'
-#' @param day Stops by group in daylight: non-negative numbers, optionally
-#'   named.
-#' @param night Stops by group in darkness: positive numbers, same length.
-#' @param ref The reference group, by name (matched exactly, case included)
-#'   or position.
+#' @param day Stops by group in daylight: non-negative numbers, as a numeric
+#'   vector, a 1-d table, a list of single numbers or a one-row data frame.
+#'   With `night` left out, one table of groups by stops: a matrix, 2-d table
+#'   or data frame whose two columns are named `day` and `night`, in either
+#'   order (columns are never taken by position).
+#' @param night Stops by group in darkness: positive numbers, in the forms of
+#'   `day`; named inputs are matched to `day` by name, and an error lists any
+#'   group named in one and not the other. Unnamed inputs are matched by
+#'   position: only names protect against a mismatch.
+#' @param ref The reference group, by name (matched exactly, case included;
+#'   a factor by its label) or by position in `day` as given.
 #' @param shift `NULL`, or one positive number per group: daylight exposure
-#'   over darkness exposure.
-#' @return A data frame with one row per group: `group`, `share_day`,
+#'   over darkness exposure, in the forms of `day`, matched by name.
+#' @return A data frame with one row per group, in the order of `day`:
+#'   `group`, `ref` (`TRUE` for the reference group), `share_day`,
 #'   `share_night`, `ratio`, `sign` (the sign of `share_day - share_night`)
 #'   and, when `shift` is given, `adj`.
 #' @references Grogger, J. and Ridgeway, G. (2006). Testing for racial
@@ -27,8 +34,12 @@
 #' @examples
 #' vodtst(day = c(white = 600, black = 400),
 #'        night = c(white = 700, black = 300))
+#' # one table of groups by day and night
+#' stops <- data.frame(day = c(600, 400), night = c(700, 300),
+#'                     row.names = c("white", "black"))
+#' vodtst(stops)
 #' @export
-vodtst <- function(day, night, ref = 1, shift = NULL) {
+vodtst <- function(day, night = NULL, ref = 1, shift = NULL) {
   .Call(C_clab_r_vodtst, day, night, ref, shift)
 }
 
@@ -63,7 +74,8 @@ orrisk <- function(or, rate, share) {
 #' @param q The chances of guilt in the group: numbers in the interval 0 to 1.
 #' @param t The search threshold: one number.
 #' @param w `NULL` for equal weights, or one non-negative weight per element
-#'   of `q` with a positive total.
+#'   of `q` with a positive total; when both are named with unique names,
+#'   `w` is matched to `q` by name.
 #' @return A named numeric vector: `stop` (the weighted share searched) and
 #'   `hit` (the weighted mean chance of guilt among them; `NaN` when nobody is
 #'   searched).
@@ -80,11 +92,17 @@ outtst <- function(q, t, w = NULL) {
 #' group, into a disparity in contact per resident times a disparity in force
 #' per contact. The split is a product, never a sum. See `proof("dspbm")`.
 #'
-#' @param pop Residents by group: positive numbers, optionally named.
-#' @param contact Police contacts by group: positive numbers, same length.
-#' @param force Uses of force by group: positive numbers, same length.
-#' @inheritParams vodtst
-#' @return A data frame with one row per group: `group`, `cd` (contact per
+#' @param pop Residents by group: positive numbers, as a numeric vector, a
+#'   1-d table, a list of single numbers or a one-row data frame.
+#' @param contact Police contacts by group: positive numbers, in the forms of
+#'   `pop`; named inputs are matched to `pop` by name, unnamed ones by
+#'   position (only names protect against a mismatch).
+#' @param force Uses of force by group: positive numbers, in the forms of
+#'   `pop`, matched by name.
+#' @param ref The reference group, by name (matched exactly, case included;
+#'   a factor by its label) or by position in `pop` as given.
+#' @return A data frame with one row per group, in the order of `pop`:
+#'   `group`, `ref` (`TRUE` for the reference group), `cd` (contact per
 #'   resident), `fd` (force per contact) and `rd` (force per resident), each
 #'   against the reference group, with `rd = cd * fd`.
 #' @examples
@@ -103,10 +121,14 @@ dspbm <- function(pop, contact, force, ref = 1) {
 #' choose victims at random; the rate per pair does not. See
 #' `proof("dyadrt")`.
 #'
-#' @param count A square matrix of offence counts, offending group in rows
-#'   and victim group in columns: non-negative numbers.
-#' @param pop Group sizes in the order of the rows: positive numbers,
-#'   optionally named.
+#' @param count A square matrix (or 2-d table) of offence counts, offending
+#'   group in rows and victim group in columns: non-negative numbers. When
+#'   it names both its rows and its columns, the columns are matched to the
+#'   rows by name, and both to `pop` when `pop` is named.
+#' @param pop Group sizes: positive numbers, as a numeric vector, a 1-d
+#'   table, a list of single numbers or a one-row data frame. Unnamed, they
+#'   are taken in the order of the rows: only names protect against a
+#'   mismatch.
 #' @return A data frame with one row per dyad: `off`, `vic`, `count`,
 #'   `rate_off`, `rate_pair`, `null_off` (the rate per offender under random
 #'   mixing) and `ratio` (`rate_pair` over the pooled pair rate; 1 under

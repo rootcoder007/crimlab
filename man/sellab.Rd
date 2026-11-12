@@ -10,7 +10,9 @@ sellab(y, rel, rule, w = NULL)
 \item{y}{Failures: 1 or 0 for each released defendant; values for
 detained defendants are ignored and may be \code{NA}.}
 
-\item{rel}{Released by the judge: \code{TRUE} or \code{FALSE} for each defendant.}
+\item{rel}{Released by the judge: \code{TRUE} or \code{FALSE} for each defendant.
+When \code{y}, \code{rel}, \code{rule} (and \code{w}) are all named with unique names, they
+are matched by name; otherwise by position.}
 
 \item{rule}{Released by the rule: \code{TRUE} or \code{FALSE}, same length.}
 

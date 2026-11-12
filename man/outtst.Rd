@@ -12,7 +12,8 @@ outtst(q, t, w = NULL)
 \item{t}{The search threshold: one number.}
 
 \item{w}{\code{NULL} for equal weights, or one non-negative weight per element
-of \code{q} with a positive total.}
+of \code{q} with a positive total; when both are named with unique names,
+\code{w} is matched to \code{q} by name.}
 }
 \value{
 A named numeric vector: \code{stop} (the weighted share searched) and

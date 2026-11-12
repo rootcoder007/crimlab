@@ -10,7 +10,10 @@ kinidx(g1, g2, freq, rel = "parent")
 \item{g1, g2}{The two genotypes: two-column matrices of allele labels, one
 row per locus (row names name the loci), or two alleles for one locus.}
 
-\item{freq}{The population frequencies of the alleles of \code{g1}, same shape.}
+\item{freq}{The population frequencies of the alleles of \code{g1}, same shape.
+When \code{g1}, \code{g2} and \code{freq} all have row names, their rows are matched
+to \code{g1} by locus name (an error lists loci that differ); otherwise by
+position, so only names protect against a mismatch.}
 
 \item{rel}{The relationship: \code{"parent"}, \code{"sibling"}, \code{"half"} (half
 siblings, grandparent or uncle) or \code{"cousin"}, or the three

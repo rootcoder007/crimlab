@@ -7,6 +7,9 @@
 #' @param g1,g2 The two genotypes: two-column matrices of allele labels, one
 #'   row per locus (row names name the loci), or two alleles for one locus.
 #' @param freq The population frequencies of the alleles of `g1`, same shape.
+#'   When `g1`, `g2` and `freq` all have row names, their rows are matched
+#'   to `g1` by locus name (an error lists loci that differ); otherwise by
+#'   position, so only names protect against a mismatch.
 #' @param rel The relationship: `"parent"`, `"sibling"`, `"half"` (half
 #'   siblings, grandparent or uncle) or `"cousin"`, or the three
 #'   probabilities of sharing 0, 1 and 2 alleles by descent. Names are
@@ -33,7 +36,9 @@ kinidx <- function(g1, g2, freq, rel = "parent") {
 #' @param child,father Genotypes: two-column matrices of allele labels, one
 #'   row per locus, or two alleles for one locus.
 #' @param freq The population frequencies of the child's alleles, same shape.
-#' @param mother `NULL`, or the mother's genotype in the same form.
+#' @param mother `NULL`, or the mother's genotype in the same form. When all
+#'   the tables have row names, their rows are matched to `child` by locus
+#'   name; otherwise by position.
 #' @return A list: `locus`, a data frame with `locus` and `idx` (`NaN` where
 #'   the mother's genotype rules her out as mother); `log10idx`; and `post`,
 #'   the probability of paternity at even prior odds.
