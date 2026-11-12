@@ -676,6 +676,41 @@ int clab_aor(const double *from, const double *to, int n, const double *tt,
              double bw, int nb, double lo, double hi, double *w, double *tot,
              int *cnt);
 
+/* Benford digit screens.
+ *
+ * clab_bdig: the first nd significant digits (1 <= nd <= 9) of each value,
+ * as an integer in [10^(nd-1), 10^nd), padded with zeros (0.07 -> 70 for
+ * nd = 2), or 0 when the value is set aside. sgn: 1 keeps positive values
+ * only, -1 negative only, 0 both (by absolute value). dp in 0..22: the
+ * data are recorded to dp decimals and the digits are those of the
+ * integer round(|x| 10^dp), exact for every double nearest to such a
+ * decimal while |x| 10^dp < 2^49; dp = -1: the digits of the shortest
+ * decimal that rounds to x, decided exactly by comparing x with the
+ * correctly rounded digit boundaries D 10^q (|q| <= 22, so |x| from about
+ * 10^(nd - 23) to 10^(nd + 21)), so 0.29 gives 29 where truncating
+ * 10^(1 - floor(log10 x)) x gives 28.
+ * cnt, 4: zeros (also values that round to 0 at dp decimals), non-finite
+ * values, values of the excluded sign, values out of the exact range.
+ * Time O(n) (at most 9 boundary pairs a value); no workspace.
+ *
+ * clab_bnft: goodness of fit of the digits dig (n values from clab_bdig
+ * with the same nd, 1 <= nd <= 6; zeros are skipped) to Benford's law
+ * P(d) = log10(1 + 1/d) (Benford 1938; Nigrini 2012,
+ * doi:10.1002/9781119203094). Out: obs (9 10^(nd-1) counts) and out, 6:
+ * the number of digits used m, the chi-square statistic, its degrees of
+ * freedom, the upper tail by the closed forms for integer degrees of
+ * freedom (finite sums of Poisson-type terms in logs, no series
+ * truncation), a Monte Carlo p-value (1 + #{chi* >= chi}) / (nsim + 1)
+ * from nsim samples of m Benford digits (North et al. 2002,
+ * doi:10.1086/341527; NaN when nsim = 0; seed gives the stream, xorshift64*
+ * seeded by splitmix64), and the mean absolute deviation of the
+ * proportions (Nigrini's MAD). m = 0 gives NaN statistics. work: 9
+ * 10^(nd-1) doubles. Time O(n + 10^nd + nsim (m + 10^nd)). */
+int clab_bdig(const double *x, int n, int nd, int dp, int sgn, int *dig,
+              int *cnt);
+int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
+              double *obs, double *work, double *out);
+
 #ifdef __cplusplus
 }
 #endif
