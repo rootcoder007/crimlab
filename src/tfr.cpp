@@ -30,21 +30,6 @@ void glnode(double a, double b, int np, int k, double *x, double *w) {
   *w = 0.5 * h * v;
 }
 
-struct rng {
-  std::uint64_t s;
-  explicit rng(std::uint64_t seed) {
-    std::uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    s = (z ^ (z >> 31)) | 1ULL;
-  }
-  double unif() {
-    s ^= s >> 12;
-    s ^= s << 25;
-    s ^= s >> 27;
-    return static_cast<double>((s * 2685821657736338717ULL) >> 11) * 0x1p-53;
-  }
-};
 
 enum { LAM, LSD, DIS, Q, L0, U0, LS0, US0, LJ, UJ, LSJ, USJ, LR, UR, LT, UT, RR, NPAR };
 
@@ -245,7 +230,7 @@ int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
   bool fixed = true;
   for (int j = L0; j <= LR; j += 2) fixed = fixed && par[j] == par[j + 1];
   const int reps = fixed ? 1 : nsim;
-  rng r(seed);
+  kutil::rng r(seed);
   const double qq = par[Q];
   for (int rep = 0; rep < reps; ++rep) {
     // draw order: recovery, hour-1 rates (low, high), then hours 2..hmax

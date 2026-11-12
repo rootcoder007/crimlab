@@ -101,23 +101,6 @@ double chisqq(double x, int df) {
   return odd ? std::erfc(std::sqrt(y)) + t : t;
 }
 
-// xorshift64* seeded through splitmix64; 53-bit uniforms in [0, 1)
-struct rng {
-  std::uint64_t s;
-  explicit rng(std::uint64_t seed) {
-    std::uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    s = (z ^ (z >> 31)) | 1ULL;
-  }
-  double unif() {
-    s ^= s >> 12;
-    s ^= s << 25;
-    s ^= s >> 27;
-    return static_cast<double>((s * 2685821657736338717ULL) >> 11) * 0x1p-53;
-  }
-};
-
 // Benford probability of the nd-digit prefix d: log10(1 + 1 / d)
 inline double pb(std::int64_t d) {
   return std::log1p(1.0 / static_cast<double>(d)) / std::log(10.0);
@@ -218,7 +201,7 @@ int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
   // inverse of the prefix distribution function log10(d / 10^(nd - 1)).
   // p = (1 + #{chi* >= chi}) / (nsim + 1), never 0 (North et al. 2002);
   // ties are taken within 64 ulps.
-  rng r(seed);
+  kutil::rng r(seed);
   const double hi = chi * (1.0 - 64 * std::numeric_limits<double>::epsilon());
   const std::int64_t mi = static_cast<std::int64_t>(m);
   int ge = 0;

@@ -18,62 +18,10 @@ constexpr double pi = 3.14159265358979323846;
 
 // ---------------------------------------------------------------- sorting
 
-// In-place heapsort of a[0..n) under the strict order less(a, b): no
-// recursion, O(n log n), the same order on every platform.
-template <class T, class L>
-void hsort(T *a, int n, L less) {
-  auto sift = [&](int i, int m) {
-    for (;;) {
-      int c = 2 * i + 1;
-      if (c >= m) return;
-      if (c + 1 < m && less(a[c], a[c + 1])) ++c;
-      if (!less(a[i], a[c])) return;
-      const T t = a[i];
-      a[i] = a[c];
-      a[c] = t;
-      i = c;
-    }
-  };
-  for (int i = n / 2 - 1; i >= 0; --i) sift(i, n);
-  for (int m = n - 1; m > 0; --m) {
-    const T t = a[0];
-    a[0] = a[m];
-    a[m] = t;
-    sift(0, m);
-  }
-}
-
-// ------------------------------------------------------------ random draws
-
-// xorshift64* (Vigna 2016, doi:10.1145/2845077) seeded through splitmix64;
-// 53-bit uniforms in [0, 1). Small, fast and identical everywhere.
-struct rng {
-  std::uint64_t s;
-  explicit rng(std::uint64_t seed) {
-    std::uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    s = (z ^ (z >> 31)) | 1ULL;  // never 0, the one fixed point
-  }
-  std::uint64_t next() {
-    s ^= s >> 12;
-    s ^= s << 25;
-    s ^= s >> 27;
-    return s * 0x2545F4914F6CDD1DULL;
-  }
-  double unif() { return static_cast<double>(next() >> 11) * 0x1.0p-53; }
-  // an integer in [0, m), m >= 1, without modulo bias (Lemire's rejection
-  // on the high bits would need 128-bit products; plain rejection instead)
-  int below(int m) {
-    const std::uint64_t mm = static_cast<std::uint64_t>(m);
-    const std::uint64_t lim = (~0ULL) - (~0ULL) % mm;
-    std::uint64_t v;
-    do {
-      v = next();
-    } while (v >= lim);
-    return static_cast<int>(v % mm);
-  }
-};
+// heapsort and the generator live in kutil.h, shared with the other
+// kernel families
+using kutil::hsort;
+using kutil::rng;
 
 // ---------------------------------------------------- exact orientation
 

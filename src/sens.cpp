@@ -12,28 +12,6 @@
 
 namespace {
 
-template <class T, class L>
-void hsort(T *a, int n, L less) {
-  auto sift = [&](int i, int m) {
-    for (;;) {
-      int c = 2 * i + 1;
-      if (c >= m) return;
-      if (c + 1 < m && less(a[c], a[c + 1])) ++c;
-      if (!less(a[i], a[c])) return;
-      const T t = a[i];
-      a[i] = a[c];
-      a[c] = t;
-      i = c;
-    }
-  };
-  for (int i = n / 2 - 1; i >= 0; --i) sift(i, n);
-  for (int m = n - 1; m > 0; --m) {
-    const T t = a[0];
-    a[0] = a[m];
-    a[m] = t;
-    sift(0, m);
-  }
-}
 
 // upper normal tail 1 - Phi(z) without cancellation
 inline double qnormt(double z) { return 0.5 * std::erfc(z / std::sqrt(2.0)); }
@@ -121,7 +99,7 @@ int clab_rswp(const double *d, int n, const double *gam, int ng, double z,
   for (int i = 0; i < n; ++i) {
     if (d[i] != 0.0) iwork[m++] = i;
   }
-  hsort(iwork, m, [d](int a, int b) {
+  kutil::hsort(iwork, m, [d](int a, int b) {
     const double x = std::fabs(d[a]), y = std::fabs(d[b]);
     return x < y || (x == y && a < b);
   });
@@ -170,7 +148,7 @@ int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
   for (int k = 0; k < ng; ++k) {
     if (!(gam[k] >= 1.0) || !std::isfinite(gam[k])) return CLAB_EDOM;
   }
-  hsort(work, n, [](double a, double b) { return a < b; });
+  kutil::hsort(work, n, [](double a, double b) { return a < b; });
   const std::int64_t m = static_cast<std::int64_t>(n) * (n + 1) / 2;
   for (int k = 0; k < ng; ++k) {
     // upper bound at mu = M / (1 + Gamma), a = M - mu; lower at

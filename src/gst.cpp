@@ -12,28 +12,6 @@
 
 namespace {
 
-struct rng {
-  std::uint64_t s;
-  explicit rng(std::uint64_t seed) {
-    std::uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    s = (z ^ (z >> 31)) | 1ULL;
-  }
-  std::uint64_t next() {
-    s ^= s >> 12;
-    s ^= s << 25;
-    s ^= s >> 27;
-    return s * 2685821657736338717ULL;
-  }
-  // uniform integer in [0, m) without modulo bias (rejection)
-  std::uint64_t below(std::uint64_t m) {
-    const std::uint64_t lim = ~0ULL - (~0ULL % m);
-    std::uint64_t v;
-    do v = next(); while (v >= lim);
-    return v % m;
-  }
-};
 
 // Benjamini-Hochberg q-values of the finite p[0..m) (NaN kept), using
 // idx (m ints) for the order
@@ -43,27 +21,7 @@ void bhq(const double *p, int m, double *q, int *idx) {
     q[i] = kutil::nan();
     if (!std::isnan(p[i])) idx[k++] = i;
   }
-  // heapsort of idx by p, descending order of processing afterwards
-  auto less = [p](int a, int b) { return p[a] < p[b] || (p[a] == p[b] && a < b); };
-  auto sift = [&](int i, int n) {
-    for (;;) {
-      int c = 2 * i + 1;
-      if (c >= n) return;
-      if (c + 1 < n && less(idx[c], idx[c + 1])) ++c;
-      if (!less(idx[i], idx[c])) return;
-      const int t = idx[i];
-      idx[i] = idx[c];
-      idx[c] = t;
-      i = c;
-    }
-  };
-  for (int i = k / 2 - 1; i >= 0; --i) sift(i, k);
-  for (int n = k - 1; n > 0; --n) {
-    const int t = idx[0];
-    idx[0] = idx[n];
-    idx[n] = t;
-    sift(0, n);
-  }
+  kutil::hsort(idx, k, [p](int a, int b) { return p[a] < p[b] || (p[a] == p[b] && a < b); });
   double run = 1.0;
   for (int j = k - 1; j >= 0; --j) {
     const double v = p[idx[j]] * k / (j + 1.0);
@@ -118,7 +76,7 @@ int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
   double *vals = work;  // m: the counts of the cells inside, for permutation
   for (int i = 0; i < nn; ++i)
     if (in[i] >= 0) vals[in[i]] = cnt[i];
-  rng r(seed);
+  kutil::rng r(seed);
   for (int j = 0; j < m; ++j) idx[j] = pos[j] = j;
   for (int i = 0; i < nn; ++i) {
     for (int c = 0; c < 7; ++c) out[c * nn + i] = kutil::nan();
@@ -171,7 +129,7 @@ int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
       for (int b = 0; b < nsim; ++b) {
         double gs = cnt[i];
         for (int t = 0; t < kk; ++t) {
-          swp(t, t + static_cast<int>(r.below(static_cast<std::uint64_t>(m - 1 - t))));
+          swp(t, t + static_cast<int>(r.below(m - 1 - t)));
           gs += vals[idx[t]];
         }
         if (std::fabs(gs - w * xbar) >= obs * (1.0 - 64 * std::numeric_limits<double>::epsilon())) ++ge;

@@ -10,31 +10,6 @@
 
 namespace {
 
-// in-place heapsort of a[0..n) under the strict order less(a, b); no
-// recursion, O(n log n)
-template <class T, class L>
-void hsort(T *a, int n, L less) {
-  auto sift = [&](int i, int m) {
-    for (;;) {
-      int c = 2 * i + 1;
-      if (c >= m) return;
-      if (c + 1 < m && less(a[c], a[c + 1])) ++c;
-      if (!less(a[i], a[c])) return;
-      const T t = a[i];
-      a[i] = a[c];
-      a[c] = t;
-      i = c;
-    }
-  };
-  for (int i = n / 2 - 1; i >= 0; --i) sift(i, n);
-  for (int m = n - 1; m > 0; --m) {
-    const T t = a[0];
-    a[0] = a[m];
-    a[m] = t;
-    sift(0, m);
-  }
-}
-
 // B0 of sorted v[0..k): the largest between-groups sum of squares over the
 // k - 1 splits into a lower and an upper part, C^2 k / (n1 n2) with C the
 // running sum of the centred values; *at = size of the lower part (first
@@ -59,25 +34,12 @@ double bzero(const double *v, int k, int *at) {
   return best;
 }
 
-struct rng {
-  std::uint64_t s;
-  explicit rng(std::uint64_t seed) {
-    std::uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    s = (z ^ (z >> 31)) | 1ULL;
-  }
-  double unif() {
-    s ^= s >> 12;
-    s ^= s << 25;
-    s ^= s >> 27;
-    return static_cast<double>((s * 2685821657736338717ULL) >> 11) * 0x1p-53;
-  }
-  double norm() {
-    const double a = 1.0 - unif(), b = unif();
-    return std::sqrt(-2.0 * std::log(a)) * std::cos(6.283185307179586 * b);
-  }
-};
+
+// a standard normal by Box-Muller (one of the pair)
+double norm(kutil::rng &r) {
+  const double a = 1.0 - r.unif(), b = r.unif();
+  return std::sqrt(-2.0 * std::log(a)) * std::cos(6.283185307179586 * b);
+}
 
 }  // namespace
 
@@ -95,11 +57,11 @@ int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
   double *v = work;          // n: sorted values
   double *z = work + n;      // n: simulated samples
   for (int i = 0; i < n; ++i) idx[i] = i;
-  hsort(idx, n, [x](int a, int b) { return x[a] < x[b] || (x[a] == x[b] && a < b); });
+  kutil::hsort(idx, n, [x](int a, int b) { return x[a] < x[b] || (x[a] == x[b] && a < b); });
   for (int i = 0; i < n; ++i) v[i] = x[idx[i]];
   const double c0 = 3.141592653589793 / (2.0 * (3.141592653589793 - 2.0));
   const double tol = 1.0 - 64 * std::numeric_limits<double>::epsilon();
-  rng r(seed);
+  kutil::rng r(seed);
   int top = 0, g = 0;
   stk[top++] = 0;
   stk[top++] = n;
@@ -118,8 +80,8 @@ int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
         const double cut = alpha * (nsim + 1.0) - 1.0;
         int ge = 0;
         for (int b = 0; b < nsim && ge <= cut; ++b) {
-          for (int i = 0; i < k; ++i) z[i] = r.norm();
-          hsort(z, k, [](double a, double c) { return a < c; });
+          for (int i = 0; i < k; ++i) z[i] = norm(r);
+          kutil::hsort(z, k, [](double a, double c) { return a < c; });
           int a2;
           if (c0 * bzero(z, k, &a2) >= lam * tol) ++ge;
         }

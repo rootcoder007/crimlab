@@ -10,22 +10,6 @@
 
 namespace {
 
-struct rng {
-  std::uint64_t s;
-  explicit rng(std::uint64_t seed) {
-    std::uint64_t z = seed + 0x9E3779B97F4A7C15ULL;
-    z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9ULL;
-    z = (z ^ (z >> 27)) * 0x94D049BB133111EBULL;
-    s = (z ^ (z >> 31)) | 1ULL;
-  }
-  std::uint64_t next() {
-    s ^= s >> 12;
-    s ^= s << 25;
-    s ^= s >> 27;
-    return s * 2685821657736338717ULL;
-  }
-  double unif() { return static_cast<double>(next() >> 11) * 0x1p-53; }
-};
 
 // Walker's alias table (Vose's construction) for the probabilities
 // c[i] / tot over the m units; pr, al: m each; st: m ints of scratch
@@ -50,7 +34,7 @@ void alias(const double *c, int m, double tot, double *pr, int *al, int *st) {
   for (int i = nl; i < m; ++i) pr[st[i]] = 1.0;
 }
 
-inline int draw(rng &r, const double *pr, const int *al, int m) {
+inline int draw(kutil::rng &r, const double *pr, const int *al, int m) {
   const double u = r.unif() * m;
   int i = static_cast<int>(u);
   if (i >= m) i = m - 1;
@@ -113,7 +97,7 @@ int clab_sptst(const double *a, const double *b, int n, int nboot,
   // the seed): the first for the replicate mean of each difference, the
   // second to count centred replicates at least as far from 0 as observed
   for (int pass = 0; pass < 2; ++pass) {
-    rng r(seed);
+    kutil::rng r(seed);
     for (int k = 0; k < m; ++k) {
       if (pass == 0) mean[k] = 0.0;
       ge[k] = 0.0;
