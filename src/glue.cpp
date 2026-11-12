@@ -249,6 +249,23 @@ SEXP C_clab_hzdsel(SEXP s, SEXP h, SEXP l, SEXP ah, SEXP al) {
   return out;
 }
 
+// The self-test (selftest.cpp): the number of checks run, the number that
+// failed and their report, one line each.
+int clab_selftest(char *sink, int cap, int *nfail);
+
+SEXP C_clab_selftest(void) {
+  static char sink[1 << 16];
+  int nf = 0;
+  const int n = clab_selftest(sink, static_cast<int>(sizeof sink), &nf);
+  static const char *const names[] = {"n", "nfail", "report"};
+  SEXP out = PROTECT(named_list(3, names));
+  SET_VECTOR_ELT(out, 0, Rf_ScalarInteger(n));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarInteger(nf));
+  SET_VECTOR_ELT(out, 2, Rf_mkString(sink));
+  UNPROTECT(1);
+  return out;
+}
+
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", (DL_FUNC)&C_clab_vod, 4},
     {"C_clab_orrisk", (DL_FUNC)&C_clab_orrisk, 3},
@@ -271,6 +288,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_losbnd", (DL_FUNC)&C_clab_losbnd, 2},
     {"C_clab_sntbnd", (DL_FUNC)&C_clab_sntbnd, 3},
     {"C_clab_hzdsel", (DL_FUNC)&C_clab_hzdsel, 5},
+    {"C_clab_selftest", (DL_FUNC)&C_clab_selftest, 0},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {
