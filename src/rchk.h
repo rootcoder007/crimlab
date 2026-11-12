@@ -90,6 +90,9 @@ void lgl(SEXP x, const char *nm, R_xlen_t n);
 int ref(SEXP r, SEXP nms, int n, const char *an = "ref", const char *what = "group");
 // as.character(seq_len(n)).
 SEXP seqs(R_xlen_t n);
+// as.character(seq_len(n)) written into the first n elements of the
+// character vector s, made at once (n at most INT_MAX).
+void dec(SEXP s, R_xlen_t n);
 
 // Sums in a fixed order, compensated (Neumaier) while finite: the same on
 // every platform. R's sum() accumulates in long double where the platform

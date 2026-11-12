@@ -191,7 +191,9 @@ SEXP dcopy(SEXP x) {
 //'   it rather than read the codes as numbers or as group labels.
 //' @noRd
 void unlab(SEXP x, const char *nm) {
-  if (!Rf_isNull(Rf_getAttrib(x, Rf_install("labels")))) {
+  // the symbol is looked up once: Rf_install() hashes its name each call
+  static SEXP lab = Rf_install("labels");
+  if (!Rf_isNull(Rf_getAttrib(x, lab))) {
     fail("`%s` has value labels: its numbers are category codes. Decode it "
          "first (haven::as_factor(), say).", nm);
   }
@@ -334,10 +336,34 @@ int ref(SEXP r, SEXP nms, int n, const char *an, const char *what) {
   return static_cast<int>(v);
 }
 
+void dec(SEXP s, R_xlen_t n) {
+  // each written in decimal, as R writes an integer: no sign, no padding,
+  // no exponent (i + 1 is at most INT_MAX here)
+  char b[24];
+  char *const e = b + sizeof b;
+  for (R_xlen_t i = 0; i < n; ++i) {
+    unsigned long long v = static_cast<unsigned long long>(i) + 1;
+    char *p = e;
+    do {
+      *--p = static_cast<char>('0' + v % 10);
+      v /= 10;
+    } while (v != 0);
+    SET_STRING_ELT(s, i, Rf_mkCharLenCE(p, static_cast<int>(e - p), CE_NATIVE));
+  }
+}
+
 SEXP seqs(R_xlen_t n) {
   // as.character(seq_len(n)): integers (doubles past INT_MAX) coerced as
   // as.character() coerces them; R defers the conversion of a vector
-  // without attributes, so no string is made until one is read
+  // without attributes, so no string is made until one is read. Setting
+  // that up reads the print options, which costs more than making a few
+  // strings: up to 64 they are made at once.
+  if (n <= 64) {
+    SEXP s = PROTECT(Rf_allocVector(STRSXP, n));
+    dec(s, n);
+    UNPROTECT(1);
+    return s;
+  }
   const bool big = n > INT_MAX;
   SEXP v = PROTECT(Rf_allocVector(big ? REALSXP : INTSXP, n));
   for (R_xlen_t i = 0; i < n; ++i) {

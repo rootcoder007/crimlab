@@ -49,15 +49,28 @@ bool pos(const double *p, R_xlen_t n, const int *keep = nullptr) {
   return false;
 }
 
-// A string set: the keys of a character vector in an open-addressing hash
-// table, in R's transient memory, so matching is one pass (as R's match()
-// hashes), never pairwise. first[i] marks the first appearance of a value;
-// nd counts the distinct values.
+// A string set: the strings of a character vector in an open-addressing
+// hash table, in R's transient memory, so matching is one pass (as R's
+// match() hashes), never pairwise. first[i] marks the first appearance of
+// a value; nd counts the distinct values.
+//
+// R keeps one CHARSXP for each text and encoding mark, so when every
+// string of the vector carries one mark (Rf_getCharCE(); any vector of
+// ASCII strings) two of them are equal, as seql() has it, exactly when they
+// are the same CHARSXP. The table then hashes and compares addresses and
+// reads no text ("address" mode, ce the mark). A string of another mark is
+// looked up by its text, in a text-mode copy of the set made on the first
+// such lookup (txt). Otherwise (mixed marks, or text asked for) the table
+// holds the UTF-8 text of each string (k), compared as seql() compares.
 struct Keys {
-  Key *k;
+  SEXP v;           // the vector, kept protected by the caller
+  const SEXP *c;    // its strings, read in place
+  Key *k;           // their text, in text mode only
   R_xlen_t *slot;
   char *first;
   R_xlen_t cap, n, nd;
+  int ce;           // the one mark in address mode; -1 in text mode
+  void **txt;       // the text-mode copy, once made (a Keys *)
 };
 
 std::uint64_t hash(const Key &x) {
@@ -69,24 +82,54 @@ std::uint64_t hash(const Key &x) {
   return h;
 }
 
-// the slot that holds x, or the empty slot where x would go
+std::uint64_t hash(SEXP c) {
+  // the address, mixed (the finaliser of MurmurHash3): CHARSXPs are
+  // aligned, so the low bits alone would crowd the table
+  std::uint64_t u = static_cast<std::uint64_t>(reinterpret_cast<std::uintptr_t>(c));
+  u ^= u >> 33;
+  u *= 0xff51afd7ed558ccdULL;
+  u ^= u >> 33;
+  return u;
+}
+
+// the slot that holds x (text mode), or the empty slot where x would go
 R_xlen_t probe(const Keys &s, const Key &x) {
   R_xlen_t i = static_cast<R_xlen_t>(hash(x) & static_cast<std::uint64_t>(s.cap - 1));
   while (s.slot[i] >= 0 && clab::kcmp(s.k[s.slot[i]], x) != 0) i = (i + 1) & (s.cap - 1);
   return i;
 }
 
-Keys keys(SEXP v) {
+// the same for the string c in address mode
+R_xlen_t probe(const Keys &s, SEXP c) {
+  R_xlen_t i = static_cast<R_xlen_t>(hash(c) & static_cast<std::uint64_t>(s.cap - 1));
+  while (s.slot[i] >= 0 && s.c[s.slot[i]] != c) i = (i + 1) & (s.cap - 1);
+  return i;
+}
+
+// The set of the strings of v (which the caller keeps protected while the
+// set is in use); text forces text mode.
+Keys keys(SEXP v, bool text = false) {
   const R_xlen_t n = XLENGTH(v);
-  Keys s{nullptr, nullptr, nullptr, 2, n, 0};
+  Keys s{v, nullptr, nullptr, nullptr, nullptr, 2, n, 0, -1, nullptr};
   while (s.cap < 2 * n) s.cap *= 2;
-  s.k = reinterpret_cast<Key *>(R_alloc(static_cast<std::size_t>(n), sizeof(Key)));
+  s.c = STRING_PTR_RO(v);
+  if (!text && n > 0) {
+    s.ce = Rf_getCharCE(s.c[0]);
+    for (R_xlen_t i = 1; i < n && s.ce >= 0; ++i) {
+      if (Rf_getCharCE(s.c[i]) != s.ce) s.ce = -1;
+    }
+  }
+  if (s.ce < 0) {
+    s.k = reinterpret_cast<Key *>(R_alloc(static_cast<std::size_t>(n), sizeof(Key)));
+    for (R_xlen_t i = 0; i < n; ++i) s.k[i] = clab::key(s.c[i]);
+  }
+  s.txt = reinterpret_cast<void **>(R_alloc(1, sizeof(void *)));
+  *s.txt = nullptr;
   s.first = R_alloc(static_cast<std::size_t>(n), 1);
   s.slot = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(s.cap), sizeof(R_xlen_t)));
   for (R_xlen_t i = 0; i < s.cap; ++i) s.slot[i] = -1;
   for (R_xlen_t i = 0; i < n; ++i) {
-    s.k[i] = clab::key(STRING_ELT(v, i));
-    const R_xlen_t j = probe(s, s.k[i]);
+    const R_xlen_t j = s.ce >= 0 ? probe(s, s.c[i]) : probe(s, s.k[i]);
     s.first[i] = s.slot[j] < 0;
     if (s.first[i]) {
       s.slot[j] = i;
@@ -96,7 +139,23 @@ Keys keys(SEXP v) {
   return s;
 }
 
-// x %in% the set
+// The position in the set of the string c (any string, from any vector),
+// or -1 when c is not in it: match(c, set) - 1.
+R_xlen_t at(const Keys &s, SEXP c) {
+  if (s.n == 0) return -1;
+  if (s.ce < 0) return s.slot[probe(s, clab::key(c))];
+  if (Rf_getCharCE(c) == s.ce) return s.slot[probe(s, c)];
+  // another mark: equal text may sit in a different CHARSXP
+  if (*s.txt == nullptr) {
+    Keys *t = reinterpret_cast<Keys *>(R_alloc(1, sizeof(Keys)));
+    *t = keys(s.v, true);
+    *s.txt = t;
+  }
+  const Keys &t = *static_cast<Keys *>(*s.txt);
+  return t.slot[probe(t, clab::key(c))];
+}
+
+// x %in% the set, for a set in text mode
 bool has(const Keys &s, const Key &x) { return s.n > 0 && s.slot[probe(s, x)] >= 0; }
 
 // Group arguments.
@@ -164,11 +223,11 @@ SEXP take(SEXP x, const R_xlen_t *o, R_xlen_t n) {
 const char *absent(SEXP nm, const Keys &k, const Keys &other) {
   std::size_t len = 1;
   for (R_xlen_t i = 0; i < k.n; ++i) {
-    if (!has(other, k.k[i])) len += std::strlen(Rf_translateChar(STRING_ELT(nm, i))) + 2;
+    if (at(other, k.c[i]) < 0) len += std::strlen(Rf_translateChar(k.c[i])) + 2;
   }
   char *s = R_alloc(len, 1), *e = s;
   for (R_xlen_t i = 0; i < k.n; ++i) {
-    if (has(other, k.k[i])) continue;
+    if (at(other, k.c[i]) >= 0) continue;
     if (e != s) {
       std::memcpy(e, ", ", 2);
       e += 2;
@@ -201,7 +260,7 @@ bool order(SEXP a, const Keys &ka, SEXP b, const Keys &kb, const char *an,
            const char *bn, R_xlen_t *o) {
   bool id = true;
   for (R_xlen_t i = 0; i < ka.n; ++i) {
-    const R_xlen_t j = kb.slot[probe(kb, ka.k[i])];
+    const R_xlen_t j = at(kb, ka.c[i]);
     if (j < 0) {
       fail("%s must name the same groups as %s; missing: %s; extra: %s.", bn,
            an, absent(a, ka, kb), absent(b, kb, ka));
@@ -221,11 +280,46 @@ SEXP args(std::initializer_list<SEXP> xs) {
   return a;
 }
 
+// Whether the strings of x and y, of one length, are the same CHARSXPs,
+// position by position (then they are equal as names, whatever their marks).
+bool samep(SEXP x, SEXP y) {
+  if (x == y) return true;
+  const R_xlen_t n = XLENGTH(x);
+  const SEXP *p = STRING_PTR_RO(x), *q = STRING_PTR_RO(y);
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (p[i] != q[i]) return false;
+  }
+  return true;
+}
+
+// TRUE when no string of x repeats and all carry one encoding mark (one
+// pass, hashing addresses: see Keys); FALSE otherwise, and the caller then
+// takes the general path, which names any repeat.
+bool distinct(SEXP x) {
+  const R_xlen_t n = XLENGTH(x);
+  const SEXP *p = STRING_PTR_RO(x);
+  R_xlen_t cap = 2;
+  while (cap < 2 * n) cap *= 2;
+  // the table holds the addresses themselves: one read a probe
+  SEXP *t = reinterpret_cast<SEXP *>(R_alloc(static_cast<std::size_t>(cap), sizeof(SEXP)));
+  std::memset(t, 0, static_cast<std::size_t>(cap) * sizeof(SEXP));
+  const int ce = n > 0 ? Rf_getCharCE(p[0]) : 0;
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (Rf_getCharCE(p[i]) != ce) return false;
+    R_xlen_t h = static_cast<R_xlen_t>(hash(p[i]) & static_cast<std::uint64_t>(cap - 1));
+    while (t[h] != nullptr && t[h] != p[i]) h = (h + 1) & (cap - 1);
+    if (t[h] != nullptr) return false;
+    t[h] = p[i];
+  }
+  return true;
+}
+
 // The rule above on the arguments in a (from args()), named nm: later
 // arguments are reordered in place and slot 0 receives the group names.
 // strict: a repeated name is an error; otherwise (per-unit arguments,
 // whose names may be labels that repeat) it leaves positions in use.
-SEXP align(SEXP a, const char *const *nm, bool strict) {
+// *named (when given) is set to whether some argument named the groups.
+SEXP align(SEXP a, const char *const *nm, bool strict, bool *named = nullptr) {
   PROTECT(a);
   const int k = static_cast<int>(XLENGTH(a)) - 1;
   SEXP x0 = VECTOR_ELT(a, 1);
@@ -234,22 +328,35 @@ SEXP align(SEXP a, const char *const *nm, bool strict) {
   Keys ks[5];
   char an[5][64];
   bool use[5];
+  SEXP r[5];
   int nu = 0, nn = 0, first = -1;
   bool dup = false;
   for (int j = 0; j < k; ++j) {
     SEXP x = VECTOR_ELT(a, j + 1);
     use[j] = !Rf_isNull(x) && movable(x) && Rf_isMatrix(x) == mat && rows(x) == n;
     std::snprintf(an[j], sizeof an[j], "`%s`", nm[j]);
+    r[j] = use[j] ? rnames(x) : R_NilValue;
     if (!use[j]) continue;
     ++nu;
-    SEXP r = rnames(x);
-    if (Rf_isNull(r)) continue;
+    if (Rf_isNull(r[j])) continue;
     ++nn;
     if (first < 0) first = j;
-    ks[j] = uniq(r, an[j], strict);
+  }
+  // Every named argument holding the very names of the first, position by
+  // position (names taken from one table, say): nothing is reordered, and
+  // the one check left, strictly, is that no name repeats. Otherwise the
+  // names are matched through string sets.
+  bool fast = first >= 0;
+  for (int j = first + 1; fast && j < k; ++j) {
+    fast = Rf_isNull(r[j]) || samep(r[first], r[j]);
+  }
+  if (fast && strict) fast = distinct(r[first]);
+  for (int j = 0; j < k && !fast; ++j) {
+    if (Rf_isNull(r[j])) continue;
+    ks[j] = uniq(r[j], an[j], strict);
     dup = dup || ks[j].nd != ks[j].n;
   }
-  if (nn == nu && nu > 1 && !dup) {
+  if (!fast && nn == nu && nu > 1 && !dup) {
     R_xlen_t *o = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(R_xlen_t)));
     for (int j = 1; j < k; ++j) {
       if (!use[j]) continue;
@@ -260,6 +367,7 @@ SEXP align(SEXP a, const char *const *nm, bool strict) {
     }
   }
   SET_VECTOR_ELT(a, 0, first < 0 ? clab::seqs(n) : rnames(VECTOR_ELT(a, first + 1)));
+  if (named != nullptr) *named = first >= 0;
   UNPROTECT(1);
   return a;
 }
@@ -301,13 +409,13 @@ SEXP gvec(SEXP x, const char *nm) {
 }
 
 // gvec() on each argument in a (from args()), then align() strictly.
-SEXP group(SEXP a, const char *const *nm) {
+SEXP group(SEXP a, const char *const *nm, bool *named = nullptr) {
   PROTECT(a);
   for (R_xlen_t j = 1; j < XLENGTH(a); ++j) {
     SET_VECTOR_ELT(a, j, gvec(VECTOR_ELT(a, j), nm[j - 1]));
   }
   UNPROTECT(1);
-  return align(a, nm, true);
+  return align(a, nm, true, named);
 }
 
 // A logical column, TRUE at the reference group i (one-based) of n.
@@ -807,7 +915,7 @@ double mix(SEXP pv, const Keys &nk, SEXP need, SEXP x, const char *a,
   Keys nd{};
   if (!bad) {
     nd = keys(need);
-    for (R_xlen_t i = 0; i < nd.n && !bad; ++i) bad = !has(nk, nd.k[i]);
+    for (R_xlen_t i = 0; i < nd.n && !bad; ++i) bad = at(nk, nd.c[i]) < 0;
     bad = bad || nd.nd > 20;
   }
   if (bad) fail("`%s` must be names of `p`, at most 20.", a);
@@ -821,7 +929,7 @@ double mix(SEXP pv, const Keys &nk, SEXP need, SEXP x, const char *a,
   // nms %in% need
   const R_xlen_t n = XLENGTH(pv);
   int *in = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
-  for (R_xlen_t i = 0; i < n; ++i) in[i] = has(nd, nk.k[i]);
+  for (R_xlen_t i = 0; i < n; ++i) in[i] = at(nd, nk.c[i]) >= 0;
   double r = 0;
   kchk(clab_mixp(REAL_RO(pv), in, static_cast<int>(n), static_cast<int>(v), &r),
        src);
@@ -1496,7 +1604,8 @@ SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
 SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
   clab::who = "incap";
   static const char *const an[] = {"lam", "q", "s", "share"};
-  SEXP a = PROTECT(group(args({lam, q, s, share}), an));
+  bool named = false;
+  SEXP a = PROTECT(group(args({lam, q, s, share}), an, &named));
   lam = VECTOR_ELT(a, 1);
   q = VECTOR_ELT(a, 2);
   s = VECTOR_ELT(a, 3);
@@ -1524,15 +1633,18 @@ SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
   // prev of the whole, NA for the rest
   const R_xlen_t nr = has ? n + 1 : n;
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 7));
-  // Without share the labels are the column as they stand; copying them
-  // would turn the labels R defers for an unnamed lam into strings one by
-  // one, which costs more than the whole computation.
+  // Without share the labels are the column as they stand. With it they
+  // are copied, and "all" added; unnamed groups are labelled "1", "2", ...,
+  // which R would make one by one from its deferred conversion (each
+  // string through the print formatting): they are written directly.
   SEXP g = has ? Rf_allocVector(STRSXP, nr) : nms;
   SET_VECTOR_ELT(out, 0, g);
-  if (has) {
+  if (has && named) {
     for (int i = 0; i < n; ++i) SET_STRING_ELT(g, i, STRING_ELT(nms, i));
-    SET_STRING_ELT(g, n, Rf_mkChar("all"));
+  } else if (has) {
+    clab::dec(g, n);
   }
+  if (has) SET_STRING_ELT(g, n, Rf_mkChar("all"));
   for (int k = 1; k < 7; ++k) SET_VECTOR_ELT(out, k, real(nr));
   double *c[7];
   for (int k = 1; k < 7; ++k) c[k] = REAL(VECTOR_ELT(out, k));
@@ -1941,7 +2053,7 @@ SEXP C_clab_r_proof(SEXP fn) {
   }
   Keys fk{};
   if (!all) {
-    fk = keys(fn);
+    fk = keys(fn, true);
     // miss <- setdiff(fn, t[["fn"]]): the first appearance of each unknown
     // name, in the order given
     char *miss = R_alloc(static_cast<std::size_t>(fk.n), 1);
@@ -2031,7 +2143,7 @@ int *fcode(SEXP v, int *nd, R_xlen_t **first) {
       f[k] = i;
       c[i] = k++;
     } else {
-      c[i] = c[s.slot[probe(s, s.k[i])]];
+      c[i] = c[at(s, s.c[i])];
     }
   }
   *nd = k;
@@ -2046,6 +2158,48 @@ struct Net {
   int n, m;
   int *a, *b;
 };
+
+// The nodes of the edges f[k] - t[k] coded 0, 1, ... by first appearance
+// (each edge's from, then its to), straight from the two vectors by
+// address, when every label of both carries one encoding mark (see Keys):
+// fills g.n, g.a and g.b and returns the labels in code order
+// (unprotected). R_NilValue when the marks differ (or there are no edges),
+// for the general path.
+SEXP pcode(SEXP f, SEXP t, Net &g) {
+  const R_xlen_t m = XLENGTH(f);
+  const SEXP *pf = STRING_PTR_RO(f), *pt = STRING_PTR_RO(t);
+  bool one = m > 0;
+  const int ce = one ? Rf_getCharCE(pf[0]) : 0;
+  for (R_xlen_t k = 0; k < m && one; ++k) {
+    one = Rf_getCharCE(pf[k]) == ce && Rf_getCharCE(pt[k]) == ce;
+  }
+  if (!one) return R_NilValue;
+  R_xlen_t cap = 2;
+  while (cap < 4 * m) cap *= 2;
+  SEXP *key = reinterpret_cast<SEXP *>(R_alloc(static_cast<std::size_t>(cap), sizeof(SEXP)));
+  int *val = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(cap), sizeof(int)));
+  SEXP *lab = reinterpret_cast<SEXP *>(R_alloc(2 * static_cast<std::size_t>(m), sizeof(SEXP)));
+  std::memset(key, 0, static_cast<std::size_t>(cap) * sizeof(SEXP));
+  int n = 0;
+  const auto code = [&](SEXP c) {
+    R_xlen_t h = static_cast<R_xlen_t>(hash(c) & static_cast<std::uint64_t>(cap - 1));
+    while (key[h] != nullptr && key[h] != c) h = (h + 1) & (cap - 1);
+    if (key[h] == nullptr) {
+      key[h] = c;
+      val[h] = n;
+      lab[n++] = c;
+    }
+    return val[h];
+  };
+  for (R_xlen_t k = 0; k < m; ++k) {
+    g.a[k] = code(pf[k]);
+    g.b[k] = code(pt[k]);
+  }
+  g.n = n;
+  SEXP out = Rf_allocVector(STRSXP, n);
+  for (int i = 0; i < n; ++i) SET_STRING_ELT(out, i, lab[i]);
+  return out;
+}
 
 //' @srrstats {G2.4c} Node, offender, incident and group labels are
 //'   converted as as.character() does.
@@ -2067,8 +2221,10 @@ Net net(SEXP from, SEXP to, SEXP nodes) {
   g.m = static_cast<int>(m);
   g.a = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(m), sizeof(int)));
   g.b = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(m), sizeof(int)));
-  SEXP lab;
-  if (Rf_isNull(nodes)) {
+  SEXP lab = Rf_isNull(nodes) ? pcode(f, t, g) : R_NilValue;
+  if (!Rf_isNull(lab)) {
+    UNPROTECT(2);
+  } else if (Rf_isNull(nodes)) {
     // first appearance, reading each edge's from, then its to
     SEXP v = PROTECT(Rf_allocVector(STRSXP, 2 * m));
     for (R_xlen_t k = 0; k < m; ++k) {
@@ -2098,7 +2254,7 @@ Net net(SEXP from, SEXP to, SEXP nodes) {
       SEXP x = e ? t : f;
       int *o = e ? g.b : g.a;
       for (R_xlen_t k = 0; k < m; ++k) {
-        const R_xlen_t j = s.n > 0 ? s.slot[probe(s, clab::key(STRING_ELT(x, k)))] : -1;
+        const R_xlen_t j = at(s, STRING_ELT(x, k));
         if (j < 0) {
           fail("`%s` names a node not in `nodes`: %s.", e ? "to" : "from",
                Rf_translateChar(STRING_ELT(x, k)));
@@ -2114,6 +2270,52 @@ Net net(SEXP from, SEXP to, SEXP nodes) {
   if (g.n == 0) fail("the graph has no nodes: give edges or `nodes`.");
   g.lab = PROTECT(lab);
   return g;
+}
+
+// Codes 0, 1, ... by first appearance of the values of a plain integer or
+// double vector, without making their text: as.character() writes such a
+// value exactly when it is a whole number below 1e15 in size (-0 as 0), so
+// two values are one label exactly when they are equal. *nd receives the
+// number of distinct values. nullptr for any other x (a class, another
+// type, NA, a fraction, a large number): the caller reads its labels.
+int *ncode(SEXP x, int *nd) {
+  const int ty = TYPEOF(x);
+  if (Rf_isObject(x) || (ty != INTSXP && ty != REALSXP)) return nullptr;
+  const R_xlen_t n = XLENGTH(x);
+  std::int64_t *v = reinterpret_cast<std::int64_t *>(R_alloc(static_cast<std::size_t>(n), sizeof(std::int64_t)));
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (ty == INTSXP) {
+      const int u = INTEGER_RO(x)[i];
+      if (u == NA_INTEGER) return nullptr;
+      v[i] = u;
+    } else {
+      const double d = REAL_RO(x)[i];
+      if (!(std::fabs(d) < 1e15) || d != std::floor(d)) return nullptr;
+      v[i] = static_cast<std::int64_t>(d);
+    }
+  }
+  R_xlen_t cap = 2;
+  while (cap < 2 * n) cap *= 2;
+  R_xlen_t *slot = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(cap), sizeof(R_xlen_t)));
+  for (R_xlen_t i = 0; i < cap; ++i) slot[i] = -1;
+  int *c = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
+  int k = 0;
+  for (R_xlen_t i = 0; i < n; ++i) {
+    std::uint64_t u = static_cast<std::uint64_t>(v[i]);
+    u ^= u >> 33;
+    u *= 0xff51afd7ed558ccdULL;
+    u ^= u >> 33;
+    R_xlen_t h = static_cast<R_xlen_t>(u & static_cast<std::uint64_t>(cap - 1));
+    while (slot[h] >= 0 && v[slot[h]] != v[i]) h = (h + 1) & (cap - 1);
+    if (slot[h] < 0) {
+      slot[h] = i;
+      c[i] = k++;
+    } else {
+      c[i] = c[slot[h]];
+    }
+  }
+  *nd = k;
+  return c;
 }
 
 // TRUE or FALSE
@@ -2182,7 +2384,7 @@ int *pernode(SEXP x, const char *nm, const Net &g, SEXP *val) {
       }
     }
     for (int i = 0; i < g.n; ++i) {
-      const R_xlen_t j = k.n > 0 ? k.slot[probe(k, clab::key(STRING_ELT(g.lab, i)))] : -1;
+      const R_xlen_t j = at(k, STRING_ELT(g.lab, i));
       if (j < 0) {
         fail("`%s` has no value for node %s.", nm,
              Rf_translateChar(STRING_ELT(g.lab, i)));
@@ -2451,9 +2653,13 @@ SEXP C_clab_r_ntchg(SEXP from, SEXP to, SEXP w, SEXP nodes, SEXP tol,
 
 SEXP C_clab_r_coofg(SEXP inc, SEXP off) {
   clab::who = "coofg";
-  SEXP si = PROTECT(nlab(inc, "inc"));
+  // incident labels are never shown: numbers are coded by value
+  if (Rf_isVectorAtomic(inc)) clab::vec(inc, "inc");
+  int ni;
+  const int *ci = ncode(inc, &ni);
+  SEXP si = PROTECT(ci != nullptr ? R_NilValue : nlab(inc, "inc"));
   SEXP so = PROTECT(nlab(off, "off"));
-  const R_xlen_t k = XLENGTH(si);
+  const R_xlen_t k = ci != nullptr ? XLENGTH(inc) : XLENGTH(si);
   if (XLENGTH(so) != k) {
     char x[32], y[32];
     clab::lfmt(static_cast<double>(k), x, sizeof x);
@@ -2462,9 +2668,9 @@ SEXP C_clab_r_coofg(SEXP inc, SEXP off) {
   }
   if (k == 0) fail("`inc` must name at least one incident.");
   ilen(2.0 * k, "inc");
-  int ni, no;
+  int no;
   R_xlen_t *fo;
-  const int *ci = fcode(si, &ni, nullptr);
+  if (ci == nullptr) ci = fcode(si, &ni, nullptr);
   const int *co = fcode(so, &no, &fo);
   double np, il;
   int *iw = ibuf(static_cast<double>(ni) + 1 + k + no);
@@ -2893,12 +3099,12 @@ Var vaud(SEXP x, int nmin, SEXP kp) {
     int *ac = ibuf(static_cast<double>(ks.n));
     int k = 0;
     for (R_xlen_t i = 0; i < ks.n; ++i) {
-      if (ks.k[i].s == nullptr) {
+      if (ks.c[i] == NA_STRING) {
         ac[i] = -1;
       } else if (ks.first[i]) {
         ac[i] = k++;
       } else {
-        ac[i] = ac[ks.slot[probe(ks, ks.k[i])]];
+        ac[i] = ac[at(ks, ks.c[i])];
       }
     }
     v.k = k;
@@ -2922,9 +3128,9 @@ Var vaud(SEXP x, int nmin, SEXP kp) {
       const Keys kl = keys(ln);
       int *nk = ibuf(static_cast<double>(kl.n));
       for (R_xlen_t j = 0; j < kl.n; ++j) nk[j] = 0;
-      for (R_xlen_t j = 0; j < kl.n; ++j) ++nk[kl.slot[probe(kl, kl.k[j])]];
+      for (R_xlen_t j = 0; j < kl.n; ++j) ++nk[at(kl, kl.c[j])];
       for (R_xlen_t j = 0; j < kl.n; ++j) {
-        if (kl.k[j].s != nullptr && nk[kl.slot[probe(kl, kl.k[j])]] > 1) ++v.dlab;
+        if (kl.c[j] != NA_STRING && nk[at(kl, kl.c[j])] > 1) ++v.dlab;
       }
     }
     UNPROTECT(3);
@@ -3057,7 +3263,7 @@ SEXP C_clab_r_catchk(SEXP x, SEXP ref, SEXP nmin) {
         continue;
       }
       SEXP nj = STRING_ELT(rn, j);
-      const R_xlen_t i = kn.slot[probe(kn, clab::key(nj))];
+      const R_xlen_t i = at(kn, nj);
       if (i < 0) fail("`ref` names no variable: %s.", Rf_translateChar(nj));
       if (STRING_ELT(want, i) != NA_STRING) fail("`ref` names a variable twice: %s.", Rf_translateChar(nj));
       SET_STRING_ELT(want, i, w);
