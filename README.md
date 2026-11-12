@@ -96,14 +96,21 @@ rest on identities or bounds proved in Lean, which `proof()` names.
 
 ## Speed
 
-`dev/bench.R` times each function against every package found that
+`dev/bench.R` times each function against every other package found that
 computes the same quantity, on fixed seeded inputs and at sizes met in
-practice, after checking that the two give the same values; where no
-package does, against a base-R implementation of the formula. The table it
-writes, with the machine and the date, is
-[inst/bench/bench.md](inst/bench/bench.md) (and `bench.csv`); the bench
-workflow runs it again every week. The lists below are written by the same
-script from that table.
+practice, after checking that the two give the same values;
+`dev/bench-net.R` does the same for the network functions. The search for
+those packages, with the reason each candidate does or does not compute the
+same quantity, is [inst/bench/counterparts.csv](inst/bench/counterparts.csv)
+(written by `dev/cpart.R`). rmorie, the maintainer's own package, is timed
+too but reported apart: it is not another package. Where no package
+computes a quantity, the function is timed against rmorie or a base-R
+implementation of the formula, and no claim is made against the field. The
+tables, with the machine, the runs and their spread, are
+[inst/bench/bench.md](inst/bench/bench.md) (and `bench.csv`) and
+`inst/bench/net.csv`; `dev/benchrun.sh` takes three runs on a quiet machine
+and merges them. The lists below are written by the same scripts from those
+tables.
 
 <!-- bench start: written by dev/bench.R -->
 Faster, by at least a tenth, than every package that computes the same quantity, at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `gtmp()`, `kinidx()`, `patidx()`, `mixlr()`, `cllr()`, `cllrmin()`, `lrcal()`, `eceplt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`.

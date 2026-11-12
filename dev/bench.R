@@ -1,33 +1,50 @@
 # Speed of every exported function against every package found that
-# computes the same quantity, on fixed seeded inputs. A pair is timed only
-# after the two results agree to the stated relative tolerance; a pair
-# that disagrees is reported as such and fails the run. Where no package
-# computes the quantity, the counterpart is a plain base-R implementation
-# of the same formula ("base R"). Calls are timed as a user makes them,
-# argument checks included; graphics go to a null device.
+# computes the same quantity (dev/cpart.R records the search), on fixed
+# seeded inputs. A pair is timed only after the two results agree to the
+# stated relative tolerance; a pair that disagrees is reported as such and
+# fails the run. Where no package computes the quantity, the counterpart is
+# a plain base-R implementation of the same formula ("base R"). Calls are
+# timed as a user makes them, argument checks included; graphics go to a
+# null device. One process, no parallel workers.
 #
-#   Rscript dev/bench.R [OUTDIR] [fn ...]
+#   Rscript dev/bench.R OUTDIR [fn ...]       one run, into OUTDIR/bench.csv
+#   Rscript dev/bench.R --merge RUNDIR ...    the runs merged into
+#                                             inst/bench/bench.csv, bench.md
+#                                             and the README lists
 #
-# writes OUTDIR/bench.csv and OUTDIR/bench.md (OUTDIR defaults to
-# inst/bench) and, when every function was run, the list of functions in
-# README.md between the bench markers. Exit status 1 on a disagreement or
-# an error, never on a slow result. Columns: fn, case (which arguments,
-# where one function is timed two ways), ref (package::function),
-# n and of (what n counts), crimlab and other (median seconds per call),
-# ratio (other / crimlab: above 1, crimlab is faster), agree, tol and scale
-# (relative to each value or to the largest), refver (the counterpart's
-# version), r, cpu, date.
+# A run is valid only on a quiet machine: dev/benchrun.sh starts it when
+# the 1-minute load average is at most 1.0 and repeats it when the load at
+# its end is above 1.5. Each run records the machine, CPU, R version, CPU
+# frequency governor, the compiler flags R builds packages with, the load
+# at its start and end, and the time. The merge keeps, for each row, the
+# run whose ratio is the median over the runs, with the smallest and
+# largest ratio (lo, hi). Exit status 1 on a disagreement or an error,
+# never on a slow result.
 #
-# Counterparts: rmorie (r-universe, not CRAN) for the disparity, policing
-# and corrections functions; Familias and forrel for kinidx, patidx and
-# (Familias) gtmp; forensim for mixlr; comparison for cllr, cllrmin, lrcal
-# and eceplt. forensim declares tkrplot, which needs Tk headers; only
-# forensim::LR is used.
+# Columns: fn, case (which arguments, where one function is timed two
+# ways), ref (package::function), kind ("third" for another package, "own"
+# for rmorie, the maintainer's own package, "base" for base R), n and of
+# (what n counts), crimlab and other (median seconds per call), ratio
+# (other / crimlab: above 1, crimlab is faster), agree ("yes", "no",
+# "error", or "not run" with the reason in note), tol and scale (relative to
+# each value or to the largest), refver (the counterpart's version), and the
+# run's machine, cpu, r, gov, load0, load1, start.
+#
+# Counterparts: rmorie (r-universe, not CRAN); Familias, forrel, paramlink
+# and relSim for kinidx and patidx (Familias also gtmp); forensim and
+# relSim for mixlr; comparison and idiolect (functions it bundles from the
+# ROC package, unexported) for cllr, cllrmin and lrcal, comparison for
+# eceplt; DasGuptR and DemoDecomp for clrsmp. forensim declares tkrplot,
+# which needs Tk headers and, to load, an X display; where it cannot be
+# loaded its pair is reported "not run".
 a0 <- commandArgs(TRUE)
-out <- if (length(a0)) a0[1] else "inst/bench"
+merge <- identical(a0[1], "--merge")
+out <- if (length(a0)) a0[1] else "bench-run"
 only <- a0[-1]
+if (!merge) {
 suppressMessages(library(crimlab))
 grDevices::pdf(NULL)
+}
 have <- function(p) requireNamespace(p, quietly = TRUE)
 nm <- function(k, x) stats::setNames(x, paste0("g", seq_len(k)))
 
@@ -109,8 +126,12 @@ dna <- function(n) {
   ch <- cbind(mo[cbind(seq_len(n), sample(2, n, TRUE))],
               fa[cbind(seq_len(n), sample(2, n, TRUE))])
   fr <- function(g) matrix(fq[cbind(rep(seq_len(n), 2), c(g))], n)
+  # relSim's forms: a profile is the 2 x loci allele codes, the frequencies
+  # a list of one vector a locus
+  rp <- function(g) as.integer(c(t(g)))
   list(fq = fq, g1 = g1, g2 = g2, f1 = fr(g1), mo = mo, fa = fa, ch = ch,
-       fc = fr(ch))
+       fc = fr(ch), ff = fr(fa), r1 = rp(g1), r2 = rp(g2), rch = rp(ch),
+       rfa = rp(fa), rf = list(freqs = lapply(seq_len(n), function(i) fq[i, ])))
 }
 # Familias: likelihoods per locus of pedigrees for persons ids with
 # genotypes gs (a list of n x 2 matrices)
@@ -170,6 +191,30 @@ frlpi <- function(fq, ch, fa, mo) {
            pedtools::singleton("af")),
       list(ch = ch, af = fa, mo = mo))
 }
+# paramlink, forrel's predecessor: the same pedigrees, numbered
+pl <- function(fq, h1, h2, gs) {
+  ann <- lapply(seq_len(nrow(fq)), function(i) list(alleles = 1:6, afreq = fq[i, ]))
+  set1 <- function(x) {
+    ids <- x$orig.ids
+    m <- matrix(0, length(ids), 2 * nrow(fq))
+    for (id in names(gs)) if (id %in% ids) m[match(id, ids), ] <- c(t(gs[[id]]))
+    paramlink::setMarkers(x, m, annotations = ann)
+  }
+  r <- paramlink::LR(list(set1(h1), lapply(h2, set1)), ref = 2)
+  l <- r[["likelihoodsPerSystem"]]
+  sum(log10(l[, 1] / l[, 2]))
+}
+plki <- function(fq, g1, g2) {
+  pl(fq, paramlink::nuclearPed(2),
+     list(paramlink::singleton(3), paramlink::singleton(4)),
+     list("3" = g1, "4" = g2))
+}
+plpi <- function(fq, ch, fa, mo) {
+  pl(fq, paramlink::nuclearPed(1),
+     list(paramlink::relabel(paramlink::nuclearPed(1), c(4, 2, 3)),
+          paramlink::singleton(1)),
+     list("1" = fa, "2" = mo, "3" = ch))
+}
 famgt <- function(p, q, hom, th) {
   n <- length(p)
   fq <- cbind(p, q, 1 - p - q)
@@ -212,6 +257,22 @@ add("patidx", "Familias::FamiliasPosterior", c(20, 200), "loci", dna,
 add("patidx", "forrel::kinshipLR", c(20, 200), "loci", dna,
   patidx(ch, fa, fc, mo), frlpi(fq, ch, fa, mo),
   function(r) r[["log10idx"]], identity)
+add("kinidx", "paramlink::LR", c(20, 200), "loci", dna,
+  kinidx(g1, g2, f1, "sibling"), plki(fq, g1, g2),
+  function(r) r[["log10idx"]], identity)
+add("patidx", "paramlink::LR", c(20, 200), "loci", dna,
+  patidx(ch, fa, fc, mo), plpi(fq, ch, fa, mo),
+  function(r) r[["log10idx"]], identity)
+add("kinidx", "relSim::lrSib", c(20, 200), "loci", dna,
+  kinidx(g1, g2, f1, "sibling"), relSim::lrSib(r1, r2, rf),
+  function(r) r[["log10idx"]], log10)
+# the child shares an allele with the alleged father at every locus
+add("kinidx", "relSim::lrPC", c(20, 200), "loci", dna,
+  kinidx(fa, ch, ff, "parent"), relSim::lrPC(rfa, rch, rf),
+  function(r) r[["log10idx"]], log10, case = "parent")
+add("patidx", "relSim::lrPC", c(20, 200), "loci", dna,
+  patidx(ch, fa, fc), relSim::lrPC(rfa, rch, rf),
+  function(r) r[["log10idx"]], log10, case = "no mother")
 
 # a mixture of n alleles: the victim explains alleles 1 and 2; under the
 # first account the suspect explains the rest, under the second
@@ -228,8 +289,24 @@ add("mixlr", "forensim::LR", c(4, 6, 8), "alleles",
                prDHet = rep(0, 8), prDHom = rep(0, 8), prC = 0, freq = fr),
   pick("num", "den", "lr"), pick("num", "deno", "LR"))
 
+# victim (alleles 1, 2) and suspect (3, 4) against the victim and one
+# unknown, one locus
+add("mixlr", "relSim::lrMix", 4, "alleles",
+  function(n) {
+    f <- stats::runif(n, 0.02, 0.08)
+    list(p = stats::setNames(f, seq_len(n)),
+         pr = list(list(prof1 = 1:2, prof2 = 3:4)),
+         fq = list(freqs = list(c(f, 1 - sum(f))), loci = "L1"))
+  },
+  mixlr(p, character(0), 0, c("3", "4"), 1), relSim::lrMix(pr, fq),
+  function(r) r[["lr"]], identity, case = "two people")
+
 lrs <- function(n) {
-  list(s = exp(stats::rnorm(n / 2, 1, 1.5)), d = exp(stats::rnorm(n / 2, -1, 1.5)))
+  s <- exp(stats::rnorm(n / 2, 1, 1.5))
+  d <- exp(stats::rnorm(n / 2, -1, 1.5))
+  # idiolect's form: natural-log scores with the truth of each comparison
+  list(s = s, d = d, x = data.frame(score = log(c(s, d)),
+                                    target = rep(c(TRUE, FALSE), each = n / 2)))
 }
 add("cllr", "comparison::calc.ece", c(1e3, 1e4), "ratios", lrs,
   cllr(s, d), comparison::calc.ece(s, d, 0.5),
@@ -240,6 +317,13 @@ add("cllr", "base R", c(1e3, 1e5, 1e6), "ratios", lrs,
 add("cllrmin", "comparison::calc.ece", c(1e3, 1e4), "ratios", lrs,
   cllrmin(s, d), comparison::calc.ece(s, d, 0.5),
   pick("cllr", "min"), pick("ece", "ece.cal"))
+add("cllr", "idiolect:::Cllr", c(1e3, 1e5, 1e6), "ratios", lrs,
+  cllr(s, d), idiolect:::Cllr(x), identity, identity)
+add("cllrmin", "idiolect:::Cllr", c(1e3, 1e5, 1e6), "ratios", lrs,
+  cllrmin(s, d), idiolect:::Cllr(x, TRUE), pick("min"), identity)
+add("lrcal", "idiolect:::opt.llr", c(1e3, 1e5, 1e6), "ratios", lrs,
+  lrcal(s, d), idiolect:::opt.llr(x, FALSE),
+  pick("same", "diff"), function(r) exp(r[["opt.llr"]]))
 # comparison pools with isotone::gpava, whose time grows with the square of
 # n (about 6 minutes at 1e5 on the reference machine): 1e3 and 1e4 only.
 # calibrate.set returns the ratios sorted, not in the order given
@@ -309,6 +393,40 @@ add("clrsmp", "base R", c(5, 1e3, 1e5), "offence types",
   },
   function(r) c(r$parts$rateeff, r$parts$mixeff, r$total[1:5]), identity,
   sc = TRUE)
+
+# DasGuptR: the rate and the share of each part as two factors of
+# sum(rate * share); DemoDecomp::horiuchi on the same function, exact for
+# it, whose cost grows with the square of the parts
+dgx <- function(n) {
+  ra <- stats::runif(n, 10, 1e3)
+  rb <- stats::runif(n, 10, 1e3)
+  ca <- ra * stats::runif(n)
+  cb <- rb * stats::runif(n)
+  list(ra = ra, rb = rb, ca = ca, cb = cb,
+       x = data.frame(pop = rep(c("X1", "X2"), each = n), k = rep(seq_len(n), 2),
+                      clr = c(ca / ra, cb / rb), shr = c(ra / sum(ra), rb / sum(rb))),
+       p1 = c(ca / ra, ra / sum(ra)), p2 = c(cb / rb, rb / sum(rb)),
+       f = function(p) {
+         k <- length(p) / 2
+         sum(p[seq_len(k)] * p[k + seq_len(k)])
+       })
+}
+add("clrsmp", "DasGuptR::dgnpop", c(5, 1e3, 1e5), "offence types", dgx,
+  clrsmp(ca, ra, cb, rb),
+  suppressMessages(DasGuptR::dgnpop(x, pop = "pop", factors = c("clr", "shr"),
+                                    id_vars = "k", ratefunction = "sum(clr*shr)")),
+  function(r) r$total[c("rateeff", "mixeff")],
+  function(r) {
+    v <- function(f, p) r$rate[r$factor == f & r$pop == p]
+    c(v("clr", "X2") - v("clr", "X1"), v("shr", "X2") - v("shr", "X1"))
+  }, sc = TRUE)
+add("clrsmp", "DemoDecomp::horiuchi", c(5, 1e3), "offence types", dgx,
+  clrsmp(ca, ra, cb, rb), DemoDecomp::horiuchi(f, p1, p2, N = 20),
+  function(r) c(r$parts$rateeff, r$total[["mixeff"]]),
+  function(r) {
+    k <- length(r) / 2
+    c(r[seq_len(k)], sum(r[k + seq_len(k)]))
+  }, sc = TRUE)
 
 add("expbnd", "rmorie::morie_disparity_exposure_bounds", c(5, 1e3, 1e5),
   "groups",
@@ -422,105 +540,178 @@ same <- function(x, y, tol, sc) {
   isTRUE(all(x[k] == y[k] | abs(x[k] - y[k]) <= tol * m))
 }
 val <- function(f, r, e) if (length(formals(f)) == 2L) f(r, e) else f(r)
+sh <- function(cmd, args = character()) {
+  tryCatch(suppressWarnings(system2(cmd, args, stdout = TRUE, stderr = FALSE)),
+           error = function(e) character(0))
+}
 cpu <- function() {
-  m <- tryCatch(system2("lscpu", stdout = TRUE, stderr = FALSE),
-                error = function(e) character(0), warning = function(w) character(0))
-  m <- sub("^Model name: *", "", grep("^Model name:", m, value = TRUE))
-  if (!length(m)) {
-    m <- tryCatch(system2("sysctl", c("-n", "machdep.cpu.brand_string"),
-                          stdout = TRUE, stderr = FALSE),
-                  error = function(e) character(0),
-                  warning = function(w) character(0))
+  m <- sub("^Model name: *", "", grep("^Model name:", sh("lscpu"), value = TRUE))
+  if (!length(m)) m <- sh("sysctl", c("-n", "machdep.cpu.brand_string"))
+  if (length(m)) paste(m[1], Sys.info()[["machine"]]) else Sys.info()[["machine"]]
+}
+rd1 <- function(f) {
+  x <- tryCatch(suppressWarnings(readLines(f, n = 1L)), error = function(e) "")
+  if (length(x)) x else ""
+}
+load1 <- function() as.numeric(strsplit(rd1("/proc/loadavg"), " ")[[1]][1])
+kind <- function(ref) {
+  ifelse(ref == "base R", "base", ifelse(startsWith(ref, "rmorie::"), "own", "third"))
+}
+pkg <- function(ref) sub(":::?.*", "", ref)
+
+if (!merge) {
+  env <- c(machine = Sys.info()[["nodename"]], cpu = cpu(),
+           r = paste(R.version$major, R.version$minor, sep = "."),
+           gov = rd1("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
+           load0 = format(load1()),
+           start = format(Sys.time(), "%Y-%m-%d %H:%M %Z"))
+  flags <- sh(file.path(R.home("bin"), "R"), c("CMD", "config", "CXX17FLAGS"))
+  # the builds timed
+  ps <- unique(c("crimlab", setdiff(pkg(vapply(cases, `[[`, "", "ref")), "base R")))
+  for (p in ps) {
+    cat(sprintf("%-12s %s\n", p, tryCatch(paste(find.package(p),
+      utils::packageVersion(p)), error = function(e) "not installed")))
   }
-  if (length(m)) paste(m[1], Sys.info()[["machine"]]) else
-    Sys.info()[["machine"]]
-}
-env <- c(r = paste(R.version$major, R.version$minor, sep = "."), cpu = cpu(),
-         date = format(Sys.Date()))
-ver <- function(ref) {
-  p <- sub("::.*", "", ref)
-  if (p == "base R") "" else format(utils::packageVersion(p))
-}
-if (length(only)) {
-  cases <- Filter(function(k) k$fn %in% only, cases)
-}
-rows <- list()
-for (k in cases) {
-  for (n in k$n) {
-    set.seed(20261112)
-    e <- list2env(k$mk(n), parent = globalenv())
-    row <- data.frame(fn = k$fn, case = k$case, ref = k$ref, n = n, of = k$of,
-                      crimlab = NA_real_, other = NA_real_, ratio = NA_real_,
-                      agree = "error", tol = k$tol,
-                      scale = if (k$sc) "largest" else "each", refver = "")
-    msg <- tryCatch({
-      row$refver <- ver(k$ref)
-      ra <- eval(k$a, e)
-      rb <- eval(k$b, e)
-      if (same(val(k$va, ra, e), val(k$vb, rb, e), k$tol, k$sc)) {
-        row$agree <- "yes"
-        tm <- bench::mark(exprs = list(k$a, k$b), env = e, check = FALSE,
-                          min_iterations = 3, min_time = 0.5,
-                          memory = FALSE, filter_gc = FALSE,
-                          time_unit = "s")
-        row$crimlab <- as.numeric(tm$median[1])
-        row$other <- as.numeric(tm$median[2])
-        row$ratio <- row$other / row$crimlab
+  if (length(only)) cases <- Filter(function(k) k$fn %in% only, cases)
+  rows <- list()
+  for (k in cases) {
+    for (n in k$n) {
+      set.seed(20261112)
+      row <- data.frame(fn = k$fn, case = k$case, ref = k$ref, kind = kind(k$ref),
+                        n = n, of = k$of, crimlab = NA_real_, other = NA_real_,
+                        ratio = NA_real_, agree = "error", tol = k$tol,
+                        scale = if (k$sc) "largest" else "each", refver = "",
+                        note = "")
+      p <- pkg(k$ref)
+      if (p != "base R" && !have(p)) {
+        row$agree <- "not run"
+        row$note <- paste(p, "is not installed on this machine")
+        msg <- ""
       } else {
-        row$agree <- "no"
+        msg <- tryCatch({
+          e <- list2env(k$mk(n), parent = globalenv())
+          if (p != "base R") row$refver <- format(utils::packageVersion(p))
+          ra <- eval(k$a, e)
+          rb <- eval(k$b, e)
+          if (same(val(k$va, ra, e), val(k$vb, rb, e), k$tol, k$sc)) {
+            row$agree <- "yes"
+            tm <- bench::mark(exprs = list(k$a, k$b), env = e, check = FALSE,
+                              min_iterations = 3, min_time = 0.5,
+                              memory = FALSE, filter_gc = FALSE,
+                              time_unit = "s")
+            row$crimlab <- as.numeric(tm$median[1])
+            row$other <- as.numeric(tm$median[2])
+            row$ratio <- row$other / row$crimlab
+          } else {
+            row$agree <- "no"
+          }
+          ""
+        }, error = function(x) conditionMessage(x))
+        if (nzchar(msg)) row$note <- msg
       }
-      ""
-    }, error = function(x) conditionMessage(x))
-    rows[[length(rows) + 1L]] <- row
-    cat(sprintf("%-8s %-42s %8g %10.3g %10.3g %8.3g %s %s\n", k$fn, k$ref, n,
-                row$crimlab, row$other, row$ratio, row$agree, msg))
+      rows[[length(rows) + 1L]] <- row
+      cat(sprintf("%-8s %-36s %8g %10.3g %10.3g %8.3g %s %s\n", k$fn, k$ref, n,
+                  row$crimlab, row$other, row$ratio, row$agree, row$note))
+    }
   }
+  env[["load1"]] <- format(load1())
+  tab <- cbind(do.call(rbind, rows), t(env))
+  dir.create(out, showWarnings = FALSE, recursive = TRUE)
+  utils::write.csv(tab, file.path(out, "bench.csv"), row.names = FALSE)
+  writeLines(flags, file.path(out, "flags.txt"))
+  bad <- tab[tab$agree %in% c("no", "error"), c("fn", "ref", "n", "agree", "note")]
+  if (nrow(bad)) {
+    print(bad, row.names = FALSE)
+    quit(status = 1L)
+  }
+  quit(status = 0L)
 }
-tab <- cbind(do.call(rbind, rows), t(env))
-dir.create(out, showWarnings = FALSE, recursive = TRUE)
-utils::write.csv(tab, file.path(out, "bench.csv"), row.names = FALSE)
+
+## merge ------------------------------------------------------------------
+
+runs <- a0[-1]
+rs <- lapply(runs, function(d) utils::read.csv(file.path(d, "bench.csv"),
+                                                stringsAsFactors = FALSE))
+key <- function(t) paste(t$fn, t$case, t$ref, t$n, sep = "\r")
+k0 <- key(rs[[1]])
+for (t in rs[-1]) {
+  if (!identical(key(t), k0)) stop("the runs do not hold the same rows")
+}
+rat <- sapply(rs, function(t) t$ratio)
+if (is.null(dim(rat))) rat <- matrix(rat, ncol = length(rs))
+tab <- rs[[1]]
+for (i in seq_len(nrow(tab))) {
+  r <- rat[i, ]
+  if (all(is.na(r))) next
+  # the run holding the median ratio (the lower middle one for an even count)
+  o <- order(r)
+  j <- o[ceiling(sum(!is.na(r)) / 2)]
+  tab[i, ] <- rs[[j]][i, ]
+}
+tab$lo <- suppressWarnings(apply(rat, 1, min, na.rm = TRUE))
+tab$hi <- suppressWarnings(apply(rat, 1, max, na.rm = TRUE))
+tab$lo[!is.finite(tab$lo)] <- NA
+tab$hi[!is.finite(tab$hi)] <- NA
+tab$runs <- rowSums(!is.na(rat))
+dir.create("inst/bench", showWarnings = FALSE, recursive = TRUE)
+utils::write.csv(tab, "inst/bench/bench.csv", row.names = FALSE)
 
 g <- function(x) ifelse(is.na(x), "", formatC(x, digits = 3, format = "g"))
+st <- vapply(rs, function(t) {
+  sprintf("%s (load %s to %s)", t$start[1], t$load0[1], t$load1[1])
+}, "")
+flags <- readLines(file.path(runs[1], "flags.txt"))
 md <- c(
   "<!-- written by dev/bench.R from bench.csv; do not edit -->",
   "",
-  sprintf("R %s, %s, %s. Median seconds per call; ratio = other / crimlab (above 1: crimlab faster).",
-          env[["r"]], env[["cpu"]], env[["date"]]),
+  sprintf("Machine %s: %s, R %s, CPU frequency governor %s; crimlab built with R's default flags (%s).",
+          tab$machine[1], tab$cpu[1], tab$r[1], tab$gov[1], paste(flags, collapse = " ")),
   "",
-  "| function | counterpart | n | of | crimlab | other | ratio | agree |",
-  "|---|---|--:|---|--:|--:|--:|---|",
-  sprintf("| %s | %s%s | %s | %s | %s | %s | %s | %s |",
+  sprintf("%d runs, each started at a 1-minute load average of at most 1.0 and kept only if it ended at 1.5 or below: %s. Each row is from the run whose ratio is the median of the %d; lo and hi are the smallest and largest ratio over the runs.",
+          length(rs), paste(st, collapse = "; "), length(rs)),
+  "",
+  "Median seconds per call; ratio = other / crimlab (above 1: crimlab faster). Kind: third, another package; own, rmorie (the maintainer's own package); base, a base-R implementation of the formula where no package computes the quantity.",
+  "",
+  "| function | counterpart | kind | n | of | crimlab | other | ratio | lo | hi | agree |",
+  "|---|---|---|--:|---|--:|--:|--:|--:|--:|---|",
+  sprintf("| %s | %s%s | %s | %s | %s | %s | %s | %s | %s | %s | %s |",
           ifelse(nzchar(tab$case), paste0(tab$fn, " (", tab$case, ")"), tab$fn),
-          tab$ref,
-          ifelse(nzchar(tab$refver), paste0(" ", tab$refver), ""),
-          format(tab$n, scientific = FALSE, big.mark = ","), tab$of,
-          g(tab$crimlab), g(tab$other), g(tab$ratio), tab$agree)
+          tab$ref, ifelse(nzchar(tab$refver), paste0(" ", tab$refver), ""),
+          tab$kind, format(tab$n, scientific = FALSE, big.mark = ","), tab$of,
+          g(tab$crimlab), g(tab$other), g(tab$ratio), g(tab$lo), g(tab$hi),
+          ifelse(nzchar(tab$note), paste0(tab$agree, ": ", tab$note), tab$agree))
 )
-writeLines(md, file.path(out, "bench.md"))
+writeLines(md, "inst/bench/bench.md")
 
-# the README lists, from the table: no figures
-if (!length(only) && file.exists("README.md")) {
-  pk <- tab$ref != "base R"
-  fns <- unique(tab$fn)
-  # faster means by at least a tenth: a smaller margin is within what two
-  # runs of the same call differ by
-  slow <- unique(tab$fn[!is.na(tab$ratio) & tab$ratio < 1.1])
-  cp <- unique(tab$fn[pk])
+# the README lists, from the table: no figures. Faster means by at least a
+# tenth (ratio 1.1) in the median run; a smaller margin is within what two
+# runs of the same call differ by.
+if (file.exists("README.md")) {
   lst <- function(x) if (length(x)) paste0("`", x, "()`", collapse = ", ") else "none"
-  bo <- setdiff(fns, cp)
+  fns <- unique(tab$fn)
+  ok <- tab$agree == "yes"
+  slow <- function(kd) unique(tab$fn[ok & tab$kind == kd & tab$ratio < 1.1])
+  has <- function(kd) unique(tab$fn[ok & tab$kind == kd])
+  th <- has("third")
+  ow <- setdiff(has("own"), th)
+  bo <- setdiff(fns, c(th, ow))
   txt <- c(
     "<!-- bench start: written by dev/bench.R -->",
-    paste0("Faster, by at least a tenth, than every package that computes ",
-           "the same quantity, at every size timed: ", lst(setdiff(cp, slow)),
-           "."),
+    paste0("Faster, by at least a tenth, than every other package found that ",
+           "computes the same quantity, at every size timed: ",
+           lst(setdiff(th, slow("third"))), "."),
     "",
-    paste0("Not faster than such a package at some size timed: ",
-           lst(intersect(cp, slow)), "."),
+    paste0("Not faster than another package at some size timed: ",
+           lst(intersect(th, slow("third"))), "."),
     "",
-    paste0("No package found that computes the same quantity, so timed ",
-           "against a base-R implementation of the formula: ", lst(bo),
-           "; of these, not faster than base R at some size: ",
-           lst(intersect(bo, slow)), "."),
+    paste0("No other package found that computes the same quantity, so no ",
+           "claim of speed against the field: ", lst(c(ow, bo)), ". Of these, ",
+           "compared with rmorie, the maintainer's own package: faster at ",
+           "every size timed: ", lst(setdiff(ow, slow("own"))),
+           "; not faster at some size: ", lst(intersect(ow, slow("own"))),
+           ". Compared with a base-R implementation of the formula: faster ",
+           "at every size timed: ", lst(setdiff(bo, slow("base"))),
+           "; not faster at some size: ", lst(intersect(bo, slow("base"))), "."),
     "<!-- bench end -->"
   )
   rd <- readLines("README.md")
@@ -529,9 +720,4 @@ if (!length(only) && file.exists("README.md")) {
   if (length(i) == 1L && length(j) == 1L && j > i) {
     writeLines(c(rd[seq_len(i - 1L)], txt, rd[-seq_len(j)]), "README.md")
   }
-}
-bad <- tab[tab$agree != "yes", c("fn", "ref", "n", "agree")]
-if (nrow(bad)) {
-  print(bad, row.names = FALSE)
-  quit(status = 1L)
 }
