@@ -711,6 +711,25 @@ int clab_bdig(const double *x, int n, int nd, int dp, int sgn, int *dig,
 int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
               double *obs, double *work, double *out);
 
+/* Scott-Knott grouping of measurements (Scott and Knott 1974,
+ * doi:10.2307/2529204), with the measurement variance known as in the
+ * forensic glass version (Triggs, Curran, Buckleton and Walsh 1997,
+ * doi:10.1016/S0379-0738(96)02037-3). x: n finite values (n >= 1; NaN is
+ * refused, never dropped, so labels stay aligned with the input); s2 > 0:
+ * the variance of one measurement, on the scale of x; alpha in (0, 1).
+ * A segment of the sorted values is split at the cut with the largest
+ * between-groups sum of squares B0 when
+ * lambda = pi / (2 (pi - 2)) B0 / s2 is significant: the p-value
+ * (1 + #{lambda* >= lambda}) / (nsim + 1) from nsim >= 1 samples of the
+ * same size of independent N(0, s2) values (exact size under that null;
+ * stops early once p must exceed alpha); seed fixes the stream. Segments
+ * are examined with an explicit stack, no recursion. Out: grp, n group
+ * labels 1..ng in increasing order of the values; ng. Ties are ordered by
+ * input position. iwork: 3n ints; work: 2n doubles. Time O(n log n) for
+ * the sort plus O(nsim k log k) per segment of size k examined. */
+int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
+             unsigned int seed, int *grp, int *ng, int *iwork, double *work);
+
 #ifdef __cplusplus
 }
 #endif
