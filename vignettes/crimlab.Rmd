@@ -250,7 +250,7 @@ the conductance of the best cut lies between the two Cheeger bounds, and
 the lower one is proved in Lean (`proof("ntchg")`).
 
 ```{r}
-big <- !(e$from %in% "gus" | e$to %in% "gus")
+big <- !(e$from == "gus" | e$to == "gus")
 ntchg(e$from[big], e$to[big], w = e$w[big])$bound
 ```
 

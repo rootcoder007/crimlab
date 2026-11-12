@@ -171,7 +171,8 @@ test_that("hzdsel matches its arms by name", {
                           as.data.frame(as.list(sl))), r)
   expect_error(hzdsel(0.5, 0.5, 0.1, sh, c(x = 0.9, z = 0.7)),
                "missing: y; extra: z", fixed = TRUE)
-  expect_error(hzdsel(0.5, 0.5, 0.1, c(x = 0.5, x = 0.8), sl),
+  xx <- stats::setNames(c(0.5, 0.8), c("x", "x"))
+  expect_error(hzdsel(0.5, 0.5, 0.1, xx, sl),
                "`surh` names a group twice")
   # arms named control and treated are read by name in either order
   expect_identical(hzdsel(0.5, 0.5, 0.1, c(treated = 0.8, control = 0.5),
@@ -232,7 +233,7 @@ test_that("per-unit arguments are matched by unique names", {
                    outtst(unname(q), 0.3, unname(w[o])))
   expect_error(outtst(q, 0.3, c(a = 1, b = 1, z = 1)), "`w` must name the")
   # repeated names (labels, not identities) keep positions
-  r <- c(x = 0.1, x = 0.5, y = 0.9)
+  r <- stats::setNames(c(0.1, 0.5, 0.9), c("x", "x", "y"))
   expect_identical(outtst(r, 0.3, w[o]), outtst(unname(r), 0.3, unname(w[o])))
   x1 <- c(a = 1, b = 9, c = 2)
   x2 <- c(a = 2, b = 3, c = 1)

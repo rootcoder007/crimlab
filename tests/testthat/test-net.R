@@ -254,7 +254,8 @@ test_that("network functions stop on bad input, naming the argument", {
   errs("ntmod", list(
     list("one value per node", "a", "b", 1),
     list("no value for node b", "a", "b", c(a = 1)),
-    list("must not repeat a name", "a", "b", c(a = 1, b = 1, a = 2)),
+    list("must not repeat a name", "a", "b",
+         stats::setNames(c(1, 1, 2), c("a", "b", "a"))),
     list("`memb`", "a", "b", c(1, NA)),
     list("`res`", "a", "b", c(1, 1), res = -1)
   ))
