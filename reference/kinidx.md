@@ -19,7 +19,10 @@ kinidx(g1, g2, freq, rel = "parent")
 
 - freq:
 
-  The population frequencies of the alleles of `g1`, same shape.
+  The population frequencies of the alleles of `g1`, same shape. When
+  `g1`, `g2` and `freq` all have row names, their rows are matched to
+  `g1` by locus name (an error lists loci that differ); otherwise by
+  position, so only names protect against a mismatch.
 
 - rel:
 

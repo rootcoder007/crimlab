@@ -20,7 +20,8 @@ lrpost(lr, prior)
 - prior:
 
   The prior probability of the first hypothesis, strictly between 0 and
-  1: one value, or one per ratio.
+  1: one value, or one per ratio, matched to `lr` by name when both are
+  named with unique names.
 
 ## Value
 

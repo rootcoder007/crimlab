@@ -33,11 +33,14 @@ hzdsel(s, h, l, surh, surl)
 - surh:
 
   Period-one survival of the high-risk type in the control and treated
-  arms: two numbers above 0 and at most 1.
+  arms: two numbers above 0 and at most 1, the control arm first, or
+  named `control` and `treated` in either order (with `surl` named too).
+  A list of single numbers or a one-row data frame is accepted.
 
 - surl:
 
-  Period-one survival of the low-risk type, the same way.
+  Period-one survival of the low-risk type, the same way; named inputs
+  are matched to `surh` by name.
 
 ## Value
 

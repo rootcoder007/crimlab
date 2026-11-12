@@ -23,20 +23,26 @@ incap(lam, q, s, share = NULL)
 - lam:
 
   Offending rates while free (crimes a year): positive numbers, one per
-  group, optionally named.
+  group, as a numeric vector, a 1-d table, a list of single numbers or a
+  one-row data frame.
 
 - q:
 
   The chance a crime leads to a custodial sentence: numbers in the
-  interval from 0 (excluded) to 1, recycled to the length of `lam`.
+  interval from 0 (excluded) to 1, recycled to the length of `lam`; one
+  per group, in the forms of `lam` and matched to it by name when both
+  are named (unnamed, by position: only names protect against a
+  mismatch).
 
 - s:
 
-  Sentence lengths in years: non-negative numbers, recycled.
+  Sentence lengths in years: non-negative numbers, recycled; one per
+  group, in the forms of `lam`, matched by name.
 
 - share:
 
-  `NULL`, or one non-negative population share per group, summing to 1.
+  `NULL`, or one non-negative population share per group, summing to 1,
+  in the forms of `lam`, matched by name.
 
 ## Value
 

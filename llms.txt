@@ -87,6 +87,13 @@ library(crimlab)
 # veil of darkness: does visibility change who is stopped?
 vodtst(day = c(white = 600, black = 400), night = c(white = 700, black = 300))
 
+# the same counts from a data frame: groups are matched by name, never by
+# position, and a table with day and night columns can be given whole
+stops <- data.frame(race = c("white", "black", "white", "black"),
+                    light = c("day", "day", "night", "night"),
+                    n = c(600, 400, 700, 300))
+vodtst(xtabs(n ~ race + light, stops), ref = "white")
+
 # the risks, and the relative risk, behind an odds ratio
 orrisk(or = 3, rate = 0.4, share = 0.5)
 
@@ -119,7 +126,7 @@ clrsmp(clra = c(minor = 90, serious = 20), reca = c(minor = 100, serious = 50),
 y <- c(1, 0, 1, 1, 0, 0, 1, 0)
 z <- c("community", "community", "custody", "custody", "custody",
        "community", "custody", "community")
-sntbnd(y, z)
+sntbnd(y, z, treat = "custody")
 
 # a release rule scored from the outcomes of those the judge released
 sellab(y = c(0, 1, 0, NA, NA), rel = c(TRUE, TRUE, TRUE, FALSE, FALSE),

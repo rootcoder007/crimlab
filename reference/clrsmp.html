@@ -68,26 +68,31 @@ the split by type. See <code>proof("clrsmp")</code>.</p>
 
 
 <dl><dt id="arg-clra">clra<a class="anchor" aria-label="anchor" href="#arg-clra"></a></dt>
-<dd><p>Offences cleared in A, by type: non-negative numbers,
-optionally named.</p></dd>
+<dd><p>Offences cleared in A, by type: non-negative numbers, as a
+numeric vector, a 1-d table, a list of single numbers or a one-row data
+frame.</p></dd>
 
 
 <dt id="arg-reca">reca<a class="anchor" aria-label="anchor" href="#arg-reca"></a></dt>
-<dd><p>Offences recorded in A, by type: positive numbers, same length.</p></dd>
+<dd><p>Offences recorded in A, by type: positive numbers, in the
+forms of <code>clra</code>; named inputs are matched to <code>clra</code> by name, unnamed ones
+by position (only names protect against a mismatch).</p></dd>
 
 
 <dt id="arg-clrb">clrb<a class="anchor" aria-label="anchor" href="#arg-clrb"></a></dt>
-<dd><p>Offences cleared in B, by type: non-negative numbers, same
-length.</p></dd>
+<dd><p>Offences cleared in B, by type: non-negative numbers, in the
+forms of <code>clra</code>, matched by name.</p></dd>
 
 
 <dt id="arg-recb">recb<a class="anchor" aria-label="anchor" href="#arg-recb"></a></dt>
-<dd><p>Offences recorded in B, by type: positive numbers, same length.</p></dd>
+<dd><p>Offences recorded in B, by type: positive numbers, in the
+forms of <code>clra</code>, matched by name.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list. <code>parts</code>, a data frame with one row per type: <code>part</code>,
+    <p>A list. <code>parts</code>, a data frame with one row per type, in the order
+of <code>clra</code>: <code>part</code>,
 <code>ratea</code>, <code>rateb</code> (clearance rates), <code>sharea</code>, <code>shareb</code> (shares of the
 recorded workload), <code>rateeff</code> and <code>mixeff</code>. <code>total</code>, a named numeric
 vector: <code>ratea</code>, <code>rateb</code> (aggregate rates), <code>change</code>, <code>rateeff</code>,

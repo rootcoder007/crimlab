@@ -27,7 +27,9 @@ patidx(child, father, freq, mother = NULL)
 
 - mother:
 
-  `NULL`, or the mother's genotype in the same form.
+  `NULL`, or the mother's genotype in the same form. When all the tables
+  have row names, their rows are matched to `child` by locus name;
+  otherwise by position.
 
 ## Value
 

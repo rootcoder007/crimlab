@@ -25,7 +25,9 @@ sellab(y, rel, rule, w = NULL)
 
 - rel:
 
-  Released by the judge: `TRUE` or `FALSE` for each defendant.
+  Released by the judge: `TRUE` or `FALSE` for each defendant. When `y`,
+  `rel`, `rule` (and `w`) are all named with unique names, they are
+  matched by name; otherwise by position.
 
 - rule:
 

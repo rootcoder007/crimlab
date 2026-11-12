@@ -9,34 +9,42 @@ change.
 ## Usage
 
 ``` r
-vodtst(day, night, ref = 1, shift = NULL)
+vodtst(day, night = NULL, ref = 1, shift = NULL)
 ```
 
 ## Arguments
 
 - day:
 
-  Stops by group in daylight: non-negative numbers, optionally named.
+  Stops by group in daylight: non-negative numbers, as a numeric vector,
+  a 1-d table, a list of single numbers or a one-row data frame. With
+  `night` left out, one table of groups by stops: a matrix, 2-d table or
+  data frame whose two columns are named `day` and `night`, in either
+  order (columns are never taken by position).
 
 - night:
 
-  Stops by group in darkness: positive numbers, same length.
+  Stops by group in darkness: positive numbers, in the forms of `day`;
+  named inputs are matched to `day` by name, and an error lists any
+  group named in one and not the other. Unnamed inputs are matched by
+  position: only names protect against a mismatch.
 
 - ref:
 
-  The reference group, by name (matched exactly, case included) or
-  position.
+  The reference group, by name (matched exactly, case included; a factor
+  by its label) or by position in `day` as given.
 
 - shift:
 
   `NULL`, or one positive number per group: daylight exposure over
-  darkness exposure.
+  darkness exposure, in the forms of `day`, matched by name.
 
 ## Value
 
-A data frame with one row per group: `group`, `share_day`,
-`share_night`, `ratio`, `sign` (the sign of `share_day - share_night`)
-and, when `shift` is given, `adj`.
+A data frame with one row per group, in the order of `day`: `group`,
+`ref` (`TRUE` for the reference group), `share_day`, `share_night`,
+`ratio`, `sign` (the sign of `share_day - share_night`) and, when
+`shift` is given, `adj`.
 
 ## Details
 
@@ -57,7 +65,14 @@ Statistical Association*, 101(475), 878-887.
 ``` r
 vodtst(day = c(white = 600, black = 400),
        night = c(white = 700, black = 300))
-#>   group share_day share_night    ratio sign
-#> 1 white       0.6         0.7 1.000000   -1
-#> 2 black       0.4         0.3 1.555556    1
+#>   group   ref share_day share_night    ratio sign
+#> 1 white  TRUE       0.6         0.7 1.000000   -1
+#> 2 black FALSE       0.4         0.3 1.555556    1
+# one table of groups by day and night
+stops <- data.frame(day = c(600, 400), night = c(700, 300),
+                    row.names = c("white", "black"))
+vodtst(stops)
+#>   group   ref share_day share_night    ratio sign
+#> 1 white  TRUE       0.6         0.7 1.000000   -1
+#> 2 black FALSE       0.4         0.3 1.555556    1
 ```

@@ -24,14 +24,16 @@ sntbnd(y, z, treat = NULL, w = NULL)
 
   Sentences: a vector with exactly two distinct values, same length:
   character, numbers, logical or a factor (its labels; level order and
-  whether it is ordered are ignored), not dates.
+  whether it is ordered are ignored), not dates nor a labelled vector of
+  codes. When `y`, `z` (and `w`) are all named with unique names, they
+  are matched by name.
 
 - treat:
 
-  The value of `z` taken as the treatment, matched exactly; `NULL` for
-  the second in sorted order. The values are sorted as text by Unicode
-  code point (`"B"` before `"a"`, `"10"` before `"2"`), the same on
-  every machine whatever its locale.
+  The value of `z` taken as the treatment, matched exactly. `NULL` is
+  allowed only where the treatment is explicit in `z`: `TRUE` for a
+  logical `z`, `1` for a `z` of 0 and 1; otherwise it must be given,
+  since a treatment chosen by sorting the values would be arbitrary.
 
 - w:
 
@@ -58,7 +60,7 @@ treatment effects: a case study of sentencing and recidivism.
 set.seed(1)
 z <- sample(c("community", "custody"), 500, TRUE, c(0.6, 0.4))
 y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-sntbnd(y, z)
+sntbnd(y, z, treat = "custody")
 #>        term share  lower upper  observed
 #> 1 community 0.624  0.208 0.584 0.3333333
 #> 2   custody 0.376  0.192 0.816 0.5106383

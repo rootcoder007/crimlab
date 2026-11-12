@@ -19,16 +19,19 @@ gtmp(p, q = NULL, hom = FALSE, theta = 0)
 - p:
 
   Frequency of the first allele at each locus: numbers above 0 and at
-  most 1, optionally named by locus.
+  most 1, optionally named by locus, as a numeric vector, a 1-d table, a
+  list of single numbers or a one-row data frame.
 
 - q:
 
   Frequency of the second allele at each locus; not read where `hom` is
-  `TRUE`.
+  `TRUE`. Named inputs are matched to `p` by locus name, unnamed ones by
+  position (only names protect against a mismatch).
 
 - hom:
 
-  `TRUE` where the genotype is homozygous: one value, or one per locus.
+  `TRUE` where the genotype is homozygous: one value, or one per locus,
+  matched to `p` by name when both are named.
 
 - theta:
 

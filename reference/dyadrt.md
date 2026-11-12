@@ -16,13 +16,16 @@ dyadrt(count, pop)
 
 - count:
 
-  A square matrix of offence counts, offending group in rows and victim
-  group in columns: non-negative numbers.
+  A square matrix (or 2-d table) of offence counts, offending group in
+  rows and victim group in columns: non-negative numbers. When it names
+  both its rows and its columns, the columns are matched to the rows by
+  name, and both to `pop` when `pop` is named.
 
 - pop:
 
-  Group sizes in the order of the rows: positive numbers, optionally
-  named.
+  Group sizes: positive numbers, as a numeric vector, a 1-d table, a
+  list of single numbers or a one-row data frame. Unnamed, they are
+  taken in the order of the rows: only names protect against a mismatch.
 
 ## Value
 

@@ -71,14 +71,16 @@ even sign it. See <code>proof("sntbnd")</code>.</p>
 <dt id="arg-z">z<a class="anchor" aria-label="anchor" href="#arg-z"></a></dt>
 <dd><p>Sentences: a vector with exactly two distinct values, same
 length: character, numbers, logical or a factor (its labels; level order
-and whether it is ordered are ignored), not dates.</p></dd>
+and whether it is ordered are ignored), not dates nor a labelled vector
+of codes. When <code>y</code>, <code>z</code> (and <code>w</code>) are all named with unique names, they
+are matched by name.</p></dd>
 
 
 <dt id="arg-treat">treat<a class="anchor" aria-label="anchor" href="#arg-treat"></a></dt>
-<dd><p>The value of <code>z</code> taken as the treatment, matched exactly;
-<code>NULL</code> for the second in sorted order. The values are sorted as text
-by Unicode code point (<code>"B"</code> before <code>"a"</code>, <code>"10"</code> before <code>"2"</code>), the
-same on every machine whatever its locale.</p></dd>
+<dd><p>The value of <code>z</code> taken as the treatment, matched exactly.
+<code>NULL</code> is allowed only where the treatment is explicit in <code>z</code>: <code>TRUE</code>
+for a logical <code>z</code>, <code>1</code> for a <code>z</code> of 0 and 1; otherwise it must be given,
+since a treatment chosen by sorting the values would be arbitrary.</p></dd>
 
 
 <dt id="arg-w">w<a class="anchor" aria-label="anchor" href="#arg-w"></a></dt>
@@ -107,7 +109,7 @@ about treatment effects: a case study of sentencing and recidivism.
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">z</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"community"</span>, <span class="st">"custody"</span><span class="op">)</span>, <span class="fl">500</span>, <span class="cn">TRUE</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.6</span>, <span class="fl">0.4</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">z</span> <span class="op">==</span> <span class="st">"custody"</span>, <span class="fl">0.55</span>, <span class="fl">0.35</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">sntbnd</span><span class="op">(</span><span class="va">y</span>, <span class="va">z</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">sntbnd</span><span class="op">(</span><span class="va">y</span>, <span class="va">z</span>, treat <span class="op">=</span> <span class="st">"custody"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>        term share  lower upper  observed</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1 community 0.624  0.208 0.584 0.3333333</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2   custody 0.376  0.192 0.816 0.5106383</span>

@@ -25,7 +25,8 @@ rtmhs(x1, x2, cut, w = NULL)
 
 - x2:
 
-  Counts by place in the second period: same length.
+  Counts by place in the second period: same length; when `x1`, `x2`
+  (and `w`) are all named with unique names, they are matched by name.
 
 - cut:
 

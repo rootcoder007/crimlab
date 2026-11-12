@@ -84,11 +84,14 @@ risk difference at a fixed follow-up is. See <code>proof("hzdsel")</code>.</p>
 
 <dt id="arg-surh">surh<a class="anchor" aria-label="anchor" href="#arg-surh"></a></dt>
 <dd><p>Period-one survival of the high-risk type in the control and
-treated arms: two numbers above 0 and at most 1.</p></dd>
+treated arms: two numbers above 0 and at most 1, the control arm first,
+or named <code>control</code> and <code>treated</code> in either order (with <code>surl</code> named
+too). A list of single numbers or a one-row data frame is accepted.</p></dd>
 
 
 <dt id="arg-surl">surl<a class="anchor" aria-label="anchor" href="#arg-surl"></a></dt>
-<dd><p>Period-one survival of the low-risk type, the same way.</p></dd>
+<dd><p>Period-one survival of the low-risk type, the same way;
+named inputs are matched to <code>surh</code> by name.</p></dd>
 
 </dl></div>
     <div class="section level2">

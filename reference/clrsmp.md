@@ -19,31 +19,35 @@ clrsmp(clra, reca, clrb, recb)
 
 - clra:
 
-  Offences cleared in A, by type: non-negative numbers, optionally
-  named.
+  Offences cleared in A, by type: non-negative numbers, as a numeric
+  vector, a 1-d table, a list of single numbers or a one-row data frame.
 
 - reca:
 
-  Offences recorded in A, by type: positive numbers, same length.
+  Offences recorded in A, by type: positive numbers, in the forms of
+  `clra`; named inputs are matched to `clra` by name, unnamed ones by
+  position (only names protect against a mismatch).
 
 - clrb:
 
-  Offences cleared in B, by type: non-negative numbers, same length.
+  Offences cleared in B, by type: non-negative numbers, in the forms of
+  `clra`, matched by name.
 
 - recb:
 
-  Offences recorded in B, by type: positive numbers, same length.
+  Offences recorded in B, by type: positive numbers, in the forms of
+  `clra`, matched by name.
 
 ## Value
 
-A list. `parts`, a data frame with one row per type: `part`, `ratea`,
-`rateb` (clearance rates), `sharea`, `shareb` (shares of the recorded
-workload), `rateeff` and `mixeff`. `total`, a named numeric vector:
-`ratea`, `rateb` (aggregate rates), `change`, `rateeff`, `mixeff` (with
-`change = rateeff + mixeff`), `up` and `down` (types whose rate rose or
-fell) and `simpson`: 2 when every type moved one way and the aggregate
-the other, 1 when the aggregate change and the rate effect differ in
-sign, 0 otherwise.
+A list. `parts`, a data frame with one row per type, in the order of
+`clra`: `part`, `ratea`, `rateb` (clearance rates), `sharea`, `shareb`
+(shares of the recorded workload), `rateeff` and `mixeff`. `total`, a
+named numeric vector: `ratea`, `rateb` (aggregate rates), `change`,
+`rateeff`, `mixeff` (with `change = rateeff + mixeff`), `up` and `down`
+(types whose rate rose or fell) and `simpson`: 2 when every type moved
+one way and the aggregate the other, 1 when the aggregate change and the
+rate effect differ in sign, 0 otherwise.
 
 ## Details
 

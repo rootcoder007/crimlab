@@ -59,13 +59,17 @@ choose victims at random; the rate per pair does not. See
 
 
 <dl><dt id="arg-count">count<a class="anchor" aria-label="anchor" href="#arg-count"></a></dt>
-<dd><p>A square matrix of offence counts, offending group in rows
-and victim group in columns: non-negative numbers.</p></dd>
+<dd><p>A square matrix (or 2-d table) of offence counts, offending
+group in rows and victim group in columns: non-negative numbers. When
+it names both its rows and its columns, the columns are matched to the
+rows by name, and both to <code>pop</code> when <code>pop</code> is named.</p></dd>
 
 
 <dt id="arg-pop">pop<a class="anchor" aria-label="anchor" href="#arg-pop"></a></dt>
-<dd><p>Group sizes in the order of the rows: positive numbers,
-optionally named.</p></dd>
+<dd><p>Group sizes: positive numbers, as a numeric vector, a 1-d
+table, a list of single numbers or a one-row data frame. Unnamed, they
+are taken in the order of the rows: only names protect against a
+mismatch.</p></dd>
 
 </dl></div>
     <div class="section level2">

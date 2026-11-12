@@ -25,7 +25,8 @@ outtst(q, t, w = NULL)
 - w:
 
   `NULL` for equal weights, or one non-negative weight per element of
-  `q` with a positive total.
+  `q` with a positive total; when both are named with unique names, `w`
+  is matched to `q` by name.
 
 ## Value
 

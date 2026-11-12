@@ -38,9 +38,9 @@ day <- c(white = 600, black = 400)
 night <- c(white = 700, black = 300)
 v <- vodtst(day, night)
 v
-#>   group share_day share_night    ratio sign
-#> 1 white       0.6         0.7 1.000000   -1
-#> 2 black       0.4         0.3 1.555556    1
+#>   group   ref share_day share_night    ratio sign
+#> 1 white  TRUE       0.6         0.7 1.000000   -1
+#> 2 black FALSE       0.4         0.3 1.555556    1
 pc <- function(x) paste(round(100 * x), "per cent")
 ```
 
@@ -51,6 +51,23 @@ group (the first, here): about 1.56 for black drivers. The idea, due to
 Grogger and Ridgeway (2006), is that an officer can see a driver’s race
 more easily in daylight, so if race affects who is stopped, the group it
 works against makes up a larger share of daylight stops.
+
+Counts usually come from records, not typed-in vectors. A table of
+groups by `day` and `night` can be given whole, and every input is
+matched by group name, never by position, so the order in which the
+groups arrive does not matter; the `ref` column marks the reference
+group:
+
+``` r
+
+stops <- data.frame(race = c("black", "white", "white", "black"),
+                    light = c("day", "day", "night", "night"),
+                    n = c(400, 600, 700, 300))
+vodtst(xtabs(n ~ race + light, stops), ref = "white")
+#>   group   ref share_day share_night    ratio sign
+#> 1 black FALSE       0.4         0.3 1.555556    1
+#> 2 white  TRUE       0.6         0.7 1.000000   -1
+```
 
 What this does not license: the ratio isolates the effect of visibility
 only if the same people are on the road, in the same proportions, in
@@ -223,7 +240,7 @@ set.seed(1)
 z <- sample(c("community", "custody"), 500, replace = TRUE,
             prob = c(0.6, 0.4))
 y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-sb <- sntbnd(y, z)
+sb <- sntbnd(y, z, treat = "custody")
 sb
 #>        term share  lower upper  observed
 #> 1 community 0.624  0.208 0.584 0.3333333

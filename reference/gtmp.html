@@ -66,17 +66,19 @@ heterozygote match rarer when both alleles are common. See
 
 <dl><dt id="arg-p">p<a class="anchor" aria-label="anchor" href="#arg-p"></a></dt>
 <dd><p>Frequency of the first allele at each locus: numbers above 0 and
-at most 1, optionally named by locus.</p></dd>
+at most 1, optionally named by locus, as a numeric vector, a 1-d table, a
+list of single numbers or a one-row data frame.</p></dd>
 
 
 <dt id="arg-q">q<a class="anchor" aria-label="anchor" href="#arg-q"></a></dt>
 <dd><p>Frequency of the second allele at each locus; not read where
-<code>hom</code> is <code>TRUE</code>.</p></dd>
+<code>hom</code> is <code>TRUE</code>. Named inputs are matched to <code>p</code> by locus name, unnamed
+ones by position (only names protect against a mismatch).</p></dd>
 
 
 <dt id="arg-hom">hom<a class="anchor" aria-label="anchor" href="#arg-hom"></a></dt>
 <dd><p><code>TRUE</code> where the genotype is homozygous: one value, or one per
-locus.</p></dd>
+locus, matched to <code>p</code> by name when both are named.</p></dd>
 
 
 <dt id="arg-theta">theta<a class="anchor" aria-label="anchor" href="#arg-theta"></a></dt>
