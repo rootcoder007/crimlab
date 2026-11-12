@@ -650,6 +650,32 @@ int clab_tlvlr(const double *u, const double *c, const double *mu, int p,
                const double *xa, double na, const double *xb, double nb,
                double *out, double *work);
 
+/* Aoristic weights (Ratcliffe 2002, doi:10.1023/A:1013240828824): an event
+ * known only to lie in the real-time interval [from, to) is spread with
+ * uniform density over that interval, and each instant is counted in the
+ * bin of its local wall-clock time. Times are seconds (UTC, e.g. POSIX
+ * time). The local clock is UTC + off0 before tt[0] and UTC + toff[k] from
+ * tt[k] (nt strictly increasing transitions; nt = 0 for a fixed offset), so
+ * a daylight-saving change moves the remaining time to the right wall-clock
+ * hours: hours skipped in spring get nothing and the repeated hour in
+ * autumn gets both. Bins: nb periodic bins of bw > 0 seconds, bin 0
+ * starting at wall-clock time origin (e.g. 259200, Sunday 1970-01-04
+ * 00:00, with bw = 3600 and nb = 168 for the hour of the week).
+ * Rules: from NaN: the event is left out; to NaN, to < from, or a length
+ * of 0 or below lo: the whole weight in the start's bin; a length of at
+ * least hi: 1 / nb in every bin (lo = 120, hi = 604800 reproduce the usual
+ * convention for whole-minute data; lo = 0, hi = Inf spread every interval
+ * exactly). Infinite times are refused.
+ * Out: w (n x nb column-major, may be NULL): each event's weights, summing
+ * to 1; tot (nb, may be NULL): their sums over events; cnt (5): events left
+ * out, without end, reversed, short, long. n = 0 is allowed.
+ * Time O(n log(nt + 1) + sum of bins touched) <= O(n (log(nt + 1) + nt +
+ * nb)); no workspace. */
+int clab_aor(const double *from, const double *to, int n, const double *tt,
+             const double *toff, int nt, double off0, double origin,
+             double bw, int nb, double lo, double hi, double *w, double *tot,
+             int *cnt);
+
 #ifdef __cplusplus
 }
 #endif
