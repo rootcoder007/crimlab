@@ -37,23 +37,7 @@
 #'        clrb = c(19, 60), recb = c(20, 140))
 #' @export
 clrsmp <- function(clra, reca, clrb, recb) {
-  nms <- .grp(clra)
-  clra <- .num(clra, "clra", lo = 0)
-  n <- length(clra)
-  reca <- .num(reca, "reca", len = n, lo = 0, open = TRUE)
-  clrb <- .num(clrb, "clrb", len = n, lo = 0)
-  recb <- .num(recb, "recb", len = n, lo = 0, open = TRUE)
-  r <- .Call(C_clab_clrsmp, clra, reca, clrb, recb)
-  tot <- r[["tot"]]
-  cnt <- r[["cnt"]]
-  list(
-    parts = data.frame(part = nms, ratea = r[["ra"]], rateb = r[["rb"]],
-                       sharea = r[["wa"]], shareb = r[["wb"]],
-                       rateeff = r[["reff"]], mixeff = r[["meff"]]),
-    total = c(ratea = tot[1L], rateb = tot[2L], change = tot[3L],
-              rateeff = tot[4L], mixeff = tot[5L], up = cnt[1L],
-              down = cnt[2L], simpson = cnt[3L])
-  )
+  .Call(C_clab_r_clrsmp, clra, reca, clrb, recb)
 }
 
 #' Rates and disparities when exposure is measured by a proxy
@@ -85,16 +69,7 @@ clrsmp <- function(clra, reca, clrb, recb) {
 #' expbnd(y = c(white = 100, black = 300), m = c(1000, 1000), gamma = 1.5)
 #' @export
 expbnd <- function(y, m, gamma, ref = 1) {
-  nms <- .grp(y)
-  y <- .num(y, "y", lo = 0, open = TRUE)
-  n <- length(y)
-  m <- .num(m, "m", len = n, lo = 0, open = TRUE)
-  gamma <- .num(gamma, "gamma", len = 1L, lo = 1)
-  i <- .ref(ref, nms, n)
-  r <- .Call(C_clab_expbnd, y, m, i - 1L, gamma)
-  data.frame(group = nms, rate = r[["rate"]], lo = r[["lo"]], hi = r[["hi"]],
-             ratio = r[["ratio"]], rlo = r[["rlo"]], rhi = r[["rhi"]],
-             sign = r[["sign"]])
+  .Call(C_clab_r_expbnd, y, m, gamma, ref)
 }
 
 #' Risk difference when group membership is misrecorded
@@ -124,17 +99,7 @@ expbnd <- function(y, m, gamma, ref = 1) {
 #' misrd(r1 = 0.3, r0 = 0.1, prev = 0.4, se = 0.8, sp = 0.9)
 #' @export
 misrd <- function(r1, r0, prev, se, sp) {
-  r1 <- .p01(r1, "r1")
-  r0 <- .p01(r0, "r0")
-  prev <- .one(prev, "prev", 0, 1)
-  se <- .p01(se, "se")
-  sp <- .p01(sp, "sp")
-  d1 <- prev * se + (1 - prev) * (1 - sp)
-  if (d1 <= 0 || d1 >= 1) {
-    stop("`se` and `sp` leave a recorded group empty.", call. = FALSE)
-  }
-  r <- .Call(C_clab_misrd, r1, r0, prev, se, sp)
-  c(true = r[1L], measured = r[2L], factor = r[3L], d1 = r[4L], d0 = r[5L])
+  .Call(C_clab_r_misrd, r1, r0, prev, se, sp)
 }
 
 #' Regression to the mean at selected hot spots
@@ -172,17 +137,7 @@ misrd <- function(r1, r0, prev, se, sp) {
 #' rtmhs(x1, x2, cut = quantile(x1, 0.9))
 #' @export
 rtmhs <- function(x1, x2, cut, w = NULL) {
-  x1 <- .num(x1, "x1")
-  n <- length(x1)
-  x2 <- .num(x2, "x2", len = n)
-  cut <- .num(cut, "cut", len = 1L)
-  w <- if (is.null(w)) rep(1, n) else .num(w, "w", len = n, lo = 0)
-  if (sum(w[x1 > cut]) <= 0) {
-    stop("no place with weight exceeds `cut`.", call. = FALSE)
-  }
-  r <- .Call(C_clab_rtmhs, x1, x2, w, cut)
-  c(nsel = r[1L], change = r[2L], mirror = r[3L], sym = r[4L],
-    excess = r[5L], low = r[6L], lowsym = r[7L])
+  .Call(C_clab_r_rtmhs, x1, x2, cut, w)
 }
 
 # One number in the closed unit interval.

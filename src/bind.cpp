@@ -875,3 +875,102 @@ SEXP C_clab_r_patidx(SEXP child, SEXP father, SEXP freq, SEXP mother) {
 }
 
 }  // extern "C"
+
+// Policing.
+
+extern "C" {
+
+SEXP C_clab_r_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
+  SEXP nms = PROTECT(clab::grp(clra));
+  SEXP a = PROTECT(num(clra, "clra", -1, 0.0));
+  const int n = ilen(XLENGTH(a), "clra");
+  SEXP ra = PROTECT(num(reca, "reca", n, 0.0, true));
+  SEXP b = PROTECT(num(clrb, "clrb", n, 0.0));
+  SEXP rb = PROTECT(num(recb, "recb", n, 0.0, true));
+  SEXP parts = PROTECT(Rf_allocVector(VECSXP, 7));
+  SET_VECTOR_ELT(parts, 0, nms);
+  for (int k = 1; k < 7; ++k) SET_VECTOR_ELT(parts, k, real(n));
+  double tot[8];
+  int cnt[3];
+  kchk(clab_clrsmp(REAL_RO(a), REAL_RO(ra), REAL_RO(b), REAL_RO(rb), n,
+                   REAL(VECTOR_ELT(parts, 1)), REAL(VECTOR_ELT(parts, 2)),
+                   REAL(VECTOR_ELT(parts, 3)), REAL(VECTOR_ELT(parts, 4)),
+                   REAL(VECTOR_ELT(parts, 5)), REAL(VECTOR_ELT(parts, 6)), tot,
+                   cnt),
+       nullptr);
+  static const char *const pnm[] = {"part",   "ratea",   "rateb", "sharea",
+                                    "shareb", "rateeff", "mixeff"};
+  clab::frame(parts, pnm);
+  // c(..., up = cnt[1L], ...) makes the counts doubles; they are never NA
+  for (int k = 0; k < 3; ++k) tot[5 + k] = cnt[k];
+  static const char *const tnm[] = {"ratea",   "rateb", "change", "rateeff",
+                                    "mixeff", "up",    "down",   "simpson"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(out, 0, parts);
+  SET_VECTOR_ELT(out, 1, clab::nvec(8, tnm, tot));
+  static const char *const nm[] = {"parts", "total"};
+  UNPROTECT(7);
+  return clab::nlist(out, nm);
+}
+
+SEXP C_clab_r_expbnd(SEXP y, SEXP m, SEXP gamma, SEXP ref) {
+  SEXP nms = PROTECT(clab::grp(y));
+  SEXP yv = PROTECT(num(y, "y", -1, 0.0, true));
+  const int n = ilen(XLENGTH(yv), "y");
+  SEXP mv = PROTECT(num(m, "m", n, 0.0, true));
+  SEXP g = PROTECT(num(gamma, "gamma", 1, 1.0));
+  const int i = clab::ref(ref, nms, n);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 8));
+  SET_VECTOR_ELT(out, 0, nms);
+  for (int k = 1; k < 7; ++k) SET_VECTOR_ELT(out, k, real(n));
+  SET_VECTOR_ELT(out, 7, Rf_allocVector(INTSXP, n));
+  kchk(clab_expbnd(REAL_RO(yv), REAL_RO(mv), n, i - 1, REAL_RO(g)[0],
+                   REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
+                   REAL(VECTOR_ELT(out, 3)), REAL(VECTOR_ELT(out, 4)),
+                   REAL(VECTOR_ELT(out, 5)), REAL(VECTOR_ELT(out, 6)),
+                   INTEGER(VECTOR_ELT(out, 7))),
+       nullptr);
+  static const char *const nm[] = {"group", "rate", "lo",  "hi",
+                                   "ratio", "rlo",  "rhi", "sign"};
+  clab::frame(out, nm);
+  UNPROTECT(5);
+  return out;
+}
+
+SEXP C_clab_r_misrd(SEXP r1, SEXP r0, SEXP prev, SEXP se, SEXP sp) {
+  const double a = clab::p01(r1, "r1");
+  const double b = clab::p01(r0, "r0");
+  const double p = clab::one(prev, "prev", 0, 1);
+  const double s = clab::p01(se, "se");
+  const double c = clab::p01(sp, "sp");
+  // d1 <- prev * se + (1 - prev) * (1 - sp)
+  const double d1 = clab::rd(p * s) + clab::rd((1 - p) * (1 - c));
+  if (d1 <= 0 || d1 >= 1) {
+    fail("`se` and `sp` leave a recorded group empty.");
+  }
+  double r[5];
+  kchk(clab_misrd(a, b, p, s, c, r), nullptr);
+  static const char *const nm[] = {"true", "measured", "factor", "d1", "d0"};
+  return clab::nvec(5, nm, r);
+}
+
+SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
+  SEXP a = PROTECT(num(x1, "x1"));
+  const int n = ilen(XLENGTH(a), "x1");
+  SEXP b = PROTECT(num(x2, "x2", n));
+  SEXP c = PROTECT(num(cut, "cut", 1));
+  SEXP wv = PROTECT(Rf_isNull(w) ? ones(n) : num(w, "w", n, 0.0));
+  // sum(w[x1 > cut]) <= 0
+  const double cv = REAL_RO(c)[0], *ap = REAL_RO(a), *wp = REAL_RO(wv);
+  bool any = false;
+  for (int i = 0; i < n && !any; ++i) any = ap[i] > cv && wp[i] > 0;
+  if (!any) fail("no place with weight exceeds `cut`.");
+  double r[7];
+  kchk(clab_rtmhs(ap, REAL_RO(b), wp, n, cv, r), nullptr);
+  static const char *const nm[] = {"nsel",   "change", "mirror", "sym",
+                                   "excess", "low",    "lowsym"};
+  UNPROTECT(4);
+  return clab::nvec(7, nm, r);
+}
+
+}  // extern "C"

@@ -282,6 +282,10 @@ SEXP C_clab_r_tipplt(SEXP, SEXP);
 SEXP C_clab_r_eceplt(SEXP, SEXP, SEXP);
 SEXP C_clab_r_kinidx(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_patidx(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_clrsmp(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_expbnd(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_misrd(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rtmhs(SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", (DL_FUNC)&C_clab_vod, 4},
@@ -322,6 +326,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_eceplt", (DL_FUNC)&C_clab_r_eceplt, 3},
     {"C_clab_r_kinidx", (DL_FUNC)&C_clab_r_kinidx, 4},
     {"C_clab_r_patidx", (DL_FUNC)&C_clab_r_patidx, 4},
+    {"C_clab_r_clrsmp", (DL_FUNC)&C_clab_r_clrsmp, 4},
+    {"C_clab_r_expbnd", (DL_FUNC)&C_clab_r_expbnd, 4},
+    {"C_clab_r_misrd", (DL_FUNC)&C_clab_r_misrd, 5},
+    {"C_clab_r_rtmhs", (DL_FUNC)&C_clab_r_rtmhs, 4},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {
