@@ -11,12 +11,14 @@ test_that("evidence weights are summed as logarithms and never underflow", {
                                                        seq_along(p)),
               cbind(p, p), rel = c(0.9999, 0.0001, 0))
   expect_true(all(is.finite(r[["locus"]][["idx"]])))
-  expect_equal(r[["log10idx"]], 500 * log10(0.9999 + 0.0001 / 1e-3))
-  expect_equal(gtmp(rep(1e-2, 500), hom = TRUE)[["log10mp"]], -2000)
+  expect_equal(r[["log10idx"]], 500 * log10(0.9999 + 0.0001 / 1e-3),
+               tolerance = 1e-10)
+  expect_equal(gtmp(rep(1e-2, 500), hom = TRUE)[["log10mp"]], -2000,
+               tolerance = 1e-10)
   # the posterior of a ratio of 1e300 at a prior of 1e-300 is one half
   expect_equal(lrpost(1e300, 1e-300), 0.5)
   expect_equal(lrpost(1e-300, 1 - 1e-16), 1 / (1 + 1e-16 / (1 - 1e-16) *
-                                                  1e300))
+                                                  1e300), tolerance = 1e-10)
   # the cost of extreme ratios is finite: log2(1e300) bits, no Inf, no NaN
   expect_equal(cllr(1e-300, 1e-300), 0.5 * log2(1 + 1e300), tolerance = 1e-14)
   expect_equal(cllr(1, 1e300), 0.5 * (1 + log2(1 + 1e300)), tolerance = 1e-14)
@@ -38,8 +40,8 @@ test_that("single-source match statistics are the closed forms", {
   # forensim.md lists these as the checks it could not run there
   p <- 0.07
   q <- 0.11
-  expect_equal(gtmp(p, q)[["log10lr"]], -log10(2 * p * q))
-  expect_equal(gtmp(p, hom = TRUE)[["log10lr"]], -log10(p^2))
+  expect_equal(gtmp(p, q)[["log10lr"]], -log10(2 * p * q), tolerance = 1e-10)
+  expect_equal(gtmp(p, hom = TRUE)[["log10lr"]], -log10(p^2), tolerance = 1e-10)
 })
 
 test_that("a group never seen in daylight gives a ratio of 0, not a fit", {
@@ -47,8 +49,9 @@ test_that("a group never seen in daylight gives a ratio of 0, not a fit", {
   # The veil-of-darkness ratio here is a closed form in the counts: a zero
   # gives exactly 0 and a lopsided table a finite ratio, with no warning.
   expect_no_warning(r <- vodtst(c(a = 50, b = 0), c(a = 40, b = 3)))
-  expect_equal(r[["ratio"]], c(1, 0))
-  expect_equal(vodtst(c(1, 1e6), c(1e6, 1))[["ratio"]], c(1, 1e12))
+  expect_equal(r[["ratio"]], c(1, 0), tolerance = 1e-10)
+  expect_equal(vodtst(c(1, 1e6), c(1e6, 1))[["ratio"]], c(1, 1e12),
+               tolerance = 1e-10)
 })
 
 # Defects in csls itself, found while writing the tests above. They fail
@@ -69,7 +72,10 @@ test_that("KNOWN DEFECT: orrisk leaves (0, 1) for a tiny odds ratio", {
     r <- orrisk(or, 0.99, 0.5)
     a <- r[["exposed"]]
     b <- r[["unexposed"]]
-    expect_true(a > 0 && a < 1 && b > 0 && b < 1)
+    expect_gt(a, 0)
+    expect_lt(a, 1)
+    expect_gt(b, 0)
+    expect_lt(b, 1)
     expect_equal(0.5 * a + 0.5 * b, 0.99, tolerance = 1e-12)
   }
 })

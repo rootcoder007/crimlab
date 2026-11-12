@@ -1,18 +1,18 @@
 test_that("vodtst matches the odds ratio by hand", {
   r <- vodtst(c(w = 60, b = 40), c(w = 50, b = 50))
-  expect_equal(r[["ratio"]], c(1, (40 / 60) / (50 / 50)))
+  expect_equal(r[["ratio"]], c(1, (40 / 60) / (50 / 50)), tolerance = 1e-10)
   expect_equal(r[["share_day"]], c(0.6, 0.4))
-  expect_equal(r[["sign"]], c(1L, -1L))
+  expect_identical(r[["sign"]], c(1L, -1L))
   expect_false("adj" %in% names(r))
   # an exposure shift equal to the ratio explains all of it
   a <- vodtst(c(w = 60, b = 40), c(w = 50, b = 50), shift = c(1, 2 / 3))
-  expect_equal(a[["adj"]], c(1, 1))
+  expect_equal(a[["adj"]], c(1, 1), tolerance = 1e-10)
   # the reference by name moves the baseline
   expect_equal(
     vodtst(c(w = 60, b = 40), c(w = 50, b = 50), ref = "b")[["ratio"]],
     c(1.5, 1)
   )
-  expect_equal(vodtst(c(5, 5), c(7, 7))[["sign"]], c(0L, 0L))
+  expect_identical(vodtst(c(5, 5), c(7, 7))[["sign"]], c(0L, 0L))
 })
 
 test_that("orrisk returns the pair with that odds ratio and that rate", {
@@ -22,11 +22,14 @@ test_that("orrisk returns the pair with that odds ratio and that rate", {
         r <- orrisk(or, q, s)
         a <- r[["exposed"]]
         b <- r[["unexposed"]]
-        expect_true(a > 0 && a < 1 && b > 0 && b < 1)
+        expect_gt(a, 0)
+        expect_lt(a, 1)
+        expect_gt(b, 0)
+        expect_lt(b, 1)
         expect_equal(a * (1 - b) / (b * (1 - a)), or, tolerance = 1e-9)
         expect_equal(s * a + (1 - s) * b, q, tolerance = 1e-12)
         # Csls.RelRisk.or_overstates: the relative risk sits between 1 and OR
-        expect_true(abs(log(r[["rr"]])) <= abs(log(or)) + 1e-12)
+        expect_lte(abs(log(r[["rr"]])), abs(log(or)) + 1e-12)
       }
     }
   }
@@ -44,21 +47,21 @@ test_that("outtst shows infra-marginality", {
 
 test_that("dspbm is a product", {
   r <- dspbm(c(a = 9000, b = 1000), c(a = 900, b = 300), c(a = 9, b = 6))
-  expect_equal(r[["cd"]], c(1, 3))
-  expect_equal(r[["fd"]], c(1, 2))
-  expect_equal(r[["rd"]], r[["cd"]] * r[["fd"]])
+  expect_equal(r[["cd"]], c(1, 3), tolerance = 1e-10)
+  expect_equal(r[["fd"]], c(1, 2), tolerance = 1e-10)
+  expect_equal(r[["rd"]], r[["cd"]] * r[["fd"]], tolerance = 1e-10)
 })
 
 test_that("dyadrt is flat under random mixing", {
   pop <- c(a = 800, b = 150, c = 50)
   r <- dyadrt(outer(pop, pop) * 0.002, pop)
-  expect_equal(r[["ratio"]], rep(1, 9))
-  expect_equal(r[["rate_off"]], r[["null_off"]])
+  expect_equal(r[["ratio"]], rep(1, 9), tolerance = 1e-10)
+  expect_equal(r[["rate_off"]], r[["null_off"]], tolerance = 1e-10)
   # per offender rises with the victim group, per pair does not
   expect_gt(r[["rate_off"]][1], r[["rate_off"]][7])
-  expect_equal(r[["rate_pair"]][1], r[["rate_pair"]][7])
-  expect_equal(r[["off"]][2], "b")
-  expect_equal(r[["vic"]][2], "a")
+  expect_equal(r[["rate_pair"]][1], r[["rate_pair"]][7], tolerance = 1e-10)
+  expect_identical(r[["off"]][2], "b")
+  expect_identical(r[["vic"]][2], "a")
 })
 
 test_that("bad input stops in R with the argument named", {
@@ -85,7 +88,7 @@ test_that("proof names real theorems", {
   p <- proof()
   expect_true(all(c("vodtst", "orrisk", "outtst", "dspbm", "dyadrt", "gtmp",
                     "kinidx") %in% p[["fn"]]))
-  expect_equal(nrow(proof("dspbm")), 2L)
+  expect_identical(nrow(proof("dspbm")), 2L)
   expect_error(proof("nope"), "no proof recorded")
   expect_error(proof(1), "function names")
   # every function proof() names is exported
@@ -104,7 +107,7 @@ test_that("proof names real theorems", {
     list.files(system.file("lean", package = "csls"), "\\.lean$",
                full.names = TRUE),
     readLines, warn = FALSE
-  )))))
+  )), fixed = TRUE)))
 })
 
 test_that("results agree with rmorie", {
@@ -146,8 +149,8 @@ test_that("results agree with rmorie", {
     c(A_on_A = 900, B_on_A = 200, A_on_B = 120, B_on_B = 300), pop
   )
   d <- dyadrt(matrix(c(900, 200, 120, 300), 2), pop)
-  expect_equal(d[["off"]], m[["offender"]])
-  expect_equal(d[["vic"]], m[["victim"]])
+  expect_identical(d[["off"]], m[["offender"]])
+  expect_identical(d[["vic"]], m[["victim"]])
   expect_equal(d[["rate_off"]], m[["rate_per_offender_group"]],
                tolerance = 1e-13)
   expect_equal(d[["rate_pair"]], m[["rate_per_pair_exposure"]],
