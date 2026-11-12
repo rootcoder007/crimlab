@@ -14,6 +14,12 @@
 bool tk_eq(tk &t, const char *id, double got, double want, double tol) {
   return tk_veq(t, id, &got, &want, 1, tol);
 }
+bool tk_near(tk &t, const char *id, double got, double want, double tol) {
+  const double a = std::fabs(want);
+  const bool ok = (std::isnan(got) && std::isnan(want)) || got == want ||
+                  std::fabs(got - want) <= tol * (a > 1.0 ? a : 1.0);
+  return tk_rec(t, id, ok, want, got);
+}
 bool tk_true(tk &t, const char *id, bool c) {
   return tk_rec(t, id, c, 1.0, c ? 1.0 : 0.0);
 }
@@ -130,6 +136,9 @@ void t_self(tk &t) {
   tk_ge(t, "self.ge", 1.0, 1.0);
   tk_gt(t, "self.gt", 2.0, 1.0);
   tk_nan(t, "self.nan", nan);
+  tk_true(t, "self.near", tk_near(s, "s6", 0.5 + 1e-9, 0.5, 2e-9) &&
+                              tk_near(s, "s7", 2e3 + 1e-6, 2e3, 1e-9) &&
+                              !tk_near(s, "s8", 0.5 + 1e-8, 0.5, 2e-9));
   rng g = {1};
   double lo = 1, hi = 0, se = 0, sp = 0;
   int kmin = 9, kmax = -9;
@@ -317,6 +326,11 @@ int bench() {
 }
 
 }  // namespace
+
+double tk_med5(double *t) {
+  std::sort(t, t + 5);
+  return t[2];
+}
 
 int main(int argc, char **argv) {
   if (argc > 1 && std::strcmp(argv[1], "bench") == 0) {

@@ -38,6 +38,9 @@ bool tk_rec(tk &t, const char *id, bool ok, double want, double got);
 bool tk_veq(tk &t, const char *id, const double *got, const double *want,
             int n, double tol);
 bool tk_eq(tk &t, const char *id, double got, double want, double tol);
+// |got - want| <= tol max(1, |want|): absolute below 1, relative above;
+// equal or both NaN pass (the rule of the dossier kernels' tests).
+bool tk_near(tk &t, const char *id, double got, double want, double tol);
 bool tk_true(tk &t, const char *id, bool c);
 bool tk_lt(tk &t, const char *id, double a, double b);
 bool tk_le(tk &t, const char *id, double a, double b);
@@ -89,5 +92,9 @@ void t_hsp(tk &t, int big);
 void b_hsp();
 void t_stm(tk &t, int big);
 void b_stm();
+#ifdef CLAB_MAIN
+// The standalone program only: the median of five timings (sorts t).
+double tk_med5(double *t);
+#endif
 
 #endif
