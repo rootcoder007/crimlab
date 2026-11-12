@@ -6,3 +6,4 @@
 ^air\.toml$
 ^inst/lean/\.lake$
 ^inst/lean/build\.log$
+^CONTRIBUTING\.md$
