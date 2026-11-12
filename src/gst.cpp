@@ -36,25 +36,6 @@ struct rng {
   }
 };
 
-// the tail of Binomial(n, p) away from its mean, starting at g: P(X >= g)
-// when up, P(X <= g) otherwise; terms from the log pmf at g by the ratio
-// recursion, summed until they fall below 1e-17 of the sum (they decrease
-// monotonically away from the mean)
-double btail(double g, double n, double p, bool up) {
-  if (p <= 0.0) return up ? (g <= 0.0 ? 1.0 : 0.0) : 1.0;
-  if (p >= 1.0) return up ? 1.0 : (g >= n ? 1.0 : 0.0);
-  const double lt = std::lgamma(n + 1.0) - std::lgamma(g + 1.0) - std::lgamma(n - g + 1.0) +
-                    g * std::log(p) + (n - g) * std::log1p(-p);
-  double t = std::exp(lt), s = 0.0;
-  const double r = p / (1.0 - p);
-  for (double k = g; up ? k <= n : k >= 0.0; k += up ? 1.0 : -1.0) {
-    s += t;
-    if (t < 1e-17 * s) break;
-    t *= up ? (n - k) / (k + 1.0) * r : k / (n - k + 1.0) / r;
-  }
-  return s;
-}
-
 // Benjamini-Hochberg q-values of the finite p[0..m) (NaN kept), using
 // idx (m ints) for the order
 void bhq(const double *p, int m, double *q, int *idx) {
@@ -168,7 +149,7 @@ int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
     const double mu = sx * pr, sd = std::sqrt(sx * pr * (1.0 - pr));
     if (sd > 0.0) ze[i] = (g - mu) / sd;
     {
-      const double t = g >= mu ? btail(g, sx, pr, true) : btail(g, sx, pr, false);
+      const double t = g >= mu ? kutil::btail(g, sx, pr, true) : kutil::btail(g, sx, pr, false);
       pe[i] = 2.0 * t < 1.0 ? 2.0 * t : 1.0;
     }
     // conditional permutation of the classic G*: the cell keeps its count,
