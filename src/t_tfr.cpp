@@ -116,6 +116,25 @@ void run(tk &tt) {
     tk_near(tt, "tfr.mean.fixed", mean / em, 1, 1e-9);
     tk_true(tt, "tfr.cut", cf[1] > 0.99 && cf[1] < 1 + 1e-9);
   }
+  // 3b. a fixed transfer amount with the distance effect (the w rule
+  // alone): mean |lam| e (1 + 1/d)^{-d} s in closed form; and intensities
+  // above 600 (the log-space branch): Poisson(lam s) exactly
+  {
+    double p[17];
+    fixed(p);
+    p[1] = 0;
+    const double s = 0.5 * (0.95 * 0.2 + 0.05 * 0.9);
+    static double pm[401], sm[401];
+    double cf[2];
+    clab_tfrp(p, 1, 0, 400, 1, 1, 0.02, 64, pm, sm, cf, work);
+    double mean = 0;
+    for (int y = 0; y <= 400; ++y) mean += y * pm[y];
+    tk_near(tt, "tfr.mean.sd0", mean / (120 * std::exp(1.0) * std::pow(3.0, -0.5) * s), 1, 1e-9);
+    p[0] = 6000;
+    static double pb[1001], sb[1001];
+    clab_tfrp(p, 0, 0, 1000, 1, 1, 0.02, 64, pb, sb, cf, work);
+    tk_near(tt, "tfr.big", pb[700] / pois(700, 6000 * s), 1, 1e-10);
+  }
   // 4. the default model: mean against the closed form
   // E[Y] = E|X| e (1 + 1/d)^{-d} E[R] sum_h P(h) ((1-Q) E[A_h] + Q E[B_h]),
   // the folded-normal mean E|X| = sd sqrt(2/pi) e^{-mu^2/(2 sd^2)} +

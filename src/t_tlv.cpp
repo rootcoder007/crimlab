@@ -231,7 +231,9 @@ void run(tk &tt) {
   {
     const double u = 1, c = -2, mu = 0, xa = 0, xb = 0;
     tk_true(tt, "tlv.guard.pd", clab_tlvlr(&u, &c, &mu, 1, &xa, 1, &xb, 1, out, work) == CLAB_EDOM);
-    const double c2 = 1;
+    const double c2 = 1, um = -1, nanx = std::nan("");
+    tk_true(tt, "tlv.guard.nan", clab_tlvlr(&u, &c2, &mu, 1, &nanx, 1, &xb, 1, out, work) == CLAB_EDOM);
+    tk_true(tt, "tlv.guard.U", clab_tlvlr(&um, &c2, &mu, 1, &xa, 1, &xb, 1, out, work) == CLAB_EDOM);
     tk_true(tt, "tlv.guard.n", clab_tlvlr(&u, &c2, &mu, 1, &xa, 0, &xb, 1, out, work) == CLAB_EDOM);
     tk_true(tt, "tlv.guard.p", clab_tlvlr(&u, &c2, &mu, 0, &xa, 1, &xb, 1, out, work) == CLAB_EARG);
     double x[3] = {1, 2, 3}, w[10], m3[1], u3[1], c3[1];

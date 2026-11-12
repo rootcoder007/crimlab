@@ -90,6 +90,15 @@ void run(tk &tt) {
     for (int i = 0; i < 1500; ++i) mn[i] = 1.0;
     tk_true(tt, "chm.flat", clab_chmb(mn, 1500, m2, 1500, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_EDOM);
   }
+  // 3b. R's round() takes halves to even: 0.01 n = 12.5 for n = 1,250
+  // trims from position 12 (not 13); and a pair too short for any
+  // validation window on one side gives NaN with zero counts
+  {
+    tk_true(tt, "chm.half", clab_chmb(m1, 1250, m2, 1250, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_OK &&
+                                std::isfinite(u));
+    tk_true(tt, "chm.empty", clab_chmb(m1, 330, m2, 330, 300, 30, 0.25, &ns, &nd, &u, &p, work) == CLAB_OK &&
+                                 (ns == 0 || nd == 0) && std::isnan(u) && std::isnan(p));
+  }
   // 4. symmetry of the detrending: adding a smooth trend to a mark leaves
   // the score almost unchanged (lowess removes it); exact for a constant
   {

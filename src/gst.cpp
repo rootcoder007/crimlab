@@ -29,10 +29,9 @@ struct rng {
   // uniform integer in [0, m) without modulo bias (rejection)
   std::uint64_t below(std::uint64_t m) {
     const std::uint64_t lim = ~0ULL - (~0ULL % m);
-    for (;;) {
-      const std::uint64_t v = next();
-      if (v < lim) return v % m;
-    }
+    std::uint64_t v;
+    do v = next(); while (v >= lim);
+    return v % m;
   }
 };
 

@@ -183,6 +183,13 @@ void run(tk &tt) {
     tk_true(tt, "gst.perm.floor", floor_ok);
     tk_true(tt, "gst.perm.rate", f / n > 0.03 && f / n < 0.07);
   }
+  // 5b. a neighbourhood holding all the exposure: G is the total, the
+  // binomial is a point mass and p = 1
+  {
+    double c2[2] = {3, 4}, e2[2] = {1, 1};
+    clab_gstr(c2, e2, 2, 1, 5, 0, 1, out, work, iwork);
+    tk_near(tt, "gst.all", out[5 * 2], 1, 0);
+  }
   // 6. cells outside the window are NaN; guards
   {
     double c3[4] = {1, 2, 3, 4}, e3[4] = {1, 0, 1, 1};

@@ -81,12 +81,9 @@ int hours(const double *p, int tdist, double *ph, double *cut) {
       // past the mean the ratio q = P(k+1)/P(k) = (k + size)(1 - r)/(k + 1)
       // falls, so the tail beyond k is at most P(k) q / (1 - q)
       const double q = (k + size) * (1.0 - r) / (k + 1);
-      if (k >= mean && q < 1.0 && pk * q / (1.0 - q) <= TEPS) {
-        *cut = pk * q / (1.0 - q);
-        break;
-      }
-      if (k > 100000) {
-        *cut = 1.0 - cum > 0.0 ? 1.0 - cum : 0.0;
+      // the bound, or (never for r > 1e-4) the count limit with what is left
+      if ((k >= mean && q < 1.0 && pk * q / (1.0 - q) <= TEPS) || k > 100000) {
+        *cut = k > 100000 ? (1.0 - cum > 0.0 ? 1.0 - cum : 0.0) : pk * q / (1.0 - q);
         break;
       }
       pk *= q;

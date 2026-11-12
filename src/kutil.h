@@ -33,8 +33,8 @@ struct ksum {
 // otherwise, for g on the far side of the mean (the terms then decrease
 // monotonically away from g). From the log pmf at g by the ratio
 // recursion, summed until a term is below 1e-17 of the sum: O(sd) terms.
+// Needs p > 0 (both callers have it); p >= 1 is a point mass at n.
 inline double btail(double g, double n, double p, bool up) {
-  if (p <= 0.0) return up ? (g <= 0.0 ? 1.0 : 0.0) : 1.0;
   if (p >= 1.0) return up ? 1.0 : (g >= n ? 1.0 : 0.0);
   const double lt = std::lgamma(n + 1.0) - std::lgamma(g + 1.0) - std::lgamma(n - g + 1.0) +
                     g * std::log(p) + (n - g) * std::log1p(-p);
