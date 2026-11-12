@@ -1,0 +1,62 @@
+# Reference values and defect reproducer for src/mvt.cpp (clab_mvtll,
+# clab_mvtem). Field package: gbmt 0.1.4 (CRAN), R 4.5.0:
+#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
+#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/gbmt.R
+suppressMessages(library(gbmt))
+cat("gbmt", format(packageVersion("gbmt")), "\n")
+f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
+carr <- function(nm, x) cat(sprintf("const double %s[%d] = {%s};\n", nm, length(x), f17(x)))
+
+# 60 units x 6 times x 2 indicators, two groups; values rounded to 1/8 so
+# that they print exactly
+set.seed(5)
+n <- 60; nt <- 6; g <- rep(1:2, c(25, 35))
+mk <- function(i, t) {
+  if (g[i] == 1) c(1 + 0.5 * t, 3 - 0.2 * t) else c(4 - 0.3 * t, 1 + 0.1 * t)
+}
+d <- do.call(rbind, lapply(1:n, function(i) t(sapply(1:nt, function(t)
+  c(i, t, round((mk(i, t) + rnorm(2, 0, c(0.6, 0.4))) * 8) / 8)))))
+d <- as.data.frame(d); names(d) <- c("id", "time", "y1", "y2")
+cat("\n// d: rows (id, time, y1, y2), id-major\n")
+carr("D", t(as.matrix(d)))
+fit <- gbmt(c("y1", "y2"), "id", "time", ng = 2, d = 1, data = d, scaling = 0,
+            pruning = FALSE, quiet = TRUE)
+cat("// gbmt(c(\"y1\", \"y2\"), \"id\", \"time\", ng = 2, d = 1, data = d, scaling = 0, pruning = FALSE)\n")
+for (k in 1:2) {
+  carr(sprintf("gbeta%d", k), fit$beta[[k]])      # 2 x 2: rows (intercept, t), cols (y1, y2)
+  carr(sprintf("gS%d", k), fit$Sigma[[k]])
+}
+carr("gprob", colMeans(fit$posterior))
+carr("gpost", fit$posterior[1:5, ])
+cat(sprintf("const double gll = %s;\n", f17(fit$logLik)))
+cat("# components:", paste(names(fit), collapse = " "), "\n")
+
+# defect probe: the unit log-densities are clamped to [-745, 709.8] before
+# exp (pldBound); with long panels in large units every unit is clamped in
+# every group and the posteriors become uniform
+set.seed(6); n2 <- 40; nt2 <- 20; g2 <- rep(1:2, each = 20)
+d2 <- do.call(rbind, lapply(1:n2, function(i) t(sapply(1:nt2, function(t)
+  c(i, t, 1e5 * ((if (g2[i] == 1) c(1, 2, 3, 4) + 0.1 * t else c(4, 3, 2, 1) - 0.1 * t) + rnorm(4)))))))
+d2 <- as.data.frame(d2); names(d2) <- c("id", "time", "a", "b", "c", "e")
+f2 <- gbmt(c("a", "b", "c", "e"), "id", "time", ng = 2, d = 1, data = d2, scaling = 0,
+           pruning = FALSE, quiet = TRUE)
+cl <- apply(f2$posterior, 1, which.max)
+cat("\n# large units (x 1e5), 20 x 4 per unit, scaling = 0: posterior range",
+    range(f2$posterior), " agreement with truth", max(mean(cl == g2), mean(cl != g2)),
+    " logLik", f2$logLik, "\n")
+f3 <- gbmt(c("a", "b", "c", "e"), "id", "time", ng = 2, d = 1, data = d2, scaling = 2,
+           pruning = FALSE, quiet = TRUE)
+cl3 <- apply(f3$posterior, 1, which.max)
+cat("# same data, scaling = 2: agreement", max(mean(cl3 == g2), mean(cl3 != g2)), "\n")
+
+# timing: the dossier's sizes
+set.seed(1)
+big <- function(n, ng) {
+  gg <- sample(ng, n, TRUE)
+  dd <- do.call(rbind, lapply(1:n, function(i) t(sapply(1:8, function(t)
+    c(i, t, c(gg[i], -gg[i]) * 0.5 * t + rnorm(2))))))
+  dd <- as.data.frame(dd); names(dd) <- c("id", "time", "y1", "y2"); dd
+}
+b1 <- big(200, 2)
+cat(sprintf("\nTIME gbmt 200 units ng=2 d=1: %.3f s (1 run)\n",
+    system.time(gbmt(c("y1", "y2"), "id", "time", ng = 2, d = 1, data = b1, quiet = TRUE))[["elapsed"]]))

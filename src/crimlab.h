@@ -817,6 +817,38 @@ int clab_zipem(const double *y, int n, int nt, const double *off,
                double *par, double *prob, double *w, double *ll, int maxit,
                double tol, int *iter, double *work);
 
+/* Group-based multivariate trajectories (Nagin 1999,
+ * doi:10.1037/1082-989X.4.2.139; several indicators per unit as in
+ * Magrini 2022, doi:10.1007/s10182-022-00437-9): unit i belongs to group k with probability prob[k]; given
+ * k, its r indicators at period t are multivariate normal with mean
+ * B_k' x_t and covariance S_k, independently over periods.
+ * y: n x nt x r values, y[i + n (t + nt j)]; a period with any NaN
+ * indicator is left out for that unit; infinite values are refused. x:
+ * nt x p design (for example 1, t, t^2), column-major. beta: ng blocks of
+ * B_k (p x r, column-major); sig: ng blocks of S_k (r x r, positive
+ * definite); prob: ng positive shares summing to 1.
+ *
+ * clab_mvtll: the log-likelihood (log densities summed per unit, then
+ * log-sum-exp over groups: no clamping, so the result does not depend on
+ * the measurement units beyond the Jacobian) and the posterior memberships
+ * w (n x ng). CLAB_EDOM when a covariance is not positive definite. work:
+ * r^2 + r doubles. Time O(ng (r^3 + n nt r (r + p))).
+ *
+ * clab_mvtem: EM from the given values (updated in place). The M-step is
+ * closed form: weighted least squares with one p x p Cholesky for all r
+ * indicators (the design is shared), the weighted residual covariance, and
+ * the mean memberships; the log-likelihood never decreases. Stops when an
+ * iteration gains at most tol (1 + |ll|) or after maxit. CLAB_EDOM when a
+ * weighted design or covariance is singular. work: p^2 + p r + r^2 + r
+ * doubles. Time per iteration O(ng (n nt r (r + p) + nt p (p + r) + p^3 +
+ * r^3)). */
+int clab_mvtll(const double *y, int n, int nt, int r, const double *x, int p,
+               int ng, const double *beta, const double *sig,
+               const double *prob, double *w, double *ll, double *work);
+int clab_mvtem(const double *y, int n, int nt, int r, const double *x, int p,
+               int ng, double *beta, double *sig, double *prob, double *w,
+               double *ll, int maxit, double tol, int *iter, double *work);
+
 #ifdef __cplusplus
 }
 #endif
