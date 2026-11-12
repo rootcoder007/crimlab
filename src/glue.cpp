@@ -328,6 +328,17 @@ SEXP C_clab_r_sntbnd(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_hzdsel(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_proof(SEXP);
 SEXP C_clab_tlen(SEXP, SEXP);
+SEXP C_clab_r_ntdeg(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntbtw(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntcls(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntevc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntcore(SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntcmp(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntlvn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntmod(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntbrk(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ntchg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_coofg(SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -380,6 +391,17 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_hzdsel", fn(&C_clab_r_hzdsel), 5},
     {"C_clab_r_proof", fn(&C_clab_r_proof), 1},
     {"C_clab_tlen", fn(&C_clab_tlen), 2},
+    {"C_clab_r_ntdeg", fn(&C_clab_r_ntdeg), 5},
+    {"C_clab_r_ntbtw", fn(&C_clab_r_ntbtw), 5},
+    {"C_clab_r_ntcls", fn(&C_clab_r_ntcls), 4},
+    {"C_clab_r_ntevc", fn(&C_clab_r_ntevc), 6},
+    {"C_clab_r_ntcore", fn(&C_clab_r_ntcore), 3},
+    {"C_clab_r_ntcmp", fn(&C_clab_r_ntcmp), 4},
+    {"C_clab_r_ntlvn", fn(&C_clab_r_ntlvn), 6},
+    {"C_clab_r_ntmod", fn(&C_clab_r_ntmod), 6},
+    {"C_clab_r_ntbrk", fn(&C_clab_r_ntbrk), 5},
+    {"C_clab_r_ntchg", fn(&C_clab_r_ntchg), 6},
+    {"C_clab_r_coofg", fn(&C_clab_r_coofg), 2},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

@@ -755,6 +755,14 @@ void cooff(tk &t) {
   tk_ieq(t, "net167", clab_coofg(inc, off, 9, 4, 3, 5, pa, pb, pw, &n, iw),
          CLAB_EARG);
   tk_ieq(t, "net168", clab_coofw(inc, off, -1, 4, 4, &np, &il, iw), CLAB_EARG);
+  // one incident of 32769 offenders has more pairs than the table holds
+  const int big = 32769;
+  static int bi[big], bo[big], bw[2 + 2 * big];
+  for (int r = 0; r < big; ++r) {
+    bi[r] = 0;
+    bo[r] = r;
+  }
+  tk_ieq(t, "net169", clab_coofw(bi, bo, big, 1, big, &np, &il, bw), CLAB_EARG);
 }
 
 // seeded random graphs against the brute-force references

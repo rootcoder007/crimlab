@@ -1971,3 +1971,505 @@ SEXP C_clab_r_proof(SEXP fn) {
 }
 
 }  // extern "C"
+
+// Networks.
+
+namespace {
+
+// node labels: as.character() of an atomic vector (a factor by its labels),
+// no NA; Date, POSIXt and difftime refused as elsewhere
+SEXP nlab(SEXP x, const char *nm) {
+  SEXP s = R_NilValue;
+  if (Rf_isVectorAtomic(x)) {
+    clab::vec(x, nm);
+    s = clab::labs(x);
+  }
+  if (Rf_isNull(s) || clab::anyna(s)) {
+    fail("`%s` must be labels (a vector) with no missing values.", nm);
+  }
+  return s;
+}
+
+// codes 0, 1, ... of the strings of v by first appearance; nd the number
+// of distinct strings, first[c] the position of code c's first appearance
+int *fcode(SEXP v, int *nd, R_xlen_t **first) {
+  const Keys s = keys(v);
+  const R_xlen_t n = s.n;
+  int *c = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
+  R_xlen_t *f = reinterpret_cast<R_xlen_t *>(R_alloc(static_cast<std::size_t>(s.nd), sizeof(R_xlen_t)));
+  int k = 0;
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (s.first[i]) {
+      f[k] = i;
+      c[i] = k++;
+    } else {
+      c[i] = c[s.slot[probe(s, s.k[i])]];
+    }
+  }
+  *nd = k;
+  if (first) *first = f;
+  return c;
+}
+
+// a graph read from its labels: n nodes (labels lab, left PROTECTed), m
+// edges a[k] - b[k] by node code
+struct Net {
+  SEXP lab;
+  int n, m;
+  int *a, *b;
+};
+
+//' @srrstats {G2.4c} Node, offender, incident and group labels are
+//'   converted as as.character() does.
+//' @srrstats {G2.4e} A factor given as labels is read by its labels, never
+//'   its codes; levels that do not occur are not nodes.
+//' @noRd
+Net net(SEXP from, SEXP to, SEXP nodes) {
+  Net g{R_NilValue, 0, 0, nullptr, nullptr};
+  SEXP f = PROTECT(nlab(from, "from"));
+  SEXP t = PROTECT(nlab(to, "to"));
+  const R_xlen_t m = XLENGTH(f);
+  if (XLENGTH(t) != m) {
+    char x[32], y[32];
+    clab::lfmt(static_cast<double>(m), x, sizeof x);
+    clab::lfmt(static_cast<double>(XLENGTH(t)), y, sizeof y);
+    fail("`to` must have the length of `from`, %s, not %s.", x, y);
+  }
+  ilen(2.0 * m, "from");
+  g.m = static_cast<int>(m);
+  g.a = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(m), sizeof(int)));
+  g.b = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(m), sizeof(int)));
+  SEXP lab;
+  if (Rf_isNull(nodes)) {
+    // first appearance, reading each edge's from, then its to
+    SEXP v = PROTECT(Rf_allocVector(STRSXP, 2 * m));
+    for (R_xlen_t k = 0; k < m; ++k) {
+      SET_STRING_ELT(v, 2 * k, STRING_ELT(f, k));
+      SET_STRING_ELT(v, 2 * k + 1, STRING_ELT(t, k));
+    }
+    R_xlen_t *fst;
+    const int *c = fcode(v, &g.n, &fst);
+    for (R_xlen_t k = 0; k < m; ++k) {
+      g.a[k] = c[2 * k];
+      g.b[k] = c[2 * k + 1];
+    }
+    lab = Rf_allocVector(STRSXP, g.n);
+    for (int i = 0; i < g.n; ++i) SET_STRING_ELT(lab, i, STRING_ELT(v, fst[i]));
+    UNPROTECT(3);
+  } else {
+    SEXP nd = PROTECT(nlab(nodes, "nodes"));
+    g.n = ilen(static_cast<double>(XLENGTH(nd)), "nodes");
+    const Keys s = keys(nd);
+    for (R_xlen_t i = 0; i < s.n; ++i) {
+      if (!s.first[i]) {
+        fail("`nodes` must not repeat a label: %s.",
+             Rf_translateChar(STRING_ELT(nd, i)));
+      }
+    }
+    for (int e = 0; e < 2; ++e) {
+      SEXP x = e ? t : f;
+      int *o = e ? g.b : g.a;
+      for (R_xlen_t k = 0; k < m; ++k) {
+        const R_xlen_t j = s.n > 0 ? s.slot[probe(s, clab::key(STRING_ELT(x, k)))] : -1;
+        if (j < 0) {
+          fail("`%s` names a node not in `nodes`: %s.", e ? "to" : "from",
+               Rf_translateChar(STRING_ELT(x, k)));
+        }
+        o[k] = static_cast<int>(j);
+      }
+    }
+    // a fresh vector: the labels without the attributes `nodes` had
+    lab = Rf_allocVector(STRSXP, g.n);
+    for (int i = 0; i < g.n; ++i) SET_STRING_ELT(lab, i, STRING_ELT(nd, i));
+    UNPROTECT(3);
+  }
+  if (g.n == 0) fail("the graph has no nodes: give edges or `nodes`.");
+  g.lab = PROTECT(lab);
+  return g;
+}
+
+// TRUE or FALSE
+bool flag(SEXP x, const char *nm) {
+  if (TYPEOF(x) != LGLSXP || XLENGTH(x) != 1 || LOGICAL_RO(x)[0] == NA_LOGICAL) {
+    fail("`%s` must be TRUE or FALSE.", nm);
+  }
+  return LOGICAL_RO(x)[0] != 0;
+}
+
+// the edge weights: NULL, or one positive number per edge
+const double *wts(SEXP w, const Net &g) {
+  if (Rf_isNull(w)) return nullptr;
+  // the copy lives in R's transient memory to the end of the call; it is
+  // made before num(), whose result is read at once
+  double *p = reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(g.m), sizeof(double)));
+  SEXP v = num(w, "w", g.m, 0.0, true);
+  for (int k = 0; k < g.m; ++k) p[k] = REAL_RO(v)[k];
+  return p;
+}
+
+// a graph in compressed sparse rows (crimlab.h); rev reverses each edge
+struct Csr {
+  int *off, *adj;
+  double *wt;
+};
+Csr csr(const Net &g, const double *w, bool dir, bool rev = false) {
+  const std::size_t cap = static_cast<std::size_t>(g.m) * (dir ? 1 : 2);
+  Csr c;
+  c.off = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(g.n) + 1, sizeof(int)));
+  c.adj = reinterpret_cast<int *>(R_alloc(cap, sizeof(int)));
+  c.wt = reinterpret_cast<double *>(R_alloc(cap, sizeof(double)));
+  int *iw = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(g.n), sizeof(int)));
+  int nl, nd;
+  kchk(clab_ntcsr(rev ? g.b : g.a, rev ? g.a : g.b, w, g.m, g.n, dir, c.off,
+                  c.adj, c.wt, iw, &nl, &nd),
+       nullptr);
+  return c;
+}
+
+int *ibuf(double n) {
+  return reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
+}
+double *dbuf(double n) {
+  return reinterpret_cast<double *>(R_alloc(static_cast<std::size_t>(n), sizeof(double)));
+}
+
+// one value per node of x, coded 0, 1, ... by first appearance in node
+// order: from names(x) matched to the labels, or, unnamed, x in node order.
+// The values as text go to *val (left PROTECTed).
+int *pernode(SEXP x, const char *nm, const Net &g, SEXP *val) {
+  SEXP s = PROTECT(nlab(x, nm));
+  SEXP nms = Rf_getAttrib(x, R_NamesSymbol);
+  SEXP v = PROTECT(Rf_allocVector(STRSXP, g.n));
+  if (Rf_isNull(nms)) {
+    if (XLENGTH(s) != g.n) {
+      fail("`%s` must have one value per node (%d) or names.", nm, g.n);
+    }
+    for (int i = 0; i < g.n; ++i) SET_STRING_ELT(v, i, STRING_ELT(s, i));
+  } else {
+    const Keys k = keys(nms);
+    for (R_xlen_t i = 0; i < k.n; ++i) {
+      if (!k.first[i]) {
+        fail("`%s` must not repeat a name: %s.", nm,
+             Rf_translateChar(STRING_ELT(nms, i)));
+      }
+    }
+    for (int i = 0; i < g.n; ++i) {
+      const R_xlen_t j = k.n > 0 ? k.slot[probe(k, clab::key(STRING_ELT(g.lab, i)))] : -1;
+      if (j < 0) {
+        fail("`%s` has no value for node %s.", nm,
+             Rf_translateChar(STRING_ELT(g.lab, i)));
+      }
+      SET_STRING_ELT(v, i, STRING_ELT(s, j));
+    }
+  }
+  int nd;
+  int *c = fcode(v, &nd, nullptr);
+  UNPROTECT(2);
+  *val = PROTECT(v);
+  return c;
+}
+
+// a data frame: node, then the columns in cols (k of them)
+SEXP nframe(const Net &g, SEXP *cols, int k, const char *const *nm) {
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, k + 1));
+  SET_VECTOR_ELT(out, 0, g.lab);
+  for (int j = 0; j < k; ++j) SET_VECTOR_ELT(out, j + 1, cols[j]);
+  clab::frame(out, nm);
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP ints(int n, const int *x, int add = 0) {
+  SEXP v = Rf_allocVector(INTSXP, n);
+  for (int i = 0; i < n; ++i) INTEGER(v)[i] = x[i] + add;
+  return v;
+}
+
+}  // namespace
+
+extern "C" {
+
+SEXP C_clab_r_ntdeg(SEXP from, SEXP to, SEXP w, SEXP nodes, SEXP dir) {
+  clab::who = "ntdeg";
+  const Net g = net(from, to, nodes);
+  const double *wp = wts(w, g);
+  const bool d = flag(dir, "dir");
+  const Csr o = csr(g, wp, d);
+  SEXP c[6];
+  for (int j = 0; j < 6; ++j) c[j] = R_NilValue;
+  SEXP od = PROTECT(Rf_allocVector(INTSXP, g.n));
+  SEXP os = PROTECT(real(g.n));
+  kchk(clab_ntdeg(g.n, o.off, o.wt, INTEGER(od), REAL(os)), nullptr);
+  if (!d) {
+    c[0] = od;
+    c[1] = os;
+    static const char *const nm[] = {"node", "deg", "wdeg"};
+    SEXP r = nframe(g, c, 2, nm);
+    UNPROTECT(3);
+    return r;
+  }
+  const Csr ic = csr(g, wp, true, true);
+  SEXP id = PROTECT(Rf_allocVector(INTSXP, g.n));
+  SEXP is = PROTECT(real(g.n));
+  kchk(clab_ntdeg(g.n, ic.off, ic.wt, INTEGER(id), REAL(is)), nullptr);
+  SEXP td = PROTECT(Rf_allocVector(INTSXP, g.n));
+  SEXP ts = PROTECT(real(g.n));
+  for (int i = 0; i < g.n; ++i) {
+    INTEGER(td)[i] = INTEGER(id)[i] + INTEGER(od)[i];
+    REAL(ts)[i] = REAL(is)[i] + REAL(os)[i];
+  }
+  SEXP cc[6] = {id, od, td, is, os, ts};
+  static const char *const nm[] = {"node", "in", "out", "deg", "win", "wout", "wdeg"};
+  SEXP r = nframe(g, cc, 6, nm);
+  UNPROTECT(7);
+  return r;
+}
+
+SEXP C_clab_r_ntbtw(SEXP from, SEXP to, SEXP nodes, SEXP dir, SEXP norm) {
+  clab::who = "ntbtw";
+  const Net g = net(from, to, nodes);
+  const bool d = flag(dir, "dir"), nz = flag(norm, "norm");
+  const Csr o = csr(g, nullptr, d);
+  SEXP b = PROTECT(real(g.n));
+  kchk(clab_ntbtw(g.n, o.off, o.adj, d, nz, REAL(b), dbuf(2.0 * g.n),
+                  ibuf(2.0 * g.n)),
+       nullptr);
+  static const char *const nm[] = {"node", "btw"};
+  SEXP r = nframe(g, &b, 1, nm);
+  UNPROTECT(2);
+  return r;
+}
+
+SEXP C_clab_r_ntcls(SEXP from, SEXP to, SEXP nodes, SEXP dir) {
+  clab::who = "ntcls";
+  const Net g = net(from, to, nodes);
+  const bool d = flag(dir, "dir");
+  const Csr o = csr(g, nullptr, d);
+  SEXP c[4];
+  c[0] = PROTECT(Rf_allocVector(INTSXP, g.n));
+  for (int j = 1; j < 4; ++j) c[j] = PROTECT(real(g.n));
+  kchk(clab_ntcls(g.n, o.off, o.adj, REAL(c[1]), REAL(c[2]), REAL(c[3]),
+                  INTEGER(c[0]), ibuf(2.0 * g.n)),
+       nullptr);
+  static const char *const nm[] = {"node", "reach", "cls", "ncls", "hrm"};
+  SEXP r = nframe(g, c, 4, nm);
+  UNPROTECT(5);
+  return r;
+}
+
+SEXP C_clab_r_ntevc(SEXP from, SEXP to, SEXP w, SEXP nodes, SEXP tol,
+                    SEXP maxit) {
+  clab::who = "ntevc";
+  const Net g = net(from, to, nodes);
+  const double *wp = wts(w, g);
+  const double tl = clab::one(tol, "tol", 0, 1);
+  const int mi = clab::whole(maxit, "maxit", 1);
+  const Csr o = csr(g, wp, false);
+  SEXP x = PROTECT(real(g.n));
+  double val;
+  int it, cv;
+  kchk(clab_ntevc(g.n, o.off, o.adj, o.wt, tl, mi, REAL(x), &val, &it, &cv,
+                  dbuf(4.0 * g.n), ibuf(2.0 * g.n)),
+       nullptr);
+  static const char *const fn[] = {"node", "evc"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, nframe(g, &x, 1, fn));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarReal(val));
+  SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(it));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarLogical(cv));
+  static const char *const nm[] = {"cent", "value", "iter", "conv"};
+  clab::nlist(out, nm);
+  UNPROTECT(3);
+  return out;
+}
+
+SEXP C_clab_r_ntcore(SEXP from, SEXP to, SEXP nodes) {
+  clab::who = "ntcore";
+  const Net g = net(from, to, nodes);
+  const Csr o = csr(g, nullptr, false);
+  SEXP c = PROTECT(Rf_allocVector(INTSXP, g.n));
+  kchk(clab_ntcore(g.n, o.off, o.adj, INTEGER(c), ibuf(3.0 * g.n)), nullptr);
+  static const char *const nm[] = {"node", "core"};
+  SEXP r = nframe(g, &c, 1, nm);
+  UNPROTECT(2);
+  return r;
+}
+
+SEXP C_clab_r_ntcmp(SEXP from, SEXP to, SEXP nodes, SEXP dir) {
+  clab::who = "ntcmp";
+  const Net g = net(from, to, nodes);
+  const bool d = flag(dir, "dir");
+  const Csr o = csr(g, nullptr, d);
+  const Csr ic = d ? csr(g, nullptr, true, true) : Csr{nullptr, nullptr, nullptr};
+  int *wc = ibuf(g.n), *sc = ibuf(g.n), *iw = ibuf(6.0 * g.n), nc;
+  kchk(clab_ntwcc(g.n, o.off, o.adj, ic.off, ic.adj, wc, &nc, iw), nullptr);
+  kchk(clab_ntscc(g.n, o.off, o.adj, sc, &nc, iw), nullptr);
+  SEXP c[2];
+  c[0] = PROTECT(ints(g.n, wc, 1));
+  c[1] = PROTECT(ints(g.n, sc, 1));
+  static const char *const nm[] = {"node", "weak", "strong"};
+  SEXP r = nframe(g, c, 2, nm);
+  UNPROTECT(3);
+  return r;
+}
+
+SEXP C_clab_r_ntlvn(SEXP from, SEXP to, SEXP w, SEXP nodes, SEXP res,
+                    SEXP seed) {
+  clab::who = "ntlvn";
+  const Net g = net(from, to, nodes);
+  const double *wp = wts(w, g);
+  const double rs = REAL_RO(num(res, "res", 1, 0.0, true))[0];
+  const bool use = !Rf_isNull(seed);
+  const unsigned sd = use ? static_cast<unsigned>(clab::whole(seed, "seed", 0)) : 0u;
+  const Csr o = csr(g, wp, false);
+  double len, il, q;
+  kchk(clab_ntlvnw(g.n, o.off[g.n], &len, &il), nullptr);
+  int *m = ibuf(g.n), lev;
+  kchk(clab_ntlvn(g.n, o.off, o.adj, o.wt, rs, sd, use, m, &q, &lev, dbuf(len),
+                  ibuf(il)),
+       nullptr);
+  SEXP c = PROTECT(ints(g.n, m, 1));
+  static const char *const fn[] = {"node", "comm"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(out, 0, nframe(g, &c, 1, fn));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarReal(q));
+  SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(lev));
+  static const char *const nm[] = {"memb", "q", "levels"};
+  clab::nlist(out, nm);
+  UNPROTECT(3);
+  return out;
+}
+
+SEXP C_clab_r_ntmod(SEXP from, SEXP to, SEXP memb, SEXP w, SEXP nodes,
+                    SEXP res) {
+  clab::who = "ntmod";
+  const Net g = net(from, to, nodes);
+  SEXP val;
+  const int *m = pernode(memb, "memb", g, &val);
+  const double *wp = wts(w, g);
+  const double rs = REAL_RO(num(res, "res", 1, 0.0))[0];
+  const Csr o = csr(g, wp, false);
+  double q;
+  kchk(clab_ntmod(g.n, o.off, o.adj, o.wt, m, rs, &q, dbuf(2.0 * g.n)), nullptr);
+  UNPROTECT(2);
+  return Rf_ScalarReal(q);
+}
+
+SEXP C_clab_r_ntbrk(SEXP from, SEXP to, SEXP grp, SEXP nodes, SEXP dir) {
+  clab::who = "ntbrk";
+  const Net g = net(from, to, nodes);
+  SEXP val;
+  const int *gr = pernode(grp, "grp", g, &val);
+  const bool d = flag(dir, "dir");
+  const Csr o = csr(g, nullptr, d);
+  const Csr ic = d ? csr(g, nullptr, true, true) : o;
+  double *cnt = dbuf(5.0 * g.n);
+  kchk(clab_ntbrk(g.n, o.off, o.adj, ic.off, ic.adj, gr, cnt, ibuf(g.n)),
+       nullptr);
+  SEXP c[7];
+  c[0] = val;
+  for (int j = 1; j < 7; ++j) c[j] = PROTECT(real(g.n));
+  for (int i = 0; i < g.n; ++i) {
+    double t = 0.0;
+    for (int r = 0; r < 5; ++r) {
+      REAL(c[r + 1])[i] = cnt[r * g.n + i];
+      t += cnt[r * g.n + i];
+    }
+    REAL(c[6])[i] = t;
+  }
+  static const char *const nm[] = {"node",  "grp",  "coord", "itin",
+                                   "repr",  "gate", "liais", "total"};
+  SEXP r = nframe(g, c, 7, nm);
+  UNPROTECT(8);
+  return r;
+}
+
+SEXP C_clab_r_ntchg(SEXP from, SEXP to, SEXP w, SEXP nodes, SEXP tol,
+                    SEXP maxit) {
+  clab::who = "ntchg";
+  const Net g = net(from, to, nodes);
+  const double *wp = wts(w, g);
+  const double tl = clab::one(tol, "tol", 0, 1);
+  const int mi = clab::whole(maxit, "maxit", 1);
+  if (g.n < 2) fail("the graph needs at least two nodes.");
+  const Csr o = csr(g, wp, false);
+  int *iw = ibuf(g.n), *set = ibuf(g.n), nc, it, cv;
+  kchk(clab_ntwcc(g.n, o.off, o.adj, nullptr, nullptr, set, &nc, iw), nullptr);
+  if (nc > 1) {
+    fail("the graph must be connected, not in %d components (see ntcmp()).",
+         nc);
+  }
+  double b[4];
+  kchk(clab_ntchg(g.n, o.off, o.adj, o.wt, tl, mi, b, set, &it, &cv,
+                  dbuf(4.0 * g.n), iw),
+       nullptr);
+  int k = 0;
+  for (int i = 0; i < g.n; ++i) k += set[i];
+  SEXP s = PROTECT(Rf_allocVector(STRSXP, k));
+  for (int i = 0, j = 0; i < g.n; ++i) {
+    if (set[i]) SET_STRING_ELT(s, j++, STRING_ELT(g.lab, i));
+  }
+  static const char *const bn[] = {"lambda2", "lower", "upper", "sweep"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, clab::nvec(4, bn, b));
+  SET_VECTOR_ELT(out, 1, s);
+  SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(it));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarLogical(cv));
+  static const char *const nm[] = {"bound", "set", "iter", "conv"};
+  clab::nlist(out, nm);
+  UNPROTECT(3);
+  return out;
+}
+
+SEXP C_clab_r_coofg(SEXP inc, SEXP off) {
+  clab::who = "coofg";
+  SEXP si = PROTECT(nlab(inc, "inc"));
+  SEXP so = PROTECT(nlab(off, "off"));
+  const R_xlen_t k = XLENGTH(si);
+  if (XLENGTH(so) != k) {
+    char x[32], y[32];
+    clab::lfmt(static_cast<double>(k), x, sizeof x);
+    clab::lfmt(static_cast<double>(XLENGTH(so)), y, sizeof y);
+    fail("`off` must have the length of `inc`, %s, not %s.", x, y);
+  }
+  if (k == 0) fail("`inc` must name at least one incident.");
+  ilen(2.0 * k, "inc");
+  int ni, no;
+  R_xlen_t *fo;
+  const int *ci = fcode(si, &ni, nullptr);
+  const int *co = fcode(so, &no, &fo);
+  double np, il;
+  int *iw = ibuf(static_cast<double>(ni) + 1 + k + no);
+  kchk(clab_coofw(ci, co, static_cast<int>(k), ni, no, &np, &il, iw), nullptr);
+  const int cap = static_cast<int>(np);
+  int *pa = ibuf(cap), *pb = ibuf(cap), n;
+  double *pw = dbuf(cap);
+  kchk(clab_coofg(ci, co, static_cast<int>(k), ni, no, cap, pa, pb, pw, &n,
+                  ibuf(il)),
+       nullptr);
+  SEXP e = PROTECT(Rf_allocVector(VECSXP, 3));
+  SEXP f = Rf_allocVector(STRSXP, n);
+  SET_VECTOR_ELT(e, 0, f);
+  SEXP t = Rf_allocVector(STRSXP, n);
+  SET_VECTOR_ELT(e, 1, t);
+  SEXP w = Rf_allocVector(REALSXP, n);
+  SET_VECTOR_ELT(e, 2, w);
+  for (int p = 0; p < n; ++p) {
+    SET_STRING_ELT(f, p, STRING_ELT(so, fo[pa[p]]));
+    SET_STRING_ELT(t, p, STRING_ELT(so, fo[pb[p]]));
+    REAL(w)[p] = pw[p];
+  }
+  static const char *const en[] = {"from", "to", "w"};
+  clab::frame(e, en);
+  SEXP nd = PROTECT(Rf_allocVector(STRSXP, no));
+  for (int j = 0; j < no; ++j) SET_STRING_ELT(nd, j, STRING_ELT(so, fo[j]));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(out, 0, e);
+  SET_VECTOR_ELT(out, 1, nd);
+  static const char *const nm[] = {"edges", "nodes"};
+  clab::nlist(out, nm);
+  UNPROTECT(5);
+  return out;
+}
+
+}  // extern "C"

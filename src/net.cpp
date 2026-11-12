@@ -786,6 +786,8 @@ int clab_coofw(const int *inc, const int *off, int k, int ni, int no,
     }
     np += m * (m - 1.0) / 2.0;
   }
+  // the pairs must fit clab_coofg's table (at most INT_MAX / 4 of them)
+  if (np > INT_MAX / 4) return CLAB_EARG;
   // the hash table of clab_coofg: a power of two at least twice the pairs
   double ts = 2.0;
   while (ts < 2.0 * np) ts *= 2.0;

@@ -72,6 +72,19 @@ test_that("every exported function answers one valid call in its shape", {
                   c("term", "share", "lower", "upper", "observed")),
     list(quote(hzdsel(0.5, 0.5, 0.1, c(0.5, 0.8), c(0.9, 0.9))),
                   c("share0", "share1", "haz0", "haz1", "ratio")),
+    list(quote(coofg(c(1, 1), c("a", "b"))), c("edges", "nodes")),
+    list(quote(ntdeg("a", "b")), c("node", "deg", "wdeg")),
+    list(quote(ntbtw("a", "b")), c("node", "btw")),
+    list(quote(ntcls("a", "b")), c("node", "reach", "cls", "ncls", "hrm")),
+    list(quote(ntevc("a", "b")), c("cent", "value", "iter", "conv")),
+    list(quote(ntcore("a", "b")), c("node", "core")),
+    list(quote(ntcmp("a", "b")), c("node", "weak", "strong")),
+    list(quote(ntlvn("a", "b")), c("memb", "q", "levels")),
+    list(quote(ntmod("a", "b", c(1, 1))), NULL),
+    list(quote(ntbrk("a", "b", c(1, 2))),
+                 c("node", "grp", "coord", "itin", "repr", "gate", "liais",
+                   "total")),
+    list(quote(ntchg("a", "b")), c("bound", "set", "iter", "conv")),
     list(quote(proof("cllr")), c("fn", "theorem", "file"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")

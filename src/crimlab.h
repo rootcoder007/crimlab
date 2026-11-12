@@ -1123,7 +1123,8 @@ int clab_ntchg(int n, const int *off, const int *adj, const double *wt,
  * offender off[r] (0 .. no - 1) in incident inc[r] (0 .. ni - 1). An
  * offender named twice in one incident counts once. clab_coofw gives
  * npair, the number of offender pairs met over all incidents (an upper
- * bound on the edges), and ilen, the ints of iwork clab_coofg needs.
+ * bound on the edges; CLAB_EARG above INT_MAX / 4), and ilen, the ints
+ * of iwork clab_coofg needs.
  * clab_coofg writes the one-mode projection: np pairs (pa < pb by code)
  * with pw, the number of incidents they share, in the order each pair is
  * first met (incidents by code, offenders within one by row); cap >=

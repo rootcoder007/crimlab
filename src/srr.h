@@ -50,7 +50,7 @@
 //'   (test-edge.R, test-frns2.R), more than 20 unexplained alleles in a
 //'   mixture (src/t_frns.cpp).
 //' @srrstats {G5.9} Noise susceptibility is tested under G5.9a
-//'   (src/t_disp.cpp); G5.9b does not apply.
+//'   (src/t_disp.cpp) and G5.9b (ntlvn()'s seed, test-net.R).
 //' @srrstats {EA1.1} README "What it takes" lists the kinds of data: counts
 //'   by group, individual binary outcomes, allele frequencies and
 //'   genotypes, and likelihood ratios from validation studies.
@@ -101,11 +101,8 @@
 //' @srrstatsNA {G5.0} No standard data set (such as NIST's) exists for these
 //'   quantities; tests use small inputs with answers computed by hand.
 //' @srrstatsNA {G5.1} The package ships no data set; test data are built
-//'   in the test files.
-//' @srrstatsNA {G5.4c} No published output is stored; the closed forms and
-//'   enumerations of G5.4a are the reference.
-//' @srrstatsNA {G5.9b} No function draws random numbers or takes starting
-//'   values, so a seed cannot change a result.
+//'   in the test files, and tests/testthat/netref.rds holds the reference
+//'   values dev/netref.R writes from igraph and sna.
 //' @srrstatsNA {G5.10} There are no extended tests; the whole suite runs in
 //'   seconds.
 //' @srrstatsNA {G5.11} There are no extended tests and no downloads.
