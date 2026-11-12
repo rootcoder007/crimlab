@@ -52,6 +52,25 @@ in R and again in the compiled kernels, quantities that overflow or cancel
 in the obvious formula are computed in a stable form, and most functions
 rest on identities or bounds proved in Lean, which `proof()` names.
 
+## Speed
+
+`dev/bench.R` times each function against every package found that
+computes the same quantity, on fixed seeded inputs and at sizes met in
+practice, after checking that the two give the same values; where no
+package does, against a base-R implementation of the formula. The table it
+writes, with the machine and the date, is
+[inst/bench/bench.md](inst/bench/bench.md) (and `bench.csv`); the bench
+workflow runs it again every week. The lists below are written by the same
+script from that table.
+
+<!-- bench start: written by dev/bench.R -->
+Faster, by at least a tenth, than every package that computes the same quantity, at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `gtmp()`, `kinidx()`, `patidx()`, `mixlr()`, `cllr()`, `cllrmin()`, `lrcal()`, `eceplt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`.
+
+Not faster than such a package at some size timed: `incap()`.
+
+No package found that computes the same quantity, so timed against a base-R implementation of the formula: `lrpost()`, `dbsrch()`, `tipplt()`, `clrsmp()`, `proof()`; of these, not faster than base R at some size: `lrpost()`, `dbsrch()`.
+<!-- bench end -->
+
 ## Life cycle
 
 Experimental. This is a development version: function names, arguments and
