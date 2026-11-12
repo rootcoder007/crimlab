@@ -280,6 +280,15 @@ identifier is `Apache-2.0 WITH LLVM-exception`. The exception lets
 compiled code that embeds the kernels be redistributed without the
 attribution conditions, and settles linking with GPL-2 software.
 
+## Python
+
+`py/` holds a Python package, also named crimlab, that compiles the same
+kernels from `src/` and gives the same functions, argument names and
+results; its tests check every number against the R package. It has no
+runtime dependencies. Install it from a clone with `pip install ./py`;
+see `py/README.md` for how inputs are matched by name and the few
+differences from R.
+
 # Package index
 
 ## Disparities

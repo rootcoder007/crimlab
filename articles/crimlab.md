@@ -329,7 +329,7 @@ between the two Cheeger bounds, and the lower one is proved in Lean
 
 ``` r
 
-big <- !(e$from %in% "gus" | e$to %in% "gus")
+big <- !(e$from == "gus" | e$to == "gus")
 ntchg(e$from[big], e$to[big], w = e$w[big])$bound
 #>    lambda2      lower      upper      sweep 
 #> 0.17307222 0.08653611 0.58834041 0.20000000
