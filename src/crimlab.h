@@ -934,6 +934,40 @@ int clab_chmb(const double *a, int na, const double *b, int nb, int wopt,
               int wval, double coarse, int *nsame, int *ndiff, double *u,
               double *p, double *work);
 
+/* Local Getis-Ord G* on a regular grid of nr x nc cells (column-major,
+ * cell (r, c) at r + nr c). cnt: counts (whole numbers >= 0) per cell; ex:
+ * the exposure of each cell (for points under complete spatial
+ * randomness: its area inside the study window, e.g. the share of the
+ * cell inside), 0 for a cell outside the window (left out, NaN results).
+ * Neighbourhood: the cells whose centres lie within rad cell widths, the
+ * cell itself included (rad = 1.5: the 3 x 3 block). nsim >= 0
+ * permutations, seed for them. Out, 7 nr nc values, column by column:
+ *   gz: the classic G* (Getis and Ord 1992, doi:10.1111/
+ *       j.1538-4632.1992.tb00261.x; Ord and Getis 1995, doi:10.1111/
+ *       j.1538-4632.1995.tb00912.x) with binary weights: (G - W xbar) /
+ *       (s sqrt((m W - W^2) / (m - 1))), xbar and s over the m cells in the
+ *       window (exposure ignored);
+ *   pz: its two-sided normal p-value; qz: Benjamini-Hochberg q-values of
+ *       pz (Benjamini and Hochberg 1995, doi:10.1111/
+ *       j.2517-6161.1995.tb02031.x);
+ *   pp: the conditional permutation p-value of the classic G* (the cell
+ *       keeps its count, the other counts are permuted; Anselin 1995,
+ *       doi:10.1111/j.1538-4632.1995.tb00338.x), two-sided,
+ *       (1 + #{|G* - W xbar| >= observed}) / (nsim + 1); NaN when nsim = 0;
+ *   ze: the exposure-aware z: given the total n, the count G of the
+ *       neighbourhood is Binomial(n, P) under complete spatial randomness,
+ *       P = the neighbourhood's share of the exposure: (G - n P) /
+ *       sqrt(n P (1 - P));
+ *   pe: its exact two-sided p-value (twice the smaller binomial tail,
+ *       capped at 1), so cells overhanging the window neither inflate the
+ *       global mean nor get flagged; qe: Benjamini-Hochberg q-values of pe.
+ * No threshold is applied. work: nr nc doubles; iwork:
+ * 2 (2 floor(rad) + 1)^2 + 3 nr nc ints. Time O(nr nc (k + tail) +
+ * nsim nr nc k), k the neighbourhood size; no distance matrix. */
+int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
+              int nsim, unsigned int seed, double *out, double *work,
+              int *iwork);
+
 #ifdef __cplusplus
 }
 #endif
