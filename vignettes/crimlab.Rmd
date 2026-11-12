@@ -1,0 +1,235 @@
+---
+title: "A walk-through of crimlab"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{A walk-through of crimlab}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## What the package is for
+
+crimlab computes statistics that come up again and again in criminology and
+sociolegal research: disparity measures for policing, the weight of forensic
+evidence, clearance rates, and what can and cannot be learnt about release
+rules and sentences from administrative records. Most of them are short
+formulas. They are easy to get slightly wrong, and easier still to read as
+showing more than they do.
+
+Each function checks its arguments, computes the quantity in a compiled
+core, and returns a plain data frame or named vector. Its help page says what
+the number is and the conditions under which it means what it seems to mean.
+Where the result rests on an identity or a bound, `proof()` names the
+machine-checked proof of it.
+
+The examples below use made-up numbers chosen to show the arithmetic. None of
+them is data, and nothing in this vignette is an empirical finding.
+
+```{r}
+library(crimlab)
+```
+
+## Disparities: the veil of darkness
+
+Suppose, purely for illustration, that a force recorded these traffic stops
+of two groups of drivers, in daylight and in darkness:
+
+```{r}
+day <- c(white = 600, black = 400)
+night <- c(white = 700, black = 300)
+vodtst(day, night)
+```
+
+Black drivers are 40 per cent of daylight stops and 30 per cent of stops in
+darkness. The `ratio` column compares each group's odds of being the one
+stopped in daylight with its odds in darkness, against the reference group
+(the first, here): about 1.56 for black drivers. The idea, due to Grogger and
+Ridgeway (2006), is that an officer can see a driver's race more easily in
+daylight, so if race affects who is stopped, the group it works against makes
+up a larger share of daylight stops.
+
+What this does not license: the ratio isolates the effect of visibility only
+if the same people are on the road, in the same proportions, in daylight and
+in darkness. If black drivers made up a larger share of daytime traffic than
+of night-time traffic, the ratio would exceed 1 with no bias at all. Studies
+therefore compare stops at the same clock times in different seasons, when
+the same commuters drive in light and in dark. The `shift` argument shows how
+much a difference in exposure would explain. If, say, black drivers' share of
+traffic were 1.3 times as large in daylight as in darkness:
+
+```{r}
+vodtst(day, night, shift = c(white = 1, black = 1.3))[["adj"]]
+```
+
+the adjusted ratio is about 1.2. A shift of about 1.56 would explain the
+whole contrast. The counts alone cannot tell bias from a change in who
+drives; `proof("vodtst")` names the theorem that says so.
+
+A related trap is reading an odds ratio as a relative risk. With an outcome
+as common as 40 per cent, an odds ratio of 3 corresponds to a relative risk
+of under 2:
+
+```{r}
+orrisk(or = 3, rate = 0.4, share = 0.5)
+```
+
+## Forensics: a match and what it is worth
+
+Take a DNA profile typed at two loci, heterozygous at the first and
+homozygous at the second, with these (illustrative) allele frequencies and a
+coancestry coefficient of 0.03:
+
+```{r}
+m <- gtmp(p = c(D3 = 0.1, vWA = 0.2), q = c(0.3, NA),
+          hom = c(FALSE, TRUE), theta = 0.03)
+m
+10^m[["log10lr"]]
+```
+
+The match probability is the chance that an unrelated person from the same
+population would share the profile. Its reciprocal, about 200 here, is the
+likelihood ratio for a single-source match: the profile is about 200 times as
+probable if the suspect is the source as if an unrelated person is.
+
+What this does not license: a likelihood ratio is not the probability that
+the suspect is the source. That needs a prior, and the same ratio gives very
+different answers under different priors:
+
+```{r}
+lrpost(lr = rep(10^m[["log10lr"]], 3), prior = c(1 / 10, 1 / 1000, 1 / 1e5))
+```
+
+Reading the ratio as the posterior is the prosecutor's fallacy. The ratio
+also assumes the alternative source is unrelated to the suspect. A brother
+is far more likely to share the profile; `kinidx()` gives the weight of two
+profiles for a stated relationship.
+
+How good is a system that reports likelihood ratios? Given ratios from
+validation comparisons whose truth is known, the log-likelihood-ratio cost
+scores them: 0 is perfect, 1 is a system that always reports 1. `cllrmin()`
+splits the cost into the part due to how well the ratios separate the two
+kinds of comparison (`min`) and the part due to miscalibration (`cal`):
+
+```{r}
+same <- c(50, 200, 8, 0.5)
+diff <- c(0.01, 0.2, 1.5, 0.001)
+cllrmin(same, diff)
+```
+
+With these made-up ratios one different-source ratio (1.5) is larger than
+one same-source ratio (0.5), so even ratios perfectly calibrated to this
+ordering would cost about a quarter of a bit; the rest of the cost, about
+0.17 bits, comes from the ratios being too large or too small for what they
+separate. With four comparisons of each kind this says nothing about any
+real system; validation needs many
+comparisons, made under the conditions of casework. A Tippett plot shows the
+same ratios as two curves:
+
+```{r tippett, fig.width = 6, fig.height = 4, fig.alt = "Tippett plot: the share of same-source and different-source likelihood ratios at or above each value of the log10 likelihood ratio."}
+tipplt(same, diff)
+```
+
+## Policing: clearance rates and Simpson's paradox
+
+Two (invented) years of offences recorded and cleared, by type:
+
+```{r}
+cl <- clrsmp(clra = c(minor = 90, serious = 20),
+             reca = c(minor = 100, serious = 50),
+             clrb = c(minor = 19, serious = 60),
+             recb = c(minor = 20, serious = 140))
+cl[["parts"]]
+cl[["total"]]
+```
+
+Both types clear better in year B than in year A, yet the aggregate rate falls
+from about 0.73 to about 0.49. The decomposition shows why: the rate effect
+is positive, and the mix effect is negative and larger than the fall, because
+recorded work moved toward serious offences, which clear less often.
+`simpson` is 2 because every type moved one way and the aggregate the
+other.
+
+What this does not license: the decomposition is arithmetic on the recorded
+counts. It says nothing about whether the service worked better or worse.
+Clearance depends on what is recorded, how offences are classified, and what
+counts as cleared, and any of these can change between years or between
+services. An aggregate clearance rate compared without the split by type can
+point the wrong way, as here; the split by type is only as good as the
+classification.
+
+## Corrections: what records say about a sentence
+
+Suppose (again for illustration) 500 people, each given a community sentence
+or custody, with an indicator of reconviction:
+
+```{r}
+set.seed(1)
+z <- sample(c("community", "custody"), 500, replace = TRUE,
+            prob = c(0.6, 0.4))
+y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
+sntbnd(y, z)
+```
+
+The observed reconviction rates differ by about 0.18. But each person is seen
+under one sentence only. Without assumptions about who receives which
+sentence, the reconviction rate everyone would have had under custody is
+known only to lie within an interval as wide as the share who did not
+receive custody, and the effect of custody against a community sentence lies
+in an interval of width exactly 1 that contains 0 (Manski and Nagin 1998).
+
+What this does not license: the observed difference is not the effect of the
+sentence. Judges choose sentences with information about the person, so the
+two groups differ before sentencing. Narrowing the interval needs an
+assumption that the data cannot check, such as random assignment, and the
+conclusions are only as good as that assumption.
+
+## Proofs
+
+`proof()` lists the theorems behind a function:
+
+```{r}
+p <- proof("clrsmp")
+p
+```
+
+The files ship with the package and can be read in R or checked with Lean
+(see the README). This is the statement of Kitagawa's identity, the reason
+the rate and mix effects always add up to the change:
+
+```{r}
+src <- readLines(system.file(p[["file"]][1], package = "crimlab"),
+                 encoding = "UTF-8")
+i <- grep("^theorem kitagawa", src)
+writeLines(src[i:(i + 2)])
+```
+
+A Lean proof guarantees that the theorem, exactly as stated, follows from its
+hypotheses over the real numbers. It does not guarantee three other things:
+
+* that the code is free of bugs. The C++ core uses floating-point
+  arithmetic, not real numbers, and could compute something other than the
+  formula proved. The package's tests check the code against the proved
+  identities, which is evidence, not proof;
+* that the statement is the one you need. Read it: a theorem about
+  workload shares that sum to 1 says nothing about shares that do not;
+* that your data meet the model's assumptions. The veil-of-darkness
+  theorem holds when exposure is the same in daylight and darkness; whether
+  it is for a given force and year is a question about the world, not about
+  the proof.
+
+## References
+
+Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in traffic
+stops from behind a veil of darkness. *Journal of the American Statistical
+Association*, 101(475), 878-887.
+
+Kitagawa, E. M. (1955). Components of a difference between two rates.
+*Journal of the American Statistical Association*, 50(272), 1168-1194.
+
+Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements about
+treatment effects: a case study of sentencing and recidivism. *Sociological
+Methodology*, 28(1), 99-137.

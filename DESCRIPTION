@@ -31,7 +31,10 @@ Depends:
 Imports:
     graphics
 Suggests:
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
+VignetteBuilder: knitr
 SystemRequirements: C++17
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
