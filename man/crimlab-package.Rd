@@ -6,6 +6,8 @@
 \alias{crimlab-package}
 \title{crimlab: Criminology and Sociolegal Statistics}
 \description{
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
 Statistical methods for courts, corrections, policing, forensics and sociolegal research, computed in a compiled core with a thin R layer. Where an identity or bound has a machine-checked proof ('Lean'), the package names it. This development version holds the disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006) \doi{10.1198/016214506000000168}, the outcome test and its infra-marginality problem, benchmark decomposition of resident disparities, dyadic offending rates, and the bounds a relative risk obeys given an odds ratio; and the first forensic methods: genotype match probabilities with the correction of Balding and Nichols (1994) \doi{10.1016/0379-0738(94)90222-4}, the log-likelihood-ratio cost of Brummer and du Preez (2006) \doi{10.1016/j.csl.2005.08.001} with its calibrated minimum, mixture likelihood ratios, kinship and paternity indices, database-search corrections, and Tippett and empirical-cross-entropy plots.
 }
 \seealso{
