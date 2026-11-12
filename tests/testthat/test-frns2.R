@@ -1,29 +1,9 @@
-test_that("coancestry can make a common heterozygote rarer", {
-  expect_lt(gtmp(0.5, 0.5, theta = 0.1)[["locus"]][["mp"]], 0.5)
-  expect_gte(gtmp(0.5, hom = TRUE, theta = 0.1)[["locus"]][["mp"]], 0.25)
-})
+# Values of the forensic kernels are checked in C++ (src/t_frns.cpp); here
+# what R forms itself from them, the plots, the labels and the messages.
 
-test_that("kinidx gives the textbook indices", {
+test_that("kinidx sums the loci in R and labels them", {
   p <- 0.1
   q <- 0.2
-  k <- function(g1, g2, f, rel) kinidx(g1, g2, f, rel)[["locus"]][["idx"]]
-  expect_equal(k(c(1, 2), c(1, 2), c(p, q), "parent"), (p + q) / (4 * p * q),
-               tolerance = 1e-10)
-  expect_equal(k(c(1, 1), c(1, 1), c(p, p), "parent"), 1 / p, tolerance = 1e-10)
-  expect_equal(k(c(1, 1), c(1, 2), c(p, p), "parent"), 1 / (2 * p),
-               tolerance = 1e-10)
-  expect_equal(k(c(1, 2), c(1, 3), c(p, q), "parent"), 1 / (4 * p),
-               tolerance = 1e-10)
-  expect_equal(k(c(1, 2), c(3, 4), c(p, q), "parent"), 0, tolerance = 1e-10)
-  expect_equal(k(c(1, 2), c(3, 4), c(p, q), "sibling"), 0.25)
-  expect_equal(k(c(1, 2), c(2, 1), c(p, q), "sibling"),
-               0.25 + 0.5 * (p + q) / (4 * p * q) + 0.25 / (2 * p * q),
-               tolerance = 1e-10)
-  expect_equal(k(c(1, 1), c(1, 1), c(p, p), c(0, 0, 1)), 1 / p^2,
-               tolerance = 1e-10)
-  expect_equal(k(c("a", "b"), c("b", "c"), c(p, q), "half"),
-               0.5 + 0.5 / (4 * q), tolerance = 1e-10)
-  expect_equal(k(c(1, 2), c(1, 2), c(p, q), c(1, 0, 0)), 1, tolerance = 1e-10)
   g1 <- matrix(c(1, 1, 2, 1), 2, dimnames = list(c("D3", "vWA"), NULL))
   r <- kinidx(g1, g1, matrix(c(p, p, q, p), 2))
   expect_identical(r[["locus"]][["locus"]], c("D3", "vWA"))
@@ -32,65 +12,11 @@ test_that("kinidx gives the textbook indices", {
   expect_equal(r[["post"]], 1 / (1 + 10^-r[["log10idx"]]), tolerance = 1e-10)
 })
 
-test_that("patidx gives the textbook indices", {
-  p <- 0.1
-  q <- 0.2
-  pi <- function(...) patidx(...)[["locus"]][["idx"]]
-  expect_equal(pi(c(1, 2), c(2, 2), c(p, q), mother = c(1, 1)), 1 / q,
-               tolerance = 1e-10)
-  expect_equal(pi(c(1, 2), c(2, 3), c(p, q), mother = c(1, 1)), 1 / (2 * q),
-               tolerance = 1e-10)
-  expect_equal(pi(c(1, 2), c(1, 2), c(p, q), mother = c(1, 2)), 1 / (p + q),
-               tolerance = 1e-10)
-  expect_equal(pi(c(1, 1), c(1, 3), c(p, p), mother = c(1, 2)), 1 / (2 * p),
-               tolerance = 1e-10)
-  expect_equal(pi(c(1, 2), c(3, 3), c(p, q), mother = c(1, 1)), 0,
-               tolerance = 1e-10)
-  expect_true(is.nan(pi(c(1, 2), c(1, 2), c(p, q), mother = c(3, 3))))
-  # no mother: the parent-child kinship index
-  expect_equal(pi(c(1, 2), c(1, 2), c(p, q)), (p + q) / (4 * p * q),
-               tolerance = 1e-10)
-  # brute force: every trio drawn from three alleles
-  f <- c(0.2, 0.3, 0.5)
-  gs <- rbind(c(1, 1), c(1, 2), c(1, 3), c(2, 2), c(2, 3), c(3, 3))
-  trans <- function(m, a, ch) {
-    mean(outer(m, a, function(x, y) {
-      pmin(x, y) == min(ch) & pmax(x, y) == max(ch)
-    }))
-  }
-  for (ic in 1:6) for (im in 1:6) for (ia in 1:6) {
-    ch <- gs[ic, ]
-    den <- sum(vapply(1:6, function(j) {
-      g <- gs[j, ]
-      pg <- if (g[1] == g[2]) f[g[1]]^2 else 2 * f[g[1]] * f[g[2]]
-      pg * trans(gs[im, ], g, ch)
-    }, numeric(1)))
-    num <- trans(gs[im, ], gs[ia, ], ch)
-    got <- pi(ch, gs[ia, ], f[ch], mother = gs[im, ])
-    if (den == 0) expect_true(is.nan(got)) else expect_equal(got, num / den,
-                                                             tolerance = 1e-10)
-  }
-})
-
-test_that("mixlr follows inclusion-exclusion", {
+test_that("mixlr forms the ratio of its two sides", {
   p <- c(a = 0.1, b = 0.2, c = 0.05, d = 0.15)
   r <- mixlr(p, character(0), 0, c("c", "d"), 1)
   expect_equal(unname(r), c(1, 2 * 0.05 * 0.15, 1 / (2 * 0.05 * 0.15)),
                tolerance = 1e-10)
-  # nothing to explain, one unknown: random man not excluded
-  expect_equal(mixlr(p, character(0), 1, character(0), 1)[["num"]], 0.5^2,
-               tolerance = 1e-10)
-  # two unknowns carry all four alleles: 4! ordered assignments
-  expect_equal(mixlr(p, names(p), 2, names(p), 2)[["num"]], 24 * prod(p),
-               tolerance = 1e-10)
-  # three alleles cannot sit in one person
-  expect_equal(mixlr(p, c("a", "b", "c"), 1, "a", 1)[["num"]], 0,
-               tolerance = 1e-10)
-  # brute force, two unknowns must show c
-  s <- sum(p)
-  expect_equal(mixlr(p, "c", 2, "c", 2)[["num"]], s^4 - (s - 0.05)^4,
-               tolerance = 1e-10)
-  expect_equal(mixlr(p, "a", 0, "a", 1)[["num"]], 0, tolerance = 1e-10)
 })
 
 test_that("dbsrch bounds the exact chance by np", {
@@ -105,26 +31,14 @@ test_that("dbsrch bounds the exact chance by np", {
   expect_equal(dbsrch(1e-20, 10)[["any"]], 1e-19, tolerance = 1e-10)
 })
 
-test_that("cllrmin recalibrates without changing the order", {
+test_that("cllrmin and lrcal give the calibrated ratios", {
   s <- c(50, 200, 8)
   d <- c(0.01, 0.2, 1.5)
   r <- cllrmin(s, d)
-  expect_equal(r[["cllr"]], cllr(s, d), tolerance = 1e-10)
-  expect_equal(r[["min"]], 0, tolerance = 1e-10)  # the two sets do not overlap
   expect_equal(r[["cal"]], r[["cllr"]], tolerance = 1e-10)
-  # scaling every ratio changes the cost, not the minimum
   s <- c(3, 0.7, 20, 5)
   d <- c(0.2, 1, 4, 0.05)
   a <- cllrmin(s, d)
-  b <- cllrmin(s * 1000, d * 1000)
-  expect_equal(a[["min"]], b[["min"]], tolerance = 1e-10)
-  expect_gt(b[["cllr"]], a[["cllr"]])
-  expect_lte(a[["min"]], a[["cllr"]])
-  expect_gt(a[["min"]], 0)
-  # by hand: order 0.05d 0.2d 0.7s 1d 3s 4d 5s 20s
-  # blocks: d d | s d | s d | s s  with same-source share 0, 0.5, 0.5, 1
-  expect_equal(a[["min"]], 0.5 * (2 * log2(2) / 4 + 2 * log2(2) / 4),
-               tolerance = 1e-10)
   cal <- lrcal(s, d)
   expect_equal(cal[["same"]], c(1, 1, Inf, Inf), tolerance = 1e-10)
   expect_equal(cal[["diff"]], c(0, 1, 1, 0), tolerance = 1e-10)
@@ -132,10 +46,6 @@ test_that("cllrmin recalibrates without changing the order", {
   fin <- function(x) pmin(pmax(x, 1e-300), 1e300)
   expect_equal(cllr(fin(cal[["same"]]), fin(cal[["diff"]])), a[["min"]],
                tolerance = 1e-10)
-  # ties across the two sets are pooled
-  expect_equal(cllrmin(c(2, 2), c(2, 2))[["min"]], 1, tolerance = 1e-10)
-  # an uninformative reversed system
-  expect_equal(cllrmin(c(0.1, 0.2), c(5, 9))[["min"]], 1, tolerance = 1e-10)
 })
 
 test_that("the plots return what they draw", {
@@ -156,23 +66,31 @@ test_that("the plots return what they draw", {
 })
 
 test_that("bad input to the second forensic set stops in R", {
-  expect_error(kinidx(1:3, 1:2, c(0.1, 0.2)), "`g1`")
-  expect_error(kinidx(c(1, 2), matrix(1, 2, 2), c(0.1, 0.2)), "1 rows")
-  expect_error(kinidx(c(1, 2), c(1, NA), c(0.1, 0.2)), "`g2`")
-  expect_error(kinidx(c(1, 2), c(1, 2), c(0.1, 1.2)), "`freq`")
-  expect_error(kinidx(c(1, 1), c(1, 2), c(0.1, 0.2)), "homozygote")
-  expect_error(kinidx(c(1, 2), c(1, 2), c(0.1, 0.2), "twin"), "`rel`")
-  expect_error(kinidx(c(1, 2), c(1, 2), c(0.1, 0.2), c(0.5, 0.2, 0.2)), "`rel`")
-  expect_error(patidx(c(1, 2), c(1, 2), c(0.1, 0.2), mother = 1), "`mother`")
-  expect_error(mixlr(c(0.1, 0.2), "a", 1, "a", 1), "named")
-  expect_error(mixlr(c(a = 0.7, b = 0.6), "a", 1, "a", 1), "at most 1")
-  expect_error(mixlr(c(a = 0.1), "z", 1, "a", 1), "`np`")
-  expect_error(mixlr(c(a = 0.1), "a", 1, "a", 1.5), "`xd`")
-  expect_error(dbsrch(2, 10), "at most 1")
-  expect_error(dbsrch(0.1, 0), "`n`")
-  expect_error(dbsrch(0.1, 10, pop = 5), "`pop`")
-  expect_error(cllrmin(c(1, -1), 1), "`same`")
-  expect_error(lrcal(1, numeric(0)), "`diff`")
-  expect_error(tipplt(0, 1), "`same`")
-  expect_error(eceplt(1, 1, lo = NA), "`lo`")
+  errs("kinidx", list(
+    list("`g1`", 1:3, 1:2, c(0.1, 0.2)),
+    list("1 rows", c(1, 2), matrix(1, 2, 2), c(0.1, 0.2)),
+    list("`g2`", c(1, 2), c(1, NA), c(0.1, 0.2)),
+    list("`freq`", c(1, 2), c(1, 2), c(0.1, 1.2)),
+    list("homozygote", c(1, 1), c(1, 2), c(0.1, 0.2)),
+    list("`rel`", c(1, 2), c(1, 2), c(0.1, 0.2), "twin"),
+    list("`rel`", c(1, 2), c(1, 2), c(0.1, 0.2), c(0.5, 0.2, 0.2))
+  ))
+  errs("patidx", list(
+    list("`mother`", c(1, 2), c(1, 2), c(0.1, 0.2), mother = 1)
+  ))
+  errs("mixlr", list(
+    list("named", c(0.1, 0.2), "a", 1, "a", 1),
+    list("at most 1", c(a = 0.7, b = 0.6), "a", 1, "a", 1),
+    list("`np`", c(a = 0.1), "z", 1, "a", 1),
+    list("`xd`", c(a = 0.1), "a", 1, "a", 1.5)
+  ))
+  errs("dbsrch", list(
+    list("at most 1", 2, 10),
+    list("`n`", 0.1, 0),
+    list("`pop`", 0.1, 10, pop = 5)
+  ))
+  errs("cllrmin", list(list("`same`", c(1, -1), 1)))
+  errs("lrcal", list(list("`diff`", 1, numeric(0))))
+  errs("tipplt", list(list("`same`", 0, 1)))
+  errs("eceplt", list(list("`lo`", 1, 1, lo = NA)))
 })
