@@ -24,7 +24,7 @@ while IFS="$tab" read -r k from to; do
     echo "MUT $k: MISSED"; missed=$((missed + 1))
   else
     ids=$(grep ': want' "$t/out" | cut -d: -f1 | sort -u | head -5 | tr '\n' ' ')
-    echo "MUT $k: caught, $(tail -1 "$t/out"); first ids: $ids"
+    echo "MUT $k: caught, $(grep -o "[0-9]* checks, [0-9]* failed" "$t/out"); first ids: $ids"
     caught=$((caught + 1))
   fi
 done < dev/mut.tsv

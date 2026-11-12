@@ -320,6 +320,9 @@ int main(int argc, char **argv) {
 #endif
   const int n = clab_selftest(sink, static_cast<int>(sizeof sink), &nf);
   std::fputs(sink, stdout);
+  // a report cut short at the end of the sink has no final newline
+  const std::size_t sl = std::strlen(sink);
+  if (sl > 0 && sink[sl - 1] != '\n') std::fputc('\n', stdout);
 #ifdef CLAB_WRAP
   std::printf("allocations during the self-test: %ld\n", nalloc);
 #endif

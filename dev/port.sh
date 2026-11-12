@@ -31,9 +31,9 @@ one() {
     echo "PORT $lab: warnings"; sed 's/^/  /' "$t/w" | head -20; rc=1
   fi
   if "$t/st" > "$t/o" 2>&1; then
-    echo "PORT $lab: $(tail -1 "$t/o")"
+    echo "PORT $lab: $(grep -o "[0-9]* checks, [0-9]* failed" "$t/o")"
   else
-    echo "PORT $lab: FAILED $(tail -1 "$t/o")"; head -20 "$t/o"; rc=1
+    echo "PORT $lab: FAILED $(grep -o "[0-9]* checks, [0-9]* failed" "$t/o")"; head -20 "$t/o"; rc=1
   fi
 }
 
