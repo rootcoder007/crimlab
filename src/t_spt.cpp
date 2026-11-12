@@ -73,12 +73,13 @@ void run(tk &tt) {
   // so the ranges of p over 8 seeds are compared, unit by unit (they must
   // meet within 4 standard errors, the 3-decimal rounding and one step).
   tk_true(tt, "spt.rc", clab_sptst(a, b, 100, 1999, 1, 0.05, 100, out, glob, work, iwork) == CLAB_OK);
-  int bad = 0, nanok = 1;
+  int bad = 0;
+  bool nanok = true;
   for (int i = 0; i < 100; ++i) {
     tk_near(tt, "spt.diff", out[i], sp_diff[i], 5e-7);
     const double p = out[100 + i];
     if (std::isnan(sp_p[i])) {
-      nanok &= std::isnan(p);
+      nanok = nanok && std::isnan(p);
       continue;
     }
     (void)p;
