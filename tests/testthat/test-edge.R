@@ -1,0 +1,75 @@
+# Failure modes recorded for other packages computing the same quantities
+# (dossiers in the author's notes; the file is named in each comment). Each
+# test shows csls does not share the failure.
+
+test_that("evidence weights are summed as logarithms and never underflow", {
+  # comparison.md: a likelihood ratio formed as exp(a) / exp(b) is 0 / 0
+  # for an atypical item. Here 500 loci each worth 1e-3 combine to 1e-1500,
+  # far below the smallest double, and the logarithm is still exact.
+  p <- rep(1e-3, 500)
+  r <- kinidx(cbind(seq_along(p), seq_along(p)), cbind(seq_along(p),
+                                                       seq_along(p)),
+              cbind(p, p), rel = c(0.9999, 0.0001, 0))
+  expect_true(all(is.finite(r[["locus"]][["idx"]])))
+  expect_equal(r[["log10idx"]], 500 * log10(0.9999 + 0.0001 / 1e-3))
+  expect_equal(gtmp(rep(1e-2, 500), hom = TRUE)[["log10mp"]], -2000)
+  # the posterior of a ratio of 1e300 at a prior of 1e-300 is one half
+  expect_equal(lrpost(1e300, 1e-300), 0.5)
+  expect_equal(lrpost(1e-300, 1 - 1e-16), 1 / (1 + 1e-16 / (1 - 1e-16) *
+                                                  1e300))
+  # the cost of extreme ratios is finite: log2(1e300) bits, no Inf, no NaN
+  expect_equal(cllr(1e-300, 1e-300), 0.5 * log2(1 + 1e300), tolerance = 1e-14)
+  expect_equal(cllr(1, 1e300), 0.5 * (1 + log2(1 + 1e300)), tolerance = 1e-14)
+})
+
+test_that("allele frequencies outside their range are refused, not used", {
+  # DNAtools.md: frequencies that do not form a distribution were used
+  # silently. csls stops on any frequency that cannot be one.
+  expect_error(mixlr(c(a = 0.5, b = 0.5 + 1e-9), "a", 1, "a", 1), "at most 1")
+  expect_error(gtmp(0.5, 0.5 + 1e-9), "`q`")
+  expect_error(kinidx(c(1, 2), c(1, 2), c(0, 0.2)), "`freq`")
+  expect_error(patidx(c(1, 2), c(1, 2), c(0.1, 1.01), mother = c(1, 1)),
+               "`freq`")
+  # a heterozygote of the only two alleles at a locus is allowed
+  expect_equal(gtmp(0.5, 0.5)[["locus"]][["mp"]], 0.5)
+})
+
+test_that("single-source match statistics are the closed forms", {
+  # forensim.md lists these as the checks it could not run there
+  p <- 0.07
+  q <- 0.11
+  expect_equal(gtmp(p, q)[["log10lr"]], -log10(2 * p * q))
+  expect_equal(gtmp(p, hom = TRUE)[["log10lr"]], -log10(p^2))
+})
+
+test_that("a group never seen in daylight gives a ratio of 0, not a fit", {
+  # searchlight.md: a near-separated logistic fit was labelled estimable.
+  # The veil-of-darkness ratio here is a closed form in the counts: a zero
+  # gives exactly 0 and a lopsided table a finite ratio, with no warning.
+  expect_no_warning(r <- vodtst(c(a = 50, b = 0), c(a = 40, b = 3)))
+  expect_equal(r[["ratio"]], c(1, 0))
+  expect_equal(vodtst(c(1, 1e6), c(1e6, 1))[["ratio"]], c(1, 1e12))
+})
+
+# Defects in csls itself, found while writing the tests above. They fail
+# today; set CSLS_DEFECTS=1 to run them. The kernels are fixed separately.
+
+test_that("KNOWN DEFECT: cllr overflows for a subnormal same-source ratio", {
+  skip_if_not(Sys.getenv("CSLS_DEFECTS") == "1", "known defect")
+  # log1p(1 / same) overflows once 1 / same exceeds the largest double; the
+  # cost itself, 0.5 * (log2(1 + 1e310) + 1), is about 515.4 bits
+  expect_equal(cllr(1e-310, 1), 0.5 * (310 * log2(10) + 1), tolerance = 1e-12)
+})
+
+test_that("KNOWN DEFECT: orrisk leaves (0, 1) for a tiny odds ratio", {
+  skip_if_not(Sys.getenv("CSLS_DEFECTS") == "1", "known defect")
+  # OR - 1 rounds to -1 and 1 + (OR - 1) b cancels as b nears 1; the
+  # exposed risk comes back above 1 (1e-15) or Inf (1e-17)
+  for (or in c(1e-15, 1e-17)) {
+    r <- orrisk(or, 0.99, 0.5)
+    a <- r[["exposed"]]
+    b <- r[["unexposed"]]
+    expect_true(a > 0 && a < 1 && b > 0 && b < 1)
+    expect_equal(0.5 * a + 0.5 * b, 0.99, tolerance = 1e-12)
+  }
+})
