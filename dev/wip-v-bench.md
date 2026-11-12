@@ -31,14 +31,28 @@ R_PROFILE_USER=/dev/null. Gate: SRRLIB=~/tmp/Rlib.
   (value checks, sna/tnet/netmem, merge), dev/benchrun.sh, dev/quiet.sh,
   README Speed prose, bench workflow packages.
 
+## Change of machine (coordinator, 17:56)
+Timings of record are taken on the Mac (Apple M2, 8 GB, Homebrew R 4.6.1),
+not on l14; builds, tests and the gate stay on l14. Mac tree:
+/Volumes/VSR/rootcoderfiles/crimlab-bench/v/crimlab (clone of the l14
+bundle), libraries v/lib (crimlab and my counterparts), v/kt0, v/kt1, the
+shared read-only lib crimlab-bench/lib. One timing job at a time across
+agents: v/locked.sh takes crimlab-bench/lock (mkdir), writes owner, removes
+it on exit. The Mac idles at a load of about 2 (the sessions run there):
+each case records its load before and after and is timed again when it
+rose by more than 1.5. No l14 timing run was completed (the cost runs were
+stopped mid-way): no l14 numbers are kept.
+
 ## Next
-1. cost before/after: sh dev/quiet.sh Rscript dev/cost.R ~/tmp/cost1.csv
-   ~/tmp/kt1 ~/tmp/kt0 (log ~/tmp/cost1.log)
-2. test bench.R and bench-net.R on one size, then install the tree into
-   ~/tmp/benchlib and run: sh dev/benchrun.sh ~/tmp/benchlib 3 1800
-   ~/tmp/benchruns
-3. gate: SRRLIB=~/tmp/Rlib GATE="doc test lint cov check srr" sh dev/gate.sh
-4. commits, bundle to /run/media/rootcoder/WD_BLACK/backups/crimlab/
+1. Mac: cost run of record: sh ../locked.sh Rscript dev/cost.R
+   inst/bench/cost.csv ../kt1 ../kt0
+2. Mac: three runs, each under the lock, at least 30 min apart:
+   Rscript dev/bench.R ../runs/benchK; Rscript dev/bench-net.R ../runs/netK
+   (R_LIBS=../lib:../../lib, OMP/OPENBLAS threads 1); then the two merges
+   with BENCH_NOTE set.
+3. l14: fetch the Mac bundle into ~/work/crimlab-v, gate:
+   SRRLIB=~/tmp/Rlib GATE="doc test lint cov check srr" sh dev/gate.sh
+4. bundle to /run/media/rootcoder/WD_BLACK/backups/crimlab/
 
 ## Open questions
 - none

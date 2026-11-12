@@ -17,6 +17,27 @@ if (identical(a[1], "--one")) {
   kt <- get("C_clab_kt", asNamespace("crimlab"))
   nm <- function(k, x) stats::setNames(x, paste0("g", seq_len(k)))
   un <- function(k, x) x
+  # the 1-minute load average, as uptime reports it
+  ld <- function() {
+    x <- tryCatch(readLines("/proc/loadavg", n = 1L), error = function(e) "",
+                  warning = function(w) "")
+    if (!length(x) || !nzchar(x)) {
+      x <- gsub("[{}]", "", paste(suppressWarnings(system2("sysctl",
+        c("-n", "vm.loadavg"), stdout = TRUE, stderr = FALSE)), collapse = " "))
+    }
+    as.numeric(strsplit(trimws(x), " +")[[1]][1])
+  }
+  # a case is timed again (up to 3 times) when the load rose by more than
+  # 1.5 while it was timed; the loads before and after are kept
+  tl <- function(f) {
+    for (try in 1:3) {
+      l0 <- ld()
+      r <- tm(f)
+      l1 <- ld()
+      if (!(l1 - l0 > 1.5)) break
+    }
+    c(r, l0, l1)
+  }
   # a run repeats the call until it lasts 0.2 s; the result is the median
   # of five runs, per call, for the call and for the kernel alone
   tm <- function(f) {
@@ -247,11 +268,11 @@ if (identical(a[1], "--one")) {
                "coofg")
       for (h in if (k[[1]] %in% one) FALSE else c(FALSE, TRUE)) {
         set.seed(20261112)
-        r <- tm(k[[4]](n, h))
+        r <- tl(k[[4]](n, h))
         rows[[length(rows) + 1L]] <- data.frame(
           fn = k[[1]], of = k[[3]], n = n,
           named = if (k[[3]] == "nodes") (if (h) "nodes given" else "no nodes") else h,
-          full = r[1], kern = r[2])
+          full = r[1], kern = r[2], l0 = r[3], l1 = r[4])
         cat(sprintf("%-8s %-18s %8g %-11s %10.3g %10.3g\n", k[[1]], k[[3]], n,
                     rows[[length(rows)]]$named, r[1], r[2]))
       }
@@ -272,11 +293,21 @@ run <- function(lib) {
 }
 r <- run(libs[1])
 r$out <- 1 - r$kern / r$full
+r$machine <- Sys.info()[["nodename"]]
+sh <- function(cmd, args) {
+  tryCatch(suppressWarnings(system2(cmd, args, stdout = TRUE, stderr = FALSE)),
+           error = function(e) character(0))
+}
+cpu <- c(sub("^Model name: *", "", grep("^Model name:", sh("lscpu", character()), value = TRUE)),
+         sh("sysctl", c("-n", "machdep.cpu.brand_string")))
+r$cpu <- paste(c(cpu, "")[1], Sys.info()[["machine"]])
 if (length(libs) > 1) {
   r0 <- run(libs[2])
   r$full0 <- r0$full
   r$kern0 <- r0$kern
   r$out0 <- 1 - r0$kern / r0$full
+  r$l00 <- r0$l0
+  r$l10 <- r0$l1
 }
 r$r <- paste(R.version$major, R.version$minor, sep = ".")
 r$date <- format(Sys.Date())

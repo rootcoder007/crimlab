@@ -12,14 +12,15 @@
 #                                             inst/bench/bench.csv, bench.md
 #                                             and the README lists
 #
-# A run is valid only on a quiet machine: dev/benchrun.sh starts it when
-# the 1-minute load average is at most 1.0 and repeats it when the load at
-# its end is above 1.5. Each run records the machine, CPU, R version, CPU
-# frequency governor, the compiler flags R builds packages with, the load
-# at its start and end, and the time. The merge keeps, for each row, the
-# run whose ratio is the median over the runs, with the smallest and
-# largest ratio (lo, hi). Exit status 1 on a disagreement or an error,
-# never on a slow result.
+# Each run records the machine, CPU, R version, CPU frequency governor
+# (where the system reports one), the compiler flags R builds packages
+# with, the 1-minute load average at its start and end, and the time; each
+# row records the load before and after its timing, and a row whose load
+# rose by more than 1.5 while it was timed is timed again (up to three
+# times; the row keeps its last loads). dev/benchrun.sh takes the runs.
+# The merge keeps, for each row, the run whose ratio is the median over the
+# runs, with the smallest and largest ratio (lo, hi). Exit status 1 on a
+# disagreement or an error, never on a slow result.
 #
 # Columns: fn, case (which arguments, where one function is timed two
 # ways), ref (package::function), kind ("third" for another package, "own"
@@ -28,7 +29,8 @@
 # (other / crimlab: above 1, crimlab is faster), agree ("yes", "no",
 # "error", or "not run" with the reason in note), tol and scale (relative to
 # each value or to the largest), refver (the counterpart's version), and the
-# run's machine, cpu, r, gov, load0, load1, start.
+# row's l0 and l1 (load before and after its timing), and the run's
+# machine, cpu, r, gov, load0, load1, start.
 #
 # Counterparts: rmorie (r-universe, not CRAN); Familias, forrel, paramlink
 # and relSim for kinidx and patidx (Familias also gtmp); forensim and
@@ -553,7 +555,12 @@ rd1 <- function(f) {
   x <- tryCatch(suppressWarnings(readLines(f, n = 1L)), error = function(e) "")
   if (length(x)) x else ""
 }
-load1 <- function() as.numeric(strsplit(rd1("/proc/loadavg"), " ")[[1]][1])
+# the 1-minute load average, as uptime reports it
+load1 <- function() {
+  x <- rd1("/proc/loadavg")
+  if (!nzchar(x)) x <- gsub("[{}]", "", paste(sh("sysctl", c("-n", "vm.loadavg")), collapse = " "))
+  as.numeric(strsplit(trimws(x), " +")[[1]][1])
+}
 kind <- function(ref) {
   ifelse(ref == "base R", "base", ifelse(startsWith(ref, "rmorie::"), "own", "third"))
 }
@@ -581,7 +588,7 @@ if (!merge) {
                         n = n, of = k$of, crimlab = NA_real_, other = NA_real_,
                         ratio = NA_real_, agree = "error", tol = k$tol,
                         scale = if (k$sc) "largest" else "each", refver = "",
-                        note = "")
+                        note = "", l0 = NA_real_, l1 = NA_real_)
       p <- pkg(k$ref)
       if (p != "base R" && !have(p)) {
         row$agree <- "not run"
@@ -595,10 +602,15 @@ if (!merge) {
           rb <- eval(k$b, e)
           if (same(val(k$va, ra, e), val(k$vb, rb, e), k$tol, k$sc)) {
             row$agree <- "yes"
-            tm <- bench::mark(exprs = list(k$a, k$b), env = e, check = FALSE,
-                              min_iterations = 3, min_time = 0.5,
-                              memory = FALSE, filter_gc = FALSE,
-                              time_unit = "s")
+            for (try in 1:3) {
+              row$l0 <- load1()
+              tm <- bench::mark(exprs = list(k$a, k$b), env = e, check = FALSE,
+                                min_iterations = 3, min_time = 0.5,
+                                memory = FALSE, filter_gc = FALSE,
+                                time_unit = "s")
+              row$l1 <- load1()
+              if (!(row$l1 - row$l0 > 1.5)) break
+            }
             row$crimlab <- as.numeric(tm$median[1])
             row$other <- as.numeric(tm$median[2])
             row$ratio <- row$other / row$crimlab
@@ -658,17 +670,20 @@ utils::write.csv(tab, "inst/bench/bench.csv", row.names = FALSE)
 
 g <- function(x) ifelse(is.na(x), "", formatC(x, digits = 3, format = "g"))
 st <- vapply(rs, function(t) {
-  sprintf("%s (load %s to %s)", t$start[1], t$load0[1], t$load1[1])
+  sprintf("%s, load %s to %s", t$start[1], t$load0[1], t$load1[1])
 }, "")
 flags <- readLines(file.path(runs[1], "flags.txt"))
 md <- c(
   "<!-- written by dev/bench.R from bench.csv; do not edit -->",
   "",
-  sprintf("Machine %s: %s, R %s, CPU frequency governor %s; crimlab built with R's default flags (%s).",
-          tab$machine[1], tab$cpu[1], tab$r[1], tab$gov[1], paste(flags, collapse = " ")),
+  sprintf("Machine %s: %s, R %s%s; crimlab built with R's default flags (%s).",
+          tab$machine[1], tab$cpu[1], tab$r[1],
+          if (!is.na(tab$gov[1]) && nzchar(tab$gov[1])) paste0(", CPU frequency governor ", tab$gov[1]) else "",
+          paste(flags, collapse = " ")),
   "",
-  sprintf("%d runs, each started at a 1-minute load average of at most 1.0 and kept only if it ended at 1.5 or below: %s. Each row is from the run whose ratio is the median of the %d; lo and hi are the smallest and largest ratio over the runs.",
-          length(rs), paste(st, collapse = "; "), length(rs)),
+  sprintf("%d runs (start time, 1-minute load average at the start and at the end): %s. A row whose load rose by more than 1.5 while it was timed was timed again; the loads of each row are in bench.csv (l0, l1). Each row is from the run whose ratio is the median of the %d; lo and hi are the smallest and largest ratio over the runs.%s",
+          length(rs), paste(st, collapse = "; "), length(rs),
+          if (nzchar(Sys.getenv("BENCH_NOTE"))) paste0(" ", Sys.getenv("BENCH_NOTE")) else ""),
   "",
   "Median seconds per call; ratio = other / crimlab (above 1: crimlab faster). Kind: third, another package; own, rmorie (the maintainer's own package); base, a base-R implementation of the formula where no package computes the quantity.",
   "",

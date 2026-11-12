@@ -82,7 +82,8 @@ part <- function(x, y) {
 }
 
 rows <- list()
-add <- function(meas, ref, n, m, cs, rs, rbs, ok, tol, note = "") {
+add <- function(meas, ref, n, m, cs, rs, rbs, ok, tol, note = "", l0 = NA,
+                l1 = NA) {
   sp <- if (is.na(rs) || is.na(cs)) NA else rs / cs
   fast <- if (is.na(sp)) NA else if (sp > 1) "yes" else "no"
   if (identical(fast, "no") && note == "") {
@@ -97,29 +98,46 @@ add <- function(meas, ref, n, m, cs, rs, rbs, ok, tol, note = "") {
   rows[[length(rows) + 1L]] <<- data.frame(
     measure = meas, reference = ref, nodes = n, edges = m, crimlab_s = cs,
     ref_s = rs, ref_build_s = rbs, speed = sp, faster = fast, agree = agree,
-    tol = tol, note = note
+    tol = tol, note = note, l0 = l0, l1 = l1
   )
   cat(sprintf("%-7s %-40s %7g %9.3g %9.3g %7.3g %s %s\n", meas, ref, n, cs,
               rs, sp, agree, note))
 }
-# a counterpart: time it and check it, or record why it was not
+# a counterpart: check it and time it with crimlab's call (cs, a function
+# returning seconds), or record why it was not timed. A pair whose load
+# rose by more than 1.5 while it was timed is timed again (up to 3 times).
 cp <- function(meas, ref, n, m, cs, ok, tol, run, build = NA, note = "") {
   if (!isTRUE(ok)) {
-    add(meas, ref, n, m, cs, NA, NA, if (is.na(ok)) NA else FALSE, tol,
+    add(meas, ref, n, m, NA, NA, NA, if (is.na(ok)) NA else FALSE, tol,
         if (is.na(ok)) note else "values differ")
     return(invisible())
   }
-  r <- run()
-  add(meas, ref, n, m, cs, r, if (is.na(build)) NA else build + r, TRUE, tol, note)
+  for (try in 1:3) {
+    l0 <- ld()
+    c1 <- cs()
+    r <- run()
+    l1 <- ld()
+    if (!(l1 - l0 > 1.5)) break
+  }
+  add(meas, ref, n, m, c1, r, if (is.na(build)) NA else build + r, TRUE, tol,
+      note, l0, l1)
 }
+# the 1-minute load average, as uptime reports it
 ld <- function() {
-  tryCatch(as.numeric(strsplit(readLines("/proc/loadavg"), " ")[[1]][1]),
-           error = function(e) NA_real_, warning = function(w) NA_real_)
+  x <- tryCatch(readLines("/proc/loadavg", n = 1L), error = function(e) "",
+                warning = function(w) "")
+  if (!length(x) || !nzchar(x)) {
+    x <- gsub("[{}]", "", paste(suppressWarnings(system2("sysctl",
+      c("-n", "vm.loadavg"), stdout = TRUE, stderr = FALSE)), collapse = " "))
+  }
+  as.numeric(strsplit(trimws(x), " +")[[1]][1])
 }
 load0 <- ld()
 start <- format(Sys.time(), "%Y-%m-%d %H:%M %Z")
 
-for (n in c(1e3, 1e4, 1e5)) {
+# NETSIZES (e.g. "1e3") limits the sizes, for a check of the script
+sizes <- as.numeric(strsplit(Sys.getenv("NETSIZES", "1e3 1e4 1e5"), " +")[[1]])
+for (n in sizes) {
   g <- graph(n)
   m <- length(g$f)
   small <- n <= 1e3
@@ -152,7 +170,7 @@ for (n in c(1e3, 1e4, 1e5)) {
   cat("n =", n, "built\n")
 
   x <- ntdeg(g$f, g$t, w = g$w, nodes = g$nodes)
-  cs <- tm(ntdeg(g$f, g$t, w = g$w, nodes = g$nodes))
+  cs <- function() tm(ntdeg(g$f, g$t, w = g$w, nodes = g$nodes))
   cp("ntdeg", "igraph::degree + strength", n, m, cs,
      eq(x$deg, degree(ig), 0) && eq(x$wdeg, strength(ig), 1e-12), 1e-12,
      function() tm({degree(ig); strength(ig)}), tb)
@@ -177,7 +195,7 @@ for (n in c(1e3, 1e4, 1e5)) {
 
   if (n <= 1e4) {
     x <- ntbtw(g$f, g$t, nodes = g$nodes)$btw
-    cs <- tm(ntbtw(g$f, g$t, nodes = g$nodes))
+    cs <- function() tm(ntbtw(g$f, g$t, nodes = g$nodes))
     cp("ntbtw", "igraph::betweenness", n, m, cs,
        eq(x, betweenness(ig, weights = NA), 1e-9), 1e-9,
        function() tm(betweenness(ig, weights = NA)), tb)
@@ -194,7 +212,7 @@ for (n in c(1e3, 1e4, 1e5)) {
        note = dense)
 
     x <- ntcls(g$f, g$t, nodes = g$nodes)
-    cs <- tm(ntcls(g$f, g$t, nodes = g$nodes))
+    cs <- function() tm(ntcls(g$f, g$t, nodes = g$nodes))
     cp("ntcls", "igraph::closeness + harmonic_centrality", n, m, cs,
        eq(x$cls, closeness(ig, weights = NA), 1e-12) &&
          eq(x$hrm, harmonic_centrality(ig, weights = NA), 1e-12), 1e-12,
@@ -229,7 +247,7 @@ for (n in c(1e3, 1e4, 1e5)) {
   e <- g$f %in% keep & g$t %in% keep
   gc <- induced_subgraph(ig, keep)
   x <- ntevc(g$f[e], g$t[e], w = g$w[e], nodes = keep)$cent$evc
-  cs <- tm(ntevc(g$f[e], g$t[e], w = g$w[e], nodes = keep))
+  cs <- function() tm(ntevc(g$f[e], g$t[e], w = g$w[e], nodes = keep))
   cp("ntevc", "igraph::eigen_centrality", n, sum(e), cs,
      eq(x, eigen_centrality(gc)$vector, 1e-6), 1e-6,
      function() tm(eigen_centrality(gc)))
@@ -242,7 +260,7 @@ for (n in c(1e3, 1e4, 1e5)) {
      note = dense)
 
   x <- ntcore(g$f, g$t, nodes = g$nodes)$core
-  cs <- tm(ntcore(g$f, g$t, nodes = g$nodes))
+  cs <- function() tm(ntcore(g$f, g$t, nodes = g$nodes))
   cp("ntcore", "igraph::coreness", n, m, cs, eq(x, coreness(ig), 0), 0,
      function() tm(coreness(ig)), tb)
   cp("ntcore", "sna::kcores", n, m, cs,
@@ -253,7 +271,7 @@ for (n in c(1e3, 1e4, 1e5)) {
      function() tm(netmem::k_core(A)), note = dense)
 
   x <- ntcmp(g$f, g$t, nodes = g$nodes, dir = TRUE)
-  cs <- tm(ntcmp(g$f, g$t, nodes = g$nodes, dir = TRUE))
+  cs <- function() tm(ntcmp(g$f, g$t, nodes = g$nodes, dir = TRUE))
   cp("ntcmp", "igraph::components weak + strong", n, m, cs,
      part(x$weak, components(igd, "weak")$membership) &&
        part(x$strong, components(igd, "strong")$membership), 0,
@@ -278,7 +296,7 @@ for (n in c(1e3, 1e4, 1e5)) {
   set.seed(1)
   il <- cluster_louvain(ig)
   q <- ntmod(g$f, g$t, x$memb$comm, w = g$w, nodes = g$nodes)
-  cs <- tm(ntlvn(g$f, g$t, w = g$w, nodes = g$nodes, seed = 1))
+  cs <- function() tm(ntlvn(g$f, g$t, w = g$w, nodes = g$nodes, seed = 1))
   cp("ntlvn", "igraph::cluster_louvain", n, m, cs,
      abs(q - modularity(il)) <= 0.02, 0.02,
      function() tm({set.seed(1); cluster_louvain(ig)}), tb,
@@ -286,7 +304,7 @@ for (n in c(1e3, 1e4, 1e5)) {
 
   memb <- rep_len(1:20, n)
   x <- ntmod(g$f, g$t, memb, w = g$w, nodes = g$nodes)
-  cs <- tm(ntmod(g$f, g$t, memb, w = g$w, nodes = g$nodes))
+  cs <- function() tm(ntmod(g$f, g$t, memb, w = g$w, nodes = g$nodes))
   cp("ntmod", "igraph::modularity", n, m, cs, eq(x, modularity(ig, memb), 1e-12),
      1e-12, function() tm(modularity(ig, memb)), tb)
   cp("ntmod", "netmem::modularity_score", n, m, cs,
@@ -297,7 +315,7 @@ for (n in c(1e3, 1e4, 1e5)) {
   grp <- rep_len(c("a", "b", "c"), n)
   x <- ntbrk(g$f, g$t, grp, nodes = g$nodes, dir = TRUE)
   xb <- as.matrix(x[c("coord", "itin", "repr", "gate", "liais")])
-  cs <- tm(ntbrk(g$f, g$t, grp, nodes = g$nodes, dir = TRUE))
+  cs <- function() tm(ntbrk(g$f, g$t, grp, nodes = g$nodes, dir = TRUE))
   cp("ntbrk", "sna::brokerage", n, m, cs,
      if (small) eq(xb, sna::brokerage(Ad, grp)$raw.nli[, 1:5], 0) else NA, 0,
      function() tm(sna::brokerage(Ad, grp)), note = dense)
@@ -332,7 +350,7 @@ for (n in c(1e3, 1e4, 1e5)) {
   }
   pb <- bip()
   pe <- as_edgelist(pb)
-  cs <- tm(coofg(inc, off))
+  cs <- function() tm(coofg(inc, off))
   cp("coofg", "igraph::bipartite_projection (with building)", n, length(inc), cs,
      pw(pe[, 1], pe[, 2], E(pb)$weight), 0, function() tm(bip()), 0)
   tp <- function() {
