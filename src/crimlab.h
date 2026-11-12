@@ -776,6 +776,47 @@ int clab_rswp(const double *d, int n, const double *gam, int ng, double z,
 int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
               double *hi, double *work);
 
+/* Group-based trajectory model for counts (Nagin 1999,
+ * doi:10.1037/1082-989X.4.2.139; zero-inflated Poisson within groups as in
+ * Nielsen et al. 2014, doi:10.1080/03610926.2012.719986, and Lambert 1992,
+ * doi:10.2307/1269547). Unit i
+ * belongs to group k with probability prob[k]; given k, its counts y_it
+ * are independent, Poisson with log mean off_it + x_t' beta_k, and, when
+ * q > 0, zero with extra probability logistic(z_t' gamma_k).
+ * y: n x nt counts, column-major; NaN or a negative value is missing and
+ * contributes nothing; other values must be whole numbers. off: n x nt log
+ * exposures or NULL. x: nt x p (p >= 1), z: nt x q (q >= 0; 0 gives a
+ * Poisson model) designs, column-major, shared by all units (for example
+ * B-spline bases of time). par: ng blocks of (beta (p), gamma (q)); prob:
+ * ng positive shares summing to 1.
+ *
+ * clab_zipll: the log-likelihood sum_i log sum_k prob_k prod_t f_k(y_it),
+ * with each cell in closed form, log(e^a + e^-lam) and log(1 + e^a)
+ * without overflow, and log-sum-exp over groups. Out: w (n x ng posterior
+ * memberships), ll. work: 2 nt doubles. Time O(n nt ng + nt ng (p + q)).
+ *
+ * clab_zipem: EM from the given par and prob (updated in place): the
+ * E-step above; the M-step sets prob to the mean memberships and raises
+ * each group's expected complete-data log-likelihood by up to four damped
+ * Newton steps on (beta, gamma) with the analytic Hessian, accepting a step
+ * only if it increases (a generalised EM), so the log-likelihood never
+ * decreases. The derivatives are summed over units period by period and
+ * then expanded over the design, since the design rows depend on the
+ * period only. Stops when an
+ * iteration gains at most tol (1 + |ll|) or after maxit iterations. Out:
+ * par, prob, w, ll, iter. One start per call; several starts are the
+ * caller's loop. work: 2 (p + q)^2 + 3 (p + q) + 7 nt doubles. Time per
+ * iteration O(ng (n nt + nt (p + q)^2 + (p + q)^3)) times the Newton
+ * steps. */
+int clab_zipll(const double *y, int n, int nt, const double *off,
+               const double *x, int p, const double *z, int q, int ng,
+               const double *par, const double *prob, double *w, double *ll,
+               double *work);
+int clab_zipem(const double *y, int n, int nt, const double *off,
+               const double *x, int p, const double *z, int q, int ng,
+               double *par, double *prob, double *w, double *ll, int maxit,
+               double tol, int *iter, double *work);
+
 #ifdef __cplusplus
 }
 #endif
