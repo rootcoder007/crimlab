@@ -1,0 +1,47 @@
+# The kernels' self-test without R, on other machines: dev/port.sh, the
+# same script as the local runs.
+name: port
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["src/**", "dev/port.sh", ".github/workflows/port.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: compilers and flags
+        run: sh dev/port.sh flags
+      - name: memory and allocation
+        run: sh dev/port.sh mem
+      - name: speed
+        run: sh dev/port.sh bench
+
+  m32:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: 32-bit toolchain
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq g++-multilib
+      - name: x86 32-bit, x87 and SSE2
+        run: sh dev/port.sh m32
+
+  emu:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [musl, i386, i387, armv7, aarch64, riscv64, ppc64le, s390x]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
+      - name: ${{ matrix.arch }}
+        run: ENGINE=docker sh dev/port.sh emu ${{ matrix.arch }}
