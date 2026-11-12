@@ -72,4 +72,12 @@ void t_frns(tk &t);
 void t_pol(tk &t);
 void t_corr(tk &t);
 
+// The spatial families: big = 1 runs the extended simulations (the
+// standalone program's "ext" mode), 0 the default checks; b_<family>
+// prints the timings (bench mode, standalone only).
+void t_geo(tk &t, int big);
+void b_geo();
+void t_cgr(tk &t, int big);
+void b_cgr();
+
 #endif

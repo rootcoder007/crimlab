@@ -208,6 +208,114 @@ int clab_sntbnd(const double *y, const int *z, const double *w, int n,
 int clab_hzdsel(double s, double h, double l, const double *ah,
                 const double *al, double *out);
 
+/* ------------------------------------------------------------------------
+ * Spatial kernels: units. Every planar spatial kernel below takes
+ * projected coordinates in one length unit (metres, say) and returns
+ * lengths in that unit and areas in its square. None of them can tell
+ * longitude and latitude from metres, so lon/lat input must go through
+ * clab_eqproj first (or clab_hvdist for distances alone); a distance or
+ * bandwidth given in metres against degrees is the classic silent error.
+ * ------------------------------------------------------------------------ */
+
+/* Great-circle distances on a sphere. lon1, lat1, lon2, lat2: n pairs of
+ * points in degrees (latitude in [-90, 90], longitude any finite value);
+ * r > 0 the sphere's radius (6371008.8 m is the mean Earth radius). Out:
+ * d, n distances in the unit of r. The central angle is atan2 of the cross
+ * and dot products of the two unit vectors, written so that nothing
+ * cancels: accurate to a few ulps from coincident points to antipodes
+ * (Vincenty 1975, doi:10.1179/sre.1975.23.176.88, the sphere case). O(n). */
+int clab_hvdist(const double *lon1, const double *lat1, const double *lon2,
+                const double *lat2, int n, double r, double *d);
+
+/* Lambert azimuthal equal-area projection of the sphere about (lon0,
+ * lat0) (Snyder 1987, doi:10.3133/pp1395, ch. 24). lon, lat: n points in
+ * degrees; r > 0 the radius. Out: x (east), y (north), n each, in the unit
+ * of r. Areas are exact, so intensities, nearest-neighbour expectations and
+ * K functions computed on x, y are right; local lengths are scaled by
+ * cos(c / 2) towards the centre and 1 / cos(c / 2) across (c the central
+ * angle), so within 100 km of the centre on the Earth every length is right
+ * to 3.1e-5 relative (2R sin(c / 2) against R c for distances from the
+ * centre).
+ * CLAB_EDOM for a point within about 1e-6 rad of the antipode. O(n). */
+int clab_eqproj(const double *lon, const double *lat, int n, double lon0,
+                double lat0, double r, double *x, double *y);
+
+/* Centrographic summary (Bachi 1957; Neft 1962). x, y: n >= 1 points; w:
+ * NULL or n finite non-negative weights with a positive sum W (frequency
+ * weights); k in {0, 1, 2}: the dispersions divide by W - k, which must be
+ * positive. k = 1 makes sx^2, sy^2 and sdd^2 unbiased for the variances
+ * and for E|X - mu|^2 (each coordinate loses one degree of freedom to its
+ * mean); k = 2 is the convention of some crime-mapping texts, which take
+ * the two means as costing two degrees of freedom from each sum. Out, 10:
+ * W, the (weighted) mean centre mx, my (the point minimising the weighted
+ * sum of squared distances), sx, sy, the standard distance deviation sdd =
+ * sqrt(sx^2 + sy^2 with the same divisor), the geometric means gx, gy and
+ * the harmonic means hx, hy of the coordinates (NaN for a coordinate with
+ * a non-positive value under positive weight: they are not defined there,
+ * and they change with the origin of the coordinates). Moments are taken
+ * about the refined mean with compensated sums. O(n). */
+int clab_cgstat(const double *x, const double *y, const double *w, int n,
+                int k, double *out);
+
+/* Median centre: the median of x and the median of y (the mean of the two
+ * middle values for even n). Not rotation invariant: it depends on the
+ * axes. work: n doubles. Out, 2. O(n log n). */
+int clab_cgmedn(const double *x, const double *y, int n, double *work,
+                double *out);
+
+/* Centre of minimum distance (the Weber point, spatial median): the point
+ * c minimising sum w_i |p_i - c|. Weiszfeld's iteration (1937, translated
+ * doi:10.1007/s10479-008-0352-z) with the modification of Vardi and Zhang
+ * (2000, doi:10.1073/pnas.97.4.1423), which keeps each step defined and
+ * the objective non-increasing when an iterate falls on a data point
+ * (including coincident points, whose weights add). x, y, w as for
+ * clab_cgstat; start: NULL (the weighted mean centre) or a starting point;
+ * tol > 0: stop when a step is at most tol times the root mean squared
+ * distance to the mean centre; maxit >= 0 steps at most. Out, 6: cx, cy,
+ * the objective sum w_i |p_i - c|, the optimality gap max(0, |R| - eta)
+ * (R the sum of unit vectors from c to the points, eta the weight at c;
+ * 0 if and only if c is a minimiser), the number of steps and a code: 2 at
+ * an exact minimiser, 1 when the step fell below tol, 0 when maxit was
+ * reached. The minimiser is unique unless all points are collinear with
+ * an even split of weight, when every point of a segment minimises. O(n)
+ * per step. */
+int clab_webpt(const double *x, const double *y, const double *w, int n,
+               const double *start, double tol, int maxit, double *out);
+
+/* Standard deviational ellipse, from the weighted covariance matrix C =
+ * (sum w_i d_i d_i^T) / (W - k) of the points about their mean centre: the
+ * axes lie along the eigenvectors of C and the semi-axes are c times the
+ * square roots of its eigenvalues (Wang, Shi and Miao 2015,
+ * doi:10.1371/journal.pone.0118537). This is the same ellipse as the
+ * rotated-axes formulas of Lefever (1926) and Ebdon (1988), whose angle
+ * minimises the sum of squared distances to the rotated axis, once the same
+ * divisor is used; texts differ only in that divisor (k) and in the
+ * multiplier c (some multiply by sqrt 2). Gong (2002,
+ * doi:10.1111/j.1538-4632.2002.tb01082.x) shows that Lefever's curve of the
+ * standard deviation by direction is not this ellipse; the ellipse is
+ * returned, not the curve. For bivariate normal points the ellipse with c =
+ * sqrt(-2 log(1 - p)) covers a share p (c = 1: 39.3%, c = 2: 86.5%). x, y,
+ * w, k as for clab_cgstat; c > 0. Out, 6: mx, my, a >= b (semi-axes), the
+ * angle of the major axis in [0, pi) anticlockwise from the x axis (0 when
+ * a = b), and the area pi a b. O(n). */
+int clab_sdell(const double *x, const double *y, const double *w, int n, int k,
+               double c, double *out);
+
+/* Convex hull by Andrew's monotone chain (Andrew 1979,
+ * doi:10.1016/0020-0190(79)90072-3) with an exact orientation predicate
+ * (floating-point filter, then an exact expansion; Shewchuk 1997,
+ * doi:10.1007/PL00009321), so near-collinear points never make a wrong
+ * turn. x, y: n >= 1 points with each coordinate 0 or of magnitude in
+ * [1e-140, 1e150] (the range in which the predicate is exact). idx: n ints
+ * of workspace; hull: 2n ints, of which the first *nh receive the vertex
+ * indices anticlockwise from the lowest-x (then lowest-y) point. Points on
+ * an edge are not vertices; of coincident points the one with the smallest
+ * index is reported. Out, 2: area (shoelace) and perimeter; one distinct
+ * point gives nh = 1 and 0, 0; collinear points give their two ends, area 0
+ * and twice the segment's length. O(n log n). */
+int clab_cvhull(const double *x, const double *y, int n, int *idx, int *hull,
+                int *nh, double *out);
+
 #ifdef __cplusplus
 }
 #endif

@@ -12,6 +12,9 @@
 # ENGINE: podman (default) or docker. Prints one PORT line per run.
 set -u
 src="src/core.cpp src/t_disp.cpp src/t_frns.cpp src/t_pol.cpp src/t_corr.cpp
+src/cgeo.cpp
+src/geo.cpp src/t_geo.cpp
+src/cgr.cpp src/t_cgr.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$

@@ -160,6 +160,8 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_frns(t);
   t_pol(t);
   t_corr(t);
+  t_geo(t, 0);
+  t_cgr(t, 0);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
 }
@@ -312,7 +314,23 @@ int bench() {
 }  // namespace
 
 int main(int argc, char **argv) {
-  if (argc > 1 && std::strcmp(argv[1], "bench") == 0) return bench();
+  if (argc > 1 && std::strcmp(argv[1], "bench") == 0) {
+    const int rc = bench();
+    b_geo();
+    b_cgr();
+    return rc;
+  }
+  if (argc > 1 && std::strcmp(argv[1], "ext") == 0) {
+    // the spatial families with their full-size simulations
+    static char xs[1 << 16];
+    tk t = {0, 0, xs, sizeof xs, 0};
+    xs[0] = '\0';
+    t_geo(t, 1);
+    t_cgr(t, 1);
+    std::fputs(xs, stdout);
+    std::printf("%ld checks, %ld failed\n", t.n, t.nf);
+    return t.nf == 0 ? 0 : 1;
+  }
   static char sink[4096];
   int nf = 0;
 #ifdef CLAB_WRAP
