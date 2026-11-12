@@ -80,16 +80,29 @@ test_that("bad input stops in R with the argument named", {
 
 test_that("proof names real theorems", {
   p <- proof()
-  expect_setequal(p[["fn"]], c("vodtst", "orrisk", "outtst", "dspbm", "dyadrt"))
+  expect_true(all(c("vodtst", "orrisk", "outtst", "dspbm", "dyadrt", "gtmp",
+                    "kinidx") %in% p[["fn"]]))
   expect_equal(nrow(proof("dspbm")), 2L)
   expect_error(proof("nope"), "no proof recorded")
   expect_error(proof(1), "function names")
+  # every function proof() names is exported
+  expect_true(all(p[["fn"]] %in% getNamespaceExports("csls")))
+  has <- function(path, thm) {
+    src <- readLines(path, warn = FALSE)
+    any(grepl(paste0("^theorem ", sub(".*\\.", "", thm), "\\b"), src))
+  }
+  own <- p[p[["src"]] == "csls", ]
+  for (k in seq_len(nrow(own))) {
+    f <- system.file(own[["file"]][k], package = "csls")
+    expect_true(nzchar(f))
+    expect_true(has(f, own[["theorem"]][k]), info = own[["theorem"]][k])
+  }
   lean <- Sys.getenv("CSLS_LEAN")  # path to rmorie research/lean, when present
   skip_if(!nzchar(lean) || !dir.exists(lean), "Lean ledger not present")
-  for (k in seq_len(nrow(p))) {
-    src <- readLines(file.path(lean, p[["file"]][k]), warn = FALSE)
-    nm <- sub(".*\\.", "", p[["theorem"]][k])
-    expect_true(any(grepl(paste0("^theorem ", nm, "\\b"), src)), info = nm)
+  led <- p[p[["src"]] == "rmorie", ]
+  for (k in seq_len(nrow(led))) {
+    expect_true(has(file.path(lean, led[["file"]][k]), led[["theorem"]][k]),
+                info = led[["theorem"]][k])
   }
 })
 

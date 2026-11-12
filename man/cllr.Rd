@@ -20,11 +20,8 @@ One number, the cost in bits.
 Scores a set of likelihood ratios against the truth. Ratios from
 same-source comparisons should be large and ratios from different-source
 comparisons small; the cost is 0 for a perfect system, 1 for one that
-always answers 1, and above 1 for one that misleads.
-}
-\details{
-No machine-checked proof is recorded for this function; \code{proof()} does not
-list it.
+always answers 1, and above 1 for one that misleads. See \code{proof("cllr")}
+and \code{\link[=cllrmin]{cllrmin()}}.
 }
 \examples{
 cllr(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))

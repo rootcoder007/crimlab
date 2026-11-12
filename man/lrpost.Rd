@@ -19,7 +19,7 @@ The posterior probabilities.
 Turns a likelihood ratio into the probability of the first hypothesis,
 which needs a prior. A large ratio with a small prior can still leave that
 probability low; reading the ratio as the probability is the prosecutor's
-fallacy.
+fallacy. See \code{proof("lrpost")}.
 }
 \examples{
 lrpost(lr = 1e6, prior = 1 / 5e6)

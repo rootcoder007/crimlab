@@ -3,11 +3,10 @@
 #' The chance that an unrelated person from the same population shares a DNA
 #' profile, locus by locus and overall. With `theta = 0` this is the product
 #' rule (`p^2` for a homozygote, `2pq` for a heterozygote). A positive `theta`
-#' applies the Balding-Nichols correction for shared ancestry, which makes a
-#' match less surprising.
-#'
-#' No machine-checked proof is recorded for this function; `proof()` does not
-#' list it.
+#' applies the Balding-Nichols correction for shared ancestry. That never
+#' makes a homozygote match rarer than the product rule says; it can make a
+#' heterozygote match rarer when both alleles are common. See
+#' `proof("gtmp")`.
 #'
 #' @param p Frequency of the first allele at each locus: numbers above 0 and
 #'   at most 1, optionally named by locus.
@@ -63,10 +62,8 @@ gtmp <- function(p, q = NULL, hom = FALSE, theta = 0) {
 #' Scores a set of likelihood ratios against the truth. Ratios from
 #' same-source comparisons should be large and ratios from different-source
 #' comparisons small; the cost is 0 for a perfect system, 1 for one that
-#' always answers 1, and above 1 for one that misleads.
-#'
-#' No machine-checked proof is recorded for this function; `proof()` does not
-#' list it.
+#' always answers 1, and above 1 for one that misleads. See `proof("cllr")`
+#' and [cllrmin()].
 #'
 #' @param same Likelihood ratios from same-source comparisons: positive
 #'   numbers.
@@ -90,7 +87,7 @@ cllr <- function(same, diff) {
 #' Turns a likelihood ratio into the probability of the first hypothesis,
 #' which needs a prior. A large ratio with a small prior can still leave that
 #' probability low; reading the ratio as the probability is the prosecutor's
-#' fallacy.
+#' fallacy. See `proof("lrpost")`.
 #'
 #' @param lr Likelihood ratios: positive numbers.
 #' @param prior The prior probability of the first hypothesis, strictly

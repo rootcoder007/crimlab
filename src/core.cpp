@@ -180,4 +180,143 @@ int csls_cllr(const double *same, int ns, const double *diff, int nd,
   return CSLS_OK;
 }
 
+int csls_lrcal(const double *lr, const int *same, int n, double *post,
+               double *work, double *cllrmin) {
+  if (n < 2) return CSLS_EARG;
+  double *sum = work;      // same-source count of each block
+  double *cnt = work + n;  // size of each block
+  int k = 0;
+  double ns = 0.0;
+  for (int i = 0; i < n;) {
+    if (!pos(lr[i]) || (i > 0 && lr[i] < lr[i - 1])) return CSLS_EDOM;
+    double s = 0.0, c = 0.0;
+    int j = i;
+    for (; j < n && lr[j] == lr[i]; ++j) {  // tied ratios share one block
+      s += same[j] != 0 ? 1.0 : 0.0;
+      c += 1.0;
+    }
+    ns += s;
+    sum[k] = s;
+    cnt[k] = c;
+    ++k;
+    // pool while the share of same-source falls from one block to the next
+    while (k > 1 && sum[k - 2] * cnt[k - 1] >= sum[k - 1] * cnt[k - 2]) {
+      sum[k - 2] += sum[k - 1];
+      cnt[k - 2] += cnt[k - 1];
+      --k;
+    }
+    i = j;
+  }
+  const double nd = n - ns;
+  if (!(ns > 0.0) || !(nd > 0.0)) return CSLS_EDOM;
+  int i = 0;
+  for (int b = 0; b < k; ++b) {
+    const double pr = sum[b] / cnt[b];
+    for (int j = 0; j < static_cast<int>(cnt[b]); ++j) post[i++] = pr;
+  }
+  // a same-source item sits in a block with pr > 0 and a different-source
+  // item in one with pr < 1, so neither division is by zero
+  double cs = 0.0, cd = 0.0;
+  for (i = 0; i < n; ++i) {
+    const double pr = post[i];
+    if (same[i] != 0) {
+      cs += std::log1p((1.0 - pr) / pr * (ns / nd));
+    } else {
+      cd += std::log1p(pr / (1.0 - pr) * (nd / ns));
+    }
+  }
+  *cllrmin = 0.5 * (cs / ns + cd / nd) / std::log(2.0);
+  return CSLS_OK;
+}
+
+int csls_mixp(const double *p, const int *need, int n, int x, double *out) {
+  if (n < 1 || x < 0) return CSLS_EARG;
+  int idx[20];
+  int m = 0;
+  double total = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (!(p[i] > 0.0 && p[i] <= 1.0)) return CSLS_EDOM;
+    total += p[i];
+    if (need[i] != 0) {
+      if (m == 20) return CSLS_EARG;
+      idx[m++] = i;
+    }
+  }
+  if (total > 1.0 + 1e-12) return CSLS_EDOM;
+  if (m > 2 * x) {  // more alleles to carry than the unknowns have
+    *out = 0.0;
+    return CSLS_OK;
+  }
+  // inclusion-exclusion over the needed alleles left out
+  double acc = 0.0;
+  for (unsigned long t = 0; t < (1UL << m); ++t) {
+    double rest = total;
+    int bits = 0;
+    for (int j = 0; j < m; ++j) {
+      if ((t >> j) & 1UL) {
+        rest -= p[idx[j]];
+        ++bits;
+      }
+    }
+    if (rest < 0.0) rest = 0.0;
+    const double term = std::pow(rest, 2.0 * x);
+    acc += (bits % 2 == 0) ? term : -term;
+  }
+  *out = acc > 0.0 ? acc : 0.0;
+  return CSLS_OK;
+}
+
+int csls_kinidx(const int *g1, const int *g2, const double *f, int n,
+                const double *k, double *idx) {
+  if (n < 1) return CSLS_EARG;
+  if (!nonneg(k[0]) || !nonneg(k[1]) || !nonneg(k[2]) ||
+      std::fabs(k[0] + k[1] + k[2] - 1.0) > 1e-9) {
+    return CSLS_EDOM;
+  }
+  for (int i = 0; i < n; ++i) {
+    const int a = g1[2 * i], b = g1[2 * i + 1];
+    const int c = g2[2 * i], d = g2[2 * i + 1];
+    const double pa = f[2 * i], pb = f[2 * i + 1];
+    if (!(pa > 0.0 && pa <= 1.0) || !(pb > 0.0 && pb <= 1.0)) return CSLS_EDOM;
+    if (a == b && pa != pb) return CSLS_EDOM;
+    // one allele shared by descent: half the weight on each allele of g1
+    const double w = c == d ? 1.0 : 0.5;
+    double r1 = 0.0;
+    if (a == c || a == d) r1 += 0.5 * w / pa;
+    if (b == c || b == d) r1 += 0.5 * w / pb;
+    // both shared: the genotypes must be the same
+    const bool eq = (a == c && b == d) || (a == d && b == c);
+    const double r2 = !eq ? 0.0 : (a == b ? 1.0 / (pa * pa) : 0.5 / (pa * pb));
+    idx[i] = k[0] + k[1] * r1 + k[2] * r2;
+  }
+  return CSLS_OK;
+}
+
+int csls_patidx(const int *c, const int *m, const int *af, const double *f,
+                int n, double *idx) {
+  if (n < 1) return CSLS_EARG;
+  for (int i = 0; i < n; ++i) {
+    const int c1 = c[2 * i], c2 = c[2 * i + 1];
+    const double p1 = f[2 * i], p2 = f[2 * i + 1];
+    if (!(p1 > 0.0 && p1 <= 1.0) || !(p2 > 0.0 && p2 <= 1.0)) return CSLS_EDOM;
+    if (c1 == c2 && p1 != p2) return CSLS_EDOM;
+    double num = 0.0, den = 0.0;
+    for (int s = 0; s < 2; ++s) {
+      const int g = m[2 * i + s];  // the allele the mother passes on
+      if (c1 == c2) {
+        if (g == c1) den += 0.5 * p1;
+      } else {
+        if (g == c1) den += 0.5 * p2;
+        if (g == c2) den += 0.5 * p1;
+      }
+      for (int t = 0; t < 2; ++t) {
+        const int h = af[2 * i + t];
+        if ((g == c1 && h == c2) || (g == c2 && h == c1)) num += 0.25;
+      }
+    }
+    idx[i] = den > 0.0 ? num / den : std::numeric_limits<double>::quiet_NaN();
+  }
+  return CSLS_OK;
+}
+
 }  // extern "C"

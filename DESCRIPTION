@@ -16,13 +16,18 @@ Description: Statistical methods for courts, corrections, policing,
     disparities, dyadic offending rates, and the bounds a relative risk
     obeys given an odds ratio; and the first forensic methods: genotype
     match probabilities with the correction of Balding and Nichols (1994)
-    <doi:10.1016/0379-0738(94)90222-4> and the log-likelihood-ratio cost of
-    Brummer and du Preez (2006) <doi:10.1016/j.csl.2005.08.001>.
+    <doi:10.1016/0379-0738(94)90222-4>, the log-likelihood-ratio cost of
+    Brummer and du Preez (2006) <doi:10.1016/j.csl.2005.08.001> with its
+    calibrated minimum, mixture likelihood ratios, kinship and paternity
+    indices, database-search corrections, and Tippett and
+    empirical-cross-entropy plots.
 License: AGPL-3
 Encoding: UTF-8
 Language: en-GB
 Depends:
     R (>= 4.1.0)
+Imports:
+    graphics
 Suggests:
     testthat (>= 3.0.0)
 SystemRequirements: C++17

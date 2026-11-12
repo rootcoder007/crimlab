@@ -108,6 +108,44 @@ SEXP C_csls_cllr(SEXP same, SEXP diff) {
   return out;
 }
 
+SEXP C_csls_lrcal(SEXP lr, SEXP same) {
+  const int n = static_cast<int>(XLENGTH(lr));
+  static const char *const names[] = {"post", "min"};
+  SEXP out = PROTECT(named_list(2, names));
+  SET_VECTOR_ELT(out, 0, Rf_allocVector(REALSXP, n));
+  SET_VECTOR_ELT(out, 1, Rf_allocVector(REALSXP, 1));
+  SEXP work = PROTECT(Rf_allocVector(REALSXP, 2 * static_cast<R_xlen_t>(n)));
+  check(csls_lrcal(REAL(lr), LOGICAL(same), n, REAL(VECTOR_ELT(out, 0)),
+                   REAL(work), REAL(VECTOR_ELT(out, 1))));
+  UNPROTECT(2);
+  return out;
+}
+
+SEXP C_csls_mixp(SEXP p, SEXP need, SEXP x) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
+  check(csls_mixp(REAL(p), LOGICAL(need), static_cast<int>(XLENGTH(p)),
+                  Rf_asInteger(x), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_kinidx(SEXP g1, SEXP g2, SEXP f, SEXP k) {
+  const int n = static_cast<int>(XLENGTH(g1) / 2);
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, n));
+  check(csls_kinidx(INTEGER(g1), INTEGER(g2), REAL(f), n, REAL(k), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_patidx(SEXP c, SEXP m, SEXP af, SEXP f) {
+  const int n = static_cast<int>(XLENGTH(c) / 2);
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, n));
+  check(csls_patidx(INTEGER(c), INTEGER(m), INTEGER(af), REAL(f), n,
+                    REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
 static const R_CallMethodDef calls[] = {
     {"C_csls_vod", (DL_FUNC)&C_csls_vod, 4},
     {"C_csls_orrisk", (DL_FUNC)&C_csls_orrisk, 3},
@@ -116,6 +154,10 @@ static const R_CallMethodDef calls[] = {
     {"C_csls_dyadrt", (DL_FUNC)&C_csls_dyadrt, 4},
     {"C_csls_gtmp", (DL_FUNC)&C_csls_gtmp, 4},
     {"C_csls_cllr", (DL_FUNC)&C_csls_cllr, 2},
+    {"C_csls_lrcal", (DL_FUNC)&C_csls_lrcal, 2},
+    {"C_csls_mixp", (DL_FUNC)&C_csls_mixp, 3},
+    {"C_csls_kinidx", (DL_FUNC)&C_csls_kinidx, 4},
+    {"C_csls_patidx", (DL_FUNC)&C_csls_patidx, 4},
     {nullptr, nullptr, 0}};
 
 void R_init_csls(DllInfo *dll) {

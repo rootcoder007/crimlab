@@ -29,12 +29,10 @@ match against an unrelated alternative.
 The chance that an unrelated person from the same population shares a DNA
 profile, locus by locus and overall. With \code{theta = 0} this is the product
 rule (\code{p^2} for a homozygote, \verb{2pq} for a heterozygote). A positive \code{theta}
-applies the Balding-Nichols correction for shared ancestry, which makes a
-match less surprising.
-}
-\details{
-No machine-checked proof is recorded for this function; \code{proof()} does not
-list it.
+applies the Balding-Nichols correction for shared ancestry. That never
+makes a homozygote match rarer than the product rule says; it can make a
+heterozygote match rarer when both alleles are common. See
+\code{proof("gtmp")}.
 }
 \examples{
 gtmp(p = c(D3 = 0.1, vWA = 0.2), q = c(0.3, NA), hom = c(FALSE, TRUE),

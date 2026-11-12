@@ -77,6 +77,35 @@ int csls_gtmp(const double *p, const double *q, const int *hom, int n,
 int csls_cllr(const double *same, int ns, const double *diff, int nd,
               double *cllr);
 
+/* Calibration of likelihood ratios by pooling adjacent violators. lr: n
+ * positive ratios in ascending order; same[i] non-zero for a same-source
+ * comparison (both kinds must occur). work: 2n doubles of scratch. Out: post,
+ * n calibrated probabilities of same source at the sample's own prior, and
+ * cllrmin, the cost of the calibrated ratios: what the system would cost if
+ * its ratios kept their order and lost their miscalibration. */
+int csls_lrcal(const double *lr, const int *same, int n, double *post,
+               double *work, double *cllrmin);
+
+/* Mixture: the chance that x unknown contributors carry only alleles of the
+ * mixture and between them every allele flagged in need (Weir et al. 1997,
+ * no coancestry). p: n allele frequencies of the mixture, sum at most 1;
+ * at most 20 alleles may be flagged. Out: the probability. */
+int csls_mixp(const double *p, const int *need, int n, int x, double *out);
+
+/* Kinship index by locus: the chance of two genotypes under a relationship
+ * with identity-by-descent probabilities k[0..2] over their chance if
+ * unrelated. g1, g2: 2n allele codes, two per locus; f: 2n frequencies of
+ * the alleles of g1. Out: idx, n indices. */
+int csls_kinidx(const int *g1, const int *g2, const double *f, int n,
+                const double *k, double *idx);
+
+/* Paternity index by locus for a mother, child and alleged father, without
+ * mutation. c, m, af: 2n allele codes each; f: 2n frequencies of the
+ * child's alleles. Out: idx, n indices; NaN where the mother cannot be the
+ * mother. */
+int csls_patidx(const int *c, const int *m, const int *af, const double *f,
+                int n, double *idx);
+
 #ifdef __cplusplus
 }
 #endif
