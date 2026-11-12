@@ -6,7 +6,7 @@ orrisk.inv	orrsolve(inv, q, 1.0 - s, s, b, a);	orrsolve(inv, q, s, 1.0 - s, b, a
 outtst	*stop_rate = sw / tw;	*stop_rate = sw / (tw + 1.0);
 outtst.edge	if (q[i] > t) {	if (q[i] >= t) {
 dspbm	fd[i] = (force[i] / contact[i]) / fr;	fd[i] = (force[i] / contact[i]) / cr;
-dyadrt	null_off[k] = pooled * pop[vic[k]] / total;	null_off[k] = pooled * pop[off[k]] / total;
+dyadrt	nulloff[k] = pooled * pop[vic[k]] / total;	nulloff[k] = pooled * pop[off[k]] / total;
 gtmp	locus[i] = (theta + a) * (2.0 * theta + a) / den;	locus[i] = (theta + a) * (theta + a) / den;
 cllr	cd += std::log1p(diff[i]);	cd += std::log1p(1.0 / diff[i]);
 lrcal	cs += std::log1p((1.0 - pr) / pr * (ns / nd));	cs += std::log1p((1.0 - pr) / pr * (nd / ns));

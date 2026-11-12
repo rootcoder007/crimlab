@@ -27,11 +27,11 @@ const char *clab_strerror(int code);
 /* Veil of darkness (Lean: Crimlab.Veil.odds_ratio_identifies_bias).
  * day, night: stops by group in daylight and in darkness, n groups; day
  * non-negative with day[ref] positive, night positive. shift is NULL or n
- * positive exposure factors. Out, n each: share_day, share_night, ratio (the
+ * positive exposure factors. Out, n each: shday, shnight, ratio (the
  * visible-race factor against group ref), sign (-1, 0, 1: the sign of
- * share_day - share_night) and, when shift is given, adj. */
+ * shday - shnight) and, when shift is given, adj. */
 int clab_vod(const double *day, const double *night, int n, int ref,
-             const double *shift, double *share_day, double *share_night,
+             const double *shift, double *shday, double *shnight,
              double *ratio, int *sign, double *adj);
 
 /* The risks behind an odds ratio (Lean: Crimlab.RelRisk.or_eq_rr_mul).
@@ -58,13 +58,13 @@ int clab_dspbm(const double *pop, const double *contact, const double *force,
 
 /* Dyadic offending rates (Lean: Crimlab.Dyad.pair_exposure_rate_constant).
  * count[k] offences by group off[k] against group vic[k], m dyads; pop: g
- * positive group sizes. Out, m each: rate_off (per member of the offending
- * group), rate_pair (per offender-victim pair exposed), null_off (the rate
- * per offender under random mixing) and ratio (rate_pair over the pooled
+ * positive group sizes. Out, m each: rtoff (per member of the offending
+ * group), rtpair (per offender-victim pair exposed), nulloff (the rate
+ * per offender under random mixing) and ratio (rtpair over the pooled
  * pair rate). */
 int clab_dyadrt(const double *count, const int *off, const int *vic, int m,
-                const double *pop, int g, double *rate_off,
-                double *rate_pair, double *null_off, double *ratio);
+                const double *pop, int g, double *rtoff,
+                double *rtpair, double *nulloff, double *ratio);
 
 /* Genotype match probability with the Balding-Nichols correction for
  * shared ancestry (NRC II recommendation 4.2). p, q: allele frequencies in

@@ -83,7 +83,7 @@ test_that("results agree with rmorie", {
   m <- rmorie::morie_veil_of_darkness(day, night)
   v <- vodtst(day, night)
   expect_equal(v[["ratio"]], m[["bias_ratio"]], tolerance = 1e-14)
-  expect_equal(v[["share_day"]], m[["share_day"]], tolerance = 1e-14)
+  expect_equal(v[["shday"]], m[["share_day"]], tolerance = 1e-14)
 
   m <- rmorie::morie_relative_risk_from_or(3, 0.4, 0.5)[["risks"]]
   r <- orrisk(3, 0.4, 0.5)
@@ -117,11 +117,11 @@ test_that("results agree with rmorie", {
   d <- dyadrt(matrix(c(900, 200, 120, 300), 2), pop)
   expect_identical(d[["off"]], m[["offender"]])
   expect_identical(d[["vic"]], m[["victim"]])
-  expect_equal(d[["rate_off"]], m[["rate_per_offender_group"]],
+  expect_equal(d[["rtoff"]], m[["rate_per_offender_group"]],
                tolerance = 1e-13)
-  expect_equal(d[["rate_pair"]], m[["rate_per_pair_exposure"]],
+  expect_equal(d[["rtpair"]], m[["rate_per_pair_exposure"]],
                tolerance = 1e-13)
-  expect_equal(d[["null_off"]], m[["null_rate_per_offender_group"]],
+  expect_equal(d[["nulloff"]], m[["null_rate_per_offender_group"]],
                tolerance = 1e-13)
   expect_equal(d[["ratio"]], m[["ratio_to_null"]], tolerance = 1e-13)
 })

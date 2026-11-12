@@ -35,12 +35,12 @@ test_that("results have the documented class, shape and types", {
   f <- "data.frame 2"
   x <- list(
     v = list(vodtst(d, n), f,
-             "group:c ref:l share_day:d share_night:d ratio:d sign:i"),
+             "group:c ref:l shday:d shnight:d ratio:d sign:i"),
     o = list(orrisk(3, 0.4, 0.5), "numeric 4",
              "exposed:d unexposed:d rr:d or:d"),
     b = list(dspbm(d, n, c(9, 6)), f, "group:c ref:l cd:d fd:d rd:d"),
     y = list(dyadrt(outer(d, d) / 1e3, d), "data.frame 4",
-             "off:c vic:c count:d rate_off:d rate_pair:d null_off:d ratio:d"),
+             "off:c vic:c count:d rtoff:d rtpair:d nulloff:d ratio:d"),
     g = list(gtmp(c(0.1, 0.2), c(0.3, NA), c(FALSE, TRUE))$locus, f,
              "locus:c hom:l mp:d"),
     k = list(kinidx(c(1, 2), c(1, 2), c(0.1, 0.2))$locus, "data.frame 1",

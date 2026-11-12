@@ -382,7 +382,7 @@ void rsort(double *x, int n) {
   }
 }
 
-const char *const vodnm[] = {"group", "ref", "share_day", "share_night",
+const char *const vodnm[] = {"group", "ref", "shday", "shnight",
                              "ratio", "sign", "adj"};
 
 // vodtst(day = <table>) with night left out: one table of groups by
@@ -613,8 +613,8 @@ SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
                    REAL(VECTOR_ELT(out, 3)), REAL(VECTOR_ELT(out, 4)),
                    REAL(VECTOR_ELT(out, 5)), REAL(VECTOR_ELT(out, 6))),
        nullptr);
-  static const char *const nm[] = {"off",       "vic",      "count", "rate_off",
-                                   "rate_pair", "null_off", "ratio"};
+  static const char *const nm[] = {"off",       "vic",      "count", "rtoff",
+                                   "rtpair", "nulloff", "ratio"};
   clab::frame(out, nm);
   UNPROTECT(6);
   return out;

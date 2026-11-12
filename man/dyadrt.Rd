@@ -19,8 +19,8 @@ mismatch.}
 }
 \value{
 A data frame with one row per dyad: \code{off}, \code{vic}, \code{count},
-\code{rate_off}, \code{rate_pair}, \code{null_off} (the rate per offender under random
-mixing) and \code{ratio} (\code{rate_pair} over the pooled pair rate; 1 under
+\code{rtoff}, \code{rtpair}, \code{nulloff} (the rate per offender under random
+mixing) and \code{ratio} (\code{rtpair} over the pooled pair rate; 1 under
 random mixing).
 }
 \description{

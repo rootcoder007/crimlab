@@ -17,7 +17,7 @@ test_that("every exported function answers one valid call in its shape", {
   on.exit(grDevices::dev.off())
   calls <- list(
     list(quote(vodtst(c(w = 6, b = 4), c(5, 5), shift = c(1, 2))),
-                  c("group", "ref", "share_day", "share_night", "ratio",
+                  c("group", "ref", "shday", "shnight", "ratio",
                     "sign", "adj")),
     list(quote(orrisk(3, 0.4, 0.5)),
                   c("exposed", "unexposed", "rr", "or")),
@@ -26,8 +26,8 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(dspbm(c(9, 1), c(3, 1), c(2, 1), ref = 2)),
                  c("group", "ref", "cd", "fd", "rd")),
     list(quote(dyadrt(matrix(1, 2, 2), c(a = 1, b = 2))),
-                  c("off", "vic", "count", "rate_off", "rate_pair",
-                    "null_off", "ratio")),
+                  c("off", "vic", "count", "rtoff", "rtpair",
+                    "nulloff", "ratio")),
     list(quote(gtmp(c(0.1, 0.2), c(0.3, NA), c(FALSE, TRUE), 0.01)),
                 c("locus", "log10mp", "log10lr")),
     list(quote(cllr(c(5, 9), 0.5)), NULL),

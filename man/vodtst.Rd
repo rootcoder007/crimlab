@@ -26,8 +26,8 @@ over darkness exposure, in the forms of \code{day}, matched by name.}
 }
 \value{
 A data frame with one row per group, in the order of \code{day}:
-\code{group}, \code{ref} (\code{TRUE} for the reference group), \code{share_day},
-\code{share_night}, \code{ratio}, \code{sign} (the sign of \code{share_day - share_night})
+\code{group}, \code{ref} (\code{TRUE} for the reference group), \code{shday},
+\code{shnight}, \code{ratio}, \code{sign} (the sign of \code{shday - shnight})
 and, when \code{shift} is given, \code{adj}.
 }
 \description{

@@ -48,8 +48,8 @@ v
 pc <- function(x) paste(round(100 * x), "per cent")
 ```
 
-Black drivers are `r pc(v$share_day[2])` of daylight stops and
-`r pc(v$share_night[2])` of stops in darkness. The `ratio` column compares
+Black drivers are `r pc(v$shday[2])` of daylight stops and
+`r pc(v$shnight[2])` of stops in darkness. The `ratio` column compares
 each group's odds of being the one stopped in daylight with its odds in
 darkness, against the reference group (the first, here): about
 `r round(v$ratio[2], 2)` for black drivers. The idea, due to Grogger and

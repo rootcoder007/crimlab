@@ -24,8 +24,8 @@
 #' @param shift `NULL`, or one positive number per group: daylight exposure
 #'   over darkness exposure, in the forms of `day`, matched by name.
 #' @return A data frame with one row per group, in the order of `day`:
-#'   `group`, `ref` (`TRUE` for the reference group), `share_day`,
-#'   `share_night`, `ratio`, `sign` (the sign of `share_day - share_night`)
+#'   `group`, `ref` (`TRUE` for the reference group), `shday`,
+#'   `shnight`, `ratio`, `sign` (the sign of `shday - shnight`)
 #'   and, when `shift` is given, `adj`.
 #' @references Grogger, J. and Ridgeway, G. (2006). Testing for racial
 #'   profiling in traffic stops from behind a veil of darkness. *Journal of
@@ -130,8 +130,8 @@ dspbm <- function(pop, contact, force, ref = 1) {
 #'   are taken in the order of the rows: only names protect against a
 #'   mismatch.
 #' @return A data frame with one row per dyad: `off`, `vic`, `count`,
-#'   `rate_off`, `rate_pair`, `null_off` (the rate per offender under random
-#'   mixing) and `ratio` (`rate_pair` over the pooled pair rate; 1 under
+#'   `rtoff`, `rtpair`, `nulloff` (the rate per offender under random
+#'   mixing) and `ratio` (`rtpair` over the pooled pair rate; 1 under
 #'   random mixing).
 #' @examples
 #' pop <- c(a = 800, b = 200)

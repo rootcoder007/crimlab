@@ -54,7 +54,7 @@ add("vodtst", "rmorie::morie_veil_of_darkness", c(5, 1e3, 1e5), "groups",
   function(n) list(d = nm(n, stats::runif(n, 10, 1e3)),
                    e = nm(n, stats::runif(n, 10, 1e3))),
   vodtst(d, e), rmorie::morie_veil_of_darkness(d, e),
-  pick("share_day", "share_night", "ratio"),
+  pick("shday", "shnight", "ratio"),
   pick("share_day", "share_night", "bias_ratio"))
 
 add("orrisk", "rmorie::morie_relative_risk_from_or", 1, "calls",
@@ -89,7 +89,7 @@ add("dyadrt", "rmorie::morie_interracial_rates", c(5, 50, 300), "groups",
     list(m = m, p = p, v = v)
   },
   dyadrt(m, p), rmorie::morie_interracial_rates(v, p),
-  pick("rate_off", "rate_pair", "null_off", "ratio"),
+  pick("rtoff", "rtpair", "nulloff", "ratio"),
   pick("rate_per_offender_group", "rate_per_pair_exposure",
       "null_rate_per_offender_group", "ratio_to_null"))
 

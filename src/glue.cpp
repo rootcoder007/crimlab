@@ -46,7 +46,7 @@ SEXP C_clab_vod(SEXP day, SEXP night, SEXP ref, SEXP shift) {
   clab::who = "clab_vod";
   const int n = len(day);
   const bool has = !Rf_isNull(shift);
-  static const char *const names[] = {"share_day", "share_night", "ratio",
+  static const char *const names[] = {"shday", "shnight", "ratio",
                                       "sign", "adj"};
   SEXP out = PROTECT(named_list(5, names));
   for (int i = 0; i < 3; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, n));
@@ -94,7 +94,7 @@ SEXP C_clab_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
 SEXP C_clab_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
   clab::who = "clab_dyadrt";
   const int m = len(count);
-  static const char *const names[] = {"rate_off", "rate_pair", "null_off",
+  static const char *const names[] = {"rtoff", "rtpair", "nulloff",
                                       "ratio"};
   SEXP out = PROTECT(named_list(4, names));
   for (int i = 0; i < 4; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, m));

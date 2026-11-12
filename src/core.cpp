@@ -73,7 +73,7 @@ const char *clab_strerror(int code) {
 }
 
 int clab_vod(const double *day, const double *night, int n, int ref,
-             const double *shift, double *share_day, double *share_night,
+             const double *shift, double *shday, double *shnight,
              double *ratio, int *sign, double *adj) {
   if (n < 1 || ref < 0 || ref >= n) return CLAB_EARG;
   double td = 0.0, tn = 0.0;
@@ -87,10 +87,10 @@ int clab_vod(const double *day, const double *night, int n, int ref,
   // seen in daylight
   if (!(day[ref] > 0.0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
-    share_day[i] = day[i] / td;
-    share_night[i] = night[i] / tn;
+    shday[i] = day[i] / td;
+    shnight[i] = night[i] / tn;
     ratio[i] = (day[i] / day[ref]) / (night[i] / night[ref]);
-    const double d = share_day[i] - share_night[i];
+    const double d = shday[i] - shnight[i];
     sign[i] = std::fabs(d) < 1e-12 ? 0 : (d > 0.0 ? 1 : -1);
     if (shift != nullptr) adj[i] = ratio[i] / (shift[i] / shift[ref]);
   }
@@ -149,8 +149,8 @@ int clab_dspbm(const double *pop, const double *contact, const double *force,
 }
 
 int clab_dyadrt(const double *count, const int *off, const int *vic, int m,
-                const double *pop, int g, double *rate_off,
-                double *rate_pair, double *null_off, double *ratio) {
+                const double *pop, int g, double *rtoff,
+                double *rtpair, double *nulloff, double *ratio) {
   if (m < 1 || g < 1) return CLAB_EARG;
   double total = 0.0;
   for (int j = 0; j < g; ++j) {
@@ -170,10 +170,10 @@ int clab_dyadrt(const double *count, const int *off, const int *vic, int m,
   const double pooled = offences / pairs;
   for (int k = 0; k < m; ++k) {
     const double pair = pop[off[k]] * pop[vic[k]] / total;
-    rate_off[k] = count[k] / pop[off[k]];
-    rate_pair[k] = count[k] / pair;
-    null_off[k] = pooled * pop[vic[k]] / total;
-    ratio[k] = rate_pair[k] / pooled;
+    rtoff[k] = count[k] / pop[off[k]];
+    rtpair[k] = count[k] / pair;
+    nulloff[k] = pooled * pop[vic[k]] / total;
+    ratio[k] = rtpair[k] / pooled;
   }
   return CLAB_OK;
 }
