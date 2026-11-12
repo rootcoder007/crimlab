@@ -1,0 +1,53 @@
+# Speed against the packages that compute the same quantities: dev/bench.R
+# on fixed seeded inputs, the table uploaded as an artifact. A slow result
+# never fails the job; a disagreement in values, or an error, does.
+name: bench
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # forensim depends on tkrplot, which builds against Tk
+      - name: Tk headers
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tk-dev
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          r-version: release
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          extra-packages: >-
+            any::bench, any::comparison, any::Familias, any::forrel,
+            any::pedtools, any::forensim, local::.
+          needs: bench
+      # rmorie is published on r-universe, not CRAN
+      - name: rmorie
+        shell: Rscript {0}
+        run: |
+          install.packages("rmorie", repos = c(
+            "https://rootcoder007.r-universe.dev", getOption("repos")))
+      - name: bench
+        run: Rscript dev/bench.R bench-out
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: bench
+          path: bench-out
