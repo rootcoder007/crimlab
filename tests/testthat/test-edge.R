@@ -54,28 +54,45 @@ test_that("a group never seen in daylight gives a ratio of 0, not a fit", {
                tolerance = 1e-10)
 })
 
-# Defects in csls itself, found while writing the tests above. They fail
-# today; set CSLS_DEFECTS=1 to run them. The kernels are fixed separately.
+# Two defects these tests found in csls itself, now fixed in the kernels.
 
-test_that("KNOWN DEFECT: cllr overflows for a subnormal same-source ratio", {
-  skip_if_not(Sys.getenv("CSLS_DEFECTS") == "1", "known defect")
-  # log1p(1 / same) overflows once 1 / same exceeds the largest double; the
+test_that("cllr is finite for a subnormal same-source ratio", {
+  # log1p(1 / same) overflowed once 1 / same passed the largest double; the
   # cost itself, 0.5 * (log2(1 + 1e310) + 1), is about 515.4 bits
-  expect_equal(cllr(1e-310, 1), 0.5 * (310 * log2(10) + 1), tolerance = 1e-12)
+  want <- 0.5 * (310 * log2(10) + 1)
+  expect_equal(cllr(1e-310, 1), want, tolerance = 1e-12)
+  expect_equal(cllrmin(1e-310, 1)[["cllr"]], want, tolerance = 1e-12)
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off())
+  expect_equal(eceplt(1e-310, 1, lo = 0)[["ece"]], want, tolerance = 1e-12)
+  # both branches of the rewritten term agree where they meet
+  expect_equal(cllr(1 - 1e-12, 1), cllr(1 + 1e-12, 1), tolerance = 1e-12)
 })
 
-test_that("KNOWN DEFECT: orrisk leaves (0, 1) for a tiny odds ratio", {
-  skip_if_not(Sys.getenv("CSLS_DEFECTS") == "1", "known defect")
-  # OR - 1 rounds to -1 and 1 + (OR - 1) b cancels as b nears 1; the
-  # exposed risk comes back above 1 (1e-15) or Inf (1e-17)
-  for (or in c(1e-15, 1e-17)) {
-    r <- orrisk(or, 0.99, 0.5)
-    a <- r[["exposed"]]
-    b <- r[["unexposed"]]
-    expect_gt(a, 0)
-    expect_lt(a, 1)
-    expect_gt(b, 0)
-    expect_lt(b, 1)
-    expect_equal(0.5 * a + 0.5 * b, 0.99, tolerance = 1e-12)
+test_that("orrisk stays in [0, 1] for a tiny odds ratio", {
+  # OR - 1 rounded to -1 and 1 + (OR - 1) b cancelled as b neared 1: the
+  # exposed risk came back above 1 (1e-15) or Inf (1e-17)
+  for (or in c(1e-8, 1e-15, 1e-17, 1e-300)) {
+    for (q in c(0.01, 0.5, 0.99)) {
+      for (s in c(0.02, 0.5, 0.98)) {
+        r <- orrisk(or, q, s)
+        a <- r[["exposed"]]
+        b <- r[["unexposed"]]
+        expect_gt(a, 0)
+        expect_lt(a, 1)
+        expect_gt(b, 0)
+        # the unexposed risk can be within rounding of 1
+        expect_lte(b, 1)
+        expect_equal(s * a + (1 - s) * b, q, tolerance = 1e-12)
+      }
+    }
   }
+  # the mirror image: a tiny ratio is the reciprocal with the groups exchanged
+  lo <- orrisk(1e-6, 0.3, 0.2)
+  hi <- orrisk(1e6, 0.3, 0.8)
+  expect_equal(lo[["exposed"]], hi[["unexposed"]], tolerance = 1e-14)
+  expect_equal(lo[["unexposed"]], hi[["exposed"]], tolerance = 1e-14)
+  expect_error(orrisk(1e-320, 0.5, 0.5), "reciprocal")
+  expect_error(.Call(C_csls_orrisk, 1e-320, 0.5, 0.5),
+               "outside the domain")
 })

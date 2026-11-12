@@ -34,7 +34,8 @@ int csls_vod(const double *day, const double *night, int n, int ref,
 /* The risks behind an odds ratio (Lean: Csls.RelRisk.or_eq_rr_mul).
  * orr > 0; q in (0, 1) is the overall rate and s in (0, 1) the exposed share.
  * Out: a (risk among the exposed) and b (risk among the unexposed), the one
- * pair in (0, 1) with odds ratio orr and s a + (1 - s) b = q. */
+ * pair in (0, 1) with odds ratio orr and s a + (1 - s) b = q. A risk closer
+ * to 1 than a double can hold comes back as 1. 1 / orr must be finite. */
 int csls_orrisk(double orr, double q, double s, double *a, double *b);
 
 /* Outcome test for one group

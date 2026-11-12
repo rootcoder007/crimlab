@@ -15,7 +15,8 @@ orrisk(or, rate, share)
 }
 \value{
 A named numeric vector: \code{exposed} and \code{unexposed} (the two risks),
-\code{rr} (their ratio) and \code{or}.
+\code{rr} (their ratio) and \code{or}. A risk closer to 1 than a double can hold
+is returned as 1.
 }
 \description{
 An odds ratio is not a relative risk: it lies further from 1, and by more

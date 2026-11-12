@@ -227,8 +227,8 @@ eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
     vapply(lo, function(l) {
       odds <- 10^l
       pr <- odds / (1 + odds)
-      pr * mean(log2(1 + 1 / (s * odds))) +
-        (1 - pr) * mean(log2(1 + d * odds))
+      (pr * mean(.l1pinv(s * odds)) +
+         (1 - pr) * mean(log1p(d * odds))) / log(2)
     }, numeric(1))
   }
   out <- data.frame(lo = lo, ece = ece(r[["same"]], r[["diff"]]),
@@ -326,4 +326,13 @@ eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
   cal <- post / (1 - post) * length(diff) / length(same)
   list(same = same, diff = diff, csame = cal[is], cdiff = cal[!is],
        min = r[["min"]])
+}
+
+
+# log(1 + 1 / x) without forming 1 / x where it would overflow.
+.l1pinv <- function(x) {
+  small <- x < 1
+  out <- log1p(1 / x)
+  out[small] <- log1p(x[small]) - log(x[small])
+  out
 }

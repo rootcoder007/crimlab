@@ -58,12 +58,16 @@ vodtst <- function(day, night, ref = 1, shift = NULL) {
 #' @param rate The overall rate of the outcome, strictly between 0 and 1.
 #' @param share The exposed share of the population, strictly between 0 and 1.
 #' @return A named numeric vector: `exposed` and `unexposed` (the two risks),
-#'   `rr` (their ratio) and `or`.
+#'   `rr` (their ratio) and `or`. A risk closer to 1 than a double can hold
+#'   is returned as 1.
 #' @examples
 #' orrisk(or = 3, rate = 0.4, share = 0.5)
 #' @export
 orrisk <- function(or, rate, share) {
   or <- .num(or, "or", len = 1L, lo = 0, open = TRUE)
+  if (!is.finite(1 / or)) {
+    stop("`or` is too small: its reciprocal is not finite.", call. = FALSE)
+  }
   rate <- .one(rate, "rate", 0, 1)
   share <- .one(share, "share", 0, 1)
   r <- .Call(C_csls_orrisk, or, rate, share)

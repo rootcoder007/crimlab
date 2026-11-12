@@ -13,6 +13,41 @@ inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
 inline bool unit_open(double x) noexcept { return x > 0.0 && x < 1.0; }
 
+// The risks for an odds ratio orr >= 1: hi among the group with share s of
+// the population, lo among the rest (share t = 1 - s). With c = OR - 1 and
+// hi = OR lo / (1 + c lo), the rate equation s hi + t lo = q is the quadratic
+//   t c lo^2 + (1 + s c - q c) lo - q = 0,
+// negative at lo = 0 and positive at lo = 1, so it has one root in (0, 1).
+inline void orrsolve(double orr, double q, double s, double t, double *hi,
+                     double *lo) noexcept {
+  const double c = orr - 1.0;
+  double root;
+  if (c <= 1.0) {
+    const double qa = t * c;
+    const double qb = 1.0 + s * c - q * c;
+    if (qa == 0.0) {
+      root = q / qb;  // OR = 1: both risks are the overall rate
+    } else {
+      const double sq = std::sqrt(qb * qb + 4.0 * qa * q);
+      // the form without cancellation for the sign of qb
+      root = qb >= 0.0 ? 2.0 * q / (qb + sq) : (sq - qb) / (2.0 * qa);
+    }
+  } else {
+    // the same quadratic divided by c, so that a huge OR cannot overflow
+    const double qb = 1.0 / c + s - q;
+    const double qc = q / c;
+    const double sq = std::sqrt(qb * qb + 4.0 * t * qc);
+    root = qb >= 0.0 ? 2.0 * qc / (qb + sq) : (sq - qb) / (2.0 * t);
+  }
+  *lo = root;
+  *hi = orr * root / (1.0 + c * root);
+}
+
+// log(1 + 1 / x) for x > 0 without forming 1 / x when it would overflow.
+inline double l1pinv(double x) noexcept {
+  return x < 1.0 ? std::log1p(x) - std::log(x) : std::log1p(1.0 / x);
+}
+
 }  // namespace
 
 extern "C" {
@@ -57,23 +92,16 @@ int csls_vod(const double *day, const double *night, int n, int ref,
 
 int csls_orrisk(double orr, double q, double s, double *a, double *b) {
   if (!pos(orr) || !unit_open(q) || !unit_open(s)) return CSLS_EDOM;
-  // With c = OR - 1 and a = OR b / (1 + c b), the rate equation
-  // s a + (1 - s) b = q is the quadratic
-  //   (1 - s) c b^2 + (1 + s c - q c) b - q = 0,
-  // negative at b = 0 and positive at b = 1, so it has one root in (0, 1).
-  const double c = orr - 1.0;
-  const double qa = (1.0 - s) * c;
-  const double qb = 1.0 + s * c - q * c;
-  double root;
-  if (qa == 0.0) {
-    root = q / qb;  // OR = 1: both risks are the overall rate
+  // An odds ratio below 1 is solved as its reciprocal with the two groups
+  // exchanged: OR - 1 then never rounds to -1, which made 1 + (OR - 1) b
+  // cancel as b neared 1.
+  if (orr < 1.0) {
+    const double inv = 1.0 / orr;
+    if (!std::isfinite(inv)) return CSLS_EDOM;
+    orrsolve(inv, q, 1.0 - s, s, b, a);
   } else {
-    const double sq = std::sqrt(qb * qb + 4.0 * qa * q);
-    // the form without cancellation for the sign of qb
-    root = qb >= 0.0 ? 2.0 * q / (qb + sq) : (sq - qb) / (2.0 * qa);
+    orrsolve(orr, q, s, 1.0 - s, a, b);
   }
-  *b = root;
-  *a = orr * root / (1.0 + c * root);
   return CSLS_OK;
 }
 
@@ -170,7 +198,7 @@ int csls_cllr(const double *same, int ns, const double *diff, int nd,
   double cs = 0.0, cd = 0.0;
   for (int i = 0; i < ns; ++i) {
     if (!pos(same[i])) return CSLS_EDOM;
-    cs += std::log1p(1.0 / same[i]);
+    cs += l1pinv(same[i]);
   }
   for (int i = 0; i < nd; ++i) {
     if (!pos(diff[i])) return CSLS_EDOM;
