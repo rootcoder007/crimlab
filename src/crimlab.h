@@ -851,6 +851,49 @@ int clab_mvtem(const double *y, int n, int nt, int r, const double *x, int p,
                int ng, double *beta, double *sig, double *prob, double *w,
                double *ll, int maxit, double tol, int *iter, double *work);
 
+/* Glass fragments recovered under the transfer, persistence and recovery
+ * model of Curran, Triggs, Buckleton, Walsh and Hicks (1998,
+ * doi:10.1016/S1355-0306(98)72068-4), in the parameterisation of its
+ * simulation software. par, 17 values: lam, lsd (transfer amount
+ * X ~ N(lam, lsd^2), used as |X|), d (distance: D ~ Gamma(d, 1) and the
+ * intensity is |X| e^{1 - D/d} when deffect = 1, |X| when 0), Q (share of
+ * high-persistence fragments), l0, u0 (first-hour loss of the others,
+ * uniform), ls0, us0 (first-hour loss of the high-persistence ones), lj, uj
+ * and lsj, usj (each later hour), lR, uR (share recovered in the
+ * laboratory), lt, ut (time since the offence: fixed when equal, otherwise
+ * by tdist: 0 negative binomial with size (lt + ut) / 2 and probability r,
+ * 1 that law restricted to floor(lt)..ceil(ut), 2 uniform on those
+ * integers), r. A time t gives max(t, 1) hours of loss.
+ * Given X, D, the hour count and the loss and recovery rates, the count is
+ * Poisson with mean |X| e^{1-D/d} R ((1-Q) prod (1 - a_j) + Q prod
+ * (1 - b_j)) (binomial thinning of a Poisson, one rate per case and hour
+ * shared by all its fragments). clab_tfrp averages that Poisson law over
+ * the intensity M = |X| e^{1-D/d} deterministically: L = log M has a
+ * smooth density (the folded normal on the log scale, convolved with the
+ * distance term, the latter by a composite 8-point Gauss-Legendre rule
+ * with nq panels in w = D^d), tabulated on a grid of step hl and summed by
+ * the trapezoid rule, which converges geometrically here; intensities
+ * below 1e-17 only add to zero counts, through P(0) = 1 + E[e^-V - 1]
+ * (lsd = 0: the Gauss-Legendre rule in w, or one node); over the time
+ * exactly (the negative
+ * binomial is cut where less than 1e-16 is left); over the rates by nsim
+ * Monte Carlo draws (xorshift64* from seed, drawn in a fixed order:
+ * recovery, then each hour's two rates), or exactly by one draw when every
+ * rate interval is a point. Out: prob, se (ymax + 1 each: the
+ * probabilities of 0..ymax fragments and their Monte Carlo standard
+ * errors, 0 when exact) and cut, 2: the time mass left out (the rest is
+ * renormalised) and the intensity mass on the grid (the rest lies below
+ * 1e-17). 1e-4 <= hl <= 1, nq >= 1; hl = 0.02 and nq = 256 resolve the
+ * model's defaults (accuracy measured in src/t_tfr.cpp). clab_tfrw gives
+ * the workspace length (doubles) for the same inputs. Time
+ * O(G 8 nq + nsim H G v), G the grid points (about 47 / hl), H the hours
+ * considered, v the typical count range of a node. */
+int clab_tfrw(const double *par, int deffect, int tdist, int ymax, double hl,
+              int nq, int *len);
+int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
+              unsigned int seed, double hl, int nq, double *prob, double *se,
+              double *cut, double *work);
+
 #ifdef __cplusplus
 }
 #endif
