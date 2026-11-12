@@ -68,3 +68,25 @@ test_that("the forensic kernels refuse what the R layer refuses", {
   expect_error(.Call(C_csls_patidx, g, g, g, c(0.1, 1.5)), edom)
   expect_error(.Call(C_csls_patidx, c(0L, 0L), g, g, f), edom)
 })
+
+test_that("the policing and corrections kernels refuse bad values", {
+  expect_error(.Call(C_csls_clrsmp, -1, 1, 1, 1), edom)
+  expect_error(.Call(C_csls_clrsmp, 1, 0, 1, 1), edom)
+  expect_error(.Call(C_csls_misrd, 1.5, 0.2, 0.5, 0.9, 0.9), edom)
+  expect_error(.Call(C_csls_misrd, 0.5, 0.2, 1, 0.9, 0.9), edom)
+  expect_error(.Call(C_csls_misrd, 0.5, 0.2, 0.5, 0.9, -0.1), edom)
+  expect_error(.Call(C_csls_rtmhs, c(1, NaN), c(1, 2), c(1, 1), 0.5), edom)
+  expect_error(.Call(C_csls_rtmhs, c(1, 2), c(1, 2), c(1, -1), 0.5), edom)
+  expect_error(.Call(C_csls_incap, 0, 0.5, 1, NULL), edom)
+  expect_error(.Call(C_csls_incap, 2, 1.5, 1, NULL), edom)
+  expect_error(.Call(C_csls_incap, 2, 0.5, -1, NULL), edom)
+  expect_error(.Call(C_csls_sntbnd, c(0, 0.5), c(0L, 1L), c(1, 1)), edom)
+  expect_error(.Call(C_csls_sntbnd, c(0, 1), c(0L, 2L), c(1, 1)), edom)
+  expect_error(.Call(C_csls_sntbnd, c(0, 1), c(0L, 1L), c(1, -1)), edom)
+  expect_error(.Call(C_csls_hzdsel, 0.5, 0.4, 0.2, c(0.9, 0), c(0.9, 0.8)),
+               edom)
+  expect_error(.Call(C_csls_hzdsel, 0.5, 0.4, 0.2, c(0.9, 0.8), c(1.2, 0.8)),
+               edom)
+  expect_error(hzdsel(0.5, 0.4, 0.2, c(0.9, 0.8), c(0.9, 1.2)), "`surl`")
+  expect_error(hzdsel(0.5, 0.4, 0.2, c(1.2, 0.8), c(0.9, 0.8)), "`surh`")
+})
