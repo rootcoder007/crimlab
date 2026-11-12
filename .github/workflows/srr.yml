@@ -1,0 +1,47 @@
+# rOpenSci statistical standards: roxygen with the srr roclet must leave man/
+# and NAMESPACE unchanged, and srr::srr_report() must find every standard of
+# the declared categories tagged, with no srr error. The same commands as
+# the local gate (dev/gate.sh, steps doc and srr).
+name: srr
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: srr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  srr:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      PKG_USE_BIOCONDUCTOR: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # srr_report() renders its report with rmarkdown
+      - uses: r-lib/actions/setup-pandoc@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          use-public-rspm: true
+      # srr 1.1.0 or later: 1.0.0.4 fails on the current standards
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          extra-packages: any::srr, any::roxygen2, any::rmarkdown, any::here
+          needs: srr
+      - name: roxygen with the srr roclet changes nothing
+        run: |
+          GATE=doc sh dev/gate.sh "$RUNNER_TEMP/lib"
+          git diff --exit-code -- man NAMESPACE
+      - name: every standard tagged
+        run: GATE=srr sh dev/gate.sh "$RUNNER_TEMP/lib"

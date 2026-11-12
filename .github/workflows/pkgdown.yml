@@ -1,0 +1,50 @@
+# The website, https://rootcoder007.github.io/crimlab/, built by the local
+# gate's site step and deployed to the gh-pages branch on every push to
+# main. A pull request builds the site without deploying it.
+name: pkgdown
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pkgdown-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  pkgdown:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # deploys the site to the gh-pages branch
+    permissions:
+      contents: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      PKG_USE_BIOCONDUCTOR: "false"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-pandoc@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          extra-packages: any::pkgdown, local::.
+          needs: website
+      - name: Build site
+        run: SITEDIR=pkg-site GATE=site sh dev/gate.sh "$RUNNER_TEMP/lib"
+      - name: Deploy to gh-pages
+        if: github.event_name != 'pull_request'
+        uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4
+        with:
+          clean: false
+          branch: gh-pages
+          folder: pkg-site
