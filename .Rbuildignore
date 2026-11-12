@@ -12,3 +12,4 @@
 ^docs$
 ^pkgdown$
 ^NOTICE$
+^CITATION\.cff$

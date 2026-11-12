@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "To cite crimlab in publications use the reference below."
+type: software
+title: "crimlab: Criminology and Sociolegal Statistics"
+authors:
+  - family-names: Ruhela
+    given-names: Vansh Singh
+    orcid: "https://orcid.org/0009-0004-1750-3592"
+license: Apache-2.0 WITH LLVM-exception
+repository-code: "https://github.com/rootcoder007/crimlab"
+url: "https://rootcoder007.github.io/crimlab/"

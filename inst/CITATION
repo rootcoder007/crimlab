@@ -1,0 +1,10 @@
+bibentry(
+  bibtype = "Manual",
+  title = "crimlab: Criminology and Sociolegal Statistics",
+  author = person(c("Vansh", "Singh"), "Ruhela",
+                  comment = c(ORCID = "0009-0004-1750-3592")),
+  year = if (is.null(meta$Date)) format(Sys.Date(), "%Y") else substr(meta$Date, 1, 4),
+  note = paste("R package version", meta$Version),
+  url = "https://github.com/rootcoder007/crimlab",
+  header = "To cite crimlab in publications use:"
+)
