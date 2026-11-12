@@ -56,6 +56,21 @@ reference:
       - losbnd
       - sntbnd
       - hzdsel
+  - title: Networks
+    desc: Co-offending graphs, centrality, cores, components, communities,
+      brokerage and the Cheeger bounds.
+    contents:
+      - coofg
+      - ntdeg
+      - ntbtw
+      - ntcls
+      - ntevc
+      - ntcore
+      - ntcmp
+      - ntlvn
+      - ntmod
+      - ntbrk
+      - ntchg
   - title: Proofs
     contents:
       - proof

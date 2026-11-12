@@ -25,7 +25,10 @@ The functions work on summary data, not on raw records:
 * individual outcomes coded 0 or 1, with a group or a decision for each
   person: release, sentence, reconviction;
 * allele frequencies and genotypes at one or more loci;
-* likelihood ratios from validation comparisons whose source is known.
+* likelihood ratios from validation comparisons whose source is known;
+* networks as edge lists of labels (who offended with whom, who passed
+  what to whom), or incident tables that list the offenders of each
+  incident.
 
 ## What it asks
 
@@ -42,6 +45,9 @@ The functions work on summary data, not on raw records:
   failure rate can be when only the released are seen, mean time in
   custody from current stays, and what observational data alone say about
   a sentence's effect.
+* Networks: who co-offends with whom, who sits between groups, which
+  offenders form the core and the communities of a network, and how
+  cleanly it splits in two.
 
 ## Algorithms
 
@@ -177,6 +183,22 @@ cllrmin(same, diff)
 lrcal(same, diff)
 tipplt(same, diff)
 eceplt(same, diff)
+```
+
+### Co-offending networks
+
+```r
+# offenders recorded together in an incident are tied, weighted by the
+# number of incidents they share
+inc <- c(1, 1, 1, 2, 2, 3, 3, 4, 4, 5)
+off <- c("ana", "ben", "cy", "ana", "ben", "cy", "dee", "dee", "eli", "fay")
+g <- coofg(inc, off)
+e <- g$edges
+ntdeg(e$from, e$to, w = e$w, nodes = g$nodes)
+ntbtw(e$from, e$to, nodes = g$nodes)
+ntlvn(e$from, e$to, w = e$w, nodes = g$nodes)
+ntbrk(e$from, e$to, grp = c(ana = "x", ben = "x", cy = "x", dee = "y",
+                            eli = "y", fay = "z"), nodes = g$nodes)
 ```
 
 ### Proofs

@@ -19,6 +19,12 @@
 * `sntbnd()` bounds the effect of a sentence on a binary outcome without
   assumptions.
 * `hzdsel()` shows how period-two hazards differ after selective depletion.
+* Networks: `coofg()` builds the co-offending graph of an incident table;
+  `ntdeg()`, `ntbtw()`, `ntcls()` and `ntevc()` give degree, betweenness,
+  closeness and eigenvector centrality; `ntcore()` cores, `ntcmp()`
+  components, `ntlvn()` and `ntmod()` Louvain communities and modularity,
+  `ntbrk()` Gould-Fernandez brokerage and `ntchg()` the Cheeger bounds.
+  Results are by node label in order of first appearance.
 * `proof()` names the Lean theorem behind each function; the proofs ship
   in `inst/lean`.
 * A vector longer than the largest integer is refused with an error, by the

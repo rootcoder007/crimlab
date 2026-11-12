@@ -219,6 +219,47 @@ two groups differ before sentencing. Narrowing the interval needs an
 assumption that the data cannot check, such as random assignment, and the
 conclusions are only as good as that assumption.
 
+## Networks: who offends with whom
+
+Police records list the offenders of each incident. Joining offenders who
+were recorded together gives a co-offending network, the tie weighted by
+the incidents they share (Reiss 1988):
+
+```{r}
+inc <- c(1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6)
+off <- c("ana", "ben", "cy", "ana", "ben", "cy", "dee", "dee", "eli",
+         "eli", "fay", "gus")
+g <- coofg(inc, off)
+e <- g$edges
+e
+```
+
+Gus offended alone: he is a node of the network but in no tie, so the
+network functions are given `nodes` to keep him. Results come back by name,
+in the order offenders first appear:
+
+```{r}
+ntdeg(e$from, e$to, w = e$w, nodes = g$nodes)
+ntbtw(e$from, e$to, nodes = g$nodes)
+ntlvn(e$from, e$to, w = e$w, nodes = g$nodes)$memb
+```
+
+Cy and Dee each lie on every path between the two halves, and the Louvain
+method splits the network there. `ntchg()` measures how cleanly it splits:
+the conductance of the best cut lies between the two Cheeger bounds, and
+the lower one is proved in Lean (`proof("ntchg")`).
+
+```{r}
+big <- !(e$from %in% "gus" | e$to %in% "gus")
+ntchg(e$from[big], e$to[big], w = e$w[big])$bound
+```
+
+What this does not license: a recorded tie is two people arrested or
+charged for the same incident, so the network shows police attention as
+much as offending. Offenders never caught are missing, and a missing node
+can change who appears central; betweenness in particular is fragile when
+ties are missing.
+
 ## Proofs
 
 `proof()` lists the theorems behind a function:
@@ -267,6 +308,9 @@ NULL
 ```
 
 ## References
+
+Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
+Justice*, 10, 117-170.
 
 Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in traffic
 stops from behind a veil of darkness. *Journal of the American Statistical
