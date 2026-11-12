@@ -14,7 +14,8 @@ expbnd(y, m, gamma, ref = 1)
 \item{gamma}{The factor within which true exposure lies around the
 proxy: one number, at least 1.}
 
-\item{ref}{The reference group, by name or position.}
+\item{ref}{The reference group, by name (matched exactly, case included)
+or position.}
 }
 \value{
 A data frame with one row per group: \code{group}, \code{rate} (\code{y / m}),

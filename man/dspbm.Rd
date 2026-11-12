@@ -13,7 +13,8 @@ dspbm(pop, contact, force, ref = 1)
 
 \item{force}{Uses of force by group: positive numbers, same length.}
 
-\item{ref}{The reference group, by name or position.}
+\item{ref}{The reference group, by name (matched exactly, case included)
+or position.}
 }
 \value{
 A data frame with one row per group: \code{group}, \code{cd} (contact per

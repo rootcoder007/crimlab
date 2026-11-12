@@ -9,7 +9,8 @@
 #' @param freq The population frequencies of the alleles of `g1`, same shape.
 #' @param rel The relationship: `"parent"`, `"sibling"`, `"half"` (half
 #'   siblings, grandparent or uncle) or `"cousin"`, or the three
-#'   probabilities of sharing 0, 1 and 2 alleles by descent.
+#'   probabilities of sharing 0, 1 and 2 alleles by descent. Names are
+#'   matched exactly, in lower case.
 #' @return A list: `locus`, a data frame with `locus` and `idx`; `log10idx`,
 #'   the base-10 logarithm of the combined index; and `post`, the probability
 #'   of the relationship at even prior odds.

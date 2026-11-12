@@ -13,7 +13,8 @@
 #' @param day Stops by group in daylight: non-negative numbers, optionally
 #'   named.
 #' @param night Stops by group in darkness: positive numbers, same length.
-#' @param ref The reference group, by name or position.
+#' @param ref The reference group, by name (matched exactly, case included)
+#'   or position.
 #' @param shift `NULL`, or one positive number per group: daylight exposure
 #'   over darkness exposure.
 #' @return A data frame with one row per group: `group`, `share_day`,

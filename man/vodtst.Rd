@@ -12,7 +12,8 @@ named.}
 
 \item{night}{Stops by group in darkness: positive numbers, same length.}
 
-\item{ref}{The reference group, by name or position.}
+\item{ref}{The reference group, by name (matched exactly, case included)
+or position.}
 
 \item{shift}{\code{NULL}, or one positive number per group: daylight exposure
 over darkness exposure.}

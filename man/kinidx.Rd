@@ -14,7 +14,8 @@ row per locus (row names name the loci), or two alleles for one locus.}
 
 \item{rel}{The relationship: \code{"parent"}, \code{"sibling"}, \code{"half"} (half
 siblings, grandparent or uncle) or \code{"cousin"}, or the three
-probabilities of sharing 0, 1 and 2 alleles by descent.}
+probabilities of sharing 0, 1 and 2 alleles by descent. Names are
+matched exactly, in lower case.}
 }
 \value{
 A list: \code{locus}, a data frame with \code{locus} and \code{idx}; \code{log10idx},

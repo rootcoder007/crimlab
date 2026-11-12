@@ -143,11 +143,12 @@ losbnd <- function(done, open) {
 #'
 #' @param y Outcomes: 0 or 1 for each person.
 #' @param z Sentences: a vector with exactly two distinct values, same
-#'   length: character, numbers, logical or a factor (its labels), not dates.
-#' @param treat The value of `z` taken as the treatment; `NULL` for the
-#'   second in sorted order. The values are sorted as text by Unicode code
-#'   point (`"B"` before `"a"`, `"10"` before `"2"`), the same on every
-#'   machine whatever its locale.
+#'   length: character, numbers, logical or a factor (its labels; level order
+#'   and whether it is ordered are ignored), not dates.
+#' @param treat The value of `z` taken as the treatment, matched exactly;
+#'   `NULL` for the second in sorted order. The values are sorted as text
+#'   by Unicode code point (`"B"` before `"a"`, `"10"` before `"2"`), the
+#'   same on every machine whatever its locale.
 #' @param w `NULL` for equal weights, or one non-negative weight per person
 #'   with a positive total.
 #' @return A data frame with three rows, the comparison sentence, the
