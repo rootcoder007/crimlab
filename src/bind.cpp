@@ -1523,10 +1523,15 @@ SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
   // prev of the whole, NA for the rest
   const R_xlen_t nr = has ? n + 1 : n;
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 7));
-  SEXP g = Rf_allocVector(STRSXP, nr);
+  // Without share the labels are the column as they stand; copying them
+  // would turn the labels R defers for an unnamed lam into strings one by
+  // one, which costs more than the whole computation.
+  SEXP g = has ? Rf_allocVector(STRSXP, nr) : nms;
   SET_VECTOR_ELT(out, 0, g);
-  for (int i = 0; i < n; ++i) SET_STRING_ELT(g, i, STRING_ELT(nms, i));
-  if (has) SET_STRING_ELT(g, n, Rf_mkChar("all"));
+  if (has) {
+    for (int i = 0; i < n; ++i) SET_STRING_ELT(g, i, STRING_ELT(nms, i));
+    SET_STRING_ELT(g, n, Rf_mkChar("all"));
+  }
   for (int k = 1; k < 7; ++k) SET_VECTOR_ELT(out, k, real(nr));
   double *c[7];
   for (int k = 1; k < 7; ++k) c[k] = REAL(VECTOR_ELT(out, k));
