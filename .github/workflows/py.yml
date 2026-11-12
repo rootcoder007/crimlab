@@ -49,9 +49,11 @@ jobs:
       - name: Tests
         working-directory: py/tests
         # every allocation of the small reference cases failed in turn:
-        # minutes, so on one job only
+        # minutes, so on one job only. On 3.10: CPython 3.15.2 aborts when
+        # an allocation fails inside a plain list comprehension, before
+        # the extension is reached.
         env:
-          CLAB_NOMEM: ${{ matrix.os == 'ubuntu-24.04' && matrix.python == '3.15' && '1' || '0' }}
+          CLAB_NOMEM: ${{ matrix.os == 'ubuntu-24.04' && matrix.python == '3.10' && '1' || '0' }}
         run: python -X dev -m pytest -q -ra
       - name: Doctests
         working-directory: ${{ runner.temp }}
