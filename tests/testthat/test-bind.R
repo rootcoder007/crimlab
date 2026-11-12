@@ -245,3 +245,15 @@ test_that("lengths past INT_MAX are refused, never truncated", {
   expect_identical(.Call(C_clab_tlen, 7, NULL), as.character(7L))
   expect_identical(.Call(C_clab_tlen, 3e9, NULL), as.character(3e9))
 })
+
+test_that("cllrmin forms the calibration loss from the full cost", {
+  # cal = cllr - min is formed in the binding; cllr is checked against its
+  # closed form, min against the cost of the calibrated ratios
+  s <- c(3, 0.7, 20, 5)
+  d <- c(0.2, 1, 4, 0.05)
+  a <- cllrmin(s, d)
+  full <- 0.5 * (mean(log2(1 + 1 / s)) + mean(log2(1 + d)))
+  expect_equal(a[["cllr"]], full, tolerance = 1e-12)
+  expect_equal(a[["cal"]], full - a[["min"]], tolerance = 1e-12)
+  expect_gt(a[["cal"]], 0)
+})
