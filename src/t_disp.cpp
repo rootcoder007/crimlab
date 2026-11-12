@@ -4,6 +4,8 @@
 // odds ratio, the outcome test, benchmark decomposition, dyadic rates. A
 // check's id names the test it came from (file and line, e.g. disp3).
 #include <cmath>
+#include <cstdint>
+#include <limits>
 
 #include "crimlab.h"
 #include "tchk.h"
@@ -190,6 +192,76 @@ void guards(tk &t) {
          CLAB_EDOM);
 }
 
+// Stops simulated with a known visibility factor: group b (exposure 0.3
+// against 0.7) is stopped 1.5 times as often in daylight, so a share
+// 0.45 / 1.15 of daylight stops and 0.3 of night stops are of group b, n
+// of each. Returns the estimated factor.
+double vodsim(rng &g, int n) {
+  double day[2] = {0, 0}, night[2] = {0, 0};
+  for (int i = 0; i < n; ++i) {
+    day[runi(g) < 0.45 / 1.15 ? 1 : 0] += 1;
+    night[runi(g) < 0.3 ? 1 : 0] += 1;
+  }
+  double sd[2], sn[2], r[2];
+  int si[2];
+  clab_vod(day, night, 2, 0, nullptr, sd, sn, r, si, nullptr);
+  return r[1];
+}
+
+//' @srrstats {G5.6} vodsim() simulates stops with a known visibility
+//'   factor of 1.5 and clab_vod() recovers it.
+//' @srrstats {G5.6a} The recovered factor is checked to a relative
+//'   tolerance of 2 per cent, about three standard errors.
+//' @srrstats {G5.6b} The recovery is checked under five seeds.
+//' @srrstats {G5.7} The mean error over 20 seeds is smaller with 100 times
+//'   more stops.
+void recover(tk &t) {
+  for (std::uint64_t s = 1; s <= 5; ++s) {
+    rng g = {s};
+    tk_eq(t, "recover", vodsim(g, 200000), 1.5, 0.02);
+  }
+  double small = 0, large = 0;
+  for (std::uint64_t s = 1; s <= 20; ++s) {
+    rng g = {100 + s};
+    small += std::fabs(vodsim(g, 1000) - 1.5);
+    large += std::fabs(vodsim(g, 100000) - 1.5);
+  }
+  tk_lt(t, "recover", large, small);
+}
+
+// x with every element moved by one part in 2^52, alternately up and down.
+void nudge(const double *x, double *y, int n) {
+  const double e = std::numeric_limits<double>::epsilon();
+  for (int i = 0; i < n; ++i) y[i] = x[i] * (i % 2 ? 1 - e : 1 + e);
+}
+
+//' @srrstats {G5.9a} Inputs moved by .Machine$double.eps leave the results
+//'   of clab_vod(), clab_cllr() and clab_clrsmp() unchanged to 1e-12.
+void noise(tk &t) {
+  const double day[2] = {600, 400}, night[2] = {700, 300};
+  double dn[2], a[2], b[2], r0[2], r1[2];
+  int si[2];
+  nudge(day, dn, 2);
+  clab_vod(day, night, 2, 0, nullptr, a, b, r0, si, nullptr);
+  clab_vod(dn, night, 2, 0, nullptr, a, b, r1, si, nullptr);
+  tk_veq(t, "noise", r1, r0, 2, 1e-12);
+  const double s[4] = {50, 200, 8, 0.5}, f[4] = {0.01, 0.2, 1.5, 0.001};
+  double s2[4], f2[4], c0 = 0, c1 = 0;
+  nudge(s, s2, 4);
+  nudge(f, f2, 4);
+  clab_cllr(s, 4, f, 4, &c0);
+  clab_cllr(s2, 4, f2, 4, &c1);
+  tk_eq(t, "noise", c1, c0, 1e-12);
+  const double ca[2] = {90, 20}, ra[2] = {100, 50}, cb[2] = {19, 60},
+               rb[2] = {20, 140};
+  double ca2[2], w[6][2], t0[5], t1[5];
+  int cnt[3];
+  nudge(ca, ca2, 2);
+  clab_clrsmp(ca, ra, cb, rb, 2, w[0], w[1], w[2], w[3], w[4], w[5], t0, cnt);
+  clab_clrsmp(ca2, ra, cb, rb, 2, w[0], w[1], w[2], w[3], w[4], w[5], t1, cnt);
+  tk_veq(t, "noise", t1, t0, 5, 1e-12);
+}
+
 }  // namespace
 
 void t_disp(tk &t) {
@@ -199,4 +271,6 @@ void t_disp(tk &t) {
   dspbm(t);
   dyadrt(t);
   guards(t);
+  recover(t);
+  noise(t);
 }

@@ -2,7 +2,7 @@
 # brute-force enumeration and seeded simulation, checked through crimlab.h.
 # This runs them all; a family that stops running drops the count below the
 # floor and fails here. The floor sits a little below the count on x86-64
-# (13778): a few checks are conditional on the random cases, and the
+# (13787): a few checks are conditional on the random cases, and the
 # smallest family has more than 300.
 
 test_that("the compiled self-test passes every check", {
