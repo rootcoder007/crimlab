@@ -69,9 +69,9 @@ clrsmp <- function(clra, reca, clrb, recb) {
 #'
 #' @param y Recorded counts by group: positive numbers, optionally named.
 #' @param m The exposure proxy by group: positive numbers, same length.
+#' @inheritParams vodtst
 #' @param gamma The factor within which true exposure lies around the
 #'   proxy: one number, at least 1.
-#' @param ref The reference group, by name or position.
 #' @return A data frame with one row per group: `group`, `rate` (`y / m`),
 #'   `lo` and `hi` (the bounds on the true rate), `ratio` (the proxy rate
 #'   against the reference group), `rlo` and `rhi` (the bounds on the true

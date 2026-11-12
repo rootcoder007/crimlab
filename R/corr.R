@@ -146,7 +146,7 @@ sellab <- function(y, rel, rule, w = NULL) {
     stop("`y` must be numbers, one per defendant.", call. = FALSE)
   }
   y <- as.double(y)
-  if (anyNA(y[rel]) || any(!y[rel] %in% c(0, 1))) {
+  if (anyNA(y[rel]) || !all(y[rel] %in% c(0, 1))) {
     stop("`y` must be 0 or 1 for every released defendant.", call. = FALSE)
   }
   y[!rel] <- 0
@@ -223,7 +223,7 @@ losbnd <- function(done, open) {
 sntbnd <- function(y, z, treat = NULL, w = NULL) {
   y <- .num(y, "y", lo = 0)
   n <- length(y)
-  if (any(!y %in% c(0, 1))) stop("`y` must be 0 or 1.", call. = FALSE)
+  if (!all(y %in% c(0, 1))) stop("`y` must be 0 or 1.", call. = FALSE)
   if (length(z) != n || anyNA(z)) {
     stop("`z` must have length ", n, " and no missing values.", call. = FALSE)
   }
@@ -277,7 +277,9 @@ hzdsel <- function(s, h, l, surh, surl) {
   s <- .one(s, "s", 0, 1)
   h <- .p01(h, "h")
   l <- .p01(l, "l")
-  if (!(l < h)) stop("`l` must be below `h`.", call. = FALSE)
+  # .p01() has checked h and l are numbers in [0, 1], never NaN, so this is
+  # the negation of l < h
+  if (l >= h) stop("`l` must be below `h`.", call. = FALSE)
   surh <- .num(surh, "surh", len = 2L, lo = 0, open = TRUE)
   surl <- .num(surl, "surl", len = 2L, lo = 0, open = TRUE)
   if (any(surh > 1)) stop("`surh` must be at most 1.", call. = FALSE)

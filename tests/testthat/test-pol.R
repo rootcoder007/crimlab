@@ -2,7 +2,7 @@ test_that("clrsmp decomposes the toy Simpson case by hand", {
   r <- clrsmp(c(minor = 90, serious = 20), c(100, 50), c(19, 60), c(20, 140))
   p <- r[["parts"]]
   tot <- r[["total"]]
-  expect_equal(p[["part"]], c("minor", "serious"))
+  expect_identical(p[["part"]], c("minor", "serious"))
   expect_equal(p[["ratea"]], c(0.9, 0.4), tolerance = 1e-15)
   expect_equal(p[["rateb"]], c(0.95, 60 / 140), tolerance = 1e-15)
   expect_equal(p[["sharea"]], c(2 / 3, 1 / 3), tolerance = 1e-15)
@@ -18,9 +18,9 @@ test_that("clrsmp decomposes the toy Simpson case by hand", {
     (c(1 / 8, 7 / 8) - c(2 / 3, 1 / 3))
   expect_equal(p[["mixeff"]], me, tolerance = 1e-12)
   expect_equal(unname(tot["change"]), 79 / 160 - 110 / 150, tolerance = 1e-15)
-  expect_equal(unname(tot[["up"]]), 2)
-  expect_equal(unname(tot[["down"]]), 0)
-  expect_equal(unname(tot[["simpson"]]), 2)
+  expect_equal(unname(tot[["up"]]), 2, tolerance = 1e-15)
+  expect_equal(unname(tot[["down"]]), 0, tolerance = 1e-15)
+  expect_equal(unname(tot[["simpson"]]), 2, tolerance = 1e-15)
   # Csls.Clearance.change_ge_mix: every type up, so the fall is all mix
   expect_gt(tot[["rateeff"]], 0)
   expect_lt(tot[["mixeff"]], tot[["change"]] + 1e-15)
@@ -56,25 +56,28 @@ test_that("clrsmp terms add up and the mix total ignores the centre", {
 test_that("clrsmp flags the three kinds", {
   # every rate down, aggregate up
   r <- clrsmp(c(19, 60), c(20, 140), c(90, 20), c(100, 50))[["total"]]
-  expect_equal(unname(r[c("up", "down", "simpson")]), c(0, 2, 2))
+  expect_equal(unname(r[c("up", "down", "simpson")]), c(0, 2, 2),
+               tolerance = 1e-15)
   # one part up, one down, the aggregate and the rate effect both fall
   r <- clrsmp(c(80, 10), c(100, 100), c(85 * 0.5, 0.05 * 150),
               c(50, 150))[["total"]]
   re <- (0.5 + 0.25) / 2 * (0.85 - 0.8) + (0.5 + 0.75) / 2 * (0.05 - 0.1)
   expect_equal(r[["rateeff"]], re, tolerance = 1e-12)
-  expect_equal(unname(r[c("up", "down", "simpson")]), c(1, 1, 0))
+  expect_equal(unname(r[c("up", "down", "simpson")]), c(1, 1, 0),
+               tolerance = 1e-15)
   r <- clrsmp(c(80, 10), c(100, 100), c(85, 9.6), c(100, 100))[["total"]]
-  expect_equal(unname(r[["simpson"]]), 0)
+  expect_equal(unname(r[["simpson"]]), 0, tolerance = 1e-15)
   expect_equal(r[["mixeff"]], 0, tolerance = 1e-15)
   # aggregate falls, rate effect rises, not every part up: kind 1
   r <- clrsmp(c(80, 10), c(100, 100), c(45, 7.2), c(50, 150))[["total"]]
   expect_gt(r[["rateeff"]], 0)
   expect_lt(r[["change"]], 0)
-  expect_equal(unname(r[c("up", "down", "simpson")]), c(1, 1, 1))
+  expect_equal(unname(r[c("up", "down", "simpson")]), c(1, 1, 1),
+               tolerance = 1e-15)
   # no change in the counts: nothing moves
   r <- clrsmp(c(5, 6), c(10, 10), c(5, 6), c(10, 10))[["total"]]
   expect_equal(unname(r[c("change", "rateeff", "mixeff", "simpson")]),
-               c(0, 0, 0, 0))
+               c(0, 0, 0, 0), tolerance = 1e-15)
   # rates above one (clearances of earlier years' offences) are allowed
   expect_equal(clrsmp(12, 10, 5, 10)[["total"]][["ratea"]], 1.2)
 })
@@ -84,16 +87,16 @@ test_that("expbnd bounds hold for every admissible exposure and are reached", {
   expect_equal(r[["rate"]], c(0.1, 0.3))
   expect_equal(r[["lo"]], c(0.1, 0.3) / 1.5, tolerance = 1e-15)
   expect_equal(r[["hi"]], c(0.1, 0.3) * 1.5, tolerance = 1e-15)
-  expect_equal(r[["ratio"]], c(1, 3))
+  expect_equal(r[["ratio"]], c(1, 3), tolerance = 1e-15)
   expect_equal(r[["rlo"]], c(1, 3) / 2.25, tolerance = 1e-15)
   expect_equal(r[["rhi"]], c(1, 3) * 2.25, tolerance = 1e-15)
-  expect_equal(r[["sign"]], c(0L, 1L))
+  expect_identical(r[["sign"]], c(0L, 1L))
   # ref by name; a group below the band
   r <- expbnd(c(a = 100, b = 300), c(1000, 1000), gamma = 1.5, ref = "b")
-  expect_equal(r[["sign"]], c(-1L, 0L))
+  expect_identical(r[["sign"]], c(-1L, 0L))
   # the band closes at gamma = 1, and a wide band leaves the sign open
-  expect_equal(expbnd(c(2, 3), c(1, 1), 1)[["sign"]], c(0L, 1L))
-  expect_equal(expbnd(c(1, 3), c(1, 1), 2)[["sign"]], c(0L, 0L))
+  expect_identical(expbnd(c(2, 3), c(1, 1), 1)[["sign"]], c(0L, 1L))
+  expect_identical(expbnd(c(1, 3), c(1, 1), 2)[["sign"]], c(0L, 0L))
   # random exposures inside the band give ratios inside [rlo, rhi]; the
   # ends come from putting the two groups at opposite ends of their bands
   set.seed(3)
@@ -158,7 +161,7 @@ test_that("rtmhs equals the statistic on the data with its swapped copy", {
   x1 <- c(10, 2, 7, 4, 9)
   x2 <- c(6, 3, 8, 5, 2)
   r <- rtmhs(x1, x2, cut = 6)
-  expect_equal(r[["nsel"]], 3)
+  expect_equal(r[["nsel"]], 3, tolerance = 1e-15)
   expect_equal(r[["change"]], mean(c(6 - 10, 8 - 7, 2 - 9)), tolerance = 1e-15)
   expect_equal(r[["mirror"]], 7 - 8, tolerance = 1e-15)
   # selection on x1 > cut in the stacked data and its period-swapped copy
@@ -241,7 +244,7 @@ test_that("policing results agree with rmorie", {
   expect_equal(d[["hi"]], o[["rate_upper"]], tolerance = 1e-14)
   expect_equal(d[["rlo"]], o[["ratio_lower"]], tolerance = 1e-14)
   expect_equal(d[["rhi"]], o[["ratio_upper"]], tolerance = 1e-14)
-  expect_equal(d[["sign"]] != 0, o[["direction_identified"]])
+  expect_identical(d[["sign"]] != 0, o[["direction_identified"]])
 
   o <- rmorie::morie_misclassified_rd(0.3, 0.1, 0.4, 0.8, 0.9)
   d <- misrd(0.3, 0.1, 0.4, 0.8, 0.9)

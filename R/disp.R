@@ -115,7 +115,7 @@ outtst <- function(q, t, w = NULL) {
 #' @param pop Residents by group: positive numbers, optionally named.
 #' @param contact Police contacts by group: positive numbers, same length.
 #' @param force Uses of force by group: positive numbers, same length.
-#' @param ref The reference group, by name or position.
+#' @inheritParams vodtst
 #' @return A data frame with one row per group: `group`, `cd` (contact per
 #'   resident), `fd` (force per contact) and `rd` (force per resident), each
 #'   against the reference group, with `rd = cd * fd`.

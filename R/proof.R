@@ -10,11 +10,31 @@
 #' proof("vodtst")
 #' @export
 proof <- function(fn = NULL) {
-  row <- function(fn, mod, thm) {
-    data.frame(fn = fn, theorem = paste0("Csls.", mod, ".", thm),
-               file = paste0("lean/", mod, ".lean"))
+  t <- rbind(.pdisp(), .ppol(), .pcorr())
+  if (is.null(fn)) return(t)
+  if (!is.character(fn) || anyNA(fn)) {
+    stop("`fn` must be function names.", call. = FALSE)
   }
-  t <- rbind(
+  miss <- setdiff(fn, t[["fn"]])
+  if (length(miss)) {
+    stop("no proof recorded for: ", toString(miss), ".",
+         call. = FALSE)
+  }
+  out <- t[t[["fn"]] %in% fn, , drop = FALSE]
+  rownames(out) <- NULL
+  out
+}
+
+# One row per theorem of function fn, from lean/<mod>.lean.
+.prow <- function(fn, mod, thm) {
+  data.frame(fn = fn, theorem = paste0("Csls.", mod, ".", thm),
+             file = paste0("lean/", mod, ".lean"))
+}
+
+# The disparity and forensic functions.
+.pdisp <- function() {
+  row <- .prow
+  rbind(
     row("vodtst", "Veil", c("odds_ratio_identifies_bias", "share_sign",
                             "exposure_shift_confounds")),
     row("orrisk", "RelRisk", c("or_eq_rr_mul", "rr_between", "or_overstates")),
@@ -31,7 +51,14 @@ proof <- function(fn = NULL) {
     row("dbsrch", "Forensics", "np_rule"),
     row("mixlr", "Forensics", "mix_two_alleles"),
     row("kinidx", "Forensics", "po_identical_het"),
-    row("patidx", "Forensics", "post_even_prior"),
+    row("patidx", "Forensics", "post_even_prior")
+  )
+}
+
+# The policing functions.
+.ppol <- function() {
+  row <- .prow
+  rbind(
     row("clrsmp", "Clearance", c("agg_eq_weighted", "kitagawa",
                                  "change_ge_mix", "fixed_mix_no_reversal",
                                  "simpson_witness")),
@@ -40,7 +67,14 @@ proof <- function(fn = NULL) {
                                 "disparity_sign_identified")),
     row("misrd", "Misclass", c("binary_attenuation", "binary_sign")),
     row("rtmhs", "RegMean", c("selected_change_nonpos",
-                              "low_selected_change_nonneg")),
+                              "low_selected_change_nonneg"))
+  )
+}
+
+# The corrections functions.
+.pcorr <- function() {
+  row <- .prow
+  rbind(
     row("incap", "Incap", c("steady_state_rate", "prevented_share_eq",
                             "prevented_share_lt_one", "rate_antitone_in_S",
                             "rate_antitone_in_q", "marginal_prevention_eq",
@@ -60,16 +94,4 @@ proof <- function(fn = NULL) {
     row("hzdsel", "Hazard", c("survivor_hazard_mono",
                               "hr2_gt_one_of_depletion"))
   )
-  if (is.null(fn)) return(t)
-  if (!is.character(fn) || anyNA(fn)) {
-    stop("`fn` must be function names.", call. = FALSE)
-  }
-  miss <- setdiff(fn, t[["fn"]])
-  if (length(miss)) {
-    stop("no proof recorded for: ", toString(miss), ".",
-         call. = FALSE)
-  }
-  out <- t[t[["fn"]] %in% fn, , drop = FALSE]
-  rownames(out) <- NULL
-  out
 }

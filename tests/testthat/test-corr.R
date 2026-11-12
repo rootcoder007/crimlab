@@ -12,8 +12,8 @@ test_that("incap matches the renewal cycle by hand", {
   # one more year, by difference
   r1 <- incap(lam, q, s + 1)
   expect_equal(r[["marg"]], r[["rate"]] - r1[["rate"]], tolerance = 1e-12)
-  expect_equal(r[["group"]], c("a", "b", "c"))
-  expect_equal(r[["prev"]][3], 0)
+  expect_identical(r[["group"]], c("a", "b", "c"))
+  expect_equal(r[["prev"]][3], 0, tolerance = 1e-15)
   expect_true(all(r[["prev"]] < 1))
 })
 
@@ -35,7 +35,7 @@ test_that("incap: the documented monotone claims hold on a grid", {
 
 test_that("incap aggregates over groups", {
   r <- incap(c(low = 2, high = 10), 0.1, 1, share = c(0.8, 0.2))
-  expect_equal(r[["group"]], c("low", "high", "all"))
+  expect_identical(r[["group"]], c("low", "high", "all"))
   free <- 0.8 * 2 + 0.2 * 10
   inc <- 0.8 * 2 / 1.2 + 0.2 * 10 / 2
   expect_equal(r[["lam"]][3], free, tolerance = 1e-15)
@@ -47,17 +47,17 @@ test_that("incap aggregates over groups", {
 test_that("incapr sums the path and its bounds", {
   lam <- c(12, 10, 8, 6, 5, 4, 3, 2, 2, 1)
   r <- incapr(lam, t0 = 2, s = 3, r = 0.25)
-  expect_equal(r[["prev"]], 8 + 6 + 5)
-  expect_equal(r[["net"]], 0.75 * 19)
-  expect_equal(r[["upper"]], 3 * 8)
-  expect_equal(r[["lower"]], 3 * 4)
-  expect_equal(r[["later"]], 6 + 5 + 4)
+  expect_equal(r[["prev"]], 8 + 6 + 5, tolerance = 1e-15)
+  expect_equal(r[["net"]], 0.75 * 19, tolerance = 1e-15)
+  expect_equal(r[["upper"]], 3 * 8, tolerance = 1e-15)
+  expect_equal(r[["lower"]], 3 * 4, tolerance = 1e-15)
+  expect_equal(r[["later"]], 6 + 5 + 4, tolerance = 1e-15)
   # the shortest path that holds the sentence still has a later value
   r <- incapr(c(5, 4, 3), t0 = 0, s = 2)
-  expect_equal(unname(r), c(9, 9, 10, 6, 7))
+  expect_equal(unname(r), c(9, 9, 10, 6, 7), tolerance = 1e-15)
   # constant rate: the bounds meet
   r <- incapr(rep(3, 6), t0 = 1, s = 4, r = 1)
-  expect_equal(unname(r), c(12, 0, 12, 12, 12))
+  expect_equal(unname(r), c(12, 0, 12, 12, 12), tolerance = 1e-15)
   set.seed(2)
   for (k in 1:200) {
     lam <- sort(rexp(sample(3:20, 1)), decreasing = TRUE)
@@ -93,9 +93,9 @@ test_that("sellab bounds are the extremes over every filling of the unknown", {
   expect_equal(r[["naive"]], 1 / 4, tolerance = 1e-15)
   # a rule inside the judge's releases is identified
   r <- sellab(y, rel, c(TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE))
-  expect_equal(r[["width"]], 0)
-  expect_equal(r[["lower"]], 1 / 3)
-  expect_equal(r[["naive"]], r[["lower"]])
+  expect_equal(r[["width"]], 0, tolerance = 1e-15)
+  expect_equal(r[["lower"]], 1 / 3, tolerance = 1e-15)
+  expect_equal(r[["naive"]], r[["lower"]], tolerance = 1e-15)
   # the naive score sits at an end of the interval when the observed part
   # never fails or always fails
   rel <- c(TRUE, TRUE, FALSE, FALSE)
@@ -106,7 +106,7 @@ test_that("sellab bounds are the extremes over every filling of the unknown", {
   expect_equal(unname(r[c("lower", "upper", "naive")]), c(0.5, 1, 1))
   # a rule that releases only detained defendants
   r <- sellab(c(1, NA), c(TRUE, FALSE), c(FALSE, TRUE))
-  expect_equal(unname(r[c("lower", "upper")]), c(0, 1))
+  expect_equal(unname(r[c("lower", "upper")]), c(0, 1), tolerance = 1e-15)
   expect_true(is.nan(r[["naive"]]))
   # Csls.Select.naive_between: the naive score never leaves the interval
   set.seed(9)
@@ -126,9 +126,9 @@ test_that("sellab bounds are the extremes over every filling of the unknown", {
 
 test_that("losbnd: the bound by hand, and never above a completed cohort", {
   r <- losbnd(c(30, 45, 60, 90, 120), c(100, 150, 200))
-  expect_equal(r[["mean"]], 69)
-  expect_equal(r[["age"]], 150)
-  expect_equal(r[["lower"]], (345 + 450) / 8)
+  expect_equal(r[["mean"]], 69, tolerance = 1e-15)
+  expect_equal(r[["age"]], 150, tolerance = 1e-15)
+  expect_equal(r[["lower"]], (345 + 450) / 8, tolerance = 1e-15)
   # Csls.Censor.lower_bound_sub
   expect_equal(r[["bias"]], r[["lower"]] - r[["mean"]], tolerance = 1e-12)
   set.seed(8)
@@ -151,7 +151,7 @@ test_that("sntbnd bounds are the extremes over every counterfactual filling", {
   z <- c("a", "a", "b", "b", "b", "a")
   w <- c(1, 2, 1, 0.5, 1, 1.5)
   r <- sntbnd(y, z, w = w)
-  expect_equal(r[["term"]], c("a", "b", "effect"))
+  expect_identical(r[["term"]], c("a", "b", "effect"))
   W <- sum(w)
   expect_equal(r[["share"]][1:2], c(4.5, 2.5) / W, tolerance = 1e-15)
   # brute force: fill each person's missing outcome with 0 or 1
@@ -165,12 +165,13 @@ test_that("sntbnd bounds are the extremes over every counterfactual filling", {
   expect_equal(r[["upper"]], apply(eff, 1, max), tolerance = 1e-14)
   # Csls.Sentence.ate_width_one, ate_contains_zero
   expect_equal(r[["upper"]][3] - r[["lower"]][3], 1, tolerance = 1e-15)
-  expect_true(r[["lower"]][3] <= 0 && r[["upper"]][3] >= 0)
+  expect_lte(r[["lower"]][3], 0)
+  expect_gte(r[["upper"]][3], 0)
   expect_equal(r[["observed"]], c(1 / 4.5, 1.5 / 2.5, 1.5 / 2.5 - 1 / 4.5),
                tolerance = 1e-15)
   # the treatment picked by name flips the effect
   s <- sntbnd(y, z, treat = "a", w = w)
-  expect_equal(s[["term"]], c("b", "a", "effect"))
+  expect_identical(s[["term"]], c("b", "a", "effect"))
   expect_equal(s[["lower"]][3], -r[["upper"]][3], tolerance = 1e-15)
   # an arm with zero weight leaves its observed rate undefined
   e <- sntbnd(c(1, 0), c("a", "b"), w = c(1, 0))
@@ -265,7 +266,7 @@ test_that("corrections results agree with rmorie", {
   # although the sum needs ages up to t0 + s only; csls computes it
   o <- rmorie::morie_incapacitation_career(c(5, 4, 3), 0, 2)
   expect_true(is.na(o[["later"]]))
-  expect_equal(incapr(c(5, 4, 3), 0, 2)[["later"]], 7)
+  expect_equal(incapr(c(5, 4, 3), 0, 2)[["later"]], 7, tolerance = 1e-15)
 
   set.seed(4)
   risk <- runif(500)
