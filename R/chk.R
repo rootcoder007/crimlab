@@ -41,4 +41,6 @@
        call. = FALSE)
 }
 
-.grp <- function(x) if (is.null(names(x))) as.character(seq_along(x)) else names(x)
+.grp <- function(x) {
+  if (is.null(names(x))) as.character(seq_along(x)) else names(x)
+}

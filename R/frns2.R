@@ -29,7 +29,9 @@
   as.double(t(freq))
 }
 
-.code <- function(g, u) as.integer(t(matrix(match(as.character(g), u), ncol = 2L)))
+.code <- function(g, u) {
+  as.integer(t(matrix(match(as.character(g), u), ncol = 2L)))
+}
 
 .idx <- function(g, idx) {
   l10 <- sum(log10(idx))

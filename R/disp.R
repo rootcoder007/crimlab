@@ -24,16 +24,21 @@
 #'   the American Statistical Association*, 101(475), 878-887.
 #'   \doi{10.1198/016214506000000168}
 #' @examples
-#' vodtst(day = c(white = 600, black = 400), night = c(white = 700, black = 300))
+#' vodtst(day = c(white = 600, black = 400),
+#'        night = c(white = 700, black = 300))
 #' @export
 vodtst <- function(day, night, ref = 1, shift = NULL) {
   nms <- .grp(day)
   day <- .num(day, "day", lo = 0)
   n <- length(day)
   night <- .num(night, "night", len = n, lo = 0, open = TRUE)
-  if (!is.null(shift)) shift <- .num(shift, "shift", len = n, lo = 0, open = TRUE)
+  if (!is.null(shift)) {
+    shift <- .num(shift, "shift", len = n, lo = 0, open = TRUE)
+  }
   i <- .ref(ref, nms, n)
-  if (day[i] <= 0) stop("the reference group has no daylight stops.", call. = FALSE)
+  if (day[i] <= 0) {
+    stop("the reference group has no daylight stops.", call. = FALSE)
+  }
   r <- .Call(C_csls_vod, day, night, i - 1L, shift)
   out <- data.frame(group = nms, share_day = r[["share_day"]],
                     share_night = r[["share_night"]], ratio = r[["ratio"]],
@@ -87,7 +92,11 @@ outtst <- function(q, t, w = NULL) {
   q <- .num(q, "q", lo = 0)
   if (any(q > 1)) stop("`q` must be at most 1.", call. = FALSE)
   t <- .num(t, "t", len = 1L)
-  w <- if (is.null(w)) rep(1, length(q)) else .num(w, "w", len = length(q), lo = 0)
+  w <- if (is.null(w)) {
+    rep(1, length(q))
+  } else {
+    .num(w, "w", len = length(q), lo = 0)
+  }
   if (sum(w) <= 0) stop("`w` must have a positive total.", call. = FALSE)
   r <- .Call(C_csls_outtst, q, w, t)
   c(stop = r[1L], hit = r[2L])

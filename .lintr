@@ -1,0 +1,15 @@
+linters: linters_with_defaults(
+    line_length_linter = line_length_linter(80L),
+    object_name_linter = NULL,
+    # air (air.toml) is the formatter in this repo; its continuation style
+    # disagrees with indentation_linter, so the formatter wins.
+    indentation_linter = NULL,
+    # same-package calls resolve at load time; the linter cannot see them file by file
+    object_usage_linter = NULL
+  )
+exclusions: list(
+    "inst" = Inf,
+    "src" = Inf,
+    "dev" = Inf
+  )
+encoding: "UTF-8"

@@ -8,8 +8,10 @@ test_that("vodtst matches the odds ratio by hand", {
   a <- vodtst(c(w = 60, b = 40), c(w = 50, b = 50), shift = c(1, 2 / 3))
   expect_equal(a[["adj"]], c(1, 1))
   # the reference by name moves the baseline
-  expect_equal(vodtst(c(w = 60, b = 40), c(w = 50, b = 50), ref = "b")[["ratio"]],
-               c(1.5, 1))
+  expect_equal(
+    vodtst(c(w = 60, b = 40), c(w = 50, b = 50), ref = "b")[["ratio"]],
+    c(1.5, 1)
+  )
   expect_equal(vodtst(c(5, 5), c(7, 7))[["sign"]], c(0L, 0L))
 })
 
@@ -36,7 +38,8 @@ test_that("outtst shows infra-marginality", {
                c(stop = 0.8, hit = (1.5 + 0.9) / 4))
   expect_true(is.nan(outtst(c(0.1, 0.2), 0.5)[["hit"]]))
   # same threshold, different hit rates
-  expect_gt(outtst(c(0.2, 0.9), 0.5)[["hit"]], outtst(c(0.2, 0.6), 0.5)[["hit"]])
+  expect_gt(outtst(c(0.2, 0.9), 0.5)[["hit"]],
+            outtst(c(0.2, 0.6), 0.5)[["hit"]])
 })
 
 test_that("dspbm is a product", {

@@ -35,7 +35,8 @@ group's exposure differs between the two, and \code{adj} is the ratio with that
 difference taken out. See \code{proof("vodtst")}.
 }
 \examples{
-vodtst(day = c(white = 600, black = 400), night = c(white = 700, black = 300))
+vodtst(day = c(white = 600, black = 400),
+       night = c(white = 700, black = 300))
 }
 \references{
 Grogger, J. and Ridgeway, G. (2006). Testing for racial
