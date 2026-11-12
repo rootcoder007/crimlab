@@ -189,5 +189,7 @@ A build with no error and no `sorry` is the check.
 
 ## Licence
 
-AGPL-3. The C++ core (`src/`) carries the SPDX identifier
-AGPL-3.0-or-later.
+Apache License 2.0 with LLVM Exceptions; see `LICENSE`. The SPDX
+identifier is `Apache-2.0 WITH LLVM-exception`. The exception lets
+compiled code that embeds the kernels be redistributed without the
+attribution conditions, and settles linking with GPL-2 software.
