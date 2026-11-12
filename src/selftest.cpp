@@ -161,6 +161,15 @@ void t_self(tk &t) {
 
 }  // namespace
 
+//' @srrstats {G5.4} Every kernel is checked against values computed
+//'   independently in src/t_*.cpp: by hand, from closed forms or by brute
+//'   force.
+//' @srrstats {G5.4a} The references include exhaustive enumerations: every
+//'   paternity trio from three alleles (t_frns.cpp), every filling of the
+//'   unobserved outcomes (sellab(), sntbnd() in t_corr.cpp).
+//' @srrstats {G5.5} Random cases come from splitmix64 streams with fixed
+//'   seeds (rng g = {...}), so every run draws the same numbers.
+//' @noRd
 extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   sink[0] = '\0';
   tk t = {0, 0, sink, static_cast<std::size_t>(cap), 0};

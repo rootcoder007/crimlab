@@ -12,6 +12,9 @@
 
 namespace {
 
+//' @srrstats {G5.8c} Equal shares in daylight and darkness give a sign of
+//'   0 (disp15); all-NA input is refused by the binding (test-chk.R).
+//' @noRd
 void vod(tk &t) {
   const double day[2] = {60, 40}, night[2] = {50, 50};
   double sd[2], sn[2], ratio[2], adj[2];

@@ -38,5 +38,5 @@ Suggests:
 VignetteBuilder: knitr
 SystemRequirements: C++17
 Config/testthat/edition: 3
-Roxygen: list(markdown = TRUE)
+Roxygen: list(markdown = TRUE, roclets = c("namespace", "rd", "srr::srr_stats_roclet"))
 Config/roxygen2/version: 8.0.0

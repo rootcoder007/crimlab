@@ -14,6 +14,9 @@
 extern "C" {
 #endif
 
+//' @srrstats {G2.8} The kernels take double, int and logical arrays only;
+//'   the binding converts every argument to one of these first.
+//' @noRd
 #define CLAB_OK 0
 #define CLAB_EARG 1 /* a size or an index is out of range */
 #define CLAB_EDOM 2 /* a value is outside the domain of the method */

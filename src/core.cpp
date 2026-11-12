@@ -9,6 +9,13 @@
 
 namespace {
 
+//' @srrstats {G3.0} Computed doubles are compared with tolerances (1e-12
+//'   for the sign in clab_vod(), 1e-9 for probabilities summing to 1). The
+//'   exact comparisons are deliberate: whether a number is whole, ties
+//'   between likelihood ratios in clab_lrcal(), the two frequencies given
+//'   for a homozygote's one allele, outcomes of 0 and 1, and the guard
+//'   against an exact zero divisor in orrsolve().
+//' @noRd
 inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
 inline bool unit_open(double x) noexcept { return x > 0.0 && x < 1.0; }

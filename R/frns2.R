@@ -153,6 +153,9 @@ lrcal <- function(same, diff) {
 #' @param ... Passed to [graphics::plot()].
 #' @return Invisibly, a list of two data frames, `same` and `diff`, each with
 #'   `log10lr` and `share` (the share of ratios at or above it).
+#' @srrstats {EA5.0} Curves differ by line type, not colour, and no
+#'   typeface or text size is set.
+#' @srrstats {EA5.0b} No colour is used, so colour vision does not matter.
 #' @examples
 #' tipplt(same = c(50, 200, 8, 0.5), diff = c(0.01, 0.2, 1.5, 0.001))
 #' @export
@@ -187,6 +190,11 @@ tipplt <- function(same, diff, ...) {
 #' @references Ramos, D. and Gonzalez-Rodriguez, J. (2013). Reliable support:
 #'   measuring calibration of likelihood ratios. *Forensic Science
 #'   International*, 230(1-3), 156-169. \doi{10.1016/j.forsciint.2013.04.014}
+#' @srrstats {EA5.0a} Text sizes are the device defaults; `cex` and other
+#'   graphical parameters reach graphics::plot() through `...`.
+#' @srrstats {EA5.4} Axis ticks come from graphics::plot(), via pretty().
+#' @srrstats {EA5.5} The vertical axis is labelled in bits; the others are
+#'   log10 odds and shares, which have no unit.
 #' @examples
 #' eceplt(same = c(50, 200, 8, 0.5), diff = c(0.01, 0.2, 1.5, 0.001))
 #' @export

@@ -832,6 +832,14 @@ const double *gf(SEXP freq, SEXP g, const char *nm) {
   return out;
 }
 
+//' @srrstats {G2.3} The character arguments rel (kinidx()), ref (vodtst(),
+//'   dspbm(), expbnd()), treat (sntbnd()) and fn (proof()) are checked
+//'   against the values allowed, and refused otherwise.
+//' @srrstats {G2.3a} kin() matches rel against its four names, as
+//'   match.arg() would, and lists them when it refuses.
+//' @srrstats {G2.3b} rel, ref and treat are matched exactly, case
+//'   included, as their help pages say.
+//' @noRd
 // .kin(): the identity-by-descent probabilities of a relationship
 void kin(SEXP rel, double *k) {
   static const char *const nm[] = {"parent", "sibling", "half", "cousin"};
@@ -1242,6 +1250,12 @@ SEXP C_clab_r_losbnd(SEXP done, SEXP open) {
   return clab::nvec(4, nm, r);
 }
 
+//' @srrstats {G2.4c} z and treat are converted as as.character() does.
+//' @srrstats {G2.4e} A factor z is read by its labels; a factor given to a
+//'   numeric argument fails isnum() and is refused.
+//' @srrstats {G2.5} z is the one argument that may be a factor; its help
+//'   page says level order and ordering are ignored.
+//' @noRd
 SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
   clab::who = "sntbnd";
   SEXP yv = PROTECT(num(y, "y", -1, 0.0));

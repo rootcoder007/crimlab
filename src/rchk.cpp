@@ -22,6 +22,10 @@ namespace clab {
 
 const char *who = "crimlab";
 
+//' @srrstats {G5.2a} Every message goes through fail() or kchk(), which put
+//'   the raising function's name (clab::who) in front: no two functions
+//'   raise the same message. errs() in tests/testthat/helper.R checks it.
+//' @noRd
 void fail(const char *f, ...) {
   // The message is formatted into R's transient memory (first 256 bytes,
   // then exactly the size needed) and handed to R as stop() hands it: R
@@ -96,6 +100,12 @@ double rd(double x) {
   return v;
 }
 
+//' @srrstats {G2.1} Types are asserted: isnum() is is.numeric(), and lgl(),
+//'   the genotype and name checks of bind.cpp test their types likewise.
+//' @srrstats {G2.6} A classed number (one with units, say) is read as its
+//'   data; dates, times and factors are refused (test-bind.R).
+//' @srrstats {EA2.6} Attributes and classes do not change results (G2.6).
+//' @noRd
 bool isnum(SEXP x) {
   // is.numeric(x): integer or double and not a factor. It dispatches, and
   // base's methods for Date, POSIXt and difftime say FALSE; another class
@@ -141,6 +151,11 @@ bool anyna(SEXP x) {
   }
 }
 
+//' @srrstats {G2.4} Inputs are converted explicitly once checked: dbl()
+//'   (as.double()), whole() and ref() (as.integer()), labs()
+//'   (as.character()).
+//' @srrstats {G2.4b} dbl() is as.double() for integer and double input.
+//' @noRd
 SEXP dbl(SEXP x) {
   // as.double(x) for integer or double x; only values are read from it
   if (TYPEOF(x) == REALSXP) return x;
@@ -161,6 +176,16 @@ SEXP dcopy(SEXP x) {
   return v;
 }
 
+//' @srrstats {G2.0} Lengths are asserted: num() with len, one(), p01() and
+//'   whole() take one value, and paired vectors must match.
+//' @srrstats {G2.13} Missing values are checked first: num() and the other
+//'   checks refuse NA, naming the argument.
+//' @srrstats {G2.15} No computation sees a missing value: every argument is
+//'   checked before a sum, a mean or a kernel reads it.
+//' @srrstats {G2.16} NaN, Inf and -Inf are refused here and again by the
+//'   kernels (pos() and nonneg() in core.cpp call std::isfinite(), and
+//'   range tests fail for NaN), which return CLAB_EDOM, not a number.
+//' @noRd
 SEXP num(SEXP x, const char *nm, R_xlen_t len, double lo, bool open) {
   // if (!is.numeric(x) || length(x) < 1L || anyNA(x) || !all(is.finite(x)))
   //   stop("`", nm, "` must be finite numbers with no missing values.")
@@ -198,6 +223,10 @@ SEXP num(SEXP x, const char *nm, R_xlen_t len, double lo, bool open) {
   return v;
 }
 
+//' @srrstats {G2.2} vec() refuses a matrix with more than one row and
+//'   column where a vector is expected; num(), lgl() and the vector checks
+//'   of bind.cpp call it (test-srr.R).
+//' @noRd
 void vec(SEXP x, const char *nm) {
   SEXP d = Rf_getAttrib(x, R_DimSymbol);
   if (TYPEOF(d) != INTSXP) return;
@@ -237,6 +266,8 @@ double p01(SEXP x, const char *nm) {
   return v;
 }
 
+//' @srrstats {G2.4a} whole() and ref() return integers, as as.integer().
+//' @noRd
 int whole(SEXP x, const char *nm, int lo) {
   // !is.numeric(x) || length(x) != 1L || is.na(x) || x != round(x) ||
   //   x < lo || x > .Machine[["integer.max"]]
