@@ -62,6 +62,18 @@ inline void near(const char *id, double got, double want, double tol) {
   }
 }
 
+// the median of five timings (sorts t in place)
+inline double med5(double *t) {
+  for (int i = 1; i < 5; ++i) {
+    for (int j = i; j > 0 && t[j] < t[j - 1]; --j) {
+      const double v = t[j];
+      t[j] = t[j - 1];
+      t[j - 1] = v;
+    }
+  }
+  return t[2];
+}
+
 }  // namespace tk
 
 #define TK(id, cond) tk::ok((id), static_cast<bool>(cond), #cond)

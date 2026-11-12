@@ -617,6 +617,39 @@ int clab_fair(const double *score, const int *y, const int *grp, int n, int g,
               double cut, int base, double z, double *cnt, double *met,
               double *rat, double *lo, double *hi);
 
+/* Two-level normal model for multivariate trace evidence (Aitken and Lucy
+ * 2004, doi:10.1046/j.0035-9254.2003.05271.x): x_ij = theta_i + e_ij,
+ * theta_i ~ N(mu, C) between items, e_ij ~ N(0, U) within an item.
+ *
+ * clab_tlvc: the background estimates. x: n x p observations, column-major;
+ * item: n codes in [0, m), every item observed at least once; m >= 2 and
+ * n > m (some item replicated). Out: mu (p), the mean of all n
+ * observations; u (p x p), the pooled within-item covariance
+ * sum (x - xbar_i)(x - xbar_i)' / (n - m); c (p x p), the ANOVA between-item
+ * covariance (S_B - (m - 1) U) / (n - sum n_i^2 / n) with
+ * S_B = sum n_i (xbar_i - mu)(xbar_i - mu)' (Searle, Casella and McCulloch
+ * 1992, doi:10.1002/9780470316856). Both are unbiased for any replication
+ * pattern; with equal n_i they are the balanced estimates of Aitken and
+ * Lucy. c need not be positive definite (clab_tlvlr then refuses it).
+ * Means take one corrective pass; cross-product sums are compensated.
+ * work: m p + 2 m doubles. Time O(n p^2 + m p^2). */
+int clab_tlvc(const double *x, int n, int p, const int *item, int m,
+              double *mu, double *u, double *c, double *work);
+
+/* clab_tlvlr: the likelihood ratio of same source against different
+ * sources for two items with mean vectors xa, xb of na, nb > 0 replicates,
+ * given u, c (p x p, lower triangles read) and mu (p). With
+ * d = xa - xb and ybar = (na xa + nb xb) / (na + nb),
+ *   ln LR = ln N(d; 0, U (1/na + 1/nb)) + ln N(ybar; mu, U/(na+nb) + C)
+ *         - ln N(xa; mu, U/na + C) - ln N(xb; mu, U/nb + C),
+ * evaluated with four Cholesky factors in log space, so atypical or far
+ * apart items give a finite value instead of 0 / 0. Out, 2: ln LR and
+ * log10 LR. CLAB_EDOM when one of the four matrices is not positive
+ * definite. work: p p + 2 p doubles. Time O(p^3). */
+int clab_tlvlr(const double *u, const double *c, const double *mu, int p,
+               const double *xa, double na, const double *xb, double nb,
+               double *out, double *work);
+
 #ifdef __cplusplus
 }
 #endif

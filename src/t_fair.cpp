@@ -213,11 +213,7 @@ void b_fair() {
     clab_fair(s, y, g, n, 4, 0.5, 0, Z, cnt, met, rat, lo, hi);
     t[k] = std::chrono::duration<double>(std::chrono::steady_clock::now() - a).count();
   }
-  for (int i = 1; i < 5; ++i)
-    for (int j = i; j > 0 && t[j] < t[j - 1]; --j) {
-      const double u = t[j]; t[j] = t[j - 1]; t[j - 1] = u;
-    }
-  std::printf("BENCH clab_fair n=1e5 g=4: median %.6f s (k=5)\n", t[2]);
+  std::printf("BENCH clab_fair n=1e5 g=4: median %.6f s (k=5)\n", tk::med5(t));
 }
 
 }  // namespace
