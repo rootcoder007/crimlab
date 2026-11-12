@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, causal: Rosenbaum sensitivity analysis for matched pairs.
 // Bounds on the signed-rank p-value with the critical Gamma in closed

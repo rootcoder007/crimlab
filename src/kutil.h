@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Small predicates and a compensated sum shared by the kernel families
 // outside core.cpp. Header only; nothing here allocates.

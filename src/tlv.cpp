@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, forensics: the two-level normal model for multivariate trace
 // evidence (Aitken and Lucy 2004): variance components from a background

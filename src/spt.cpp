@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, policing: Andresen's spatial point pattern test with the
 // multinomial bootstrap streamed over replicates: memory linear in the

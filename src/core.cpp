@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab: the kernels. No R here, no allocation, no exceptions: every
 // function reads the caller's arrays and writes the caller's arrays.

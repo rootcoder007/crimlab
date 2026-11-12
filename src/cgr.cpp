@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, spatial description: centrographic statistics of point
 // patterns in planar coordinates (mean, median and minimum-distance

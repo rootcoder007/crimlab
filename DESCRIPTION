@@ -21,7 +21,7 @@ Description: Statistical methods for courts, corrections, policing,
     calibrated minimum, mixture likelihood ratios, kinship and paternity
     indices, database-search corrections, and Tippett and
     empirical-cross-entropy plots.
-License: AGPL-3
+License: Apache License (== 2.0) | file LICENSE
 URL: https://github.com/rootcoder007/crimlab,
     https://rootcoder007.github.io/crimlab/
 BugReports: https://github.com/rootcoder007/crimlab/issues

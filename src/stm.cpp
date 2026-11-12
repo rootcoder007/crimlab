@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, space-time: Mantel's correlation between the spatial and
 // the temporal distances of all pairs of events with a permutation test,

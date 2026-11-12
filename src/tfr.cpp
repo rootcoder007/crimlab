@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, forensics: the distribution of the number of glass fragments
 // recovered under the transfer, persistence and recovery model of Curran

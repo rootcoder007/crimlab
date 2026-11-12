@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Self-test of the forensic kernels: match probabilities, the cost of
 // likelihood ratios and its calibrated minimum, mixtures, kinship and

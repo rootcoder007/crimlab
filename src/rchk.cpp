@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // The argument checks and result builders of the R binding. Each check
 // keeps the wording and the order of tests of the R helper it replaced

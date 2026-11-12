@@ -20,4 +20,4 @@ Before a pull request:
   `inst/lean` to still build.
 
 By contributing you agree that your contribution is licensed under the
-package licence (AGPL-3).
+package licence (Apache-2.0 WITH LLVM-exception).

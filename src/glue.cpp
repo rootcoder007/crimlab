@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // The R binding of libcrimlab: each entry point unpacks R vectors, calls one
 // kernel and packs the result. The R wrappers have checked every argument, so

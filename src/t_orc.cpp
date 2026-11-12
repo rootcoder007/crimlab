@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Parity of crimlab's existing forensic kernels (src/core.cpp: clab_gtmp,
 // clab_kinidx, clab_patidx, clab_mixp, clab_cllr, clab_lrcal) with

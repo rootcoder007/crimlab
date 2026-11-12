@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Self-test of the corrections kernels: incapacitation, careers, selective
 // labels, spell lengths, sentence-effect bounds, hazards after depletion.

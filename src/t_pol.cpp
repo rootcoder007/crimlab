@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Self-test of the policing kernels: clearance decomposition and Simpson's
 // paradox, exposure bounds, misclassification, regression to the mean.

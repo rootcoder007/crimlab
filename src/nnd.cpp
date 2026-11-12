@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, distance analysis: the nearest-neighbour index of Clark and
 // Evans with Donnelly's edge correction, k-order nearest-neighbour

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Standalone tests for clab_mvtll and clab_mvtem (src/mvt.cpp). Part of the
 // self-test (selftest.cpp).

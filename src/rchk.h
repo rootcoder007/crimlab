@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Helpers of the R binding (bind.cpp): the argument checks the R wrappers
 // made, word for word, and the builders of R results. Every check stops

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, core: Cleveland's robust locally weighted regression
 // (lowess), written from Cleveland (1979) with the conventions of the

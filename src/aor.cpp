@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, policing: aoristic weights (Ratcliffe 2002) on wall-clock
 // bins, with daylight-saving transitions supplied by the caller.

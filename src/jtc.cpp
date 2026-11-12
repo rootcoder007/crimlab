@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, journey to crime: distance-decay functions, the surface they
 // give over a grid of candidate bases for a series of incidents, kernel

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, policing: local Getis-Ord G* hot-spot statistics on a regular
 // grid, with an exposure (area inside the study window) per cell, an exact

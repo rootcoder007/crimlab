@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Self-test of the disparity kernels: veil of darkness, the risks behind an
 // odds ratio, the outcome test, benchmark decomposition, dyadic rates. A

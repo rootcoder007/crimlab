@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // The self-test of libcrimlab: every kernel checked through the C interface
 // against hand formulas, brute-force enumeration and seeded simulation. No R

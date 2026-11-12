@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // rOpenSci statistical software standards (General and EDA) that hold for
 // the package as a whole, read by the srr package (srr::srr_report()).

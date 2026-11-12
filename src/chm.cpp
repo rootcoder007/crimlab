@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, forensics: the Chumbley score for two striated tool-mark
 // profiles, in the deterministic form of Hadler and Morris (2018): lowess

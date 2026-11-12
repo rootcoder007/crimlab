@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, distance analysis: Ripley's K function in a rectangle with
 // the uncorrected, border, modified border and isotropic estimators,

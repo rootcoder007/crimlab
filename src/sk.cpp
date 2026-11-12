@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, forensics: Scott-Knott grouping of measurements (glass
 // refractive indices and the like) with a known measurement variance and

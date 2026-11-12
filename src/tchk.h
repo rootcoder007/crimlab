@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPL-3.0-or-later
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // The self-test's check framework. A check has a short id; a failed check
 // appends one line "id: want <expected> got <observed>" to a sink the caller
