@@ -31,7 +31,16 @@ proof <- function(fn = NULL) {
     row("dbsrch", "Forensics", "np_rule"),
     row("mixlr", "Forensics", "mix_two_alleles"),
     row("kinidx", "Forensics", "po_identical_het"),
-    row("patidx", "Forensics", "post_even_prior")
+    row("patidx", "Forensics", "post_even_prior"),
+    row("clrsmp", "Clearance", c("agg_eq_weighted", "kitagawa",
+                                 "change_ge_mix", "fixed_mix_no_reversal",
+                                 "simpson_witness")),
+    row("expbnd", "Exposure", c("rate_bounds", "rate_lower_attained",
+                                "rate_upper_attained", "disparity_bounds",
+                                "disparity_sign_identified")),
+    row("misrd", "Misclass", c("binary_attenuation", "binary_sign")),
+    row("rtmhs", "RegMean", c("selected_change_nonpos",
+                              "low_selected_change_nonneg"))
   )
   if (is.null(fn)) return(t)
   if (!is.character(fn) || anyNA(fn)) {

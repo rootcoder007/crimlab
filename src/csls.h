@@ -107,6 +107,51 @@ int csls_kinidx(const int *g1, const int *g2, const double *f, int n,
 int csls_patidx(const int *c, const int *m, const int *af, const double *f,
                 int n, double *idx);
 
+/* Clearance-rate decomposition and Simpson's paradox (Lean:
+ * Csls.Clearance.kitagawa, change_ge_mix). clra, reca, clrb, recb: n parts'
+ * cleared (non-negative) and recorded (positive) counts in comparisons A
+ * and B. Out, n each: ra, rb (rates), wa, wb (workload shares), reff and
+ * meff (each part's rate and mix terms, the mix centred on the mean of the
+ * two aggregate rates); tot, 5: the aggregate rates of A and B, their
+ * change, the summed rate effect and the summed mix effect, change = sum
+ * of the two; cnt, 3: parts whose rate rose, parts whose rate fell, and the
+ * kind of reversal (0 none, 1 the change and the rate effect differ in
+ * sign, 2 every part moved one way and the aggregate the other). */
+int csls_clrsmp(const double *clra, const double *reca, const double *clrb,
+                const double *recb, int n, double *ra, double *rb,
+                double *wa, double *wb, double *reff, double *meff,
+                double *tot, int *cnt);
+
+/* Rates and disparities when exposure is known only within a factor of a
+ * proxy (Lean: Csls.Exposure.rate_bounds, disparity_bounds,
+ * disparity_sign_identified). y, m: n positive counts and proxies; gamma
+ * >= 1. Out, n each: rate (y / m), lo, hi (its bounds), ratio (against
+ * group ref), rlo, rhi (its bounds) and sign (1 when the true ratio exceeds
+ * 1 for every admissible exposure, -1 when it is below 1, 0 otherwise). */
+int csls_expbnd(const double *y, const double *m, int n, int ref, double gamma,
+                double *rate, double *lo, double *hi, double *ratio,
+                double *rlo, double *rhi, int *sign);
+
+/* Risk difference under nondifferential misclassification of a binary
+ * group (Lean: Csls.Misclass.binary_attenuation, binary_sign). r1, r0: true
+ * risks in [0, 1]; p in (0, 1) the true prevalence; se, sp in [0, 1], with
+ * both measured groups non-empty. Out, 5: the true difference, the measured
+ * difference (from the mixtures), the attenuation factor
+ * (se + sp - 1) p (1 - p) / (d1 d0), d1 and d0 (measured group shares). */
+int csls_misrd(double r1, double r0, double p, double se, double sp,
+               double *out);
+
+/* Regression to the mean at places selected on x1 > c (Lean:
+ * Csls.RegMean.selected_change_nonpos, low_selected_change_nonneg).
+ * x1, x2: n finite counts; w: n non-negative weights, positive on the
+ * selected places. Out, 7: the selected weight, their mean change, the
+ * mirror change (selection on x2 > c, read backwards), the symmetrised
+ * change (never positive), the excess of the first over it, the low
+ * places' change (x1 < c) and its symmetrised value (never negative); NaN
+ * where no place qualifies. */
+int csls_rtmhs(const double *x1, const double *x2, const double *w, int n,
+               double c, double *out);
+
 #ifdef __cplusplus
 }
 #endif

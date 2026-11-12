@@ -348,3 +348,147 @@ int csls_patidx(const int *c, const int *m, const int *af, const double *f,
 }
 
 }  // extern "C"
+
+// Policing and corrections.
+
+extern "C" {
+
+int csls_clrsmp(const double *clra, const double *reca, const double *clrb,
+                const double *recb, int n, double *ra, double *rb,
+                double *wa, double *wb, double *reff, double *meff,
+                double *tot, int *cnt) {
+  if (n < 1) return CSLS_EARG;
+  double sca = 0.0, sra = 0.0, scb = 0.0, srb = 0.0;
+  for (int k = 0; k < n; ++k) {
+    if (!nonneg(clra[k]) || !pos(reca[k]) || !nonneg(clrb[k]) ||
+        !pos(recb[k])) {
+      return CSLS_EDOM;
+    }
+    sca += clra[k];
+    sra += reca[k];
+    scb += clrb[k];
+    srb += recb[k];
+  }
+  const double agga = sca / sra;
+  const double aggb = scb / srb;
+  // the centre of the mix terms; their sum does not depend on it
+  // (Csls.Clearance.kitagawa), only how it is shared out among the parts
+  const double centre = 0.5 * (agga + aggb);
+  double sre = 0.0, sme = 0.0;
+  int up = 0, down = 0;
+  for (int k = 0; k < n; ++k) {
+    ra[k] = clra[k] / reca[k];
+    rb[k] = clrb[k] / recb[k];
+    wa[k] = reca[k] / sra;
+    wb[k] = recb[k] / srb;
+    reff[k] = 0.5 * (wa[k] + wb[k]) * (rb[k] - ra[k]);
+    meff[k] = (0.5 * (ra[k] + rb[k]) - centre) * (wb[k] - wa[k]);
+    sre += reff[k];
+    sme += meff[k];
+    if (rb[k] > ra[k]) ++up;
+    if (rb[k] < ra[k]) ++down;
+  }
+  const double change = aggb - agga;
+  tot[0] = agga;
+  tot[1] = aggb;
+  tot[2] = change;
+  tot[3] = sre;
+  tot[4] = sme;
+  int type = 0;
+  if ((up == n && change < 0.0) || (down == n && change > 0.0)) {
+    type = 2;  // every part one way, the aggregate the other
+  } else if (change != 0.0 && sre != 0.0 && (change > 0.0) != (sre > 0.0)) {
+    type = 1;  // the aggregate moves against the parts' own rates
+  }
+  cnt[0] = up;
+  cnt[1] = down;
+  cnt[2] = type;
+  return CSLS_OK;
+}
+
+int csls_expbnd(const double *y, const double *m, int n, int ref, double gamma,
+                double *rate, double *lo, double *hi, double *ratio,
+                double *rlo, double *rhi, int *sign) {
+  if (n < 1 || ref < 0 || ref >= n) return CSLS_EARG;
+  if (!(std::isfinite(gamma) && gamma >= 1.0)) return CSLS_EDOM;
+  for (int i = 0; i < n; ++i) {
+    if (!pos(y[i]) || !pos(m[i])) return CSLS_EDOM;
+  }
+  const double g2 = gamma * gamma;
+  const double base = y[ref] / m[ref];
+  for (int i = 0; i < n; ++i) {
+    rate[i] = y[i] / m[i];
+    lo[i] = rate[i] / gamma;
+    hi[i] = gamma * rate[i];
+    ratio[i] = rate[i] / base;
+    rlo[i] = ratio[i] / g2;
+    rhi[i] = g2 * ratio[i];
+    sign[i] = rlo[i] > 1.0 ? 1 : (rhi[i] < 1.0 ? -1 : 0);
+  }
+  return CSLS_OK;
+}
+
+int csls_misrd(double r1, double r0, double p, double se, double sp,
+               double *out) {
+  if (!(r1 >= 0.0 && r1 <= 1.0) || !(r0 >= 0.0 && r0 <= 1.0) ||
+      !unit_open(p) || !(se >= 0.0 && se <= 1.0) ||
+      !(sp >= 0.0 && sp <= 1.0)) {
+    return CSLS_EDOM;
+  }
+  // shares of the population in the measured groups
+  const double d1 = p * se + (1.0 - p) * (1.0 - sp);
+  const double d0 = p * (1.0 - se) + (1.0 - p) * sp;
+  if (!(d1 > 0.0) || !(d0 > 0.0)) return CSLS_EDOM;
+  // each measured group is a mixture of the true groups
+  const double m1 = (p * se * r1 + (1.0 - p) * (1.0 - sp) * r0) / d1;
+  const double m0 = (p * (1.0 - se) * r1 + (1.0 - p) * sp * r0) / d0;
+  out[0] = r1 - r0;
+  out[1] = m1 - m0;
+  out[2] = (se + sp - 1.0) * p * (1.0 - p) / (d1 * d0);
+  out[3] = d1;
+  out[4] = d0;
+  return CSLS_OK;
+}
+
+int csls_rtmhs(const double *x1, const double *x2, const double *w, int n,
+               double c, double *out) {
+  if (n < 1) return CSLS_EARG;
+  if (!std::isfinite(c)) return CSLS_EDOM;
+  double s1 = 0.0, m1 = 0.0, s2 = 0.0, m2 = 0.0;  // high: by x1, by x2
+  double l1 = 0.0, n1 = 0.0, l2 = 0.0, n2 = 0.0;  // low: by x1, by x2
+  for (int i = 0; i < n; ++i) {
+    if (!std::isfinite(x1[i]) || !std::isfinite(x2[i]) || !nonneg(w[i])) {
+      return CSLS_EDOM;
+    }
+    const double d = x2[i] - x1[i];
+    if (x1[i] > c) {
+      s1 += w[i] * d;
+      m1 += w[i];
+    }
+    if (x2[i] > c) {
+      s2 -= w[i] * d;
+      m2 += w[i];
+    }
+    if (x1[i] < c) {
+      l1 += w[i] * d;
+      n1 += w[i];
+    }
+    if (x2[i] < c) {
+      l2 -= w[i] * d;
+      n2 += w[i];
+    }
+  }
+  if (!(m1 > 0.0)) return CSLS_EDOM;
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  out[0] = m1;
+  out[1] = s1 / m1;
+  out[2] = m2 > 0.0 ? s2 / m2 : nan;
+  // selection on x1 in the data together with its period-swapped copy
+  out[3] = (s1 + s2) / (m1 + m2);
+  out[4] = out[1] - out[3];
+  out[5] = n1 > 0.0 ? l1 / n1 : nan;
+  out[6] = n1 + n2 > 0.0 ? (l1 + l2) / (n1 + n2) : nan;
+  return CSLS_OK;
+}
+
+}  // extern "C"
