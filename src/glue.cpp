@@ -1,0 +1,105 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+//
+// The R binding of libcsls: each entry point unpacks R vectors, calls one
+// kernel and packs the result. The R wrappers have checked every argument, so
+// a non-zero code here means the two layers disagree; it is reported in the
+// kernel's own words. No C++ object with a destructor is alive when
+// Rf_error() jumps.
+#include <R.h>
+#include <Rinternals.h>
+
+#include "csls.h"
+
+namespace {
+
+void check(int code) {
+  if (code != CSLS_OK) Rf_error("csls: %s", csls_strerror(code));
+}
+
+SEXP named_list(int n, const char *const *names) {
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, n));
+  SEXP nm = PROTECT(Rf_allocVector(STRSXP, n));
+  for (int i = 0; i < n; ++i) SET_STRING_ELT(nm, i, Rf_mkChar(names[i]));
+  Rf_setAttrib(out, R_NamesSymbol, nm);
+  UNPROTECT(2);
+  return out;
+}
+
+}  // namespace
+
+extern "C" {
+
+SEXP C_csls_vod(SEXP day, SEXP night, SEXP ref, SEXP shift) {
+  const int n = static_cast<int>(XLENGTH(day));
+  const bool has = !Rf_isNull(shift);
+  static const char *const names[] = {"share_day", "share_night", "ratio",
+                                      "sign", "adj"};
+  SEXP out = PROTECT(named_list(5, names));
+  for (int i = 0; i < 3; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, n));
+  SET_VECTOR_ELT(out, 3, Rf_allocVector(INTSXP, n));
+  SET_VECTOR_ELT(out, 4, Rf_allocVector(REALSXP, has ? n : 0));
+  check(csls_vod(REAL(day), REAL(night), n, Rf_asInteger(ref),
+                 has ? REAL(shift) : nullptr, REAL(VECTOR_ELT(out, 0)),
+                 REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
+                 INTEGER(VECTOR_ELT(out, 3)), REAL(VECTOR_ELT(out, 4))));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_orrisk(SEXP orr, SEXP q, SEXP s) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 2));
+  check(csls_orrisk(Rf_asReal(orr), Rf_asReal(q), Rf_asReal(s), REAL(out),
+                    REAL(out) + 1));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_outtst(SEXP q, SEXP w, SEXP t) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 2));
+  check(csls_outtst(REAL(q), REAL(w), static_cast<int>(XLENGTH(q)),
+                    Rf_asReal(t), REAL(out), REAL(out) + 1));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
+  const int n = static_cast<int>(XLENGTH(pop));
+  static const char *const names[] = {"cd", "fd", "rd"};
+  SEXP out = PROTECT(named_list(3, names));
+  for (int i = 0; i < 3; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, n));
+  check(csls_dspbm(REAL(pop), REAL(contact), REAL(force), n, Rf_asInteger(ref),
+                   REAL(VECTOR_ELT(out, 0)), REAL(VECTOR_ELT(out, 1)),
+                   REAL(VECTOR_ELT(out, 2))));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
+  const int m = static_cast<int>(XLENGTH(count));
+  static const char *const names[] = {"rate_off", "rate_pair", "null_off",
+                                      "ratio"};
+  SEXP out = PROTECT(named_list(4, names));
+  for (int i = 0; i < 4; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, m));
+  check(csls_dyadrt(REAL(count), INTEGER(off), INTEGER(vic), m, REAL(pop),
+                    static_cast<int>(XLENGTH(pop)), REAL(VECTOR_ELT(out, 0)),
+                    REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
+                    REAL(VECTOR_ELT(out, 3))));
+  UNPROTECT(1);
+  return out;
+}
+
+static const R_CallMethodDef calls[] = {
+    {"C_csls_vod", (DL_FUNC)&C_csls_vod, 4},
+    {"C_csls_orrisk", (DL_FUNC)&C_csls_orrisk, 3},
+    {"C_csls_outtst", (DL_FUNC)&C_csls_outtst, 3},
+    {"C_csls_dspbm", (DL_FUNC)&C_csls_dspbm, 4},
+    {"C_csls_dyadrt", (DL_FUNC)&C_csls_dyadrt, 4},
+    {nullptr, nullptr, 0}};
+
+void R_init_csls(DllInfo *dll) {
+  R_registerRoutines(dll, nullptr, calls, nullptr, nullptr);
+  R_useDynamicSymbols(dll, FALSE);
+  R_forceSymbols(dll, TRUE);
+}
+
+}  // extern "C"

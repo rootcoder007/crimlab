@@ -1,0 +1,28 @@
+Package: csls
+Title: Criminology and Sociolegal Statistics
+Version: 0.0.0.9000
+Authors@R:
+    person(c("Vansh", "Singh"), "Ruhela", email = "vsruhela@proton.me",
+           role = c("aut", "cre"),
+           comment = c(ORCID = "0009-0004-1750-3592"))
+Description: Statistical methods for courts, corrections, policing,
+    forensics and sociolegal research, computed in a compiled core with a
+    thin R layer.
+    Each identity or bound the package relies on names the machine-checked
+    proof ('Lean') it rests on. This development version holds the disparity
+    tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006)
+    <doi:10.1198/016214506000000168>, the outcome test and its
+    infra-marginality problem, benchmark decomposition of resident
+    disparities, dyadic offending rates, and the bounds a relative risk
+    obeys given an odds ratio.
+License: AGPL-3
+Encoding: UTF-8
+Language: en-GB
+Depends:
+    R (>= 4.1.0)
+Suggests:
+    testthat (>= 3.0.0)
+SystemRequirements: C++17
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+Config/roxygen2/version: 8.0.0
