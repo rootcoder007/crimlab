@@ -1,87 +1,53 @@
-test_that("vodtst matches the odds ratio by hand", {
+# Values of the disparity kernels are checked in C++ (src/t_disp.cpp); here
+# what only R can show: labels, messages, the proofs and rmorie parity.
+
+test_that("vodtst and dyadrt label what they return", {
   r <- vodtst(c(w = 60, b = 40), c(w = 50, b = 50))
-  expect_equal(r[["ratio"]], c(1, (40 / 60) / (50 / 50)), tolerance = 1e-10)
-  expect_equal(r[["share_day"]], c(0.6, 0.4))
-  expect_identical(r[["sign"]], c(1L, -1L))
   expect_false("adj" %in% names(r))
-  # an exposure shift equal to the ratio explains all of it
-  a <- vodtst(c(w = 60, b = 40), c(w = 50, b = 50), shift = c(1, 2 / 3))
-  expect_equal(a[["adj"]], c(1, 1), tolerance = 1e-10)
-  # the reference by name moves the baseline
-  expect_equal(
-    vodtst(c(w = 60, b = 40), c(w = 50, b = 50), ref = "b")[["ratio"]],
-    c(1.5, 1)
-  )
-  expect_identical(vodtst(c(5, 5), c(7, 7))[["sign"]], c(0L, 0L))
+  pop <- c(a = 800, b = 150, c = 50)
+  r <- dyadrt(outer(pop, pop) * 0.002, pop)
+  expect_identical(r[["off"]][2], "b")
+  expect_identical(r[["vic"]][2], "a")
 })
 
-test_that("orrisk returns the pair with that odds ratio and that rate", {
+test_that("orrisk: the relative risk sits between 1 and the odds ratio", {
+  # Crimlab.RelRisk.or_overstates; rr is formed in R
   for (or in c(0.05, 0.5, 1, 3, 400)) {
     for (q in c(0.01, 0.4, 0.99)) {
       for (s in c(0.02, 0.5, 0.9)) {
         r <- orrisk(or, q, s)
-        a <- r[["exposed"]]
-        b <- r[["unexposed"]]
-        expect_gt(a, 0)
-        expect_lt(a, 1)
-        expect_gt(b, 0)
-        expect_lt(b, 1)
-        expect_equal(a * (1 - b) / (b * (1 - a)), or, tolerance = 1e-9)
-        expect_equal(s * a + (1 - s) * b, q, tolerance = 1e-12)
-        # Crimlab.RelRisk.or_overstates: the relative risk sits between 1 and OR
         expect_lte(abs(log(r[["rr"]])), abs(log(or)) + 1e-12)
       }
     }
   }
 })
 
-test_that("outtst shows infra-marginality", {
-  expect_equal(outtst(c(0.1, 0.5, 0.9), 0.3), c(stop = 2 / 3, hit = 0.7))
-  expect_equal(outtst(c(0.1, 0.5, 0.9), 0.3, w = c(1, 3, 1)),
-               c(stop = 0.8, hit = (1.5 + 0.9) / 4))
-  expect_true(is.nan(outtst(c(0.1, 0.2), 0.5)[["hit"]]))
-  # same threshold, different hit rates
-  expect_gt(outtst(c(0.2, 0.9), 0.5)[["hit"]],
-            outtst(c(0.2, 0.6), 0.5)[["hit"]])
-})
-
-test_that("dspbm is a product", {
-  r <- dspbm(c(a = 9000, b = 1000), c(a = 900, b = 300), c(a = 9, b = 6))
-  expect_equal(r[["cd"]], c(1, 3), tolerance = 1e-10)
-  expect_equal(r[["fd"]], c(1, 2), tolerance = 1e-10)
-  expect_equal(r[["rd"]], r[["cd"]] * r[["fd"]], tolerance = 1e-10)
-})
-
-test_that("dyadrt is flat under random mixing", {
-  pop <- c(a = 800, b = 150, c = 50)
-  r <- dyadrt(outer(pop, pop) * 0.002, pop)
-  expect_equal(r[["ratio"]], rep(1, 9), tolerance = 1e-10)
-  expect_equal(r[["rate_off"]], r[["null_off"]], tolerance = 1e-10)
-  # per offender rises with the victim group, per pair does not
-  expect_gt(r[["rate_off"]][1], r[["rate_off"]][7])
-  expect_equal(r[["rate_pair"]][1], r[["rate_pair"]][7], tolerance = 1e-10)
-  expect_identical(r[["off"]][2], "b")
-  expect_identical(r[["vic"]][2], "a")
-})
-
 test_that("bad input stops in R with the argument named", {
-  expect_error(vodtst(c(1, NA), c(1, 1)), "`day`")
-  expect_error(vodtst(c(1, 1), c(1, 0)), "`night`")
-  expect_error(vodtst(c(1, 1), c(1, 1, 1)), "length 2")
-  expect_error(vodtst(c(0, 1), c(1, 1)), "no daylight")
-  expect_error(vodtst(c(1, 1), c(1, 1), ref = 3), "`ref`")
-  expect_error(vodtst(c(a = 1, b = 1), c(1, 1), ref = "z"), "names no group")
-  expect_error(vodtst(c(1, 1), c(1, 1), shift = c(1, -1)), "`shift`")
-  expect_error(orrisk(0, 0.5, 0.5), "`or`")
-  expect_error(orrisk(2, 1, 0.5), "`rate`")
-  expect_error(orrisk(2, 0.5, 0), "`share`")
-  expect_error(outtst(c(0.5, 1.5), 0.2), "at most 1")
-  expect_error(outtst(c(0.5, 0.6), 0.2, w = c(0, 0)), "positive total")
-  expect_error(outtst("a", 0.2), "`q`")
-  expect_error(dspbm(c(1, 1), c(1, 0), c(1, 1)), "`contact`")
-  expect_error(dyadrt(matrix(1, 2, 3), c(1, 1)), "2 by 2")
-  expect_error(dyadrt(matrix(0, 2, 2), c(1, 1)), "no offences")
-  expect_error(dyadrt(matrix(-1, 2, 2), c(1, 1)), "`count`")
+  errs("vodtst", list(
+    list("`day`", c(1, NA), c(1, 1)),
+    list("`night`", c(1, 1), c(1, 0)),
+    list("length 2", c(1, 1), c(1, 1, 1)),
+    list("no daylight", c(0, 1), c(1, 1)),
+    list("`ref`", c(1, 1), c(1, 1), ref = 3),
+    list("names no group", c(a = 1, b = 1), c(1, 1), ref = "z"),
+    list("`shift`", c(1, 1), c(1, 1), shift = c(1, -1))
+  ))
+  errs("orrisk", list(
+    list("`or`", 0, 0.5, 0.5),
+    list("`rate`", 2, 1, 0.5),
+    list("`share`", 2, 0.5, 0)
+  ))
+  errs("outtst", list(
+    list("at most 1", c(0.5, 1.5), 0.2),
+    list("positive total", c(0.5, 0.6), 0.2, w = c(0, 0)),
+    list("`q`", "a", 0.2)
+  ))
+  errs("dspbm", list(list("`contact`", c(1, 1), c(1, 0), c(1, 1))))
+  errs("dyadrt", list(
+    list("2 by 2", matrix(1, 2, 3), c(1, 1)),
+    list("no offences", matrix(0, 2, 2), c(1, 1)),
+    list("`count`", matrix(-1, 2, 2), c(1, 1))
+  ))
 })
 
 test_that("proof names real theorems", {
