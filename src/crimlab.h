@@ -384,6 +384,102 @@ int clab_ripenv(const double *x, const double *y, int n, const double *win,
                 const double *r, int m, int corr, int nsim, unsigned int seed,
                 int *iwork, double *work, double *out);
 
+
+/* ------------------------------------------------------------------------
+ * Journey to crime. What these kernels do and do not license: given the
+ * locations of a series of incidents attributed to one offender, they rank
+ * candidate locations of the offender's base under the assumptions that
+ * (a) the series really is one offender's, (b) the offender travelled
+ * from a single fixed base inside the grid, (c) travel lengths follow the
+ * decay function supplied, which describes offenders in general, not this
+ * one, and (d) for the product surface, the incidents are independent
+ * given the base. The surface is a search priority, not evidence that any
+ * person lives anywhere, and on its own it can never identify an
+ * individual. Accuracy on known solved series (clab_jtacc) is the only
+ * guide to how much a ranking is worth in a given place.
+ * ------------------------------------------------------------------------ */
+
+/* Distance-decay functions. d: n distances >= 0 (planar units); type and
+ * par: 0 linear, f = max(0, A + B d), par {A, B}; 1 negative exponential,
+ * f = A exp(-b d), par {A > 0, b >= 0}; 2 normal, f = A phi((d - mu) / s)
+ * / s, par {A > 0, mu, s > 0}; 3 lognormal, f = A phi((log d - mu) / s) /
+ * (d s), f(0) = 0, par {A > 0, mu, s > 0} (the lognormal density of d;
+ * some crime-mapping texts use log d^2 and 1 / d^2 instead); 4 truncated
+ * negative exponential, f = P d / dp for d <= dp, P exp(-C (d - dp))
+ * beyond, par {P > 0, dp > 0, C >= 0}, continuous with its peak P at dp;
+ * 5 a table, par {delta > 0} with tab[0..nt) (nt >= 2, values >= 0) at
+ * distances k delta, linear in between and 0 beyond (nt - 1) delta, e.g.
+ * from clab_jtcal. tab and nt are read only for type 5. Out: f, n values.
+ * The forms follow Brantingham and Brantingham (1981), Rossmo (2000) and
+ * Levine (2009, doi:10.1002/jip.107). O(n). */
+int clab_jtdecay(const double *d, int n, int type, const double *par,
+                 const double *tab, int nt, double *f);
+
+/* The journey-to-crime surface over a grid of candidate bases. x, y: m >=
+ * 1 incident locations (planar units); the grid has nx * ny cells of size
+ * dx by dy from the corner (x0, y0); cell c = iy * nx + ix has its centre
+ * at (x0 + (ix + 1/2) dx, y0 + (iy + 1/2) dy). metric 0 Euclidean, 1
+ * Manhattan (|dx| + |dy|, a grid of streets aligned with the axes). type,
+ * par, tab, nt as for clab_jtdecay. mode 0: raw = sum_i f(d_ic), the
+ * classic aggregate surface (Canter et al. 2000,
+ * doi:10.1023/A:1007551316253; Levine 2009); mode 1: raw = sum_i log
+ * f(d_ic), the log-likelihood of the base when f is the planar density of
+ * an incident about the base and incidents are independent (O'Leary 2009,
+ * doi:10.1002/jip.111): with a uniform prior over the cells, prob is then
+ * the posterior over cells, and simulation shows its credible regions are
+ * calibrated (src/t_jtc.cpp); the sum is not a likelihood. Out: raw, prob
+ * (nx ny each; prob sums to 1, computed from raw - max in mode 1 so that it
+ * cannot underflow) and peak, 3: the first cell of maximum raw, its
+ * centre's x and y. CLAB_EDOM when the surface is 0 (mode 0) or -infinity
+ * (mode 1) everywhere. O(m nx ny). */
+int clab_jtsurf(const double *x, const double *y, int m, int nx, int ny,
+                double x0, double y0, double dx, double dy, int metric,
+                int mode, int type, const double *par, const double *tab,
+                int nt, double *raw, double *prob, double *peak);
+
+/* Empirical decay: a kernel density estimate of trip lengths from known
+ * offender trips (Silverman 1986, doi:10.1201/9781315140919; Levine 2009).
+ * d: m >= 1 trip lengths >= 0; w: NULL or m non-negative weights with a
+ * positive sum; kern 0 normal, 1 quartic (15/16 (1 - u^2)^2), 2 triangular,
+ * 3 uniform, 4 double exponential (exp(-|u|) / 2); h > 0 the bandwidth;
+ * refl 1 reflects the kernels at 0 so that no mass falls below 0 (t must
+ * then be >= 0), 0 does not. t: k evaluation distances. Out: dens, k values
+ * of sum_i w_i [K((t - d_i) / h) + refl K((t + d_i) / h)] / (h sum w): a
+ * density in t (it integrates to 1 over the line, or over [0, inf) when
+ * reflected). Tabulated at t = k delta it is a type 5 decay function.
+ * O(m k). */
+int clab_jtcal(const double *d, const double *w, int m, int kern, double h,
+               int refl, const double *t, int k, double *dens);
+
+/* Accuracy of a surface for a solved series. prob: nx ny non-negative
+ * cell values on the grid of clab_jtsurf; (hx, hy) the known base, inside
+ * the grid. Out, 6: prob in the base's cell; the hit score as the share of
+ * the grid searched up to and including the base's cell in the best order
+ * of ties, (#{prob > p_base} + 1) / (nx ny), and in the worst,
+ * #{prob >= p_base} / (nx ny) (Rossmo 2000; Canter et al. 2000); the error
+ * distance from the centre of the peak cell (first maximum) to the base;
+ * the peak cell; the base's cell. O(nx ny). */
+int clab_jtacc(const double *prob, int nx, int ny, double x0, double y0,
+               double dx, double dy, double hx, double hy, double *out);
+
+/* Bayesian journey to crime (Levine 2009, doi:10.1002/jip.107; Levine and
+ * Block 2011, doi:10.1080/00330124.2010.547152). pj: no >= 1 non-negative
+ * journey-to-crime values over origin zones (e.g. prob of clab_jtsurf with
+ * the zones as cells); od: no x nd origin-destination counts of solved
+ * offences (row o, column j: offences in zone j by offenders based in
+ * zone o; od[o nd + j]); dest: the m >= 1 destination zones of the series'
+ * incidents (repeats count). Out, 5 no, each block normalised to sum 1:
+ * P(Jtc); P(O), the origins of all offences (row sums); P(O|Jtc), the
+ * origins of offences in the series' zones (sum over k of od[o,
+ * dest[k]]); the product P(Jtc) P(O|Jtc), the numerator of Bayes' rule
+ * with the journey-to-crime surface as prior and the origin distribution
+ * as likelihood; and the risk, product / P(O) renormalised (0 where P(O) is
+ * 0; the product is 0 there too). CLAB_EDOM when a block sums to 0 (e.g. no
+ * solved offence in the series' zones). The O-D matrix describes past
+ * solved offences and inherits their selection. O(no (nd + m)). */
+int clab_bjtc(const double *pj, int no, const double *od, int nd,
+              const int *dest, int m, double *out);
+
 #ifdef __cplusplus
 }
 #endif

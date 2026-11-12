@@ -17,6 +17,7 @@ src/geo.cpp src/t_geo.cpp
 src/cgr.cpp src/t_cgr.cpp
 src/nnd.cpp src/t_nnd.cpp
 src/rpk.cpp src/t_rpk.cpp
+src/jtc.cpp src/t_jtc.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$

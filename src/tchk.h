@@ -83,5 +83,7 @@ void t_nnd(tk &t, int big);
 void b_nnd();
 void t_rpk(tk &t, int big);
 void b_rpk();
+void t_jtc(tk &t, int big);
+void b_jtc();
 
 #endif
