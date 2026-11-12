@@ -29,3 +29,6 @@
 * `incapr()` refuses a `t0 + s` beyond the length of `lam` however large
   the two are; past the largest integer it used to warn of an integer
   overflow and stop with an unrelated error.
+* `sntbnd()` orders the two values of `z` by Unicode code point, so the
+  default `treat` and the order of the terms are the same on every machine
+  and in every locale (`"B"` sorts before `"a"`).
