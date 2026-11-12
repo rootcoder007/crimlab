@@ -339,6 +339,32 @@ SEXP C_clab_r_ntmod(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ntbrk(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ntchg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_coofg(SEXP, SEXP);
+// The entry points of the spatial functions (bsp.cpp).
+SEXP C_clab_r_hvdist(SEXP, SEXP, SEXP);
+SEXP C_clab_r_eqproj(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_eqinv(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cgstat(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cgmedn(SEXP, SEXP, SEXP);
+SEXP C_clab_r_webpt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sdell(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cvhull(SEXP, SEXP, SEXP);
+SEXP C_clab_r_nnidx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ripk(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ripenv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_fzmode(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_kmpart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_nnhclu(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP);
+SEXP C_clab_r_stacel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP);
+SEXP C_clab_r_mantst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_stmavg(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_jtdecay(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_jtsurf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP);
+SEXP C_clab_r_jtcal(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_jtacc(SEXP, SEXP, SEXP);
+SEXP C_clab_r_bjtc(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -402,6 +428,28 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_ntbrk", fn(&C_clab_r_ntbrk), 5},
     {"C_clab_r_ntchg", fn(&C_clab_r_ntchg), 6},
     {"C_clab_r_coofg", fn(&C_clab_r_coofg), 2},
+    {"C_clab_r_hvdist", fn(&C_clab_r_hvdist), 3},
+    {"C_clab_r_eqproj", fn(&C_clab_r_eqproj), 5},
+    {"C_clab_r_eqinv", fn(&C_clab_r_eqinv), 5},
+    {"C_clab_r_cgstat", fn(&C_clab_r_cgstat), 5},
+    {"C_clab_r_cgmedn", fn(&C_clab_r_cgmedn), 3},
+    {"C_clab_r_webpt", fn(&C_clab_r_webpt), 7},
+    {"C_clab_r_sdell", fn(&C_clab_r_sdell), 6},
+    {"C_clab_r_cvhull", fn(&C_clab_r_cvhull), 3},
+    {"C_clab_r_nnidx", fn(&C_clab_r_nnidx), 7},
+    {"C_clab_r_ripk", fn(&C_clab_r_ripk), 5},
+    {"C_clab_r_ripenv", fn(&C_clab_r_ripenv), 7},
+    {"C_clab_r_fzmode", fn(&C_clab_r_fzmode), 4},
+    {"C_clab_r_kmpart", fn(&C_clab_r_kmpart), 9},
+    {"C_clab_r_nnhclu", fn(&C_clab_r_nnhclu), 11},
+    {"C_clab_r_stacel", fn(&C_clab_r_stacel), 10},
+    {"C_clab_r_mantst", fn(&C_clab_r_mantst), 8},
+    {"C_clab_r_stmavg", fn(&C_clab_r_stmavg), 5},
+    {"C_clab_r_jtdecay", fn(&C_clab_r_jtdecay), 4},
+    {"C_clab_r_jtsurf", fn(&C_clab_r_jtsurf), 10},
+    {"C_clab_r_jtcal", fn(&C_clab_r_jtcal), 6},
+    {"C_clab_r_jtacc", fn(&C_clab_r_jtacc), 3},
+    {"C_clab_r_bjtc", fn(&C_clab_r_bjtc), 3},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

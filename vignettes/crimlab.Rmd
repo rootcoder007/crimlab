@@ -260,6 +260,39 @@ much as offending. Offenders never caught are missing, and a missing node
 can change who appears central; betweenness in particular is fragile when
 ties are missing.
 
+## Places: where incidents are and how they spread
+
+Thirty (simulated) burglaries around two centres, in metres on a local grid:
+
+```{r}
+set.seed(2)
+xy <- data.frame(x = c(rnorm(20, 1000, 120), rnorm(10, 1800, 60)),
+                 y = c(rnorm(20, 2000, 80), rnorm(10, 2300, 60)))
+cs <- cgstat(xy)
+cs[c("mx", "my", "sdd")]
+el <- sdell(xy, c = 2)
+el
+```
+
+The mean centre summarises where the incidents are and the standard
+distance deviation how far they spread, about
+`r round(cs[["sdd"]])` metres. The ellipse with `c = 2` would hold about 86
+per cent of bivariate normal points; here the points are two clusters, so
+the ellipse describes their joint spread, not a shape that any cluster has.
+
+```{r}
+nn <- nnidx(xy, win = c(500, 2300, 1600, 2700), nsim = 99, seed = 1)
+nn$order[, c("mean", "exp", "ratio", "pclu")]
+```
+
+The mean nearest-neighbour distance is well below its expectation under
+complete spatial randomness in the study rectangle, and the Monte Carlo
+p-value against clustering is small. What this does not license: the
+expectation depends on the rectangle chosen. A rectangle drawn around the
+points makes them look less clustered than one covering the whole area at
+risk, and neither says why the incidents cluster; burglaries follow
+housing, which is itself clustered.
+
 ## Proofs
 
 `proof()` lists the theorems behind a function:

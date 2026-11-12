@@ -1134,6 +1134,24 @@ int clab_coofw(const int *inc, const int *off, int k, int ni, int no,
 int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
                int cap, int *pa, int *pb, double *pw, int *np, int *iwork);
 
+
+/* ------------------------------------------------------------------------
+ * Spatial kernels added with the R spatial functions (src/geo2.cpp and
+ * the families after it).
+ * ------------------------------------------------------------------------ */
+
+/* The inverse of clab_eqproj: the longitude and latitude (degrees) of n
+ * planar points x, y (east and north, the unit of r) of the Lambert
+ * azimuthal equal-area projection about (lon0, lat0) on the sphere of
+ * radius r > 0. The unit vector of each point is built from s = rho / (2 r)
+ * (cos c = 1 - 2 s^2, sin c / rho = sqrt(1 - s^2) / r), so neither a
+ * division by rho nor an inverse sine is needed and the poles and the
+ * centre are well conditioned (Snyder 1987, doi:10.3133/pp1395, ch. 24).
+ * Longitudes come back in [-180, 180]. A point with a NaN coordinate gives
+ * NaN; CLAB_EDOM for another non-finite one or one farther than 2 r from
+ * the centre. lon, lat may be x, y. O(n). */
+int clab_eqinv(const double *x, const double *y, int n, double lon0,
+               double lat0, double r, double *lon, double *lat);
 #ifdef __cplusplus
 }
 #endif

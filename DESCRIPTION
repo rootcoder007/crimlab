@@ -35,7 +35,12 @@ Suggests:
     igraph,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    geosphere,
+    sf,
+    spatstat.explore,
+    spatstat.geom,
+    spdep
 VignetteBuilder: knitr
 SystemRequirements: C++17
 Config/testthat/edition: 3

@@ -88,7 +88,7 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(proof("cllr")), c("fn", "theorem", "file"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
-  expect_setequal(unique(fns), getNamespaceExports("crimlab"))
+  expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))
   for (k in seq_along(calls)) {
     expect_named(eval(calls[[k]][[1L]]), calls[[k]][[2L]], info = fns[k])
   }

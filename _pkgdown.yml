@@ -71,6 +71,31 @@ reference:
       - ntmod
       - ntbrk
       - ntchg
+  - title: Spatial
+    desc: Distances and projection, centrography, nearest neighbours and K
+      functions, hot spots, space-time tests and journey to crime.
+    contents:
+      - hvdist
+      - eqproj
+      - cgstat
+      - cgmedn
+      - webpt
+      - sdell
+      - cvhull
+      - nnidx
+      - ripk
+      - ripenv
+      - fzmode
+      - kmpart
+      - nnhclu
+      - stacel
+      - mantst
+      - stmavg
+      - jtdecay
+      - jtsurf
+      - jtcal
+      - jtacc
+      - bjtc
   - title: Proofs
     contents:
       - proof

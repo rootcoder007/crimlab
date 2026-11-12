@@ -129,4 +129,5 @@ void t_net(tk &t, int big);
 double tk_med5(double *t);
 #endif
 
+void t_geo2(tk &t, int big);
 #endif

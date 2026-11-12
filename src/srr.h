@@ -80,22 +80,14 @@
 //'   claims to reproduce.
 //' @srrstatsNA {G2.4d} No input is converted to a factor and no result is
 //'   a factor.
-//' @srrstatsNA {G2.7} No function takes tabular input: arguments are
-//'   vectors, and the count and genotype arguments of dyadrt(), kinidx()
-//'   and patidx() are matrices.
-//' @srrstatsNA {G2.9} No tabular input is converted, so no information is
-//'   lost or added in conversion; sntbnd()'s factor z is documented under
-//'   G2.5.
-//' @srrstatsNA {G2.10} No tabular input; see G2.7.
-//' @srrstatsNA {G2.11} No tabular input; see G2.7.
-//' @srrstatsNA {G2.12} No tabular input; see G2.7.
+//' @srrstatsNA {G2.9} No type is converted with loss: the spatial
+//'   functions read their two coordinate columns by name and leave the
+//'   others alone, and no names are invented.
 //' @srrstatsNA {G2.14b} Dropping a missing count would change the groups or
 //'   the population a result describes, so missing values are an error,
 //'   never silently ignored; the caller can subset first.
 //' @srrstatsNA {G2.14c} Imputing a count, a frequency or an outcome would
 //'   invent the data the result is about.
-//' @srrstatsNA {G3.1} No covariance is computed.
-//' @srrstatsNA {G3.1a} No covariance is computed.
 //' @srrstatsNA {G4.0} Nothing is written to a file; the plots draw on the
 //'   current device.
 //' @srrstatsNA {G5.0} No standard data set (such as NIST's) exists for these

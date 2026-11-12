@@ -201,6 +201,53 @@ ntbrk(e$from, e$to, grp = c(ana = "x", ben = "x", cy = "x", dee = "y",
                             eli = "y", fay = "z"), nodes = g$nodes)
 ```
 
+### Spatial input
+
+```r
+# planar coordinates (metres, say): two vectors, a matrix or a data frame
+# with columns x and y; longitude and latitude only with lonlat = TRUE
+set.seed(1)
+p <- data.frame(x = rnorm(100, 500, 50), y = rnorm(100, 800, 30))
+cgstat(p)
+sdell(p, c = 2)
+
+ll <- data.frame(lon = c(-79.40, -79.38, -79.35), lat = c(43.64, 43.66, 43.65))
+webpt(ll, lonlat = TRUE)          # the centre comes back in degrees
+hvdist(ll, c(-79.38, 43.65))      # great-circle metres
+eqproj(ll)                        # equal-area metres for the planar functions
+
+# sf points go in directly; their CRS must agree with lonlat
+s <- sf::st_as_sf(ll, coords = c("lon", "lat"), crs = 4326)
+cgstat(s, lonlat = TRUE)
+# and plain results go back to sf
+sf::st_as_sf(eqproj(ll), coords = c("x", "y"))
+```
+
+The planar functions assume Cartesian coordinates in one length unit and
+return lengths in that unit; functions with a `lonlat` argument project
+longitude and latitude to metres themselves (an equal-area projection about
+the points' centre) and return centres in degrees; functions that take a
+study rectangle (`win`) take planar coordinates only. All are
+two-dimensional.
+
+### Hot spots, space-time and journey to crime
+
+```r
+set.seed(2)
+x <- c(rnorm(40, 0, 0.3), rnorm(40, 6, 0.3), runif(40, -5, 10))
+y <- c(rnorm(40, 0, 0.3), rnorm(40, 6, 0.3), runif(40, -5, 10))
+fzmode(x, y, r = 0.5)                               # points within 0.5 of each
+nnhclu(x, y, area = 225, p = 0.05, minpts = 5)$clusters
+kmpart(x, y, k = 3, seed = 1)$cen
+stacel(x, y, win = c(-5, 10, -5, 10), r = 0.75, top = 10, minpts = 5)$clusters
+mantst(x, y, t = seq_along(x), nsim = 199, seed = 1)
+
+# a search priority over a grid, not evidence about any person
+s <- jtsurf(c(2, 3, 4), c(2, 4, 3), win = c(0, 6, 0, 6), nx = 30, ny = 30,
+            type = "negexp", par = c(1, 1), mode = "lik")
+jtacc(s$prob, win = c(0, 6, 0, 6), base = c(3.2, 2.9))
+```
+
 ### Proofs
 
 ```r
