@@ -1,0 +1,148 @@
+# The Python package (py/): built with warnings as errors and tested on
+# Linux (x86-64, arm64), macOS and Windows for the oldest and the newest
+# Python it supports; stable-ABI wheels (cibuildwheel) and an sdist are
+# built, checked and installed in clean environments. Wheels and the sdist
+# are kept as workflow artifacts only: this workflow publishes nothing.
+name: py
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['src/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
+            '.github/workflows/py.yml']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
+            '.github/workflows/py.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.os }}, ${{ matrix.python }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, windows-2025]
+        python: ['3.10', '3.15']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Build and install, warnings as errors
+        shell: bash
+        run: |
+          # setuptools passes CXXFLAGS to g++ and clang++; cl.exe reads CL
+          if [ "$RUNNER_OS" = Windows ]; then export CL=/WX; else export CXXFLAGS=-Werror; fi
+          python -m pip install -v ./py 2>&1 | tail -n 40
+      - name: Test dependencies
+        # optional for the package; the tests of arrays, pandas and plots
+        # are skipped without them
+        run: python -m pip install pytest numpy pandas matplotlib
+      - name: Tests
+        working-directory: py/tests
+        # every allocation of the small reference cases failed in turn:
+        # minutes, so on one job only
+        env:
+          CLAB_NOMEM: ${{ matrix.os == 'ubuntu-24.04' && matrix.python == '3.15' && '1' || '0' }}
+        run: python -X dev -m pytest -q -ra
+      - name: Doctests
+        working-directory: ${{ runner.temp }}
+        run: python -m pytest -q --doctest-modules --pyargs crimlab -o doctest_optionflags=NORMALIZE_WHITESPACE
+      - name: README examples
+        working-directory: py
+        run: python -m pytest -q --doctest-glob=README.md README.md -o doctest_optionflags=NORMALIZE_WHITESPACE
+
+  wheels:
+    name: wheels (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, windows-2025]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pypa/cibuildwheel@f9b966cfadf4109556cadc5bb39ddb72d0ce664e # v4.3.5
+        with:
+          package-dir: py
+          output-dir: wheelhouse
+        env:
+          # one stable-ABI wheel per platform, built with the oldest Python;
+          # cibuildwheel runs abi3audit on it
+          CIBW_BUILD: cp310-*
+          CIBW_ARCHS: auto64
+          CIBW_ARCHS_MACOS: arm64 x86_64
+          CIBW_ENVIRONMENT_LINUX: CXXFLAGS=-Werror
+          CIBW_ENVIRONMENT_MACOS: CXXFLAGS=-Werror
+          CIBW_ENVIRONMENT_WINDOWS: CL=/WX
+          CIBW_TEST_REQUIRES: pytest
+          CIBW_TEST_COMMAND: python -m pytest -q {package}/tests
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+
+  sdist:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.15'
+      - name: Build the sdist
+        run: |
+          python -m pip install build twine
+          python -m build --sdist --outdir dist py
+          python -m twine check --strict dist/*
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  # The artifacts as a user gets them: twine check, then the Linux wheel
+  # and the sdist each installed in a clean environment of the newest
+  # Python and tested with the tests the sdist carries, outside the
+  # repository.
+  check:
+    needs: [wheels, sdist]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.15'
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dist
+          merge-multiple: true
+      - name: twine check
+        run: |
+          python -m pip install twine
+          python -m twine check --strict dist/*
+      - name: Wheel in a clean environment
+        run: |
+          mkdir t && tar xzf dist/*.tar.gz -C t --strip-components 1
+          python -m venv w
+          w/bin/python -m pip install --only-binary :all: --no-index --find-links dist crimlab
+          w/bin/python -m pip install pytest
+          cd t/tests && ../../w/bin/python -m pytest -q
+      - name: sdist in a clean environment
+        run: |
+          python -m venv s
+          s/bin/python -m pip install --no-binary crimlab dist/*.tar.gz pytest
+          cd t/tests && ../../s/bin/python -m pytest -q

@@ -1,0 +1,15 @@
+# copies made by setup.py from the repository (see setup.py)
+/ext/k/
+/crimlab/_version.py
+/crimlab/_thm.py
+/crimlab/lean/
+/LICENSE
+/NOTICE
+# build output
+/build/
+/dist/
+/wheelhouse/
+*.egg-info/
+*.so
+*.pyd
+__pycache__/

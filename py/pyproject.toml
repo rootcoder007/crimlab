@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crimlab"
+dynamic = ["version"]
+description = "Criminology and sociolegal statistics"
+readme = "README.md"
+license = "Apache-2.0 WITH LLVM-exception"
+license-files = ["LICENSE", "NOTICE"]
+requires-python = ">=3.10"
+authors = [{ name = "Vansh Singh Ruhela" }]
+classifiers = [
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://github.com/rootcoder007/crimlab"
+Issues = "https://github.com/rootcoder007/crimlab/issues"
+
+[tool.setuptools]
+packages = ["crimlab", "crimlab.lean"]
+
+[tool.setuptools.package-data]
+crimlab = ["py.typed", "*.pyi"]
+"crimlab.lean" = ["*.lean"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+doctest_optionflags = ["NORMALIZE_WHITESPACE"]

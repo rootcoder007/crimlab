@@ -1,0 +1,6 @@
+graft ext
+graft tests
+include README.md LICENSE NOTICE
+include crimlab/py.typed crimlab/*.pyi crimlab/_version.py crimlab/_thm.py
+recursive-include crimlab/lean *.lean
+global-exclude *.o *.so *.pyd __pycache__ *.py[cod] *.gcda *.gcno
