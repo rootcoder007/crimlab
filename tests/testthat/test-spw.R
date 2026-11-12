@@ -23,7 +23,7 @@ test_that("weights agree with spdep's neighbours", {
                ifelse(tabulate(b$i, 40) > 0, 1, NA), tolerance = 1e-15)
   m <- spwt(p, type = "band", d = 0.2, metric = "manhattan", style = "raw")
   l1 <- as.matrix(dist(p, method = "manhattan"))
-  expect_identical(length(m$i), as.integer(sum(l1 <= 0.2) - 40))
+  expect_length(m$i, sum(l1 <= 0.2) - 40)
   iw <- spwt(p, k = 3, idw = 2, style = "raw")
   expect_equal(iw$w, iw$d^-2, tolerance = 1e-14)
   cn <- spwt(nb = list(2L, c(1L, 3L), 0L), type = "contig")

@@ -81,7 +81,7 @@ test_that("great-circle distances agree with geosphere and closed forms", {
   expect_equal(hvdist(c(0, 0), c(1, 0)), r * pi / 180, tolerance = 1e-15)
   # SP6.2: the poles
   expect_equal(hvdist(c(10, 90), c(-150, -90)), r * pi, tolerance = 1e-15)
-  expect_equal(hvdist(c(10, 90), c(-150, 90)), 0)
+  expect_lt(abs(hvdist(c(10, 90), c(-150, 90))), 1e-9)
   skip_if_not_installed("geosphere")
   set.seed(3)
   a <- cbind(lon = runif(100, -180, 180), lat = runif(100, -90, 90))
@@ -200,7 +200,7 @@ test_that("longitude and latitude are projected, and only on request", {
   expect_true(all(is.nan(g[c("gx", "gy", "hx", "hy")])))
   m <- cgmedn(lon, lat, lonlat = TRUE)
   expect_equal(m[[2L]], median(lat), tolerance = 1e-4)
-  expect_equal(cvhull(lon, lat, lonlat = TRUE)$idx, cvhull(p)$idx)
+  expect_identical(cvhull(lon, lat, lonlat = TRUE)$idx, cvhull(p)$idx)
   # the standard distance in metres matches great-circle distances to the
   # mean centre; in degrees it is off by five orders of magnitude
   d <- hvdist(cbind(lon, lat), g[c("mx", "my")])
@@ -212,7 +212,7 @@ test_that("longitude and latitude are projected, and only on request", {
   q <- cgstat(c(0, 90, 180, -90), rep(89, 4), lonlat = TRUE)
   expect_lt(90 - q[["my"]], 1e-4)
   r <- webpt(c(-1, 1, 0), c(0, 0, 1), start = c(0, 0.5), lonlat = TRUE)
-  expect_identical(r[["code"]] > 0, TRUE)
+  expect_gt(r[["code"]], 0)
 })
 
 test_that("nearest neighbours and K agree with spatstat", {
@@ -325,7 +325,7 @@ test_that("sf points go in, with their CRS checked against lonlat", {
   expect_identical(cgstat(p), cgstat(xy))
   expect_identical(cgstat(sf::st_geometry(p)), cgstat(xy))
   e <- sf::st_as_sf(eqproj(d), coords = c("x", "y"))
-  expect_equal(sf::st_coordinates(e)[, "X"], eqproj(d)$x)
+  expect_equal(sf::st_coordinates(e)[, "X"], eqproj(d)$x, tolerance = 1e-8)
   u <- sf::st_sfc(sf::st_point(c(1, 2, 3)), sf::st_point(c(1, 2, 4)))
   l <- sf::st_as_sf(sf::st_sfc(sf::st_linestring(matrix(1:4, 2))))
   errs("cgstat", list(
@@ -661,7 +661,7 @@ test_that("named per-point vectors are matched by name, as elsewhere", {
                    dirmn(x, y, origin = c(0, 0), w = w))
   # unnamed or repeated names: positions
   expect_identical(cgstat(x, unname(y)), cgstat(unname(x), unname(y)))
-  rep <- c(a = 1, a = 2, b = 4, b = 7)
+  rep <- stats::setNames(c(1, 2, 4, 7), c("a", "a", "b", "b"))
   expect_identical(cgstat(rep, y), cgstat(unname(rep), unname(y)))
   yi <- c(a = 1L, b = 3L, c = 5L, d = 2L)
   expect_identical(cgstat(x, yi[o]), cgstat(x, yi))

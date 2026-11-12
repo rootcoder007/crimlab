@@ -53,7 +53,7 @@ spwt <- function(x = NULL, y = NULL, type = "knn", k = 4, d = NULL,
 #' @param x The values: finite numbers, one per unit.
 #' @param w The weights: [spwt()]'s list, or an spdep `listw` object, for as
 #'   many units as `x`.
-#' @param nsim The number of permutations: a whole number from 0.
+#' @inheritParams gstr
 #' @inheritParams nnidx
 #' @return A named numeric vector: `c`, `vn` and `vr` (its variance under
 #'   normality and randomisation), `zn`, `zr`, `pn`, `pr`, `pperm`

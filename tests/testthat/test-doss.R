@@ -112,8 +112,7 @@ test_that("constant reporters, sensitivity bounds and lowess", {
             c(12, 12, 12, 3, 12, 12), 1, 2)
   expect_identical(r$unit, c("a", "b", "c"))
   expect_identical(r$const, c(TRUE, TRUE, FALSE))
-  expect_identical(rptc(c("b", "b"), c(1, 2), c(3, 3), 1, 2,
-                        minrep = 4)$const, FALSE)
+  expect_false(rptc(c("b", "b"), c(1, 2), c(3, 3), 1, 2, minrep = 4)$const)
   set.seed(25)
   d <- rnorm(40, 0.8)
   w <- rswp(d, gam = c(1, 2))
@@ -145,10 +144,10 @@ test_that("trajectory models agree with the likelihood written out", {
              matrix(rpois(30 * 5, exp(x %*% b[, 2])), 30, byrow = TRUE))
   y[3, 2] <- NA
   pr <- c(0.4, 0.6)
-  lk <- sapply(1:2, function(k) {
+  lk <- vapply(1:2, function(k) {
     m <- exp(x %*% b[, k])
     apply(y, 1, function(v) sum(dpois(v, m, log = TRUE), na.rm = TRUE))
-  })
+  }, numeric(nrow(y)))
   ll <- sum(log(exp(lk) %*% pr))
   z <- zgll(y, x, par = b, prob = pr)
   expect_equal(z$ll, ll, tolerance = 1e-12)
@@ -172,10 +171,10 @@ test_that("trajectory models agree with the likelihood written out", {
   xm <- cbind(1, 1:4)
   be <- array(c(2, 0, 2, 0, 0, 0, 0, 0), c(2, 2, 2))
   sg <- array(c(1, 0.2, 0.2, 1, 1, 0, 0, 1), c(2, 2, 2))
-  lk2 <- sapply(1:2, function(k) {
+  lk2 <- vapply(1:2, function(k) {
     s <- sg[, , k]
     l <- chol(s)
-    sapply(1:20, function(i) {
+    vapply(1:20, function(i) {
       tot <- 0
       for (t in 1:4) {
         v <- yy[i, t, ]
@@ -185,8 +184,8 @@ test_that("trajectory models agree with the likelihood written out", {
         tot <- tot - sum(log(diag(l))) - 0.5 * sum(e^2) - log(2 * pi)
       }
       tot
-    })
-  })
+    }, numeric(1))
+  }, numeric(20))
   m <- mvtll(yy, xm, be, sg, c(0.5, 0.5))
   expect_equal(m$ll, sum(log(exp(lk2) %*% c(0.5, 0.5))), tolerance = 1e-12)
   e <- mvtem(yy, xm, be, sg, c(0.5, 0.5))

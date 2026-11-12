@@ -14,3 +14,4 @@
 ^NOTICE$
 ^CITATION\.cff$
 ^py$
+^\.ruff_cache$
