@@ -293,6 +293,27 @@ points makes them look less clustered than one covering the whole area at
 risk, and neither says why the incidents cluster; burglaries follow
 housing, which is itself clustered.
 
+## Risk tools: one score, several kinds of fairness
+
+A (simulated) risk score for 400 people in two groups whose base rates
+differ:
+
+```{r}
+set.seed(3)
+g <- rep(c("a", "b"), each = 200)
+y <- rbinom(400, 1, ifelse(g == "a", 0.3, 0.5))
+s <- plogis(rnorm(400, ifelse(y == 1, 0.8, -0.8)))
+fm <- fair(s, y, g, cut = 0.5)
+fm$met[, c("group", "fpr", "fnr", "ppv")]
+```
+
+The score is the same function of the outcome in both groups, yet the false
+positive rates and the predictive values differ, because the base rates do.
+What this does not license: no single row of this table is "the" fairness of
+the tool. When base rates differ, equal error rates and equal predictive
+values cannot all hold at once (Chouldechova 2017); which to equalise is a
+choice about whose errors matter, not a statistical finding.
+
 ## Proofs
 
 `proof()` lists the theorems behind a function:
@@ -342,8 +363,8 @@ NULL
 
 ## References
 
-Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
-Justice*, 10, 117-170.
+Chouldechova, A. (2017). Fair prediction with disparate impact: a study of
+bias in recidivism prediction instruments. *Big Data*, 5(2), 153-163.
 
 Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in traffic
 stops from behind a veil of darkness. *Journal of the American Statistical
@@ -355,3 +376,6 @@ Kitagawa, E. M. (1955). Components of a difference between two rates.
 Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements about
 treatment effects: a case study of sentencing and recidivism. *Sociological
 Methodology*, 28(1), 99-137.
+
+Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
+Justice*, 10, 117-170.

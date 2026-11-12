@@ -365,6 +365,27 @@ SEXP C_clab_r_jtsurf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP C_clab_r_jtcal(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_jtacc(SEXP, SEXP, SEXP);
 SEXP C_clab_r_bjtc(SEXP, SEXP, SEXP);
+// The entry points of the dossier functions (bdos.cpp).
+SEXP C_clab_r_fair(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_tlvc(SEXP, SEXP);
+SEXP C_clab_r_tlvlr(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_aorwt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                    SEXP);
+SEXP C_clab_r_bdig(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bnft(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_skp(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rptc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rswp(SEXP, SEXP, SEXP);
+SEXP C_clab_r_rshl(SEXP, SEXP);
+SEXP C_clab_r_zgll(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_zgem(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mvtll(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mvtem(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_tfrp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lwss(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_chmb(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gstr(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sptst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -450,6 +471,25 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_jtcal", fn(&C_clab_r_jtcal), 6},
     {"C_clab_r_jtacc", fn(&C_clab_r_jtacc), 3},
     {"C_clab_r_bjtc", fn(&C_clab_r_bjtc), 3},
+    {"C_clab_r_fair", fn(&C_clab_r_fair), 6},
+    {"C_clab_r_tlvc", fn(&C_clab_r_tlvc), 2},
+    {"C_clab_r_tlvlr", fn(&C_clab_r_tlvlr), 5},
+    {"C_clab_r_aorwt", fn(&C_clab_r_aorwt), 11},
+    {"C_clab_r_bdig", fn(&C_clab_r_bdig), 4},
+    {"C_clab_r_bnft", fn(&C_clab_r_bnft), 4},
+    {"C_clab_r_skp", fn(&C_clab_r_skp), 5},
+    {"C_clab_r_rptc", fn(&C_clab_r_rptc), 6},
+    {"C_clab_r_rswp", fn(&C_clab_r_rswp), 3},
+    {"C_clab_r_rshl", fn(&C_clab_r_rshl), 2},
+    {"C_clab_r_zgll", fn(&C_clab_r_zgll), 6},
+    {"C_clab_r_zgem", fn(&C_clab_r_zgem), 8},
+    {"C_clab_r_mvtll", fn(&C_clab_r_mvtll), 5},
+    {"C_clab_r_mvtem", fn(&C_clab_r_mvtem), 7},
+    {"C_clab_r_tfrp", fn(&C_clab_r_tfrp), 8},
+    {"C_clab_r_lwss", fn(&C_clab_r_lwss), 5},
+    {"C_clab_r_chmb", fn(&C_clab_r_chmb), 5},
+    {"C_clab_r_gstr", fn(&C_clab_r_gstr), 5},
+    {"C_clab_r_sptst", fn(&C_clab_r_sptst), 6},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

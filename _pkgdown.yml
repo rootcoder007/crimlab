@@ -96,6 +96,26 @@ reference:
       - jtcal
       - jtacc
       - bjtc
+  - title: Dossier methods
+    desc: Fairness of risk tools, trace evidence, aoristic time, Benford
+      screens, glass grouping and transfer, constant reporters,
+      sensitivity bounds, trajectory models, lowess, tool marks, grid
+      Gi* and the point pattern test.
+    contents:
+      - fair
+      - tlvc
+      - aorwt
+      - bdig
+      - skp
+      - rptc
+      - rswp
+      - zgll
+      - mvtll
+      - tfrp
+      - lwss
+      - chmb
+      - gstr
+      - sptst
   - title: Proofs
     contents:
       - proof

@@ -381,7 +381,7 @@ test_that("every spatial function answers one valid call in its shape", {
          "data.frame 2")
   )
   fns <- vapply(calls, function(a) as.character(a[[1L]][[1L]]), "")
-  expect_setequal(fns, spx)
+  expect_setequal(fns, spf)
   for (k in seq_along(calls)) {
     v <- eval(calls[[k]][[1L]])
     expect_named(v, calls[[k]][[2L]])

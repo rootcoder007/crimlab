@@ -248,6 +248,21 @@ s <- jtsurf(c(2, 3, 4), c(2, 4, 3), win = c(0, 6, 0, 6), nx = 30, ny = 30,
 jtacc(s$prob, win = c(0, 6, 0, 6), base = c(3.2, 2.9))
 ```
 
+### Risk tools, trace evidence, time and data screens
+
+```r
+set.seed(3)
+g <- rep(c("a", "b"), each = 100)
+y <- rbinom(200, 1, ifelse(g == "a", 0.3, 0.5))
+s <- plogis(rnorm(200, ifelse(y == 1, 0.8, -0.8)))
+fair(s, y, g)$met                     # error rates and predictive values by group
+
+rswp(rnorm(50, 0.5), gam = c(1, 1.5, 2))   # how much hidden bias explains it away
+bnft(bdig(exp(runif(500, 0, 10)))$dig)$stat
+gstr(matrix(rpois(100, 2), 10))[1:3, ]
+sptst(rpois(30, 10), rpois(30, 10), nboot = 199, seed = 1)$glob
+```
+
 ### Proofs
 
 ```r
