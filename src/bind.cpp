@@ -1900,6 +1900,12 @@ const Thm thms[] = {
     {"sntbnd", "Sentence", "ate_contains_zero"},
     {"hzdsel", "Hazard", "survivor_hazard_mono"},
     {"hzdsel", "Hazard", "hr2_gt_one_of_depletion"},
+    {"ntdeg", "Network", "handshake"},
+    {"ntmod", "Network", "modularity_le_one"},
+    {"ntmod", "Network", "modularity_ge_neg_half"},
+    {"ntcore", "Network", "core_dense"},
+    {"ntcore", "Network", "core_nested"},
+    {"ntchg", "Network", "cheeger_lower"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace
