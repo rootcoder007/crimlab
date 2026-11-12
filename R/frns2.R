@@ -187,7 +187,7 @@ eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
   out <- .Call(C_clab_r_eceplt, same, diff, lo)
   graphics::plot(range(out[["lo"]]), c(0, max(out[["ece"]], out[["ref"]])),
                  type = "n", xlab = "prior log10 odds",
-                 ylab = "empirical cross-entropy", ...)
+                 ylab = "empirical cross-entropy (bits)", ...)
   graphics::lines(out[["lo"]], out[["ece"]], lty = 1)
   graphics::lines(out[["lo"]], out[["min"]], lty = 2)
   graphics::lines(out[["lo"]], out[["ref"]], lty = 3)
