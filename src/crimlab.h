@@ -480,6 +480,89 @@ int clab_jtacc(const double *prob, int nx, int ny, double x0, double y0,
 int clab_bjtc(const double *pj, int no, const double *od, int nd,
               const int *dest, int m, double *out);
 
+
+/* Fuzzy mode: for each point, the number of points (itself and coincident
+ * ones included) within distance r >= 0 of it; r = 0 counts coincident
+ * points, the mode of exact locations. Locations are counted once per
+ * point, so the counts of nearby points overlap by design. x, y: n >= 1
+ * points (planar units). iwork: 2n + 2 ints. Out: cnt, n counts. Grid
+ * search: O(n + pairs within r). */
+int clab_fzmode(const double *x, const double *y, int n, double r, int *iwork,
+                int *cnt);
+
+/* K-means partition of n >= 1 points into k in [1, n] groups by Lloyd's
+ * iterations (Lloyd 1982, doi:10.1109/TIT.1982.1056489; MacQueen 1967):
+ * assign each point to the nearest centre (lowest index on ties), move
+ * each centre to its points' mean (upd 0: K-means, minimising the
+ * within-group sum of squares) or to their Weber point (upd 1: the
+ * variant in some crime-mapping programs, a spatial K-medians minimising
+ * the sum of distances), until no point changes group or after maxit
+ * moves. An emptied group keeps its centre. Seeds (init): 0 the k centres
+ * given in cen; 1 k-means++ (Arthur and Vassilvitskii 2007, ACM-SIAM SODA
+ * 1027-1035), drawn from seed (CLAB_EDOM if fewer than k distinct points);
+ * 2 separated cells: square cells of side par[0] > 0 from the lower-left
+ * corner of the points' bounding box, taken by decreasing count (then
+ * cell number), a cell's centre becoming a seed when it is at least par[1]
+ * >= 0 from every earlier seed (a common choice is par[1] = t 0.5
+ * sqrt(A / n) with t near 4); CLAB_EDOM if fewer than k cells qualify.
+ * Deterministic for given inputs and seed. cen: 2k doubles (x then y), in
+ * for init 0, out always. cl: n group numbers. iwork: 2n ints; work: 2n
+ * doubles. Out, 4 + 3k: the within-group sum of squares, the sum of
+ * distances to the centres, the number of moves, 1 if converged; then for
+ * each group its size, sum of squares and sum of distances. O(n k) per
+ * iteration (O(n) more per group for upd 1). */
+int clab_kmpart(const double *x, const double *y, int n, int k, int init,
+                const double *par, unsigned int seed, int upd, int maxit,
+                double *cen, int *cl, int *iwork, double *work, double *out);
+
+/* Nearest-neighbour hierarchical clustering (Levine, the reference crime-
+ * mapping manual, ch. 7; after Johnson 1967, doi:10.1007/BF02289588). At
+ * order 1 the units are the n >= 2 points; two units are linked when their
+ * distance is below the threshold: fixd if fixd > 0, otherwise the mean
+ * nearest-neighbour distance under complete spatial randomness plus z
+ * standard errors, 0.5 sqrt(A / m) + z sqrt((4 - pi) A / (4 pi)) / m (m
+ * units, area > 0; z the normal quantile of the one-tailed probability
+ * that a pair is that close by chance, e.g. z = 0 for 0.5). Units with a
+ * linked neighbour are taken in decreasing number of links (then index);
+ * each not yet clustered takes every unclustered unit linked to it; groups
+ * with at least minpts (order 1) or minhi (higher orders) members are kept
+ * and numbered by size. The kept groups' Weber points are the units of
+ * the next order, with the threshold recomputed for their number, while
+ * at least 4 units remain, up to maxord orders. The iterative reassignment
+ * some descriptions add after the first pass is not done: its rule is not
+ * stated unambiguously. cl: n maxord ints, cl[o n + i] the cluster of
+ * point i at order o + 1 or -1. Out: *ncl clusters (at most n), cs: 11 per
+ * cluster: order, points, member units, mean x, y, Weber x, y, and the
+ * ellipse of the member units (as clab_sdell with divisor k in {0, 1, 2}
+ * and multiplier c > 0: a, b, angle; NaN if the members are too few for
+ * the divisor), and the threshold used. iwork: 6n + 2 ints; work: 4n
+ * doubles. Grid search: O(n + linked pairs) per order. */
+int clab_nnhclu(const double *x, const double *y, int n, double area,
+                double fixd, double z, int minpts, int minhi, int maxord,
+                int k, double c, int *iwork, double *work, int *cl, int *ncl,
+                double *cs);
+
+/* Search-circle hot-spot areas (Block and Block 1995, in Eck and Weisburd
+ * (eds.), Crime and Place, Crime Prevention Studies 4; as described in
+ * the reference crime-mapping manual, ch. 8). Circles of radius r > 0 are
+ * centred on the nx x ny nodes (nx,
+ * ny >= 2) of a rectangular grid spanning win = {x0, x1, y0, y1}, corners
+ * included; the points within each are counted (closed disc); the circles
+ * with at least 2 points are ranked by count (then node number) and the
+ * first top >= 1 are kept; kept circles that share a point are merged,
+ * repeatedly, and a hot cluster is the set of points in a merged group,
+ * kept if it has at least minpts >= 2 points. Descriptions differ on the
+ * circle's radius (the search radius or sqrt 2 times it) and on the grid
+ * (20 x 20, rectangular or triangular): both are the caller's choice
+ * here. Out: cl, n cluster numbers (by size, then best circle) or -1;
+ * *ncl; cs, 8 per cluster: points, mean x, y, Weber x, y, ellipse a, b,
+ * angle (as clab_sdell with k, c). iwork: 3n + 2 + nx ny + top + max(n,
+ * 2 top) ints; work: nx ny + 2n doubles. O(nx ny log(nx ny) + node
+ * neighbourhoods). */
+int clab_stacel(const double *x, const double *y, int n, const double *win,
+                int nx, int ny, double r, int top, int minpts, int k, double c,
+                int *iwork, double *work, int *cl, int *ncl, double *cs);
+
 #ifdef __cplusplus
 }
 #endif
