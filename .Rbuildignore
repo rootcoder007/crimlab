@@ -8,3 +8,6 @@
 ^inst/lean/build\.log$
 ^CONTRIBUTING\.md$
 ^\.pkgcheck$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$

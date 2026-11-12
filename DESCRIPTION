@@ -22,7 +22,8 @@ Description: Statistical methods for courts, corrections, policing,
     indices, database-search corrections, and Tippett and
     empirical-cross-entropy plots.
 License: AGPL-3
-URL: https://github.com/rootcoder007/crimlab
+URL: https://github.com/rootcoder007/crimlab,
+    https://rootcoder007.github.io/crimlab/
 BugReports: https://github.com/rootcoder007/crimlab/issues
 Encoding: UTF-8
 Language: en-GB

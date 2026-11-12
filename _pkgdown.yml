@@ -1,0 +1,64 @@
+url: https://rootcoder007.github.io/crimlab/
+repo:
+  url:
+    home: https://github.com/rootcoder007/crimlab/
+    source: https://github.com/rootcoder007/crimlab/blob/main/
+    issue: https://github.com/rootcoder007/crimlab/issues/
+template:
+  bootstrap: 5
+
+articles:
+  - title: Guides
+    navbar: ~
+    contents:
+      - crimlab
+
+reference:
+  - title: Disparities
+    desc: Veil of darkness, odds ratios and risks, the outcome test,
+      benchmarks and dyadic rates.
+    contents:
+      - vodtst
+      - orrisk
+      - outtst
+      - dspbm
+      - dyadrt
+  - title: Forensics
+    desc: DNA match statistics, the weight and calibration of likelihood
+      ratios, kinship, paternity, mixtures and database searches.
+    contents:
+      - gtmp
+      - lrpost
+      - cllr
+      - cllrmin
+      - lrcal
+      - tipplt
+      - eceplt
+      - mixlr
+      - kinidx
+      - patidx
+      - dbsrch
+  - title: Policing
+    desc: Clearance rates, exposure proxies, misrecorded groups and
+      regression to the mean.
+    contents:
+      - clrsmp
+      - expbnd
+      - misrd
+      - rtmhs
+  - title: Corrections
+    desc: Incapacitation, release rules, time in custody, sentence effects
+      and hazards after selection.
+    contents:
+      - incap
+      - incapr
+      - sellab
+      - losbnd
+      - sntbnd
+      - hzdsel
+  - title: Proofs
+    contents:
+      - proof
+  - title: Package
+    contents:
+      - crimlab-package
