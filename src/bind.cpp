@@ -973,4 +973,380 @@ SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
   return clab::nvec(7, nm, r);
 }
 
+// Corrections.
+
+SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
+  SEXP nms = PROTECT(clab::grp(lam));
+  SEXP l = PROTECT(num(lam, "lam", -1, 0.0, true));
+  const int n = ilen(XLENGTH(l), "lam");
+  SEXP qv = PROTECT(num(q, "q", -1, 0.0, true));
+  const R_xlen_t nq = XLENGTH(qv);
+  for (R_xlen_t i = 0; i < nq; ++i) {
+    if (REAL_RO(qv)[i] > 1) fail("`q` must be at most 1.");
+  }
+  SEXP sv = PROTECT(num(s, "s", -1, 0.0));
+  const R_xlen_t ns = XLENGTH(sv);
+  if (nq != 1 && nq != n) fail("`q` must have length 1 or %d.", n);
+  if (ns != 1 && ns != n) fail("`s` must have length 1 or %d.", n);
+  const bool has = !Rf_isNull(share);
+  SEXP sh = PROTECT(has ? num(share, "share", n, 0.0) : R_NilValue);
+  // abs(sum(share) - 1) > 1e-9, the sum compensated
+  if (has && std::fabs(clab::nsum(REAL_RO(sh), n) - 1) > 1e-9) {
+    fail("`share` must sum to 1.");
+  }
+  // data.frame(group, lam, q = rep_len(q, n), s = rep_len(s, n), rate, prev,
+  // marg), and with share the row rbind() adds: group "all", lam, rate and
+  // prev of the whole, NA for the rest
+  const R_xlen_t nr = has ? n + 1 : n;
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 7));
+  SEXP g = Rf_allocVector(STRSXP, nr);
+  SET_VECTOR_ELT(out, 0, g);
+  for (int i = 0; i < n; ++i) SET_STRING_ELT(g, i, STRING_ELT(nms, i));
+  if (has) SET_STRING_ELT(g, n, Rf_mkChar("all"));
+  for (int k = 1; k < 7; ++k) SET_VECTOR_ELT(out, k, real(nr));
+  double *c[7];
+  for (int k = 1; k < 7; ++k) c[k] = REAL(VECTOR_ELT(out, k));
+  for (int i = 0; i < n; ++i) {
+    c[1][i] = REAL_RO(l)[i];
+    c[2][i] = REAL_RO(qv)[nq == 1 ? 0 : i];
+    c[3][i] = REAL_RO(sv)[ns == 1 ? 0 : i];
+  }
+  double agg[3];
+  kchk(clab_incap(c[1], c[2], c[3], n, has ? REAL_RO(sh) : nullptr, c[4], c[5],
+                  c[6], agg),
+       nullptr);
+  if (has) {
+    c[1][n] = agg[0];
+    c[2][n] = NA_REAL;
+    c[3][n] = NA_REAL;
+    c[4][n] = agg[1];
+    c[5][n] = agg[2];
+    c[6][n] = NA_REAL;
+  }
+  static const char *const nm[] = {"group", "lam",  "q",   "s",
+                                   "rate",  "prev", "marg"};
+  clab::frame(out, nm, has);
+  UNPROTECT(6);
+  return out;
+}
+
+SEXP C_clab_r_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
+  SEXP l = PROTECT(num(lam, "lam", -1, 0.0));
+  const R_xlen_t n = XLENGTH(l);
+  const double *lp = REAL_RO(l);
+  // any(diff(lam) > 0)
+  for (R_xlen_t i = 1; i < n; ++i) {
+    if (lp[i] - lp[i - 1] > 0) fail("`lam` must never increase.");
+  }
+  const int sv = clab::whole(s, "s", 1);
+  const int tv = clab::whole(t0, "t0", 0);
+  if (tv > INT_MAX - sv) {
+    // t0 + s overflows R's integers: NA with a warning, and if () stops
+    // on the NA. Both conditions are rebuilt as R raised them.
+    Rf_warningcall(PROTECT(clab::lang("t0 + s")),
+                   "NAs produced by integer overflow");
+    SEXP cl = PROTECT(clab::lang(
+        "if (t0 + s > length(lam) - 1) {\n"
+        "  stop(\"`lam` must have length at least t0 + s + 1.\", call. = FALSE)\n"
+        "}"));
+    Rf_errorcall(cl, "missing value where TRUE/FALSE needed");
+  }
+  // t0 + s > length(lam) - 1
+  if (static_cast<double>(tv + sv) > static_cast<double>(n) - 1) {
+    fail("`lam` must have length at least t0 + s + 1.");
+  }
+  const double rv = clab::p01(r, "r");
+  double o[5];
+  kchk(clab_incapr(lp, ilen(n, "lam"), tv, sv, rv, o), nullptr);
+  static const char *const nm[] = {"prev", "net", "upper", "lower", "later"};
+  UNPROTECT(1);
+  return clab::nvec(5, nm, o);
+}
+
+SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
+  const R_xlen_t n = Rf_xlength(rel);
+  clab::lgl(rel, "rel", n);
+  clab::lgl(rule, "rule", n);
+  if (!clab::isnum(y) || XLENGTH(y) != n) {
+    fail("`y` must be numbers, one per defendant.");
+  }
+  SEXP yv = PROTECT(TYPEOF(y) == REALSXP ? dcopy(y) : clab::dbl(y));
+  double *yp = REAL(yv);
+  const int *rp = LOGICAL_RO(rel), *up = LOGICAL_RO(rule);
+  // anyNA(y[rel]) || !all(y[rel] %in% c(0, 1)); y[!rel] <- 0
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (rp[i] && !(yp[i] == 0 || yp[i] == 1)) {
+      fail("`y` must be 0 or 1 for every released defendant.");
+    }
+  }
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (!rp[i]) yp[i] = 0;
+  }
+  SEXP wv = PROTECT(Rf_isNull(w) ? ones(n) : num(w, "w", n, 0.0));
+  if (!pos(REAL_RO(wv), n, rp)) fail("the judge released nobody.");
+  if (!pos(REAL_RO(wv), n, up)) fail("the rule releases nobody.");
+  double r[6];
+  kchk(clab_sellab(yp, rp, up, REAL_RO(wv), ilen(n, "rel"), r), nullptr);
+  static const char *const nm[] = {"obs",   "unobs", "lower",
+                                   "upper", "width", "naive"};
+  UNPROTECT(2);
+  return clab::nvec(6, nm, r);
+}
+
+SEXP C_clab_r_losbnd(SEXP done, SEXP open) {
+  SEXP d = PROTECT(num(done, "done", -1, 0.0));
+  SEXP o = PROTECT(num(open, "open", -1, 0.0));
+  double r[4];
+  kchk(clab_losbnd(REAL_RO(d), ilen(XLENGTH(d), "done"), REAL_RO(o),
+                   ilen(XLENGTH(o), "open"), r),
+       nullptr);
+  static const char *const nm[] = {"mean", "age", "lower", "bias"};
+  UNPROTECT(2);
+  return clab::nvec(4, nm, r);
+}
+
+SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
+  SEXP yv = PROTECT(num(y, "y", -1, 0.0));
+  const int n = ilen(XLENGTH(yv), "y");
+  const double *yp = REAL_RO(yv);
+  for (int i = 0; i < n; ++i) {
+    if (!(yp[i] == 0 || yp[i] == 1)) fail("`y` must be 0 or 1.");
+  }
+  if (Rf_xlength(z) != n || clab::anyna(z)) {
+    fail("`z` must have length %d and no missing values.", n);
+  }
+  // z <- as.character(z); lv <- sort(unique(z)): z must take two values,
+  // ordered by code point (not by the locale's collation)
+  SEXP zc = PROTECT(Rf_isVectorAtomic(z) || TYPEOF(z) == VECSXP ? clab::labs(z) : R_NilValue);  // NOLINT
+  if (Rf_isNull(zc)) {
+    fail("`z` must be labels: a character, numeric or logical vector or a "
+         "factor.");
+  }
+  SEXP lv[2] = {STRING_ELT(zc, 0), nullptr};
+  for (int i = 1; i < n; ++i) {
+    SEXP e = STRING_ELT(zc, i);
+    if (clab::seql(e, lv[0])) continue;
+    if (lv[1] == nullptr) {
+      lv[1] = e;
+    } else if (!clab::seql(e, lv[1])) {
+      lv[1] = R_NilValue;
+      break;
+    }
+  }
+  if (lv[1] == nullptr || lv[1] == R_NilValue) {
+    fail("`z` must take exactly two values.");
+  }
+  {
+    const void *v = vmaxget();
+    if (clab::kcmp(clab::key(lv[1]), clab::key(lv[0])) < 0) std::swap(lv[0], lv[1]);
+    vmaxset(v);
+  }
+  // treat: one of lv, lv[2L] by default
+  SEXP tr = lv[1];
+  SEXP tc = PROTECT(!Rf_isNull(treat) && Rf_isVectorAtomic(treat) && XLENGTH(treat) == 1 ? clab::labs(treat) : R_NilValue);  // NOLINT
+  if (!Rf_isNull(treat)) {
+    // !is.atomic(treat) || length(treat) != 1L || !as.character(treat) %in% lv
+    tr = Rf_isNull(tc) ? NA_STRING : STRING_ELT(tc, 0);
+    if (!clab::seql(tr, lv[0]) && !clab::seql(tr, lv[1])) {
+      fail("`treat` must be one of the values of `z`.");
+    }
+  }
+  SEXP wv = PROTECT(Rf_isNull(w) ? ones(n) : num(w, "w", n, 0.0));
+  if (!pos(REAL_RO(wv), n)) fail("`w` must have a positive total.");
+  // as.integer(z == treat)
+  int *zi = reinterpret_cast<int *>(R_alloc(static_cast<std::size_t>(n), sizeof(int)));
+  for (int i = 0; i < n; ++i) zi[i] = clab::seql(STRING_ELT(zc, i), tr);
+  double r[11];
+  kchk(clab_sntbnd(yp, zi, REAL_RO(wv), n, r), nullptr);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SEXP term = Rf_allocVector(STRSXP, 3);
+  SET_VECTOR_ELT(out, 0, term);
+  SET_STRING_ELT(term, 0, clab::seql(lv[0], tr) ? lv[1] : lv[0]);
+  SET_STRING_ELT(term, 1, tr);
+  SET_STRING_ELT(term, 2, Rf_mkChar("effect"));
+  const double col[4][3] = {{r[2], r[3], NA_REAL},
+                            {r[4], r[6], r[8]},
+                            {r[5], r[7], r[9]},
+                            {r[0] / r[2], r[1] / r[3], r[10]}};
+  for (int k = 0; k < 4; ++k) {
+    SEXP v = Rf_allocVector(REALSXP, 3);
+    SET_VECTOR_ELT(out, k + 1, v);
+    for (int j = 0; j < 3; ++j) REAL(v)[j] = col[k][j];
+  }
+  static const char *const nm[] = {"term", "share", "lower", "upper",
+                                   "observed"};
+  clab::frame(out, nm);
+  UNPROTECT(5);
+  return out;
+}
+
+SEXP C_clab_r_hzdsel(SEXP s, SEXP h, SEXP l, SEXP surh, SEXP surl) {
+  const double sv = clab::one(s, "s", 0, 1);
+  const double hv = clab::p01(h, "h");
+  const double lv = clab::p01(l, "l");
+  // both are numbers in [0, 1], never NaN: this is the negation of l < h
+  if (lv >= hv) fail("`l` must be below `h`.");
+  SEXP a = PROTECT(num(surh, "surh", 2, 0.0, true));
+  SEXP b = PROTECT(num(surl, "surl", 2, 0.0, true));
+  for (int i = 0; i < 2; ++i) {
+    if (REAL_RO(a)[i] > 1) fail("`surh` must be at most 1.");
+  }
+  for (int i = 0; i < 2; ++i) {
+    if (REAL_RO(b)[i] > 1) fail("`surl` must be at most 1.");
+  }
+  double r[5];
+  kchk(clab_hzdsel(sv, hv, lv, REAL_RO(a), REAL_RO(b), r), nullptr);
+  static const char *const nm[] = {"share0", "share1", "haz0", "haz1", "ratio"};
+  UNPROTECT(2);
+  return clab::nvec(5, nm, r);
+}
+
+// The machine-checked theorems behind each function, by module of
+// inst/lean, in the order proof() lists them.
+namespace {
+struct Thm {
+  const char *fn, *mod, *thm;
+};
+const Thm thms[] = {
+    {"vodtst", "Veil", "odds_ratio_identifies_bias"},
+    {"vodtst", "Veil", "share_sign"},
+    {"vodtst", "Veil", "exposure_shift_confounds"},
+    {"orrisk", "RelRisk", "or_eq_rr_mul"},
+    {"orrisk", "RelRisk", "rr_between"},
+    {"orrisk", "RelRisk", "or_overstates"},
+    {"outtst", "OutcomeTest", "infra_marginality"},
+    {"outtst", "OutcomeTest", "equal_thresholds_unequal_hits"},
+    {"dspbm", "Benchmark", "benchmark_product"},
+    {"dspbm", "Benchmark", "benchmark_not_additive"},
+    {"dyadrt", "Dyad", "null_slope_positive"},
+    {"dyadrt", "Dyad", "pair_exposure_rate_constant"},
+    {"gtmp", "Forensics", "bn_hom_zero"},
+    {"gtmp", "Forensics", "bn_het_zero"},
+    {"gtmp", "Forensics", "bn_hom_ge_product"},
+    {"gtmp", "Forensics", "bn_het_not_ge_product"},
+    {"lrpost", "Forensics", "post_eq"},
+    {"lrpost", "Forensics", "post_lt_half"},
+    {"cllr", "Forensics", "cllr_neutral"},
+    {"dbsrch", "Forensics", "np_rule"},
+    {"mixlr", "Forensics", "mix_two_alleles"},
+    {"kinidx", "Forensics", "po_identical_het"},
+    {"patidx", "Forensics", "post_even_prior"},
+    {"clrsmp", "Clearance", "agg_eq_weighted"},
+    {"clrsmp", "Clearance", "kitagawa"},
+    {"clrsmp", "Clearance", "change_ge_mix"},
+    {"clrsmp", "Clearance", "fixed_mix_no_reversal"},
+    {"clrsmp", "Clearance", "simpson_witness"},
+    {"expbnd", "Exposure", "rate_bounds"},
+    {"expbnd", "Exposure", "rate_lower_attained"},
+    {"expbnd", "Exposure", "rate_upper_attained"},
+    {"expbnd", "Exposure", "disparity_bounds"},
+    {"expbnd", "Exposure", "disparity_sign_identified"},
+    {"misrd", "Misclass", "binary_attenuation"},
+    {"misrd", "Misclass", "binary_sign"},
+    {"rtmhs", "RegMean", "selected_change_nonpos"},
+    {"rtmhs", "RegMean", "low_selected_change_nonneg"},
+    {"incap", "Incap", "steady_state_rate"},
+    {"incap", "Incap", "prevented_share_eq"},
+    {"incap", "Incap", "prevented_share_lt_one"},
+    {"incap", "Incap", "rate_antitone_in_S"},
+    {"incap", "Incap", "rate_antitone_in_q"},
+    {"incap", "Incap", "marginal_prevention_eq"},
+    {"incap", "Incap", "high_rate_more_prevented"},
+    {"incapr", "Incap", "prevented_le_const"},
+    {"incapr", "Incap", "prevented_ge_const"},
+    {"incapr", "Incap", "later_sentence_prevents_less"},
+    {"incapr", "Incap", "prevented_net_le"},
+    {"sellab", "Select", "observed_rate_is_conditional"},
+    {"sellab", "Select", "nested_rate_identified"},
+    {"sellab", "Select", "unobserved_bounds"},
+    {"sellab", "Select", "unobserved_width"},
+    {"sellab", "Select", "unobserved_ends_attained"},
+    {"sellab", "Select", "naive_between"},
+    {"losbnd", "Censor", "true_mean_ge"},
+    {"losbnd", "Censor", "lower_bound_sub"},
+    {"losbnd", "Censor", "bias_lower"},
+    {"losbnd", "Censor", "disposed_understates"},
+    {"losbnd", "Censor", "no_upper_bound"},
+    {"sntbnd", "Sentence", "outcome_bounds"},
+    {"sntbnd", "Sentence", "lower_attained"},
+    {"sntbnd", "Sentence", "upper_attained"},
+    {"sntbnd", "Sentence", "ate_width_one"},
+    {"sntbnd", "Sentence", "ate_contains_zero"},
+    {"hzdsel", "Hazard", "survivor_hazard_mono"},
+    {"hzdsel", "Hazard", "hr2_gt_one_of_depletion"},
+};
+constexpr int nthm = sizeof thms / sizeof thms[0];
+}  // namespace
+
+SEXP C_clab_r_proof(SEXP fn) {
+  // if (!is.character(fn) || anyNA(fn)) stop("`fn` must be function names.")
+  const bool all = Rf_isNull(fn);
+  if (!all && (TYPEOF(fn) != STRSXP || clab::anyna(fn))) {
+    fail("`fn` must be function names.");
+  }
+  Keys fk{nullptr, nullptr, 0};
+  if (!all) {
+    fk = keys(fn);
+    // miss <- setdiff(fn, t[["fn"]]): the first appearance of each unknown
+    // name, in the order given. The sort is stable, so the first of a run
+    // of equal keys is the first appearance.
+    char *miss = R_alloc(static_cast<std::size_t>(fk.n), 1);
+    std::size_t len = 0;
+    for (R_xlen_t j = 0; j < fk.n; ++j) {
+      const R_xlen_t i = fk.o[j];
+      miss[i] = 0;
+      if (j > 0 && clab::kcmp(fk.k[fk.o[j - 1]], fk.k[i]) == 0) continue;
+      bool known = false;
+      for (int t = 0; t < nthm && !known; ++t) {
+        known = clab::kcmp(fk.k[i], Key{thms[t].fn, 0}) == 0;
+      }
+      if (!known) {
+        miss[i] = 1;
+        len += std::strlen(Rf_translateChar(STRING_ELT(fn, i))) + 2;
+      }
+    }
+    if (len > 0) {
+      // toString(miss): joined by ", "
+      char *msg = R_alloc(len + 1, 1), *e = msg;
+      for (R_xlen_t i = 0; i < fk.n; ++i) {
+        if (!miss[i]) continue;
+        if (e != msg) {
+          std::memcpy(e, ", ", 2);
+          e += 2;
+        }
+        const char *c = Rf_translateChar(STRING_ELT(fn, i));
+        const std::size_t m = std::strlen(c);
+        std::memcpy(e, c, m);
+        e += m;
+      }
+      *e = '\0';
+      fail("no proof recorded for: %s.", msg);
+    }
+  }
+  // t[t[["fn"]] %in% fn, , drop = FALSE], row names reset
+  int k = 0;
+  bool keep[nthm];
+  for (int t = 0; t < nthm; ++t) {
+    keep[t] = all || has(fk, Key{thms[t].fn, 0});
+    k += keep[t];
+  }
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
+  for (int c = 0; c < 3; ++c) SET_VECTOR_ELT(out, c, Rf_allocVector(STRSXP, k));
+  char b[128];
+  for (int t = 0, i = 0; t < nthm; ++t) {
+    if (!keep[t]) continue;
+    SET_STRING_ELT(VECTOR_ELT(out, 0), i, Rf_mkChar(thms[t].fn));
+    std::snprintf(b, sizeof b, "Crimlab.%s.%s", thms[t].mod, thms[t].thm);
+    SET_STRING_ELT(VECTOR_ELT(out, 1), i, Rf_mkChar(b));
+    std::snprintf(b, sizeof b, "lean/%s.lean", thms[t].mod);
+    SET_STRING_ELT(VECTOR_ELT(out, 2), i, Rf_mkChar(b));
+    ++i;
+  }
+  static const char *const nm[] = {"fn", "theorem", "file"};
+  // rbind() and `rownames<-` leave row.names before class
+  clab::frame(out, nm, true);
+  UNPROTECT(1);
+  return out;
+}
+
 }  // extern "C"

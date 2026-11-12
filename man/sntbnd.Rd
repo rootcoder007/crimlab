@@ -10,10 +10,12 @@ sntbnd(y, z, treat = NULL, w = NULL)
 \item{y}{Outcomes: 0 or 1 for each person.}
 
 \item{z}{Sentences: a vector with exactly two distinct values, same
-length.}
+length: character, numbers, logical or a factor (its labels), not dates.}
 
 \item{treat}{The value of \code{z} taken as the treatment; \code{NULL} for the
-second in sorted order.}
+second in sorted order. The values are sorted as text by Unicode code
+point (\code{"B"} before \code{"a"}, \code{"10"} before \code{"2"}), the same on every
+machine whatever its locale.}
 
 \item{w}{\code{NULL} for equal weights, or one non-negative weight per person
 with a positive total.}

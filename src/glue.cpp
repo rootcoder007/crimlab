@@ -286,6 +286,13 @@ SEXP C_clab_r_clrsmp(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_expbnd(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_misrd(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rtmhs(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_incap(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_incapr(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sellab(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_losbnd(SEXP, SEXP);
+SEXP C_clab_r_sntbnd(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_hzdsel(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_proof(SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", (DL_FUNC)&C_clab_vod, 4},
@@ -330,6 +337,13 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_expbnd", (DL_FUNC)&C_clab_r_expbnd, 4},
     {"C_clab_r_misrd", (DL_FUNC)&C_clab_r_misrd, 5},
     {"C_clab_r_rtmhs", (DL_FUNC)&C_clab_r_rtmhs, 4},
+    {"C_clab_r_incap", (DL_FUNC)&C_clab_r_incap, 4},
+    {"C_clab_r_incapr", (DL_FUNC)&C_clab_r_incapr, 4},
+    {"C_clab_r_sellab", (DL_FUNC)&C_clab_r_sellab, 4},
+    {"C_clab_r_losbnd", (DL_FUNC)&C_clab_r_losbnd, 2},
+    {"C_clab_r_sntbnd", (DL_FUNC)&C_clab_r_sntbnd, 4},
+    {"C_clab_r_hzdsel", (DL_FUNC)&C_clab_r_hzdsel, 5},
+    {"C_clab_r_proof", (DL_FUNC)&C_clab_r_proof, 1},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

@@ -31,36 +31,7 @@
 #' incap(lam = c(low = 2, high = 10), q = 0.1, s = 1, share = c(0.8, 0.2))
 #' @export
 incap <- function(lam, q, s, share = NULL) {
-  nms <- .grp(lam)
-  lam <- .num(lam, "lam", lo = 0, open = TRUE)
-  n <- length(lam)
-  q <- .num(q, "q", lo = 0, open = TRUE)
-  if (any(q > 1)) stop("`q` must be at most 1.", call. = FALSE)
-  s <- .num(s, "s", lo = 0)
-  if (!length(q) %in% c(1L, n)) {
-    stop("`q` must have length 1 or ", n, ".", call. = FALSE)
-  }
-  if (!length(s) %in% c(1L, n)) {
-    stop("`s` must have length 1 or ", n, ".", call. = FALSE)
-  }
-  q <- rep_len(q, n)
-  s <- rep_len(s, n)
-  if (!is.null(share)) {
-    share <- .num(share, "share", len = n, lo = 0)
-    if (abs(sum(share) - 1) > 1e-9) {
-      stop("`share` must sum to 1.", call. = FALSE)
-    }
-  }
-  r <- .Call(C_clab_incap, lam, q, s, share)
-  out <- data.frame(group = nms, lam = lam, q = q, s = s, rate = r[["rate"]],
-                    prev = r[["prev"]], marg = r[["marg"]])
-  if (!is.null(share)) {
-    a <- r[["agg"]]
-    out <- rbind(out, data.frame(group = "all", lam = a[1L], q = NA_real_,
-                                 s = NA_real_, rate = a[2L], prev = a[3L],
-                                 marg = NA_real_))
-  }
-  out
+  .Call(C_clab_r_incap, lam, q, s, share)
 }
 
 #' Incapacitation under desistance and replacement
@@ -93,16 +64,7 @@ incap <- function(lam, q, s, share = NULL) {
 #' incapr(lam = c(12, 10, 8, 6, 5, 4, 3, 2, 2, 1), t0 = 2, s = 3, r = 0.25)
 #' @export
 incapr <- function(lam, t0, s, r = 0) {
-  lam <- .num(lam, "lam", lo = 0)
-  if (any(diff(lam) > 0)) stop("`lam` must never increase.", call. = FALSE)
-  s <- .whole(s, "s", 1)
-  t0 <- .whole(t0, "t0", 0)
-  if (t0 + s > length(lam) - 1) {
-    stop("`lam` must have length at least t0 + s + 1.", call. = FALSE)
-  }
-  r <- .p01(r, "r")
-  o <- .Call(C_clab_incapr, lam, as.integer(t0), as.integer(s), r)
-  c(prev = o[1L], net = o[2L], upper = o[3L], lower = o[4L], later = o[5L])
+  .Call(C_clab_r_incapr, lam, t0, s, r)
 }
 
 #' Evaluating a release rule from the released alone
@@ -139,23 +101,7 @@ incapr <- function(lam, t0, s, r = 0) {
 #' sellab(y, rel = risk < 0.7, rule = risk < 0.8)
 #' @export
 sellab <- function(y, rel, rule, w = NULL) {
-  n <- length(rel)
-  rel <- .lgl(rel, "rel", n)
-  rule <- .lgl(rule, "rule", n)
-  if (!is.numeric(y) || length(y) != n) {
-    stop("`y` must be numbers, one per defendant.", call. = FALSE)
-  }
-  y <- as.double(y)
-  if (anyNA(y[rel]) || !all(y[rel] %in% c(0, 1))) {
-    stop("`y` must be 0 or 1 for every released defendant.", call. = FALSE)
-  }
-  y[!rel] <- 0
-  w <- if (is.null(w)) rep(1, n) else .num(w, "w", len = n, lo = 0)
-  if (sum(w[rel]) <= 0) stop("the judge released nobody.", call. = FALSE)
-  if (sum(w[rule]) <= 0) stop("the rule releases nobody.", call. = FALSE)
-  r <- .Call(C_clab_sellab, y, rel, rule, w)
-  c(obs = r[1L], unobs = r[2L], lower = r[3L], upper = r[4L], width = r[5L],
-    naive = r[6L])
+  .Call(C_clab_r_sellab, y, rel, rule, w)
 }
 
 #' Mean time in custody from completed and current stays
@@ -182,10 +128,7 @@ sellab <- function(y, rel, rule, w = NULL) {
 #' losbnd(done = c(30, 45, 60, 90, 120), open = c(100, 150, 200))
 #' @export
 losbnd <- function(done, open) {
-  done <- .num(done, "done", lo = 0)
-  open <- .num(open, "open", lo = 0)
-  r <- .Call(C_clab_losbnd, done, open)
-  c(mean = r[1L], age = r[2L], lower = r[3L], bias = r[4L])
+  .Call(C_clab_r_losbnd, done, open)
 }
 
 #' Bounds on a sentence's effect without assumptions
@@ -200,9 +143,11 @@ losbnd <- function(done, open) {
 #'
 #' @param y Outcomes: 0 or 1 for each person.
 #' @param z Sentences: a vector with exactly two distinct values, same
-#'   length.
+#'   length: character, numbers, logical or a factor (its labels), not dates.
 #' @param treat The value of `z` taken as the treatment; `NULL` for the
-#'   second in sorted order.
+#'   second in sorted order. The values are sorted as text by Unicode code
+#'   point (`"B"` before `"a"`, `"10"` before `"2"`), the same on every
+#'   machine whatever its locale.
 #' @param w `NULL` for equal weights, or one non-negative weight per person
 #'   with a positive total.
 #' @return A data frame with three rows, the comparison sentence, the
@@ -221,30 +166,7 @@ losbnd <- function(done, open) {
 #' sntbnd(y, z)
 #' @export
 sntbnd <- function(y, z, treat = NULL, w = NULL) {
-  y <- .num(y, "y", lo = 0)
-  n <- length(y)
-  if (!all(y %in% c(0, 1))) stop("`y` must be 0 or 1.", call. = FALSE)
-  if (length(z) != n || anyNA(z)) {
-    stop("`z` must have length ", n, " and no missing values.", call. = FALSE)
-  }
-  z <- as.character(z)
-  lv <- sort(unique(z))
-  if (length(lv) != 2L) {
-    stop("`z` must take exactly two values.", call. = FALSE)
-  }
-  if (is.null(treat)) treat <- lv[2L]
-  if (!is.atomic(treat) || length(treat) != 1L ||
-        !as.character(treat) %in% lv) {
-    stop("`treat` must be one of the values of `z`.", call. = FALSE)
-  }
-  treat <- as.character(treat)
-  w <- if (is.null(w)) rep(1, n) else .num(w, "w", len = n, lo = 0)
-  if (sum(w) <= 0) stop("`w` must have a positive total.", call. = FALSE)
-  r <- .Call(C_clab_sntbnd, y, as.integer(z == treat), w)
-  data.frame(term = c(setdiff(lv, treat), treat, "effect"),
-             share = c(r[3L], r[4L], NA_real_),
-             lower = c(r[5L], r[7L], r[9L]), upper = c(r[6L], r[8L], r[10L]),
-             observed = c(r[1L] / r[3L], r[2L] / r[4L], r[11L]))
+  .Call(C_clab_r_sntbnd, y, z, treat, w)
 }
 
 #' Period-two hazards after selective depletion
@@ -274,34 +196,5 @@ sntbnd <- function(y, z, treat = NULL, w = NULL) {
 #' hzdsel(s = 0.5, h = 0.5, l = 0.1, surh = c(0.5, 0.8), surl = c(0.9, 0.9))
 #' @export
 hzdsel <- function(s, h, l, surh, surl) {
-  s <- .one(s, "s", 0, 1)
-  h <- .p01(h, "h")
-  l <- .p01(l, "l")
-  # .p01() has checked h and l are numbers in [0, 1], never NaN, so this is
-  # the negation of l < h
-  if (l >= h) stop("`l` must be below `h`.", call. = FALSE)
-  surh <- .num(surh, "surh", len = 2L, lo = 0, open = TRUE)
-  surl <- .num(surl, "surl", len = 2L, lo = 0, open = TRUE)
-  if (any(surh > 1)) stop("`surh` must be at most 1.", call. = FALSE)
-  if (any(surl > 1)) stop("`surl` must be at most 1.", call. = FALSE)
-  r <- .Call(C_clab_hzdsel, s, h, l, surh, surl)
-  c(share0 = r[1L], share1 = r[2L], haz0 = r[3L], haz1 = r[4L], ratio = r[5L])
-}
-
-# One whole number at least lo.
-.whole <- function(x, nm, lo) {
-  if (!is.numeric(x) || length(x) != 1L || is.na(x) || x != round(x) ||
-        x < lo || x > .Machine[["integer.max"]]) {
-    stop("`", nm, "` must be one whole number from ", lo, ".", call. = FALSE)
-  }
-  as.integer(x)
-}
-
-# TRUE or FALSE for each of n units.
-.lgl <- function(x, nm, n) {
-  if (!is.logical(x) || length(x) != n || anyNA(x)) {
-    stop("`", nm, "` must be TRUE or FALSE, one per unit, with no missing ",
-         "values.", call. = FALSE)
-  }
-  x
+  .Call(C_clab_r_hzdsel, s, h, l, surh, surl)
 }

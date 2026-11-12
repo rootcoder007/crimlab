@@ -139,11 +139,3 @@ misrd <- function(r1, r0, prev, se, sp) {
 rtmhs <- function(x1, x2, cut, w = NULL) {
   .Call(C_clab_r_rtmhs, x1, x2, cut, w)
 }
-
-# One number in the closed unit interval.
-.p01 <- function(x, nm) {
-  if (!is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 || x > 1) {
-    stop("`", nm, "` must be one number from 0 to 1.", call. = FALSE)
-  }
-  as.double(x)
-}
