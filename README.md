@@ -248,6 +248,20 @@ s <- jtsurf(c(2, 3, 4), c(2, 4, 3), win = c(0, 6, 0, 6), nx = 30, ny = 30,
 jtacc(s$prob, win = c(0, 6, 0, 6), base = c(3.2, 2.9))
 ```
 
+
+### Spatial weights and autocorrelation
+
+```r
+set.seed(4)
+p <- cbind(x = runif(60), y = runif(60))
+v <- ifelse(p[, 1] > 0.7 & p[, 2] > 0.7, 5, 1) + rnorm(60, sd = 0.3)
+w <- spwt(p, k = 5)                    # or type = "band", or "contig"
+gearc(v, w)                            # Geary's C
+gorg(v, spwt(p, type = "band", d = 0.2, style = "raw"))   # global G
+head(lmorn(v, w, nsim = 199, seed = 1))                    # local Moran
+locgi(v, spwt(p, type = "band", d = 0.2, style = "raw"))  # local G*
+dirmn(p, origin = c(0.5, 0.5))         # directional mean from an origin
+```
 ### Risk tools, trace evidence, time and data screens
 
 ```r

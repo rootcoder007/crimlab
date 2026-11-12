@@ -386,6 +386,13 @@ SEXP C_clab_r_lwss(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_chmb(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gstr(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sptst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// The entry points of the weights and autocorrelation functions (bsp2.cpp).
+SEXP C_clab_r_spwt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gearc(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gorg(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lmorn(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_locgi(SEXP, SEXP, SEXP);
+SEXP C_clab_r_dirmn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -490,6 +497,12 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_chmb", fn(&C_clab_r_chmb), 5},
     {"C_clab_r_gstr", fn(&C_clab_r_gstr), 5},
     {"C_clab_r_sptst", fn(&C_clab_r_sptst), 6},
+    {"C_clab_r_spwt", fn(&C_clab_r_spwt), 10},
+    {"C_clab_r_gearc", fn(&C_clab_r_gearc), 4},
+    {"C_clab_r_gorg", fn(&C_clab_r_gorg), 4},
+    {"C_clab_r_lmorn", fn(&C_clab_r_lmorn), 4},
+    {"C_clab_r_locgi", fn(&C_clab_r_locgi), 3},
+    {"C_clab_r_dirmn", fn(&C_clab_r_dirmn), 6},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

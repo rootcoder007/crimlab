@@ -42,13 +42,19 @@
 //'   result; test-sp.R checks them.
 //' @srrstats {SP3.0} Neighbourhoods are the user's: a radius (fzmode(),
 //'   stacel()), a threshold distance fixed or from the random expectation
-//'   at a chosen probability (nnhclu()), a neighbour order (nnidx()).
+//'   at a chosen probability (nnhclu()), a neighbour order (nnidx()), and
+//'   for the autocorrelation statistics k nearest neighbours, a distance
+//'   band or a contiguity list (spwt()).
+//' @srrstats {SP3.0a} On grids, gstr()'s radius 1 gives the rook and 1.5
+//'   the queen neighbourhood (cell included); spwt() takes any contiguity
+//'   list, rook or queen.
 //' @srrstats {SP3.0b} In irregular space neighbours are set by an integer
 //'   number (nnidx()'s `kmax`) or a distance (fzmode()'s `r`, nnhclu()'s
 //'   `fixd`, stacel()'s `r`).
 //' @srrstats {SP3.1} jtsurf() weights each incident by a decay function of
-//'   its distance (six forms, or a calibrated table from jtcal()), not by a
-//'   uniform cut-off.
+//'   its distance (six forms, or a calibrated table from jtcal()), and
+//'   spwt() gives inverse-distance weights of any power, not only a uniform
+//'   cut-off.
 //' @srrstats {SP3.4} nnhclu() and stacel() cluster by explicitly spatial
 //'   rules (distance thresholds, search circles); kmpart() is K-means on
 //'   the coordinates alone, where proximity is the only variable, not an
@@ -71,7 +77,6 @@
 //' @srrstatsNA {SP2.5} No new class is implemented; sf input brings its
 //'   own CRS, which is read (SP2.4).
 //' @srrstatsNA {SP2.5a} No new class is implemented.
-//' @srrstatsNA {SP3.0a} No function considers neighbours on a grid.
 //' @srrstatsNA {SP3.2} Simulations draw complete spatial randomness, the
 //'   null hypothesis being tested; sampling by local density would change
 //'   the null, not estimate it.

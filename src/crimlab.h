@@ -1152,6 +1152,96 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
  * the centre. lon, lat may be x, y. O(n). */
 int clab_eqinv(const double *x, const double *y, int n, double lon0,
                double lat0, double r, double *lon, double *lat);
+
+/* Spatial weights (src/swt.cpp). A neighbour structure is a set of
+ * compressed sparse rows: the neighbours of unit i are ci[rp[i] ..
+ * rp[i + 1]), with rp[0] = 0.
+ *
+ * clab_swknb: the k nearest neighbours (k in [1, n - 1]) of each of n >= 2
+ * planar points, ties at equal distance broken by the lower index; metric
+ * 0 Euclidean, 1 Manhattan (|dx| + |dy|). Out: nb (n k ints, row i nearest
+ * first) and d (their distances). Grid of cells holding about k + 1 points
+ * each, searched by rings: O(n k log k) expected for spread-out points.
+ * iwork: 2n + 2 ints.
+ *
+ * clab_swband: the neighbours within dmax > 0 (closed) of each of n >= 1
+ * points, metric as above, the unit itself excluded, each row in
+ * increasing order of neighbour. rp: n + 1 ints; ci, d: cap entries; *nnz
+ * receives the number of pairs. When it exceeds cap only the first cap are
+ * stored: call again with cap >= *nnz (cap = 0 counts). Grid of cells of
+ * side about dmax: O(n + pairs within 2 dmax). iwork: 2n + 2 ints.
+ *
+ * clab_swwt: weights for the rows rp of n units: 1 (pw = 0), or d^-pw for
+ * pw > 0 (every distance d positive: CLAB_EDOM otherwise; d is not read
+ * when pw = 0); rowstd 1 divides each row by its sum (an empty row stays
+ * empty), 0 leaves them. Out: w, rp[n] values. O(nnz). */
+int clab_swknb(const double *x, const double *y, int n, int k, int metric,
+               int *nb, double *d, int *iwork);
+int clab_swband(const double *x, const double *y, int n, double dmax,
+                int metric, int cap, int *rp, int *ci, double *d, int *nnz,
+                int *iwork);
+int clab_swwt(const int *rp, const double *d, int n, double pw, int rowstd,
+              double *w);
+
+/* Spatial autocorrelation on weights (src/lsa.cpp). x: n values; rp, ci,
+ * w: a weights structure whose rows hold distinct neighbours in increasing
+ * order, none the unit itself, weights finite and >= 0 (CLAB_EDOM
+ * otherwise). S0 = sum w_ij, S1 = sum_ij (w_ij + w_ji)^2 / 2, S2 = sum_i
+ * (w_i. + w_.i)^2 (Cliff and Ord 1981). Permutation tests shuffle x over
+ * the units nsim >= 0 times from seed.
+ *
+ * clab_gearc: Geary's C (Geary 1954, doi:10.2307/2986645), n >= 4,
+ * C = (n - 1) sum_ij w_ij (x_i - x_j)^2 / (2 S0 sum (x_i - xbar)^2), with
+ * its variance under normality and under randomisation (Cliff and Ord
+ * 1981, with b2 = n sum z^4 / (sum z^2)^2), the z statistics (1 - C) / sd
+ * and their upper normal tails (positive autocorrelation makes C small),
+ * and the permutation p-value (1 + #{C* <= C}) / (nsim + 1) (NaN without
+ * permutations). Out, 9: C, Vn, Vr, zn, zr, pn, pr, pperm, S0. CLAB_EDOM
+ * for constant x or S0 = 0. work: n doubles. O(nnz log(deg) + nsim nnz).
+ *
+ * clab_gorg: the general G of Getis and Ord (1992,
+ * doi:10.1111/j.1538-4632.1992.tb00261.x), x >= 0, n >= 4: G = sum_ij
+ * w_ij x_i x_j / sum_{i != j} x_i x_j, E[G] = S0 / (n (n - 1)), and its
+ * variance under randomisation from the moments of x (their B0 to B4).
+ * Out, 6: G, E, V, z, the upper normal tail of z, and the permutation
+ * p-value (1 + #{G* >= G}) / (nsim + 1). CLAB_EDOM when fewer than two
+ * values are positive or S0 = 0. work: n doubles.
+ *
+ * clab_lmorn: local Moran (Anselin 1995,
+ * doi:10.1111/j.1538-4632.1995.tb00338.x), n >= 3: with z = x - xbar and
+ * m2 = sum z^2 / n, I_i = z_i / m2 sum_j w_ij z_j, E = -w_i. / (n - 1)
+ * and the variance under total randomisation (b2 = (sum z^4 / n) / m2^2);
+ * the two-sided normal p-value; the conditional permutation p-value
+ * (unit i keeps its value, its neighbours' values are drawn without
+ * replacement from the other n - 1), (1 + min(#{I* >= I}, #{I* <= I})) /
+ * (nsim + 1); and the quadrant: 1 high-high, 2 low-low, 3 low-high, 4
+ * high-low, 0 when z_i or the lag is 0. Out, 7n, column by column. iwork:
+ * n ints; work: n doubles. O(nnz + n (n + nsim deg)).
+ *
+ * clab_locgi: the local G (star = 0, the unit excluded) or G* (star = 1,
+ * the unit in its own neighbourhood with weight 1) of Getis and Ord (1992)
+ * as z values (Ord and Getis 1995, doi:10.1111/j.1538-4632.1995.tb00912.x),
+ * the means and variances taken over the other n - 1 values for G and over
+ * all n for G*; NaN for a unit without weight. Out: n values. O(n + nnz). */
+int clab_gearc(const double *x, int n, const int *rp, const int *ci,
+               const double *w, int nsim, unsigned int seed, double *work,
+               double *out);
+int clab_gorg(const double *x, int n, const int *rp, const int *ci,
+              const double *w, int nsim, unsigned int seed, double *work,
+              double *out);
+int clab_lmorn(const double *x, int n, const int *rp, const int *ci,
+               const double *w, int nsim, unsigned int seed, int *iwork,
+               double *work, double *out);
+int clab_locgi(const double *x, int n, const int *rp, const int *ci,
+               const double *w, int star, double *out);
+
+/* Directional mean of n >= 1 angles a (radians) with weights w (NULL or n
+ * finite values >= 0, positive sum): the mean direction atan2(S, C) in
+ * [0, 2 pi) (NaN when the resultant is 0), the mean resultant length R in
+ * [0, 1], the circular variance 1 - R and the circular standard deviation
+ * sqrt(-2 log R) (Mardia and Jupp 2000, doi:10.1002/9780470316979, ch. 2),
+ * and the total weight. Out, 5. O(n). */
+int clab_dirmn(const double *a, const double *w, int n, double *out);
 #ifdef __cplusplus
 }
 #endif

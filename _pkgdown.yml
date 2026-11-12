@@ -96,6 +96,12 @@ reference:
       - jtcal
       - jtacc
       - bjtc
+      - spwt
+      - gearc
+      - gorg
+      - lmorn
+      - locgi
+      - dirmn
   - title: Dossier methods
     desc: Fairness of risk tools, trace evidence, aoristic time, Benford
       screens, glass grouping and transfer, constant reporters,

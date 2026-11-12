@@ -8,4 +8,5 @@ spf <- c("hvdist", "eqproj", "eqinv", "cgstat", "cgmedn", "webpt", "sdell",
 dsx <- c("fair", "tlvc", "tlvlr", "aorwt", "bdig", "bnft", "skp", "rptc",
          "rswp", "rshl", "zgll", "zgem", "mvtll", "mvtem", "tfrp", "lwss",
          "chmb", "gstr", "sptst")
-spx <- c(spf, dsx)
+spw <- c("spwt", "gearc", "gorg", "lmorn", "locgi", "dirmn")
+spx <- c(spf, dsx, spw)

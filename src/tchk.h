@@ -130,4 +130,5 @@ double tk_med5(double *t);
 #endif
 
 void t_geo2(tk &t, int big);
+void t_swt(tk &t, int big);
 #endif
