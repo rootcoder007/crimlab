@@ -17,7 +17,12 @@ namespace clab {
 
 constexpr double ninf = -std::numeric_limits<double>::infinity();
 
-// stop(<message>, call. = FALSE). R_PRINTF_FORMAT (R's own macro) lets the
+// The function an error belongs to: each R entry point (bind.cpp, glue.cpp)
+// sets it first, and fail() and kchk() put it in front of every message,
+// "vodtst: ...", so that no two functions raise the same message.
+extern const char *who;
+
+// stop(<message>, call. = FALSE), prefixed with who. R_PRINTF_FORMAT (R's own macro) lets the
 // compiler check every format against its arguments.
 [[noreturn]] void fail(const char *fmt, ...) R_PRINTF_FORMAT(1, 2);
 // The R call in src, parsed (for conditions rebuilt on error paths).

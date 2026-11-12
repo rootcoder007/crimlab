@@ -26,7 +26,7 @@ DL_FUNC fn(F f) {
 int len(SEXP x) { return clab::ilen(static_cast<double>(XLENGTH(x)), nullptr); }
 
 void check(int code) {
-  if (code != CLAB_OK) Rf_error("crimlab: %s", clab_strerror(code));
+  if (code != CLAB_OK) Rf_error("%s: %s", clab::who, clab_strerror(code));
 }
 
 SEXP named_list(int n, const char *const *names) {
@@ -43,6 +43,7 @@ SEXP named_list(int n, const char *const *names) {
 extern "C" {
 
 SEXP C_clab_vod(SEXP day, SEXP night, SEXP ref, SEXP shift) {
+  clab::who = "clab_vod";
   const int n = len(day);
   const bool has = !Rf_isNull(shift);
   static const char *const names[] = {"share_day", "share_night", "ratio",
@@ -60,6 +61,7 @@ SEXP C_clab_vod(SEXP day, SEXP night, SEXP ref, SEXP shift) {
 }
 
 SEXP C_clab_orrisk(SEXP orr, SEXP q, SEXP s) {
+  clab::who = "clab_orrisk";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 2));
   check(clab_orrisk(Rf_asReal(orr), Rf_asReal(q), Rf_asReal(s), REAL(out),
                     REAL(out) + 1));
@@ -68,6 +70,7 @@ SEXP C_clab_orrisk(SEXP orr, SEXP q, SEXP s) {
 }
 
 SEXP C_clab_outtst(SEXP q, SEXP w, SEXP t) {
+  clab::who = "clab_outtst";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 2));
   check(clab_outtst(REAL(q), REAL(w), len(q),
                     Rf_asReal(t), REAL(out), REAL(out) + 1));
@@ -76,6 +79,7 @@ SEXP C_clab_outtst(SEXP q, SEXP w, SEXP t) {
 }
 
 SEXP C_clab_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
+  clab::who = "clab_dspbm";
   const int n = len(pop);
   static const char *const names[] = {"cd", "fd", "rd"};
   SEXP out = PROTECT(named_list(3, names));
@@ -88,6 +92,7 @@ SEXP C_clab_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
 }
 
 SEXP C_clab_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
+  clab::who = "clab_dyadrt";
   const int m = len(count);
   static const char *const names[] = {"rate_off", "rate_pair", "null_off",
                                       "ratio"};
@@ -102,6 +107,7 @@ SEXP C_clab_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
 }
 
 SEXP C_clab_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
+  clab::who = "clab_gtmp";
   const int n = len(p);
   static const char *const names[] = {"locus", "log10mp"};
   SEXP out = PROTECT(named_list(2, names));
@@ -114,6 +120,7 @@ SEXP C_clab_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
 }
 
 SEXP C_clab_cllr(SEXP same, SEXP diff) {
+  clab::who = "clab_cllr";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
   check(clab_cllr(REAL(same), len(same), REAL(diff),
                   len(diff), REAL(out)));
@@ -122,6 +129,7 @@ SEXP C_clab_cllr(SEXP same, SEXP diff) {
 }
 
 SEXP C_clab_lrcal(SEXP lr, SEXP same) {
+  clab::who = "clab_lrcal";
   const int n = len(lr);
   static const char *const names[] = {"post", "min"};
   SEXP out = PROTECT(named_list(2, names));
@@ -135,6 +143,7 @@ SEXP C_clab_lrcal(SEXP lr, SEXP same) {
 }
 
 SEXP C_clab_mixp(SEXP p, SEXP need, SEXP x) {
+  clab::who = "clab_mixp";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
   check(clab_mixp(REAL(p), LOGICAL(need), len(p),
                   Rf_asInteger(x), REAL(out)));
@@ -143,6 +152,7 @@ SEXP C_clab_mixp(SEXP p, SEXP need, SEXP x) {
 }
 
 SEXP C_clab_kinidx(SEXP g1, SEXP g2, SEXP f, SEXP k) {
+  clab::who = "clab_kinidx";
   const int n = clab::ilen(static_cast<double>(XLENGTH(g1) / 2), nullptr);
   SEXP out = PROTECT(Rf_allocVector(REALSXP, n));
   check(clab_kinidx(INTEGER(g1), INTEGER(g2), REAL(f), n, REAL(k), REAL(out)));
@@ -151,6 +161,7 @@ SEXP C_clab_kinidx(SEXP g1, SEXP g2, SEXP f, SEXP k) {
 }
 
 SEXP C_clab_patidx(SEXP c, SEXP m, SEXP af, SEXP f) {
+  clab::who = "clab_patidx";
   const int n = clab::ilen(static_cast<double>(XLENGTH(c) / 2), nullptr);
   SEXP out = PROTECT(Rf_allocVector(REALSXP, n));
   check(clab_patidx(INTEGER(c), INTEGER(m), INTEGER(af), REAL(f), n,
@@ -160,6 +171,7 @@ SEXP C_clab_patidx(SEXP c, SEXP m, SEXP af, SEXP f) {
 }
 
 SEXP C_clab_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
+  clab::who = "clab_clrsmp";
   const int n = len(clra);
   static const char *const names[] = {"ra", "rb", "wa", "wb", "reff",
                                       "meff", "tot", "cnt"};
@@ -177,6 +189,7 @@ SEXP C_clab_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
 }
 
 SEXP C_clab_expbnd(SEXP y, SEXP m, SEXP ref, SEXP gamma) {
+  clab::who = "clab_expbnd";
   const int n = len(y);
   static const char *const names[] = {"rate", "lo", "hi", "ratio", "rlo",
                                       "rhi", "sign"};
@@ -193,6 +206,7 @@ SEXP C_clab_expbnd(SEXP y, SEXP m, SEXP ref, SEXP gamma) {
 }
 
 SEXP C_clab_misrd(SEXP r1, SEXP r0, SEXP p, SEXP se, SEXP sp) {
+  clab::who = "clab_misrd";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 5));
   check(clab_misrd(Rf_asReal(r1), Rf_asReal(r0), Rf_asReal(p), Rf_asReal(se),
                    Rf_asReal(sp), REAL(out)));
@@ -201,6 +215,7 @@ SEXP C_clab_misrd(SEXP r1, SEXP r0, SEXP p, SEXP se, SEXP sp) {
 }
 
 SEXP C_clab_rtmhs(SEXP x1, SEXP x2, SEXP w, SEXP c) {
+  clab::who = "clab_rtmhs";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 7));
   check(clab_rtmhs(REAL(x1), REAL(x2), REAL(w), len(x1),
                    Rf_asReal(c), REAL(out)));
@@ -209,6 +224,7 @@ SEXP C_clab_rtmhs(SEXP x1, SEXP x2, SEXP w, SEXP c) {
 }
 
 SEXP C_clab_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
+  clab::who = "clab_incap";
   const int n = len(lam);
   const bool has = !Rf_isNull(share);
   static const char *const names[] = {"rate", "prev", "marg", "agg"};
@@ -223,6 +239,7 @@ SEXP C_clab_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
 }
 
 SEXP C_clab_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
+  clab::who = "clab_incapr";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 5));
   check(clab_incapr(REAL(lam), len(lam), Rf_asInteger(t0),
                     Rf_asInteger(s), Rf_asReal(r), REAL(out)));
@@ -231,6 +248,7 @@ SEXP C_clab_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
 }
 
 SEXP C_clab_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
+  clab::who = "clab_sellab";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 6));
   check(clab_sellab(REAL(y), LOGICAL(rel), LOGICAL(rule), REAL(w),
                     len(y), REAL(out)));
@@ -239,6 +257,7 @@ SEXP C_clab_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
 }
 
 SEXP C_clab_losbnd(SEXP t, SEXP a) {
+  clab::who = "clab_losbnd";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 4));
   check(clab_losbnd(REAL(t), len(t), REAL(a),
                     len(a), REAL(out)));
@@ -247,6 +266,7 @@ SEXP C_clab_losbnd(SEXP t, SEXP a) {
 }
 
 SEXP C_clab_sntbnd(SEXP y, SEXP z, SEXP w) {
+  clab::who = "clab_sntbnd";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 11));
   check(clab_sntbnd(REAL(y), INTEGER(z), REAL(w), len(y),
                     REAL(out)));
@@ -255,6 +275,7 @@ SEXP C_clab_sntbnd(SEXP y, SEXP z, SEXP w) {
 }
 
 SEXP C_clab_hzdsel(SEXP s, SEXP h, SEXP l, SEXP ah, SEXP al) {
+  clab::who = "clab_hzdsel";
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 5));
   check(clab_hzdsel(Rf_asReal(s), Rf_asReal(h), Rf_asReal(l), REAL(ah),
                     REAL(al), REAL(out)));

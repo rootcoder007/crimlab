@@ -20,6 +20,8 @@
 
 namespace clab {
 
+const char *who = "crimlab";
+
 void fail(const char *f, ...) {
   // The message is formatted into R's transient memory (first 256 bytes,
   // then exactly the size needed) and handed to R as stop() hands it: R
@@ -40,7 +42,7 @@ void fail(const char *f, ...) {
     std::vsnprintf(buf, len, f, ap);
     va_end(ap);
   }
-  Rf_errorcall(R_NilValue, "%s", buf);
+  Rf_errorcall(R_NilValue, "%s: %s", who, buf);
 }
 
 SEXP lang(const char *src) {
@@ -57,8 +59,8 @@ void kchk(int code, const char *src) {
   // Rf_error() gives the call of the R function that made the .Call, here
   // the exported one, as before. Where the old .Call sat in a helper, src
   // is that helper's call, parsed only on this error path.
-  if (src == nullptr) Rf_error("crimlab: %s", clab_strerror(code));
-  Rf_errorcall(PROTECT(lang(src)), "crimlab: %s", clab_strerror(code));
+  if (src == nullptr) Rf_error("%s: %s", who, clab_strerror(code));
+  Rf_errorcall(PROTECT(lang(src)), "%s: %s", who, clab_strerror(code));
 }
 
 void fmt(double x, char *buf, int n) {
@@ -81,7 +83,7 @@ void lfmt(double x, char *buf, int n) {
 
 int ilen(double n, const char *nm) {
   if (n > INT_MAX) {
-    if (nm == nullptr) Rf_error("crimlab: %s", clab_strerror(CLAB_EARG));
+    if (nm == nullptr) Rf_error("%s: %s", who, clab_strerror(CLAB_EARG));
     fail("`%s` is too long for crimlab: more than %d values.", nm, INT_MAX);
   }
   return static_cast<int>(n);

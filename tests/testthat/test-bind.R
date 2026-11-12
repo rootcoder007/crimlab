@@ -103,7 +103,7 @@ test_that("kernel errors keep the call the R helper made", {
   e <- tryCatch(kinidx(matrix(1, 0, 2), matrix(1, 0, 2), matrix(0.1, 0, 2)),
                 error = identity)
   expect_identical(conditionMessage(e),
-                   "crimlab: a size or an index is out of range")
+                   "kinidx: a size or an index is out of range")
   expect_identical(
     conditionCall(e),
     quote(.idx(g1, .Call(C_clab_kinidx, .code(g1, u), .code(g2, u), f, k)))
@@ -111,7 +111,7 @@ test_that("kernel errors keep the call the R helper made", {
   z <- matrix(1, 0, 2)
   e <- tryCatch(patidx(z, z, matrix(0.1, 0, 2), z), error = identity)
   expect_identical(conditionMessage(e),
-                   "crimlab: a size or an index is out of range")
+                   "patidx: a size or an index is out of range")
 })
 
 test_that("t0 + s past the largest integer is refused, without a warning", {
@@ -240,7 +240,7 @@ test_that("lengths past INT_MAX are refused, never truncated", {
                "`x` is too long for crimlab: more than 2147483647 values.",
                fixed = TRUE)
   expect_error(.Call(C_clab_tlen, 3e9, FALSE),
-               "crimlab: a size or an index is out of range", fixed = TRUE)
+               "clab_tlen: a size or an index is out of range", fixed = TRUE)
   # a length is printed as length() gives it: an integer, a double above
   for (n in c(7L, 2147483647L)) {
     expect_identical(.Call(C_clab_tlen, as.double(n), NULL), as.character(n))

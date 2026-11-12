@@ -173,6 +173,7 @@ extern "C" {
 // Disparity.
 
 SEXP C_clab_r_vodtst(SEXP day, SEXP night, SEXP ref, SEXP shift) {
+  clab::who = "vodtst";
   SEXP nms = PROTECT(clab::grp(day));
   SEXP d = PROTECT(num(day, "day", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(d)), "day");
@@ -200,6 +201,7 @@ SEXP C_clab_r_vodtst(SEXP day, SEXP night, SEXP ref, SEXP shift) {
 }
 
 SEXP C_clab_r_orrisk(SEXP orr, SEXP rate, SEXP share) {
+  clab::who = "orrisk";
   SEXP o = PROTECT(num(orr, "or", 1, 0.0, true));
   const double v = REAL_RO(o)[0];
   if (!std::isfinite(1 / v)) {
@@ -217,6 +219,7 @@ SEXP C_clab_r_orrisk(SEXP orr, SEXP rate, SEXP share) {
 }
 
 SEXP C_clab_r_outtst(SEXP q, SEXP t, SEXP w) {
+  clab::who = "outtst";
   SEXP qv = PROTECT(num(q, "q", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(qv)), "q");
   const double *p = REAL_RO(qv);
@@ -234,6 +237,7 @@ SEXP C_clab_r_outtst(SEXP q, SEXP t, SEXP w) {
 }
 
 SEXP C_clab_r_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
+  clab::who = "dspbm";
   SEXP nms = PROTECT(clab::grp(pop));
   SEXP p = PROTECT(num(pop, "pop", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(p)), "pop");
@@ -254,6 +258,7 @@ SEXP C_clab_r_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
 }
 
 SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
+  clab::who = "dyadrt";
   SEXP nms = PROTECT(clab::grp(pop));
   SEXP p = PROTECT(num(pop, "pop", -1, 0.0, true));
   const int g = ilen(static_cast<double>(XLENGTH(p)), "pop");
@@ -359,6 +364,7 @@ bool allna(SEXP x) {
 extern "C" {
 
 SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
+  clab::who = "gtmp";
   SEXP nms = PROTECT(clab::grp(p));
   SEXP pv = PROTECT(num(p, "p", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(pv)), "p");
@@ -431,6 +437,7 @@ SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
 }
 
 SEXP C_clab_r_cllr(SEXP same, SEXP diff) {
+  clab::who = "cllr";
   SEXP s = PROTECT(num(same, "same", -1, 0.0, true));
   SEXP d = PROTECT(num(diff, "diff", -1, 0.0, true));
   double r = 0;
@@ -442,6 +449,7 @@ SEXP C_clab_r_cllr(SEXP same, SEXP diff) {
 }
 
 SEXP C_clab_r_lrpost(SEXP lr, SEXP prior) {
+  clab::who = "lrpost";
   SEXP l = PROTECT(num(lr, "lr", -1, 0.0, true));
   SEXP p = PROTECT(num(prior, "prior", -1, 0.0, true));
   const R_xlen_t nl = XLENGTH(l), np = XLENGTH(p);
@@ -500,6 +508,7 @@ double mix(SEXP pv, const Keys &nk, SEXP need, SEXP x, const char *a,
 extern "C" {
 
 SEXP C_clab_r_mixlr(SEXP p, SEXP np, SEXP xp, SEXP nd, SEXP xd) {
+  clab::who = "mixlr";
   SEXP nms = PROTECT(Rf_getAttrib(p, R_NamesSymbol));
   SEXP pv = PROTECT(num(p, "p", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(pv)), "p");
@@ -525,6 +534,7 @@ SEXP C_clab_r_mixlr(SEXP p, SEXP np, SEXP xp, SEXP nd, SEXP xd) {
 }
 
 SEXP C_clab_r_dbsrch(SEXP mp, SEXP n, SEXP pop) {
+  clab::who = "dbsrch";
   SEXP m = PROTECT(num(mp, "mp", 1, 0.0, true));
   const double mv = REAL_RO(m)[0];
   if (mv > 1) fail("`mp` must be at most 1.");
@@ -658,6 +668,7 @@ double ece(const double *s, R_xlen_t ns, const double *d, R_xlen_t nd,
 extern "C" {
 
 SEXP C_clab_r_cllrmin(SEXP same, SEXP diff) {
+  clab::who = "cllrmin";
   Cal c = cal(same, diff);
   double r[3];
   // cllr(r[["same"]], r[["diff"]]): its .Call ran in that call's frame
@@ -672,6 +683,7 @@ SEXP C_clab_r_cllrmin(SEXP same, SEXP diff) {
 }
 
 SEXP C_clab_r_lrcal(SEXP same, SEXP diff) {
+  clab::who = "lrcal";
   Cal c = cal(same, diff);
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(out, 0, c.cs);
@@ -682,6 +694,7 @@ SEXP C_clab_r_lrcal(SEXP same, SEXP diff) {
 }
 
 SEXP C_clab_r_tipplt(SEXP same, SEXP diff) {
+  clab::who = "tipplt";
   SEXP s = PROTECT(num(same, "same", -1, 0.0, true));
   SEXP d = PROTECT(num(diff, "diff", -1, 0.0, true));
   ilen(static_cast<double>(XLENGTH(s)), "same");
@@ -695,6 +708,7 @@ SEXP C_clab_r_tipplt(SEXP same, SEXP diff) {
 }
 
 SEXP C_clab_r_eceplt(SEXP same, SEXP diff, SEXP lo) {
+  clab::who = "eceplt";
   Cal c = cal(same, diff);
   SEXP l = PROTECT(num(lo, "lo"));
   const R_xlen_t nl = XLENGTH(l), ns = XLENGTH(c.s), nd = XLENGTH(c.d);
@@ -963,10 +977,12 @@ SEXP kinidx(SEXP g1, SEXP g2, SEXP freq, SEXP rel) {
 extern "C" {
 
 SEXP C_clab_r_kinidx(SEXP g1, SEXP g2, SEXP freq, SEXP rel) {
+  clab::who = "kinidx";
   return kinidx(g1, g2, freq, rel);
 }
 
 SEXP C_clab_r_patidx(SEXP child, SEXP father, SEXP freq, SEXP mother) {
+  clab::who = "patidx";
   // if (is.null(mother)) return(kinidx(child, father, freq, "parent"))
   if (Rf_isNull(mother)) {
     SEXP rel = PROTECT(Rf_mkString("parent"));
@@ -998,6 +1014,7 @@ SEXP C_clab_r_patidx(SEXP child, SEXP father, SEXP freq, SEXP mother) {
 extern "C" {
 
 SEXP C_clab_r_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
+  clab::who = "clrsmp";
   SEXP nms = PROTECT(clab::grp(clra));
   SEXP a = PROTECT(num(clra, "clra", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(a)), "clra");
@@ -1031,6 +1048,7 @@ SEXP C_clab_r_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
 }
 
 SEXP C_clab_r_expbnd(SEXP y, SEXP m, SEXP gamma, SEXP ref) {
+  clab::who = "expbnd";
   SEXP nms = PROTECT(clab::grp(y));
   SEXP yv = PROTECT(num(y, "y", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(yv)), "y");
@@ -1055,6 +1073,7 @@ SEXP C_clab_r_expbnd(SEXP y, SEXP m, SEXP gamma, SEXP ref) {
 }
 
 SEXP C_clab_r_misrd(SEXP r1, SEXP r0, SEXP prev, SEXP se, SEXP sp) {
+  clab::who = "misrd";
   const double a = clab::p01(r1, "r1");
   const double b = clab::p01(r0, "r0");
   const double p = clab::one(prev, "prev", 0, 1);
@@ -1072,6 +1091,7 @@ SEXP C_clab_r_misrd(SEXP r1, SEXP r0, SEXP prev, SEXP se, SEXP sp) {
 }
 
 SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
+  clab::who = "rtmhs";
   SEXP a = PROTECT(num(x1, "x1"));
   const int n = ilen(static_cast<double>(XLENGTH(a)), "x1");
   SEXP b = PROTECT(num(x2, "x2", n));
@@ -1093,6 +1113,7 @@ SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
 // Corrections.
 
 SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
+  clab::who = "incap";
   SEXP nms = PROTECT(clab::grp(lam));
   SEXP l = PROTECT(num(lam, "lam", -1, 0.0, true));
   const int n = ilen(static_cast<double>(XLENGTH(l)), "lam");
@@ -1148,6 +1169,7 @@ SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
 }
 
 SEXP C_clab_r_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
+  clab::who = "incapr";
   SEXP l = PROTECT(num(lam, "lam", -1, 0.0));
   const R_xlen_t n = XLENGTH(l);
   const double *lp = REAL_RO(l);
@@ -1171,6 +1193,7 @@ SEXP C_clab_r_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
 }
 
 SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
+  clab::who = "sellab";
   const R_xlen_t n = Rf_xlength(rel);
   clab::lgl(rel, "rel", n);
   clab::lgl(rule, "rule", n);
@@ -1201,6 +1224,7 @@ SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
 }
 
 SEXP C_clab_r_losbnd(SEXP done, SEXP open) {
+  clab::who = "losbnd";
   SEXP d = PROTECT(num(done, "done", -1, 0.0));
   SEXP o = PROTECT(num(open, "open", -1, 0.0));
   double r[4];
@@ -1213,6 +1237,7 @@ SEXP C_clab_r_losbnd(SEXP done, SEXP open) {
 }
 
 SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
+  clab::who = "sntbnd";
   SEXP yv = PROTECT(num(y, "y", -1, 0.0));
   const int n = ilen(static_cast<double>(XLENGTH(yv)), "y");
   const double *yp = REAL_RO(yv);
@@ -1288,6 +1313,7 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
 }
 
 SEXP C_clab_r_hzdsel(SEXP s, SEXP h, SEXP l, SEXP surh, SEXP surl) {
+  clab::who = "hzdsel";
   const double sv = clab::one(s, "s", 0, 1);
   const double hv = clab::p01(h, "h");
   const double lv = clab::p01(l, "l");
@@ -1312,6 +1338,7 @@ SEXP C_clab_r_hzdsel(SEXP s, SEXP h, SEXP l, SEXP surh, SEXP surl) {
 // length check of the binding; with FALSE, that of the kernel entry
 // points; with NULL, the length as an error message would print it.
 SEXP C_clab_tlen(SEXP n, SEXP nm) {
+  clab::who = "clab_tlen";
   const double v = REAL_RO(n)[0];
   if (Rf_isNull(nm)) {
     char b[48];
@@ -1400,6 +1427,7 @@ constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace
 
 SEXP C_clab_r_proof(SEXP fn) {
+  clab::who = "proof";
   // if (!is.character(fn) || anyNA(fn)) stop("`fn` must be function names.")
   const bool all = Rf_isNull(fn);
   if (!all && (TYPEOF(fn) != STRSXP || clab::anyna(fn))) {
