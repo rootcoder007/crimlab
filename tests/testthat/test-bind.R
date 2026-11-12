@@ -242,8 +242,11 @@ test_that("lengths past INT_MAX are refused, never truncated", {
   expect_error(.Call(C_clab_tlen, 3e9, FALSE),
                "crimlab: a size or an index is out of range", fixed = TRUE)
   # a length is printed as length() gives it: an integer, a double above
-  expect_identical(.Call(C_clab_tlen, 7, NULL), as.character(7L))
-  expect_identical(.Call(C_clab_tlen, 3e9, NULL), as.character(3e9))
+  for (n in c(7L, 2147483647L)) {
+    expect_identical(.Call(C_clab_tlen, as.double(n), NULL), as.character(n))
+  }
+  n <- 3e9
+  expect_identical(.Call(C_clab_tlen, n, NULL), as.character(n))
 })
 
 test_that("cllrmin forms the calibration loss from the full cost", {
