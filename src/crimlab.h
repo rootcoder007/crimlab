@@ -730,6 +730,18 @@ int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
 int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
              unsigned int seed, int *grp, int *ng, int *iwork, double *work);
 
+/* Constant reporters of a reporting panel (for example agencies in UCR
+ * data): a unit is constant when, in every year y0..y1, at least one of its
+ * records has rep >= minrep months reported. A year without a record of the
+ * unit, or with too few months, disqualifies it, whatever happens to other
+ * units in that year. unit: n codes in [0, a); year, rep: n integers
+ * (records outside y0..y1 are ignored; duplicates are allowed). Out: flag,
+ * a values (1 constant, 0 not) and nc, their sum. work: a (y1 - y0 + 1)
+ * ints. Time O(n + a (y1 - y0 + 1)). Monotone: a lower minrep never
+ * removes a unit. */
+int clab_rptc(const int *unit, const int *year, const int *rep, int n, int a,
+              int y0, int y1, int minrep, int *flag, int *nc, int *work);
+
 #ifdef __cplusplus
 }
 #endif
