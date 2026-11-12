@@ -910,6 +910,30 @@ int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
 int clab_lwss(const double *x, const double *y, int n, double f, int iter,
               double delta, double *ys, double *work);
 
+/* The Chumbley score for two striated tool-mark profiles a (na values) and
+ * b (nb), deterministic version (Chumbley et al. 2010,
+ * doi:10.1111/j.1556-4029.2010.01424.x; Hadler and Morris 2018,
+ * doi:10.1111/1556-4029.13640). Each profile is trimmed to positions
+ * round(0.01 n)..round(0.99 n) and detrended by its lowess smooth
+ * (clab_lwss, f = coarse, 3 robustness steps, delta 0.01 (m - 1)). The
+ * optimisation step finds the pair of windows of wopt points with the
+ * largest Pearson correlation (first in column-major order of (window of
+ * b, window of a) among ties); the validation step takes windows of wval
+ * points at the same shift as that pair, stepping wval along the
+ * diagonal on both sides, and at different shifts along the anti-diagonal,
+ * as in the published deterministic algorithm, and compares the two sets
+ * of correlations by the standardised Wilcoxon rank sum (midranks,
+ * tie-corrected variance); p is its upper normal tail (by erfc).
+ * Out: nsame, ndiff (window pairs used), u, p (NaN when either set is
+ * empty). 2 <= wval <= wopt; coarse > 0. CLAB_EARG when a trimmed profile
+ * is shorter than wopt; CLAB_EDOM for a non-finite value or when every
+ * window is flat (spread below 64 ulps of the profile's magnitude). The optimisation step is O(na nb) by sliding cross
+ * products (no window matrix); the validation step O(n). work:
+ * 3 na + 3 nb + 7 max(na, nb) doubles. */
+int clab_chmb(const double *a, int na, const double *b, int nb, int wopt,
+              int wval, double coarse, int *nsame, int *ndiff, double *u,
+              double *p, double *work);
+
 #ifdef __cplusplus
 }
 #endif
