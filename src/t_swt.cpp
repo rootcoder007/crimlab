@@ -246,12 +246,12 @@ void famtest(tk &T, int big) {
       for (int i = 0; i < n; ++i) v[i] = rexp(g, 1.0);
       double o[9];
       clab_gearc(v.data(), n, rp.data(), ci.data(), w.data(), 19, 7 + s, wk.data(), o);
-      rg += o[7] <= 0.05;
+      rg += o[7] <= 0.05 ? 1 : 0;
       clab_gorg(v.data(), n, rp.data(), ci.data(), w.data(), 19, 7 + s, wk.data(), o);
-      rgo += o[5] <= 0.05;
+      rgo += o[5] <= 0.05 ? 1 : 0;
       clab_lmorn(v.data(), n, rp.data(), ci.data(), w.data(), 19, 7 + s, iw.data(),
                  wk.data(), lo.data());
-      rl += lo[5 * n] <= 0.05;
+      rl += lo[5 * n] <= 0.05 ? 1 : 0;
     }
     // 4 binomial standard deviations about 0.05 (the local test is two
     // one-sided tests folded: about 0.1)

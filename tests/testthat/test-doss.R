@@ -381,3 +381,35 @@ test_that("every dossier function answers one valid call in its shape", {
                      info = fns[k])
   }
 })
+
+test_that("named per-case and per-unit arguments are matched by name", {
+  s <- c(a = 0.2, b = 0.7, c = 0.4, d = 0.9)
+  y <- c(a = 0, b = 1, c = 0, d = 1)
+  g <- c(a = "x", b = "x", c = "y", d = "y")
+  o <- c(4, 2, 1, 3)
+  expect_identical(fair(s, y[o], g[o]), fair(s, y, g))
+  expect_identical(fair(s, (y == 1)[o], g[o]), fair(s, y, g))
+  expect_identical(lwss(s, y[o]), lwss(s, y))
+  expect_identical(rptc(g, c(a = 1, b = 1, c = 1, d = 1)[o],
+                        c(a = 12, b = 12, c = 3, d = 12)[o], 1, 1),
+                   rptc(g, c(1, 1, 1, 1), c(12, 12, 3, 12), 1, 1))
+  a <- c(u = 3, v = 5, w = 2)
+  b <- c(w = 4, u = 1, v = 6)
+  expect_identical(sptst(a, b, nboot = 9, seed = 1),
+                   sptst(a, b[names(a)], nboot = 9, seed = 1))
+  expect_identical(sptst(as.list(a), data.frame(t(b)), nboot = 9, seed = 1),
+                   sptst(a, b[names(a)], nboot = 9, seed = 1))
+  m <- matrix(b, 1, dimnames = list(NULL, names(b)))
+  expect_identical(sptst(a, m, nboot = 9, seed = 1),
+                   sptst(a, b[names(a)], nboot = 9, seed = 1))
+  od <- diag(3)
+  expect_identical(bjtc(list(p = 0.5, q = 0.3, r = 0.2), od, 1:3),
+                   bjtc(c(0.5, 0.3, 0.2), od, 1:3))
+  errs("sptst", list(
+    list("a list of single numbers", list(1:2, 3), 1:2)
+  ))
+  errs("fair", list(
+    list("a vector of numbers or labels", s, c(b = 1i, a = 0i, c = 0i,
+                                                d = 1i), g)
+  ))
+})

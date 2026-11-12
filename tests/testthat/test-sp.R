@@ -642,3 +642,31 @@ test_that("space-time and journey-to-crime functions refuse bad input", {
     list("a block sums to 0", 1:2, matrix(c(1, 1, 0, 0), 2), 2)
   ))
 })
+
+test_that("named per-point vectors are matched by name, as elsewhere", {
+  x <- c(a = 1, b = 2, c = 4, d = 7)
+  y <- c(a = 1, b = 3, c = 5, d = 2)
+  w <- c(a = 1, b = 2, c = 1, d = 3)
+  o <- c(3, 1, 4, 2)
+  r <- cgstat(x, y, w = w)
+  expect_identical(cgstat(x, y[o], w = w[o]), r)
+  expect_identical(sdell(x, y[o], w = w[o]), sdell(x, y, w = w))
+  expect_identical(webpt(x, y[o], w = w[o]), webpt(x, y, w = w))
+  expect_identical(mantst(x, y[o], t = w[o], nsim = 0),
+                   mantst(x, y, t = w, nsim = 0))
+  expect_identical(stmavg(x, y[o], t = w[o], span = 3),
+                   stmavg(x, y, t = w, span = 3))
+  expect_identical(jtcal(x, 1:3, 1, w = w[o]), jtcal(x, 1:3, 1, w = w))
+  expect_identical(dirmn(x, y[o], origin = c(0, 0), w = w[o]),
+                   dirmn(x, y, origin = c(0, 0), w = w))
+  # unnamed or repeated names: positions
+  expect_identical(cgstat(x, unname(y)), cgstat(unname(x), unname(y)))
+  rep <- c(a = 1, a = 2, b = 4, b = 7)
+  expect_identical(cgstat(rep, y), cgstat(unname(rep), unname(y)))
+  yi <- c(a = 1L, b = 3L, c = 5L, d = 2L)
+  expect_identical(cgstat(x, yi[o]), cgstat(x, yi))
+  errs("cgstat", list(
+    list("must name the same units as `x`", x, c(a = 1, b = 3, c = 5, e = 2)),
+    list("`y` must have length 4", x, c(a = 1, b = 3, c = 5))
+  ))
+})

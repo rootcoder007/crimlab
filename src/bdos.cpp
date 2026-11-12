@@ -163,6 +163,12 @@ extern "C" {
 SEXP C_clab_r_fair(SEXP score, SEXP y, SEXP grp, SEXP cut, SEXP base,
                    SEXP conf) {
   clab::who = "fair";
+  SEXP uv[3] = {score, y, grp};
+  static const char *const un[] = {"score", "y", "grp"};
+  const int nb = csp::byname(uv, un, 3);
+  score = uv[0];
+  y = uv[1];
+  grp = uv[2];
   SEXP s = PROTECT(num(score, "score"));
   const int n = len(s, "score");
   SEXP yv = PROTECT(bin01(y, "y", n));
@@ -194,7 +200,7 @@ SEXP C_clab_r_fair(SEXP score, SEXP y, SEXP grp, SEXP cut, SEXP base,
     UNPROTECT(1);
   }
   static const char *const nm[] = {"cnt", "met", "rat", "lo", "hi"};
-  UNPROTECT(6);
+  UNPROTECT(6 + nb);
   return clab::nlist(out, nm);
 }
 
@@ -406,6 +412,12 @@ SEXP C_clab_r_skp(SEXP x, SEXP s2, SEXP alpha, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_rptc(SEXP unit, SEXP year, SEXP rep, SEXP y0, SEXP y1,
                    SEXP minrep) {
   clab::who = "rptc";
+  SEXP uv[3] = {unit, year, rep};
+  static const char *const un[] = {"unit", "year", "rep"};
+  const int nb = csp::byname(uv, un, 3);
+  unit = uv[0];
+  year = uv[1];
+  rep = uv[2];
   SEXP yv = PROTECT(num(year, "year"));
   const int n = len(yv, "year");
   lab u = codes(unit, "unit", n);
@@ -437,7 +449,7 @@ SEXP C_clab_r_rptc(SEXP unit, SEXP year, SEXP rep, SEXP y0, SEXP y1,
   SET_VECTOR_ELT(v, 1, lg);
   static const char *const nm[] = {"unit", "const"};
   SEXP out = clab::frame(v, nm);
-  UNPROTECT(10);
+  UNPROTECT(10 + nb);
   return out;
 }
 
@@ -494,6 +506,11 @@ extern "C" {
 
 SEXP C_clab_r_lwss(SEXP x, SEXP y, SEXP f, SEXP iter, SEXP delta) {
   clab::who = "lwss";
+  SEXP uv[2] = {x, y};
+  static const char *const un[] = {"x", "y"};
+  const int nb = csp::byname(uv, un, 2);
+  x = uv[0];
+  y = uv[1];
   SEXP xv = PROTECT(num(x, "x"));
   const int n = len(xv, "x");
   SEXP yv = PROTECT(num(y, "y", n));
@@ -519,7 +536,7 @@ SEXP C_clab_r_lwss(SEXP x, SEXP y, SEXP f, SEXP iter, SEXP delta) {
      "the kernel refused the input.");
   SEXP out = PROTECT(real(n));
   for (int i = 0; i < n; ++i) REAL(out)[ord[i]] = REAL(fit)[i];
-  UNPROTECT(8);
+  UNPROTECT(8 + nb);
   return out;
 }
 
@@ -589,6 +606,13 @@ SEXP C_clab_r_gstr(SEXP cnt, SEXP ex, SEXP rad, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_sptst(SEXP a, SEXP b, SEXP nboot, SEXP seed, SEXP alpha,
                     SEXP scale) {
   clab::who = "sptst";
+  a = PROTECT(csp::gvec(a, "a"));
+  b = PROTECT(csp::gvec(b, "b"));
+  SEXP uv[2] = {a, b};
+  static const char *const un[] = {"a", "b"};
+  const int nb = csp::byname(uv, un, 2);
+  a = uv[0];
+  b = uv[1];
   if (!clab::isnum(a) || !clab::isnum(b)) fail("`a` and `b` must be counts.");
   SEXP av = PROTECT(clab::dcopy(PROTECT(clab::dbl(a))));
   SEXP bv = PROTECT(clab::dcopy(PROTECT(clab::dbl(b))));
@@ -604,9 +628,9 @@ SEXP C_clab_r_sptst(SEXP a, SEXP b, SEXP nboot, SEXP seed, SEXP alpha,
   double g[8];
   kc(clab_sptst(REAL(av), REAL(bv), n, nbt, s, al, sc, REAL(o), g, REAL(wk), INTEGER(iw)),
      "`a` and `b` must be whole numbers from 0 (NA leaves a unit out).");
-  static const char *const un[] = {"diff", "p", "flag"};
+  static const char *const cn3[] = {"diff", "p", "flag"};
   double *c[3];
-  SEXP f = PROTECT(dframe(3, n, un, c));
+  SEXP f = PROTECT(dframe(3, n, cn3, c));
   for (int j = 0; j < 3; ++j) std::memcpy(c[j], REAL(o) + static_cast<R_xlen_t>(j) * n, n * sizeof(double));
   static const char *const gn[] = {"left", "empty", "elig", "flagged", "s", "z", "p", "nboot"};
   SEXP gv = PROTECT(clab::nvec(8, gn, g));
@@ -614,7 +638,7 @@ SEXP C_clab_r_sptst(SEXP a, SEXP b, SEXP nboot, SEXP seed, SEXP alpha,
   SET_VECTOR_ELT(out, 0, f);
   SET_VECTOR_ELT(out, 1, gv);
   static const char *const nm[] = {"units", "glob"};
-  UNPROTECT(10);
+  UNPROTECT(10 + nb + 2);
   return clab::nlist(out, nm);
 }
 

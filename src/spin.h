@@ -53,6 +53,21 @@ void fwd(const pts &p, double *px, double *py, int n);
 // place, when p.ll; nothing otherwise.
 void back(const pts &p, double *px, double *py, int n);
 
+// Per-unit vectors matched by name, the rule of the rest of the package
+// (bind.cpp): when each of the k arguments v given as a plain vector (NULL
+// ones are skipped) has names, all of one length, and no name repeats
+// within one, the later ones are put in the order of the first by name,
+// and names that differ are an error listing them; otherwise (some
+// unnamed, a repeated name, a matrix or data frame) positions are used.
+// Replaced vectors are protected: the result is how many to unprotect.
+int byname(SEXP *v, const char *const *nm, int k);
+
+// A per-group or per-unit argument in its other forms, as a named numeric
+// vector: a list of single numbers or a one-row data frame, or a one-row
+// or one-column numeric matrix (named by its column or row names). Any
+// other input is returned as it is. The result is not protected.
+SEXP gvec(SEXP x, const char *nm);
+
 // TRUE or FALSE, one value.
 bool flag(SEXP x, const char *nm);
 

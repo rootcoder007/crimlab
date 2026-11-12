@@ -177,6 +177,12 @@ SEXP C_clab_r_eqinv(SEXP x, SEXP y, SEXP lon0, SEXP lat0, SEXP r) {
 //' @noRd
 SEXP C_clab_r_cgstat(SEXP x, SEXP y, SEXP w, SEXP k, SEXP lonlat) {
   clab::who = "cgstat";
+  SEXP uv[3] = {x, y, w};
+  static const char *const un[] = {"x", "y", "w"};
+  const int nb = csp::byname(uv, un, 3);
+  x = uv[0];
+  y = uv[1];
+  w = uv[2];
   csp::pts p = csp::xy(x, y, lonlat);
   SEXP keep = R_NilValue;
   const double *wp = wts(w, p.n, &keep);
@@ -191,7 +197,7 @@ SEXP C_clab_r_cgstat(SEXP x, SEXP y, SEXP w, SEXP k, SEXP lonlat) {
   }
   static const char *const nm[] = {"w", "mx", "my", "sx", "sy", "sdd",
                                    "gx", "gy", "hx", "hy"};
-  UNPROTECT(2);
+  UNPROTECT(2 + nb);
   return clab::nvec(10, nm, o);
 }
 
@@ -210,6 +216,12 @@ SEXP C_clab_r_cgmedn(SEXP x, SEXP y, SEXP lonlat) {
 SEXP C_clab_r_webpt(SEXP x, SEXP y, SEXP w, SEXP start, SEXP tol,
                     SEXP maxit, SEXP lonlat) {
   clab::who = "webpt";
+  SEXP uv[3] = {x, y, w};
+  static const char *const un[] = {"x", "y", "w"};
+  const int nb = csp::byname(uv, un, 3);
+  x = uv[0];
+  y = uv[1];
+  w = uv[2];
   csp::pts p = csp::xy(x, y, lonlat);
   SEXP keep = R_NilValue;
   const double *wp = wts(w, p.n, &keep);
@@ -229,12 +241,18 @@ SEXP C_clab_r_webpt(SEXP x, SEXP y, SEXP w, SEXP start, SEXP tol,
   kc(clab_webpt(p.x, p.y, wp, p.n, has ? s : nullptr, tl, mi, o));
   csp::back(p, o, o + 1, 1);
   static const char *const nm[] = {"x", "y", "obj", "gap", "iter", "code"};
-  UNPROTECT(2);
+  UNPROTECT(2 + nb);
   return clab::nvec(6, nm, o);
 }
 
 SEXP C_clab_r_sdell(SEXP x, SEXP y, SEXP w, SEXP k, SEXP c, SEXP lonlat) {
   clab::who = "sdell";
+  SEXP uv[3] = {x, y, w};
+  static const char *const un[] = {"x", "y", "w"};
+  const int nb = csp::byname(uv, un, 3);
+  x = uv[0];
+  y = uv[1];
+  w = uv[2];
   csp::pts p = csp::xy(x, y, lonlat);
   SEXP keep = R_NilValue;
   const double *wp = wts(w, p.n, &keep);
@@ -245,7 +263,7 @@ SEXP C_clab_r_sdell(SEXP x, SEXP y, SEXP w, SEXP k, SEXP c, SEXP lonlat) {
   kc(clab_sdell(p.x, p.y, wp, p.n, kk, cc, o));
   csp::back(p, o, o + 1, 1);
   static const char *const nm[] = {"mx", "my", "a", "b", "angle", "area"};
-  UNPROTECT(2);
+  UNPROTECT(2 + nb);
   return clab::nvec(6, nm, o);
 }
 
@@ -667,6 +685,12 @@ extern "C" {
 SEXP C_clab_r_mantst(SEXP x, SEXP y, SEXP t, SEXP cs, SEXP ct, SEXP nsim,
                      SEXP seed, SEXP lonlat) {
   clab::who = "mantst";
+  SEXP uv[3] = {x, y, t};
+  static const char *const un[] = {"x", "y", "t"};
+  const int nb = csp::byname(uv, un, 3);
+  x = uv[0];
+  y = uv[1];
+  t = uv[2];
   csp::pts p = csp::xy(x, y, lonlat);
   SEXP tv = PROTECT(times(t, p.n));
   if (p.n < 3 || p.n > 46340) fail("the number of events must be from 3 to 46340.");
@@ -679,12 +703,18 @@ SEXP C_clab_r_mantst(SEXP x, SEXP y, SEXP t, SEXP cs, SEXP ct, SEXP nsim,
   kc(clab_mantst(p.x, p.y, REAL_RO(tv), p.n, a, b, ns, sd, INTEGER(iw), o),
      "the distances or the time intervals are all equal: r is undefined.");
   static const char *const nm[] = {"r", "pairs", "pup", "plo", "p2"};
-  UNPROTECT(3);
+  UNPROTECT(3 + nb);
   return clab::nvec(5, nm, o);
 }
 
 SEXP C_clab_r_stmavg(SEXP x, SEXP y, SEXP t, SEXP span, SEXP lonlat) {
   clab::who = "stmavg";
+  SEXP uv[3] = {x, y, t};
+  static const char *const un[] = {"x", "y", "t"};
+  const int nb = csp::byname(uv, un, 3);
+  x = uv[0];
+  y = uv[1];
+  t = uv[2];
   csp::pts p = csp::xy(x, y, lonlat);
   SEXP tv = PROTECT(times(t, p.n));
   const int sp = clab::whole(span, "span", 1);
@@ -703,7 +733,7 @@ SEXP C_clab_r_stmavg(SEXP x, SEXP y, SEXP t, SEXP span, SEXP lonlat) {
     c[2][i] = r[3];
   }
   csp::back(p, c[0], c[1], p.n);
-  UNPROTECT(5);
+  UNPROTECT(5 + nb);
   return f;
 }
 
@@ -756,6 +786,11 @@ SEXP C_clab_r_jtsurf(SEXP x, SEXP y, SEXP win, SEXP nx, SEXP ny, SEXP type,
 
 SEXP C_clab_r_jtcal(SEXP d, SEXP t, SEXP h, SEXP w, SEXP kern, SEXP refl) {
   clab::who = "jtcal";
+  SEXP uv[2] = {d, w};
+  static const char *const un[] = {"d", "w"};
+  const int nb = csp::byname(uv, un, 2);
+  d = uv[0];
+  w = uv[1];
   SEXP dv = PROTECT(num(d, "d", -1, 0.0));
   const int m = clab::ilen(static_cast<double>(XLENGTH(dv)), "d");
   const bool rf = csp::flag(refl, "refl");
@@ -771,7 +806,7 @@ SEXP C_clab_r_jtcal(SEXP d, SEXP t, SEXP h, SEXP w, SEXP kern, SEXP refl) {
   SEXP out = PROTECT(real(k));
   kc(clab_jtcal(REAL_RO(dv), wp, m, kk, bw, rf ? 1 : 0, REAL_RO(tv), k,
                 REAL(out)));
-  UNPROTECT(4);
+  UNPROTECT(4 + nb);
   return out;
 }
 
@@ -800,6 +835,7 @@ SEXP C_clab_r_jtacc(SEXP prob, SEXP win, SEXP base) {
 
 SEXP C_clab_r_bjtc(SEXP pj, SEXP od, SEXP dest) {
   clab::who = "bjtc";
+  pj = PROTECT(csp::gvec(pj, "pj"));
   SEXP pv = PROTECT(num(pj, "pj", -1, 0.0));
   const int no = clab::ilen(static_cast<double>(XLENGTH(pv)), "pj");
   SEXP d = Rf_getAttrib(od, R_DimSymbol);
@@ -837,7 +873,7 @@ SEXP C_clab_r_bjtc(SEXP pj, SEXP od, SEXP dest) {
   for (int b = 0; b < 5; ++b) {
     std::memcpy(c[b], REAL(o) + static_cast<R_xlen_t>(b) * no, no * sizeof(double));
   }
-  UNPROTECT(7);
+  UNPROTECT(8);
   return f;
 }
 

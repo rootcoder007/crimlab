@@ -5,9 +5,13 @@
 
 #include <R_ext/Random.h>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "crimlab.h"
 #include "rchk.h"
@@ -204,6 +208,11 @@ pts xy(SEXP x, SEXP y, SEXP lonlat, mode m) {
       np = 2;
     }
   }
+  SEXP xyv[2] = {cx, cy};
+  static const char *const xyn[] = {"x", "y"};
+  const int nb = byname(xyv, xyn, 2);
+  np += nb;
+  cy = xyv[1];
   SEXP vx = PROTECT(clab::num(cx, nx));
   const int n = clab::ilen(static_cast<double>(XLENGTH(vx)), nx);
   SEXP vy = PROTECT(clab::num(cy, ny, n));
@@ -272,6 +281,109 @@ void back(const pts &p, double *px, double *py, int n) {
   // a projected point is within 2 R of the centre by construction, and a
   // NaN one stays NaN, so the inverse cannot fail here
   clab::kchk(clab_eqinv(px, py, n, p.lon0, p.lat0, earth, px, py), nullptr);
+}
+
+//' @srrstats {G2.7} Per-unit vectors given separately (x and y, weights,
+//'   times) are matched by name when every one is named, as the package's
+//'   per-group arguments are (test-sp.R).
+//' @noRd
+int byname(SEXP *v, const char *const *nm, int k) {
+  int first = -1, cnt = 0;
+  R_xlen_t n = 0;
+  std::vector<std::vector<std::pair<std::string, R_xlen_t>>> key(static_cast<std::size_t>(k));
+  for (int j = 0; j < k; ++j) {
+    SEXP x = v[j];
+    if (Rf_isNull(x)) continue;
+    SEXP nms = Rf_getAttrib(x, R_NamesSymbol);
+    if (!Rf_isVectorAtomic(x) || !Rf_isNull(Rf_getAttrib(x, R_DimSymbol)) ||
+        Rf_isNull(nms)) {
+      return 0;
+    }
+    if (first < 0) {
+      first = j;
+      n = XLENGTH(x);
+    } else if (XLENGTH(x) != n) {
+      return 0;
+    }
+    ++cnt;
+    auto &kv = key[static_cast<std::size_t>(j)];
+    kv.reserve(static_cast<std::size_t>(n));
+    for (R_xlen_t i = 0; i < n; ++i) {
+      SEXP c = STRING_ELT(nms, i);
+      if (c == NA_STRING) return 0;
+      kv.emplace_back(Rf_translateCharUTF8(c), i);
+    }
+    std::sort(kv.begin(), kv.end());
+    for (std::size_t i = 1; i < kv.size(); ++i) {
+      if (kv[i].first == kv[i - 1].first) return 0;  // repeated labels
+    }
+  }
+  if (cnt < 2) return 0;
+  int np = 0;
+  SEXP f = v[first], fn = Rf_getAttrib(f, R_NamesSymbol);
+  std::vector<R_xlen_t> o(static_cast<std::size_t>(n));
+  for (int j = first + 1; j < k; ++j) {
+    if (Rf_isNull(v[j])) continue;
+    const auto &kv = key[static_cast<std::size_t>(j)];
+    bool id = true;
+    for (R_xlen_t i = 0; i < n; ++i) {
+      const std::string a = Rf_translateCharUTF8(STRING_ELT(fn, i));
+      auto it = std::lower_bound(kv.begin(), kv.end(), std::make_pair(a, R_xlen_t{0}));
+      if (it == kv.end() || it->first != a) {
+        clab::fail("`%s` must name the same units as `%s`; `%s` has no %s.",
+                   nm[j], nm[first], nm[j], a.c_str());
+      }
+      o[static_cast<std::size_t>(i)] = it->second;
+      id = id && it->second == i;
+    }
+    if (id) continue;
+    SEXP x = v[j];
+    SEXP y = PROTECT(Rf_allocVector(TYPEOF(x), n));
+    ++np;
+    for (R_xlen_t i = 0; i < n; ++i) {
+      const R_xlen_t s = o[static_cast<std::size_t>(i)];
+      switch (TYPEOF(x)) {
+        case REALSXP: REAL(y)[i] = REAL_RO(x)[s]; break;
+        case INTSXP: INTEGER(y)[i] = INTEGER_RO(x)[s]; break;
+        case LGLSXP: LOGICAL(y)[i] = LOGICAL_RO(x)[s]; break;
+        case STRSXP: SET_STRING_ELT(y, i, STRING_ELT(x, s)); break;
+        default: clab::fail("`%s` must be a vector of numbers or labels.", nm[j]);
+      }
+    }
+    Rf_copyMostAttrib(x, y);
+    Rf_setAttrib(y, R_NamesSymbol, fn);
+    v[j] = y;
+  }
+  return np;
+}
+
+SEXP gvec(SEXP x, const char *nm) {
+  if (TYPEOF(x) == VECSXP && !Rf_inherits(x, "sf")) {
+    const R_xlen_t n = XLENGTH(x);
+    SEXP v = PROTECT(Rf_allocVector(REALSXP, n));
+    for (R_xlen_t i = 0; i < n; ++i) {
+      SEXP e = VECTOR_ELT(x, i);
+      if (!clab::isnum(e) || XLENGTH(e) != 1) {
+        clab::fail("`%s` must be numbers: a vector, a list of single numbers "
+                   "or a one-row data frame.", nm);
+      }
+      REAL(v)[i] = clab::val1(e);
+    }
+    Rf_setAttrib(v, R_NamesSymbol, Rf_getAttrib(x, R_NamesSymbol));
+    UNPROTECT(1);
+    return v;
+  }
+  SEXP d = Rf_getAttrib(x, R_DimSymbol);
+  if (clab::isnum(x) && TYPEOF(d) == INTSXP && XLENGTH(d) == 2 &&
+      (INTEGER_RO(d)[0] == 1 || INTEGER_RO(d)[1] == 1)) {
+    const bool row = INTEGER_RO(d)[0] == 1 && INTEGER_RO(d)[1] != 1;
+    SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+    SEXP v = PROTECT(clab::dcopy(PROTECT(clab::dbl(x))));
+    if (!Rf_isNull(dn)) Rf_setAttrib(v, R_NamesSymbol, VECTOR_ELT(dn, row ? 1 : 0));
+    UNPROTECT(2);
+    return v;
+  }
+  return x;
 }
 
 bool flag(SEXP x, const char *nm) {

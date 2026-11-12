@@ -92,7 +92,10 @@ eqinv <- function(x, y = NULL, lon0, lat0, r = 6371008.8) {
 #'   `lonlat = TRUE`) and `y` `NULL`; or `x` an sf or sfc object of POINT
 #'   geometries, whose coordinate reference system must agree with
 #'   `lonlat`. An unnamed two-column matrix is read as `x` then `y`; other
-#'   columns are never taken by position. No missing or infinite values.
+#'   columns are never taken by position. Vectors given separately (`x`,
+#'   `y`, and `w` or `t` where a function takes them) are matched by name
+#'   when every one is named and no name repeats, as elsewhere in the
+#'   package; otherwise by position. No missing or infinite values.
 #' @param w `NULL` for equal weights, or one non-negative weight per point
 #'   (counts at a location, say), with a positive sum.
 #' @param k The divisor offset: 0, 1 or 2; the total weight must exceed it.

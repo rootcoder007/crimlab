@@ -13,7 +13,10 @@ cgstat(x, y = NULL, w = NULL, k = 1, lonlat = FALSE)
 \code{lonlat = TRUE}) and \code{y} \code{NULL}; or \code{x} an sf or sfc object of POINT
 geometries, whose coordinate reference system must agree with
 \code{lonlat}. An unnamed two-column matrix is read as \code{x} then \code{y}; other
-columns are never taken by position. No missing or infinite values.}
+columns are never taken by position. Vectors given separately (\code{x},
+\code{y}, and \code{w} or \code{t} where a function takes them) are matched by name
+when every one is named and no name repeats, as elsewhere in the
+package; otherwise by position. No missing or infinite values.}
 
 \item{w}{\code{NULL} for equal weights, or one non-negative weight per point
 (counts at a location, say), with a positive sum.}

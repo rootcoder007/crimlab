@@ -139,7 +139,7 @@ SEXP C_clab_r_spwt(SEXP x, SEXP y, SEXP type, SEXP k, SEXP d, SEXP nb,
   static const char *const to[] = {"knn", "band", "contig"};
   const int tp = csp::pick(type, "type", to, 3);
   static const char *const so[] = {"row", "raw"};
-  const int rs = csp::pick(style, "style", so, 2) == 0;
+  const int rs = csp::pick(style, "style", so, 2) == 0 ? 1 : 0;
   static const char *const mo[] = {"euclid", "manhattan"};
   const int me = csp::pick(metric, "metric", mo, 2);
   const double pw = clab::val1(idw);
@@ -339,6 +339,13 @@ SEXP C_clab_r_locgi(SEXP x, SEXP w, SEXP star) {
 SEXP C_clab_r_dirmn(SEXP x, SEXP y, SEXP origin, SEXP w, SEXP angle,
                     SEXP lonlat) {
   clab::who = "dirmn";
+  SEXP uv[4] = {x, y, angle, w};
+  static const char *const un[] = {"x", "y", "angle", "w"};
+  const int nb = csp::byname(uv, un, 4);
+  x = uv[0];
+  y = uv[1];
+  angle = uv[2];
+  w = uv[3];
   if (Rf_isNull(angle) == Rf_isNull(x)) {
     fail("give the points `x` (with `origin`) or the angles `angle`, not both.");
   }
@@ -377,7 +384,7 @@ SEXP C_clab_r_dirmn(SEXP x, SEXP y, SEXP origin, SEXP w, SEXP angle,
   if (b < 0) b += 360.0;
   const double r[7] = {o[0], b, o[1], o[2], o[3], o[4], static_cast<double>(n)};
   static const char *const nm[] = {"theta", "bearing", "r", "var", "sd", "w", "n"};
-  UNPROTECT(np);
+  UNPROTECT(np + nb);
   return clab::nvec(7, nm, r);
 }
 
