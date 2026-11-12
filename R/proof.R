@@ -40,7 +40,25 @@ proof <- function(fn = NULL) {
                                 "disparity_sign_identified")),
     row("misrd", "Misclass", c("binary_attenuation", "binary_sign")),
     row("rtmhs", "RegMean", c("selected_change_nonpos",
-                              "low_selected_change_nonneg"))
+                              "low_selected_change_nonneg")),
+    row("incap", "Incap", c("steady_state_rate", "prevented_share_eq",
+                            "prevented_share_lt_one", "rate_antitone_in_S",
+                            "rate_antitone_in_q", "marginal_prevention_eq",
+                            "high_rate_more_prevented")),
+    row("incapr", "Incap", c("prevented_le_const", "prevented_ge_const",
+                             "later_sentence_prevents_less",
+                             "prevented_net_le")),
+    row("sellab", "Select", c("observed_rate_is_conditional",
+                              "nested_rate_identified", "unobserved_bounds",
+                              "unobserved_width", "unobserved_ends_attained",
+                              "naive_between")),
+    row("losbnd", "Censor", c("true_mean_ge", "lower_bound_sub", "bias_lower",
+                              "disposed_understates", "no_upper_bound")),
+    row("sntbnd", "Sentence", c("outcome_bounds", "lower_attained",
+                                "upper_attained", "ate_width_one",
+                                "ate_contains_zero")),
+    row("hzdsel", "Hazard", c("survivor_hazard_mono",
+                              "hr2_gt_one_of_depletion"))
   )
   if (is.null(fn)) return(t)
   if (!is.character(fn) || anyNA(fn)) {

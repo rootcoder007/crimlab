@@ -152,6 +152,62 @@ int csls_misrd(double r1, double r0, double p, double se, double sp,
 int csls_rtmhs(const double *x1, const double *x2, const double *w, int n,
                double c, double *out);
 
+/* Incapacitation (Lean: Csls.Incap.steady_state_rate,
+ * prevented_share_eq, marginal_prevention_eq). lam > 0, q in (0, 1], s >= 0,
+ * n groups; share is NULL or n non-negative shares summing to 1. Out, n
+ * each: rate (lam / (1 + lam q s)), prev (the share prevented) and marg (the
+ * crimes one more year prevents); agg, 3 when share is given: the free
+ * rate, the incapacitated rate and the share prevented, all weighted. */
+int csls_incap(const double *lam, const double *q, const double *s, int n,
+               const double *share, double *rate, double *prev, double *marg,
+               double *agg);
+
+/* Incapacitation under desistance and replacement (Lean:
+ * Csls.Incap.prevented_le_const, prevented_ge_const,
+ * later_sentence_prevents_less, prevented_net_le). lam: len non-negative,
+ * non-increasing rates by career age; a sentence of s >= 1 periods from age
+ * t0 >= 0, with t0 + s <= len - 1; r in [0, 1] the replacement share. Out,
+ * 5: crimes prevented, net of replacement, the bounds s lam[t0] and
+ * s lam[t0 + s], and the crimes the same sentence prevents one period
+ * later. */
+int csls_incapr(const double *lam, int len, int t0, int s, double r,
+                double *out);
+
+/* Selective labels (Lean: Csls.Select.unobserved_bounds,
+ * unobserved_width, unobserved_ends_attained). y: n outcomes, 0 or 1 where
+ * rel[i] is non-zero (not read elsewhere); rel, rule: the judge's and the
+ * rule's releases; w: non-negative weights, both release sets of positive
+ * weight. Out, 6: the judge's observed failure rate, the unobserved share
+ * of the rule's releases, the rule's failure-rate bounds, their width and
+ * the naive rate on the rule's observed releases (NaN when none). */
+int csls_sellab(const double *y, const int *rel, const int *rule,
+                const double *w, int n, double *out);
+
+/* Mean spell length from completed and open spells (Lean:
+ * Csls.Censor.true_mean_ge, lower_bound_sub, bias_lower). t: n >= 1
+ * completed durations; a: m >= 1 elapsed ages of open spells; all
+ * non-negative. Out, 4: the completed mean, the open spells' mean age, the
+ * lower bound on the cohort mean and (m / (n + m)) (abar - tbar). */
+int csls_losbnd(const double *t, int n, const double *a, int m, double *out);
+
+/* No-assumption bounds on a sentence's effect on a binary outcome (Lean:
+ * Csls.Sentence.outcome_bounds, ate_width_one, ate_contains_zero). y: n
+ * outcomes, 0 or 1; z: 0 (comparison) or 1 (treatment); w: non-negative
+ * weights with a positive total. Out, 11: P(y = 1, z = 0), P(y = 1, z = 1),
+ * P(z = 0), P(z = 1), the bounds on P(y(0) = 1), on P(y(1) = 1) and on the
+ * effect, and the naive difference (NaN when an arm is empty). */
+int csls_sntbnd(const double *y, const int *z, const double *w, int n,
+                double *out);
+
+/* Period-2 hazards after selective depletion (Lean:
+ * Csls.Hazard.survivor_hazard_mono, hr2_gt_one_of_depletion). s in (0, 1)
+ * the high-risk share; 0 <= l < h <= 1 the two types' hazards; ah, al: 2
+ * period-1 survival probabilities in (0, 1] of each type in the control and
+ * treated arms. Out, 5: the surviving high-risk share in each arm, the
+ * period-2 hazard in each arm and their ratio (treated over control). */
+int csls_hzdsel(double s, double h, double l, const double *ah,
+                const double *al, double *out);
+
 #ifdef __cplusplus
 }
 #endif

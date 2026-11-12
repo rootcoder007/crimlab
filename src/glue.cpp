@@ -195,6 +195,60 @@ SEXP C_csls_rtmhs(SEXP x1, SEXP x2, SEXP w, SEXP c) {
   return out;
 }
 
+SEXP C_csls_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
+  const int n = static_cast<int>(XLENGTH(lam));
+  const bool has = !Rf_isNull(share);
+  static const char *const names[] = {"rate", "prev", "marg", "agg"};
+  SEXP out = PROTECT(named_list(4, names));
+  for (int i = 0; i < 3; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, n));
+  SET_VECTOR_ELT(out, 3, Rf_allocVector(REALSXP, has ? 3 : 0));
+  check(csls_incap(REAL(lam), REAL(q), REAL(s), n, has ? REAL(share) : nullptr,
+                   REAL(VECTOR_ELT(out, 0)), REAL(VECTOR_ELT(out, 1)),
+                   REAL(VECTOR_ELT(out, 2)), REAL(VECTOR_ELT(out, 3))));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 5));
+  check(csls_incapr(REAL(lam), static_cast<int>(XLENGTH(lam)), Rf_asInteger(t0),
+                    Rf_asInteger(s), Rf_asReal(r), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 6));
+  check(csls_sellab(REAL(y), LOGICAL(rel), LOGICAL(rule), REAL(w),
+                    static_cast<int>(XLENGTH(y)), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_losbnd(SEXP t, SEXP a) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 4));
+  check(csls_losbnd(REAL(t), static_cast<int>(XLENGTH(t)), REAL(a),
+                    static_cast<int>(XLENGTH(a)), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_sntbnd(SEXP y, SEXP z, SEXP w) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 11));
+  check(csls_sntbnd(REAL(y), INTEGER(z), REAL(w), static_cast<int>(XLENGTH(y)),
+                    REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
+SEXP C_csls_hzdsel(SEXP s, SEXP h, SEXP l, SEXP ah, SEXP al) {
+  SEXP out = PROTECT(Rf_allocVector(REALSXP, 5));
+  check(csls_hzdsel(Rf_asReal(s), Rf_asReal(h), Rf_asReal(l), REAL(ah),
+                    REAL(al), REAL(out)));
+  UNPROTECT(1);
+  return out;
+}
+
 static const R_CallMethodDef calls[] = {
     {"C_csls_vod", (DL_FUNC)&C_csls_vod, 4},
     {"C_csls_orrisk", (DL_FUNC)&C_csls_orrisk, 3},
@@ -211,6 +265,12 @@ static const R_CallMethodDef calls[] = {
     {"C_csls_expbnd", (DL_FUNC)&C_csls_expbnd, 4},
     {"C_csls_misrd", (DL_FUNC)&C_csls_misrd, 5},
     {"C_csls_rtmhs", (DL_FUNC)&C_csls_rtmhs, 4},
+    {"C_csls_incap", (DL_FUNC)&C_csls_incap, 4},
+    {"C_csls_incapr", (DL_FUNC)&C_csls_incapr, 4},
+    {"C_csls_sellab", (DL_FUNC)&C_csls_sellab, 4},
+    {"C_csls_losbnd", (DL_FUNC)&C_csls_losbnd, 2},
+    {"C_csls_sntbnd", (DL_FUNC)&C_csls_sntbnd, 3},
+    {"C_csls_hzdsel", (DL_FUNC)&C_csls_hzdsel, 5},
     {nullptr, nullptr, 0}};
 
 void R_init_csls(DllInfo *dll) {

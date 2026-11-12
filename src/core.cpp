@@ -491,4 +491,160 @@ int csls_rtmhs(const double *x1, const double *x2, const double *w, int n,
   return CSLS_OK;
 }
 
+int csls_incap(const double *lam, const double *q, const double *s, int n,
+               const double *share, double *rate, double *prev, double *marg,
+               double *agg) {
+  if (n < 1) return CSLS_EARG;
+  double tot = 0.0, free = 0.0, inc = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (!pos(lam[i]) || !(q[i] > 0.0 && q[i] <= 1.0) || !nonneg(s[i])) {
+      return CSLS_EDOM;
+    }
+    if (share != nullptr && !nonneg(share[i])) return CSLS_EDOM;
+  }
+  for (int i = 0; i < n; ++i) {
+    const double k = lam[i] * q[i];
+    const double d = 1.0 + k * s[i];
+    rate[i] = lam[i] / d;
+    prev[i] = k * s[i] / d;
+    marg[i] = lam[i] * k / (d * (d + k));
+    if (share != nullptr) {
+      tot += share[i];
+      free += share[i] * lam[i];
+      inc += share[i] * rate[i];
+    }
+  }
+  if (share != nullptr) {
+    if (std::fabs(tot - 1.0) > 1e-9) return CSLS_EDOM;
+    agg[0] = free;
+    agg[1] = inc;
+    agg[2] = 1.0 - inc / free;
+  }
+  return CSLS_OK;
+}
+
+int csls_incapr(const double *lam, int len, int t0, int s, double r,
+                double *out) {
+  if (t0 < 0 || s < 1 || len < 1 || t0 > len - 1 - s) return CSLS_EARG;
+  if (!(r >= 0.0 && r <= 1.0)) return CSLS_EDOM;
+  for (int i = 0; i < len; ++i) {
+    if (!nonneg(lam[i]) || (i > 0 && lam[i] > lam[i - 1])) return CSLS_EDOM;
+  }
+  double now = 0.0, later = 0.0;
+  for (int j = 0; j < s; ++j) {
+    now += lam[t0 + j];
+    later += lam[t0 + 1 + j];  // t0 + s <= len - 1, so always in range
+  }
+  out[0] = now;
+  out[1] = (1.0 - r) * now;
+  out[2] = s * lam[t0];
+  out[3] = s * lam[t0 + s];
+  out[4] = later;
+  return CSLS_OK;
+}
+
+int csls_sellab(const double *y, const int *rel, const int *rule,
+                const double *w, int n, double *out) {
+  if (n < 1) return CSLS_EARG;
+  double mr = 0.0, fr = 0.0, mm = 0.0, fi = 0.0, mi = 0.0, mu = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (!nonneg(w[i])) return CSLS_EDOM;
+    if (rel[i] != 0) {
+      if (!(y[i] == 0.0 || y[i] == 1.0)) return CSLS_EDOM;
+      mr += w[i];
+      fr += w[i] * y[i];
+    }
+    if (rule[i] != 0) {
+      mm += w[i];
+      if (rel[i] != 0) {
+        mi += w[i];
+        fi += w[i] * y[i];
+      } else {
+        mu += w[i];  // released by the rule, detained by the judge
+      }
+    }
+  }
+  if (!(mr > 0.0) || !(mm > 0.0)) return CSLS_EDOM;
+  out[0] = fr / mr;
+  out[1] = mu / mm;
+  out[2] = fi / mm;
+  out[3] = (fi + mu) / mm;
+  out[4] = out[3] - out[2];
+  out[5] = mi > 0.0 ? fi / mi : std::numeric_limits<double>::quiet_NaN();
+  return CSLS_OK;
+}
+
+int csls_losbnd(const double *t, int n, const double *a, int m, double *out) {
+  if (n < 1 || m < 1) return CSLS_EARG;
+  double st = 0.0, sa = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (!nonneg(t[i])) return CSLS_EDOM;
+    st += t[i];
+  }
+  for (int j = 0; j < m; ++j) {
+    if (!nonneg(a[j])) return CSLS_EDOM;
+    sa += a[j];
+  }
+  const double tbar = st / n;
+  const double abar = sa / m;
+  out[0] = tbar;
+  out[1] = abar;
+  out[2] = (st + sa) / (static_cast<double>(n) + m);
+  out[3] = static_cast<double>(m) / (static_cast<double>(n) + m) *
+           (abar - tbar);
+  return CSLS_OK;
+}
+
+int csls_sntbnd(const double *y, const int *z, const double *w, int n,
+                double *out) {
+  if (n < 1) return CSLS_EARG;
+  double tw = 0.0, j[2] = {0.0, 0.0}, p[2] = {0.0, 0.0};
+  for (int i = 0; i < n; ++i) {
+    if (!(y[i] == 0.0 || y[i] == 1.0) || !nonneg(w[i]) ||
+        (z[i] != 0 && z[i] != 1)) {
+      return CSLS_EDOM;
+    }
+    tw += w[i];
+    j[z[i]] += w[i] * y[i];
+    p[z[i]] += w[i];
+  }
+  if (!(tw > 0.0)) return CSLS_EDOM;
+  for (int t = 0; t < 2; ++t) {
+    j[t] /= tw;
+    p[t] /= tw;
+  }
+  // P(y(t) = 1) lies in [P(y = 1, z = t), P(y = 1, z = t) + P(z != t)]
+  const double lo0 = j[0], hi0 = j[0] + p[1];
+  const double lo1 = j[1], hi1 = j[1] + p[0];
+  const double nan = std::numeric_limits<double>::quiet_NaN();
+  out[0] = j[0];
+  out[1] = j[1];
+  out[2] = p[0];
+  out[3] = p[1];
+  out[4] = lo0;
+  out[5] = hi0;
+  out[6] = lo1;
+  out[7] = hi1;
+  out[8] = lo1 - hi0;
+  out[9] = hi1 - lo0;
+  out[10] = p[0] > 0.0 && p[1] > 0.0 ? j[1] / p[1] - j[0] / p[0] : nan;
+  return CSLS_OK;
+}
+
+int csls_hzdsel(double s, double h, double l, const double *ah,
+                const double *al, double *out) {
+  if (!unit_open(s) || !(l >= 0.0 && l < h && h <= 1.0)) return CSLS_EDOM;
+  for (int k = 0; k < 2; ++k) {
+    if (!(ah[k] > 0.0 && ah[k] <= 1.0) || !(al[k] > 0.0 && al[k] <= 1.0)) {
+      return CSLS_EDOM;
+    }
+    // the high-risk share among the survivors of period 1, and their
+    // period-2 hazard
+    out[k] = s * ah[k] / (s * ah[k] + (1.0 - s) * al[k]);
+    out[2 + k] = out[k] * h + (1.0 - out[k]) * l;
+  }
+  out[4] = out[3] / out[2];
+  return CSLS_OK;
+}
+
 }  // extern "C"
