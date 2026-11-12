@@ -316,6 +316,74 @@ int clab_sdell(const double *x, const double *y, const double *w, int n, int k,
 int clab_cvhull(const double *x, const double *y, int n, int *idx, int *hull,
                 int *nh, double *out);
 
+
+/* Nearest-neighbour index (Clark and Evans 1954, doi:10.2307/1931034) and
+ * k-order nearest-neighbour distances in a rectangle. x, y: n >= 2 points
+ * in planar units inside win = {x0, x1, y0, y1} (x0 < x1, y0 < y1); the
+ * intensity is lam = n / area. kmax in [1, n - 1] orders; nsim >= 0
+ * simulations of n uniform points in the rectangle for a Monte Carlo test
+ * (0: none), drawn from seed. dist: NULL or n * kmax doubles receiving
+ * every point's k-th nearest-neighbour distance (row i holds orders 1 to
+ * kmax; coincident points are neighbours at distance 0). iwork: 2n + 2 +
+ * 2 kmax ints; work: 3 kmax doubles, plus 2n when nsim > 0. Out, 6 kmax +
+ * 4: for each order k, six values: the mean k-th distance, its expectation
+ * under complete spatial randomness without edge effects, c_k / sqrt(lam)
+ * with c_k = k (2k)! / (2^k k!)^2 (Thompson 1956, doi:10.2307/1933159),
+ * their ratio, the Monte Carlo p-values (1 + #{sim <= obs}) / (nsim + 1)
+ * against clustering and (1 + #{sim >= obs}) / (nsim + 1) against
+ * regularity (NaN without simulations), and the standard deviation of one
+ * k-th distance under CSR, sqrt(k / (pi lam) - c_k^2 / lam). Then, for
+ * order 1: Donnelly's (1978) edge-corrected expectation 0.5 / sqrt(lam) +
+ * (0.0514 + 0.0412 / sqrt(n)) P / n (P the perimeter; the constants as
+ * spatstat uses them), the ratio against it, and the Clark-Evans z
+ * statistics with the standard error sqrt((4 - pi) / (4 pi lam n)) about
+ * the uncorrected and the corrected expectation. The z statistics ignore
+ * that nearest-neighbour distances are dependent and, uncorrected, the
+ * edge; the Monte Carlo p-value has exact size in the rectangle. The
+ * index tests only the k-th neighbour distances, not complete spatial
+ * randomness. Neighbours are found on a uniform grid of about n / 2 cells:
+ * O(n kmax) expected for spread-out points, O(n log n)-like for clustered
+ * ones; nsim + 1 times that with simulations. */
+int clab_nnidx(const double *x, const double *y, int n, const double *win,
+               int kmax, int nsim, unsigned int seed, double *dist,
+               int *iwork, double *work, double *out);
+
+/* Ripley's K function (Ripley 1976, doi:10.2307/3212829; 1977,
+ * doi:10.1111/j.2517-6161.1977.tb01615.x) of n >= 2 points in the
+ * rectangle win (as for clab_nnidx), at m >= 1 radii r (non-negative,
+ * strictly increasing), with the estimator corr: 0 none, A sum_{i != j}
+ * 1{d_ij <= r} / (n (n - 1)); 1 border (reduced sample: only points at
+ * least r from the edge are centres, intensity n / A); 2 modified border,
+ * A^2 sum over those centres / (n (n - 1) |W eroded by r|) (NaN once r
+ * reaches half a side); 3 isotropic, each pair weighted by the inverse of
+ * the share of the circle about the centre through the other point that
+ * lies in the rectangle (exact for a rectangle: the arcs cut by each edge
+ * less the overlaps at corners inside the circle), normalised by n (n - 1)
+ * as spatstat does. Besag's L is sqrt(K / pi) (Besag 1977, in the
+ * discussion of Ripley 1977). Pairs are found on a grid of cells of side
+ * at least max(r), so the cost is O(n + pairs within max(r)) plus O(n m)
+ * for the border estimators; no n x n matrix. iwork: 2n + 2 ints; work:
+ * 4m doubles. Out: k, m values. Units: planar; A is in the square of the
+ * coordinates' unit. */
+int clab_ripk(const double *x, const double *y, int n, const double *win,
+              const double *r, int m, int corr, int *iwork, double *work,
+              double *k);
+
+/* Simulation envelopes of L(r) - r = sqrt(K(r) / pi) - r and a global
+ * Monte Carlo test of complete spatial randomness in the rectangle. Inputs
+ * as for clab_ripk, nsim >= 1 patterns of n uniform points in win drawn
+ * from seed. iwork: 2n + 2 ints; work: 5m + 2n doubles. Out, 4m + 2: the
+ * observed L(r) - r, the pointwise minimum and maximum over the
+ * simulations (pointwise envelopes: each radius alone is outside them
+ * with probability 2 / (nsim + 1) under CSR, which is not a test of the
+ * whole curve), the simulations' mean, then the maximum absolute
+ * deviation T = max_r |L(r) - r| of the data and its Monte Carlo p-value
+ * (1 + #{T_sim >= T}) / (nsim + 1), which has exact size (Ripley 1977;
+ * Diggle 2013, ch. 6). Cost: nsim + 1 times clab_ripk. */
+int clab_ripenv(const double *x, const double *y, int n, const double *win,
+                const double *r, int m, int corr, int nsim, unsigned int seed,
+                int *iwork, double *work, double *out);
+
 #ifdef __cplusplus
 }
 #endif

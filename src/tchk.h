@@ -79,5 +79,9 @@ void t_geo(tk &t, int big);
 void b_geo();
 void t_cgr(tk &t, int big);
 void b_cgr();
+void t_nnd(tk &t, int big);
+void b_nnd();
+void t_rpk(tk &t, int big);
+void b_rpk();
 
 #endif

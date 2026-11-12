@@ -162,6 +162,8 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_corr(t);
   t_geo(t, 0);
   t_cgr(t, 0);
+  t_nnd(t, 0);
+  t_rpk(t, 0);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
 }
@@ -318,6 +320,8 @@ int main(int argc, char **argv) {
     const int rc = bench();
     b_geo();
     b_cgr();
+    b_nnd();
+    b_rpk();
     return rc;
   }
   if (argc > 1 && std::strcmp(argv[1], "ext") == 0) {
@@ -327,6 +331,8 @@ int main(int argc, char **argv) {
     xs[0] = '\0';
     t_geo(t, 1);
     t_cgr(t, 1);
+    t_nnd(t, 1);
+    t_rpk(t, 1);
     std::fputs(xs, stdout);
     std::printf("%ld checks, %ld failed\n", t.n, t.nf);
     return t.nf == 0 ? 0 : 1;
