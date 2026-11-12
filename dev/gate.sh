@@ -71,12 +71,14 @@ for s in $steps; do
     for ts in src/t_*.cpp; do
       f=${ts#src/t_}; f=${f%.cpp}
       [ -f "src/$f.cpp" ] && grep -q '"tk.h"' "$ts" || continue
+      # other kernel families a test needs: a line "// tk-deps: a b"
+      dep=$(sed -n 's|^// tk-deps: ||p' "$ts" | sed 's|\([a-z0-9]*\)|src/\1.cpp|g')
       for fl in "-O2" "-Os" "-O2 -ffp-contract=off" \
         "-O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all"; do
         nb=$((nb + 1))
         # shellcheck disable=SC2086
         if ${CXX:-g++} -std=c++17 -Wall -Wextra -pedantic -Werror \
-          -fno-exceptions -fno-rtti -DCLAB_MAIN $fl "src/$f.cpp" "$ts" \
+          -fno-exceptions -fno-rtti -DCLAB_MAIN $fl "src/$f.cpp" $dep "$ts" \
           src/t_hmain.cpp -o "$t/th" >"$t/log" 2>&1 && "$t/th" >>"$t/log" 2>&1
         then
           tail -1 "$t/log" | sed "s/^/  $f [$fl] /"
@@ -85,7 +87,7 @@ for s in $steps; do
         fi
       done
       [ "${KBENCH:-0}" = 1 ] && ${CXX:-g++} -std=c++17 -O2 -DCLAB_MAIN \
-        "src/$f.cpp" "$ts" src/t_hmain.cpp -o "$t/tb" && nice -n 10 "$t/tb" bench
+        "src/$f.cpp" $dep "$ts" src/t_hmain.cpp -o "$t/tb" && nice -n 10 "$t/tb" bench
     done
     rm -rf "$t"
     say kern "$nb builds, failed:${bad:- none}"
