@@ -58,6 +58,55 @@ and most functions rest on identities or bounds proved in Lean, which
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
 names.
 
+## Speed
+
+`dev/bench.R` times each function against every package found that
+computes the same quantity, on fixed seeded inputs and at sizes met in
+practice, after checking that the two give the same values; where no
+package does, against a base-R implementation of the formula. The table
+it writes, with the machine and the date, is
+[inst/bench/bench.md](https://rootcoder007.github.io/crimlab/inst/bench/bench.md)
+(and `bench.csv`); the bench workflow runs it again every week. The
+lists below are written by the same script from that table.
+
+Faster, by at least a tenth, than every package that computes the same
+quantity, at every size timed:
+[`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
+[`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md),
+[`outtst()`](https://rootcoder007.github.io/crimlab/reference/outtst.md),
+[`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md),
+[`dyadrt()`](https://rootcoder007.github.io/crimlab/reference/dyadrt.md),
+[`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md),
+[`kinidx()`](https://rootcoder007.github.io/crimlab/reference/kinidx.md),
+[`patidx()`](https://rootcoder007.github.io/crimlab/reference/patidx.md),
+[`mixlr()`](https://rootcoder007.github.io/crimlab/reference/mixlr.md),
+[`cllr()`](https://rootcoder007.github.io/crimlab/reference/cllr.md),
+[`cllrmin()`](https://rootcoder007.github.io/crimlab/reference/cllrmin.md),
+[`lrcal()`](https://rootcoder007.github.io/crimlab/reference/lrcal.md),
+[`eceplt()`](https://rootcoder007.github.io/crimlab/reference/eceplt.md),
+[`expbnd()`](https://rootcoder007.github.io/crimlab/reference/expbnd.md),
+[`misrd()`](https://rootcoder007.github.io/crimlab/reference/misrd.md),
+[`rtmhs()`](https://rootcoder007.github.io/crimlab/reference/rtmhs.md),
+[`incapr()`](https://rootcoder007.github.io/crimlab/reference/incapr.md),
+[`sellab()`](https://rootcoder007.github.io/crimlab/reference/sellab.md),
+[`losbnd()`](https://rootcoder007.github.io/crimlab/reference/losbnd.md),
+[`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md),
+[`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md).
+
+Not faster than such a package at some size timed:
+[`incap()`](https://rootcoder007.github.io/crimlab/reference/incap.md).
+
+No package found that computes the same quantity, so timed against a
+base-R implementation of the formula:
+[`lrpost()`](https://rootcoder007.github.io/crimlab/reference/lrpost.md),
+[`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md),
+[`tipplt()`](https://rootcoder007.github.io/crimlab/reference/tipplt.md),
+[`clrsmp()`](https://rootcoder007.github.io/crimlab/reference/clrsmp.md),
+[`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md);
+of these, not faster than base R at some size:
+[`lrpost()`](https://rootcoder007.github.io/crimlab/reference/lrpost.md),
+[`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md).
+
 ## Life cycle
 
 Experimental. This is a development version: function names, arguments
