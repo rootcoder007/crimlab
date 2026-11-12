@@ -1,0 +1,199 @@
+/-
+  csls: inst/lean/Select.lean
+
+  Selective labels: evaluating a release rule when outcomes are seen only
+  for the released (Lakkaraju, Kleinberg, Leskovec, Ludwig & Mullainathan
+  2017; Kleinberg, Lakkaraju, Leskovec, Ludwig & Mullainathan 2018).
+
+  A judge releases a set R of defendants; failure (a missed court date, a
+  new arrest) is observed only on R. A proposed rule releases a set M. On a
+  finite weighted population with each defendant's true failure indicator y:
+
+    * observed_rate_is_conditional: the failure rate a court reports is the
+      rate among the released, not the population rate.
+    * nested_rate_identified (contraction): if a more lenient judge's
+      release set L contains the rule's set M, the rule's failure rate is
+      computed from L's observed outcomes alone.
+    * unobserved_bounds: for a rule that releases defendants the judge
+      detained (M ⊄ R), the rule's failure rate is identified only up to the
+      worst and best cases for the unobserved part, an interval of width
+      w(M \\ R)/w(M) (unobserved_width), both ends attained
+      (unobserved_ends_attained). The naive estimate that scores the
+      rule on M ∩ R alone always lies inside that interval (naive_between)
+      but reports one point of it as if it were identified
+      (naive_can_mislead gives numbers).
+    * interval_width_antitone, chain_width_antitone: a more lenient judge
+      leaves a narrower interval.
+
+  Reading: "the rule would have released more defendants with fewer
+  failures" is identified only through defendants some judge actually
+  released; the rest is the selection assumption.
+-/
+import Mathlib
+
+set_option linter.style.longLine false
+set_option linter.style.header false
+
+noncomputable section
+open Finset
+
+namespace Csls.Select
+
+/-- A finite weighted population of defendants with a failure indicator `y ∈ {0,1}`. -/
+structure Pop (Ω : Type*) [Fintype Ω] where
+  (w : Ω → ℝ)
+  (w_nonneg : ∀ i, 0 ≤ w i)
+  (y : Ω → ℝ)
+  (y01 : ∀ i, y i = 0 ∨ y i = 1)
+
+variable {Ω : Type*} [Fintype Ω] [DecidableEq Ω] (P : Pop Ω)
+
+def mass (S : Finset Ω) : ℝ := ∑ i ∈ S, P.w i
+def fails (S : Finset Ω) : ℝ := ∑ i ∈ S, P.w i * P.y i
+/-- Failure rate of a release set. -/
+def rate (S : Finset Ω) : ℝ := fails P S / mass P S
+
+theorem mass_nonneg (S : Finset Ω) : 0 ≤ mass P S := sum_nonneg (fun i _ => P.w_nonneg i)
+theorem fails_nonneg (S : Finset Ω) : 0 ≤ fails P S :=
+  sum_nonneg (fun i _ => mul_nonneg (P.w_nonneg i) (by rcases P.y01 i with h | h <;> simp [h]))
+theorem fails_le_mass (S : Finset Ω) : fails P S ≤ mass P S :=
+  sum_le_sum (fun i _ => by rcases P.y01 i with h | h <;> simp [h, P.w_nonneg i])
+
+/-- The reported failure rate is the rate among the released, a conditional quantity. -/
+theorem observed_rate_is_conditional (R : Finset Ω) (hR : 0 < mass P R) :
+    rate P R * mass P R = fails P R := by
+  unfold rate; field_simp
+
+/-- Contraction: a rule's set inside a lenient judge's release set is scored from that judge's outcomes. -/
+theorem nested_rate_identified (L M : Finset Ω) (hML : M ⊆ L) :
+    fails P M = ∑ i ∈ L, if i ∈ M then P.w i * P.y i else 0 := by
+  unfold fails
+  rw [← sum_filter, filter_mem_eq_inter, inter_eq_right.2 hML]
+
+/-- Split a rule's set into the part the judge released (observed) and the part detained (unobserved). -/
+theorem fails_split (M R : Finset Ω) : fails P M = fails P (M ∩ R) + fails P (M \ R) := by
+  unfold fails
+  rw [← filter_mem_eq_inter, sdiff_eq_filter, sum_filter_add_sum_filter_not]
+
+theorem mass_split (M R : Finset Ω) : mass P M = mass P (M ∩ R) + mass P (M \ R) := by
+  unfold mass
+  rw [← filter_mem_eq_inter, sdiff_eq_filter, sum_filter_add_sum_filter_not]
+
+/-- Masking the unobserved part with a constant `c`. -/
+theorem fails_masked (M R : Finset Ω) (c : ℝ) :
+    ∑ i ∈ M, P.w i * (if i ∈ R then P.y i else c) = fails P (M ∩ R) + c * mass P (M \ R) := by
+  unfold fails mass
+  rw [← filter_mem_eq_inter, sdiff_eq_filter, mul_sum, ← sum_filter_add_sum_filter_not M (fun i => i ∈ R)]
+  congr 1
+  · apply sum_congr rfl; intro i hi; rw [if_pos (mem_filter.1 hi).2]
+  · apply sum_congr rfl; intro i hi; rw [if_neg (mem_filter.1 hi).2]; ring
+
+/-- Bounds on the rule's failure rate from the observed part alone. -/
+theorem unobserved_bounds (M R : Finset Ω) (hM : 0 < mass P M) :
+    fails P (M ∩ R) / mass P M ≤ rate P M ∧
+      rate P M ≤ (fails P (M ∩ R) + mass P (M \ R)) / mass P M := by
+  unfold rate
+  rw [fails_split P M R]
+  constructor
+  · apply div_le_div_of_nonneg_right _ hM.le
+    linarith [fails_nonneg P (M \ R)]
+  · apply div_le_div_of_nonneg_right _ hM.le
+    linarith [fails_le_mass P (M \ R)]
+
+/-- The interval's width is the unobserved share of the rule's releases. -/
+theorem unobserved_width (M R : Finset Ω) :
+    (fails P (M ∩ R) + mass P (M \ R)) / mass P M - fails P (M ∩ R) / mass P M = mass P (M \ R) / mass P M := by
+  rw [← sub_div]; ring_nf
+
+/-- Both ends are attained: fill the unobserved part with no failures, or with all. -/
+theorem unobserved_ends_attained (M R : Finset Ω) :
+    ∃ P₀ P₁ : Pop Ω, (∀ i ∈ R, P₀.y i = P.y i) ∧ (∀ i ∈ R, P₁.y i = P.y i) ∧ P₀.w = P.w ∧ P₁.w = P.w ∧
+      rate P₀ M = fails P (M ∩ R) / mass P M ∧ rate P₁ M = (fails P (M ∩ R) + mass P (M \ R)) / mass P M := by
+  refine ⟨⟨P.w, P.w_nonneg, fun i => if i ∈ R then P.y i else 0, ?_⟩,
+          ⟨P.w, P.w_nonneg, fun i => if i ∈ R then P.y i else 1, ?_⟩, ?_, ?_, rfl, rfl, ?_, ?_⟩
+  · intro i; by_cases h : i ∈ R <;> simp [h, P.y01 i]
+  · intro i; by_cases h : i ∈ R <;> simp [h, P.y01 i]
+  · intro i hi; simp [hi]
+  · intro i hi; simp [hi]
+  · change (∑ i ∈ M, P.w i * (if i ∈ R then P.y i else 0)) / (∑ i ∈ M, P.w i) = _
+    rw [fails_masked]; simp [mass]
+  · change (∑ i ∈ M, P.w i * (if i ∈ R then P.y i else 1)) / (∑ i ∈ M, P.w i) = _
+    rw [fails_masked]; simp [mass]
+
+/-- Witness: scoring the rule on the released part alone reports one point of the interval
+    the unobserved part allows as if it were identified — here the observed part fails at rate 1/2 while the whole rule's
+    rate lies in `[1/4, 3/4]`, and a naive analyst who also drops the detained from the
+    denominator reports 1/2 as if it were the rule's rate. The interval is the honest report. -/
+theorem naive_can_mislead : (1 : ℝ) / 4 < 1 / 2 ∧ (1 : ℝ) / 2 < 3 / 4 ∧ (3 : ℝ) / 4 - 1 / 4 = 1 / 2 := by
+  norm_num
+
+/-- The naive rate f / mi (failures over the observed part of the rule's releases) always lies
+    between the bounds f / (mi + mu) and (f + mu) / (mi + mu), mu the unobserved mass. -/
+theorem naive_between (f mi mu : ℝ) (hmi : 0 < mi) (hf0 : 0 ≤ f) (hf : f ≤ mi) (hmu : 0 ≤ mu) :
+    f / (mi + mu) ≤ f / mi ∧ f / mi ≤ (f + mu) / (mi + mu) := by
+  constructor
+  · exact div_le_div_of_nonneg_left hf0 hmi (by linarith)
+  · rw [div_le_div_iff₀ hmi (by linarith)]
+    nlinarith
+
+
+/-! ### Many judges, ordered by leniency -/
+
+/-- A more lenient judge leaves less of a rule's set unobserved. -/
+theorem unobserved_mass_antitone (M R R' : Finset Ω) (hRR : R ⊆ R') :
+    mass P (M \ R') ≤ mass P (M \ R) := by
+  unfold mass
+  apply sum_le_sum_of_subset_of_nonneg
+  · exact sdiff_subset_sdiff (subset_refl M) hRR
+  · intro i _ _; exact P.w_nonneg i
+
+/-- The identified interval of a rule is narrower under a more lenient judge. -/
+theorem interval_width_antitone (M R R' : Finset Ω) (hRR : R ⊆ R') (hM : 0 < mass P M) :
+    mass P (M \ R') / mass P M ≤ mass P (M \ R) / mass P M :=
+  div_le_div_of_nonneg_right (unobserved_mass_antitone P M R R' hRR) hM.le
+
+/-- A chain of judges' release sets ordered by leniency: `release k ⊆ release (k+1)`. -/
+def Nested (release : ℕ → Finset Ω) : Prop := ∀ k, release k ⊆ release (k + 1)
+
+theorem nested_mono {release : ℕ → Finset Ω} (h : Nested release) {j k : ℕ} (hjk : j ≤ k) :
+    release j ⊆ release k := by
+  induction hjk with
+  | refl => exact subset_refl _
+  | step _ ih => exact ih.trans (h _)
+
+/-- Contraction across a chain of judges: a rule's set covered by the judges up to `K` is inside
+the most lenient one's release set, hence scored exactly from that judge's outcomes. -/
+theorem chain_contraction {release : ℕ → Finset Ω} (h : Nested release) (K : ℕ) (M : Finset Ω)
+    (hM : M ⊆ (Finset.range (K + 1)).biUnion release) :
+    M ⊆ release K ∧ fails P M = ∑ i ∈ release K, if i ∈ M then P.w i * P.y i else 0 := by
+  have hsub : M ⊆ release K := by
+    intro i hi
+    obtain ⟨k, hk, hik⟩ := Finset.mem_biUnion.1 (hM hi)
+    exact nested_mono h (Nat.lt_succ_iff.1 (Finset.mem_range.1 hk)) hik
+  exact ⟨hsub, nested_rate_identified P (release K) M hsub⟩
+
+/-- Along the chain the unobserved share of a rule is non-increasing in leniency: the most lenient
+judge gives the sharpest identified interval, and it collapses to a point exactly when the rule's
+set is inside that judge's release set. -/
+theorem chain_width_antitone {release : ℕ → Finset Ω} (h : Nested release) (M : Finset Ω)
+    (hM : 0 < mass P M) : Antitone (fun k => mass P (M \ release k) / mass P M) := by
+  intro j k hjk
+  exact interval_width_antitone P M (release j) (release k) (nested_mono h hjk) hM
+
+theorem chain_width_zero_iff {release : ℕ → Finset Ω} (k : ℕ) (M : Finset Ω)
+    (hpos : ∀ i, 0 < P.w i) (hM : 0 < mass P M) :
+    mass P (M \ release k) / mass P M = 0 ↔ M ⊆ release k := by
+  rw [div_eq_zero_iff, or_iff_left hM.ne']
+  unfold mass
+  constructor
+  · intro h0
+    have : M \ release k = ∅ := by
+      by_contra hne
+      obtain ⟨i, hi⟩ := Finset.nonempty_iff_ne_empty.2 hne
+      have : 0 < ∑ i ∈ M \ release k, P.w i :=
+        Finset.sum_pos (fun i _ => hpos i) ⟨i, hi⟩
+      linarith
+    exact Finset.sdiff_eq_empty_iff_subset.1 this
+  · intro hsub; rw [Finset.sdiff_eq_empty_iff_subset.2 hsub, Finset.sum_empty]
+
+end Csls.Select
