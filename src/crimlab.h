@@ -894,6 +894,22 @@ int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
               unsigned int seed, double hl, int nq, double *prob, double *se,
               double *cut, double *work);
 
+/* Lowess: robust locally weighted regression (Cleveland 1979,
+ * doi:10.1080/01621459.1979.10481038), with the conventions of the classic
+ * implementation: each fit uses the ceil-free neighbourhood of
+ * max(2, min(n, floor(f n + 1e-7))) nearest points (and points tied at its
+ * edge), tricube weights, a weighted linear fit (a weighted mean when the
+ * points' spread is below 0.001 of the range of x), points within delta of
+ * the last fitted one interpolated linearly (equal x share the fit), and
+ * iter robustness steps with bisquare weights on six times the median
+ * absolute residual (stopping early when that is below 1e-7 of the mean
+ * absolute residual). x: n values in non-decreasing order (the caller
+ * sorts), y: n values, all finite; f > 0; delta >= 0. Out: ys, n fitted
+ * values. work: 3n doubles. Time O(n k) for k neighbourhood points, less
+ * with delta. */
+int clab_lwss(const double *x, const double *y, int n, double f, int iter,
+              double delta, double *ys, double *work);
+
 #ifdef __cplusplus
 }
 #endif
