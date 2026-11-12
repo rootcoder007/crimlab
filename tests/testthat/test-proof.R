@@ -1,0 +1,11 @@
+test_that("proof() selects rows by function name", {
+  p <- proof()
+  expect_named(p, c("fn", "theorem", "file"))
+  expect_false(anyDuplicated(p[["theorem"]]) > 0)
+  two <- proof(c("cllr", "dbsrch"))
+  expect_identical(two[["fn"]], c("cllr", "dbsrch"))
+  expect_identical(rownames(two), c("1", "2"))
+  expect_true(all(startsWith(p[["theorem"]], "Csls.")))
+  expect_error(proof(NA_character_), "function names")
+  expect_error(proof(c("cllr", "nope", "zzz")), "nope, zzz")
+})
