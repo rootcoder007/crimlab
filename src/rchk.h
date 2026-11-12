@@ -27,9 +27,12 @@ void kchk(int code, const char *src);
 // as.character(x) for one double, into a buffer of n bytes.
 void fmt(double x, char *buf, int n);
 // A length as R prints it, into a buffer of n bytes.
-void lfmt(R_xlen_t x, char *buf, int n);
-// A length the kernels can take: at most INT_MAX.
-int ilen(R_xlen_t n, const char *nm);
+void lfmt(double x, char *buf, int n);
+// A length the kernels can take (they count in int): n itself when it is
+// at most INT_MAX; longer is refused, never truncated, naming argument nm,
+// or with the kernels' own out-of-range error when nm is null. Lengths come
+// in as doubles, exact up to 2^53, so the check never overflows.
+int ilen(double n, const char *nm);
 // x, rounded to a double: no fused multiply-add across it.
 double rd(double x);
 

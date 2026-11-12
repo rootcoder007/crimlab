@@ -21,3 +21,6 @@
 * `hzdsel()` shows how period-two hazards differ after selective depletion.
 * `proof()` names the Lean theorem behind each function; the proofs ship
   in `inst/lean`.
+* A vector longer than the largest integer is refused with an error, by the
+  exported functions and by the compiled entry points alike; the compiled
+  code used to truncate its length.

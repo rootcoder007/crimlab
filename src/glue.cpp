@@ -9,8 +9,13 @@
 #include <Rinternals.h>
 
 #include "crimlab.h"
+#include "rchk.h"
 
 namespace {
+
+// The length of x for a kernel, which counts in int: a vector longer than
+// INT_MAX is refused with the kernels' out-of-range error, not truncated.
+int len(SEXP x) { return clab::ilen(static_cast<double>(XLENGTH(x)), nullptr); }
 
 void check(int code) {
   if (code != CLAB_OK) Rf_error("crimlab: %s", clab_strerror(code));
@@ -30,7 +35,7 @@ SEXP named_list(int n, const char *const *names) {
 extern "C" {
 
 SEXP C_clab_vod(SEXP day, SEXP night, SEXP ref, SEXP shift) {
-  const int n = static_cast<int>(XLENGTH(day));
+  const int n = len(day);
   const bool has = !Rf_isNull(shift);
   static const char *const names[] = {"share_day", "share_night", "ratio",
                                       "sign", "adj"};
@@ -56,14 +61,14 @@ SEXP C_clab_orrisk(SEXP orr, SEXP q, SEXP s) {
 
 SEXP C_clab_outtst(SEXP q, SEXP w, SEXP t) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 2));
-  check(clab_outtst(REAL(q), REAL(w), static_cast<int>(XLENGTH(q)),
+  check(clab_outtst(REAL(q), REAL(w), len(q),
                     Rf_asReal(t), REAL(out), REAL(out) + 1));
   UNPROTECT(1);
   return out;
 }
 
 SEXP C_clab_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
-  const int n = static_cast<int>(XLENGTH(pop));
+  const int n = len(pop);
   static const char *const names[] = {"cd", "fd", "rd"};
   SEXP out = PROTECT(named_list(3, names));
   for (int i = 0; i < 3; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, n));
@@ -75,13 +80,13 @@ SEXP C_clab_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
 }
 
 SEXP C_clab_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
-  const int m = static_cast<int>(XLENGTH(count));
+  const int m = len(count);
   static const char *const names[] = {"rate_off", "rate_pair", "null_off",
                                       "ratio"};
   SEXP out = PROTECT(named_list(4, names));
   for (int i = 0; i < 4; ++i) SET_VECTOR_ELT(out, i, Rf_allocVector(REALSXP, m));
   check(clab_dyadrt(REAL(count), INTEGER(off), INTEGER(vic), m, REAL(pop),
-                    static_cast<int>(XLENGTH(pop)), REAL(VECTOR_ELT(out, 0)),
+                    len(pop), REAL(VECTOR_ELT(out, 0)),
                     REAL(VECTOR_ELT(out, 1)), REAL(VECTOR_ELT(out, 2)),
                     REAL(VECTOR_ELT(out, 3))));
   UNPROTECT(1);
@@ -89,7 +94,7 @@ SEXP C_clab_dyadrt(SEXP count, SEXP off, SEXP vic, SEXP pop) {
 }
 
 SEXP C_clab_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
-  const int n = static_cast<int>(XLENGTH(p));
+  const int n = len(p);
   static const char *const names[] = {"locus", "log10mp"};
   SEXP out = PROTECT(named_list(2, names));
   SET_VECTOR_ELT(out, 0, Rf_allocVector(REALSXP, n));
@@ -102,14 +107,14 @@ SEXP C_clab_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
 
 SEXP C_clab_cllr(SEXP same, SEXP diff) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
-  check(clab_cllr(REAL(same), static_cast<int>(XLENGTH(same)), REAL(diff),
-                  static_cast<int>(XLENGTH(diff)), REAL(out)));
+  check(clab_cllr(REAL(same), len(same), REAL(diff),
+                  len(diff), REAL(out)));
   UNPROTECT(1);
   return out;
 }
 
 SEXP C_clab_lrcal(SEXP lr, SEXP same) {
-  const int n = static_cast<int>(XLENGTH(lr));
+  const int n = len(lr);
   static const char *const names[] = {"post", "min"};
   SEXP out = PROTECT(named_list(2, names));
   SET_VECTOR_ELT(out, 0, Rf_allocVector(REALSXP, n));
@@ -123,14 +128,14 @@ SEXP C_clab_lrcal(SEXP lr, SEXP same) {
 
 SEXP C_clab_mixp(SEXP p, SEXP need, SEXP x) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 1));
-  check(clab_mixp(REAL(p), LOGICAL(need), static_cast<int>(XLENGTH(p)),
+  check(clab_mixp(REAL(p), LOGICAL(need), len(p),
                   Rf_asInteger(x), REAL(out)));
   UNPROTECT(1);
   return out;
 }
 
 SEXP C_clab_kinidx(SEXP g1, SEXP g2, SEXP f, SEXP k) {
-  const int n = static_cast<int>(XLENGTH(g1) / 2);
+  const int n = clab::ilen(static_cast<double>(XLENGTH(g1) / 2), nullptr);
   SEXP out = PROTECT(Rf_allocVector(REALSXP, n));
   check(clab_kinidx(INTEGER(g1), INTEGER(g2), REAL(f), n, REAL(k), REAL(out)));
   UNPROTECT(1);
@@ -138,7 +143,7 @@ SEXP C_clab_kinidx(SEXP g1, SEXP g2, SEXP f, SEXP k) {
 }
 
 SEXP C_clab_patidx(SEXP c, SEXP m, SEXP af, SEXP f) {
-  const int n = static_cast<int>(XLENGTH(c) / 2);
+  const int n = clab::ilen(static_cast<double>(XLENGTH(c) / 2), nullptr);
   SEXP out = PROTECT(Rf_allocVector(REALSXP, n));
   check(clab_patidx(INTEGER(c), INTEGER(m), INTEGER(af), REAL(f), n,
                     REAL(out)));
@@ -147,7 +152,7 @@ SEXP C_clab_patidx(SEXP c, SEXP m, SEXP af, SEXP f) {
 }
 
 SEXP C_clab_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
-  const int n = static_cast<int>(XLENGTH(clra));
+  const int n = len(clra);
   static const char *const names[] = {"ra", "rb", "wa", "wb", "reff",
                                       "meff", "tot", "cnt"};
   SEXP out = PROTECT(named_list(8, names));
@@ -164,7 +169,7 @@ SEXP C_clab_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
 }
 
 SEXP C_clab_expbnd(SEXP y, SEXP m, SEXP ref, SEXP gamma) {
-  const int n = static_cast<int>(XLENGTH(y));
+  const int n = len(y);
   static const char *const names[] = {"rate", "lo", "hi", "ratio", "rlo",
                                       "rhi", "sign"};
   SEXP out = PROTECT(named_list(7, names));
@@ -189,14 +194,14 @@ SEXP C_clab_misrd(SEXP r1, SEXP r0, SEXP p, SEXP se, SEXP sp) {
 
 SEXP C_clab_rtmhs(SEXP x1, SEXP x2, SEXP w, SEXP c) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 7));
-  check(clab_rtmhs(REAL(x1), REAL(x2), REAL(w), static_cast<int>(XLENGTH(x1)),
+  check(clab_rtmhs(REAL(x1), REAL(x2), REAL(w), len(x1),
                    Rf_asReal(c), REAL(out)));
   UNPROTECT(1);
   return out;
 }
 
 SEXP C_clab_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
-  const int n = static_cast<int>(XLENGTH(lam));
+  const int n = len(lam);
   const bool has = !Rf_isNull(share);
   static const char *const names[] = {"rate", "prev", "marg", "agg"};
   SEXP out = PROTECT(named_list(4, names));
@@ -211,7 +216,7 @@ SEXP C_clab_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
 
 SEXP C_clab_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 5));
-  check(clab_incapr(REAL(lam), static_cast<int>(XLENGTH(lam)), Rf_asInteger(t0),
+  check(clab_incapr(REAL(lam), len(lam), Rf_asInteger(t0),
                     Rf_asInteger(s), Rf_asReal(r), REAL(out)));
   UNPROTECT(1);
   return out;
@@ -220,22 +225,22 @@ SEXP C_clab_incapr(SEXP lam, SEXP t0, SEXP s, SEXP r) {
 SEXP C_clab_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 6));
   check(clab_sellab(REAL(y), LOGICAL(rel), LOGICAL(rule), REAL(w),
-                    static_cast<int>(XLENGTH(y)), REAL(out)));
+                    len(y), REAL(out)));
   UNPROTECT(1);
   return out;
 }
 
 SEXP C_clab_losbnd(SEXP t, SEXP a) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 4));
-  check(clab_losbnd(REAL(t), static_cast<int>(XLENGTH(t)), REAL(a),
-                    static_cast<int>(XLENGTH(a)), REAL(out)));
+  check(clab_losbnd(REAL(t), len(t), REAL(a),
+                    len(a), REAL(out)));
   UNPROTECT(1);
   return out;
 }
 
 SEXP C_clab_sntbnd(SEXP y, SEXP z, SEXP w) {
   SEXP out = PROTECT(Rf_allocVector(REALSXP, 11));
-  check(clab_sntbnd(REAL(y), INTEGER(z), REAL(w), static_cast<int>(XLENGTH(y)),
+  check(clab_sntbnd(REAL(y), INTEGER(z), REAL(w), len(y),
                     REAL(out)));
   UNPROTECT(1);
   return out;
@@ -293,6 +298,7 @@ SEXP C_clab_r_losbnd(SEXP, SEXP);
 SEXP C_clab_r_sntbnd(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_hzdsel(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_proof(SEXP);
+SEXP C_clab_tlen(SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", (DL_FUNC)&C_clab_vod, 4},
@@ -344,6 +350,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_sntbnd", (DL_FUNC)&C_clab_r_sntbnd, 4},
     {"C_clab_r_hzdsel", (DL_FUNC)&C_clab_r_hzdsel, 5},
     {"C_clab_r_proof", (DL_FUNC)&C_clab_r_proof, 1},
+    {"C_clab_tlen", (DL_FUNC)&C_clab_tlen, 2},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

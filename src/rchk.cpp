@@ -70,13 +70,21 @@ void fmt(double x, char *buf, int n) {
   UNPROTECT(2);
 }
 
-void lfmt(R_xlen_t x, char *buf, int n) {
+void lfmt(double x, char *buf, int n) {
   // length() is an integer up to INT_MAX and a double above it
-  if (x <= INT_MAX) std::snprintf(buf, static_cast<std::size_t>(n), "%d", static_cast<int>(x)); else fmt(static_cast<double>(x), buf, n);  // NOLINT
+  if (x <= INT_MAX) {
+    std::snprintf(buf, static_cast<std::size_t>(n), "%d", static_cast<int>(x));
+  } else {
+    fmt(x, buf, n);
+  }
 }
 
-int ilen(R_xlen_t n, const char *nm) {
-  return n <= INT_MAX ? static_cast<int>(n) : (fail("`%s` is too long for crimlab: more than %d values.", nm, INT_MAX), 0);  // NOLINT
+int ilen(double n, const char *nm) {
+  if (n > INT_MAX) {
+    if (nm == nullptr) Rf_error("crimlab: %s", clab_strerror(CLAB_EARG));
+    fail("`%s` is too long for crimlab: more than %d values.", nm, INT_MAX);
+  }
+  return static_cast<int>(n);
 }
 
 double rd(double x) {
@@ -172,8 +180,8 @@ SEXP num(SEXP x, const char *nm, R_xlen_t len, double lo, bool open) {
   }
   if (len >= 0 && n != len) {
     char a[32], b[32];
-    lfmt(len, a, sizeof a);
-    lfmt(n, b, sizeof b);
+    lfmt(static_cast<double>(len), a, sizeof a);
+    lfmt(static_cast<double>(n), b, sizeof b);
     fail("`%s` must have length %s, not %s.", nm, a, b);
   }
   for (R_xlen_t i = 0; i < n; ++i) {

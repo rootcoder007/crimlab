@@ -229,3 +229,18 @@ test_that("the kernel entry points still give the exported results", {
                          c(0.95, 0.9)),
                    unname(hzdsel(0.3, 0.4, 0.1, c(0.9, 0.8), c(0.95, 0.9))))
 })
+
+test_that("lengths past INT_MAX are refused, never truncated", {
+  # no test can allocate such a vector: C_clab_tlen runs the one length
+  # check of the binding and of the kernel entry points on a given length
+  expect_identical(.Call(C_clab_tlen, 5, "x"), 5L)
+  expect_identical(.Call(C_clab_tlen, 2147483647, FALSE), 2147483647L)
+  expect_error(.Call(C_clab_tlen, 2147483648, "x"),
+               "`x` is too long for crimlab: more than 2147483647 values.",
+               fixed = TRUE)
+  expect_error(.Call(C_clab_tlen, 3e9, FALSE),
+               "crimlab: a size or an index is out of range", fixed = TRUE)
+  # a length is printed as length() gives it: an integer, a double above
+  expect_identical(.Call(C_clab_tlen, 7, NULL), as.character(7L))
+  expect_identical(.Call(C_clab_tlen, 3e9, NULL), as.character(3e9))
+})
