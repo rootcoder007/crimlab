@@ -1,44 +1,3 @@
-# A genotype table: one row per locus, two alleles. Returns the labels as
-# characters, row by row.
-.gt <- function(x, nm, n = NULL) {
-  if (is.null(dim(x)) && length(x) == 2L) x <- matrix(x, 1L)
-  if (!is.matrix(x) || ncol(x) != 2L || anyNA(x) ||
-        !(is.numeric(x) || is.character(x))) {
-    stop("`", nm, "` must be a two-column matrix of alleles, one row per ",
-         "locus, with no missing values.", call. = FALSE)
-  }
-  if (!is.null(n) && nrow(x) != n) {
-    stop("`", nm, "` must have ", n, " rows, not ", nrow(x), ".",
-         call. = FALSE)
-  }
-  x
-}
-
-# Frequencies of the alleles of a genotype table, same shape.
-.gf <- function(freq, g, nm) {
-  if (is.null(dim(freq)) && length(freq) == 2L) freq <- matrix(freq, 1L)
-  if (!is.matrix(freq) || !is.numeric(freq) || !identical(dim(freq), dim(g)) ||
-        anyNA(freq) || any(freq <= 0) || any(freq > 1)) {
-    stop("`freq` must hold the frequencies of the alleles of `", nm,
-         "`, same shape, above 0 and at most 1.", call. = FALSE)
-  }
-  if (any(g[, 1L] == g[, 2L] & freq[, 1L] != freq[, 2L])) {
-    stop("`freq` gives two frequencies for one allele of a homozygote.",
-         call. = FALSE)
-  }
-  as.double(t(freq))
-}
-
-.code <- function(g, u) {
-  as.integer(t(matrix(match(as.character(g), u), ncol = 2L)))
-}
-
-.idx <- function(g, idx) {
-  l10 <- sum(log10(idx))
-  list(locus = data.frame(locus = .grp(g[, 1L]), idx = idx), log10idx = l10,
-       post = 1 / (1 + 10^(-l10)))
-}
-
 #' Kinship index
 #'
 #' The weight of two DNA profiles for a stated relationship against no
@@ -61,17 +20,7 @@ kinidx <- function(g1, g2, freq, rel = "parent") {
   g1 <- .gt(g1, "g1")
   g2 <- .gt(g2, "g2", nrow(g1))
   f <- .gf(freq, g1, "g1")
-  ks <- list(parent = c(0, 1, 0), sibling = c(0.25, 0.5, 0.25),
-             half = c(0.5, 0.5, 0), cousin = c(0.75, 0.25, 0))
-  k <- if (is.character(rel) && length(rel) == 1L && rel %in% names(ks)) {
-    ks[[rel]]
-  } else if (is.numeric(rel) && length(rel) == 3L && !anyNA(rel) &&
-               all(rel >= 0) && abs(sum(rel) - 1) < 1e-9) {
-    as.double(rel)
-  } else {
-    stop("`rel` must be one of ", paste(names(ks), collapse = ", "),
-         ", or three probabilities that sum to 1.", call. = FALSE)
-  }
+  k <- .kin(rel)
   u <- unique(c(as.character(g1), as.character(g2)))
   .idx(g1, .Call(C_csls_kinidx, .code(g1, u), .code(g2, u), f, k))
 }
@@ -140,19 +89,8 @@ mixlr <- function(p, np, xp, nd, xd) {
   if (is.null(nms) || anyDuplicated(nms) || sum(p) > 1 + 1e-12) {
     stop("`p` must be uniquely named with a sum of at most 1.", call. = FALSE)
   }
-  one <- function(need, x, a, b) {
-    if (!is.character(need) || anyNA(need) || !all(need %in% nms) ||
-          length(unique(need)) > 20L) {
-      stop("`", a, "` must be names of `p`, at most 20.", call. = FALSE)
-    }
-    if (!is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 ||
-          x != round(x) || x > 50) {
-      stop("`", b, "` must be a whole number from 0 to 50.", call. = FALSE)
-    }
-    .Call(C_csls_mixp, p, nms %in% need, as.integer(x))
-  }
-  num <- one(np, xp, "np", "xp")
-  den <- one(nd, xd, "nd", "xd")
+  num <- .mix(p, nms, np, xp, "np", "xp")
+  den <- .mix(p, nms, nd, xd, "nd", "xd")
   c(num = num, den = den, lr = num / den)
 }
 
@@ -188,21 +126,6 @@ dbsrch <- function(mp, n, pop = NULL) {
     out[["post"]] <- 1 / (1 + (pop - n) * mp)
   }
   out
-}
-
-# Calibrated ratios, in the order given.
-.cal <- function(same, diff) {
-  same <- .num(same, "same", lo = 0, open = TRUE)
-  diff <- .num(diff, "diff", lo = 0, open = TRUE)
-  lr <- c(same, diff)
-  is <- rep(c(TRUE, FALSE), c(length(same), length(diff)))
-  o <- order(lr)
-  r <- .Call(C_csls_lrcal, lr[o], is[o])
-  post <- numeric(length(lr))
-  post[o] <- r[["post"]]
-  cal <- post / (1 - post) * length(diff) / length(same)
-  list(same = same, diff = diff, csame = cal[is], cdiff = cal[!is],
-       min = r[["min"]])
 }
 
 #' Minimum log-likelihood-ratio cost
@@ -319,4 +242,88 @@ eceplt <- function(same, diff, lo = seq(-2.5, 2.5, by = 0.05), ...) {
   graphics::legend("topleft", c("reported", "calibrated", "always 1"),
                    lty = 1:3, bty = "n")
   invisible(out)
+}
+
+# A genotype table: one row per locus, two alleles. Returns the labels as
+# characters, row by row.
+.gt <- function(x, nm, n = NULL) {
+  if (is.null(dim(x)) && length(x) == 2L) x <- matrix(x, 1L)
+  if (!is.matrix(x) || ncol(x) != 2L || anyNA(x) ||
+        !(is.numeric(x) || is.character(x))) {
+    stop("`", nm, "` must be a two-column matrix of alleles, one row per ",
+         "locus, with no missing values.", call. = FALSE)
+  }
+  if (!is.null(n) && nrow(x) != n) {
+    stop("`", nm, "` must have ", n, " rows, not ", nrow(x), ".",
+         call. = FALSE)
+  }
+  x
+}
+
+# Frequencies of the alleles of a genotype table, same shape.
+.gf <- function(freq, g, nm) {
+  if (is.null(dim(freq)) && length(freq) == 2L) freq <- matrix(freq, 1L)
+  if (!is.matrix(freq) || !is.numeric(freq) || !identical(dim(freq), dim(g)) ||
+        anyNA(freq) || any(freq <= 0) || any(freq > 1)) {
+    stop("`freq` must hold the frequencies of the alleles of `", nm,
+         "`, same shape, above 0 and at most 1.", call. = FALSE)
+  }
+  if (any(g[, 1L] == g[, 2L] & freq[, 1L] != freq[, 2L])) {
+    stop("`freq` gives two frequencies for one allele of a homozygote.",
+         call. = FALSE)
+  }
+  as.double(t(freq))
+}
+
+.code <- function(g, u) {
+  as.integer(t(matrix(match(as.character(g), u), ncol = 2L)))
+}
+
+.idx <- function(g, idx) {
+  l10 <- sum(log10(idx))
+  list(locus = data.frame(locus = .grp(g[, 1L]), idx = idx), log10idx = l10,
+       post = 1 / (1 + 10^(-l10)))
+}
+
+# The identity-by-descent probabilities of a relationship, by name or given.
+.kin <- function(rel) {
+  ks <- list(parent = c(0, 1, 0), sibling = c(0.25, 0.5, 0.25),
+             half = c(0.5, 0.5, 0), cousin = c(0.75, 0.25, 0))
+  if (is.character(rel) && length(rel) == 1L && rel %in% names(ks)) {
+    return(ks[[rel]])
+  }
+  if (is.numeric(rel) && length(rel) == 3L && !anyNA(rel) &&
+        all(rel >= 0) && abs(sum(rel) - 1) < 1e-9) {
+    return(as.double(rel))
+  }
+  stop("`rel` must be one of ", toString(names(ks)),
+       ", or three probabilities that sum to 1.", call. = FALSE)
+}
+
+# One side of a mixture ratio: the chance for alleles `need` and `x` unknowns.
+.mix <- function(p, nms, need, x, a, b) {
+  if (!is.character(need) || anyNA(need) || !all(need %in% nms) ||
+        length(unique(need)) > 20L) {
+    stop("`", a, "` must be names of `p`, at most 20.", call. = FALSE)
+  }
+  if (!is.numeric(x) || length(x) != 1L || is.na(x) || x < 0 ||
+        x != round(x) || x > 50) {
+    stop("`", b, "` must be a whole number from 0 to 50.", call. = FALSE)
+  }
+  .Call(C_csls_mixp, p, nms %in% need, as.integer(x))
+}
+
+# Calibrated ratios, in the order given.
+.cal <- function(same, diff) {
+  same <- .num(same, "same", lo = 0, open = TRUE)
+  diff <- .num(diff, "diff", lo = 0, open = TRUE)
+  lr <- c(same, diff)
+  is <- rep(c(TRUE, FALSE), c(length(same), length(diff)))
+  o <- order(lr)
+  r <- .Call(C_csls_lrcal, lr[o], is[o])
+  post <- numeric(length(lr))
+  post[o] <- r[["post"]]
+  cal <- post / (1 - post) * length(diff) / length(same)
+  list(same = same, diff = diff, csame = cal[is], cdiff = cal[!is],
+       min = r[["min"]])
 }

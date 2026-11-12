@@ -2,7 +2,7 @@
 # message naming the argument, so the compiled core never sees a bad value.
 
 .num <- function(x, nm, len = NULL, lo = -Inf, open = FALSE) {
-  if (!is.numeric(x) || length(x) < 1L || anyNA(x) || any(!is.finite(x))) {
+  if (!is.numeric(x) || length(x) < 1L || anyNA(x) || !all(is.finite(x))) {
     stop("`", nm, "` must be finite numbers with no missing values.",
          call. = FALSE)
   }

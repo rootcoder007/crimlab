@@ -39,7 +39,7 @@ proof <- function(fn = NULL) {
   }
   miss <- setdiff(fn, t[["fn"]])
   if (length(miss)) {
-    stop("no proof recorded for: ", paste(miss, collapse = ", "), ".",
+    stop("no proof recorded for: ", toString(miss), ".",
          call. = FALSE)
   }
   out <- t[t[["fn"]] %in% fn, , drop = FALSE]

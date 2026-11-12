@@ -32,27 +32,9 @@ gtmp <- function(p, q = NULL, hom = FALSE, theta = 0) {
   p <- .num(p, "p", lo = 0, open = TRUE)
   n <- length(p)
   if (any(p > 1)) stop("`p` must be at most 1.", call. = FALSE)
-  if (!is.logical(hom) || anyNA(hom) || !length(hom) %in% c(1L, n)) {
-    stop("`hom` must be TRUE or FALSE, once or once per locus.", call. = FALSE)
-  }
-  hom <- rep_len(hom, n)
-  if (is.null(q)) q <- rep(NA_real_, n)
-  if (!is.numeric(q) && !all(is.na(q)) || length(q) != n) {
-    stop("`q` must be numbers, one per locus.", call. = FALSE)
-  }
-  q <- as.double(q)
-  q[hom] <- 0
-  het <- !hom
-  if (anyNA(q) || any(q[het] <= 0) || any(p[het] + q[het] > 1 + 1e-12)) {
-    stop("`q` must be above 0 with `p + q` at most 1 at every heterozygous ",
-         "locus.", call. = FALSE)
-  }
-  if (!is.numeric(theta) || length(theta) != 1L || is.na(theta) ||
-        theta < 0 || theta >= 1) {
-    stop("`theta` must be one number from 0 up to, not including, 1.",
-         call. = FALSE)
-  }
-  r <- .Call(C_csls_gtmp, p, q, hom, as.double(theta))
+  hom <- .hom(hom, n)
+  q <- .gq(q, p, hom)
+  r <- .Call(C_csls_gtmp, p, q, hom, .theta(theta))
   list(locus = data.frame(locus = nms, hom = hom, mp = r[["locus"]]),
        log10mp = r[["log10mp"]], log10lr = -r[["log10mp"]])
 }
@@ -104,4 +86,39 @@ lrpost <- function(lr, prior) {
   }
   # 1 / (1 + 1 / odds): no overflow for a huge ratio
   1 / (1 + (1 - prior) / (prior * lr))
+}
+
+# Homozygosity, one value per locus.
+.hom <- function(hom, n) {
+  if (!is.logical(hom) || anyNA(hom) || !length(hom) %in% c(1L, n)) {
+    stop("`hom` must be TRUE or FALSE, once or once per locus.", call. = FALSE)
+  }
+  rep_len(hom, n)
+}
+
+# The second allele's frequency at each locus, 0 where it is not read.
+.gq <- function(q, p, hom) {
+  n <- length(p)
+  if (is.null(q)) q <- rep(NA_real_, n)
+  if (!is.numeric(q) && !all(is.na(q)) || length(q) != n) {
+    stop("`q` must be numbers, one per locus.", call. = FALSE)
+  }
+  q <- as.double(q)
+  q[hom] <- 0
+  het <- !hom
+  if (anyNA(q) || any(q[het] <= 0) || any(p[het] + q[het] > 1 + 1e-12)) {
+    stop("`q` must be above 0 with `p + q` at most 1 at every heterozygous ",
+         "locus.", call. = FALSE)
+  }
+  q
+}
+
+# The coancestry coefficient, in [0, 1).
+.theta <- function(theta) {
+  if (!is.numeric(theta) || length(theta) != 1L || is.na(theta) ||
+        theta < 0 || theta >= 1) {
+    stop("`theta` must be one number from 0 up to, not including, 1.",
+         call. = FALSE)
+  }
+  as.double(theta)
 }
