@@ -6,6 +6,8 @@ import json
 import math
 from pathlib import Path
 
+import pytest
+
 CASES = json.loads((Path(__file__).parent / "data" / "ref.json").read_text(encoding="utf-8"))
 
 # R's argument `or` is a Python keyword
@@ -36,8 +38,7 @@ def dec(x):
         v = [float(e) if isinstance(e, (int, float)) else e for e in m["v"]]
         rows = [[v[i + j * r] for j in range(c)] for i in range(r)]
         if m["rn"] and m.get("cn"):
-            import pandas as pd
-
+            pd = pytest.importorskip("pandas")
             return pd.DataFrame(rows, index=m["rn"], columns=m["cn"])
         return dict(zip(m["rn"], rows)) if m["rn"] else rows
     if "df" in x:
@@ -49,8 +50,7 @@ def dec(x):
     v = [el(kind, e) for e in x[kind]]
     nm = x["names"]
     if nm is not None and len(set(nm)) < len(nm):  # a dict cannot repeat a name
-        import pandas as pd
-
+        pd = pytest.importorskip("pandas")
         return pd.Series(v, index=nm)
     if nm is not None:
         return dict(zip(nm, v))

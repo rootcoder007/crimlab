@@ -33,6 +33,7 @@ Disparity:
 >>> dspbm(pop={"a": 9000, "b": 1000}, contact={"a": 900, "b": 300},
 ...       force={"a": 9, "b": 6})["rd"]
 [1.0, 6.0]
+
 ```
 
 Forensics:
@@ -46,6 +47,7 @@ Forensics:
 {'locus': ['D3'], 'idx': [8.375]}
 >>> {k: round(v, 4) for k, v in cllrmin([50, 200, 8], [0.01, 0.2, 1.5]).items()}
 {'cllr': 0.3008, 'min': 0.0, 'cal': 0.3008}
+
 ```
 
 Policing:
@@ -57,6 +59,7 @@ Policing:
 2.0
 >>> expbnd(y={"white": 100, "black": 300}, m=[1000, 1000], gamma=1.5)["sign"]
 [0, 1]
+
 ```
 
 Corrections:
@@ -67,6 +70,7 @@ Corrections:
 ['low', 'high', 'all']
 >>> sntbnd([1, 0, 1, 1, 0, 0], ["a", "a", "b", "b", "b", "a"], treat="b")["term"]
 ['a', 'b', 'effect']
+
 ```
 
 Proofs and the self-test:
@@ -77,6 +81,7 @@ Proofs and the self-test:
 'Crimlab.RelRisk.or_eq_rr_mul'
 >>> selftest()["nfail"]
 0
+
 ```
 
 ## Results
