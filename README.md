@@ -137,6 +137,9 @@ The functions work on summary data, not on raw records:
   cannot say about types of offenders (`agemix()`), the cumulative risk of a
   first arrest or admission by age (`cumrsk()`), and rates between stages of
   the justice system with a lag (`jpipe()`).
+* Segregation: how many placements, and how many people, meet the Mandela
+  Rules' definitions of solitary confinement and prolonged solitary
+  confinement, by year or region and under each denominator (`mndla()`).
 
 ## Algorithms
 

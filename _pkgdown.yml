@@ -199,6 +199,11 @@ reference:
       - agemix
       - cumrsk
       - jpipe
+  - title: Segregation and the Mandela Rules
+    desc: Placements that meet the Mandela Rules' limits on solitary
+      confinement, by group and denominator.
+    contents:
+      - mndla
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

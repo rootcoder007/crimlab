@@ -87,6 +87,10 @@
   competing; `jpipe()` gives rates between stages of the justice pipeline
   from window sums lagged by the time between the stages. `proof("agemix")`
   names the Lean theorem.
+* `mndla()` classifies segregation placements under the Mandela Rules (more
+  than 15 days, or Rules 43 and 44 with hours out of cell) and gives the
+  qualifying share by group over placements, people with any qualifying
+  placement and people by their cumulative days, with exact intervals.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

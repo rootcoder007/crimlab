@@ -218,7 +218,8 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(cumrsk(18:19, c(1, 1), c(10, 10))),
          c("age", "hazard", "atrisk", "cumrisk", "lo", "hi")),
     list(quote(jpipe(1:3, 3:5, 2)),
-         c("group", "index", "num", "den", "rate"))
+         c("group", "index", "num", "den", "rate")),
+    list(quote(mndla(c(5, 20))), c("tab", "cls", "alerts", "rule"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

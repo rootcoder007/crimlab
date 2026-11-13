@@ -2586,6 +2586,28 @@ int clab_cumrsk(const double *age, const double *e, const double *pop, const dou
 int clab_jpipe(const double *num, const double *den, int n, int win, int lag, double *onum,
                double *oden, double *rate);
 
+/* Segregation placements under the Mandela Rules (mndla): days, n stays
+ * (from 0); thr from 0, the days beyond which a stay is prolonged (Rule
+ * 43: 15). With hours and miss (average hours out of cell from 0, the
+ * share of days missing the 4 hours in [0, 100]) a stay meets Rule 44
+ * when hours <= 2 and miss = 100: cls 2 when it also lasts more than thr
+ * days, 1 when not, 0 otherwise (Sprott and Doob). Without them, cls 1
+ * for a stay of more than thr days, or (nal non-NULL) with at least amin
+ * alerts. excl[i] non-zero (contact that meets the rules) or elig[i] zero
+ * sets cls 0. */
+int clab_mndla(const double *days, const double *hours, const double *miss, const int *nal,
+               int amin, const int *elig, const int *excl, int n, double thr, int *cls);
+
+/* The Mandela classes by group (mndla): cls (0, 1, 2) and the group gc
+ * (0..ng-1) of n stays, w NULL or their weights from 0, idc NULL or the
+ * person of each. Out (7 (ng + 1), one row of 7 per group, then all):
+ * the stays (weighted), those with cls > 0, cls 1 and cls 2; with idc,
+ * the people, those with any stay of cls > 0, and those whose days add up
+ * to more than thr (and, with elig, have a stay with elig non-zero). o: 2 n
+ * ints of scratch. */
+int clab_mndtab(const int *cls, const int *idc, const int *gc, const double *days, const double *w,
+                const int *elig, int n, int ng, double thr, double *out, int *o);
+
 #ifdef __cplusplus
 }
 #endif
