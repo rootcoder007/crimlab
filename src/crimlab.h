@@ -2691,6 +2691,38 @@ int clab_lftab(const double *lo, const double *hi, const double *d, const double
 int clab_trnmat(const int *from, const int *to, int m, int k, double *cnt, double *p, double *pi,
                 double *st, double *work);
 
+/* ------------------------------------------------------------------------
+ * Geographic profiling and risk terrain: Canter's circle hypothesis, the
+ * hit score of a profile, risk terrain layers.
+ * ------------------------------------------------------------------------ */
+
+/* Canter and Larkin's (1993) circle hypothesis for a series of n >= 2
+ * crime sites (x, y): the circle whose diameter joins the two sites
+ * farthest apart (the first such pair, i < j, in the order of the sites).
+ * Out: st (4), the centre's x and y, the radius and the share of the
+ * sites within it; pair (2), the two sites (from 0); for each of nh homes
+ * (hx, hy; nh may be 0) mar, 1 when it lies within the circle (a
+ * "marauder"), else 0. Within means a distance at most r + 1e-12 max(1,
+ * r). */
+int clab_crchyp(const double *x, const double *y, int n, const double *hx, const double *hy,
+                int nh, double *st, int *pair, int *mar);
+
+/* The hit score of a geographic profile (Rossmo 2000): s, the scores of n
+ * search cells (higher searched first); for each of nh cells home[k] (from
+ * 0), the cells scored above it (above), with the same score (ties, itself
+ * included), hit = 100 above / n, hitt = 100 (above + ties) / n. */
+int clab_hitscr(const double *s, int n, const int *home, int nh, int *above, int *ties,
+                double *hit, double *hitt);
+
+/* A risk terrain layer (Caplan, Kennedy and Miller 2011) at nc cells (cx,
+ * cy) from nf features (fx, fy, nf >= 1) within distance rad > 0: kind 0,
+ * 1 when a feature lies within rad (proximity); kind 1, the features
+ * within rad (density); kind 2, the Gaussian kernel sum sum_f exp(-d^2 /
+ * (2 rad^2)), standardised over the cells to mean 0 and standard deviation
+ * 1 (all 0 when it does not vary, nc >= 2). Out: out (nc). */
+int clab_rtmlay(const double *cx, const double *cy, int nc, const double *fx, const double *fy,
+                int nf, double rad, int kind, double *out);
+
 #ifdef __cplusplus
 }
 #endif

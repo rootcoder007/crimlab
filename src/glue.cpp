@@ -507,6 +507,10 @@ SEXP C_clab_r_dktflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_lftab(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_trnmat(SEXP, SEXP, SEXP);
+// Geographic profiling and risk terrain (brtm.cpp).
+SEXP C_clab_r_crchyp(SEXP, SEXP, SEXP);
+SEXP C_clab_r_hitscr(SEXP, SEXP);
+SEXP C_clab_r_rtmfit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -708,6 +712,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dktflw", fn(&C_clab_r_dktflw), 12},
     {"C_clab_r_lftab", fn(&C_clab_r_lftab), 6},
     {"C_clab_r_trnmat", fn(&C_clab_r_trnmat), 3},
+    {"C_clab_r_crchyp", fn(&C_clab_r_crchyp), 3},
+    {"C_clab_r_hitscr", fn(&C_clab_r_hitscr), 2},
+    {"C_clab_r_rtmfit", fn(&C_clab_r_rtmfit), 6},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {
