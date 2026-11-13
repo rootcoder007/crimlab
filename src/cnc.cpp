@@ -180,6 +180,7 @@ int clab_cnull(double mu, int n, int nsim, double seed, double *g, int *work) {
   if (!kutil::pos(mu) || mu > 1e8 || !(seed >= 0)) return CLAB_EDOM;
   kutil::rng r(static_cast<std::uint64_t>(seed));
   for (int s = 0; s < nsim; ++s) {
+    if (kutil::stop(20.0 * n)) return CLAB_EINTR;
     for (int i = 0; i < n; ++i) work[i] = rpois(r, mu);
     kutil::hsort(work, n, [](int a, int b) { return a < b; });
     // 2 sum i x_(i) / (n T) - (n + 1) / n, 0 for no events

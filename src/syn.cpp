@@ -90,6 +90,7 @@ int mnp(const double *gp, int k, double *w, int maxit) {
   std::vector<int> s = {j0};
   std::vector<double> gw(z(k)), a;
   for (int it = 0; it < maxit; ++it) {
+    if (kutil::stop(static_cast<double>(k) * k)) return -1;
     // x'p_j = (G w)_j; x'x = w'G w
     for (int j = 0; j < k; ++j) {
       double v = 0.0;

@@ -97,6 +97,7 @@ int clab_nnidx(const double *x, const double *y, int n, const double *win,
     for (int k = 0; k < kmax; ++k) lo[k] = hi[k] = 0;
     cgeo::rng r(seed);
     for (int s = 0; s < nsim; ++s) {
+      if (kutil::stop(16.0 * n * kmax)) return CLAB_EINTR;
       for (int i = 0; i < n; ++i) {
         sx[i] = win[0] + w * r.unif();
         sy[i] = win[2] + h * r.unif();

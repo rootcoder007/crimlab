@@ -208,6 +208,7 @@ double fmin(F f, double lo, double hi, double tol) {
   double a = lo, b = hi, v = a + c * (b - a), w = v, x = v, e = 0, d = 0;
   double fx = f(x), fv = fx, fw = fx;
   for (int it = 0; it < 500; ++it) {
+    if (kutil::stop(1e5)) break;
     const double xm = 0.5 * (a + b), t1 = 1e-12 * std::fabs(x) + tol / 3, t2 = 2 * t1;
     if (std::fabs(x - xm) <= t2 - 0.5 * (b - a)) break;
     double p = 0, q = 0, r = 0;
@@ -431,6 +432,7 @@ int clab_gmoran(const double *x, int n, int k, const int *rp, const int *ci, con
       zp = z;
       double ge = 0;
       for (int r = 0; r < nsim; ++r) {
+        if (kutil::stop(n + rp[n])) return CLAB_EINTR;
         for (int i = n - 1; i > 0; --i) std::swap(zp[i], zp[g.below(i + 1)]);
         const double Ir = N / s0 * cross(n, rp, ci, w, zp.data(), zp.data()) / m2;
         ge += Ir >= I;
@@ -473,6 +475,7 @@ int clab_bvmor(const double *x, const double *y, int n, const int *rp, const int
     kutil::rng g(seed);
     double sm = 0, ss = 0, ge = 0, le = 0;
     for (int r = 0; r < nsim; ++r) {
+      if (kutil::stop(n + rp[n])) return CLAB_EINTR;
       for (int i = n - 1; i > 0; --i) std::swap(zy[i], zy[g.below(i + 1)]);
       const double v = f * cross(n, rp, ci, w, zx.data(), zy.data());
       sm += v;
@@ -687,6 +690,7 @@ int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, co
     double sx[3][2] = {{0, 0}, {0.2 * hi, 0}, {0, 0.2 * hi}}, fv[3];
     for (int r = 0; r < 3; ++r) fv[r] = nll(sx[r]);
     for (int it = 0; it < 2000; ++it) {
+      if (kutil::stop(static_cast<double>(n) * n)) break;
       int o[3] = {0, 1, 2};
       std::sort(o, o + 3, [&](int a1, int b1) { return fv[a1] < fv[b1]; });
       const int bst = o[0], mid = o[1], wst = o[2];

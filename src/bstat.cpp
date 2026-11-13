@@ -398,6 +398,7 @@ SEXP C_clab_r_cntreg(SEXP y, SEXP grp, SEXP adj, SEXP expo, SEXP clus, SEXP ref,
     if (rc == CLAB_OK) {
       ok[f] = true;
     } else {
+      clab::ichk(rc);
       Rf_warningcall(R_NilValue,
                      "cntreg: the negative binomial fit failed (theta has no finite "
                      "estimate); its rows are NA.");
@@ -411,6 +412,7 @@ SEXP C_clab_r_cntreg(SEXP y, SEXP grp, SEXP adj, SEXP expo, SEXP clus, SEXP ref,
     if (rc == CLAB_OK) {
       ok[2] = true;
     } else {
+      clab::ichk(rc);
       Rf_warningcall(R_NilValue,
                      "cntreg: the GEE fit failed (the exchangeable working correlation "
                      "is not positive definite, or the scoring diverged); its rows are NA.");

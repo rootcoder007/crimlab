@@ -88,6 +88,7 @@ int clab_mantm(const double *x, const double *y, const double *t, int n,
     // round apart by a few ulps)
     const double eps = 1e-12 * (1.0 + std::fabs(r0));
     for (int s = 0; s < nsim; ++s) {
+      if (kutil::stop(0.5 * n * n)) return CLAB_EINTR;
       for (int i = n - 1; i > 0; --i) {  // Fisher-Yates
         const int j = rg.below(i + 1);
         const int tmp = p[i];

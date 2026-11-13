@@ -116,7 +116,7 @@ double klimit(double x) {
 }  // namespace
 
 int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, int *iter,
-        double *work) {
+        double *work, double fw) {
   double *h = work, *g = h + static_cast<std::size_t>(p) * static_cast<std::size_t>(p), *d = g + p,
          *un = d + p, *gn = un + p, *hy = gn + p;
   double fx = f(u, g, ctx);
@@ -127,6 +127,7 @@ int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, i
   bool first = true;
   int it = 0, conv = 0;
   for (; it < maxit; ++it) {
+    if (kutil::stop(fw)) break;
     double gmax = 0;
     for (int i = 0; i < p; ++i) gmax = std::fmax(gmax, std::fabs(g[i]));
     if (gmax <= gtol * (1 + std::fabs(fx))) {

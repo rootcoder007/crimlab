@@ -277,6 +277,7 @@ int clab_fairdf(const int *pred, const int *y, const int *grp, int n, int g,
     kutil::rng gen(seed);
     double *rb = w + g, *gb = rb + g, *bb = gb + nboot;
     for (int t = 0; t < nboot; ++t) {
+      if (kutil::stop(n + g)) return CLAB_EINTR;
       for (int j = 0; j < g; ++j) {
         double c = 0.0;
         for (int i = 0; i < static_cast<int>(cnt[j]); ++i) c += gen.unif() < r[j] ? 1.0 : 0.0;

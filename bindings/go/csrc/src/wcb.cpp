@@ -91,6 +91,7 @@ double wpval(const wctx &c, double b0, const std::vector<double> &v, int nd, int
   int hit = 0;
   std::vector<double> wk(2 * z(c.nu + c.nt));
   for (int d = 0; d < nd; ++d) {
+    if (kutil::stop(4.0 * n * p)) return kutil::nan();
     const double *w = v.data() + z(d) * z(c.ng);
     for (int i = 0; i < n; ++i) ys[z(i)] = ur[z(i)] * w[c.g[z(i)]];
     within(ys.data(), n, 1, c.u.data(), c.nu, c.t.data(), c.nt, 1, nullptr, 1e-12, 10000,

@@ -63,6 +63,7 @@ int clab_kdsurf(const double *x, const double *y, const double *w, int n, double
       }
     }
     for (int a = 0; a < na; ++a) {
+      if (kutil::stop(static_cast<double>(n) * nb)) return CLAB_EINTR;
       for (int j = 0; j < n; ++j) {
         const double d = (ax[a] - x[j]) / hx;
         kx[j] = m[j] * std::exp(-0.5 * d * d);
@@ -76,6 +77,7 @@ int clab_kdsurf(const double *x, const double *y, const double *w, int n, double
     }
   } else {
     for (int a = 0; a < na; ++a) {
+      if (kutil::stop(n)) return CLAB_EINTR;
       kutil::ksum s;
       for (int j = 0; j < n; ++j) {
         if (loo && j == a) continue;

@@ -12,6 +12,7 @@
 #include <limits>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -163,6 +164,7 @@ int irls(fit &f, const fam &fm, int maxit, double eps, double *dv) {
   double dold = 0.0;
   for (int i = 0; i < f.n; ++i) dold += fm.dev(f.y[i], f.mu[i]);
   for (int it = 1; it <= maxit; ++it) {
+    if (kutil::stop(static_cast<double>(f.n) * f.p * f.p)) return -1;
     for (int i = 0; i < f.n; ++i) {
       const double me = std::fmax(std::exp(f.eta[i]), DBL_EPSILON);
       const double o = f.off ? f.off[i] : 0.0;
@@ -377,6 +379,7 @@ int clab_cntreg(const double *y, const double *x, int n, int p, const double *of
     double del = 1.0, lm = llnb(y, f.mu, n, th), lm0 = lm + 2 * d1;
     int outer = 0, tok = ok;
     while (++outer <= maxit && std::fabs(lm0 - lm) / d1 + std::fabs(del) > eps) {
+      if (kutil::stop(n)) return CLAB_EINTR;
       fm.th = th;
       for (int i = 0; i < n; ++i) {
         f.mold[i] = f.mu[i];
@@ -510,6 +513,7 @@ int clab_geeex(const double *y, const double *x, int n, int p, const double *off
     return spdinv(m, k);
   };
   while (it < maxit) {
+    if (kutil::stop(static_cast<double>(n) * k * k)) return CLAB_EINTR;
     ++it;
     if (!pass()) return CLAB_EDOM;
     double big = 0.0;

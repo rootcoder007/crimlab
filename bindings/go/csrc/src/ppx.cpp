@@ -97,6 +97,7 @@ int clab_crossk(const double *x, const double *y, const int *mk, int n, int ti, 
   kutil::rng g(seed);
   double ge = 0;
   for (int q = 0; q < nsim; ++q) {
+    if (kutil::stop(static_cast<double>(n) * n)) return CLAB_EINTR;
     for (int a = n - 1; a > 0; --a) std::swap(lab[a], lab[g.below(a + 1)]);
     ge += stat(lab.data()) >= t0;
   }

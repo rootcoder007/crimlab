@@ -291,6 +291,7 @@ int clab_zgem(const double *y, int n, int nt, const double *off,
   double cur = *ll;
   int it = 0;
   for (; it < maxit; ++it) {
+    if (kutil::stop(static_cast<double>(n) * nt * ng * (m + 1) * (m + 1))) return CLAB_EINTR;
     for (int k = 0; k < ng; ++k) {
       double s = 0.0;
       for (int i = 0; i < n; ++i) s += w[i + static_cast<std::int64_t>(n) * k];

@@ -27,6 +27,7 @@ const char *who = "crimlab";
 //'   raise the same message. errs() in tests/testthat/helper.R checks it.
 //' @noRd
 void fail(const char *f, ...) {
+  if (clab_intrd(0) != 0) throw Intr{};
   // The message is formatted into R's transient memory (first 256 bytes,
   // then exactly the size needed) and handed to R as stop() hands it: R
   // truncates a long one the same way.
@@ -58,7 +59,12 @@ SEXP lang(const char *src) {
   return c;
 }
 
+void ichk(int code) {
+  if (code == CLAB_EINTR || clab_intrd(0) != 0) throw Intr{};
+}
+
 void kchk(int code, const char *src) {
+  ichk(code);
   if (code == CLAB_OK) return;
   // Rf_error() gives the call of the R function that made the .Call, here
   // the exported one, as before. Where the old .Call sat in a helper, src

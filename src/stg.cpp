@@ -274,6 +274,7 @@ void boot(const stg &s, const int *cl, int ncl, int reps, std::uint64_t seed,
   std::vector<double> nn(z(ns), 0.0), v(z(ns));
   std::vector<int> idx;
   for (int r = 0; r < reps; ++r) {
+    if (kutil::stop(8.0 * s.nu)) return;
     idx.clear();
     for (int c = 0; c < ncl; ++c) {
       const auto &m = mem[z(g.below(ncl))];

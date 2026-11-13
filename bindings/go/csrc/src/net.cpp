@@ -299,6 +299,7 @@ int clab_ntevc(int n, const int *off, const int *adj, const double *wt,
   int it = 0;
   bool ok = false;
   while (!ok && it < maxit) {
+    if (kutil::stop(n + off[n])) return CLAB_EINTR;
     ++it;
     for (int k = 0; k < nc; ++k) cm[k] = 0.0;
     for (int i = 0; i < n; ++i) {
@@ -539,6 +540,7 @@ int clab_ntlvn(int n, const int *off, const int *adj, const double *wt,
     bool any = false;
     int moves;
     do {
+      if (kutil::stop(cn + oa[cn])) return CLAB_EINTR;
       moves = 0;
       for (int t = 0; t < cn; ++t) {
         const int i = ord[t], ci = comm[i];
@@ -700,6 +702,7 @@ int clab_ntchg(int n, const int *off, const int *adj, const double *wt,
   int it = 0;
   bool ok = false;
   while (!ok && it < maxit) {
+    if (kutil::stop(n + off[n])) return CLAB_EINTR;
     ++it;
     double mu = 0.0;
     for (int i = 0; i < n; ++i) {

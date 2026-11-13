@@ -56,6 +56,7 @@ int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double
     kutil::rng g(seed);
     int *e = iwork;
     for (int t = 0; t < steps; ++t) {
+      if (kutil::stop(8.0 * nn)) return CLAB_EINTR;
       for (int i = 0; i < nn; ++i) {
         a[i] = a0 + b[i];
         nr[i] = 0;
@@ -101,6 +102,7 @@ int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double
   if (dt * 4 * dif * std::fmax(1.0, eta) / z > dx * dx) return CLAB_EDOM;
   const double h2 = dx * dx;
   for (int t = 0; t < steps; ++t) {
+    if (kutil::stop(8.0 * nn)) return CLAB_EINTR;
     double sb = 0, sc = 0;
     for (int i = 0; i < nn; ++i) a[i] = a0 + b[i];
     for (int i = 0; i < nn; ++i) {

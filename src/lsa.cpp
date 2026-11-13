@@ -140,6 +140,7 @@ int clab_gearc(const double *x, int n, const int *rp, const int *ci,
     const double eps = 1e-12 * (1.0 + num);
     int le = 0;
     for (int k = 0; k < nsim; ++k) {
+      if (kutil::stop(n + rp[n])) return CLAB_EINTR;
       shuffle(v, n, r);
       if (gnum(v, n, rp, ci, w) <= num + eps) ++le;
     }
@@ -193,6 +194,7 @@ int clab_gorg(const double *x, int n, const int *rp, const int *ci,
     const double num = g * den, eps = 1e-12 * (1.0 + num);
     int ge = 0;
     for (int k = 0; k < nsim; ++k) {
+      if (kutil::stop(n + rp[n])) return CLAB_EINTR;
       shuffle(u, n, r);
       if (gcross(u, n, rp, ci, w) >= num - eps) ++ge;
     }
@@ -256,6 +258,7 @@ int clab_lmorn(const double *x, int n, const int *rp, const int *ci,
       int ge = 0, le = 0;
       const double eps = 1e-12 * (1.0 + std::fabs(I[i]));
       for (int s = 0; s < nsim; ++s) {
+        if (kutil::stop(k + 1.0)) return CLAB_EINTR;
         double lag = 0.0;
         for (int t = 0; t < k; ++t) {
           const int u = t + r.below(m - t);

@@ -163,6 +163,7 @@ void weber(const double *x, const double *y, const double *w, int n,
   int it = 0, code = 0;
   double fobj, eta, rx, ry, s;
   for (;;) {
+    if (kutil::stop(n)) break;
     eval(px, py, &fobj, &eta, &rx, &ry, &s);
     const double r = std::hypot(rx, ry);
     if (s == 0.0 || r <= eta) {

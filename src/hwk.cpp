@@ -214,7 +214,8 @@ void fit1(const hm &m, const double *th0, int maxit, run &best) {
   for (int j = 0; j < nk; ++j) u[nb + 1 + j] = std::log(th0[nb + 1 + j]);
   double v;
   int it;
-  const int c = qn::min(np, u, fu, const_cast<hm *>(&m), maxit, 1e-7, &v, &it, work);
+  const int c = qn::min(np, u, fu, const_cast<hm *>(&m), maxit, 1e-7, &v, &it, work,
+                       static_cast<double>(m.n) * m.n);
   if (c >= 0 && std::isfinite(v) && (std::isnan(best.v) || v < best.v)) {
     totheta(m, u, best.th);
     best.v = v;

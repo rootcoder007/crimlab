@@ -233,6 +233,7 @@ int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
   kutil::rng r(seed);
   const double qq = par[Q];
   for (int rep = 0; rep < reps; ++rep) {
+    if (kutil::stop(static_cast<double>(hmax + 1) * kk * (ymax + 1))) return CLAB_EINTR;
     // draw order: recovery, hour-1 rates (low, high), then hours 2..hmax
     const double rec = par[LR] + (par[UR] - par[LR]) * r.unif();
     double a = 1.0, b = 1.0;

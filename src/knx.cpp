@@ -102,6 +102,7 @@ int clab_knxnr(const double *x, const double *y, const double *t, int n, const d
   std::vector<double> tt(t, t + n), sim(m), ge(m, 0.0);
   kutil::rng g(seed);
   for (int r = 0; r < nsim; ++r) {
+    if (kutil::stop(static_cast<double>(n) + pi.size())) return CLAB_EINTR;
     for (int i = n - 1; i > 0; --i) std::swap(tt[i], tt[g.below(i + 1)]);
     cells(pi, pj, sb, tt.data(), dt, ks, kt, sim.data());
     for (int c = 0; c < m; ++c) ge[c] += sim[c] >= obs[c];

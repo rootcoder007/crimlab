@@ -67,6 +67,8 @@ const char *clab_strerror(int code) {
       return "a size or an index is out of range";
     case CLAB_EDOM:
       return "a value is outside the domain of the method";
+    case CLAB_EINTR:
+      return "interrupted";
     default:
       return "unknown error";
   }

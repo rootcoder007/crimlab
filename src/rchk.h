@@ -19,7 +19,16 @@
 // newer headers declare that name themselves, identically.
 extern "C" double Rf_qnorm5(double, double, double, int, int);
 
+// Declared by R_ext/GraphicsDevice.h, which is not included here: raises
+// R's interrupt (an API entry point, as Writing R Extensions lists it).
+extern "C" void Rf_onintr(void);
+
 namespace clab {
+
+// Thrown by the error paths below when a kernel was interrupted: it
+// unwinds the binding to its entry point (glue.cpp), which raises R's
+// interrupt there.
+struct Intr {};
 
 constexpr double ninf = -std::numeric_limits<double>::infinity();
 
@@ -40,6 +49,9 @@ extern const char *who;
 SEXP lang(const char *src);
 // A kernel's error code, raised with the call the old R wrapper made, src.
 void kchk(int code, const char *src);
+// Throws Intr when the kernel that returned code was interrupted; for the
+// paths that go on after a failed kernel (a warning, a fallback).
+void ichk(int code);
 // as.character(x) for one double, into a buffer of n bytes.
 void fmt(double x, char *buf, int n);
 // A length as R prints it, into a buffer of n bytes.

@@ -11,6 +11,7 @@
 #include <cmath>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -186,6 +187,7 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
       for (int j = 0; j < p; ++j) {
         if (full ? sd[j] > 0.0 : b[j] != 0.0) dlx = std::fmax(dlx, upd(j, l1, l2));
       }
+      if (kutil::stop(static_cast<double>(d.m) * d.p)) return CLAB_EINTR;
       if (++it > maxit) return CLAB_EDOM;
       if (dlx >= thresh) {
         full = false;
@@ -306,6 +308,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
           a += da;
           for (int i = 0; i < m; ++i) r[i] -= da * v[i];
           dlx = std::fmax(dlx, sv * da * da);
+          if (kutil::stop(d.m)) return CLAB_EINTR;
           if (++it > maxit) return CLAB_EDOM;
           if (dlx >= thresh) {
             full = false;
@@ -466,6 +469,7 @@ int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
   for (int j = 1; j < q; ++j) th[j] = 0.0;
   double dv = 0.0;
   for (int it = 0;; ++it) {
+    if (kutil::stop(static_cast<double>(d.m) * q * q)) return CLAB_EINTR;
     if (it >= maxit) return CLAB_EDOM;
     for (long k = 0; k < static_cast<long>(q) * q; ++k) a[k] = 0.0;
     for (int c = 0; c < q; ++c) u[c] = 0.0;

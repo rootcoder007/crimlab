@@ -212,6 +212,7 @@ int clab_kmpart(const double *x, const double *y, int n, int k, int init,
   int it = 0, conv = 0;
   int *mem = iwork;
   for (;;) {
+    if (kutil::stop(static_cast<double>(n) * k)) return CLAB_EINTR;
     int changed = 0;
     for (int i = 0; i < n; ++i) {
       int bj = 0;

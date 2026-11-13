@@ -226,6 +226,7 @@ int clab_calaud(const int *area, const double *risk, const double *outc,
     for (int j = 0; j < g; ++j) cnt[j] = 0.0;
     for (int a = 0; a < na; ++a) ix[a] = lab[a];
     for (int b = 0; b < nperm; ++b) {
+      if (kutil::stop(na + g)) return CLAB_EINTR;
       // Fisher-Yates on the area labels
       for (int a = na - 1; a > 0; --a) {
         const int k = gen.below(a + 1);

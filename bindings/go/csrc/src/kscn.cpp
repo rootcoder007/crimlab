@@ -187,6 +187,7 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
   std::vector<double> mx(nsim);
   kutil::rng g(seed);
   for (int k = 0; k < nsim; ++k) {
+    if (kutil::stop(static_cast<double>(n) * nr * nw)) return CLAB_EINTR;
     for (int i = n - 1; i > 0; --i) std::swap(tr[i], tr[g.below(i + 1)]);
     mx[k] = s.run(tr.data(), false, nullptr);
   }

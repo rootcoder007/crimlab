@@ -18,10 +18,12 @@ typedef double (*fn)(const double *u, double *g, void *ctx);
 // the inverse Hessian with a backtracking (Armijo) line search, at most
 // maxit steps, until the largest gradient element is below gtol (1 +
 // |f|). Out: fv, the value at u; iter, the steps taken. Returns 1 when
-// converged, 0 when the steps ran out or the line search found no lower
-// point, -1 when f is not finite at the start. work: p^2 + 5 p doubles.
+// converged, 0 when the steps ran out, the line search found no lower
+// point or the host asked to stop (kutil::stop; fw is the work of one
+// evaluation of f), -1 when f is not finite at the start. work: p^2 + 5 p
+// doubles.
 int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, int *iter,
-        double *work);
+        double *work, double fw);
 
 // The inverse of the symmetric positive definite p x p matrix a, in place
 // (column-major, both triangles). Returns 0, or 1 when a is not positive

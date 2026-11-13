@@ -52,6 +52,7 @@ int within(double *v, int n, int k, const int *u, int nu, const int *t, int nt, 
     const double lim = tol * (big > 0.0 ? big : 1.0);
     int s = 0;
     for (;;) {
+      if (kutil::stop(4.0 * n)) return -1;
       gmean(c, w, u, n, nu, su, mu);
       double left = 0.0;
       for (int a = 0; a < nu; ++a) left = std::fmax(left, std::fabs(mu[a]));

@@ -60,9 +60,11 @@ int nfit(const clab_lrn &l, int fam, const double *x, int n, int p,
                                 : static_cast<int>(std::fmin(std::ceil(std::sqrt(p) + 20.0), p));
     const lrn::Forest f = {l.ntree, mtry, mn, l.hon ? 0.5 : 1.0, l.hon ? 0 : 1, seed, l.hon,
                            l.hon ? 0.05 : 0.0};
-    // cannot fail: ntree is checked by clab_dmlx(), mtry is in range and
-    // the training set has two rows or more (one row is a constant)
-    lrn::forest(x, n, p, y, tr, mt, x, n, te, me, f, eta, nullptr, w + n, iw);
+    // fails only when interrupted: ntree is checked by clab_dmlx(), mtry
+    // is in range and the training set has two rows or more (one row is a
+    // constant)
+    const int rc = lrn::forest(x, n, p, y, tr, mt, x, n, te, me, f, eta, nullptr, w + n, iw);
+    if (rc != CLAB_OK) return rc;
     for (int i = 0; i < me; ++i) out[te[i]] = eta[i];
     return CLAB_OK;
   }

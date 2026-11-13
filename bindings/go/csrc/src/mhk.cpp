@@ -263,10 +263,11 @@ struct best {
   int iter = 0, conv = 0;
 };
 
-void try1(int np, double *u, qn::fn f, void *ctx, int maxit, double *work, best &b) {
+void try1(int np, double *u, qn::fn f, void *ctx, int maxit, double *work, best &b,
+          double fw) {
   double v;
   int it;
-  const int c = qn::min(np, u, f, ctx, maxit, 1e-7, &v, &it, work);
+  const int c = qn::min(np, u, f, ctx, maxit, 1e-7, &v, &it, work, fw);
   if (c >= 0 && std::isfinite(v) && (std::isnan(b.v) || v < b.v)) {
     for (int j = 0; j < np; ++j) b.u[j] = u[j];
     b.v = v;
@@ -304,7 +305,7 @@ int clab_etasf(const double *t, const double *dm, int n, double hor, int afree,
       u[2] = afree ? s[2] : 0;
       u[3] = std::log(s[3]);
       u[4] = std::log(s[4] - 1);
-      try1(5, u, efu, &m, maxit, work, b);
+      try1(5, u, efu, &m, maxit, work, b, static_cast<double>(n) * n);
     }
     if (std::isnan(b.v)) return CLAB_EDOM;
     eth(b.u, th);
@@ -361,7 +362,7 @@ int clab_mvhwk(const double *t, const int *ty, int n, int k, double hor, double 
       if (!(s > 0)) return CLAB_EDOM;
       u[j] = std::log(s);
     }
-    try1(np, u, mfu, &m, maxit, w, b);
+    try1(np, u, mfu, &m, maxit, w, b, static_cast<double>(n) * n);
     if (std::isnan(b.v)) return CLAB_EDOM;
     for (int j = 0; j < np; ++j) th[j] = std::exp(b.u[j]);
     mnll(m, th, g);
@@ -420,7 +421,7 @@ int clab_sthwk(const double *t, const double *x, const double *y, int n, double 
       u[1] = std::log(s[1] / (1 - s[1]));
       u[2] = std::log(s[2]);
       u[3] = std::log(s[3]);
-      try1(4, u, sfu, &m, maxit, work, b);
+      try1(4, u, sfu, &m, maxit, work, b, static_cast<double>(n) * n);
     }
     if (std::isnan(b.v)) return CLAB_EDOM;
     sth(b.u, th);

@@ -103,6 +103,7 @@ int clab_sptst(const double *a, const double *b, int n, int nboot,
       ge[k] = 0.0;
     }
     for (int rep = 0; rep < nboot; ++rep) {
+      if (kutil::stop(static_cast<double>(da + db) + m)) return CLAB_EINTR;
       for (int k = 0; k < m; ++k) ca[k] = cb[k] = 0.0;
       for (long long t = 0; t < da; ++t) ca[draw(r, pra, ala, m)] += 1.0;
       for (long long t = 0; t < db; ++t) cb[draw(r, prb, alb, m)] += 1.0;

@@ -80,6 +80,7 @@ int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
         const double cut = alpha * (nsim + 1.0) - 1.0;
         int ge = 0;
         for (int b = 0; b < nsim && ge <= cut; ++b) {
+          if (kutil::stop(20.0 * k)) return CLAB_EINTR;
           for (int i = 0; i < k; ++i) z[i] = norm(r);
           kutil::hsort(z, k, [](double a, double c) { return a < c; });
           int a2;

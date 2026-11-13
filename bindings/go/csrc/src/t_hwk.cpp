@@ -44,14 +44,14 @@ void helpers(tk &t) {
   static double w[3 * 199 * 199];
   double u[2] = {-1.2, 1}, fv;
   int it;
-  tk_ieq(t, "qn.rosen.conv", qn::min(2, u, rosen, nullptr, 500, 1e-10, &fv, &it, w), 1);
+  tk_ieq(t, "qn.rosen.conv", qn::min(2, u, rosen, nullptr, 500, 1e-10, &fv, &it, w, 1.0), 1);
   tk_eq(t, "qn.rosen.x", u[0], 1, 1e-6);
   tk_eq(t, "qn.rosen.y", u[1], 1, 1e-6);
   double s[1] = {0};
-  tk_ieq(t, "qn.spike", qn::min(1, s, spike, nullptr, 10, 1e-10, &fv, &it, w), 0);
-  tk_ieq(t, "qn.nan", qn::min(1, s, nanf, nullptr, 10, 1e-10, &fv, &it, w), -1);
+  tk_ieq(t, "qn.spike", qn::min(1, s, spike, nullptr, 10, 1e-10, &fv, &it, w, 1.0), 0);
+  tk_ieq(t, "qn.nan", qn::min(1, s, nanf, nullptr, 10, 1e-10, &fv, &it, w, 1.0), -1);
   double q[2] = {0, 0};
-  tk_ieq(t, "qn.steps", qn::min(2, q, rosen, nullptr, 1, 1e-10, &fv, &it, w), 0);
+  tk_ieq(t, "qn.steps", qn::min(2, q, rosen, nullptr, 1, 1e-10, &fv, &it, w, 1.0), 0);
   // the inverse of a 3 x 3 positive definite matrix: A A^-1 = I
   const double a[9] = {4, 2, 0.5, 2, 3, 1, 0.5, 1, 2};
   double b[9];

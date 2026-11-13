@@ -206,6 +206,7 @@ int clab_ripenv(const double *x, const double *y, int n, const double *win,
   cgeo::rng rg(seed);
   int ge = 0;
   for (int s = 0; s < nsim; ++s) {
+    if (kutil::stop(static_cast<double>(n) * n + m)) return CLAB_EINTR;
     for (int i = 0; i < n; ++i) {
       sx[i] = win[0] + w * rg.unif();
       sy[i] = win[2] + h * rg.unif();

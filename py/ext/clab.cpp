@@ -110,9 +110,22 @@ std::string vfmt(const char *f, std::va_list ap) {
   raise(type ? PyExc_TypeError : PyExc_ValueError, m);
 }
 
+// A kernel stopped by the interrupt check (pyintr) left Python's own
+// exception, KeyboardInterrupt as a rule, set: it is raised as it is.
+[[noreturn]] void intr() {
+  if (!PyErr_Occurred()) PyErr_SetNone(PyExc_KeyboardInterrupt);
+  throw Raised{};
+}
+
 void kchk(int code) {
+  if (code == CLAB_EINTR || clab_intrd(0) != 0) intr();
   if (code != CLAB_OK) fail(false, "%s", clab_strerror(code));
 }
+
+// The kernels' interrupt check: Python's signal handlers, run now (the
+// module holds the GIL while a kernel runs). A KeyboardInterrupt, or any
+// exception a handler raised, stops the kernel.
+int pyintr() { return PyErr_CheckSignals() != 0 ? 1 : 0; }
 
 // R's NA_real_: a NaN whose low word is 1954. Only the binding writes it,
 // where R's result holds NA; it becomes None.
@@ -2143,9 +2156,16 @@ PyObject *call(Fn f, int n, PyObject *args) {
   }
   PyObject *a[8] = {nullptr};
   for (int i = 0; i < n; ++i) a[i] = PyTuple_GetItem(args, i);
+  clab_intrd(1);
   try {
-    return f(a);
+    PyObject *r = f(a);
+    if (clab_intrd(1) != 0) {  // a binding that did not look at the code
+      Py_XDECREF(r);
+      intr();
+    }
+    return r;
   } catch (const Raised &) {
+    clab_intrd(1);
     return nullptr;
   } catch (const std::exception &) {  // std::bad_alloc, std::length_error
     return PyErr_NoMemory();
@@ -2202,4 +2222,7 @@ PyModuleDef module = {PyModuleDef_HEAD_INIT, "_clab", "The compiled core of crim
 
 }  // namespace
 
-PyMODINIT_FUNC PyInit__clab(void) { return PyModuleDef_Init(&module); }
+PyMODINIT_FUNC PyInit__clab(void) {
+  clab_onintr(&pyintr, -1.0);
+  return PyModuleDef_Init(&module);
+}

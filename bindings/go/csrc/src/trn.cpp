@@ -170,6 +170,7 @@ int clab_stpcp(const double *y, int n, int minseg, int nperm, unsigned int seed,
   } else {
     kutil::rng r(seed);
     for (int b = 0; b < nperm; ++b) {
+      if (kutil::stop(8.0 * n)) return CLAB_EINTR;
       for (int i = n - 1; i > 0; --i) {
         const int j = r.below(i + 1);
         const double s = v[i];

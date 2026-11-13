@@ -127,6 +127,7 @@ int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
       swp(pos[self], m - 1);
       int ge = 0;
       for (int b = 0; b < nsim; ++b) {
+        if (kutil::stop(kk + 1.0)) return CLAB_EINTR;
         double gs = cnt[i];
         for (int t = 0; t < kk; ++t) {
           swp(t, t + static_cast<int>(r.below(m - 1 - t)));

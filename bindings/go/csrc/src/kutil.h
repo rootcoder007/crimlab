@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Small predicates and a compensated sum shared by the kernel families
-// outside core.cpp. Header only; nothing here allocates.
+// outside core.cpp, and the poll of the host's interrupt check. Nothing
+// here allocates.
 #ifndef CLAB_KUTIL_H
 #define CLAB_KUTIL_H
 
@@ -36,6 +37,16 @@ struct ksum {
 // it); p >= 1 is a point mass at n. Defined in kutil.cpp (one translation
 // unit, so its coverage is counted once).
 double btail(double g, double n, double p, bool up);
+
+// The poll of a long loop (resampling, simulation, iterative fitting, a
+// scan over pairs): w is the work done since the last poll, in element
+// operations roughly. The host's check (clab_onintr) runs once the work
+// adds up to its interval, so a poll costs an addition. True once the host
+// has asked to stop, and on every later poll until the host clears it
+// (clab_intrd): the kernel then returns CLAB_EINTR at once, its outputs
+// unspecified, every object it made destroyed on the way out. Without a
+// check (the command-line program) never true. Defined in kutil.cpp.
+bool stop(double w);
 
 // In-place heapsort of a[0..n) under the strict order less(a, b): no
 // recursion, O(n log n), the same order on every platform.

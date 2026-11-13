@@ -221,6 +221,7 @@ int clab_mvtem(const double *y, int n, int nt, int r, const double *x, int p,
   double cur = *ll;
   int it = 0;
   for (; it < maxit; ++it) {
+    if (kutil::stop(static_cast<double>(n) * nt * ng * (r + p) * (r + p + 1))) return CLAB_EINTR;
     for (int k = 0; k < ng; ++k) {
       double s = 0.0;
       for (int i = 0; i < n; ++i) s += w[i + static_cast<std::int64_t>(n) * k];

@@ -106,6 +106,7 @@ int clab_nnidm(const double *x, const double *y, int n, const double *win,
     double *ms = sy + n;
     cgeo::rng r(seed);
     for (int s = 0; s < nsim; ++s) {
+      if (kutil::stop(16.0 * n * kmax)) return CLAB_EINTR;
       for (int i = 0; i < n; ++i) {
         sx[i] = win[0] + w * r.unif();
         sy[i] = win[2] + h * r.unif();
@@ -141,6 +142,7 @@ int clab_hdbang(const double *x, const double *y, const double *v,
   const double cmax = std::cos(ang * pi / 180.0) + 1e-12;
   for (int i = 0; i < n; ++i) out[i] = v[i];
   for (int it = 0; it < iter; ++it) {
+    if (kutil::stop(static_cast<double>(n) * (T + nn))) return CLAB_EINTR;
     for (int i = 0; i < n; ++i) cur[i] = out[i];
     for (int i = 0; i < n; ++i) {
       // the triples (j, i, k) of i's neighbours whose angle at i is at
@@ -265,6 +267,7 @@ int clab_crwsim(const double *step, int ns, const double *turn, int nt,
     if (!std::isfinite(turn[i])) return CLAB_EDOM;
   cgeo::rng r(seed);
   for (int s = 0; s < nsim; ++s) {
+    if (kutil::stop(4.0 * h)) return CLAB_EINTR;
     double cx = x0, cy = y0, hd = head;
     for (int k = 0; k < h; ++k) {
       // a turn and a step drawn independently from the observed ones

@@ -63,6 +63,7 @@ int clab_agepan(const double *ya, const double *yb, int n, int nperm, double see
   kutil::rng r(static_cast<std::uint64_t>(seed));
   int ge = 0;
   for (int p = 0; p < nperm; ++p) {
+    if (kutil::stop(n)) return CLAB_EINTR;
     // Fisher-Yates
     for (int i = n - 1; i > 0; --i) {
       const int j = r.below(i + 1);

@@ -206,6 +206,7 @@ int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
   const std::int64_t mi = static_cast<std::int64_t>(m);
   int ge = 0;
   for (int b = 0; b < nsim; ++b) {
+    if (kutil::stop(4.0 * m + k)) return CLAB_EINTR;
     for (int j = 0; j < k; ++j) work[j] = 0.0;
     for (std::int64_t i = 0; i < mi; ++i) {
       std::int64_t d = static_cast<std::int64_t>(std::floor(std::pow(10.0, nd - 1 + r.unif())));

@@ -1,5 +1,13 @@
 # crimlab 0.0.0.9000
 
+* Ctrl-C (Esc in the R GUIs) now stops every long computation: the
+  resampling, permutation, bootstrap and simulation loops, the iterative
+  fits (elastic net, logistic and count regressions, EM, quasi-Newton,
+  Weber point, k-means, power iterations, Louvain, synthetic control
+  weights, fixed-effects sweeps) and the scans over pairs check for an
+  interrupt every few milliseconds of work, free what they hold and end
+  with R's interrupt, never with a half-made result. In 'Python' the same
+  loops raise `KeyboardInterrupt`.
 * `etasf()` fits the temporal ETAS model (marks and the modified Omori
   law), `mvhwk()` the multivariate Hawkes process of several types that
   excite each other, with its excitation matrix and spectral radius, and

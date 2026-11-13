@@ -106,6 +106,7 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
     for (int i = 0; i < n; ++i) oa[i] = on[i] = 0.0;
   }
   for (int t = 0; t < f.ntree; ++t) {
+    if (kutil::stop(16.0 * mt * (f.mtry + 1))) return CLAB_EINTR;
     kutil::rng g(static_cast<std::uint64_t>(f.seed) * 1000003ULL + t);
     // the bag: m draws with replacement, or the first m of a shuffle
     for (int i = 0; i < n; ++i) cnt[i] = 0;

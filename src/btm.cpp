@@ -268,6 +268,7 @@ SEXP C_clab_r_hwkfit(SEXP times, SEXP hor, SEXP kernel, SEXP base, SEXP per, SEX
                         bb == 0 && eta < 1 ? std::exp(bth[0]) / (1 - eta) : NA_REAL, eta};
   static const char *const bn[] = {"eta", "size", "rate", "share"};
   SEXP branch = p(clab::nvec(4, bn, br));
+  clab::ichk(CLAB_OK);
   if (eta > 0.99) {
     Rf_warningcall(R_NilValue,
                    "hwkfit: the branching ratio is %.3f, near 1: the fit is near-critical "

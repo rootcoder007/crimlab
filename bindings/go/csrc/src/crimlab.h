@@ -20,9 +20,26 @@ extern "C" {
 #define CLAB_OK 0
 #define CLAB_EARG 1 /* a size or an index is out of range */
 #define CLAB_EDOM 2 /* a value is outside the domain of the method */
+#define CLAB_EINTR 3 /* the host's interrupt check asked to stop */
 
 /* The words for an error code. */
 const char *clab_strerror(int code);
+
+/* Interrupts. Every long loop (resampling, permutation, bootstrap,
+ * simulation, iterative fitting, scans over pairs) polls a check the host
+ * gives here: f returns non-zero when the user asked to stop, and is
+ * called once every ev element operations or so (ev < 0: the default,
+ * 2^22, a few milliseconds; 0: at every poll). The kernel then returns
+ * CLAB_EINTR, its outputs unspecified, having freed what it took. f NULL
+ * (the default) never stops a kernel. Set it before any kernel runs: the
+ * check and its interval are shared by all threads; whether a stop was
+ * asked is kept per thread. */
+void clab_onintr(int (*f)(void), double ev);
+
+/* Non-zero when the check has asked to stop on this thread since the flag
+ * was last cleared; clr non-zero clears it. A host clears it before each
+ * call into the kernels. */
+int clab_intrd(int clr);
 
 /* Veil of darkness (Lean: Crimlab.Veil.odds_ratio_identifies_bias).
  * day, night: stops by group in daylight and in darkness, n groups; day
