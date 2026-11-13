@@ -155,3 +155,6 @@
     {"dmlx", "Learn", "plr_orthogonal"},
     {"dmlx", "Learn", "aipw_bias"},
     {"dmlx", "Learn", "aipw_double_robust"},
+    {"didfe", "Did", "twfe_2x2"},
+    {"didfe", "Did", "dd_effects"},
+    {"didfe", "Did", "dd_effect"},

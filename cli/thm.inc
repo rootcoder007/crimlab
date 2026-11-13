@@ -178,3 +178,6 @@
     {"sdbthr", "Burglary", "trace_neg"},
     {"sdbthr", "Burglary", "no_hotspots_without_reinforcement"},
     {"etasf", "Etas", "omori_lomax"},
+    {"didfe", "Did", "twfe_2x2"},
+    {"didfe", "Did", "dd_effects"},
+    {"didfe", "Did", "dd_effect"},
