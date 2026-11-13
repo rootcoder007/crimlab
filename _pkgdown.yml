@@ -211,6 +211,11 @@ reference:
       - etasf
       - mvhwk
       - sthwk
+  - title: Surveys
+    desc: Design-based means, totals, proportions, ratios and variances by
+      domain from stratified, clustered and weighted samples.
+    contents:
+      - svymx
   - title: Proofs
     contents:
       - proof

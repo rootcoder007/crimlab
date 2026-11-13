@@ -268,3 +268,7 @@
   `smdbal()` the standardised mean differences and variance ratios before
   and after weighting with the overlap of the propensity; `evlx()` the
   E-value of a risk, odds or hazard ratio or a standardised difference.
+* `svymx()` gives design-based means, totals, proportions, ratios and
+  variances from stratified, clustered and weighted samples, by domain and
+  with differences between domains, with linearisation errors, the
+  finite-population correction and a description of the design.

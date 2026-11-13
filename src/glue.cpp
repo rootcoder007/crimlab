@@ -476,6 +476,8 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// Survey estimates (bsvy.cpp).
+SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -653,6 +655,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cbatt", fn(&C_clab_r_cbatt), 12},
     {"C_clab_r_smdbal", fn(&C_clab_r_smdbal), 5},
     {"C_clab_r_evlx", fn(&C_clab_r_evlx), 6},
+    {"C_clab_r_svymx", fn(&C_clab_r_svymx), 10},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {
