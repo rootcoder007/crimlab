@@ -213,7 +213,12 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(jmono(c(1, 1, 2, 2), c(1, 0, 0, 0))),
          c("judges", "homog", "slope", "sub", "alpha")),
     list(quote(mmshr(1:2, 1)),
-         c("group", "n", "at", "below", "above", "mexcess"))
+         c("group", "n", "at", "below", "above", "mexcess")),
+    list(quote(agemix(diag(2), c(0.5, 0.5))), c("curve", "cov", "panel")),
+    list(quote(cumrsk(18:19, c(1, 1), c(10, 10))),
+         c("age", "hazard", "atrisk", "cumrisk", "lo", "hi")),
+    list(quote(jpipe(1:3, 3:5, 2)),
+         c("group", "index", "num", "den", "rate"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

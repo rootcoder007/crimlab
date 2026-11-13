@@ -167,4 +167,5 @@ void t_cnc(tk &t, int big);
 void t_dkf(tk &t, int big);
 void t_pub(tk &t, int big);
 void t_jdg(tk &t, int big);
+void t_lcr(tk &t, int big);
 #endif

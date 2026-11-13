@@ -192,6 +192,13 @@ reference:
       - jdgiv
       - jmono
       - mmshr
+  - title: Life course and the justice pipeline
+    desc: Age-crime curves of a mixture of types, the cumulative risk of a first
+      event by age, and lagged rates between stages.
+    contents:
+      - agemix
+      - cumrsk
+      - jpipe
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

@@ -2551,6 +2551,41 @@ int clab_jsub(const int *jc, const int *gc, const double *d, int n, int nj, int 
  * minimum, and the mean excess of those above (0 for none). */
 int clab_mmshr(const double *sent, const double *mn, const int *gc, int n, int ng, double *out);
 
+/* The age-crime curve of a mixture of latent types (agemix; Lean:
+ * Crimlab.LifeCourse.one_type_cov_zero): cv, na x nt finite curves (ages
+ * by types, column-major); w, nt shares from 0 summing to 1 (within
+ * 1e-8). Out: agg (na), the aggregate curve cv w; cov (na x na), the
+ * covariance across types of the curves at two ages, sum_k w_k (cv_ak -
+ * agg_a)(cv_bk - agg_b). */
+int clab_agemix(const double *cv, int na, int nt, const double *w, double *agg, double *cov);
+
+/* The panel test of one type (agemix): ya, yb, n >= 3 individuals'
+ * finite outcomes at two ages. Out (2): the covariance mean(ya yb) -
+ * mean(ya) mean(yb), and its two-sided permutation p-value (1 + #{|perm|
+ * >= |obs|}) / (nperm + 1) from nperm shuffles of yb by the generator
+ * seeded with seed. work: n doubles. */
+int clab_agepan(const double *ya, const double *yb, int n, int nperm, double seed, double *out,
+                double *work);
+
+/* The cumulative risk of a first event by age (cumrsk): age, n increasing
+ * ages; e, first events (from 0); pop, the population (positive); atrisk
+ * NULL (the population less those with an event before) or those at risk;
+ * dth NULL or death rates in [0, 1). Out, n each: h, the hazard e / nr; nr,
+ * those at risk; cr, the cumulative risk 1 - prod (1 - h), or with deaths
+ * sum of the surviving cohort's hazards; v, Greenwood's variance of log
+ * survival (NaN with deaths). CLAB_EDOM when h > 1 or events and deaths
+ * exceed the cohort. */
+int clab_cumrsk(const double *age, const double *e, const double *pop, const double *atrisk,
+                const double *dth, int n, double *h, double *nr, double *cr, double *v);
+
+/* Rates between pipeline stages with a lag (jpipe): num, den, n counts
+ * from 0 in time order; win >= 1, lag >= 0. Out, n each: onum, the sum of
+ * num over the win periods ending at i; oden, the sum of den over the win
+ * periods ending at i - lag (NaN until a full window); rate, their ratio
+ * (NaN for a denominator of 0 or none). */
+int clab_jpipe(const double *num, const double *den, int n, int win, int lag, double *onum,
+               double *oden, double *rate);
+
 #ifdef __cplusplus
 }
 #endif

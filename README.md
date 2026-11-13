@@ -133,6 +133,10 @@ The functions work on summary data, not on raw records:
   monotonicity (`jdgiv()`), whether judges' leniency rankings hold across
   pairs and groups of cases (`jmono()`), and how sentences sit against a
   mandatory minimum (`mmshr()`).
+* Life course and the pipeline: what an aggregate age-crime curve can and
+  cannot say about types of offenders (`agemix()`), the cumulative risk of a
+  first arrest or admission by age (`cumrsk()`), and rates between stages of
+  the justice system with a lag (`jpipe()`).
 
 ## Algorithms
 

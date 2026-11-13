@@ -79,6 +79,14 @@
   slopes; `mmshr()` gives the shares of sentences at, below and above a
   mandatory minimum. `proof("jdgiv")` and `proof("jmono")` name the Lean
   theorems.
+* `agemix()` gives the aggregate age-crime curve of a mixture of latent
+  types and the covariance across types between ages that a single type
+  forces to 0, with its permutation test on panel data; `cumrsk()` gives the
+  cumulative risk of a first arrest, conviction or admission by age from a
+  life table of first events, with Greenwood's interval or with deaths
+  competing; `jpipe()` gives rates between stages of the justice pipeline
+  from window sums lagged by the time between the stages. `proof("agemix")`
+  names the Lean theorem.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

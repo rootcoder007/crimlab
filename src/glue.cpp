@@ -494,6 +494,9 @@ SEXP C_clab_r_yoypx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP C_clab_r_jdgiv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_jmono(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_mmshr(SEXP, SEXP, SEXP);
+SEXP C_clab_r_agemix(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cumrsk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_jpipe(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -685,6 +688,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_jdgiv", fn(&C_clab_r_jdgiv), 6},
     {"C_clab_r_jmono", fn(&C_clab_r_jmono), 10},
     {"C_clab_r_mmshr", fn(&C_clab_r_mmshr), 3},
+    {"C_clab_r_agemix", fn(&C_clab_r_agemix), 6},
+    {"C_clab_r_cumrsk", fn(&C_clab_r_cumrsk), 6},
+    {"C_clab_r_jpipe", fn(&C_clab_r_jpipe), 5},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {
