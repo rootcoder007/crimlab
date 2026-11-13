@@ -725,6 +725,67 @@ int clab_impfpr(const double *p, const double *ppv, const double *fnr, int n,
 int clab_rnkres(const double *est, const double *hw, int n, int *id,
                 double *out);
 
+/* Calibration audit of an area ranking. area: n codes in [0, na), na >= 3,
+ * each code used; risk, outc: n finite values (an algorithm's predicted
+ * risk and the recorded outcome of each record); grp: n codes in [0, g);
+ * pop: NULL or n positive populations, one value per area. Each area gets
+ * its record count, mean risk, outcome rate (mean outcome, or summed
+ * outcome over population), group (its most frequent, the first code on
+ * ties), the average ranks of risk and rate with rank 1 the largest, and
+ * the gap rate rank - risk rank (positive: ranked riskier than its outcome
+ * warrants). Out: ar, 7 na (k na + a, in that order); gr, 3g: areas, mean
+ * gap, two-sided permutation p-value of each group's mean gap (NaN for a
+ * group without areas or nperm = 0); st, 7: areas, Spearman's rho (Pearson
+ * on the ranks; NaN when either is constant), S = (na^3 - na)(1 - rho) / 6,
+ * the two-sided p-value of algorithm AS 89 (Best and Roberts 1975,
+ * doi:10.2307/2347111; exact enumeration for na <= 9, the Edgeworth series
+ * up to 1289; NaN with ties, beyond, or rho NaN), whether either ranking
+ * has ties, T = sum_g n_g mean_g^2 (the between-group sum of squares of the
+ * gaps) and its permutation p-value. The permutations shuffle the areas'
+ * groups nperm times from seed; p = (1 + #{at least as extreme}) / (1 +
+ * nperm). CLAB_EDOM when a population varies within an area. iwork: n +
+ * 2 na ints; work: na + 3g doubles. O(n log n + nperm (na + g)). */
+int clab_calaud(const int *area, const double *risk, const double *outc,
+                const int *grp, const double *pop, int n, int na, int g,
+                int nperm, unsigned int seed, double *ar, double *gr,
+                double *st, int *iwork, double *work);
+
+/* A score's spread across groups. x: n finite scores; grp: n codes in
+ * [0, g), g >= 2, each used; ref in [0, g), or -1 for the group with the
+ * lowest mean. Out: gs, 6g (k g + j): cases, mean, median, standard
+ * deviation (NaN for one case), the gap mean - ref's mean, and its standard
+ * error from the pooled within-group variance (NaN for ref); st, 9: the
+ * one-way analysis of variance F with its two degrees of freedom (F NaN
+ * when n = g), Welch's F with its degrees of freedom (Welch 1951,
+ * doi:10.1093/biomet/38.3-4.330; NaN unless every group has two or more
+ * cases and positive variance), the spread of the means (largest minus
+ * smallest), ref, and the pooled within-group variance. iwork: n ints.
+ * O(n log n). */
+int clab_scrdsp(const double *x, const int *grp, int n, int g, int ref,
+                double *gs, double *st, int *iwork);
+
+/* Noisy-OR detection (Barman and Barman, arXiv:2603.18987): an incident at
+ * (cx, cy), n of them, is detected by each of the k officers within radius
+ * > 0 (Euclidean, inclusive) of it independently with probability p in
+ * (0, 1], so with probability 1 - (1 - p)^k. Officers (ox, oy), m >= 0.
+ * Out, n each: k, prob, and, when draw != 0, det (1 with probability prob,
+ * from seed). O(n m). */
+int clab_nordet(const double *cx, const double *cy, int n, const double *ox,
+                const double *oy, int m, double radius, double p, int draw,
+                unsigned int seed, int *k, double *prob, int *det);
+
+/* Records with a known disparity (after Barman and Barman,
+ * arXiv:2603.18987). n records; group j in [0, g), g >= 2, drawn by props
+ * (g weights >= 0 with a positive sum, or NULL for equal shares); area in
+ * [0, nareas), nareas >= g, uniform among the areas a with a mod g = j
+ * (segregated areas); truth, 1 with probability base in [0, 1] whatever
+ * the group; det, the recorded outcome, 1 with probability base for group
+ * 0 and base (1 - bias), clamped to [0, 1], for the others, bias in
+ * [-1, 1]; risk, normal with mean 250 (group 0) or 250 + 100 bias and sd
+ * 40, clamped to [0, 500]. One draw sequence from seed (xorshift64*). */
+int clab_fairsim(int n, int g, const double *props, int nareas, double base,
+                 double bias, unsigned int seed, int *area, int *grp,
+                 int *truth, int *det, double *risk);
 
 
 /* Two-level normal model for multivariate trace evidence (Aitken and Lucy

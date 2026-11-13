@@ -374,6 +374,10 @@ SEXP C_clab_r_lipaud(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_nsbnd(SEXP, SEXP, SEXP);
 SEXP C_clab_r_impfpr(SEXP, SEXP, SEXP);
 SEXP C_clab_r_rnkres(SEXP, SEXP);
+SEXP C_clab_r_calaud(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_scrdsp(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_nordet(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_fairsim(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_tlvc(SEXP, SEXP);
 SEXP C_clab_r_tlvlr(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_aorwt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -510,6 +514,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_nsbnd", fn(&C_clab_r_nsbnd), 3},
     {"C_clab_r_impfpr", fn(&C_clab_r_impfpr), 3},
     {"C_clab_r_rnkres", fn(&C_clab_r_rnkres), 2},
+    {"C_clab_r_calaud", fn(&C_clab_r_calaud), 7},
+    {"C_clab_r_scrdsp", fn(&C_clab_r_scrdsp), 4},
+    {"C_clab_r_nordet", fn(&C_clab_r_nordet), 6},
+    {"C_clab_r_fairsim", fn(&C_clab_r_fairsim), 7},
     {"C_clab_r_tlvc", fn(&C_clab_r_tlvc), 2},
     {"C_clab_r_tlvlr", fn(&C_clab_r_tlvlr), 5},
     {"C_clab_r_aorwt", fn(&C_clab_r_aorwt), 11},

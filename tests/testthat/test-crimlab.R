@@ -119,7 +119,14 @@ test_that("every exported function answers one valid call in its shape", {
          c("lreq", "nviol", "rate", "ok", "maxgap", "worst", "pairs")),
     list(quote(nsbnd(c(0.3, 0.5), 0.1, 0.1)), c("bnd", "pairs")),
     list(quote(impfpr(0.3, 0.6, 0.2)), NULL),
-    list(quote(rnkres(1:3, 0.5)), c("id", "npair", "nunid", "share", "res"))
+    list(quote(rnkres(1:3, 0.5)), c("id", "npair", "nunid", "share", "res")),
+    list(quote(calaud(1:3, 1:3, 3:1, c(1, 1, 2), nperm = 0)),
+         c("areas", "groups", "spear", "ties", "between", "nperm")),
+    list(quote(scrdsp(1:4, c(1, 1, 2, 2))),
+         c("tab", "anova", "welch", "spread", "ref")),
+    list(quote(fairsim(10, seed = 1)),
+         c("area", "group", "truth", "det", "risk")),
+    list(quote(nordet(cbind(0, 0), cbind(1, 0), 2)), c("k", "prob"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

@@ -20,6 +20,13 @@
 #include "rchk.h"
 #include "spin.h"
 
+// Older R headers declare these under their short names only when
+// R_NO_REMAP_RMATH is set; the library has them as Rf_*, and newer headers
+// declare the same names identically (rchk.h does this for Rf_qnorm5).
+extern "C" double Rf_pt(double, double, int, int);
+extern "C" double Rf_qt(double, double, int, int);
+extern "C" double Rf_pf(double, double, double, int, int);
+
 using clab::fail;
 using clab::num;
 using csp::bin01;
@@ -99,6 +106,15 @@ const double qnan = std::numeric_limits<double>::quiet_NaN();
 
 // -------------------------------------------- helpers of the fairness audits
 
+// A data frame column by name, R_NilValue when absent.
+SEXP col(SEXP df, const char *nm) {
+  SEXP n = Rf_getAttrib(df, R_NamesSymbol);
+  for (R_xlen_t j = 0; j < Rf_xlength(n); ++j) {
+    if (std::strcmp(CHAR(STRING_ELT(n, j)), nm) == 0) return VECTOR_ELT(df, j);
+  }
+  return R_NilValue;
+}
+
 // Group labels for codes(): a vector (no matrix) of labels, not haven's
 // labelled codes.
 lab glab(SEXP x, const char *nm, R_xlen_t n) {
@@ -157,6 +173,10 @@ struct cols {
 // A named double vector of k values (NaN kept).
 SEXP named(int k, const char *const *nm, const double *x) { return clab::nvec(k, nm, x); }
 
+// Planar points: a two-column numeric matrix or a data frame or list with
+// columns x and y (or two unnamed columns), finite; into px, py (protected
+// by the caller via the returned list). Returns their number; a NULL or
+// zero-row input gives 0 when empty is allowed.
 // a noise box: one number a for [0, a], or two, lo <= hi, all from 0
 void box(SEXP x, const char *nm, double *lo, double *hi) {
   SEXP v = PROTECT(num(x, nm, -1, 0.0));
@@ -175,6 +195,55 @@ SEXP nmsof(SEXP x, R_xlen_t n) {
 }
 
 
+int pts2(SEXP x, const char *nm, SEXP *px, SEXP *py, bool empty) {
+  if (Rf_isNull(x) && empty) {
+    *px = *py = R_NilValue;
+    return 0;
+  }
+  SEXP cx = R_NilValue, cy = R_NilValue;
+  SEXP d = Rf_getAttrib(x, R_DimSymbol);
+  if (clab::isnum(x) && TYPEOF(d) == INTSXP && XLENGTH(d) == 2 && INTEGER_RO(d)[1] == 2) {
+    const int nr = INTEGER_RO(d)[0];
+    SEXP v = PROTECT(clab::dbl(x));
+    cx = PROTECT(Rf_allocVector(REALSXP, nr));
+    cy = PROTECT(Rf_allocVector(REALSXP, nr));
+    for (int i = 0; i < nr; ++i) {
+      REAL(cx)[i] = REAL_RO(v)[i];
+      REAL(cy)[i] = REAL_RO(v)[i + nr];
+    }
+    UNPROTECT(3);
+  } else if (TYPEOF(x) == VECSXP) {
+    // columns x and y by name, or the two columns of a two-column table
+    cx = col(x, "x");
+    cy = col(x, "y");
+    if ((Rf_isNull(cx) || Rf_isNull(cy)) && XLENGTH(x) == 2) {
+      cx = VECTOR_ELT(x, 0);
+      cy = VECTOR_ELT(x, 1);
+    }
+    if (Rf_isNull(cx) || Rf_isNull(cy)) fail("`%s` must have columns x and y.", nm);
+  } else {
+    fail("`%s` must be a two-column numeric matrix or a data frame with "
+         "columns x and y.", nm);
+  }
+  if (!clab::isnum(cx) || !clab::isnum(cy) || XLENGTH(cx) != XLENGTH(cy)) {
+    fail("`%s` must hold numeric coordinates, x and y of one length.", nm);
+  }
+  const int n = len(cx, nm);
+  if (n == 0) {
+    if (!empty) fail("`%s` must hold at least one point.", nm);
+    *px = *py = R_NilValue;
+    return 0;
+  }
+  *px = PROTECT(clab::dcopy(PROTECT(clab::dbl(cx))));
+  *py = PROTECT(clab::dcopy(PROTECT(clab::dbl(cy))));
+  for (int i = 0; i < n; ++i) {
+    if (!std::isfinite(REAL(*px)[i]) || !std::isfinite(REAL(*py)[i])) {
+      fail("`%s` must hold finite coordinates.", nm);
+    }
+  }
+  UNPROTECT(4);
+  return n;
+}
 
 }  // namespace
 
@@ -594,6 +663,255 @@ SEXP C_clab_r_rnkres(SEXP est, SEXP hw) {
   static const char *const nm[] = {"id", "npair", "nunid", "share", "res"};
   UNPROTECT(7);
   return clab::nlist(out, nm);
+}
+
+SEXP C_clab_r_calaud(SEXP area, SEXP risk, SEXP outcome, SEXP group,
+                     SEXP population, SEXP nperm, SEXP seed) {
+  clab::who = "calaud";
+  if (Rf_inherits(area, "data.frame")) {
+    if (!Rf_isNull(risk) || !Rf_isNull(outcome) || !Rf_isNull(group) || !Rf_isNull(population)) {
+      fail("give `area` as a data frame of the columns, or every argument "
+           "as a vector, not both.");
+    }
+    SEXP df = area;
+    area = col(df, "area");
+    risk = col(df, "risk");
+    outcome = col(df, "outcome");
+    group = col(df, "group");
+    population = col(df, "population");
+    if (Rf_isNull(area) || Rf_isNull(risk) || Rf_isNull(outcome) || Rf_isNull(group)) {
+      fail("`area` as a data frame needs columns area, risk, outcome and group.");
+    }
+  }
+  if (Rf_isNull(risk) || Rf_isNull(outcome) || Rf_isNull(group)) {
+    fail("`risk`, `outcome` and `group` are needed.");
+  }
+  SEXP uv[4] = {area, risk, outcome, group};
+  static const char *const un[] = {"area", "risk", "outcome", "group"};
+  const int nb = csp::byname(uv, un, 4);
+  const int n = len(uv[0], "area");
+  if (n < 1) fail("`area` must hold at least one record.");
+  lab a = glab(uv[0], "area", n);
+  SEXP rv = PROTECT(num(uv[1], "risk", n));
+  SEXP ov = PROTECT(num(uv[2], "outcome", n));
+  lab g = glab(uv[3], "group", n);
+  if (a.g < 3) fail("at least 3 areas are needed.");
+  SEXP pp = R_NilValue;
+  if (!Rf_isNull(population)) {
+    SEXP pv = PROTECT(num(population, "population", -1, 0.0, true));
+    SEXP pn = Rf_getAttrib(population, R_NamesSymbol);
+    pp = PROTECT(real(n));
+    if (!Rf_isNull(pn) && XLENGTH(pv) == a.g) {
+      // one per area, matched by the area labels
+      std::vector<int> at(static_cast<std::size_t>(a.g), -1);
+      for (int k = 0; k < a.g; ++k) {
+        for (int t = 0; t < a.g; ++t) {
+          if (clab::seql(STRING_ELT(pn, k), STRING_ELT(a.lev, t))) {
+            if (at[static_cast<std::size_t>(t)] >= 0) fail("`population` names an area twice.");
+            at[static_cast<std::size_t>(t)] = k;
+          }
+        }
+      }
+      for (int t = 0; t < a.g; ++t) {
+        if (at[static_cast<std::size_t>(t)] < 0) {
+          fail("`population` has no value for area %s.", Rf_translateChar(STRING_ELT(a.lev, t)));
+        }
+      }
+      for (int i = 0; i < n; ++i) {
+        REAL(pp)[i] = REAL(pv)[at[static_cast<std::size_t>(INTEGER(a.code)[i])]];
+      }
+    } else if (XLENGTH(pv) == n) {
+      for (int i = 0; i < n; ++i) REAL(pp)[i] = REAL(pv)[i];
+    } else {
+      fail("`population` must be one number per record, or one per area "
+           "named by area.");
+    }
+    UNPROTECT(2);
+    PROTECT(pp);
+  } else {
+    PROTECT(pp);
+  }
+  const int B = clab::whole(nperm, "nperm", 0);
+  const unsigned int s = B > 0 ? sd(seed) : 0U;
+  const int na = a.g, G = g.g;
+  SEXP iw = PROTECT(ints(n + 2 * static_cast<R_xlen_t>(na)));
+  SEXP w = PROTECT(real(7 * static_cast<R_xlen_t>(na) + 3 * static_cast<R_xlen_t>(G) + 7 +
+                        na + 3 * static_cast<R_xlen_t>(G)));
+  double *ar = REAL(w), *gr = ar + 7 * static_cast<R_xlen_t>(na), *st = gr + 3 * G, *wk = st + 7;
+  const int rc = clab_calaud(INTEGER(a.code), REAL(rv), REAL(ov), INTEGER(g.code),
+                             Rf_isNull(pp) ? nullptr : REAL(pp), n, na, G, B, s, ar, gr, st,
+                             INTEGER(iw), wk);
+  if (rc == CLAB_EDOM) fail("`population` must take one value within each area.");
+  kc(rc, "the kernel refused the input.");
+  cols fa(8, na);
+  fa.put("area", a.lev);
+  int *an = fa.in("n");
+  double *ac[2] = {fa.dbl("risk"), fa.dbl("rate")};
+  SEXP ag = PROTECT(Rf_allocVector(STRSXP, na));
+  fa.put("group", ag);
+  double *ar2[3] = {fa.dbl("riskrk"), fa.dbl("raterk"), fa.dbl("gap")};
+  for (int k = 0; k < na; ++k) {
+    an[k] = static_cast<int>(ar[k]);
+    ac[0][k] = ar[na + k];
+    ac[1][k] = ar[2 * na + k];
+    SET_STRING_ELT(ag, k, STRING_ELT(g.lev, static_cast<R_xlen_t>(ar[3 * na + k])));
+    for (int t = 0; t < 3; ++t) ar2[t][k] = ar[(4 + t) * na + k];
+  }
+  SEXP f1 = PROTECT(fa.done());
+  cols fg(4, G);
+  fg.put("group", g.lev);
+  int *gn = fg.in("n");
+  double *gm = fg.dbl("gap"), *gp = fg.dbl("p");
+  for (int j = 0; j < G; ++j) {
+    gn[j] = static_cast<int>(gr[j]);
+    gm[j] = gr[G + j];
+    gp[j] = gr[2 * G + j];
+  }
+  SEXP f2 = PROTECT(fg.done());
+  // the large-sample p-value: t = rho sqrt((n - 2) / (1 - rho^2)) on n - 2
+  // degrees of freedom, two-sided, as cor.test() gives it without exact
+  const double rho = st[1], df = na - 2.0;
+  const double tt = rho * std::sqrt(df / ((1.0 - rho) * (1.0 + rho)));
+  const double sp[5] = {rho, st[2], st[3], tt,
+                        std::isnan(tt) ? qnan : std::fmin(1.0, 2.0 * Rf_pt(-std::fabs(tt), df, 1, 0))};
+  static const char *const spn[] = {"rho", "s", "pex", "t", "pt"};
+  static const char *const bn[] = {"ss", "p"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 6));
+  SET_VECTOR_ELT(out, 0, f1);
+  SET_VECTOR_ELT(out, 1, f2);
+  SET_VECTOR_ELT(out, 2, named(5, spn, sp));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarLogical(st[4] > 0.0));
+  SET_VECTOR_ELT(out, 4, named(2, bn, st + 5));
+  SET_VECTOR_ELT(out, 5, Rf_ScalarInteger(B));
+  static const char *const nm[] = {"areas", "groups", "spear", "ties", "between", "nperm"};
+  UNPROTECT(15 + nb);
+  return clab::nlist(out, nm);
+}
+
+SEXP C_clab_r_scrdsp(SEXP score, SEXP group, SEXP ref, SEXP conf) {
+  clab::who = "scrdsp";
+  SEXP uv[2] = {score, group};
+  static const char *const un[] = {"score", "group"};
+  const int nb = csp::byname(uv, un, 2);
+  SEXP xv = PROTECT(num(uv[0], "score"));
+  const int n = len(xv, "score");
+  lab g = glab(uv[1], "group", n);
+  if (g.g < 2) fail("`group` must hold at least two groups.");
+  const int r = Rf_isNull(ref) ? -1 : clab::ref(ref, g.lev, g.g) - 1;
+  const double cf = clab::one(conf, "conf", 0.0, 1.0);
+  const int G = g.g;
+  SEXP iw = PROTECT(ints(n));
+  SEXP w = PROTECT(real(6 * static_cast<R_xlen_t>(G) + 9));
+  double *gs = REAL(w), *st = gs + 6 * G;
+  kc(clab_scrdsp(REAL(xv), INTEGER(g.code), n, G, r, gs, st, INTEGER(iw)),
+     "the kernel refused the input.");
+  const double q = st[2] > 0.0 ? Rf_qt(0.5 + 0.5 * cf, st[2], 1, 0) : qnan;
+  cols f(9, G);
+  f.put("group", g.lev);
+  int *gn = f.in("n");
+  static const char *const cn[] = {"mean", "median", "sd", "gap", "se"};
+  double *c[5];
+  for (int t = 0; t < 5; ++t) c[t] = f.dbl(cn[t]);
+  double *lo = f.dbl("lo"), *hi = f.dbl("hi");
+  for (int j = 0; j < G; ++j) {
+    gn[j] = static_cast<int>(gs[j]);
+    for (int t = 0; t < 5; ++t) c[t][j] = gs[(t + 1) * G + j];
+    lo[j] = c[3][j] - q * c[4][j];
+    hi[j] = c[3][j] + q * c[4][j];
+  }
+  SEXP fr = PROTECT(f.done());
+  // upper tails of F; an infinite F (no variation within groups) gives 0
+  auto pf = [](double F, double d1, double d2) {
+    return std::isnan(F) ? qnan : Rf_pf(F, d1, d2, 0, 0);
+  };
+  const double an[4] = {st[0], st[1], st[2], pf(st[0], st[1], st[2])};
+  const double wl[4] = {st[3], st[4], st[5], pf(st[3], st[4], st[5])};
+  static const char *const fn[] = {"f", "df1", "df2", "p"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(out, 0, fr);
+  SET_VECTOR_ELT(out, 1, named(4, fn, an));
+  SET_VECTOR_ELT(out, 2, named(4, fn, wl));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarReal(st[6]));
+  SET_VECTOR_ELT(out, 4, Rf_ScalarString(STRING_ELT(g.lev, static_cast<R_xlen_t>(st[7]))));
+  static const char *const nm[] = {"tab", "anova", "welch", "spread", "ref"};
+  UNPROTECT(8 + nb);
+  return clab::nlist(out, nm);
+}
+
+SEXP C_clab_r_nordet(SEXP x, SEXP off, SEXP radius, SEXP p, SEXP draw, SEXP seed) {
+  clab::who = "nordet";
+  SEXP cx, cy, ox, oy;
+  const int n = pts2(x, "x", &cx, &cy, false);
+  PROTECT(cx);
+  PROTECT(cy);
+  const int m = pts2(off, "off", &ox, &oy, true);
+  PROTECT(ox);
+  PROTECT(oy);
+  const double r = REAL(PROTECT(num(radius, "radius", 1, 0.0, true)))[0];
+  const double pd = clab::val1(p);
+  if (!(pd > 0.0 && pd <= 1.0)) fail("`p` must be one number in (0, 1].");
+  const bool dr = csp::flag(draw, "draw");
+  const unsigned int s = dr ? sd(seed) : 0U;
+  cols f(3, n);
+  int *k = f.in("k");
+  double *pr = f.dbl("prob");
+  int *det = dr ? f.in("det") : nullptr;
+  kc(clab_nordet(REAL(cx), REAL(cy), n, m > 0 ? REAL(ox) : nullptr, m > 0 ? REAL(oy) : nullptr, m,
+                 r, pd, dr ? 1 : 0, s, k, pr, det),
+     "the kernel refused the input.");
+  SEXP out = f.done();
+  UNPROTECT(6);
+  return out;
+}
+
+SEXP C_clab_r_fairsim(SEXP n, SEXP groups, SEXP props, SEXP nareas, SEXP base,
+                      SEXP bias, SEXP seed) {
+  clab::who = "fairsim";
+  const int N = clab::whole(n, "n", 1);
+  clab::unlab(groups, "groups");
+  SEXP gl = PROTECT(clab::labs(groups));
+  if (Rf_isNull(gl) || TYPEOF(groups) == VECSXP || clab::anyna(gl) || XLENGTH(gl) < 2) {
+    fail("`groups` must be two or more labels with no missing values.");
+  }
+  const int G = len(gl, "groups");
+  for (int i = 0; i < G; ++i) {
+    for (int j = 0; j < i; ++j) {
+      if (clab::seql(STRING_ELT(gl, i), STRING_ELT(gl, j))) fail("`groups` must not repeat a label.");
+    }
+  }
+  SEXP pv = R_NilValue;
+  if (!Rf_isNull(props)) {
+    pv = num(props, "props", G, 0.0);
+  }
+  PROTECT(pv);
+  if (!Rf_isNull(pv)) {
+    double t = 0.0;
+    for (int j = 0; j < G; ++j) t += REAL(pv)[j];
+    if (!(t > 0.0)) fail("`props` must not all be 0.");
+  }
+  const int na = clab::whole(nareas, "nareas", 1);
+  if (na < G) fail("`nareas` must be at least the number of groups, %d.", G);
+  const double b0 = clab::p01(base, "base");
+  const double bs = clab::val1(bias);
+  if (!(bs >= -1.0 && bs <= 1.0)) fail("`bias` must be one number from -1 to 1.");
+  const unsigned int s = sd(seed);
+  SEXP ai = PROTECT(ints(N)), gi = PROTECT(ints(N));
+  cols f(5, N);
+  int *ar = f.in("area");
+  SEXP gs = PROTECT(Rf_allocVector(STRSXP, N));
+  f.put("group", gs);
+  int *tr = f.in("truth"), *dt = f.in("det");
+  double *rk = f.dbl("risk");
+  kc(clab_fairsim(N, G, Rf_isNull(pv) ? nullptr : REAL(pv), na, b0, bs, s, INTEGER(ai), INTEGER(gi),
+                  tr, dt, rk),
+     "the kernel refused the input.");
+  for (int i = 0; i < N; ++i) {
+    ar[i] = INTEGER(ai)[i] + 1;
+    SET_STRING_ELT(gs, i, STRING_ELT(gl, INTEGER(gi)[i]));
+  }
+  SEXP out = f.done();
+  UNPROTECT(6);
+  return out;
 }
 
 // ----------------------------------------------------------- trace evidence
