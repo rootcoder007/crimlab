@@ -2821,7 +2821,8 @@ int clab_tpdsim(const double *P, int m, int k, int start, int steps, unsigned lo
  * columns of x, column-major; p = q + 1) with independent normal priors
  * (means m0, standard deviations s0 > 0, p each) and the noise variance
  * s2 fixed at the least-squares residual variance, rss / max(1, n - p)
- * (the variance of y when that is 0). Out: mu, sd (p), the posterior
+ * (the variance of y when the fit is exact: a residual sum of squares at
+ * most 1e-24 of the sum of y squared). Out: mu, sd (p), the posterior
  * means and standard deviations; st (2), s2 and tau2 (NaN without
  * groups). With g (n group codes from 0, ng >= 2 groups, each used; NULL
  * for none), from the residuals about the posterior means: gm, the mean

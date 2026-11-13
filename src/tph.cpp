@@ -203,7 +203,7 @@ int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
   }
   std::copy(a, a + p * p, c);
   if (n < p || !cinv(c, p)) return CLAB_EDOM;
-  kutil::ksum rs, ym;
+  kutil::ksum rs, ym, yy;
   for (int i = 0; i < n; ++i) {
     double f = 0;
     for (int j = 0; j < p; ++j) {
@@ -213,8 +213,12 @@ int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
     }
     rs.add((y[i] - f) * (y[i] - f));
     ym.add(y[i]);
+    yy.add(y[i] * y[i]);
   }
-  double s2 = rs.val() / std::max(1, n - p);
+  // An exact fit leaves residuals of rounding only, and their squares do not sum to 0 on every
+  // machine (a fused multiply-add leaves about 1e-30 here): residuals below 1e-12 of the size
+  // of y are none.
+  double s2 = rs.val() > 1e-24 * yy.val() ? rs.val() / std::max(1, n - p) : 0;
   if (!(s2 > 0)) {
     kutil::ksum vy;
     for (int i = 0; i < n; ++i) vy.add((y[i] - ym.val() / n) * (y[i] - ym.val() / n));
