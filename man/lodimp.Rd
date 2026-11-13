@@ -7,7 +7,9 @@
 lodimp(x, lod, meth = "half")
 }
 \arguments{
-\item{x}{The measured values: numbers, \code{NA} for not measured.}
+\item{x}{The measured values: numbers, \code{NA} for not measured. A \code{clpre}
+list from \code{\link[=clprep]{clprep()}} is taken too (the \code{tox-lodimp} preset): its
+elements fill the arguments by name.}
 
 \item{lod}{The limit of detection: one positive number, or one per value
 (each sample's own limit).}

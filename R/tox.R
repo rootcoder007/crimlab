@@ -45,7 +45,9 @@ txcal <- function(conc, resp, w = "1/x^2", unk = NULL, k = c(3.3, 10)) {
 #' is the simple choice; with much censoring it biases the mean and the
 #' spread.
 #'
-#' @param x The measured values: numbers, `NA` for not measured.
+#' @param x The measured values: numbers, `NA` for not measured. A `clpre`
+#'   list from [clprep()] is taken too (the `tox-lodimp` preset): its
+#'   elements fill the arguments by name.
 #' @param lod The limit of detection: one positive number, or one per value
 #'   (each sample's own limit).
 #' @param meth `"half"`, `"sqrt2"` or `"lod"`.
@@ -61,6 +63,9 @@ txcal <- function(conc, resp, w = "1/x^2", unk = NULL, k = c(3.3, 10)) {
 #' lodimp(c(0.4, 0.05, NA, 1.2, 0.08), lod = 0.1)
 #' @export
 lodimp <- function(x, lod, meth = "half") {
+  if (inherits(x, "clpre")) {
+    return(.prep(lodimp, x, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_lodimp, x, lod, meth)
 }
 

@@ -10,8 +10,10 @@ clprep(data = NULL, preset = NULL)
 \item{data}{The dataset: a data frame with the columns the preset names.
 \code{NULL} (with \code{preset} \code{NULL}) lists the presets.}
 
-\item{preset}{The preset's name, as \code{clprep()} lists them; \code{NULL} for the
-list.}
+\item{preset}{The preset's name, as \code{clprep()} lists them, or a preset
+of one's own: a data frame of rows laid out as those of \code{presets.tsv}
+(\code{preset}, \code{generic} and \code{arg} needed, the other columns optional);
+\code{NULL} for the list.}
 }
 \value{
 With a preset, an object of class \code{clpre}: a list of the
@@ -29,21 +31,35 @@ same generic runs on anyone's data given as plain vectors. A preset
 describes a layout and ships no data: the user supplies the table.
 }
 \details{
-The presets are rows of \code{presets.tsv} (in the installed package's
-\code{presets} folder), one per preset and argument: \code{preset}, \code{generic},
-\code{arg}, \code{column} (the dataset's column), \code{recode}, \code{filter}, \code{units},
-\code{note}, \code{source}. Python reads the same file. A \code{recode} is one of:
-empty (the column as it is); \code{fac} (a factor, one effect per value);
-\code{num} (numbers); \code{one} (a 1 for every row); \verb{sub:a,b} (characters a to
-b, as a year from an ISO date); \code{const:v} (the argument is v, no
-column); or a mapping \verb{x|y=1;has:abc=1;*=0} from labels, compared without
-case or surrounding space (\verb{has:} a label containing the text), to
-values, \code{*} covering every other label and \verb{*=NA} dropping those rows. A
-\code{filter} \code{col=value} keeps the rows whose column has that value. An
-\code{arg} of \code{recipe} derives columns first: \code{long} stacks the two count
-columns named in \code{recode} as \code{count} with \code{with} 1 for the first; \code{acvm}
-and \code{pyr} reduce one row per placement to one per person and year (see
-Details of the returned attributes).
+The presets are rows of \code{presets.tsv} (in the installed package's \code{presets}
+folder), one per preset and argument: \code{preset}, \code{generic}, \code{arg}, \code{column}
+(the dataset's column), \code{recode}, \code{filter}, \code{units}, \code{note}, \code{source}. Python
+reads the same file. A \code{recode} is one of: empty (the column as it is); \code{fac}
+(a factor, one effect per value); \code{num} (numbers); \code{one} (a 1 for every row);
+\code{flag} (1 for yes, y, true, t, 1 or a positive number, 0 otherwise); \code{dum}
+(one 0 or 1 column per value but the first, named by the column and the
+value); \verb{sub:a,b} (characters a to b, as a year from an ISO date); \code{const:v}
+(the argument is v, no column); or a mapping \verb{x|y=1;has:abc=1;*=0} from
+labels, compared without case or surrounding space (\verb{has:} a label containing
+the text), to values, \code{*} covering every other label and \verb{*=NA} dropping
+those rows. A \code{filter} \code{col=value} keeps the rows whose column has that
+value. An argument given by several rows (or by \code{dum}) is a data frame of
+their columns, as \code{adj} always is. An \code{arg} of \code{recipe} derives columns
+first, in the order of the rows: \code{keep} drops the rows missing any of the
+columns named in \code{recode}; \code{long} stacks the two count columns named in
+\code{recode} as \code{count} with \code{with} 1 for the first; \code{acvm} and \code{pyr} reduce one
+row per placement to one per person and year (see Details of the returned
+attributes), and \code{acnv} does so the naive way (\code{acn}, the most alert flags on
+one row; \code{vmany}, 1 when any row changes region; \code{hiacn}, \code{acn >= 2});
+\code{pairb} adds \code{tb} (two or more of the three alert flags) and \code{yb}
+(\code{Number_Of_Placements} of 2 or more); \code{pairc} adds \code{tc} (the region at
+placement differs from the most recent) and \code{yc}
+(\code{NumberConsecutiveDays_Segregation} capped at its 99th percentile); \code{gent}
+takes the columns \verb{inc,rent,colg,rentg} named in \code{recode} (and optionally the
+two quantiles, \verb{0.5,0.667} by default) and adds \code{gent}, a factor:
+\code{ineligible} unless baseline income and rent are both at most their first
+quantile, then \code{gentrified} when the growth in college graduates and in rent
+both reach their second quantile, else \code{eligible}.
 
 Rows with a missing value in any column the preset reads are dropped,
 as the source analyses drop them; their number is the attribute
@@ -61,4 +77,12 @@ cntreg(p)
 # the same model on plain vectors
 cntreg(d$NumberIndividuals_RestrictiveConfinement, d$Gender == "Female",
        adj = factor(d$EndFiscalYear))
+# a preset of one's own, for another agency's columns
+mine <- data.frame(preset = "my-cnt", generic = "cntreg",
+                   arg = c("y", "grp", "adj"),
+                   column = c("count", "sex", "year"),
+                   recode = c("", "f=1;*=0", "fac"))
+e <- data.frame(count = c(4, 30, 6, 41), sex = c("f", "m", "f", "m"),
+                year = c(1, 1, 2, 2))
+cntreg(clprep(e, mine))
 }

@@ -119,7 +119,9 @@ tpdmc <- function(pres = 0, decay = 0.5, mum = 0.5,
 #' towards 0 by the method of moments: `tau2` is the variance between the
 #' group means beyond what the noise explains.
 #'
-#' @param y The outcome: finite numbers, at least two cases.
+#' @param y The outcome: finite numbers, at least two cases. A `clpre` list
+#'   from [clprep()] is taken too (the `taph-*` presets): its elements fill
+#'   the arguments by name.
 #' @param x The predictors: a numeric matrix or data frame of finite
 #'   numbers, one row per case (code a factor as indicator columns first).
 #' @param grp `NULL`, or the group of each case: labels, at least two
@@ -145,6 +147,9 @@ tpdmc <- function(pres = 0, decay = 0.5, mum = 0.5,
 #' tpbhm(y, d, grp = rep(c("a", "b", "c"), 10), pm = c(0, 0.2, 0))$coef
 #' @export
 tpbhm <- function(y, x, grp = NULL, pm = 0, psd = 10, level = 0.95) {
+  if (inherits(y, "clpre")) {
+    return(.prep(tpbhm, y, match.call(), parent.frame()))
+  }
   if (is.data.frame(x)) x <- as.matrix(x)
   .Call(C_clab_r_tpbhm, y, x, grp, pm, psd, level)
 }

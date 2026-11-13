@@ -7,7 +7,9 @@
 tpbhm(y, x, grp = NULL, pm = 0, psd = 10, level = 0.95)
 }
 \arguments{
-\item{y}{The outcome: finite numbers, at least two cases.}
+\item{y}{The outcome: finite numbers, at least two cases. A \code{clpre} list
+from \code{\link[=clprep]{clprep()}} is taken too (the \verb{taph-*} presets): its elements fill
+the arguments by name.}
 
 \item{x}{The predictors: a numeric matrix or data frame of finite
 numbers, one row per case (code a factor as indicator columns first).}

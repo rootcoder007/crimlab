@@ -38,6 +38,9 @@
 #' bootstrap samples of the units, with the propensity fitted again in
 #' each; intervals are normal.
 #'
+#' A `clpre` list from [clprep()] may be given as `y`: its elements fill
+#' the arguments by name (the `otis-*-cbatt` presets).
+#'
 #' @param y The outcome: finite numbers, one per unit.
 #' @param d The treatment: 0 or 1 (or `FALSE` or `TRUE`), two units in each
 #'   arm at least.
@@ -84,6 +87,9 @@
 cbatt <- function(y, d, x, est = "ipw", tgt = "ate", ps = NULL, k = 1,
                   calip = NULL, nsub = 5, reps = 499, seed = NULL,
                   level = 0.95) {
+  if (inherits(y, "clpre")) {
+    return(.prep(cbatt, y, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_cbatt, y, d, x, est, tgt, ps, k, calip, nsub, reps, seed,
         level)
 }

@@ -10,7 +10,8 @@ test_that("the preset list and its table", {
   expect_named(p, c("preset", "generic", "args", "source"))
   expect_false(anyDuplicated(p$preset) > 0)
   expect_true(all(p$generic %in% c(
-    "cntreg", "grprr", "ctabx", "fairdf", "tmpaud", "calaud", "scrdsp"
+    "cntreg", "grprr", "ctabx", "fairdf", "tmpaud", "calaud", "scrdsp",
+    "cbatt", "lodimp", "tpbhm"
   )))
   # every argument a preset fills is an argument of its generic
   tab <- ns$.presets()
@@ -340,4 +341,145 @@ test_that("the risk-tool presets feed fairdf, tmpaud, calaud and scrdsp", {
   tool <- pr[pr$generic %in% c("fairdf", "tmpaud", "calaud", "scrdsp"), ]
   expect_gt(nrow(tool), 10)
   expect_true(all(nzchar(tool$source)))
+})
+
+test_that("a preset of one's own, and the flag and dum recodes", {
+  mine <- data.frame(
+    preset = "my-cnt", generic = "cntreg", arg = c("y", "grp", "adj"),
+    column = c("count", "sex", "year"), recode = c("", "f=1;*=0", "fac")
+  )
+  e <- data.frame(count = c(4, 30, 6, 41, NA), sex = c("f", "m", "f", "m", "f"),
+                  year = c(1, 1, 2, 2, 2))
+  p <- clprep(e, mine)
+  expect_identical(p$y, c(4, 30, 6, 41))
+  expect_identical(p$grp, c(1, 0, 1, 0))
+  expect_identical(p$adj, data.frame(year = factor(c(1, 1, 2, 2))))
+  expect_identical(attr(p, "preset"), "my-cnt")
+  expect_identical(attr(p, "drop"), 1L)
+  expect_equal(cntreg(p), cntreg(p$y, p$grp, adj = p$adj))
+  expect_error(clprep(e, mine[, 1:2]), "needs the columns preset, generic")
+  expect_error(clprep(e, mine[0, ]), "needs the columns preset, generic")
+  two <- mine
+  two$preset[3] <- "other"
+  expect_error(clprep(e, two), "must hold one preset")
+  rc <- ns$.recode
+  expect_identical(rc(c("Yes", "no", "2", "0"), "flag", 4), c(1L, 0L, 0L, 0L))
+  expect_identical(rc(c(2, 0), "flag", 2), c(1L, 0L))
+  m <- rc(c("b", "a", "c", "b"), "dum", 4)
+  expect_identical(m, cbind(b = c(1, 0, 0, 1), c = c(0, 0, 1, 0)))
+  expect_identical(dim(rc(c("a", "a"), "dum", 2)), c(2L, 0L))
+})
+
+test_that("the OTIS treatment-outcome pairs of cbatt", {
+  b <- ob01
+  set.seed(9)
+  b$Number_Of_Placements <- rpois(nrow(b), 1.5)
+  b$NumberConsecutiveDays_Segregation <- rexp(nrow(b), 0.1)
+  b$Gender[3] <- NA
+  dum <- function(x) {
+    f <- factor(x)
+    m <- vapply(levels(f)[-1L], function(l) as.numeric(f == l),
+                numeric(length(f)))
+    matrix(m, length(f))
+  }
+  flag <- function(s) {
+    as.integer(tolower(s) %in% c("yes", "y", "true", "t", "1"))
+  }
+  # a01: Ruhela's reduction (acvm) as the cntreg preset uses it
+  v <- ns$.acvm(b)
+  p <- clprep(b, "otis-a01-cbatt")
+  expect_identical(p$y, v$vm)
+  expect_identical(p$d, v$hiac)
+  expect_identical(names(p$x)[1], "GenderMale")
+  x <- cbind(dum(v$Gender), dum(v$Age_Category), dum(v$EndFiscalYear))
+  expect_identical(unname(as.matrix(p$x)), x)
+  expect_equal(cbatt(p, reps = 0), cbatt(v$vm, v$hiac, x, reps = 0))
+  # a01n: the naive reduction, from scratch
+  cc <- b[stats::complete.cases(b[c(ns$.otcols, "Gender", "Age_Category")]), ]
+  key <- paste(cc$UniqueIndividual_ID, cc$EndFiscalYear)
+  nal <- flag(cc$MentalHealth_Alert) + flag(cc$SuicideRisk_Alert) +
+    flag(cc$SuicideWatch_Alert)
+  ch <- as.integer(cc$Region_AtTimeOfPlacement != cc$Region_MostRecentPlacement)
+  n <- clprep(b, "otis-a01n-cbatt")
+  k <- unique(key[order(cc$UniqueIndividual_ID, cc$EndFiscalYear)])
+  expect_identical(n$d, as.integer(c(tapply(nal, key, max))[k] >= 2L))
+  expect_identical(n$y, unname(c(tapply(ch, key, max))[k]))
+  # pair a: row-level flags
+  a <- clprep(b, "otis-pa-cbatt")
+  ka <- !is.na(b$Gender)
+  expect_identical(a$y, flag(b$SuicideRisk_Alert[ka]))
+  expect_identical(a$d, flag(b$MentalHealth_Alert[ka]))
+  nl <- vapply(b[ka, c("Gender", "Age_Category", "Region_AtTimeOfPlacement",
+                       "Region_MostRecentPlacement")],
+               function(z) length(unique(z)) - 1L, 1L)
+  expect_identical(ncol(a$x), sum(nl))
+  # pair b: two or more alerts, two or more placements
+  pb <- clprep(b, "otis-pb-cbatt")
+  bb <- b[ka, ]
+  na3 <- flag(bb$MentalHealth_Alert) + flag(bb$SuicideRisk_Alert) +
+    flag(bb$SuicideWatch_Alert)
+  expect_identical(pb$d, as.integer(na3 >= 2L))
+  expect_identical(pb$y, as.integer(bb$Number_Of_Placements >= 2))
+  # pair c: region change, days capped at the 99th percentile
+  pc <- clprep(b, "otis-pc-cbatt")
+  y <- bb$NumberConsecutiveDays_Segregation
+  expect_identical(pc$y, pmin(y, quantile(y, 0.99, names = FALSE)))
+  expect_identical(
+    pc$d,
+    as.integer(bb$Region_AtTimeOfPlacement != bb$Region_MostRecentPlacement)
+  )
+  expect_identical(names(pc$x)[ncol(pc$x)], "MentalHealth_Alert")
+  expect_error(clprep(b[1:5], "otis-pc-cbatt"), "has no column")
+})
+
+test_that("the gentrification recipe", {
+  set.seed(10)
+  d <- data.frame(inc = rnorm(50, 50), rent = rnorm(50, 900, 50),
+                  colg = runif(50), rentg = runif(50))
+  d$inc[4] <- NA
+  g <- ns$.recipe("gent", "inc,rent,colg,rentg", d)$gent
+  q <- function(x, p) quantile(x, p, na.rm = TRUE, names = FALSE)
+  el <- d$inc <= q(d$inc, 0.5) & d$rent <= q(d$rent, 0.5)
+  gr <- d$colg >= q(d$colg, 0.667) & d$rentg >= q(d$rentg, 0.667)
+  ref <- ifelse(el, ifelse(gr, "gentrified", "eligible"), "ineligible")
+  expect_identical(as.character(g), ref)
+  expect_identical(levels(g), c("ineligible", "eligible", "gentrified"))
+  g2 <- ns$.recipe("gent", "inc,rent,colg,rentg,0.3,0.9", d)$gent
+  el <- d$inc <= q(d$inc, 0.3) & d$rent <= q(d$rent, 0.3)
+  gr <- d$colg >= q(d$colg, 0.9) & d$rentg >= q(d$rentg, 0.9)
+  expect_identical(
+    as.character(g2),
+    ifelse(el, ifelse(gr, "gentrified", "eligible"), "ineligible")
+  )
+  expect_error(ns$.recipe("gent", "inc,rent,colg,nope", d), "no column nope")
+  # through a preset of one's own
+  mine <- data.frame(preset = "gent-xtab", generic = "ctabx",
+                     arg = c("recipe", "row", "col"),
+                     column = c("gent", "gent", ""),
+                     recode = c("inc,rent,colg,rentg", "", "one"))
+  p <- clprep(d, mine)
+  expect_identical(p$row, g[!is.na(g)])
+})
+
+test_that("the toxicology and taphonomy layouts", {
+  d <- data.frame(case_id = c("a", "b", "c", "d"), conc = c(0.4, 0.05, NA, 1),
+                  lod = c(0.1, 0.1, 0.2, 0.5))
+  p <- clprep(d, "tox-lodimp")
+  expect_identical(attr(p, "drop"), 1L)
+  expect_identical(lodimp(p), lodimp(d$conc[-3], d$lod[-3]))
+  set.seed(11)
+  cols <- c("lime_treatment", "temp_c", "humidity_pct", "arid",
+            "casket_sealed", "reinterment_count", "exposure_days",
+            "decades_elapsed")
+  b <- as.data.frame(matrix(runif(40 * 8), 40, 8, dimnames = list(NULL, cols)))
+  b$preservation_score <- runif(40)
+  t1 <- tpbhm(clprep(b, "taph-tpbhm"))
+  expect_equal(t1, tpbhm(b$preservation_score, as.matrix(b[cols])))
+  pc <- c("decomp_stage", "body_scoring_tbs", "accumulated_deg_days",
+          "temp_c", "humidity_pct", "precipitation_mm", "burial_depth_cm",
+          "soil_ph", "scavenger_activity", "insect_activity")
+  e <- as.data.frame(matrix(rnorm(60 * 10), 60, 10, dimnames = list(NULL, pc)))
+  e$pmi_days <- rexp(60, 0.05)
+  expect_equal(tpbhm(clprep(e, "taph-pmi-tpbhm"), psd = 5),
+               tpbhm(e$pmi_days, as.matrix(e[pc]), psd = 5))
 })

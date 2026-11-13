@@ -96,6 +96,9 @@ mean less the weighted control mean.
 Standard errors (but \code{"psm"}) are the standard deviations over \code{reps}
 bootstrap samples of the units, with the propensity fitted again in
 each; intervals are normal.
+
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} may be given as \code{y}: its elements fill
+the arguments by name (the \verb{otis-*-cbatt} presets).
 }
 \examples{
 set.seed(1)
