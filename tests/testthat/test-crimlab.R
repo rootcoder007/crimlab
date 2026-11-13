@@ -192,7 +192,7 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(smdbal(c(1, 2, 2, 1, 3, 2), c(0, 1, 0, 1, 0, 1))),
          c("tab", "overlap", "bal", "ovl", "thr")),
     list(quote(evlx(2)), c("rr", "evalue", "evlim")),
-    list(quote(svymx(c(1, 3, 2, 5))), c("est", "cmp", "des", "stat", "level"))
+    list(quote(svymx(c(1, 3, 2, 5))), c("est", "cmp", "des", "stat", "level")),
     list(quote(crsev(c(1, 2), c("a", "b"), c(a = 1, b = 2))),
          c("tab", "w", "per", "base")),
     list(quote(zcomp(1:4, c(1, 2, 1, 2), c(1, 1, 2, 2))),
