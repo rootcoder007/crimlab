@@ -11,7 +11,7 @@ plain C interface (`src/crimlab.h`); the R functions check their arguments
 and call it. Where an identity or a bound has a machine-checked proof in
 Lean, `proof()` names the theorem.
 
-![crimlab in 30 seconds: a veil-of-darkness table, a reported odds ratio checked against every labelling of its table, and the theorems behind a function](man/figures/demo.svg)
+![crimlab in one minute: a veil-of-darkness table, a reported odds ratio checked against every labelling of its table, a clearance paradox, a categorical audit, a posterior from a likelihood ratio, hot spots, spatial autocorrelation, the command-line program, and the theorems behind a function](man/figures/demo.svg)
 
 It is written for researchers and analysts in criminology, sociolegal
 studies, policing, corrections and forensic science who need these
