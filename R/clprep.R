@@ -242,6 +242,9 @@ print.clpre <- function(x, ...) {
 
 # Recipes: derived columns a preset needs.
 .recipe <- function(name, arg, d) {
+  if (!name %in% c("long", "acvm", "pyr")) {
+    stop("clprep: unknown recipe ", name, ".", call. = FALSE)
+  }
   switch(
     name,
     long = {
@@ -254,8 +257,7 @@ print.clpre <- function(x, ...) {
       )
     },
     acvm = .acvm(d),
-    pyr = .pyr(d),
-    stop("clprep: unknown recipe ", name, ".", call. = FALSE)
+    pyr = .pyr(d)
   )
 }
 
