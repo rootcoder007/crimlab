@@ -196,7 +196,11 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(crsev(c(1, 2), c("a", "b"), c(a = 1, b = 2))),
          c("tab", "w", "per", "base")),
     list(quote(zcomp(1:4, c(1, 2, 1, 2), c(1, 1, 2, 2))),
-         c("tab", "cat", "z"))
+         c("tab", "cat", "z")),
+    list(quote(cconc(c(0, 1, 3), nsim = 0)),
+         c("stat", "top", "lorenz", "null", "by", "scale", "grow", "places")),
+    list(quote(hilltl(c(1, 2, 4, 8), xmin = 1)),
+         c("alpha", "se", "xmin", "ntl", "ks", "reliable", "method"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

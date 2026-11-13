@@ -166,6 +166,12 @@ reference:
     contents:
       - crsev
       - zcomp
+  - title: Concentration
+    desc: How unequally crime is spread across places, people or units, what
+      chance alone would show, and the tail of a heavy-tailed count.
+    contents:
+      - cconc
+      - hilltl
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

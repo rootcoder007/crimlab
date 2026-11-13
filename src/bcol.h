@@ -79,6 +79,20 @@ inline SEXP nums(SEXP x, const char *nm, R_xlen_t n = -1, double lo = clab::ninf
   return clab::num(x, nm, n, lo, open);
 }
 
+// One number from lo to hi, both included (hi Inf: from lo up).
+inline double inr(SEXP x, const char *nm, double lo, double hi) {
+  clab::unlab(x, nm);
+  const double v = clab::val1(x);
+  if (!(v >= lo && v <= hi) || !std::isfinite(v)) {
+    char a[48], b[48];
+    clab::fmt(lo, a, sizeof a);
+    clab::fmt(hi, b, sizeof b);
+    if (std::isfinite(hi)) clab::fail("`%s` must be one number from %s to %s.", nm, a, b);
+    clab::fail("`%s` must be one number from %s.", nm, a);
+  }
+  return v;
+}
+
 // NaN as R's NA_real_ (a kernel's "no value").
 inline double na(double v) { return std::isnan(v) ? NA_REAL : v; }
 

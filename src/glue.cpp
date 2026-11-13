@@ -481,6 +481,9 @@ SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
 SEXP C_clab_r_crsev(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_zcomp(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cconc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_hilltl(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_hzta(SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -661,6 +664,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_svymx", fn(&C_clab_r_svymx), 10},
     {"C_clab_r_crsev", fn(&C_clab_r_crsev), 9},
     {"C_clab_r_zcomp", fn(&C_clab_r_zcomp), 4},
+    {"C_clab_r_cconc", fn(&C_clab_r_cconc), 7},
+    {"C_clab_r_hilltl", fn(&C_clab_r_hilltl), 5},
+    {"C_clab_r_hzta", fn(&C_clab_r_hzta), 2},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

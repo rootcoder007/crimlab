@@ -41,6 +41,16 @@
   population against a base, the weights given or made from incarceration
   rates and mean sentences); `zcomp()` ranks units on a composite of
   standardised counts across categories.
+* `cconc()` measures how concentrated a total is across units: the Gini
+  coefficient and its exact split into the share of units at zero and the
+  Gini of the rest, the Lorenz curve, top shares, dispersion against the
+  Poisson, the bound chance alone allows and a simulated Poisson null, the
+  Gini within groups, the urban-scaling exponent, and for the places of
+  events in order the growth of distinct places. `hilltl()` estimates a
+  power-law tail index: the discrete maximum likelihood estimate through the
+  Hurwitz zeta function, or the Hill estimators, with the Kolmogorov-Smirnov
+  distance of the fit. `proof("cconc")` names the Lean theorems on the split
+  at zero.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

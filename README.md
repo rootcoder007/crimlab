@@ -118,6 +118,10 @@ The functions work on summary data, not on raw records:
   population and against a base period (`crsev()`), and a composite of
   standardised counts that ranks areas on several kinds of crime at once
   (`zcomp()`).
+* Concentration: how unequally incidents or placements fall across places
+  and people, how much of a Gini coefficient comes from units with none,
+  what chance alone would show and how distinct places grow (`cconc()`), and
+  the tail index of a heavy-tailed count (`hilltl()`).
 
 ## Algorithms
 

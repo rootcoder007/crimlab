@@ -2344,6 +2344,64 @@ int clab_crsev(const double *x, const int *off, const int *key, int n, int no,
 int clab_zcomp(const double *x, int nu, int nc, const double *w, double *z,
                double *comp, double *mu, double *sd);
 
+/* Concentration of a total across units (cconc; Lean:
+ * Crimlab.Concentration.gini_zero_decomposition). x: n values from 0 with a
+ * positive total; w: NULL or n positive multiplicities (a unit of weight
+ * w counts as w units); fr: nf shares in [0, 1]. o: n ints of scratch, out
+ * the units' order by value. Out: st (16): W (the units), T (the total),
+ * the mean m, the variance (W - 1 denominator; NaN for W <= 1), the
+ * dispersion index, the implied variance of the intensity max(v - m, 0)
+ * and its root, the share of units at 0, the Poisson null share exp(-m),
+ * their difference, the Gini coefficient, the Gini of the units above 0,
+ * the null Gini exp(-m) + (1 - exp(-m)) times that, the variance with
+ * denominator W, the bound sqrt(that / 2) / m and the Poisson bound 1 /
+ * sqrt(2 m); lp, lv (n + 1): the Lorenz curve from (0, 0); top, topn (nf):
+ * the share of the total held by the largest ceil(f W) units and that
+ * number of units. */
+int clab_cconc(const double *x, const double *w, int n, const double *fr, int nf, double *st,
+               double *lp, double *lv, double *top, double *topn, int *o);
+
+/* The Gini coefficient of n independent Poisson(mu) counts, nsim times,
+ * from the generator seeded with seed (a whole number from 0); 0 when a
+ * draw has no events. Out: g (nsim). work: n ints. */
+int clab_cnull(double mu, int n, int nsim, double seed, double *g, int *work);
+
+/* Distinct places among the first i events (cconc): code[i] the place of
+ * event i (0..ng-1), n >= 2 events. Out: dist (n), the distinct places
+ * so far; mhat, the M with M sum_{j < n} 1/(M + j) equal to the final
+ * count (Inf when every event is at a new place, 0 when all are at one);
+ * ex, lo, hi (n): the expected count M sum_{j <= i} 1/(M + j) under
+ * preferential allocation and its bounds M log(1 + (i+1)/M) and 1 + M
+ * log(1 + i/M) (NaN unless 0 < M < Inf); slope, the least-squares slope of
+ * log dist on log i over the second half (NaN for fewer than 3 points).
+ * seen: ng ints of scratch. */
+int clab_cgrow(const int *code, int n, int ng, double *dist, double *mhat, double *ex, double *lo,
+               double *hi, double *slope, int *seen);
+
+/* Urban scaling (cconc): the least-squares fit of log x on log pop over
+ * the units with x above 0 (x from 0, pop positive). Out (5): the exponent
+ * beta, the prefactor exp(intercept), beta's standard error, R^2 and the
+ * units used; CLAB_EDOM, with the count set, for fewer than 3 or no spread
+ * in pop. */
+int clab_urbsc(const double *x, const double *pop, int n, double *out);
+
+/* The Hurwitz zeta function sum_{k >= 0} (q + k)^-s, s > 1, q > 0, by
+ * Euler-Maclaurin summation. */
+int clab_hzta(double s, double q, double *z);
+
+/* Power-law tail index of the values x >= xmin (hilltl): x n positive
+ * values, xmin > 0, at least 2 in the tail and not all equal (else
+ * CLAB_EDOM, with out[3] set). discrete && !approx: the maximum
+ * likelihood exponent of the discrete power law, P(X = k) = k^-a /
+ * zeta(a, xmin), on [1.0001, 25]; otherwise the continuous Hill estimator
+ * 1 + n / sum log(x / d), d = xmin - 1/2 for counts (xmin > 1/2) and xmin
+ * else. Out (5): alpha, its standard error (the observed information by a
+ * central difference, or (alpha - 1) / sqrt(n)), the Kolmogorov-Smirnov
+ * distance of the fit, the tail size and 1 when the maximum lies at an
+ * end of the search interval. work: n doubles. */
+int clab_hilltl(const double *x, int n, double xmin, int discrete, int approx, double *out,
+                double *work);
+
 #ifdef __cplusplus
 }
 #endif

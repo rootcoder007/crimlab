@@ -181,3 +181,5 @@
     {"didfe", "Did", "twfe_2x2"},
     {"didfe", "Did", "dd_effects"},
     {"didfe", "Did", "dd_effect"},
+    {"cconc", "Concentration", "gini_zero_split"},
+    {"cconc", "Concentration", "gini_excess"},
