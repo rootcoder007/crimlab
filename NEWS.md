@@ -23,6 +23,14 @@
   chi-square interval and Bergsma's bias correction, the contingency
   coefficient, phi and the diagonal share. `proof("ctabx")` names the
   Lean theorems on the 2 x 2 statistic.
+* `clprep()` maps a published dataset's columns onto a generic function's
+  arguments from `inst/presets/presets.tsv` (one row per preset and
+  argument: column, recode, filter, units, note, source), with recipes
+  for derived columns, so that `generic(clprep(data, preset))` gives the
+  published analysis. 87 presets cover the Ontario segregation and
+  deaths-in-custody tables, the race-based use-of-force files, the
+  Special Investigations Unit cases, the Structured Intervention Unit
+  tables and the Toronto incident layers.
 * `relchk()` recomputes a reported odds ratio, risk ratio or risk
   difference from its table under every labelling (each reference group,
   each outcome as the event, groups in rows or in columns) and says which

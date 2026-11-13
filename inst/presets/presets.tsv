@@ -1,0 +1,303 @@
+preset	generic	arg	column	recode	filter	units	note	source
+otis-b03-cnt	cntreg	y	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-cnt	cntreg	grp	Alert_Presence	yes|y|true|1=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-cnt	cntreg	adj	Alert_Type	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-cnt	cntreg	adj	Region_AtTimeOfPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-cnt	cntreg	clus	Institution_AtTimeOfPlacement				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b04-cnt	cntreg	y	NumberConsecutiveDays_Segregation		Measure=Median	days	median consecutive days of a cell	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b04-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b04-cnt	cntreg	adj	Region_AtTimeOfPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b04-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b06-cnt	cntreg	y	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-cnt	cntreg	grp	Reason	has:disciplinary=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-cnt	cntreg	adj	Region_AtTimeOfPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-cnt	cntreg	clus	Institution_AtTimeOfPlacement				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b07-cnt	cntreg	recipe	long	Number_Segregation_Placements_With_Alert,Number_Segregation_Placements_Without_Alert			derived columns: count (the two columns stacked), with (1 for the first)	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b07
+otis-b07-cnt	cntreg	y	count			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b07
+otis-b07-cnt	cntreg	grp	with				1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b07
+otis-b07-cnt	cntreg	adj	Alert_Type	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b07
+otis-b07-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b07
+otis-b07-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b07
+otis-b08-cnt	cntreg	y	NumberConsecutiveDays_Segregation		Measure=Median	days	median consecutive days of a cell	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-cnt	cntreg	adj	Region_AtTimeOfPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-cnt	cntreg	clus	Institution_AtTimeOfPlacement				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b09-cnt	cntreg	y	NumberIndividuals_Segregation			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-b09-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-b09-cnt	cntreg	adj	NumberPlacements_Segregation	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-b09-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-c01-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01rc-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons	clustered by year	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01rc-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01rc-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01rc-cnt	cntreg	clus	EndFiscalYear				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c01rc-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c01
+otis-c02-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-cnt	cntreg	adj	Region_MostRecentPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-cnt	cntreg	clus	Institution_MostRecentPlacement				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c03-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c03-cnt	cntreg	grp	Race	indigenous=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c03-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c03-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c04-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04-cnt	cntreg	grp	Race	indigenous=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04-cnt	cntreg	adj	Region_MostRecentPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04rc-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons	clustered by region	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04rc-cnt	cntreg	grp	Race	indigenous=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04rc-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04rc-cnt	cntreg	clus	Region_MostRecentPlacement				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04rc-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c05-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c05-cnt	cntreg	grp	Religion	christian|no religion|unknown or not reported=0;*=1			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c05-cnt	cntreg	adj	Region_MostRecentPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c05-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c06-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c06-cnt	cntreg	grp	Age_Category	has:50=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c06-cnt	cntreg	adj	Region_MostRecentPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c06-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c07-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons	the group is a function of Alert_Type: its fixed effects are aliased as R aliases them	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-cnt	cntreg	grp	Alert_Type	no alert|none|no_alert|no=0;*=1			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-cnt	cntreg	adj	Alert_Type	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c08-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c08-cnt	cntreg	grp	Religion	christian|no religion|unknown or not reported=0;*=1			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c08-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c08-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c09-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c09-cnt	cntreg	grp	Age_Category	has:50=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c09-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c09-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c10-cnt	cntreg	y	TotalAggregatedDays_RestrictiveConfinement		Measure=Median	days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-cnt	cntreg	adj	Region_MostRecentPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-cnt	cntreg	clus	Institution_MostRecentPlacement				cluster of the robust and GEE variances	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-cnt	cntreg	gee		const:TRUE			exchangeable GEE as the source reports	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c11-cnt	cntreg	y	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c11
+otis-c11-cnt	cntreg	grp	Aggregate_Duration	16 to 20 days|21 to 25 days|26 to 30 days|greater than 30 days=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c11
+otis-c11-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c11
+otis-c12-cnt	cntreg	y	TotalAggregatedDays_RestrictiveConfinement		Measure=Median	days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-c12-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-c12-cnt	cntreg	adj	Region_MostRecentPlacement	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-c12-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-d02-cnt	cntreg	y	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02
+otis-d02-cnt	cntreg	grp	Gender	female=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02
+otis-d02-cnt	cntreg	adj	Year	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02
+otis-d03-cnt	cntreg	y	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d03
+otis-d03-cnt	cntreg	grp	Race	indigenous=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d03
+otis-d03-cnt	cntreg	adj	Year	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d03
+otis-d04-cnt	cntreg	y	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d04
+otis-d04-cnt	cntreg	grp	Religion	christian|no religion|unknown or not reported=0;*=1			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d04
+otis-d04-cnt	cntreg	adj	Year	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d04
+otis-d05-cnt	cntreg	y	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d05
+otis-d05-cnt	cntreg	grp	Age_Category	has:50=1;*=0			1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d05
+otis-d05-cnt	cntreg	adj	Year	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d05
+otis-vm-cnt	cntreg	recipe	acvm				derived columns: per person and year: ac (distinct alert-flag combinations), hiac (ac >= 2), vm (region changes within and between rows)	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01
+otis-vm-cnt	cntreg	y	vm			region changes per person-year		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01
+otis-vm-cnt	cntreg	grp	hiac				1 = the group compared, 0 = the reference	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01
+otis-vm-cnt	cntreg	adj	Gender	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01
+otis-vm-cnt	cntreg	adj	Age_Category	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01
+otis-vm-cnt	cntreg	adj	EndFiscalYear	fac			one fixed effect per value	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01
+otis-b02-xtab	ctabx	row	Gender			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b02
+otis-b02-xtab	ctabx	col	Region_MostRecentPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b02
+otis-b02-xtab	ctabx	w	TotalAggregatedDays_Segregation			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b02
+otis-b03-xtab	ctabx	row	Alert_Type			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-xtab	ctabx	col	Alert_Presence					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03-xtab	ctabx	w	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03r-xtab	ctabx	row	Region_AtTimeOfPlacement			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03r-xtab	ctabx	col	Alert_Type					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b03r-xtab	ctabx	w	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b03
+otis-b04-xtab	ctabx	row	Region_AtTimeOfPlacement			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b04-xtab	ctabx	col	Measure					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b04-xtab	ctabx	w	NumberConsecutiveDays_Segregation			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b04-xtab	ctabx	agg		const:max				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b04
+otis-b05-xtab	ctabx	row	Consecutive_Duration			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b05
+otis-b05-xtab	ctabx	col	EndFiscalYear					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b05
+otis-b05-xtab	ctabx	w	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b05
+otis-b06-xtab	ctabx	row	Reason			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-xtab	ctabx	col	EndFiscalYear					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06-xtab	ctabx	w	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06g-xtab	ctabx	row	Reason			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06g-xtab	ctabx	col	Gender					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b06g-xtab	ctabx	w	Number_SegregationPlacements			placements		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b06
+otis-b08-xtab	ctabx	row	Institution_AtTimeOfPlacement			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-xtab	ctabx	col	Measure					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-xtab	ctabx	w	NumberConsecutiveDays_Segregation			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b08-xtab	ctabx	agg		const:max				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b08
+otis-b09-xtab	ctabx	row	NumberPlacements_Segregation			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-b09-xtab	ctabx	col	Gender					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-b09-xtab	ctabx	w	NumberIndividuals_Segregation			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b09
+otis-c02-xtab	ctabx	row	Institution_MostRecentPlacement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-xtab	ctabx	col	Region_MostRecentPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c02-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c02
+otis-c03-xtab	ctabx	row	Race			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c03-xtab	ctabx	col	Gender					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c03-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c03-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c03
+otis-c04-xtab	ctabx	row	Race			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04-xtab	ctabx	col	Region_MostRecentPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c04-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c04
+otis-c05-xtab	ctabx	row	Religion			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c05-xtab	ctabx	col	Region_MostRecentPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c05-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c05-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c05
+otis-c06-xtab	ctabx	row	Age_Category			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c06-xtab	ctabx	col	Region_MostRecentPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c06-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c06-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c06
+otis-c07-xtab	ctabx	row	Alert_Type			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-xtab	ctabx	col	Gender					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c08-xtab	ctabx	row	Religion			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c08-xtab	ctabx	col	Gender					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c08-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c08-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c08
+otis-c09-xtab	ctabx	row	Age_Category			persons	the c-series chi-square family uses chisq.test()'s default correction	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c09-xtab	ctabx	col	Gender					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c09-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c09-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c09
+otis-c07y-xtab	ctabx	row	Alert_Type			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07y-xtab	ctabx	col	EndFiscalYear					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c07y-xtab	ctabx	w	NumberIndividuals_Segregation			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c07
+otis-c10-xtab	ctabx	row	Institution_MostRecentPlacement			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-xtab	ctabx	col	Measure					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-xtab	ctabx	w	TotalAggregatedDays_RestrictiveConfinement			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c10-xtab	ctabx	agg		const:max				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c10
+otis-c11-xtab	ctabx	row	Aggregate_Duration			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c11
+otis-c11-xtab	ctabx	col	EndFiscalYear					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c11
+otis-c11-xtab	ctabx	w	NumberIndividuals_RestrictiveConfinement			persons		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c11
+otis-c12-xtab	ctabx	row	Region_MostRecentPlacement			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-c12-xtab	ctabx	col	Measure					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-c12-xtab	ctabx	w	TotalAggregatedDays_RestrictiveConfinement			days		Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-c12-xtab	ctabx	agg		const:max				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table c12
+otis-d02-xtab	ctabx	row	Gender			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02
+otis-d02-xtab	ctabx	col	Year					Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02
+otis-d02-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02
+otis-d03-xtab	ctabx	row	Race			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d03
+otis-d03-xtab	ctabx	col	Year					Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d03
+otis-d03-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d03
+otis-d04-xtab	ctabx	row	Religion			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d04
+otis-d04-xtab	ctabx	col	Year					Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d04
+otis-d04-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d04
+otis-d05-xtab	ctabx	row	Age_Category			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d05
+otis-d05-xtab	ctabx	col	Year					Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d05
+otis-d05-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d05
+otis-dyr-xtab	ctabx	row	Year			deaths	deaths by year	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02 to d05
+otis-dyr-xtab	ctabx	col		one			a single column: the counts of row	Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02 to d05
+otis-dyr-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d02 to d05
+otis-d06-xtab	ctabx	row	MedicalCauseOfDeath			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d06
+otis-d06-xtab	ctabx	col	Alert_Type					Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d06
+otis-d06-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d06
+otis-d07-xtab	ctabx	row	HousingUnit_Type			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d07
+otis-d07-xtab	ctabx	col	Alert_Type					Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d07
+otis-d07-xtab	ctabx	w	Number_CustodialDeaths			deaths		Ontario Ministry of the Solicitor General, deaths in custody data (Ontario Data Catalogue), table d07
+otis-loc-xtab	ctabx	row	Region_AtTimeOfPlacement			placements	diag: the share placed in the region they were in	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-loc-xtab	ctabx	col	Region_MostRecentPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rplace-xtab	ctabx	row	Age_Category			persons	distinct individuals per age and region in a fiscal year: filter EndFiscalYear first	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rplace-xtab	ctabx	col	Region_AtTimeOfPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rplace-xtab	ctabx	w	UniqueIndividual_ID					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rplace-xtab	ctabx	agg		const:dist				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rctrnd-xtab	ctabx	row	EndFiscalYear			persons	distinct individuals per year and region	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rctrnd-xtab	ctabx	col	Region_AtTimeOfPlacement					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rctrnd-xtab	ctabx	w	UniqueIndividual_ID					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-rctrnd-xtab	ctabx	agg		const:dist				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nyear-xtab	ctabx	row	EndFiscalYear			persons	distinct individuals by year	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nyear-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nyear-xtab	ctabx	w	UniqueIndividual_ID					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nyear-xtab	ctabx	agg		const:dist				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nregion-xtab	ctabx	row	Region_AtTimeOfPlacement			persons	distinct individuals by region	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nregion-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nregion-xtab	ctabx	w	UniqueIndividual_ID					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nregion-xtab	ctabx	agg		const:dist				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nage-xtab	ctabx	row	Age_Category			persons	distinct individuals by age	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nage-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nage-xtab	ctabx	w	UniqueIndividual_ID					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nage-xtab	ctabx	agg		const:dist				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ngender-xtab	ctabx	row	Gender			persons	distinct individuals by gender	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ngender-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ngender-xtab	ctabx	w	UniqueIndividual_ID					Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ngender-xtab	ctabx	agg		const:dist				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ac-xtab	ctabx	recipe	pyr				derived columns per person and year: np, nreg, ac	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ac-xtab	ctabx	row	ac			person-years	person-years by the number of distinct alert-flag combinations	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-ac-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nreg-xtab	ctabx	recipe	pyr				derived columns per person and year: np, nreg, ac	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nreg-xtab	ctabx	row	nreg			person-years	person-years by the number of distinct regions passed through	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-nreg-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-np-xtab	ctabx	recipe	pyr				derived columns per person and year: np, nreg, ac	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-np-xtab	ctabx	row	np			person-years	person-years by the number of placements	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-np-xtab	ctabx	col		one				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-mh-sr-xtab	ctabx	row	MentalHealth_Alert	yes=1;*=0		placements	alert co-occurrence (Yes against anything else)	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-mh-sr-xtab	ctabx	col	SuicideRisk_Alert	yes=1;*=0				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-mh-sw-xtab	ctabx	row	MentalHealth_Alert	yes=1;*=0		placements	alert co-occurrence (Yes against anything else)	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-mh-sw-xtab	ctabx	col	SuicideWatch_Alert	yes=1;*=0				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-sr-sw-xtab	ctabx	row	SuicideRisk_Alert	yes=1;*=0		placements	alert co-occurrence (Yes against anything else)	Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+otis-sr-sw-xtab	ctabx	col	SuicideWatch_Alert	yes=1;*=0				Ontario Ministry of the Solicitor General, segregation and restrictive confinement data (Ontario Data Catalogue), table b01 (one row per placement)
+arsau-indiv-race-rr	grprr	x	IndivInjuries_PhysicalInjuries	yes|true|1=1;no|false|0=0;*=NA		persons injured	rows with any other answer are dropped	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-race-rr	grprr	grp	Race				the source's reference is the largest group: give ref	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-race-rr	grprr	type		const:prop				Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-gender-rr	grprr	x	IndivInjuries_PhysicalInjuries	yes|true|1=1;no|false|0=0;*=NA		persons injured	rows with any other answer are dropped	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-gender-rr	grprr	grp	Gender				the source's reference is the largest group: give ref	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-gender-rr	grprr	type		const:prop				Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-age-rr	grprr	x	IndivInjuries_PhysicalInjuries	yes|true|1=1;no|false|0=0;*=NA		persons injured	rows with any other answer are dropped	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-age-rr	grprr	grp	AgeCategory				the source's reference is the largest group: give ref	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-indiv-age-rr	grprr	type		const:prop				Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), individual records
+arsau-main-xtab	ctabx	row	IncidentType			incidents	incident type by service	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), main records
+arsau-main-xtab	ctabx	col	PoliceService					Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), main records
+arsau-main-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), main records
+arsau-weapon-xtab	ctabx	row	Weapon			weapons		Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), weapon records
+arsau-weapon-xtab	ctabx	col	Location					Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), weapon records
+arsau-weapon-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), weapon records
+arsau-detail-xtab	ctabx	row	ASSIGNMENT_TYPE			incidents		Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), aggregate and detailed data 2020-2022
+arsau-detail-xtab	ctabx	col	POLICE_SERVICE					Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), aggregate and detailed data 2020-2022
+arsau-detail-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Ministry of the Solicitor General, race-based use-of-force data (Ontario Data Catalogue), aggregate and detailed data 2020-2022
+siu-svc-rr	grprr	x	charges_recommended	true|yes|1|t=1;false|no|0|f=0;*=NA		cases charged	cases with no decision are dropped	Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-svc-rr	grprr	grp	police_service					Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-svc-rr	grprr	type		const:prop				Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-yrchg-xtab	ctabx	row	date_of_incident_iso	sub:1,4		cases	year of the incident by charge decision; drop the years with an empty cell first, as the source does	Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-yrchg-xtab	ctabx	col	charges_recommended	true|yes|1|t=charged;false|no|0|f=no charges;*=NA				Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-yrchg-xtab	ctabx	correct		const:TRUE			Yates' correction on a 2 x 2 table, as the source	Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-svcyr-xtab	ctabx	row	police_service			cases		Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-svcyr-xtab	ctabx	col	date_of_incident_iso	sub:1,4				Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-outcome-xtab	ctabx	row	police_service			cases	decision by service; shares within service are tab / rowSums(tab)	Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-outcome-xtab	ctabx	col	director_decision_category					Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-year-xtab	ctabx	row	date_of_incident_iso	sub:1,4		cases		Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+siu-year-xtab	ctabx	col		one			a single column: the counts of row	Ontario Special Investigations Unit, Director's reports (siu.on.ca), as parsed into one row per case
+sdsiu-t12-rr	grprr	x	siu_pct			per cent of stays	rep is the over- or under-representation	Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 12
+sdsiu-t12-rr	grprr	n	pop_pct			per cent of prisoners		Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 12
+sdsiu-t12-rr	grprr	grp	region					Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 12
+sdsiu-t13-rr	grprr	x	short_stay_rate			per 1,000 prisoners	published rates: ratio is the ratio of rates (no interval)	Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 13
+sdsiu-t13-rr	grprr	n		one				Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 13
+sdsiu-t13-rr	grprr	grp	region					Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 13
+sdsiu-t23-rr	grprr	x	torture_rate			per 1,000 prisoners	published rates: ratio is the ratio of rates (no interval)	Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 23
+sdsiu-t23-rr	grprr	n		one				Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 23
+sdsiu-t23-rr	grprr	grp	region					Sprott, J. B. and Doob, A. N. (2021), CSC Structured Intervention Units reports, table 23
+tps-division-xtab	ctabx	row	DIVISION			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-division-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers
+tps-neighbourhood-xtab	ctabx	row	NEIGHBOURHOOD_158			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-neighbourhood-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers
+tps-premisestype-xtab	ctabx	row	PREMISES_TYPE			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-premisestype-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers
+tps-locationtype-xtab	ctabx	row	LOCATION_TYPE			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-locationtype-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers
+tps-offence-xtab	ctabx	row	OFFENCE			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-offence-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers
+tps-ucrcode-xtab	ctabx	row	UCR_CODE			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-ucrcode-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers
+tps-csicategory-xtab	ctabx	row	CSI_CATEGORY			incidents		Toronto Police Service Public Safety Data Portal, incident layers
+tps-csicategory-xtab	ctabx	col		one			a single column: the counts of row	Toronto Police Service Public Safety Data Portal, incident layers

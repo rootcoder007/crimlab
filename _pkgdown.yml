@@ -142,6 +142,10 @@ reference:
       - dastd
       - sirex
       - ctabx
+  - title: Presets
+    desc: A published dataset's columns onto a generic function's arguments.
+    contents:
+      - clprep
   - title: Learning
     desc: The elastic net with cross-validation, logistic regression and
       random forests; the learners of the cross-fitted estimators.

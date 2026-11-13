@@ -142,14 +142,3 @@ print.cntreg <- function(x, ...) {
   }
   invisible(x)
 }
-
-# The generic f called on a clpre list p from clprep(): p's elements fill
-# f's arguments by name, and the arguments of the original call cl (but the
-# first, p itself), evaluated in env, override them.
-.prep <- function(f, p, cl, env) {
-  a <- lapply(as.list(cl)[-(1:2)], eval, envir = env)
-  b <- unclass(p)
-  attributes(b) <- list(names = names(b))
-  b[names(a)] <- a
-  do.call(f, b)
-}

@@ -75,6 +75,12 @@ The functions work on summary data, not on raw records:
 * Tables: cross-tabulation of records or of an aggregate table's counts,
   with chi-square and likelihood-ratio tests, Fisher's exact test,
   Cramer's V with its interval, and the share on the diagonal (`ctabx()`).
+* Presets: how the columns of a published dataset (Ontario segregation and
+  deaths-in-custody tables, use-of-force files, Special Investigations
+  Unit cases, Structured Intervention Unit tables, Toronto incident
+  layers) feed these functions, so that `cntreg(clprep(data,
+  "otis-c01-cnt"))` gives the published analysis (`clprep()`). Presets
+  describe layouts and ship no data.
 * Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference (`relchk()`), and what the functions here
   would make of categorical inputs before an analysis (`catchk()`).
