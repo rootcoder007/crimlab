@@ -1266,6 +1266,36 @@ int clab_svgln(int k, const int *off, const int *np, const double *x,
                const char *const *lab, const char *title, const char *xlab,
                const char *ylab, int vline, double vx, int corner, char *out,
                int cap, int *len);
+/* Every reading of a contrast reported from an r x c table of counts
+ * (Lean: Crimlab.RelChk.or_swap_ref and the theorems beside it).
+ * x: column-major (x[i + r j]: group i, outcome level j), r, c >= 2,
+ * finite and >= 0, with every row and column total positive. A reading
+ * compares group g with reference group h (g != h) for outcome level e as
+ * the event, the other levels pooled: kind 0, the odds ratio a d / (b c);
+ * 1, the risk ratio (a / (a + b)) / (c / (c + d)); 2, the risk difference
+ * a / (a + b) - c / (c + d), where a and b are the events and the others in
+ * group g, c and d in group h. A zero denominator gives +Inf over a
+ * positive numerator and NaN over 0. The readings are taken with the
+ * groups in rows (grp 0) and, the table transposed, in columns (grp 1), in
+ * the order orientation, kind, h, g, e: m = 3 r c (r + c - 2) of them,
+ * CLAB_EARG above INT_MAX. A reading matches value when it is finite and
+ * within tol >= 0 of it, up to 4 units in the last place of the larger of
+ * the two. Out, m each: grp, g, h, e, kind, v (the value), match (1 or 0);
+ * nmatch, the number that match. CLAB_EDOM for a count, value or tol out
+ * of range or an empty row or column. O(m (r + c)). */
+int clab_relchk(const double *x, int r, int c, double value, double tol,
+                int *grp, int *g, int *h, int *e, int *kind, double *v,
+                int *match, int *nmatch);
+
+/* The audit of one categorical variable. code: n level codes in [0, k), or
+ * -1 for a missing value; fold: k keys in [0, k), equal for labels that
+ * differ only by case or white space; nmin >= 1. Out: cnt, k counts; twin,
+ * k levels: the first other level with the same key (the first level of a
+ * key gets the second), or -1; s, 4: the missing values, the levels with
+ * no count, the levels counted fewer than nmin times (but at least once)
+ * and the levels with a twin. work: k ints. O(n + k). */
+int clab_catchk(const int *code, int n, int k, const int *fold, int nmin,
+                int *cnt, int *twin, int *s, int *work);
 
 #ifdef __cplusplus
 }
