@@ -72,6 +72,9 @@ The functions work on summary data, not on raw records:
   over-representation (`grprr()`); directly standardised rates
   (`dastd()`); observed over expected counts with funnel limits and
   empirical Bayes shrinkage (`sirex()`).
+* Tables: cross-tabulation of records or of an aggregate table's counts,
+  with chi-square and likelihood-ratio tests, Fisher's exact test,
+  Cramer's V with its interval, and the share on the diagonal (`ctabx()`).
 * Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference (`relchk()`), and what the functions here
   would make of categorical inputs before an analysis (`catchk()`).

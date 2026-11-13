@@ -2,10 +2,11 @@
 //
 // The R entry points of crimlab's count and table statistics: count
 // regression (cntreg), rates by group (grprr) and standardised rates
-// (dastd, sirex). Each checks its arguments, builds the kernel's
+// (dastd, sirex), and contingency tables (ctabx). Each checks its arguments, builds the kernel's
 // arrays, calls the kernels and builds the R result. Distribution
 // functions come from R's maths library. Nothing calls back into the R
 // evaluator.
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -24,6 +25,8 @@ extern "C" double Rf_qgamma(double, double, double, int, int);
 extern "C" double Rf_qbeta(double, double, double, int, int);
 extern "C" double Rf_qchisq(double, double, int, int);
 extern "C" double Rf_qpois(double, double, int, int);
+extern "C" double Rf_pchisq(double, double, int, int);
+extern "C" double Rf_pnchisq(double, double, double, int, int);
 
 using clab::fail;
 
@@ -172,11 +175,16 @@ void adjcols(SEXP adj, int n, std::vector<term> &out) {
   }
 }
 
-const char *cntmsg(int rc) {
-  return rc == CLAB_EDOM ? "the fit failed: the deviance or a coefficient left the finite "
-                           "range (a group or cell with no counts can do this)."
-                         : "the kernel refused the input.";
+// A kernel's verdict: CLAB_OK, or stop with msg.
+void kok(int rc, const char *msg) {
+  if (rc != CLAB_OK) fail("%s", msg);
 }
+
+// the Poisson fit's failure: its arguments were checked, so the IRLS
+// left the finite range
+const char *const cntmsg =
+    "the fit failed: the deviance or a coefficient left the finite range "
+    "(a group or cell with no counts can do this).";
 
 // ------------------------------------------------------------ rates
 
@@ -259,6 +267,44 @@ std::vector<double> perstr(SEXP v, const char *nm, SEXP lev, int ns) {
 }
 
 const char *const rtype[] = {"rate", "prop"};
+
+// ------------------------------------------------------------ tables
+
+// The noncentrality at which a chi-square statistic st on df degrees of
+// freedom sits at lower-tail probability q: pnchisq(st, df, ncp) falls as
+// ncp grows; 0 when even ncp = 0 leaves it below q.
+double ncp(double st, double df, double q) {
+  if (Rf_pchisq(st, df, 1, 0) <= q) return 0.0;
+  double a = 0, b = std::fmax(1.0, st);
+  while (Rf_pnchisq(st, df, b, 1, 0) > q) b *= 2;
+  for (int it = 0; it < 200 && b - a > 1e-12 * b; ++it) {
+    const double m = (a + b) / 2;
+    if (Rf_pnchisq(st, df, m, 1, 0) > q) a = m;
+    else b = m;
+  }
+  return (a + b) / 2;
+}
+
+const char *const aggs[] = {"n", "sum", "max", "min", "mean", "dist"};
+
+SEXP labmat(const double *v, int r, int c, SEXP rl, SEXP cl) {
+  SEXP m = PROTECT(Rf_allocMatrix(REALSXP, r, c));
+  std::copy(v, v + static_cast<std::ptrdiff_t>(r) * c, REAL(m));
+  SEXP dn = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dn, 0, rl);
+  SET_VECTOR_ELT(dn, 1, cl);
+  Rf_setAttrib(m, R_DimNamesSymbol, dn);
+  UNPROTECT(2);
+  return m;
+}
+
+// labels 1, 2, ..., n
+SEXP seqlab(int n) {
+  SEXP s = PROTECT(Rf_allocVector(STRSXP, n));
+  for (int i = 0; i < n; ++i) SET_STRING_ELT(s, i, Rf_mkChar(std::to_string(i + 1).c_str()));
+  UNPROTECT(1);
+  return s;
+}
 
 }  // namespace
 
@@ -348,10 +394,9 @@ SEXP C_clab_r_cntreg(SEXP y, SEXP grp, SEXP adj, SEXP expo, SEXP clus, SEXP ref,
     const int rc = clab_cntreg(yy, x.data(), n, p, of, cl, ncl, f, 25, 1e-8, &beta[fo * sp],
                                &vb[fo * sp * sp], &vc[fo * sp * sp], &st[fo * 8],
                                &alias[fo * sp], work.data(), iwork.data());
+    if (f == 0) kok(rc, cntmsg);
     if (rc == CLAB_OK) {
       ok[f] = true;
-    } else if (f == 0) {
-      fail("%s", cntmsg(rc));
     } else {
       Rf_warningcall(R_NilValue,
                      "cntreg: the negative binomial fit failed (theta has no finite "
@@ -513,10 +558,8 @@ SEXP C_clab_r_grprr(SEXP x, SEXP n, SEXP grp, SEXP ref, SEXP type, SEXP per,
   std::vector<double> o(10 * sk);
   double *rt = &o[0], *lo = &o[sk], *hi = &o[2 * sk], *rp = &o[3 * sk], *ra = &o[4 * sk],
          *rl = &o[5 * sk], *rh = &o[6 * sk], *df = &o[7 * sk], *dl = &o[8 * sk], *dh = &o[9 * sk];
-  if (clab_grprr(g.x.data(), g.n.data(), k, r0, prop, z, rt, lo, hi, rp, ra, rl, rh, df, dl,
-                 dh) != CLAB_OK) {
-    fail("the kernel refused the input.");
-  }
+  kok(clab_grprr(g.x.data(), g.n.data(), k, r0, prop, z, rt, lo, hi, rp, ra, rl, rh, df, dl, dh),
+      "the kernel refused the input.");
   cols rs(9);
   rs.put("group", g.lev);
   double *cx = rs.dbl("x", k), *cn = rs.dbl("n", k), *cr = rs.dbl("rate", k),
@@ -718,6 +761,197 @@ SEXP C_clab_r_sirex(SEXP x, SEXP n, SEXP strat, SEXP grp, SEXP rates, SEXP level
   np += 3;
   SEXP out = PROTECT(nlist({{"sir", tab}, {"prior", pv}, {"level", lv}}));
   Rf_classgets(out, PROTECT(Rf_mkString("sirex")));
+  UNPROTECT(np + 2);
+  return out;
+}
+
+//' @srrstats {G2.14} ctabx() states its rule for missing values: none
+//'   are accepted; a table with an empty row or column has it dropped
+//'   (counted in `drop`) before the statistics.
+//' @noRd
+SEXP C_clab_r_ctabx(SEXP row, SEXP col, SEXP w, SEXP agg, SEXP correct, SEXP exact,
+                    SEXP level) {
+  clab::who = "ctabx";
+  int np = 0;
+  const bool yates = csp::flag(correct, "correct"), ex = csp::flag(exact, "exact");
+  const double z = zq(level);
+  (void)z;
+  const double conf = REAL_RO(PROTECT(clab::dbl(level)))[0];
+  ++np;
+  int r = 0, c = 0, ag = 0;
+  std::vector<double> t;
+  SEXP rl, cl;
+  if (Rf_isNull(col)) {
+    // a table given whole
+    if (!clab::isnum(row) || !Rf_isMatrix(row)) {
+      fail("`row` must be the row labels (with `col`) or a numeric matrix or 2-d table.");
+    }
+    clab::unlab(row, "row");
+    if (!Rf_isNull(w)) fail("`w` goes with `row` and `col` labels, not with a table.");
+    r = Rf_nrows(row);
+    c = Rf_ncols(row);
+    SEXP v = PROTECT(clab::dbl(row));
+    ++np;
+    t.assign(REAL(v), REAL(v) + static_cast<std::ptrdiff_t>(r) * c);
+    for (double e : t) {
+      if (!(e >= 0) || !std::isfinite(e)) fail("`row` must hold counts: finite numbers from 0.");
+    }
+    SEXP dn = Rf_getAttrib(row, R_DimNamesSymbol);
+    rl = !Rf_isNull(dn) && !Rf_isNull(VECTOR_ELT(dn, 0)) ? VECTOR_ELT(dn, 0) : seqlab(r);
+    PROTECT(rl);
+    cl = !Rf_isNull(dn) && !Rf_isNull(VECTOR_ELT(dn, 1)) ? VECTOR_ELT(dn, 1) : seqlab(c);
+    PROTECT(cl);
+    np += 2;
+    ag = Rf_isNull(agg) ? 0 : csp::pick(agg, "agg", aggs, 6);
+    if (ag > 1) fail("`agg` applies to `row` and `col` labels, not to a table.");
+  } else {
+    SEXP uv[3] = {row, col, w};
+    static const char *const un[] = {"row", "col", "w"};
+    np += csp::byname(uv, un, 3);
+    const int n = clab::ilen(static_cast<double>(Rf_xlength(uv[0])), "row");
+    if (n < 1) fail("`row` must have at least one label.");
+    csp::lab a = csp::codes(uv[0], "row", n);
+    csp::lab b = csp::codes(uv[1], "col", n);
+    np += 4;
+    r = a.g;
+    c = b.g;
+    rl = a.lev;
+    cl = b.lev;
+    ag = Rf_isNull(agg) ? (Rf_isNull(uv[2]) ? 0 : 1) : csp::pick(agg, "agg", aggs, 6);
+    const std::size_t rc = static_cast<std::size_t>(r) * static_cast<std::size_t>(c);
+    t.assign(rc, 0.0);
+    std::vector<double> cnt(rc, 0.0);
+    const int *ia = INTEGER(a.code), *ib = INTEGER(b.code);
+    if (ag == 0) {
+      if (!Rf_isNull(uv[2])) fail("`agg = \"n\"` counts rows: leave `w` out.");
+      for (int i = 0; i < n; ++i) t[static_cast<std::size_t>(ib[i]) * static_cast<std::size_t>(r) + static_cast<std::size_t>(ia[i])] += 1;
+    } else if (Rf_isNull(uv[2])) {
+      fail("`agg = \"%s\"` needs `w`, the values to aggregate.", aggs[ag]);
+    } else if (ag == 5) {
+      // distinct values of w (an id) in each cell
+      csp::lab d = csp::codes(uv[2], "w", n);
+      np += 2;
+      std::vector<std::vector<int>> seen(rc);
+      for (int i = 0; i < n; ++i) {
+        seen[static_cast<std::size_t>(ib[i]) * static_cast<std::size_t>(r) + static_cast<std::size_t>(ia[i])].push_back(INTEGER(d.code)[i]);
+      }
+      for (std::size_t q = 0; q < rc; ++q) {
+        std::sort(seen[q].begin(), seen[q].end());
+        t[q] = static_cast<double>(std::unique(seen[q].begin(), seen[q].end()) - seen[q].begin());
+      }
+    } else {
+      SEXP wv = PROTECT(clab::num(uv[2], "w", n, ag == 1 ? 0.0 : clab::ninf));
+      ++np;
+      for (int i = 0; i < n; ++i) {
+        const std::size_t q = static_cast<std::size_t>(ib[i]) * static_cast<std::size_t>(r) + static_cast<std::size_t>(ia[i]);
+        const double v = REAL(wv)[i];
+        if (ag == 1 || ag == 4) t[q] += v;
+        else if (cnt[q] == 0) t[q] = v;
+        else if (ag == 2) t[q] = std::fmax(t[q], v);
+        else t[q] = std::fmin(t[q], v);
+        cnt[q] += 1;
+      }
+      if (ag == 4) {
+        for (std::size_t q = 0; q < rc; ++q) t[q] = cnt[q] > 0 ? t[q] / cnt[q] : 0.0;
+      }
+    }
+  }
+  // the counts with the empty rows and columns dropped
+  std::vector<int> kr, kc;
+  for (int i = 0; i < r; ++i) {
+    double s = 0;
+    for (int j = 0; j < c; ++j) s += t[static_cast<std::size_t>(j) * static_cast<std::size_t>(r) + static_cast<std::size_t>(i)];
+    if (s > 0) kr.push_back(i);
+  }
+  for (int j = 0; j < c; ++j) {
+    double s = 0;
+    for (int i = 0; i < r; ++i) s += t[static_cast<std::size_t>(j) * static_cast<std::size_t>(r) + static_cast<std::size_t>(i)];
+    if (s > 0) kc.push_back(j);
+  }
+  const int r2 = static_cast<int>(kr.size()), c2 = static_cast<int>(kc.size());
+  const bool counts = ag == 0 || ag == 1 || ag == 5;
+  std::vector<double> u(static_cast<std::size_t>(r2) * static_cast<std::size_t>(c2)), e(u.size()),
+      rs(u.size()), st(9, qnan);
+  std::vector<int> dg(static_cast<std::size_t>(r2), -1);
+  for (int j = 0; j < c2; ++j) {
+    for (int i = 0; i < r2; ++i) {
+      u[static_cast<std::size_t>(j) * static_cast<std::size_t>(r2) + static_cast<std::size_t>(i)] =
+          t[static_cast<std::size_t>(kc[static_cast<std::size_t>(j)]) * static_cast<std::size_t>(r) +
+            static_cast<std::size_t>(kr[static_cast<std::size_t>(i)])];
+    }
+  }
+  for (int i = 0; i < r2; ++i) {
+    for (int j = 0; j < c2; ++j) {
+      if (clab::seql(STRING_ELT(rl, kr[static_cast<std::size_t>(i)]), STRING_ELT(cl, kc[static_cast<std::size_t>(j)]))) {
+        dg[static_cast<std::size_t>(i)] = j;
+      }
+    }
+  }
+  bool any = false;
+  for (int i = 0; i < r2; ++i) any = any || dg[static_cast<std::size_t>(i)] >= 0;
+  double fs[5] = {qnan, qnan, qnan, qnan, qnan};
+  const bool ok = counts && r2 >= 1 && c2 >= 1;
+  if (ok) {
+    kok(clab_ctabx(u.data(), r2, c2, yates ? 1 : 0, any ? dg.data() : nullptr, e.data(),
+                   rs.data(), st.data()),
+        "the kernel refused the table.");
+    if (ex && r2 >= 2 && c2 >= 2) {
+      std::vector<double> rem(static_cast<std::size_t>(r2 + c2));
+      const int rc = clab_fshx(u.data(), r2, c2, 1e7, conf, fs, rem.data());
+      if (rc != CLAB_OK) {
+        for (double v : u) {
+          if (v != std::floor(v)) fail("the exact test needs whole counts.");
+        }
+        fail("the exact test would visit more than 1e7 tables: leave `exact` FALSE.");
+      }
+    }
+  } else if (ex) {
+    fail("the exact test needs counts: `agg` \"n\", \"sum\" or \"dist\".");
+  }
+  const bool two = ok && r2 >= 2 && c2 >= 2;
+  SEXP rl2 = PROTECT(Rf_allocVector(STRSXP, r2)), cl2 = PROTECT(Rf_allocVector(STRSXP, c2));
+  np += 2;
+  for (int i = 0; i < r2; ++i) SET_STRING_ELT(rl2, i, STRING_ELT(rl, kr[static_cast<std::size_t>(i)]));
+  for (int j = 0; j < c2; ++j) SET_STRING_ELT(cl2, j, STRING_ELT(cl, kc[static_cast<std::size_t>(j)]));
+  SEXP tab = PROTECT(labmat(t.data(), r, c, rl, cl));
+  ++np;
+  for (double &v : e) v = ok ? v : NA_REAL;
+  for (double &v : rs) v = ok ? v : NA_REAL;
+  SEXP em = PROTECT(labmat(e.data(), r2, c2, rl2, cl2));
+  SEXP rm = PROTECT(labmat(rs.data(), r2, c2, rl2, cl2));
+  np += 2;
+  cols sc(17);
+  auto put = [&](const char *nm, double v) { sc.dbl(nm, 1)[0] = std::isnan(v) ? NA_REAL : v; };
+  const double df = st[2], ch = st[1], nn = st[0];
+  const int kk = r2 < c2 ? r2 : c2;
+  put("n", st[0]);
+  put("chisq", two ? ch : qnan);
+  put("df", two ? df : qnan);
+  put("p", two ? Rf_pchisq(ch, df, 0, 0) : qnan);
+  put("g2", two ? st[3] : qnan);
+  put("g2p", two ? Rf_pchisq(st[3], df, 0, 0) : qnan);
+  put("v", two ? st[4] : qnan);
+  // DescTools' noncentral chi-square interval: sqrt(ncp / (n (k - 1)))
+  const double chu = two ? (yates && r2 == 2 && c2 == 2 ? st[4] * st[4] * nn * (kk - 1) : ch) : qnan;
+  put("vlo", two ? std::fmin(1.0, std::sqrt(ncp(chu, df, 1 - (1 - conf) / 2) / (nn * (kk - 1)))) : qnan);
+  put("vhi", two ? std::fmin(1.0, std::sqrt(ncp(chu, df, (1 - conf) / 2) / (nn * (kk - 1)))) : qnan);
+  put("vbc", two ? st[5] : qnan);
+  put("cc", two ? st[6] : qnan);
+  put("phi", st[7]);
+  put("diag", st[8]);
+  put("fp", fs[0]);
+  put("or", fs[1]);
+  put("orlo", fs[2]);
+  put("orhi", fs[3]);
+  SEXP stat = PROTECT(sc.frame());
+  SEXP dr = PROTECT(Rf_ScalarInteger((r - r2) + (c - c2)));
+  SEXP am = PROTECT(Rf_mkString(aggs[ag]));
+  SEXP cr = PROTECT(Rf_ScalarLogical(yates ? 1 : 0));
+  SEXP lv = PROTECT(Rf_ScalarReal(conf));
+  np += 5;
+  SEXP out = PROTECT(nlist({{"tab", tab}, {"expd", em}, {"res", rm}, {"stat", stat},
+                            {"drop", dr}, {"agg", am}, {"correct", cr}, {"level", lv}}));
+  Rf_classgets(out, PROTECT(Rf_mkString("ctabx")));
   UNPROTECT(np + 2);
   return out;
 }

@@ -1616,6 +1616,34 @@ int clab_sirex(const double *x, const double *n, const int *grp, const int *str,
                int ng, int ns, const double *sr, double *obs, double *expd, double *sir,
                double *eb, double *shr, double *prior, double *work);
 
+/* ------------------------------------------------------------------------
+ * Contingency tables.
+ * ------------------------------------------------------------------------ */
+
+/* The r x c table x (column-major counts from 0, every row and column
+ * total positive). yates: 1 for the continuity correction of a 2 x 2
+ * table's chi-square, as chisq.test(correct = TRUE). dg: NULL, or for each
+ * row the column holding the same label (-1 for none), for the diagonal
+ * share. Out: e and res (r x c), the expected counts and the Pearson
+ * residuals (o - e) / sqrt(e); st (9): n, the chi-square statistic, its
+ * degrees of freedom, the likelihood-ratio statistic G^2, Cramer's V
+ * (from the uncorrected statistic), V with Bergsma's bias correction
+ * (doi:10.1016/j.jkss.2012.10.002), the contingency coefficient, phi
+ * (signed; 2 x 2 only, NaN otherwise) and the diagonal share (NaN when dg
+ * is NULL or matches nothing). */
+int clab_ctabx(const double *x, int r, int c, int yates, const int *dg, double *e,
+               double *res, double *st);
+
+/* Fisher's exact test of the r x c table x (whole counts, r, c >= 2):
+ * every table with its margins is visited, at most cap of them
+ * (CLAB_EDOM beyond), and the p-value sums the probabilities at most the
+ * observed one's (to a relative 1e-7, as fisher.test()). Out: st (5): the
+ * p-value; for a 2 x 2 table the conditional maximum likelihood odds ratio
+ * and its exact interval at level conf (NaN otherwise); the tables
+ * visited. rem: r + c doubles. */
+int clab_fshx(const double *x, int r, int c, double cap, double conf, double *st,
+              double *rem);
+
 #ifdef __cplusplus
 }
 #endif

@@ -207,6 +207,7 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_lab(t, 0);
   t_cnt(t, 0);
   t_rat(t, 0);
+  t_tab(t, 0);
   t_learn(t, 0);
   t_rf(t, 0);
   t_dml(t, 0);
@@ -426,6 +427,7 @@ int main(int argc, char **argv) {
     t_lab(t, 1);
     t_cnt(t, 1);
     t_rat(t, 1);
+    t_tab(t, 1);
     t_learn(t, 1);
     t_rf(t, 1);
     t_dml(t, 1);

@@ -42,6 +42,7 @@ src/svg.cpp src/t_svg.cpp
 src/lab.cpp src/t_lab.cpp
 src/cnt.cpp src/t_cnt.cpp
 src/rat.cpp src/t_rat.cpp
+src/tab.cpp src/t_tab.cpp
 src/learn.cpp src/t_learn.cpp
 src/rf.cpp src/t_rf.cpp
 src/dml.cpp src/t_dml.cpp

@@ -401,6 +401,7 @@ SEXP C_clab_r_cntreg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_grprr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dastd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sirex(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ctabx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The learning and causal families (rlearn.cpp).
 SEXP C_clab_r_enpath(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lgtreg(SEXP, SEXP, SEXP, SEXP);
@@ -527,6 +528,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_grprr", fn(&C_clab_r_grprr), 7},
     {"C_clab_r_dastd", fn(&C_clab_r_dastd), 8},
     {"C_clab_r_sirex", fn(&C_clab_r_sirex), 6},
+    {"C_clab_r_ctabx", fn(&C_clab_r_ctabx), 7},
     {"C_clab_r_enpath", fn(&C_clab_r_enpath), 10},
     {"C_clab_r_lgtreg", fn(&C_clab_r_lgtreg), 4},
     {"C_clab_r_rfor", fn(&C_clab_r_rfor), 9},

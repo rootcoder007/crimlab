@@ -15,6 +15,14 @@
   standardised rates with Fay and Feuer's interval, and their ratios and
   differences; `sirex()` gives standardised incidence ratios with exact
   intervals, funnel limits and Marshall's empirical Bayes shrinkage.
+* `ctabx()` cross-tabulates labels (counting rows, summing a count column,
+  taking the largest or smallest value, or counting distinct ids per
+  cell) and tests the table: Pearson's chi-square (with Yates' correction
+  on request), the likelihood-ratio test, Fisher's exact test with the
+  conditional odds ratio of a 2 x 2 table, Cramer's V with its noncentral
+  chi-square interval and Bergsma's bias correction, the contingency
+  coefficient, phi and the diagonal share. `proof("ctabx")` names the
+  Lean theorems on the 2 x 2 statistic.
 * `relchk()` recomputes a reported odds ratio, risk ratio or risk
   difference from its table under every labelling (each reference group,
   each outcome as the event, groups in rows or in columns) and says which

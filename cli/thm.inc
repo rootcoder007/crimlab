@@ -125,6 +125,8 @@
     {"dastd", "Rates", "dsr_le_max"},
     {"dastd", "Rates", "dsr_ge_min"},
     {"sirex", "Rates", "eb_convex"},
+    {"ctabx", "Table", "chi2_closed"},
+    {"ctabx", "Table", "chi2_swap"},
     {"cgstat", "Spatial", "mean_centre_minimises"},
     {"sdell", "Spatial", "parallel_axis"},
     {"lmorn", "Spatial", "lisa_sum"},
