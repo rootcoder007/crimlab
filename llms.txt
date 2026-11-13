@@ -13,13 +13,17 @@ machine-checked proof in Lean,
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
 names the theorem.
 
-![crimlab in 30 seconds: a veil-of-darkness table, a reported odds ratio
-checked against every labelling of its table, and the theorems behind a
-function](reference/figures/demo.svg)
+![crimlab in one minute: a veil-of-darkness table, a reported odds ratio
+checked against every labelling of its table, a clearance paradox, a
+categorical audit, a posterior from a likelihood ratio, hot spots,
+spatial autocorrelation, the command-line program, and the theorems
+behind a function](reference/figures/demo.svg)
 
-crimlab in 30 seconds: a veil-of-darkness table, a reported odds ratio
-checked against every labelling of its table, and the theorems behind a
-function
+crimlab in one minute: a veil-of-darkness table, a reported odds ratio
+checked against every labelling of its table, a clearance paradox, a
+categorical audit, a posterior from a likelihood ratio, hot spots,
+spatial autocorrelation, the command-line program, and the theorems
+behind a function
 
 It is written for researchers and analysts in criminology, sociolegal
 studies, policing, corrections and forensic science who need these
