@@ -10,7 +10,8 @@
 #' units, Morrill's (1991) adjusted `D` subtracts the weighted mean
 #' absolute difference of the pair's shares between neighbouring units, so
 #' that segregation across a boundary counts less than segregation within.
-#' Units with no one in them are left out.
+#' Units with no one in them are left out. That `D` lies between 0 and 1 is
+#' proved in Lean: see `proof("dissix")`.
 #'
 #' @param x The counts: a matrix or data frame of numbers from 0, units by
 #'   groups (named columns), every group with a positive total.

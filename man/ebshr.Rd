@@ -35,7 +35,9 @@ counts (James and Stein 1961; Efron and Morris 1975). \code{S_theta} is
 estimated as the excess of the weighted scatter of \code{y} over \code{v} (0 if
 negative). The predicted fall of a place is \code{B (y - ybar)}: the size of
 the regression to the mean a hot-spot programme should expect without
-doing anything.
+doing anything. That \verb{B*} lies in \verb{[0, 1]}, minimises the loss and
+never does worse than no shrinkage is proved in Lean: see
+\code{proof("ebshr")}.
 }
 \examples{
 y <- c(40, 12, 9, 25, 7, 31, 5, 18)

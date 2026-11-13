@@ -92,8 +92,8 @@ print.sarml <- function(x, ...) {
 #' difference the indirect effect, the spillover to other units (LeSage
 #' and Pace 2009). An analysis that reads `beta_k` alone can report "no
 #' effect" where the effect is all spillover. With row-standardised
-#' weights the total is `(beta_k + theta_k) / (1 - rho)`.
-#' Standard errors are by the delta method in `rho`,
+#' weights the total is `(beta_k + theta_k) / (1 - rho)`, proved in Lean:
+#' see `proof("spill")`. Standard errors are by the delta method in `rho`,
 #' `beta_k` and `theta_k`, with the exact derivatives `d (I - rho W)^-1 /
 #' d rho = (I - rho W)^-1 W (I - rho W)^-1`. The effects are those of
 #' `spatialreg::impacts()`, which gives simulated rather than delta-method

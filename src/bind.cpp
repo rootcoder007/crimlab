@@ -2062,6 +2062,14 @@ const Thm thms[] = {
     {"dmlx", "Learn", "plr_orthogonal"},
     {"dmlx", "Learn", "aipw_bias"},
     {"dmlx", "Learn", "aipw_double_robust"},
+    {"ebshr", "Hotspot", "bstar_mem"},
+    {"ebshr", "Hotspot", "bstar_min"},
+    {"ebshr", "Hotspot", "bstar_le_raw"},
+    {"kscan", "Hotspot", "llr_nonneg"},
+    {"dissix", "Hotspot", "dissim_nonneg"},
+    {"dissix", "Hotspot", "dissim_le_one"},
+    {"spill", "Hotspot", "total_effect"},
+    {"bvmor", "Hotspot", "bv_self"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

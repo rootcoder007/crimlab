@@ -75,8 +75,8 @@ their ratio, each the best of its circle among those whose circles
 overlap none chosen before. Each p-value compares the cluster's ratio
 with the largest ratio of the whole scan with the times shuffled among
 the locations \code{nsim} times from \code{seed}, so a secondary cluster's p-value
-is conservative.
-The work grows as the number of locations times
+is conservative. That the ratio is never negative is proved in Lean:
+see \code{proof("kscan")}. The work grows as the number of locations times
 \code{length(r)} times the distinct times times \code{length(tw)}, for the scan
 and for each permutation.
 }

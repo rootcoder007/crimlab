@@ -31,8 +31,8 @@ diagonal is the direct effect, the mean row sum the total, and their
 difference the indirect effect, the spillover to other units (LeSage
 and Pace 2009). An analysis that reads \code{beta_k} alone can report "no
 effect" where the effect is all spillover. With row-standardised
-weights the total is \code{(beta_k + theta_k) / (1 - rho)}.
-Standard errors are by the delta method in \code{rho},
+weights the total is \code{(beta_k + theta_k) / (1 - rho)}, proved in Lean:
+see \code{proof("spill")}. Standard errors are by the delta method in \code{rho},
 \code{beta_k} and \code{theta_k}, with the exact derivatives \verb{d (I - rho W)^-1 / d rho = (I - rho W)^-1 W (I - rho W)^-1}. The effects are those of
 \code{spatialreg::impacts()}, which gives simulated rather than delta-method
 standard errors.

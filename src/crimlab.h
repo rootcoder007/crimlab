@@ -1929,7 +1929,7 @@ int clab_knxnr(const double *x, const double *y, const double *t, int n,
  * and S the weighted mean and scatter, the signal max(S - v, 0) and B* = v /
  * (v + signal) (0 when both are 0). b in [0, 1], or NaN for B*. Out: fit,
  * 6 (ybar, S, v, signal, B*, b), shr (1 - b) y + b ybar and fall b (y -
- * ybar). O(n). */
+ * ybar). Lean: Crimlab.Hotspot.bstar_min. O(n). */
 int clab_kdsurf(const double *x, const double *y, const double *w, int n,
                 double hx, double hy, const double *ax, int na,
                 const double *ay, int nb, int grid, const double *win, int edge,
@@ -1950,7 +1950,8 @@ int clab_ebshr(const double *y, const double *w, int n, double v, double b,
  * tw[w]) (tw positive) starting at each distinct time u. A cylinder with c
  * >= minc incidents, n_C in its circle and n_W in its window expects e =
  * n_C n_W / n; its score is the Poisson log-likelihood ratio c log(c / e)
- * + (n - c) log((n - c) / (n - e)) for c > e, 0 otherwise. Clusters: the best cylinder of each circle,
+ * + (n - c) log((n - c) / (n - e)) for c > e, 0 otherwise (Lean:
+ * Crimlab.Hotspot.llr_nonneg). Clusters: the best cylinder of each circle,
  * by score, keeping those whose circles overlap none kept before, at most
  * top, positive scores only. Each p-value: (1 + #{max* >= score}) / (nsim +
  * 1), the largest score with the times shuffled nsim >= 0 times from seed
@@ -2001,7 +2002,7 @@ int clab_kscan(const double *x, const double *y, const double *t, int n,
  * clab_spill: direct, indirect and total effects of a lag model (LeSage and
  * Pace 2009, doi:10.1201/9781420064254) for n >= 2 units: with S = (I - rho
  * W)^-1, direct_j = tr(S (b_j I + th_j W)) / n, total_j = 1' S (b_j I +
- * th_j W) 1 / n, indirect the
+ * th_j W) 1 / n (Lean: Crimlab.Hotspot.total_effect), indirect the
  * difference; th NULL for none. vc: NULL, or the covariance (1 + k or 1 +
  * 2k square, row-major) of (rho, b, th), for delta-method standard errors
  * with dS / drho = S W S. Out, 6 per coefficient: direct, indirect, total,
@@ -2052,7 +2053,8 @@ int clab_spill(int n, const int *rp, const int *ci, const double *w, double rho,
  * IS, Theil's H, Atkinson's index of shape delta in (0, 1), Gini; with
  * weights rp, ci, w (NULL for none), dm: g x g Morrill's adjusted D (D
  * less the weighted mean |z_i - z_j| over neighbouring units, z the pair's
- * share; CLAB_EDOM when no weight joins two occupied units). O(g^2 n + g n^2). */
+ * share; CLAB_EDOM when no weight joins two occupied units). Lean:
+ * Crimlab.Hotspot.dissim_le_one. O(g^2 n + g n^2). */
 int clab_crossk(const double *x, const double *y, const int *mk, int n, int ti,
                 int tj, const double *win, const double *r, int nr,
                 double sigma, int nsim, unsigned int seed, double *k,

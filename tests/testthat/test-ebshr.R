@@ -1,5 +1,5 @@
 # Empirical-Bayes shrinkage of hot-spot counts. The kernel's optimality is
-# checked in src/t_hot.cpp; here the
+# checked in src/t_hot.cpp and proved in inst/lean/Hotspot.lean; here the
 # binding against the formulas written out.
 
 test_that("shrinkage follows its formulas", {

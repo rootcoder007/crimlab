@@ -14,8 +14,8 @@
 #' overlap none chosen before. Each p-value compares the cluster's ratio
 #' with the largest ratio of the whole scan with the times shuffled among
 #' the locations `nsim` times from `seed`, so a secondary cluster's p-value
-#' is conservative.
-#' The work grows as the number of locations times
+#' is conservative. That the ratio is never negative is proved in Lean:
+#' see `proof("kscan")`. The work grows as the number of locations times
 #' `length(r)` times the distinct times times `length(tw)`, for the scan
 #' and for each permutation.
 #'

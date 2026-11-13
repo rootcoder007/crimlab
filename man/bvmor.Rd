@@ -25,8 +25,8 @@ statistics), \code{z} (\code{(i - mean) / sd}), \code{p} (\verb{(1 + #\{I* >= I\
 \description{
 Whether high values of one variable sit next to high values of another
 (Wartenberg 1985; Anselin, Syabri and Smirnov 2002): with \code{zx} and \code{zy}
-the centred values, \verb{I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)}, which is Moran's I (\code{\link[=gmoran]{gmoran()}}) when \code{y} is \code{x} and, with
-row-standardised weights,
+the centred values, \verb{I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)}, which is Moran's I (\code{\link[=gmoran]{gmoran()}}) when \code{y} is \code{x} (proved in
+Lean: see \code{proof("bvmor")}) and, with row-standardised weights,
 \code{spdep::moran_bv()}'s statistic. Inference is by permutation: \code{y}'s
 values are shuffled over the units \code{nsim} times from \code{seed} while \code{x}
 stays, so under the null its expectation is 0. The statistic mixes the

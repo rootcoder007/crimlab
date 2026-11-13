@@ -31,7 +31,8 @@ with shape \code{delta} and the Gini index. With weights \code{w} between the
 units, Morrill's (1991) adjusted \code{D} subtracts the weighted mean
 absolute difference of the pair's shares between neighbouring units, so
 that segregation across a boundary counts less than segregation within.
-Units with no one in them are left out.
+Units with no one in them are left out. That \code{D} lies between 0 and 1 is
+proved in Lean: see \code{proof("dissix")}.
 }
 \examples{
 x <- cbind(a = c(90, 80, 10, 5, 50), b = c(10, 20, 85, 95, 50))

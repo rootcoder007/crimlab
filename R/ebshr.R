@@ -11,7 +11,9 @@
 #' estimated as the excess of the weighted scatter of `y` over `v` (0 if
 #' negative). The predicted fall of a place is `B (y - ybar)`: the size of
 #' the regression to the mean a hot-spot programme should expect without
-#' doing anything.
+#' doing anything. That `B*` lies in `[0, 1]`, minimises the loss and
+#' never does worse than no shrinkage is proved in Lean: see
+#' `proof("ebshr")`.
 #'
 #' @param y The first-period counts (or rates): finite numbers, at least
 #'   two.
