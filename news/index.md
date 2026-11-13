@@ -2,6 +2,21 @@
 
 ## crimlab 0.0.0.9000
 
+- [`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)
+  recomputes a reported odds ratio, risk ratio or risk difference from
+  its table under every labelling (each reference group, each outcome as
+  the event, groups in rows or in columns) and says which readings
+  reproduce the value as rounded: the labelling the report states,
+  another one, or none. Zero cells give `Inf` or `NaN`, never a
+  correction. `proof("relchk")` names the Lean theorems on how the
+  contrasts change under relabelling.
+- [`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)
+  audits categorical inputs before an analysis: storage type, levels and
+  counts, missing values, unused and rare levels, labels that differ
+  only by case or white space, 0/1 and logical codings, numbers that
+  look like category codes, value labels that disagree with the values,
+  and the reference level a default would take and why. It can check a
+  stated reference level, and changes nothing.
 - Disparity tests:
   [`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
   [`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md),
@@ -244,3 +259,16 @@
 - A labelled vector (with a `labels` attribute, as haven makes) is
   refused with a request to decode it first: its numbers are category
   codes.
+- Learning:
+  [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md),
+  the elastic net path by coordinate descent with cross-validation over
+  given folds (the objective and scale of glmnet);
+  [`lgtreg()`](https://rootcoder007.github.io/crimlab/reference/lgtreg.md),
+  logistic regression;
+  [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md),
+  random forests for regression and probabilities.
+- Causal estimates:
+  [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md),
+  double machine learning by cross-fitting for the partially linear,
+  interactive, IV, difference-in-differences and sample-selection
+  models, with AIPW and TMLE from the same nuisances.

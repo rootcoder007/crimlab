@@ -67,6 +67,12 @@ The functions work on summary data, not on raw records:
   an event known only within a window happened, whether reported figures
   follow Benford’s law, how strong hidden bias must be to explain a
   matched result away, and group-based trajectories of offending.
+- Checks: which labelling of a table reproduces a reported odds ratio,
+  risk ratio or risk difference
+  ([`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)),
+  and what the functions here would make of categorical inputs before an
+  analysis
+  ([`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)).
 
 ## Algorithms
 
@@ -327,7 +333,6 @@ dirmn(p, origin = c(0.5, 0.5))         # directional mean from an origin
 ### Risk tools, trace evidence, time and data screens
 
 ``` r
-
 set.seed(3)
 g <- rep(c("a", "b"), each = 100)
 y <- rbinom(200, 1, ifelse(g == "a", 0.3, 0.5))
@@ -338,6 +343,19 @@ rswp(rnorm(50, 0.5), gam = c(1, 1.5, 2))   # how much hidden bias explains it aw
 bnft(bdig(exp(runif(500, 0, 10)))$dig)$stat
 gstr(matrix(rpois(100, 2), 10))[1:3, ]
 sptst(rpois(30, 10), rpois(30, 10), nboot = 199, seed = 1)$glob
+### Checking reports and inputs
+
+```r
+# which reference group and event give a reported odds ratio of 0.44?
+tab <- matrix(c(20, 10, 80, 90), 2,
+              dimnames = list(c("A", "B"), c("yes", "no")))
+relchk(tab, 0.44, ref = "B", event = "yes")
+
+# missing values, unused and rare levels, labels that differ by case, and
+# the reference level a default would take
+d <- data.frame(sex = c("Male", "male", "Female", "Female", NA),
+                custody = c(TRUE, FALSE, TRUE, TRUE, FALSE))
+catchk(d, nmin = 2)
 ```
 
 ### Proofs

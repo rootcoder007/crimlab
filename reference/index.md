@@ -207,6 +207,37 @@ test.
 - [`sptst()`](https://rootcoder007.github.io/crimlab/reference/sptst.md)
   : Andresen's spatial point pattern test
 
+## Checks
+
+Which labelling of a table reproduces a reported contrast, and an audit
+of categorical inputs.
+
+- [`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)
+  : Which labelling reproduces a reported contrast?
+- [`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)
+  : Audit categorical inputs before an analysis
+
+## Learning
+
+The elastic net with cross-validation, logistic regression and random
+forests; the learners of the cross-fitted estimators.
+
+- [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md)
+  : Elastic net by coordinate descent, with cross-validation
+- [`lgtreg()`](https://rootcoder007.github.io/crimlab/reference/lgtreg.md)
+  : Logistic regression
+- [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md) :
+  Random forest for regression and probabilities
+
+## Causal estimates
+
+Double machine learning by cross-fitting, with the learners above;
+augmented inverse probability weighting and targeted maximum likelihood
+from the same nuisances.
+
+- [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md) :
+  Double machine learning by cross-fitting
+
 ## Proofs
 
 - [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)

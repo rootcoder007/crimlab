@@ -34,7 +34,11 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9000" id="crimlab-0009000">crimlab 0.0.0.9000<a class="anchor" aria-label="anchor" href="#crimlab-0009000"></a></h2>
-<ul><li>Disparity tests: <code><a href="../reference/vodtst.html">vodtst()</a></code>, <code><a href="../reference/orrisk.html">orrisk()</a></code>, <code><a href="../reference/outtst.html">outtst()</a></code>, <code><a href="../reference/dspbm.html">dspbm()</a></code>, <code><a href="../reference/dyadrt.html">dyadrt()</a></code>.</li>
+<ul><li>
+<code><a href="../reference/relchk.html">relchk()</a></code> recomputes a reported odds ratio, risk ratio or risk difference from its table under every labelling (each reference group, each outcome as the event, groups in rows or in columns) and says which readings reproduce the value as rounded: the labelling the report states, another one, or none. Zero cells give <code>Inf</code> or <code>NaN</code>, never a correction. <code>proof("relchk")</code> names the Lean theorems on how the contrasts change under relabelling.</li>
+<li>
+<code><a href="../reference/catchk.html">catchk()</a></code> audits categorical inputs before an analysis: storage type, levels and counts, missing values, unused and rare levels, labels that differ only by case or white space, 0/1 and logical codings, numbers that look like category codes, value labels that disagree with the values, and the reference level a default would take and why. It can check a stated reference level, and changes nothing.</li>
+<li>Disparity tests: <code><a href="../reference/vodtst.html">vodtst()</a></code>, <code><a href="../reference/orrisk.html">orrisk()</a></code>, <code><a href="../reference/outtst.html">outtst()</a></code>, <code><a href="../reference/dspbm.html">dspbm()</a></code>, <code><a href="../reference/dyadrt.html">dyadrt()</a></code>.</li>
 <li>Forensic statistics: <code><a href="../reference/gtmp.html">gtmp()</a></code>, <code><a href="../reference/lrpost.html">lrpost()</a></code>, <code><a href="../reference/cllr.html">cllr()</a></code>, <code><a href="../reference/cllrmin.html">cllrmin()</a></code>, <code><a href="../reference/lrcal.html">lrcal()</a></code>, <code><a href="../reference/mixlr.html">mixlr()</a></code>, <code><a href="../reference/kinidx.html">kinidx()</a></code>, <code><a href="../reference/patidx.html">patidx()</a></code>, <code><a href="../reference/dbsrch.html">dbsrch()</a></code>, <code><a href="../reference/tipplt.html">tipplt()</a></code>, <code><a href="../reference/eceplt.html">eceplt()</a></code>.</li>
 <li>
 <code><a href="../reference/clrsmp.html">clrsmp()</a></code> splits a change in a clearance rate into rate and mix effects and flags Simpson’s paradox.</li>
@@ -87,6 +91,8 @@
 <li>
 <code><a href="../reference/sntbnd.html">sntbnd()</a></code> no longer picks the treatment by sorting the values of <code>z</code>: <code>treat</code> is required unless <code>z</code> is logical (<code>TRUE</code> is the treatment) or 0 and 1 (1 is).</li>
 <li>A labelled vector (with a <code>labels</code> attribute, as haven makes) is refused with a request to decode it first: its numbers are category codes.</li>
+<li>Learning: <code><a href="../reference/enpath.html">enpath()</a></code>, the elastic net path by coordinate descent with cross-validation over given folds (the objective and scale of glmnet); <code><a href="../reference/lgtreg.html">lgtreg()</a></code>, logistic regression; <code><a href="../reference/rfor.html">rfor()</a></code>, random forests for regression and probabilities.</li>
+<li>Causal estimates: <code><a href="../reference/dmlx.html">dmlx()</a></code>, double machine learning by cross-fitting for the partially linear, interactive, IV, difference-in-differences and sample-selection models, with AIPW and TMLE from the same nuisances.</li>
 </ul></div>
   </main></div>
 
