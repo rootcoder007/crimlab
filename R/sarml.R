@@ -24,7 +24,7 @@
 #' their standard errors wrong. In a lag model a coefficient is not the
 #' effect of its variable: see [spill()].
 #'
-#' @param y The outcome: finite numbers, one per unit.
+#' @inheritParams cbatt
 #' @param x The covariates: a numeric vector, matrix or data frame with
 #'   one row per unit (no intercept column when `int = TRUE`).
 #' @inheritParams gmoran

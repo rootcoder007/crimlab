@@ -20,11 +20,11 @@
 #' model.
 #'
 #' @param times Event times: numbers sorted in `[0, hor]`, at least 10.
-#' @param hor The end of the window: one positive number.
+#' @inheritParams hwksim
 #' @param mag `NULL` or the mark of each event: finite numbers.
 #' @param m0 `NULL` (the least mark) or the reference mark: one number.
 #' @param start `NULL` or the starting `mu`, `k`, `alpha`, `c` and `p`.
-#' @param maxit The most BFGS steps per start: one whole number from 1.
+#' @inheritParams hwkfit
 #' @return An object of class `etasf`, a list: `par`, `se` and `cov` of
 #'   (`mu`, `k`, `alpha`, `c`, `p`; `alpha`'s are `NA` when it is fixed);
 #'   `loglik`, `aic`; `branch`; `conv`, `iter`; `afree`, whether `alpha`
@@ -70,7 +70,7 @@ print.etasf <- function(x, ...) {
 #'
 #' @param times Event times: numbers sorted in `[0, hor]`, at least 10.
 #' @param type The type of each event: labels, at most 10 types.
-#' @param hor The end of the window: one positive number.
+#' @inheritParams hwksim
 #' @param beta `NULL` to estimate the decay, or a given one: one positive
 #'   number.
 #' @param start `NULL` or the starting parameters in the order of `par`
@@ -136,7 +136,7 @@ print.mvhwk <- function(x, ...) {
 #' @param at `NULL` or query points: a data frame or list with `t`, `x`
 #'   and `y`.
 #' @param start `NULL` or the starting parameters, as `par`.
-#' @param maxit The most BFGS steps per start: one whole number from 1.
+#' @inheritParams hwkfit
 #' @return An object of class `sthwk`, a list: `par`, `se` and `cov`
 #'   (`mu`, `eta`, `beta`, `sigma`); `loglik`, `aic`; `conv`, `iter`;
 #'   `fit` (`FALSE` when `par` was given); `n`, `hor`, `win`, `area`; and

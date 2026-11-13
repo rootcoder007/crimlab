@@ -33,7 +33,7 @@
 #'   labels, two or more.
 #' @param alt The alternative of the Mann-Kendall test: `"both"`, `"up"`
 #'   or `"down"`.
-#' @param level The confidence level: one number strictly between 0 and 1.
+#' @inheritParams kmrec
 #' @return An object of class `trndrr`, a list: `rr`, the rate ratio row
 #'   (`rr`, `lo`, `hi`, `p`, the log slope `b` and its `se`, the dispersion
 #'   `disp`, `over` when the quasi-Poisson interval was used); `mk`
@@ -110,8 +110,7 @@ print.trndrr <- function(x, ...) {
 #'   number from 1.
 #' @param nperm The reorderings of the step scan's null: one whole number
 #'   from 1.
-#' @param seed `NULL` to draw the seed from R's generator, or one whole
-#'   number from 0.
+#' @inheritParams hwksim
 #' @return An object of class `stpcp`, a list: `tab`, one row for each
 #'   test (`test`, `k`, the last period before the change, the means
 #'   `before` and `after`, the statistic `stat` (T or K) and `p`, with `at`
@@ -212,7 +211,7 @@ cusrv <- function(
 #' @param lagmax `NULL` or the largest lag: one whole number from 0, below
 #'   the number of periods.
 #' @param dif `TRUE` to correlate the period-to-period changes.
-#' @param level The confidence level: one number strictly between 0 and 1.
+#' @inheritParams kmrec
 #' @return An object of class `xcser`, a list: `cor` (`r`, `lo`, `hi`, `p`,
 #'   `n`); `ccf` (`lag`, `r`); `common`, the periods matched by name
 #'   (`NULL` without names); and `level`.

@@ -111,7 +111,7 @@ bandx <- function(
 #'   `x`.
 #' @param pop,prepop `NULL`, or the populations now and before: one number
 #'   or one per cell, above 0.
-#' @param per The rates are per `per` people: one positive number.
+#' @inheritParams crsev
 #' @return An object of class `pbbnd`, a list: `bnd`, a data frame (`value`
 #'   the number read, `lower`, `upper`, `status` one of `"exact"`,
 #'   `"rounded"`, `"suppressed"` and `"missing"`), and `chg`, with `prev`, a
@@ -178,11 +178,10 @@ pbbnd <- function(
 #' @param units `"count"`, `"continuous"` or `"percent"`.
 #' @param minbase Changes from an earlier value below this are flagged: one
 #'   number from 0.
-#' @param level The level of the intervals: one number between 0 and 1.
+#' @inheritParams dktflw
 #' @param rnd `NULL`, or the rounding base of the counts.
 #' @param kind `"nearest"` or `"random"` rounding.
-#' @param adj The adjustment of the p-values: `"none"`, `"bonferroni"`,
-#'   `"holm"`, `"hochberg"`, `"BH"` or `"BY"`.
+#' @inheritParams jmono
 #' @param alpha The level at which `signif` marks an adjusted p-value.
 #' @return A data frame of class `yoypx` with one row per group and period
 #'   (in that order): `group` (with `by`), `prd`, `value`, `prev`,

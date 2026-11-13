@@ -169,7 +169,7 @@ print.hwkres <- function(x, ...) {
 
 #' @rdname hwkres
 #' @param x An `hwkres` object.
-#' @param ... Passed to [graphics::plot()].
+#' @inheritParams tipplt
 #' @export
 plot.hwkres <- function(x, ...) {
   n <- x[["n"]]

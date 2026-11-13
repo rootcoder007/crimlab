@@ -19,13 +19,13 @@
 #' `length(r)` times the distinct times times `length(tw)`, for the scan
 #' and for each permutation.
 #'
+#' @inheritParams gstr
 #' @inheritParams knxnr
 #' @param r The radii of the circles: positive and increasing, in the unit
 #'   of the coordinates (metres when `lonlat = TRUE`).
 #' @param tw The lengths of the windows: positive, in the unit of `t`.
 #' @param minc The fewest incidents a cluster holds: a whole number from 1.
 #' @param top The most clusters reported: a whole number from 1.
-#' @param nsim The number of permutations: a whole number from 0.
 #' @return A list of class `kscan`: `cl`, a data frame with one row per
 #'   cluster, most likely first: its centre `x`, `y` (in degrees when
 #'   `lonlat = TRUE`), `r`, `start` and `end` (the window `[start, end)`),

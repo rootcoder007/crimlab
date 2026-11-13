@@ -88,8 +88,7 @@
 #'   them (a region, a district).
 #' @param calip `NULL` or the largest distance of a match, in standard
 #'   deviations of the distances.
-#' @param level The confidence level of the intervals: one number strictly
-#'   between 0 and 1.
+#' @inheritParams cntreg
 #' @return An object of class `didfe`, a list: `coef`, one row per term
 #'   (the treatment `"trt"` first, then the controls): `term`, `est`, `se`,
 #'   `lo`, `hi`, `stat` (t or z), `p`, and for counts `rr`, `rrlo`, `rrhi`;

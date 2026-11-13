@@ -60,8 +60,7 @@
 #'   the effects tried.
 #' @param alpha The level of the power test.
 #' @param power The power of the minimum detectable effect.
-#' @param seed The seed of the draws: `NULL` to draw it from R's generator,
-#'   or a whole number from 0.
+#' @inheritParams evtst
 #' @return An object of class `wcbx`, a list: `res`, for `"wild"` one row
 #'   (`est`, `stat`, `p`, `lo`, `hi`), for `"perm"` one row per outcome
 #'   (`outcome`, `est`, `stat`, `p`, `pstep`), for `"power"` one row per

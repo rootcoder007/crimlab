@@ -46,8 +46,7 @@
 #' @param nsim The number of Poisson samples at the observed mean for the
 #'   null distribution of the Gini (0 for none): a whole number. It needs a
 #'   whole number of units.
-#' @param seed `NULL` (the draws follow [set.seed()]) or a whole number
-#'   from 0.
+#' @inheritParams agemix
 #' @return An object of class `cconc`, a list: `stat`, a named vector
 #'   (`units`, `total`, `mean`, `var`, `disp`, `ivar`, `isd`, `zero`,
 #'   `znull`, `zgap`, `gini`, `gpos`, `gnull`, `vpop`, `cvb`, `nullb`);

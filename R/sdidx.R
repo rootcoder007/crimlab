@@ -30,7 +30,7 @@
 #' @param reps The placebo draws: a whole number, at least 2.
 #' @param seed The seed of the placebo draws: `NULL` to draw it from R's
 #'   generator, or a whole number from 0.
-#' @param level The confidence level of the normal interval.
+#' @inheritParams cbatt
 #' @return An object of class `sdidx`, a list: `est` (`est`, `se`, `lo`,
 #'   `hi`); `meth` (`"placebo"` or `"jackknife"`); `unitw` (`unit`, `w`);
 #'   `timew` (`time`, `w`); `path` (`time`, `treated`, the treated mean,

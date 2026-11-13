@@ -14,7 +14,7 @@
 #' @param x,y The two variables: finite numbers, one per unit, neither
 #'   constant.
 #' @inheritParams gmoran
-#' @param nsim The number of permutations: a whole number from 0.
+#' @inheritParams gstr
 #' @return A named numeric vector: `i`, `mean` and `sd` (of the permuted
 #'   statistics), `z` (`(i - mean) / sd`), `p` (`(1 + #{I* >= I}) / (nsim +
 #'   1)`) and `ptwo` (`(1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1)`);

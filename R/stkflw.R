@@ -32,7 +32,7 @@
 #'   counting both.
 #' @param expo `NULL`, or the population at risk: one positive number or
 #'   one per period, for rates per `per`.
-#' @param per The rates are per `per` people: one positive number.
+#' @inheritParams crsev
 #' @param base Changes against the `"first"` period or the `"previous"`
 #'   one.
 #' @param rel,early `NULL`, or the releases of each period and the days by
