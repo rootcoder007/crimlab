@@ -456,7 +456,9 @@ SEXP C_clab_r_rfor(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                    SEXP);
 SEXP C_clab_r_dmlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                    SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                   SEXP, SEXP, SEXP);
+                   SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_suplrn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_hdbang(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_crwalk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rnnhcl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -709,7 +711,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_enpath", fn<&C_clab_r_enpath>(), 11},
     {"C_clab_r_lgtreg", fn<&C_clab_r_lgtreg>(), 4},
     {"C_clab_r_rfor", fn<&C_clab_r_rfor>(), 11},
-    {"C_clab_r_dmlx", fn<&C_clab_r_dmlx>(), 23},
+    {"C_clab_r_dmlx", fn<&C_clab_r_dmlx>(), 26},
+    {"C_clab_r_suplrn", fn<&C_clab_r_suplrn>(), 14},
     {"C_clab_r_hdbang", fn<&C_clab_r_hdbang>(), 9},
     {"C_clab_r_crwalk", fn<&C_clab_r_crwalk>(), 6},
     {"C_clab_r_rnnhcl", fn<&C_clab_r_rnnhcl>(), 10},

@@ -220,12 +220,14 @@ reference:
     contents:
       - clprep
   - title: Learning
-    desc: The elastic net with cross-validation, logistic regression and
-      random forests; the learners of the cross-fitted estimators.
+    desc: The elastic net with cross-validation, logistic regression,
+      random forests and their stack, the super learner; the learners of
+      the cross-fitted estimators.
     contents:
       - enpath
       - lgtreg
       - rfor
+      - suplrn
   - title: Causal estimates
     desc: Double machine learning by cross-fitting, with the learners above;
       augmented inverse probability weighting and targeted maximum

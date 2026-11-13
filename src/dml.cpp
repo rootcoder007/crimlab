@@ -24,16 +24,256 @@ inline double clip(double v, double lo, double hi) {
 }
 
 // Scratch of one learner: doubles and ints, for a design of n rows and p
-// columns.
+// columns. A stack's: its cross-fitted predictions (n per learner), one
+// learner's predictions (n), the normal equations of the meta-weights and
+// the scratch of its largest learner; ints, the folds and the training and
+// test rows of a fold (3n) and its learners' ints.
 long lw(const clab_lrn &l, int n, int p) {
   if (l.kind == 0) return 2L * (p + 1) + lrn::gwork(p) + n;
   if (l.kind == 2) return lrn::fwork(n, p, n) + n;
+  if (l.kind == 3) {
+    long m = 0;
+    for (int j = 0; j < l.nsub; ++j) {
+      const long v = lw(l.sub[j], n, p);
+      m = v > m ? v : m;
+    }
+    const long q = l.nsub;
+    return (q + 1) * n + 2 * q * q + 8 * q + m;
+  }
   return static_cast<long>(l.nlam) * (p + 4) + lrn::cvwork(n, p, l.nlam, l.nfold) + n;
 }
 long liw(const clab_lrn &l, int n, int p) {
   if (l.kind == 0) return 0;
   if (l.kind == 2) return lrn::fiwork(n, p, n);
+  if (l.kind == 3) {
+    long m = 0;
+    for (int j = 0; j < l.nsub; ++j) {
+      const long v = liw(l.sub[j], n, p);
+      m = v > m ? v : m;
+    }
+    return 3L * n + l.nsub + m;
+  }
   return 3L * n + p;
+}
+
+// A learner's settings: CLAB_EARG or CLAB_EDOM for one out of range. A
+// stack (kind 3, only at the top) checks each of its learners.
+int lok(const clab_lrn &l, bool top) {
+  if (l.kind == 3) {
+    if (!top || l.sub == nullptr || l.nsub < 1 || l.nsub > 16 || l.nstk < 2 || l.disc < 0 ||
+        l.disc > 1)
+      return CLAB_EARG;
+    for (int j = 0; j < l.nsub; ++j) {
+      const int rc = lok(l.sub[j], false);
+      if (rc != CLAB_OK) return rc;
+    }
+    return CLAB_OK;
+  }
+  if (l.kind < 0 || l.kind > 2 || (l.kind == 1 && (l.nlam < 1 || l.nfold < 2)) ||
+      (l.kind == 2 && l.ntree < 1))
+    return CLAB_EARG;
+  if (!(l.alpha >= 0.0 && l.alpha <= 1.0) || (l.kind == 1 && !(l.tol > 0.0))) return CLAB_EDOM;
+  return CLAB_OK;
+}
+
+// The n rows shuffled by g and dealt round robin into k folds.
+void deal(int n, int k, kutil::rng &g, int *f, int *pm) {
+  for (int i = 0; i < n; ++i) pm[i] = i;
+  for (int i = n - 1; i > 0; --i) {
+    const int j = g.below(i + 1), t = pm[i];
+    pm[i] = pm[j];
+    pm[j] = t;
+  }
+  for (int i = 0; i < n; ++i) f[pm[i]] = i % k;
+}
+
+// The system g[P, P] s[P] = b[P] of the normal equations restricted to the
+// learners in P (pas[j] == 1), by Gaussian elimination with partial
+// pivoting; s is 0 off P. False when the system is singular to within
+// 1e-12 of the largest diagonal element (learners that predict alike).
+// a: L (L + 1) doubles.
+bool psolve(const double *g, const double *b, int L, const int *pas, double *s, double *a) {
+  int idx[16], m = 0;
+  double big = 0.0;
+  for (int j = 0; j < L; ++j) {
+    s[j] = 0.0;
+    big = std::fmax(big, g[j * L + j]);
+    if (pas[j] == 1) idx[m++] = j;
+  }
+  const int c1 = m + 1;
+  for (int r = 0; r < m; ++r) {
+    for (int c = 0; c < m; ++c) a[r * c1 + c] = g[idx[c] * L + idx[r]];
+    a[r * c1 + m] = b[idx[r]];
+  }
+  for (int c = 0; c < m; ++c) {
+    int pr = c;
+    for (int r = c + 1; r < m; ++r) {
+      if (std::fabs(a[r * c1 + c]) > std::fabs(a[pr * c1 + c])) pr = r;
+    }
+    if (!(std::fabs(a[pr * c1 + c]) > 1e-12 * big)) return false;
+    for (int q = 0; q < c1; ++q) {
+      const double t = a[c * c1 + q];
+      a[c * c1 + q] = a[pr * c1 + q];
+      a[pr * c1 + q] = t;
+    }
+    for (int r = c + 1; r < m; ++r) {
+      const double f = a[r * c1 + c] / a[c * c1 + c];
+      for (int q = c; q < c1; ++q) a[r * c1 + q] -= f * a[c * c1 + q];
+    }
+  }
+  for (int r = m - 1; r >= 0; --r) {
+    double v = a[r * c1 + m];
+    for (int c = r + 1; c < m; ++c) v -= a[r * c1 + c] * s[idx[c]];
+    s[idx[r]] = v / a[r * c1 + r];
+  }
+  return true;
+}
+
+// Non-negative least squares by the active set method of Lawson and
+// Hanson (1974, ch. 23) on the normal equations g = Z'Z (L by L,
+// column-major) and b = Z'y. Out: w (L). A learner whose column makes the
+// system singular is left out (weight 0). work: L^2 + 2L doubles; pas: L
+// ints.
+void nnls(const double *g, const double *b, int L, double *w, double *work, int *pas) {
+  double *s = work, *a = s + L;
+  double bb = 0.0;
+  for (int j = 0; j < L; ++j) {
+    w[j] = 0.0;
+    pas[j] = 0;
+    bb = std::fmax(bb, std::fabs(b[j]));
+  }
+  const double tol = 1e-12 * bb;
+  for (int it = 0; it < 3 * L; ++it) {
+    int t = -1;
+    double top = tol;
+    for (int j = 0; j < L; ++j) {
+      if (pas[j] != 0) continue;
+      double gj = b[j];
+      for (int k = 0; k < L; ++k) gj -= g[k * L + j] * w[k];
+      if (gj > top) {
+        top = gj;
+        t = j;
+      }
+    }
+    if (t < 0) break;
+    pas[t] = 1;
+    for (int in = 0; in <= L; ++in) {
+      // singular with t: t is left out for good (in exact arithmetic a
+      // column in the span of the others never has a positive gradient,
+      // so this guards against rounding only)
+      if (!psolve(g, b, L, pas, s, a)) pas[t] = -1;
+      if (pas[t] == -1) break;
+      bool pos = true;
+      for (int j = 0; j < L; ++j) pos = pos && (pas[j] != 1 || s[j] > 0.0);
+      if (pos) {
+        for (int j = 0; j < L; ++j) w[j] = s[j];
+        break;
+      }
+      // step from w towards s until the first coefficient reaches 0
+      double al = 1.0;
+      for (int j = 0; j < L; ++j) {
+        if (pas[j] == 1 && s[j] <= 0.0) al = std::fmin(al, w[j] / (w[j] - s[j]));
+      }
+      for (int j = 0; j < L; ++j) {
+        if (pas[j] != 1) continue;
+        w[j] += al * (s[j] - w[j]);
+        if (w[j] <= 0.0 || s[j] <= 0.0) {
+          w[j] = 0.0;
+          pas[j] = 0;
+        }
+      }
+    }
+  }
+}
+
+int nfit(const clab_lrn &l, int fam, const double *x, int n, int p,
+         const double *y, const int *tr, int mt, const int *te, int me,
+         unsigned int seed, double *out, double *w, int *iw);
+
+// The stack l (kind 3) fitted to y over the training rows tr[0..mt), its
+// predictions at the test rows te[0..me) written to out[te[i]]. fold: the
+// fold of each training row, or null for clab_kfold()'s from seed. Out:
+// the cross-fitted predictions of learner j at training row tr[i] are left
+// in w[j n + tr[i]]; risk and wt (nsub each, or null).
+int sfit(const clab_lrn &l, int fam, const double *x, int n, int p, const double *y,
+         const int *tr, int mt, const int *te, int me, const int *fold, unsigned int seed,
+         double *out, double *w, int *iw, double *risk, double *wt) {
+  const int L = l.nsub, K = l.nstk;
+  double *Z = w, *tmp = Z + static_cast<long>(n) * L, *g = tmp + n, *b = g + L * L;
+  double *wv = b + L, *rk = wv + L, *nw = rk + L, *sw = nw + L * L + 2 * L;
+  int *f = iw, *trk = f + n, *tek = trk + n, *pas = tek + n, *siw = pas + L;
+  if (mt < K) return CLAB_EDOM;
+  if (fold != nullptr) {
+    for (int i = 0; i < mt; ++i) f[i] = fold[i];
+  } else {
+    kutil::rng gen(seed);
+    deal(mt, K, gen, f, trk);
+  }
+  for (int k = 0; k < K; ++k) {
+    int a = 0, c = 0;
+    for (int i = 0; i < mt; ++i) {
+      if (f[i] == k) {
+        tek[c++] = tr[i];
+      } else {
+        trk[a++] = tr[i];
+      }
+    }
+    if (a < 1 || c < 1) return CLAB_EDOM;
+    for (int j = 0; j < L; ++j) {
+      const int rc = nfit(l.sub[j], fam, x, n, p, y, trk, a, tek, c,
+                          seed + 7919U * static_cast<unsigned int>(k + 1), tmp, sw, siw);
+      if (rc != CLAB_OK) return rc;
+      double *zj = Z + static_cast<long>(j) * n;
+      for (int i = 0; i < c; ++i) zj[tek[i]] = tmp[tek[i]];
+    }
+  }
+  // the risks, and the normal equations of y on the predictions
+  for (int j = 0; j < L; ++j) {
+    const double *zj = Z + static_cast<long>(j) * n;
+    kutil::ksum r, bj;
+    for (int i = 0; i < mt; ++i) {
+      const double v = y[tr[i]] - zj[tr[i]];
+      r.add(v * v);
+      bj.add(zj[tr[i]] * y[tr[i]]);
+    }
+    rk[j] = r.val() / mt;
+    b[j] = bj.val();
+    for (int k = 0; k <= j; ++k) {
+      const double *zk = Z + static_cast<long>(k) * n;
+      kutil::ksum s;
+      for (int i = 0; i < mt; ++i) s.add(zj[tr[i]] * zk[tr[i]]);
+      g[j * L + k] = g[k * L + j] = s.val();
+    }
+  }
+  double tot = 0.0;
+  if (l.disc == 0) {
+    nnls(g, b, L, wv, nw, pas);
+    for (int j = 0; j < L; ++j) tot += wv[j];
+  }
+  if (tot > 0.0) {
+    for (int j = 0; j < L; ++j) wv[j] /= tot;
+  } else {
+    int best = 0;
+    for (int j = 1; j < L; ++j) {
+      if (rk[j] < rk[best]) best = j;
+    }
+    for (int j = 0; j < L; ++j) wv[j] = j == best ? 1.0 : 0.0;
+  }
+  // the learners refitted on all the training rows
+  for (int i = 0; i < me; ++i) out[te[i]] = 0.0;
+  for (int j = 0; j < L; ++j) {
+    if (!(wv[j] > 0.0)) continue;
+    const int rc = nfit(l.sub[j], fam, x, n, p, y, tr, mt, te, me, seed, tmp, sw, siw);
+    if (rc != CLAB_OK) return rc;
+    for (int i = 0; i < me; ++i) out[te[i]] += wv[j] * tmp[te[i]];
+  }
+  if (risk != nullptr) {
+    for (int j = 0; j < L; ++j) {
+      risk[j] = rk[j];
+      wt[j] = wv[j];
+    }
+  }
+  return CLAB_OK;
 }
 
 // Fit learner l to y over the training rows tr[0..mt) and write its
@@ -49,6 +289,9 @@ int nfit(const clab_lrn &l, int fam, const double *x, int n, int p,
   if (cst) {
     for (int i = 0; i < me; ++i) out[te[i]] = y[tr[0]];
     return CLAB_OK;
+  }
+  if (l.kind == 3) {
+    return sfit(l, fam, x, n, p, y, tr, mt, te, me, nullptr, seed, out, w, iw, nullptr, nullptr);
   }
   const lrn::Dat d = {x, n, p, y, tr, mt};
   double *eta = w;
@@ -79,13 +322,7 @@ int nfit(const clab_lrn &l, int fam, const double *x, int n, int p,
     const int nl = l.nlam, k = l.nfold;
     int *f = iw, *pm = f + mt, *ciw = pm + mt;
     kutil::rng g(seed);
-    for (int i = 0; i < mt; ++i) pm[i] = i;
-    for (int i = mt - 1; i > 0; --i) {
-      const int j = g.below(i + 1), t = pm[i];
-      pm[i] = pm[j];
-      pm[j] = t;
-    }
-    for (int i = 0; i < mt; ++i) f[pm[i]] = i % k;
+    deal(mt, k, g, f, pm);
     double *lam = eta + n, *a0 = lam + nl, *cv = a0 + nl, *beta = cv + 2 * nl;
     double *cw = beta + static_cast<long>(p) * nl;
     int best[2];
@@ -526,11 +763,8 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
     }
   }
   for (const clab_lrn *l : {ly, ld}) {
-    if (l->kind < 0 || l->kind > 2 || (l->kind == 1 && (l->nlam < 1 || l->nfold < 2)) ||
-        (l->kind == 2 && l->ntree < 1))
-      return CLAB_EARG;
-    if (!(l->alpha >= 0.0 && l->alpha <= 1.0) || (l->kind == 1 && !(l->tol > 0.0)))
-      return CLAB_EDOM;
+    const int rc = lok(*l, true);
+    if (rc != CLAB_OK) return rc;
   }
   if (!(trim >= 0.0 && trim < 0.5)) return CLAB_EDOM;
   const Nu *nu = spec(model, sc);
@@ -615,4 +849,55 @@ int clab_dmlxk(int model, int sc) {
   return k[model] + (model <= 1 && sc == 1 ? 1 : 0) - (model == 7 && sc == 1 ? 1 : 0);
 }
 
+int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork) {
+  if (n < 1 || k < 1 || k > n) return CLAB_EARG;
+  kutil::rng g(seed);
+  deal(n, k, g, fold, iwork);
+  return CLAB_OK;
+}
+
+long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw) {
+  const long nn = static_cast<long>(n) + nt;
+  *niw = 2 * nn + liw(*l, static_cast<int>(nn), p);
+  return nn * (p + 2) + lw(*l, static_cast<int>(nn), p);
+}
+
+int clab_stack(const double *x, int n, int p, const double *y, int fam,
+               const clab_lrn *l, const int *fold, const double *xt, int nt,
+               double *oof, double *risk, double *wt, double *pred,
+               double *work, int *iwork) {
+  if (n < 2 || p < 1 || nt < 0 || (fam != 0 && fam != 1) || l->kind != 3) return CLAB_EARG;
+  if (static_cast<long>(n) + nt > 2147483647L) return CLAB_EARG;
+  const int rc = lok(*l, true);
+  if (rc != CLAB_OK) return rc;
+  for (int i = 0; i < n; ++i) {
+    if (fold[i] < 0 || fold[i] >= l->nstk) return CLAB_EARG;
+    if (!std::isfinite(y[i]) || (fam == 1 && y[i] != 0.0 && y[i] != 1.0)) return CLAB_EDOM;
+  }
+  const int N = n + nt;
+  double *xa = work, *ya = xa + static_cast<long>(N) * p, *out = ya + N, *w = out + N;
+  for (int j = 0; j < p; ++j) {
+    for (int i = 0; i < n; ++i) xa[static_cast<long>(j) * N + i] = x[static_cast<long>(j) * n + i];
+    for (int i = 0; i < nt; ++i) {
+      xa[static_cast<long>(j) * N + n + i] = xt[static_cast<long>(j) * nt + i];
+    }
+  }
+  for (long q = 0; q < static_cast<long>(N) * p; ++q) {
+    if (!std::isfinite(xa[q])) return CLAB_EDOM;
+  }
+  for (int i = 0; i < N; ++i) ya[i] = i < n ? y[i] : 0.0;
+  int *tr = iwork, *te = tr + N;
+  for (int i = 0; i < n; ++i) tr[i] = i;
+  for (int i = 0; i < nt; ++i) te[i] = n + i;
+  const int r2 = sfit(*l, fam, xa, N, p, ya, tr, n, te, nt, fold, l->seed, out, w, te + nt,
+                      risk, wt);
+  if (r2 != CLAB_OK) return r2;
+  for (int j = 0; j < l->nsub; ++j) {
+    for (int i = 0; i < n; ++i) oof[static_cast<long>(j) * n + i] = w[static_cast<long>(j) * N + i];
+  }
+  for (int i = 0; i < nt; ++i) pred[i] = out[n + i];
+  return CLAB_OK;
+}
+
 }  // extern "C"
+

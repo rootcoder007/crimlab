@@ -27,6 +27,9 @@ dmlx(
   trim = NULL,
   clu = NULL,
   pred = NULL,
+  stk = c("glm", "lasso", "forest"),
+  nstk = 5,
+  disc = FALSE,
   seed = 1
 )
 }
@@ -64,7 +67,9 @@ logistic regression for a probability), \code{"lasso"}, \code{"ridge"} or
 \code{"enet"} (the elastic net of \code{\link[=enpath]{enpath()}} with mixing \code{alpha}, the penalty
 chosen by cross-validation within the training folds), or \code{"forest"}
 (the random forest of \code{\link[=rfor]{rfor()}} with \code{ntree} trees and \code{mtry} columns
-per split, nodes of 5 rows, or 10 for a probability, left unsplit).}
+per split, nodes of 5 rows, or 10 for a probability, left unsplit), or
+\code{"stack"} (the super learner of \code{\link[=suplrn]{suplrn()}} over the learners \code{stk},
+fitted on \code{nstk} inner folds of each training set).}
 
 \item{lrnd}{The learner of the treatment, instrument and selection
 nuisances, from the same choices.}
@@ -107,6 +112,15 @@ the two-way form of Chiang et al. (2022) as 'DoubleML' computes it.}
 matrix with one row per observation and one column per nuisance, in
 the order listed above (an array with a third dimension for several
 repetitions). The estimate is then a closed form of these.}
+
+\item{stk}{The learners of \code{"stack"}, each named once, from the other
+choices of \code{lrn}.}
+
+\item{nstk}{The number of inner folds of \code{"stack"}, at least 2.}
+
+\item{disc}{\code{TRUE} for the discrete super learner in \code{"stack"} (the one
+learner of least cross-validated risk), \code{FALSE} for non-negative
+weights summing to 1.}
 
 \item{seed}{The seed of the inner folds and of the forests: one number,
 at least 0.}

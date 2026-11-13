@@ -72,7 +72,9 @@
 #'   `"enet"` (the elastic net of [enpath()] with mixing `alpha`, the penalty
 #'   chosen by cross-validation within the training folds), or `"forest"`
 #'   (the random forest of [rfor()] with `ntree` trees and `mtry` columns
-#'   per split, nodes of 5 rows, or 10 for a probability, left unsplit).
+#'   per split, nodes of 5 rows, or 10 for a probability, left unsplit), or
+#'   `"stack"` (the super learner of [suplrn()] over the learners `stk`,
+#'   fitted on `nstk` inner folds of each training set).
 #' @param lrnd The learner of the treatment, instrument and selection
 #'   nuisances, from the same choices.
 #' @param alpha The mixing parameter of `"enet"`, from 0 to 1.
@@ -87,6 +89,12 @@
 #' @param mtry The columns tried at each split of `"forest"`: `NULL` for the
 #'   default of [rfor()], or a whole number (more than the columns means all
 #'   of them).
+#' @param stk The learners of `"stack"`, each named once, from the other
+#'   choices of `lrn`.
+#' @param nstk The number of inner folds of `"stack"`, at least 2.
+#' @param disc `TRUE` for the discrete super learner in `"stack"` (the one
+#'   learner of least cross-validated risk), `FALSE` for non-negative
+#'   weights summing to 1.
 #' @param trim Propensities are kept within `trim` of 0 and 1: `NULL` for
 #'   the default of the reference implementation (1e-12 for `"irm"`,
 #'   `"iivm"` and `"ssm"`, as 'DoubleML'; 0.01 for `"did"` and `"didcs"`, as
@@ -150,7 +158,9 @@ dmlx <- function(y, d, x, model = "plr", fold, z = NULL, s = NULL, t = NULL,
                  score = NULL, lrn = "lasso", lrnd = lrn, alpha = 0.5,
                  nlam = 100, nfin = 5, tol = 1e-7, scr = TRUE, hon = FALSE,
                  ntree = 500, mtry = NULL, trim = NULL, clu = NULL,
-                 pred = NULL, seed = 1) {
+                 pred = NULL, stk = c("glm", "lasso", "forest"), nstk = 5,
+                 disc = FALSE, seed = 1) {
   .Call(C_clab_r_dmlx, y, d, x, model, fold, z, s, t, score, lrn, lrnd,
-        alpha, nlam, nfin, tol, scr, hon, ntree, mtry, trim, clu, pred, seed)
+        alpha, nlam, nfin, tol, scr, hon, ntree, mtry, trim, clu, pred, stk,
+        nstk, disc, seed)
 }

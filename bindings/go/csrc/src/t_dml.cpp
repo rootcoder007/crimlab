@@ -28,7 +28,7 @@ double rnorm(rng &g) {
 
 int run(int model, int sc, int fit, int nrep = 1, const int *clu = nullptr,
         int nc = 0, double trim = 0.0, int kind = 0, int n = N, int nf = 5) {
-  const clab_lrn l = {kind, 1.0, 20, 3, 7, 50, 0, 0, 1e-7, 1, 0};
+  const clab_lrn l = {kind, 1.0, 20, 3, 7, 50, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
   long niw;
   const long nw = clab_dmlxsz(model, n, P, nf, nrep, &l, &l, &niw);
   if (nw > 400000 || niw > 100000) return -1;
@@ -326,7 +326,7 @@ void t_two(tk &t) {
     f2[i] = (i / 10) % 5;
     f2[N + i] = (i % 20) % 5;
   }
-  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0};
+  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
   rng g = {41};
   for (int k = 0; k < 2 * N; ++k) PR[k] = runi(g);
   tk_ieq(t, "two.rc",
@@ -490,7 +490,7 @@ void t_sim(tk &t) {
 }
 
 void t_bad(tk &t) {
-  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0};
+  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
   auto call = [&](int model, int sc, int n, int p, int nf, int nrep, const int *clu,
                   int nc, double trim) {
     return clab_dmlx(model, sc, X, n, p, Y, D, Z, S, F, nf, nrep, clu, nc, 0, &l, &l,
@@ -528,7 +528,7 @@ void t_bad(tk &t) {
   tk_ieq(t, "dml.e.didx", call(6, 1, N, P, 5, 1, nullptr, 0, 0.01), CLAB_EDOM);
   tk_ieq(t, "dml.e.didcsx", call(7, 1, N, P, 5, 1, nullptr, 0, 0.01), CLAB_EDOM);
   // learning: an empty training set (nobody untreated for g0)
-  const clab_lrn lg = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0};
+  const clab_lrn lg = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
   for (int i = 0; i < N; ++i) D[i] = 1.0;
   tk_ieq(t, "dml.e.empty",
          clab_dmlx(2, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lg, &lg, 0.01, 1,
@@ -546,9 +546,9 @@ void t_bad(tk &t) {
          clab_dmlx(0, 0, xc, N, 2, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lg, &lg, 0.0, 1, PR,
                   EST, PSI, W, IW),
          CLAB_EDOM);
-  const clab_lrn le = {1, 1.0, 0, 3, 7, 0, 0, 0, 1e-7, 1, 0}, la = {1, 2.0, 5, 3, 7, 0, 0, 0, 1e-7, 1, 0},
-                 lf = {2, 1.0, 5, 3, 7, 0, 0, 0, 1e-7, 1, 0},
-                 lt = {1, 1.0, 5, 3, 7, 0, 0, 0, 0.0, 1, 0};
+  const clab_lrn le = {1, 1.0, 0, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0}, la = {1, 2.0, 5, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0},
+                 lf = {2, 1.0, 5, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0},
+                 lt = {1, 1.0, 5, 3, 7, 0, 0, 0, 0.0, 1, 0, nullptr, 0, 0, 0};
   tk_ieq(t, "dml.e.net",
          clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lg, &le, 0.0, 1, PR,
                   EST, PSI, W, IW),
@@ -567,6 +567,86 @@ void t_bad(tk &t) {
          CLAB_EDOM);
 }
 
+// clab_kfold and clab_stack: their refusals, and a stack of two least
+// squares learners, whose weights are the scaled NNLS fit.
+void t_stk(tk &t) {
+  int f[N], iw[N];
+  tk_ieq(t, "stk.kfold.n", clab_kfold(0, 2, 1, f, iw), CLAB_EARG);
+  tk_ieq(t, "stk.kfold.k", clab_kfold(3, 4, 1, f, iw), CLAB_EARG);
+  tk_ieq(t, "stk.kfold", clab_kfold(N, 5, 1, F, iw), CLAB_OK);
+  int cnt[5] = {0, 0, 0, 0, 0};
+  for (int i = 0; i < N; ++i) ++cnt[F[i]];
+  tk_true(t, "stk.kfold.size", cnt[0] == N / 5 && cnt[4] == N / 5);
+  const clab_lrn g = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
+  const clab_lrn two[2] = {g, g};
+  const clab_lrn s = {3, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0, two, 2, 5, 0};
+  double oof[2 * N], rk[2], wt[2], pr[N];
+  long niw;
+  const long nw = clab_stksz(N, P, N, &s, &niw);
+  tk_true(t, "stk.size", nw <= 400000 && niw <= 100000);
+  tk_ieq(t, "stk.ok", clab_stack(X, N, P, Y, 0, &s, F, X, N, oof, rk, wt, pr, W, IW), CLAB_OK);
+  tk_true(t, "stk.wt", wt[0] >= 0.0 && wt[1] >= 0.0 && std::fabs(wt[0] + wt[1] - 1.0) < 1e-15);
+  auto bad = [&](const char *nm, const clab_lrn &l, int n, int fam, int nt, int code) {
+    tk_ieq(t, nm, clab_stack(X, n, P, Y, fam, &l, F, X, nt, oof, rk, wt, pr, W, IW), code);
+  };
+  bad("stk.e.kind", g, N, 0, N, CLAB_EARG);
+  bad("stk.e.n", s, 1, 0, N, CLAB_EARG);
+  bad("stk.e.fam", s, N, 2, N, CLAB_EARG);
+  bad("stk.e.nt", s, N, 0, -1, CLAB_EARG);
+  bad("stk.e.big", s, N, 0, 2147483647, CLAB_EARG);
+  clab_lrn e = s;
+  e.sub = nullptr;
+  bad("stk.e.sub", e, N, 0, N, CLAB_EARG);
+  e = s;
+  e.nsub = 0;
+  bad("stk.e.nsub", e, N, 0, N, CLAB_EARG);
+  e.nsub = 17;
+  bad("stk.e.nsub2", e, N, 0, N, CLAB_EARG);
+  e = s;
+  e.nstk = 1;
+  bad("stk.e.nstk", e, N, 0, N, CLAB_EARG);
+  e = s;
+  e.disc = 2;
+  bad("stk.e.disc", e, N, 0, N, CLAB_EARG);
+  e.disc = -1;
+  bad("stk.e.disc2", e, N, 0, N, CLAB_EARG);
+  const clab_lrn nest[1] = {s};
+  e = s;
+  e.sub = nest;
+  e.nsub = 1;
+  bad("stk.e.nest", e, N, 0, N, CLAB_EARG);
+  clab_lrn ga = g;
+  ga.alpha = 2.0;
+  const clab_lrn sa[1] = {ga};
+  e = s;
+  e.sub = sa;
+  e.nsub = 1;
+  bad("stk.e.alpha", e, N, 0, N, CLAB_EDOM);
+  tk_ieq(t, "stk.e.dml",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &e, &g, 0.0, 1, PR,
+                   EST, PSI, W, IW),
+         CLAB_EDOM);
+  F[0] = 5;
+  bad("stk.e.fold", s, N, 0, N, CLAB_EARG);
+  F[0] = 0;
+  const double y0 = Y[0];
+  Y[0] = 2.0;
+  bad("stk.e.bin", s, N, 1, N, CLAB_EDOM);
+  Y[0] = std::nan("");
+  bad("stk.e.y", s, N, 0, N, CLAB_EDOM);
+  Y[0] = y0;
+  const double x0 = X[0];
+  X[0] = std::nan("");
+  bad("stk.e.x", s, N, 0, N, CLAB_EDOM);
+  X[0] = x0;
+  // three rows for five folds; a fold that holds every row
+  bad("stk.e.few", s, 3, 0, 1, CLAB_EDOM);
+  for (int i = 0; i < N; ++i) f[i] = F[i];
+  for (int i = 0; i < N; ++i) F[i] = 0;
+  bad("stk.e.one", s, N, 0, N, CLAB_EDOM);
+  for (int i = 0; i < N; ++i) F[i] = f[i];
+}
+
 }  // namespace
 
 void t_dml(tk &t, int) {
@@ -574,4 +654,5 @@ void t_dml(tk &t, int) {
   t_two(t);
   t_sim(t);
   t_bad(t);
+  t_stk(t);
 }

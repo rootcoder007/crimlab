@@ -306,14 +306,54 @@ const char *const nn[][5] = {
     {"g0", "g1", "m", "r0", "r1"}, {"g0", "g1", "m"}, {"g0", "g1", "m"},
     {"g0", "m"}, {"g00", "g01", "g10", "g11", "m"}, {"pi", "m", "g0", "g1"}};
 
-clab_lrn learner(SEXP l, const char *nm, double alpha, int nlam, int nfin,
-                 double tol, int scr, int hon,
-                 unsigned int seed, int ntree, int mtry) {
-  static const char *const ch[] = {"glm", "lasso", "ridge", "enet", "forest"};
-  const int k = rl::pick(l, nm, ch, 5);
+const char *const lch[] = {"glm", "lasso", "ridge", "enet", "forest", "stack"};
+
+// The settings shared by every learner of a call.
+struct Lset {
+  double alpha;
+  int nlam, nfin;
+  double tol;
+  int scr, hon;
+  unsigned int seed;
+  int ntree, mtry;
+};
+
+// Learner k of lch (not the stack).
+clab_lrn base(int k, const Lset &s) {
   clab_lrn r = {k == 0 ? 0 : (k == 4 ? 2 : 1),
-                k == 1 ? 1.0 : (k == 2 ? 0.0 : alpha), nlam, nfin, seed, ntree,
-                mtry, 0, tol, scr, hon};
+                k == 1 ? 1.0 : (k == 2 ? 0.0 : s.alpha),
+                s.nlam, s.nfin, s.seed, s.ntree, s.mtry, 0, s.tol, s.scr, s.hon,
+                nullptr, 0, 0, 0};
+  return r;
+}
+
+// The learners named by stk, each once, into sub (5 at most); their
+// number.
+int subs(SEXP stk, const char *nm, const Lset &s, clab_lrn *sub) {
+  const R_xlen_t m = XLENGTH(stk);
+  if (TYPEOF(stk) != STRSXP || m < 1 || m > 5) {
+    fail("`%s` must name from one to five learners.", nm);
+  }
+  int seen[5] = {0, 0, 0, 0, 0};
+  for (R_xlen_t j = 0; j < m; ++j) {
+    SEXP e = PROTECT(Rf_ScalarString(STRING_ELT(stk, j)));
+    const int k = rl::pick(e, nm, lch, 5);
+    UNPROTECT(1);
+    if (seen[k]++ > 0) fail("`%s` names \"%s\" twice.", nm, lch[k]);
+    sub[j] = base(k, s);
+  }
+  return static_cast<int>(m);
+}
+
+// The learner named by l; a stack of the learners in stk (into sub) on
+// nstk folds, disc as clab_stack().
+clab_lrn learner(SEXP l, const char *nm, const Lset &s, SEXP stk, int nstk,
+                 int disc, clab_lrn *sub) {
+  const int k = rl::pick(l, nm, lch, 6);
+  if (k < 5) return base(k, s);
+  const int ns = subs(stk, "stk", s, sub);
+  clab_lrn r = {3, s.alpha, s.nlam, s.nfin, s.seed, s.ntree, s.mtry, 0, s.tol, s.scr,
+                s.hon, sub, ns, nstk, disc};
   return r;
 }
 
@@ -333,7 +373,8 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
                    SEXP s, SEXP t, SEXP score, SEXP lrn, SEXP lrnd,
                    SEXP alpha, SEXP nlam, SEXP nfin, SEXP tol, SEXP scr,
                    SEXP hon, SEXP ntree, SEXP mtry,
-                   SEXP trim, SEXP clu, SEXP pred, SEXP seed) {
+                   SEXP trim, SEXP clu, SEXP pred, SEXP stk, SEXP nstk,
+                   SEXP disc, SEXP seed) {
   clab::who = "dmlx";
   const int md = rl::pick(model, "model", mdl, 9);
   int n, p;
@@ -451,8 +492,15 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   clab::lgl(scr, "scr", 1);
   clab::lgl(hon, "hon", 1);
   const int sr = LOGICAL_RO(scr)[0], hn = LOGICAL_RO(hon)[0];
-  const clab_lrn ly = learner(lrn, "lrn", al, nl, ni, tl, sr, hn, us, nt, mt);
-  const clab_lrn ld = learner(lrnd, "lrnd", al, nl, ni, tl, sr, hn, us + 1U, nt, mt);
+  const int ks = clab::whole(nstk, "nstk", 2);
+  clab::lgl(disc, "disc", 1);
+  const int dc = LOGICAL_RO(disc)[0];
+  clab_lrn sy[5], sdd[5];
+  const Lset ls = {al, nl, ni, tl, sr, hn, us, nt, mt};
+  Lset lsd = ls;
+  lsd.seed = us + 1U;
+  const clab_lrn ly = learner(lrn, "lrn", ls, stk, ks, dc, sy);
+  const clab_lrn ld = learner(lrnd, "lrnd", lsd, stk, ks, dc, sdd);
   double tr;
   if (Rf_isNull(trim)) {
     tr = md == 4 ? 0.025 : (md == 5 ? 5.0 / std::sqrt(n) / std::log(n)
@@ -530,6 +578,81 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   SET_VECTOR_ELT(out, 5, pr);
   static const char *const onm[] = {"coef", "se", "reps", "psia", "psib", "pred"};
   UNPROTECT(13);
+  return clab::nlist(out, onm);
+}
+
+SEXP C_clab_r_suplrn(SEXP x, SEXP y, SEXP fam, SEXP lrns, SEXP nfold, SEXP fold,
+                     SEXP disc, SEXP newx, SEXP alpha, SEXP nlam, SEXP nfin,
+                     SEXP ntree, SEXP mtry, SEXP seed) {
+  clab::who = "suplrn";
+  int n, p;
+  SEXP xv = PROTECT(rl::mat(x, "x", &n, &p));
+  if (n < 4 || p < 1) fail("`x` must have at least four rows and one column.");
+  static const char *const fams[] = {"gaussian", "binomial"};
+  const int fm = rl::pick(fam, "fam", fams, 2);
+  SEXP yv = PROTECT(num(y, "y", n));
+  rl::ychk(REAL_RO(yv), n, fm == 1, "y");
+  int nt = n;
+  SEXP tv = xv;
+  if (!Rf_isNull(newx)) {
+    int pt;
+    tv = rl::mat(newx, "newx", &nt, &pt);
+    if (pt != p) fail("`newx` must have the %d columns of `x`.", p);
+  }
+  PROTECT(tv);
+  const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
+  const unsigned int us = static_cast<unsigned int>(std::fmod(sd, 4294967296.0));
+  const Lset ls = {clab::p01(alpha, "alpha"), clab::whole(nlam, "nlam", 1),
+                   clab::whole(nfin, "nfin", 2), 1e-7, 1, 0, us,
+                   clab::whole(ntree, "ntree", 1),
+                   Rf_isNull(mtry) ? 0 : clab::whole(mtry, "mtry", 1)};
+  clab::lgl(disc, "disc", 1);
+  clab_lrn sub[5];
+  const int ns = subs(lrns, "lrns", ls, sub);
+  int k;
+  int *fv;
+  if (Rf_isNull(fold)) {
+    k = clab::whole(nfold, "nfold", 2);
+    if (k > n) fail("`nfold` must be at most the %d rows of `x`.", n);
+    fv = rl::ialloc(n);
+    kchk(clab_kfold(n, k, us, fv, rl::ialloc(n)), nullptr);
+  } else {
+    fv = rl::folds(fold, "fold", n, &k);
+  }
+  const clab_lrn l = {3, ls.alpha, ls.nlam, ls.nfin, us, ls.ntree, ls.mtry, 0, ls.tol,
+                      ls.scr, ls.hon, sub, ns, k, LOGICAL_RO(disc)[0]};
+  long niw;
+  const long nw = clab_stksz(n, p, nt, &l, &niw);
+  double *w = rl::dalloc(static_cast<double>(nw));
+  int *iw = rl::ialloc(static_cast<double>(niw));
+  SEXP oof = PROTECT(Rf_allocMatrix(REALSXP, n, ns));
+  SEXP risk = PROTECT(Rf_allocVector(REALSXP, ns));
+  SEXP wt = PROTECT(Rf_allocVector(REALSXP, ns));
+  SEXP pr = PROTECT(Rf_allocVector(REALSXP, nt));
+  const int rc = clab_stack(REAL_RO(xv), n, p, REAL_RO(yv), fm, &l, fv, REAL_RO(tv), nt,
+                            REAL(oof), REAL(risk), REAL(wt), REAL(pr), w, iw);
+  if (rc == CLAB_EDOM) {
+    fail("a learner failed on a fold (a fold too small for its inner folds, "
+         "or a design it cannot fit).");
+  }
+  kchk(rc, nullptr);
+  SEXP nm = PROTECT(Rf_allocVector(STRSXP, ns));
+  for (int j = 0; j < ns; ++j) SET_STRING_ELT(nm, j, STRING_ELT(lrns, j));
+  Rf_setAttrib(risk, R_NamesSymbol, nm);
+  Rf_setAttrib(wt, R_NamesSymbol, nm);
+  SEXP dn = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dn, 1, nm);
+  Rf_setAttrib(oof, R_DimNamesSymbol, dn);
+  SEXP fo = PROTECT(Rf_allocVector(INTSXP, n));
+  for (int i = 0; i < n; ++i) INTEGER(fo)[i] = fv[i] + 1;
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(out, 0, wt);
+  SET_VECTOR_ELT(out, 1, risk);
+  SET_VECTOR_ELT(out, 2, fo);
+  SET_VECTOR_ELT(out, 3, oof);
+  SET_VECTOR_ELT(out, 4, pr);
+  static const char *const onm[] = {"wt", "risk", "fold", "oof", "pred"};
+  UNPROTECT(11);
   return clab::nlist(out, onm);
 }
 

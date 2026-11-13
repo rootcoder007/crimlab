@@ -258,7 +258,10 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(hitscr(c(3, 1, 2), 2)),
          c("home", "above", "ties", "rank", "hit", "hitt")),
     list(quote(rtmfit(c(1, 2, 4, 8), c(0, 1, 0, 1))),
-         c("coef", "cells", "lay", "dev", "aic", "conv", "level"))
+         c("coef", "cells", "lay", "dev", "aic", "conv", "level")),
+    list(quote(suplrn(cbind(1:8, c(2, 1, 4, 3, 6, 5, 8, 7)),
+                      c(1, 3, 2, 5, 4, 6, 8, 7), lrns = "glm", nfold = 2)),
+         c("wt", "risk", "fold", "oof", "pred"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

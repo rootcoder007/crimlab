@@ -1,5 +1,13 @@
 # crimlab 0.0.0.9000
 
+* `suplrn()` stacks the learners of the package (least squares or
+  logistic regression, the lasso, ridge and elastic net, the random
+  forest) into a super learner: K-fold cross-fitted predictions, weights by
+  non-negative least squares that sum to one, or the discrete super learner
+  (the learner of least cross-validated risk), for numeric and 0/1
+  outcomes, the folds drawn from a seed and returned. With one learner the
+  stack is that learner. `dmlx()` takes it as a nuisance learner
+  (`lrn = "stack"`, with `stk`, `nstk` and `disc`).
 * Ctrl-C (Esc in the R GUIs) now stops every long computation: the
   resampling, permutation, bootstrap and simulation loops, the iterative
   fits (elastic net, logistic and count regressions, EM, quasi-Newton,

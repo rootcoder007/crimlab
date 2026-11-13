@@ -1598,8 +1598,11 @@ int clab_rfor(const double *x, int n, int p, const double *y,
  * clab_rfor() with ntree >= 1 trees, bags of the training rows' size drawn
  * with replacement, mtry columns per split (0: the floor of sqrt(p); more
  * than p: p) and nodes of at most minnode rows left unsplit (0: 5 for a
- * regression, 10 for a probability, as ranger). */
-typedef struct {
+ * regression, 10 for a probability, as ranger); kind 3: the stack of
+ * clab_stack() over the nsub learners sub (kinds 0 to 2), on nstk >= 2
+ * inner folds (a shuffle of the training rows by seed, dealt round robin,
+ * as clab_kfold()), with disc as there. */
+typedef struct clab_lrn {
   int kind;
   double alpha;
   int nlam, nfold;
@@ -1608,6 +1611,8 @@ typedef struct {
   double tol;  /* elastic net: the convergence threshold of clab_enpath() */
   int scr;     /* elastic net: screening of binomial paths */
   int hon;     /* forest: honest trees on half-samples without replacement */
+  const struct clab_lrn *sub; /* stack: the learners stacked */
+  int nsub, nstk, disc;       /* stack: their number, the folds, disc */
 } clab_lrn;
 
 /* The number of nuisance functions of a model (0 for an unknown one). */
@@ -1655,6 +1660,35 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
              const int *clu, int nc, int nc2, const clab_lrn *ly,
              const clab_lrn *ld, double trim, int fit, double *pred,
              double *est, double *psi, double *work, int *iwork);
+
+/* K-fold assignment: the n rows shuffled by seed (Fisher-Yates, the
+ * xorshift64* stream of the other kernels) and dealt round robin, so that
+ * the k folds differ in size by at most one. Out: fold, n ids in [0, k).
+ * The inner folds of the learners of clab_dmlx() are these. iwork: n
+ * ints. */
+int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork);
+
+/* Stacking: the super learner (van der Laan, Polley and Hubbard 2007,
+ * doi:10.2202/1544-6115.1309). l: a learner of kind 3 (see clab_lrn), its
+ * nsub learners fitted on x (n by p, column-major) to y (fam 0: numbers;
+ * fam 1: 0 or 1, the learners then predicting probabilities). fold: n ids
+ * in [0, l->nstk), each used, with at least one row outside each fold.
+ * Each learner is fitted on the rows outside each fold and predicts that
+ * fold; oof (n by nsub) holds these cross-fitted predictions and risk
+ * (nsub) their mean squared error (the Brier score for fam 1). wt (nsub)
+ * are the meta-weights: the non-negative least squares fit of y on oof
+ * scaled to sum to 1 (SuperLearner's method.NNLS), or with disc non-zero,
+ * or when that fit is all zero, 1 for the learner of least risk (the first
+ * on ties) and 0 for the rest. pred (nt): the stack's prediction at the nt
+ * rows of xt, sum_j wt[j] f_j(xt), each f_j fitted on all n rows with
+ * l->seed (a learner of weight 0 is not fitted). The fold fits use seed
+ * l->seed + 7919 (k + 1). With one learner the stack is that learner,
+ * bit for bit. work: clab_stksz() doubles; iwork: the ints it sets. */
+long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw);
+int clab_stack(const double *x, int n, int p, const double *y, int fam,
+               const clab_lrn *l, const int *fold, const double *xt, int nt,
+               double *oof, double *risk, double *wt, double *pred,
+               double *work, int *iwork);
 
 
 /* Mantel's test (clab_mantst) with the spatial dissimilarity built from
