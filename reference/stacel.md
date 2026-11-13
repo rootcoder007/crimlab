@@ -22,7 +22,8 @@ stacel(
   top = 25,
   minpts = 5,
   k = 1,
-  c = 1
+  c = 1,
+  count = NULL
 )
 ```
 
@@ -68,13 +69,21 @@ stacel(
   The multiplier of each cluster's standard deviational ellipse (see
   [`sdell()`](https://rootcoder007.github.io/crimlab/reference/sdell.md)).
 
+- count:
+
+  `NULL` for points, or for zones: one whole count from 0 per zone, the
+  points `x`, `y` being the zones' centroids. A zone is taken as `count`
+  incidents at its centroid, which these hot-spot rules treat exactly as
+  coincident points. Zones with count 0 get `NA`; the random-expectation
+  threshold counts incidents, not zones.
+
 ## Value
 
-A list. `cl`, the hot-spot area of each point (a row of `clusters`) or
-`NA`, in input order. `clusters`, a data frame with one row per area, by
-size: `points`, `mx`, `my` (mean centre), `wx`, `wy` (centre of minimum
-distance), `a`, `b` and `angle` (the standard deviational ellipse of its
-points).
+A list. `cl`, the hot-spot area of each point (zone) (a row of
+`clusters`) or `NA`, in input order. `clusters`, a data frame with one
+row per area, by size: `points`, `mx`, `my` (mean centre), `wx`, `wy`
+(centre of minimum distance), `a`, `b` and `angle` (the standard
+deviational ellipse of its points).
 
 ## References
 

@@ -139,6 +139,12 @@ functions, hot spots, space-time tests and journey to crime.
   : Nearest-neighbour hierarchical clustering
 - [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
   : Search-circle hot-spot areas
+- [`rnnhcl()`](https://rootcoder007.github.io/crimlab/reference/rnnhcl.md)
+  : Risk-adjusted nearest-neighbour hierarchical clustering
+- [`hdbang()`](https://rootcoder007.github.io/crimlab/reference/hdbang.md)
+  : Head-bang smoothing
+- [`crwalk()`](https://rootcoder007.github.io/crimlab/reference/crwalk.md)
+  : Correlated random walk of a series of events
 - [`mantst()`](https://rootcoder007.github.io/crimlab/reference/mantst.md)
   : Mantel's space-time test
 - [`stmavg()`](https://rootcoder007.github.io/crimlab/reference/stmavg.md)

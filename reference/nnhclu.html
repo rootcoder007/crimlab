@@ -92,6 +92,7 @@ unambiguously.</p>
 <span>  maxord <span class="op">=</span> <span class="fl">3</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  c <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  count <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lonlat <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -144,6 +145,14 @@ orders) a cluster keeps: whole numbers from 2.</p></dd>
 <dt id="arg-c">c<a class="anchor" aria-label="anchor" href="#arg-c"></a></dt>
 <dd><p>The multiplier of each cluster's standard deviational ellipse
 (see <code><a href="sdell.html">sdell()</a></code>).</p></dd>
+
+
+<dt id="arg-count">count<a class="anchor" aria-label="anchor" href="#arg-count"></a></dt>
+<dd><p><code>NULL</code> for points, or for zones: one whole count from 0
+per zone, the points <code>x</code>, <code>y</code> being the zones' centroids. A zone is
+taken as <code>count</code> incidents at its centroid, which these hot-spot rules
+treat exactly as coincident points. Zones with count 0 get <code>NA</code>; the
+random-expectation threshold counts incidents, not zones.</p></dd>
 
 
 <dt id="arg-lonlat">lonlat<a class="anchor" aria-label="anchor" href="#arg-lonlat"></a></dt>

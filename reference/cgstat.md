@@ -7,7 +7,9 @@ means of the coordinates (Bachi 1957; Neft 1962). The mean centre is the
 point that minimises the sum of squared distances to the points. The
 dispersions divide by the total weight less `k`: `k = 1` makes the
 squared values unbiased for the variances; `k = 2` is the convention of
-some crime-mapping texts; `k = 0` divides by the total weight.
+some crime-mapping texts; `k = 0` divides by the total weight. That the
+mean centre minimises the weighted sum of squared distances is proved in
+Lean: see `proof("cgstat")`.
 
 ## Usage
 

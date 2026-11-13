@@ -14,7 +14,16 @@ randomness as a whole.
 ## Usage
 
 ``` r
-nnidx(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL, dist = FALSE)
+nnidx(
+  x,
+  y = NULL,
+  win,
+  kmax = 1,
+  nsim = 0,
+  seed = NULL,
+  dist = FALSE,
+  metric = "euclid"
+)
 ```
 
 ## Arguments
@@ -52,6 +61,20 @@ nnidx(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL, dist = FALSE)
 - dist:
 
   `TRUE` to return every point's neighbour distances.
+
+- metric:
+
+  The distance: `"euclid"` or `"manhattan"` (`|dx| + |dy|`, a street
+  grid aligned with the axes), as in
+  [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md)
+  and
+  [`jtsurf()`](https://rootcoder007.github.io/crimlab/reference/jtsurf.md).
+  Under Manhattan distance the expectations use the area of the
+  Manhattan ball, `2 r^2`: the mean k-th distance is `sqrt(pi / 2)`
+  times the Euclidean expectation and `E R_k^2 = k / (2 lambda)`; no
+  edge-corrected (Donnelly) expectation is published for it, so `ce`
+  holds `NaN` except `z`, about the uncorrected expectation with
+  `Var R_1 = (4 - pi) / (8 lambda)`. The Monte Carlo test is unchanged.
 
 ## Value
 

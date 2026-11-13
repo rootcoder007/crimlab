@@ -6,7 +6,8 @@ under no autocorrelation, below 1 when neighbours are alike. Its
 variance is given under normality and under randomisation (Cliff and Ord
 1981), with z statistics `(1 - C) / sd` and their upper normal tails,
 and, with `nsim > 0`, a permutation p-value against positive
-autocorrelation.
+autocorrelation. That C has expectation 1 under randomisation is proved
+in Lean: see `proof("gearc")`.
 
 ## Usage
 

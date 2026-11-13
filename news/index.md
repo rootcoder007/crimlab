@@ -129,6 +129,25 @@
   (local G and G\*) and
   [`dirmn()`](https://rootcoder007.github.io/crimlab/reference/dirmn.md)
   (directional mean).
+- [`hdbang()`](https://rootcoder007.github.io/crimlab/reference/hdbang.md)
+  (head-bang smoothing, weighted or not),
+  [`crwalk()`](https://rootcoder007.github.io/crimlab/reference/crwalk.md)
+  (a correlated random walk of a series: fit, expected displacement and
+  simulation) and
+  [`rnnhcl()`](https://rootcoder007.github.io/crimlab/reference/rnnhcl.md)
+  (nearest-neighbour clustering against a population at risk).
+  [`nnidx()`](https://rootcoder007.github.io/crimlab/reference/nnidx.md),
+  [`ripk()`](https://rootcoder007.github.io/crimlab/reference/ripk.md),
+  [`fzmode()`](https://rootcoder007.github.io/crimlab/reference/fzmode.md)
+  and
+  [`mantst()`](https://rootcoder007.github.io/crimlab/reference/mantst.md)
+  take `metric = "manhattan"`;
+  [`fzmode()`](https://rootcoder007.github.io/crimlab/reference/fzmode.md),
+  [`kmpart()`](https://rootcoder007.github.io/crimlab/reference/kmpart.md),
+  [`nnhclu()`](https://rootcoder007.github.io/crimlab/reference/nnhclu.md)
+  and
+  [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
+  take zones as counts at centroids (`count`).
 - [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md)
   (fairness of a risk tool by group),
   [`tlvc()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)

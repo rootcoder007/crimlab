@@ -13,7 +13,7 @@ exactly). The normalisation is `n (n - 1)`, as in spatstat.
 ## Usage
 
 ``` r
-ripk(x, y = NULL, win, r, corr = "iso")
+ripk(x, y = NULL, win, r, corr = "iso", metric = "euclid")
 ```
 
 ## Arguments
@@ -41,10 +41,25 @@ ripk(x, y = NULL, win, r, corr = "iso")
 
   The edge correction: `"iso"`, `"border"`, `"modif"` or `"none"`.
 
+- metric:
+
+  The distance: `"euclid"` or `"manhattan"` (`|dx| + |dy|`, a street
+  grid aligned with the axes), as in
+  [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md)
+  and
+  [`jtsurf()`](https://rootcoder007.github.io/crimlab/reference/jtsurf.md).
+  Under Manhattan distance `K(r) = 2 r^2` and `L = sqrt(K / 2)` under
+  randomness; the border and modified border corrections carry over (a
+  Manhattan ball of radius `r` lies in the rectangle exactly when its
+  centre is at least `r` from every edge), while the isotropic
+  correction, the share of a circle, has no Manhattan form and is
+  refused.
+
 ## Value
 
 A data frame with one row per radius: `r`, `k` (in the square of the
-coordinates' unit) and `l`.
+coordinates' unit) and `l` (`sqrt(k / pi)`, or `sqrt(k / 2)` under
+Manhattan distance).
 
 ## References
 

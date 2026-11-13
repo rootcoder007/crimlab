@@ -70,7 +70,8 @@ the grid; both are the caller's choice here.</p>
 <span>  top <span class="op">=</span> <span class="fl">25</span>,</span>
 <span>  minpts <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  k <span class="op">=</span> <span class="fl">1</span>,</span>
-<span>  c <span class="op">=</span> <span class="fl">1</span></span>
+<span>  c <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  count <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -117,10 +118,18 @@ from 2.</p></dd>
 <dd><p>The multiplier of each cluster's standard deviational ellipse
 (see <code><a href="sdell.html">sdell()</a></code>).</p></dd>
 
+
+<dt id="arg-count">count<a class="anchor" aria-label="anchor" href="#arg-count"></a></dt>
+<dd><p><code>NULL</code> for points, or for zones: one whole count from 0
+per zone, the points <code>x</code>, <code>y</code> being the zones' centroids. A zone is
+taken as <code>count</code> incidents at its centroid, which these hot-spot rules
+treat exactly as coincident points. Zones with count 0 get <code>NA</code>; the
+random-expectation threshold counts incidents, not zones.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A list. <code>cl</code>, the hot-spot area of each point (a row of
+    <p>A list. <code>cl</code>, the hot-spot area of each point (zone) (a row of
 <code>clusters</code>) or <code>NA</code>, in input order. <code>clusters</code>, a data frame with one
 row per area, by size: <code>points</code>, <code>mx</code>, <code>my</code> (mean centre), <code>wx</code>, <code>wy</code>
 (centre of minimum distance), <code>a</code>, <code>b</code> and <code>angle</code> (the standard

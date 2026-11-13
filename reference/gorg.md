@@ -5,7 +5,8 @@ non-negative values: `G = sum_ij w_ij x_i x_j / sum_{i != j} x_i x_j`,
 its expectation `S0 / (n (n - 1))` and variance under randomisation, the
 z statistic, its upper normal tail (high values near high values) and,
 with `nsim > 0`, a permutation p-value. Unlike Moran's I and Geary's C
-it tells high-value clusters from low-value ones.
+it tells high-value clusters from low-value ones. Its expectation under
+randomisation is proved in Lean: see `proof("gorg")`.
 
 ## Usage
 

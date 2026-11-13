@@ -7,7 +7,8 @@ from the others, nsim times from seed. The quadrant tells
 high-high and low-low clusters from high-low and low-high outliers. The
 p-values are per unit and not adjusted for the many tests made (use
 stats::p.adjust()); with row-standardised weights the sum of the I_i
-is S0 times global Moran's I."><meta property="og:description" content="Anselin's (1995) local indicator of spatial association for each unit:
+is S0 times global Moran's I. That identity is proved in Lean: see
+proof(&quot;lmorn&quot;)."><meta property="og:description" content="Anselin's (1995) local indicator of spatial association for each unit:
 with z = x - mean(x) and m2 = mean(z^2), I_i = z_i / m2 sum_j w_ij z_j, its expectation and variance under total randomisation, the
 two-sided normal p-value, and a conditional permutation p-value: unit i
 keeps its value and its neighbours' values are drawn without replacement
@@ -15,7 +16,8 @@ from the others, nsim times from seed. The quadrant tells
 high-high and low-low clusters from high-low and low-high outliers. The
 p-values are per unit and not adjusted for the many tests made (use
 stats::p.adjust()); with row-standardised weights the sum of the I_i
-is S0 times global Moran's I."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
+is S0 times global Moran's I. That identity is proved in Lean: see
+proof(&quot;lmorn&quot;)."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -58,7 +60,8 @@ from the others, <code>nsim</code> times from <code>seed</code>. The quadrant te
 high-high and low-low clusters from high-low and low-high outliers. The
 p-values are per unit and not adjusted for the many tests made (use
 <code><a href="https://rdrr.io/r/stats/p.adjust.html" class="external-link">stats::p.adjust()</a></code>); with row-standardised weights the sum of the <code>I_i</code>
-is <code>S0</code> times global Moran's I.</p>
+is <code>S0</code> times global Moran's I. That identity is proved in Lean: see
+<code>proof("lmorn")</code>.</p>
     </div>
 
     <div class="section level2">

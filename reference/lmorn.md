@@ -11,7 +11,7 @@ low-high outliers. The p-values are per unit and not adjusted for the
 many tests made (use
 [`stats::p.adjust()`](https://rdrr.io/r/stats/p.adjust.html)); with
 row-standardised weights the sum of the `I_i` is `S0` times global
-Moran's I.
+Moran's I. That identity is proved in Lean: see `proof("lmorn")`.
 
 ## Usage
 

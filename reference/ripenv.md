@@ -56,6 +56,12 @@ A list. `env`, a data frame with one row per radius: `r`, `obs`
 `mean`. `test`, a named vector: `t` (the maximum absolute deviation) and
 `p` (its Monte Carlo p-value).
 
+## Details
+
+Euclidean distance only;
+[`ripk()`](https://rootcoder007.github.io/crimlab/reference/ripk.md)
+takes `metric`.
+
 ## References
 
 Diggle, P. J. (2013). *Statistical Analysis of Spatial and

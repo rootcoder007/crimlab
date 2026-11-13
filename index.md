@@ -308,6 +308,13 @@ nnhclu(x, y, area = 225, p = 0.05, minpts = 5)$clusters
 kmpart(x, y, k = 3, seed = 1)$cen
 stacel(x, y, win = c(-5, 10, -5, 10), r = 0.75, top = 10, minpts = 5)$clusters
 mantst(x, y, t = seq_along(x), nsim = 199, seed = 1)
+mantst(x, y, t = seq_along(x), nsim = 199, seed = 1, metric = "manhattan")
+hdbang(x, y, v = fzmode(x, y, r = 0.5))      # head-bang smoothing
+crwalk(cbind(x = x[1:10], y = y[1:10]), h = 2, seed = 1)$msd
+# clusters relative to a population at risk; zones as counts at centroids
+rnnhcl(x, y, base = cbind(x = runif(500, -5, 10), y = runif(500, -5, 10)),
+       h = 1, minpts = 5)$clusters
+fzmode(x[1:20], y[1:20], r = 1, count = rpois(20, 3))
 
 # a search priority over a grid, not evidence about any person
 s <- jtsurf(c(2, 3, 4), c(2, 4, 3), win = c(0, 6, 0, 6), nx = 30, ny = 30,

@@ -9,7 +9,9 @@ divisor (`k`) and in the multiplier (some multiply by `sqrt(2)`). The
 curve of the standard deviation by direction that Lefever drew is not
 this ellipse (Gong 2002); the ellipse is returned. For bivariate normal
 points the ellipse with `c = sqrt(-2 * log(1 - p))` covers a share `p`
-of them: `c = 1` covers 39.3 per cent, `c = 2` 86.5 per cent.
+of them: `c = 1` covers 39.3 per cent, `c = 2` 86.5 per cent. The
+parallel-axis identity behind the ellipse's centre is proved in Lean:
+see `proof("sdell")`.
 
 ## Usage
 

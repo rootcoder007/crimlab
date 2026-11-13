@@ -13,7 +13,17 @@ with pairs times permutations.
 ## Usage
 
 ``` r
-mantst(x, y = NULL, t, cs = 0, ct = 0, nsim = 999, seed = NULL, lonlat = FALSE)
+mantst(
+  x,
+  y = NULL,
+  t,
+  cs = 0,
+  ct = 0,
+  nsim = 999,
+  seed = NULL,
+  metric = "euclid",
+  lonlat = FALSE
+)
 ```
 
 ## Arguments
@@ -53,6 +63,11 @@ mantst(x, y = NULL, t, cs = 0, ct = 0, nsim = 999, seed = NULL, lonlat = FALSE)
   `NULL` to draw the simulations' seed from R's generator (so
   [`set.seed()`](https://rdrr.io/r/base/Random.html) fixes them), or one
   whole number from 0.
+
+- metric:
+
+  The spatial distance: `"euclid"` or `"manhattan"`; the test permutes
+  times and needs no expectation, so both are exact.
 
 - lonlat:
 

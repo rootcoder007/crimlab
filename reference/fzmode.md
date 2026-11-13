@@ -10,7 +10,7 @@ its own neighbourhood.
 ## Usage
 
 ``` r
-fzmode(x, y = NULL, r, lonlat = FALSE)
+fzmode(x, y = NULL, r, count = NULL, metric = "euclid", lonlat = FALSE)
 ```
 
 ## Arguments
@@ -35,6 +35,19 @@ fzmode(x, y = NULL, r, lonlat = FALSE)
   The radius: one number from 0, in the unit of the coordinates (metres
   when `lonlat = TRUE`). Distances up to and including `r` count.
 
+- count:
+
+  `NULL` for points, or for zones: one whole count from 0 per zone (`x`,
+  `y` the zones' centroids); the result is then each zone's total count
+  within `r` of it, its own included.
+
+- metric:
+
+  The distance: `"euclid"` or `"manhattan"` (`|dx| + |dy|`), as in
+  [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md)
+  and
+  [`jtsurf()`](https://rootcoder007.github.io/crimlab/reference/jtsurf.md).
+
 - lonlat:
 
   `FALSE` (the default) when `x` and `y` are planar coordinates in one
@@ -46,7 +59,8 @@ fzmode(x, y = NULL, r, lonlat = FALSE)
 
 ## Value
 
-An integer vector, one count per point, in input order.
+An integer vector, one count per point, in input order (with `count`, a
+numeric vector of zone totals).
 
 ## References
 

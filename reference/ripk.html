@@ -63,7 +63,7 @@ exactly). The normalisation is <code>n (n - 1)</code>, as in spatstat.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ripk</span><span class="op">(</span><span class="va">x</span>, y <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">win</span>, <span class="va">r</span>, corr <span class="op">=</span> <span class="st">"iso"</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ripk</span><span class="op">(</span><span class="va">x</span>, y <span class="op">=</span> <span class="cn">NULL</span>, <span class="va">win</span>, <span class="va">r</span>, corr <span class="op">=</span> <span class="st">"iso"</span>, metric <span class="op">=</span> <span class="st">"euclid"</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -93,11 +93,23 @@ in the unit of the coordinates.</p></dd>
 <dd><p>The edge correction: <code>"iso"</code>, <code>"border"</code>, <code>"modif"</code> or
 <code>"none"</code>.</p></dd>
 
+
+<dt id="arg-metric">metric<a class="anchor" aria-label="anchor" href="#arg-metric"></a></dt>
+<dd><p>The distance: <code>"euclid"</code> or <code>"manhattan"</code> (<code>|dx| + |dy|</code>,
+a street grid aligned with the axes), as in <code><a href="spwt.html">spwt()</a></code> and <code><a href="jtsurf.html">jtsurf()</a></code>.
+Under Manhattan distance <code>K(r) = 2 r^2</code> and <code>L = sqrt(K / 2)</code> under
+randomness; the border and modified border
+corrections carry over (a Manhattan ball of radius <code>r</code> lies in the
+rectangle exactly when its centre is at least <code>r</code> from every edge),
+while the isotropic correction, the share of a circle, has no
+Manhattan form and is refused.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A data frame with one row per radius: <code>r</code>, <code>k</code> (in the square of
-the coordinates' unit) and <code>l</code>.</p>
+the coordinates' unit) and <code>l</code> (<code>sqrt(k / pi)</code>, or <code>sqrt(k / 2)</code> under
+Manhattan distance).</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
