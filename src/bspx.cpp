@@ -785,4 +785,144 @@ SEXP C_clab_r_spill(SEXP w, SEXP rho, SEXP b, SEXP th, SEXP vc, SEXP nm) {
   return f;
 }
 
+// ---------------------------------------------------- point patterns
+
+SEXP C_clab_r_crossk(SEXP x, SEXP y, SEXP marks, SEXP i, SEXP j, SEXP win, SEXP r, SEXP sigma,
+                     SEXP nsim, SEXP seed) {
+  clab::who = "crossk";
+  csp::pts p = csp::xy(x, y, R_NilValue, csp::planar);
+  const int n = p.n;
+  if (n < 2) fail("at least 2 points are needed.");
+  csp::lab g = csp::codes(marks, "marks", n);
+  const int ti = clab::ref(i, g.lev, g.g, "i", "type");
+  const int tj = clab::ref(j, g.lev, g.g, "j", "type");
+  double wn[4];
+  csp::win(win, wn);
+  for (int a = 0; a < n; ++a) {
+    if (!csp::inside(wn, p.x[a], p.y[a])) fail("every point must lie inside `win`.");
+  }
+  SEXP rv = PROTECT(num(r, "r", -1, 0.0));
+  for (R_xlen_t q = 1; q < XLENGTH(rv); ++q) {
+    if (!(REAL(rv)[q] > REAL(rv)[q - 1])) fail("`r` must increase.");
+  }
+  const int nr = static_cast<int>(XLENGTH(rv));
+  const bool sg = !Rf_isNull(sigma);
+  const double sd = sg ? clab::one(sigma, "sigma", 0.0, HUGE_VAL) : 0.0;
+  const int ns = clab::whole(nsim, "nsim", 0);
+  const unsigned int se = sg && ns > 0 ? csp::seed(seed) : 0u;
+  static const char *const kn[] = {"r", "k", "l", "theo"};
+  double *c[4];
+  SEXP kf = PROTECT(dframe(4, nr, kn, c));
+  double seg[2];
+  kc(clab_crossk(p.x, p.y, INTEGER(g.code), n, ti - 1, tj - 1, wn, REAL(rv), nr, sd, ns, se, c[1],
+                 seg),
+     "type `i` needs a point and type `j` another, or the kernel weights of a point vanish: "
+     "widen `sigma`.");
+  for (int q = 0; q < nr; ++q) {
+    const double rr = REAL(rv)[q];
+    c[0][q] = rr;
+    c[2][q] = std::sqrt(c[1][q] / 3.14159265358979323846);
+    c[3][q] = 3.14159265358979323846 * rr * rr;
+  }
+  SEXP sv = R_NilValue;
+  if (sg) {
+    static const char *const sn[] = {"t", "p", "nsim"};
+    const double v[3] = {seg[0], seg[1], static_cast<double>(ns)};
+    sv = clab::nvec(3, sn, v);
+  }
+  PROTECT(sv);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, kf);
+  SET_VECTOR_ELT(out, 1, sv);
+  SET_VECTOR_ELT(out, 2, Rf_ScalarString(STRING_ELT(g.lev, ti - 1)));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarString(STRING_ELT(g.lev, tj - 1)));
+  static const char *const on[] = {"k", "seg", "i", "j"};
+  clab::nlist(out, on);
+  UNPROTECT(7);
+  return klass(out, "crossk");
+}
+
+SEXP C_clab_r_qdrtst(SEXP x, SEXP y, SEXP win, SEXP nx, SEXP ny) {
+  clab::who = "qdrtst";
+  csp::pts p = csp::xy(x, y, R_NilValue, csp::planar);
+  const int n = p.n;
+  double wn[4];
+  csp::win(win, wn);
+  for (int a = 0; a < n; ++a) {
+    if (!csp::inside(wn, p.x[a], p.y[a])) fail("every point must lie inside `win`.");
+  }
+  const int ax = clab::whole(nx, "nx", 1), ay = clab::whole(ny, "ny", 1);
+  if (static_cast<double>(ax) * ay < 2 || static_cast<double>(ax) * ay > 1e7) {
+    fail("`nx` times `ny` must be from 2 to 1e7.");
+  }
+  SEXP cn = PROTECT(Rf_allocMatrix(REALSXP, ay, ax));
+  double st[3];
+  kc(clab_qdrtst(p.x, p.y, n, wn, ax, ay, REAL(cn), st), "the kernel refused the input.");
+  const double up = Rf_pchisq(st[0], st[1], 0, 0);
+  static const char *const sn[] = {"x2", "df", "p", "ptwo", "lambda"};
+  const double v[5] = {st[0], st[1], up, std::fmin(1.0, 2 * std::fmin(up, 1 - up)), st[2]};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(out, 0, cn);
+  SET_VECTOR_ELT(out, 1, clab::nvec(5, sn, v));
+  static const char *const on[] = {"counts", "stat"};
+  clab::nlist(out, on);
+  UNPROTECT(3);
+  return klass(out, "qdrtst");
+}
+
+SEXP C_clab_r_morsta(SEXP counts, SEXP crit) {
+  clab::who = "morsta";
+  SEXP cv = mnum(counts, "counts", 0.0);
+  const int n = clab::ilen(static_cast<double>(XLENGTH(cv)), "counts");
+  if (n < 2) fail("at least 2 quadrats are needed.");
+  const double a = clab::one(crit, "crit", 0.0, 1.0);
+  double o[5];
+  kc(clab_morsta(REAL(cv), n, Rf_qchisq(1 - a / 2, n - 1, 0, 0), Rf_qchisq(a / 2, n - 1, 0, 0), o),
+     "the counts must add up to more than 1.");
+  static const char *const nm[] = {"imor", "mclu", "muni", "imst", "chi", "p"};
+  const double v[6] = {o[0], o[1], o[2], o[3], o[4], Rf_pchisq(o[4], n - 1, 0, 0)};
+  UNPROTECT(1);
+  return clab::nvec(6, nm, v);
+}
+
+SEXP C_clab_r_dissix(SEXP x, SEXP delta, SEXP w) {
+  clab::who = "dissix";
+  if (!Rf_isMatrix(x)) fail("`x` must be a matrix or data frame of counts, units by groups.");
+  const int n = Rf_nrows(x), g = Rf_ncols(x);
+  if (g < 2) fail("`x` must have at least 2 groups (columns).");
+  SEXP xv = mnum(x, "x", 0.0);
+  const double dl = clab::one(delta, "delta", 0.0, 1.0);
+  SEXP gn = PROTECT(cnames(x, g, "g"));
+  const bool hw = !Rf_isNull(w);
+  wcsr c = hw ? wread(w, n) : wcsr{PROTECT(R_NilValue), nullptr, nullptr, nullptr};
+  SEXP d = PROTECT(Rf_allocMatrix(REALSXP, g, g));
+  SEXP dm = PROTECT(hw ? Rf_allocMatrix(REALSXP, g, g) : R_NilValue);
+  SEXP gr = PROTECT(real(4 * static_cast<R_xlen_t>(g)));
+  kc(clab_dissix(REAL(xv), n, g, dl, c.rp, c.ci, c.w, REAL(d), REAL(gr), hw ? REAL(dm) : nullptr),
+     "every group needs a positive total, and `w` a positive weight.");
+  SEXP dn = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dn, 0, gn);
+  SET_VECTOR_ELT(dn, 1, gn);
+  Rf_setAttrib(d, R_DimNamesSymbol, dn);
+  if (hw) Rf_setAttrib(dm, R_DimNamesSymbol, dn);
+  static const char *const cn[] = {"group", "is", "h", "atk", "gini"};
+  SEXP cols = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(cols, 0, gn);
+  for (int j = 0; j < 4; ++j) {
+    SEXP v = real(g);
+    SET_VECTOR_ELT(cols, j + 1, v);
+    for (int k = 0; k < g; ++k) REAL(v)[k] = REAL(gr)[4 * static_cast<R_xlen_t>(k) + j];
+  }
+  SEXP gf = PROTECT(clab::frame(cols, cn));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, d);
+  SET_VECTOR_ELT(out, 1, gf);
+  SET_VECTOR_ELT(out, 2, dm);
+  SET_VECTOR_ELT(out, 3, Rf_ScalarReal(dl));
+  static const char *const on[] = {"d", "grp", "dm", "delta"};
+  clab::nlist(out, on);
+  UNPROTECT(10);
+  return klass(out, "dissix");
+}
+
 }  // extern "C"

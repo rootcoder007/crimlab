@@ -448,6 +448,10 @@ SEXP C_clab_r_gmoran(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_bvmor(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sarml(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_spill(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_crossk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_qdrtst(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_morsta(SEXP, SEXP);
+SEXP C_clab_r_dissix(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -600,6 +604,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_bvmor", fn(&C_clab_r_bvmor), 5},
     {"C_clab_r_sarml", fn(&C_clab_r_sarml), 7},
     {"C_clab_r_spill", fn(&C_clab_r_spill), 6},
+    {"C_clab_r_crossk", fn(&C_clab_r_crossk), 10},
+    {"C_clab_r_qdrtst", fn(&C_clab_r_qdrtst), 5},
+    {"C_clab_r_morsta", fn(&C_clab_r_morsta), 2},
+    {"C_clab_r_dissix", fn(&C_clab_r_dissix), 3},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

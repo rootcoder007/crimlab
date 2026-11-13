@@ -2020,6 +2020,50 @@ int clab_spill(int n, const int *rp, const int *ci, const double *w, double rho,
                const double *b, const double *th, int k, const double *vc,
                double *out);
 
+/* Point patterns and segregation (src/ppx.cpp).
+ *
+ * clab_crossk: the cross-type K function of n >= 2 points with types mk
+ * (codes from 0) inside the rectangle win: K_ij(r) = A / (n_i n_j) sum over
+ * a of type ti and b != a of type tj with d_ab <= r of Ripley's isotropic
+ * weight at a (Ripley 1977, doi:10.1111/j.2517-6161.1977.tb01615.x),
+ * n_i (n_i - 1) in the divisor when ti = tj; r: nr distances from 0,
+ * increasing; out k, nr values. With sigma > 0, the segregation test of
+ * Diggle, Zheng and Durr (2005, doi:10.1111/j.1467-9876.2005.05373.x): T =
+ * sum_a sum_m (p_m(a) - pbar_m)^2, p_m(a) the leave-one-out share of type m
+ * under a normal kernel of sd sigma, and the p-value of nsim relabellings
+ * from seed; seg, 2: T, p (NaN for nsim = 0). CLAB_EDOM for a point outside
+ * win, a type without points, or a point whose kernel weights all vanish.
+ * O(n^2 (1 + nsim types)).
+ *
+ * clab_qdrtst: the counts of n points in nx x ny equal tiles of win (cnt:
+ * ny x nx column-major, rows from the top; a point on the far edge in the
+ * last tile) and Pearson's X2 against the mean count. st, 3: X2, nx ny - 1,
+ * the points per unit area. O(n + nx ny).
+ *
+ * clab_morsta: Morisita's index of n >= 2 counts (from 0, total S > 1), I
+ * = n (sum x^2 - S) / (S^2 - S), the uniform and clumped indices (chiu -
+ * n + S) / (S - 1) and (chil - n + S) / (S - 1) at the chi-square quantiles
+ * given, Smith-Gill's standardised index, and chi = I (S - 1) + n - S.
+ * Out, 5: I, clumped, uniform, standardised, chi. O(n).
+ *
+ * clab_dissix: segregation of g >= 2 groups over n units (x: n x g
+ * counts, column-major, every group with a positive total; units with no
+ * one left out). d: g x g Duncan's D; grp, 4 per group against the rest:
+ * IS, Theil's H, Atkinson's index of shape delta in (0, 1), Gini; with
+ * weights rp, ci, w (NULL for none), dm: g x g Morrill's adjusted D (D
+ * less the weighted mean |z_i - z_j| over neighbouring units, z the pair's
+ * share; CLAB_EDOM when no weight joins two occupied units). O(g^2 n + g n^2). */
+int clab_crossk(const double *x, const double *y, const int *mk, int n, int ti,
+                int tj, const double *win, const double *r, int nr,
+                double sigma, int nsim, unsigned int seed, double *k,
+                double *seg);
+int clab_qdrtst(const double *x, const double *y, int n, const double *win, int nx,
+                int ny, double *cnt, double *st);
+int clab_morsta(const double *x, int n, double chiu, double chil, double *out);
+int clab_dissix(const double *x, int n, int g, double delta, const int *rp,
+                const int *ci, const double *w, double *d, double *grp,
+                double *dm);
+
 #ifdef __cplusplus
 }
 #endif
