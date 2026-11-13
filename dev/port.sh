@@ -40,6 +40,9 @@ src/geo2.cpp src/t_geo2.cpp
 src/swt.cpp src/lsa.cpp src/t_swt.cpp
 src/svg.cpp src/t_svg.cpp
 src/lab.cpp src/t_lab.cpp
+src/learn.cpp src/t_learn.cpp
+src/rf.cpp src/t_rf.cpp
+src/dml.cpp src/t_dml.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$

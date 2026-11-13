@@ -60,7 +60,7 @@ for s in $steps; do
       cat(length(ck), "checks, failed:", length(f), f)' "$gp" "$srrlib" 2>/dev/null | tail -1)
     clean
     say gp "$out"
-    case $out in *"failed: 0"|*"failed: 1 urlchecker_ok") ;; *) rc=1 ;; esac ;;
+    case $out in *"failed: 0"|*"failed: 0 "|*"failed: 1 urlchecker_ok") ;; *) rc=1 ;; esac ;;
   check)
     t=$(mktemp -d)
     (cd "$t" && R CMD build "$OLDPWD" >/dev/null 2>&1 &&
