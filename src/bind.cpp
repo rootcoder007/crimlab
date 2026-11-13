@@ -2040,6 +2040,16 @@ const Thm thms[] = {
     {"gearc", "Spatial", "geary_mean_one"},
     {"gorg", "Spatial", "getis_mean"},
     {"dirmn", "Spatial", "resultant_le_one"},
+    {"impfpr", "Fair", "chouldechova"},
+    {"impfpr", "Fair", "impossibility"},
+    {"nsbnd", "Fair", "bounds_box"},
+    {"nsbnd", "Fair", "lower_attained"},
+    {"nsbnd", "Fair", "upper_attained"},
+    {"nsbnd", "Fair", "trueRate_observedRate"},
+    {"nsbnd", "Fair", "compare_decided"},
+    {"nsbnd", "Fair", "compare_undecided"},
+    {"rnkres", "Fair", "rank_reversal_exists"},
+    {"rnkres", "Fair", "rank_stable_of_gap"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

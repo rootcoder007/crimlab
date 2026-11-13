@@ -110,7 +110,16 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(dmlx(c(1, 3, 2, 5, 4, 6), c(2, 1, 4, 3, 6, 5),
                     cbind(c(1, 2, 2, 3, 5, 4)), "plr", rep(1:2, 3),
                     lrn = "glm")),
-         c("coef", "se", "reps", "psia", "psib", "pred"))
+         c("coef", "se", "reps", "psia", "psib", "pred")),
+    list(quote(fairdf(c(1, 0, 1, 0), c("a", "a", "b", "b"))),
+         c("tab", "sum", "base")),
+    list(quote(tmpaud(c(1, 0, 1, 0), c("a", "b", "a", "b"), c(1, 1, 2, 2))),
+         c("cells", "cities", "sum", "base")),
+    list(quote(lipaud(1:3, dist(1:3))),
+         c("lreq", "nviol", "rate", "ok", "maxgap", "worst", "pairs")),
+    list(quote(nsbnd(c(0.3, 0.5), 0.1, 0.1)), c("bnd", "pairs")),
+    list(quote(impfpr(0.3, 0.6, 0.2)), NULL),
+    list(quote(rnkres(1:3, 0.5)), c("id", "npair", "nunid", "share", "res"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

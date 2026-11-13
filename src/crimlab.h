@@ -620,6 +620,113 @@ int clab_fair(const double *score, const int *y, const int *grp, int n, int g,
               double cut, int base, double z, double *cnt, double *met,
               double *rat, double *lo, double *hi);
 
+/* Differences and ratios between groups of a binary decision
+ * (clab_fairdf) and the same over time and place (clab_tmpaud).
+ *
+ * clab_fairdf: pred, n decisions 0 or 1 (1: predicted positive); y, NULL
+ * or n outcomes 0 or 1; grp, n codes in [0, g), g >= 2, each code used.
+ * base in [0, g), or -1 for the group with the largest share predicted
+ * positive (the first on ties; the reference of the four-fifths rule).
+ * z > 0 the normal quantile of the intervals. nboot >= 0 bootstrap
+ * replicates from seed. Out (k-th value of group j at [k * g + j]):
+ *   cnt, 6g: cases, predicted positive, true positives, of them predicted
+ *     positive, true negatives, of them predicted positive (exact counts;
+ *     the last four 0 without y);
+ *   met, 23g: n, number and share predicted positive with its Wilson
+ *     interval (0-4); the parity gap (share minus the base group's) with
+ *     Newcombe's hybrid score interval (5-7, doi:10.1002/(SICI)1097-0258(
+ *     19980430)17:8<873::AID-SIM779>3.0.CO;2-I); the ratio of shares (the
+ *     disparate impact ratio, IEEE division) with the log interval of Katz
+ *     et al. 1978 (8-10, doi:10.2307/2530610; NaN when either count is 0);
+ *     with y, the true and false positive rates (11, 12), their gaps to
+ *     the base group with Newcombe intervals (13-15, 16-18), the average
+ *     odds difference (dtpr + dfpr) / 2 with the MOVER interval of Zou and
+ *     Donner 2008 (19-21, doi:10.1002/sim.3095) and the larger in size of
+ *     the two gaps (22); NaN where undefined, and in the base group's own
+ *     intervals; columns 11-22 NaN without y;
+ *   sum, 11: the smallest finite ratio of another group (NaN if none), the
+ *     parity gap of largest size (signed, the first on ties), the Gini
+ *     coefficient of the g shares, the bias amplification score (gap times
+ *     Gini, Barman and Barman, arXiv:2603.18987), percentile bootstrap
+ *     ends of the Gini coefficient and of the score (NaN when nboot = 0),
+ *     the average odds difference and equalized-odds gap of largest size
+ *     (NaN without y), and the base group.
+ * The bootstrap redraws each group's decisions with replacement (n_j draws,
+ * Binomial(n_j, share_j) positives) and keeps the base group. work: 3g +
+ * 2 nboot doubles. CLAB_EDOM for a code without cases. O(n + g + n nboot).
+ *
+ * clab_tmpaud: pred and grp as above; cell, n codes in [0, nc) (one cell
+ * per city and period); city, nc codes in [0, ncity), the city of each
+ * cell. base in [0, g) or -1 for the group with the largest pooled share.
+ * Out: cout, 6 per cell (6 c + k): cases, audited (1) or skipped (0: fewer
+ * than two groups present, or the base group absent), the smallest finite
+ * ratio, the parity gap of largest size, the Gini coefficient of the
+ * present groups' shares and the bias amplification score (NaN when
+ * skipped); yout, 9 per city: audited cells, the means of the four values
+ * over them (finite ones only), the smallest and largest finite ratio,
+ * their range and the number of cells with a ratio above 1; sum, 3: the
+ * largest range, the spread of the cities' mean ratios (NaN with fewer
+ * than two), the base group. work: 2 nc g + 2g doubles. O(n + nc g). */
+int clab_fairdf(const int *pred, const int *y, const int *grp, int n, int g,
+                int base, double z, int nboot, unsigned int seed, double *cnt,
+                double *met, double *sum, double *work);
+int clab_tmpaud(const int *pred, const int *grp, const int *cell, int n, int g,
+                int nc, const int *city, int ncity, int base, double *cout,
+                double *yout, double *sum, double *work);
+
+/* Individual fairness against a Lipschitz constraint (Dwork et al. 2012,
+ * doi:10.1145/2090236.2090255): |h_i - h_j| <= lip d_ij for each audited
+ * pair. h: n finite scores; pi, pj: m pairs of indices in [0, n); d: m
+ * distances >= 0, or NULL for all 1; lip >= 0. Out: gap (m, |h_i - h_j|),
+ * rat (m, gap / d; Inf for a gap at distance 0, 0 for none), viol (m, 1
+ * when gap > lip d: at distance 0 any gap), sum, 6: the smallest constant
+ * the scores satisfy on these pairs (the largest rat), the violations,
+ * their share, the largest gap, the first pair with the largest gap and
+ * the first with the largest rat. O(m). */
+int clab_lipaud(const double *h, int n, const int *pi, const int *pj,
+                const double *d, int m, double lip, double *gap, double *rat,
+                int *viol, double *sum);
+
+/* The true base rate behind a noisy recorded one
+ * (Lean: Crimlab.Fair.bounds_box). With false-positive noise a = P(recorded
+ * 1 | true 0) in [alo, ahi] and false-negative noise b = P(recorded 0 |
+ * true 1) in [blo, bhi], 0 <= alo <= ahi, 0 <= blo <= bhi, ahi + bhi < 1,
+ * the recorded rate is pobs = p (1 - b) + (1 - p) a, so p = (pobs - a) /
+ * (1 - a - b), which falls in a and rises in b. pobs: n rates in [0, 1].
+ * Out, n each: lo = (pobs - a*) / (1 - a* - blo) with a* = min(ahi, pobs),
+ * hi = (pobs - alo) / (1 - alo - b*) with b* = min(bhi, 1 - pobs): the
+ * sharp interval, both ends attained; NaN when no admissible noise gives
+ * pobs (pobs < alo or pobs > 1 - blo). Known rates (alo = ahi, blo = bhi)
+ * give lo = hi = p. For each pair i < j in the order (0, 1), (0, 2), ...,
+ * (1, 2), ...: ord, 1 when hi_i < lo_j (p_i < p_j under every admissible
+ * noise, Crimlab.Fair.compare_decided), -1 when hi_j < lo_i, 0 when the
+ * intervals overlap (either order is possible, compare_undecided), 2 when
+ * either is undefined; bd, the largest bhi (the a box held) at which the
+ * lower recorded rate's interval stays below the other's, capped at
+ * 1 - ahi, NaN if none or the rates are equal. n (n - 1) / 2 must fit an
+ * int. O(n^2). */
+int clab_nsbnd(const double *pobs, int n, double alo, double ahi, double blo,
+               double bhi, double *lo, double *hi, int *ord, double *bd);
+
+/* Chouldechova's identity (Lean: Crimlab.Fair.chouldechova): the false
+ * positive rate fpr = p / (1 - p) (1 - ppv) / ppv (1 - fnr) a base rate p in
+ * (0, 1), positive predictive value ppv in (0, 1] and false negative rate
+ * fnr in [0, 1) imply, for n triples. */
+int clab_impfpr(const double *p, const double *ppv, const double *fnr, int n,
+                double *fpr);
+
+/* The resolution of a ranking by noisy scores
+ * (Lean: Crimlab.Fair.rank_stable_of_gap): estimates est, n >= 2, each off
+ * its true score by at most hw >= 0 (n half-widths). Out: id, n x n
+ * (column-major): 1 when |est_i - est_j| > hw_i + hw_j (the order of i and
+ * j survives every admissible noise), 0 when not, -1 on the diagonal; out,
+ * 4: the pairs, the pairs not identified, their share, and twice the
+ * largest half-width. n^2 must fit an int. O(n^2). */
+int clab_rnkres(const double *est, const double *hw, int n, int *id,
+                double *out);
+
+
+
 /* Two-level normal model for multivariate trace evidence (Aitken and Lucy
  * 2004, doi:10.1046/j.0035-9254.2003.05271.x): x_ij = theta_i + e_ij,
  * theta_i ~ N(mu, C) between items, e_ij ~ N(0, U) within an item.

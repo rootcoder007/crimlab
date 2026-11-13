@@ -368,6 +368,12 @@ SEXP C_clab_r_jtacc(SEXP, SEXP, SEXP);
 SEXP C_clab_r_bjtc(SEXP, SEXP, SEXP);
 // The entry points of the dossier functions (bdos.cpp).
 SEXP C_clab_r_fair(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_fairdf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_tmpaud(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lipaud(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_nsbnd(SEXP, SEXP, SEXP);
+SEXP C_clab_r_impfpr(SEXP, SEXP, SEXP);
+SEXP C_clab_r_rnkres(SEXP, SEXP);
 SEXP C_clab_r_tlvc(SEXP, SEXP);
 SEXP C_clab_r_tlvlr(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_aorwt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -498,6 +504,12 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_jtacc", fn(&C_clab_r_jtacc), 3},
     {"C_clab_r_bjtc", fn(&C_clab_r_bjtc), 3},
     {"C_clab_r_fair", fn(&C_clab_r_fair), 6},
+    {"C_clab_r_fairdf", fn(&C_clab_r_fairdf), 7},
+    {"C_clab_r_tmpaud", fn(&C_clab_r_tmpaud), 5},
+    {"C_clab_r_lipaud", fn(&C_clab_r_lipaud), 4},
+    {"C_clab_r_nsbnd", fn(&C_clab_r_nsbnd), 3},
+    {"C_clab_r_impfpr", fn(&C_clab_r_impfpr), 3},
+    {"C_clab_r_rnkres", fn(&C_clab_r_rnkres), 2},
     {"C_clab_r_tlvc", fn(&C_clab_r_tlvc), 2},
     {"C_clab_r_tlvlr", fn(&C_clab_r_tlvlr), 5},
     {"C_clab_r_aorwt", fn(&C_clab_r_aorwt), 11},

@@ -16,4 +16,4 @@ rev = "v4.34.0"
 
 [[lean_lib]]
 name = "Crimlab"
-roots = ["Veil", "RelRisk", "OutcomeTest", "Benchmark", "Dyad", "Forensics", "Clearance", "Exposure", "Misclass", "RegMean", "Incap", "Select", "Censor", "Sentence", "Hazard", "Calib", "Network", "RelChk", "Spatial", "Rates", "Table"]
+roots = ["Veil", "RelRisk", "OutcomeTest", "Benchmark", "Dyad", "Forensics", "Clearance", "Exposure", "Misclass", "RegMean", "Incap", "Select", "Censor", "Sentence", "Hazard", "Calib", "Network", "RelChk", "Spatial", "Rates", "Table", "Fair"]
