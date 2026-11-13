@@ -381,4 +381,60 @@ SEXP C_clab_r_ebshr(SEXP y, SEXP v, SEXP w, SEXP b) {
   return klass(out, "ebshr");
 }
 
+// ------------------------------------------------------------------ scans
+
+SEXP C_clab_r_kscan(SEXP x, SEXP y, SEXP t, SEXP r, SEXP tw, SEXP minc, SEXP top, SEXP nsim,
+                    SEXP seed, SEXP lonlat) {
+  clab::who = "kscan";
+  csp::pts p = csp::xy(x, y, lonlat);
+  const int n = p.n;
+  if (n < 3) fail("at least 3 incidents are needed.");
+  SEXP tv = PROTECT(num(t, "t", n));
+  SEXP rv = edges(r, "r");
+  SEXP wv = PROTECT(num(tw, "tw", -1, 0.0, true));
+  const int mc = clab::whole(minc, "minc", 1);
+  const int tp = clab::whole(top, "top", 1);
+  const int ns = clab::whole(nsim, "nsim", 0);
+  const unsigned int sd = ns > 0 ? csp::seed(seed) : 0u;
+  const int nr = static_cast<int>(XLENGTH(rv)), nw = static_cast<int>(XLENGTH(wv));
+  const int tq = tp < n ? tp : n;
+  SEXP o = PROTECT(real(10 * static_cast<R_xlen_t>(tq)));
+  int nc = 0;
+  kc(clab_kscan(p.x, p.y, REAL(tv), n, REAL(rv), nr, REAL(wv), nw, mc, ns, sd, tq, REAL(o), &nc),
+     "the kernel refused the input.");
+  static const char *const cn[] = {"x",   "y",     "r",    "start", "end", "n",
+                                   "exp", "ncirc", "nwin", "rr",    "llr", "p"};
+  double *c[12];
+  SEXP cl = PROTECT(dframe(12, nc, cn, c));
+  SEXP mb = PROTECT(Rf_allocVector(INTSXP, n));
+  for (int i = 0; i < n; ++i) INTEGER(mb)[i] = NA_INTEGER;
+  for (int k = nc - 1; k >= 0; --k) {
+    const double *v = REAL(o) + 10 * k;
+    const int ci = static_cast<int>(v[0]);
+    c[0][k] = p.x[ci];
+    c[1][k] = p.y[ci];
+    for (int j = 0; j < 7; ++j) c[2 + j][k] = v[1 + j];
+    // the relative risk inside against outside the cylinder
+    c[9][k] = (v[4] / v[5]) / ((n - v[4]) / (n - v[5]));
+    c[10][k] = v[8];
+    c[11][k] = v[9];
+    for (int i = 0; i < n; ++i) {
+      const double dx = p.x[i] - p.x[ci], dy = p.y[i] - p.y[ci];
+      if (dx * dx + dy * dy <= v[1] * v[1] && REAL(tv)[i] >= v[2] && REAL(tv)[i] < v[3]) {
+        INTEGER(mb)[i] = k + 1;
+      }
+    }
+  }
+  csp::back(p, c[0], c[1], nc);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, cl);
+  SET_VECTOR_ELT(out, 1, mb);
+  SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(n));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarInteger(ns));
+  static const char *const on[] = {"cl", "memb", "n", "nsim"};
+  clab::nlist(out, on);
+  UNPROTECT(8);
+  return klass(out, "kscan");
+}
+
 }  // extern "C"

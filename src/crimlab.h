@@ -1943,6 +1943,24 @@ int clab_hsper(const double *x, const double *y, const int *prd, int n, int np,
 int clab_ebshr(const double *y, const double *w, int n, double v, double b,
                double *fit, double *shr, double *fall);
 
+/* The space-time permutation scan (src/kscn.cpp; Kulldorff et al. 2005,
+ * doi:10.1371/journal.pmed.0020059). n >= 3 incidents at planar points (x,
+ * y) and times t, all finite. Cylinders: a circle of radius r[k] (positive,
+ * increasing) about each distinct location (closed) times a window [u, u +
+ * tw[w]) (tw positive) starting at each distinct time u. A cylinder with c
+ * >= minc incidents, n_C in its circle and n_W in its window expects e =
+ * n_C n_W / n; its score is the Poisson log-likelihood ratio c log(c / e)
+ * + (n - c) log((n - c) / (n - e)) for c > e, 0 otherwise. Clusters: the best cylinder of each circle,
+ * by score, keeping those whose circles overlap none kept before, at most
+ * top, positive scores only. Each p-value: (1 + #{max* >= score}) / (nsim +
+ * 1), the largest score with the times shuffled nsim >= 0 times from seed
+ * (NaN for nsim = 0). Out: 10 per cluster (centre index, radius, start,
+ * end, c, e, n_C, n_W, score, p), *ncl clusters. O(L R (U + W U) (1 +
+ * nsim)) for L locations, R radii, U times, W lengths. */
+int clab_kscan(const double *x, const double *y, const double *t, int n,
+               const double *r, int nr, const double *tw, int nw, int minc,
+               int nsim, unsigned int seed, int top, double *out, int *ncl);
+
 #ifdef __cplusplus
 }
 #endif

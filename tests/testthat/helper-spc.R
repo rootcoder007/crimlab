@@ -2,5 +2,5 @@
 # regression, point patterns, geographic utilities), whose shapes their own
 # test files check; added to spx, which test-crimlab.R's shape test leaves
 # out.
-spc <- c("knxnr", "kdsurf", "dbscn", "hsper", "ebshr")
+spc <- c("knxnr", "kdsurf", "dbscn", "hsper", "ebshr", "kscan")
 spx <- c(spx, spc)

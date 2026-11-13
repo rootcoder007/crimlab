@@ -52,6 +52,7 @@ src/dml.cpp src/t_dml.cpp
 src/sp2.cpp src/t_sp2.cpp
 src/knx.cpp src/t_knx.cpp
 src/hot.cpp src/t_hot.cpp
+src/kscn.cpp src/t_kscn.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$
