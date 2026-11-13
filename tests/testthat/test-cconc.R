@@ -155,10 +155,11 @@ test_that("cconc() refuses bad input in words", {
   )
 })
 
-# the Hurwitz zeta summed term by term to 1e6, with the integral beyond and
-# the half term at the cut
+# the Hurwitz zeta summed term by term to 1e6, smallest terms first, with
+# the integral beyond and the half term at the cut. Largest first, the sum
+# is right to 1e-12 only where R adds in extended precision (not on arm64).
 zsum <- function(s, q) {
-  k <- 0:999999
+  k <- 999999:0
   sum((q + k)^-s) + (q + 1e6)^(1 - s) / (s - 1) + (q + 1e6)^-s / 2
 }
 
@@ -168,7 +169,8 @@ test_that("the zeta kernel agrees with closed forms and direct sums", {
   expect_equal(z(2, 0.5), pi^2 / 2, tolerance = 1e-15)
   for (s in c(1.5, 2.3, 7)) {
     for (q in c(0.3, 1, 4.5, 60)) {
-      expect_equal(z(s, q), zsum(s, q), tolerance = 1e-12, info = c(s, q))
+      expect_equal(z(s, q), zsum(s, q), tolerance = 1e-12,
+                   info = paste(s, q))
     }
   }
   expect_error(z(1, 1), "greater than 1")
