@@ -178,12 +178,15 @@ reference:
     contents:
       - dmlx
   - title: Policy evaluation
-    desc: Difference in differences with fixed effects, event studies and
-      staggered adoption.
+    desc: Difference in differences with fixed effects, event studies,
+      staggered adoption, synthetic controls and synthetic difference in
+      differences.
     contents:
       - didfe
       - evtst
       - stgdid
+      - synthc
+      - sdidx
   - title: Proofs
     contents:
       - proof

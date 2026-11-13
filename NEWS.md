@@ -190,3 +190,7 @@
   IPW and regression estimators for covariates, Wooldridge's regression on
   cohort-period cells, and de Chaisemartin and D'Haultfoeuille's estimator
   for treatments that switch on and off, with cluster-bootstrap errors.
+  `synthc()` is the synthetic control of one treated unit with the placebo
+  test, and `sdidx()` the synthetic difference in differences with placebo
+  or jackknife errors; both solve their weights exactly (Wolfe's
+  minimum-norm point).

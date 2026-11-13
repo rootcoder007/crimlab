@@ -139,7 +139,14 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(stgdid(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
                       rep(1:2, each = 10), rep(rep(c(NA, 2), each = 5), 2),
                       reps = 0)),
-         c("att", "overall", "dynamic", "meth", "ctrl", "reps", "level"))
+         c("att", "overall", "dynamic", "meth", "ctrl", "reps", "level")),
+    list(quote(synthc(c(1, 2, 4, 2, 3, 4, 3, 5, 6), rep(c("a", "b", "c"),
+                      each = 3), rep(1:3, 3), rep(c(2, NA, NA), each = 3))),
+         c("weights", "path", "fit", "plac", "unit")),
+    list(quote(sdidx(c(1, 2, 4, 2, 3, 4, 3, 5, 6), rep(c("a", "b", "c"),
+                     each = 3), rep(1:3, 3), rep(c(2, NA, NA), each = 3),
+                     reps = 2, seed = 1)),
+         c("est", "meth", "unitw", "timew", "path", "level"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

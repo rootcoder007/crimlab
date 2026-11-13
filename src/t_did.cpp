@@ -161,6 +161,19 @@ void run(tk &tt) {
     pev::stat(s, two, ev, v);
     tk_nan(tt, "did.wool.none", v[0]);
   }
+  // 7. Wolfe's minimum-norm point: the hull of (-1, 1), (2, 1) and (3, 3)
+  // is nearest the origin at (0, 1), 2/3 of the first and 1/3 of the
+  // second; with no cycle allowed, failure
+  {
+    const double a[6] = {-1, 1, 2, 1, 3, 3}, b[2] = {0, 0};
+    double g[9], w[3];
+    pev::gram(a, b, 2, 3, 0, 0.0, g);
+    tk_true(tt, "did.mnp.rc", pev::mnp(g, 3, w, 100) >= 0);
+    tk_near(tt, "did.mnp.w0", w[0], 2.0 / 3, 1e-14);
+    tk_near(tt, "did.mnp.w1", w[1], 1.0 / 3, 1e-14);
+    tk_near(tt, "did.mnp.w2", w[2], 0.0, 1e-15);
+    tk_ieq(tt, "did.mnp.max", pev::mnp(g, 3, w, 0), -1);
+  }
 }
 
 }  // namespace

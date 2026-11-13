@@ -8,6 +8,8 @@
 #ifndef CLAB_PEV_H
 #define CLAB_PEV_H
 
+#include <vector>
+
 namespace pev {
 
 // Subtracts from each of the k columns of v (n rows) its weighted means
@@ -83,6 +85,26 @@ int bacon(const double *yw, int nu, int nt, const int *g, int *ty, int *tr, int 
 // -1 when the covariance is singular.
 int mtch(const double *f, int nu, int k, const int *trt, const int *ex, int ratio,
          double calip, int *mt, int *mc, double *md, double *wu, double *work);
+
+// The Gram matrix g (k x k) of the weight problem min (1/m) ||A w + w0 -
+// b||^2 + z2 ||w||^2: a (m x k), b (m); icpt 1 centres the columns of A -
+// b over the m rows (the free intercept w0), 0 leaves them.
+void gram(const double *a, const double *b, int m, int k, int icpt, double z2, double *g);
+
+// Wolfe's minimum-norm point: w (k) on the simplex minimising w'G w for
+// the Gram matrix g (k x k). Returns the major cycles taken, or -1 when
+// the corral's system is singular or maxit cycles did not end.
+int mnp(const double *g, int k, double *w, int maxit);
+
+// The synthetic difference-in-differences estimate (Arkhangelsky et al.
+// 2021) of the treated units trd against the comparison units ctl, from
+// the wide panel yw (nu x nt, [s nu + i]) adopted at period t0. With fit,
+// the unit weights om (one per ctl) and the time weights la (t0) are
+// solved for (ridge (n1 t1)^(1/4) sigma and 1e-6 sigma, sigma the standard
+// deviation of the comparison units' first differences before t0);
+// otherwise the given ones are used. NaN when a weight problem fails.
+double sdtau(const double *yw, int nu, int nt, const std::vector<int> &ctl,
+             const std::vector<int> &trd, int t0, bool fit, double *om, double *la);
 
 }  // namespace pev
 
