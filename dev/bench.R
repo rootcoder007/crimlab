@@ -30,7 +30,8 @@
 # "error", or "not run" with the reason in note), tol and scale (relative to
 # each value or to the largest), refver (the counterpart's version), and the
 # row's l0 and l1 (load before and after its timing), and the run's
-# machine, cpu, r, gov, load0, load1, start.
+# mach, cpu, rver, gov, load0, load1 and date (when it started), named as
+# in the other speed tables (dev/bench-sp.R).
 #
 # Counterparts: rmorie (r-universe, not CRAN); Familias, forrel, paramlink
 # and relSim for kinidx and patidx (Familias also gtmp); forensim and
@@ -568,11 +569,11 @@ kind <- function(ref) {
 pkg <- function(ref) sub(":::?.*", "", ref)
 
 if (!merge) {
-  env <- c(machine = Sys.info()[["nodename"]], cpu = cpu(),
-           r = paste(R.version$major, R.version$minor, sep = "."),
+  env <- c(mach = Sys.info()[["nodename"]], cpu = cpu(),
+           rver = R.version.string,
            gov = rd1("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
            load0 = format(load1()),
-           start = format(Sys.time(), "%Y-%m-%d %H:%M %Z"))
+           date = format(Sys.time(), "%Y-%m-%d %H:%M %Z"))
   flags <- sh(file.path(R.home("bin"), "R"), c("CMD", "config", "CXX17FLAGS"))
   # the builds timed
   ps <- unique(c("crimlab", setdiff(pkg(vapply(cases, `[[`, "", "ref")), "base R")))
@@ -671,14 +672,14 @@ utils::write.csv(tab, "inst/bench/bench.csv", row.names = FALSE)
 
 g <- function(x) ifelse(is.na(x), "", formatC(x, digits = 3, format = "g"))
 st <- vapply(rs, function(t) {
-  sprintf("%s, load %s to %s", t$start[1], t$load0[1], t$load1[1])
+  sprintf("%s, load %s to %s", t$date[1], t$load0[1], t$load1[1])
 }, "")
 flags <- readLines(file.path(runs[1], "flags.txt"))
 md <- c(
   "<!-- written by dev/bench.R from bench.csv; do not edit -->",
   "",
-  sprintf("Machine %s: %s, R %s%s; crimlab built with R's default flags (%s).",
-          tab$machine[1], tab$cpu[1], tab$r[1],
+  sprintf("Machine %s: %s, %s%s; crimlab built with R's default flags (%s).",
+          tab$mach[1], tab$cpu[1], tab$rver[1],
           if (!is.na(tab$gov[1]) && nzchar(tab$gov[1])) paste0(", CPU frequency governor ", tab$gov[1]) else "",
           paste(flags, collapse = " ")),
   "",

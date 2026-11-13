@@ -389,10 +389,19 @@ tab$platform <- paste(R.version$platform, "R", getRversion(), "igraph",
                       packageVersion("igraph"), "sna", packageVersion("sna"),
                       "tnet", packageVersion("tnet"), "netmem",
                       packageVersion("netmem"))
-tab$machine <- Sys.info()[["nodename"]]
+sh <- function(cmd, args) {
+  tryCatch(suppressWarnings(system2(cmd, args, stdout = TRUE, stderr = FALSE)),
+           error = function(e) character(0))
+}
+cpu <- c(sub("^Model name: *", "", grep("^Model name:", sh("lscpu", character()), value = TRUE)),
+         sh("sysctl", c("-n", "machdep.cpu.brand_string")))
+# named as in the other speed tables (dev/bench-sp.R)
+tab$mach <- Sys.info()[["nodename"]]
+tab$cpu <- paste(c(cpu, "")[1], Sys.info()[["machine"]])
+tab$rver <- R.version.string
 tab$load0 <- load0
 tab$load1 <- load1
-tab$start <- start
+tab$date <- start
 dir.create(out, showWarnings = FALSE, recursive = TRUE)
 utils::write.csv(tab, file.path(out, "net.csv"), row.names = FALSE)
 if (any(tab$agree == "no")) {
