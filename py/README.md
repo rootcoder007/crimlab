@@ -263,6 +263,11 @@ is a mapping (see Inputs).
 - `hzdsel()`: `surh` and `surl` both named `control` and `treated`, in
   either order, are read by name; otherwise the first value is the control
   arm.
+- `impfpr()`: `p`, `ppv` and `fnr`, when every one given names its values,
+  with names that do not repeat and one length, are matched to the first
+  by name (an error names a unit missing from a later one); otherwise
+  positions. The result is named by the first argument of its length that
+  is named.
 
 ## Errors
 
@@ -278,7 +283,8 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
    share=0.5)`.
 2. Results are dicts of the package's own classes (see Results). An
    unnamed result of one number is a float for `cllr()`; `lrpost()` always
-   returns a list; `lrcal()` returns a `Record` of two lists.
+   returns a list; `impfpr()` returns a list when no argument names its
+   values; `lrcal()` returns a `Record` of two lists.
 3. R's forms of a named vector (a 1-d table, a list of single numbers, a
    one-row data frame) are a dict, or a list of `(name, value)` tuples, in
    Python; a matrix with row and column names is a mapping of mappings.

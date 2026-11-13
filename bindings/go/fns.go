@@ -82,6 +82,12 @@ func Sntbnd(args string) (string, error) { return Jrun("sntbnd", args) }
 // Hzdsel runs hzdsel() of the R package (arguments: s h l surh surl; ? marks an optional one).
 func Hzdsel(args string) (string, error) { return Jrun("hzdsel", args) }
 
+// Impfpr runs impfpr() of the R package (arguments: p ppv fnr; ? marks an optional one).
+func Impfpr(args string) (string, error) { return Jrun("impfpr", args) }
+
+// Sqrtlw runs sqrtlw() of the R package (arguments: area units busy? metric? speed?; ? marks an optional one).
+func Sqrtlw(args string) (string, error) { return Jrun("sqrtlw", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

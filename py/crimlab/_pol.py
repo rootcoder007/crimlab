@@ -151,3 +151,39 @@ def rtmhs(x1: Vec, x2: Vec, cut: float, w: Vec | None = None) -> Vector:
     """
     (a, b, c), _ = named("rtmhs", [("x1", x1), ("x2", x2), ("w", w)], strict=False)
     return vec(_clab.rtmhs(a, b, cut, c))
+
+
+def sqrtlw(area: float, units: float, busy: float = 0, metric: str = "euclid",
+           speed: float | None = None) -> Record:
+    """Kolesar and Blum's square-root law of response distance.
+
+    With available units spread like a random (Poisson) pattern over a
+    region of area ``area``, the mean distance from a call to the nearest
+    available unit is ``c sqrt(A / (u (1 - b)))`` for ``units`` u of which
+    a share ``busy`` b is busy; ``c = 1/2`` in straight lines and
+    ``sqrt(2 pi) / 4`` (about 0.627) on a rectangular street grid. See
+    ``proof("sqrtlw")``.
+
+    Parameters
+    ----------
+    area : the area served, positive (squared distance units).
+    units : the units deployed, positive.
+    busy : the share of units busy, from 0, below 1.
+    metric : ``"euclid"`` (straight lines) or ``"grid"`` (right-angle
+        streets).
+    speed : None, or the travel speed (distance per unit time), positive.
+
+    Returns
+    -------
+    ``dist`` (the mean distance), ``const`` (the constant c), ``avail`` (the
+    units available) and ``time`` (the mean travel time; None without
+    ``speed``).
+
+    Examples
+    --------
+    >>> r = sqrtlw(100, 8, busy=0.3, metric="grid", speed=0.5)
+    >>> round(r["dist"], 4), round(r["time"], 4)
+    (2.6481, 5.2962)
+    """
+    return rec(_clab.sqrtlw(area, units, busy, metric, speed))
+

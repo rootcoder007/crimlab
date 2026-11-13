@@ -30,3 +30,7 @@ sntbnd	{"y":[1,0,1,1,0,0],"z":["a","a","b","b","b","a"],"treat":"b"}	{"term":["a
 sntbnd	{"y":[1,0,1,1],"z":[true,false,true,false],"w":[1,2,1,1]}	{"term":["FALSE","TRUE","effect"],"share":[0.6,0.4,null],"lower":[0.2,0.4,-0.20000000000000007],"upper":[0.60000000000000009,1,0.8],"observed":[0.33333333333333337,1,0.66666666666666663]}
 hzdsel	{"s":0.5,"h":0.4,"l":0.1,"surh":[0.6,0.5],"surl":[0.9,0.8]}	{"share0":0.39999999999999997,"share1":0.38461538461538458,"haz0":0.22000000000000003,"haz1":0.2153846153846154,"ratio":0.979020979020979}
 proof	{"fn":["vodtst","orrisk"]}	{"fn":["vodtst","vodtst","vodtst","orrisk","orrisk","orrisk"],"theorem":["Crimlab.Veil.odds_ratio_identifies_bias","Crimlab.Veil.share_sign","Crimlab.Veil.exposure_shift_confounds","Crimlab.RelRisk.or_eq_rr_mul","Crimlab.RelRisk.rr_between","Crimlab.RelRisk.or_overstates"],"file":["lean/Veil.lean","lean/Veil.lean","lean/Veil.lean","lean/RelRisk.lean","lean/RelRisk.lean","lean/RelRisk.lean"]}
+impfpr	{"p":{"a":0.3,"b":0.5},"ppv":{"b":0.7,"a":0.6},"fnr":0.25}	{"a":0.13775510204081637,"b":0.5}
+impfpr	{"p":[0.1,0.2,0.4],"ppv":[0.5,0.7,1],"fnr":[0,0.3,0.9]}	[0.11111111111111112,0.07500000000000001,0.0]
+sqrtlw	{"area":100,"units":4}	{"dist":2.5,"const":0.5,"avail":4.0,"time":null}
+sqrtlw	{"area":100,"units":8,"busy":0.3,"metric":"grid","speed":0.5}	{"dist":2.648109439158988,"const":0.6266570686577501,"avail":5.6,"time":5.296218878317976}

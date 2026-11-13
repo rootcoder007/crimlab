@@ -15,10 +15,10 @@ from typing import Any
 
 from . import _clab
 from ._corr import hzdsel, incap, incapr, losbnd, sellab, sntbnd
-from ._disp import dspbm, dyadrt, orrisk, outtst, vodtst
+from ._disp import dspbm, dyadrt, impfpr, orrisk, outtst, vodtst
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
-from ._pol import clrsmp, expbnd, misrd, rtmhs
+from ._pol import clrsmp, expbnd, misrd, rtmhs, sqrtlw
 from ._proof import proof
 from ._version import __version__
 
@@ -39,6 +39,7 @@ __all__ = [
     "expbnd",
     "gtmp",
     "hzdsel",
+    "impfpr",
     "incap",
     "incapr",
     "kinidx",
@@ -55,6 +56,7 @@ __all__ = [
     "selftest",
     "sellab",
     "sntbnd",
+    "sqrtlw",
     "tipplt",
     "vodtst",
 ]

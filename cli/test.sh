@@ -69,6 +69,8 @@ err() { # name, want message, exit status, command...
 err "unknown argument" 'orrisk: unknown argument `x`; the arguments are: or rate share.' 1 "$c" orrisk --or 2 --rate 0.1 --share 0.3 --x 1
 err "missing argument" 'losbnd: `open` is missing.' 1 "$c" losbnd --done 1
 err "check" 'orrisk: `rate` must be one number strictly between 0 and 1.' 1 "$c" orrisk --or 2 --rate 1 --share 0.3
+err "choice" 'sqrtlw: `metric` must be one of "euclid", "grid".' 1 "$c" sqrtlw --area 100 --units 4 --metric taxi
+err "by name" 'impfpr: `ppv` must name the same units as `p`; `ppv` has no b.' 1 "$c" impfpr --p '{"a":0.3,"b":0.5}' --ppv '{"a":0.6,"c":0.7}' --fnr '{"a":0.1,"b":0.2}'
 err "no function" 'crimlab: no function nope (crimlab -l lists them).' 2 "$c" nope
 err "bad JSON" 'crimlab: --p: the value is not JSON: [1,' 2 "$c" cllr --p '[1,'
 "$c" -l | grep -q '^vodtst day night \[ref\] \[shift\]$' || { bad=$((bad + 1)); echo "FAIL -l"; }

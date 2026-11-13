@@ -1513,6 +1513,78 @@ PyObject *hzdsel(PyObject *const *a) {
   return nvec(5, nm, r).release();
 }
 
+// .pick() (src/spin.cpp): one of the n strings opt.
+int pick(PyObject *o, const char *nm, const char *const *opt, int n) {
+  if (PyUnicode_Check(o)) {
+    const char *v = PyUnicode_AsUTF8AndSize(o, nullptr);
+    if (v == nullptr) throw Raised{};
+    for (int k = 0; k < n; ++k) {
+      if (std::strcmp(v, opt[k]) == 0) return k;
+    }
+  }
+  std::string all;
+  for (int k = 0; k < n; ++k) all += std::string(k ? ", \"" : "\"") + opt[k] + "\"";
+  fail(false, "`%s` must be one of %s.", nm, all.c_str());
+}
+
+// Fairness: the false positive rates the other two rates imply. a: p, ppv,
+// fnr, matched by name in Python.
+PyObject *impfpr(PyObject *const *a) {
+  who = "impfpr";
+  static const char *const un[] = {"p", "ppv", "fnr"};
+  Dv v[3];
+  Py_ssize_t n = 1;
+  for (int t = 0; t < 3; ++t) {
+    num(a[t], un[t], v[t]);
+    n = std::max(n, v[t].n);
+  }
+  for (int t = 0; t < 3; ++t) {
+    if (v[t].n != 1 && v[t].n != n) {
+      fail(false, "`p`, `ppv` and `fnr` must have one length (or length 1).");
+    }
+  }
+  const int m = ilen(static_cast<double>(n), "p");
+  std::vector<double> x[3];
+  for (int t = 0; t < 3; ++t) {
+    x[t].resize(static_cast<std::size_t>(m));
+    for (int i = 0; i < m; ++i) x[t][static_cast<std::size_t>(i)] = v[t][v[t].n == 1 ? 0 : i];
+  }
+  for (std::size_t i = 0; i < static_cast<std::size_t>(m); ++i) {
+    if (!(x[0][i] > 0.0 && x[0][i] < 1.0)) fail(false, "`p` must be base rates in (0, 1).");
+    if (!(x[1][i] > 0.0 && x[1][i] <= 1.0)) fail(false, "`ppv` must be in (0, 1].");
+    if (!(x[2][i] >= 0.0 && x[2][i] < 1.0)) fail(false, "`fnr` must be in [0, 1).");
+  }
+  std::vector<double> o(static_cast<std::size_t>(m));
+  kchk(clab_impfpr(x[0].data(), x[1].data(), x[2].data(), m, o.data()));
+  return flist(o).release();
+}
+
+// Policing: Kolesar and Blum's square-root law.
+PyObject *sqrtlw(PyObject *const *a) {
+  who = "sqrtlw";
+  static const char *const ms[] = {"euclid", "grid"};
+  Dv ar, un, bu;
+  num(a[0], "area", ar, 1, 0.0, true);
+  num(a[1], "units", un, 1, 0.0, true);
+  num(a[2], "busy", bu, 1, 0.0);
+  if (!(bu[0] < 1)) fail(false, "`busy` must be below 1: some units must be free.");
+  const int mt = pick(a[3], "metric", ms, 2);
+  double d, c;
+  kchk(clab_sqrtlw(ar[0], un[0], bu[0], mt, &d, &c));
+  double tm = NA;
+  if (a[4] != Py_None) {
+    Dv sp;
+    num(a[4], "speed", sp, 1, 0.0, true);
+    tm = d / sp[0];
+  }
+  Obj r = own(PyDict_New());
+  put(r, "dist", own(pyd(d)));
+  put(r, "const", own(pyd(c)));
+  put(r, "avail", own(pyd(un[0] * (1 - bu[0]))));
+  put(r, "time", own(pyd(tm)));
+  return r.release();
+}
+
 // The self-test (src/selftest.cpp): checks run, checks failed, report.
 PyObject *selftest(PyObject *const *) {
   who = "selftest";
@@ -2203,6 +2275,8 @@ PyMethodDef methods[] = {
     CLAB_FN(losbnd, 2),
     CLAB_FN(sntbnd, 5),
     CLAB_FN(hzdsel, 5),
+    CLAB_FN(impfpr, 3),
+    CLAB_FN(sqrtlw, 5),
     CLAB_FN(selftest, 0),
     CLAB_FN(rchar, 1),
     CLAB_FN(tlen, 2),

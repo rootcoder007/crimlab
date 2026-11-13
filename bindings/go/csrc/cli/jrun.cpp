@@ -1321,6 +1321,127 @@ bool hzdsel(Ctx &c, Val &out) {
   return true;
 }
 
+// .pick() (src/spin.cpp): one of the n strings opt, into k.
+bool pick(Ctx &c, const Val &o, const char *nm, const char *const *opt, int n, int &k) {
+  if (o.t == Val::STR) {
+    for (k = 0; k < n; ++k) {
+      if (o.s == opt[k]) return true;
+    }
+  }
+  std::string all;
+  for (int j = 0; j < n; ++j) all += std::string(j ? ", \"" : "\"") + opt[j] + "\"";
+  return c.fail("`%s` must be one of %s.", nm, all.c_str());
+}
+
+// byname() (src/spin.cpp): when every argument given is an object, all of
+// one length with names that do not repeat, and two or more are given,
+// each later one is put in the order of the first, which must name the
+// same units.
+bool byname(Ctx &c, std::vector<std::pair<const char *, Dv *>> as) {
+  std::vector<std::size_t> g;
+  for (std::size_t j = 0; j < as.size(); ++j) {
+    if (c.has(as[j].first)) g.push_back(j);
+  }
+  if (g.size() < 2) return true;
+  const Dv &f = *as[g[0]].second;
+  for (std::size_t j : g) {
+    std::vector<std::string> s = as[j].second->nm;
+    if (s.empty() || s.size() != f.n() || as[j].second->n() != f.n()) return true;
+    std::sort(s.begin(), s.end());
+    if (std::adjacent_find(s.begin(), s.end()) != s.end()) return true;
+  }
+  for (std::size_t q = 1; q < g.size(); ++q) {
+    Dv &d = *as[g[q]].second;
+    std::vector<double> v(f.n());
+    for (std::size_t i = 0; i < f.n(); ++i) {
+      const auto it = std::find(d.nm.begin(), d.nm.end(), f.nm[i]);
+      if (it == d.nm.end()) {
+        return c.fail("`%s` must name the same units as `%s`; `%s` has no %s.", as[g[q]].first,
+                      as[g[0]].first, as[g[q]].first, f.nm[i].c_str());
+      }
+      v[i] = d.v[static_cast<std::size_t>(it - d.nm.begin())];
+    }
+    d.v = v;
+    d.nm = f.nm;
+  }
+  return true;
+}
+
+// Fairness: the false positive rates the other two rates imply.
+bool impfpr(Ctx &c, Val &out) {
+  static const char *const un[] = {"p", "ppv", "fnr"};
+  Dv v[3];
+  for (int t = 0; t < 3; ++t) readd(c[un[t]], v[t]);
+  CK(byname(c, {{un[0], &v[0]}, {un[1], &v[1]}, {un[2], &v[2]}}));
+  std::size_t n = 1;
+  for (int t = 0; t < 3; ++t) {
+    const std::vector<double> keep = v[t].v;
+    const std::vector<std::string> nm = v[t].nm;
+    CK(num(c, c[un[t]], un[t], v[t]));
+    v[t].v = keep;  // in the order byname() put them
+    v[t].nm = nm;
+    n = std::max(n, v[t].n());
+  }
+  for (int t = 0; t < 3; ++t) {
+    if (v[t].n() != 1 && v[t].n() != n) {
+      return c.fail("`p`, `ppv` and `fnr` must have one length (or length 1).");
+    }
+  }
+  std::vector<double> x[3];
+  for (int t = 0; t < 3; ++t) {
+    x[t].resize(n);
+    for (std::size_t i = 0; i < n; ++i) x[t][i] = v[t][v[t].n() == 1 ? 0 : i];
+  }
+  for (std::size_t i = 0; i < n; ++i) {
+    if (!(x[0][i] > 0.0 && x[0][i] < 1.0)) return c.fail("`p` must be base rates in (0, 1).");
+    if (!(x[1][i] > 0.0 && x[1][i] <= 1.0)) return c.fail("`ppv` must be in (0, 1].");
+    if (!(x[2][i] >= 0.0 && x[2][i] < 1.0)) return c.fail("`fnr` must be in [0, 1).");
+  }
+  std::vector<double> o(n);
+  CK(kchk(c, clab_impfpr(x[0].data(), x[1].data(), x[2].data(), static_cast<int>(n), o.data())));
+  for (int t = 0; t < 3; ++t) {
+    if (v[t].n() == n && !v[t].nm.empty()) {
+      out = Val();
+      out.t = Val::OBJ;
+      for (std::size_t i = 0; i < n; ++i) put(out, v[t].nm[i].c_str(), vnum(o[i]));
+      return true;
+    }
+  }
+  out = vnums(o);
+  return true;
+}
+
+// Policing: Kolesar and Blum's square-root law.
+bool sqrtlw(Ctx &c, Val &out) {
+  static const char *const ms[] = {"euclid", "grid"};
+  Dv ar, un, bu;
+  CK(num(c, c["area"], "area", ar, 1, 0.0, true));
+  CK(num(c, c["units"], "units", un, 1, 0.0, true));
+  if (c.has("busy")) {
+    CK(num(c, c["busy"], "busy", bu, 1, 0.0));
+  } else {
+    bu.v.push_back(0.0);
+  }
+  if (!(bu[0] < 1)) return c.fail("`busy` must be below 1: some units must be free.");
+  int mt = 0;
+  if (c.has("metric")) CK(pick(c, c["metric"], "metric", ms, 2, mt));
+  double d, k;
+  CK(kchk(c, clab_sqrtlw(ar[0], un[0], bu[0], mt, &d, &k)));
+  double tm = NA;
+  if (c.has("speed")) {
+    Dv sp;
+    CK(num(c, c["speed"], "speed", sp, 1, 0.0, true));
+    tm = d / sp[0];
+  }
+  out = Val();
+  out.t = Val::OBJ;
+  put(out, "dist", vnum(d));
+  put(out, "const", vnum(k));
+  put(out, "avail", vnum(un[0] * (1 - bu[0])));
+  put(out, "time", vnum(tm));
+  return true;
+}
+
 // The self-test (src/selftest.cpp): checks run, checks failed, report.
 bool selftest(Ctx &, Val &out) {
   std::vector<char> sink(1 << 16);
@@ -1410,6 +1531,8 @@ const Ent ents[] = {
     {"losbnd", "done open", losbnd},
     {"sntbnd", "y z treat? w?", sntbnd},
     {"hzdsel", "s h l surh surl", hzdsel},
+    {"impfpr", "p ppv fnr", impfpr},
+    {"sqrtlw", "area units busy? metric? speed?", sqrtlw},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

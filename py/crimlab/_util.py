@@ -135,6 +135,32 @@ def align(fn: str, args: list[tuple[str, Any, list[Any] | None]],
     return vs, args[named[0]][2] if named else None
 
 
+def byname(fn: str, args: list[tuple[str, Any]]) -> list[tuple[Any, list[Any] | None]]:
+    """R's rule for arguments with one value per unit (src/spin.cpp,
+    byname()): when every argument given (not None) is named, with names
+    that do not repeat, all of one length, and at least two are given, each
+    later one is put in the order of the first, which must name the same
+    units; otherwise positions are used. Returns (values, names) for each."""
+    vs = [grp(x) if x is not None else (None, None) for _, x in args]
+    given = [j for j, (v, _) in enumerate(vs) if v is not None]
+    if len(given) < 2 or any(vs[j][1] is None for j in given):
+        return vs
+    n = size(vs[given[0]][0])
+    if any(size(vs[j][0]) != n or twice(vs[j][1] or []) is not None for j in given):
+        return vs
+    f = given[0]
+    fn_ = vs[f][1] or []
+    for j in given[1:]:
+        at = {k: i for i, k in enumerate(vs[j][1] or [])}
+        for k in fn_:
+            if k not in at:
+                raise ValueError(f"{fn}: `{args[j][0]}` must name the same units as "
+                                 f"`{args[f][0]}`; `{args[j][0]}` has no {k}.")
+        vv = list(vs[j][0])
+        vs[j] = ([vv[at[k]] for k in fn_], list(fn_))
+    return vs
+
+
 def named(fn: str, args: list[tuple[str, Any]],
           strict: bool = True) -> tuple[list[Any], list[Any] | None]:
     """align() on arguments given as they come: a mapping or a sequence of

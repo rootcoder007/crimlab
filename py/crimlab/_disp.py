@@ -7,7 +7,7 @@ from typing import Any
 
 from . import _clab
 from ._out import Table, Vector, tab, vec
-from ._util import Vec, grp, items, named, order, rows, twice
+from ._util import Vec, byname, grp, items, named, order, rows, size, twice
 
 
 def _split2(day: Any) -> tuple[Any, Any]:
@@ -237,3 +237,37 @@ def dyadrt(count: Any, pop: Vec) -> Table:
         tab = None
     flat = None if tab is None else [tab[i][j] for j in range(nc) for i in range(nr)]
     return Table(_clab.dyadrt(flat, nr, nc, p, names))
+
+
+def impfpr(p: Vec, ppv: Vec, fnr: Vec) -> Vector | list[float]:
+    """The false positive rate that calibration leaves.
+
+    A risk score with the same positive predictive value and the same false
+    negative rate in two groups must give them different false positive
+    rates when their base rates differ (Chouldechova 2017):
+    ``fpr = p / (1 - p) (1 - ppv) / ppv (1 - fnr)``.
+
+    Parameters
+    ----------
+    p : base rates, strictly between 0 and 1.
+    ppv : positive predictive values, above 0 and at most 1.
+    fnr : false negative rates, from 0 and below 1. The three have one
+        length (or length 1); named ones are matched by name.
+
+    Returns
+    -------
+    The false positive rates, one per triple: named by the first argument
+    of full length that is named, a list otherwise.
+
+    Examples
+    --------
+    >>> {k: round(v, 4) for k, v in impfpr({"a": 0.3, "b": 0.5}, 0.6, 0.25).items()}
+    {'a': 0.2143, 'b': 0.5}
+    """
+    vs = byname("impfpr", [("p", p), ("ppv", ppv), ("fnr", fnr)])
+    out = _clab.impfpr(*(v for v, _ in vs))
+    for v, nm in vs:
+        if nm is not None and size(v) == len(out):
+            return vec(dict(zip(nm, out)))
+    return out
+
