@@ -278,12 +278,13 @@ for (n in sizes) {
        part(x$strong, components(igd, "strong")$membership), 0,
      function() tm({components(igd, "weak"); components(igd, "strong")}), tbd)
   cp("ntcmp", "sna::component.dist weak + strong", n, m, cs,
-     part(x$weak, sna::component.dist(dl, connected = "weak")$membership) &&
-       part(x$strong, sna::component.dist(dl, connected = "strong")$membership), 0,
-     function() tm({
+     if (small) part(x$weak, sna::component.dist(dl, connected = "weak")$membership) &&
+       part(x$strong, sna::component.dist(dl, connected = "strong")$membership) else NA,
+     0, function() tm({
        sna::component.dist(dl, connected = "weak")
        sna::component.dist(dl, connected = "strong")
-     }))
+     }), skip = paste("not run: sna finds strong components from a list of",
+                      "every reachable pair, nodes^2 rows"))
   cp("ntcmp", "netmem::components_id weak + strong", n, m, cs,
      if (small) part(x$weak, netmem::components_id(Ad, "weak")$components) &&
        part(x$strong, netmem::components_id(Ad, "strong")$components) else NA, 0,
