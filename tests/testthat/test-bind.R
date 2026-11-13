@@ -31,7 +31,7 @@ test_that("q is NA in every form all(is.na(q)) accepts", {
   expect_identical(gtmp(c(0.2, 0.3), list(NA, 1), hom = TRUE), ref)
   expect_error(gtmp(c(0.2, 0.3), list(NA, "a"), hom = TRUE), "`q`")
   expect_error(gtmp(c(0.2, 0.3), factor(c(NA, "a")), hom = TRUE), "`q`")
-  expect_error(gtmp(c(0.2, 0.3), as.Date(c(NA, 1)), hom = TRUE), "`q`")
+  expect_error(gtmp(c(0.2, 0.3), as.Date(c(NA, 1), origin = "1970-01-01"), hom = TRUE), "`q`")
   # is.na() warns on a type that is not a vector, and all() of a length-0
   # answer is TRUE: the length check then refuses q
   expect_warning(expect_error(gtmp(0.2, new.env(), hom = TRUE), "`q`"),
