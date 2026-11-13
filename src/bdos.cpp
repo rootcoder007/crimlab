@@ -1552,7 +1552,7 @@ struct zin {
 zin zread(SEXP y, SEXP x, SEXP z, SEXP par, SEXP prob, SEXP off) {
   zin a{};
   a.y = PROTECT(nmat(y, "y", &a.n, &a.nt, true));
-  int r, c;
+  int r = 0, c = 0;
   a.x = PROTECT(nmat(x, "x", &r, &a.p));
   if (r != a.nt) fail("`x` must have one row per period (column of `y`).");
   a.q = 0;

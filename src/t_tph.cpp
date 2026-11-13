@@ -107,10 +107,11 @@ void tpdmc(tk &t) {
 
 void tpbhm(tk &t) {
   // y = 1 + 2 x exactly: rss 0, the noise variance falls back on var(y)
-  const double x[4] = {0, 1, 2, 3}, y[4] = {1, 3, 5, 7}, m0[2] = {0, 0};
-  const double big[2] = {1e8, 1e8};
-  double mu[2], sd[2], st[2], w[10], gm[2], lam[2];
-  int nj[2];
+  // sized for the widest call below: two columns (p = 3, work 2 p^2 + p) and three groups
+  const double x[4] = {0, 1, 2, 3}, y[4] = {1, 3, 5, 7}, m0[3] = {0, 0, 0};
+  const double big[3] = {1e8, 1e8, 1e8};
+  double mu[3], sd[3], st[2], w[21], gm[3], lam[3];
+  int nj[3];
   tk_ieq(t, "tpbhm.rc", clab_tpbhm(y, x, 4, 1, m0, big, nullptr, 0, mu, sd, st, gm, lam, nj, w),
          CLAB_OK);
   tk_eq(t, "tpbhm.s2", st[0], 20.0 / 3, 1e-14);
