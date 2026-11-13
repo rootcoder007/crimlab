@@ -183,3 +183,6 @@
     {"didfe", "Did", "dd_effect"},
     {"cconc", "Concentration", "gini_zero_split"},
     {"cconc", "Concentration", "gini_excess"},
+    {"crcap", "Dark", "petersen_bounds"},
+    {"dkfig", "Dark", "rate_lower"},
+    {"dkfig", "Dark", "rate_upper"},

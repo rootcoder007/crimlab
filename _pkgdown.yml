@@ -172,6 +172,12 @@ reference:
     contents:
       - cconc
       - hilltl
+  - title: Dark figure
+    desc: Capture-recapture from two or three lists, and bounds on the crime
+      that is never recorded.
+    contents:
+      - crcap
+      - dkfig
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

@@ -122,6 +122,10 @@ The functions work on summary data, not on raw records:
   and people, how much of a Gini coefficient comes from units with none,
   what chance alone would show and how distinct places grow (`cconc()`), and
   the tail index of a heavy-tailed count (`hilltl()`).
+* The dark figure: how many offenders or incidents no list records, from two
+  or three overlapping lists (`crcap()`), and what a victimisation survey
+  and recorded crime together say about the crime that is never recorded
+  (`dkfig()`).
 
 ## Algorithms
 

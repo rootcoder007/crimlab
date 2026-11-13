@@ -51,6 +51,16 @@
   Hurwitz zeta function, or the Hill estimators, with the Kolmogorov-Smirnov
   distance of the fit. `proof("cconc")` names the Lean theorems on the split
   at zero.
+* `crcap()` estimates a hidden population from two lists (Lincoln-Petersen
+  with its bounds over a box of list dependence, Chapman's estimate with
+  Seber's standard error) or three (the never-listed cell under no three-way
+  interaction, its sensitivity to that interaction, and the pairwise
+  estimates); `dkfig()` bounds the dark figure of crime: the true
+  victimisation rate under limits on a survey's false positives and
+  negatives with the breakdown point of a conclusion, the total when a
+  survey covers only some offences, and the offences behind incidents
+  counted under the hierarchy rule. `proof("crcap")` and `proof("dkfig")`
+  name the Lean theorems.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

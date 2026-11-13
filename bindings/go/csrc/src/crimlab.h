@@ -2402,6 +2402,48 @@ int clab_hzta(double s, double q, double *z);
 int clab_hilltl(const double *x, int n, double xmin, int discrete, int approx, double *out,
                 double *work);
 
+/* Capture-recapture (crcap; Lean: Crimlab.Dark.petersen_bounds). k = 3:
+ * x = (n1, n2, m), two lists and their overlap, 0 < m <= min(n1, n2);
+ * kappa >= 1 bounds the dependence of the lists (the odds of being on one
+ * list given the other, over those given not). Out: st (6), Petersen's n1
+ * n2 / m, its bounds over the dependence box (divided and multiplied by
+ * kappa), Chapman's estimate and Seber's standard error of it, and the
+ * distinct floor n1 + n2 - m. k = 7: x the cells 100, 010, 001, 110, 101,
+ * 011, 111 of three lists (counts from 0, the three pairwise cells
+ * positive). Out: st (3), the observed total, the never-listed cell
+ * under no three-way interaction (m100 m010 m001 m111 / (m110 m101 m011))
+ * and the total; pw (18): for the pairs 1-2, 1-3, 2-3 each list's total,
+ * the overlap, the floor, Petersen and Chapman (six blocks of three);
+ * sens (2 ni): for each three-way log interaction it[j] the missing cell
+ * times exp(-it[j]) and the total. */
+int clab_crcap(const double *x, int k, double kappa, const double *it, int ni, double *st,
+               double *pw, double *sens);
+
+/* Bounds on a true victimisation rate (dkfig; Lean:
+ * Crimlab.Dark.rate_bounds). v: n survey rates in [0, 1], r: n recorded
+ * rates in [0, 1]; the survey's false positives at most amax and false
+ * negatives at most bmax (amax + bmax < 1). Out, n each: lo = max(r, (v -
+ * amax) / (1 - amax)), hi = max(lo, min(1, v / (1 - bmax))), and brk, the
+ * largest bmax under which the true rate stays below thr, 1 - v / thr
+ * (thr NaN: NaN; otherwise thr > v > 0). */
+int clab_dkfig(const double *v, const double *r, int n, double amax, double bmax, double thr,
+               double *lo, double *hi, double *brk);
+
+/* The dark figure when a survey covers only some offences (dkfig): va
+ * survey offences of the covered type A (positive), ra of them recorded
+ * (0 < ra <= va), rb recorded offences of the uncovered type B, recorded
+ * at no less than lam (0 < lam <= 1) times A's rate. Out (7): A's
+ * recording rate, the overall recorded share's upper bound (ra + rb) /
+ * (va + rb), the total's bounds va + rb and va + rb / (lam ra / va), the
+ * dark figure's bounds and their width. */
+int clab_dkcmp(double va, double ra, double rb, double lam, double *out);
+
+/* The hierarchy rule (dkfig): k[i] offences in incident i (whole numbers
+ * from 1), n incidents. Out (6): incidents, offences, offences per
+ * incident, extra offences per incident, and the bounds n and max(k) n on
+ * the offences behind n recorded incidents. */
+int clab_dkhier(const double *k, int n, double *out);
+
 #ifdef __cplusplus
 }
 #endif
