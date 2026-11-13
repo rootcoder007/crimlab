@@ -9,4 +9,5 @@ dsx <- c("fair", "tlvc", "tlvlr", "aorwt", "bdig", "bnft", "skp", "rptc",
          "rswp", "rshl", "zgll", "zgem", "mvtll", "mvtem", "tfrp", "lwss",
          "chmb", "gstr", "sptst")
 spw <- c("spwt", "gearc", "gorg", "lmorn", "locgi", "dirmn")
-spx <- c(spf, dsx, spw)
+sp3x <- c("hdbang", "crwalk", "rnnhcl")
+spx <- c(spf, dsx, spw, sp3x)

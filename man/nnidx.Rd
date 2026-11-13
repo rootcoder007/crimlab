@@ -4,7 +4,16 @@
 \alias{nnidx}
 \title{Nearest-neighbour index}
 \usage{
-nnidx(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL, dist = FALSE)
+nnidx(
+  x,
+  y = NULL,
+  win,
+  kmax = 1,
+  nsim = 0,
+  seed = NULL,
+  dist = FALSE,
+  metric = "euclid"
+)
 }
 \arguments{
 \item{x, y}{The points in planar coordinates (project longitude and
@@ -27,6 +36,14 @@ one whole number from 0 (no test).}
 \code{\link[=set.seed]{set.seed()}} fixes them), or one whole number from 0.}
 
 \item{dist}{\code{TRUE} to return every point's neighbour distances.}
+
+\item{metric}{The distance: \code{"euclid"} or \code{"manhattan"} (\verb{|dx| + |dy|},
+a street grid aligned with the axes), as in \code{\link[=spwt]{spwt()}} and \code{\link[=jtsurf]{jtsurf()}}.
+Under Manhattan distance the expectations use the area of the
+Manhattan ball, \verb{2 r^2}: the mean k-th distance is
+\code{sqrt(pi / 2)} times the Euclidean expectation and \verb{E R_k^2 = k / (2 lambda)}; no edge-corrected (Donnelly) expectation is published for it,
+so \code{ce} holds \code{NaN} except \code{z}, about the uncorrected expectation with
+\verb{Var R_1 = (4 - pi) / (8 lambda)}. The Monte Carlo test is unchanged.}
 }
 \value{
 A list. \code{order}, a data frame with one row per order \code{k}:

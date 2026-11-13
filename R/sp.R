@@ -282,6 +282,14 @@ cvhull <- function(x, y = NULL, lonlat = FALSE) {
 #' @param seed `NULL` to draw the simulations' seed from R's generator (so
 #'   [set.seed()] fixes them), or one whole number from 0.
 #' @param dist `TRUE` to return every point's neighbour distances.
+#' @param metric The distance: `"euclid"` or `"manhattan"` (`|dx| + |dy|`,
+#'   a street grid aligned with the axes), as in [spwt()] and [jtsurf()].
+#'   Under Manhattan distance the expectations use the area of the
+#'   Manhattan ball, `2 r^2`: the mean k-th distance is
+#'   `sqrt(pi / 2)` times the Euclidean expectation and `E R_k^2 = k / (2
+#'   lambda)`; no edge-corrected (Donnelly) expectation is published for it,
+#'   so `ce` holds `NaN` except `z`, about the uncorrected expectation with
+#'   `Var R_1 = (4 - pi) / (8 lambda)`. The Monte Carlo test is unchanged.
 #' @return A list. `order`, a data frame with one row per order `k`:
 #'   `mean` (the mean k-th neighbour distance), `exp` (its expectation under
 #'   CSR without edge effects, `c_k / sqrt(lambda)`), `ratio`, `pclu` and
@@ -312,8 +320,8 @@ cvhull <- function(x, y = NULL, lonlat = FALSE) {
 #' nnidx(x, y, win = c(0, 1, 0, 1), kmax = 3, nsim = 99)
 #' @export
 nnidx <- function(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL,
-                  dist = FALSE) {
-  .Call(C_clab_r_nnidx, x, y, win, kmax, nsim, seed, dist)
+                  dist = FALSE, metric = "euclid") {
+  .Call(C_clab_r_nnidx, x, y, win, kmax, nsim, seed, dist, metric)
 }
 
 #' Ripley's K function
@@ -333,8 +341,17 @@ nnidx <- function(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL,
 #'   in the unit of the coordinates.
 #' @param corr The edge correction: `"iso"`, `"border"`, `"modif"` or
 #'   `"none"`.
+#' @param metric The distance: `"euclid"` or `"manhattan"` (`|dx| + |dy|`,
+#'   a street grid aligned with the axes), as in [spwt()] and [jtsurf()].
+#'   Under Manhattan distance `K(r) = 2 r^2` and `L = sqrt(K / 2)` under
+#'   randomness; the border and modified border
+#'   corrections carry over (a Manhattan ball of radius `r` lies in the
+#'   rectangle exactly when its centre is at least `r` from every edge),
+#'   while the isotropic correction, the share of a circle, has no
+#'   Manhattan form and is refused.
 #' @return A data frame with one row per radius: `r`, `k` (in the square of
-#'   the coordinates' unit) and `l`.
+#'   the coordinates' unit) and `l` (`sqrt(k / pi)`, or `sqrt(k / 2)` under
+#'   Manhattan distance).
 #' @references Ripley, B. D. (1976). The second-order analysis of
 #'   stationary point processes. *Journal of Applied Probability*, 13(2),
 #'   255-266. \doi{10.2307/3212829}
@@ -346,8 +363,8 @@ nnidx <- function(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL,
 #' set.seed(1)
 #' ripk(runif(100), runif(100), win = c(0, 1, 0, 1), r = seq(0, 0.25, 0.05))
 #' @export
-ripk <- function(x, y = NULL, win, r, corr = "iso") {
-  .Call(C_clab_r_ripk, x, y, win, r, corr)
+ripk <- function(x, y = NULL, win, r, corr = "iso", metric = "euclid") {
+  .Call(C_clab_r_ripk, x, y, win, r, corr, metric)
 }
 
 #' Envelopes of Ripley's L function and a test of complete spatial
@@ -364,6 +381,7 @@ ripk <- function(x, y = NULL, win, r, corr = "iso") {
 #' @inheritParams ripk
 #' @inheritParams nnidx
 #' @param nsim The number of simulated patterns: one whole number from 1.
+#' @details Euclidean distance only; [ripk()] takes `metric`.
 #' @return A list. `env`, a data frame with one row per radius: `r`, `obs`
 #'   (`L(r) - r` of the data), `lo`, `hi` (the pointwise envelope) and
 #'   `mean`. `test`, a named vector: `t` (the maximum absolute deviation)
@@ -397,15 +415,22 @@ ripenv <- function(x, y = NULL, win, r, corr = "iso", nsim = 99,
 #' @param r The radius: one number from 0, in the unit of the coordinates
 #'   (metres when `lonlat = TRUE`). Distances up to and including `r`
 #'   count.
-#' @return An integer vector, one count per point, in input order.
+#' @param count `NULL` for points, or for zones: one whole count from 0
+#'   per zone (`x`, `y` the zones' centroids); the result is then each
+#'   zone's total count within `r` of it, its own included.
+#' @param metric The distance: `"euclid"` or `"manhattan"` (`|dx| + |dy|`),
+#'   as in [spwt()] and [jtsurf()].
+#' @return An integer vector, one count per point, in input order (with
+#'   `count`, a numeric vector of zone totals).
 #' @references Eck, J. E., Chainey, S., Cameron, J. G., Leitner, M. and
 #'   Wilson, R. E. (2005). *Mapping Crime: Understanding Hot Spots*.
 #'   National Institute of Justice, NCJ 209393.
 #' @examples
 #' fzmode(c(0, 0, 1, 5), c(0, 0, 0, 5), r = 1)
 #' @export
-fzmode <- function(x, y = NULL, r, lonlat = FALSE) {
-  .Call(C_clab_r_fzmode, x, y, r, lonlat)
+fzmode <- function(x, y = NULL, r, count = NULL, metric = "euclid",
+                   lonlat = FALSE) {
+  .Call(C_clab_r_fzmode, x, y, r, count, metric, lonlat)
 }
 
 #' K-means partition of points
@@ -433,6 +458,10 @@ fzmode <- function(x, y = NULL, r, lonlat = FALSE) {
 #'   positive and the separation from 0, in the unit of the coordinates.
 #' @param upd The centre update: `"mean"` or `"weber"`.
 #' @param maxit The largest number of iterations: one whole number from 0.
+#' @param count `NULL` for points, or for zones: one whole count from 0
+#'   per zone, the points `x`, `y` being the zones' centroids. A zone is
+#'   taken as `count` incidents at its centroid, which these hot-spot rules
+#'   treat exactly as coincident points. Zones with count 0 get `NA`.
 #' @inheritParams nnidx
 #' @return A list. `cl`, the group of each point (1 to `k`, input order).
 #'   `cen`, a data frame with one row per group: `x`, `y` (its centre, in
@@ -454,8 +483,9 @@ fzmode <- function(x, y = NULL, r, lonlat = FALSE) {
 #' kmpart(x, y, k = 2, seed = 1)$cen
 #' @export
 kmpart <- function(x, y = NULL, k, init = "pp", cell = NULL, upd = "mean",
-                   maxit = 100, seed = NULL, lonlat = FALSE) {
-  .Call(C_clab_r_kmpart, x, y, k, init, cell, upd, maxit, seed, lonlat)
+                   maxit = 100, seed = NULL, count = NULL, lonlat = FALSE) {
+  .Call(C_clab_r_kmpart, x, y, k, init, cell, upd, maxit, seed, count,
+        lonlat)
 }
 
 #' Nearest-neighbour hierarchical clustering
@@ -488,6 +518,11 @@ kmpart <- function(x, y = NULL, k, init = "pp", cell = NULL, upd = "mean",
 #' @param maxord The highest order: one whole number from 1 to 20.
 #' @param c The multiplier of each cluster's standard deviational ellipse
 #'   (see [sdell()]).
+#' @param count `NULL` for points, or for zones: one whole count from 0
+#'   per zone, the points `x`, `y` being the zones' centroids. A zone is
+#'   taken as `count` incidents at its centroid, which these hot-spot rules
+#'   treat exactly as coincident points. Zones with count 0 get `NA`; the
+#'   random-expectation threshold counts incidents, not zones.
 #' @return A list. `cl`, an integer matrix with one row per point (input
 #'   order) and one column per order: the cluster (a row of `clusters`) the
 #'   point belongs to at that order, or `NA`. `clusters`, a data frame with
@@ -510,9 +545,9 @@ kmpart <- function(x, y = NULL, k, init = "pp", cell = NULL, upd = "mean",
 #' @export
 nnhclu <- function(x, y = NULL, area = NULL, fixd = NULL, p = 0.5,
                    minpts = 10, minhi = minpts, maxord = 3, k = 1, c = 1,
-                   lonlat = FALSE) {
+                   count = NULL, lonlat = FALSE) {
   .Call(C_clab_r_nnhclu, x, y, area, fixd, p, minpts, minhi, maxord, k, c,
-        lonlat)
+        count, lonlat)
 }
 
 #' Search-circle hot-spot areas
@@ -536,7 +571,7 @@ nnhclu <- function(x, y = NULL, area = NULL, fixd = NULL, p = 0.5,
 #' @param minpts The fewest points a hot-spot area keeps: a whole number
 #'   from 2.
 #' @inheritParams nnhclu
-#' @return A list. `cl`, the hot-spot area of each point (a row of
+#' @return A list. `cl`, the hot-spot area of each point (zone) (a row of
 #'   `clusters`) or `NA`, in input order. `clusters`, a data frame with one
 #'   row per area, by size: `points`, `mx`, `my` (mean centre), `wx`, `wy`
 #'   (centre of minimum distance), `a`, `b` and `angle` (the standard
@@ -552,8 +587,8 @@ nnhclu <- function(x, y = NULL, area = NULL, fixd = NULL, p = 0.5,
 #' stacel(x, y, win = c(0, 10, 0, 10), r = 0.75, top = 5, minpts = 5)$clusters
 #' @export
 stacel <- function(x, y = NULL, win, nx = 20, ny = 20, r, top = 25,
-                   minpts = 5, k = 1, c = 1) {
-  .Call(C_clab_r_stacel, x, y, win, nx, ny, r, top, minpts, k, c)
+                   minpts = 5, k = 1, c = 1, count = NULL) {
+  .Call(C_clab_r_stacel, x, y, win, nx, ny, r, top, minpts, k, c, count)
 }
 
 #' Mantel's space-time test
@@ -575,6 +610,8 @@ stacel <- function(x, y = NULL, win, nx = 20, ny = 20, r, top = 25,
 #'   (0 uses the raw distance or interval).
 #' @param nsim The number of permutations: one whole number from 0.
 #' @inheritParams nnidx
+#' @param metric The spatial distance: `"euclid"` or `"manhattan"`; the
+#'   test permutes times and needs no expectation, so both are exact.
 #' @return A named numeric vector: `r` (the correlation), `pairs`, and the
 #'   permutation p-values `pup` (`(1 + #{r_perm >= r}) / (nsim + 1)`, large
 #'   r: events close in space are close in time when both are raw
@@ -589,8 +626,8 @@ stacel <- function(x, y = NULL, win, nx = 20, ny = 20, r, top = 25,
 #' mantst(x, y, t = x + rnorm(60, sd = 0.1), nsim = 199, seed = 1)
 #' @export
 mantst <- function(x, y = NULL, t, cs = 0, ct = 0, nsim = 999, seed = NULL,
-                   lonlat = FALSE) {
-  .Call(C_clab_r_mantst, x, y, t, cs, ct, nsim, seed, lonlat)
+                   metric = "euclid", lonlat = FALSE) {
+  .Call(C_clab_r_mantst, x, y, t, cs, ct, nsim, seed, metric, lonlat)
 }
 
 #' Spatial-temporal moving average

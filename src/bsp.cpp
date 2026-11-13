@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <vector>
 
 #define R_NO_REMAP_RMATH
 #include <Rmath.h>
@@ -317,6 +318,13 @@ SEXP radii(SEXP r) {
 
 const char *const kcor[] = {"none", "border", "modif", "iso"};
 
+// the distance: 0 Euclidean, 1 Manhattan (|dx| + |dy|), as spwt() and
+// jtsurf() name them
+int metric(SEXP m) {
+  static const char *const mo[] = {"euclid", "manhattan"};
+  return csp::pick(m, "metric", mo, 2);
+}
+
 }  // namespace
 
 extern "C" {
@@ -324,7 +332,7 @@ extern "C" {
 // ------------------------------------------------------- distance analysis
 
 SEXP C_clab_r_nnidx(SEXP x, SEXP y, SEXP win, SEXP kmax, SEXP nsim,
-                    SEXP seed, SEXP dist) {
+                    SEXP seed, SEXP dist, SEXP metr) {
   clab::who = "nnidx";
   double w[4];
   csp::pts p = inwin(x, y, win, w);
@@ -333,14 +341,17 @@ SEXP C_clab_r_nnidx(SEXP x, SEXP y, SEXP win, SEXP kmax, SEXP nsim,
   if (km > n - 1) fail("`kmax` must be below the number of points.");
   const int ns = clab::whole(nsim, "nsim", 0);
   const bool dd = csp::flag(dist, "dist");
+  const int me = metric(metr);
   const unsigned int sd = ns > 0 ? csp::seed(seed) : 0u;
-  SEXP iw = PROTECT(ints(2 * static_cast<R_xlen_t>(n) + 2 + 2 * km));
-  SEXP wk = PROTECT(real(3 * static_cast<R_xlen_t>(km) +
-                         (ns > 0 ? 2 * static_cast<R_xlen_t>(n) : 0)));
+  const R_xlen_t nk = static_cast<R_xlen_t>(n) * km;
+  SEXP iw = PROTECT(ints(2 * static_cast<R_xlen_t>(n) + 2 + 2 * km + (me ? nk : 0)));
+  SEXP wk = PROTECT(real(3 * static_cast<R_xlen_t>(km) + 2 * static_cast<R_xlen_t>(n) +
+                         (me ? nk : 0)));
   SEXP dv = PROTECT(dd ? real(static_cast<R_xlen_t>(n) * km) : R_NilValue);
   SEXP o = PROTECT(real(6 * static_cast<R_xlen_t>(km) + 4));
-  kc(clab_nnidx(p.x, p.y, n, w, km, ns, sd, dd ? REAL(dv) : nullptr,
-                INTEGER(iw), REAL(wk), REAL(o)));
+  kc((me ? clab_nnidm : clab_nnidx)(p.x, p.y, n, w, km, ns, sd,
+                                   dd ? REAL(dv) : nullptr, INTEGER(iw),
+                                   REAL(wk), REAL(o)));
   static const char *const on[] = {"k", "mean", "exp", "ratio", "pclu",
                                    "preg", "sd"};
   double *c[7];
@@ -372,23 +383,30 @@ SEXP C_clab_r_nnidx(SEXP x, SEXP y, SEXP win, SEXP kmax, SEXP nsim,
   return lst(out, nm);
 }
 
-SEXP C_clab_r_ripk(SEXP x, SEXP y, SEXP win, SEXP r, SEXP corr) {
+SEXP C_clab_r_ripk(SEXP x, SEXP y, SEXP win, SEXP r, SEXP corr, SEXP metr) {
   clab::who = "ripk";
   double w[4];
   csp::pts p = inwin(x, y, win, w);
   SEXP rv = PROTECT(radii(r));
   const int m = clab::ilen(static_cast<double>(XLENGTH(rv)), "r");
   const int co = csp::pick(corr, "corr", kcor, 4);
+  const int me = metric(metr);
+  if (me == 1 && co == 3) {
+    fail("the isotropic correction has no Manhattan form: use corr = "
+         "\"border\", \"modif\" or \"none\".");
+  }
   SEXP iw = PROTECT(ints(2 * static_cast<R_xlen_t>(p.n) + 2));
   SEXP wk = PROTECT(real(4 * static_cast<R_xlen_t>(m)));
   static const char *const nm[] = {"r", "k", "l"};
   double *c[3];
   SEXP f = PROTECT(dframe(3, m, nm, c));
-  kc(clab_ripk(p.x, p.y, p.n, w, REAL_RO(rv), m, co, INTEGER(iw), REAL(wk),
-               c[1]));
+  kc(clab_ripkm(p.x, p.y, p.n, w, REAL_RO(rv), m, co, me, INTEGER(iw),
+                REAL(wk), c[1]));
+  // L(r) = r under randomness: K / pi (Euclidean), K / 2 (Manhattan, the
+  // area of its ball being 2 r^2)
   for (int j = 0; j < m; ++j) {
     c[0][j] = REAL_RO(rv)[j];
-    c[2][j] = std::sqrt(c[1][j] / pi);
+    c[2][j] = std::sqrt(c[1][j] / (me ? 2.0 : pi));
   }
   UNPROTECT(5);
   return f;
@@ -430,6 +448,74 @@ SEXP C_clab_r_ripenv(SEXP x, SEXP y, SEXP win, SEXP r, SEXP corr, SEXP nsim,
 
 namespace {
 
+// zone counts: whole numbers from 0, one per zone, at least one positive
+SEXP zcount(SEXP count, int n) {
+  SEXP v = PROTECT(num(count, "count", n, 0.0));
+  bool any = false;
+  for (int i = 0; i < n; ++i) {
+    const double c = REAL_RO(v)[i];
+    if (c != std::floor(c)) fail("`count` must be whole numbers, one per zone.");
+    any = any || c > 0;
+  }
+  if (!any) fail("`count` must have a positive sum.");
+  UNPROTECT(1);
+  return v;
+}
+
+// Zones as points: each zone's centroid repeated count times (exact for
+// the hot-spot routines, whose results for coincident points coincide).
+// first[i]: the copy that stands for zone i, or -1 for a zone with count 0.
+// v (protected) holds the copies' x and y.
+struct zones {
+  SEXP v;
+  const double *x, *y;
+  int n;
+  std::vector<int> first;
+};
+
+zones expand(const csp::pts &p, SEXP count) {
+  SEXP cv = PROTECT(zcount(count, p.n));
+  double tot = 0;
+  for (int i = 0; i < p.n; ++i) tot += REAL(cv)[i];
+  if (tot > 1e8) fail("`count` must sum to at most 1e8.");
+  zones z{R_NilValue, nullptr, nullptr, static_cast<int>(tot), std::vector<int>(static_cast<std::size_t>(p.n))};
+  SEXP v = Rf_allocVector(VECSXP, 2);
+  UNPROTECT(1);
+  PROTECT(v);
+  SET_VECTOR_ELT(v, 0, real(z.n));
+  SET_VECTOR_ELT(v, 1, real(z.n));
+  double *ex = REAL(VECTOR_ELT(v, 0)), *ey = REAL(VECTOR_ELT(v, 1));
+  int t = 0;
+  SEXP c2 = PROTECT(zcount(count, p.n));
+  for (int i = 0; i < p.n; ++i) {
+    const int c = static_cast<int>(REAL(c2)[i]);
+    z.first[static_cast<std::size_t>(i)] = c > 0 ? t : -1;
+    for (int q = 0; q < c; ++q, ++t) {
+      ex[t] = p.x[i];
+      ey[t] = p.y[i];
+    }
+  }
+  UNPROTECT(1);
+  z.v = v;
+  z.x = ex;
+  z.y = ey;
+  return z;
+}
+
+// per-zone group numbers from those of the copies (NA for empty zones)
+SEXP zgroups(const zones &z, SEXP cl, int nz, int cols) {
+  SEXP v = PROTECT(cols > 1 ? Rf_allocMatrix(INTSXP, nz, cols) : ints(nz));
+  for (int j = 0; j < cols; ++j) {
+    for (int i = 0; i < nz; ++i) {
+      const int f = z.first[static_cast<std::size_t>(i)];
+      INTEGER(v)[i + static_cast<R_xlen_t>(nz) * j] =
+          f < 0 ? NA_INTEGER : INTEGER(cl)[f + static_cast<R_xlen_t>(z.n) * j];
+    }
+  }
+  UNPROTECT(1);
+  return v;
+}
+
 // group numbers from 0 (or -1) to R's from 1 (or NA)
 SEXP grpno(const int *cl, R_xlen_t n) {
   SEXP v = ints(n);
@@ -465,22 +551,58 @@ extern "C" {
 
 // --------------------------------------------------------------- hot spots
 
-SEXP C_clab_r_fzmode(SEXP x, SEXP y, SEXP r, SEXP lonlat) {
+SEXP C_clab_r_fzmode(SEXP x, SEXP y, SEXP r, SEXP count, SEXP metr,
+                     SEXP lonlat) {
   clab::who = "fzmode";
   csp::pts p = csp::xy(x, y, lonlat);
   const double rad = in(r, "r", 0.0, std::numeric_limits<double>::max());
+  const int me = metric(metr);
   SEXP iw = PROTECT(ints(2 * static_cast<R_xlen_t>(p.n) + 2));
-  SEXP out = PROTECT(ints(p.n));
-  kc(clab_fzmode(p.x, p.y, p.n, rad, INTEGER(iw), INTEGER(out)));
-  UNPROTECT(3);
+  if (Rf_isNull(count) && me == 0) {
+    SEXP out = PROTECT(ints(p.n));
+    kc(clab_fzmode(p.x, p.y, p.n, rad, INTEGER(iw), INTEGER(out)));
+    UNPROTECT(3);
+    return out;
+  }
+  // zones (or Manhattan distance): the weight within r of each unit, from
+  // the neighbour pairs of clab_swband; r = 0 counts coincident units
+  SEXP cv = PROTECT(Rf_isNull(count) ? R_NilValue : zcount(count, p.n));
+  const double dm = rad > 0 ? rad : std::numeric_limits<double>::min();
+  SEXP rp = PROTECT(ints(p.n + 1));
+  int nnz = 0;
+  kc(clab_swband(p.x, p.y, p.n, dm, me, 0, INTEGER(rp), nullptr, nullptr, &nnz,
+                 INTEGER(iw)));
+  SEXP ci = PROTECT(ints(nnz));
+  SEXP dv = PROTECT(real(nnz));
+  kc(clab_swband(p.x, p.y, p.n, dm, me, nnz, INTEGER(rp), INTEGER(ci), REAL(dv),
+                 &nnz, INTEGER(iw)));
+  const double *c = Rf_isNull(cv) ? nullptr : REAL(cv);
+  SEXP out = PROTECT(c ? real(p.n) : ints(p.n));
+  for (int i = 0; i < p.n; ++i) {
+    double s = c ? c[i] : 1.0;
+    for (int q = INTEGER(rp)[i]; q < INTEGER(rp)[i + 1]; ++q) {
+      s += c ? c[INTEGER(ci)[q]] : 1.0;
+    }
+    if (c) REAL(out)[i] = s; else INTEGER(out)[i] = static_cast<int>(s);
+  }
+  UNPROTECT(7);
   return out;
 }
 
 SEXP C_clab_r_kmpart(SEXP x, SEXP y, SEXP k, SEXP init, SEXP cell, SEXP upd,
-                     SEXP maxit, SEXP seed, SEXP lonlat) {
+                     SEXP maxit, SEXP seed, SEXP count, SEXP lonlat) {
   clab::who = "kmpart";
   csp::pts p = csp::xy(x, y, lonlat);
-  const int n = p.n;
+  const bool zon = !Rf_isNull(count);
+  zones zn{R_NilValue, nullptr, nullptr, 0, {}};
+  if (zon) zn = expand(p, count);
+  csp::pts pz = p;
+  if (zon) {
+    pz.x = zn.x;
+    pz.y = zn.y;
+    pz.n = zn.n;
+  }
+  const int n = pz.n;
   const int kk = clab::whole(k, "k", 1);
   if (kk > n) fail("`k` must be at most the number of points.");
   SEXP cen = PROTECT(real(2 * static_cast<R_xlen_t>(kk)));
@@ -491,12 +613,12 @@ SEXP C_clab_r_kmpart(SEXP x, SEXP y, SEXP k, SEXP init, SEXP cell, SEXP upd,
     in0 = 1 + csp::pick(init, "init", io, 2);
   } else {
     // starting centres: a k x 2 matrix or data frame, read as points
-    csp::pts c = csp::xy(init, R_NilValue, R_NilValue, p.ll ? csp::raw : csp::planar);
+    csp::pts c = csp::xy(init, R_NilValue, R_NilValue, pz.ll ? csp::raw : csp::planar);
     if (c.n != kk) fail("`init` must give `k` starting centres.");
     std::memcpy(REAL(cen), c.x, kk * sizeof(double));
     std::memcpy(REAL(cen) + kk, c.y, kk * sizeof(double));
     UNPROTECT(1);
-    csp::fwd(p, REAL(cen), REAL(cen) + kk, kk);
+    csp::fwd(pz, REAL(cen), REAL(cen) + kk, kk);
     in0 = 0;
   }
   if (in0 == 2) {
@@ -514,7 +636,7 @@ SEXP C_clab_r_kmpart(SEXP x, SEXP y, SEXP k, SEXP init, SEXP cell, SEXP upd,
   SEXP iw = PROTECT(ints(2 * static_cast<R_xlen_t>(n)));
   SEXP wk = PROTECT(real(2 * static_cast<R_xlen_t>(n)));
   SEXP o = PROTECT(real(4 + 3 * static_cast<R_xlen_t>(kk)));
-  kc(clab_kmpart(p.x, p.y, n, kk, in0, par, sd, up, mi, REAL(cen),
+  kc(clab_kmpart(pz.x, pz.y, n, kk, in0, par, sd, up, mi, REAL(cen),
                  INTEGER(cl), INTEGER(iw), REAL(wk), REAL(o)),
      in0 == 1 ? "fewer distinct points than `k`."
               : "fewer than `k` cells hold points far enough apart.");
@@ -530,20 +652,31 @@ SEXP C_clab_r_kmpart(SEXP x, SEXP y, SEXP k, SEXP init, SEXP cell, SEXP upd,
   static const char *const fn[] = {"ss", "sd", "iter", "conv"};
   SEXP fit = PROTECT(clab::nvec(4, fn, REAL(o)));
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
-  SET_VECTOR_ELT(out, 0, grpno(INTEGER(cl), n));
+  SEXP gr = PROTECT(grpno(INTEGER(cl), n));
+  SET_VECTOR_ELT(out, 0, zon ? zgroups(zn, gr, p.n, 1) : gr);
+  UNPROTECT(1);
   SET_VECTOR_ELT(out, 1, ct);
   SET_VECTOR_ELT(out, 2, fit);
   static const char *const nm[] = {"cl", "cen", "fit"};
-  UNPROTECT(9);
+  UNPROTECT(9 + (zon ? 1 : 0));
   return lst(out, nm);
 }
 
 SEXP C_clab_r_nnhclu(SEXP x, SEXP y, SEXP area, SEXP fixd, SEXP pv,
                      SEXP minpts, SEXP minhi, SEXP maxord, SEXP k, SEXP c,
-                     SEXP lonlat) {
+                     SEXP count, SEXP lonlat) {
   clab::who = "nnhclu";
   csp::pts p = csp::xy(x, y, lonlat);
-  const int n = p.n;
+  const bool zon = !Rf_isNull(count);
+  zones zn{R_NilValue, nullptr, nullptr, 0, {}};
+  if (zon) zn = expand(p, count);
+  csp::pts pz = p;
+  if (zon) {
+    pz.x = zn.x;
+    pz.y = zn.y;
+    pz.n = zn.n;
+  }
+  const int n = pz.n;
   if (n < 2) fail("at least 2 points are needed.");
   if (Rf_isNull(area) == Rf_isNull(fixd)) {
     fail("give one of `area` (for the random-expectation threshold) and "
@@ -564,7 +697,7 @@ SEXP C_clab_r_nnhclu(SEXP x, SEXP y, SEXP area, SEXP fixd, SEXP pv,
   SEXP cl = PROTECT(Rf_allocMatrix(INTSXP, n, mo));
   SEXP cs = PROTECT(real(11 * static_cast<R_xlen_t>(n)));
   int nc = 0;
-  kc(clab_nnhclu(p.x, p.y, n, ar, fd, z, mp, mh, mo, kk, cc, INTEGER(iw),
+  kc(clab_nnhclu(pz.x, pz.y, n, ar, fd, z, mp, mh, mo, kk, cc, INTEGER(iw),
                  REAL(wk), INTEGER(cl), &nc, REAL(cs)));
   int *q = INTEGER(cl);
   for (R_xlen_t i = 0; i < static_cast<R_xlen_t>(n) * mo; ++i) {
@@ -572,19 +705,28 @@ SEXP C_clab_r_nnhclu(SEXP x, SEXP y, SEXP area, SEXP fixd, SEXP pv,
   }
   static const char *const cn[] = {"order", "points", "units", "mx", "my",
                                    "wx", "wy", "a", "b", "angle", "thresh"};
-  SEXP ct = PROTECT(ctab(p, REAL(cs), nc, 11, cn, 3));
+  SEXP ct = PROTECT(ctab(pz, REAL(cs), nc, 11, cn, 3));
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(out, 0, cl);
+  SET_VECTOR_ELT(out, 0, zon ? zgroups(zn, cl, p.n, mo) : cl);
   SET_VECTOR_ELT(out, 1, ct);
   static const char *const nm[] = {"cl", "clusters"};
-  UNPROTECT(7);
+  UNPROTECT(7 + (zon ? 1 : 0));
   return lst(out, nm);
 }
 
 SEXP C_clab_r_stacel(SEXP x, SEXP y, SEXP win, SEXP nx, SEXP ny, SEXP r,
-                     SEXP top, SEXP minpts, SEXP k, SEXP c) {
+                     SEXP top, SEXP minpts, SEXP k, SEXP c, SEXP count) {
   clab::who = "stacel";
   csp::pts p = csp::xy(x, y, R_NilValue, csp::planar);
+  const bool zon = !Rf_isNull(count);
+  zones zn{R_NilValue, nullptr, nullptr, 0, {}};
+  if (zon) zn = expand(p, count);
+  csp::pts pz = p;
+  if (zon) {
+    pz.x = zn.x;
+    pz.y = zn.y;
+    pz.n = zn.n;
+  }
   double w[4];
   csp::win(win, w);
   const int gx = clab::whole(nx, "nx", 2), gy = clab::whole(ny, "ny", 2);
@@ -595,22 +737,24 @@ SEXP C_clab_r_stacel(SEXP x, SEXP y, SEXP win, SEXP nx, SEXP ny, SEXP r,
   const int kk = clab::whole(k, "k", 0);
   if (kk > 2) fail("`k` must be 0, 1 or 2.");
   const double cc = posn(c, "c");
-  const R_xlen_t n = p.n, nn = static_cast<R_xlen_t>(gx) * gy;
+  const R_xlen_t n = pz.n, nn = static_cast<R_xlen_t>(gx) * gy;
   SEXP iw = PROTECT(ints(3 * n + 2 + nn + tp + std::max<R_xlen_t>(n, 2 * static_cast<R_xlen_t>(tp))));
   SEXP wk = PROTECT(real(nn + 2 * n));
   SEXP cl = PROTECT(ints(n));
   SEXP cs = PROTECT(real(8 * n));
   int nc = 0;
-  kc(clab_stacel(p.x, p.y, p.n, w, gx, gy, rad, tp, mp, kk, cc, INTEGER(iw),
+  kc(clab_stacel(pz.x, pz.y, pz.n, w, gx, gy, rad, tp, mp, kk, cc, INTEGER(iw),
                  REAL(wk), INTEGER(cl), &nc, REAL(cs)));
   static const char *const cn[] = {"points", "mx", "my", "wx", "wy",
                                    "a", "b", "angle"};
-  SEXP ct = PROTECT(ctab(p, REAL(cs), nc, 8, cn, 1));
+  SEXP ct = PROTECT(ctab(pz, REAL(cs), nc, 8, cn, 1));
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
-  SET_VECTOR_ELT(out, 0, grpno(INTEGER(cl), n));
+  SEXP gr = PROTECT(grpno(INTEGER(cl), n));
+  SET_VECTOR_ELT(out, 0, zon ? zgroups(zn, gr, p.n, 1) : gr);
+  UNPROTECT(1);
   SET_VECTOR_ELT(out, 1, ct);
   static const char *const nm[] = {"cl", "clusters"};
-  UNPROTECT(7);
+  UNPROTECT(7 + (zon ? 1 : 0));
   return lst(out, nm);
 }
 
@@ -683,7 +827,7 @@ extern "C" {
 // -------------------------------------------------------------- space-time
 
 SEXP C_clab_r_mantst(SEXP x, SEXP y, SEXP t, SEXP cs, SEXP ct, SEXP nsim,
-                     SEXP seed, SEXP lonlat) {
+                     SEXP seed, SEXP metr, SEXP lonlat) {
   clab::who = "mantst";
   SEXP uv[3] = {x, y, t};
   static const char *const un[] = {"x", "y", "t"};
@@ -697,10 +841,11 @@ SEXP C_clab_r_mantst(SEXP x, SEXP y, SEXP t, SEXP cs, SEXP ct, SEXP nsim,
   const double a = in(cs, "cs", 0.0, std::numeric_limits<double>::max());
   const double b = in(ct, "ct", 0.0, std::numeric_limits<double>::max());
   const int ns = clab::whole(nsim, "nsim", 0);
+  const int me = metric(metr);
   const unsigned int sd = ns > 0 ? csp::seed(seed) : 0u;
   SEXP iw = PROTECT(ints(p.n));
   double o[5];
-  kc(clab_mantst(p.x, p.y, REAL_RO(tv), p.n, a, b, ns, sd, INTEGER(iw), o),
+  kc(clab_mantm(p.x, p.y, REAL_RO(tv), p.n, me, a, b, ns, sd, INTEGER(iw), o),
      "the distances or the time intervals are all equal: r is undefined.");
   static const char *const nm[] = {"r", "pairs", "pup", "plo", "p2"};
   UNPROTECT(3 + nb);

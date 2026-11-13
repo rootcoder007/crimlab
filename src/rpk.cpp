@@ -71,7 +71,7 @@ int bin(const double *r, int m, double d) {
 // K at the m radii into k; work: 4 m doubles
 void kfun(const double *x, const double *y, int n, const double *w,
           const double *r, int m, int corr, int *iwork, double *work,
-          double *k) {
+          double *k, int metric = 0) {
   const double A = (w[1] - w[0]) * (w[3] - w[2]);
   const double rmax = r[m - 1];
   double *acc = work, *loc = work + 2 * m, *den = work + 3 * m;
@@ -103,7 +103,9 @@ void kfun(const double *x, const double *y, int n, const double *w,
           const double dx = x[j] - px, dy = y[j] - py;
           const double dd = dx * dx + dy * dy;
           if (dd > r2) continue;
-          const double d = std::sqrt(dd);
+          // a Manhattan distance is at least the Euclidean one, so the
+          // Euclidean cut above keeps every pair within rmax
+          const double d = metric ? std::fabs(dx) + std::fabs(dy) : std::sqrt(dd);
           const int q = bin(r, m, d);
           if (q == m) continue;
           double wt = 1.0;
@@ -168,6 +170,18 @@ int clab_ripk(const double *x, const double *y, int n, const double *win,
   if (n < 2 || m < 1 || corr < 0 || corr > 3) return CLAB_EARG;
   if (!inwin(x, y, n, win) || !radii(r, m)) return CLAB_EDOM;
   kfun(x, y, n, win, r, m, corr, iwork, work, k);
+  return CLAB_OK;
+}
+
+int clab_ripkm(const double *x, const double *y, int n, const double *win,
+               const double *r, int m, int corr, int metric, int *iwork,
+               double *work, double *k) {
+  if (n < 2 || m < 1 || corr < 0 || corr > 3 || metric < 0 || metric > 1) return CLAB_EARG;
+  // the isotropic weight is the share of a circle; a Manhattan ball is a
+  // square turned 45 degrees and has no such correction here
+  if (metric == 1 && corr == 3) return CLAB_EDOM;
+  if (!inwin(x, y, n, win) || !radii(r, m)) return CLAB_EDOM;
+  kfun(x, y, n, win, r, m, corr, iwork, work, k, metric);
   return CLAB_OK;
 }
 

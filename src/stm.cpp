@@ -15,14 +15,20 @@ namespace {
 // the pair dissimilarity: the distance, or 1 / (distance + c) when c > 0
 inline double tr(double d, double c) { return c > 0.0 ? 1.0 / (d + c) : d; }
 
+// the distance of events i and j: Euclidean (metric 0) or Manhattan (1)
+inline double dd(const double *x, const double *y, int i, int j, int metric) {
+  return metric ? std::fabs(x[i] - x[j]) + std::fabs(y[i] - y[j])
+                : std::hypot(x[i] - x[j], y[i] - y[j]);
+}
+
 // sum over pairs i < j of X_ij Y_{p(i) p(j)}
 double cross(const double *x, const double *y, const double *t, const int *p,
-             int n, double cs, double ct) {
+             int n, double cs, double ct, int metric) {
   kutil::ksum s;
   for (int i = 1; i < n; ++i) {
     const double ti = t[p[i]];
     for (int j = 0; j < i; ++j) {
-      const double dx = tr(std::hypot(x[i] - x[j], y[i] - y[j]), cs);
+      const double dx = tr(dd(x, y, i, j, metric), cs);
       const double dt = tr(std::fabs(ti - t[p[j]]), ct);
       s.add(dx * dt);
     }
@@ -37,7 +43,13 @@ extern "C" {
 int clab_mantst(const double *x, const double *y, const double *t, int n,
                 double cs, double ct, int nsim, unsigned int seed, int *iwork,
                 double *out) {
-  if (n < 3 || nsim < 0 || n > 46340) return CLAB_EARG;
+  return clab_mantm(x, y, t, n, 0, cs, ct, nsim, seed, iwork, out);
+}
+
+int clab_mantm(const double *x, const double *y, const double *t, int n,
+               int metric, double cs, double ct, int nsim, unsigned int seed,
+               int *iwork, double *out) {
+  if (n < 3 || nsim < 0 || n > 46340 || metric < 0 || metric > 1) return CLAB_EARG;
   if (!kutil::nonneg(cs) || !kutil::nonneg(ct)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i)
     if (!std::isfinite(x[i]) || !std::isfinite(y[i]) || !std::isfinite(t[i]))
@@ -48,14 +60,14 @@ int clab_mantst(const double *x, const double *y, const double *t, int n,
   kutil::ksum sx, st;
   for (int i = 1; i < n; ++i)
     for (int j = 0; j < i; ++j) {
-      sx.add(tr(std::hypot(x[i] - x[j], y[i] - y[j]), cs));
+      sx.add(tr(dd(x, y, i, j, metric), cs));
       st.add(tr(std::fabs(t[i] - t[j]), ct));
     }
   const double mx = sx.val() / np, mt = st.val() / np;
   kutil::ksum vx, vt;
   for (int i = 1; i < n; ++i)
     for (int j = 0; j < i; ++j) {
-      const double a = tr(std::hypot(x[i] - x[j], y[i] - y[j]), cs) - mx;
+      const double a = tr(dd(x, y, i, j, metric), cs) - mx;
       const double b = tr(std::fabs(t[i] - t[j]), ct) - mt;
       vx.add(a * a);
       vt.add(b * b);
@@ -65,7 +77,7 @@ int clab_mantst(const double *x, const double *y, const double *t, int n,
   int *p = iwork;
   for (int i = 0; i < n; ++i) p[i] = i;
   auto rof = [&](double c) { return (c / np - mx * mt) / (sdx * sdt); };
-  const double r0 = rof(cross(x, y, t, p, n, cs, ct));
+  const double r0 = rof(cross(x, y, t, p, n, cs, ct, metric));
   out[0] = r0;
   out[1] = np;
   out[2] = out[3] = out[4] = kutil::nan();
@@ -82,7 +94,7 @@ int clab_mantst(const double *x, const double *y, const double *t, int n,
         p[i] = p[j];
         p[j] = tmp;
       }
-      const double r = rof(cross(x, y, t, p, n, cs, ct));
+      const double r = rof(cross(x, y, t, p, n, cs, ct, metric));
       if (r >= r0 - eps) ++ge;
       if (r <= r0 + eps) ++le;
       if (std::fabs(r) >= std::fabs(r0) - eps) ++ab;

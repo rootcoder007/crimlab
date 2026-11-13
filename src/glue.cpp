@@ -348,16 +348,17 @@ SEXP C_clab_r_cgmedn(SEXP, SEXP, SEXP);
 SEXP C_clab_r_webpt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sdell(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cvhull(SEXP, SEXP, SEXP);
-SEXP C_clab_r_nnidx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_ripk(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_nnidx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ripk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ripenv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_fzmode(SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_kmpart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_nnhclu(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                     SEXP, SEXP);
-SEXP C_clab_r_stacel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+SEXP C_clab_r_fzmode(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_kmpart(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP);
-SEXP C_clab_r_mantst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_nnhclu(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP, SEXP);
+SEXP C_clab_r_stacel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP);
+SEXP C_clab_r_mantst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_stmavg(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_jtdecay(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_jtsurf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -401,6 +402,10 @@ SEXP C_clab_r_lgtreg(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rfor(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dmlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                    SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_hdbang(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_crwalk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rnnhcl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -472,14 +477,14 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_webpt", fn(&C_clab_r_webpt), 7},
     {"C_clab_r_sdell", fn(&C_clab_r_sdell), 6},
     {"C_clab_r_cvhull", fn(&C_clab_r_cvhull), 3},
-    {"C_clab_r_nnidx", fn(&C_clab_r_nnidx), 7},
-    {"C_clab_r_ripk", fn(&C_clab_r_ripk), 5},
+    {"C_clab_r_nnidx", fn(&C_clab_r_nnidx), 8},
+    {"C_clab_r_ripk", fn(&C_clab_r_ripk), 6},
     {"C_clab_r_ripenv", fn(&C_clab_r_ripenv), 7},
-    {"C_clab_r_fzmode", fn(&C_clab_r_fzmode), 4},
-    {"C_clab_r_kmpart", fn(&C_clab_r_kmpart), 9},
-    {"C_clab_r_nnhclu", fn(&C_clab_r_nnhclu), 11},
-    {"C_clab_r_stacel", fn(&C_clab_r_stacel), 10},
-    {"C_clab_r_mantst", fn(&C_clab_r_mantst), 8},
+    {"C_clab_r_fzmode", fn(&C_clab_r_fzmode), 6},
+    {"C_clab_r_kmpart", fn(&C_clab_r_kmpart), 10},
+    {"C_clab_r_nnhclu", fn(&C_clab_r_nnhclu), 12},
+    {"C_clab_r_stacel", fn(&C_clab_r_stacel), 11},
+    {"C_clab_r_mantst", fn(&C_clab_r_mantst), 9},
     {"C_clab_r_stmavg", fn(&C_clab_r_stmavg), 5},
     {"C_clab_r_jtdecay", fn(&C_clab_r_jtdecay), 4},
     {"C_clab_r_jtsurf", fn(&C_clab_r_jtsurf), 10},
@@ -517,6 +522,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_lgtreg", fn(&C_clab_r_lgtreg), 4},
     {"C_clab_r_rfor", fn(&C_clab_r_rfor), 9},
     {"C_clab_r_dmlx", fn(&C_clab_r_dmlx), 20},
+    {"C_clab_r_hdbang", fn(&C_clab_r_hdbang), 9},
+    {"C_clab_r_crwalk", fn(&C_clab_r_crwalk), 6},
+    {"C_clab_r_rnnhcl", fn(&C_clab_r_rnnhcl), 10},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

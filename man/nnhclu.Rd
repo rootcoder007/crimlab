@@ -15,6 +15,7 @@ nnhclu(
   maxord = 3,
   k = 1,
   c = 1,
+  count = NULL,
   lonlat = FALSE
 )
 }
@@ -48,6 +49,12 @@ orders) a cluster keeps: whole numbers from 2.}
 
 \item{c}{The multiplier of each cluster's standard deviational ellipse
 (see \code{\link[=sdell]{sdell()}}).}
+
+\item{count}{\code{NULL} for points, or for zones: one whole count from 0
+per zone, the points \code{x}, \code{y} being the zones' centroids. A zone is
+taken as \code{count} incidents at its centroid, which these hot-spot rules
+treat exactly as coincident points. Zones with count 0 get \code{NA}; the
+random-expectation threshold counts incidents, not zones.}
 
 \item{lonlat}{\code{FALSE} (the default) when \code{x} and \code{y} are planar
 coordinates in one length unit; \code{TRUE} when they are longitude and

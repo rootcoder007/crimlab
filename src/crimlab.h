@@ -1430,6 +1430,102 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
              double trim, int fit, double *pred, double *est, double *psi,
              double *work, int *iwork);
 
+
+/* Mantel's test (clab_mantst) with the spatial dissimilarity built from
+ * Euclidean (metric 0) or Manhattan (metric 1, |dx| + |dy|) distances;
+ * clab_mantst is metric 0. */
+int clab_mantm(const double *x, const double *y, const double *t, int n,
+               int metric, double cs, double ct, int nsim, unsigned int seed,
+               int *iwork, double *out);
+
+/* Ripley's K (clab_ripk) with pairs counted by Euclidean (metric 0) or
+ * Manhattan (metric 1) distance. Under complete spatial randomness the
+ * Manhattan K is 2 r^2, the area of the Manhattan ball. The border and
+ * modified border estimators carry over unchanged: a Manhattan ball of
+ * radius r lies in the rectangle exactly when its centre is at least r
+ * from every edge, the Euclidean condition. The isotropic weight (the
+ * share of a circle) has no Manhattan counterpart here: corr 3 with
+ * metric 1 is CLAB_EDOM. */
+int clab_ripkm(const double *x, const double *y, int n, const double *win,
+               const double *r, int m, int corr, int metric, int *iwork,
+               double *work, double *k);
+
+/* The nearest-neighbour index under Manhattan distance (src/sp2.cpp),
+ * laid out as clab_nnidx. A Manhattan ball of radius r has area 2 r^2, so
+ * under complete spatial randomness without edges the k-th neighbour
+ * distance has E R_k = Gamma(k + 1/2) / (Gamma(k) sqrt(2 lam)) (sqrt(pi / 2)
+ * times the Euclidean value) and E R_k^2 = k / (2 lam); order 1's z uses
+ * Var R_1 = (4 - pi) / (8 lam). No edge-corrected expectation is published
+ * for Manhattan distance: Donnelly's expectation, the ratio against it and
+ * the corrected z are NaN. The Monte Carlo p-values (simulated uniform
+ * points in the rectangle) need no expectation and keep exact size.
+ * Neighbours by clab_swknb. iwork: 2n + 2 + n kmax + 2 kmax ints; work: n
+ * kmax + 2n + 2 kmax doubles. */
+int clab_nnidm(const double *x, const double *y, int n, const double *win,
+               int kmax, int nsim, unsigned int seed, double *dist,
+               int *iwork, double *work, double *out);
+
+/* Head-bang smoothing (Hansen 1991, IEEE Transactions on Geoscience and
+ * Remote Sensing 29: 369-378; the weighted screens after Mungiole, Pickle
+ * and Simonson 1999, Statistics in Medicine 18: 3201-3209) of the values v at n >= 3 points. For each point i: its nn nearest
+ * neighbours (2 <= nn <= n - 1, Euclidean, ties by index); the triples
+ * (j, i, k) of two of them whose angle at i is at least ang degrees (90
+ * to 180; coincident neighbours are skipped), so that i lies roughly
+ * between j and k; of these the ntrip with the smallest |p_j - p_i| +
+ * |p_k - p_i| (all when ntrip is 0). Each triple gives a low value
+ * min(v_j, v_k) and a high one; the low screen L is the median of the
+ * lows and the high screen H of the highs (with weights w, NULL or n
+ * positive values, the weighted medians, each value weighted by its
+ * unit's w: the smallest value whose cumulative weight reaches half the
+ * total); the new value is the median of L, v_i and H. A point with no
+ * triple keeps its value (Hansen's extrapolated end triples are not
+ * formed). iter >= 0 passes, each from the previous values. iwork: 2n + 2
+ * + n nn + 3T ints, work: n nn + n + 5T doubles, T = nn (nn - 1) / 2.
+ * Out: n values. */
+int clab_hdbang(const double *x, const double *y, const double *v,
+                const double *w, int n, int nn, double ang, int ntrip,
+                int iter, int *iwork, double *work, double *out);
+
+/* Correlated random walk of n >= 3 successive event locations (Kareiva and
+ * Shigesada 1983, doi:10.1007/BF00379695). clab_crwfit: step lengths
+ * step (n - 1), turning angles turn (n - 2, in (-pi, pi], the change of
+ * heading between successive steps) and out, 5: the mean step, the mean
+ * squared step, the mean cosine c and mean sine s of the turns, and the
+ * last heading; CLAB_EDOM for a repeated location (no heading).
+ * clab_crwmsd: for k = 1 .. h, obs, the observed mean squared displacement
+ * over k moves (over every start; NaN when k >= n), and msd, Kareiva and
+ * Shigesada's expected squared displacement for independent steps and
+ * turns with symmetric turning (s = 0): k E l^2 + 2 (E l)^2 c / (1 - c)
+ * (k - (1 - c^k) / (1 - c)), and k E l^2 + (E l)^2 k (k - 1) at c = 1.
+ * clab_crwsim: nsim walks of h steps from (x0, y0) with heading head, each
+ * turn and each step drawn independently and uniformly from the observed
+ * ones (the walk the expectation describes), from seed. Out: px, py, h
+ * nsim each, step k of walk s at k nsim + s. */
+int clab_crwfit(const double *x, const double *y, int n, double *step,
+                double *turn, double *out);
+int clab_crwmsd(const double *x, const double *y, int n, double ml,
+                double ml2, double c, int h, double *obs, double *msd);
+int clab_crwsim(const double *step, int ns, const double *turn, int nt,
+                double x0, double y0, double head, int h, int nsim,
+                unsigned int seed, double *px, double *py);
+
+/* Risk-adjusted nearest-neighbour clustering (first order). The
+ * random-expectation threshold of clab_nnhclu, 0.5 sqrt(A / n) + z
+ * sqrt((4 - pi) A / (4 pi)) / n, is f / sqrt(lam) with lam = n / A and f =
+ * 0.5 + z sqrt((4 - pi) / (4 pi n)); here lam is not uniform but the
+ * intensity the n incidents would have if they followed the baseline:
+ * lam_i = n b(p_i) / B, b the normal-kernel density (bandwidth bwid) of the
+ * nb baseline units (bx, by) with sizes bw (B their sum). Points i and j
+ * are linked when |p_i - p_j| < f / sqrt((lam_i + lam_j) / 2) (always when
+ * that mean is 0). Grouping as in clab_nnhclu's first order; groups of at
+ * least minpts are kept, numbered by size. Out: thr (n, f / sqrt(lam_i)),
+ * cl (n, group or -1), *ncl, cs (8 per group: points, mean x, y, Weber x,
+ * y, ellipse a, b, angle as clab_sdell with k, c). iwork: 4n ints; work: 3n
+ * doubles. O(n^2 + n nb). */
+int clab_rnnhcl(const double *x, const double *y, int n, const double *bx,
+                const double *by, const double *bw, int nb, double bwid,
+                double z, int minpts, int k, double c, int *iwork,
+                double *work, double *thr, int *cl, int *ncl, double *cs);
 #ifdef __cplusplus
 }
 #endif

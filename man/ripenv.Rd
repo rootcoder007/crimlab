@@ -44,6 +44,9 @@ has exact size (Ripley 1977; Diggle 2013). The pointwise envelopes are
 not a test of the whole curve: each radius alone falls outside them with
 probability \code{2 / (nsim + 1)} under randomness.
 }
+\details{
+Euclidean distance only; \code{\link[=ripk]{ripk()}} takes \code{metric}.
+}
 \examples{
 set.seed(1)
 ripenv(runif(100), runif(100), win = c(0, 1, 0, 1),

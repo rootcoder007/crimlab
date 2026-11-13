@@ -50,6 +50,12 @@
   contiguity; binary or inverse distance), `gearc()` (Geary's C), `gorg()`
   (the Getis-Ord G), `lmorn()` (local Moran with conditional permutations),
   `locgi()` (local G and G*) and `dirmn()` (directional mean).
+* `hdbang()` (head-bang smoothing, weighted or not), `crwalk()` (a
+  correlated random walk of a series: fit, expected displacement and
+  simulation) and `rnnhcl()` (nearest-neighbour clustering against a
+  population at risk). `nnidx()`, `ripk()`, `fzmode()` and `mantst()` take
+  `metric = "manhattan"`; `fzmode()`, `kmpart()`, `nnhclu()` and `stacel()`
+  take zones as counts at centroids (`count`).
 * `fair()` (fairness of a risk tool by group), `tlvc()` and `tlvlr()`
   (trace evidence), `aorwt()` (aoristic weights), `bdig()` and `bnft()`
   (Benford screens), `skp()` (Scott-Knott grouping), `rptc()` (constant

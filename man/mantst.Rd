@@ -4,7 +4,17 @@
 \alias{mantst}
 \title{Mantel's space-time test}
 \usage{
-mantst(x, y = NULL, t, cs = 0, ct = 0, nsim = 999, seed = NULL, lonlat = FALSE)
+mantst(
+  x,
+  y = NULL,
+  t,
+  cs = 0,
+  ct = 0,
+  nsim = 999,
+  seed = NULL,
+  metric = "euclid",
+  lonlat = FALSE
+)
 }
 \arguments{
 \item{x, y}{The points: \code{x} and \code{y} numeric vectors of equal length; or
@@ -28,6 +38,9 @@ of them, in days or seconds).}
 
 \item{seed}{\code{NULL} to draw the simulations' seed from R's generator (so
 \code{\link[=set.seed]{set.seed()}} fixes them), or one whole number from 0.}
+
+\item{metric}{The spatial distance: \code{"euclid"} or \code{"manhattan"}; the
+test permutes times and needs no expectation, so both are exact.}
 
 \item{lonlat}{\code{FALSE} (the default) when \code{x} and \code{y} are planar
 coordinates in one length unit; \code{TRUE} when they are longitude and

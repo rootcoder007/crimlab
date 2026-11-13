@@ -14,7 +14,8 @@ stacel(
   top = 25,
   minpts = 5,
   k = 1,
-  c = 1
+  c = 1,
+  count = NULL
 )
 }
 \arguments{
@@ -41,9 +42,15 @@ from 2.}
 
 \item{c}{The multiplier of each cluster's standard deviational ellipse
 (see \code{\link[=sdell]{sdell()}}).}
+
+\item{count}{\code{NULL} for points, or for zones: one whole count from 0
+per zone, the points \code{x}, \code{y} being the zones' centroids. A zone is
+taken as \code{count} incidents at its centroid, which these hot-spot rules
+treat exactly as coincident points. Zones with count 0 get \code{NA}; the
+random-expectation threshold counts incidents, not zones.}
 }
 \value{
-A list. \code{cl}, the hot-spot area of each point (a row of
+A list. \code{cl}, the hot-spot area of each point (zone) (a row of
 \code{clusters}) or \code{NA}, in input order. \code{clusters}, a data frame with one
 row per area, by size: \code{points}, \code{mx}, \code{my} (mean centre), \code{wx}, \code{wy}
 (centre of minimum distance), \code{a}, \code{b} and \code{angle} (the standard

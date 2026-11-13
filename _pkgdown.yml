@@ -89,6 +89,9 @@ reference:
       - kmpart
       - nnhclu
       - stacel
+      - rnnhcl
+      - hdbang
+      - crwalk
       - mantst
       - stmavg
       - jtdecay

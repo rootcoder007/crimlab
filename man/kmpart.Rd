@@ -13,6 +13,7 @@ kmpart(
   upd = "mean",
   maxit = 100,
   seed = NULL,
+  count = NULL,
   lonlat = FALSE
 )
 }
@@ -47,6 +48,11 @@ positive and the separation from 0, in the unit of the coordinates.}
 
 \item{seed}{\code{NULL} to draw the simulations' seed from R's generator (so
 \code{\link[=set.seed]{set.seed()}} fixes them), or one whole number from 0.}
+
+\item{count}{\code{NULL} for points, or for zones: one whole count from 0
+per zone, the points \code{x}, \code{y} being the zones' centroids. A zone is
+taken as \code{count} incidents at its centroid, which these hot-spot rules
+treat exactly as coincident points. Zones with count 0 get \code{NA}.}
 
 \item{lonlat}{\code{FALSE} (the default) when \code{x} and \code{y} are planar
 coordinates in one length unit; \code{TRUE} when they are longitude and

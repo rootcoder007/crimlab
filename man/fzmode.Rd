@@ -4,7 +4,7 @@
 \alias{fzmode}
 \title{Fuzzy mode}
 \usage{
-fzmode(x, y = NULL, r, lonlat = FALSE)
+fzmode(x, y = NULL, r, count = NULL, metric = "euclid", lonlat = FALSE)
 }
 \arguments{
 \item{x, y}{The points: \code{x} and \code{y} numeric vectors of equal length; or
@@ -22,6 +22,13 @@ package; otherwise by position. No missing or infinite values.}
 (metres when \code{lonlat = TRUE}). Distances up to and including \code{r}
 count.}
 
+\item{count}{\code{NULL} for points, or for zones: one whole count from 0
+per zone (\code{x}, \code{y} the zones' centroids); the result is then each
+zone's total count within \code{r} of it, its own included.}
+
+\item{metric}{The distance: \code{"euclid"} or \code{"manhattan"} (\verb{|dx| + |dy|}),
+as in \code{\link[=spwt]{spwt()}} and \code{\link[=jtsurf]{jtsurf()}}.}
+
 \item{lonlat}{\code{FALSE} (the default) when \code{x} and \code{y} are planar
 coordinates in one length unit; \code{TRUE} when they are longitude and
 latitude in degrees, which are then projected to metres by \code{\link[=eqproj]{eqproj()}}
@@ -29,7 +36,8 @@ about their own centre, and centres are returned in degrees. It is
 never guessed.}
 }
 \value{
-An integer vector, one count per point, in input order.
+An integer vector, one count per point, in input order (with
+\code{count}, a numeric vector of zone totals).
 }
 \description{
 For each point, the number of points (itself and coincident ones

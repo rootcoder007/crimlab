@@ -4,7 +4,7 @@
 \alias{ripk}
 \title{Ripley's K function}
 \usage{
-ripk(x, y = NULL, win, r, corr = "iso")
+ripk(x, y = NULL, win, r, corr = "iso", metric = "euclid")
 }
 \arguments{
 \item{x, y}{The points in planar coordinates (project longitude and
@@ -22,10 +22,20 @@ in the unit of the coordinates.}
 
 \item{corr}{The edge correction: \code{"iso"}, \code{"border"}, \code{"modif"} or
 \code{"none"}.}
+
+\item{metric}{The distance: \code{"euclid"} or \code{"manhattan"} (\verb{|dx| + |dy|},
+a street grid aligned with the axes), as in \code{\link[=spwt]{spwt()}} and \code{\link[=jtsurf]{jtsurf()}}.
+Under Manhattan distance \verb{K(r) = 2 r^2} and \code{L = sqrt(K / 2)} under
+randomness; the border and modified border
+corrections carry over (a Manhattan ball of radius \code{r} lies in the
+rectangle exactly when its centre is at least \code{r} from every edge),
+while the isotropic correction, the share of a circle, has no
+Manhattan form and is refused.}
 }
 \value{
 A data frame with one row per radius: \code{r}, \code{k} (in the square of
-the coordinates' unit) and \code{l}.
+the coordinates' unit) and \code{l} (\code{sqrt(k / pi)}, or \code{sqrt(k / 2)} under
+Manhattan distance).
 }
 \description{
 Ripley's K function of a point pattern in the rectangle \code{win} at radii
