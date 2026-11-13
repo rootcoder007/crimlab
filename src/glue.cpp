@@ -444,6 +444,10 @@ SEXP C_clab_r_dbscn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_hsper(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ebshr(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_kscan(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gmoran(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bvmor(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sarml(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_spill(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -592,6 +596,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_hsper", fn(&C_clab_r_hsper), 7},
     {"C_clab_r_ebshr", fn(&C_clab_r_ebshr), 4},
     {"C_clab_r_kscan", fn(&C_clab_r_kscan), 10},
+    {"C_clab_r_gmoran", fn(&C_clab_r_gmoran), 4},
+    {"C_clab_r_bvmor", fn(&C_clab_r_bvmor), 5},
+    {"C_clab_r_sarml", fn(&C_clab_r_sarml), 7},
+    {"C_clab_r_spill", fn(&C_clab_r_spill), 6},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

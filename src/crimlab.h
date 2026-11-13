@@ -1961,6 +1961,65 @@ int clab_kscan(const double *x, const double *y, const double *t, int n,
                const double *r, int nr, const double *tw, int nw, int minc,
                int nsim, unsigned int seed, int top, double *out, int *ncl);
 
+/* Spatial econometrics (src/sreg.cpp). Weights rp, ci, w: rows of
+ * distinct neighbours, none the unit itself, weights finite and >= 0
+ * (CLAB_EDOM otherwise); S0, S1, S2 of Cliff and Ord (1981).
+ *
+ * clab_gmoran: Moran's I (Moran 1950, doi:10.2307/2332142) of each of k
+ * columns of x (n >= 4 rows, column-major): I = n / S0 sum w_ij z_i z_j /
+ * sum z^2, E = -1 / (n - 1), the variances under normality and
+ * randomisation (Cliff and Ord 1981), z statistics, upper normal tails, and
+ * the permutation p-value (1 + #{I* >= I}) / (nsim + 1) (NaN for nsim = 0;
+ * column c draws from seed + c). Out, 10 per column: I, E, Vn, Vr, zn, zr,
+ * pn, pr, pperm, S0; NaN but S0 for a constant column. CLAB_EDOM for S0 =
+ * 0. O(nnz log nnz + k nsim nnz).
+ *
+ * clab_bvmor: bivariate Moran (Wartenberg 1985,
+ * doi:10.1111/j.1538-4632.1985.tb00849.x), n >= 3: n / S0 sum w_ij zx_i
+ * zy_j / sqrt(sum zx^2 sum zy^2), with y's values permuted nsim times from
+ * seed. Out, 6: I, the mean and sd of the permuted values, z, (1 + #{I* >=
+ * I}) / (nsim + 1), (1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1) (NaN for
+ * nsim = 0). CLAB_EDOM for a constant x or y, or S0 = 0.
+ *
+ * clab_sarml: spatial regression of y on X (n x p, column-major, p < n),
+ * W the weights. model 0: y = rho W y + X b + e; 1: y = X b + u, u = lam W
+ * u + e; 2: both. method 0: maximum likelihood (Anselin 1988,
+ * doi:10.1007/978-94-015-7799-1), the likelihood concentrated in rho or lam
+ * and maximised by Brent's method on (-1/m, 1/m), m the largest row sum of
+ * W, log |I - a W| by dense LU; model 2 by Nelder-Mead in (rho, lam); the
+ * covariance from the inverse of the expected information matrix. method 1
+ * (model 0 only): two-stage least squares with instruments [X, inst]
+ * (inst: n x ni, column-major; Kelejian and Prucha 1998,
+ * doi:10.1023/A:1007707430416), s2 = RSS / n, the covariance with RSS / (n -
+ * p - 1). Out: coef, 4 p + 4: b, rho,
+ * lam (NaN when not in the model), their standard errors (p + 2), then
+ * OLS b and its standard errors (p each); vc, (p + 2) x (p + 2) row-major
+ * over (b, rho, lam), NaN outside the model; st, 5: log-likelihood (NaN for
+ * 2SLS), s2, AIC, the OLS log-likelihood, m. CLAB_EDOM for a rank-deficient
+ * X (after filtering) or a singular I - a W. O(n^3) per likelihood.
+ *
+ * clab_spill: direct, indirect and total effects of a lag model (LeSage and
+ * Pace 2009, doi:10.1201/9781420064254) for n >= 2 units: with S = (I - rho
+ * W)^-1, direct_j = tr(S (b_j I + th_j W)) / n, total_j = 1' S (b_j I +
+ * th_j W) 1 / n, indirect the
+ * difference; th NULL for none. vc: NULL, or the covariance (1 + k or 1 +
+ * 2k square, row-major) of (rho, b, th), for delta-method standard errors
+ * with dS / drho = S W S. Out, 6 per coefficient: direct, indirect, total,
+ * their standard errors (NaN without vc). CLAB_EDOM when I - rho W is
+ * singular. O(n^3). */
+int clab_gmoran(const double *x, int n, int k, const int *rp, const int *ci,
+                const double *w, int nsim, unsigned int seed, double *out);
+int clab_bvmor(const double *x, const double *y, int n, const int *rp,
+               const int *ci, const double *w, int nsim, unsigned int seed,
+               double *out);
+int clab_sarml(const double *y, const double *x, int n, int p, const int *rp,
+               const int *ci, const double *w, int model, int method,
+               const double *inst, int ni, double *coef, double *vc,
+               double *st);
+int clab_spill(int n, const int *rp, const int *ci, const double *w, double rho,
+               const double *b, const double *th, int k, const double *vc,
+               double *out);
+
 #ifdef __cplusplus
 }
 #endif

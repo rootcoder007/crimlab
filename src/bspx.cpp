@@ -83,6 +83,143 @@ double nrd(const double *v, int n) {
   return 1.06 * std::min(sd, (q(0.75) - q(0.25)) / 1.34) * std::pow(n, -0.2);
 }
 
+// the numbers of a matrix (or vector) argument: finite, at least lo,
+// as doubles (returned protected)
+SEXP mnum(SEXP x, const char *nm, double lo = clab::ninf) {
+  clab::unlab(x, nm);
+  if (!clab::isnum(x)) fail("`%s` must be numeric.", nm);
+  SEXP v = PROTECT(clab::dbl(x));
+  for (R_xlen_t q = 0; q < XLENGTH(v); ++q) {
+    if (!std::isfinite(REAL(v)[q]) || REAL(v)[q] < lo) {
+      fail("`%s` must hold finite numbers%s with no missing values.", nm, lo == 0 ? " from 0" : "");
+    }
+  }
+  return v;
+}
+
+// an element of list x by name, or R_NilValue
+SEXP elt(SEXP x, const char *nm) {
+  SEXP n = Rf_getAttrib(x, R_NamesSymbol);
+  for (R_xlen_t j = 0; j < Rf_xlength(n); ++j) {
+    if (std::strcmp(CHAR(STRING_ELT(n, j)), nm) == 0) return VECTOR_ELT(x, j);
+  }
+  return R_NilValue;
+}
+
+// Weights as compressed sparse rows (rows sorted by neighbour; a pair
+// listed twice or a unit its own neighbour refused): spwt()'s list, an
+// spdep listw, or an n x n matrix (its non-zero entries off the diagonal).
+// rp, ci, w are kept in v, protected by the caller.
+struct wcsr {
+  SEXP v;
+  const int *rp, *ci;
+  const double *w;
+};
+
+wcsr wread(SEXP w, int n) {
+  std::vector<int> ei, ej;
+  std::vector<double> ew;
+  if (Rf_inherits(w, "listw")) {
+    SEXP nb = elt(w, "neighbours"), wt = elt(w, "weights");
+    if (TYPEOF(nb) != VECSXP || TYPEOF(wt) != VECSXP || XLENGTH(nb) != n || XLENGTH(wt) != n) {
+      fail("`w` must have one row of neighbours and weights per unit.");
+    }
+    for (int i = 0; i < n; ++i) {
+      SEXP a = VECTOR_ELT(nb, i), b = VECTOR_ELT(wt, i);
+      if (TYPEOF(a) != INTSXP) fail("`w` must have integer neighbour lists.");
+      const R_xlen_t k = XLENGTH(a);
+      if (k == 1 && INTEGER(a)[0] == 0) continue;
+      if (TYPEOF(b) != REALSXP || XLENGTH(b) != k) fail("`w` must have one weight per neighbour.");
+      for (R_xlen_t q = 0; q < k; ++q) {
+        const int j = INTEGER(a)[q];
+        if (j < 1 || j > n) fail("`w` names a neighbour outside 1 to %d.", n);
+        ei.push_back(i);
+        ej.push_back(j - 1);
+        ew.push_back(REAL(b)[q]);
+      }
+    }
+  } else if (Rf_isMatrix(w)) {
+    if (Rf_nrows(w) != n || Rf_ncols(w) != n) fail("`w` must be a %d x %d matrix.", n, n);
+    SEXP m = mnum(w, "w", 0.0);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < n; ++j) {
+        const double v = REAL(m)[i + static_cast<R_xlen_t>(j) * n];
+        if (v == 0) continue;
+        if (i == j) fail("a unit cannot be its own neighbour in `w`.");
+        ei.push_back(i);
+        ej.push_back(j);
+        ew.push_back(v);
+      }
+    }
+    UNPROTECT(1);
+  } else {
+    SEXP nn = TYPEOF(w) == VECSXP ? elt(w, "n") : R_NilValue;
+    if (Rf_isNull(nn)) fail("`w` must be the list spwt() returns, an spdep listw or a matrix.");
+    if (clab::val1(nn) != n) fail("`w` is for %g units, not %d.", clab::val1(nn), n);
+    SEXP i = PROTECT(num(elt(w, "i"), "w$i", -1, 1.0));
+    const R_xlen_t m = XLENGTH(i);
+    SEXP j = PROTECT(num(elt(w, "j"), "w$j", m, 1.0));
+    SEXP v = PROTECT(num(elt(w, "w"), "w$w", m, 0.0));
+    for (R_xlen_t q = 0; q < m; ++q) {
+      const double a = REAL(i)[q], b = REAL(j)[q];
+      if (a > n || b > n || a != std::floor(a) || b != std::floor(b)) {
+        fail("`w$i` and `w$j` must be unit numbers from 1 to %d.", n);
+      }
+      ei.push_back(static_cast<int>(a) - 1);
+      ej.push_back(static_cast<int>(b) - 1);
+      ew.push_back(REAL(v)[q]);
+    }
+    UNPROTECT(3);
+  }
+  const std::size_t m = ei.size();
+  for (std::size_t q = 0; q < m; ++q) {
+    if (!(ew[q] >= 0) || !std::isfinite(ew[q])) fail("`w` must hold finite weights from 0.");
+  }
+  std::vector<int> o(m);
+  for (std::size_t q = 0; q < m; ++q) o[q] = static_cast<int>(q);
+  std::sort(o.begin(), o.end(),
+            [&](int a, int b) { return ei[a] < ei[b] || (ei[a] == ei[b] && ej[a] < ej[b]); });
+  wcsr c{PROTECT(Rf_allocVector(VECSXP, 3)), nullptr, nullptr, nullptr};
+  SET_VECTOR_ELT(c.v, 0, Rf_allocVector(INTSXP, n + 1));
+  SET_VECTOR_ELT(c.v, 1, Rf_allocVector(INTSXP, static_cast<R_xlen_t>(m)));
+  SET_VECTOR_ELT(c.v, 2, real(static_cast<R_xlen_t>(m)));
+  int *rp = INTEGER(VECTOR_ELT(c.v, 0)), *ci = INTEGER(VECTOR_ELT(c.v, 1));
+  double *ww = REAL(VECTOR_ELT(c.v, 2));
+  std::fill(rp, rp + n + 1, 0);
+  for (std::size_t q = 0; q < m; ++q) {
+    const int a = o[q];
+    if (ei[a] == ej[a]) fail("a unit cannot be its own neighbour in `w`.");
+    if (q > 0 && ei[a] == ei[o[q - 1]] && ej[a] == ej[o[q - 1]])
+      fail("`w` lists a pair of units twice.");
+    ci[q] = ej[a];
+    ww[q] = ew[a];
+    ++rp[ei[a] + 1];
+  }
+  for (int i = 0; i < n; ++i) rp[i + 1] += rp[i];
+  c.rp = rp;
+  c.ci = ci;
+  c.w = ww;
+  return c;
+}
+
+// the names of the columns of matrix x, or prefix and number
+SEXP cnames(SEXP x, int p, const char *pre) {
+  SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+  SEXP cn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 1);
+  SEXP out = PROTECT(Rf_allocVector(STRSXP, p));
+  char buf[32];
+  for (int j = 0; j < p; ++j) {
+    if (!Rf_isNull(cn)) {
+      SET_STRING_ELT(out, j, STRING_ELT(cn, j));
+    } else {
+      std::snprintf(buf, sizeof buf, "%s%d", pre, j + 1);
+      SET_STRING_ELT(out, j, Rf_mkChar(buf));
+    }
+  }
+  UNPROTECT(1);
+  return out;
+}
+
 }  // namespace
 
 extern "C" {
@@ -435,6 +572,217 @@ SEXP C_clab_r_kscan(SEXP x, SEXP y, SEXP t, SEXP r, SEXP tw, SEXP minc, SEXP top
   clab::nlist(out, on);
   UNPROTECT(8);
   return klass(out, "kscan");
+}
+
+// ---------------------------------------------- spatial econometrics
+
+SEXP C_clab_r_gmoran(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
+  clab::who = "gmoran";
+  const bool mat = Rf_isMatrix(x);
+  SEXP xv = mat ? mnum(x, "x") : PROTECT(num(x, "x"));
+  const int n = mat ? Rf_nrows(x) : clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int k = mat ? Rf_ncols(x) : 1;
+  if (n < 4) fail("at least 4 units are needed.");
+  wcsr c = wread(w, n);
+  const int ns = clab::whole(nsim, "nsim", 0);
+  const unsigned int sd = ns > 0 ? csp::seed(seed) : 0u;
+  SEXP o = PROTECT(real(10 * static_cast<R_xlen_t>(k)));
+  kc(clab_gmoran(REAL(xv), n, k, c.rp, c.ci, c.w, ns, sd, REAL(o)),
+     "`w` has no positive weight: Moran's I is undefined.");
+  static const char *const nm[] = {"var", "i",  "e",  "vn",    "vr", "zn",
+                                   "zr",  "pn", "pr", "pperm", "s0"};
+  SEXP cols = PROTECT(Rf_allocVector(VECSXP, 11));
+  SET_VECTOR_ELT(cols, 0, mat ? cnames(x, k, "x") : Rf_mkString("x"));
+  for (int j = 0; j < 10; ++j) {
+    SEXP v = real(k);
+    SET_VECTOR_ELT(cols, j + 1, v);
+    for (int q = 0; q < k; ++q) REAL(v)[q] = REAL(o)[10 * static_cast<R_xlen_t>(q) + j];
+  }
+  SEXP f = clab::frame(cols, nm);
+  UNPROTECT(4);
+  return f;
+}
+
+SEXP C_clab_r_bvmor(SEXP x, SEXP y, SEXP w, SEXP nsim, SEXP seed) {
+  clab::who = "bvmor";
+  SEXP xv = PROTECT(num(x, "x"));
+  const int n = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  if (n < 3) fail("at least 3 units are needed.");
+  SEXP yv = PROTECT(num(y, "y", n));
+  wcsr c = wread(w, n);
+  const int ns = clab::whole(nsim, "nsim", 0);
+  const unsigned int sd = ns > 0 ? csp::seed(seed) : 0u;
+  double o[6];
+  kc(clab_bvmor(REAL(xv), REAL(yv), n, c.rp, c.ci, c.w, ns, sd, o),
+     "`x` or `y` is constant, or `w` has no positive weight: the statistic is undefined.");
+  static const char *const nm[] = {"i", "mean", "sd", "z", "p", "ptwo"};
+  UNPROTECT(3);
+  return clab::nvec(6, nm, o);
+}
+
+SEXP C_clab_r_sarml(SEXP y, SEXP x, SEXP w, SEXP model, SEXP durbin, SEXP method, SEXP icpt) {
+  clab::who = "sarml";
+  SEXP yv = PROTECT(num(y, "y"));
+  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  if (n < 4) fail("at least 4 units are needed.");
+  if (n > 5000) fail("at most 5000 units: the likelihood takes a dense determinant.");
+  if (!Rf_isMatrix(x) || Rf_nrows(x) != n) fail("`x` must have one row per value of `y`.");
+  SEXP xv = mnum(x, "x");
+  const int px = Rf_ncols(x);
+  SEXP xn = PROTECT(cnames(x, px, "x"));
+  wcsr c = wread(w, n);
+  static const char *const mo[] = {"lag", "error", "sac"};
+  static const char *const me[] = {"ml", "2sls"};
+  const int md = csp::pick(model, "model", mo, 3);
+  const int mt = csp::pick(method, "method", me, 2);
+  const bool db = csp::flag(durbin, "durbin");
+  const bool ic = csp::flag(icpt, "int");
+  if (mt == 1 && md != 0) fail("two-stage least squares fits the lag model only.");
+  // the lags W x of the columns that vary
+  std::vector<int> var;
+  for (int j = 0; j < px; ++j) {
+    const double *v = REAL(xv) + static_cast<R_xlen_t>(j) * n;
+    bool same = true;
+    for (int i = 1; i < n && same; ++i) same = v[i] == v[0];
+    if (!same) var.push_back(j);
+  }
+  const int nv = static_cast<int>(var.size());
+  auto lag = [&](const double *v, double *o) {
+    for (int i = 0; i < n; ++i) {
+      double s = 0;
+      for (int q = c.rp[i]; q < c.rp[i + 1]; ++q) s += c.w[q] * v[c.ci[q]];
+      o[i] = s;
+    }
+  };
+  const int p = (ic ? 1 : 0) + px + (db ? nv : 0);
+  if (p >= n) fail("`x` has too many columns for the number of units.");
+  SEXP X = PROTECT(real(static_cast<R_xlen_t>(n) * p));
+  SEXP tn = PROTECT(Rf_allocVector(STRSXP, p + 2));
+  int col = 0;
+  if (ic) {
+    std::fill(REAL(X), REAL(X) + n, 1.0);
+    SET_STRING_ELT(tn, col++, Rf_mkChar("(Intercept)"));
+  }
+  for (int j = 0; j < px; ++j) {
+    std::memcpy(REAL(X) + static_cast<R_xlen_t>(col) * n, REAL(xv) + static_cast<R_xlen_t>(j) * n,
+                n * sizeof(double));
+    SET_STRING_ELT(tn, col++, STRING_ELT(xn, j));
+  }
+  if (db) {
+    for (int j : var) {
+      lag(REAL(xv) + static_cast<R_xlen_t>(j) * n, REAL(X) + static_cast<R_xlen_t>(col) * n);
+      const char *nm = CHAR(STRING_ELT(xn, j));
+      std::vector<char> b(std::strlen(nm) + 5);
+      std::snprintf(b.data(), b.size(), "lag.%s", nm);
+      SET_STRING_ELT(tn, col++, Rf_mkChar(b.data()));
+    }
+  }
+  SET_STRING_ELT(tn, p, Rf_mkChar("rho"));
+  SET_STRING_ELT(tn, p + 1, Rf_mkChar("lambda"));
+  // instruments of two-stage least squares: W x and W^2 x of the varying
+  // columns (without the lags already in X)
+  const int ni = mt == 1 ? (db ? nv : 2 * nv) : 0;
+  SEXP H = PROTECT(real(static_cast<R_xlen_t>(n) * (ni > 0 ? ni : 1)));
+  if (mt == 1) {
+    if (nv == 0) fail("two-stage least squares needs a column of `x` that varies.");
+    std::vector<double> t(n);
+    int h = 0;
+    for (int j : var) {
+      lag(REAL(xv) + static_cast<R_xlen_t>(j) * n, t.data());
+      if (!db) std::memcpy(REAL(H) + static_cast<R_xlen_t>(h++) * n, t.data(), n * sizeof(double));
+      lag(t.data(), REAL(H) + static_cast<R_xlen_t>(h++) * n);
+    }
+  }
+  const int k = p + 2;
+  SEXP cf = PROTECT(real(4 * static_cast<R_xlen_t>(p) + 4));
+  SEXP vc = PROTECT(Rf_allocMatrix(REALSXP, k, k));
+  double st[5];
+  kc(clab_sarml(REAL(yv), REAL(X), n, p, c.rp, c.ci, c.w, md, mt, mt == 1 ? REAL(H) : nullptr, ni,
+                REAL(cf), REAL(vc), st),
+     "the model cannot be fitted: `x` is collinear (after filtering), or `w` has no positive "
+     "weight.");
+  // the coefficient table: beta, then rho and/or lambda
+  const int nk = p + (md == 2 ? 2 : 1);
+  static const char *const cn[] = {"term", "est", "se", "z", "p", "ols", "olsse"};
+  SEXP cols = PROTECT(Rf_allocVector(VECSXP, 7));
+  SEXP term = Rf_allocVector(STRSXP, nk);
+  SET_VECTOR_ELT(cols, 0, term);
+  double *cc[6];
+  for (int j = 0; j < 6; ++j) {
+    SET_VECTOR_ELT(cols, j + 1, real(nk));
+    cc[j] = REAL(VECTOR_ELT(cols, j + 1));
+  }
+  const double *cv = REAL(cf);
+  int r = 0;
+  for (int j = 0; j < k; ++j) {
+    if ((j == p && md == 1) || (j == p + 1 && md == 0)) continue;
+    SET_STRING_ELT(term, r, STRING_ELT(tn, j));
+    cc[0][r] = cv[j];
+    cc[1][r] = cv[k + j];
+    cc[2][r] = cv[j] / cv[k + j];
+    cc[3][r] = 2 * Rf_pnorm5(-std::fabs(cc[2][r]), 0, 1, 1, 0);
+    cc[4][r] = j < p ? cv[2 * p + 4 + j] : std::numeric_limits<double>::quiet_NaN();
+    cc[5][r] = j < p ? cv[3 * p + 4 + j] : std::numeric_limits<double>::quiet_NaN();
+    ++r;
+  }
+  SEXP tab = PROTECT(clab::frame(cols, cn));
+  Rf_setAttrib(vc, R_DimNamesSymbol, PROTECT(Rf_allocVector(VECSXP, 2)));
+  SET_VECTOR_ELT(Rf_getAttrib(vc, R_DimNamesSymbol), 0, tn);
+  SET_VECTOR_ELT(Rf_getAttrib(vc, R_DimNamesSymbol), 1, tn);
+  static const char *const fn[] = {"loglik", "aic", "s2", "llols", "n"};
+  const double fv[5] = {st[0], st[2], st[1], st[3], static_cast<double>(n)};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 8));
+  SET_VECTOR_ELT(out, 0, tab);
+  SET_VECTOR_ELT(out, 1, clab::nvec(5, fn, fv));
+  SET_VECTOR_ELT(out, 2, vc);
+  SET_VECTOR_ELT(out, 3, Rf_mkString(mo[md]));
+  SET_VECTOR_ELT(out, 4, Rf_mkString(me[mt]));
+  SET_VECTOR_ELT(out, 5, Rf_ScalarLogical(db));
+  SET_VECTOR_ELT(out, 6, Rf_ScalarInteger(db ? nv : 0));
+  SET_VECTOR_ELT(out, 7, w);
+  static const char *const on[] = {"coef", "fit", "vcov", "model", "method", "durbin", "nlag", "w"};
+  clab::nlist(out, on);
+  UNPROTECT(13);
+  return klass(out, "sarml");
+}
+
+SEXP C_clab_r_spill(SEXP w, SEXP rho, SEXP b, SEXP th, SEXP vc, SEXP nm) {
+  clab::who = "spill";
+  SEXP bv = PROTECT(num(b, "b"));
+  const int k = static_cast<int>(XLENGTH(bv));
+  SEXP tv = PROTECT(Rf_isNull(th) ? R_NilValue : num(th, "th", k));
+  const double r = clab::one(rho, "rho", -HUGE_VAL, HUGE_VAL);
+  // the units: from the weights
+  int n = 0;
+  if (Rf_inherits(w, "listw")) {
+    n = static_cast<int>(XLENGTH(elt(w, "neighbours")));
+  } else if (Rf_isMatrix(w)) {
+    n = Rf_nrows(w);
+  } else if (TYPEOF(w) == VECSXP && !Rf_isNull(elt(w, "n"))) {
+    n = static_cast<int>(clab::val1(elt(w, "n")));
+  } else {
+    fail("`w` must be the list spwt() returns, an spdep listw or a matrix.");
+  }
+  if (n < 2) fail("`w` must be for at least 2 units.");
+  if (n > 5000) fail("at most 5000 units: the effects take a dense inverse.");
+  wcsr c = wread(w, n);
+  // vc comes from spill(), which takes it from the fit, m x m
+  SEXP vv = Rf_isNull(vc) ? PROTECT(R_NilValue) : mnum(vc, "vcov");
+  SEXP o = PROTECT(real(6 * static_cast<R_xlen_t>(k)));
+  kc(clab_spill(n, c.rp, c.ci, c.w, r, REAL(bv), Rf_isNull(tv) ? nullptr : REAL(tv), k,
+                Rf_isNull(vv) ? nullptr : REAL(vv), REAL(o)),
+     "I - rho W is singular: no spillover multiplier.");
+  static const char *const cn[] = {"term", "direct", "indirect", "total", "sed", "sei", "set"};
+  SEXP cols = PROTECT(Rf_allocVector(VECSXP, 7));
+  SET_VECTOR_ELT(cols, 0, Rf_isNull(nm) ? cnames(R_NilValue, k, "x") : nm);
+  for (int j = 0; j < 6; ++j) {
+    SEXP v = real(k);
+    SET_VECTOR_ELT(cols, j + 1, v);
+    for (int q = 0; q < k; ++q) REAL(v)[q] = REAL(o)[6 * static_cast<R_xlen_t>(q) + j];
+  }
+  SEXP f = clab::frame(cols, cn);
+  UNPROTECT(6);
+  return f;
 }
 
 }  // extern "C"
