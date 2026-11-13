@@ -27,7 +27,8 @@ enpath(
   lmr = NULL,
   fold = NULL,
   tol = 1e-07,
-  maxit = 1e+05
+  maxit = 1e+05,
+  scr = TRUE
 )
 ```
 
@@ -86,6 +87,14 @@ enpath(
 
   The most passes over the columns, in all: one whole number.
 
+- scr:
+
+  `TRUE` to screen the columns of a binomial path by the sequential
+  strong rule of Tibshirani et al. (2012) before each penalty (faster;
+  the optimality conditions are still checked over every column, so the
+  solution does not change), `FALSE` to cycle over the active columns
+  only. Ignored for the gaussian family.
+
 ## Value
 
 A list: `lambda`, the penalties fitted; `a0`, the intercepts; `beta`, a
@@ -99,6 +108,18 @@ it; these four are `NULL` without folds.
 
 ## Details
 
+Speed against accuracy: `tol` and `maxit` set how far the descent goes.
+The default `tol = 1e-7` is glmnet's; `tol = 1e-20, maxit = 1e7` is the
+exact setting, which reproduces glmnet run at the same threshold to 1e-8
+in every coefficient (tests). Between the two, the penalised objective
+at each penalty differs by less than 1e-6 of its value (tested on the
+gaussian and binomial paths). `nlam` and `lmr` set the length and the
+end of a path chosen here, and `scr` the screening of a binomial path.
+
+Each coordinate step is the minimiser of its one-dimensional objective,
+by soft-thresholding, the proximal map of the absolute value: see
+`proof("enpath")`.
+
 The binomial fit is a proximal Newton method: iteratively reweighted
 least squares around coordinate descent over the active columns, with
 the optimality conditions checked over every column before a `lambda` is
@@ -111,6 +132,12 @@ Friedman, J., Hastie, T. and Tibshirani, R. (2010). Regularization paths
 for generalized linear models via coordinate descent. *Journal of
 Statistical Software*, 33(1), 1-22.
 [doi:10.18637/jss.v033.i01](https://doi.org/10.18637/jss.v033.i01)
+
+Tibshirani, R., Bien, J., Friedman, J., Hastie, T., Simon, N., Taylor,
+J. and Tibshirani, R. J. (2012). Strong rules for discarding predictors
+in lasso-type problems. *Journal of the Royal Statistical Society:
+Series B*, 74(2), 245-266.
+[doi:10.1111/j.1467-9868.2011.01004.x](https://doi.org/10.1111/j.1467-9868.2011.01004.x)
 
 ## Examples
 

@@ -26,6 +26,9 @@ dmlx(
   alpha = 0.5,
   nlam = 100,
   nfin = 5,
+  tol = 1e-07,
+  scr = TRUE,
+  hon = FALSE,
   ntree = 500,
   mtry = NULL,
   trim = NULL,
@@ -75,8 +78,12 @@ dmlx(
 
 - score:
 
-  `NULL` for the default (`"po"`, or `"ate"`), or `"po"` or `"iv"` for
-  `"plr"` and `"pliv"`, `"ate"` or `"atte"` for `"irm"`.
+  `NULL` for the default (`"po"`, `"ate"` or `"obs"`), or `"po"` or
+  `"iv"` for `"plr"` and `"pliv"`, `"ate"` or `"atte"` for `"irm"`,
+  `"obs"` or `"exp"` for `"did"` and `"didcs"`: the observational score,
+  or the experimental one of 'DoubleML' for 'Python' for a treatment
+  assigned at random (in-sample normalised; nuisances `g0`, `g1` on a
+  panel, the four cell regressions on cross-sections, no propensity).
 
 - lrn:
 
@@ -107,15 +114,28 @@ dmlx(
 
   The number of inner folds that choose the penalty, at least 2.
 
+- tol, scr:
+
+  The convergence threshold and the screening of the elastic net
+  learners, as in
+  [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md).
+
+- hon:
+
+  `TRUE` for honest forests, on half-samples without replacement with
+  `imb = 0.05`, as 'grf' grows them (see
+  [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md)).
+
 - ntree:
 
   The number of trees of `"forest"`: a whole number, at least 1.
 
 - mtry:
 
-  The columns tried at each split of `"forest"`: `NULL` for the floor of
-  the square root of the number of columns, or a whole number (more than
-  the columns means all of them).
+  The columns tried at each split of `"forest"`: `NULL` for the default
+  of
+  [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md),
+  or a whole number (more than the columns means all of them).
 
 - trim:
 
@@ -129,7 +149,12 @@ dmlx(
 
   `NULL`, or the cluster of each row (whole numbers from 1 to the number
   of clusters, each used), for `"plr"` and `"pliv"`; folds must then be
-  constant within clusters.
+  constant within clusters. For two-way clustering, a matrix of two such
+  columns, one per kind of cluster; `fold` is then a matrix of two
+  columns, the fold of each row's cluster of each kind (constant within
+  it), the test set of each pair of folds is the rows in both and its
+  training set the rows in neither, and the variance is the two-way form
+  of Chiang et al. (2022) as 'DoubleML' computes it.
 
 - pred:
 
@@ -189,6 +214,10 @@ The models are those of 'DoubleML', with its scores and its defaults:
   the standard error of the 'AIPW' package (the standard deviation of
   the influence function), and targeted maximum likelihood with the
   fluctuation of the 'tmle' package (Gruber and van der Laan 2012).
+
+The partialling-out score is Neyman-orthogonal, the AIPW term is
+unbiased when either nuisance is right, and the estimate is the root of
+the empirical score: see `proof("dmlx")`.
 
 The estimate solves the mean of the score over all folds (DoubleML's
 `"dml2"`); its variance is `mean(psi^2) / mean(psi_a)^2 / n`, or, with

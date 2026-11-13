@@ -72,6 +72,9 @@ caller's, so results can be matched with other software fold for fold.</p>
 <span>  alpha <span class="op">=</span> <span class="fl">0.5</span>,</span>
 <span>  nlam <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  nfin <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  tol <span class="op">=</span> <span class="fl">1e-07</span>,</span>
+<span>  scr <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  hon <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  ntree <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  mtry <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  trim <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -122,8 +125,13 @@ repetition of the cross-fitting.</p></dd>
 
 
 <dt id="arg-score">score<a class="anchor" aria-label="anchor" href="#arg-score"></a></dt>
-<dd><p><code>NULL</code> for the default (<code>"po"</code>, or <code>"ate"</code>), or <code>"po"</code> or
-<code>"iv"</code> for <code>"plr"</code> and <code>"pliv"</code>, <code>"ate"</code> or <code>"atte"</code> for <code>"irm"</code>.</p></dd>
+<dd><p><code>NULL</code> for the default (<code>"po"</code>, <code>"ate"</code> or <code>"obs"</code>), or
+<code>"po"</code> or <code>"iv"</code> for <code>"plr"</code> and <code>"pliv"</code>, <code>"ate"</code> or <code>"atte"</code> for
+<code>"irm"</code>, <code>"obs"</code> or <code>"exp"</code> for <code>"did"</code> and <code>"didcs"</code>: the
+observational score, or the experimental one of 'DoubleML' for
+'Python' for a treatment assigned at random (in-sample normalised;
+nuisances <code>g0</code>, <code>g1</code> on a panel, the four cell regressions on
+cross-sections, no propensity).</p></dd>
 
 
 <dt id="arg-lrn">lrn<a class="anchor" aria-label="anchor" href="#arg-lrn"></a></dt>
@@ -153,14 +161,24 @@ nuisances, from the same choices.</p></dd>
 least 2.</p></dd>
 
 
+<dt id="arg-tol-scr">tol, scr<a class="anchor" aria-label="anchor" href="#arg-tol-scr"></a></dt>
+<dd><p>The convergence threshold and the screening of the
+elastic net learners, as in <code><a href="enpath.html">enpath()</a></code>.</p></dd>
+
+
+<dt id="arg-hon">hon<a class="anchor" aria-label="anchor" href="#arg-hon"></a></dt>
+<dd><p><code>TRUE</code> for honest forests, on half-samples without
+replacement with <code>imb = 0.05</code>, as 'grf' grows them (see <code><a href="rfor.html">rfor()</a></code>).</p></dd>
+
+
 <dt id="arg-ntree">ntree<a class="anchor" aria-label="anchor" href="#arg-ntree"></a></dt>
 <dd><p>The number of trees of <code>"forest"</code>: a whole number, at least 1.</p></dd>
 
 
 <dt id="arg-mtry">mtry<a class="anchor" aria-label="anchor" href="#arg-mtry"></a></dt>
 <dd><p>The columns tried at each split of <code>"forest"</code>: <code>NULL</code> for the
-floor of the square root of the number of columns, or a whole number
-(more than the columns means all of them).</p></dd>
+default of <code><a href="rfor.html">rfor()</a></code>, or a whole number (more than the columns means all
+of them).</p></dd>
 
 
 <dt id="arg-trim">trim<a class="anchor" aria-label="anchor" href="#arg-trim"></a></dt>
@@ -174,7 +192,12 @@ the default of the reference implementation (1e-12 for <code>"irm"</code>,
 <dt id="arg-clu">clu<a class="anchor" aria-label="anchor" href="#arg-clu"></a></dt>
 <dd><p><code>NULL</code>, or the cluster of each row (whole numbers from 1 to
 the number of clusters, each used), for <code>"plr"</code> and <code>"pliv"</code>; folds
-must then be constant within clusters.</p></dd>
+must then be constant within clusters. For two-way clustering, a
+matrix of two such columns, one per kind of cluster; <code>fold</code> is then a
+matrix of two columns, the fold of each row's cluster of each kind
+(constant within it), the test set of each pair of folds is the rows
+in both and its training set the rows in neither, and the variance is
+the two-way form of Chiang et al. (2022) as 'DoubleML' computes it.</p></dd>
 
 
 <dt id="arg-pred">pred<a class="anchor" aria-label="anchor" href="#arg-pred"></a></dt>
@@ -225,7 +248,10 @@ nuisances of <code>"irm"</code>: augmented inverse probability weighting, with t
 standard error of the 'AIPW' package (the standard deviation of the
 influence function), and targeted maximum likelihood with the
 fluctuation of the 'tmle' package (Gruber and van der Laan 2012).</p></li>
-</ul><p>The estimate solves the mean of the score over all folds (DoubleML's
+</ul><p>The partialling-out score is Neyman-orthogonal, the AIPW term is unbiased
+when either nuisance is right, and the estimate is the root of the
+empirical score: see <code>proof("dmlx")</code>.</p>
+<p>The estimate solves the mean of the score over all folds (DoubleML's
 <code>"dml2"</code>); its variance is <code>mean(psi^2) / mean(psi_a)^2 / n</code>, or, with
 clusters (one-way, models <code>"plr"</code> and <code>"pliv"</code>), the cluster-robust form
 of Chiang et al. (2022). With several repetitions of the folds (columns

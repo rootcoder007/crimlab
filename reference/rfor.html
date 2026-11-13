@@ -66,6 +66,8 @@ probability, as in a probability forest of 'ranger'.</p>
 <span>  minnode <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  frac <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  repl <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  hon <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  imb <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -94,8 +96,7 @@ probability.</p></dd>
 
 
 <dt id="arg-mtry">mtry<a class="anchor" aria-label="anchor" href="#arg-mtry"></a></dt>
-<dd><p>The columns tried at each split: <code>NULL</code> for the floor of the
-square root of the number of columns (the default of 'ranger'), or a
+<dd><p>The columns tried at each split: <code>NULL</code> for <code>min(ceiling( sqrt(p) + 20), p)</code>, <code>p</code> the number of columns (the rule of 'grf'), or a
 whole number from 1 to the number of columns.</p></dd>
 
 
@@ -112,6 +113,19 @@ at most 1.</p></dd>
 
 <dt id="arg-repl">repl<a class="anchor" aria-label="anchor" href="#arg-repl"></a></dt>
 <dd><p><code>TRUE</code> to draw bags with replacement, <code>FALSE</code> without.</p></dd>
+
+
+<dt id="arg-hon">hon<a class="anchor" aria-label="anchor" href="#arg-hon"></a></dt>
+<dd><p><code>TRUE</code> for honest trees (Wager and Athey 2018): each bag is
+shuffled, its first half places the splits and its second half sets
+the leaf means (a leaf without such rows takes the mean of its deepest
+ancestor that has some). Needs bags of at least two rows.</p></dd>
+
+
+<dt id="arg-imb">imb<a class="anchor" aria-label="anchor" href="#arg-imb"></a></dt>
+<dd><p>Each child of a split must hold at least this share of its
+node's rows (and one row): one number from 0 to below 0.5 ('grf' uses
+0.05).</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
@@ -138,9 +152,30 @@ own random numbers and uses quantile bins on columns of many values);
 tests compare their errors on known functions instead.</p>
     </div>
     <div class="section level2">
+    <h2 id="defaults">Defaults<a class="anchor" aria-label="anchor" href="#defaults"></a></h2>
+    <p>The defaults were chosen by test error against the true
+function over four data-generating functions (a sparse linear one,
+Friedman's, a step-and-curve one and a probability), p = 20 and 200,
+ten seeds each (<code>dev/rftune.R</code>). Like for like (the same trees, <code>mtry</code>,
+node size, half-samples without replacement, <code>imb = 0.05</code>, honest or
+not), <code>rfor()</code> and 'grf' have test errors within 1 to 3 per cent of
+each other, inside two standard errors in almost every cell. The one
+setting that mattered was <code>mtry</code>: the rule of 'grf' lowers the error
+against the square root of <code>p</code> by 30 to 50 per cent on the sparse and
+step functions, so it is the default. Bags of all rows drawn with
+replacement gave the lowest error with that <code>mtry</code> in most cells; honest
+trees and half-samples raised the error of the predictions (honesty
+serves inference, not prediction), so both are options, off by
+default. Nodes of 5 rows are left unsplit, as both packages do.</p>
+    </div>
+    <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Breiman, L. (2001). Random forests. <em>Machine Learning</em>,
 45(1), 5-32. <a href="https://doi.org/10.1023/A%3A1010933404324" class="external-link">doi:10.1023/A:1010933404324</a></p>
+<p>Wager, S. and Athey, S. (2018). Estimation and inference of
+heterogeneous treatment effects using random forests. <em>Journal of the
+American Statistical Association</em>, 113(523), 1228-1242.
+<a href="https://doi.org/10.1080/01621459.2017.1319839" class="external-link">doi:10.1080/01621459.2017.1319839</a></p>
     </div>
 
     <div class="section level2">
@@ -150,7 +185,7 @@ tests compare their errors on known functions instead.</p>
 <span class="r-in"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">x</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span><span class="op">)</span> <span class="op">+</span> <span class="va">x</span><span class="op">[</span>, <span class="fl">2</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">400</span>, sd <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu">rfor</span><span class="op">(</span><span class="va">x</span>, <span class="va">y</span>, ntree <span class="op">=</span> <span class="fl">100</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="op">(</span><span class="va">f</span><span class="op">$</span><span class="va">oob</span> <span class="op">-</span> <span class="va">y</span><span class="op">)</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.2109059</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.184494</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

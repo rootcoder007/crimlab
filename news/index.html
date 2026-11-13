@@ -104,6 +104,8 @@
 <li>A labelled vector (with a <code>labels</code> attribute, as haven makes) is refused with a request to decode it first: its numbers are category codes.</li>
 <li>Learning: <code><a href="../reference/enpath.html">enpath()</a></code>, the elastic net path by coordinate descent with cross-validation over given folds (the objective and scale of glmnet); <code><a href="../reference/lgtreg.html">lgtreg()</a></code>, logistic regression; <code><a href="../reference/rfor.html">rfor()</a></code>, random forests for regression and probabilities.</li>
 <li>Causal estimates: <code><a href="../reference/dmlx.html">dmlx()</a></code>, double machine learning by cross-fitting for the partially linear, interactive, IV, difference-in-differences and sample-selection models, with AIPW and TMLE from the same nuisances.</li>
+<li>
+<code><a href="../reference/enpath.html">enpath()</a></code> screens binomial paths by the sequential strong rule (<code>scr</code>); <code><a href="../reference/rfor.html">rfor()</a></code> grows honest trees (<code>hon</code>), limits split imbalance (<code>imb</code>) and takes <code>mtry</code> by the rule of grf by default; <code><a href="../reference/dmlx.html">dmlx()</a></code> adds two-way clusters, the experimental DiD scores (<code>score = "exp"</code>) and passes <code>tol</code>, <code>scr</code> and <code>hon</code> to its learners.</li>
 </ul></div>
   </main></div>
 

@@ -20,6 +20,8 @@ rfor(
   minnode = 5,
   frac = 1,
   repl = TRUE,
+  hon = FALSE,
+  imb = 0,
   seed = 1
 )
 ```
@@ -46,9 +48,9 @@ rfor(
 
 - mtry:
 
-  The columns tried at each split: `NULL` for the floor of the square
-  root of the number of columns (the default of 'ranger'), or a whole
-  number from 1 to the number of columns.
+  The columns tried at each split: `NULL` for
+  `min(ceiling( sqrt(p) + 20), p)`, `p` the number of columns (the rule
+  of 'grf'), or a whole number from 1 to the number of columns.
 
 - minnode:
 
@@ -64,6 +66,18 @@ rfor(
 - repl:
 
   `TRUE` to draw bags with replacement, `FALSE` without.
+
+- hon:
+
+  `TRUE` for honest trees (Wager and Athey 2018): each bag is shuffled,
+  its first half places the splits and its second half sets the leaf
+  means (a leaf without such rows takes the mean of its deepest ancestor
+  that has some). Needs bags of at least two rows.
+
+- imb:
+
+  Each child of a split must hold at least this share of its node's rows
+  (and one row): one number from 0 to below 0.5 ('grf' uses 0.05).
 
 - seed:
 
@@ -88,10 +102,32 @@ nothing. The forest is not bit-for-bit that of 'ranger' (it draws its
 own random numbers and uses quantile bins on columns of many values);
 tests compare their errors on known functions instead.
 
+## Defaults
+
+The defaults were chosen by test error against the true function over
+four data-generating functions (a sparse linear one, Friedman's, a
+step-and-curve one and a probability), p = 20 and 200, ten seeds each
+(`dev/rftune.R`). Like for like (the same trees, `mtry`, node size,
+half-samples without replacement, `imb = 0.05`, honest or not), `rfor()`
+and 'grf' have test errors within 1 to 3 per cent of each other, inside
+two standard errors in almost every cell. The one setting that mattered
+was `mtry`: the rule of 'grf' lowers the error against the square root
+of `p` by 30 to 50 per cent on the sparse and step functions, so it is
+the default. Bags of all rows drawn with replacement gave the lowest
+error with that `mtry` in most cells; honest trees and half-samples
+raised the error of the predictions (honesty serves inference, not
+prediction), so both are options, off by default. Nodes of 5 rows are
+left unsplit, as both packages do.
+
 ## References
 
 Breiman, L. (2001). Random forests. *Machine Learning*, 45(1), 5-32.
 [doi:10.1023/A:1010933404324](https://doi.org/10.1023/A%3A1010933404324)
+
+Wager, S. and Athey, S. (2018). Estimation and inference of
+heterogeneous treatment effects using random forests. *Journal of the
+American Statistical Association*, 113(523), 1228-1242.
+[doi:10.1080/01621459.2017.1319839](https://doi.org/10.1080/01621459.2017.1319839)
 
 ## Examples
 
@@ -101,5 +137,5 @@ x <- matrix(rnorm(400 * 4), 400)
 y <- sin(2 * x[, 1]) + x[, 2] + rnorm(400, sd = 0.3)
 f <- rfor(x, y, ntree = 100)
 mean((f$oob - y)^2)
-#> [1] 0.2109059
+#> [1] 0.184494
 ```
