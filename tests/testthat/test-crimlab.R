@@ -186,6 +186,12 @@ test_that("every exported function answers one valid call in its shape", {
                      c(2, 5, 1, 9, 3, 7, 4, 8, 6, 10), 25)),
          c("par", "se", "cov", "loglik", "aic", "conv", "iter", "fit", "n",
            "hor", "win", "area", "lam"))
+    list(quote(cbatt(c(1, 3, 2, 5, 4, 6), c(0, 1, 0, 1, 0, 1),
+                     c(1, 2, 2, 1, 3, 2), reps = 0)),
+         c("res", "ps", "w", "match", "est", "tgt", "level")),
+    list(quote(smdbal(c(1, 2, 2, 1, 3, 2), c(0, 1, 0, 1, 0, 1))),
+         c("tab", "overlap", "bal", "ovl", "thr")),
+    list(quote(evlx(2)), c("rr", "evalue", "evlim"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

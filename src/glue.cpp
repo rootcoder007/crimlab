@@ -472,6 +472,10 @@ SEXP C_clab_r_sdbthr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_etasf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_mvhwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// The design-based causal estimators (bcba.cpp).
+SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -646,6 +650,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_etasf", fn(&C_clab_r_etasf), 6},
     {"C_clab_r_mvhwk", fn(&C_clab_r_mvhwk), 6},
     {"C_clab_r_sthwk", fn(&C_clab_r_sthwk), 9},
+    {"C_clab_r_cbatt", fn(&C_clab_r_cbatt), 12},
+    {"C_clab_r_smdbal", fn(&C_clab_r_smdbal), 5},
+    {"C_clab_r_evlx", fn(&C_clab_r_evlx), 6},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

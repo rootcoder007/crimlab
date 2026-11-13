@@ -177,6 +177,9 @@ reference:
       likelihood from the same nuisances.
     contents:
       - dmlx
+      - cbatt
+      - smdbal
+      - evlx
   - title: Policy evaluation
     desc: Difference in differences with fixed effects, event studies,
       staggered adoption, synthetic controls and synthetic difference in

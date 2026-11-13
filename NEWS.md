@@ -261,3 +261,10 @@
   assigns treated, comparison and excluded places around sites.
   `proof("ebshr")`, `proof("kscan")`, `proof("dissix")`, `proof("spill")`
   and `proof("bvmor")` name the Lean theorems in `inst/lean/Hotspot.lean`.
+* Design-based causal effects of a 0/1 treatment. `cbatt()` gives
+  Hajek-normalised inverse probability weighting, g-computation,
+  subclassification and caliper matching on the propensity (ATE, ATT or
+  ATC), and entropy balancing for the ATT, with bootstrap errors;
+  `smdbal()` the standardised mean differences and variance ratios before
+  and after weighting with the overlap of the propensity; `evlx()` the
+  E-value of a risk, odds or hazard ratio or a standardised difference.
