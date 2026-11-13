@@ -49,7 +49,7 @@ double median(double *v, int m) {
 // cumulative weight reaches half the total (o: m ints of scratch)
 double wmedian(const double *v, const double *u, int m, int *o) {
   for (int q = 0; q < m; ++q) o[q] = q;
-  kutil::hsort(o, m, [v](int a, int b) { return v[a] < v[b] || (v[a] == v[b] && a < b); });
+  kutil::hsort(o, m, [v](int a, int b) { return v[a] == v[b] ? a < b : v[a] < v[b]; });
   double tot = 0.0;
   for (int q = 0; q < m; ++q) tot += u[q];
   int q = 0;
@@ -165,7 +165,7 @@ int clab_hdbang(const double *x, const double *y, const double *v,
       if (m == 0) continue;
       // keep the ntrip triples whose ends are nearest (all when 0)
       for (int q = 0; q < m; ++q) ord[q] = q;
-      kutil::hsort(ord, m, [key](int p, int q) { return key[p] < key[q] || (key[p] == key[q] && p < q); });
+      kutil::hsort(ord, m, [key](int p, int q) { return key[p] == key[q] ? p < q : key[p] < key[q]; });
       const int use = ntrip > 0 && ntrip < m ? ntrip : m;
       for (int q = 0; q < use; ++q) {
         const int j = tj[ord[q]], k = tk[ord[q]];
@@ -329,7 +329,7 @@ int clab_rnnhcl(const double *x, const double *y, int n, const double *bx,
     asg[i] = -1;
     cl[i] = -1;
   }
-  kutil::hsort(ord, n, [deg](int a, int b) { return deg[a] > deg[b] || (deg[a] == deg[b] && a < b); });
+  kutil::hsort(ord, n, [deg](int a, int b) { return deg[a] == deg[b] ? a < b : deg[a] > deg[b]; });
   // groups: by decreasing links, each unclustered seed takes every
   // unclustered unit linked to it
   int ng = 0;
@@ -348,7 +348,7 @@ int clab_rnnhcl(const double *x, const double *y, int n, const double *bx,
     if (asg[i] >= 0) ++size[asg[i]];
   int *gid = deg;  // reuse
   for (int g = 0; g < ng; ++g) gid[g] = g;
-  kutil::hsort(gid, ng, [size](int a, int b) { return size[a] > size[b] || (size[a] == size[b] && a < b); });
+  kutil::hsort(gid, ng, [size](int a, int b) { return size[a] == size[b] ? a < b : size[a] > size[b]; });
   int kept = 0;
   for (int q = 0; q < ng; ++q) {
     const int g = gid[q];

@@ -19,7 +19,7 @@ using vd = std::vector<double>;
 void brute(const vd &x, const vd &y, const vd &t, const vd &ds, const vd &dt, vd &obs) {
   const int n = static_cast<int>(x.size()), ks = static_cast<int>(ds.size());
   const int kt = static_cast<int>(dt.size());
-  obs.assign(ks * kt, 0.0);
+  obs.assign(static_cast<std::size_t>(ks) * kt, 0.0);
   for (int i = 0; i < n; ++i)
     for (int j = i + 1; j < n; ++j) {
       const double d = std::sqrt((x[i] - x[j]) * (x[i] - x[j]) + (y[i] - y[j]) * (y[i] - y[j]));

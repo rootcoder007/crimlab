@@ -126,13 +126,15 @@ void famtest(tk &T, int big) {
     vi nb(static_cast<std::size_t>(n) * k), iw(2 * n + 2);
     vd d(static_cast<std::size_t>(n) * k);
     clab_swknb(x.data(), y.data(), n, k, 0, nb.data(), d.data(), iw.data());
-    vi rp(n + 1), ci(n * k);
-    vd dd(n * k), w(n * k);
+    const std::size_t nk = static_cast<std::size_t>(n) * k;
+    vi rp(n + 1), ci(nk);
+    vd dd(nk), w(nk);
     for (int i = 0; i <= n; ++i) rp[i] = i * k;
     // rows sorted by neighbour
     for (int i = 0; i < n; ++i) {
-      vi o(nb.begin() + i * k, nb.begin() + (i + 1) * k);
-      vd e(d.begin() + i * k, d.begin() + (i + 1) * k);
+      const std::ptrdiff_t r0 = static_cast<std::ptrdiff_t>(i) * k;
+      vi o(nb.begin() + r0, nb.begin() + r0 + k);
+      vd e(d.begin() + r0, d.begin() + r0 + k);
       for (int a = 0; a < k; ++a)
         for (int b = a + 1; b < k; ++b)
           if (o[b] < o[a]) {

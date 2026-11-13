@@ -21,7 +21,7 @@ namespace {
 // whether any value is tied.
 bool rdesc(const double *x, int n, int *idx, double *r) {
   for (int i = 0; i < n; ++i) idx[i] = i;
-  kutil::hsort(idx, n, [x](int a, int b) { return x[a] > x[b] || (x[a] == x[b] && a < b); });
+  kutil::hsort(idx, n, [x](int a, int b) { return x[a] == x[b] ? a < b : x[a] > x[b]; });
   bool tie = false;
   for (int i = 0; i < n;) {
     int j = i;
@@ -144,7 +144,7 @@ int clab_calaud(const int *area, const double *risk, const double *outc,
   int *idx = iwork, *lab = iwork + n, *ix = lab + na;
   for (int i = 0; i < n; ++i) idx[i] = i;
   kutil::hsort(idx, n, [area, grp](int a, int b) {
-    return area[a] < area[b] || (area[a] == area[b] && (grp[a] < grp[b] || (grp[a] == grp[b] && a < b)));
+    return area[a] == area[b] ? (grp[a] == grp[b] ? a < b : grp[a] < grp[b]) : area[a] < area[b];
   });
   for (int a = 0; a < na; ++a) A(0, a) = 0.0;
   for (int q = 0; q < n;) {
@@ -260,7 +260,7 @@ int clab_scrdsp(const double *x, const int *grp, int n, int g, int ref,
   int *idx = iwork;
   for (int i = 0; i < n; ++i) idx[i] = i;
   kutil::hsort(idx, n, [x, grp](int a, int b) {
-    return grp[a] < grp[b] || (grp[a] == grp[b] && (x[a] < x[b] || (x[a] == x[b] && a < b)));
+    return grp[a] == grp[b] ? (x[a] == x[b] ? a < b : x[a] < x[b]) : grp[a] < grp[b];
   });
   kutil::ksum all;
   for (int i = 0; i < n; ++i) all.add(x[i]);

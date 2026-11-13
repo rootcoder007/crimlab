@@ -738,7 +738,7 @@ int clab_ntchg(int n, const int *off, const int *adj, const double *wt,
     set[i] = 0;
   }
   kutil::hsort(o, n, [&](int a, int b) {
-    return y[a] < y[b] || (y[a] == y[b] && a < b);
+    return y[a] == y[b] ? a < b : y[a] < y[b];
   });
   double vol = 0.0, cut = 0.0, best = kutil::nan();
   int bk = 0;

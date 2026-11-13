@@ -722,7 +722,7 @@ SEXP C_clab_r_kmrec(SEXP time, SEXP event, SEXP grp, SEXP unit, SEXP end, SEXP l
     const int *uc = INTEGER(u.code);
     const double *tp = REAL(tv);
     kutil::hsort(ix.data(), n0, [&](int a, int b) {
-      return uc[a] < uc[b] || (uc[a] == uc[b] && (tp[a] < tp[b] || (tp[a] == tp[b] && a < b)));
+      return uc[a] == uc[b] ? (tp[a] == tp[b] ? a < b : tp[a] < tp[b]) : uc[a] < uc[b];
     });
     for (int i = 0; i < n0; ++i) {
       const int a = ix[static_cast<std::size_t>(i)];
@@ -1106,7 +1106,7 @@ SEXP C_clab_r_mvhwk(SEXP times, SEXP type, SEXP hor, SEXP beta, SEXP start, SEXP
   SEXP par, se, cv;
   pse(p, nm, th.data(), cov.data(), &par, &se, &cv);
   SEXP a = p(Rf_allocMatrix(REALSXP, k, k));
-  std::copy(th.begin() + k, th.begin() + k + k * k, REAL(a));
+  std::copy(th.begin() + k, th.begin() + k + static_cast<std::ptrdiff_t>(k) * k, REAL(a));
   SEXP dn = p(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(dn, 0, l.lev);
   SET_VECTOR_ELT(dn, 1, l.lev);

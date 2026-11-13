@@ -285,7 +285,7 @@ void t_surf(tk &T, int big) {
                   peak);
       for (int c = 0; c < G * G; ++c) ord[c] = c;
       cgeo::hsort(ord, G * G, [](int a, int b) {
-        return prob[a] > prob[b] || (prob[a] == prob[b] && a < b);
+        return prob[a] == prob[b] ? a < b : prob[a] > prob[b];
       });
       for (int l = 0; l < 2; ++l) {
         double acc = 0;

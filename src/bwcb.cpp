@@ -112,7 +112,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
   const int pa = static_cast<int>(x.size());
   const int p = pa + 1;
   std::vector<double> xa(z(n) * z(p), 0.0);
-  for (int j = 0; j < pa; ++j) std::copy(x[z(j)].x.begin(), x[z(j)].x.end(), xa.begin() + (j + 1) * n);
+  for (int j = 0; j < pa; ++j) std::copy(x[z(j)].x.begin(), x[z(j)].x.end(), xa.begin() + static_cast<std::ptrdiff_t>(j + 1) * n);
   SEXP res;
   int nd = 0;
   bool en = false;

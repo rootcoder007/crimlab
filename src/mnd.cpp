@@ -51,9 +51,9 @@ int clab_mndtab(const int *cls, const int *idc, const int *gc, const double *day
   int *a = o, *b = o + n;
   for (int i = 0; i < n; ++i) a[i] = b[i] = i;
   kutil::hsort(a, n, [&](int p, int q) {
-    return gc[p] < gc[q] || (gc[p] == gc[q] && (idc[p] < idc[q] || (idc[p] == idc[q] && p < q)));
+    return gc[p] == gc[q] ? (idc[p] == idc[q] ? p < q : idc[p] < idc[q]) : gc[p] < gc[q];
   });
-  kutil::hsort(b, n, [&](int p, int q) { return idc[p] < idc[q] || (idc[p] == idc[q] && p < q); });
+  kutil::hsort(b, n, [&](int p, int q) { return idc[p] == idc[q] ? p < q : idc[p] < idc[q]; });
   for (int pass = 0; pass < 2; ++pass) {
     const int *s = pass ? b : a;
     for (int i = 0; i < n;) {

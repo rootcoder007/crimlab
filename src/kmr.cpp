@@ -27,7 +27,7 @@ int clab_kmrec(const double *time, const int *event, const int *grp, int n, int 
   int *ix = iwork;
   for (int i = 0; i < n; ++i) ix[i] = i;
   kutil::hsort(ix, n, [&](int a, int b) {
-    return grp[a] < grp[b] || (grp[a] == grp[b] && (time[a] < time[b] || (time[a] == time[b] && a < b)));
+    return grp[a] == grp[b] ? (time[a] == time[b] ? a < b : time[a] < time[b]) : grp[a] < grp[b];
   });
   int k = 0;
   for (int a = 0; a < n;) {
@@ -83,7 +83,7 @@ int clab_kmrec(const double *time, const int *event, const int *grp, int n, int 
   for (int j = 0; j < g; ++j) atr[j] = oe[j] = 0;
   for (int j = 0; j < q * q; ++j) v[j] = 0;
   for (int i = 0; i < n; ++i) atr[grp[i]] += 1;
-  kutil::hsort(ix, n, [&](int a, int b) { return time[a] < time[b] || (time[a] == time[b] && a < b); });
+  kutil::hsort(ix, n, [&](int a, int b) { return time[a] == time[b] ? a < b : time[a] < time[b]; });
   double tot = n;
   for (int i = 0; i < n;) {
     const double t = time[ix[i]];
