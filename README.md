@@ -129,6 +129,10 @@ The functions work on summary data, not on raw records:
 * Published tables: what a banded category, a rounded or suppressed cell, or
   a change between two published years can and cannot say (`bandx()`,
   `pbbnd()`, `yoypx()`).
+* Courts: what a judge-leniency design identifies and how far it rests on
+  monotonicity (`jdgiv()`), whether judges' leniency rankings hold across
+  pairs and groups of cases (`jmono()`), and how sentences sit against a
+  mandatory minimum (`mmshr()`).
 
 ## Algorithms
 

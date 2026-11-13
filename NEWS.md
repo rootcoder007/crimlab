@@ -70,6 +70,15 @@
   interval of the percent change, exact p-values adjusted for multiplicity,
   and the envelope that rounding allows. `proof("pbbnd")` names the Lean
   theorems on the envelope.
+* `jdgiv()` gives the judge-leniency instrument's first stage, intention-to-
+  treat effect and Wald ratio with the compliers' effect over a grid of
+  defier shares and effects, or the exact decomposition by type on a known
+  population; `jmono()` gives each judge's decision rate with a chi-square
+  test of equal rates, the many-judge slope test of nested judges, and the
+  comparison of judges within groups of cases with adjusted p-values and
+  slopes; `mmshr()` gives the shares of sentences at, below and above a
+  mandatory minimum. `proof("jdgiv")` and `proof("jmono")` name the Lean
+  theorems.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

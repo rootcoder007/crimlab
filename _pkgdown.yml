@@ -185,6 +185,13 @@ reference:
       - bandx
       - pbbnd
       - yoypx
+  - title: Courts and sentencing
+    desc: The judge-leniency instrument and its monotonicity, and sentences
+      against a mandatory minimum.
+    contents:
+      - jdgiv
+      - jmono
+      - mmshr
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

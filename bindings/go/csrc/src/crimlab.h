@@ -2487,6 +2487,70 @@ int clab_yoypx(const double *v, const double *prd, const int *grp, int n, double
  * Benjamini-Yekutieli. Out: q (n). o: n ints of scratch. */
 int clab_pbadj(const double *p, int n, int meth, double *q, int *o);
 
+/* The judge-leniency instrument on observed data (jdgiv; Lean:
+ * Crimlab.Judge.wald_with_defiers): z, d n values 0 or 1 (the lenient or
+ * strict judge, the decision), y n finite outcomes, w NULL or n weights
+ * from 0 with a positive total in each arm. Out: est (6), the first stage
+ * E[d | z = 1] - E[d | z = 0], the intention-to-treat difference in y,
+ * their ratio (Wald; NaN at a zero first stage), and the shares of
+ * compliers, always-takers and never-takers if no one defies; sens (nd x
+ * ne), the compliers' effect implied by a defier share dsh[a] with effect
+ * deff[b]: (wald (c) + s e) / (c + s), c the complier share. */
+int clab_jdgiv(const double *z, const double *d, const double *y, const double *w, int n,
+               const double *dsh, int nd, const double *deff, int ne, double *est,
+               double *sens);
+
+/* The same on a known population (jdgiv): each case's decisions d0, d1
+ * under the strict and the lenient judge (0 or 1) and outcomes y0, y1
+ * without and with the decision. Out (12): the shares of compliers,
+ * defiers, always- and never-takers, the mean effect y1 - y0 in each (NaN
+ * for an empty type), the intention-to-treat effect, the first stage,
+ * their ratio and the average effect. */
+int clab_jdgpop(const double *d0, const double *d1, const double *y0, const double *y1,
+                const double *w, int n, double *out);
+
+/* Decisions by judge (jmono): jc the judge (0..nj-1) and d the decision (0
+ * or 1) of n cases, y NULL or their outcomes, w NULL or weights from 0.
+ * Out, nj each: cnt, the cases; one, the decisions 1; rate and outc, the
+ * weighted means of d and y (NaN without y). st (4 + nj; the last nj
+ * scratch): Pearson's chi-square of decision by judge on the counts (NaN
+ * when every decision is the same or there is one judge), its degrees of
+ * freedom, and the lowest and highest rate. CLAB_EDOM for a judge whose
+ * weights sum to 0. */
+int clab_jrate(const int *jc, const double *d, const double *y, const double *w, int n, int nj,
+               double *cnt, double *one, double *rate, double *outc, double *st);
+
+/* The many-judge slope test (jmono; Lean: Crimlab.Judge.slope_bound): nj
+ * judges in ascending order of rate, outc their mean outcomes, outcomes in
+ * [lo, hi]. For each pair a < b (in order (0,1), (0,2), ..., nj (nj - 1)
+ * / 2 of them): dp and dy, the differences in rate and outcome; bnd, (hi -
+ * lo) dp, the most nested judges allow; viol, |dy| > bnd; late, dy / dp
+ * (NaN for dp = 0). */
+int clab_jslope(const double *rate, const double *outc, int nj, double lo, double hi, double *dp,
+                double *dy, double *bnd, int *viol, double *late);
+
+/* Monotonicity of judges within groups of cases (jmono): jc, gc the judge
+ * (0..nj-1) and the group (0..ng-1) and d the decision of n cases; jt the
+ * judges' overall rates. Out: cn, cr (nj x ng), the cases and the rate of
+ * each judge in each group; for each group sj, sc and sl (ng each), the
+ * judges with at least minn cases there, their cases and the slope of
+ * their group rates on their overall rates weighted by cases (NaN for
+ * fewer than two judges or no spread); for each pair of those judges with
+ * different overall rates, the stricter (higher overall rate) first: pg,
+ * ps, pl the group and the two judges, and pv the pooled two-proportion z
+ * of the lenient judge's group rate over the stricter's (0 when the
+ * standard error is 0). With pg NULL only the number of pairs, npair, is
+ * found. */
+int clab_jsub(const int *jc, const int *gc, const double *d, int n, int nj, int ng, double minn,
+              const double *jt, double *cn, double *cr, int *pg, int *ps, int *pl, double *pv,
+              double *sl, int *sj, double *sc, int *npair);
+
+/* Sentences against a mandatory minimum (mmshr): sent and mn, n finite
+ * values; gc NULL or n groups 0..ng-1. Out (5 (ng + 1)): for each group
+ * and then overall, the cases, the shares at, below and above the
+ * minimum, and the mean excess of those above (0 for none). */
+int clab_mmshr(const double *sent, const double *mn, const int *gc, int n, int ng, double *out);
+
 #ifdef __cplusplus
 }
 #endif

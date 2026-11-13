@@ -207,7 +207,13 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(pbbnd(1)), c("bnd", "chg")),
     list(quote(yoypx(1:2, 1:2)),
          c("prd", "value", "prev", "change", "pctchg", "flag", "pctlo",
-           "pctup", "p", "padj", "signif"))
+           "pctup", "p", "padj", "signif")),
+    list(quote(jdgiv(c(1, 1, 0, 0), c(1, 0, 0, 0), 1:4)),
+         c("type", "est", "shares", "sens")),
+    list(quote(jmono(c(1, 1, 2, 2), c(1, 0, 0, 0))),
+         c("judges", "homog", "slope", "sub", "alpha")),
+    list(quote(mmshr(1:2, 1)),
+         c("group", "n", "at", "below", "above", "mexcess"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

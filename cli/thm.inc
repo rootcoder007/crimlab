@@ -188,3 +188,6 @@
     {"dkfig", "Dark", "rate_upper"},
     {"pbbnd", "Published", "chg_envelope"},
     {"pbbnd", "Published", "pct_envelope"},
+    {"jdgiv", "Judge", "wald_no_defiers"},
+    {"jdgiv", "Judge", "complier_effect"},
+    {"jmono", "Judge", "slope_bound"},
