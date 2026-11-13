@@ -18,7 +18,7 @@ const int N = 120, P = 5, NL = 12;
 double X[N * P], Y[N], YB[N];
 double A0[NL], B[P * NL], LAM[NL], CV[2 * NL];
 double W[P * P + 6 * P + 5 * N + N * P + NL * (P + 1) + 5 * (NL + 1)];
-int IW[2 * N + P], BEST[2], NFIT;
+int IW[2 * N + P], BEST[2], NFIT, SCR = 1;
 
 double rnorm(rng &g) {
   return std::sqrt(-2.0 * std::log(runi(g))) * std::cos(6.283185307179586 * runi(g));
@@ -94,7 +94,7 @@ int fit(int fam, double alpha, int nl, double lmr, const int *fold, int nf,
         double thresh = 1e-14, int maxit = 100000, const double *x = X,
         int n = N, int p = P, const double *y = nullptr) {
   if (y == nullptr) y = fam == 0 ? Y : YB;
-  return clab_enpath(x, n, p, y, fam, alpha, LAM, nl, lmr, thresh, maxit, fold,
+  return clab_enpath(x, n, p, y, fam, alpha, LAM, nl, lmr, thresh, maxit, SCR, fold,
                     nf, A0, B, CV, BEST, &NFIT, W, IW);
 }
 
@@ -158,6 +158,20 @@ void t_net(tk &t) {
       }
       tk_lt(t, "net.path.kkt", worst, 1e-6);
     }
+  }
+  // screening by the strong rule leaves the binomial solution unchanged
+  {
+    fit(1, 0.7, NL, 0.01, nullptr, 0, 1e-16);
+    double bs[P * NL], as[NL];
+    const int ns = NFIT;
+    std::memcpy(bs, B, sizeof bs);
+    std::memcpy(as, A0, sizeof as);
+    SCR = 0;
+    fit(1, 0.7, NL, 0.01, nullptr, 0, 1e-16);
+    SCR = 1;
+    tk_ieq(t, "net.scr.n", NFIT, ns);
+    tk_veq(t, "net.scr.b", B, bs, P * ns, 1e-7);
+    tk_veq(t, "net.scr.a0", A0, as, ns, 1e-7);
   }
   // the largest lambda of the binomial path is attained exactly: just
   // below it one coefficient leaves zero

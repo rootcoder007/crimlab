@@ -554,7 +554,6 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dastd", fn(&C_clab_r_dastd), 8},
     {"C_clab_r_sirex", fn(&C_clab_r_sirex), 6},
     {"C_clab_r_ctabx", fn(&C_clab_r_ctabx), 7},
-    {"C_clab_r_enpath", fn(&C_clab_r_enpath), 10},
     {"C_clab_r_enpath", fn(&C_clab_r_enpath), 11},
     {"C_clab_r_lgtreg", fn(&C_clab_r_lgtreg), 4},
     {"C_clab_r_rfor", fn(&C_clab_r_rfor), 11},

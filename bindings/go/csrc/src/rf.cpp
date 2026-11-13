@@ -61,7 +61,7 @@ long fwork(int n, int p, int nt) {
   // cut points, a sort buffer, the histogram, the sums of predictions,
   // the nodes (three doubles each, at most 2n + 1)
   return static_cast<long>(p) * (NB - 1) + n + 2L * NB + nt + 2L * n +
-         3L * (2L * n + 1);
+         5L * (2L * n + 1);
 }
 long fiwork(int n, int p, int nt) {
   // bins (bytes, four to an int), the bag, its counts, the stack, columns
@@ -73,16 +73,20 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
            const Forest &f, double *out, double *oob, double *work,
            int *iwork) {
   if (mt < 2 || f.ntree < 1 || f.mtry < 1 || f.mtry > p || f.minnode < 1 ||
-      !(f.frac > 0.0 && f.frac <= 1.0))
+      !(f.frac > 0.0 && f.frac <= 1.0) || !(f.imb >= 0.0 && f.imb < 0.5))
     return CLAB_EARG;
   const int m = static_cast<int>(std::lround(f.frac * mt));
-  if (m < 1) return CLAB_EARG;
+  if (m < (f.hon ? 2 : 1)) return CLAB_EARG;
+  // honest trees (Wager and Athey 2018): the first half of a shuffled bag
+  // places the splits, the second half the leaf means
+  const int mg = f.hon ? m / 2 : m;
   double *cut = work, *buf = cut + static_cast<long>(p) * (NB - 1);
   double *hs = buf + n, *hc = hs + NB, *acc = hc + NB, *oa = acc + me,
          *on = oa + n;
   // 2m + 1 nodes in the doubles that follow (a node is 24 bytes)
   static_assert(sizeof(Node) == 3 * sizeof(double), "a node is three doubles");
   Node *node = reinterpret_cast<Node *>(on + n);
+  double *es = on + n + 3L * (2L * n + 1), *ec = es + 2L * n + 1;
   unsigned char *bx = reinterpret_cast<unsigned char *>(iwork);
   int *bag = iwork + (static_cast<long>(n + me) * p + 3) / 4, *cnt = bag + n;
   int *stk = cnt + n, *col = stk + n + 1;
@@ -117,10 +121,17 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
       }
     }
     for (int k = 0; k < m; ++k) ++cnt[bag[k]];
+    if (f.hon) {
+      for (int k = m - 1; k > 0; --k) {
+        const int r = g.below(k + 1), s = bag[k];
+        bag[k] = bag[r];
+        bag[r] = s;
+      }
+    }
     // grow: a node is the range [lo, hi) of bag, kept on a stack
     int nn = 1, sp = 0;
     node[0].l = 0;
-    node[0].r = m;
+    node[0].r = mg;
     stk[sp++] = 0;
     while (sp > 0) {
       const int id = stk[--sp], lo = node[id].l, hi = node[id].r, sz = hi - lo;
@@ -148,12 +159,14 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
           hs[bv[bag[q]]] += y[bag[q]];
           hc[bv[bag[q]]] += 1.0;
         }
+        // each child holds at least imb of the node (and one row)
+        const double cmin = std::fmax(1.0, std::ceil(f.imb * sz));
         double sl = 0.0, nl = 0.0;
         for (int b = 0; b + 1 < NB; ++b) {
           sl += hs[b];
           nl += hc[b];
-          if (nl == 0.0) continue;
-          if (nl == sz) break;
+          if (nl < cmin) continue;
+          if (sz - nl < cmin) break;
           const double sr = s - sl, nr = sz - nl;
           const double v = sl * sl / nl + sr * sr / nr;
           if (v > best * (1.0 + 1e-12)) {
@@ -188,23 +201,39 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
       stk[sp++] = r;
       stk[sp++] = l;
     }
-    // predict: the rows asked for, and the training rows out of the bag
-    for (int i = 0; i < me; ++i) {
-      int k = 0;
-      while (node[k].j >= 0) {
-        k = bx[node[k].j * ld + n + i] <= node[k].b ? node[k].l : node[k].r;
+    // honest: the estimation half's sums and counts at every node on
+    // its rows' paths; a leaf without estimation rows takes the mean of
+    // its deepest ancestor that has some (the root always has)
+    if (f.hon) {
+      for (int k = 0; k < nn; ++k) es[k] = ec[k] = 0.0;
+      for (int q = mg; q < m; ++q) {
+        const int i = bag[q];
+        int k = 0;
+        for (;;) {
+          es[k] += y[i];
+          ec[k] += 1.0;
+          if (node[k].j < 0) break;
+          k = bx[node[k].j * ld + i] <= node[k].b ? node[k].l : node[k].r;
+        }
       }
-      acc[i] += node[k].v;
     }
+    // the value at the leaf of the row at column offset o of the bins
+    auto val = [&](long o) {
+      int k = 0, h = 0;
+      for (;;) {
+        if (f.hon && ec[k] > 0.0) h = k;
+        if (node[k].j < 0) break;
+        k = bx[node[k].j * ld + o] <= node[k].b ? node[k].l : node[k].r;
+      }
+      return f.hon ? es[h] / ec[h] : node[k].v;
+    };
+    // predict: the rows asked for, and the training rows out of the bag
+    for (int i = 0; i < me; ++i) acc[i] += val(n + i);
     if (oob != nullptr) {
       for (int q = 0; q < mt; ++q) {
         const int i = tr[q];
         if (cnt[i] > 0) continue;
-        int k = 0;
-        while (node[k].j >= 0) {
-          k = bx[node[k].j * ld + i] <= node[k].b ? node[k].l : node[k].r;
-        }
-        oa[i] += node[k].v;
+        oa[i] += val(i);
         on[i] += 1.0;
       }
     }
@@ -225,8 +254,8 @@ extern "C" {
 
 int clab_rfor(const double *x, int n, int p, const double *y,
               const double *xt, int nt, int ntree, int mtry, int minnode,
-              double frac, int repl, unsigned int seed, double *pred,
-              double *oob, double *work, int *iwork) {
+              double frac, int repl, int hon, double imb, unsigned int seed,
+              double *pred, double *oob, double *work, int *iwork) {
   if (n < 2 || p < 1 || nt < 0) return CLAB_EARG;
   for (long k = 0; k < static_cast<long>(n) * p; ++k) {
     if (!std::isfinite(x[k])) return CLAB_EDOM;
@@ -242,7 +271,7 @@ int clab_rfor(const double *x, int n, int p, const double *y,
   int *tr = iwork, *te = tr + n;
   for (int i = 0; i < n; ++i) tr[i] = i;
   for (int i = 0; i < nt; ++i) te[i] = i;
-  const lrn::Forest f = {ntree, mtry, minnode, frac, repl, seed};
+  const lrn::Forest f = {ntree, mtry, minnode, frac, repl, seed, hon, imb};
   return lrn::forest(x, n, p, y, tr, n, xt, nt, te, nt, f, pred, oob, work,
                      te + nt);
 }

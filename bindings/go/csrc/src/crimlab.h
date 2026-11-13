@@ -1345,7 +1345,11 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
  * of deviance explained grows by less than 1e-5 of itself or passes
  * 0.999). thresh > 0: convergence when no pass moves a standardised
  * coefficient by more than sqrt(thresh) (weighted, binomial); maxit
- * passes at most in all, else CLAB_EDOM. fold: NULL, or n fold ids in [0,
+ * passes at most in all, else CLAB_EDOM. scr non-zero: binomial paths
+ * screen columns by the sequential strong rule (Tibshirani et al. 2012,
+ * doi:10.1111/j.1467-9868.2011.01004.x) before each lambda; the
+ * optimality conditions are checked over every column either way, so the
+ * solution is the same. fold: NULL, or n fold ids in [0,
  * nf), nf >= 2, every fold non-empty: then each fold is held out in turn,
  * the path refitted on the rest at the same lambdas, and cv (2 nl) gets
  * the mean held-out loss (squared error; binomial deviance with the
@@ -1358,8 +1362,9 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
  * nf (nl + 1) doubles; iwork: 2n + p ints. */
 int clab_enpath(const double *x, int n, int p, const double *y, int fam,
                double alpha, double *lam, int nl, double lmr, double thresh,
-               int maxit, const int *fold, int nf, double *a0, double *beta,
-               double *cv, int *best, int *nfit, double *work, int *iwork);
+               int maxit, int scr, const int *fold, int nf, double *a0,
+               double *beta, double *cv, int *best, int *nfit, double *work,
+               int *iwork);
 
 /* Logistic regression by Newton's method on the centred design. y: n
  * outcomes in {0, 1}, both present; x: n by p, p >= 0, full column rank
@@ -1547,14 +1552,20 @@ int clab_catchk(const int *code, int n, int k, const int *fold, int nmin,
  * without otherwise, from a stream seeded by seed and the tree's number;
  * at each node the best split by the reduction in the sum of squares over
  * mtry (1..p) columns drawn without replacement; nodes of at most minnode
- * rows, or with one outcome value, are leaves. Out: pred (nt), the mean
+ * rows, or with one outcome value, are leaves; a split must leave at least
+ * imb (0 <= imb < 0.5) of its node's rows, and one row, on each side. hon
+ * non-zero grows honest trees (Wager and Athey 2018,
+ * doi:10.1080/01621459.2017.1319839): a shuffled bag's first half (round
+ * frac n / 2 rows, at least 1) places the splits and its second half sets
+ * the leaf means, a leaf with no row of it taking its deepest such
+ * ancestor's mean. Out: pred (nt), the mean
  * over trees; oob (NULL or n), the mean over the trees whose bag left the
- * row out (NaN if none). work: p 255 + 3n + 512 + nt + 3 (2n + 1)
+ * row out (NaN if none). work: p 255 + 3n + 512 + nt + 5 (2n + 1)
  * doubles; iwork: ceil((n + nt) p / 4) + 4n + nt + p + 1 ints. */
 int clab_rfor(const double *x, int n, int p, const double *y,
               const double *xt, int nt, int ntree, int mtry, int minnode,
-              double frac, int repl, unsigned int seed, double *pred,
-              double *oob, double *work, int *iwork);
+              double frac, int repl, int hon, double imb, unsigned int seed,
+              double *pred, double *oob, double *work, int *iwork);
 
 /* ------------------------------------------------------------------------
  * Causal: double machine learning by cross-fitting (Chernozhukov et al.
@@ -1577,6 +1588,9 @@ typedef struct {
   int nlam, nfold;
   unsigned int seed;
   int ntree, mtry, minnode;
+  double tol;  /* elastic net: the convergence threshold of clab_enpath() */
+  int scr;     /* elastic net: screening of binomial paths */
+  int hon;     /* forest: honest trees on half-samples without replacement */
 } clab_lrn;
 
 /* The number of nuisance functions of a model (0 for an unknown one). */
@@ -1600,7 +1614,12 @@ long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
  * or the effect on the treated. x: n by p covariates; z, s: NULL unless
  * the model reads them. fold: nrep columns of n fold ids in [0, nf); each
  * column a repetition. clu: NULL or n cluster ids in [0, nc), one-way
- * clustering (PLR and PLIV only; folds constant within a cluster). ly
+ * clustering (PLR and PLIV only; folds constant within a cluster); with
+ * nc2 > 0, two-way clustering (nrep 1): clu holds 2n ids, the first n in
+ * [0, nc), the next n in [0, nc2), and fold the folds of each kind of
+ * cluster (2n); the test set of fold pair (k, l) is the rows in both, its
+ * training set the rows in neither, and the variance is the two-way form
+ * of Chiang et al. as DoubleML computes it (nc2 = 0: one-way). ly
  * learns the outcome nuisances, ld those of the treatment, instrument and
  * selection. trim: propensities are kept in [trim, 1 - trim] (TMLE: only
  * bounded below, as tmle). fit 1: the nuisances are learned and written to
@@ -1616,9 +1635,9 @@ long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
 int clab_dmlx(int model, int sc, const double *x, int n, int p,
              const double *y, const double *d, const double *z,
              const double *s, const int *fold, int nf, int nrep,
-             const int *clu, int nc, const clab_lrn *ly, const clab_lrn *ld,
-             double trim, int fit, double *pred, double *est, double *psi,
-             double *work, int *iwork);
+             const int *clu, int nc, int nc2, const clab_lrn *ly,
+             const clab_lrn *ld, double trim, int fit, double *pred,
+             double *est, double *psi, double *work, int *iwork);
 
 
 /* Mantel's test (clab_mantst) with the spatial dissimilarity built from

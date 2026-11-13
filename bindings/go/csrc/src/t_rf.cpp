@@ -17,7 +17,9 @@ namespace {
 const int N = 600, NT = 300, P = 5;
 double X[N * P], XT[NT * P], Y[N], YB[N], FT[NT], PT[NT], PR[NT], PR2[NT],
     OOB[N];
-double W[P * 255 + N + 512 + NT + 2 * N + 3 * (2 * N + 1)];
+double W[P * 255 + N + 512 + NT + 2 * N + 5 * (2 * N + 1)];
+int HON = 0;
+double IMB = 0.0;
 int IW[(N + NT) * P / 4 + 1 + 3 * N + 1 + P + N + NT];
 
 double rnorm(rng &g) {
@@ -30,7 +32,7 @@ double fx(const double *x, int ld, int i) {
 int rf(const double *x, const double *y, const double *xt, int ntree, int mtry,
        int minnode, double frac, int repl, unsigned int seed, double *pred,
        double *oob, int n = N, int p = P, int nt = NT) {
-  return clab_rfor(x, n, p, y, xt, nt, ntree, mtry, minnode, frac, repl, seed,
+  return clab_rfor(x, n, p, y, xt, nt, ntree, mtry, minnode, frac, repl, HON, IMB, seed,
                    pred, oob, W, IW);
 }
 
@@ -117,6 +119,22 @@ void t_rf(tk &t, int) {
     rf(X, Y, xt1, 1, 1, N, 1.0, 0, 7, &p1, nullptr, N, P, 1);
     tk_eq(t, "rf.minnode", p1, my, 1e-12);
   }
+  // honest trees, without replacement on half the rows (grf's design),
+  // and splits that leave at least a fifth of a node on each side: the
+  // error stays near the adaptive forest's
+  {
+    HON = 1;
+    IMB = 0.2;
+    tk_ieq(t, "rf.hon.rc", rf(X, Y, XT, 200, 3, 5, 0.5, 0, 9, PR, OOB), CLAB_OK);
+    double e = 0.0;
+    for (int i = 0; i < NT; ++i) e += (PR[i] - FT[i]) * (PR[i] - FT[i]) / NT;
+    tk_lt(t, "rf.hon.mse", e, 0.8);
+    tk_ieq(t, "rf.hon.m", rf(X, Y, XT, 10, 2, 5, 1.0 / N, 0, 9, PR, nullptr), CLAB_EARG);
+    IMB = 0.5;
+    tk_ieq(t, "rf.e.imb", rf(X, Y, XT, 10, 2, 5, 1.0, 1, 1, PR, nullptr), CLAB_EARG);
+    HON = 0;
+    IMB = 0.0;
+  }
   // refusals
   tk_ieq(t, "rf.e.n", rf(X, Y, XT, 10, 2, 5, 1.0, 1, 1, PR, nullptr, 1), CLAB_EARG);
   tk_ieq(t, "rf.e.p", rf(X, Y, XT, 10, 2, 5, 1.0, 1, 1, PR, nullptr, N, 0), CLAB_EARG);
@@ -140,7 +158,7 @@ void t_rf(tk &t, int) {
   }
   // the internal entry point refuses a training set of one row
   int tr[1] = {0}, te[1] = {0};
-  const lrn::Forest f = {10, 2, 5, 1.0, 1, 1};
+  const lrn::Forest f = {10, 2, 5, 1.0, 1, 1, 0, 0.0};
   tk_ieq(t, "rf.e.mt", lrn::forest(X, N, P, Y, tr, 1, X, N, te, 1, f, PR, nullptr, W, IW),
          CLAB_EARG);
 }

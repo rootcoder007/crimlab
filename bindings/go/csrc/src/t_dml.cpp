@@ -28,11 +28,11 @@ double rnorm(rng &g) {
 
 int run(int model, int sc, int fit, int nrep = 1, const int *clu = nullptr,
         int nc = 0, double trim = 0.0, int kind = 0, int n = N, int nf = 5) {
-  const clab_lrn l = {kind, 1.0, 20, 3, 7, 50, 0, 0};
+  const clab_lrn l = {kind, 1.0, 20, 3, 7, 50, 0, 0, 1e-7, 1, 0};
   long niw;
   const long nw = clab_dmlxsz(model, n, P, nf, nrep, &l, &l, &niw);
   if (nw > 400000 || niw > 100000) return -1;
-  return clab_dmlx(model, sc, X, n, P, Y, D, Z, S, F, nf, nrep, clu, nc, &l, &l,
+  return clab_dmlx(model, sc, X, n, P, Y, D, Z, S, F, nf, nrep, clu, nc, 0, &l, &l,
                   trim, fit, PR, EST, PSI, W, IW);
 }
 
@@ -143,6 +143,36 @@ void t_forms(tk &t) {
     dmlvar(pa, pb, N, &th, &se);
     tk_eq(t, "dml.did.th", EST[0], th, 1e-12);
     tk_eq(t, "dml.did.se", EST[1], se, 1e-12);
+  }
+  // the experimental scores: no propensity, normalised by the shares
+  run(6, 1, 0);
+  {
+    double md = 0.0;
+    for (int i = 0; i < N; ++i) md += D[i] / N;
+    for (int i = 0; i < N; ++i) {
+      const double q = D[i] / md;
+      pa[i] = -1.0;
+      pb[i] = (q - 1) * p0[i] + (1 - q) * p1[i] + (q - (1 - D[i]) / (1 - md)) * (Y[i] - p0[i]);
+    }
+    dmlvar(pa, pb, N, &th, &se);
+    tk_eq(t, "dml.didx.th", EST[0], th, 1e-12);
+    tk_eq(t, "dml.didx.se", EST[1], se, 1e-12);
+    tk_ieq(t, "dml.didx.k", clab_dmlxk(6, 1) * 10 + clab_dmlxk(7, 1), 24);
+  }
+  run(7, 1, 0);
+  {
+    double c[4] = {0, 0, 0, 0};
+    for (int i = 0; i < N; ++i) c[static_cast<int>(2 * D[i] + S[i])] += 1.0 / N;
+    const double *g[4] = {p0, p1, p2, p3};
+    const double sg[4] = {1, -1, -1, 1};
+    for (int i = 0; i < N; ++i) {
+      const int k = static_cast<int>(2 * D[i] + S[i]);
+      pa[i] = -1.0;
+      pb[i] = p3[i] - p2[i] - p1[i] + p0[i] + sg[k] * (Y[i] - g[k][i]) / c[k];
+    }
+    dmlvar(pa, pb, N, &th, &se);
+    tk_eq(t, "dml.didcsx.th", EST[0], th, 1e-12);
+    tk_eq(t, "dml.didcsx.se", EST[1], se, 1e-12);
   }
   // DiD on repeated cross-sections (S is the period)
   run(7, 0, 0, 1, nullptr, 0, 0.01);
@@ -285,6 +315,86 @@ void t_forms(tk &t) {
 }
 
 // known truth: simulated data, nuisances learned
+// two-way clusters: 40 clusters of one kind (i / 10), 20 of the other
+// (i % 20), folds of each kind; theta and the variance written out block
+// by block as DoubleML's two-way form
+void t_two(tk &t) {
+  static int cl2[2 * N], f2[2 * N];
+  for (int i = 0; i < N; ++i) {
+    cl2[i] = i / 10;
+    cl2[N + i] = i % 20;
+    f2[i] = (i / 10) % 5;
+    f2[N + i] = (i % 20) % 5;
+  }
+  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0};
+  rng g = {41};
+  for (int k = 0; k < 2 * N; ++k) PR[k] = runi(g);
+  tk_ieq(t, "two.rc",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, f2, 5, 1, cl2, 40, 20, &l, &l, 0.0, 0, PR, EST,
+                   PSI, W, IW),
+         CLAB_OK);
+  const double ki = 8.0, kj = 4.0;  // clusters of each kind per fold
+  double sa = 0.0, sb = 0.0, pa[N], pb[N];
+  for (int i = 0; i < N; ++i) {
+    const double v = D[i] - PR[N + i];
+    pa[i] = -v * v;
+    pb[i] = v * (Y[i] - PR[i]);
+    sa += pa[i] / (ki * kj);
+    sb += pb[i] / (ki * kj);
+  }
+  const double th = -sb / sa;
+  double gam = 0.0;
+  for (int k = 0; k < 5; ++k) {
+    for (int l2 = 0; l2 < 5; ++l2) {
+      const double c = std::min(ki, kj) / ((ki * kj) * (ki * kj));
+      for (int c1 = 0; c1 < 40; ++c1) {
+        if (c1 % 5 != k) continue;
+        double s = 0.0;
+        for (int i = 0; i < N; ++i) {
+          if (i / 10 == c1 && (i % 20) % 5 == l2) s += pa[i] * th + pb[i];
+        }
+        gam += c * s * s;
+      }
+      for (int c2 = 0; c2 < 20; ++c2) {
+        if (c2 % 5 != l2) continue;
+        double s = 0.0;
+        for (int i = 0; i < N; ++i) {
+          if (i % 20 == c2 && (i / 10) % 5 == k) s += pa[i] * th + pb[i];
+        }
+        gam += c * s * s;
+      }
+    }
+  }
+  gam /= 25.0;
+  const double j = sa / 25.0;
+  tk_eq(t, "two.th", EST[0], th, 1e-12);
+  tk_eq(t, "two.se", EST[1], std::sqrt(gam / (j * j) / 20.0), 1e-12);
+  // learned: every test block's training rows share no cluster with it
+  tk_ieq(t, "two.fit",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, f2, 5, 1, cl2, 40, 20, &l, &l, 0.0, 1, PR, EST,
+                   PSI, W, IW),
+         CLAB_OK);
+  tk_lt(t, "two.fin", std::fabs(EST[0]), 1e6);
+  // refusals: repetitions, one kind only, an id out of range, no root
+  tk_ieq(t, "two.e.rep",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, f2, 5, 2, cl2, 40, 20, &l, &l, 0.0, 0, PR, EST,
+                   PSI, W, IW),
+         CLAB_EARG);
+  tk_ieq(t, "two.e.nc2",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, f2, 5, 1, nullptr, 0, 20, &l, &l, 0.0, 0, PR, EST,
+                   PSI, W, IW),
+         CLAB_EARG);
+  tk_ieq(t, "two.e.id",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, f2, 5, 1, cl2, 40, 10, &l, &l, 0.0, 0, PR, EST,
+                   PSI, W, IW),
+         CLAB_EARG);
+  for (int i = 0; i < N; ++i) PR[N + i] = D[i];
+  tk_ieq(t, "two.e.root",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, f2, 5, 1, cl2, 40, 20, &l, &l, 0.0, 0, PR, EST,
+                   PSI, W, IW),
+         CLAB_EDOM);
+}
+
 void t_sim(tk &t) {
   rng g = {17};
   // PLR: theta = 0.5, confounding through x1, x2
@@ -345,6 +455,21 @@ void t_sim(tk &t) {
   }
   run(7, 0, 1, 1, nullptr, 0, 0.01);
   tk_lt(t, "sim.didcs", std::fabs(EST[0] - 1.0), 4 * EST[1]);
+  // experimental: a randomised treatment, learned nuisances
+  {
+    double ds[N];
+    std::memcpy(ds, D, sizeof ds);
+    for (int i = 0; i < N; ++i) {
+      D[i] = runi(g) < 0.5 ? 1.0 : 0.0;
+      Y[i] = X[i] + D[i] * 0.5 + S[i] * (0.3 + 0.5 * X[i]) + D[i] * S[i] + rnorm(g);
+    }
+    run(7, 1, 1);
+    tk_lt(t, "sim.didcsx", std::fabs(EST[0] - 1.0), 4 * EST[1]);
+    for (int i = 0; i < N; ++i) Y[i] = D[i] + 0.5 * X[i] + rnorm(g);
+    run(6, 1, 1);
+    tk_lt(t, "sim.didx", std::fabs(EST[0] - 1.0), 4 * EST[1]);
+    std::memcpy(D, ds, sizeof ds);
+  }
   // selection: observed with probability rising in x2 and d
   for (int i = 0; i < N; ++i) {
     S[i] = runi(g) < 1 / (1 + std::exp(-(0.5 + X[i + N] + 0.5 * D[i]))) ? 1.0 : 0.0;
@@ -365,10 +490,10 @@ void t_sim(tk &t) {
 }
 
 void t_bad(tk &t) {
-  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0};
+  const clab_lrn l = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0};
   auto call = [&](int model, int sc, int n, int p, int nf, int nrep, const int *clu,
                   int nc, double trim) {
-    return clab_dmlx(model, sc, X, n, p, Y, D, Z, S, F, nf, nrep, clu, nc, &l, &l,
+    return clab_dmlx(model, sc, X, n, p, Y, D, Z, S, F, nf, nrep, clu, nc, 0, &l, &l,
                     trim, 0, PR, EST, PSI, W, IW);
   };
   tk_ieq(t, "dml.e.model", call(9, 0, N, P, 5, 1, nullptr, 0, 0), CLAB_EARG);
@@ -400,11 +525,13 @@ void t_bad(tk &t) {
   for (int i = 0; i < N; ++i) D[i] = 0.0;
   tk_ieq(t, "dml.e.did", call(6, 0, N, P, 5, 1, nullptr, 0, 0.01), CLAB_EDOM);
   tk_ieq(t, "dml.e.didcs", call(7, 0, N, P, 5, 1, nullptr, 0, 0.01), CLAB_EDOM);
+  tk_ieq(t, "dml.e.didx", call(6, 1, N, P, 5, 1, nullptr, 0, 0.01), CLAB_EDOM);
+  tk_ieq(t, "dml.e.didcsx", call(7, 1, N, P, 5, 1, nullptr, 0, 0.01), CLAB_EDOM);
   // learning: an empty training set (nobody untreated for g0)
-  const clab_lrn lg = {0, 1.0, 20, 3, 7, 0, 0, 0};
+  const clab_lrn lg = {0, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0};
   for (int i = 0; i < N; ++i) D[i] = 1.0;
   tk_ieq(t, "dml.e.empty",
-         clab_dmlx(2, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, &lg, &lg, 0.01, 1,
+         clab_dmlx(2, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lg, &lg, 0.01, 1,
                   PR, EST, PSI, W, IW),
          CLAB_EDOM);
   std::memcpy(D, dsave, sizeof D);
@@ -416,21 +543,26 @@ void t_bad(tk &t) {
     xc[i + N] = 2 * X[i];
   }
   tk_ieq(t, "dml.e.lrn",
-         clab_dmlx(0, 0, xc, N, 2, Y, D, Z, S, F, 5, 1, nullptr, 0, &lg, &lg, 0.0, 1, PR,
+         clab_dmlx(0, 0, xc, N, 2, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lg, &lg, 0.0, 1, PR,
                   EST, PSI, W, IW),
          CLAB_EDOM);
-  const clab_lrn le = {1, 1.0, 0, 3, 7, 0, 0, 0}, la = {1, 2.0, 5, 3, 7, 0, 0, 0},
-                 lf = {2, 1.0, 5, 3, 7, 0, 0, 0};
+  const clab_lrn le = {1, 1.0, 0, 3, 7, 0, 0, 0, 1e-7, 1, 0}, la = {1, 2.0, 5, 3, 7, 0, 0, 0, 1e-7, 1, 0},
+                 lf = {2, 1.0, 5, 3, 7, 0, 0, 0, 1e-7, 1, 0},
+                 lt = {1, 1.0, 5, 3, 7, 0, 0, 0, 0.0, 1, 0};
   tk_ieq(t, "dml.e.net",
-         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, &lg, &le, 0.0, 1, PR,
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lg, &le, 0.0, 1, PR,
                   EST, PSI, W, IW),
          CLAB_EARG);
   tk_ieq(t, "dml.e.tree",
-         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, &lf, &lg, 0.0, 1, PR,
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lf, &lg, 0.0, 1, PR,
                    EST, PSI, W, IW),
          CLAB_EARG);
+  tk_ieq(t, "dml.e.tol",
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &lt, &lg, 0.0, 1, PR,
+                   EST, PSI, W, IW),
+         CLAB_EDOM);
   tk_ieq(t, "dml.e.alpha",
-         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, &la, &lg, 0.0, 1, PR,
+         clab_dmlx(0, 0, X, N, P, Y, D, Z, S, F, 5, 1, nullptr, 0, 0, &la, &lg, 0.0, 1, PR,
                   EST, PSI, W, IW),
          CLAB_EDOM);
 }
@@ -439,6 +571,7 @@ void t_bad(tk &t) {
 
 void t_dml(tk &t, int) {
   t_forms(t);
+  t_two(t);
   t_sim(t);
   t_bad(t);
 }

@@ -37,9 +37,10 @@ int lmax(const Dat &d, int fam, double alpha, double *lam, double *work);
 // With stop, the path ends early by glmnet's rule (from the fifth lambda,
 // when the share of deviance explained grows by less than 1e-5 of itself
 // or passes 0.999); nfit gets the number of lambdas fitted.
+// screen: the binomial path's sequential strong rule (gaussian: unused).
 int path(const Dat &d, int fam, double alpha, const double *lam, int nl,
-         double thresh, int maxit, int stop, int *nfit, double *a0,
-         double *beta, double *work, int *iwork);
+         double thresh, int maxit, int stop, int screen, int *nfit,
+         double *a0, double *beta, double *work, int *iwork);
 
 // The path at lam (or, when 0 < lmr < 1, at nl lambdas from lmax() down
 // to lmr times it, written to lam) and, when fold is given (fold[i] in [0,
@@ -50,7 +51,7 @@ int path(const Dat &d, int fam, double alpha, const double *lam, int nl,
 // work: cvwork() doubles; iwork: d.m + p ints.
 long cvwork(int n, int p, int nl, int nf);
 int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
-          double lmr, double thresh, int maxit, const int *fold, int nf,
+          double lmr, double thresh, int maxit, int screen, const int *fold, int nf,
           double *a0, double *beta, double *cv, int *best, int *nfit,
           double *work, int *iwork);
 
@@ -71,6 +72,8 @@ struct Forest {
   double frac;
   int repl;
   unsigned int seed;
+  int hon;     // honest: half the bag places splits, half sets leaf means
+  double imb;  // each child of a split holds at least imb of its node
 };
 
 // Scratch for forest(): doubles and ints, for n rows of x and nt rows to
