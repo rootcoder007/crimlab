@@ -122,30 +122,67 @@ names.
 
 ## Speed
 
-`dev/bench.R` times each function against every package found that
+`dev/bench.R` times each function against every other package found that
 computes the same quantity, on fixed seeded inputs and at sizes met in
-practice, after checking that the two give the same values; where no
-package does, against a base-R implementation of the formula. The table
-it writes, with the machine and the date, is
+practice, after checking that the two give the same values;
+`dev/bench-net.R` does the same for the network functions. The search
+for those packages, with the reason each candidate does or does not
+compute the same quantity, is
+[inst/bench/counterparts.csv](https://rootcoder007.github.io/crimlab/inst/bench/counterparts.csv)
+(written by `dev/cpart.R`). rmorie, the maintainer’s own package, is
+timed too but reported apart: it is not another package. Where no
+package computes a quantity, the function is timed against rmorie or a
+base-R implementation of the formula, and no claim is made against the
+field. The tables, with the machine, its load during each run and the
+spread over three runs, are
 [inst/bench/bench.md](https://rootcoder007.github.io/crimlab/inst/bench/bench.md)
-(and `bench.csv`); the bench workflow runs it again every week. The
-lists below are written by the same script from that table.
+(and `bench.csv`) and `inst/bench/net.csv`. The lists below are written
+by the same scripts from those tables. The spatial functions and the
+learners have speed tables of their own, `inst/bench/sp.csv`
+(`dev/bench-sp.R`) and `inst/bench/dml.csv`; the three name their
+columns alike.
 
-Faster, by at least a tenth, than every package that computes the same
-quantity, at every size timed:
+Faster, by at least a tenth, than every other package found that
+computes the same quantity, at every size timed:
+[`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md),
+[`mixlr()`](https://rootcoder007.github.io/crimlab/reference/mixlr.md),
+[`cllr()`](https://rootcoder007.github.io/crimlab/reference/cllr.md),
+[`cllrmin()`](https://rootcoder007.github.io/crimlab/reference/cllrmin.md),
+[`eceplt()`](https://rootcoder007.github.io/crimlab/reference/eceplt.md),
+[`clrsmp()`](https://rootcoder007.github.io/crimlab/reference/clrsmp.md).
+
+Not faster than another package at some size timed:
+[`kinidx()`](https://rootcoder007.github.io/crimlab/reference/kinidx.md),
+[`patidx()`](https://rootcoder007.github.io/crimlab/reference/patidx.md),
+[`lrcal()`](https://rootcoder007.github.io/crimlab/reference/lrcal.md).
+
+No other package found that computes the same quantity, so no claim of
+speed against the field:
 [`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
 [`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md),
 [`outtst()`](https://rootcoder007.github.io/crimlab/reference/outtst.md),
 [`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md),
 [`dyadrt()`](https://rootcoder007.github.io/crimlab/reference/dyadrt.md),
-[`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md),
-[`kinidx()`](https://rootcoder007.github.io/crimlab/reference/kinidx.md),
-[`patidx()`](https://rootcoder007.github.io/crimlab/reference/patidx.md),
-[`mixlr()`](https://rootcoder007.github.io/crimlab/reference/mixlr.md),
-[`cllr()`](https://rootcoder007.github.io/crimlab/reference/cllr.md),
-[`cllrmin()`](https://rootcoder007.github.io/crimlab/reference/cllrmin.md),
-[`lrcal()`](https://rootcoder007.github.io/crimlab/reference/lrcal.md),
-[`eceplt()`](https://rootcoder007.github.io/crimlab/reference/eceplt.md),
+[`expbnd()`](https://rootcoder007.github.io/crimlab/reference/expbnd.md),
+[`misrd()`](https://rootcoder007.github.io/crimlab/reference/misrd.md),
+[`rtmhs()`](https://rootcoder007.github.io/crimlab/reference/rtmhs.md),
+[`incap()`](https://rootcoder007.github.io/crimlab/reference/incap.md),
+[`incapr()`](https://rootcoder007.github.io/crimlab/reference/incapr.md),
+[`sellab()`](https://rootcoder007.github.io/crimlab/reference/sellab.md),
+[`losbnd()`](https://rootcoder007.github.io/crimlab/reference/losbnd.md),
+[`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md),
+[`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md),
+[`lrpost()`](https://rootcoder007.github.io/crimlab/reference/lrpost.md),
+[`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md),
+[`tipplt()`](https://rootcoder007.github.io/crimlab/reference/tipplt.md),
+[`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md).
+Of these, compared with rmorie, the maintainer’s own package: faster at
+every size timed:
+[`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
+[`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md),
+[`outtst()`](https://rootcoder007.github.io/crimlab/reference/outtst.md),
+[`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md),
+[`dyadrt()`](https://rootcoder007.github.io/crimlab/reference/dyadrt.md),
 [`expbnd()`](https://rootcoder007.github.io/crimlab/reference/expbnd.md),
 [`misrd()`](https://rootcoder007.github.io/crimlab/reference/misrd.md),
 [`rtmhs()`](https://rootcoder007.github.io/crimlab/reference/rtmhs.md),
@@ -153,21 +190,37 @@ quantity, at every size timed:
 [`sellab()`](https://rootcoder007.github.io/crimlab/reference/sellab.md),
 [`losbnd()`](https://rootcoder007.github.io/crimlab/reference/losbnd.md),
 [`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md),
-[`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md).
-
-Not faster than such a package at some size timed:
+[`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md);
+not faster at some size:
 [`incap()`](https://rootcoder007.github.io/crimlab/reference/incap.md).
-
-No package found that computes the same quantity, so timed against a
-base-R implementation of the formula:
-[`lrpost()`](https://rootcoder007.github.io/crimlab/reference/lrpost.md),
+Compared with a base-R implementation of the formula: faster at every
+size timed:
 [`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md),
-[`tipplt()`](https://rootcoder007.github.io/crimlab/reference/tipplt.md),
-[`clrsmp()`](https://rootcoder007.github.io/crimlab/reference/clrsmp.md),
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md);
-of these, not faster than base R at some size:
+not faster at some size:
 [`lrpost()`](https://rootcoder007.github.io/crimlab/reference/lrpost.md),
-[`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md).
+[`tipplt()`](https://rootcoder007.github.io/crimlab/reference/tipplt.md).
+
+Networks, against igraph, sna, tnet and netmem: faster, by at least a
+tenth, than every package that computes the same measure, at every size
+timed, counting only the measure on a graph the other package has
+already built:
+[`ntcls()`](https://rootcoder007.github.io/crimlab/reference/ntcls.md),
+[`ntevc()`](https://rootcoder007.github.io/crimlab/reference/ntevc.md),
+[`ntcmp()`](https://rootcoder007.github.io/crimlab/reference/ntcmp.md),
+[`ntlvn()`](https://rootcoder007.github.io/crimlab/reference/ntlvn.md),
+[`ntmod()`](https://rootcoder007.github.io/crimlab/reference/ntmod.md),
+[`ntbrk()`](https://rootcoder007.github.io/crimlab/reference/ntbrk.md),
+[`coofg()`](https://rootcoder007.github.io/crimlab/reference/coofg.md).
+Not faster at some size by that count:
+[`ntdeg()`](https://rootcoder007.github.io/crimlab/reference/ntdeg.md),
+[`ntbtw()`](https://rootcoder007.github.io/crimlab/reference/ntbtw.md),
+[`ntcore()`](https://rootcoder007.github.io/crimlab/reference/ntcore.md);
+of these, counting the building of the other package’s graph from the
+same labels, which crimlab’s time includes, faster at every size:
+[`ntcore()`](https://rootcoder007.github.io/crimlab/reference/ntcore.md).
+No other package found:
+[`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md).
 
 ## Life cycle
 
