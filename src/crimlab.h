@@ -1876,6 +1876,20 @@ int clab_didfe(const double *y, const double *x, int n, int p, const int *u, int
                const int *t, int nt, int fe, const double *w, const int *cl, int ncl,
                const int *cl2, int ncl2, double tol, int maxit, double *beta, double *vc,
                double *st, double *work, int *iwork);
+/* Near repeats (src/knx.cpp). The Knox table of n >= 3 incidents at
+ * planar points (x, y) and times t (all finite): every pair within ds[ks -
+ * 1] falls in the distance band (ds[k - 1], ds[k]] and the time band
+ * (dt[l - 1], dt[l]] (the first bands from 0, 0 included; edges positive
+ * and increasing, CLAB_EDOM otherwise). Out, 3 ks kt + 1: the observed
+ * pairs per cell (distance band fastest), the expectation under
+ * exchangeable times S_k T_l / P (Knox 1964, doi:10.2307/2985220; S_k and
+ * T_l the pairs in each band, P = n (n - 1) / 2), the permutation p-value
+ * (1 + #{obs* >= obs}) / (nsim + 1) with the times shuffled nsim >= 0 times
+ * from seed (NaN for nsim = 0), and the number of pairs within ds[ks - 1].
+ * O(n log n + pairs (kt + nsim log kt)). */
+int clab_knxnr(const double *x, const double *y, const double *t, int n,
+               const double *ds, int ks, const double *dt, int kt, int nsim,
+               unsigned int seed, double *out);
 
 #ifdef __cplusplus
 }
