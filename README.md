@@ -84,6 +84,8 @@ The functions work on summary data, not on raw records:
   correlation of two series at lags (`xcser()`).
 * Durations: Kaplan-Meier curves, medians and the log-rank test, of
   durations or of the gaps between repeat events (`kmrec()`).
+* Patrol operations: Larson's hypercube queue (`hypq()`) and the
+  square-root law of response distance (`sqrtlw()`).
 * Presets: how the columns of a published dataset (Ontario segregation and
   deaths-in-custody tables, use-of-force files, Special Investigations
   Unit cases, Structured Intervention Unit tables, Toronto incident

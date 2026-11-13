@@ -464,6 +464,8 @@ SEXP C_clab_r_stpcp(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cusrv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_xcser(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_kmrec(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_hypq(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sqrtlw(SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -631,6 +633,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cusrv", fn(&C_clab_r_cusrv), 7},
     {"C_clab_r_xcser", fn(&C_clab_r_xcser), 5},
     {"C_clab_r_kmrec", fn(&C_clab_r_kmrec), 6},
+    {"C_clab_r_hypq", fn(&C_clab_r_hypq), 5},
+    {"C_clab_r_sqrtlw", fn(&C_clab_r_sqrtlw), 5},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

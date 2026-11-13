@@ -166,7 +166,11 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(cusrv(c(3, 5, 9, 4), start = 2)),
          c("i", "y", "expd", "z", "s", "alarm")),
     list(quote(xcser(c(3, 5, 9, 4), 1:4)), c("cor", "ccf", "common", "level")),
-    list(quote(kmrec(c(3, 5, 9, 4))), c("km", "med", "lr", "n", "level"))
+    list(quote(kmrec(c(3, 5, 9, 4))), c("km", "med", "lr", "n", "level")),
+    list(quote(hypq(1, matrix(1, 1, 1))),
+         c("state", "wl", "disp", "queue", "pfull", "lq", "wq", "rho",
+           "travel")),
+    list(quote(sqrtlw(100, 4)), c("dist", "const", "avail", "time"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

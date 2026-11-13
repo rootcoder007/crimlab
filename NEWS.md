@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* `hypq()` solves Larson's hypercube queue of patrol units exactly
+  (workloads, dispatch shares, lost or waiting calls, travel times) and
+  `sqrtlw()` gives Kolesar and Blum's square-root law of response distance;
+  `proof("sqrtlw")` names its scaling theorems.
 * `kmrec()` gives Kaplan-Meier curves by group with Greenwood's standard
   errors, `survfit()`'s log-scale intervals and medians, and the log-rank
   test; with `unit` it takes event times and studies the gaps between a

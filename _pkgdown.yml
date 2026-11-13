@@ -201,6 +201,8 @@ reference:
       - cusrv
       - xcser
       - kmrec
+      - hypq
+      - sqrtlw
   - title: Proofs
     contents:
       - proof

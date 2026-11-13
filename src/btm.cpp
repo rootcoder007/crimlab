@@ -91,6 +91,18 @@ std::vector<int> picks(SEXP s, const char *nm, const char *const *opt, int n) {
 
 double pos1(SEXP x, const char *nm) { return REAL(clab::num(x, nm, 1, 0.0, true))[0]; }
 
+// The values of a numeric matrix: finite, at least lo (protected by the
+// caller).
+SEXP numat(SEXP x, const char *nm, double lo) {
+  clab::unlab(x, nm);
+  if (!clab::isnum(x)) fail("`%s` must hold numbers.", nm);
+  SEXP d = clab::dbl(x);
+  for (R_xlen_t i = 0; i < XLENGTH(d); ++i) {
+    if (!std::isfinite(REAL(d)[i]) || REAL(d)[i] < lo) fail("`%s` must hold finite numbers from %g.", nm, lo);
+  }
+  return d;
+}
+
 // ------------------------------------------------------------ Hawkes
 
 const char *const kinds[] = {"exp", "weibull", "lomax"};
@@ -764,3 +776,109 @@ SEXP C_clab_r_kmrec(SEXP time, SEXP event, SEXP grp, SEXP unit, SEXP end, SEXP l
 }
 
 }  // extern "C"
+
+extern "C" {
+
+SEXP C_clab_r_hypq(SEXP lam, SEXP pref, SEXP mu, SEXP queue, SEXP tt) {
+  clab::who = "hypq";
+  prot p;
+  static const char *const qs[] = {"loss", "wait"};
+  SEXP lv = p(clab::num(lam, "lam", -1, 0.0, true));
+  const int m = clab::ilen(static_cast<double>(XLENGTH(lv)), "lam");
+  const double u = pos1(mu, "mu");
+  const int w = csp::pick(queue, "queue", qs, 2);
+  // the orders: an m x n matrix of unit numbers, or a list of m vectors
+  int n = -1;
+  std::vector<int> pr;
+  if (TYPEOF(pref) == VECSXP) {
+    if (XLENGTH(pref) != m) fail("`pref` must hold one order per atom, %d.", m);
+    n = static_cast<int>(XLENGTH(VECTOR_ELT(pref, 0)));
+    pr.assign(static_cast<std::size_t>(m * n), 0);
+    for (int j = 0; j < m; ++j) {
+      SEXP v = VECTOR_ELT(pref, j);
+      if (XLENGTH(v) != n) fail("`pref`: every order must list all %d units.", n);
+      SEXP d = p(clab::num(v, "pref"));
+      for (int r = 0; r < n; ++r) pr[static_cast<std::size_t>(j + r * m)] = static_cast<int>(REAL(d)[r]) - 1;
+    }
+  } else {
+    if (!Rf_isMatrix(pref) || Rf_nrows(pref) != m) fail("`pref` must be a matrix with one row per atom, %d, or a list.", m);
+    n = Rf_ncols(pref);
+    SEXP d = p(numat(pref, "pref", R_NegInf));
+    pr.resize(static_cast<std::size_t>(m * n));
+    for (int i = 0; i < m * n; ++i) pr[static_cast<std::size_t>(i)] = static_cast<int>(REAL(d)[i]) - 1;
+  }
+  for (std::size_t i = 0; i < pr.size(); ++i) {
+    if (pr[i] < 0 || pr[i] >= n) fail("`pref` must hold unit numbers from 1 to %d.", n);
+  }
+  if (n > 10) fail("at most 10 units: the model has 2^n states.");
+  const std::size_t s = static_cast<std::size_t>(1) << n;
+  std::vector<double> pst(s), wl(static_cast<std::size_t>(n)), dp(static_cast<std::size_t>(n * m)), work(s * s + s);
+  double st[3];
+  const int rc = clab_hypq(REAL(lv), pr.data(), m, n, u, w, pst.data(), wl.data(), dp.data(), st, work.data());
+  if (rc != CLAB_OK) {
+    fail(w ? "every order must list each unit once, and the calls must be fewer than the units "
+             "can serve (rho below 1) for a queue."
+           : "every order must list each unit once.");
+  }
+  SEXP bs = p(Rf_allocVector(STRSXP, static_cast<R_xlen_t>(s)));
+  for (std::size_t b = 0; b < s; ++b) {
+    std::string k;
+    for (int v = 0; v < n; ++v) k += ((b >> v) & 1u) ? '1' : '0';
+    SET_STRING_ELT(bs, static_cast<R_xlen_t>(b), Rf_mkChar(k.c_str()));
+  }
+  SEXP dm = p(Rf_allocMatrix(REALSXP, n, m));
+  std::copy(dp.begin(), dp.end(), REAL(dm));
+  double big = 0;
+  for (int j = 0; j < m; ++j) big += REAL(lv)[j];
+  SEXP trv = R_NilValue;
+  if (!Rf_isNull(tt)) {
+    if (!Rf_isMatrix(tt) || Rf_nrows(tt) != n || Rf_ncols(tt) != m) {
+      fail("`tt` must be a matrix of travel times, one row per unit and one column per atom.");
+    }
+    SEXP tv = p(numat(tt, "tt", 0.0));
+    std::vector<double> at(static_cast<std::size_t>(m));
+    double num = 0, den = 0;
+    for (int j = 0; j < m; ++j) {
+      double a = 0, b = 0;
+      for (int v = 0; v < n; ++v) {
+        a += dp[static_cast<std::size_t>(v + j * n)] * REAL(tv)[v + j * n];
+        b += dp[static_cast<std::size_t>(v + j * n)];
+      }
+      at[static_cast<std::size_t>(j)] = a / b;
+      num += a;
+      den += b;
+    }
+    trv = nlist(p, {{"mean", p(Rf_ScalarReal(num / den))}, {"atom", dvec(p, at.data(), m)}});
+  }
+  SEXP out = nlist(p, {{"state", frame(p, {{"busy", bs}, {"p", dvec(p, pst.data(), static_cast<int>(s))}})},
+                       {"wl", dvec(p, wl.data(), n)},
+                       {"disp", dm},
+                       {"queue", p(Rf_mkString(qs[w]))},
+                       {"pfull", p(Rf_ScalarReal(st[0]))},
+                       {"lq", p(Rf_ScalarReal(st[1]))},
+                       {"wq", p(Rf_ScalarReal(st[1] / big))},
+                       {"rho", p(Rf_ScalarReal(st[2]))},
+                       {"travel", trv}});
+  Rf_classgets(out, p(Rf_mkString("hypq")));
+  return out;
+}
+
+SEXP C_clab_r_sqrtlw(SEXP area, SEXP units, SEXP busy, SEXP metric, SEXP speed) {
+  clab::who = "sqrtlw";
+  prot p;
+  static const char *const ms[] = {"euclid", "grid"};
+  const double a = pos1(area, "area"), un = pos1(units, "units");
+  const double b = REAL(clab::num(busy, "busy", 1, 0.0))[0];
+  if (!(b < 1)) fail("`busy` must be below 1: some units must be free.");
+  const int mt = csp::pick(metric, "metric", ms, 2);
+  double d, c;
+  clab_sqrtlw(a, un, b, mt, &d, &c);
+  const double tm = Rf_isNull(speed) ? NA_REAL : d / pos1(speed, "speed");
+  return nlist(p, {{"dist", p(Rf_ScalarReal(d))},
+                   {"const", p(Rf_ScalarReal(c))},
+                   {"avail", p(Rf_ScalarReal(un * (1 - b)))},
+                   {"time", p(Rf_ScalarReal(tm))}});
+}
+
+}  // extern "C"
+

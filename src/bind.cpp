@@ -2078,6 +2078,8 @@ const Thm thms[] = {
     {"trndrr", "Series", "mk_neg"},
     {"kmrec", "Recur", "km_factor"},
     {"kmrec", "Recur", "km_step"},
+    {"sqrtlw", "Patrol", "scale_invariant"},
+    {"sqrtlw", "Patrol", "four_units_half"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

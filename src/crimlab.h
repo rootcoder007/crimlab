@@ -2212,6 +2212,30 @@ int clab_kmrec(const double *time, const int *event, const int *grp, int n, int 
                double *se, double *lo, double *hi, double *med, double *lr, double *work,
                int *iwork);
 
+/* ------------------------------------------------------------------------
+ * Police operations research (hyq.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Larson's (1974) hypercube queue: n units (1 to 10) serving m atoms with
+ * calls at rates lam (> 0), each answered by the first free unit in its
+ * atom's order pref (m x n, column-major, row j a permutation of the
+ * units 0..n-1), service at rate mu > 0. wait 0: a call finding every
+ * unit busy is lost; 1: it waits (the infinite line, lam's total below n
+ * mu), the queue lumped into the all-busy state. Out: pst (2^n), the
+ * stationary probability of each set of busy units (bit u for unit u); wl
+ * (n), each unit's workload; disp (n x m), the share of all calls from
+ * atom j answered at once by unit u; st (3): the loss or waiting
+ * probability, the mean queue (0 for loss) and rho = lam's total / (n
+ * mu). work: 4^n + 2^n doubles. Exact by Gaussian elimination. */
+int clab_hypq(const double *lam, const int *pref, int m, int n, double mu, int wait,
+              double *pst, double *wl, double *disp, double *st, double *work);
+
+/* Kolesar and Blum's (1973) square-root law: the mean distance from a
+ * call to the nearest available unit, c sqrt(area / (units (1 - busy))),
+ * with c = 1/2 for straight-line travel (metric 0) and sqrt(2 pi) / 4 on a
+ * rectangular street grid (metric 1). area, units > 0; busy in [0, 1). */
+int clab_sqrtlw(double area, double units, double busy, int metric, double *d, double *c);
+
 #ifdef __cplusplus
 }
 #endif
