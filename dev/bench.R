@@ -687,6 +687,8 @@ md <- c(
           length(rs), paste(st, collapse = "; "), length(rs),
           if (nzchar(Sys.getenv("BENCH_NOTE"))) paste0(" ", Sys.getenv("BENCH_NOTE")) else ""),
   "",
+  "This is one of three speed tables: this one covers the functions of the disparity, forensic, policing and corrections families (with the network functions in net.csv, from dev/bench-net.R); the spatial functions are in sp.csv (dev/bench-sp.R) and the learners in dml.csv.",
+  "",
   "Median seconds per call; ratio = other / crimlab (above 1: crimlab faster). Kind: third, another package; own, rmorie (the maintainer's own package); base, a base-R implementation of the formula where no package computes the quantity.",
   "",
   "| function | counterpart | kind | n | of | crimlab | other | ratio | lo | hi | agree |",

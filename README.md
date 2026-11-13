@@ -109,7 +109,9 @@ implementation of the formula, and no claim is made against the field. The
 tables, with the machine, its load during each run and the spread over
 three runs, are [inst/bench/bench.md](inst/bench/bench.md) (and
 `bench.csv`) and `inst/bench/net.csv`. The lists below are written by the
-same scripts from those tables.
+same scripts from those tables. The spatial functions and the learners
+have speed tables of their own, `inst/bench/sp.csv` (`dev/bench-sp.R`) and
+`inst/bench/dml.csv`; the three name their columns alike.
 
 <!-- bench start: written by dev/bench.R -->
 Faster, by at least a tenth, than every package that computes the same quantity, at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `gtmp()`, `kinidx()`, `patidx()`, `mixlr()`, `cllr()`, `cllrmin()`, `lrcal()`, `eceplt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`.
