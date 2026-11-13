@@ -128,7 +128,18 @@ test_that("every exported function answers one valid call in its shape", {
          c("area", "group", "truth", "det", "risk")),
     list(quote(nordet(cbind(0, 0), cbind(1, 0), 2)), c("k", "prob")),
     list(quote(oaxbd(c(1, 2, 3, 6, 7, 9), NULL, c(1, 1, 1, 2, 2, 2))),
-         c("groups", "means", "coef", "dec", "by"))
+         c("groups", "means", "coef", "dec", "by")),
+    list(quote(didfe(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
+                     rep(1:2, each = 10), c(rep(0, 15), rep(1, 5)))),
+         c("coef", "fit", "vcov", "loo", "bacon", "match", "fam", "level")),
+    list(quote(evtst(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
+                     rep(1:2, each = 10), rep(rep(c(NA, 2), each = 5), 2),
+                     leads = 1, lags = 0)),
+         c("est", "pre", "vcov", "coh", "n", "ncl", "level")),
+    list(quote(stgdid(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
+                      rep(1:2, each = 10), rep(rep(c(NA, 2), each = 5), 2),
+                      reps = 0)),
+         c("att", "overall", "dynamic", "meth", "ctrl", "reps", "level"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

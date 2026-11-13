@@ -177,6 +177,13 @@ reference:
       likelihood from the same nuisances.
     contents:
       - dmlx
+  - title: Policy evaluation
+    desc: Difference in differences with fixed effects, event studies and
+      staggered adoption.
+    contents:
+      - didfe
+      - evtst
+      - stgdid
   - title: Proofs
     contents:
       - proof

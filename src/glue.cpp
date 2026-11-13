@@ -426,6 +426,13 @@ SEXP C_clab_r_hdbang(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_crwalk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rnnhcl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP);
+// The policy-evaluation families (bdid.cpp).
+SEXP C_clab_r_didfe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                    SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_evtst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                    SEXP, SEXP);
+SEXP C_clab_r_stgdid(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -561,6 +568,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_hdbang", fn(&C_clab_r_hdbang), 9},
     {"C_clab_r_crwalk", fn(&C_clab_r_crwalk), 6},
     {"C_clab_r_rnnhcl", fn(&C_clab_r_rnnhcl), 10},
+    {"C_clab_r_didfe", fn(&C_clab_r_didfe), 16},
+    {"C_clab_r_evtst", fn(&C_clab_r_evtst), 14},
+    {"C_clab_r_stgdid", fn(&C_clab_r_stgdid), 13},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

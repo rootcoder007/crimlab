@@ -178,3 +178,15 @@
   takes `mtry` by the rule of grf by default; `dmlx()` adds two-way
   clusters, the experimental DiD scores (`score = "exp"`) and passes `tol`,
   `scr` and `hon` to its learners.
+* Policy evaluation on unit-by-period panels. `didfe()` is the two-way
+  fixed-effects difference in differences by least squares (alternating
+  projections, weights, one-way or two-way cluster-robust errors with the
+  small-sample factor of 'fixest'), or by Poisson or negative binomial
+  regression for counts, with the estimate leaving out each treated unit,
+  the Goodman-Bacon decomposition, and matching on the outcomes before
+  treatment. `evtst()` is the event study with the joint test of the leads
+  and the raw trends of each adoption cohort. `stgdid()` gives the
+  group-time effects of Callaway and Sant'Anna, with the doubly robust,
+  IPW and regression estimators for covariates, Wooldridge's regression on
+  cohort-period cells, and de Chaisemartin and D'Haultfoeuille's estimator
+  for treatments that switch on and off, with cluster-bootstrap errors.

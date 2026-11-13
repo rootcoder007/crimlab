@@ -1853,6 +1853,30 @@ int clab_ctabx(const double *x, int r, int c, int yates, const int *dg, double *
 int clab_fshx(const double *x, int r, int c, double cap, double conf, double *st,
               double *rem);
 
+/* ------------------------------------------------------------------------
+ * Policy evaluation on unit-by-period panels.
+ * ------------------------------------------------------------------------ */
+
+/* Two-way fixed-effects regression (didfe(), evtst()): y (n) on the p
+ * columns of x (n x p, column-major) with unit effects (fe 1; u, nu codes)
+ * and period effects (t, nt codes), by least squares after the within
+ * transformation (alternating projections until the means left are below
+ * tol of each column's largest value, at most maxit sweeps); w: NULL or n
+ * positive weights. The variance is CR1 by the clusters cl (ncl), or
+ * two-way with cl2 (ncl2; NULL for one-way): V1 + V2 - V12, each with the
+ * factor G / (G - 1) (n - 1) / (n - K) of G the smaller number of
+ * clusters, K = p + 1 + the levels less one of each fixed effect not
+ * nested in a cluster ('fixest's "nested" count). Out: beta (p), vc (p x
+ * p), st (5): the sweeps, G, K, the factor, the weighted residual sum of
+ * squares. work: n (p + 2) + p p + 2 (nu + nt) + (n + 2 p) p + p doubles;
+ * iwork: n + max(nu, nt, ncl ncl2) ints. CLAB_EDOM when a column of x is
+ * absorbed by the effects (or the columns are collinear), or the
+ * transformation does not converge. */
+int clab_didfe(const double *y, const double *x, int n, int p, const int *u, int nu,
+               const int *t, int nt, int fe, const double *w, const int *cl, int ncl,
+               const int *cl2, int ncl2, double tol, int maxit, double *beta, double *vc,
+               double *st, double *work, int *iwork);
+
 #ifdef __cplusplus
 }
 #endif
