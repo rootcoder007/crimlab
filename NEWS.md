@@ -61,6 +61,15 @@
   survey covers only some offences, and the offences behind incidents
   counted under the hierarchy rule. `proof("crcap")` and `proof("dkfig")`
   name the Lean theorems.
+* `bandx()` reads band labels ("1-5", "Over 60", "Under 10") into bounds,
+  places a value in each band, expands a banded frequency table and shows
+  how much a statistic depends on the cap assumed for an open band;
+  `pbbnd()` gives the bounds a rounded or suppressed published cell allows
+  and the envelope of the change between two published columns; `yoypx()`
+  gives year-over-year (or any period) change within groups with the exact
+  interval of the percent change, exact p-values adjusted for multiplicity,
+  and the envelope that rounding allows. `proof("pbbnd")` names the Lean
+  theorems on the envelope.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

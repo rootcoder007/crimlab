@@ -165,4 +165,5 @@ void t_mhk(tk &t, int big);
 void t_sev(tk &t, int big);
 void t_cnc(tk &t, int big);
 void t_dkf(tk &t, int big);
+void t_pub(tk &t, int big);
 #endif

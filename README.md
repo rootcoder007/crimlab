@@ -126,6 +126,9 @@ The functions work on summary data, not on raw records:
   or three overlapping lists (`crcap()`), and what a victimisation survey
   and recorded crime together say about the crime that is never recorded
   (`dkfig()`).
+* Published tables: what a banded category, a rounded or suppressed cell, or
+  a change between two published years can and cannot say (`bandx()`,
+  `pbbnd()`, `yoypx()`).
 
 ## Algorithms
 

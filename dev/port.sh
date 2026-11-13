@@ -66,6 +66,7 @@ src/mhk.cpp src/t_mhk.cpp
 src/sev.cpp src/t_sev.cpp
 src/cnc.cpp src/t_cnc.cpp
 src/dkf.cpp src/t_dkf.cpp
+src/pub.cpp src/t_pub.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$

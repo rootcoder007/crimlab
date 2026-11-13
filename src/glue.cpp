@@ -486,6 +486,11 @@ SEXP C_clab_r_hilltl(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_hzta(SEXP, SEXP);
 SEXP C_clab_r_crcap(SEXP, SEXP, SEXP);
 SEXP C_clab_r_dkfig(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bandx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pbbnd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                    SEXP, SEXP);
+SEXP C_clab_r_yoypx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                    SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -671,6 +676,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_hzta", fn(&C_clab_r_hzta), 2},
     {"C_clab_r_crcap", fn(&C_clab_r_crcap), 3},
     {"C_clab_r_dkfig", fn(&C_clab_r_dkfig), 10},
+    {"C_clab_r_bandx", fn(&C_clab_r_bandx), 8},
+    {"C_clab_r_pbbnd", fn(&C_clab_r_pbbnd), 12},
+    {"C_clab_r_yoypx", fn(&C_clab_r_yoypx), 11},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

@@ -178,6 +178,13 @@ reference:
     contents:
       - crcap
       - dkfig
+  - title: Published tables
+    desc: Banded categories, the bounds that rounding and suppression leave, and
+      period-over-period change with exact tests.
+    contents:
+      - bandx
+      - pbbnd
+      - yoypx
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

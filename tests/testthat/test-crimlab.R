@@ -202,7 +202,12 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(hilltl(c(1, 2, 4, 8), xmin = 1)),
          c("alpha", "se", "xmin", "ntl", "ks", "reliable", "method")),
     list(quote(crcap(c(10, 8, 4))), c("type", "est", "pairs", "sens")),
-    list(quote(dkfig(k = c(1, 2))), c("bnd", "cmp", "hier"))
+    list(quote(dkfig(k = c(1, 2))), c("bnd", "cmp", "hier")),
+    list(quote(bandx("1-5")), c("bands", "vals", "sens", "span", "relspan")),
+    list(quote(pbbnd(1)), c("bnd", "chg")),
+    list(quote(yoypx(1:2, 1:2)),
+         c("prd", "value", "prev", "change", "pctchg", "flag", "pctlo",
+           "pctup", "p", "padj", "signif"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

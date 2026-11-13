@@ -2093,6 +2093,8 @@ const Thm thms[] = {
     {"crcap", "Dark", "petersen_bounds"},
     {"dkfig", "Dark", "rate_lower"},
     {"dkfig", "Dark", "rate_upper"},
+    {"pbbnd", "Published", "chg_envelope"},
+    {"pbbnd", "Published", "pct_envelope"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

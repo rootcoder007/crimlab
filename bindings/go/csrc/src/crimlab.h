@@ -2444,6 +2444,49 @@ int clab_dkcmp(double va, double ra, double rb, double lam, double *out);
  * the offences behind n recorded incidents. */
 int clab_dkhier(const double *k, int n, double *out);
 
+/* Values for banded categories (bandx): n bands with lower and upper
+ * ends lo, hi (NaN where a label could not be read), olo[i] / oup[i]
+ * non-zero for a band open below / above. An open top band ends at cap,
+ * or (cap NaN) at fac > 0 times its start; an open bottom band starts at
+ * flr, or (flr NaN) at min(0, its end); CLAB_EDOM when that puts its ends
+ * in the wrong order. rule: 0 the midpoint, 1 the lower end, 2 the upper
+ * end, 3 the geometric mean (the midpoint where the lower end is not
+ * above 0). Out, n each: val, and the ends used blo, bhi. */
+int clab_bandx(const double *lo, const double *hi, const int *olo, const int *oup, int n, int rule,
+               double cap, double fac, double flr, double *val, double *blo, double *bhi);
+
+/* Bounds of published cells (pbbnd): val, n numbers from 0 (NaN for
+ * none); st: 0 a number, 1 suppressed, 2 missing; lim: for a suppressed
+ * cell its "<k" limit, NaN to use sup. rnd: NaN, or the rounding base:
+ * kind 0 to the nearest multiple (+- rnd / 2), 1 random rounding (+- (rnd
+ * - 1)); the lower end is floored at 0. A suppressed cell lies in [0, k -
+ * 1] (CLAB_EDOM without a positive limit). Out, n each: lo, hi, and sto:
+ * 0 exact, 1 rounded, 2 suppressed, 3 missing (lo, hi NaN). */
+int clab_pbbnd(const double *val, const int *st, const double *lim, int n, double rnd, int kind,
+               double sup, double *lo, double *hi, int *sto);
+
+/* The change between two published values known only within [nlo, nhi]
+ * (now) and [plo, phi] (before), n of them (pbbnd, yoypx). pop, ppop: NULL
+ * or n positive populations; per > 0. Out (8 n, n each): the change's
+ * bounds nlo - phi and nhi - plo; the percent change's, 100 (nlo / phi -
+ * 1) and 100 (nhi / plo - 1) (NaN at a zero denominator); the rate's per
+ * per of pop now and before (NaN without a population). */
+int clab_pbchg(const double *nlo, const double *nhi, const double *plo, const double *phi, int n,
+               const double *pop, const double *ppop, double per, double *out);
+
+/* Period over period change (yoypx): v, n values; prd, their finite
+ * periods; grp, their groups; rows sorted by group, then period, a period
+ * at most once in a group (CLAB_EARG otherwise). Out, n each: prev, the
+ * value at period prd - lag (lag > 0) in the same group (NaN for none);
+ * chg = v - prev; pct = 100 chg / prev (NaN for a zero prev). */
+int clab_yoypx(const double *v, const double *prd, const int *grp, int n, double lag, double *prev,
+               double *chg, double *pct);
+
+/* Adjusted p-values (yoypx), as p.adjust(): p, n values in [0, 1]; meth 0
+ * none, 1 Bonferroni, 2 Holm, 3 Hochberg, 4 Benjamini-Hochberg, 5
+ * Benjamini-Yekutieli. Out: q (n). o: n ints of scratch. */
+int clab_pbadj(const double *p, int n, int meth, double *q, int *o);
+
 #ifdef __cplusplus
 }
 #endif
