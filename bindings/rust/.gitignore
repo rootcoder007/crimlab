@@ -1,0 +1,6 @@
+# made by tools/vendor.sh, for `cargo package`
+/vendor/
+/LICENSE
+/NOTICE
+/target/
+Cargo.lock

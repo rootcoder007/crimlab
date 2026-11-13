@@ -18,3 +18,4 @@
 ^cli$
 ^packaging$
 ^\.copr$
+^bindings$

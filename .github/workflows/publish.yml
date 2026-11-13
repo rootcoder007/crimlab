@@ -29,12 +29,13 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: the tag, DESCRIPTION, the spec and the Debian changelog agree
+      - name: the tag, DESCRIPTION, the spec, the Debian changelog and Cargo.toml agree
         run: |
           v=${GITHUB_REF_NAME#v}
           grep -qx "Version: $v" DESCRIPTION
           grep -qx "Version:        $v" packaging/rpm/crimlab.spec
           grep -q "^crimlab ($v-" packaging/debian/changelog
+          grep -qx "version = \"$v\"" bindings/rust/Cargo.toml
 
   copr:
     # Fedora COPR; secret CLAB_COPR_CONFIG, the text of ~/.config/copr (the
@@ -68,4 +69,33 @@ jobs:
           unset CFG
           copr-cli build crimlab out/crimlab-*.src.rpm
           rm -f "$HOME/.config/copr"
+
+  crate:
+    # crates.io; secret CARGO_REGISTRY_TOKEN, a token scoped to
+    # publish-update of crimlab
+    needs: versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: bindings/rust
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: rustup toolchain install stable --profile minimal && rustup default stable
+      - name: publish (secret CARGO_REGISTRY_TOKEN)
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          sh tools/vendor.sh
+          if [ -z "$CARGO_REGISTRY_TOKEN" ]; then
+            echo "::warning::CARGO_REGISTRY_TOKEN is not set: the crate is not published"
+            cargo publish --dry-run --allow-dirty
+            exit 0
+          fi
+          cargo publish --allow-dirty
 

@@ -1,0 +1,36 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+[package]
+name = "crimlab"
+version = "0.0.0-9000"
+edition = "2021"
+rust-version = "1.73"
+description = "Criminology and sociolegal statistics: the crimlab C++ kernels, compiled in, called by name with JSON"
+license = "Apache-2.0 WITH LLVM-exception"
+authors = ["Vansh Singh Ruhela"]
+repository = "https://github.com/rootcoder007/crimlab"
+homepage = "https://github.com/rootcoder007/crimlab/tree/main/bindings/rust"
+readme = "README.md"
+keywords = ["statistics", "criminology", "forensics", "policing", "courts"]
+categories = ["science", "api-bindings"]
+links = "crimlab"
+build = "build.rs"
+# vendor/ is a copy of the kernels (../../src without the R binding) and
+# ../../cli/jrun.cpp made by tools/vendor.sh (and ignored by git), so the
+# packaged crate builds on its own
+include = [
+  "Cargo.toml",
+  "build.rs",
+  "README.md",
+  "LICENSE",
+  "NOTICE",
+  "src/**/*.rs",
+  "tests/**/*.rs",
+  "vendor/**/*.cpp",
+  "vendor/**/*.h",
+  "vendor/**/*.inc",
+]
+
+[dependencies]
+
+[build-dependencies]
+cc = "1.2"
