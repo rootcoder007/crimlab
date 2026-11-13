@@ -2833,6 +2833,60 @@ int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
                const double *s0, const int *g, int ng, double *mu, double *sd, double *st,
                double *gm, double *lam, int *nj, double *work);
 
+/* ------------------------------------------------------------------------
+ * Deterrence theory: the offender's response to certainty and severity,
+ * the identification of a sanction design, the inspection game, collider
+ * bias in arrest data.
+ * ------------------------------------------------------------------------ */
+
+/* The offending an offender chooses from a menu: n >= 1 levels x (strictly
+ * increasing), the benefit b of each and the sanction s (strictly
+ * increasing). For each of np certainties p (at least 0) the levels
+ * maximising b - p s: xo the largest of them (within 1e-12 of the
+ * maximum), v the maximum. */
+int clab_detrsp(const double *x, const double *b, const double *s, int n, const double *p,
+                int np, double *xo, double *v);
+
+/* Which partial effects a deterrence design identifies: the n regimes'
+ * certainty p, severity s and celerity c (lg 1: log p and log s, both
+ * positive) in the linear response y = b0 + b1 p + b2 s + b3 c. Out: rank,
+ * the rank of the design (1, p, s, c) (a column whose part not explained
+ * by those before it is below 1e-7 of its norm adds nothing); ident (3),
+ * 1 when the coefficient of p, s, c is identified (full rank, or leaving
+ * the column out lowers the rank); cst (3), 1 when the dimension does not
+ * vary; with y (n, else NULL) and full rank, beta (4), the least-squares
+ * coefficients. CLAB_EDOM for y with a rank below 4. work: 8 n doubles. */
+int clab_dtrid(const double *p, const double *s, const double *c, int n, int lg, const double *y,
+               int *rank, int *ident, int *cst, double *beta, double *work);
+
+/* The criminal-citizen-inspector game of rock-paper-scissors type
+ * (stake a, not 0): replicator dynamics x_i' = a x_i (x_{i+1} - x_{i+2})
+ * from x0 (three shares from 0 summing to 1 within 1e-10), steps
+ * fourth-order Runge-Kutta steps of size dt > 0. Out: traj ((steps + 1)
+ * by 3, column-major), v (steps + 1), the invariant x1 x2 x3 along it; f0
+ * (3), the field at x0; dv, dV/dt at x0 (0). */
+int clab_inspg(double a, const double *x0, int steps, double dt, double *traj, double *v,
+               double *f0, double *dv);
+
+/* The inspection game of cooperators, criminals and inspectors over a
+ * grid of temptations T (nt) and inspection costs g (ng): payoffs C (1, 0,
+ * 1), P (T, 0, T - 1), O (1 - g, 1 - g, 1 - g) against (C, P, O); from x0
+ * (three shares from 0, positive sum, normalised), steps discrete
+ * replicator steps x += rate x (f - mean f), negative shares set to 0 and
+ * the shares normalised. Out: out (3 nt ng, the
+ * final shares of C, P and O, each nt by ng, column-major). */
+int clab_insphs(const double *T, int nt, const double *g, int ng, int steps, double rate,
+                const double *x0, double *out);
+
+/* Collider bias of arrest data: two independent causes of arrest of
+ * prevalences a and e (n each, strictly between 0 and 1) and a background
+ * cause bg (from 0 to 1), arrest when any is present. Out: cells (4 n,
+ * each n: the shares of the arrestees with both causes, a only, e only,
+ * neither) and orr (n), the odds ratio of a and e among the arrestees,
+ * which equals bg. */
+int clab_colarr(const double *a, const double *e, const double *bg, int n, double *cells,
+                double *orr);
+
 #ifdef __cplusplus
 }
 #endif

@@ -507,6 +507,12 @@ SEXP C_clab_r_dktflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_lftab(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_trnmat(SEXP, SEXP, SEXP);
+// Deterrence theory (bdtr.cpp).
+SEXP C_clab_r_detrsp(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dtrid(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_inspg(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_insphs(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_colarr(SEXP, SEXP, SEXP);
 // Taphonomy (btph.cpp).
 SEXP C_clab_r_clrilr(SEXP, SEXP, SEXP);
 SEXP C_clab_r_preslr(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -723,6 +729,11 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dktflw", fn(&C_clab_r_dktflw), 12},
     {"C_clab_r_lftab", fn(&C_clab_r_lftab), 6},
     {"C_clab_r_trnmat", fn(&C_clab_r_trnmat), 3},
+    {"C_clab_r_detrsp", fn(&C_clab_r_detrsp), 4},
+    {"C_clab_r_dtrid", fn(&C_clab_r_dtrid), 6},
+    {"C_clab_r_inspg", fn(&C_clab_r_inspg), 4},
+    {"C_clab_r_insphs", fn(&C_clab_r_insphs), 5},
+    {"C_clab_r_colarr", fn(&C_clab_r_colarr), 3},
     {"C_clab_r_clrilr", fn(&C_clab_r_clrilr), 3},
     {"C_clab_r_preslr", fn(&C_clab_r_preslr), 5},
     {"C_clab_r_tpdmc", fn(&C_clab_r_tpdmc), 7},
