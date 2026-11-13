@@ -201,8 +201,10 @@ for (n in sizes) {
        eq(x, betweenness(ig, weights = NA), 1e-9), 1e-9,
        function() tm(betweenness(ig, weights = NA)), tb)
     cp("ntbtw", "sna::betweenness", n, m, cs,
-       eq(x, sna::betweenness(sel, gmode = "graph"), 1e-9), 1e-9,
-       function() tm(sna::betweenness(sel, gmode = "graph")))
+       if (small) eq(x, sna::betweenness(sel, gmode = "graph"), 1e-9) else NA,
+       1e-9, function() tm(sna::betweenness(sel, gmode = "graph")),
+       skip = paste("not run: at 1e4 nodes sna's betweenness outgrew the",
+                    "memory of the 8 GB timing machine (it swapped)"))
     tbw <- if (small) tnet::betweenness_w(tel, alpha = 0)
     cp("ntbtw", "tnet::betweenness_w", n, m, cs,
        if (small) eq(x[tbw[, 1]], tbw[, 2], 1e-9) else NA, 1e-9,
