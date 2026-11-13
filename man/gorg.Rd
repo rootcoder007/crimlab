@@ -28,6 +28,8 @@ its expectation \code{S0 / (n (n - 1))} and variance under randomisation, the
 z statistic, its upper normal tail (high values near high values) and,
 with \code{nsim > 0}, a permutation p-value. Unlike Moran's I and Geary's C it
 tells high-value clusters from low-value ones.
+Its expectation under randomisation is proved in Lean: see
+\code{proof("gorg")}.
 }
 \examples{
 set.seed(1)

@@ -85,6 +85,8 @@ eqinv <- function(x, y = NULL, lon0, lat0, r = 6371008.8) {
 #' dispersions divide by the total weight less `k`: `k = 1` makes the
 #' squared values unbiased for the variances; `k = 2` is the convention of
 #' some crime-mapping texts; `k = 0` divides by the total weight.
+#' That the mean centre minimises the weighted sum of squared distances is
+#' proved in Lean: see `proof("cgstat")`.
 #'
 #' @param x,y The points: `x` and `y` numeric vectors of equal length; or
 #'   `x` a matrix or data frame with columns named `x` and `y` (or `X` and
@@ -199,6 +201,8 @@ webpt <- function(x, y = NULL, w = NULL, start = NULL, tol = 1e-10,
 #' this ellipse (Gong 2002); the ellipse is returned. For bivariate normal
 #' points the ellipse with `c = sqrt(-2 * log(1 - p))` covers a share `p` of
 #' them: `c = 1` covers 39.3 per cent, `c = 2` 86.5 per cent.
+#' The parallel-axis identity behind the ellipse's centre is proved in Lean:
+#' see `proof("sdell")`.
 #'
 #' @inheritParams cgstat
 #' @param c The multiplier of the standard deviations: one positive number.

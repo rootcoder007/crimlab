@@ -52,7 +52,8 @@ variance \code{1 - R} and the circular standard deviation
 \verb{sqrt(-2 log R)} (Mardia and Jupp 2000). Directions are given as angles,
 or as points seen from an origin (the directions of incidents from an
 offender's base, say). The mean direction of points depends on the
-origin chosen.
+origin chosen. That \code{R} lies in \verb{[0, 1]} is proved in Lean: see
+\code{proof("dirmn")}.
 }
 \examples{
 dirmn(c(1, 2, 0), c(1, 1, 3), origin = c(0, 0))

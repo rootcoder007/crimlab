@@ -32,7 +32,8 @@ from the others, \code{nsim} times from \code{seed}. The quadrant tells
 high-high and low-low clusters from high-low and low-high outliers. The
 p-values are per unit and not adjusted for the many tests made (use
 \code{\link[stats:p.adjust]{stats::p.adjust()}}); with row-standardised weights the sum of the \code{I_i}
-is \code{S0} times global Moran's I.
+is \code{S0} times global Moran's I. That identity is proved in Lean: see
+\code{proof("lmorn")}.
 }
 \examples{
 set.seed(1)

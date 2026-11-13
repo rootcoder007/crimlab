@@ -1914,6 +1914,12 @@ const Thm thms[] = {
     {"relchk", "RelChk", "rr_swap_ref"},
     {"relchk", "RelChk", "rd_swap_ref"},
     {"relchk", "RelChk", "rd_swap_event"},
+    {"cgstat", "Spatial", "mean_centre_minimises"},
+    {"sdell", "Spatial", "parallel_axis"},
+    {"lmorn", "Spatial", "lisa_sum"},
+    {"gearc", "Spatial", "geary_mean_one"},
+    {"gorg", "Spatial", "getis_mean"},
+    {"dirmn", "Spatial", "resultant_le_one"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

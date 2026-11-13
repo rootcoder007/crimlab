@@ -49,6 +49,8 @@ spwt <- function(x = NULL, y = NULL, type = "knn", k = 4, d = NULL,
 #' is given under normality and under randomisation (Cliff and Ord 1981),
 #' with z statistics `(1 - C) / sd` and their upper normal tails, and, with
 #' `nsim > 0`, a permutation p-value against positive autocorrelation.
+#' That C has expectation 1 under randomisation is proved in Lean: see
+#' `proof("gearc")`.
 #'
 #' @param x The values: finite numbers, one per unit.
 #' @param w The weights: [spwt()]'s list, or an spdep `listw` object, for as
@@ -82,6 +84,8 @@ gearc <- function(x, w, nsim = 0, seed = NULL) {
 #' z statistic, its upper normal tail (high values near high values) and,
 #' with `nsim > 0`, a permutation p-value. Unlike Moran's I and Geary's C it
 #' tells high-value clusters from low-value ones.
+#' Its expectation under randomisation is proved in Lean: see
+#' `proof("gorg")`.
 #'
 #' @inheritParams gearc
 #' @param x The values: finite numbers from 0, at least two positive.
@@ -110,7 +114,8 @@ gorg <- function(x, w, nsim = 0, seed = NULL) {
 #' high-high and low-low clusters from high-low and low-high outliers. The
 #' p-values are per unit and not adjusted for the many tests made (use
 #' [stats::p.adjust()]); with row-standardised weights the sum of the `I_i`
-#' is `S0` times global Moran's I.
+#' is `S0` times global Moran's I. That identity is proved in Lean: see
+#' `proof("lmorn")`.
 #'
 #' @inheritParams gearc
 #' @return A data frame with one row per unit: `ii` (I_i), `e`, `v`, `z`,
@@ -166,7 +171,8 @@ locgi <- function(x, w, star = TRUE) {
 #' `sqrt(-2 log R)` (Mardia and Jupp 2000). Directions are given as angles,
 #' or as points seen from an origin (the directions of incidents from an
 #' offender's base, say). The mean direction of points depends on the
-#' origin chosen.
+#' origin chosen. That `R` lies in `[0, 1]` is proved in Lean: see
+#' `proof("dirmn")`.
 #'
 #' @inheritParams cgstat
 #' @param origin For points: the origin `c(x, y)` (in degrees when

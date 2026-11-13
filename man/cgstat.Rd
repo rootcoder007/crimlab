@@ -48,6 +48,8 @@ point that minimises the sum of squared distances to the points. The
 dispersions divide by the total weight less \code{k}: \code{k = 1} makes the
 squared values unbiased for the variances; \code{k = 2} is the convention of
 some crime-mapping texts; \code{k = 0} divides by the total weight.
+That the mean centre minimises the weighted sum of squared distances is
+proved in Lean: see \code{proof("cgstat")}.
 }
 \examples{
 set.seed(1)
