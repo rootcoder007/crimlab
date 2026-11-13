@@ -163,7 +163,18 @@ for (p in c("netrics", "cograph")) {
 m <- rbind(m, data.frame(fn = "coofg", pkg = "manynet", pkgfn = "", same = "no",
                          own = FALSE, note = "calls igraph::bipartite_projection"))
 m$date <- "2026-11-12"
-fns <- sort(getNamespaceExports("crimlab"))
+# the functions this table covers: those of the disparity, forensic,
+# policing, corrections and network families (the spatial functions and
+# the learners have speed tables of their own)
+fns <- sort(c(
+  "cllr", "cllrmin", "clrsmp", "coofg", "dbsrch", "dspbm", "dyadrt",
+  "eceplt", "expbnd", "gtmp", "hzdsel", "incap", "incapr", "kinidx",
+  "losbnd", "lrcal", "lrpost", "misrd", "mixlr", "ntbrk", "ntbtw",
+  "ntchg", "ntcls", "ntcmp", "ntcore", "ntdeg", "ntevc", "ntlvn",
+  "ntmod", "orrisk", "outtst", "patidx", "proof", "rtmhs", "sellab",
+  "sntbnd", "tipplt", "vodtst"
+))
+stopifnot(length(fns) == 38L, all(m$fn %in% fns))
 miss <- setdiff(fns, m$fn)
 # the functions with no candidate at all
 m <- rbind(m, data.frame(fn = miss, pkg = "", pkgfn = "", same = "no",
