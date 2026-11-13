@@ -104,12 +104,13 @@ add <- function(meas, ref, n, m, cs, rs, rbs, ok, tol, note = "", l0 = NA,
               rs, sp, agree, note))
 }
 # a counterpart: check it and time it with crimlab's call (cs, a function
-# returning seconds), or record why it was not timed. A pair whose load
+# returning seconds), or record why it was not timed (skip). A pair whose load
 # rose by more than 1.5 while it was timed is timed again (up to 3 times).
-cp <- function(meas, ref, n, m, cs, ok, tol, run, build = NA, note = "") {
+cp <- function(meas, ref, n, m, cs, ok, tol, run, build = NA, note = "",
+               skip = "") {
   if (!isTRUE(ok)) {
     add(meas, ref, n, m, NA, NA, NA, if (is.na(ok)) NA else FALSE, tol,
-        if (is.na(ok)) note else "values differ")
+        if (is.na(ok)) skip else "values differ")
     return(invisible())
   }
   for (try in 1:3) {
@@ -182,7 +183,7 @@ for (n in sizes) {
      if (n <= 1e4) eq(x$deg[td[, 1]], td[, "degree"], 0) &&
        eq(x$wdeg[td[, 1]], td[, "output"], 1e-12) else NA, 1e-12,
      function() tm(tnet::degree_w(tel, measure = c("degree", "output"))),
-     note = "not run: tnet reshapes the edge list in R, minutes at 1e5")
+     skip = "not run: tnet reshapes the edge list in R, minutes at 1e5")
   cp("ntdeg", "netmem::gen_degree", n, m, cs,
      if (small) eq(x$deg, netmem::gen_degree(A, digraph = FALSE, loops = FALSE), 0) &&
        eq(x$wdeg, netmem::gen_degree(W, weighted = TRUE, digraph = FALSE,
@@ -191,7 +192,7 @@ for (n in sizes) {
        netmem::gen_degree(A, digraph = FALSE, loops = FALSE)
        netmem::gen_degree(W, weighted = TRUE, digraph = FALSE, loops = FALSE,
                           alpha = 1)
-     }), note = dense)
+     }), skip = dense)
 
   if (n <= 1e4) {
     x <- ntbtw(g$f, g$t, nodes = g$nodes)$btw
@@ -205,11 +206,11 @@ for (n in sizes) {
     tbw <- if (small) tnet::betweenness_w(tel, alpha = 0)
     cp("ntbtw", "tnet::betweenness_w", n, m, cs,
        if (small) eq(x[tbw[, 1]], tbw[, 2], 1e-9) else NA, 1e-9,
-       function() tm(tnet::betweenness_w(tel, alpha = 0)), note = slow)
+       function() tm(tnet::betweenness_w(tel, alpha = 0)), skip = slow)
     cp("ntbtw", "netmem::betweenness_centrality", n, m, cs,
        if (small) eq(x, netmem::betweenness_centrality(A, digraph = FALSE), 1e-9) else NA,
        1e-9, function() tm(netmem::betweenness_centrality(A, digraph = FALSE)),
-       note = dense)
+       skip = dense)
 
     x <- ntcls(g$f, g$t, nodes = g$nodes)
     cs <- function() tm(ntcls(g$f, g$t, nodes = g$nodes))
@@ -224,7 +225,7 @@ for (n in sizes) {
     cp("ntcls", "tnet::closeness_w", n, m, cs,
        if (small) eq(x$hrm[tc[, 1]], tc[, "closeness"], 1e-12) else NA, 1e-12,
        function() tm(tnet::closeness_w(tel, alpha = 0, gconly = FALSE)),
-       note = slow)
+       skip = slow)
     cp("ntcls", "netmem::closeness_centrality", n, m, cs,
        if (small) suppressWarnings(
          eq(x$cls, netmem::closeness_centrality(A, digraph = FALSE), 1e-12) &&
@@ -233,7 +234,7 @@ for (n in sizes) {
        1e-12, function() tm(suppressWarnings({
          netmem::closeness_centrality(A, digraph = FALSE)
          netmem::closeness_centrality(A, digraph = FALSE, harmonic = TRUE)
-       })), note = dense)
+       })), skip = dense)
   } else {
     for (x in c("ntbtw", "ntcls")) {
       add(x, "igraph", n, m, NA, NA, NA, NA, NA,
@@ -257,7 +258,7 @@ for (n in sizes) {
                                                      weighted = TRUE)$vector, 1e-6) else NA,
      1e-6, function() tm(netmem::eigenvector_centrality(Wc, digraph = FALSE,
                                                         weighted = TRUE)),
-     note = dense)
+     skip = dense)
 
   x <- ntcore(g$f, g$t, nodes = g$nodes)$core
   cs <- function() tm(ntcore(g$f, g$t, nodes = g$nodes))
@@ -268,7 +269,7 @@ for (n in sizes) {
      function() tm(sna::kcores(sel, mode = "graph", cmode = "freeman")))
   cp("ntcore", "netmem::k_core", n, m, cs,
      if (small) eq(x, netmem::k_core(A), 0) else NA, 0,
-     function() tm(netmem::k_core(A)), note = dense)
+     function() tm(netmem::k_core(A)), skip = dense)
 
   x <- ntcmp(g$f, g$t, nodes = g$nodes, dir = TRUE)
   cs <- function() tm(ntcmp(g$f, g$t, nodes = g$nodes, dir = TRUE))
@@ -289,7 +290,7 @@ for (n in sizes) {
      function() tm({
        netmem::components_id(Ad, "weak")
        netmem::components_id(Ad, "strong")
-     }), note = dense)
+     }), skip = dense)
 
   # Louvain is a heuristic: the check is the modularity reached
   x <- ntlvn(g$f, g$t, w = g$w, nodes = g$nodes, seed = 1)
@@ -310,7 +311,7 @@ for (n in sizes) {
   cp("ntmod", "netmem::modularity_score", n, m, cs,
      if (small) eq(x, netmem::modularity_score(W, memb, weighted = TRUE), 1e-12) else NA,
      1e-12, function() tm(netmem::modularity_score(W, memb, weighted = TRUE)),
-     note = dense)
+     skip = dense)
 
   grp <- rep_len(c("a", "b", "c"), n)
   x <- ntbrk(g$f, g$t, grp, nodes = g$nodes, dir = TRUE)
@@ -318,11 +319,11 @@ for (n in sizes) {
   cs <- function() tm(ntbrk(g$f, g$t, grp, nodes = g$nodes, dir = TRUE))
   cp("ntbrk", "sna::brokerage", n, m, cs,
      if (small) eq(xb, sna::brokerage(Ad, grp)$raw.nli[, 1:5], 0) else NA, 0,
-     function() tm(sna::brokerage(Ad, grp)), note = dense)
+     function() tm(sna::brokerage(Ad, grp)), skip = dense)
   cp("ntbrk", "netmem::brokerage_roles", n, m, cs,
      if (small) eq(xb, as.matrix(netmem::brokerage_roles(Ad, grp)[,
        c("coordinator", "consultant", "representative", "gatekeeper", "liaison")]), 0)
-     else NA, 0, function() tm(netmem::brokerage_roles(Ad, grp)), note = dense)
+     else NA, 0, function() tm(netmem::brokerage_roles(Ad, grp)), skip = dense)
 
   if (n <= 1e4) {
     cv <- ntchg(g$f[e], g$t[e], w = g$w[e], maxit = 2e4)$conv
@@ -363,7 +364,7 @@ for (n in sizes) {
        h <- tw[, 1] < tw[, 2]
        pw(g$nodes[tw[h, 1]], g$nodes[tw[h, 2]], tw[h, 3])
      } else NA, 0, function() tm(tp()), 0,
-     note = "not run: tnet reshapes the edge list in R, minutes at 1e5")
+     skip = "not run: tnet reshapes the edge list in R, minutes at 1e5")
   mp <- function() {
     b <- unclass(table(off, inc))
     b[b > 1] <- 1
@@ -375,7 +376,7 @@ for (n in sizes) {
        diag(p) <- 0
        i <- which(upper.tri(p) & p > 0, arr.ind = TRUE)
        pw(rownames(p)[i[, 1]], colnames(p)[i[, 2]], p[i])
-     } else NA, 0, function() tm(mp()), 0, note = dense)
+     } else NA, 0, function() tm(mp()), 0, skip = dense)
   cat("n =", n, "done\n")
 }
 

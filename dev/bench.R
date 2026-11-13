@@ -128,9 +128,10 @@ dna <- function(n) {
   ch <- cbind(mo[cbind(seq_len(n), sample(2, n, TRUE))],
               fa[cbind(seq_len(n), sample(2, n, TRUE))])
   fr <- function(g) matrix(fq[cbind(rep(seq_len(n), 2), c(g))], n)
-  # relSim's forms: a profile is the 2 x loci allele codes, the frequencies
-  # a list of one vector a locus
-  rp <- function(g) as.integer(c(t(g)))
+  # relSim's forms: a profile is the 2 x loci allele codes, the smaller
+  # first at each locus (as relSim's own profiles are: it reads an unsorted
+  # pair wrongly), the frequencies a list of one vector a locus
+  rp <- function(g) as.integer(apply(g, 1, sort))
   list(fq = fq, g1 = g1, g2 = g2, f1 = fr(g1), mo = mo, fa = fa, ch = ch,
        fc = fr(ch), ff = fr(fa), r1 = rp(g1), r2 = rp(g2), rch = rp(ch),
        rfa = rp(fa), rf = list(freqs = lapply(seq_len(n), function(i) fq[i, ])))
@@ -301,7 +302,7 @@ add("mixlr", "relSim::lrMix", 4, "alleles",
          fq = list(freqs = list(c(f, 1 - sum(f))), loci = "L1"))
   },
   mixlr(p, character(0), 0, c("3", "4"), 1), relSim::lrMix(pr, fq),
-  function(r) r[["lr"]], identity, case = "two people")
+  function(r) r[["lr"]], c, case = "two people")
 
 lrs <- function(n) {
   s <- exp(stats::rnorm(n / 2, 1, 1.5))
@@ -512,7 +513,7 @@ add("sntbnd", "rmorie::morie_sentence_effect_bounds", c(1e3, 1e5, 1e6),
     z <- sample(c("community", "custody"), n, TRUE, c(0.6, 0.4))
     list(z = z, y = stats::rbinom(n, 1, ifelse(z == "custody", 0.55, 0.35)))
   },
-  sntbnd(y, z), rmorie::morie_sentence_effect_bounds(y, z),
+  sntbnd(y, z, "custody"), rmorie::morie_sentence_effect_bounds(y, z),
   function(r) c(r$lower, r$upper, r$observed[3]),
   function(r) {
     c(r$outcome_bounds[, "lower"], r$ate_bounds[["lower"]],
