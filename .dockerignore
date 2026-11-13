@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# the image builds cli/ from src/; nothing else goes into the context
+*
+!src/
+!cli/
+!DESCRIPTION
+!LICENSE
+!NOTICE
+cli/build/
+cli/crimlab
+cli/libcrimlab*

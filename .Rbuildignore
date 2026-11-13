@@ -21,3 +21,5 @@
 ^bindings$
 ^install\.sh$
 ^install\.ps1$
+^Dockerfile$
+^\.dockerignore$
