@@ -120,12 +120,7 @@ print.sarml <- function(x, ...) {
 #' @export
 spill <- function(fit = NULL, w = NULL, rho = NULL, b = NULL, th = NULL) {
   if (is.null(fit)) {
-    if (is.null(w) || is.null(rho) || is.null(b)) {
-      stop("spill: give a sarml() fit, or `w`, `rho` and `b`.", call. = FALSE)
-    }
-    nm <- names(b)
-    if (is.null(nm)) nm <- paste0("x", seq_along(b))
-    return(.Call(C_clab_r_spill, w, rho, b, th, NULL, nm))
+    return(.spillx(w, rho, b, th))
   }
   if (!inherits(fit, "sarml") || !fit[["model"]] %in% c("lag", "sac")) {
     stop("spill: `fit` must be a sarml() fit of a lag or combined model; ",
@@ -141,4 +136,14 @@ spill <- function(fit = NULL, w = NULL, rho = NULL, b = NULL, th = NULL) {
   id <- c("rho", xs, lg)
   .Call(C_clab_r_spill, fit[["w"]], est[["rho"]], unname(est[xs]),
         if (nl > 0L) unname(est[lg]), v[id, id], xs)
+}
+
+# spill() without a fit: the effects of the coefficients given.
+.spillx <- function(w, rho, b, th) {
+  if (is.null(w) || is.null(rho) || is.null(b)) {
+    stop("spill: give a sarml() fit, or `w`, `rho` and `b`.", call. = FALSE)
+  }
+  nm <- names(b)
+  if (is.null(nm)) nm <- paste0("x", seq_along(b))
+  .Call(C_clab_r_spill, w, rho, b, th, NULL, nm)
 }

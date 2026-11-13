@@ -78,149 +78,15 @@ bandx <- function(
     relspan = NULL
   )
   if (!is.null(cnts)) {
-    if (
-      !is.numeric(cnts) ||
-        length(cnts) != nrow(b) ||
-        anyNA(cnts) ||
-        any(cnts < 0)
-    ) {
-      stop(
-        "bandx: `cnts` must be numbers from 0, one per band, ",
-        nrow(b),
-        ".",
-        call. = FALSE
-      )
-    }
-    lost <- is.na(v$value) & cnts > 0
-    if (any(lost) && !isTRUE(drop)) {
-      stop(
-        "bandx: these bands cannot be read: ",
-        paste(b$label[lost], collapse = ", "),
-        " (drop = TRUE leaves out their units).",
-        call. = FALSE
-      )
-    }
-    keep <- !is.na(v$value)
-    out$vals <- rep(v$value[keep], round(cnts[keep]))
+    out$vals <- .bvals(b, v$value, cnts, drop)
   }
   if (!is.null(stat)) {
-    if (!is.function(stat)) {
-      stop("bandx: `stat` must be a function of the values.", call. = FALSE)
+    run <- function(cp) {
+      bandx(x, cnts, rule, cp, fac, floor, clsup, intsca, drop = drop)$vals
     }
-    if (is.null(cnts) || !any(b$openup)) {
-      stop("bandx: `stat` needs `cnts` and an open top band.", call. = FALSE)
-    }
-    base <- min(b$lower[b$openup])
-    if (is.null(caps)) {
-      caps <- unique(round(
-        base * exp(seq(log(1.05), log(20), length.out = 12L)),
-        6L
-      ))
-    }
-    if (!is.numeric(caps) || !length(caps) || anyNA(caps)) {
-      stop("bandx: `caps` must be numbers.", call. = FALSE)
-    }
-    caps <- sort(unique(caps))
-    s <- vapply(
-      caps,
-      function(cp) {
-        e <- bandx(x, cnts, rule, cp, fac, floor, clsup, intsca, drop = drop)
-        r <- stat(e$vals)
-        if (!is.numeric(r) || length(r) != 1L) {
-          stop("bandx: `stat` must give one number.", call. = FALSE)
-        }
-        r
-      },
-      0
-    )
-    out$sens <- data.frame(cap = caps, value = s)
-    f <- s[is.finite(s)]
-    out$span <- if (length(f)) max(f) - min(f) else NA_real_
-    out$relspan <- if (length(f) && all(f != 0)) {
-      out$span / stats::median(abs(f))
-    } else {
-      NA_real_
-    }
+    out[c("sens", "span", "relspan")] <- .bsens(b, cnts, caps, stat, run)
   }
   structure(out, class = "bandx")
-}
-
-# The band labels read into ends: a data frame of label, lower, upper,
-# openlo and openup (NA ends where a label cannot be read).
-.bands <- function(x, clsup, intsca) {
-  if (!(is.character(x) || is.factor(x)) || !length(x)) {
-    stop("bandx: `x` must be band labels: text or a factor.", call. = FALSE)
-  }
-  for (a in list(list(clsup, "clsup"), list(intsca, "intsca"))) {
-    if (!is.logical(a[[1L]]) || length(a[[1L]]) != 1L || is.na(a[[1L]])) {
-      stop("bandx: `", a[[2L]], "` must be TRUE or FALSE.", call. = FALSE)
-    }
-  }
-  lab <- as.character(x)
-  s <- tolower(trimws(lab))
-  # the hyphens and dashes U+2010 to U+2015 and the minus sign U+2212
-  dash <- intToUtf8(c(0x2010:0x2015, 0x2212), multiple = TRUE)
-  s <- gsub(paste0("[", paste(dash, collapse = ""), "]"), "-", s)
-  s <- gsub("\\s+", " ", s)
-  s <- gsub("(?<=[0-9]),(?=[0-9]{3}(?![0-9]))", "", s, perl = TRUE)
-  n <- length(s)
-  lo <- up <- rep(NA_real_, n)
-  ol <- ou <- rep(FALSE, n)
-  num <- "(-?[0-9]*\\.?[0-9]+)"
-  cue <- paste0(
-    "\\b(over|above|more|plus|under|less|below|fewer|greater|",
-    "than|gt|lt)\\b"
-  )
-  for (i in seq_len(n)) {
-    z <- s[i]
-    if (is.na(z) || !nzchar(z)) {
-      next
-    }
-    m <- regmatches(
-      z,
-      regexec(
-        paste0("^([a-z]+ )?", num, " ?(?:to|-|through) ?", num, "([^0-9]*)$"),
-        z,
-        perl = TRUE
-      )
-    )[[1L]]
-    if (length(m) == 5L) {
-      a <- as.numeric(m[3L])
-      b <- as.numeric(m[4L])
-      if (
-        !grepl(cue, m[2L], perl = TRUE) &&
-          !grepl(cue, m[5L], perl = TRUE) &&
-          !grepl("+", m[5L], fixed = TRUE) &&
-          a <= b
-      ) {
-        lo[i] <- a
-        up[i] <- b
-      }
-      next
-    }
-    k <- regmatches(z, gregexpr("-?[0-9]*\\.?[0-9]+", z))[[1L]]
-    if (length(k) != 1L) {
-      next
-    }
-    v <- as.numeric(k)
-    st <- if (intsca && !grepl("[0-9]\\.[0-9]", z)) 1 else 0
-    if (grepl("(\\+\\s*$|and over|and above|or more|or over|plus\\s*$)", z)) {
-      lo[i] <- if (clsup) v else v + st
-      ou[i] <- TRUE
-    } else if (grepl("(greater than|more than|over|above|\\bgt\\b)", z)) {
-      lo[i] <- v + st
-      ou[i] <- TRUE
-    } else if (grepl("(or less|or fewer|and under|and below|or under)", z)) {
-      up[i] <- v
-      ol[i] <- TRUE
-    } else if (grepl("(less than|fewer than|under|below|^<|\\blt\\b)", z)) {
-      up[i] <- v - st
-      ol[i] <- TRUE
-    } else if (grepl("^-?[0-9]*\\.?[0-9]+$", z)) {
-      lo[i] <- up[i] <- v
-    }
-  }
-  data.frame(label = lab, lower = lo, upper = up, openlo = ol, openup = ou)
 }
 
 #' Bounds implied by rounding and suppression in a published table
@@ -285,45 +151,6 @@ pbbnd <- function(
     per
   )
   structure(r, class = "pbbnd")
-}
-
-# Published cells read: the number (NA for none), the status (0 a number,
-# 1 suppressed, 2 missing) and a suppressed cell's "<k" limit.
-.cells <- function(x, supmar, nm) {
-  if (!is.character(supmar)) {
-    stop("pbbnd: `supmar` must be text markers.", call. = FALSE)
-  }
-  n <- length(x)
-  if (!n || !(is.numeric(x) || is.character(x) || is.factor(x))) {
-    stop("pbbnd: `", nm, "` must be numbers or text cells.", call. = FALSE)
-  }
-  lim <- rep(NA_real_, n)
-  st <- rep(0L, n)
-  if (is.numeric(x)) {
-    v <- as.numeric(x)
-    if (any(is.infinite(v))) {
-      stop("pbbnd: `", nm, "` must be finite.", call. = FALSE)
-    }
-  } else {
-    s <- trimws(as.character(x))
-    lt <- !is.na(s) & grepl("^<\\s*[0-9]+$", s)
-    lim[lt] <- as.numeric(sub("^<\\s*", "", s[lt]))
-    st[lt | s %in% supmar] <- 1L
-    v <- rep(NA_real_, n)
-    ok <- st == 0L & !is.na(s) & nzchar(s)
-    v[ok] <- suppressWarnings(as.numeric(gsub(",", "", s[ok], fixed = TRUE)))
-    bad <- ok & is.na(v)
-    if (any(bad)) {
-      stop(
-        "pbbnd: cannot read these cells as numbers or suppression marks: ",
-        paste(unique(s[bad]), collapse = ", "),
-        ".",
-        call. = FALSE
-      )
-    }
-  }
-  st[st == 0L & is.na(v)] <- 2L
-  list(value = v, st = st, lim = lim)
 }
 
 #' Year-over-year change in a published series
@@ -429,4 +256,198 @@ print.yoypx <- function(x, ...) {
   cat("yoypx: change on the earlier period\n")
   print(as.data.frame(unclass(x)), row.names = FALSE)
   invisible(x)
+}
+
+# The band labels read into ends: a data frame of label, lower, upper,
+# openlo and openup (NA ends where a label cannot be read).
+.bands <- function(x, clsup, intsca) {
+  if (!(is.character(x) || is.factor(x)) || !length(x)) {
+    stop("bandx: `x` must be band labels: text or a factor.", call. = FALSE)
+  }
+  for (a in list(list(clsup, "clsup"), list(intsca, "intsca"))) {
+    if (!is.logical(a[[1L]]) || length(a[[1L]]) != 1L || is.na(a[[1L]])) {
+      stop("bandx: `", a[[2L]], "` must be TRUE or FALSE.", call. = FALSE)
+    }
+  }
+  lab <- as.character(x)
+  s <- tolower(trimws(lab))
+  # the hyphens and dashes U+2010 to U+2015 and the minus sign U+2212
+  dash <- intToUtf8(c(0x2010:0x2015, 0x2212), multiple = TRUE)
+  s <- gsub(paste0("[", paste(dash, collapse = ""), "]"), "-", s)
+  s <- gsub("\\s+", " ", s)
+  s <- gsub("(?<=[0-9]),(?=[0-9]{3}(?![0-9]))", "", s, perl = TRUE)
+  e <- vapply(s, .blab, numeric(4L), clsup, intsca, USE.NAMES = FALSE)
+  data.frame(
+    label = lab,
+    lower = e[1L, ],
+    upper = e[2L, ],
+    openlo = e[3L, ] == 1,
+    openup = e[4L, ] == 1
+  )
+}
+
+# One normalised label read: lower, upper, open below and open above (1
+# when open), NA ends where it cannot be read.
+.blab <- function(z, clsup, intsca) {
+  r <- c(NA_real_, NA_real_, 0, 0)
+  if (is.na(z) || !nzchar(z)) {
+    return(r)
+  }
+  num <- "(-?[0-9]*\\.?[0-9]+)"
+  m <- regmatches(
+    z,
+    regexec(
+      paste0("^([a-z]+ )?", num, " ?(?:to|-|through) ?", num, "([^0-9]*)$"),
+      z,
+      perl = TRUE
+    )
+  )[[1L]]
+  if (length(m) == 5L) {
+    return(.brange(m, r))
+  }
+  k <- regmatches(z, gregexpr("-?[0-9]*\\.?[0-9]+", z))[[1L]]
+  if (length(k) != 1L) {
+    return(r)
+  }
+  v <- as.numeric(k)
+  st <- if (intsca && !grepl("[0-9]\\.[0-9]", z)) 1 else 0
+  if (grepl("(\\+\\s*$|and over|and above|or more|or over|plus\\s*$)", z)) {
+    r[c(1L, 4L)] <- c(if (clsup) v else v + st, 1)
+  } else if (grepl("(greater than|more than|over|above|\\bgt\\b)", z)) {
+    r[c(1L, 4L)] <- c(v + st, 1)
+  } else if (grepl("(or less|or fewer|and under|and below|or under)", z)) {
+    r[c(2L, 3L)] <- c(v, 1)
+  } else if (grepl("(less than|fewer than|under|below|^<|\\blt\\b)", z)) {
+    r[c(2L, 3L)] <- c(v - st, 1)
+  } else if (grepl("^-?[0-9]*\\.?[0-9]+$", z)) {
+    r[1:2] <- v
+  }
+  r
+}
+
+# A range label (the regexec match `m`) read into `r`: its two ends, unless
+# a word or a plus opens it or the ends are reversed.
+.brange <- function(m, r) {
+  cue <- paste0(
+    "\\b(over|above|more|plus|under|less|below|fewer|greater|",
+    "than|gt|lt)\\b"
+  )
+  a <- as.numeric(m[3L])
+  b <- as.numeric(m[4L])
+  if (
+    !grepl(cue, m[2L], perl = TRUE) &&
+      !grepl(cue, m[5L], perl = TRUE) &&
+      !grepl("+", m[5L], fixed = TRUE) &&
+      a <= b
+  ) {
+    r[1:2] <- c(a, b)
+  }
+  r
+}
+
+# The values expanded from the counts of the bands (`val` the band values).
+.bvals <- function(b, val, cnts, drop) {
+  if (
+    !is.numeric(cnts) ||
+      length(cnts) != nrow(b) ||
+      anyNA(cnts) ||
+      any(cnts < 0)
+  ) {
+    stop(
+      "bandx: `cnts` must be numbers from 0, one per band, ",
+      nrow(b),
+      ".",
+      call. = FALSE
+    )
+  }
+  lost <- is.na(val) & cnts > 0
+  if (any(lost) && !isTRUE(drop)) {
+    stop(
+      "bandx: these bands cannot be read: ",
+      toString(b$label[lost]),
+      " (drop = TRUE leaves out their units).",
+      call. = FALSE
+    )
+  }
+  keep <- !is.na(val)
+  rep(val[keep], round(cnts[keep]))
+}
+
+# `stat` over the caps of the open top band: a list of sens, span and
+# relspan; `run(cap)` gives the expanded values at one cap.
+.bsens <- function(b, cnts, caps, stat, run) {
+  if (!is.function(stat)) {
+    stop("bandx: `stat` must be a function of the values.", call. = FALSE)
+  }
+  if (is.null(cnts) || !any(b$openup)) {
+    stop("bandx: `stat` needs `cnts` and an open top band.", call. = FALSE)
+  }
+  base <- min(b$lower[b$openup])
+  if (is.null(caps)) {
+    caps <- unique(round(
+      base * exp(seq(log(1.05), log(20), length.out = 12L)),
+      6L
+    ))
+  }
+  if (!is.numeric(caps) || !length(caps) || anyNA(caps)) {
+    stop("bandx: `caps` must be numbers.", call. = FALSE)
+  }
+  caps <- sort(unique(caps))
+  s <- vapply(
+    caps,
+    function(cp) {
+      r <- stat(run(cp))
+      if (!is.numeric(r) || length(r) != 1L) {
+        stop("bandx: `stat` must give one number.", call. = FALSE)
+      }
+      r
+    },
+    0
+  )
+  f <- s[is.finite(s)]
+  span <- if (length(f)) max(f) - min(f) else NA_real_
+  rel <- NA_real_
+  if (length(f) && all(f != 0)) {
+    rel <- span / stats::median(abs(f))
+  }
+  list(data.frame(cap = caps, value = s), span, rel)
+}
+
+# Published cells read: the number (NA for none), the status (0 a number,
+# 1 suppressed, 2 missing) and a suppressed cell's "<k" limit.
+.cells <- function(x, supmar, nm) {
+  if (!is.character(supmar)) {
+    stop("pbbnd: `supmar` must be text markers.", call. = FALSE)
+  }
+  n <- length(x)
+  if (!n || !(is.numeric(x) || is.character(x) || is.factor(x))) {
+    stop("pbbnd: `", nm, "` must be numbers or text cells.", call. = FALSE)
+  }
+  lim <- rep(NA_real_, n)
+  st <- rep(0L, n)
+  if (is.numeric(x)) {
+    v <- as.numeric(x)
+    if (any(is.infinite(v))) {
+      stop("pbbnd: `", nm, "` must be finite.", call. = FALSE)
+    }
+  } else {
+    s <- trimws(as.character(x))
+    lt <- !is.na(s) & grepl("^<\\s*[0-9]+$", s)
+    lim[lt] <- as.numeric(sub("^<\\s*", "", s[lt]))
+    st[lt | s %in% supmar] <- 1L
+    v <- rep(NA_real_, n)
+    ok <- st == 0L & !is.na(s) & nzchar(s)
+    v[ok] <- suppressWarnings(as.numeric(gsub(",", "", s[ok], fixed = TRUE)))
+    bad <- ok & is.na(v)
+    if (any(bad)) {
+      stop(
+        "pbbnd: cannot read these cells as numbers or suppression marks: ",
+        toString(unique(s[bad])),
+        ".",
+        call. = FALSE
+      )
+    }
+  }
+  st[st == 0L & is.na(v)] <- 2L
+  list(value = v, st = st, lim = lim)
 }

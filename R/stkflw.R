@@ -90,39 +90,6 @@ stkflw <- function(
   structure(r, class = "stkflw")
 }
 
-# Days from `from` to `to`, counting both: one per period.
-.perdays <- function(from, to) {
-  rd <- function(v, nm) {
-    if (
-      is.null(v) ||
-        is.numeric(v) ||
-        !(inherits(v, c("Date", "POSIXt")) ||
-          is.character(v))
-    ) {
-      stop(
-        "stkflw: `from` and `to` must both be dates or date strings.",
-        call. = FALSE
-      )
-    }
-    d <- tryCatch(as.Date(v), error = function(e) NA)
-    if (anyNA(d)) {
-      stop(
-        "stkflw: `",
-        nm,
-        "` holds something that is not a date.",
-        call. = FALSE
-      )
-    }
-    d
-  }
-  a <- rd(from, "from")
-  b <- rd(to, "to")
-  if (length(a) != length(b) || any(b < a)) {
-    stop("stkflw: `to` must not precede `from`, one per period.", call. = FALSE)
-  }
-  as.numeric(b - a) + 1
-}
-
 #' Lengths of stay: their distribution and its fit
 #'
 #' The lengths of stay of a set of placements (or of people): the mean
@@ -322,7 +289,7 @@ lftab <- function(breaks, events, cens = 0, level = 0.95, ci = "log-log") {
     if (anyNA(lo) || anyNA(hi)) {
       stop(
         "lftab: these bands cannot be read: ",
-        paste(b$label[is.na(lo) | is.na(hi)], collapse = ", "),
+        toString(b$label[is.na(lo) | is.na(hi)]),
         ".",
         call. = FALSE
       )
@@ -435,4 +402,37 @@ print.trnmat <- function(x, ...) {
   ))
   print(x[["prob"]])
   invisible(x)
+}
+
+# Days from `from` to `to`, counting both: one per period.
+.perdays <- function(from, to) {
+  rd <- function(v, nm) {
+    if (
+      is.null(v) ||
+        is.numeric(v) ||
+        !(inherits(v, c("Date", "POSIXt")) ||
+          is.character(v))
+    ) {
+      stop(
+        "stkflw: `from` and `to` must both be dates or date strings.",
+        call. = FALSE
+      )
+    }
+    d <- tryCatch(as.Date(v), error = function(e) NA)
+    if (anyNA(d)) {
+      stop(
+        "stkflw: `",
+        nm,
+        "` holds something that is not a date.",
+        call. = FALSE
+      )
+    }
+    d
+  }
+  a <- rd(from, "from")
+  b <- rd(to, "to")
+  if (length(a) != length(b) || any(b < a)) {
+    stop("stkflw: `to` must not precede `from`, one per period.", call. = FALSE)
+  }
+  as.numeric(b - a) + 1
 }
