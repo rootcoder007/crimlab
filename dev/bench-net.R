@@ -345,7 +345,9 @@ for (n in sizes) {
     length(kk) == length(xk) && setequal(kk, xk) && eq(xw[kk], w, 0)
   }
   bip <- function() {
-    y <- graph_from_data_frame(data.frame(paste0("i", inc), off), directed = FALSE)
+    # an offender named twice in one incident is one tie, as in coofg()
+    y <- graph_from_data_frame(unique(data.frame(paste0("i", inc), off)),
+                               directed = FALSE)
     V(y)$type <- startsWith(V(y)$name, "n")
     bipartite_projection(y, which = "true", multiplicity = TRUE)
   }
