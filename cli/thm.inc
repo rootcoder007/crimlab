@@ -192,3 +192,6 @@
     {"jdgiv", "Judge", "complier_effect"},
     {"jmono", "Judge", "slope_bound"},
     {"agemix", "LifeCourse", "one_type_cov_zero"},
+    {"stkflw", "Flow", "adp_alos"},
+    {"stkflw", "Flow", "days_ratio"},
+    {"bklog", "Flow", "little"},

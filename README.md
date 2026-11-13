@@ -140,6 +140,11 @@ The functions work on summary data, not on raw records:
 * Segregation: how many placements, and how many people, meet the Mandela
   Rules' definitions of solitary confinement and prolonged solitary
   confinement, by year or region and under each denominator (`mndla()`).
+* Custody and courts as stocks and flows: how the population held,
+  admissions and the length of stay determine each other (`stkflw()`), how
+  long stays are (`lostay()`), what a backlog implies about the time cases
+  take (`bklog()`, `dktflw()`), how long cases take from grouped times
+  (`lftab()`), and how people move between states (`trnmat()`).
 
 ## Algorithms
 

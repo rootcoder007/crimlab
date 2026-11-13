@@ -2608,6 +2608,89 @@ int clab_mndla(const double *days, const double *hours, const double *miss, cons
 int clab_mndtab(const int *cls, const int *idc, const int *gc, const double *days, const double *w,
                 const int *elig, int n, int ng, double thr, double *out, int *o);
 
+/* Stock and flow over n periods (stkflw; Lean: Crimlab.Flow.adp_alos,
+ * days_ratio): exactly two of pe (people admitted or released, positive),
+ * dy (person-days, from 0), ad (average daily population, from 0) and al
+ * (average length of stay, positive), but not dy with ad (CLAB_EARG
+ * otherwise); t, n period lengths (positive). days = adp t = people alos
+ * gives the rest. base 0: changes against the first period, 1: against the
+ * one before. expo NULL or n positive populations, per > 0; rel NULL or n
+ * releases (from 0) and early NaN or the days by which each is brought
+ * forward. Out (16 n + 4, n each): people, days, adp, alos; their percent
+ * changes (people, alos, days, adp); the share of the change in days on
+ * the log scale due to people; flow and stock rates per per of expo and
+ * their changes (NaN without expo); the stock an earlier release removes,
+ * rel early / t, and that as a percentage of adp; then the means over the
+ * periods of people, days, adp and alos. */
+int clab_stkflw(const double *pe, const double *dy, const double *ad, const double *al,
+                const double *t, int n, int base, const double *expo, double per,
+                const double *rel, double early, double *out);
+
+/* Lengths of stay (lostay): x, n stays from 0; w NULL or whole-number
+ * frequencies from 0 with a positive total; br, nb increasing band edges
+ * (bands (br[k], br[k + 1]]); thr, nt thresholds; flag NULL or n flags.
+ * Out: st (9), the stays N, the days, the mean, the standard deviation (N
+ * - 1), the median and quartiles (type 7 over the expanded stays), the
+ * longest and the standard error of the mean; bt (2 (nb - 1)), the stays
+ * in each band and the flagged ones; tt (nt), the share at or below each
+ * threshold; fit (6), the AIC of the lognormal, exponential and Pareto
+ * (from the shortest) fits of the positive stays by maximum likelihood
+ * (NaN for fewer than 2, or no spread), the lognormal's mean and standard
+ * deviation of log stay, and the Pareto exponent. o: n ints of scratch. */
+int clab_lostay(const double *x, const double *w, int n, const double *br, int nb,
+                const double *thr, int nt, const int *flag, double *st, double *bt, double *tt,
+                double *fit, int *o);
+
+/* Little's law on a docket (bklog; Lean: Crimlab.Flow.little): a, d the
+ * arrival and disposition times of n cases (d NaN or after the horizon h >
+ * 0: pending); every arrival in [0, h]. Out (7): the cases, those pending,
+ * the filing rate n / h, the mean time to disposition of the disposed,
+ * the time-average backlog (the occupancy over h, a pending case counted to
+ * h), the occupancy, and with nothing pending the identity's residual L -
+ * lambda W (NaN otherwise). */
+int clab_bklog(const double *a, const double *d, int n, double h, double *out);
+
+/* Case flow (dktflw): rc, ds the cases received and disposed in n
+ * periods, pd NULL or those pending; win >= 1. Out (8 n, n each): the
+ * clearance ds / rc (NaN for none received), the net rc - ds, the sums
+ * over the win periods ending at each (NaN until a full window) of rc
+ * and ds and their ratio, the change in pending, the periods to clear the
+ * pending at the mean disposals of the last win periods (NaN without pd),
+ * and the cumulative net. */
+int clab_dktflw(const double *rc, const double *ds, const double *pd, int n, int win, double *out);
+
+/* The mix of outcomes over periods (dktflw): x, nt periods by k outcomes
+ * (column-major counts from 0, every period with a case); sc, nt scores;
+ * a > 0 the chi-square quantile for Goodman's simultaneous intervals.
+ * Out, nt x k each: sh, lo, hi; st (3): the chi-square of homogeneity
+ * over the outcomes that occur, its degrees of freedom and Cramer's V;
+ * tr (2 k): each outcome's Cochran-Armitage trend statistic (NaN for fewer
+ * than 3 periods or an outcome always or never seen) and the change of its
+ * share from the first period to the last. */
+int clab_dkmix(const double *x, int nt, int k, const double *sc, double a, double *sh,
+               double *lo, double *hi, double *st, double *tr);
+
+/* The actuarial life table (lftab): k contiguous bands [lo, hi) (only the
+ * last may end at Inf), d events and w censored cases in each (from 0);
+ * z the normal quantile; ci 0 plain, 1 log, 2 log-log intervals. Out (8 k
+ * + 1, k each): entering, at risk (w counted as half), the conditional
+ * probability q, survival, its standard error (Greenwood), the interval's
+ * ends (NaN at survival 0 or 1), the hazard, then the median (linear in
+ * its band; Inf when survival stays above 1/2 or crosses it in an open
+ * band). */
+int clab_lftab(const double *lo, const double *hi, const double *d, const double *w, int k,
+               double z, int ci, double *out);
+
+/* Transitions between k states (trnmat): from, to the states of m
+ * transitions. Out: cnt and p (k x k), the counts and the row
+ * probabilities (rows of 0 for a state never left); pi (k), the
+ * stationary distribution of p (NaN when a state has no exit or it is not
+ * unique); st (3), the transitions, the share that stay in their state,
+ * and the Theil index of the moves between states (NaN for none). work:
+ * k (k + 1) doubles. */
+int clab_trnmat(const int *from, const int *to, int m, int k, double *cnt, double *p, double *pi,
+                double *st, double *work);
+
 #ifdef __cplusplus
 }
 #endif

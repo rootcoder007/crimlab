@@ -204,6 +204,17 @@ reference:
       confinement, by group and denominator.
     contents:
       - mndla
+  - title: Custody and court flow
+    desc: Stocks and flows of people held, lengths of stay, Little's law on a
+      docket, case flow and outcome mix, life tables of grouped times, and
+      moves between states.
+    contents:
+      - stkflw
+      - lostay
+      - bklog
+      - dktflw
+      - lftab
+      - trnmat
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

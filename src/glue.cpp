@@ -499,6 +499,14 @@ SEXP C_clab_r_cumrsk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_jpipe(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_mndla(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                     SEXP, SEXP);
+SEXP C_clab_r_stkflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP);
+SEXP C_clab_r_lostay(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bklog(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dktflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP);
+SEXP C_clab_r_lftab(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_trnmat(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -694,6 +702,12 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cumrsk", fn(&C_clab_r_cumrsk), 6},
     {"C_clab_r_jpipe", fn(&C_clab_r_jpipe), 5},
     {"C_clab_r_mndla", fn(&C_clab_r_mndla), 12},
+    {"C_clab_r_stkflw", fn(&C_clab_r_stkflw), 11},
+    {"C_clab_r_lostay", fn(&C_clab_r_lostay), 6},
+    {"C_clab_r_bklog", fn(&C_clab_r_bklog), 4},
+    {"C_clab_r_dktflw", fn(&C_clab_r_dktflw), 12},
+    {"C_clab_r_lftab", fn(&C_clab_r_lftab), 6},
+    {"C_clab_r_trnmat", fn(&C_clab_r_trnmat), 3},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

@@ -91,6 +91,16 @@
   than 15 days, or Rules 43 and 44 with hours out of cell) and gives the
   qualifying share by group over placements, people with any qualifying
   placement and people by their cumulative days, with exact intervals.
+* `stkflw()` relates person-days, the average daily population, admissions
+  and the length of stay (any two give the rest) with changes, rates and the
+  stock an earlier release removes; `lostay()` summarises lengths of stay,
+  their bands and thresholds and the lognormal, exponential and Pareto fits;
+  `bklog()` applies Little's law to a docket; `dktflw()` gives clearance,
+  rolling clearance, the pending caseload, Little's law on published figures
+  and the trend of the outcome mix; `lftab()` builds the actuarial life
+  table; `trnmat()` gives the transition matrix between states with its
+  stationary distribution. `proof("stkflw")` and `proof("bklog")` name the
+  Lean theorems.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

@@ -219,7 +219,14 @@ test_that("every exported function answers one valid call in its shape", {
          c("age", "hazard", "atrisk", "cumrisk", "lo", "hi")),
     list(quote(jpipe(1:3, 3:5, 2)),
          c("group", "index", "num", "den", "rate")),
-    list(quote(mndla(c(5, 20))), c("tab", "cls", "alerts", "rule"))
+    list(quote(mndla(c(5, 20))), c("tab", "cls", "alerts", "rule")),
+    list(quote(stkflw(people = 2, days = 30)),
+         c("flow", "mean", "base", "per")),
+    list(quote(lostay(c(1, 5, 9))), c("stay", "bands", "thr", "fit", "par")),
+    list(quote(bklog(c(0, 1), c(2, 3))), c("est", "horizon", "need")),
+    list(quote(dktflw(1:3, 1:3)), c("flow", "mix", "level")),
+    list(quote(lftab(c(0, 1, 2), c(1, 1))), c("tab", "median", "ci")),
+    list(quote(trnmat(c("a", "b"), c(1, 1))), c("count", "prob", "pi", "summ"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))
