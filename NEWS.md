@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* `sdbsim()` simulates the Short-D'Orsogna-Brantingham model of
+  burglary hot spots, as agents on a lattice or as its reaction-diffusion
+  limit with suppressed sites, and `sdbthr()` gives the linear stability
+  of its uniform state: the threshold beyond which hot spots form and the
+  fastest-growing wavelength. `proof("sdbthr")` and `proof("sdbsim")` name
+  the Lean theorems on the steady state, the trace and the decay.
 * `hypq()` solves Larson's hypercube queue of patrol units exactly
   (workloads, dispatch shares, lost or waiting calls, travel times) and
   `sqrtlw()` gives Kolesar and Blum's square-root law of response distance;

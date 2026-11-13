@@ -2080,6 +2080,10 @@ const Thm thms[] = {
     {"kmrec", "Recur", "km_step"},
     {"sqrtlw", "Patrol", "scale_invariant"},
     {"sqrtlw", "Patrol", "four_units_half"},
+    {"sdbsim", "HotSpot", "sup_contract"},
+    {"sdbthr", "HotSpot", "steady"},
+    {"sdbthr", "HotSpot", "trace_neg"},
+    {"sdbthr", "HotSpot", "no_hotspots_without_reinforcement"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

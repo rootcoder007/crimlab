@@ -385,6 +385,18 @@ std::vector<double> periods(SEXP x, int n) {
   return v;
 }
 
+// An n x n field of numbers from 0 (fill when x is NULL), column-major.
+std::vector<double> field(SEXP x, const char *nm, double fill, int nn) {
+  const std::size_t s = static_cast<std::size_t>(nn) * static_cast<std::size_t>(nn);
+  std::vector<double> v(s, fill);
+  if (Rf_isNull(x)) return v;
+  if (!Rf_isMatrix(x) || Rf_nrows(x) != nn || Rf_ncols(x) != nn) fail("`%s` must be an n x n matrix.", nm);
+  SEXP d = PROTECT(numat(x, nm, 0.0));
+  std::copy(REAL(d), REAL(d) + s, v.begin());
+  UNPROTECT(1);
+  return v;
+}
+
 double zlev(SEXP level) { return Rf_qnorm5(0.5 + 0.5 * clab::one(level, "level", 0.0, 1.0), 0.0, 1.0, 1, 0); }
 
 SEXP lgl1(prot &p, double v) { return p(Rf_ScalarLogical(v != 0)); }
@@ -878,6 +890,108 @@ SEXP C_clab_r_sqrtlw(SEXP area, SEXP units, SEXP busy, SEXP metric, SEXP speed) 
                    {"const", p(Rf_ScalarReal(c))},
                    {"avail", p(Rf_ScalarReal(un * (1 - b)))},
                    {"time", p(Rf_ScalarReal(tm))}});
+}
+
+}  // extern "C"
+
+extern "C" {
+
+SEXP C_clab_r_sdbsim(SEXP n, SEXP steps, SEXP mode, SEXP a0, SEXP omega, SEXP eta, SEXP gam,
+                     SEXP theta, SEXP dt, SEXP b, SEXP rho, SEXP dx, SEXP dif, SEXP eps, SEXP z,
+                     SEXP sup, SEXP seed) {
+  clab::who = "sdbsim";
+  prot p;
+  static const char *const md[] = {"agent", "pde"};
+  const int nn = clab::whole(n, "n", 3), ns = clab::whole(steps, "steps", 0);
+  const int mo = csp::pick(mode, "mode", md, 2);
+  if (nn > 2000) fail("`n` must be at most 2000.");
+  const double par[10] = {pos1(a0, "a0"),
+                          REAL(clab::num(omega, "omega", 1, 0.0))[0],
+                          clab::p01(eta, "eta"),
+                          REAL(clab::num(gam, "gam", 1, 0.0))[0],
+                          REAL(clab::num(theta, "theta", 1, 0.0))[0],
+                          pos1(dt, "dt"),
+                          pos1(dx, "dx"),
+                          pos1(dif, "dif"),
+                          REAL(clab::num(eps, "eps", 1, 0.0))[0],
+                          pos1(z, "z")};
+  if (par[1] * par[5] > 1) fail("`omega` times `dt` must be at most 1.");
+  const std::size_t s = static_cast<std::size_t>(nn) * static_cast<std::size_t>(nn);
+  std::vector<double> bv = field(b, "b", 0.0, nn), rv = field(rho, "rho", mo ? par[3] / par[0] : 0.0, nn);
+  if (mo == 0) {
+    for (double v : rv) {
+      if (v != std::floor(v) || v > 1e6) fail("`rho` must hold whole numbers of offenders, at most 1e6 a site.");
+    }
+  }
+  std::vector<int> sp;
+  if (!Rf_isNull(sup)) {
+    if (!Rf_isMatrix(sup) || Rf_nrows(sup) != nn || Rf_ncols(sup) != nn) fail("`sup` must be an n x n matrix.");
+    if (TYPEOF(sup) != LGLSXP || clab::anyna(sup)) fail("`sup` must be TRUE or FALSE at each site, with no missing values.");
+    sp.assign(LOGICAL(sup), LOGICAL(sup) + s);
+  }
+  std::vector<double> burg(static_cast<std::size_t>(ns)), mb(static_cast<std::size_t>(ns)), tot(s), w(3 * s);
+  std::vector<int> iw(s);
+  const int rc = clab_sdbsim(nn, ns, mo, par, bv.data(), rv.data(), sp.empty() ? nullptr : sp.data(),
+                             csp::seed(seed), burg.data(), mb.data(), tot.data(), w.data(), iw.data());
+  if (rc != CLAB_OK) {
+    fail("the explicit scheme is unstable: lower `dt` below z dx^2 / (4 dif max(1, eta)) = %g.",
+         par[9] * par[6] * par[6] / (4 * par[7] * std::fmax(1.0, par[2])));
+  }
+  auto mat = [&](const std::vector<double> &v) {
+    SEXP m = p(Rf_allocMatrix(REALSXP, nn, nn));
+    std::copy(v.begin(), v.end(), REAL(m));
+    return m;
+  };
+  SEXP out = nlist(p, {{"b", mat(bv)},
+                       {"rho", mat(rv)},
+                       {"tot", mat(tot)},
+                       {"burg", dvec(p, burg.data(), ns)},
+                       {"meanb", dvec(p, mb.data(), ns)},
+                       {"mode", p(Rf_mkString(md[mo]))}});
+  Rf_classgets(out, p(Rf_mkString("sdbsim")));
+  return out;
+}
+
+SEXP C_clab_r_sdbthr(SEXP a0, SEXP omega, SEXP eps, SEXP dif, SEXP gam, SEXP eta, SEXP z, SEXP k) {
+  clab::who = "sdbthr";
+  prot p;
+  const double par[7] = {pos1(a0, "a0"),
+                         pos1(omega, "omega"),
+                         REAL(clab::num(eps, "eps", 1, 0.0))[0],
+                         pos1(dif, "dif"),
+                         pos1(gam, "gam"),
+                         REAL(clab::num(eta, "eta", 1, 0.0))[0],
+                         pos1(z, "z")};
+  std::vector<double> kv;
+  if (!Rf_isNull(k)) {
+    SEXP d = p(clab::num(k, "k", -1, 0.0));
+    kv.assign(REAL(d), REAL(d) + XLENGTH(d));
+  }
+  const int nk = static_cast<int>(kv.size());
+  double st[12];
+  std::vector<double> tr(kv.size()), de(kv.size()), gr(kv.size());
+  clab_sdbthr(par, kv.data(), nk, st, tr.data(), de.data(), gr.data());
+  static const char *const sn[] = {"b", "a", "rho"};
+  static const char *const tn[] = {"lhs", "rhs"};
+  SEXP disp = R_NilValue;
+  if (nk) {
+    disp = frame(p, {{"k", dvec(p, kv.data(), nk)},
+                     {"trace", dvec(p, tr.data(), nk)},
+                     {"det", dvec(p, de.data(), nk)},
+                     {"growth", dvec(p, gr.data(), nk)}});
+  }
+  SEXP out = nlist(p, {{"steady", p(clab::nvec(3, sn, st + 3))},
+                       {"p", p(Rf_ScalarReal(st[0]))},
+                       {"q", p(Rf_ScalarReal(st[1]))},
+                       {"r", p(Rf_ScalarReal(st[2]))},
+                       {"thr", p(clab::nvec(2, tn, st + 6))},
+                       {"unstable", p(Rf_ScalarLogical(st[8] != 0))},
+                       {"kcrit", dvec(p, st + 9, 1)},
+                       {"detcrit", dvec(p, st + 10, 1)},
+                       {"grcrit", dvec(p, st + 11, 1)},
+                       {"disp", disp}});
+  Rf_classgets(out, p(Rf_mkString("sdbthr")));
+  return out;
 }
 
 }  // extern "C"

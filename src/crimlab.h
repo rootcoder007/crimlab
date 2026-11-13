@@ -2236,6 +2236,47 @@ int clab_hypq(const double *lam, const int *pref, int m, int n, double mu, int w
  * rectangular street grid (metric 1). area, units > 0; busy in [0, 1). */
 int clab_sqrtlw(double area, double units, double busy, int metric, double *d, double *c);
 
+/* ------------------------------------------------------------------------
+ * Hot-spot dynamics: the Short-D'Orsogna-Brantingham model (sdb.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The model of Short et al. (2008) on an n x n torus (n >= 3, sites
+ * column-major), steps steps of length dt. par (10): a0 > 0 (static
+ * attractiveness), omega >= 0 (decay; omega dt <= 1), eta in [0, 1]
+ * (spread), gam >= 0 (offenders arriving per site per unit time), theta
+ * >= 0 (attractiveness added per burglary), dt > 0, then for mode 1 dx >
+ * 0, dif > 0, eps >= 0, z > 0. b (n^2, in and out): the dynamic
+ * attractiveness. mode 0, agents: rho (n^2) holds whole numbers of
+ * offenders; each burgles with probability 1 - e^-(a0 + b) dt and leaves,
+ * or moves to a neighbour chosen in proportion to its attractiveness;
+ * b' = ((1 - eta) b + eta / 4 (sum of the four neighbours)) (1 - omega
+ * dt) + theta E; Poisson(gam dt) offenders arrive at each site; from
+ * seed. mode 1, the continuum limit by explicit Euler steps: b' = b + dt
+ * (eta dif / z lap b - omega b + eps dif rho A), rho' = rho + dt (dif / z
+ * (lap rho - 2 div(rho grad A / A)) - rho A + gam), A = a0 + b, no crime
+ * where sup (NULL or n^2 flags) is set; CLAB_EDOM when dt 4 dif max(1,
+ * eta) / z > dx^2 or a field turns negative. Out: burg and meanb (steps),
+ * the burglaries (the crime rate times dt in mode 1) and the mean of b
+ * after each step; tot (n^2), the burglaries at each site. work: 3 n^2
+ * doubles; iwork: n^2 ints. */
+int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double *rho,
+                const int *sup, unsigned int seed, double *burg, double *meanb, double *tot,
+                double *work, int *iwork);
+
+/* Linear stability of the uniform state of the continuum model above
+ * (Short, Bertozzi and Brantingham 2010). par (7): a0, omega, eps >= 0,
+ * dif, gam, eta >= 0, z (the others > 0). At wavenumber-squared k the
+ * linearisation has trace tr (negative at every k) and determinant det =
+ * P k^2 - Q k + R; a mode grows exactly when det < 0, so the uniform
+ * state forms hot spots when Q > 0 and Q^2 > 4 P R (Q > 0 when P = 0).
+ * Out, st (12): P, Q, R; the steady B, A = a0 + B, rho; the two sides of
+ * Q > 0, 3 eps dif rho and omega + eta A; 1 when unstable; the critical
+ * k = Q / (2 P), det and the growth rate there (NaN unless P, Q > 0);
+ * for the nk >= 0 values k (>= 0): tr, det and gr, the larger real part
+ * of the eigenvalues. */
+int clab_sdbthr(const double *par, const double *k, int nk, double *st, double *tr, double *det,
+                double *gr);
+
 #ifdef __cplusplus
 }
 #endif

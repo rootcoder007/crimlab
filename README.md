@@ -86,6 +86,9 @@ The functions work on summary data, not on raw records:
   durations or of the gaps between repeat events (`kmrec()`).
 * Patrol operations: Larson's hypercube queue (`hypq()`) and the
   square-root law of response distance (`sqrtlw()`).
+* Hot spots: the Short-D'Orsogna-Brantingham model of repeat burglary,
+  simulated as agents or as its continuum limit (`sdbsim()`), and the
+  threshold at which hot spots form (`sdbthr()`).
 * Presets: how the columns of a published dataset (Ontario segregation and
   deaths-in-custody tables, use-of-force files, Special Investigations
   Unit cases, Structured Intervention Unit tables, Toronto incident

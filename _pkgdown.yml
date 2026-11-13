@@ -203,6 +203,8 @@ reference:
       - kmrec
       - hypq
       - sqrtlw
+      - sdbsim
+      - sdbthr
   - title: Proofs
     contents:
       - proof

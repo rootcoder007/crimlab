@@ -170,7 +170,12 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(hypq(1, matrix(1, 1, 1))),
          c("state", "wl", "disp", "queue", "pfull", "lq", "wq", "rho",
            "travel")),
-    list(quote(sqrtlw(100, 4)), c("dist", "const", "avail", "time"))
+    list(quote(sqrtlw(100, 4)), c("dist", "const", "avail", "time")),
+    list(quote(sdbsim(5, 2, seed = 1)),
+         c("b", "rho", "tot", "burg", "meanb", "mode")),
+    list(quote(sdbthr(1, 1, 2, 1, 1, 0.01)),
+         c("steady", "p", "q", "r", "thr", "unstable", "kcrit", "detcrit",
+           "grcrit", "disp"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))
