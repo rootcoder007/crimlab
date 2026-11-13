@@ -137,6 +137,13 @@ void t_oax(tk &t, int big);
 void t_learn(tk &t, int big);
 void t_rf(tk &t, int big);
 void t_dml(tk &t, int big);
+void t_knx(tk &t, int big);
+void t_hot(tk &t, int big);
+void t_kscn(tk &t, int big);
+void t_sreg(tk &t, int big);
+void t_ppx(tk &t, int big);
+void t_geou(tk &t, int big);
+void t_buf(tk &t, int big);
 
 #ifdef CLAB_MAIN
 // The standalone program only: the median of five timings (sorts t).
@@ -149,4 +156,10 @@ void t_sp2(tk &t, int big);
 // The policy-evaluation families.
 void t_did(tk &t, int big);
 
+void t_hwk(tk &t, int big);
+void t_trn(tk &t, int big);
+void t_kmr(tk &t, int big);
+void t_hyq(tk &t, int big);
+void t_sdb(tk &t, int big);
+void t_mhk(tk &t, int big);
 #endif

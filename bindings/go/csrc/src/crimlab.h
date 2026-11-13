@@ -1876,6 +1876,453 @@ int clab_didfe(const double *y, const double *x, int n, int p, const int *u, int
                const int *t, int nt, int fe, const double *w, const int *cl, int ncl,
                const int *cl2, int ncl2, double tol, int maxit, double *beta, double *vc,
                double *st, double *work, int *iwork);
+/* Near repeats (src/knx.cpp). The Knox table of n >= 3 incidents at
+ * planar points (x, y) and times t (all finite): every pair within ds[ks -
+ * 1] falls in the distance band (ds[k - 1], ds[k]] and the time band
+ * (dt[l - 1], dt[l]] (the first bands from 0, 0 included; edges positive
+ * and increasing, CLAB_EDOM otherwise). Out, 3 ks kt + 1: the observed
+ * pairs per cell (distance band fastest), the expectation under
+ * exchangeable times S_k T_l / P (Knox 1964, doi:10.2307/2985220; S_k and
+ * T_l the pairs in each band, P = n (n - 1) / 2), the permutation p-value
+ * (1 + #{obs* >= obs}) / (nsim + 1) with the times shuffled nsim >= 0 times
+ * from seed (NaN for nsim = 0), and the number of pairs within ds[ks - 1].
+ * O(n log n + pairs (kt + nsim log kt)). */
+int clab_knxnr(const double *x, const double *y, const double *t, int n,
+               const double *ds, int ks, const double *dt, int kt, int nsim,
+               unsigned int seed, double *out);
+
+/* Hot spots (src/hot.cpp).
+ *
+ * clab_kdsurf: the kernel intensity sum_j m_j k(u - p_j) of n >= 1 planar
+ * points with weights w (NULL for 1; finite, >= 0) and the product normal
+ * kernel of standard deviations hx, hy > 0, at u on the grid ax x ay (grid
+ * = 1: na x nb values, ax fastest) or at the na points (ax[a], ay[a])
+ * (grid = 0, nb = na); loo = 1 (points only, na = n, the evaluation points
+ * the data) leaves each point out of its own sum. edge 0 none; with the
+ * rectangle win = {xmin, xmax, ymin, ymax}, 1 divides the value at u by
+ * e(u), the kernel's mass in win (Diggle 1985, doi:10.2307/2347366; NaN
+ * where it is 0), 2 divides each point's kernel by e(p_j) (Jones 1993,
+ * doi:10.1007/BF00147776; CLAB_EDOM where it is 0). The grid is separable:
+ * O((na + nb) n + na nb n) without exponentials in the double loop.
+ *
+ * clab_dbscn: DBSCAN (Ester et al. 1996) of n points: core points have at
+ * least minpts points within eps > 0 (closed, the point included); clusters
+ * grow from core points in index order; border = 1 puts a border point in
+ * the first cluster reaching it, 0 leaves it noise. Out: cl (cluster from
+ * 0, -1 noise), core (0/1), *ncl. O(n + pairs within eps).
+ *
+ * clab_hsper: hot-spot persistence. n points with periods prd in [0, np)
+ * in square cells of side cell > 0 from the corner (x0, y0); the m active
+ * cells in order of column then row (out: cid per point, ix, iy their
+ * column and row, *nc = m; CLAB_EDOM for an index beyond 1e15). In each
+ * period the k = max(1, ceil(top m)) busiest cells (0 < top <= 1) and those
+ * tied with the k-th are hot (hot: m x np, cells fastest), unless the tie
+ * makes more than 2k, when the tied cells are not. per, 9 per period: n,
+ * active cells, the fewest cells holding half (NaN for none), that over m,
+ * hot cells, tied in, tied out, the share of incidents in hot cells, and
+ * the Jaccard overlap with the period before (NaN when either set is
+ * empty). cs, 3 per cell: incidents, periods hot, the longest run of hot
+ * periods. O(n log n + m np log m).
+ *
+ * clab_ebshr: linear empirical-Bayes shrinkage of n >= 2 values y with
+ * weights w (NULL for 1; positive sum) and noise variance v >= 0: with ybar
+ * and S the weighted mean and scatter, the signal max(S - v, 0) and B* = v /
+ * (v + signal) (0 when both are 0). b in [0, 1], or NaN for B*. Out: fit,
+ * 6 (ybar, S, v, signal, B*, b), shr (1 - b) y + b ybar and fall b (y -
+ * ybar). Lean: Crimlab.Hotspot.bstar_min. O(n). */
+int clab_kdsurf(const double *x, const double *y, const double *w, int n,
+                double hx, double hy, const double *ax, int na,
+                const double *ay, int nb, int grid, const double *win, int edge,
+                int loo, double *out);
+int clab_dbscn(const double *x, const double *y, int n, double eps, int minpts,
+               int border, int *cl, int *core, int *ncl);
+int clab_hsper(const double *x, const double *y, const int *prd, int n, int np,
+               double cell, double x0, double y0, double top, int *cid,
+               double *ix, double *iy, int *nc, int *hot, double *per,
+               double *cs);
+int clab_ebshr(const double *y, const double *w, int n, double v, double b,
+               double *fit, double *shr, double *fall);
+
+/* The space-time permutation scan (src/kscn.cpp; Kulldorff et al. 2005,
+ * doi:10.1371/journal.pmed.0020059). n >= 3 incidents at planar points (x,
+ * y) and times t, all finite. Cylinders: a circle of radius r[k] (positive,
+ * increasing) about each distinct location (closed) times a window [u, u +
+ * tw[w]) (tw positive) starting at each distinct time u. A cylinder with c
+ * >= minc incidents, n_C in its circle and n_W in its window expects e =
+ * n_C n_W / n; its score is the Poisson log-likelihood ratio c log(c / e)
+ * + (n - c) log((n - c) / (n - e)) for c > e, 0 otherwise (Lean:
+ * Crimlab.Hotspot.llr_nonneg). Clusters: the best cylinder of each circle,
+ * by score, keeping those whose circles overlap none kept before, at most
+ * top, positive scores only. Each p-value: (1 + #{max* >= score}) / (nsim +
+ * 1), the largest score with the times shuffled nsim >= 0 times from seed
+ * (NaN for nsim = 0). Out: 10 per cluster (centre index, radius, start,
+ * end, c, e, n_C, n_W, score, p), *ncl clusters. O(L R (U + W U) (1 +
+ * nsim)) for L locations, R radii, U times, W lengths. */
+int clab_kscan(const double *x, const double *y, const double *t, int n,
+               const double *r, int nr, const double *tw, int nw, int minc,
+               int nsim, unsigned int seed, int top, double *out, int *ncl);
+
+/* Spatial econometrics (src/sreg.cpp). Weights rp, ci, w: rows of
+ * distinct neighbours, none the unit itself, weights finite and >= 0
+ * (CLAB_EDOM otherwise); S0, S1, S2 of Cliff and Ord (1981).
+ *
+ * clab_gmoran: Moran's I (Moran 1950, doi:10.2307/2332142) of each of k
+ * columns of x (n >= 4 rows, column-major): I = n / S0 sum w_ij z_i z_j /
+ * sum z^2, E = -1 / (n - 1), the variances under normality and
+ * randomisation (Cliff and Ord 1981), z statistics, upper normal tails, and
+ * the permutation p-value (1 + #{I* >= I}) / (nsim + 1) (NaN for nsim = 0;
+ * column c draws from seed + c). Out, 10 per column: I, E, Vn, Vr, zn, zr,
+ * pn, pr, pperm, S0; NaN but S0 for a constant column. CLAB_EDOM for S0 =
+ * 0. O(nnz log nnz + k nsim nnz).
+ *
+ * clab_bvmor: bivariate Moran (Wartenberg 1985,
+ * doi:10.1111/j.1538-4632.1985.tb00849.x), n >= 3: n / S0 sum w_ij zx_i
+ * zy_j / sqrt(sum zx^2 sum zy^2), with y's values permuted nsim times from
+ * seed. Out, 6: I, the mean and sd of the permuted values, z, (1 + #{I* >=
+ * I}) / (nsim + 1), (1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1) (NaN for
+ * nsim = 0). CLAB_EDOM for a constant x or y, or S0 = 0.
+ *
+ * clab_sarml: spatial regression of y on X (n x p, column-major, p < n),
+ * W the weights. model 0: y = rho W y + X b + e; 1: y = X b + u, u = lam W
+ * u + e; 2: both. method 0: maximum likelihood (Anselin 1988,
+ * doi:10.1007/978-94-015-7799-1), the likelihood concentrated in rho or lam
+ * and maximised by Brent's method on (-1/m, 1/m), m the largest row sum of
+ * W, log |I - a W| by dense LU; model 2 by Nelder-Mead in (rho, lam); the
+ * covariance from the inverse of the expected information matrix. method 1
+ * (model 0 only): two-stage least squares with instruments [X, inst]
+ * (inst: n x ni, column-major; Kelejian and Prucha 1998,
+ * doi:10.1023/A:1007707430416), s2 = RSS / n, the covariance with RSS / (n -
+ * p - 1). Out: coef, 4 p + 4: b, rho,
+ * lam (NaN when not in the model), their standard errors (p + 2), then
+ * OLS b and its standard errors (p each); vc, (p + 2) x (p + 2) row-major
+ * over (b, rho, lam), NaN outside the model; st, 5: log-likelihood (NaN for
+ * 2SLS), s2, AIC, the OLS log-likelihood, m. CLAB_EDOM for a rank-deficient
+ * X (after filtering) or a singular I - a W. O(n^3) per likelihood.
+ *
+ * clab_spill: direct, indirect and total effects of a lag model (LeSage and
+ * Pace 2009, doi:10.1201/9781420064254) for n >= 2 units: with S = (I - rho
+ * W)^-1, direct_j = tr(S (b_j I + th_j W)) / n, total_j = 1' S (b_j I +
+ * th_j W) 1 / n (Lean: Crimlab.Hotspot.total_effect), indirect the
+ * difference; th NULL for none. vc: NULL, or the covariance (1 + k or 1 +
+ * 2k square, row-major) of (rho, b, th), for delta-method standard errors
+ * with dS / drho = S W S. Out, 6 per coefficient: direct, indirect, total,
+ * their standard errors (NaN without vc). CLAB_EDOM when I - rho W is
+ * singular. O(n^3). */
+int clab_gmoran(const double *x, int n, int k, const int *rp, const int *ci,
+                const double *w, int nsim, unsigned int seed, double *out);
+int clab_bvmor(const double *x, const double *y, int n, const int *rp,
+               const int *ci, const double *w, int nsim, unsigned int seed,
+               double *out);
+int clab_sarml(const double *y, const double *x, int n, int p, const int *rp,
+               const int *ci, const double *w, int model, int method,
+               const double *inst, int ni, double *coef, double *vc,
+               double *st);
+int clab_spill(int n, const int *rp, const int *ci, const double *w, double rho,
+               const double *b, const double *th, int k, const double *vc,
+               double *out);
+
+/* Point patterns and segregation (src/ppx.cpp).
+ *
+ * clab_crossk: the cross-type K function of n >= 2 points with types mk
+ * (codes from 0) inside the rectangle win: K_ij(r) = A / (n_i n_j) sum over
+ * a of type ti and b != a of type tj with d_ab <= r of Ripley's isotropic
+ * weight at a (Ripley 1977, doi:10.1111/j.2517-6161.1977.tb01615.x),
+ * n_i (n_i - 1) in the divisor when ti = tj; r: nr distances from 0,
+ * increasing; out k, nr values. With sigma > 0, the segregation test of
+ * Diggle, Zheng and Durr (2005, doi:10.1111/j.1467-9876.2005.05373.x): T =
+ * sum_a sum_m (p_m(a) - pbar_m)^2, p_m(a) the leave-one-out share of type m
+ * under a normal kernel of sd sigma, and the p-value of nsim relabellings
+ * from seed; seg, 2: T, p (NaN for nsim = 0). CLAB_EDOM for a point outside
+ * win, a type without points, or a point whose kernel weights all vanish.
+ * O(n^2 (1 + nsim types)).
+ *
+ * clab_qdrtst: the counts of n points in nx x ny equal tiles of win (cnt:
+ * ny x nx column-major, rows from the top; a point on the far edge in the
+ * last tile) and Pearson's X2 against the mean count. st, 3: X2, nx ny - 1,
+ * the points per unit area. O(n + nx ny).
+ *
+ * clab_morsta: Morisita's index of n >= 2 counts (from 0, total S > 1), I
+ * = n (sum x^2 - S) / (S^2 - S), the uniform and clumped indices (chiu -
+ * n + S) / (S - 1) and (chil - n + S) / (S - 1) at the chi-square quantiles
+ * given, Smith-Gill's standardised index, and chi = I (S - 1) + n - S.
+ * Out, 5: I, clumped, uniform, standardised, chi. O(n).
+ *
+ * clab_dissix: segregation of g >= 2 groups over n units (x: n x g
+ * counts, column-major, every group with a positive total; units with no
+ * one left out). d: g x g Duncan's D; grp, 4 per group against the rest:
+ * IS, Theil's H, Atkinson's index of shape delta in (0, 1), Gini; with
+ * weights rp, ci, w (NULL for none), dm: g x g Morrill's adjusted D (D
+ * less the weighted mean |z_i - z_j| over neighbouring units, z the pair's
+ * share; CLAB_EDOM when no weight joins two occupied units). Lean:
+ * Crimlab.Hotspot.dissim_le_one. O(g^2 n + g n^2). */
+int clab_crossk(const double *x, const double *y, const int *mk, int n, int ti,
+                int tj, const double *win, const double *r, int nr,
+                double sigma, int nsim, unsigned int seed, double *k,
+                double *seg);
+int clab_qdrtst(const double *x, const double *y, int n, const double *win, int nx,
+                int ny, double *cnt, double *st);
+int clab_morsta(const double *x, int n, double chiu, double chil, double *out);
+int clab_dissix(const double *x, int n, int g, double delta, const int *rp,
+                const int *ci, const double *w, double *d, double *grp,
+                double *dm);
+
+/* Geographic utilities (src/geou.cpp).
+ *
+ * clab_pinpl: the region of each of n points (px, py) among np polygons
+ * given by nv >= 3 vertices (vx, vy) with polygon codes pid (0 to np - 1)
+ * and ring codes rid, sorted by polygon then ring (CLAB_EARG otherwise),
+ * each ring closed from its last vertex to its first. Even-odd rule over
+ * all rings of a polygon (so holes and parts), a point on an edge inside
+ * (Shimrat 1962, doi:10.1145/368637.368653). Out: reg, the first polygon
+ * holding the point or -1; nreg, how many hold it. O(n nv) at worst,
+ * polygons whose bounding box misses the point skipped.
+ *
+ * clab_arwt: an areal crosswalk. ns source values val, np pairs (from[q]
+ * in [0, ns), to[q] in [0, nt)) with overlap sizes area (from 0): each
+ * source is split among its pairs in proportion to area (evenly when its
+ * areas sum to 0). Out: out (nt target totals), share (per pair), main (per
+ * source: the target of its largest share, -1 without pairs), *lost (the
+ * total of sources without pairs). O(ns + np). */
+int clab_pinpl(const double *px, const double *py, int n, const double *vx,
+               const double *vy, const int *pid, const int *rid, int nv, int np,
+               int *reg, int *nreg);
+int clab_arwt(const double *val, int ns, const int *from, const int *to,
+              const double *area, int np, int nt, double *out, double *share,
+              int *main, double *lost);
+
+/* The buffer design of place-based evaluations (src/buf.cpp). For n
+ * places, the distances ds and dc to the nearest of ns sites (sx, sy) and
+ * nc comparison points (cx, cy); grp 0 (treated) when ds <= r, 1
+ * (comparison) when dc <= r and ds > buf, 2 (excluded) otherwise; r > 0,
+ * buf >= 0 (Bowers and Johnson 2003, doi:10.1023/A:1024909009240). O(n (ns
+ * + nc)). */
+int clab_bufas(const double *x, const double *y, int n, const double *sx,
+               const double *sy, int ns, const double *cx, const double *cy,
+               int nc, double r, double buf, int *grp, double *ds, double *dc);
+
+/* ------------------------------------------------------------------------
+ * Hawkes processes in time (hwk.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The model of the next three: n event times t, sorted, in [0, hor]; kind
+ * 0 exponential kernel (rate beta), 1 Weibull (shape, scale), 2 Lomax
+ * (shape, scale: density shape / scale (1 + d / scale)^-(shape + 1)); base
+ * 0 a constant baseline e^a0, 1 exp(a0 + a1 t / hor + a2 sin(2 pi t / per)
+ * + a3 cos(2 pi t / per)) (per > 0), its integral by Simpson's rule on
+ * steps of at most per / 16. th: the baseline terms, eta >= 0, then the
+ * kernel parameters (> 0): 3, 4, 6 or 7 values. Events at one instant do
+ * not excite each other. CLAB_EARG for a bad size, window, option or
+ * order of times; CLAB_EDOM for parameters outside their range. */
+
+/* The log-likelihood at th and, when grad is not NULL, its gradient. O(n)
+ * for the exponential kernel (Ozaki 1979), O(n^2) for the others. */
+int clab_hwkll(const double *t, int n, double hor, int kind, int base, double per,
+               const double *th, double *ll, double *grad);
+
+/* The maximum-likelihood fit by BFGS with the analytic gradient over the
+ * baseline terms, logit(eta) and the logarithms of the kernel parameters,
+ * at most maxit steps per start, from start (th's layout, 0 < eta < 1) or,
+ * when NULL, from two starts for the exponential kernel and two more (one
+ * at the exponential fit) for the others, the best kept. n >= 2. Out: th;
+ * cov, the inverse of the numerical Hessian of the gradient (NaN when not
+ * positive definite); st (3): the log-likelihood, the steps and 1 when the
+ * gradient vanished. CLAB_EDOM when no start gives a finite likelihood. */
+int clab_hwkfit(const double *t, int n, double hor, int kind, int base, double per,
+                const double *start, int maxit, double *th, double *cov, double *st);
+
+/* Time-rescaling residuals: tau (n), the compensator's increments from 0;
+ * ks (2), the Kolmogorov-Smirnov statistic of 1 - e^-tau against the
+ * uniform and its p-value (exact below 100 events without ties). work: n
+ * doubles, 3 (2 n + 1)^2 when n < 100. */
+int clab_hwkres(const double *t, int n, double hor, int kind, int base, double per,
+                const double *th, double *tau, double *ks, double *work);
+
+/* Simulation on [0, hor] by the branching construction, from seed: the
+ * background by thinning, Poisson(eta) offspring per event at lags drawn
+ * from the kernel. win: NULL, or a rectangle (xmin, xmax, ymin, ymax) in
+ * which the background falls uniformly (th's baseline is then the
+ * window's whole rate) and offspring land at normal offsets of standard
+ * deviation sig > 0; those outside it are dropped. Out, in time order: t,
+ * x and y (with win), gen (0 for the background), n of them. CLAB_EDOM
+ * when more than cap events arise. work: 3 cap doubles; iwork: 2 cap
+ * ints. */
+int clab_hwksim(double hor, int kind, int base, double per, const double *th,
+                const double *win, double sig, unsigned int seed, int cap, double *t,
+                double *x, double *y, int *gen, int *n, double *work, int *iwork);
+
+/* ------------------------------------------------------------------------
+ * Series: trend, change points, surveillance, cross-correlation (trn.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Mann-Kendall's test of a monotone trend in y over strictly increasing x
+ * (n >= 3, finite) and the Theil-Sen slope (Sen 1968). alt: 0 two-sided,
+ * 1 increasing, 2 decreasing. z: the normal quantile of the slope
+ * interval. Out, st (10): S; its variance with the tie correction; tau
+ * (S over n (n - 1) / 2); the p-value, exact over every ordering of the
+ * observed values (ties kept) when n <= 8, otherwise normal with the
+ * continuity correction; the slope (the median of the pairwise slopes);
+ * the intercept (the median of y - slope x); the interval's ends at the
+ * ranks floor((N - z sd) / 2) and ceil((N + z sd) / 2) + 1 of the N
+ * sorted slopes, clamped to 1..N; and 1 where a clamp was needed. work:
+ * n (n + 1) / 2 doubles; iwork: n ints. CLAB_EDOM for a non-finite value
+ * or x not increasing. */
+int clab_trndrr(const double *x, const double *y, int n, int alt, double z, double *st,
+                double *work, int *iwork);
+
+/* A single change of level in y (n finite values): the split after k
+ * (minseg <= k <= n - minseg) with the largest T_k = k (n - k) / n
+ * (mean before - mean after)^2, its p-value over the reorderings of y
+ * (all n! of them when that is at most nperm, else nperm random ones from
+ * seed: (1 + #{T* >= T}) / (1 + nperm)), and Pettitt's (1979) rank test.
+ * Out, st (12): k, the means before and after, T, p, the orderings used,
+ * 1 when exact; Pettitt's t, K = max |U_t|, its p-value 2 exp(-6 K^2 /
+ * (n^3 + n^2)) (at most 1) and the means before and after t. work: n
+ * doubles; iwork: n ints. */
+int clab_stpcp(const double *y, int n, int minseg, int nperm, unsigned int seed, double *st,
+               double *work, int *iwork);
+
+/* CUSUM of counts y (>= 0) against expected counts m (> 0): z, the
+ * transformed values (trans 0 (y - m) / sqrt(m), 1 Rossi's, 2 Anscombe's,
+ * 3 y itself); s_i = max(0, s_(i-1) + z_i - k), alarm where s >= h > 0,
+ * s set to 0 after an alarm when reset. */
+int clab_cusrv(const double *y, const double *m, int n, double k, double h, int trans,
+               int reset, double *z, double *s, int *alarm);
+
+/* The cross-correlation of two series of n >= 2 finite values, neither
+ * constant, at lags -lag..lag (0 <= lag < n): r[lag + k] estimates
+ * cor(x[t + k], y[t]) as stats::ccf() does (sums over the overlap, the
+ * full-series means and variances). */
+int clab_xcser(const double *x, const double *y, int n, int lag, double *r);
+
+/* ------------------------------------------------------------------------
+ * Durations: Kaplan-Meier by group and the log-rank test (kmr.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* time: n durations >= 0; event: 1 for an event, 0 for a censored
+ * duration; grp: groups in [0, g). z: the normal quantile of the
+ * intervals. Out, one row per group and distinct time (m of them, at most
+ * n), groups in order: gout, tt, the number at risk nr, events nd,
+ * censored nc, the survival s, its Greenwood standard error se and the
+ * log-scale interval lo, hi (survival::survfit's "log"), NaN once s is 0;
+ * med (2 g; the first g read), each group's median (survfit's rule: where
+ * the curve sits at exactly 1/2, halfway to its next fall), NaN when it
+ * never reaches 1/2; lr (2), the log-rank chi-square and its degrees of
+ * freedom g - 1 (NaN for one group or a singular variance). work: 3 g +
+ * (g - 1)^2 doubles; iwork: n ints. */
+int clab_kmrec(const double *time, const int *event, const int *grp, int n, int g, double z,
+               int *m, int *gout, double *tt, double *nr, double *nd, double *nc, double *s,
+               double *se, double *lo, double *hi, double *med, double *lr, double *work,
+               int *iwork);
+
+/* ------------------------------------------------------------------------
+ * Police operations research (hyq.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Larson's (1974) hypercube queue: n units (1 to 10) serving m atoms with
+ * calls at rates lam (> 0), each answered by the first free unit in its
+ * atom's order pref (m x n, column-major, row j a permutation of the
+ * units 0..n-1), service at rate mu > 0. wait 0: a call finding every
+ * unit busy is lost; 1: it waits (the infinite line, lam's total below n
+ * mu), the queue lumped into the all-busy state. Out: pst (2^n), the
+ * stationary probability of each set of busy units (bit u for unit u); wl
+ * (n), each unit's workload; disp (n x m), the share of all calls from
+ * atom j answered at once by unit u; st (3): the loss or waiting
+ * probability, the mean queue (0 for loss) and rho = lam's total / (n
+ * mu). work: 4^n + 2^n doubles. Exact by Gaussian elimination. */
+int clab_hypq(const double *lam, const int *pref, int m, int n, double mu, int wait,
+              double *pst, double *wl, double *disp, double *st, double *work);
+
+/* Kolesar and Blum's (1973) square-root law: the mean distance from a
+ * call to the nearest available unit, c sqrt(area / (units (1 - busy))),
+ * with c = 1/2 for straight-line travel (metric 0) and sqrt(2 pi) / 4 on a
+ * rectangular street grid (metric 1). area, units > 0; busy in [0, 1). */
+int clab_sqrtlw(double area, double units, double busy, int metric, double *d, double *c);
+
+/* ------------------------------------------------------------------------
+ * Hot-spot dynamics: the Short-D'Orsogna-Brantingham model (sdb.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The model of Short et al. (2008) on an n x n torus (n >= 3, sites
+ * column-major), steps steps of length dt. par (10): a0 > 0 (static
+ * attractiveness), omega >= 0 (decay; omega dt <= 1), eta in [0, 1]
+ * (spread), gam >= 0 (offenders arriving per site per unit time), theta
+ * >= 0 (attractiveness added per burglary), dt > 0, then for mode 1 dx >
+ * 0, dif > 0, eps >= 0, z > 0. b (n^2, in and out): the dynamic
+ * attractiveness. mode 0, agents: rho (n^2) holds whole numbers of
+ * offenders; each burgles with probability 1 - e^-(a0 + b) dt and leaves,
+ * or moves to a neighbour chosen in proportion to its attractiveness;
+ * b' = ((1 - eta) b + eta / 4 (sum of the four neighbours)) (1 - omega
+ * dt) + theta E; Poisson(gam dt) offenders arrive at each site; from
+ * seed. mode 1, the continuum limit by explicit Euler steps: b' = b + dt
+ * (eta dif / z lap b - omega b + eps dif rho A), rho' = rho + dt (dif / z
+ * (lap rho - 2 div(rho grad A / A)) - rho A + gam), A = a0 + b, no crime
+ * where sup (NULL or n^2 flags) is set; CLAB_EDOM when dt 4 dif max(1,
+ * eta) / z > dx^2 or a field turns negative. Out: burg and meanb (steps),
+ * the burglaries (the crime rate times dt in mode 1) and the mean of b
+ * after each step; tot (n^2), the burglaries at each site. work: 3 n^2
+ * doubles; iwork: n^2 ints. */
+int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double *rho,
+                const int *sup, unsigned int seed, double *burg, double *meanb, double *tot,
+                double *work, int *iwork);
+
+/* Linear stability of the uniform state of the continuum model above
+ * (Short, Bertozzi and Brantingham 2010). par (7): a0, omega, eps >= 0,
+ * dif, gam, eta >= 0, z (the others > 0). At wavenumber-squared k the
+ * linearisation has trace tr (negative at every k) and determinant det =
+ * P k^2 - Q k + R; a mode grows exactly when det < 0, so the uniform
+ * state forms hot spots when Q > 0 and Q^2 > 4 P R (Q > 0 when P = 0).
+ * Out, st (12): P, Q, R; the steady B, A = a0 + B, rho; the two sides of
+ * Q > 0, 3 eps dif rho and omega + eta A; 1 when unstable; the critical
+ * k = Q / (2 P), det and the growth rate there (NaN unless P, Q > 0);
+ * for the nk >= 0 values k (>= 0): tr, det and gr, the larger real part
+ * of the eigenvalues. */
+int clab_sdbthr(const double *par, const double *k, int nk, double *st, double *tr, double *det,
+                double *gr);
+
+/* ------------------------------------------------------------------------
+ * Hawkes processes with marks, types and places (mhk.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Each of the three: n event times t, sorted, in [0, hor]; maxit 0
+ * evaluates at start, otherwise BFGS from start or, when NULL, from the
+ * kernel's starts, the best kept. Out: th; cov, the inverse of the
+ * numerical Hessian of the analytic gradient (NaN when not positive
+ * definite); grad (NULL or as th), the gradient of the log-likelihood at
+ * th; st: the log-likelihood, the steps, 1 when the gradient vanished,
+ * then as stated. CLAB_EARG for bad sizes or times; CLAB_EDOM for a start
+ * outside the parameter space or no finite likelihood. */
+
+/* Temporal ETAS (Ogata 1988): lambda(t) = mu + K sum over t_j < t of
+ * e^(alpha dm_j) (t - t_j + c)^-p, dm the marks less the reference
+ * magnitude; th (5): mu > 0, K >= 0, alpha (0 and not estimated when
+ * afree is 0), c > 0, p > 1. st (4): ..., the branching ratio K mean(e^(alpha
+ * dm)) c^(1 - p) / (p - 1). O(n^2). */
+int clab_etasf(const double *t, const double *dm, int n, double hor, int afree,
+               const double *start, int maxit, double *th, double *cov, double *st,
+               double *grad);
+
+/* Multivariate Hawkes with exponential kernels (Hawkes 1971): k types
+ * (1 to 10), ty in [0, k); lambda_c(t) = mu_c + beta sum over l of
+ * A[c, l] sum over earlier events of type l of e^(-beta (t - t_j)). th:
+ * mu (k), A (k x k, column-major, A[c + l k] the events of type c each
+ * event of type l triggers), then beta unless beta > 0 is given. st (4):
+ * ..., the spectral radius of A (below 1 for a stationary process). O(n
+ * k). work: 2 k + 8 np + np^2 doubles (np the parameters); iwork: k
+ * ints. */
+int clab_mvhwk(const double *t, const int *ty, int n, int k, double hor, double beta,
+               const double *start, int maxit, double *th, double *cov, double *st,
+               double *grad, double *work, int *iwork);
+
+/* Space-time Hawkes (Mohler et al. 2011): lambda(t, x, y) = mu + eta
+ * beta sum over earlier events of e^(-beta (t - t_j)) phi_sigma(x - x_j,
+ * y - y_j), phi the isotropic normal density; mu per unit area and time
+ * over a region of area area (the spatial kernel's mass outside it is
+ * not subtracted). th (4): mu, eta (< 1 when fitted), beta, sigma. st
+ * (3). qlam: the intensity at the nq points (qt, qx, qy) at th. O(n^2). */
+int clab_sthwk(const double *t, const double *x, const double *y, int n, double hor,
+               double area, const double *start, int maxit, double *th, double *cov,
+               double *st, double *grad, const double *qt, const double *qx, const double *qy,
+               int nq, double *qlam);
 
 #ifdef __cplusplus
 }

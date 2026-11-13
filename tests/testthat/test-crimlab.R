@@ -185,7 +185,7 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(sthwk(c(1, 3, 4, 8, 9, 9.5, 13, 20, 21, 22), 1:10,
                      c(2, 5, 1, 9, 3, 7, 4, 8, 6, 10), 25)),
          c("par", "se", "cov", "loglik", "aic", "conv", "iter", "fit", "n",
-           "hor", "win", "area", "lam"))
+           "hor", "win", "area", "lam")),
     list(quote(cbatt(c(1, 3, 2, 5, 4, 6), c(0, 1, 0, 1, 0, 1),
                      c(1, 2, 2, 1, 3, 2), reps = 0)),
          c("res", "ps", "w", "match", "est", "tgt", "level")),

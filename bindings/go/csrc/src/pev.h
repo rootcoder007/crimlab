@@ -106,6 +106,15 @@ int mnp(const double *g, int k, double *w, int maxit);
 double sdtau(const double *yw, int nu, int nt, const std::vector<int> &ctl,
              const std::vector<int> &trd, int t0, bool fit, double *om, double *la);
 
+// The linearisation variance of the total of the influence values u (n)
+// in a stratified sample: st, the stratum of each unit (nst codes), ps,
+// its first-stage unit (nps codes, each within one stratum); fpc NULL
+// (with replacement) or each stratum's population count of first-stage
+// units. sum_h (1 - n_h / N_h) n_h / (n_h - 1) sum_j (U_hj - Ubar_h)^2 over
+// the PSU totals U_hj; every stratum needs two PSUs.
+double svar(const double *u, int n, const int *st, int nst, const int *ps, int nps,
+            const double *fpc);
+
 }  // namespace pev
 
 #endif
