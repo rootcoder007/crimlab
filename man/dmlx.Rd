@@ -19,6 +19,9 @@ dmlx(
   alpha = 0.5,
   nlam = 100,
   nfin = 5,
+  tol = 1e-07,
+  scr = TRUE,
+  hon = FALSE,
   ntree = 500,
   mtry = NULL,
   trim = NULL,
@@ -48,8 +51,13 @@ repetition of the cross-fitting.}
 
 \item{t}{For \code{"didcs"}, the period of each row, 0 or 1.}
 
-\item{score}{\code{NULL} for the default (\code{"po"}, or \code{"ate"}), or \code{"po"} or
-\code{"iv"} for \code{"plr"} and \code{"pliv"}, \code{"ate"} or \code{"atte"} for \code{"irm"}.}
+\item{score}{\code{NULL} for the default (\code{"po"}, \code{"ate"} or \code{"obs"}), or
+\code{"po"} or \code{"iv"} for \code{"plr"} and \code{"pliv"}, \code{"ate"} or \code{"atte"} for
+\code{"irm"}, \code{"obs"} or \code{"exp"} for \code{"did"} and \code{"didcs"}: the
+observational score, or the experimental one of 'DoubleML' for
+'Python' for a treatment assigned at random (in-sample normalised;
+nuisances \code{g0}, \code{g1} on a panel, the four cell regressions on
+cross-sections, no propensity).}
 
 \item{lrn}{The learner of the outcome nuisances: \code{"glm"} (least squares;
 logistic regression for a probability), \code{"lasso"}, \code{"ridge"} or
@@ -68,11 +76,17 @@ nuisances, from the same choices.}
 \item{nfin}{The number of inner folds that choose the penalty, at
 least 2.}
 
+\item{tol, scr}{The convergence threshold and the screening of the
+elastic net learners, as in \code{\link[=enpath]{enpath()}}.}
+
+\item{hon}{\code{TRUE} for honest forests, on half-samples without
+replacement with \code{imb = 0.05}, as 'grf' grows them (see \code{\link[=rfor]{rfor()}}).}
+
 \item{ntree}{The number of trees of \code{"forest"}: a whole number, at least 1.}
 
 \item{mtry}{The columns tried at each split of \code{"forest"}: \code{NULL} for the
-floor of the square root of the number of columns, or a whole number
-(more than the columns means all of them).}
+default of \code{\link[=rfor]{rfor()}}, or a whole number (more than the columns means all
+of them).}
 
 \item{trim}{Propensities are kept within \code{trim} of 0 and 1: \code{NULL} for
 the default of the reference implementation (1e-12 for \code{"irm"},
@@ -82,7 +96,12 @@ the default of the reference implementation (1e-12 for \code{"irm"},
 
 \item{clu}{\code{NULL}, or the cluster of each row (whole numbers from 1 to
 the number of clusters, each used), for \code{"plr"} and \code{"pliv"}; folds
-must then be constant within clusters.}
+must then be constant within clusters. For two-way clustering, a
+matrix of two such columns, one per kind of cluster; \code{fold} is then a
+matrix of two columns, the fold of each row's cluster of each kind
+(constant within it), the test set of each pair of folds is the rows
+in both and its training set the rows in neither, and the variance is
+the two-way form of Chiang et al. (2022) as 'DoubleML' computes it.}
 
 \item{pred}{\code{NULL} to learn the nuisances, or their predictions: a
 matrix with one row per observation and one column per nuisance, in
@@ -138,6 +157,10 @@ standard error of the 'AIPW' package (the standard deviation of the
 influence function), and targeted maximum likelihood with the
 fluctuation of the 'tmle' package (Gruber and van der Laan 2012).
 }
+
+The partialling-out score is Neyman-orthogonal, the AIPW term is unbiased
+when either nuisance is right, and the estimate is the root of the
+empirical score: see \code{proof("dmlx")}.
 
 The estimate solves the mean of the score over all folds (DoubleML's
 \code{"dml2"}); its variance is \code{mean(psi^2) / mean(psi_a)^2 / n}, or, with

@@ -44,6 +44,15 @@ test_that("dmlx agrees with DoubleML", {
              pred = ref$clu$pred)
   expect_equal(c1$coef, ref$clu$coef, tolerance = 1e-10)
   expect_equal(c1$se, ref$clu$se, tolerance = 1e-10)
+  # two-way clusters, DoubleML's folds of each kind
+  tw <- dmlx(ref$yc, ref$dc, x, "plr", ref$two$fold, clu = ref$two$cl,
+             pred = ref$two$pred)
+  expect_equal(tw$coef, ref$two$coef, tolerance = 1e-10)
+  expect_equal(tw$se, ref$two$se, tolerance = 1e-10)
+  tg <- dmlx(ref$yc, ref$dc, x, "plr", ref$two$fold, clu = ref$two$cl,
+             lrn = "glm")
+  expect_lt(max(abs(tg$pred[, , 1] - ref$two$pred)), 1e-8)
+  expect_equal(tg$coef, ref$two$coef, tolerance = 1e-8)
 })
 
 test_that("dmlx agrees with AIPW, tmle and DRDID on the same nuisances", {
@@ -91,6 +100,14 @@ test_that("dmlx learns with the elastic net and repeats the folds", {
                    c("g00", "g01", "g10", "g11", "m"))
   expect_true(is.finite(e$coef))
   expect_gt(e$se, 0)
+  ex <- dmlx(ref$y, ref$d, x, "did", ref$fold, score = "exp", lrn = "glm")
+  expect_identical(dimnames(ex$pred)[[2]], c("g0", "g1"))
+  ec <- dmlx(ref$y, ref$d, x, "didcs", ref$fold, t = ref$s, score = "exp",
+             lrn = "glm")
+  expect_identical(dimnames(ec$pred)[[2]], c("g00", "g01", "g10", "g11"))
+  hf <- dmlx(ref$y, ref$d, x, "irm", ref$fold, lrn = "forest", ntree = 50,
+             hon = TRUE)
+  expect_lt(abs(hf$coef - 1), 4 * hf$se)
   fr <- dmlx(ref$y, ref$d, x, "irm", ref$fold, lrn = "forest", ntree = 50,
              mtry = 9)
   expect_lt(abs(fr$coef - 1), 4 * fr$se)
@@ -114,7 +131,8 @@ test_that("dmlx stops on bad input, naming the argument", {
     list("`t` must be 0 or 1", y, ref$d, x, "didcs", f, t = d),
     list("`score` must be one of", y, d, x, "plr", f, score = "ate"),
     list("`score` must be one of", y, ref$d, x, "irm", f, score = "po"),
-    list("`score` must be NULL", y, ref$d, x, "did", f, score = "ate"),
+    list("`score` must be one of", y, ref$d, x, "did", f, score = "ate"),
+    list("`score` must be NULL", y, ref$d, x, "aipw", f, score = "ate"),
     list("one row per row", y, d, x, "plr", f[-1]),
     list("`fold` must be finite", y, d, x, "plr", as.character(f)),
     list("same folds in every column", y, d, x, "plr",
@@ -122,9 +140,15 @@ test_that("dmlx stops on bad input, naming the argument", {
     list("`clu` is for models", y, ref$d, x, "irm", f, clu = f),
     list("constant within each cluster", y, d, x, "plr", f,
          clu = rep(1:2, 300)),
+    list("two-way `clu` needs", y, d, x, "plr", f, clu = ref$two$cl),
+    list("constant within each cluster", y, d, x, "plr",
+         cbind(ref$two$fold[, 1], rep(1:3, 200)), clu = ref$two$cl),
     list("`alpha`", y, d, x, "plr", f, alpha = 2),
     list("`nlam`", y, d, x, "plr", f, nlam = 0),
     list("`nfin`", y, d, x, "plr", f, nfin = 1),
+    list("`tol`", y, d, x, "plr", f, tol = 0),
+    list("`scr`", y, d, x, "plr", f, scr = NA),
+    list("`hon`", y, d, x, "plr", f, hon = "yes"),
     list("`seed`", y, d, x, "plr", f, seed = -1),
     list("`lrn` must be one of", y, d, x, "plr", f, lrn = "tree"),
     list("`ntree`", y, d, x, "plr", f, lrn = "forest", ntree = 0),

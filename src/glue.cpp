@@ -414,11 +414,14 @@ SEXP C_clab_r_dastd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sirex(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ctabx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The learning and causal families (rlearn.cpp).
-SEXP C_clab_r_enpath(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_enpath(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP);
 SEXP C_clab_r_lgtreg(SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_rfor(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rfor(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                   SEXP);
 SEXP C_clab_r_dmlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                   SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+                   SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                   SEXP, SEXP, SEXP);
 SEXP C_clab_r_hdbang(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_crwalk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rnnhcl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -552,9 +555,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_sirex", fn(&C_clab_r_sirex), 6},
     {"C_clab_r_ctabx", fn(&C_clab_r_ctabx), 7},
     {"C_clab_r_enpath", fn(&C_clab_r_enpath), 10},
+    {"C_clab_r_enpath", fn(&C_clab_r_enpath), 11},
     {"C_clab_r_lgtreg", fn(&C_clab_r_lgtreg), 4},
-    {"C_clab_r_rfor", fn(&C_clab_r_rfor), 9},
-    {"C_clab_r_dmlx", fn(&C_clab_r_dmlx), 20},
+    {"C_clab_r_rfor", fn(&C_clab_r_rfor), 11},
+    {"C_clab_r_dmlx", fn(&C_clab_r_dmlx), 23},
     {"C_clab_r_hdbang", fn(&C_clab_r_hdbang), 9},
     {"C_clab_r_crwalk", fn(&C_clab_r_crwalk), 6},
     {"C_clab_r_rnnhcl", fn(&C_clab_r_rnnhcl), 10},

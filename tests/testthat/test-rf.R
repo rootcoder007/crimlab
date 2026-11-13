@@ -2,16 +2,23 @@
 # dev/ref-rf.R; the kernel's own checks are in src/t_rf.cpp.
 ref <- readRDS(test_path("ref-rf.rds"))
 
-test_that("rfor's error is within 15 per cent of ranger's", {
+test_that("rfor's error is within 15 per cent of ranger's, like for like", {
+  # ranger's defaults: mtry floor(sqrt(6)) = 2, node size 5 (10 for a
+  # probability), bags of all rows with replacement
+  e <- mean(vapply(1:5, function(s) {
+    mean((rfor(ref$x, ref$y, ref$xt, mtry = 2, seed = s)$pred - ref$ft)^2)
+  }, 0))
+  expect_lt(e, 1.15 * ref$reg)
+  e <- mean(vapply(1:5, function(s) {
+    mean((rfor(ref$x, ref$yb, ref$xt, mtry = 2, minnode = 10,
+               seed = s)$pred - ref$pt)^2)
+  }, 0))
+  expect_lt(e, 1.15 * ref$prob)
+  # its own defaults stay within the same bound on the regression
   e <- mean(vapply(1:5, function(s) {
     mean((rfor(ref$x, ref$y, ref$xt, seed = s)$pred - ref$ft)^2)
   }, 0))
   expect_lt(e, 1.15 * ref$reg)
-  e <- mean(vapply(1:5, function(s) {
-    mean((rfor(ref$x, ref$yb, ref$xt, minnode = 10, seed = s)$pred -
-            ref$pt)^2)
-  }, 0))
-  expect_lt(e, 1.15 * ref$prob)
 })
 
 test_that("rfor is fixed by its seed and blind to increasing transforms", {
@@ -28,6 +35,9 @@ test_that("rfor is fixed by its seed and blind to increasing transforms", {
                   mean((rfor(ref$x, ref$y, ref$xt, ntree = 200,
                              seed = 3)$pred - ref$ft)^2)), 0.1)
   expect_length(a$oob, nrow(ref$x))
+  h <- rfor(ref$x, ref$y, ref$xt, ntree = 100, frac = 0.5, repl = FALSE,
+            hon = TRUE, imb = 0.05)
+  expect_lt(mean((h$pred - ref$ft)^2), 2 * ref$reg)
   s <- rfor(ref$x, ref$y, ntree = 20, mtry = 6, frac = 0.5, repl = FALSE)
   expect_length(s$pred, nrow(ref$x))
 })
@@ -46,7 +56,11 @@ test_that("rfor stops on bad input, naming the argument", {
     list("`minnode`", x, y, minnode = 0),
     list("`frac` must be greater than 0", x, y, frac = 0),
     list("`frac` must be at most 1", x, y, frac = 2),
-    list("`frac` leaves no row", x, y, frac = 0.01),
+    list("`frac` leaves too few rows", x, y, frac = 0.01),
+    list("`frac` leaves too few rows", x, y, frac = 0.06, hon = TRUE),
+    list("`hon`", x, y, hon = NA),
+    list("`imb` must be at least 0", x, y, imb = -1),
+    list("`imb` must be below 0.5", x, y, imb = 0.5),
     list("`repl`", x, y, repl = NA),
     list("`seed`", x, y, seed = -2)
   ))

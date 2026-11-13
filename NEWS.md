@@ -173,3 +173,8 @@
 * Causal estimates: `dmlx()`, double machine learning by cross-fitting
   for the partially linear, interactive, IV, difference-in-differences
   and sample-selection models, with AIPW and TMLE from the same nuisances.
+* `enpath()` screens binomial paths by the sequential strong rule (`scr`);
+  `rfor()` grows honest trees (`hon`), limits split imbalance (`imb`) and
+  takes `mtry` by the rule of grf by default; `dmlx()` adds two-way
+  clusters, the experimental DiD scores (`score = "exp"`) and passes `tol`,
+  `scr` and `hon` to its learners.

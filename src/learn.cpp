@@ -214,14 +214,15 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
 // columns that violate them. work: mu, sd, b, g (unused), xv, bo (p
 // each), eta, v, r, yy (n each), xs (n p); iwork: act (p).
 int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
-          double thresh, int maxit, int stop, int *nfit, double *a0,
-          double *beta, double *work, int *iwork) {
+          double thresh, int maxit, int stop, int screen, int *nfit,
+          double *a0, double *beta, double *work, int *iwork) {
   const int p = d.p, m = d.m;
   const double w = 1.0 / m;
   double *mu = work, *sd = mu + p, *b = sd + p, *xv = b + 2 * p;
   double *bo = xv + p, *eta = bo + p, *v = eta + d.n, *r = v + d.n;
   double *yy = r + d.n, *xs = yy + d.n;
   int *act = iwork;
+  double *ga = b + p;  // |gradient| at the last check: the strong rule's input
   if (!binary(d)) return CLAB_EDOM;
   double ym, ys;
   ystat(d, &ym, &ys);
@@ -234,13 +235,26 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
   // the null deviance per row, over 2
   const double dev0 = -(ym * std::log(ym) + (1.0 - ym) * std::log1p(-ym));
   double r20 = 0.0;
+  for (int i = 0; i < m; ++i) r[i] = w * (yy[i] - ym);
+  double lp = 0.0;  // the lambda before, for the strong rule
   for (int j = 0; j < p; ++j) {
     b[j] = 0.0;
     act[j] = 0;
+    ga[j] = std::fabs(dot(xs + static_cast<long>(j) * m, r, m));
+    if (alpha > 0.0) lp = std::fmax(lp, ga[j] / alpha);
   }
   int it = 0;
   for (int k = 0; k < nl; ++k) {
     const double l1 = lam[k] * alpha, l2 = lam[k] * (1.0 - alpha);
+    // sequential strong rule (Tibshirani et al. 2012): columns likely to
+    // enter join the active set before the descent; the optimality check
+    // below still covers every column
+    if (screen) {
+      const double cut = alpha * (2.0 * lam[k] - (k > 0 ? lam[k - 1] : std::fmax(lp, lam[k])));
+      for (int j = 0; j < p; ++j) {
+        if (!act[j] && sd[j] > 0.0 && ga[j] >= cut) act[j] = 1;
+      }
+    }
     for (;;) {
       // Newton steps on the active set
       for (;;) {
@@ -269,10 +283,14 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
         }
         const double ao = a;
         double dlx;
-        do {
+        // a pass over the active columns, then passes over the nonzero
+        // ones until they settle, then the active ones again (as the
+        // gaussian path), until a pass over all of them is quiet
+        bool full = true;
+        for (;;) {
           dlx = 0.0;
           for (int j = 0; j < p; ++j) {
-            if (!act[j]) continue;
+            if (full ? !act[j] : b[j] == 0.0) continue;
             const double *xj = xs + static_cast<long>(j) * m;
             const double gj = dot(xj, r, m);
             const double nb = soft(gj + xv[j] * b[j], l1) / (xv[j] + l2);
@@ -289,7 +307,14 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
           for (int i = 0; i < m; ++i) r[i] -= da * v[i];
           dlx = std::fmax(dlx, sv * da * da);
           if (++it > maxit) return CLAB_EDOM;
-        } while (dlx >= thresh);
+          if (dlx >= thresh) {
+            full = false;
+          } else if (full) {
+            break;
+          } else {
+            full = true;
+          }
+        }
         for (int i = 0; i < m; ++i) eta[i] = a;
         double dout = sv * (a - ao) * (a - ao);
         for (int j = 0; j < p; ++j) {
@@ -308,7 +333,9 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
       bool viol = false;
       for (int j = 0; j < p; ++j) {
         if (!(sd[j] > 0.0)) continue;
-        if (!act[j] && std::fabs(dot(xs + static_cast<long>(j) * m, r, m)) > l1) {
+        if (act[j]) continue;
+        ga[j] = std::fabs(dot(xs + static_cast<long>(j) * m, r, m));
+        if (ga[j] > l1) {
           act[j] = 1;
           viol = true;
         }
@@ -395,10 +422,11 @@ int lmax(const Dat &d, int fam, double alpha, double *lam, double *work) {
 }
 
 int path(const Dat &d, int fam, double alpha, const double *lam, int nl,
-         double thresh, int maxit, int stop, int *nfit, double *a0,
-         double *beta, double *work, int *iwork) {
+         double thresh, int maxit, int stop, int screen, int *nfit,
+         double *a0, double *beta, double *work, int *iwork) {
   return fam == 0 ? gauss(d, alpha, lam, nl, thresh, maxit, stop, nfit, a0, beta, work, iwork)
-                  : binom(d, alpha, lam, nl, thresh, maxit, stop, nfit, a0, beta, work, iwork);
+                  : binom(d, alpha, lam, nl, thresh, maxit, stop, screen, nfit, a0, beta, work,
+                          iwork);
 }
 
 void lpred(const double *x, int n, int p, const int *idx, int m, double a0,
@@ -541,7 +569,7 @@ long cvwork(int n, int p, int nl, int nf) {
 }
 
 int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
-          double lmr, double thresh, int maxit, const int *fold, int nf,
+          double lmr, double thresh, int maxit, int screen, const int *fold, int nf,
           double *a0, double *beta, double *cv, int *best, int *nfit,
           double *work, int *iwork) {
   const int n = d.n, p = d.p;
@@ -562,7 +590,8 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
   }
   // a path chosen here stops early as glmnet's does; the folds then fit
   // the lambdas it reached
-  int rc = path(d, fam, alpha, lam, nl, thresh, maxit, lmr > 0.0, nfit, a0, beta, pw, iw);
+  int rc = path(d, fam, alpha, lam, nl, thresh, maxit, lmr > 0.0, screen, nfit, a0, beta, pw,
+                iw);
   nl = *nfit;
   if (rc != CLAB_OK || fold == nullptr) return rc;
   // K-fold cross-validation over the caller's folds, on the same lambdas;
@@ -578,7 +607,7 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
     if (t == d.m) return CLAB_EARG;  // an empty fold
     const Dat tr = {d.x, n, p, d.y, idx, m};
     int nk;
-    rc = path(tr, fam, alpha, lam, nl, thresh, maxit, 0, &nk, fa, fb, pw, iw);
+    rc = path(tr, fam, alpha, lam, nl, thresh, maxit, 0, screen, &nk, fa, fb, pw, iw);
     if (rc != CLAB_OK) return rc;
     for (int k = 0; k < nl; ++k) {
       lpred(d.x, n, p, idx + t, d.m - t, fa[k], fb + static_cast<long>(k) * p, eta);
@@ -624,8 +653,9 @@ extern "C" {
 //' @noRd
 int clab_enpath(const double *x, int n, int p, const double *y, int fam,
                double alpha, double *lam, int nl, double lmr, double thresh,
-               int maxit, const int *fold, int nf, double *a0, double *beta,
-               double *cv, int *best, int *nfit, double *work, int *iwork) {
+               int maxit, int scr, const int *fold, int nf, double *a0,
+               double *beta, double *cv, int *best, int *nfit, double *work,
+               int *iwork) {
   if (n < 2 || p < 1 || nl < 1 || maxit < 1 || (fam != 0 && fam != 1) ||
       (fold != nullptr && (nf < 2 || nf > n)))
     return CLAB_EARG;
@@ -639,7 +669,7 @@ int clab_enpath(const double *x, int n, int p, const double *y, int fam,
     iwork[i] = i;
   }
   const lrn::Dat d = {x, n, p, y, iwork, n};
-  return lrn::cvnet(d, fam, alpha, lam, nl, lmr, thresh, maxit, fold,
+  return lrn::cvnet(d, fam, alpha, lam, nl, lmr, thresh, maxit, scr != 0, fold,
                     fold == nullptr ? 0 : nf, a0, beta, cv, best, nfit, work,
                     iwork + n);
 }

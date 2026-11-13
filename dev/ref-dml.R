@@ -157,6 +157,22 @@ for (est in c("ATE", "ATT")) {
                           length(k))$se
   )
 }
+# two-way clusters: DoubleML draws the folds of each kind of cluster; the
+# fold of each row in each kind is recorded
+c1 <- rep(1:30, each = 20)
+c2 <- rep(1:20, times = 30)
+tdat <- DoubleML::DoubleMLClusterData$new(
+  dt(y = yc, d = dc, c1 = c1, c2 = c2), y_col = "y", d_cols = "d",
+  cluster_cols = c("c1", "c2"), x_cols = colnames(x))
+tobj <- DoubleML::DoubleMLPLR$new(tdat, regr$clone(), regr$clone(), n_folds = 3)
+tobj$fit(store_predictions = TRUE)
+sc <- tobj$smpls_cluster[[1]]$test_ids
+k1 <- unique(lapply(sc, `[[`, 1))
+k2 <- unique(lapply(sc, `[[`, 2))
+fk <- function(cl, ks) vapply(cl, function(v) which(vapply(ks, function(s) v %in% s, NA)), 1L)
+ref$two <- list(coef = unname(tobj$coef), se = unname(tobj$se),
+                cl = cbind(c1, c2), fold = cbind(fk(c1, k1), fk(c2, k2)),
+                pred = cbind(tobj$predictions$ml_l, tobj$predictions$ml_m))
 ref$made <- list(R = R.version.string,
                  pkgs = vapply(c("DoubleML", "AIPW", "tmle", "DRDID",
                                  "rmoriebricklayer"),

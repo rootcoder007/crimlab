@@ -123,7 +123,8 @@ SEXP rmat(int n, int p, SEXP x) {
 extern "C" {
 
 SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
-                    SEXP nlam, SEXP lmr, SEXP fold, SEXP tol, SEXP maxit) {
+                    SEXP nlam, SEXP lmr, SEXP fold, SEXP tol, SEXP maxit,
+                    SEXP scr) {
   clab::who = "enpath";
   int n, p;
   SEXP xv = PROTECT(rl::mat(x, "x", &n, &p));
@@ -153,6 +154,8 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
   const int *fd = Rf_isNull(fold) ? nullptr : rl::folds(fold, "fold", n, &nf);
   const double th = REAL_RO(num(tol, "tol", 1, 0.0, true))[0];
   const int mi = clab::whole(maxit, "maxit", 1);
+  clab::lgl(scr, "scr", 1);
+  const int sc = LOGICAL_RO(scr)[0];
   SEXP a0 = PROTECT(Rf_allocVector(REALSXP, nl));
   SEXP beta = PROTECT(rl::rmat(p, nl, x));
   SEXP cv = PROTECT(Rf_allocVector(REALSXP, 2 * static_cast<R_xlen_t>(nl)));
@@ -162,7 +165,7 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
                          nf * (nl + 1.0));
   int *iw = rl::ialloc(2 * dn + dp);
   const int rc = clab_enpath(REAL_RO(xv), n, p, REAL_RO(yv), f, a, REAL(lam), nl,
-                            r, th, mi, fd, nf, REAL(a0), REAL(beta), REAL(cv),
+                            r, th, mi, sc, fd, nf, REAL(a0), REAL(beta), REAL(cv),
                             best, &nk, w, iw);
   if (rc == CLAB_EDOM) {
     fail("no fit: no convergence within `maxit` passes, or `y` constant "
@@ -249,7 +252,8 @@ SEXP C_clab_r_lgtreg(SEXP x, SEXP y, SEXP tol, SEXP maxit) {
 extern "C" {
 
 SEXP C_clab_r_rfor(SEXP x, SEXP y, SEXP newx, SEXP ntree, SEXP mtry,
-                   SEXP minnode, SEXP frac, SEXP repl, SEXP seed) {
+                   SEXP minnode, SEXP frac, SEXP repl, SEXP hon, SEXP imb,
+                   SEXP seed) {
   clab::who = "rfor";
   int n, p, nt, pt;
   SEXP xv = PROTECT(rl::mat(x, "x", &n, &p));
@@ -258,21 +262,27 @@ SEXP C_clab_r_rfor(SEXP x, SEXP y, SEXP newx, SEXP ntree, SEXP mtry,
   SEXP tv = PROTECT(rl::mat(newx, "newx", &nt, &pt));
   if (pt != p) fail("`newx` must have the %d columns of `x`.", p);
   const int ntr = clab::whole(ntree, "ntree", 1);
-  const int mt = Rf_isNull(mtry) ? static_cast<int>(std::floor(std::sqrt(p)))
+  // grf's rule; see the help page for the measurements behind it
+  const int mt = Rf_isNull(mtry) ? static_cast<int>(std::fmin(std::ceil(std::sqrt(p) + 20.0), p))
                                  : clab::whole(mtry, "mtry", 1);
   if (mt > p) fail("`mtry` must be at most the %d columns of `x`.", p);
   const int mn = clab::whole(minnode, "minnode", 1);
   const double fr = REAL_RO(num(frac, "frac", 1, 0.0, true))[0];
   if (fr > 1.0) fail("`frac` must be at most 1.");
   clab::lgl(repl, "repl", 1);
+  clab::lgl(hon, "hon", 1);
+  const double ib = REAL_RO(num(imb, "imb", 1, 0.0))[0];
+  if (ib >= 0.5) fail("`imb` must be below 0.5.");
   const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
-  if (std::lround(fr * n) < 1) fail("`frac` leaves no row in a bag.");
+  if (std::lround(fr * n) < (LOGICAL_RO(hon)[0] ? 2 : 1)) {
+    fail("`frac` leaves too few rows in a bag.");
+  }
   SEXP pr = PROTECT(Rf_allocVector(REALSXP, nt));
   SEXP ob = PROTECT(Rf_allocVector(REALSXP, n));
   double *w = rl::dalloc(static_cast<double>(lrn::fwork(n, p, nt)));
   int *iw = rl::ialloc(static_cast<double>(lrn::fiwork(n, p, nt)) + n + nt);
   kchk(clab_rfor(REAL_RO(xv), n, p, REAL_RO(yv), REAL_RO(tv), nt, ntr, mt, mn,
-                 fr, LOGICAL_RO(repl)[0],
+                 fr, LOGICAL_RO(repl)[0], LOGICAL_RO(hon)[0], ib,
                  static_cast<unsigned int>(std::fmod(sd, 4294967296.0)), REAL(pr),
                  REAL(ob), w, iw),
        nullptr);
@@ -297,12 +307,13 @@ const char *const nn[][5] = {
     {"g0", "m"}, {"g00", "g01", "g10", "g11", "m"}, {"pi", "m", "g0", "g1"}};
 
 clab_lrn learner(SEXP l, const char *nm, double alpha, int nlam, int nfin,
+                 double tol, int scr, int hon,
                  unsigned int seed, int ntree, int mtry) {
   static const char *const ch[] = {"glm", "lasso", "ridge", "enet", "forest"};
   const int k = rl::pick(l, nm, ch, 5);
   clab_lrn r = {k == 0 ? 0 : (k == 4 ? 2 : 1),
                 k == 1 ? 1.0 : (k == 2 ? 0.0 : alpha), nlam, nfin, seed, ntree,
-                mtry, 0};
+                mtry, 0, tol, scr, hon};
   return r;
 }
 
@@ -320,7 +331,8 @@ extern "C" {
 
 SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
                    SEXP s, SEXP t, SEXP score, SEXP lrn, SEXP lrnd,
-                   SEXP alpha, SEXP nlam, SEXP nfin, SEXP ntree, SEXP mtry,
+                   SEXP alpha, SEXP nlam, SEXP nfin, SEXP tol, SEXP scr,
+                   SEXP hon, SEXP ntree, SEXP mtry,
                    SEXP trim, SEXP clu, SEXP pred, SEXP seed) {
   clab::who = "dmlx";
   const int md = rl::pick(model, "model", mdl, 9);
@@ -351,11 +363,14 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   SEXP zv = PROTECT(md == 1 ? num(z, "z", n) : (md == 3 ? bin(z, "z", n) : R_NilValue));
   int sc = 0;
   if (!Rf_isNull(score)) {
-    static const char *const s01[] = {"po", "iv"}, *const s23[] = {"ate", "atte"};
+    static const char *const s01[] = {"po", "iv"}, *const s23[] = {"ate", "atte"},
+                             *const s67[] = {"obs", "exp"};
     if (md == 0 || md == 1) {
       sc = rl::pick(score, "score", s01, 2);
     } else if (md == 2) {
       sc = rl::pick(score, "score", s23, 2);
+    } else if (md == 6 || md == 7) {
+      sc = rl::pick(score, "score", s67, 2);
     } else {
       fail("`score` must be NULL for model \"%s\".", mdl[md]);
     }
@@ -380,21 +395,48 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
     std::memcpy(fv + static_cast<R_xlen_t>(r) * n, f, sizeof(int) * n);
   }
   UNPROTECT(2);
-  int nc = 0;
+  int nc = 0, nc2 = 0;
   const int *cv = nullptr;
+  int nrk = nrep;  // the repetitions the kernel sees
   if (!Rf_isNull(clu)) {
     if (md > 1) fail("`clu` is for models \"plr\" and \"pliv\" only.");
-    cv = rl::folds(clu, "clu", n, &nc);
-    // a fold per cluster, in every repetition
-    int *cf = rl::ialloc(nc);
+    SEXP cd = Rf_getAttrib(clu, R_DimSymbol);
+    const bool two = TYPEOF(cd) == INTSXP && XLENGTH(cd) == 2 && INTEGER_RO(cd)[1] == 2;
+    int *cw;
+    if (two) {
+      // two-way: a column per kind of cluster, and fold's two columns are
+      // the folds of each kind
+      if (INTEGER_RO(cd)[0] != n || nrep != 2) {
+        fail("two-way `clu` needs one row per row of `x` and `fold` with "
+             "two columns, the folds of each kind of cluster.");
+      }
+      SEXP cdb = PROTECT(clab::dbl(clu));
+      SEXP c1 = PROTECT(Rf_allocVector(REALSXP, n));
+      std::memcpy(REAL(c1), REAL_RO(cdb), sizeof(double) * n);
+      const int *a = rl::folds(c1, "clu", n, &nc);
+      std::memcpy(REAL(c1), REAL_RO(cdb) + n, sizeof(double) * n);
+      const int *b = rl::folds(c1, "clu", n, &nc2);
+      cw = rl::ialloc(2.0 * n);
+      std::memcpy(cw, a, sizeof(int) * n);
+      std::memcpy(cw + n, b, sizeof(int) * n);
+      UNPROTECT(2);
+      nrk = 1;
+    } else {
+      cw = rl::folds(clu, "clu", n, &nc);
+    }
+    cv = cw;
+    // a fold per cluster: in every repetition, or of each kind (two-way)
+    int *cf = rl::ialloc(nc > nc2 ? nc : nc2);
     for (int r = 0; r < nrep; ++r) {
-      for (int c = 0; c < nc; ++c) cf[c] = -1;
+      const int *cr = cw + (two ? static_cast<R_xlen_t>(r) * n : 0);
+      const int ncr = two && r == 1 ? nc2 : nc;
+      for (int c = 0; c < ncr; ++c) cf[c] = -1;
       for (int i = 0; i < n; ++i) {
         const int f = fv[static_cast<R_xlen_t>(r) * n + i];
-        if (cf[cv[i]] >= 0 && cf[cv[i]] != f) {
+        if (cf[cr[i]] >= 0 && cf[cr[i]] != f) {
           fail("`fold` must be constant within each cluster.");
         }
-        cf[cv[i]] = f;
+        cf[cr[i]] = f;
       }
     }
   }
@@ -405,8 +447,12 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   const unsigned int us = static_cast<unsigned int>(std::fmod(sd, 4294967296.0));
   const int nt = clab::whole(ntree, "ntree", 1);
   const int mt = Rf_isNull(mtry) ? 0 : clab::whole(mtry, "mtry", 1);
-  const clab_lrn ly = learner(lrn, "lrn", al, nl, ni, us, nt, mt);
-  const clab_lrn ld = learner(lrnd, "lrnd", al, nl, ni, us + 1U, nt, mt);
+  const double tl = REAL_RO(num(tol, "tol", 1, 0.0, true))[0];
+  clab::lgl(scr, "scr", 1);
+  clab::lgl(hon, "hon", 1);
+  const int sr = LOGICAL_RO(scr)[0], hn = LOGICAL_RO(hon)[0];
+  const clab_lrn ly = learner(lrn, "lrn", al, nl, ni, tl, sr, hn, us, nt, mt);
+  const clab_lrn ld = learner(lrnd, "lrnd", al, nl, ni, tl, sr, hn, us + 1U, nt, mt);
   double tr;
   if (Rf_isNull(trim)) {
     tr = md == 4 ? 0.025 : (md == 5 ? 5.0 / std::sqrt(n) / std::log(n)
@@ -419,12 +465,12 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   SEXP pr;
   int fit = 1;
   if (Rf_isNull(pred)) {
-    pr = PROTECT(Rf_alloc3DArray(REALSXP, n, k, nrep));
+    pr = PROTECT(Rf_alloc3DArray(REALSXP, n, k, nrk));
   } else {
     SEXP pd = Rf_getAttrib(pred, R_DimSymbol);
     const bool ok = TYPEOF(pd) == INTSXP && INTEGER_RO(pd)[0] == n &&
                     INTEGER_RO(pd)[1] == k &&
-                    (XLENGTH(pd) == 2 ? nrep == 1 : XLENGTH(pd) == 3 && INTEGER_RO(pd)[2] == nrep);
+                    (XLENGTH(pd) == 2 ? nrk == 1 : XLENGTH(pd) == 3 && INTEGER_RO(pd)[2] == nrk);
     if (!clab::isnum(pred) || !ok) {
       fail("`pred` must be an array of %d rows, %d columns and one slice "
            "per column of `fold`.", n, k);
@@ -433,42 +479,45 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
     for (R_xlen_t i = 0; i < XLENGTH(pv); ++i) {
       if (!std::isfinite(REAL_RO(pv)[i])) fail("`pred` must be finite.");
     }
-    pr = PROTECT(Rf_alloc3DArray(REALSXP, n, k, nrep));
+    pr = PROTECT(Rf_alloc3DArray(REALSXP, n, k, nrk));
     std::memcpy(REAL(pr), REAL_RO(pv), sizeof(double) * XLENGTH(pv));
     UNPROTECT(2);
     PROTECT(pr);
     fit = 0;
   }
   long niw;
-  const long nw = clab_dmlxsz(md, n, p, nf, nrep, &ly, &ld, &niw);
+  const long nw = clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw);
   double *w = rl::dalloc(static_cast<double>(nw));
   int *iw = rl::ialloc(static_cast<double>(niw));
-  SEXP est = PROTECT(Rf_allocVector(REALSXP, 2 + 2 * nrep));
-  SEXP psia = PROTECT(Rf_allocMatrix(REALSXP, n, nrep));
-  SEXP psib = PROTECT(Rf_allocMatrix(REALSXP, n, nrep));
-  double *ps = rl::dalloc(2.0 * n * nrep);
+  SEXP est = PROTECT(Rf_allocVector(REALSXP, 2 + 2 * nrk));
+  SEXP psia = PROTECT(Rf_allocMatrix(REALSXP, n, nrk));
+  SEXP psib = PROTECT(Rf_allocMatrix(REALSXP, n, nrk));
+  double *ps = rl::dalloc(2.0 * n * nrk);
   const int rc = clab_dmlx(md, sc, REAL_RO(xv), n, p, REAL_RO(yv), REAL_RO(dv),
                           Rf_isNull(zv) ? nullptr : REAL_RO(zv),
-                          Rf_isNull(sv) ? nullptr : REAL_RO(sv), fv, nf, nrep,
-                          cv, nc, &ly, &ld, tr, fit, REAL(pr), REAL(est), ps, w, iw);
+                          Rf_isNull(sv) ? nullptr : REAL_RO(sv), fv, nf, nrk,
+                          cv, nc, nc2, &ly, &ld, tr, fit, REAL(pr), REAL(est), ps, w, iw);
   if (rc == CLAB_EDOM) {
     fail("no estimate: a learner failed, a training set was empty, or the "
          "score has no root.");
   }
   kchk(rc, nullptr);
-  std::memcpy(REAL(psia), ps, sizeof(double) * n * nrep);
-  std::memcpy(REAL(psib), ps + static_cast<R_xlen_t>(n) * nrep, sizeof(double) * n * nrep);
+  std::memcpy(REAL(psia), ps, sizeof(double) * n * nrk);
+  std::memcpy(REAL(psib), ps + static_cast<R_xlen_t>(n) * nrk, sizeof(double) * n * nrk);
   // dimnames of pred: none, the nuisance names, none
   SEXP dn = PROTECT(Rf_allocVector(VECSXP, 3));
   SEXP cn = PROTECT(Rf_allocVector(STRSXP, k));
-  for (int j = 0; j < k; ++j) SET_STRING_ELT(cn, j, Rf_mkChar(nn[md][j]));
+  // the experimental panel score learns g1 in place of m
+  for (int j = 0; j < k; ++j) {
+    SET_STRING_ELT(cn, j, Rf_mkChar(md == 6 && sc == 1 && j == 1 ? "g1" : nn[md][j]));
+  }
   SET_VECTOR_ELT(dn, 1, cn);
   Rf_setAttrib(pr, R_DimNamesSymbol, dn);
   SEXP reps = PROTECT(Rf_allocVector(VECSXP, 2));
   for (int c = 0; c < 2; ++c) {
-    SEXP v = Rf_allocVector(REALSXP, nrep);
+    SEXP v = Rf_allocVector(REALSXP, nrk);
     SET_VECTOR_ELT(reps, c, v);
-    std::memcpy(REAL(v), REAL_RO(est) + 2 + c * nrep, sizeof(double) * nrep);
+    std::memcpy(REAL(v), REAL_RO(est) + 2 + c * nrk, sizeof(double) * nrk);
   }
   static const char *const rnm[] = {"coef", "se"};
   clab::frame(reps, rnm);

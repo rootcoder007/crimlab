@@ -23,6 +23,42 @@ test_that("enpath agrees with glmnet on the same lambdas and folds", {
   }
 })
 
+# the penalised objective of a path at its k-th penalty
+obj <- function(r, x, y, fam, alpha, k) {
+  s <- sqrt(colMeans(sweep(x, 2, colMeans(x))^2))
+  b <- r$beta[, k] * s
+  eta <- r$a0[k] + drop(x %*% r$beta[, k])
+  if (fam == "gaussian") {
+    ys <- sqrt(mean((y - mean(y))^2))
+    loss <- mean((y - eta)^2) / 2 / ys^2
+    pen <- r$lambda[k] / ys * sum((1 - alpha) / 2 * (b / ys)^2 +
+                                     alpha * abs(b / ys))
+  } else {
+    loss <- -mean(y * eta - log1p(exp(eta)))
+    pen <- r$lambda[k] * sum((1 - alpha) / 2 * b^2 + alpha * abs(b))
+  }
+  loss + pen
+}
+
+test_that("the default threshold is within 1e-6 of the exact objective", {
+  for (f in ref$fits) {
+    yy <- if (f$fam == "gaussian") ref$y else ref$yb
+    a <- enpath(ref$x, yy, f$fam, f$alpha, lambda = f$lambda)
+    e <- enpath(ref$x, yy, f$fam, f$alpha, lambda = f$lambda, tol = 1e-20,
+                maxit = 1e7)
+    s <- enpath(ref$x, yy, f$fam, f$alpha, lambda = f$lambda, tol = 1e-20,
+                maxit = 1e7, scr = FALSE)
+    expect_lt(max(abs(s$beta - e$beta)), 1e-8)
+    gap <- vapply(seq_along(f$lambda), function(k) {
+      oa <- obj(a, ref$x, yy, f$fam, f$alpha, k)
+      oe <- obj(e, ref$x, yy, f$fam, f$alpha, k)
+      (oa - oe) / oe
+    }, 0)
+    expect_true(all(gap > -1e-12))
+    expect_lt(max(gap), 1e-6)
+  }
+})
+
 test_that("lgtreg agrees with glm", {
   r <- lgtreg(ref$x, ref$yb)
   expect_equal(unname(r$coef), ref$glm$coef, tolerance = 1e-10)
@@ -59,7 +95,8 @@ test_that("the learners stop on bad input, naming the argument", {
     list("leaves fold 2 empty", x, y, fold = rep(c(1, 3), 20)),
     list("`tol`", x, y, tol = 0),
     list("`maxit`", x, y, maxit = 0.5),
-    list("no fit", x, y, maxit = 1, tol = 1e-30)
+    list("no fit", x, y, maxit = 1, tol = 1e-30),
+    list("`scr`", x, y, scr = NA)
   ))
   sep <- as.numeric(x[, 1] > mean(x[, 1]))
   errs("lgtreg", list(

@@ -2056,6 +2056,12 @@ const Thm thms[] = {
     {"oaxbd", "Oaxaca", "reference_dependence"},
     {"oaxbd", "Oaxaca", "explained_eq_iff"},
     {"oaxbd", "Oaxaca", "attribution_shift"},
+    {"enpath", "Learn", "soft_threshold_prox"},
+    {"enpath", "Learn", "cd_update_min"},
+    {"dmlx", "Learn", "dml_root"},
+    {"dmlx", "Learn", "plr_orthogonal"},
+    {"dmlx", "Learn", "aipw_bias"},
+    {"dmlx", "Learn", "aipw_double_robust"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

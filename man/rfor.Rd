@@ -13,6 +13,8 @@ rfor(
   minnode = 5,
   frac = 1,
   repl = TRUE,
+  hon = FALSE,
+  imb = 0,
   seed = 1
 )
 }
@@ -28,8 +30,7 @@ probability.}
 
 \item{ntree}{The number of trees: one whole number, at least 1.}
 
-\item{mtry}{The columns tried at each split: \code{NULL} for the floor of the
-square root of the number of columns (the default of 'ranger'), or a
+\item{mtry}{The columns tried at each split: \code{NULL} for \code{min(ceiling( sqrt(p) + 20), p)}, \code{p} the number of columns (the rule of 'grf'), or a
 whole number from 1 to the number of columns.}
 
 \item{minnode}{Nodes of at most this many rows are not split: one whole
@@ -40,6 +41,15 @@ for probabilities).}
 at most 1.}
 
 \item{repl}{\code{TRUE} to draw bags with replacement, \code{FALSE} without.}
+
+\item{hon}{\code{TRUE} for honest trees (Wager and Athey 2018): each bag is
+shuffled, its first half places the splits and its second half sets
+the leaf means (a leaf without such rows takes the mean of its deepest
+ancestor that has some). Needs bags of at least two rows.}
+
+\item{imb}{Each child of a split must hold at least this share of its
+node's rows (and one row): one number from 0 to below 0.5 ('grf' uses
+0.05).}
 
 \item{seed}{The seed of the draws: one number, at least 0. The same
 seed and data give the same forest.}
@@ -69,6 +79,23 @@ nothing. The forest is not bit-for-bit that of 'ranger' (it draws its
 own random numbers and uses quantile bins on columns of many values);
 tests compare their errors on known functions instead.
 }
+\section{Defaults}{
+ The defaults were chosen by test error against the true
+function over four data-generating functions (a sparse linear one,
+Friedman's, a step-and-curve one and a probability), p = 20 and 200,
+ten seeds each (\code{dev/rftune.R}). Like for like (the same trees, \code{mtry},
+node size, half-samples without replacement, \code{imb = 0.05}, honest or
+not), \code{rfor()} and 'grf' have test errors within 1 to 3 per cent of
+each other, inside two standard errors in almost every cell. The one
+setting that mattered was \code{mtry}: the rule of 'grf' lowers the error
+against the square root of \code{p} by 30 to 50 per cent on the sparse and
+step functions, so it is the default. Bags of all rows drawn with
+replacement gave the lowest error with that \code{mtry} in most cells; honest
+trees and half-samples raised the error of the predictions (honesty
+serves inference, not prediction), so both are options, off by
+default. Nodes of 5 rows are left unsplit, as both packages do.
+}
+
 \examples{
 set.seed(1)
 x <- matrix(rnorm(400 * 4), 400)
@@ -79,4 +106,9 @@ mean((f$oob - y)^2)
 \references{
 Breiman, L. (2001). Random forests. \emph{Machine Learning},
 45(1), 5-32. \doi{10.1023/A:1010933404324}
+
+Wager, S. and Athey, S. (2018). Estimation and inference of
+heterogeneous treatment effects using random forests. \emph{Journal of the
+American Statistical Association}, 113(523), 1228-1242.
+\doi{10.1080/01621459.2017.1319839}
 }

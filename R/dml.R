@@ -37,6 +37,10 @@
 #'   influence function), and targeted maximum likelihood with the
 #'   fluctuation of the 'tmle' package (Gruber and van der Laan 2012).
 #'
+#' The partialling-out score is Neyman-orthogonal, the AIPW term is unbiased
+#' when either nuisance is right, and the estimate is the root of the
+#' empirical score: see `proof("dmlx")`.
+#'
 #' The estimate solves the mean of the score over all folds (DoubleML's
 #' `"dml2"`); its variance is `mean(psi^2) / mean(psi_a)^2 / n`, or, with
 #' clusters (one-way, models `"plr"` and `"pliv"`), the cluster-robust form
@@ -56,8 +60,13 @@
 #' @param z The instrument (`"pliv"`; 0 and 1 for `"iivm"`), else `NULL`.
 #' @param s For `"ssm"`, 1 where the outcome is observed and 0 where not.
 #' @param t For `"didcs"`, the period of each row, 0 or 1.
-#' @param score `NULL` for the default (`"po"`, or `"ate"`), or `"po"` or
-#'   `"iv"` for `"plr"` and `"pliv"`, `"ate"` or `"atte"` for `"irm"`.
+#' @param score `NULL` for the default (`"po"`, `"ate"` or `"obs"`), or
+#'   `"po"` or `"iv"` for `"plr"` and `"pliv"`, `"ate"` or `"atte"` for
+#'   `"irm"`, `"obs"` or `"exp"` for `"did"` and `"didcs"`: the
+#'   observational score, or the experimental one of 'DoubleML' for
+#'   'Python' for a treatment assigned at random (in-sample normalised;
+#'   nuisances `g0`, `g1` on a panel, the four cell regressions on
+#'   cross-sections, no propensity).
 #' @param lrn The learner of the outcome nuisances: `"glm"` (least squares;
 #'   logistic regression for a probability), `"lasso"`, `"ridge"` or
 #'   `"enet"` (the elastic net of [enpath()] with mixing `alpha`, the penalty
@@ -70,10 +79,14 @@
 #' @param nlam The number of penalties on each elastic net path.
 #' @param nfin The number of inner folds that choose the penalty, at
 #'   least 2.
+#' @param tol,scr The convergence threshold and the screening of the
+#'   elastic net learners, as in [enpath()].
+#' @param hon `TRUE` for honest forests, on half-samples without
+#'   replacement with `imb = 0.05`, as 'grf' grows them (see [rfor()]).
 #' @param ntree The number of trees of `"forest"`: a whole number, at least 1.
 #' @param mtry The columns tried at each split of `"forest"`: `NULL` for the
-#'   floor of the square root of the number of columns, or a whole number
-#'   (more than the columns means all of them).
+#'   default of [rfor()], or a whole number (more than the columns means all
+#'   of them).
 #' @param trim Propensities are kept within `trim` of 0 and 1: `NULL` for
 #'   the default of the reference implementation (1e-12 for `"irm"`,
 #'   `"iivm"` and `"ssm"`, as 'DoubleML'; 0.01 for `"did"` and `"didcs"`, as
@@ -81,7 +94,12 @@
 #'   `5 / sqrt(n) / log(n)`, a lower bound only, as 'tmle').
 #' @param clu `NULL`, or the cluster of each row (whole numbers from 1 to
 #'   the number of clusters, each used), for `"plr"` and `"pliv"`; folds
-#'   must then be constant within clusters.
+#'   must then be constant within clusters. For two-way clustering, a
+#'   matrix of two such columns, one per kind of cluster; `fold` is then a
+#'   matrix of two columns, the fold of each row's cluster of each kind
+#'   (constant within it), the test set of each pair of folds is the rows
+#'   in both and its training set the rows in neither, and the variance is
+#'   the two-way form of Chiang et al. (2022) as 'DoubleML' computes it.
 #' @param pred `NULL` to learn the nuisances, or their predictions: a
 #'   matrix with one row per observation and one column per nuisance, in
 #'   the order listed above (an array with a third dimension for several
@@ -130,8 +148,9 @@
 #' @export
 dmlx <- function(y, d, x, model = "plr", fold, z = NULL, s = NULL, t = NULL,
                  score = NULL, lrn = "lasso", lrnd = lrn, alpha = 0.5,
-                 nlam = 100, nfin = 5, ntree = 500, mtry = NULL, trim = NULL,
-                 clu = NULL, pred = NULL, seed = 1) {
+                 nlam = 100, nfin = 5, tol = 1e-7, scr = TRUE, hon = FALSE,
+                 ntree = 500, mtry = NULL, trim = NULL, clu = NULL,
+                 pred = NULL, seed = 1) {
   .Call(C_clab_r_dmlx, y, d, x, model, fold, z, s, t, score, lrn, lrnd,
-        alpha, nlam, nfin, ntree, mtry, trim, clu, pred, seed)
+        alpha, nlam, nfin, tol, scr, hon, ntree, mtry, trim, clu, pred, seed)
 }
