@@ -73,3 +73,35 @@ test_that("evtst() refuses what it cannot fit", {
   expect_error(evtst(y, u, t, f, leads = 9, bin = FALSE), "event time -9")
   expect_error(evtst(y, u, t, f, w = pd$w * 0 + (u > 3)), NA)
 })
+
+test_that("the bounds under departures from parallel trends", {
+  e <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3, lags = 3,
+             mbar = c(0, 0.5, 2), seed = 1, draws = 2000)
+  b <- e$est$est
+  # D: the largest change over -3, -2, -1 (the reference at 0)
+  dd <- max(abs(diff(b[1:3])))
+  k <- mean(0:3 + 1)
+  c0 <- mean(b[4:7])
+  expect_equal(e$sens$lob, c0 - c(0, 0.5, 2) * dd * k, tolerance = 1e-12)
+  expect_equal(e$sens$upb, c0 + c(0, 0.5, 2) * dd * k, tolerance = 1e-12)
+  expect_true(all(e$sens$lo <= e$sens$lob & e$sens$hi >= e$sens$upb))
+  # the breakdown: just below it the interval excludes 0, just above holds it
+  bk <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3, lags = 3,
+              mbar = e$brk + c(-1e-4, 1e-4), seed = 1, draws = 2000)$sens
+  expect_true(bk$hi[1] < 0)
+  expect_true(bk$hi[2] >= 0)
+  a <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3, lags = 3,
+             mbar = 1, target = 2, seed = 1)
+  expect_equal(a$sens$lob, b[6] - 3 * dd, tolerance = 1e-12)
+  expect_output(print(a), "breakdown mbar")
+  z <- evtst(pd$rate + 50 * pd$on, pd$town, pd$year, pd$first, leads = 3,
+             lags = 3, mbar = 0, seed = 1)
+  expect_identical(z$brk, Inf)
+  z0 <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3, lags = 3,
+              mbar = 0, target = 0, seed = 1)
+  expect_true(is.finite(z0$brk))
+  expect_error(evtst(pd$rate, pd$town, pd$year, pd$first, leads = 1,
+                     mbar = 1), "one lead")
+  expect_error(evtst(pd$rate, pd$town, pd$year, pd$first, mbar = 1,
+                     target = 9), "target")
+})

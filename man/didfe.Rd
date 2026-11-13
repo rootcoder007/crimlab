@@ -104,7 +104,7 @@ with two kinds of cluster it is \code{V1 + V2 - V12} (Cameron, Gelbach and
 Miller 2011) with \code{G} the smaller number of clusters. Tests and intervals
 use Student's t on \code{G - 1} degrees of freedom. These are the conventions
 of 'fixest' and Stata's 'reghdfe'. Fewer than ten clusters give a
-warning: the wild cluster bootstrap is the tool for so few.
+warning: \code{\link[=wcbx]{wcbx()}} is the tool for so few.
 
 With \code{fam = "pois"} or \code{"nb"} the model is \verb{E(y_it) = exp(b trt_it + adj_it'g + a_i + m_t)} times the exposure \code{expo}, fitted by maximum
 likelihood with dummies for the effects (the steps of \code{\link[=cntreg]{cntreg()}}). Units

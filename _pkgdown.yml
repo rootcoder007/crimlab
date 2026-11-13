@@ -187,6 +187,8 @@ reference:
       - stgdid
       - synthc
       - sdidx
+      - wcbx
+      - wystep
   - title: Proofs
     contents:
       - proof

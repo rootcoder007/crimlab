@@ -18,6 +18,10 @@ evtst(
   w = NULL,
   ma = 1,
   norm = TRUE,
+  mbar = NULL,
+  target = NULL,
+  draws = 5000,
+  seed = NULL,
   level = 0.95
 )
 }
@@ -60,6 +64,18 @@ number, at least 1 (1 for none).}
 \item{norm}{\code{TRUE} to scale each cohort's means to 1 in the period
 before adoption.}
 
+\item{mbar}{\code{NULL}, or the bounds on the departure from parallel trends
+relative to the largest before adoption: numbers from 0.}
+
+\item{target}{\code{NULL} for the mean effect after adoption, or one event
+time from 0.}
+
+\item{draws}{The normal draws of the sensitivity interval: a whole
+number from 100.}
+
+\item{seed}{The seed of the draws: \code{NULL} to draw it from R's generator,
+or a whole number from 0.}
+
 \item{level}{The confidence level of the intervals: one number strictly
 between 0 and 1.}
 }
@@ -69,7 +85,8 @@ time (\code{evtm}, \code{est}, \code{se}, \code{lo}, \code{hi}, \code{stat}, \co
 row with \code{est} 0; \code{pre}, the pre-trend test (\code{f}, \code{df1}, \code{df2}, \code{p};
 \code{NA} without leads to test); \code{vcov}, the variance of the estimated
 event times; \code{coh}, the cohort means (\code{cohort}, \code{evtm}, \code{value}); \code{n},
-the rows used; \code{ncl}, the clusters; and \code{level}.
+the rows used; \code{ncl}, the clusters; and \code{level}; with \code{mbar}, \code{sens}
+(\code{mbar}, \code{lob}, \code{upb}, \code{lo}, \code{hi}) and \code{brk}, else \code{NULL}.
 }
 \description{
 Leads and lags of a policy's adoption from a two-way fixed-effects
@@ -97,6 +114,22 @@ period) in each period, as a trailing moving average over \code{ma} periods,
 by time since adoption within the window, and with \code{norm = TRUE} scaled
 to 1 in the period before adoption: a check, before any model, that the
 cohorts moved together before the policy.
+
+With \code{mbar}, the effects are bounded when the trend after adoption may
+depart from parallel by up to \code{mbar} times the largest departure seen
+before it (the relative magnitudes of Rambachan and Roth 2023): with
+\code{D} the largest change between consecutive pre-period coefficients (the
+reference at 0), the bias at event time \code{e >= 0} is at most \verb{(e + 1) mbar D}, so the identified set of the target (the mean effect after
+adoption, or the event time \code{target}) is its estimate \verb{+-} the mean of
+\code{(e + 1)} times \verb{mbar D} (\code{lob}, \code{upb}). The interval (\code{lo}, \code{hi}) draws
+the coefficients \code{draws} times from their normal distribution with the
+cluster-robust covariance, computes the bounds for each, and takes the
+\code{(1 - level) / 2} quantile of the lower and the \code{(1 + level) / 2}
+quantile of the upper: by Bonferroni it covers the identified set with
+probability at least \code{level}. It is conservative; the conditional and
+hybrid intervals of Rambachan and Roth are shorter. \code{brk} is the
+smallest \code{mbar} (by bisection, up to 10; \code{Inf} beyond) whose interval
+holds 0.
 }
 \examples{
 d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
@@ -108,6 +141,9 @@ d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * on + sin(seq_len(120))
 e <- evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3)
 e
 e$pre
+# how far trends may bend before the effect is lost
+evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3,
+      mbar = c(0, 1, 2), seed = 1)$sens
 }
 \references{
 Sun, L. and Abraham, S. (2021). Estimating dynamic treatment effects in

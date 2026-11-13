@@ -26,6 +26,23 @@
 #' to 1 in the period before adoption: a check, before any model, that the
 #' cohorts moved together before the policy.
 #'
+#' With `mbar`, the effects are bounded when the trend after adoption may
+#' depart from parallel by up to `mbar` times the largest departure seen
+#' before it (the relative magnitudes of Rambachan and Roth 2023): with
+#' `D` the largest change between consecutive pre-period coefficients (the
+#' reference at 0), the bias at event time `e >= 0` is at most `(e + 1)
+#' mbar D`, so the identified set of the target (the mean effect after
+#' adoption, or the event time `target`) is its estimate `+-` the mean of
+#' `(e + 1)` times `mbar D` (`lob`, `upb`). The interval (`lo`, `hi`) draws
+#' the coefficients `draws` times from their normal distribution with the
+#' cluster-robust covariance, computes the bounds for each, and takes the
+#' `(1 - level) / 2` quantile of the lower and the `(1 + level) / 2`
+#' quantile of the upper: by Bonferroni it covers the identified set with
+#' probability at least `level`. It is conservative; the conditional and
+#' hybrid intervals of Rambachan and Roth are shorter. `brk` is the
+#' smallest `mbar` (by bisection, up to 10; `Inf` beyond) whose interval
+#' holds 0.
+#'
 #' @inheritParams didfe
 #' @param time The period of each row: whole numbers (a year, a month
 #'   counted from a start); each unit at most once per period.
@@ -42,12 +59,21 @@
 #'   number, at least 1 (1 for none).
 #' @param norm `TRUE` to scale each cohort's means to 1 in the period
 #'   before adoption.
+#' @param mbar `NULL`, or the bounds on the departure from parallel trends
+#'   relative to the largest before adoption: numbers from 0.
+#' @param target `NULL` for the mean effect after adoption, or one event
+#'   time from 0.
+#' @param draws The normal draws of the sensitivity interval: a whole
+#'   number from 100.
+#' @param seed The seed of the draws: `NULL` to draw it from R's generator,
+#'   or a whole number from 0.
 #' @return An object of class `evtst`, a list: `est`, one row per event
 #'   time (`evtm`, `est`, `se`, `lo`, `hi`, `stat`, `p`), the reference a
 #'   row with `est` 0; `pre`, the pre-trend test (`f`, `df1`, `df2`, `p`;
 #'   `NA` without leads to test); `vcov`, the variance of the estimated
 #'   event times; `coh`, the cohort means (`cohort`, `evtm`, `value`); `n`,
-#'   the rows used; `ncl`, the clusters; and `level`.
+#'   the rows used; `ncl`, the clusters; and `level`; with `mbar`, `sens`
+#'   (`mbar`, `lob`, `upb`, `lo`, `hi`) and `brk`, else `NULL`.
 #' @references
 #'   Sun, L. and Abraham, S. (2021). Estimating dynamic treatment effects in
 #'   event studies with heterogeneous treatment effects. *Journal of
@@ -66,12 +92,16 @@
 #' e <- evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3)
 #' e
 #' e$pre
+#' # how far trends may bend before the effect is lost
+#' evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3,
+#'       mbar = c(0, 1, 2), seed = 1)$sens
 #' @export
 evtst <- function(y, unit, time, first, leads = 4, lags = 4, ref = -1,
                   bin = TRUE, adj = NULL, clus = NULL, w = NULL, ma = 1,
-                  norm = TRUE, level = 0.95) {
+                  norm = TRUE, mbar = NULL, target = NULL, draws = 5000,
+                  seed = NULL, level = 0.95) {
   .Call(C_clab_r_evtst, y, unit, time, first, leads, lags, ref, bin, adj,
-        clus, w, ma, norm, level)
+        clus, w, ma, norm, mbar, target, draws, seed, level)
 }
 
 #' @export
@@ -82,6 +112,11 @@ print.evtst <- function(x, ...) {
   if (!is.na(p[["f"]])) {
     cat("leads jointly zero: F = ", format(p[["f"]]), " on ", p[["df1"]],
         " and ", p[["df2"]], " df, p = ", format(p[["p"]]), "\n", sep = "")
+  }
+  if (!is.null(x[["sens"]])) {
+    cat("bounds under departures from parallel trends:\n")
+    print(x[["sens"]], row.names = FALSE)
+    cat("breakdown mbar ", format(x[["brk"]]), "\n", sep = "")
   }
   invisible(x)
 }

@@ -11,9 +11,11 @@
 #include <cstring>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "pev.h"
 #include "pevr.h"
 #include "rchk.h"
@@ -511,7 +513,7 @@ SEXP C_clab_r_didfe(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus,
 
 SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP lags,
                     SEXP ref, SEXP bin, SEXP adj, SEXP clus, SEXP w, SEXP ma, SEXP norm,
-                    SEXP level) {
+                    SEXP mbar, SEXP target, SEXP draws, SEXP seed, SEXP level) {
   clab::who = "evtst";
   const int ld = clab::whole(leads, "leads", 1), lg = clab::whole(lags, "lags", 0);
   const double rf = clab::val1(ref);
@@ -698,11 +700,118 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
   std::copy(re.begin(), re.end(), ch.dbl("evtm", nr));
   std::copy(rv.begin(), rv.end(), ch.dbl("value", nr));
   SEXP coh = PROTECT(ch.frame());
+  ++np;
+  // sensitivity to parallel trends: relative magnitudes (Rambachan and
+  // Roth), with draws of the estimates from their normal distribution
+  SEXP sens = R_NilValue, brk = R_NilValue;
+  if (!Rf_isNull(mbar)) {
+    SEXP mb = PROTECT(clab::num(mbar, "mbar", -1, 0.0));
+    ++np;
+    const int nb = static_cast<int>(XLENGTH(mb)), nd = clab::whole(draws, "draws", 100);
+    if (nq == 0) fail("`mbar` needs one lead at least besides the reference period.");
+    std::vector<int> tg;
+    if (Rf_isNull(target)) {
+      for (int j = 0; j < q; ++j) {
+        if (ks[z(j)] >= 0) tg.push_back(j);
+      }
+    } else {
+      const double tv = clab::val1(target);
+      for (int j = 0; j < q; ++j) {
+        if (ks[z(j)] >= 0 && ks[z(j)] == tv) tg.push_back(j);
+      }
+    }
+    if (tg.empty()) fail("`target` must be NULL or an event time from 0 estimated.");
+    double kk = 0.0;
+    for (int j : tg) kk += (ks[z(j)] + 1.0) / static_cast<double>(tg.size());
+    // the centre and the largest change between consecutive pre-periods
+    // (the reference at 0) of a vector of event-time coefficients
+    auto parts = [&](const double *b, double *cen, double *dm) {
+      double c = 0.0;
+      for (int j : tg) c += b[j] / static_cast<double>(tg.size());
+      std::vector<std::pair<int, double>> pc;
+      for (int j : pre) pc.emplace_back(ks[z(j)], b[j]);
+      if (r0 < 0) pc.emplace_back(r0, 0.0);
+      std::sort(pc.begin(), pc.end());
+      double d = 0.0;
+      for (std::size_t a = 1; a < pc.size(); ++a) d = std::max(d, std::fabs(pc[a].second - pc[a - 1].second));
+      *cen = c;
+      *dm = d;
+    };
+    double c0, d0;
+    parts(f.b.data(), &c0, &d0);
+    std::vector<double> lv2(z(q) * z(q)), cs(z(nd)), ds(z(nd)), bs(z(q)), e(z(q));
+    for (int a = 0; a < q; ++a) {
+      for (int b = 0; b < q; ++b) lv2[z(b) * z(q) + z(a)] = f.v[z(b) * z(p) + z(a)] + (a == b ? 1e-12 : 0.0);
+    }
+    pev::chol(lv2.data(), q);
+    kutil::rng rg(csp::seed(seed));
+    for (int d = 0; d < nd; ++d) {
+      for (int a = 0; a < q; a += 2) {
+        // Box-Muller: two normals from two uniforms
+        const double u1 = 1.0 - rg.unif(), u2 = rg.unif();
+        const double rr = std::sqrt(-2.0 * std::log(u1));
+        e[z(a)] = rr * std::cos(6.283185307179586 * u2);
+        if (a + 1 < q) e[z(a + 1)] = rr * std::sin(6.283185307179586 * u2);
+      }
+      for (int a = 0; a < q; ++a) {
+        double v = f.b[z(a)];
+        for (int b = 0; b <= a; ++b) v += lv2[z(b) * z(q) + z(a)] * e[z(b)];
+        bs[z(a)] = v;
+      }
+      parts(bs.data(), &cs[z(d)], &ds[z(d)]);
+    }
+    const double al = 1.0 - lv;
+    auto q7 = [](std::vector<double> x, double pr) {
+      std::sort(x.begin(), x.end());
+      const double h = (static_cast<double>(x.size()) - 1) * pr;
+      const std::size_t lo = static_cast<std::size_t>(std::floor(h));
+      const std::size_t hi = std::min(lo + 1, x.size() - 1);
+      return x[lo] + (h - static_cast<double>(lo)) * (x[hi] - x[lo]);
+    };
+    auto ends = [&](double m, double *lo, double *hi) {
+      std::vector<double> a(z(nd)), b(z(nd));
+      for (int d = 0; d < nd; ++d) {
+        a[z(d)] = cs[z(d)] - m * ds[z(d)] * kk;
+        b[z(d)] = cs[z(d)] + m * ds[z(d)] * kk;
+      }
+      *lo = q7(a, al / 2);
+      *hi = q7(b, 1 - al / 2);
+    };
+    cols sc(5);
+    double *sm = sc.dbl("mbar", nb), *sl = sc.dbl("lob", nb), *su = sc.dbl("upb", nb),
+           *slo = sc.dbl("lo", nb), *shi = sc.dbl("hi", nb);
+    for (int a = 0; a < nb; ++a) {
+      const double m = REAL(mb)[a];
+      sm[a] = m;
+      sl[a] = c0 - m * d0 * kk;
+      su[a] = c0 + m * d0 * kk;
+      ends(m, &slo[a], &shi[a]);
+    }
+    sens = PROTECT(sc.frame());
+    // the breakdown: the smallest mbar whose interval holds 0, by bisection
+    auto covers = [&](double m) {
+      double lo, hi;
+      ends(m, &lo, &hi);
+      return lo <= 0 && hi >= 0;
+    };
+    double bd = covers(0) ? 0.0 : R_PosInf;
+    if (bd > 0 && covers(10)) {
+      double lo = 0, hi = 10;
+      for (int it = 0; it < 40; ++it) {
+        const double mid = 0.5 * (lo + hi);
+        (covers(mid) ? hi : lo) = mid;
+      }
+      bd = hi;
+    }
+    brk = PROTECT(Rf_ScalarReal(bd));
+    np += 2;
+  }
   SEXP nn = PROTECT(Rf_ScalarReal(f.n)), gg = PROTECT(Rf_ScalarReal(f.g)),
        lvs = PROTECT(Rf_ScalarReal(lv));
-  np += 4;
+  np += 3;
   SEXP out = PROTECT(nlist({{"est", tab}, {"pre", pret}, {"vcov", vc}, {"coh", coh},
-                            {"n", nn}, {"ncl", gg}, {"level", lvs}}));
+                            {"sens", sens}, {"brk", brk}, {"n", nn}, {"ncl", gg},
+                            {"level", lvs}}));
   ++np;
   Rf_classgets(out, PROTECT(Rf_mkString("evtst")));
   UNPROTECT(np + 1);

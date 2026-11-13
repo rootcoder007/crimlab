@@ -20,7 +20,7 @@
 #' Miller 2011) with `G` the smaller number of clusters. Tests and intervals
 #' use Student's t on `G - 1` degrees of freedom. These are the conventions
 #' of 'fixest' and Stata's 'reghdfe'. Fewer than ten clusters give a
-#' warning: the wild cluster bootstrap is the tool for so few.
+#' warning: [wcbx()] is the tool for so few.
 #'
 #' With `fam = "pois"` or `"nb"` the model is `E(y_it) = exp(b trt_it +
 #' adj_it'g + a_i + m_t)` times the exposure `expo`, fitted by maximum

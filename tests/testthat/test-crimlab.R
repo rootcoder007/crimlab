@@ -135,7 +135,7 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(evtst(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
                      rep(1:2, each = 10), rep(rep(c(NA, 2), each = 5), 2),
                      leads = 1, lags = 0)),
-         c("est", "pre", "vcov", "coh", "n", "ncl", "level")),
+         c("est", "pre", "vcov", "coh", "sens", "brk", "n", "ncl", "level")),
     list(quote(stgdid(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
                       rep(1:2, each = 10), rep(rep(c(NA, 2), each = 5), 2),
                       reps = 0)),
@@ -146,7 +146,13 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(sdidx(c(1, 2, 4, 2, 3, 4, 3, 5, 6), rep(c("a", "b", "c"),
                      each = 3), rep(1:3, 3), rep(c(2, NA, NA), each = 3),
                      reps = 2, seed = 1)),
-         c("est", "meth", "unitw", "timew", "path", "level"))
+         c("est", "meth", "unitw", "timew", "path", "level")),
+    list(quote(wcbx(c(1:10, 2:11 + (1:10 > 5)), rep(1:10, 2),
+                    rep(1:2, each = 10), c(rep(0, 15), rep(1, 5)),
+                    reps = 99, seed = 1)),
+         c("res", "meth", "ncl", "draws", "enum", "mde", "size", "level")),
+    list(quote(wystep(c(1, 2), matrix(c(0.5, 3, 1, 1), 2))),
+         c("stat", "p", "padj"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

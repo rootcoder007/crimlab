@@ -193,4 +193,9 @@
   `synthc()` is the synthetic control of one treated unit with the placebo
   test, and `sdidx()` the synthetic difference in differences with placebo
   or jackknife errors; both solve their weights exactly (Wolfe's
-  minimum-norm point).
+  minimum-norm point). `evtst()` bounds the effects under departures from
+  parallel trends (Rambachan and Roth's relative magnitudes) with a
+  breakdown value. `wcbx()` gives the restricted wild cluster bootstrap
+  (every sign pattern when few), permutation of adoption dates across
+  clusters, and simulated power with the minimum detectable effect;
+  `wystep()` the Westfall-Young stepdown p-values.
