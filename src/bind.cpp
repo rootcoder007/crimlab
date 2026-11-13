@@ -2073,6 +2073,9 @@ const Thm thms[] = {
     {"hwkfit", "Contagion", "cluster_size"},
     {"hwkfit", "Contagion", "stationary_rate"},
     {"hwkfit", "Contagion", "triggered_share"},
+    {"xcser", "Series", "cross_sq_le"},
+    {"xcser", "Series", "corr_le_one"},
+    {"trndrr", "Series", "mk_neg"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

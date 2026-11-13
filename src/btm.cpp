@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // The R entry points of crimlab's time, contagion and operations methods:
-// the Hawkes process (hwkfit, hwkres, hwksim). Each checks its arguments,
+// the Hawkes process (hwkfit, hwkres, hwksim) and series (trndrr, stpcp,
+// cusrv, xcser). Each checks its arguments,
 // builds the kernel's arrays, calls the kernels and builds the R result.
 // Nothing calls back into the R evaluator.
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -13,6 +15,12 @@
 #include "kutil.h"
 #include "rchk.h"
 #include "spin.h"
+
+// R's maths library (declared as bstat.cpp does).
+extern "C" double Rf_pnorm5(double, double, double, int, int);
+extern "C" double Rf_pt(double, double, int, int);
+extern "C" double Rf_qt(double, double, int, int);
+extern "C" double Rf_pchisq(double, double, int, int);
 
 using clab::fail;
 
@@ -337,6 +345,309 @@ SEXP C_clab_r_hwksim(SEXP par, SEXP hor, SEXP kernel, SEXP base, SEXP per, SEXP 
                    {"x", dvec(p, x.data(), n)},
                    {"y", dvec(p, y.data(), n)},
                    {"gen", gv}});
+}
+
+}  // extern "C"
+
+namespace {
+
+// ------------------------------------------------------------ series
+
+const char *const alts[] = {"both", "up", "down"};
+
+// Periods: NULL for 1..n, else n finite numbers, strictly increasing.
+std::vector<double> periods(SEXP x, int n) {
+  std::vector<double> v(static_cast<std::size_t>(n));
+  if (Rf_isNull(x)) {
+    for (int i = 0; i < n; ++i) v[static_cast<std::size_t>(i)] = i + 1;
+    return v;
+  }
+  SEXP xv = PROTECT(clab::num(x, "x", n));
+  for (int i = 0; i < n; ++i) {
+    v[static_cast<std::size_t>(i)] = REAL(xv)[i];
+    if (i > 0 && !(v[static_cast<std::size_t>(i)] > v[static_cast<std::size_t>(i - 1)])) {
+      fail("`x` must be strictly increasing.");
+    }
+  }
+  UNPROTECT(1);
+  return v;
+}
+
+double zlev(SEXP level) { return Rf_qnorm5(0.5 + 0.5 * clab::one(level, "level", 0.0, 1.0), 0.0, 1.0, 1, 0); }
+
+SEXP lgl1(prot &p, double v) { return p(Rf_ScalarLogical(v != 0)); }
+
+}  // namespace
+
+extern "C" {
+
+SEXP C_clab_r_trndrr(SEXP y, SEXP x, SEXP expo, SEXP seas, SEXP alt, SEXP level) {
+  clab::who = "trndrr";
+  prot p;
+  SEXP yv = p(clab::num(y, "y", -1, 0.0));
+  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  if (n < 3) fail("`y` must hold at least 3 periods, not %d.", n);
+  const double *yy = REAL(yv);
+  std::vector<double> xv = periods(x, n);
+  const int a = csp::pick(alt, "alt", alts, 3);
+  const double z = zlev(level), lv = REAL(clab::dbl(level))[0];
+  std::vector<double> off(static_cast<std::size_t>(n), 0.0);
+  if (!Rf_isNull(expo)) {
+    SEXP e = p(clab::num(expo, "expo", n, 0.0, true));
+    for (int i = 0; i < n; ++i) off[static_cast<std::size_t>(i)] = std::log(REAL(e)[i]);
+  }
+  // the Poisson trend: log mu = b0 + b1 (x - mean x) + log expo
+  double xm = 0, tot = 0;
+  for (int i = 0; i < n; ++i) {
+    xm += xv[static_cast<std::size_t>(i)] / n;
+    tot += yy[i];
+  }
+  if (!(tot > 0)) fail("`y` has no events: every count is 0.");
+  int lo = n, hi = -1;
+  for (int i = 0; i < n; ++i) {
+    if (yy[i] > 0) {
+      lo = std::min(lo, i);
+      hi = std::max(hi, i);
+    }
+  }
+  std::vector<double> d(static_cast<std::size_t>(2 * n)), mu(static_cast<std::size_t>(n), NA_REAL);
+  for (int i = 0; i < n; ++i) {
+    d[static_cast<std::size_t>(i)] = 1;
+    d[static_cast<std::size_t>(n + i)] = xv[static_cast<std::size_t>(i)] - xm;
+  }
+  double rr[8];
+  for (double &v : rr) v = NA_REAL;
+  rr[7] = 0;
+  if (lo == hi && (lo == 0 || hi == n - 1)) {
+    // all the events in the first or the last period: no finite trend
+    rr[0] = lo == 0 ? 0.0 : R_PosInf;
+    Rf_warningcall(R_NilValue,
+                   "trndrr: every event falls in the %s period: the trend has no finite "
+                   "estimate.",
+                   lo == 0 ? "first" : "last");
+  } else {
+    double beta[2], vb[4], vc[4], st[8];
+    int al[2], iw[2];
+    std::vector<double> w(static_cast<std::size_t>(2 * n + 6 * n + 2 + 4));
+    const int rc = clab_cntreg(yy, d.data(), n, 2, off.data(), nullptr, 0, 0, 25, 1e-8, beta, vb, vc, st, al, w.data(), iw);
+    if (rc != CLAB_OK) fail("the Poisson fit failed: the deviance left the finite range.");
+    double pe = 0;
+    for (int i = 0; i < n; ++i) {
+      const double m = std::exp(beta[0] + beta[1] * d[static_cast<std::size_t>(n + i)] + off[static_cast<std::size_t>(i)]);
+      mu[static_cast<std::size_t>(i)] = m;
+      pe += (yy[i] - m) * (yy[i] - m) / m;
+    }
+    // the quasi-Poisson interval when the dispersion is above 1.5
+    const double disp = pe / (n - 2), b = beta[1];
+    double se = std::sqrt(vb[3]), q = z, pv;
+    const bool over = disp > 1.5;
+    if (over) {
+      se *= std::sqrt(disp);
+      q = Rf_qt(0.5 + 0.5 * lv, n - 2, 1, 0);
+      pv = 2 * Rf_pt(-std::fabs(b / se), n - 2, 1, 0);
+    } else {
+      pv = 2 * Rf_pnorm5(-std::fabs(b / se), 0.0, 1.0, 1, 0);
+    }
+    const double r0[8] = {std::exp(b), std::exp(b - q * se), std::exp(b + q * se), pv, b, se, disp,
+                          over ? 1.0 : 0.0};
+    for (int j = 0; j < 8; ++j) rr[j] = r0[j];
+  }
+  SEXP rrf = frame(p, {{"rr", dvec(p, rr, 1)},
+                       {"lo", dvec(p, rr + 1, 1)},
+                       {"hi", dvec(p, rr + 2, 1)},
+                       {"p", dvec(p, rr + 3, 1)},
+                       {"b", dvec(p, rr + 4, 1)},
+                       {"se", dvec(p, rr + 5, 1)},
+                       {"disp", dvec(p, rr + 6, 1)},
+                       {"over", lgl1(p, rr[7])}});
+  // Mann-Kendall and Theil-Sen
+  double st[10];
+  std::vector<double> w(static_cast<std::size_t>(n) * static_cast<std::size_t>(n + 1) / 2);
+  std::vector<int> iw(static_cast<std::size_t>(n));
+  clab_trndrr(xv.data(), yy, n, a, z, st, w.data(), iw.data());
+  SEXP mk = frame(p, {{"s", dvec(p, st, 1)},
+                      {"var", dvec(p, st + 1, 1)},
+                      {"tau", dvec(p, st + 2, 1)},
+                      {"p", dvec(p, st + 3, 1)},
+                      {"exact", lgl1(p, n <= 8)}});
+  SEXP sen = frame(p, {{"slope", dvec(p, st + 4, 1)},
+                       {"int", dvec(p, st + 5, 1)},
+                       {"lo", dvec(p, st + 6, 1)},
+                       {"hi", dvec(p, st + 7, 1)},
+                       {"clamp", lgl1(p, st[8] + st[9])}});
+  // period on period
+  std::vector<double> chg(static_cast<std::size_t>(n), NA_REAL), pct(static_cast<std::size_t>(n), NA_REAL);
+  for (int i = 1; i < n; ++i) {
+    chg[static_cast<std::size_t>(i)] = yy[i] - yy[i - 1];
+    pct[static_cast<std::size_t>(i)] = yy[i - 1] > 0 ? 100 * (yy[i] - yy[i - 1]) / yy[i - 1] : NA_REAL;
+  }
+  SEXP yoy = frame(p, {{"x", dvec(p, xv.data(), n)},
+                       {"y", dvec(p, yy, n)},
+                       {"chg", dvec(p, chg.data(), n)},
+                       {"pct", dvec(p, pct.data(), n)}});
+  // seasons: the chi-square test of equal totals
+  SEXP sv = R_NilValue;
+  if (!Rf_isNull(seas)) {
+    csp::lab l = csp::codes(seas, "seas", n);
+    p.n += 2;
+    if (l.g < 2) fail("`seas` has one season: the test needs two or more.");
+    std::vector<double> nn(static_cast<std::size_t>(l.g), 0.0), ex(static_cast<std::size_t>(l.g), tot / l.g);
+    for (int i = 0; i < n; ++i) nn[static_cast<std::size_t>(INTEGER(l.code)[i])] += yy[i];
+    double x2 = 0;
+    for (int g = 0; g < l.g; ++g) x2 += (nn[static_cast<std::size_t>(g)] - ex[static_cast<std::size_t>(g)]) * (nn[static_cast<std::size_t>(g)] - ex[static_cast<std::size_t>(g)]) / ex[static_cast<std::size_t>(g)];
+    SEXP tab = frame(p, {{"season", l.lev}, {"n", dvec(p, nn.data(), l.g)}, {"expd", dvec(p, ex.data(), l.g)}});
+    sv = nlist(p, {{"tab", tab},
+                   {"stat", p(Rf_ScalarReal(x2))},
+                   {"df", p(Rf_ScalarInteger(l.g - 1))},
+                   {"p", p(Rf_ScalarReal(Rf_pchisq(x2, l.g - 1, 0, 0)))}});
+  }
+  SEXP out = nlist(p, {{"rr", rrf},
+                       {"mk", mk},
+                       {"sen", sen},
+                       {"yoy", yoy},
+                       {"seas", sv},
+                       {"fitted", dvec(p, mu.data(), n)},
+                       {"n", p(Rf_ScalarInteger(n))},
+                       {"alt", p(Rf_mkString(alts[a]))},
+                       {"level", p(Rf_ScalarReal(lv))}});
+  Rf_classgets(out, p(Rf_mkString("trndrr")));
+  return out;
+}
+
+SEXP C_clab_r_stpcp(SEXP y, SEXP minseg, SEXP nperm, SEXP seed) {
+  clab::who = "stpcp";
+  prot p;
+  SEXP yv = p(clab::num(y, "y"));
+  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int m = clab::whole(minseg, "minseg", 1), np = clab::whole(nperm, "nperm", 1);
+  if (n < 2 * m) fail("`y` must hold at least 2 `minseg` = %d values, not %d.", 2 * m, n);
+  double st[12];
+  std::vector<double> w(static_cast<std::size_t>(n));
+  std::vector<int> iw(static_cast<std::size_t>(n));
+  clab_stpcp(REAL(yv), n, m, np, csp::seed(seed), st, w.data(), iw.data());
+  SEXP ts = p(Rf_allocVector(STRSXP, 2));
+  SET_STRING_ELT(ts, 0, Rf_mkChar("step"));
+  SET_STRING_ELT(ts, 1, Rf_mkChar("pettitt"));
+  SEXP k = p(Rf_allocVector(INTSXP, 2));
+  INTEGER(k)[0] = static_cast<int>(st[0]);
+  INTEGER(k)[1] = static_cast<int>(st[7]);
+  const double be[2] = {st[1], st[10]}, af[2] = {st[2], st[11]}, sa[2] = {st[3], st[8]},
+               pv[2] = {st[4], st[9]};
+  SEXP tab = frame(p, {{"test", ts},
+                       {"k", k},
+                       {"before", dvec(p, be, 2)},
+                       {"after", dvec(p, af, 2)},
+                       {"stat", dvec(p, sa, 2)},
+                       {"p", dvec(p, pv, 2)}});
+  SEXP out = nlist(p, {{"tab", tab},
+                       {"nperm", p(Rf_ScalarReal(st[5]))},
+                       {"exact", lgl1(p, st[6])},
+                       {"n", p(Rf_ScalarInteger(n))}});
+  Rf_classgets(out, p(Rf_mkString("stpcp")));
+  return out;
+}
+
+SEXP C_clab_r_cusrv(SEXP y, SEXP expd, SEXP start, SEXP k, SEXP h, SEXP trans, SEXP reset) {
+  clab::who = "cusrv";
+  prot p;
+  static const char *const tr[] = {"std", "rossi", "anscombe", "none"};
+  SEXP yv = p(clab::num(y, "y", -1, 0.0));
+  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const double kk = REAL(clab::num(k, "k", 1))[0], hh = pos1(h, "h");
+  const int t = csp::pick(trans, "trans", tr, 4);
+  const bool rs = csp::flag(reset, "reset");
+  int s0 = 0;
+  std::vector<double> m(static_cast<std::size_t>(n));
+  if (Rf_isNull(expd)) {
+    // the mean of the counts before start
+    if (Rf_isNull(start)) fail("give `expd`, or `start`, the first period watched.");
+    s0 = clab::whole(start, "start", 2) - 1;
+    if (s0 >= n) fail("`start` must be at most the number of counts, %d.", n);
+    double b = 0;
+    for (int i = 0; i < s0; ++i) b += REAL(yv)[i] / s0;
+    if (!(b > 0)) fail("the counts before `start` are all 0: no expected count.");
+    for (double &v : m) v = b;
+  } else {
+    SEXP e = p(clab::num(expd, "expd", n, 0.0, true));
+    std::copy(REAL(e), REAL(e) + n, m.begin());
+  }
+  const int nw = n - s0;
+  std::vector<double> z(static_cast<std::size_t>(nw)), s(static_cast<std::size_t>(nw));
+  SEXP al = p(Rf_allocVector(LGLSXP, nw));
+  clab_cusrv(REAL(yv) + s0, m.data() + s0, nw, kk, hh, t, rs ? 1 : 0, z.data(), s.data(), LOGICAL(al));
+  SEXP ix = p(Rf_allocVector(INTSXP, nw));
+  for (int i = 0; i < nw; ++i) INTEGER(ix)[i] = s0 + i + 1;
+  return frame(p, {{"i", ix},
+                   {"y", dvec(p, REAL(yv) + s0, nw)},
+                   {"expd", dvec(p, m.data() + s0, nw)},
+                   {"z", dvec(p, z.data(), nw)},
+                   {"s", dvec(p, s.data(), nw)},
+                   {"alarm", al}});
+}
+
+SEXP C_clab_r_xcser(SEXP x, SEXP y, SEXP lagmax, SEXP dif, SEXP level) {
+  clab::who = "xcser";
+  prot p;
+  SEXP xv = p(clab::num(x, "x")), yv = p(clab::num(y, "y"));
+  SEXP xn = Rf_getAttrib(x, R_NamesSymbol), yn = Rf_getAttrib(y, R_NamesSymbol);
+  std::vector<double> a, b;
+  SEXP common = R_NilValue;
+  if (!Rf_isNull(xn) && !Rf_isNull(yn)) {
+    // the periods both series have, in the order of x
+    std::vector<int> ix;
+    for (R_xlen_t i = 0; i < XLENGTH(xv); ++i) {
+      for (R_xlen_t j = 0; j < XLENGTH(yv); ++j) {
+        if (clab::seql(STRING_ELT(xn, i), STRING_ELT(yn, j))) {
+          a.push_back(REAL(xv)[i]);
+          b.push_back(REAL(yv)[j]);
+          ix.push_back(static_cast<int>(i));
+          break;
+        }
+      }
+    }
+    common = p(Rf_allocVector(STRSXP, static_cast<R_xlen_t>(ix.size())));
+    for (std::size_t i = 0; i < ix.size(); ++i) SET_STRING_ELT(common, static_cast<R_xlen_t>(i), STRING_ELT(xn, ix[i]));
+  } else {
+    if (XLENGTH(xv) != XLENGTH(yv)) fail("`x` and `y` must have one length, or names to match them by.");
+    a.assign(REAL(xv), REAL(xv) + XLENGTH(xv));
+    b.assign(REAL(yv), REAL(yv) + XLENGTH(yv));
+  }
+  if (csp::flag(dif, "dif")) {
+    for (std::size_t i = a.empty() ? 0 : a.size() - 1; i > 0; --i) {
+      a[i] -= a[i - 1];
+      b[i] -= b[i - 1];
+    }
+    if (!a.empty()) {
+      a.erase(a.begin());
+      b.erase(b.begin());
+    }
+  }
+  const int n = static_cast<int>(a.size());
+  if (n < 3) fail("the series have %d periods in common: at least 3 are needed.", n);
+  const double z = zlev(level);
+  const int lag = Rf_isNull(lagmax) ? std::max(0, std::min(n - 1, static_cast<int>(std::floor(10 * std::log10(n / 2.0)))))
+                                    : clab::whole(lagmax, "lagmax", 0);
+  if (lag >= n) fail("`lagmax` must be below the number of periods, %d.", n);
+  std::vector<double> r(static_cast<std::size_t>(2 * lag + 1));
+  if (clab_xcser(a.data(), b.data(), n, lag, r.data()) != CLAB_OK) fail("a series is constant: no correlation.");
+  const double r0 = r[static_cast<std::size_t>(lag)];
+  const double fz = std::atanh(r0), sz = n > 3 ? 1 / std::sqrt(n - 3.0) : NA_REAL;
+  const double tt = r0 * std::sqrt((n - 2) / (1 - r0 * r0));
+  const double c[4] = {r0, n > 3 ? std::tanh(fz - z * sz) : NA_REAL, n > 3 ? std::tanh(fz + z * sz) : NA_REAL,
+                       std::fabs(r0) < 1 ? 2 * Rf_pt(-std::fabs(tt), n - 2, 1, 0) : 0.0};
+  SEXP lg = p(Rf_allocVector(INTSXP, 2 * lag + 1));
+  for (int k = -lag; k <= lag; ++k) INTEGER(lg)[lag + k] = k;
+  SEXP cor = frame(p, {{"r", dvec(p, c, 1)},
+                       {"lo", dvec(p, c + 1, 1)},
+                       {"hi", dvec(p, c + 2, 1)},
+                       {"p", dvec(p, c + 3, 1)},
+                       {"n", p(Rf_ScalarInteger(n))}});
+  SEXP out = nlist(p, {{"cor", cor},
+                       {"ccf", frame(p, {{"lag", lg}, {"r", dvec(p, r.data(), 2 * lag + 1)}})},
+                       {"common", common},
+                       {"level", p(Rf_ScalarReal(REAL(clab::dbl(level))[0]))}});
+  Rf_classgets(out, p(Rf_mkString("xcser")));
+  return out;
 }
 
 }  // extern "C"

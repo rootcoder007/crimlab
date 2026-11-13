@@ -78,6 +78,10 @@ The functions work on summary data, not on raw records:
 * Time and contagion: Hawkes processes fitted to event times with a
   choice of kernels and baselines, their residuals and simulation
   (`hwkfit()`, `hwkres()`, `hwksim()`).
+* Series: the trend in a count series as a rate ratio, by Mann-Kendall
+  and Theil-Sen, by period and season (`trndrr()`); step changes and
+  Pettitt's test (`stpcp()`); CUSUM surveillance (`cusrv()`); the
+  correlation of two series at lags (`xcser()`).
 * Presets: how the columns of a published dataset (Ontario segregation and
   deaths-in-custody tables, use-of-force files, Special Investigations
   Unit cases, Structured Intervention Unit tables, Toronto incident

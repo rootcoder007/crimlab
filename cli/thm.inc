@@ -166,3 +166,6 @@
     {"hwkfit", "Contagion", "cluster_size"},
     {"hwkfit", "Contagion", "stationary_rate"},
     {"hwkfit", "Contagion", "triggered_share"},
+    {"xcser", "Series", "cross_sq_le"},
+    {"xcser", "Series", "corr_le_one"},
+    {"trndrr", "Series", "mk_neg"},

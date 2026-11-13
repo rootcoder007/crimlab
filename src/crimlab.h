@@ -2148,6 +2148,50 @@ int clab_hwksim(double hor, int kind, int base, double per, const double *th,
                 const double *win, double sig, unsigned int seed, int cap, double *t,
                 double *x, double *y, int *gen, int *n, double *work, int *iwork);
 
+/* ------------------------------------------------------------------------
+ * Series: trend, change points, surveillance, cross-correlation (trn.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Mann-Kendall's test of a monotone trend in y over strictly increasing x
+ * (n >= 3, finite) and the Theil-Sen slope (Sen 1968). alt: 0 two-sided,
+ * 1 increasing, 2 decreasing. z: the normal quantile of the slope
+ * interval. Out, st (10): S; its variance with the tie correction; tau
+ * (S over n (n - 1) / 2); the p-value, exact over every ordering of the
+ * observed values (ties kept) when n <= 8, otherwise normal with the
+ * continuity correction; the slope (the median of the pairwise slopes);
+ * the intercept (the median of y - slope x); the interval's ends at the
+ * ranks floor((N - z sd) / 2) and ceil((N + z sd) / 2) + 1 of the N
+ * sorted slopes, clamped to 1..N; and 1 where a clamp was needed. work:
+ * n (n + 1) / 2 doubles; iwork: n ints. CLAB_EDOM for a non-finite value
+ * or x not increasing. */
+int clab_trndrr(const double *x, const double *y, int n, int alt, double z, double *st,
+                double *work, int *iwork);
+
+/* A single change of level in y (n finite values): the split after k
+ * (minseg <= k <= n - minseg) with the largest T_k = k (n - k) / n
+ * (mean before - mean after)^2, its p-value over the reorderings of y
+ * (all n! of them when that is at most nperm, else nperm random ones from
+ * seed: (1 + #{T* >= T}) / (1 + nperm)), and Pettitt's (1979) rank test.
+ * Out, st (12): k, the means before and after, T, p, the orderings used,
+ * 1 when exact; Pettitt's t, K = max |U_t|, its p-value 2 exp(-6 K^2 /
+ * (n^3 + n^2)) (at most 1) and the means before and after t. work: n
+ * doubles; iwork: n ints. */
+int clab_stpcp(const double *y, int n, int minseg, int nperm, unsigned int seed, double *st,
+               double *work, int *iwork);
+
+/* CUSUM of counts y (>= 0) against expected counts m (> 0): z, the
+ * transformed values (trans 0 (y - m) / sqrt(m), 1 Rossi's, 2 Anscombe's,
+ * 3 y itself); s_i = max(0, s_(i-1) + z_i - k), alarm where s >= h > 0,
+ * s set to 0 after an alarm when reset. */
+int clab_cusrv(const double *y, const double *m, int n, double k, double h, int trans,
+               int reset, double *z, double *s, int *alarm);
+
+/* The cross-correlation of two series of n >= 2 finite values, neither
+ * constant, at lags -lag..lag (0 <= lag < n): r[lag + k] estimates
+ * cor(x[t + k], y[t]) as stats::ccf() does (sums over the overlap, the
+ * full-series means and variances). */
+int clab_xcser(const double *x, const double *y, int n, int lag, double *r);
+
 #ifdef __cplusplus
 }
 #endif

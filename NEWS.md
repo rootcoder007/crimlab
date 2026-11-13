@@ -1,5 +1,12 @@
 # crimlab 0.0.0.9000
 
+* `trndrr()` measures the trend in a series of counts as a Poisson rate
+  ratio per period (quasi-Poisson when overdispersed), by Mann-Kendall's
+  test (exact up to 8 periods) and the Theil-Sen slope, with the change on
+  the period before and a test of equal seasonal totals; `stpcp()` finds a
+  step change with its permutation p-value and Pettitt's test; `cusrv()`
+  watches counts by CUSUM; `xcser()` correlates two series, matched by
+  period name, at lags as `ccf()` does.
 * `hwkfit()` fits a Hawkes (self-exciting) process to event times by
   maximum likelihood with the analytic gradient: exponential, Weibull or
   Lomax kernels, a constant baseline or a trend with a cycle, several of

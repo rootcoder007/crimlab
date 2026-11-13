@@ -159,7 +159,13 @@ test_that("every exported function answers one valid call in its shape", {
            "cmp")),
     list(quote(hwkres(c(1, 3, 4), 5, c(0, 0.5, 1))),
          c("tau", "u", "d", "p", "n")),
-    list(quote(hwksim(c(0, 0.5, 1), 5, seed = 1)), c("t", "gen"))
+    list(quote(hwksim(c(0, 0.5, 1), 5, seed = 1)), c("t", "gen")),
+    list(quote(trndrr(c(3, 5, 9, 4))),
+         c("rr", "mk", "sen", "yoy", "seas", "fitted", "n", "alt", "level")),
+    list(quote(stpcp(c(3, 5, 9, 4))), c("tab", "nperm", "exact", "n")),
+    list(quote(cusrv(c(3, 5, 9, 4), start = 2)),
+         c("i", "y", "expd", "z", "s", "alarm")),
+    list(quote(xcser(c(3, 5, 9, 4), 1:4)), c("cor", "ccf", "common", "level"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

@@ -157,4 +157,5 @@ void t_sp2(tk &t, int big);
 void t_did(tk &t, int big);
 
 void t_hwk(tk &t, int big);
+void t_trn(tk &t, int big);
 #endif
