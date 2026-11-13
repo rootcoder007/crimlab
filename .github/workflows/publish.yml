@@ -29,11 +29,12 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: the tag, DESCRIPTION and the spec agree
+      - name: the tag, DESCRIPTION, the spec and the Debian changelog agree
         run: |
           v=${GITHUB_REF_NAME#v}
           grep -qx "Version: $v" DESCRIPTION
           grep -qx "Version:        $v" packaging/rpm/crimlab.spec
+          grep -q "^crimlab ($v-" packaging/debian/changelog
 
   copr:
     # Fedora COPR; secret CLAB_COPR_CONFIG, the text of ~/.config/copr (the

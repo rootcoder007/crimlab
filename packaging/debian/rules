@@ -1,0 +1,25 @@
+#!/usr/bin/make -f
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# The library and the command are built by cli/Makefile; the R package at
+# the top of the source is not built here.
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+include /usr/share/dpkg/architecture.mk
+include /usr/share/dpkg/buildtools.mk
+M = $(MAKE) -C cli WERROR= CXX=$(CXX) PREFIX=/usr LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(M)
+
+override_dh_auto_install:
+	$(M) install DESTDIR=$(CURDIR)/debian/tmp
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	$(M) check
+endif
+
+override_dh_auto_clean:
+	$(MAKE) -C cli clean

@@ -100,3 +100,28 @@ jobs:
           crimlab orrisk --or 2 --rate 0.1 --share 0.3
           test -f /usr/include/crimlab/jrun.h
 
+  deb:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q --no-install-recommends debhelper lintian
+      - name: build and lintian
+        run: sh packaging/deb.sh out
+      - name: install and run
+        run: |
+          sudo apt-get install -y -q ./out/*.deb
+          crimlab -V
+          crimlab selftest
+          crimlab orrisk --or 2 --rate 0.1 --share 0.3
+          test -f /usr/include/crimlab/jrun.h
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deb
+          path: out/*.deb
+          if-no-files-found: error
+          retention-days: 7
+

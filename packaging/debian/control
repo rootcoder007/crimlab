@@ -1,0 +1,37 @@
+Source: crimlab
+Section: science
+Priority: optional
+Maintainer: rootcoder007 <278967282+rootcoder007@users.noreply.github.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Homepage: https://github.com/rootcoder007/crimlab
+Rules-Requires-Root: no
+
+Package: libcrimlab0
+Section: libs
+Architecture: any
+Multi-Arch: same
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: criminology and sociolegal statistics (library)
+ Statistical methods for courts, corrections, policing, forensic science
+ and crime places: the compiled kernels of the R and Python packages
+ crimlab. This package has the shared library.
+
+Package: libcrimlab-dev
+Section: libdevel
+Architecture: any
+Multi-Arch: same
+Depends: libcrimlab0 (= ${binary:Version}), ${misc:Depends}
+Description: criminology and sociolegal statistics (development files)
+ Statistical methods for courts, corrections, policing, forensic science
+ and crime places: the compiled kernels of the R and Python packages
+ crimlab. This package has the C headers.
+
+Package: crimlab
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: criminology and sociolegal statistics (command)
+ Statistical methods for courts, corrections, policing, forensic science
+ and crime places: the compiled kernels of the R and Python packages
+ crimlab. This package has the crimlab command, which runs every function
+ of the package on JSON or CSV input.
