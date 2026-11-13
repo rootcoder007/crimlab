@@ -68,6 +68,21 @@ int byname(SEXP *v, const char *const *nm, int k);
 // other input is returned as it is. The result is not protected.
 SEXP gvec(SEXP x, const char *nm);
 
+// Labels to codes from 0, as bdos.cpp and bstat.cpp read groups: a
+// factor by its levels that occur, in level order; anything else by its
+// sorted distinct values (as.character()). lev holds the labels of the
+// codes; no label may be missing. code and lev are protected on return:
+// the caller unprotects two.
+struct lab {
+  SEXP code, lev;
+  int g;
+};
+lab codes(SEXP x, const char *nm, R_xlen_t n);
+
+// 0 or 1 outcomes, logical or numbers, n of them, as integers (not
+// protected).
+SEXP bin01(SEXP y, const char *nm, R_xlen_t n);
+
 // TRUE or FALSE, one value.
 bool flag(SEXP x, const char *nm);
 

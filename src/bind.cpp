@@ -1914,6 +1914,8 @@ const Thm thms[] = {
     {"relchk", "RelChk", "rr_swap_ref"},
     {"relchk", "RelChk", "rd_swap_ref"},
     {"relchk", "RelChk", "rd_swap_event"},
+    {"cntreg", "Rates", "rr_swap"},
+    {"cntreg", "Rates", "ci_swap"},
     {"cgstat", "Spatial", "mean_centre_minimises"},
     {"sdell", "Spatial", "parallel_axis"},
     {"lmorn", "Spatial", "lisa_sum"},

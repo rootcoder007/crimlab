@@ -396,6 +396,8 @@ SEXP C_clab_r_locgi(SEXP, SEXP, SEXP);
 SEXP C_clab_r_dirmn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_relchk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_catchk(SEXP, SEXP, SEXP);
+// The count and table statistics (bstat.cpp).
+SEXP C_clab_r_cntreg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The learning and causal families (rlearn.cpp).
 SEXP C_clab_r_enpath(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lgtreg(SEXP, SEXP, SEXP, SEXP);
@@ -518,6 +520,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dirmn", fn(&C_clab_r_dirmn), 6},
     {"C_clab_r_relchk", fn(&C_clab_r_relchk), 8},
     {"C_clab_r_catchk", fn(&C_clab_r_catchk), 3},
+    {"C_clab_r_cntreg", fn(&C_clab_r_cntreg), 9},
     {"C_clab_r_enpath", fn(&C_clab_r_enpath), 10},
     {"C_clab_r_lgtreg", fn(&C_clab_r_lgtreg), 4},
     {"C_clab_r_rfor", fn(&C_clab_r_rfor), 9},

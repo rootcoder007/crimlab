@@ -1526,6 +1526,49 @@ int clab_rnnhcl(const double *x, const double *y, int n, const double *bx,
                 const double *by, const double *bw, int nb, double bwid,
                 double z, int minpts, int k, double c, int *iwork,
                 double *work, double *thr, int *cl, int *ncl, double *cs);
+/* ------------------------------------------------------------------------
+ * Counts: log-linear regression of a count on a group, with exposure and
+ * clusters.
+ * ------------------------------------------------------------------------ */
+
+/* Poisson (nb 0) or negative binomial (nb 1: variance mu + mu^2 / theta,
+ * theta by maximum likelihood) regression of y on x with a log link, by
+ * the steps of R's glm.fit (iteratively reweighted least squares from mu =
+ * y + 0.1, until the relative change of the deviance is below eps, at most
+ * maxit steps) and, for nb, of MASS::glm.nb (Venables and Ripley 2002;
+ * theta and the coefficients in turn). y: n counts, at least 0, not all 0
+ * (whole numbers or not: the likelihood uses lgamma(y + 1)); x: n by p,
+ * column-major, the first column usually all 1; off: NULL or n offsets
+ * (log exposure). A column whose part not explained by the columns before
+ * it is below 1e-11 of its norm is aliased (alias[j] 1, beta[j] NaN, its
+ * rows and columns of vb and vc NaN), as in R. cl: NULL or n cluster ids
+ * in [0, ncl). Out: beta (p); vb (p x p), the model-based covariance
+ * (X'WX)^-1; vc (p x p, not read when cl is NULL), the cluster sandwich
+ * (X'WX)^-1 (sum_g U_g U_g') (X'WX)^-1 with no small-sample factor; st
+ * (8): log-likelihood, AIC, theta and its standard error (NaN for
+ * Poisson), steps taken, converged (1 or 0), rank, deviance. work: n p +
+ * 6 n + p + p^2 + 2 ncl p doubles; iwork: p ints. */
+int clab_cntreg(const double *y, const double *x, int n, int p, const double *off,
+                const int *cl, int ncl, int nb, int maxit, double eps, double *beta,
+                double *vb, double *vc, double *st, int *alias, double *work,
+                int *iwork);
+
+/* The Poisson log-linear model by generalised estimating equations
+ * (Liang and Zeger 1986, doi:10.1093/biomet/73.1.13) with an exchangeable
+ * working correlation, estimated as geepack does: phi = sum r^2 / n and
+ * alpha = sum over pairs within a cluster of r_i r_j / (phi times the
+ * number of pairs), r the Pearson residuals. y, x, off, cl as in
+ * clab_cntreg (cl required); alias: p flags, the columns left out;
+ * beta: p, in the start (the Poisson fit) and out the estimate, NaN where
+ * aliased. Fisher scoring until no coefficient moves more than eps, at
+ * most maxit steps. Out: vc (p x p), the robust (sandwich) covariance; st
+ * (4): alpha, phi, steps, converged. CLAB_EDOM when the working
+ * correlation is not positive definite. work: 2 n + 2 p^2 + 2 p + 2 ncl p
+ * doubles; iwork: p + ncl + 1 + n ints. */
+int clab_geeex(const double *y, const double *x, int n, int p, const double *off,
+               const int *cl, int ncl, const int *alias, int maxit, double eps,
+               double *beta, double *vc, double *st, double *work, int *iwork);
+
 #ifdef __cplusplus
 }
 #endif

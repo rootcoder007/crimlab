@@ -65,6 +65,9 @@ The functions work on summary data, not on raw records:
   an event known only within a window happened, whether reported figures
   follow Benford's law, how strong hidden bias must be to explain a
   matched result away, and group-based trajectories of offending.
+* Counts and rates: rate ratios between groups from Poisson and negative
+  binomial regression with an exposure, adjustment and cluster-robust or
+  GEE standard errors (`cntreg()`).
 * Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference (`relchk()`), and what the functions here
   would make of categorical inputs before an analysis (`catchk()`).

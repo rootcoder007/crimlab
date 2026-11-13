@@ -386,6 +386,58 @@ SEXP gvec(SEXP x, const char *nm) {
   return x;
 }
 
+lab codes(SEXP x, const char *nm, R_xlen_t n) {
+  if (Rf_xlength(x) != n) clab::fail("`%s` must have one label per value, %ld.", nm, static_cast<long>(n));
+  SEXP s = PROTECT(clab::labs(x));
+  if (Rf_isNull(s) || clab::anyna(s)) {
+    clab::fail("`%s` must be labels (numbers, text or a factor) with no missing "
+         "values.", nm);
+  }
+  SEXP o = PROTECT(Rf_allocVector(INTSXP, n));
+  int *ord = INTEGER(o);
+  for (R_xlen_t i = 0; i < n; ++i) ord[i] = static_cast<int>(i);
+  std::vector<clab::Key> k(static_cast<std::size_t>(n));
+  for (R_xlen_t i = 0; i < n; ++i) k[i] = clab::key(STRING_ELT(s, i));
+  if (Rf_isFactor(x)) {
+    const int *f = INTEGER_RO(x);
+    std::stable_sort(ord, ord + n, [f](int a, int b) { return f[a] < f[b]; });
+  } else {
+    std::stable_sort(ord, ord + n, [&k](int a, int b) { return clab::kcmp(k[a], k[b]) < 0; });
+  }
+  lab r{PROTECT(Rf_allocVector(INTSXP, n)), R_NilValue, 0};
+  int g = -1;
+  for (R_xlen_t q = 0; q < n; ++q) {
+    const int i = ord[q];
+    if (q == 0 || clab::kcmp(k[ord[q - 1]], k[i]) != 0) ++g;
+    INTEGER(r.code)[i] = g;
+  }
+  r.g = g + 1;
+  r.lev = PROTECT(Rf_allocVector(STRSXP, r.g));
+  for (R_xlen_t i = 0; i < n; ++i) SET_STRING_ELT(r.lev, INTEGER(r.code)[i], STRING_ELT(s, i));
+  UNPROTECT(4);
+  PROTECT(r.code);
+  PROTECT(r.lev);
+  return r;
+}
+
+// 0 or 1 outcomes: logical or numbers
+SEXP bin01(SEXP y, const char *nm, R_xlen_t n) {
+  SEXP v = PROTECT(Rf_allocVector(INTSXP, n));
+  if (Rf_xlength(y) != n || (TYPEOF(y) != LGLSXP && !clab::isnum(y))) {
+    clab::fail("`%s` must be 0 or 1 (or TRUE or FALSE), one per case.", nm);
+  }
+  for (R_xlen_t i = 0; i < n; ++i) {
+    const double d = TYPEOF(y) == LGLSXP
+                         ? (LOGICAL_RO(y)[i] == NA_LOGICAL ? NA_REAL : LOGICAL_RO(y)[i])
+                         : (TYPEOF(y) == INTSXP ? (INTEGER_RO(y)[i] == NA_INTEGER ? NA_REAL : INTEGER_RO(y)[i])
+                                                : REAL_RO(y)[i]);
+    if (!(d == 0 || d == 1)) clab::fail("`%s` must be 0 or 1 (or TRUE or FALSE), one per case.", nm);
+    INTEGER(v)[i] = static_cast<int>(d);
+  }
+  UNPROTECT(1);
+  return v;
+}
+
 bool flag(SEXP x, const char *nm) {
   if (TYPEOF(x) != LGLSXP || XLENGTH(x) != 1 || LOGICAL_RO(x)[0] == NA_LOGICAL) {
     clab::fail("`%s` must be TRUE or FALSE.", nm);

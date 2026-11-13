@@ -1,5 +1,12 @@
 # crimlab 0.0.0.9000
 
+* `cntreg()` fits a count on a group by Poisson and negative binomial
+  regression (the iterations of `glm()` and `MASS::glm.nb()`), with
+  adjustment columns, an exposure offset and clusters, and reports the
+  rate ratios with Wald intervals: model-based, cluster-robust (the
+  sandwich of `sandwich::vcovCL()`), and from an exchangeable GEE (as
+  'geepack' estimates it). `proof("cntreg")` names the Lean theorems on
+  swapping the groups.
 * `relchk()` recomputes a reported odds ratio, risk ratio or risk
   difference from its table under every labelling (each reference group,
   each outcome as the event, groups in rows or in columns) and says which
