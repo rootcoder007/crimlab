@@ -126,6 +126,9 @@ void t_net(tk &t, int big);
 void t_svg(tk &t, int big);
 void t_lab(tk &t, int big);
 
+// The learning and causal families.
+void t_learn(tk &t, int big);
+
 #ifdef CLAB_MAIN
 // The standalone program only: the median of five timings (sorts t).
 double tk_med5(double *t);

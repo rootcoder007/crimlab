@@ -1133,6 +1133,52 @@ int clab_coofw(const int *inc, const int *off, int k, int ni, int no,
                double *npair, double *ilen, int *iwork);
 int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
                int cap, int *pa, int *pb, double *pw, int *np, int *iwork);
+/* ------------------------------------------------------------------------
+ * Learning: the learners of the cross-fitted estimators (dml.cpp).
+ * Matrices are column-major, n rows by p columns, as R stores them.
+ * ------------------------------------------------------------------------ */
+
+/* Elastic net path by cyclical coordinate descent (Friedman, Hastie and
+ * Tibshirani 2010, doi:10.18637/jss.v033.i01), with the objective, the
+ * standardisation and the lambda scale of glmnet: fam 0 (gaussian)
+ * minimises (1 / 2n) |y - a0 - x b|^2 + lam pen(b), fam 1 (binomial, y in
+ * {0, 1}) the mean negative log-likelihood plus lam pen(b), where pen(b) =
+ * sum_j (1 - alpha) / 2 (s_j b_j)^2 + alpha |s_j b_j| with s_j the
+ * population standard deviation of column j (a constant column keeps a
+ * zero coefficient). For the gaussian family the problem is solved with y
+ * scaled to unit variance and lam divided by that sd, as glmnet does, so
+ * results match it for every alpha. alpha in [0, 1]; lam: nl lambdas,
+ * decreasing, read when lmr <= 0; when 0 < lmr < 1 the path is written to
+ * lam instead: nl values from the smallest lambda that zeroes every
+ * coefficient down to lmr times it, evenly spaced on the log scale (no
+ * early stop). thresh > 0: convergence when no pass moves a standardised
+ * coefficient by more than sqrt(thresh) (weighted, binomial); maxit
+ * passes at most in all, else CLAB_EDOM. fold: NULL, or n fold ids in [0,
+ * nf), nf >= 2, every fold non-empty: then each fold is held out in turn,
+ * the path refitted on the rest at the same lambdas, and cv (2 nl) gets
+ * the mean held-out loss (squared error; binomial deviance with the
+ * probability kept in [1e-5, 1 - 1e-5]) and its standard error, both as
+ * cv.glmnet computes them from fold means weighted by fold size; best (2)
+ * the indices of the lambda at the minimum and of the largest lambda
+ * within one standard error of it. Out: a0 (nl), beta (p nl) on the
+ * original scale. work: p^2 + 6p + 4n + nl (p + 1) + nf (nl + 1)
+ * doubles; iwork: 2n + p ints. */
+int clab_enpath(const double *x, int n, int p, const double *y, int fam,
+               double alpha, double *lam, int nl, double lmr, double thresh,
+               int maxit, const int *fold, int nf, double *a0, double *beta,
+               double *cv, int *best, double *work, int *iwork);
+
+/* Logistic regression by Newton's method on the centred design. y: n
+ * outcomes in {0, 1}, both present; x: n by p, p >= 0, full column rank
+ * with the intercept. Newton steps until none moves a coefficient by more
+ * than tol (1 + |coefficient|), at most maxit. Out: coef and se (p + 1
+ * each, intercept first; se from the inverse Fisher information) and dev,
+ * the deviance. CLAB_EDOM for a singular information matrix (collinear
+ * columns, n <= p + 1) or no convergence (separated data). work:
+ * 2 (p + 1)^2 + 4 (p + 1) doubles; iwork: n ints. */
+int clab_lgtreg(const double *x, int n, int p, const double *y, double tol,
+                int maxit, double *coef, double *se, double *dev,
+                double *work, int *iwork);
 
 
 /* ------------------------------------------------------------------------

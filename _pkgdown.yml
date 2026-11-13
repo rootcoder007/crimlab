@@ -128,6 +128,12 @@ reference:
     contents:
       - relchk
       - catchk
+  - title: Learning
+    desc: The elastic net with cross-validation and logistic regression;
+      the learners of the cross-fitted estimators.
+    contents:
+      - enpath
+      - lgtreg
   - title: Proofs
     contents:
       - proof

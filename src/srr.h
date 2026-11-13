@@ -67,6 +67,9 @@
 //'   square root of machine precision.
 //' @srrstats {EA6.1} The data each plot draws is returned and tested
 //'   ("the plots return what they draw" in test-frns2.R).
+//' @srrstats {EA3.0} enpath() chooses the penalty of the elastic net by
+//'   cross-validation over the caller's folds and returns the whole path
+//'   with the losses, so the choice can be checked.
 //' @noRd
 #define CLAB_SRR_MET 1
 
@@ -106,8 +109,6 @@
 //' @srrstatsNA {EA2.3} No table joins.
 //' @srrstatsNA {EA2.4} No multi-table input.
 //' @srrstatsNA {EA2.5} No index columns (EA2.0).
-//' @srrstatsNA {EA3.0} Each function computes one named statistic; there is
-//'   no variable or model selection to automate.
 //' @srrstatsNA {EA3.1} Each function computes one named statistic; there are
 //'   no alternative processes or models to compare in a standard form.
 //' @srrstatsNA {EA5.1} No plot sets a typeface.
