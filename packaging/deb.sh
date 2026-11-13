@@ -22,7 +22,9 @@ grep -q "^crimlab ($v-" "$w/crimlab-$v/debian/changelog" || {
 (cd "$w/crimlab-$v" && dpkg-buildpackage -us -uc -b)
 cp "$w"/*.deb "$out/"
 if command -v lintian >/dev/null; then
-  # these packages are not an upload to Debian: no ITP bug to close
-  lintian --fail-on error,warning --suppress-tags initial-upload-closes-no-bugs "$w"/*.changes
+  # the binary packages, not the .changes of an upload: these packages
+  # go to no archive (so no ITP bug to close, and no distribution in the
+  # changelog that Ubuntu's lintian would accept as its own)
+  lintian --fail-on error,warning --suppress-tags initial-upload-closes-no-bugs "$w"/*.deb
 fi
 ls -l "$out"
