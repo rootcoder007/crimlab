@@ -2323,6 +2323,26 @@ int clab_sthwk(const double *t, const double *x, const double *y, int n, double 
                double area, const double *start, int maxit, double *th, double *cov,
                double *st, double *grad, const double *qt, const double *qx, const double *qy,
                int nq, double *qlam);
+/* ---- Custody, courts and published tables (crsev, zcomp, ...) ---- */
+
+/* Severity-weighted crime index (crsev): x[i] counts of offence off[i]
+ * (0..no-1) in cell key[i] (0..nk-1), n rows (several rows of one cell
+ * and offence add up); w: no weights from 0. pop: NULL or nk positive
+ * populations; per > 0. Out, nk each: cnt (the counts summed), sev (the
+ * weighted sum), rate and srate (cnt and sev per per of pop; NaN without
+ * pop) and idx (srate, or sev without pop, as 100 times its ratio to cell
+ * base's; NaN when base is -1 or the base cell's is 0). */
+int clab_crsev(const double *x, const int *off, const int *key, int n, int no,
+               int nk, const double *w, const double *pop, double per, int base,
+               double *cnt, double *sev, double *rate, double *srate, double *idx);
+
+/* Composite index of standardised counts (zcomp): x, nu x nc finite
+ * (column-major, nu >= 2 units, nc categories); w: nc finite weights.
+ * Out: mu, sd (nc), each category's mean and standard deviation (n - 1
+ * denominator; 1 for a category that does not vary); z (nu x nc), (x -
+ * mu) / sd; comp (nu), the weighted sum of each unit's z. */
+int clab_zcomp(const double *x, int nu, int nc, const double *w, double *z,
+               double *comp, double *mu, double *sd);
 
 #ifdef __cplusplus
 }

@@ -193,6 +193,10 @@ test_that("every exported function answers one valid call in its shape", {
          c("tab", "overlap", "bal", "ovl", "thr")),
     list(quote(evlx(2)), c("rr", "evalue", "evlim")),
     list(quote(svymx(c(1, 3, 2, 5))), c("est", "cmp", "des", "stat", "level"))
+    list(quote(crsev(c(1, 2), c("a", "b"), c(a = 1, b = 2))),
+         c("tab", "w", "per", "base")),
+    list(quote(zcomp(1:4, c(1, 2, 1, 2), c(1, 1, 2, 2))),
+         c("tab", "cat", "z"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

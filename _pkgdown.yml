@@ -160,6 +160,12 @@ reference:
       - dastd
       - sirex
       - ctabx
+  - title: Police-reported crime
+    desc: Severity-weighted crime indices and composite indices of standardised
+      counts.
+    contents:
+      - crsev
+      - zcomp
   - title: Presets
     desc: A published dataset's columns onto a generic function's arguments.
     contents:

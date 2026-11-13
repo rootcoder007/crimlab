@@ -36,6 +36,11 @@
   `hwkres()` gives the time-rescaling residuals with the Kolmogorov-Smirnov
   test of `ks.test()`, and `hwksim()` simulates the process, in time or in
   space and time, by its branching construction.
+* `crsev()` builds a severity-weighted crime index from counts by offence
+  (the Crime Severity Index of Statistics Canada: weighted counts per
+  population against a base, the weights given or made from incarceration
+  rates and mean sentences); `zcomp()` ranks units on a composite of
+  standardised counts across categories.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the

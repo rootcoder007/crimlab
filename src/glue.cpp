@@ -478,6 +478,9 @@ SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// The custody, court and published-table families (bsev.cpp and siblings).
+SEXP C_clab_r_crsev(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_zcomp(SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -656,6 +659,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_smdbal", fn(&C_clab_r_smdbal), 5},
     {"C_clab_r_evlx", fn(&C_clab_r_evlx), 6},
     {"C_clab_r_svymx", fn(&C_clab_r_svymx), 10},
+    {"C_clab_r_crsev", fn(&C_clab_r_crsev), 9},
+    {"C_clab_r_zcomp", fn(&C_clab_r_zcomp), 4},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

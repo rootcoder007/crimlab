@@ -114,6 +114,10 @@ The functions work on summary data, not on raw records:
 * Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference (`relchk()`), and what the functions here
   would make of categorical inputs before an analysis (`catchk()`).
+* Police-reported crime: a severity-weighted index of counts by offence, per
+  population and against a base period (`crsev()`), and a composite of
+  standardised counts that ranks areas on several kinds of crime at once
+  (`zcomp()`).
 
 ## Algorithms
 
