@@ -152,7 +152,7 @@ test_that("every exported function answers one valid call in its shape", {
                     reps = 99, seed = 1)),
          c("res", "meth", "ncl", "draws", "enum", "mde", "size", "level")),
     list(quote(wystep(c(1, 2), matrix(c(0.5, 3, 1, 1), 2))),
-         c("stat", "p", "padj"))
+         c("stat", "p", "padj")),
     list(quote(hwkfit(c(1, 3, 4, 8, 9, 9.5, 13, 20, 21, 22), 25)),
          c("par", "se", "cov", "loglik", "aic", "bic", "branch", "conv",
            "iter", "kernel", "base", "per", "n", "hor", "jit", "times",

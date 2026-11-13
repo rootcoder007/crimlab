@@ -2099,6 +2099,8 @@ int clab_arwt(const double *val, int ns, const int *from, const int *to,
 int clab_bufas(const double *x, const double *y, int n, const double *sx,
                const double *sy, int ns, const double *cx, const double *cy,
                int nc, double r, double buf, int *grp, double *ds, double *dc);
+
+/* ------------------------------------------------------------------------
  * Hawkes processes in time (hwk.cpp).
  * ------------------------------------------------------------------------ */
 

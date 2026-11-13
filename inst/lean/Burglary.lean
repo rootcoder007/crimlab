@@ -1,5 +1,5 @@
 /-
-  crimlab: inst/lean/HotSpot.lean
+  crimlab: inst/lean/Burglary.lean
 
   The Short-D'Orsogna-Brantingham model of sdbsim() and sdbthr(). With
   no burglaries the lattice update b' = (1 - omega dt) ((1 - eta) b +
@@ -17,7 +17,7 @@ set_option linter.style.header false
 
 noncomputable section
 
-namespace Crimlab.HotSpot
+namespace Crimlab.Burglary
 
 /-- Without burglaries the largest attractiveness shrinks by 1 - omega dt. -/
 theorem sup_contract (w eta m b n1 n2 n3 n4 : ℝ) (hw0 : 0 ≤ w) (he0 : 0 ≤ eta) (he1 : eta ≤ 1)
@@ -62,4 +62,4 @@ theorem no_hotspots_without_reinforcement (a0 om d gam eta z : ℝ) (ha : 0 < a0
   have : 3 * 0 * d * (gam / a0) - om - eta * a0 < 0 := by nlinarith [mul_nonneg he ha.le]
   exact mul_neg_of_pos_of_neg (div_pos hd hz) this
 
-end Crimlab.HotSpot
+end Crimlab.Burglary

@@ -2080,10 +2080,10 @@ const Thm thms[] = {
     {"kmrec", "Recur", "km_step"},
     {"sqrtlw", "Patrol", "scale_invariant"},
     {"sqrtlw", "Patrol", "four_units_half"},
-    {"sdbsim", "HotSpot", "sup_contract"},
-    {"sdbthr", "HotSpot", "steady"},
-    {"sdbthr", "HotSpot", "trace_neg"},
-    {"sdbthr", "HotSpot", "no_hotspots_without_reinforcement"},
+    {"sdbsim", "Burglary", "sup_contract"},
+    {"sdbthr", "Burglary", "steady"},
+    {"sdbthr", "Burglary", "trace_neg"},
+    {"sdbthr", "Burglary", "no_hotspots_without_reinforcement"},
     {"etasf", "Etas", "omori_lomax"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
