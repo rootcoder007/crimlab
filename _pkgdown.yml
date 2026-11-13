@@ -135,6 +135,12 @@ reference:
       - enpath
       - lgtreg
       - rfor
+  - title: Causal estimates
+    desc: Double machine learning by cross-fitting, with the learners above;
+      augmented inverse probability weighting and targeted maximum
+      likelihood from the same nuisances.
+    contents:
+      - dmlx
   - title: Proofs
     contents:
       - proof

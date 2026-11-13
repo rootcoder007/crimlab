@@ -103,3 +103,10 @@
   and 1 (1 is).
 * A labelled vector (with a `labels` attribute, as haven makes) is refused
   with a request to decode it first: its numbers are category codes.
+* Learning: `enpath()`, the elastic net path by coordinate descent with
+  cross-validation over given folds (the objective and scale of glmnet);
+  `lgtreg()`, logistic regression; `rfor()`, random forests for
+  regression and probabilities.
+* Causal estimates: `dmlx()`, double machine learning by cross-fitting
+  for the partially linear, interactive, IV, difference-in-differences
+  and sample-selection models, with AIPW and TMLE from the same nuisances.

@@ -95,7 +95,11 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(lgtreg(cbind(c(1, 3, 2, 5, 4, 6)), c(0, 0, 1, 0, 1, 1))),
          c("coef", "se", "dev")),
     list(quote(rfor(cbind(1:6), c(1, 3, 2, 5, 4, 6), ntree = 2)),
-         c("pred", "oob"))
+         c("pred", "oob")),
+    list(quote(dmlx(c(1, 3, 2, 5, 4, 6), c(2, 1, 4, 3, 6, 5),
+                    cbind(c(1, 2, 2, 3, 5, 4)), "plr", rep(1:2, 3),
+                    lrn = "glm")),
+         c("coef", "se", "reps", "psia", "psib", "pred"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

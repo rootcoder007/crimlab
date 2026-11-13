@@ -1363,6 +1363,70 @@ int clab_rfor(const double *x, int n, int p, const double *y,
               double frac, int repl, unsigned int seed, double *pred,
               double *oob, double *work, int *iwork);
 
+/* ------------------------------------------------------------------------
+ * Causal: double machine learning by cross-fitting (Chernozhukov et al.
+ * 2018, doi:10.1111/ectj.12097), with the learners above.
+ * ------------------------------------------------------------------------ */
+
+/* A nuisance learner. kind 0: least squares, or logistic regression for a
+ * probability; kind 1: the elastic net path of clab_enpath() with mixing
+ * alpha, nlam lambdas from the largest down to 1e-4 of it (1e-2 when the
+ * training rows do not outnumber the columns), the lambda of least
+ * cross-validated loss over nfold >= 2 inner folds (a shuffle of the
+ * training rows by seed, dealt round robin); kind 2: the random forest of
+ * clab_rfor() with ntree >= 1 trees, bags of the training rows' size drawn
+ * with replacement, mtry columns per split (0: the floor of sqrt(p); more
+ * than p: p) and nodes of at most minnode rows left unsplit (0: 5 for a
+ * regression, 10 for a probability, as ranger). */
+typedef struct {
+  int kind;
+  double alpha;
+  int nlam, nfold;
+  unsigned int seed;
+  int ntree, mtry, minnode;
+} clab_lrn;
+
+/* The number of nuisance functions of a model (0 for an unknown one). */
+int clab_dmlxk(int model, int sc);
+
+/* Scratch for clab_dmlx(): returns the doubles, sets *niw to the ints. */
+long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
+                const clab_lrn *ly, const clab_lrn *ld, long *niw);
+
+/* Cross-fitted double machine learning. model: 0 partially linear
+ * regression (PLR), 1 partially linear IV (PLIV, one instrument z), 2
+ * interactive regression (IRM; d in {0, 1}), 3 interactive IV (IIVM; d, z
+ * in {0, 1}), 4 augmented inverse probability weighting (the IRM average
+ * effect with the AIPW package's variance), 5 targeted maximum likelihood
+ * (the tmle package's fluctuation of the IRM nuisances), 6 difference in
+ * differences on a panel (y the change in the outcome), 7 difference in
+ * differences on repeated cross-sections (s the period, 0 or 1), 8 sample
+ * selection with outcomes missing at random (s, 0 or 1, marks an observed
+ * outcome; y is not read where s is 0). sc: 0 for the partialling-out
+ * score (PLR, PLIV) or the average effect (IRM), 1 for the IV-type score
+ * or the effect on the treated. x: n by p covariates; z, s: NULL unless
+ * the model reads them. fold: nrep columns of n fold ids in [0, nf); each
+ * column a repetition. clu: NULL or n cluster ids in [0, nc), one-way
+ * clustering (PLR and PLIV only; folds constant within a cluster). ly
+ * learns the outcome nuisances, ld those of the treatment, instrument and
+ * selection. trim: propensities are kept in [trim, 1 - trim] (TMLE: only
+ * bounded below, as tmle). fit 1: the nuisances are learned and written to
+ * pred; fit 0: pred holds them. pred: nrep blocks of clab_dmlxk() columns
+ * of n, in the order of the model (PLR: l, m[, g]; PLIV: l, m, r[, g];
+ * IRM, AIPW, TMLE: g0, g1, m; IIVM: g0, g1, m, r0, r1; DiD: g0, m; DiD on
+ * cross-sections: g00, g01, g10, g11, m; selection: pi, m, g0, g1). Out:
+ * est (2 + 2 nrep): the estimate (the median over repetitions) and its
+ * standard error (DoubleML's aggregation), then each repetition's
+ * estimates and standard errors; psi (2 n nrep): the score elements psi_a
+ * then psi_b of each repetition. work, iwork: clab_dmlxsz(). CLAB_EDOM
+ * when a learner fails, a training set is empty or a score has no root. */
+int clab_dmlx(int model, int sc, const double *x, int n, int p,
+             const double *y, const double *d, const double *z,
+             const double *s, const int *fold, int nf, int nrep,
+             const int *clu, int nc, const clab_lrn *ly, const clab_lrn *ld,
+             double trim, int fit, double *pred, double *est, double *psi,
+             double *work, int *iwork);
+
 #ifdef __cplusplus
 }
 #endif

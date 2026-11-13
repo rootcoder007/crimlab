@@ -277,3 +277,203 @@ SEXP C_clab_r_rfor(SEXP x, SEXP y, SEXP newx, SEXP ntree, SEXP mtry,
 }
 
 }  // extern "C"
+
+namespace {
+
+const char *const mdl[] = {"plr", "pliv", "irm", "iivm", "aipw",
+                           "tmle", "did", "didcs", "ssm"};
+// the nuisance names, model by model (the IV-type score adds "g")
+const char *const nn[][5] = {
+    {"l", "m", "g"},       {"l", "m", "r", "g"}, {"g0", "g1", "m"},
+    {"g0", "g1", "m", "r0", "r1"}, {"g0", "g1", "m"}, {"g0", "g1", "m"},
+    {"g0", "m"}, {"g00", "g01", "g10", "g11", "m"}, {"pi", "m", "g0", "g1"}};
+
+clab_lrn learner(SEXP l, const char *nm, double alpha, int nlam, int nfin,
+                 unsigned int seed, int ntree, int mtry) {
+  static const char *const ch[] = {"glm", "lasso", "ridge", "enet", "forest"};
+  const int k = rl::pick(l, nm, ch, 5);
+  clab_lrn r = {k == 0 ? 0 : (k == 4 ? 2 : 1),
+                k == 1 ? 1.0 : (k == 2 ? 0.0 : alpha), nlam, nfin, seed, ntree,
+                mtry, 0};
+  return r;
+}
+
+// a 0/1 vector of length n
+SEXP bin(SEXP v, const char *nm, int n) {
+  SEXP a = PROTECT(num(v, nm, n));
+  rl::ychk(REAL_RO(a), n, true, nm);
+  UNPROTECT(1);
+  return a;
+}
+
+}  // namespace
+
+extern "C" {
+
+SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
+                   SEXP s, SEXP t, SEXP score, SEXP lrn, SEXP lrnd,
+                   SEXP alpha, SEXP nlam, SEXP nfin, SEXP ntree, SEXP mtry,
+                   SEXP trim, SEXP clu, SEXP pred, SEXP seed) {
+  clab::who = "dmlx";
+  const int md = rl::pick(model, "model", mdl, 9);
+  int n, p;
+  SEXP xv = PROTECT(rl::mat(x, "x", &n, &p));
+  if (n < 4 || p < 1) fail("`x` must have at least four rows and one column.");
+  // s: the selection indicator (ssm) or the period (didcs)
+  SEXP sv = PROTECT(md == 8 ? bin(s, "s", n) : (md == 7 ? bin(t, "t", n) : R_NilValue));
+  SEXP yv;
+  if (md == 8) {
+    // the outcome may be missing where it is not observed; never read there
+    if (!clab::isnum(y) || XLENGTH(y) != n) {
+      fail("`y` must be numbers, one per row of `x`.");
+    }
+    yv = PROTECT(clab::dcopy(clab::dbl(y)));
+    double *a = REAL(yv);
+    for (int i = 0; i < n; ++i) {
+      if (REAL_RO(sv)[i] == 0.0) {
+        a[i] = 0.0;
+      } else if (!std::isfinite(a[i])) {
+        fail("`y` must be finite where `s` is 1.");
+      }
+    }
+  } else {
+    yv = PROTECT(num(y, "y", n));
+  }
+  SEXP dv = PROTECT(md >= 2 ? bin(d, "d", n) : num(d, "d", n));
+  SEXP zv = PROTECT(md == 1 ? num(z, "z", n) : (md == 3 ? bin(z, "z", n) : R_NilValue));
+  int sc = 0;
+  if (!Rf_isNull(score)) {
+    static const char *const s01[] = {"po", "iv"}, *const s23[] = {"ate", "atte"};
+    if (md == 0 || md == 1) {
+      sc = rl::pick(score, "score", s01, 2);
+    } else if (md == 2) {
+      sc = rl::pick(score, "score", s23, 2);
+    } else {
+      fail("`score` must be NULL for model \"%s\".", mdl[md]);
+    }
+  }
+  // folds: a vector, or a matrix with one column per repetition
+  SEXP fd = Rf_getAttrib(fold, R_DimSymbol);
+  const int nrep = TYPEOF(fd) == INTSXP && XLENGTH(fd) == 2 ? INTEGER_RO(fd)[1] : 1;
+  if (nrep < 1 || XLENGTH(fold) != static_cast<R_xlen_t>(n) * nrep) {
+    fail("`fold` must have one row per row of `x`.");
+  }
+  if (!clab::isnum(fold)) fail("`fold` must be finite numbers with no missing values.");
+  SEXP fdb = PROTECT(clab::dbl(fold));
+  SEXP col = PROTECT(Rf_allocVector(REALSXP, n));
+  int nf = 0;
+  int *fv = rl::ialloc(static_cast<double>(n) * nrep);
+  for (int r = 0; r < nrep; ++r) {
+    std::memcpy(REAL(col), REAL_RO(fdb) + static_cast<R_xlen_t>(r) * n, sizeof(double) * n);
+    int k;
+    const int *f = rl::folds(col, "fold", n, &k);
+    if (r > 0 && k != nf) fail("`fold` must number the same folds in every column.");
+    nf = k;
+    std::memcpy(fv + static_cast<R_xlen_t>(r) * n, f, sizeof(int) * n);
+  }
+  UNPROTECT(2);
+  int nc = 0;
+  const int *cv = nullptr;
+  if (!Rf_isNull(clu)) {
+    if (md > 1) fail("`clu` is for models \"plr\" and \"pliv\" only.");
+    cv = rl::folds(clu, "clu", n, &nc);
+    // a fold per cluster, in every repetition
+    int *cf = rl::ialloc(nc);
+    for (int r = 0; r < nrep; ++r) {
+      for (int c = 0; c < nc; ++c) cf[c] = -1;
+      for (int i = 0; i < n; ++i) {
+        const int f = fv[static_cast<R_xlen_t>(r) * n + i];
+        if (cf[cv[i]] >= 0 && cf[cv[i]] != f) {
+          fail("`fold` must be constant within each cluster.");
+        }
+        cf[cv[i]] = f;
+      }
+    }
+  }
+  const double al = clab::p01(alpha, "alpha");
+  const int nl = clab::whole(nlam, "nlam", 1);
+  const int ni = clab::whole(nfin, "nfin", 2);
+  const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
+  const unsigned int us = static_cast<unsigned int>(std::fmod(sd, 4294967296.0));
+  const int nt = clab::whole(ntree, "ntree", 1);
+  const int mt = Rf_isNull(mtry) ? 0 : clab::whole(mtry, "mtry", 1);
+  const clab_lrn ly = learner(lrn, "lrn", al, nl, ni, us, nt, mt);
+  const clab_lrn ld = learner(lrnd, "lrnd", al, nl, ni, us + 1U, nt, mt);
+  double tr;
+  if (Rf_isNull(trim)) {
+    tr = md == 4 ? 0.025 : (md == 5 ? 5.0 / std::sqrt(n) / std::log(n)
+                                    : (md == 6 || md == 7 ? 0.01 : 1e-12));
+  } else {
+    tr = REAL_RO(num(trim, "trim", 1, 0.0))[0];
+    if (tr >= 0.5) fail("`trim` must be below 0.5.");
+  }
+  const int k = clab_dmlxk(md, sc);
+  SEXP pr;
+  int fit = 1;
+  if (Rf_isNull(pred)) {
+    pr = PROTECT(Rf_alloc3DArray(REALSXP, n, k, nrep));
+  } else {
+    SEXP pd = Rf_getAttrib(pred, R_DimSymbol);
+    const bool ok = TYPEOF(pd) == INTSXP && INTEGER_RO(pd)[0] == n &&
+                    INTEGER_RO(pd)[1] == k &&
+                    (XLENGTH(pd) == 2 ? nrep == 1 : XLENGTH(pd) == 3 && INTEGER_RO(pd)[2] == nrep);
+    if (!clab::isnum(pred) || !ok) {
+      fail("`pred` must be an array of %d rows, %d columns and one slice "
+           "per column of `fold`.", n, k);
+    }
+    SEXP pv = PROTECT(clab::dcopy(clab::dbl(pred)));
+    for (R_xlen_t i = 0; i < XLENGTH(pv); ++i) {
+      if (!std::isfinite(REAL_RO(pv)[i])) fail("`pred` must be finite.");
+    }
+    pr = PROTECT(Rf_alloc3DArray(REALSXP, n, k, nrep));
+    std::memcpy(REAL(pr), REAL_RO(pv), sizeof(double) * XLENGTH(pv));
+    UNPROTECT(2);
+    PROTECT(pr);
+    fit = 0;
+  }
+  long niw;
+  const long nw = clab_dmlxsz(md, n, p, nf, nrep, &ly, &ld, &niw);
+  double *w = rl::dalloc(static_cast<double>(nw));
+  int *iw = rl::ialloc(static_cast<double>(niw));
+  SEXP est = PROTECT(Rf_allocVector(REALSXP, 2 + 2 * nrep));
+  SEXP psia = PROTECT(Rf_allocMatrix(REALSXP, n, nrep));
+  SEXP psib = PROTECT(Rf_allocMatrix(REALSXP, n, nrep));
+  double *ps = rl::dalloc(2.0 * n * nrep);
+  const int rc = clab_dmlx(md, sc, REAL_RO(xv), n, p, REAL_RO(yv), REAL_RO(dv),
+                          Rf_isNull(zv) ? nullptr : REAL_RO(zv),
+                          Rf_isNull(sv) ? nullptr : REAL_RO(sv), fv, nf, nrep,
+                          cv, nc, &ly, &ld, tr, fit, REAL(pr), REAL(est), ps, w, iw);
+  if (rc == CLAB_EDOM) {
+    fail("no estimate: a learner failed, a training set was empty, or the "
+         "score has no root.");
+  }
+  kchk(rc, nullptr);
+  std::memcpy(REAL(psia), ps, sizeof(double) * n * nrep);
+  std::memcpy(REAL(psib), ps + static_cast<R_xlen_t>(n) * nrep, sizeof(double) * n * nrep);
+  // dimnames of pred: none, the nuisance names, none
+  SEXP dn = PROTECT(Rf_allocVector(VECSXP, 3));
+  SEXP cn = PROTECT(Rf_allocVector(STRSXP, k));
+  for (int j = 0; j < k; ++j) SET_STRING_ELT(cn, j, Rf_mkChar(nn[md][j]));
+  SET_VECTOR_ELT(dn, 1, cn);
+  Rf_setAttrib(pr, R_DimNamesSymbol, dn);
+  SEXP reps = PROTECT(Rf_allocVector(VECSXP, 2));
+  for (int c = 0; c < 2; ++c) {
+    SEXP v = Rf_allocVector(REALSXP, nrep);
+    SET_VECTOR_ELT(reps, c, v);
+    std::memcpy(REAL(v), REAL_RO(est) + 2 + c * nrep, sizeof(double) * nrep);
+  }
+  static const char *const rnm[] = {"coef", "se"};
+  clab::frame(reps, rnm);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 6));
+  SET_VECTOR_ELT(out, 0, Rf_ScalarReal(REAL_RO(est)[0]));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarReal(REAL_RO(est)[1]));
+  SET_VECTOR_ELT(out, 2, reps);
+  SET_VECTOR_ELT(out, 3, psia);
+  SET_VECTOR_ELT(out, 4, psib);
+  SET_VECTOR_ELT(out, 5, pr);
+  static const char *const onm[] = {"coef", "se", "reps", "psia", "psib", "pred"};
+  UNPROTECT(13);
+  return clab::nlist(out, onm);
+}
+
+}  // extern "C"
