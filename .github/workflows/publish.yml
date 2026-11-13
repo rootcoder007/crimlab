@@ -17,6 +17,9 @@ concurrency:
   group: publish-${{ github.ref_name }}
   cancel-in-progress: false
 
+env:
+  WASISDK: https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-34/wasi-sdk-34.0-x86_64-linux.tar.gz
+  WASISDKSUM: b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
 
 jobs:
   versions:
@@ -29,13 +32,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - name: the tag, DESCRIPTION, the spec, the Debian changelog and Cargo.toml agree
+      - name: the tag, DESCRIPTION, the spec, the Debian changelog, Cargo.toml and package.json agree
         run: |
           v=${GITHUB_REF_NAME#v}
           grep -qx "Version: $v" DESCRIPTION
           grep -qx "Version:        $v" packaging/rpm/crimlab.spec
           grep -q "^crimlab ($v-" packaging/debian/changelog
           grep -qx "version = \"$v\"" bindings/rust/Cargo.toml
+          grep -q "\"version\": \"$v\"" bindings/npm/package.json
 
   copr:
     # Fedora COPR; secret CLAB_COPR_CONFIG, the text of ~/.config/copr (the
@@ -258,3 +262,37 @@ jobs:
           done
           echo "::error::deployment $id still not validated after 30 minutes"
           exit 1
+  npm:
+    # npmjs.com by trusted publishing, with provenance: no secret; crimlab's
+    # trusted publisher names this repository, publish.yml and the
+    # environment release
+    needs: versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: release
+    permissions:
+      contents: read
+      id-token: write # trusted publishing and provenance
+    defaults:
+      run:
+        working-directory: bindings/npm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "24"
+          registry-url: https://registry.npmjs.org
+      - name: wasi-sdk (checked against its SHA-256)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/sdk.tgz" "$WASISDK"
+          printf '%s  %s\n' "$WASISDKSUM" "$RUNNER_TEMP/sdk.tgz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/wasi-sdk"
+          tar -xzf "$RUNNER_TEMP/sdk.tgz" -C "$RUNNER_TEMP/wasi-sdk" --strip-components=1
+          echo "WASI_SDK_PATH=$RUNNER_TEMP/wasi-sdk" >> "$GITHUB_ENV"
+      - name: build and test
+        run: sh build.sh && npm test
+      - name: publish
+        run: npm publish --provenance --access public
+

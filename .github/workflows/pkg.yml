@@ -17,6 +17,9 @@ on:
 permissions:
   contents: read
 
+env:
+  WASISDK: https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-34/wasi-sdk-34.0-x86_64-linux.tar.gz
+  WASISDKSUM: b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
 
 jobs:
   cli:
@@ -171,3 +174,35 @@ jobs:
       - name: build and test, with the library given and from the jar
         run: JOBS=4 sh bindings/java/build.sh test bundled
 
+  npm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: bindings/npm
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - name: wasi-sdk (checked against its SHA-256)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/sdk.tgz" "$WASISDK"
+          printf '%s  %s\n' "$WASISDKSUM" "$RUNNER_TEMP/sdk.tgz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/wasi-sdk"
+          tar -xzf "$RUNNER_TEMP/sdk.tgz" -C "$RUNNER_TEMP/wasi-sdk" --strip-components=1
+          echo "WASI_SDK_PATH=$RUNNER_TEMP/wasi-sdk" >> "$GITHUB_ENV"
+      - name: build
+        run: sh build.sh
+      - name: tests
+        run: npm test
+      - name: the package, installed from its tarball
+        run: |
+          npm pack
+          mkdir "$RUNNER_TEMP/t" && cd "$RUNNER_TEMP/t"
+          npm init -y >/dev/null
+          npm install --no-audit --no-fund "$GITHUB_WORKSPACE"/bindings/npm/crimlab-*.tgz
+          npx --offline crimlab orrisk --or 2 --rate 0.1 --share 0.3
+          node --input-type=module -e 'import c from "crimlab"; if (c.selftest().nfail !== 0) process.exit(1)'

@@ -1,0 +1,5 @@
+/dist/
+/LICENSE
+/NOTICE
+/node_modules/
+*.tgz

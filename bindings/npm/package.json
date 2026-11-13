@@ -1,0 +1,32 @@
+{
+  "name": "crimlab",
+  "version": "0.0.0-9000",
+  "description": "Criminology and sociolegal statistics: every function of the R and Python packages crimlab, from the C++ kernels as WebAssembly, and the crimlab command",
+  "keywords": ["statistics", "criminology", "forensics", "policing", "courts", "webassembly"],
+  "license": "Apache-2.0 WITH LLVM-exception",
+  "author": "Vansh Singh Ruhela (https://orcid.org/0009-0004-1750-3592)",
+  "homepage": "https://github.com/rootcoder007/crimlab/tree/main/bindings/npm#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rootcoder007/crimlab.git",
+    "directory": "bindings/npm"
+  },
+  "bugs": { "url": "https://github.com/rootcoder007/crimlab/issues" },
+  "type": "module",
+  "exports": {
+    ".": { "types": "./lib/index.d.ts", "default": "./lib/index.js" },
+    "./crimlab.wasm": "./dist/crimlab.wasm",
+    "./package.json": "./package.json"
+  },
+  "types": "./lib/index.d.ts",
+  "bin": { "crimlab": "bin/crimlab.js" },
+  "files": ["lib/", "bin/", "dist/crimlab.wasm", "LICENSE", "NOTICE", "README.md"],
+  "sideEffects": false,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "sh build.sh",
+    "test": "node --test test/api.test.js",
+    "prepack": "test -f dist/crimlab.wasm"
+  },
+  "publishConfig": { "access": "public", "provenance": true, "registry": "https://registry.npmjs.org/" }
+}
