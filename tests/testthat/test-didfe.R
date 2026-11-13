@@ -99,14 +99,26 @@ test_that("the Poisson fit is fixest's, the negative binomial glm.nb()'s", {
   z <- qnorm(0.975)
   expect_equal(r$coef$rrhi, exp(r$coef$est + z * r$coef$se))
   skip_if_not_installed("MASS")
-  nb <- suppressWarnings(MASS::glm.nb(
-    cnt ~ on + factor(town) + factor(year) + offset(log(pop)), pd
-  ))
-  rn <- suppressWarnings(
+  # counts with real overdispersion (size 3): theta is identified, so it can
+  # be compared; on the Poisson counts above the likelihood is flat in theta
+  # and its maximiser, in the tens of thousands, differs between platforms
+  set.seed(7)
+  od <- pd
+  od$cnt <- rnbinom(nrow(od), mu = exp(2 + od$town / 50 + 0.3 * od$on),
+                    size = 3)
+  nb <- MASS::glm.nb(
+    cnt ~ on + factor(town) + factor(year) + offset(log(pop)), od
+  )
+  rn <- didfe(od$cnt, od$town, od$year, od$on, fam = "nb", expo = od$pop)
+  expect_equal(rn$coef$est, unname(coef(nb)[2]), tolerance = 1e-6)
+  expect_equal(rn$fit$theta, nb$theta, tolerance = 1e-5)
+  # no overdispersion to find: theta runs off, and the estimate is the
+  # Poisson one
+  rp <- suppressWarnings(
     didfe(pd$cnt, pd$town, pd$year, pd$on, fam = "nb", expo = pd$pop)
   )
-  expect_equal(rn$coef$est, unname(coef(nb)[2]), tolerance = 1e-7)
-  expect_equal(rn$fit$theta, nb$theta, tolerance = 1e-6)
+  expect_gt(rp$fit$theta, 1000)
+  expect_equal(rp$coef$est, r$coef$est, tolerance = 1e-4)
 })
 
 test_that("units and periods without counts are dropped", {
