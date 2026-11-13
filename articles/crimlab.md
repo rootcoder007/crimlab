@@ -341,6 +341,74 @@ much as offending. Offenders never caught are missing, and a missing
 node can change who appears central; betweenness in particular is
 fragile when ties are missing.
 
+## Places: where incidents are and how they spread
+
+Thirty (simulated) burglaries around two centres, in metres on a local
+grid:
+
+``` r
+
+set.seed(2)
+xy <- data.frame(x = c(rnorm(20, 1000, 120), rnorm(10, 1800, 60)),
+                 y = c(rnorm(20, 2000, 80), rnorm(10, 2300, 60)))
+cs <- cgstat(xy)
+cs[c("mx", "my", "sdd")]
+#>        mx        my       sdd 
+#> 1288.2054 2095.6282  434.9568
+el <- sdell(xy, c = 2)
+el
+#>           mx           my            a            b        angle         area 
+#> 1.288205e+03 2.095628e+03 8.486237e+02 1.912781e+02 3.682120e-01 5.099533e+05
+```
+
+The mean centre summarises where the incidents are and the standard
+distance deviation how far they spread, about 435 metres. The ellipse
+with `c = 2` would hold about 86 per cent of bivariate normal points;
+here the points are two clusters, so the ellipse describes their joint
+spread, not a shape that any cluster has.
+
+``` r
+
+nn <- nnidx(xy, win = c(500, 2300, 1600, 2700), nsim = 99, seed = 1)
+nn$order[, c("mean", "exp", "ratio", "pclu")]
+#>      mean      exp     ratio pclu
+#> 1 53.9421 128.4523 0.4199387 0.01
+```
+
+The mean nearest-neighbour distance is well below its expectation under
+complete spatial randomness in the study rectangle, and the Monte Carlo
+p-value against clustering is small. What this does not license: the
+expectation depends on the rectangle chosen. A rectangle drawn around
+the points makes them look less clustered than one covering the whole
+area at risk, and neither says why the incidents cluster; burglaries
+follow housing, which is itself clustered.
+
+## Risk tools: one score, several kinds of fairness
+
+A (simulated) risk score for 400 people in two groups whose base rates
+differ:
+
+``` r
+
+set.seed(3)
+g <- rep(c("a", "b"), each = 200)
+y <- rbinom(400, 1, ifelse(g == "a", 0.3, 0.5))
+s <- plogis(rnorm(400, ifelse(y == 1, 0.8, -0.8)))
+fm <- fair(s, y, g, cut = 0.5)
+fm$met[, c("group", "fpr", "fnr", "ppv")]
+#>   group       fpr       fnr       ppv
+#> 1     a 0.1702128 0.1864407 0.6666667
+#> 2     b 0.2371134 0.2330097 0.7745098
+```
+
+The score is the same function of the outcome in both groups, yet the
+false positive rates and the predictive values differ, because the base
+rates do. What this does not license: no single row of this table is
+“the” fairness of the tool. When base rates differ, equal error rates
+and equal predictive values cannot all hold at once (Chouldechova 2017);
+which to equalise is a choice about whose errors matter, not a
+statistical finding.
+
 ## Proofs
 
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
@@ -390,8 +458,8 @@ other things:
 
 ## References
 
-Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
-Justice*, 10, 117-170.
+Chouldechova, A. (2017). Fair prediction with disparate impact: a study
+of bias in recidivism prediction instruments. *Big Data*, 5(2), 153-163.
 
 Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in
 traffic stops from behind a veil of darkness. *Journal of the American
@@ -403,3 +471,6 @@ Kitagawa, E. M. (1955). Components of a difference between two rates.
 Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements about
 treatment effects: a case study of sentencing and recidivism.
 *Sociological Methodology*, 28(1), 99-137.
+
+Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
+Justice*, 10, 117-170.

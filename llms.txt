@@ -33,6 +33,11 @@ The functions work on summary data, not on raw records:
 - networks as edge lists of labels (who offended with whom, who passed
   what to whom), or incident tables that list the offenders of each
   incident.
+- point locations of incidents, planar or longitude and latitude
+  (vectors, tables or sf points), with times, weights or counts by area;
+- risk scores with outcomes and groups, trace-evidence measurements,
+  event time windows, reported figures, matched-pair differences and
+  counts over time.
 
 ## What it asks
 
@@ -52,6 +57,16 @@ The functions work on summary data, not on raw records:
 - Networks: who co-offends with whom, who sits between groups, which
   offenders form the core and the communities of a network, and how
   cleanly it splits in two.
+- Places: where incidents centre and how far they spread, whether they
+  cluster more than chance, where the hot spots are, whether places
+  close together have similar rates (Geary’s C, the Getis-Ord G, local
+  Moran), whether incidents close in space are close in time, and where
+  to search first for the base of a series.
+- Methods from the forensic and sociolegal literature: the fairness of a
+  risk tool by group, the weight of glass and other trace evidence, when
+  an event known only within a window happened, whether reported figures
+  follow Benford’s law, how strong hidden bias must be to explain a
+  matched result away, and group-based trajectories of offending.
 
 ## Algorithms
 
@@ -245,6 +260,86 @@ ntbrk(e$from, e$to, grp = c(ana = "x", ben = "x", cy = "x", dee = "y",
                             eli = "y", fay = "z"), nodes = g$nodes)
 ```
 
+### Spatial input
+
+``` r
+
+# planar coordinates (metres, say): two vectors, a matrix or a data frame
+# with columns x and y; longitude and latitude only with lonlat = TRUE
+set.seed(1)
+p <- data.frame(x = rnorm(100, 500, 50), y = rnorm(100, 800, 30))
+cgstat(p)
+sdell(p, c = 2)
+
+ll <- data.frame(lon = c(-79.40, -79.38, -79.35), lat = c(43.64, 43.66, 43.65))
+webpt(ll, lonlat = TRUE)          # the centre comes back in degrees
+hvdist(ll, c(-79.38, 43.65))      # great-circle metres
+eqproj(ll)                        # equal-area metres for the planar functions
+
+# sf points go in directly; their CRS must agree with lonlat
+s <- sf::st_as_sf(ll, coords = c("lon", "lat"), crs = 4326)
+cgstat(s, lonlat = TRUE)
+# and plain results go back to sf
+sf::st_as_sf(eqproj(ll), coords = c("x", "y"))
+```
+
+The planar functions assume Cartesian coordinates in one length unit and
+return lengths in that unit; functions with a `lonlat` argument project
+longitude and latitude to metres themselves (an equal-area projection
+about the points’ centre) and return centres in degrees; functions that
+take a study rectangle (`win`) take planar coordinates only. All are
+two-dimensional.
+
+### Hot spots, space-time and journey to crime
+
+``` r
+
+set.seed(2)
+x <- c(rnorm(40, 0, 0.3), rnorm(40, 6, 0.3), runif(40, -5, 10))
+y <- c(rnorm(40, 0, 0.3), rnorm(40, 6, 0.3), runif(40, -5, 10))
+fzmode(x, y, r = 0.5)                               # points within 0.5 of each
+nnhclu(x, y, area = 225, p = 0.05, minpts = 5)$clusters
+kmpart(x, y, k = 3, seed = 1)$cen
+stacel(x, y, win = c(-5, 10, -5, 10), r = 0.75, top = 10, minpts = 5)$clusters
+mantst(x, y, t = seq_along(x), nsim = 199, seed = 1)
+
+# a search priority over a grid, not evidence about any person
+s <- jtsurf(c(2, 3, 4), c(2, 4, 3), win = c(0, 6, 0, 6), nx = 30, ny = 30,
+            type = "negexp", par = c(1, 1), mode = "lik")
+jtacc(s$prob, win = c(0, 6, 0, 6), base = c(3.2, 2.9))
+```
+
+### Spatial weights and autocorrelation
+
+``` r
+
+set.seed(4)
+p <- cbind(x = runif(60), y = runif(60))
+v <- ifelse(p[, 1] > 0.7 & p[, 2] > 0.7, 5, 1) + rnorm(60, sd = 0.3)
+w <- spwt(p, k = 5)                    # or type = "band", or "contig"
+gearc(v, w)                            # Geary's C
+gorg(v, spwt(p, type = "band", d = 0.2, style = "raw"))   # global G
+head(lmorn(v, w, nsim = 199, seed = 1))                    # local Moran
+locgi(v, spwt(p, type = "band", d = 0.2, style = "raw"))  # local G*
+dirmn(p, origin = c(0.5, 0.5))         # directional mean from an origin
+```
+
+### Risk tools, trace evidence, time and data screens
+
+``` r
+
+set.seed(3)
+g <- rep(c("a", "b"), each = 100)
+y <- rbinom(200, 1, ifelse(g == "a", 0.3, 0.5))
+s <- plogis(rnorm(200, ifelse(y == 1, 0.8, -0.8)))
+fair(s, y, g)$met                     # error rates and predictive values by group
+
+rswp(rnorm(50, 0.5), gam = c(1, 1.5, 2))   # how much hidden bias explains it away
+bnft(bdig(exp(runif(500, 0, 10)))$dig)$stat
+gstr(matrix(rpois(100, 2), 10))[1:3, ]
+sptst(rpois(30, 10), rpois(30, 10), nboot = 199, seed = 1)$glob
+```
+
 ### Proofs
 
 ``` r
@@ -394,6 +489,109 @@ brokerage and the Cheeger bounds.
   : Brokerage roles
 - [`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md)
   : Cheeger bounds on a network's bottleneck
+
+## Spatial
+
+Distances and projection, centrography, nearest neighbours and K
+functions, hot spots, space-time tests and journey to crime.
+
+- [`hvdist()`](https://rootcoder007.github.io/crimlab/reference/hvdist.md)
+  : Great-circle distance
+- [`eqproj()`](https://rootcoder007.github.io/crimlab/reference/eqproj.md)
+  [`eqinv()`](https://rootcoder007.github.io/crimlab/reference/eqproj.md)
+  : Equal-area projection of longitude and latitude, and its inverse
+- [`cgstat()`](https://rootcoder007.github.io/crimlab/reference/cgstat.md)
+  : Mean centre and dispersion of points
+- [`cgmedn()`](https://rootcoder007.github.io/crimlab/reference/cgmedn.md)
+  : Median centre of points
+- [`webpt()`](https://rootcoder007.github.io/crimlab/reference/webpt.md)
+  : Centre of minimum distance
+- [`sdell()`](https://rootcoder007.github.io/crimlab/reference/sdell.md)
+  : Standard deviational ellipse
+- [`cvhull()`](https://rootcoder007.github.io/crimlab/reference/cvhull.md)
+  : Convex hull of points
+- [`nnidx()`](https://rootcoder007.github.io/crimlab/reference/nnidx.md)
+  : Nearest-neighbour index
+- [`ripk()`](https://rootcoder007.github.io/crimlab/reference/ripk.md) :
+  Ripley's K function
+- [`ripenv()`](https://rootcoder007.github.io/crimlab/reference/ripenv.md)
+  : Envelopes of Ripley's L function and a test of complete spatial
+  randomness
+- [`fzmode()`](https://rootcoder007.github.io/crimlab/reference/fzmode.md)
+  : Fuzzy mode
+- [`kmpart()`](https://rootcoder007.github.io/crimlab/reference/kmpart.md)
+  : K-means partition of points
+- [`nnhclu()`](https://rootcoder007.github.io/crimlab/reference/nnhclu.md)
+  : Nearest-neighbour hierarchical clustering
+- [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
+  : Search-circle hot-spot areas
+- [`mantst()`](https://rootcoder007.github.io/crimlab/reference/mantst.md)
+  : Mantel's space-time test
+- [`stmavg()`](https://rootcoder007.github.io/crimlab/reference/stmavg.md)
+  : Spatial-temporal moving average
+- [`jtdecay()`](https://rootcoder007.github.io/crimlab/reference/jtdecay.md)
+  : Distance-decay functions for journey to crime
+- [`jtsurf()`](https://rootcoder007.github.io/crimlab/reference/jtsurf.md)
+  : Journey-to-crime surface
+- [`jtcal()`](https://rootcoder007.github.io/crimlab/reference/jtcal.md)
+  : Empirical distance decay from solved trips
+- [`jtacc()`](https://rootcoder007.github.io/crimlab/reference/jtacc.md)
+  : Accuracy of a journey-to-crime surface on a solved series
+- [`bjtc()`](https://rootcoder007.github.io/crimlab/reference/bjtc.md) :
+  Bayesian journey to crime
+- [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md) :
+  Spatial weights
+- [`gearc()`](https://rootcoder007.github.io/crimlab/reference/gearc.md)
+  : Geary's C
+- [`gorg()`](https://rootcoder007.github.io/crimlab/reference/gorg.md) :
+  The general G of Getis and Ord
+- [`lmorn()`](https://rootcoder007.github.io/crimlab/reference/lmorn.md)
+  : Local Moran (LISA)
+- [`locgi()`](https://rootcoder007.github.io/crimlab/reference/locgi.md)
+  : Local G and G\* of Getis and Ord
+- [`dirmn()`](https://rootcoder007.github.io/crimlab/reference/dirmn.md)
+  : Directional mean and circular variance
+
+## Dossier methods
+
+Fairness of risk tools, trace evidence, aoristic time, Benford screens,
+glass grouping and transfer, constant reporters, sensitivity bounds,
+trajectory models, lowess, tool marks, grid Gi\* and the point pattern
+test.
+
+- [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md) :
+  Fairness metrics of a binary risk tool by group
+- [`tlvc()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
+  [`tlvlr()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
+  : Two-level model for multivariate trace evidence
+- [`aorwt()`](https://rootcoder007.github.io/crimlab/reference/aorwt.md)
+  : Aoristic weights
+- [`bdig()`](https://rootcoder007.github.io/crimlab/reference/bdig.md)
+  [`bnft()`](https://rootcoder007.github.io/crimlab/reference/bdig.md) :
+  Benford digit screens
+- [`skp()`](https://rootcoder007.github.io/crimlab/reference/skp.md) :
+  Scott-Knott grouping of measurements
+- [`rptc()`](https://rootcoder007.github.io/crimlab/reference/rptc.md) :
+  Constant reporters of a reporting panel
+- [`rswp()`](https://rootcoder007.github.io/crimlab/reference/rswp.md)
+  [`rshl()`](https://rootcoder007.github.io/crimlab/reference/rswp.md) :
+  Rosenbaum sensitivity bounds for matched pairs
+- [`zgll()`](https://rootcoder007.github.io/crimlab/reference/zgll.md)
+  [`zgem()`](https://rootcoder007.github.io/crimlab/reference/zgll.md) :
+  Group-based trajectory model for counts
+- [`mvtll()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
+  [`mvtem()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
+  : Group-based multivariate trajectories
+- [`tfrp()`](https://rootcoder007.github.io/crimlab/reference/tfrp.md) :
+  Glass fragments recovered under transfer and persistence
+- [`lwss()`](https://rootcoder007.github.io/crimlab/reference/lwss.md) :
+  Lowess smoothing
+- [`chmb()`](https://rootcoder007.github.io/crimlab/reference/chmb.md) :
+  The Chumbley score for two tool-mark profiles
+- [`gstr()`](https://rootcoder007.github.io/crimlab/reference/gstr.md) :
+  Local Getis-Ord Gi\* on a grid of counts
+- [`sptst()`](https://rootcoder007.github.io/crimlab/reference/sptst.md)
+  : Andresen's spatial point pattern test
 
 ## Proofs
 

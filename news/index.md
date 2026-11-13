@@ -66,6 +66,90 @@
   [`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md)
   the Cheeger bounds. Results are by node label in order of first
   appearance.
+- Spatial:
+  [`hvdist()`](https://rootcoder007.github.io/crimlab/reference/hvdist.md)
+  and
+  [`eqproj()`](https://rootcoder007.github.io/crimlab/reference/eqproj.md)/[`eqinv()`](https://rootcoder007.github.io/crimlab/reference/eqproj.md)
+  for longitude and latitude;
+  [`cgstat()`](https://rootcoder007.github.io/crimlab/reference/cgstat.md),
+  [`cgmedn()`](https://rootcoder007.github.io/crimlab/reference/cgmedn.md),
+  [`webpt()`](https://rootcoder007.github.io/crimlab/reference/webpt.md),
+  [`sdell()`](https://rootcoder007.github.io/crimlab/reference/sdell.md)
+  and
+  [`cvhull()`](https://rootcoder007.github.io/crimlab/reference/cvhull.md)
+  for centres, spread and hulls;
+  [`nnidx()`](https://rootcoder007.github.io/crimlab/reference/nnidx.md),
+  [`ripk()`](https://rootcoder007.github.io/crimlab/reference/ripk.md)
+  and
+  [`ripenv()`](https://rootcoder007.github.io/crimlab/reference/ripenv.md)
+  for nearest neighbours and K functions;
+  [`fzmode()`](https://rootcoder007.github.io/crimlab/reference/fzmode.md),
+  [`kmpart()`](https://rootcoder007.github.io/crimlab/reference/kmpart.md),
+  [`nnhclu()`](https://rootcoder007.github.io/crimlab/reference/nnhclu.md)
+  and
+  [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
+  for hot spots;
+  [`mantst()`](https://rootcoder007.github.io/crimlab/reference/mantst.md)
+  and
+  [`stmavg()`](https://rootcoder007.github.io/crimlab/reference/stmavg.md)
+  in space and time;
+  [`jtdecay()`](https://rootcoder007.github.io/crimlab/reference/jtdecay.md),
+  [`jtsurf()`](https://rootcoder007.github.io/crimlab/reference/jtsurf.md),
+  [`jtcal()`](https://rootcoder007.github.io/crimlab/reference/jtcal.md),
+  [`jtacc()`](https://rootcoder007.github.io/crimlab/reference/jtacc.md)
+  and
+  [`bjtc()`](https://rootcoder007.github.io/crimlab/reference/bjtc.md)
+  for journey to crime. Points come as vectors, tables or sf points;
+  longitude and latitude only with `lonlat = TRUE`.
+- Spatial weights and autocorrelation:
+  [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md)
+  (k nearest, distance band, contiguity; binary or inverse distance),
+  [`gearc()`](https://rootcoder007.github.io/crimlab/reference/gearc.md)
+  (Geary’s C),
+  [`gorg()`](https://rootcoder007.github.io/crimlab/reference/gorg.md)
+  (the Getis-Ord G),
+  [`lmorn()`](https://rootcoder007.github.io/crimlab/reference/lmorn.md)
+  (local Moran with conditional permutations),
+  [`locgi()`](https://rootcoder007.github.io/crimlab/reference/locgi.md)
+  (local G and G\*) and
+  [`dirmn()`](https://rootcoder007.github.io/crimlab/reference/dirmn.md)
+  (directional mean).
+- [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md)
+  (fairness of a risk tool by group),
+  [`tlvc()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
+  and
+  [`tlvlr()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
+  (trace evidence),
+  [`aorwt()`](https://rootcoder007.github.io/crimlab/reference/aorwt.md)
+  (aoristic weights),
+  [`bdig()`](https://rootcoder007.github.io/crimlab/reference/bdig.md)
+  and
+  [`bnft()`](https://rootcoder007.github.io/crimlab/reference/bdig.md)
+  (Benford screens),
+  [`skp()`](https://rootcoder007.github.io/crimlab/reference/skp.md)
+  (Scott-Knott grouping),
+  [`rptc()`](https://rootcoder007.github.io/crimlab/reference/rptc.md)
+  (constant reporters),
+  [`rswp()`](https://rootcoder007.github.io/crimlab/reference/rswp.md)
+  and
+  [`rshl()`](https://rootcoder007.github.io/crimlab/reference/rswp.md)
+  (Rosenbaum bounds),
+  [`zgll()`](https://rootcoder007.github.io/crimlab/reference/zgll.md),
+  [`zgem()`](https://rootcoder007.github.io/crimlab/reference/zgll.md),
+  [`mvtll()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
+  and
+  [`mvtem()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
+  (group-based trajectories),
+  [`tfrp()`](https://rootcoder007.github.io/crimlab/reference/tfrp.md)
+  (glass transfer),
+  [`lwss()`](https://rootcoder007.github.io/crimlab/reference/lwss.md)
+  (lowess),
+  [`chmb()`](https://rootcoder007.github.io/crimlab/reference/chmb.md)
+  (tool marks),
+  [`gstr()`](https://rootcoder007.github.io/crimlab/reference/gstr.md)
+  (grid Gi\*) and
+  [`sptst()`](https://rootcoder007.github.io/crimlab/reference/sptst.md)
+  (Andresen’s point pattern test).
 - [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
   names the Lean theorem behind each function; the proofs ship in
   `inst/lean`.

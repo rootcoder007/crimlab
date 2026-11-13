@@ -344,10 +344,68 @@ node can change who appears central; betweenness in particular is
 fragile when ties are missing.</p>
 </div>
 <div class="section level2">
+<h2 id="places-where-incidents-are-and-how-they-spread">Places: where incidents are and how they spread<a class="anchor" aria-label="anchor" href="#places-where-incidents-are-and-how-they-spread"></a>
+</h2>
+<p>Thirty (simulated) burglaries around two centres, in metres on a
+local grid:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">xy</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">1000</span>, <span class="fl">120</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">1800</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>                 y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">2000</span>, <span class="fl">80</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">2300</span>, <span class="fl">60</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">cs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cgstat.html">cgstat</a></span><span class="op">(</span><span class="va">xy</span><span class="op">)</span></span>
+<span><span class="va">cs</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mx"</span>, <span class="st">"my"</span>, <span class="st">"sdd"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;        mx        my       sdd </span></span>
+<span><span class="co">#&gt; 1288.2054 2095.6282  434.9568</span></span>
+<span><span class="va">el</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sdell.html">sdell</a></span><span class="op">(</span><span class="va">xy</span>, c <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
+<span><span class="va">el</span></span>
+<span><span class="co">#&gt;           mx           my            a            b        angle         area </span></span>
+<span><span class="co">#&gt; 1.288205e+03 2.095628e+03 8.486237e+02 1.912781e+02 3.682120e-01 5.099533e+05</span></span></code></pre></div>
+<p>The mean centre summarises where the incidents are and the standard
+distance deviation how far they spread, about 435 metres. The ellipse
+with <code>c = 2</code> would hold about 86 per cent of bivariate normal
+points; here the points are two clusters, so the ellipse describes their
+joint spread, not a shape that any cluster has.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">nn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/nnidx.html">nnidx</a></span><span class="op">(</span><span class="va">xy</span>, win <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">2300</span>, <span class="fl">1600</span>, <span class="fl">2700</span><span class="op">)</span>, nsim <span class="op">=</span> <span class="fl">99</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="va">nn</span><span class="op">$</span><span class="va">order</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"exp"</span>, <span class="st">"ratio"</span>, <span class="st">"pclu"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;      mean      exp     ratio pclu</span></span>
+<span><span class="co">#&gt; 1 53.9421 128.4523 0.4199387 0.01</span></span></code></pre></div>
+<p>The mean nearest-neighbour distance is well below its expectation
+under complete spatial randomness in the study rectangle, and the Monte
+Carlo p-value against clustering is small. What this does not license:
+the expectation depends on the rectangle chosen. A rectangle drawn
+around the points makes them look less clustered than one covering the
+whole area at risk, and neither says why the incidents cluster;
+burglaries follow housing, which is itself clustered.</p>
+</div>
+<div class="section level2">
+<h2 id="risk-tools-one-score-several-kinds-of-fairness">Risk tools: one score, several kinds of fairness<a class="anchor" aria-label="anchor" href="#risk-tools-one-score-several-kinds-of-fairness"></a>
+</h2>
+<p>A (simulated) risk score for 400 people in two groups whose base
+rates differ:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
+<span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">g</span> <span class="op">==</span> <span class="st">"a"</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Logistic.html" class="external-link">plogis</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">y</span> <span class="op">==</span> <span class="fl">1</span>, <span class="fl">0.8</span>, <span class="op">-</span><span class="fl">0.8</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">fm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fair.html">fair</a></span><span class="op">(</span><span class="va">s</span>, <span class="va">y</span>, <span class="va">g</span>, cut <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>
+<span><span class="va">fm</span><span class="op">$</span><span class="va">met</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"fpr"</span>, <span class="st">"fnr"</span>, <span class="st">"ppv"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt;   group       fpr       fnr       ppv</span></span>
+<span><span class="co">#&gt; 1     a 0.1702128 0.1864407 0.6666667</span></span>
+<span><span class="co">#&gt; 2     b 0.2371134 0.2330097 0.7745098</span></span></code></pre></div>
+<p>The score is the same function of the outcome in both groups, yet the
+false positive rates and the predictive values differ, because the base
+rates do. What this does not license: no single row of this table is
+“the” fairness of the tool. When base rates differ, equal error rates
+and equal predictive values cannot all hold at once (Chouldechova 2017);
+which to equalise is a choice about whose errors matter, not a
+statistical finding.</p>
+</div>
+<div class="section level2">
 <h2 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
 </h2>
 <p><code><a href="../reference/proof.html">proof()</a></code> lists the theorems behind a function:</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proof.html">proof</a></span><span class="op">(</span><span class="st">"clrsmp"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span>
 <span><span class="co">#&gt;       fn                                 theorem                file</span></span>
@@ -359,7 +417,7 @@ fragile when ties are missing.</p>
 <p>The files ship with the package and can be read in R or checked with
 Lean (see the README). This is the statement of Kitagawa’s identity, the
 reason the rate and mix effects always add up to the change:</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">src</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="va">p</span><span class="op">[[</span><span class="st">"file"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, package <span class="op">=</span> <span class="st">"crimlab"</span><span class="op">)</span>,</span>
 <span>                 encoding <span class="op">=</span> <span class="st">"UTF-8"</span><span class="op">)</span></span>
 <span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^theorem kitagawa"</span>, <span class="va">src</span><span class="op">)</span></span>
@@ -387,8 +445,9 @@ not about the proof.</li>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<p>Reiss, A. J. (1988). Co-offending and criminal careers. <em>Crime and
-Justice</em>, 10, 117-170.</p>
+<p>Chouldechova, A. (2017). Fair prediction with disparate impact: a
+study of bias in recidivism prediction instruments. <em>Big Data</em>,
+5(2), 153-163.</p>
 <p>Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in
 traffic stops from behind a veil of darkness. <em>Journal of the
 American Statistical Association</em>, 101(475), 878-887.</p>
@@ -398,6 +457,8 @@ American Statistical Association</em>, 101(475), 878-887.</p>
 <p>Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements about
 treatment effects: a case study of sentencing and recidivism.
 <em>Sociological Methodology</em>, 28(1), 99-137.</p>
+<p>Reiss, A. J. (1988). Co-offending and criminal careers. <em>Crime and
+Justice</em>, 10, 117-170.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
