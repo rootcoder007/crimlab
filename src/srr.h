@@ -23,7 +23,11 @@
 //' @srrstats {G1.6} The package makes no claim of speed or accuracy over
 //'   other packages; tests named "agree with" (test-disp.R, test-pol.R,
 //'   test-corr.R) compare its results with another R implementation when
-//'   that package is installed.
+//'   that package is installed. The speed of enpath(), rfor()
+//'   and dmlx() against third-party packages is measured, not claimed:
+//'   dev/bench-dml.R checks that the estimates agree, then times both
+//'   sides and writes inst/bench/dml.csv with the machine, its load and
+//'   the versions.
 //' @srrstats {G2.0a} Each @param states the length expected: "one number",
 //'   "same length", "one per locus", "once or once per ratio".
 //' @srrstats {G2.1a} Each @param states the type expected: numbers,

@@ -1,0 +1,57 @@
+# Speed of the learners and the cross-fitted estimators against the
+# reference packages (dev/bench-dml.R), on demand and weekly. The table
+# goes to the job summary; inst/bench is updated by hand from a run.
+name: bench-dml
+
+on:
+  workflow_dispatch:
+    inputs:
+      n:
+        description: "sample sizes, comma-separated"
+        default: "5000,50000"
+      p:
+        description: "numbers of covariates, comma-separated"
+        default: "20,200"
+  schedule:
+    - cron: "17 4 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bench-dml-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    env:
+      BENCH_N: ${{ github.event.inputs.n || '5000,50000' }}
+      BENCH_P: ${{ github.event.inputs.p || '20,200' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          extra-packages: |
+            any::glmnet
+            any::ranger
+            any::grf
+            any::DoubleML
+            any::mlr3
+            any::mlr3learners
+            any::data.table
+            any::ddml
+            any::AIPW
+            any::tmle
+            any::SuperLearner
+            local::.
+      - name: Benchmark
+        run: Rscript dev/bench-dml.R
+      - name: Summary
+        run: cat inst/bench/dml.md >> "$GITHUB_STEP_SUMMARY"
