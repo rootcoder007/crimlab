@@ -2775,6 +2775,64 @@ int clab_etohlr(const double *eth, const double *pr, const double *bu, const dou
 int clab_mtxrel(const double *base, const int *dil, int n, double days, double stage,
                 double dmax, double dcap, double smax, double scap, double *rel, int *ord);
 
+/* ------------------------------------------------------------------------
+ * Taphonomy: compositional transforms, likelihood ratios of measured
+ * evidence, the decay chain, a conjugate Bayesian preservation model.
+ * ------------------------------------------------------------------------ */
+
+/* Log-ratio transforms of n compositions of d >= 2 parts (x, n by d,
+ * column-major, from 0; each row is closed to sum 1 after adding ps >=
+ * 0 to every part, and must then hold no 0). type 0, the centred
+ * log-ratio (out n by d): log x_j minus the row's mean log; type 1, the
+ * isometric log-ratio of the default pivot basis (out n by d - 1):
+ * sqrt(i / (i + 1)) (mean of log x_1..x_i - log x_{i+1}). */
+int clab_clrilr(const double *x, int n, int d, double ps, int type, double *out);
+
+/* The likelihood ratio of n measurements x under two normal models, H1
+ * (means m1, standard deviations s1, k1 = 1 or n of each) and H2 (m2, s2,
+ * k2). Out: out (5), the log-likelihoods under H1 and H2, their
+ * difference, the likelihood ratio and its log10; band, the verbal band
+ * of |log10 LR| (0 at 0, 1 up to 1, 2 up to 2, 3 up to 3, 4 up to 4, 5 up
+ * to 6, 6 above); side, 1 when the ratio favours H1, 2 H2, 0 neither. */
+int clab_preslr(const double *x, int n, const double *m1, const double *s1, int k1,
+                const double *m2, const double *s2, int k2, double *out, int *band, int *side);
+
+/* A decay chain of k >= 1 transient stages and two absorbing states
+ * (skeletal, mummified): from each stage the body advances (to the next
+ * stage, from the last to skeletal) with probability dr (1 - pres),
+ * mummifies with probability mr pres (the two sum to at most 1), and
+ * otherwise stays. pres, mr from 0 to 1, dr above 0 to 1;
+ * CLAB_EDOM when nothing leaves a stage. Out: P ((k + 2) by (k + 2), the
+ * transition matrix, column-major), N (k by k, the fundamental matrix
+ * (I - Q)^-1), B (k by 2, the absorption probabilities, skeletal then
+ * mummified), t (k, the expected steps to absorption). */
+int clab_tpdmc(double pres, double dr, double mr, int k, double *P, double *N, double *B,
+               double *t);
+
+/* One path through a chain with m states of which the first k are
+ * transient (P m by m, column-major, rows summing to 1), from state start
+ * (< k), for at most steps steps or until absorbed, the draws from
+ * xorshift64* seeded with seed. Out: path (steps + 1), len, the states
+ * visited. */
+int clab_tpdsim(const double *P, int m, int k, int start, int steps, unsigned long long seed,
+                int *path, int *len);
+
+/* A conjugate Bayesian linear model y = b0 + x b + e (n cases, q >= 1
+ * columns of x, column-major; p = q + 1) with independent normal priors
+ * (means m0, standard deviations s0 > 0, p each) and the noise variance
+ * s2 fixed at the least-squares residual variance, rss / max(1, n - p)
+ * (the variance of y when that is 0). Out: mu, sd (p), the posterior
+ * means and standard deviations; st (2), s2 and tau2 (NaN without
+ * groups). With g (n group codes from 0, ng >= 2 groups, each used; NULL
+ * for none), from the residuals about the posterior means: gm, the mean
+ * residual of each group, nj its cases, and lam = tau2 / (tau2 + s2 /
+ * nj), with tau2 = max(0, var(gm) - mean(s2 / nj)) (ng each). CLAB_EDOM
+ * when x has dependent columns (or fewer cases than columns) or y does
+ * not vary. work: 2 p^2 + p doubles. */
+int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
+               const double *s0, const int *g, int ng, double *mu, double *sd, double *st,
+               double *gm, double *lam, int *nj, double *work);
+
 #ifdef __cplusplus
 }
 #endif

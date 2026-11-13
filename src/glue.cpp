@@ -507,6 +507,11 @@ SEXP C_clab_r_dktflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_lftab(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_trnmat(SEXP, SEXP, SEXP);
+// Taphonomy (btph.cpp).
+SEXP C_clab_r_clrilr(SEXP, SEXP, SEXP);
+SEXP C_clab_r_preslr(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_tpdmc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_tpbhm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Forensic toxicology (btox.cpp).
 SEXP C_clab_r_txcal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lodimp(SEXP, SEXP, SEXP);
@@ -718,6 +723,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dktflw", fn(&C_clab_r_dktflw), 12},
     {"C_clab_r_lftab", fn(&C_clab_r_lftab), 6},
     {"C_clab_r_trnmat", fn(&C_clab_r_trnmat), 3},
+    {"C_clab_r_clrilr", fn(&C_clab_r_clrilr), 3},
+    {"C_clab_r_preslr", fn(&C_clab_r_preslr), 5},
+    {"C_clab_r_tpdmc", fn(&C_clab_r_tpdmc), 7},
+    {"C_clab_r_tpbhm", fn(&C_clab_r_tpbhm), 6},
     {"C_clab_r_txcal", fn(&C_clab_r_txcal), 5},
     {"C_clab_r_lodimp", fn(&C_clab_r_lodimp), 3},
     {"C_clab_r_pmrrat", fn(&C_clab_r_pmrrat), 3},
