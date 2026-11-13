@@ -213,6 +213,37 @@ test.
 - [`sptst()`](https://rootcoder007.github.io/crimlab/reference/sptst.md)
   : Andresen's spatial point pattern test
 
+## Risk tools and predictive policing
+
+Differences between groups with intervals, over time and place;
+calibration of an area ranking and a score’s spread across groups;
+individual fairness; bounds under label noise, Chouldechova’s identity
+and the resolution of a ranking; the Oaxaca-Blinder decomposition;
+simulated records with a known disparity.
+
+- [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
+  : Differences between groups in a risk tool's decisions
+- [`tmpaud()`](https://rootcoder007.github.io/crimlab/reference/tmpaud.md)
+  : Disparity metrics over time and place
+- [`calaud()`](https://rootcoder007.github.io/crimlab/reference/calaud.md)
+  : Calibration audit of a predictive-policing ranking
+- [`scrdsp()`](https://rootcoder007.github.io/crimlab/reference/scrdsp.md)
+  : A risk score's spread across groups
+- [`lipaud()`](https://rootcoder007.github.io/crimlab/reference/lipaud.md)
+  : Individual fairness: a Lipschitz audit
+- [`nsbnd()`](https://rootcoder007.github.io/crimlab/reference/nsbnd.md)
+  : A true base rate behind a noisily recorded one
+- [`impfpr()`](https://rootcoder007.github.io/crimlab/reference/impfpr.md)
+  : The false positive rate the other rates imply
+- [`rnkres()`](https://rootcoder007.github.io/crimlab/reference/rnkres.md)
+  : Which pairs a noisy ranking orders
+- [`oaxbd()`](https://rootcoder007.github.io/crimlab/reference/oaxbd.md)
+  : Oaxaca-Blinder decomposition of a gap between two groups
+- [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
+  : Simulated records with a known disparity
+- [`nordet()`](https://rootcoder007.github.io/crimlab/reference/nordet.md)
+  : Noisy-OR detection by patrols
+
 ## Checks
 
 Which labelling of a table reproduces a reported contrast, and an audit

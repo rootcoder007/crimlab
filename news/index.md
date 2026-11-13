@@ -42,6 +42,46 @@
   deaths-in-custody tables, the race-based use-of-force files, the
   Special Investigations Unit cases, the Structured Intervention Unit
   tables and the Toronto incident layers.
+- Audits of risk tools and predictive policing.
+  [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
+  gives the parity gap and disparate impact ratio between groups with
+  Newcombe and Katz intervals, the gaps in true and false positive rates
+  and the average odds difference with their intervals, and the bias
+  amplification score with a bootstrap interval;
+  [`tmpaud()`](https://rootcoder007.github.io/crimlab/reference/tmpaud.md)
+  the same by city and period with each city’s range.
+  [`calaud()`](https://rootcoder007.github.io/crimlab/reference/calaud.md)
+  rolls records up to areas and asks whether the order of predicted risk
+  matches the order of recorded outcomes (Spearman’s rho with the AS 89
+  and large-sample p-values) and whether the mean rank gap of each
+  group’s areas departs from chance (a permutation test);
+  [`scrdsp()`](https://rootcoder007.github.io/crimlab/reference/scrdsp.md)
+  a score’s spread across groups with the one-way analysis of variance
+  and Welch’s test.
+  [`lipaud()`](https://rootcoder007.github.io/crimlab/reference/lipaud.md)
+  is the Lipschitz audit of individual fairness.
+  [`nsbnd()`](https://rootcoder007.github.io/crimlab/reference/nsbnd.md)
+  bounds a true base rate behind a noisily recorded one for noise rates
+  in boxes, and says which groups’ order survives every admissible
+  noise;
+  [`impfpr()`](https://rootcoder007.github.io/crimlab/reference/impfpr.md)
+  is Chouldechova’s identity;
+  [`rnkres()`](https://rootcoder007.github.io/crimlab/reference/rnkres.md)
+  the pairs a noisy ranking orders.
+  [`oaxbd()`](https://rootcoder007.github.io/crimlab/reference/oaxbd.md)
+  is the Oaxaca-Blinder decomposition of a gap at either group’s
+  coefficients and the threefold one, with delta-method standard errors.
+  [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
+  simulates records with a known disparity and
+  [`nordet()`](https://rootcoder007.github.io/crimlab/reference/nordet.md)
+  the noisy-OR chance of detection by patrols.
+  [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
+  names the Lean theorems behind
+  [`nsbnd()`](https://rootcoder007.github.io/crimlab/reference/nsbnd.md),
+  [`impfpr()`](https://rootcoder007.github.io/crimlab/reference/impfpr.md),
+  [`rnkres()`](https://rootcoder007.github.io/crimlab/reference/rnkres.md)
+  and
+  [`oaxbd()`](https://rootcoder007.github.io/crimlab/reference/oaxbd.md).
 - [`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)
   recomputes a reported odds ratio, risk ratio or risk difference from
   its table under every labelling (each reference group, each outcome as

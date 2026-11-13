@@ -102,6 +102,29 @@ The functions work on summary data, not on raw records:
   `cntreg(clprep(data, "otis-c01-cnt"))` gives the published analysis
   ([`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)).
   Presets describe layouts and ship no data.
+- Audits of risk tools and predictive policing: how a tool’s decisions
+  differ between groups, with intervals
+  ([`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)),
+  over time and place
+  ([`tmpaud()`](https://rootcoder007.github.io/crimlab/reference/tmpaud.md));
+  whether an algorithm ranks areas in the order of what was then
+  recorded there, and whether the disagreement follows the areas’ groups
+  ([`calaud()`](https://rootcoder007.github.io/crimlab/reference/calaud.md),
+  [`scrdsp()`](https://rootcoder007.github.io/crimlab/reference/scrdsp.md));
+  whether similar people get similar scores
+  ([`lipaud()`](https://rootcoder007.github.io/crimlab/reference/lipaud.md));
+  what a noisily recorded base rate says about the true one
+  ([`nsbnd()`](https://rootcoder007.github.io/crimlab/reference/nsbnd.md));
+  the false positive rate the other rates force
+  ([`impfpr()`](https://rootcoder007.github.io/crimlab/reference/impfpr.md));
+  which pairs a noisy ranking orders
+  ([`rnkres()`](https://rootcoder007.github.io/crimlab/reference/rnkres.md));
+  the Oaxaca-Blinder split of a gap
+  ([`oaxbd()`](https://rootcoder007.github.io/crimlab/reference/oaxbd.md));
+  and simulated records with a known disparity to try them on
+  ([`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md),
+  [`nordet()`](https://rootcoder007.github.io/crimlab/reference/nordet.md)).
+  They describe what a tool or an agency did, not why.
 - Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference
   ([`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)),
@@ -438,9 +461,22 @@ rswp(rnorm(50, 0.5), gam = c(1, 1.5, 2))   # how much hidden bias explains it aw
 bnft(bdig(exp(runif(500, 0, 10)))$dig)$stat
 gstr(matrix(rpois(100, 2), 10))[1:3, ]
 sptst(rpois(30, 10), rpois(30, 10), nboot = 199, seed = 1)$glob
-### Checking reports and inputs
+### Audits of risk tools and predictive policing
 
 ```r
+d <- fairsim(4000, nareas = 24, bias = 0.5, seed = 1)  # a known disparity
+fairdf(d$det, d$group, base = "A")$tab[, c("group", "dp", "di", "dilo", "dihi")]
+calaud(d$area, d$risk, d$det, d$group, nperm = 499, seed = 1)$groups
+scrdsp(d$risk, d$group)$anova
+nsbnd(c(a = 0.35, b = 0.55), a = 0.1, b = 0.2)$pairs   # ordered under noise?
+impfpr(p = c(a = 0.3, b = 0.5), ppv = 0.6, fnr = 0.25)  # Chouldechova
+oaxbd(d$risk, d$truth, d$group, ref = "A")$dec
+```
+
+### Checking reports and inputs
+
+``` r
+
 # which reference group and event give a reported odds ratio of 0.44?
 tab <- matrix(c(20, 10, 80, 90), 2,
               dimnames = list(c("A", "B"), c("yes", "no")))

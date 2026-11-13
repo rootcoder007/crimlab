@@ -92,6 +92,7 @@
 <li>Counts and rates: rate ratios between groups from Poisson and negative binomial regression with an exposure, adjustment and cluster-robust or GEE standard errors (<code><a href="reference/cntreg.html">cntreg()</a></code>); rates and proportions by group with their ratios and differences, exact and approximate intervals and over-representation (<code><a href="reference/grprr.html">grprr()</a></code>); directly standardised rates (<code><a href="reference/dastd.html">dastd()</a></code>); observed over expected counts with funnel limits and empirical Bayes shrinkage (<code><a href="reference/sirex.html">sirex()</a></code>).</li>
 <li>Tables: cross-tabulation of records or of an aggregate table’s counts, with chi-square and likelihood-ratio tests, Fisher’s exact test, Cramer’s V with its interval, and the share on the diagonal (<code><a href="reference/ctabx.html">ctabx()</a></code>).</li>
 <li>Presets: how the columns of a published dataset (Ontario segregation and deaths-in-custody tables, use-of-force files, Special Investigations Unit cases, Structured Intervention Unit tables, Toronto incident layers) feed these functions, so that <code>cntreg(clprep(data, "otis-c01-cnt"))</code> gives the published analysis (<code><a href="reference/clprep.html">clprep()</a></code>). Presets describe layouts and ship no data.</li>
+<li>Audits of risk tools and predictive policing: how a tool’s decisions differ between groups, with intervals (<code><a href="reference/fairdf.html">fairdf()</a></code>), over time and place (<code><a href="reference/tmpaud.html">tmpaud()</a></code>); whether an algorithm ranks areas in the order of what was then recorded there, and whether the disagreement follows the areas’ groups (<code><a href="reference/calaud.html">calaud()</a></code>, <code><a href="reference/scrdsp.html">scrdsp()</a></code>); whether similar people get similar scores (<code><a href="reference/lipaud.html">lipaud()</a></code>); what a noisily recorded base rate says about the true one (<code><a href="reference/nsbnd.html">nsbnd()</a></code>); the false positive rate the other rates force (<code><a href="reference/impfpr.html">impfpr()</a></code>); which pairs a noisy ranking orders (<code><a href="reference/rnkres.html">rnkres()</a></code>); the Oaxaca-Blinder split of a gap (<code><a href="reference/oaxbd.html">oaxbd()</a></code>); and simulated records with a known disparity to try them on (<code><a href="reference/fairsim.html">fairsim()</a></code>, <code><a href="reference/nordet.html">nordet()</a></code>). They describe what a tool or an agency did, not why.</li>
 <li>Checks: which labelling of a table reproduces a reported odds ratio, risk ratio or risk difference (<code><a href="reference/relchk.html">relchk()</a></code>), and what the functions here would make of categorical inputs before an analysis (<code><a href="reference/catchk.html">catchk()</a></code>).</li>
 </ul>
 </div>
@@ -308,24 +309,36 @@
 <span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="fu">bnft</span>(<span class="fu">bdig</span>(<span class="fu">exp</span>(<span class="fu">runif</span>(<span class="dv">500</span>, <span class="dv">0</span>, <span class="dv">10</span>)))<span class="sc">$</span>dig)<span class="sc">$</span>stat</span>
 <span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="fu">gstr</span>(<span class="fu">matrix</span>(<span class="fu">rpois</span>(<span class="dv">100</span>, <span class="dv">2</span>), <span class="dv">10</span>))[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>, ]</span>
 <span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="fu">sptst</span>(<span class="fu">rpois</span>(<span class="dv">30</span>, <span class="dv">10</span>), <span class="fu">rpois</span>(<span class="dv">30</span>, <span class="dv">10</span>), <span class="at">nboot =</span> <span class="dv">199</span>, <span class="at">seed =</span> <span class="dv">1</span>)<span class="sc">$</span>glob</span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="do">### Checking reports and inputs</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="do">### Audits of risk tools and predictive policing</span></span>
 <span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a></span>
 <span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="st">```</span><span class="at">r</span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="at"># which reference group and event give a reported odds ratio of 0.44?</span></span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="at">tab &lt;- matrix(c(20, 10, 80, 90), 2,</span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="at">              dimnames = list(c("A", "B"), c("yes", "no")))</span></span>
-<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="at">relchk(tab, 0.44, ref = "B", event = "yes")</span></span>
-<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a></span>
-<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="at"># missing values, unused and rare levels, labels that differ by case, and</span></span>
-<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="at"># the reference level a default would take</span></span>
-<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a><span class="at">d &lt;- data.frame(sex = c("Male", "male", "Female", "Female", NA),</span></span>
-<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a><span class="at">                custody = c(TRUE, FALSE, TRUE, TRUE, FALSE))</span></span>
-<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="at">catchk(d, nmin = 2)</span></span></code></pre></div>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="at">d &lt;- fairsim(4000, nareas = 24, bias = 0.5, seed = 1)  # a known disparity</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="at">fairdf(d$det, d$group, base = "A")$tab[, c("group", "dp", "di", "dilo", "dihi")]</span></span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="at">calaud(d$area, d$risk, d$det, d$group, nperm = 499, seed = 1)$groups</span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a><span class="at">scrdsp(d$risk, d$group)$anova</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a><span class="at">nsbnd(c(a = 0.35, b = 0.55), a = 0.1, b = 0.2)$pairs   # ordered under noise?</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a><span class="at">impfpr(p = c(a = 0.3, b = 0.5), ppv = 0.6, fnr = 0.25)  # Chouldechova</span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a><span class="at">oaxbd(d$risk, d$truth, d$group, ref = "A")$dec</span></span></code></pre></div>
+</div>
+<div class="section level3">
+<h3 id="checking-reports-and-inputs">Checking reports and inputs<a class="anchor" aria-label="anchor" href="#checking-reports-and-inputs"></a>
+</h3>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># which reference group and event give a reported odds ratio of 0.44?</span></span>
+<span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">10</span>, <span class="fl">80</span>, <span class="fl">90</span><span class="op">)</span>, <span class="fl">2</span>,</span>
+<span>              dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/relchk.html">relchk</a></span><span class="op">(</span><span class="va">tab</span>, <span class="fl">0.44</span>, ref <span class="op">=</span> <span class="st">"B"</span>, event <span class="op">=</span> <span class="st">"yes"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># missing values, unused and rare levels, labels that differ by case, and</span></span>
+<span><span class="co"># the reference level a default would take</span></span>
+<span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Male"</span>, <span class="st">"male"</span>, <span class="st">"Female"</span>, <span class="st">"Female"</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
+<span>                custody <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="reference/catchk.html">catchk</a></span><span class="op">(</span><span class="va">d</span>, nmin <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
 </h3>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/proof.html">proof</a></span><span class="op">(</span><span class="st">"vodtst"</span><span class="op">)</span></span></code></pre></div>
 </div>
 </div>
@@ -333,9 +346,9 @@
 <h2 id="checking-the-proofs">Checking the proofs<a class="anchor" aria-label="anchor" href="#checking-the-proofs"></a>
 </h2>
 <p>The Lean 4 files are in <code>inst/lean</code> (installed under <code>system.file("lean", package = "crimlab")</code>). With <a href="https://github.com/leanprover/elan" class="external-link">elan</a> installed:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="bu">cd</span> inst/lean</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="bu">cd</span> inst/lean</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="ex">lake</span> exe cache get   <span class="co"># prebuilt Mathlib, about 5 GB</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="ex">lake</span> build</span></code></pre></div>
 <p>A build with no error and no <code>sorry</code> is the check.</p>
 </div>
 <div class="section level2">
