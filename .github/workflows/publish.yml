@@ -74,6 +74,62 @@ jobs:
           copr-cli build crimlab out/crimlab-*.src.rpm
           rm -f "$HOME/.config/copr"
 
+  obs:
+    # openSUSE Build Service, home:<CLAB_OBS_USER>/crimlab, for apt (Debian,
+    # Ubuntu) and zypper: the source tarball (git archive of the tag, the
+    # bytes release.yml publishes), the RPM spec, and a Debian source
+    # package made from packaging/debian. OBS builds for the
+    # distributions the home project lists (chosen on its web page).
+    # Secrets CLAB_OBS_USER and CLAB_OBS_PASS.
+    needs: versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: tools
+        run: sudo apt-get update -q && sudo apt-get install -y -q osc dpkg-dev debhelper
+      - name: the sources OBS builds from
+        run: |
+          v=${GITHUB_REF_NAME#v}
+          mkdir obs deb
+          git archive --format=tar --prefix="crimlab-$v/" HEAD | gzip -n -9 > "obs/crimlab-$v.tar.gz"
+          cp packaging/rpm/crimlab.spec obs/
+          cp "obs/crimlab-$v.tar.gz" "deb/crimlab_$v.orig.tar.gz"
+          tar -xzf "obs/crimlab-$v.tar.gz" -C deb
+          cp -R packaging/debian "deb/crimlab-$v/debian"
+          (cd deb && dpkg-source -b "crimlab-$v")
+          cp deb/*.dsc deb/*.debian.tar.* deb/*.orig.tar.gz obs/
+          ls -l obs
+      - name: commit to OBS (secrets CLAB_OBS_USER, CLAB_OBS_PASS)
+        env:
+          U: ${{ secrets.CLAB_OBS_USER }}
+          P: ${{ secrets.CLAB_OBS_PASS }}
+        run: |
+          if [ -z "$U" ] || [ -z "$P" ]; then
+            echo "::warning::CLAB_OBS_USER/CLAB_OBS_PASS are not set: nothing goes to OBS"
+            exit 0
+          fi
+          mkdir -p "$HOME/.config/osc"
+          (umask 077 && printf '[general]\napiurl = https://api.opensuse.org\n[https://api.opensuse.org]\nuser = %s\npass = %s\ncredentials_mgr_class = osc.credentials.PlaintextConfigFileCredentialsManager\n' "$U" "$P" > "$HOME/.config/osc/oscrc")
+          unset P
+          prj="home:$U"
+          if ! osc meta pkg "$prj" crimlab > /dev/null 2>&1; then
+            printf '<package name="crimlab" project="%s"><title>crimlab</title><description>Criminology and sociolegal statistics</description><url>https://github.com/rootcoder007/crimlab</url></package>\n' "$prj" > meta.xml
+            osc meta pkg "$prj" crimlab -F meta.xml
+          fi
+          osc checkout -o co "$prj" crimlab
+          find co -maxdepth 1 -type f ! -name '.*' -delete
+          cp obs/* co/
+          cd co
+          osc addremove
+          osc commit -m "crimlab ${GITHUB_REF_NAME#v}"
+          rm -f "$HOME/.config/osc/oscrc"
+
   crate:
     # crates.io; secret CARGO_REGISTRY_TOKEN, a token scoped to
     # publish-update of crimlab
