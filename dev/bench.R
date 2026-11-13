@@ -38,8 +38,8 @@
 # relSim for mixlr; comparison and idiolect (functions it bundles from the
 # ROC package, unexported) for cllr, cllrmin and lrcal, comparison for
 # eceplt; DasGuptR and DemoDecomp for clrsmp. forensim declares tkrplot,
-# which needs Tk headers and, to load, an X display; where it cannot be
-# loaded its pair is reported "not run".
+# which needs Tk headers and, to load, a display; where it cannot be
+# installed, or with CLAB_BENCH_NOTK set, its pair is reported "not run".
 a0 <- commandArgs(TRUE)
 merge <- identical(a0[1], "--merge")
 out <- if (length(a0)) a0[1] else "bench-run"
@@ -49,6 +49,10 @@ suppressMessages(library(crimlab))
 grDevices::pdf(NULL)
 }
 have <- function(p) requireNamespace(p, quietly = TRUE)
+# packages whose loading starts Tk, which on a desktop opens a window (and
+# whose process dies when that window is closed): with CLAB_BENCH_NOTK set
+# they are not loaded and their pairs are reported "not run"
+notk <- c("forensim")
 nm <- function(k, x) stats::setNames(x, paste0("g", seq_len(k)))
 
 cases <- list()
@@ -592,7 +596,12 @@ if (!merge) {
                         scale = if (k$sc) "largest" else "each", refver = "",
                         note = "", l0 = NA_real_, l1 = NA_real_)
       p <- pkg(k$ref)
-      if (p != "base R" && !have(p)) {
+      if (p %in% notk && nzchar(Sys.getenv("CLAB_BENCH_NOTK"))) {
+        row$agree <- "not run"
+        row$note <- paste("not loaded on this machine:", p, "starts Tk,",
+                          "which opens a window on its desktop")
+        msg <- ""
+      } else if (p != "base R" && !have(p)) {
         row$agree <- "not run"
         row$note <- paste(p, "is not installed on this machine")
         msg <- ""
