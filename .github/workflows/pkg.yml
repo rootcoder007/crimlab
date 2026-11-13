@@ -152,3 +152,22 @@ jobs:
           cargo package --allow-dirty
           ls -l target/package/*.crate
 
+  java:
+    name: java (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: "25"
+      - name: build and test, with the library given and from the jar
+        run: JOBS=4 sh bindings/java/build.sh test bundled
+
