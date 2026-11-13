@@ -10,7 +10,9 @@ fn every_function_is_there() {
 #[test]
 fn results() {
     let r = crimlab::orrisk(r#"{"or": 2, "rate": 0.1, "share": 0.3}"#).unwrap();
-    assert!(r.starts_with(r#"{"exposed":0.14752049189933314,"#), "{r}");
+    // the last bits depend on the C library and on fused multiply-adds
+    let x: f64 = r.trim_start_matches(r#"{"exposed":"#).split(',').next().unwrap().parse().unwrap();
+    assert!((x - 0.14752049189933314).abs() <= 1e-12 * x, "{r}");
     let r = crimlab::jrun("dyadrt", r#"{"count": [[640, 160], [160, 40]], "pop": {"a": 800, "b": 200}}"#).unwrap();
     assert!(r.starts_with(r#"{"off":["a","b","a","b"],"vic":["a","a","b","b"]"#), "{r}");
     assert!(crimlab::selftest("{}").unwrap().contains(r#""nfail":0,"report":"""#));

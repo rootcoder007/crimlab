@@ -1,0 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+# LF on every checkout: the tests read these files byte for byte
+*.sh text eol=lf
+*.tsv text eol=lf

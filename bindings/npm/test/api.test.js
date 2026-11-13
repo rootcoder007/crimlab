@@ -7,15 +7,17 @@ import crimlab, { jrun, jfns } from '../lib/index.js';
 
 const bin = new URL('../bin/crimlab.js', import.meta.url).pathname;
 
+// the tolerance of cli/test.sh: 1e-12 of the larger value, 1e-12 absolute
+// against an exact 0
 test('every case of cli/test.tsv, as the Python package gives it', () => {
-  const rows = readFileSync(new URL('../../../cli/test.tsv', import.meta.url), 'utf8').trim().split('\n');
+  const rows = readFileSync(new URL('../../../cli/test.tsv', import.meta.url), 'utf8').trim().split(/\r?\n/);
   for (const r of rows) {
     const [f, a, want] = r.split('\t');
     const got = jrun(f, a);
     const w = JSON.parse(want);
     const near = (x, y) =>
       typeof x === 'number' && typeof y === 'number'
-        ? Math.abs(x - y) <= 1e-12 * Math.abs(y)
+        ? Math.abs(x - y) <= 1e-12 * (y === 0 ? 1 : Math.max(Math.abs(x), Math.abs(y)))
         : Array.isArray(x)
           ? x.length === y.length && x.every((v, k) => near(v, y[k]))
           : x && typeof x === 'object'

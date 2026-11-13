@@ -810,7 +810,9 @@ bool eceplt(Ctx &c, Val &out) {
   if (c.has("lo")) {
     CK(num(c, c["lo"], "lo", l));
   } else {
-    for (int i = 0; i <= 100; ++i) l.v.push_back(std::min(-2.5 + i * 0.05, 2.5));
+    // the product rounded before the sum, as Python computes it: a fused
+    // multiply-add would give other grid points (1.4e-16 for 0)
+    for (int i = 0; i <= 100; ++i) l.v.push_back(std::min(-2.5 + rd(i * 0.05), 2.5));
   }
   const std::size_t nl = l.n(), ns = k.s.n(), nd = k.d.n();
   std::vector<double> e(nl), m(nl), r(nl), t(ns > nd ? ns : nd);
