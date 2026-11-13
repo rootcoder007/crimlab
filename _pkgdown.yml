@@ -122,6 +122,12 @@ reference:
       - chmb
       - gstr
       - sptst
+  - title: Checks
+    desc: Which labelling of a table reproduces a reported contrast, and an
+      audit of categorical inputs.
+    contents:
+      - relchk
+      - catchk
   - title: Proofs
     contents:
       - proof

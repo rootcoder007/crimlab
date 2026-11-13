@@ -1,5 +1,18 @@
 # crimlab 0.0.0.9000
 
+* `relchk()` recomputes a reported odds ratio, risk ratio or risk
+  difference from its table under every labelling (each reference group,
+  each outcome as the event, groups in rows or in columns) and says which
+  readings reproduce the value as rounded: the labelling the report
+  states, another one, or none. Zero cells give `Inf` or `NaN`, never a
+  correction. `proof("relchk")` names the Lean theorems on how the
+  contrasts change under relabelling.
+* `catchk()` audits categorical inputs before an analysis: storage type,
+  levels and counts, missing values, unused and rare levels, labels that
+  differ only by case or white space, 0/1 and logical codings, numbers
+  that look like category codes, value labels that disagree with the
+  values, and the reference level a default would take and why. It can
+  check a stated reference level, and changes nothing.
 * Disparity tests: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`,
   `dyadrt()`.
 * Forensic statistics: `gtmp()`, `lrpost()`, `cllr()`, `cllrmin()`,
