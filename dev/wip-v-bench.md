@@ -43,16 +43,22 @@ each case records its load before and after and is timed again when it
 rose by more than 1.5. No l14 timing run was completed (the cost runs were
 stopped mid-way): no l14 numbers are kept.
 
+## State at hand-over (2026-11-12 23:15)
+- Tables of record taken on the Mac 21:38, 22:18, 22:58 (each under the
+  lock, about 10 minutes); merged into inst/bench/bench.csv, bench.md,
+  net.csv and the README lists. Rejected and kept out: an l14 cost run
+  (stopped), the first Mac bench/net runs (one stopped by me at 19:22 to
+  let the spatial table have the lock, one with forensim loaded, which
+  opens a Tk window on the desktop; one net run that swapped in sna's
+  betweenness at 1e4 and one whose eigenvector and modularity checks
+  were too strict).
+- Gate on l14 (rebased on abbe4f4): test 2921/0/0/0, lint 0, cov 100,
+  gp 0 failed, srr TODO 0, check 2 NOTEs; dev/port.sh flags all 0 failed
+  (g++ asan skipped: no sanitizer runtime); R 4.1.3 container builds and
+  loads.
+
 ## Next
-1. Mac: cost run of record: sh ../locked.sh Rscript dev/cost.R
-   inst/bench/cost.csv ../kt1 ../kt0
-2. Mac: three runs, each under the lock, at least 30 min apart:
-   Rscript dev/bench.R ../runs/benchK; Rscript dev/bench-net.R ../runs/netK
-   (R_LIBS=../lib:../../lib, OMP/OPENBLAS threads 1); then the two merges
-   with BENCH_NOTE set.
-3. l14: fetch the Mac bundle into ~/work/crimlab-v, gate:
-   SRRLIB=~/tmp/Rlib GATE="doc test lint cov check srr" sh dev/gate.sh
-4. bundle to /run/media/rootcoder/WD_BLACK/backups/crimlab/
+- nothing in this unit; merge strips this file.
 
 ## Open questions
 - none

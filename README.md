@@ -114,12 +114,16 @@ have speed tables of their own, `inst/bench/sp.csv` (`dev/bench-sp.R`) and
 `inst/bench/dml.csv`; the three name their columns alike.
 
 <!-- bench start: written by dev/bench.R -->
-Faster, by at least a tenth, than every package that computes the same quantity, at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `gtmp()`, `kinidx()`, `patidx()`, `mixlr()`, `cllr()`, `cllrmin()`, `lrcal()`, `eceplt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`.
+Faster, by at least a tenth, than every other package found that computes the same quantity, at every size timed: `gtmp()`, `mixlr()`, `cllr()`, `cllrmin()`, `eceplt()`, `clrsmp()`.
 
-Not faster than such a package at some size timed: `incap()`.
+Not faster than another package at some size timed: `kinidx()`, `patidx()`, `lrcal()`.
 
-No package found that computes the same quantity, so timed against a base-R implementation of the formula: `lrpost()`, `dbsrch()`, `tipplt()`, `clrsmp()`, `proof()`; of these, not faster than base R at some size: `lrpost()`, `dbsrch()`.
+No other package found that computes the same quantity, so no claim of speed against the field: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incap()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`, `lrpost()`, `dbsrch()`, `tipplt()`, `proof()`. Of these, compared with rmorie, the maintainer's own package: faster at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`; not faster at some size: `incap()`. Compared with a base-R implementation of the formula: faster at every size timed: `dbsrch()`, `proof()`; not faster at some size: `lrpost()`, `tipplt()`.
 <!-- bench end -->
+
+<!-- netbench start: written by dev/bench-net.R -->
+Networks, against igraph, sna, tnet and netmem: faster, by at least a tenth, than every package that computes the same measure, at every size timed, counting only the measure on a graph the other package has already built: `ntcls()`, `ntevc()`, `ntcmp()`, `ntlvn()`, `ntmod()`, `ntbrk()`, `coofg()`. Not faster at some size by that count: `ntdeg()`, `ntbtw()`, `ntcore()`; of these, counting the building of the other package's graph from the same labels, which crimlab's time includes, faster at every size: `ntcore()`. No other package found: `ntchg()`.
+<!-- netbench end -->
 
 ## Life cycle
 
