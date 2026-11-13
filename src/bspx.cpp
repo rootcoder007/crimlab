@@ -1131,4 +1131,55 @@ SEXP C_clab_r_arwt(SEXP x, SEXP id, SEXP from, SEXP to, SEXP area, SEXP top) {
   return klass(out, "arwt");
 }
 
+SEXP C_clab_r_bufas(SEXP x, SEXP y, SEXP site, SEXP comp, SEXP r, SEXP buf, SEXP lonlat) {
+  clab::who = "bufas";
+  csp::pts p = csp::xy(x, y, lonlat);
+  const int n = p.n;
+  // the sites and comparison points in the points' projection
+  csp::pts s = csp::xy(site, R_NilValue, R_NilValue, p.ll ? csp::raw : csp::planar);
+  csp::pts c = csp::xy(comp, R_NilValue, R_NilValue, p.ll ? csp::raw : csp::planar);
+  SEXP sc = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(sc, 0, clab::dcopy(VECTOR_ELT(s.v, 0)));
+  SET_VECTOR_ELT(sc, 1, clab::dcopy(VECTOR_ELT(s.v, 1)));
+  SET_VECTOR_ELT(sc, 2, clab::dcopy(VECTOR_ELT(c.v, 0)));
+  SET_VECTOR_ELT(sc, 3, clab::dcopy(VECTOR_ELT(c.v, 1)));
+  double *sx = REAL(VECTOR_ELT(sc, 0)), *sy = REAL(VECTOR_ELT(sc, 1));
+  double *cx = REAL(VECTOR_ELT(sc, 2)), *cy = REAL(VECTOR_ELT(sc, 3));
+  csp::fwd(p, sx, sy, s.n);
+  csp::fwd(p, cx, cy, c.n);
+  const double rr = clab::one(r, "r", 0.0, HUGE_VAL);
+  SEXP bv = PROTECT(num(buf, "buf", 1, 0.0));
+  const double bf = REAL(bv)[0];
+  SEXP gi = PROTECT(Rf_allocVector(INTSXP, n));
+  SEXP ds = PROTECT(real(n)), dc = PROTECT(real(n));
+  kc(clab_bufas(p.x, p.y, n, sx, sy, s.n, cx, cy, c.n, rr, bf, INTEGER(gi), REAL(ds), REAL(dc)),
+     "the kernel refused the input.");
+  // the groups as a factor
+  SEXP lv = PROTECT(Rf_allocVector(STRSXP, 3));
+  SET_STRING_ELT(lv, 0, Rf_mkChar("treated"));
+  SET_STRING_ELT(lv, 1, Rf_mkChar("comparison"));
+  SET_STRING_ELT(lv, 2, Rf_mkChar("excluded"));
+  double cnt[3] = {0, 0, 0};
+  for (int i = 0; i < n; ++i) cnt[INTEGER(gi)[i]++] += 1;
+  Rf_setAttrib(gi, R_LevelsSymbol, lv);
+  Rf_classgets(gi, PROTECT(Rf_mkString("factor")));
+  static const char *const pn[] = {"grp", "dsite", "dcomp"};
+  SEXP pc = PROTECT(Rf_allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(pc, 0, gi);
+  SET_VECTOR_ELT(pc, 1, ds);
+  SET_VECTOR_ELT(pc, 2, dc);
+  SEXP pf = PROTECT(clab::frame(pc, pn));
+  static const char *const cn[] = {"treated", "comparison", "excluded"};
+  const double par[2] = {rr, bf};
+  static const char *const qn[] = {"r", "buf"};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(out, 0, pf);
+  SET_VECTOR_ELT(out, 1, clab::nvec(3, cn, cnt));
+  SET_VECTOR_ELT(out, 2, clab::nvec(2, qn, par));
+  static const char *const on[] = {"pts", "n", "par"};
+  clab::nlist(out, on);
+  UNPROTECT(13);
+  return klass(out, "bufas");
+}
+
 }  // extern "C"

@@ -2088,6 +2088,16 @@ int clab_arwt(const double *val, int ns, const int *from, const int *to,
               const double *area, int np, int nt, double *out, double *share,
               int *main, double *lost);
 
+/* The buffer design of place-based evaluations (src/buf.cpp). For n
+ * places, the distances ds and dc to the nearest of ns sites (sx, sy) and
+ * nc comparison points (cx, cy); grp 0 (treated) when ds <= r, 1
+ * (comparison) when dc <= r and ds > buf, 2 (excluded) otherwise; r > 0,
+ * buf >= 0 (Bowers and Johnson 2003, doi:10.1023/A:1024909009240). O(n (ns
+ * + nc)). */
+int clab_bufas(const double *x, const double *y, int n, const double *sx,
+               const double *sy, int ns, const double *cx, const double *cy,
+               int nc, double r, double buf, int *grp, double *ds, double *dc);
+
 #ifdef __cplusplus
 }
 #endif

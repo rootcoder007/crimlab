@@ -4,5 +4,5 @@
 # out.
 spc <- c("knxnr", "kdsurf", "dbscn", "hsper", "ebshr", "kscan", "gmoran",
          "bvmor", "sarml", "spill", "crossk", "qdrtst", "morsta", "dissix",
-         "pinpl", "arwt")
+         "pinpl", "arwt", "bufas")
 spx <- c(spx, spc)
