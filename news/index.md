@@ -38,10 +38,23 @@
   from `inst/presets/presets.tsv` (one row per preset and argument:
   column, recode, filter, units, note, source), with recipes for derived
   columns, so that `generic(clprep(data, preset))` gives the published
-  analysis. 87 presets cover the Ontario segregation and
+  analysis. The presets cover the Ontario segregation and
   deaths-in-custody tables, the race-based use-of-force files, the
   Special Investigations Unit cases, the Structured Intervention Unit
-  tables and the Toronto incident layers.
+  tables and the Toronto incident layers. Presets also feed the
+  risk-tool audits:
+  [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md),
+  [`tmpaud()`](https://rootcoder007.github.io/crimlab/reference/tmpaud.md),
+  [`calaud()`](https://rootcoder007.github.io/crimlab/reference/calaud.md)
+  and
+  [`scrdsp()`](https://rootcoder007.github.io/crimlab/reference/scrdsp.md)
+  take a
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  result as their first argument, for a generic file of area, risk,
+  outcome and group, for
+  [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
+  records, and for the layouts of two published studies of risk
+  classification.
 - Audits of risk tools and predictive policing.
   [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
   gives the parity gap and disparate impact ratio between groups with

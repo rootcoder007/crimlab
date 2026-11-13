@@ -8,14 +8,16 @@ test, which does not assume equal variances.
 ## Usage
 
 ``` r
-scrdsp(score, group, ref = NULL, conf = 0.95)
+scrdsp(score, group = NULL, ref = NULL, conf = 0.95)
 ```
 
 ## Arguments
 
 - score:
 
-  The scores: finite numbers, one per case.
+  The scores: finite numbers, one per case. A `clpre` list from
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  is taken too: its elements fill the arguments by name.
 
 - group:
 

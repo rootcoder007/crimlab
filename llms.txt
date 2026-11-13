@@ -101,7 +101,12 @@ The functions work on summary data, not on raw records:
   Toronto incident layers) feed these functions, so that
   `cntreg(clprep(data, "otis-c01-cnt"))` gives the published analysis
   ([`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)).
-  Presets describe layouts and ship no data.
+  The risk-tool audits
+  ([`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md),
+  [`tmpaud()`](https://rootcoder007.github.io/crimlab/reference/tmpaud.md),
+  [`calaud()`](https://rootcoder007.github.io/crimlab/reference/calaud.md),
+  [`scrdsp()`](https://rootcoder007.github.io/crimlab/reference/scrdsp.md))
+  take presets the same way. Presets describe layouts and ship no data.
 - Audits of risk tools and predictive policing: how a tool’s decisions
   differ between groups, with intervals
   ([`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)),

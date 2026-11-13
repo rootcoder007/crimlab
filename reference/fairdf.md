@@ -9,7 +9,15 @@ the Gini coefficient of the groups' shares.
 ## Usage
 
 ``` r
-fairdf(pred, grp, y = NULL, base = NULL, conf = 0.95, nboot = 0, seed = NULL)
+fairdf(
+  pred,
+  grp = NULL,
+  y = NULL,
+  base = NULL,
+  conf = 0.95,
+  nboot = 0,
+  seed = NULL
+)
 ```
 
 ## Arguments
@@ -17,7 +25,9 @@ fairdf(pred, grp, y = NULL, base = NULL, conf = 0.95, nboot = 0, seed = NULL)
 - pred:
 
   The tool's decisions: 1 (or `TRUE`) for a case it flags, 0 (or
-  `FALSE`) otherwise, one per case.
+  `FALSE`) otherwise, one per case. A `clpre` list from
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  is taken too: its elements fill the arguments by name.
 
 - grp:
 

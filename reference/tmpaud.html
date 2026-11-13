@@ -48,7 +48,7 @@ periods (after Barman and Barman 2026).</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tmpaud</span><span class="op">(</span><span class="va">pred</span>, <span class="va">grp</span>, <span class="va">period</span>, city <span class="op">=</span> <span class="cn">NULL</span>, base <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">tmpaud</span><span class="op">(</span><span class="va">pred</span>, grp <span class="op">=</span> <span class="cn">NULL</span>, period <span class="op">=</span> <span class="cn">NULL</span>, city <span class="op">=</span> <span class="cn">NULL</span>, base <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -57,7 +57,9 @@ periods (after Barman and Barman 2026).</p>
 
 <dl><dt id="arg-pred">pred<a class="anchor" aria-label="anchor" href="#arg-pred"></a></dt>
 <dd><p>The tool's decisions: 1 (or <code>TRUE</code>) for a case it flags, 0
-(or <code>FALSE</code>) otherwise, one per case.</p></dd>
+(or <code>FALSE</code>) otherwise, one per case.
+A <code>clpre</code> list from <code><a href="clprep.html">clprep()</a></code> is taken too: its elements fill the
+arguments by name.</p></dd>
 
 
 <dt id="arg-grp">grp<a class="anchor" aria-label="anchor" href="#arg-grp"></a></dt>

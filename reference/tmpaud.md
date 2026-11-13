@@ -9,7 +9,7 @@ periods (after Barman and Barman 2026).
 ## Usage
 
 ``` r
-tmpaud(pred, grp, period, city = NULL, base = NULL)
+tmpaud(pred, grp = NULL, period = NULL, city = NULL, base = NULL)
 ```
 
 ## Arguments
@@ -17,7 +17,9 @@ tmpaud(pred, grp, period, city = NULL, base = NULL)
 - pred:
 
   The tool's decisions: 1 (or `TRUE`) for a case it flags, 0 (or
-  `FALSE`) otherwise, one per case.
+  `FALSE`) otherwise, one per case. A `clpre` list from
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  is taken too: its elements fill the arguments by name.
 
 - grp:
 

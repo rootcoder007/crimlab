@@ -51,7 +51,15 @@ the Gini coefficient of the groups' shares.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fairdf</span><span class="op">(</span><span class="va">pred</span>, <span class="va">grp</span>, y <span class="op">=</span> <span class="cn">NULL</span>, base <span class="op">=</span> <span class="cn">NULL</span>, conf <span class="op">=</span> <span class="fl">0.95</span>, nboot <span class="op">=</span> <span class="fl">0</span>, seed <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">fairdf</span><span class="op">(</span></span>
+<span>  <span class="va">pred</span>,</span>
+<span>  grp <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  y <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  base <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  conf <span class="op">=</span> <span class="fl">0.95</span>,</span>
+<span>  nboot <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
+<span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -60,7 +68,9 @@ the Gini coefficient of the groups' shares.</p>
 
 <dl><dt id="arg-pred">pred<a class="anchor" aria-label="anchor" href="#arg-pred"></a></dt>
 <dd><p>The tool's decisions: 1 (or <code>TRUE</code>) for a case it flags, 0
-(or <code>FALSE</code>) otherwise, one per case.</p></dd>
+(or <code>FALSE</code>) otherwise, one per case.
+A <code>clpre</code> list from <code><a href="clprep.html">clprep()</a></code> is taken too: its elements fill the
+arguments by name.</p></dd>
 
 
 <dt id="arg-grp">grp<a class="anchor" aria-label="anchor" href="#arg-grp"></a></dt>

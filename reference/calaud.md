@@ -30,7 +30,9 @@ calaud(
 
   The area of each record: labels; or a data frame with columns `area`,
   `risk`, `outcome`, `group` and optionally `population`, the other
-  arguments then left out.
+  arguments then left out. A `clpre` list from
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  is taken too: its elements fill the arguments by name.
 
 - risk:
 
