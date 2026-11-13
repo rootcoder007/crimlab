@@ -179,6 +179,36 @@ jobs:
       - name: build and test, with the library given and from the jar
         run: JOBS=4 sh bindings/java/build.sh test bundled
 
+  go:
+    name: go (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15]
+    defaults:
+      run:
+        working-directory: bindings/go
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: stable
+          cache: false
+      - name: the copy of the kernels in csrc/ is current (tools/vendor.sh changes nothing)
+        if: matrix.os == 'ubuntu-24.04'
+        run: |
+          sh tools/vendor.sh
+          git add -A .
+          git diff --cached --exit-code --stat .
+      - run: test -z "$(gofmt -l .)" || { gofmt -l .; exit 1; }
+      - run: go vet ./...
+      - name: tests, with the table of cli/test.tsv
+        run: go test -count=1 ./...
+
   npm:
     runs-on: ubuntu-24.04
     timeout-minutes: 20
