@@ -258,7 +258,7 @@ double sfth(const double *th, double *g, void *ctx) { return snll(*static_cast<c
 
 // a fit from u (overwritten): keeps the better in best (theta via conv)
 struct best {
-  double u[128];
+  double u[128] = {};
   double v = kutil::nan();
   int iter = 0, conv = 0;
 };
