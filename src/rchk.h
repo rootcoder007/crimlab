@@ -74,8 +74,9 @@ int whole(SEXP x, const char *nm, int lo);
 // .lgl(): TRUE or FALSE, n of them, no NA.
 void lgl(SEXP x, const char *nm, R_xlen_t n);
 // .ref(): the group named or numbered by ref, one-based. A factor ref is
-// read by its label, never by its code.
-int ref(SEXP r, SEXP nms, int n);
+// read by its label, never by its code. an and what name the argument and
+// what it picks in the messages ("`ref` names no group: x.").
+int ref(SEXP r, SEXP nms, int n, const char *an = "ref", const char *what = "group");
 // as.character(seq_len(n)).
 SEXP seqs(R_xlen_t n);
 

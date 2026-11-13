@@ -56,8 +56,9 @@
 //'   genotypes, and likelihood ratios from validation studies.
 //' @srrstats {EA1.3} Each @param gives the kind of data the argument takes.
 //' @srrstats {EA4.2} Results are base data frames, named numeric vectors
-//'   and lists of these, so the default print methods show them; the two
-//'   plotting functions are tipplt() and eceplt().
+//'   and lists of these, so the default print methods show them, except
+//'   the reports of relchk() and catchk(), which have print methods of
+//'   their own; the two plotting functions are tipplt() and eceplt().
 //' @srrstats {EA6.0} Return values of every exported function are tested;
 //'   see EA6.0a-e.
 //' @srrstats {EA6.0e} Nearly every expect_equal() on a number, and every
@@ -80,9 +81,6 @@
 //'   claims to reproduce.
 //' @srrstatsNA {G2.4d} No input is converted to a factor and no result is
 //'   a factor.
-//' @srrstatsNA {G2.9} No type is converted with loss: the spatial
-//'   functions read their two coordinate columns by name and leave the
-//'   others alone, and no names are invented.
 //' @srrstatsNA {G2.14b} Dropping a missing count would change the groups or
 //'   the population a result describes, so missing values are an error,
 //'   never silently ignored; the caller can subset first.
@@ -112,11 +110,7 @@
 //'   no variable or model selection to automate.
 //' @srrstatsNA {EA3.1} Each function computes one named statistic; there are
 //'   no alternative processes or models to compare in a standard form.
-//' @srrstatsNA {EA4.1} No function prints or formats a number; results are
-//'   full-precision doubles that the caller rounds.
 //' @srrstatsNA {EA5.1} No plot sets a typeface.
-//' @srrstatsNA {EA5.2} No function prints to the screen; results are
-//'   returned.
 //' @srrstatsNA {EA5.3} No column summaries are produced.
 //' @srrstatsNA {EA5.6} No visualisation library is bundled; the plots use
 //'   base graphics.

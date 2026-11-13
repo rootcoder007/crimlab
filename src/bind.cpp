@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <initializer_list>
 #include <utility>
@@ -1906,6 +1907,13 @@ const Thm thms[] = {
     {"ntcore", "Network", "core_dense"},
     {"ntcore", "Network", "core_nested"},
     {"ntchg", "Network", "cheeger_lower"},
+    {"relchk", "RelChk", "or_swap_ref"},
+    {"relchk", "RelChk", "or_swap_event"},
+    {"relchk", "RelChk", "or_swap_both"},
+    {"relchk", "RelChk", "or_transpose"},
+    {"relchk", "RelChk", "rr_swap_ref"},
+    {"relchk", "RelChk", "rd_swap_ref"},
+    {"relchk", "RelChk", "rd_swap_event"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace
@@ -2475,6 +2483,247 @@ SEXP C_clab_r_coofg(SEXP inc, SEXP off) {
   static const char *const nm[] = {"edges", "nodes"};
   clab::nlist(out, nm);
   UNPROTECT(5);
+  return out;
+}
+
+}  // extern "C"
+
+// Checks.
+
+namespace {
+
+// One side of relchk()'s table: lab when it is character, with no label
+// missing or given twice (either is an error naming the side); "1", "2",
+// ... when there is none (the integer row names of a data frame count as
+// none).
+SEXP tlab(SEXP lab, R_xlen_t n, const char *side) {
+  if (TYPEOF(lab) != STRSXP || XLENGTH(lab) != n) return clab::seqs(n);
+  const Keys k = keys(lab);
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (STRING_ELT(lab, i) == NA_STRING) fail("`x` has a missing %s label.", side);
+    if (!k.first[i]) {
+      fail("`x` names a %s twice: %s.", side, Rf_translateChar(STRING_ELT(lab, i)));
+    }
+  }
+  return lab;
+}
+
+const char *const tforms =
+    "a matrix, a 2-d table, a data frame of numeric columns or a list of "
+    "numeric vectors of one length";
+
+// element i of an integer or double vector, as a double (NA as NA)
+double celd(SEXP s, R_xlen_t i) {
+  if (TYPEOF(s) == REALSXP) return REAL_RO(s)[i];
+  const int v = INTEGER_RO(s)[i];
+  return v == NA_INTEGER ? NA_REAL : static_cast<double>(v);
+}
+
+//' @srrstats {G2.7} relchk() takes its table as a matrix, a 2-d table, a
+//'   data frame or a list of columns; catchk() takes a vector, a data
+//'   frame or a list of vectors.
+//' @srrstats {G2.8} Each form becomes one double matrix of counts with its
+//'   row and column labels before the kernel sees it.
+//' @srrstats {G2.9} No information is lost in the conversion: the labels
+//'   are kept, integer row names of a data frame become "1", "2", ... as
+//'   R prints them, and nothing is added.
+//' @srrstats {G2.10} Columns are read by position from the list that holds
+//'   them, the same way for a data frame and a plain list.
+//' @srrstats {G2.11} A column with a class is read as its numbers when
+//'   is.numeric() is TRUE for it and refused otherwise (a factor, a Date).
+//' @srrstats {G2.12} A list column is refused by relchk(); catchk()
+//'   reports it as type "list" and does not audit it.
+//' @srrstats {G2.13} A missing count is an error, never dropped.
+//' @noRd
+// relchk()'s table: list(counts, row labels, column labels), the counts as
+// doubles column-major, r rows by c columns, every check of relchk()'s
+// help page made: at least 2 x 2, no NA, finite, non-negative, labels
+// neither missing nor repeated, no row or column without a count.
+SEXP ctab(SEXP x, int *r, int *c) {
+  clab::unlab(x, "x");
+  R_xlen_t nr = 0, nc = 0;
+  SEXP rn = R_NilValue, cn = R_NilValue;
+  const bool lst = TYPEOF(x) == VECSXP;
+  if (lst) {
+    nc = XLENGTH(x);
+    for (R_xlen_t j = 0; j < nc; ++j) {
+      SEXP e = VECTOR_ELT(x, j);
+      clab::unlab(e, "x");
+      if (!clab::isnum(e) || Rf_isMatrix(e) || (j > 0 && XLENGTH(e) != nr)) {
+        fail("`x` must be counts: %s.", tforms);
+      }
+      if (j == 0) nr = XLENGTH(e);
+    }
+    cn = Rf_getAttrib(x, R_NamesSymbol);
+    if (Rf_inherits(x, "data.frame")) {
+      rn = Rf_getAttrib(x, R_RowNamesSymbol);
+    } else if (nc > 0) {
+      rn = Rf_getAttrib(VECTOR_ELT(x, 0), R_NamesSymbol);
+    }
+  } else if (Rf_isMatrix(x) && clab::isnum(x)) {
+    nr = Rf_nrows(x);
+    nc = Rf_ncols(x);
+    SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+    if (!Rf_isNull(dn)) {
+      rn = VECTOR_ELT(dn, 0);
+      cn = VECTOR_ELT(dn, 1);
+    }
+  } else {
+    fail("`x` must be counts: %s.", tforms);
+  }
+  PROTECT(rn);
+  if (nr < 2 || nc < 2) fail("`x` must have at least two rows and two columns.");
+  // 3 r c (r + c - 2) readings, each an int index
+  if (3.0 * static_cast<double>(nr) * static_cast<double>(nc) *
+          (static_cast<double>(nr) + static_cast<double>(nc) - 2) > INT_MAX) {
+    fail("`x` is too large: its readings would outnumber the largest integer.");
+  }
+  const int ir = static_cast<int>(nr), ic = static_cast<int>(nc);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
+  SEXP v = real(nr * nc);
+  SET_VECTOR_ELT(out, 0, v);
+  double *p = REAL(v);
+  for (R_xlen_t j = 0; j < nc; ++j) {
+    for (R_xlen_t i = 0; i < nr; ++i) {
+      p[i + nr * j] = lst ? celd(VECTOR_ELT(x, j), i) : celd(x, i + nr * j);
+    }
+  }
+  for (R_xlen_t k = 0; k < nr * nc; ++k) {
+    if (std::isnan(p[k])) fail("`x` has a missing count: the table must be complete.");
+    if (!std::isfinite(p[k])) fail("`x` must be finite counts.");
+    if (p[k] < 0) fail("`x` has a negative count.");
+  }
+  SET_VECTOR_ELT(out, 1, tlab(rn, nr, "row"));
+  SET_VECTOR_ELT(out, 2, tlab(cn, nc, "column"));
+  for (R_xlen_t i = 0; i < nr; ++i) {
+    double s = 0;
+    for (R_xlen_t j = 0; j < nc; ++j) s += p[i + nr * j];
+    if (s == 0) {
+      fail("`x` has no count in row %s: a group with no units has no contrast.",
+           Rf_translateChar(STRING_ELT(VECTOR_ELT(out, 1), i)));
+    }
+  }
+  for (R_xlen_t j = 0; j < nc; ++j) {
+    double s = 0;
+    for (R_xlen_t i = 0; i < nr; ++i) s += p[i + nr * j];
+    if (s == 0) {
+      fail("`x` has no count in column %s: an outcome no unit has gives no "
+           "contrast.", Rf_translateChar(STRING_ELT(VECTOR_ELT(out, 2), j)));
+    }
+  }
+  *r = ir;
+  *c = ic;
+  UNPROTECT(2);
+  return out;
+}
+
+// The fewest decimals, 0 to 15, at which v prints as itself; -1 if none.
+int ndec(double v) {
+  char b[400];
+  for (int d = 0; d <= 15; ++d) {
+    std::snprintf(b, sizeof b, "%.*f", d, v);
+    if (std::strtod(b, nullptr) == v) return d;
+  }
+  return -1;
+}
+
+const char *const kinds[] = {"or", "rr", "rd"};
+
+}  // namespace
+
+extern "C" {
+
+SEXP C_clab_r_relchk(SEXP x, SEXP value, SEXP type, SEXP group, SEXP ref,
+                     SEXP event, SEXP digits, SEXP tol) {
+  clab::who = "relchk";
+  int r, c;
+  SEXP tb = PROTECT(ctab(x, &r, &c));
+  SEXP vv = PROTECT(num(value, "value", 1));
+  const double val = REAL_RO(vv)[0];
+  clab::unlab(type, "type");
+  int q = -1;
+  if (TYPEOF(type) == STRSXP && XLENGTH(type) == 1) {
+    for (int i = 0; i < 3; ++i) {
+      if (clab::kcmp(clab::key(STRING_ELT(type, 0)), Key{kinds[i], 0}) == 0) q = i;
+    }
+  }
+  if (q < 0) fail("`type` must be \"or\", \"rr\" or \"rd\".");
+  if (!Rf_isNull(digits) && !Rf_isNull(tol)) fail("give `digits` or `tol`, not both.");
+  int dg = NA_INTEGER;
+  double tl = 0;
+  if (!Rf_isNull(tol)) {
+    SEXP t = PROTECT(num(tol, "tol", 1, 0.0));
+    tl = REAL_RO(t)[0];
+    UNPROTECT(1);
+  } else {
+    const int d = Rf_isNull(digits) ? ndec(val) : clab::whole(digits, "digits", 0);
+    if (d > 15) fail("`digits` must be at most 15.");
+    if (d >= 0) {
+      dg = d;
+      tl = 0.5 * std::pow(10.0, -d);
+    }
+  }
+  SEXP rn = VECTOR_ELT(tb, 1), cn = VECTOR_ELT(tb, 2);
+  const int gi = Rf_isNull(group) ? -1 : clab::ref(group, rn, r, "group", "row") - 1;
+  const int hi = Rf_isNull(ref) ? -1 : clab::ref(ref, rn, r, "ref", "row") - 1;
+  const int ei = Rf_isNull(event) ? -1 : clab::ref(event, cn, c, "event", "column") - 1;
+  if (gi >= 0 && gi == hi) fail("`group` and `ref` must name two different rows.");
+  const int m = 3 * r * c * (r + c - 2);
+  int *grp = ibuf(m), *g = ibuf(m), *h = ibuf(m), *e = ibuf(m), *kd = ibuf(m), *mt = ibuf(m);
+  double *v = dbuf(m);
+  int nm = 0;
+  kchk(clab_relchk(REAL_RO(VECTOR_ELT(tb, 0)), r, c, val, tl, grp, g, h, e, kd, v,
+                   mt, &nm),
+       nullptr);
+  SEXP rd = PROTECT(Rf_allocVector(VECSXP, 8));
+  for (int j = 0; j < 5; ++j) SET_VECTOR_ELT(rd, j, Rf_allocVector(STRSXP, m));
+  SET_VECTOR_ELT(rd, 5, real(m));
+  SET_VECTOR_ELT(rd, 6, Rf_allocVector(LGLSXP, m));
+  SET_VECTOR_ELT(rd, 7, Rf_allocVector(LGLSXP, m));
+  SEXP side = PROTECT(Rf_allocVector(STRSXP, 5));
+  SET_STRING_ELT(side, 0, Rf_mkChar("rows"));
+  SET_STRING_ELT(side, 1, Rf_mkChar("cols"));
+  for (int j = 0; j < 3; ++j) SET_STRING_ELT(side, 2 + j, Rf_mkChar(kinds[j]));
+  int hold = 0;
+  for (int k = 0; k < m; ++k) {
+    SEXP gl = grp[k] == 0 ? rn : cn, el = grp[k] == 0 ? cn : rn;
+    SET_STRING_ELT(VECTOR_ELT(rd, 0), k, STRING_ELT(side, grp[k]));
+    SET_STRING_ELT(VECTOR_ELT(rd, 1), k, STRING_ELT(side, 2 + kd[k]));
+    SET_STRING_ELT(VECTOR_ELT(rd, 2), k, STRING_ELT(gl, g[k]));
+    SET_STRING_ELT(VECTOR_ELT(rd, 3), k, STRING_ELT(gl, h[k]));
+    SET_STRING_ELT(VECTOR_ELT(rd, 4), k, STRING_ELT(el, e[k]));
+    REAL(VECTOR_ELT(rd, 5))[k] = v[k];
+    LOGICAL(VECTOR_ELT(rd, 6))[k] = mt[k];
+    const bool cl = grp[k] == 0 && kd[k] == q && (gi < 0 || g[k] == gi) &&
+                    (hi < 0 || h[k] == hi) && (ei < 0 || e[k] == ei);
+    LOGICAL(VECTOR_ELT(rd, 7))[k] = cl ? 1 : 0;
+    if (cl && mt[k] != 0) ++hold;
+  }
+  static const char *const rdnm[] = {"grp", "type", "group", "ref", "event",
+                                     "value", "match", "claim"};
+  clab::frame(rd, rdnm);
+  SEXP cv = PROTECT(Rf_allocVector(STRSXP, 3));
+  SET_STRING_ELT(cv, 0, gi < 0 ? NA_STRING : STRING_ELT(rn, gi));
+  SET_STRING_ELT(cv, 1, hi < 0 ? NA_STRING : STRING_ELT(rn, hi));
+  SET_STRING_ELT(cv, 2, ei < 0 ? NA_STRING : STRING_ELT(cn, ei));
+  static const char *const cvnm[] = {"group", "ref", "event"};
+  SEXP cvn = Rf_allocVector(STRSXP, 3);
+  Rf_setAttrib(cv, R_NamesSymbol, cvn);
+  for (int j = 0; j < 3; ++j) SET_STRING_ELT(cvn, j, Rf_mkChar(cvnm[j]));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 8));
+  SET_VECTOR_ELT(out, 0, Rf_mkString(hold > 0 ? "holds" : (nm > 0 ? "other" : "none")));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarLogical(hold > 0 ? 1 : 0));
+  SET_VECTOR_ELT(out, 2, Rf_ScalarReal(val));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarReal(tl));
+  SET_VECTOR_ELT(out, 4, Rf_ScalarInteger(dg));
+  SET_VECTOR_ELT(out, 5, Rf_mkString(kinds[q]));
+  SET_VECTOR_ELT(out, 6, cv);
+  SET_VECTOR_ELT(out, 7, rd);
+  static const char *const nmo[] = {"verdict", "ok", "value", "tol", "digits",
+                                    "type", "claim", "reads"};
+  clab::nlist(out, nmo);
+  Rf_classgets(out, PROTECT(Rf_mkString("relchk")));
+  UNPROTECT(7);
   return out;
 }
 

@@ -304,7 +304,7 @@ void lgl(SEXP x, const char *nm, R_xlen_t n) {
   vec(x, nm);
 }
 
-int ref(SEXP r, SEXP nms, int n) {
+int ref(SEXP r, SEXP nms, int n, const char *an, const char *what) {
   // if (is.character(ref) && length(ref) == 1L && !is.na(ref)) {
   //   i <- match(ref, nms)
   //   if (is.na(i)) stop("`ref` names no group: ", ref, ".")
@@ -312,7 +312,7 @@ int ref(SEXP r, SEXP nms, int n) {
   // is.numeric(ref) && length(ref) == 1L && !is.na(ref) &&
   //   ref == round(ref) && ref >= 1 && ref <= n
   // A factor is read by its label (its code would be a position).
-  unlab(r, "ref");
+  unlab(r, an);
   if (Rf_isFactor(r) && XLENGTH(r) == 1) r = labs(r);
   PROTECT(r);
   if (TYPEOF(r) == STRSXP && XLENGTH(r) == 1 && STRING_ELT(r, 0) != NA_STRING) {
@@ -324,12 +324,12 @@ int ref(SEXP r, SEXP nms, int n) {
         return static_cast<int>(i + 1);
       }
     }
-    fail("`ref` names no group: %s.", Rf_translateChar(c));
+    fail("`%s` names no %s: %s.", an, what, Rf_translateChar(c));
   }
   UNPROTECT(1);
   const double v = val1(r);
   if (std::isnan(v) || v != std::floor(v) || v < 1 || v > n) {
-    fail("`ref` must be one group name or a position from 1 to %d.", n);
+    fail("`%s` must be one %s name or a position from 1 to %d.", an, what, n);
   }
   return static_cast<int>(v);
 }
