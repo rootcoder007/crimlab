@@ -3,5 +3,6 @@
 # test files check; added to spx, which test-crimlab.R's shape test leaves
 # out.
 spc <- c("knxnr", "kdsurf", "dbscn", "hsper", "ebshr", "kscan", "gmoran",
-         "bvmor", "sarml", "spill", "crossk", "qdrtst", "morsta", "dissix")
+         "bvmor", "sarml", "spill", "crossk", "qdrtst", "morsta", "dissix",
+         "pinpl", "arwt")
 spx <- c(spx, spc)

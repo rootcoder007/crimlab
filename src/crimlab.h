@@ -2064,6 +2064,30 @@ int clab_dissix(const double *x, int n, int g, double delta, const int *rp,
                 const int *ci, const double *w, double *d, double *grp,
                 double *dm);
 
+/* Geographic utilities (src/geou.cpp).
+ *
+ * clab_pinpl: the region of each of n points (px, py) among np polygons
+ * given by nv >= 3 vertices (vx, vy) with polygon codes pid (0 to np - 1)
+ * and ring codes rid, sorted by polygon then ring (CLAB_EARG otherwise),
+ * each ring closed from its last vertex to its first. Even-odd rule over
+ * all rings of a polygon (so holes and parts), a point on an edge inside
+ * (Shimrat 1962, doi:10.1145/368637.368653). Out: reg, the first polygon
+ * holding the point or -1; nreg, how many hold it. O(n nv) at worst,
+ * polygons whose bounding box misses the point skipped.
+ *
+ * clab_arwt: an areal crosswalk. ns source values val, np pairs (from[q]
+ * in [0, ns), to[q] in [0, nt)) with overlap sizes area (from 0): each
+ * source is split among its pairs in proportion to area (evenly when its
+ * areas sum to 0). Out: out (nt target totals), share (per pair), main (per
+ * source: the target of its largest share, -1 without pairs), *lost (the
+ * total of sources without pairs). O(ns + np). */
+int clab_pinpl(const double *px, const double *py, int n, const double *vx,
+               const double *vy, const int *pid, const int *rid, int nv, int np,
+               int *reg, int *nreg);
+int clab_arwt(const double *val, int ns, const int *from, const int *to,
+              const double *area, int np, int nt, double *out, double *share,
+              int *main, double *lost);
+
 #ifdef __cplusplus
 }
 #endif

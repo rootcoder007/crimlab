@@ -925,4 +925,210 @@ SEXP C_clab_r_dissix(SEXP x, SEXP delta, SEXP w) {
   return klass(out, "dissix");
 }
 
+// ------------------------------------------------- geographic utilities
+
+SEXP C_clab_r_pinpl(SEXP x, SEXP y, SEXP poly, SEXP pop) {
+  clab::who = "pinpl";
+  csp::pts p = csp::xy(x, y, R_NilValue, csp::planar);
+  const int n = p.n;
+  if (TYPEOF(poly) != VECSXP) fail("`poly` must be a data frame of x, y and id (and ring).");
+  SEXP px = elt(poly, "x"), py = elt(poly, "y");
+  if (Rf_isNull(px)) px = elt(poly, "lon");
+  if (Rf_isNull(py)) py = elt(poly, "lat");
+  SEXP pi = elt(poly, "id"), pr = elt(poly, "ring");
+  if (Rf_isNull(px) || Rf_isNull(py) || Rf_isNull(pi)) {
+    fail("`poly` must be a data frame of x, y and id (and ring).");
+  }
+  SEXP vx = PROTECT(num(px, "poly$x"));
+  const int nv = clab::ilen(static_cast<double>(XLENGTH(vx)), "poly$x");
+  if (nv < 3) fail("`poly` needs at least 3 vertices.");
+  SEXP vy = PROTECT(num(py, "poly$y", nv));
+  csp::lab id = csp::codes(pi, "poly$id", nv);
+  SEXP rr;
+  if (Rf_isNull(pr)) {
+    rr = PROTECT(Rf_allocVector(INTSXP, nv));
+    std::fill(INTEGER(rr), INTEGER(rr) + nv, 0);
+    PROTECT(R_NilValue);
+  } else {
+    rr = csp::codes(pr, "poly$ring", nv).code;
+  }
+  // vertices grouped by polygon then ring, in their order within a ring
+  std::vector<int> o(nv);
+  for (int v = 0; v < nv; ++v) o[v] = v;
+  const int *ic = INTEGER(id.code), *rc = INTEGER(rr);
+  std::stable_sort(o.begin(), o.end(), [&](int a, int b) {
+    return ic[a] < ic[b] || (ic[a] == ic[b] && rc[a] < rc[b]);
+  });
+  std::vector<double> sx(nv), sy(nv);
+  std::vector<int> sp(nv), sr(nv);
+  for (int v = 0; v < nv; ++v) {
+    sx[v] = REAL(vx)[o[v]];
+    sy[v] = REAL(vy)[o[v]];
+    sp[v] = ic[o[v]];
+    sr[v] = rc[o[v]];
+  }
+  const int np = id.g;
+  SEXP pv = PROTECT(Rf_isNull(pop) ? R_NilValue : num(pop, "pop", np, 0.0));
+  SEXP reg = PROTECT(Rf_allocVector(INTSXP, n));
+  SEXP nreg = PROTECT(Rf_allocVector(INTSXP, n));
+  kc(clab_pinpl(p.x, p.y, n, sx.data(), sy.data(), sp.data(), sr.data(), nv, np, INTEGER(reg),
+                INTEGER(nreg)),
+     "the kernel refused the input.");
+  SEXP lab = PROTECT(Rf_allocVector(STRSXP, n));
+  std::vector<double> units(np, 0.0);
+  for (int i = 0; i < n; ++i) {
+    const int g = INTEGER(reg)[i];
+    SET_STRING_ELT(lab, i, g >= 0 ? STRING_ELT(id.lev, g) : NA_STRING);
+    if (g >= 0) units[g] += 1;
+  }
+  // the regions, and the population of those holding a unit
+  double tot = 0, cov = 0, with = 0, nu = 0;
+  const double na = std::numeric_limits<double>::quiet_NaN();
+  for (int q = 0; q < np; ++q) {
+    const double pp = Rf_isNull(pv) ? na : REAL(pv)[q];
+    tot += pp;
+    if (units[q] > 0) {
+      cov += pp;
+      with += 1;
+    }
+    nu += units[q];
+  }
+  static const char *const rn[] = {"region", "units", "pop", "hasunit", "popshr"};
+  SEXP cols = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(cols, 0, id.lev);
+  SEXP cu = real(np);
+  SET_VECTOR_ELT(cols, 1, cu);
+  SEXP cpop = real(np);
+  SET_VECTOR_ELT(cols, 2, cpop);
+  SEXP ch = Rf_allocVector(LGLSXP, np);
+  SET_VECTOR_ELT(cols, 3, ch);
+  SEXP cs = real(np);
+  SET_VECTOR_ELT(cols, 4, cs);
+  for (int q = 0; q < np; ++q) {
+    REAL(cu)[q] = units[q];
+    REAL(cpop)[q] = Rf_isNull(pv) ? na : REAL(pv)[q];
+    LOGICAL(ch)[q] = units[q] > 0;
+    REAL(cs)[q] = tot > 0 ? REAL(cpop)[q] / tot : na;
+  }
+  SEXP rf = PROTECT(clab::frame(cols, rn));
+  static const char *const cn[] = {"regions", "withunit", "units", "totpop",
+                                   "covpop",  "uncpop",   "covshr"};
+  const double cv[7] = {static_cast<double>(np), with, nu, tot, cov, tot - cov,
+                        tot > 0 ? cov / tot : na};
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, lab);
+  SET_VECTOR_ELT(out, 1, nreg);
+  SET_VECTOR_ELT(out, 2, rf);
+  SET_VECTOR_ELT(out, 3, clab::nvec(7, cn, cv));
+  static const char *const on[] = {"reg", "nreg", "regs", "cov"};
+  clab::nlist(out, on);
+  UNPROTECT(14);
+  return klass(out, "pinpl");
+}
+
+SEXP C_clab_r_arwt(SEXP x, SEXP id, SEXP from, SEXP to, SEXP area, SEXP top) {
+  clab::who = "arwt";
+  SEXP xv = PROTECT(num(x, "x"));
+  const int ns = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  csp::lab src = csp::codes(id, "id", ns);
+  if (src.g != ns) fail("`id` must name each source unit once.");
+  const int np = clab::ilen(static_cast<double>(Rf_xlength(from)), "from");
+  if (np < 1) fail("`from` must hold at least one pair.");
+  csp::lab tg = csp::codes(to, "to", np);
+  csp::lab fr = csp::codes(from, "from", np);
+  // the pairs' sources as positions in id
+  std::vector<int> fi(np);
+  for (int q = 0; q < np; ++q) {
+    SEXP lb = STRING_ELT(fr.lev, INTEGER(fr.code)[q]);
+    int k = -1;
+    for (int s = 0; s < src.g && k < 0; ++s) {
+      if (clab::seql(STRING_ELT(src.lev, s), lb)) k = s;
+    }
+    if (k < 0) fail("`from` names a unit not in `id`: %s.", Rf_translateCharUTF8(lb));
+    fi[q] = k;
+  }
+  // the values in the order of the sorted labels
+  std::vector<double> val(ns);
+  for (int s = 0; s < ns; ++s) val[INTEGER(src.code)[s]] = REAL(xv)[s];
+  SEXP av = PROTECT(Rf_isNull(area) ? R_NilValue : num(area, "area", np, 0.0));
+  std::vector<double> ar(np, 1.0);
+  if (!Rf_isNull(av)) std::copy(REAL(av), REAL(av) + np, ar.begin());
+  SEXP tv = PROTECT(num(top, "top", -1, 1.0));
+  const int nt = tg.g;
+  SEXP ov = PROTECT(real(nt));
+  std::vector<double> sh(np);
+  std::vector<int> mn(ns);
+  double lost = 0;
+  kc(clab_arwt(val.data(), ns, fi.data(), INTEGER(tg.code), ar.data(), np, nt, REAL(ov), sh.data(),
+               mn.data(), &lost),
+     "the kernel refused the input.");
+  SEXP oc = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(oc, 0, tg.lev);
+  SET_VECTOR_ELT(oc, 1, ov);
+  static const char *const onm[] = {"to", "value"};
+  SEXP of = PROTECT(clab::frame(oc, onm));
+  // each source's main target and its share
+  SEXP mc = PROTECT(Rf_allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(mc, 0, src.lev);
+  SEXP mt = Rf_allocVector(STRSXP, ns);
+  SET_VECTOR_ELT(mc, 1, mt);
+  SEXP ms = real(ns);
+  SET_VECTOR_ELT(mc, 2, ms);
+  std::vector<double> best(ns, -1.0);
+  for (int q = 0; q < np; ++q) best[fi[q]] = std::max(best[fi[q]], sh[q]);
+  bool exact = true;
+  std::vector<int> cnt(ns, 0);
+  for (int q = 0; q < np; ++q) ++cnt[fi[q]];
+  for (int s = 0; s < ns; ++s) {
+    SET_STRING_ELT(mt, s, mn[s] >= 0 ? STRING_ELT(tg.lev, mn[s]) : NA_STRING);
+    REAL(ms)[s] = mn[s] >= 0 ? best[s] : std::numeric_limits<double>::quiet_NaN();
+    exact = exact && cnt[s] <= 1;
+  }
+  static const char *const mnm[] = {"from", "to", "share"};
+  SEXP mf = PROTECT(clab::frame(mc, mnm));
+  // concentration of the targets' values: Gini and the shares of the top
+  // units
+  std::vector<double> v(REAL(ov), REAL(ov) + nt);
+  std::sort(v.begin(), v.end());
+  double sum = 0, cum = 0, scum = 0;
+  for (int q = 0; q < nt; ++q) {
+    sum += v[q];
+  }
+  for (int q = 0; q < nt; ++q) {
+    cum += v[q];
+    scum += cum;
+  }
+  const R_xlen_t ntop = XLENGTH(tv);
+  std::vector<double> cc(1 + ntop);
+  cc[0] = sum > 0 ? (nt + 1 - 2 * scum / sum) / nt : 0.0;
+  for (R_xlen_t k = 0; k < ntop; ++k) {
+    const int m = static_cast<int>(std::min<double>(nt, std::floor(REAL(tv)[k])));
+    double s = 0;
+    for (int q = nt - m; q < nt; ++q) s += v[q];
+    cc[1 + k] = sum > 0 ? s / sum : std::numeric_limits<double>::quiet_NaN();
+  }
+  SEXP conc = PROTECT(real(1 + ntop));
+  SEXP cnn = PROTECT(Rf_allocVector(STRSXP, 1 + ntop));
+  SET_STRING_ELT(cnn, 0, Rf_mkChar("gini"));
+  char buf[48];
+  for (R_xlen_t k = 0; k <= ntop; ++k) {
+    REAL(conc)[k] = cc[k];
+    if (k > 0) {
+      std::snprintf(buf, sizeof buf, "top%g", std::floor(REAL(tv)[k - 1]));
+      SET_STRING_ELT(cnn, k, Rf_mkChar(buf));
+    }
+  }
+  Rf_setAttrib(conc, R_NamesSymbol, cnn);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(out, 0, of);
+  SET_VECTOR_ELT(out, 1, mf);
+  SET_VECTOR_ELT(out, 2, Rf_ScalarLogical(exact));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarReal(lost));
+  SET_VECTOR_ELT(out, 4, conc);
+  static const char *const on[] = {"out", "map", "exact", "lost", "conc"};
+  clab::nlist(out, on);
+  UNPROTECT(17);
+  return klass(out, "arwt");
+}
+
 }  // extern "C"
