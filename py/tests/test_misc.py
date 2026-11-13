@@ -15,7 +15,7 @@ from ref import CASES, args
 
 # functions of the R package not bound in Python yet
 NOTBOUND = {"ntdeg", "ntbtw", "ntcls", "ntevc", "ntcore", "ntcmp", "ntlvn", "ntmod", "ntbrk",
-            "ntchg", "coofg"}
+            "ntchg", "coofg", "relchk"}
 
 import crimlab
 from crimlab import _clab

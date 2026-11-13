@@ -56,7 +56,10 @@ void famtest(tk &T, int big) {
     clab_eqinv(x, y, 3, 33, 45, R, a, b);
     tk_eq(T, "eqinv.npole", b[0], 90, 1e-12);
     tk_eq(T, "eqinv.spole", b[1], -90, 1e-12);
-    tk_true(T, "eqinv.centre", a[2] == 33 && b[2] == 45);
+    // not exact: where the compiler fuses a multiply and an add, the
+    // projection of the centre is a rounding error away from (0, 0)
+    tk_eq(T, "eqinv.centre.lon", a[2], 33, 1e-12);
+    tk_eq(T, "eqinv.centre.lat", b[2], 45, 1e-12);
     double z = 0;
     clab_eqinv(&z, &z, 1, 0, 90, R, a, b);
     tk_true(T, "eqinv.polecentre", b[0] == 90);

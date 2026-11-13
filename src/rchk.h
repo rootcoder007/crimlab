@@ -22,6 +22,11 @@ constexpr double ninf = -std::numeric_limits<double>::infinity();
 // "vodtst: ...", so that no two functions raise the same message.
 extern const char *who;
 
+// older R headers have no R_PRINTF_FORMAT
+#ifndef R_PRINTF_FORMAT
+#define R_PRINTF_FORMAT(M, N)
+#endif
+
 // stop(<message>, call. = FALSE), prefixed with who. R_PRINTF_FORMAT (R's own macro) lets the
 // compiler check every format against its arguments.
 [[noreturn]] void fail(const char *fmt, ...) R_PRINTF_FORMAT(1, 2);
