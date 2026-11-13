@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include "dfmt.h"
+
 namespace clabj {
 
 inline const double NaN = std::numeric_limits<double>::quiet_NaN();
@@ -225,7 +227,7 @@ inline void wstr(std::string &o, const std::string &s) {
   o += '"';
 }
 
-// The shortest of 15 and 17 significant digits that reads back the same.
+// The shortest text that reads back the same (src/dfmt.h).
 inline void wnum(std::string &o, double x) {
   if (isna(x)) {
     o += "null";
@@ -235,9 +237,7 @@ inline void wnum(std::string &o, double x) {
     o += x > 0 ? "\"Inf\"" : "\"-Inf\"";
   } else {
     char b[32];
-    std::snprintf(b, sizeof b, "%.15g", x);
-    if (std::strtod(b, nullptr) != x) std::snprintf(b, sizeof b, "%.17g", x);
-    o += b;
+    o.append(b, static_cast<std::size_t>(dfmt::put(x, b)));
   }
 }
 
