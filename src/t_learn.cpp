@@ -17,7 +17,7 @@ namespace {
 const int N = 120, P = 5, NL = 12;
 double X[N * P], Y[N], YB[N];
 double A0[NL], B[P * NL], LAM[NL], CV[2 * NL];
-double W[P * P + 6 * P + 4 * N + NL * (P + 1) + 5 * (NL + 1)];
+double W[P * P + 6 * P + 5 * N + N * P + NL * (P + 1) + 5 * (NL + 1)];
 int IW[2 * N + P], BEST[2], NFIT;
 
 double rnorm(rng &g) {

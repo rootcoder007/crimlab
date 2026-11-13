@@ -1164,8 +1164,8 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
  * the indices of the lambda at the minimum and of the largest lambda
  * within one standard error of it; nfit, the number of lambdas fitted
  * (the first nfit entries of every output). Out: a0 (nl), beta (p nl) on
- * the original scale. work: p^2 + 6p + 4n + nl (p + 1) + nf (nl + 1)
- * doubles; iwork: 2n + p ints. */
+ * the original scale. work: p^2 + 6p + 5n + n p + nl (p + 1) +
+ * nf (nl + 1) doubles; iwork: 2n + p ints. */
 int clab_enpath(const double *x, int n, int p, const double *y, int fam,
                double alpha, double *lam, int nl, double lmr, double thresh,
                int maxit, const int *fold, int nf, double *a0, double *beta,

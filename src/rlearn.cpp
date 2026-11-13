@@ -158,7 +158,8 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
   SEXP cv = PROTECT(Rf_allocVector(REALSXP, 2 * static_cast<R_xlen_t>(nl)));
   int best[2], nk = nl;
   const double dp = p, dn = n;
-  double *w = rl::dalloc(dp * dp + 6 * dp + 4 * dn + nl * (dp + 1) + nf * (nl + 1.0));
+  double *w = rl::dalloc(dp * dp + 6 * dp + 5 * dn + dn * dp + nl * (dp + 1) +
+                         nf * (nl + 1.0));
   int *iw = rl::ialloc(2 * dn + dp);
   const int rc = clab_enpath(REAL_RO(xv), n, p, REAL_RO(yv), f, a, REAL(lam), nl,
                             r, th, mi, fd, nf, REAL(a0), REAL(beta), REAL(cv),

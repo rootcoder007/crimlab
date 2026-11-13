@@ -73,6 +73,32 @@ inline double xdot(const lrn::Dat &d, int j, double mu, double sd,
   return s / sd;
 }
 
+// sum_i a[i] b[i], in four running sums (independent, so they pipeline)
+inline double dot(const double *a, const double *b, int m) {
+  double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+  int i = 0;
+  for (; i + 3 < m; i += 4) {
+    s0 += a[i] * b[i];
+    s1 += a[i + 1] * b[i + 1];
+    s2 += a[i + 2] * b[i + 2];
+    s3 += a[i + 3] * b[i + 3];
+  }
+  for (; i < m; ++i) s0 += a[i] * b[i];
+  return (s0 + s1) + (s2 + s3);
+}
+
+// The standardised columns of the rows used, packed: xs[i + j m] =
+// (x[idx[i], j] - mu[j]) / sd[j], zero for a constant column. Every pass
+// of the descent then reads contiguous memory.
+void pack(const lrn::Dat &d, const double *mu, const double *sd, double *xs) {
+  for (int j = 0; j < d.p; ++j) {
+    const double *xj = d.x + static_cast<long>(j) * d.n;
+    double *o = xs + static_cast<long>(j) * d.m;
+    const double f = sd[j] > 0.0 ? 1.0 / sd[j] : 0.0;
+    for (int i = 0; i < d.m; ++i) o[i] = (xj[d.idx[i]] - mu[j]) * f;
+  }
+}
+
 // glmnet's early stop of a path it chose itself: from the fifth lambda on,
 // when the share of deviance explained (r, r0 at the lambda before) grew
 // by less than 1e-5 of itself or passed 0.999
@@ -82,39 +108,58 @@ inline bool early(int k, double r, double r0) {
 
 // the gaussian path, covariance updates: g holds x~_j' (y~ - X~ b) / m,
 // standardised y, and column j of C = X~' X~ / m is formed when b_j first
-// moves. work: mu, sd, b, g, C (p p), t (n); iwork: have (p).
+// moves. work: mu, sd, b, g, C (p p), t (n), xs (n p); iwork: have (p).
 int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
           double thresh, int maxit, int stop, int *nfit, double *a0,
           double *beta, double *work, int *iwork) {
   const int p = d.p, m = d.m;
   double *mu = work, *sd = mu + p, *b = sd + p, *g = b + p, *c = g + p;
-  double *t = c + static_cast<long>(p) * p;
+  double *t = c + static_cast<long>(p) * p, *xs = t + d.n;
   int *have = iwork;
   double ym, ys;
   ystat(d, &ym, &ys);
   if (!(ys > 0.0)) return CLAB_EDOM;
   stdz(d, mu, sd);
+  pack(d, mu, sd, xs);
   for (int i = 0; i < m; ++i) t[i] = (d.y[d.idx[i]] - ym) / (ys * m);
   for (int j = 0; j < p; ++j) {
     b[j] = 0.0;
     have[j] = 0;
-    g[j] = sd[j] > 0.0 ? xdot(d, j, mu[j], sd[j], t) : 0.0;
+    g[j] = dot(xs + static_cast<long>(j) * m, t, m);
   }
+  // the columns of C for the group of four columns that holds j, in 4 x 4
+  // tiles: one pass over eight columns gives sixteen inner products
   auto col = [&](int j) {
-    const double *xj = d.x + static_cast<long>(j) * d.n;
-    for (int i = 0; i < m; ++i) t[i] = (xj[d.idx[i]] - mu[j]) / (sd[j] * m);
-    double *cj = c + static_cast<long>(j) * p;
-    for (int k = 0; k < p; ++k) {
-      if (!(sd[k] > 0.0)) {
-        cj[k] = 0.0;
-        continue;
+    const int j0 = j - j % 4, nj = p - j0 < 4 ? p - j0 : 4;
+    for (int k0 = 0; k0 < p; k0 += 4) {
+      const int nk = p - k0 < 4 ? p - k0 : 4;
+      double acc[4][4] = {{0.0}};
+      if (nj == 4 && nk == 4) {
+        const double *a0 = xs + static_cast<long>(j0) * m, *a1 = a0 + m, *a2 = a1 + m,
+                     *a3 = a2 + m;
+        const double *b0 = xs + static_cast<long>(k0) * m, *b1 = b0 + m, *b2 = b1 + m,
+                     *b3 = b2 + m;
+        for (int i = 0; i < m; ++i) {
+          const double x0 = a0[i], x1 = a1[i], x2 = a2[i], x3 = a3[i];
+          const double y0 = b0[i], y1 = b1[i], y2 = b2[i], y3 = b3[i];
+          acc[0][0] += x0 * y0; acc[0][1] += x0 * y1; acc[0][2] += x0 * y2; acc[0][3] += x0 * y3;
+          acc[1][0] += x1 * y0; acc[1][1] += x1 * y1; acc[1][2] += x1 * y2; acc[1][3] += x1 * y3;
+          acc[2][0] += x2 * y0; acc[2][1] += x2 * y1; acc[2][2] += x2 * y2; acc[2][3] += x2 * y3;
+          acc[3][0] += x3 * y0; acc[3][1] += x3 * y1; acc[3][2] += x3 * y2; acc[3][3] += x3 * y3;
+        }
+      } else {
+        for (int u = 0; u < nj; ++u) {
+          for (int v = 0; v < nk; ++v) {
+            acc[u][v] = dot(xs + static_cast<long>(j0 + u) * m,
+                            xs + static_cast<long>(k0 + v) * m, m);
+          }
+        }
       }
-      const double *xk = d.x + static_cast<long>(k) * d.n;
-      double s = 0.0;
-      for (int i = 0; i < m; ++i) s += t[i] * xk[d.idx[i]];
-      cj[k] = s / sd[k];
+      for (int u = 0; u < nj; ++u) {
+        for (int v = 0; v < nk; ++v) c[static_cast<long>(j0 + u) * p + k0 + v] = acc[u][v] / m;
+      }
     }
-    have[j] = 1;
+    for (int u = 0; u < nj; ++u) have[j0 + u] = 1;
   };
   // one coordinate: its change, squared; rsq, the share of the variance
   // of y explained, follows each change (y is standardised)
@@ -167,7 +212,7 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
 // least squares) around coordinate descent over the active set, then a
 // check of the optimality conditions over all columns, which adds the
 // columns that violate them. work: mu, sd, b, g (unused), xv, bo (p
-// each), eta, v, r (n each); iwork: act (p).
+// each), eta, v, r, yy (n each), xs (n p); iwork: act (p).
 int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
           double thresh, int maxit, int stop, int *nfit, double *a0,
           double *beta, double *work, int *iwork) {
@@ -175,12 +220,15 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
   const double w = 1.0 / m;
   double *mu = work, *sd = mu + p, *b = sd + p, *xv = b + 2 * p;
   double *bo = xv + p, *eta = bo + p, *v = eta + d.n, *r = v + d.n;
+  double *yy = r + d.n, *xs = yy + d.n;
   int *act = iwork;
   if (!binary(d)) return CLAB_EDOM;
   double ym, ys;
   ystat(d, &ym, &ys);
   if (!(ys > 0.0)) return CLAB_EDOM;
   stdz(d, mu, sd);
+  pack(d, mu, sd, xs);
+  for (int i = 0; i < m; ++i) yy[i] = d.y[d.idx[i]];
   double a = std::log(ym / (1.0 - ym));
   for (int i = 0; i < m; ++i) eta[i] = a;
   // the null deviance per row, over 2
@@ -200,19 +248,24 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
         for (int i = 0; i < m; ++i) {
           const double pr = 1.0 / (1.0 + std::exp(-eta[i]));
           v[i] = w * pr * (1.0 - pr);
-          r[i] = w * (d.y[d.idx[i]] - pr);
+          r[i] = w * (yy[i] - pr);
           sv += v[i];
         }
         for (int j = 0; j < p; ++j) {
           bo[j] = b[j];
           if (!act[j]) continue;
-          const double *xj = d.x + static_cast<long>(j) * d.n;
-          double s = 0.0;
-          for (int i = 0; i < m; ++i) {
-            const double e = (xj[d.idx[i]] - mu[j]) / sd[j];
-            s += v[i] * e * e;
+          // sum v x^2, in four running sums
+          const double *xj = xs + static_cast<long>(j) * m;
+          double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
+          int i = 0;
+          for (; i + 3 < m; i += 4) {
+            s0 += v[i] * xj[i] * xj[i];
+            s1 += v[i + 1] * xj[i + 1] * xj[i + 1];
+            s2 += v[i + 2] * xj[i + 2] * xj[i + 2];
+            s3 += v[i + 3] * xj[i + 3] * xj[i + 3];
           }
-          xv[j] = s;
+          for (; i < m; ++i) s0 += v[i] * xj[i] * xj[i];
+          xv[j] = (s0 + s1) + (s2 + s3);
         }
         const double ao = a;
         double dlx;
@@ -220,13 +273,12 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
           dlx = 0.0;
           for (int j = 0; j < p; ++j) {
             if (!act[j]) continue;
-            const double gj = xdot(d, j, mu[j], sd[j], r);
+            const double *xj = xs + static_cast<long>(j) * m;
+            const double gj = dot(xj, r, m);
             const double nb = soft(gj + xv[j] * b[j], l1) / (xv[j] + l2);
             const double dl = nb - b[j];
             if (dl == 0.0) continue;
-            const double *xj = d.x + static_cast<long>(j) * d.n;
-            const double f = dl / sd[j];
-            for (int i = 0; i < m; ++i) r[i] -= f * v[i] * (xj[d.idx[i]] - mu[j]);
+            for (int i = 0; i < m; ++i) r[i] -= dl * v[i] * xj[i];
             b[j] = nb;
             dlx = std::fmax(dlx, xv[j] * dl * dl);
           }
@@ -242,9 +294,8 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
         double dout = sv * (a - ao) * (a - ao);
         for (int j = 0; j < p; ++j) {
           if (b[j] != 0.0) {
-            const double *xj = d.x + static_cast<long>(j) * d.n;
-            const double f = b[j] / sd[j];
-            for (int i = 0; i < m; ++i) eta[i] += f * (xj[d.idx[i]] - mu[j]);
+            const double *xj = xs + static_cast<long>(j) * m;
+            for (int i = 0; i < m; ++i) eta[i] += b[j] * xj[i];
           }
           if (act[j]) dout = std::fmax(dout, xv[j] * (b[j] - bo[j]) * (b[j] - bo[j]));
         }
@@ -252,12 +303,12 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
       }
       // the optimality conditions outside the active set
       for (int i = 0; i < m; ++i) {
-        r[i] = w * (d.y[d.idx[i]] - 1.0 / (1.0 + std::exp(-eta[i])));
+        r[i] = w * (yy[i] - 1.0 / (1.0 + std::exp(-eta[i])));
       }
       bool viol = false;
       for (int j = 0; j < p; ++j) {
         if (!(sd[j] > 0.0)) continue;
-        if (!act[j] && std::fabs(xdot(d, j, mu[j], sd[j], r)) > l1) {
+        if (!act[j] && std::fabs(dot(xs + static_cast<long>(j) * m, r, m)) > l1) {
           act[j] = 1;
           viol = true;
         }
@@ -275,7 +326,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
     double dev = 0.0;
     for (int i = 0; i < m; ++i) {
       const double pr = 1.0 / (1.0 + std::exp(-eta[i]));
-      dev -= d.y[d.idx[i]] == 1.0 ? std::log(pr) : std::log1p(-pr);
+      dev -= yy[i] == 1.0 ? std::log(pr) : std::log1p(-pr);
     }
     const double r2 = 1.0 - dev / m / dev0;
     if (stop && early(k, r2, r20)) break;
@@ -321,7 +372,7 @@ void csolve(const double *l, int q, double *b) {
 namespace lrn {
 
 long pwork(int n, int p) {
-  return static_cast<long>(p) * p + 6L * p + 3L * n;
+  return static_cast<long>(p) * p + 6L * p + 4L * n + static_cast<long>(n) * p;
 }
 
 int lmax(const Dat &d, int fam, double alpha, double *lam, double *work) {
