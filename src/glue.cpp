@@ -394,6 +394,7 @@ SEXP C_clab_r_lmorn(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_locgi(SEXP, SEXP, SEXP);
 SEXP C_clab_r_dirmn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_relchk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_catchk(SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -505,6 +506,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_locgi", fn(&C_clab_r_locgi), 3},
     {"C_clab_r_dirmn", fn(&C_clab_r_dirmn), 6},
     {"C_clab_r_relchk", fn(&C_clab_r_relchk), 8},
+    {"C_clab_r_catchk", fn(&C_clab_r_catchk), 3},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

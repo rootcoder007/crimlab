@@ -111,7 +111,6 @@
 //' @srrstatsNA {EA3.1} Each function computes one named statistic; there are
 //'   no alternative processes or models to compare in a standard form.
 //' @srrstatsNA {EA5.1} No plot sets a typeface.
-//' @srrstatsNA {EA5.3} No column summaries are produced.
 //' @srrstatsNA {EA5.6} No visualisation library is bundled; the plots use
 //'   base graphics.
 //' @noRd

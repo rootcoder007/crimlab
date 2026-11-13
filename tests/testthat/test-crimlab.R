@@ -88,7 +88,8 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(proof("cllr")), c("fn", "theorem", "file")),
     list(quote(relchk(matrix(1:4, 2), 2)),
          c("verdict", "ok", "value", "tol", "digits", "type", "claim",
-           "reads"))
+           "reads")),
+    list(quote(catchk(c("a", "b"))), c("ok", "nmin", "vars", "levels"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

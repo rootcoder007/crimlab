@@ -2728,3 +2728,405 @@ SEXP C_clab_r_relchk(SEXP x, SEXP value, SEXP type, SEXP group, SEXP ref,
 }
 
 }  // extern "C"
+
+namespace {
+
+// The text of a label with white space (ASCII) trimmed at both ends and
+// each run of it inside made one space, and ASCII letters in lower case:
+// two labels with one fold differ only by case or white space.
+SEXP lfold(SEXP s) {
+  const char *p = Rf_translateCharUTF8(s);
+  char *b = R_alloc(std::strlen(p) + 1, 1), *o = b;
+  bool sp = false;
+  for (; *p; ++p) {
+    const unsigned char ch = static_cast<unsigned char>(*p);
+    if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r' || ch == '\f' || ch == '\v') {
+      sp = o != b;
+      continue;
+    }
+    if (sp) *o++ = ' ';
+    sp = false;
+    *o++ = ch >= 'A' && ch <= 'Z' ? static_cast<char>(ch - 'A' + 'a') : static_cast<char>(ch);
+  }
+  *o = '\0';
+  return Rf_mkCharCE(b, CE_UTF8);
+}
+
+// The number of missing values of an atomic vector (NaN counts).
+int nacnt(SEXP x) {
+  const R_xlen_t n = XLENGTH(x);
+  int k = 0;
+  for (R_xlen_t i = 0; i < n; ++i) {
+    bool na = false;
+    switch (TYPEOF(x)) {
+      case REALSXP: na = std::isnan(REAL_RO(x)[i]); break;
+      case INTSXP: na = INTEGER_RO(x)[i] == NA_INTEGER; break;
+      case LGLSXP: na = LOGICAL_RO(x)[i] == NA_LOGICAL; break;
+      case STRSXP: na = STRING_ELT(x, i) == NA_STRING; break;
+      default: break;
+    }
+    if (na) ++k;
+  }
+  return k;
+}
+
+// What catchk() finds in one variable.
+struct Var {
+  const char *type;
+  bool cat, lab, bin, codes;
+  int n, k, dref;      // values, levels, the default reference (-1: none)
+  const char *why;     // why that level, or why none
+  SEXP lev, labl;      // levels and their value labels (NA where none)
+  int *cnt, *twin, s[4], nolab, dlab;
+};
+
+// The levels of x in the order catchk() documents, their counts and
+// twins from the kernel. kp, a list of 2 the caller keeps, receives the
+// levels and their labels, so that they stay protected.
+Var vaud(SEXP x, int nmin, SEXP kp) {
+  Var v{};
+  v.n = ilen(static_cast<double>(Rf_xlength(x)), "x");
+  v.dref = -1;
+  v.lab = !Rf_isNull(Rf_getAttrib(x, Rf_install("labels")));
+  const int t = TYPEOF(x);
+  v.cat = true;
+  bool fac = false;
+  if (!Rf_isVectorAtomic(x) || !Rf_isNull(Rf_getAttrib(x, R_DimSymbol))) {
+    v.type = Rf_isVectorAtomic(x) ? "matrix" : Rf_type2char(static_cast<SEXPTYPE>(t));
+    v.cat = false;
+  } else if (v.lab) {
+    v.type = "labelled";
+  } else if (Rf_isFactor(x)) {
+    v.type = Rf_inherits(x, "ordered") ? "ordered" : "factor";
+    fac = true;
+  } else if (Rf_inherits(x, "Date") || Rf_inherits(x, "POSIXt") ||
+             Rf_inherits(x, "difftime")) {
+    v.type = CHAR(STRING_ELT(Rf_getAttrib(x, R_ClassSymbol), 0));
+    v.cat = false;
+  } else if (t == LGLSXP || t == INTSXP || t == REALSXP || t == STRSXP) {
+    static const char *const tn[] = {"logical", "integer", "double", "character"};
+    v.type = tn[t == LGLSXP ? 0 : t == INTSXP ? 1 : t == REALSXP ? 2 : 3];
+  } else {
+    v.type = Rf_type2char(static_cast<SEXPTYPE>(t));
+    v.cat = false;
+  }
+  if (v.cat && t == REALSXP && !v.lab) {
+    // only whole numbers are categories
+    for (int i = 0; i < v.n && v.cat; ++i) {
+      const double d = REAL_RO(x)[i];
+      v.cat = std::isnan(d) || (std::isfinite(d) && d == std::floor(d));
+    }
+  }
+  if (!v.cat) {
+    v.why = "not categorical";
+    v.s[0] = Rf_isVectorAtomic(x) ? nacnt(x) : 0;
+    SET_VECTOR_ELT(kp, 0, Rf_allocVector(STRSXP, 0));
+    SET_VECTOR_ELT(kp, 1, Rf_allocVector(STRSXP, 0));
+    v.lev = VECTOR_ELT(kp, 0);
+    v.labl = VECTOR_ELT(kp, 1);
+    return v;
+  }
+  int *code = ibuf(v.n);
+  const bool num = (t == INTSXP || t == REALSXP) && !fac && !v.lab;
+  bool b01 = num;
+  int seen = 0;
+  for (int i = 0; i < v.n && b01; ++i) {
+    const double d = celd(x, i);
+    if (std::isnan(d)) continue;
+    ++seen;
+    b01 = d == 0 || d == 1;
+  }
+  v.bin = (t == LGLSXP && !v.lab) || (b01 && seen > 0);
+  SEXP lb = R_NilValue;
+  if (fac) {
+    SET_VECTOR_ELT(kp, 0, Rf_getAttrib(x, R_LevelsSymbol));
+    v.k = static_cast<int>(Rf_xlength(VECTOR_ELT(kp, 0)));
+    for (int i = 0; i < v.n; ++i) {
+      const int c = INTEGER_RO(x)[i];
+      code[i] = c == NA_INTEGER || c < 1 || c > v.k ? -1 : c - 1;
+    }
+  } else if (v.bin) {
+    SEXP lv = Rf_allocVector(STRSXP, 2);
+    SET_VECTOR_ELT(kp, 0, lv);
+    SET_STRING_ELT(lv, 0, Rf_mkChar(t == LGLSXP ? "FALSE" : "0"));
+    SET_STRING_ELT(lv, 1, Rf_mkChar(t == LGLSXP ? "TRUE" : "1"));
+    v.k = 2;
+    for (int i = 0; i < v.n; ++i) {
+      double d;
+      if (t == LGLSXP) {
+        const int b = LOGICAL_RO(x)[i];
+        d = b == NA_LOGICAL ? NA_REAL : static_cast<double>(b);
+      } else {
+        d = celd(x, i);
+      }
+      code[i] = std::isnan(d) ? -1 : static_cast<int>(d);
+    }
+  } else {
+    // the distinct values as text, by first appearance; for a labelled
+    // vector, then the labelled values that do not occur
+    SEXP s = PROTECT(Rf_coerceVector(x, STRSXP));
+    SEXP lv = Rf_getAttrib(x, Rf_install("labels"));
+    SEXP ls = PROTECT(v.lab ? Rf_coerceVector(lv, STRSXP) : Rf_allocVector(STRSXP, 0));
+    const R_xlen_t nl = XLENGTH(ls);
+    SEXP all = PROTECT(Rf_allocVector(STRSXP, v.n + nl));
+    // NaN is missing, as is.na() says, though as.character() gives "NaN"
+    for (int i = 0; i < v.n; ++i) {
+      const bool nan = t == REALSXP && std::isnan(REAL_RO(x)[i]);
+      SET_STRING_ELT(all, i, nan ? NA_STRING : STRING_ELT(s, i));
+    }
+    for (R_xlen_t j = 0; j < nl; ++j) SET_STRING_ELT(all, v.n + j, STRING_ELT(ls, j));
+    const Keys ks = keys(all);
+    int *ac = ibuf(static_cast<double>(ks.n));
+    int k = 0;
+    for (R_xlen_t i = 0; i < ks.n; ++i) {
+      if (ks.k[i].s == nullptr) {
+        ac[i] = -1;
+      } else if (ks.first[i]) {
+        ac[i] = k++;
+      } else {
+        ac[i] = ac[ks.slot[probe(ks, ks.k[i])]];
+      }
+    }
+    v.k = k;
+    SEXP lev = Rf_allocVector(STRSXP, k);
+    SET_VECTOR_ELT(kp, 0, lev);
+    for (R_xlen_t i = 0; i < ks.n; ++i) {
+      if (ac[i] >= 0 && ks.first[i]) SET_STRING_ELT(lev, ac[i], STRING_ELT(all, i));
+    }
+    for (int i = 0; i < v.n; ++i) code[i] = ac[i];
+    SEXP ln = Rf_getAttrib(lv, R_NamesSymbol);
+    if (v.lab && !Rf_isNull(ln)) {
+      // each level's label: the first label of its value
+      lb = Rf_allocVector(STRSXP, k);
+      SET_VECTOR_ELT(kp, 1, lb);
+      for (int j = 0; j < k; ++j) SET_STRING_ELT(lb, j, NA_STRING);
+      for (R_xlen_t j = 0; j < nl; ++j) {
+        const int a = ac[v.n + j];
+        if (a >= 0 && STRING_ELT(lb, a) == NA_STRING) SET_STRING_ELT(lb, a, STRING_ELT(ln, j));
+      }
+      // labels whose text another value has too
+      const Keys kl = keys(ln);
+      int *nk = ibuf(static_cast<double>(kl.n));
+      for (R_xlen_t j = 0; j < kl.n; ++j) nk[j] = 0;
+      for (R_xlen_t j = 0; j < kl.n; ++j) ++nk[kl.slot[probe(kl, kl.k[j])]];
+      for (R_xlen_t j = 0; j < kl.n; ++j) {
+        if (kl.k[j].s != nullptr && nk[kl.slot[probe(kl, kl.k[j])]] > 1) ++v.dlab;
+      }
+    }
+    UNPROTECT(3);
+  }
+  if (Rf_isNull(lb)) {
+    lb = Rf_allocVector(STRSXP, v.k);
+    SET_VECTOR_ELT(kp, 1, lb);
+    for (int j = 0; j < v.k; ++j) SET_STRING_ELT(lb, j, NA_STRING);
+  }
+  v.lev = VECTOR_ELT(kp, 0);
+  v.labl = lb;
+  // fold keys, coded by first appearance
+  SEXP fl = PROTECT(Rf_allocVector(STRSXP, v.k));
+  for (int j = 0; j < v.k; ++j) SET_STRING_ELT(fl, j, lfold(STRING_ELT(v.lev, j)));
+  int nd;
+  const int *fk = fcode(fl, &nd, nullptr);
+  UNPROTECT(1);
+  v.cnt = ibuf(v.k);
+  v.twin = ibuf(v.k);
+  kchk(clab_catchk(code, v.n, v.k, fk, nmin, v.cnt, v.twin, v.s, ibuf(v.k)), nullptr);
+  for (int j = 0; j < v.k; ++j) {
+    if (v.lab && v.cnt[j] > 0 && STRING_ELT(v.labl, j) == NA_STRING) ++v.nolab;
+  }
+  v.codes = num && !v.bin && v.k >= 1 && v.k <= 10;
+  if (t == LGLSXP && !v.lab) {
+    v.dref = 0;
+    v.why = "logical: TRUE is the treatment";
+  } else if (v.bin) {
+    v.dref = 0;
+    v.why = "0 and 1: 1 is the treatment";
+  } else if (fac) {
+    v.dref = v.k > 0 ? 0 : -1;
+    v.why = v.k > 0 ? "factor: the first level" : "factor with no levels";
+  } else if (v.lab) {
+    v.why = "labelled: decode it first";
+  } else {
+    v.why = "no order: state it";
+  }
+  return v;
+}
+
+// catchk()'s verdict on a stated reference w (text) for v.
+const char *refst(const Var &v, SEXP w, int nmin) {
+  for (int j = 0; j < v.k; ++j) {
+    if (!clab::seql(STRING_ELT(v.lev, j), w)) continue;
+    if (v.cnt[j] == 0) return "empty";
+    if (v.cnt[j] < nmin) return "low";
+    return j == v.dref ? "default" : "other";
+  }
+  SEXP fw = PROTECT(lfold(w));
+  for (int j = 0; j < v.k; ++j) {
+    SEXP fj = PROTECT(lfold(STRING_ELT(v.lev, j)));
+    const bool eq = clab::seql(fj, fw);
+    UNPROTECT(1);
+    if (eq) {
+      UNPROTECT(1);
+      return "case";
+    }
+  }
+  UNPROTECT(1);
+  return "absent";
+}
+
+// one element of ref as text: an atomic value of length 1, a factor by
+// its label; NA_STRING for anything else
+SEXP ref1(SEXP e) {
+  if (!Rf_isVectorAtomic(e) || XLENGTH(e) != 1) return NA_STRING;
+  SEXP s = clab::labs(e);
+  return Rf_isNull(s) ? NA_STRING : STRING_ELT(s, 0);
+}
+
+}  // namespace
+
+extern "C" {
+
+//' @srrstats {EA5.3} catchk() summarises each column: its storage type,
+//'   its levels and their counts, missing values, and the problems found.
+//' @srrstats {G2.4c} Levels are compared as as.character() gives them; a
+//'   factor by its labels.
+//' @noRd
+SEXP C_clab_r_catchk(SEXP x, SEXP ref, SEXP nmin) {
+  clab::who = "catchk";
+  const int mn = clab::whole(nmin, "nmin", 1);
+  SEXP vars, nms;
+  if (TYPEOF(x) == VECSXP) {
+    vars = PROTECT(x);
+    SEXP n0 = Rf_getAttrib(x, R_NamesSymbol);
+    nms = PROTECT(Rf_allocVector(STRSXP, XLENGTH(x)));
+    char b[32];
+    for (R_xlen_t i = 0; i < XLENGTH(x); ++i) {
+      SEXP s = Rf_isNull(n0) ? NA_STRING : STRING_ELT(n0, i);
+      if (s == NA_STRING || CHAR(s)[0] == '\0') {
+        clab::lfmt(static_cast<double>(i + 1), b, sizeof b);
+        s = Rf_mkChar(b);
+      }
+      SET_STRING_ELT(nms, i, s);
+    }
+  } else if (Rf_isVectorAtomic(x)) {
+    clab::vec(x, "x");
+    vars = PROTECT(Rf_allocVector(VECSXP, 1));
+    SET_VECTOR_ELT(vars, 0, x);
+    nms = PROTECT(Rf_mkString("x"));
+  } else {
+    fail("`x` must be a vector, a data frame or a list of vectors.");
+  }
+  const int nv = ilen(static_cast<double>(XLENGTH(vars)), "x");
+  if (nv == 0) fail("`x` has no variables.");
+  const Keys kn = keys(nms);
+  for (int i = 0; i < nv; ++i) {
+    if (!kn.first[i]) fail("`x` names a variable twice: %s.", Rf_translateChar(STRING_ELT(nms, i)));
+  }
+  // the stated reference of each variable (NA: none)
+  SEXP want = PROTECT(Rf_allocVector(STRSXP, nv));
+  for (int i = 0; i < nv; ++i) SET_STRING_ELT(want, i, NA_STRING);
+  if (!Rf_isNull(ref)) {
+    clab::unlab(ref, "ref");
+    const bool l = TYPEOF(ref) == VECSXP;
+    if (!l && !Rf_isVectorAtomic(ref)) fail("`ref` must be levels: a vector or a list.");
+    SEXP rv = PROTECT(l ? ref : clab::labs(ref));
+    if (Rf_isNull(rv)) fail("`ref` must be levels: a vector or a list.");
+    const R_xlen_t nr = XLENGTH(ref);
+    SEXP rn = Rf_getAttrib(ref, R_NamesSymbol);
+    if (nr == 0) fail("`ref` must name at least one level.");
+    for (R_xlen_t j = 0; j < nr; ++j) {
+      SEXP w = l ? ref1(VECTOR_ELT(rv, j)) : STRING_ELT(rv, j);
+      if (w == NA_STRING) fail("`ref` must be levels with no missing values, one per variable.");
+      if (Rf_isNull(rn)) {
+        if (nr != 1) fail("`ref` must be one level, or levels named by variable.");
+        for (int i = 0; i < nv; ++i) SET_STRING_ELT(want, i, w);
+        continue;
+      }
+      SEXP nj = STRING_ELT(rn, j);
+      const R_xlen_t i = kn.slot[probe(kn, clab::key(nj))];
+      if (i < 0) fail("`ref` names no variable: %s.", Rf_translateChar(nj));
+      if (STRING_ELT(want, i) != NA_STRING) fail("`ref` names a variable twice: %s.", Rf_translateChar(nj));
+      SET_STRING_ELT(want, i, w);
+    }
+    UNPROTECT(1);
+  }
+  // one row per variable; the levels of all, one row each
+  static const char *const vnm[] = {"var", "type", "n", "nna", "nlev", "unused", "low",
+                                    "twin", "bin", "codes", "nolab", "dlab", "ref",
+                                    "why", "want", "state", "ok"};
+  SEXP vd = PROTECT(Rf_allocVector(VECSXP, 17));
+  static const int vty[] = {STRSXP, STRSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, INTSXP, LGLSXP,
+                            LGLSXP, INTSXP, INTSXP, STRSXP, STRSXP, STRSXP, STRSXP, LGLSXP};
+  for (int j = 0; j < 17; ++j) SET_VECTOR_ELT(vd, j, Rf_allocVector(static_cast<SEXPTYPE>(vty[j]), nv));
+  SEXP keep = PROTECT(Rf_allocVector(VECSXP, nv));
+  int **cnts = reinterpret_cast<int **>(R_alloc(static_cast<std::size_t>(nv), sizeof(int *)));
+  int **tws = reinterpret_cast<int **>(R_alloc(static_cast<std::size_t>(nv), sizeof(int *)));
+  int *drefs = ibuf(nv);
+  double tot = 0;
+  bool all = true;
+  for (int i = 0; i < nv; ++i) {
+    SEXP kp = Rf_allocVector(VECSXP, 2);
+    SET_VECTOR_ELT(keep, i, kp);
+    const Var v = vaud(VECTOR_ELT(vars, i), mn, kp);
+    cnts[i] = v.cnt;
+    tws[i] = v.twin;
+    drefs[i] = v.dref;
+    tot += v.k;
+    SEXP w = STRING_ELT(want, i);
+    const char *st = w == NA_STRING ? nullptr : (v.cat ? refst(v, w, mn) : "absent");
+    const bool good = st == nullptr || std::strcmp(st, "default") == 0 || std::strcmp(st, "other") == 0;
+    const bool ok = v.cat ? v.s[0] == 0 && v.s[1] == 0 && v.s[2] == 0 && v.s[3] == 0 &&
+                                !v.lab && !v.codes && v.k - v.s[1] >= 2 && good
+                          : v.s[0] == 0 && good;
+    all = all && ok;
+    const int na = NA_INTEGER;
+    SET_STRING_ELT(VECTOR_ELT(vd, 0), i, STRING_ELT(nms, i));
+    SET_STRING_ELT(VECTOR_ELT(vd, 1), i, Rf_mkChar(v.type));
+    INTEGER(VECTOR_ELT(vd, 2))[i] = v.n;
+    INTEGER(VECTOR_ELT(vd, 3))[i] = v.s[0];
+    INTEGER(VECTOR_ELT(vd, 4))[i] = v.cat ? v.k : na;
+    INTEGER(VECTOR_ELT(vd, 5))[i] = v.cat ? v.s[1] : na;
+    INTEGER(VECTOR_ELT(vd, 6))[i] = v.cat ? v.s[2] : na;
+    INTEGER(VECTOR_ELT(vd, 7))[i] = v.cat ? v.s[3] : na;
+    LOGICAL(VECTOR_ELT(vd, 8))[i] = v.cat && v.bin ? 1 : 0;
+    LOGICAL(VECTOR_ELT(vd, 9))[i] = v.cat && v.codes ? 1 : 0;
+    INTEGER(VECTOR_ELT(vd, 10))[i] = v.nolab;
+    INTEGER(VECTOR_ELT(vd, 11))[i] = v.dlab;
+    SET_STRING_ELT(VECTOR_ELT(vd, 12), i, v.dref < 0 ? NA_STRING : STRING_ELT(v.lev, v.dref));
+    SET_STRING_ELT(VECTOR_ELT(vd, 13), i, Rf_mkChar(v.why));
+    SET_STRING_ELT(VECTOR_ELT(vd, 14), i, w);
+    SET_STRING_ELT(VECTOR_ELT(vd, 15), i, st == nullptr ? NA_STRING : Rf_mkChar(st));
+    LOGICAL(VECTOR_ELT(vd, 16))[i] = ok ? 1 : 0;
+  }
+  clab::frame(vd, vnm);
+  const int nl = ilen(tot, "x");
+  static const char *const lnm[] = {"var", "level", "label", "n", "low", "twin", "ref"};
+  static const int lty[] = {STRSXP, STRSXP, STRSXP, INTSXP, LGLSXP, STRSXP, LGLSXP};
+  SEXP ld = PROTECT(Rf_allocVector(VECSXP, 7));
+  for (int j = 0; j < 7; ++j) SET_VECTOR_ELT(ld, j, Rf_allocVector(static_cast<SEXPTYPE>(lty[j]), nl));
+  for (int i = 0, r = 0; i < nv; ++i) {
+    SEXP lev = VECTOR_ELT(VECTOR_ELT(keep, i), 0), lab = VECTOR_ELT(VECTOR_ELT(keep, i), 1);
+    for (int j = 0; j < XLENGTH(lev); ++j, ++r) {
+      SET_STRING_ELT(VECTOR_ELT(ld, 0), r, STRING_ELT(nms, i));
+      SET_STRING_ELT(VECTOR_ELT(ld, 1), r, STRING_ELT(lev, j));
+      SET_STRING_ELT(VECTOR_ELT(ld, 2), r, STRING_ELT(lab, j));
+      INTEGER(VECTOR_ELT(ld, 3))[r] = cnts[i][j];
+      LOGICAL(VECTOR_ELT(ld, 4))[r] = cnts[i][j] > 0 && cnts[i][j] < mn ? 1 : 0;
+      SET_STRING_ELT(VECTOR_ELT(ld, 5), r, tws[i][j] < 0 ? NA_STRING : STRING_ELT(lev, tws[i][j]));
+      LOGICAL(VECTOR_ELT(ld, 6))[r] = j == drefs[i] ? 1 : 0;
+    }
+  }
+  clab::frame(ld, lnm);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, Rf_ScalarLogical(all ? 1 : 0));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarInteger(mn));
+  SET_VECTOR_ELT(out, 2, vd);
+  SET_VECTOR_ELT(out, 3, ld);
+  static const char *const onm[] = {"ok", "nmin", "vars", "levels"};
+  clab::nlist(out, onm);
+  Rf_classgets(out, PROTECT(Rf_mkString("catchk")));
+  UNPROTECT(8);
+  return out;
+}
+
+}  // extern "C"
