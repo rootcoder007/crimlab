@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# Once the maintainer publishes a release (release.yml leaves it a
+# draft): the Homebrew formula (packaging/brew/crimlab.rb) into the tap
+# rootcoder007/homebrew-crimlab as Formula/crimlab.rb, and the Scoop
+# manifest (packaging/scoop/crimlab.json) into the bucket
+# rootcoder007/scoop-crimlab as bucket/crimlab.json, each with the
+# release's version and the SHA-256 its SHA256SUMS gives. In the
+# protected environment "release"; secret CLAB_TAP_TOKEN, a fine-grained
+# token with Contents read and write on those two repositories only.
+# workflow_dispatch redoes it for a tag already published.
+name: tap
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: a published release tag, vX.Y.Z
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  tap:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the formula and the manifest for this release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          printf '%s\n' "$TAG" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+' || { echo "::error::not a release tag: $TAG"; exit 1; }
+          v=${TAG#v}
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern SHA256SUMS --dir "$RUNNER_TEMP"
+          s=$(awk -v n="crimlab-$v.tar.gz" '$2 == n {print $1}' "$RUNNER_TEMP/SHA256SUMS")
+          w=$(awk -v n="crimlab-$v-windows-x86_64.zip" '$2 == n {print $1}' "$RUNNER_TEMP/SHA256SUMS")
+          [ ${#s} -eq 64 ] && [ ${#w} -eq 64 ] || { echo "::error::SHA256SUMS lacks the source or the Windows archive"; exit 1; }
+          mkdir -p out/Formula out/bucket
+          sed -e "s|/v0\.0\.0/crimlab-0\.0\.0\.tar\.gz|/v$v/crimlab-$v.tar.gz|" \
+              -e "s|sha256 \"0\{64\}\"|sha256 \"$s\"|" packaging/brew/crimlab.rb > out/Formula/crimlab.rb
+          sed -e "s|0\.0\.0|$v|g" -e "s|\"0\{64\}\"|\"$w\"|" packaging/scoop/crimlab.json > out/bucket/crimlab.json
+          if grep -q '0\{64\}' out/Formula/crimlab.rb out/bucket/crimlab.json; then
+            echo "::error::a placeholder SHA-256 is left"; exit 1
+          fi
+          python3 -m json.tool out/bucket/crimlab.json > /dev/null
+          cat out/Formula/crimlab.rb out/bucket/crimlab.json
+      - name: push to the tap and the bucket (secret CLAB_TAP_TOKEN)
+        env:
+          T: ${{ secrets.CLAB_TAP_TOKEN }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [ -z "$T" ]; then
+            echo "::warning::CLAB_TAP_TOKEN is not set: the tap and the bucket are not updated"
+            exit 0
+          fi
+          for r in homebrew-crimlab:Formula scoop-crimlab:bucket; do
+            repo=${r%%:*}; d=${r#*:}
+            git clone -q "https://x-access-token:$T@github.com/rootcoder007/$repo.git" "$RUNNER_TEMP/$repo"
+            mkdir -p "$RUNNER_TEMP/$repo/$d"
+            cp "out/$d"/* "$RUNNER_TEMP/$repo/$d/"
+            git -C "$RUNNER_TEMP/$repo" add -A
+            if git -C "$RUNNER_TEMP/$repo" diff --cached --quiet; then continue; fi
+            git -C "$RUNNER_TEMP/$repo" -c user.name=rootcoder007 \
+              -c user.email=278967282+rootcoder007@users.noreply.github.com \
+              commit -q -m "crimlab ${TAG#v}"
+            git -C "$RUNNER_TEMP/$repo" push -q origin HEAD
+          done
