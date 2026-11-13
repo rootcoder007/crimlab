@@ -293,7 +293,7 @@ run <- function(lib) {
 }
 r <- run(libs[1])
 r$out <- 1 - r$kern / r$full
-r$machine <- Sys.info()[["nodename"]]
+r$mach <- Sys.info()[["nodename"]]
 sh <- function(cmd, args) {
   tryCatch(suppressWarnings(system2(cmd, args, stdout = TRUE, stderr = FALSE)),
            error = function(e) character(0))
@@ -309,6 +309,6 @@ if (length(libs) > 1) {
   r$l00 <- r0$l0
   r$l10 <- r0$l1
 }
-r$r <- paste(R.version$major, R.version$minor, sep = ".")
+r$rver <- R.version.string
 r$date <- format(Sys.Date())
 utils::write.csv(r, out, row.names = FALSE)
