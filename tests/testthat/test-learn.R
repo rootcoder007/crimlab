@@ -18,8 +18,8 @@ test_that("enpath agrees with glmnet on the same lambdas and folds", {
     expect_identical(rownames(r$beta), colnames(ref$x))
     # the path from the data is glmnet's
     a <- enpath(ref$x, yy, f$fam, f$alpha, nlam = 15, lmr = 0.02)
-    k <- seq_along(f$lambda)
-    expect_equal(a$lambda[k], f$lambda, tolerance = 1e-12, info = info)
+    # (both stop early by the same rule)
+    expect_equal(a$lambda, f$lambda, tolerance = 1e-12, info = info)
   }
 })
 

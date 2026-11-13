@@ -35,22 +35,23 @@
 #'   the largest: one number strictly between 0 and 1, or `NULL` for 1e-4
 #'   when `x` has more rows than columns and 0.01 otherwise. The path runs
 #'   from the smallest penalty that zeroes every coefficient down to `lmr`
-#'   times it, evenly spaced on the log scale; unlike 'glmnet' it never
-#'   stops early.
+#'   times it, evenly spaced on the log scale, and stops early as 'glmnet'
+#'   does: from the fifth penalty on, once the share of the deviance
+#'   explained grows by less than 1e-5 of itself or exceeds 0.999.
 #' @param fold `NULL`, or the fold of each row: whole numbers from 1 to the
 #'   number of folds (at least 2), each fold used.
 #' @param tol The convergence threshold: a pass that moves no standardised
 #'   coefficient by more than `sqrt(tol)` (weighted by the curvature, for
 #'   the binomial family) ends the descent. One positive number.
 #' @param maxit The most passes over the columns, in all: one whole number.
-#' @return A list: `lambda`; `a0`, the intercepts; `beta`, a matrix of
-#'   coefficients with one column per penalty and one row per column of
-#'   `x`; and, when `fold` is given, `cvm` and `cvsd`, the mean held-out
-#'   loss (squared error, or the binomial deviance with probabilities kept
-#'   within 1e-5 of 0 and 1) and its standard error over folds, computed as
-#'   'glmnet' computes them, `lmin`, the penalty at the minimum, and
-#'   `l1se`, the largest penalty within one standard error of it; these
-#'   four are `NULL` without folds.
+#' @return A list: `lambda`, the penalties fitted; `a0`, the intercepts;
+#'   `beta`, a matrix of coefficients with one column per penalty and one
+#'   row per column of `x`; and, when `fold` is given, `cvm` and `cvsd`, the
+#'   mean held-out loss (squared error, or the binomial deviance with
+#'   probabilities kept within 1e-5 of 0 and 1) and its standard error over
+#'   folds, computed as 'glmnet' computes them, `lmin`, the penalty at the
+#'   minimum, and `l1se`, the largest penalty within one standard error of
+#'   it; these four are `NULL` without folds.
 #' @references Friedman, J., Hastie, T. and Tibshirani, R. (2010).
 #'   Regularization paths for generalized linear models via coordinate
 #'   descent. *Journal of Statistical Software*, 33(1), 1-22.

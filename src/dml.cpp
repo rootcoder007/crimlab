@@ -87,8 +87,9 @@ int nfit(const clab_lrn &l, int fam, const double *x, int n, int p,
     double *cw = beta + static_cast<long>(p) * nl;
     int best[2];
     const double lmr = mt > p ? 1e-4 : 1e-2;
+    int nfit;
     const int rc = lrn::cvnet(d, fam, l.alpha, lam, nl, lmr, 1e-7, 100000, f, k,
-                              a0, beta, cv, best, cw, ciw);
+                              a0, beta, cv, best, &nfit, cw, ciw);
     if (rc != CLAB_OK) return rc;
     lrn::lpred(x, n, p, te, me, a0[best[0]], beta + static_cast<long>(p) * best[0], eta);
   }

@@ -156,27 +156,34 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
   SEXP a0 = PROTECT(Rf_allocVector(REALSXP, nl));
   SEXP beta = PROTECT(rl::rmat(p, nl, x));
   SEXP cv = PROTECT(Rf_allocVector(REALSXP, 2 * static_cast<R_xlen_t>(nl)));
-  int best[2];
+  int best[2], nk = nl;
   const double dp = p, dn = n;
   double *w = rl::dalloc(dp * dp + 6 * dp + 4 * dn + nl * (dp + 1) + nf * (nl + 1.0));
   int *iw = rl::ialloc(2 * dn + dp);
   const int rc = clab_enpath(REAL_RO(xv), n, p, REAL_RO(yv), f, a, REAL(lam), nl,
                             r, th, mi, fd, nf, REAL(a0), REAL(beta), REAL(cv),
-                            best, w, iw);
+                            best, &nk, w, iw);
   if (rc == CLAB_EDOM) {
     fail("no fit: no convergence within `maxit` passes, or `y` constant "
          "once a fold is held out.");
   }
   kchk(rc, nullptr);
+  // the lambdas fitted: a path chosen here may stop early
+  SEXP lk = PROTECT(Rf_allocVector(REALSXP, nk));
+  SEXP ak = PROTECT(Rf_allocVector(REALSXP, nk));
+  SEXP bk = PROTECT(rl::rmat(p, nk, x));
+  std::memcpy(REAL(lk), REAL_RO(lam), sizeof(double) * nk);
+  std::memcpy(REAL(ak), REAL_RO(a0), sizeof(double) * nk);
+  std::memcpy(REAL(bk), REAL_RO(beta), sizeof(double) * nk * p);
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 7));
-  SET_VECTOR_ELT(out, 0, lam);
-  SET_VECTOR_ELT(out, 1, a0);
-  SET_VECTOR_ELT(out, 2, beta);
+  SET_VECTOR_ELT(out, 0, lk);
+  SET_VECTOR_ELT(out, 1, ak);
+  SET_VECTOR_ELT(out, 2, bk);
   if (fd != nullptr) {
-    SEXP cm = PROTECT(Rf_allocVector(REALSXP, nl));
-    SEXP cs = PROTECT(Rf_allocVector(REALSXP, nl));
-    std::memcpy(REAL(cm), REAL_RO(cv), sizeof(double) * nl);
-    std::memcpy(REAL(cs), REAL_RO(cv) + nl, sizeof(double) * nl);
+    SEXP cm = PROTECT(Rf_allocVector(REALSXP, nk));
+    SEXP cs = PROTECT(Rf_allocVector(REALSXP, nk));
+    std::memcpy(REAL(cm), REAL_RO(cv), sizeof(double) * nk);
+    std::memcpy(REAL(cs), REAL_RO(cv) + nk, sizeof(double) * nk);
     SET_VECTOR_ELT(out, 3, cm);
     SET_VECTOR_ELT(out, 4, cs);
     SET_VECTOR_ELT(out, 5, Rf_ScalarReal(REAL_RO(lam)[best[0]]));
@@ -185,7 +192,7 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
   }
   static const char *const nm[] = {"lambda", "a0",   "beta", "cvm",
                                    "cvsd",   "lmin", "l1se"};
-  UNPROTECT(7);
+  UNPROTECT(10);
   return clab::nlist(out, nm);
 }
 

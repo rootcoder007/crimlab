@@ -18,7 +18,7 @@ const int N = 120, P = 5, NL = 12;
 double X[N * P], Y[N], YB[N];
 double A0[NL], B[P * NL], LAM[NL], CV[2 * NL];
 double W[P * P + 6 * P + 4 * N + NL * (P + 1) + 5 * (NL + 1)];
-int IW[2 * N + P], BEST[2];
+int IW[2 * N + P], BEST[2], NFIT;
 
 double rnorm(rng &g) {
   return std::sqrt(-2.0 * std::log(runi(g))) * std::cos(6.283185307179586 * runi(g));
@@ -95,7 +95,7 @@ int fit(int fam, double alpha, int nl, double lmr, const int *fold, int nf,
         int n = N, int p = P, const double *y = nullptr) {
   if (y == nullptr) y = fam == 0 ? Y : YB;
   return clab_enpath(x, n, p, y, fam, alpha, LAM, nl, lmr, thresh, maxit, fold,
-                    nf, A0, B, CV, BEST, W, IW);
+                    nf, A0, B, CV, BEST, &NFIT, W, IW);
 }
 
 void t_net(tk &t) {
@@ -152,7 +152,7 @@ void t_net(tk &t) {
       }
       if (alpha > 0.0) tk_true(t, "net.path.zero", z0 == 0.0 && z1 > 0.0);
       tk_eq(t, "net.path.lmr", LAM[NL - 1] / LAM[0], 0.01, 1e-12);
-      for (int k = 0; k < NL; ++k) {
+      for (int k = 0; k < NFIT; ++k) {
         worst = std::fmax(worst, kkt(X, N, P, fam == 0 ? Y : YB, fam, alpha,
                                      LAM[k], A0[k], B + k * P));
       }
@@ -176,10 +176,11 @@ void t_net(tk &t) {
   for (int fam = 0; fam < 2; ++fam) {
     const double *y = fam == 0 ? Y : YB;
     tk_ieq(t, "net.cv.rc", fit(fam, 0.8, NL, 0.05, fold, 4), CLAB_OK);
+    const int nl = NFIT;
     double lam[NL], cm[NL], cs[NL], fsum[4 * NL], fcnt[4] = {0, 0, 0, 0};
     std::memcpy(lam, LAM, sizeof lam);
     std::memcpy(cm, CV, sizeof cm);
-    std::memcpy(cs, CV + NL, sizeof cs);
+    std::memcpy(cs, CV + nl, sizeof cs);
     const int b0 = BEST[0], b1 = BEST[1];
     for (int f = 0; f < 4; ++f) {
       static double xt[N * P], yt[N];
@@ -195,8 +196,8 @@ void t_net(tk &t) {
         for (int i = 0; i < m; ++i) xp[i + j * m] = xt[i + j * N];
       }
       std::memcpy(LAM, lam, sizeof lam);
-      fit(fam, 0.8, NL, 0.0, nullptr, 0, 1e-14, 100000, xp, m, P, yt);
-      for (int k = 0; k < NL; ++k) {
+      fit(fam, 0.8, nl, 0.0, nullptr, 0, 1e-14, 100000, xp, m, P, yt);
+      for (int k = 0; k < nl; ++k) {
         double s = 0.0;
         for (int i = 0; i < N; ++i) {
           if (fold[i] != f) continue;
@@ -216,7 +217,7 @@ void t_net(tk &t) {
     }
     double wm[NL], ws[NL];
     int im = 0;
-    for (int k = 0; k < NL; ++k) {
+    for (int k = 0; k < nl; ++k) {
       wm[k] = (fsum[k] + fsum[NL + k] + fsum[2 * NL + k] + fsum[3 * NL + k]) / N;
       double v = 0.0;
       for (int f = 0; f < 4; ++f) {
@@ -227,8 +228,8 @@ void t_net(tk &t) {
     }
     int i1 = 0;
     while (wm[i1] > wm[im] + ws[im]) ++i1;
-    tk_veq(t, "net.cv.m", cm, wm, NL, 1e-9);
-    tk_veq(t, "net.cv.s", cs, ws, NL, 1e-7);
+    tk_veq(t, "net.cv.m", cm, wm, nl, 1e-9);
+    tk_veq(t, "net.cv.s", cs, ws, nl, 1e-7);
     tk_ieq(t, "net.cv.min", b0, im);
     tk_ieq(t, "net.cv.1se", b1, i1);
     tk_true(t, "net.cv.order", b1 <= b0);
@@ -241,21 +242,31 @@ void t_net(tk &t) {
     for (int i = 0; i < N; ++i) xc[i + 2 * N] = 7.0;
     fit(0, 1.0, NL, 0.01, nullptr, 0, 1e-14, 100000, xc);
     bool zero = true;
-    for (int k = 0; k < NL; ++k) zero = zero && B[k * P + 2] == 0.0;
+    for (int k = 0; k < NFIT; ++k) zero = zero && B[k * P + 2] == 0.0;
     tk_true(t, "net.const", zero);
     fit(1, 1.0, NL, 0.01, nullptr, 0, 1e-14, 100000, xc);
     zero = true;
-    for (int k = 0; k < NL; ++k) zero = zero && B[k * P + 2] == 0.0;
+    for (int k = 0; k < NFIT; ++k) zero = zero && B[k * P + 2] == 0.0;
     tk_true(t, "net.bconst", zero);
     std::memcpy(xc, X, sizeof X);
     for (int i = 0; i < N; ++i) xc[i] += 100.0;
     double b1[P * NL], a1[NL];
     fit(0, 0.5, NL, 0.01, nullptr, 0);
+    const int n1 = NFIT;
     std::memcpy(b1, B, sizeof b1);
     std::memcpy(a1, A0, sizeof a1);
     fit(0, 0.5, NL, 0.01, nullptr, 0, 1e-14, 100000, xc);
-    tk_veq(t, "net.shift.b", B, b1, P * NL, 1e-9);
-    tk_eq(t, "net.shift.a0", A0[NL - 1] + 100.0 * B[NL * P - P], a1[NL - 1], 1e-9);
+    tk_ieq(t, "net.shift.n", NFIT, n1);
+    tk_veq(t, "net.shift.b", B, b1, P * n1, 1e-9);
+    tk_eq(t, "net.shift.a0", A0[n1 - 1] + 100.0 * B[n1 * P - P], a1[n1 - 1], 1e-9);
+    // the early stop of a path chosen here (glmnet's rule): a gaussian
+    // outcome almost exactly linear, and a binary one at penalties down to
+    // 1e-9 of the largest
+    for (int i = 0; i < N; ++i) yc[i] = X[i] + 1e-3 * Y[i];
+    fit(0, 1.0, NL, 1e-4, nullptr, 0, 1e-14, 100000, X, N, P, yc);
+    tk_true(t, "net.stop.g", NFIT >= 5 && NFIT < NL);
+    fit(1, 1.0, NL, 1e-9, nullptr, 0, 1e-14, 1000000, X, N, P, YB);
+    tk_true(t, "net.stop.b", NFIT >= 5 && NFIT < NL);
     // and a constant outcome or a non-binary one has no path
     for (int i = 0; i < N; ++i) yc[i] = 2.0;
     tk_ieq(t, "net.yconst", fit(0, 1.0, NL, 0.01, nullptr, 0, 1e-7, 100, X, N, P, yc), CLAB_EDOM);

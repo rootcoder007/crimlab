@@ -34,21 +34,25 @@ int lmax(const Dat &d, int fam, double alpha, double *lam, double *work);
 // beta[p nl] (column k for lam[k]) on the original scale. thresh: the
 // convergence threshold on the largest weighted squared change of a
 // standardised coefficient in a pass; maxit: the most passes in all.
+// With stop, the path ends early by glmnet's rule (from the fifth lambda,
+// when the share of deviance explained grows by less than 1e-5 of itself
+// or passes 0.999); nfit gets the number of lambdas fitted.
 int path(const Dat &d, int fam, double alpha, const double *lam, int nl,
-         double thresh, int maxit, double *a0, double *beta, double *work,
-         int *iwork);
+         double thresh, int maxit, int stop, int *nfit, double *a0,
+         double *beta, double *work, int *iwork);
 
 // The path at lam (or, when 0 < lmr < 1, at nl lambdas from lmax() down
 // to lmr times it, written to lam) and, when fold is given (fold[i] in [0,
 // nf) for the row d.idx[i]), K-fold cross-validation: cv (2 nl), the mean
 // held-out loss and its standard error; best (2), the indices of the
-// minimum and of the largest lambda within one standard error. work:
-// cvwork() doubles; iwork: d.m + p ints.
+// minimum and of the largest lambda within one standard error; nfit, the
+// lambdas fitted (a path chosen here stops early, as path() with stop).
+// work: cvwork() doubles; iwork: d.m + p ints.
 long cvwork(int n, int p, int nl, int nf);
 int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
           double lmr, double thresh, int maxit, const int *fold, int nf,
-          double *a0, double *beta, double *cv, int *best, double *work,
-          int *iwork);
+          double *a0, double *beta, double *cv, int *best, int *nfit,
+          double *work, int *iwork);
 
 // A generalised linear model with intercept by Newton steps on the full
 // system (gaussian: one least-squares solve; binomial: logistic

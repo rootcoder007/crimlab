@@ -1150,8 +1150,10 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
  * results match it for every alpha. alpha in [0, 1]; lam: nl lambdas,
  * decreasing, read when lmr <= 0; when 0 < lmr < 1 the path is written to
  * lam instead: nl values from the smallest lambda that zeroes every
- * coefficient down to lmr times it, evenly spaced on the log scale (no
- * early stop). thresh > 0: convergence when no pass moves a standardised
+ * coefficient down to lmr times it, evenly spaced on the log scale, the
+ * path ending early by glmnet's rule (from the fifth lambda, once the share
+ * of deviance explained grows by less than 1e-5 of itself or passes
+ * 0.999). thresh > 0: convergence when no pass moves a standardised
  * coefficient by more than sqrt(thresh) (weighted, binomial); maxit
  * passes at most in all, else CLAB_EDOM. fold: NULL, or n fold ids in [0,
  * nf), nf >= 2, every fold non-empty: then each fold is held out in turn,
@@ -1160,13 +1162,14 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
  * probability kept in [1e-5, 1 - 1e-5]) and its standard error, both as
  * cv.glmnet computes them from fold means weighted by fold size; best (2)
  * the indices of the lambda at the minimum and of the largest lambda
- * within one standard error of it. Out: a0 (nl), beta (p nl) on the
- * original scale. work: p^2 + 6p + 4n + nl (p + 1) + nf (nl + 1)
+ * within one standard error of it; nfit, the number of lambdas fitted
+ * (the first nfit entries of every output). Out: a0 (nl), beta (p nl) on
+ * the original scale. work: p^2 + 6p + 4n + nl (p + 1) + nf (nl + 1)
  * doubles; iwork: 2n + p ints. */
 int clab_enpath(const double *x, int n, int p, const double *y, int fam,
                double alpha, double *lam, int nl, double lmr, double thresh,
                int maxit, const int *fold, int nf, double *a0, double *beta,
-               double *cv, int *best, double *work, int *iwork);
+               double *cv, int *best, int *nfit, double *work, int *iwork);
 
 /* Logistic regression by Newton's method on the centred design. y: n
  * outcomes in {0, 1}, both present; x: n by p, p >= 0, full column rank

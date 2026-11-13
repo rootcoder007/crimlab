@@ -73,12 +73,19 @@ inline double xdot(const lrn::Dat &d, int j, double mu, double sd,
   return s / sd;
 }
 
+// glmnet's early stop of a path it chose itself: from the fifth lambda on,
+// when the share of deviance explained (r, r0 at the lambda before) grew
+// by less than 1e-5 of itself or passed 0.999
+inline bool early(int k, double r, double r0) {
+  return k >= 4 && (r - r0 < 1e-5 * r || r > 0.999);
+}
+
 // the gaussian path, covariance updates: g holds x~_j' (y~ - X~ b) / m,
 // standardised y, and column j of C = X~' X~ / m is formed when b_j first
 // moves. work: mu, sd, b, g, C (p p), t (n); iwork: have (p).
 int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
-          double thresh, int maxit, double *a0, double *beta, double *work,
-          int *iwork) {
+          double thresh, int maxit, int stop, int *nfit, double *a0,
+          double *beta, double *work, int *iwork) {
   const int p = d.p, m = d.m;
   double *mu = work, *sd = mu + p, *b = sd + p, *g = b + p, *c = g + p;
   double *t = c + static_cast<long>(p) * p;
@@ -109,11 +116,14 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
     }
     have[j] = 1;
   };
-  // one coordinate: its change, squared
+  // one coordinate: its change, squared; rsq, the share of the variance
+  // of y explained, follows each change (y is standardised)
+  double rsq = 0.0, rsq0 = 0.0;
   auto upd = [&](int j, double l1, double l2) {
     const double nb = soft(g[j] + b[j], l1) / (1.0 + l2);
     const double dl = nb - b[j];
     if (dl == 0.0) return 0.0;
+    rsq += dl * (2.0 * g[j] - dl);
     if (!have[j]) col(j);
     const double *cj = c + static_cast<long>(j) * p;
     for (int k = 0; k < p; ++k) g[k] -= dl * cj[k];
@@ -146,6 +156,9 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
       s -= mu[j] * bk[j];
     }
     a0[k] = s;
+    *nfit = k + 1;
+    if (stop && early(k, rsq, rsq0)) break;
+    rsq0 = rsq;
   }
   return CLAB_OK;
 }
@@ -156,8 +169,8 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
 // columns that violate them. work: mu, sd, b, g (unused), xv, bo (p
 // each), eta, v, r (n each); iwork: act (p).
 int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
-          double thresh, int maxit, double *a0, double *beta, double *work,
-          int *iwork) {
+          double thresh, int maxit, int stop, int *nfit, double *a0,
+          double *beta, double *work, int *iwork) {
   const int p = d.p, m = d.m;
   const double w = 1.0 / m;
   double *mu = work, *sd = mu + p, *b = sd + p, *xv = b + 2 * p;
@@ -170,6 +183,9 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
   stdz(d, mu, sd);
   double a = std::log(ym / (1.0 - ym));
   for (int i = 0; i < m; ++i) eta[i] = a;
+  // the null deviance per row, over 2
+  const double dev0 = -(ym * std::log(ym) + (1.0 - ym) * std::log1p(-ym));
+  double r20 = 0.0;
   for (int j = 0; j < p; ++j) {
     b[j] = 0.0;
     act[j] = 0;
@@ -254,6 +270,16 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
       s -= mu[j] * bk[j];
     }
     a0[k] = s;
+    *nfit = k + 1;
+    // the share of the null deviance explained
+    double dev = 0.0;
+    for (int i = 0; i < m; ++i) {
+      const double pr = 1.0 / (1.0 + std::exp(-eta[i]));
+      dev -= d.y[d.idx[i]] == 1.0 ? std::log(pr) : std::log1p(-pr);
+    }
+    const double r2 = 1.0 - dev / m / dev0;
+    if (stop && early(k, r2, r20)) break;
+    r20 = r2;
   }
   return CLAB_OK;
 }
@@ -318,10 +344,10 @@ int lmax(const Dat &d, int fam, double alpha, double *lam, double *work) {
 }
 
 int path(const Dat &d, int fam, double alpha, const double *lam, int nl,
-         double thresh, int maxit, double *a0, double *beta, double *work,
-         int *iwork) {
-  return fam == 0 ? gauss(d, alpha, lam, nl, thresh, maxit, a0, beta, work, iwork)
-                  : binom(d, alpha, lam, nl, thresh, maxit, a0, beta, work, iwork);
+         double thresh, int maxit, int stop, int *nfit, double *a0,
+         double *beta, double *work, int *iwork) {
+  return fam == 0 ? gauss(d, alpha, lam, nl, thresh, maxit, stop, nfit, a0, beta, work, iwork)
+                  : binom(d, alpha, lam, nl, thresh, maxit, stop, nfit, a0, beta, work, iwork);
 }
 
 void lpred(const double *x, int n, int p, const int *idx, int m, double a0,
@@ -465,8 +491,8 @@ long cvwork(int n, int p, int nl, int nf) {
 
 int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
           double lmr, double thresh, int maxit, const int *fold, int nf,
-          double *a0, double *beta, double *cv, int *best, double *work,
-          int *iwork) {
+          double *a0, double *beta, double *cv, int *best, int *nfit,
+          double *work, int *iwork) {
   const int n = d.n, p = d.p;
   int *idx = iwork, *iw = idx + d.m;
   double *pw = work, *eta = pw + pwork(n, p), *fs = eta + n;
@@ -483,7 +509,10 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
     if (!(lam[k] >= 0.0 && std::isfinite(lam[k])) || (k > 0 && lam[k] > lam[k - 1]))
       return CLAB_EDOM;
   }
-  int rc = path(d, fam, alpha, lam, nl, thresh, maxit, a0, beta, pw, iw);
+  // a path chosen here stops early as glmnet's does; the folds then fit
+  // the lambdas it reached
+  int rc = path(d, fam, alpha, lam, nl, thresh, maxit, lmr > 0.0, nfit, a0, beta, pw, iw);
+  nl = *nfit;
   if (rc != CLAB_OK || fold == nullptr) return rc;
   // K-fold cross-validation over the caller's folds, on the same lambdas;
   // fold[i] belongs to row d.idx[i]
@@ -497,7 +526,8 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
     }
     if (t == d.m) return CLAB_EARG;  // an empty fold
     const Dat tr = {d.x, n, p, d.y, idx, m};
-    rc = path(tr, fam, alpha, lam, nl, thresh, maxit, fa, fb, pw, iw);
+    int nk;
+    rc = path(tr, fam, alpha, lam, nl, thresh, maxit, 0, &nk, fa, fb, pw, iw);
     if (rc != CLAB_OK) return rc;
     for (int k = 0; k < nl; ++k) {
       lpred(d.x, n, p, idx + t, d.m - t, fa[k], fb + static_cast<long>(k) * p, eta);
@@ -544,7 +574,7 @@ extern "C" {
 int clab_enpath(const double *x, int n, int p, const double *y, int fam,
                double alpha, double *lam, int nl, double lmr, double thresh,
                int maxit, const int *fold, int nf, double *a0, double *beta,
-               double *cv, int *best, double *work, int *iwork) {
+               double *cv, int *best, int *nfit, double *work, int *iwork) {
   if (n < 2 || p < 1 || nl < 1 || maxit < 1 || (fam != 0 && fam != 1) ||
       (fold != nullptr && (nf < 2 || nf > n)))
     return CLAB_EARG;
@@ -559,7 +589,7 @@ int clab_enpath(const double *x, int n, int p, const double *y, int fam,
   }
   const lrn::Dat d = {x, n, p, y, iwork, n};
   return lrn::cvnet(d, fam, alpha, lam, nl, lmr, thresh, maxit, fold,
-                    fold == nullptr ? 0 : nf, a0, beta, cv, best, work,
+                    fold == nullptr ? 0 : nf, a0, beta, cv, best, nfit, work,
                     iwork + n);
 }
 

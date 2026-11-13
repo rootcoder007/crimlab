@@ -38,8 +38,9 @@ path: one whole number, at least 1.}
 the largest: one number strictly between 0 and 1, or \code{NULL} for 1e-4
 when \code{x} has more rows than columns and 0.01 otherwise. The path runs
 from the smallest penalty that zeroes every coefficient down to \code{lmr}
-times it, evenly spaced on the log scale; unlike 'glmnet' it never
-stops early.}
+times it, evenly spaced on the log scale, and stops early as 'glmnet'
+does: from the fifth penalty on, once the share of the deviance
+explained grows by less than 1e-5 of itself or exceeds 0.999.}
 
 \item{fold}{\code{NULL}, or the fold of each row: whole numbers from 1 to the
 number of folds (at least 2), each fold used.}
@@ -51,14 +52,14 @@ the binomial family) ends the descent. One positive number.}
 \item{maxit}{The most passes over the columns, in all: one whole number.}
 }
 \value{
-A list: \code{lambda}; \code{a0}, the intercepts; \code{beta}, a matrix of
-coefficients with one column per penalty and one row per column of
-\code{x}; and, when \code{fold} is given, \code{cvm} and \code{cvsd}, the mean held-out
-loss (squared error, or the binomial deviance with probabilities kept
-within 1e-5 of 0 and 1) and its standard error over folds, computed as
-'glmnet' computes them, \code{lmin}, the penalty at the minimum, and
-\code{l1se}, the largest penalty within one standard error of it; these
-four are \code{NULL} without folds.
+A list: \code{lambda}, the penalties fitted; \code{a0}, the intercepts;
+\code{beta}, a matrix of coefficients with one column per penalty and one
+row per column of \code{x}; and, when \code{fold} is given, \code{cvm} and \code{cvsd}, the
+mean held-out loss (squared error, or the binomial deviance with
+probabilities kept within 1e-5 of 0 and 1) and its standard error over
+folds, computed as 'glmnet' computes them, \code{lmin}, the penalty at the
+minimum, and \code{l1se}, the largest penalty within one standard error of
+it; these four are \code{NULL} without folds.
 }
 \description{
 Fits the lasso, ridge and elastic net path by cyclical coordinate
