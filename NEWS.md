@@ -199,3 +199,29 @@
   (every sign pattern when few), permutation of adoption dates across
   clusters, and simulated power with the minimum detectable effect;
   `wystep()` the Westfall-Young stepdown p-values.
+* Spatial crime analysis. `knxnr()` is the Knox test of near repeats: pairs
+  by band of distance and time against their exact expectation under
+  exchangeable times, with permutation and Poisson p-values. `kdsurf()`
+  gives kernel intensity surfaces (the bandwidth and values of
+  `MASS::kde2d()`, the edge corrections of `spatstat.explore::density.ppp()`)
+  with the smallest areas holding each share of the incidents; `dbscn()`
+  DBSCAN clusters as `dbscan::dbscan()` numbers them; `hsper()` hot grid
+  cells per period, their overlap and how long each stays hot; `ebshr()`
+  the empirical-Bayes shrinkage of hot-spot counts and the fall to expect
+  without any programme; `kscan()` Kulldorff's space-time permutation scan
+  with secondary clusters. `gmoran()` and `bvmor()` give global and
+  bivariate Moran's I with their inference (`spdep::moran.test()`,
+  `spdep::moran_bv()`), one variable or a sweep of columns; `sarml()` fits
+  the spatial lag, error and combined models by maximum likelihood, and the
+  lag model by two-stage least squares, with Durbin terms and the OLS fit
+  beside (`spatialreg::lagsarlm()`, `errorsarlm()`, `sacsarlm()`,
+  `stsls()`); `spill()` gives direct, indirect and total effects with
+  delta-method standard errors (`spatialreg::impacts()`). `crossk()` gives
+  the cross-type K function and the kernel segregation test, `qdrtst()` the
+  quadrat test, `morsta()` Morisita's index, `dissix()` the dissimilarity,
+  entropy, Atkinson and Gini indices with Morrill's adjustment. `pinpl()`
+  puts points in polygons and reports the population their regions cover,
+  `arwt()` moves counts between two sets of areal units, and `bufas()`
+  assigns treated, comparison and excluded places around sites.
+  `proof("ebshr")`, `proof("kscan")`, `proof("dissix")`, `proof("spill")`
+  and `proof("bvmor")` name the Lean theorems in `inst/lean/Hotspot.lean`.

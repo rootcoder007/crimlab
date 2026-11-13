@@ -195,3 +195,26 @@ reference:
   - title: Package
     contents:
       - crimlab-package
+  - title: Spatial crime analysis
+    desc: Near repeats, kernel surfaces, DBSCAN and hot-spot persistence,
+      the space-time scan, global and bivariate Moran, spatial regression
+      and its effects, point patterns and segregation, points in polygons,
+      areal crosswalks and buffer designs.
+    contents:
+      - knxnr
+      - kdsurf
+      - dbscn
+      - hsper
+      - ebshr
+      - kscan
+      - gmoran
+      - bvmor
+      - sarml
+      - spill
+      - crossk
+      - qdrtst
+      - morsta
+      - dissix
+      - pinpl
+      - arwt
+      - bufas

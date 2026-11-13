@@ -330,6 +330,30 @@ head(lmorn(v, w, nsim = 199, seed = 1))                    # local Moran
 locgi(v, spwt(p, type = "band", d = 0.2, style = "raw"))  # local G*
 dirmn(p, origin = c(0.5, 0.5))         # directional mean from an origin
 ```
+### Near repeats, hot spots, scans and spatial regression
+
+```r
+set.seed(5)
+p <- cbind(x = runif(300, 0, 3000), y = runif(300, 0, 3000))
+t <- runif(300, 0, 365)
+knxnr(p, t = t, ds = c(100, 200), dt = c(7, 14), nsim = 99, seed = 1)
+k <- kdsurf(p, nx = 40)                # intensity surface, MASS::kde2d() x n
+k$regions                              # smallest areas holding 50%, 90%
+dbscn(p, eps = 150, minpts = 4)$sizes
+hsper(p, prd = rep(2021:2023, 100), cell = 500, top = 0.1)$periods
+ebshr(c(40, 12, 9, 25, 7, 31, 5, 18))$est     # the expected fall of hot spots
+kscan(p, t = t, r = c(150, 300), tw = c(14, 30), nsim = 49, seed = 1)$cl
+w <- spwt(p, k = 5)
+gmoran(p[, 1] + rnorm(300, sd = 500), w, nsim = 99, seed = 1)
+bvmor(p[, 1], p[, 2], w, nsim = 99, seed = 1)
+f <- sarml(p[, 1] / 1000 + rnorm(300), p[, 2] / 1000, w, durbin = TRUE)
+spill(f)                               # direct, indirect and total effects
+crossk(p, marks = rep(c("a", "b"), 150), i = "a", j = "b",
+       win = c(0, 3000, 0, 3000), r = c(100, 200))$k
+qdrtst(p, win = c(0, 3000, 0, 3000), nx = 3)
+dissix(cbind(a = c(90, 80, 10, 5), b = c(10, 20, 85, 95)))$d
+bufas(p, site = cbind(1000, 1000), comp = cbind(2500, 2500), r = 300)$n
+```
 ### Risk tools, trace evidence, time and data screens
 
 ```r
