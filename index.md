@@ -168,6 +168,60 @@ The functions work on summary data, not on raw records:
   and what the functions here would make of categorical inputs before an
   analysis
   ([`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)).
+- Police-reported crime: a severity-weighted index of counts by offence,
+  per population and against a base period
+  ([`crsev()`](https://rootcoder007.github.io/crimlab/reference/crsev.md)),
+  and a composite of standardised counts that ranks areas on several
+  kinds of crime at once
+  ([`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md)).
+- Concentration: how unequally incidents or placements fall across
+  places and people, how much of a Gini coefficient comes from units
+  with none, what chance alone would show and how distinct places grow
+  ([`cconc()`](https://rootcoder007.github.io/crimlab/reference/cconc.md)),
+  and the tail index of a heavy-tailed count
+  ([`hilltl()`](https://rootcoder007.github.io/crimlab/reference/hilltl.md)).
+- The dark figure: how many offenders or incidents no list records, from
+  two or three overlapping lists
+  ([`crcap()`](https://rootcoder007.github.io/crimlab/reference/crcap.md)),
+  and what a victimisation survey and recorded crime together say about
+  the crime that is never recorded
+  ([`dkfig()`](https://rootcoder007.github.io/crimlab/reference/dkfig.md)).
+- Published tables: what a banded category, a rounded or suppressed
+  cell, or a change between two published years can and cannot say
+  ([`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md),
+  [`pbbnd()`](https://rootcoder007.github.io/crimlab/reference/pbbnd.md),
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)).
+- Courts: what a judge-leniency design identifies and how far it rests
+  on monotonicity
+  ([`jdgiv()`](https://rootcoder007.github.io/crimlab/reference/jdgiv.md)),
+  whether judges’ leniency rankings hold across pairs and groups of
+  cases
+  ([`jmono()`](https://rootcoder007.github.io/crimlab/reference/jmono.md)),
+  and how sentences sit against a mandatory minimum
+  ([`mmshr()`](https://rootcoder007.github.io/crimlab/reference/mmshr.md)).
+- Life course and the pipeline: what an aggregate age-crime curve can
+  and cannot say about types of offenders
+  ([`agemix()`](https://rootcoder007.github.io/crimlab/reference/agemix.md)),
+  the cumulative risk of a first arrest or admission by age
+  ([`cumrsk()`](https://rootcoder007.github.io/crimlab/reference/cumrsk.md)),
+  and rates between stages of the justice system with a lag
+  ([`jpipe()`](https://rootcoder007.github.io/crimlab/reference/jpipe.md)).
+- Segregation: how many placements, and how many people, meet the
+  Mandela Rules’ definitions of solitary confinement and prolonged
+  solitary confinement, by year or region and under each denominator
+  ([`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md)).
+- Custody and courts as stocks and flows: how the population held,
+  admissions and the length of stay determine each other
+  ([`stkflw()`](https://rootcoder007.github.io/crimlab/reference/stkflw.md)),
+  how long stays are
+  ([`lostay()`](https://rootcoder007.github.io/crimlab/reference/lostay.md)),
+  what a backlog implies about the time cases take
+  ([`bklog()`](https://rootcoder007.github.io/crimlab/reference/bklog.md),
+  [`dktflw()`](https://rootcoder007.github.io/crimlab/reference/dktflw.md)),
+  how long cases take from grouped times
+  ([`lftab()`](https://rootcoder007.github.io/crimlab/reference/lftab.md)),
+  and how people move between states
+  ([`trnmat()`](https://rootcoder007.github.io/crimlab/reference/trnmat.md)).
 
 ## Algorithms
 

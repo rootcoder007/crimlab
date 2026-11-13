@@ -272,6 +272,99 @@ association.
 - [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
   : Cross-tabulation with tests and measures of association
 
+## Police-reported crime
+
+Severity-weighted crime indices and composite indices of standardised
+counts.
+
+- [`crsev()`](https://rootcoder007.github.io/crimlab/reference/crsev.md)
+  : Severity-weighted crime index
+- [`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md)
+  : Composite index of standardised counts
+
+## Concentration
+
+How unequally crime is spread across places, people or units, what
+chance alone would show, and the tail of a heavy-tailed count.
+
+- [`cconc()`](https://rootcoder007.github.io/crimlab/reference/cconc.md)
+  : Concentration of crime across places, people or units
+- [`hilltl()`](https://rootcoder007.github.io/crimlab/reference/hilltl.md)
+  : Tail index of a heavy-tailed count
+
+## Dark figure
+
+Capture-recapture from two or three lists, and bounds on the crime that
+is never recorded.
+
+- [`crcap()`](https://rootcoder007.github.io/crimlab/reference/crcap.md)
+  : Capture-recapture estimates of a hidden population
+- [`dkfig()`](https://rootcoder007.github.io/crimlab/reference/dkfig.md)
+  : The dark figure of crime: bounds instead of a point
+
+## Published tables
+
+Banded categories, the bounds that rounding and suppression leave, and
+period-over-period change with exact tests.
+
+- [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md)
+  : Banded categories: bounds, values and what the open band costs
+- [`pbbnd()`](https://rootcoder007.github.io/crimlab/reference/pbbnd.md)
+  : Bounds implied by rounding and suppression in a published table
+- [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  : Year-over-year change in a published series
+
+## Courts and sentencing
+
+The judge-leniency instrument and its monotonicity, and sentences
+against a mandatory minimum.
+
+- [`jdgiv()`](https://rootcoder007.github.io/crimlab/reference/jdgiv.md)
+  : The judge-leniency instrument
+- [`jmono()`](https://rootcoder007.github.io/crimlab/reference/jmono.md)
+  : Do judges' leniency rankings hold? Monotonicity checks
+- [`mmshr()`](https://rootcoder007.github.io/crimlab/reference/mmshr.md)
+  : Sentences at, below and above a mandatory minimum
+
+## Life course and the justice pipeline
+
+Age-crime curves of a mixture of types, the cumulative risk of a first
+event by age, and lagged rates between stages.
+
+- [`agemix()`](https://rootcoder007.github.io/crimlab/reference/agemix.md)
+  : The age-crime curve of a mixture of offender types
+- [`cumrsk()`](https://rootcoder007.github.io/crimlab/reference/cumrsk.md)
+  : Cumulative risk of a first event by age
+- [`jpipe()`](https://rootcoder007.github.io/crimlab/reference/jpipe.md)
+  : Rates between stages of the justice pipeline
+
+## Segregation and the Mandela Rules
+
+Placements that meet the Mandela Rules’ limits on solitary confinement,
+by group and denominator.
+
+- [`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md)
+  : Segregation placements under the Mandela Rules
+
+## Custody and court flow
+
+Stocks and flows of people held, lengths of stay, Little’s law on a
+docket, case flow and outcome mix, life tables of grouped times, and
+moves between states.
+
+- [`stkflw()`](https://rootcoder007.github.io/crimlab/reference/stkflw.md)
+  : Stock and flow of a population held over time
+- [`lostay()`](https://rootcoder007.github.io/crimlab/reference/lostay.md)
+  : Lengths of stay: their distribution and its fit
+- [`bklog()`](https://rootcoder007.github.io/crimlab/reference/bklog.md)
+  : Little's law on a court docket
+- [`dktflw()`](https://rootcoder007.github.io/crimlab/reference/dktflw.md)
+  : Case flow through a court
+- [`lftab()`](https://rootcoder007.github.io/crimlab/reference/lftab.md)
+  : Actuarial life table of grouped times
+- [`trnmat()`](https://rootcoder007.github.io/crimlab/reference/trnmat.md)
+  : Transition matrix between states
+
 ## Presets
 
 A published dataset’s columns onto a generic function’s arguments.

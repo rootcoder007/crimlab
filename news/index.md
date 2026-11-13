@@ -58,6 +58,97 @@
   [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
   simulates the process, in time or in space and time, by its branching
   construction.
+- [`crsev()`](https://rootcoder007.github.io/crimlab/reference/crsev.md)
+  builds a severity-weighted crime index from counts by offence (the
+  Crime Severity Index of Statistics Canada: weighted counts per
+  population against a base, the weights given or made from
+  incarceration rates and mean sentences);
+  [`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md)
+  ranks units on a composite of standardised counts across categories.
+- [`cconc()`](https://rootcoder007.github.io/crimlab/reference/cconc.md)
+  measures how concentrated a total is across units: the Gini
+  coefficient and its exact split into the share of units at zero and
+  the Gini of the rest, the Lorenz curve, top shares, dispersion against
+  the Poisson, the bound chance alone allows and a simulated Poisson
+  null, the Gini within groups, the urban-scaling exponent, and for the
+  places of events in order the growth of distinct places.
+  [`hilltl()`](https://rootcoder007.github.io/crimlab/reference/hilltl.md)
+  estimates a power-law tail index: the discrete maximum likelihood
+  estimate through the Hurwitz zeta function, or the Hill estimators,
+  with the Kolmogorov-Smirnov distance of the fit. `proof("cconc")`
+  names the Lean theorems on the split at zero.
+- [`crcap()`](https://rootcoder007.github.io/crimlab/reference/crcap.md)
+  estimates a hidden population from two lists (Lincoln-Petersen with
+  its bounds over a box of list dependence, Chapman’s estimate with
+  Seber’s standard error) or three (the never-listed cell under no
+  three-way interaction, its sensitivity to that interaction, and the
+  pairwise estimates);
+  [`dkfig()`](https://rootcoder007.github.io/crimlab/reference/dkfig.md)
+  bounds the dark figure of crime: the true victimisation rate under
+  limits on a survey’s false positives and negatives with the breakdown
+  point of a conclusion, the total when a survey covers only some
+  offences, and the offences behind incidents counted under the
+  hierarchy rule. `proof("crcap")` and `proof("dkfig")` name the Lean
+  theorems.
+- [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md)
+  reads band labels (“1-5”, “Over 60”, “Under 10”) into bounds, places a
+  value in each band, expands a banded frequency table and shows how
+  much a statistic depends on the cap assumed for an open band;
+  [`pbbnd()`](https://rootcoder007.github.io/crimlab/reference/pbbnd.md)
+  gives the bounds a rounded or suppressed published cell allows and the
+  envelope of the change between two published columns;
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  gives year-over-year (or any period) change within groups with the
+  exact interval of the percent change, exact p-values adjusted for
+  multiplicity, and the envelope that rounding allows. `proof("pbbnd")`
+  names the Lean theorems on the envelope.
+- [`jdgiv()`](https://rootcoder007.github.io/crimlab/reference/jdgiv.md)
+  gives the judge-leniency instrument’s first stage, intention-to- treat
+  effect and Wald ratio with the compliers’ effect over a grid of defier
+  shares and effects, or the exact decomposition by type on a known
+  population;
+  [`jmono()`](https://rootcoder007.github.io/crimlab/reference/jmono.md)
+  gives each judge’s decision rate with a chi-square test of equal
+  rates, the many-judge slope test of nested judges, and the comparison
+  of judges within groups of cases with adjusted p-values and slopes;
+  [`mmshr()`](https://rootcoder007.github.io/crimlab/reference/mmshr.md)
+  gives the shares of sentences at, below and above a mandatory minimum.
+  `proof("jdgiv")` and `proof("jmono")` name the Lean theorems.
+- [`agemix()`](https://rootcoder007.github.io/crimlab/reference/agemix.md)
+  gives the aggregate age-crime curve of a mixture of latent types and
+  the covariance across types between ages that a single type forces to
+  0, with its permutation test on panel data;
+  [`cumrsk()`](https://rootcoder007.github.io/crimlab/reference/cumrsk.md)
+  gives the cumulative risk of a first arrest, conviction or admission
+  by age from a life table of first events, with Greenwood’s interval or
+  with deaths competing;
+  [`jpipe()`](https://rootcoder007.github.io/crimlab/reference/jpipe.md)
+  gives rates between stages of the justice pipeline from window sums
+  lagged by the time between the stages. `proof("agemix")` names the
+  Lean theorem.
+- [`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md)
+  classifies segregation placements under the Mandela Rules (more than
+  15 days, or Rules 43 and 44 with hours out of cell) and gives the
+  qualifying share by group over placements, people with any qualifying
+  placement and people by their cumulative days, with exact intervals.
+- [`stkflw()`](https://rootcoder007.github.io/crimlab/reference/stkflw.md)
+  relates person-days, the average daily population, admissions and the
+  length of stay (any two give the rest) with changes, rates and the
+  stock an earlier release removes;
+  [`lostay()`](https://rootcoder007.github.io/crimlab/reference/lostay.md)
+  summarises lengths of stay, their bands and thresholds and the
+  lognormal, exponential and Pareto fits;
+  [`bklog()`](https://rootcoder007.github.io/crimlab/reference/bklog.md)
+  applies Little’s law to a docket;
+  [`dktflw()`](https://rootcoder007.github.io/crimlab/reference/dktflw.md)
+  gives clearance, rolling clearance, the pending caseload, Little’s law
+  on published figures and the trend of the outcome mix;
+  [`lftab()`](https://rootcoder007.github.io/crimlab/reference/lftab.md)
+  builds the actuarial life table;
+  [`trnmat()`](https://rootcoder007.github.io/crimlab/reference/trnmat.md)
+  gives the transition matrix between states with its stationary
+  distribution. `proof("stkflw")` and `proof("bklog")` name the Lean
+  theorems.
 - [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md)
   fits a count on a group by Poisson and negative binomial regression
   (the iterations of [`glm()`](https://rdrr.io/r/stats/glm.html) and
