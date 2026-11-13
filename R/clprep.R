@@ -11,31 +11,34 @@
 #' folder), one per preset and argument: `preset`, `generic`, `arg`, `column`
 #' (the dataset's column), `recode`, `filter`, `units`, `note`, `source`. Python
 #' reads the same file. A `recode` is one of: empty (the column as it is); `fac`
-#' (a factor, one effect per value); `num` (numbers); `one` (a 1 for every row);
-#' `flag` (1 for yes, y, true, t, 1 or a positive number, 0 otherwise); `dum`
-#' (one 0 or 1 column per value but the first, named by the column and the
-#' value); `sub:a,b` (characters a to b, as a year from an ISO date); `const:v`
-#' (the argument is v, no column); or a mapping `x|y=1;has:abc=1;*=0` from
-#' labels, compared without case or surrounding space (`has:` a label containing
-#' the text), to values, `*` covering every other label and `*=NA` dropping
-#' those rows. A `filter` `col=value` keeps the rows whose column has that
-#' value. An argument given by several rows (or by `dum`) is a data frame of
-#' their columns, as `adj` always is. An `arg` of `recipe` derives columns
-#' first, in the order of the rows: `keep` drops the rows missing any of the
-#' columns named in `recode`; `long` stacks the two count columns named in
-#' `recode` as `count` with `with` 1 for the first; `acvm` and `pyr` reduce one
-#' row per placement to one per person and year (see Details of the returned
-#' attributes), and `acnv` does so the naive way (`acn`, the most alert flags on
-#' one row; `vmany`, 1 when any row changes region; `hiacn`, `acn >= 2`);
-#' `pairb` adds `tb` (two or more of the three alert flags) and `yb`
-#' (`Number_Of_Placements` of 2 or more); `pairc` adds `tc` (the region at
-#' placement differs from the most recent) and `yc`
+#' (a factor, one effect per value); `num` (numbers); `pct` (numbers over 100);
+#' `one` (a 1 for every row); `flag` (1 for yes, y, true, t, 1 or a positive
+#' number, 0 otherwise); `dum` (one 0 or 1 column per value but the first, named
+#' by the column and the value); `sub:a,b` (characters a to b, as a year from an
+#' ISO date); `const:v` (the argument is v, a number when it reads as one, no
+#' column); or a mapping `x|y=1;has:abc=1;*=0` from labels, compared without
+#' case or surrounding space (`has:` a label containing the text), to values,
+#' `*` covering every other label and `*=NA` dropping those rows. A `filter`
+#' `col=value` keeps the rows whose column has that value. An argument given by
+#' several rows (or by `dum`) is a data frame of their columns, as `adj` always
+#' is. An `arg` of `recipe` derives columns first, in the order of the rows:
+#' `keep` drops the rows missing any of the columns named in `recode`; `long`
+#' stacks the two count columns named in `recode` as `count` with `with` 1 for
+#' the first; `acvm` and `pyr` reduce one row per placement to one per person
+#' and year (see Details of the returned attributes), and `acnv` does so the
+#' naive way (`acn`, the most alert flags on one row; `vmany`, 1 when any row
+#' changes region; `hiacn`, `acn >= 2`); `pairb` adds `tb` (two or more of the
+#' three alert flags) and `yb` (`Number_Of_Placements` of 2 or more); `pairc`
+#' adds `tc` (the region at placement differs from the most recent) and `yc`
 #' (`NumberConsecutiveDays_Segregation` capped at its 99th percentile); `gent`
 #' takes the columns `inc,rent,colg,rentg` named in `recode` (and optionally the
 #' two quantiles, `0.5,0.667` by default) and adds `gent`, a factor:
 #' `ineligible` unless baseline income and rent are both at most their first
 #' quantile, then `gentrified` when the growth in college graduates and in rent
-#' both reach their second quantile, else `eligible`.
+#' both reach their second quantile, else `eligible`; `pop` takes
+#' `count;rate;per` (separated by semicolons, as column names may hold commas)
+#' and adds `pop`, the population `count / rate * per` that a published rate
+#' implies.
 #'
 #' Rows with a missing value in any column the preset reads are dropped,
 #' as the source analyses drop them; their number is the attribute
@@ -253,7 +256,11 @@ print.clpre <- function(x, ...) {
 .recode <- function(x, s, n) {
   if (startsWith(s, "const:")) {
     v <- substring(s, 7L)
-    return(if (v %in% c("TRUE", "FALSE")) as.logical(v) else v)
+    if (v %in% c("TRUE", "FALSE")) {
+      return(as.logical(v))
+    }
+    num <- suppressWarnings(as.numeric(v))
+    return(if (is.na(num)) v else num)
   }
   if (s == "one") {
     return(rep(1, n))
@@ -269,6 +276,9 @@ print.clpre <- function(x, ...) {
   }
   if (s == "flag") {
     return(.flag(x))
+  }
+  if (s == "pct") {
+    return(as.numeric(x) / 100)
   }
   if (s == "dum") {
     f <- factor(x)
@@ -320,7 +330,7 @@ print.clpre <- function(x, ...) {
 # Recipes: derived columns a preset needs.
 .recipe <- function(name, arg, d) {
   if (!name %in% c("long", "acvm", "pyr", "keep", "acnv", "pairb", "pairc",
-                    "gent")) {
+                    "gent", "pop")) {
     stop("clprep: unknown recipe ", name, ".", call. = FALSE)
   }
   switch(
@@ -340,8 +350,16 @@ print.clpre <- function(x, ...) {
     acnv = .acnv(d),
     pairb = .pairb(d),
     pairc = .pairc(d),
-    gent = .gent(d, strsplit(arg, ",", fixed = TRUE)[[1L]])
+    gent = .gent(d, strsplit(arg, ",", fixed = TRUE)[[1L]]),
+    pop = .pop(d, strsplit(arg, ";", fixed = TRUE)[[1L]])
   )
+}
+
+# pop: the population implied by a count and its published rate per `per`
+.pop <- function(d, a) {
+  .keep(d[0L, , drop = FALSE], a[1:2])
+  d$pop <- as.numeric(d[[a[1L]]]) / as.numeric(d[[a[2L]]]) * as.numeric(a[3L])
+  d
 }
 
 # the rows of d with none of the columns cols missing

@@ -25,7 +25,8 @@ stkflw(
 each period (positive), the person-days (from 0), the average daily
 population (from 0; or a list with the periodic headcounts of each
 period, whose means are taken), and the average length of stay
-(positive).}
+(positive). A \code{clpre} list from \code{\link[=clprep]{clprep()}} is taken too (as \code{people}):
+its elements fill the arguments by name.}
 
 \item{t}{The length of each period in days: one positive number or one
 per period.}

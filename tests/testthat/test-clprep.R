@@ -11,7 +11,7 @@ test_that("the preset list and its table", {
   expect_false(anyDuplicated(p$preset) > 0)
   expect_true(all(p$generic %in% c(
     "cntreg", "grprr", "ctabx", "fairdf", "tmpaud", "calaud", "scrdsp",
-    "cbatt", "lodimp", "tpbhm"
+    "cbatt", "lodimp", "tpbhm", "stkflw", "bndxw"
   )))
   # every argument a preset fills is an argument of its generic
   tab <- ns$.presets()
@@ -522,4 +522,109 @@ test_that("the Chicago and New York count tables", {
   expect_identical(attr(p, "drop"), sum(is.na(cp$susp_race)))
   expect_identical(tb("nypd-susprace-xtab", cp),
                    as.numeric(table(cp$susp_race)))
+})
+
+test_that("the Doob affidavit tables", {
+  # the published tables (Corrections and Conditional Release Statistical
+  # Overview), as rmorie transcribed them
+  t1 <- data.frame(
+    type = c("Day Parole", "Full Parole", "Statutory Release"),
+    revoke_violent = c(4.8, 5.0, 84.6),
+    success = c(3085, 901.2, 3735.6),
+    total = c(3392.2, 1023.8, 5829.0)
+  )
+  a <- grprr(clprep(t1, "doob-t1-rr"))
+  expect_equal(a, grprr(t1$success, t1$total, t1$type, type = "prop",
+                        per = 100))
+  expect_equal(a$rates$rate, 100 * t1$success / t1$total, tolerance = 1e-14)
+  v <- grprr(clprep(t1, "doob-t1v-rr"))
+  expect_equal(v$rates$rate, 100 * t1$revoke_violent / t1$total,
+               tolerance = 1e-14)
+  t2 <- data.frame(
+    year = c("2013-14", "2014-15", "2015-16", "2016-17", "2017-18"),
+    avg_count = c(15342, 14886, 14712, 14159, 14092),
+    admissions = c(5071, 4818, 4891, 4908, 4718),
+    statutory_releases = c(5636, 5373, 5309, 4888, 4427)
+  )
+  f <- stkflw(clprep(t2, "doob-t2-flow"))
+  expect_equal(f, stkflw(people = t2$admissions, adp = t2$avg_count,
+                         prd = t2$year, rel = t2$statutory_releases,
+                         early = 182.5))
+  expect_equal(f$flow$cut, t2$statutory_releases * 182.5 / 365,
+               tolerance = 1e-14)
+  expect_equal(f$flow$alos, t2$avg_count * 365 / t2$admissions,
+               tolerance = 1e-14)
+  t3 <- data.frame(
+    age_group = c("18-49", "50-59", "60+"),
+    canada_adult_pop = c(15770626, 5305888, 8811720),
+    csc_in_custody = c(10544, 2236, 1312),
+    csc_admissions_2017_18 = c(3920, 548, 250)
+  )
+  r <- grprr(clprep(t3, "doob-t3-rr"))
+  sh <- t3$csc_in_custody / sum(t3$csc_in_custody)
+  sp <- t3$canada_adult_pop / sum(t3$canada_adult_pop)
+  expect_equal(r$rates$rep, sh / sp, tolerance = 1e-14)
+  expect_equal(r$rates$rate, 1e5 * t3$csc_in_custody / t3$canada_adult_pop,
+               tolerance = 1e-14)
+  # the affidavit's over-representation of the young, from rounded shares
+  expect_equal(r$rates$rep[1], 74.8 / 52.8, tolerance = 2e-3)
+  ad <- grprr(clprep(t3, "doob-t3a-rr"))
+  expect_equal(ad$rates$x, t3$csc_admissions_2017_18)
+})
+
+test_that("the Victorian tables, the pop recipe and numeric constants", {
+  set.seed(15)
+  lga <- data.frame(
+    Year = 2024,
+    `Local Government Area` = c("Ararat", "Ballarat", "Casey"),
+    `Incidents Recorded` = c(1200, 9800, 25000),
+    `Rate per 100,000 population` = c(9800.5, 8650.2, 6900.1),
+    check.names = FALSE
+  )
+  p <- clprep(lga, "vic-lga-rr")
+  expect_identical(p$per, 1e5)
+  expect_equal(p$n, lga[[3]] / lga[[4]] * 1e5, tolerance = 1e-15)
+  g <- grprr(p)
+  expect_equal(g$rates$rate, lga[[4]], tolerance = 1e-12)
+  ind <- data.frame(
+    Year = 2024,
+    `Offence Division` = rep(c("A Crimes against the person",
+                               "B Property and deception offences"),
+                             each = 3),
+    `Indigenous Status` = rep(c("Aboriginal and/or Torres Strait Islander",
+                                "Non-Indigenous", "Total People"), 2),
+    `Victim Reports` = c(120, 3000, 3120, 40, 2500, 2540),
+    check.names = FALSE
+  )
+  x <- ctabx(clprep(ind, "vic-indig-xtab"))
+  expect_identical(as.numeric(x$tab), c(120, 40, 3000, 2500))
+  expect_identical(colnames(x$tab), c("aboriginal", "non-indigenous"))
+  tr <- data.frame(Year = rep(2020:2022, each = 2),
+                   `Offence Division` = rep(c("A", "B"), 3),
+                   `Incidents Recorded` = c(5, 7, 6, 9, 8, 4),
+                   check.names = FALSE)
+  y <- ctabx(clprep(tr, "vic-trend-xtab"))
+  expect_identical(as.numeric(y$tab), c(5, 6, 8, 7, 9, 4))
+  rc <- ns$.recode
+  expect_identical(rc(NULL, "const:2.5", 1), 2.5)
+  expect_identical(rc(c("50", "100"), "pct", 2), c(0.5, 1))
+  expect_error(ns$.recipe("pop", "a;b;100", data.frame(a = 1)),
+               "no column b")
+})
+
+test_that("the Toronto neighbourhood crosswalks", {
+  cw <- data.frame(
+    hood_140 = c("001", "002", "002", "003"),
+    hood_158 = c("001", "160", "161", "003"),
+    pct_140_in_158 = c(100, 40, 60, 100),
+    pct_158_in_140 = c(100, 100, 100, 100)
+  )
+  up <- bndxw(clprep(cw, "tps-hood158-140"), x = c(5, 2, 3, 7),
+              unit = c("001", "160", "161", "003"))
+  expect_identical(up$tab$value, c(5, 5, 7))
+  dn <- bndxw(clprep(cw, "tps-hood140-158"), x = c(5, 10, 7),
+              unit = c("001", "002", "003"))
+  expect_identical(dn$tab$to, c("001", "003", "160", "161"))
+  expect_equal(dn$tab$value, c(5, 7, 4, 6), tolerance = 1e-15)
+  expect_identical(dn$map$to, c("001", "161", "003"))
 })

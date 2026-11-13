@@ -23,7 +23,8 @@
 #'   each period (positive), the person-days (from 0), the average daily
 #'   population (from 0; or a list with the periodic headcounts of each
 #'   period, whose means are taken), and the average length of stay
-#'   (positive).
+#'   (positive). A `clpre` list from [clprep()] is taken too (as `people`):
+#'   its elements fill the arguments by name.
 #' @param t The length of each period in days: one positive number or one
 #'   per period.
 #' @param prd `NULL` (1, 2, ...) or the label of each period.
@@ -70,6 +71,9 @@ stkflw <- function(
   rel = NULL,
   early = NULL
 ) {
+  if (inherits(people, "clpre")) {
+    return(.prep(stkflw, people, match.call(), parent.frame()))
+  }
   if (!is.null(from) || !is.null(to)) {
     t <- .perdays(from, to)
   }
