@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "crimlab.h"
+#include "learn.h"
 #include "rchk.h"
 
 using clab::fail;
@@ -231,6 +232,46 @@ SEXP C_clab_r_lgtreg(SEXP x, SEXP y, SEXP tol, SEXP maxit) {
   SET_VECTOR_ELT(out, 1, se);
   SET_VECTOR_ELT(out, 2, Rf_ScalarReal(dev));
   static const char *const nm[] = {"coef", "se", "dev"};
+  UNPROTECT(6);
+  return clab::nlist(out, nm);
+}
+
+}  // extern "C"
+
+extern "C" {
+
+SEXP C_clab_r_rfor(SEXP x, SEXP y, SEXP newx, SEXP ntree, SEXP mtry,
+                   SEXP minnode, SEXP frac, SEXP repl, SEXP seed) {
+  clab::who = "rfor";
+  int n, p, nt, pt;
+  SEXP xv = PROTECT(rl::mat(x, "x", &n, &p));
+  if (n < 2) fail("`x` must have at least two rows.");
+  SEXP yv = PROTECT(num(y, "y", n));
+  SEXP tv = PROTECT(rl::mat(newx, "newx", &nt, &pt));
+  if (pt != p) fail("`newx` must have the %d columns of `x`.", p);
+  const int ntr = clab::whole(ntree, "ntree", 1);
+  const int mt = Rf_isNull(mtry) ? static_cast<int>(std::floor(std::sqrt(p)))
+                                 : clab::whole(mtry, "mtry", 1);
+  if (mt > p) fail("`mtry` must be at most the %d columns of `x`.", p);
+  const int mn = clab::whole(minnode, "minnode", 1);
+  const double fr = REAL_RO(num(frac, "frac", 1, 0.0, true))[0];
+  if (fr > 1.0) fail("`frac` must be at most 1.");
+  clab::lgl(repl, "repl", 1);
+  const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
+  if (std::lround(fr * n) < 1) fail("`frac` leaves no row in a bag.");
+  SEXP pr = PROTECT(Rf_allocVector(REALSXP, nt));
+  SEXP ob = PROTECT(Rf_allocVector(REALSXP, n));
+  double *w = rl::dalloc(static_cast<double>(lrn::fwork(n, p, nt)));
+  int *iw = rl::ialloc(static_cast<double>(lrn::fiwork(n, p, nt)) + n + nt);
+  kchk(clab_rfor(REAL_RO(xv), n, p, REAL_RO(yv), REAL_RO(tv), nt, ntr, mt, mn,
+                 fr, LOGICAL_RO(repl)[0],
+                 static_cast<unsigned int>(std::fmod(sd, 4294967296.0)), REAL(pr),
+                 REAL(ob), w, iw),
+       nullptr);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(out, 0, pr);
+  SET_VECTOR_ELT(out, 1, ob);
+  static const char *const nm[] = {"pred", "oob"};
   UNPROTECT(6);
   return clab::nlist(out, nm);
 }

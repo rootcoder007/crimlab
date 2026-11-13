@@ -129,11 +129,12 @@ reference:
       - relchk
       - catchk
   - title: Learning
-    desc: The elastic net with cross-validation and logistic regression;
-      the learners of the cross-fitted estimators.
+    desc: The elastic net with cross-validation, logistic regression and
+      random forests; the learners of the cross-fitted estimators.
     contents:
       - enpath
       - lgtreg
+      - rfor
   - title: Proofs
     contents:
       - proof

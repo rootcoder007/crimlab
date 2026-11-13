@@ -59,6 +59,31 @@ long gwork(int p);
 int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
         double *se, double *dev, double *work);
 
+// A random forest's settings: trees, columns tried at each split, the
+// largest node left unsplit, the share of the training rows in each bag,
+// drawn with replacement when repl, and the seed of the draws.
+struct Forest {
+  int ntree, mtry, minnode;
+  double frac;
+  int repl;
+  unsigned int seed;
+};
+
+// Scratch for forest(): doubles and ints, for n rows of x and nt rows to
+// predict.
+long fwork(int n, int p, int nt);
+long fiwork(int n, int p, int nt);
+
+// A random forest fitted to y over the rows tr[0..mt) of x (n rows, p
+// columns) and its mean prediction at the rows te[0..me) of xp (np rows,
+// the same columns), written to out[0..me); oob (NULL or mt) gets each
+// training row's mean prediction over the trees whose bag left it out
+// (NaN if none did). CLAB_EARG for settings out of range.
+int forest(const double *x, int n, int p, const double *y, const int *tr,
+           int mt, const double *xp, int np, const int *te, int me,
+           const Forest &f, double *out, double *oob, double *work,
+           int *iwork);
+
 // The linear predictor a0 + x[i, ] b for the rows idx[0..m).
 void lpred(const double *x, int n, int p, const int *idx, int m, double a0,
            const double *b, double *eta);

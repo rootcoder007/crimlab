@@ -70,6 +70,9 @@
 //' @srrstats {EA3.0} enpath() chooses the penalty of the elastic net by
 //'   cross-validation over the caller's folds and returns the whole path
 //'   with the losses, so the choice can be checked.
+//' @srrstats {G5.9b} rfor() draws its bags and columns from a seed:
+//'   test-rf.R checks that one seed gives one forest, that another gives
+//'   another, and that the error stays within its bound across seeds.
 //' @noRd
 #define CLAB_SRR_MET 1
 

@@ -1342,6 +1342,26 @@ int clab_relchk(const double *x, int r, int c, double value, double tol,
  * and the levels with a twin. work: k ints. O(n + k). */
 int clab_catchk(const int *code, int n, int k, const int *fold, int nmin,
                 int *cnt, int *twin, int *s, int *work);
+/* Random forest (Breiman 2001, doi:10.1023/A:1010933404324) for
+ * regression, and for the probability of a 0/1 outcome (the leaf mean; the
+ * variance split of a 0/1 outcome is the Gini split). x: n >= 2 rows, p
+ * columns to grow on, y their outcomes; xt: nt >= 0 rows to predict, the
+ * same columns. Each column is cut at its order statistics over x into at
+ * most 256 bins (midpoints between neighbouring values when it has at
+ * most 256 distinct ones, else 255 quantiles), so the forest is unchanged
+ * by an increasing transform of a column. ntree >= 1 trees, each on a bag
+ * of round(frac n) rows (0 < frac <= 1) drawn with replacement when repl,
+ * without otherwise, from a stream seeded by seed and the tree's number;
+ * at each node the best split by the reduction in the sum of squares over
+ * mtry (1..p) columns drawn without replacement; nodes of at most minnode
+ * rows, or with one outcome value, are leaves. Out: pred (nt), the mean
+ * over trees; oob (NULL or n), the mean over the trees whose bag left the
+ * row out (NaN if none). work: p 255 + 3n + 512 + nt + 3 (2n + 1)
+ * doubles; iwork: ceil((n + nt) p / 4) + 4n + nt + p + 1 ints. */
+int clab_rfor(const double *x, int n, int p, const double *y,
+              const double *xt, int nt, int ntree, int mtry, int minnode,
+              double frac, int repl, unsigned int seed, double *pred,
+              double *oob, double *work, int *iwork);
 
 #ifdef __cplusplus
 }
