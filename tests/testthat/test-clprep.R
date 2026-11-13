@@ -9,7 +9,9 @@ test_that("the preset list and its table", {
   p <- clprep()
   expect_named(p, c("preset", "generic", "args", "source"))
   expect_false(anyDuplicated(p$preset) > 0)
-  expect_true(all(p$generic %in% c("cntreg", "grprr", "ctabx")))
+  expect_true(all(p$generic %in% c(
+    "cntreg", "grprr", "ctabx", "fairdf", "tmpaud", "calaud", "scrdsp"
+  )))
   # every argument a preset fills is an argument of its generic
   tab <- ns$.presets()
   for (k in unique(tab$preset)) {
@@ -286,4 +288,56 @@ test_that("presets on the Structured Intervention Units and TPS layouts", {
     as.numeric(ctabx(clprep(t, "tps-division-xtab"))$tab[, 1]),
     c(2, 1)
   )
+})
+
+test_that("the risk-tool presets feed fairdf, tmpaud, calaud and scrdsp", {
+  d <- fairsim(400, seed = 3)
+  # a preset gives the same result as the columns given by hand
+  expect_identical(
+    calaud(clprep(d, "fairsim-cal"), nperm = 99, seed = 1),
+    calaud(d$area, d$risk, d$det, d$group, nperm = 99, seed = 1)
+  )
+  expect_identical(
+    fairdf(clprep(d, "fairsim-df")),
+    fairdf(d$det, d$group, base = "A")
+  )
+  # an argument given in the call wins over the preset's
+  expect_identical(
+    fairdf(clprep(d, "fairsim-df"), base = "B"),
+    fairdf(d$det, d$group, base = "B")
+  )
+  expect_identical(
+    scrdsp(clprep(d, "predpol-generic-score")),
+    scrdsp(d$risk, d$group)
+  )
+  d$pred <- d$det
+  d$period <- rep(1:2, 200)
+  d$city <- rep(c("north", "south"), each = 200)
+  expect_identical(
+    tmpaud(clprep(d, "predpol-generic-time")),
+    tmpaud(d$pred, d$group, d$period, d$city)
+  )
+  d$outcome <- d$det
+  d$population <- 1000
+  expect_identical(
+    calaud(clprep(d, "predpol-generic"), nperm = 99, seed = 2),
+    calaud(d$area, d$risk, d$outcome, d$group, d$population,
+           nperm = 99, seed = 2)
+  )
+  # the two cut-offs of a three-level score: low/medium against high, and
+  # low against medium/high
+  l <- data.frame(
+    race = rep(c("a", "b"), each = 6),
+    static_score = rep(c("low", "medium", "high"), 4)
+  )
+  mh <- clprep(l, "laniyonu-ard-static-mh")
+  lm <- clprep(l, "laniyonu-ard-static-lm")
+  expect_identical(as.numeric(mh$pred), rep(c(0, 0, 1), 4))
+  expect_identical(as.numeric(lm$pred), rep(c(0, 1, 1), 4))
+  expect_identical(fairdf(mh), fairdf(rep(c(0, 0, 1), 4), l$race))
+  # every risk-tool preset names its source
+  pr <- clprep()
+  tool <- pr[pr$generic %in% c("fairdf", "tmpaud", "calaud", "scrdsp"), ]
+  expect_gt(nrow(tool), 10)
+  expect_true(all(nzchar(tool$source)))
 })

@@ -35,6 +35,8 @@
 #'
 #' @param pred The tool's decisions: 1 (or `TRUE`) for a case it flags, 0
 #'   (or `FALSE`) otherwise, one per case.
+#'   A `clpre` list from [clprep()] is taken too: its elements fill the
+#'   arguments by name.
 #' @param y `NULL`, or the outcomes: 0 or 1 (or `FALSE`/`TRUE`), one per
 #'   case.
 #' @param base The base group: `NULL` for the group with the largest share
@@ -84,8 +86,11 @@
 #' r$tab[, c("group", "ppos", "dp", "dplo", "dphi", "di", "dilo", "dihi")]
 #' r$sum
 #' @export
-fairdf <- function(pred, grp, y = NULL, base = NULL, conf = 0.95,
+fairdf <- function(pred, grp = NULL, y = NULL, base = NULL, conf = 0.95,
                    nboot = 0, seed = NULL) {
+  if (inherits(pred, "clpre")) {
+    return(.prep(fairdf, pred, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_fairdf, pred, grp, y, base, conf, nboot, seed)
 }
 
@@ -129,7 +134,11 @@ fairdf <- function(pred, grp, y = NULL, base = NULL, conf = 0.95,
 #' p <- rbinom(n, 1, ifelse(g == "a", 0.4, ifelse(cty == "north", 0.3, 0.2)))
 #' tmpaud(p, g, per, cty)$cities
 #' @export
-tmpaud <- function(pred, grp, period, city = NULL, base = NULL) {
+tmpaud <- function(pred, grp = NULL, period = NULL, city = NULL,
+                   base = NULL) {
+  if (inherits(pred, "clpre")) {
+    return(.prep(tmpaud, pred, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_tmpaud, pred, grp, period, city, base)
 }
 

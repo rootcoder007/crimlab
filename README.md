@@ -79,7 +79,9 @@ The functions work on summary data, not on raw records:
   deaths-in-custody tables, use-of-force files, Special Investigations
   Unit cases, Structured Intervention Unit tables, Toronto incident
   layers) feed these functions, so that `cntreg(clprep(data,
-  "otis-c01-cnt"))` gives the published analysis (`clprep()`). Presets
+  "otis-c01-cnt"))` gives the published analysis (`clprep()`). The risk-tool
+  audits (`fairdf()`, `tmpaud()`, `calaud()`, `scrdsp()`) take presets the
+  same way. Presets
   describe layouts and ship no data.
 * Audits of risk tools and predictive policing: how a tool's decisions
   differ between groups, with intervals (`fairdf()`), over time and place

@@ -17,7 +17,9 @@ calaud(
 \arguments{
 \item{area}{The area of each record: labels; or a data frame with
 columns \code{area}, \code{risk}, \code{outcome}, \code{group} and optionally
-\code{population}, the other arguments then left out.}
+\code{population}, the other arguments then left out.
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} is taken too: its elements fill the
+arguments by name.}
 
 \item{risk}{The risk the algorithm predicts for each record: finite
 numbers.}

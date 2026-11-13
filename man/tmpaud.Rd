@@ -4,11 +4,13 @@
 \alias{tmpaud}
 \title{Disparity metrics over time and place}
 \usage{
-tmpaud(pred, grp, period, city = NULL, base = NULL)
+tmpaud(pred, grp = NULL, period = NULL, city = NULL, base = NULL)
 }
 \arguments{
 \item{pred}{The tool's decisions: 1 (or \code{TRUE}) for a case it flags, 0
-(or \code{FALSE}) otherwise, one per case.}
+(or \code{FALSE}) otherwise, one per case.
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} is taken too: its elements fill the
+arguments by name.}
 
 \item{grp}{Group labels: numbers, text or a factor, one per case, no
 missing values. Groups are ordered as the factor's levels, or sorted.}

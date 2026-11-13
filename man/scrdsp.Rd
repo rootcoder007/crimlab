@@ -4,10 +4,12 @@
 \alias{scrdsp}
 \title{A risk score's spread across groups}
 \usage{
-scrdsp(score, group, ref = NULL, conf = 0.95)
+scrdsp(score, group = NULL, ref = NULL, conf = 0.95)
 }
 \arguments{
-\item{score}{The scores: finite numbers, one per case.}
+\item{score}{The scores: finite numbers, one per case.
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} is taken too: its elements fill the
+arguments by name.}
 
 \item{group}{The group of each case: labels.}
 

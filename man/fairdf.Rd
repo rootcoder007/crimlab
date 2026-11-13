@@ -4,11 +4,21 @@
 \alias{fairdf}
 \title{Differences between groups in a risk tool's decisions}
 \usage{
-fairdf(pred, grp, y = NULL, base = NULL, conf = 0.95, nboot = 0, seed = NULL)
+fairdf(
+  pred,
+  grp = NULL,
+  y = NULL,
+  base = NULL,
+  conf = 0.95,
+  nboot = 0,
+  seed = NULL
+)
 }
 \arguments{
 \item{pred}{The tool's decisions: 1 (or \code{TRUE}) for a case it flags, 0
-(or \code{FALSE}) otherwise, one per case.}
+(or \code{FALSE}) otherwise, one per case.
+A \code{clpre} list from \code{\link[=clprep]{clprep()}} is taken too: its elements fill the
+arguments by name.}
 
 \item{grp}{Group labels: numbers, text or a factor, one per case, no
 missing values. Groups are ordered as the factor's levels, or sorted.}

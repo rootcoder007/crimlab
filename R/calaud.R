@@ -38,6 +38,8 @@
 #' @param area The area of each record: labels; or a data frame with
 #'   columns `area`, `risk`, `outcome`, `group` and optionally
 #'   `population`, the other arguments then left out.
+#'   A `clpre` list from [clprep()] is taken too: its elements fill the
+#'   arguments by name.
 #' @param risk The risk the algorithm predicts for each record: finite
 #'   numbers.
 #' @param outcome The recorded outcome of each record (a 0 or 1, or a
@@ -76,6 +78,9 @@
 #' @export
 calaud <- function(area, risk = NULL, outcome = NULL, group = NULL,
                    population = NULL, nperm = 999, seed = NULL) {
+  if (inherits(area, "clpre")) {
+    return(.prep(calaud, area, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_calaud, area, risk, outcome, group, population, nperm, seed)
 }
 
@@ -99,6 +104,8 @@ calaud <- function(area, risk = NULL, outcome = NULL, group = NULL,
 #' recorded, or [fair()], which compares them with outcomes case by case.
 #'
 #' @param score The scores: finite numbers, one per case.
+#'   A `clpre` list from [clprep()] is taken too: its elements fill the
+#'   arguments by name.
 #' @param group The group of each case: labels.
 #' @param ref The reference group: `NULL` for the group with the lowest mean
 #'   (the first on ties), its label, or its position from 1.
@@ -117,6 +124,9 @@ calaud <- function(area, risk = NULL, outcome = NULL, group = NULL,
 #' s <- rnorm(100, ifelse(g == "x", 0, ifelse(g == "y", 0.5, 1)))
 #' scrdsp(s, g)
 #' @export
-scrdsp <- function(score, group, ref = NULL, conf = 0.95) {
+scrdsp <- function(score, group = NULL, ref = NULL, conf = 0.95) {
+  if (inherits(score, "clpre")) {
+    return(.prep(scrdsp, score, match.call(), parent.frame()))
+  }
   .Call(C_clab_r_scrdsp, score, group, ref, conf)
 }
