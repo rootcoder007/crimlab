@@ -79,7 +79,7 @@ test_that("dmlx learns with the elastic net and repeats the folds", {
   r <- dmlx(ref$yc, ref$dc, x, "plr", ref$folds3, nlam = 20, nfin = 3)
   expect_identical(dim(r$pred), c(600L, 2L, 3L))
   expect_identical(dimnames(r$pred)[[2]], c("l", "m"))
-  expect_identical(names(r$reps), c("coef", "se"))
+  expect_named(r$reps, c("coef", "se"))
   expect_lt(abs(r$coef - 0.5), 4 * r$se)
   expect_identical(r$coef, median(r$reps$coef))
   # the same seed, the same inner folds and the same result
@@ -89,7 +89,8 @@ test_that("dmlx learns with the elastic net and repeats the folds", {
             lrnd = "enet", nlam = 10, nfin = 2)
   expect_identical(dimnames(e$pred)[[2]],
                    c("g00", "g01", "g10", "g11", "m"))
-  expect_true(is.finite(e$coef) && e$se > 0)
+  expect_true(is.finite(e$coef))
+  expect_gt(e$se, 0)
   fr <- dmlx(ref$y, ref$d, x, "irm", ref$fold, lrn = "forest", ntree = 50,
              mtry = 9)
   expect_lt(abs(fr$coef - 1), 4 * fr$se)

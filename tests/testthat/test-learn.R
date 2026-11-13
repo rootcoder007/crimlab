@@ -29,7 +29,7 @@ test_that("lgtreg agrees with glm", {
   # glm() takes its covariance from the weights of its last iteration
   expect_equal(unname(r$se), ref$glm$se, tolerance = 1e-7)
   expect_equal(r$dev, ref$glm$dev, tolerance = 1e-12)
-  expect_identical(names(r$coef), c("(Intercept)", colnames(ref$x)))
+  expect_named(r$coef, c("(Intercept)", colnames(ref$x)))
   expect_identical(names(lgtreg(unname(ref$x), ref$yb)$se)[2:3],
                    c("x1", "x2"))
 })
