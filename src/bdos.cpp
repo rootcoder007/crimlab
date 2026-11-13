@@ -914,6 +914,140 @@ SEXP C_clab_r_fairsim(SEXP n, SEXP groups, SEXP props, SEXP nareas, SEXP base,
   return out;
 }
 
+SEXP C_clab_r_oaxbd(SEXP y, SEXP x, SEXP grp, SEXP ref, SEXP conf) {
+  clab::who = "oaxbd";
+  SEXP uv[2] = {y, grp};
+  static const char *const un[] = {"y", "grp"};
+  const int nb = csp::byname(uv, un, 2);
+  SEXP yv = PROTECT(num(uv[0], "y"));
+  const int n = len(yv, "y");
+  lab g = glab(uv[1], "grp", n);
+  if (g.g != 2) fail("`grp` must hold exactly two groups.");
+  const int r = clab::ref(ref, g.lev, 2) - 1;
+  const double z = zconf(conf);
+  // the covariates: none, a vector, a numeric matrix, or a data frame or
+  // list of numeric columns
+  int p = 0;
+  SEXP xv = R_NilValue, tn = R_NilValue;
+  static const char *const fmsg =
+      "`x` must be numeric covariates, one row per case: code a factor as "
+      "indicator columns (how the unexplained part splits across them then "
+      "depends on the category left out).";
+  if (!Rf_isNull(x)) {
+    clab::unlab(x, "x");
+    SEXP dm = Rf_getAttrib(x, R_DimSymbol);
+    if (TYPEOF(x) == VECSXP) {
+      p = len(x, "x");
+      xv = PROTECT(real(static_cast<R_xlen_t>(n) * p));
+      for (int j = 0; j < p; ++j) {
+        SEXP c = VECTOR_ELT(x, j);
+        if (!clab::isnum(c) || Rf_isFactor(c) || XLENGTH(c) != n) fail("%s", fmsg);
+        clab::unlab(c, "x");
+        SEXP cd = PROTECT(clab::dbl(c));
+        for (int i = 0; i < n; ++i) REAL(xv)[i + static_cast<R_xlen_t>(n) * j] = REAL(cd)[i];
+        UNPROTECT(1);
+      }
+      tn = Rf_getAttrib(x, R_NamesSymbol);
+    } else if (clab::isnum(x) && !Rf_isFactor(x)) {
+      if (TYPEOF(dm) == INTSXP && XLENGTH(dm) == 2) {
+        if (INTEGER_RO(dm)[0] != n) fail("%s", fmsg);
+        p = INTEGER_RO(dm)[1];
+        SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
+        if (!Rf_isNull(dn)) tn = VECTOR_ELT(dn, 1);
+      } else {
+        if (XLENGTH(x) != n) fail("%s", fmsg);
+        p = 1;
+      }
+      xv = PROTECT(clab::dcopy(PROTECT(clab::dbl(x))));
+      UNPROTECT(2);
+      PROTECT(xv);
+    } else {
+      fail("%s", fmsg);
+    }
+    for (R_xlen_t k = 0; k < static_cast<R_xlen_t>(n) * p; ++k) {
+      if (!std::isfinite(REAL(xv)[k])) fail("`x` must hold finite numbers with no missing values.");
+    }
+  } else {
+    PROTECT(xv);
+  }
+  const int q = p + 1;
+  int nn[2] = {0, 0};
+  for (int i = 0; i < n; ++i) ++nn[INTEGER(g.code)[i]];
+  if (nn[0] <= q || nn[1] <= q) {
+    fail("each group needs more cases than coefficients, %d.", q);
+  }
+  // the term labels: the constant, then the covariates' names or x1, x2, ...
+  SEXP lab = PROTECT(Rf_allocVector(STRSXP, q));
+  SET_STRING_ELT(lab, 0, Rf_mkChar("const"));
+  for (int j = 0; j < p; ++j) {
+    char b[24];
+    if (!Rf_isNull(tn) && STRING_ELT(tn, j) != NA_STRING && CHAR(STRING_ELT(tn, j))[0] != '\0') {
+      SET_STRING_ELT(lab, j + 1, STRING_ELT(tn, j));
+    } else {
+      std::snprintf(b, sizeof b, p == 1 && Rf_isNull(tn) ? "x" : "x%d", j + 1);
+      SET_STRING_ELT(lab, j + 1, Rf_mkChar(b));
+    }
+  }
+  SEXP w = PROTECT(real(2 * static_cast<R_xlen_t>(q) * 3 + 14 + 5 * static_cast<R_xlen_t>(q) +
+                        static_cast<R_xlen_t>(q) * (n + 5 * q + 1) + n));
+  double *xm = REAL(w), *bb = xm + 2 * q, *bse = bb + 2 * q, *dec = bse + 2 * q, *var = dec + 14,
+         *wk = var + 5 * q;
+  const int rc = clab_oaxbd(REAL(yv), Rf_isNull(xv) ? nullptr : REAL(xv), INTEGER(g.code), n, p, r,
+                            xm, bb, bse, dec, var, wk);
+  if (rc == CLAB_EDOM) fail("a covariate is constant, or a combination of the others, within a group.");
+  kc(rc, "the kernel refused the input.");
+  SEXP gl = PROTECT(Rf_allocVector(STRSXP, 2));
+  SET_STRING_ELT(gl, 0, STRING_ELT(g.lev, 1 - r));
+  SET_STRING_ELT(gl, 1, STRING_ELT(g.lev, r));
+  static const char *const gn[] = {"a", "b"};
+  Rf_setAttrib(gl, R_NamesSymbol, PROTECT(Rf_allocVector(STRSXP, 2)));
+  for (int k = 0; k < 2; ++k) SET_STRING_ELT(Rf_getAttrib(gl, R_NamesSymbol), k, Rf_mkChar(gn[k]));
+  cols fm(3, q);
+  fm.put("term", lab);
+  double *ma = fm.dbl("a"), *mb = fm.dbl("b");
+  cols fc(5, q);
+  fc.put("term", lab);
+  double *ca = fc.dbl("a"), *sa = fc.dbl("ase"), *cb = fc.dbl("b"), *sb = fc.dbl("bse");
+  cols fv(6, q);
+  fv.put("term", lab);
+  static const char *const vn[] = {"exp", "expse", "unexp", "unexpse", "shift"};
+  double *vc[5];
+  for (int t = 0; t < 5; ++t) vc[t] = fv.dbl(vn[t]);
+  for (int j = 0; j < q; ++j) {
+    ma[j] = xm[j];
+    mb[j] = xm[q + j];
+    ca[j] = bb[j];
+    sa[j] = bse[j];
+    cb[j] = bb[q + j];
+    sb[j] = bse[q + j];
+    for (int t = 0; t < 5; ++t) vc[t][j] = var[t * q + j];
+  }
+  // the parts: the gap, twofold at B's coefficients, twofold at A's, the
+  // threefold (explained at B's, unexplained at B's means, interaction)
+  static const char *const pn[] = {"gap", "exp", "unexp", "expa", "unexpa", "endow", "coef", "inter"};
+  const int ix[8] = {2, 4, 6, 8, 10, 4, 10, 12};
+  cols fd(5, 8);
+  SEXP ps = PROTECT(Rf_allocVector(STRSXP, 8));
+  for (int k = 0; k < 8; ++k) SET_STRING_ELT(ps, k, Rf_mkChar(pn[k]));
+  fd.put("part", ps);
+  double *de = fd.dbl("est"), *ds = fd.dbl("se"), *dl = fd.dbl("lo"), *dh = fd.dbl("hi");
+  for (int k = 0; k < 8; ++k) {
+    de[k] = dec[ix[k]];
+    ds[k] = dec[ix[k] + 1];
+    dl[k] = de[k] - z * ds[k];
+    dh[k] = de[k] + z * ds[k];
+  }
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(out, 0, gl);
+  SET_VECTOR_ELT(out, 1, fm.done());
+  SET_VECTOR_ELT(out, 2, fc.done());
+  SET_VECTOR_ELT(out, 3, fd.done());
+  SET_VECTOR_ELT(out, 4, fv.done());
+  static const char *const nm[] = {"groups", "means", "coef", "dec", "by"};
+  UNPROTECT(14 + nb);
+  return clab::nlist(out, nm);
+}
+
 // ----------------------------------------------------------- trace evidence
 
 SEXP C_clab_r_tlvc(SEXP x, SEXP item) {

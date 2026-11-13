@@ -23,6 +23,7 @@ src/stm.cpp src/t_stm.cpp
 src/fair.cpp src/t_fair.cpp
 src/cal.cpp src/t_cal.cpp
 src/fsim.cpp src/t_fsim.cpp
+src/oax.cpp src/t_oax.cpp
 src/tlv.cpp src/t_tlv.cpp
 src/aor.cpp src/t_aor.cpp
 src/bnf.cpp src/t_bnf.cpp

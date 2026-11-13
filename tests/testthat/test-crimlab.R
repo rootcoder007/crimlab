@@ -126,7 +126,9 @@ test_that("every exported function answers one valid call in its shape", {
          c("tab", "anova", "welch", "spread", "ref")),
     list(quote(fairsim(10, seed = 1)),
          c("area", "group", "truth", "det", "risk")),
-    list(quote(nordet(cbind(0, 0), cbind(1, 0), 2)), c("k", "prob"))
+    list(quote(nordet(cbind(0, 0), cbind(1, 0), 2)), c("k", "prob")),
+    list(quote(oaxbd(c(1, 2, 3, 6, 7, 9), NULL, c(1, 1, 1, 2, 2, 2))),
+         c("groups", "means", "coef", "dec", "by"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

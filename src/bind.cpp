@@ -2050,6 +2050,12 @@ const Thm thms[] = {
     {"nsbnd", "Fair", "compare_undecided"},
     {"rnkres", "Fair", "rank_reversal_exists"},
     {"rnkres", "Fair", "rank_stable_of_gap"},
+    {"oaxbd", "Oaxaca", "twofold_B"},
+    {"oaxbd", "Oaxaca", "twofold_A"},
+    {"oaxbd", "Oaxaca", "threefold"},
+    {"oaxbd", "Oaxaca", "reference_dependence"},
+    {"oaxbd", "Oaxaca", "explained_eq_iff"},
+    {"oaxbd", "Oaxaca", "attribution_shift"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace

@@ -787,6 +787,28 @@ int clab_fairsim(int n, int g, const double *props, int nareas, double base,
                  double bias, unsigned int seed, int *area, int *grp,
                  int *truth, int *det, double *risk);
 
+/* The Oaxaca-Blinder decomposition (Lean: Crimlab.Oaxaca.threefold) of the
+ * gap in mean outcome y between group A (code 1 - ref) and group B (code
+ * ref). y: n finite outcomes; x: n x p finite covariates (column-major, a
+ * constant is added); grp: n codes 0 or 1, each group with more than p + 1
+ * cases. Least squares in each group (Householder QR; CLAB_EDOM when a
+ * covariate is collinear with the others there). With D = xbar_A - xbar_B
+ * and Delta = b_A - b_B (the constant first): out xm, 2(p + 1): the means
+ * of A then B; b, bse, 2(p + 1): the coefficients and their standard
+ * errors; dec, 14: ybar_A, ybar_B, the gap and its standard error, then
+ * with its standard error each: D'b_B (explained at B's coefficients),
+ * xbar_A'Delta (unexplained), D'b_A, xbar_B'Delta, D'Delta (the
+ * interaction); the threefold decomposition is D'b_B + xbar_B'Delta +
+ * D'Delta. var, 5(p + 1): for each coefficient D_j b_Bj and its standard
+ * error, xbar_Aj Delta_j and its, and Delta_j (the change in that line of
+ * the unexplained part when covariate j moves by 1 for everyone). Standard
+ * errors by the delta method of Jann (2008,
+ * doi:10.1177/1536867X0800800401): the groups, and means and coefficients
+ * within one, independent; the second-order term left out. work:
+ * (n + 5p + 6)(p + 1) + n doubles. O(n p^2). */
+int clab_oaxbd(const double *y, const double *x, const int *grp, int n, int p,
+               int ref, double *xm, double *b, double *bse, double *dec,
+               double *var, double *work);
 
 /* Two-level normal model for multivariate trace evidence (Aitken and Lucy
  * 2004, doi:10.1046/j.0035-9254.2003.05271.x): x_ij = theta_i + e_ij,

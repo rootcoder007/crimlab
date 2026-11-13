@@ -131,6 +131,7 @@ void t_tab(tk &t, int big);
 // The audits of risk tools and predictive policing.
 void t_calaud(tk &t, int big);
 void t_fsim(tk &t, int big);
+void t_oax(tk &t, int big);
 
 // The learning and causal families.
 void t_learn(tk &t, int big);
