@@ -483,3 +483,43 @@ test_that("the toxicology and taphonomy layouts", {
   expect_equal(tpbhm(clprep(e, "taph-pmi-tpbhm"), psd = 5),
                tpbhm(e$pmi_days, as.matrix(e[pc]), psd = 5))
 })
+
+test_that("the Chicago and New York count tables", {
+  set.seed(12)
+  n <- 300
+  cr <- data.frame(
+    primary_type = sample(c("THEFT", "BATTERY", "ASSAULT"), n, TRUE),
+    year = sample(2019:2021, n, TRUE),
+    community_area = sample(1:5, n, TRUE),
+    arrest = sample(c(TRUE, FALSE), n, TRUE, prob = c(0.2, 0.8))
+  )
+  tb <- function(p, d) as.numeric(ctabx(clprep(d, p))$tab)
+  expect_identical(tb("chicago-type-xtab", cr),
+                   as.numeric(table(cr$primary_type)))
+  expect_identical(tb("chicago-year-xtab", cr),
+                   as.numeric(table(cr$year)))
+  ar <- ifelse(cr$arrest, "arrest", "no arrest")
+  expect_identical(tb("chicago-area-xtab", cr),
+                   as.numeric(table(cr$community_area, ar)))
+  ca <- data.frame(race = sample(c("W", "B", "H"), 80, TRUE))
+  expect_identical(tb("chicago-race-xtab", ca),
+                   as.numeric(table(ca$race)))
+  ny <- data.frame(
+    ofns_desc = sample(c("ASSAULT 3", "PETIT LARCENY"), n, TRUE),
+    arrest_boro = sample(c("B", "K", "M", "Q", "S"), n, TRUE),
+    perp_race = sample(c("BLACK", "WHITE", "ASIAN"), n, TRUE),
+    law_cat_cd = sample(c("F", "M", "V"), n, TRUE)
+  )
+  expect_identical(tb("nypd-offense-xtab", ny),
+                   as.numeric(table(ny$ofns_desc)))
+  expect_identical(tb("nypd-boro-xtab", ny),
+                   as.numeric(table(ny$arrest_boro)))
+  fel <- ifelse(ny$law_cat_cd == "F", "felony", "other")
+  expect_identical(tb("nypd-felony-xtab", ny),
+                   as.numeric(table(ny$perp_race, fel)))
+  cp <- data.frame(susp_race = sample(c("BLACK", "WHITE", NA), n, TRUE))
+  p <- clprep(cp, "nypd-susprace-xtab")
+  expect_identical(attr(p, "drop"), sum(is.na(cp$susp_race)))
+  expect_identical(tb("nypd-susprace-xtab", cp),
+                   as.numeric(table(cp$susp_race)))
+})
