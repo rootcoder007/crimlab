@@ -34,6 +34,27 @@ inline SEXP mat(SEXP x, const char *nm, int nc, int *nr, double lo = clab::ninf)
   return v;
 }
 
+// Numbers or NA (no infinite values), n of them or one recycled to n
+// (n < 0: any length, at least one). A fresh vector, not protected.
+inline SEXP nna(SEXP x, const char *nm, R_xlen_t n) {
+  clab::unlab(x, nm);
+  const R_xlen_t m = XLENGTH(x);
+  if (!(clab::isnum(x) || TYPEOF(x) == LGLSXP) || m < 1 || (n >= 0 && m != n && m != 1)) {
+    clab::fail("`%s` must be numbers or NA, one per case or one for all.", nm);
+  }
+  clab::vec(x, nm);
+  const R_xlen_t k = n < 0 ? m : n;
+  SEXP v = PROTECT(Rf_allocVector(REALSXP, k));
+  SEXP d = PROTECT(Rf_coerceVector(x, REALSXP));
+  for (R_xlen_t i = 0; i < k; ++i) {
+    const double e = REAL(d)[m == 1 ? 0 : i];
+    if (std::isinf(e)) clab::fail("`%s` must be numbers or NA, one per case or one for all.", nm);
+    REAL(v)[i] = e;
+  }
+  UNPROTECT(2);
+  return v;
+}
+
 // An r by c double matrix (protected by the caller) holding v.
 inline SEXP dmat(int r, int c, const double *v) {
   SEXP m = Rf_allocMatrix(REALSXP, r, c);

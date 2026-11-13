@@ -507,6 +507,12 @@ SEXP C_clab_r_dktflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_lftab(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_trnmat(SEXP, SEXP, SEXP);
+// Forensic toxicology (btox.cpp).
+SEXP C_clab_r_txcal(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lodimp(SEXP, SEXP, SEXP);
+SEXP C_clab_r_pmrrat(SEXP, SEXP, SEXP);
+SEXP C_clab_r_etohlr(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mtxrel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Geographic profiling and risk terrain (brtm.cpp).
 SEXP C_clab_r_crchyp(SEXP, SEXP, SEXP);
 SEXP C_clab_r_hitscr(SEXP, SEXP);
@@ -712,6 +718,11 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dktflw", fn(&C_clab_r_dktflw), 12},
     {"C_clab_r_lftab", fn(&C_clab_r_lftab), 6},
     {"C_clab_r_trnmat", fn(&C_clab_r_trnmat), 3},
+    {"C_clab_r_txcal", fn(&C_clab_r_txcal), 5},
+    {"C_clab_r_lodimp", fn(&C_clab_r_lodimp), 3},
+    {"C_clab_r_pmrrat", fn(&C_clab_r_pmrrat), 3},
+    {"C_clab_r_etohlr", fn(&C_clab_r_etohlr), 5},
+    {"C_clab_r_mtxrel", fn(&C_clab_r_mtxrel), 8},
     {"C_clab_r_crchyp", fn(&C_clab_r_crchyp), 3},
     {"C_clab_r_hitscr", fn(&C_clab_r_hitscr), 2},
     {"C_clab_r_rtmfit", fn(&C_clab_r_rtmfit), 6},

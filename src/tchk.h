@@ -170,5 +170,6 @@ void t_jdg(tk &t, int big);
 void t_lcr(tk &t, int big);
 void t_mnd(tk &t, int big);
 void t_flw(tk &t, int big);
+void t_tox(tk &t, int big);
 void t_rtm(tk &t, int big);
 #endif

@@ -2723,6 +2723,58 @@ int clab_hitscr(const double *s, int n, const int *home, int nh, int *above, int
 int clab_rtmlay(const double *cx, const double *cy, int nc, const double *fx, const double *fy,
                 int nf, double rad, int kind, double *out);
 
+/* ------------------------------------------------------------------------
+ * Forensic toxicology: calibration, left-censored values, postmortem
+ * redistribution, ethanol and the reliability of specimen matrices.
+ * ------------------------------------------------------------------------ */
+
+/* A calibration line by weighted least squares of the responses y on the
+ * concentrations x (x > 0) of n >= 3 calibrators with weights w > 0, and
+ * the inverse prediction of nu unknown responses u (NaN stays NaN). Out:
+ * st (6), the intercept, the slope, R^2 (weighted, as summary.lm gives
+ * it), the residual standard error sigma (n - 2
+ * degrees of freedom), the limit of detection klod sigma / |slope| and of
+ * quantitation kloq sigma / |slope|; xh (nu), (u - intercept) / slope;
+ * flag (nu), 0 below the limit of detection, 1 below that of
+ * quantitation, 2 quantifiable, -1 for NaN. CLAB_EDOM when x does not
+ * vary or the slope is 0. */
+int clab_txcal(const double *x, const double *y, const double *w, int n, const double *u, int nu,
+               double klod, double kloq, double *st, double *xh, int *flag);
+
+/* Substitution of left-censored values: x (n; NaN for not measured, kept
+ * as it is) below the limit of detection lod (nl = 1 or n, positive) is
+ * replaced by lod / 2 (meth 0), lod / sqrt(2) (1) or lod (2). Out: out
+ * (n), cens (n, 1 for a replaced value), st (2), the share of measured
+ * values replaced (NaN when none is measured) and the number not
+ * measured. */
+int clab_lodimp(const double *x, int n, const double *lod, int nl, int meth, double *out,
+                int *cens, double *st);
+
+/* Postmortem redistribution from the central and peripheral (femoral)
+ * blood concentrations c and p (n each, positive): r = c / p and its
+ * class cls, 0 when r <= c1, 1 when r <= c2, 2 above (0 < c1 <= c2). */
+int clab_pmrrat(const double *c, const double *p, int n, double c1, double c2, double *r,
+                int *cls);
+
+/* Ethanol in a decomposed body, antemortem or postmortem: eth (n, at least
+ * 0), the higher alcohols pr and bu (n-propanol, n-butanol; NaN not
+ * measured) and ethyl glucuronide etg (NaN not measured). Out: hi (n),
+ * the larger higher alcohol (NaN when neither is measured); v (n), 0
+ * antemortem ingestion (etg > 0), else 1 postmortem production (hi >
+ * thr), else 2 indeterminate. */
+int clab_etohlr(const double *eth, const double *pr, const double *bu, const double *etg, int n,
+                double thr, double *hi, int *v);
+
+/* The reliability of n specimen matrices after submersion and
+ * decomposition: base (n, at least 0) the reliability of each in a fresh
+ * body, dil (n, 1 when water dilutes it, as blood and urine). rel = base
+ * (1 - min(stage / smax, scap)) times, for a diluted matrix, (1 -
+ * min(days / dmax, dcap)); days, stage at least 0, dmax, smax positive,
+ * dcap, scap from 0 to 1. Out: rel (n) and ord (n), the matrices from the
+ * most reliable down (ties in their order). */
+int clab_mtxrel(const double *base, const int *dil, int n, double days, double stage,
+                double dmax, double dcap, double smax, double scap, double *rel, int *ord);
+
 #ifdef __cplusplus
 }
 #endif
