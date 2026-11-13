@@ -17,7 +17,8 @@
 # over 20 s; a fast call is repeated until a timing lasts 0.2 s and
 # divided); speed = ref_s / crimlab_s (above 1: crimlab is faster); faster
 # is "yes" or "no"; agree is "yes" when the values were checked equal
-# (tolerance in tol), "not run" otherwise; note gives the reason a measure
+# (tolerance in tol: relative to each value, or for ntevc and ntmod to the
+# larger of 1 and the largest value), "not run" otherwise; note gives the reason a measure
 # is not faster or was not run. The merge keeps, per row, the run with the
 # median speed, and lo and hi, the smallest and largest speed over the runs.
 #
@@ -73,6 +74,14 @@ eq <- function(x, y, tol) {
   y <- as.numeric(y)
   length(x) == length(y) && identical(is.nan(x), is.nan(y)) &&
     all(x == y | abs(x - y) <= tol * pmax(abs(x), abs(y)), na.rm = TRUE)
+}
+# equal within tol of the larger of 1 and the largest value of either: for
+# eigenvector entries (scaled to a maximum of 1), whose smallest are 1e-14,
+# and a modularity near 0, a difference of nearly equal sums
+eqs <- function(x, y, tol) {
+  x <- as.numeric(x)
+  y <- as.numeric(y)
+  length(x) == length(y) && all(abs(x - y) <= tol * max(1, abs(x), abs(y)))
 }
 # the same partition, whatever the labels
 part <- function(x, y) {
@@ -252,13 +261,13 @@ for (n in sizes) {
   x <- ntevc(g$f[e], g$t[e], w = g$w[e], nodes = keep)$cent$evc
   cs <- function() tm(ntevc(g$f[e], g$t[e], w = g$w[e], nodes = keep))
   cp("ntevc", "igraph::eigen_centrality", n, sum(e), cs,
-     eq(x, eigen_centrality(gc)$vector, 1e-6), 1e-6,
+     eqs(x, eigen_centrality(gc)$vector, 1e-9), 1e-9,
      function() tm(eigen_centrality(gc)))
   Wc <- if (small) as.matrix(as_adjacency_matrix(gc, attr = "weight", sparse = FALSE))
   cp("ntevc", "netmem::eigenvector_centrality", n, sum(e), cs,
-     if (small) eq(x, netmem::eigenvector_centrality(Wc, digraph = FALSE,
-                                                     weighted = TRUE)$vector, 1e-6) else NA,
-     1e-6, function() tm(netmem::eigenvector_centrality(Wc, digraph = FALSE,
+     if (small) eqs(x, netmem::eigenvector_centrality(Wc, digraph = FALSE,
+                                                      weighted = TRUE)$vector, 1e-9) else NA,
+     1e-9, function() tm(netmem::eigenvector_centrality(Wc, digraph = FALSE,
                                                         weighted = TRUE)),
      skip = dense)
 
@@ -309,10 +318,10 @@ for (n in sizes) {
   memb <- rep_len(1:20, n)
   x <- ntmod(g$f, g$t, memb, w = g$w, nodes = g$nodes)
   cs <- function() tm(ntmod(g$f, g$t, memb, w = g$w, nodes = g$nodes))
-  cp("ntmod", "igraph::modularity", n, m, cs, eq(x, modularity(ig, memb), 1e-12),
+  cp("ntmod", "igraph::modularity", n, m, cs, eqs(x, modularity(ig, memb), 1e-12),
      1e-12, function() tm(modularity(ig, memb)), tb)
   cp("ntmod", "netmem::modularity_score", n, m, cs,
-     if (small) eq(x, netmem::modularity_score(W, memb, weighted = TRUE), 1e-12) else NA,
+     if (small) eqs(x, netmem::modularity_score(W, memb, weighted = TRUE), 1e-12) else NA,
      1e-12, function() tm(netmem::modularity_score(W, memb, weighted = TRUE)),
      skip = dense)
 
