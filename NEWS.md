@@ -31,6 +31,27 @@
   deaths-in-custody tables, the race-based use-of-force files, the
   Special Investigations Unit cases, the Structured Intervention Unit
   tables and the Toronto incident layers.
+* Audits of risk tools and predictive policing. `fairdf()` gives the
+  parity gap and disparate impact ratio between groups with Newcombe and
+  Katz intervals, the gaps in true and false positive rates and the
+  average odds difference with their intervals, and the bias
+  amplification score with a bootstrap interval; `tmpaud()` the same by
+  city and period with each city's range. `calaud()` rolls records up to
+  areas and asks whether the order of predicted risk matches the order of
+  recorded outcomes (Spearman's rho with the AS 89 and large-sample
+  p-values) and whether the mean rank gap of each group's areas departs
+  from chance (a permutation test); `scrdsp()` a score's spread across
+  groups with the one-way analysis of variance and Welch's test.
+  `lipaud()` is the Lipschitz audit of individual fairness. `nsbnd()`
+  bounds a true base rate behind a noisily recorded one for noise rates in
+  boxes, and says which groups' order survives every admissible noise;
+  `impfpr()` is Chouldechova's identity; `rnkres()` the pairs a noisy
+  ranking orders. `oaxbd()` is the Oaxaca-Blinder decomposition of a gap
+  at either group's coefficients and the threefold one, with delta-method
+  standard errors. `fairsim()` simulates records with a known disparity and
+  `nordet()` the noisy-OR chance of detection by patrols. `proof()` names
+  the Lean theorems behind `nsbnd()`, `impfpr()`, `rnkres()` and
+  `oaxbd()`.
 * `relchk()` recomputes a reported odds ratio, risk ratio or risk
   difference from its table under every labelling (each reference group,
   each outcome as the event, groups in rows or in columns) and says which

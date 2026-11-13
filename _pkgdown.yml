@@ -125,6 +125,24 @@ reference:
       - chmb
       - gstr
       - sptst
+  - title: Risk tools and predictive policing
+    desc: Differences between groups with intervals, over time and place;
+      calibration of an area ranking and a score's spread across groups;
+      individual fairness; bounds under label noise, Chouldechova's
+      identity and the resolution of a ranking; the Oaxaca-Blinder
+      decomposition; simulated records with a known disparity.
+    contents:
+      - fairdf
+      - tmpaud
+      - calaud
+      - scrdsp
+      - lipaud
+      - nsbnd
+      - impfpr
+      - rnkres
+      - oaxbd
+      - fairsim
+      - nordet
   - title: Checks
     desc: Which labelling of a table reproduces a reported contrast, and an
       audit of categorical inputs.
