@@ -118,29 +118,48 @@ for (n in ns) for (p in ps) {
         sprintf("cv.glmnet; %d and %d penalties fitted",
                 length(a$r$lambda), length(g$r$lambda)))
   }
-  # the forests: test error on fresh rows from the same model
+  # the forests: test error on fresh rows from the same model. A row says
+  # "agree" only for a like-for-like pairing (the same trees, columns per
+  # split, node size and sampling) whose test errors are within 5 per cent;
+  # the rows of each side's defaults are labelled as such
   xt <- sim(2000, p)
-  ft <- tm(function() rfor(x, s$yc, xt$x, ntree = 100))
   mse <- function(pr) mean((pr - xt$yc)^2)
+  m0 <- floor(sqrt(p))
+  mg <- min(ceiling(sqrt(p) + 20), p)
+  fd <- tm(function() rfor(x, s$yc, xt$x, ntree = 100))
+  ed <- mse(fd$r$pred)
   if (has("ranger")) {
+    fl <- tm(function() rfor(x, s$yc, xt$x, ntree = 100, mtry = m0))
     r <- tm(function() {
-      ranger::ranger(x = x, y = s$yc, num.trees = 100, num.threads = 1,
-                     seed = 1)
+      ranger::ranger(x = x, y = s$yc, num.trees = 100, mtry = m0,
+                     min.node.size = 5, num.threads = 1, seed = 1)
     })
-    e1 <- mse(ft$r$pred)
+    e1 <- mse(fl$r$pred)
     e2 <- mse(predict(r$r, xt$x, num.threads = 1)$predictions)
-    add("rfor", n, p, ft$t, r$t, "ranger", e1 < 1.1 * e2,
-        sprintf("test MSE %.3f vs %.3f; ranger single-threaded", e1, e2))
+    add("rfor", n, p, fl$t, r$t, "ranger", abs(e1 / e2 - 1) < 0.05,
+        sprintf("like for like (mtry %d, bootstrap, node 5); test MSE %.3f vs %.3f",
+                m0, e1, e2))
+    add("rfor", n, p, fd$t, r$t, "ranger", NA,
+        sprintf("each side's defaults (mtry %d vs %d); test MSE %.3f vs %.3f",
+                mg, m0, ed, e2))
   }
   if (has("grf")) {
+    fl <- tm(function() {
+      rfor(x, s$yc, xt$x, ntree = 100, mtry = mg, frac = 0.5, repl = FALSE,
+           hon = TRUE, imb = 0.05)
+    })
     r <- tm(function() {
       grf::regression_forest(x, s$yc, num.trees = 100, num.threads = 1,
                              seed = 1)
     })
+    e1 <- mse(fl$r$pred)
     e2 <- mse(predict(r$r, xt$x)$predictions)
-    add("rfor", n, p, ft$t, r$t, "grf", mse(ft$r$pred) < 1.1 * e2,
-        sprintf("test MSE %.3f vs %.3f; grf honest, single-threaded",
-                mse(ft$r$pred), e2))
+    add("rfor", n, p, fl$t, r$t, "grf", abs(e1 / e2 - 1) < 0.05,
+        sprintf("like for like (grf defaults: honest, half-samples, mtry %d); test MSE %.3f vs %.3f",
+                mg, e1, e2))
+    add("rfor", n, p, fd$t, r$t, "grf", NA,
+        sprintf("each side's defaults (crimlab adaptive, grf honest); test MSE %.3f vs %.3f",
+                ed, e2))
   }
   # the cross-fitted estimators with lasso nuisances
   ours <- list(
