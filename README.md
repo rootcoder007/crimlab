@@ -75,6 +75,9 @@ The functions work on summary data, not on raw records:
 * Tables: cross-tabulation of records or of an aggregate table's counts,
   with chi-square and likelihood-ratio tests, Fisher's exact test,
   Cramer's V with its interval, and the share on the diagonal (`ctabx()`).
+* Time and contagion: Hawkes processes fitted to event times with a
+  choice of kernels and baselines, their residuals and simulation
+  (`hwkfit()`, `hwkres()`, `hwksim()`).
 * Presets: how the columns of a published dataset (Ontario segregation and
   deaths-in-custody tables, use-of-force files, Special Investigations
   Unit cases, Structured Intervention Unit tables, Toronto incident

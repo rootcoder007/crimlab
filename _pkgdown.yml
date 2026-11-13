@@ -189,6 +189,13 @@ reference:
       - sdidx
       - wcbx
       - wystep
+  - title: Time, contagion and operations
+    desc: Self-exciting processes, trends and change points in series,
+      recurrence, hot-spot dynamics and patrol queues.
+    contents:
+      - hwkfit
+      - hwkres
+      - hwksim
   - title: Proofs
     contents:
       - proof

@@ -163,3 +163,6 @@
     {"dissix", "Hotspot", "dissim_le_one"},
     {"spill", "Hotspot", "total_effect"},
     {"bvmor", "Hotspot", "bv_self"},
+    {"hwkfit", "Contagion", "cluster_size"},
+    {"hwkfit", "Contagion", "stationary_rate"},
+    {"hwkfit", "Contagion", "triggered_share"},

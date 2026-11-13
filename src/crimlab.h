@@ -2099,6 +2099,54 @@ int clab_arwt(const double *val, int ns, const int *from, const int *to,
 int clab_bufas(const double *x, const double *y, int n, const double *sx,
                const double *sy, int ns, const double *cx, const double *cy,
                int nc, double r, double buf, int *grp, double *ds, double *dc);
+ * Hawkes processes in time (hwk.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The model of the next three: n event times t, sorted, in [0, hor]; kind
+ * 0 exponential kernel (rate beta), 1 Weibull (shape, scale), 2 Lomax
+ * (shape, scale: density shape / scale (1 + d / scale)^-(shape + 1)); base
+ * 0 a constant baseline e^a0, 1 exp(a0 + a1 t / hor + a2 sin(2 pi t / per)
+ * + a3 cos(2 pi t / per)) (per > 0), its integral by Simpson's rule on
+ * steps of at most per / 16. th: the baseline terms, eta >= 0, then the
+ * kernel parameters (> 0): 3, 4, 6 or 7 values. Events at one instant do
+ * not excite each other. CLAB_EARG for a bad size, window, option or
+ * order of times; CLAB_EDOM for parameters outside their range. */
+
+/* The log-likelihood at th and, when grad is not NULL, its gradient. O(n)
+ * for the exponential kernel (Ozaki 1979), O(n^2) for the others. */
+int clab_hwkll(const double *t, int n, double hor, int kind, int base, double per,
+               const double *th, double *ll, double *grad);
+
+/* The maximum-likelihood fit by BFGS with the analytic gradient over the
+ * baseline terms, logit(eta) and the logarithms of the kernel parameters,
+ * at most maxit steps per start, from start (th's layout, 0 < eta < 1) or,
+ * when NULL, from two starts for the exponential kernel and two more (one
+ * at the exponential fit) for the others, the best kept. n >= 2. Out: th;
+ * cov, the inverse of the numerical Hessian of the gradient (NaN when not
+ * positive definite); st (3): the log-likelihood, the steps and 1 when the
+ * gradient vanished. CLAB_EDOM when no start gives a finite likelihood. */
+int clab_hwkfit(const double *t, int n, double hor, int kind, int base, double per,
+                const double *start, int maxit, double *th, double *cov, double *st);
+
+/* Time-rescaling residuals: tau (n), the compensator's increments from 0;
+ * ks (2), the Kolmogorov-Smirnov statistic of 1 - e^-tau against the
+ * uniform and its p-value (exact below 100 events without ties). work: n
+ * doubles, 3 (2 n + 1)^2 when n < 100. */
+int clab_hwkres(const double *t, int n, double hor, int kind, int base, double per,
+                const double *th, double *tau, double *ks, double *work);
+
+/* Simulation on [0, hor] by the branching construction, from seed: the
+ * background by thinning, Poisson(eta) offspring per event at lags drawn
+ * from the kernel. win: NULL, or a rectangle (xmin, xmax, ymin, ymax) in
+ * which the background falls uniformly (th's baseline is then the
+ * window's whole rate) and offspring land at normal offsets of standard
+ * deviation sig > 0; those outside it are dropped. Out, in time order: t,
+ * x and y (with win), gen (0 for the background), n of them. CLAB_EDOM
+ * when more than cap events arise. work: 3 cap doubles; iwork: 2 cap
+ * ints. */
+int clab_hwksim(double hor, int kind, int base, double per, const double *th,
+                const double *win, double sig, unsigned int seed, int cap, double *t,
+                double *x, double *y, int *gen, int *n, double *work, int *iwork);
 
 #ifdef __cplusplus
 }

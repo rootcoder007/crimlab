@@ -1,5 +1,13 @@
 # crimlab 0.0.0.9000
 
+* `hwkfit()` fits a Hawkes (self-exciting) process to event times by
+  maximum likelihood with the analytic gradient: exponential, Weibull or
+  Lomax kernels, a constant baseline or a trend with a cycle, several of
+  them compared by AIC, and the branching arithmetic (cluster size,
+  stationary rate, share triggered) that `proof("hwkfit")` names.
+  `hwkres()` gives the time-rescaling residuals with the Kolmogorov-Smirnov
+  test of `ks.test()`, and `hwksim()` simulates the process, in time or in
+  space and time, by its branching construction.
 * `cntreg()` fits a count on a group by Poisson and negative binomial
   regression (the iterations of `glm()` and `MASS::glm.nb()`), with
   adjustment columns, an exposure offset and clusters, and reports the
