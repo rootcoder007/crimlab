@@ -132,9 +132,14 @@ reference:
       - relchk
       - catchk
   - title: Counts, rates and tables
-    desc: Rate ratios from count regression with exposure and clusters.
+    desc: Rate ratios from count regression with exposure and clusters;
+      rates and proportions by group with exact and approximate intervals;
+      direct and indirect standardisation.
     contents:
       - cntreg
+      - grprr
+      - dastd
+      - sirex
   - title: Learning
     desc: The elastic net with cross-validation, logistic regression and
       random forests; the learners of the cross-fitted estimators.

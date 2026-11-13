@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // The R entry points of crimlab's count and table statistics: count
-// regression (cntreg). Each checks its arguments, builds the kernel's
+// regression (cntreg), rates by group (grprr) and standardised rates
+// (dastd, sirex). Each checks its arguments, builds the kernel's
 // arrays, calls the kernels and builds the R result. Distribution
 // functions come from R's maths library. Nothing calls back into the R
 // evaluator.
@@ -19,6 +20,10 @@
 // R_NO_REMAP_RMATH is set; the library has them as Rf_*, and newer headers
 // declare the same names identically (rchk.h does this for Rf_qnorm5).
 extern "C" double Rf_pnorm5(double, double, double, int, int);
+extern "C" double Rf_qgamma(double, double, double, int, int);
+extern "C" double Rf_qbeta(double, double, double, int, int);
+extern "C" double Rf_qchisq(double, double, int, int);
+extern "C" double Rf_qpois(double, double, int, int);
 
 using clab::fail;
 
@@ -63,8 +68,11 @@ struct cols {
   SEXP frame() {
     std::vector<const char *> p;
     for (const auto &s : nm) p.push_back(s.c_str());
-    SEXP f = clab::frame(v, p.data());
-    UNPROTECT(1);
+    // the columns added, however many were reserved
+    SEXP w = PROTECT(Rf_allocVector(VECSXP, k));
+    for (int j = 0; j < k; ++j) SET_VECTOR_ELT(w, j, VECTOR_ELT(v, j));
+    SEXP f = clab::frame(w, p.data());
+    UNPROTECT(2);
     return f;
   }
 };
@@ -169,6 +177,88 @@ const char *cntmsg(int rc) {
                            "range (a group or cell with no counts can do this)."
                          : "the kernel refused the input.";
 }
+
+// ------------------------------------------------------------ rates
+
+double na(double v) { return std::isnan(v) ? NA_REAL : v; }
+
+// Clopper-Pearson limits of x of n at tail a / 2 each side
+double cplo(double x, double n, double a) { return x > 0 ? Rf_qbeta(a / 2, x, n - x + 1, 1, 0) : 0.0; }
+double cphi(double x, double n, double a) { return x < n ? Rf_qbeta(1 - a / 2, x + 1, n - x, 1, 0) : 1.0; }
+// the exact Poisson limits of a count x
+double gmlo(double x, double a) { return x > 0 ? Rf_qgamma(a / 2, x, 1.0, 1, 0) : 0.0; }
+double gmhi(double x, double a) { return Rf_qgamma(1 - a / 2, x + 1, 1.0, 1, 0); }
+
+// Per-group sums of x and n over rows labelled by grp (NULL: each row its
+// own group, labelled by the names of x or 1, 2, ...). lev gets the
+// labels; protects two (lev and one scratch) or one.
+struct grpd {
+  std::vector<double> x, n;
+  std::vector<int> code;  // the group of each row
+  SEXP lev;
+  int g;
+};
+
+grpd groups(SEXP x, SEXP grp, int m, const double *xv, const double *nv, int *np) {
+  grpd r;
+  if (Rf_isNull(grp)) {
+    SEXP nm = Rf_getAttrib(x, R_NamesSymbol);
+    r.lev = PROTECT(Rf_allocVector(STRSXP, m));
+    ++*np;
+    for (int i = 0; i < m; ++i) {
+      if (!Rf_isNull(nm) && STRING_ELT(nm, i) != NA_STRING) {
+        SET_STRING_ELT(r.lev, i, STRING_ELT(nm, i));
+      } else {
+        SET_STRING_ELT(r.lev, i, Rf_mkChar(std::to_string(i + 1).c_str()));
+      }
+    }
+    r.g = m;
+    r.code.resize(static_cast<std::size_t>(m));
+    for (int i = 0; i < m; ++i) r.code[static_cast<std::size_t>(i)] = i;
+  } else {
+    csp::lab l = csp::codes(grp, "grp", m);
+    *np += 2;
+    r.lev = l.lev;
+    r.g = l.g;
+    r.code.assign(INTEGER(l.code), INTEGER(l.code) + m);
+  }
+  r.x.assign(static_cast<std::size_t>(r.g), 0.0);
+  r.n.assign(static_cast<std::size_t>(r.g), 0.0);
+  for (int i = 0; i < m; ++i) {
+    const std::size_t c = static_cast<std::size_t>(r.code[static_cast<std::size_t>(i)]);
+    r.x[c] += xv[i];
+    r.n[c] += nv ? nv[i] : 1.0;
+  }
+  return r;
+}
+
+// Weights or rates given per stratum: named ones matched to the strata by
+// label, unnamed ones in the strata's order. Returns ns values.
+std::vector<double> perstr(SEXP v, const char *nm, SEXP lev, int ns) {
+  SEXP d = PROTECT(clab::num(v, nm, -1, 0.0));
+  SEXP vn = Rf_getAttrib(v, R_NamesSymbol);
+  std::vector<double> out(static_cast<std::size_t>(ns));
+  if (Rf_isNull(vn)) {
+    if (XLENGTH(d) != ns) fail("`%s` must have one value per stratum, %d.", nm, ns);
+    for (int s = 0; s < ns; ++s) out[static_cast<std::size_t>(s)] = REAL(d)[s];
+  } else {
+    for (int s = 0; s < ns; ++s) {
+      int hit = -1;
+      for (R_xlen_t j = 0; j < XLENGTH(d); ++j) {
+        if (clab::seql(STRING_ELT(vn, j), STRING_ELT(lev, s))) {
+          if (hit >= 0) fail("`%s` names stratum %s twice.", nm, Rf_translateChar(STRING_ELT(lev, s)));
+          hit = static_cast<int>(j);
+        }
+      }
+      if (hit < 0) fail("`%s` has no value for stratum %s.", nm, Rf_translateChar(STRING_ELT(lev, s)));
+      out[static_cast<std::size_t>(s)] = REAL(d)[hit];
+    }
+  }
+  UNPROTECT(1);
+  return out;
+}
+
+const char *const rtype[] = {"rate", "prop"};
 
 }  // namespace
 
@@ -387,6 +477,248 @@ SEXP C_clab_r_cntreg(SEXP y, SEXP grp, SEXP adj, SEXP expo, SEXP clus, SEXP ref,
   ++np;
   Rf_classgets(out, PROTECT(Rf_mkString("cntreg")));
   UNPROTECT(np + 1);
+  return out;
+}
+
+SEXP C_clab_r_grprr(SEXP x, SEXP n, SEXP grp, SEXP ref, SEXP type, SEXP per,
+                    SEXP level) {
+  clab::who = "grprr";
+  SEXP uv[3] = {x, n, grp};
+  static const char *const un[] = {"x", "n", "grp"};
+  int np = csp::byname(uv, un, 3);
+  SEXP xv = PROTECT(clab::num(uv[0], "x", -1, 0.0));
+  ++np;
+  const int m = len(xv, "x");
+  const int prop = csp::pick(type, "type", rtype, 2);
+  const double* nv = nullptr;
+  if (!Rf_isNull(uv[1])) {
+    SEXP nn = PROTECT(clab::num(uv[1], "n", m, 0.0, true));
+    ++np;
+    nv = REAL(nn);
+  }
+  const double pr = clab::one(per, "per", 0.0, R_PosInf);
+  const double z = zq(level), a = 1 - REAL_RO(PROTECT(clab::dbl(level)))[0];
+  ++np;
+  grpd g = groups(uv[0], uv[2], m, REAL(xv), nv, &np);
+  for (int k = 0; k < g.g; ++k) {
+    if (prop && g.x[static_cast<std::size_t>(k)] > g.n[static_cast<std::size_t>(k)]) {
+      fail("group %s has more events than trials: `x` must not exceed `n` for proportions.",
+           Rf_translateChar(STRING_ELT(g.lev, k)));
+    }
+  }
+  if (!prop && !nv) fail("`n` must give the exposure of each count for `type = \"rate\"`.");
+  const int r0 = Rf_isNull(ref) ? 0 : clab::ref(ref, g.lev, g.g) - 1;
+  const int k = g.g;
+  const std::size_t sk = static_cast<std::size_t>(k);
+  std::vector<double> o(10 * sk);
+  double *rt = &o[0], *lo = &o[sk], *hi = &o[2 * sk], *rp = &o[3 * sk], *ra = &o[4 * sk],
+         *rl = &o[5 * sk], *rh = &o[6 * sk], *df = &o[7 * sk], *dl = &o[8 * sk], *dh = &o[9 * sk];
+  if (clab_grprr(g.x.data(), g.n.data(), k, r0, prop, z, rt, lo, hi, rp, ra, rl, rh, df, dl,
+                 dh) != CLAB_OK) {
+    fail("the kernel refused the input.");
+  }
+  cols rs(9);
+  rs.put("group", g.lev);
+  double *cx = rs.dbl("x", k), *cn = rs.dbl("n", k), *cr = rs.dbl("rate", k),
+         *cl = rs.dbl("lo", k), *ch = rs.dbl("hi", k), *el = rs.dbl("elo", k),
+         *eh = rs.dbl("ehi", k), *cp = rs.dbl("rep", k);
+  for (int i = 0; i < k; ++i) {
+    const double xi = g.x[static_cast<std::size_t>(i)], ni = g.n[static_cast<std::size_t>(i)];
+    cx[i] = xi;
+    cn[i] = ni;
+    cr[i] = pr * rt[i];
+    cl[i] = na(pr * lo[i]);
+    ch[i] = na(pr * hi[i]);
+    el[i] = pr * (prop ? cplo(xi, ni, a) : gmlo(xi, a) / ni);
+    eh[i] = pr * (prop ? cphi(xi, ni, a) : gmhi(xi, a) / ni);
+    cp[i] = na(rp[i]);
+  }
+  SEXP rates = PROTECT(rs.frame());
+  ++np;
+  // the comparisons, every group but the reference
+  SEXP cg = PROTECT(Rf_allocVector(STRSXP, k - 1));
+  ++np;
+  cols cm(9);
+  cm.put("group", cg);
+  double *mr = cm.dbl("ratio", k - 1), *ml = cm.dbl("lo", k - 1), *mh = cm.dbl("hi", k - 1),
+         *me = cm.dbl("elo", k - 1), *mf = cm.dbl("ehi", k - 1), *md = cm.dbl("diff", k - 1),
+         *mdl = cm.dbl("dlo", k - 1), *mdh = cm.dbl("dhi", k - 1);
+  const double x0 = g.x[static_cast<std::size_t>(r0)], n0 = g.n[static_cast<std::size_t>(r0)];
+  for (int i = 0, q = 0; i < k; ++i) {
+    if (i == r0) continue;
+    const double x1 = g.x[static_cast<std::size_t>(i)], n1 = g.n[static_cast<std::size_t>(i)];
+    SET_STRING_ELT(cg, q, STRING_ELT(g.lev, i));
+    mr[q] = na(ra[i]);
+    ml[q] = na(rl[i]);
+    mh[q] = na(rh[i]);
+    if (!prop && x1 + x0 > 0) {
+      // conditional on the total: x1 is binomial with p = n1 R / (n1 R + n0)
+      const double pl = cplo(x1, x1 + x0, a), pu = cphi(x1, x1 + x0, a);
+      me[q] = pl * n0 / ((1 - pl) * n1);
+      mf[q] = pu < 1 ? pu * n0 / ((1 - pu) * n1) : R_PosInf;
+    } else {
+      me[q] = mf[q] = NA_REAL;
+    }
+    md[q] = pr * df[i];
+    mdl[q] = na(pr * dl[i]);
+    mdh[q] = na(pr * dh[i]);
+    ++q;
+  }
+  SEXP cmp = PROTECT(cm.frame());
+  SEXP rf = PROTECT(Rf_ScalarString(STRING_ELT(g.lev, r0)));
+  SEXP ty = PROTECT(Rf_mkString(rtype[prop]));
+  SEXP pe = PROTECT(Rf_ScalarReal(pr)), lv = PROTECT(Rf_ScalarReal(1 - a));
+  np += 5;
+  SEXP out = PROTECT(nlist({{"rates", rates}, {"cmp", cmp}, {"ref", rf}, {"type", ty},
+                            {"per", pe}, {"level", lv}}));
+  Rf_classgets(out, PROTECT(Rf_mkString("grprr")));
+  UNPROTECT(np + 2);
+  return out;
+}
+
+//' @srrstats {G2.3a} grprr() takes `type` as one of "rate" or "prop" and
+//'   refuses anything else, naming the choices.
+//' @noRd
+SEXP C_clab_r_dastd(SEXP x, SEXP n, SEXP strat, SEXP grp, SEXP std, SEXP ref,
+                    SEXP per, SEXP level) {
+  clab::who = "dastd";
+  SEXP uv[4] = {x, n, strat, grp};
+  static const char *const un[] = {"x", "n", "strat", "grp"};
+  int np = csp::byname(uv, un, 4);
+  SEXP xv = PROTECT(clab::num(uv[0], "x", -1, 0.0));
+  const int m = len(xv, "x");
+  SEXP nv = PROTECT(clab::num(uv[1], "n", m, 0.0, true));
+  np += 2;
+  csp::lab s = csp::codes(uv[2], "strat", m);
+  np += 2;
+  csp::lab g{R_NilValue, R_NilValue, 1};
+  std::vector<int> gc(static_cast<std::size_t>(m), 0);
+  if (!Rf_isNull(uv[3])) {
+    g = csp::codes(uv[3], "grp", m);
+    np += 2;
+    gc.assign(INTEGER(g.code), INTEGER(g.code) + m);
+  } else {
+    g.lev = PROTECT(Rf_mkString("all"));
+    ++np;
+  }
+  std::vector<double> w = perstr(std, "std", s.lev, s.g);
+  const int r0 = Rf_isNull(ref) ? 0 : clab::ref(ref, g.lev, g.g) - 1;
+  const double pr = clab::one(per, "per", 0.0, R_PosInf);
+  const double z = zq(level), a = 1 - REAL_RO(PROTECT(clab::dbl(level)))[0];
+  ++np;
+  const int k = g.g;
+  const std::size_t sk = static_cast<std::size_t>(k);
+  std::vector<double> o(10 * sk);
+  std::vector<int> seen(sk * static_cast<std::size_t>(s.g));
+  double *rt = &o[0], *vr = &o[sk], *wm = &o[2 * sk], *ev = &o[3 * sk], *ra = &o[4 * sk],
+         *rl = &o[5 * sk], *rh = &o[6 * sk], *df = &o[7 * sk], *dl = &o[8 * sk], *dh = &o[9 * sk];
+  const int rc = clab_dastd(REAL(xv), REAL(nv), gc.data(), INTEGER(s.code), m, k, s.g, w.data(),
+                            r0, z, rt, vr, wm, ev, ra, rl, rh, df, dl, dh, seen.data());
+  if (rc == CLAB_EARG) fail("each group must have one row per stratum.");
+  if (rc != CLAB_OK) {
+    fail("every group needs a row for each stratum of positive weight, and `std` a "
+         "positive sum.");
+  }
+  cols rs(6);
+  rs.put("group", g.lev);
+  double *cx = rs.dbl("x", k), *cr = rs.dbl("rate", k), *cl = rs.dbl("lo", k),
+         *ch = rs.dbl("hi", k), *cv = rs.dbl("var", k);
+  for (int i = 0; i < k; ++i) {
+    const double y = rt[i], v = vr[i], wx = wm[i];
+    cx[i] = ev[i];
+    cr[i] = pr * y;
+    // Fay and Feuer's gamma interval
+    cl[i] = y > 0 ? pr * v / (2 * y) * Rf_qchisq(a / 2, 2 * y * y / v, 1, 0) : 0.0;
+    ch[i] = pr * (v + wx * wx) / (2 * (y + wx)) *
+            Rf_qchisq(1 - a / 2, 2 * (y + wx) * (y + wx) / (v + wx * wx), 1, 0);
+    cv[i] = pr * pr * v;
+  }
+  SEXP rates = PROTECT(rs.frame());
+  SEXP cg = PROTECT(Rf_allocVector(STRSXP, k - 1));
+  np += 2;
+  cols cm(7);
+  cm.put("group", cg);
+  double *mr = cm.dbl("ratio", k - 1), *ml = cm.dbl("lo", k - 1), *mh = cm.dbl("hi", k - 1),
+         *md = cm.dbl("diff", k - 1), *mdl = cm.dbl("dlo", k - 1), *mdh = cm.dbl("dhi", k - 1);
+  for (int i = 0, q = 0; i < k; ++i) {
+    if (i == r0) continue;
+    SET_STRING_ELT(cg, q, STRING_ELT(g.lev, i));
+    mr[q] = na(ra[i]);
+    ml[q] = na(rl[i]);
+    mh[q] = na(rh[i]);
+    md[q] = pr * df[i];
+    mdl[q] = pr * dl[i];
+    mdh[q] = pr * dh[i];
+    ++q;
+  }
+  SEXP cmp = PROTECT(cm.frame());
+  SEXP rf = PROTECT(Rf_ScalarString(STRING_ELT(g.lev, r0)));
+  SEXP pe = PROTECT(Rf_ScalarReal(pr)), lv = PROTECT(Rf_ScalarReal(1 - a));
+  np += 4;
+  SEXP out = PROTECT(nlist({{"rates", rates}, {"cmp", cmp}, {"ref", rf}, {"per", pe},
+                            {"level", lv}}));
+  Rf_classgets(out, PROTECT(Rf_mkString("dastd")));
+  UNPROTECT(np + 2);
+  return out;
+}
+
+SEXP C_clab_r_sirex(SEXP x, SEXP n, SEXP strat, SEXP grp, SEXP rates, SEXP level) {
+  clab::who = "sirex";
+  SEXP uv[4] = {x, n, strat, grp};
+  static const char *const un[] = {"x", "n", "strat", "grp"};
+  int np = csp::byname(uv, un, 4);
+  SEXP xv = PROTECT(clab::num(uv[0], "x", -1, 0.0));
+  const int m = len(xv, "x");
+  SEXP nv = PROTECT(clab::num(uv[1], "n", m, 0.0, true));
+  np += 2;
+  csp::lab s = csp::codes(uv[2], "strat", m);
+  if (Rf_isNull(uv[3])) fail("`grp` must give the group (area) of each row.");
+  csp::lab g = csp::codes(uv[3], "grp", m);
+  np += 4;
+  std::vector<double> sr;
+  if (!Rf_isNull(rates)) sr = perstr(rates, "rates", s.lev, s.g);
+  const double a = 1 - REAL_RO(PROTECT(clab::dbl(level)))[0];
+  ++np;
+  (void)zq(level);
+  const int k = g.g;
+  const std::size_t sk = static_cast<std::size_t>(k);
+  std::vector<double> o(5 * sk), wk(2 * static_cast<std::size_t>(s.g));
+  double prior[2];
+  const int rc = clab_sirex(REAL(xv), REAL(nv), INTEGER(g.code), INTEGER(s.code), m, k, s.g,
+                            sr.empty() ? nullptr : sr.data(), &o[0], &o[sk], &o[2 * sk],
+                            &o[3 * sk], &o[4 * sk], prior, wk.data());
+  if (rc != CLAB_OK) {
+    fail("every group needs a positive expected count: a stratum rate of 0 or a group "
+         "with no exposure leaves none.");
+  }
+  cols cs(11);
+  cs.put("group", g.lev);
+  double *co = cs.dbl("obs", k), *ce = cs.dbl("expd", k), *ci = cs.dbl("sir", k),
+         *cl = cs.dbl("lo", k), *ch = cs.dbl("hi", k), *cb = cs.dbl("eb", k),
+         *cw = cs.dbl("shr", k), *fl = cs.dbl("flo", k), *fh = cs.dbl("fhi", k);
+  int *cf = cs.lgc("out", k);
+  for (int i = 0; i < k; ++i) {
+    const double ob = o[static_cast<std::size_t>(i)], e = o[sk + static_cast<std::size_t>(i)];
+    co[i] = ob;
+    ce[i] = e;
+    ci[i] = o[2 * sk + static_cast<std::size_t>(i)];
+    cl[i] = gmlo(ob, a) / e;
+    ch[i] = gmhi(ob, a) / e;
+    cb[i] = o[3 * sk + static_cast<std::size_t>(i)];
+    cw[i] = o[4 * sk + static_cast<std::size_t>(i)];
+    // funnel limits for a ratio of 1 at this expected count
+    fl[i] = Rf_qpois(a / 2, e, 1, 0) / e;
+    fh[i] = Rf_qpois(1 - a / 2, e, 1, 0) / e;
+    cf[i] = ci[i] < fl[i] || ci[i] > fh[i] ? 1 : 0;
+  }
+  SEXP tab = PROTECT(cs.frame());
+  const char *const pn[] = {"mean", "var"};
+  SEXP pv = PROTECT(clab::nvec(2, pn, prior));
+  SEXP lv = PROTECT(Rf_ScalarReal(1 - a));
+  np += 3;
+  SEXP out = PROTECT(nlist({{"sir", tab}, {"prior", pv}, {"level", lv}}));
+  Rf_classgets(out, PROTECT(Rf_mkString("sirex")));
+  UNPROTECT(np + 2);
   return out;
 }
 

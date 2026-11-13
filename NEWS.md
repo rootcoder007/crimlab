@@ -7,6 +7,14 @@
   sandwich of `sandwich::vcovCL()`), and from an exchangeable GEE (as
   'geepack' estimates it). `proof("cntreg")` names the Lean theorems on
   swapping the groups.
+* `grprr()` gives rates or proportions by group and their ratios and
+  differences against a reference group: Wilson, Clopper-Pearson and
+  exact Poisson intervals, log-normal and exact conditional intervals of
+  the ratio, Newcombe's interval of a difference of proportions, and each
+  group's over-representation among the events. `dastd()` gives directly
+  standardised rates with Fay and Feuer's interval, and their ratios and
+  differences; `sirex()` gives standardised incidence ratios with exact
+  intervals, funnel limits and Marshall's empirical Bayes shrinkage.
 * `relchk()` recomputes a reported odds ratio, risk ratio or risk
   difference from its table under every labelling (each reference group,
   each outcome as the event, groups in rows or in columns) and says which

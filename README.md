@@ -67,7 +67,11 @@ The functions work on summary data, not on raw records:
   matched result away, and group-based trajectories of offending.
 * Counts and rates: rate ratios between groups from Poisson and negative
   binomial regression with an exposure, adjustment and cluster-robust or
-  GEE standard errors (`cntreg()`).
+  GEE standard errors (`cntreg()`); rates and proportions by group with
+  their ratios and differences, exact and approximate intervals and
+  over-representation (`grprr()`); directly standardised rates
+  (`dastd()`); observed over expected counts with funnel limits and
+  empirical Bayes shrinkage (`sirex()`).
 * Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference (`relchk()`), and what the functions here
   would make of categorical inputs before an analysis (`catchk()`).

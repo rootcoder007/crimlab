@@ -1569,6 +1569,53 @@ int clab_geeex(const double *y, const double *x, int n, int p, const double *off
                const int *cl, int ncl, const int *alias, int maxit, double eps,
                double *beta, double *vc, double *st, double *work, int *iwork);
 
+/* ------------------------------------------------------------------------
+ * Rates by group: ratios and differences, direct and indirect
+ * standardisation.
+ * ------------------------------------------------------------------------ */
+
+/* Rates (prop 0: x events over exposure n) or proportions (prop 1: x of
+ * n, x <= n) of k groups against group ref, with z the normal quantile of
+ * the intervals. x at least 0, n positive. Out, k each: rate (x / n); lo,
+ * hi (Wilson's score interval for a proportion, rate exp(-+z / sqrt(x))
+ * for a rate, NaN when x is 0); rep (the share of the events over the
+ * share of n); ratio (rate over the reference's; Inf or NaN over a zero
+ * rate) with rlo, rhi (log-normal: 1/x - 1/n + 1/x0 - 1/n0 for risks,
+ * Katz et al. 1978, doi:10.2307/2530610; 1/x + 1/x0 for rates; NaN with a
+ * zero count and for ref); diff (rate minus the reference's) with dlo,
+ * dhi (Newcombe's 1998 hybrid score interval for risks,
+ * doi:10.1002/(SICI)1097-0258(19980430)17:8<873::AID-SIM779>3.0.CO;2-I;
+ * Wald for rates; NaN for ref). */
+int clab_grprr(const double *x, const double *n, int k, int ref, int prop, double z,
+               double *rate, double *lo, double *hi, double *rep, double *ratio,
+               double *rlo, double *rhi, double *diff, double *dlo, double *dhi);
+
+/* Directly standardised rates. m rows, one per group and stratum: x
+ * events, n positive exposure, grp in [0, ng), str in [0, ns); w: ns
+ * standard weights, at least 0 with a positive sum; every group has every
+ * stratum of positive weight. Out, ng each: rate (sum of w x / n over sum
+ * w), var (its Poisson variance), wmax (the largest w / n, for the
+ * interval of Fay and Feuer 1997, doi:10.1002/(SICI)1097-0258(19970415)
+ * 16:7<791::AID-SIM500>3.0.CO;2-#), ev (events); against group ref,
+ * ratio, rlo, rhi (log-normal) and diff, dlo, dhi (normal), with z the
+ * normal quantile (NaN for ref). seen: ng ns ints. */
+int clab_dastd(const double *x, const double *n, const int *grp, const int *str, int m,
+               int ng, int ns, const double *w, int ref, double z, double *rate,
+               double *var, double *wmax, double *ev, double *ratio, double *rlo,
+               double *rhi, double *diff, double *dlo, double *dhi, int *seen);
+
+/* Indirect standardisation. Rows as for clab_dastd (any number per group
+ * and stratum); sr: NULL for the stratum rates pooled over all groups, or
+ * ns rates at least 0. Out, ng each: obs, expd (the sum of n times the
+ * stratum rate, positive), sir (obs / expd), eb (shrunk towards the
+ * overall ratio by Marshall's 1991 moment estimates of a gamma prior,
+ * doi:10.2307/2347593) and shr (the share of the prior in it); prior (2):
+ * the prior mean and variance (0 when the ratios vary no more than Poisson
+ * noise, and then eb is the mean). work: 2 ns doubles. */
+int clab_sirex(const double *x, const double *n, const int *grp, const int *str, int m,
+               int ng, int ns, const double *sr, double *obs, double *expd, double *sir,
+               double *eb, double *shr, double *prior, double *work);
+
 #ifdef __cplusplus
 }
 #endif
