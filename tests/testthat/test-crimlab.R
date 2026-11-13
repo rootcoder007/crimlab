@@ -165,7 +165,8 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(stpcp(c(3, 5, 9, 4))), c("tab", "nperm", "exact", "n")),
     list(quote(cusrv(c(3, 5, 9, 4), start = 2)),
          c("i", "y", "expd", "z", "s", "alarm")),
-    list(quote(xcser(c(3, 5, 9, 4), 1:4)), c("cor", "ccf", "common", "level"))
+    list(quote(xcser(c(3, 5, 9, 4), 1:4)), c("cor", "ccf", "common", "level")),
+    list(quote(kmrec(c(3, 5, 9, 4))), c("km", "med", "lr", "n", "level"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

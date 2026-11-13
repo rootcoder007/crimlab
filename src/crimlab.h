@@ -2192,6 +2192,26 @@ int clab_cusrv(const double *y, const double *m, int n, double k, double h, int 
  * full-series means and variances). */
 int clab_xcser(const double *x, const double *y, int n, int lag, double *r);
 
+/* ------------------------------------------------------------------------
+ * Durations: Kaplan-Meier by group and the log-rank test (kmr.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* time: n durations >= 0; event: 1 for an event, 0 for a censored
+ * duration; grp: groups in [0, g). z: the normal quantile of the
+ * intervals. Out, one row per group and distinct time (m of them, at most
+ * n), groups in order: gout, tt, the number at risk nr, events nd,
+ * censored nc, the survival s, its Greenwood standard error se and the
+ * log-scale interval lo, hi (survival::survfit's "log"), NaN once s is 0;
+ * med (2 g; the first g read), each group's median (survfit's rule: where
+ * the curve sits at exactly 1/2, halfway to its next fall), NaN when it
+ * never reaches 1/2; lr (2), the log-rank chi-square and its degrees of
+ * freedom g - 1 (NaN for one group or a singular variance). work: 3 g +
+ * (g - 1)^2 doubles; iwork: n ints. */
+int clab_kmrec(const double *time, const int *event, const int *grp, int n, int g, double z,
+               int *m, int *gout, double *tt, double *nr, double *nd, double *nc, double *s,
+               double *se, double *lo, double *hi, double *med, double *lr, double *work,
+               int *iwork);
+
 #ifdef __cplusplus
 }
 #endif

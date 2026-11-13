@@ -200,6 +200,7 @@ reference:
       - stpcp
       - cusrv
       - xcser
+      - kmrec
   - title: Proofs
     contents:
       - proof

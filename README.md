@@ -82,6 +82,8 @@ The functions work on summary data, not on raw records:
   and Theil-Sen, by period and season (`trndrr()`); step changes and
   Pettitt's test (`stpcp()`); CUSUM surveillance (`cusrv()`); the
   correlation of two series at lags (`xcser()`).
+* Durations: Kaplan-Meier curves, medians and the log-rank test, of
+  durations or of the gaps between repeat events (`kmrec()`).
 * Presets: how the columns of a published dataset (Ontario segregation and
   deaths-in-custody tables, use-of-force files, Special Investigations
   Unit cases, Structured Intervention Unit tables, Toronto incident

@@ -651,3 +651,116 @@ SEXP C_clab_r_xcser(SEXP x, SEXP y, SEXP lagmax, SEXP dif, SEXP level) {
 }
 
 }  // extern "C"
+
+extern "C" {
+
+SEXP C_clab_r_kmrec(SEXP time, SEXP event, SEXP grp, SEXP unit, SEXP end, SEXP level) {
+  clab::who = "kmrec";
+  prot p;
+  SEXP tv = p(clab::num(time, "time", -1, 0.0));
+  const int n0 = clab::ilen(static_cast<double>(XLENGTH(tv)), "time");
+  const double z = zlev(level);
+  std::vector<double> t;
+  std::vector<int> ev, gr;
+  SEXP lev;
+  int g = 1;
+  csp::lab gl{R_NilValue, R_NilValue, 1};
+  if (!Rf_isNull(grp)) {
+    gl = csp::codes(grp, "grp", n0);
+    p.n += 2;
+    g = gl.g;
+  }
+  if (Rf_isNull(unit)) {
+    // durations
+    t.assign(REAL(tv), REAL(tv) + n0);
+    if (Rf_isNull(event)) {
+      ev.assign(static_cast<std::size_t>(n0), 1);
+    } else {
+      SEXP e = p(csp::bin01(event, "event", n0));
+      ev.assign(INTEGER(e), INTEGER(e) + n0);
+    }
+    for (int i = 0; i < n0; ++i) gr.push_back(Rf_isNull(grp) ? 0 : INTEGER(gl.code)[i]);
+  } else {
+    // recurrence: the gaps between a unit's events, the last one censored
+    // at end
+    if (!Rf_isNull(event)) fail("`event` is not read with `unit`: the gaps are the events.");
+    csp::lab u = csp::codes(unit, "unit", n0);
+    p.n += 2;
+    double e = R_PosInf;
+    if (!Rf_isNull(end)) {
+      e = REAL(clab::num(end, "end", 1))[0];
+      for (int i = 0; i < n0; ++i) {
+        if (REAL(tv)[i] > e) fail("`end` must be at or after every time.");
+      }
+    }
+    std::vector<int> ix(static_cast<std::size_t>(n0));
+    for (int i = 0; i < n0; ++i) ix[static_cast<std::size_t>(i)] = i;
+    const int *uc = INTEGER(u.code);
+    const double *tp = REAL(tv);
+    kutil::hsort(ix.data(), n0, [&](int a, int b) {
+      return uc[a] < uc[b] || (uc[a] == uc[b] && (tp[a] < tp[b] || (tp[a] == tp[b] && a < b)));
+    });
+    for (int i = 0; i < n0; ++i) {
+      const int a = ix[static_cast<std::size_t>(i)];
+      const int gg = Rf_isNull(grp) ? 0 : INTEGER(gl.code)[a];
+      if (i > 0 && uc[ix[static_cast<std::size_t>(i - 1)]] == uc[a]) {
+        const int b = ix[static_cast<std::size_t>(i - 1)];
+        if (!Rf_isNull(grp) && INTEGER(gl.code)[b] != gg) fail("`grp` must be the same for every time of a unit.");
+        t.push_back(tp[a] - tp[b]);
+        ev.push_back(1);
+        gr.push_back(gg);
+      }
+      const bool last = i == n0 - 1 || uc[ix[static_cast<std::size_t>(i + 1)]] != uc[a];
+      if (last && std::isfinite(e)) {
+        t.push_back(e - tp[a]);
+        ev.push_back(0);
+        gr.push_back(gg);
+      }
+    }
+    if (t.empty()) fail("no unit has two times and `end` is not given: there are no gaps.");
+  }
+  lev = Rf_isNull(grp) ? p(Rf_mkString("all")) : gl.lev;
+  const int n = static_cast<int>(t.size());
+  const std::size_t sn = static_cast<std::size_t>(n);
+  std::vector<int> go(sn), iw(sn);
+  std::vector<double> tt(sn), nr(sn), nd(sn), nc(sn), s(sn), se(sn), lo(sn), hi(sn),
+      med(2 * static_cast<std::size_t>(g)), w(3 * static_cast<std::size_t>(g) + static_cast<std::size_t>(g) * static_cast<std::size_t>(g));
+  double lr[2];
+  int m = 0;
+  clab_kmrec(t.data(), ev.data(), gr.data(), n, g, z, &m, go.data(), tt.data(), nr.data(), nd.data(),
+             nc.data(), s.data(), se.data(), lo.data(), hi.data(), med.data(), lr, w.data(), iw.data());
+  SEXP gk = p(Rf_allocVector(STRSXP, m));
+  for (int i = 0; i < m; ++i) SET_STRING_ELT(gk, i, STRING_ELT(lev, go[static_cast<std::size_t>(i)]));
+  SEXP km = frame(p, {{"grp", gk},
+                      {"time", dvec(p, tt.data(), m)},
+                      {"nrisk", dvec(p, nr.data(), m)},
+                      {"nevent", dvec(p, nd.data(), m)},
+                      {"ncens", dvec(p, nc.data(), m)},
+                      {"surv", dvec(p, s.data(), m)},
+                      {"se", dvec(p, se.data(), m)},
+                      {"lo", dvec(p, lo.data(), m)},
+                      {"hi", dvec(p, hi.data(), m)}});
+  std::vector<double> gn(static_cast<std::size_t>(g), 0.0), ge(static_cast<std::size_t>(g), 0.0);
+  for (int i = 0; i < n; ++i) {
+    gn[static_cast<std::size_t>(gr[static_cast<std::size_t>(i)])] += 1;
+    ge[static_cast<std::size_t>(gr[static_cast<std::size_t>(i)])] += ev[static_cast<std::size_t>(i)];
+  }
+  SEXP md = frame(p, {{"grp", lev},
+                      {"n", dvec(p, gn.data(), g)},
+                      {"events", dvec(p, ge.data(), g)},
+                      {"median", dvec(p, med.data(), g)}});
+  SEXP lrv = R_NilValue;
+  if (g > 1) {
+    const double pv = std::isnan(lr[0]) ? NA_REAL : Rf_pchisq(lr[0], lr[1], 0, 0);
+    lrv = nlist(p, {{"stat", dvec(p, lr, 1)}, {"df", p(Rf_ScalarInteger(g - 1))}, {"p", p(Rf_ScalarReal(pv))}});
+  }
+  SEXP out = nlist(p, {{"km", km},
+                       {"med", md},
+                       {"lr", lrv},
+                       {"n", p(Rf_ScalarInteger(n))},
+                       {"level", p(Rf_ScalarReal(REAL(clab::dbl(level))[0]))}});
+  Rf_classgets(out, p(Rf_mkString("kmrec")));
+  return out;
+}
+
+}  // extern "C"

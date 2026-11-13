@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* `kmrec()` gives Kaplan-Meier curves by group with Greenwood's standard
+  errors, `survfit()`'s log-scale intervals and medians, and the log-rank
+  test; with `unit` it takes event times and studies the gaps between a
+  unit's events (repeat incidents at a place), the last one censored.
 * `trndrr()` measures the trend in a series of counts as a Poisson rate
   ratio per period (quasi-Poisson when overdispersed), by Mann-Kendall's
   test (exact up to 8 periods) and the Theil-Sen slope, with the change on

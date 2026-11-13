@@ -59,6 +59,7 @@ src/geou.cpp src/t_geou.cpp
 src/buf.cpp src/t_buf.cpp
 src/qn.cpp src/hwk.cpp src/t_hwk.cpp
 src/trn.cpp src/t_trn.cpp
+src/kmr.cpp src/t_kmr.cpp
 src/selftest.cpp"
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$
