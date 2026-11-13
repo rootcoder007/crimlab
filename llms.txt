@@ -95,6 +95,38 @@ The functions work on summary data, not on raw records:
   with chi-square and likelihood-ratio tests, Fisher’s exact test,
   Cramer’s V with its interval, and the share on the diagonal
   ([`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)).
+- Time and contagion: Hawkes processes fitted to event times with a
+  choice of kernels and baselines, their residuals and simulation
+  ([`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md),
+  [`hwkres()`](https://rootcoder007.github.io/crimlab/reference/hwkres.md),
+  [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)).
+- Marked, mutual and space-time contagion: ETAS
+  ([`etasf()`](https://rootcoder007.github.io/crimlab/reference/etasf.md)),
+  multivariate Hawkes processes
+  ([`mvhwk()`](https://rootcoder007.github.io/crimlab/reference/mvhwk.md))
+  and the space-time Hawkes process of crime
+  ([`sthwk()`](https://rootcoder007.github.io/crimlab/reference/sthwk.md)).
+- Series: the trend in a count series as a rate ratio, by Mann-Kendall
+  and Theil-Sen, by period and season
+  ([`trndrr()`](https://rootcoder007.github.io/crimlab/reference/trndrr.md));
+  step changes and Pettitt’s test
+  ([`stpcp()`](https://rootcoder007.github.io/crimlab/reference/stpcp.md));
+  CUSUM surveillance
+  ([`cusrv()`](https://rootcoder007.github.io/crimlab/reference/cusrv.md));
+  the correlation of two series at lags
+  ([`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)).
+- Durations: Kaplan-Meier curves, medians and the log-rank test, of
+  durations or of the gaps between repeat events
+  ([`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md)).
+- Patrol operations: Larson’s hypercube queue
+  ([`hypq()`](https://rootcoder007.github.io/crimlab/reference/hypq.md))
+  and the square-root law of response distance
+  ([`sqrtlw()`](https://rootcoder007.github.io/crimlab/reference/sqrtlw.md)).
+- Hot spots: the Short-D’Orsogna-Brantingham model of repeat burglary,
+  simulated as agents or as its continuum limit
+  ([`sdbsim()`](https://rootcoder007.github.io/crimlab/reference/sdbsim.md)),
+  and the threshold at which hot spots form
+  ([`sdbthr()`](https://rootcoder007.github.io/crimlab/reference/sdbthr.md)).
 - Presets: how the columns of a published dataset (Ontario segregation
   and deaths-in-custody tables, use-of-force files, Special
   Investigations Unit cases, Structured Intervention Unit tables,
@@ -451,6 +483,32 @@ gorg(v, spwt(p, type = "band", d = 0.2, style = "raw"))   # global G
 head(lmorn(v, w, nsim = 199, seed = 1))                    # local Moran
 locgi(v, spwt(p, type = "band", d = 0.2, style = "raw"))  # local G*
 dirmn(p, origin = c(0.5, 0.5))         # directional mean from an origin
+```
+
+### Near repeats, hot spots, scans and spatial regression
+
+``` r
+
+set.seed(5)
+p <- cbind(x = runif(300, 0, 3000), y = runif(300, 0, 3000))
+t <- runif(300, 0, 365)
+knxnr(p, t = t, ds = c(100, 200), dt = c(7, 14), nsim = 99, seed = 1)
+k <- kdsurf(p, nx = 40)                # intensity surface, MASS::kde2d() x n
+k$regions                              # smallest areas holding 50%, 90%
+dbscn(p, eps = 150, minpts = 4)$sizes
+hsper(p, prd = rep(2021:2023, 100), cell = 500, top = 0.1)$periods
+ebshr(c(40, 12, 9, 25, 7, 31, 5, 18))$est     # the expected fall of hot spots
+kscan(p, t = t, r = c(150, 300), tw = c(14, 30), nsim = 49, seed = 1)$cl
+w <- spwt(p, k = 5)
+gmoran(p[, 1] + rnorm(300, sd = 500), w, nsim = 99, seed = 1)
+bvmor(p[, 1], p[, 2], w, nsim = 99, seed = 1)
+f <- sarml(p[, 1] / 1000 + rnorm(300), p[, 2] / 1000, w, durbin = TRUE)
+spill(f)                               # direct, indirect and total effects
+crossk(p, marks = rep(c("a", "b"), 150), i = "a", j = "b",
+       win = c(0, 3000, 0, 3000), r = c(100, 200))$k
+qdrtst(p, win = c(0, 3000, 0, 3000), nx = 3)
+dissix(cbind(a = c(90, 80, 10, 5), b = c(10, 20, 85, 95)))$d
+bufas(p, site = cbind(1000, 1000), comp = cbind(2500, 2500), r = 300)$n
 ```
 
 ### Risk tools, trace evidence, time and data screens
@@ -840,6 +898,77 @@ from the same nuisances.
 
 - [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md) :
   Double machine learning by cross-fitting
+- [`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md)
+  : Design-based causal effects of a 0/1 treatment
+- [`smdbal()`](https://rootcoder007.github.io/crimlab/reference/smdbal.md)
+  : Covariate balance and overlap
+- [`evlx()`](https://rootcoder007.github.io/crimlab/reference/evlx.md) :
+  E-values: how strong an unmeasured confounder must be
+
+## Policy evaluation
+
+Difference in differences with fixed effects, event studies, staggered
+adoption, synthetic controls and synthetic difference in differences.
+
+- [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md)
+  : Difference in differences with two-way fixed effects
+- [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  : An event study: the effect period by period around adoption
+- [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md)
+  : Effects of a policy adopted at different times
+- [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)
+  : Synthetic control for one treated unit
+- [`sdidx()`](https://rootcoder007.github.io/crimlab/reference/sdidx.md)
+  : Synthetic difference in differences
+- [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md) :
+  Inference for a difference in differences with few clusters
+- [`wystep()`](https://rootcoder007.github.io/crimlab/reference/wystep.md)
+  : Westfall-Young stepdown p-values
+
+## Time, contagion and operations
+
+Self-exciting processes, trends and change points in series, recurrence,
+hot-spot dynamics and patrol queues.
+
+- [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md)
+  : Hawkes process: self-exciting event times
+- [`hwkres()`](https://rootcoder007.github.io/crimlab/reference/hwkres.md)
+  [`plot(`*`<hwkres>`*`)`](https://rootcoder007.github.io/crimlab/reference/hwkres.md)
+  : Hawkes process: time-rescaling residuals
+- [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
+  : Hawkes process: simulation
+- [`trndrr()`](https://rootcoder007.github.io/crimlab/reference/trndrr.md)
+  : Trend in a series: rate ratio, Mann-Kendall and Theil-Sen
+- [`stpcp()`](https://rootcoder007.github.io/crimlab/reference/stpcp.md)
+  : Change point: a step in a series and Pettitt's test
+- [`cusrv()`](https://rootcoder007.github.io/crimlab/reference/cusrv.md)
+  : CUSUM surveillance of counts
+- [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
+  : Correlation of two series, at lags
+- [`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md)
+  : Kaplan-Meier survival and recurrence
+- [`hypq()`](https://rootcoder007.github.io/crimlab/reference/hypq.md) :
+  Hypercube queue of patrol units
+- [`sqrtlw()`](https://rootcoder007.github.io/crimlab/reference/sqrtlw.md)
+  : Square-root law of response distance
+- [`sdbsim()`](https://rootcoder007.github.io/crimlab/reference/sdbsim.md)
+  : Hot-spot dynamics: the Short-D'Orsogna-Brantingham model
+- [`sdbthr()`](https://rootcoder007.github.io/crimlab/reference/sdbthr.md)
+  : Hot-spot threshold of the Short-D'Orsogna-Brantingham model
+- [`etasf()`](https://rootcoder007.github.io/crimlab/reference/etasf.md)
+  : ETAS: a self-exciting process with marks and the Omori law
+- [`mvhwk()`](https://rootcoder007.github.io/crimlab/reference/mvhwk.md)
+  : Multivariate Hawkes process: types that excite each other
+- [`sthwk()`](https://rootcoder007.github.io/crimlab/reference/sthwk.md)
+  : Space-time Hawkes process
+
+## Surveys
+
+Design-based means, totals, proportions, ratios and variances by domain
+from stratified, clustered and weighted samples.
+
+- [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md)
+  : Design-based estimates from a complex survey
 
 ## Proofs
 
@@ -851,6 +980,48 @@ from the same nuisances.
 - [`crimlab`](https://rootcoder007.github.io/crimlab/reference/crimlab-package.md)
   [`crimlab-package`](https://rootcoder007.github.io/crimlab/reference/crimlab-package.md)
   : crimlab: Criminology and Sociolegal Statistics
+
+## Spatial crime analysis
+
+Near repeats, kernel surfaces, DBSCAN and hot-spot persistence, the
+space-time scan, global and bivariate Moran, spatial regression and its
+effects, point patterns and segregation, points in polygons, areal
+crosswalks and buffer designs.
+
+- [`knxnr()`](https://rootcoder007.github.io/crimlab/reference/knxnr.md)
+  : Knox test of near repeats
+- [`kdsurf()`](https://rootcoder007.github.io/crimlab/reference/kdsurf.md)
+  : Kernel intensity surface of incidents
+- [`dbscn()`](https://rootcoder007.github.io/crimlab/reference/dbscn.md)
+  : DBSCAN clusters of incidents
+- [`hsper()`](https://rootcoder007.github.io/crimlab/reference/hsper.md)
+  : Hot spots and how long they last
+- [`ebshr()`](https://rootcoder007.github.io/crimlab/reference/ebshr.md)
+  : Empirical-Bayes shrinkage of hot-spot counts
+- [`kscan()`](https://rootcoder007.github.io/crimlab/reference/kscan.md)
+  : Space-time scan statistic of incidents
+- [`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md)
+  : Global Moran's I with its inference
+- [`bvmor()`](https://rootcoder007.github.io/crimlab/reference/bvmor.md)
+  : Bivariate Moran's I
+- [`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md)
+  : Spatial regression: lag, error and combined models
+- [`spill()`](https://rootcoder007.github.io/crimlab/reference/spill.md)
+  : Direct, indirect and total effects of a spatial lag model
+- [`crossk()`](https://rootcoder007.github.io/crimlab/reference/crossk.md)
+  : Cross-type K function and the segregation test
+- [`qdrtst()`](https://rootcoder007.github.io/crimlab/reference/qdrtst.md)
+  : Quadrat count test
+- [`morsta()`](https://rootcoder007.github.io/crimlab/reference/morsta.md)
+  : Morisita's index of dispersion
+- [`dissix()`](https://rootcoder007.github.io/crimlab/reference/dissix.md)
+  : Indices of residential segregation
+- [`pinpl()`](https://rootcoder007.github.io/crimlab/reference/pinpl.md)
+  : Points in polygons, and the population the units cover
+- [`arwt()`](https://rootcoder007.github.io/crimlab/reference/arwt.md) :
+  Crosswalk of counts between two sets of areal units
+- [`bufas()`](https://rootcoder007.github.io/crimlab/reference/bufas.md)
+  : Treated, comparison and excluded places around sites
 
 # Articles
 

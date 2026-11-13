@@ -95,6 +95,38 @@ The functions work on summary data, not on raw records:
   with chi-square and likelihood-ratio tests, Fisher’s exact test,
   Cramer’s V with its interval, and the share on the diagonal
   ([`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)).
+- Time and contagion: Hawkes processes fitted to event times with a
+  choice of kernels and baselines, their residuals and simulation
+  ([`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md),
+  [`hwkres()`](https://rootcoder007.github.io/crimlab/reference/hwkres.md),
+  [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)).
+- Marked, mutual and space-time contagion: ETAS
+  ([`etasf()`](https://rootcoder007.github.io/crimlab/reference/etasf.md)),
+  multivariate Hawkes processes
+  ([`mvhwk()`](https://rootcoder007.github.io/crimlab/reference/mvhwk.md))
+  and the space-time Hawkes process of crime
+  ([`sthwk()`](https://rootcoder007.github.io/crimlab/reference/sthwk.md)).
+- Series: the trend in a count series as a rate ratio, by Mann-Kendall
+  and Theil-Sen, by period and season
+  ([`trndrr()`](https://rootcoder007.github.io/crimlab/reference/trndrr.md));
+  step changes and Pettitt’s test
+  ([`stpcp()`](https://rootcoder007.github.io/crimlab/reference/stpcp.md));
+  CUSUM surveillance
+  ([`cusrv()`](https://rootcoder007.github.io/crimlab/reference/cusrv.md));
+  the correlation of two series at lags
+  ([`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)).
+- Durations: Kaplan-Meier curves, medians and the log-rank test, of
+  durations or of the gaps between repeat events
+  ([`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md)).
+- Patrol operations: Larson’s hypercube queue
+  ([`hypq()`](https://rootcoder007.github.io/crimlab/reference/hypq.md))
+  and the square-root law of response distance
+  ([`sqrtlw()`](https://rootcoder007.github.io/crimlab/reference/sqrtlw.md)).
+- Hot spots: the Short-D’Orsogna-Brantingham model of repeat burglary,
+  simulated as agents or as its continuum limit
+  ([`sdbsim()`](https://rootcoder007.github.io/crimlab/reference/sdbsim.md)),
+  and the threshold at which hot spots form
+  ([`sdbthr()`](https://rootcoder007.github.io/crimlab/reference/sdbthr.md)).
 - Presets: how the columns of a published dataset (Ontario segregation
   and deaths-in-custody tables, use-of-force files, Special
   Investigations Unit cases, Structured Intervention Unit tables,
@@ -451,6 +483,32 @@ gorg(v, spwt(p, type = "band", d = 0.2, style = "raw"))   # global G
 head(lmorn(v, w, nsim = 199, seed = 1))                    # local Moran
 locgi(v, spwt(p, type = "band", d = 0.2, style = "raw"))  # local G*
 dirmn(p, origin = c(0.5, 0.5))         # directional mean from an origin
+```
+
+### Near repeats, hot spots, scans and spatial regression
+
+``` r
+
+set.seed(5)
+p <- cbind(x = runif(300, 0, 3000), y = runif(300, 0, 3000))
+t <- runif(300, 0, 365)
+knxnr(p, t = t, ds = c(100, 200), dt = c(7, 14), nsim = 99, seed = 1)
+k <- kdsurf(p, nx = 40)                # intensity surface, MASS::kde2d() x n
+k$regions                              # smallest areas holding 50%, 90%
+dbscn(p, eps = 150, minpts = 4)$sizes
+hsper(p, prd = rep(2021:2023, 100), cell = 500, top = 0.1)$periods
+ebshr(c(40, 12, 9, 25, 7, 31, 5, 18))$est     # the expected fall of hot spots
+kscan(p, t = t, r = c(150, 300), tw = c(14, 30), nsim = 49, seed = 1)$cl
+w <- spwt(p, k = 5)
+gmoran(p[, 1] + rnorm(300, sd = 500), w, nsim = 99, seed = 1)
+bvmor(p[, 1], p[, 2], w, nsim = 99, seed = 1)
+f <- sarml(p[, 1] / 1000 + rnorm(300), p[, 2] / 1000, w, durbin = TRUE)
+spill(f)                               # direct, indirect and total effects
+crossk(p, marks = rep(c("a", "b"), 150), i = "a", j = "b",
+       win = c(0, 3000, 0, 3000), r = c(100, 200))$k
+qdrtst(p, win = c(0, 3000, 0, 3000), nx = 3)
+dissix(cbind(a = c(90, 80, 10, 5), b = c(10, 20, 85, 95)))$d
+bufas(p, site = cbind(1000, 1000), comp = cbind(2500, 2500), r = 300)$n
 ```
 
 ### Risk tools, trace evidence, time and data screens

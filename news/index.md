@@ -2,6 +2,62 @@
 
 ## crimlab 0.0.0.9000
 
+- [`etasf()`](https://rootcoder007.github.io/crimlab/reference/etasf.md)
+  fits the temporal ETAS model (marks and the modified Omori law),
+  [`mvhwk()`](https://rootcoder007.github.io/crimlab/reference/mvhwk.md)
+  the multivariate Hawkes process of several types that excite each
+  other, with its excitation matrix and spectral radius, and
+  [`sthwk()`](https://rootcoder007.github.io/crimlab/reference/sthwk.md)
+  the space-time Hawkes process of crime, with intensities at query
+  points;
+  [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
+  simulates from a space-time fit. `proof("etasf")` names the theorem
+  that ties the Omori kernel to the Lomax kernel of
+  [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md).
+- [`sdbsim()`](https://rootcoder007.github.io/crimlab/reference/sdbsim.md)
+  simulates the Short-D’Orsogna-Brantingham model of burglary hot spots,
+  as agents on a lattice or as its reaction-diffusion limit with
+  suppressed sites, and
+  [`sdbthr()`](https://rootcoder007.github.io/crimlab/reference/sdbthr.md)
+  gives the linear stability of its uniform state: the threshold beyond
+  which hot spots form and the fastest-growing wavelength.
+  `proof("sdbthr")` and `proof("sdbsim")` name the Lean theorems on the
+  steady state, the trace and the decay.
+- [`hypq()`](https://rootcoder007.github.io/crimlab/reference/hypq.md)
+  solves Larson’s hypercube queue of patrol units exactly (workloads,
+  dispatch shares, lost or waiting calls, travel times) and
+  [`sqrtlw()`](https://rootcoder007.github.io/crimlab/reference/sqrtlw.md)
+  gives Kolesar and Blum’s square-root law of response distance;
+  `proof("sqrtlw")` names its scaling theorems.
+- [`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md)
+  gives Kaplan-Meier curves by group with Greenwood’s standard errors,
+  `survfit()`’s log-scale intervals and medians, and the log-rank test;
+  with `unit` it takes event times and studies the gaps between a unit’s
+  events (repeat incidents at a place), the last one censored.
+- [`trndrr()`](https://rootcoder007.github.io/crimlab/reference/trndrr.md)
+  measures the trend in a series of counts as a Poisson rate ratio per
+  period (quasi-Poisson when overdispersed), by Mann-Kendall’s test
+  (exact up to 8 periods) and the Theil-Sen slope, with the change on
+  the period before and a test of equal seasonal totals;
+  [`stpcp()`](https://rootcoder007.github.io/crimlab/reference/stpcp.md)
+  finds a step change with its permutation p-value and Pettitt’s test;
+  [`cusrv()`](https://rootcoder007.github.io/crimlab/reference/cusrv.md)
+  watches counts by CUSUM;
+  [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
+  correlates two series, matched by period name, at lags as
+  [`ccf()`](https://rdrr.io/r/stats/acf.html) does.
+- [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md)
+  fits a Hawkes (self-exciting) process to event times by maximum
+  likelihood with the analytic gradient: exponential, Weibull or Lomax
+  kernels, a constant baseline or a trend with a cycle, several of them
+  compared by AIC, and the branching arithmetic (cluster size,
+  stationary rate, share triggered) that `proof("hwkfit")` names.
+  [`hwkres()`](https://rootcoder007.github.io/crimlab/reference/hwkres.md)
+  gives the time-rescaling residuals with the Kolmogorov-Smirnov test of
+  [`ks.test()`](https://rdrr.io/r/stats/ks.test.html), and
+  [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
+  simulates the process, in time or in space and time, by its branching
+  construction.
 - [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md)
   fits a count on a group by Poisson and negative binomial regression
   (the iterations of [`glm()`](https://rdrr.io/r/stats/glm.html) and
@@ -392,3 +448,105 @@
   [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md)
   adds two-way clusters, the experimental DiD scores (`score = "exp"`)
   and passes `tol`, `scr` and `hon` to its learners.
+- Policy evaluation on unit-by-period panels.
+  [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md)
+  is the two-way fixed-effects difference in differences by least
+  squares (alternating projections, weights, one-way or two-way
+  cluster-robust errors with the small-sample factor of ‘fixest’), or by
+  Poisson or negative binomial regression for counts, with the estimate
+  leaving out each treated unit, the Goodman-Bacon decomposition, and
+  matching on the outcomes before treatment.
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  is the event study with the joint test of the leads and the raw trends
+  of each adoption cohort.
+  [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md)
+  gives the group-time effects of Callaway and Sant’Anna, with the
+  doubly robust, IPW and regression estimators for covariates,
+  Wooldridge’s regression on cohort-period cells, and de Chaisemartin
+  and D’Haultfoeuille’s estimator for treatments that switch on and off,
+  with cluster-bootstrap errors.
+  [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)
+  is the synthetic control of one treated unit with the placebo test,
+  and
+  [`sdidx()`](https://rootcoder007.github.io/crimlab/reference/sdidx.md)
+  the synthetic difference in differences with placebo or jackknife
+  errors; both solve their weights exactly (Wolfe’s minimum-norm point).
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  bounds the effects under departures from parallel trends (Rambachan
+  and Roth’s relative magnitudes) with a breakdown value.
+  [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md)
+  gives the restricted wild cluster bootstrap (every sign pattern when
+  few), permutation of adoption dates across clusters, and simulated
+  power with the minimum detectable effect;
+  [`wystep()`](https://rootcoder007.github.io/crimlab/reference/wystep.md)
+  the Westfall-Young stepdown p-values.
+- Spatial crime analysis.
+  [`knxnr()`](https://rootcoder007.github.io/crimlab/reference/knxnr.md)
+  is the Knox test of near repeats: pairs by band of distance and time
+  against their exact expectation under exchangeable times, with
+  permutation and Poisson p-values.
+  [`kdsurf()`](https://rootcoder007.github.io/crimlab/reference/kdsurf.md)
+  gives kernel intensity surfaces (the bandwidth and values of
+  [`MASS::kde2d()`](https://rdrr.io/pkg/MASS/man/kde2d.html), the edge
+  corrections of
+  [`spatstat.explore::density.ppp()`](https://rdrr.io/pkg/spatstat.explore/man/density.ppp.html))
+  with the smallest areas holding each share of the incidents;
+  [`dbscn()`](https://rootcoder007.github.io/crimlab/reference/dbscn.md)
+  DBSCAN clusters as `dbscan::dbscan()` numbers them;
+  [`hsper()`](https://rootcoder007.github.io/crimlab/reference/hsper.md)
+  hot grid cells per period, their overlap and how long each stays hot;
+  [`ebshr()`](https://rootcoder007.github.io/crimlab/reference/ebshr.md)
+  the empirical-Bayes shrinkage of hot-spot counts and the fall to
+  expect without any programme;
+  [`kscan()`](https://rootcoder007.github.io/crimlab/reference/kscan.md)
+  Kulldorff’s space-time permutation scan with secondary clusters.
+  [`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md)
+  and
+  [`bvmor()`](https://rootcoder007.github.io/crimlab/reference/bvmor.md)
+  give global and bivariate Moran’s I with their inference
+  ([`spdep::moran.test()`](https://r-spatial.github.io/spdep/reference/moran.test.html),
+  [`spdep::moran_bv()`](https://r-spatial.github.io/spdep/reference/moran_bv.html)),
+  one variable or a sweep of columns;
+  [`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md)
+  fits the spatial lag, error and combined models by maximum likelihood,
+  and the lag model by two-stage least squares, with Durbin terms and
+  the OLS fit beside (`spatialreg::lagsarlm()`, `errorsarlm()`,
+  `sacsarlm()`, `stsls()`);
+  [`spill()`](https://rootcoder007.github.io/crimlab/reference/spill.md)
+  gives direct, indirect and total effects with delta-method standard
+  errors (`spatialreg::impacts()`).
+  [`crossk()`](https://rootcoder007.github.io/crimlab/reference/crossk.md)
+  gives the cross-type K function and the kernel segregation test,
+  [`qdrtst()`](https://rootcoder007.github.io/crimlab/reference/qdrtst.md)
+  the quadrat test,
+  [`morsta()`](https://rootcoder007.github.io/crimlab/reference/morsta.md)
+  Morisita’s index,
+  [`dissix()`](https://rootcoder007.github.io/crimlab/reference/dissix.md)
+  the dissimilarity, entropy, Atkinson and Gini indices with Morrill’s
+  adjustment.
+  [`pinpl()`](https://rootcoder007.github.io/crimlab/reference/pinpl.md)
+  puts points in polygons and reports the population their regions
+  cover,
+  [`arwt()`](https://rootcoder007.github.io/crimlab/reference/arwt.md)
+  moves counts between two sets of areal units, and
+  [`bufas()`](https://rootcoder007.github.io/crimlab/reference/bufas.md)
+  assigns treated, comparison and excluded places around sites.
+  `proof("ebshr")`, `proof("kscan")`, `proof("dissix")`,
+  `proof("spill")` and `proof("bvmor")` name the Lean theorems in
+  `inst/lean/Hotspot.lean`.
+- Design-based causal effects of a 0/1 treatment.
+  [`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md)
+  gives Hajek-normalised inverse probability weighting, g-computation,
+  subclassification and caliper matching on the propensity (ATE, ATT or
+  ATC), and entropy balancing for the ATT, with bootstrap errors;
+  [`smdbal()`](https://rootcoder007.github.io/crimlab/reference/smdbal.md)
+  the standardised mean differences and variance ratios before and after
+  weighting with the overlap of the propensity;
+  [`evlx()`](https://rootcoder007.github.io/crimlab/reference/evlx.md)
+  the E-value of a risk, odds or hazard ratio or a standardised
+  difference.
+- [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md)
+  gives design-based means, totals, proportions, ratios and variances
+  from stratified, clustered and weighted samples, by domain and with
+  differences between domains, with linearisation errors, the
+  finite-population correction and a description of the design.
