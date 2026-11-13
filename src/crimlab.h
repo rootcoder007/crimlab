@@ -1891,6 +1891,58 @@ int clab_knxnr(const double *x, const double *y, const double *t, int n,
                const double *ds, int ks, const double *dt, int kt, int nsim,
                unsigned int seed, double *out);
 
+/* Hot spots (src/hot.cpp).
+ *
+ * clab_kdsurf: the kernel intensity sum_j m_j k(u - p_j) of n >= 1 planar
+ * points with weights w (NULL for 1; finite, >= 0) and the product normal
+ * kernel of standard deviations hx, hy > 0, at u on the grid ax x ay (grid
+ * = 1: na x nb values, ax fastest) or at the na points (ax[a], ay[a])
+ * (grid = 0, nb = na); loo = 1 (points only, na = n, the evaluation points
+ * the data) leaves each point out of its own sum. edge 0 none; with the
+ * rectangle win = {xmin, xmax, ymin, ymax}, 1 divides the value at u by
+ * e(u), the kernel's mass in win (Diggle 1985, doi:10.2307/2347366; NaN
+ * where it is 0), 2 divides each point's kernel by e(p_j) (Jones 1993,
+ * doi:10.1007/BF00147776; CLAB_EDOM where it is 0). The grid is separable:
+ * O((na + nb) n + na nb n) without exponentials in the double loop.
+ *
+ * clab_dbscn: DBSCAN (Ester et al. 1996) of n points: core points have at
+ * least minpts points within eps > 0 (closed, the point included); clusters
+ * grow from core points in index order; border = 1 puts a border point in
+ * the first cluster reaching it, 0 leaves it noise. Out: cl (cluster from
+ * 0, -1 noise), core (0/1), *ncl. O(n + pairs within eps).
+ *
+ * clab_hsper: hot-spot persistence. n points with periods prd in [0, np)
+ * in square cells of side cell > 0 from the corner (x0, y0); the m active
+ * cells in order of column then row (out: cid per point, ix, iy their
+ * column and row, *nc = m; CLAB_EDOM for an index beyond 1e15). In each
+ * period the k = max(1, ceil(top m)) busiest cells (0 < top <= 1) and those
+ * tied with the k-th are hot (hot: m x np, cells fastest), unless the tie
+ * makes more than 2k, when the tied cells are not. per, 9 per period: n,
+ * active cells, the fewest cells holding half (NaN for none), that over m,
+ * hot cells, tied in, tied out, the share of incidents in hot cells, and
+ * the Jaccard overlap with the period before (NaN when either set is
+ * empty). cs, 3 per cell: incidents, periods hot, the longest run of hot
+ * periods. O(n log n + m np log m).
+ *
+ * clab_ebshr: linear empirical-Bayes shrinkage of n >= 2 values y with
+ * weights w (NULL for 1; positive sum) and noise variance v >= 0: with ybar
+ * and S the weighted mean and scatter, the signal max(S - v, 0) and B* = v /
+ * (v + signal) (0 when both are 0). b in [0, 1], or NaN for B*. Out: fit,
+ * 6 (ybar, S, v, signal, B*, b), shr (1 - b) y + b ybar and fall b (y -
+ * ybar). O(n). */
+int clab_kdsurf(const double *x, const double *y, const double *w, int n,
+                double hx, double hy, const double *ax, int na,
+                const double *ay, int nb, int grid, const double *win, int edge,
+                int loo, double *out);
+int clab_dbscn(const double *x, const double *y, int n, double eps, int minpts,
+               int border, int *cl, int *core, int *ncl);
+int clab_hsper(const double *x, const double *y, const int *prd, int n, int np,
+               double cell, double x0, double y0, double top, int *cid,
+               double *ix, double *iy, int *nc, int *hot, double *per,
+               double *cs);
+int clab_ebshr(const double *y, const double *w, int n, double v, double b,
+               double *fit, double *shr, double *fall);
+
 #ifdef __cplusplus
 }
 #endif

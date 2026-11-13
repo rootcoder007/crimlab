@@ -138,6 +138,7 @@ void t_learn(tk &t, int big);
 void t_rf(tk &t, int big);
 void t_dml(tk &t, int big);
 void t_knx(tk &t, int big);
+void t_hot(tk &t, int big);
 
 #ifdef CLAB_MAIN
 // The standalone program only: the median of five timings (sorts t).

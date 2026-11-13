@@ -217,6 +217,7 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_sp2(t, 0);
   t_did(t, 0);
   t_knx(t, 0);
+  t_hot(t, 0);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
 }
@@ -441,6 +442,7 @@ int main(int argc, char **argv) {
     t_dml(t, 1);
     t_sp2(t, 1);
     t_knx(t, 1);
+    t_hot(t, 1);
     std::fputs(xs, stdout);
     std::printf("%ld checks, %ld failed\n", t.n, t.nf);
     return t.nf == 0 ? 0 : 1;
