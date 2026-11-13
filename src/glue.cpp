@@ -507,6 +507,9 @@ SEXP C_clab_r_dktflw(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_lftab(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_trnmat(SEXP, SEXP, SEXP);
+// Areas (bxw.cpp).
+SEXP C_clab_r_bndxw(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_synexp(SEXP, SEXP, SEXP, SEXP);
 // Deterrence theory (bdtr.cpp).
 SEXP C_clab_r_detrsp(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dtrid(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -729,6 +732,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_dktflw", fn(&C_clab_r_dktflw), 12},
     {"C_clab_r_lftab", fn(&C_clab_r_lftab), 6},
     {"C_clab_r_trnmat", fn(&C_clab_r_trnmat), 3},
+    {"C_clab_r_bndxw", fn(&C_clab_r_bndxw), 5},
+    {"C_clab_r_synexp", fn(&C_clab_r_synexp), 4},
     {"C_clab_r_detrsp", fn(&C_clab_r_detrsp), 4},
     {"C_clab_r_dtrid", fn(&C_clab_r_dtrid), 6},
     {"C_clab_r_inspg", fn(&C_clab_r_inspg), 4},

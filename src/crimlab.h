@@ -2887,6 +2887,31 @@ int clab_insphs(const double *T, int nt, const double *g, int ng, int steps, dou
 int clab_colarr(const double *a, const double *e, const double *bg, int n, double *cells,
                 double *orr);
 
+/* ------------------------------------------------------------------------
+ * Areas: crosswalks between boundary versions, synthetic exposures.
+ * ------------------------------------------------------------------------ */
+
+/* Values of n records x, each in source unit u (from 0, below ns; -1 for
+ * a unit the crosswalk lacks, skipped), carried to nt target units by m
+ * links (from[k] to to[k] with weight w[k] >= 0, the share of the source
+ * unit's value that falls in the target: 1 for a source wholly inside its
+ * target, an area or population share to split one). Out: out (nt), the
+ * values of the targets; wsum (ns), each source's total weight (1 when
+ * nothing is lost or counted twice); best (ns), the target of each
+ * source's largest weight (the first of ties, -1 for none) and bw (ns),
+ * that weight. */
+int clab_bndxw(const double *x, const int *u, int n, const int *from, const int *to,
+               const double *w, int m, int ns, int nt, double *out, double *wsum, int *best,
+               double *bw);
+
+/* Synthetic exposure of na areas from a logistic model fitted elsewhere
+ * (clab_lgtreg): coef (p + 1, intercept first) applied to the areas'
+ * covariates ax (na by p, column-major) gives each area's rate
+ * 1 / (1 + exp(-eta)), times its population pop (at least 0) its
+ * exposure. */
+int clab_synexp(const double *coef, const double *ax, int na, int p, const double *pop,
+                double *rate, double *expo);
+
 #ifdef __cplusplus
 }
 #endif
