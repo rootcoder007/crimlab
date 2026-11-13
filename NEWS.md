@@ -1,5 +1,12 @@
 # crimlab 0.0.0.9000
 
+* `etasf()` fits the temporal ETAS model (marks and the modified Omori
+  law), `mvhwk()` the multivariate Hawkes process of several types that
+  excite each other, with its excitation matrix and spectral radius, and
+  `sthwk()` the space-time Hawkes process of crime, with intensities at
+  query points; `hwksim()` simulates from a space-time fit.
+  `proof("etasf")` names the theorem that ties the Omori kernel to the
+  Lomax kernel of `hwkfit()`.
 * `sdbsim()` simulates the Short-D'Orsogna-Brantingham model of
   burglary hot spots, as agents on a lattice or as its reaction-diffusion
   limit with suppressed sites, and `sdbthr()` gives the linear stability

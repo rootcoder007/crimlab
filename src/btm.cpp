@@ -996,3 +996,217 @@ SEXP C_clab_r_sdbthr(SEXP a0, SEXP omega, SEXP eps, SEXP dif, SEXP gam, SEXP eta
 
 }  // extern "C"
 
+namespace {
+
+// ------------------------------------------------------------ marked Hawkes
+
+// A fit's common elements: par, se and cov named by nm.
+void pse(prot &p, const std::vector<std::string> &nm, const double *th, const double *cov,
+         SEXP *par, SEXP *se, SEXP *cv) {
+  const int np = static_cast<int>(nm.size());
+  std::vector<double> s(static_cast<std::size_t>(np));
+  for (int j = 0; j < np; ++j) s[static_cast<std::size_t>(j)] = std::sqrt(cov[j * np + j]);
+  *par = dvec(p, th, np);
+  setnames(p, *par, nm);
+  *se = dvec(p, s.data(), np);
+  setnames(p, *se, nm);
+  *cv = p(Rf_allocMatrix(REALSXP, np, np));
+  for (int j = 0; j < np * np; ++j) REAL(*cv)[j] = std::isnan(cov[j]) ? NA_REAL : cov[j];
+  SEXP dn = p(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dn, 0, strs(p, nm));
+  SET_VECTOR_ELT(dn, 1, strs(p, nm));
+  Rf_setAttrib(*cv, R_DimNamesSymbol, dn);
+}
+
+const char *const nofit = "the fit failed: the likelihood is not finite at the start.";
+
+}  // namespace
+
+extern "C" {
+
+SEXP C_clab_r_etasf(SEXP times, SEXP hor, SEXP mag, SEXP m0, SEXP start, SEXP maxit) {
+  clab::who = "etasf";
+  prot p;
+  const double h = pos1(hor, "hor");
+  std::vector<double> t = evtimes(times, h, 10);
+  tiewarn(t, "etasf");
+  const int n = static_cast<int>(t.size()), mx = clab::whole(maxit, "maxit", 1);
+  std::vector<double> dm(static_cast<std::size_t>(n), 0.0);
+  bool af = false;
+  if (!Rf_isNull(mag)) {
+    SEXP mv = p(clab::num(mag, "mag", n));
+    double lo = REAL(mv)[0], hi = lo;
+    for (int i = 0; i < n; ++i) {
+      lo = std::fmin(lo, REAL(mv)[i]);
+      hi = std::fmax(hi, REAL(mv)[i]);
+    }
+    const double r = Rf_isNull(m0) ? lo : REAL(clab::num(m0, "m0", 1))[0];
+    for (int i = 0; i < n; ++i) dm[static_cast<std::size_t>(i)] = REAL(mv)[i] - r;
+    af = hi - lo > 1e-12;
+  }
+  std::vector<double> s0;
+  if (!Rf_isNull(start)) {
+    SEXP sv = p(clab::num(start, "start", 5));
+    s0.assign(REAL(sv), REAL(sv) + 5);
+  }
+  double th[5], cov[25], st[4];
+  const int rc = clab_etasf(t.data(), dm.data(), n, h, af ? 1 : 0, s0.empty() ? nullptr : s0.data(), mx, th, cov,
+                            st, nullptr);
+  if (rc != CLAB_OK) fail("`start` must have mu, K and c above 0 and p above 1, finite alpha.");
+  SEXP par, se, cv;
+  pse(p, {"mu", "k", "alpha", "c", "p"}, th, cov, &par, &se, &cv);
+  const int k = af ? 5 : 4;
+  SEXP out = nlist(p, {{"par", par},
+                       {"se", se},
+                       {"cov", cv},
+                       {"loglik", p(Rf_ScalarReal(st[0]))},
+                       {"aic", p(Rf_ScalarReal(2 * k - 2 * st[0]))},
+                       {"branch", p(Rf_ScalarReal(st[3]))},
+                       {"conv", p(Rf_ScalarLogical(st[2] > 0))},
+                       {"iter", p(Rf_ScalarInteger(static_cast<int>(st[1])))},
+                       {"afree", p(Rf_ScalarLogical(af))},
+                       {"n", p(Rf_ScalarInteger(n))},
+                       {"hor", p(Rf_ScalarReal(h))}});
+  Rf_classgets(out, p(Rf_mkString("etasf")));
+  return out;
+}
+
+SEXP C_clab_r_mvhwk(SEXP times, SEXP type, SEXP hor, SEXP beta, SEXP start, SEXP maxit) {
+  clab::who = "mvhwk";
+  prot p;
+  const double h = pos1(hor, "hor");
+  std::vector<double> t = evtimes(times, h, 10);
+  tiewarn(t, "mvhwk");
+  const int n = static_cast<int>(t.size()), mx = clab::whole(maxit, "maxit", 1);
+  csp::lab l = csp::codes(type, "type", n);
+  p.n += 2;
+  const int k = l.g;
+  if (k > 10) fail("`type` has %d types: at most 10.", k);
+  const double b = Rf_isNull(beta) ? 0.0 : pos1(beta, "beta");
+  const int np = k + k * k + (b > 0 ? 0 : 1);
+  std::vector<double> s0;
+  if (!Rf_isNull(start)) {
+    SEXP sv = p(clab::num(start, "start", np));
+    s0.assign(REAL(sv), REAL(sv) + np);
+  }
+  const std::size_t sp = static_cast<std::size_t>(np);
+  std::vector<double> th(sp), cov(sp * sp), st(4), w(2 * static_cast<std::size_t>(k) + 8 * sp + sp * sp);
+  std::vector<int> iw(static_cast<std::size_t>(k));
+  const int rc = clab_mvhwk(t.data(), INTEGER(l.code), n, k, h, b, s0.empty() ? nullptr : s0.data(), mx,
+                            th.data(), cov.data(), st.data(), nullptr, w.data(), iw.data());
+  if (rc != CLAB_OK) fail("`start` must hold positive numbers.");
+  std::vector<std::string> nm;
+  std::vector<std::string> tl;
+  for (int c = 0; c < k; ++c) tl.emplace_back(Rf_translateCharUTF8(STRING_ELT(l.lev, c)));
+  for (int c = 0; c < k; ++c) nm.push_back("mu." + tl[static_cast<std::size_t>(c)]);
+  for (int j = 0; j < k; ++j) {
+    for (int c = 0; c < k; ++c) nm.push_back("a." + tl[static_cast<std::size_t>(c)] + "." + tl[static_cast<std::size_t>(j)]);
+  }
+  if (b <= 0) nm.emplace_back("beta");
+  SEXP par, se, cv;
+  pse(p, nm, th.data(), cov.data(), &par, &se, &cv);
+  SEXP a = p(Rf_allocMatrix(REALSXP, k, k));
+  std::copy(th.begin() + k, th.begin() + k + k * k, REAL(a));
+  SEXP dn = p(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(dn, 0, l.lev);
+  SET_VECTOR_ELT(dn, 1, l.lev);
+  Rf_setAttrib(a, R_DimNamesSymbol, dn);
+  SEXP mu = dvec(p, th.data(), k);
+  Rf_setAttrib(mu, R_NamesSymbol, l.lev);
+  SEXP out = nlist(p, {{"par", par},
+                       {"se", se},
+                       {"cov", cv},
+                       {"mu", mu},
+                       {"a", a},
+                       {"beta", p(Rf_ScalarReal(b > 0 ? b : th[sp - 1]))},
+                       {"rad", p(Rf_ScalarReal(st[3]))},
+                       {"loglik", p(Rf_ScalarReal(st[0]))},
+                       {"aic", p(Rf_ScalarReal(2 * np - 2 * st[0]))},
+                       {"conv", p(Rf_ScalarLogical(st[2] > 0))},
+                       {"iter", p(Rf_ScalarInteger(static_cast<int>(st[1])))},
+                       {"n", p(Rf_ScalarInteger(n))},
+                       {"hor", p(Rf_ScalarReal(h))}});
+  Rf_classgets(out, p(Rf_mkString("mvhwk")));
+  return out;
+}
+
+SEXP C_clab_r_sthwk(SEXP times, SEXP x, SEXP y, SEXP hor, SEXP win, SEXP par, SEXP at,
+                    SEXP start, SEXP maxit) {
+  clab::who = "sthwk";
+  prot p;
+  const double h = pos1(hor, "hor");
+  std::vector<double> t = evtimes(times, h, 10);
+  tiewarn(t, "sthwk");
+  const int n = static_cast<int>(t.size()), mx = clab::whole(maxit, "maxit", 1);
+  SEXP xv = p(clab::num(x, "x", n)), yv = p(clab::num(y, "y", n));
+  double w[4];
+  if (Rf_isNull(win)) {
+    w[0] = w[1] = REAL(xv)[0];
+    w[2] = w[3] = REAL(yv)[0];
+    for (int i = 0; i < n; ++i) {
+      w[0] = std::fmin(w[0], REAL(xv)[i]);
+      w[1] = std::fmax(w[1], REAL(xv)[i]);
+      w[2] = std::fmin(w[2], REAL(yv)[i]);
+      w[3] = std::fmax(w[3], REAL(yv)[i]);
+    }
+    if (!(w[0] < w[1] && w[2] < w[3])) fail("the events lie on a line: give `win`.");
+  } else {
+    csp::win(win, w);
+    for (int i = 0; i < n; ++i) {
+      if (!csp::inside(w, REAL(xv)[i], REAL(yv)[i])) fail("every event must lie in `win`.");
+    }
+  }
+  const double area = (w[1] - w[0]) * (w[3] - w[2]);
+  std::vector<double> s0;
+  if (!Rf_isNull(par)) {
+    SEXP sv = p(clab::num(par, "par", 4, 0.0));
+    s0.assign(REAL(sv), REAL(sv) + 4);
+  } else if (!Rf_isNull(start)) {
+    SEXP sv = p(clab::num(start, "start", 4, 0.0));
+    s0.assign(REAL(sv), REAL(sv) + 4);
+  }
+  // the query points: a data frame or list with t, x and y
+  std::vector<double> qt, qx, qy;
+  if (!Rf_isNull(at)) {
+    if (TYPEOF(at) != VECSXP) fail("`at` must be a data frame or list with columns t, x and y.");
+    SEXP nms = Rf_getAttrib(at, R_NamesSymbol);
+    const char *want[3] = {"t", "x", "y"};
+    std::vector<double> *dst[3] = {&qt, &qx, &qy};
+    for (int c = 0; c < 3; ++c) {
+      SEXP col = R_NilValue;
+      for (R_xlen_t j = 0; !Rf_isNull(nms) && j < XLENGTH(at); ++j) {
+        if (std::strcmp(CHAR(STRING_ELT(nms, j)), want[c]) == 0) col = VECTOR_ELT(at, j);
+      }
+      if (Rf_isNull(col)) fail("`at` must be a data frame or list with columns t, x and y.");
+      SEXP d = p(clab::num(col, "at", -1));
+      dst[c]->assign(REAL(d), REAL(d) + XLENGTH(d));
+    }
+    if (qx.size() != qt.size() || qy.size() != qt.size()) fail("`at`'s columns must have one length.");
+  }
+  double th[4], cov[16], st[3];
+  std::vector<double> ql(qt.size());
+  const int rc = clab_sthwk(t.data(), REAL(xv), REAL(yv), n, h, area, s0.empty() ? nullptr : s0.data(),
+                            Rf_isNull(par) ? mx : 0, th, cov, st, nullptr, qt.data(), qx.data(), qy.data(),
+                            static_cast<int>(qt.size()), ql.data());
+  if (rc != CLAB_OK) fail("`par` or `start`: mu, beta and sigma must be above 0 (and eta below 1 for a start).");
+  SEXP pv, se, cv;
+  pse(p, {"mu", "eta", "beta", "sigma"}, th, cov, &pv, &se, &cv);
+  static const char *const wn[] = {"xmin", "xmax", "ymin", "ymax"};
+  SEXP out = nlist(p, {{"par", pv},
+                       {"se", se},
+                       {"cov", cv},
+                       {"loglik", p(Rf_ScalarReal(st[0]))},
+                       {"aic", p(Rf_ScalarReal(8 - 2 * st[0]))},
+                       {"conv", p(Rf_ScalarLogical(st[2] > 0))},
+                       {"iter", p(Rf_ScalarInteger(static_cast<int>(st[1])))},
+                       {"fit", p(Rf_ScalarLogical(Rf_isNull(par)))},
+                       {"n", p(Rf_ScalarInteger(n))},
+                       {"hor", p(Rf_ScalarReal(h))},
+                       {"win", p(clab::nvec(4, wn, w))},
+                       {"area", p(Rf_ScalarReal(area))},
+                       {"lam", Rf_isNull(at) ? R_NilValue : dvec(p, ql.data(), static_cast<int>(ql.size()))}});
+  Rf_classgets(out, p(Rf_mkString("sthwk")));
+  return out;
+}
+
+}  // extern "C"

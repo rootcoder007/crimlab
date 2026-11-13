@@ -161,4 +161,5 @@ void t_trn(tk &t, int big);
 void t_kmr(tk &t, int big);
 void t_hyq(tk &t, int big);
 void t_sdb(tk &t, int big);
+void t_mhk(tk &t, int big);
 #endif

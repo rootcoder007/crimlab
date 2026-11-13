@@ -2277,6 +2277,51 @@ int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double
 int clab_sdbthr(const double *par, const double *k, int nk, double *st, double *tr, double *det,
                 double *gr);
 
+/* ------------------------------------------------------------------------
+ * Hawkes processes with marks, types and places (mhk.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Each of the three: n event times t, sorted, in [0, hor]; maxit 0
+ * evaluates at start, otherwise BFGS from start or, when NULL, from the
+ * kernel's starts, the best kept. Out: th; cov, the inverse of the
+ * numerical Hessian of the analytic gradient (NaN when not positive
+ * definite); grad (NULL or as th), the gradient of the log-likelihood at
+ * th; st: the log-likelihood, the steps, 1 when the gradient vanished,
+ * then as stated. CLAB_EARG for bad sizes or times; CLAB_EDOM for a start
+ * outside the parameter space or no finite likelihood. */
+
+/* Temporal ETAS (Ogata 1988): lambda(t) = mu + K sum over t_j < t of
+ * e^(alpha dm_j) (t - t_j + c)^-p, dm the marks less the reference
+ * magnitude; th (5): mu > 0, K >= 0, alpha (0 and not estimated when
+ * afree is 0), c > 0, p > 1. st (4): ..., the branching ratio K mean(e^(alpha
+ * dm)) c^(1 - p) / (p - 1). O(n^2). */
+int clab_etasf(const double *t, const double *dm, int n, double hor, int afree,
+               const double *start, int maxit, double *th, double *cov, double *st,
+               double *grad);
+
+/* Multivariate Hawkes with exponential kernels (Hawkes 1971): k types
+ * (1 to 10), ty in [0, k); lambda_c(t) = mu_c + beta sum over l of
+ * A[c, l] sum over earlier events of type l of e^(-beta (t - t_j)). th:
+ * mu (k), A (k x k, column-major, A[c + l k] the events of type c each
+ * event of type l triggers), then beta unless beta > 0 is given. st (4):
+ * ..., the spectral radius of A (below 1 for a stationary process). O(n
+ * k). work: 2 k + 8 np + np^2 doubles (np the parameters); iwork: k
+ * ints. */
+int clab_mvhwk(const double *t, const int *ty, int n, int k, double hor, double beta,
+               const double *start, int maxit, double *th, double *cov, double *st,
+               double *grad, double *work, int *iwork);
+
+/* Space-time Hawkes (Mohler et al. 2011): lambda(t, x, y) = mu + eta
+ * beta sum over earlier events of e^(-beta (t - t_j)) phi_sigma(x - x_j,
+ * y - y_j), phi the isotropic normal density; mu per unit area and time
+ * over a region of area area (the spatial kernel's mass outside it is
+ * not subtracted). th (4): mu, eta (< 1 when fitted), beta, sigma. st
+ * (3). qlam: the intensity at the nq points (qt, qx, qy) at th. O(n^2). */
+int clab_sthwk(const double *t, const double *x, const double *y, int n, double hor,
+               double area, const double *start, int maxit, double *th, double *cov,
+               double *st, double *grad, const double *qt, const double *qx, const double *qy,
+               int nq, double *qlam);
+
 #ifdef __cplusplus
 }
 #endif

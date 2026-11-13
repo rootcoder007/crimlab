@@ -196,7 +196,8 @@ plot.hwkres <- function(x, ...) {
 #' deviation `sigma`) from its parent; offspring outside the window or past
 #' `hor` are not recorded and have no offspring of their own.
 #'
-#' @param par A fit from [hwkfit()], or parameters as `par` of [hwkfit()].
+#' @param par A fit from [hwkfit()] or [sthwk()], or parameters as `par` of
+#'   [hwkfit()] (a space-time fit gives `win` and `sigma` too).
 #' @param hor The end of the window: one positive number.
 #' @param kernel,base,per As for [hwkfit()]; one kernel and one baseline
 #'   (not read with a fit).
@@ -230,6 +231,12 @@ hwksim <- function(
   seed = NULL,
   nmax = 1e5
 ) {
+  if (inherits(par, "sthwk")) {
+    f <- par
+    th <- f[["par"]]
+    return(.Call(C_clab_r_hwksim, c(log(th[["mu"]]), th[["eta"]], th[["beta"]]),
+                 hor, "exp", "const", 1, f[["win"]], th[["sigma"]], seed, nmax))
+  }
   if (inherits(par, "hwkfit")) {
     f <- par
     return(.Call(C_clab_r_hwksim, f[["par"]], hor, f[["kernel"]], f[["base"]],

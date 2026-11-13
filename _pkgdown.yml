@@ -205,6 +205,9 @@ reference:
       - sqrtlw
       - sdbsim
       - sdbthr
+      - etasf
+      - mvhwk
+      - sthwk
   - title: Proofs
     contents:
       - proof

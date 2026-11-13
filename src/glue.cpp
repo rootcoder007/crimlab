@@ -469,6 +469,9 @@ SEXP C_clab_r_sqrtlw(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sdbsim(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sdbthr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_etasf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mvhwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef calls[] = {
     {"C_clab_vod", fn(&C_clab_vod), 4},
@@ -640,6 +643,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_sqrtlw", fn(&C_clab_r_sqrtlw), 5},
     {"C_clab_r_sdbsim", fn(&C_clab_r_sdbsim), 17},
     {"C_clab_r_sdbthr", fn(&C_clab_r_sdbthr), 8},
+    {"C_clab_r_etasf", fn(&C_clab_r_etasf), 6},
+    {"C_clab_r_mvhwk", fn(&C_clab_r_mvhwk), 6},
+    {"C_clab_r_sthwk", fn(&C_clab_r_sthwk), 9},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

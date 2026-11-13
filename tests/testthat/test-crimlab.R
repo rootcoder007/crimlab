@@ -175,7 +175,17 @@ test_that("every exported function answers one valid call in its shape", {
          c("b", "rho", "tot", "burg", "meanb", "mode")),
     list(quote(sdbthr(1, 1, 2, 1, 1, 0.01)),
          c("steady", "p", "q", "r", "thr", "unstable", "kcrit", "detcrit",
-           "grcrit", "disp"))
+           "grcrit", "disp")),
+    list(quote(etasf(c(1, 3, 4, 8, 9, 9.5, 13, 20, 21, 22), 25)),
+         c("par", "se", "cov", "loglik", "aic", "branch", "conv", "iter",
+           "afree", "n", "hor")),
+    list(quote(mvhwk(c(1, 3, 4, 8, 9, 9.5, 13, 20, 21, 22), rep(1:2, 5), 25)),
+         c("par", "se", "cov", "mu", "a", "beta", "rad", "loglik", "aic",
+           "conv", "iter", "n", "hor")),
+    list(quote(sthwk(c(1, 3, 4, 8, 9, 9.5, 13, 20, 21, 22), 1:10,
+                     c(2, 5, 1, 9, 3, 7, 4, 8, 6, 10), 25)),
+         c("par", "se", "cov", "loglik", "aic", "conv", "iter", "fit", "n",
+           "hor", "win", "area", "lam"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

@@ -17,7 +17,8 @@ hwksim(
 )
 }
 \arguments{
-\item{par}{A fit from \code{\link[=hwkfit]{hwkfit()}}, or parameters as \code{par} of \code{\link[=hwkfit]{hwkfit()}}.}
+\item{par}{A fit from \code{\link[=hwkfit]{hwkfit()}} or \code{\link[=sthwk]{sthwk()}}, or parameters as \code{par} of
+\code{\link[=hwkfit]{hwkfit()}} (a space-time fit gives \code{win} and \code{sigma} too).}
 
 \item{hor}{The end of the window: one positive number.}
 

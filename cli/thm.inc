@@ -177,3 +177,4 @@
     {"sdbthr", "HotSpot", "steady"},
     {"sdbthr", "HotSpot", "trace_neg"},
     {"sdbthr", "HotSpot", "no_hotspots_without_reinforcement"},
+    {"etasf", "Etas", "omori_lomax"},

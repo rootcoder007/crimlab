@@ -2084,6 +2084,7 @@ const Thm thms[] = {
     {"sdbthr", "HotSpot", "steady"},
     {"sdbthr", "HotSpot", "trace_neg"},
     {"sdbthr", "HotSpot", "no_hotspots_without_reinforcement"},
+    {"etasf", "Etas", "omori_lomax"},
 };
 constexpr int nthm = sizeof thms / sizeof thms[0];
 }  // namespace
