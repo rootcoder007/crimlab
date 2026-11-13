@@ -1,0 +1,342 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# The release of the crimlab command, on a version tag (vX.Y.Z, the
+# Version of DESCRIPTION): the archive for each platform
+# (packaging/dist.sh; the Windows one with cl), the source tarball
+# (Homebrew builds from it), SHA256SUMS over all of them with install.sh
+# and install.ps1, those scripts run against the archives on Linux
+# (dash, and busybox in Alpine), macOS and Windows, then, in the
+# protected environment "release": a DRAFT GitHub release with the
+# NEWS.md section as its notes (the maintainer publishes it by hand;
+# tap.yml then updates Homebrew and Scoop), and the image
+# ghcr.io/rootcoder007/crimlab for linux/amd64 and linux/arm64.
+#
+# workflow_dispatch is a dry run: the same builds, sums and install
+# tests, kept as run artifacts; no release, no image.
+#
+# Release signing plugs in at the step "SSH signature of SHA256SUMS":
+# with the secret CLAB_SSH_SIGNING_KEY set it writes SHA256SUMS.sig,
+# which install.sh and install.ps1 check when CRIMLAB_SIGNER (or the key
+# written into them) is set.
+name: release
+
+on:
+  push:
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  meta:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.m.outputs.version }}
+      sde: ${{ steps.m.outputs.sde }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - id: m
+        env:
+          REFTYPE: ${{ github.ref_type }}
+          REFNAME: ${{ github.ref_name }}
+        run: |
+          v=$(sed -n 's/^Version: *//p' DESCRIPTION)
+          if [ "$REFTYPE" = tag ]; then
+            [ "$REFNAME" = "v$v" ] || { echo "::error::tag $REFNAME is not DESCRIPTION's $v"; exit 1; }
+            grep -qx "# crimlab $v" NEWS.md || { echo "::error::NEWS.md has no '# crimlab $v'"; exit 1; }
+            # the Go module's own tag, on the same commit: the Go proxy
+            # remembers a version asked for before its tag existed as missing
+            g=$(git ls-remote origin "refs/tags/bindings/go/v$v" "refs/tags/bindings/go/v$v^{}" |
+              awk '{c = $1} END {print c}')
+            [ "$g" = "$(git rev-parse HEAD)" ] ||
+              { echo "::error::push the tag bindings/go/v$v with $REFNAME, on the same commit"; exit 1; }
+          else
+            # a dry run of the development version: name it X.Y.Z
+            v=$(printf '%s\n' "$v" | sed 's/^\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')
+          fi
+          { echo "version=$v"; echo "sde=$(git log -1 --format=%ct)"; } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: build ${{ matrix.target }}
+    needs: meta
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: linux-x86_64, os: ubuntu-24.04 }
+          - { target: linux-arm64, os: ubuntu-24.04-arm }
+          - { target: macos-arm64, os: macos-15 }
+          - { target: macos-x86_64, os: macos-15-intel }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: archive
+        env:
+          SOURCE_DATE_EPOCH: ${{ needs.meta.outputs.sde }}
+          VER: ${{ needs.meta.outputs.version }}
+          T: ${{ matrix.target }}
+        run: |
+          if [ "$RUNNER_OS" = macOS ]; then
+            command -v gtar >/dev/null || brew install gnu-tar
+            export TAR=gtar
+          fi
+          sh packaging/dist.sh "$T" dist
+          tar -tzvf dist/*.tar.gz
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-${{ matrix.target }}
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  windows:
+    # cl, with the C runtime linked in (/MT): the program needs no
+    # separate runtime installed
+    needs: meta
+    runs-on: windows-2025
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the kernels
+        shell: bash
+        run: |
+          mkdir b
+          grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' src/*.cpp > b/k.rsp
+      - name: build
+        shell: cmd
+        run: |
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
+          for /f "tokens=2" %%v in ('findstr /b "Version:" DESCRIPTION') do set CV=%%v
+          cl /nologo /c /MT /std:c++17 /EHsc /O2 /Fob\ @b\k.rsp || exit /b 1
+          cl /nologo /c /MT /std:c++17 /EHsc /O2 /D_CRT_SECURE_NO_WARNINGS /DCLAB_VER=\"%CV%\" /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
+          cl /nologo /MT /Fecli\crimlab.exe b\*.obj || exit /b 1
+      - name: tests
+        shell: bash
+        run: sh cli/test.sh cli/crimlab.exe
+      - name: archive
+        shell: pwsh
+        env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          $n = "crimlab-$env:V-windows-x86_64"
+          New-Item -ItemType Directory -Force -Path "w\$n\bin", dist | Out-Null
+          Copy-Item cli\crimlab.exe "w\$n\bin\"
+          Copy-Item LICENSE, NOTICE "w\$n\"
+          Compress-Archive -Path "w\$n" -DestinationPath "dist\$n.zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-windows-x86_64
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  source:
+    # git archive of the tagged commit, made twice and compared
+    needs: meta
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          mkdir dist
+          for i in 1 2; do
+            git archive --format=tar --prefix="crimlab-$V/" HEAD | gzip -n -9 > "$RUNNER_TEMP/$i.tar.gz"
+          done
+          cmp "$RUNNER_TEMP/1.tar.gz" "$RUNNER_TEMP/2.tar.gz"
+          mv "$RUNNER_TEMP/1.tar.gz" "dist/crimlab-$V.tar.gz"
+          tar -xzf "dist/crimlab-$V.tar.gz" -C "$RUNNER_TEMP"
+          make -C "$RUNNER_TEMP/crimlab-$V/cli" -j4 check
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-source
+          path: dist/*.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  sums:
+    needs: [meta, build, windows, source]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+      - name: SHA256SUMS
+        env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          n=$(find dist -name "crimlab-$V-*" | wc -l)
+          [ "$n" -eq 5 ] || { echo "::error::expected 5 archives, found $n"; ls dist; exit 1; }
+          cp install.sh install.ps1 dist/
+          cd dist
+          sha256sum -- * | LC_ALL=C sort -k2 > ../SHA256SUMS
+          mv ../SHA256SUMS .
+          cat SHA256SUMS
+      - name: SSH signature of SHA256SUMS (secret CLAB_SSH_SIGNING_KEY; the release signing hook)
+        env:
+          KEY: ${{ secrets.CLAB_SSH_SIGNING_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then
+            echo "::notice::CLAB_SSH_SIGNING_KEY is not set: SHA256SUMS is not signed"
+            exit 0
+          fi
+          k="$RUNNER_TEMP/k"
+          (umask 077 && printf '%s\n' "$KEY" > "$k")
+          unset KEY
+          ssh-keygen -Y sign -f "$k" -n file dist/SHA256SUMS
+          rm -f "$k"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  install:
+    # install.sh and install.ps1 as a user runs them, against the
+    # archives served from this runner (http to localhost)
+    name: install ${{ matrix.os }}
+    needs: [meta, sums]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel, windows-2025]
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: r/download/v${{ needs.meta.outputs.version }}
+      - name: the release folder, served on localhost
+        shell: bash
+        env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          mkdir -p r/latest
+          cp -R "r/download/v$V" r/latest/download
+      - name: install.sh (sh; on Linux dash, then busybox in Alpine)
+        if: runner.os != 'Windows'
+        env:
+          CRIMLAB_BASE: http://127.0.0.1:8471
+        run: |
+          (cd r && exec python3 -m http.server 8471 --bind 127.0.0.1) > srv.log 2>&1 &
+          sleep 2
+          curl -fsS "$CRIMLAB_BASE/latest/download/install.sh" | sh
+          "$HOME/.local/bin/crimlab" orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
+          if [ "$RUNNER_OS" = Linux ]; then
+            rm -f "$HOME/.local/bin/crimlab"
+            curl -fsS "$CRIMLAB_BASE/latest/download/install.sh" | dash
+            "$HOME/.local/bin/crimlab" -V
+            docker run --rm --network host -e CRIMLAB_BASE alpine:3.22 sh -c \
+              'wget -qO- "$CRIMLAB_BASE/latest/download/install.sh" | sh && ~/.local/bin/crimlab orrisk --or 2 --rate 0.1 --share 0.3' |
+              grep 0.1475205
+          fi
+      - name: install.ps1
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          CRIMLAB_BASE: http://127.0.0.1:8471
+        run: |
+          Start-Process python -ArgumentList '-m', 'http.server', '8471', '--bind', '127.0.0.1' -WorkingDirectory r -WindowStyle Hidden
+          Start-Sleep -Seconds 3
+          irm "$env:CRIMLAB_BASE/latest/download/install.ps1" | iex
+          $o = & "$HOME\.local\bin\crimlab.exe" orrisk --or 2 --rate 0.1 --share 0.3
+          $o
+          if (-not ($o -match '0\.1475205')) { throw 'wrong result' }
+
+  release:
+    # a DRAFT release; the maintainer reads it and publishes it
+    if: github.ref_type == 'tag'
+    needs: [meta, sums, install]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release
+          path: dist
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          awk -v h="# crimlab $V" '$0 == h {on = 1; next} on && /^# / {exit} on' NEWS.md > notes.md
+          gh release create "v$V" --repo "$GITHUB_REPOSITORY" --draft --verify-tag \
+            --title "crimlab $V" --notes-file notes.md dist/*
+
+  image:
+    # ghcr.io/rootcoder007/crimlab:X.Y.Z and :latest, each architecture
+    # built natively, then one manifest list
+    if: github.ref_type == 'tag'
+    name: image ${{ matrix.arch }}
+    needs: [meta, install]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        include:
+          - { arch: amd64, os: ubuntu-24.04 }
+          - { arch: arm64, os: ubuntu-24.04-arm }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.meta.outputs.version }}
+          A: ${{ matrix.arch }}
+        run: |
+          i=ghcr.io/rootcoder007/crimlab
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build -t "$i:$V-$A" .
+          docker run --rm "$i:$V-$A" crimlab orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
+          docker push "$i:$V-$A"
+
+  manifest:
+    if: github.ref_type == 'tag'
+    needs: [meta, image]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: release
+    permissions:
+      packages: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          i=ghcr.io/rootcoder007/crimlab
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker buildx imagetools create -t "$i:$V" -t "$i:latest" "$i:$V-amd64" "$i:$V-arm64"
