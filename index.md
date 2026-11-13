@@ -79,6 +79,29 @@ The functions work on summary data, not on raw records:
   an event known only within a window happened, whether reported figures
   follow Benford’s law, how strong hidden bias must be to explain a
   matched result away, and group-based trajectories of offending.
+- Counts and rates: rate ratios between groups from Poisson and negative
+  binomial regression with an exposure, adjustment and cluster-robust or
+  GEE standard errors
+  ([`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md));
+  rates and proportions by group with their ratios and differences,
+  exact and approximate intervals and over-representation
+  ([`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md));
+  directly standardised rates
+  ([`dastd()`](https://rootcoder007.github.io/crimlab/reference/dastd.md));
+  observed over expected counts with funnel limits and empirical Bayes
+  shrinkage
+  ([`sirex()`](https://rootcoder007.github.io/crimlab/reference/sirex.md)).
+- Tables: cross-tabulation of records or of an aggregate table’s counts,
+  with chi-square and likelihood-ratio tests, Fisher’s exact test,
+  Cramer’s V with its interval, and the share on the diagonal
+  ([`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)).
+- Presets: how the columns of a published dataset (Ontario segregation
+  and deaths-in-custody tables, use-of-force files, Special
+  Investigations Unit cases, Structured Intervention Unit tables,
+  Toronto incident layers) feed these functions, so that
+  `cntreg(clprep(data, "otis-c01-cnt"))` gives the published analysis
+  ([`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)).
+  Presets describe layouts and ship no data.
 - Checks: which labelling of a table reproduces a reported odds ratio,
   risk ratio or risk difference
   ([`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)),

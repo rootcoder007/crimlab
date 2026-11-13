@@ -2,6 +2,46 @@
 
 ## crimlab 0.0.0.9000
 
+- [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md)
+  fits a count on a group by Poisson and negative binomial regression
+  (the iterations of [`glm()`](https://rdrr.io/r/stats/glm.html) and
+  [`MASS::glm.nb()`](https://rdrr.io/pkg/MASS/man/glm.nb.html)), with
+  adjustment columns, an exposure offset and clusters, and reports the
+  rate ratios with Wald intervals: model-based, cluster-robust (the
+  sandwich of
+  [`sandwich::vcovCL()`](https://zeileis.codeberg.page/sandwich/reference/vcovCL.html)),
+  and from an exchangeable GEE (as ‘geepack’ estimates it).
+  `proof("cntreg")` names the Lean theorems on swapping the groups.
+- [`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md)
+  gives rates or proportions by group and their ratios and differences
+  against a reference group: Wilson, Clopper-Pearson and exact Poisson
+  intervals, log-normal and exact conditional intervals of the ratio,
+  Newcombe’s interval of a difference of proportions, and each group’s
+  over-representation among the events.
+  [`dastd()`](https://rootcoder007.github.io/crimlab/reference/dastd.md)
+  gives directly standardised rates with Fay and Feuer’s interval, and
+  their ratios and differences;
+  [`sirex()`](https://rootcoder007.github.io/crimlab/reference/sirex.md)
+  gives standardised incidence ratios with exact intervals, funnel
+  limits and Marshall’s empirical Bayes shrinkage.
+- [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
+  cross-tabulates labels (counting rows, summing a count column, taking
+  the largest or smallest value, or counting distinct ids per cell) and
+  tests the table: Pearson’s chi-square (with Yates’ correction on
+  request), the likelihood-ratio test, Fisher’s exact test with the
+  conditional odds ratio of a 2 x 2 table, Cramer’s V with its
+  noncentral chi-square interval and Bergsma’s bias correction, the
+  contingency coefficient, phi and the diagonal share. `proof("ctabx")`
+  names the Lean theorems on the 2 x 2 statistic.
+- [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  maps a published dataset’s columns onto a generic function’s arguments
+  from `inst/presets/presets.tsv` (one row per preset and argument:
+  column, recode, filter, units, note, source), with recipes for derived
+  columns, so that `generic(clprep(data, preset))` gives the published
+  analysis. 87 presets cover the Ontario segregation and
+  deaths-in-custody tables, the race-based use-of-force files, the
+  Special Investigations Unit cases, the Structured Intervention Unit
+  tables and the Toronto incident layers.
 - [`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)
   recomputes a reported odds ratio, risk ratio or risk difference from
   its table under every labelling (each reference group, each outcome as

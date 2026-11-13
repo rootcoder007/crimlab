@@ -223,6 +223,32 @@ of categorical inputs.
 - [`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)
   : Audit categorical inputs before an analysis
 
+## Counts, rates and tables
+
+Rate ratios from count regression with exposure and clusters; rates and
+proportions by group with exact and approximate intervals; direct and
+indirect standardisation; cross-tabulation with tests and measures of
+association.
+
+- [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md)
+  : Count regression: rate ratios between groups
+- [`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md)
+  : Rates and proportions by group: ratios and differences
+- [`dastd()`](https://rootcoder007.github.io/crimlab/reference/dastd.md)
+  : Directly standardised rates
+- [`sirex()`](https://rootcoder007.github.io/crimlab/reference/sirex.md)
+  : Indirect standardisation: standardised ratios with shrinkage
+- [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
+  : Cross-tabulation with tests and measures of association
+
+## Presets
+
+A published dataset’s columns onto a generic function’s arguments.
+
+- [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  : Presets: a published dataset's columns onto a generic function's
+  arguments
+
 ## Learning
 
 The elastic net with cross-validation, logistic regression and random
