@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// Standalone tests for clab_fair (src/fair.cpp). Part of the self-test (selftest.cpp).
+// Standalone tests for clab_fair and the other kernels of src/fair.cpp
+// (clab_fairdf, clab_tmpaud, clab_lipaud, clab_nsbnd, clab_impfpr,
+// clab_rnkres). Part of the self-test (selftest.cpp).
 
 #include <cmath>
 #include <cstdint>
@@ -191,9 +193,207 @@ void run(tk &tt) {
 }
 
 
+// Values by hand or from R 4.6.1 (prop.test(x, m, correct = FALSE) for the
+// Wilson intervals; the formulas of Newcombe 1998 and Katz et al. 1978
+// evaluated on them in R).
+void run2(tk &tt) {
+  // 1. fairdf by hand. Group 0: decisions 1 1 1 0, outcomes 1 1 0 0;
+  // group 1: decisions 0 0 1 0 0, outcomes 1 0 1 0 0. Shares 3/4 and 1/5;
+  // true positive rates 1 and 1/2, false positive rates 1/2 and 0.
+  {
+    const int pr[9] = {1, 1, 1, 0, 0, 0, 1, 0, 0};
+    const int y[9] = {1, 1, 0, 0, 1, 0, 1, 0, 0};
+    const int g[9] = {0, 0, 0, 0, 1, 1, 1, 1, 1};
+    double cnt[12], met[46], sum[11], wk[6 + 400];
+    tk_true(tt, "fairdf.hand.rc",
+            clab_fairdf(pr, y, g, 9, 2, -1, Z, 0, 0, cnt, met, sum, wk) == CLAB_OK);
+    // the base: the larger share, group 0
+    tk_near(tt, "fairdf.hand.base", sum[10], 0, 0);
+    const double c0[6] = {4, 3, 2, 2, 2, 1}, c1[6] = {5, 1, 2, 1, 3, 0};
+    for (int k = 0; k < 6; ++k) {
+      tk_near(tt, "fairdf.hand.cnt0", cnt[2 * k], c0[k], 0);
+      tk_near(tt, "fairdf.hand.cnt1", cnt[2 * k + 1], c1[k], 0);
+    }
+    auto m = [&](int k, int j) { return met[2 * k + j]; };
+    tk_near(tt, "fairdf.hand.ppos", m(2, 1), 0.2, 1e-16);
+    tk_near(tt, "fairdf.hand.dp", m(5, 1), 0.2 - 0.75, 1e-16);
+    tk_near(tt, "fairdf.hand.di", m(8, 1), 0.2 / 0.75, 1e-16);
+    tk_near(tt, "fairdf.hand.wlo", m(3, 1), 0.036224108632430141, 1e-14);
+    tk_near(tt, "fairdf.hand.whi", m(4, 0), 0.95441273919029945, 1e-14);
+    tk_near(tt, "fairdf.hand.nlo", m(6, 1), -0.81192959079974802, 1e-14);
+    tk_near(tt, "fairdf.hand.nhi", m(7, 1), 0.068137204970365128, 1e-14);
+    tk_near(tt, "fairdf.hand.klo", m(9, 1), 0.04226297146417294, 1e-14);
+    tk_near(tt, "fairdf.hand.khi", m(10, 1), 1.6825866390249733, 1e-14);
+    tk_near(tt, "fairdf.hand.tpr", m(11, 1), 0.5, 0);
+    tk_near(tt, "fairdf.hand.fpr", m(12, 0), 0.5, 0);
+    tk_near(tt, "fairdf.hand.dtpr", m(13, 1), -0.5, 0);
+    tk_near(tt, "fairdf.hand.dfpr", m(16, 1), -0.5, 0);
+    tk_near(tt, "fairdf.hand.tlo", m(14, 1), -0.90546879426576932, 1e-14);
+    tk_near(tt, "fairdf.hand.thi", m(15, 1), 0.27257278511318139, 1e-14);
+    tk_near(tt, "fairdf.hand.flo", m(17, 1), -0.90546879426576921, 1e-14);
+    tk_near(tt, "fairdf.hand.fhi", m(18, 1), 0.19259213090610783, 1e-14);
+    tk_near(tt, "fairdf.hand.aod", m(19, 1), -0.5, 0);
+    // MOVER: the sum's interval from the two Newcombe intervals, halved
+    const double lo = -1 - std::sqrt(std::pow(-0.5 + 0.90546879426576932, 2) +
+                                     std::pow(-0.5 + 0.90546879426576921, 2));
+    tk_near(tt, "fairdf.hand.aodlo", m(20, 1), 0.5 * lo, 1e-14);
+    // equal gaps in size: the true positive one
+    tk_near(tt, "fairdf.hand.eo", m(22, 1), -0.5, 0);
+    tk_true(tt, "fairdf.hand.basenan", std::isnan(m(6, 0)) && std::isnan(m(9, 0)));
+    // Gini of (3/4, 1/5): |3/4 - 1/5| * 2 / (2 * 4 * mean) = 11 / 38
+    tk_near(tt, "fairdf.hand.gini", sum[2], 11.0 / 38.0, 1e-15);
+    tk_near(tt, "fairdf.hand.bas", sum[3], -0.55 * 11.0 / 38.0, 1e-15);
+    tk_near(tt, "fairdf.hand.dmin", sum[0], 0.2 / 0.75, 1e-16);
+    tk_true(tt, "fairdf.hand.noboot", std::isnan(sum[4]) && std::isnan(sum[7]));
+    // without outcomes the error-rate columns are NaN
+    clab_fairdf(pr, nullptr, g, 9, 2, 1, Z, 0, 0, cnt, met, sum, wk);
+    tk_true(tt, "fairdf.noy", std::isnan(m(11, 0)) && std::isnan(sum[8]) && std::isnan(sum[9]));
+    tk_near(tt, "fairdf.noy.base", m(8, 0), 0.75 / 0.2, 1e-15);
+    tk_near(tt, "fairdf.noy.cnt", cnt[2 * 2], 0, 0);
+    // the bootstrap: the same seed the same ends, ordered
+    double s2[11];
+    clab_fairdf(pr, y, g, 9, 2, -1, Z, 200, 7, cnt, met, sum, wk);
+    clab_fairdf(pr, y, g, 9, 2, -1, Z, 200, 7, cnt, met, s2, wk);
+    for (int k = 4; k < 8; ++k) tk_near(tt, "fairdf.boot.same", s2[k], sum[k], 0);
+    tk_true(tt, "fairdf.boot.order", sum[4] <= sum[5] && sum[6] <= sum[7]);
+    tk_true(tt, "fairdf.boot.range", sum[4] >= 0 && sum[5] <= 1);
+    // guards
+    const int bad[2] = {0, 2}, g2[2] = {0, 0};
+    tk_true(tt, "fairdf.guard.g", clab_fairdf(pr, y, g, 9, 1, -1, Z, 0, 0, cnt, met, sum, wk) == CLAB_EARG);
+    tk_true(tt, "fairdf.guard.pred", clab_fairdf(bad, nullptr, g, 2, 2, -1, Z, 0, 0, cnt, met, sum, wk) == CLAB_EDOM);
+    tk_true(tt, "fairdf.guard.y", clab_fairdf(pr, bad, g, 2, 2, -1, Z, 0, 0, cnt, met, sum, wk) == CLAB_EDOM);
+    tk_true(tt, "fairdf.guard.empty", clab_fairdf(pr, nullptr, g2, 2, 2, -1, Z, 0, 0, cnt, met, sum, wk) == CLAB_EDOM);
+    tk_true(tt, "fairdf.guard.code", clab_fairdf(pr, nullptr, bad, 2, 2, -1, Z, 0, 0, cnt, met, sum, wk) == CLAB_EARG);
+    tk_true(tt, "fairdf.guard.z", clab_fairdf(pr, nullptr, g, 9, 2, -1, 0, 0, 0, cnt, met, sum, wk) == CLAB_EDOM);
+  }
+  // 2. tmpaud by hand: one city, two cells. Cell 0: group 0 flagged, group
+  // 1 not; cell 1: both flagged. The pooled shares are 1 and 1/2, so the
+  // base is group 0.
+  {
+    const int pr[4] = {1, 0, 1, 1}, g[4] = {0, 1, 0, 1}, c[4] = {0, 0, 1, 1}, cy[2] = {0, 0};
+    double co[12], yo[9], sum[3], wk[12];
+    tk_true(tt, "tmpaud.rc", clab_tmpaud(pr, g, c, 4, 2, 2, cy, 1, -1, co, yo, sum, wk) == CLAB_OK);
+    const double c0[6] = {2, 1, 0, -1, 0.5, -0.5}, c1[6] = {2, 1, 1, 0, 0, 0};
+    for (int k = 0; k < 6; ++k) {
+      tk_near(tt, "tmpaud.cell0", co[k], c0[k], 1e-15);
+      tk_near(tt, "tmpaud.cell1", co[6 + k], c1[k], 1e-15);
+    }
+    const double y0[9] = {2, 0.5, -0.5, 0.25, -0.25, 0, 1, 1, 0};
+    for (int k = 0; k < 9; ++k) tk_near(tt, "tmpaud.city", yo[k], y0[k], 1e-15);
+    tk_near(tt, "tmpaud.rng", sum[0], 1, 0);
+    tk_true(tt, "tmpaud.spread", std::isnan(sum[1]));
+    tk_near(tt, "tmpaud.base", sum[2], 0, 0);
+    // base group 1 is flagged nowhere in cell 0: no finite ratio there
+    clab_tmpaud(pr, g, c, 4, 2, 2, cy, 1, 1, co, yo, sum, wk);
+    tk_true(tt, "tmpaud.inf", std::isnan(co[2]) && co[8] == 1);
+    // a cell with one group is skipped
+    const int g1[4] = {0, 0, 0, 1};
+    clab_tmpaud(pr, g1, c, 4, 2, 2, cy, 1, 0, co, yo, sum, wk);
+    tk_true(tt, "tmpaud.skip", co[1] == 0 && std::isnan(co[2]) && co[7] == 1 && yo[0] == 1);
+    const int cb[2] = {0, 3};
+    tk_true(tt, "tmpaud.guard", clab_tmpaud(pr, g, c, 4, 2, 2, cb, 1, 0, co, yo, sum, wk) == CLAB_EARG);
+  }
+  // 3. lipaud by hand: scores 0, 1, 3; pairs (0, 1), (0, 2), (1, 2) at
+  // distances 1, 0, 4: gaps 1, 3, 2, ratios 1, Inf, 1/2
+  {
+    const double h[3] = {0, 1, 3}, d[3] = {1, 0, 4};
+    const int pi[3] = {0, 0, 1}, pj[3] = {1, 2, 2};
+    double gap[3], rat[3], sum[6];
+    int v[3];
+    tk_true(tt, "lipaud.rc", clab_lipaud(h, 3, pi, pj, d, 3, 0.75, gap, rat, v, sum) == CLAB_OK);
+    tk_near(tt, "lipaud.gap", gap[1], 3, 0);
+    tk_true(tt, "lipaud.inf", std::isinf(rat[1]) && rat[2] == 0.5);
+    tk_true(tt, "lipaud.viol", v[0] == 1 && v[1] == 1 && v[2] == 0);
+    tk_true(tt, "lipaud.sum", std::isinf(sum[0]) && sum[1] == 2 && sum[3] == 3 && sum[4] == 1 && sum[5] == 1);
+    // all distances 1, and a large enough constant: no violation
+    clab_lipaud(h, 3, pi, pj, nullptr, 3, 3, gap, rat, v, sum);
+    tk_true(tt, "lipaud.ok", sum[0] == 3 && sum[1] == 0 && sum[2] == 0);
+    const int bad[1] = {3};
+    tk_true(tt, "lipaud.guard", clab_lipaud(h, 3, bad, pj, d, 1, 1, gap, rat, v, sum) == CLAB_EARG);
+    const double dn[1] = {-1};
+    tk_true(tt, "lipaud.guard.d", clab_lipaud(h, 3, pi, pj, dn, 1, 1, gap, rat, v, sum) == CLAB_EDOM);
+  }
+  // 4. nsbnd: the corners by hand, and every admissible noise on a grid
+  // stays between them
+  {
+    const double q[2] = {0.35, 0.55};
+    double lo[2], hi[2], bd[1];
+    int ord[1];
+    tk_true(tt, "nsbnd.rc", clab_nsbnd(q, 2, 0, 0.1, 0, 0.2, lo, hi, ord, bd) == CLAB_OK);
+    tk_near(tt, "nsbnd.lo", lo[0], 0.25 / 0.9, 1e-15);
+    tk_near(tt, "nsbnd.hi", hi[1], 0.55 / 0.8, 1e-15);
+    tk_true(tt, "nsbnd.ord", ord[0] == 1);
+    tk_near(tt, "nsbnd.bd", bd[0], 1 - 0.35 / 0.5, 1e-15);
+    // the last rate is above 1 - blo: no admissible noise records it
+    for (int t = 0; t < 8; ++t) {
+      const double r = t == 7 ? 0.98 : 0.02 + 0.15 * t;
+      double l1, h1;
+      clab_nsbnd(&r, 1, 0.01, 0.12, 0.03, 0.25, &l1, &h1, ord, bd);
+      double mn = 2, mx = -1;
+      for (int i = 0; i <= 111; ++i) {
+        for (int j = 0; j <= 221; ++j) {
+          // grid steps of 0.001; the points a = pobs and b = 1 - pobs added
+          const double a = i == 111 ? r : 0.01 + 0.001 * i, b = j == 221 ? 1 - r : 0.03 + 0.001 * j;
+          if (a > 0.12 + 1e-12 || b > 0.25 + 1e-12 || a < 0.01 || b < 0.03) continue;
+          const double p = (r - a) / (1 - a - b);
+          if (p < -1e-12 || p > 1 + 1e-12) continue;
+          mn = std::fmin(mn, p);
+          mx = std::fmax(mx, p);
+        }
+      }
+      if (mx < 0) {
+        tk_true(tt, "nsbnd.grid.none", std::isnan(l1) && std::isnan(h1));
+      } else {
+        tk_near(tt, "nsbnd.grid.lo", l1, mn, 1e-12);
+        tk_near(tt, "nsbnd.grid.hi", h1, mx, 1e-12);
+      }
+    }
+    // known noise: the true rate
+    const double r = 0.4 * 0.8 + 0.6 * 0.1;
+    clab_nsbnd(&r, 1, 0.1, 0.1, 0.2, 0.2, lo, hi, ord, bd);
+    tk_near(tt, "nsbnd.known", lo[0], 0.4, 1e-15);
+    tk_near(tt, "nsbnd.known.hi", hi[0], 0.4, 1e-15);
+    tk_true(tt, "nsbnd.guard", clab_nsbnd(q, 2, 0, 0.6, 0, 0.4, lo, hi, ord, bd) == CLAB_EDOM);
+    const double q2[2] = {0.3, 0.3};
+    clab_nsbnd(q2, 2, 0, 0, 0, 0, lo, hi, ord, bd);
+    tk_true(tt, "nsbnd.equal", ord[0] == 0 && std::isnan(bd[0]));
+  }
+  // 5. impfpr: Chouldechova's identity on random confusion tables
+  {
+    xrng r{77};
+    for (int k = 0; k < 200; ++k) {
+      const double tp = 1 + 99 * r.unif(), fp = 1 + 99 * r.unif(), fn = 1 + 99 * r.unif(),
+                   tn = 1 + 99 * r.unif();
+      const double p = (tp + fn) / (tp + fp + fn + tn), ppv = tp / (tp + fp), fnr = fn / (tp + fn);
+      double f;
+      clab_impfpr(&p, &ppv, &fnr, 1, &f);
+      tk_near(tt, "impfpr.table", f, fp / (fp + tn), 1e-13);
+    }
+    const double p = 1, a = 0.5;
+    double f;
+    tk_true(tt, "impfpr.guard", clab_impfpr(&p, &a, &a, 1, &f) == CLAB_EDOM);
+  }
+  // 6. rnkres by hand: 0.2, 0.35, 0.8 with half-widths 0.1, 0.1, 0.05
+  {
+    const double e[3] = {0.2, 0.35, 0.8}, w[3] = {0.1, 0.1, 0.05};
+    int id[9];
+    double o[4];
+    tk_true(tt, "rnkres.rc", clab_rnkres(e, w, 3, id, o) == CLAB_OK);
+    const int want[9] = {-1, 0, 1, 0, -1, 1, 1, 1, -1};
+    for (int k = 0; k < 9; ++k) tk_ieq(tt, "rnkres.id", id[k], want[k]);
+    tk_near(tt, "rnkres.share", o[2], 1.0 / 3, 1e-16);
+    tk_near(tt, "rnkres.res", o[3], 0.2, 0);
+    const double wn[3] = {0.1, -1, 0};
+    tk_true(tt, "rnkres.guard", clab_rnkres(e, wn, 3, id, o) == CLAB_EDOM);
+  }
+}
+
 }  // namespace
 
-void t_fair(tk &t, int) { run(t); }
+void t_fair(tk &t, int) {
+  run(t);
+  run2(t);
+}
 
 #ifdef CLAB_MAIN
 #include <chrono>

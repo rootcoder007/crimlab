@@ -186,6 +186,9 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_hsp(t, 0);
   t_stm(t, 0);
   t_fair(t, 0);
+  t_calaud(t, 0);
+  t_fsim(t, 0);
+  t_oax(t, 0);
   t_tlv(t, 0);
   t_aor(t, 0);
   t_bnf(t, 0);
@@ -406,6 +409,9 @@ int main(int argc, char **argv) {
     t_hsp(t, 1);
     t_stm(t, 1);
     t_fair(t, 1);
+    t_calaud(t, 1);
+    t_fsim(t, 1);
+    t_oax(t, 1);
     t_tlv(t, 1);
     t_aor(t, 1);
     t_bnf(t, 1);
