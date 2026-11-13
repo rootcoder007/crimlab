@@ -13,9 +13,14 @@ from pathlib import Path
 import pytest
 from ref import CASES, args
 
-# functions of the R package not bound in Python yet
-NOTBOUND = {"ntdeg", "ntbtw", "ntcls", "ntevc", "ntcore", "ntcmp", "ntlvn", "ntmod", "ntbrk",
-            "ntchg", "coofg", "relchk"}
+
+def rnames():
+    """The functions the R package exports, or None outside the repository."""
+    ns = Path(__file__).resolve().parents[2] / "NAMESPACE"
+    if not ns.is_file():  # an sdist
+        return None
+    return set(re.findall(r"^export\((\w+)\)", ns.read_text(), re.MULTILINE))
+
 
 import crimlab
 from crimlab import _clab
@@ -40,9 +45,11 @@ def test_proof_names_real_theorems():
     p = crimlab.proof()
     assert list(p) == ["fn", "theorem", "file"]
     assert len(set(p["theorem"])) == len(p["theorem"])
-    # proof() lists every function of the R package, the network ones too
-    # (not bound in Python yet: NOTBOUND)
-    assert set(p["fn"]) <= set(crimlab.__all__) | NOTBOUND
+    # proof() lists the theorems of every function of the R package, those
+    # not bound in Python too: every name is an export of the R package
+    r = rnames()
+    if r is not None:
+        assert set(p["fn"]) <= r
     assert len(crimlab.proof("dspbm")["fn"]) == 2
     root = Path(crimlab.__file__).parent
     for th, f in zip(p["theorem"], p["file"]):

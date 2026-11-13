@@ -13,6 +13,12 @@
 
 #include <limits>
 
+// With R_NO_REMAP_RMATH (set where Rmath.h is included, so that its short
+// names do not replace identifiers here) older R headers declare the normal
+// quantile function as qnorm5 only; the library has it as Rf_qnorm5, and
+// newer headers declare that name themselves, identically.
+extern "C" double Rf_qnorm5(double, double, double, int, int);
+
 namespace clab {
 
 constexpr double ninf = -std::numeric_limits<double>::infinity();
