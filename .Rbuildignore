@@ -16,3 +16,5 @@
 ^py$
 ^\.ruff_cache$
 ^cli$
+^packaging$
+^\.copr$

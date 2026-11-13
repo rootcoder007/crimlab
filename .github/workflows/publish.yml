@@ -1,0 +1,70 @@
+# Publishing, on a version tag only (vX.Y.Z, the Version of DESCRIPTION),
+# each registry its own job in the protected environment "release", whose
+# required reviewers approve every run. Each job names the secrets of that
+# environment it reads; without them it says so and publishes nothing.
+# pkg.yml builds and tests every package on every change; the jobs here
+# run only the tests a package needs before it leaves. The Python wheels
+# go to PyPI from py.yml, which builds them.
+name: publish
+
+on:
+  push:
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
+
+permissions: {}
+
+concurrency:
+  group: publish-${{ github.ref_name }}
+  cancel-in-progress: false
+
+
+jobs:
+  versions:
+    # every package carries the tag's version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the tag, DESCRIPTION and the spec agree
+        run: |
+          v=${GITHUB_REF_NAME#v}
+          grep -qx "Version: $v" DESCRIPTION
+          grep -qx "Version:        $v" packaging/rpm/crimlab.spec
+
+  copr:
+    # Fedora COPR; secret CLAB_COPR_CONFIG, the text of ~/.config/copr (the
+    # project rootcoder007/crimlab must exist)
+    needs: versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: read
+    # fedora:latest
+    container: docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+    steps:
+      - name: tools
+        run: dnf -y install rpm-build copr-cli git make
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the source RPM
+        run: make -f .copr/Makefile srpm outdir="$PWD/out"
+      - name: build on COPR (secret CLAB_COPR_CONFIG)
+        env:
+          CFG: ${{ secrets.CLAB_COPR_CONFIG }}
+        run: |
+          if [ -z "$CFG" ]; then
+            echo "::warning::CLAB_COPR_CONFIG is not set: no COPR build"
+            exit 0
+          fi
+          mkdir -p "$HOME/.config"
+          (umask 077 && printf '%s\n' "$CFG" > "$HOME/.config/copr")
+          unset CFG
+          copr-cli build crimlab out/crimlab-*.src.rpm
+          rm -f "$HOME/.config/copr"
+

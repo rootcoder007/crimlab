@@ -74,3 +74,29 @@ jobs:
         shell: bash
         run: sh cli/test.sh cli/crimlab.exe
 
+  rpm:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # fedora:latest
+    container: docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
+    steps:
+      - name: tools
+        run: dnf -y install rpm-build rpmlint gcc-c++ make git gawk glibc-langpack-en
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the source RPM, as COPR makes it, and the RPMs from it
+        run: |
+          make -f .copr/Makefile srpm outdir="$PWD/out"
+          rpmbuild --rebuild --define "_rpmdir $PWD/out" out/*.src.rpm
+          ls -lR out
+      - name: rpmlint
+        run: rpmlint -r packaging/rpm/crimlab.rpmlintrc packaging/rpm/crimlab.spec out/*.src.rpm out/*/*.rpm
+      - name: install and run
+        run: |
+          dnf -y install out/*/crimlab-[0-9]*.rpm out/*/crimlab-devel-*.rpm
+          crimlab -V
+          crimlab selftest
+          crimlab orrisk --or 2 --rate 0.1 --share 0.3
+          test -f /usr/include/crimlab/jrun.h
+
