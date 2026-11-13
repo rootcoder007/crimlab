@@ -2,13 +2,18 @@
 # Linux (x86-64, arm64), macOS and Windows for the oldest and the newest
 # Python it supports; stable-ABI wheels (cibuildwheel) and an sdist are
 # built, checked and installed in clean environments. Wheels and the sdist
-# are kept as workflow artifacts only: this workflow publishes nothing.
+# are kept as workflow artifacts; only a version tag (vX.Y.Z) publishes
+# them, from the job pypi, in the protected environment "release" and by
+# trusted publishing (no token: PyPI's trusted publisher for crimlab names
+# this repository, py.yml and the environment release).
 name: py
 
 on:
   workflow_dispatch:
   push:
     branches: [main]
+    # a tag push ignores the paths below
+    tags: ['v[0-9]*.[0-9]*.[0-9]*']
     paths: ['src/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
             '.github/workflows/py.yml']
   pull_request:
@@ -160,3 +165,25 @@ jobs:
           python -m venv s
           s/bin/python -m pip install --no-binary crimlab dist/*.tar.gz pytest
           cd t/tests && ../../s/bin/python -m pytest -q
+
+  pypi:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test, check]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: release
+    permissions:
+      id-token: write # trusted publishing
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dist
+          merge-multiple: true
+      - name: the tag is the version of every file
+        run: |
+          v=${GITHUB_REF_NAME#v}
+          ls dist
+          for f in dist/*; do
+            case $(basename "$f") in crimlab-"$v"-* | crimlab-"$v".tar.gz) ;; *) echo "::error::$f is not $v"; exit 1 ;; esac
+          done
+      - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
