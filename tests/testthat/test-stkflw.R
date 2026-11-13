@@ -184,7 +184,8 @@ test_that("lostay() summarises, bands and fits the stays", {
   expect_equal(w$stay, e$stay, tolerance = 1e-14)
   expect_null(w$bands)
   one <- lostay(5)
-  expect_true(is.na(one$stay[["lo"]]) && all(is.na(one$fit$aic)))
+  expect_true(is.na(one$stay[["lo"]]))
+  expect_true(all(is.na(one$fit$aic)))
   expect_identical(one$fit$best, c(FALSE, FALSE, FALSE))
 })
 
@@ -274,7 +275,9 @@ test_that("dktflw() gives clearance, rolling clearance and Little's law", {
   expect_identical(n$cumnet, cumsum(rc - ds))
   expect_true(all(is.na(n$rclear)))
   z <- dktflw(c(0, 5, 0), c(3, 0, 0))$flow
-  expect_true(is.infinite(z$hi[1]) && z$lo[2] == 0 && is.na(z$lo[3]))
+  expect_true(is.infinite(z$hi[1]))
+  expect_identical(z$lo[2], 0)
+  expect_true(is.na(z$lo[3]))
   expect_output(print(r), "case flow")
 })
 
@@ -327,7 +330,8 @@ test_that("dktflw() tests the mix of outcomes over periods", {
   # unnamed, with scores, and an outcome never seen
   u <- dktflw(mix = cbind(c(5, 6, 9), c(5, 4, 1), 0), scores = c(1, 2, 4))$mix
   expect_identical(u$trend$outcome, c("outcome1", "outcome2", "outcome3"))
-  expect_true(is.na(u$trend$stat[3]) && is.na(u$trend$holm[3]))
+  expect_true(is.na(u$trend$stat[3]))
+  expect_true(is.na(u$trend$holm[3]))
   expect_equal(
     u$trend$stat[1],
     unname(
@@ -472,7 +476,7 @@ test_that("trnmat() counts moves and finds the stationary distribution", {
   e <- eigen(t(r$prob))
   v <- Re(e$vectors[, which.min(abs(e$values - 1))])
   expect_equal(unname(r$pi), v / sum(v), tolerance = 1e-12)
-  expect_identical(names(r$pi), sort(unique(st)))
+  expect_named(r$pi, sort(unique(st)))
   expect_equal(r$summ[["stay"]], sum(diag(tb)) / sum(tb), tolerance = 1e-15)
   off <- tb[row(tb) != col(tb)]
   p <- off[off > 0] / sum(off)

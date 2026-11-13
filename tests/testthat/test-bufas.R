@@ -13,8 +13,9 @@ test_that("buffer groups follow the rule", {
   }
   ds <- near(s)
   dc <- near(cp)
-  g <- ifelse(ds <= 330, "treated",
-              ifelse(dc <= 330 & ds > 990, "comparison", "excluded"))
+  g <- rep("excluded", length(ds))
+  g[dc <= 330 & ds > 990] <- "comparison"
+  g[ds <= 330] <- "treated"
   expect_identical(as.character(b$pts$grp), g)
   expect_identical(levels(b$pts$grp), c("treated", "comparison", "excluded"))
   expect_equal(b$pts$dsite, ds, tolerance = 1e-14)

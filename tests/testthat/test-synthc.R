@@ -36,8 +36,10 @@ test_that("the synthetic control's weights solve their problem", {
   kkt(y[1:9, -1], y[1:9, 1], s$weights$w)
   expect_equal(s$path$synth, drop(y[, -1] %*% s$weights$w),
                tolerance = 1e-12)
-  expect_equal(s$fit$rmspepre, sqrt(mean(s$path$gap[1:9]^2)))
-  expect_equal(s$fit$p, (1 + sum(s$plac$ratio >= s$fit$ratio)) / 10)
+  expect_equal(s$fit$rmspepre, sqrt(mean(s$path$gap[1:9]^2)),
+               tolerance = testthat_tolerance())
+  expect_equal(s$fit$p, (1 + sum(s$plac$ratio >= s$fit$ratio)) / 10,
+               tolerance = testthat_tolerance())
   # a placebo is the same method on that unit without the treated one
   k <- d$town != "u01"
   p3 <- synthc(d$rate[k], d$town[k], d$year[k],
@@ -106,7 +108,7 @@ test_that("one treated unit takes the placebo error, seeded", {
   k <- as.integer(e$town) > 2 & e$year < 2019
   e$rate[k] <- 10 + as.integer(e$town[k])
   r <- sdidx(e$rate, e$town, e$year, e$first)
-  expect_equal(max(r$unitw$w), 1)
+  expect_equal(max(r$unitw$w), 1, tolerance = testthat_tolerance())
   expect_true(is.na(r$est$se))
   expect_true(is.na(r$est$lo))
 })
@@ -150,8 +152,7 @@ test_that("synthc() and sdidx() refuse what they cannot fit", {
   expect_error(synthc(y[-1], u[-1], t[-1], f[-1]), "balanced")
   expect_error(synthc(y, u, t, ifelse(u %in% c("u01", "u02"), 2019, NA)),
                "one unit must be treated")
-  expect_error(sdidx(y, u, t, ifelse(u == "u01", 2019,
-                                     ifelse(u == "u02", 2020, NA))),
+  expect_error(sdidx(y, u, t, c(2019, 2020)[match(u, c("u01", "u02"))]),
                "one adoption period")
   expect_error(sdidx(y, u, t, rep(NA_real_, 150)), "no unit is treated")
   expect_error(sdidx(y, u, t, ifelse(u == "u10", NA, 2019)),

@@ -135,14 +135,15 @@ test_that("the power's size is near its level; the effect is detected", {
   r <- wcbx(d$rate, d$town, d$year, meth = "power", ntrt = 10,
             adopt = 2018:2021, eff = c(0, 0.5, 3), reps = 400, seed = 1)
   expect_lt(abs(r$size - 0.05), 4 * sqrt(0.05 * 0.95 / 400))
-  expect_equal(r$res$power[3], 1)
+  expect_identical(r$res$power[3], 1)
   p <- r$res$power
   want <- 0.5 + (0.8 - p[2]) / (p[3] - p[2]) * 2.5
-  expect_equal(r$mde, if (p[2] >= 0.8) 0.5 else want)
+  expect_equal(r$mde, if (p[2] >= 0.8) 0.5 else want,
+               tolerance = testthat_tolerance())
   r0 <- wcbx(d$rate, d$town, d$year, meth = "power", ntrt = 10,
              adopt = 2020, reps = 20, seed = 2, power = 0.01)
   expect_identical(nrow(r0$res), 5L)
-  expect_equal(r0$mde, 0)
+  expect_identical(r0$mde, 0)
   expect_output(print(r0), "minimum detectable effect")
 })
 

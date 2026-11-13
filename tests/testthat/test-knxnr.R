@@ -77,7 +77,7 @@ test_that("dates, date-times and longitude and latitude are read", {
   k <- knxnr(p, t = as.numeric(d), ds = 500, dt = 10, nsim = 0)
   expect_identical(knxnr(p, t = d, ds = 500, dt = 10, nsim = 0), k)
   tm <- as.POSIXct(d) + 3600
-  expect_equal(knxnr(p, t = tm, ds = 500, dt = 10, nsim = 0)$tab$obs,
+  expect_identical(knxnr(p, t = tm, ds = 500, dt = 10, nsim = 0)$tab$obs,
                k$tab$obs)
   ll <- cbind(lon = -79.4 + p[, 1] / 1e5, lat = 43.7 + p[, 2] / 1e5)
   q <- eqproj(ll)

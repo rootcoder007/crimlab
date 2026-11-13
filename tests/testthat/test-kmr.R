@@ -48,7 +48,8 @@ test_that("hand cases: a median halfway, a curve that reaches 0", {
   r <- kmrec(1:4)
   expect_equal(r$km$surv, c(0.75, 0.5, 0.25, 0))
   expect_identical(r$med$median, 2.5)
-  expect_true(is.na(r$km$se[4]) && is.na(r$km$lo[4]))
+  expect_true(is.na(r$km$se[4]))
+  expect_true(is.na(r$km$lo[4]))
   expect_null(r$lr)
   # at 1/2 with no later fall: the time it got there
   expect_identical(kmrec(c(1, 2, 3, 4), c(1, 1, 0, 0))$med$median, 2)

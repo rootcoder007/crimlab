@@ -71,7 +71,12 @@ test_that("crsev() refuses bad input in words", {
       list("`x` must be at least 0", -1, "a", 1),
       list("one label per value", 1:2, "a", 1),
       list("`w` has no value for b", 1:2, c("a", "b"), c(a = 1)),
-      list("`w` names a twice", 1:2, c("a", "b"), c(a = 1, a = 2, b = 1)),
+      list(
+        "`w` names a twice",
+        1:2,
+        c("a", "b"),
+        stats::setNames(c(1, 2, 1), c("a", "a", "b"))
+      ),
       list("one value per label, 2", 1:2, c("a", "b"), 1),
       list("`w` must be at least 0", 1, "a", -1),
       list("`sent` has no value for a", 1, "a", 1, sent = c(b = 1)),

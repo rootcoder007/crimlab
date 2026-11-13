@@ -78,7 +78,8 @@ test_that("the Poisson null matches an exact enumeration", {
     r$stat[["gini"]] - r$null[["mean"]],
     tolerance = 1e-15
   )
-  expect_true(r$null[["p"]] > 0 && r$null[["p"]] <= 1)
+  expect_gt(r$null[["p"]], 0)
+  expect_lte(r$null[["p"]], 1)
   expect_identical(
     cconc(c(0, 1, 2), nsim = 50, seed = 3)$null,
     cconc(c(0, 1, 2), nsim = 50, seed = 3)$null
@@ -117,7 +118,8 @@ test_that("places of events give counts and the growth of distinct places", {
   # every event at a new place: no finite M
   a <- cconc(c("a", "b", "c"), nsim = 0)$grow
   expect_identical(a$mhat, Inf)
-  expect_true(all(is.na(a$curve$expd)) && is.na(a$slope))
+  expect_true(all(is.na(a$curve$expd)))
+  expect_true(is.na(a$slope))
 })
 
 test_that("the urban-scaling exponent is least squares on the logs", {
@@ -229,7 +231,9 @@ test_that("the discrete estimate maximises the zeta likelihood", {
 
 test_that("hilltl() says when it cannot fit", {
   few <- hilltl(c(1, 2, 3, 50), xmin = 10)
-  expect_true(is.na(few$alpha) && is.na(few$ks) && !few$reliable)
+  expect_true(is.na(few$alpha))
+  expect_true(is.na(few$ks))
+  expect_false(few$reliable)
   expect_identical(few$method, "too few tail observations")
   eq <- hilltl(c(1, 5, 5, 5), xmin = 5)
   expect_match(eq$method, "every tail value is the same")

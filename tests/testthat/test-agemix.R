@@ -11,7 +11,7 @@ test_that("agemix() gives the aggregate curve and the covariance of types", {
   w <- c(0.6, 0.15, 0.25)
   r <- agemix(m, w, ages)
   expect_equal(r$curve$agg, drop(m %*% w), tolerance = 1e-15)
-  expect_identical(names(r$curve), c("age", "agg", "al", "lcp", "late"))
+  expect_named(r$curve, c("age", "agg", "al", "lcp", "late"))
   cw <- cov.wt(t(m), wt = w, method = "ML")$cov
   expect_equal(r$cov, cw, ignore_attr = TRUE, tolerance = 1e-14)
   expect_identical(
@@ -25,7 +25,7 @@ test_that("agemix() gives the aggregate curve and the covariance of types", {
   expect_null(r$panel)
   # unnamed columns are named by position
   u <- agemix(data.frame(1:3, 3:1)[, 1:2, drop = FALSE] * 1, c(0.5, 0.5))
-  expect_identical(names(u$curve), c("age", "agg", "X1.3", "X3.1"))
+  expect_named(u$curve, c("age", "agg", "X1.3", "X3.1"))
   v <- agemix(matrix(1:4, 2) + 0, c(0.5, 0.5))
   expect_identical(names(v$curve)[3:4], c("type1", "type2"))
   expect_output(print(r), "mixture of types")

@@ -57,7 +57,7 @@ test_that("ETAS: the direct sum, optim()'s maximum, the Lomax process", {
   expect_true(is.na(e$se[["alpha"]]))
   expect_output(print(e), "alpha fixed at 0")
   expect_identical(etasf(lx$t, 800, start = e$par, maxit = 5)$n, nrow(lx))
-  expect_identical(etasf(lx$t, 800, mag = rep(2, nrow(lx)))$afree, FALSE)
+  expect_false(etasf(lx$t, 800, mag = rep(2, nrow(lx)))$afree)
 })
 
 test_that("multivariate: the direct sum, one type, optim()'s maximum", {
@@ -110,7 +110,8 @@ test_that("space-time: the direct sum, recovery, the intensity", {
   expect_equal(e$lam, want, tolerance = 1e-12)
   expect_output(print(e), "evaluated at the given parameters")
   bb <- sthwk(s$t, s$x, s$y, 300, start = f$par, maxit = 3)
-  expect_equal(bb$area, diff(range(s$x)) * diff(range(s$y)))
+  expect_equal(bb$area, diff(range(s$x)) * diff(range(s$y)),
+               tolerance = testthat_tolerance())
   expect_named(hwksim(f, 50, seed = 1), c("t", "x", "y", "gen"))
 })
 

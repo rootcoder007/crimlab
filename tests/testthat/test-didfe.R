@@ -28,8 +28,8 @@ test_that("the estimate is lm()'s with dummies, its error CR1", {
   v <- cr1(m, pd$town, 12)
   expect_equal(r$coef$se, sqrt(diag(v))[2:3], tolerance = 1e-10,
                ignore_attr = TRUE)
-  expect_equal(r$fit$k, 12)
-  expect_equal(r$fit$ncl, 30)
+  expect_identical(r$fit$k, 12)
+  expect_identical(r$fit$ncl, 30)
   expect_equal(unname(r$vcov), unname(v[2:3, 2:3]), tolerance = 1e-10)
   tq <- qt(0.975, 29)
   expect_equal(r$coef$lo, r$coef$est - tq * r$coef$se, tolerance = 1e-14)
@@ -56,7 +56,7 @@ test_that("the clustered errors are fixest's, one-way and two-way", {
               clus = pd[c("region", "year")])
   expect_equal(r2$coef$se, c(0.546417553269131, 0.958445746214596),
                tolerance = 1e-10)
-  expect_equal(r2$fit$ncl, 10)
+  expect_identical(r2$fit$ncl, 10)
   # weighted, fixest 0.14.2: feols(rate ~ on | town + year, weights = ~w)
   r3 <- didfe(pd$rate, pd$town, pd$year, pd$on, w = pd$w)
   expect_equal(c(r3$coef$est, r3$coef$se),
@@ -75,13 +75,13 @@ test_that("an unbalanced panel, period effects only, and zero weights", {
   mt <- lm(rate ~ on + factor(year), pd)
   expect_equal(rt$coef$est, unname(coef(mt)[2]), tolerance = 1e-10)
   # K = 1 + 1 + 9 + 29 (the units are not effects now; clusters by town)
-  expect_equal(rt$fit$k, 11)
-  w0 <- ifelse(pd$town == 5, 0, 1)
+  expect_identical(rt$fit$k, 11)
+  w0 <- as.numeric(pd$town != 5)
   r0 <- didfe(pd$rate, pd$town, pd$year, pd$on, w = w0)
   r5 <- didfe(pd$rate[pd$town != 5], pd$town[pd$town != 5],
               pd$year[pd$town != 5], pd$on[pd$town != 5])
   expect_equal(r0$coef, r5$coef, tolerance = 1e-12)
-  expect_equal(r0$fit$n, 290)
+  expect_identical(r0$fit$n, 290)
 })
 
 test_that("the Poisson fit is fixest's, the negative binomial glm.nb()'s", {
@@ -90,14 +90,16 @@ test_that("the Poisson fit is fixest's, the negative binomial glm.nb()'s", {
   r <- didfe(pd$cnt, pd$town, pd$year, pd$on, fam = "pois", expo = pd$pop)
   expect_equal(c(r$coef$est, r$coef$se),
                c(0.277910537133839, 0.0997874163832055), tolerance = 1e-7)
-  expect_equal(r$coef$rr, exp(r$coef$est))
-  expect_equal(r$fit$releff, exp(r$coef$est) - 1)
+  expect_equal(r$coef$rr, exp(r$coef$est), tolerance = testthat_tolerance())
+  expect_equal(r$fit$releff, exp(r$coef$est) - 1,
+               tolerance = testthat_tolerance())
   r2 <- didfe(pd$cnt, pd$town, pd$year, pd$on, fam = "pois",
               clus = list(pd$region, pd$year))
   expect_equal(c(r2$coef$est, r2$coef$se),
                c(0.277910537133839, 0.0729701185450552), tolerance = 1e-7)
   z <- qnorm(0.975)
-  expect_equal(r$coef$rrhi, exp(r$coef$est + z * r$coef$se))
+  expect_equal(r$coef$rrhi, exp(r$coef$est + z * r$coef$se),
+               tolerance = testthat_tolerance())
   skip_if_not_installed("MASS")
   # counts with real overdispersion (size 3): theta is identified, so it can
   # be compared; on the Poisson counts above the likelihood is flat in theta
@@ -128,9 +130,9 @@ test_that("units and periods without counts are dropped", {
   r <- didfe(y, pd$town, pd$year, pd$on, fam = "pois")
   k <- pd$town != 4 & pd$year != 2016
   r2 <- didfe(y[k], pd$town[k], pd$year[k], pd$on[k], fam = "pois")
-  expect_equal(r$coef, r2$coef)
-  expect_equal(r$fit$dropped, 1)
-  expect_equal(r$fit$n, 261)
+  expect_equal(r$coef, r2$coef, tolerance = testthat_tolerance())
+  expect_identical(r$fit$dropped, 1)
+  expect_identical(r$fit$n, 261)
 })
 
 test_that("the decomposition is bacondecomp's and sums to the estimate", {
@@ -183,10 +185,10 @@ test_that("matching takes the nearest comparison on the pre-period", {
   tr <- !is.na(tapply(pd$first, pd$town, max))
   s <- ((sum(tr) - 1) * cov(f[tr, ]) + (sum(!tr) - 1) * cov(f[!tr, ])) /
     (nrow(f) - 2)
-  dd <- sapply(which(tr), function(i) {
+  dd <- vapply(which(tr), function(i) {
     d <- sqrt(mahalanobis(f[!tr, ], f[i, ], s))
     which(!tr)[order(d)[1:2]]
-  })
+  }, integer(2))
   want <- paste(rep(which(tr), each = 2), as.vector(dd))
   expect_setequal(paste(r$match$treated, r$match$control), want)
   w <- numeric(30)

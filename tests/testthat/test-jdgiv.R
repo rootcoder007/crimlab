@@ -34,7 +34,8 @@ test_that("jdgiv() gives the Wald ratio and its defier sensitivity", {
   )
   # no first stage: no ratio
   n0 <- jdgiv(c(1, 0, 1, 0), c(1, 1, 1, 1), 1:4)
-  expect_true(is.na(n0$est[["wald"]]) && all(is.na(n0$sens$ceff)))
+  expect_true(is.na(n0$est[["wald"]]))
+  expect_true(all(is.na(n0$sens$ceff)))
 })
 
 test_that("jdgiv() decomposes a known population exactly", {
@@ -45,11 +46,10 @@ test_that("jdgiv() decomposes a known population exactly", {
   y0 <- rnorm(n)
   y1 <- y0 + rnorm(n, 1)
   r <- jdgiv(d = cbind(d0, d1), y = data.frame(y0, y1))
-  ty <- ifelse(
-    d0 == 0 & d1 == 1,
-    "complier",
-    ifelse(d0 == 1 & d1 == 0, "defier", ifelse(d0 == 1, "always", "never"))
-  )
+  ty <- rep("never", n)
+  ty[d0 == 1] <- "always"
+  ty[d0 == 1 & d1 == 0] <- "defier"
+  ty[d0 == 0 & d1 == 1] <- "complier"
   for (k in c("complier", "defier", "always", "never")) {
     expect_equal(r$shares[[k]], mean(ty == k), tolerance = 1e-14)
     expect_equal(r$effects[[k]], mean((y1 - y0)[ty == k]), tolerance = 1e-13)
@@ -140,7 +140,8 @@ test_that("jmono() gives the rates, the homogeneity test and the slope test", {
   expect_identical(rw$homog[["chisq"]], r$homog[["chisq"]])
   expect_null(rw$slope)
   one <- jmono(c("a", "b"), c(1, 1))
-  expect_true(is.na(one$homog[["chisq"]]) && is.na(one$homog[["p"]]))
+  expect_true(is.na(one$homog[["chisq"]]))
+  expect_true(is.na(one$homog[["p"]]))
 })
 
 test_that("jmono() compares judges within groups", {

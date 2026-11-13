@@ -23,9 +23,11 @@ test_that("the estimates and errors are survey's", {
   f <- sv(fpc = d$N)$est
   expect_equal(f$se, 0.125328778175561, tolerance = 1e-12)
   m <- sv()
-  expect_equal(m$est$df, 15)
-  expect_equal(m$est$hi, m$est$est + qt(0.975, 15) * m$est$se)
-  expect_equal(m$est$cv, 100 * m$est$se / m$est$est)
+  expect_identical(m$est$df, 15)
+  expect_equal(m$est$hi, m$est$est + qt(0.975, 15) * m$est$se,
+               tolerance = testthat_tolerance())
+  expect_equal(m$est$cv, 100 * m$est$se / m$est$est,
+               tolerance = testthat_tolerance())
   expect_output(print(m), "18 first-stage units")
 })
 
@@ -37,7 +39,8 @@ test_that("domains and their differences are survey's", {
                            0.228242262459905), tolerance = 1e-12)
   expect_equal(r$cmp$diff[1], -0.173951783471097, tolerance = 1e-12)
   expect_equal(r$cmp$se[1], 0.338355854498857, tolerance = 1e-12)
-  expect_equal(r$cmp$p, 2 * pt(-abs(r$cmp$stat), 15))
+  expect_equal(r$cmp$p, 2 * pt(-abs(r$cmp$stat), 15),
+               tolerance = testthat_tolerance())
   s <- sv(by = d$region, ref = "s")
   expect_identical(s$cmp$dom, c("e", "n"))
   expect_output(print(s), "diff")
@@ -50,10 +53,10 @@ test_that("simple random samples: Bessel, the correction and a census", {
   expect_equal(svymx(y, stat = "var")$est$est, var(y), tolerance = 1e-14)
   expect_equal(svymx(y, fpc = rep(20, 6))$est$se,
                sqrt((1 - 6 / 20) * var(y) / 6), tolerance = 1e-14)
-  expect_equal(svymx(y, fpc = rep(6, 6))$est$se, 0)
+  expect_identical(svymx(y, fpc = rep(6, 6))$est$se, 0)
   g <- svymx(y, w = c(1, 2, 1, 2, 1, 2))$des
-  expect_equal(g$effn, 81 / 15)
-  expect_equal(g$deffw, 6 * 15 / 81)
+  expect_equal(g$effn, 81 / 15, tolerance = testthat_tolerance())
+  expect_equal(g$deffw, 6 * 15 / 81, tolerance = testthat_tolerance())
 })
 
 test_that("the error fits the spread of a stratified cluster sample", {

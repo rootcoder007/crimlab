@@ -54,7 +54,7 @@ test_that("covariates give did's doubly robust, IPW and regression cells", {
     expect_equal(s$att$est[1:6], want[[m]], tolerance = 1e-7, info = m)
   }
   # a covariate that separates the cohort: the propensity fails, NA cells
-  sep <- as.numeric(pd$first %in% 2018)
+  sep <- as.numeric(!is.na(pd$first) & pd$first == 2018)
   s <- stgdid(pd$rate, pd$town, pd$year, pd$first, adj = sep, est = "ipw",
               reps = 0)
   expect_true(all(is.na(s$att$est[s$att$cohort == 2018])))
@@ -111,14 +111,14 @@ test_that("DID_M and its placebo are the switchers' differences", {
     }
   }
   expect_equal(s$overall$est, c(num / den, pn / pdn), tolerance = 1e-13)
-  expect_equal(s$overall$n, c(den, pdn))
+  expect_identical(s$overall$n, c(den, pdn))
   expect_null(s$att)
   expect_output(print(s), "dcdh")
   # from first: the same as from the absorbing treatment
   a <- stgdid(pd$rate, pd$town, pd$year, pd$first, meth = "dcdh", reps = 0)
   b <- stgdid(pd$rate, pd$town, pd$year, trt = pd$on, meth = "dcdh",
               reps = 0)
-  expect_equal(a$overall, b$overall)
+  expect_equal(a$overall, b$overall, tolerance = testthat_tolerance())
 })
 
 test_that("the bootstrap is seeded, clustered, and its errors fit", {
@@ -134,7 +134,8 @@ test_that("the bootstrap is seeded, clustered, and its errors fit", {
               reps = 20, seed = 1)
   expect_true(all(r$att$se > 0))
   z <- qnorm(0.975)
-  expect_equal(r$overall$hi, r$overall$est + z * r$overall$se)
+  expect_equal(r$overall$hi, r$overall$est + z * r$overall$se,
+               tolerance = testthat_tolerance())
   # one sample: no spread
   r1 <- stgdid(pd$rate, pd$town, pd$year, pd$first, reps = 1, seed = 1)
   expect_true(is.na(r1$overall$se))
@@ -177,7 +178,9 @@ test_that("stgdid() refuses what it cannot estimate", {
   expect_error(stgdid(y, u, t, trt = rep(0, 300), meth = "dcdh"),
                "no unit switches")
   # first beyond the window is never; at the start, always (left out)
-  f2 <- ifelse(u == 1, 2030, ifelse(u == 2, 2010, f))
+  f2 <- as.numeric(f)
+  f2[u == 2] <- 2010
+  f2[u == 1] <- 2030
   s <- stgdid(y, u, t, f2, reps = 0)
   expect_identical(s$att$ncoh[1], 5)
 })

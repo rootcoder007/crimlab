@@ -17,14 +17,15 @@ test_that("the leads and lags are fixest's, with its errors and F", {
                               0.347148973356146, 0.319943822552955,
                               0.377726395808488, 0.654282120428571),
                tolerance = 1e-9)
-  expect_equal(e$est$est[!k], 0)
+  expect_identical(e$est$est[!k], 0)
   expect_true(is.na(e$est$se[!k]))
   # fixest's wald() of the two leads: F = 4.14298537836381
   expect_equal(e$pre$f, 4.14298537836381, tolerance = 1e-9)
-  expect_equal(e$pre$df1, 2)
-  expect_equal(e$pre$df2, 29)
-  expect_equal(e$pre$p, pf(e$pre$f, 2, 29, lower.tail = FALSE))
-  expect_equal(dim(e$vcov), c(6L, 6L))
+  expect_identical(e$pre$df1, 2)
+  expect_identical(e$pre$df2, 29)
+  expect_equal(e$pre$p, pf(e$pre$f, 2, 29, lower.tail = FALSE),
+               tolerance = testthat_tolerance())
+  expect_identical(dim(e$vcov), c(6L, 6L))
   expect_output(print(e), "leads jointly zero")
 })
 
@@ -35,16 +36,18 @@ test_that("rows outside the window are dropped without binning", {
   keep <- is.na(k) | (k >= -2 & k <= 2)
   d <- pd[keep, ]
   kk <- k[keep]
-  m <- lm(rate ~ I(kk %in% -2) + I(kk %in% -1) + I(kk %in% 1) +
-            I(kk %in% 2) + factor(town) + factor(year), d)
+  at <- function(v) !is.na(kk) & kk == v
+  m <- lm(rate ~ at(-2) + at(-1) + at(1) + at(2) + factor(town) + factor(year),
+          d)
   expect_equal(e$est$est[-3], unname(coef(m)[2:5]), tolerance = 1e-9)
-  expect_equal(e$n, sum(keep))
+  expect_identical(e$n, as.numeric(sum(keep)))
 })
 
 test_that("the cohort trends are the moving means, scaled at -1", {
   e <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 2, lags = 2,
              ma = 2)
-  m <- tapply(pd$rate[pd$first %in% 2020], pd$year[pd$first %in% 2020], mean)
+  c20 <- which(pd$first == 2020)
+  m <- tapply(pd$rate[c20], pd$year[c20], mean)
   a <- stats::filter(m, c(0.5, 0.5), sides = 1)
   v <- a[names(m) %in% 2018:2022] / a[names(m) == "2019"]
   expect_equal(e$coh$value[e$coh$cohort == 2020], as.vector(v),
@@ -52,8 +55,9 @@ test_that("the cohort trends are the moving means, scaled at -1", {
   expect_identical(unique(e$coh$cohort), c(2018, 2020, 2022))
   e1 <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 1, lags = 1,
               norm = FALSE)
-  expect_equal(e1$coh$value[1], mean(pd$rate[pd$first %in% 2018 &
-                                                pd$year == 2017]))
+  expect_equal(e1$coh$value[1], mean(pd$rate[which(pd$first == 2018 &
+                                                      pd$year == 2017)]),
+               tolerance = testthat_tolerance())
   # leads = 1 with ref = -1: no lead to test
   expect_true(is.na(e1$pre$f))
   expect_output(print(e1), "evtst")
@@ -88,8 +92,8 @@ test_that("the bounds under departures from parallel trends", {
   # the breakdown: just below it the interval excludes 0, just above holds it
   bk <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3, lags = 3,
               mbar = e$brk + c(-1e-4, 1e-4), seed = 1, draws = 2000)$sens
-  expect_true(bk$hi[1] < 0)
-  expect_true(bk$hi[2] >= 0)
+  expect_lt(bk$hi[1], 0)
+  expect_gte(bk$hi[2], 0)
   a <- evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3, lags = 3,
              mbar = 1, target = 2, seed = 1)
   expect_equal(a$sens$lob, b[6] - 3 * dd, tolerance = 1e-12)

@@ -61,10 +61,10 @@ test_that("past 8 periods: the normal approximation with ties, by hand", {
   y <- c(5, 7, 7, 6, 9, 8, 8, 8, 11, 10, 12, 12)
   r <- trndrr(y)
   n <- length(y)
-  s <- sum(sapply(1:(n - 1), function(i) sum(sign(y[(i + 1):n] - y[i]))))
+  s <- sum(vapply(1:(n - 1), function(i) sum(sign(y[(i + 1):n] - y[i])), 0))
   tt <- table(y)
   v <- (n * (n - 1) * (2 * n + 5) - sum(tt * (tt - 1) * (2 * tt + 5))) / 18
-  expect_equal(r$mk$s, s)
+  expect_identical(r$mk$s, s)
   expect_equal(r$mk$var, v, tolerance = 1e-14)
   expect_equal(r$mk$p, 2 * pnorm(-(s - 1) / sqrt(v)), tolerance = 1e-12)
   expect_false(r$mk$exact)
@@ -73,18 +73,22 @@ test_that("past 8 periods: the normal approximation with ties, by hand", {
   sl <- sort(sl[lower.tri(sl)])
   m <- length(sl)
   ca <- qnorm(0.975) * sqrt(v)
-  expect_equal(r$sen$slope, median(sl))
-  expect_equal(r$sen$int, median(y - median(sl) * seq_len(n)))
-  expect_equal(r$sen$lo, sl[floor((m - ca) / 2)])
-  expect_equal(r$sen$hi, sl[ceiling((m + ca) / 2) + 1])
+  expect_equal(r$sen$slope, median(sl), tolerance = testthat_tolerance())
+  expect_equal(r$sen$int, median(y - median(sl) * seq_len(n)),
+               tolerance = testthat_tolerance())
+  expect_equal(r$sen$lo, sl[floor((m - ca) / 2)],
+               tolerance = testthat_tolerance())
+  expect_equal(r$sen$hi, sl[ceiling((m + ca) / 2) + 1],
+               tolerance = testthat_tolerance())
   expect_false(r$sen$clamp)
 })
 
 test_that("year-over-year changes and seasons", {
   y <- c(5, 9, 7, 4, 6, 10, 8, 5)
   r <- trndrr(y, seas = rep(c("q1", "q2", "q3", "q4"), 2))
-  expect_equal(r$yoy$chg, c(NA, diff(y)))
-  expect_equal(r$yoy$pct, c(NA, 100 * diff(y) / y[-8]))
+  expect_identical(r$yoy$chg, c(NA, diff(y)))
+  expect_equal(r$yoy$pct, c(NA, 100 * diff(y) / y[-8]),
+               tolerance = testthat_tolerance())
   tot <- tapply(y, rep(1:4, 2), sum)
   ch <- chisq.test(tot)
   expect_equal(r$seas$stat, unname(ch$statistic), tolerance = 1e-14)
@@ -111,24 +115,25 @@ test_that("the step scan's p-value counts every ordering", {
   r <- stpcp(y, x = 2018:2023)
   tk <- function(v, m = 2) {
     n <- length(v)
-    max(sapply(m:(n - m), function(k) {
+    max(vapply(m:(n - m), function(k) {
       k * (n - k) / n * (mean(v[1:k]) - mean(v[-(1:k)]))^2
-    }))
+    }, 0))
   }
   all <- vapply(perms(y), tk, 0)
-  expect_equal(r$tab$stat[1], tk(y))
+  expect_equal(r$tab$stat[1], tk(y), tolerance = testthat_tolerance())
   expect_equal(r$tab$p[1], mean(all >= tk(y) - 1e-9), tolerance = 1e-14)
   expect_identical(r$tab$at[1], 2020L)
   expect_true(r$exact)
   expect_identical(r$nperm, 720)
   # Pettitt by its definition
   n <- 6
-  u <- sapply(1:(n - 1), function(t) {
+  u <- vapply(1:(n - 1), function(t) {
     sum(sign(outer(y[(t + 1):n], y[1:t], "-")))
-  })
+  }, 0)
   kk <- max(abs(u))
-  expect_equal(r$tab$stat[2], kk)
-  expect_equal(r$tab$p[2], min(1, 2 * exp(-6 * kk^2 / (n^3 + n^2))))
+  expect_identical(r$tab$stat[2], kk)
+  expect_equal(r$tab$p[2], min(1, 2 * exp(-6 * kk^2 / (n^3 + n^2))),
+               tolerance = testthat_tolerance())
   expect_identical(r$tab$k[2], which.max(abs(u)))
   expect_output(print(r), "exact over 720")
   m <- stpcp(c(y, y + 1), nperm = 99, seed = 3)
@@ -144,13 +149,14 @@ test_that("CUSUM follows its recursion", {
   z <- (y[6:10] - m) / sqrt(m)
   s <- Reduce(function(a, b) max(0, a + b - 1.04), z, accumulate = TRUE,
               init = 0)[-1]
-  expect_equal(r$z, z)
-  expect_equal(r$s, s)
+  expect_equal(r$z, z, tolerance = testthat_tolerance())
+  expect_equal(r$s, s, tolerance = testthat_tolerance())
   expect_identical(r$alarm, s >= 2.26)
   expect_identical(r$i, 6:10)
   e <- cusrv(y, expd = rep(11, 10), trans = "none", k = 12, h = 5)
   expect_equal(e$s, Reduce(function(a, b) max(0, a + b - 12), y,
-                           accumulate = TRUE, init = 0)[-1])
+                           accumulate = TRUE, init = 0)[-1],
+               tolerance = testthat_tolerance())
 })
 
 test_that("the correlations are cor.test()'s and ccf()'s", {

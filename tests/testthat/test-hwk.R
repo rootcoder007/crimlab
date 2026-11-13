@@ -46,8 +46,9 @@ test_that("the fit is the maximum stats::optim() finds", {
   # the covariance: the inverse of optimHess() of the same sum
   h <- optimHess(f$par, function(p) -llr(ev, 300, p))
   expect_equal(unname(f$cov), unname(solve(h)), tolerance = 1e-4)
-  expect_equal(f$aic, 6 - 2 * f$loglik)
-  expect_equal(f$bic, 3 * log(length(ev)) - 2 * f$loglik)
+  expect_equal(f$aic, 6 - 2 * f$loglik, tolerance = testthat_tolerance())
+  expect_equal(f$bic, 3 * log(length(ev)) - 2 * f$loglik,
+               tolerance = testthat_tolerance())
 })
 
 test_that("known parameters come back from a long simulation", {
@@ -55,9 +56,12 @@ test_that("known parameters come back from a long simulation", {
   f <- hwkfit(x$t, 5000)
   z <- (f$par - c(0, 0.6, 2)) / f$se
   expect_true(all(abs(z) < 4))
-  expect_equal(f$branch[["size"]], 1 / (1 - f$par[["eta"]]))
-  expect_equal(f$branch[["rate"]], exp(f$par[["a0"]]) / (1 - f$par[["eta"]]))
-  expect_equal(f$branch[["share"]], f$par[["eta"]])
+  expect_equal(f$branch[["size"]], 1 / (1 - f$par[["eta"]]),
+               tolerance = testthat_tolerance())
+  expect_equal(f$branch[["rate"]], exp(f$par[["a0"]]) / (1 - f$par[["eta"]]),
+               tolerance = testthat_tolerance())
+  expect_equal(f$branch[["share"]], f$par[["eta"]],
+               tolerance = testthat_tolerance())
   # the simulated count: mu hor / (1 - eta), to a few per cent
   expect_equal(nrow(x), 5000 / 0.4, tolerance = 0.05)
 })
@@ -95,7 +99,7 @@ test_that("the residuals' test is ks.test()'s", {
   r2 <- hwkres(ev, 300, f$par)
   k2 <- ks.test(r2$u, "punif")
   expect_equal(r2$p, k2$p.value, tolerance = 1e-12)
-  expect_equal(r2$u, 1 - exp(-r2$tau))
+  expect_equal(r2$u, 1 - exp(-r2$tau), tolerance = testthat_tolerance())
   # eta = 0: the gaps times the rate
   r0 <- hwkres(ev, 300, c(log(2), 0, 1))
   expect_equal(r0$tau, 2 * diff(c(0, ev)), tolerance = 1e-12)

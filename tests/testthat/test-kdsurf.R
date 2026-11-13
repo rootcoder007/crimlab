@@ -18,7 +18,7 @@ test_that("the grid surface is kde2d() times n, with its bandwidth", {
            0.054906301269498, 0.0494240477537658, 0.0252650882345638,
            0.0226652212694971, 0.0259927766737544)
   expect_equal(as.vector(k$z) / 30, ref, tolerance = 1e-13)
-  expect_equal(dim(k$z), c(5L, 4L))
+  expect_identical(dim(k$z), c(5L, 4L))
   expect_equal(unname(k$h), c(MASS::bandwidth.nrd(p[, 1]),
                               MASS::bandwidth.nrd(p[, 2])) / 4,
                tolerance = 1e-14)
@@ -38,7 +38,8 @@ test_that("the grid surface is kde2d() times n, with its bandwidth", {
   expect_equal(g$z, d, tolerance = 1e-13)
   expect_equal(range(g$x), range(p[, 1]) + c(-0.9, 0.9), tolerance = 1e-15)
   expect_equal(kdsurf(p, h = 0.3, nx = 7, ny = 6)$z,
-               kdsurf(p, h = c(0.3, 0.3), nx = 7, ny = 6)$z)
+               kdsurf(p, h = c(0.3, 0.3), nx = 7, ny = 6)$z,
+               tolerance = testthat_tolerance())
 })
 
 test_that("intensities at the points match density.ppp()'s corrections", {

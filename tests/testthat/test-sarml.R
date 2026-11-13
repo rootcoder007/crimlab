@@ -172,13 +172,13 @@ test_that("effects agree with spatialreg::impacts() and the delta method", {
   id <- c("rho", "x1", "lag.x1")
   th <- cf[id]
   h <- 1e-6
-  J <- sapply(1:3, function(k) {
+  J <- vapply(1:3, function(k) {
     e1 <- th
     e2 <- th
     e1[k] <- e1[k] + h
     e2[k] <- e2[k] - h
     (eff(e1) - eff(e2)) / (2 * h)
-  })
+  }, numeric(3))
   V <- s$vcov[id, id]
   expect_equal(c(e$sed[1], e$sei[1], e$set[1]), sqrt(diag(J %*% V %*% t(J))),
                tolerance = 1e-7)
@@ -203,7 +203,7 @@ test_that("the spatial functions refuse bad input in words", {
   nbs <- lapply(1:4, function(i) as.integer(i %% 4 + 1))
   lw <- structure(list(neighbours = nbs,
                        weights = as.list(rep(1, 4))), class = "listw")
-  expect_equal(gmoran(c(1, 3, 2, 5), lw)$s0, 4)
+  expect_identical(gmoran(c(1, 3, 2, 5), lw)$s0, 4)
   errs("gmoran", list(
     list("at least 4 units", 1:3, d$w),
     list("no positive weight", c(1, 2, 3, 5), matrix(0, 4, 4)),

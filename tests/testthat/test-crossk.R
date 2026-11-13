@@ -34,7 +34,8 @@ test_that("cross-type K and the segregation statistic agree with spatstat", {
   expect_identical(k, crossk(d$p, marks = d$m, i = "a", j = "b",
                              win = c(0, 2, 0, 1), r = c(0, 0.05, 0.1, 0.2, 0.3),
                              sigma = 0.15, nsim = 19, seed = 1))
-  expect_true(k$seg[["p"]] >= 0.05 && k$seg[["p"]] <= 1)
+  expect_gte(k$seg[["p"]], 0.05)
+  expect_lte(k$seg[["p"]], 1)
   expect_output(print(k), "segregation T")
   expect_output(print(kc), "crossk: K of c about c")
   expect_true(is.nan(crossk(d$p, marks = d$m, i = "a", j = "b",

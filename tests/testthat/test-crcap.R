@@ -94,7 +94,10 @@ test_that("crcap() refuses bad input in words", {
       list("overlap m above 0", c(5, 5, 0)),
       list("overlap m above 0", c(5, 5, 6)),
       list("named n1, n2 and m", c(a = 5, n2 = 5, m = 1)),
-      list("`x` names n1 twice", c(n1 = 5, n1 = 5, m = 1)),
+      list(
+        "`x` names n1 twice",
+        stats::setNames(c(5, 5, 1), c("n1", "n1", "m"))
+      ),
       list("must name its seven cells", unname(cells)),
       list(
         "must name its seven cells",

@@ -27,7 +27,8 @@ test_that("the stability analysis is eigen()'s", {
   expect_true(s$unstable)
   expect_equal(s$detcrit, det(jac(s$kcrit, 1, 1, 2, 1, 1, 0.01, 1)),
                tolerance = 1e-12)
-  expect_equal(unname(s$steady), c(2, 3, 1 / 3))
+  expect_equal(unname(s$steady), c(2, 3, 1 / 3),
+               tolerance = testthat_tolerance())
   expect_output(print(s), "hot spots form")
   st <- sdbthr(1, 1, 0, 1, 1, 0.01)
   expect_false(st$unstable)
@@ -75,7 +76,7 @@ test_that("the agent model: burglaries at their binomial mean, seeded", {
                              b = matrix(0.2, 10, 10), rho = rho, seed = 4))
   # no offenders: b falls by 1 - omega a step
   d <- sdbsim(5, 4, b = matrix(1, 5, 5), gam = 0, omega = 0.25, seed = 1)
-  expect_equal(d$meanb, 0.75^(1:4))
+  expect_equal(d$meanb, 0.75^(1:4), tolerance = testthat_tolerance())
   expect_output(print(d), "agent model")
   expect_output(print(sdbsim(5, 0, seed = 1)), "0 steps")
   # suppression

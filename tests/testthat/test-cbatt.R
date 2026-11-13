@@ -36,8 +36,9 @@ test_that("matching is MatchIt's greedy caliper matching", {
   expect_equal(r$res$est, 2.26923311008552, tolerance = 1e-10)
   expect_identical(2L * nrow(r$match), 240L)
   dif <- z$y[r$match$focal] - z$y[r$match$match]
-  expect_equal(r$res$med, median(dif))
-  expect_equal(r$res$se, sd(dif) / sqrt(length(dif)))
+  expect_equal(r$res$med, median(dif), tolerance = testthat_tolerance())
+  expect_equal(r$res$se, sd(dif) / sqrt(length(dif)),
+               tolerance = testthat_tolerance())
   # the ATC matches each control to treated units
   a <- cbatt(z$y, z$d, z$x, est = "psm", tgt = "atc", k = 2)
   expect_true(all(z$d[a$match$focal] == 0 & z$d[a$match$match] == 1))
@@ -90,7 +91,8 @@ test_that("the effect is recovered and the bootstrap error fits", {
   set.seed(4)
   c2 <- cbatt(z$y, z$d, z$x, est = "sub", reps = 20)
   expect_identical(c1, c2)
-  expect_equal(c1$res$hi, c1$res$est + qnorm(0.975) * c1$res$se)
+  expect_equal(c1$res$hi, c1$res$est + qnorm(0.975) * c1$res$se,
+               tolerance = testthat_tolerance())
   e1 <- cbatt(z$y, z$d, z$x, est = "ebal", tgt = "att", reps = 20,
               seed = 1)
   expect_gt(e1$res$se, 0)
@@ -139,9 +141,9 @@ test_that("E-values are EValue's", {
                c(2.52914198186127, 1.96803734698826), tolerance = 1e-12,
                ignore_attr = TRUE)
   # a rare outcome reads ratios as risk ratios; an interval over the null
-  expect_equal(evlx(2, type = "or", rare = TRUE)[["rr"]], 2)
-  expect_equal(evlx(2, 0.9, 4)[["evlim"]], 1)
-  expect_equal(evlx(0.5, 0.3, 1.2)[["evlim"]], 1)
+  expect_identical(evlx(2, type = "or", rare = TRUE)[["rr"]], 2)
+  expect_identical(evlx(2, 0.9, 4)[["evlim"]], 1)
+  expect_identical(evlx(0.5, 0.3, 1.2)[["evlim"]], 1)
   expect_true(is.na(evlx(2)[["evlim"]]))
   expect_named(evlx(2), c("rr", "evalue", "evlim"))
 })

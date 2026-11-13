@@ -47,7 +47,7 @@ test_that("the stationary law is the generator's, and Erlang's", {
   ec <- 3 * eb / (3 - a * (1 - eb))
   expect_equal(w$pfull, ec, tolerance = 1e-12)
   expect_equal(w$lq, ec * a / (3 - a), tolerance = 1e-12)
-  expect_equal(w$wq, w$lq / sum(lam))
+  expect_equal(w$wq, w$lq / sum(lam), tolerance = testthat_tolerance())
   expect_output(print(w), "mean queue")
 })
 
@@ -57,8 +57,10 @@ test_that("orders as a list; travel times", {
   expect_identical(l$state, r$state)
   tt <- matrix(c(2, 5, 8, 6, 3, 7, 9, 6, 2, 7, 8, 3), 3)
   v <- hypq(lam, pref, mu = 1.5, tt = tt)
-  expect_equal(v$travel$mean, sum(r$disp * tt) / sum(r$disp))
-  expect_equal(v$travel$atom, colSums(r$disp * tt) / colSums(r$disp))
+  expect_equal(v$travel$mean, sum(r$disp * tt) / sum(r$disp),
+               tolerance = testthat_tolerance())
+  expect_equal(v$travel$atom, colSums(r$disp * tt) / colSums(r$disp),
+               tolerance = testthat_tolerance())
   expect_output(print(v), "mean travel time")
 })
 
@@ -67,9 +69,9 @@ test_that("the square-root law: the closed form and a simulation", {
   expect_identical(s$dist, 2.5)
   expect_true(is.na(s$time))
   g <- sqrtlw(100, 8, busy = 0.5, metric = "grid", speed = 2)
-  expect_equal(g$dist, sqrt(2 * pi) / 4 * 5)
+  expect_equal(g$dist, sqrt(2 * pi) / 4 * 5, tolerance = testthat_tolerance())
   expect_identical(g$avail, 4)
-  expect_equal(g$time, g$dist / 2)
+  expect_equal(g$time, g$dist / 2, tolerance = testthat_tolerance())
   # a Poisson pattern of 400 units on a 20 x 20 torus: the mean distance
   # from random calls to the nearest unit is 1/2 sqrt(400 / 400)
   set.seed(5)
