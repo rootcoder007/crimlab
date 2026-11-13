@@ -15,3 +15,4 @@
 ^CITATION\.cff$
 ^py$
 ^\.ruff_cache$
+^cli$

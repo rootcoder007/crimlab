@@ -1,0 +1,77 @@
+.\" SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+.TH CRIMLAB 1 2026-11-12 crimlab "User Commands"
+.SH NAME
+crimlab \- criminology and sociolegal statistics from the command line
+.SH SYNOPSIS
+.B crimlab
+.I fn
+.RB [ \-j ]
+.RB [ \-f
+.IR file ]
+.RB [ \-\- \fIarg\fR
+.IR value " ...]"
+.br
+.B crimlab
+.BR \-l " | " \-h " | " \-V
+.SH DESCRIPTION
+.B crimlab
+runs the function
+.I fn
+of the crimlab package (the name of the R function, such as
+.BR orrisk )
+and prints its result as a table, or as JSON with
+.BR \-j .
+The functions, their arguments and their checks are those of the R and
+Python packages.
+.PP
+The arguments come from
+.I file
+.RB ( \-
+for standard input), a JSON object of named arguments or a CSV table whose
+columns are arguments, and from
+.B \-\-\fIarg value\fR
+options, which win. Without
+.BR \-f ,
+the arguments the options leave out are read from standard input.
+A
+.I value
+is JSON when it starts with
+.BR [ ", " { " or " \(dq ,
+a list when it holds a comma, else one number,
+.BR true ", " false ", " NA
+or text. A JSON object given for a per-group argument names the groups;
+a CSV column named
+.B group
+does the same for the other columns. Trailing empty cells of a CSV column
+are dropped, and a column of one value is one value.
+.SH OPTIONS
+.TP
+.B \-j
+print the result as JSON: a data frame is an object of columns, a named
+vector an object of numbers, a missing value null, and a number JSON
+cannot hold the string NaN, Inf or \-Inf.
+.TP
+.BI \-f " file"
+read the arguments from
+.IR file .
+.TP
+.B \-l
+list the functions and their arguments (optional ones in brackets).
+.TP
+.B \-h
+print a short help.
+.TP
+.B \-V
+print the version.
+.SH EXIT STATUS
+0 on success, 1 when the function refuses its arguments (the message goes
+to standard error), 2 for a usage error.
+.SH EXAMPLES
+.nf
+crimlab orrisk \-\-or 2 \-\-rate 0.1 \-\-share 0.3
+echo \(aq{"done": [30, 45, 60], "open": [100, 150]}\(aq | crimlab losbnd \-j
+crimlab vodtst \-f stops.csv \-\-ref b
+crimlab proof \-\-fn vodtst
+.fi
+.SH SEE ALSO
+https://github.com/rootcoder007/crimlab

@@ -1,0 +1,76 @@
+# The command-line program (cli/) and the packages built from the kernels,
+# each built, installed or tested in its own job. Builds and tests only:
+# publish.yml publishes, on a release tag.
+name: pkg
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['src/**', 'cli/**', 'bindings/**', 'packaging/**', '.copr/**', 'DESCRIPTION',
+            '.github/workflows/pkg.yml']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'cli/**', 'bindings/**', 'packaging/**', '.copr/**', 'DESCRIPTION',
+            '.github/workflows/pkg.yml']
+
+permissions:
+  contents: read
+
+
+jobs:
+  cli:
+    name: cli (${{ matrix.os }}, ${{ matrix.cxx }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, cxx: g++ }
+          - { os: ubuntu-24.04, cxx: clang++ }
+          - { os: ubuntu-24.04-arm, cxx: g++ }
+          - { os: macos-15, cxx: clang++ }
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: cli/thm.inc is the proof table of src/bind.cpp
+        run: sh cli/thm.sh | diff cli/thm.inc -
+      - name: build, warnings as errors
+        run: make -C cli -j4 CXX=${{ matrix.cxx }}
+      - name: tests
+        run: make -C cli check
+      - name: tests under AddressSanitizer and UndefinedBehaviorSanitizer
+        if: matrix.os == 'ubuntu-24.04' && matrix.cxx == 'clang++'
+        run: |
+          make -C cli clean
+          make -C cli -j4 CXX=clang++ crimlab \
+            CXXFLAGS="-O1 -g -fsanitize=address,undefined -fno-sanitize-recover=all" \
+            LDFLAGS="-fsanitize=address,undefined"
+          make -C cli check
+
+  msvc:
+    runs-on: windows-2025
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the kernels (every src/*.cpp without R's headers, the rule of py/setup.py)
+        shell: bash
+        run: |
+          mkdir b
+          grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' src/*.cpp > b/k.rsp
+          cat b/k.rsp
+      - name: build with cl, /W4 /WX for cli/ (the kernels at /W3 /WX, as py.yml builds them)
+        shell: cmd
+        run: |
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
+          cl /nologo /c /std:c++17 /EHsc /O2 /W3 /WX /Fob\ @b\k.rsp || exit /b 1
+          cl /nologo /c /std:c++17 /EHsc /O2 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
+          cl /nologo /Fecli\crimlab.exe b\*.obj || exit /b 1
+      - name: tests
+        shell: bash
+        run: sh cli/test.sh cli/crimlab.exe
+
