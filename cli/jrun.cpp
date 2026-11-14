@@ -1501,6 +1501,7 @@ bool proof(Ctx &c, Val &out) {
 // The families of the R package's other functions, each in its file.
 #include "jx.inc"
 #include "jfair.inc"
+#include "jtrace.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1546,6 +1547,12 @@ const Ent ents[] = {
     {"nordet", "x off radius p? draw? seed?", nordet},
     {"fairsim", "n? groups? props? nareas? base? bias? seed?", fairsim},
     {"oaxbd", "y x grp ref? conf?", oaxbd},
+    {"tlvc", "x item", tlvc},
+    {"tlvlr", "xa xb na nb bg", tlvlr},
+    {"skp", "x s2 alpha? nsim? seed?", skp},
+    {"lwss", "x y f? iter? delta?", lwss},
+    {"chmb", "a b wopt wval coarse?", chmb},
+    {"tfrp", "par deffect? tdist? ymax? nsim? seed? hl? nq?", tfrp},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
