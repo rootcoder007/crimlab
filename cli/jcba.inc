@@ -160,3 +160,156 @@ bool evlx(Ctx &c, Val &out) {
   out = nvec(3, on, o);
   return true;
 }
+
+bool cbatt(Ctx &c, Val &out) {
+  static const char *const eo[] = {"ipw", "gcomp", "sub", "psm", "ebal"};
+  static const char *const to[] = {"ate", "att", "atc"};
+  int me = 0, tg = 0, kk = 0, ns = 0, nr = 0;
+  CK(pickd(c, "est", eo, 5, 0, me));
+  CK(pickd(c, "tgt", to, 3, 0, tg));
+  CK(wholed(c, "k", 1, 1, kk));
+  CK(wholed(c, "nsub", 5, 2, ns));
+  CK(wholed(c, "reps", 499, 0, nr));
+  double lv = 0.0;
+  CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
+  const Val &y = c["y"];
+  if (y.t == Val::ARR) {
+    for (const Val &e : y.a) {
+      if (e.t == Val::ARR || e.t == Val::OBJ) return notvec(c, "y");
+    }
+  }
+  Dv yv;
+  CK(num(c, y, "y", yv));
+  const std::size_t sn = yv.n();
+  const int n = static_cast<int>(sn);
+  std::vector<int> di;
+  CK(bin01(c, c["d"], "d", sn, di));
+  std::vector<double> dv(di.begin(), di.end());
+  const double cn1 = static_cast<double>(std::count(dv.begin(), dv.end(), 1.0));
+  if (cn1 < 2 || n - cn1 < 2) return c.fail("`d` must have two treated and two untreated units at least.");
+  std::vector<double> xv;
+  std::vector<std::string> nm;
+  CK(cxmat(c, c["x"], sn, xv, nm));
+  if (me == 4 && tg != 1) return c.fail("entropy balancing (`est = \"ebal\"`) estimates the ATT only.");
+  if (me == 3 && tg == 0) return c.fail("matching (`est = \"psm\"`) estimates the ATT or the ATC.");
+  pev::cdat cd{yv.p(), dv.data(), xv.data(), n, static_cast<int>(nm.size())};
+  std::vector<int> all(sn);
+  for (int i = 0; i < n; ++i) all[static_cast<std::size_t>(i)] = i;
+  const bool need = me == 0 || me == 2 || me == 3, own = need && !c.has("ps");
+  std::vector<double> e(sn, NaN);
+  if (own) {
+    if (!pev::pscore(cd, all, e)) {
+      return c.fail("the logistic propensity has no finite fit (a covariate separates the arms); give `ps`.");
+    }
+  } else if (need) {
+    Dv p;
+    CK(num(c, c["ps"], "ps", p, n));
+    e = p.v;
+    for (double v : e) {
+      if (!(v > 0 && v < 1)) return c.fail("`ps` must be propensities strictly between 0 and 1.");
+    }
+  }
+  std::vector<double> w;
+  auto one1 = [&](const std::vector<int> &idx, std::vector<double> &ee) {
+    if (own && &ee != &e && !pev::pscore(cd, idx, ee)) return NaN;
+    switch (me) {
+      case 0: return pev::ipw(cd, idx, ee, tg);
+      case 1: return pev::gcomp(cd, idx, tg);
+      case 2: return pev::subcl(cd, idx, ee, tg, ns);
+      default: {
+        std::vector<double> ww;
+        return pev::ebal(cd, idx, ww) ? pev::ebatt(cd, idx, ww) : NaN;
+      }
+    }
+  };
+  double b = NA, se = NA, med = NA;
+  Val mt;
+  if (me == 3) {
+    double cal = 0.0;
+    if (c.has("calip")) {
+      double m = 0.0, s = 0.0, k1 = 0.0;
+      for (double v : e) m += v / n;
+      for (double v : e) s += (v - m) * (v - m) / (n - 1);
+      CK(one(c, c["calip"], "calip", 0.0, Inf, k1));
+      cal = k1 * std::sqrt(s);
+    }
+    std::vector<int> ft, fc;
+    std::vector<double> dif;
+    const int m = pev::psm(cd, e, tg, kk, cal, ft, fc, dif);
+    if (m < 2) return c.fail("fewer than two units were matched within the caliper.");
+    double s = 0.0, ss = 0.0;
+    for (double v : dif) s += v / m;
+    for (double v : dif) ss += (v - s) * (v - s) / (m - 1);
+    b = s;
+    se = std::sqrt(ss / m);
+    std::vector<double> sd = dif;
+    std::sort(sd.begin(), sd.end());
+    med = m % 2 ? sd[static_cast<std::size_t>(m / 2)] : 0.5 * (sd[static_cast<std::size_t>(m / 2 - 1)] + sd[static_cast<std::size_t>(m / 2)]);
+    std::vector<double> a, bb;
+    for (std::size_t q = 0; q < ft.size(); ++q) {
+      a.push_back(ft[q] + 1);
+      bb.push_back(fc[q] + 1);
+    }
+    Frame cm;
+    cm.num("focal", a);
+    cm.num("match", bb);
+    mt = cm.o;
+  } else {
+    b = one1(all, e);
+    if (std::isnan(b)) {
+      return c.fail("the estimate is undefined: an outcome model failed, a subclass lacks an arm, or the balancing "
+                    "weights do not exist.");
+    }
+    if (me == 0 || me == 4) {
+      w.assign(sn, 1.0);
+      if (me == 4) {
+        pev::ebal(cd, all, w);
+      } else {
+        for (std::size_t i = 0; i < sn; ++i) {
+          const double p = e[i];
+          w[i] = dv[i] > 0.5 ? (tg == 0 ? 1 / p : tg == 1 ? 1 : (1 - p) / p) : (tg == 0 ? 1 / (1 - p) : tg == 1 ? p / (1 - p) : 1);
+        }
+      }
+    }
+    if (nr > 0) {
+      unsigned int sd = 0;
+      CK(seed(c, sd));
+      kutil::rng g(sd);
+      kutil::ksum s1, s2;
+      double kq = 0;
+      std::vector<int> idx(sn);
+      std::vector<double> eb = e;
+      for (int r = 0; r < nr; ++r) {
+        for (std::size_t i = 0; i < sn; ++i) idx[i] = g.below(n);
+        const double v = one1(idx, eb);
+        if (std::isnan(v)) continue;
+        s1.add(v);
+        s2.add(v * v);
+        kq += 1;
+      }
+      if (kq > 1) {
+        const double m = s1.val() / kq;
+        se = std::sqrt(std::max(0.0, (s2.val() - kq * m * m) / (kq - 1)));
+      }
+    }
+  }
+  const double zq = clab_qnorm(0.5 + 0.5 * lv);
+  const double lo = std::isnan(se) ? NA : b - zq * se, hi = std::isnan(se) ? NA : b + zq * se, n0 = n - cn1;
+  Frame r;
+  r.num("est", &b, 1);
+  r.num("se", &se, 1);
+  r.num("lo", &lo, 1);
+  r.num("hi", &hi, 1);
+  r.num("med", &med, 1);
+  r.num("n1", &cn1, 1);
+  r.num("n0", &n0, 1);
+  out = vobj();
+  put(out, "res", r.o);
+  put(out, "ps", vauto(e));
+  put(out, "w", w.empty() ? Val() : vauto(w));
+  put(out, "match", mt);
+  put(out, "est", vstr(eo[me]));
+  put(out, "tgt", vstr(to[tg]));
+  put(out, "level", vnum(lv));
+  return true;
+}

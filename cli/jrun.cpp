@@ -1736,6 +1736,7 @@ const Ent ents[] = {
     {"stgdid", "y unit time first? trt? meth? ctrl? adj? est? clus? reps? seed? level?", stgdid},
     {"synthc", "y unit time first plac?", synthc},
     {"sdidx", "y unit time first reps? seed? level?", sdidx},
+    {"cbatt", "y d x est? tgt? ps? k? calip? nsub? reps? seed? level?", cbatt},
     {"svymx", "y w? strata? psu? fpc? stat? den? by? ref? level?", svymx},
     {"wcbx", "y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?", wcbx},
     {"wystep", "obs null", wystep},
