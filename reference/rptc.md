@@ -44,6 +44,7 @@ for a constant reporter).
 
 Maltz, M. D. (1999). *Bridging Gaps in Police Crime Data*. Bureau of
 Justice Statistics, NCJ 176365.
+<https://bjs.ojp.gov/content/pub/pdf/bgpcd.pdf>
 
 ## Examples
 

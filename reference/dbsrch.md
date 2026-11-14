@@ -38,6 +38,7 @@ A named numeric vector: `np`, `any` and, when `pop` is given, `post`.
 Balding, D. J. and Donnelly, P. (1996). Evaluating DNA profile evidence
 when the suspect is identified through a database search. *Journal of
 Forensic Sciences*, 41(4), 603-607.
+[doi:10.1520/JFS13961J](https://doi.org/10.1520/JFS13961J)
 
 ## Examples
 

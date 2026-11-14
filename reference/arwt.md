@@ -54,9 +54,9 @@ vector: `gini` and `top<k>`.
 
 ## References
 
-Goodchild, M. F. and Lam, N. S.-N. (1980). Areal interpolation: a
-variant of the traditional spatial problem. *Geo-Processing*, 1,
-297-312.
+Lam, N. S.-N. (1983). Spatial interpolation methods: a review. *The
+American Cartographer*, 10(2), 129-150.
+[doi:10.1559/152304083783914958](https://doi.org/10.1559/152304083783914958)
 
 ## Examples
 

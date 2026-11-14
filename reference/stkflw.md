@@ -39,7 +39,9 @@ stkflw(
   Two of: the people admitted or released in each period (positive), the
   person-days (from 0), the average daily population (from 0; or a list
   with the periodic headcounts of each period, whose means are taken),
-  and the average length of stay (positive).
+  and the average length of stay (positive). A `clpre` list from
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  is taken too (as `people`): its elements fill the arguments by name.
 
 - t:
 

@@ -37,6 +37,13 @@ moves from (rows) and to (columns); `pi`, the stationary distribution
 (`NA` when a state is never left or it is not unique); and `summ`
 (`moves`, `stay`, `theil`).
 
+## References
+
+Kemeny, J. G. and Snell, J. L. (1960). *Finite Markov Chains*. Van
+Nostrand.
+
+Theil, H. (1967). *Economics and Information Theory*. North-Holland.
+
 ## Examples
 
 ``` r

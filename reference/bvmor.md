@@ -1,8 +1,7 @@
 # Bivariate Moran's I
 
 Whether high values of one variable sit next to high values of another
-(Wartenberg 1985; Anselin, Syabri and Smirnov 2002): with `zx` and `zy`
-the centred values,
+(Wartenberg 1985): with `zx` and `zy` the centred values,
 `I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)`, which is
 Moran's I
 ([`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md))
@@ -58,11 +57,6 @@ Wartenberg, D. (1985). Multivariate spatial correlation: a method for
 exploratory geographical analysis. *Geographical Analysis*, 17(4),
 263-283.
 [doi:10.1111/j.1538-4632.1985.tb00849.x](https://doi.org/10.1111/j.1538-4632.1985.tb00849.x)
-
-Anselin, L., Syabri, I. and Smirnov, O. (2002). Visualizing multivariate
-spatial correlation with dynamically linked windows. In L. Anselin and
-S. Rey (eds), *New Tools for Spatial Data Analysis*. Center for
-Spatially Integrated Social Science, Santa Barbara.
 
 ## Examples
 

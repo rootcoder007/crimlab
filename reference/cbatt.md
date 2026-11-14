@@ -127,10 +127,16 @@ Standard errors (but `"psm"`) are the standard deviations over `reps`
 bootstrap samples of the units, with the propensity fitted again in
 each; intervals are normal.
 
+A `clpre` list from
+[`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+may be given as `y`: its elements fill the arguments by name (the
+`otis-*-cbatt` presets).
+
 ## References
 
-Hainmueller, J. (2012). Entropy balancing for causal effects. *Political
-Analysis*, 20(1), 25-46.
+Hainmueller, J. (2012). Entropy balancing for causal effects: a
+multivariate reweighting method to produce balanced samples in
+observational studies. *Political Analysis*, 20(1), 25-46.
 [doi:10.1093/pan/mpr025](https://doi.org/10.1093/pan/mpr025)
 
 Imbens, G. W. and Rubin, D. B. (2015). *Causal Inference for Statistics,

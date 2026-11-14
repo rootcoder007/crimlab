@@ -49,6 +49,13 @@ nordet(x, off, radius, p = 0.85, draw = FALSE, seed = NULL)
 A data frame with one row per incident: `k` (officers in range), `prob`
 and, with `draw`, `det` (1 detected, 0 not).
 
+## References
+
+Barman, P. K. and Barman, P. K. (2026). Spatial disparities in simulated
+patrol detection: a reproducible generative-model audit across Baltimore
+and Chicago.
+[doi:10.48550/arXiv.2603.18987](https://doi.org/10.48550/arXiv.2603.18987)
+
 ## Examples
 
 ``` r

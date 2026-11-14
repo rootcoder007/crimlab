@@ -45,6 +45,7 @@ points per unit area).
 Greig-Smith, P. (1952). The use of random and contiguous quadrats in the
 study of the structure of plant communities. *Annals of Botany*, 16(2),
 293-316.
+[doi:10.1093/oxfordjournals.aob.a083317](https://doi.org/10.1093/oxfordjournals.aob.a083317)
 
 ## Examples
 

@@ -44,7 +44,7 @@ A numeric vector of `f(d)`, one per distance.
 
 ## References
 
-Brantingham, P. J. and Brantingham, P. L. (1981). *Environmental
+Brantingham, P. J. and Brantingham, P. L. (eds.) (1981). *Environmental
 Criminology*. Sage.
 
 Levine, N. (2009). Introduction to the special issue on Bayesian

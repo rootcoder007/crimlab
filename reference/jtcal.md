@@ -50,7 +50,7 @@ A numeric vector of densities, one per value of `t`.
 ## References
 
 Silverman, B. W. (1986). *Density Estimation for Statistics and Data
-Analysis*. Chapman and Hall.
+Analysis*. Chapman and Hall; reissued 2018 by Routledge.
 [doi:10.1201/9781315140919](https://doi.org/10.1201/9781315140919)
 
 Levine, N. (2009). Introduction to the special issue on Bayesian

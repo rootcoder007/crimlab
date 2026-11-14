@@ -80,6 +80,9 @@ caller's, so results can be matched with other software fold for fold.</p>
 <span>  trim <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  clu <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  pred <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  stk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"glm"</span>, <span class="st">"lasso"</span>, <span class="st">"forest"</span><span class="op">)</span>,</span>
+<span>  nstk <span class="op">=</span> <span class="fl">5</span>,</span>
+<span>  disc <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -140,7 +143,9 @@ logistic regression for a probability), <code>"lasso"</code>, <code>"ridge"</cod
 <code>"enet"</code> (the elastic net of <code><a href="enpath.html">enpath()</a></code> with mixing <code>alpha</code>, the penalty
 chosen by cross-validation within the training folds), or <code>"forest"</code>
 (the random forest of <code><a href="rfor.html">rfor()</a></code> with <code>ntree</code> trees and <code>mtry</code> columns
-per split, nodes of 5 rows, or 10 for a probability, left unsplit).</p></dd>
+per split, nodes of 5 rows, or 10 for a probability, left unsplit), or
+<code>"stack"</code> (the super learner of <code><a href="suplrn.html">suplrn()</a></code> over the learners <code>stk</code>,
+fitted on <code>nstk</code> inner folds of each training set).</p></dd>
 
 
 <dt id="arg-lrnd">lrnd<a class="anchor" aria-label="anchor" href="#arg-lrnd"></a></dt>
@@ -205,6 +210,21 @@ the two-way form of Chiang et al. (2022) as 'DoubleML' computes it.</p></dd>
 matrix with one row per observation and one column per nuisance, in
 the order listed above (an array with a third dimension for several
 repetitions). The estimate is then a closed form of these.</p></dd>
+
+
+<dt id="arg-stk">stk<a class="anchor" aria-label="anchor" href="#arg-stk"></a></dt>
+<dd><p>The learners of <code>"stack"</code>, each named once, from the other
+choices of <code>lrn</code>.</p></dd>
+
+
+<dt id="arg-nstk">nstk<a class="anchor" aria-label="anchor" href="#arg-nstk"></a></dt>
+<dd><p>The number of inner folds of <code>"stack"</code>, at least 2.</p></dd>
+
+
+<dt id="arg-disc">disc<a class="anchor" aria-label="anchor" href="#arg-disc"></a></dt>
+<dd><p><code>TRUE</code> for the discrete super learner in <code>"stack"</code> (the one
+learner of least cross-validated risk), <code>FALSE</code> for non-negative
+weights summing to 1.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

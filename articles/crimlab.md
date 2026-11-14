@@ -409,6 +409,47 @@ and equal predictive values cannot all hold at once (Chouldechova 2017);
 which to equalise is a choice about whose errors matter, not a
 statistical finding.
 
+## Presets: one agency’s layout, any agency’s data
+
+The generic functions take plain vectors; a preset says which columns of
+a published dataset feed them. The New York arrest file names the charge
+class `law_cat_cd` and the race `perp_race`, so the felony share by race
+is one call (here on a made-up excerpt; the presets ship no data):
+
+``` r
+
+arr <- data.frame(
+  perp_race = rep(c("A", "B", "C"), c(50, 30, 20)),
+  law_cat_cd = c(rep(c("F", "M"), c(20, 30)), rep(c("F", "M"), c(18, 12)),
+                 rep(c("F", "M", "V"), c(6, 12, 2)))
+)
+ft <- ctabx(clprep(arr, "nypd-felony-xtab"))
+ft$tab
+#>   felony other
+#> A     20    30
+#> B     18    12
+#> C      6    14
+prop.table(ft$tab, 1)[, "felony"]
+#>   A   B   C 
+#> 0.4 0.6 0.3
+```
+
+Another agency’s file with other column names needs no new code, only a
+preset of its own, laid out as the rows of
+[`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)’s
+table:
+
+``` r
+
+mine <- data.frame(preset = "my-felony", generic = "ctabx",
+                   arg = c("row", "col"), column = c("race", "class"),
+                   recode = c("", "felony=felony;*=other"))
+other <- data.frame(race = arr$perp_race,
+                    class = ifelse(arr$law_cat_cd == "F", "Felony", "Less"))
+identical(ctabx(clprep(other, mine))$tab, ft$tab)
+#> [1] TRUE
+```
+
 ## Proofs
 
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
@@ -460,17 +501,21 @@ other things:
 
 Chouldechova, A. (2017). Fair prediction with disparate impact: a study
 of bias in recidivism prediction instruments. *Big Data*, 5(2), 153-163.
+<https://doi.org/10.1089/big.2016.0047>
 
 Grogger, J. and Ridgeway, G. (2006). Testing for racial profiling in
 traffic stops from behind a veil of darkness. *Journal of the American
 Statistical Association*, 101(475), 878-887.
+<https://doi.org/10.1198/016214506000000168>
 
 Kitagawa, E. M. (1955). Components of a difference between two rates.
 *Journal of the American Statistical Association*, 50(272), 1168-1194.
+<https://doi.org/10.1080/01621459.1955.10501299>
 
 Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements about
 treatment effects: a case study of sentencing and recidivism.
 *Sociological Methodology*, 28(1), 99-137.
+<https://doi.org/10.1111/0081-1750.00043>
 
 Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
-Justice*, 10, 117-170.
+Justice*, 10, 117-170. <https://doi.org/10.1086/449145>

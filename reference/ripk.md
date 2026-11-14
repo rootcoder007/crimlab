@@ -68,7 +68,7 @@ processes. *Journal of Applied Probability*, 13(2), 255-266.
 [doi:10.2307/3212829](https://doi.org/10.2307/3212829)
 
 Ripley, B. D. (1977). Modelling spatial patterns. *Journal of the Royal
-Statistical Society, Series B*, 39(2), 172-212.
+Statistical Society, Series B*, 39(2), 172-192.
 [doi:10.1111/j.2517-6161.1977.tb01615.x](https://doi.org/10.1111/j.2517-6161.1977.tb01615.x)
 
 ## Examples

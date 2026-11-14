@@ -54,6 +54,7 @@ segregation. *Social Forces*, 67(2), 281-315.
 
 Morrill, R. L. (1991). On the measure of geographic segregation.
 *Geography Research Forum*, 11, 25-36.
+[doi:10.64166/p1b4ca43](https://doi.org/10.64166/p1b4ca43)
 
 ## Examples
 

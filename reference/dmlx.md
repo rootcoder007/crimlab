@@ -34,6 +34,9 @@ dmlx(
   trim = NULL,
   clu = NULL,
   pred = NULL,
+  stk = c("glm", "lasso", "forest"),
+  nstk = 5,
+  disc = FALSE,
   seed = 1
 )
 ```
@@ -95,7 +98,11 @@ dmlx(
   training folds), or `"forest"` (the random forest of
   [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md)
   with `ntree` trees and `mtry` columns per split, nodes of 5 rows, or
-  10 for a probability, left unsplit).
+  10 for a probability, left unsplit), or `"stack"` (the super learner
+  of
+  [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
+  over the learners `stk`, fitted on `nstk` inner folds of each training
+  set).
 
 - lrnd:
 
@@ -162,6 +169,21 @@ dmlx(
   row per observation and one column per nuisance, in the order listed
   above (an array with a third dimension for several repetitions). The
   estimate is then a closed form of these.
+
+- stk:
+
+  The learners of `"stack"`, each named once, from the other choices of
+  `lrn`.
+
+- nstk:
+
+  The number of inner folds of `"stack"`, at least 2.
+
+- disc:
+
+  `TRUE` for the discrete super learner in `"stack"` (the one learner of
+  least cross-validated risk), `FALSE` for non-negative weights summing
+  to 1.
 
 - seed:
 

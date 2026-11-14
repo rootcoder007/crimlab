@@ -95,10 +95,12 @@ A numeric vector of smoothed values, one per point, in input order.
 
 Hansen, K. M. (1991). Head-banging: robust smoothing in the plane. *IEEE
 Transactions on Geoscience and Remote Sensing*, 29(3), 369-378.
+[doi:10.1109/36.79427](https://doi.org/10.1109/36.79427)
 
 Mungiole, M., Pickle, L. W. and Simonson, K. H. (1999). Application of a
 weighted head-banging algorithm to mortality data maps. *Statistics in
 Medicine*, 18(23), 3201-3209.
+[doi:10.1002/(SICI)1097-0258(19991215)18:23\<3201::AID-SIM310\>3.0.CO;2-U](https://doi.org/10.1002/%28SICI%291097-0258%2819991215%2918%3A23%3C3201%3A%3AAID-SIM310%3E3.0.CO%3B2-U)
 
 ## Examples
 

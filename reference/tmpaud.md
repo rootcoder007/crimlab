@@ -68,6 +68,13 @@ and largest ratio, their range, and how many periods have a ratio above
     [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
     on it.
 
+## References
+
+Barman, P. K. and Barman, P. K. (2026). Spatial disparities in simulated
+patrol detection: a reproducible generative-model audit across Baltimore
+and Chicago.
+[doi:10.48550/arXiv.2603.18987](https://doi.org/10.48550/arXiv.2603.18987)
+
 ## Examples
 
 ``` r

@@ -43,6 +43,32 @@ kinship, paternity, mixtures and database searches.
   : Paternity index
 - [`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md)
   : Database search
+- [`preslr()`](https://rootcoder007.github.io/crimlab/reference/preslr.md)
+  : Likelihood ratio of measured evidence
+
+## Toxicology and taphonomy
+
+Calibration lines and values below the limit of detection, postmortem
+redistribution, ethanol in a decomposed body and the reliability of
+specimen matrices; the decay chain of a body, a Bayesian preservation
+model and log-ratio transforms of element shares.
+
+- [`txcal()`](https://rootcoder007.github.io/crimlab/reference/txcal.md)
+  : Calibration line of an assay
+- [`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md)
+  : Values below the limit of detection
+- [`pmrrat()`](https://rootcoder007.github.io/crimlab/reference/pmrrat.md)
+  : Postmortem redistribution ratio
+- [`etohlr()`](https://rootcoder007.github.io/crimlab/reference/etohlr.md)
+  : Ethanol in a decomposed body: drunk before death or made after
+- [`mtxrel()`](https://rootcoder007.github.io/crimlab/reference/mtxrel.md)
+  : Reliability of specimen matrices in a submerged or decomposed body
+- [`tpdmc()`](https://rootcoder007.github.io/crimlab/reference/tpdmc.md)
+  : Decay chain of a body
+- [`tpbhm()`](https://rootcoder007.github.io/crimlab/reference/tpbhm.md)
+  : Bayesian preservation model
+- [`clrilr()`](https://rootcoder007.github.io/crimlab/reference/clrilr.md)
+  : Log-ratio transforms of compositions
 
 ## Policing
 
@@ -107,7 +133,8 @@ brokerage and the Cheeger bounds.
 ## Spatial
 
 Distances and projection, centrography, nearest neighbours and K
-functions, hot spots, space-time tests and journey to crime.
+functions, hot spots, space-time tests, journey to crime and the
+geographic profile of a series.
 
 - [`hvdist()`](https://rootcoder007.github.io/crimlab/reference/hvdist.md)
   : Great-circle distance
@@ -159,6 +186,10 @@ functions, hot spots, space-time tests and journey to crime.
   : Accuracy of a journey-to-crime surface on a solved series
 - [`bjtc()`](https://rootcoder007.github.io/crimlab/reference/bjtc.md) :
   Bayesian journey to crime
+- [`crchyp()`](https://rootcoder007.github.io/crimlab/reference/crchyp.md)
+  : Circle hypothesis of a crime series
+- [`hitscr()`](https://rootcoder007.github.io/crimlab/reference/hitscr.md)
+  : Hit score of a geographic profile
 - [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md) :
   Spatial weights
 - [`gearc()`](https://rootcoder007.github.io/crimlab/reference/gearc.md)
@@ -375,8 +406,9 @@ A published dataset’s columns onto a generic function’s arguments.
 
 ## Learning
 
-The elastic net with cross-validation, logistic regression and random
-forests; the learners of the cross-fitted estimators.
+The elastic net with cross-validation, logistic regression, random
+forests and their stack, the super learner; the learners of the
+cross-fitted estimators.
 
 - [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md)
   : Elastic net by coordinate descent, with cross-validation
@@ -384,6 +416,8 @@ forests; the learners of the cross-fitted estimators.
   : Logistic regression
 - [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md) :
   Random forest for regression and probabilities
+- [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
+  : Stacking: the super learner
 
 ## Causal estimates
 
@@ -457,6 +491,23 @@ hot-spot dynamics and patrol queues.
 - [`sthwk()`](https://rootcoder007.github.io/crimlab/reference/sthwk.md)
   : Space-time Hawkes process
 
+## Deterrence
+
+Offending under the certainty and severity of sanction, what a design
+identifies, the inspection game and its phases, and the collider bias of
+arrest data.
+
+- [`detrsp()`](https://rootcoder007.github.io/crimlab/reference/detrsp.md)
+  : Offending chosen under certainty and severity of sanction
+- [`dtrid()`](https://rootcoder007.github.io/crimlab/reference/dtrid.md)
+  : Which deterrence effects a design identifies
+- [`inspg()`](https://rootcoder007.github.io/crimlab/reference/inspg.md)
+  : The criminal, citizen and inspector game
+- [`insphs()`](https://rootcoder007.github.io/crimlab/reference/insphs.md)
+  : Phase diagram of the inspection game
+- [`colarr()`](https://rootcoder007.github.io/crimlab/reference/colarr.md)
+  : Collider bias of arrest data
+
 ## Surveys
 
 Design-based means, totals, proportions, ratios and variances by domain
@@ -480,8 +531,9 @@ from stratified, clustered and weighted samples.
 
 Near repeats, kernel surfaces, DBSCAN and hot-spot persistence, the
 space-time scan, global and bivariate Moran, spatial regression and its
-effects, point patterns and segregation, points in polygons, areal
-crosswalks and buffer designs.
+effects, point patterns and segregation, points in polygons, areal and
+boundary crosswalks, synthetic exposure from a survey, buffer designs
+and the risk terrain model.
 
 - [`knxnr()`](https://rootcoder007.github.io/crimlab/reference/knxnr.md)
   : Knox test of near repeats
@@ -515,5 +567,11 @@ crosswalks and buffer designs.
   : Points in polygons, and the population the units cover
 - [`arwt()`](https://rootcoder007.github.io/crimlab/reference/arwt.md) :
   Crosswalk of counts between two sets of areal units
+- [`bndxw()`](https://rootcoder007.github.io/crimlab/reference/bndxw.md)
+  : Crosswalk between boundary versions
+- [`synexp()`](https://rootcoder007.github.io/crimlab/reference/synexp.md)
+  : Synthetic exposure of areas from a survey
 - [`bufas()`](https://rootcoder007.github.io/crimlab/reference/bufas.md)
   : Treated, comparison and excluded places around sites
+- [`rtmfit()`](https://rootcoder007.github.io/crimlab/reference/rtmfit.md)
+  : Risk terrain model

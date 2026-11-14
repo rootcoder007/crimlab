@@ -66,9 +66,10 @@ takes `metric`.
 
 Diggle, P. J. (2013). *Statistical Analysis of Spatial and
 Spatio-Temporal Point Patterns* (3rd ed.), chapter 6. CRC Press.
+[doi:10.1201/b15326](https://doi.org/10.1201/b15326)
 
 Ripley, B. D. (1977). Modelling spatial patterns. *Journal of the Royal
-Statistical Society, Series B*, 39(2), 172-212.
+Statistical Society, Series B*, 39(2), 172-192.
 [doi:10.1111/j.2517-6161.1977.tb01615.x](https://doi.org/10.1111/j.2517-6161.1977.tb01615.x)
 
 ## Examples

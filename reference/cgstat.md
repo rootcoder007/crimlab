@@ -3,7 +3,7 @@
 The (weighted) mean centre of a point pattern, the standard deviations
 of the two coordinates, the standard distance deviation (the root mean
 squared distance from the mean centre), and the geometric and harmonic
-means of the coordinates (Bachi 1957; Neft 1962). The mean centre is the
+means of the coordinates (Bachi 1959; Neft 1966). The mean centre is the
 point that minimises the sum of squared distances to the points. The
 dispersions divide by the total weight less `k`: `k = 1` makes the
 squared values unbiased for the variances; `k = 2` is the convention of
@@ -64,7 +64,7 @@ coordinates). Lengths are in the unit of the coordinates, or metres.
 
 ## References
 
-Bachi, R. (1957). Statistical analysis of geographical series. *Bulletin
+Bachi, R. (1959). Statistical analysis of geographical series. *Bulletin
 de l'Institut International de Statistique*, 36(2), 229-240.
 
 Neft, D. S. (1966). *Statistical Analysis for Areal Distributions*.

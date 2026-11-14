@@ -47,7 +47,9 @@ against an unrelated alternative.
 ## References
 
 Balding, D. J. and Nichols, R. A. (1994). DNA profile match probability
-calculation. *Forensic Science International*, 64(2-3), 125-140.
+calculation: how to allow for population stratification, relatedness,
+database selection and single bands. *Forensic Science International*,
+64(2-3), 125-140.
 [doi:10.1016/0379-0738(94)90222-4](https://doi.org/10.1016/0379-0738%2894%2990222-4)
 
 ## Examples

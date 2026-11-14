@@ -33,6 +33,12 @@ A data frame with one row per dyad: `off`, `vic`, `count`, `rtoff`,
 `rtpair`, `nulloff` (the rate per offender under random mixing) and
 `ratio` (`rtpair` over the pooled pair rate; 1 under random mixing).
 
+## References
+
+O'Brien, R. M. (1987). The interracial nature of violent crimes: a
+reexamination. *American Journal of Sociology*, 92(4), 817-835.
+[doi:10.1086/228584](https://doi.org/10.1086/228584)
+
 ## Examples
 
 ``` r

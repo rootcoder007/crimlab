@@ -23,7 +23,10 @@ clprep(data = NULL, preset = NULL)
 
 - preset:
 
-  The preset's name, as `clprep()` lists them; `NULL` for the list.
+  The preset's name, as `clprep()` lists them, or a preset of one's own:
+  a data frame of rows laid out as those of `presets.tsv` (`preset`,
+  `generic` and `arg` needed, the other columns optional); `NULL` for
+  the list.
 
 ## Value
 
@@ -40,16 +43,35 @@ The presets are rows of `presets.tsv` (in the installed package's
 `arg`, `column` (the dataset's column), `recode`, `filter`, `units`,
 `note`, `source`. Python reads the same file. A `recode` is one of:
 empty (the column as it is); `fac` (a factor, one effect per value);
-`num` (numbers); `one` (a 1 for every row); `sub:a,b` (characters a to
-b, as a year from an ISO date); `const:v` (the argument is v, no
+`num` (numbers); `pct` (numbers over 100); `one` (a 1 for every row);
+`flag` (1 for yes, y, true, t, 1 or a positive number, 0 otherwise);
+`dum` (one 0 or 1 column per value but the first, named by the column
+and the value); `sub:a,b` (characters a to b, as a year from an ISO
+date); `const:v` (the argument is v, a number when it reads as one, no
 column); or a mapping `x|y=1;has:abc=1;*=0` from labels, compared
 without case or surrounding space (`has:` a label containing the text),
 to values, `*` covering every other label and `*=NA` dropping those
 rows. A `filter` `col=value` keeps the rows whose column has that value.
-An `arg` of `recipe` derives columns first: `long` stacks the two count
-columns named in `recode` as `count` with `with` 1 for the first; `acvm`
-and `pyr` reduce one row per placement to one per person and year (see
-Details of the returned attributes).
+An argument given by several rows (or by `dum`) is a data frame of their
+columns, as `adj` always is. An `arg` of `recipe` derives columns first,
+in the order of the rows: `keep` drops the rows missing any of the
+columns named in `recode`; `long` stacks the two count columns named in
+`recode` as `count` with `with` 1 for the first; `acvm` and `pyr` reduce
+one row per placement to one per person and year (see Details of the
+returned attributes), and `acnv` does so the naive way (`acn`, the most
+alert flags on one row; `vmany`, 1 when any row changes region; `hiacn`,
+`acn >= 2`); `pairb` adds `tb` (two or more of the three alert flags)
+and `yb` (`Number_Of_Placements` of 2 or more); `pairc` adds `tc` (the
+region at placement differs from the most recent) and `yc`
+(`NumberConsecutiveDays_Segregation` capped at its 99th percentile);
+`gent` takes the columns `inc,rent,colg,rentg` named in `recode` (and
+optionally the two quantiles, `0.5,0.667` by default) and adds `gent`, a
+factor: `ineligible` unless baseline income and rent are both at most
+their first quantile, then `gentrified` when the growth in college
+graduates and in rent both reach their second quantile, else `eligible`;
+`pop` takes `count;rate;per` (separated by semicolons, as column names
+may hold commas) and adds `pop`, the population `count / rate * per`
+that a published rate implies.
 
 Rows with a missing value in any column the preset reads are dropped, as
 the source analyses drop them; their number is the attribute `drop`.
@@ -94,4 +116,18 @@ cntreg(d$NumberIndividuals_RestrictiveConfinement, d$Gender == "Female",
 #>  pois TRUE 0.1383085 0.1158296 0.1651497 6.153279e-106 FALSE
 #>    nb TRUE 0.1383085 0.1158295 0.1651499 6.174131e-106 FALSE
 #> negative binomial theta 7655874; AIC Poisson 48.8636, negative binomial 50.86374
+# a preset of one's own, for another agency's columns
+mine <- data.frame(preset = "my-cnt", generic = "cntreg",
+                   arg = c("y", "grp", "adj"),
+                   column = c("count", "sex", "year"),
+                   recode = c("", "f=1;*=0", "fac"))
+e <- data.frame(count = c(4, 30, 6, 41), sex = c("f", "m", "f", "m"),
+                year = c(1, 1, 2, 2))
+cntreg(clprep(e, mine))
+#> cntreg: 4 counts; reference 0
+#> rate ratios (95% intervals):
+#>   fit term       irr         lo        hi            p   sep
+#>  pois    1 0.1408451 0.07265014 0.2730529 6.508047e-09 FALSE
+#>    nb    1 0.1408451 0.07265012 0.2730530 6.508132e-09 FALSE
+#> negative binomial theta 19990669; AIC Poisson 23.74163, negative binomial 25.74164
 ```

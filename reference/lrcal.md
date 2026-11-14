@@ -25,6 +25,13 @@ lrcal(same, diff)
 
 A list: `same` and `diff`, the calibrated ratios in the order given.
 
+## References
+
+Ayer, M., Brunk, H. D., Ewing, G. M., Reid, W. T. and Silverman, E.
+(1955). An empirical distribution function for sampling with incomplete
+information. *The Annals of Mathematical Statistics*, 26(4), 641-647.
+[doi:10.1214/aoms/1177728423](https://doi.org/10.1214/aoms/1177728423)
+
 ## Examples
 
 ``` r

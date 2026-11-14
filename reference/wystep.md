@@ -39,7 +39,8 @@ algorithm 2.8). Draws with a missing or infinite statistic are left out.
 ## References
 
 Westfall, P. H. and Young, S. S. (1993). *Resampling-Based Multiple
-Testing*. Wiley, New York. ISBN 978-0-471-55761-6.
+Testing: Examples and Methods for p-Value Adjustment*. Wiley, New York.
+ISBN 978-0-471-55761-6.
 
 ## Examples
 

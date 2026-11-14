@@ -66,7 +66,7 @@ numeric vector of zone totals).
 
 Eck, J. E., Chainey, S., Cameron, J. G., Leitner, M. and Wilson, R. E.
 (2005). *Mapping Crime: Understanding Hot Spots*. National Institute of
-Justice, NCJ 209393.
+Justice, NCJ 209393. <https://www.ojp.gov/pdffiles1/nij/209393.pdf>
 
 ## Examples
 

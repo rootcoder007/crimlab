@@ -34,6 +34,17 @@ A named numeric vector: `stop` (the weighted share searched) and `hit`
 (the weighted mean chance of guilt among them; `NaN` when nobody is
 searched).
 
+## References
+
+Ayres, I. (2002). Outcome tests of racial disparities in police
+practices. *Justice Research and Policy*, 4(1-2), 131-142.
+[doi:10.3818/JRP.4.1.2002.131](https://doi.org/10.3818/JRP.4.1.2002.131)
+
+Simoiu, C., Corbett-Davies, S. and Goel, S. (2017). The problem of
+infra-marginality in outcome tests for discrimination. *The Annals of
+Applied Statistics*, 11(3), 1193-1216.
+[doi:10.1214/17-AOAS1058](https://doi.org/10.1214/17-AOAS1058)
+
 ## Examples
 
 ``` r

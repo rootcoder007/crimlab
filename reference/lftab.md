@@ -44,6 +44,13 @@ An object of class `lftab`, a list: `tab` (`lower`, `upper`, `entering`,
 `median` (`Inf` when survival stays above one half or crosses it in an
 open band) and `ci`.
 
+## References
+
+Cutler, S. J. and Ederer, F. (1958). Maximum utilization of the life
+table method in analyzing survival. *Journal of Chronic Diseases*, 8(6),
+699-712.
+[doi:10.1016/0021-9681(58)90126-7](https://doi.org/10.1016/0021-9681%2858%2990126-7)
+
 ## Examples
 
 ``` r

@@ -61,6 +61,7 @@ exciting point processes. *Biometrika*, 58(1), 83-90.
 Linderman, S. W. and Adams, R. P. (2014). Discovering latent network
 structure in point process data. *Proceedings of the 31st International
 Conference on Machine Learning*, 32(2), 1413-1421.
+<https://proceedings.mlr.press/v32/linderman14.html>
 
 ## Examples
 

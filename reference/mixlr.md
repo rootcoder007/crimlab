@@ -42,6 +42,7 @@ chance a random person is not excluded from the mixture.
 Weir, B. S., Triggs, C. M., Starling, L., Stowell, L. I., Walsh, K. A.
 J. and Buckleton, J. (1997). Interpreting DNA mixtures. *Journal of
 Forensic Sciences*, 42(2), 213-222.
+[doi:10.1520/JFS14100J](https://doi.org/10.1520/JFS14100J)
 
 ## Examples
 
