@@ -12,6 +12,6 @@ rm -rf "$here/vendor"
 mkdir -p "$here/vendor/src" "$here/vendor/cli"
 grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' \
   "$top"/src/*.cpp "$top"/src/*.h | while read -r f; do cp "$f" "$here/vendor/src/"; done
-cp "$top/cli/jrun.cpp" "$top/cli/jrun.h" "$top/cli/json.h" "$top/cli/thm.inc" "$here/vendor/cli/"
+cp "$top/cli/jrun.cpp" "$top/cli/jrun.h" "$top/cli/json.h" "$top"/cli/*.inc "$here/vendor/cli/"
 cp "$top/LICENSE" "$top/NOTICE" "$here/"
 echo "vendor.sh: $(find "$here/vendor/src" -type f | wc -l | tr -d ' ') kernel files and cli/jrun.cpp"

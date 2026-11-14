@@ -39,7 +39,7 @@ all: crimlab libcrimlab.a $(SO)
 $(B)/%.o: ../src/%.cpp ../src/*.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -c $< -o $@
 
-$(B)/jrun.o: jrun.cpp jrun.h json.h thm.inc ../src/crimlab.h | $(B)
+$(B)/jrun.o: jrun.cpp jrun.h json.h $(wildcard j*.inc) thm.inc ../src/crimlab.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -I../src -c $< -o $@
 
 $(B)/main.o: main.cpp jrun.h json.h ../src/crimlab.h ../DESCRIPTION | $(B)

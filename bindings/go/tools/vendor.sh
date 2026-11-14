@@ -16,7 +16,7 @@ rm -f "$here"/k_*.cpp
 mkdir -p "$here/csrc/src" "$here/csrc/cli"
 grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' \
   "$top"/src/*.cpp "$top"/src/*.h | while read -r f; do cp "$f" "$here/csrc/src/"; done
-cp "$top/cli/jrun.cpp" "$top/cli/jrun.h" "$top/cli/json.h" "$top/cli/thm.inc" "$here/csrc/cli/"
+cp "$top/cli/jrun.cpp" "$top/cli/jrun.h" "$top/cli/json.h" "$top"/cli/*.inc "$here/csrc/cli/"
 for f in "$here"/csrc/src/*.cpp "$here/csrc/cli/jrun.cpp"; do
   d=$(basename "$(dirname "$f")")
   b=$(basename "$f" .cpp)

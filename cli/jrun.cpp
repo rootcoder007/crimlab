@@ -1498,6 +1498,10 @@ bool proof(Ctx &c, Val &out) {
   return true;
 }
 
+// The families of the R package's other functions, each in its file.
+#include "jx.inc"
+#include "jfair.inc"
+
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
 struct Ent {
@@ -1533,6 +1537,15 @@ const Ent ents[] = {
     {"hzdsel", "s h l surh surl", hzdsel},
     {"impfpr", "p ppv fnr", impfpr},
     {"sqrtlw", "area units busy? metric? speed?", sqrtlw},
+    {"fair", "score y grp cut? base? conf?", fair},
+    {"fairdf", "pred grp? y? base? conf? nboot? seed?", fairdf},
+    {"tmpaud", "pred grp? period? city? base?", tmpaud},
+    {"lipaud", "h d? pairs? lip?", lipaud},
+    {"nsbnd", "pobs a b", nsbnd},
+    {"rnkres", "est hw", rnkres},
+    {"nordet", "x off radius p? draw? seed?", nordet},
+    {"fairsim", "n? groups? props? nareas? base? bias? seed?", fairsim},
+    {"oaxbd", "y x grp ref? conf?", oaxbd},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
