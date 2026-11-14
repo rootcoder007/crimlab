@@ -1511,6 +1511,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jsp.inc"
 #include "jsp2.inc"
 #include "jtox.inc"
+#include "jdtr.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1623,6 +1624,13 @@ const Ent ents[] = {
     {"pmrrat", "cen per cut?", pmrrat},
     {"etohlr", "eth prop? but? etg? thr?", etohlr},
     {"mtxrel", "base dil days? stage? dmax? dcap? smax? scap?", mtxrel},
+    {"detrsp", "x ben sanc p", detrsp},
+    {"dtrid", "p s c y? log? rho?", dtrid},
+    {"inspg", "a x steps? dt?", inspg},
+    {"insphs", "temp? cost? steps? rate? x0?", insphs},
+    {"colarr", "a e bg", colarr},
+    {"crsev", "x off w unit? time? pop? per? base? sent?", crsev},
+    {"zcomp", "x unit cat w?", zcomp},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
