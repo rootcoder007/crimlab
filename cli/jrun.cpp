@@ -1553,6 +1553,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jmnd.inc"
 #include "jpub.inc"
 #include "jflw.inc"
+#include "jtm.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1716,6 +1717,17 @@ const Ent ents[] = {
     {"lftab", "breaks events cens? level? ci?", lftab},
     {"bandx", "x cnts? rule? cap? fac? floor? clsup? intsca? drop?", bandx},
     {"pbbnd", "x rnd? kind? suplim? supmar? prev? pop? prepop? per?", pbbnd},
+    {"hwkfit", "times hor kernel? base? per? start? res? seed? maxit?", hwkfit},
+    {"trndrr", "y x? expo? seas? alt? level?", trndrr},
+    {"cusrv", "y expd? start? k? h? trans? reset?", cusrv},
+    {"xcser", "x y lagmax? dif? level?", xcser},
+    {"kmrec", "time event? grp? unit? end? level?", kmrec},
+    {"hypq", "lam pref mu? queue? tt?", hypq},
+    {"sdbsim", "n steps mode? a0? omega? eta? gam? theta? dt? b? rho? dx? dif? eps? z? sup? seed?", sdbsim},
+    {"sdbthr", "a0 omega eps dif gam eta z? k?", sdbthr},
+    {"etasf", "times hor mag? m0? start? maxit?", etasf},
+    {"mvhwk", "times type hor beta? start? maxit?", mvhwk},
+    {"sthwk", "times x y hor win? par? at? start? maxit?", sthwk},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
