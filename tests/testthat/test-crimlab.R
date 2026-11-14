@@ -16,6 +16,9 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(spcure(c(1, 2, 3, 4, 50, 60, 70, 80), c(1, 1, 1, 1, 0, 0, 0, 0),
+                      dist = "exp")),
+         c("coef", "fit", "dist", "n")),
     list(quote(lnkpr(cbind(c(20, 20, 49, 7, -8, 26, -1, 4, 25, 55, 14, 29),
                            c(45, 60, 41, 41, 21, 49, 28, 45, 46, 35, 22, 45)),
                      t = c(35, 59, 27, 70, 30, 26, 54, 30, 5, 18, 8, -6),

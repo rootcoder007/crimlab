@@ -3504,3 +3504,18 @@ def lnkpr(x: Any, y: Any = None, t: Any = None, series: Any = None, mo: Any = No
     ['coef', 'auc', 'pairs', 'dev', 'nmo']
     """
     return jcall("lnkpr", x=x, y=y, t=t, series=series, mo=mo)
+
+
+def spcure(time: Any, event: Any, x: Any = None, dist: Any = "weibull", level: Any = 0.95, maxit: Any = 500) -> Any:
+    """Split-population (cure) model of recidivism.
+
+    The arguments and the result are those of R's ``spcure()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = spcure(time=[1, 2, 3, 4, 50, 60, 70, 80], event=[1, 1, 1, 1, 0, 0, 0, 0], dist="exp")
+    >>> list(r)
+    ['coef', 'fit', 'dist', 'n']
+    """
+    return jcall("spcure", time=time, event=event, x=x, dist=dist, level=level, maxit=maxit)

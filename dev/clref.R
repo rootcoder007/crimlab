@@ -1054,6 +1054,18 @@ ok("lnkpr", x = lkx, t = lkt, series = c(1, 1, 1, 1, NA, 2, 2, 2, 3, 3, NA, 3))
 ok("lnkpr", x = lkx, t = lkt, series = c("a", "a", "a", "a", NA, "b", "b", "b", "c", "c", NA, "c"),
    mo = cbind(c(1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1), c(0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0)))
 bad("lnkpr", x = lkx[1:3, ], t = 1:3, series = c(1, 1, 1))
+
+# The split-population model, from its fixed start (a few steps: the
+# stopping point of a converged fit moves with rounding)
+set.seed(10)
+scx <- rbinom(30, 1, 0.4)
+sct <- round(rweibull(30, 1.3, 30), 2)
+sce <- as.numeric(sct < 40 & runif(30) < 0.7)
+sct[sce == 0] <- pmax(sct[sce == 0], 40)
+ok("spcure", time = sct, event = sce, x = data.frame(prior = scx), maxit = 3)
+ok("spcure", time = sct, event = sce, dist = "lognormal", maxit = 3, level = 0.9)
+ok("spcure", time = c(1, 2, 3, 4, 50, 60, 70, 80), event = c(1, 1, 1, 1, 0, 0, 0, 0), dist = "exp", maxit = 2)
+bad("spcure", time = c(1, 2), event = c(1, 1))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

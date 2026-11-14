@@ -3173,6 +3173,21 @@ int clab_prohs(const double *px, const double *py, const double *t, int n, doubl
 int clab_lnkpr(const double *px, const double *py, const double *t, const int *mo, int q, const int *ser, int n,
                int *pi, int *pj, double *dist, double *dt, double *jac, int *lk, double *prob, double *coef,
                double *se, double *aucs, double *dev);
+/* The split-population (cure) model (spc.cpp; Schmidt and Witte 1989,
+ * doi:10.1016/0304-4076(89)90034-1). n positive times t with ev 1 (a
+ * failure) or 0 (censored), both present; x (n by p, column-major, NULL
+ * when p is 0) the covariates of both parts. delta = logistic(g0 + x g),
+ * the time of a failure Weibull (dist 0; scale exp(b0 + x b), shape
+ * exp(s)), exponential (1; no s) or lognormal (2; log time normal, mean b0
+ * + x b, sd exp(s)); a failure contributes delta f(t), a censored time 1 -
+ * delta + delta S(t). BFGS with the analytic gradient (at most maxit
+ * steps) from the logit of the share failing, the mean log failure time
+ * and shape 1 (the sd of the log failure times for the lognormal). Out:
+ * par (2 (p + 1) + (dist != 1): g, b, s); cov (the inverse numerical
+ * Hessian of the analytic gradient; NaN when not positive definite); st
+ * (5: log-likelihood, AIC, steps, converged, the mean of delta). */
+int clab_spcure(const double *t, const double *ev, const double *x, int n, int p, int dist, int maxit, double *par,
+                double *cov, double *st);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

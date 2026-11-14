@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `spcure()` fits the split-population (cure) model of Schmidt and Witte:
+  a logistic share who would ever fail and a Weibull, exponential or
+  lognormal time to failure among them, with covariates in both parts.
+  It is in `clab_jrun()`, the command line and Python.
+
 * `lnkpr()` links crimes into series: the distance, time and Jaccard
   similarity of behaviour of every pair, a logistic regression of being
   linked on them over the solved pairs, the area under the ROC curve of

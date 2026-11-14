@@ -166,6 +166,8 @@ The functions work on summary data, not on raw records:
   and how many later incidents its hot cells caught (`prohs()`).
 * Linkage: how far apart in space, time and behaviour two crimes are, and
   the chance that they belong to one series (`lnkpr()`).
+* Recidivism that levels off: the share of people who would ever fail and
+  how soon those who fail do, by the split-population model (`spcure()`).
 
 ## Algorithms
 
@@ -534,7 +536,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (207 of 207); `crimlab -l` lists them and
+of the R package (208 of 208); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

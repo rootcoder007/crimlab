@@ -1567,6 +1567,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jwdq.inc"
 #include "jprh.inc"
 #include "jlnk.inc"
+#include "jspc.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
 
@@ -1779,6 +1780,7 @@ const Ent ents[] = {
     {"wdqx", "a b c", wdqx},
     {"prohs", "x y? t at win cell bw? tw? tunit? top? ahead?", prohs},
     {"lnkpr", "x y? t series mo?", lnkpr},
+    {"spcure", "time event x? dist? level? maxit?", spcure},
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},

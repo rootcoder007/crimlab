@@ -516,6 +516,8 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// The split-population survival model (bspc.cpp).
+SEXP C_clab_r_spcure(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Crime linkage (blnk.cpp).
 SEXP C_clab_r_lnkpr(SEXP, SEXP, SEXP, SEXP, SEXP);
 // Prospective hot-spotting (bprh.cpp).
@@ -779,6 +781,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cbatt", fn<&C_clab_r_cbatt>(), 12},
     {"C_clab_r_smdbal", fn<&C_clab_r_smdbal>(), 5},
     {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 6},
+    {"C_clab_r_spcure", fn<&C_clab_r_spcure>(), 6},
     {"C_clab_r_lnkpr", fn<&C_clab_r_lnkpr>(), 5},
     {"C_clab_r_prohs", fn<&C_clab_r_prohs>(), 11},
     {"C_clab_r_wdqx", fn<&C_clab_r_wdqx>(), 3},
