@@ -1550,6 +1550,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jhwk.inc"
 #include "jrat.inc"
 #include "jaud.inc"
+#include "jmnd.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1703,6 +1704,7 @@ const Ent ents[] = {
     {"calaud", "area risk? outcome? group? population? nperm? seed?", calaud},
     {"scrdsp", "score group? ref? conf?", scrdsp},
     {"jmono", "judge d y? grp? w? lo? hi? minn? adj? alpha?", jmono},
+    {"mndla", "days id? by? w? thr? hours? miss? alert? amin? elig? excl? level?", mndla},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
