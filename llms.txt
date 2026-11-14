@@ -568,6 +568,7 @@ bufas(p, site = cbind(1000, 1000), comp = cbind(2500, 2500), r = 300)$n
 ### Risk tools, trace evidence, time and data screens
 
 ``` r
+
 set.seed(3)
 g <- rep(c("a", "b"), each = 100)
 y <- rbinom(200, 1, ifelse(g == "a", 0.3, 0.5))
@@ -578,9 +579,12 @@ rswp(rnorm(50, 0.5), gam = c(1, 1.5, 2))   # how much hidden bias explains it aw
 bnft(bdig(exp(runif(500, 0, 10)))$dig)$stat
 gstr(matrix(rpois(100, 2), 10))[1:3, ]
 sptst(rpois(30, 10), rpois(30, 10), nboot = 199, seed = 1)$glob
+```
+
 ### Audits of risk tools and predictive policing
 
-```r
+``` r
+
 d <- fairsim(4000, nareas = 24, bias = 0.5, seed = 1)  # a known disparity
 fairdf(d$det, d$group, base = "A")$tab[, c("group", "dp", "di", "dilo", "dihi")]
 calaud(d$area, d$risk, d$det, d$group, nperm = 499, seed = 1)$groups
