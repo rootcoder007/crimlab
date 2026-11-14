@@ -35,7 +35,8 @@ public final class Tests {
     ck("no function", err("nope", "{}").contains("no function nope"));
     r = Crimlab.jrun("ntdeg", "{\"from\": [\"a\", \"a\"], \"to\": [\"b\", \"c\"]}");
     ck("ntdeg " + r, r.startsWith("{\"node\":[\"a\",\"b\",\"c\"],\"deg\":[2,1,1]"));
-    for (String f : new String[] {"cgstat", "bdig", "txcal", "crsev", "cconc", "clrilr", "lgtreg", "jpipe", "evlx"}) {
+    for (String f : new String[] {"cgstat", "bdig", "txcal", "crsev", "cconc", "clrilr", "lgtreg", "jpipe", "evlx",
+        "cntreg", "calaud", "jmono", "mndla", "yoypx", "lostay", "hwkfit", "didfe", "svymx", "wcbx", "dmlx", "knxnr"}) {
       ck(f, err(f, "{}").endsWith("is missing."));
     }
     StringBuilder b = new StringBuilder("{\"same\": [");

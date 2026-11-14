@@ -22,6 +22,18 @@ fn every_family_is_reached() {
         crimlab::lgtreg("{}"),
         crimlab::jpipe("{}"),
         crimlab::evlx("{}"),
+        crimlab::cntreg("{}"),
+        crimlab::calaud("{}"),
+        crimlab::jmono("{}"),
+        crimlab::mndla("{}"),
+        crimlab::yoypx("{}"),
+        crimlab::lostay("{}"),
+        crimlab::hwkfit("{}"),
+        crimlab::didfe("{}"),
+        crimlab::svymx("{}"),
+        crimlab::wcbx("{}"),
+        crimlab::dmlx("{}"),
+        crimlab::knxnr("{}"),
     ] {
         assert!(e.unwrap_err().0.contains("is missing"));
     }
