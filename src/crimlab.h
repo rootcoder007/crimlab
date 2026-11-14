@@ -3031,6 +3031,50 @@ int clab_bndxw(const double *x, const int *u, int n, const int *from, const int 
 int clab_synexp(const double *coef, const double *ax, int na, int p, const double *pop,
                 double *rate, double *expo);
 
+/* ------------------------------------------------------------------------
+ * Discrimination in searches (thr.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The hit-rate test of Knowles, Persico and Todd (2001,
+ * doi:10.1086/318603) and the threshold test with the discriminant
+ * distributions of Pierson, Corbett-Davies and Goel (2017,
+ * doi:10.48550/arXiv.1702.08536) by maximum likelihood. n rows of counts
+ * (stops >= srch >= hits >= 0) in group g[i] of ng (>= 2) and area a[i] of
+ * na; ref the reference group. Out: gs (ng x 5, column-major: stops,
+ * searches, hits, search and hit rate); hz (ng x 4: the difference of the
+ * hit rate from ref's, its Wald standard error, z, two-sided p; NaN at
+ * ref); chi (3: Pearson's chi-square of hits and misses among the searched
+ * by group, df, p). With maxit > 0 the model: in the cell of group j and
+ * area q, phi = logistic(a_j + a_q), delta = exp(b_j + b_q), t =
+ * logistic(c_j + c_q) (area terms 0 for the first area); a search when the
+ * posterior of the signal N(delta, 1) against N(0, 1), prior phi, exceeds
+ * t. BFGS from three starts (four for the full model, one the fit
+ * with equal thresholds), at most maxit steps each, on the binomial
+ * likelihood of searches among stops and hits among searches, once with a
+ * threshold per group and once with c_j equal. Out: thr (ng: the threshold
+ * averaged over the areas, weighted by their stops); tse (ng x 3: its
+ * delta-method standard error, the difference from ref's, the standard
+ * error of the difference); cfit (ng na x 5, cell j + ng q: phi, delta, t,
+ * search and hit rate fitted); lrt (6: twice the difference of the
+ * log-likelihoods, its df ng - 1, p, the log-likelihood with a threshold
+ * per group and with one, the cells with stops); conv
+ * (4: converged, 1 or 0, of each model, then their steps). CLAB_EDOM for
+ * counts out of order, a group without searches, or no more rates (2 per
+ * cell with stops) than parameters (3 (ng + na - 1)). O(maxit cells
+ * params). */
+int clab_thrtst(const double *stops, const double *srch, const double *hits, const int *g,
+                const int *a, int n, int ng, int na, int ref, int maxit, double *gs, double *hz,
+                double *chi, double *thr, double *tse, double *cfit, double *lrt, int *conv);
+
+/* The rank-order test of Anwar and Fang (2006,
+ * doi:10.1257/000282806776157579), pairwise: n rows of counts by officer
+ * group o[i] of no and suspect group g[i] of ng (both >= 2). Out: rate (no
+ * ng x 5, cell o + no g: stops, searches, hits, search and hit rate); res
+ * (no (no - 1) rows x 3, for each pair a < b and measure, search then
+ * hit: the least and the greatest z over the suspect groups of a's rate
+ * less b's, and 1 when one is below -zc and another above zc). */
+int clab_thrrk(const double *stops, const double *srch, const double *hits, const int *o,
+               const int *g, int n, int no, int ng, double zc, double *rate, double *res);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

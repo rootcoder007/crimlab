@@ -586,6 +586,9 @@ func Arwt(args string) (string, error) { return Jrun("arwt", args) }
 // Bufas runs bufas() of the R package (arguments: x y? site comp r buf? lonlat?; ? marks an optional one).
 func Bufas(args string) (string, error) { return Jrun("bufas", args) }
 
+// Thrtst runs thrtst() of the R package (arguments: stops srch hits grp area? off? ref? level? maxit?; ? marks an optional one).
+func Thrtst(args string) (string, error) { return Jrun("thrtst", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 

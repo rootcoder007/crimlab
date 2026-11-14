@@ -3372,3 +3372,21 @@ def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25, 
     (-30.0, 12.0)
     """
     return jcall("cmpsc", a=a, b=b, len=len, npeaks=npeaks, tx=tx, full=full)
+
+
+def thrtst(stops: Any, srch: Any, hits: Any, grp: Any, area: Any = None, off: Any = None, ref: Any = None,
+           level: Any = 0.95, maxit: Any = 2000) -> Any:
+    """Tests of discrimination in searches: hit rates, thresholds, rank order.
+
+    The arguments and the result are those of R's ``thrtst()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = thrtst(stops=[100, 100, 100, 100], srch=[10, 20, 30, 10], hits=[5, 5, 5, 5],
+    ... grp=[1, 1, 2, 2], off=["x", "y", "x", "y"])
+    >>> list(r)
+    ['hit', 'kpt', 'thr', 'lrt', 'fit', 'cells', 'rank', 'ref']
+    """
+    return jcall("thrtst", stops=stops, srch=srch, hits=hits, grp=grp, area=area, off=off, ref=ref,
+                 level=level, maxit=maxit)

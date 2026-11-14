@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* `thrtst()` tests discrimination in searches three ways: the hit-rate
+  test of Knowles, Persico and Todd, the threshold test with the
+  discriminant distributions of Pierson, Corbett-Davies and Goel fitted
+  by maximum likelihood, and a pairwise form of the rank-order test of
+  Anwar and Fang. It is in `clab_jrun()`, the command line and Python.
+
 * `gmixlr()` now follows EuroForMix's model where they differed: only the
   alleles seen are kept apart, every other allele (those of the reference
   profiles not seen among them) is one allele that does not stutter, sized

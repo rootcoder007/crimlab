@@ -987,6 +987,19 @@ ok("cmpsc", a = ca, b = cb, len = 40, full = TRUE)
 bad("cmpsc", a = ca, b = cb, npeaks = c(1, 0))
 bad("cmpsc", a = ca[1:20], b = cb)
 
+
+# Discrimination in searches
+tsd <- data.frame(
+  grp = rep(c("a", "b"), 4), area = rep(1:4, each = 2),
+  stops = c(1200, 800, 900, 1100, 1500, 700, 1000, 1000),
+  srch = c(60, 70, 50, 95, 80, 66, 52, 90),
+  hits = c(24, 18, 19, 25, 30, 17, 21, 24)
+)
+ok("thrtst", stops = c(100, 100, 80), srch = c(20, 40, 16), hits = c(8, 10, 4), grp = c("a", "b", "c"), ref = "b")
+ok("thrtst", stops = tsd$stops, srch = tsd$srch, hits = tsd$hits, grp = tsd$grp, area = tsd$area, maxit = 1)
+ok("thrtst", stops = c(100, 100, 100, 100), srch = c(10, 20, 30, 10), hits = c(5, 5, 5, 5), grp = c(1, 1, 2, 2),
+   off = c("x", "y", "x", "y"), level = 0.9)
+bad("thrtst", stops = c(10, 10), srch = c(11, 1), hits = c(1, 1), grp = c(1, 2))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

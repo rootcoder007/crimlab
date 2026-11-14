@@ -516,6 +516,8 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// Discrimination in searches (bthr.cpp).
+SEXP C_clab_r_thrtst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
@@ -764,6 +766,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cbatt", fn<&C_clab_r_cbatt>(), 12},
     {"C_clab_r_smdbal", fn<&C_clab_r_smdbal>(), 5},
     {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 6},
+    {"C_clab_r_thrtst", fn<&C_clab_r_thrtst>(), 9},
     {"C_clab_r_svymx", fn<&C_clab_r_svymx>(), 10},
     {"C_clab_r_crsev", fn<&C_clab_r_crsev>(), 9},
     {"C_clab_r_zcomp", fn<&C_clab_r_zcomp>(), 4},

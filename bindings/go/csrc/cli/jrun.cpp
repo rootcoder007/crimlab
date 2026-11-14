@@ -1560,6 +1560,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jsvy.inc"
 #include "jwcb.inc"
 #include "jspx.inc"
+#include "jthr.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
 
@@ -1764,6 +1765,7 @@ const Ent ents[] = {
     {"pinpl", "x y? poly pop?", pinpl},
     {"arwt", "x from to area? id? top?", arwt},
     {"bufas", "x y? site comp r buf? lonlat?", bufas},
+    {"thrtst", "stops srch hits grp area? off? ref? level? maxit?", thrtst},
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},
