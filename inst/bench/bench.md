@@ -1,6 +1,6 @@
 <!-- written by dev/bench.R from bench.csv; do not edit -->
 
-Machine Kobe24: Apple M2 arm64, R version 4.6.1 (2026-06-24); crimlab built with R's default flags (-g -O2).
+Machine: Apple M2 arm64, R version 4.6.1 (2026-06-24); crimlab built with R's default flags (-g -O2).
 
 3 runs (start time, 1-minute load average at the start and at the end): 2026-11-12 21:38 EST, load 3.72 to 3.58; 2026-11-12 22:18 EST, load 3.54 to 3.24; 2026-11-12 22:58 EST, load 3.46 to 4.19. A row whose load rose by more than 1.5 while it was timed was timed again; the loads of each row are in bench.csv (l0, l1). Each row is from the run whose ratio is the median of the 3; lo and hi are the smallest and largest ratio over the runs. The machine also runs the interactive sessions that drive this work, so its load is well above 1 even when no benchmark runs, and R ran at scheduling priority nice 10, inherited from those sessions. Pairs with forensim were not run here: loading it starts Tk, which opens a window on the desktop.
 

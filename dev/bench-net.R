@@ -407,7 +407,7 @@ sh <- function(cmd, args) {
 cpu <- c(sub("^Model name: *", "", grep("^Model name:", sh("lscpu", character()), value = TRUE)),
          sh("sysctl", c("-n", "machdep.cpu.brand_string")))
 # named as in the other speed tables (dev/bench-sp.R)
-tab$mach <- Sys.info()[["nodename"]]
+tab$mach <- c(cpu, "")[1]
 tab$cpu <- paste(c(cpu, "")[1], Sys.info()[["machine"]])
 tab$rver <- R.version.string
 tab$load0 <- load0

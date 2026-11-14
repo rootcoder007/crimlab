@@ -160,7 +160,7 @@ cpu <- if (file.exists("/proc/cpuinfo")) {
 } else {
   system("sysctl -n machdep.cpu.brand_string", intern = TRUE)
 }
-out$mach <- Sys.info()[["nodename"]]
+out$mach <- if (is.na(cpu)) Sys.info()[["machine"]] else cpu
 out$cpu <- if (is.na(cpu)) Sys.info()[["machine"]] else cpu
 out$rver <- R.version.string
 out$load0 <- load0

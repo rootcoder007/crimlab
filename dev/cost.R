@@ -293,7 +293,7 @@ run <- function(lib) {
 }
 r <- run(libs[1])
 r$out <- 1 - r$kern / r$full
-r$mach <- Sys.info()[["nodename"]]
+r$mach <- Sys.info()[["machine"]]
 sh <- function(cmd, args) {
   tryCatch(suppressWarnings(system2(cmd, args, stdout = TRUE, stderr = FALSE)),
            error = function(e) character(0))

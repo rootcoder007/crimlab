@@ -573,7 +573,7 @@ kind <- function(ref) {
 pkg <- function(ref) sub(":::?.*", "", ref)
 
 if (!merge) {
-  env <- c(mach = Sys.info()[["nodename"]], cpu = cpu(),
+  env <- c(mach = cpu(), cpu = cpu(),
            rver = R.version.string,
            gov = rd1("/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor"),
            load0 = format(load1()),

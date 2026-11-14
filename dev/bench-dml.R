@@ -234,7 +234,7 @@ for (n in ns) for (p in ps) {
 tab <- do.call(rbind, rows)
 tab$faster <- !is.na(tab$speedup) & tab$speedup > 1
 lend <- load1()
-tab$machine <- Sys.info()[["nodename"]]
+tab$machine <- cpu
 tab$cpu <- cpu
 tab$r <- R.version.string
 tab$lstart <- lstart
