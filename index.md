@@ -641,7 +641,7 @@ identifier is `Apache-2.0 WITH LLVM-exception`. The exception lets
 compiled code that embeds the kernels be redistributed without the
 attribution conditions, and settles linking with GPL-2 software.
 
-## Python
+## Python and other languages
 
 `py/` holds a Python package, also named crimlab, that compiles the same
 kernels from `src/` and gives the same functions, argument names and
@@ -649,3 +649,21 @@ results; its tests check every number against the R package. It has no
 runtime dependencies. Install it from a clone with `pip install ./py`;
 see `py/README.md` for how inputs are matched by name and the few
 differences from R.
+
+`cli/` builds the command-line program `crimlab` and the library
+libcrimlab, whose one entry point `clab_jrun()` (`cli/jrun.h`) runs a
+function of the package by its R name with its arguments as a JSON
+object and returns its result as JSON, with R’s checks and messages. The
+Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
+do most functions of the Python package. `crimlab -l` lists the
+functions it holds and their arguments; `cli/test.tsv` holds the values
+the R package gives for them (`dev/clref.R`), which every front end is
+tested against.
+
+``` R
+crimlab orrisk --or 2 --rate 0.1 --share 0.3
+echo '{"from": ["a", "a", "b"], "to": ["b", "c", "c"]}' | crimlab ntdeg -j
+```
+
+A function whose result is random takes `seed` outside R, where there is
+no generator of R’s to draw it from.

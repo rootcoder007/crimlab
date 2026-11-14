@@ -2,6 +2,19 @@
 
 ## crimlab 0.0.0.9000
 
+- The command-line program, the Python package and the Go, Rust, Java
+  and JavaScript bindings now reach most of the package’s functions
+  through `clab_jrun()`: fairness audits, trace evidence, aoristic
+  weights and digit tests, sensitivity bounds, trajectory models,
+  networks, the reporting checks, the spatial and hot-spot methods,
+  spatial weights, toxicology, deterrence and severity, concentration
+  and the dark figure, crosswalks and taphonomy, the learners, risk
+  terrain and the life course, covariate balance, judge designs and
+  Hawkes processes. Each reads its arguments with the R function’s
+  checks and words and returns R’s result as JSON; `cli/test.tsv` holds
+  the values of the R package for them (`dev/clref.R`). The normal
+  quantile and distribution function the front ends need are kernels of
+  their own (`src/dst.cpp`).
 - The tests no longer call other packages: the values of circular,
   DescTools, geosphere, geepack, igraph, MASS, sandwich, sf, spatstat,
   spdep, rmorie and rmoriebricklayer they compare with are stored in

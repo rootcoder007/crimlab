@@ -404,9 +404,13 @@
 <p>Apache License 2.0 with LLVM Exceptions; see <code>LICENSE</code>. The SPDX identifier is <code>Apache-2.0 WITH LLVM-exception</code>. The exception lets compiled code that embeds the kernels be redistributed without the attribution conditions, and settles linking with GPL-2 software.</p>
 </div>
 <div class="section level2">
-<h2 id="python">Python<a class="anchor" aria-label="anchor" href="#python"></a>
+<h2 id="python-and-other-languages">Python and other languages<a class="anchor" aria-label="anchor" href="#python-and-other-languages"></a>
 </h2>
 <p><code>py/</code> holds a Python package, also named crimlab, that compiles the same kernels from <code>src/</code> and gives the same functions, argument names and results; its tests check every number against the R package. It has no runtime dependencies. Install it from a clone with <code>pip install ./py</code>; see <code>py/README.md</code> for how inputs are matched by name and the few differences from R.</p>
+<p><code>cli/</code> builds the command-line program <code>crimlab</code> and the library libcrimlab, whose one entry point <code>clab_jrun()</code> (<code>cli/jrun.h</code>) runs a function of the package by its R name with its arguments as a JSON object and returns its result as JSON, with R’s checks and messages. The Go, Rust, Java and JavaScript packages under <code>bindings/</code> call it, and so do most functions of the Python package. <code>crimlab -l</code> lists the functions it holds and their arguments; <code>cli/test.tsv</code> holds the values the R package gives for them (<code>dev/clref.R</code>), which every front end is tested against.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode R"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>crimlab orrisk <span class="sc">--</span>or <span class="dv">2</span> <span class="sc">--</span>rate <span class="fl">0.1</span> <span class="sc">--</span>share <span class="fl">0.3</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>echo <span class="st">'{"from": ["a", "a", "b"], "to": ["b", "c", "c"]}'</span> <span class="sc">|</span> crimlab ntdeg <span class="sc">-</span>j</span></code></pre></div>
+<p>A function whose result is random takes <code>seed</code> outside R, where there is no generator of R’s to draw it from.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
