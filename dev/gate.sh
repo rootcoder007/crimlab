@@ -6,12 +6,16 @@
 # GATE line and sets a non-zero exit on failure (cov: below COVMIN, 100 by
 # default; gp: any failed check but urlchecker_ok). doc, gp and srr need the
 # srr package (the roxygen roclet in DESCRIPTION): SRRLIB names a private
-# library holding it.
+# library holding it, searched first. The srr found must be at least
+# srrmin below, the version the srr workflow gets from CRAN: srr 1.0.0.4 knows
+# nine categories of standards and stops in srr_report() now that the
+# standards list a tenth (networks).
 set -u
 lib=${1:-$HOME/tmp/cllib}
 steps=${GATE:-doc test lint cov check}
 gp=${GPLIB:-$HOME/tmp/gplib}
 srrlib=${SRRLIB:-$HOME/tmp/srrlib}
+srrmin=1.1.0
 lean=${LEANPK:-$HOME/work/rmorie/research/lean/.lake/packages}
 R_ENVIRON_USER=/dev/null
 R_PROFILE_USER=/dev/null
@@ -20,6 +24,19 @@ mkdir -p "$lib"
 rc=0
 say() { printf 'GATE %s: %s\n' "$1" "$2"; }
 clean() { rm -f src/*.o src/*.so; }
+case " $steps " in *" doc "*|*" gp "*|*" srr "*)
+  if v=$(Rscript -e 'a <- commandArgs(TRUE); .libPaths(c(a[1], .libPaths()))
+    p <- find.package("srr", quiet = TRUE)
+    v <- if (length(p)) packageVersion("srr", lib.loc = dirname(p))
+    cat(if (length(p)) paste(v, "in", dirname(p)) else "not installed")
+    if (!length(p) || v < a[2]) quit(status = 1)' "$srrlib" "$srrmin" 2>/dev/null)
+  then
+    say srr-version "$v"
+  else
+    say srr-version "FAILED: srr $v; need srr >= $srrmin (SRRLIB=$srrlib)"
+    exit 1
+  fi ;;
+esac
 for s in $steps; do
   case $s in
   doc)
