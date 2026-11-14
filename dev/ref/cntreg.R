@@ -2,6 +2,8 @@
 # sandwich::vcovCL() and geepack::geeglm() on the counts the tests build.
 # From the package root, with MASS, sandwich and geepack in the library:
 #   Rscript dev/ref/cntreg.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- c("MASS", "sandwich", "geepack")
 source(file.path("dev", "ref", "put.R"))
 
 set.seed(3)
@@ -44,4 +46,4 @@ put(list(
     se = unname(sqrt(diag(ge$geese$vbeta))),
     alpha = unname(ge$geese$alpha)
   )
-), "cntreg", c("MASS", "sandwich", "geepack"))
+), "cntreg", need)

@@ -2,6 +2,8 @@
 # corrections functions were ported from, on the inputs the test builds.
 # From the package root, with rmorie in the library:
 #   Rscript dev/ref/corr.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "rmorie"
 source(file.path("dev", "ref", "put.R"))
 
 o <- rmorie::morie_incapacitation(c(2, 10), 0.1, 1, shares = c(0.8, 0.2))
@@ -48,4 +50,4 @@ hz <- list(haz = unname(o[["period2_hazard"]]),
            ratio = o[["period2_hazard_ratio"]])
 
 put(list(inc = inc, car = car, car3 = car3, sel = sel, los = los,
-         snt = snt, hz = hz), "corr", "rmorie")
+         snt = snt, hz = hz), "corr", need)

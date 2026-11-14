@@ -2,6 +2,8 @@
 # overdispersed panel the tests build from pepanel() (helper-pe.R). From
 # the package root, with MASS in the library:
 #   Rscript dev/ref/didfe.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "MASS"
 source(file.path("dev", "ref", "put.R"))
 sys.source(file.path("tests", "testthat", "helper-pe.R"),
            envir = environment())
@@ -18,4 +20,4 @@ put(list(
   inp = sum(od$cnt),
   est = unname(coef(nb)[2]),
   theta = nb$theta
-), "didfe", "MASS")
+), "didfe", need)

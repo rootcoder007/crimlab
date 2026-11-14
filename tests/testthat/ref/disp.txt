@@ -1,4 +1,5 @@
 # Written by dev/ref/disp.R with rmorie 1.5.0.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(vod = list(ratio = c(0x1p+0, 0x1.8e38e38e38e39p+0), shday = c(0x1.3333333333333p-1, 
 0x1.999999999999ap-2)), orr = c(0x1.0e72e1292b673p-1, 0x1.164d70e0dc64fp-2, 

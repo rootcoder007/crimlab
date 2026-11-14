@@ -1,0 +1,136 @@
+fixture,path,kind,tol,test
+spw,nbr/inp,equal,1e-12,test-spw.R
+spw,nbr/kn,exact,0,test-spw.R
+spw,nbr/dn,exact,0,test-spw.R
+spw,stat/inp,equal,1e-12,test-spw.R
+spw,stat/lw,exact,0,test-spw.R
+spw,stat/gc,equal,1e-12,test-spw.R
+spw,stat/gvr,equal,1e-10,test-spw.R
+spw,stat/gzr,equal,1e-10,test-spw.R
+spw,stat/gpr,equal,1e-10,test-spw.R
+spw,stat/gvn,equal,1e-10,test-spw.R
+spw,stat/card,exact,0,test-spw.R
+spw,stat/gg,equal,1e-12,test-spw.R
+spw,stat/ge,equal,1e-12,test-spw.R
+spw,stat/gv,equal,1e-10,test-spw.R
+spw,stat/gz,equal,1e-10,test-spw.R
+spw,stat/lmi,equal,1e-12,test-spw.R
+spw,stat/lme,equal,1e-12,test-spw.R
+spw,stat/lmv,equal,1e-10,test-spw.R
+spw,stat/lmp,equal,1e-10,test-spw.R
+spw,stat/gs,equal,1e-10,test-spw.R
+spw,stat/g0,equal,1e-10,test-spw.R
+spw,dir,equal,1e-12,test-spw.R
+sp,gc/inp,equal,1e-12,test-sp.R
+sp,gc/g,maxrel,1e-12,test-sp.R
+sp,gc/g1,maxrel,1e-12,test-sp.R
+sp,proj/inp,equal,1e-12,test-sp.R
+sp,proj/x,maxabs,1e-6,test-sp.R
+sp,proj/y,maxabs,1e-6,test-sp.R
+sp,nn/inp,equal,1e-12,test-sp.R
+sp,nn/dist,equal,1e-14,test-sp.R
+sp,nn/naive,equal,1e-13,test-sp.R
+sp,nn/donnelly,equal,1e-13,test-sp.R
+sp,nn/iso,equal,1e-12,test-sp.R
+sp,nn/border,equal,1e-12,test-sp.R
+sp,nn/none,equal,1e-12,test-sp.R
+sp,nn/modif,equal,1e-12,test-sp.R
+sp,obj/inp,equal,1e-12,test-sp.R
+sp,obj/s,exact,0,test-sp.R
+sp,obj/g,equal,1e-15,test-sp.R
+sp,obj/p,report,0,test-sp.R
+sp,obj/pg,report,0,test-sp.R
+sp,obj/xy,report,0,test-sp.R
+sp,obj/ex,equal,1e-8,test-sp.R
+sp,obj/u,exact,0,test-sp.R
+sp,obj/l,exact,0,test-sp.R
+cntreg,inp,equal,1e-12,test-cntreg.R
+cntreg,nb/est,equal,1e-8,test-cntreg.R
+cntreg,nb/se,equal,1e-8,test-cntreg.R
+cntreg,nb/theta,equal,1e-8,test-cntreg.R
+cntreg,nb/setheta,equal,1e-6,test-cntreg.R
+cntreg,nb/aic,equal,1e-8,test-cntreg.R
+cntreg,nb/loglik,equal,1e-8,test-cntreg.R
+cntreg,cl/pois,equal,1e-9,test-cntreg.R
+cntreg,cl/nb,equal,1e-7,test-cntreg.R
+cntreg,gee/est,equal,1e-8,test-cntreg.R
+cntreg,gee/se,equal,1e-7,test-cntreg.R
+cntreg,gee/alpha,equal,1e-7,test-cntreg.R
+ctabx,inp,exact,0,test-ctabx.R
+ctabx,v,equal,1e-3,test-ctabx.R
+ctabx,vbc,equal,1e-12,test-ctabx.R
+didfe,inp,equal,1e-12,test-didfe.R
+didfe,est,equal,1e-6,test-didfe.R
+didfe,theta,equal,1e-5,test-didfe.R
+doss,inp,equal,1e-12,test-doss.R
+doss,lg,equal,1e-10,test-doss.R
+kdsurf,inp,equal,1e-12,test-kdsurf.R
+kdsurf,bw,equal,1e-14,test-kdsurf.R
+net,rand/*/inp,equal,1e-12,test-net.R
+net,rand/*/wdeg,equal,1e-12,test-net.R
+net,rand/*/btw,equal,1e-10,test-net.R
+net,rand/*/cls,equal,1e-10,test-net.R
+net,rand/*/hrm,equal,1e-10,test-net.R
+corr,inc,equal,1e-14,test-corr.R
+corr,car,equal,1e-14,test-corr.R
+corr,car3,exact,0,test-corr.R
+corr,sel/inp,equal,1e-12,test-corr.R
+corr,sel,equal,1e-14,test-corr.R
+corr,los,equal,1e-14,test-corr.R
+corr,snt/inp,equal,1e-12,test-corr.R
+corr,snt,equal,1e-14,test-corr.R
+corr,hz,equal,1e-14,test-corr.R
+disp,vod,equal,1e-14,test-disp.R
+disp,orr,equal,1e-6,test-disp.R
+disp,out,each,1e-14,test-disp.R
+disp,bm,equal,1e-14,test-disp.R
+disp,dy,equal,1e-13,test-disp.R
+disp,dy/off,exact,0,test-disp.R
+disp,dy/vic,exact,0,test-disp.R
+pol,exb,equal,1e-14,test-pol.R
+pol,exb/dir,exact,0,test-pol.R
+pol,mis,equal,1e-14,test-pol.R
+pol,rtm/inp,equal,1e-12,test-pol.R
+pol,rtm,equal,1e-14,test-pol.R
+fairdf,inp,equal,1e-12,test-fairdf.R
+fairdf,di,equal,1e-14,test-fairdf.R
+port,agestd/rate,equal,1e-12,test-rates.R
+port,agestd,equal,1e-10,test-rates.R
+port,stdinc,equal,1e-12,test-rates.R
+port,stdinc/flo,equal,1e-14,test-rates.R
+port,stdinc/fhi,equal,1e-14,test-rates.R
+port,expcnts,equal,1e-12,test-rates.R
+port,rtcalc,equal,1e-12,test-rates.R
+port,rtcalc/rr,equal,1e-14,test-rates.R
+port,rtcalc/pctlo,equal,1e-10,test-rates.R
+port,rtcalc/pctup,equal,1e-10,test-rates.R
+port,riskratio,equal,1e-12,test-rates.R
+port,riskratio/wrd,equal,1e-14,test-rates.R
+port,riskratio/zrr,equal,1e-14,test-rates.R
+port,riskratio/zlo,report,0,unused
+port,uofdisp,equal,1e-12,test-rates.R test-clprep.R
+port,uofdisp/rate,equal,1e-14,test-rates.R test-clprep.R
+port,uofdisp/rr,equal,1e-14,test-rates.R
+port,uofdisp/category,exact,0,test-rates.R test-clprep.R
+port,uofdisp/baseline,exact,0,test-rates.R test-clprep.R
+port,siusvc/counts,exact,0,test-rates.R test-clprep.R
+port,siusvc/rows,exact,0,test-rates.R
+port,siusvc/charged,report,0,unused
+port,tpsuof/rate,equal,1e-15,test-rates.R
+port,tpsuof/n,exact,0,test-rates.R
+port,tpsuof/counts,report,0,unused
+port,otisxtab,exact,0,test-ctabx.R test-clprep.R
+port,cchi2,equal,1e-12,test-ctabx.R test-clprep.R
+port,locality/otis,exact,0,test-ctabx.R
+port,locality,equal,1e-12,test-ctabx.R test-clprep.R
+port,weapon,equal,1e-12,test-ctabx.R test-clprep.R
+port,mort,exact,0,test-ctabx.R test-clprep.R
+port,mort/n,report,0,unused
+port,mort/df,report,0,unused
+port,siuchi/stat,equal,1e-12,test-ctabx.R test-clprep.R
+port,siuchi,exact,0,test-ctabx.R test-clprep.R
+port,otiscnt,equal,1e-6,test-clprep.R
+port,otiscnt/vm,exact,0,test-clprep.R
+port,otisprim,exact,0,test-clprep.R
+port,otisprim/np,equal,1e-14,test-clprep.R
+port,otisprim/rctrnd/n_placements,report,0,unused

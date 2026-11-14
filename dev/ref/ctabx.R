@@ -2,6 +2,8 @@
 # with its interval and bias-corrected, on the table the tests build.
 # From the package root, with DescTools in the library:
 #   Rscript dev/ref/ctabx.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "DescTools"
 source(file.path("dev", "ref", "put.R"))
 
 set.seed(7)
@@ -14,4 +16,4 @@ put(list(
   inp = as.vector(tb),
   v = unname(DescTools::CramerV(tb, conf.level = 0.95)),
   vbc = DescTools::CramerV(tb, correct = TRUE)
-), "ctabx", "DescTools")
+), "ctabx", need)

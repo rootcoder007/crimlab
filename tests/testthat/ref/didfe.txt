@@ -1,4 +1,5 @@
 # Written by dev/ref/didfe.R with MASS 7.3.65.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(inp = 0x1.99p+11, est = 0x1.e3811dfc1e644p-3, theta = 0x1.258aec51857abp+2, 
     pkgs = c(MASS = "7.3.65"))

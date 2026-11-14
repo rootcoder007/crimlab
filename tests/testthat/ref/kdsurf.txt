@@ -1,4 +1,5 @@
 # Written by dev/ref/kdsurf.R with MASS 7.3.65.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(inp = 0x1.7f33fa4688p+6, bw = c(0x1.42527c6268655p+1, 0x1.f1eff9c6493e8p+0
 ), pkgs = c(MASS = "7.3.65"))

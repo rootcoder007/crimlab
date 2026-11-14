@@ -2,6 +2,8 @@
 # disparity functions were ported from, on the inputs the test builds.
 # From the package root, with rmorie in the library:
 #   Rscript dev/ref/disp.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "rmorie"
 source(file.path("dev", "ref", "put.R"))
 
 m <- rmorie::morie_veil_of_darkness(c(w = 600, b = 400), c(w = 700, b = 300))
@@ -26,5 +28,4 @@ dy <- list(off = m[["offender"]], vic = m[["victim"]],
            rtpair = m[["rate_per_pair_exposure"]],
            nulloff = m[["null_rate_per_offender_group"]],
            ratio = m[["ratio_to_null"]])
-put(list(vod = vod, orr = orr, out = out, bm = bm, dy = dy), "disp",
-    "rmorie")
+put(list(vod = vod, orr = orr, out = out, bm = bm, dy = dy), "disp", need)

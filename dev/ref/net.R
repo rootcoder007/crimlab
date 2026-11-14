@@ -3,6 +3,8 @@
 # and harmonic centrality on the graphs the test draws. From the package
 # root, with igraph in the library:
 #   Rscript dev/ref/net.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "igraph"
 source(file.path("dev", "ref", "put.R"))
 
 set.seed(11)
@@ -29,4 +31,4 @@ for (k in 1:5) {
     )
   }
 }
-put(list(rand = out), "net", "igraph")
+put(list(rand = out), "net", need)

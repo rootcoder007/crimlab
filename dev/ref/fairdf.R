@@ -3,6 +3,8 @@
 # dev/ref-fair.R (fairin() in the test). From the package root, with
 # rmorie in the library:
 #   Rscript dev/ref/fairdf.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "rmorie"
 source(file.path("dev", "ref", "put.R"))
 
 set.seed(2)
@@ -12,5 +14,4 @@ y <- rbinom(n, 1, 0.4)
 p <- rbinom(n, 1, c(A = 0.5, B = 0.35, C = 0.2)[g])
 di <- suppressWarnings(
   rmorie::morie_fairness_disparate_impact(p, g, privileged = "A"))
-put(list(inp = c(sum(y), sum(p)), di = unlist(di$ratios)), "fairdf",
-    "rmorie")
+put(list(inp = c(sum(y), sum(p)), di = unlist(di$ratios)), "fairdf", need)

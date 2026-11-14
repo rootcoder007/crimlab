@@ -1,4 +1,5 @@
 # Written by dev/ref/corr.R with rmorie 1.5.0.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(inc = list(rate = c(0x1.aaaaaaaaaaaabp+0, 0x1.4p+2), prev = c(0x1.5555555555556p-3, 
 0x1p-1), marg = c(0x1.e79e79e79e79fp-3, 0x1.aaaaaaaaaaaabp+0), 

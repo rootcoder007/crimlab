@@ -2,10 +2,12 @@
 # cell in its own queen neighbourhood, on the grid of counts the test
 # builds. From the package root, with spdep in the library:
 #   Rscript dev/ref/doss.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "spdep"
 source(file.path("dev", "ref", "put.R"))
 
 set.seed(28)
 m <- matrix(rpois(48, 3), 6, 8)
 nb <- spdep::include.self(spdep::cell2nb(6, 8, type = "queen"))
 lg <- spdep::localG(as.vector(t(m)), spdep::nb2listw(nb, style = "B"))
-put(list(inp = sum(m), lg = as.vector(lg)), "doss", "spdep")
+put(list(inp = sum(m), lg = as.vector(lg)), "doss", need)

@@ -1,4 +1,5 @@
 # Written by dev/ref/net.R with igraph 2.3.3.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(rand = list("1u" = list(inp = 0x1.3d545fd114d8p+12, wdeg = c(0x1.3b29d883p+2, 
 0x1.75221547p-1, 0x1.84a7f1b36p+3, 0x1.9fa3dcb44p+2, 0x1.c6e7106dcp+2, 

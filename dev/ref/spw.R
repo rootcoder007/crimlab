@@ -3,6 +3,8 @@
 # directional statistics, on the inputs the tests build. From the package
 # root, with spdep and circular in the library:
 #   Rscript dev/ref/spw.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- c("spdep", "circular")
 source(file.path("dev", "ref", "put.R"))
 
 # "weights agree with spdep's neighbours"
@@ -65,4 +67,4 @@ dir <- list(
   sd = circular::sd.circular(cc)
 )
 
-put(list(nbr = nbr, stat = stat, dir = dir), "spw", c("spdep", "circular"))
+put(list(nbr = nbr, stat = stat, dir = dir), "spw", need)

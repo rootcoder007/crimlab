@@ -1,4 +1,5 @@
 # Written by dev/ref/sp.R with geosphere 1.6.8, sf 1.1.1, spatstat.geom 3.8.3, spatstat.explore 3.8.3.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(gc = list(inp = -0x1.33db7ac87p+9, g = c(0x1.0472b82e2d86ap+24, 
 0x1.cb8b0718b757p+22, 0x1.e0979c11ed987p+23, 0x1.321e16de79d71p+22, 

@@ -1,4 +1,5 @@
 # Written by dev/ref/doss.R with spdep 1.4.2.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(inp = 143L, lg = c(-0x1.d642ae7d9372cp+0, -0x1.01637501b398dp+0, 
 0x1.546ac40a822d4p+0, 0x1.96d70344c10a6p+0, 0x1.96d70344c10a6p+0, 

@@ -5,6 +5,8 @@
 # crimlab, geosphere, sf, spatstat.geom and spatstat.explore in the
 # library:
 #   Rscript dev/ref/sp.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- c("geosphere", "sf", "spatstat.geom", "spatstat.explore")
 source(file.path("dev", "ref", "put.R"))
 library(crimlab)
 
@@ -73,5 +75,4 @@ obj <- list(
   l = sf::st_as_sf(sf::st_sfc(sf::st_linestring(matrix(1:4, 2))))
 )
 
-put(list(gc = gc, proj = proj, nn = nn, obj = obj), "sp",
-    c("geosphere", "sf", "spatstat.geom", "spatstat.explore"))
+put(list(gc = gc, proj = proj, nn = nn, obj = obj), "sp", need)

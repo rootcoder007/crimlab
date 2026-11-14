@@ -1,4 +1,5 @@
 # Written by dev/ref/fairdf.R with rmorie 1.5.0.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(inp = c(128L, 108L), di = c(A = 0x1p+0, C = 0x1.053b202da6ea5p-1, 
 B = 0x1.4e8ac7033f7bcp-1), pkgs = c(rmorie = "1.5.0"))

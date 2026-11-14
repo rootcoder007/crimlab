@@ -2,6 +2,8 @@
 # policing functions were ported from, on the inputs the test builds.
 # From the package root, with rmorie in the library:
 #   Rscript dev/ref/pol.R
+# the packages it needs (dev/ref/all.R skips it without them)
+need <- "rmorie"
 source(file.path("dev", "ref", "put.R"))
 
 o <- rmorie::morie_disparity_exposure_bounds(
@@ -24,4 +26,4 @@ rtm <- list(inp = c(sum(mu), sum(x1), sum(x2)),
             sym = o[["symmetrised_change"]],
             low = o[["low_selected_change"]],
             lowsym = o[["low_symmetrised_change"]])
-put(list(exb = exb, mis = mis, rtm = rtm), "pol", "rmorie")
+put(list(exb = exb, mis = mis, rtm = rtm), "pol", need)

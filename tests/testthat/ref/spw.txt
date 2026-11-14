@@ -1,4 +1,5 @@
 # Written by dev/ref/spw.R with spdep 1.4.2, circular 0.5.2.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
 # Do not edit: run the generator again.
 list(nbr = list(inp = 0x1.22c966a52p+5, kn = list(c(33L, 34L, 
 37L), c(5L, 7L, 36L), c(6L, 11L, 24L), c(18L, 23L, 24L), c(2L, 
