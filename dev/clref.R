@@ -501,7 +501,9 @@ ok("stpcp", y = sy2, x = 2001:2010, minseg = 3, nperm = 49, seed = 2)
 bad("stpcp", y = sy2, x = 1:3, seed = 1)
 
 # Counts, rates and tables
-cr <- data.frame(n = c(12, 30, 8, 25, 14, 41, 9, 22, 11, 35, 7, 28), female = rep(c("no", "yes"), 6),
+# counts spread well beyond Poisson, so the negative binomial's dispersion is identified and its fit
+# stops at the same point on every platform
+cr <- data.frame(n = c(12, 60, 3, 25, 40, 141, 2, 22, 11, 95, 7, 8), female = rep(c("no", "yes"), 6),
                  year = rep(c("2021", "2022", "2023"), each = 4), inst = rep(c("A", "B", "C", "D"), each = 2, length.out = 12))
 ok("cntreg", y = cr$n, grp = cr$female, adj = cr["year"], clus = cr$inst)
 ok("cntreg", y = c(5, 12), grp = c("a", "b"), expo = c(1000, 1500))
@@ -642,10 +644,15 @@ bad("sdbsim", n = 2, steps = 1, seed = 1)
 ok("sdbthr", a0 = 1, omega = 1, eps = 2, dif = 1, gam = 1, eta = 0.01)
 ok("sdbthr", a0 = 1, omega = 1, eps = 0, dif = 1, gam = 1, eta = 0.01, z = 2, k = c(0.5, 1, 2))
 bad("sdbthr", a0 = 0, omega = 1, eps = 0, dif = 1, gam = 1, eta = 0.01)
+# a background rate and three bursts, each opened by its largest event: a series the model fits
+# (events spread evenly have no aftershocks, and the fit then runs to its last step without settling)
 set.seed(37)
-et <- sort(round(runif(30, 0, 100), 3))
+et <- sort(round(c(runif(10, 0, 100), 20 + rexp(10, 1.5), 55 + rexp(10, 1.5), 80 + rexp(8, 1.5)), 3))
+et <- et[et < 100]
+em <- round(2 + (seq_along(et) %% 5) / 10, 1)
+em[c(which(et >= 20)[1], which(et >= 55)[1], which(et >= 80)[1])] <- c(3.8, 4, 3.6)
 ok("etasf", times = et, hor = 100)
-ok("etasf", times = et, hor = 100, mag = round(runif(30, 2, 4), 1), m0 = 2, maxit = 100)
+ok("etasf", times = et, hor = 100, mag = em, m0 = 2, maxit = 300)
 bad("etasf", times = c(1, 2), hor = 10)
 mt <- sort(round(runif(30, 0, 100), 3))
 ok("mvhwk", times = mt, type = rep(c("a", "b"), 15), hor = 100)
