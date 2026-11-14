@@ -1740,6 +1740,8 @@ const Ent ents[] = {
     {"svymx", "y w? strata? psu? fpc? stat? den? by? ref? level?", svymx},
     {"wcbx", "y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?", wcbx},
     {"wystep", "obs null", wystep},
+    {"dmlx", "y d x model? fold z? s? t? score? lrn? lrnd? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? trim? clu? pred? stk? nstk? disc? seed?", dmlx},
+    {"suplrn", "x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?", suplrn},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
