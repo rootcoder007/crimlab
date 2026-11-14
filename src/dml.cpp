@@ -857,6 +857,12 @@ int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork) {
 }
 
 long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw) {
+  // sizes clab_stack() refuses need no workspace; the sum is not formed in
+  // a long, which is 32 bits on Windows and in WebAssembly
+  if (n < 0 || nt < 0 || nt > 2147483647 - n) {
+    *niw = 0;
+    return 0;
+  }
   const long nn = static_cast<long>(n) + nt;
   *niw = 2 * nn + liw(*l, static_cast<int>(nn), p);
   return nn * (p + 2) + lw(*l, static_cast<int>(nn), p);
@@ -867,7 +873,9 @@ int clab_stack(const double *x, int n, int p, const double *y, int fam,
                double *oof, double *risk, double *wt, double *pred,
                double *work, int *iwork) {
   if (n < 2 || p < 1 || nt < 0 || (fam != 0 && fam != 1) || l->kind != 3) return CLAB_EARG;
-  if (static_cast<long>(n) + nt > 2147483647L) return CLAB_EARG;
+  // n >= 2 and nt >= 0 here: the sum is tested without forming it (long is
+  // 32 bits on Windows and in WebAssembly)
+  if (nt > 2147483647 - n) return CLAB_EARG;
   const int rc = lok(*l, true);
   if (rc != CLAB_OK) return rc;
   for (int i = 0; i < n; ++i) {
