@@ -62,7 +62,7 @@ bool skp(Ctx &c, Val &out) {
   CK(oned(c, "alpha", 0.05, 0.0, 1.0, a));
   int ns = 0;
   CK(wholed(c, "nsim", 999, 1, ns));
-  unsigned int sv;
+  unsigned int sv = 0;
   CK(seed(c, sv));
   std::vector<int> grp(v.n()), iw(3 * v.n());
   std::vector<double> wk(2 * v.n());
@@ -142,7 +142,7 @@ bool tfrp(Ctx &c, Val &out) {
   CK(pickd(c, "tdist", to, 3, 0, td));
   CK(wholed(c, "ymax", 20, 0, ym));
   CK(wholed(c, "nsim", 1000, 1, ns));
-  unsigned int s;
+  unsigned int s = 0;
   CK(seed(c, s));
   const double h = val1d(c, "hl", 0.02);
   CK(wholed(c, "nq", 256, 1, q));

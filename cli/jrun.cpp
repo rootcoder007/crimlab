@@ -21,16 +21,23 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cctype>
 #include <cstring>
+#include <initializer_list>
 #include <limits>
+#include <regex>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "crimlab.h"
 #include "json.h"
+#include "kutil.h"
 #include "learn.h"
+#include "pev.h"
 #include "pevc.h"
+#include "pevs.h"
+#include "pevw.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -70,6 +77,11 @@ Val vnums(const double *x, std::size_t n) {
   return v;
 }
 Val vnums(const std::vector<double> &x) { return vnums(x.data(), x.size()); }
+// An unnamed vector outside a data frame: one value is that value.
+Val unbox(Val v) {
+  if (v.t == Val::ARR && v.a.size() == 1) return v.a[0];
+  return v;
+}
 Val vints(const std::vector<int> &x) {
   Val v = varr();
   for (int i : x) v.a.push_back(vnum(i));
@@ -104,6 +116,8 @@ struct Ctx {
   const char *fn;
   const Val *in;
   std::string err;
+  // the warnings R would give: the result's "warnings", an array of text
+  std::vector<std::string> warn;
   const Val &operator[](const char *k) const {
     for (std::size_t i = 0; i < in->k.size(); ++i) {
       if (in->k[i] == k) return in->a[i];
@@ -203,16 +217,29 @@ struct Dv {
   const double *p() const { return v.data(); }
 };
 
+// The numbers JSON writes as text, as R's JSON writes them ("Inf", "-Inf",
+// "NaN"): their value into x.
+bool snum(const Val &o, double &x) {
+  if (o.t != Val::STR) return false;
+  if (o.s == "Inf") x = HUGE_VAL;
+  else if (o.s == "-Inf") x = -HUGE_VAL;
+  else if (o.s == "NaN") x = NaN;
+  else return false;
+  return true;
+}
+
 // A number, or an array or object of numbers and nulls (NaN).
 Got readd(const Val &o, Dv &d) {
   d = Dv();
-  if (o.t == Val::NUM) {
-    d.v.push_back(o.n);
+  double x = 0.0;
+  if (o.t == Val::NUM || snum(o, x)) {
+    d.v.push_back(o.t == Val::NUM ? o.n : x);
     return NUM;
   }
   if (o.t != Val::ARR && o.t != Val::OBJ) return NOTNUM;
   for (const Val &e : o.a) {
     if (e.t == Val::NUM) d.v.push_back(e.n);
+    else if (snum(e, x)) d.v.push_back(x);
     else if (e.t == Val::NUL) d.v.push_back(NaN);
     else return e.t == Val::ARR && o.t == Val::ARR ? MATRIX : NOTNUM;
   }
@@ -1696,7 +1723,7 @@ int run(const char *fn, const char *in, std::string &res) {
   Val v;
   v.t = Val::OBJ;
   if (in != nullptr && !Parser(in, std::strlen(in)).doc(v)) v.t = Val::NUL;
-  Ctx c{e->name, &v, std::string()};
+  Ctx c{e->name, &v, std::string(), {}};
   if (v.t != Val::OBJ) {
     c.fail("the arguments must be one JSON object.");
     res = c.err;
@@ -1730,6 +1757,7 @@ int run(const char *fn, const char *in, std::string &res) {
     res = c.err;
     return CLAB_EARG;
   }
+  if (!c.warn.empty() && out.t == Val::OBJ) put(out, "warnings", vstrs(c.warn));
   res.clear();
   wval(res, out);
   return CLAB_OK;

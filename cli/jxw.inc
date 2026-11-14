@@ -214,7 +214,7 @@ bool tpdmc(Ctx &c, Val &out) {
   all.push_back("mummified");
   Val path;
   if (ns > 0) {
-    unsigned int sd;
+    unsigned int sd = 0;
     CK(seed(c, sd));
     std::vector<int> p(static_cast<std::size_t>(ns) + 1);
     int len = 0;

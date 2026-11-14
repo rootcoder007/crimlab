@@ -90,7 +90,7 @@ bool cconc(Ctx &c, Val &out) {
     if (std::fabs(un - std::round(un)) > 1e-9 || un > 1e8) {
       return c.fail("`nsim` needs whole-number weights (and at most 1e8 units).");
     }
-    unsigned int sd;
+    unsigned int sd = 0;
     CK(seed(c, sd));
     const int nu = static_cast<int>(std::round(un));
     std::vector<double> g(static_cast<std::size_t>(ns));

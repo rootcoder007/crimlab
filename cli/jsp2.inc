@@ -325,7 +325,7 @@ bool crwalk(Ctx &c, Val &out) {
   int hh = 0, ns = 0;
   CK(wholed(c, "h", 1, 1, hh));
   CK(wholed(c, "nsim", 999, 1, ns));
-  unsigned int sd;
+  unsigned int sd = 0;
   CK(seed(c, sd));
   std::vector<double> st(static_cast<std::size_t>(n) - 1), tu(static_cast<std::size_t>(n) - 2);
   double f[5];

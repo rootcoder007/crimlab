@@ -85,7 +85,7 @@ bool hwksim(Ctx &c, Val &out) {
     CK(pos1(c, "sigma", NaN, sg));
     th[0] += std::log((w[1] - w[0]) * (w[3] - w[2]));
   }
-  unsigned int sd;
+  unsigned int sd = 0;
   CK(seed(c, sd));
   const std::size_t sc = static_cast<std::size_t>(cap);
   std::vector<double> t(sc), x(sp ? sc : 0), y(sp ? sc : 0), work(3 * sc);
@@ -115,7 +115,7 @@ bool stpcp(Ctx &c, Val &out) {
   CK(wholed(c, "minseg", 2, 1, m));
   CK(wholed(c, "nperm", 9999, 1, np));
   if (n < 2 * m) return c.fail("`y` must hold at least 2 `minseg` = %d values, not %d.", 2 * m, n);
-  unsigned int sd;
+  unsigned int sd = 0;
   CK(seed(c, sd));
   double st[12];
   std::vector<double> w(static_cast<std::size_t>(n));
