@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 # Tests of the command-line program:   sh test.sh ./crimlab
 # test.tsv holds, per line, a function, its arguments as JSON and the
-# result the Python package gives for them. Numbers are compared to
+# result the R package gives for them, or ! and the message of a refusal
+# (the lines made by dev/clref.R; a line starting with # is a comment). Numbers are compared to
 # 1e-12 relative to the larger of the two: other C libraries, and fused
 # multiply-adds where a compiler contracts a product and a sum (arm64),
 # change the last bits, a few units in the last place in these methods;
@@ -46,7 +47,16 @@ cr=$(printf '\r')
 while IFS="$tab" read -r f j w; do
   # a checkout that writes CRLF (Windows) leaves a CR at the end
   w=${w%"$cr"}
-  ck "$f $j" "$(printf '%s' "$j" | "$c" "$f" -j -f -)" "$w"
+  case $f in
+  '#'*) continue ;;
+  esac
+  case $w in
+  '!'*) # a refusal: the message R gives, on standard error
+    got=$(printf '%s' "$j" | "$c" "$f" -j -f - 2>&1 >/dev/null)
+    eq "$f $j" "$got" "${w#!}"
+    ;;
+  *) ck "$f $j" "$(printf '%s' "$j" | "$c" "$f" -j -f -)" "$w" ;;
+  esac
 done < "$here/test.tsv"
 # the shortest digits that read back the same, on every system
 eq "format" "$("$c" lrpost -j --lr 2 --prior 0.5)" '[0.6666666666666666]'
