@@ -651,8 +651,11 @@ et <- sort(round(c(runif(10, 0, 100), 20 + rexp(10, 1.5), 55 + rexp(10, 1.5), 80
 et <- et[et < 100]
 em <- round(2 + (seq_along(et) %% 5) / 10, 1)
 em[c(which(et >= 20)[1], which(et >= 55)[1], which(et >= 80)[1])] <- c(3.8, 4, 3.6)
-ok("etasf", times = et, hor = 100)
-ok("etasf", times = et, hor = 100, mag = em, m0 = 2, maxit = 300)
+# one BFGS step from a given start: the same arithmetic on every platform. A whole fit of this
+# model is not: its likelihood has long flat ridges in k, c and p, and the point where the search
+# stops moves with the rounding of each platform (the fits themselves are tested in R)
+ok("etasf", times = et, hor = 100, start = c(0.2, 0.5, 0, 1, 1.5), maxit = 1)
+ok("etasf", times = et, hor = 100, mag = em, m0 = 2, start = c(0.2, 0.5, 1, 1, 1.5), maxit = 1)
 bad("etasf", times = c(1, 2), hor = 10)
 mt <- sort(round(runif(30, 0, 100), 3))
 ok("mvhwk", times = mt, type = rep(c("a", "b"), 15), hor = 100)

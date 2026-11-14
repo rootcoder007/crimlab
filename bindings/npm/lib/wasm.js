@@ -51,6 +51,13 @@ export async function load(stdin = () => new Uint8Array(0)) {
     return t;
   };
   const wasi = {
+    // an empty environment: no variables, no bytes (the C++ library asks when it sets up its locale)
+    environ_sizes_get(np, sp) {
+      dv().setUint32(np, 0, true);
+      dv().setUint32(sp, 0, true);
+      return 0;
+    },
+    environ_get: () => 0,
     clock_time_get(id, prec, p) {
       dv().setBigUint64(p, BigInt(Math.round(performance.now() * 1e6)), true);
       return 0;
