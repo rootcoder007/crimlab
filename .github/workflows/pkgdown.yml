@@ -39,6 +39,9 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+          # 2: the first cache held sf and units from when they were suggested;
+          # restored without their system libraries, loading them stopped the build
+          cache-version: 2
       - name: Build site
         run: SITEDIR=pkg-site GATE=site sh dev/gate.sh "$RUNNER_TEMP/lib"
       - name: Deploy to gh-pages
