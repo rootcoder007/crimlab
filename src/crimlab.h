@@ -3157,6 +3157,22 @@ int clab_wdqx(const double *a, const double *b, const double *c, double *out);
 int clab_prohs(const double *px, const double *py, const double *t, int n, double at, const double *win,
                double cell, double bw, double tw, double tu, double top, double ahead, int nx, int ny, double *z,
                int *hot, double *ev);
+/* Crime linkage (lnk.cpp; Bennell and Canter 2002,
+ * doi:10.1016/S1355-0306(02)71820-0). n (2 to 20000) crimes at (px, py)
+ * and times t; mo (n x q, column-major, 0 or nonzero) their behaviours,
+ * NULL when q is 0; ser the series of each, -1 unsolved. Out, for the n
+ * (n - 1) / 2 pairs i < j in order: pi, pj, dist, dt (|t_i - t_j|), jac
+ * (the Jaccard similarity of the behaviours, 0 when neither has any; NaN
+ * when q is 0), lk (1 same series, 0 not, -1 either unsolved) and prob,
+ * the fitted chance of a link from the logistic regression (clab_lgtreg)
+ * of lk on dist, dt and jac (without jac when q is 0) over the solved
+ * pairs: coef and se (intercept first), dev; aucs (4): the areas under
+ * the ROC curve of -dist, -dt, jac and the linear predictor over the
+ * solved pairs (Mann-Whitney, ties a half). CLAB_EDOM without linked and
+ * unlinked solved pairs or when the fit fails (separation). */
+int clab_lnkpr(const double *px, const double *py, const double *t, const int *mo, int q, const int *ser, int n,
+               int *pi, int *pj, double *dist, double *dt, double *jac, int *lk, double *prob, double *coef,
+               double *se, double *aucs, double *dev);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

@@ -1046,6 +1046,14 @@ ok("prohs", x = php, t = phd, at = 45, win = c(0, 500, 0, 400), cell = 100, bw =
 ok("prohs", x = cbind(c(0.5, 0.6, 1.6), c(0.5, 0.4, 0.5)), t = c(0, 8, 9), at = 7, win = c(0, 2, 0, 1), cell = 1,
    bw = 2, top = 0.5)
 bad("prohs", x = cbind(c(1, 2), c(1, 2)), t = c(1, 2), at = 2, win = c(0, 5, 0, 5), cell = 1, top = 0)
+
+# Crime linkage
+lkx <- cbind(c(20, 20, 49, 7, -8, 26, -1, 4, 25, 55, 14, 29), c(45, 60, 41, 41, 21, 49, 28, 45, 46, 35, 22, 45))
+lkt <- c(35, 59, 27, 70, 30, 26, 54, 30, 5, 18, 8, -6)
+ok("lnkpr", x = lkx, t = lkt, series = c(1, 1, 1, 1, NA, 2, 2, 2, 3, 3, NA, 3))
+ok("lnkpr", x = lkx, t = lkt, series = c("a", "a", "a", "a", NA, "b", "b", "b", "c", "c", NA, "c"),
+   mo = cbind(c(1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1), c(0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0)))
+bad("lnkpr", x = lkx[1:3, ], t = 1:3, series = c(1, 1, 1))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

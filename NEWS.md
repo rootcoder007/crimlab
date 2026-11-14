@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* `lnkpr()` links crimes into series: the distance, time and Jaccard
+  similarity of behaviour of every pair, a logistic regression of being
+  linked on them over the solved pairs, the area under the ROC curve of
+  each, and the chance of a link for every pair. It is in `clab_jrun()`,
+  the command line and Python.
+
 * `prohs()` forecasts the risk of each grid cell from recent nearby
   incidents, weighted down with distance and age (Bowers, Johnson and
   Pease), and scores its hot cells on later incidents. It is in

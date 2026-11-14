@@ -3487,3 +3487,20 @@ def prohs(x: Any, y: Any = None, t: Any = None, at: Any = None, win: Any = None,
     """
     return jcall("prohs", x=x, y=y, t=t, at=at, win=win, cell=cell, bw=bw, tw=tw, tunit=tunit, top=top,
                  ahead=ahead)
+
+
+def lnkpr(x: Any, y: Any = None, t: Any = None, series: Any = None, mo: Any = None) -> Any:
+    """Crime linkage: which crimes belong to one series.
+
+    The arguments and the result are those of R's ``lnkpr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = lnkpr(x=[[20, 45], [20, 60], [49, 41], [7, 41], [-8, 21], [26, 49], [-1, 28], [4, 45], [25, 46],
+    ... [55, 35], [14, 22], [29, 45]], t=[35, 59, 27, 70, 30, 26, 54, 30, 5, 18, 8, -6],
+    ... series=[1, 1, 1, 1, None, 2, 2, 2, 3, 3, None, 3])
+    >>> list(r)
+    ['coef', 'auc', 'pairs', 'dev', 'nmo']
+    """
+    return jcall("lnkpr", x=x, y=y, t=t, series=series, mo=mo)

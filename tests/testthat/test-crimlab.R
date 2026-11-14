@@ -16,6 +16,11 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(lnkpr(cbind(c(20, 20, 49, 7, -8, 26, -1, 4, 25, 55, 14, 29),
+                           c(45, 60, 41, 41, 21, 49, 28, 45, 46, 35, 22, 45)),
+                     t = c(35, 59, 27, 70, 30, 26, 54, 30, 5, 18, 8, -6),
+                     series = c(1, 1, 1, 1, NA, 2, 2, 2, 3, 3, NA, 3))),
+         c("coef", "auc", "pairs", "dev", "nmo")),
     list(quote(prohs(cbind(c(0.5, 1.5), c(0.5, 0.5)), t = c(0, 9), at = 7,
                      win = c(0, 2, 0, 1), cell = 1)),
          c("x", "y", "z", "hot", "eval", "par")),
