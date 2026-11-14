@@ -32,20 +32,9 @@ Depends:
 Imports:
     graphics
 Suggests:
-    igraph,
     knitr,
     rmarkdown,
-    testthat (>= 3.1.5),
-    circular,
-    DescTools,
-    geosphere,
-    geepack,
-    MASS,
-    sandwich,
-    sf,
-    spatstat.explore,
-    spatstat.geom,
-    spdep
+    testthat (>= 3.1.5)
 VignetteBuilder: knitr
 SystemRequirements: C++17
 Config/testthat/edition: 3

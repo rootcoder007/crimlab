@@ -12,6 +12,9 @@ Before a pull request:
   `src/crimlab.h`); the R functions check arguments and call it.
 * Every change comes with tests in `tests/testthat`. Coverage of R and C++
   must not fall below the floor in `.github/workflows/coverage.yml`.
+  Values from other packages are stored with the tests, never computed
+  while they run: a script in `dev/ref` (one per test file) computes them
+  and writes them, with the packages' versions, to `tests/testthat/ref`.
 * `lintr::lint_package()` must report no lints, and
   `R CMD check --as-cran` must pass with no errors or warnings.
 * Documentation is written with roxygen2; regenerate `man/` and

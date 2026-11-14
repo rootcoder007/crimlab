@@ -20,7 +20,7 @@ kscan(
 \arguments{
 \item{x, y}{The points: \code{x} and \code{y} numeric vectors of equal length; or
 \code{x} a matrix or data frame with columns named \code{x} and \code{y} (or \code{X} and
-\code{Y}, as \code{\link[sf:st_coordinates]{sf::st_coordinates()}} names them, or \code{lon} and \code{lat} with
+\code{Y}, as \code{sf::st_coordinates()} names them, or \code{lon} and \code{lat} with
 \code{lonlat = TRUE}) and \code{y} \code{NULL}; or \code{x} an sf or sfc object of POINT
 geometries, whose coordinate reference system must agree with
 \code{lonlat}. An unnamed two-column matrix is read as \code{x} then \code{y}; other

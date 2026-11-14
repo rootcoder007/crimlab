@@ -90,7 +90,7 @@ eqinv <- function(x, y = NULL, lon0, lat0, r = 6371008.8) {
 #'
 #' @param x,y The points: `x` and `y` numeric vectors of equal length; or
 #'   `x` a matrix or data frame with columns named `x` and `y` (or `X` and
-#'   `Y`, as [sf::st_coordinates()] names them, or `lon` and `lat` with
+#'   `Y`, as `sf::st_coordinates()` names them, or `lon` and `lat` with
 #'   `lonlat = TRUE`) and `y` `NULL`; or `x` an sf or sfc object of POINT
 #'   geometries, whose coordinate reference system must agree with
 #'   `lonlat`. An unnamed two-column matrix is read as `x` then `y`; other

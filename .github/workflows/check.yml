@@ -28,8 +28,7 @@ jobs:
           - {os: ubuntu-24.04, r: devel}
           - {os: ubuntu-24.04, r: oldrel-1}
           # the oldest R the DESCRIPTION admits, with the hard dependencies
-          # and the test and vignette tools only: the suggested spatial
-          # packages are not all installable there, and their tests skip
+          # and the test and vignette tools (all that is suggested)
           - {os: ubuntu-24.04, r: '4.1', deps: '"hard"',
              extra: 'any::rcmdcheck, any::testthat, any::knitr, any::rmarkdown'}
           - {os: macos-latest, r: release}

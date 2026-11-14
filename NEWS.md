@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* The tests no longer call other packages: the values of circular,
+  DescTools, geosphere, geepack, igraph, MASS, sandwich, sf, spatstat,
+  spdep, rmorie and rmoriebricklayer they compare with are stored in
+  `tests/testthat/ref`, with the versions that computed them, by the
+  scripts in `dev/ref`. Suggests now holds only testthat, knitr and
+  rmarkdown.
 * `suplrn()` stacks the learners of the package (least squares or
   logistic regression, the lasso, ridge and elastic net, the random
   forest) into a super learner: K-fold cross-fitted predictions, weights by
