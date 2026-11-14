@@ -107,7 +107,7 @@ int ndec(double v) {
 
 bool relchk(Ctx &c, Val &out) {
   static const char *const kinds[] = {"or", "rr", "rd"};
-  int r, k;
+  int r = 0, k = 0;
   std::vector<double> tb;
   std::vector<std::string> rn, cn;
   CK(ctab(c, c["x"], tb, r, k, rn, cn));
