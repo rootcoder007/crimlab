@@ -6,13 +6,11 @@ Whether high values of one variable sit next to high values of another
 Moran's I
 ([`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md))
 when `y` is `x` (proved in Lean: see `proof("bvmor")`) and, with
-row-standardised weights,
-[`spdep::moran_bv()`](https://r-spatial.github.io/spdep/reference/moran_bv.html)'s
-statistic. Inference is by permutation: `y`'s values are shuffled over
-the units `nsim` times from `seed` while `x` stays, so under the null
-its expectation is 0. The statistic mixes the two variables' correlation
-at a unit with their spatial association; it is not a test of spillover
-from `x` to `y`.
+row-standardised weights, `spdep::moran_bv()`'s statistic. Inference is
+by permutation: `y`'s values are shuffled over the units `nsim` times
+from `seed` while `x` stays, so under the null its expectation is 0. The
+statistic mixes the two variables' correlation at a unit with their
+spatial association; it is not a test of spillover from `x` to `y`.
 
 ## Usage
 

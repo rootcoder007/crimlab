@@ -38,10 +38,10 @@
 <p>A bug report is most useful with a small reproducible example: the call, what it returned, and what you expected.</p>
 <p>Before a pull request:</p>
 <ul><li>Computation belongs in the C++ core (<code>src/core.cpp</code>, declared in <code>src/crimlab.h</code>); the R functions check arguments and call it.</li>
-<li>Every change comes with tests in <code>tests/testthat</code>. Coverage of R and C++ must not fall below the floor in <code>.github/workflows/coverage.yml</code>.</li>
+<li>Every change comes with tests in <code>tests/testthat</code>. Coverage of R and C++ must not fall below the floor in <code>.github/workflows/coverage.yml</code>. Values from other packages are stored with the tests, never computed while they run: a script in <code>dev/ref</code> (one per test file) computes them and writes them, with the packages’ versions, to <code>tests/testthat/ref</code>.</li>
 <li>
-<code><a href="https://lintr.r-lib.org/reference/lint.html" class="external-link">lintr::lint_package()</a></code> must report no lints, and <code>R CMD check --as-cran</code> must pass with no errors or warnings.</li>
-<li>Documentation is written with roxygen2; regenerate <code>man/</code> and <code>NAMESPACE</code> with <code><a href="https://roxygen2.r-lib.org/reference/roxygenize.html" class="external-link">roxygen2::roxygenise()</a></code>.</li>
+<code>lintr::lint_package()</code> must report no lints, and <code>R CMD check --as-cran</code> must pass with no errors or warnings.</li>
+<li>Documentation is written with roxygen2; regenerate <code>man/</code> and <code>NAMESPACE</code> with <code>roxygen2::roxygenise()</code>.</li>
 <li>A change to a result that <code><a href="reference/proof.html">proof()</a></code> names needs the Lean proof in <code>inst/lean</code> to still build.</li>
 </ul><p>By contributing you agree that your contribution is licensed under the package licence (Apache-2.0 WITH LLVM-exception).</p>
 </div>

@@ -54,7 +54,7 @@ is not a test of spillover from x to y."><meta property="og:image" content="http
 (Wartenberg 1985): with <code>zx</code> and <code>zy</code>
 the centred values, <code>I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)</code>, which is Moran's I (<code><a href="gmoran.html">gmoran()</a></code>) when <code>y</code> is <code>x</code> (proved in
 Lean: see <code>proof("bvmor")</code>) and, with row-standardised weights,
-<code><a href="https://r-spatial.github.io/spdep/reference/moran_bv.html" class="external-link">spdep::moran_bv()</a></code>'s statistic. Inference is by permutation: <code>y</code>'s
+<code>spdep::moran_bv()</code>'s statistic. Inference is by permutation: <code>y</code>'s
 values are shuffled over the units <code>nsim</code> times from <code>seed</code> while <code>x</code>
 stays, so under the null its expectation is 0. The statistic mixes the
 two variables' correlation at a unit with their spatial association; it

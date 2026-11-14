@@ -12,12 +12,14 @@ Before a pull request:
   `src/crimlab.h`); the R functions check arguments and call it.
 - Every change comes with tests in `tests/testthat`. Coverage of R and
   C++ must not fall below the floor in `.github/workflows/coverage.yml`.
-- [`lintr::lint_package()`](https://lintr.r-lib.org/reference/lint.html)
-  must report no lints, and `R CMD check --as-cran` must pass with no
-  errors or warnings.
+  Values from other packages are stored with the tests, never computed
+  while they run: a script in `dev/ref` (one per test file) computes
+  them and writes them, with the packages’ versions, to
+  `tests/testthat/ref`.
+- `lintr::lint_package()` must report no lints, and
+  `R CMD check --as-cran` must pass with no errors or warnings.
 - Documentation is written with roxygen2; regenerate `man/` and
-  `NAMESPACE` with
-  [`roxygen2::roxygenise()`](https://roxygen2.r-lib.org/reference/roxygenize.html).
+  `NAMESPACE` with `roxygen2::roxygenise()`.
 - A change to a result that
   [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
   names needs the Lean proof in `inst/lean` to still build.

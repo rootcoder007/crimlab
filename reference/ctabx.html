@@ -131,7 +131,7 @@ the table <code>tab</code> keeps them. Cramer's V is <code>sqrt(chisq / (n (k - 
 <code>k</code> the smaller dimension, from the uncorrected statistic even when
 <code>correct</code> is <code>TRUE</code>; its interval inverts the noncentral chi-square
 distribution, <code>sqrt(ncp / (n (k - 1)))</code>, as the default of
-<code><a href="https://andrisignorell.github.io/DescTools/reference/CramerV.html" class="external-link">DescTools::CramerV()</a></code>; the bias-corrected V is Bergsma's. The exact
+<code>DescTools::CramerV()</code>; the bias-corrected V is Bergsma's. The exact
 test enumerates every table with the observed margins and refuses one
 that would take more than 1e7 tables. With <code>agg</code> other than <code>"n"</code>,
 <code>"sum"</code> or <code>"dist"</code> the table holds values, not counts, and the

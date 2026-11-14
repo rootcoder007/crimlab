@@ -33,16 +33,14 @@ kmpart(
 
   The points: `x` and `y` numeric vectors of equal length; or `x` a
   matrix or data frame with columns named `x` and `y` (or `X` and `Y`,
-  as
-  [`sf::st_coordinates()`](https://r-spatial.github.io/sf/reference/st_coordinates.html)
-  names them, or `lon` and `lat` with `lonlat = TRUE`) and `y` `NULL`;
-  or `x` an sf or sfc object of POINT geometries, whose coordinate
-  reference system must agree with `lonlat`. An unnamed two-column
-  matrix is read as `x` then `y`; other columns are never taken by
-  position. Vectors given separately (`x`, `y`, and `w` or `t` where a
-  function takes them) are matched by name when every one is named and
-  no name repeats, as elsewhere in the package; otherwise by position.
-  No missing or infinite values.
+  as `sf::st_coordinates()` names them, or `lon` and `lat` with
+  `lonlat = TRUE`) and `y` `NULL`; or `x` an sf or sfc object of POINT
+  geometries, whose coordinate reference system must agree with
+  `lonlat`. An unnamed two-column matrix is read as `x` then `y`; other
+  columns are never taken by position. Vectors given separately (`x`,
+  `y`, and `w` or `t` where a function takes them) are matched by name
+  when every one is named and no name repeats, as elsewhere in the
+  package; otherwise by position. No missing or infinite values.
 
 - k:
 

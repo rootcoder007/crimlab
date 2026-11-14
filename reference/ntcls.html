@@ -49,7 +49,7 @@ so reaching more nodes always scores more. Graph rules as in ntdeg()."><meta pro
     <p>Distances are counted in steps (weights are not taken), along edges'
 directions when <code>dir = TRUE</code> (out-distances). A disconnected graph is
 handled in the two standard ways, both returned: <code>cls</code> and <code>ncls</code> count
-only the nodes a node reaches (as <code><a href="https://r.igraph.org/reference/closeness.html" class="external-link">igraph::closeness()</a></code> does), so a node
+only the nodes a node reaches (as <code>igraph::closeness()</code> does), so a node
 close to the few it reaches scores high; <code>hrm</code>, the harmonic centrality,
 sums <code>1 / distance</code> over every other node, an unreachable one adding 0,
 so reaching more nodes always scores more. Graph rules as in <code><a href="ntdeg.html">ntdeg()</a></code>.</p>

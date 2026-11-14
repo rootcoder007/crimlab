@@ -7,12 +7,9 @@ randomisation (Cliff and Ord 1981), the z statistics and their upper
 normal tails (positive autocorrelation: neighbours alike), and, with
 `nsim > 0`, the permutation p-value `(1 + #{I* >= I}) / (nsim + 1)`, the
 values shuffled over the units from `seed`. These are the statistics of
-[`spdep::moran.test()`](https://r-spatial.github.io/spdep/reference/moran.test.html)
-and
-[`spdep::moran.mc()`](https://r-spatial.github.io/spdep/reference/moran.mc.html).
-Given a matrix or data frame, each column is tested on the same weights:
-one row per category or year, a sweep of a variable across a polygon
-surface.
+`spdep::moran.test()` and `spdep::moran.mc()`. Given a matrix or data
+frame, each column is tested on the same weights: one row per category
+or year, a sweep of a variable across a polygon surface.
 [`lmorn()`](https://rootcoder007.github.io/crimlab/reference/lmorn.md)
 gives the local statistics, which add up to `S0 I` with row-standardised
 weights.

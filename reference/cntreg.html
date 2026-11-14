@@ -140,7 +140,7 @@ determines, say) is aliased and dropped, as R does: its coefficients are
 <code>NA</code>.</p>
 <p>With <code>clus</code>, each fit also gets cluster-robust (sandwich) standard
 errors, rows <code>"poiscl"</code> and <code>"nbcl"</code>: <code>(X'WX)^-1 (sum_g U_g U_g') (X'WX)^-1</code> over the clusters' scores <code>U_g</code>, times <code>G / (G - 1)</code> for <code>G</code>
-clusters when <code>cadj</code> (the default of <code><a href="https://zeileis.codeberg.page/sandwich/reference/vcovCL.html" class="external-link">sandwich::vcovCL()</a></code>; <code>cadj = FALSE</code> gives the independence GEE variance of 'geepack'). With <code>gee = TRUE</code> the Poisson model is also fitted by generalised estimating
+clusters when <code>cadj</code> (the default of <code>sandwich::vcovCL()</code>; <code>cadj = FALSE</code> gives the independence GEE variance of 'geepack'). With <code>gee = TRUE</code> the Poisson model is also fitted by generalised estimating
 equations with an exchangeable working correlation (row <code>"gee"</code>), as
 <code>geepack::geeglm(corstr = "exchangeable")</code> estimates it.</p>
 <p>Intervals are Wald intervals on the log scale, <code>exp(est +- z se)</code>, with

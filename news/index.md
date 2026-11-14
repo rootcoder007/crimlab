@@ -2,6 +2,12 @@
 
 ## crimlab 0.0.0.9000
 
+- The tests no longer call other packages: the values of circular,
+  DescTools, geosphere, geepack, igraph, MASS, sandwich, sf, spatstat,
+  spdep, rmorie and rmoriebricklayer they compare with are stored in
+  `tests/testthat/ref`, with the versions that computed them, by the
+  scripts in `dev/ref`. Suggests now holds only testthat, knitr and
+  rmarkdown.
 - [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
   stacks the learners of the package (least squares or logistic
   regression, the lasso, ridge and elastic net, the random forest) into
@@ -174,10 +180,9 @@
   [`MASS::glm.nb()`](https://rdrr.io/pkg/MASS/man/glm.nb.html)), with
   adjustment columns, an exposure offset and clusters, and reports the
   rate ratios with Wald intervals: model-based, cluster-robust (the
-  sandwich of
-  [`sandwich::vcovCL()`](https://zeileis.codeberg.page/sandwich/reference/vcovCL.html)),
-  and from an exchangeable GEE (as ‘geepack’ estimates it).
-  `proof("cntreg")` names the Lean theorems on swapping the groups.
+  sandwich of `sandwich::vcovCL()`), and from an exchangeable GEE (as
+  ‘geepack’ estimates it). `proof("cntreg")` names the Lean theorems on
+  swapping the groups.
 - [`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md)
   gives rates or proportions by group and their ratios and differences
   against a reference group: Wilson, Clopper-Pearson and exact Poisson
@@ -598,9 +603,8 @@
   [`kdsurf()`](https://rootcoder007.github.io/crimlab/reference/kdsurf.md)
   gives kernel intensity surfaces (the bandwidth and values of
   [`MASS::kde2d()`](https://rdrr.io/pkg/MASS/man/kde2d.html), the edge
-  corrections of
-  [`spatstat.explore::density.ppp()`](https://rdrr.io/pkg/spatstat.explore/man/density.ppp.html))
-  with the smallest areas holding each share of the incidents;
+  corrections of `spatstat.explore::density.ppp()`) with the smallest
+  areas holding each share of the incidents;
   [`dbscn()`](https://rootcoder007.github.io/crimlab/reference/dbscn.md)
   DBSCAN clusters as `dbscan::dbscan()` numbers them;
   [`hsper()`](https://rootcoder007.github.io/crimlab/reference/hsper.md)
@@ -614,9 +618,8 @@
   and
   [`bvmor()`](https://rootcoder007.github.io/crimlab/reference/bvmor.md)
   give global and bivariate Moran’s I with their inference
-  ([`spdep::moran.test()`](https://r-spatial.github.io/spdep/reference/moran.test.html),
-  [`spdep::moran_bv()`](https://r-spatial.github.io/spdep/reference/moran_bv.html)),
-  one variable or a sweep of columns;
+  (`spdep::moran.test()`, `spdep::moran_bv()`), one variable or a sweep
+  of columns;
   [`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md)
   fits the spatial lag, error and combined models by maximum likelihood,
   and the lag model by two-stage least squares, with Durbin terms and

@@ -9,15 +9,14 @@ number of points, with the same default bandwidth (the normal reference
 `1.06 min(sd, IQR / 1.34) n^(-1/5)` on each axis, a quarter of
 [`MASS::bandwidth.nrd()`](https://rdrr.io/pkg/MASS/man/bandwidth.nrd.html)).
 With a study rectangle `win` the edge corrections of
-[`spatstat.explore::density.ppp()`](https://rdrr.io/pkg/spatstat.explore/man/density.ppp.html)
-apply: `"uniform"` divides the intensity at `u` by `e(u)`, the share of
-the kernel centred at `u` inside `win` (Diggle 1985), and `"diggle"`
-divides each point's kernel by its own share `e(p_j)` (Jones 1993). On a
-grid the smallest sets of cells holding each share `cover` of the
-surface's mass (highest density regions, Hyndman 1996) are reported with
-their area: half the incidents in a few per cent of the map is
-concentration. The bandwidth decides how sharp the surface is and should
-be reported with any map.
+`spatstat.explore::density.ppp()` apply: `"uniform"` divides the
+intensity at `u` by `e(u)`, the share of the kernel centred at `u`
+inside `win` (Diggle 1985), and `"diggle"` divides each point's kernel
+by its own share `e(p_j)` (Jones 1993). On a grid the smallest sets of
+cells holding each share `cover` of the surface's mass (highest density
+regions, Hyndman 1996) are reported with their area: half the incidents
+in a few per cent of the map is concentration. The bandwidth decides how
+sharp the surface is and should be reported with any map.
 
 ## Usage
 

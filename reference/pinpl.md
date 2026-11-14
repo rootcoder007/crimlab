@@ -54,9 +54,8 @@ regions that hold units pairs a partial denominator with a whole
 numerator, inflating it unevenly.
 
 Polygons from a spatial file convert with, for instance,
-[`sf::st_coordinates()`](https://r-spatial.github.io/sf/reference/st_coordinates.html),
-whose columns `X`, `Y`, `L1` (ring) and `L2` or `L3` (feature) become
-`x`, `y`, `ring` and `id`.
+`sf::st_coordinates()`, whose columns `X`, `Y`, `L1` (ring) and `L2` or
+`L3` (feature) become `x`, `y`, `ring` and `id`.
 
 ## References
 

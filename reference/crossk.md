@@ -8,9 +8,8 @@ area `A`, with Ripley's (1977) isotropic correction `e_ab` (the length
 of the circle about `a` through `b` over its length inside `win`), and
 `L = sqrt(K / pi)` (Lotwick and Silverman 1982). Under independence
 `K = pi r^2`. With `i` equal to `j` it is Ripley's K of that type. These
-are the values of
-[`spatstat.explore::Kcross()`](https://rdrr.io/pkg/spatstat.explore/man/Kcross.html)
-with `correction = "isotropic"`.
+are the values of `spatstat.explore::Kcross()` with
+`correction = "isotropic"`.
 
 ## Usage
 
@@ -74,8 +73,7 @@ other points, weighted by a normal kernel of standard deviation `sigma`,
 against the type's overall share,
 `T = sum_points sum_types (p_m - pbar_m)^2`, with a p-value from `nsim`
 random relabellings of the types (`(1 + #{T* >= T}) / (nsim + 1)`), the
-statistic of
-[`spatstat.explore::segregation.test()`](https://rdrr.io/pkg/spatstat.explore/man/segregation.test.html).
+statistic of `spatstat.explore::segregation.test()`.
 
 ## References
 

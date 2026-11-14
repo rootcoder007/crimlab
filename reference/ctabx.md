@@ -81,11 +81,11 @@ table `tab` keeps them. Cramer's V is `sqrt(chisq / (n (k - 1)))`, `k`
 the smaller dimension, from the uncorrected statistic even when
 `correct` is `TRUE`; its interval inverts the noncentral chi-square
 distribution, `sqrt(ncp / (n (k - 1)))`, as the default of
-[`DescTools::CramerV()`](https://andrisignorell.github.io/DescTools/reference/CramerV.html);
-the bias-corrected V is Bergsma's. The exact test enumerates every table
-with the observed margins and refuses one that would take more than 1e7
-tables. With `agg` other than `"n"`, `"sum"` or `"dist"` the table holds
-values, not counts, and the statistics are `NA`.
+`DescTools::CramerV()`; the bias-corrected V is Bergsma's. The exact
+test enumerates every table with the observed margins and refuses one
+that would take more than 1e7 tables. With `agg` other than `"n"`,
+`"sum"` or `"dist"` the table holds values, not counts, and the
+statistics are `NA`.
 
 ## References
 

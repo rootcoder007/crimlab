@@ -66,7 +66,7 @@ locations. On a grid it is the surface of <code><a href="https://rdrr.io/pkg/MAS
 number of points, with the same default bandwidth (the normal reference
 <code>1.06 min(sd, IQR / 1.34) n^(-1/5)</code> on each axis, a quarter of
 <code><a href="https://rdrr.io/pkg/MASS/man/bandwidth.nrd.html" class="external-link">MASS::bandwidth.nrd()</a></code>). With a study rectangle <code>win</code> the edge
-corrections of <code><a href="https://rdrr.io/pkg/spatstat.explore/man/density.ppp.html" class="external-link">spatstat.explore::density.ppp()</a></code> apply: <code>"uniform"</code>
+corrections of <code>spatstat.explore::density.ppp()</code> apply: <code>"uniform"</code>
 divides the intensity at <code>u</code> by <code>e(u)</code>, the share of the kernel centred
 at <code>u</code> inside <code>win</code> (Diggle 1985), and <code>"diggle"</code> divides each point's
 kernel by its own share <code>e(p_j)</code> (Jones 1993). On a grid the smallest

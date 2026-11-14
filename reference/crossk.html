@@ -52,7 +52,7 @@ near them more than independence gives: the cross-type K function
 <code>a</code> of type <code>i</code> and a point <code>b</code> of type <code>j</code> in the rectangle <code>win</code> of
 area <code>A</code>, with Ripley's (1977) isotropic correction <code>e_ab</code> (the length of
 the circle about <code>a</code> through <code>b</code> over its length inside <code>win</code>), and <code>L = sqrt(K / pi)</code> (Lotwick and Silverman 1982). Under independence <code>K = pi r^2</code>. With <code>i</code> equal to <code>j</code> it is Ripley's K of that type. These are
-the values of <code><a href="https://rdrr.io/pkg/spatstat.explore/man/Kcross.html" class="external-link">spatstat.explore::Kcross()</a></code> with <code>correction = "isotropic"</code>.</p>
+the values of <code>spatstat.explore::Kcross()</code> with <code>correction = "isotropic"</code>.</p>
     </div>
 
     <div class="section level2">
@@ -116,7 +116,7 @@ across all the types: at each point the share of each type among the
 other points, weighted by a normal kernel of standard deviation
 <code>sigma</code>, against the type's overall share, <code>T = sum_points sum_types (p_m - pbar_m)^2</code>, with a p-value from <code>nsim</code> random relabellings of
 the types (<code>(1 + #{T* &gt;= T}) / (nsim + 1)</code>), the statistic of
-<code><a href="https://rdrr.io/pkg/spatstat.explore/man/segregation.test.html" class="external-link">spatstat.explore::segregation.test()</a></code>.</p>
+<code>spatstat.explore::segregation.test()</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

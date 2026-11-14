@@ -60,7 +60,7 @@ randomisation (Cliff and Ord 1981), the z statistics and their upper
 normal tails (positive autocorrelation: neighbours alike), and, with
 <code>nsim &gt; 0</code>, the permutation p-value <code>(1 + #{I* &gt;= I}) / (nsim + 1)</code>, the
 values shuffled over the units from <code>seed</code>. These are the statistics of
-<code><a href="https://r-spatial.github.io/spdep/reference/moran.test.html" class="external-link">spdep::moran.test()</a></code> and <code><a href="https://r-spatial.github.io/spdep/reference/moran.mc.html" class="external-link">spdep::moran.mc()</a></code>. Given a matrix or data
+<code>spdep::moran.test()</code> and <code>spdep::moran.mc()</code>. Given a matrix or data
 frame, each column is tested on the same weights: one row per category
 or year, a sweep of a variable across a polygon surface. <code><a href="lmorn.html">lmorn()</a></code> gives
 the local statistics, which add up to <code>S0 I</code> with row-standardised

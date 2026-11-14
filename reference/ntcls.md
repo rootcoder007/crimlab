@@ -3,12 +3,10 @@
 Distances are counted in steps (weights are not taken), along edges'
 directions when `dir = TRUE` (out-distances). A disconnected graph is
 handled in the two standard ways, both returned: `cls` and `ncls` count
-only the nodes a node reaches (as
-[`igraph::closeness()`](https://r.igraph.org/reference/closeness.html)
-does), so a node close to the few it reaches scores high; `hrm`, the
-harmonic centrality, sums `1 / distance` over every other node, an
-unreachable one adding 0, so reaching more nodes always scores more.
-Graph rules as in
+only the nodes a node reaches (as `igraph::closeness()` does), so a node
+close to the few it reaches scores high; `hrm`, the harmonic centrality,
+sums `1 / distance` over every other node, an unreachable one adding 0,
+so reaching more nodes always scores more. Graph rules as in
 [`ntdeg()`](https://rootcoder007.github.io/crimlab/reference/ntdeg.md).
 
 ## Usage

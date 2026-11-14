@@ -137,7 +137,7 @@
 <p>From GitHub:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"rootcoder007/crimlab"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"rootcoder007/crimlab"</span><span class="op">)</span></span></code></pre></div>
 <p>The package needs a C++17 compiler and no R package beyond those that ship with R.</p>
 </div>
 <div class="section level2">
@@ -265,10 +265,10 @@
 <span><span class="fu"><a href="reference/eqproj.html">eqproj</a></span><span class="op">(</span><span class="va">ll</span><span class="op">)</span>                        <span class="co"># equal-area metres for the planar functions</span></span>
 <span></span>
 <span><span class="co"># sf points go in directly; their CRS must agree with lonlat</span></span>
-<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="va">ll</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span></span>
+<span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu">sf</span><span class="fu">::</span><span class="fu">st_as_sf</span><span class="op">(</span><span class="va">ll</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"lon"</span>, <span class="st">"lat"</span><span class="op">)</span>, crs <span class="op">=</span> <span class="fl">4326</span><span class="op">)</span></span>
 <span><span class="fu"><a href="reference/cgstat.html">cgstat</a></span><span class="op">(</span><span class="va">s</span>, lonlat <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co"># and plain results go back to sf</span></span>
-<span><span class="fu">sf</span><span class="fu">::</span><span class="fu"><a href="https://r-spatial.github.io/sf/reference/st_as_sf.html" class="external-link">st_as_sf</a></span><span class="op">(</span><span class="fu"><a href="reference/eqproj.html">eqproj</a></span><span class="op">(</span><span class="va">ll</span><span class="op">)</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">sf</span><span class="fu">::</span><span class="fu">st_as_sf</span><span class="op">(</span><span class="fu"><a href="reference/eqproj.html">eqproj</a></span><span class="op">(</span><span class="va">ll</span><span class="op">)</span>, coords <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p>The planar functions assume Cartesian coordinates in one length unit and return lengths in that unit; functions with a <code>lonlat</code> argument project longitude and latitude to metres themselves (an equal-area projection about the points’ centre) and return centres in degrees; functions that take a study rectangle (<code>win</code>) take planar coordinates only. All are two-dimensional.</p>
 </div>
 <div class="section level3">
