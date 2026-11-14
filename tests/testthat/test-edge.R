@@ -1,5 +1,5 @@
 # Failure modes recorded for other packages computing the same quantities
-# (dossiers in the author's notes; the file is named in each comment). Each
+# (in the author's notes; the file is named in each comment). Each
 # test shows crimlab does not share the failure. The kernels' side of each
 # lives in src/t_*.cpp under ids edgeNN; here what R forms itself.
 

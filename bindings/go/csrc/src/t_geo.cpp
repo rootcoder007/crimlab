@@ -41,7 +41,7 @@ double chord(double lo1, double la1, double lo2, double la2) {
 
 void famtest(tk &T, int /*big*/) {
   // geosphere 1.5.20, distVincentySphere(p1, p2, r = 6371008.8), pairs
-  // from dev/doss/cgr.R (R 4.5.0)
+  // from dev/ref/cpp/cgr.R (R 4.5.0)
   const double gcd[50] = {
       555975.40116766398, 18876573.219166435, 11103759.137649018,
       17932774.037414499, 5158465.9279094785, 18839267.585578032,

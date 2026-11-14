@@ -11,7 +11,7 @@
 
 namespace {
 
-// Reference values, dev/doss/gbmt.R (gbmt 0.1.4, R 4.5.0): D, 60 units x 6
+// Reference values, dev/ref/cpp/mvt.R (gbmt 0.1.4, R 4.5.0): D, 60 units x 6
 // times of (id, time, y1, y2), two groups, values multiples of 1/8;
 // gbeta1/2 (rows intercept, t; columns y1, y2), gS1/2, gprob (mean
 // posteriors), gpost (first 5 rows), gll: gbmt(c("y1", "y2"), "id",

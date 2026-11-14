@@ -241,7 +241,7 @@ test_that("nearest neighbours and K agree with spatstat", {
   expect_equal(k$k, ref$iso, tolerance = 1e-12)
   expect_equal(ripk(x, y, w, rr, "border")$k, ref$border, tolerance = 1e-12)
   expect_equal(ripk(x, y, w, rr, "none")$k, ref$none, tolerance = 1e-12)
-  # the modified border estimator asked for alone (see dev/doss/dst.R)
+  # the modified border estimator asked for alone (see dev/ref/cpp/dst.R)
   expect_equal(ripk(x, y, w, rr, "modif")$k, ref$modif, tolerance = 1e-12)
 })
 

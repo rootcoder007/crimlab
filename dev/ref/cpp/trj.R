@@ -1,6 +1,6 @@
 # Reference values for src/trj.cpp (clab_zipll,
 # clab_zipem). Field package: crimCV 1.0.0 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages(library(crimCV))
 cat("crimCV", format(packageVersion("crimCV")), "\n")
 q <- function(e) { capture.output(r <- e); r }

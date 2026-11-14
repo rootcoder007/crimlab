@@ -25,7 +25,7 @@ struct xrng {
 
 const double Z = 1.9599639845400534;  // qnorm(0.975) in R 4.5.0
 
-// fairness 1.2.3, R 4.5.0, dev/doss/fairness.R: with i = 0..999,
+// fairness 1.2.3, R 4.5.0, dev/ref/cpp/fair.R: with i = 0..999,
 // y = ((i * 13) %% 7) < 3, g = i %% 3 (labels a, b, c), p = (((i * 37) %% 101)
 // + 30 y) / 131, and for each metric the call
 // fairness::<fn>(d, "y", "g", probs = "p", cutoff = 0.5)$Metric[1, ] with

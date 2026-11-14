@@ -18,7 +18,7 @@ void info(int big, const char *f, A... a) {
   if (big) std::printf(f, a...);
 }
 
-// Reference values from dev/doss/dst.R; the first line names the versions.
+// Reference values from dev/ref/cpp/dst.R; the first line names the versions.
 // R 4.5.0 spatstat.explore 3.8.3 spatstat.geom 3.8.3 
 // Kest(X, r = seq(0, 0.25, by = 0.005), correction = ...)
 const double kun[] = {

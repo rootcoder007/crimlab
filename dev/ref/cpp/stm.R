@@ -1,6 +1,6 @@
 # Reference values for src/t_stm.cpp (Mantel correlation). Run on zeus:
 #   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/stm.R
+#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/ref/cpp/stm.R
 suppressMessages(library(vegan))
 pr <- function(name, v) cat(name, " = {", paste(sprintf("%.17g", v),
   collapse = ", "), "};\n", sep = "")

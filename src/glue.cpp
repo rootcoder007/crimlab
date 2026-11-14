@@ -401,7 +401,7 @@ SEXP C_clab_r_jtsurf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP C_clab_r_jtcal(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_jtacc(SEXP, SEXP, SEXP);
 SEXP C_clab_r_bjtc(SEXP, SEXP, SEXP);
-// The entry points of the dossier functions (bdos.cpp).
+// The entry points of the specialist methods of R/spec.R (bdos.cpp).
 SEXP C_clab_r_fair(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_fairdf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_tmpaud(SEXP, SEXP, SEXP, SEXP, SEXP);

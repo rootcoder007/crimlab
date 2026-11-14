@@ -1,7 +1,7 @@
 # Reference values for src/fair.cpp (clab_fair).
 # Field package: fairness 1.2.3 (CRAN), run on R 4.5.0.
 # Prints C arrays for src/t_fair.cpp and a timing.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages(library(fairness))
 cat("fairness", format(packageVersion("fairness")), "\n")
 

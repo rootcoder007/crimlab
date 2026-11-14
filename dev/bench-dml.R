@@ -67,7 +67,7 @@ tm <- function(f) {
   list(t = stats::median(t), r = r)
 }
 
-# the data: sparse linear nuisances, as the dossier's lasso benchmark
+# the data: sparse linear nuisances, as in the usual lasso benchmark
 sim <- function(n, p) {
   set.seed(n + p)
   x <- matrix(rnorm(n * p), n, dimnames = list(NULL, paste0("x", 1:p)))

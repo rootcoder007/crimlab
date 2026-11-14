@@ -12,7 +12,7 @@
 
 namespace {
 
-// Reference values from dev/doss/hsp.R (base R).
+// Reference values from dev/ref/cpp/hsp.R (base R).
 // R 4.5.0 
 // kmeans(X, centers = X[1:3, ], algorithm = "Lloyd", iter.max = 1000)
 const double km3cl[] = {

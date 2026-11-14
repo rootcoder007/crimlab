@@ -1,6 +1,6 @@
 # Reference values for src/spt.cpp (clab_sptst).
 # Field package: sppt 1.0.0 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages({library(sppt); library(sf)})
 cat("sppt", format(packageVersion("sppt")), "\n")
 grid <- st_make_grid(st_sfc(st_polygon(list(rbind(c(0, 0), c(10, 0), c(10, 10), c(0, 10), c(0, 0))))), n = c(10, 10))

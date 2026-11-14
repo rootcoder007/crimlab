@@ -1,6 +1,6 @@
 # Reference values for src/t_hsp.cpp (K-means). Base R only. Run on zeus:
 #   R_ENVIRON_USER=/dev/null R_PROFILE_USER=/dev/null nice -n 10 \
-#   /usr/bin/Rscript dev/doss/hsp.R
+#   /usr/bin/Rscript dev/ref/cpp/hsp.R
 pr <- function(name, v) cat(name, " = {", paste(sprintf("%.17g", v),
   collapse = ", "), "};\n", sep = "")
 cat("// R", as.character(getRversion()), "\n")

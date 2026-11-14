@@ -1,6 +1,6 @@
 # Reference values for src/mvt.cpp (clab_mvtll,
 # clab_mvtem). Field package: gbmt 0.1.4 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages(library(gbmt))
 cat("gbmt", format(packageVersion("gbmt")), "\n")
 

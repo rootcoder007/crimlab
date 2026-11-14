@@ -1,6 +1,6 @@
-// Driver for dev/doss/toolmaRk.R: reads two profiles (one value a line)
+// Driver for dev/ref/cpp/chm.R: reads two profiles (one value a line)
 // and prints clab_chmb's n_same n_diff U p. Build from the package root:
-//   g++ -std=c++17 -O2 -Isrc src/chm.cpp src/lws.cpp dev/doss/chmdrv.cpp -o chmdrv
+//   g++ -std=c++17 -O2 -Isrc src/chm.cpp src/lws.cpp dev/ref/cpp/chmdrv.cpp -o chmdrv
 #include <cstdio>
 #include <cstdlib>
 

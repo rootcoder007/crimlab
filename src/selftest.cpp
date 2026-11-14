@@ -424,7 +424,7 @@ int main(int argc, char **argv) {
     return rc;
   }
   if (argc > 1 && std::strcmp(argv[1], "ext") == 0) {
-    // the spatial and dossier families with their full-size simulations
+    // the spatial and specialist families with their full-size simulations
     static char xs[1 << 16];
     tk t = {0, 0, xs, sizeof xs, 0};
     xs[0] = '\0';

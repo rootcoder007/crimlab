@@ -1,8 +1,11 @@
-# The dossier functions. Their kernels are checked in C++ (src/t_fair.cpp,
-# t_tlv.cpp, t_aor.cpp, t_bnf.cpp, t_sk.cpp, t_rpt.cpp, t_sens.cpp,
-# t_trj.cpp, t_mvt.cpp, t_tfr.cpp, t_lws.cpp, t_chm.cpp, t_gst.cpp,
-# t_spt.cpp); here the binding, against base R, stats and spdep (its
-# values stored in ref/doss.txt) where they compute the same thing, and
+# The specialist methods (R/spec.R): fairness audits, trace evidence,
+# aoristic weights, Benford screens, glass grouping and transfer, constant
+# reporters, sensitivity bounds, trajectory models, lowess, tool marks,
+# grid Gi* and the point pattern test. Their kernels are checked in C++
+# (src/t_fair.cpp, t_tlv.cpp, t_aor.cpp, t_bnf.cpp, t_sk.cpp, t_rpt.cpp,
+# t_sens.cpp, t_trj.cpp, t_mvt.cpp, t_tfr.cpp, t_lws.cpp, t_chm.cpp,
+# t_gst.cpp, t_spt.cpp); here the binding, against base R, stats and spdep (its
+# values stored in ref/spec.txt) where they compute the same thing, and
 # hand-computed cases. Tolerances are stated per comparison.
 
 test_that("fairness metrics agree with tables and prop.test", {
@@ -222,8 +225,8 @@ test_that("glass transfer, tool marks, grid Gi* and the pattern test", {
   expect_identical(g$row[1:7], c(1:6, 1) + 0)
   # spdep: nb is include.self(cell2nb(6, 8, type = "queen")), lg
   # localG(as.vector(t(m)), nb2listw(nb, style = "B")), stored in
-  # ref/doss.txt by dev/ref/doss.R (version named there)
-  lg <- refget("doss")
+  # ref/spec.txt by dev/ref/spec.R (version named there)
+  lg <- refget("spec")
   expect_equal(sum(m), lg$inp, tolerance = 1e-12, info = "inputs changed")
   # cell2nb numbers cells across rows first: row r, column c is
   # (r - 1) * 8 + c; gstr goes down the columns
@@ -239,7 +242,7 @@ test_that("glass transfer, tool marks, grid Gi* and the pattern test", {
   expect_true(is.nan(t2$units$p[41]))
 })
 
-test_that("dossier functions refuse what they cannot use", {
+test_that("the specialist methods refuse what they cannot use", {
   errs("fair", list(
     list("one label per value", 1:3, c(0, 1, 1), c("a", "b")),
     list("with no missing values", 1:2, c(0, 1), c("a", NA)),
@@ -334,7 +337,7 @@ test_that("dossier functions refuse what they cannot use", {
   ))
 })
 
-test_that("every dossier function answers one valid call in its shape", {
+test_that("every specialist method answers one valid call in its shape", {
   x <- c(0.2, 0.7, 0.4, 0.9)
   calls <- list(
     list(quote(fair(x, c(0, 1, 0, 1), c(1, 1, 2, 2))),

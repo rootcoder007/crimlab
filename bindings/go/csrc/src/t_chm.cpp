@@ -11,7 +11,7 @@
 
 namespace {
 
-// toolmaRk 0.0.2, R 4.5.0, dev/doss/toolmaRk.R section 2:
+// toolmaRk 0.0.2, R 4.5.0, dev/ref/cpp/chm.R section 2:
 // chumbley_non_random(matrix(m1), matrix(m2), 300, 30, 0.25) (same source),
 // (m1, m3, 300, 30, 0.25) (different sources) and (m1, m2) at the
 // defaults 500, 50, 0.25: n_same, n_diff, U, p. The marks are built by

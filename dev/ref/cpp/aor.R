@@ -1,6 +1,6 @@
 # Reference values for src/aor.cpp (clab_aor).
 # Field package: aoristic 2.0.0 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages(library(aoristic))
 cat("aoristic", format(packageVersion("aoristic")), "\n")
 q <- function(e) suppressMessages(e)

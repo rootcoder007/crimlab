@@ -1,10 +1,10 @@
 # Reference values from the "oracle" packages for crimlab's existing
 # forensic kernels (clab_gtmp, clab_kinidx, clab_patidx, clab_mixp,
 # clab_cllr, clab_lrcal), for src/t_orc.cpp. R 4.5.0, with the user's
-# ~/.Renviron (DNAtools in the dossier library needs Rcpp >= 1.1.0, which
+# ~/.Renviron (DNAtools in the reference library needs Rcpp >= 1.1.0, which
 # only the user library on zeus has).
 # DNAtools first: it needs a newer Rcpp than the other packages load
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages({library(DNAtools); library(Familias); library(numberofalleles); library(comparison)})
 for (p in c("Familias", "numberofalleles", "comparison")) cat(p, format(packageVersion(p)), "\n")
 
@@ -85,7 +85,7 @@ cat("// DNAtools: Pnm_locus(m = x, theta = 0, alleleProbs = fr), x = 1, 2, 3 (co
 for (x in 1:3) carr(sprintf("ref_dna%d", x), Pnm_locus(m = x, theta = 0, alleleProbs = fr))
 
 # 7. fairmodels (DALEX explainer around fixed scores): per-group rates of
-# the deterministic sample of dev/doss/fairness.R, at cutoff 0.5 and at
+# the deterministic sample of dev/ref/cpp/fair.R, at cutoff 0.5 and at
 # 0.001 (almost every case predicted positive; its cutoff must lie in [0, 1])
 suppressMessages({library(DALEX); library(fairmodels)})
 cat("fairmodels", format(packageVersion("fairmodels")), "\n")

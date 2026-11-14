@@ -1,7 +1,7 @@
 # Reference values for src/bnf.cpp (clab_bdig,
 # clab_bnft). Field packages: benford.analysis 0.1.5 and BenfordTests 1.2.0
 # (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages({library(benford.analysis); library(BenfordTests)})
 cat("benford.analysis", format(packageVersion("benford.analysis")),
     "BenfordTests", format(packageVersion("BenfordTests")), "\n")

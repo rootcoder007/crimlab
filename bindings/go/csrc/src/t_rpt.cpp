@@ -19,7 +19,7 @@ struct xrng {
   }
 };
 
-// the panel of dev/doss/crimeutils.R: units 0..39, years 2000..2009,
+// the panel of dev/ref/cpp/rpt.R: units 0..39, years 2000..2009,
 // months missing (u * 7 + y * 3 + (u * y) % 5) % 13, no record when
 // (u + 2 y) % 17 == 0; rep = 12 - missing
 int panel(int *u, int *y, int *rep) {
@@ -52,7 +52,7 @@ void run(tk &tt) {
   }
   // 2. the deterministic panel at four thresholds: no unit at m = 3 and
   // m = 6, {14} at m = 9 and {2, 4, ..., 38} at m = 12 (reference sets from
-  // crimeutils 0.5.1 at m = 9 and m = 12, dev/doss/crimeutils.R)
+  // crimeutils 0.5.1 at m = 9 and m = 12, dev/ref/cpp/rpt.R)
   {
     static int u[400], y[400], r[400];
     const int n = panel(u, y, r);
@@ -119,7 +119,7 @@ void t_rpt(tk &t, int) { run(t); }
 #include <cstdio>
 
 // 20,000 agencies x 30 years (crimeutils::ucr_constant_reporter_oris
-// 0.465 s median of 3, dev/doss/crimeutils.R)
+// 0.465 s median of 3, dev/ref/cpp/rpt.R)
 void b_rpt() {
   const int na = 20000, ny = 30, n = na * ny;
   static int u[n], y[n], r[n], flag[na], work[n];

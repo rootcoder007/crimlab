@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The R entry points of crimlab's dossier functions (fairness and the
+// The R entry points of the specialist methods, R/spec.R (fairness and the
 // audits of risk tools and predictive policing, trace evidence, aoristic weights, Benford screens, Scott-Knott grouping,
 // constant reporters, sensitivity bounds, trajectory models, glass
 // transfer, lowess, the Chumbley score, grid Gi* and the point pattern

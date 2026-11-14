@@ -29,7 +29,7 @@ double gauss(cgeo::rng &r) {
   return std::sqrt(-2.0 * std::log(u)) * std::cos(2.0 * PI * r.unif());
 }
 
-// set A of dev/doss/cgr.R
+// set A of dev/ref/cpp/cgr.R
 const int NA = 200;
 double ax[NA], ay[NA], aw[NA];
 void setA() {
@@ -300,7 +300,7 @@ void t_webpt(tk &T, int /*big*/) {
   clab_webpt(dx, dy, nullptr, 6, nullptr, 1e-15, 100000, o);
   tk_true(T, "web.dup", o[0] == 0 && o[1] == 0 && o[5] == 2);
   // parity with pcaPP 2.0.5 l1median_NLM(cbind(rep(x, w), rep(y, w)),
-  // maxit = 1000, tol = 1e-14)$par on set A (dev/doss/cgr.R)
+  // maxit = 1000, tol = 1e-14)$par on set A (dev/ref/cpp/cgr.R)
   setA();
   clab_webpt(ax, ay, aw, NA, nullptr, 1e-14, 100000, o);
   tk_eq(T, "web.pcappx", o[0], 501.63658252627886, 1e-8);
@@ -480,10 +480,10 @@ void t_cvhull(tk &T, int big) {
   static int idx[2000], hull[4000];
   int nh = 0;
   double o[2];
-  // set A against grDevices::chull (R 4.5.0) in dev/doss/cgr.R: R lists
+  // set A against grDevices::chull (R 4.5.0) in dev/ref/cpp/cgr.R: R lists
   // the vertices clockwise. Point 109 is collinear with 187 and 5 in the
   // rationals the set is built from, but not in their doubles: exact
-  // rational arithmetic on the doubles (gmp::as.bigq, dev/doss/cgr.R)
+  // rational arithmetic on the doubles (gmp::as.bigq, dev/ref/cpp/cgr.R)
   // puts it 5.4e-12 outside the edge from 187 to 5, so it is a vertex of
   // the hull of the input as given. R's chull drops it; the exact
   // predicate keeps it. Expected: R's list reversed, with 109 inserted.
@@ -501,7 +501,7 @@ void t_cvhull(tk &T, int big) {
     tk_true(T, "hul.chull", same);
   }
   // 10 x 10 lattice, every point twice: four corners; R's chull gives the
-  // same corners (hullBxy in dev/doss/cgr.R)
+  // same corners (hullBxy in dev/ref/cpp/cgr.R)
   double bx[200], by[200];
   for (int j = 0; j < 200; ++j) {
     bx[j] = (j % 100) % 10;

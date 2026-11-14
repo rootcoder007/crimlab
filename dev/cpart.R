@@ -22,8 +22,8 @@
 # OfficialStatistics, Spatial, CausalInference, Epidemiology and
 # NetworkAnalysis (their package lists); Bioconductor's software list for forensic
 # genetics (no package there computes any of these quantities); and the
-# packages named in the project dossier and its reference generators
-# (dev/doss). Packages not on CRAN (DNAprofiles, euroformix, FamLink,
+# packages the reference generators in dev/ref call. Packages not on
+# CRAN (DNAprofiles, euroformix, FamLink,
 # hmeasure, the ROC package on GitHub) are listed when they were candidates.
 #
 # own = TRUE marks rmorie, the maintainer's own package: it is reported

@@ -17,7 +17,7 @@ void info(int big, const char *f, A... a) {
   if (big) std::printf(f, a...);
 }
 
-// Reference values from dev/doss/stm.R; the first line names the versions.
+// Reference values from dev/ref/cpp/stm.R; the first line names the versions.
 // R 4.5.0 vegan 2.6.10 
 // mantel(dist(cbind(x, y)), dist(t), permutations = 0)$statistic
 const double mr[] = {

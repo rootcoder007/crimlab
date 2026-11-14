@@ -1,9 +1,9 @@
 # Reference values for src/lws.cpp (clab_lwss) and
 # src/chm.cpp (clab_chmb). Reference implementations: stats::lowess (R
 # 4.5.0) and toolmaRk 0.0.2 (CRAN).
-# driver: optional path of a compiled crimlab driver (dev/doss/chmdrv.cpp)
+# driver: optional path of a compiled crimlab driver (dev/ref/cpp/chmdrv.cpp)
 # to compare clab_chmb with chumbley_non_random on the ameslab profiles.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages(library(toolmaRk))
 cat("toolmaRk", format(packageVersion("toolmaRk")), " R", format(getRversion()), "\n")
 

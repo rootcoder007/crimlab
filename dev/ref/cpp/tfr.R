@@ -1,6 +1,6 @@
 # Reference values for src/tfr.cpp (clab_tfrp). Field package: tfer 1.3
 # (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 library(tfer)
 cat("tfer", format(packageVersion("tfer")), "\n")
 # reference distribution for src/t_tfr.cpp: the default model, 10^6 draws

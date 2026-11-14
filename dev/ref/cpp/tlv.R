@@ -1,6 +1,6 @@
 # Reference values for src/tlv.cpp (clab_tlvc,
 # clab_tlvlr). Field package: comparison 1.0.8 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 suppressMessages(library(comparison))
 cat("comparison", format(packageVersion("comparison")), "\n")
 

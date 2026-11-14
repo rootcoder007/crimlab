@@ -18,7 +18,7 @@ void info(int big, const char *f, A... a) {
   if (big) std::printf(f, a...);
 }
 
-// Reference values from dev/doss/jtc.R (base R).
+// Reference values from dev/ref/cpp/jtc.R (base R).
 // R 4.5.0 
 // 2.5 * dnorm(d, 4.2, 4.6)
 const double rnorm[] = {

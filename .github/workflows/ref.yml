@@ -117,7 +117,7 @@ jobs:
         env:
           CLAB_REF: ${{ runner.temp }}/ref
         run: |
-          Rscript -e 'f <- "^(spw|sp|doss|kdsurf|cntreg|didfe|ctabx|net|corr|disp|pol|fairdf|rates|clprep|ref)$"
+          Rscript -e 'f <- "^(spw|sp|spec|kdsurf|cntreg|didfe|ctabx|net|corr|disp|pol|fairdf|rates|clprep|ref)$"
             r <- as.data.frame(testthat::test_dir("tests/testthat",
               filter = f, package = "crimlab", load_package = "installed",
               reporter = "summary", stop_on_failure = FALSE))

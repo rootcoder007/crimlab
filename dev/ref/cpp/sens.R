@@ -1,6 +1,6 @@
 # Reference values and checks for src/sens.cpp (clab_rswp, clab_rshl).
 # Field package: rbounds 2.2 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 library(rbounds)
 cat("rbounds", format(packageVersion("rbounds")), "\n")
 

@@ -1,7 +1,7 @@
 # Reference values for src/t_cgr.cpp and src/t_geo.cpp (centrography,
 # convex hull, Weber point, great-circle distances). Run on zeus:
 #   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
-#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/doss/cgr.R
+#   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/ref/cpp/cgr.R
 # The point sets are built from integer recurrences that the C++ tests
 # reproduce operation for operation, so both sides see the same doubles.
 g <- function(i, a, m) ((i * a) %% m) / m

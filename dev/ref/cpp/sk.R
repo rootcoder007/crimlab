@@ -1,6 +1,6 @@
 # Reference values for src/sk.cpp (clab_skp). Field
 # package: SK4FGA 0.1.1 (CRAN), R 4.5.0.
-source("dev/doss/pre.R")
+source("dev/ref/cpp/pre.R")
 library(SK4FGA)
 cat("SK4FGA", format(packageVersion("SK4FGA")), "\n")
 # deterministic refractive indices, rebuilt in src/t_sk.cpp: three groups

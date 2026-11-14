@@ -11,7 +11,7 @@
 
 namespace {
 
-// Reference values, dev/doss/benford.R, R 4.5.0. With i = 0..999:
+// Reference values, dev/ref/cpp/bnf.R, R 4.5.0. With i = 0..999:
 // BenfordTests 1.2.0 chisq.benftest(d1 + 0.5), d1 = 1 + ((i * 7 + (i^2 %%
 // 13)) %% 9): statistic 400.72808136642323 (its p-value prints as 0).
 const double ref_chi1 = 400.72808136642323;

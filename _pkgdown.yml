@@ -25,7 +25,9 @@ reference:
       - dyadrt
   - title: Forensics
     desc: DNA match statistics, the weight and calibration of likelihood
-      ratios, kinship, paternity, mixtures and database searches.
+      ratios, kinship, paternity, mixtures and database searches; trace evidence
+      by the two-level model, glass grouping and transfer, and tool marks
+      (lowess profiles and the Chumbley score).
     contents:
       - gtmp
       - lrpost
@@ -39,6 +41,11 @@ reference:
       - patidx
       - dbsrch
       - preslr
+      - tlvc
+      - skp
+      - tfrp
+      - lwss
+      - chmb
   - title: Toxicology and taphonomy
     desc: Calibration lines and values below the limit of detection,
       postmortem redistribution, ethanol in a decomposed body and the
@@ -90,7 +97,8 @@ reference:
   - title: Spatial
     desc: Distances and projection, centrography, nearest neighbours and K
       functions, hot spots, space-time tests, journey to crime and the
-      geographic profile of a series.
+      geographic profile of a series; the Gi* statistic on a grid and
+      the point pattern test of two sets of counts.
     contents:
       - hvdist
       - eqproj
@@ -124,28 +132,11 @@ reference:
       - lmorn
       - locgi
       - dirmn
-  - title: Dossier methods
-    desc: Fairness of risk tools, trace evidence, aoristic time, Benford
-      screens, glass grouping and transfer, constant reporters,
-      sensitivity bounds, trajectory models, lowess, tool marks, grid
-      Gi* and the point pattern test.
-    contents:
-      - fair
-      - tlvc
-      - aorwt
-      - bdig
-      - skp
-      - rptc
-      - rswp
-      - zgll
-      - mvtll
-      - tfrp
-      - lwss
-      - chmb
       - gstr
       - sptst
   - title: Risk tools and predictive policing
-    desc: Differences between groups with intervals, over time and place;
+    desc: Fairness metrics of a binary risk tool by group; differences
+      between groups with intervals, over time and place;
       calibration of an area ranking and a score's spread across groups;
       individual fairness; bounds under label noise, Chouldechova's
       identity and the resolution of a ranking; the Oaxaca-Blinder
@@ -162,6 +153,7 @@ reference:
       - oaxbd
       - fairsim
       - nordet
+      - fair
   - title: Checks
     desc: Which labelling of a table reproduces a reported contrast, and an
       audit of categorical inputs.
@@ -181,10 +173,13 @@ reference:
       - ctabx
   - title: Police-reported crime
     desc: Severity-weighted crime indices and composite indices of standardised
-      counts.
+      counts; Benford screens of reported figures and agencies that report
+      the same count every month.
     contents:
       - crsev
       - zcomp
+      - bdig
+      - rptc
   - title: Concentration
     desc: How unequally crime is spread across places, people or units, what
       chance alone would show, and the tail of a heavy-tailed count.
@@ -213,11 +208,14 @@ reference:
       - mmshr
   - title: Life course and the justice pipeline
     desc: Age-crime curves of a mixture of types, the cumulative risk of a first
-      event by age, and lagged rates between stages.
+      event by age, and lagged rates between stages; group-based
+      trajectory models (zero-inflated Poisson and multivariate normal).
     contents:
       - agemix
       - cumrsk
       - jpipe
+      - zgll
+      - mvtll
   - title: Segregation and the Mandela Rules
     desc: Placements that meet the Mandela Rules' limits on solitary
       confinement, by group and denominator.
@@ -250,12 +248,14 @@ reference:
   - title: Causal estimates
     desc: Double machine learning by cross-fitting, with the learners above;
       augmented inverse probability weighting and targeted maximum
-      likelihood from the same nuisances.
+      likelihood from the same nuisances; Rosenbaum bounds on the
+      sensitivity of a matched comparison.
     contents:
       - dmlx
       - cbatt
       - smdbal
       - evlx
+      - rswp
   - title: Policy evaluation
     desc: Difference in differences with fixed effects, event studies,
       staggered adoption, synthetic controls and synthetic difference in
@@ -270,7 +270,8 @@ reference:
       - wystep
   - title: Time, contagion and operations
     desc: Self-exciting processes, trends and change points in series,
-      recurrence, hot-spot dynamics and patrol queues.
+      recurrence, hot-spot dynamics and patrol queues; aoristic weights of
+      events known only within an interval.
     contents:
       - hwkfit
       - hwkres
@@ -287,6 +288,7 @@ reference:
       - etasf
       - mvhwk
       - sthwk
+      - aorwt
   - title: Deterrence
     desc: Offending under the certainty and severity of sanction, what a
       design identifies, the inspection game and its phases, and the

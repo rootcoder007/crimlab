@@ -1,5 +1,5 @@
-# The exported spatial (spf) and dossier (dsx) functions, whose shapes
-# test-sp.R and test-doss.R check; spx is both, left out of the shape test
+# The exported spatial (spf) and specialist (dsx) functions, whose shapes
+# test-sp.R and test-spec.R check; spx is both, left out of the shape test
 # of test-crimlab.R.
 spf <- c("hvdist", "eqproj", "eqinv", "cgstat", "cgmedn", "webpt", "sdell",
          "cvhull", "nnidx", "ripk", "ripenv", "fzmode", "kmpart", "nnhclu",

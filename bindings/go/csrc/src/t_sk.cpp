@@ -10,7 +10,7 @@
 
 namespace {
 
-// SK4FGA 0.1.1, R 4.5.0, dev/doss/SK4FGA.R: partition(ri)$groups for the 24
+// SK4FGA 0.1.1, R 4.5.0, dev/ref/cpp/sk.R: partition(ri)$groups for the 24
 // values of ri() below (its fixed variance 1.6e-9, alpha 0.05)
 const int ref_ri[24] = {2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1, 1, 1, 1, 1, 1, 1};
 // partition((ri - 1.5) * 1000)$groups: 24 singletons

@@ -11,7 +11,7 @@
 
 namespace {
 
-// Reference values from dev/doss/comparison.R (comparison 1.0.8, R 4.5.0).
+// Reference values from dev/ref/cpp/tlv.R (comparison 1.0.8, R 4.5.0).
 // gU, gC, gmu: two.level.components(glass, c(7, 8, 9), 1) (glass K, Ca, Fe);
 // gctl, gr1, gr2: two.level.comparison.items of glass rows 1:6, 7:12 and
 // 19:24 (6 replicates each); glr: two.level.normal.LR(ctl, r1, Z) and
@@ -53,7 +53,7 @@ struct xrng {
   }
 };
 
-// the sample of dev/doss/comparison.R: MINSTD from seed 12345; m item
+// the sample of dev/ref/cpp/tlv.R: MINSTD from seed 12345; m item
 // effects (column-major m x 3, element e scaled by {1, 2, 0.5}[e % 3]), then
 // nrep[i] rows per item of effect + 0.1 (u - 0.5). x is n x 3 column-major.
 int mksample(int m, const int *nrep, double *x, int *item) {
@@ -130,7 +130,7 @@ void run(tk &tt) {
       1e-12);
   // 3. items 40 between-item SDs from the mean (same source) and 40 SDs
   // apart: the log LR is finite and equals the joint-density value from
-  // base R (dev/doss/comparison.R).
+  // base R (dev/ref/cpp/tlv.R).
   clab_tlvlr(gU, gC, gmu, 3, gs40, 6, gs40, 6, out, work);
   tk_near(tt, "tlv.far.same", out[0], gfar[0], 1e-12);
   tk_near(tt, "tlv.far.same.c", out[0],

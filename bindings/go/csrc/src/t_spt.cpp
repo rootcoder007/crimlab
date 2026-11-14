@@ -12,7 +12,7 @@
 namespace {
 
 const double kNaN = std::nan("");
-// sppt 1.0.0, R 4.5.0, dev/doss/sppt.R: sppt(d, count_col = c("a", "b"),
+// sppt 1.0.0, R 4.5.0, dev/ref/cpp/spt.R: sppt(d, count_col = c("a", "b"),
 // B = 4999, seed = 1) on the 10 x 10 grid with the counts of counts100()
 // below: difference (percentage points) and pvalue (NA for units empty in
 // both patterns); sp_pmin, sp_pmax: the smallest and largest p of each
@@ -68,7 +68,7 @@ void run(tk &tt) {
   // 1. parity with sppt: the observed differences (sppt reports them
   // rounded to 6 decimals: tolerance 5e-7); the p-values in distribution.
   // At sparse units the field's own p moves by up to 0.21 between seeds
-  // (dev/doss/sppt.R: replicates sit on a lattice and ties with the
+  // (dev/ref/cpp/spt.R: replicates sit on a lattice and ties with the
   // observed difference are decided by the noise of the replicate mean),
   // so the ranges of p over 8 seeds are compared, unit by unit (they must
   // meet within 4 standard errors, the 3-decimal rounding and one step).

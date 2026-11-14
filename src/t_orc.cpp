@@ -12,7 +12,7 @@
 
 namespace {
 
-// Reference values, dev/doss/oracles.R, R 4.5.0. One locus, alleles A..F
+// Reference values, dev/ref/cpp/orc.R, R 4.5.0. One locus, alleles A..F
 // with frequencies FR, no mutation.
 // ref_pi: Familias 2.6.4, FamiliasPosterior(list(af is father, unrelated),
 //   ...)$likelihoods ratio for the trios TRIO below (mother, child, AF);
@@ -29,7 +29,7 @@ namespace {
 // ref_fm, ref_fm_low: fairmodels 1.2.2, fairness_check(explain(fixed
 //   scores p), protected = g, privileged = "a", cutoff = 0.5 or 0.001)
 //   $groups_data$s: ACC TPR TNR FPR FNR PPV NPV STP for groups a b c, on
-//   the deterministic sample of dev/doss/fairness.R;
+//   the deterministic sample of dev/ref/cpp/fair.R;
 // ref_ece: comparison 1.0.8, calc.ece(lss, lds) at prior 0.5: $ece and
 //   $ece.cal, with lss = exp(seq(-1, 3, length.out = 15)) and
 //   lds = exp(seq(-4, 1.2, length.out = 18)).

@@ -11,7 +11,7 @@
 
 namespace {
 
-// Reference values, dev/doss/rbounds.R (rbounds 2.2, R 4.5.0), for the 60
+// Reference values, dev/ref/cpp/sens.R (rbounds 2.2, R 4.5.0), for the 60
 // differences d_i = (((i * 37) %% 101) - 35) / 16, Gamma = 1, 1.5, ..., 3:
 // ref_plo, ref_pup: psens(d, 0, Gamma = 3, GammaInc = 0.5)$bounds (rbounds
 // rounds them to 4 digits); ref_pup_u, ref_plo_u: the same formulas in

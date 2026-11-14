@@ -18,7 +18,7 @@ void info(int big, const char *f, A... a) {
   if (big) std::printf(f, a...);
 }
 
-// Reference values from dev/doss/dst.R; the first line names the versions.
+// Reference values from dev/ref/cpp/dst.R; the first line names the versions.
 // R 4.5.0 spatstat.explore 3.8.3 spatstat.geom 3.8.3 
 // colMeans(nndist(XD, k = 1:4))
 const double nnmean[] = {
@@ -44,7 +44,7 @@ const double ce[] = {
 
 const double PI = cgeo::pi;
 
-// pattern P of dev/doss/dst.R
+// pattern P of dev/ref/cpp/dst.R
 void patp(double *x, double *y, int n) {
   for (long long i = 0; i < n; ++i) {
     x[i] = static_cast<double>((i * i * 7919 + i * 31) % 1009) / 1009 * 2;

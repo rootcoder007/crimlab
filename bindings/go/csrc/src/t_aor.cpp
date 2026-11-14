@@ -10,7 +10,7 @@
 
 namespace {
 
-// aoristic 2.0.0, R 4.5.0, dev/doss/aoristic.R: 300 deterministic UTC
+// aoristic 2.0.0, R 4.5.0, dev/ref/cpp/aor.R: 300 deterministic UTC
 // events (i = 0..299; see section 3 below), aoristic.df(d, "x", "y",
 // "from", "to"): ref_tot = colSums of the hour columns, ref_row0..2 = rows
 // 1..3. hour1 is Sunday 00h (lubridate::wday 1).

@@ -11,7 +11,7 @@
 
 namespace {
 
-// Reference values, dev/doss/crimCV.R (crimCV 1.0.0, R 4.5.0): Y, 100 units
+// Reference values, dev/ref/cpp/trj.R (crimCV 1.0.0, R 4.5.0): Y, 100 units
 // x 6 periods of simulated two-group zero-inflated counts (row-major; -1 is
 // missing), Xb = bs(oyr, degree = 2, intercept = TRUE), Zb = bs(oyr, 1,
 // intercept = TRUE); cbeta, cgamma, cprob, cllike, cgwt (first 5 rows):

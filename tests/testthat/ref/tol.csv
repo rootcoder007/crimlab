@@ -62,8 +62,8 @@ ctabx,vbc,equal,1e-12,test-ctabx.R
 didfe,inp,equal,1e-12,test-didfe.R
 didfe,est,equal,1e-6,test-didfe.R
 didfe,theta,equal,1e-5,test-didfe.R
-doss,inp,equal,1e-12,test-doss.R
-doss,lg,equal,1e-10,test-doss.R
+spec,inp,equal,1e-12,test-spec.R
+spec,lg,equal,1e-10,test-spec.R
 kdsurf,inp,equal,1e-12,test-kdsurf.R
 kdsurf,bw,equal,1e-14,test-kdsurf.R
 net,rand/*/inp,equal,1e-12,test-net.R
