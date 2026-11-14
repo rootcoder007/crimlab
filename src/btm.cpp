@@ -172,8 +172,9 @@ std::vector<double> parv(SEXP par, const char *nm, int kind, int base) {
 
 extern "C" {
 
-//' @srrstats {TS1.2} hwkfit(), hwkres() and hwksim() take event times as a
-//'   plain numeric vector in one unit, sorted, inside the window [0, hor].
+//' @srrstats {G2.1} hwkfit() and hwkres() take event times as a plain
+//'   numeric vector in one unit, sorted, inside the window [0, hor], and
+//'   evtimes() asserts each of these; hwksim() returns times in that form.
 //' @noRd
 SEXP C_clab_r_hwkfit(SEXP times, SEXP hor, SEXP kernel, SEXP base, SEXP per, SEXP start,
                      SEXP res, SEXP seed, SEXP maxit) {
