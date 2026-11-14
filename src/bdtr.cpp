@@ -209,7 +209,8 @@ SEXP C_clab_r_colarr(SEXP a, SEXP e, SEXP bg) {
   static const char *const cn[] = {"c11", "c10", "c01", "c00"};
   for (int k = 0; k < 4; ++k) {
     double *d = f.dbl(cn[k]);
-    std::copy(c.begin() + k * n, c.begin() + (k + 1) * n, d);
+    const std::ptrdiff_t at = static_cast<std::ptrdiff_t>(k) * n;
+    std::copy(c.begin() + at, c.begin() + at + n, d);
   }
   for (int i = 0; i < n; ++i) lor[i] = std::log(orr[i]);
   SEXP out = f.done();
