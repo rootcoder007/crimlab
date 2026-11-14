@@ -1508,6 +1508,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jtrj.inc"
 #include "jnet.inc"
 #include "jchk.inc"
+#include "jsp.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1584,6 +1585,28 @@ const Ent ents[] = {
     {"coofg", "inc off", coofg},
     {"relchk", "x value type? group? ref? event? digits? tol?", relchk},
     {"catchk", "x ref? nmin?", catchk},
+    {"hvdist", "from to r?", hvdist},
+    {"eqproj", "x y? lon0? lat0? r?", eqproj},
+    {"eqinv", "x y? lon0 lat0 r?", eqinv},
+    {"cgstat", "x y? w? k? lonlat?", cgstat},
+    {"cgmedn", "x y? lonlat?", cgmedn},
+    {"webpt", "x y? w? start? tol? maxit? lonlat?", webpt},
+    {"sdell", "x y? w? k? c? lonlat?", sdell},
+    {"cvhull", "x y? lonlat?", cvhull},
+    {"nnidx", "x y? win kmax? nsim? seed? dist? metric?", nnidx},
+    {"ripk", "x y? win r corr? metric?", ripk},
+    {"ripenv", "x y? win r corr? nsim? seed?", ripenv},
+    {"fzmode", "x y? r count? metric? lonlat?", fzmode},
+    {"kmpart", "x y? k init? cell? upd? maxit? seed? count? lonlat?", kmpart},
+    {"nnhclu", "x y? area? fixd? p? minpts? minhi? maxord? k? c? count? lonlat?", nnhclu},
+    {"stacel", "x y? win nx? ny? r top? minpts? k? c? count?", stacel},
+    {"mantst", "x y? t cs? ct? nsim? seed? metric? lonlat?", mantst},
+    {"stmavg", "x y? t span? lonlat?", stmavg},
+    {"jtdecay", "d type par tab?", jtdecay},
+    {"jtsurf", "x y? win nx ny type par tab? metric? mode?", jtsurf},
+    {"jtcal", "d t h w? kern? refl?", jtcal},
+    {"jtacc", "prob win base", jtacc},
+    {"bjtc", "pj od dest", bjtc},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
