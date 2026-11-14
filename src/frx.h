@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The checks and the arithmetic of pedlr() as C++ shared by
+// The checks and the arithmetic of pedlr() and gmixlr() as C++ shared by
 // the R binding (src/bfrx.cpp) and clab_jrun() (cli/jfrx.inc): the
 // arguments come in as columns of labels and numbers, the results go out
 // as vectors, and a refusal is a message without the function's name,
-// which each front end puts in front. Defined in ped.cpp.
+// which each front end puts in front. Defined in ped.cpp and gmx.cpp.
 #ifndef CLAB_FRX_H
 #define CLAB_FRX_H
 
@@ -46,6 +46,42 @@ struct PedOut {
 
 // CLAB_OK, or an error code with err the message.
 int pedlr(const PedIn &in, PedOut &out, std::string &err);
+
+// gmixlr(): the peaks (locus, allele, height), the frequencies (locus,
+// allele, frequency, and the fragment size when hassz), the reference
+// profiles (id, locus, two alleles), the contributors named under each
+// account, the number of contributors and the settings; par, when
+// haspar, the parameters by name (mu, omega, beta, xi, m1, ...).
+struct GmxIn {
+  Lab ploc, pal;
+  std::vector<double> ph;
+  Lab floc, fal;
+  std::vector<double> fq, fsz;
+  bool hassz = false;
+  Lab rid, rloc, ra1, ra2;
+  std::vector<std::string> hp, hd;
+  double nc = 0, at = 0, pc = 0, lambda = 0, theta = 0;
+  bool stut = false, deg = false, haspar = false;
+  std::vector<std::string> parnm;
+  std::vector<double> par;
+};
+
+// Per account (0 hp, 1 hd): the log likelihood at its fitted (or given)
+// parameters, mu, omega, beta and xi (NaN when not modelled), the
+// convergence code of the fit (1 converged, 0 not, -1 given) and its
+// steps, the contributors and their proportions. By locus: the base-10
+// log likelihood ratio.
+struct GmxOut {
+  double loglik[2] = {0, 0}, mu[2] = {0, 0}, omega[2] = {0, 0}, beta[2] = {0, 0}, xi[2] = {0, 0};
+  int conv[2] = {0, 0}, iter[2] = {0, 0};
+  std::vector<std::string> who[2];
+  std::vector<double> m[2];
+  std::vector<std::string> loc;
+  std::vector<double> llr;
+  double log10lr = 0.0;
+};
+
+int gmixlr(const GmxIn &in, GmxOut &out, std::string &err);
 
 }  // namespace frx
 

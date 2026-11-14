@@ -592,6 +592,9 @@ func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 // Pedlr runs pedlr() of the R package (arguments: ped geno freq alt? mut? rate? range?; ? marks an optional one).
 func Pedlr(args string) (string, error) { return Jrun("pedlr", args) }
 
+// Gmixlr runs gmixlr() of the R package (arguments: peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?; ? marks an optional one).
+func Gmixlr(args string) (string, error) { return Jrun("gmixlr", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

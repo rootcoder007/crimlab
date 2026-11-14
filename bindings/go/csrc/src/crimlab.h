@@ -148,6 +148,29 @@ int clab_mutmat(int model, int na, const double *lab, double rate, double range,
 int clab_pedlik(int n, const int *fa, const int *mo, const int *g, int na, const double *p,
                 const double *mm, const double *mf, double *ll);
 
+/* The gamma model of DNA mixture peak heights (Cowell et al. 2015; Bleka,
+ * Storvik and Gill 2016): the log likelihood at each of nl markers for
+ * nk known contributors and nu unknown ones summed over. Marker l has
+ * np[l] positions, laid out one marker after another: p, the allele
+ * frequency (0 for a position no one carries, a stutter position); y, the
+ * height seen (0 for no peak, otherwise at least at); sz, the size in
+ * bases (read when deg); st, the position one repeat shorter (-1 none;
+ * read when stut); cn, the allele's count among the conditioning
+ * profiles, cl[l] their number of alleles (the Balding-Nichols draw with
+ * theta). kg: the known contributors' position codes, two per marker and
+ * contributor, (l nk + k) 2. par: mu, omega, beta (degradation, in (0,
+ * 1]), xi (stutter, in [0, 1)) and the nk + nu mixture proportions,
+ * knowns first. Peak at position a: gamma with shape s(a) / omega^2 and
+ * scale mu omega^2, s(a) the doses times the proportions, degraded by
+ * beta^((size - 125) / 100) and moved by stutter; below at it is not
+ * seen; a peak where s(a) = 0 is a drop-in, pc p(a) lambda exp(-lambda
+ * (y - at)), and a marker without one has 1 - pc. Out: ll, nl natural log
+ * likelihoods. O(nl (genotypes)^nu np^2). */
+int clab_gmxlik(int nl, const int *np, const double *p, const double *y, const double *sz,
+                const int *st, int nk, const int *kg, int nu, const double *cn, const double *cl,
+                double theta, double at, double pc, double lambda, int deg, int stut,
+                const double *par, double *ll);
+
 /* Clearance-rate decomposition and Simpson's paradox (Lean:
  * Crimlab.Clearance.kitagawa, change_ge_mix). clra, reca, clrb, recb: n parts'
  * cleared (non-negative) and recorded (positive) counts in comparisons A

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The R entry points of pedlr(): the shapes of the
+// The R entry points of pedlr() and gmixlr(): the shapes of the
 // arguments are checked here, in the words clab_jrun() uses too; the rest
 // of the checks and the arithmetic are frx:: (frx.h) and the kernels.
 // Every C++ object is gone before an error is raised: a refusal from frx
@@ -129,6 +129,127 @@ SEXP pedrun(SEXP ped, SEXP geno, SEXP freq, SEXP alt, SEXP mut, SEXP rate, SEXP 
   return classed(out, "pedlr");
 }
 
+// labels from an atomic vector (NULL: none); false for anything else
+bool names(SEXP x, std::vector<std::string> &out) {
+  out.clear();
+  if (Rf_isNull(x)) return true;
+  if (!Rf_isVectorAtomic(x) || !(TYPEOF(x) == STRSXP || clab::isnum(x))) return false;
+  frx::Lab l;
+  if (!lab(x, "hp", l)) return false;
+  for (std::size_t i = 0; i < l.s.size(); ++i) {
+    if (l.na[i]) return false;
+    out.push_back(l.s[i]);
+  }
+  return true;
+}
+
+SEXP nas(const double *x, int n) {
+  SEXP s = Rf_allocVector(REALSXP, n);
+  for (int i = 0; i < n; ++i) REAL(s)[i] = std::isnan(x[i]) ? NA_REAL : x[i];
+  return s;
+}
+
+// gmixlr() once its arguments have their shapes
+SEXP gmxrun(SEXP peaks, SEXP freq, SEXP ref, SEXP hp, SEXP nc, SEXP hd, SEXP at, SEXP pc, SEXP lambda,
+            SEXP theta, SEXP stut, SEXP deg, SEXP par, int *code) {
+  frx::GmxIn in;
+  *code = CLAB_EARG;
+  if (!names(hp, in.hp)) {
+    say("`hp` must be the ids of profiles in `ref`.");
+    return R_NilValue;
+  }
+  if (!names(hd, in.hd)) {
+    say("`hd` must be NULL or the ids of profiles in `ref`.");
+    return R_NilValue;
+  }
+  const bool ok = lab(dcol(peaks, "locus"), "peaks", in.ploc) && lab(dcol(peaks, "allele"), "peaks", in.pal) &&
+                  lab(dcol(freq, "locus"), "freq", in.floc) && lab(dcol(freq, "allele"), "freq", in.fal) &&
+                  (Rf_isNull(ref) || (lab(dcol(ref, "id"), "ref", in.rid) && lab(dcol(ref, "locus"), "ref", in.rloc) &&
+                                      lab(dcol(ref, "a1"), "ref", in.ra1) && lab(dcol(ref, "a2"), "ref", in.ra2)));
+  if (!ok) return R_NilValue;
+  SEXP h = PROTECT(Rf_coerceVector(dcol(peaks, "height"), REALSXP));
+  in.ph.assign(REAL(h), REAL(h) + XLENGTH(h));
+  SEXP f = PROTECT(Rf_coerceVector(dcol(freq, "freq"), REALSXP));
+  in.fq.assign(REAL(f), REAL(f) + XLENGTH(f));
+  in.hassz = !Rf_isNull(dcol(freq, "size"));
+  if (in.hassz) {
+    SEXP z = PROTECT(Rf_coerceVector(dcol(freq, "size"), REALSXP));
+    in.fsz.assign(REAL(z), REAL(z) + XLENGTH(z));
+    UNPROTECT(1);
+  }
+  if (!Rf_isNull(par)) {
+    SEXP pv = PROTECT(Rf_coerceVector(par, REALSXP));
+    SEXP pn = Rf_getAttrib(par, R_NamesSymbol);
+    in.haspar = true;
+    for (R_xlen_t i = 0; i < XLENGTH(pv); ++i) {
+      in.par.push_back(REAL(pv)[i]);
+      in.parnm.push_back(Rf_translateCharUTF8(STRING_ELT(pn, i)));
+    }
+    UNPROTECT(1);
+  }
+  UNPROTECT(2);
+  in.nc = clab::val1(nc);
+  in.at = clab::val1(at);
+  in.pc = clab::val1(pc);
+  in.lambda = clab::val1(lambda);
+  in.theta = clab::val1(theta);
+  in.stut = Rf_asLogical(stut) == TRUE;
+  in.deg = Rf_asLogical(deg) == TRUE;
+  frx::GmxOut o;
+  std::string err;
+  *code = frx::gmixlr(in, o, err);
+  if (*code != CLAB_OK) {
+    say(err);
+    return R_NilValue;
+  }
+  SEXP fit = PROTECT(Rf_allocVector(VECSXP, 8));
+  SET_VECTOR_ELT(fit, 0, strs({"hp", "hd"}));
+  SET_VECTOR_ELT(fit, 1, nas(o.loglik, 2));
+  SET_VECTOR_ELT(fit, 2, nas(o.mu, 2));
+  SET_VECTOR_ELT(fit, 3, nas(o.omega, 2));
+  SET_VECTOR_ELT(fit, 4, nas(o.beta, 2));
+  SET_VECTOR_ELT(fit, 5, nas(o.xi, 2));
+  SEXP cv = Rf_allocVector(LGLSXP, 2);
+  SET_VECTOR_ELT(fit, 6, cv);
+  SEXP it = Rf_allocVector(REALSXP, 2);
+  SET_VECTOR_ELT(fit, 7, it);
+  for (int k = 0; k < 2; ++k) {
+    LOGICAL(cv)[k] = o.conv[k] < 0 ? NA_LOGICAL : o.conv[k] == 1;
+    REAL(it)[k] = o.iter[k];
+  }
+  static const char *const fn[] = {"hyp", "loglik", "mu", "omega", "beta", "xi", "conv", "iter"};
+  clab::frame(fit, fn);
+  std::vector<std::string> hy, who;
+  std::vector<double> m;
+  for (int k = 0; k < 2; ++k) {
+    for (std::size_t j = 0; j < o.who[k].size(); ++j) {
+      hy.push_back(k ? "hd" : "hp");
+      who.push_back(o.who[k][j]);
+      m.push_back(o.m[k][j]);
+    }
+  }
+  SEXP mx = PROTECT(Rf_allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(mx, 0, strs(hy));
+  SET_VECTOR_ELT(mx, 1, strs(who));
+  SET_VECTOR_ELT(mx, 2, reals(m));
+  static const char *const mn[] = {"hyp", "who", "m"};
+  clab::frame(mx, mn);
+  SEXP lc = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(lc, 0, strs(o.loc));
+  SET_VECTOR_ELT(lc, 1, reals(o.llr));
+  static const char *const lnm[] = {"locus", "log10lr"};
+  clab::frame(lc, lnm);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(out, 0, Rf_ScalarReal(std::pow(10.0, o.log10lr)));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarReal(o.log10lr));
+  SET_VECTOR_ELT(out, 2, fit);
+  SET_VECTOR_ELT(out, 3, mx);
+  SET_VECTOR_ELT(out, 4, lc);
+  static const char *const on[] = {"lr", "log10lr", "fit", "mix", "locus"};
+  clab::nlist(out, on);
+  UNPROTECT(4);
+  return classed(out, "gmixlr");
+}
 
 }  // namespace
 
@@ -158,6 +279,37 @@ SEXP C_clab_r_pedlr(SEXP ped, SEXP geno, SEXP freq, SEXP alt, SEXP mut, SEXP rat
   msg[0] = '\0';
   int code = CLAB_OK;
   SEXP out = pedrun(ped, geno, freq, alt, mut, rate, range, &code);
+  clab::ichk(code);
+  if (msg[0] != '\0') clab::fail("%s", msg);
+  return out;
+}
+
+SEXP C_clab_r_gmixlr(SEXP peaks, SEXP freq, SEXP ref, SEXP hp, SEXP nc, SEXP hd, SEXP at, SEXP pc,
+                     SEXP lambda, SEXP theta, SEXP stut, SEXP deg, SEXP par) {
+  clab::who = "gmixlr";
+  if (!isdf(peaks, {"locus", "allele", "height"})) {
+    clab::fail("`peaks` must be a data frame with columns locus, allele and height.");
+  }
+  if (!clab::isnum(dcol(peaks, "height"))) clab::fail("`peaks$height` must be numbers.");
+  if (!isdf(freq, {"locus", "allele", "freq"})) {
+    clab::fail("`freq` must be a data frame with columns locus, allele and freq.");
+  }
+  if (!clab::isnum(dcol(freq, "freq"))) clab::fail("`freq$freq` must be numbers.");
+  if (!Rf_isNull(dcol(freq, "size")) && !clab::isnum(dcol(freq, "size"))) clab::fail("`freq$size` must be numbers.");
+  if (!Rf_isNull(ref) && !isdf(ref, {"id", "locus", "a1", "a2"})) {
+    clab::fail("`ref` must be NULL or a data frame with columns id, locus, a1 and a2.");
+  }
+  for (SEXP b : {stut, deg}) {
+    if (TYPEOF(b) != LGLSXP || XLENGTH(b) != 1 || LOGICAL(b)[0] == NA_LOGICAL) {
+      clab::fail("`%s` must be TRUE or FALSE.", b == stut ? "stut" : "deg");
+    }
+  }
+  if (!Rf_isNull(par) && (!clab::isnum(par) || Rf_isNull(Rf_getAttrib(par, R_NamesSymbol)))) {
+    clab::fail("`par` must be NULL or named numbers.");
+  }
+  msg[0] = '\0';
+  int code = CLAB_OK;
+  SEXP out = gmxrun(peaks, freq, ref, hp, nc, hd, at, pc, lambda, theta, stut, deg, par, &code);
   clab::ichk(code);
   if (msg[0] != '\0') clab::fail("%s", msg);
   return out;

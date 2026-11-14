@@ -8,6 +8,12 @@
   stepwise model, with one rate or separate maternal and paternal rates.
   It equals `kinidx()` and `patidx()` where they apply, the enumeration of
   every allele in its tests, and pedprobr's likelihoods.
+* `gmixlr()`: the likelihood ratio of two accounts of a DNA mixture by the
+  gamma model of peak heights, with drop-out, drop-in, backward stutter,
+  degradation and coancestry, the unknown contributors summed over and the
+  parameters fitted by maximum likelihood under each account, or fixed
+  with `par`. Its likelihood is checked against enumeration in R; the help
+  page states the model's assumptions and limits.
 * `clprep()` reaches the command line, the Python package and the
   bindings through `clab_jrun()`, which does its recodes, filters and
   recipes in C++ with R's messages and returns the generic's arguments as

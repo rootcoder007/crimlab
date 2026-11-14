@@ -3333,3 +3333,25 @@ def pedlr(ped: Any, geno: Any, freq: Any, alt: Any = None, mut: Any = "none", ra
     2.0
     """
     return jcall("pedlr", ped=ped, geno=geno, freq=freq, alt=alt, mut=mut, rate=rate, range=range)
+
+
+def gmixlr(peaks: Any, freq: Any, ref: Any = None, hp: Any = None, nc: Any = None, hd: Any = None,
+           at: Any = 50, pc: Any = 0.05, lambda_: Any = 0.01, theta: Any = 0, stut: Any = False,
+           deg: Any = False, par: Any = None) -> Any:
+    """Continuous DNA mixture likelihood ratio (gamma model).
+
+    The arguments and the result are those of R's ``gmixlr()``: see its help
+    page (``lambda`` is ``lambda_`` here). ``peaks``, ``freq`` and ``ref``
+    are dicts of columns; ``par`` a dict of named parameters.
+
+    Examples
+    --------
+    >>> peaks = {"locus": ["L", "L"], "allele": [1, 3], "height": [800, 900]}
+    >>> freq = {"locus": ["L"] * 4, "allele": [1, 2, 3, 4], "freq": [0.1, 0.2, 0.3, 0.25]}
+    >>> ref = {"id": ["S"], "locus": ["L"], "a1": [1], "a2": [3]}
+    >>> r = gmixlr(peaks, freq, ref, hp="S", nc=1, pc=0, par={"mu": 1000, "omega": 0.2, "m1": 1})
+    >>> round(r["lr"], 6)
+    16.666667
+    """
+    return jcall("gmixlr", peaks=peaks, freq=freq, ref=ref, hp=hp, nc=nc, hd=hd, at=at, pc=pc,
+                 lambda_=lambda_, theta=theta, stut=stut, deg=deg, par=par)

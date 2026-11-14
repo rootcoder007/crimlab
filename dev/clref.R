@@ -959,6 +959,24 @@ ok("pedlr", ped = sb, geno = data.frame(id = c("a", "b"), locus = "L", a1 = c(9,
 bad("pedlr", ped = tri, geno = tg, freq = tf, mut = "stepwise")
 bad("pedlr", ped = tri[2:3, ], geno = tg, freq = tf)
 bad("pedlr", ped = tri, geno = tg, freq = tf, mut = "step")
+# The continuous mixture model of peak heights
+gp <- data.frame(locus = rep(c("D3", "vWA"), c(4, 3)), allele = c(14, 15, 16, 17, 16, 17, 18),
+                 height = c(1210, 380, 1150, 420, 1400, 1960, 610))
+gf <- data.frame(locus = rep(c("D3", "vWA"), c(5, 5)), allele = c(13, 14, 15, 16, 17, 15, 16, 17, 18, 19),
+                 freq = c(0.05, 0.1, 0.25, 0.25, 0.2, 0.1, 0.2, 0.3, 0.2, 0.1),
+                 size = c(110, 114, 118, 122, 126, 160, 164, 168, 172, 176))
+gr <- data.frame(id = rep(c("V", "S"), each = 2), locus = rep(c("D3", "vWA"), 2),
+                 a1 = c(14, 16, 15, 17), a2 = c(16, 17, 17, 18))
+ok("gmixlr", peaks = gp, freq = gf, ref = gr, hp = c("V", "S"), nc = 2, hd = "V",
+   par = c(mu = 1800, omega = 0.1, m1 = 0.73, m2 = 0.27))
+ok("gmixlr", peaks = gp, freq = gf, ref = gr, hp = c("V", "S"), nc = 2, hd = "V", theta = 0.03,
+   stut = TRUE, deg = TRUE, par = c(mu = 1900, omega = 0.12, beta = 0.9, xi = 0.05, m1 = 0.7, m2 = 0.3))
+ok("gmixlr", peaks = gp[c(1, 3, 4, 5, 6), ], freq = gf, ref = gr, hp = "S", nc = 2, at = 100,
+   pc = 0.1, lambda = 0.02, par = c(mu = 1500, omega = 0.2, m1 = 0.25, m2 = 0.75))
+ok("gmixlr", peaks = gp, freq = gf, ref = gr, hp = c("V", "S"), nc = 2, hd = "V")
+bad("gmixlr", peaks = gp, freq = gf, ref = gr, hp = "S", nc = 0)
+bad("gmixlr", peaks = gp, freq = gf, ref = gr, hp = "W", nc = 2)
+bad("gmixlr", peaks = gp, freq = gf[1:3], ref = gr, hp = "S", nc = 1, deg = TRUE)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)
