@@ -1502,6 +1502,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jx.inc"
 #include "jfair.inc"
 #include "jtrace.inc"
+#include "jaor.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1553,6 +1554,10 @@ const Ent ents[] = {
     {"lwss", "x y f? iter? delta?", lwss},
     {"chmb", "a b wopt wval coarse?", chmb},
     {"tfrp", "par deffect? tdist? ymax? nsim? seed? hl? nq?", tfrp},
+    {"aorwt", "from to bw? nb? origin? off? tt? toff? lo? hi? each?", aorwt},
+    {"bdig", "x nd? dp? sgn?", bdig},
+    {"bnft", "dig nd? nsim? seed?", bnft},
+    {"rptc", "unit year rep y0 y1 minrep?", rptc},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
