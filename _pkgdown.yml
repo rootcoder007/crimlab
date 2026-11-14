@@ -38,6 +38,22 @@ reference:
       - kinidx
       - patidx
       - dbsrch
+      - preslr
+  - title: Toxicology and taphonomy
+    desc: Calibration lines and values below the limit of detection,
+      postmortem redistribution, ethanol in a decomposed body and the
+      reliability of specimen matrices; the decay chain of a body, a
+      Bayesian preservation model and log-ratio transforms of element
+      shares.
+    contents:
+      - txcal
+      - lodimp
+      - pmrrat
+      - etohlr
+      - mtxrel
+      - tpdmc
+      - tpbhm
+      - clrilr
   - title: Policing
     desc: Clearance rates, exposure proxies, misrecorded groups and
       regression to the mean.
@@ -73,7 +89,8 @@ reference:
       - ntchg
   - title: Spatial
     desc: Distances and projection, centrography, nearest neighbours and K
-      functions, hot spots, space-time tests and journey to crime.
+      functions, hot spots, space-time tests, journey to crime and the
+      geographic profile of a series.
     contents:
       - hvdist
       - eqproj
@@ -99,6 +116,8 @@ reference:
       - jtcal
       - jtacc
       - bjtc
+      - crchyp
+      - hitscr
       - spwt
       - gearc
       - gorg
@@ -268,6 +287,16 @@ reference:
       - etasf
       - mvhwk
       - sthwk
+  - title: Deterrence
+    desc: Offending under the certainty and severity of sanction, what a
+      design identifies, the inspection game and its phases, and the
+      collider bias of arrest data.
+    contents:
+      - detrsp
+      - dtrid
+      - inspg
+      - insphs
+      - colarr
   - title: Surveys
     desc: Design-based means, totals, proportions, ratios and variances by
       domain from stratified, clustered and weighted samples.
@@ -283,7 +312,8 @@ reference:
     desc: Near repeats, kernel surfaces, DBSCAN and hot-spot persistence,
       the space-time scan, global and bivariate Moran, spatial regression
       and its effects, point patterns and segregation, points in polygons,
-      areal crosswalks and buffer designs.
+      areal and boundary crosswalks, synthetic exposure from a survey,
+      buffer designs and the risk terrain model.
     contents:
       - knxnr
       - kdsurf
@@ -301,4 +331,7 @@ reference:
       - dissix
       - pinpl
       - arwt
+      - bndxw
+      - synexp
       - bufas
+      - rtmfit
