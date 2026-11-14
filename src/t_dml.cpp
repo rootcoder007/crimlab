@@ -584,6 +584,11 @@ void t_stk(tk &t) {
   long niw;
   const long nw = clab_stksz(N, P, N, &s, &niw);
   tk_true(t, "stk.size", nw <= 400000 && niw <= 100000);
+  // sizes clab_stack() refuses: no workspace, and no sum formed in a long
+  long nz = 1;
+  tk_true(t, "stk.size.neg", clab_stksz(-1, P, N, &s, &nz) == 0 && nz == 0);
+  nz = 1;
+  tk_true(t, "stk.size.big", clab_stksz(N, P, 2147483647, &s, &nz) == 0 && nz == 0);
   tk_ieq(t, "stk.ok", clab_stack(X, N, P, Y, 0, &s, F, X, N, oof, rk, wt, pr, W, IW), CLAB_OK);
   tk_true(t, "stk.wt", wt[0] >= 0.0 && wt[1] >= 0.0 && std::fabs(wt[0] + wt[1] - 1.0) < 1e-15);
   auto bad = [&](const char *nm, const clab_lrn &l, int n, int fam, int nt, int code) {
