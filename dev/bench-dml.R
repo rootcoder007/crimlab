@@ -2,7 +2,9 @@
 # reference packages, on fixed seeded data:
 #   Rscript dev/bench-dml.R [n...]       e.g. Rscript dev/bench-dml.R 5000
 # BENCH_N and BENCH_P (comma lists) override the sizes; the default grid is
-# n = 5000, 50000 and p = 20, 200. For each task the estimates (or the
+# n = 5000, 50000 and p = 20, 200. The cross-fitted estimators are timed
+# with lasso, least-squares and forest nuisances (forests while n * p is
+# at most BENCH_FNP, default 1e6). For each task the estimates (or the
 # errors, for the forests) are compared first; then each side is timed
 # (the median of BENCH_REPS runs, default 3; one run when a single run
 # exceeds 60 s). Writes inst/bench/dml.csv and inst/bench/dml.md; nothing
@@ -17,6 +19,7 @@ ns <- if (length(args)) as.numeric(args) else
   num(Sys.getenv("BENCH_N"), c(5000, 50000))
 ps <- num(Sys.getenv("BENCH_P"), c(20, 200))
 reps <- num(Sys.getenv("BENCH_REPS"), 3)
+fnp <- num(Sys.getenv("BENCH_FNP"), 1e6)
 if (has("lgr")) lgr::get_logger("mlr3")$set_threshold("warn")
 # AIPW and tmle look their learners up on the search path
 if (has("SuperLearner")) suppressPackageStartupMessages(library(SuperLearner))
@@ -28,6 +31,7 @@ load1 <- function() {
   if (file.exists("/proc/loadavg")) {
     return(as.numeric(strsplit(readLines("/proc/loadavg"), " ")[[1]][1]))
   }
+  if (.Platform$OS.type == "windows") return(NA_real_)
   v <- tryCatch(system("sysctl -n vm.loadavg", intern = TRUE),
                 error = function(e) NA_character_)
   as.numeric(strsplit(gsub("[{}]", "", trimws(v)), " +")[[1]][2])
@@ -36,6 +40,8 @@ lstart <- load1()
 cpu <- if (file.exists("/proc/cpuinfo")) {
   m <- grep("^model name|^Model", readLines("/proc/cpuinfo"), value = TRUE)
   if (length(m)) trimws(sub(".*:", "", m[1])) else NA_character_
+} else if (.Platform$OS.type == "windows") {
+  Sys.getenv("PROCESSOR_IDENTIFIER", NA_character_)
 } else {
   tryCatch(system("sysctl -n machdep.cpu.brand_string", intern = TRUE),
            error = function(e) NA_character_)
@@ -48,7 +54,8 @@ Sys.setenv(OMP_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1",
 if (has("data.table")) data.table::setDTthreads(1)
 cat("crimlab from", find.package("crimlab"), "\n")
 for (p in c("crimlab", "glmnet", "ranger", "grf", "DoubleML", "mlr3",
-            "mlr3learners", "ddml", "AIPW", "tmle", "SuperLearner")) {
+            "mlr3learners", "ddml", "AIPW", "tmle", "SuperLearner",
+            "DRDID")) {
   if (has(p)) cat(p, as.character(packageVersion(p)), "\n")
 }
 
@@ -76,11 +83,20 @@ sim <- function(n, p) {
   d <- rbinom(n, 1, plogis(drop(x %*% (b / 2))))
   z <- rbinom(n, 1, 0.5)
   dz <- z * rbinom(n, 1, plogis(drop(x %*% (b / 2))))
-  list(x = x, dc = dc, d = d, z = z, dz = dz, zc = x[, 5] + rnorm(n),
-       yc = 0.5 * dc + drop(x %*% b) + rnorm(n),
-       y = d + drop(x %*% b) + rnorm(n),
-       yz = dz + drop(x %*% b) + rnorm(n),
-       fold = sample(rep(1:5, length.out = n)))
+  r <- list(x = x, dc = dc, d = d, z = z, dz = dz, zc = x[, 5] + rnorm(n),
+            yc = 0.5 * dc + drop(x %*% b) + rnorm(n),
+            y = d + drop(x %*% b) + rnorm(n),
+            yz = dz + drop(x %*% b) + rnorm(n),
+            fold = sample(rep(1:5, length.out = n)))
+  # drawn after everything above, so the earlier tasks keep their data:
+  # who is observed (sample selection), and a panel and a repeated cross
+  # section for the difference in differences (effect 1 on the treated)
+  r$sel <- rbinom(n, 1, plogis(0.5 + x[, 2] + 0.5 * d))
+  r$y0 <- drop(x %*% b) + rnorm(n)
+  r$y1 <- r$y0 + 0.5 * x[, 1] + d + rnorm(n)
+  r$post <- rbinom(n, 1, 0.5)
+  r$ycs <- drop(x %*% b) + 0.5 * r$post + d * r$post + rnorm(n)
+  r
 }
 
 rows <- list()
@@ -185,7 +201,7 @@ for (n in ns) for (p in ps) {
       r <- tm(function() obj$fit())
       o <- ours[[nm]]$r
       add(nm, n, p, ours[[nm]]$t, r$t, "DoubleML",
-          near(o$coef, obj$coef, o$se))
+          near(o$coef, obj$coef, o$se), "lasso nuisances")
     }
     one("plr", DoubleML::DoubleMLPLR$new(dd(s$yc, s$dc), lr$clone(),
                                         lr$clone()))
@@ -200,6 +216,90 @@ for (n in ns) for (p in ps) {
                                           subgroups = list(
                                             always_takers = FALSE,
                                             never_takers = TRUE)))
+    # the other models and scores of DoubleML for R, and the four models
+    # above again with least-squares and with forest nuisances (100
+    # trees, the same columns per split and node size on both sides)
+    cmp <- function(task, f, obj, note) {
+      o <- tm(f)
+      obj$set_sample_splitting(sm)
+      r <- tm(function() obj$fit())
+      add(task, n, p, o$t, r$t, "DoubleML",
+          near(o$r$coef, obj$coef, o$r$se), note)
+    }
+    ds <- function(y, d, sel) {
+      DoubleML::DoubleMLData$new(data.table::data.table(x, y = y, d = d,
+                                                        s = sel),
+                                 y_col = "y", d_cols = "d", s_col = "s")
+    }
+    sub <- list(always_takers = FALSE, never_takers = TRUE)
+    ysel <- ifelse(s$sel == 1, s$y, 0)
+    set <- function(kind, lr, lc, note, ...) {
+      cmp("plr", function() dmlx(s$yc, s$dc, x, "plr", s$fold, lrn = kind, ...),
+          DoubleML::DoubleMLPLR$new(dd(s$yc, s$dc), lr$clone(), lr$clone()),
+          note)
+      cmp("pliv", function() {
+        dmlx(s$yc, s$dc, x, "pliv", s$fold, z = s$zc, lrn = kind, ...)
+      }, DoubleML::DoubleMLPLIV$new(dd(s$yc, s$dc, s$zc), lr$clone(),
+                                    lr$clone(), lr$clone()), note)
+      cmp("irm", function() dmlx(s$y, s$d, x, "irm", s$fold, lrn = kind, ...),
+          DoubleML::DoubleMLIRM$new(dd(s$y, s$d), lr$clone(), lc$clone()),
+          note)
+      cmp("iivm", function() {
+        dmlx(s$yz, s$dz, x, "iivm", s$fold, z = s$z, lrn = kind, ...)
+      }, DoubleML::DoubleMLIIVM$new(dd(s$yz, s$dz, s$z), lr$clone(),
+                                    lc$clone(), lc$clone(), subgroups = sub),
+      note)
+    }
+    more <- function(kind, lr, lc, note, ...) {
+      cmp("plr-iv", function() {
+        dmlx(s$yc, s$dc, x, "plr", s$fold, score = "iv", lrn = kind, ...)
+      }, DoubleML::DoubleMLPLR$new(dd(s$yc, s$dc), lr$clone(), lr$clone(),
+                                   lr$clone(), score = "IV-type"),
+      paste0(note, "; IV-type score"))
+      cmp("irm-atte", function() {
+        dmlx(s$y, s$d, x, "irm", s$fold, score = "atte", lrn = kind, ...)
+      }, DoubleML::DoubleMLIRM$new(dd(s$y, s$d), lr$clone(), lc$clone(),
+                                   score = "ATTE"),
+      paste0(note, "; effect on the treated"))
+      cmp("ssm", function() {
+        dmlx(ysel, s$d, x, "ssm", s$fold, s = s$sel, lrn = kind, ...)
+      }, DoubleML::DoubleMLSSM$new(ds(ysel, s$d, s$sel), lr$clone(),
+                                   lc$clone(), lc$clone()),
+      paste0(note, "; sample selection"))
+    }
+    more("lasso", lr, lc, "lasso nuisances")
+    glr <- mlr3::lrn("regr.lm")
+    glc <- mlr3::lrn("classif.log_reg", predict_type = "prob")
+    set("glm", glr, glc, "least-squares and logistic nuisances")
+    more("glm", glr, glc, "least-squares and logistic nuisances")
+    if (has("ranger") && n * p <= fnp) {
+      flr <- mlr3::lrn("regr.ranger", num.trees = 100, mtry = m0,
+                       min.node.size = 5, num.threads = 1)
+      flc <- mlr3::lrn("classif.ranger", num.trees = 100, mtry = m0,
+                       min.node.size = 5, num.threads = 1,
+                       predict_type = "prob")
+      fn <- sprintf("forest nuisances (100 trees, mtry %d, node 5)", m0)
+      set("forest", flr, flc, fn, ntree = 100, mtry = m0)
+      more("forest", flr, flc, fn, ntree = 100, mtry = m0)
+    }
+  }
+  # difference in differences: DRDID fits its two models once on all
+  # rows, crimlab cross-fits the same two models
+  if (has("DRDID")) {
+    o <- tm(function() dmlx(s$y1 - s$y0, s$d, x, "did", s$fold, lrn = "glm"))
+    r <- tm(function() {
+      DRDID::drdid_panel(s$y1, s$y0, s$d, cbind(1, x), boot = FALSE)
+    })
+    add("did", n, p, o$t, r$t, "DRDID", near(o$r$coef, r$r$ATT, o$r$se),
+        "panel; DRDID fits in sample, crimlab cross-fits")
+    o <- tm(function() {
+      dmlx(s$ycs, s$d, x, "didcs", s$fold, t = s$post, lrn = "glm")
+    })
+    r <- tm(function() {
+      DRDID::drdid_rc(s$ycs, s$post, s$d, cbind(1, x), boot = FALSE)
+    })
+    add("didcs", n, p, o$t, r$t, "DRDID", near(o$r$coef, r$r$ATT, o$r$se),
+        "repeated cross-sections; DRDID fits in sample, crimlab cross-fits")
   }
   if (has("ddml")) {
     sub <- lapply(1:5, function(k) which(s$fold == k))
@@ -246,8 +346,8 @@ utils::write.csv(tab, "inst/bench/dml.csv", row.names = FALSE)
 md <- c(
   "# crimlab speed against reference packages",
   "",
-  sprintf("Generated by dev/bench-dml.R on %s: %s (%s, %s), %s; load average %.2f at the start and %.2f at the end; seconds of elapsed time, the median of %d runs.",
-          tab$date[1], tab$machine[1], cpu, Sys.info()[["machine"]],
+  sprintf("Generated by dev/bench-dml.R on %s: %s, %s, %s, %s; load average %.2f at the start and %.2f at the end; seconds of elapsed time, the median of %d runs.",
+          tab$date[1], cpu, Sys.info()[["machine"]], Sys.info()[["sysname"]],
           R.version.string, lstart, lend, reps),
   "",
   "The maintainer's own packages (rmorie, rmoriebricklayer) are not in this table; every reference here is a third-party package. One thread on both sides (ranger and grf with num.threads = 1; OMP, BLAS and data.table threads set to 1). A machine that runs other sessions idles near a load of 2; a timing whose load rose by more than 1.5 while it ran was taken again, and each row's load before and after is in the CSV.",

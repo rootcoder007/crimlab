@@ -24,8 +24,13 @@ concurrency:
 
 jobs:
   bench:
-    runs-on: ubuntu-24.04
+    name: bench (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, windows-2025]
     env:
       BENCH_N: ${{ github.event.inputs.n || '5000,50000' }}
       BENCH_P: ${{ github.event.inputs.p || '20,200' }}
@@ -50,8 +55,14 @@ jobs:
             any::AIPW
             any::tmle
             any::SuperLearner
+            any::DRDID
             local::.
       - name: Benchmark
         run: Rscript dev/bench-dml.R
       - name: Summary
+        shell: bash
         run: cat inst/bench/dml.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bench-dml-${{ matrix.os }}
+          path: inst/bench/dml.*
