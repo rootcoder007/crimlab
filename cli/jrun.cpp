@@ -1552,6 +1552,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jaud.inc"
 #include "jmnd.inc"
 #include "jpub.inc"
+#include "jflw.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1707,6 +1708,14 @@ const Ent ents[] = {
     {"jmono", "judge d y? grp? w? lo? hi? minn? adj? alpha?", jmono},
     {"mndla", "days id? by? w? thr? hours? miss? alert? amin? elig? excl? level?", mndla},
     {"yoypx", "x prd by? lag? units? minbase? level? rnd? kind? adj? alpha?", yoypx},
+    {"lostay", "days w? breaks? thr? flag? level?", lostay},
+    {"dktflw", "recv? disp? pend? prd? win? level? span? mtime? shares? floors? mix? scores?", dktflw},
+    {"stkflw", "people? days? adp? alos? t? prd? from? to? expo? per? base? rel? early?", stkflw},
+    {"bklog", "arrive dispose horizon? target?", bklog},
+    {"trnmat", "state id time?", trnmat},
+    {"lftab", "breaks events cens? level? ci?", lftab},
+    {"bandx", "x cnts? rule? cap? fac? floor? clsup? intsca? drop?", bandx},
+    {"pbbnd", "x rnd? kind? suplim? supmar? prev? pop? prepop? per?", pbbnd},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
