@@ -3357,7 +3357,7 @@ def gmixlr(peaks: Any, freq: Any, ref: Any = None, hp: Any = None, nc: Any = Non
                  lambda_=lambda_, theta=theta, stut=stut, deg=deg, par=par)
 
 
-def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25) -> Any:
+def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25, full: Any = False) -> Any:
     """Congruent matching profile segments (CMPS) of two bullet signatures.
 
     The arguments and the result are those of R's ``cmpsc()``: see its help
@@ -3371,4 +3371,4 @@ def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25) 
     >>> r["pos"], r["nseg"]
     (-30.0, 12.0)
     """
-    return jcall("cmpsc", a=a, b=b, len=len, npeaks=npeaks, tx=tx)
+    return jcall("cmpsc", a=a, b=b, len=len, npeaks=npeaks, tx=tx, full=full)

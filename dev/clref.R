@@ -983,6 +983,7 @@ cb <- c(ca[26:400], rep(NA, 5)) + round(0.05 * cos(seq_len(380) * 2.1), 4)
 ok("cmpsc", a = c(NA, NA, ca[-(1:2)]), b = cb)
 ok("cmpsc", a = ca, b = cb, len = 40, npeaks = c(4, 2), tx = 10)
 ok("cmpsc", a = ca, b = rev(cb), npeaks = 3)
+ok("cmpsc", a = ca, b = cb, len = 40, full = TRUE)
 bad("cmpsc", a = ca, b = cb, npeaks = c(1, 0))
 bad("cmpsc", a = ca[1:20], b = cb)
 

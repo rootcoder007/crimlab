@@ -257,20 +257,26 @@ bool cmpsc(Ctx &c, Val &out) {
     if (bad) return c.fail("`npeaks` must be one to eight whole numbers from 1.");
   }
   if (c.has("tx")) CK(whole(c, c["tx"], "tx", 0, tx));
+  bool full = false;
+  CK(fj::jflag(c, "full", full));
   const int ns = (f1 - f0 + 1) / ln;
-  std::vector<int> ccp(static_cast<std::size_t>(ns)), cm(static_cast<std::size_t>(ns));
-  int off = 0, nseg = 0, sc = 0, pos = 0;
-  CK(kchk(c, clab_cmpsc(v[0].p(), na, v[1].p(), nb, ln, pk.data(), static_cast<int>(pk.size()), tx, &off, &nseg, &sc, &pos,
-                        ccp.data(), cm.data())));
+  std::vector<double> ccp(static_cast<std::size_t>(ns));
+  std::vector<int> cm(static_cast<std::size_t>(ns));
+  int off = 0, nseg = 0, sc = 0;
+  double pos = 0;
+  const int rc = clab_cmpsc(v[0].p(), na, v[1].p(), nb, ln, pk.data(), static_cast<int>(pk.size()), tx, full, &off,
+                            &nseg, &sc, &pos, ccp.data(), cm.data());
+  if (rc == CLAB_EARG) return c.fail("`b` is shorter than a widened segment; give a longer reference or `full = TRUE`.");
+  CK(kchk(c, rc));
   put(out, "score", vnum(sc));
   put(out, "nseg", vnum(nseg));
   put(out, "scaled", vnum(nseg > 0 ? static_cast<double>(sc) / nseg : NA));
-  put(out, "pos", pos == INT_MIN ? Val() : vnum(pos));
+  put(out, "pos", std::isnan(pos) ? Val() : vnum(pos));
   Val sg, s1 = varr(), s2 = varr(), s3 = varr(), s4 = varr();
   for (int s = 0; s < ns; ++s) {
     s1.a.push_back(vnum(s + 1));
     s2.a.push_back(vnum(off + s * ln + 1));
-    s3.a.push_back(ccp[static_cast<std::size_t>(s)] == INT_MIN ? Val() : vnum(ccp[static_cast<std::size_t>(s)]));
+    s3.a.push_back(std::isnan(ccp[static_cast<std::size_t>(s)]) ? Val() : vnum(ccp[static_cast<std::size_t>(s)]));
     s4.a.push_back(vbool(cm[static_cast<std::size_t>(s)] != 0));
   }
   put(sg, "seg", s1);

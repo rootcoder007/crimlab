@@ -9,6 +9,13 @@
   contributors, drop-out, drop-in, stutter, degradation, coancestry;
   `dev/ref/efm.R`);
   the rest is EuroForMix's single precision.
+* `cmpsc()` now reproduces cmpsR exactly: a segment widened at the ends
+  of the signature is cut, not moved; a lag counts when enough points
+  overlap (so a segment may hang over the end of the reference); every
+  confirmed peak is a candidate; ties are broken as cmpsR breaks them; and
+  lags may fall on half points. `full = TRUE` keeps the earlier rule of
+  lags wholly inside the reference. The scores, segments, lags and refusals
+  equal cmpsR's on 16 stored cases, edge cases among them.
 * `pedlr()`: the likelihood ratio of two pedigrees, given as tables of
   people and their parents, from DNA profiles at autosomal markers. The
   people not typed are summed over exactly by variable elimination on the

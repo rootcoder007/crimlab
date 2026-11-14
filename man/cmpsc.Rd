@@ -4,7 +4,7 @@
 \alias{cmpsc}
 \title{Congruent matching profile segments (CMPS) of two bullet signatures}
 \usage{
-cmpsc(a, b, len = 50, npeaks = c(5, 3, 1), tx = 25)
+cmpsc(a, b, len = 50, npeaks = c(5, 3, 1), tx = 25, full = FALSE)
 }
 \arguments{
 \item{a}{The comparison signature: numbers, \code{NA} for a missing point.}
@@ -18,6 +18,9 @@ from 2, at most the points of \code{a} from its first value to its last.}
 whole numbers from 1 (\code{c(5, 3, 1)}, Chen et al.'s choice).}
 
 \item{tx}{The tolerance in points: one whole number from 0.}
+
+\item{full}{\code{FALSE} for the overlaps of cmpsR; \code{TRUE} for lags that keep
+a widened segment wholly inside \code{b}.}
 }
 \value{
 An object of class \code{cmpsc}, a list: \code{score}, the number of
@@ -40,22 +43,34 @@ Hofmann 2022).
 \details{
 The comparison signature \code{a}, from its first value to its last, is cut
 into consecutive basis segments of \code{len} points (a shorter remainder at
-the end is dropped). For each, the
-cross-correlation with the reference \code{b} is taken at every lag that
-keeps the segment inside \code{b} (Pearson correlation over the pairs with
-neither value missing), and the lags of its highest local maxima are
-found: \code{npeaks[1]} of them at the segment's own length, then, for each
-further element of \code{npeaks}, that many at twice the previous length
-about the segment's centre (a length longer than \code{a} is left out). A
-segment's candidate is the best peak of its longest length that lies
-within \code{tx} points of a peak at every shorter length (the consistent
-correlation peak; with one element of \code{npeaks}, all its peaks are
-candidates). The congruent lag is the candidate that most segments have
-a candidate within \code{tx} of (the middle one among ties); the segments
-that do are the congruent matching profile segments, and their number
-is the score. Signatures are taken as they come (detrended profiles,
-as \code{bulletxtrctr} extracts them; Hare et al. 2017), in points of one
-spacing; \code{\link[=chmb]{chmb()}} compares the raw profiles of tool marks instead.
+the end is dropped). Each segment is taken at the lengths \code{len}, \verb{2 len},
+\verb{4 len}, ... (one per element of \code{npeaks}), widened about its centre and
+cut at the ends of \code{a}. At each length its cross-correlation with the
+reference \code{b} (Pearson correlation over the pairs with neither value
+missing) is computed at every lag that leaves enough pairs in common:
+the smaller of 0.9 times the segment's values and a tenth of the values
+of \code{b}, rounded, so a segment may hang over the end of \code{b}. The lags of
+its \code{npeaks} highest local maxima are its peaks there. A segment's
+candidates are the peaks of its longest length that lie within \code{tx}
+points of a peak at every shorter length (with one element of \code{npeaks},
+all its peaks). The congruent lag is, of all the candidates in ascending
+order with repeats kept, the middle one (rounded up) of those that the
+most segments have a candidate within \code{tx} of; those segments are the
+congruent matching profile segments, and their number is the score.
+These are the rules of cmpsR (Ju and Hofmann 2022), which \code{cmpsc()}
+reproduces exactly, including a lag that falls on a half point when the
+overlap needed is not a whole number of points.
+
+With \code{full = TRUE} a lag is used only when the widened segment lies
+wholly inside \code{b}: correlations from a few points at the ends are left
+out, at the price of segments near the ends that cannot reach their lag
+(and a reference shorter than a widened segment gives no peaks, where
+the default refuses it). The scores then differ from cmpsR's by about
+one segment on simulated pairs.
+
+Signatures are taken as they come (detrended profiles, as \code{bulletxtrctr}
+extracts them; Hare et al. 2017), in points of one spacing; \code{\link[=chmb]{chmb()}}
+compares the raw profiles of tool marks instead.
 }
 \examples{
 set.seed(1)

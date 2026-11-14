@@ -316,7 +316,7 @@ SEXP C_clab_r_gmixlr(SEXP peaks, SEXP freq, SEXP ref, SEXP hp, SEXP nc, SEXP hd,
   return out;
 }
 
-SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx) {
+SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx, SEXP full) {
   clab::who = "cmpsc";
   for (SEXP x : {a, b}) {
     const char *an = x == a ? "a" : "b";
@@ -351,17 +351,23 @@ SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx) {
     pk[i] = static_cast<int>(v);
   }
   const int t = clab::whole(tx, "tx", 0);
+  if (TYPEOF(full) != LGLSXP || XLENGTH(full) != 1 || LOGICAL(full)[0] == NA_LOGICAL) {
+    clab::fail("`full` must be TRUE or FALSE.");
+  }
   const int ns = (f1 - f0 + 1) / ln;
-  SEXP cc = PROTECT(Rf_allocVector(INTSXP, ns)), cm = PROTECT(Rf_allocVector(LGLSXP, ns));
-  int off = 0, nseg = 0, sc = 0, pos = 0;
-  clab::kchk(clab_cmpsc(REAL(av), na, REAL(bv), nb, ln, pk, static_cast<int>(XLENGTH(pv)), t, &off, &nseg, &sc, &pos,
-                        INTEGER(cc), LOGICAL(cm)),
-             "cmpsc(a, b, len, npeaks, tx)");
+  SEXP cc = PROTECT(Rf_allocVector(REALSXP, ns)), cm = PROTECT(Rf_allocVector(LGLSXP, ns));
+  int off = 0, nseg = 0, sc = 0;
+  double pos = 0;
+  const int rc = clab_cmpsc(REAL(av), na, REAL(bv), nb, ln, pk, static_cast<int>(XLENGTH(pv)), t, LOGICAL(full)[0],
+                            &off, &nseg, &sc, &pos, REAL(cc), LOGICAL(cm));
+  clab::ichk(rc);
+  if (rc == CLAB_EARG) clab::fail("`b` is shorter than a widened segment; give a longer reference or `full = TRUE`.");
+  clab::kchk(rc, "cmpsc(a, b, len, npeaks, tx, full)");
   SEXP sg = PROTECT(Rf_allocVector(INTSXP, ns)), st = PROTECT(Rf_allocVector(INTSXP, ns));
   for (int s = 0; s < ns; ++s) {
     INTEGER(sg)[s] = s + 1;
     INTEGER(st)[s] = off + s * ln + 1;
-    if (INTEGER(cc)[s] == INT_MIN) INTEGER(cc)[s] = NA_INTEGER;
+    if (ISNAN(REAL(cc)[s])) REAL(cc)[s] = NA_REAL;
   }
   SEXP segs = PROTECT(Rf_allocVector(VECSXP, 4));
   SET_VECTOR_ELT(segs, 0, sg);
@@ -374,7 +380,7 @@ SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx) {
   SET_VECTOR_ELT(out, 0, Rf_ScalarInteger(sc));
   SET_VECTOR_ELT(out, 1, Rf_ScalarInteger(nseg));
   SET_VECTOR_ELT(out, 2, Rf_ScalarReal(nseg > 0 ? static_cast<double>(sc) / nseg : NA_REAL));
-  SET_VECTOR_ELT(out, 3, Rf_ScalarInteger(pos == INT_MIN ? NA_INTEGER : pos));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarReal(ISNAN(pos) ? NA_REAL : pos));
   SET_VECTOR_ELT(out, 4, segs);
   static const char *const on[] = {"score", "nseg", "scaled", "pos", "segs"};
   clab::nlist(out, on);

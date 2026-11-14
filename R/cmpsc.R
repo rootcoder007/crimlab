@@ -10,22 +10,34 @@
 #'
 #' The comparison signature `a`, from its first value to its last, is cut
 #' into consecutive basis segments of `len` points (a shorter remainder at
-#' the end is dropped). For each, the
-#' cross-correlation with the reference `b` is taken at every lag that
-#' keeps the segment inside `b` (Pearson correlation over the pairs with
-#' neither value missing), and the lags of its highest local maxima are
-#' found: `npeaks[1]` of them at the segment's own length, then, for each
-#' further element of `npeaks`, that many at twice the previous length
-#' about the segment's centre (a length longer than `a` is left out). A
-#' segment's candidate is the best peak of its longest length that lies
-#' within `tx` points of a peak at every shorter length (the consistent
-#' correlation peak; with one element of `npeaks`, all its peaks are
-#' candidates). The congruent lag is the candidate that most segments have
-#' a candidate within `tx` of (the middle one among ties); the segments
-#' that do are the congruent matching profile segments, and their number
-#' is the score. Signatures are taken as they come (detrended profiles,
-#' as `bulletxtrctr` extracts them; Hare et al. 2017), in points of one
-#' spacing; [chmb()] compares the raw profiles of tool marks instead.
+#' the end is dropped). Each segment is taken at the lengths `len`, `2 len`,
+#' `4 len`, ... (one per element of `npeaks`), widened about its centre and
+#' cut at the ends of `a`. At each length its cross-correlation with the
+#' reference `b` (Pearson correlation over the pairs with neither value
+#' missing) is computed at every lag that leaves enough pairs in common:
+#' the smaller of 0.9 times the segment's values and a tenth of the values
+#' of `b`, rounded, so a segment may hang over the end of `b`. The lags of
+#' its `npeaks` highest local maxima are its peaks there. A segment's
+#' candidates are the peaks of its longest length that lie within `tx`
+#' points of a peak at every shorter length (with one element of `npeaks`,
+#' all its peaks). The congruent lag is, of all the candidates in ascending
+#' order with repeats kept, the middle one (rounded up) of those that the
+#' most segments have a candidate within `tx` of; those segments are the
+#' congruent matching profile segments, and their number is the score.
+#' These are the rules of cmpsR (Ju and Hofmann 2022), which `cmpsc()`
+#' reproduces exactly, including a lag that falls on a half point when the
+#' overlap needed is not a whole number of points.
+#'
+#' With `full = TRUE` a lag is used only when the widened segment lies
+#' wholly inside `b`: correlations from a few points at the ends are left
+#' out, at the price of segments near the ends that cannot reach their lag
+#' (and a reference shorter than a widened segment gives no peaks, where
+#' the default refuses it). The scores then differ from cmpsR's by about
+#' one segment on simulated pairs.
+#'
+#' Signatures are taken as they come (detrended profiles, as `bulletxtrctr`
+#' extracts them; Hare et al. 2017), in points of one spacing; [chmb()]
+#' compares the raw profiles of tool marks instead.
 #'
 #' @param a The comparison signature: numbers, `NA` for a missing point.
 #' @param b The reference signature, the same way.
@@ -34,6 +46,8 @@
 #' @param npeaks The number of peaks at each segment length: one to eight
 #'   whole numbers from 1 (`c(5, 3, 1)`, Chen et al.'s choice).
 #' @param tx The tolerance in points: one whole number from 0.
+#' @param full `FALSE` for the overlaps of cmpsR; `TRUE` for lags that keep
+#'   a widened segment wholly inside `b`.
 #' @return An object of class `cmpsc`, a list: `score`, the number of
 #'   congruent matching profile segments; `nseg`, the number of basis
 #'   segments (the highest score possible); `scaled`, `score / nseg`;
@@ -61,8 +75,9 @@
 #' cmpsc(a, b)
 #' cmpsc(a, cumsum(rnorm(570, sd = 0.5)))$score
 #' @export
-cmpsc <- function(a, b, len = 50, npeaks = c(5, 3, 1), tx = 25) {
-  .Call(C_clab_r_cmpsc, a, b, len, npeaks, tx)
+cmpsc <- function(a, b, len = 50, npeaks = c(5, 3, 1), tx = 25,
+                  full = FALSE) {
+  .Call(C_clab_r_cmpsc, a, b, len, npeaks, tx, full)
 }
 
 #' @export
