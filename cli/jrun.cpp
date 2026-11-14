@@ -1554,6 +1554,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jpub.inc"
 #include "jflw.inc"
 #include "jtm.inc"
+#include "jdid.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1728,6 +1729,11 @@ const Ent ents[] = {
     {"etasf", "times hor mag? m0? start? maxit?", etasf},
     {"mvhwk", "times type hor beta? start? maxit?", mvhwk},
     {"sthwk", "times x y hor win? par? at? start? maxit?", sthwk},
+    {"didfe", "y unit time trt adj? clus? w? fe? fam? expo? loo? bacon? mtch? exact? calip? level?", didfe},
+    {"evtst", "y unit time first leads? lags? ref? bin? adj? clus? w? ma? norm? mbar? target? draws? seed? level?", evtst},
+    {"stgdid", "y unit time first? trt? meth? ctrl? adj? est? clus? reps? seed? level?", stgdid},
+    {"synthc", "y unit time first plac?", synthc},
+    {"sdidx", "y unit time first reps? seed? level?", sdidx},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
