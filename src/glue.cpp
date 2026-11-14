@@ -516,6 +516,8 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// Repeat victimisation (brpv.cpp).
+SEXP C_clab_r_rptvic(SEXP, SEXP, SEXP, SEXP);
 // Eyewitness lineups (blnr.cpp).
 SEXP C_clab_r_lnroc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lnsize(SEXP, SEXP, SEXP, SEXP);
@@ -771,6 +773,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cbatt", fn<&C_clab_r_cbatt>(), 12},
     {"C_clab_r_smdbal", fn<&C_clab_r_smdbal>(), 5},
     {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 6},
+    {"C_clab_r_rptvic", fn<&C_clab_r_rptvic>(), 4},
     {"C_clab_r_lnroc", fn<&C_clab_r_lnroc>(), 9},
     {"C_clab_r_lnsize", fn<&C_clab_r_lnsize>(), 4},
     {"C_clab_r_ibench", fn<&C_clab_r_ibench>(), 5},

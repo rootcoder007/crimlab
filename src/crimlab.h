@@ -3122,6 +3122,21 @@ int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, in
  * (doi:10.1023/A:1025746220886) and E' -+ z se, se from the delta method
  * on the multinomial variance 4 (sum p^3 - (sum p^2)^2) / n. */
 int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out);
+/* Repeat victimisation (rpv.cpp). n incidents of nid targets (id in [0,
+ * nid), each target with one at least); t NULL or their finite times; pop
+ * NaN or the targets at risk (>= nid); brk NULL or nb (>= 2) increasing
+ * edges (needs t). Out: kmax, the most incidents of one target; tab
+ * ((kmax + 1) x 3, rows k = 0..kmax: targets with exactly k, their
+ * incidents, and pop dpois(k, n / pop); row 0 and the last column NaN
+ * without pop); st (10: incidents, victims, repeats, repeat share,
+ * incidents per victim, per target at risk, victims per target at risk,
+ * victims with two or more, the Poisson's number of them and the ratio;
+ * Trickett et al. 1992, doi:10.1093/oxfordjournals.bjc.a048181); gap (3:
+ * the number, mean and median of the times between a target's successive
+ * incidents); lag ((nb - 1) x 3: the gaps in [brk[j], brk[j + 1]), their
+ * share and the cumulative share). */
+int clab_rptvic(const int *id, const double *t, int n, int nid, double pop, const double *brk, int nb,
+                double *tab, int *kmax, double *st, double *gap, double *lag);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

@@ -157,6 +157,9 @@ The functions work on summary data, not on raw records:
   innocent suspects, as ROC curves, partial areas, diagnosticity and the
   confidence-accuracy characteristic (`lnroc()`), and how fair a lineup is
   from mock witnesses' choices (`lnsize()`).
+* Repeat victimisation: incidence, prevalence and concentration, victims
+  by number of victimisations against a Poisson count, and the time to a
+  repeat (`rptvic()`).
 
 ## Algorithms
 
@@ -525,7 +528,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (203 of 203); `crimlab -l` lists them and
+of the R package (204 of 204); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

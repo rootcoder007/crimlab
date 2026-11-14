@@ -177,6 +177,7 @@ void t_tph(tk &t, int big);
 void t_tox(tk &t, int big);
 void t_rtm(tk &t, int big);
 void t_dst(tk &t, int big);
+void t_rpv(tk &t, int big);
 void t_lnr(tk &t, int big);
 void t_ibn(tk &t, int big);
 void t_thr(tk &t, int big);

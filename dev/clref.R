@@ -1026,6 +1026,12 @@ bad("lnroc", tp = c(1, 0), pick = c("suspect", "guess"), conf = c(1, 1))
 ok("lnsize", choice = c(rep(3, 15), rep(1, 5), rep(2, 6), rep(4, 4), rep(5, 7), rep(6, 3)), k = 6, susp = 3)
 ok("lnsize", choice = c(1, 1, 1, 2, 3, 3), level = 0.9)
 bad("lnsize", choice = c(1, 7), k = 6)
+
+# Repeat victimisation
+ok("rptvic", id = c(1, 2, 1, 3, 1, 2), t = c(1, 5, 4, 9, 20, 6), pop = 10, brk = c(0, 7, 30))
+ok("rptvic", id = c("a", "b", "a", "c", "c", "c", "d"))
+ok("rptvic", id = c("a", "b", "a", "b"), t = c(3, 1, 10, 2))
+bad("rptvic", id = c("a", "b"), pop = 1)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

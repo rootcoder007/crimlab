@@ -598,6 +598,9 @@ func Lnroc(args string) (string, error) { return Jrun("lnroc", args) }
 // Lnsize runs lnsize() of the R package (arguments: choice k? susp? level?; ? marks an optional one).
 func Lnsize(args string) (string, error) { return Jrun("lnsize", args) }
 
+// Rptvic runs rptvic() of the R package (arguments: id t? pop? brk?; ? marks an optional one).
+func Rptvic(args string) (string, error) { return Jrun("rptvic", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 

@@ -16,6 +16,7 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(rptvic(c("a", "b", "a"))), c("tab", "stat", "gap", "lag")),
     list(quote(lnroc(c(1, 1, 0, 0), c("suspect", "none", "suspect", "none"),
                      c(2, NA, 1, NA))),
          c("roc", "cac", "pauc", "far", "size", "nboot")),

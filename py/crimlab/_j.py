@@ -3439,3 +3439,18 @@ def lnsize(choice: Any, k: Any = None, susp: Any = 1, level: Any = 0.95) -> Any:
     ['count', 'stat', 'susp']
     """
     return jcall("lnsize", choice=choice, k=k, susp=susp, level=level)
+
+
+def rptvic(id: Any, t: Any = None, pop: Any = None, brk: Any = None) -> Any:
+    """Repeat victimisation: how often the same targets are victimised again.
+
+    The arguments and the result are those of R's ``rptvic()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = rptvic(id=[1, 2, 1, 3, 1, 2], t=[1, 5, 4, 9, 20, 6], pop=10, brk=[0, 7, 30])
+    >>> list(r)
+    ['tab', 'stat', 'gap', 'lag']
+    """
+    return jcall("rptvic", id=id, t=t, pop=pop, brk=brk)

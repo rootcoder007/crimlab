@@ -1563,6 +1563,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jthr.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
+#include "jrpv.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
 
@@ -1771,6 +1772,7 @@ const Ent ents[] = {
     {"ibench", "y off x? minn? fdr?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},
+    {"rptvic", "id t? pop? brk?", rptvic},
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},

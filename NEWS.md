@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* `rptvic()` measures repeat victimisation: incidence, prevalence and
+  concentration, the victims by number of victimisations against a
+  Poisson count over the targets at risk, and the time between a
+  target's successive incidents. It is in `clab_jrun()`, the command
+  line and Python.
+
 * `lnroc()` gives the ROC curve of eyewitness identifications by
   confidence, the partial area with a bootstrap comparison of procedures,
   the diagnosticity ratio and the confidence-accuracy characteristic;
