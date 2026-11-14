@@ -428,8 +428,9 @@ print.clpre <- function(x, ...) {
   }, 0)
   el <- v[[1L]] <= cut[1L] & v[[2L]] <= cut[2L]
   gr <- v[[3L]] >= cut[3L] & v[[4L]] >= cut[4L]
-  g <- ifelse(el, ifelse(gr, "gentrified", "eligible"), "ineligible")
-  d$gent <- factor(g, c("ineligible", "eligible", "gentrified"))
+  # 1 ineligible, 2 eligible, 3 gentrified; NA where ifelse() would give it
+  lv <- c("ineligible", "eligible", "gentrified")
+  d$gent <- factor(lv[1L + el + (el & gr)], lv)
   d
 }
 
