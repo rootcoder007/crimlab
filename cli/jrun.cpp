@@ -1548,6 +1548,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jcba.inc"
 #include "jjdg.inc"
 #include "jhwk.inc"
+#include "jrat.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1693,6 +1694,11 @@ const Ent ents[] = {
     {"hwkres", "times hor? par? kernel? base? per?", hwkres},
     {"hwksim", "par hor kernel? base? per? win? sigma? seed? nmax?", hwksim},
     {"stpcp", "y x? minseg? nperm? seed?", stpcp},
+    {"cntreg", "y grp? adj? expo? clus? ref? gee? cadj? level?", cntreg},
+    {"grprr", "x n? grp? ref? type? per? level?", grprr},
+    {"dastd", "x n strat grp? std ref? per? level?", dastd},
+    {"sirex", "x n strat grp rates? level?", sirex},
+    {"ctabx", "row col? w? agg? correct? exact? level?", ctabx},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
