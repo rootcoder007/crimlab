@@ -92,7 +92,7 @@ int clab_lostay(const double *x, const double *w, int n, const double *br, int n
   }
   const double nn = sw.val();
   if (!(nn > 0)) return CLAB_EDOM;
-  kutil::hsort(o, n, [&](int a, int b) { return x[a] < x[b] || (x[a] == x[b] && a < b); });
+  kutil::hsort(o, n, [&](int a, int b) { return x[a] == x[b] ? a < b : x[a] < x[b]; });
   const double m = sx.val() / nn;
   kutil::ksum ss;
   for (int i = 0; i < n; ++i) ss.add((w ? w[i] : 1.0) * (x[i] - m) * (x[i] - m));

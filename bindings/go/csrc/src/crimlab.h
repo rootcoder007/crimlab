@@ -2742,6 +2742,228 @@ int clab_lftab(const double *lo, const double *hi, const double *d, const double
 int clab_trnmat(const int *from, const int *to, int m, int k, double *cnt, double *p, double *pi,
                 double *st, double *work);
 
+/* ------------------------------------------------------------------------
+ * Geographic profiling and risk terrain: Canter's circle hypothesis, the
+ * hit score of a profile, risk terrain layers.
+ * ------------------------------------------------------------------------ */
+
+/* Canter and Larkin's (1993) circle hypothesis for a series of n >= 2
+ * crime sites (x, y): the circle whose diameter joins the two sites
+ * farthest apart (the first such pair, i < j, in the order of the sites).
+ * Out: st (4), the centre's x and y, the radius and the share of the
+ * sites within it; pair (2), the two sites (from 0); for each of nh homes
+ * (hx, hy; nh may be 0) mar, 1 when it lies within the circle (a
+ * "marauder"), else 0. Within means a distance at most r + 1e-12 max(1,
+ * r). */
+int clab_crchyp(const double *x, const double *y, int n, const double *hx, const double *hy,
+                int nh, double *st, int *pair, int *mar);
+
+/* The hit score of a geographic profile (Rossmo 2000): s, the scores of n
+ * search cells (higher searched first); for each of nh cells home[k] (from
+ * 0), the cells scored above it (above), with the same score (ties, itself
+ * included), hit = 100 above / n, hitt = 100 (above + ties) / n. */
+int clab_hitscr(const double *s, int n, const int *home, int nh, int *above, int *ties,
+                double *hit, double *hitt);
+
+/* A risk terrain layer (Caplan, Kennedy and Miller 2011) at nc cells (cx,
+ * cy) from nf features (fx, fy, nf >= 1) within distance rad > 0: kind 0,
+ * 1 when a feature lies within rad (proximity); kind 1, the features
+ * within rad (density); kind 2, the Gaussian kernel sum sum_f exp(-d^2 /
+ * (2 rad^2)), standardised over the cells to mean 0 and standard deviation
+ * 1 (all 0 when it does not vary, nc >= 2). Out: out (nc). */
+int clab_rtmlay(const double *cx, const double *cy, int nc, const double *fx, const double *fy,
+                int nf, double rad, int kind, double *out);
+
+/* ------------------------------------------------------------------------
+ * Forensic toxicology: calibration, left-censored values, postmortem
+ * redistribution, ethanol and the reliability of specimen matrices.
+ * ------------------------------------------------------------------------ */
+
+/* A calibration line by weighted least squares of the responses y on the
+ * concentrations x (x > 0) of n >= 3 calibrators with weights w > 0, and
+ * the inverse prediction of nu unknown responses u (NaN stays NaN). Out:
+ * st (6), the intercept, the slope, R^2 (weighted, as summary.lm gives
+ * it), the residual standard error sigma (n - 2
+ * degrees of freedom), the limit of detection klod sigma / |slope| and of
+ * quantitation kloq sigma / |slope|; xh (nu), (u - intercept) / slope;
+ * flag (nu), 0 below the limit of detection, 1 below that of
+ * quantitation, 2 quantifiable, -1 for NaN. CLAB_EDOM when x does not
+ * vary or the slope is 0. */
+int clab_txcal(const double *x, const double *y, const double *w, int n, const double *u, int nu,
+               double klod, double kloq, double *st, double *xh, int *flag);
+
+/* Substitution of left-censored values: x (n; NaN for not measured, kept
+ * as it is) below the limit of detection lod (nl = 1 or n, positive) is
+ * replaced by lod / 2 (meth 0), lod / sqrt(2) (1) or lod (2). Out: out
+ * (n), cens (n, 1 for a replaced value), st (2), the share of measured
+ * values replaced (NaN when none is measured) and the number not
+ * measured. */
+int clab_lodimp(const double *x, int n, const double *lod, int nl, int meth, double *out,
+                int *cens, double *st);
+
+/* Postmortem redistribution from the central and peripheral (femoral)
+ * blood concentrations c and p (n each, positive): r = c / p and its
+ * class cls, 0 when r <= c1, 1 when r <= c2, 2 above (0 < c1 <= c2). */
+int clab_pmrrat(const double *c, const double *p, int n, double c1, double c2, double *r,
+                int *cls);
+
+/* Ethanol in a decomposed body, antemortem or postmortem: eth (n, at least
+ * 0), the higher alcohols pr and bu (n-propanol, n-butanol; NaN not
+ * measured) and ethyl glucuronide etg (NaN not measured). Out: hi (n),
+ * the larger higher alcohol (NaN when neither is measured); v (n), 0
+ * antemortem ingestion (etg > 0), else 1 postmortem production (hi >
+ * thr), else 2 indeterminate. */
+int clab_etohlr(const double *eth, const double *pr, const double *bu, const double *etg, int n,
+                double thr, double *hi, int *v);
+
+/* The reliability of n specimen matrices after submersion and
+ * decomposition: base (n, at least 0) the reliability of each in a fresh
+ * body, dil (n, 1 when water dilutes it, as blood and urine). rel = base
+ * (1 - min(stage / smax, scap)) times, for a diluted matrix, (1 -
+ * min(days / dmax, dcap)); days, stage at least 0, dmax, smax positive,
+ * dcap, scap from 0 to 1. Out: rel (n) and ord (n), the matrices from the
+ * most reliable down (ties in their order). */
+int clab_mtxrel(const double *base, const int *dil, int n, double days, double stage,
+                double dmax, double dcap, double smax, double scap, double *rel, int *ord);
+
+/* ------------------------------------------------------------------------
+ * Taphonomy: compositional transforms, likelihood ratios of measured
+ * evidence, the decay chain, a conjugate Bayesian preservation model.
+ * ------------------------------------------------------------------------ */
+
+/* Log-ratio transforms of n compositions of d >= 2 parts (x, n by d,
+ * column-major, from 0; each row is closed to sum 1 after adding ps >=
+ * 0 to every part, and must then hold no 0). type 0, the centred
+ * log-ratio (out n by d): log x_j minus the row's mean log; type 1, the
+ * isometric log-ratio of the default pivot basis (out n by d - 1):
+ * sqrt(i / (i + 1)) (mean of log x_1..x_i - log x_{i+1}). */
+int clab_clrilr(const double *x, int n, int d, double ps, int type, double *out);
+
+/* The likelihood ratio of n measurements x under two normal models, H1
+ * (means m1, standard deviations s1, k1 = 1 or n of each) and H2 (m2, s2,
+ * k2). Out: out (5), the log-likelihoods under H1 and H2, their
+ * difference, the likelihood ratio and its log10; band, the verbal band
+ * of |log10 LR| (0 at 0, 1 up to 1, 2 up to 2, 3 up to 3, 4 up to 4, 5 up
+ * to 6, 6 above); side, 1 when the ratio favours H1, 2 H2, 0 neither. */
+int clab_preslr(const double *x, int n, const double *m1, const double *s1, int k1,
+                const double *m2, const double *s2, int k2, double *out, int *band, int *side);
+
+/* A decay chain of k >= 1 transient stages and two absorbing states
+ * (skeletal, mummified): from each stage the body advances (to the next
+ * stage, from the last to skeletal) with probability dr (1 - pres),
+ * mummifies with probability mr pres (the two sum to at most 1), and
+ * otherwise stays. pres, mr from 0 to 1, dr above 0 to 1;
+ * CLAB_EDOM when nothing leaves a stage. Out: P ((k + 2) by (k + 2), the
+ * transition matrix, column-major), N (k by k, the fundamental matrix
+ * (I - Q)^-1), B (k by 2, the absorption probabilities, skeletal then
+ * mummified), t (k, the expected steps to absorption). */
+int clab_tpdmc(double pres, double dr, double mr, int k, double *P, double *N, double *B,
+               double *t);
+
+/* One path through a chain with m states of which the first k are
+ * transient (P m by m, column-major, rows summing to 1), from state start
+ * (< k), for at most steps steps or until absorbed, the draws from
+ * xorshift64* seeded with seed. Out: path (steps + 1), len, the states
+ * visited. */
+int clab_tpdsim(const double *P, int m, int k, int start, int steps, unsigned long long seed,
+                int *path, int *len);
+
+/* A conjugate Bayesian linear model y = b0 + x b + e (n cases, q >= 1
+ * columns of x, column-major; p = q + 1) with independent normal priors
+ * (means m0, standard deviations s0 > 0, p each) and the noise variance
+ * s2 fixed at the least-squares residual variance, rss / max(1, n - p)
+ * (the variance of y when the fit is exact: a residual sum of squares at
+ * most 1e-24 of the sum of y squared). Out: mu, sd (p), the posterior
+ * means and standard deviations; st (2), s2 and tau2 (NaN without
+ * groups). With g (n group codes from 0, ng >= 2 groups, each used; NULL
+ * for none), from the residuals about the posterior means: gm, the mean
+ * residual of each group, nj its cases, and lam = tau2 / (tau2 + s2 /
+ * nj), with tau2 = max(0, var(gm) - mean(s2 / nj)) (ng each). CLAB_EDOM
+ * when x has dependent columns (or fewer cases than columns) or y does
+ * not vary. work: 2 p^2 + p doubles. */
+int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
+               const double *s0, const int *g, int ng, double *mu, double *sd, double *st,
+               double *gm, double *lam, int *nj, double *work);
+
+/* ------------------------------------------------------------------------
+ * Deterrence theory: the offender's response to certainty and severity,
+ * the identification of a sanction design, the inspection game, collider
+ * bias in arrest data.
+ * ------------------------------------------------------------------------ */
+
+/* The offending an offender chooses from a menu: n >= 1 levels x (strictly
+ * increasing), the benefit b of each and the sanction s (strictly
+ * increasing). For each of np certainties p (at least 0) the levels
+ * maximising b - p s: xo the largest of them (within 1e-12 of the
+ * maximum), v the maximum. */
+int clab_detrsp(const double *x, const double *b, const double *s, int n, const double *p,
+                int np, double *xo, double *v);
+
+/* Which partial effects a deterrence design identifies: the n regimes'
+ * certainty p, severity s and celerity c (lg 1: log p and log s, both
+ * positive) in the linear response y = b0 + b1 p + b2 s + b3 c. Out: rank,
+ * the rank of the design (1, p, s, c) (a column whose part not explained
+ * by those before it is below 1e-7 of its norm adds nothing); ident (3),
+ * 1 when the coefficient of p, s, c is identified (full rank, or leaving
+ * the column out lowers the rank); cst (3), 1 when the dimension does not
+ * vary; with y (n, else NULL) and full rank, beta (4), the least-squares
+ * coefficients. CLAB_EDOM for y with a rank below 4. work: 8 n doubles. */
+int clab_dtrid(const double *p, const double *s, const double *c, int n, int lg, const double *y,
+               int *rank, int *ident, int *cst, double *beta, double *work);
+
+/* The criminal-citizen-inspector game of rock-paper-scissors type
+ * (stake a, not 0): replicator dynamics x_i' = a x_i (x_{i+1} - x_{i+2})
+ * from x0 (three shares from 0 summing to 1 within 1e-10), steps
+ * fourth-order Runge-Kutta steps of size dt > 0. Out: traj ((steps + 1)
+ * by 3, column-major), v (steps + 1), the invariant x1 x2 x3 along it; f0
+ * (3), the field at x0; dv, dV/dt at x0 (0). */
+int clab_inspg(double a, const double *x0, int steps, double dt, double *traj, double *v,
+               double *f0, double *dv);
+
+/* The inspection game of cooperators, criminals and inspectors over a
+ * grid of temptations T (nt) and inspection costs g (ng): payoffs C (1, 0,
+ * 1), P (T, 0, T - 1), O (1 - g, 1 - g, 1 - g) against (C, P, O); from x0
+ * (three shares from 0, positive sum, normalised), steps discrete
+ * replicator steps x += rate x (f - mean f), negative shares set to 0 and
+ * the shares normalised. Out: out (3 nt ng, the
+ * final shares of C, P and O, each nt by ng, column-major). */
+int clab_insphs(const double *T, int nt, const double *g, int ng, int steps, double rate,
+                const double *x0, double *out);
+
+/* Collider bias of arrest data: two independent causes of arrest of
+ * prevalences a and e (n each, strictly between 0 and 1) and a background
+ * cause bg (from 0 to 1), arrest when any is present. Out: cells (4 n,
+ * each n: the shares of the arrestees with both causes, a only, e only,
+ * neither) and orr (n), the odds ratio of a and e among the arrestees,
+ * which equals bg. */
+int clab_colarr(const double *a, const double *e, const double *bg, int n, double *cells,
+                double *orr);
+
+/* ------------------------------------------------------------------------
+ * Areas: crosswalks between boundary versions, synthetic exposures.
+ * ------------------------------------------------------------------------ */
+
+/* Values of n records x, each in source unit u (from 0, below ns; -1 for
+ * a unit the crosswalk lacks, skipped), carried to nt target units by m
+ * links (from[k] to to[k] with weight w[k] >= 0, the share of the source
+ * unit's value that falls in the target: 1 for a source wholly inside its
+ * target, an area or population share to split one). Out: out (nt), the
+ * values of the targets; wsum (ns), each source's total weight (1 when
+ * nothing is lost or counted twice); best (ns), the target of each
+ * source's largest weight (the first of ties, -1 for none) and bw (ns),
+ * that weight. */
+int clab_bndxw(const double *x, const int *u, int n, const int *from, const int *to,
+               const double *w, int m, int ns, int nt, double *out, double *wsum, int *best,
+               double *bw);
+
+/* Synthetic exposure of na areas from a logistic model fitted elsewhere
+ * (clab_lgtreg): coef (p + 1, intercept first) applied to the areas'
+ * covariates ax (na by p, column-major) gives each area's rate
+ * 1 / (1 + exp(-eta)), times its population pop (at least 0) its
+ * exposure. */
+int clab_synexp(const double *coef, const double *ax, int na, int p, const double *pop,
+                double *rate, double *expo);
+
 #ifdef __cplusplus
 }
 #endif

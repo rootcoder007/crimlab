@@ -164,7 +164,7 @@ int clab_hsper(const double *x, const double *y, const int *prd, int n, int np, 
   std::vector<int> o(n);
   for (int i = 0; i < n; ++i) o[i] = i;
   std::sort(o.begin(), o.end(), [&](int a, int b) {
-    return gx[a] < gx[b] || (gx[a] == gx[b] && (gy[a] < gy[b] || (gy[a] == gy[b] && a < b)));
+    return gx[a] == gx[b] ? (gy[a] == gy[b] ? a < b : gy[a] < gy[b]) : gx[a] < gx[b];
   });
   int k = -1;
   for (int q = 0; q < n; ++q) {

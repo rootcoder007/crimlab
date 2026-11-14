@@ -139,7 +139,7 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
   std::vector<int> o(n);
   for (int i = 0; i < n; ++i) o[i] = i;
   std::sort(o.begin(), o.end(), [&](int a, int b) {
-    return x[a] < x[b] || (x[a] == x[b] && (y[a] < y[b] || (y[a] == y[b] && a < b)));
+    return x[a] == x[b] ? (y[a] == y[b] ? a < b : y[a] < y[b]) : x[a] < x[b];
   });
   for (int q = 0; q < n; ++q) {
     if (q == 0 || x[o[q]] != x[o[q - 1]] || y[o[q]] != y[o[q - 1]]) s.ctr.push_back(o[q]);

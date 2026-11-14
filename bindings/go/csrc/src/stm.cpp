@@ -115,7 +115,7 @@ int clab_stmavg(const double *x, const double *y, const double *t, int n,
       return CLAB_EDOM;
   int *o = iwork;
   for (int i = 0; i < n; ++i) o[i] = i;
-  cgeo::hsort(o, n, [t](int a, int b) { return t[a] < t[b] || (t[a] == t[b] && a < b); });
+  cgeo::hsort(o, n, [t](int a, int b) { return t[a] == t[b] ? a < b : t[a] < t[b]; });
   const int h = span / 2;
   for (int q = 0; q < n; ++q) {
     const int a = q - h < 0 ? 0 : q - h, b = q + h > n - 1 ? n - 1 : q + h;

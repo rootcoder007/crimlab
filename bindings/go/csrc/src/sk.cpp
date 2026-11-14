@@ -57,7 +57,7 @@ int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
   double *v = work;          // n: sorted values
   double *z = work + n;      // n: simulated samples
   for (int i = 0; i < n; ++i) idx[i] = i;
-  kutil::hsort(idx, n, [x](int a, int b) { return x[a] < x[b] || (x[a] == x[b] && a < b); });
+  kutil::hsort(idx, n, [x](int a, int b) { return x[a] == x[b] ? a < b : x[a] < x[b]; });
   for (int i = 0; i < n; ++i) v[i] = x[idx[i]];
   const double c0 = 3.141592653589793 / (2.0 * (3.141592653589793 - 2.0));
   const double tol = 1.0 - 64 * std::numeric_limits<double>::epsilon();

@@ -329,7 +329,7 @@ int clab_nnhclu(const double *x, const double *y, int n, double area,
       asg[i] = -1;
     }
     cgeo::hsort(ord, m, [deg](int a, int bb) {
-      return deg[a] > deg[bb] || (deg[a] == deg[bb] && a < bb);
+      return deg[a] == deg[bb] ? a < bb : deg[a] > deg[bb];
     });
     // seeds in that order take every unassigned unit within the threshold
     int nfound = 0;
@@ -351,7 +351,7 @@ int clab_nnhclu(const double *x, const double *y, int n, double area,
       if (asg[i] >= 0) ++sz[asg[i]];
     for (int q = 0; q < nfound; ++q) ord[q] = q;
     cgeo::hsort(ord, nfound, [sz](int a, int bb) {
-      return sz[a] > sz[bb] || (sz[a] == sz[bb] && a < bb);
+      return sz[a] == sz[bb] ? a < bb : sz[a] > sz[bb];
     });
     int kept = 0;
     int *newid = mem;  // mem doubles as the map old id -> new id
@@ -431,7 +431,7 @@ int clab_stacel(const double *x, const double *y, int n, const double *win,
     nodes[q] = q;
   }
   cgeo::hsort(nodes, nn, [cntv](int a, int bb) {
-    return cntv[a] > cntv[bb] || (cntv[a] == cntv[bb] && a < bb);
+    return cntv[a] == cntv[bb] ? a < bb : cntv[a] > cntv[bb];
   });
   int nk = 0;
   while (nk < top && nk < nn && cntv[nodes[nk]] >= 2) ++nk;
@@ -467,7 +467,7 @@ int clab_stacel(const double *x, const double *y, int n, const double *win,
   for (int t = 0; t < nk; ++t)
     if (root(t) == t && sz[t] >= minpts) rk[nr++] = t;
   cgeo::hsort(rk, nr, [sz](int a, int bb) {
-    return sz[a] > sz[bb] || (sz[a] == sz[bb] && a < bb);
+    return sz[a] == sz[bb] ? a < bb : sz[a] > sz[bb];
   });
   // map roots to cluster numbers (the node counts are no longer needed)
   double *rid = cntv;

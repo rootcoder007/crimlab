@@ -21,7 +21,7 @@ void bhq(const double *p, int m, double *q, int *idx) {
     q[i] = kutil::nan();
     if (!std::isnan(p[i])) idx[k++] = i;
   }
-  kutil::hsort(idx, k, [p](int a, int b) { return p[a] < p[b] || (p[a] == p[b] && a < b); });
+  kutil::hsort(idx, k, [p](int a, int b) { return p[a] == p[b] ? a < b : p[a] < p[b]; });
   double run = 1.0;
   for (int j = k - 1; j >= 0; --j) {
     const double v = p[idx[j]] * k / (j + 1.0);

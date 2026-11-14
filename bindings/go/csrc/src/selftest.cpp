@@ -237,6 +237,11 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_lcr(t, 0);
   t_mnd(t, 0);
   t_flw(t, 0);
+  t_xw(t, 0);
+  t_dtr(t, 0);
+  t_tph(t, 0);
+  t_tox(t, 0);
+  t_rtm(t, 0);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
 }
@@ -481,6 +486,11 @@ int main(int argc, char **argv) {
     t_lcr(t, 1);
     t_mnd(t, 1);
     t_flw(t, 1);
+    t_xw(t, 1);
+    t_dtr(t, 1);
+    t_tph(t, 1);
+    t_tox(t, 1);
+    t_rtm(t, 1);
     std::fputs(xs, stdout);
     std::printf("%ld checks, %ld failed\n", t.n, t.nf);
     return t.nf == 0 ? 0 : 1;

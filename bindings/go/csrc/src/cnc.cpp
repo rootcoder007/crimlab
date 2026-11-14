@@ -122,7 +122,7 @@ int clab_cconc(const double *x, const double *w, int n, const double *fr, int nf
   }
   const double tw = ws.val(), tt = ts.val();
   if (!(tt > 0)) return CLAB_EDOM;
-  kutil::hsort(o, n, [&](int a, int b) { return x[a] < x[b] || (x[a] == x[b] && a < b); });
+  kutil::hsort(o, n, [&](int a, int b) { return x[a] == x[b] ? a < b : x[a] < x[b]; });
   const double m = tt / tw;
   kutil::ksum ss;
   for (int i = 0; i < n; ++i) ss.add((w ? w[i] : 1.0) * (x[i] - m) * (x[i] - m));

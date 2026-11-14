@@ -418,7 +418,7 @@ int clab_hwksim(double hor, int kind, int base, double per, const double *th,
   }
   // in time order
   for (int i = 0; i < k; ++i) iwork[i] = i;
-  kutil::hsort(iwork, k, [t](int a, int b) { return t[a] < t[b] || (t[a] == t[b] && a < b); });
+  kutil::hsort(iwork, k, [t](int a, int b) { return t[a] == t[b] ? a < b : t[a] < t[b]; });
   double *wt = work, *wx = work + cap, *wy = work + 2 * static_cast<std::size_t>(cap);
   int *wg = iwork + cap;
   for (int i = 0; i < k; ++i) {

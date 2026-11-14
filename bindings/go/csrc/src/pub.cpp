@@ -134,7 +134,7 @@ int clab_pbadj(const double *p, int n, int meth, double *q, int *o) {
     if (!(p[i] >= 0 && p[i] <= 1)) return CLAB_EDOM;
     o[i] = i;
   }
-  kutil::hsort(o, n, [&](int a, int b) { return p[a] < p[b] || (p[a] == p[b] && a < b); });
+  kutil::hsort(o, n, [&](int a, int b) { return p[a] == p[b] ? a < b : p[a] < p[b]; });
   double by = 0;
   for (int i = n; i >= 1; --i) by += 1.0 / i;
   // 0 none, 1 Bonferroni, 2 Holm, 3 Hochberg, 4 Benjamini-Hochberg, 5
