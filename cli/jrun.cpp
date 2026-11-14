@@ -1702,6 +1702,7 @@ const Ent ents[] = {
     {"ctabx", "row col? w? agg? correct? exact? level?", ctabx},
     {"calaud", "area risk? outcome? group? population? nperm? seed?", calaud},
     {"scrdsp", "score group? ref? conf?", scrdsp},
+    {"jmono", "judge d y? grp? w? lo? hi? minn? adj? alpha?", jmono},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
