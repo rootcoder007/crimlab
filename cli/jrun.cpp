@@ -1516,6 +1516,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jcnc.inc"
 #include "jxw.inc"
 #include "jlearn.inc"
+#include "jrtm.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1648,6 +1649,12 @@ const Ent ents[] = {
     {"enpath", "x y fam? alpha? lambda? nlam? lmr? fold? tol? maxit? scr?", enpath},
     {"lgtreg", "x y tol? maxit?", lgtreg},
     {"rfor", "x y newx? ntree? mtry? minnode? frac? repl? hon? imb? seed?", rfor},
+    {"crchyp", "x y home?", crchyp},
+    {"hitscr", "s home", hitscr},
+    {"rtmfit", "y lay cell? rad? kind? level?", rtmfit},
+    {"agemix", "curves? shares? ages? panel? nperm? seed?", agemix},
+    {"cumrsk", "age ev pop atrisk? dth? level?", cumrsk},
+    {"jpipe", "num den win? lag? grp?", jpipe},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
