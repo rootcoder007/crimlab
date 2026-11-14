@@ -1520,6 +1520,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jrtm.inc"
 #include "jcba.inc"
 #include "jjdg.inc"
+#include "jhwk.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1567,18 +1568,18 @@ const Ent ents[] = {
     {"oaxbd", "y x grp ref? conf?", oaxbd},
     {"tlvc", "x item", tlvc},
     {"tlvlr", "xa xb na nb bg", tlvlr},
-    {"skp", "x s2 alpha? nsim? seed?", skp},
-    {"lwss", "x y f? iter? delta?", lwss},
-    {"chmb", "a b wopt wval coarse?", chmb},
-    {"tfrp", "par deffect? tdist? ymax? nsim? seed? hl? nq?", tfrp},
     {"aorwt", "from to bw? nb? origin? off? tt? toff? lo? hi? each?", aorwt},
     {"bdig", "x nd? dp? sgn?", bdig},
     {"bnft", "dig nd? nsim? seed?", bnft},
+    {"skp", "x s2 alpha? nsim? seed?", skp},
     {"rptc", "unit year rep y0 y1 minrep?", rptc},
     {"rswp", "d gam? alpha?", rswp},
     {"rshl", "d gam?", rshl},
+    {"lwss", "x y f? iter? delta?", lwss},
+    {"chmb", "a b wopt wval coarse?", chmb},
     {"gstr", "cnt ex? rad? nsim? seed?", gstr},
     {"sptst", "a b nboot? seed? alpha? scale?", sptst},
+    {"tfrp", "par deffect? tdist? ymax? nsim? seed? hl? nq?", tfrp},
     {"zgll", "y x z? par prob off?", zgll},
     {"zgem", "y x z? par prob off? maxit? tol?", zgem},
     {"mvtll", "y x beta sig prob", mvtll},
@@ -1662,6 +1663,9 @@ const Ent ents[] = {
     {"evlx", "est lo? hi? type? rare? sd?", evlx},
     {"jdgiv", "z? d y w? dsh? deff?", jdgiv},
     {"mmshr", "sent min grp?", mmshr},
+    {"hwkres", "times hor? par? kernel? base? per?", hwkres},
+    {"hwksim", "par hor kernel? base? per? win? sigma? seed? nmax?", hwksim},
+    {"stpcp", "y x? minseg? nperm? seed?", stpcp},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
