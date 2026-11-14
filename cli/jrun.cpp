@@ -664,7 +664,7 @@ bool lrpost(Ctx &c, Val &out) {
     const double q = p[p.n() == 1 ? 0 : i];
     o[i] = 1 / (1 + (1 - q) / (q * l[i]));
   }
-  out = vnums(o);
+  out = unbox(vnums(o));
   return true;
 }
 
@@ -779,8 +779,8 @@ bool cllrmin(Ctx &c, Val &out) {
 bool lrcal(Ctx &c, Val &out) {
   Cal k;
   CK(cal(c, k));
-  put(out, "same", vnums(k.cs));
-  put(out, "diff", vnums(k.cd));
+  put(out, "same", unbox(vnums(k.cs)));
+  put(out, "diff", unbox(vnums(k.cd)));
   return true;
 }
 
@@ -1436,7 +1436,7 @@ bool impfpr(Ctx &c, Val &out) {
       return true;
     }
   }
-  out = vnums(o);
+  out = unbox(vnums(o));
   return true;
 }
 

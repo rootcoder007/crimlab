@@ -62,7 +62,7 @@ while IFS="$tab" read -r f j w; do
   esac
 done < "$here/test.tsv"
 # the shortest digits that read back the same, on every system
-eq "format" "$("$c" lrpost -j --lr 2 --prior 0.5)" '[0.6666666666666666]'
+eq "format" "$("$c" lrpost -j --lr 2 --prior 0.5)" '0.6666666666666666'
 eq "format, exponent" "$("$c" dbsrch -j --mp 1e-20 --n 1)" '{"np":1e-20,"any":1e-20}'
 eq "format, grid" "$("$c" eceplt -j --same 10 --diff 0.1 | sed 's/^{"lo":\[\([^]]*\)\].*/\1/' | cut -d, -f14,15,50-52)" \
   '-1.85,-1.7999999999999998,-0.04999999999999982,0,0.050000000000000266'
