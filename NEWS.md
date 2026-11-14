@@ -14,6 +14,10 @@
   parameters fitted by maximum likelihood under each account, or fixed
   with `par`. Its likelihood is checked against enumeration in R; the help
   page states the model's assumptions and limits.
+* `cmpsc()`: the congruent matching profile segments score of two bullet
+  signatures, with the multi-segment-length peaks of Chen et al. (2019).
+  It follows the algorithm written out in R in its tests and is within one
+  segment of cmpsR on simulated signatures.
 * `clprep()` reaches the command line, the Python package and the
   bindings through `clab_jrun()`, which does its recodes, filters and
   recipes in C++ with R's messages and returns the generic's arguments as

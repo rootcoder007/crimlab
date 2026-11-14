@@ -45,7 +45,8 @@ The functions work on summary data, not on raw records:
 * Forensics: how rare a DNA profile is, what a likelihood ratio is worth
   and what it is not, how well a system's ratios are calibrated, kinship,
   paternity, pedigrees with mutation, mixtures from the alleles seen and
-  from their peak heights, and database searches.
+  from their peak heights, database searches, and how well two bullet
+  signatures line up.
 * Policing: why an aggregate clearance rate can fall while every offence
   type clears better, what a proxy for exposure allows, what
   misrecorded group membership does, regression to the mean at hot spots.
@@ -514,7 +515,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (198 of 198); `crimlab -l` lists them and
+of the R package (199 of 199); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

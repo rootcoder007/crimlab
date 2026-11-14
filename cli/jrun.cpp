@@ -1767,6 +1767,7 @@ const Ent ents[] = {
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},
+    {"cmpsc", "a b len? npeaks? tx?", cmpsc},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

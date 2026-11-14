@@ -595,6 +595,9 @@ func Pedlr(args string) (string, error) { return Jrun("pedlr", args) }
 // Gmixlr runs gmixlr() of the R package (arguments: peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?; ? marks an optional one).
 func Gmixlr(args string) (string, error) { return Jrun("gmixlr", args) }
 
+// Cmpsc runs cmpsc() of the R package (arguments: a b len? npeaks? tx?; ? marks an optional one).
+func Cmpsc(args string) (string, error) { return Jrun("cmpsc", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

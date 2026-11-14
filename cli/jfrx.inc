@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// pedlr() and gmixlr() for clab_jrun(): the shapes of the
+// pedlr(), gmixlr() and cmpsc() for clab_jrun(): the shapes of the
 // arguments are checked here in the words of the R binding
 // (src/bfrx.cpp); the rest is frx:: (src/frx.h) and the kernels. A data
 // frame is an object of columns of one length.
@@ -225,5 +225,58 @@ bool gmixlr(Ctx &c, Val &out) {
   put(out, "fit", f);
   put(out, "mix", mx);
   put(out, "locus", lc);
+  return true;
+}
+
+bool cmpsc(Ctx &c, Val &out) {
+  Dv v[2];
+  static const char *const an[] = {"a", "b"};
+  for (int k = 0; k < 2; ++k) {
+    const Got g = readd(c[an[k]], v[k]);
+    if (g == MATRIX) return notvec(c, an[k]);
+    bool bad = g != NUM || v[k].n() < 1;
+    for (double x : v[k].v) bad = bad || std::isinf(x);
+    if (bad) return c.fail("`%s` must be numbers (NA for a missing point), not infinite.", an[k]);
+  }
+  const int na = static_cast<int>(v[0].n()), nb = static_cast<int>(v[1].n());
+  int ln = 50, tx = 25;
+  if (c.has("len")) CK(whole(c, c["len"], "len", 2, ln));
+  int f0 = 0, f1 = na - 1;
+  while (f0 < na && std::isnan(v[0][static_cast<std::size_t>(f0)])) ++f0;
+  while (f1 >= f0 && std::isnan(v[0][static_cast<std::size_t>(f1)])) --f1;
+  if (f1 - f0 + 1 < ln) return c.fail("`a` must hold at least `len` points from its first value to its last.");
+  std::vector<int> pk = {5, 3, 1};
+  if (c.has("npeaks")) {
+    Dv d;
+    bool bad = readd(c["npeaks"], d) != NUM || d.n() < 1 || d.n() > 8;
+    pk.clear();
+    for (double x : d.v) {
+      bad = bad || !(x >= 1 && x <= INT_MAX && x == std::floor(x));
+      if (!bad) pk.push_back(static_cast<int>(x));
+    }
+    if (bad) return c.fail("`npeaks` must be one to eight whole numbers from 1.");
+  }
+  if (c.has("tx")) CK(whole(c, c["tx"], "tx", 0, tx));
+  const int ns = (f1 - f0 + 1) / ln;
+  std::vector<int> ccp(static_cast<std::size_t>(ns)), cm(static_cast<std::size_t>(ns));
+  int off = 0, nseg = 0, sc = 0, pos = 0;
+  CK(kchk(c, clab_cmpsc(v[0].p(), na, v[1].p(), nb, ln, pk.data(), static_cast<int>(pk.size()), tx, &off, &nseg, &sc, &pos,
+                        ccp.data(), cm.data())));
+  put(out, "score", vnum(sc));
+  put(out, "nseg", vnum(nseg));
+  put(out, "scaled", vnum(nseg > 0 ? static_cast<double>(sc) / nseg : NA));
+  put(out, "pos", pos == INT_MIN ? Val() : vnum(pos));
+  Val sg, s1 = varr(), s2 = varr(), s3 = varr(), s4 = varr();
+  for (int s = 0; s < ns; ++s) {
+    s1.a.push_back(vnum(s + 1));
+    s2.a.push_back(vnum(off + s * ln + 1));
+    s3.a.push_back(ccp[static_cast<std::size_t>(s)] == INT_MIN ? Val() : vnum(ccp[static_cast<std::size_t>(s)]));
+    s4.a.push_back(vbool(cm[static_cast<std::size_t>(s)] != 0));
+  }
+  put(sg, "seg", s1);
+  put(sg, "start", s2);
+  put(sg, "ccp", s3);
+  put(sg, "cmps", s4);
+  put(out, "segs", sg);
   return true;
 }

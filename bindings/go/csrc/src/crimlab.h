@@ -171,6 +171,25 @@ int clab_gmxlik(int nl, const int *np, const double *p, const double *y, const d
                 double theta, double at, double pc, double lambda, int deg, int stut,
                 const double *par, double *ll);
 
+/* The congruent matching profile segments score of two bullet signatures
+ * (Chen et al. 2019, doi:10.1016/j.forsciint.2019.109964). a: na values
+ * of the comparison signature (NaN for a missing point), cut from its
+ * first value (at off, out) to its last into basis segments of len points
+ * (the rest dropped; CLAB_EARG when it holds fewer than len); b: nb values of
+ * the reference. npk: nlev peak counts; level l takes segments of len 2^l
+ * points about the basis segment's centre (left out when longer than a)
+ * and the npk[l] highest local maxima of their cross-correlation with b
+ * over the lags that keep them inside b (missing pairs left out). A segment's candidate: the best
+ * peak of its longest level within tx of a peak at every other level
+ * (with nlev 1, all its peaks). The congruent lag: the candidate within
+ * tx of the most segments' candidates, the middle one of ties. A lag d
+ * pairs a[t] with b[t + d]. Out: nseg; score, the segments within tx of
+ * it; pos (INT_MIN when no segment has a candidate); per segment ccp (its
+ * candidate nearest pos, INT_MIN none) and cmps (1 when it counts).
+ * O(nseg nb len 2^nlev). */
+int clab_cmpsc(const double *a, int na, const double *b, int nb, int len, const int *npk, int nlev,
+               int tx, int *off, int *nseg, int *score, int *pos, int *ccp, int *cmps);
+
 /* Clearance-rate decomposition and Simpson's paradox (Lean:
  * Crimlab.Clearance.kitagawa, change_ge_mix). clra, reca, clrb, recb: n parts'
  * cleared (non-negative) and recorded (positive) counts in comparisons A

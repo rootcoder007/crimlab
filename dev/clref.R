@@ -977,6 +977,15 @@ ok("gmixlr", peaks = gp, freq = gf, ref = gr, hp = c("V", "S"), nc = 2, hd = "V"
 bad("gmixlr", peaks = gp, freq = gf, ref = gr, hp = "S", nc = 0)
 bad("gmixlr", peaks = gp, freq = gf, ref = gr, hp = "W", nc = 2)
 bad("gmixlr", peaks = gp, freq = gf[1:3], ref = gr, hp = "S", nc = 1, deg = TRUE)
+# The CMPS score of bullet signatures
+ca <- round(cumsum(sin(seq_len(400) / 3) + cos(seq_len(400) / 7)) + sin(seq_len(400) * 1.3), 4)
+cb <- c(ca[26:400], rep(NA, 5)) + round(0.05 * cos(seq_len(380) * 2.1), 4)
+ok("cmpsc", a = c(NA, NA, ca[-(1:2)]), b = cb)
+ok("cmpsc", a = ca, b = cb, len = 40, npeaks = c(4, 2), tx = 10)
+ok("cmpsc", a = ca, b = rev(cb), npeaks = 3)
+bad("cmpsc", a = ca, b = cb, npeaks = c(1, 0))
+bad("cmpsc", a = ca[1:20], b = cb)
+
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

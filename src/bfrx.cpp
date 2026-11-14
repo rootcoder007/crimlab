@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The R entry points of pedlr() and gmixlr(): the shapes of the
+// The R entry points of pedlr(), gmixlr() and cmpsc(): the shapes of the
 // arguments are checked here, in the words clab_jrun() uses too; the rest
 // of the checks and the arithmetic are frx:: (frx.h) and the kernels.
 // Every C++ object is gone before an error is raised: a refusal from frx
 // is copied to a buffer and raised once its scope has closed.
+#include <climits>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -313,6 +314,72 @@ SEXP C_clab_r_gmixlr(SEXP peaks, SEXP freq, SEXP ref, SEXP hp, SEXP nc, SEXP hd,
   clab::ichk(code);
   if (msg[0] != '\0') clab::fail("%s", msg);
   return out;
+}
+
+SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx) {
+  clab::who = "cmpsc";
+  for (SEXP x : {a, b}) {
+    const char *an = x == a ? "a" : "b";
+    clab::unlab(x, an);
+    bool lna = TYPEOF(x) == LGLSXP;
+    for (R_xlen_t i = 0; lna && i < XLENGTH(x); ++i) lna = LOGICAL(x)[i] == NA_LOGICAL;
+    if (!(clab::isnum(x) || lna) || XLENGTH(x) < 1) {
+      clab::fail("`%s` must be numbers (NA for a missing point), not infinite.", an);
+    }
+    clab::vec(x, an);
+  }
+  SEXP av = PROTECT(Rf_coerceVector(a, REALSXP)), bv = PROTECT(Rf_coerceVector(b, REALSXP));
+  for (SEXP x : {av, bv}) {
+    for (R_xlen_t i = 0; i < XLENGTH(x); ++i) {
+      if (std::isinf(REAL(x)[i])) clab::fail("`%s` must be numbers (NA for a missing point), not infinite.", x == av ? "a" : "b");
+    }
+  }
+  const int na = clab::ilen(static_cast<double>(XLENGTH(av)), "a"), nb = clab::ilen(static_cast<double>(XLENGTH(bv)), "b");
+  const int ln = clab::whole(len, "len", 2);
+  int f0 = 0, f1 = na - 1;
+  while (f0 < na && ISNAN(REAL(av)[f0])) ++f0;
+  while (f1 >= f0 && ISNAN(REAL(av)[f1])) --f1;
+  if (f1 - f0 + 1 < ln) clab::fail("`a` must hold at least `len` points from its first value to its last.");
+  if (!clab::isnum(npeaks) || XLENGTH(npeaks) < 1 || XLENGTH(npeaks) > 8) {
+    clab::fail("`npeaks` must be one to eight whole numbers from 1.");
+  }
+  SEXP pv = PROTECT(Rf_coerceVector(npeaks, REALSXP));
+  int pk[8];
+  for (R_xlen_t i = 0; i < XLENGTH(pv); ++i) {
+    const double v = REAL(pv)[i];
+    if (!(v >= 1 && v <= INT_MAX && v == std::floor(v))) clab::fail("`npeaks` must be one to eight whole numbers from 1.");
+    pk[i] = static_cast<int>(v);
+  }
+  const int t = clab::whole(tx, "tx", 0);
+  const int ns = (f1 - f0 + 1) / ln;
+  SEXP cc = PROTECT(Rf_allocVector(INTSXP, ns)), cm = PROTECT(Rf_allocVector(LGLSXP, ns));
+  int off = 0, nseg = 0, sc = 0, pos = 0;
+  clab::kchk(clab_cmpsc(REAL(av), na, REAL(bv), nb, ln, pk, static_cast<int>(XLENGTH(pv)), t, &off, &nseg, &sc, &pos,
+                        INTEGER(cc), LOGICAL(cm)),
+             "cmpsc(a, b, len, npeaks, tx)");
+  SEXP sg = PROTECT(Rf_allocVector(INTSXP, ns)), st = PROTECT(Rf_allocVector(INTSXP, ns));
+  for (int s = 0; s < ns; ++s) {
+    INTEGER(sg)[s] = s + 1;
+    INTEGER(st)[s] = off + s * ln + 1;
+    if (INTEGER(cc)[s] == INT_MIN) INTEGER(cc)[s] = NA_INTEGER;
+  }
+  SEXP segs = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(segs, 0, sg);
+  SET_VECTOR_ELT(segs, 1, st);
+  SET_VECTOR_ELT(segs, 2, cc);
+  SET_VECTOR_ELT(segs, 3, cm);
+  static const char *const sn[] = {"seg", "start", "ccp", "cmps"};
+  clab::frame(segs, sn);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(out, 0, Rf_ScalarInteger(sc));
+  SET_VECTOR_ELT(out, 1, Rf_ScalarInteger(nseg));
+  SET_VECTOR_ELT(out, 2, Rf_ScalarReal(nseg > 0 ? static_cast<double>(sc) / nseg : NA_REAL));
+  SET_VECTOR_ELT(out, 3, Rf_ScalarInteger(pos == INT_MIN ? NA_INTEGER : pos));
+  SET_VECTOR_ELT(out, 4, segs);
+  static const char *const on[] = {"score", "nseg", "scaled", "pos", "segs"};
+  clab::nlist(out, on);
+  UNPROTECT(9);
+  return classed(out, "cmpsc");
 }
 
 }  // extern "C"

@@ -252,6 +252,8 @@ test_that("every exported function answers one valid call in its shape", {
                       data.frame(locus = "L", allele = 1, freq = 0.5), nc = 1,
                       par = c(mu = 500, omega = 0.3, m1 = 1))),
          c("lr", "log10lr", "fit", "mix", "locus")),
+    list(quote(cmpsc(sin(1:100), sin(1:100))),
+         c("score", "nseg", "scaled", "pos", "segs")),
     list(quote(tpdmc(0.5)), c("P", "N", "absorb", "time", "start", "path")),
     list(quote(tpbhm(c(1, 3, 2, 5), 1:4)),
          c("coef", "sigma", "tau2", "groups", "fitted", "level")),
