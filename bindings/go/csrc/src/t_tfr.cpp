@@ -281,7 +281,7 @@ void t_tfr(tk &t, int big) {
 #include <cstdio>
 
 
-// tfer's standard case: transfer(N = 1e5) 0.681 s (median of 5, zeus)
+// tfer's standard case: transfer(N = 1e5) 0.681 s (median of 5, arm64 Linux)
 void b_tfr() {
   double prob[201], se[201], cut[2], t[5];
   for (int k = 0; k < 5; ++k) {

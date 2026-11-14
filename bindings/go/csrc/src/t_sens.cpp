@@ -154,7 +154,7 @@ void t_sens(tk &t, int) { run(t); }
 #include <cstdio>
 
 // timing: 50,000 pairs, Gamma 1 to 2 by 0.25 (rbounds psens took 0.024 s,
-// hlsens 3.112 s, one run each, zeus)
+// hlsens 3.112 s, one run each, arm64 Linux)
 void b_sens() {
   const int n = 50000;
   static double d[n], w[n];

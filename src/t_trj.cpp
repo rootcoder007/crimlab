@@ -205,7 +205,7 @@ void t_trj(tk &t, int) { run(t); }
 
 // timing: 1,000 units x 10 periods, 2 groups, cubic bases for the counts
 // and the zero inflation (crimCV ZIP, dpolyp = dpolyl = 3, init = 20, i.e.
-// 40 starts, took 32.544 s, one run, zeus; its default ZIPt 22.262 s).
+// 40 starts, took 32.544 s, one run, arm64 Linux; its default ZIPt 22.262 s).
 // Here 40 EM runs from random starts on a polynomial basis of the same
 // size.
 void b_trj() {

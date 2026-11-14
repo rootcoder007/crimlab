@@ -62,7 +62,7 @@ patidx,Familias,FamiliasPosterior,yes,FALSE,"trio against mother, child and an u
 patidx,forrel,kinshipLR,yes,FALSE,"trio against the same with the alleged father a singleton"
 patidx,paramlink,LR,yes,FALSE,"as forrel"
 patidx,relSim,lrPC,yes,FALSE,"duo (mother = NULL): the parent-child ratio"
-mixlr,forensim,LR,yes,FALSE,"Repliste = mixture alleles, Tp, Td, xp, xd; num, deno, LR. Not installable on l14 (Tk; see bench.md)"
+mixlr,forensim,LR,yes,FALSE,"Repliste = mixture alleles, Tp, Td, xp, xd; num, deno, LR. Not installable on the benchmark machine (Tk; see bench.md)"
 mixlr,relSim,lrMix,yes,FALSE,"victim plus suspect against victim plus one unknown, theta 0, per locus"
 mixlr,relMix,relMix,no,FALSE,"relationship inference from mixtures with drop-in and drop-out (a GUI-driven model)"
 mixlr,KinMixLite,KinMix,no,FALSE,"peak-height model on Bayesian networks"

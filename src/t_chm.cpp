@@ -119,7 +119,7 @@ void t_chm(tk &t, int) { run(t); }
 #include <cstdio>
 
 // timing: 2,000- and 9,500-point profiles at the defaults (toolmaRk took
-// 0.423 s and 5.267 s, medians on zeus)
+// 0.423 s and 5.267 s, medians on arm64 Linux)
 void b_chm() {
   static double a[9500], b[9500], w[250000];
   std::int64_t s = 7;

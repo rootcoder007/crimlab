@@ -215,7 +215,7 @@ void t_gst(tk &t, int) { run(t); }
 #include <cstdio>
 
 // timing: 1e5 points on 10,000 cells (sfhotspot hotspot_gistar without
-// KDE took 17.3 s on zeus, its own gridding included);
+// KDE took 17.3 s on arm64 Linux, its own gridding included);
 // here gridding plus G* with the exact test, and with 99 permutations
 void b_gst() {
   static double cnt[10000], ex[10000];

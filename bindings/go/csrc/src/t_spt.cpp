@@ -195,7 +195,7 @@ void t_spt(tk &t, int) { run(t); }
 #include <cstdio>
 
 // timing: 10,000 units, Poisson(5) each, B = 999 (sppt took 5.012 s,
-// median of 3 on zeus); memory here O(units)
+// median of 3 on arm64 Linux); memory here O(units)
 void b_spt() {
   static double a[10000], b[10000];
   xrng r{9};

@@ -2,7 +2,7 @@
 # seeded point sets. Values must agree (stated tolerance) before a time is
 # recorded. Writes inst/bench/sp.csv; nothing in it is typed by hand.
 #   Rscript dev/bench-sp.R        (from the package root, crimlab installed)
-# The table of record is taken on l14 (x86-64), one process, after the
+# The table of record is taken on one x86-64 Linux machine, one process, after the
 # 1-minute load average has fallen below 1.0. "faster" compares with
 # third-party packages only (base R, stats, spatstat, spdep, geosphere);
 # none of the maintainer's own packages is a counterpart here.

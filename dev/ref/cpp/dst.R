@@ -1,6 +1,6 @@
 # Reference values for src/t_nnd.cpp and src/t_rpk.cpp (nearest-neighbour
-# index, k-order distances, Ripley's K). Run on zeus:
-#   R_LIBS=/mnt/nvme/work/csls/lib R_ENVIRON_USER=/dev/null \
+# index, k-order distances, Ripley's K). Run from the package root:
+#   R_LIBS=<library holding the packages below> R_ENVIRON_USER=/dev/null \
 #   R_PROFILE_USER=/dev/null nice -n 10 /usr/bin/Rscript dev/ref/cpp/dst.R
 suppressMessages(library(spatstat.explore))
 g <- function(i, a, m) ((i * a) %% m) / m

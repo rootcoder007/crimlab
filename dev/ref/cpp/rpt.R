@@ -1,11 +1,12 @@
 # Reference values for src/rpt.cpp (clab_rptc).
-# Field package: crimeutils 0.5.1 (CRAN). It does not install on zeus (gt
-# needs V8), so its file R/ucr_constant_reporters.R is sourced from the
-# CRAN tarball unpacked in /mnt/nvme/work/csls/src/crimeutils, R 4.5.0.
+# Field package: crimeutils 0.5.1 (CRAN). Where it does not install (gt needs
+# V8), its file R/ucr_constant_reporters.R is sourced from the unpacked CRAN
+# tarball: set CRIMEUTILS_SRC to that folder. R 4.5.0.
 source("dev/ref/cpp/pre.R")
 suppressMessages({library(dplyr); library(magrittr)})
 e <- new.env()
-sys.source("/mnt/nvme/work/csls/src/crimeutils/R/ucr_constant_reporters.R", e)
+sys.source(file.path(Sys.getenv("CRIMEUTILS_SRC"), "R",
+                     "ucr_constant_reporters.R"), e)
 f <- e$ucr_constant_reporter_oris
 
 # deterministic panel, rebuilt in src/t_rpt.cpp: agencies 0..39, years

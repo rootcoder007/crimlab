@@ -1,4 +1,4 @@
-# Shared by the reference generators dev/ref/cpp/*.R and dev/ref/spec.R; run each from the package root on zeus:
+# Shared by the reference generators dev/ref/cpp/*.R and dev/ref/spec.R; run each from the package root:
 # Run from the package root: Rscript dev/ref/cpp/<name>.R
 f17 <- function(x) paste(sprintf("%.17g", x), collapse = ", ")
 carr <- function(nm, x) cat(sprintf("const double %s[%d] = {%s};\n", nm, length(x), f17(x)))

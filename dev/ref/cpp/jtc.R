@@ -1,5 +1,5 @@
 # Reference values for src/t_jtc.cpp (decay functions, trip-length kernel
-# densities). Base R only. Run on zeus:
+# densities). Base R only. Run from the package root:
 #   R_ENVIRON_USER=/dev/null R_PROFILE_USER=/dev/null nice -n 10 \
 #   /usr/bin/Rscript dev/ref/cpp/jtc.R
 pr <- function(name, v) cat(name, " = {", paste(sprintf("%.17g", v),

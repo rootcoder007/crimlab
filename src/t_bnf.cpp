@@ -222,7 +222,7 @@ void t_bnf(tk &t, int) { run(t); }
 
 // timing: n = 1e6, first two digits
 // (benford.analysis::benford took 1.622 s, BenfordTests::chisq.benftest
-// 0.639 s, medians of 3 on zeus)
+// 0.639 s, medians of 3 on arm64 Linux)
 void b_bnf() {
   const int n = 1000000;
   static double x[n];

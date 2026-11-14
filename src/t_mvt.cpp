@@ -217,7 +217,7 @@ void t_mvt(tk &t, int) { run(t); }
 #include <cstdio>
 
 // timing: 200 units x 8 periods x 2 indicators, ng = 2, d = 1 (gbmt took
-// 4.667 s, one run with its Ward start, zeus); and 1,000 units, ng = 3,
+// 4.667 s, one run with its Ward start, arm64 Linux); and 1,000 units, ng = 3,
 // d = 2. Here one EM run from a
 // rough start, tol 1e-10.
 void b_mvt() {

@@ -163,7 +163,7 @@ void t_aor(tk &t, int) { run(t); }
 #include <cstdio>
 
 // timing: n = 10,000 events, spans up to 8 h, row weights over 168 hours
-// (aoristic::aoristic.df took 6.319 s, 1 run, zeus)
+// (aoristic::aoristic.df took 6.319 s, 1 run, arm64 Linux)
 void b_aor() {
   const int n = 10000;
   static double f[n], t[n], w[n * 168];

@@ -2,7 +2,7 @@
 # forensic kernels (clab_gtmp, clab_kinidx, clab_patidx, clab_mixp,
 # clab_cllr, clab_lrcal), for src/t_orc.cpp. R 4.5.0, with the user's
 # ~/.Renviron (DNAtools in the reference library needs Rcpp >= 1.1.0, which
-# only the user library on zeus has).
+# only the user library has).
 # DNAtools first: it needs a newer Rcpp than the other packages load
 source("dev/ref/cpp/pre.R")
 suppressMessages({library(DNAtools); library(Familias); library(numberofalleles); library(comparison)})

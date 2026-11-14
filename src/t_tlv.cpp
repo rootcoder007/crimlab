@@ -254,7 +254,7 @@ void t_tlv(tk &t, int) { run(t); }
 
 // timing: components of 200 items x 12 replicates x 3
 // variables (comparison::two.level.components on glass took 2.423 s,
-// median of 5 on zeus), and one LR (0.00019 s per call)
+// median of 5 on arm64 Linux), and one LR (0.00019 s per call)
 void b_tlv() {
   static double x[2400 * 3], w[200 * 3 + 400];
   static int item[2400];

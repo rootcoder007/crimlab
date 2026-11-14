@@ -400,7 +400,7 @@ void t_fair(tk &t, int) {
 #include <cstdio>
 
 // timing: n = 1e5, 4 groups (fairness::equal_odds took 0.106 s, median
-// of 5 on zeus)
+// of 5 on arm64 Linux)
 void b_fair() {
   const int n = 100000;
   static double s[n];
