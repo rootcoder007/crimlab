@@ -186,30 +186,44 @@ test_that("results do not change and no state is left after an interrupt", {
 })
 
 # The child gets SIGINT from a shell started beside it once it is ready
-# (pid file written); it runs in the foreground of its shell, since an
+# (its pid written); it runs in the foreground of its shell, since an
 # asynchronous command starts with SIGINT ignored. Without the interrupt
-# the call runs for minutes and returns "done".
+# the call would run for minutes, so the child ends any top-level call at
+# 60 seconds (setTimeLimit(); the long call then returns the message),
+# the shell waits for the pid at most 60 seconds, and the exit handler
+# kills the child by its pid if the test stops while the child runs: an
+# interrupted or failed test leaves no R process behind, and one whose
+# parent is killed outright ends within the minute. Where SIGINT is
+# ignored from the start (some nohup or background chains), the
+# interrupt cannot arrive and the test fails on the time limit.
 test_that("Ctrl-C stops a long call in a running R session", {
   skip_on_cran()
   skip_on_os("windows")
   d <- tempfile()
   dir.create(d)
-  on.exit(unlink(d, recursive = TRUE))
   pid <- file.path(d, "pid")
   out <- file.path(d, "out.rds")
+  on.exit({
+    if (file.exists(pid) && !file.exists(out)) {
+      tools::pskill(as.integer(readLines(pid)), tools::SIGKILL)
+    }
+    unlink(d, recursive = TRUE)
+  })
   src <- file.path(d, "run.R")
   writeLines(
     c(
+      "setTimeLimit(elapsed = 60)",
       sprintf(".libPaths(%s)", deparse1(.libPaths(), collapse = "")),
       "library(crimlab)",
       "set.seed(1)",
       "p <- cbind(x = runif(300), y = runif(300))",
-      sprintf("writeLines(\"ready\", %s)", deparse(pid)),
+      sprintf("writeLines(as.character(Sys.getpid()), %s)", deparse(pid)),
       "t0 <- Sys.time()",
       "r <- tryCatch({",
       "  mantst(p, t = p[, 1], nsim = 1e6, seed = 1)",
       "  \"done\"",
-      "}, interrupt = function(i) \"stopped\")",
+      "}, interrupt = function(i) \"stopped\",",
+      "error = function(e) conditionMessage(e))",
       "s <- as.numeric(Sys.time() - t0, units = \"secs\")",
       "a <- mantst(p, t = p[, 1], nsim = 99, seed = 1)",
       sprintf("saveRDS(list(r = r, s = s, a = a), %s)", deparse(out))
@@ -219,7 +233,8 @@ test_that("Ctrl-C stops a long call in a running R session", {
   rs <- file.path(R.home("bin"), "Rscript")
   sh <- sprintf(
     paste(
-      "(while [ ! -s %s ]; do sleep 1; done; sleep 2; kill -INT $$) &",
+      "(i=0; while [ ! -s %s ] && [ $i -lt 60 ]; do sleep 1; i=$((i+1));",
+      "done; sleep 2; kill -INT $$) &",
       "exec %s --vanilla %s"
     ),
     shQuote(pid),
