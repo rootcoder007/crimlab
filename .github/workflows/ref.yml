@@ -56,13 +56,15 @@ jobs:
         with:
           r-version: ${{ matrix.r }}
           use-public-rspm: true
-      # sf, spdep and igraph link these where no binary is served
+      # sf, spdep, igraph and fs (R-devel builds it from source) link these
+      # where no binary is served
       - name: System libraries
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq libgdal-dev libgeos-dev libproj-dev \
-            libudunits2-dev libsqlite3-dev libglpk-dev libxml2-dev libssl-dev
+            libudunits2-dev libsqlite3-dev libglpk-dev libxml2-dev libssl-dev \
+            libuv1-dev
       # one at a time, so that one that fails leaves the others; rmorie and
       # rmoriebricklayer come from r-universe, the rest from CRAN
       - name: Reference packages
