@@ -1519,6 +1519,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jlearn.inc"
 #include "jrtm.inc"
 #include "jcba.inc"
+#include "jjdg.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1659,6 +1660,8 @@ const Ent ents[] = {
     {"jpipe", "num den win? lag? grp?", jpipe},
     {"smdbal", "x d w? ps? thr?", smdbal},
     {"evlx", "est lo? hi? type? rare? sd?", evlx},
+    {"jdgiv", "z? d y w? dsh? deff?", jdgiv},
+    {"mmshr", "sent min grp?", mmshr},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
