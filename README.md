@@ -493,9 +493,15 @@ libcrimlab, whose one entry point `clab_jrun()` (`cli/jrun.h`) runs a
 function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
-most functions of the Python package. `crimlab -l` lists the functions it
-holds and their arguments; `cli/test.tsv` holds the values the R package
-gives for them (`dev/clref.R`), which every front end is tested against.
+most functions of the Python package. It holds every exported function
+of the R package but `clprep()` (195 of 196); `crimlab -l` lists them and
+their arguments, and `cli/test.tsv` holds the values the R package gives
+for them (`dev/clref.R`), which every front end is tested against. A
+warning R would give is returned in the result as `warnings`, an array of
+its messages. Outside R a matrix is an array of its rows, without row or
+column names, so a result names its columns as R does for an unnamed
+matrix; and an argument that R takes as a function (the `stat` of
+`bandx()`) has no counterpart.
 
     crimlab orrisk --or 2 --rate 0.1 --share 0.3
     echo '{"from": ["a", "a", "b"], "to": ["b", "c", "c"]}' | crimlab ntdeg -j

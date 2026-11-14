@@ -1,5 +1,22 @@
 # crimlab 0.0.0.9000
 
+* `clab_jrun()`, and with it the command-line program, the Python package
+  and the bindings, now reaches every exported function but `clprep()`:
+  counts, rates and tables, the audits of risk scores, judges' leniency,
+  long stays, published figures and bands, stocks and flows, the Hawkes
+  fits and other events in time, difference in differences, synthetic
+  controls and the event study, surveys, few-cluster inference, the
+  double machine learner and the super learner, and the spatial methods
+  of near repeats, scans, densities, Moran's I and spatial regression. A
+  warning R gives is returned in the result as `warnings`, an array of its
+  messages. `lrpost()`, `impfpr()` and `lrcal()` there now give one value
+  as a number, not an array of one, as R does. `src/dst.cpp` adds the
+  chi-square (central and noncentral), t, F, gamma, beta, Poisson and
+  binomial distribution functions, upper tails and quantiles the front
+  ends need; the R functions keep calling R's own. The test of Ctrl-C in
+  a running session measures the stop from the signal and sets the
+  signal only once the call's handler is in place, so a loaded machine no
+  longer fails it.
 * The command-line program, the Python package and the Go, Rust, Java and
   JavaScript bindings now reach most of the package's functions through
   `clab_jrun()`: fairness audits, trace evidence, aoristic weights and
