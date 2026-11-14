@@ -18,8 +18,9 @@ var cut = regexp.MustCompile(`[\[\]{},:]`)
 // same compares two JSON texts as cli/test.sh does: token by token, a
 // number to 1e-12 relative to the larger (absolute when the reference
 // is 0), since other C libraries and fused multiply-adds change the last
-// bits.
-func same(got, want string) bool {
+// bits; rel and abs are the bounds of the function (cli/tol.tsv), and a
+// number within either passes.
+func same(got, want string, rel, abs float64) bool {
 	a, b := cut.Split(got, -1), cut.Split(want, -1)
 	if len(a) != len(b) {
 		return false
@@ -37,7 +38,7 @@ func same(got, want string) bool {
 		if y == 0 {
 			m = 1
 		}
-		if math.Abs(x-y) > 1e-12*m {
+		if d := math.Abs(x - y); d > rel*m && d > abs {
 			return false
 		}
 	}
@@ -53,6 +54,19 @@ func TestTable(t *testing.T) {
 		t.Skip("no ../../cli/test.tsv (the module outside the repository)")
 	}
 	defer f.Close()
+	// the functions with a bound of their own: name, relative, absolute
+	tol := map[string][2]float64{}
+	if b, err := os.ReadFile("../../cli/tol.tsv"); err == nil {
+		for _, ln := range strings.Split(string(b), "\n") {
+			p := strings.Split(strings.TrimRight(ln, "\r"), "\t")
+			if len(p) < 3 || strings.HasPrefix(p[0], "#") {
+				continue
+			}
+			r, _ := strconv.ParseFloat(p[1], 64)
+			a, _ := strconv.ParseFloat(p[2], 64)
+			tol[p[0]] = [2]float64{r, a}
+		}
+	}
 	sc := bufio.NewScanner(f)
 	sc.Buffer(make([]byte, 1<<20), 1<<24)
 	n := 0
@@ -68,7 +82,7 @@ func TestTable(t *testing.T) {
 			}
 		} else if err != nil {
 			t.Errorf("%s %s: %v", p[0], p[1], err)
-		} else if !same(got, p[2]) {
+		} else if tl, ok := tol[p[0]]; ok && !same(got, p[2], tl[0], tl[1]) || !ok && !same(got, p[2], 1e-12, 0) {
 			t.Errorf("%s %s\n got:  %s\n want: %s", p[0], p[1], got, p[2])
 		}
 		n++
@@ -80,7 +94,7 @@ func TestTable(t *testing.T) {
 
 func TestResults(t *testing.T) {
 	r, err := Orrisk(`{"or": 2, "rate": 0.1, "share": 0.3}`)
-	if err != nil || !same(r, `{"exposed":0.14752049189933314,"unexposed":0.079634074900285817,"rr":1.8524795081006669,"or":2}`) {
+	if err != nil || !same(r, `{"exposed":0.14752049189933314,"unexposed":0.079634074900285817,"rr":1.8524795081006669,"or":2}`, 1e-12, 0) {
 		t.Fatalf("orrisk: %s %v", r, err)
 	}
 	r, err = Selftest("")

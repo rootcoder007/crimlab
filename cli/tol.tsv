@@ -1,0 +1,11 @@
+# Tolerances of the cases of test.tsv that need more than the general
+# 1e-12 relative: function, relative bound, absolute bound, why. A number
+# passes when it is within either bound. Read by cli/test.sh and by the
+# Go, npm and Python tests. Measured on arm64 (fused multiply-adds) and
+# with MSVC against the values of the R package on x86-64.
+webpt	1e-12	1e-15	gap is the residual at the stopping point, about 1e-10: its last digits are rounding
+inspg	1e-12	1e-15	drift and dvdt are sums that cancel to about 1e-11 and 1e-19
+enpath	1e-12	1e-15	a coefficient that is zero up to rounding (about 1e-16)
+nnhclu	1e-12	1e-10	the short axis of the ellipse of a cluster whose points lie on a line: zero up to rounding (about 1e-10)
+gorg	1e-10	0	p is a tail probability of z: an error of 1e-13 in z gives 1e-12 in p
+hilltl	1e-7	0	alpha is the minimum found by golden-section search, which the rounding of the objective fixes only to about 1e-8; se and ks follow it

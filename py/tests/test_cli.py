@@ -17,6 +17,14 @@ from crimlab import _j
 NJ = 109
 
 TSV = Path(__file__).resolve().parents[2] / "cli" / "test.tsv"
+# cli/tol.tsv: the functions with bounds other than 1e-12 relative
+# (relative, absolute: a number within either passes)
+TOL = {}
+if TSV.with_name("tol.tsv").is_file():
+    for ln in TSV.with_name("tol.tsv").read_text(encoding="utf-8").splitlines():
+        if ln and not ln.startswith("#"):
+            p = ln.split("\t")
+            TOL[p[0]] = (float(p[1]), float(p[2]))
 CASES = []
 if TSV.is_file():
     for ln in TSV.read_text(encoding="utf-8").splitlines():
@@ -43,29 +51,29 @@ def num(x):
     return float(x) if isinstance(x, str) and x in ("NaN", "Inf", "-Inf") else x
 
 
-def same(py, r, where):
+def same(py, r, where, rel=1e-12, ab=0.0):
     r = num(r)
     if isinstance(r, dict):
         assert isinstance(py, dict) and list(py) == list(r), (where, py)
         for k in r:
-            same(py[k], r[k], f"{where}${k}")
+            same(py[k], r[k], f"{where}${k}", rel, ab)
     elif isinstance(r, list):
         assert isinstance(py, list) and len(py) == len(r), (where, py)
         for i, (a, b) in enumerate(zip(py, r)):
-            same(a, b, f"{where}[{i}]")
+            same(a, b, f"{where}[{i}]", rel, ab)
     elif isinstance(r, bool) or r is None or isinstance(r, str):
         assert py == r and type(py) is type(r), (where, py, r)
     elif math.isnan(r):
         assert isinstance(py, float) and math.isnan(py), (where, py)
     else:
         assert isinstance(py, (int, float)) and not isinstance(py, bool), (where, py)
-        tol = 1e-12 if r == 0 else 1e-12 * max(abs(py), abs(r))
-        assert py == r or abs(py - r) <= tol, (where, py, r)
+        tol = rel if r == 0 else rel * max(abs(py), abs(r))
+        assert py == r or abs(py - r) <= max(tol, ab), (where, py, r)
 
 
 @pytest.mark.parametrize("f,a,w", [c for c in CASES if not c[2].startswith("!")], ids=lambda x: x[:20])
 def test_result_matches_r(f, a, w):
-    same(getattr(crimlab, f)(**kw(a)), json.loads(w), f)
+    same(getattr(crimlab, f)(**kw(a)), json.loads(w), f, *TOL.get(f, (1e-12, 0.0)))
 
 
 @pytest.mark.parametrize("f,a,w", [c for c in CASES if c[2].startswith("!")], ids=lambda x: x[:20])

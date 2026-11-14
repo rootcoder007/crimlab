@@ -9,6 +9,7 @@
 # change the last bits, a few units in the last place in these methods;
 # a wrong formula changes far more. A reference of exactly 0 comes from
 # terms of order one cancelling, so there the bound is 1e-12 absolute.
+# tol.tsv names the few functions with another bound, and why.
 # Then the exact format of numbers, the self-test of the kernels, the CSV
 # and option input, and the errors.
 # shellcheck disable=SC2016 # the backticks are part of the messages
@@ -17,9 +18,11 @@ c=${1:-./crimlab}
 here=$(cd "$(dirname "$0")" && pwd)
 n=0
 bad=0
-ck() { # name, got, want
+ck() { # name, got, want, function
   n=$((n + 1))
-  if ! awk -v a="$2" -v b="$3" 'BEGIN {
+  tl=$(awk -F '\t' -v f="${4-}" '$1 == f { print $2, $3 }' "$here/tol.tsv")
+  if ! awk -v a="$2" -v b="$3" -v rel="${tl% *}" -v abs="${tl#* }" 'BEGIN {
+      if (rel == "") { rel = 1e-12; abs = 0 }
       na = split(a, x, /[][{},:]/); nb = split(b, y, /[][{},:]/)
       if (na != nb) exit 1
       for (i = 1; i <= na; i++) {
@@ -28,7 +31,7 @@ ck() { # name, got, want
         d = x[i] - y[i]; if (d < 0) d = -d
         p = x[i] < 0 ? -x[i] : x[i]; q = y[i] < 0 ? -y[i] : y[i]
         m = q == 0 ? 1 : p > q ? p : q
-        if (d > 1e-12 * m) exit 1
+        if (d > rel * m && d > abs) exit 1
       }
     }'; then
     bad=$((bad + 1))
@@ -55,7 +58,7 @@ while IFS="$tab" read -r f j w; do
     got=$(printf '%s' "$j" | "$c" "$f" -j -f - 2>&1 >/dev/null)
     eq "$f $j" "$got" "${w#!}"
     ;;
-  *) ck "$f $j" "$(printf '%s' "$j" | "$c" "$f" -j -f -)" "$w" ;;
+  *) ck "$f $j" "$(printf '%s' "$j" | "$c" "$f" -j -f -)" "$w" "$f" ;;
   esac
 done < "$here/test.tsv"
 # the shortest digits that read back the same, on every system
