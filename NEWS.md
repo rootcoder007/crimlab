@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `ibench()` benchmarks each officer's stops against other officers'
+  stops in the same circumstances (Ridgeway and MacDonald), by propensity
+  weights, with the Benjamini-Hochberg false discovery rate over the
+  officers. It is in `clab_jrun()`, the command line and Python.
+
 * `thrtst()` tests discrimination in searches three ways: the hit-rate
   test of Knowles, Persico and Todd, the threshold test with the
   discriminant distributions of Pierson, Corbett-Davies and Goel fitted

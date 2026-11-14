@@ -589,6 +589,9 @@ func Bufas(args string) (string, error) { return Jrun("bufas", args) }
 // Thrtst runs thrtst() of the R package (arguments: stops srch hits grp area? off? ref? level? maxit?; ? marks an optional one).
 func Thrtst(args string) (string, error) { return Jrun("thrtst", args) }
 
+// Ibench runs ibench() of the R package (arguments: y off x? minn? fdr?; ? marks an optional one).
+func Ibench(args string) (string, error) { return Jrun("ibench", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 

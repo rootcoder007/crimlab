@@ -150,6 +150,9 @@ The functions work on summary data, not on raw records:
 * Searches: whether the police search one group on less evidence than
   another, by hit rates, by the thresholds of a model of the search
   decision, and by the rank order of officers' groups (`thrtst()`).
+* Officers: whether an officer's stops differ from those other officers
+  make in the same circumstances, with a false discovery rate over the
+  officers (`ibench()`).
 
 ## Algorithms
 
@@ -518,7 +521,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (200 of 200); `crimlab -l` lists them and
+of the R package (201 of 201); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

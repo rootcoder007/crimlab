@@ -1000,6 +1000,16 @@ ok("thrtst", stops = tsd$stops, srch = tsd$srch, hits = tsd$hits, grp = tsd$grp,
 ok("thrtst", stops = c(100, 100, 100, 100), srch = c(10, 20, 30, 10), hits = c(5, 5, 5, 5), grp = c(1, 1, 2, 2),
    off = c("x", "y", "x", "y"), level = 0.9)
 bad("thrtst", stops = c(10, 10), srch = c(11, 1), hits = c(1, 1), grp = c(1, 2))
+
+# Internal benchmarking of officers
+set.seed(5)
+ibo <- rep(c("a", "b", "c"), each = 10)
+ibx <- rbinom(30, 1, ifelse(ibo == "a", 0.7, 0.3))
+iby <- c(1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0)
+ok("ibench", y = iby, off = ibo, x = data.frame(night = ibx), minn = 5)
+ok("ibench", y = c(1, 0, 1, 1, 0, 0, 1, 0, 1), off = c("a", "a", "a", "a", "b", "b", "b", "b", "c"), minn = 2,
+   fdr = 0.1)
+bad("ibench", y = c(1, 0), off = c("a", "a"))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

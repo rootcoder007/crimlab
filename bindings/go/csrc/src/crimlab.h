@@ -3075,6 +3075,20 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
  * less b's, and 1 when one is below -zc and another above zc). */
 int clab_thrrk(const double *stops, const double *srch, const double *hits, const int *o,
                const int *g, int n, int no, int ng, double zc, double *rate, double *res);
+/* Internal benchmarking of officers (ibn.cpp; Ridgeway and MacDonald
+ * 2009, doi:10.1198/jasa.2009.0034). y: n outcomes 0 or 1; off: the
+ * officer of each, in [0, no), no >= 2; x: n by p circumstances
+ * (column-major; NULL when p is 0). For each officer with at least minn
+ * stops and fewer than n: the logistic regression (clab_lgtreg) of being
+ * that officer's stop on x, the weights e / (1 - e) on the other officers'
+ * stops, the weighted benchmark and its effective size (sum w)^2 / sum
+ * w^2, and z = (rate - bench) / sqrt(rate (1 - rate) / n_o + bench (1 -
+ * bench) / ess). Out: res (no x 7, column-major: stops, rate, benchmark,
+ * effective size, z, two-sided p, the Benjamini-Hochberg q over the
+ * officers with a p; NaN where not tested); ok (no: 1 when tested).
+ * O(no n p^2) per Newton step. */
+int clab_ibench(const double *y, const int *off, const double *x, int n, int p, int no, int minn,
+                double *res, int *ok);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

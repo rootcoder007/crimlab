@@ -3390,3 +3390,19 @@ def thrtst(stops: Any, srch: Any, hits: Any, grp: Any, area: Any = None, off: An
     """
     return jcall("thrtst", stops=stops, srch=srch, hits=hits, grp=grp, area=area, off=off, ref=ref,
                  level=level, maxit=maxit)
+
+
+def ibench(y: Any, off: Any, x: Any = None, minn: Any = 20, fdr: Any = 0.05) -> Any:
+    """Internal benchmarking of officers.
+
+    The arguments and the result are those of R's ``ibench()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ibench(y=[1, 0, 1, 1, 0, 0, 1, 0, 1], off=["a", "a", "a", "a", "b", "b", "b", "b",
+    ... "c"], minn=2)
+    >>> list(r)
+    ['tab', 'fdr', 'minn', 'nx']
+    """
+    return jcall("ibench", y=y, off=off, x=x, minn=minn, fdr=fdr)
