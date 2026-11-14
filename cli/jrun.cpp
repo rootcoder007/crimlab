@@ -29,6 +29,7 @@
 
 #include "crimlab.h"
 #include "json.h"
+#include "learn.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1514,6 +1515,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jdtr.inc"
 #include "jcnc.inc"
 #include "jxw.inc"
+#include "jlearn.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1643,6 +1645,9 @@ const Ent ents[] = {
     {"preslr", "x m1 s1 m2 s2", preslr},
     {"tpdmc", "pres? decay? mum? states? start? steps? seed?", tpdmc},
     {"tpbhm", "y x grp? pm? psd? level?", tpbhm},
+    {"enpath", "x y fam? alpha? lambda? nlam? lmr? fold? tol? maxit? scr?", enpath},
+    {"lgtreg", "x y tol? maxit?", lgtreg},
+    {"rfor", "x y newx? ntree? mtry? minnode? frac? repl? hon? imb? seed?", rfor},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
