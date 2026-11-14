@@ -1,5 +1,12 @@
 # crimlab 0.0.0.9000
 
+* `lnroc()` gives the ROC curve of eyewitness identifications by
+  confidence, the partial area with a bootstrap comparison of procedures,
+  the diagnosticity ratio and the confidence-accuracy characteristic;
+  `lnsize()` the fairness of a lineup from mock witnesses (functional
+  size, Malpass's and Tredoux's effective sizes, the suspect's share).
+  Both are in `clab_jrun()`, the command line and Python.
+
 * `ibench()` benchmarks each officer's stops against other officers'
   stops in the same circumstances (Ridgeway and MacDonald), by propensity
   weights, with the Benjamini-Hochberg false discovery rate over the

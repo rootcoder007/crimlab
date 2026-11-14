@@ -1010,6 +1010,22 @@ ok("ibench", y = iby, off = ibo, x = data.frame(night = ibx), minn = 5)
 ok("ibench", y = c(1, 0, 1, 1, 0, 0, 1, 0, 1), off = c("a", "a", "a", "a", "b", "b", "b", "b", "c"), minn = 2,
    fdr = 0.1)
 bad("ibench", y = c(1, 0), off = c("a", "a"))
+
+# Eyewitness lineups
+set.seed(3)
+ltp <- rep(0:1, each = 20)
+lpr <- rep(c("sim", "seq"), 20)
+lpk <- ifelse(ltp == 1, sample(c("suspect", "filler", "none"), 40, TRUE, c(0.5, 0.15, 0.35)),
+              sample(c("suspect", "filler", "none"), 40, TRUE, c(0.15, 0.3, 0.55)))
+lcf <- ifelse(lpk == "none", NA, sample(1:5, 40, TRUE))
+ok("lnroc", tp = ltp, pick = lpk, conf = lcf, proc = lpr)
+ok("lnroc", tp = ltp, pick = lpk, conf = lcf, proc = lpr, far = 0.1, nboot = 20, seed = 1, level = 0.9)
+ok("lnroc", tp = c(1, 1, 1, 1, 0, 0, 0, 0), pick = c("suspect", "suspect", "filler", "none", "suspect", "filler",
+   "none", "none"), conf = c(3, 1, 2, NA, 2, 3, NA, NA), size = 3)
+bad("lnroc", tp = c(1, 0), pick = c("suspect", "guess"), conf = c(1, 1))
+ok("lnsize", choice = c(rep(3, 15), rep(1, 5), rep(2, 6), rep(4, 4), rep(5, 7), rep(6, 3)), k = 6, susp = 3)
+ok("lnsize", choice = c(1, 1, 1, 2, 3, 3), level = 0.9)
+bad("lnsize", choice = c(1, 7), k = 6)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

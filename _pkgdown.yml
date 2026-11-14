@@ -53,6 +53,12 @@ reference:
       - lwss
       - chmb
       - cmpsc
+  - title: Eyewitness identification
+    desc: ROC curves of lineup procedures, partial areas, diagnosticity and
+      confidence-accuracy, and the fairness of a lineup.
+    contents:
+      - lnroc
+      - lnsize
   - title: Toxicology and taphonomy
     desc: Calibration lines and values below the limit of detection,
       postmortem redistribution, ethanol in a decomposed body and the

@@ -16,6 +16,10 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(lnroc(c(1, 1, 0, 0), c("suspect", "none", "suspect", "none"),
+                     c(2, NA, 1, NA))),
+         c("roc", "cac", "pauc", "far", "size", "nboot")),
+    list(quote(lnsize(c(1, 2, 2, 3))), c("count", "stat", "susp")),
     list(quote(ibench(c(1, 0, 1, 0), c("a", "a", "b", "b"), minn = 1)),
          c("tab", "fdr", "minn", "nx")),
     list(quote(thrtst(c(10, 10), c(2, 3), c(1, 1), c(1, 2))),

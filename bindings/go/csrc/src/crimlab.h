@@ -3089,6 +3089,39 @@ int clab_thrrk(const double *stops, const double *srch, const double *hits, cons
  * O(no n p^2) per Newton step. */
 int clab_ibench(const double *y, const int *off, const double *x, int n, int p, int no, int minn,
                 double *res, int *ok);
+/* ------------------------------------------------------------------------
+ * Eyewitness lineups (lnr.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The ROC of lineup identifications by confidence (Mickes, Flowe and
+ * Wixted 2012, doi:10.1037/a0030609). n witnesses: tp (1 target present,
+ * 0 absent), pk (0 none, 1 suspect, 2 filler), cf (the confidence, finite
+ * where pk != 0), pr (the procedure, in [0, np)), each procedure with
+ * both kinds of lineup. size 0: target-absent suspect picks are false
+ * alarms; size > 1: every target-absent pick, divided by size. Out: lev
+ * (n, the first nlev used: the distinct confidences of the picks,
+ * decreasing); roc (np nlev x 3, procedure-major rows: the hit and false
+ * alarm rates at confidence >= lev and their ratio); cac (np nlev x 3:
+ * the two rates at the level alone and hr / (hr + far), Mickes 2015,
+ * doi:10.1016/j.jarmac.2015.01.003); pauc (np: the area under (0, 0) and
+ * the points up to the false alarm rate fused, fmax when positive, else
+ * the least of the procedures' largest; flat beyond a curve's last
+ * point); bse (np x 2, NaN without nboot: the standard deviation over
+ * nboot resamples within each procedure's two kinds of lineup of each
+ * area and of its difference from the first procedure's). CLAB_EDOM for
+ * no pick, a procedure without both kinds or a zero range. */
+int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, int n, int np, int size,
+               double fmax, int nboot, unsigned int seed, double *lev, int *nlev, double *roc, double *cac,
+               double *pauc, double *bse, double *fused);
+
+/* The fairness of a lineup of k (>= 2) from the n positions ch (in [0,
+ * k)) mock witnesses chose; susp the suspect's. Out: cnt (k); out (9): n,
+ * k, the suspect's share, P(X >= its count) for X ~ Binomial(n, 1 / k),
+ * functional size n / count, Malpass's effective size k - sum |o - e| /
+ * (2 e), e = n / k (doi:10.1007/BF01044945), Tredoux's E' = 1 / sum p^2
+ * (doi:10.1023/A:1025746220886) and E' -+ z se, se from the delta method
+ * on the multinomial variance 4 (sum p^3 - (sum p^2)^2) / n. */
+int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

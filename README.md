@@ -153,6 +153,10 @@ The functions work on summary data, not on raw records:
 * Officers: whether an officer's stops differ from those other officers
   make in the same circumstances, with a false discovery rate over the
   officers (`ibench()`).
+* Eyewitnesses: how well a lineup procedure separates culprits from
+  innocent suspects, as ROC curves, partial areas, diagnosticity and the
+  confidence-accuracy characteristic (`lnroc()`), and how fair a lineup is
+  from mock witnesses' choices (`lnsize()`).
 
 ## Algorithms
 
@@ -521,7 +525,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (201 of 201); `crimlab -l` lists them and
+of the R package (203 of 203); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

@@ -3406,3 +3406,36 @@ def ibench(y: Any, off: Any, x: Any = None, minn: Any = 20, fdr: Any = 0.05) -> 
     ['tab', 'fdr', 'minn', 'nx']
     """
     return jcall("ibench", y=y, off=off, x=x, minn=minn, fdr=fdr)
+
+
+def lnroc(tp: Any, pick: Any, conf: Any, proc: Any = None, size: Any = None, far: Any = None, nboot: Any = 0,
+          seed: Any = None, level: Any = 0.95) -> Any:
+    """Eyewitness lineups: ROC curves, partial areas and confidence-accuracy.
+
+    The arguments and the result are those of R's ``lnroc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = lnroc(tp=[1, 1, 1, 1, 0, 0, 0, 0], pick=["suspect", "suspect", "filler", "none",
+    ... "suspect", "filler", "none", "none"], conf=[3, 1, 2, None, 2, 3, None, None])
+    >>> list(r)
+    ['roc', 'cac', 'pauc', 'far', 'size', 'nboot']
+    """
+    return jcall("lnroc", tp=tp, pick=pick, conf=conf, proc=proc, size=size, far=far, nboot=nboot, seed=seed,
+                 level=level)
+
+
+def lnsize(choice: Any, k: Any = None, susp: Any = 1, level: Any = 0.95) -> Any:
+    """Fairness of a lineup from mock witnesses.
+
+    The arguments and the result are those of R's ``lnsize()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = lnsize(choice=[1, 1, 1, 2, 3, 3], k=3)
+    >>> list(r)
+    ['count', 'stat', 'susp']
+    """
+    return jcall("lnsize", choice=choice, k=k, susp=susp, level=level)

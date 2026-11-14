@@ -592,6 +592,12 @@ func Thrtst(args string) (string, error) { return Jrun("thrtst", args) }
 // Ibench runs ibench() of the R package (arguments: y off x? minn? fdr?; ? marks an optional one).
 func Ibench(args string) (string, error) { return Jrun("ibench", args) }
 
+// Lnroc runs lnroc() of the R package (arguments: tp pick conf proc? size? far? nboot? seed? level?; ? marks an optional one).
+func Lnroc(args string) (string, error) { return Jrun("lnroc", args) }
+
+// Lnsize runs lnsize() of the R package (arguments: choice k? susp? level?; ? marks an optional one).
+func Lnsize(args string) (string, error) { return Jrun("lnsize", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 
