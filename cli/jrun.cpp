@@ -1507,6 +1507,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jhot.inc"
 #include "jtrj.inc"
 #include "jnet.inc"
+#include "jchk.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1581,6 +1582,8 @@ const Ent ents[] = {
     {"ntbrk", "from to grp nodes? dir?", ntbrk},
     {"ntchg", "from to w? nodes? tol? maxit?", ntchg},
     {"coofg", "inc off", coofg},
+    {"relchk", "x value type? group? ref? event? digits? tol?", relchk},
+    {"catchk", "x ref? nmin?", catchk},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
