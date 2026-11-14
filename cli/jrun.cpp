@@ -1504,6 +1504,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jtrace.inc"
 #include "jaor.inc"
 #include "jsens.inc"
+#include "jhot.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1561,6 +1562,8 @@ const Ent ents[] = {
     {"rptc", "unit year rep y0 y1 minrep?", rptc},
     {"rswp", "d gam? alpha?", rswp},
     {"rshl", "d gam?", rshl},
+    {"gstr", "cnt ex? rad? nsim? seed?", gstr},
+    {"sptst", "a b nboot? seed? alpha? scale?", sptst},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
