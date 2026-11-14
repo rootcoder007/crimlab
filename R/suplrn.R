@@ -21,9 +21,7 @@
 #'
 #' @param x The predictors: a numeric matrix with at least four rows, no
 #'   missing values.
-#' @param y The outcome: one finite number per row of `x`; 0 or 1 for the
-#'   binomial family.
-#' @param fam `"gaussian"` or `"binomial"`.
+#' @inheritParams enpath
 #' @param lrns The learners to stack, each named once: from `"glm"`,
 #'   `"lasso"`, `"ridge"`, `"enet"` and `"forest"`, as in [dmlx()].
 #' @param nfold The number of folds when `fold` is `NULL`: one whole number
@@ -36,8 +34,8 @@
 #'   learner of least risk), `FALSE` for the non-negative weights.
 #' @param newx `NULL` to predict the rows of `x`, or the rows to predict: a
 #'   numeric matrix with the columns of `x`.
-#' @param alpha The mixing parameter of `"enet"`, from 0 to 1.
-#' @param nlam The number of penalties on each elastic net path.
+#' @param alpha,nlam The mixing parameter of `"enet"`, from 0 to 1, and
+#'   the number of penalties on each elastic net path, as in [dmlx()].
 #' @param nfin The number of inner folds that choose the penalty of the
 #'   elastic net, at least 2.
 #' @param ntree The number of trees of `"forest"`: a whole number, at least

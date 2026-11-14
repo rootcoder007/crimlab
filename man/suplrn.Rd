@@ -47,9 +47,8 @@ learner of least risk), \code{FALSE} for the non-negative weights.}
 \item{newx}{\code{NULL} to predict the rows of \code{x}, or the rows to predict: a
 numeric matrix with the columns of \code{x}.}
 
-\item{alpha}{The mixing parameter of \code{"enet"}, from 0 to 1.}
-
-\item{nlam}{The number of penalties on each elastic net path.}
+\item{alpha, nlam}{The mixing parameter of \code{"enet"}, from 0 to 1, and
+the number of penalties on each elastic net path, as in \code{\link[=dmlx]{dmlx()}}.}
 
 \item{nfin}{The number of inner folds that choose the penalty of the
 elastic net, at least 2.}
