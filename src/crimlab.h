@@ -2964,6 +2964,11 @@ int clab_bndxw(const double *x, const int *u, int n, const int *from, const int 
 int clab_synexp(const double *coef, const double *ax, int na, int p, const double *pop,
                 double *rate, double *expo);
 
+/* The standard normal quantile at p (lower tail; NaN outside [0, 1],
+ * -Inf and Inf at 0 and 1) and the distribution function at x. */
+double clab_qnorm(double p);
+double clab_pnorm(double x);
+
 #ifdef __cplusplus
 }
 #endif
