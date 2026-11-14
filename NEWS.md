@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `hsacc()` scores a hot-spot map on later crimes: the hit rate, the
+  predictive accuracy index, the predictive efficiency index and the
+  recapture rate index. It is in `clab_jrun()`, the command line and
+  Python.
+
 * `apcie()` fits the age-period-cohort model of a table of counts by age
   and period with the intrinsic estimator of Yang, Fu and Land: the
   Poisson log-linear fit projected off the null vector of the design.

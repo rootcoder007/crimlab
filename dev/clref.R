@@ -1074,6 +1074,12 @@ acp <- matrix(round(runif(20, 800, 1200)), 5)
 ok("apcie", y = acy, expo = acp)
 ok("apcie", y = matrix(c(5, 8, 3, 9, 12, 6, 4, 10, 7), 3), expo = matrix(100, 3, 3), level = 0.9)
 bad("apcie", y = matrix(1, 2, 3), expo = matrix(1, 2, 3))
+
+# The accuracy of a hot-spot map
+ok("hsacc", pred = c(9, 8, 7, 6, 5, 4, 3, 2, 1, 0), obs = c(3, 0, 5, 1, 0, 0, 2, 9, 0, 0), top = c(0.2, 0.3),
+   prev = c(4, 2, 2, 0, 0, 0, 1, 1, 0, 0))
+ok("hsacc", pred = c(FALSE, TRUE, FALSE, FALSE), obs = c(1, 4, 0, 2), area = c(1, 2, 1, 1))
+bad("hsacc", pred = c(1, 2), obs = c(0, 0))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

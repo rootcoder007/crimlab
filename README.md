@@ -171,6 +171,9 @@ The functions work on summary data, not on raw records:
 * Age, period and cohort: the parts of a change in a rate that belong to
   age, to the period and to the cohort, by the intrinsic estimator
   (`apcie()`).
+* Hot-spot maps: how many later crimes a map's hot spots caught, by the
+  hit rate, the predictive accuracy and efficiency indices and the
+  recapture rate index (`hsacc()`).
 
 ## Algorithms
 
@@ -539,7 +542,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (209 of 209); `crimlab -l` lists them and
+of the R package (210 of 210); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

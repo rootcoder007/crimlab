@@ -16,6 +16,9 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(hsacc(c(3, 2, 1), c(1, 0, 2))),
+         c("top", "cells", "area", "ashare", "n", "N", "hit", "pai", "nmax",
+           "pei", "rri")),
     list(quote(apcie(matrix(c(5, 8, 3, 9, 12, 6, 4, 10, 7), 3),
                      matrix(100, 3, 3))),
          c("coef", "fit", "dims")),

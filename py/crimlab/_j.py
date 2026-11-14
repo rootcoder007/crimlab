@@ -3534,3 +3534,18 @@ def apcie(y: Any, expo: Any, level: Any = 0.95, maxit: Any = 100) -> Any:
     ['coef', 'fit', 'dims']
     """
     return jcall("apcie", y=y, expo=expo, level=level, maxit=maxit)
+
+
+def hsacc(pred: Any, obs: Any, area: Any = None, top: Any = 0.1, prev: Any = None) -> Any:
+    """Accuracy of a hot-spot map.
+
+    The arguments and the result are those of R's ``hsacc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = hsacc(pred=[9, 8, 7, 6, 5, 4, 3, 2, 1, 0], obs=[3, 0, 5, 1, 0, 0, 2, 9, 0, 0], top=[0.2, 0.3])
+    >>> list(r)
+    ['top', 'cells', 'area', 'ashare', 'n', 'N', 'hit', 'pai', 'nmax', 'pei', 'rri']
+    """
+    return jcall("hsacc", pred=pred, obs=obs, area=area, top=top, prev=prev)

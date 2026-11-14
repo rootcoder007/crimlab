@@ -3201,6 +3201,20 @@ int clab_spcure(const double *t, const double *ev, const double *x, int n, int p
  * steps, converged). CLAB_EDOM unless exactly one column is aliased. */
 int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, double *est, double *se,
                double *st);
+/* The accuracy of a hot-spot map (hsa.cpp). n cells: pred (finite
+ * scores; NULL when ishot marks the hot cells), obs (crimes of the
+ * evaluation period, from 0, not all 0), area (> 0), prev (NULL or the
+ * crimes of the period the map came from). For each of the nt shares top
+ * (in (0, 1]; one row with ishot): the hot cells, by score (ties by
+ * position) until their area reaches top of the total. Out: res (nt x 11,
+ * column-major): top (the hot share with ishot), cells, area, area share,
+ * the crimes n in hot cells, all crimes N, n / N, the predictive accuracy
+ * index (Chainey et al. 2008, doi:10.1057/palgrave.sj.8350066), nmax (the
+ * crimes of as much area taken by crimes per area), the predictive
+ * efficiency index n / nmax, and the recapture rate index (n / n_prev) /
+ * (N / N_prev) (Levine 2008, doi:10.1057/sj.2008.5; NaN without prev). */
+int clab_hsacc(const double *pred, const int *ishot, const double *obs, const double *area, const double *prev,
+               int n, const double *top, int nt, double *res);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);
