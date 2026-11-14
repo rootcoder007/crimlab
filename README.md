@@ -402,6 +402,7 @@ qdrtst(p, win = c(0, 3000, 0, 3000), nx = 3)
 dissix(cbind(a = c(90, 80, 10, 5), b = c(10, 20, 85, 95)))$d
 bufas(p, site = cbind(1000, 1000), comp = cbind(2500, 2500), r = 300)$n
 ```
+
 ### Risk tools, trace evidence, time and data screens
 
 ```r
@@ -415,6 +416,8 @@ rswp(rnorm(50, 0.5), gam = c(1, 1.5, 2))   # how much hidden bias explains it aw
 bnft(bdig(exp(runif(500, 0, 10)))$dig)$stat
 gstr(matrix(rpois(100, 2), 10))[1:3, ]
 sptst(rpois(30, 10), rpois(30, 10), nboot = 199, seed = 1)$glob
+```
+
 ### Audits of risk tools and predictive policing
 
 ```r
