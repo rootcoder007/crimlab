@@ -2,8 +2,9 @@
 # t_geo2.cpp, t_cgr.cpp, t_nnd.cpp, t_rpk.cpp, t_hsp.cpp, t_stm.cpp,
 # t_jtc.cpp); here the binding: the input forms, the conversions, the
 # messages, and agreement with other R implementations where one exists.
-# Each comparison states its tolerance; references come from base R,
-# geosphere, sf, spatstat and spdep when installed.
+# Each comparison states its tolerance; references come from base R, and
+# from geosphere, sf and spatstat as values stored in ref/sp.txt by
+# dev/ref/sp.R (versions named there).
 
 rel <- function(a, b) max(abs(a - b) / pmax(abs(b), 1e-300))
 
@@ -82,20 +83,21 @@ test_that("great-circle distances agree with geosphere and closed forms", {
   # SP6.2: the poles
   expect_equal(hvdist(c(10, 90), c(-150, -90)), r * pi, tolerance = 1e-15)
   expect_lt(abs(hvdist(c(10, 90), c(-150, 90))), 1e-9)
-  skip_if_not_installed("geosphere")
   set.seed(3)
   a <- cbind(lon = runif(100, -180, 180), lat = runif(100, -90, 90))
   b <- cbind(lon = runif(100, -180, 180), lat = runif(100, -90, 90))
-  g <- geosphere::distVincentySphere(a, b, r = r)
-  expect_lt(rel(hvdist(a, b), g), 1e-12)
-  expect_lt(rel(hvdist(as.data.frame(a), b[1, ]), geosphere::distVincentySphere(
-    a, b[1, ], r = r)), 1e-12)
+  # geosphere: distVincentySphere(a, b, r = r) and (a, b[1, ], r = r)
+  ref <- refget("sp")$gc
+  expect_equal(sum(a, b), ref$inp, tolerance = 1e-12, info = "inputs changed")
+  expect_lt(rel(hvdist(a, b), ref$g), 1e-12)
+  expect_lt(rel(hvdist(as.data.frame(a), b[1, ]), ref$g1), 1e-12)
 })
 
 #' @srrstats {SP6.0} The projection and its inverse return the original
 #'   longitudes and latitudes, poles included.
 #' @srrstats {SP2.2b} eqproj() agrees with the same projection done by sf
-#'   (PROJ), so results move between the two.
+#'   (PROJ; its coordinates stored with the tests), so results move
+#'   between the two.
 #' @noRd
 test_that("the projection inverts and agrees with PROJ through sf", {
   set.seed(4)
@@ -110,13 +112,13 @@ test_that("the projection inverts and agrees with PROJ through sf", {
               lat0 = 0)
   expect_equal(eqinv(q$x, q$y, lon0 = 0, lat0 = 0)$lat, c(90, -90, 0),
                tolerance = 1e-12)
-  skip_if_not_installed("sf")
-  crs <- sprintf("+proj=laea +lat_0=%.17g +lon_0=%.17g +R=6371008.8",
-                 a[2], a[1])
-  s <- sf::st_coordinates(sf::st_transform(sf::st_as_sf(
-    data.frame(lon, lat), coords = c("lon", "lat"), crs = 4326), crs))
-  expect_lt(max(abs(s[, 1] - p$x)), 1e-6)
-  expect_lt(max(abs(s[, 2] - p$y)), 1e-6)
+  # sf: st_transform() of the points to "+proj=laea" about the centre a
+  # (lat_0 and lon_0 written with %.17g), +R=6371008.8
+  ref <- refget("sp")$proj
+  expect_equal(sum(lon, lat), ref$inp, tolerance = 1e-12,
+               info = "inputs changed")
+  expect_lt(max(abs(ref$x - p$x)), 1e-6)
+  expect_lt(max(abs(ref$y - p$y)), 1e-6)
 })
 
 test_that("centrography agrees with base R", {
@@ -228,23 +230,19 @@ test_that("nearest neighbours and K agree with spatstat", {
   rr <- seq(0, 0.3, by = 0.01)
   k <- ripk(x, y, win = w, r = rr)
   expect_equal(k$l, sqrt(k$k / pi), tolerance = 1e-15)
-  skip_if_not_installed("spatstat.explore")
-  X <- spatstat.geom::ppp(x, y, c(0, 1), c(0, 2))
-  expect_equal(r$dist, unname(spatstat.geom::nndist(X, k = 1:3)),
-               tolerance = 1e-14)
-  ce <- spatstat.explore::clarkevans(X, correction = c("none", "Donnelly"))
-  expect_equal(r$order$ratio[1], ce[["naive"]], tolerance = 1e-13)
-  expect_equal(r$ce[["ratio"]], ce[["Donnelly"]], tolerance = 1e-13)
-  ke <- function(co) {
-    as.data.frame(spatstat.explore::Kest(X, r = rr, correction = co))
-  }
-  expect_equal(k$k, ke("isotropic")$iso, tolerance = 1e-12)
-  expect_equal(ripk(x, y, w, rr, "border")$k, ke("border")$border,
-               tolerance = 1e-12)
-  expect_equal(ripk(x, y, w, rr, "none")$k, ke("none")$un, tolerance = 1e-12)
+  # spatstat: X is ppp(x, y, c(0, 1), c(0, 2)); nndist(X, k = 1:3),
+  # clarkevans(X, correction = c("none", "Donnelly")) and Kest(X, r = rr)
+  # with each correction
+  ref <- refget("sp")$nn
+  expect_equal(sum(x, y), ref$inp, tolerance = 1e-12, info = "inputs changed")
+  expect_equal(r$dist, ref$dist, tolerance = 1e-14)
+  expect_equal(r$order$ratio[1], ref$naive, tolerance = 1e-13)
+  expect_equal(r$ce[["ratio"]], ref$donnelly, tolerance = 1e-13)
+  expect_equal(k$k, ref$iso, tolerance = 1e-12)
+  expect_equal(ripk(x, y, w, rr, "border")$k, ref$border, tolerance = 1e-12)
+  expect_equal(ripk(x, y, w, rr, "none")$k, ref$none, tolerance = 1e-12)
   # the modified border estimator asked for alone (see dev/doss/dst.R)
-  expect_equal(ripk(x, y, w, rr, "modif")$k, ke("bord.modif")$bord.modif,
-               tolerance = 1e-12)
+  expect_equal(ripk(x, y, w, rr, "modif")$k, ref$modif, tolerance = 1e-12)
 })
 
 test_that("simulations follow the seed and detect clustering", {
@@ -303,31 +301,33 @@ test_that("distance functions refuse what they cannot use", {
 })
 
 #' @srrstats {SP2.3} Points written to a GeoPackage and read back by sf
-#'   are taken as input.
+#'   are taken as input (the objects sf made are stored with the tests).
 #' @srrstats {SP2.2b} Results go back to sf: projected points become sf
-#'   points with sf::st_as_sf().
+#'   points with sf::st_as_sf() (its coordinates stored).
 #' @noRd
 test_that("sf points go in, with their CRS checked against lonlat", {
-  skip_if_not_installed("sf")
   set.seed(10)
   d <- data.frame(lon = runif(20, -80, -79), lat = runif(20, 43, 44))
-  s <- sf::st_as_sf(d, coords = c("lon", "lat"), crs = 4326)
+  # sf objects: s is st_as_sf(d, coords = c("lon", "lat"), crs = 4326), g
+  # s written with st_write() to a GeoPackage and read back with
+  # st_read(), p st_transform(s, 32617), pg st_geometry(p), xy
+  # st_coordinates(p), ex the X of st_as_sf(eqproj(d), coords = c("x",
+  # "y")), u two POINT Z, l a LINESTRING
+  ref <- refget("sp")$obj
+  expect_equal(sum(d), ref$inp, tolerance = 1e-12, info = "inputs changed")
+  s <- ref$s
   expect_identical(cgstat(s, lonlat = TRUE), cgstat(d, lonlat = TRUE))
   expect_identical(hvdist(s, c(-79.5, 43.5)), hvdist(d, c(-79.5, 43.5)))
-  f <- tempfile(fileext = ".gpkg")
-  sf::st_write(s, f, quiet = TRUE)
-  g <- sf::st_read(f, quiet = TRUE)
-  unlink(f)
+  g <- ref$g
   expect_equal(cgstat(g, lonlat = TRUE), cgstat(d, lonlat = TRUE),
                tolerance = 1e-15)
-  p <- sf::st_transform(s, 32617)
-  xy <- sf::st_coordinates(p)
+  p <- ref$p
+  xy <- ref$xy
   expect_identical(cgstat(p), cgstat(xy))
-  expect_identical(cgstat(sf::st_geometry(p)), cgstat(xy))
-  e <- sf::st_as_sf(eqproj(d), coords = c("x", "y"))
-  expect_equal(sf::st_coordinates(e)[, "X"], eqproj(d)$x, tolerance = 1e-8)
-  u <- sf::st_sfc(sf::st_point(c(1, 2, 3)), sf::st_point(c(1, 2, 4)))
-  l <- sf::st_as_sf(sf::st_sfc(sf::st_linestring(matrix(1:4, 2))))
+  expect_identical(cgstat(ref$pg), cgstat(xy))
+  expect_equal(ref$ex, eqproj(d)$x, tolerance = 1e-8)
+  u <- ref$u
+  l <- ref$l
   errs("cgstat", list(
     list("geographic CRS: set `lonlat = TRUE`", s),
     list("projected CRS", p, lonlat = TRUE),

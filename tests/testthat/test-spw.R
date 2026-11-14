@@ -1,14 +1,16 @@
 # Spatial weights, Geary's C, the global and local G, local Moran and the
 # directional mean. The kernels are checked against dense re-derivations
 # in src/t_swt.cpp; here the binding, and agreement with spdep (weights,
-# statistics, moments; 1e-10) and circular (directions; 1e-12).
+# statistics, moments; 1e-10) and circular (directions; 1e-12): their
+# values stored in ref/spw.txt by dev/ref/spw.R, versions named there.
 
 #' @srrstats {SP6.3} Neighbours by k nearest, by distance band and by
 #'   contiguity are each compared with spdep's knearneigh(), dnearneigh()
-#'   and a contiguity list, and the statistics are compared under each.
+#'   (their values stored with the tests) and a contiguity list, and the
+#'   statistics are compared under each.
 #' @srrstats {SP6.4} Binary, row-standardised and inverse-distance weights
-#'   are compared with spdep's styles "B" and "W" and with weights written
-#'   out, and Geary's C is shown to change with them.
+#'   are compared with spdep's styles "B" and "W" (stored) and with
+#'   weights written out, and Geary's C is shown to change with them.
 #' @noRd
 test_that("weights agree with spdep's neighbours", {
   set.seed(31)
@@ -36,13 +38,13 @@ test_that("weights agree with spdep's neighbours", {
              lonlat = TRUE)
   q <- eqproj(-79 + p[, 1] / 10, 43 + p[, 2] / 10)
   expect_identical(ll$j, spwt(q, type = "band", d = 2000)$j)
-  skip_if_not_installed("spdep")
-  kn <- spdep::knn2nb(spdep::knearneigh(p, k = 3))
-  expect_identical(lapply(split(w$j, w$i), sort), lapply(unclass(kn), sort),
+  # spdep: knn2nb(knearneigh(p, k = 3)) and dnearneigh(p, 0, 0.2)
+  ref <- refget("spw")$nbr
+  expect_equal(sum(p), ref$inp, tolerance = 1e-12, info = "inputs changed")
+  expect_identical(lapply(split(w$j, w$i), sort), ref$kn,
                    ignore_attr = TRUE)
-  dn <- spdep::dnearneigh(p, 0, 0.2)
   bb <- split(b$j, factor(b$i, 1:40))
-  for (i in 1:40) expect_setequal(bb[[i]], setdiff(dn[[i]], 0L))
+  for (i in 1:40) expect_setequal(bb[[i]], ref$dn[[i]])
 })
 
 test_that("Geary's C, global and local G, local Moran agree with spdep", {
@@ -54,45 +56,43 @@ test_that("Geary's C, global and local G, local Moran agree with spdep", {
   g <- gearc(v, w)
   expect_lt(g[["c"]], 1)
   expect_gt(gearc(v, spwt(p, k = 4, idw = 1))[["c"]], 0)
-  skip_if_not_installed("spdep")
-  lw <- spdep::nb2listw(spdep::knn2nb(spdep::knearneigh(p, k = 4)))
+  # spdep: lw is nb2listw(knn2nb(knearneigh(p, k = 4))); geary.test(v, lw)
+  # with and without randomisation
+  ref <- refget("spw")$stat
+  expect_equal(c(sum(p), sum(v), sum(pos)), ref$inp, tolerance = 1e-12,
+               info = "inputs changed")
+  lw <- ref$lw
   expect_identical(gearc(v, lw), g)
-  r <- spdep::geary.test(v, lw)
-  e <- r$estimate
-  expect_equal(g[["c"]], unname(e[1]), tolerance = 1e-12)
-  expect_equal(g[["vr"]], unname(e[3]), tolerance = 1e-10)
-  expect_equal(g[["zr"]], unname(r$statistic), tolerance = 1e-10)
-  expect_equal(g[["pr"]], r$p.value, tolerance = 1e-10)
-  n <- spdep::geary.test(v, lw, randomisation = FALSE)
-  expect_equal(g[["vn"]], unname(n$estimate[3]), tolerance = 1e-10)
+  expect_equal(g[["c"]], ref$gc, tolerance = 1e-12)
+  expect_equal(g[["vr"]], ref$gvr, tolerance = 1e-10)
+  expect_equal(g[["zr"]], ref$gzr, tolerance = 1e-10)
+  expect_equal(g[["pr"]], ref$gpr, tolerance = 1e-10)
+  expect_equal(g[["vn"]], ref$gvn, tolerance = 1e-10)
   # a band wide enough that no unit is isolated: spdep's globalG.test
   # counts only units with neighbours in n(n - 1), crimlab all units (the
   # definition's sum over every pair i != j), so they differ when a unit
-  # has no neighbour
-  dn <- spdep::dnearneigh(p, 0, 0.3)
-  expect_true(all(spdep::card(dn) > 0))
-  lb <- spdep::nb2listw(dn, style = "B")
+  # has no neighbour. From spdep, with dn the neighbours of
+  # dnearneigh(p, 0, 0.3) and lb their nb2listw(dn, style = "B"): the
+  # values of globalG.test(pos, lb, zero.policy = TRUE), of
+  # localmoran(v, lw, conditional = FALSE), and of localG() with and
+  # without the unit itself, include.self(dn), among its neighbours
+  expect_true(all(ref$card > 0))
   wb <- spwt(p, type = "band", d = 0.3, style = "raw")
   o <- gorg(pos, wb)
-  s <- spdep::globalG.test(pos, lb, zero.policy = TRUE)
-  expect_equal(o[["g"]], unname(s$estimate[1]), tolerance = 1e-12)
-  expect_equal(o[["e"]], unname(s$estimate[2]), tolerance = 1e-12)
-  expect_equal(o[["v"]], unname(s$estimate[3]), tolerance = 1e-10)
-  expect_equal(o[["z"]], as.vector(s$statistic), tolerance = 1e-10)
+  expect_equal(o[["g"]], ref$gg, tolerance = 1e-12)
+  expect_equal(o[["e"]], ref$ge, tolerance = 1e-12)
+  expect_equal(o[["v"]], ref$gv, tolerance = 1e-10)
+  expect_equal(o[["z"]], ref$gz, tolerance = 1e-10)
   lm <- lmorn(v, w)
-  sl <- spdep::localmoran(v, lw, conditional = FALSE)
-  expect_equal(lm$ii, unname(sl[, 1]), tolerance = 1e-12)
-  expect_equal(lm$e, unname(sl[, 2]), tolerance = 1e-12)
-  expect_equal(lm$v, unname(sl[, 3]), tolerance = 1e-10)
-  expect_equal(lm$p, unname(sl[, 5]), tolerance = 1e-10)
+  expect_equal(lm$ii, ref$lmi, tolerance = 1e-12)
+  expect_equal(lm$e, ref$lme, tolerance = 1e-12)
+  expect_equal(lm$v, ref$lmv, tolerance = 1e-10)
+  expect_equal(lm$p, ref$lmp, tolerance = 1e-10)
   gs <- locgi(pos, wb, star = TRUE)
-  ls <- spdep::localG(pos, spdep::nb2listw(spdep::include.self(
-    dn), style = "B"))
-  expect_equal(gs, as.vector(ls), tolerance = 1e-10)
+  expect_equal(gs, ref$gs, tolerance = 1e-10)
   g0 <- locgi(pos, wb, star = FALSE)
-  l0 <- spdep::localG(pos, lb)
   ok <- is.finite(g0)
-  expect_equal(g0[ok], as.vector(l0)[ok], tolerance = 1e-10)
+  expect_equal(g0[ok], ref$g0[ok], tolerance = 1e-10)
 })
 
 test_that("permutation tests follow the seed and find a cluster", {
@@ -126,13 +126,13 @@ test_that("directional means agree with circular", {
   l <- dirmn(c(-79.1, -79), c(43, 43.1), origin = c(-79.05, 43.05),
              lonlat = TRUE)
   expect_gt(l[["r"]], 0)
-  skip_if_not_installed("circular")
-  cc <- circular::circular(a)
-  expect_equal(r[["theta"]], as.numeric(circular::mean.circular(cc)) %%
-                 (2 * pi), tolerance = 1e-12)
-  expect_equal(r[["r"]], circular::rho.circular(cc), tolerance = 1e-12)
-  expect_equal(r[["var"]], circular::var.circular(cc), tolerance = 1e-12)
-  expect_equal(r[["sd"]], circular::sd.circular(cc), tolerance = 1e-12)
+  # circular: mean.circular() (mod 2 pi), rho.circular(), var.circular()
+  # and sd.circular() of circular(a)
+  ref <- refget("spw")$dir
+  expect_equal(r[["theta"]], ref$theta, tolerance = 1e-12)
+  expect_equal(r[["r"]], ref$r, tolerance = 1e-12)
+  expect_equal(r[["var"]], ref$var, tolerance = 1e-12)
+  expect_equal(r[["sd"]], ref$sd, tolerance = 1e-12)
 })
 
 test_that("weights and statistics refuse what they cannot use", {

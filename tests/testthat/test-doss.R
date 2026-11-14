@@ -1,9 +1,9 @@
 # The dossier functions. Their kernels are checked in C++ (src/t_fair.cpp,
 # t_tlv.cpp, t_aor.cpp, t_bnf.cpp, t_sk.cpp, t_rpt.cpp, t_sens.cpp,
 # t_trj.cpp, t_mvt.cpp, t_tfr.cpp, t_lws.cpp, t_chm.cpp, t_gst.cpp,
-# t_spt.cpp); here the binding, against base R, stats and spdep where they
-# compute the same thing, and hand-computed cases. Tolerances are stated
-# per comparison.
+# t_spt.cpp); here the binding, against base R, stats and spdep (its
+# values stored in ref/doss.txt) where they compute the same thing, and
+# hand-computed cases. Tolerances are stated per comparison.
 
 test_that("fairness metrics agree with tables and prop.test", {
   set.seed(21)
@@ -220,13 +220,15 @@ test_that("glass transfer, tool marks, grid Gi* and the pattern test", {
   m <- matrix(rpois(48, 3), 6, 8)
   g <- gstr(m, rad = 1.5, nsim = 99, seed = 1)
   expect_identical(g$row[1:7], c(1:6, 1) + 0)
-  skip_if_not_installed("spdep")
-  nb <- spdep::include.self(spdep::cell2nb(6, 8, type = "queen"))
+  # spdep: nb is include.self(cell2nb(6, 8, type = "queen")), lg
+  # localG(as.vector(t(m)), nb2listw(nb, style = "B")), stored in
+  # ref/doss.txt by dev/ref/doss.R (version named there)
+  lg <- refget("doss")
+  expect_equal(sum(m), lg$inp, tolerance = 1e-12, info = "inputs changed")
   # cell2nb numbers cells across rows first: row r, column c is
   # (r - 1) * 8 + c; gstr goes down the columns
   ix <- as.vector(outer(1:6, 1:8, function(r, k) (r - 1) * 8 + k))
-  lg <- spdep::localG(as.vector(t(m)), spdep::nb2listw(nb, style = "B"))
-  expect_equal(g$gz, as.vector(lg)[ix], tolerance = 1e-10)
+  expect_equal(g$gz, lg$lg[ix], tolerance = 1e-10)
   set.seed(29)
   ca <- rpois(40, 8)
   s <- sptst(ca, ca, nboot = 99, seed = 1)

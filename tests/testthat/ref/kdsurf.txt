@@ -1,0 +1,4 @@
+# Written by dev/ref/kdsurf.R with MASS 7.3.65.
+# Do not edit: run the generator again.
+list(inp = 0x1.7f33fa4688p+6, bw = c(0x1.42527c6268655p+1, 0x1.f1eff9c6493e8p+0
+), pkgs = c(MASS = "7.3.65"))

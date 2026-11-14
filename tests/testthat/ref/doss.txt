@@ -1,0 +1,19 @@
+# Written by dev/ref/doss.R with spdep 1.4.2.
+# Do not edit: run the generator again.
+list(inp = 143L, lg = c(-0x1.d642ae7d9372cp+0, -0x1.01637501b398dp+0, 
+0x1.546ac40a822d4p+0, 0x1.96d70344c10a6p+0, 0x1.96d70344c10a6p+0, 
+0x1.2ae71c861ae31p-2, -0x1.7dee6b8ee9777p-1, -0x1.86c7a306ffef9p+0, 
+-0x1.863bf37631531p+0, -0x1.ad251afc4c476p-1, 0x1.d75b1da3cd7c9p-1, 
+0x1.d75b1da3cd7c9p-1, 0x1.5c3d95e5e9f6cp+0, 0x1.66cb168fca441p-1, 
+-0x1.6dd417010a77ap-3, -0x1.43cfb43bf275fp+0, 0x1.546ac40a822d4p+0, 
+0x1.5c3d95e5e9f6cp+0, 0x1.d75b1da3cd7c9p-1, -0x1.3c9513e8490eep-1, 
+0x1.51b0153c09a98p-5, 0x1.0b5610cf87a63p-2, 0x1.51b0153c09a98p-5, 
+-0x1.01637501b398dp+0, 0x1.11fe84d043502p+0, 0x1.ec761ef78e173p-2, 
+0x1.66cb168fca441p-1, -0x1.47229492295c3p+0, -0x1.6dd417010a77ap-3, 
+-0x1.980a19a88bacdp-2, 0x1.d75b1da3cd7c9p-1, 0x1.2ae71c861ae31p-2, 
+0x1.96d70344c10a6p+0, 0x1.23f5925be85a8p+0, 0x1.d75b1da3cd7c9p-1, 
+-0x1.7f6a981c2af87p+0, -0x1.3c9513e8490eep-1, -0x1.ad251afc4c476p-1, 
+0x1.66cb168fca441p-1, 0x1.09b0fce8fb748p-5, 0x1.586a8701d48ep-2, 
+0x1.2ae71c861ae31p-2, 0x1.9f248b2c08e6p-1, -0x1.01637501b398dp+0, 
+-0x1.7dee6b8ee9777p-1, -0x1.01637501b398dp+0, 0x1.2ae71c861ae31p-2, 
+0x1.a7e5927868144p-6), pkgs = c(spdep = "1.4.2"))

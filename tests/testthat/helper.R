@@ -8,3 +8,8 @@ errs <- function(f, cases) {
     expect_match(conditionMessage(e), paste0("^", f, ": "), info = f)
   }
 }
+
+# Reference values from other packages, stored with the tests: the list
+# written to ref/<name>.txt by dev/ref/<name>.R, whose first line names
+# the packages and versions that computed it.
+refget <- function(name) dget(test_path("ref", paste0(name, ".txt")))

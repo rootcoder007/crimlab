@@ -19,9 +19,11 @@ test_that("the grid surface is kde2d() times n, with its bandwidth", {
            0.0226652212694971, 0.0259927766737544)
   expect_equal(as.vector(k$z) / 30, ref, tolerance = 1e-13)
   expect_identical(dim(k$z), c(5L, 4L))
-  expect_equal(unname(k$h), c(MASS::bandwidth.nrd(p[, 1]),
-                              MASS::bandwidth.nrd(p[, 2])) / 4,
-               tolerance = 1e-14)
+  # MASS::bandwidth.nrd() of each column, stored in ref/kdsurf.txt (by
+  # the script dev/ref/kdsurf.R)
+  bw <- refget("kdsurf")
+  expect_equal(sum(p), bw$inp, tolerance = 1e-12, info = "inputs changed")
+  expect_equal(unname(k$h), bw$bw / 4, tolerance = 1e-14)
   # regions written out: the fewest cells, densest first, holding the share
   z <- sort(as.vector(k$z), decreasing = TRUE)
   m <- vapply(c(0.5, 0.9), function(s) which(cumsum(z) >= s * sum(z))[1], 1)
