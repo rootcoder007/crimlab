@@ -1503,6 +1503,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jfair.inc"
 #include "jtrace.inc"
 #include "jaor.inc"
+#include "jsens.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1558,6 +1559,8 @@ const Ent ents[] = {
     {"bdig", "x nd? dp? sgn?", bdig},
     {"bnft", "dig nd? nsim? seed?", bnft},
     {"rptc", "unit year rep y0 y1 minrep?", rptc},
+    {"rswp", "d gam? alpha?", rswp},
+    {"rshl", "d gam?", rshl},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
