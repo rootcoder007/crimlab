@@ -1505,6 +1505,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jaor.inc"
 #include "jsens.inc"
 #include "jhot.inc"
+#include "jtrj.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1564,6 +1565,10 @@ const Ent ents[] = {
     {"rshl", "d gam?", rshl},
     {"gstr", "cnt ex? rad? nsim? seed?", gstr},
     {"sptst", "a b nboot? seed? alpha? scale?", sptst},
+    {"zgll", "y x z? par prob off?", zgll},
+    {"zgem", "y x z? par prob off? maxit? tol?", zgem},
+    {"mvtll", "y x beta sig prob", mvtll},
+    {"mvtem", "y x beta sig prob maxit? tol?", mvtem},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
