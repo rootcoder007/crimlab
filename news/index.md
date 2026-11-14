@@ -2,6 +2,23 @@
 
 ## crimlab 0.0.0.9000
 
+- [`gmixlr()`](https://rootcoder007.github.io/crimlab/reference/gmixlr.md)
+  now follows EuroForMix’s model where they differed: only the alleles
+  seen are kept apart, every other allele (those of the reference
+  profiles not seen among them) is one allele that does not stutter,
+  sized as the largest size listed at the marker, and the degradation
+  slope may exceed 1. Its log likelihood equals EuroForMix’s to 1e-6 at
+  given parameters on eight cases and at the maximum on seven (one and
+  two contributors, drop-out, drop-in, stutter, degradation, coancestry;
+  `dev/ref/efm.R`); the rest is EuroForMix’s single precision.
+- [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md)
+  now reproduces cmpsR exactly: a segment widened at the ends of the
+  signature is cut, not moved; a lag counts when enough points overlap
+  (so a segment may hang over the end of the reference); every confirmed
+  peak is a candidate; ties are broken as cmpsR breaks them; and lags
+  may fall on half points. `full = TRUE` keeps the earlier rule of lags
+  wholly inside the reference. The scores, segments, lags and refusals
+  equal cmpsR’s on 16 stored cases, edge cases among them.
 - [`pedlr()`](https://rootcoder007.github.io/crimlab/reference/pedlr.md):
   the likelihood ratio of two pedigrees, given as tables of people and
   their parents, from DNA profiles at autosomal markers. The people not

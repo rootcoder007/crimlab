@@ -57,7 +57,7 @@ Hofmann 2022).</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cmpsc</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, len <span class="op">=</span> <span class="fl">50</span>, npeaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span>, tx <span class="op">=</span> <span class="fl">25</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">cmpsc</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, len <span class="op">=</span> <span class="fl">50</span>, npeaks <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">3</span>, <span class="fl">1</span><span class="op">)</span>, tx <span class="op">=</span> <span class="fl">25</span>, full <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -85,6 +85,11 @@ whole numbers from 1 (<code>c(5, 3, 1)</code>, Chen et al.'s choice).</p></dd>
 <dt id="arg-tx">tx<a class="anchor" aria-label="anchor" href="#arg-tx"></a></dt>
 <dd><p>The tolerance in points: one whole number from 0.</p></dd>
 
+
+<dt id="arg-full">full<a class="anchor" aria-label="anchor" href="#arg-full"></a></dt>
+<dd><p><code>FALSE</code> for the overlaps of cmpsR; <code>TRUE</code> for lags that keep
+a widened segment wholly inside <code>b</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -100,22 +105,32 @@ row per basis segment: <code>seg</code>, <code>start</code> (its first point in 
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The comparison signature <code>a</code>, from its first value to its last, is cut
 into consecutive basis segments of <code>len</code> points (a shorter remainder at
-the end is dropped). For each, the
-cross-correlation with the reference <code>b</code> is taken at every lag that
-keeps the segment inside <code>b</code> (Pearson correlation over the pairs with
-neither value missing), and the lags of its highest local maxima are
-found: <code>npeaks[1]</code> of them at the segment's own length, then, for each
-further element of <code>npeaks</code>, that many at twice the previous length
-about the segment's centre (a length longer than <code>a</code> is left out). A
-segment's candidate is the best peak of its longest length that lies
-within <code>tx</code> points of a peak at every shorter length (the consistent
-correlation peak; with one element of <code>npeaks</code>, all its peaks are
-candidates). The congruent lag is the candidate that most segments have
-a candidate within <code>tx</code> of (the middle one among ties); the segments
-that do are the congruent matching profile segments, and their number
-is the score. Signatures are taken as they come (detrended profiles,
-as <code>bulletxtrctr</code> extracts them; Hare et al. 2017), in points of one
-spacing; <code><a href="chmb.html">chmb()</a></code> compares the raw profiles of tool marks instead.</p>
+the end is dropped). Each segment is taken at the lengths <code>len</code>, <code>2 len</code>,
+<code>4 len</code>, ... (one per element of <code>npeaks</code>), widened about its centre and
+cut at the ends of <code>a</code>. At each length its cross-correlation with the
+reference <code>b</code> (Pearson correlation over the pairs with neither value
+missing) is computed at every lag that leaves enough pairs in common:
+the smaller of 0.9 times the segment's values and a tenth of the values
+of <code>b</code>, rounded, so a segment may hang over the end of <code>b</code>. The lags of
+its <code>npeaks</code> highest local maxima are its peaks there. A segment's
+candidates are the peaks of its longest length that lie within <code>tx</code>
+points of a peak at every shorter length (with one element of <code>npeaks</code>,
+all its peaks). The congruent lag is, of all the candidates in ascending
+order with repeats kept, the middle one (rounded up) of those that the
+most segments have a candidate within <code>tx</code> of; those segments are the
+congruent matching profile segments, and their number is the score.
+These are the rules of cmpsR (Ju and Hofmann 2022), which <code>cmpsc()</code>
+reproduces exactly, including a lag that falls on a half point when the
+overlap needed is not a whole number of points.</p>
+<p>With <code>full = TRUE</code> a lag is used only when the widened segment lies
+wholly inside <code>b</code>: correlations from a few points at the ends are left
+out, at the price of segments near the ends that cannot reach their lag
+(and a reference shorter than a widened segment gives no peaks, where
+the default refuses it). The scores then differ from cmpsR's by about
+one segment on simulated pairs.</p>
+<p>Signatures are taken as they come (detrended profiles, as <code>bulletxtrctr</code>
+extracts them; Hare et al. 2017), in points of one spacing; <code><a href="chmb.html">chmb()</a></code>
+compares the raw profiles of tool marks instead.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -137,9 +152,9 @@ bullet land impressions. <em>The Annals of Applied Statistics</em>, 11(4),
 <span class="r-in"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">600</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">600</span><span class="op">)</span> <span class="op">/</span> <span class="fl">9</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">b</span> <span class="op">&lt;-</span> <span class="va">a</span><span class="op">[</span><span class="fl">31</span><span class="op">:</span><span class="fl">600</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">570</span>, sd <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">cmpsc</span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cmpsc: 10 of 12 segments congruent (0.8333333) at lag -30</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cmpsc: 11 of 12 segments congruent (0.9166667) at lag -30</span>
 <span class="r-in"><span><span class="fu">cmpsc</span><span class="op">(</span><span class="va">a</span>, <span class="fu"><a href="https://rdrr.io/r/base/cumsum.html" class="external-link">cumsum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">570</span>, sd <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">score</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
