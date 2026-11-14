@@ -125,3 +125,197 @@ bool mmshr(Ctx &c, Val &out) {
   out = f.o;
   return true;
 }
+
+const char *const padjs[] = {"none", "bonferroni", "holm", "hochberg", "BH", "BY"};
+
+bool jmono(Ctx &c, Val &out) {
+  const std::size_t n = vlen(c["d"]);
+  const int ni = static_cast<int>(n);
+  std::vector<double> dd;
+  CK(dec01(c, c["d"], "d", n, dd));
+  Lab j;
+  CK(codes(c, c["judge"], "judge", n, j));
+  const int nj = j.g;
+  const std::size_t sj = static_cast<std::size_t>(nj);
+  Dv yv, wv;
+  const bool hy = c.has("y");
+  if (hy) CK(num(c, c["y"], "y", yv, static_cast<long>(n)));
+  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<long>(n), 0.0));
+  double mn = 0.0, al = 0.0;
+  CK(binrd(c, "minn", 30, 0.0, Inf, mn));
+  int ad = 0;
+  CK(pickd(c, "adj", padjs, 6, 2, ad));
+  CK(oned(c, "alpha", 0.05, 0.0, 1.0, al));
+  std::vector<double> jw(4 * sj + 4 + sj);
+  double *cnt = jw.data(), *one1 = cnt + nj, *rate = one1 + nj, *outc = rate + nj, *st = outc + nj;
+  if (clab_jrate(j.code.data(), dd.data(), hy ? yv.p() : nullptr, wv.n() ? wv.p() : nullptr, ni, nj, cnt, one1, rate,
+                 outc, st) != CLAB_OK) {
+    return c.fail("every judge needs cases with a positive total weight.");
+  }
+  std::vector<int> o(sj);
+  for (int k = 0; k < nj; ++k) o[static_cast<std::size_t>(k)] = k;
+  std::stable_sort(o.begin(), o.end(), [&](int a, int b) { return rate[a] < rate[b]; });
+  std::vector<std::string> jl(sj);
+  std::vector<double> fn(sj), sr(sj), sy(sj);
+  for (std::size_t k = 0; k < sj; ++k) {
+    const int q = o[k];
+    jl[k] = j.lev[static_cast<std::size_t>(q)];
+    fn[k] = cnt[q];
+    sr[k] = rate[q];
+    sy[k] = outc[q];
+  }
+  Frame f;
+  f.str("judge", jl);
+  f.num("n", fn);
+  f.num("rate", sr);
+  if (hy) f.num("outcome", sy);
+  const double x2 = st[0], df = st[1];
+  const double hv[5] = {na(x2), df, std::isnan(x2) ? NA : clab_pchisq(x2, df, 0), st[2], st[3]};
+  static const char *const hn[] = {"chisq", "df", "p", "min", "max"};
+  out = vobj();
+  put(out, "judges", f.o);
+  put(out, "homog", nvec(5, hn, hv));
+  Val slope, sub;
+  if (hy) {
+    double l = Inf, h = -Inf;
+    for (double e : yv.v) {
+      l = std::fmin(l, e);
+      h = std::fmax(h, e);
+    }
+    if (c.has("lo")) {
+      double v = 0.0;
+      CK(one(c, c["lo"], "lo", -Inf, Inf, v));
+      if (v > l) return c.fail("`lo` must be at most the smallest outcome.");
+      l = v;
+    }
+    if (c.has("hi")) {
+      double v = 0.0;
+      CK(one(c, c["hi"], "hi", -Inf, Inf, v));
+      if (v < h) return c.fail("`hi` must be at least the largest outcome.");
+      h = v;
+    }
+    const long long npr = static_cast<long long>(nj) * (nj - 1) / 2;
+    if (npr > 50000000LL) return c.fail("`judge` has too many judges for every pair (more than 1e4).");
+    const std::size_t m = static_cast<std::size_t>(npr);
+    std::vector<std::string> ja, jb;
+    for (std::size_t a = 0; a < sj; ++a) {
+      for (std::size_t b = a + 1; b < sj; ++b) {
+        ja.push_back(jl[a]);
+        jb.push_back(jl[b]);
+      }
+    }
+    std::vector<double> dp(m), dy(m), bn(m), lt(m);
+    std::vector<int> vi(m);
+    clab_jslope(sr.data(), sy.data(), nj, l, h, dp.data(), dy.data(), bn.data(), vi.data(), lt.data());
+    for (double &e : lt) e = na(e);
+    Frame p;
+    p.str("j", ja);
+    p.str("k", jb);
+    p.num("dp", dp);
+    p.num("dy", dy);
+    p.num("bound", bn);
+    p.lgl("viol", vi.data(), m);
+    p.num("late", lt);
+    slope = p.o;
+  }
+  if (c.has("grp")) {
+    Lab g;
+    CK(codes(c, c["grp"], "grp", n, g));
+    if (static_cast<long long>(nj) * g.g > 100000000LL) return c.fail("`judge` and `grp` make more than 1e8 cells.");
+    const std::size_t sg = static_cast<std::size_t>(g.g);
+    std::vector<double> cw(2 * sj * sg + 2 * sg);
+    double *cn = cw.data(), *cr = cn + sj * sg, *sl = cr + sj * sg, *sc = sl + sg;
+    std::vector<int> sjv(sg);
+    int npair = 0;
+    clab_jsub(j.code.data(), g.code.data(), dd.data(), ni, nj, g.g, mn, rate, cn, cr, nullptr, nullptr, nullptr,
+              nullptr, sl, sjv.data(), sc, &npair);
+    const std::size_t np = static_cast<std::size_t>(npair);
+    std::vector<int> iw(3 * np + 1), ow(np + 1);
+    std::vector<double> zw(2 * np + 1);
+    int *pg = iw.data(), *ps = pg + np, *pl = ps + np;
+    double *pz = zw.data(), *pa = pz + np;
+    clab_jsub(j.code.data(), g.code.data(), dd.data(), ni, nj, g.g, mn, rate, cn, cr, pg, ps, pl, pz, sl, sjv.data(),
+              sc, &npair);
+    std::vector<std::string> cg(np), cs(np), cl(np);
+    std::vector<double> rs(np), rl(np), gs(np), gl(np), ns(np), nl(np), zz(np), pv(np), pj(np);
+    std::vector<int> rv(np), sgf(np);
+    for (std::size_t k = 0; k < np; ++k) {
+      const std::size_t ch = static_cast<std::size_t>(ps[k]) + sj * static_cast<std::size_t>(pg[k]);
+      const std::size_t c2 = static_cast<std::size_t>(pl[k]) + sj * static_cast<std::size_t>(pg[k]);
+      cg[k] = g.lev[static_cast<std::size_t>(pg[k])];
+      cs[k] = j.lev[static_cast<std::size_t>(ps[k])];
+      cl[k] = j.lev[static_cast<std::size_t>(pl[k])];
+      rs[k] = rate[ps[k]];
+      rl[k] = rate[pl[k]];
+      gs[k] = cr[ch];
+      gl[k] = cr[c2];
+      ns[k] = cn[ch];
+      nl[k] = cn[c2];
+      zz[k] = pz[k];
+      pv[k] = clab_pnorm(-pz[k]);
+      rv[k] = gs[k] < gl[k];
+    }
+    clab_pbadj(pv.data(), npair, ad, pa, ow.data());
+    int nrev = 0, nsig = 0;
+    for (std::size_t k = 0; k < np; ++k) {
+      pj[k] = pa[k];
+      sgf[k] = pa[k] < al;
+      nrev += rv[k];
+      nsig += sgf[k];
+    }
+    std::vector<long long> spr;
+    std::vector<int> sjj;
+    for (std::size_t k = 0; k < np; ++k) {
+      if (!sgf[k]) continue;
+      spr.push_back(static_cast<long long>(ps[k]) * nj + pl[k]);
+      sjj.push_back(ps[k]);
+      sjj.push_back(pl[k]);
+    }
+    std::sort(spr.begin(), spr.end());
+    std::sort(sjj.begin(), sjj.end());
+    const double sm[6] = {static_cast<double>(npair),
+                          static_cast<double>(nrev),
+                          npair ? static_cast<double>(nrev) / npair : NA,
+                          static_cast<double>(nsig),
+                          static_cast<double>(std::unique(spr.begin(), spr.end()) - spr.begin()),
+                          static_cast<double>(std::unique(sjj.begin(), sjj.end()) - sjj.begin())};
+    static const char *const smn[] = {"pairs", "reversed", "share", "signif", "refuted", "judges"};
+    Frame pf;
+    pf.str("group", cg);
+    pf.str("stricter", cs);
+    pf.str("lenient", cl);
+    pf.num("rates", rs);
+    pf.num("ratel", rl);
+    pf.num("grates", gs);
+    pf.num("gratel", gl);
+    pf.num("ns", ns);
+    pf.num("nl", nl);
+    pf.num("z", zz);
+    pf.num("p", pv);
+    pf.num("padj", pj);
+    pf.lgl("reversed", rv.data(), np);
+    pf.lgl("signif", sgf.data(), np);
+    std::vector<std::string> bg;
+    std::vector<double> bjn, bc, bs;
+    for (std::size_t q = 0; q < sg; ++q) {
+      if (sjv[q] < 2) continue;
+      bg.push_back(g.lev[q]);
+      bjn.push_back(sjv[q]);
+      bc.push_back(sc[q]);
+      bs.push_back(na(sl[q]));
+    }
+    Frame bf;
+    bf.str("group", bg);
+    bf.num("judges", bjn);
+    bf.num("cases", bc);
+    bf.num("slope", bs);
+    sub = vobj();
+    put(sub, "pairs", pf.o);
+    put(sub, "summary", nvec(6, smn, sm));
+    put(sub, "slopes", bf.o);
+  }
+  put(out, "slope", slope);
+  put(out, "sub", sub);
+  put(out, "alpha", vnum(al));
+  return true;
+}

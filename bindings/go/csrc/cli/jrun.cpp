@@ -21,16 +21,23 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <cctype>
 #include <cstring>
+#include <initializer_list>
 #include <limits>
+#include <regex>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "crimlab.h"
 #include "json.h"
+#include "kutil.h"
 #include "learn.h"
+#include "pev.h"
 #include "pevc.h"
+#include "pevs.h"
+#include "pevw.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -70,6 +77,11 @@ Val vnums(const double *x, std::size_t n) {
   return v;
 }
 Val vnums(const std::vector<double> &x) { return vnums(x.data(), x.size()); }
+// An unnamed vector outside a data frame: one value is that value.
+Val unbox(Val v) {
+  if (v.t == Val::ARR && v.a.size() == 1) return v.a[0];
+  return v;
+}
 Val vints(const std::vector<int> &x) {
   Val v = varr();
   for (int i : x) v.a.push_back(vnum(i));
@@ -104,6 +116,8 @@ struct Ctx {
   const char *fn;
   const Val *in;
   std::string err;
+  // the warnings R would give: the result's "warnings", an array of text
+  std::vector<std::string> warn;
   const Val &operator[](const char *k) const {
     for (std::size_t i = 0; i < in->k.size(); ++i) {
       if (in->k[i] == k) return in->a[i];
@@ -203,16 +217,29 @@ struct Dv {
   const double *p() const { return v.data(); }
 };
 
+// The numbers JSON writes as text, as R's JSON writes them ("Inf", "-Inf",
+// "NaN"): their value into x.
+bool snum(const Val &o, double &x) {
+  if (o.t != Val::STR) return false;
+  if (o.s == "Inf") x = HUGE_VAL;
+  else if (o.s == "-Inf") x = -HUGE_VAL;
+  else if (o.s == "NaN") x = NaN;
+  else return false;
+  return true;
+}
+
 // A number, or an array or object of numbers and nulls (NaN).
 Got readd(const Val &o, Dv &d) {
   d = Dv();
-  if (o.t == Val::NUM) {
-    d.v.push_back(o.n);
+  double x = 0.0;
+  if (o.t == Val::NUM || snum(o, x)) {
+    d.v.push_back(o.t == Val::NUM ? o.n : x);
     return NUM;
   }
   if (o.t != Val::ARR && o.t != Val::OBJ) return NOTNUM;
   for (const Val &e : o.a) {
     if (e.t == Val::NUM) d.v.push_back(e.n);
+    else if (snum(e, x)) d.v.push_back(x);
     else if (e.t == Val::NUL) d.v.push_back(NaN);
     else return e.t == Val::ARR && o.t == Val::ARR ? MATRIX : NOTNUM;
   }
@@ -637,7 +664,7 @@ bool lrpost(Ctx &c, Val &out) {
     const double q = p[p.n() == 1 ? 0 : i];
     o[i] = 1 / (1 + (1 - q) / (q * l[i]));
   }
-  out = vnums(o);
+  out = unbox(vnums(o));
   return true;
 }
 
@@ -752,8 +779,8 @@ bool cllrmin(Ctx &c, Val &out) {
 bool lrcal(Ctx &c, Val &out) {
   Cal k;
   CK(cal(c, k));
-  put(out, "same", vnums(k.cs));
-  put(out, "diff", vnums(k.cd));
+  put(out, "same", unbox(vnums(k.cs)));
+  put(out, "diff", unbox(vnums(k.cd)));
   return true;
 }
 
@@ -1409,7 +1436,7 @@ bool impfpr(Ctx &c, Val &out) {
       return true;
     }
   }
-  out = vnums(o);
+  out = unbox(vnums(o));
   return true;
 }
 
@@ -1521,6 +1548,16 @@ bool proof(Ctx &c, Val &out) {
 #include "jcba.inc"
 #include "jjdg.inc"
 #include "jhwk.inc"
+#include "jrat.inc"
+#include "jaud.inc"
+#include "jmnd.inc"
+#include "jpub.inc"
+#include "jflw.inc"
+#include "jtm.inc"
+#include "jdid.inc"
+#include "jsvy.inc"
+#include "jwcb.inc"
+#include "jspx.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1666,6 +1703,63 @@ const Ent ents[] = {
     {"hwkres", "times hor? par? kernel? base? per?", hwkres},
     {"hwksim", "par hor kernel? base? per? win? sigma? seed? nmax?", hwksim},
     {"stpcp", "y x? minseg? nperm? seed?", stpcp},
+    {"cntreg", "y grp? adj? expo? clus? ref? gee? cadj? level?", cntreg},
+    {"grprr", "x n? grp? ref? type? per? level?", grprr},
+    {"dastd", "x n strat grp? std ref? per? level?", dastd},
+    {"sirex", "x n strat grp rates? level?", sirex},
+    {"ctabx", "row col? w? agg? correct? exact? level?", ctabx},
+    {"calaud", "area risk? outcome? group? population? nperm? seed?", calaud},
+    {"scrdsp", "score group? ref? conf?", scrdsp},
+    {"jmono", "judge d y? grp? w? lo? hi? minn? adj? alpha?", jmono},
+    {"mndla", "days id? by? w? thr? hours? miss? alert? amin? elig? excl? level?", mndla},
+    {"yoypx", "x prd by? lag? units? minbase? level? rnd? kind? adj? alpha?", yoypx},
+    {"lostay", "days w? breaks? thr? flag? level?", lostay},
+    {"dktflw", "recv? disp? pend? prd? win? level? span? mtime? shares? floors? mix? scores?", dktflw},
+    {"stkflw", "people? days? adp? alos? t? prd? from? to? expo? per? base? rel? early?", stkflw},
+    {"bklog", "arrive dispose horizon? target?", bklog},
+    {"trnmat", "state id time?", trnmat},
+    {"lftab", "breaks events cens? level? ci?", lftab},
+    {"bandx", "x cnts? rule? cap? fac? floor? clsup? intsca? drop?", bandx},
+    {"pbbnd", "x rnd? kind? suplim? supmar? prev? pop? prepop? per?", pbbnd},
+    {"hwkfit", "times hor kernel? base? per? start? res? seed? maxit?", hwkfit},
+    {"trndrr", "y x? expo? seas? alt? level?", trndrr},
+    {"cusrv", "y expd? start? k? h? trans? reset?", cusrv},
+    {"xcser", "x y lagmax? dif? level?", xcser},
+    {"kmrec", "time event? grp? unit? end? level?", kmrec},
+    {"hypq", "lam pref mu? queue? tt?", hypq},
+    {"sdbsim", "n steps mode? a0? omega? eta? gam? theta? dt? b? rho? dx? dif? eps? z? sup? seed?", sdbsim},
+    {"sdbthr", "a0 omega eps dif gam eta z? k?", sdbthr},
+    {"etasf", "times hor mag? m0? start? maxit?", etasf},
+    {"mvhwk", "times type hor beta? start? maxit?", mvhwk},
+    {"sthwk", "times x y hor win? par? at? start? maxit?", sthwk},
+    {"didfe", "y unit time trt adj? clus? w? fe? fam? expo? loo? bacon? mtch? exact? calip? level?", didfe},
+    {"evtst", "y unit time first leads? lags? ref? bin? adj? clus? w? ma? norm? mbar? target? draws? seed? level?", evtst},
+    {"stgdid", "y unit time first? trt? meth? ctrl? adj? est? clus? reps? seed? level?", stgdid},
+    {"synthc", "y unit time first plac?", synthc},
+    {"sdidx", "y unit time first reps? seed? level?", sdidx},
+    {"cbatt", "y d x est? tgt? ps? k? calip? nsub? reps? seed? level?", cbatt},
+    {"svymx", "y w? strata? psu? fpc? stat? den? by? ref? level?", svymx},
+    {"wcbx", "y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?", wcbx},
+    {"wystep", "obs null", wystep},
+    {"dmlx", "y d x model? fold z? s? t? score? lrn? lrnd? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? trim? clu? pred? stk? nstk? disc? seed?", dmlx},
+    {"suplrn", "x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?", suplrn},
+    {"knxnr", "x y? t ds dt nsim? seed? lonlat?", knxnr},
+    {"kdsurf", "x y? w? h? win? nx? ny? edge? at? cover?", kdsurf},
+    {"dbscn", "x y? eps minpts? border? lonlat?", dbscn},
+    {"hsper", "x y? prd cell top? org? lonlat?", hsper},
+    {"ebshr", "y v? w? b?", ebshr},
+    {"kscan", "x y? t r tw minc? top? nsim? seed? lonlat?", kscan},
+    {"gmoran", "x w nsim? seed?", gmoran},
+    {"bvmor", "x y w nsim? seed?", bvmor},
+    {"sarml", "y x w model? durbin? method? int?", sarml},
+    {"spill", "fit? w? rho? b? th?", spill},
+    {"crossk", "x y? marks i j win r sigma? nsim? seed?", crossk},
+    {"qdrtst", "x y? win nx ny?", qdrtst},
+    {"morsta", "counts crit?", morsta},
+    {"dissix", "x delta? w?", dissix},
+    {"pinpl", "x y? poly pop?", pinpl},
+    {"arwt", "x from to area? id? top?", arwt},
+    {"bufas", "x y? site comp r buf? lonlat?", bufas},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
@@ -1696,7 +1790,7 @@ int run(const char *fn, const char *in, std::string &res) {
   Val v;
   v.t = Val::OBJ;
   if (in != nullptr && !Parser(in, std::strlen(in)).doc(v)) v.t = Val::NUL;
-  Ctx c{e->name, &v, std::string()};
+  Ctx c{e->name, &v, std::string(), {}};
   if (v.t != Val::OBJ) {
     c.fail("the arguments must be one JSON object.");
     res = c.err;
@@ -1730,6 +1824,7 @@ int run(const char *fn, const char *in, std::string &res) {
     res = c.err;
     return CLAB_EARG;
   }
+  if (!c.warn.empty() && out.t == Val::OBJ) put(out, "warnings", vstrs(c.warn));
   res.clear();
   wval(res, out);
   return CLAB_OK;

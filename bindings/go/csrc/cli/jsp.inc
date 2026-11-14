@@ -296,7 +296,7 @@ bool ripenv(Ctx &c, Val &out) {
   int co = 0, ns = 0;
   CK(pickd(c, "corr", kcor, 4, 3, co));
   CK(wholed(c, "nsim", 99, 1, ns));
-  unsigned int sd;
+  unsigned int sd = 0;
   CK(seed(c, sd));
   std::vector<int> iw(2 * static_cast<std::size_t>(p.n) + 2);
   std::vector<double> wk(5 * rv.n() + 2 * static_cast<std::size_t>(p.n)), o(4 * rv.n() + 2);

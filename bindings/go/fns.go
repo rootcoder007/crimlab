@@ -415,6 +415,177 @@ func Hwksim(args string) (string, error) { return Jrun("hwksim", args) }
 // Stpcp runs stpcp() of the R package (arguments: y x? minseg? nperm? seed?; ? marks an optional one).
 func Stpcp(args string) (string, error) { return Jrun("stpcp", args) }
 
+// Cntreg runs cntreg() of the R package (arguments: y grp? adj? expo? clus? ref? gee? cadj? level?; ? marks an optional one).
+func Cntreg(args string) (string, error) { return Jrun("cntreg", args) }
+
+// Grprr runs grprr() of the R package (arguments: x n? grp? ref? type? per? level?; ? marks an optional one).
+func Grprr(args string) (string, error) { return Jrun("grprr", args) }
+
+// Dastd runs dastd() of the R package (arguments: x n strat grp? std ref? per? level?; ? marks an optional one).
+func Dastd(args string) (string, error) { return Jrun("dastd", args) }
+
+// Sirex runs sirex() of the R package (arguments: x n strat grp rates? level?; ? marks an optional one).
+func Sirex(args string) (string, error) { return Jrun("sirex", args) }
+
+// Ctabx runs ctabx() of the R package (arguments: row col? w? agg? correct? exact? level?; ? marks an optional one).
+func Ctabx(args string) (string, error) { return Jrun("ctabx", args) }
+
+// Calaud runs calaud() of the R package (arguments: area risk? outcome? group? population? nperm? seed?; ? marks an optional one).
+func Calaud(args string) (string, error) { return Jrun("calaud", args) }
+
+// Scrdsp runs scrdsp() of the R package (arguments: score group? ref? conf?; ? marks an optional one).
+func Scrdsp(args string) (string, error) { return Jrun("scrdsp", args) }
+
+// Jmono runs jmono() of the R package (arguments: judge d y? grp? w? lo? hi? minn? adj? alpha?; ? marks an optional one).
+func Jmono(args string) (string, error) { return Jrun("jmono", args) }
+
+// Mndla runs mndla() of the R package (arguments: days id? by? w? thr? hours? miss? alert? amin? elig? excl? level?; ? marks an optional one).
+func Mndla(args string) (string, error) { return Jrun("mndla", args) }
+
+// Yoypx runs yoypx() of the R package (arguments: x prd by? lag? units? minbase? level? rnd? kind? adj? alpha?; ? marks an optional one).
+func Yoypx(args string) (string, error) { return Jrun("yoypx", args) }
+
+// Lostay runs lostay() of the R package (arguments: days w? breaks? thr? flag? level?; ? marks an optional one).
+func Lostay(args string) (string, error) { return Jrun("lostay", args) }
+
+// Dktflw runs dktflw() of the R package (arguments: recv? disp? pend? prd? win? level? span? mtime? shares? floors? mix? scores?; ? marks an optional one).
+func Dktflw(args string) (string, error) { return Jrun("dktflw", args) }
+
+// Stkflw runs stkflw() of the R package (arguments: people? days? adp? alos? t? prd? from? to? expo? per? base? rel? early?; ? marks an optional one).
+func Stkflw(args string) (string, error) { return Jrun("stkflw", args) }
+
+// Bklog runs bklog() of the R package (arguments: arrive dispose horizon? target?; ? marks an optional one).
+func Bklog(args string) (string, error) { return Jrun("bklog", args) }
+
+// Trnmat runs trnmat() of the R package (arguments: state id time?; ? marks an optional one).
+func Trnmat(args string) (string, error) { return Jrun("trnmat", args) }
+
+// Lftab runs lftab() of the R package (arguments: breaks events cens? level? ci?; ? marks an optional one).
+func Lftab(args string) (string, error) { return Jrun("lftab", args) }
+
+// Bandx runs bandx() of the R package (arguments: x cnts? rule? cap? fac? floor? clsup? intsca? drop?; ? marks an optional one).
+func Bandx(args string) (string, error) { return Jrun("bandx", args) }
+
+// Pbbnd runs pbbnd() of the R package (arguments: x rnd? kind? suplim? supmar? prev? pop? prepop? per?; ? marks an optional one).
+func Pbbnd(args string) (string, error) { return Jrun("pbbnd", args) }
+
+// Hwkfit runs hwkfit() of the R package (arguments: times hor kernel? base? per? start? res? seed? maxit?; ? marks an optional one).
+func Hwkfit(args string) (string, error) { return Jrun("hwkfit", args) }
+
+// Trndrr runs trndrr() of the R package (arguments: y x? expo? seas? alt? level?; ? marks an optional one).
+func Trndrr(args string) (string, error) { return Jrun("trndrr", args) }
+
+// Cusrv runs cusrv() of the R package (arguments: y expd? start? k? h? trans? reset?; ? marks an optional one).
+func Cusrv(args string) (string, error) { return Jrun("cusrv", args) }
+
+// Xcser runs xcser() of the R package (arguments: x y lagmax? dif? level?; ? marks an optional one).
+func Xcser(args string) (string, error) { return Jrun("xcser", args) }
+
+// Kmrec runs kmrec() of the R package (arguments: time event? grp? unit? end? level?; ? marks an optional one).
+func Kmrec(args string) (string, error) { return Jrun("kmrec", args) }
+
+// Hypq runs hypq() of the R package (arguments: lam pref mu? queue? tt?; ? marks an optional one).
+func Hypq(args string) (string, error) { return Jrun("hypq", args) }
+
+// Sdbsim runs sdbsim() of the R package (arguments: n steps mode? a0? omega? eta? gam? theta? dt? b? rho? dx? dif? eps? z? sup? seed?; ? marks an optional one).
+func Sdbsim(args string) (string, error) { return Jrun("sdbsim", args) }
+
+// Sdbthr runs sdbthr() of the R package (arguments: a0 omega eps dif gam eta z? k?; ? marks an optional one).
+func Sdbthr(args string) (string, error) { return Jrun("sdbthr", args) }
+
+// Etasf runs etasf() of the R package (arguments: times hor mag? m0? start? maxit?; ? marks an optional one).
+func Etasf(args string) (string, error) { return Jrun("etasf", args) }
+
+// Mvhwk runs mvhwk() of the R package (arguments: times type hor beta? start? maxit?; ? marks an optional one).
+func Mvhwk(args string) (string, error) { return Jrun("mvhwk", args) }
+
+// Sthwk runs sthwk() of the R package (arguments: times x y hor win? par? at? start? maxit?; ? marks an optional one).
+func Sthwk(args string) (string, error) { return Jrun("sthwk", args) }
+
+// Didfe runs didfe() of the R package (arguments: y unit time trt adj? clus? w? fe? fam? expo? loo? bacon? mtch? exact? calip? level?; ? marks an optional one).
+func Didfe(args string) (string, error) { return Jrun("didfe", args) }
+
+// Evtst runs evtst() of the R package (arguments: y unit time first leads? lags? ref? bin? adj? clus? w? ma? norm? mbar? target? draws? seed? level?; ? marks an optional one).
+func Evtst(args string) (string, error) { return Jrun("evtst", args) }
+
+// Stgdid runs stgdid() of the R package (arguments: y unit time first? trt? meth? ctrl? adj? est? clus? reps? seed? level?; ? marks an optional one).
+func Stgdid(args string) (string, error) { return Jrun("stgdid", args) }
+
+// Synthc runs synthc() of the R package (arguments: y unit time first plac?; ? marks an optional one).
+func Synthc(args string) (string, error) { return Jrun("synthc", args) }
+
+// Sdidx runs sdidx() of the R package (arguments: y unit time first reps? seed? level?; ? marks an optional one).
+func Sdidx(args string) (string, error) { return Jrun("sdidx", args) }
+
+// Cbatt runs cbatt() of the R package (arguments: y d x est? tgt? ps? k? calip? nsub? reps? seed? level?; ? marks an optional one).
+func Cbatt(args string) (string, error) { return Jrun("cbatt", args) }
+
+// Svymx runs svymx() of the R package (arguments: y w? strata? psu? fpc? stat? den? by? ref? level?; ? marks an optional one).
+func Svymx(args string) (string, error) { return Jrun("svymx", args) }
+
+// Wcbx runs wcbx() of the R package (arguments: y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?; ? marks an optional one).
+func Wcbx(args string) (string, error) { return Jrun("wcbx", args) }
+
+// Wystep runs wystep() of the R package (arguments: obs null; ? marks an optional one).
+func Wystep(args string) (string, error) { return Jrun("wystep", args) }
+
+// Dmlx runs dmlx() of the R package (arguments: y d x model? fold z? s? t? score? lrn? lrnd? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? trim? clu? pred? stk? nstk? disc? seed?; ? marks an optional one).
+func Dmlx(args string) (string, error) { return Jrun("dmlx", args) }
+
+// Suplrn runs suplrn() of the R package (arguments: x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?; ? marks an optional one).
+func Suplrn(args string) (string, error) { return Jrun("suplrn", args) }
+
+// Knxnr runs knxnr() of the R package (arguments: x y? t ds dt nsim? seed? lonlat?; ? marks an optional one).
+func Knxnr(args string) (string, error) { return Jrun("knxnr", args) }
+
+// Kdsurf runs kdsurf() of the R package (arguments: x y? w? h? win? nx? ny? edge? at? cover?; ? marks an optional one).
+func Kdsurf(args string) (string, error) { return Jrun("kdsurf", args) }
+
+// Dbscn runs dbscn() of the R package (arguments: x y? eps minpts? border? lonlat?; ? marks an optional one).
+func Dbscn(args string) (string, error) { return Jrun("dbscn", args) }
+
+// Hsper runs hsper() of the R package (arguments: x y? prd cell top? org? lonlat?; ? marks an optional one).
+func Hsper(args string) (string, error) { return Jrun("hsper", args) }
+
+// Ebshr runs ebshr() of the R package (arguments: y v? w? b?; ? marks an optional one).
+func Ebshr(args string) (string, error) { return Jrun("ebshr", args) }
+
+// Kscan runs kscan() of the R package (arguments: x y? t r tw minc? top? nsim? seed? lonlat?; ? marks an optional one).
+func Kscan(args string) (string, error) { return Jrun("kscan", args) }
+
+// Gmoran runs gmoran() of the R package (arguments: x w nsim? seed?; ? marks an optional one).
+func Gmoran(args string) (string, error) { return Jrun("gmoran", args) }
+
+// Bvmor runs bvmor() of the R package (arguments: x y w nsim? seed?; ? marks an optional one).
+func Bvmor(args string) (string, error) { return Jrun("bvmor", args) }
+
+// Sarml runs sarml() of the R package (arguments: y x w model? durbin? method? int?; ? marks an optional one).
+func Sarml(args string) (string, error) { return Jrun("sarml", args) }
+
+// Spill runs spill() of the R package (arguments: fit? w? rho? b? th?; ? marks an optional one).
+func Spill(args string) (string, error) { return Jrun("spill", args) }
+
+// Crossk runs crossk() of the R package (arguments: x y? marks i j win r sigma? nsim? seed?; ? marks an optional one).
+func Crossk(args string) (string, error) { return Jrun("crossk", args) }
+
+// Qdrtst runs qdrtst() of the R package (arguments: x y? win nx ny?; ? marks an optional one).
+func Qdrtst(args string) (string, error) { return Jrun("qdrtst", args) }
+
+// Morsta runs morsta() of the R package (arguments: counts crit?; ? marks an optional one).
+func Morsta(args string) (string, error) { return Jrun("morsta", args) }
+
+// Dissix runs dissix() of the R package (arguments: x delta? w?; ? marks an optional one).
+func Dissix(args string) (string, error) { return Jrun("dissix", args) }
+
+// Pinpl runs pinpl() of the R package (arguments: x y? poly pop?; ? marks an optional one).
+func Pinpl(args string) (string, error) { return Jrun("pinpl", args) }
+
+// Arwt runs arwt() of the R package (arguments: x from to area? id? top?; ? marks an optional one).
+func Arwt(args string) (string, error) { return Jrun("arwt", args) }
+
+// Bufas runs bufas() of the R package (arguments: x y? site comp r buf? lonlat?; ? marks an optional one).
+func Bufas(args string) (string, error) { return Jrun("bufas", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

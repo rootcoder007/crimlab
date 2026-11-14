@@ -56,7 +56,7 @@ bool sptst(Ctx &c, Val &out) {
   if (n < 1 || bv.size() != av.size()) return c.fail("`a` and `b` must have the same length, from 1.");
   int nbt = 0;
   CK(wholed(c, "nboot", 200, 1, nbt));
-  unsigned int s;
+  unsigned int s = 0;
   CK(seed(c, s));
   double al = 0.0, sc = 0.0;
   CK(oned(c, "alpha", 0.05, 0.0, 1.0, al));

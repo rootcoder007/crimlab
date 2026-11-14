@@ -2969,6 +2969,26 @@ int clab_synexp(const double *coef, const double *ax, int na, int p, const doubl
 double clab_qnorm(double p);
 double clab_pnorm(double x);
 
+/* The distribution functions and quantiles of R (src/dst.cpp): lower != 0
+ * the lower tail, lower == 0 the upper; NaN outside the domain. The gamma
+ * has scale 1; the Poisson and binomial distribution functions take a
+ * count x (floored), the quantiles return a whole number. */
+double clab_pgamma(double x, double a, int lower);
+double clab_qgamma(double p, double a, int lower);
+double clab_pbeta(double x, double a, double b, int lower);
+double clab_qbeta(double p, double a, double b, int lower);
+double clab_pchisq(double x, double df, int lower);
+double clab_qchisq(double p, double df, int lower);
+double clab_pnchisq(double x, double df, double ncp, int lower);
+double clab_pt(double x, double df, int lower);
+double clab_qt(double p, double df, int lower);
+double clab_pf(double x, double df1, double df2, int lower);
+double clab_qf(double p, double df1, double df2, int lower);
+double clab_ppois(double x, double lambda, int lower);
+double clab_qpois(double p, double lambda, int lower);
+double clab_dbinom(double x, double n, double p);
+double clab_pbinom(double x, double n, double p, int lower);
+
 #ifdef __cplusplus
 }
 #endif

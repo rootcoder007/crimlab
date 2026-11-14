@@ -19,10 +19,11 @@ inline std::size_t vlen(const Val &o) {
 
 // is.numeric(): a number, or an array or object of numbers and nulls.
 inline bool isnum(const Val &o) {
-  if (o.t == Val::NUM) return true;
+  double x = 0.0;
+  if (o.t == Val::NUM || snum(o, x)) return true;
   if (o.t != Val::ARR && o.t != Val::OBJ) return false;
   for (const Val &e : o.a) {
-    if (e.t != Val::NUM && e.t != Val::NUL) return false;
+    if (e.t != Val::NUM && e.t != Val::NUL && !snum(e, x)) return false;
   }
   return true;
 }
@@ -57,11 +58,6 @@ inline Val vints(const int *x, std::size_t n) {
 inline Val vlgls(const int *x, std::size_t n) {
   Val v = varr();
   for (std::size_t i = 0; i < n; ++i) v.a.push_back(x[i] < 0 ? Val() : vbool(x[i] != 0));
-  return v;
-}
-// An unnamed vector outside a data frame: one value is that value.
-inline Val unbox(Val v) {
-  if (v.t == Val::ARR && v.a.size() == 1) return v.a[0];
   return v;
 }
 inline Val vauto(const std::vector<double> &x) { return unbox(vnums(x)); }
@@ -277,7 +273,8 @@ inline bool rref(Ctx &c, const Val &r, const std::vector<std::string> &g, const 
 // dim and its values in R's order (column-major) into v; finite, or NA
 // (null) when na. The words of narr() in the b*.cpp files.
 inline bool shape(const Val &o, int nd, int *dim, int at) {
-  if (at == nd) return o.t == Val::NUM || o.t == Val::NUL;
+  double x = 0.0;
+  if (at == nd) return o.t == Val::NUM || o.t == Val::NUL || snum(o, x);
   if (o.t != Val::ARR || o.a.size() > static_cast<std::size_t>(INT_MAX)) return false;
   const int n = static_cast<int>(o.a.size());
   if (dim[at] < 0) dim[at] = n;
@@ -293,7 +290,9 @@ inline bool shape(const Val &o, int nd, int *dim, int at) {
 inline void fill(const Val &o, int nd, const int *dim, int at, std::size_t off, std::size_t step, std::vector<double> &v,
           bool &bad, bool na) {
   if (at == nd) {
-    const double x = o.t == Val::NUM ? o.n : NA;
+    double x = NA;
+    if (o.t == Val::NUM) x = o.n;
+    else snum(o, x);
     if (na ? std::isinf(x) : !std::isfinite(x)) bad = true;
     v[off] = x;
     return;

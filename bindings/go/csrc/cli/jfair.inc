@@ -440,7 +440,7 @@ bool fairsim(Ctx &c, Val &out) {
   CK(p01d(c, "base", 0.3, b0));
   const double bs = val1d(c, "bias", 0.5);
   if (!(bs >= -1.0 && bs <= 1.0)) return c.fail("`bias` must be one number from -1 to 1.");
-  unsigned int s;
+  unsigned int s = 0;
   CK(seed(c, s));
   const std::size_t n = static_cast<std::size_t>(N);
   std::vector<int> ai(n), gi(n), tr(n), dt(n);
