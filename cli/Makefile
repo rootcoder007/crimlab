@@ -39,7 +39,7 @@ all: crimlab libcrimlab.a $(SO)
 $(B)/%.o: ../src/%.cpp ../src/*.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -c $< -o $@
 
-$(B)/jrun.o: jrun.cpp jrun.h json.h $(wildcard j*.inc) thm.inc ../src/crimlab.h | $(B)
+$(B)/jrun.o: jrun.cpp jrun.h json.h $(wildcard j*.inc) thm.inc pre.inc ../src/crimlab.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -I../src -c $< -o $@
 
 $(B)/main.o: main.cpp jrun.h json.h ../src/crimlab.h ../DESCRIPTION | $(B)
@@ -48,6 +48,10 @@ $(B)/main.o: main.cpp jrun.h json.h ../src/crimlab.h ../DESCRIPTION | $(B)
 # the proof table of the R binding
 thm.inc: ../src/bind.cpp thm.sh
 	sh thm.sh > $@
+
+# the preset table of the R package
+pre.inc: ../inst/presets/presets.tsv pre.sh
+	sh pre.sh > $@
 
 $(B):
 	mkdir -p $@

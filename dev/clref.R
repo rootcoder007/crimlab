@@ -33,9 +33,18 @@ one <- function(v) {
 }
 arr <- function(x) paste0("[", paste(vapply(x, one, ""), collapse = ","), "]")
 obj <- function(l) {
+  if (!length(l)) return("{}")
   paste0("{", paste(sprintf("%s:%s", esc(names(l)), vapply(l, js, "")), collapse = ","), "}")
 }
 plain <- function(x) {
+  # a clprep() result: its arguments, then its attributes
+  if (inherits(x, "clpre")) {
+    a <- attributes(x)
+    b <- unclass(x)
+    attributes(b) <- list(names = names(b))
+    return(list(args = b, preset = a$preset, generic = a$generic, source = a$source,
+                units = a$units, note = a$note, drop = a$drop))
+  }
   if (is.factor(x)) {
     n <- names(x)
     x <- as.character(x)
@@ -820,6 +829,119 @@ bp <- cbind(x = round(runif(30, 0, 5000)), y = round(runif(30, 0, 5000)))
 ok("bufas", x = bp, site = cbind(c(1000, 3500), c(1200, 3000)), comp = cbind(c(2500, 4500), c(500, 4000)), r = 600)
 ok("bufas", x = bp, site = cbind(1000, 1200), comp = cbind(2500, 500), r = 900, buf = 1000)
 bad("bufas", x = bp, site = cbind(1000, 1200), comp = cbind(2500, 500), r = 0)
+
+# clprep(): one case for every preset, on a table of eight rows made from
+# the preset's own rows (the labels its recodes name, numbers where it
+# reads numbers, one missing value), then presets of one's own for the
+# recipes and recodes the shipped presets do not use, and the refusals
+pt <- clprep()
+tb <- utils::read.delim(system.file("presets", "presets.tsv", package = "crimlab"),
+                        colClasses = "character", na.strings = character(0), quote = "")
+made <- list(long = c("count", "with"), acvm = c("ac", "vm", "hiac"), pyr = c("np", "nreg", "ac"),
+             acnv = c("acn", "vmany", "hiacn"), pairb = c("tb", "yb"), pairc = c("tc", "yc"),
+             gent = "gent", pop = "pop")
+otc <- c("UniqueIndividual_ID", "EndFiscalYear", "Region_AtTimeOfPlacement",
+         "Region_MostRecentPlacement", "MentalHealth_Alert", "SuicideRisk_Alert", "SuicideWatch_Alert")
+cap1 <- function(s) paste0(toupper(substr(s, 1L, 1L)), substring(s, 2L))
+fixed <- list(
+  UniqueIndividual_ID = c(101, 101, 102, 101, 103, 102, 101, 103),
+  EndFiscalYear = c(2020, 2020, 2020, 2021, 2021, 2020, 2020, 2021),
+  Region_AtTimeOfPlacement = c("East", "East", "North", "West", "East", "North", "Central", "West"),
+  Region_MostRecentPlacement = c("East", "West", "North", "West", "Central", "North", "Central", "East"),
+  MentalHealth_Alert = c("Yes", "No", "yes", "No", "Y", "no", "TRUE", "No"),
+  SuicideRisk_Alert = c("No", "Yes", "no", "No", "Yes", "no", "1", "No"),
+  SuicideWatch_Alert = c("No", "No", "Yes", "No", "yes", "No", "No", "Yes"),
+  Gender = c("Female", "Male", "Male", "Female", "Male", "Female", "Male", "Male"),
+  Age_Category = c("18 to 49", "50 and over", "18 to 49", "18 to 49", "50 and over", "18 to 49",
+                   "50 and over", "18 to 49"),
+  Number_Of_Placements = c(1, 2, 3, 1, 2, 1, 4, 1),
+  Measure = c("Median", "Median", "Max", "Median", "Max", "Median", "Median", "Max")
+)
+num8 <- c(12, 30, 8, 25, 14, 41, 9, 22)
+synv <- function(col, rec) {
+  if (!is.null(fixed[[col]])) return(fixed[[col]])
+  map <- rec[!rec %in% c("", "fac", "num", "pct", "one", "flag", "dum") & !startsWith(rec, "sub:") &
+               !startsWith(rec, "const:")]
+  if (length(map)) {
+    rules <- unlist(strsplit(map, ";", fixed = TRUE))
+    keys <- vapply(strsplit(rules, "=", fixed = TRUE), `[`, "", 1L)
+    other <- all(grepl("(^|;)\\*=", map))
+    keys <- keys[keys != "*"]
+    labs <- unlist(strsplit(keys, "|", fixed = TRUE))
+    labs <- ifelse(startsWith(labs, "has:"), paste("with", substring(labs, 5L)), labs)
+    labs <- cap1(unique(c(labs, if (other) "other")))
+    return(rep(labs, length.out = 8L))
+  }
+  if (any(startsWith(rec, "sub:"))) {
+    return(rep(c("2019-04-01", "2020-03-15", "2021-11-30"), length.out = 8L))
+  }
+  if (any(rec == "flag")) return(c("Yes", "no", "TRUE", "0", "y", "No", "t", "no"))
+  if (any(rec %in% c("fac", "dum")) && !any(rec %in% c("", "num", "pct"))) {
+    return(rep(c("North", "East", "West"), length.out = 8L))
+  }
+  num8
+}
+syn <- function(r) {
+  rec <- r$arg == "recipe"
+  out <- unique(unlist(made[r$column[rec]]))
+  need <- character(0)
+  for (i in which(rec)) {
+    a <- r$recode[i]
+    need <- c(need, switch(r$column[i],
+      long = strsplit(a, ",", fixed = TRUE)[[1L]],
+      keep = strsplit(a, ",", fixed = TRUE)[[1L]],
+      acvm = , acnv = c(otc, "Gender", "Age_Category"),
+      pyr = otc,
+      pairb = c(otc[-(3:4)], "Number_Of_Placements"),
+      pairc = c(otc[3:4], "NumberConsecutiveDays_Segregation"),
+      pop = strsplit(a, ";", fixed = TRUE)[[1L]][1:2],
+      gent = strsplit(a, ",", fixed = TRUE)[[1L]][1:4]))
+  }
+  fc <- as.character(unlist(strsplit(r$filter[nzchar(r$filter)], ";", fixed = TRUE)))
+  fc <- vapply(strsplit(fc, "=", fixed = TRUE), `[`, "", 1L)
+  cols <- unique(c(need, setdiff(c(r$column[!rec & nzchar(r$column)], fc), out)))
+  d <- as.data.frame(lapply(stats::setNames(cols, cols), function(k) {
+    synv(k, r$recode[!rec & r$column == k])
+  }), check.names = FALSE)
+  d[3L, cols[1L]] <- NA
+  d
+}
+for (p in pt$preset) ok("clprep", data = syn(tb[tb$preset == p, ]), preset = p)
+ok("clprep")
+g6 <- data.frame(inc = c(10, 30, 12, 50, 9, 20), rent = c(5, 9, 4, 12, 6, 5),
+                 colg = c(0.3, 0.1, 0.5, 0.2, 0.6, 0.1), rentg = c(0.2, 0.4, 0.5, 0.1, 0.3, NA),
+                 y = c(3, 1, 4, 1, 5, 9))
+ok("clprep", data = g6, preset = data.frame(
+  preset = "mine", generic = "cntreg", arg = c("recipe", "y", "grp"),
+  column = c("gent", "y", "gent"), recode = c("inc,rent,colg,rentg", "", "fac")))
+ok("clprep", data = g6, preset = data.frame(
+  preset = "mine", generic = "cntreg", arg = c("recipe", "y", "grp"),
+  column = c("gent", "y", "gent"), recode = c("inc,rent,colg,rentg,0.4,0.5", "", "")))
+ok("clprep", data = data.frame(a = c("x", "1", "2.5"), b = c(4, 5, 6), w = c("2020-01-02", "2021-05-06", NA)),
+   preset = data.frame(preset = "mine", generic = "grprr", arg = c("x", "pop", "lv", "k", "yr", "yr"),
+                       column = c("a", "b", "", "", "w", "b"),
+                       recode = c("num", "pct", "const:TRUE", "const:per", "sub:3,4", "const:2.5"),
+                       units = c("", "people", "", "", "", ""), note = c("first", "", "", "", "", "second")))
+ok("clprep", data = data.frame(a = c(1, 2), b = c(3, 4), k = c("p", "q")),
+   preset = data.frame(preset = "mine", generic = "cntreg", arg = c("recipe", "y", "grp", "adj"),
+                       column = c("long", "count", "with", "k"), recode = c("a,b", "", "", "dum")))
+ok("clprep", data = data.frame(n = c(100, 30), r = c("50", "x"), z = c(" A ", "b")),
+   preset = data.frame(preset = "mine", generic = "grprr", arg = c("recipe", "x", "g", "h"),
+                       column = c("pop", "pop", "z", "z"),
+                       recode = c("n;r;1000", "", "a=1;has:b=2", "has:=7"), filter = c("", "", "", "")))
+bad("clprep", data = data.frame(a = 1))
+bad("clprep", data = data.frame(a = 1), preset = c("a", "b"))
+bad("clprep", data = data.frame(a = 1), preset = "no-such-preset")
+bad("clprep", data = list(1, 2), preset = "otis-c01-cnt")
+bad("clprep", data = data.frame(a = 1), preset = "otis-c01-cnt")
+bad("clprep", data = data.frame(s = c("x", "y")),
+    preset = data.frame(preset = "m", generic = "g", arg = "a", column = "s", recode = "x=1"))
+bad("clprep", data = data.frame(s = 1),
+    preset = data.frame(preset = "m", generic = "g", arg = "recipe", column = "melt"))
+bad("clprep", data = data.frame(s = 1), preset = data.frame(preset = "m", generic = "g"))
+bad("clprep", data = data.frame(s = 1), preset = data.frame(preset = c("m", "n"), generic = "g", arg = "a"))
+bad("clprep", data = data.frame(s = 1),
+    preset = data.frame(preset = "m", generic = "g", arg = "recipe", column = "keep", recode = "s,t"))
 
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

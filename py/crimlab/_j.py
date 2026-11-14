@@ -3291,3 +3291,25 @@ def yoypx(x: Any, prd: Any, by: Any = None, lag: Any = 1, units: Any = "count", 
     """
     return jcall("yoypx", x=x, prd=prd, by=by, lag=lag, units=units, minbase=minbase, level=level,
                   rnd=rnd, kind=kind, adj=adj, alpha=alpha)
+
+
+def clprep(data: Any = None, preset: Any = None) -> Any:
+    """Presets: a published dataset's columns onto a generic function's arguments.
+
+    The arguments are those of R's ``clprep()``: see its help page. ``data``
+    is a dict of columns; ``preset`` a name, or a preset of one's own as a
+    dict of columns laid out as the preset table. The result holds
+    ``args``, the generic's arguments (a dict to unpack into the generic
+    with ``**``), and the preset's ``preset``, ``generic``, ``source``,
+    ``units``, ``note`` and ``drop`` (the rows dropped), the attributes of
+    the R result. Without arguments, the list of presets.
+
+    Examples
+    --------
+    >>> d = {"EndFiscalYear": [2020, 2020, 2021, 2021], "Gender": ["Female", "Male"] * 2,
+    ...      "NumberIndividuals_RestrictiveConfinement": [40, 310, 52, 335]}
+    >>> p = clprep(d, "otis-c01-cnt")
+    >>> list(p["args"]), p["args"]["grp"], p["drop"]
+    (['y', 'grp', 'adj'], [1.0, 0.0, 1.0, 0.0], 0.0)
+    """
+    return jcall("clprep", data=data, preset=preset)

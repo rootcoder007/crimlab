@@ -67,6 +67,13 @@ implies.
 Rows with a missing value in any column the preset reads are dropped,
 as the source analyses drop them; their number is the attribute
 \code{drop}.
+
+Outside R, \code{clab_jrun()} (the command line, Python and the bindings)
+gives the same result: \code{args}, the generic's arguments, beside \code{preset},
+\code{generic}, \code{source}, \code{units}, \code{note} and \code{drop}. Text is ordered there
+by its bytes, as R orders it under \code{LC_COLLATE=C}, so where R runs in
+another locale the columns of a \code{dum} recode and the order of the
+person-year recipes can differ for labels that sort differently there.
 }
 \examples{
 head(clprep())

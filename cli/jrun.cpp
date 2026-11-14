@@ -14,6 +14,7 @@
 #include "jrun.h"
 
 #include <algorithm>
+#include <array>
 #include <climits>
 #include <cmath>
 #include <cstdarg>
@@ -1558,6 +1559,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jsvy.inc"
 #include "jwcb.inc"
 #include "jspx.inc"
+#include "jprep.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1760,6 +1762,7 @@ const Ent ents[] = {
     {"pinpl", "x y? poly pop?", pinpl},
     {"arwt", "x from to area? id? top?", arwt},
     {"bufas", "x y? site comp r buf? lonlat?", bufas},
+    {"clprep", "data? preset?", clprep},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

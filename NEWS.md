@@ -1,7 +1,15 @@
 # crimlab 0.0.0.9000
 
+* `clprep()` reaches the command line, the Python package and the
+  bindings through `clab_jrun()`, which does its recodes, filters and
+  recipes in C++ with R's messages and returns the generic's arguments as
+  `args` with the attributes of the R result beside them. Its preset table
+  is `cli/pre.inc`, made from `inst/presets/presets.tsv` by `cli/pre.sh`;
+  CI fails when the two differ. `cli/test.tsv` holds a case for every
+  preset. Outside R, text is ordered by its bytes (R's order under
+  `LC_COLLATE=C`) and lowered as ASCII.
 * `clab_jrun()`, and with it the command-line program, the Python package
-  and the bindings, now reaches every exported function but `clprep()`:
+  and the bindings, now reaches every exported function:
   counts, rates and tables, the audits of risk scores, judges' leniency,
   long stays, published figures and bands, stocks and flows, the Hawkes
   fits and other events in time, difference in differences, synthetic
