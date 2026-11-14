@@ -7,7 +7,10 @@
   spdep, rmorie and rmoriebricklayer they compare with are stored in
   `tests/testthat/ref`, with the versions that computed them, by the
   scripts in `dev/ref`. Suggests now holds only testthat, knitr and
-  rmarkdown.
+  rmarkdown. The `ref` workflow runs those scripts again every week on
+  Linux (x86-64 and arm64), macOS (arm64 and Intel) and Windows, and
+  fails when a value its platform’s packages give differs from the
+  stored one by more than the tolerance of the test that uses it.
 - [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
   stacks the learners of the package (least squares or logistic
   regression, the lasso, ridge and elastic net, the random forest) into

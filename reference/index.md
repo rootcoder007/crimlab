@@ -19,7 +19,9 @@ and dyadic rates.
 ## Forensics
 
 DNA match statistics, the weight and calibration of likelihood ratios,
-kinship, paternity, mixtures and database searches.
+kinship, paternity, mixtures and database searches; trace evidence by
+the two-level model, glass grouping and transfer, and tool marks (lowess
+profiles and the Chumbley score).
 
 - [`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md) :
   Genotype match probability
@@ -45,6 +47,17 @@ kinship, paternity, mixtures and database searches.
   : Database search
 - [`preslr()`](https://rootcoder007.github.io/crimlab/reference/preslr.md)
   : Likelihood ratio of measured evidence
+- [`tlvc()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
+  [`tlvlr()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
+  : Two-level model for multivariate trace evidence
+- [`skp()`](https://rootcoder007.github.io/crimlab/reference/skp.md) :
+  Scott-Knott grouping of measurements
+- [`tfrp()`](https://rootcoder007.github.io/crimlab/reference/tfrp.md) :
+  Glass fragments recovered under transfer and persistence
+- [`lwss()`](https://rootcoder007.github.io/crimlab/reference/lwss.md) :
+  Lowess smoothing
+- [`chmb()`](https://rootcoder007.github.io/crimlab/reference/chmb.md) :
+  The Chumbley score for two tool-mark profiles
 
 ## Toxicology and taphonomy
 
@@ -134,7 +147,8 @@ brokerage and the Cheeger bounds.
 
 Distances and projection, centrography, nearest neighbours and K
 functions, hot spots, space-time tests, journey to crime and the
-geographic profile of a series.
+geographic profile of a series; the Gi\* statistic on a grid and the
+point pattern test of two sets of counts.
 
 - [`hvdist()`](https://rootcoder007.github.io/crimlab/reference/hvdist.md)
   : Great-circle distance
@@ -202,43 +216,6 @@ geographic profile of a series.
   : Local G and G\* of Getis and Ord
 - [`dirmn()`](https://rootcoder007.github.io/crimlab/reference/dirmn.md)
   : Directional mean and circular variance
-
-## Dossier methods
-
-Fairness of risk tools, trace evidence, aoristic time, Benford screens,
-glass grouping and transfer, constant reporters, sensitivity bounds,
-trajectory models, lowess, tool marks, grid Gi\* and the point pattern
-test.
-
-- [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md) :
-  Fairness metrics of a binary risk tool by group
-- [`tlvc()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
-  [`tlvlr()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
-  : Two-level model for multivariate trace evidence
-- [`aorwt()`](https://rootcoder007.github.io/crimlab/reference/aorwt.md)
-  : Aoristic weights
-- [`bdig()`](https://rootcoder007.github.io/crimlab/reference/bdig.md)
-  [`bnft()`](https://rootcoder007.github.io/crimlab/reference/bdig.md) :
-  Benford digit screens
-- [`skp()`](https://rootcoder007.github.io/crimlab/reference/skp.md) :
-  Scott-Knott grouping of measurements
-- [`rptc()`](https://rootcoder007.github.io/crimlab/reference/rptc.md) :
-  Constant reporters of a reporting panel
-- [`rswp()`](https://rootcoder007.github.io/crimlab/reference/rswp.md)
-  [`rshl()`](https://rootcoder007.github.io/crimlab/reference/rswp.md) :
-  Rosenbaum sensitivity bounds for matched pairs
-- [`zgll()`](https://rootcoder007.github.io/crimlab/reference/zgll.md)
-  [`zgem()`](https://rootcoder007.github.io/crimlab/reference/zgll.md) :
-  Group-based trajectory model for counts
-- [`mvtll()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
-  [`mvtem()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
-  : Group-based multivariate trajectories
-- [`tfrp()`](https://rootcoder007.github.io/crimlab/reference/tfrp.md) :
-  Glass fragments recovered under transfer and persistence
-- [`lwss()`](https://rootcoder007.github.io/crimlab/reference/lwss.md) :
-  Lowess smoothing
-- [`chmb()`](https://rootcoder007.github.io/crimlab/reference/chmb.md) :
-  The Chumbley score for two tool-mark profiles
 - [`gstr()`](https://rootcoder007.github.io/crimlab/reference/gstr.md) :
   Local Getis-Ord Gi\* on a grid of counts
 - [`sptst()`](https://rootcoder007.github.io/crimlab/reference/sptst.md)
@@ -246,11 +223,12 @@ test.
 
 ## Risk tools and predictive policing
 
-Differences between groups with intervals, over time and place;
-calibration of an area ranking and a score’s spread across groups;
-individual fairness; bounds under label noise, Chouldechova’s identity
-and the resolution of a ranking; the Oaxaca-Blinder decomposition;
-simulated records with a known disparity.
+Fairness metrics of a binary risk tool by group; differences between
+groups with intervals, over time and place; calibration of an area
+ranking and a score’s spread across groups; individual fairness; bounds
+under label noise, Chouldechova’s identity and the resolution of a
+ranking; the Oaxaca-Blinder decomposition; simulated records with a
+known disparity.
 
 - [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
   : Differences between groups in a risk tool's decisions
@@ -274,6 +252,8 @@ simulated records with a known disparity.
   : Simulated records with a known disparity
 - [`nordet()`](https://rootcoder007.github.io/crimlab/reference/nordet.md)
   : Noisy-OR detection by patrols
+- [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md) :
+  Fairness metrics of a binary risk tool by group
 
 ## Checks
 
@@ -306,12 +286,18 @@ association.
 ## Police-reported crime
 
 Severity-weighted crime indices and composite indices of standardised
-counts.
+counts; Benford screens of reported figures and agencies that report the
+same count every month.
 
 - [`crsev()`](https://rootcoder007.github.io/crimlab/reference/crsev.md)
   : Severity-weighted crime index
 - [`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md)
   : Composite index of standardised counts
+- [`bdig()`](https://rootcoder007.github.io/crimlab/reference/bdig.md)
+  [`bnft()`](https://rootcoder007.github.io/crimlab/reference/bdig.md) :
+  Benford digit screens
+- [`rptc()`](https://rootcoder007.github.io/crimlab/reference/rptc.md) :
+  Constant reporters of a reporting panel
 
 ## Concentration
 
@@ -360,7 +346,8 @@ against a mandatory minimum.
 ## Life course and the justice pipeline
 
 Age-crime curves of a mixture of types, the cumulative risk of a first
-event by age, and lagged rates between stages.
+event by age, and lagged rates between stages; group-based trajectory
+models (zero-inflated Poisson and multivariate normal).
 
 - [`agemix()`](https://rootcoder007.github.io/crimlab/reference/agemix.md)
   : The age-crime curve of a mixture of offender types
@@ -368,6 +355,12 @@ event by age, and lagged rates between stages.
   : Cumulative risk of a first event by age
 - [`jpipe()`](https://rootcoder007.github.io/crimlab/reference/jpipe.md)
   : Rates between stages of the justice pipeline
+- [`zgll()`](https://rootcoder007.github.io/crimlab/reference/zgll.md)
+  [`zgem()`](https://rootcoder007.github.io/crimlab/reference/zgll.md) :
+  Group-based trajectory model for counts
+- [`mvtll()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
+  [`mvtem()`](https://rootcoder007.github.io/crimlab/reference/mvtll.md)
+  : Group-based multivariate trajectories
 
 ## Segregation and the Mandela Rules
 
@@ -423,7 +416,8 @@ cross-fitted estimators.
 
 Double machine learning by cross-fitting, with the learners above;
 augmented inverse probability weighting and targeted maximum likelihood
-from the same nuisances.
+from the same nuisances; Rosenbaum bounds on the sensitivity of a
+matched comparison.
 
 - [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md) :
   Double machine learning by cross-fitting
@@ -433,6 +427,9 @@ from the same nuisances.
   : Covariate balance and overlap
 - [`evlx()`](https://rootcoder007.github.io/crimlab/reference/evlx.md) :
   E-values: how strong an unmeasured confounder must be
+- [`rswp()`](https://rootcoder007.github.io/crimlab/reference/rswp.md)
+  [`rshl()`](https://rootcoder007.github.io/crimlab/reference/rswp.md) :
+  Rosenbaum sensitivity bounds for matched pairs
 
 ## Policy evaluation
 
@@ -457,7 +454,8 @@ adoption, synthetic controls and synthetic difference in differences.
 ## Time, contagion and operations
 
 Self-exciting processes, trends and change points in series, recurrence,
-hot-spot dynamics and patrol queues.
+hot-spot dynamics and patrol queues; aoristic weights of events known
+only within an interval.
 
 - [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md)
   : Hawkes process: self-exciting event times
@@ -490,6 +488,8 @@ hot-spot dynamics and patrol queues.
   : Multivariate Hawkes process: types that excite each other
 - [`sthwk()`](https://rootcoder007.github.io/crimlab/reference/sthwk.md)
   : Space-time Hawkes process
+- [`aorwt()`](https://rootcoder007.github.io/crimlab/reference/aorwt.md)
+  : Aoristic weights
 
 ## Deterrence
 

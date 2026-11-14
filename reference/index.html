@@ -78,7 +78,7 @@
       </dl></div><div class="section level2">
       <h2 id="forensics">Forensics<a class="anchor" aria-label="anchor" href="#forensics"></a></h2>
 
-      <div class="section-desc"><p>DNA match statistics, the weight and calibration of likelihood ratios, kinship, paternity, mixtures and database searches.</p></div>
+      <div class="section-desc"><p>DNA match statistics, the weight and calibration of likelihood ratios, kinship, paternity, mixtures and database searches; trace evidence by the two-level model, glass grouping and transfer, and tool marks (lowess profiles and the Chumbley score).</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -168,6 +168,41 @@
 
         </dt>
         <dd>Likelihood ratio of measured evidence</dd>
+
+        <dt>
+
+          <code><a href="tlvc.html">tlvc()</a></code> <code><a href="tlvc.html">tlvlr()</a></code>
+
+        </dt>
+        <dd>Two-level model for multivariate trace evidence</dd>
+
+        <dt>
+
+          <code><a href="skp.html">skp()</a></code>
+
+        </dt>
+        <dd>Scott-Knott grouping of measurements</dd>
+
+        <dt>
+
+          <code><a href="tfrp.html">tfrp()</a></code>
+
+        </dt>
+        <dd>Glass fragments recovered under transfer and persistence</dd>
+
+        <dt>
+
+          <code><a href="lwss.html">lwss()</a></code>
+
+        </dt>
+        <dd>Lowess smoothing</dd>
+
+        <dt>
+
+          <code><a href="chmb.html">chmb()</a></code>
+
+        </dt>
+        <dd>The Chumbley score for two tool-mark profiles</dd>
       </dl></div><div class="section level2">
       <h2 id="toxicology-and-taphonomy">Toxicology and taphonomy<a class="anchor" aria-label="anchor" href="#toxicology-and-taphonomy"></a></h2>
 
@@ -410,7 +445,7 @@
       </dl></div><div class="section level2">
       <h2 id="spatial">Spatial<a class="anchor" aria-label="anchor" href="#spatial"></a></h2>
 
-      <div class="section-desc"><p>Distances and projection, centrography, nearest neighbours and K functions, hot spots, space-time tests, journey to crime and the geographic profile of a series.</p></div>
+      <div class="section-desc"><p>Distances and projection, centrography, nearest neighbours and K functions, hot spots, space-time tests, journey to crime and the geographic profile of a series; the Gi* statistic on a grid and the point pattern test of two sets of counts.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -640,99 +675,6 @@
 
         </dt>
         <dd>Directional mean and circular variance</dd>
-      </dl></div><div class="section level2">
-      <h2 id="dossier-methods">Dossier methods<a class="anchor" aria-label="anchor" href="#dossier-methods"></a></h2>
-
-      <div class="section-desc"><p>Fairness of risk tools, trace evidence, aoristic time, Benford screens, glass grouping and transfer, constant reporters, sensitivity bounds, trajectory models, lowess, tool marks, grid Gi* and the point pattern test.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="fair.html">fair()</a></code>
-
-        </dt>
-        <dd>Fairness metrics of a binary risk tool by group</dd>
-
-        <dt>
-
-          <code><a href="tlvc.html">tlvc()</a></code> <code><a href="tlvc.html">tlvlr()</a></code>
-
-        </dt>
-        <dd>Two-level model for multivariate trace evidence</dd>
-
-        <dt>
-
-          <code><a href="aorwt.html">aorwt()</a></code>
-
-        </dt>
-        <dd>Aoristic weights</dd>
-
-        <dt>
-
-          <code><a href="bdig.html">bdig()</a></code> <code><a href="bdig.html">bnft()</a></code>
-
-        </dt>
-        <dd>Benford digit screens</dd>
-
-        <dt>
-
-          <code><a href="skp.html">skp()</a></code>
-
-        </dt>
-        <dd>Scott-Knott grouping of measurements</dd>
-
-        <dt>
-
-          <code><a href="rptc.html">rptc()</a></code>
-
-        </dt>
-        <dd>Constant reporters of a reporting panel</dd>
-
-        <dt>
-
-          <code><a href="rswp.html">rswp()</a></code> <code><a href="rswp.html">rshl()</a></code>
-
-        </dt>
-        <dd>Rosenbaum sensitivity bounds for matched pairs</dd>
-
-        <dt>
-
-          <code><a href="zgll.html">zgll()</a></code> <code><a href="zgll.html">zgem()</a></code>
-
-        </dt>
-        <dd>Group-based trajectory model for counts</dd>
-
-        <dt>
-
-          <code><a href="mvtll.html">mvtll()</a></code> <code><a href="mvtll.html">mvtem()</a></code>
-
-        </dt>
-        <dd>Group-based multivariate trajectories</dd>
-
-        <dt>
-
-          <code><a href="tfrp.html">tfrp()</a></code>
-
-        </dt>
-        <dd>Glass fragments recovered under transfer and persistence</dd>
-
-        <dt>
-
-          <code><a href="lwss.html">lwss()</a></code>
-
-        </dt>
-        <dd>Lowess smoothing</dd>
-
-        <dt>
-
-          <code><a href="chmb.html">chmb()</a></code>
-
-        </dt>
-        <dd>The Chumbley score for two tool-mark profiles</dd>
 
         <dt>
 
@@ -750,7 +692,7 @@
       </dl></div><div class="section level2">
       <h2 id="risk-tools-and-predictive-policing">Risk tools and predictive policing<a class="anchor" aria-label="anchor" href="#risk-tools-and-predictive-policing"></a></h2>
 
-      <div class="section-desc"><p>Differences between groups with intervals, over time and place; calibration of an area ranking and a score’s spread across groups; individual fairness; bounds under label noise, Chouldechova’s identity and the resolution of a ranking; the Oaxaca-Blinder decomposition; simulated records with a known disparity.</p></div>
+      <div class="section-desc"><p>Fairness metrics of a binary risk tool by group; differences between groups with intervals, over time and place; calibration of an area ranking and a score’s spread across groups; individual fairness; bounds under label noise, Chouldechova’s identity and the resolution of a ranking; the Oaxaca-Blinder decomposition; simulated records with a known disparity.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -833,6 +775,13 @@
 
         </dt>
         <dd>Noisy-OR detection by patrols</dd>
+
+        <dt>
+
+          <code><a href="fair.html">fair()</a></code>
+
+        </dt>
+        <dd>Fairness metrics of a binary risk tool by group</dd>
       </dl></div><div class="section level2">
       <h2 id="checks">Checks<a class="anchor" aria-label="anchor" href="#checks"></a></h2>
 
@@ -903,7 +852,7 @@
       </dl></div><div class="section level2">
       <h2 id="police-reported-crime">Police-reported crime<a class="anchor" aria-label="anchor" href="#police-reported-crime"></a></h2>
 
-      <div class="section-desc"><p>Severity-weighted crime indices and composite indices of standardised counts.</p></div>
+      <div class="section-desc"><p>Severity-weighted crime indices and composite indices of standardised counts; Benford screens of reported figures and agencies that report the same count every month.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -923,6 +872,20 @@
 
         </dt>
         <dd>Composite index of standardised counts</dd>
+
+        <dt>
+
+          <code><a href="bdig.html">bdig()</a></code> <code><a href="bdig.html">bnft()</a></code>
+
+        </dt>
+        <dd>Benford digit screens</dd>
+
+        <dt>
+
+          <code><a href="rptc.html">rptc()</a></code>
+
+        </dt>
+        <dd>Constant reporters of a reporting panel</dd>
       </dl></div><div class="section level2">
       <h2 id="concentration">Concentration<a class="anchor" aria-label="anchor" href="#concentration"></a></h2>
 
@@ -1032,7 +995,7 @@
       </dl></div><div class="section level2">
       <h2 id="life-course-and-the-justice-pipeline">Life course and the justice pipeline<a class="anchor" aria-label="anchor" href="#life-course-and-the-justice-pipeline"></a></h2>
 
-      <div class="section-desc"><p>Age-crime curves of a mixture of types, the cumulative risk of a first event by age, and lagged rates between stages.</p></div>
+      <div class="section-desc"><p>Age-crime curves of a mixture of types, the cumulative risk of a first event by age, and lagged rates between stages; group-based trajectory models (zero-inflated Poisson and multivariate normal).</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -1059,6 +1022,20 @@
 
         </dt>
         <dd>Rates between stages of the justice pipeline</dd>
+
+        <dt>
+
+          <code><a href="zgll.html">zgll()</a></code> <code><a href="zgll.html">zgem()</a></code>
+
+        </dt>
+        <dd>Group-based trajectory model for counts</dd>
+
+        <dt>
+
+          <code><a href="mvtll.html">mvtll()</a></code> <code><a href="mvtll.html">mvtem()</a></code>
+
+        </dt>
+        <dd>Group-based multivariate trajectories</dd>
       </dl></div><div class="section level2">
       <h2 id="segregation-and-the-mandela-rules">Segregation and the Mandela Rules<a class="anchor" aria-label="anchor" href="#segregation-and-the-mandela-rules"></a></h2>
 
@@ -1182,7 +1159,7 @@
       </dl></div><div class="section level2">
       <h2 id="causal-estimates">Causal estimates<a class="anchor" aria-label="anchor" href="#causal-estimates"></a></h2>
 
-      <div class="section-desc"><p>Double machine learning by cross-fitting, with the learners above; augmented inverse probability weighting and targeted maximum likelihood from the same nuisances.</p></div>
+      <div class="section-desc"><p>Double machine learning by cross-fitting, with the learners above; augmented inverse probability weighting and targeted maximum likelihood from the same nuisances; Rosenbaum bounds on the sensitivity of a matched comparison.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -1216,6 +1193,13 @@
 
         </dt>
         <dd>E-values: how strong an unmeasured confounder must be</dd>
+
+        <dt>
+
+          <code><a href="rswp.html">rswp()</a></code> <code><a href="rswp.html">rshl()</a></code>
+
+        </dt>
+        <dd>Rosenbaum sensitivity bounds for matched pairs</dd>
       </dl></div><div class="section level2">
       <h2 id="policy-evaluation">Policy evaluation<a class="anchor" aria-label="anchor" href="#policy-evaluation"></a></h2>
 
@@ -1277,7 +1261,7 @@
       </dl></div><div class="section level2">
       <h2 id="time-contagion-and-operations">Time, contagion and operations<a class="anchor" aria-label="anchor" href="#time-contagion-and-operations"></a></h2>
 
-      <div class="section-desc"><p>Self-exciting processes, trends and change points in series, recurrence, hot-spot dynamics and patrol queues.</p></div>
+      <div class="section-desc"><p>Self-exciting processes, trends and change points in series, recurrence, hot-spot dynamics and patrol queues; aoristic weights of events known only within an interval.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -1388,6 +1372,13 @@
 
         </dt>
         <dd>Space-time Hawkes process</dd>
+
+        <dt>
+
+          <code><a href="aorwt.html">aorwt()</a></code>
+
+        </dt>
+        <dd>Aoristic weights</dd>
       </dl></div><div class="section level2">
       <h2 id="deterrence">Deterrence<a class="anchor" aria-label="anchor" href="#deterrence"></a></h2>
 

@@ -15,7 +15,10 @@ Before a pull request:
   Values from other packages are stored with the tests, never computed
   while they run: a script in `dev/ref` (one per test file) computes
   them and writes them, with the packages’ versions, to
-  `tests/testthat/ref`.
+  `tests/testthat/ref`. `Rscript dev/ref/all.R DIR` runs every script
+  into `DIR`, and `Rscript dev/ref/cmp.R tests/testthat/ref DIR`
+  compares the result with the stored values at the tolerances in
+  `tests/testthat/ref/tol.csv` (a value a test reads needs a row there).
 - `lintr::lint_package()` must report no lints, and
   `R CMD check --as-cran` must pass with no errors or warnings.
 - Documentation is written with roxygen2; regenerate `man/` and

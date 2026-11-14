@@ -38,7 +38,7 @@
 <p>A bug report is most useful with a small reproducible example: the call, what it returned, and what you expected.</p>
 <p>Before a pull request:</p>
 <ul><li>Computation belongs in the C++ core (<code>src/core.cpp</code>, declared in <code>src/crimlab.h</code>); the R functions check arguments and call it.</li>
-<li>Every change comes with tests in <code>tests/testthat</code>. Coverage of R and C++ must not fall below the floor in <code>.github/workflows/coverage.yml</code>. Values from other packages are stored with the tests, never computed while they run: a script in <code>dev/ref</code> (one per test file) computes them and writes them, with the packages’ versions, to <code>tests/testthat/ref</code>.</li>
+<li>Every change comes with tests in <code>tests/testthat</code>. Coverage of R and C++ must not fall below the floor in <code>.github/workflows/coverage.yml</code>. Values from other packages are stored with the tests, never computed while they run: a script in <code>dev/ref</code> (one per test file) computes them and writes them, with the packages’ versions, to <code>tests/testthat/ref</code>. <code>Rscript dev/ref/all.R DIR</code> runs every script into <code>DIR</code>, and <code>Rscript dev/ref/cmp.R tests/testthat/ref DIR</code> compares the result with the stored values at the tolerances in <code>tests/testthat/ref/tol.csv</code> (a value a test reads needs a row there).</li>
 <li>
 <code>lintr::lint_package()</code> must report no lints, and <code>R CMD check --as-cran</code> must pass with no errors or warnings.</li>
 <li>Documentation is written with roxygen2; regenerate <code>man/</code> and <code>NAMESPACE</code> with <code>roxygen2::roxygenise()</code>.</li>
