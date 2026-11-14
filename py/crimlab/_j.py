@@ -3454,3 +3454,18 @@ def rptvic(id: Any, t: Any = None, pop: Any = None, brk: Any = None) -> Any:
     ['tab', 'stat', 'gap', 'lag']
     """
     return jcall("rptvic", id=id, t=t, pop=pop, brk=brk)
+
+
+def wdqx(a: Any, b: Any, c: Any) -> Any:
+    """Weighted displacement quotient: did crime move next door?
+
+    The arguments and the result are those of R's ``wdqx()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = wdqx(a=[100, 60], b=[50, 40], c=[200, 180])
+    >>> list(r)
+    ['sm', 'bdm', 'wdq', 'ea', 'eb', 'net']
+    """
+    return jcall("wdqx", a=a, b=b, c=c)

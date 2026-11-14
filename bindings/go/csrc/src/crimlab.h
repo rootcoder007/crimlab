@@ -3137,6 +3137,13 @@ int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, do
  * share and the cumulative share). */
 int clab_rptvic(const int *id, const double *t, int n, int nid, double pop, const double *brk, int nb,
                 double *tab, int *kmax, double *st, double *gap, double *lag);
+/* The weighted displacement quotient (wdq.cpp; Bowers and Johnson 2003,
+ * doi:10.1023/A:1024909009240). a, b, c: the counts before and after
+ * (from 0; c's positive) of the treated area, the buffer and the control.
+ * Out (6): sm = a1 / c1 - a0 / c0, bdm = b1 / c1 - b0 / c0, bdm / sm (NaN
+ * when sm is 0), the counts a0 c1 / c0 and b0 c1 / c0 expected after, and
+ * the crimes prevented in both, (ea - a1) + (eb - b1). */
+int clab_wdqx(const double *a, const double *b, const double *c, double *out);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

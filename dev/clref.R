@@ -1032,6 +1032,11 @@ ok("rptvic", id = c(1, 2, 1, 3, 1, 2), t = c(1, 5, 4, 9, 20, 6), pop = 10, brk =
 ok("rptvic", id = c("a", "b", "a", "c", "c", "c", "d"))
 ok("rptvic", id = c("a", "b", "a", "b"), t = c(3, 1, 10, 2))
 bad("rptvic", id = c("a", "b"), pop = 1)
+
+# The weighted displacement quotient
+ok("wdqx", a = c(100, 60), b = c(50, 40), c = c(200, 180))
+ok("wdqx", a = c(10, 10), b = c(5, 9), c = c(10, 10))
+bad("wdqx", a = c(1, 2), b = c(1, 2), c = c(0, 2))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)
