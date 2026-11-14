@@ -1556,6 +1556,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jtm.inc"
 #include "jdid.inc"
 #include "jsvy.inc"
+#include "jwcb.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1736,6 +1737,8 @@ const Ent ents[] = {
     {"synthc", "y unit time first plac?", synthc},
     {"sdidx", "y unit time first reps? seed? level?", sdidx},
     {"svymx", "y w? strata? psu? fpc? stat? den? by? ref? level?", svymx},
+    {"wcbx", "y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?", wcbx},
+    {"wystep", "obs null", wystep},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
