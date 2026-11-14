@@ -185,23 +185,29 @@ test_that("results do not change and no state is left after an interrupt", {
   expect_identical(mantst(p, t = t, nsim = 99, seed = 3), a)
 })
 
-# The child gets SIGINT from a shell started beside it once it is ready
-# (its pid written); it runs in the foreground of its shell, since an
-# asynchronous command starts with SIGINT ignored. Without the interrupt
-# the call would run for minutes, so the child ends any top-level call at
-# 60 seconds (setTimeLimit(); the long call then returns the message),
-# the shell waits for the pid at most 60 seconds, and the exit handler
-# kills the child by its pid if the test stops while the child runs: an
-# interrupted or failed test leaves no R process behind, and one whose
-# parent is killed outright ends within the minute. Where SIGINT is
-# ignored from the start (some nohup or background chains), the
-# interrupt cannot arrive and the test fails on the time limit.
+# The child gets SIGINT from a shell started beside it once it is inside
+# the long call's handler (it writes its pid there, after the handler is
+# set, so an early signal is still caught); it runs in the foreground of
+# its shell, since an asynchronous command starts with SIGINT ignored.
+# The shell touches a file just before it sends the signal, and the child
+# records when its handler ran: the stop time is measured from the signal,
+# not from the start, so a loaded machine that starts the child slowly
+# does not fail the test. Without the interrupt the call would run for
+# minutes, so the child ends any top-level call at 300 seconds
+# (setTimeLimit(); the long call then returns the message), the shell
+# waits for the pid at most 300 seconds, and the exit handler kills the
+# child by its pid if the test stops while the child runs: an interrupted
+# or failed test leaves no R process behind, and one whose parent is
+# killed outright ends within minutes. Where SIGINT is ignored from the
+# start (some nohup or background chains), the interrupt cannot arrive and
+# the test fails on the time limit.
 test_that("Ctrl-C stops a long call in a running R session", {
   skip_on_cran()
   skip_on_os("windows")
   d <- tempfile()
   dir.create(d)
   pid <- file.path(d, "pid")
+  sent <- file.path(d, "sent")
   out <- file.path(d, "out.rds")
   on.exit({
     if (file.exists(pid) && !file.exists(out)) {
@@ -212,39 +218,43 @@ test_that("Ctrl-C stops a long call in a running R session", {
   src <- file.path(d, "run.R")
   writeLines(
     c(
-      "setTimeLimit(elapsed = 60)",
+      "setTimeLimit(elapsed = 300)",
       sprintf(".libPaths(%s)", deparse1(.libPaths(), collapse = "")),
       "library(crimlab)",
       "set.seed(1)",
       "p <- cbind(x = runif(300), y = runif(300))",
-      sprintf("writeLines(as.character(Sys.getpid()), %s)", deparse(pid)),
-      "t0 <- Sys.time()",
+      "te <- NA",
       "r <- tryCatch({",
+      sprintf("  writeLines(as.character(Sys.getpid()), %s)", deparse(pid)),
       "  mantst(p, t = p[, 1], nsim = 1e6, seed = 1)",
       "  \"done\"",
-      "}, interrupt = function(i) \"stopped\",",
-      "error = function(e) conditionMessage(e))",
-      "s <- as.numeric(Sys.time() - t0, units = \"secs\")",
+      "}, interrupt = function(i) {",
+      "  te <<- Sys.time()",
+      "  \"stopped\"",
+      "}, error = function(e) conditionMessage(e))",
       "a <- mantst(p, t = p[, 1], nsim = 99, seed = 1)",
-      sprintf("saveRDS(list(r = r, s = s, a = a), %s)", deparse(out))
+      sprintf("saveRDS(list(r = r, te = te, a = a), %s)", deparse(out))
     ),
     src
   )
   rs <- file.path(R.home("bin"), "Rscript")
   sh <- sprintf(
     paste(
-      "(i=0; while [ ! -s %s ] && [ $i -lt 60 ]; do sleep 1; i=$((i+1));",
-      "done; sleep 2; kill -INT $$) &",
+      "(i=0; while [ ! -s %s ] && [ $i -lt 300 ]; do sleep 1; i=$((i+1));",
+      "done; sleep 1; : > %s; kill -INT $$) &",
       "exec %s --vanilla %s"
     ),
     shQuote(pid),
+    shQuote(sent),
     shQuote(rs),
     shQuote(src)
   )
   system2("sh", c("-c", shQuote(sh)), stdout = FALSE, stderr = FALSE)
+  expect_true(file.exists(out))
   r <- readRDS(out)
   expect_identical(r$r, "stopped")
-  expect_lt(r$s, 30)
+  # seconds from the signal to the handler
+  expect_lt(as.numeric(difftime(r$te, file.mtime(sent), units = "secs")), 30)
   set.seed(1)
   p <- cbind(x = runif(300), y = runif(300))
   expect_identical(r$a, mantst(p, t = p[, 1], nsim = 99, seed = 1))
