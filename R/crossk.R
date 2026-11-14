@@ -34,7 +34,7 @@
 #'   `theo` (`pi r^2`); `seg`, `NULL` or a named vector of `t`, `p` (`NaN`
 #'   without relabellings) and `nsim`; `i` and `j`, the types' labels.
 #' @references Ripley, B. D. (1977). Modelling spatial patterns. *Journal of
-#'   the Royal Statistical Society, Series B*, 39(2), 172-212.
+#'   the Royal Statistical Society, Series B*, 39(2), 172-192.
 #'   \doi{10.1111/j.2517-6161.1977.tb01615.x}
 #'
 #'   Lotwick, H. W. and Silverman, B. W. (1982). Methods for analysing
@@ -95,6 +95,7 @@ print.crossk <- function(x, ...) {
 #' @references Greig-Smith, P. (1952). The use of random and contiguous
 #'   quadrats in the study of the structure of plant communities. *Annals
 #'   of Botany*, 16(2), 293-316.
+#'   \doi{10.1093/oxfordjournals.aob.a083317}
 #' @examples
 #' set.seed(1)
 #' p <- cbind(x = runif(100, 0, 2), y = runif(100))
@@ -181,6 +182,7 @@ morsta <- function(counts, crit = 0.05) {
 #'
 #'   Morrill, R. L. (1991). On the measure of geographic segregation.
 #'   *Geography Research Forum*, 11, 25-36.
+#'   \doi{10.64166/p1b4ca43}
 #' @examples
 #' x <- cbind(a = c(90, 80, 10, 5, 50), b = c(10, 20, 85, 95, 50))
 #' dissix(x)

@@ -38,7 +38,8 @@ jtcal(trips, t = seq(0, 10, 0.5), h = 0.5)
 }
 \references{
 Silverman, B. W. (1986). \emph{Density Estimation for Statistics
-and Data Analysis}. Chapman and Hall. \doi{10.1201/9781315140919}
+and Data Analysis}. Chapman and Hall; reissued 2018 by Routledge.
+\doi{10.1201/9781315140919}
 
 Levine, N. (2009). Introduction to the special issue on Bayesian
 journey-to-crime modelling. \emph{Journal of Investigative Psychology and

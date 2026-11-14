@@ -38,4 +38,5 @@ detrsp(x, ben = 3 * sqrt(x) - (x \%\% 3 == 0), sanc = x^1.5,
 \references{
 Becker, G. S. (1968). Crime and punishment: an economic approach.
 \emph{Journal of Political Economy}, 76(2), 169-217.
+\doi{10.1086/259394}
 }

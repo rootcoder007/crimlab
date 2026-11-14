@@ -68,4 +68,5 @@ rtmfit(y, list(bars = bars), cell = cell, rad = 1.5, kind = "dens")$coef
 Caplan, J. M., Kennedy, L. W. and Miller, J. (2011). Risk terrain
 modeling: brokering criminological theory and GIS methods for crime
 forecasting. \emph{Justice Quarterly}, 28(2), 360-381.
+\doi{10.1080/07418825.2010.486037}
 }

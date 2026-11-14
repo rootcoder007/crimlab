@@ -50,4 +50,5 @@ dtrid(p, s, c, y, log = TRUE)$disc
 \references{
 Nagin, D. S. (2013). Deterrence in the twenty-first century. \emph{Crime
 and Justice}, 42(1), 199-263.
+\doi{10.1086/670398}
 }

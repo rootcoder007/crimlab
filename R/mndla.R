@@ -55,6 +55,7 @@
 #'   United Nations (2015). *United Nations Standard Minimum Rules for the
 #'   Treatment of Prisoners (the Nelson Mandela Rules)*. General Assembly
 #'   resolution 70/175.
+#'   <https://docs.un.org/A/RES/70/175>
 #'
 #'   Sprott, J. B. and Doob, A. N. (2021). *Solitary Confinement, Torture,
 #'   and Canada's Structured Intervention Units*. University of Toronto,

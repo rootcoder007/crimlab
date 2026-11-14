@@ -23,7 +23,9 @@
 #'   `log10lr`, the same with the sign changed, the weight of a single-source
 #'   match against an unrelated alternative.
 #' @references Balding, D. J. and Nichols, R. A. (1994). DNA profile match
-#'   probability calculation. *Forensic Science International*, 64(2-3),
+#'   probability calculation: how to allow for population stratification,
+#'   relatedness, database selection and single bands. *Forensic Science
+#'   International*, 64(2-3),
 #'   125-140. \doi{10.1016/0379-0738(94)90222-4}
 #' @examples
 #' gtmp(p = c(D3 = 0.1, vWA = 0.2), q = c(0.3, NA), hom = c(FALSE, TRUE),

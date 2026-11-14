@@ -81,8 +81,10 @@ hdbang(g, v = v)[15]
 Hansen, K. M. (1991). Head-banging: robust smoothing in the
 plane. \emph{IEEE Transactions on Geoscience and Remote Sensing}, 29(3),
 369-378.
+\doi{10.1109/36.79427}
 
 Mungiole, M., Pickle, L. W. and Simonson, K. H. (1999). Application of
 a weighted head-banging algorithm to mortality data maps. \emph{Statistics
 in Medicine}, 18(23), 3201-3209.
+\doi{10.1002/(SICI)1097-0258(19991215)18:23<3201::AID-SIM310>3.0.CO;2-U}
 }

@@ -38,6 +38,7 @@
 #'   *Measuring Crime in Canada: Introducing the Crime Severity Index and
 #'   Improvements to the Uniform Crime Reporting Survey*. Statistics
 #'   Canada, catalogue 85-004-X.
+#'   <https://www150.statcan.gc.ca/n1/en/catalogue/85-004-X2009001>
 #' @examples
 #' d <- data.frame(city = rep(c("A", "B"), each = 2),
 #'                 off = rep(c("theft", "robbery"), 2),

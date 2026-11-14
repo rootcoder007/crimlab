@@ -34,3 +34,8 @@ choose victims at random; the rate per pair does not. See
 pop <- c(a = 800, b = 200)
 dyadrt(count = outer(pop, pop) / 1000, pop = pop)
 }
+\references{
+O'Brien, R. M. (1987). The interracial nature of violent crimes: a
+reexamination. \emph{American Journal of Sociology}, 92(4), 817-835.
+\doi{10.1086/228584}
+}

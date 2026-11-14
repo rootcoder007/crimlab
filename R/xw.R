@@ -38,7 +38,7 @@ bndxw <- function(from, to, x, unit, w = NULL) {
 
 #' Synthetic exposure of areas from a survey
 #'
-#' A small-area synthetic estimate (Gonzalez 1973): the prevalence of a
+#' A small-area synthetic estimate (Gonzalez and Hoza 1978): the prevalence of a
 #' trait (serious mental illness, say, for the benchmark of a disparity in
 #' police use of force) is modelled on survey microdata by logistic
 #' regression ([lgtreg()]); applied to each area's covariates it gives the
@@ -58,9 +58,10 @@ bndxw <- function(from, to, x, unit, w = NULL) {
 #'   a data frame with one row per area (`rate`, `pop`, `expo`); `total`,
 #'   the summed exposure; `dev`, the fit's deviance.
 #' @references
-#'   Gonzalez, M. E. (1973). Use and evaluation of synthetic estimates.
-#'   *Proceedings of the Social Statistics Section, American Statistical
-#'   Association*, 33-36.
+#'   Gonzalez, M. E. and Hoza, C. (1978). Small-area estimation with
+#'   application to unemployment and housing estimates. *Journal of the
+#'   American Statistical Association*, 73(361), 7-15.
+#'   \doi{10.1080/01621459.1978.10479991}
 #' @examples
 #' set.seed(1)
 #' s <- data.frame(age = runif(400, 18, 80), male = rbinom(400, 1, 0.5))

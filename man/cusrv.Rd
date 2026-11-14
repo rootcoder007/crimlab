@@ -59,4 +59,5 @@ Page, E. S. (1954). Continuous inspection schemes. \emph{Biometrika},
 Rossi, G., Lampugnani, L. and Marchi, M. (1999). An approximate CUSUM
 procedure for surveillance of health events. \emph{Statistics in Medicine},
 18(16), 2111-2122.
+\doi{10.1002/(SICI)1097-0258(19990830)18:16<2111::AID-SIM171>3.0.CO;2-Q}
 }

@@ -110,8 +110,10 @@ cbatt(y, d, x, est = "ebal", tgt = "att", reps = 99, seed = 1)$res
 cbatt(y, d, x, est = "psm", tgt = "att", calip = 0.2)$res
 }
 \references{
-Hainmueller, J. (2012). Entropy balancing for causal effects.
-\emph{Political Analysis}, 20(1), 25-46. \doi{10.1093/pan/mpr025}
+Hainmueller, J. (2012). Entropy balancing for causal effects: a
+multivariate reweighting method to produce balanced samples in
+observational studies. \emph{Political Analysis}, 20(1), 25-46.
+\doi{10.1093/pan/mpr025}
 
 Imbens, G. W. and Rubin, D. B. (2015). \emph{Causal Inference for
 Statistics, Social, and Biomedical Sciences}. Cambridge University

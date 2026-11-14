@@ -19,6 +19,7 @@
 #' @references
 #'   Becker, G. S. (1968). Crime and punishment: an economic approach.
 #'   *Journal of Political Economy*, 76(2), 169-217.
+#'   \doi{10.1086/259394}
 #' @examples
 #' x <- 0:10
 #' detrsp(x, ben = 3 * sqrt(x) - (x %% 3 == 0), sanc = x^1.5,
@@ -56,6 +57,7 @@ detrsp <- function(x, ben, sanc, p) {
 #' @references
 #'   Nagin, D. S. (2013). Deterrence in the twenty-first century. *Crime
 #'   and Justice*, 42(1), 199-263.
+#'   \doi{10.1086/670398}
 #' @examples
 #' # certainty varied at fixed severity and celerity
 #' dtrid(p = c(0.1, 0.3, 0.5), s = c(2, 2, 2), c = c(30, 30, 30))
@@ -92,6 +94,7 @@ dtrid <- function(p, s, c, y = NULL, log = FALSE, rho = NULL) {
 #' @references
 #'   D'Orsogna, M. R. and Perc, M. (2015). Statistical physics of crime: a
 #'   review. *Physics of Life Reviews*, 12, 1-21.
+#'   \doi{10.1016/j.plrev.2014.11.001}
 #' @examples
 #' g <- inspg(1, c(0.5, 0.3, 0.2), steps = 200)
 #' g$drift
@@ -125,6 +128,7 @@ inspg <- function(a, x, steps = 1000, dt = 0.01) {
 #'   Helbing, D., Szolnoki, A., Perc, M. and Szabo, G. (2010). Punish, but
 #'   not too hard: how costly punishment spreads in the spatial public goods
 #'   game. *New Journal of Physics*, 12, 083005.
+#'   \doi{10.1088/1367-2630/12/8/083005}
 #' @examples
 #' ph <- insphs(seq(0.1, 1.8, by = 0.3), seq(0.1, 1.1, by = 0.25),
 #'              steps = 200)
@@ -157,6 +161,7 @@ insphs <- function(temp = seq(0.05, 1.8, length.out = 20),
 #' @references
 #'   Hernan, M. A. and Robins, J. M. (2020). *Causal Inference: What If*.
 #'   Chapman and Hall/CRC.
+#'   <https://miguelhernan.org/whatifbook>
 #' @examples
 #' colarr(a = 0.3, e = 0.2, bg = c(0.5, 0.1, 0.01))
 #' @export

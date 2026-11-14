@@ -260,7 +260,7 @@ int clab_hvdist(const double *lon1, const double *lat1, const double *lon2,
 int clab_eqproj(const double *lon, const double *lat, int n, double lon0,
                 double lat0, double r, double *x, double *y);
 
-/* Centrographic summary (Bachi 1957; Neft 1962). x, y: n >= 1 points; w:
+/* Centrographic summary (Bachi 1959; Neft 1966). x, y: n >= 1 points; w:
  * NULL or n finite non-negative weights with a positive sum W (frequency
  * weights); k in {0, 1, 2}: the dispersions divide by W - k, which must be
  * positive. k = 1 makes sx^2, sy^2 and sdd^2 unbiased for the variances

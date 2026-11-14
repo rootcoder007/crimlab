@@ -34,4 +34,5 @@ colarr(a = 0.3, e = 0.2, bg = c(0.5, 0.1, 0.01))
 \references{
 Hernan, M. A. and Robins, J. M. (2020). \emph{Causal Inference: What If}.
 Chapman and Hall/CRC.
+\url{https://miguelhernan.org/whatifbook}
 }

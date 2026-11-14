@@ -48,4 +48,5 @@ round(ph$crime, 2)
 Helbing, D., Szolnoki, A., Perc, M. and Szabo, G. (2010). Punish, but
 not too hard: how costly punishment spreads in the spatial public goods
 game. \emph{New Journal of Physics}, 12, 083005.
+\doi{10.1088/1367-2630/12/8/083005}
 }

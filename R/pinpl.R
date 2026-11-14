@@ -91,9 +91,9 @@ print.pinpl <- function(x, ...) {
 #'   (every target in a pair, in sorted order); `map`, a data frame of
 #'   `from`, `to` (its main target) and `share`; `exact`; `lost`; and
 #'   `conc`, a named vector: `gini` and `top<k>`.
-#' @references Goodchild, M. F. and Lam, N. S.-N. (1980). Areal
-#'   interpolation: a variant of the traditional spatial problem.
-#'   *Geo-Processing*, 1, 297-312.
+#' @references Lam, N. S.-N. (1983). Spatial interpolation methods: a
+#'   review. *The American Cartographer*, 10(2), 129-150.
+#'   \doi{10.1559/152304083783914958}
 #' @examples
 #' # four old units onto three new ones; unit d is split 70/30 by area
 #' arwt(c(a = 120, b = 40, c = 60, d = 100),

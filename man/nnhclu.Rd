@@ -102,4 +102,5 @@ Johnson, S. C. (1967). Hierarchical clustering schemes.
 Eck, J. E., Chainey, S., Cameron, J. G., Leitner, M. and Wilson, R. E.
 (2005). \emph{Mapping Crime: Understanding Hot Spots}. National Institute
 of Justice, NCJ 209393.
+\url{https://www.ojp.gov/pdffiles1/nij/209393.pdf}
 }

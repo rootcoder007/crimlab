@@ -37,4 +37,5 @@ rptc(unit = c("a", "a", "b", "b", "b"), year = c(2020, 2021, 2020, 2021,
 \references{
 Maltz, M. D. (1999). \emph{Bridging Gaps in Police Crime Data}.
 Bureau of Justice Statistics, NCJ 176365.
+\url{https://bjs.ojp.gov/content/pub/pdf/bgpcd.pdf}
 }

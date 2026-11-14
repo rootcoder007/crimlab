@@ -35,7 +35,7 @@ between and 0 beyond, \code{par = delta} (as \code{\link[=jtcal]{jtcal()}} tabul
 jtdecay(c(0, 0.5, 1, 2, 5), type = "trunc", par = c(1, 0.5, 0.8))
 }
 \references{
-Brantingham, P. J. and Brantingham, P. L. (1981).
+Brantingham, P. J. and Brantingham, P. L. (eds.) (1981).
 \emph{Environmental Criminology}. Sage.
 
 Levine, N. (2009). Introduction to the special issue on Bayesian

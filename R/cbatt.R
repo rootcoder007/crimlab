@@ -64,8 +64,10 @@
 #'   `NULL`); `match` (`"psm"`: the rows of each `focal` unit and its
 #'   `match`; else `NULL`); `est`; `tgt`; and `level`.
 #' @references
-#'   Hainmueller, J. (2012). Entropy balancing for causal effects.
-#'   *Political Analysis*, 20(1), 25-46. \doi{10.1093/pan/mpr025}
+#'   Hainmueller, J. (2012). Entropy balancing for causal effects: a
+#'   multivariate reweighting method to produce balanced samples in
+#'   observational studies. *Political Analysis*, 20(1), 25-46.
+#'   \doi{10.1093/pan/mpr025}
 #'
 #'   Imbens, G. W. and Rubin, D. B. (2015). *Causal Inference for
 #'   Statistics, Social, and Biomedical Sciences*. Cambridge University

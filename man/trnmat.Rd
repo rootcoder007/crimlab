@@ -37,3 +37,9 @@ r <- trnmat(c("N", "N", "E", "N", "W", "W", "E", "E"),
 r$prob
 r$pi
 }
+\references{
+Kemeny, J. G. and Snell, J. L. (1960). \emph{Finite Markov Chains}. Van
+Nostrand.
+
+Theil, H. (1967). \emph{Economics and Information Theory}. North-Holland.
+}

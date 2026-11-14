@@ -50,4 +50,5 @@ segregation. \emph{Social Forces}, 67(2), 281-315. \doi{10.2307/2579183}
 
 Morrill, R. L. (1991). On the measure of geographic segregation.
 \emph{Geography Research Forum}, 11, 25-36.
+\doi{10.64166/p1b4ca43}
 }

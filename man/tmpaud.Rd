@@ -64,3 +64,8 @@ cty <- sample(c("north", "south"), n, TRUE)
 p <- rbinom(n, 1, ifelse(g == "a", 0.4, ifelse(cty == "north", 0.3, 0.2)))
 tmpaud(p, g, per, cty)$cities
 }
+\references{
+Barman, P. K. and Barman, P. K. (2026). Spatial disparities in
+simulated patrol detection: a reproducible generative-model audit
+across Baltimore and Chicago. \doi{10.48550/arXiv.2603.18987}
+}

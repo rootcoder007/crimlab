@@ -34,5 +34,7 @@ preslr(c(1.9, 2.3, 2.1), m1 = 2, s1 = 0.3, m2 = 1, s2 = 0.4)
 }
 \references{
 ENFSI (2015). \emph{ENFSI Guideline for Evaluative Reporting in Forensic
-Science}. European Network of Forensic Science Institutes.
+Science}, approved version 3.0, 8 March 2015. European Network of
+Forensic Science Institutes.
+\url{https://enfsi.eu/wp-content/uploads/2016/09/m1_guideline.pdf}
 }

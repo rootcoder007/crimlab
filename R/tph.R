@@ -19,11 +19,12 @@
 #'   (`"clr"`), or `d - 1` columns `ilr1`, `ilr2`, ... (`"ilr"`).
 #' @references
 #'   Aitchison, J. (1986). *The Statistical Analysis of Compositional
-#'   Data*. Chapman and Hall.
+#'   Data*. Chapman and Hall. \doi{10.1007/978-94-009-4109-0}
 #'
 #'   Egozcue, J. J., Pawlowsky-Glahn, V., Mateu-Figueras, G. and
 #'   Barcelo-Vidal, C. (2003). Isometric logratio transformations for
 #'   compositional data analysis. *Mathematical Geology*, 35(3), 279-300.
+#'   \doi{10.1023/A:1023818214614}
 #' @examples
 #' x <- rbind(c(Ca = 60, P = 25, Fe = 10, Zn = 5),
 #'            c(Ca = 80, P = 12, Fe = 6, Zn = 2))
@@ -55,7 +56,9 @@ clrilr <- function(x, type = "clr", ps = 1e-6) {
 #'   log10, and `verbal`, the band and the hypothesis it favours.
 #' @references
 #'   ENFSI (2015). *ENFSI Guideline for Evaluative Reporting in Forensic
-#'   Science*. European Network of Forensic Science Institutes.
+#'   Science*, approved version 3.0, 8 March 2015. European Network of
+#'   Forensic Science Institutes.
+#'   <https://enfsi.eu/wp-content/uploads/2016/09/m1_guideline.pdf>
 #' @examples
 #' preslr(c(1.9, 2.3, 2.1), m1 = 2, s1 = 0.3, m2 = 1, s2 = 0.4)
 #' @export
@@ -140,6 +143,7 @@ tpdmc <- function(pres = 0, decay = 0.5, mum = 0.5,
 #' @references
 #'   Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A.
 #'   and Rubin, D. B. (2013). *Bayesian Data Analysis*, 3rd ed. CRC Press.
+#'   \doi{10.1201/b16018}
 #' @examples
 #' set.seed(1)
 #' d <- data.frame(lime = rbinom(30, 1, 0.5), temp = rnorm(30, 12, 3))

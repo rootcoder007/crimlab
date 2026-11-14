@@ -125,6 +125,10 @@ fairdf <- function(pred, grp = NULL, y = NULL, base = NULL, conf = 0.95,
 #'   means), `dimin`, `dimax`, `dirng` and `ngt1`; `sum`, `rng` (the largest
 #'   range) and `spread` (largest minus smallest mean ratio of the cities;
 #'   `NaN` with fewer than two); `base`.
+#' @references
+#'   Barman, P. K. and Barman, P. K. (2026). Spatial disparities in
+#'   simulated patrol detection: a reproducible generative-model audit
+#'   across Baltimore and Chicago. \doi{10.48550/arXiv.2603.18987}
 #' @examples
 #' set.seed(2)
 #' n <- 600

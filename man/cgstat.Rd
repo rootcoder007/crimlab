@@ -43,7 +43,7 @@ or metres.
 The (weighted) mean centre of a point pattern, the standard deviations of
 the two coordinates, the standard distance deviation (the root mean
 squared distance from the mean centre), and the geometric and harmonic
-means of the coordinates (Bachi 1957; Neft 1962). The mean centre is the
+means of the coordinates (Bachi 1959; Neft 1966). The mean centre is the
 point that minimises the sum of squared distances to the points. The
 dispersions divide by the total weight less \code{k}: \code{k = 1} makes the
 squared values unbiased for the variances; \code{k = 2} is the convention of
@@ -59,7 +59,7 @@ cgstat(p[, 1], p[, 2], w = rep(1:2, 25))
 cgstat(p, k = 0)  # dispersions over n, not n - 1
 }
 \references{
-Bachi, R. (1957). Statistical analysis of geographical
+Bachi, R. (1959). Statistical analysis of geographical
 series. \emph{Bulletin de l'Institut International de Statistique}, 36(2),
 229-240.
 

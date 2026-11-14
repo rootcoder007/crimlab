@@ -87,6 +87,6 @@ population of randomly distributed individuals. \emph{Ecology}, 37(2),
 
 Donnelly, K. P. (1978). Simulations to determine the variance and edge
 effect of total nearest-neighbour distance. In I. Hodder (ed.),
-\emph{Simulation Methods in Archaeology}, 91-95. Cambridge University
+\emph{Simulation Studies in Archaeology}, 91-95. Cambridge University
 Press.
 }

@@ -70,6 +70,7 @@ patidx <- function(child, father, freq, mother = NULL) {
 #' @references Weir, B. S., Triggs, C. M., Starling, L., Stowell, L. I.,
 #'   Walsh, K. A. J. and Buckleton, J. (1997). Interpreting DNA mixtures.
 #'   *Journal of Forensic Sciences*, 42(2), 213-222.
+#'   \doi{10.1520/JFS14100J}
 #' @examples
 #' # victim explains a and b; suspect would explain c and d
 #' p <- c(a = 0.1, b = 0.2, c = 0.05, d = 0.15)
@@ -98,6 +99,7 @@ mixlr <- function(p, np, xp, nd, xd) {
 #' @references Balding, D. J. and Donnelly, P. (1996). Evaluating DNA profile
 #'   evidence when the suspect is identified through a database search.
 #'   *Journal of Forensic Sciences*, 41(4), 603-607.
+#'   \doi{10.1520/JFS13961J}
 #' @examples
 #' dbsrch(mp = 1e-9, n = 5e6, pop = 3e7)
 #' @export
@@ -139,6 +141,11 @@ cllrmin <- function(same, diff) {
 #' @inheritParams cllr
 #' @return A list: `same` and `diff`, the calibrated ratios in the order
 #'   given.
+#' @references
+#'   Ayer, M., Brunk, H. D., Ewing, G. M., Reid, W. T. and Silverman, E.
+#'   (1955). An empirical distribution function for sampling with
+#'   incomplete information. *The Annals of Mathematical Statistics*,
+#'   26(4), 641-647. \doi{10.1214/aoms/1177728423}
 #' @examples
 #' lrcal(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))
 #' @export

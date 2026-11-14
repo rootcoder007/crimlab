@@ -79,6 +79,14 @@ orrisk <- function(or, rate, share) {
 #' @return A named numeric vector: `stop` (the weighted share searched) and
 #'   `hit` (the weighted mean chance of guilt among them; `NaN` when nobody is
 #'   searched).
+#' @references
+#'   Ayres, I. (2002). Outcome tests of racial disparities in police
+#'   practices. *Justice Research and Policy*, 4(1-2), 131-142.
+#'   \doi{10.3818/JRP.4.1.2002.131}
+#'
+#'   Simoiu, C., Corbett-Davies, S. and Goel, S. (2017). The problem of
+#'   infra-marginality in outcome tests for discrimination. *The Annals of
+#'   Applied Statistics*, 11(3), 1193-1216. \doi{10.1214/17-AOAS1058}
 #' @examples
 #' outtst(q = c(0.1, 0.5, 0.9), t = 0.3)
 #' @export
@@ -133,6 +141,10 @@ dspbm <- function(pop, contact, force, ref = 1) {
 #'   `rtoff`, `rtpair`, `nulloff` (the rate per offender under random
 #'   mixing) and `ratio` (`rtpair` over the pooled pair rate; 1 under
 #'   random mixing).
+#' @references
+#'   O'Brien, R. M. (1987). The interracial nature of violent crimes: a
+#'   reexamination. *American Journal of Sociology*, 92(4), 817-835.
+#'   \doi{10.1086/228584}
 #' @examples
 #' pop <- c(a = 800, b = 200)
 #' dyadrt(count = outer(pop, pop) / 1000, pop = pop)

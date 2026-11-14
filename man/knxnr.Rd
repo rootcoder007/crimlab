@@ -77,4 +77,5 @@ interactions. \emph{Journal of the Royal Statistical Society, Series C},
 Townsley, M., Homel, R. and Chaseling, J. (2003). Infectious
 burglaries: a test of the near repeat hypothesis. \emph{British Journal of
 Criminology}, 43(3), 615-633.
+\doi{10.1093/bjc/43.3.615}
 }

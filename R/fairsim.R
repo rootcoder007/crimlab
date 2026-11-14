@@ -69,6 +69,10 @@ fairsim <- function(n = 2000, groups = c("A", "B"), props = NULL,
 #'   generator, or one whole number from 0; read only with `draw`.
 #' @return A data frame with one row per incident: `k` (officers in range),
 #'   `prob` and, with `draw`, `det` (1 detected, 0 not).
+#' @references
+#'   Barman, P. K. and Barman, P. K. (2026). Spatial disparities in
+#'   simulated patrol detection: a reproducible generative-model audit
+#'   across Baltimore and Chicago. \doi{10.48550/arXiv.2603.18987}
 #' @examples
 #' set.seed(1)
 #' inc <- matrix(runif(20), ncol = 2)

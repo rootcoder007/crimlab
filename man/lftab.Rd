@@ -36,3 +36,8 @@ linear within its band.
 lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
       cens = c(2, 2, 3, 3, 4))
 }
+\references{
+Cutler, S. J. and Ederer, F. (1958). Maximum utilization of the life
+table method in analyzing survival. \emph{Journal of Chronic Diseases},
+8(6), 699-712. \doi{10.1016/0021-9681(58)90126-7}
+}

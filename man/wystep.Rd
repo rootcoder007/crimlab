@@ -37,5 +37,6 @@ wystep(c(2.5, 0.4, -2.1), null)
 }
 \references{
 Westfall, P. H. and Young, S. S. (1993). \emph{Resampling-Based Multiple
-Testing}. Wiley, New York. ISBN 978-0-471-55761-6.
+Testing: Examples and Methods for p-Value Adjustment}. Wiley, New York.
+ISBN 978-0-471-55761-6.
 }

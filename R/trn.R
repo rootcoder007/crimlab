@@ -175,6 +175,7 @@ print.stpcp <- function(x, ...) {
 #'   Rossi, G., Lampugnani, L. and Marchi, M. (1999). An approximate CUSUM
 #'   procedure for surveillance of health events. *Statistics in Medicine*,
 #'   18(16), 2111-2122.
+#'   \doi{10.1002/(SICI)1097-0258(19990830)18:16<2111::AID-SIM171>3.0.CO;2-Q}
 #' @examples
 #' y <- c(10, 12, 9, 11, 10, 13, 19, 22, 25, 12)
 #' cusrv(y, start = 6)

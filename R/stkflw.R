@@ -280,6 +280,10 @@ dktflw <- function(
 #'   `entering`, `atrisk`, `events`, `cens`, `q`, `surv`, `se`, `lo`, `hi`,
 #'   `hazard`), `median` (`Inf` when survival stays above one half or
 #'   crosses it in an open band) and `ci`.
+#' @references
+#'   Cutler, S. J. and Ederer, F. (1958). Maximum utilization of the life
+#'   table method in analyzing survival. *Journal of Chronic Diseases*,
+#'   8(6), 699-712. \doi{10.1016/0021-9681(58)90126-7}
 #' @examples
 #' lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
 #'       cens = c(2, 2, 3, 3, 4))
@@ -329,6 +333,11 @@ lftab <- function(breaks, events, cens = 0, level = 0.95, ci = "log-log") {
 #'   matrices of moves from (rows) and to (columns); `pi`, the stationary
 #'   distribution (`NA` when a state is never left or it is not unique);
 #'   and `summ` (`moves`, `stay`, `theil`).
+#' @references
+#'   Kemeny, J. G. and Snell, J. L. (1960). *Finite Markov Chains*. Van
+#'   Nostrand.
+#'
+#'   Theil, H. (1967). *Economics and Information Theory*. North-Holland.
 #' @examples
 #' r <- trnmat(c("N", "N", "E", "N", "W", "W", "E", "E"),
 #'             c(1, 1, 1, 2, 2, 2, 3, 3), time = c(1, 2, 3, 1, 2, 3, 1, 2))

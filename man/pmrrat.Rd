@@ -29,4 +29,5 @@ pmrrat(c(0.4, 1.5, 0.9), c(0.5, 1, 0.2))
 \references{
 Yarema, M. C. and Becker, C. E. (2005). Key concepts in postmortem
 drug redistribution. \emph{Clinical Toxicology}, 43(4), 235-241.
+\doi{10.1081/CLT-58950}
 }

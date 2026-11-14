@@ -53,4 +53,5 @@ tpbhm(y, d, grp = rep(c("a", "b", "c"), 10), pm = c(0, 0.2, 0))$coef
 \references{
 Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A.
 and Rubin, D. B. (2013). \emph{Bayesian Data Analysis}, 3rd ed. CRC Press.
+\doi{10.1201/b16018}
 }

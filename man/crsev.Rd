@@ -75,4 +75,5 @@ Wallace, M., Turner, J., Matarazzo, A. and Babyak, C. (2009).
 \emph{Measuring Crime in Canada: Introducing the Crime Severity Index and
 Improvements to the Uniform Crime Reporting Survey}. Statistics
 Canada, catalogue 85-004-X.
+\url{https://www150.statcan.gc.ca/n1/en/catalogue/85-004-X2009001}
 }

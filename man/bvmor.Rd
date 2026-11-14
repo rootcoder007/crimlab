@@ -24,7 +24,7 @@ statistics), \code{z} (\code{(i - mean) / sd}), \code{p} (\verb{(1 + #\{I* >= I\
 }
 \description{
 Whether high values of one variable sit next to high values of another
-(Wartenberg 1985; Anselin, Syabri and Smirnov 2002): with \code{zx} and \code{zy}
+(Wartenberg 1985): with \code{zx} and \code{zy}
 the centred values, \verb{I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)}, which is Moran's I (\code{\link[=gmoran]{gmoran()}}) when \code{y} is \code{x} (proved in
 Lean: see \code{proof("bvmor")}) and, with row-standardised weights,
 \code{spdep::moran_bv()}'s statistic. Inference is by permutation: \code{y}'s
@@ -44,9 +44,4 @@ bvmor(a, b, spwt(p, k = 5), nsim = 199, seed = 1)
 Wartenberg, D. (1985). Multivariate spatial correlation: a
 method for exploratory geographical analysis. \emph{Geographical Analysis},
 17(4), 263-283. \doi{10.1111/j.1538-4632.1985.tb00849.x}
-
-Anselin, L., Syabri, I. and Smirnov, O. (2002). Visualizing
-multivariate spatial correlation with dynamically linked windows. In
-L. Anselin and S. Rey (eds), \emph{New Tools for Spatial Data Analysis}.
-Center for Spatially Integrated Social Science, Santa Barbara.
 }

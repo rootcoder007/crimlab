@@ -30,3 +30,12 @@ held to a lower threshold can show the higher one (infra-marginality). See
 \examples{
 outtst(q = c(0.1, 0.5, 0.9), t = 0.3)
 }
+\references{
+Ayres, I. (2002). Outcome tests of racial disparities in police
+practices. \emph{Justice Research and Policy}, 4(1-2), 131-142.
+\doi{10.3818/JRP.4.1.2002.131}
+
+Simoiu, C., Corbett-Davies, S. and Goel, S. (2017). The problem of
+infra-marginality in outcome tests for discrimination. \emph{The Annals of
+Applied Statistics}, 11(3), 1193-1216. \doi{10.1214/17-AOAS1058}
+}

@@ -185,7 +185,7 @@ gmoran <- function(x, w, nsim = 0, seed = NULL) {
 #' Bivariate Moran's I
 #'
 #' Whether high values of one variable sit next to high values of another
-#' (Wartenberg 1985; Anselin, Syabri and Smirnov 2002): with `zx` and `zy`
+#' (Wartenberg 1985): with `zx` and `zy`
 #' the centred values, `I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2
 #' sum zy^2)`, which is Moran's I ([gmoran()]) when `y` is `x` (proved in
 #' Lean: see `proof("bvmor")`) and, with row-standardised weights,
@@ -206,11 +206,6 @@ gmoran <- function(x, w, nsim = 0, seed = NULL) {
 #' @references Wartenberg, D. (1985). Multivariate spatial correlation: a
 #'   method for exploratory geographical analysis. *Geographical Analysis*,
 #'   17(4), 263-283. \doi{10.1111/j.1538-4632.1985.tb00849.x}
-#'
-#'   Anselin, L., Syabri, I. and Smirnov, O. (2002). Visualizing
-#'   multivariate spatial correlation with dynamically linked windows. In
-#'   L. Anselin and S. Rey (eds), *New Tools for Spatial Data Analysis*.
-#'   Center for Spatially Integrated Social Science, Santa Barbara.
 #' @examples
 #' set.seed(1)
 #' p <- cbind(x = runif(60), y = runif(60))

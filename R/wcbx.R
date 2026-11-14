@@ -132,7 +132,8 @@ print.wcbx <- function(x, ...) {
 #'   absolute value) and `padj` (the stepdown p-value).
 #' @references
 #'   Westfall, P. H. and Young, S. S. (1993). *Resampling-Based Multiple
-#'   Testing*. Wiley, New York. ISBN 978-0-471-55761-6.
+#'   Testing: Examples and Methods for p-Value Adjustment*. Wiley, New York.
+#'   ISBN 978-0-471-55761-6.
 #' @examples
 #' set.seed(1)
 #' null <- matrix(rnorm(3000), ncol = 3)

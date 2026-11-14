@@ -244,6 +244,7 @@ skp <- function(x, s2, alpha = 0.05, nsim = 999, seed = NULL) {
 #'   (`TRUE` for a constant reporter).
 #' @references Maltz, M. D. (1999). *Bridging Gaps in Police Crime Data*.
 #'   Bureau of Justice Statistics, NCJ 176365.
+#'   <https://bjs.ojp.gov/content/pub/pdf/bgpcd.pdf>
 #' @examples
 #' rptc(unit = c("a", "a", "b", "b", "b"), year = c(2020, 2021, 2020, 2021,
 #'      2021), rep = c(12, 12, 12, 6, 12), y0 = 2020, y1 = 2021)

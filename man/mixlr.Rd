@@ -38,4 +38,5 @@ mixlr(p, np = character(0), xp = 0, nd = c("c", "d"), xd = 1)
 Weir, B. S., Triggs, C. M., Starling, L., Stowell, L. I.,
 Walsh, K. A. J. and Buckleton, J. (1997). Interpreting DNA mixtures.
 \emph{Journal of Forensic Sciences}, 42(2), 213-222.
+\doi{10.1520/JFS14100J}
 }

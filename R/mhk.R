@@ -88,6 +88,7 @@ print.etasf <- function(x, ...) {
 #'   Linderman, S. W. and Adams, R. P. (2014). Discovering latent network
 #'   structure in point process data. *Proceedings of the 31st
 #'   International Conference on Machine Learning*, 32(2), 1413-1421.
+#'   <https://proceedings.mlr.press/v32/linderman14.html>
 #' @examples
 #' a <- hwksim(c(log(0.3), 0.3, 1), 400, seed = 1)
 #' b <- hwksim(c(log(0.2), 0.4, 1), 400, seed = 2)

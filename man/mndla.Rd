@@ -99,6 +99,7 @@ mndla(c(5, 20, 30), hours = c(1, 1.5, 3), miss = c(100, 100, 40))$tab
 United Nations (2015). \emph{United Nations Standard Minimum Rules for the
 Treatment of Prisoners (the Nelson Mandela Rules)}. General Assembly
 resolution 70/175.
+\url{https://docs.un.org/A/RES/70/175}
 
 Sprott, J. B. and Doob, A. N. (2021). \emph{Solitary Confinement, Torture,
 and Canada's Structured Intervention Units}. University of Toronto,

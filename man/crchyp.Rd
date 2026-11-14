@@ -38,4 +38,5 @@ crchyp(c(0, 4, 2), c(0, 0, 1), home = c(2, -1))
 \references{
 Canter, D. and Larkin, P. (1993). The environmental range of serial
 rapists. \emph{Journal of Environmental Psychology}, 13(1), 63-69.
+\doi{10.1016/S0272-4944(05)80215-4}
 }

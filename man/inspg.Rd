@@ -38,4 +38,5 @@ g$drift
 \references{
 D'Orsogna, M. R. and Perc, M. (2015). Statistical physics of crime: a
 review. \emph{Physics of Life Reviews}, 12, 1-21.
+\doi{10.1016/j.plrev.2014.11.001}
 }

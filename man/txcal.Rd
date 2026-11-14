@@ -44,7 +44,9 @@ resp <- c(0.051, 0.098, 0.26, 0.49, 1.02, 2.47)
 txcal(conc, resp, unk = c(0.03, 0.6))
 }
 \references{
-ICH (2022). \emph{Validation of Analytical Procedures Q2(R2)}.
-International Council for Harmonisation of Technical Requirements for
-Pharmaceuticals for Human Use.
+ICH (2023). \emph{ICH Harmonised Guideline Q2(R2): Validation of
+Analytical Procedures}, final version adopted 1 November 2023, section
+3.2.3.3. International Council for Harmonisation of Technical
+Requirements for Pharmaceuticals for Human Use.
+\url{https://www.ich.org/page/quality-guidelines}
 }

@@ -24,9 +24,11 @@
 #'   concentration read off the line, `flag`: `below_lod`, `below_loq` or
 #'   `quantifiable`); `w`, the weighting.
 #' @references
-#'   ICH (2022). *Validation of Analytical Procedures Q2(R2)*.
-#'   International Council for Harmonisation of Technical Requirements for
-#'   Pharmaceuticals for Human Use.
+#'   ICH (2023). *ICH Harmonised Guideline Q2(R2): Validation of
+#'   Analytical Procedures*, final version adopted 1 November 2023, section
+#'   3.2.3.3. International Council for Harmonisation of Technical
+#'   Requirements for Pharmaceuticals for Human Use.
+#'   <https://www.ich.org/page/quality-guidelines>
 #' @examples
 #' conc <- c(5, 10, 25, 50, 100, 250)
 #' resp <- c(0.051, 0.098, 0.26, 0.49, 1.02, 2.47)
@@ -59,6 +61,7 @@ txcal <- function(conc, resp, w = "1/x^2", unk = NULL, k = c(3.3, 10)) {
 #'   Hornung, R. W. and Reed, L. D. (1990). Estimation of average
 #'   concentration in the presence of nondetectable values. *Applied
 #'   Occupational and Environmental Hygiene*, 5(1), 46-51.
+#'   \doi{10.1080/1047322X.1990.10389587}
 #' @examples
 #' lodimp(c(0.4, 0.05, NA, 1.2, 0.08), lod = 0.1)
 #' @export
@@ -86,6 +89,7 @@ lodimp <- function(x, lod, meth = "half") {
 #' @references
 #'   Yarema, M. C. and Becker, C. E. (2005). Key concepts in postmortem
 #'   drug redistribution. *Clinical Toxicology*, 43(4), 235-241.
+#'   \doi{10.1081/CLT-58950}
 #' @examples
 #' pmrrat(c(0.4, 1.5, 0.9), c(0.5, 1, 0.2))
 #' @export
@@ -116,6 +120,7 @@ pmrrat <- function(cen, per, cut = c(1, 2)) {
 #'   Kugelberg, F. C. and Jones, A. W. (2007). Interpreting results of
 #'   ethanol analysis in postmortem specimens: a review of the literature.
 #'   *Forensic Science International*, 165(1), 10-29.
+#'   \doi{10.1016/j.forsciint.2006.05.004}
 #' @examples
 #' etohlr(c(0.8, 0.5, 0.3), prop = c(0, 0.02, NA), etg = c(1.1, NA, NA))
 #' @export
@@ -150,7 +155,7 @@ etohlr <- function(eth, prop = 0, but = 0, etg = NA, thr = 0) {
 #'   Dinis-Oliveira, R. J., Carvalho, F., Duarte, J. A., Remiao, F.,
 #'   Marques, A., Santos, A. and Magalhaes, T. (2010). Collection of
 #'   biological samples in forensic toxicology. *Toxicology Mechanisms and
-#'   Methods*, 20(7), 363-414.
+#'   Methods*, 20(7), 363-414. \doi{10.3109/15376516.2010.497976}
 #' @examples
 #' base <- c(vitreous = 0.95, liver = 0.8, femoral = 0.55, heart = 0.35)
 #' mtxrel(base, dil = c(FALSE, FALSE, TRUE, TRUE), days = 12, stage = 3)

@@ -80,7 +80,7 @@ eqinv <- function(x, y = NULL, lon0, lat0, r = 6371008.8) {
 #' The (weighted) mean centre of a point pattern, the standard deviations of
 #' the two coordinates, the standard distance deviation (the root mean
 #' squared distance from the mean centre), and the geometric and harmonic
-#' means of the coordinates (Bachi 1957; Neft 1962). The mean centre is the
+#' means of the coordinates (Bachi 1959; Neft 1966). The mean centre is the
 #' point that minimises the sum of squared distances to the points. The
 #' dispersions divide by the total weight less `k`: `k = 1` makes the
 #' squared values unbiased for the variances; `k = 2` is the convention of
@@ -114,7 +114,7 @@ eqinv <- function(x, y = NULL, lon0, lat0, r = 6371008.8) {
 #'   value under positive weight, and for `lonlat = TRUE` (they depend on the
 #'   origin of the coordinates). Lengths are in the unit of the coordinates,
 #'   or metres.
-#' @references Bachi, R. (1957). Statistical analysis of geographical
+#' @references Bachi, R. (1959). Statistical analysis of geographical
 #'   series. *Bulletin de l'Institut International de Statistique*, 36(2),
 #'   229-240.
 #'
@@ -315,7 +315,7 @@ cvhull <- function(x, y = NULL, lonlat = FALSE) {
 #'
 #'   Donnelly, K. P. (1978). Simulations to determine the variance and edge
 #'   effect of total nearest-neighbour distance. In I. Hodder (ed.),
-#'   *Simulation Methods in Archaeology*, 91-95. Cambridge University
+#'   *Simulation Studies in Archaeology*, 91-95. Cambridge University
 #'   Press.
 #' @examples
 #' set.seed(1)
@@ -361,7 +361,7 @@ nnidx <- function(x, y = NULL, win, kmax = 1, nsim = 0, seed = NULL,
 #'   255-266. \doi{10.2307/3212829}
 #'
 #'   Ripley, B. D. (1977). Modelling spatial patterns. *Journal of the
-#'   Royal Statistical Society, Series B*, 39(2), 172-212.
+#'   Royal Statistical Society, Series B*, 39(2), 172-192.
 #'   \doi{10.1111/j.2517-6161.1977.tb01615.x}
 #' @examples
 #' set.seed(1)
@@ -392,9 +392,10 @@ ripk <- function(x, y = NULL, win, r, corr = "iso", metric = "euclid") {
 #'   and `p` (its Monte Carlo p-value).
 #' @references Diggle, P. J. (2013). *Statistical Analysis of Spatial and
 #'   Spatio-Temporal Point Patterns* (3rd ed.), chapter 6. CRC Press.
+#'   \doi{10.1201/b15326}
 #'
 #'   Ripley, B. D. (1977). Modelling spatial patterns. *Journal of the
-#'   Royal Statistical Society, Series B*, 39(2), 172-212.
+#'   Royal Statistical Society, Series B*, 39(2), 172-192.
 #'   \doi{10.1111/j.2517-6161.1977.tb01615.x}
 #' @examples
 #' set.seed(1)
@@ -429,6 +430,7 @@ ripenv <- function(x, y = NULL, win, r, corr = "iso", nsim = 99,
 #' @references Eck, J. E., Chainey, S., Cameron, J. G., Leitner, M. and
 #'   Wilson, R. E. (2005). *Mapping Crime: Understanding Hot Spots*.
 #'   National Institute of Justice, NCJ 209393.
+#'   <https://www.ojp.gov/pdffiles1/nij/209393.pdf>
 #' @examples
 #' fzmode(c(0, 0, 1, 5), c(0, 0, 0, 5), r = 1)
 #' @export
@@ -541,6 +543,7 @@ kmpart <- function(x, y = NULL, k, init = "pp", cell = NULL, upd = "mean",
 #'   Eck, J. E., Chainey, S., Cameron, J. G., Leitner, M. and Wilson, R. E.
 #'   (2005). *Mapping Crime: Understanding Hot Spots*. National Institute
 #'   of Justice, NCJ 209393.
+#'   <https://www.ojp.gov/pdffiles1/nij/209393.pdf>
 #' @examples
 #' set.seed(1)
 #' x <- c(rnorm(40, 0, 0.3), rnorm(40, 6, 0.3), runif(40, -5, 10))
@@ -673,7 +676,7 @@ stmavg <- function(x, y = NULL, t, span = 5, lonlat = FALSE) {
 #' @param par The parameters of the form, of the length given above.
 #' @param tab For `type = "table"`: at least two values from 0.
 #' @return A numeric vector of `f(d)`, one per distance.
-#' @references Brantingham, P. J. and Brantingham, P. L. (1981).
+#' @references Brantingham, P. J. and Brantingham, P. L. (eds.) (1981).
 #'   *Environmental Criminology*. Sage.
 #'
 #'   Levine, N. (2009). Introduction to the special issue on Bayesian
@@ -755,7 +758,8 @@ jtsurf <- function(x, y = NULL, win, nx, ny, type, par, tab = NULL,
 #' @param refl `TRUE` to reflect at 0.
 #' @return A numeric vector of densities, one per value of `t`.
 #' @references Silverman, B. W. (1986). *Density Estimation for Statistics
-#'   and Data Analysis*. Chapman and Hall. \doi{10.1201/9781315140919}
+#'   and Data Analysis*. Chapman and Hall; reissued 2018 by Routledge.
+#'   \doi{10.1201/9781315140919}
 #'
 #'   Levine, N. (2009). Introduction to the special issue on Bayesian
 #'   journey-to-crime modelling. *Journal of Investigative Psychology and

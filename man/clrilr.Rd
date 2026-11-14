@@ -38,9 +38,10 @@ clrilr(x, "ilr")
 }
 \references{
 Aitchison, J. (1986). \emph{The Statistical Analysis of Compositional
-Data}. Chapman and Hall.
+Data}. Chapman and Hall. \doi{10.1007/978-94-009-4109-0}
 
 Egozcue, J. J., Pawlowsky-Glahn, V., Mateu-Figueras, G. and
 Barcelo-Vidal, C. (2003). Isometric logratio transformations for
 compositional data analysis. \emph{Mathematical Geology}, 35(3), 279-300.
+\doi{10.1023/A:1023818214614}
 }

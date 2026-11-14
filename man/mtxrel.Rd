@@ -54,5 +54,5 @@ mtxrel(base, dil = c(FALSE, FALSE, TRUE, TRUE), days = 12, stage = 3)
 Dinis-Oliveira, R. J., Carvalho, F., Duarte, J. A., Remiao, F.,
 Marques, A., Santos, A. and Magalhaes, T. (2010). Collection of
 biological samples in forensic toxicology. \emph{Toxicology Mechanisms and
-Methods}, 20(7), 363-414.
+Methods}, 20(7), 363-414. \doi{10.3109/15376516.2010.497976}
 }

@@ -38,6 +38,7 @@
 #'
 #'   Seber, G. A. F. (1970). The effects of trap response on tag recapture
 #'   estimates. *Biometrics*, 26(1), 13-22.
+#'   \doi{10.2307/2529040}
 #'
 #'   Fienberg, S. E. (1972). The multiple recapture census for closed
 #'   populations and incomplete 2^k contingency tables. *Biometrika*,

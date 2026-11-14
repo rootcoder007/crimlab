@@ -38,4 +38,5 @@ etohlr(c(0.8, 0.5, 0.3), prop = c(0, 0.02, NA), etg = c(1.1, NA, NA))
 Kugelberg, F. C. and Jones, A. W. (2007). Interpreting results of
 ethanol analysis in postmortem specimens: a review of the literature.
 \emph{Forensic Science International}, 165(1), 10-29.
+\doi{10.1016/j.forsciint.2006.05.004}
 }

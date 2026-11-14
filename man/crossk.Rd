@@ -62,7 +62,7 @@ crossk(p, marks = m, i = "burglary", j = "robbery",
 }
 \references{
 Ripley, B. D. (1977). Modelling spatial patterns. \emph{Journal of
-the Royal Statistical Society, Series B}, 39(2), 172-212.
+the Royal Statistical Society, Series B}, 39(2), 172-192.
 \doi{10.1111/j.2517-6161.1977.tb01615.x}
 
 Lotwick, H. W. and Silverman, B. W. (1982). Methods for analysing

@@ -34,4 +34,5 @@ dbsrch(mp = 1e-9, n = 5e6, pop = 3e7)
 Balding, D. J. and Donnelly, P. (1996). Evaluating DNA profile
 evidence when the suspect is identified through a database search.
 \emph{Journal of Forensic Sciences}, 41(4), 603-607.
+\doi{10.1520/JFS13961J}
 }

@@ -37,4 +37,5 @@ lodimp(c(0.4, 0.05, NA, 1.2, 0.08), lod = 0.1)
 Hornung, R. W. and Reed, L. D. (1990). Estimation of average
 concentration in the presence of nondetectable values. \emph{Applied
 Occupational and Environmental Hygiene}, 5(1), 46-51.
+\doi{10.1080/1047322X.1990.10389587}
 }

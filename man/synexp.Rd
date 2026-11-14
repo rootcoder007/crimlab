@@ -23,7 +23,7 @@ a data frame with one row per area (\code{rate}, \code{pop}, \code{expo}); \code
 the summed exposure; \code{dev}, the fit's deviance.
 }
 \description{
-A small-area synthetic estimate (Gonzalez 1973): the prevalence of a
+A small-area synthetic estimate (Gonzalez and Hoza 1978): the prevalence of a
 trait (serious mental illness, say, for the benchmark of a disparity in
 police use of force) is modelled on survey microdata by logistic
 regression (\code{\link[=lgtreg]{lgtreg()}}); applied to each area's covariates it gives the
@@ -41,7 +41,8 @@ areas <- data.frame(age = c(35, 52), male = c(0.48, 0.51))
 synexp(y, s, areas, pop = c(12000, 8000))$areas
 }
 \references{
-Gonzalez, M. E. (1973). Use and evaluation of synthetic estimates.
-\emph{Proceedings of the Social Statistics Section, American Statistical
-Association}, 33-36.
+Gonzalez, M. E. and Hoza, C. (1978). Small-area estimation with
+application to unemployment and housing estimates. \emph{Journal of the
+American Statistical Association}, 73(361), 7-15.
+\doi{10.1080/01621459.1978.10479991}
 }

@@ -26,3 +26,9 @@ hold 0 and \code{Inf}: the data never contradicted those ratios. See
 \examples{
 lrcal(same = c(50, 200, 8), diff = c(0.01, 0.2, 1.5))
 }
+\references{
+Ayer, M., Brunk, H. D., Ewing, G. M., Reid, W. T. and Silverman, E.
+(1955). An empirical distribution function for sampling with
+incomplete information. \emph{The Annals of Mathematical Statistics},
+26(4), 641-647. \doi{10.1214/aoms/1177728423}
+}

@@ -42,3 +42,8 @@ inc <- matrix(runif(20), ncol = 2)
 off <- matrix(runif(10), ncol = 2)
 nordet(inc, off, radius = 0.3, p = 0.7)
 }
+\references{
+Barman, P. K. and Barman, P. K. (2026). Spatial disparities in
+simulated patrol detection: a reproducible generative-model audit
+across Baltimore and Chicago. \doi{10.48550/arXiv.2603.18987}
+}

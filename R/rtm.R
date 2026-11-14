@@ -22,6 +22,7 @@
 #' @references
 #'   Canter, D. and Larkin, P. (1993). The environmental range of serial
 #'   rapists. *Journal of Environmental Psychology*, 13(1), 63-69.
+#'   \doi{10.1016/S0272-4944(05)80215-4}
 #' @examples
 #' crchyp(c(0, 4, 2), c(0, 0, 1), home = c(2, -1))
 #' @export
@@ -97,6 +98,7 @@ hitscr <- function(s, home) {
 #'   Caplan, J. M., Kennedy, L. W. and Miller, J. (2011). Risk terrain
 #'   modeling: brokering criminological theory and GIS methods for crime
 #'   forecasting. *Justice Quarterly*, 28(2), 360-381.
+#'   \doi{10.1080/07418825.2010.486037}
 #' @examples
 #' rtmfit(c(1, 2, 4, 8, 3, 5), list(bars = c(0, 1, 0, 1, 0, 1),
 #'                                  stops = c(0, 0, 1, 1, 1, 0)))

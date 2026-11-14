@@ -54,4 +54,5 @@ fzmode(c(0, 0, 1, 5), c(0, 0, 0, 5), r = 1)
 Eck, J. E., Chainey, S., Cameron, J. G., Leitner, M. and
 Wilson, R. E. (2005). \emph{Mapping Crime: Understanding Hot Spots}.
 National Institute of Justice, NCJ 209393.
+\url{https://www.ojp.gov/pdffiles1/nij/209393.pdf}
 }
