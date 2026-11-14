@@ -251,8 +251,8 @@ test_that("refusals", {
   )
 })
 
-# Parity with the source functions (helper-port.R): live when rmorie and
-# rmoriebricklayer are installed, recorded values otherwise.
+# Parity with the source functions (helper-port.R): the values of rmorie
+# and rmoriebricklayer recorded in ref/port.txt by dev/ref/port.R.
 
 test_that("dastd() reproduces agestd() and rategap()", {
   d <- pin$dsr

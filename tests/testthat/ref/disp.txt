@@ -1,0 +1,14 @@
+# Written by dev/ref/disp.R with rmorie 1.5.0.
+# Do not edit: run the generator again.
+list(vod = list(ratio = c(0x1p+0, 0x1.8e38e38e38e39p+0), shday = c(0x1.3333333333333p-1, 
+0x1.999999999999ap-2)), orr = c(0x1.0e72e1292b673p-1, 0x1.164d70e0dc64fp-2, 
+0x1.f18d1ed6d498ep+0), out = list(stop = c(0x1p-1, 0x1p+0), hit = c(0x1.ccccccccccccdp-1, 
+0x1.ccccccccccccdp-1)), bm = list(cd = c(0x1p+0, 0x1.7ffffffffffffp+1
+), fd = c(0x1p+0, 0x1p+1), rd = c(0x1p+0, 0x1.8p+2)), dy = list(
+    off = c("A", "B", "A", "B"), vic = c("A", "A", "B", "B"), 
+    rtoff = c(0x1.70a3d70a3d70ap-7, 0x1.47ae147ae147bp-7, 0x1.89374bc6a7efap-10, 
+    0x1.eb851eb851eb8p-7), rtpair = c(0x1.ccccccccccccbp-7, 0x1.9999999999998p-7, 
+    0x1.eb851eb851eb6p-8, 0x1.3333333333332p-4), nulloff = c(0x1.8e757928e0c9cp-7, 
+    0x1.8e757928e0c9cp-7, 0x1.8e757928e0c9cp-9, 0x1.8e757928e0c9cp-9
+    ), ratio = c(0x1.d9af286bca1bp-1, 0x1.a50d79435e50ep-1, 0x1.f9435e50d7944p-2, 
+    0x1.3bca1af286bcbp+2)), pkgs = c(rmorie = "1.5.0"))

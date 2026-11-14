@@ -1,5 +1,7 @@
 # Values of the corrections kernels are checked in C++ (src/t_corr.cpp);
-# here what R forms itself, the labels, the messages and rmorie parity.
+# here what R forms itself, the labels, the messages and rmorie parity
+# (rmorie's values stored in ref/corr.txt by dev/ref/corr.R, version named
+# there).
 
 test_that("incap labels its groups and adds the aggregate row", {
   lam <- c(a = 2, b = 10, c = 0.5)
@@ -76,56 +78,62 @@ test_that("corrections functions stop on bad input, naming the argument", {
 })
 
 test_that("corrections results agree with rmorie", {
-  skip_if_not_installed("rmorie")
-  o <- rmorie::morie_incapacitation(c(2, 10), 0.1, 1, shares = c(0.8, 0.2))
+  ref <- refget("corr")
+  # from rmorie::morie_incapacitation(c(2, 10), 0.1, 1,
+  #   shares = c(0.8, 0.2))
+  o <- ref$inc
   d <- incap(c(2, 10), 0.1, 1, share = c(0.8, 0.2))
-  expect_equal(d[["rate"]][1:2], o[["rate"]], tolerance = 1e-14)
-  expect_equal(d[["prev"]][1:2], o[["prevented_share"]], tolerance = 1e-14)
-  expect_equal(d[["marg"]][1:2], o[["marginal_prevention"]], tolerance = 1e-14)
-  agg <- attr(o, "aggregate")
-  expect_equal(d[["prev"]][3], unname(agg[["prevented_share"]]),
-               tolerance = 1e-14)
+  expect_equal(d[["rate"]][1:2], o$rate, tolerance = 1e-14)
+  expect_equal(d[["prev"]][1:2], o$prev, tolerance = 1e-14)
+  expect_equal(d[["marg"]][1:2], o$marg, tolerance = 1e-14)
+  expect_equal(d[["prev"]][3], o$agg, tolerance = 1e-14)
 
+  # from rmorie::morie_incapacitation_career(lam, 2, 3, 0.25): prevented,
+  # prevented_net, upper, lower, later
   lam <- c(12, 10, 8, 6, 5, 4, 3, 2, 2, 1)
-  o <- rmorie::morie_incapacitation_career(lam, 2, 3, 0.25)
   d <- incapr(lam, 2, 3, 0.25)
   expect_equal(unname(d[c("prev", "net", "upper", "lower", "later")]),
-               c(o[["prevented"]], o[["prevented_net"]], o[["upper"]],
-                 o[["lower"]], o[["later"]]), tolerance = 1e-14)
-  # rmorie returns NA for `later` when the path is exactly t0 + s + 1 long,
-  # although the sum needs ages up to t0 + s only; crimlab computes it
-  o <- rmorie::morie_incapacitation_career(c(5, 4, 3), 0, 2)
-  expect_true(is.na(o[["later"]]))
+               ref$car, tolerance = 1e-14)
+  # rmorie returns NA for `later` when the path is exactly t0 + s + 1 long
+  # (morie_incapacitation_career(c(5, 4, 3), 0, 2)), although the sum
+  # needs ages up to t0 + s only; crimlab computes it
+  expect_true(is.na(ref$car3))
   expect_equal(incapr(c(5, 4, 3), 0, 2)[["later"]], 7, tolerance = 1e-15)
 
   set.seed(4)
   risk <- runif(500)
   y <- rbinom(500, 1, risk)
-  o <- rmorie::morie_selective_labels(y, risk < 0.7, risk < 0.8)
+  # from rmorie::morie_selective_labels(y, risk < 0.7, risk < 0.8)
+  o <- ref$sel
+  expect_equal(c(sum(risk), sum(y)), o$inp, tolerance = 1e-12,
+               info = "inputs changed")
   d <- sellab(y, risk < 0.7, risk < 0.8)
-  expect_equal(d[["obs"]], o[["observed_rate"]], tolerance = 1e-14)
-  expect_equal(d[["unobs"]], o[["rule_share_unobserved"]], tolerance = 1e-14)
-  expect_equal(unname(d[c("lower", "upper")]), unname(o[["bounds"]]),
-               tolerance = 1e-14)
-  expect_equal(d[["naive"]], o[["naive_rate"]], tolerance = 1e-14)
+  expect_equal(d[["obs"]], o$obs, tolerance = 1e-14)
+  expect_equal(d[["unobs"]], o$unobs, tolerance = 1e-14)
+  expect_equal(unname(d[c("lower", "upper")]), o$bounds, tolerance = 1e-14)
+  expect_equal(d[["naive"]], o$naive, tolerance = 1e-14)
 
-  o <- rmorie::morie_backlog_censoring(c(30, 45, 60, 90, 120), c(100, 150, 200))
+  # rmorie::morie_backlog_censoring(c(30, 45, 60, 90, 120),
+  #   c(100, 150, 200))
   d <- losbnd(c(30, 45, 60, 90, 120), c(100, 150, 200))
-  expect_equal(d[["lower"]], o[["lower_bound"]], tolerance = 1e-14)
-  expect_equal(d[["bias"]], o[["bias_lower"]], tolerance = 1e-14)
+  expect_equal(d[["lower"]], ref$los$lower, tolerance = 1e-14)
+  expect_equal(d[["bias"]], ref$los$bias, tolerance = 1e-14)
 
   set.seed(1)
   z <- sample(c("community", "custody"), 500, TRUE, c(0.6, 0.4))
   y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
-  o <- rmorie::morie_sentence_effect_bounds(y, z)
+  # from rmorie::morie_sentence_effect_bounds(y, z)
+  o <- ref$snt
+  expect_equal(c(sum(z == "custody"), sum(y)), o$inp, tolerance = 1e-12,
+               info = "inputs changed")
   d <- sntbnd(y, z, treat = "custody")
-  expect_equal(d[["lower"]][3], o[["ate_bounds"]][["lower"]], tolerance = 1e-14)
-  expect_equal(d[["upper"]][3], o[["ate_bounds"]][["upper"]], tolerance = 1e-14)
-  expect_equal(d[["observed"]][3], o[["naive_difference"]], tolerance = 1e-14)
+  expect_equal(d[["lower"]][3], o$lower, tolerance = 1e-14)
+  expect_equal(d[["upper"]][3], o$upper, tolerance = 1e-14)
+  expect_equal(d[["observed"]][3], o$naive, tolerance = 1e-14)
 
-  o <- rmorie::morie_hazard_selection(0.5, 0.5, 0.1, c(0.5, 0.8), c(0.9, 0.9))
+  # from rmorie::morie_hazard_selection(0.5, 0.5, 0.1, c(0.5, 0.8),
+  #   c(0.9, 0.9))
   d <- hzdsel(0.5, 0.5, 0.1, c(0.5, 0.8), c(0.9, 0.9))
-  expect_equal(unname(d[c("haz0", "haz1")]), unname(o[["period2_hazard"]]),
-               tolerance = 1e-14)
-  expect_equal(d[["ratio"]], o[["period2_hazard_ratio"]], tolerance = 1e-14)
+  expect_equal(unname(d[c("haz0", "haz1")]), ref$hz$haz, tolerance = 1e-14)
+  expect_equal(d[["ratio"]], ref$hz$ratio, tolerance = 1e-14)
 })

@@ -1,0 +1,12 @@
+# Written by dev/ref/corr.R with rmorie 1.5.0.
+# Do not edit: run the generator again.
+list(inc = list(rate = c(0x1.aaaaaaaaaaaabp+0, 0x1.4p+2), prev = c(0x1.5555555555556p-3, 
+0x1p-1), marg = c(0x1.e79e79e79e79fp-3, 0x1.aaaaaaaaaaaabp+0), 
+    agg = 0x1.684bda12f684cp-2), car = c(0x1.3p+4, 0x1.c8p+3, 
+0x1.8p+4, 0x1.8p+3, 0x1.ep+3), car3 = NA_real_, sel = list(inp = c(0x1.f0efce87f2p+7, 
+0x1.02p+8), obs = 0x1.653594d653595p-2, unobs = 0x1.ec5ba99350883p-4, 
+    bounds = c(0x1.3a4566caf77d1p-2, 0x1.b55c512fcb9f2p-2), naive = 0x1.653594d653595p-2), 
+    los = list(lower = 0x1.8d8p+6, bias = 0x1.e6p+4), snt = list(
+        inp = c(188L, 200L), lower = -0x1.916872b020c4bp-2, upper = 0x1.374bc6a7ef9dcp-1, 
+        naive = 0x1.6b1edd80e8658p-3), hz = list(haz = c(0x1.f15f15f15f15fp-3, 
+    0x1.2727272727272p-2), ratio = 0x1.2fd57b20c66c1p+0), pkgs = c(rmorie = "1.5.0"))

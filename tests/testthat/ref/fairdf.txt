@@ -1,0 +1,4 @@
+# Written by dev/ref/fairdf.R with rmorie 1.5.0.
+# Do not edit: run the generator again.
+list(inp = c(128L, 108L), di = c(A = 0x1p+0, C = 0x1.053b202da6ea5p-1, 
+B = 0x1.4e8ac7033f7bcp-1), pkgs = c(rmorie = "1.5.0"))

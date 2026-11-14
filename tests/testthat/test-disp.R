@@ -1,5 +1,7 @@
 # Values of the disparity kernels are checked in C++ (src/t_disp.cpp); here
-# what only R can show: labels, messages, the proofs and rmorie parity.
+# what only R can show: labels, messages, the proofs and rmorie parity
+# (rmorie's values stored in ref/disp.txt by dev/ref/disp.R, version named
+# there).
 
 test_that("vodtst and dyadrt label what they return", {
   r <- vodtst(c(w = 60, b = 40), c(w = 50, b = 50))
@@ -77,51 +79,48 @@ test_that("proof names real theorems", {
 })
 
 test_that("results agree with rmorie", {
-  skip_if_not_installed("rmorie")
+  ref <- refget("disp")
   day <- c(w = 600, b = 400)
   night <- c(w = 700, b = 300)
-  m <- rmorie::morie_veil_of_darkness(day, night)
+  # from rmorie::morie_veil_of_darkness(day, night)
   v <- vodtst(day, night)
-  expect_equal(v[["ratio"]], m[["bias_ratio"]], tolerance = 1e-14)
-  expect_equal(v[["shday"]], m[["share_day"]], tolerance = 1e-14)
+  expect_equal(v[["ratio"]], ref$vod$ratio, tolerance = 1e-14)
+  expect_equal(v[["shday"]], ref$vod$shday, tolerance = 1e-14)
 
-  m <- rmorie::morie_relative_risk_from_or(3, 0.4, 0.5)[["risks"]]
+  # from rmorie::morie_relative_risk_from_or(3, 0.4, 0.5)[["risks"]]
   r <- orrisk(3, 0.4, 0.5)
   # rmorie finds the root numerically; the closed form here is the reference
-  expect_equal(unname(r[c("exposed", "unexposed", "rr")]), unname(m),
+  expect_equal(unname(r[c("exposed", "unexposed", "rr")]), ref$orr,
                tolerance = 1e-6)
 
   g <- list(A = list(q = c(0.3, 0.9), w = c(1, 1), t = 0.5),
             B = list(q = 0.9, w = 1, t = 0.2))
-  m <- rmorie::morie_outcome_test(g)
+  # from rmorie::morie_outcome_test(g)
+  m <- ref$out
   for (k in seq_along(g)) {
     o <- outtst(g[[k]][["q"]], g[[k]][["t"]], g[[k]][["w"]])
-    expect_equal(o[["stop"]], m[["stop_rate"]][k], tolerance = 1e-14)
-    expect_equal(o[["hit"]], m[["hit_rate"]][k], tolerance = 1e-14)
+    expect_equal(o[["stop"]], m$stop[k], tolerance = 1e-14)
+    expect_equal(o[["hit"]], m$hit[k], tolerance = 1e-14)
   }
 
   pop <- c(a = 9000, b = 1000)
   con <- c(a = 900, b = 300)
   frc <- c(a = 9, b = 6)
-  m <- rmorie::morie_disparity_benchmark(pop, con, frc, reference = "a")
+  # from rmorie::morie_disparity_benchmark(pop, con, frc, reference = "a")
   d <- dspbm(pop, con, frc)
-  expect_equal(d[["cd"]], m[["contact_disparity"]], tolerance = 1e-14)
-  expect_equal(d[["fd"]], m[["force_given_contact_disparity"]],
-               tolerance = 1e-14)
-  expect_equal(d[["rd"]], m[["resident_disparity"]], tolerance = 1e-14)
+  expect_equal(d[["cd"]], ref$bm$cd, tolerance = 1e-14)
+  expect_equal(d[["fd"]], ref$bm$fd, tolerance = 1e-14)
+  expect_equal(d[["rd"]], ref$bm$rd, tolerance = 1e-14)
 
   pop <- c(A = 80000, B = 20000)
-  m <- rmorie::morie_interracial_rates(
-    c(A_on_A = 900, B_on_A = 200, A_on_B = 120, B_on_B = 300), pop
-  )
+  # rmorie::morie_interracial_rates(c(A_on_A = 900, B_on_A = 200,
+  #   A_on_B = 120, B_on_B = 300), pop)
+  m <- ref$dy
   d <- dyadrt(matrix(c(900, 200, 120, 300), 2), pop)
-  expect_identical(d[["off"]], m[["offender"]])
-  expect_identical(d[["vic"]], m[["victim"]])
-  expect_equal(d[["rtoff"]], m[["rate_per_offender_group"]],
-               tolerance = 1e-13)
-  expect_equal(d[["rtpair"]], m[["rate_per_pair_exposure"]],
-               tolerance = 1e-13)
-  expect_equal(d[["nulloff"]], m[["null_rate_per_offender_group"]],
-               tolerance = 1e-13)
-  expect_equal(d[["ratio"]], m[["ratio_to_null"]], tolerance = 1e-13)
+  expect_identical(d[["off"]], m$off)
+  expect_identical(d[["vic"]], m$vic)
+  expect_equal(d[["rtoff"]], m$rtoff, tolerance = 1e-13)
+  expect_equal(d[["rtpair"]], m$rtpair, tolerance = 1e-13)
+  expect_equal(d[["nulloff"]], m$nulloff, tolerance = 1e-13)
+  expect_equal(d[["ratio"]], m$ratio, tolerance = 1e-13)
 })

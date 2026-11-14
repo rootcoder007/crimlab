@@ -2,8 +2,8 @@ ns <- asNamespace("crimlab")
 
 # clprep(): the preset table, the recode language, filters, missing rows,
 # recipes and refusals; then generic(clprep(data, preset)) against the
-# rmorie analyses it generalises (helper-port.R: live when rmorie is
-# installed, recorded values otherwise).
+# rmorie analyses it generalises (helper-port.R: values recorded in
+# ref/port.txt by dev/ref/port.R).
 
 test_that("the preset list and its table", {
   p <- clprep()

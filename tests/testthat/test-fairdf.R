@@ -101,12 +101,12 @@ test_that("the values agree with the earlier package's", {
   expect_equal(r$sum[["eo"]], ref$eo$value, tolerance = 1e-14)
   expect_equal(t$aod, unname(ref$aod$aod[t$group]), tolerance = 1e-14)
   expect_equal(r$sum[["aod"]], ref$aod$value, tolerance = 1e-14)
-  # live, when the earlier package is in the library
-  if (requireNamespace("rmorie", quietly = TRUE)) {
-    di <- suppressWarnings(
-      rmorie::morie_fairness_disparate_impact(d$p, d$g, privileged = "A"))
-    expect_equal(t$di, unname(unlist(di$ratios)[t$group]), tolerance = 1e-14)
-  }
+  # the ratios of rmorie::morie_fairness_disparate_impact(d$p, d$g,
+  # privileged = "A"), stored in ref/fairdf.txt by dev/ref/fairdf.R
+  di <- refget("fairdf")
+  expect_equal(c(sum(d$y), sum(d$p)), di$inp, tolerance = 1e-12,
+               info = "inputs changed")
+  expect_equal(t$di, unname(di$di[t$group]), tolerance = 1e-14)
 })
 
 test_that("disagreements with the earlier package are documented", {

@@ -1,0 +1,12 @@
+# Written by dev/ref/pol.R with rmorie 1.5.0.
+# Do not edit: run the generator again.
+list(exb = list(rate = c(0x1.3333333333333p-2, 0x1.999999999999ap-4, 
+0x1p-3), lo = c(0x1.9999999999999p-3, 0x1.1111111111111p-4, 0x1.5555555555555p-4
+), hi = c(0x1.cccccccccccccp-2, 0x1.3333333333334p-3, 0x1.8p-3
+), rlo = c(0x1.5555555555554p+0, 0x1.c71c71c71c71cp-2, 0x1.1c71c71c71c72p-1
+), rhi = c(0x1.affffffffffffp+2, 0x1.2p+1, 0x1.68p+1), dir = c(TRUE, 
+FALSE, FALSE)), mis = list(measured = 0x1.24131fba755ap-3, factor = 0x1.6d17e7a912b08p-1), 
+    rtm = list(inp = c(0x1.29cf1e40347f8p+10, 0x1.338p+10, 0x1.2ap+10
+    ), change = -0x1.e1a08ad8f2fbbp+0, mirror = -0x1.7bbbbbbbbbbbcp+0, 
+        sym = -0x1.ae4089ae4089bp+0, low = 0x1.f6b0df6b0df6bp-2, 
+        lowsym = 0x1.088d660ed2f53p-1), pkgs = c(rmorie = "1.5.0"))

@@ -1,5 +1,6 @@
 # Values of the policing kernels are checked in C++ (src/t_pol.cpp); here
-# the labels, the messages and rmorie parity.
+# the labels, the messages and rmorie parity (rmorie's values stored in
+# ref/pol.txt by dev/ref/pol.R, version named there).
 
 test_that("clrsmp labels its parts", {
   r <- clrsmp(c(minor = 90, serious = 20), c(100, 50), c(19, 60), c(20, 140))
@@ -42,34 +43,38 @@ test_that("policing functions stop on bad input, naming the argument", {
 })
 
 test_that("policing results agree with rmorie", {
-  skip_if_not_installed("rmorie")
+  ref <- refget("pol")
   y <- c(A = 300, B = 100, C = 50)
   m <- c(A = 1000, B = 1000, C = 400)
-  o <- rmorie::morie_disparity_exposure_bounds(y, m, gamma = 1.5,
-                                               reference = "B")
+  # rmorie::morie_disparity_exposure_bounds(y, m, gamma = 1.5,
+  #   reference = "B")
+  o <- ref$exb
   d <- expbnd(y, m, 1.5, ref = "B")
-  expect_equal(d[["rate"]], o[["proxy_rate"]], tolerance = 1e-14)
-  expect_equal(d[["lo"]], o[["rate_lower"]], tolerance = 1e-14)
-  expect_equal(d[["hi"]], o[["rate_upper"]], tolerance = 1e-14)
-  expect_equal(d[["rlo"]], o[["ratio_lower"]], tolerance = 1e-14)
-  expect_equal(d[["rhi"]], o[["ratio_upper"]], tolerance = 1e-14)
-  expect_identical(d[["sign"]] != 0, o[["direction_identified"]])
+  expect_equal(d[["rate"]], o$rate, tolerance = 1e-14)
+  expect_equal(d[["lo"]], o$lo, tolerance = 1e-14)
+  expect_equal(d[["hi"]], o$hi, tolerance = 1e-14)
+  expect_equal(d[["rlo"]], o$rlo, tolerance = 1e-14)
+  expect_equal(d[["rhi"]], o$rhi, tolerance = 1e-14)
+  expect_identical(d[["sign"]] != 0, o$dir)
 
-  o <- rmorie::morie_misclassified_rd(0.3, 0.1, 0.4, 0.8, 0.9)
+  # from rmorie::morie_misclassified_rd(0.3, 0.1, 0.4, 0.8, 0.9)
   d <- misrd(0.3, 0.1, 0.4, 0.8, 0.9)
-  expect_equal(d[["measured"]], o[["measured_rd"]], tolerance = 1e-14)
-  expect_equal(d[["factor"]], o[["factor"]], tolerance = 1e-14)
+  expect_equal(d[["measured"]], ref$mis$measured, tolerance = 1e-14)
+  expect_equal(d[["factor"]], ref$mis$factor, tolerance = 1e-14)
 
   set.seed(5)
   mu <- rgamma(300, 2, 0.5)
   x1 <- rpois(300, mu)
   x2 <- rpois(300, mu)
   cut <- quantile(x1, 0.8, names = FALSE)
-  o <- rmorie::morie_regression_to_mean(x1, x2, cut)
+  # from rmorie::morie_regression_to_mean(x1, x2, cut)
+  o <- ref$rtm
+  expect_equal(c(sum(mu), sum(x1), sum(x2)), o$inp, tolerance = 1e-12,
+               info = "inputs changed")
   d <- rtmhs(x1, x2, cut)
-  expect_equal(d[["change"]], o[["selected_change"]], tolerance = 1e-14)
-  expect_equal(d[["mirror"]], o[["mirror_change"]], tolerance = 1e-14)
-  expect_equal(d[["sym"]], o[["symmetrised_change"]], tolerance = 1e-14)
-  expect_equal(d[["low"]], o[["low_selected_change"]], tolerance = 1e-14)
-  expect_equal(d[["lowsym"]], o[["low_symmetrised_change"]], tolerance = 1e-14)
+  expect_equal(d[["change"]], o$change, tolerance = 1e-14)
+  expect_equal(d[["mirror"]], o$mirror, tolerance = 1e-14)
+  expect_equal(d[["sym"]], o$sym, tolerance = 1e-14)
+  expect_equal(d[["low"]], o$low, tolerance = 1e-14)
+  expect_equal(d[["lowsym"]], o$lowsym, tolerance = 1e-14)
 })

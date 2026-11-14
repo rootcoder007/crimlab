@@ -1,9 +1,9 @@
 # Parity with the functions crimlab's generic methods were ported from
 # (rmorie, rmoriebricklayer). Each case is a function returning the source
 # function's numbers on a small synthetic input defined here; attribute
-# pkg names the package it needs. portref(key) runs the case when that
-# package is installed and otherwise returns the value recorded in
-# ref-port.rds by dev/ref-port.R, which sources this file.
+# pkg names the package it needs. portref(key) returns the value recorded
+# in ref/port.txt by dev/ref/port.R, which sources this file and runs the
+# cases (the versions it ran them with are named there).
 
 pcase <- new.env()
 pc <- function(key, pkg, f) {
@@ -12,11 +12,8 @@ pc <- function(key, pkg, f) {
 }
 
 portref <- function(key) {
-  f <- pcase[[key]]
-  if (requireNamespace(attr(f, "pkg"), quietly = TRUE)) {
-    return(f())
-  }
-  readRDS(test_path("ref-port.rds"))[[key]]
+  stopifnot(is.function(pcase[[key]]))
+  refget("port")[[key]]
 }
 
 # rates: an age-by-group table, a two-period count, SIR inputs
