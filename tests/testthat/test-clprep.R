@@ -356,7 +356,7 @@ test_that("a preset of one's own, and the flag and dum recodes", {
   expect_identical(p$adj, data.frame(year = factor(c(1, 1, 2, 2))))
   expect_identical(attr(p, "preset"), "my-cnt")
   expect_identical(attr(p, "drop"), 1L)
-  expect_equal(cntreg(p), cntreg(p$y, p$grp, adj = p$adj))
+  expect_identical(cntreg(p), cntreg(p$y, p$grp, adj = p$adj))
   expect_error(clprep(e, mine[, 1:2]), "needs the columns preset, generic")
   expect_error(clprep(e, mine[0, ]), "needs the columns preset, generic")
   two <- mine
@@ -393,7 +393,7 @@ test_that("the OTIS treatment-outcome pairs of cbatt", {
   expect_identical(names(p$x)[1], "GenderMale")
   x <- cbind(dum(v$Gender), dum(v$Age_Category), dum(v$EndFiscalYear))
   expect_identical(unname(as.matrix(p$x)), x)
-  expect_equal(cbatt(p, reps = 0), cbatt(v$vm, v$hiac, x, reps = 0))
+  expect_identical(cbatt(p, reps = 0), cbatt(v$vm, v$hiac, x, reps = 0))
   # a01n: the naive reduction, from scratch
   cc <- b[stats::complete.cases(b[c(ns$.otcols, "Gender", "Age_Category")]), ]
   key <- paste(cc$UniqueIndividual_ID, cc$EndFiscalYear)
@@ -439,9 +439,17 @@ test_that("the gentrification recipe", {
   d$inc[4] <- NA
   g <- ns$.recipe("gent", "inc,rent,colg,rentg", d)$gent
   q <- function(x, p) quantile(x, p, na.rm = TRUE, names = FALSE)
+  lv <- function(el, gr) {
+    vapply(seq_along(el), function(i) {
+      if (is.na(el[i])) return(NA_character_)
+      if (!el[i]) return("ineligible")
+      if (is.na(gr[i])) return(NA_character_)
+      if (gr[i]) "gentrified" else "eligible"
+    }, "")
+  }
   el <- d$inc <= q(d$inc, 0.5) & d$rent <= q(d$rent, 0.5)
   gr <- d$colg >= q(d$colg, 0.667) & d$rentg >= q(d$rentg, 0.667)
-  ref <- ifelse(el, ifelse(gr, "gentrified", "eligible"), "ineligible")
+  ref <- lv(el, gr)
   expect_identical(as.character(g), ref)
   expect_identical(levels(g), c("ineligible", "eligible", "gentrified"))
   g2 <- ns$.recipe("gent", "inc,rent,colg,rentg,0.3,0.9", d)$gent
@@ -449,7 +457,7 @@ test_that("the gentrification recipe", {
   gr <- d$colg >= q(d$colg, 0.9) & d$rentg >= q(d$rentg, 0.9)
   expect_identical(
     as.character(g2),
-    ifelse(el, ifelse(gr, "gentrified", "eligible"), "ineligible")
+    lv(el, gr)
   )
   expect_error(ns$.recipe("gent", "inc,rent,colg,nope", d), "no column nope")
   # through a preset of one's own
@@ -474,14 +482,14 @@ test_that("the toxicology and taphonomy layouts", {
   b <- as.data.frame(matrix(runif(40 * 8), 40, 8, dimnames = list(NULL, cols)))
   b$preservation_score <- runif(40)
   t1 <- tpbhm(clprep(b, "taph-tpbhm"))
-  expect_equal(t1, tpbhm(b$preservation_score, as.matrix(b[cols])))
+  expect_identical(t1, tpbhm(b$preservation_score, as.matrix(b[cols])))
   pc <- c("decomp_stage", "body_scoring_tbs", "accumulated_deg_days",
           "temp_c", "humidity_pct", "precipitation_mm", "burial_depth_cm",
           "soil_ph", "scavenger_activity", "insect_activity")
   e <- as.data.frame(matrix(rnorm(60 * 10), 60, 10, dimnames = list(NULL, pc)))
   e$pmi_days <- rexp(60, 0.05)
-  expect_equal(tpbhm(clprep(e, "taph-pmi-tpbhm"), psd = 5),
-               tpbhm(e$pmi_days, as.matrix(e[pc]), psd = 5))
+  expect_identical(tpbhm(clprep(e, "taph-pmi-tpbhm"), psd = 5),
+                   tpbhm(e$pmi_days, as.matrix(e[pc]), psd = 5))
 })
 
 test_that("the Chicago and New York count tables", {
@@ -534,8 +542,8 @@ test_that("the Doob affidavit tables", {
     total = c(3392.2, 1023.8, 5829.0)
   )
   a <- grprr(clprep(t1, "doob-t1-rr"))
-  expect_equal(a, grprr(t1$success, t1$total, t1$type, type = "prop",
-                        per = 100))
+  expect_identical(a, grprr(t1$success, t1$total, t1$type, type = "prop",
+                            per = 100))
   expect_equal(a$rates$rate, 100 * t1$success / t1$total, tolerance = 1e-14)
   v <- grprr(clprep(t1, "doob-t1v-rr"))
   expect_equal(v$rates$rate, 100 * t1$revoke_violent / t1$total,
@@ -547,9 +555,9 @@ test_that("the Doob affidavit tables", {
     statutory_releases = c(5636, 5373, 5309, 4888, 4427)
   )
   f <- stkflw(clprep(t2, "doob-t2-flow"))
-  expect_equal(f, stkflw(people = t2$admissions, adp = t2$avg_count,
-                         prd = t2$year, rel = t2$statutory_releases,
-                         early = 182.5))
+  expect_identical(f, stkflw(people = t2$admissions, adp = t2$avg_count,
+                             prd = t2$year, rel = t2$statutory_releases,
+                             early = 182.5))
   expect_equal(f$flow$cut, t2$statutory_releases * 182.5 / 365,
                tolerance = 1e-14)
   expect_equal(f$flow$alos, t2$avg_count * 365 / t2$admissions,
@@ -569,7 +577,7 @@ test_that("the Doob affidavit tables", {
   # the affidavit's over-representation of the young, from rounded shares
   expect_equal(r$rates$rep[1], 74.8 / 52.8, tolerance = 2e-3)
   ad <- grprr(clprep(t3, "doob-t3a-rr"))
-  expect_equal(ad$rates$x, t3$csc_admissions_2017_18)
+  expect_identical(ad$rates$x, t3$csc_admissions_2017_18)
 })
 
 test_that("the Victorian tables, the pop recipe and numeric constants", {

@@ -33,7 +33,8 @@ test_that("each long loop stops at an interrupt", {
   h <- hwksim(c(log(0.5), 0.5, 2), 100, seed = 1)
   e <- c(1, 1, 2, 4, 4, 5, 3)
   f <- c(2, 3, 3, 5, 6, 6, 4)
-  zy <- t(sapply(rep(1:2, each = 20), function(k) rpois(4, 2 * k)))
+  zy <- t(vapply(rep(1:2, each = 20), function(k) rpois(4, 2 * k),
+                 integer(4)))
   zx <- cbind(1, 1:4)
   my <- array(rnorm(20 * 3 * 2), c(20, 3, 2))
   calls <- list(
@@ -199,7 +200,7 @@ test_that("Ctrl-C stops a long call in a running R session", {
   src <- file.path(d, "run.R")
   writeLines(
     c(
-      sprintf(".libPaths(%s)", paste(deparse(.libPaths()), collapse = "")),
+      sprintf(".libPaths(%s)", paste0(deparse(.libPaths()), collapse = "")),
       "library(crimlab)",
       "set.seed(1)",
       "p <- cbind(x = runif(300), y = runif(300))",

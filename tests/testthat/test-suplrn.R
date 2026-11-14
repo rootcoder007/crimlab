@@ -104,7 +104,7 @@ test_that("the folds and the result depend on the seed alone", {
                           seed = 5), a)
   expect_identical(suplrn(d$x, d$y, lrns = c("glm", "lasso"), nlam = 10,
                           fold = a$fold, seed = 5), a)
-  expect_true(all(table(a$fold) %in% 40L))
+  expect_true(all(table(a$fold) == 40L))
   expect_false(identical(suplrn(d$x, d$y, lrns = "glm", seed = 6)$fold,
                          a$fold))
 })
@@ -140,7 +140,8 @@ test_that("dmlx takes the stack as a nuisance learner", {
   t <- as.numeric(d > 0)
   i <- dmlx(y, t, x, "irm", fold, lrn = "stack", lrnd = "stack",
             stk = c("glm", "lasso"), nlam = 10, disc = TRUE)
-  expect_true(is.finite(i$coef) && is.finite(i$se))
+  expect_true(is.finite(i$coef))
+  expect_true(is.finite(i$se))
   errs("dmlx", list(
     list("names \"glm\" twice", y, d, x, "plr", fold, lrn = "stack",
          stk = c("glm", "glm")),

@@ -11,9 +11,9 @@ test_that("clrilr() gives the centred and isometric log-ratios", {
   cl <- (x + ps) / rowSums(x + ps)
   l <- log(cl)
   expect_equal(clrilr(x), l - rowMeans(l), tolerance = 1e-14)
-  il <- sapply(1:3, function(i) {
+  il <- vapply(1:3, function(i) {
     sqrt(i / (i + 1)) * (rowMeans(l[, 1:i, drop = FALSE]) - l[, i + 1])
-  })
+  }, numeric(nrow(l)))
   colnames(il) <- paste0("ilr", 1:3)
   expect_equal(clrilr(x, "ilr"), il, tolerance = 1e-13)
   d <- as.data.frame(x[, 1:2])
@@ -65,7 +65,7 @@ test_that("tpdmc() solves the absorbing chain", {
   expect_equal(unname(out$absorb), unname(b), tolerance = 1e-14)
   expect_identical(colnames(out$absorb), c("skeletal", "mummified"))
   expect_equal(unname(out$time), rowSums(n), tolerance = 1e-14)
-  expect_identical(names(out$time), st)
+  expect_named(out$time, st)
   expect_null(out$path)
   # no preservation: nothing mummifies
   expect_identical(unname(tpdmc(0)$absorb[, "mummified"]), rep(0, 4))
@@ -76,7 +76,7 @@ test_that("tpdmc() solves the absorbing chain", {
   expect_true(s$path[length(s$path)] %in% c("skeletal", "mummified"))
   expect_identical(s, tpdmc(pres, 0.6, 0.4, start = 2, steps = 500, seed = 2))
   short <- tpdmc(states = c("a", "b"), steps = 1, seed = 3)$path
-  expect_identical(length(short), 2L)
+  expect_length(short, 2L)
   set.seed(1)
   expect_length(tpdmc(0.5, steps = 3)$path[1], 1)
 })

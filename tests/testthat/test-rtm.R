@@ -21,7 +21,7 @@ test_that("crchyp() draws the circle on the farthest pair", {
   expect_identical(out$share, mean(inside))
   expect_identical(out$mar, c(TRUE, FALSE))
   # one home as c(x, y); no home
-  expect_identical(crchyp(c(0, 4, 2), c(0, 0, 1), c(2, -1))$mar, TRUE)
+  expect_true(crchyp(c(0, 4, 2), c(0, 0, 1), c(2, -1))$mar)
   expect_null(crchyp(c(0, 4), c(0, 0))$mar)
   expect_identical(crchyp(c(0, 4), c(0, 0))$share, 1)
 })

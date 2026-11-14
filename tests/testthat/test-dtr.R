@@ -36,14 +36,14 @@ test_that("dtrid() gives the rank, the identified effects and the fit", {
   b <- dtrid(p, s, c, y, log = TRUE, rho = 0.1)
   ref <- unname(coef(lm(y ~ log(p) + log(s) + c)))
   expect_identical(b$rank, 4L)
-  expect_identical(names(b$coef), c("(Intercept)", "log_p", "log_s", "c"))
+  expect_named(b$coef, c("(Intercept)", "log_p", "log_s", "c"))
   expect_equal(unname(b$coef), ref, tolerance = 1e-12)
   expect_equal(b$disc, -ref[4] / ref[2], tolerance = 1e-12)
   expect_equal(b$cost, p * s * exp(-0.1 * c), tolerance = 1e-15)
   q <- dtrid(p, s, c, y)
   expect_equal(unname(q$coef), unname(coef(lm(y ~ p + s + c))),
                tolerance = 1e-12)
-  expect_identical(names(q$coef), c("(Intercept)", "p", "s", "c"))
+  expect_named(q$coef, c("(Intercept)", "p", "s", "c"))
   expect_true(is.na(q$disc))
   # a dimension that copies another: neither is identified
   d <- dtrid(p, 2 * p, c)
