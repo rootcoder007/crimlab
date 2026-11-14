@@ -619,6 +619,9 @@ func Apcie(args string) (string, error) { return Jrun("apcie", args) }
 // Hsacc runs hsacc() of the R package (arguments: pred obs area? top? prev?; ? marks an optional one).
 func Hsacc(args string) (string, error) { return Jrun("hsacc", args) }
 
+// Mtrbnd runs mtrbnd() of the R package (arguments: y z ylo? yhi? assume? w?; ? marks an optional one).
+func Mtrbnd(args string) (string, error) { return Jrun("mtrbnd", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 

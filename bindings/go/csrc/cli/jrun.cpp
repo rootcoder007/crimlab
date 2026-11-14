@@ -1570,6 +1570,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jspc.inc"
 #include "japc.inc"
 #include "jhsa.inc"
+#include "jmtr.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
 
@@ -1785,6 +1786,7 @@ const Ent ents[] = {
     {"spcure", "time event x? dist? level? maxit?", spcure},
     {"apcie", "y expo level? maxit?", apcie},
     {"hsacc", "pred obs area? top? prev?", hsacc},
+    {"mtrbnd", "y z ylo? yhi? assume? w?", mtrbnd},
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},

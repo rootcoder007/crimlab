@@ -16,6 +16,8 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(mtrbnd(c(1, 0, 0, 1), c(1, 1, 2, 2))),
+         c("bnd", "assume", "range")),
     list(quote(hsacc(c(3, 2, 1), c(1, 0, 2))),
          c("top", "cells", "area", "ashare", "n", "N", "hit", "pai", "nmax",
            "pei", "rri")),

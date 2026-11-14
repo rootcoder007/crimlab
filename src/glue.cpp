@@ -516,6 +516,8 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// Bounds under monotone response and selection (bmtr.cpp).
+SEXP C_clab_r_mtrbnd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The accuracy of a hot-spot map (bhsa.cpp).
 SEXP C_clab_r_hsacc(SEXP, SEXP, SEXP, SEXP, SEXP);
 // The age-period-cohort model (bapc.cpp).
@@ -785,6 +787,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_cbatt", fn<&C_clab_r_cbatt>(), 12},
     {"C_clab_r_smdbal", fn<&C_clab_r_smdbal>(), 5},
     {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 6},
+    {"C_clab_r_mtrbnd", fn<&C_clab_r_mtrbnd>(), 6},
     {"C_clab_r_hsacc", fn<&C_clab_r_hsacc>(), 5},
     {"C_clab_r_apcie", fn<&C_clab_r_apcie>(), 4},
     {"C_clab_r_spcure", fn<&C_clab_r_spcure>(), 6},

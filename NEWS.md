@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `mtrbnd()` bounds the mean outcome under each of ordered sentences and
+  the effect of each against the mildest, under the monotone treatment
+  response and selection assumptions of Manski and Pepper. It is in
+  `clab_jrun()`, the command line and Python.
+
 * `hsacc()` scores a hot-spot map on later crimes: the hit rate, the
   predictive accuracy index, the predictive efficiency index and the
   recapture rate index. It is in `clab_jrun()`, the command line and

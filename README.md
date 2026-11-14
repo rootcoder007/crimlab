@@ -174,6 +174,9 @@ The functions work on summary data, not on raw records:
 * Hot-spot maps: how many later crimes a map's hot spots caught, by the
   hit rate, the predictive accuracy and efficiency indices and the
   recapture rate index (`hsacc()`).
+* Ordered sentences: bounds on the outcome under each sentence and on its
+  effect, with no assumption, under monotone treatment response, under
+  monotone treatment selection and under both (`mtrbnd()`).
 
 ## Algorithms
 
@@ -542,7 +545,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (210 of 210); `crimlab -l` lists them and
+of the R package (211 of 211); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

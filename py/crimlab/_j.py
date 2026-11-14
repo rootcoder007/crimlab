@@ -3549,3 +3549,18 @@ def hsacc(pred: Any, obs: Any, area: Any = None, top: Any = 0.1, prev: Any = Non
     ['top', 'cells', 'area', 'ashare', 'n', 'N', 'hit', 'pai', 'nmax', 'pei', 'rri']
     """
     return jcall("hsacc", pred=pred, obs=obs, area=area, top=top, prev=prev)
+
+
+def mtrbnd(y: Any, z: Any, ylo: Any = 0, yhi: Any = 1, assume: Any = "both", w: Any = None) -> Any:
+    """Bounds on sentence effects under monotone response and selection.
+
+    The arguments and the result are those of R's ``mtrbnd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = mtrbnd(y=[1, 0, 0, 1, 1, 0, 1, 1], z=[1, 1, 1, 2, 2, 2, 3, 3])
+    >>> list(r)
+    ['bnd', 'assume', 'range']
+    """
+    return jcall("mtrbnd", y=y, z=z, ylo=ylo, yhi=yhi, assume=assume, w=w)

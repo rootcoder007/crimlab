@@ -3215,6 +3215,18 @@ int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, d
  * (N / N_prev) (Levine 2008, doi:10.1057/sj.2008.5; NaN without prev). */
 int clab_hsacc(const double *pred, const int *ishot, const double *obs, const double *area, const double *prev,
                int n, const double *top, int nt, double *res);
+/* Bounds on the mean outcome under each of k (>= 2) ordered treatments
+ * (mtr.cpp; Manski and Pepper 2000, doi:10.1111/1468-0262.00144). n
+ * outcomes y in [ylo, yhi], their treatments z in [0, k) (each with
+ * positive weight), weights w (NULL: equal). as: 0 no assumption, 1
+ * monotone treatment response, 2 monotone treatment selection, 3 both.
+ * Out: k x 6, column-major: the share and mean outcome of each
+ * treatment, the lower and upper bound of the mean outcome under it, and
+ * the lower and upper bound of its difference from treatment 0 (the
+ * differences of the bounds, the lower at least 0 under monotone
+ * response; NaN for treatment 0). */
+int clab_mtrbnd(const double *y, const int *z, const double *w, int n, int k, double ylo, double yhi, int as,
+                double *out);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);
