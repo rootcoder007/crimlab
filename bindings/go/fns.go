@@ -613,6 +613,9 @@ func Lnkpr(args string) (string, error) { return Jrun("lnkpr", args) }
 // Spcure runs spcure() of the R package (arguments: time event x? dist? level? maxit?; ? marks an optional one).
 func Spcure(args string) (string, error) { return Jrun("spcure", args) }
 
+// Apcie runs apcie() of the R package (arguments: y expo level? maxit?; ? marks an optional one).
+func Apcie(args string) (string, error) { return Jrun("apcie", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 

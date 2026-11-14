@@ -22,6 +22,7 @@ from ._disp import dspbm, dyadrt, impfpr, orrisk, outtst, vodtst
 from ._j import (
     agemix,
     aorwt,
+    apcie,
     arwt,
     bandx,
     bdig,
@@ -215,6 +216,7 @@ __all__ = [
     "__version__",
     "agemix",
     "aorwt",
+    "apcie",
     "arwt",
     "bandx",
     "bdig",

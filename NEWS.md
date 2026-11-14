@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `apcie()` fits the age-period-cohort model of a table of counts by age
+  and period with the intrinsic estimator of Yang, Fu and Land: the
+  Poisson log-linear fit projected off the null vector of the design.
+  It is in `clab_jrun()`, the command line and Python.
+
 * `spcure()` fits the split-population (cure) model of Schmidt and Witte:
   a logistic share who would ever fail and a Weibull, exponential or
   lognormal time to failure among them, with covariates in both parts.

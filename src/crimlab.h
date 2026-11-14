@@ -3188,6 +3188,19 @@ int clab_lnkpr(const double *px, const double *py, const double *t, const int *m
  * (5: log-likelihood, AIC, steps, converged, the mean of delta). */
 int clab_spcure(const double *t, const double *ev, const double *x, int n, int p, int dist, int maxit, double *par,
                 double *cov, double *st);
+/* The age-period-cohort model by the intrinsic estimator (apc.cpp; Yang,
+ * Fu and Land 2004, doi:10.1111/j.0081-1750.2004.00148.x). y, expo: na by
+ * np (both >= 3) column-major tables of counts (>= 0) and exposures (>
+ * 0), ages by periods; cohort k = j - i + na - 1 of na + np - 1. The
+ * Poisson log-linear model with effect-coded age, period and cohort
+ * (clab_cntreg, at most maxit steps; one column aliased), its solution
+ * projected off the null vector B0 (age i - (na + 1) / 2, period -(j -
+ * (np + 1) / 2), cohort k - (nc + 1) / 2, 1-based) and its covariance P V
+ * P. Out: est, se (1 + na + np + nc: the intercept and every level of
+ * age, period and cohort); st (5: deviance, residual df, log-likelihood,
+ * steps, converged). CLAB_EDOM unless exactly one column is aliased. */
+int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, double *est, double *se,
+               double *st);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

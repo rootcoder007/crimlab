@@ -16,6 +16,9 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(apcie(matrix(c(5, 8, 3, 9, 12, 6, 4, 10, 7), 3),
+                     matrix(100, 3, 3))),
+         c("coef", "fit", "dims")),
     list(quote(spcure(c(1, 2, 3, 4, 50, 60, 70, 80), c(1, 1, 1, 1, 0, 0, 0, 0),
                       dist = "exp")),
          c("coef", "fit", "dist", "n")),

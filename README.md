@@ -168,6 +168,9 @@ The functions work on summary data, not on raw records:
   the chance that they belong to one series (`lnkpr()`).
 * Recidivism that levels off: the share of people who would ever fail and
   how soon those who fail do, by the split-population model (`spcure()`).
+* Age, period and cohort: the parts of a change in a rate that belong to
+  age, to the period and to the cohort, by the intrinsic estimator
+  (`apcie()`).
 
 ## Algorithms
 
@@ -536,7 +539,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (208 of 208); `crimlab -l` lists them and
+of the R package (209 of 209); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

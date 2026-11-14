@@ -3519,3 +3519,18 @@ def spcure(time: Any, event: Any, x: Any = None, dist: Any = "weibull", level: A
     ['coef', 'fit', 'dist', 'n']
     """
     return jcall("spcure", time=time, event=event, x=x, dist=dist, level=level, maxit=maxit)
+
+
+def apcie(y: Any, expo: Any, level: Any = 0.95, maxit: Any = 100) -> Any:
+    """Age-period-cohort model by the intrinsic estimator.
+
+    The arguments and the result are those of R's ``apcie()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = apcie(y=[[5, 9, 4], [8, 12, 10], [3, 6, 7]], expo=[[100, 100, 100], [100, 100, 100], [100, 100, 100]])
+    >>> list(r)
+    ['coef', 'fit', 'dims']
+    """
+    return jcall("apcie", y=y, expo=expo, level=level, maxit=maxit)
