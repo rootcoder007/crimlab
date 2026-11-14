@@ -1512,6 +1512,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jsp2.inc"
 #include "jtox.inc"
 #include "jdtr.inc"
+#include "jcnc.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1631,6 +1632,10 @@ const Ent ents[] = {
     {"colarr", "a e bg", colarr},
     {"crsev", "x off w unit? time? pop? per? base? sent?", crsev},
     {"zcomp", "x unit cat w?", zcomp},
+    {"cconc", "x w? by? fracs? pop? nsim? seed?", cconc},
+    {"hilltl", "x xmin? discrete? approx? mintl?", hilltl},
+    {"crcap", "x kappa? int?", crcap},
+    {"dkfig", "v? r? amax? bmax? thr? va? ra? rb? lam? k?", dkfig},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
