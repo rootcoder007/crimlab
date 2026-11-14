@@ -200,7 +200,7 @@ test_that("Ctrl-C stops a long call in a running R session", {
   src <- file.path(d, "run.R")
   writeLines(
     c(
-      sprintf(".libPaths(%s)", paste0(deparse(.libPaths()), collapse = "")),
+      sprintf(".libPaths(%s)", deparse1(.libPaths(), collapse = "")),
       "library(crimlab)",
       "set.seed(1)",
       "p <- cbind(x = runif(300), y = runif(300))",

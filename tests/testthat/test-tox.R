@@ -22,9 +22,9 @@ test_that("txcal() is the weighted least-squares line", {
                  tolerance = 1e-12)
     xh <- (unk - b[1]) / b[2]
     expect_equal(out$unk$conc, xh, tolerance = 1e-12)
-    fl <- ifelse(xh < 3.3 * s$sigma / b[2], "below_lod",
-                 ifelse(xh < 10 * s$sigma / b[2], "below_loq",
-                        "quantifiable"))
+    fl <- as.character(cut(xh, c(-Inf, c(3.3, 10) * s$sigma / b[2], Inf),
+                           c("below_lod", "below_loq", "quantifiable"),
+                           right = FALSE))
     expect_identical(as.character(out$unk$flag), fl)
     expect_identical(out$unk$resp, unk)
   }
@@ -79,8 +79,10 @@ test_that("etohlr() reads ethyl glucuronide, then the higher alcohols", {
   out <- etohlr(eth, prop, but, etg)
   hi <- suppressWarnings(pmax(prop, but, na.rm = TRUE))
   expect_identical(out$higher, hi)
-  v <- ifelse(!is.na(etg) & etg > 0, "antemortem",
-              ifelse(!is.na(hi) & hi > 0, "postmortem", "indeterminate"))
+  v <- vapply(seq_along(etg), function(i) {
+    if (!is.na(etg[i]) && etg[i] > 0) return("antemortem")
+    if (!is.na(hi[i]) && hi[i] > 0) "postmortem" else "indeterminate"
+  }, "")
   expect_identical(as.character(out$verdict), v)
   o2 <- etohlr(eth, prop, but, etg, thr = 0.04)
   expect_identical(
