@@ -9,10 +9,15 @@ const bin = new URL('../bin/crimlab.js', import.meta.url).pathname;
 
 // the tolerance of cli/test.sh: 1e-12 of the larger value, 1e-12 absolute
 // against an exact 0
-test('every case of cli/test.tsv, as the Python package gives it', () => {
+test('every case of cli/test.tsv, as the R package gives it', () => {
   const rows = readFileSync(new URL('../../../cli/test.tsv', import.meta.url), 'utf8').trim().split(/\r?\n/);
   for (const r of rows) {
+    if (r.startsWith('#')) continue;
     const [f, a, want] = r.split('\t');
+    if (want.startsWith('!')) {
+      assert.throws(() => jrun(f, a), { message: want.slice(1) }, `${f} ${a}`);
+      continue;
+    }
     const got = jrun(f, a);
     const w = JSON.parse(want);
     const near = (x, y) =>

@@ -45,8 +45,8 @@ func same(got, want string) bool {
 }
 
 // The table of the command-line program (cli/test.tsv: a function, its
-// arguments, the result the Python package gives), when the package sits
-// in the repository.
+// arguments, the result the R package gives or ! and its message), when
+// the package sits in the repository.
 func TestTable(t *testing.T) {
 	f, err := os.Open("../../cli/test.tsv")
 	if err != nil {
@@ -58,11 +58,15 @@ func TestTable(t *testing.T) {
 	n := 0
 	for sc.Scan() {
 		p := strings.Split(sc.Text(), "\t")
-		if len(p) != 3 {
+		if len(p) != 3 || strings.HasPrefix(p[0], "#") {
 			continue
 		}
 		got, err := Jrun(p[0], p[1])
-		if err != nil {
+		if strings.HasPrefix(p[2], "!") {
+			if err == nil || err.Error() != p[2][1:] {
+				t.Errorf("%s %s: want the refusal %q, got %v", p[0], p[1], p[2][1:], err)
+			}
+		} else if err != nil {
 			t.Errorf("%s %s: %v", p[0], p[1], err)
 		} else if !same(got, p[2]) {
 			t.Errorf("%s %s\n got:  %s\n want: %s", p[0], p[1], got, p[2])
@@ -82,6 +86,12 @@ func TestResults(t *testing.T) {
 	r, err = Selftest("")
 	if err != nil || !strings.Contains(r, `"nfail":0,"report":""`) {
 		t.Fatalf("selftest: %s %v", r, err)
+	}
+	// the generated functions reach those of every family
+	for _, f := range []func(string) (string, error){Ntdeg, Cgstat, Bdig, Txcal, Crsev, Cconc, Clrilr, Lgtreg, Jpipe, Evlx} {
+		if _, err := f(`{}`); err == nil || !strings.Contains(err.Error(), "is missing") {
+			t.Errorf("a generated function: %v", err)
+		}
 	}
 	for _, n := range []string{"vodtst", "orrisk", "sntbnd", "kinidx", "selftest", "proof"} {
 		if !strings.Contains(Jfns(), `"`+n+`":`) {

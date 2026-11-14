@@ -29,6 +29,8 @@
 
 #include "crimlab.h"
 #include "json.h"
+#include "learn.h"
+#include "pevc.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1498,6 +1500,28 @@ bool proof(Ctx &c, Val &out) {
   return true;
 }
 
+// The families of the R package's other functions, each in its file.
+#include "jx.inc"
+#include "jfair.inc"
+#include "jtrace.inc"
+#include "jaor.inc"
+#include "jsens.inc"
+#include "jhot.inc"
+#include "jtrj.inc"
+#include "jnet.inc"
+#include "jchk.inc"
+#include "jsp.inc"
+#include "jsp2.inc"
+#include "jtox.inc"
+#include "jdtr.inc"
+#include "jcnc.inc"
+#include "jxw.inc"
+#include "jlearn.inc"
+#include "jrtm.inc"
+#include "jcba.inc"
+#include "jjdg.inc"
+#include "jhwk.inc"
+
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
 struct Ent {
@@ -1533,6 +1557,115 @@ const Ent ents[] = {
     {"hzdsel", "s h l surh surl", hzdsel},
     {"impfpr", "p ppv fnr", impfpr},
     {"sqrtlw", "area units busy? metric? speed?", sqrtlw},
+    {"fair", "score y grp cut? base? conf?", fair},
+    {"fairdf", "pred grp? y? base? conf? nboot? seed?", fairdf},
+    {"tmpaud", "pred grp? period? city? base?", tmpaud},
+    {"lipaud", "h d? pairs? lip?", lipaud},
+    {"nsbnd", "pobs a b", nsbnd},
+    {"rnkres", "est hw", rnkres},
+    {"nordet", "x off radius p? draw? seed?", nordet},
+    {"fairsim", "n? groups? props? nareas? base? bias? seed?", fairsim},
+    {"oaxbd", "y x grp ref? conf?", oaxbd},
+    {"tlvc", "x item", tlvc},
+    {"tlvlr", "xa xb na nb bg", tlvlr},
+    {"aorwt", "from to bw? nb? origin? off? tt? toff? lo? hi? each?", aorwt},
+    {"bdig", "x nd? dp? sgn?", bdig},
+    {"bnft", "dig nd? nsim? seed?", bnft},
+    {"skp", "x s2 alpha? nsim? seed?", skp},
+    {"rptc", "unit year rep y0 y1 minrep?", rptc},
+    {"rswp", "d gam? alpha?", rswp},
+    {"rshl", "d gam?", rshl},
+    {"lwss", "x y f? iter? delta?", lwss},
+    {"chmb", "a b wopt wval coarse?", chmb},
+    {"gstr", "cnt ex? rad? nsim? seed?", gstr},
+    {"sptst", "a b nboot? seed? alpha? scale?", sptst},
+    {"tfrp", "par deffect? tdist? ymax? nsim? seed? hl? nq?", tfrp},
+    {"zgll", "y x z? par prob off?", zgll},
+    {"zgem", "y x z? par prob off? maxit? tol?", zgem},
+    {"mvtll", "y x beta sig prob", mvtll},
+    {"mvtem", "y x beta sig prob maxit? tol?", mvtem},
+    {"ntdeg", "from to w? nodes? dir?", ntdeg},
+    {"ntbtw", "from to nodes? dir? norm?", ntbtw},
+    {"ntcls", "from to nodes? dir?", ntcls},
+    {"ntevc", "from to w? nodes? tol? maxit?", ntevc},
+    {"ntcore", "from to nodes?", ntcore},
+    {"ntcmp", "from to nodes? dir?", ntcmp},
+    {"ntlvn", "from to w? nodes? res? seed?", ntlvn},
+    {"ntmod", "from to memb w? nodes? res?", ntmod},
+    {"ntbrk", "from to grp nodes? dir?", ntbrk},
+    {"ntchg", "from to w? nodes? tol? maxit?", ntchg},
+    {"coofg", "inc off", coofg},
+    {"relchk", "x value type? group? ref? event? digits? tol?", relchk},
+    {"catchk", "x ref? nmin?", catchk},
+    {"hvdist", "from to r?", hvdist},
+    {"eqproj", "x y? lon0? lat0? r?", eqproj},
+    {"eqinv", "x y? lon0 lat0 r?", eqinv},
+    {"cgstat", "x y? w? k? lonlat?", cgstat},
+    {"cgmedn", "x y? lonlat?", cgmedn},
+    {"webpt", "x y? w? start? tol? maxit? lonlat?", webpt},
+    {"sdell", "x y? w? k? c? lonlat?", sdell},
+    {"cvhull", "x y? lonlat?", cvhull},
+    {"nnidx", "x y? win kmax? nsim? seed? dist? metric?", nnidx},
+    {"ripk", "x y? win r corr? metric?", ripk},
+    {"ripenv", "x y? win r corr? nsim? seed?", ripenv},
+    {"fzmode", "x y? r count? metric? lonlat?", fzmode},
+    {"kmpart", "x y? k init? cell? upd? maxit? seed? count? lonlat?", kmpart},
+    {"nnhclu", "x y? area? fixd? p? minpts? minhi? maxord? k? c? count? lonlat?", nnhclu},
+    {"stacel", "x y? win nx? ny? r top? minpts? k? c? count?", stacel},
+    {"mantst", "x y? t cs? ct? nsim? seed? metric? lonlat?", mantst},
+    {"stmavg", "x y? t span? lonlat?", stmavg},
+    {"jtdecay", "d type par tab?", jtdecay},
+    {"jtsurf", "x y? win nx ny type par tab? metric? mode?", jtsurf},
+    {"jtcal", "d t h w? kern? refl?", jtcal},
+    {"jtacc", "prob win base", jtacc},
+    {"bjtc", "pj od dest", bjtc},
+    {"spwt", "x? y? type? k? d? nb? idw? style? metric? lonlat?", spwt},
+    {"gearc", "x w nsim? seed?", gearc},
+    {"gorg", "x w nsim? seed?", gorg},
+    {"lmorn", "x w nsim? seed?", lmorn},
+    {"locgi", "x w star?", locgi},
+    {"dirmn", "x? y? origin? w? angle? lonlat?", dirmn},
+    {"hdbang", "x y? v w? nn? ang? ntrip? iter? lonlat?", hdbang},
+    {"crwalk", "x y? h? nsim? seed? lonlat?", crwalk},
+    {"rnnhcl", "x y? base bw? h p? minpts? k? c? lonlat?", rnnhcl},
+    {"txcal", "conc resp w? unk? k?", txcal},
+    {"lodimp", "x lod meth?", lodimp},
+    {"pmrrat", "cen per cut?", pmrrat},
+    {"etohlr", "eth prop? but? etg? thr?", etohlr},
+    {"mtxrel", "base dil days? stage? dmax? dcap? smax? scap?", mtxrel},
+    {"detrsp", "x ben sanc p", detrsp},
+    {"dtrid", "p s c y? log? rho?", dtrid},
+    {"inspg", "a x steps? dt?", inspg},
+    {"insphs", "temp? cost? steps? rate? x0?", insphs},
+    {"colarr", "a e bg", colarr},
+    {"crsev", "x off w unit? time? pop? per? base? sent?", crsev},
+    {"zcomp", "x unit cat w?", zcomp},
+    {"cconc", "x w? by? fracs? pop? nsim? seed?", cconc},
+    {"hilltl", "x xmin? discrete? approx? mintl?", hilltl},
+    {"crcap", "x kappa? int?", crcap},
+    {"dkfig", "v? r? amax? bmax? thr? va? ra? rb? lam? k?", dkfig},
+    {"bndxw", "from to x unit w?", bndxw},
+    {"synexp", "y x ax pop", synexp},
+    {"clrilr", "x type? ps?", clrilr},
+    {"preslr", "x m1 s1 m2 s2", preslr},
+    {"tpdmc", "pres? decay? mum? states? start? steps? seed?", tpdmc},
+    {"tpbhm", "y x grp? pm? psd? level?", tpbhm},
+    {"enpath", "x y fam? alpha? lambda? nlam? lmr? fold? tol? maxit? scr?", enpath},
+    {"lgtreg", "x y tol? maxit?", lgtreg},
+    {"rfor", "x y newx? ntree? mtry? minnode? frac? repl? hon? imb? seed?", rfor},
+    {"crchyp", "x y home?", crchyp},
+    {"hitscr", "s home", hitscr},
+    {"rtmfit", "y lay cell? rad? kind? level?", rtmfit},
+    {"agemix", "curves? shares? ages? panel? nperm? seed?", agemix},
+    {"cumrsk", "age ev pop atrisk? dth? level?", cumrsk},
+    {"jpipe", "num den win? lag? grp?", jpipe},
+    {"smdbal", "x d w? ps? thr?", smdbal},
+    {"evlx", "est lo? hi? type? rare? sd?", evlx},
+    {"jdgiv", "z? d y w? dsh? deff?", jdgiv},
+    {"mmshr", "sent min grp?", mmshr},
+    {"hwkres", "times hor? par? kernel? base? per?", hwkres},
+    {"hwksim", "par hor kernel? base? per? win? sigma? seed? nmax?", hwksim},
+    {"stpcp", "y x? minseg? nperm? seed?", stpcp},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

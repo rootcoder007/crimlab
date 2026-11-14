@@ -33,6 +33,11 @@ public final class Tests {
     ck("refused", err("orrisk", "{\"or\": 2, \"rate\": 1, \"share\": 0.3}")
         .equals("orrisk: `rate` must be one number strictly between 0 and 1."));
     ck("no function", err("nope", "{}").contains("no function nope"));
+    r = Crimlab.jrun("ntdeg", "{\"from\": [\"a\", \"a\"], \"to\": [\"b\", \"c\"]}");
+    ck("ntdeg " + r, r.startsWith("{\"node\":[\"a\",\"b\",\"c\"],\"deg\":[2,1,1]"));
+    for (String f : new String[] {"cgstat", "bdig", "txcal", "crsev", "cconc", "clrilr", "lgtreg", "jpipe", "evlx"}) {
+      ck(f, err(f, "{}").endsWith("is missing."));
+    }
     StringBuilder b = new StringBuilder("{\"same\": [");
     for (int i = 1; i < 20000; i++) {
       b.append(i == 1 ? "" : ",").append(i / 7.0);

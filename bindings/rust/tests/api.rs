@@ -8,6 +8,26 @@ fn every_function_is_there() {
 }
 
 #[test]
+fn every_family_is_reached() {
+    // one function of each family, through the generated functions
+    let r = crimlab::ntdeg(r#"{"from": ["a", "a"], "to": ["b", "c"]}"#).unwrap();
+    assert!(r.starts_with(r#"{"node":["a","b","c"],"deg":[2,1,1]"#), "{r}");
+    for e in [
+        crimlab::cgstat("{}"),
+        crimlab::bdig("{}"),
+        crimlab::txcal("{}"),
+        crimlab::crsev("{}"),
+        crimlab::cconc("{}"),
+        crimlab::clrilr("{}"),
+        crimlab::lgtreg("{}"),
+        crimlab::jpipe("{}"),
+        crimlab::evlx("{}"),
+    ] {
+        assert!(e.unwrap_err().0.contains("is missing"));
+    }
+}
+
+#[test]
 fn results() {
     let r = crimlab::orrisk(r#"{"or": 2, "rate": 0.1, "share": 0.3}"#).unwrap();
     // the last bits depend on the C library and on fused multiply-adds
