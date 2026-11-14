@@ -1509,6 +1509,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jnet.inc"
 #include "jchk.inc"
 #include "jsp.inc"
+#include "jsp2.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1607,6 +1608,15 @@ const Ent ents[] = {
     {"jtcal", "d t h w? kern? refl?", jtcal},
     {"jtacc", "prob win base", jtacc},
     {"bjtc", "pj od dest", bjtc},
+    {"spwt", "x? y? type? k? d? nb? idw? style? metric? lonlat?", spwt},
+    {"gearc", "x w nsim? seed?", gearc},
+    {"gorg", "x w nsim? seed?", gorg},
+    {"lmorn", "x w nsim? seed?", lmorn},
+    {"locgi", "x w star?", locgi},
+    {"dirmn", "x? y? origin? w? angle? lonlat?", dirmn},
+    {"hdbang", "x y? v w? nn? ang? ntrip? iter? lonlat?", hdbang},
+    {"crwalk", "x y? h? nsim? seed? lonlat?", crwalk},
+    {"rnnhcl", "x y? base bw? h p? minpts? k? c? lonlat?", rnnhcl},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
