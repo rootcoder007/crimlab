@@ -45,7 +45,9 @@ jobs:
           # a cross (U+2716) is a failing check
           quit(status = as.integer(any(grepl("✖", s))))
           RSCRIPT
-          docker run --rm -e GITHUB_TOKEN -e PKG_SYSREQS=false \
+          # the review bot kills a check that needs more than about 2 GB
+          docker run --rm --memory=2g --memory-swap=2g \
+            -e GITHUB_TOKEN -e PKG_SYSREQS=false \
             -v "$PWD:/pkg" -w /pkg --entrypoint Rscript \
             ghcr.io/ropensci-review-tools/pkgcheck-action:latest \
             .pkgcheck/run.R
