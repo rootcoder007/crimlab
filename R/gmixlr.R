@@ -18,9 +18,9 @@
 #' single heterozygous contributor's peaks have coefficient of variation
 #' `omega`, where `s(a) = sum_k m_k n_k(a) d(a)`. With `deg = TRUE`,
 #' `d(a) = beta^((size(a) - 125) / 100)`, degradation by fragment size in
-#' bases (`beta` fitted, at most 1); otherwise `d(a) = 1`. With
-#' `stut = TRUE`, each allele passes the share `xi` of its signal to the
-#' position one repeat shorter (backward stutter): `s(a)` becomes
+#' bases (`beta` fitted, above 0); otherwise `d(a) = 1`. With
+#' `stut = TRUE`, each allele seen passes the share `xi` of its signal to
+#' the position one repeat shorter (backward stutter): `s(a)` becomes
 #' `(1 - xi) s(a) + xi s(a + 1)`, `xi` fitted. A peak lower than the
 #' analytical threshold `at` is not seen, with the chance the gamma gives
 #' (drop-out). A peak seen where `s(a) = 0` is a drop-in, of chance `pc`
@@ -29,26 +29,37 @@
 #' `1 - pc`. Unknown contributors' genotypes are drawn from the
 #' frequencies with the coancestry correction `theta` (Balding and
 #' Nichols), given the alleles of every profile in `ref`; markers are
-#' independent.
+#' independent. The alleles not seen at a marker, those of the reference
+#' profiles among them, are taken together as one allele that does not
+#' stutter and has the largest size listed at the marker; the positions
+#' one repeat below the alleles seen are kept as positions no one carries.
+#'
+#' This is the model of EuroForMix (Bleka, Storvik and Gill 2016) with
+#' backward stutter only and its frequencies not normalised (the rest of a
+#' marker is the chance of an allele not listed), where the person of
+#' interest is a known non-contributor under `hd` (every profile in `ref`
+#' conditions the unknowns). Its tests compare the log likelihood with
+#' EuroForMix's at given parameters, which agree to 1e-6 (EuroForMix keeps
+#' its genotype weights in single precision), and the fitted maxima.
 #'
 #' Limits, plainly. The result is only as good as the model: the number of
 #' contributors is the user's assumption, not estimated; forward and
 #' double stutter, locus-specific amplification efficiencies, peak
 #' height variance that differs by marker, and relatives among the
 #' contributors are not modelled; the frequencies are used as given
-#' (sampling error in them is ignored). Alleles that are neither seen,
-#' nor carried by a profile in `ref`, nor (with stutter) one repeat from
-#' such an allele are taken together as one allele that does not stutter,
-#' whose size (for degradation) is the mean of the listed sizes at the
-#' marker; the likelihood is exact otherwise. Stutter needs numeric
-#' allele labels (repeat numbers). The fit is a numerical maximisation
+#' (sampling error in them is ignored). Taking the alleles not seen as
+#' one allele is exact without stutter and degradation; with them, an
+#' allele not seen neither stutters nor is sized by its own fragment.
+#' Stutter needs numeric labels (repeat numbers) for the alleles seen.
+#' The fit is a numerical maximisation
 #' (BFGS over transformed parameters from several starts) and can find a
 #' local maximum; the sum over the unknowns grows as (number of
 #' genotypes)^(unknowns) per marker and is refused above 2 million
 #' combinations, so at most 5 contributors and in practice 3 unknowns.
 #' This is not a validated casework system; its likelihoods are checked
-#' against enumeration by hand, not against a laboratory's validation
-#' data. Give `par` to evaluate both accounts at given parameters instead
+#' against enumeration by hand and against EuroForMix, not against a
+#' laboratory's validation data. Give `par` to evaluate both accounts at
+#' given parameters instead
 #' of fitting them.
 #'
 #' @param peaks The peaks seen: a data frame with columns `locus`,

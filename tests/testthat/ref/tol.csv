@@ -140,3 +140,6 @@ cmps,*/score,exact,0,test-cmpsc.R
 cmps,*/nseg,exact,0,test-cmpsc.R
 cmps,*/pos,exact,0,test-cmpsc.R
 cmps,*,exact,0,test-cmpsc.R
+efm,*/ll,maxabs,1e-6,test-gmixlr.R
+efm,*/mle,maxabs,1e-6,test-gmixlr.R
+efm,*,exact,0,test-gmixlr.R

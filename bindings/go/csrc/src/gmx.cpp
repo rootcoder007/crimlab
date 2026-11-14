@@ -48,7 +48,7 @@ int clab_gmxlik(int nl, const int *np, const double *p, const double *y, const d
   const double *m = par + 4;
   if (!(mu > 0) || !(om > 0) || !std::isfinite(mu) || !std::isfinite(om) || !(at > 0) ||
       !(pc >= 0 && pc < 1) || !(lambda > 0) || !(theta >= 0 && theta < 1) ||
-      (deg && !(be > 0 && be <= 1)) || (stut && !(xi >= 0 && xi < 1))) {
+      (deg && !(be > 0 && std::isfinite(be))) || (stut && !(xi >= 0 && xi < 1))) {
     return CLAB_EDOM;
   }
   for (int k = 0; k < nk + nu; ++k) {
@@ -176,13 +176,13 @@ struct Ctx {
   int rc;
 };
 
-// parameters from the free values u: log mu, log omega, [logit beta],
+// parameters from the free values u: log mu, log omega, [log beta],
 // [logit xi], then the nc - 1 log-ratios of the proportions to the last
 void unpack(const Lay &ly, int nc, const double *u, double *par) {
   int j = 2;
   par[0] = std::exp(u[0]);
   par[1] = std::exp(u[1]);
-  par[2] = ly.deg ? 1 / (1 + std::exp(-u[j++])) : 1.0;
+  par[2] = ly.deg ? std::exp(u[j++]) : 1.0;
   par[3] = ly.stut ? 1 / (1 + std::exp(-u[j++])) : 0.0;
   double mx = 0.0;
   for (int k = 0; k < nc - 1; ++k) mx = std::max(mx, u[j + k]);
@@ -345,7 +345,7 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
         if (!(v > 0) || !std::isfinite(v)) return bad("`par`: mu and omega must be above 0.");
         fixed[k == "mu" ? 0 : 1] = v;
       } else if (k == "beta") {
-        if (!(v > 0 && v <= 1)) return bad("`par`: beta must be above 0 and at most 1.");
+        if (!(v > 0) || !std::isfinite(v)) return bad("`par`: beta must be above 0.");
         fixed[2] = v;
       } else if (k == "xi") {
         if (!(v >= 0 && v < 1)) return bad("`par`: xi must be from 0 and below 1.");
@@ -390,9 +390,6 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
           lh += in.ph[q];
         }
       }
-      for (std::size_t q = 0; q < nr; ++q) {
-        if (in.rloc.s[q] == l && (in.ra1.s[q] == in.fal.s[i] || in.ra2.s[q] == in.fal.s[i])) keep[j] = 1;
-      }
     }
     if (ps > 1 + 1e-9) return bad("the frequencies at locus " + l + " sum to more than 1.");
     if (lh > 0) {
@@ -400,29 +397,15 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
       ++hn;
     }
     std::vector<double> lab(fi.size(), 0.0);
-    if (in.stut) {
-      for (std::size_t j = 0; j < fi.size(); ++j) {
-        if (!num(fi[j], lab[j])) {
-          return bad("the stutter model needs numeric alleles; locus " + l + " has " + in.fal.s[static_cast<std::size_t>(fi[j])] + ".");
-        }
-      }
-      // the parents of the peaks seen, then the stutter targets of all
-      // kept, as alleles of their own
-      std::vector<char> k0 = keep;
-      for (std::size_t j = 0; j < fi.size(); ++j) {
-        for (std::size_t q = 0; q < fi.size(); ++q) {
-          if (k0[q] && std::fabs(lab[j] - 1 - lab[q]) < 1e-9) keep[j] = 1;
-        }
-      }
-      k0 = keep;
-      for (std::size_t j = 0; j < fi.size(); ++j) {
-        for (std::size_t q = 0; q < fi.size(); ++q) {
-          if (k0[q] && std::fabs(lab[q] - 1 - lab[j]) < 1e-9) keep[j] = 1;
-        }
+    for (std::size_t j = 0; in.stut && j < fi.size(); ++j) {
+      if (keep[j] && !num(fi[j], lab[j])) {
+        return bad("the stutter model needs numeric alleles; locus " + l + " has " + in.fal.s[static_cast<std::size_t>(fi[j])] + ".");
       }
     }
-    // positions: the alleles kept, the rest as one allele Q, then the
-    // stutter targets that are no allele
+    // positions: the alleles seen; every other allele (those of the
+    // reference profiles among them) as one allele Q, which does not
+    // stutter and has the largest size listed at the marker; then the
+    // stutter targets of the alleles seen that were not seen themselves
     std::vector<std::string> pl;
     std::vector<double> pp, pz, pn;
     double rest = ps, zs = 0.0;
@@ -430,7 +413,7 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
     for (std::size_t j = 0; j < fi.size(); ++j) {
       const std::size_t i = static_cast<std::size_t>(fi[j]);
       if (in.deg) {
-        zs += in.fsz[i];
+        zs = nz ? std::max(zs, in.fsz[i]) : in.fsz[i];
         ++nz;
       }
       if (!keep[j]) continue;
@@ -446,7 +429,7 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
     if (q) {
       pl.push_back("");
       pp.push_back(qf);
-      pz.push_back(nz ? zs / nz : 0.0);
+      pz.push_back(zs);
       pn.push_back(NAN);
     }
     std::vector<int> st(pl.size(), -1);
@@ -478,11 +461,12 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
       }
     }
     double tc = 0.0;
+    // an allele not seen is Q (which then exists: its frequency is part of Q's)
     auto code = [&pl, nkept](const std::string &a) {
       for (std::size_t j = 0; j < nkept; ++j) {
         if (pl[j] == a) return static_cast<int>(j);
       }
-      return -1;
+      return static_cast<int>(nkept);
     };
     for (std::size_t r = 0; r < nr; ++r) {
       if (in.rloc.s[r] != l) continue;
@@ -546,7 +530,7 @@ int gmixlr(const GmxIn &in, GmxOut &out, std::string &err) {
         u[0] = std::log(hsum / hn / 2);
         u[1] = std::log(0.3);
         int j = 2;
-        if (ly.deg) u[static_cast<std::size_t>(j++)] = std::log(0.8 / 0.2);
+        if (ly.deg) u[static_cast<std::size_t>(j++)] = std::log(0.8);
         if (ly.stut) u[static_cast<std::size_t>(j++)] = std::log(0.05 / 0.95);
         for (int k = 0; k < nc - 1; ++k) {
           // equal proportions, then falling and rising ones

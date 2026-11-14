@@ -1,0 +1,173 @@
+# Written by dev/ref/efm.R with euroformix 4.2.6.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
+# Do not edit: run the generator again.
+list(one = list(peaks = structure(list(locus = c("D3S1358", "D3S1358"
+), allele = c(0x1.cp+3, 0x1p+4), height = c(0x1.2e8p+10, 0x1.1f8p+10
+)), row.names = c(1L, 3L), class = "data.frame"), freq = structure(list(
+    locus = c("D3S1358", "D3S1358", "D3S1358", "D3S1358", "D3S1358", 
+    "D3S1358", "VWA", "VWA", "VWA", "VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 
+    0x1.cp+3, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 
+    0x1p+4, 0x1.1p+4, 0x1.2p+4, 0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 
+    0x1.999999999999ap-3, 0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 
+    0x1.999999999999ap-5, 0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 
+    0x1.999999999999ap-3, 0x1.999999999999ap-4, 0x1.999999999999ap-5
+    )), class = "data.frame", row.names = c(NA, -12L)), ref = structure(list(
+    id = c("V", "V"), locus = c("D3S1358", "VWA"), a1 = c(0x1.cp+3, 
+    0x1p+4), a2 = c(0x1p+4, 0x1.1p+4)), row.names = 1:2, class = "data.frame"), 
+    hp = "V", hd = character(0), nc = 0x1p+0, pc = 0x0p+0, lambda = 0x1.47ae147ae147bp-7, 
+    theta = 0x0p+0, stut = FALSE, deg = FALSE, par = c(mu = 0x1.13p+10, 
+    omega = 0x1.3333333333333p-3, m1 = 0x1p+0), ll = c(-0x1.09174236b03f6p+8, 
+    -0x1.0b64b86eb03f6p+8), mle = c(-0x1.3decbe3138a1ap+4, -0x1.62c421b138a1ap+4
+    )), din = list(peaks = structure(list(locus = c("D3S1358", 
+"D3S1358", "VWA"), allele = c(0x1.ep+3, 0x1.ap+3, 0x1.1p+4), 
+    height = c(0x1.c2p+9, 0x1.ep+6, 0x1.f4p+9)), class = "data.frame", row.names = c(NA, 
+-3L)), freq = structure(list(locus = c("D3S1358", "D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "D3S1358", "VWA", "VWA", "VWA", 
+"VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 0x1.cp+3, 0x1.ep+3, 
+0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.2p+4, 
+0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 0x1.999999999999ap-3, 
+0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 0x1.999999999999ap-5, 0x1.999999999999ap-4, 
+0x1p-2, 0x1.3333333333333p-2, 0x1.999999999999ap-3, 0x1.999999999999ap-4, 
+0x1.999999999999ap-5)), class = "data.frame", row.names = c(NA, 
+-12L)), ref = structure(list(id = c("S", "S"), locus = c("D3S1358", 
+"VWA"), a1 = c(0x1.ep+3, 0x1.1p+4), a2 = c(0x1.1p+4, 0x1.2p+4
+)), row.names = 3:4, class = "data.frame"), hp = "S", hd = character(0), 
+    nc = 0x1p+0, pc = 0x1.999999999999ap-5, lambda = 0x1.47ae147ae147bp-7, 
+    theta = 0x0p+0, stut = FALSE, deg = FALSE, par = c(mu = 0x1.f4p+9, 
+    omega = 0x1p-2, m1 = 0x1p+0), ll = c(-0x1.760eee5056a72p+6, 
+    -0x1.506e8c4fc1846p+5), mle = c(-0x1.deb926a5ed136p+4, -0x1.a7f0e6a69d88p+4
+    )), two = list(peaks = structure(list(locus = c("D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "VWA", "VWA", "VWA"), allele = c(0x1.cp+3, 
+0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1p+4, 0x1.1p+4, 0x1.2p+4), height = c(0x1.2e8p+10, 
+0x1.7cp+8, 0x1.1f8p+10, 0x1.a4p+8, 0x1.5ep+10, 0x1.eap+10, 0x1.31p+9
+)), class = "data.frame", row.names = c(NA, -7L)), freq = structure(list(
+    locus = c("D3S1358", "D3S1358", "D3S1358", "D3S1358", "D3S1358", 
+    "D3S1358", "VWA", "VWA", "VWA", "VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 
+    0x1.cp+3, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 
+    0x1p+4, 0x1.1p+4, 0x1.2p+4, 0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 
+    0x1.999999999999ap-3, 0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 
+    0x1.999999999999ap-5, 0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 
+    0x1.999999999999ap-3, 0x1.999999999999ap-4, 0x1.999999999999ap-5
+    )), class = "data.frame", row.names = c(NA, -12L)), ref = structure(list(
+    id = c("V", "V", "S", "S"), locus = c("D3S1358", "VWA", "D3S1358", 
+    "VWA"), a1 = c(0x1.cp+3, 0x1p+4, 0x1.ep+3, 0x1.1p+4), a2 = c(0x1p+4, 
+    0x1.1p+4, 0x1.1p+4, 0x1.2p+4)), class = "data.frame", row.names = c(NA, 
+-4L)), hp = c("V", "S"), hd = "V", nc = 0x1p+1, pc = 0x1.999999999999ap-5, 
+    lambda = 0x1.47ae147ae147bp-7, theta = 0x0p+0, stut = FALSE, 
+    deg = FALSE, par = c(mu = 0x1.c2p+10, omega = 0x1.eb851eb851eb8p-4, 
+    m1 = 0x1.75c28f5c28f5cp-1, m2 = 0x1.147ae147ae148p-2), ll = c(-0x1.5db3531ef57c3p+5, 
+    -0x1.835e7fe4169abp+5), mle = c(-0x1.5adb6e2fdb5a4p+5, -0x1.808a4a0357c42p+5
+    )), drop = list(peaks = structure(list(locus = c("D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "VWA", "VWA"), allele = c(0x1.cp+3, 
+0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1p+4, 0x1.1p+4), height = c(0x1.2e8p+10, 
+0x1.7cp+8, 0x1.1f8p+10, 0x1.a4p+8, 0x1.5ep+10, 0x1.eap+10)), row.names = c(NA, 
+6L), class = "data.frame"), freq = structure(list(locus = c("D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "D3S1358", "D3S1358", "VWA", 
+"VWA", "VWA", "VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 0x1.cp+3, 
+0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 
+0x1.2p+4, 0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 
+0x1.999999999999ap-3, 0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 0x1.999999999999ap-5, 
+0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 0x1.999999999999ap-3, 
+0x1.999999999999ap-4, 0x1.999999999999ap-5)), class = "data.frame", row.names = c(NA, 
+-12L)), ref = structure(list(id = c("V", "V", "S", "S"), locus = c("D3S1358", 
+"VWA", "D3S1358", "VWA"), a1 = c(0x1.cp+3, 0x1p+4, 0x1.ep+3, 
+0x1.1p+4), a2 = c(0x1p+4, 0x1.1p+4, 0x1.1p+4, 0x1.2p+4)), class = "data.frame", row.names = c(NA, 
+-4L)), hp = c("V", "S"), hd = "V", nc = 0x1p+1, pc = 0x1.999999999999ap-5, 
+    lambda = 0x1.47ae147ae147bp-7, theta = 0x0p+0, stut = FALSE, 
+    deg = FALSE, par = c(mu = 0x1.a9p+10, omega = 0x1.999999999999ap-3, 
+    m1 = 0x1.999999999999ap-1, m2 = 0x1.999999999999ap-3), ll = c(-0x1.754792cf97f16p+5, 
+    -0x1.5e03b123362b8p+5), mle = c(-0x1.672b3e0d5c375p+5, -0x1.383b867835b8ep+5
+    )), stut = list(peaks = structure(list(locus = c("D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "VWA", "VWA", "VWA", "D3S1358", 
+"VWA"), allele = c(0x1.cp+3, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1p+4, 
+0x1.1p+4, 0x1.2p+4, 0x1.ap+3, 0x1.ep+3), height = c(0x1.2e8p+10, 
+0x1.7cp+8, 0x1.1f8p+10, 0x1.a4p+8, 0x1.5ep+10, 0x1.eap+10, 0x1.31p+9, 
+0x1.7cp+6, 0x1.b8p+6)), row.names = c(NA, -9L), class = "data.frame"), 
+    freq = structure(list(locus = c("D3S1358", "D3S1358", "D3S1358", 
+    "D3S1358", "D3S1358", "D3S1358", "VWA", "VWA", "VWA", "VWA", 
+    "VWA", "VWA"), allele = c(0x1.ap+3, 0x1.cp+3, 0x1.ep+3, 0x1p+4, 
+    0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.2p+4, 
+    0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 0x1.999999999999ap-3, 
+    0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 0x1.999999999999ap-5, 
+    0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 0x1.999999999999ap-3, 
+    0x1.999999999999ap-4, 0x1.999999999999ap-5)), class = "data.frame", row.names = c(NA, 
+    -12L)), ref = structure(list(id = c("V", "V", "S", "S"), 
+        locus = c("D3S1358", "VWA", "D3S1358", "VWA"), a1 = c(0x1.cp+3, 
+        0x1p+4, 0x1.ep+3, 0x1.1p+4), a2 = c(0x1p+4, 0x1.1p+4, 
+        0x1.1p+4, 0x1.2p+4)), class = "data.frame", row.names = c(NA, 
+    -4L)), hp = c("V", "S"), hd = "V", nc = 0x1p+1, pc = 0x1.999999999999ap-5, 
+    lambda = 0x1.47ae147ae147bp-7, theta = 0x0p+0, stut = TRUE, 
+    deg = FALSE, par = c(mu = 0x1.c2p+10, omega = 0x1.eb851eb851eb8p-4, 
+    xi = 0x1.1eb851eb851ecp-4, m1 = 0x1.75c28f5c28f5cp-1, m2 = 0x1.147ae147ae148p-2
+    ), ll = c(-0x1.b461384d8618ep+5, -0x1.da09891ba986ep+5), 
+    mle = c(-0x1.b15b89e894526p+5, -0x1.d709a2a9231f4p+5)), deg = list(
+    peaks = structure(list(locus = c("D3S1358", "D3S1358", "D3S1358", 
+    "D3S1358", "VWA", "VWA", "VWA", "D3S1358"), allele = c(0x1.cp+3, 
+    0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1p+4, 0x1.1p+4, 0x1.2p+4, 0x1.ap+3
+    ), height = c(0x1.2e8p+10, 0x1.7cp+8, 0x1.1f8p+10, 0x1.a4p+8, 
+    0x1.5ep+10, 0x1.eap+10, 0x1.31p+9, 0x1.7cp+6)), row.names = c(NA, 
+    -8L), class = "data.frame"), freq = structure(list(locus = c("D3S1358", 
+    "D3S1358", "D3S1358", "D3S1358", "D3S1358", "D3S1358", "VWA", 
+    "VWA", "VWA", "VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 
+    0x1.cp+3, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 
+    0x1p+4, 0x1.1p+4, 0x1.2p+4, 0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 
+    0x1.999999999999ap-3, 0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 
+    0x1.999999999999ap-5, 0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 
+    0x1.999999999999ap-3, 0x1.999999999999ap-4, 0x1.999999999999ap-5
+    ), size = c(0x1.ca7ae147ae148p+6, 0x1.db147ae147ae1p+6, 0x1.eb851eb851eb8p+6, 
+    0x1.fbe147ae147aep+6, 0x1.06147ae147ae1p+7, 0x1.26f5c28f5c28fp+7, 
+    0x1.21f5c28f5c28fp+7, 0x1.2a0f5c28f5c29p+7, 0x1.321eb851eb852p+7, 
+    0x1.3a3851eb851ecp+7, 0x1.423d70a3d70a4p+7, 0x1.72p+7)), row.names = c(NA, 
+    -12L), class = "data.frame"), ref = structure(list(id = c("V", 
+    "V", "S", "S"), locus = c("D3S1358", "VWA", "D3S1358", "VWA"
+    ), a1 = c(0x1.cp+3, 0x1p+4, 0x1.ep+3, 0x1.1p+4), a2 = c(0x1p+4, 
+    0x1.1p+4, 0x1.1p+4, 0x1.2p+4)), class = "data.frame", row.names = c(NA, 
+    -4L)), hp = c("V", "S"), hd = "V", nc = 0x1p+1, pc = 0x1.999999999999ap-5, 
+    lambda = 0x1.47ae147ae147bp-7, theta = 0x0p+0, stut = TRUE, 
+    deg = TRUE, par = c(mu = 0x1.dbp+10, omega = 0x1.0a3d70a3d70a4p-3, 
+    beta = 0x1.999999999999ap-1, xi = 0x1.eb851eb851eb8p-5, m1 = 0x1.6666666666666p-1, 
+    m2 = 0x1.3333333333333p-2), ll = c(-0x1.9f54d8524d0e8p+5, 
+    -0x1.c4ff9344266dp+5), mle = c(-0x1.7a33a4c771ddp+5, -0x1.9fe2b9aa0a414p+5
+    )), fst = list(peaks = structure(list(locus = c("D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "VWA", "VWA", "VWA"), allele = c(0x1.cp+3, 
+0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1p+4, 0x1.1p+4, 0x1.2p+4), height = c(0x1.2e8p+10, 
+0x1.7cp+8, 0x1.1f8p+10, 0x1.a4p+8, 0x1.5ep+10, 0x1.eap+10, 0x1.31p+9
+)), class = "data.frame", row.names = c(NA, -7L)), freq = structure(list(
+    locus = c("D3S1358", "D3S1358", "D3S1358", "D3S1358", "D3S1358", 
+    "D3S1358", "VWA", "VWA", "VWA", "VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 
+    0x1.cp+3, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 
+    0x1p+4, 0x1.1p+4, 0x1.2p+4, 0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 
+    0x1.999999999999ap-3, 0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 
+    0x1.999999999999ap-5, 0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 
+    0x1.999999999999ap-3, 0x1.999999999999ap-4, 0x1.999999999999ap-5
+    )), class = "data.frame", row.names = c(NA, -12L)), ref = structure(list(
+    id = c("V", "V", "S", "S"), locus = c("D3S1358", "VWA", "D3S1358", 
+    "VWA"), a1 = c(0x1.cp+3, 0x1p+4, 0x1.ep+3, 0x1.1p+4), a2 = c(0x1p+4, 
+    0x1.1p+4, 0x1.1p+4, 0x1.2p+4)), class = "data.frame", row.names = c(NA, 
+-4L)), hp = c("V", "S"), hd = "V", nc = 0x1p+1, pc = 0x1.999999999999ap-5, 
+    lambda = 0x1.47ae147ae147bp-7, theta = 0x1.eb851eb851eb8p-6, 
+    stut = FALSE, deg = FALSE, par = c(mu = 0x1.c2p+10, omega = 0x1.eb851eb851eb8p-4, 
+    m1 = 0x1.75c28f5c28f5cp-1, m2 = 0x1.147ae147ae148p-2), ll = c(-0x1.5db3531ef57c3p+5, 
+    -0x1.827425669da4cp+5), mle = c(-0x1.5adb6e2fdb5a4p+5, -0x1.7f9fc56ff18fep+5
+    )), unk2 = list(peaks = structure(list(locus = c("D3S1358", 
+"D3S1358", "D3S1358", "D3S1358", "VWA", "VWA", "VWA"), allele = c(0x1.cp+3, 
+0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1p+4, 0x1.1p+4, 0x1.2p+4), height = c(0x1.2e8p+10, 
+0x1.7cp+8, 0x1.1f8p+10, 0x1.a4p+8, 0x1.5ep+10, 0x1.eap+10, 0x1.31p+9
+)), class = "data.frame", row.names = c(NA, -7L)), freq = structure(list(
+    locus = c("D3S1358", "D3S1358", "D3S1358", "D3S1358", "D3S1358", 
+    "D3S1358", "VWA", "VWA", "VWA", "VWA", "VWA", "VWA"), allele = c(0x1.ap+3, 
+    0x1.cp+3, 0x1.ep+3, 0x1p+4, 0x1.1p+4, 0x1.5p+4, 0x1.ep+3, 
+    0x1p+4, 0x1.1p+4, 0x1.2p+4, 0x1.3p+4, 0x1.9p+4), freq = c(0x1.999999999999ap-4, 
+    0x1.999999999999ap-3, 0x1p-2, 0x1p-2, 0x1.3333333333333p-3, 
+    0x1.999999999999ap-5, 0x1.999999999999ap-4, 0x1p-2, 0x1.3333333333333p-2, 
+    0x1.999999999999ap-3, 0x1.999999999999ap-4, 0x1.999999999999ap-5
+    )), class = "data.frame", row.names = c(NA, -12L)), ref = structure(list(
+    id = c("V", "V", "S", "S"), locus = c("D3S1358", "VWA", "D3S1358", 
+    "VWA"), a1 = c(0x1.cp+3, 0x1p+4, 0x1.ep+3, 0x1.1p+4), a2 = c(0x1p+4, 
+    0x1.1p+4, 0x1.1p+4, 0x1.2p+4)), class = "data.frame", row.names = c(NA, 
+-4L)), hp = c("V", "S"), hd = character(0), nc = 0x1p+1, pc = 0x1.999999999999ap-5, 
+    lambda = 0x1.47ae147ae147bp-7, theta = 0x0p+0, stut = FALSE, 
+    deg = FALSE, par = c(mu = 0x1.c2p+10, omega = 0x1.3333333333333p-3, 
+    m1 = 0x1.6666666666666p-1, m2 = 0x1.3333333333333p-2), ll = c(-0x1.65b0af3b8c906p+5, 
+    -0x1.ace3e0f6bd791p+5), mle = c(NA_real_, NA_real_)), commit = "800c314c91235e2b9a67270437226d4dada325b4", 
+    pkgs = c(euroformix = "4.2.6"))

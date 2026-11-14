@@ -1,5 +1,14 @@
 # crimlab 0.0.0.9000
 
+* `gmixlr()` now follows EuroForMix's model where they differed: only the
+  alleles seen are kept apart, every other allele (those of the reference
+  profiles not seen among them) is one allele that does not stutter, sized
+  as the largest size listed at the marker, and the degradation slope may
+  exceed 1. Its log likelihood equals EuroForMix's to 1e-6 at given
+  parameters on eight cases and at the maximum on seven (one and two
+  contributors, drop-out, drop-in, stutter, degradation, coancestry;
+  `dev/ref/efm.R`);
+  the rest is EuroForMix's single precision.
 * `pedlr()`: the likelihood ratio of two pedigrees, given as tables of
   people and their parents, from DNA profiles at autosomal markers. The
   people not typed are summed over exactly by variable elimination on the

@@ -158,8 +158,8 @@ int clab_pedlik(int n, const int *fa, const int *mo, const int *g, int na, const
  * read when stut); cn, the allele's count among the conditioning
  * profiles, cl[l] their number of alleles (the Balding-Nichols draw with
  * theta). kg: the known contributors' position codes, two per marker and
- * contributor, (l nk + k) 2. par: mu, omega, beta (degradation, in (0,
- * 1]), xi (stutter, in [0, 1)) and the nk + nu mixture proportions,
+ * contributor, (l nk + k) 2. par: mu, omega, beta (degradation, above
+ * 0), xi (stutter, in [0, 1)) and the nk + nu mixture proportions,
  * knowns first. Peak at position a: gamma with shape s(a) / omega^2 and
  * scale mu omega^2, s(a) the doses times the proportions, degraded by
  * beta^((size - 125) / 100) and moved by stutter; below at it is not

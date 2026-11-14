@@ -327,7 +327,7 @@ test_that("gmixlr() refuses bad input", {
       ),
       list(
         "numeric alleles",
-        peaks = pk,
+        peaks = transform(pk, allele = "x"),
         freq = transform(fr, allele = c("1", "2", "3", "x")),
         nc = 1,
         stut = TRUE
@@ -343,4 +343,24 @@ test_that("gmixlr() refuses bad input", {
       )
     )
   )
+})
+
+test_that("gmixlr() equals EuroForMix's likelihood and its maximum", {
+  # EuroForMix (its version and commit in ref/efm.txt): the log likelihood
+  # of each account at given parameters and its maximum, stored by
+  # dev/ref/efm.R. EuroForMix keeps its genotype weights in single
+  # precision, about 1e-7 of each, so the two agree to 1e-6, not 1e-12.
+  ref <- refget("efm")
+  for (k in setdiff(names(ref), c("pkgs", "commit"))) {
+    x <- ref[[k]]
+    a <- list(x$peaks, x$freq, x$ref, hp = x$hp, nc = x$nc,
+              hd = if (length(x$hd)) x$hd, pc = x$pc, lambda = x$lambda,
+              theta = x$theta, stut = x$stut, deg = x$deg)
+    r <- do.call(gmixlr, c(a, list(par = x$par)))
+    expect_lt(max(abs(r$fit$loglik - x$ll)), 1e-6, label = k)
+    if (!anyNA(x$mle)) {
+      f <- do.call(gmixlr, a)
+      expect_lt(max(abs(f$fit$loglik - x$mle)), 1e-6, label = k)
+    }
+  }
 })

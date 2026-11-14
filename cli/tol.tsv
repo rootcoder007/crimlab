@@ -14,4 +14,4 @@ sarml	1e-5	0	the spatial coefficient is the minimum found by Brent's method, whi
 sthwk	1e-3	0	fitted by BFGS to a tolerance of 1e-7 on a likelihood that is flat near its maximum: the estimates agree to about 1e-4
 mvhwk	1e-10	0	two excitation coefficients are estimated at about 1e-10, zero up to the tolerance of the search: their last digits are rounding
 didfe	1e-10	0	p is a tail probability of the test statistic: an error of 1e-14 in it gives 1e-12 in a p of 1e-50
-gmixlr	1e-5	0	the case without par is fitted by BFGS from fixed starts with a numerical gradient: where the search stops moves with rounding, and the estimates and log likelihoods with it
+gmixlr	1e-7	0	the case without par is fitted by BFGS with a numerical gradient: built with fused multiply-adds (x86-64, -march=native -ffp-contract=fast) its values moved by 5e-9 relative from R's, those of the cases with par by 5e-15
