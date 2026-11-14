@@ -32,10 +32,10 @@ bool lfeats(Ctx &c, const Val &lay, int n, std::vector<double> &L, std::vector<s
   std::vector<double> cv;
   CK(bmat(c, asmat(c["cell"]), "cell", 2, nr, cv));
   if (nr != n) return c.fail("`cell` must have one row per count, %d.", n);
-  double r;
+  double r = 0.0;
   CK(one(c, c["rad"], "rad", 0.0, HUGE_VAL, r));
   static const char *const ko[] = {"prox", "dens", "kde"};
-  int kd;
+  int kd = 0;
   CK(pickd(c, "kind", ko, 3, 0, kd));
   if (kd == 2 && n < 2) return c.fail("`kind = \"kde\"` needs at least two cells.");
   const bool one1 = lay.t != Val::OBJ;
@@ -121,7 +121,7 @@ bool rtmfit(Ctx &c, Val &out) {
   bool any = false;
   for (double e : yv.v) any = any || e > 0;
   if (!any) return c.fail("`y` must hold at least one count above 0.");
-  double lv;
+  double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   std::vector<double> L;
   std::vector<std::string> nm;
@@ -229,7 +229,7 @@ bool agemix(Ctx &c, Val &out) {
   if (!c.has("curves") && !c.has("panel")) return c.fail("give `curves` and `shares`, or `panel`.");
   Val crv, cov, pan;
   if (c.has("curves")) {
-    int na2, nt;
+    int na2 = 0, nt = 0;
     std::vector<double> cv;
     std::vector<std::string> cn;
     CK(lcmat(c, c["curves"], "curves", na2, nt, cv, cn));
@@ -257,13 +257,13 @@ bool agemix(Ctx &c, Val &out) {
     cov = vmat(cm, na2, na2);
   }
   if (c.has("panel")) {
-    int n, k;
+    int n = 0, k = 0;
     std::vector<double> pv;
     std::vector<std::string> cn;
     CK(lcmat(c, c["panel"], "panel", n, k, pv, cn));
     if (k != 2) return c.fail("`panel` must have two columns, the outcomes at two ages.");
     if (n < 3) return c.fail("`panel` must have at least three individuals.");
-    int nps;
+    int nps = 0;
     CK(wholed(c, "nperm", 2000, 0, nps));
     unsigned int sd = 0;
     if (nps > 0) CK(seed(c, sd));
@@ -297,7 +297,7 @@ bool cumrsk(Ctx &c, Val &out) {
       if (e >= 1) return c.fail("`dth` must be death rates from 0 to below 1.");
     }
   }
-  double lv;
+  double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   const double z = qnorm(0.5 + lv / 2);
   const std::size_t N = av.n();
@@ -327,7 +327,7 @@ bool jpipe(Ctx &c, Val &out) {
   CK(num(c, c["num"], "num", nv, -1, 0.0));
   const std::size_t n = nv.n();
   CK(num(c, c["den"], "den", dv, static_cast<long>(n), 0.0));
-  int w, lg;
+  int w = 0, lg = 0;
   CK(wholed(c, "win", 12, 1, w));
   CK(wholed(c, "lag", 0, 0, lg));
   Lab g;

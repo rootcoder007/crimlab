@@ -125,7 +125,7 @@ Csr csr(const Net &g, const std::vector<double> &w, bool dir, bool rev = false) 
   o.adj.assign(cap + 1, 0);
   o.wt.assign(cap + 1, 0.0);
   std::vector<int> iw(static_cast<std::size_t>(g.n));
-  int nl, nd;
+  int nl = 0, nd = 0;
   clab_ntcsr(rev ? g.b.data() : g.a.data(), rev ? g.a.data() : g.b.data(), w.empty() ? nullptr : w.data(), g.m, g.n,
              dir, o.off.data(), o.adj.data(), o.wt.data(), iw.data(), &nl, &nd);
   return o;
@@ -158,7 +158,7 @@ bool pernode(Ctx &c, const char *nm, const Net &g, std::vector<int> &code, std::
       val[i] = s[static_cast<std::size_t>(it - x.k.begin())];
     }
   }
-  int nd;
+  int nd = 0;
   code = fcode(val, nd, nullptr);
   return true;
 }
@@ -180,7 +180,7 @@ bool ntdeg(Ctx &c, Val &out) {
   CK(net(c, g));
   std::vector<double> w;
   CK(nwts(c, g, w));
-  bool d;
+  bool d = false;
   CK(flagd(c, "dir", false, d));
   const Csr o = csr(g, w, d);
   const std::size_t n = static_cast<std::size_t>(g.n);
@@ -215,7 +215,7 @@ bool ntdeg(Ctx &c, Val &out) {
 bool ntbtw(Ctx &c, Val &out) {
   Net g;
   CK(net(c, g));
-  bool d, nz;
+  bool d = false, nz = false;
   CK(flagd(c, "dir", false, d));
   CK(flagd(c, "norm", false, nz));
   const Csr o = csr(g, {}, d);
@@ -231,7 +231,7 @@ bool ntbtw(Ctx &c, Val &out) {
 bool ntcls(Ctx &c, Val &out) {
   Net g;
   CK(net(c, g));
-  bool d;
+  bool d = false;
   CK(flagd(c, "dir", false, d));
   const Csr o = csr(g, {}, d);
   const std::size_t n = static_cast<std::size_t>(g.n);
@@ -252,15 +252,15 @@ bool ntevc(Ctx &c, Val &out) {
   CK(net(c, g));
   std::vector<double> w;
   CK(nwts(c, g, w));
-  double tl;
-  int mi;
+  double tl = 0.0;
+  int mi = 0;
   CK(oned(c, "tol", 1e-13, 0, 1, tl));
   CK(wholed(c, "maxit", 100000, 1, mi));
   const Csr o = csr(g, w, false);
   std::vector<double> x(static_cast<std::size_t>(g.n)), wk = dvec(4.0 * g.n);
   std::vector<int> iw = ivec(2.0 * g.n);
-  double val;
-  int it, cv;
+  double val = 0.0;
+  int it = 0, cv = 0;
   CK(kchk(c, clab_ntevc(g.n, o.off.data(), o.adj.data(), o.wt.data(), tl, mi, x.data(), &val, &it, &cv, wk.data(),
                         iw.data())));
   Frame f = nframe(g);
@@ -288,13 +288,13 @@ bool ntcore(Ctx &c, Val &out) {
 bool ntcmp(Ctx &c, Val &out) {
   Net g;
   CK(net(c, g));
-  bool d;
+  bool d = false;
   CK(flagd(c, "dir", false, d));
   const Csr o = csr(g, {}, d);
   Csr ic;
   if (d) ic = csr(g, {}, true, true);
   std::vector<int> wc(static_cast<std::size_t>(g.n)), sc(static_cast<std::size_t>(g.n)), iw = ivec(6.0 * g.n);
-  int nc;
+  int nc = 0;
   CK(kchk(c, clab_ntwcc(g.n, o.off.data(), o.adj.data(), d ? ic.off.data() : nullptr, d ? ic.adj.data() : nullptr,
                         wc.data(), &nc, iw.data())));
   CK(kchk(c, clab_ntscc(g.n, o.off.data(), o.adj.data(), sc.data(), &nc, iw.data())));
@@ -318,11 +318,11 @@ bool ntlvn(Ctx &c, Val &out) {
   int sd = 0;
   if (use) CK(whole(c, c["seed"], "seed", 0, sd));
   const Csr o = csr(g, w, false);
-  double len, il, q;
+  double len = 0.0, il = 0.0, q = 0.0;
   CK(kchk(c, clab_ntlvnw(g.n, o.off[static_cast<std::size_t>(g.n)], &len, &il)));
   std::vector<int> m(static_cast<std::size_t>(g.n)), iw = ivec(il);
   std::vector<double> wk = dvec(len);
-  int lev;
+  int lev = 0;
   CK(kchk(c, clab_ntlvn(g.n, o.off.data(), o.adj.data(), o.wt.data(), rs[0], static_cast<unsigned>(sd), use, m.data(),
                         &q, &lev, wk.data(), iw.data())));
   Frame f = nframe(g);
@@ -348,7 +348,7 @@ bool ntmod(Ctx &c, Val &out) {
   CK(num(c, arg(c, "res", d1, 1), "res", rs, 1, 0.0));
   const Csr o = csr(g, w, false);
   std::vector<double> wk = dvec(2.0 * g.n);
-  double q;
+  double q = 0.0;
   CK(kchk(c, clab_ntmod(g.n, o.off.data(), o.adj.data(), o.wt.data(), m.data(), rs[0], &q, wk.data())));
   out = vnum(q);
   return true;
@@ -360,7 +360,7 @@ bool ntbrk(Ctx &c, Val &out) {
   std::vector<int> gr;
   std::vector<std::string> val;
   CK(pernode(c, "grp", g, gr, val));
-  bool d;
+  bool d = false;
   CK(flagd(c, "dir", false, d));
   const Csr o = csr(g, {}, d);
   Csr ic;
@@ -389,14 +389,14 @@ bool ntchg(Ctx &c, Val &out) {
   CK(net(c, g));
   std::vector<double> w;
   CK(nwts(c, g, w));
-  double tl;
-  int mi;
+  double tl = 0.0;
+  int mi = 0;
   CK(oned(c, "tol", 1e-10, 0, 1, tl));
   CK(wholed(c, "maxit", 100000, 1, mi));
   if (g.n < 2) return c.fail("the graph needs at least two nodes.");
   const Csr o = csr(g, w, false);
   std::vector<int> iw = ivec(g.n), set = ivec(g.n);
-  int nc, it, cv;
+  int nc = 0, it = 0, cv = 0;
   CK(kchk(c, clab_ntwcc(g.n, o.off.data(), o.adj.data(), nullptr, nullptr, set.data(), &nc, iw.data())));
   if (nc > 1) return c.fail("the graph must be connected, not in %d components (see ntcmp()).", nc);
   double b[4];
@@ -427,16 +427,16 @@ bool coofg(Ctx &c, Val &out) {
   }
   if (k == 0) return c.fail("`inc` must name at least one incident.");
   if (2.0 * k > INT_MAX) return c.fail("`inc` is too long for crimlab: more than %d values.", INT_MAX);
-  int ni, no;
+  int ni = 0, no = 0;
   std::vector<std::size_t> fo;
   const std::vector<int> ci = fcode(si, ni, nullptr), co = fcode(so, no, &fo);
-  double np, il;
+  double np = 0.0, il = 0.0;
   std::vector<int> iw = ivec(static_cast<double>(ni) + 1 + static_cast<double>(k) + no);
   CK(kchk(c, clab_coofw(ci.data(), co.data(), static_cast<int>(k), ni, no, &np, &il, iw.data())));
   const int cap = static_cast<int>(np);
   std::vector<int> pa = ivec(cap), pb = ivec(cap), iw2 = ivec(il);
   std::vector<double> pw = dvec(cap);
-  int n;
+  int n = 0;
   CK(kchk(c, clab_coofg(ci.data(), co.data(), static_cast<int>(k), ni, no, cap, pa.data(), pb.data(), pw.data(), &n,
                         iw2.data())));
   std::vector<std::string> f, t, nd;

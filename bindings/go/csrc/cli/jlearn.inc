@@ -62,19 +62,19 @@ bool lflag(Ctx &c, const char *nm, bool def, int &b) {
 }
 
 bool enpath(Ctx &c, Val &out) {
-  int n, p;
+  int n = 0, p = 0;
   std::vector<double> xv;
   CK(lmat(c, c["x"], "x", n, p, xv));
   if (n < 2 || p < 1) return c.fail("`x` must have at least two rows and one column.");
   Dv yv;
   CK(num(c, c["y"], "y", yv, n));
   static const char *const fams[] = {"gaussian", "binomial"};
-  int f;
+  int f = 0;
   CK(pickd(c, "fam", fams, 2, 0, f));
   CK(ychk(c, yv, f == 1, "y"));
-  double a;
+  double a = 0.0;
   CK(p01d(c, "alpha", 1, a));
-  int nl;
+  int nl = 0;
   double r = 0.0;
   std::vector<double> lam;
   if (!c.has("lambda")) {
@@ -97,7 +97,7 @@ bool enpath(Ctx &c, Val &out) {
   Dv th;
   Val d1;
   CK(num(c, arg(c, "tol", d1, 1e-7), "tol", th, 1, 0.0, true));
-  int mi, sc;
+  int mi = 0, sc = 0;
   CK(wholed(c, "maxit", 1e5, 1, mi));
   CK(lflag(c, "scr", true, sc));
   const double dp = p, dn = n;
@@ -128,7 +128,7 @@ bool enpath(Ctx &c, Val &out) {
 }
 
 bool lgtreg(Ctx &c, Val &out) {
-  int n, p;
+  int n = 0, p = 0;
   std::vector<double> xv;
   CK(lmat(c, c["x"], "x", n, p, xv));
   Dv yv;
@@ -138,12 +138,12 @@ bool lgtreg(Ctx &c, Val &out) {
   Dv th;
   Val d1;
   CK(num(c, arg(c, "tol", d1, 1e-10), "tol", th, 1, 0.0, true));
-  int mi;
+  int mi = 0;
   CK(wholed(c, "maxit", 50, 1, mi));
   const std::size_t q = static_cast<std::size_t>(p) + 1;
   std::vector<double> w(2 * q * q + 4 * q), cf(q), se(q);
   std::vector<int> iw(static_cast<std::size_t>(n));
-  double dev;
+  double dev = 0.0;
   const int rc = clab_lgtreg(xv.data(), n, p, yv.p(), th[0], mi, cf.data(), se.data(), &dev, w.data(), iw.data());
   if (rc == CLAB_EDOM) {
     return c.fail("no fit: collinear columns, or separated outcomes (no convergence within `maxit` steps).");
@@ -159,7 +159,7 @@ bool lgtreg(Ctx &c, Val &out) {
 }
 
 bool rfor(Ctx &c, Val &out) {
-  int n, p, nt, pt;
+  int n = 0, p = 0, nt = 0, pt = 0;
   std::vector<double> xv, tv;
   CK(lmat(c, c["x"], "x", n, p, xv));
   if (n < 2) return c.fail("`x` must have at least two rows.");
@@ -167,7 +167,7 @@ bool rfor(Ctx &c, Val &out) {
   CK(num(c, c["y"], "y", yv, n));
   CK(lmat(c, c.has("newx") ? c["newx"] : c["x"], "newx", nt, pt, tv));
   if (pt != p) return c.fail("`newx` must have the %d columns of `x`.", p);
-  int ntr, mt, mn;
+  int ntr = 0, mt = 0, mn = 0;
   CK(wholed(c, "ntree", 500, 1, ntr));
   mt = static_cast<int>(std::fmin(std::ceil(std::sqrt(p) + 20.0), p));
   if (c.has("mtry")) CK(whole(c, c["mtry"], "mtry", 1, mt));
@@ -177,7 +177,7 @@ bool rfor(Ctx &c, Val &out) {
   Val d1, d2, d3;
   CK(num(c, arg(c, "frac", d1, 1), "frac", fr, 1, 0.0, true));
   if (fr[0] > 1.0) return c.fail("`frac` must be at most 1.");
-  int rp, hn;
+  int rp = 0, hn = 0;
   CK(lflag(c, "repl", true, rp));
   CK(lflag(c, "hon", false, hn));
   CK(num(c, arg(c, "imb", d2, 0), "imb", ib, 1, 0.0));

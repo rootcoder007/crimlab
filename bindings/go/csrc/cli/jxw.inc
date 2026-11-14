@@ -119,9 +119,9 @@ bool clrilr(Ctx &c, Val &out) {
   const int d = static_cast<int>(xv.size() / static_cast<std::size_t>(n));
   if (d < 2) return c.fail("`x` must have at least two parts (columns).");
   static const char *const to[] = {"clr", "ilr"};
-  int ty;
+  int ty = 0;
   CK(pickd(c, "type", to, 2, 0, ty));
-  double pc;
+  double pc = 0.0;
   CK(binrd(c, "ps", 1e-6, 0.0, HUGE_VAL, pc));
   const int dc = ty == 0 ? d : d - 1;
   std::vector<double> o(static_cast<std::size_t>(n) * static_cast<std::size_t>(dc));
@@ -169,7 +169,7 @@ bool preslr(Ctx &c, Val &out) {
 }
 
 bool tpdmc(Ctx &c, Val &out) {
-  double pr, mr, dr;
+  double pr = 0.0, mr = 0.0, dr = 0.0;
   CK(p01d(c, "pres", 0, pr));
   CK(p01d(c, "mum", 0.5, mr));
   CK(binrd(c, "decay", 0.5, 0.0, 1.0, dr));
@@ -203,7 +203,7 @@ bool tpdmc(Ctx &c, Val &out) {
     if (v == std::floor(v) && v >= 1 && v <= k) s0 = static_cast<int>(v) - 1;
   }
   if (s0 < 0) return c.fail("`start` must be a transient stage, by name or number from 1 to %d.", k);
-  int ns;
+  int ns = 0;
   CK(wholed(c, "steps", 0, 0, ns));
   const std::size_t M = static_cast<std::size_t>(m), K = static_cast<std::size_t>(k);
   std::vector<double> pm(M * M), nm(K * K), bm(K * 2), tv(K);
@@ -250,7 +250,7 @@ bool tpbhm(Ctx &c, Val &out) {
   if ((mv.n() != 1 && mv.n() != static_cast<std::size_t>(p)) || (sv.n() != 1 && sv.n() != static_cast<std::size_t>(p))) {
     return c.fail("`pm` and `psd` must be one number or one per term, %d.", p);
   }
-  double lv;
+  double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   const std::size_t P = static_cast<std::size_t>(p);
   std::vector<double> m0(P), s0(P);

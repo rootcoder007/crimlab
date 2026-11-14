@@ -42,10 +42,10 @@ bool parv(Ctx &c, const char *nm, int kind, int base, std::vector<double> &th) {
 }
 
 bool hwkres(Ctx &c, Val &out) {
-  double h, pr;
+  double h = 0.0, pr = 0.0;
   CK(pos1(c, "hor", NaN, h));
   CK(pos1(c, "per", 365.25, pr));
-  int kd, bd;
+  int kd = 0, bd = 0;
   CK(pickd(c, "kernel", hkinds, 3, 0, kd));
   CK(pickd(c, "base", hbases, 2, 0, bd));
   std::vector<double> t, th;
@@ -68,15 +68,15 @@ bool hwkres(Ctx &c, Val &out) {
 }
 
 bool hwksim(Ctx &c, Val &out) {
-  double h, pr;
+  double h = 0.0, pr = 0.0;
   CK(pos1(c, "hor", NaN, h));
   CK(pos1(c, "per", 365.25, pr));
-  int kd, bd;
+  int kd = 0, bd = 0;
   CK(pickd(c, "kernel", hkinds, 3, 0, kd));
   CK(pickd(c, "base", hbases, 2, 0, bd));
   std::vector<double> th;
   CK(parv(c, "par", kd, bd, th));
-  int cap;
+  int cap = 0;
   CK(wholed(c, "nmax", 1e5, 1, cap));
   double w[4], sg = 0;
   const bool sp = c.has("win");
@@ -111,7 +111,7 @@ bool stpcp(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv));
   const int n = static_cast<int>(yv.n());
-  int m, np;
+  int m = 0, np = 0;
   CK(wholed(c, "minseg", 2, 1, m));
   CK(wholed(c, "nperm", 9999, 1, np));
   if (n < 2 * m) return c.fail("`y` must hold at least 2 `minseg` = %d values, not %d.", 2 * m, n);

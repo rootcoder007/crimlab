@@ -31,9 +31,9 @@ bool fair(Ctx &c, Val &out) {
   const double ct = val1d(c, "cut", 0.5);
   if (std::isnan(ct)) return c.fail("`cut` must be one number.");
   Val d1;
-  int b;
+  int b = 0;
   CK(rref(c, arg(c, "base", d1, 1), g.lev, "ref", "group", b));
-  double z;
+  double z = 0.0;
   CK(zconf(c, "conf", 0.95, z));
   const int G = g.g;
   std::vector<double> w(static_cast<std::size_t>(41) * G);
@@ -66,9 +66,9 @@ bool fairdf(Ctx &c, Val &out) {
   if (hy) CK(bin01(c, a[2], "y", n, yv));
   int b = 0;
   if (c.has("base")) CK(rref(c, c["base"], g.lev, "base", "group", b));
-  double z;
+  double z = 0.0;
   CK(zconf(c, "conf", 0.95, z));
-  int B;
+  int B = 0;
   CK(wholed(c, "nboot", 0, 0, B));
   unsigned int s = 0;
   if (B > 0) CK(seed(c, s));
@@ -175,7 +175,7 @@ bool lipaud(Ctx &c, Val &out) {
   const int n = static_cast<int>(hv.n());
   Val d1;
   CK(num(c, arg(c, "lip", d1, 1), "lip", lv, 1, 0.0));
-  int m;
+  int m = 0;
   std::vector<int> pi, pj;
   std::vector<double> dv;
   const bool hd = c.has("d");
@@ -207,7 +207,7 @@ bool lipaud(Ctx &c, Val &out) {
       }
     }
   } else {
-    int r, k2;
+    int r = 0, k2 = 0;
     std::vector<double> pm;
     CK(nmat(c, c["pairs"], "pairs", r, k2, pm));
     if (k2 != 2 || r < 1) return c.fail("`pairs` must be a matrix of two columns, one row per pair.");
@@ -277,7 +277,7 @@ bool nsbnd(Ctx &c, Val &out) {
   for (double x : pv.v) {
     if (x > 1.0) return c.fail("`pobs` must be rates from 0 to 1.");
   }
-  double alo, ahi, blo, bhi;
+  double alo = 0.0, ahi = 0.0, blo = 0.0, bhi = 0.0;
   CK(box(c, "a", alo, ahi));
   CK(box(c, "b", blo, bhi));
   if (!(ahi + bhi < 1.0)) return c.fail("the upper ends of `a` and `b` must add to less than 1.");
@@ -389,7 +389,7 @@ bool nordet(Ctx &c, Val &out) {
   CK(num(c, c["radius"], "radius", r, 1, 0.0, true));
   const double pd = val1d(c, "p", 0.85);
   if (!(pd > 0.0 && pd <= 1.0)) return c.fail("`p` must be one number in (0, 1].");
-  bool dr;
+  bool dr = false;
   CK(flagd(c, "draw", false, dr));
   unsigned int s = 0;
   if (dr) CK(seed(c, s));
@@ -410,7 +410,7 @@ bool nordet(Ctx &c, Val &out) {
 }
 
 bool fairsim(Ctx &c, Val &out) {
-  int N;
+  int N = 0;
   CK(wholed(c, "n", 2000, 1, N));
   std::vector<std::string> gl = {"A", "B"};
   if (c.has("groups")) {
@@ -433,10 +433,10 @@ bool fairsim(Ctx &c, Val &out) {
     for (double x : pv.v) t += x;
     if (!(t > 0.0)) return c.fail("`props` must not all be 0.");
   }
-  int na;
+  int na = 0;
   CK(wholed(c, "nareas", 20, 1, na));
   if (na < G) return c.fail("`nareas` must be at least the number of groups, %d.", G);
-  double b0;
+  double b0 = 0.0;
   CK(p01d(c, "base", 0.3, b0));
   const double bs = val1d(c, "bias", 0.5);
   if (!(bs >= -1.0 && bs <= 1.0)) return c.fail("`bias` must be one number from -1 to 1.");
@@ -470,10 +470,10 @@ bool oaxbd(Ctx &c, Val &out) {
   CK(glab(c, a[1], "grp", yv.n(), g));
   if (g.g != 2) return c.fail("`grp` must hold exactly two groups.");
   Val d1;
-  int r;
+  int r = 0;
   CK(rref(c, arg(c, "ref", d1, 1), g.lev, "ref", "group", r));
   --r;
-  double z;
+  double z = 0.0;
   CK(zconf(c, "conf", 0.95, z));
   static const char *const fmsg =
       "`x` must be numeric covariates, one row per case: code a factor as indicator columns (how the unexplained "
@@ -498,7 +498,7 @@ bool oaxbd(Ctx &c, Val &out) {
       xv = dbl(x);
     } else if (x.t == Val::ARR && shape(x, 2, dim, 0)) {
       if (dim[0] != n) return c.fail("%s", fmsg);
-      int r2, c2;
+      int r2 = 0, c2 = 0;
       CK(nmat(c, x, "x", r2, c2, xv, true));
       p = c2;
     } else {

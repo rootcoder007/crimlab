@@ -4,20 +4,20 @@
 // point pattern test.
 
 bool gstr(Ctx &c, Val &out) {
-  int nr, nc;
+  int nr = 0, nc = 0;
   std::vector<double> cv, ev;
   CK(nmat(c, c["cnt"], "cnt", nr, nc, cv));
   if (!c.has("ex")) {
     ev.assign(cv.size(), 1.0);
   } else {
-    int er, ec;
+    int er = 0, ec = 0;
     CK(nmat(c, c["ex"], "ex", er, ec, ev));
     if (er != nr || ec != nc) return c.fail("`ex` must have the dimensions of `cnt`.");
   }
   if (nr > 46340 || nc > 46340) return c.fail("`cnt` must have at most 46340 rows and columns.");
   const double rd = val1d(c, "rad", 1.5);
   if (!(rd >= 0 && rd <= 1000)) return c.fail("`rad` must be one number from 0 to 1000.");
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
@@ -54,11 +54,11 @@ bool sptst(Ctx &c, Val &out) {
   const std::vector<double> av = dbl(a[0]), bv = dbl(a[1]);
   const int n = static_cast<int>(av.size());
   if (n < 1 || bv.size() != av.size()) return c.fail("`a` and `b` must have the same length, from 1.");
-  int nbt;
+  int nbt = 0;
   CK(wholed(c, "nboot", 200, 1, nbt));
   unsigned int s;
   CK(seed(c, s));
-  double al, sc;
+  double al = 0.0, sc = 0.0;
   CK(oned(c, "alpha", 0.05, 0.0, 1.0, al));
   CK(oned(c, "scale", 100, 0.0, Inf, sc));
   const std::size_t N = av.size();

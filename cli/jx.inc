@@ -417,7 +417,7 @@ struct Frame {
 inline double qnorm(double p) { return clab_qnorm(p); }
 // The normal quantile of a two-sided interval at level conf.
 inline bool zconf(Ctx &c, const char *nm, double def, double &z) {
-  double cf;
+  double cf = 0.0;
   CK(oned(c, nm, def, 0.0, 1.0, cf));
   z = qnorm(0.5 + 0.5 * cf);
   return true;

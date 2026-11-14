@@ -316,7 +316,7 @@ bool vaud(Ctx &c, const Val &x, int nmin, Var &v) {
   }
   std::vector<std::string> fl;
   for (const std::string &e : v.lev) fl.push_back(lfold(e));
-  int nd;
+  int nd = 0;
   const std::vector<int> fk = fcode(fl, nd, nullptr);
   v.cnt.assign(static_cast<std::size_t>(v.k) + 1, 0);
   v.twin.assign(static_cast<std::size_t>(v.k) + 1, 0);
@@ -351,7 +351,7 @@ const char *refst(const Var &v, const std::string &w, int nmin) {
 }
 
 bool catchk(Ctx &c, Val &out) {
-  int mn;
+  int mn = 0;
   CK(wholed(c, "nmin", 5, 1, mn));
   const Val &x = c["x"];
   std::vector<Val> vars;

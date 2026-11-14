@@ -5,7 +5,7 @@
 // transfer.
 
 bool tlvc(Ctx &c, Val &out) {
-  int n, p;
+  int n = 0, p = 0;
   std::vector<double> xv;
   CK(nmat(c, c["x"], "x", n, p, xv));
   Lab g;
@@ -29,7 +29,7 @@ bool tlvlr(Ctx &c, Val &out) {
   Dv mu;
   CK(num(c, bg.a[0], "bg$mu", mu));
   const int p = static_cast<int>(mu.n());
-  int r1, c1, r2, c2;
+  int r1 = 0, c1 = 0, r2 = 0, c2 = 0;
   std::vector<double> u, cv;
   CK(nmat(c, bg.a[1], "bg$u", r1, c1, u));
   CK(nmat(c, bg.a[2], "bg$c", r2, c2, cv));
@@ -39,7 +39,7 @@ bool tlvlr(Ctx &c, Val &out) {
   Dv xa, xb;
   CK(num(c, c["xa"], "xa", xa, p));
   CK(num(c, c["xb"], "xb", xb, p));
-  double ma, mb;
+  double ma = 0.0, mb = 0.0;
   CK(one(c, c["na"], "na", 0.0, Inf, ma));
   CK(one(c, c["nb"], "nb", 0.0, Inf, mb));
   std::vector<double> wk(static_cast<std::size_t>(p) * p + 2 * static_cast<std::size_t>(p));
@@ -57,10 +57,10 @@ bool skp(Ctx &c, Val &out) {
   Dv v;
   CK(num(c, c["x"], "x", v));
   const int n = static_cast<int>(v.n());
-  double s, a;
+  double s = 0.0, a = 0.0;
   CK(one(c, c["s2"], "s2", 0.0, Inf, s));
   CK(oned(c, "alpha", 0.05, 0.0, 1.0, a));
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 999, 1, ns));
   unsigned int sv;
   CK(seed(c, sv));
@@ -82,9 +82,9 @@ bool lwss(Ctx &c, Val &out) {
   CK(num(c, a[0], "x", xv));
   const std::size_t n = xv.n();
   CK(num(c, a[1], "y", yv, static_cast<long>(n)));
-  double sp;
+  double sp = 0.0;
   CK(oned(c, "f", 2.0 / 3.0, 0.0, Inf, sp));
-  int it;
+  int it = 0;
   CK(wholed(c, "iter", 3, 0, it));
   std::vector<int> ord(n);
   for (std::size_t i = 0; i < n; ++i) ord[i] = static_cast<int>(i);
@@ -111,11 +111,11 @@ bool chmb(Ctx &c, Val &out) {
   CK(num(c, c["a"], "a", av));
   CK(num(c, c["b"], "b", bv));
   const int na = static_cast<int>(av.n()), nb = static_cast<int>(bv.n());
-  int wo, wv;
+  int wo = 0, wv = 0;
   CK(whole(c, c["wopt"], "wopt", 2, wo));
   CK(whole(c, c["wval"], "wval", 2, wv));
   if (wv > wo) return c.fail("`wval` must be at most `wopt`.");
-  double co;
+  double co = 0.0;
   CK(oned(c, "coarse", 0.25, 0.0, Inf, co));
   std::vector<double> wk(3 * av.n() + 3 * bv.n() + 7 * std::max(av.n(), bv.n()));
   int ns = 0, nd = 0;
@@ -135,10 +135,10 @@ bool chmb(Ctx &c, Val &out) {
 bool tfrp(Ctx &c, Val &out) {
   Dv pv;
   CK(num(c, c["par"], "par", pv, 17));
-  bool de;
+  bool de = false;
   CK(flagd(c, "deffect", true, de));
   static const char *const to[] = {"nb", "nbtrunc", "unif"};
-  int td, ym, ns, q;
+  int td = 0, ym = 0, ns = 0, q = 0;
   CK(pickd(c, "tdist", to, 3, 0, td));
   CK(wholed(c, "ymax", 20, 0, ym));
   CK(wholed(c, "nsim", 1000, 1, ns));

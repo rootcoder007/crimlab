@@ -71,7 +71,7 @@ bool cconc(Ctx &c, Val &out) {
   for (double e : fr.v) {
     if (e > 1) return c.fail("`fracs` must be shares from 0 to 1.");
   }
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 2000, 0, ns));
   const std::size_t nf = fr.n();
   std::vector<double> st(16), lp(n + 1), lv(n + 1), ts(nf), tn(nf);
@@ -84,7 +84,7 @@ bool cconc(Ctx &c, Val &out) {
                                    "znull", "zgap", "gini", "gpos", "gnull", "vpop", "cvb", "nullb"};
   std::vector<double> sv(16);
   for (std::size_t k = 0; k < 16; ++k) sv[k] = na(st[k]);
-  Val nul;
+  Val nres;
   if (ns > 0) {
     const double un = st[0];
     if (std::fabs(un - std::round(un)) > 1e-9 || un > 1e8) {
@@ -110,7 +110,7 @@ bool cconc(Ctx &c, Val &out) {
                      (h - lo) * (g[static_cast<std::size_t>(std::min(lo + 1, ns - 1))] - g[static_cast<std::size_t>(lo)]);
     const double nv[5] = {static_cast<double>(ns), sum / ns, q, (1.0 + ge) / (ns + 1.0), gobs - sum / ns};
     static const char *const nn[] = {"nsim", "mean", "q95", "p", "excess"};
-    nul = nvec(5, nn, nv);
+    nres = nvec(5, nn, nv);
   }
   Val byf;
   if (c.has("by")) {
@@ -150,7 +150,7 @@ bool cconc(Ctx &c, Val &out) {
   if (labs) {
     std::vector<int> ix(ne), sw(n + 1);
     std::vector<double> di(ne), ex(ne), glo(ne), ghi(ne);
-    double mh, sl;
+    double mh = 0.0, sl = 0.0;
     clab_cgrow(p.code.data(), static_cast<int>(ne), static_cast<int>(n), di.data(), &mh, ex.data(), glo.data(), ghi.data(),
                &sl, sw.data());
     for (std::size_t i = 0; i < ne; ++i) {
@@ -180,7 +180,7 @@ bool cconc(Ctx &c, Val &out) {
   put(out, "stat", nvec(16, sn, sv.data()));
   put(out, "top", tc.o);
   put(out, "lorenz", lc.o);
-  put(out, "null", nul);
+  put(out, "null", nres);
   put(out, "by", byf);
   put(out, "scale", scl);
   put(out, "grow", grw);
@@ -197,13 +197,13 @@ bool hilltl(Ctx &c, Val &out) {
   }
   if (pv.empty()) return c.fail("`x` has no values above 0 to fit a tail to.");
   const int n = static_cast<int>(pv.size());
-  bool dis, apx;
+  bool dis = false, apx = false;
   CK(flagd(c, "discrete", true, dis));
   CK(flagd(c, "approx", false, apx));
-  int mt;
+  int mt = 0;
   CK(wholed(c, "mintl", 3, 1, mt));
   mt = std::max(2, mt);
-  double xm;
+  double xm = 0.0;
   if (!c.has("xmin")) {
     std::vector<double> s(pv);
     std::sort(s.begin(), s.end(), [](double a, double b) { return a > b; });
@@ -242,7 +242,7 @@ bool crcap(Ctx &c, Val &out) {
   CK(num(c, c["x"], "x", xv, -1, 0.0));
   const int k = static_cast<int>(xv.n());
   if (k != 3 && k != 7) return c.fail("`x` must be c(n1, n2, m) for two lists or the seven cells of three.");
-  double kp;
+  double kp = 0.0;
   CK(binrd(c, "kappa", 1, 1.0, HUGE_VAL, kp));
   double cl[7];
   static const char *const two[] = {"n1", "n2", "m"};
@@ -326,7 +326,7 @@ bool dkfig(Ctx &c, Val &out) {
       if (vv[i] > 1) return c.fail("`v` must be rates from 0 to 1.");
       if (r0[r0.n() == 1 ? 0 : i] > 1) return c.fail("`r` must be rates from 0 to 1.");
     }
-    double a, b;
+    double a = 0.0, b = 0.0;
     CK(binrd(c, "amax", 0, 0.0, 1.0, a));
     CK(binrd(c, "bmax", 0, 0.0, 1.0, b));
     if (a + b >= 1) return c.fail("`amax + bmax` must be below 1.");
@@ -358,7 +358,7 @@ bool dkfig(Ctx &c, Val &out) {
   }
   if (c.has("va")) {
     if (!c.has("ra") || !c.has("rb")) return c.fail("`ra` and `rb` must come with `va`.");
-    double a, b, cc, l;
+    double a = 0.0, b = 0.0, cc = 0.0, l = 0.0;
     CK(one(c, c["va"], "va", 0.0, HUGE_VAL, a));
     CK(one(c, c["ra"], "ra", 0.0, HUGE_VAL, b));
     CK(binr(c, c["rb"], "rb", 0.0, HUGE_VAL, cc));

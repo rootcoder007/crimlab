@@ -42,7 +42,7 @@ bool cxmat(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vec
 }
 
 bool smdbal(Ctx &c, Val &out) {
-  double th;
+  double th = 0.0;
   CK(oned(c, "thr", 0.1, 0.0, HUGE_VAL, th));
   const std::size_t n = vlen(c["d"]);
   std::vector<int> d01;
@@ -131,9 +131,9 @@ bool smdbal(Ctx &c, Val &out) {
 
 bool evlx(Ctx &c, Val &out) {
   static const char *const to[] = {"rr", "or", "hr", "smd"};
-  int ty;
+  int ty = 0;
   CK(pickd(c, "type", to, 4, 0, ty));
-  bool rr;
+  bool rr = false;
   CK(flagd(c, "rare", false, rr));
   const double lw = ty == 3 ? -HUGE_VAL : 0.0;
   double v3[3];

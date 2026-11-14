@@ -21,9 +21,9 @@ bool aorwt(Ctx &c, Val &out) {
   const int n = static_cast<int>(f.size());
   CK(inst(c, c["to"], "to", t));
   if (t.size() != f.size()) return c.fail("`to` must have the length of `from`.");
-  double w;
+  double w = 0.0;
   CK(oned(c, "bw", 3600, 0.0, Inf, w));
-  int k;
+  int k = 0;
   CK(wholed(c, "nb", 168, 1, k));
   Val d1;
   CK(inst(c, arg(c, "origin", d1, 259200), "origin", org));
@@ -40,7 +40,7 @@ bool aorwt(Ctx &c, Val &out) {
   const int nt = static_cast<int>(ttv.size());
   const double l = val1d(c, "lo", 120), h = val1d(c, "hi", 604800);
   if (!(l >= 0) || !(h > l)) return c.fail("`lo` and `hi` must be numbers with 0 <= lo < hi.");
-  bool ea;
+  bool ea = false;
   CK(flagd(c, "each", false, ea));
   std::vector<double> wm(ea ? static_cast<std::size_t>(n) * k : 0), tot(static_cast<std::size_t>(k));
   int cnt[5];
@@ -62,13 +62,13 @@ bool bdig(Ctx &c, Val &out) {
   if (!isnum(c["x"]) || c["x"].t == Val::NUL) return c.fail("`x` must be numbers.");
   const std::vector<double> v = dbl(c["x"]);
   const int n = static_cast<int>(v.size());
-  int d;
+  int d = 0;
   CK(wholed(c, "nd", 1, 1, d));
   if (d > 9) return c.fail("`nd` must be from 1 to 9.");
   const double dv = val1d(c, "dp", -1);
   if (!(dv == std::floor(dv) && dv >= -1 && dv <= 22)) return c.fail("`dp` must be a whole number from -1 to 22.");
   static const char *const so[] = {"pos", "neg", "both"};
-  int s;
+  int s = 0;
   CK(pickd(c, "sgn", so, 3, 0, s));
   std::vector<int> dig(v.size());
   int cnt[4];
@@ -87,7 +87,7 @@ bool bdig(Ctx &c, Val &out) {
 bool bnft(Ctx &c, Val &out) {
   Dv v;
   CK(num(c, c["dig"], "dig", v, -1, 0.0));
-  int d;
+  int d = 0;
   CK(wholed(c, "nd", 1, 1, d));
   if (d > 6) return c.fail("`nd` must be from 1 to 6.");
   const int lo = static_cast<int>(std::pow(10.0, d - 1));
@@ -99,7 +99,7 @@ bool bnft(Ctx &c, Val &out) {
     }
     iv[i] = static_cast<int>(e);
   }
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
@@ -135,7 +135,7 @@ bool rptc(Ctx &c, Val &out) {
   Lab u;
   CK(codes(c, a[0], "unit", n, u));
   CK(num(c, a[2], "rep", rv, static_cast<long>(n)));
-  int a0, a1, mr;
+  int a0 = 0, a1 = 0, mr = 0;
   CK(whole(c, c["y0"], "y0", 0, a0));
   CK(whole(c, c["y1"], "y1", a0, a1));
   CK(wholed(c, "minrep", 12, 0, mr));

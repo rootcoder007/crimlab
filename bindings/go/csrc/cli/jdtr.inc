@@ -90,16 +90,16 @@ bool dtrid(Ctx &c, Val &out) {
 }
 
 bool inspg(Ctx &c, Val &out) {
-  double av;
+  double av = 0.0;
   CK(binr(c, c["a"], "a", -HUGE_VAL, HUGE_VAL, av));
   if (av == 0) return c.fail("`a` must not be 0.");
   Dv xv;
   CK(num(c, c["x"], "x", xv, 3, 0.0));
   if (std::fabs(xv[0] + xv[1] + xv[2] - 1) > 1e-10) return c.fail("`x` must be three shares summing to 1.");
-  int ns;
+  int ns = 0;
   CK(wholed(c, "steps", 1000, 0, ns));
   if (ns > 10000000) return c.fail("`steps` must be at most 1e7.");
-  double h;
+  double h = 0.0;
   CK(oned(c, "dt", 0.01, 0.0, HUGE_VAL, h));
   const int m = ns + 1;
   std::vector<double> tr(3 * static_cast<std::size_t>(m)), v(static_cast<std::size_t>(m));
@@ -136,8 +136,8 @@ bool insphs(Ctx &c, Val &out) {
   CK(num(c, c.has("cost") ? c["cost"] : dg, "cost", gv));
   const int nt = static_cast<int>(tv.n()), ng = static_cast<int>(gv.n());
   if (static_cast<double>(nt) * ng > 1e7) return c.fail("`temp` and `cost` make more than 1e7 cells.");
-  int ns;
-  double r;
+  int ns = 0;
+  double r = 0.0;
   CK(wholed(c, "steps", 600, 0, ns));
   CK(oned(c, "rate", 0.05, 0.0, HUGE_VAL, r));
   CK(num(c, c.has("x0") ? c["x0"] : dx, "x0", xv, 3, 0.0));
@@ -227,7 +227,7 @@ bool crsev(Ctx &c, Val &out) {
       e = pr[i];
     }
   }
-  double pe;
+  double pe = 0.0;
   CK(oned(c, "per", 1e5, 0.0, HUGE_VAL, pe));
   int b = 0;
   if (c.has("base")) CK(whole(c, c["base"], "base", 1, b));

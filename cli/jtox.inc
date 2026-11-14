@@ -30,7 +30,7 @@ bool txcal(Ctx &c, Val &out) {
   const Val &w = c["w"];
   if (!c.has("w") || w.t == Val::STR) {
     static const char *const wo[] = {"1/x^2", "1/x", "none"};
-    int m;
+    int m = 0;
     CK(pickd(c, "w", wo, 3, 0, m));
     wl = wo[m];
     for (std::size_t i = 0; i < n; ++i) {
@@ -78,7 +78,7 @@ bool lodimp(Ctx &c, Val &out) {
   CK(num(c, c["lod"], "lod", lv, -1, 0.0, true));
   if (lv.n() != 1 && lv.n() != n) return c.fail("`lod` must be one limit, or one per value, %d.", static_cast<int>(n));
   static const char *const mo[] = {"half", "sqrt2", "lod"};
-  int m;
+  int m = 0;
   CK(pickd(c, "meth", mo, 3, 0, m));
   std::vector<double> l(n), o(n);
   std::vector<int> cs(n);
@@ -128,7 +128,7 @@ bool etohlr(Ctx &c, Val &out) {
   CK(nna(c, argna(c, "prop", d1, 0), "prop", n, pv));
   CK(nna(c, argna(c, "but", d2, 0), "but", n, bv));
   CK(nna(c, argna(c, "etg", d3, NaN), "etg", n, gv));
-  double th;
+  double th = 0.0;
   CK(binrd(c, "thr", 0, 0.0, HUGE_VAL, th));
   std::vector<double> hi(ev.n());
   std::vector<int> v(ev.n());
@@ -152,7 +152,7 @@ bool mtxrel(Ctx &c, Val &out) {
   const std::size_t n = bv.n();
   std::vector<int> dl;
   CK(lgl(c, c["dil"], "dil", static_cast<long>(n), dl));
-  double dy, sg, dm, sm, dc, sc;
+  double dy = 0.0, sg = 0.0, dm = 0.0, sm = 0.0, dc = 0.0, sc = 0.0;
   CK(binrd(c, "days", 0, 0.0, HUGE_VAL, dy));
   CK(binrd(c, "stage", 0, 0.0, HUGE_VAL, sg));
   CK(oned(c, "dmax", 30, 0.0, HUGE_VAL, dm));

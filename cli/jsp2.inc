@@ -61,7 +61,7 @@ bool wread(Ctx &c, int n, Wcsr &o) {
 bool spwt(Ctx &c, Val &out) {
   static const char *const to[] = {"knn", "band", "contig"};
   static const char *const so[] = {"row", "raw"};
-  int tp, rs, me;
+  int tp = 0, rs = 0, me = 0;
   CK(pickd(c, "type", to, 3, 0, tp));
   CK(pickd(c, "style", so, 2, 0, rs));
   rs = rs == 0 ? 1 : 0;
@@ -71,7 +71,7 @@ bool spwt(Ctx &c, Val &out) {
   const bool pts = c.has("x");
   Pts p;
   if (pts) CK(xy(c, PROJ, p));
-  int n;
+  int n = 0;
   std::vector<int> rp, ci;
   std::vector<double> dv;
   if (tp == 2) {
@@ -110,7 +110,7 @@ bool spwt(Ctx &c, Val &out) {
     if (n < 2) return c.fail("at least 2 points are needed.");
     std::vector<int> iw(2 * static_cast<std::size_t>(n) + 2);
     if (tp == 0) {
-      int kk;
+      int kk = 0;
       CK(wholed(c, "k", 4, 1, kk));
       if (kk > n - 1) return c.fail("`k` must be below the number of points.");
       const std::size_t m = static_cast<std::size_t>(n) * static_cast<std::size_t>(kk);
@@ -137,7 +137,7 @@ bool spwt(Ctx &c, Val &out) {
         }
       }
     } else {
-      double dm;
+      double dm = 0.0;
       CK(one(c, c["d"], "d", 0.0, Inf, dm));
       int nnz = 0;
       rp.assign(static_cast<std::size_t>(n) + 1, 0);
@@ -187,7 +187,7 @@ bool gearc(Ctx &c, Val &out) {
   Dv xv;
   Wcsr w;
   CK(xw(c, -HUGE_VAL, 4, xv, w));
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
@@ -204,7 +204,7 @@ bool gorg(Ctx &c, Val &out) {
   Dv xv;
   Wcsr w;
   CK(xw(c, 0.0, 4, xv, w));
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
@@ -221,7 +221,7 @@ bool lmorn(Ctx &c, Val &out) {
   Dv xv;
   Wcsr w;
   CK(xw(c, -HUGE_VAL, 3, xv, w));
-  int ns;
+  int ns = 0;
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
@@ -242,7 +242,7 @@ bool locgi(Ctx &c, Val &out) {
   Dv xv;
   Wcsr w;
   CK(xw(c, -HUGE_VAL, 3, xv, w));
-  bool st;
+  bool st = false;
   CK(flagd(c, "star", true, st));
   std::vector<double> o(xv.n());
   CK(kc(c, clab_locgi(xv.p(), static_cast<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), st ? 1 : 0, o.data()),
@@ -300,7 +300,7 @@ bool hdbang(Ctx &c, Val &out) {
   Dv vv, wv;
   CK(num(c, a[2], "v", vv, n));
   if (a[3].t != Val::NUL) CK(num(c, a[3], "w", wv, n, 0.0, true));
-  int k, nt, it;
+  int k = 0, nt = 0, it = 0;
   CK(wholed(c, "nn", 8, 2, k));
   if (k > n - 1) return c.fail("`nn` must be below the number of points.");
   const double an = val1d(c, "ang", 135);
@@ -322,7 +322,7 @@ bool crwalk(Ctx &c, Val &out) {
   CK(xy(c, PROJ, p));
   const int n = p.n;
   if (n < 3) return c.fail("at least 3 locations are needed.");
-  int hh, ns;
+  int hh = 0, ns = 0;
   CK(wholed(c, "h", 1, 1, hh));
   CK(wholed(c, "nsim", 999, 1, ns));
   unsigned int sd;
@@ -392,11 +392,11 @@ bool rnnhcl(Ctx &c, Val &out) {
   if (c.has("bw")) CK(num(c, c["bw"], "bw", bv, b.n, 0.0));
   std::vector<double> ones(static_cast<std::size_t>(b.n), 1.0);
   if (bv.n()) ones = bv.v;
-  double hb, pv, cc;
+  double hb = 0.0, pv = 0.0, cc = 0.0;
   CK(one(c, c["h"], "h", 0.0, Inf, hb));
   CK(oned(c, "p", 0.5, 0.0, 1.0, pv));
   const double z = qnorm(pv);
-  int mp, kk;
+  int mp = 0, kk = 0;
   CK(wholed(c, "minpts", 10, 2, mp));
   CK(wholed(c, "k", 1, 0, kk));
   if (kk > 2) return c.fail("`k` must be 0, 1 or 2.");

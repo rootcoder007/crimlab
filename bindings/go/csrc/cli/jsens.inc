@@ -7,7 +7,7 @@ bool rswp(Ctx &c, Val &out) {
   CK(num(c, c["d"], "d", v));
   Val d1;
   CK(num(c, arg(c, "gam", d1, 1), "gam", g, -1, 1.0));
-  double al;
+  double al = 0.0;
   CK(oned(c, "alpha", 0.05, 0.0, 0.5, al));
   const double z = qnorm(1.0 - al);
   const std::size_t ng = g.n();

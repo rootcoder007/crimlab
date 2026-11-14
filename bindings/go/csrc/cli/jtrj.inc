@@ -57,8 +57,8 @@ bool zgll(Ctx &c, Val &out) {
 bool zgem(Ctx &c, Val &out) {
   Zin a;
   CK(zread(c, a));
-  int mi;
-  double tl;
+  int mi = 0;
+  double tl = 0.0;
   CK(wholed(c, "maxit", 500, 1, mi));
   CK(oned(c, "tol", 1e-8, 0.0, Inf, tl));
   const std::size_t pq = static_cast<std::size_t>(a.p + a.q);
@@ -121,8 +121,8 @@ bool mvtem(Ctx &c, Val &out) {
   Min a;
   CK(mread(c, a));
   const int n = a.dy[0], nt = a.dy[1], r = a.dy[2], p = a.dx[1];
-  int mi;
-  double tl;
+  int mi = 0;
+  double tl = 0.0;
   CK(wholed(c, "maxit", 500, 1, mi));
   CK(oned(c, "tol", 1e-8, 0.0, Inf, tl));
   std::vector<double> post(static_cast<std::size_t>(n) * a.ng),

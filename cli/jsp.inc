@@ -34,7 +34,7 @@ bool metric(Ctx &c, int &me) {
 }
 
 bool hvdist(Ctx &c, Val &out) {
-  double rad;
+  double rad = 0.0;
   CK(posn(c, "r", 6371008.8, rad));
   Pts a, b;
   CK(xy(c, c["from"], nul, RAW, a));
@@ -55,11 +55,11 @@ bool hvdist(Ctx &c, Val &out) {
 }
 
 bool eqproj(Ctx &c, Val &out) {
-  double rad;
+  double rad = 0.0;
   CK(posn(c, "r", 6371008.8, rad));
   Pts p;
   CK(xy(c, RAW, p));
-  double c0, c1;
+  double c0 = 0.0, c1 = 0.0;
   if (c.has("lon0") != c.has("lat0")) return c.fail("give both `lon0` and `lat0`, or neither.");
   if (!c.has("lon0")) {
     c0 = p.lon0;
@@ -79,11 +79,11 @@ bool eqproj(Ctx &c, Val &out) {
 }
 
 bool eqinv(Ctx &c, Val &out) {
-  double rad;
+  double rad = 0.0;
   CK(posn(c, "r", 6371008.8, rad));
   Pts p;
   CK(xy(c, PLANAR, p));
-  double c0, c1;
+  double c0 = 0.0, c1 = 0.0;
   CK(inr(c, c["lon0"], "lon0", -180.0, 180.0, c0));
   CK(inr(c, c["lat0"], "lat0", -90.0, 90.0, c1));
   std::vector<double> lo(static_cast<std::size_t>(p.n)), la(static_cast<std::size_t>(p.n));
@@ -108,7 +108,7 @@ bool cgstat(Ctx &c, Val &out) {
   Pts p;
   std::vector<double> w;
   CK(xyw(c, PROJ, p, w));
-  int kk;
+  int kk = 0;
   CK(kdiv(c, wsum(w, p.n), kk));
   double o[10];
   CK(kc(c, clab_cgstat(p.x.data(), p.y.data(), ptr(w), p.n, kk, o)));
@@ -146,8 +146,8 @@ bool webpt(Ctx &c, Val &out) {
     s[1] = sv[1];
     CK(fwd(c, p, s, s + 1, 1));
   }
-  double tl;
-  int mi;
+  double tl = 0.0;
+  int mi = 0;
   CK(posn(c, "tol", 1e-10, tl));
   CK(wholed(c, "maxit", 1000, 0, mi));
   double o[6];
@@ -162,9 +162,9 @@ bool sdell(Ctx &c, Val &out) {
   Pts p;
   std::vector<double> w;
   CK(xyw(c, PROJ, p, w));
-  int kk;
+  int kk = 0;
   CK(kdiv(c, wsum(w, p.n), kk));
-  double cc;
+  double cc = 0.0;
   CK(posn(c, "c", 1, cc));
   double o[6];
   CK(kc(c, clab_sdell(p.x.data(), p.y.data(), ptr(w), p.n, kk, cc, o)));
@@ -217,11 +217,11 @@ bool nnidx(Ctx &c, Val &out) {
   Pts p;
   CK(inwin(c, p, w));
   const int n = p.n;
-  int km, ns, me;
+  int km = 0, ns = 0, me = 0;
   CK(wholed(c, "kmax", 1, 1, km));
   if (km > n - 1) return c.fail("`kmax` must be below the number of points.");
   CK(wholed(c, "nsim", 0, 0, ns));
-  bool dd;
+  bool dd = false;
   CK(flagd(c, "dist", false, dd));
   CK(metric(c, me));
   unsigned int sd = 0;
@@ -268,7 +268,7 @@ bool ripk(Ctx &c, Val &out) {
   Dv rv;
   CK(radii(c, rv));
   const int m = static_cast<int>(rv.n());
-  int co, me;
+  int co = 0, me = 0;
   CK(pickd(c, "corr", kcor, 4, 3, co));
   CK(metric(c, me));
   if (me == 1 && co == 3) {
@@ -293,7 +293,7 @@ bool ripenv(Ctx &c, Val &out) {
   Dv rv;
   CK(radii(c, rv));
   const int m = static_cast<int>(rv.n());
-  int co, ns;
+  int co = 0, ns = 0;
   CK(pickd(c, "corr", kcor, 4, 3, co));
   CK(wholed(c, "nsim", 99, 1, ns));
   unsigned int sd;
@@ -402,9 +402,9 @@ Val ctab(const Pts &p, const std::vector<double> &cs, int nc, int w, const char 
 bool fzmode(Ctx &c, Val &out) {
   Pts p;
   CK(xy(c, PROJ, p));
-  double rad;
+  double rad = 0.0;
   CK(inr(c, c["r"], "r", 0.0, std::numeric_limits<double>::max(), rad));
-  int me;
+  int me = 0;
   CK(metric(c, me));
   const std::size_t n = static_cast<std::size_t>(p.n);
   std::vector<int> iw(2 * n + 2);
@@ -446,7 +446,7 @@ bool kmpart(Ctx &c, Val &out) {
     pz.n = static_cast<int>(zn.x.size());
   }
   const int n = pz.n;
-  int kk;
+  int kk = 0;
   CK(whole(c, c["k"], "k", 1, kk));
   if (kk > n) return c.fail("`k` must be at most the number of points.");
   std::vector<double> cen(2 * static_cast<std::size_t>(kk));
@@ -455,7 +455,7 @@ bool kmpart(Ctx &c, Val &out) {
   const Val &ini = c["init"];
   if (!c.has("init") || ini.t == Val::STR) {
     static const char *const io[] = {"pp", "cells"};
-    int k2;
+    int k2 = 0;
     CK(pickd(c, "init", io, 2, 0, k2));
     in0 = 1 + k2;
   } else {
@@ -475,7 +475,7 @@ bool kmpart(Ctx &c, Val &out) {
     if (!(par[0] > 0)) return c.fail("`cell` must give a positive cell side.");
   }
   static const char *const uo[] = {"mean", "weber"};
-  int up, mi;
+  int up = 0, mi = 0;
   CK(pickd(c, "upd", uo, 2, 0, up));
   CK(wholed(c, "maxit", 100, 0, mi));
   unsigned int sd = 0;
@@ -530,7 +530,7 @@ bool nnhclu(Ctx &c, Val &out) {
   if (c.has("fixd")) CK(one(c, c["fixd"], "fixd", 0.0, Inf, fd));
   CK(oned(c, "p", 0.5, 0.0, 1.0, pv));
   const double z = qnorm(pv);
-  int mp, mh, mo, kk;
+  int mp = 0, mh = 0, mo = 0, kk = 0;
   CK(wholed(c, "minpts", 10, 2, mp));
   Val d1;
   CK(whole(c, c.has("minhi") ? c["minhi"] : (d1 = vnum(mp)), "minhi", 2, mh));
@@ -568,11 +568,11 @@ bool stacel(Ctx &c, Val &out) {
   }
   double w[4];
   CK(win(c, c["win"], w));
-  int gx, gy, tp, mp, kk;
+  int gx = 0, gy = 0, tp = 0, mp = 0, kk = 0;
   CK(wholed(c, "nx", 20, 2, gx));
   CK(wholed(c, "ny", 20, 2, gy));
   if (gx > 10000 || gy > 10000) return c.fail("`nx` and `ny` must be at most 10000.");
-  double rad, cc;
+  double rad = 0.0, cc = 0.0;
   CK(one(c, c["r"], "r", 0.0, Inf, rad));
   CK(wholed(c, "top", 25, 1, tp));
   CK(wholed(c, "minpts", 5, 2, mp));
@@ -609,10 +609,10 @@ bool mantst(Ctx &c, Val &out) {
   CK(xyt(c, p, tv));
   if (p.n < 3 || p.n > 46340) return c.fail("the number of events must be from 3 to 46340.");
   Val d1, d2;
-  double a, b;
+  double a = 0.0, b = 0.0;
   CK(inr(c, arg(c, "cs", d1, 0), "cs", 0.0, std::numeric_limits<double>::max(), a));
   CK(inr(c, arg(c, "ct", d2, 0), "ct", 0.0, std::numeric_limits<double>::max(), b));
-  int ns, me;
+  int ns = 0, me = 0;
   CK(wholed(c, "nsim", 999, 0, ns));
   CK(metric(c, me));
   unsigned int sd = 0;
@@ -630,7 +630,7 @@ bool stmavg(Ctx &c, Val &out) {
   Pts p;
   Dv tv;
   CK(xyt(c, p, tv));
-  int sp;
+  int sp = 0;
   CK(wholed(c, "span", 5, 1, sp));
   if (sp % 2 == 0) return c.fail("`span` must be odd.");
   const std::size_t n = static_cast<std::size_t>(p.n);
@@ -663,8 +663,8 @@ bool nummat(Ctx &c, const std::vector<double> &v, const char *nm) {
 
 // A grid of nx by ny cells over win.
 struct Grid {
-  int nx, ny;
-  double x0, y0, dx, dy;
+  int nx = 0, ny = 0;
+  double x0 = 0.0, y0 = 0.0, dx = 0.0, dy = 0.0;
 };
 bool mkgrid(Ctx &c, int nx, int ny, Grid &g) {
   double w[4];
@@ -709,14 +709,14 @@ bool jtdecay(Ctx &c, Val &out) {
 bool jtsurf(Ctx &c, Val &out) {
   Pts p;
   CK(xy(c, PLANAR, p));
-  int nx, ny;
+  int nx = 0, ny = 0;
   CK(whole(c, c["nx"], "nx", 1, nx));
   CK(whole(c, c["ny"], "ny", 1, ny));
   Grid g;
   CK(mkgrid(c, nx, ny, g));
   Decay f;
   CK(mkdecay(c, f));
-  int me, md;
+  int me = 0, md = 0;
   CK(metric(c, me));
   static const char *const so[] = {"sum", "lik"};
   CK(pickd(c, "mode", so, 2, 0, md));
@@ -741,15 +741,15 @@ bool jtcal(Ctx &c, Val &out) {
   CK(a.byname(c));
   Dv dv, tv;
   CK(num(c, a[0], "d", dv, -1, 0.0));
-  bool rf;
+  bool rf = false;
   CK(flagd(c, "refl", true, rf));
   CK(num(c, c["t"], "t", tv, -1, rf ? 0.0 : -HUGE_VAL));
-  double bw;
+  double bw = 0.0;
   CK(one(c, c["h"], "h", 0.0, Inf, bw));
   std::vector<double> w;
   CK(pwts(c, a[1], dv.n(), w));
   static const char *const ko[] = {"normal", "quartic", "triangular", "uniform", "laplace"};
-  int kk;
+  int kk = 0;
   CK(pickd(c, "kern", ko, 5, 0, kk));
   std::vector<double> o(tv.n());
   CK(kc(c, clab_jtcal(dv.p(), ptr(w), static_cast<int>(dv.n()), kk, bw, rf ? 1 : 0, tv.p(), static_cast<int>(tv.n()),
@@ -764,7 +764,7 @@ bool jtacc(Ctx &c, Val &out) {
     return c.fail("`prob` must be a matrix of cell values (nx by ny), as jtsurf() returns.");
   }
   std::vector<double> pv;
-  int nr, nc;
+  int nr = 0, nc = 0;
   bool bad = false;
   pv.assign(static_cast<std::size_t>(dim[0]) * static_cast<std::size_t>(dim[1]), 0.0);
   fill(c["prob"], 2, dim, 0, 0, 1, pv, bad, true);
