@@ -331,9 +331,10 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
     is a Python keyword takes a final underscore (``from_``,
     ``lambda_``). Labels are sorted as text where R would keep a factor's
     level order. A function whose result is random needs `seed` (R draws
-    one from its own generator when it is left out). R's warnings are not
-    raised, and attributes R sets beside a result (a class, a centre) are
-    not returned.
+    one from its own generator when it is left out). A warning R gives is
+    returned in the result as ``warnings``, a list of its messages, not
+    raised; attributes R sets beside a result (a class, a centre) are not
+    returned, nor the row and column names of a matrix.
 
 ## Development
 
