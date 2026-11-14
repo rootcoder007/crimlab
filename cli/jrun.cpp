@@ -1510,6 +1510,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jchk.inc"
 #include "jsp.inc"
 #include "jsp2.inc"
+#include "jtox.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1617,6 +1618,11 @@ const Ent ents[] = {
     {"hdbang", "x y? v w? nn? ang? ntrip? iter? lonlat?", hdbang},
     {"crwalk", "x y? h? nsim? seed? lonlat?", crwalk},
     {"rnnhcl", "x y? base bw? h p? minpts? k? c? lonlat?", rnnhcl},
+    {"txcal", "conc resp w? unk? k?", txcal},
+    {"lodimp", "x lod meth?", lodimp},
+    {"pmrrat", "cen per cut?", pmrrat},
+    {"etohlr", "eth prop? but? etg? thr?", etohlr},
+    {"mtxrel", "base dil days? stage? dmax? dcap? smax? scap?", mtxrel},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
