@@ -16,6 +16,9 @@ test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
   calls <- list(
+    list(quote(prohs(cbind(c(0.5, 1.5), c(0.5, 0.5)), t = c(0, 9), at = 7,
+                     win = c(0, 2, 0, 1), cell = 1)),
+         c("x", "y", "z", "hot", "eval", "par")),
     list(quote(wdqx(c(10, 5), c(4, 4), c(20, 20))),
          c("sm", "bdm", "wdq", "ea", "eb", "net")),
     list(quote(rptvic(c("a", "b", "a"))), c("tab", "stat", "gap", "lag")),

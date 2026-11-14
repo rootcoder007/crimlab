@@ -1037,6 +1037,15 @@ bad("rptvic", id = c("a", "b"), pop = 1)
 ok("wdqx", a = c(100, 60), b = c(50, 40), c = c(200, 180))
 ok("wdqx", a = c(10, 10), b = c(5, 9), c = c(10, 10))
 bad("wdqx", a = c(1, 2), b = c(1, 2), c = c(0, 2))
+
+# Prospective hot-spotting
+set.seed(6)
+php <- cbind(x = round(runif(40, 0, 500)), y = round(runif(40, 0, 400)))
+phd <- sample(1:60, 40, TRUE)
+ok("prohs", x = php, t = phd, at = 45, win = c(0, 500, 0, 400), cell = 100, bw = 250, tw = 30, ahead = 14)
+ok("prohs", x = cbind(c(0.5, 0.6, 1.6), c(0.5, 0.4, 0.5)), t = c(0, 8, 9), at = 7, win = c(0, 2, 0, 1), cell = 1,
+   bw = 2, top = 0.5)
+bad("prohs", x = cbind(c(1, 2), c(1, 2)), t = c(1, 2), at = 2, win = c(0, 5, 0, 5), cell = 1, top = 0)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

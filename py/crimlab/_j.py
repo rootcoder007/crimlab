@@ -3469,3 +3469,21 @@ def wdqx(a: Any, b: Any, c: Any) -> Any:
     ['sm', 'bdm', 'wdq', 'ea', 'eb', 'net']
     """
     return jcall("wdqx", a=a, b=b, c=c)
+
+
+def prohs(x: Any, y: Any = None, t: Any = None, at: Any = None, win: Any = None, cell: Any = None, bw: Any = None,
+          tw: Any = 60, tunit: Any = 7, top: Any = 0.1, ahead: Any = 7) -> Any:
+    """Prospective hot-spotting: where the next burglaries are likely.
+
+    The arguments and the result are those of R's ``prohs()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = prohs(x=[[0.5, 0.5], [0.6, 0.4], [1.6, 0.5]], t=[0, 8, 9], at=7, win=[0, 2, 0, 1], cell=1,
+    ... bw=2, top=0.5)
+    >>> list(r)
+    ['x', 'y', 'z', 'hot', 'eval', 'par']
+    """
+    return jcall("prohs", x=x, y=y, t=t, at=at, win=win, cell=cell, bw=bw, tw=tw, tunit=tunit, top=top,
+                 ahead=ahead)

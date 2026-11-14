@@ -162,6 +162,8 @@ The functions work on summary data, not on raw records:
   repeat (`rptvic()`).
 * Displacement: whether crime moved from a treated area into the area
   around it, by the weighted displacement quotient (`wdqx()`).
+* Forecasts: the risk of each cell of a grid from recent nearby incidents,
+  and how many later incidents its hot cells caught (`prohs()`).
 
 ## Algorithms
 
@@ -530,7 +532,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (205 of 205); `crimlab -l` lists them and
+of the R package (206 of 206); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

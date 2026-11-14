@@ -3144,6 +3144,19 @@ int clab_rptvic(const int *id, const double *t, int n, int nid, double pop, cons
  * when sm is 0), the counts a0 c1 / c0 and b0 c1 / c0 expected after, and
  * the crimes prevented in both, (ea - a1) + (eb - b1). */
 int clab_wdqx(const double *a, const double *b, const double *c, double *out);
+/* Prospective hot-spotting (prh.cpp; Bowers, Johnson and Pease 2004,
+ * doi:10.1093/bjc/azh036). n incidents (px, py, t); the grid of nx by ny
+ * square cells of side cell from the corner (win[0], win[2]). Out: z (nx
+ * ny, column-major, x fastest): the sum over the incidents with at - tw
+ * <= t < at whose distance d to the cell's centre is at most bw of 1 / (1
+ * + d / cell) / (1 + (at - t) / tu); hot (nx ny): the ceiling(top nx ny)
+ * cells of highest risk that have any, ties by position; ev (5): the
+ * incidents with at <= t < at + ahead inside the grid, those in hot
+ * cells, their share, the hot share of the cells and the ratio of the two
+ * (the predictive accuracy index). bw at most 1e4 cells. */
+int clab_prohs(const double *px, const double *py, const double *t, int n, double at, const double *win,
+               double cell, double bw, double tw, double tu, double top, double ahead, int nx, int ny, double *z,
+               int *hot, double *ev);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

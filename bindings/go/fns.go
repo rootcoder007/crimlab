@@ -604,6 +604,9 @@ func Rptvic(args string) (string, error) { return Jrun("rptvic", args) }
 // Wdqx runs wdqx() of the R package (arguments: a b c; ? marks an optional one).
 func Wdqx(args string) (string, error) { return Jrun("wdqx", args) }
 
+// Prohs runs prohs() of the R package (arguments: x y? t at win cell bw? tw? tunit? top? ahead?; ? marks an optional one).
+func Prohs(args string) (string, error) { return Jrun("prohs", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 

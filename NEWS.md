@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `prohs()` forecasts the risk of each grid cell from recent nearby
+  incidents, weighted down with distance and age (Bowers, Johnson and
+  Pease), and scores its hot cells on later incidents. It is in
+  `clab_jrun()`, the command line and Python.
+
 * `wdqx()` gives the weighted displacement quotient of Bowers and Johnson,
   with the counts expected after and the crimes prevented in the treated
   area and its buffer. It is in `clab_jrun()`, the command line and
