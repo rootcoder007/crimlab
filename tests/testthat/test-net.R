@@ -2,7 +2,8 @@
 # closed forms and brute force. Here: the rules of the R interface (labels,
 # node order, repeated edges, loops, isolated nodes, missing values), the
 # messages, and agreement with igraph and sna: stored references written
-# by dev/netref.R, and live comparisons when the packages are installed.
+# by dev/netref.R, and igraph's values on random graphs stored in
+# ref/net.txt by dev/ref/net.R (version named there).
 
 ref <- readRDS(test_path("netref.rds"))
 
@@ -81,7 +82,7 @@ test_that("a graph with one best partition gives igraph's partition", {
 })
 
 test_that("measures agree with igraph on new random graphs", {
-  skip_if_not_installed("igraph")
+  rand <- refget("net")$rand
   set.seed(11)
   for (k in 1:5) {
     n <- 30 + 10 * k
@@ -91,23 +92,21 @@ test_that("measures agree with igraph on new random graphs", {
     w <- stats::runif(m, 0.5, 2)
     lab <- paste0("p", seq_len(n + 2))
     for (dir in c(FALSE, TRUE)) {
-      g <- igraph::graph_from_data_frame(
-        data.frame(f = lab[f], t = lab[t], weight = w), directed = dir,
-        vertices = lab
-      )
-      g <- igraph::simplify(g, edge.attr.comb = list(weight = "sum"))
+      # igraph: g is simplify(graph_from_data_frame(data.frame(f = lab[f],
+      # t = lab[t], weight = w), directed = dir, vertices = lab),
+      # edge.attr.comb = list(weight = "sum")); strength(g, mode = "all"),
+      # betweenness(), closeness() and harmonic_centrality() with the
+      # weights NA
+      g <- rand[[sprintf("%d%s", k, if (dir) "d" else "u")]]
+      expect_equal(sum(f, t, w), g$inp, tolerance = 1e-12,
+                   info = "inputs changed")
       d <- ntdeg(lab[f], lab[t], w = w, nodes = lab, dir = dir)
-      expect_equal(d$wdeg, unname(igraph::strength(g, mode = "all")),
-                   tolerance = 1e-12)
+      expect_equal(d$wdeg, g$wdeg, tolerance = 1e-12)
       expect_equal(ntbtw(lab[f], lab[t], nodes = lab, dir = dir)$btw,
-                   unname(igraph::betweenness(g, weights = NA)),
-                   tolerance = 1e-10)
+                   g$btw, tolerance = 1e-10)
       cl <- ntcls(lab[f], lab[t], nodes = lab, dir = dir)
-      expect_equal(cl$cls, unname(igraph::closeness(g, weights = NA)),
-                   tolerance = 1e-10)
-      expect_equal(cl$hrm,
-                   unname(igraph::harmonic_centrality(g, weights = NA)),
-                   tolerance = 1e-10)
+      expect_equal(cl$cls, g$cls, tolerance = 1e-10)
+      expect_equal(cl$hrm, g$hrm, tolerance = 1e-10)
     }
   }
 })
