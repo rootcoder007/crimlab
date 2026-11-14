@@ -1,0 +1,132 @@
+# The stored reference values on every platform: the packages that
+# computed tests/testthat/ref are installed here (they are not in
+# DESCRIPTION), every generator in dev/ref runs again (dev/ref/all.R),
+# and dev/ref/cmp.R compares each regenerated value with the stored one
+# at the tolerance of the test that uses it (tests/testthat/ref/tol.csv).
+# A job fails when a value is outside that tolerance, or when the tests
+# fail on the regenerated values; differences within it are listed in
+# the job summary. A generator whose packages do not install on a
+# platform is skipped there, and the summary says so. The regenerated
+# fixtures, diff.csv and summary.md are uploaded.
+name: ref
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "dev/ref/**"
+      - "tests/testthat/ref/**"
+      - ".github/workflows/ref.yml"
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ref-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ref:
+    name: ${{ matrix.os }} (${{ matrix.r }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {os: ubuntu-24.04, r: release}
+          - {os: ubuntu-24.04, r: devel}
+          - {os: ubuntu-24.04-arm, r: release}
+          - {os: macos-latest, r: release}
+          - {os: macos-15-intel, r: release}
+          - {os: windows-latest, r: release}
+    env:
+      NOT_CRAN: "true"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          r-version: ${{ matrix.r }}
+          use-public-rspm: true
+      # sf, spdep and igraph link these where no binary is served
+      - name: System libraries
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libgdal-dev libgeos-dev libproj-dev \
+            libudunits2-dev libsqlite3-dev libglpk-dev libxml2-dev libssl-dev
+      # one at a time, so that one that fails leaves the others; rmorie and
+      # rmoriebricklayer come from r-universe, the rest from CRAN
+      - name: Reference packages
+        shell: Rscript {0}
+        run: |
+          cran <- c("testthat", "circular", "DescTools", "geosphere",
+                    "geepack", "MASS", "sandwich", "sf", "spatstat.geom",
+                    "spatstat.explore", "spdep", "igraph")
+          uni <- c("rmorie", "rmoriebricklayer")
+          rep <- c("https://rootcoder007.r-universe.dev", getOption("repos"))
+          for (p in c(cran, uni)) {
+            tryCatch(
+              utils::install.packages(p, repos = if (p %in% uni) rep else
+                getOption("repos")),
+              error = function(e) message(p, ": ", conditionMessage(e))
+            )
+          }
+          ok <- vapply(c(cran, uni), requireNamespace, NA, quietly = TRUE)
+          for (p in names(ok)) {
+            cat(p, if (ok[[p]]) format(packageVersion(p)) else
+              "NOT INSTALLED", "\n")
+          }
+          if (!ok[["testthat"]]) stop("testthat did not install")
+      - name: crimlab
+        run: |
+          R CMD INSTALL .
+          echo "OUT=$RUNNER_TEMP/ref" >> "$GITHUB_ENV"
+      - name: Regenerate
+        run: Rscript dev/ref/all.R "$OUT"
+      - name: Compare with the stored values
+        if: always()
+        run: Rscript dev/ref/cmp.R tests/testthat/ref "$OUT"
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f "$OUT/summary.md" ]; then
+            cat "$OUT/summary.md" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f "$OUT/status.csv" ]; then
+            {
+              echo
+              echo "### Generators"
+              echo
+              echo '```'
+              cat "$OUT/status.csv"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+      # the tests that read reference values, on the regenerated ones
+      - name: Tests on the regenerated values
+        if: always()
+        env:
+          CLAB_REF: ${{ runner.temp }}/ref
+        run: |
+          Rscript -e 'f <- "^(spw|sp|doss|kdsurf|cntreg|didfe|ctabx|net|corr|disp|pol|fairdf|rates|clprep|ref)$"
+            r <- as.data.frame(testthat::test_dir("tests/testthat",
+              filter = f, package = "crimlab", load_package = "installed",
+              reporter = "summary", stop_on_failure = FALSE))
+            cat("pass fail skip error =", sum(r$passed), sum(r$failed),
+              sum(r$skipped), sum(r$error), "\n")
+            if (sum(r$failed) + sum(r$error) > 0) quit(status = 1)'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: ref-${{ matrix.os }}-${{ matrix.r }}
+          path: ${{ runner.temp }}/ref
+          if-no-files-found: warn
