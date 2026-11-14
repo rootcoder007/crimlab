@@ -1549,6 +1549,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jjdg.inc"
 #include "jhwk.inc"
 #include "jrat.inc"
+#include "jaud.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1699,6 +1700,8 @@ const Ent ents[] = {
     {"dastd", "x n strat grp? std ref? per? level?", dastd},
     {"sirex", "x n strat grp rates? level?", sirex},
     {"ctabx", "row col? w? agg? correct? exact? level?", ctabx},
+    {"calaud", "area risk? outcome? group? population? nperm? seed?", calaud},
+    {"scrdsp", "score group? ref? conf?", scrdsp},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
