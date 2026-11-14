@@ -1,0 +1,4 @@
+# Written by dev/ref/didfe.R with MASS 7.3.65.
+# Do not edit: run the generator again.
+list(inp = 0x1.99p+11, est = 0x1.e3811dfc1e644p-3, theta = 0x1.258aec51857abp+2, 
+    pkgs = c(MASS = "7.3.65"))

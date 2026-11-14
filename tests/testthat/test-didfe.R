@@ -1,7 +1,8 @@
 # didfe(): the least-squares fit against lm() with the unit and period
 # dummies and a cluster sandwich written out here, the clustered errors and
 # the Poisson fit against 'fixest' (values stored), the negative binomial
-# against MASS::glm.nb(), the decomposition against 'bacondecomp' (values
+# against MASS::glm.nb() (values stored in ref/didfe.txt by
+# dev/ref/didfe.R), the decomposition against 'bacondecomp' (values
 # stored), the matching by hand, recovery of a known effect with errors
 # against the Monte Carlo spread, and the refusals.
 
@@ -100,7 +101,6 @@ test_that("the Poisson fit is fixest's, the negative binomial glm.nb()'s", {
   z <- qnorm(0.975)
   expect_equal(r$coef$rrhi, exp(r$coef$est + z * r$coef$se),
                tolerance = testthat_tolerance())
-  skip_if_not_installed("MASS")
   # counts with real overdispersion (size 3): theta is identified, so it can
   # be compared; on the Poisson counts above the likelihood is flat in theta
   # and its maximiser, in the tens of thousands, differs between platforms
@@ -108,11 +108,13 @@ test_that("the Poisson fit is fixest's, the negative binomial glm.nb()'s", {
   od <- pd
   od$cnt <- rnbinom(nrow(od), mu = exp(2 + od$town / 50 + 0.3 * od$on),
                     size = 3)
-  nb <- MASS::glm.nb(
-    cnt ~ on + factor(town) + factor(year) + offset(log(pop)), od
-  )
+  # MASS::glm.nb(cnt ~ on + factor(town) + factor(year) +
+  #   offset(log(pop)), od): the coefficient of on, and theta
+  nb <- refget("didfe")
+  expect_equal(sum(od$cnt), nb$inp, tolerance = 1e-12,
+               info = "inputs changed")
   rn <- didfe(od$cnt, od$town, od$year, od$on, fam = "nb", expo = od$pop)
-  expect_equal(rn$coef$est, unname(coef(nb)[2]), tolerance = 1e-6)
+  expect_equal(rn$coef$est, nb$est, tolerance = 1e-6)
   expect_equal(rn$fit$theta, nb$theta, tolerance = 1e-5)
   # no overdispersion to find: theta runs off, and the estimate is the
   # Poisson one

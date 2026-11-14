@@ -1,5 +1,6 @@
 # ctabx(): the statistics against stats::chisq.test() and fisher.test(),
-# Cramer's V and its interval against DescTools, the measures by hand,
+# Cramer's V and its interval against DescTools (stored in ref/ctabx.txt by
+# dev/ref/ctabx.R, version named there), the measures by hand,
 # aggregation, empty and degenerate tables, the input forms and the
 # refusals.
 
@@ -30,13 +31,15 @@ test_that("Pearson and likelihood-ratio statistics are chisq.test()'s", {
 })
 
 test_that("Cramer's V and its interval are DescTools'", {
-  skip_if_not_installed("DescTools")
+  ref <- refget("ctabx")
+  expect_identical(as.vector(table(ct$a, ct$b)), ref$inp,
+                   info = "inputs changed")
   r <- ctabx(ct$a, ct$b)$stat
-  d <- DescTools::CramerV(table(ct$a, ct$b), conf.level = 0.95)
-  # DescTools stops its root search when the probability is within 1e-5
-  expect_equal(c(r$v, r$vlo, r$vhi), unname(d), tolerance = 1e-3)
-  b <- DescTools::CramerV(table(ct$a, ct$b), correct = TRUE)
-  expect_equal(r$vbc, b, tolerance = 1e-12)
+  # DescTools::CramerV(table(ct$a, ct$b), conf.level = 0.95); it stops its
+  # root search when the probability is within 1e-5
+  expect_equal(c(r$v, r$vlo, r$vhi), ref$v, tolerance = 1e-3)
+  # and from DescTools::CramerV(table(ct$a, ct$b), correct = TRUE)
+  expect_equal(r$vbc, ref$vbc, tolerance = 1e-12)
 })
 
 test_that("2 x 2: Yates, phi and Fisher's test are R's", {
@@ -166,7 +169,7 @@ test_that("refusals", {
   )
 })
 
-# Parity with rmorie (helper-port.R): live when installed, recorded otherwise.
+# Parity with rmorie (helper-port.R): values recorded in ref/port.txt.
 
 test_that("ctabx() reproduces the OTIS cross-tabulations", {
   b <- portref("otisxtab")

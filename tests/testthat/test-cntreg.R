@@ -1,8 +1,9 @@
 # cntreg(): Poisson and negative binomial fits against stats::glm() and
 # MASS::glm.nb() (the same iterations, so agreement to rounding), the
 # cluster sandwich against sandwich::vcovCL(), the exchangeable GEE against
-# geepack, closed forms, adversarial counts, the input forms and the
-# refusals.
+# geepack (the values of those three packages stored in ref/cntreg.txt by
+# dev/ref/cntreg.R, versions named there), closed forms, adversarial
+# counts, the input forms and the refusals.
 
 set.seed(3)
 cn <- local({
@@ -16,6 +17,12 @@ cn <- local({
 })
 
 pick <- function(r, fit, what = "est") r$coef[[what]][r$coef$fit == fit]
+ref <- refget("cntreg")
+
+test_that("the counts are those the stored references were computed on", {
+  expect_equal(sum(cn$y, cn$x, as.integer(cn$f), cn$e), ref$inp,
+               tolerance = 1e-12, info = "inputs changed")
+})
 
 test_that("the Poisson fit is glm()'s", {
   r <- cntreg(cn$y, cn$x, adj = cn["f"], expo = cn$e)
@@ -32,34 +39,23 @@ test_that("the Poisson fit is glm()'s", {
 })
 
 test_that("the negative binomial fit is MASS::glm.nb()'s", {
-  skip_if_not_installed("MASS")
   r <- cntreg(cn$y, cn$x, adj = cn["f"], expo = cn$e)
-  nb <- MASS::glm.nb(y ~ factor(x) + f + offset(log(e)), data = cn)
-  co <- unname(coef(summary(nb)))
-  expect_equal(pick(r, "nb"), co[, 1], tolerance = 1e-8)
-  expect_equal(pick(r, "nb", "se"), co[, 2], tolerance = 1e-8)
+  # the fit of MASS::glm.nb(y ~ factor(x) + f + offset(log(e)), data = cn)
+  nb <- ref$nb
+  expect_equal(pick(r, "nb"), nb$est, tolerance = 1e-8)
+  expect_equal(pick(r, "nb", "se"), nb$se, tolerance = 1e-8)
   expect_equal(r$fit$theta[2], nb$theta, tolerance = 1e-8)
-  expect_equal(r$fit$setheta[2], nb$SE.theta, tolerance = 1e-6)
-  expect_equal(r$fit$aic[2], AIC(nb), tolerance = 1e-8)
-  expect_equal(r$fit$loglik[2], as.numeric(logLik(nb)), tolerance = 1e-8)
+  expect_equal(r$fit$setheta[2], nb$setheta, tolerance = 1e-6)
+  expect_equal(r$fit$aic[2], nb$aic, tolerance = 1e-8)
+  expect_equal(r$fit$loglik[2], nb$loglik, tolerance = 1e-8)
 })
 
 test_that("the cluster sandwich is sandwich::vcovCL()'s", {
-  skip_if_not_installed("sandwich")
-  skip_if_not_installed("MASS")
   r <- cntreg(cn$y, cn$x, adj = cn["f"], expo = cn$e, clus = cn$id)
-  g <- glm(y ~ factor(x) + f + offset(log(e)), family = poisson, data = cn)
-  nb <- MASS::glm.nb(y ~ factor(x) + f + offset(log(e)), data = cn)
-  expect_equal(
-    pick(r, "poiscl", "se"),
-    unname(sqrt(diag(sandwich::vcovCL(g, cluster = cn$id)))),
-    tolerance = 1e-9
-  )
-  expect_equal(
-    pick(r, "nbcl", "se"),
-    unname(sqrt(diag(sandwich::vcovCL(nb, cluster = cn$id)))),
-    tolerance = 1e-7
-  )
+  # sandwich::vcovCL(fit, cluster = cn$id) of the glm() Poisson fit and of
+  # the MASS::glm.nb() fit
+  expect_equal(pick(r, "poiscl", "se"), ref$cl$pois, tolerance = 1e-9)
+  expect_equal(pick(r, "nbcl", "se"), ref$cl$nb, tolerance = 1e-7)
   # cadj = FALSE drops G / (G - 1): the independence GEE variance
   r0 <- cntreg(
     cn$y,
@@ -77,23 +73,14 @@ test_that("the cluster sandwich is sandwich::vcovCL()'s", {
 })
 
 test_that("the exchangeable GEE is geepack's", {
-  skip_if_not_installed("geepack")
   r <- cntreg(cn$y, cn$x, adj = cn["f"], expo = cn$e, clus = cn$id, gee = TRUE)
-  g <- geepack::geeglm(
-    y ~ factor(x) + f + offset(log(e)),
-    family = poisson,
-    id = id,
-    data = cn,
-    corstr = "exchangeable",
-    control = geepack::geese.control(epsilon = 1e-12, maxit = 100)
-  )
-  expect_equal(pick(r, "gee"), unname(coef(g)), tolerance = 1e-8)
-  expect_equal(
-    pick(r, "gee", "se"),
-    unname(sqrt(diag(g$geese$vbeta))),
-    tolerance = 1e-7
-  )
-  expect_equal(r$fit$alpha[3], unname(g$geese$alpha), tolerance = 1e-7)
+  # geepack::geeglm(y ~ factor(x) + f + offset(log(e)), family = poisson,
+  #   id = id, data = cn, corstr = "exchangeable",
+  #   control = geese.control(epsilon = 1e-12, maxit = 100))
+  g <- ref$gee
+  expect_equal(pick(r, "gee"), g$est, tolerance = 1e-8)
+  expect_equal(pick(r, "gee", "se"), g$se, tolerance = 1e-7)
+  expect_equal(r$fit$alpha[3], g$alpha, tolerance = 1e-7)
   expect_true(r$fit$conv[3])
 })
 

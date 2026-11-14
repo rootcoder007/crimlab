@@ -1,0 +1,5 @@
+# Written by dev/ref/ctabx.R with DescTools 0.99.60.
+# Do not edit: run the generator again.
+list(inp = c(11L, 10L, 12L, 7L, 8L, 13L, 10L, 11L, 8L, 7L, 16L, 
+7L), v = c(0x1.57fd95a2d7e57p-3, 0x0p+0, 0x1.efe2f78a2cfa1p-3
+), vbc = 0x1.c4a76dac1135ap-5, pkgs = c(DescTools = "0.99.60"))

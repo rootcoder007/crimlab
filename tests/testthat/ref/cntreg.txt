@@ -1,0 +1,15 @@
+# Written by dev/ref/cntreg.R with MASS 7.3.65, sandwich 3.1.2, geepack 1.3.13.
+# Do not edit: run the generator again.
+list(inp = 0x1.3ee0a50046p+9, nb = list(est = c(0x1.005f974ea8d45p-1, 
+0x1.9e2e39e6e9d3ap-2, -0x1.6b14d6ec15a75p-2, -0x1.b83cfd65b4af9p-3
+), se = c(0x1.9c7785bfef3d4p-3, 0x1.af771f59cbac7p-3, 0x1.f48d83bfcb044p-3, 
+0x1.0c07e46287caap-2), theta = 0x1.c86ebdf6cf4b9p+0, setheta = 0x1.dd4c0a2d6318ep-2, 
+    aic = 0x1.817f994d129eap+8, loglik = -0x1.777f994d129eap+7), 
+    cl = list(pois = c(0x1.588b8373a73cp-3, 0x1.86b49ba9ca81dp-3, 
+    0x1.6bc3a12c6332ep-3, 0x1.7329bfcddcefdp-2), nb = c(0x1.51d2fd5580cf2p-3, 
+    0x1.9a93029f1b99cp-3, 0x1.76ab06537d2b3p-3, 0x1.7954a0c2cee6ap-2
+    )), gee = list(est = c(0x1.1300297d93f67p-1, 0x1.00ca118e74cd9p-2, 
+    -0x1.6d1714cc4a08ap-2, -0x1.b66d905b0d8f9p-3), se = c(0x1.31ed325e28ec1p-3, 
+    0x1.6a13a3c8565d4p-3, 0x1.485b8e2c1ca56p-3, 0x1.53f44a5aa625p-2
+    ), alpha = -0x1.b733a5c13b80ap-6), pkgs = c(MASS = "7.3.65", 
+    sandwich = "3.1.2", geepack = "1.3.13"))
