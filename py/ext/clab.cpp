@@ -29,12 +29,14 @@
 #include <cstring>
 #include <exception>
 #include <limits>
+#include <new>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include "crimlab.h"
+#include "jrun.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1586,6 +1588,32 @@ PyObject *sqrtlw(PyObject *const *a) {
 }
 
 // The self-test (src/selftest.cpp): checks run, checks failed, report.
+// clab_jrun() (cli/jrun.cpp, compiled into this module): a function by
+// name, its arguments and its result as JSON text; the wrappers of
+// crimlab/_j.py call it. A refusal is a ValueError with clab_jrun()'s
+// message, which is R's.
+PyObject *jrun(PyObject *const *a) {
+  who = "crimlab";
+  const char *fn = PyUnicode_AsUTF8AndSize(a[0], nullptr);
+  if (fn == nullptr) throw Raised{};
+  const char *in = PyUnicode_AsUTF8AndSize(a[1], nullptr);
+  if (in == nullptr) throw Raised{};
+  std::vector<char> out(1 << 20);
+  int need = 0;
+  int rc = clab_jrun(fn, in, out.data(), static_cast<int>(out.size()), &need);
+  if (rc == CLAB_ESIZE && need > static_cast<int>(out.size())) {
+    out.resize(static_cast<std::size_t>(need));
+    rc = clab_jrun(fn, in, out.data(), need, &need);
+  }
+  if (clab_intrd(0) != 0) intr();
+  if (rc != CLAB_OK) {
+    if (rc == CLAB_ESIZE) throw std::bad_alloc();
+    PyErr_SetString(PyExc_ValueError, out.data());
+    throw Raised{};
+  }
+  return PyUnicode_FromString(out.data());
+}
+
 PyObject *selftest(PyObject *const *) {
   who = "selftest";
   static char sink[1 << 16];
@@ -2278,6 +2306,7 @@ PyMethodDef methods[] = {
     CLAB_FN(impfpr, 3),
     CLAB_FN(sqrtlw, 5),
     CLAB_FN(selftest, 0),
+    CLAB_FN(jrun, 2),
     CLAB_FN(rchar, 1),
     CLAB_FN(tlen, 2),
     CLAB_FN(svg, 7),

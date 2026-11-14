@@ -4,7 +4,8 @@
 In the repository the kernels are compiled from ../src: every .cpp and .h
 there that does not include R's headers (the R binding) is copied to
 ext/k before each build, together with the version from ../DESCRIPTION,
-the proof table of the R binding, the Lean files and the licence. These
+the proof table of the R binding, the Lean files and the licence;
+and clab_jrun() from ../cli with the files it includes. These
 copies are build output, never edited or committed; an sdist carries them,
 so it builds on its own.
 """
@@ -32,6 +33,10 @@ def sync():
     k.mkdir(parents=True)
     for f in sorted(src.iterdir()):
         if f.suffix in (".cpp", ".h") and not R.search(f.read_text(encoding="utf-8")):
+            shutil.copy2(f, k / f.name)
+    # clab_jrun(), which the functions of crimlab/_j.py call
+    for f in sorted((top / "cli").iterdir()):
+        if f.name in ("jrun.cpp", "jrun.h", "json.h") or f.suffix == ".inc":
             shutil.copy2(f, k / f.name)
     desc = (top / "DESCRIPTION").read_text(encoding="utf-8")
     ver = re.search(r"^Version:\s*(\S+)", desc, re.MULTILINE).group(1).replace("-", ".")

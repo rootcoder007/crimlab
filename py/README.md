@@ -4,7 +4,10 @@ Criminology and sociolegal statistics: the Python package binds the same
 compiled kernels as the R package crimlab (`../src`), with the same
 function names, the same argument names and the same results. Every
 number in the parity tests (`tests/data/ref.json`, written by
-`dev/pyref.R` from the R package) is bit-for-bit what R returns.
+`dev/pyref.R` from the R package) is bit-for-bit what R returns; the
+functions that reach the kernels through `clab_jrun()`, the JSON entry of
+the command-line program, are checked against `../cli/test.tsv`
+(`dev/clref.R`) to 1e-12.
 
 The package imports nothing outside Python's standard library: no
 runtime dependencies, no optional ones. Results are dicts of its own that
@@ -308,8 +311,7 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
    column names but no row names. Column names that repeat cannot be
    given as a mapping; such a table is given by position.
 10. `proof()`: `None` means every function (R's `NULL`); R's `NA` has no
-    Python spelling, and `[None]` is refused. `proof()` lists the network
-    functions too, which are not bound in Python yet.
+    Python spelling, and `[None]` is refused.
 11. When several arguments are wrong at once the first error reported may
     differ: names and labels are checked in Python before the numbers are
     checked in the compiled module.
@@ -321,10 +323,17 @@ argument of the wrong kind. A failed allocation is a `MemoryError`.
     message of its own), factors, environments.
 15. Tables print with R's layout but are not R's printing in every detail
     (column widths, the choice between fixed and scientific per column).
-16. Not bound yet: the network functions `ntdeg`, `ntbtw`, `ntcls`,
-    `ntevc`, `ntcore`, `ntcmp`, `ntlvn`, `ntmod`, `ntbrk`, `ntchg` and
-    `coofg`. Their kernels are compiled into the module and run in
-    `selftest()`.
+16. The functions that go through `clab_jrun()` (most of those added
+    after the first ones; `crimlab._j` holds them) take JSON-like
+    values: numbers, text and bools, lists, and dicts for named vectors,
+    data frames (a dict of columns) and lists. A matrix is a list of its
+    rows, also in results; numbers in results are floats. An R name that
+    is a Python keyword takes a final underscore (``from_``,
+    ``lambda_``). Labels are sorted as text where R would keep a factor's
+    level order. A function whose result is random needs `seed` (R draws
+    one from its own generator when it is left out). R's warnings are not
+    raised, and attributes R sets beside a result (a class, a centre) are
+    not returned.
 
 ## Development
 

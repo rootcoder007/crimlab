@@ -9,6 +9,8 @@ as R's as.character() writes them.
 
 from __future__ import annotations
 
+import json
+import keyword
 import math
 from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
@@ -332,3 +334,49 @@ def table(fn: str, nm: str, g: Any) -> tuple[list[str], list[Any] | None]:
 def nrows(fn: str, nm: str, v: list[Any], n: int) -> None:
     if len(v) // 2 != n:
         raise ValueError(f"{fn}: `{nm}` must have {n} rows, not {len(v) // 2}.")
+
+
+def jarg(x: Any) -> Any:
+    """An argument as the JSON value clab_jrun() reads: a mapping (anything
+    with items()) an object, a sequence or an array an array, NaN null (R's
+    NA), an infinity the text R would refuse."""
+    if x is None or isinstance(x, (bool, str)):
+        return x
+    if isinstance(x, (int, float)):
+        if isinstance(x, float) and math.isnan(x):
+            return None
+        if isinstance(x, float) and math.isinf(x):
+            return "Inf" if x > 0 else "-Inf"
+        return x
+    p = items(x)
+    if p is not None:
+        return {str(k): jarg(v) for k, v in p}
+    if hasattr(x, "tolist"):
+        return jarg(x.tolist())
+    try:
+        return [jarg(v) for v in x]
+    except TypeError:
+        raise TypeError(f"cannot pass a {type(x).__name__} to crimlab") from None
+
+
+def jnum(x: Any) -> Any:
+    """NaN and the infinities, written as text in JSON, as floats."""
+    if isinstance(x, str) and x in ("NaN", "Inf", "-Inf"):
+        return float(x)
+    if isinstance(x, list):
+        return [jnum(v) for v in x]
+    if isinstance(x, dict):
+        return {k: jnum(v) for k, v in x.items()}
+    return x
+
+
+def jcall(fn: str, **kw: Any) -> Any:
+    """fn of the R package through clab_jrun(), with the arguments given
+    (None: left out); the result as Python objects (crimlab._out.wrap)."""
+    from ._out import wrap
+
+    # an R name that is a Python keyword (from, lambda) has a final underscore
+    a = {(k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): jarg(v)
+         for k, v in kw.items() if v is not None}
+    r = jnum(json.loads(_clab.jrun(fn, json.dumps(a, allow_nan=False)), parse_int=float))
+    return wrap(r)
