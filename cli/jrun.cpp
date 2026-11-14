@@ -1557,6 +1557,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jdid.inc"
 #include "jsvy.inc"
 #include "jwcb.inc"
+#include "jspx.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1742,6 +1743,23 @@ const Ent ents[] = {
     {"wystep", "obs null", wystep},
     {"dmlx", "y d x model? fold z? s? t? score? lrn? lrnd? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? trim? clu? pred? stk? nstk? disc? seed?", dmlx},
     {"suplrn", "x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?", suplrn},
+    {"knxnr", "x y? t ds dt nsim? seed? lonlat?", knxnr},
+    {"kdsurf", "x y? w? h? win? nx? ny? edge? at? cover?", kdsurf},
+    {"dbscn", "x y? eps minpts? border? lonlat?", dbscn},
+    {"hsper", "x y? prd cell top? org? lonlat?", hsper},
+    {"ebshr", "y v? w? b?", ebshr},
+    {"kscan", "x y? t r tw minc? top? nsim? seed? lonlat?", kscan},
+    {"gmoran", "x w nsim? seed?", gmoran},
+    {"bvmor", "x y w nsim? seed?", bvmor},
+    {"sarml", "y x w model? durbin? method? int?", sarml},
+    {"spill", "fit? w? rho? b? th?", spill},
+    {"crossk", "x y? marks i j win r sigma? nsim? seed?", crossk},
+    {"qdrtst", "x y? win nx ny?", qdrtst},
+    {"morsta", "counts crit?", morsta},
+    {"dissix", "x delta? w?", dissix},
+    {"pinpl", "x y? poly pop?", pinpl},
+    {"arwt", "x from to area? id? top?", arwt},
+    {"bufas", "x y? site comp r buf? lonlat?", bufas},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
