@@ -118,6 +118,12 @@ implies.</p>
 <p>Rows with a missing value in any column the preset reads are dropped,
 as the source analyses drop them; their number is the attribute
 <code>drop</code>.</p>
+<p>Outside R, <code>clab_jrun()</code> (the command line, Python and the bindings)
+gives the same result: <code>args</code>, the generic's arguments, beside <code>preset</code>,
+<code>generic</code>, <code>source</code>, <code>units</code>, <code>note</code> and <code>drop</code>. Text is ordered there
+by its bytes, as R orders it under <code>LC_COLLATE=C</code>, so where R runs in
+another locale the columns of a <code>dum</code> recode and the order of the
+person-year recipes can differ for labels that sort differently there.</p>
     </div>
 
     <div class="section level2">

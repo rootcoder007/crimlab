@@ -2,12 +2,45 @@
 
 ## crimlab 0.0.0.9000
 
+- [`pedlr()`](https://rootcoder007.github.io/crimlab/reference/pedlr.md):
+  the likelihood ratio of two pedigrees, given as tables of people and
+  their parents, from DNA profiles at autosomal markers. The people not
+  typed are summed over exactly by variable elimination on the alleles
+  each received from each parent, so loops, inbreeding and any number of
+  generations are allowed; mutation follows the equal or the stepwise
+  model, with one rate or separate maternal and paternal rates. It
+  equals
+  [`kinidx()`](https://rootcoder007.github.io/crimlab/reference/kinidx.md)
+  and
+  [`patidx()`](https://rootcoder007.github.io/crimlab/reference/patidx.md)
+  where they apply, the enumeration of every allele in its tests, and
+  pedprobr’s likelihoods.
+- [`gmixlr()`](https://rootcoder007.github.io/crimlab/reference/gmixlr.md):
+  the likelihood ratio of two accounts of a DNA mixture by the gamma
+  model of peak heights, with drop-out, drop-in, backward stutter,
+  degradation and coancestry, the unknown contributors summed over and
+  the parameters fitted by maximum likelihood under each account, or
+  fixed with `par`. Its likelihood is checked against enumeration in R;
+  the help page states the model’s assumptions and limits.
+- [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md):
+  the congruent matching profile segments score of two bullet
+  signatures, with the multi-segment-length peaks of Chen et al. (2019).
+  It follows the algorithm written out in R in its tests and is within
+  one segment of cmpsR on simulated signatures.
+- [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  reaches the command line, the Python package and the bindings through
+  `clab_jrun()`, which does its recodes, filters and recipes in C++ with
+  R’s messages and returns the generic’s arguments as `args` with the
+  attributes of the R result beside them. Its preset table is
+  `cli/pre.inc`, made from `inst/presets/presets.tsv` by `cli/pre.sh`;
+  CI fails when the two differ. `cli/test.tsv` holds a case for every
+  preset. Outside R, text is ordered by its bytes (R’s order under
+  `LC_COLLATE=C`) and lowered as ASCII.
 - `clab_jrun()`, and with it the command-line program, the Python
-  package and the bindings, now reaches every exported function but
-  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md):
-  counts, rates and tables, the audits of risk scores, judges’ leniency,
-  long stays, published figures and bands, stocks and flows, the Hawkes
-  fits and other events in time, difference in differences, synthetic
+  package and the bindings, now reaches every exported function: counts,
+  rates and tables, the audits of risk scores, judges’ leniency, long
+  stays, published figures and bands, stocks and flows, the Hawkes fits
+  and other events in time, difference in differences, synthetic
   controls and the event study, surveys, few-cluster inference, the
   double machine learner and the super learner, and the spatial methods
   of near repeats, scans, densities, Moran’s I and spatial regression. A

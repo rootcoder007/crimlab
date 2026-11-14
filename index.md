@@ -58,7 +58,9 @@ The functions work on summary data, not on raw records:
   resident splits into contact and force.
 - Forensics: how rare a DNA profile is, what a likelihood ratio is worth
   and what it is not, how well a system’s ratios are calibrated,
-  kinship, paternity, mixtures and database searches.
+  kinship, paternity, pedigrees with mutation, mixtures from the alleles
+  seen and from their peak heights, database searches, and how well two
+  bullet signatures line up.
 - Policing: why an aggregate clearance rate can fall while every offence
   type clears better, what a proxy for exposure allows, what misrecorded
   group membership does, regression to the mean at hot spots.
@@ -436,6 +438,25 @@ patidx(child = c(12, 14), father = c(14, 15), freq = c(0.1, 0.2),
 
 p <- c(a = 0.1, b = 0.2, c = 0.05, d = 0.15)
 mixlr(p, np = character(0), xp = 0, nd = c("c", "d"), xd = 1)
+
+# a family tree with mutation: is AF the father of C?
+trio <- data.frame(id = c("AF", "M", "C"), fid = c(NA, NA, "AF"),
+                   mid = c(NA, NA, "M"))
+alt <- data.frame(id = c("AF", "M", "C", "X"), fid = c(NA, NA, "X", NA),
+                  mid = c(NA, NA, "M", NA))
+geno <- data.frame(id = c("AF", "M", "C"), locus = "D3", a1 = c(14, 15, 15),
+                   a2 = c(16, 17, 16))
+freq <- data.frame(locus = "D3", allele = 14:17,
+                   freq = c(0.1, 0.25, 0.25, 0.2))
+pedlr(trio, geno, freq, alt, mut = "equal", rate = 0.002)
+
+# a mixture by its peak heights: the victim and the suspect, or the victim
+# and an unknown person
+peaks <- data.frame(locus = "D3", allele = 14:17,
+                    height = c(1210, 380, 1150, 420))
+ref <- data.frame(id = c("V", "S"), locus = "D3", a1 = c(14, 15),
+                  a2 = c(16, 17))
+gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
 ```
 
 ### Performance of likelihood ratios
@@ -660,14 +681,12 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package but
-[`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
-(195 of 196); `crimlab -l` lists them and their arguments, and
-`cli/test.tsv` holds the values the R package gives for them
-(`dev/clref.R`), which every front end is tested against. A warning R
-would give is returned in the result as `warnings`, an array of its
-messages. Outside R a matrix is an array of its rows, without row or
-column names, so a result names its columns as R does for an unnamed
+function of the R package (199 of 199); `crimlab -l` lists them and
+their arguments, and `cli/test.tsv` holds the values the R package gives
+for them (`dev/clref.R`), which every front end is tested against. A
+warning R would give is returned in the result as `warnings`, an array
+of its messages. Outside R a matrix is an array of its rows, without row
+or column names, so a result names its columns as R does for an unnamed
 matrix; and an argument that R takes as a function (the `stat` of
 [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md))
 has no counterpart.

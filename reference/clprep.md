@@ -76,6 +76,13 @@ that a published rate implies.
 Rows with a missing value in any column the preset reads are dropped, as
 the source analyses drop them; their number is the attribute `drop`.
 
+Outside R, `clab_jrun()` (the command line, Python and the bindings)
+gives the same result: `args`, the generic's arguments, beside `preset`,
+`generic`, `source`, `units`, `note` and `drop`. Text is ordered there
+by its bytes, as R orders it under `LC_COLLATE=C`, so where R runs in
+another locale the columns of a `dum` recode and the order of the
+person-year recipes can differ for labels that sort differently there.
+
 ## Examples
 
 ``` r

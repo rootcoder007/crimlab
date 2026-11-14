@@ -19,9 +19,11 @@ and dyadic rates.
 ## Forensics
 
 DNA match statistics, the weight and calibration of likelihood ratios,
-kinship, paternity, mixtures and database searches; trace evidence by
-the two-level model, glass grouping and transfer, and tool marks (lowess
-profiles and the Chumbley score).
+kinship, paternity, pedigrees with mutation, mixtures (by the alleles
+seen and by the gamma model of peak heights) and database searches;
+trace evidence by the two-level model, glass grouping and transfer, and
+tool marks (lowess profiles, the Chumbley score and the CMPS score of
+bullet signatures).
 
 - [`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md) :
   Genotype match probability
@@ -39,10 +41,14 @@ profiles and the Chumbley score).
   : Empirical cross-entropy plot
 - [`mixlr()`](https://rootcoder007.github.io/crimlab/reference/mixlr.md)
   : Mixture likelihood ratio
+- [`gmixlr()`](https://rootcoder007.github.io/crimlab/reference/gmixlr.md)
+  : Continuous DNA mixture likelihood ratio (gamma model)
 - [`kinidx()`](https://rootcoder007.github.io/crimlab/reference/kinidx.md)
   : Kinship index
 - [`patidx()`](https://rootcoder007.github.io/crimlab/reference/patidx.md)
   : Paternity index
+- [`pedlr()`](https://rootcoder007.github.io/crimlab/reference/pedlr.md)
+  : Pedigree likelihood ratio
 - [`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md)
   : Database search
 - [`preslr()`](https://rootcoder007.github.io/crimlab/reference/preslr.md)
@@ -58,6 +64,8 @@ profiles and the Chumbley score).
   Lowess smoothing
 - [`chmb()`](https://rootcoder007.github.io/crimlab/reference/chmb.md) :
   The Chumbley score for two tool-mark profiles
+- [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md)
+  : Congruent matching profile segments (CMPS) of two bullet signatures
 
 ## Toxicology and taphonomy
 
