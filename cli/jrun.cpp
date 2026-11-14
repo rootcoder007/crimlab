@@ -1506,6 +1506,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jsens.inc"
 #include "jhot.inc"
 #include "jtrj.inc"
+#include "jnet.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1569,6 +1570,17 @@ const Ent ents[] = {
     {"zgem", "y x z? par prob off? maxit? tol?", zgem},
     {"mvtll", "y x beta sig prob", mvtll},
     {"mvtem", "y x beta sig prob maxit? tol?", mvtem},
+    {"ntdeg", "from to w? nodes? dir?", ntdeg},
+    {"ntbtw", "from to nodes? dir? norm?", ntbtw},
+    {"ntcls", "from to nodes? dir?", ntcls},
+    {"ntevc", "from to w? nodes? tol? maxit?", ntevc},
+    {"ntcore", "from to nodes?", ntcore},
+    {"ntcmp", "from to nodes? dir?", ntcmp},
+    {"ntlvn", "from to w? nodes? res? seed?", ntlvn},
+    {"ntmod", "from to memb w? nodes? res?", ntmod},
+    {"ntbrk", "from to grp nodes? dir?", ntbrk},
+    {"ntchg", "from to w? nodes? tol? maxit?", ntchg},
+    {"coofg", "inc off", coofg},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
