@@ -127,6 +127,27 @@ int clab_kinidx(const int *g1, const int *g2, const double *f, int n,
 int clab_patidx(const int *c, const int *m, const int *af, const double *f,
                 int n, double *idx);
 
+/* Mutation matrix of a marker with na alleles: m[i na + j], the chance that
+ * a parent's allele i is passed on as allele j. model 0: none (the
+ * identity); 1: equal (rate split evenly over the other alleles); 2:
+ * stepwise (rate split over the other alleles in proportion to
+ * range^|lab[i] - lab[j]|, lab the na repeat numbers). rate in [0, 1],
+ * range in (0, 1); lab is read by model 2 only. */
+int clab_mutmat(int model, int na, const double *lab, double rate, double range, double *m);
+
+/* Pedigree likelihood at one autosomal marker. n persons; fa, mo: each
+ * one's father and mother (row numbers; -1 for both of a founder); g: 2n
+ * allele codes from 0 (-1 for both of an untyped person); p: na allele
+ * frequencies summing to 1; mm, mf: the mutation matrices (clab_mutmat())
+ * of paternal and of maternal transmissions, or NULL for none. Out: ll,
+ * the natural logarithm of the likelihood (-Inf when the genotypes are
+ * impossible). Exact, by variable elimination over the allele each person
+ * has from each parent. CLAB_EARG for a pedigree with one parent of a
+ * person or a cycle, and when elimination would need a table of more
+ * than 2^26 cells. */
+int clab_pedlik(int n, const int *fa, const int *mo, const int *g, int na, const double *p,
+                const double *mm, const double *mf, double *ll);
+
 /* Clearance-rate decomposition and Simpson's paradox (Lean:
  * Crimlab.Clearance.kitagawa, change_ge_mix). clra, reca, clrb, recb: n parts'
  * cleared (non-negative) and recorded (positive) counts in comparisons A

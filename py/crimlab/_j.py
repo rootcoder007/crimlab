@@ -3313,3 +3313,23 @@ def clprep(data: Any = None, preset: Any = None) -> Any:
     (['y', 'grp', 'adj'], [1.0, 0.0, 1.0, 0.0], 0.0)
     """
     return jcall("clprep", data=data, preset=preset)
+
+
+def pedlr(ped: Any, geno: Any, freq: Any, alt: Any = None, mut: Any = "none", rate: Any = 0.001,
+          range: Any = 0.5) -> Any:
+    """Pedigree likelihood ratio.
+
+    The arguments and the result are those of R's ``pedlr()``: see its help
+    page. ``ped``, ``alt``, ``geno`` and ``freq`` are dicts of columns.
+
+    Examples
+    --------
+    >>> trio = {"id": ["AF", "M", "C"], "fid": [None, None, "AF"], "mid": [None, None, "M"]}
+    >>> alt = {"id": ["AF", "M", "C", "X"], "fid": [None, None, "X", None],
+    ...        "mid": [None, None, "M", None]}
+    >>> geno = {"id": ["AF", "M", "C"], "locus": ["D3"] * 3, "a1": [14, 15, 15], "a2": [16, 17, 16]}
+    >>> freq = {"locus": ["D3"] * 4, "allele": [14, 15, 16, 17], "freq": [0.1, 0.25, 0.25, 0.2]}
+    >>> pedlr(trio, geno, freq, alt)["lr"]
+    2.0
+    """
+    return jcall("pedlr", ped=ped, geno=geno, freq=freq, alt=alt, mut=mut, rate=rate, range=range)

@@ -134,3 +134,5 @@ port,otiscnt/vm,exact,0,test-clprep.R
 port,otisprim,exact,0,test-clprep.R
 port,otisprim/np,equal,1e-14,test-clprep.R
 port,otisprim/rctrnd/n_placements,report,0,unused
+ped,*/lik,equal,1e-12,test-pedlr.R
+ped,*,exact,0,test-pedlr.R

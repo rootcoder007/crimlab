@@ -1,5 +1,13 @@
 # crimlab 0.0.0.9000
 
+* `pedlr()`: the likelihood ratio of two pedigrees, given as tables of
+  people and their parents, from DNA profiles at autosomal markers. The
+  people not typed are summed over exactly by variable elimination on the
+  alleles each received from each parent, so loops, inbreeding and any
+  number of generations are allowed; mutation follows the equal or the
+  stepwise model, with one rate or separate maternal and paternal rates.
+  It equals `kinidx()` and `patidx()` where they apply, the enumeration of
+  every allele in its tests, and pedprobr's likelihoods.
 * `clprep()` reaches the command line, the Python package and the
   bindings through `clab_jrun()`, which does its recodes, filters and
   recipes in C++ with R's messages and returns the generic's arguments as

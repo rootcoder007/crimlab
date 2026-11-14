@@ -25,9 +25,9 @@ reference:
       - dyadrt
   - title: Forensics
     desc: DNA match statistics, the weight and calibration of likelihood
-      ratios, kinship, paternity, mixtures and database searches; trace evidence
-      by the two-level model, glass grouping and transfer, and tool marks
-      (lowess profiles and the Chumbley score).
+      ratios, kinship, paternity, pedigrees with mutation, mixtures and
+      database searches; trace evidence by the two-level model, glass grouping
+      and transfer, and tool marks (lowess profiles and the Chumbley score).
     contents:
       - gtmp
       - lrpost
@@ -39,6 +39,7 @@ reference:
       - mixlr
       - kinidx
       - patidx
+      - pedlr
       - dbsrch
       - preslr
       - tlvc

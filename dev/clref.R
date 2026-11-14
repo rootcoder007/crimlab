@@ -943,6 +943,22 @@ bad("clprep", data = data.frame(s = 1), preset = data.frame(preset = c("m", "n")
 bad("clprep", data = data.frame(s = 1),
     preset = data.frame(preset = "m", generic = "g", arg = "recipe", column = "keep", recode = "s,t"))
 
+# Pedigree likelihood ratios
+tri <- data.frame(id = c("AF", "M", "C"), fid = c(NA, NA, "AF"), mid = c(NA, NA, "M"))
+tra <- data.frame(id = c("AF", "M", "C", "X"), fid = c(NA, NA, "X", NA), mid = c(NA, NA, "M", NA))
+tg <- data.frame(id = rep(c("AF", "M", "C"), 2), locus = rep(c("D3", "vWA"), each = 3),
+                 a1 = c(14, 15, 15, 16, 17, 17), a2 = c(16, 17, 16, 18, 17, 19))
+tf <- data.frame(locus = rep(c("D3", "vWA"), c(4, 4)), allele = c(14, 15, 16, 17, 16, 17, 18, 19),
+                 freq = c(0.1, 0.25, 0.25, 0.2, 0.2, 0.3, 0.2, 0.1))
+ok("pedlr", ped = tri, geno = tg, freq = tf, alt = tra)
+ok("pedlr", ped = tri, geno = tg, freq = tf, alt = tra, mut = "equal", rate = c(0.001, 0.003))
+sb <- data.frame(id = c("f", "m", "a", "b"), fid = c(0, 0, "f", "f"), mid = c(0, 0, "m", "m"))
+ok("pedlr", ped = sb, geno = data.frame(id = c("a", "b"), locus = "L", a1 = c(9, 11), a2 = c(12, 13)),
+   freq = data.frame(locus = "L", allele = 9:13, freq = c(0.1, 0.2, 0.3, 0.25, 0.15)),
+   mut = "step", rate = 0.005, range = 0.4)
+bad("pedlr", ped = tri, geno = tg, freq = tf, mut = "stepwise")
+bad("pedlr", ped = tri[2:3, ], geno = tg, freq = tf)
+bad("pedlr", ped = tri, geno = tg, freq = tf, mut = "step")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

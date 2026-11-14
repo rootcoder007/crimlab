@@ -32,6 +32,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "frx.h"
 #include "json.h"
 #include "kutil.h"
 #include "learn.h"
@@ -1560,6 +1561,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jwcb.inc"
 #include "jspx.inc"
 #include "jprep.inc"
+#include "jfrx.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1763,6 +1765,7 @@ const Ent ents[] = {
     {"arwt", "x from to area? id? top?", arwt},
     {"bufas", "x y? site comp r buf? lonlat?", bufas},
     {"clprep", "data? preset?", clprep},
+    {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

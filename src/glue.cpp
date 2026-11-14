@@ -351,6 +351,7 @@ SEXP C_clab_r_tipplt(SEXP, SEXP);
 SEXP C_clab_r_eceplt(SEXP, SEXP, SEXP);
 SEXP C_clab_r_kinidx(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_patidx(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pedlr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_clrsmp(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_expbnd(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_misrd(SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -620,6 +621,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_eceplt", fn<&C_clab_r_eceplt>(), 3},
     {"C_clab_r_kinidx", fn<&C_clab_r_kinidx>(), 4},
     {"C_clab_r_patidx", fn<&C_clab_r_patidx>(), 4},
+    {"C_clab_r_pedlr", fn<&C_clab_r_pedlr>(), 7},
     {"C_clab_r_clrsmp", fn<&C_clab_r_clrsmp>(), 4},
     {"C_clab_r_expbnd", fn<&C_clab_r_expbnd>(), 4},
     {"C_clab_r_misrd", fn<&C_clab_r_misrd>(), 5},

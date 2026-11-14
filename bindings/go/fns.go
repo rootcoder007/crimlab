@@ -589,6 +589,9 @@ func Bufas(args string) (string, error) { return Jrun("bufas", args) }
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 
+// Pedlr runs pedlr() of the R package (arguments: ped geno freq alt? mut? rate? range?; ? marks an optional one).
+func Pedlr(args string) (string, error) { return Jrun("pedlr", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 
