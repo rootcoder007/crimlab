@@ -291,3 +291,300 @@ test_that("dstntst() gives the reference test", {
                "^dstntst: column `grp` not found in `data`\\.$")
   expect_output(print(d1), "Cochran's Q")
 })
+
+test_that("the shared checks refuse each kind of bad argument", {
+  d <- data.frame(a = c(1, 2, 3, 5), b = c(2, 1, 4, 3))
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  nn <- d
+  names(nn) <- c("a", "")
+  ef(cortbl(nn), paste("cortbl: every column of `data` must have a name",
+                       "(names(data) has an empty one)."))
+  dd <- d
+  names(dd) <- c("a", "a")
+  ef(topcors(dd), "topcors: `data` has two columns named a: rename one.")
+  bad <- list(factor("a"), d, mean, list(1), 1i)
+  what <- c("a factor", "a data frame", "a function", "list", "complex")
+  for (i in seq_along(bad)) {
+    ef(topcors(d, minabs = bad[[i]]),
+       sprintf("topcors: `minabs` must be a number, not %s.", what[[i]]))
+  }
+  ef(topcors(d, minabs = "abc"),
+     "topcors: `minabs` must be numeric, not text such as \"abc\".")
+  # text that reads as a number is taken as that number
+  expect_identical(nrow(topcors(d, minabs = "0.5")), 1L)
+  ef(topcors(d, minabs = TRUE), "topcors: `minabs` must be a number, not TRUE.")
+  for (v in c(2.5, Inf)) {
+    ef(cortbl(d, minprs = v),
+       sprintf("cortbl: `minprs` must be a whole number, not %s.", v))
+  }
+  ef(cortbl(d, minprs = 3e9),
+     "cortbl: `minprs` is too large: 3e+09 (the limit is 2147483647).")
+  ef(freqtbl(mean), "freqtbl: `data` must be data, not a function.")
+  ef(freqtbl(globalenv()), "freqtbl: `data` must be data, not an environment.")
+  # NULL takes the first choice, rows: the empty row goes, the column stays
+  e <- drpempty(data.frame(a = c(NA, 1), b = NA), which = NULL, quiet = TRUE)
+  expect_identical(dim(e), c(1L, 2L))
+  ef(drpempty(d, which = 1),
+     "drpempty: `which` must be one or more of \"rows\", \"cols\", not 1.")
+  for (fn in c("cortbl", "topcors", "drpconst", "missruns", "missgrid",
+               "misspat", "profcols", "duprows", "dstntst")) {
+    a <- if (fn == "dstntst") list(1:3, "g", "e", "l", "u") else list(1:3)
+    ef(do.call(fn, a), sprintf("%s: `data` must be a data frame.", fn))
+  }
+  ef(topcors(data.frame(a = 1:3, b = letters[1:3])),
+     "topcors: need at least two numeric columns to correlate.")
+  for (fn in c("missruns", "missgrid", "misssmry")) {
+    ef(do.call(fn, list(data.frame())),
+       sprintf("%s: `data` has no columns.", fn))
+  }
+  ef(missgrid(d, width = 0),
+     "missgrid: `width` must be one whole number from 1 to 10000.")
+  ef(clncolnms("a", sep = 1), "clncolnms: `sep` must be a single string.")
+  ef(mahaoutl(1:3),
+     "mahaoutl: `data` must be a data frame or a numeric matrix.")
+  ef(mahaoutl(data.frame(a = letters)),
+     "mahaoutl: `data` has no numeric columns.")
+  ef(mcartst(d, tol = 0), "mcartst: `tol` must be one number from 1e-12 to 1.")
+  ef(mcartst(1:3), "mcartst: `data` must be a data frame or a numeric matrix.")
+  ef(mcartst(data.frame(a = 1:3)),
+     "mcartst: Little's test needs at least two numeric columns.")
+  ef(mcartst(data.frame(a = c(1, Inf, 3), b = c(1, 2, NA))),
+     paste0("mcartst: `data` has infinite values, which Little's test ",
+            "cannot use; set them to NA first."))
+  # the all-missing column goes, and one column is left
+  ef(mcartst(data.frame(a = c(1, 2), b = NA_real_)),
+     "mcartst: too few complete columns or rows remain for Little's test.")
+  dd <- data.frame(a = 1:2, a = 1:2, check.names = FALSE)
+  ef(duprows(dd, "a"),
+     paste0("duprows: `data` has two columns named a: give the columns by ",
+            "position, or rename one."))
+})
+
+test_that("empty and one-row tables keep their shape", {
+  # one row: is.na() over the columns is a vector, not a matrix
+  one <- data.frame(a = NA, b = 1)
+  expect_identical(dim(drpempty(one, quiet = TRUE)), c(1L, 1L))
+  expect_identical(dim(drpempty(data.frame(a = NA_real_, b = NA_real_),
+                                which = "rows", quiet = TRUE)), c(0L, 2L))
+  p <- misspat(one)
+  expect_identical(cols(p), list("X.", 1L, 100, 1L, "a"))
+  expect_identical(
+    unname(misssmry(one)),
+    c(1, 2, 1, 50, 0, 0, 1, 1)
+  )
+  expect_identical(capture.output(r <- missgrid(one)), c(r, ""))
+  expect_identical(r[3L], if (.uniok()) {
+    "       1 █ "
+  } else {
+    "       1 # "
+  })
+  x <- drpconst(data.frame())
+  expect_identical(attr(x, "dropped"), character(0))
+  expect_identical(dim(x), c(0L, 0L))
+  expect_identical(clncolnms(character(0)), character(0))
+  expect_identical(clncolnms(data.frame()), data.frame())
+  z <- missgrid(data.frame(a = 1)[0, , drop = FALSE])
+  expect_identical(z[2L], "  (no rows)")
+  expect_length(z, 3L)
+  d0 <- duprows(data.frame(a = 1:2, b = 3:4)[0, ], quiet = TRUE)
+  expect_identical(names(d0), c("a", "b", "dupe_count"))
+  expect_identical(nrow(d0), 0L)
+  expect_identical(
+    as.matrix(mahaoutl(as.matrix(data.frame(a = c(1, 2, 3, 4, 10),
+                                            b = c(2, 1, 3, 5, 4))))[, 1:2]),
+    as.matrix(mahaoutl(data.frame(a = c(1, 2, 3, 4, 10),
+                                  b = c(2, 1, 3, 5, 4)))[, 1:2])
+  )
+})
+
+test_that("the notes and printed forms say what was done", {
+  expect_message(
+    out <- drpconst(data.frame(a = c(1, 1), b = 1:2)),
+    paste0("-- Constant columns dropped\n   columns 2 -> 1\n",
+           "   columns dropped (one value): a"),
+    fixed = TRUE
+  )
+  expect_identical(names(out), "b")
+  expect_message(drpconst(data.frame(b = 1:2)),
+                 "-- Constant columns dropped\n   columns 1 -> 1\n",
+                 fixed = TRUE)
+  expect_message(
+    expect_identical(clncolnms(c("Total Pop", "x")), c("total_pop", "x")),
+    "-- Column names cleaned\n   Total Pop -> total_pop", fixed = TRUE
+  )
+  expect_message(clncolnms(c("a", "b")),
+                 "-- Column names cleaned\n   no name changed", fixed = TRUE)
+  f1 <- freqtbl(data.frame(g = c("a", "b", "b")), "g")
+  # a subset of the columns prints as a plain table
+  expect_identical(capture.output(print(f1[, c("pct", "pctvalid")])),
+                   c("      pct pctvalid", " 66.66667 66.66667",
+                     " 33.33333 33.33333"))
+  d <- data.frame(a = c(1, 2, 3, 5), b = c(2, 1, 4, 3))
+  expect_identical(
+    capture.output(print(cortbl(d))),
+    c("Correlations (spearman): 1 pairs", " x y correlation nprs",
+      " a b         0.6    4")
+  )
+  expect_identical(capture.output(print(topcors(d, minabs = 0.9))),
+                   c("Top correlations (spearman)",
+                     "  (none above the threshold)"))
+  mr <- data.frame(a = c(1, NA, NA, 4), b = c(NA, NA, NA, 1))
+  expect_identical(
+    capture.output(print(missruns(mr))),
+    c("Runs of consecutive missing values: 2 ",
+      " column start end length", "      b     1   3      3",
+      "      a     2   3      2")
+  )
+  expect_identical(capture.output(print(missruns(data.frame(a = 1:3)))),
+                   "Runs of consecutive missing values: 0 ")
+  expect_identical(
+    capture.output(print(misspat(data.frame(a = NA, b = 1)))),
+    c("Missingness patterns, columns in pattern order: a, b ",
+      " pattern n_rows pctrows n_missing columns",
+      "      X.      1     100         1       a")
+  )
+})
+
+test_that("the ASCII sketches are used when Unicode is turned off", {
+  old <- Sys.getenv("CRIMLAB_ASCII_ONLY", NA)
+  Sys.setenv(CRIMLAB_ASCII_ONLY = "1")
+  on.exit(if (is.na(old)) {
+    Sys.unsetenv("CRIMLAB_ASCII_ONLY")
+  } else {
+    Sys.setenv(CRIMLAB_ASCII_ONLY = old)
+  }, add = TRUE)
+  # counts 1, 2, 3 of a top of 3, on five levels: ceiling(5 c / 3)
+  expect_identical(inlhist(c(1, 2, 2, 3, 3, 3), bins = 3), ":=#")
+  # two bins, as hist(breaks = c(1, 2, 3)): counts 2 and 1
+  expect_identical(inlhist(c(1, 2, 3), bins = 2), "#-")
+  expect_identical(inlhist(rep(5, 3)), "     #    ")
+  g <- data.frame(a = c(1, NA, 3, NA), b = c(NA, NA, 3, 4))
+  out <- capture.output(r <- missgrid(g, height = 4))
+  expect_identical(
+    r,
+    c(paste0("-- Missingness map ", strrep("-", 47)), "         ab",
+      "       1  #", "       2 ##", "       3   ", "       4 # ", "",
+      "  legend: ' ' none  '#' all missing", strrep("-", 66))
+  )
+})
+
+test_that("BUG: missgrid() keeps a shorter name in its own column", {
+  g <- data.frame(a = c(1, NA), bb = c(NA, 2))
+  out <- capture.output(r <- missgrid(g))
+  # the second letters: none for a, "b" for bb, under the second column
+  expect_identical(r[3L], "          b")
+})
+
+test_that("Little's test is read out by its p-value", {
+  set.seed(5)
+  n <- 80
+  xx <- round(rnorm(n), 3)
+  yy <- round(xx + rnorm(n), 3)
+  mc2 <- data.frame(x = xx, y = yy)
+  mc2$y[sample(n, 20)] <- NA
+  expect_output(print(mcartst(mc2)),
+                "^Little's MCAR test: no departure from MCAR detected\n")
+  out <- capture.output(print(mcartst(data.frame(a = xx, b = yy))))
+  expect_identical(out[1L], "Little's MCAR test: no test possible")
+  expect_identical(
+    out[4L],
+    paste0("  Note: df is 0: with a single missingness pattern there is ",
+           "nothing to test. A complete table trivially satisfies MCAR.")
+  )
+})
+
+test_that("Little's test without complete rows matches the reference", {
+  # every row lacks one value: the rank check uses pairwise moments
+  set.seed(11)
+  n <- 30
+  a <- rnorm(n)
+  m3 <- data.frame(a = a, b = a + rnorm(n), c = rnorm(n))
+  for (i in 1:n) m3[i, (i %% 3) + 1] <- NA
+  r <- mcartst(m3)
+  # rmoriebricklayer 1.1.1 mcartst() on these data
+  expect_equal(unname(unlist(r[1:8])),
+               c(2.36043941784393, 3, -0.691066760495222, 0.501041292820027,
+                 3, 30, 3, 139),
+               tolerance = 1e-10)
+  # pairwise moments that are no covariance (an eigenvalue below zero):
+  # the EM start is floored to a positive definite matrix
+  set.seed(12)
+  u <- rnorm(10)
+  v <- rnorm(10)
+  w <- rnorm(10)
+  q <- data.frame(x = c(u, rep(NA, 10), w, rnorm(6)),
+                  y = c(u, v, rep(NA, 10), rnorm(6)),
+                  z = c(rep(NA, 10), v, -w, rnorm(6)))
+  expect_lt(min(eigen(stats::cov(q, use = "pairwise"))$values), 0)
+  r <- mcartst(q)
+  expect_equal(unname(unlist(r[1:8])),
+               c(3.64923455237147, 6, -0.322935774282878, 0.724020353601097,
+                 4, 36, 3, 96),
+               tolerance = 1e-10)
+})
+
+test_that("near-collinear distances use the floored covariance", {
+  set.seed(7)
+  x <- round(rnorm(20), 3)
+  d <- data.frame(a = x, b = x + 5e-4 * ((1:20) %% 3 - 1))
+  # classical: centred by the mean, scaled by the range
+  z <- scale(as.matrix(d), colMeans(d), apply(d, 2, function(v) diff(range(v))))
+  e <- eigen(stats::cov(z), symmetric = TRUE)
+  # the small eigenvalue, 5.2e-9, is above the rank check (1e-8 of the
+  # largest) and below the floor (1e-8 times max(1, largest))
+  expect_true(e$values[2] > 1e-8 * e$values[1] && e$values[2] < 1e-8)
+  sf <- e$vectors %*% diag(pmax(e$values, 1e-8)) %*% t(e$vectors)
+  m <- mahaoutl(d, robust = FALSE)
+  m <- m[order(m$row), ]
+  # a condition number of 2e7 leaves about 1e-9 of rounding
+  expect_equal(m$distance, sqrt(rowSums((z %*% solve(sf)) * z)),
+               tolerance = 1e-6, ignore_attr = TRUE)
+  # robust: a column with MAD 0 is scaled by its sd; a constant one is
+  # collinear with nothing to scale by
+  r <- data.frame(a = c(1, 1, 1, 1, 2, 5, 3), b = c(2, 4, 1, 3, 6, 5, 7))
+  # rmoriebricklayer 1.1.1 mahaoutl() on these data, rows 6, 3, 7
+  expect_equal(mahaoutl(r)$distance[1:3],
+               c(2.9757081022300254, 1.7459630857421335, 1.5080429530975228),
+               tolerance = 1e-12)
+  r$a <- 1
+  expect_error(mahaoutl(r), "mahaoutl: the columns are collinear",
+               fixed = TRUE)
+})
+
+test_that("profiles hold for constant and overflowing columns", {
+  # 1.5e308 - (-1.5e308) overflows: the median is the weighted mean, 0
+  p <- profcols(data.frame(x = c(-1.5e308, 1.5e308)))
+  expect_identical(p$median, 0)
+  expect_identical(p$mean, 0)
+  k <- profcols(data.frame(k = c(3, 3, 3)))
+  expect_identical(k$sd, 0)
+  expect_identical(k$mad, 0)
+})
+
+test_that("dstntst() refuses and warns in its own words", {
+  g <- data.frame(group = c("A", "B", "C"), est = c(1, 2, 3),
+                  lo = c(0.5, 1.5, 2.5), hi = c(1.5, 2.5, 3.5),
+                  q = c("ok", "Z", "E"))
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(dstntst(g, " ", "est", "lo", "hi"),
+     "dstntst: `grp` must be a single non-empty string.")
+  ef(dstntst(g, "group", "est", "lo", "hi", conflvl = 1),
+     "dstntst: `conflvl` must be a single number strictly between 0 and 1.")
+  ef(dstntst(g, "group", "est", "lo", "hi", pooled = 1),
+     "dstntst: `pooled` must be the labels of the rows that pool other groups.")
+  expect_warning(
+    r <- dstntst(g, "group", "est", "lo", "hi", qual = "q"),
+    "dstntst: quality flag(s) \"Z\" not recognised: treated as ok.",
+    fixed = TRUE
+  )
+  expect_identical(r$groups$group, c("A", "B", "C"))
+  g$est[2] <- 9
+  expect_warning(
+    r <- dstntst(g, "group", "est", "lo", "hi"),
+    "dstntst: the interval does not contain the estimate for: B; not compared.",
+    fixed = TRUE
+  )
+  expect_identical(r$groups$group, c("A", "C"))
+  ef(dstntst(rbind(g, g[1, ]), "group", "est", "lo", "hi"),
+     "dstntst: a group appears twice.")
+})
