@@ -106,7 +106,9 @@ test_that("the residuals' test is ks.test()'s", {
   expect_output(print(r), "Kolmogorov-Smirnov")
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
-  expect_identical(plot(r), r)
+  p <- plot(r)
+  expect_identical(p$u, sort(r$u))
+  expect_equal(p$hi - p$q, rep(1.36 / sqrt(r$n), r$n))
 })
 
 test_that("simulation is seeded, in time and in space", {

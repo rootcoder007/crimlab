@@ -572,7 +572,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (271 of 271); `crimlab -l` lists them and
+of the R package (285 of 285); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

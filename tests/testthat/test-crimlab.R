@@ -469,7 +469,28 @@ test_that("every exported function answers one valid call in its shape", {
          c("coef", "cells", "lay", "dev", "aic", "conv", "level")),
     list(quote(suplrn(cbind(1:8, c(2, 1, 4, 3, 6, 5, 8, 7)),
                       c(1, 3, 2, 5, 4, 6, 8, 7), lrns = "glm", nfold = 2)),
-         c("wt", "risk", "fold", "oof", "pred"))
+         c("wt", "risk", "fold", "oof", "pred")),
+    list(quote(blpal("grey", 2)), NULL),
+    list(quote(plotopt()), c("palette", "grid", "cex", "las", "bg", "panel")),
+    list(quote(plotlrnz(c(1, 2))), c("pop", "share")),
+    list(quote(plotfnl(2, 1)),
+         c("area", "observed", "expected", "ratio", "outside")),
+    list(quote(plotrdg(c(1, 2, 4))), c("grp", "x", "y")),
+    list(quote(plotcdfs(c(1, 2))), c("grp", "x", "y")),
+    list(quote(plotvln(c(1, 2, 4))), c("grp", "x", "y")),
+    list(quote(plothex(c(1, 2), c(2, 1))), c("x", "y", "count")),
+    list(quote(plotgain(c(1, 2))), c("grp", "pop", "share")),
+    list(quote(plotcal(as.Date("2024-01-01") + 0:1, c(1, 2))),
+         c("date", "year", "week", "wday", "y")),
+    list(quote(plothrz(c(1, 3), 1:2)), c("grp", "prd", "y", "band")),
+    list(quote(plotmult(c(1, 3), 1:2)), c("grp", "prd", "y")),
+    list(quote(plotbump(c(1, 3), c(1, 1), c("a", "b"))),
+         c("grp", "prd", "y", "rank")),
+    list(quote(plotevgrid(list(a = evtst(c(1:10, 2:11 + (1:10 > 5)),
+                                         rep(1:10, 2), rep(1:2, each = 10),
+                                         rep(rep(c(NA, 2), each = 5), 2),
+                                         leads = 1, lags = 0)))),
+         c("panel", "t", "est", "lo", "hi"))
   )
   fns <- vapply(calls, function(x) as.character(x[[1L]][[1L]]), "")
   expect_setequal(unique(fns), setdiff(getNamespaceExports("crimlab"), spx))

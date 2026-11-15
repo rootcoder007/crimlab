@@ -30,7 +30,8 @@ Language: en-GB
 Depends:
     R (>= 4.1.0)
 Imports:
-    graphics
+    graphics,
+    grDevices
 Suggests:
     knitr,
     rmarkdown,

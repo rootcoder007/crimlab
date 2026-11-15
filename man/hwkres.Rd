@@ -2,7 +2,6 @@
 % Please edit documentation in R/hwk.R
 \name{hwkres}
 \alias{hwkres}
-\alias{plot.hwkres}
 \title{Hawkes process: time-rescaling residuals}
 \usage{
 hwkres(
@@ -13,8 +12,6 @@ hwkres(
   base = "const",
   per = 365.25
 )
-
-\method{plot}{hwkres}(x, ...)
 }
 \arguments{
 \item{times}{A fit from \code{\link[=hwkfit]{hwkfit()}}, or event times as there.}
@@ -23,10 +20,6 @@ hwkres(
 kernel and one baseline.}
 
 \item{par}{The parameters, as \code{par} of \code{\link[=hwkfit]{hwkfit()}} (not read with a fit).}
-
-\item{x}{An \code{hwkres} object.}
-
-\item{...}{Passed to \code{\link[graphics:plot]{graphics::plot()}}.}
 }
 \value{
 An object of class \code{hwkres}, a list: \code{tau}, the rescaled gaps;

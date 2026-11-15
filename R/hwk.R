@@ -167,23 +167,6 @@ print.hwkres <- function(x, ...) {
   invisible(x)
 }
 
-#' @rdname hwkres
-#' @param x An `hwkres` object.
-#' @inheritParams tipplt
-#' @export
-plot.hwkres <- function(x, ...) {
-  n <- x[["n"]]
-  q <- (seq_len(n) - 0.5) / n
-  b <- 1.36 / sqrt(n)
-  graphics::plot(q, sort(x[["u"]]), xlim = c(0, 1), ylim = c(0, 1),
-                 xlab = "uniform quantile", ylab = "rescaled time quantile",
-                 ...)
-  graphics::abline(0, 1)
-  graphics::abline(b, 1, lty = 2)
-  graphics::abline(-b, 1, lty = 2)
-  invisible(x)
-}
-
 #' Hawkes process: simulation
 #'
 #' Simulates a Hawkes process on `[0, hor]` by its branching construction
