@@ -628,7 +628,8 @@ test_that("tables of odd layouts are read as published", {
   s <- scests(data.frame(GEO = "C", `Characteristics (3)` = c("A", "B"),
                          VALUE = c(1, 2), check.names = FALSE))
   expect_identical(nrow(s), 2L)
-  m <- scests(data.frame(GEO = "C", Measure = c("Rate", "Standard error of rate"),
+  m <- scests(data.frame(GEO = "C",
+                         Measure = c("Rate", "Standard error of rate"),
                          VALUE = c(10, 1)))
   expect_identical(m$cisou, "se")
   l <- scests(data.frame(GEO = "C", L = I(list(1, NULL)),

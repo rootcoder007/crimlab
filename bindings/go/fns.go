@@ -688,7 +688,7 @@ func Dstncnt(args string) (string, error) { return Jrun("dstncnt", args) }
 // Skchmrg runs skchmrg() of the R package (arguments: a b; ? marks an optional one).
 func Skchmrg(args string) (string, error) { return Jrun("skchmrg", args) }
 
-// Ibench runs ibench() of the R package (arguments: y off x? minn? fdr?; ? marks an optional one).
+// Ibench runs ibench() of the R package (arguments: y off x? minn? fdr? dr? local?; ? marks an optional one).
 func Ibench(args string) (string, error) { return Jrun("ibench", args) }
 
 // Lnroc runs lnroc() of the R package (arguments: tp pick conf proc? size? far? nboot? seed? level?; ? marks an optional one).
