@@ -224,6 +224,47 @@ The functions work on summary data, not on raw records:
   ([`lftab()`](https://rootcoder007.github.io/crimlab/reference/lftab.md)),
   and how people move between states
   ([`trnmat()`](https://rootcoder007.github.io/crimlab/reference/trnmat.md)).
+- Searches: whether the police search one group on less evidence than
+  another, by hit rates, by the thresholds of a model of the search
+  decision, and by the rank order of officers’ groups
+  ([`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)).
+- Officers: whether an officer’s stops differ from those other officers
+  make in the same circumstances, with a false discovery rate over the
+  officers
+  ([`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md)).
+- Eyewitnesses: how well a lineup procedure separates culprits from
+  innocent suspects, as ROC curves, partial areas, diagnosticity and the
+  confidence-accuracy characteristic
+  ([`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md)),
+  and how fair a lineup is from mock witnesses’ choices
+  ([`lnsize()`](https://rootcoder007.github.io/crimlab/reference/lnsize.md)).
+- Repeat victimisation: incidence, prevalence and concentration, victims
+  by number of victimisations against a Poisson count, and the time to a
+  repeat
+  ([`rptvic()`](https://rootcoder007.github.io/crimlab/reference/rptvic.md)).
+- Displacement: whether crime moved from a treated area into the area
+  around it, by the weighted displacement quotient
+  ([`wdqx()`](https://rootcoder007.github.io/crimlab/reference/wdqx.md)).
+- Forecasts: the risk of each cell of a grid from recent nearby
+  incidents, and how many later incidents its hot cells caught
+  ([`prohs()`](https://rootcoder007.github.io/crimlab/reference/prohs.md)).
+- Linkage: how far apart in space, time and behaviour two crimes are,
+  and the chance that they belong to one series
+  ([`lnkpr()`](https://rootcoder007.github.io/crimlab/reference/lnkpr.md)).
+- Recidivism that levels off: the share of people who would ever fail
+  and how soon those who fail do, by the split-population model
+  ([`spcure()`](https://rootcoder007.github.io/crimlab/reference/spcure.md)).
+- Age, period and cohort: the parts of a change in a rate that belong to
+  age, to the period and to the cohort, by the intrinsic estimator
+  ([`apcie()`](https://rootcoder007.github.io/crimlab/reference/apcie.md)).
+- Hot-spot maps: how many later crimes a map’s hot spots caught, by the
+  hit rate, the predictive accuracy and efficiency indices and the
+  recapture rate index
+  ([`hsacc()`](https://rootcoder007.github.io/crimlab/reference/hsacc.md)).
+- Ordered sentences: bounds on the outcome under each sentence and on
+  its effect, with no assumption, under monotone treatment response,
+  under monotone treatment selection and under both
+  ([`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)).
 
 ## Algorithms
 
@@ -681,7 +722,7 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package (199 of 199); `crimlab -l` lists them and
+function of the R package (211 of 211); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array

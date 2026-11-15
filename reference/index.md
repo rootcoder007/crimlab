@@ -11,6 +11,11 @@ and dyadic rates.
   : Risks behind an odds ratio
 - [`outtst()`](https://rootcoder007.github.io/crimlab/reference/outtst.md)
   : Outcome test
+- [`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)
+  : Tests of discrimination in searches: hit rates, thresholds, rank
+  order
+- [`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md)
+  : Internal benchmarking of officers
 - [`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md)
   : Benchmark decomposition of a disparity
 - [`dyadrt()`](https://rootcoder007.github.io/crimlab/reference/dyadrt.md)
@@ -67,6 +72,17 @@ bullet signatures).
 - [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md)
   : Congruent matching profile segments (CMPS) of two bullet signatures
 
+## Eyewitness identification
+
+ROC curves of lineup procedures, partial areas, diagnosticity and
+confidence-accuracy, and the fairness of a lineup.
+
+- [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md)
+  : Eyewitness lineups: ROC curves, partial areas and
+  confidence-accuracy
+- [`lnsize()`](https://rootcoder007.github.io/crimlab/reference/lnsize.md)
+  : Fairness of a lineup from mock witnesses
+
 ## Toxicology and taphonomy
 
 Calibration lines and values below the limit of detection, postmortem
@@ -120,6 +136,8 @@ hazards after selection.
   : Mean time in custody from completed and current stays
 - [`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md)
   : Bounds on a sentence's effect without assumptions
+- [`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)
+  : Bounds on sentence effects under monotone response and selection
 - [`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md)
   : Period-two hazards after selective depletion
 
@@ -301,6 +319,9 @@ same count every month.
   : Severity-weighted crime index
 - [`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md)
   : Composite index of standardised counts
+- [`rptvic()`](https://rootcoder007.github.io/crimlab/reference/rptvic.md)
+  : Repeat victimisation: how often the same targets are victimised
+  again
 - [`bdig()`](https://rootcoder007.github.io/crimlab/reference/bdig.md)
   [`bnft()`](https://rootcoder007.github.io/crimlab/reference/bdig.md) :
   Benford digit screens
@@ -361,6 +382,8 @@ models (zero-inflated Poisson and multivariate normal).
   : The age-crime curve of a mixture of offender types
 - [`cumrsk()`](https://rootcoder007.github.io/crimlab/reference/cumrsk.md)
   : Cumulative risk of a first event by age
+- [`apcie()`](https://rootcoder007.github.io/crimlab/reference/apcie.md)
+  : Age-period-cohort model by the intrinsic estimator
 - [`jpipe()`](https://rootcoder007.github.io/crimlab/reference/jpipe.md)
   : Rates between stages of the justice pipeline
 - [`zgll()`](https://rootcoder007.github.io/crimlab/reference/zgll.md)
@@ -482,6 +505,8 @@ only within an interval.
   : Correlation of two series, at lags
 - [`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md)
   : Kaplan-Meier survival and recurrence
+- [`spcure()`](https://rootcoder007.github.io/crimlab/reference/spcure.md)
+  : Split-population (cure) model of recidivism
 - [`hypq()`](https://rootcoder007.github.io/crimlab/reference/hypq.md) :
   Hypercube queue of patrol units
 - [`sqrtlw()`](https://rootcoder007.github.io/crimlab/reference/sqrtlw.md)
@@ -581,5 +606,13 @@ and the risk terrain model.
   : Synthetic exposure of areas from a survey
 - [`bufas()`](https://rootcoder007.github.io/crimlab/reference/bufas.md)
   : Treated, comparison and excluded places around sites
+- [`wdqx()`](https://rootcoder007.github.io/crimlab/reference/wdqx.md) :
+  Weighted displacement quotient: did crime move next door?
+- [`prohs()`](https://rootcoder007.github.io/crimlab/reference/prohs.md)
+  : Prospective hot-spotting: where the next burglaries are likely
+- [`lnkpr()`](https://rootcoder007.github.io/crimlab/reference/lnkpr.md)
+  : Crime linkage: which crimes belong to one series
+- [`hsacc()`](https://rootcoder007.github.io/crimlab/reference/hsacc.md)
+  : Accuracy of a hot-spot map
 - [`rtmfit()`](https://rootcoder007.github.io/crimlab/reference/rtmfit.md)
   : Risk terrain model

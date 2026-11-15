@@ -2,6 +2,76 @@
 
 ## crimlab 0.0.0.9000
 
+- [`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)
+  bounds the mean outcome under each of ordered sentences and the effect
+  of each against the mildest, under the monotone treatment response and
+  selection assumptions of Manski and Pepper. It is in `clab_jrun()`,
+  the command line and Python.
+
+- [`hsacc()`](https://rootcoder007.github.io/crimlab/reference/hsacc.md)
+  scores a hot-spot map on later crimes: the hit rate, the predictive
+  accuracy index, the predictive efficiency index and the recapture rate
+  index. It is in `clab_jrun()`, the command line and Python.
+
+- [`apcie()`](https://rootcoder007.github.io/crimlab/reference/apcie.md)
+  fits the age-period-cohort model of a table of counts by age and
+  period with the intrinsic estimator of Yang, Fu and Land: the Poisson
+  log-linear fit projected off the null vector of the design. It is in
+  `clab_jrun()`, the command line and Python.
+
+- [`spcure()`](https://rootcoder007.github.io/crimlab/reference/spcure.md)
+  fits the split-population (cure) model of Schmidt and Witte: a
+  logistic share who would ever fail and a Weibull, exponential or
+  lognormal time to failure among them, with covariates in both parts.
+  It is in `clab_jrun()`, the command line and Python.
+
+- [`lnkpr()`](https://rootcoder007.github.io/crimlab/reference/lnkpr.md)
+  links crimes into series: the distance, time and Jaccard similarity of
+  behaviour of every pair, a logistic regression of being linked on them
+  over the solved pairs, the area under the ROC curve of each, and the
+  chance of a link for every pair. It is in `clab_jrun()`, the command
+  line and Python.
+
+- [`prohs()`](https://rootcoder007.github.io/crimlab/reference/prohs.md)
+  forecasts the risk of each grid cell from recent nearby incidents,
+  weighted down with distance and age (Bowers, Johnson and Pease), and
+  scores its hot cells on later incidents. It is in `clab_jrun()`, the
+  command line and Python.
+
+- [`wdqx()`](https://rootcoder007.github.io/crimlab/reference/wdqx.md)
+  gives the weighted displacement quotient of Bowers and Johnson, with
+  the counts expected after and the crimes prevented in the treated area
+  and its buffer. It is in `clab_jrun()`, the command line and Python.
+
+- [`rptvic()`](https://rootcoder007.github.io/crimlab/reference/rptvic.md)
+  measures repeat victimisation: incidence, prevalence and
+  concentration, the victims by number of victimisations against a
+  Poisson count over the targets at risk, and the time between a
+  target’s successive incidents. It is in `clab_jrun()`, the command
+  line and Python.
+
+- [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md)
+  gives the ROC curve of eyewitness identifications by confidence, the
+  partial area with a bootstrap comparison of procedures, the
+  diagnosticity ratio and the confidence-accuracy characteristic;
+  [`lnsize()`](https://rootcoder007.github.io/crimlab/reference/lnsize.md)
+  the fairness of a lineup from mock witnesses (functional size,
+  Malpass’s and Tredoux’s effective sizes, the suspect’s share). Both
+  are in `clab_jrun()`, the command line and Python.
+
+- [`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md)
+  benchmarks each officer’s stops against other officers’ stops in the
+  same circumstances (Ridgeway and MacDonald), by propensity weights,
+  with the Benjamini-Hochberg false discovery rate over the officers. It
+  is in `clab_jrun()`, the command line and Python.
+
+- [`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)
+  tests discrimination in searches three ways: the hit-rate test of
+  Knowles, Persico and Todd, the threshold test with the discriminant
+  distributions of Pierson, Corbett-Davies and Goel fitted by maximum
+  likelihood, and a pairwise form of the rank-order test of Anwar and
+  Fang. It is in `clab_jrun()`, the command line and Python.
+
 - [`gmixlr()`](https://rootcoder007.github.io/crimlab/reference/gmixlr.md)
   now follows EuroForMix’s model where they differed: only the alleles
   seen are kept apart, every other allele (those of the reference
@@ -11,6 +81,7 @@
   given parameters on eight cases and at the maximum on seven (one and
   two contributors, drop-out, drop-in, stutter, degradation, coancestry;
   `dev/ref/efm.R`); the rest is EuroForMix’s single precision.
+
 - [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md)
   now reproduces cmpsR exactly: a segment widened at the ends of the
   signature is cut, not moved; a lag counts when enough points overlap
@@ -19,6 +90,7 @@
   may fall on half points. `full = TRUE` keeps the earlier rule of lags
   wholly inside the reference. The scores, segments, lags and refusals
   equal cmpsR’s on 16 stored cases, edge cases among them.
+
 - [`pedlr()`](https://rootcoder007.github.io/crimlab/reference/pedlr.md):
   the likelihood ratio of two pedigrees, given as tables of people and
   their parents, from DNA profiles at autosomal markers. The people not
@@ -32,6 +104,7 @@
   [`patidx()`](https://rootcoder007.github.io/crimlab/reference/patidx.md)
   where they apply, the enumeration of every allele in its tests, and
   pedprobr’s likelihoods.
+
 - [`gmixlr()`](https://rootcoder007.github.io/crimlab/reference/gmixlr.md):
   the likelihood ratio of two accounts of a DNA mixture by the gamma
   model of peak heights, with drop-out, drop-in, backward stutter,
@@ -39,11 +112,13 @@
   the parameters fitted by maximum likelihood under each account, or
   fixed with `par`. Its likelihood is checked against enumeration in R;
   the help page states the model’s assumptions and limits.
+
 - [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md):
   the congruent matching profile segments score of two bullet
   signatures, with the multi-segment-length peaks of Chen et al. (2019).
   It follows the algorithm written out in R in its tests and is within
   one segment of cmpsR on simulated signatures.
+
 - [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
   reaches the command line, the Python package and the bindings through
   `clab_jrun()`, which does its recodes, filters and recipes in C++ with
@@ -53,6 +128,7 @@
   CI fails when the two differ. `cli/test.tsv` holds a case for every
   preset. Outside R, text is ordered by its bytes (R’s order under
   `LC_COLLATE=C`) and lowered as ASCII.
+
 - `clab_jrun()`, and with it the command-line program, the Python
   package and the bindings, now reaches every exported function: counts,
   rates and tables, the audits of risk scores, judges’ leniency, long
@@ -74,6 +150,7 @@
   own. The test of Ctrl-C in a running session measures the stop from
   the signal and sets the signal only once the call’s handler is in
   place, so a loaded machine no longer fails it.
+
 - The command-line program, the Python package and the Go, Rust, Java
   and JavaScript bindings now reach most of the package’s functions
   through `clab_jrun()`: fairness audits, trace evidence, aoristic
@@ -87,6 +164,7 @@
   the values of the R package for them (`dev/clref.R`). The normal
   quantile and distribution function the front ends need are kernels of
   their own (`src/dst.cpp`).
+
 - The tests no longer call other packages: the values of circular,
   DescTools, geosphere, geepack, igraph, MASS, sandwich, sf, spatstat,
   spdep, rmorie and rmoriebricklayer they compare with are stored in
@@ -96,6 +174,7 @@
   Linux (x86-64 and arm64), macOS (arm64 and Intel) and Windows, and
   fails when a value its platform’s packages give differs from the
   stored one by more than the tolerance of the test that uses it.
+
 - [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
   stacks the learners of the package (least squares or logistic
   regression, the lasso, ridge and elastic net, the random forest) into
@@ -107,6 +186,7 @@
   [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md)
   takes it as a nuisance learner (`lrn = "stack"`, with `stk`, `nstk`
   and `disc`).
+
 - Ctrl-C (Esc in the R GUIs) now stops every long computation: the
   resampling, permutation, bootstrap and simulation loops, the iterative
   fits (elastic net, logistic and count regressions, EM, quasi-Newton,
@@ -115,6 +195,7 @@
   interrupt every few milliseconds of work, free what they hold and end
   with R’s interrupt, never with a half-made result. In ‘Python’ the
   same loops raise `KeyboardInterrupt`.
+
 - [`etasf()`](https://rootcoder007.github.io/crimlab/reference/etasf.md)
   fits the temporal ETAS model (marks and the modified Omori law),
   [`mvhwk()`](https://rootcoder007.github.io/crimlab/reference/mvhwk.md)
@@ -127,6 +208,7 @@
   simulates from a space-time fit. `proof("etasf")` names the theorem
   that ties the Omori kernel to the Lomax kernel of
   [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md).
+
 - [`sdbsim()`](https://rootcoder007.github.io/crimlab/reference/sdbsim.md)
   simulates the Short-D’Orsogna-Brantingham model of burglary hot spots,
   as agents on a lattice or as its reaction-diffusion limit with
@@ -136,17 +218,20 @@
   which hot spots form and the fastest-growing wavelength.
   `proof("sdbthr")` and `proof("sdbsim")` name the Lean theorems on the
   steady state, the trace and the decay.
+
 - [`hypq()`](https://rootcoder007.github.io/crimlab/reference/hypq.md)
   solves Larson’s hypercube queue of patrol units exactly (workloads,
   dispatch shares, lost or waiting calls, travel times) and
   [`sqrtlw()`](https://rootcoder007.github.io/crimlab/reference/sqrtlw.md)
   gives Kolesar and Blum’s square-root law of response distance;
   `proof("sqrtlw")` names its scaling theorems.
+
 - [`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md)
   gives Kaplan-Meier curves by group with Greenwood’s standard errors,
   `survfit()`’s log-scale intervals and medians, and the log-rank test;
   with `unit` it takes event times and studies the gaps between a unit’s
   events (repeat incidents at a place), the last one censored.
+
 - [`trndrr()`](https://rootcoder007.github.io/crimlab/reference/trndrr.md)
   measures the trend in a series of counts as a Poisson rate ratio per
   period (quasi-Poisson when overdispersed), by Mann-Kendall’s test
@@ -159,6 +244,7 @@
   [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
   correlates two series, matched by period name, at lags as
   [`ccf()`](https://rdrr.io/r/stats/acf.html) does.
+
 - [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md)
   fits a Hawkes (self-exciting) process to event times by maximum
   likelihood with the analytic gradient: exponential, Weibull or Lomax
@@ -171,6 +257,7 @@
   [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
   simulates the process, in time or in space and time, by its branching
   construction.
+
 - [`crsev()`](https://rootcoder007.github.io/crimlab/reference/crsev.md)
   builds a severity-weighted crime index from counts by offence (the
   Crime Severity Index of Statistics Canada: weighted counts per
@@ -178,6 +265,7 @@
   incarceration rates and mean sentences);
   [`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md)
   ranks units on a composite of standardised counts across categories.
+
 - [`cconc()`](https://rootcoder007.github.io/crimlab/reference/cconc.md)
   measures how concentrated a total is across units: the Gini
   coefficient and its exact split into the share of units at zero and
@@ -190,6 +278,7 @@
   estimate through the Hurwitz zeta function, or the Hill estimators,
   with the Kolmogorov-Smirnov distance of the fit. `proof("cconc")`
   names the Lean theorems on the split at zero.
+
 - [`crcap()`](https://rootcoder007.github.io/crimlab/reference/crcap.md)
   estimates a hidden population from two lists (Lincoln-Petersen with
   its bounds over a box of list dependence, Chapman’s estimate with
@@ -203,6 +292,7 @@
   offences, and the offences behind incidents counted under the
   hierarchy rule. `proof("crcap")` and `proof("dkfig")` name the Lean
   theorems.
+
 - [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md)
   reads band labels (“1-5”, “Over 60”, “Under 10”) into bounds, places a
   value in each band, expands a banded frequency table and shows how
@@ -215,6 +305,7 @@
   exact interval of the percent change, exact p-values adjusted for
   multiplicity, and the envelope that rounding allows. `proof("pbbnd")`
   names the Lean theorems on the envelope.
+
 - [`jdgiv()`](https://rootcoder007.github.io/crimlab/reference/jdgiv.md)
   gives the judge-leniency instrument’s first stage, intention-to- treat
   effect and Wald ratio with the compliers’ effect over a grid of defier
@@ -227,6 +318,7 @@
   [`mmshr()`](https://rootcoder007.github.io/crimlab/reference/mmshr.md)
   gives the shares of sentences at, below and above a mandatory minimum.
   `proof("jdgiv")` and `proof("jmono")` name the Lean theorems.
+
 - [`agemix()`](https://rootcoder007.github.io/crimlab/reference/agemix.md)
   gives the aggregate age-crime curve of a mixture of latent types and
   the covariance across types between ages that a single type forces to
@@ -239,11 +331,13 @@
   gives rates between stages of the justice pipeline from window sums
   lagged by the time between the stages. `proof("agemix")` names the
   Lean theorem.
+
 - [`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md)
   classifies segregation placements under the Mandela Rules (more than
   15 days, or Rules 43 and 44 with hours out of cell) and gives the
   qualifying share by group over placements, people with any qualifying
   placement and people by their cumulative days, with exact intervals.
+
 - [`stkflw()`](https://rootcoder007.github.io/crimlab/reference/stkflw.md)
   relates person-days, the average daily population, admissions and the
   length of stay (any two give the rest) with changes, rates and the
@@ -262,6 +356,7 @@
   gives the transition matrix between states with its stationary
   distribution. `proof("stkflw")` and `proof("bklog")` name the Lean
   theorems.
+
 - [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md)
   fits a count on a group by Poisson and negative binomial regression
   (the iterations of [`glm()`](https://rdrr.io/r/stats/glm.html) and
@@ -271,6 +366,7 @@
   sandwich of `sandwich::vcovCL()`), and from an exchangeable GEE (as
   ‘geepack’ estimates it). `proof("cntreg")` names the Lean theorems on
   swapping the groups.
+
 - [`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md)
   gives rates or proportions by group and their ratios and differences
   against a reference group: Wilson, Clopper-Pearson and exact Poisson
@@ -283,6 +379,7 @@
   [`sirex()`](https://rootcoder007.github.io/crimlab/reference/sirex.md)
   gives standardised incidence ratios with exact intervals, funnel
   limits and Marshall’s empirical Bayes shrinkage.
+
 - [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
   cross-tabulates labels (counting rows, summing a count column, taking
   the largest or smallest value, or counting distinct ids per cell) and
@@ -292,6 +389,7 @@
   noncentral chi-square interval and Bergsma’s bias correction, the
   contingency coefficient, phi and the diagonal share. `proof("ctabx")`
   names the Lean theorems on the 2 x 2 statistic.
+
 - [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
   maps a published dataset’s columns onto a generic function’s arguments
   from `inst/presets/presets.tsv` (one row per preset and argument:
@@ -314,6 +412,7 @@
   [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
   records, and for the layouts of two published studies of risk
   classification.
+
 - Audits of risk tools and predictive policing.
   [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
   gives the parity gap and disparate impact ratio between groups with
@@ -354,6 +453,7 @@
   [`rnkres()`](https://rootcoder007.github.io/crimlab/reference/rnkres.md)
   and
   [`oaxbd()`](https://rootcoder007.github.io/crimlab/reference/oaxbd.md).
+
 - [`relchk()`](https://rootcoder007.github.io/crimlab/reference/relchk.md)
   recomputes a reported odds ratio, risk ratio or risk difference from
   its table under every labelling (each reference group, each outcome as
@@ -362,6 +462,7 @@
   another one, or none. Zero cells give `Inf` or `NaN`, never a
   correction. `proof("relchk")` names the Lean theorems on how the
   contrasts change under relabelling.
+
 - [`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)
   audits categorical inputs before an analysis: storage type, levels and
   counts, missing values, unused and rare levels, labels that differ
@@ -369,12 +470,14 @@
   look like category codes, value labels that disagree with the values,
   and the reference level a default would take and why. It can check a
   stated reference level, and changes nothing.
+
 - Disparity tests:
   [`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
   [`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md),
   [`outtst()`](https://rootcoder007.github.io/crimlab/reference/outtst.md),
   [`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md),
   [`dyadrt()`](https://rootcoder007.github.io/crimlab/reference/dyadrt.md).
+
 - Forensic statistics:
   [`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md),
   [`lrpost()`](https://rootcoder007.github.io/crimlab/reference/lrpost.md),
@@ -387,30 +490,41 @@
   [`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md),
   [`tipplt()`](https://rootcoder007.github.io/crimlab/reference/tipplt.md),
   [`eceplt()`](https://rootcoder007.github.io/crimlab/reference/eceplt.md).
+
 - [`clrsmp()`](https://rootcoder007.github.io/crimlab/reference/clrsmp.md)
   splits a change in a clearance rate into rate and mix effects and
   flags Simpson’s paradox.
+
 - [`expbnd()`](https://rootcoder007.github.io/crimlab/reference/expbnd.md)
   bounds rates and disparities when exposure is known only through a
   proxy.
+
 - [`misrd()`](https://rootcoder007.github.io/crimlab/reference/misrd.md)
   gives the risk difference when group membership is misrecorded.
+
 - [`rtmhs()`](https://rootcoder007.github.io/crimlab/reference/rtmhs.md)
   measures regression to the mean at selected hot spots.
+
 - [`incap()`](https://rootcoder007.github.io/crimlab/reference/incap.md)
   gives the crime rate and share prevented under incapacitation.
+
 - [`incapr()`](https://rootcoder007.github.io/crimlab/reference/incapr.md)
   gives crimes prevented under desistance and replacement.
+
 - [`sellab()`](https://rootcoder007.github.io/crimlab/reference/sellab.md)
   bounds the failure rate of a release rule from released defendants
   alone.
+
 - [`losbnd()`](https://rootcoder007.github.io/crimlab/reference/losbnd.md)
   bounds the mean time in custody from completed and open stays.
+
 - [`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md)
   bounds the effect of a sentence on a binary outcome without
   assumptions.
+
 - [`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md)
   shows how period-two hazards differ after selective depletion.
+
 - Networks:
   [`coofg()`](https://rootcoder007.github.io/crimlab/reference/coofg.md)
   builds the co-offending graph of an incident table;
@@ -433,6 +547,7 @@
   [`ntchg()`](https://rootcoder007.github.io/crimlab/reference/ntchg.md)
   the Cheeger bounds. Results are by node label in order of first
   appearance.
+
 - Spatial:
   [`hvdist()`](https://rootcoder007.github.io/crimlab/reference/hvdist.md)
   and
@@ -468,6 +583,7 @@
   [`bjtc()`](https://rootcoder007.github.io/crimlab/reference/bjtc.md)
   for journey to crime. Points come as vectors, tables or sf points;
   longitude and latitude only with `lonlat = TRUE`.
+
 - Spatial weights and autocorrelation:
   [`spwt()`](https://rootcoder007.github.io/crimlab/reference/spwt.md)
   (k nearest, distance band, contiguity; binary or inverse distance),
@@ -481,6 +597,7 @@
   (local G and G\*) and
   [`dirmn()`](https://rootcoder007.github.io/crimlab/reference/dirmn.md)
   (directional mean).
+
 - [`hdbang()`](https://rootcoder007.github.io/crimlab/reference/hdbang.md)
   (head-bang smoothing, weighted or not),
   [`crwalk()`](https://rootcoder007.github.io/crimlab/reference/crwalk.md)
@@ -500,6 +617,7 @@
   and
   [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
   take zones as counts at centroids (`count`).
+
 - [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md)
   (fairness of a risk tool by group),
   [`tlvc()`](https://rootcoder007.github.io/crimlab/reference/tlvc.md)
@@ -536,31 +654,40 @@
   (grid Gi\*) and
   [`sptst()`](https://rootcoder007.github.io/crimlab/reference/sptst.md)
   (Andresen’s point pattern test).
+
 - [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
   names the Lean theorem behind each function; the proofs ship in
   `inst/lean`.
+
 - A vector longer than the largest integer is refused with an error, by
   the exported functions and by the compiled entry points alike; the
   compiled code used to truncate its length.
+
 - [`eceplt()`](https://rootcoder007.github.io/crimlab/reference/eceplt.md)
   gives the calibrated curve its limits at extreme prior odds: a
   calibrated ratio of 0 or infinity used to give `NaN`, or an error.
+
 - [`incapr()`](https://rootcoder007.github.io/crimlab/reference/incapr.md)
   refuses a `t0 + s` beyond the length of `lam` however large the two
   are; past the largest integer it used to warn of an integer overflow
   and stop with an unrelated error.
+
 - [`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md)
   orders the two values of `z` by Unicode code point, so the default
   `treat` and the order of the terms are the same on every machine and
   in every locale (`"B"` sorts before `"a"`).
+
 - Every error message starts with the name of the function that raised
   it (`` "outtst: `q` must be at most 1." ``); the words after it are
   unchanged.
+
 - A matrix with more than one row and column is refused where a vector
   is expected, naming the argument; it used to be read as one long
   vector.
+
 - [`eceplt()`](https://rootcoder007.github.io/crimlab/reference/eceplt.md)
   labels its vertical axis in bits.
+
 - [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
   names the theorems now proved for
   [`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md),
@@ -580,8 +707,10 @@
   and
   [`cllrmin()`](https://rootcoder007.github.io/crimlab/reference/cllrmin.md)
   say what is proved and what is not.
+
 - [`vignette("crimlab")`](https://rootcoder007.github.io/crimlab/articles/crimlab.md)
   walks through one example per family.
+
 - Arguments that hold one value per group are matched by name. Named
   inputs whose names come in another order were read by position, a
   wrong answer:
@@ -611,25 +740,31 @@
   and
   [`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md)
   are matched by name when every one has unique names.
+
 - Per-group arguments also accept a list of single numbers and a one-row
   data frame; a one-row or one-column matrix gives its names.
+
 - [`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md)
   takes one table of groups by day and night (a matrix, 2-d table or
   data frame with columns named `day` and `night`) with `night` left
   out.
+
 - [`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
   [`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md)
   and
   [`expbnd()`](https://rootcoder007.github.io/crimlab/reference/expbnd.md)
   return a `ref` column marking the reference group; a factor `ref` is
   read by its label.
+
 - [`sntbnd()`](https://rootcoder007.github.io/crimlab/reference/sntbnd.md)
   no longer picks the treatment by sorting the values of `z`: `treat` is
   required unless `z` is logical (`TRUE` is the treatment) or 0 and 1 (1
   is).
+
 - A labelled vector (with a `labels` attribute, as haven makes) is
   refused with a request to decode it first: its numbers are category
   codes.
+
 - Learning:
   [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md),
   the elastic net path by coordinate descent with cross-validation over
@@ -638,11 +773,13 @@
   logistic regression;
   [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md),
   random forests for regression and probabilities.
+
 - Causal estimates:
   [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md),
   double machine learning by cross-fitting for the partially linear,
   interactive, IV, difference-in-differences and sample-selection
   models, with AIPW and TMLE from the same nuisances.
+
 - [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md)
   screens binomial paths by the sequential strong rule (`scr`);
   [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md)
@@ -651,6 +788,7 @@
   [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md)
   adds two-way clusters, the experimental DiD scores (`score = "exp"`)
   and passes `tol`, `scr` and `hon` to its learners.
+
 - Policy evaluation on unit-by-period panels.
   [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md)
   is the two-way fixed-effects difference in differences by least
@@ -683,6 +821,7 @@
   power with the minimum detectable effect;
   [`wystep()`](https://rootcoder007.github.io/crimlab/reference/wystep.md)
   the Westfall-Young stepdown p-values.
+
 - Spatial crime analysis.
   [`knxnr()`](https://rootcoder007.github.io/crimlab/reference/knxnr.md)
   is the Knox test of near repeats: pairs by band of distance and time
@@ -735,6 +874,7 @@
   `proof("ebshr")`, `proof("kscan")`, `proof("dissix")`,
   `proof("spill")` and `proof("bvmor")` name the Lean theorems in
   `inst/lean/Hotspot.lean`.
+
 - Design-based causal effects of a 0/1 treatment.
   [`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md)
   gives Hajek-normalised inverse probability weighting, g-computation,
@@ -746,6 +886,7 @@
   [`evlx()`](https://rootcoder007.github.io/crimlab/reference/evlx.md)
   the E-value of a risk, odds or hazard ratio or a standardised
   difference.
+
 - [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md)
   gives design-based means, totals, proportions, ratios and variances
   from stratified, clustered and weighted samples, by domain and with
