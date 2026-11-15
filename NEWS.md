@@ -661,6 +661,10 @@
   and `sptst()` (Andresen's point pattern test).
 * `proof()` names the Lean theorem behind each function; the proofs ship
   in `inst/lean`.
+* `vrfpol()` refuses a CSV with a quote left open in its first rows as a
+  file that "could not be read cleanly"; it used to call the file empty.
+  A file without a newline at its end no longer lets a warning escape
+  from the reading of its header.
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.

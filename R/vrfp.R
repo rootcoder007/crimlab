@@ -812,7 +812,10 @@ print.vrfpol <- function(x, ...) {
   dec <- .vpdec(enc$raw, enc$utf16, path)
   txt <- dec$txt
   note <- .vpor(dec$note, enc$note)
-  changed <- comp || !is.null(enc$utf16) || dec$transformed
+  # a copy ends with a newline: an incomplete last line is then a quote
+  # left open (.vpquiet())
+  changed <- comp || !is.null(enc$utf16) || dec$transformed ||
+    !endsWith(txt, "\n")
   rm(raw, enc, dec)
   if (!is.null(note)) {
     message(note)
@@ -965,8 +968,9 @@ print.vrfpol <- function(x, ...) {
 }
 
 .vpshape <- function(src) {
-  hdr <- names(utils::read.csv(src, nrows = 1L, check.names = FALSE,
-                               encoding = "UTF-8"))
+  hdr <- names(.vpquiet(
+    utils::read.csv(src, nrows = 1L, check.names = FALSE, encoding = "UTF-8")
+  ))
   dup <- unique(hdr[duplicated(tolower(trimws(hdr)))])
   if (length(dup)) {
     stop(
@@ -998,31 +1002,29 @@ print.vrfpol <- function(x, ...) {
 }
 
 .vpparse <- function(src) {
-  acc <- new.env(parent = emptyenv())
-  acc$problems <- character()
-  df <- withCallingHandlers(
-    utils::read.csv(src, stringsAsFactors = FALSE, encoding = "UTF-8"),
-    warning = function(w) {
-      m <- conditionMessage(w)
-      if (!grepl("incomplete final line", m, fixed = TRUE)) {
-        acc$problems <- c(acc$problems, m)
-      }
-      invokeRestart("muffleWarning")
+  .vpquiet(utils::read.csv(src, stringsAsFactors = FALSE, encoding = "UTF-8"))
+}
+
+# A read of the CSV in which any warning refuses the file. The file read
+# ends with a newline (.vpcsv()), so "incomplete final line" means the
+# header read reached the end inside a quote.
+.vpquiet <- function(expr) {
+  withCallingHandlers(expr, warning = function(w) {
+    m <- conditionMessage(w)
+    if (grepl("incomplete final line", m, fixed = TRUE)) {
+      m <- "EOF within quoted string"
     }
-  )
-  if (length(acc$problems)) {
     stop(
       sprintf(
         paste0(
           "could not be read cleanly (%s): no rows are used from a file ",
           "the parser stopped part-way through"
         ),
-        acc$problems[[1L]]
+        m
       ),
       call. = FALSE
     )
-  }
-  df
+  })
 }
 
 # ---- the text report ---------------------------------------------------------
