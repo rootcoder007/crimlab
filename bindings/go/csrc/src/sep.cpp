@@ -439,8 +439,7 @@ int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p,
       if (dm < 1e-10) break;
     }
     for (int i = 0; i < n; ++i) {
-      L += std::lgamma(y[i] + th) - std::lgamma(th) - std::lgamma(y[i] + 1) + th * std::log(th / (th + mu[i])) +
-           y[i] * std::log(mu[i] / (th + mu[i]));
+      L += kutil::nbll(y[i], mu[i], th);
     }
     *theta = th;
   } else {

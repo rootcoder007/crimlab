@@ -42,7 +42,8 @@ Val strsna(const std::vector<std::string> &s, const std::vector<char> &miss) {
   return unbox(v);
 }
 
-bool toascii(Ctx &c, Val &out) {
+// not toascii: a macro of the Windows C headers
+bool jtoasc(Ctx &c, Val &out) {
   std::vector<std::string> s;
   std::vector<char> m;
   CK(txtin(c, "x", s, m));

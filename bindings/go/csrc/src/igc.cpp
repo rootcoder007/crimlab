@@ -768,7 +768,8 @@ std::vector<std::size_t> allages(const V &d, const std::vector<std::string> &age
   return r;
 }
 
-V bind(const std::vector<V> &p) {
+// not bind: a call on a std::vector also finds std::bind
+V vbind(const std::vector<V> &p) {
   V o = p[0];
   for (std::size_t k = 1; k < p.size(); ++k) {
     for (std::size_t j = 0; j < o.a.size(); ++j) {
@@ -891,7 +892,7 @@ V f_trchlthgap(const Cx &c) {
     if (hasref) gap1(c, su, r, tf(3, i), pr, tf(1, i), tf(4, i), ref, pieces);
   }
   if (pieces.empty()) stop("no table given measures a Call 19 indicator against \"%s\"", ref.c_str());
-  V out = bind(pieces);
+  V out = vbind(pieces);
   const std::vector<double> &lo = out.a[8].d;
   std::vector<int> worse;
   for (double v : lo) worse.push_back(std::isfinite(v) && v > 1);

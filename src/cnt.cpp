@@ -217,8 +217,7 @@ double thml(const double *y, const double *mu, int n, int limit, double *info,
 double llnb(const double *y, const double *mu, int n, double th) {
   double s = 0.0;
   for (int i = 0; i < n; ++i) {
-    s += std::lgamma(th + y[i]) - std::lgamma(th) - std::lgamma(y[i] + 1) + th * std::log(th) +
-         y[i] * std::log(mu[i] + (y[i] == 0 ? 1.0 : 0.0)) - (th + y[i]) * std::log(th + mu[i]);
+    s += kutil::nbll(y[i], mu[i], th);
   }
   return s;
 }

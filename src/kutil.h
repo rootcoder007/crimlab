@@ -14,6 +14,23 @@ namespace kutil {
 
 inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
+// One observation of the negative binomial log likelihood (mean mu,
+// size th). For a whole count the ratio of gamma functions is written as
+// a sum of log1p terms: lgamma(y + th) - lgamma(th) loses every digit of
+// the answer once th is large (at th = 1e10 each lgamma is about 2e11),
+// and the size is often at its upper bound when the counts are not
+// overdispersed.
+inline double nbll(double y, double mu, double th) noexcept {
+  double a;
+  if (y >= 0 && y == std::floor(y) && y <= 1e5) {
+    a = 0;
+    for (double j = 0; j < y; j += 1) a += std::log1p((j - mu) / (th + mu));
+  } else {
+    a = std::lgamma(y + th) - std::lgamma(th) - y * std::log(th + mu);
+  }
+  return a - std::lgamma(y + 1) - th * std::log1p(mu / th) + (y > 0 ? y * std::log(mu) : 0.0);
+}
+
 inline double nan() noexcept {
   return std::numeric_limits<double>::quiet_NaN();
 }

@@ -508,7 +508,7 @@ reference:
       - cgamcdf
       - cunif
   - title: Text
-    desc: Text written to files and fixed-width systems: an ASCII transliteration that never depends on the locale, and a UTF-8 writer.
+    desc: "Text written to files and fixed-width systems: an ASCII transliteration that never depends on the locale, and a UTF-8 writer."
     contents:
       - toascii
       - asciifb

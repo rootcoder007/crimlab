@@ -1,0 +1,2 @@
+# reference files compared byte for byte: no line-ending conversion
+tests/testthat/ref/** -text

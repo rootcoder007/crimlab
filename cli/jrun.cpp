@@ -1990,7 +1990,7 @@ const Ent ents[] = {
     {"shrs", "x count? by? total? conflvl?", shrs},
     {"wrtxtfb", "text path", wrtxtfb},
     {"asciifb", "x force?", asciifb},
-    {"toascii", "x", toascii},
+    {"toascii", "x", jtoasc},
     {"cunif", "n seed", cunif},
     {"cgamcdf", "shape x", cgamcdf},
     {"cipw", "treat ps trimlo? trimhi?", cipw},
