@@ -315,6 +315,39 @@ void t_apx(tk &T, int) {
                                     &b3, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, st),
            CLAB_EARG);
   }
+  // regression discontinuity: the kernel constant of Imbens and
+  // Kalyanaraman (Lemma 3.1) from the moments by hand, (480)^(1/5) =
+  // 3.4375 for the triangle, (144)^(1/5) for the uniform on [-1, 1] (their
+  // 5.40 for [-1/2, 1/2], halved); the bandwidth doubles when the running
+  // variable and the cutoff do; McCrary's test on bins of constant height
+  // (2 and 4 rows a bin: theta = ln 2, se^2 = 24 / 5 / (n h) (1 / f+ + 1 /
+  // f-) = 1.8)
+  {
+    tk_eq(T, "apx.rdck", clab_rdck(0), std::pow(480.0, 0.2), 1e-12);
+    tk_eq(T, "apx.rdck1", clab_rdck(1), std::pow(144.0, 0.2), 1e-12);
+    tk_near(T, "apx.rdck2", clab_rdck(0), 3.4375, 1e-4);
+    tk_nan(T, "apx.rdck3", clab_rdck(7));
+    const int n = 400;
+    rng r{20261121};
+    std::vector<double> x(n), x2(n), y(n);
+    for (int i = 0; i < n; ++i) {
+      x[i] = runi(r, -1, 1);
+      x2[i] = 2 * x[i];
+      y[i] = 1 + x[i] + 2 * x[i] * x[i] * (x[i] >= 0) + 0.5 * (x[i] >= 0) + runi(r, -0.5, 0.5);
+    }
+    double h1 = 0, h2 = 0, s1[10], s2[10];
+    tk_ieq(T, "apx.ik", clab_ikbw(y.data(), x.data(), n, 0, 0, &h1, s1), CLAB_OK);
+    clab_ikbw(y.data(), x2.data(), n, 0, 0, &h2, s2);
+    tk_eq(T, "apx.iks", h2, 2 * h1, 1e-9);
+    tk_ieq(T, "apx.ikk", clab_ikbw(y.data(), x.data(), n, 0, 5, &h1, s1), CLAB_EARG);
+    const double rv[18] = {-2.5, -2.5, -1.5, -1.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5,
+                           1.5,  1.5,  1.5,  1.5,  2.5,  2.5,  2.5, 2.5};
+    double st[7];
+    tk_ieq(T, "apx.mc", clab_mccr(rv, 18, 0, 1, 2, st), CLAB_OK);
+    tk_eq(T, "apx.mct", st[0], std::log(2.0), 1e-12);
+    tk_eq(T, "apx.mcs", st[1], std::sqrt(1.8), 1e-12);
+    tk_ieq(T, "apx.mcc", clab_mccr(rv, 18, 9, 1, 2, st), CLAB_EDOM);
+  }
   // runs: days 1, 2, 3 of a run, a gap breaks it, a new unit starts afresh
   {
     const int u[6] = {0, 0, 0, 0, 1, 1};

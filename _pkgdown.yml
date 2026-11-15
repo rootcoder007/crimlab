@@ -467,6 +467,15 @@ reference:
       - jntx
       - dosebin
       - typefx
+  - title: Regression discontinuity
+    desc: >
+      Local polynomial fits at a cutoff with the bandwidth of Imbens and
+      Kalyanaraman (2012), robust intervals after Calonico, Cattaneo and
+      Titiunik (2014), placebo cutoffs and the density test of McCrary
+      (2008).
+    contents:
+      - rdloc
+      - rddens
   - title: Data larger than memory
     desc: One-pass summaries for data that arrive in pieces or do not fit
       in memory - moments accumulated and merged exactly, a uniform

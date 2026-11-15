@@ -201,6 +201,44 @@ SEXP C_clab_r_ivoid(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP f1, SEXP n1, SEXP f2
   return r;
 }
 
+SEXP C_clab_r_rdck(SEXP kern) {
+  clab::who = "rdloc";
+  return Rf_ScalarReal(clab_rdck(Rf_asInteger(kern)));
+}
+
+SEXP C_clab_r_ikbw(SEXP y, SEXP x, SEXP c, SEXP kern) {
+  clab::who = "rdloc";
+  SEXP r = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, 1));
+  SET_VECTOR_ELT(r, 1, Rf_allocVector(REALSXP, 10));
+  const int rc = clab_ikbw(REAL(y), REAL(x), n32(y), Rf_asReal(c), Rf_asInteger(kern),
+                           REAL(VECTOR_ELT(r, 0)), REAL(VECTOR_ELT(r, 1)));
+  clab::ichk(rc);
+  if (rc == CLAB_EDOM) {
+    clab::fail("the bandwidth of Imbens and Kalyanaraman cannot be computed: too few rows near "
+               "the cutoff or a third derivative of 0; give `h` with `bw = \"user\"`.");
+  }
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  static const char *const nm[] = {"h", "st"};
+  named(r, nm, 2);
+  UNPROTECT(1);
+  return r;
+}
+
+SEXP C_clab_r_mccr(SEXP r, SEXP c, SEXP b, SEXP h) {
+  clab::who = "rddens";
+  SEXP s = PROTECT(Rf_allocVector(REALSXP, 7));
+  const int rc = clab_mccr(REAL(r), n32(r), Rf_asReal(c), Rf_asReal(b), Rf_asReal(h), REAL(s));
+  clab::ichk(rc);
+  if (rc == CLAB_EDOM) {
+    clab::fail("the density cannot be estimated: the cutoff is outside the data, or a side has "
+               "too few bins (give `b` or `h`).");
+  }
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  UNPROTECT(1);
+  return s;
+}
+
 SEXP C_clab_r_windbin(SEXP dir, SEXP width, SEXP start, SEXP area, SEXP na, SEXP base,
                       SEXP edge) {
   clab::who = "windiv";

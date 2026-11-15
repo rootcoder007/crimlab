@@ -64,6 +64,13 @@
   (`lvfit()`) and the correlation of counts per unit between categories
   (`catcor()`). They are in `clab_jrun()`, the command line and Python.
 
+* Regression discontinuity: local-linear sharp and fuzzy estimates with
+  the bandwidth of Imbens and Kalyanaraman (2012) or one given, three
+  kernels, conventional and robust intervals (Calonico, Cattaneo and
+  Titiunik 2014, with the pilot bandwidth equal to the main one),
+  heteroskedasticity-robust or clustered errors and placebo cutoffs
+  (`rdloc()`); the density test of McCrary (2008) (`rddens()`).
+
 * Exposure and crime, checked against the papers: the Newey-West lag
   of `se = "nw"` when `lag` is not given is now the automatic bandwidth
   of Newey and West (1994, equation 2.2) instead of their lag-selection

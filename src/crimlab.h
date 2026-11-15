@@ -4111,6 +4111,33 @@ int clab_evfilt(const double *y, int n, const double *x, int p, const int *rp, c
                 int crit, int cand, double tol, int maxv, int *sel, int *nsel, double *coef, double *st,
                 double *res, double *mi);
 
+/* ------------------------------------------------------------------------
+ * Regression discontinuity (src/rdd.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The constant C_K of the optimal bandwidth of a local-linear fit at a
+ * boundary for the kernel kern (0 triangular, 1 uniform, 2 Epanechnikov,
+ * each on [-1, 1]): (C2 / (4 C1))^(1/5) with C1 and C2 from the kernel's
+ * moments (Imbens and Kalyanaraman 2012, Lemma 3.1); 3.4375 for the
+ * triangle. NaN for another kern. */
+double clab_rdck(int kern);
+
+/* The bandwidth of Imbens and Kalyanaraman (2012, section 4.2, steps 1-3)
+ * for the sharp design: y (n) against the running variable x (n) at the
+ * cutoff c, treated from c on; kern as clab_rdck. Out: h; st (10): the
+ * pilot h1, the density at c, the variances left and right, the third
+ * derivative, the pilot bandwidths h2 left and right, the second
+ * derivatives left and right, C_K. CLAB_EDOM when a step has too few rows
+ * or the third derivative is 0. */
+int clab_ikbw(const double *y, const double *x, int n, double c, int kern, double *h, double *st);
+
+/* The density test of McCrary (2008): r (n) the running variable, c the
+ * cutoff, b the binsize (0: 2 s n^(-1/2)), h the bandwidth (0: the
+ * automatic rule of p. 705). Out: st (7): theta = ln f+ - ln f-, its
+ * standard error (equation 5), f- and f+, b, h, the number of bins.
+ * CLAB_EDOM when c is not inside the data or a side cannot be fitted. */
+int clab_mccr(const double *r, int n, double c, double b, double h, double *st);
+
 #ifdef __cplusplus
 }
 #endif
