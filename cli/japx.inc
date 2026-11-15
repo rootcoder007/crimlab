@@ -1106,7 +1106,10 @@ inline int qrank(std::vector<double> &x, int n, int p, double tol, std::vector<i
 // .axsst(): the regressors to drop by the check of Santos Silva and
 // Tenreyro (2010, p. 311, steps 1 and 2), those qr() finds aliased among
 // the regressors demeaned by the effects on the rows with positive counts
-// (yv, one per row of d), in their order.
+// (yv, one per row of d), in their order. A regressor the effects absorb
+// on those rows is left by the demeaning as rounding noise, which the
+// rank routine would judge against its own size and keep: it is set to
+// zero first, where what is left is below 1e-7 of its spread before.
 inline bool asst(Ctx &c, const Val &d, const std::vector<double> &yv, const Cols &x, const Cols &fe, double tol,
                  Cols &drop) {
   drop.clear();
@@ -1119,12 +1122,28 @@ inline bool asst(Ctx &c, const Val &d, const std::vector<double> &yv, const Cols
   CK(amat(c, dp, x, m));
   const Fr e = frows(afe(dp, fe), all(pos.size()));
   const int n = static_cast<int>(pos.size()), p = static_cast<int>(x.size());
+  std::vector<double> s0(zz(p), 0.0);
+  for (int j = 0; j < p; ++j) {
+    const double *cj = m.data() + zz(j) * zz(n);
+    double mu = 0;
+    for (int i = 0; i < n; ++i) mu += cj[i];
+    mu /= n;
+    double ss = 0;
+    for (int i = 0; i < n; ++i) ss += (cj[i] - mu) * (cj[i] - mu);
+    s0[zz(j)] = std::sqrt(ss);
+  }
   std::vector<double> wk(4 * e.ng() + 1);
   const int rc = clab_demean(m.data(), n, p, e.c1.data(), e.n1, e.p2(), e.n2, e.px(), e.pn(), e.mx(), tol,
                              wk.data());
   if (rc != CLAB_OK) {
     c.err = std::string("ppmlfe: ") + clab_strerror(rc);
     return false;
+  }
+  for (int j = 0; j < p; ++j) {
+    double *cj = m.data() + zz(j) * zz(n);
+    double ss = 0;
+    for (int i = 0; i < n; ++i) ss += cj[i] * cj[i];
+    if (std::sqrt(ss) <= 1e-7 * s0[zz(j)]) std::fill(cj, cj + n, 0.0);
   }
   std::vector<int> piv;
   const int rk = qrank(m, n, p, 1e-7, piv);

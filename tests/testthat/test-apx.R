@@ -752,3 +752,36 @@ test_that("a third set of effects equals its indicator columns", {
                  "dropped")
   expect_identical(f4$nsep, sum(d$h == 4))
 })
+
+test_that("sep = \"sst\" drops a regressor the effects absorb where y > 0", {
+  # On the rows with positive counts z1 is a constant of the area and z2 a
+  # constant of the area plus one of the day, so each is a combination of
+  # the effects there; both move only where the count is zero, the case
+  # of Santos Silva and Tenreyro (2010). Demeaning leaves rounding noise
+  # of them, not exact zeros.
+  set.seed(1)
+  d <- expand.grid(area = letters[1:8], day = 1:30, stringsAsFactors = FALSE)
+  d$pm <- rnorm(nrow(d))
+  az <- c(a = 0.3, b = 1.7, c = -0.4, d = 2.2, e = 0.9, f = -1.1, g = 0.05,
+          h = 3.3)
+  d$y <- rpois(nrow(d), exp(0.2 * d$pm + 0.5))
+  d$z1 <- az[d$area] + (d$y == 0)
+  d$z2 <- az[d$area] + sin(d$day) + (d$y == 0)
+  expect_gt(sum(d$y == 0), 0)
+  expect_warning(
+    r1 <- ppmlfe(d, "y", c("pm", "z1"), fe = "area", sep = "sst", se = "hc1"),
+    "regressor\\(s\\) dropped"
+  )
+  expect_identical(r1$xdrop, "z1")
+  expect_identical(r1$coef$term, "pm")
+  expect_warning(
+    r2 <- ppmlfe(d, "y", c("pm", "z2"), fe = c("area", "day"), sep = "sst",
+                 se = "hc1"),
+    "regressor\\(s\\) dropped"
+  )
+  expect_identical(r2$xdrop, "z2")
+  # a regressor with its own variation after the effects stays
+  r3 <- ppmlfe(d, "y", "pm", fe = c("area", "day"), sep = "sst", se = "hc1")
+  expect_identical(r3$xdrop, character())
+  expect_equal(r2$coef$est, r3$coef$est, tolerance = 1e-10)
+})

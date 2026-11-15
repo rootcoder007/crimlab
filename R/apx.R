@@ -153,12 +153,22 @@
 # others (after the effects) on the rows with positive counts, found as
 # least squares finds them, in order (qr() with its default tolerance on
 # the regressors demeaned by the effects on those rows).
+#
+# The effects are regressors too. One they absorb on those rows (it is
+# the same within each place there, or a place part plus a day part) is
+# left by the demeaning as rounding noise, and qr() judges a column
+# against its own size, so it would keep the noise as a column of full
+# rank. Such a column is set to zero first: what is left of it is below
+# qr()'s own tolerance, 1e-7, of its spread before the demeaning.
 .axsst <- function(d, yv, x, fe, tol, fn) {
   pos <- yv > 0
   dp <- d[pos, , drop = FALSE]
   fx <- .axfe(dp, fe)
-  m <- .Call(C_clab_r_demean, .axmat(dp, x, fn), fx$c1, fx$n1, fx$c2,
+  x0 <- .axmat(dp, x, fn)
+  m <- .Call(C_clab_r_demean, x0, fx$c1, fx$n1, fx$c2,
              fx$n2, fx$cx, fx$nx, tol)
+  s0 <- sqrt(colSums(sweep(x0, 2L, colMeans(x0))^2))
+  m[, sqrt(colSums(m^2)) <= 1e-7 * s0] <- 0
   q <- qr(m)
   if (q$rank == length(x)) return(character())
   x[sort(q$pivot[-seq_len(q$rank)])]
