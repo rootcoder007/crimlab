@@ -46,7 +46,12 @@ variance.}
 
 \item{...}{Passed to the base-graphics call.}
 
-\item{main, col, pal}{The title, colour and palette, as in \link{plotm}.}
+\item{main}{\code{NULL} (a default title) or one string.}
+
+\item{col}{\code{NULL} (the palette) or colours.}
+
+\item{pal}{\code{NULL} (the session palette, see \code{\link[=plotopt]{plotopt()}}) or a palette
+name for \code{\link[=blpal]{blpal()}}.}
 }
 \value{
 An object of class \code{fepnl}, a list: \code{coef}, one row per term

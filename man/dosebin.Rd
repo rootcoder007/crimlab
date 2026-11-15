@@ -45,7 +45,12 @@ For \code{plot()}, passed to the base-graphics call.}
 
 \item{x}{An object of class \code{dosebin}.}
 
-\item{main, col, pal}{The title, colour and palette, as in \link{plotm}.}
+\item{main}{\code{NULL} (a default title) or one string.}
+
+\item{col}{\code{NULL} (the palette) or colours.}
+
+\item{pal}{\code{NULL} (the session palette, see \code{\link[=plotopt]{plotopt()}}) or a palette
+name for \code{\link[=blpal]{blpal()}}.}
 }
 \value{
 A list of class \code{dosebin}: \code{tab}, one row per bin (\code{bin}, \code{mid},
