@@ -133,6 +133,9 @@ d$rate <- 30 + i + 0.5 * (d$year - 2015) - 2 * d$bylaw + sin(seq_len(80))
 wcbx(d$rate, d$town, d$year, d$bylaw)
 # every assignment of the by-law to three of the eight towns
 wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+# the simulated panel of polex(), its four regions the clusters
+p <- polex()
+wcbx(p$crmrate, p$district, p$month, p$reformed, clus = p$region)
 }
 \references{
 Cameron, A. C., Gelbach, J. B. and Miller, D. L. (2008).

@@ -153,6 +153,9 @@ r <- didfe(d$rate, d$town, d$year, d$bylaw)
 r
 # its comparisons, and each adopting town left out in turn
 didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE)$bacon
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+didfe(p$crmrate, p$district, p$month, p$reformed)
 }
 \references{
 Bertrand, M., Duflo, E. and Mullainathan, S. (2004). How much should

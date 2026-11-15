@@ -144,6 +144,10 @@ e$pre
 # how far trends may bend before the effect is lost
 evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3,
       mbar = c(0, 1, 2), seed = 1)$sens
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+evtst(p$crmrate, p$district, p$month, p$refmonth, leads = 3,
+      lags = 3)$est
 }
 \references{
 Sun, L. and Abraham, S. (2021). Estimating dynamic treatment effects in

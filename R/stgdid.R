@@ -102,6 +102,10 @@
 #' d$law <- as.integer(on & !(i == 1 & d$year >= 2022))
 #' stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
 #'        seed = 1)$overall
+#' # the simulated panel of polex(): a reform with a known effect of -3
+#' p <- polex()
+#' stgdid(p$crmrate, p$district, p$month, p$refmonth, reps = 49,
+#'        seed = 1)$overall
 #' @export
 stgdid <- function(y, unit, time, first = NULL, trt = NULL, meth = "csa",
                    ctrl = "notyet", adj = NULL, est = "dr", clus = NULL,

@@ -95,6 +95,10 @@
 #' # how far trends may bend before the effect is lost
 #' evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3,
 #'       mbar = c(0, 1, 2), seed = 1)$sens
+#' # the simulated panel of polex(): a reform with a known effect of -3
+#' p <- polex()
+#' evtst(p$crmrate, p$district, p$month, p$refmonth, leads = 3,
+#'       lags = 3)$est
 #' @export
 evtst <- function(y, unit, time, first, leads = 4, lags = 4, ref = -1,
                   bin = TRUE, adj = NULL, clus = NULL, w = NULL, ma = 1,

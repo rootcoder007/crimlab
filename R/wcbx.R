@@ -89,6 +89,9 @@
 #' wcbx(d$rate, d$town, d$year, d$bylaw)
 #' # every assignment of the by-law to three of the eight towns
 #' wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+#' # the simulated panel of polex(), its four regions the clusters
+#' p <- polex()
+#' wcbx(p$crmrate, p$district, p$month, p$reformed, clus = p$region)
 #' @export
 wcbx <- function(y, unit, time, trt = NULL, adj = NULL, clus = NULL,
                  meth = "wild", reps = NULL, wtype = "rad", ties = "count",

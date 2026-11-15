@@ -134,6 +134,9 @@
 #' r
 #' # its comparisons, and each adopting town left out in turn
 #' didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE)$bacon
+#' # the simulated panel of polex(): a reform with a known effect of -3
+#' p <- polex()
+#' didfe(p$crmrate, p$district, p$month, p$reformed)
 #' @export
 didfe <- function(y, unit, time, trt, adj = NULL, clus = NULL, w = NULL,
                   fe = "both", fam = "ols", expo = NULL, loo = FALSE,
