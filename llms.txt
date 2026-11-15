@@ -228,6 +228,48 @@ The functions work on summary data, not on raw records:
   another, by hit rates, by the thresholds of a model of the search
   decision, and by the rank order of officers’ groups
   ([`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)).
+- Search and rescue: how likely a search is to detect a missing person
+  or object at each distance and coverage, where the person is likely to
+  be, how a fixed effort is best spread over the search area, and what
+  is left after a search that found nothing
+  ([`ltrlrng()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`swpwdth()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`srchpod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`pswppod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`srchscs()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`datumpmap()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`optcrcsrch()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`opteffort()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`optsqr()`](https://rootcoder007.github.io/crimlab/reference/optsqr.md),
+  [`srchfig()`](https://rootcoder007.github.io/crimlab/reference/srchfig.md)).
+- Air pollution, as environmental criminology: who bears the exposure
+  from an emitting site and the burden it causes, by area and income,
+  and exposure series to join to crime counts by place and day
+  ([`pgsig()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`briggs()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`gplume()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`gspuff()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`plmfld()`](https://rootcoder007.github.io/crimlab/reference/plmfld.md),
+  [`advdif2d()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`lagrprt()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`crfpm25()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`crfno2()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`attrfrac()`](https://rootcoder007.github.io/crimlab/reference/attrfrac.md),
+  [`mortdisp()`](https://rootcoder007.github.io/crimlab/reference/mortdisp.md),
+  [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md),
+  [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md),
+  [`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)).
+- Data larger than memory: moments, samples and distinct counts in one
+  pass
+  ([`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smryupd()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smrymrg()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smrystat()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`rsvidx()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`dstnskch()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`dstncnt()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`skchmrg()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)).
 - Officers: whether an officer’s stops differ from those other officers
   make in the same circumstances, with a false discovery rate over the
   officers
@@ -723,7 +765,7 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package (211 of 211); `crimlab -l` lists them and
+function of the R package (244 of 244); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array
@@ -1359,6 +1401,100 @@ and the risk terrain model.
   : Accuracy of a hot-spot map
 - [`rtmfit()`](https://rootcoder007.github.io/crimlab/reference/rtmfit.md)
   : Risk terrain model
+
+## Search and rescue
+
+Koopman’s search theory as search and rescue planning uses it - lateral
+range curves and sweep width, the probability of detection from coverage
+and of parallel sweeps with navigation error, the probability of success
+with Bayesian updating, datum probability maps, the optimal allocation
+of effort, Frost’s optimal search squares and the figures of his book.
+
+- [`ltrlrng()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`swpwdth()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`srchpod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`pswppod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`srchscs()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`datumpmap()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`optcrcsrch()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`opteffort()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`print(`*`<ltrlrng>`*`)`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`print(`*`<srchpod>`*`)`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`print(`*`<srchscs>`*`)`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`print(`*`<datumpmap>`*`)`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`print(`*`<optcrcsrch>`*`)`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  [`print(`*`<opteffort>`*`)`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  : Search theory for search and rescue planning
+- [`optsqr()`](https://rootcoder007.github.io/crimlab/reference/optsqr.md)
+  [`print(`*`<optsqr>`*`)`](https://rootcoder007.github.io/crimlab/reference/optsqr.md)
+  : The optimal search square for a circular normal datum
+- [`srchfig()`](https://rootcoder007.github.io/crimlab/reference/srchfig.md)
+  : The figures of The Theory of Search
+
+## Air pollution
+
+Environmental criminology in its two senses. Pollution as harm and
+offence (green criminology) - who bears the exposure from an emitting
+site and the burden it causes, by area and by income; and the
+environment as a driver of offending and victimisation, where exposure
+series are joined to crime counts by place and day. Dispersion models
+(Pasquill-Gifford sigmas, Briggs plume rise, the Gaussian plume and
+puff, a grid and a particle model), the concentration-response functions
+of PM2.5 and NO2, the attributable fraction, deaths avoided, the burden
+by area and the concentration index of exposure by income.
+
+- [`pgsig()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`briggs()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`gplume()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`gspuff()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`advdif2d()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`lagrprt()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`print(`*`<advdif2d>`*`)`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  [`print(`*`<lagrprt>`*`)`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)
+  : Atmospheric dispersion: sigmas, plume rise, plume, puff, grid and
+  particles
+- [`plmfld()`](https://rootcoder007.github.io/crimlab/reference/plmfld.md)
+  [`print(`*`<plmfld>`*`)`](https://rootcoder007.github.io/crimlab/reference/plmfld.md)
+  : A Gaussian-plume concentration field on a grid
+- [`crfpm25()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md)
+  [`crfno2()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md)
+  [`print(`*`<crf>`*`)`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md)
+  : Concentration-response functions for PM2.5 and NO2
+- [`attrfrac()`](https://rootcoder007.github.io/crimlab/reference/attrfrac.md)
+  [`print(`*`<attrfrac>`*`)`](https://rootcoder007.github.io/crimlab/reference/attrfrac.md)
+  : Population attributable fraction
+- [`mortdisp()`](https://rootcoder007.github.io/crimlab/reference/mortdisp.md)
+  : Deaths avoided under a counterfactual exposure reduction
+- [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md)
+  [`print(`*`<polbrdn>`*`)`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md)
+  : End-to-end pollution burden
+- [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md)
+  [`print(`*`<polbrdarea>`*`)`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md)
+  : Per-area pollution burden
+- [`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)
+  [`print(`*`<expconcidx>`*`)`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)
+  : Concentration index of exposure by income
+
+## Data larger than memory
+
+One-pass summaries for data that arrive in pieces or do not fit in
+memory - moments accumulated and merged exactly, a uniform reservoir
+sample of a stream, and the HyperLogLog count of distinct values in
+fixed memory.
+
+- [`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)
+  [`smryupd()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)
+  [`smrymrg()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)
+  [`smrystat()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)
+  [`print(`*`<onlsmry>`*`)`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)
+  : Summary statistics accumulated in blocks
+- [`rsvidx()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md)
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md)
+  : Uniform sample of a stream in one pass
+- [`dstnskch()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)
+  [`dstncnt()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)
+  [`skchmrg()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)
+  : Distinct-value count in fixed memory
 
 # Articles
 

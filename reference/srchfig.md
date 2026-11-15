@@ -1,0 +1,89 @@
+# The figures of The Theory of Search
+
+Lists the figures of Frost (1996), “The Theory of Search: A Simplified
+Explanation”, with how each is computed from the search theory functions
+with the book's parameters, and one line of R that computes a version of
+it from the reader's own numbers.
+
+## Usage
+
+``` r
+srchfig(fig = NULL, num = NULL)
+```
+
+## Arguments
+
+- fig:
+
+  A figure number as text, `"5-7"`, or the chapter as a number with
+  `num`; `NULL` (the default) lists every figure.
+
+- num:
+
+  The figure's number within chapter `fig`, or `NULL`.
+
+## Value
+
+A data frame of `fig`, `caption`, `how` and `yours` (the line of R
+behind the figure, with example inputs to replace; for a schematic, the
+computation it pictures): every figure, or the one asked for.
+
+## Details
+
+The book's 36 figures (3-1 to 3-14, 4-1 to 4-7, 5-1 to 5-9 and 6-1 to
+6-6) are listed with how each is drawn: `"model"` figures are computed
+from the functions with the book's parameters and reproduce the values
+the text states; `"schematic"` figures are diagrams with no data (3-6,
+4-3, 4-6, 5-2); `"approximation"` figures are drawn from the model where
+the book's plate cannot be recovered exactly: 3-7 (the density implied
+by boxing in two circles is drawn as the `"line"` datum, a circular
+normal spread along the segment), 3-13 (the book's surface is
+illustrative; it is drawn from the cells of figure 3-14), 5-9 (the plate
+is blank in the published file; it is drawn from the text, an inverse
+cube curve with a smaller sweep width and flattened by navigation
+error), 6-6 (the book's random efforts are not given).
+
+## References
+
+Frost, J. R. (1996). The Theory of Search: A Simplified Explanation.
+Soza and Company and U.S. Coast Guard Office of Search and Rescue.
+Chapters 3-6.
+
+## Examples
+
+``` r
+head(srchfig())
+#>   fig                                                              caption
+#> 1 3-1     Probability density distribution for a point datum with top view
+#> 2 3-2 Circle of radius one standard deviation and its circumscribed square
+#> 3 3-3                      Circle of radius E and its circumscribed square
+#> 4 3-4                                    Probability map for a point datum
+#> 5 3-5                  Circle of radius 1.1 E and its circumscribed square
+#> 6 3-6                       Line datum: circles at the end points boxed in
+#>         how
+#> 1     model
+#> 2     model
+#> 3     model
+#> 4     model
+#> 5     model
+#> 6 schematic
+#>                                                                                                                               yours
+#> 1                       plot(datumpmap(seq(-4, 4, by = 0.25), seq(-4, 4, by = 0.25), center = c(0, 0), sigma = 1.5), view = "both")
+#> 2                                                                       sum(datumpmap(c(-1.5, 1.5), c(-1.5, 1.5), sigma = 1.5)$poc)
+#> 3                                                   sum(datumpmap(c(-1, 1) * 1.177 * 1.5, c(-1, 1) * 1.177 * 1.5, sigma = 1.5)$poc)
+#> 4                                      plot(datumpmap(c(-3, -1, 1, 3) * 1.77, c(-3, -1, 1, 3) * 1.77, sigma = 1.5), view = "cells")
+#> 5                                                   sum(datumpmap(c(-1, 1) * 1.295 * 1.5, c(-1, 1) * 1.295 * 1.5, sigma = 1.5)$poc)
+#> 6 plot(datumpmap(seq(-4, 4, by = 0.25), seq(-4, 4, by = 0.25), "line", center = c(0, -2), end = c(0, 2), sigma = 1), view = "both")
+srchfig("3-4")
+#>   fig                           caption   how
+#> 1 3-4 Probability map for a point datum model
+#>                                                                                          yours
+#> 1 plot(datumpmap(c(-3, -1, 1, 3) * 1.77, c(-3, -1, 1, 3) * 1.77, sigma = 1.5), view = "cells")
+srchfig(5, 8)
+#>   fig      caption   how
+#> 1 5-8 Inverse cube model
+#>                                                                                        yours
+#> 1 plot(srchpod(seq(0, 3, by = 0.1), "invcube"), models = c("invcube", "definite", "random"))
+try(srchfig("9-9"))
+#> Error : srchfig: `fig` must be one of the book's figures, 3-1, 3-2, 3-3, 3-4, 3-5, 3-6, 3-7, 3-8, 3-9, 3-10, 3-11, 3-12, 3-13, 3-14, 4-1, 4-2, 4-3, 4-4, 4-5, 4-6, 4-7, 5-1, 5-2, 5-3, 5-4, 5-5, 5-6, 5-7, 5-8, 5-9, 6-1, 6-2, 6-3, 6-4, 6-5, 6-6; got "9-9".
+```

@@ -228,6 +228,48 @@ The functions work on summary data, not on raw records:
   another, by hit rates, by the thresholds of a model of the search
   decision, and by the rank order of officers’ groups
   ([`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)).
+- Search and rescue: how likely a search is to detect a missing person
+  or object at each distance and coverage, where the person is likely to
+  be, how a fixed effort is best spread over the search area, and what
+  is left after a search that found nothing
+  ([`ltrlrng()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`swpwdth()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`srchpod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`pswppod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`srchscs()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`datumpmap()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`optcrcsrch()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`opteffort()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`optsqr()`](https://rootcoder007.github.io/crimlab/reference/optsqr.md),
+  [`srchfig()`](https://rootcoder007.github.io/crimlab/reference/srchfig.md)).
+- Air pollution, as environmental criminology: who bears the exposure
+  from an emitting site and the burden it causes, by area and income,
+  and exposure series to join to crime counts by place and day
+  ([`pgsig()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`briggs()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`gplume()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`gspuff()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`plmfld()`](https://rootcoder007.github.io/crimlab/reference/plmfld.md),
+  [`advdif2d()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`lagrprt()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`crfpm25()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`crfno2()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`attrfrac()`](https://rootcoder007.github.io/crimlab/reference/attrfrac.md),
+  [`mortdisp()`](https://rootcoder007.github.io/crimlab/reference/mortdisp.md),
+  [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md),
+  [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md),
+  [`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)).
+- Data larger than memory: moments, samples and distinct counts in one
+  pass
+  ([`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smryupd()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smrymrg()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smrystat()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`rsvidx()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`dstnskch()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`dstncnt()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`skchmrg()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)).
 - Officers: whether an officer’s stops differ from those other officers
   make in the same circumstances, with a false discovery rate over the
   officers
@@ -723,7 +765,7 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package (211 of 211); `crimlab -l` lists them and
+function of the R package (244 of 244); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array

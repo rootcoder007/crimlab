@@ -2,6 +2,67 @@
 
 ## crimlab 0.0.0.9000
 
+- Air pollution, for environmental criminology: Pasquill-Gifford
+  dispersion coefficients
+  ([`pgsig()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)),
+  Briggs plume rise
+  ([`briggs()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)),
+  the Gaussian plume and puff
+  ([`gplume()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`gspuff()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  the field
+  [`plmfld()`](https://rootcoder007.github.io/crimlab/reference/plmfld.md)),
+  an advection-diffusion grid
+  ([`advdif2d()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md))
+  and a particle walk
+  ([`lagrprt()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md));
+  the concentration-response functions of PM2.5 and NO2
+  ([`crfpm25()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`crfno2()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md)),
+  the attributable fraction
+  ([`attrfrac()`](https://rootcoder007.github.io/crimlab/reference/attrfrac.md)),
+  deaths avoided
+  ([`mortdisp()`](https://rootcoder007.github.io/crimlab/reference/mortdisp.md)),
+  the burden of a population and of areas
+  ([`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md),
+  [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md))
+  and the concentration index of exposure by income
+  ([`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)).
+
+- One-pass summaries of data larger than memory: moment accumulators
+  ([`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smryupd()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smrymrg()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
+  [`smrystat()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)),
+  reservoir sampling
+  ([`rsvidx()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md))
+  and the HyperLogLog distinct count
+  ([`dstnskch()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`dstncnt()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`skchmrg()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)).
+
+- Search theory for search and rescue planning: lateral range curves
+  ([`ltrlrng()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md))
+  and sweep width
+  ([`swpwdth()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)),
+  the probability of detection from coverage
+  ([`srchpod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md))
+  and of a parallel sweep with navigation error
+  ([`pswppod()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)),
+  the probability of success with Bayesian updating of containment
+  ([`srchscs()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)),
+  datum probability maps
+  ([`datumpmap()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)),
+  the optimal allocation of effort
+  ([`opteffort()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  [`optcrcsrch()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)),
+  Frost’s optimal search squares
+  ([`optsqr()`](https://rootcoder007.github.io/crimlab/reference/optsqr.md))
+  and the list of his book’s figures
+  ([`srchfig()`](https://rootcoder007.github.io/crimlab/reference/srchfig.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
 - [`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)
   bounds the mean outcome under each of ordered sentences and the effect
   of each against the mildest, under the monotone treatment response and
