@@ -1054,6 +1054,7 @@ ok("lnroc", tp = c(1, 1, 1, 1, 0, 0, 0, 0), pick = c("suspect", "suspect", "fill
 bad("lnroc", tp = c(1, 0), pick = c("suspect", "guess"), conf = c(1, 1))
 ok("lnsize", choice = c(rep(3, 15), rep(1, 5), rep(2, 6), rep(4, 4), rep(5, 7), rep(6, 3)), k = 6, susp = 3)
 ok("lnsize", choice = c(1, 1, 1, 2, 3, 3), level = 0.9)
+bad("lnsize", choice = c(1, 1, 1, 2, 3, 3), k = 1e9)
 ok("lnsize", choice = c(0, 2, 2, 2, 3, 3, 4), k = 4, susp = 2)
 ok("lnroc", tp = ltp, pick = lpk, conf = lcf, proc = lpr, far = 0.5)
 bad("lnsize", choice = c(1, 7), k = 6)

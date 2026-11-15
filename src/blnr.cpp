@@ -171,6 +171,7 @@ SEXP C_clab_r_lnsize(SEXP choice, SEXP k, SEXP susp, SEXP level) {
   }
   if (mx == 0) fail("`choice` must name a lineup member at least once.");
   const int kk = Rf_isNull(k) ? std::max(mx, 2) : clab::whole(k, "k", 2);
+  if (kk > kutil::maxcell) fail("`k` must be at most %.0f.", kutil::maxcell);
   if (mx > kk) fail("`choice` names position %d of a lineup of %d.", mx, kk);
   const int sp = clab::whole(susp, "susp", 1);
   if (sp > kk) fail("`susp` must be a position from 1 to %d.", kk);

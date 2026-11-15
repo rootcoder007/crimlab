@@ -281,3 +281,8 @@ test_that("bootstrap replicates past their bound are refused at once", {
                "lnroc: `nboot` times the procedures must be at most 67108864.",
                fixed = TRUE)
 })
+
+test_that("lnsize() refuses a lineup larger than its bound", {
+  expect_error(lnsize(c(1, 2, 2), k = 1e9),
+               "lnsize: `k` must be at most 67108864.", fixed = TRUE)
+})

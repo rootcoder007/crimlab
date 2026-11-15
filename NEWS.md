@@ -831,6 +831,8 @@
 * `crwalk()` refuses `h` times `nsim` past 2^26, the simulated steps it
   keeps, and `vgemp()` more than 2^26 distance bins, in R and in the
   command line.
+* `lnsize()` refuses a lineup size `k` past 2^26; the command line gives
+  the same message.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

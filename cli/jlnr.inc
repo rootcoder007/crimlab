@@ -124,6 +124,7 @@ bool lnsize(Ctx &c, Val &out) {
   if (mx == 0) return c.fail("`choice` must name a lineup member at least once.");
   int kk = std::max(mx, 2);
   if (c.has("k")) CK(whole(c, c["k"], "k", 2, kk));
+  if (kk > kutil::maxcell) return c.fail("`k` must be at most %.0f.", kutil::maxcell);
   if (mx > kk) return c.fail("`choice` names position %d of a lineup of %d.", mx, kk);
   int sp = 1;
   CK(wholed(c, "susp", 1, 1, sp));
