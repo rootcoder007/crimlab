@@ -471,3 +471,13 @@ test_that("geostatistics refuse bad input in words", {
     "must be finite"
   )
 })
+
+test_that("smixm() reads a data frame of regressors as a matrix", {
+  g <- gpin()
+  z <- cbind(1, g$q[, 1])
+  a <- smixm(g$u2, as.data.frame(z), g$q)
+  b <- smixm(g$u2, z, g$q)
+  # the same Nelder-Mead search on the same numbers; the bound of an
+  # optimiser-based fit
+  expect_equal(unname(a$coef), unname(b$coef), tolerance = 1e-6)
+})

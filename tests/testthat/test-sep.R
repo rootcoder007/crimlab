@@ -532,3 +532,16 @@ test_that("spatial epidemiology refuses bad input in words", {
     )
   )
 })
+
+test_that("data frames of covariates are read as matrices", {
+  k <- sin_()
+  a <- ecolrg(k$ey, k$ee, k$ex, "zip", z = data.frame(z = k$ex[, 1]))
+  b <- ecolrg(k$ey, k$ee, k$ex, "zip", z = k$ex[, 1, drop = FALSE])
+  expect_equal(a$zcoef, b$zcoef, tolerance = 1e-12)
+  f1 <- sfrail(k$ft, k$fe, data.frame(x = k$fx[, 1]), k$fr, k$W3)
+  f2 <- sfrail(k$ft, k$fe, k$fx, k$fr, k$W3)
+  expect_equal(f1$coef, f2$coef, tolerance = 1e-12)
+  c1 <- sfcure(k$ct, k$ce, data.frame(x = k$cx[, 1]), k$cr, k$W3)
+  c2 <- sfcure(k$ct, k$ce, k$cx, k$cr, k$W3)
+  expect_equal(c1$coef, c2$coef, tolerance = 1e-12)
+})
