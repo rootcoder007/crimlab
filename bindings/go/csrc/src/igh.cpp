@@ -68,7 +68,7 @@ bool sclong(V &x) {
   std::vector<std::string> dims;
   for (std::size_t j : vc) dims.push_back(trim(nm[j].substr(0, nm[j].find(':'))));
   dims = uniq(dims);
-  if (dims.size() != 1) stop("`x` spreads more than one dimension across its columns");
+  if (dims.size() != 1) return stop("`x` spreads more than one dimension across its columns");
   std::vector<char> hs(vc.size()), drop(nm.size(), 0);
   for (std::size_t k = 0; k < vc.size(); ++k) {
     const std::size_t sj = vc[k] + 1;
@@ -180,9 +180,11 @@ void scmembers(V &x) {
 V f_sctidy(const Cx &c) {
   V x = c["x"];
   nofn(x, "x");
-  if (!isdf(x)) stop("`x` must be a data frame read from a Statistics Canada table");
+  if (bad()) return {};
+  if (!isdf(x)) return stop("`x` must be a data frame read from a Statistics Canada table");
+  // a refusal of sclong() comes first, this one is then dropped
   if (coli(x, "VALUE") < 0 && !sclong(x)) {
-    stop("`x` has no VALUE column, nor census columns: it is not a Statistics Canada table");
+    return stop("`x` has no VALUE column, nor census columns: it is not a Statistics Canada table");
   }
   scmembers(x);
   const std::size_t n = nrow(x);
@@ -202,15 +204,8 @@ V f_sctidy(const Cx &c) {
   const Lab vl = lab(*col(x, "VALUE"));
   std::vector<double> v(n);
   for (std::size_t r = 0; r < n; ++r) {
-    V one = vl.na[r] ? svna({""}, {1}) : sv1(vl.s[r]);
     double y = na();
-    if (!vl.na[r]) {
-      try {
-        y = num(one, "VALUE")[0];
-      } catch (const Stop &) {
-        y = na();
-      }
-    }
+    if (!vl.na[r] && !tnum(vl.s[r], y)) y = na();
     v[r] = gone(q[r]) ? na() : y;
   }
   setcol(x, "VALUE", dv(v));
@@ -228,7 +223,8 @@ V f_qltyrcd(const Cx &c) {
   nofn(x, "x");
   nofn(sp, "suppr");
   nofn(ca, "caution");
-  if (x.t == V::NUL || x.t == V::LIST || x.odd) stop("`x` must be a vector of flags");
+  if (bad()) return {};
+  if (x.t == V::NUL || x.t == V::LIST || x.odd) return stop("`x` must be a vector of flags");
   bool allna = true;
   for (std::size_t j = 0; j < x.len(); ++j) {
     const Lab l = lab(rows(x, {j}));
@@ -236,7 +232,7 @@ V f_qltyrcd(const Cx &c) {
   }
   if (x.t != V::STR && x.t != V::FAC && !allna) {
     const char *k = x.t == V::DBL ? "numeric" : x.t == V::INT ? "integer" : "logical";
-    stop("`x` must be a vector of flags (character), not %s", k);
+    return stop("`x` must be a vector of flags (character), not %s", k);
   }
   const V spv = dflt(sp) ? sv({"F", "x", "..", "..."}) : sp;
   const V cav = dflt(ca) ? sv1("E") : ca;
@@ -244,11 +240,11 @@ V f_qltyrcd(const Cx &c) {
     const V &v = k ? cav : spv;
     bool ok = v.t == V::STR;
     for (char m : v.na) ok = ok && !m;
-    if (!ok) stop("`%s` must be flags (character)", k ? "caution" : "suppr");
+    if (!ok) return stop("`%s` must be flags (character)", k ? "caution" : "suppr");
   }
   for (const std::string &a : spv.s) {
     if (std::find(cav.s.begin(), cav.s.end(), a) != cav.s.end()) {
-      stop("a flag cannot be both suppressed and caution");
+      return stop("a flag cannot be both suppressed and caution");
     }
   }
   std::set<std::string> ts, tc;
@@ -275,15 +271,18 @@ V f_qltyrcd(const Cx &c) {
 
 V f_limfrom(const Cx &c) {
   const std::vector<double> est = num(c["est"], "est");
+  if (bad()) return {};
   const bool g[3] = {c.has("se"), c.has("cv"), c.has("moe")};
-  if (g[0] + g[1] + g[2] != 1) stop("give one of `se`, `cv` or `moe`");
+  if (g[0] + g[1] + g[2] != 1) return stop("give one of `se`, `cv` or `moe`");
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
   const double ml = conf(c["moelev"], "moelev", 0.90);
+  if (bad()) return {};
   std::vector<double> s;
   if (g[0]) {
     s = num(c["se"], "se");
   } else if (g[1]) {
     const std::vector<double> cv = num(c["cv"], "cv");
+    if (bad()) return {};
     const std::size_t n = est.empty() || cv.empty() ? 0 : std::max(est.size(), cv.size());
     for (std::size_t j = 0; j < n; ++j) s.push_back(est[j % est.size()] * cv[j % cv.size()] / 100);
   } else {
@@ -291,9 +290,10 @@ V f_limfrom(const Cx &c) {
     const double zm = qn(ml);
     for (double x : m) s.push_back(x / zm);
   }
-  if (s.size() != est.size() && s.size() != 1) stop("the standard errors must be one per estimate");
+  if (bad()) return {};
+  if (s.size() != est.size() && s.size() != 1) return stop("the standard errors must be one per estimate");
   for (double x : s) {
-    if (x < 0) stop("standard errors, CVs and margins must not be negative");
+    if (x < 0) return stop("standard errors, CVs and margins must not be negative");
   }
   const double z = qn(cl);
   std::vector<double> lo, hi, se;
@@ -314,7 +314,8 @@ namespace {
 std::string gapcol(const V &data, const V &v, const char *what, const char *fn) {
   const std::string s = str1(v, what);
   (void)fn;
-  if (!col(data, s)) stop("column `%s` not found in `data`", s.c_str());
+  if (bad()) return {};
+  if (!col(data, s)) return stop("column `%s` not found in `data`", s.c_str());
   return s;
 }
 
@@ -330,7 +331,7 @@ V gapframe(const Cx &c, const Lab &g, std::vector<double> est, const std::vector
   {
     std::set<std::string> u(gs.begin(), gs.end());
     if (u.size() != gs.size()) {
-      stop("a group appears twice: filter `data` to one period, age group, sex and place");
+      return stop("a group appears twice: filter `data` to one period, age group, sex and place");
     }
   }
   const std::string tr = trim(ref);
@@ -339,18 +340,18 @@ V gapframe(const Cx &c, const Lab &g, std::vector<double> est, const std::vector
     if (!g.na[j] && g.s[j] == tr) rr.push_back(j);
   }
   if (rr.size() != 1) {
-    stop("`ref` must name exactly one row of `%s` (\"%s\" names %d)", grp.c_str(), ref.c_str(),
+    return stop("`ref` must name exactly one row of `%s` (\"%s\" names %d)", grp.c_str(), ref.c_str(),
          static_cast<int>(rr.size()));
   }
   const std::size_t r = rr[0];
   if (gone(q[r]) || !std::isfinite(est[r])) {
-    stop("the reference estimate is suppressed or missing: there is nothing to compare with");
+    return stop("the reference estimate is suppressed or missing: there is nothing to compare with");
   }
   std::vector<char> bad(est.size());
   for (std::size_t j = 0; j < est.size(); ++j) {
     bad[j] = std::isfinite(lo[j]) && std::isfinite(hi[j]) && std::isfinite(est[j]) && (lo[j] > est[j] || hi[j] < est[j]);
   }
-  if (bad[r]) stop("the reference group's published interval does not contain its estimate");
+  if (bad[r]) return stop("the reference group's published interval does not contain its estimate");
   std::vector<std::string> bl;
   for (std::size_t j = 0; j < est.size(); ++j) {
     if (bad[j]) {
@@ -396,6 +397,7 @@ V gapframe(const Cx &c, const Lab &g, std::vector<double> est, const std::vector
     uc.push_back(q[j] == "E" || q[r] == "E");
   }
   pg = pooledrows(gu, pooled);
+  if (igh::bad()) return {};
   for (std::size_t j = 0; j < gna.size(); ++j) {
     if (gna[j] && pooled.t == V::NUL) pg[j] = 0;
     if (gna[j] && pooled.t != V::NUL) pg[j] = 0;
@@ -411,7 +413,7 @@ V gapframe(const Cx &c, const Lab &g, std::vector<double> est, const std::vector
 
 V f_indgap(const Cx &c) {
   const V &data = c["data"];
-  if (!isdf(data)) stop("`data` must be a data frame");
+  if (!isdf(data)) return stop("`data` must be a data frame");
   const std::string grp = gapcol(data, c["grp"], "grp", "indgap");
   const std::string est = gapcol(data, c["est"], "est", "indgap");
   const std::string lwc = gapcol(data, c["lower"], "lower", "indgap");
@@ -419,17 +421,24 @@ V f_indgap(const Cx &c) {
   std::string qual;
   if (c.has("qual")) qual = gapcol(data, c["qual"], "qual", "indgap");
   const std::string ref = !dflt(c["ref"]) ? str1(c["ref"], "ref") : "Non-Indigenous";
+  if (bad()) return {};
   const V &pooled = c["pooled"];
   {
     const std::string tr = trim(ref);
-    const bool tot = lower(tr).compare(0, 5, "total") == 0;
-    if (tot || pooledrows({ref}, pooled)[0]) {
+    bool tot = lower(tr).compare(0, 5, "total") == 0;
+    if (!tot) {
+      const std::vector<int> pr = pooledrows({ref}, pooled);
+      if (bad()) return {};
+      tot = pr[0];
+    }
+    if (tot) {
       c.w("the reference looks like a total that contains the groups: the intervals assume independent "
           "samples and are not right for it; compare with the groups' complement (for example "
           "non-Indigenous people)");
     }
   }
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const Lab g = tlab(*col(data, grp));
   {
     std::vector<std::string> gs;
@@ -439,18 +448,20 @@ V f_indgap(const Cx &c) {
   const std::vector<double> e = num(*col(data, est), "est");
   const std::vector<double> lo = num(*col(data, lwc), "lower");
   const std::vector<double> hi = num(*col(data, upc), "upper");
+  if (bad()) return {};
   const std::vector<std::string> q = quality(c, data, qual, g.n());
   return gapframe(c, g, e, lo, hi, q, ref, grp, cl, pooled);
 }
 
 V f_genexpo(const Cx &c) {
   const std::string partial = pick(c["partial"], "partial", {"na", "lowerbnd"});
+  if (bad()) return {};
   const V &p = c["parent"], &gp = c["gparent"];
   for (int k = 0; k < 2; ++k) {
     const V &v = k ? gp : p;
-    if (v.t != V::LGL) stop("`%s` must be TRUE, FALSE or NA for each person", k ? "gparent" : "parent");
+    if (v.t != V::LGL) return stop("`%s` must be TRUE, FALSE or NA for each person", k ? "gparent" : "parent");
   }
-  if (p.len() != gp.len()) stop("`parent` and `gparent` must be the same length");
+  if (p.len() != gp.len()) return stop("`parent` and `gparent` must be the same length");
   std::vector<int> out(p.len());
   for (std::size_t j = 0; j < out.size(); ++j) {
     const int a = p.i[j], b = gp.i[j];
@@ -473,25 +484,26 @@ V f_exptrnd(const Cx &c) {
     for (std::size_t j = 0; j < a.size(); ++j) dose.push_back(static_cast<double>(j));
   }
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const std::size_t k = a.size();
   if (k < 2 || n.size() != k || dose.size() != k) {
-    stop("`cases`, `n` and `dose` must have one entry per level, two levels at least");
+    return stop("`cases`, `n` and `dose` must have one entry per level, two levels at least");
   }
   bool bad = false, a0 = true, an = true;
   for (std::size_t j = 0; j < k; ++j) {
     bad = bad || std::isnan(a[j]) || std::isnan(n[j]) || std::isnan(dose[j]) || a[j] < 0 || n[j] <= 0 ||
           a[j] > n[j] || std::fabs(a[j] - std::round(a[j])) > 1e-8 || std::fabs(n[j] - std::round(n[j])) > 1e-8;
   }
-  if (bad) stop("`cases` and `n` must be whole numbers with 0 <= cases <= n and n > 0");
+  if (bad) return stop("`cases` and `n` must be whole numbers with 0 <= cases <= n and n > 0");
   for (std::size_t j = 1; j < k; ++j) {
-    if (!(dose[j] > dose[j - 1])) stop("`dose` must be strictly increasing");
+    if (!(dose[j] > dose[j - 1])) return stop("`dose` must be strictly increasing");
   }
   for (std::size_t j = 0; j < k; ++j) {
     a0 = a0 && a[j] == 0;
     an = an && a[j] == n[j];
   }
   if (a0 || an) {
-    stop("no level has a case (or every person at every level is one): there is no trend to test");
+    return stop("no level has a case (or every person at every level is one): there is no trend to test");
   }
   const double z = qn(cl);
   double adj = 0;
@@ -561,22 +573,23 @@ V f_trcprog(const Cx &c) {
   const double total = scalar(c["total"], "total", 1, 1e6, true, 94);
   const double start = scalar(c["start"], "start", -HUGE_VAL, HUGE_VAL, false, 2015.96);
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   bool nas = false;
   for (double x : done) nas = nas || std::isnan(x);
   for (double x : ye) nas = nas || std::isnan(x);
   if (done.empty() || done.size() != ye.size() || nas) {
-    stop("`done` and `yearend` must be one count per year, with no NA");
+    return stop("`done` and `yearend` must be one count per year, with no NA");
   }
   for (std::size_t j = 1; j < ye.size(); ++j) {
-    if (!(ye[j] > ye[j - 1])) stop("`yearend` must be increasing");
+    if (!(ye[j] > ye[j - 1])) return stop("`yearend` must be increasing");
   }
   for (std::size_t j = 0; j < done.size(); ++j) {
     if ((j && done[j] < done[j - 1]) || done[j] < 0 || done[j] > total) {
-      stop("`done` must be cumulative counts between 0 and `total`");
+      return stop("`done` must be cumulative counts between 0 and `total`");
     }
   }
   const double c1 = done.back(), t1 = ye.back() + 1, span = t1 - start;
-  if (span <= 0) stop("the last count must come after `start`");
+  if (span <= 0) return stop("the last count must come after `start`");
   const double a = 1 - cl;
   const double lo = c1 > 0 ? clab_qgamma(a / 2, c1, 1) / span : 0;
   const double hi = clab_qgamma(1 - a / 2, c1 + 1, 1) / span;

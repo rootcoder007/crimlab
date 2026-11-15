@@ -19,15 +19,31 @@
 
 namespace igh {
 
-// A refusal: thrown, caught by call().
+// A refusal, without exceptions (the WebAssembly build has none): stop()
+// keeps the first message of the running call() (a later one is dropped)
+// and gives an empty value of whatever the refusing function returns, as
+// in `if (...) return stop(...);`. Whatever calls a function that can
+// refuse checks bad() before it uses the result and returns at once (its
+// value is then discarded), up to call(), which reports the message. The
+// state belongs to call(), one per thread.
 struct Stop {
   std::string msg;
+  bool on = false;
 };
-[[noreturn]] void stop(const char *fmt, ...)
+struct No {
+  template <class T>
+  operator T() const {
+    return T();
+  }
+};
+No stop(const char *fmt, ...)
 #if defined(__GNUC__)
     __attribute__((format(printf, 1, 2)))
 #endif
     ;
+bool bad();
+// call(): s becomes the refusal of the running call; gives the one before
+Stop *setst(Stop *s);
 std::string sf(const char *fmt, ...)
 #if defined(__GNUC__)
     __attribute__((format(printf, 1, 2)))
@@ -70,6 +86,9 @@ void nofn(const V &v, const char *what);
 // the argument was left out (JSON null, or not given in R): its default
 bool dflt(const V &v);
 std::vector<double> num(const V &v, const char *what, bool integer = false);
+// as.numeric() of one text that num() reads: false (x NA) where num()
+// would refuse it, and no refusal
+bool tnum(const std::string &s, double &x);
 double scalar(const V &v, const char *what, double lo, double hi, bool integer, double def);
 double conf(const V &v, const char *what, double def);
 std::string str1(const V &v, const char *what);

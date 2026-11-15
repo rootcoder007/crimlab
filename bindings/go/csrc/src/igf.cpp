@@ -24,13 +24,21 @@ namespace {
 // its columns; the optional ones may be NULL
 void indcols(const Cx &c, const V &data, std::initializer_list<const char *> req,
              std::initializer_list<const char *> opt) {
-  if (!isdf(data)) stop("`data` must be a data frame");
+  if (!isdf(data)) {
+    stop("`data` must be a data frame");
+    return;
+  }
   for (const char *nm : req) {
-    if (!c.has(nm)) stop("`%s` must name a column of `data`", nm);
+    if (!c.has(nm)) {
+      stop("`%s` must name a column of `data`", nm);
+      return;
+    }
     colnm(data, c[nm], nm);
+    if (bad()) return;
   }
   for (const char *nm : opt) {
     if (c.has(nm)) colnm(data, c[nm], nm);
+    if (bad()) return;
   }
 }
 
@@ -51,32 +59,36 @@ bool in(const std::string &s, const std::vector<std::string> &v) { return std::f
 V f_mhcont(const Cx &c) {
   const V &data = c["data"];
   indcols(c, data, {"grp", "ind", "est", "lower", "upper"}, {"qual"});
+  if (bad()) return {};
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const double z = qn(cl);
   static const char *const an[] = {"hope", "belong", "meaning", "purp"};
   static const char *const dn[] = {"hope", "belonging", "meaning", "purpose"};
   for (const char *a : an) nofn(c[a], a);
+  if (bad()) return {};
   std::vector<std::vector<std::string>> dirs(4);
   std::vector<char> isnull(4);
   for (int k = 0; k < 4; ++k) {
     const V &v = c[an[k]];
     isnull[static_cast<std::size_t>(k)] = v.t == V::NUL;
     if (v.t == V::NUL) continue;
-    if (!isstr(v)) stop("`%s` must name indicators of `data`, or be NULL", an[k]);
+    if (!isstr(v)) return stop("`%s` must name indicators of `data`, or be NULL", an[k]);
     for (const std::string &s : v.s) dirs[static_cast<std::size_t>(k)].push_back(trim(s));
   }
-  if (isnull[0] && isnull[1] && isnull[2] && isnull[3]) stop("name a proxy for one direction at least");
+  if (isnull[0] && isnull[1] && isnull[2] && isnull[3]) return stop("name a proxy for one direction at least");
   const std::vector<std::string> ind = tl(*col(data, str1(c["ind"], "ind")));
   std::vector<std::string> all, miss;
   for (const auto &d : dirs) all.insert(all.end(), d.begin(), d.end());
   for (const std::string &s : uniq(all)) {
     if (!in(s, ind)) miss.push_back(s);
   }
-  if (!miss.empty()) stop("not an indicator of `data`: %s", tostr(miss).c_str());
+  if (!miss.empty()) return stop("not an indicator of `data`: %s", tostr(miss).c_str());
   const std::vector<std::string> g = tl(*col(data, str1(c["grp"], "grp")));
   std::vector<double> est = num(*col(data, str1(c["est"], "est")), "est");
   const std::vector<double> lo = num(*col(data, str1(c["lower"], "lower")), "lower");
   const std::vector<double> hi = num(*col(data, str1(c["upper"], "upper")), "upper");
+  if (bad()) return {};
   std::vector<char> named(ind.size());
   std::vector<std::string> labs(ind.size());
   for (std::size_t j = 0; j < ind.size(); ++j) {
@@ -155,22 +167,24 @@ V f_cwbscr(const Cx &c) {
                                    "employment"};
   std::vector<std::vector<double>> a(7);
   for (int k = 0; k < 7; ++k) a[static_cast<std::size_t>(k)] = num(c[an[k]], nn[k]);
+  if (igh::bad()) return {};
   std::size_t n = 0;
   for (const auto &v : a) n = std::max(n, v.size());
   bool bad = n == 0;
   for (const auto &v : a) bad = bad || (v.size() != n && v.size() != 1);
-  if (bad) stop("every argument must have one value per community (or one value for all)");
+  if (bad) return stop("every argument must have one value per community (or one value for all)");
   for (int k = 1; k < 7; ++k) {
     for (double x : a[static_cast<std::size_t>(k)]) {
-      if (x < 0 || x > 100) stop("`%s` must be percentages from 0 to 100", nn[k]);
+      if (x < 0 || x > 100) return stop("`%s` must be percentages from 0 to 100", nn[k]);
     }
   }
   for (double x : a[0]) {
-    if (x <= 0) stop("`incpercap` must be positive");
+    if (x <= 0) return stop("`incpercap` must be positive");
   }
   const std::vector<double> b = !dflt(c["bounds"]) ? num(c["bounds"], "bounds") : std::vector<double>{2650, 75000};
+  if (igh::bad()) return {};
   if (b.size() != 2 || std::isnan(b[0]) || std::isnan(b[1]) || b[0] <= 0 || b[1] <= b[0]) {
-    stop("`bounds` must be two increasing positive incomes");
+    return stop("`bounds` must be two increasing positive incomes");
   }
   auto at = [&](int k, std::size_t j) { return a[static_cast<std::size_t>(k)][j % a[static_cast<std::size_t>(k)].size()]; };
   std::vector<double> inc(n), edu(n), hou(n), lab2(n), cwb(n);
@@ -192,20 +206,23 @@ V f_cwbscr(const Cx &c) {
 V f_connassoc(const Cx &c) {
   const V &data = c["data"];
   indcols(c, data, {"place", "x", "y"}, {"xlo", "xup", "ylo", "yup"});
+  if (bad()) return {};
   const int nl = c.has("xlo") + c.has("xup") + c.has("ylo") + c.has("yup");
-  if (nl % 4) stop("give all four limit columns, or none");
+  if (nl % 4) return stop("give all four limit columns, or none");
   const int reps = static_cast<int>(scalar(c["reps"], "reps", 100, 1e6, true, 10000));
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const double z = qn(cl);
   const std::string xn = str1(c["x"], "x"), yn = str1(c["y"], "y");
   const std::vector<double> xv = num(*col(data, xn), "x"), yv = num(*col(data, yn), "y");
+  if (bad()) return {};
   std::vector<char> ok(xv.size());
   int nok = 0;
   for (std::size_t j = 0; j < ok.size(); ++j) {
     ok[j] = std::isfinite(xv[j]) && std::isfinite(yv[j]);
     nok += ok[j];
   }
-  if (nok < 3) stop("the association needs three places at least with both indicators");
+  if (nok < 3) return stop("the association needs three places at least with both indicators");
   const Lab pl = lab(*col(data, str1(c["place"], "place")));
   const bool lim = nl == 4;
   std::vector<double> xse(xv.size()), yse(xv.size());
@@ -214,6 +231,7 @@ V f_connassoc(const Cx &c) {
     const std::vector<double> xl = num(*col(data, str1(c["xlo"], "xlo")), "xlo");
     const std::vector<double> yu = num(*col(data, str1(c["yup"], "yup")), "yup");
     const std::vector<double> yl = num(*col(data, str1(c["ylo"], "ylo")), "ylo");
+    if (bad()) return {};
     for (std::size_t j = 0; j < ok.size(); ++j) {
       xse[j] = (xu[j] - xl[j]) / (2 * z);
       yse[j] = (yu[j] - yl[j]) / (2 * z);
@@ -244,6 +262,7 @@ V f_connassoc(const Cx &c) {
   const double r0 = cor(rx, ry);
   std::uint32_t sd = 1;
   if (!seedarg(c["seed"], sd)) sd = 1;
+  if (bad()) return {};
   Rng g(sd);
   const bool exact = n <= 8;
   double hits = 0, p;
@@ -314,23 +333,26 @@ V f_connassoc(const Cx &c) {
 V f_healchg(const Cx &c) {
   const V &data = c["data"];
   indcols(c, data, {"grp", "ind", "prd", "est", "lower", "upper"}, {"qual"});
+  if (bad()) return {};
   const std::string from = str1(c["from"], "from"), to = str1(c["to"], "to");
   const V &well = c["well"], &dis = c["distress"];
   nofn(well, "well");
   nofn(dis, "distress");
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const double z = qn(cl);
   const Lab prl = lab(*col(data, str1(c["prd"], "prd")));
   std::vector<std::string> pr(prl.n());
   for (std::size_t j = 0; j < pr.size(); ++j) pr[j] = prl.na[j] ? "\x01NA" : prl.s[j];
   for (const std::string &v : {from, to}) {
-    if (!in(v, pr)) stop("\"%s\" is not a period of `data`", v.c_str());
+    if (!in(v, pr)) return stop("\"%s\" is not a period of `data`", v.c_str());
   }
   const std::vector<std::string> g = tl(*col(data, str1(c["grp"], "grp")));
   const std::vector<std::string> ind = tl(*col(data, str1(c["ind"], "ind")));
   std::vector<double> est = num(*col(data, str1(c["est"], "est")), "est");
   const std::vector<double> lo = num(*col(data, str1(c["lower"], "lower")), "lower");
   const std::vector<double> hi = num(*col(data, str1(c["upper"], "upper")), "upper");
+  if (bad()) return {};
   std::vector<std::string> labs(g.size());
   for (std::size_t j = 0; j < g.size(); ++j) labs[j] = g[j] + ": " + ind[j] + " (" + (prl.na[j] ? "NA" : pr[j]) + ")";
   contains(c, "healchg", est, lo, hi, labs, nullptr);
@@ -361,7 +383,7 @@ V f_healchg(const Cx &c) {
     dup = dup || m2.count(key[j]);
     if (!m2.count(key[j])) m2[key[j]] = j;
   }
-  if (dup) stop("a group and indicator appear twice in one period: filter `data` to one age group, sex and place");
+  if (dup) return stop("a group and indicator appear twice in one period: filter `data` to one age group, sex and place");
   std::vector<std::size_t> i1, i2;
   for (const std::string &k : o1) {
     if (m2.count(k)) {
@@ -369,7 +391,7 @@ V f_healchg(const Cx &c) {
       i2.push_back(m2[k]);
     }
   }
-  if (i1.empty()) stop("no group and indicator is in both periods");
+  if (i1.empty()) return stop("no group and indicator is in both periods");
   std::vector<std::string> wl, dl;
   const bool sides = well.t != V::NUL || dis.t != V::NUL;
   if (well.t != V::NUL) {
@@ -441,8 +463,10 @@ V f_healchg(const Cx &c) {
 V f_commidx(const Cx &c) {
   const V &data = c["data"];
   indcols(c, data, {"grp", "ind", "est", "lower", "upper"}, {"qual"});
+  if (bad()) return {};
   V w = c["w"];
   nofn(w, "w");
+  if (bad()) return {};
   // a JSON object of numbers is a named vector
   if (w.t == V::LIST && w.js) {
     V d;
@@ -461,6 +485,7 @@ V f_commidx(const Cx &c) {
   std::vector<double> wv;
   if (!bad) {
     wv = num(w, "w");
+    if (igh::bad()) return {};
     bool all0 = true;
     for (double x : wv) {
       bad = bad || std::isnan(x);
@@ -469,21 +494,23 @@ V f_commidx(const Cx &c) {
     bad = bad || all0 || uniq(w.nm).size() != w.nm.size();
   }
   if (bad) {
-    stop("`w` must be numbers named by indicator (positive protective, negative risk), set by the community: "
+    return stop("`w` must be numbers named by indicator (positive protective, negative risk), set by the community: "
          "the function does not choose them");
   }
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (igh::bad()) return {};
   const double z = qn(cl);
   const std::vector<std::string> ind = tl(*col(data, str1(c["ind"], "ind")));
   std::vector<std::string> miss;
   for (const std::string &s : w.nm) {
     if (!in(s, ind)) miss.push_back(s);
   }
-  if (!miss.empty()) stop("not an indicator of `data`: %s", tostr(uniq(miss)).c_str());
+  if (!miss.empty()) return stop("not an indicator of `data`: %s", tostr(uniq(miss)).c_str());
   const std::vector<std::string> g = tl(*col(data, str1(c["grp"], "grp")));
   std::vector<double> est = num(*col(data, str1(c["est"], "est")), "est");
   const std::vector<double> lo = num(*col(data, str1(c["lower"], "lower")), "lower");
   const std::vector<double> hi = num(*col(data, str1(c["upper"], "upper")), "upper");
+  if (igh::bad()) return {};
   std::vector<char> used(ind.size());
   std::vector<std::string> labs(ind.size());
   for (std::size_t j = 0; j < ind.size(); ++j) {
@@ -509,7 +536,7 @@ V f_commidx(const Cx &c) {
     std::set<std::string> seen;
     for (std::size_t j = 0; j < g.size(); ++j) {
       if (g[j] == gi && used[j]) {
-        if (!seen.insert(ind[j]).second) stop("group \"%s\" has an indicator twice", gi.c_str());
+        if (!seen.insert(ind[j]).second) return stop("group \"%s\" has an indicator twice", gi.c_str());
         ii.push_back(j);
       }
     }
@@ -554,11 +581,11 @@ V f_commidx(const Cx &c) {
 V f_frmaud(const Cx &c) {
   const V &x = c["x"];
   const bool from = inh(x, "welprof") || (x.js && isdf(x) && col(x, "group") && col(x, "side"));
-  if (!from) stop("`x` must come from welprof()");
+  if (!from) return stop("`x` must come from welprof()");
   const Lab g = lab(*col(x, "group")), s = lab(*col(x, "side"));
   bool any = false;
   for (std::size_t j = 0; j < s.n(); ++j) any = any || (!s.na[j] && (s.s[j] == "wellness" || s.s[j] == "distress"));
-  if (!any) stop("`x` has no wellness or distress indicator: there is no framing to count");
+  if (!any) return stop("`x` has no wellness or distress indicator: there is no framing to count");
   std::vector<std::string> gs(g.n());
   for (std::size_t j = 0; j < g.n(); ++j) gs[j] = g.na[j] ? "\x01NA" : g.s[j];
   const std::vector<std::string> gr = uniq(gs);

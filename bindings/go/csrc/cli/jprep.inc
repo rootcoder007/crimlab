@@ -888,7 +888,7 @@ bool clprep(Ctx &c, Val &out) {
       df.t = Val::OBJ;
       for (std::size_t m = 0; m < cs.size(); ++m) {
         Val col = jarr(cs[m]);
-        if (cs[m].size() == 1 && nr > 1) col.a.assign(nr, col.a[0]);
+        if (cs[m].size() == 1 && nr > 1) col.a = std::vector<Val>(nr, col.a[0]);
         put(df, nm[m].c_str(), col);
       }
       put(args, an.c_str(), df);

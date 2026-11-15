@@ -65,6 +65,7 @@ std::vector<double> cd(const V &x, const char *nm) {
 
 std::vector<int> ci(const V &x, const char *nm) {
   const std::vector<double> d = cd(x, nm);
+  if (bad()) return {};
   std::vector<int> o(d.size());
   for (std::size_t j = 0; j < d.size(); ++j) o[j] = std::isnan(d[j]) ? NAI : static_cast<int>(d[j]);
   return o;
@@ -143,10 +144,11 @@ Rows sel(const std::vector<std::string> &ch, const std::vector<std::string> &age
 V f_cnsprof(const Cx &c) {
   const V &x = c["x"];
   nofn(x, "x");
-  if (!isdf(x)) stop("`x` must be a data frame read from the profile");
+  if (bad()) return {};
+  if (!isdf(x)) return stop("`x` must be a data frame read from the profile");
   for (const char *n : {"GEO_NAME", "CHARACTERISTIC_ID", "CHARACTERISTIC_NAME"}) {
     if (!col(x, n)) {
-      stop("`x` is not an Indigenous Population Profile table (no GEO_NAME, CHARACTERISTIC_ID, CHARACTERISTIC_NAME)");
+      return stop("`x` is not an Indigenous Population Profile table (no GEO_NAME, CHARACTERISTIC_ID, CHARACTERISTIC_NAME)");
     }
   }
   std::vector<std::size_t> sym, vcol;
@@ -163,9 +165,10 @@ V f_cnsprof(const Cx &c) {
       }
     }
   }
-  if (sym.empty()) stop("`x` has no group columns with their SYMBOL_ columns");
+  if (sym.empty()) return stop("`x` has no group columns with their SYMBOL_ columns");
   const std::size_t n = nrow(x);
   const std::vector<int> cid = ci(x, "CHARACTERISTIC_ID");
+  if (bad()) return {};
   const Lab raw = lab(*col(x, "CHARACTERISTIC_NAME"));
   // .rmbl_ipp_tree(): each characteristic once, in id order, with its level
   // (two spaces of indent each), parent, root and sample
@@ -234,13 +237,7 @@ V f_cnsprof(const Cx &c) {
       const Lab l = lab(*v);
       for (std::size_t j = 0; j < n; ++j) {
         double y = na();
-        if (!l.na[j]) {
-          try {
-            y = num(sv1(l.s[j]), "tnr")[0];
-          } catch (const Stop &) {
-            y = na();
-          }
-        }
+        if (!l.na[j] && !tnum(l.s[j], y)) y = na();
         (t ? vlf : vsf)[j] = y;
       }
     }
@@ -270,13 +267,7 @@ V f_cnsprof(const Cx &c) {
       if (qq == "rE") qq = "E";
       if (!in(qq, qlev)) qq = "ok";
       double y = na();
-      if (!lv.na[j]) {
-        try {
-          y = num(sv1(lv.s[j]), "value")[0];
-        } catch (const Stop &) {
-          y = na();
-        }
-      }
+      if (!lv.na[j] && !tnum(lv.s[j], y)) y = na();
       val.push_back(gone(qq) ? na() : y);
       q.push_back(qq);
       tsf.push_back(vsf[j]);
@@ -300,8 +291,9 @@ int chpick(const V &x, const V &v, const char *what) {
   const bool numv = (v.t == V::DBL || v.t == V::INT) && v.len() == 1;
   const bool strv = v.t == V::STR && v.s.size() == 1 && (v.na.empty() || !v.na[0]);
   double dv0 = numv ? (v.t == V::DBL ? v.d[0] : (v.i[0] == NAI ? na() : v.i[0])) : 0;
-  if (!(numv || strv) || (numv && std::isnan(dv0))) stop("`%s` must be one characteristic id or name", what);
+  if (!(numv || strv) || (numv && std::isnan(dv0))) return stop("`%s` must be one characteristic id or name", what);
   const std::vector<int> chaid = ci(x, "chaid");
+  if (bad()) return 0;
   const std::vector<std::string> ch = cl(x, "characteristic");
   std::vector<int> ids;
   std::string shown;
@@ -318,7 +310,7 @@ int chpick(const V &x, const V &v, const char *what) {
   }
   const bool there = ids.size() == 1 && std::find(chaid.begin(), chaid.end(), ids[0]) != chaid.end() && ids[0] != NAI;
   if (!there) {
-    stop("`%s` (%s) names %s characteristic of `x`", what, shown.c_str(), ids.size() > 1 ? "more than one" : "no");
+    return stop("`%s` (%s) names %s characteristic of `x`", what, shown.c_str(), ids.size() > 1 ? "more than one" : "no");
   }
   return ids[0];
 }
@@ -327,28 +319,33 @@ int chpick(const V &x, const V &v, const char *what) {
 
 V f_profshr(const Cx &c) {
   const V &x = c["x"];
-  if (!isprof(x)) stop("`x` must come from cnsprof()");
+  if (!isprof(x)) return stop("`x` must come from cnsprof()");
   const double smp = scalar(c["smpfrac"], "smpfrac", 0.001, 1, false, 0.25);
   const double deff = scalar(c["deff"], "deff", 0.1, 100, false, 1);
   const double rb = scalar(c["roubase"], "roubase", 1, 1000, true, 5);
   const double cf = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const int nid = chpick(x, c["num"], "num");
+  if (bad()) return {};
   const std::vector<int> chaid = ci(x, "chaid"), parid = ci(x, "parid");
+  if (bad()) return {};
   int did;
   if (c.has("den")) {
     did = chpick(x, c["den"], "den");
+    if (bad()) return {};
   } else {
     std::vector<int> ps;
     for (std::size_t j = 0; j < chaid.size(); ++j) {
       if (chaid[j] == nid && std::find(ps.begin(), ps.end(), parid[j]) == ps.end()) ps.push_back(parid[j]);
     }
-    if (ps.size() != 1 || ps[0] == NAI) stop("the numerator has no parent: give `den`");
+    if (ps.size() != 1 || ps[0] == NAI) return stop("the numerator has no parent: give `den`");
     did = ps[0];
   }
   const std::vector<std::string> dguid = cl(x, "dguid"), geo = cl(x, "geo"), res = cl(x, "residence"),
                                  gen = cl(x, "gender"), age = cl(x, "age"), grp = cl(x, "group"),
                                  smpv = cl(x, "sample"), ch = cl(x, "characteristic"), ql = cl(x, "quality");
   const std::vector<double> val = cd(x, "value");
+  if (bad()) return {};
   const Lab rl = lab(*col(x, "residence"));
   std::vector<std::size_t> a, b;
   std::map<std::string, std::size_t> kb;
@@ -424,20 +421,23 @@ V f_profshr(const Cx &c) {
 
 V f_cnsstd(const Cx &c) {
   const V &x = c["x"];
-  if (!isprof(x)) stop("`x` must come from cnsprof()");
+  if (!isprof(x)) return stop("`x` must come from cnsprof()");
   const std::string grp = !dflt(c["grp"]) ? str1(c["grp"], "grp") : "Indigenous identity";
   const std::string geo = !dflt(c["geo"]) ? str1(c["geo"], "geo") : "Canada";
   const V &ag = c["ages"];
   nofn(ag, "ages");
+  if (bad()) return {};
   std::vector<std::string> ages = {"0 to 4 years",   "5 to 9 years",   "10 to 14 years", "15 to 19 years",
                                    "20 to 24 years", "25 to 34 years", "35 to 44 years", "45 to 54 years",
                                    "55 to 64 years", "65 to 74 years", "75 years and over"};
   if (!dflt(ag)) {
-    if (!isstr(ag)) stop("`ages` must name age groups");
+    if (!isstr(ag)) return stop("`ages` must name age groups");
     ages = ag.s;
   }
   const std::string resid = !dflt(c["resid"]) ? str1(c["resid"], "resid") : "Total - Residence on or off reserve";
+  if (bad()) return {};
   const std::vector<int> chaid = ci(x, "chaid");
+  if (bad()) return {};
   int first = INT_MAX;
   for (int v : chaid) {
     if (v != NAI) first = std::min(first, v);
@@ -446,6 +446,7 @@ V f_cnsstd(const Cx &c) {
                                  res = cl(x, "residence"), age = cl(x, "age");
   const Lab dgl = lab(*col(x, "dguid"));
   const std::vector<double> val = cd(x, "value");
+  if (bad()) return {};
   std::vector<std::size_t> d;
   std::set<std::string> places;
   for (std::size_t j = 0; j < chaid.size(); ++j) {
@@ -455,9 +456,9 @@ V f_cnsstd(const Cx &c) {
       places.insert(dgl.na[j] ? std::string("\x01NA") : dg[j]);
     }
   }
-  if (d.empty()) stop("no population for group \"%s\" in \"%s\"", grp.c_str(), geo.c_str());
+  if (d.empty()) return stop("no population for group \"%s\" in \"%s\"", grp.c_str(), geo.c_str());
   if (places.size() > 1) {
-    stop("\"%s\" names %d places: give its DGUID as `geo`", geo.c_str(), static_cast<int>(places.size()));
+    return stop("\"%s\" names %d places: give its DGUID as `geo`", geo.c_str(), static_cast<int>(places.size()));
   }
   std::vector<double> pop;
   std::vector<std::string> miss;
@@ -472,7 +473,7 @@ V f_cnsstd(const Cx &c) {
     if (std::isnan(v)) miss.push_back(a);
     pop.push_back(v);
   }
-  if (!miss.empty()) stop("no population for: %s", tostr(miss).c_str());
+  if (!miss.empty()) return stop("no population for: %s", tostr(miss).c_str());
   const double s = rsum(pop);
   std::vector<double> w;
   for (double v : pop) w.push_back(v / s);
@@ -481,24 +482,27 @@ V f_cnsstd(const Cx &c) {
 
 V f_cnscwb(const Cx &c) {
   const V &x = c["x"], &dwell = c["dwell"];
-  if (!isprof(x)) stop("`x` must come from cnsprof()");
-  if (dwell.t != V::NUL && !isprof(dwell)) stop("`dwell` must come from cnsprof()");
+  if (!isprof(x)) return stop("`x` must come from cnsprof()");
+  if (dwell.t != V::NUL && !isprof(dwell)) return stop("`dwell` must come from cnsprof()");
   const V &gv = c["groups"];
   nofn(gv, "groups");
+  if (bad()) return {};
   std::vector<std::string> groups = {"First Nations", "M\xc3\xa9tis", "Inuit", "Non-Indigenous"};
   if (!dflt(gv)) {
     bool ok = isstr(gv);
     for (const std::string &s : gv.s) ok = ok && !s.empty();
-    if (!ok) stop("`groups` must name one group or more");
+    if (!ok) return stop("`groups` must name one group or more");
     groups = gv.s;
   }
   const std::string resid = !dflt(c["resid"]) ? str1(c["resid"], "resid") : "Total - Residence on or off reserve";
   const double minpop = scalar(c["minpop"], "minpop", 0, HUGE_VAL, false, 250);
+  if (bad()) return {};
   const std::vector<std::string> gen = cl(x, "gender"), res = cl(x, "residence"), age = cl(x, "age"),
                                  ch = cl(x, "characteristic"), dg = cl(x, "dguid"), gr = cl(x, "group"),
                                  geo = cl(x, "geo");
   const std::vector<int> chaid = ci(x, "chaid"), rootid = ci(x, "rootid");
   const std::vector<double> val = cd(x, "value");
+  if (bad()) return {};
   const std::size_t n = gen.size();
   std::vector<char> tot(n);
   int pop_id = INT_MAX;
@@ -559,6 +563,7 @@ V f_cnscwb(const Cx &c) {
     const std::vector<std::string> hch = cl(dwell, "characteristic"), hdg = cl(dwell, "dguid"),
                                    hgr = cl(dwell, "group");
     const std::vector<double> hv = cd(dwell, "value");
+    if (bad()) return {};
     const std::vector<int> none0(hch.size(), 0);
     auto hh = [&](const std::string &name) { return sel(hch, hch, none0, nullptr, name, nullptr, nullptr); };
     const Rows ct = hh("Total - Private households by number of persons per room - 25% sample data");
@@ -597,6 +602,7 @@ V f_cnscwb(const Cx &c) {
     }
     const Cx c2{&an, &av, c.warn};
     const V s = f_cwbscr(c2);
+    if (bad()) return {};
     for (std::size_t k = 0; k < ok.size(); ++k) {
       const std::size_t i = ok[k];
       si[i] = s.a[0].d[k];
@@ -673,6 +679,7 @@ V trctab() {
 V latest(const V &p, const std::vector<std::size_t> &r) {
   if (p.t == V::DBL || p.t == V::INT) {
     const std::vector<double> d = num(p, "period");
+    if (bad()) return {};
     double best = -HUGE_VAL;
     bool any = false;
     for (std::size_t j : r) {
@@ -737,6 +744,7 @@ bool gap1(const Cx &c, const V &d0, const std::vector<std::size_t> &r0, const st
   std::vector<std::string> quiet;
   const Cx c2{&an, &av, &quiet};
   const V gp = f_indgap(c2);
+  if (bad()) return false;
   const bool low = better == "lower";
   const std::size_t n = gp.a[0].len();
   std::vector<double> ra = gp.a[3].d, rl = gp.a[4].d, ru = gp.a[5].d, dr(n), lo(n), hi(n);
@@ -746,8 +754,9 @@ bool gap1(const Cx &c, const V &d0, const std::vector<std::size_t> &r0, const st
     hi[j] = low ? ru[j] : 1 / rl[j];
   }
   V per = period;
-  if (per.t == V::INT) per.i.assign(n, per.i[0]);
-  else if (per.t == V::DBL) per.d.assign(n, per.d[0]);
+  // assign(n, x[0]) reads x[0] after freeing it (libc++): a copy first
+  if (per.t == V::INT) per.i = std::vector<int>(n, per.i[0]);
+  else if (per.t == V::DBL) per.d = std::vector<double>(n, per.d[0]);
   else per = sv(std::vector<std::string>(n, pn));
   per.nm.clear();
   rows1.push_back(frame({"indicator", "measure", "period", "group", "estimate", "refest", "difference", "disratio",
@@ -799,10 +808,11 @@ V vbind(const std::vector<V> &p) {
 
 V f_trchlthgap(const Cx &c) {
   const std::string ref = !dflt(c["ref"]) ? str1(c["ref"], "ref") : "Non-Indigenous";
+  if (bad()) return {};
   std::vector<std::string> agetot = {"Total, 18 years and over", "Total, 15 years and over"};
   if (c.has("agetot")) {
     const V &a = c["agetot"];
-    if (!isstr(a) || a.s.size() > 2) stop("`agetot` must be one or two age labels (health, then suicide)");
+    if (!isstr(a) || a.s.size() > 2) return stop("`agetot` must be one or two age labels (health, then suicide)");
     agetot = {a.s[0], a.s[a.s.size() - 1]};
   }
   static const char *const tn[] = {"health", "lifeexp", "infmort", "suiide"};
@@ -810,7 +820,7 @@ V f_trchlthgap(const Cx &c) {
     const V &v = c[t];
     if (v.t == V::NUL) continue;
     if (!isdf(v) || !col(v, "group") || !col(v, "estimate")) {
-      stop("`%s` must be a data frame of indicators (columns group, estimate, lower, upper, quality, and period, "
+      return stop("`%s` must be a data frame of indicators (columns group, estimate, lower, upper, quality, and period, "
            "indicator or measure, age): the tables must be data frames or NULL",
            t);
     }
@@ -828,6 +838,7 @@ V f_trchlthgap(const Cx &c) {
     const V *pc = col(health, "period");
     const V *ic = col(health, "indicator");
     const V pr = pc ? latest(*pc, h) : V();
+    if (bad()) return {};
     for (std::size_t j : ti) {
       if (tf(2, j) != "13-10-0924") continue;
       std::vector<std::size_t> r;
@@ -836,6 +847,7 @@ V f_trchlthgap(const Cx &c) {
         if (pc && same(*pc, k, pr) && ic && !il.na[k] && il.s[k] == tf(3, j)) r.push_back(k);
       }
       gap1(c, health, r, tf(3, j), pr.t == V::NUL ? sv1("NA") : pr, tf(1, j), tf(4, j), ref, pieces);
+      if (bad()) return {};
     }
   }
   const char *sn[] = {"lifeexp", "infmort"};
@@ -848,6 +860,7 @@ V f_trchlthgap(const Cx &c) {
       if (tf(2, j) == st[s]) i = j;
     }
     const std::vector<double> e = num(*col(d, "estimate"), "estimate");
+    if (bad()) return {};
     std::vector<std::size_t> okr, all;
     for (std::size_t j = 0; j < e.size(); ++j) {
       all.push_back(j);
@@ -855,11 +868,13 @@ V f_trchlthgap(const Cx &c) {
     }
     const V *pc = col(d, "period");
     const V pr = pc ? latest(*pc, okr) : V();
+    if (bad()) return {};
     std::vector<std::size_t> r;
     for (std::size_t j : all) {
       if (pc && same(*pc, j, pr)) r.push_back(j);
     }
     gap1(c, d, r, tf(3, i), pr.t == V::NUL ? sv1("NA") : pr, tf(1, i), tf(4, i), ref, pieces);
+    if (bad()) return {};
   }
   const V &su = c["suiide"];
   if (su.t != V::NUL) {
@@ -877,6 +892,7 @@ V f_trchlthgap(const Cx &c) {
     const V *pc = col(su, "period");
     if (pc) {
       const V lp = latest(*pc, r);
+      if (bad()) return {};
       if (lp.t != V::NUL) {
         pr = lp;
         std::vector<std::size_t> r2;
@@ -890,8 +906,9 @@ V f_trchlthgap(const Cx &c) {
     bool hasref = false;
     for (std::size_t j : r) hasref = hasref || (!gl.na[j] && gl.s[j] == ref);
     if (hasref) gap1(c, su, r, tf(3, i), pr, tf(1, i), tf(4, i), ref, pieces);
+    if (bad()) return {};
   }
-  if (pieces.empty()) stop("no table given measures a Call 19 indicator against \"%s\"", ref.c_str());
+  if (pieces.empty()) return stop("no table given measures a Call 19 indicator against \"%s\"", ref.c_str());
   V out = vbind(pieces);
   const std::vector<double> &lo = out.a[8].d;
   std::vector<int> worse;
@@ -905,6 +922,7 @@ V f_trchlthgap(const Cx &c) {
 V f_polex(const Cx &c) {
   std::uint32_t sd = 20240101;
   seedarg(c["seed"], sd);
+  if (bad()) return {};
   Rng g(sd);
   const int nd = 20, nm = 36;
   std::vector<double> pop(nd), a(nd), m(nm);
@@ -982,15 +1000,21 @@ int call(const char *fn, const std::vector<std::string> &an, const std::vector<V
   const Cx c{&an, &av, &warn};
   for (int k = 0; k < nfns; ++k) {
     if (std::string(fns[k].name) != fn) continue;
-    try {
-      // .rmbl_no_fn(): no argument may be a function or an environment
-      for (std::size_t j = 0; j < av.size(); ++j) nofn(av[j], an[j].c_str());
-      out = fp[k](c);
-      return CLAB_OK;
-    } catch (const Stop &e) {
-      err = e.msg;
+    // the refusal of this call (see stop()); the one of a call further up
+    // the stack, if any, comes back after it
+    Stop st;
+    Stop *const up = setst(&st);
+    // .rmbl_no_fn(): no argument may be a function or an environment
+    for (std::size_t j = 0; j < av.size() && !st.on; ++j) nofn(av[j], an[j].c_str());
+    V r;
+    if (!st.on) r = fp[k](c);
+    setst(up);
+    if (st.on) {
+      err = st.msg;
       return CLAB_EARG;
     }
+    out = std::move(r);
+    return CLAB_OK;
   }
   err = std::string("no function ") + fn;
   return CLAB_EARG;

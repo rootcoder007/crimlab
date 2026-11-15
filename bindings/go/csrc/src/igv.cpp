@@ -47,14 +47,27 @@ std::string vf(const char *fmt, std::va_list ap) {
   va_end(aq);
   return b.data();
 }
+// the refusal of the running call() (a pointer: a thread_local with a
+// destructor needs runtime support the WebAssembly build lacks)
+thread_local Stop *cur = nullptr;
 }  // namespace
 
-void stop(const char *fmt, ...) {
+No stop(const char *fmt, ...) {
+  if (cur == nullptr || cur->on) return No();
   std::va_list ap;
   va_start(ap, fmt);
-  Stop e{vf(fmt, ap)};
+  cur->msg = vf(fmt, ap);
   va_end(ap);
-  throw e;
+  cur->on = true;
+  return No();
+}
+
+bool bad() { return cur != nullptr && cur->on; }
+
+Stop *setst(Stop *s) {
+  Stop *const o = cur;
+  cur = s;
+  return o;
 }
 
 std::string sf(const char *fmt, ...) {
@@ -170,7 +183,10 @@ Lab tlab(const V &v) {
 bool dflt(const V &v) { return v.t == V::NUL && !v.fn && !v.env && !v.odd && !v.given; }
 
 void nofn(const V &v, const char *what) {
-  if (v.fn) stop("`%s` must be data, not a function", what);
+  if (v.fn) {
+    stop("`%s` must be data, not a function", what);
+    return;
+  }
   if (v.env) stop("`%s` must be data, not an environment", what);
 }
 
@@ -198,25 +214,35 @@ double rnum(const std::string &s0) {
 }
 }  // namespace
 
+bool tnum(const std::string &s, double &x) {
+  x = rnum(s);
+  if (isna(x) && !trim(s).empty() && s != "NA") return false;
+  return true;
+}
+
 std::vector<double> num(const V &v, const char *what, bool integer) {
   if (v.fn || v.env || v.odd || v.t == V::LIST || v.t == V::FAC) {
     const char *k = v.fn ? "a function" : v.env ? "an environment" : v.t == V::FAC ? "a factor"
                     : v.t == V::LIST ? (v.df ? "a data frame" : "a list") : "this kind of value";
     stop("`%s` must be a%s number, not %s", what, integer ? " whole" : "", k);
+    return {};
   }
   std::vector<double> o(v.len());
   if (v.t == V::STR) {
     for (std::size_t j = 0; j < o.size(); ++j) {
       const bool isn = !v.na.empty() && v.na[j];
-      o[j] = isn ? na() : rnum(v.s[j]);
-      if (!isn && isna(o[j]) && !trim(v.s[j]).empty() && v.s[j] != "NA") {
+      if (isn) {
+        o[j] = na();
+      } else if (!tnum(v.s[j], o[j])) {
         stop("`%s` must be numeric, not text such as \"%s\"", what, v.s[j].c_str());
+        return {};
       }
     }
   } else if (v.t == V::LGL) {
     for (std::size_t j = 0; j < o.size(); ++j) {
       if (v.i[j] != INT_MIN) {
         stop("`%s` must be a%s number, not %s", what, integer ? " whole" : "", v.i[j] ? "TRUE" : "FALSE");
+        return {};
       }
       o[j] = na();
     }
@@ -227,7 +253,10 @@ std::vector<double> num(const V &v, const char *what, bool integer) {
   }
   if (integer) {
     for (double x : o) {
-      if (std::isfinite(x) && x != std::round(x)) stop("`%s` must be whole numbers", what);
+      if (std::isfinite(x) && x != std::round(x)) {
+        stop("`%s` must be whole numbers", what);
+        return {};
+      }
     }
   }
   return o;
@@ -236,11 +265,13 @@ std::vector<double> num(const V &v, const char *what, bool integer) {
 double scalar(const V &v, const char *what, double lo, double hi, bool integer, double def) {
   if (dflt(v)) return def;
   const std::vector<double> x = num(v, what, integer);
+  if (bad()) return 0;
   if (x.size() != 1 || !std::isfinite(x[0]) || x[0] < lo || x[0] > hi) {
     std::string rg;
     if (std::isfinite(lo) && std::isfinite(hi)) rg = " from " + rch(lo) + " to " + rch(hi);
     else if (std::isfinite(lo)) rg = " of at least " + rch(lo);
     stop("`%s` must be one %s%s", what, integer ? "whole number" : "number", rg.c_str());
+    return 0;
   }
   return x[0];
 }
@@ -248,8 +279,10 @@ double scalar(const V &v, const char *what, double lo, double hi, bool integer, 
 double conf(const V &v, const char *what, double def) {
   if (dflt(v)) return def;
   const std::vector<double> x = num(v, what);
+  if (bad()) return 0;
   if (x.size() != 1 || std::isnan(x[0]) || x[0] <= 0 || x[0] >= 1) {
     stop("`%s` must be a single number strictly between 0 and 1", what);
+    return 0;
   }
   return x[0];
 }
@@ -257,6 +290,7 @@ double conf(const V &v, const char *what, double def) {
 std::string str1(const V &v, const char *what) {
   if (v.t != V::STR || v.s.size() != 1 || (!v.na.empty() && v.na[0]) || trim(v.s[0]).empty()) {
     stop("`%s` must be a single non-empty string", what);
+    return {};
   }
   return v.s[0];
 }
@@ -274,6 +308,7 @@ std::string pick(const V &v, const char *what, const std::vector<std::string> &c
   for (std::size_t j = 0; j < ch.size(); ++j) sh += (j ? ", \"" : "\"") + ch[j] + "\"";
   stop("`%s` must be one of %s, not %s", what, sh.c_str(),
        one ? ("\"" + v.s[0] + "\"").c_str() : "that value");
+  return {};
 }
 
 bool isstr(const V &v) {
@@ -318,9 +353,11 @@ const V *col(const V &df, const std::string &nm) {
 
 std::string colnm(const V &df, const V &x, const char *what, const char *fn) {
   const std::string s = str1(x, what);
+  if (bad()) return {};
   if (!col(df, s)) {
     (void)fn;
     stop("column `%s` not found in `data`", s.c_str());
+    return {};
   }
   return s;
 }
@@ -478,16 +515,17 @@ void contains(const Cx &c, const char *fn, std::vector<double> &est, const std::
 
 void pooledtype(const V &pooled) {
   nofn(pooled, "pooled");
-  if (pooled.t != V::STR) stop("`pooled` must be the labels of the rows that pool other groups");
-  for (char x : pooled.na) {
-    if (x) stop("`pooled` must be the labels of the rows that pool other groups");
-  }
+  if (bad()) return;
+  bool ok = pooled.t == V::STR;
+  for (char x : pooled.na) ok = ok && !x;
+  if (!ok) stop("`pooled` must be the labels of the rows that pool other groups");
 }
 
 std::vector<int> pooledrows(const std::vector<std::string> &g, const V &pooled) {
   std::vector<int> o(g.size(), 0);
   if (pooled.t != V::NUL) {
     pooledtype(pooled);
+    if (bad()) return {};
     for (std::size_t j = 0; j < g.size(); ++j) {
       for (const std::string &p : pooled.s) o[j] = o[j] || trim(g[j]) == trim(p);
     }
@@ -504,6 +542,7 @@ std::vector<int> pooledrows(const std::vector<std::string> &g, const V &pooled) 
 void pooledcheck(const V &pooled, const std::vector<std::string> &g) {
   if (pooled.t == V::NUL) return;
   pooledtype(pooled);
+  if (bad()) return;
   std::vector<std::string> miss;
   for (const std::string &p : pooled.s) {
     const std::string tp = trim(p);
@@ -886,6 +925,7 @@ bool seedarg(const V &v, std::uint32_t &s) {
   const double x = numt && v.len() == 1 ? (v.t == V::DBL ? v.d[0] : (v.i[0] == INT_MIN ? na() : v.i[0])) : na();
   if (!numt || !std::isfinite(x) || x != std::round(x) || x < -2147483647.0 || x > 2147483647.0) {
     stop("`seed` must be a single whole number from -2147483647 to 2147483647");
+    return false;
   }
   s = static_cast<std::uint32_t>(static_cast<std::int32_t>(x));
   return true;
