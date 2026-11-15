@@ -586,6 +586,11 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(ctabx(matrix(1:4, 2))),
          c("tab", "expd", "res", "stat", "drop", "agg", "correct", "level")),
     list(quote(clprep()), c("preset", "generic", "args", "source")),
+    list(quote(prechk(
+      data.frame(count = c(4, 30), sex = c("f", "m")),
+      data.frame(preset = "my-cnt", generic = "cntreg", arg = c("y", "grp"),
+                 column = c("count", "sex"), recode = c("", "f=1;m=0"))
+    )), c("count", "sex")),
     list(quote(enpath(cbind(1:4, c(2, 1, 4, 3)), c(1, 3, 2, 5), nlam = 3)),
          c("lambda", "a0", "beta", "cvm", "cvsd", "lmin", "l1se")),
     list(quote(lgtreg(cbind(c(1, 3, 2, 5, 4, 6)), c(0, 0, 1, 0, 1, 1))),

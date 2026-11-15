@@ -694,7 +694,7 @@ print.vrfpol <- function(x, ...) {
   raw <- if (is.character(df$value)) trimws(df$value)
   vals <- suppressWarnings(as.numeric(df$value))
   unit <- tolower(trimws(as.character(df$unit)))
-  ugm3 <- c("ug/m3", "µg/m3", "µg/m³", "ug/m³")
+  ugm3 <- c("ug/m3", "\u00b5g/m3", "\u00b5g/m\u00b3", "ug/m\u00b3")
   ppb <- unit %in% c("ppb", "ppbv")
   bad <- !is.na(vals) & !(unit %in% ugm3) & !(ppb & poll == "no2")
   if (any(bad)) {

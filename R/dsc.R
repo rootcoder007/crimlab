@@ -131,14 +131,14 @@
   uni <- .uniok()
   if (min(x) == max(x)) {
     return(paste0(
-      strrep(" ", bins %/% 2L), if (uni) "█" else "#",
+      strrep(" ", bins %/% 2L), if (uni) "\u2588" else "#",
       strrep(" ", bins - bins %/% 2L - 1L)
     ))
   }
   cnt <- .Call(C_clab_r_hbin, as.numeric(x), as.integer(bins))
   lev <- if (uni) {
-    c("▁", "▂", "▃", "▄", "▅", "▆", "▇",
-      "█")
+    c("\u2581", "\u2582", "\u2583", "\u2584", "\u2585", "\u2586", "\u2587",
+      "\u2588")
   } else {
     c(".", ":", "-", "=", "#")
   }
@@ -306,6 +306,11 @@ freqtbl <- function(data, col = NULL, maxlvl = 25L, sort = TRUE) {
 #' @export
 print.freqtbl <- function(x, ...) {
   d <- as.data.frame(unclass(x), stringsAsFactors = FALSE)
+  # a subset of the columns (x[, c("pct", "pctvalid")]) prints as it is
+  if (is.null(d$n)) {
+    print(d, row.names = FALSE)
+    return(invisible(x))
+  }
   if (nrow(d)) {
     d$bar <- strrep("#", as.integer(round(20 * d$n / max(c(1, d$n)))))
   }
@@ -1084,14 +1089,14 @@ missgrid <- function(data, height = 20L, width = 12L) {
     .ckstop(f, "`width` must be one whole number from 1 to 10000")
   }
   uni <- .uniok()
-  h <- if (uni) "─" else "-"
+  h <- if (uni) "\u2500" else "-"
   rule <- function(t = NULL) {
     if (is.null(t)) return(strrep(h, 66L))
     l <- paste0(strrep(h, 2L), " ", t, " ")
     paste0(l, strrep(h, max(0L, 66L - nchar(l))))
   }
   shades <- if (uni) {
-    c(" ", "░", "▒", "▓", "█")
+    c(" ", "\u2591", "\u2592", "\u2593", "\u2588")
   } else {
     c(" ", ".", "-", "+", "#")
   }

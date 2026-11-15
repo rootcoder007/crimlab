@@ -20,7 +20,13 @@ if (length(a)) .libPaths(c(a[1L], .libPaths()))
 suppressPackageStartupMessages(library(crimlab))
 
 esc <- function(s) {
-  paste0('"', gsub('"', '\\\\"', gsub("\\\\", "\\\\\\\\", enc2utf8(s))), '"')
+  s <- gsub('"', '\\\\"', gsub("\\\\", "\\\\\\\\", enc2utf8(s)))
+  # control characters as the command line writes them (\u000a), so that a
+  # case stays on one line of test.tsv
+  for (k in c(1:31, 127)) {
+    s <- gsub(intToUtf8(k), sprintf("\\u%04x", k), s, fixed = TRUE)
+  }
+  paste0('"', s, '"')
 }
 one <- function(v) {
   if (is.character(v)) return(if (is.na(v)) "null" else esc(v))
