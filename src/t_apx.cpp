@@ -15,7 +15,10 @@ namespace {
 // clab_ppmlfe with the work arrays it asks for.
 int ppml(const double *y, const double *x, int n, int p, const int *f1, int n1, const int *f2,
          int n2, const int *cl, int ncl, double *b, double *vc, double *st) {
-  std::vector<double> w(static_cast<std::size_t>(n) * (2 * p + 8) + 3 * p * p + p + 4 * (n1 + n2));
+  // every term in std::size_t: none is formed in int first
+  const std::size_t zp = static_cast<std::size_t>(p);
+  std::vector<double> w(static_cast<std::size_t>(n) * (2 * zp + 8) + 3 * zp * zp + zp +
+                        4 * (static_cast<std::size_t>(n1) + static_cast<std::size_t>(n2)));
   std::vector<int> iw(static_cast<std::size_t>(n) + 1);
   return clab_ppmlfe(y, x, n, p, nullptr, nullptr, f1, n1, f2, n2, cl, ncl, nullptr, 0, 100,
                      1e-12, 1e-13, b, vc, nullptr, nullptr, st, w.data(), iw.data());

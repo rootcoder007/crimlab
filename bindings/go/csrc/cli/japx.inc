@@ -154,7 +154,7 @@ inline std::vector<double> rcov(const std::vector<double> &x, std::size_t n, int
       const double *xx = &x[i * n], *yy = &x[j * n];
       long double sum = 0.0;
       for (std::size_t k = 0; k < n; ++k) {
-        if (ok[k]) sum += (xx[k] - xm[i]) * (yy[k] - xm[j]);
+        if (ok[k]) sum += static_cast<long double>(xx[k] - xm[i]) * (yy[k] - xm[j]);
       }
       v[i + j * sp] = v[j + i * sp] = static_cast<double>(sum / (nobs - 1));
     }
@@ -668,13 +668,13 @@ inline double nwlag(const std::vector<double> &sco, std::size_t n, int p, const 
     long double s = 0.0;
     for (std::size_t i = 0; i < n; ++i) {
       const auto it = key.find(std::make_pair(u[i], tv[i] - j));
-      if (it != key.end()) s += h[i] * h[it->second];
+      if (it != key.end()) s += static_cast<long double>(h[i]) * h[it->second];
     }
     sg.push_back(static_cast<double>(s));
   }
   long double a = 0.0, b = 0.0;
   for (int j = 1; j <= nn; ++j) {
-    a += j * sg[zz(j)];
+    a += static_cast<long double>(j) * sg[zz(j)];
     b += sg[zz(j)];
   }
   const double s1 = 2 * static_cast<double>(a), s0 = sg[0] + 2 * static_cast<double>(b);
