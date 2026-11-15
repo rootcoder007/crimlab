@@ -516,6 +516,12 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+// The summary statistics (bprim.cpp).
+SEXP C_clab_r_prim(SEXP, SEXP, SEXP, SEXP);
+// Text to plain ASCII (btxt.cpp).
+SEXP C_clab_r_ascii(SEXP);
+// The numbers of the change-table writers (bfmt.cpp).
+SEXP C_clab_r_fmt(SEXP, SEXP, SEXP);
 // Bounds under monotone response and selection (bmtr.cpp).
 SEXP C_clab_r_mtrbnd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The Indigenous health, published-table and census functions (bigh.cpp).
@@ -845,6 +851,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 6},
     {"C_clab_r_mtrbnd", fn<&C_clab_r_mtrbnd>(), 6},
     {"C_clab_r_igh", fn<&C_clab_r_igh>(), 2},
+    {"C_clab_r_fmt", fn<&C_clab_r_fmt>(), 3},
+    {"C_clab_r_ascii", fn<&C_clab_r_ascii>(), 1},
+    {"C_clab_r_prim", fn<&C_clab_r_prim>(), 4},
     {"C_clab_r_hsacc", fn<&C_clab_r_hsacc>(), 5},
     {"C_clab_r_apcie", fn<&C_clab_r_apcie>(), 4},
     {"C_clab_r_spcure", fn<&C_clab_r_spcure>(), 6},

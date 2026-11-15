@@ -148,6 +148,59 @@
   `plotgain()`), series over time (`plotcal()`, `plothrz()`, `plotmult()`,
   `plotbump()`) and event studies in a grid (`plotevgrid()`).
   `plot()` of an `hwkres` result now returns the quantiles it drew.
+* Change tables from `yoypx()` (or any table with its columns) can be
+  labelled (`yoylbl()`, `fylbl()`), summarised (`yoysmry()`) and written:
+  CSV, TSV and JSON with every digit and every code as it is (`yoycsv()`,
+  `yoytsv()`, `yoyjs()`), Markdown (`yoymd()`), a self-contained HTML page
+  (`yoyhtml()`) and a PDF written by the package itself (`yoypdf()`), the
+  format picked from the file name by `yoywr()`.
+
+* The drift battery: the two-sample Kolmogorov-Smirnov test (`drftks()`),
+  the population stability index and Jensen-Shannon divergence
+  (`drftpsi()`) and the chi-square tests of a categorical column against a
+  known distribution and of two samples' homogeneity (`drftchisq()`,
+  `drfthomog()`), each result keeping its inputs in the attribute
+  `lakner`. They check a new release of a published table against the last
+  one before year-over-year change is computed from it. They are in
+  `clab_jrun()`, the command line and Python (there without the Monte
+  Carlo branch of `drfthomog()`).
+
+* `rgnmapintg()`, `rgnmapcmp()` and `rgnmapalt()` check a crosswalk from
+  units to regions: each unit once and with a known region, a rebuilt map
+  against the published one, and the map against an assignment by another
+  route with the known disagreements named. They are in `clab_jrun()`, the
+  command line and Python.
+
+* The categorical-integrity checks: codes decoded by an explicit
+  dictionary or by their value labels (`deccodes()`, `declbld()`), recodes
+  and relabels by name with every value mapped (`grdrcd()`, `relbl()`),
+  declared levels (`grdlvls()`), a 0/1 indicator that refuses a factor
+  (`grdbin()`), a recode proved by its cross-tabulation (`vrfrcd()`),
+  counts checked against those a release published, with the label
+  permutation that would explain a mismatch (`vrfmrg()`), and a variable
+  checked after it crossed from one program to another (`xfrvrf()`). They
+  are in `clab_jrun()`, the command line and Python.
+
+* `shrs()` gives each count's share of a total in percent with Wilson's
+  score interval, from a vector or from a table summed by groups. It is in
+  `clab_jrun()`, the command line and Python.
+
+* `toascii()`, `asciifb()` and `wrtxtfb()` transliterate text to plain
+  ASCII by a fixed table, keep valid UTF-8 as it is, and write text as
+  UTF-8 bytes whatever the locale. They are in `clab_jrun()`, the command
+  line and Python.
+
+* The summary statistics of the compiled core are exported: the mean,
+  variance, correlation and standard deviation (`cmn()`, `cvari()`,
+  `ccorr()`, `csdev()`, `cdistm()`), the normal density (`cnormpdf()`,
+  `cnormlpdf()`), moments (`cmom()`), quantiles and robust spread
+  (`cqnt()`, `cmed()`, `cmad()`, `ciqr()`, `ctkyfnc()`), trimmed and
+  winsorized means (`ctrmmean()`, `cwinsmean()`), weighted moments
+  (`cwtd()`), ranks (`cspr()`, `cmidrk()`), the covariance matrix
+  (`ccovm()`), bootstrap means (`cbootmean()`), trimmed inverse-
+  probability weights (`cipw()`), the incomplete gamma function
+  (`cgamcdf()`) and splitmix64 uniforms (`cunif()`). They are in
+  `clab_jrun()`, the command line and Python.
 
 * `prechk()` checks a table against a preset before `clprep()` reads it,
   and names in one error every column the preset reads (directly, in a

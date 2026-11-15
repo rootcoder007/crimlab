@@ -479,3 +479,77 @@ reference:
       - sfrail
       - sfcure
       - spbias
+  - title: Summary statistics
+    desc: Means, spreads, quantiles, ranks, weights and draws computed by the compiled core, the same in R and in every other front end.
+    contents:
+      - cmn
+      - cvari
+      - ccorr
+      - csdev
+      - cdistm
+      - cnormpdf
+      - cnormlpdf
+      - cmom
+      - cqnt
+      - cmed
+      - cmad
+      - ciqr
+      - ctkyfnc
+      - ctrmmean
+      - cwinsmean
+      - cwtd
+      - cspr
+      - cmidrk
+      - ccovm
+      - cbootmean
+      - cipw
+      - cgamcdf
+      - cunif
+  - title: Text
+    desc: Text written to files and fixed-width systems: an ASCII transliteration that never depends on the locale, and a UTF-8 writer.
+    contents:
+      - toascii
+      - asciifb
+      - wrtxtfb
+  - title: Shares
+    desc: Each count as a share of its total, with Wilson intervals that stay inside 0 to 100.
+    contents:
+      - shrs
+  - title: Categorical integrity
+    desc: Category codes decoded and recoded by name, never by position, each recode proved by a cross-tabulation and checked against the counts a release published.
+    contents:
+      - deccodes
+      - grdrcd
+      - relbl
+      - grdlvls
+      - declbld
+      - grdbin
+      - vrfrcd
+      - vrfmrg
+      - xfrvrf
+  - title: Region maps
+    desc: Crosswalks from units (facilities, detachments, courts) to statistical regions, checked for soundness, against a published map and against a second route.
+    contents:
+      - rgnmapintg
+      - rgnmapcmp
+      - rgnmapalt
+  - title: Drift between releases
+    desc: Has a table's distribution moved between two periods or two releases? Check a new release of an agency's published table against the last one before computing change from it.
+    contents:
+      - drftks
+      - drftpsi
+      - drftchisq
+      - drfthomog
+  - title: Change tables out
+    desc: Period-over-period change tables labelled, summarised and written to CSV, TSV, JSON, Markdown, HTML and PDF for police services, corrections and courts alike; the delimited and JSON writers keep every digit and every code.
+    contents:
+      - yoylbl
+      - fylbl
+      - yoysmry
+      - yoycsv
+      - yoytsv
+      - yoyjs
+      - yoymd
+      - yoyhtml
+      - yoypdf
+      - yoywr

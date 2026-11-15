@@ -3422,6 +3422,103 @@ int clab_hlladd(const char *s, size_t len, int p, int *reg);
 /* The HyperLogLog estimate from m registers. */
 double clab_hllcnt(const int *r, size_t m);
 
+/* Summary statistics (prim.cpp), as base R computes them; a NaN or NA
+ * among the values propagates (there is no na.rm). clab_mean: the mean
+ * of n values by an extended-precision sum and one corrective pass, as
+ * mean() (a running mean when finite values overflow the sum); NaN for n
+ * = 0. clab_var: the sum of squared deviations over n - ddof (NaN when
+ * that is not positive). clab_cor: the Pearson correlation by centred
+ * sums, clamped to [-1, 1]; NaN for n < 2 or a constant vector.
+ * clab_edist: the Euclidean distance of a and b. clab_dnorm: the normal
+ * density at x (its log when lg), sd > 0. clab_moms: out[4], the mean,
+ * the variance (n - 1), the skewness m3 / m2^1.5 and the excess kurtosis
+ * m4 / m2^2 - 3 (sample moments, deviations scaled by the largest before
+ * any power); NaN for any NaN in x and where too few values. clab_quant:
+ * type-7 quantiles at p[0..np) (NaN for any NaN in x or n = 0);
+ * clab_med the 0.5 one; clab_mad: k times the median absolute deviation
+ * from the median. clab_trim: the mean of the values left after dropping
+ * floor(n t) from each end; clab_wins: the mean with those pulled in to
+ * the nearest kept value; both the median at t = 0.5, NaN outside [0,
+ * 0.5]. clab_wtd: out[2], the weighted mean and the variance with
+ * reliability weights, sum w (x - m)^2 / (sum w - sum w^2 / sum w).
+ * clab_spear: the Pearson correlation of the midranks (Spearman 1904,
+ * doi:10.2307/1412159); clab_midrk: the midranks of x, none NaN.
+ * clab_covm: the p x p covariance matrix (n - 1) of the n x p
+ * column-major x. clab_bmean: b bootstrap replicate means, the indices
+ * drawn by Lemire's multiply-and-reject on mt19937_64 seeded by seed (a
+ * whole number below 2^53), so a seed gives the same replicates on every
+ * platform; CLAB_EINTR when the host asks to stop. clab_ipw: 1 / e for t
+ * = 1 and 1 / (1 - e) otherwise, e clamped to [lo, hi]. clab_unif: n
+ * uniforms on [0, 1) from splitmix64 (Steele, Lea and Flood 2014,
+ * doi:10.1145/2660193.2660195) seeded by seed, the top 53 bits of each
+ * output over 2^53. */
+double clab_mean(const double *x, int n);
+double clab_var(const double *x, int n, int ddof);
+double clab_cor(const double *x, const double *y, int n);
+double clab_edist(const double *a, const double *b, int n);
+void clab_dnorm(const double *x, int n, double mu, double sd, int lg, double *out);
+void clab_moms(const double *x, int n, double *out);
+void clab_quant(const double *x, int n, const double *p, int np, double *out);
+double clab_med(const double *x, int n);
+double clab_mad(const double *x, int n, double k);
+double clab_trim(const double *x, int n, double t);
+double clab_wins(const double *x, int n, double t);
+void clab_wtd(const double *x, const double *w, int n, double *out);
+double clab_spear(const double *x, const double *y, int n);
+void clab_midrk(const double *x, int n, double *out);
+void clab_covm(const double *x, int n, int p, double *out);
+int clab_bmean(const double *x, int n, int b, double seed, double *out);
+void clab_ipw(const double *t, const double *e, int n, double lo, double hi, double *out);
+void clab_unif(double seed, int n, double *out);
+/* Text to plain ASCII (txt.cpp). clab_utf8ok: 1 when s[0..n) is valid
+ * UTF-8 (shortest forms, no surrogates), else 0. clab_ascii: s[0..n) with
+ * the bytes that start no valid UTF-8 sequence dropped, the Latin accents
+ * and ligatures of U+00C0 to U+017E folded (an accented letter to its
+ * letter, sharp s to ss, AE, OE and thorn to two letters) and every other
+ * character outside space to tilde dropped; writes at most n bytes to out
+ * and returns their number. */
+int clab_utf8ok(const char *s, int n);
+int clab_ascii(const char *s, int n, char *out);
+/* Shares of a total in percent with Wilson's score interval (prim.cpp;
+ * Wilson 1927, doi:10.1080/01621459.1927.10502953): for k counts cnt in
+ * [0, tot], tot > 0, at level conf in (0, 1): share 100 cnt / tot and lo,
+ * hi in percent, clipped to [0, 100] (exactly 0 at a count of 0 and 100
+ * at the total). CLAB_EDOM outside those ranges. */
+int clab_shrs(const double *cnt, int k, double tot, double conf, double *share, double *lo, double *hi);
+/* The drift battery (drf.cpp). clab_ks: out[3], the two-sample
+ * Kolmogorov-Smirnov D (the largest gap of the two empirical distribution
+ * functions at the distinct values), its asymptotic two-sided p-value
+ * (the theta-function series below t = sqrt(neff) D = 1, the alternating
+ * series above; Marsaglia, Tsang and Wang 2003,
+ * doi:10.18637/jss.v008.i18) and neff = nx ny / (nx + ny); NaN for a NaN
+ * value or an empty sample. clab_psibin: the shares of x and y in the
+ * bins cut at the interior type-7 quantiles of x at bins + 1 equally
+ * spaced probabilities (every distinct quantile when fewer than three),
+ * both rounded to 12 significant digits first, right-closed with open
+ * ends; px and py hold at most bins + 2 values; returns the number of
+ * bins. clab_psi: out[2], the population stability index sum (p - q)
+ * log(p / q), each share floored at eps, and the Jensen-Shannon
+ * divergence (Lin 1991, doi:10.1109/18.61115) in nats. clab_chig: out[3],
+ * Pearson's goodness-of-fit sum of the counts o against e scaled to
+ * their total over the categories with a positive expected count, its
+ * degrees of freedom (those categories less one), and 1 when a category
+ * expected to have none has some. clab_chih: out[4], Pearson's
+ * homogeneity sum of the counts x and y under the pooled shares, its
+ * degrees of freedom, the smallest expected count and the categories
+ * with a positive pooled share. */
+void clab_ks(const double *x, int nx, const double *y, int ny, double *out);
+int clab_psibin(const double *x, int nx, const double *y, int ny, int bins, double *px, double *py);
+void clab_psi(const double *p, const double *q, int k, double eps, double *out);
+void clab_chig(const double *o, const double *e, int k, double *out);
+void clab_chih(const double *x, const double *y, int k, double *out);
+/* The summary of one series of a change table (prim.cpp): v the values
+ * and chg the changes of its n rows in period order (NaN missing), lag
+ * the periods per step. out[8]: the first and the last value, the change
+ * from the first to the last in percent, the compound rate per step in
+ * percent ((last / first)^(1 / steps) - 1, steps = (values - 1) / lag;
+ * NaN unless the first value is positive), the number of values, and the
+ * changes above, below and at 0. */
+void clab_ysum(const double *v, const double *chg, int n, double lag, double *out);
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);
