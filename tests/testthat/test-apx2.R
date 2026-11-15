@@ -31,7 +31,7 @@ test_that("smkiv: raw, own and neighbour adjustment, density, counts", {
                   near = rep(c("b", "a"), each = 6),
                   dens = c("", "", "", "heavy", "light", "", "", "", "",
                            "light", "", "medium"),
-                  mon = "07")
+                  mon = "07", stringsAsFactors = FALSE)
   expect_identical(smkiv(d, "plume", "place", "day")$smoke, d$plume)
   o <- smkiv(d, "plume", "place", "day", pm = "pm", adj = "own")
   expect_identical(o$smoke, c(0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0))

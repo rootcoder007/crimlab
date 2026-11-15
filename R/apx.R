@@ -177,7 +177,8 @@
 # Whether each level of f falls in one level of c (the effect is nested
 # in the clusters).
 .axnest <- function(f, c) {
-  u <- unique(data.frame(a = as.character(f), b = as.character(c)))
+  u <- unique(data.frame(a = as.character(f), b = as.character(c),
+                         stringsAsFactors = FALSE))
   !anyDuplicated(u$a)
 }
 
@@ -828,7 +829,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
     eff = m[, 3L],
     keff = ke,
     cv = cv,
-    ninst = rep(q, length(endo))
+    ninst = rep(q, length(endo)),
+    stringsAsFactors = FALSE
   )
 }
 
@@ -1130,7 +1132,8 @@ ivfe <- function(
       test = c("sargan", "hansen"),
       stat = st[1:2],
       df = st[3L],
-      p = stats::pchisq(st[1:2], st[3L], lower.tail = FALSE)
+      p = stats::pchisq(st[1:2], st[3L], lower.tail = FALSE),
+      stringsAsFactors = FALSE
     )
     gmm <- stats::setNames(oi$beta, tm)
   }

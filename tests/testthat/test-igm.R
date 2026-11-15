@@ -673,7 +673,8 @@ test_that("the mental health results print, distinctions kept", {
     rating = rep(c("Poor", "Fair", "Good", "Excellent"), 3),
     pct = c(10, 25, 40, 25, 6, 20, 44, 30, 8, 22, 42, 28),
     lo = c(7, 21, 35, 21, 5, 18, 42, 28, 6, 20, 40, 26),
-    hi = c(13, 29, 45, 29, 7, 22, 46, 32, 10, 24, 44, 30)
+    hi = c(13, 29, 45, 29, 7, 22, 46, 32, 10, 24, 44, 30),
+    stringsAsFactors = FALSE
   )
   oc <- ordcmp(
     own,
@@ -708,7 +709,8 @@ test_that("the mental health results print, distinctions kept", {
     ),
     pct = c(64, 71, 12, 18, 38, 66, 16, 22),
     lo = c(59, 66, 9, 14, 32, 60, 12, 17),
-    hi = c(69, 76, 15, 22, 44, 72, 20, 27)
+    hi = c(69, 76, 15, 22, 44, 72, 20, 27),
+    stringsAsFactors = FALSE
   )
   w <- welprof(
     own4,
@@ -751,7 +753,8 @@ test_that("the mental health results print, distinctions kept", {
       d = rep(c("body", "mind"), 2),
       p = c(62, 58, 55, 80),
       lo = c(57, 53, 49, 75),
-      hi = c(67, 63, 61, 85)
+      hi = c(67, 63, 61, 85),
+      stringsAsFactors = FALSE
     ),
     "c",
     "d",
@@ -770,7 +773,8 @@ test_that("the mental health results print, distinctions kept", {
       d = c("body", "mind"),
       p = c(62, 58),
       lo = c(57, 53),
-      hi = c(67, 63)
+      hi = c(67, 63),
+      stringsAsFactors = FALSE
     ),
     "c",
     "d",
@@ -787,7 +791,8 @@ test_that("the mental health results print, distinctions kept", {
   s <- scests(data.frame(
     GEO = "Canada",
     Characteristics = c("Rate", "Count"),
-    VALUE = c(1, 2)
+    VALUE = c(1, 2),
+    stringsAsFactors = FALSE
   ))
   expect_output(print(s), "Statistics Canada table")
 })

@@ -129,7 +129,8 @@ rgnmapcmp <- function(pub, obs, unit, cols = NULL) {
     ""
   }
   out <- data.frame(column = "rows", cells = length(unique(c(pu, ou))),
-                    mismatched = length(onlyp) + length(onlyo), first = first)
+                    mismatched = length(onlyp) + length(onlyo), first = first,
+                    stringsAsFactors = FALSE)
   for (cl in cols) {
     a <- pub[[cl]][ip]
     b <- obs[[cl]][io]

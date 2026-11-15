@@ -70,11 +70,14 @@ lik1 <- function(
   tot
 }
 
-fr <- data.frame(locus = "L", allele = 1:4, freq = c(0.1, 0.2, 0.3, 0.25))
+fr <- data.frame(locus = "L", allele = 1:4, freq = c(0.1, 0.2, 0.3, 0.25),
+                 stringsAsFactors = FALSE)
 
 test_that("a single source without drop-in gives 1 / (2 p q), fitted or not", {
-  pk <- data.frame(locus = "L", allele = c(1, 3), height = c(800, 900))
-  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 3)
+  pk <- data.frame(locus = "L", allele = c(1, 3), height = c(800, 900),
+                   stringsAsFactors = FALSE)
+  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 3,
+                    stringsAsFactors = FALSE)
   r <- gmixlr(pk, fr, ref, hp = "S", nc = 1, pc = 0)
   expect_equal(r$lr, 1 / (2 * 0.1 * 0.3), tolerance = 1e-8)
   expect_true(all(r$fit$conv))
@@ -94,8 +97,10 @@ test_that("a single source without drop-in gives 1 / (2 p q), fitted or not", {
 })
 
 test_that("drop-out and drop-in match the enumeration", {
-  pk <- data.frame(locus = "L", allele = 1, height = 900)
-  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 2)
+  pk <- data.frame(locus = "L", allele = 1, height = 900,
+                   stringsAsFactors = FALSE)
+  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 2,
+                    stringsAsFactors = FALSE)
   par <- c(mu = 1000, omega = 0.3, m1 = 1)
   r <- gmixlr(pk, fr, ref, hp = "S", nc = 1, par = par)
   # kept: 1 (seen), 2 (the suspect's); the rest Q = 0.7
@@ -108,8 +113,10 @@ test_that("drop-out and drop-in match the enumeration", {
 })
 
 test_that("two contributors with coancestry match the enumeration", {
-  pk <- data.frame(locus = "L", allele = 1:3, height = c(700, 650, 500))
-  ref <- data.frame(id = c("V", "S"), locus = "L", a1 = c(1, 3), a2 = c(2, 3))
+  pk <- data.frame(locus = "L", allele = 1:3, height = c(700, 650, 500),
+                   stringsAsFactors = FALSE)
+  ref <- data.frame(id = c("V", "S"), locus = "L", a1 = c(1, 3), a2 = c(2, 3),
+                    stringsAsFactors = FALSE)
   par <- c(mu = 900, omega = 0.25, m1 = 0.6, m2 = 0.4)
   r <- gmixlr(
     pk,
@@ -158,18 +165,21 @@ test_that("stutter and degradation match the formula", {
     locus = "L",
     allele = 9:11,
     freq = c(0.2, 0.4, 0.3),
-    size = c(146, 150, 154)
+    size = c(146, 150, 154),
+    stringsAsFactors = FALSE
   )
   pk <- data.frame(
     locus = "L",
     allele = c(10, 11, 9),
-    height = c(1500, 300, 120)
+    height = c(1500, 300, 120),
+    stringsAsFactors = FALSE
   )
   ref <- data.frame(
     id = c("A", "B"),
     locus = "L",
     a1 = c(10, 10),
-    a2 = c(10, 11)
+    a2 = c(10, 11),
+    stringsAsFactors = FALSE
   )
   mu <- 1000
   om <- 0.25
@@ -199,18 +209,21 @@ test_that("the fit of a clean two-person mixture finds the minor contributor", {
   peaks <- data.frame(
     locus = rep(c("D3", "vWA"), c(4, 3)),
     allele = c(14, 15, 16, 17, 16, 17, 18),
-    height = c(1210, 380, 1150, 420, 1400, 1960, 610)
+    height = c(1210, 380, 1150, 420, 1400, 1960, 610),
+    stringsAsFactors = FALSE
   )
   freq <- data.frame(
     locus = rep(c("D3", "vWA"), c(5, 5)),
     allele = c(13, 14, 15, 16, 17, 15, 16, 17, 18, 19),
-    freq = c(0.05, 0.1, 0.25, 0.25, 0.2, 0.1, 0.2, 0.3, 0.2, 0.1)
+    freq = c(0.05, 0.1, 0.25, 0.25, 0.2, 0.1, 0.2, 0.3, 0.2, 0.1),
+    stringsAsFactors = FALSE
   )
   ref <- data.frame(
     id = rep(c("V", "S"), each = 2),
     locus = rep(c("D3", "vWA"), 2),
     a1 = c(14, 16, 15, 17),
-    a2 = c(16, 17, 17, 18)
+    a2 = c(16, 17, 17, 18),
+    stringsAsFactors = FALSE
   )
   r <- gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
   expect_true(all(r$fit$conv))
@@ -223,8 +236,10 @@ test_that("the fit of a clean two-person mixture finds the minor contributor", {
 })
 
 test_that("gmixlr() refuses bad input", {
-  pk <- data.frame(locus = "L", allele = 1, height = 900)
-  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 2)
+  pk <- data.frame(locus = "L", allele = 1, height = 900,
+                   stringsAsFactors = FALSE)
+  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 2,
+                    stringsAsFactors = FALSE)
   errs(
     "gmixlr",
     list(
@@ -366,8 +381,10 @@ test_that("gmixlr() equals EuroForMix's likelihood and its maximum", {
 })
 
 test_that("gmixlr() refuses duplicates and unknowns in its tables", {
-  pk <- data.frame(locus = "L", allele = c(1, 3), height = c(800, 900))
-  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 3)
+  pk <- data.frame(locus = "L", allele = c(1, 3), height = c(800, 900),
+                   stringsAsFactors = FALSE)
+  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 3,
+                    stringsAsFactors = FALSE)
   ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
   g <- function(peaks = pk, freq = fr, r = ref, ...) {
     gmixlr(peaks, freq, r, hp = "S", nc = 1, pc = 0, ...)

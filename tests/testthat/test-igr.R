@@ -590,14 +590,16 @@ test_that("arguments that are no data are refused in words", {
   expect_error(limfrom(TRUE, se = 1), "not TRUE")
   expect_true(is.na(limfrom(NA, se = 1)$lower))
   expect_error(limfrom(1, se = 1, conflvl = 2), "strictly between 0 and 1")
-  expect_error(indgap(data.frame(g = "A", e = 1, l = 0, u = 2), "g", "e",
+  expect_error(indgap(data.frame(g = "A", e = 1, l = 0, u = 2,
+                                 stringsAsFactors = FALSE), "g", "e",
                       "l", "u", ref = 1), "single non-empty string")
   expect_error(genexpo(TRUE, TRUE, partial = "zz"), "must be one of")
-  expect_error(mhcont(data.frame(g = "A"), "g", "zz", "e", "l", "u",
-                      hope = "h"), "column `zz` not found")
+  expect_error(mhcont(data.frame(g = "A", stringsAsFactors = FALSE),
+                      "g", "zz", "e", "l", "u", hope = "h"),
+               "column `zz` not found")
   long <- strrep("x", 600)
-  expect_error(indgap(data.frame(g = "A"), long, "e", "l", "u"), long,
-               fixed = TRUE)
+  expect_error(indgap(data.frame(g = "A", stringsAsFactors = FALSE),
+                      long, "e", "l", "u"), long, fixed = TRUE)
   expect_error(polex(1.5), "`seed` must be a single whole number")
   expect_error(profshr(cnsprof(.ipp()), 2.5), "names no characteristic")
 })
@@ -621,19 +623,22 @@ test_that("places without both indicators are left out, their rows named", {
 
 test_that("tables of odd layouts are read as published", {
   w <- data.frame(GEO = "Canada", `Sex (2):Men[1]` = c(1, 2),
-                  check.names = FALSE)
+                  check.names = FALSE, stringsAsFactors = FALSE)
   t <- sctidy(w)
   expect_identical(as.character(t$quality), c("ok", "ok"))
-  expect_true(is.na(sctidy(data.frame(GEO = "C", VALUE = "infinity"))$VALUE))
+  expect_true(is.na(sctidy(data.frame(GEO = "C", VALUE = "infinity",
+                                      stringsAsFactors = FALSE))$VALUE))
   s <- scests(data.frame(GEO = "C", `Characteristics (3)` = c("A", "B"),
-                         VALUE = c(1, 2), check.names = FALSE))
+                         VALUE = c(1, 2), check.names = FALSE,
+                         stringsAsFactors = FALSE))
   expect_identical(nrow(s), 2L)
   m <- scests(data.frame(GEO = "C",
                          Measure = c("Rate", "Standard error of rate"),
-                         VALUE = c(10, 1)))
+                         VALUE = c(10, 1), stringsAsFactors = FALSE))
   expect_identical(m$cisou, "se")
   l <- scests(data.frame(GEO = "C", L = I(list(1, NULL)),
-                         Statistics = c("Rate", "Count"), VALUE = c(1, 2)))
+                         Statistics = c("Rate", "Count"), VALUE = c(1, 2),
+                         stringsAsFactors = FALSE))
   expect_identical(nrow(l), 2L)
 })
 

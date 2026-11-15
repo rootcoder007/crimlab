@@ -247,7 +247,8 @@ test_that("the health functions equal the reference implementation", {
   expect_equal(c(b$paf, b$attrcases, b$extra$rr), ref$pb2, tolerance = tol)
   t <- data.frame(
     fsa = c("A", "B", "C"), exposure = c(18, 28, 9),
-    population = c(60000, 40000, 5000), brate = c(0.008, 0.007, 0.01)
+    population = c(60000, 40000, 5000), brate = c(0.008, 0.007, 0.01),
+    stringsAsFactors = FALSE
   )
   pa <- polbrdarea(t)
   expect_identical(pa$fsa, c("B", "A", "C"))
@@ -492,7 +493,8 @@ test_that("attrfrac, mortdisp and polbrdn by hand and refused", {
 
 test_that("polbrdarea sorts worst first and refuses bad tables", {
   t <- data.frame(fsa = c("A", "B"), exposure = c(18, 28),
-                  population = c(4e4, 6e4), brate = 0.008)
+                  population = c(4e4, 6e4), brate = 0.008,
+                  stringsAsFactors = FALSE)
   expect_identical(polbrdarea(t)$fsa, c("B", "A"))
   expect_s3_class(polbrdarea(t), "polbrdarea")
   expect_error(polbrdarea(t[, 1:2]), "missing columns")
@@ -520,7 +522,8 @@ test_that("expconcidx: zero, pro-poor, pro-rich, and its refusals", {
   )
   expect_error(expconcidx(data.frame(e = 1:3), "e", "i"), "missing columns")
   expect_error(expconcidx(data.frame(e = 1, i = 1), "e", "i"), "at least 2")
-  expect_error(expconcidx(data.frame(e = 1:3, i = c("a", "b", "c")), "e", "i"),
+  expect_error(expconcidx(data.frame(e = 1:3, i = c("a", "b", "c"),
+                                     stringsAsFactors = FALSE), "e", "i"),
                "numeric")
   expect_error(expconcidx(data.frame(e = c(-1, 2), i = 1:2), "e", "i"),
                "non-negative")
@@ -532,7 +535,8 @@ test_that("expconcidx: zero, pro-poor, pro-rich, and its refusals", {
 test_that("an exposure series joined to daily crime counts runs as it is", {
   # simulated: daily NO2 and assaults for three areas
   set.seed(1)
-  d <- data.frame(area = rep(c("a", "b", "c"), each = 30), day = rep(1:30, 3))
+  d <- data.frame(area = rep(c("a", "b", "c"), each = 30), day = rep(1:30, 3),
+                  stringsAsFactors = FALSE)
   d$no2 <- stats::rlnorm(90, log(20), 0.3)
   d$assaults <- stats::rpois(90, 3 + 0.05 * d$no2)
   rr <- crfno2(d$no2)$extra$rrperunit
@@ -555,7 +559,8 @@ test_that("the air pollution results print", {
     capture.output(print(attrfrac(0.8, 0.5, 0.7, 0.9))),
     capture.output(print(polbrdn(25, 1, 0.008, 1e6))),
     capture.output(print(polbrdarea(data.frame(
-      fsa = "A", exposure = 20, population = 1, brate = 0.008
+      fsa = "A", exposure = 20, population = 1, brate = 0.008,
+      stringsAsFactors = FALSE
     )))),
     capture.output(print(expconcidx(data.frame(e = 5:1, i = 1:5), "e", "i")))
   )

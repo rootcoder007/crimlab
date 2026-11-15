@@ -154,7 +154,8 @@ test_that("a stated reference is checked against the levels", {
   expect_identical(k$vars$state, c(NA, "absent"))
   expect_false(k$vars$ok[2])
   # one level for every variable; a variable that is not categorical
-  k <- catchk(data.frame(a = c("x", "y"), b = c(0.5, 1)), ref = "x",
+  k <- catchk(data.frame(a = c("x", "y"), b = c(0.5, 1),
+                         stringsAsFactors = FALSE), ref = "x",
               nmin = 1)
   expect_identical(k$vars$state, c("other", "absent"))
   expect_output(print(catchk(f, ref = "d")), "reference \"d\": not a level")
@@ -169,7 +170,10 @@ test_that("the input forms name the variables", {
   expect_identical(catchk(list(1, 2))$vars$var, c("1", "2"))
   expect_identical(catchk(list(a = 1, 2))$vars$var, c("a", "2"))
   expect_identical(catchk(c(a = 1, b = 2))$vars$var, "x")
-  expect_identical(catchk(data.frame(p = 1, q = "a"))$vars$var, c("p", "q"))
+  expect_identical(
+    catchk(data.frame(p = 1, q = "a", stringsAsFactors = FALSE))$vars$var,
+    c("p", "q")
+  )
   e <- catchk(character(0))
   expect_identical(e$vars$nlev, 0L)
   expect_false(e$ok)
@@ -204,7 +208,7 @@ test_that("catchk() refuses what it cannot read", {
 test_that("print.catchk() lists the problems of each variable", {
   d <- data.frame(sex = c("Male", "male", "Female", "Female", NA),
                   custody = c(TRUE, FALSE, TRUE, TRUE, FALSE),
-                  court = c(1L, 2L, 2L, 3L, 1L))
+                  court = c(1L, 2L, 2L, 3L, 1L), stringsAsFactors = FALSE)
   k <- catchk(d, nmin = 2)
   out <- capture.output(print(k))
   expect_identical(out[1], "catchk: 3 variables, 2 with problems")

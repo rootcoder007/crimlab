@@ -55,7 +55,8 @@ test_that("recodes, filters and dropped rows", {
     Gender = c("Female", "Male", "Female", NA, "Male"),
     Measure = "Median",
     Region_AtTimeOfPlacement = "Central",
-    NumberConsecutiveDays_Segregation = c(4, 7, 5, 6, 8)
+    NumberConsecutiveDays_Segregation = c(4, 7, 5, 6, 8),
+    stringsAsFactors = FALSE
   )
   d$Measure[5] <- "Max"
   p <- clprep(d, "otis-b04-cnt")
@@ -74,7 +75,8 @@ test_that("recipes: long, and the person-year reductions", {
     Gender = "F",
     EndFiscalYear = 2020,
     Number_Segregation_Placements_With_Alert = c(3, 4),
-    Number_Segregation_Placements_Without_Alert = c(9, 8)
+    Number_Segregation_Placements_Without_Alert = c(9, 8),
+    stringsAsFactors = FALSE
   )
   p <- clprep(d, "otis-b07-cnt")
   expect_identical(p$y, c(3, 4, 9, 8))
@@ -270,7 +272,8 @@ test_that("presets on the Structured Intervention Units and TPS layouts", {
   d <- data.frame(
     region = c("Atlantic", "Ontario", "Quebec"),
     siu_pct = c(10, 8.5, 37.3),
-    pop_pct = c(9, 27.5, 19.8)
+    pop_pct = c(9, 27.5, 19.8),
+    stringsAsFactors = FALSE
   )
   g <- grprr(clprep(d, "sdsiu-t12-rr"))
   expect_equal(
@@ -278,13 +281,14 @@ test_that("presets on the Structured Intervention Units and TPS layouts", {
     d$siu_pct / d$pop_pct * sum(d$pop_pct) / sum(d$siu_pct),
     tolerance = 1e-14
   )
-  r <- data.frame(region = c("Ontario", "Quebec"), short_stay_rate = c(4, 38))
+  r <- data.frame(region = c("Ontario", "Quebec"), short_stay_rate = c(4, 38),
+                  stringsAsFactors = FALSE)
   expect_equal(
     grprr(clprep(r, "sdsiu-t13-rr"))$cmp$ratio,
     9.5,
     tolerance = 1e-15
   )
-  t <- data.frame(DIVISION = c("D11", "D14", "D11"))
+  t <- data.frame(DIVISION = c("D11", "D14", "D11"), stringsAsFactors = FALSE)
   expect_identical(
     as.numeric(ctabx(clprep(t, "tps-division-xtab"))$tab[, 1]),
     c(2, 1)
@@ -329,7 +333,8 @@ test_that("the risk-tool presets feed fairdf, tmpaud, calaud and scrdsp", {
   # low against medium/high
   l <- data.frame(
     race = rep(c("a", "b"), each = 6),
-    static_score = rep(c("low", "medium", "high"), 4)
+    static_score = rep(c("low", "medium", "high"), 4),
+    stringsAsFactors = FALSE
   )
   mh <- clprep(l, "laniyonu-ard-static-mh")
   lm <- clprep(l, "laniyonu-ard-static-lm")
@@ -346,10 +351,11 @@ test_that("the risk-tool presets feed fairdf, tmpaud, calaud and scrdsp", {
 test_that("a preset of one's own, and the flag and dum recodes", {
   mine <- data.frame(
     preset = "my-cnt", generic = "cntreg", arg = c("y", "grp", "adj"),
-    column = c("count", "sex", "year"), recode = c("", "f=1;*=0", "fac")
+    column = c("count", "sex", "year"), recode = c("", "f=1;*=0", "fac"),
+    stringsAsFactors = FALSE
   )
   e <- data.frame(count = c(4, 30, 6, 41, NA), sex = c("f", "m", "f", "m", "f"),
-                  year = c(1, 1, 2, 2, 2))
+                  year = c(1, 1, 2, 2, 2), stringsAsFactors = FALSE)
   p <- clprep(e, mine)
   expect_identical(p$y, c(4, 30, 6, 41))
   expect_identical(p$grp, c(1, 0, 1, 0))
@@ -464,14 +470,15 @@ test_that("the gentrification recipe", {
   mine <- data.frame(preset = "gent-xtab", generic = "ctabx",
                      arg = c("recipe", "row", "col"),
                      column = c("gent", "gent", ""),
-                     recode = c("inc,rent,colg,rentg", "", "one"))
+                     recode = c("inc,rent,colg,rentg", "", "one"),
+                     stringsAsFactors = FALSE)
   p <- clprep(d, mine)
   expect_identical(p$row, g[!is.na(g)])
 })
 
 test_that("the toxicology and taphonomy layouts", {
   d <- data.frame(case_id = c("a", "b", "c", "d"), conc = c(0.4, 0.05, NA, 1),
-                  lod = c(0.1, 0.1, 0.2, 0.5))
+                  lod = c(0.1, 0.1, 0.2, 0.5), stringsAsFactors = FALSE)
   p <- clprep(d, "tox-lodimp")
   expect_identical(attr(p, "drop"), 1L)
   expect_identical(lodimp(p), lodimp(d$conc[-3], d$lod[-3]))
@@ -539,7 +546,8 @@ test_that("the Doob affidavit tables", {
     type = c("Day Parole", "Full Parole", "Statutory Release"),
     revoke_violent = c(4.8, 5.0, 84.6),
     success = c(3085, 901.2, 3735.6),
-    total = c(3392.2, 1023.8, 5829.0)
+    total = c(3392.2, 1023.8, 5829.0),
+    stringsAsFactors = FALSE
   )
   a <- grprr(clprep(t1, "doob-t1-rr"))
   expect_identical(a, grprr(t1$success, t1$total, t1$type, type = "prop",
@@ -552,7 +560,8 @@ test_that("the Doob affidavit tables", {
     year = c("2013-14", "2014-15", "2015-16", "2016-17", "2017-18"),
     avg_count = c(15342, 14886, 14712, 14159, 14092),
     admissions = c(5071, 4818, 4891, 4908, 4718),
-    statutory_releases = c(5636, 5373, 5309, 4888, 4427)
+    statutory_releases = c(5636, 5373, 5309, 4888, 4427),
+    stringsAsFactors = FALSE
   )
   f <- stkflw(clprep(t2, "doob-t2-flow"))
   expect_identical(f, stkflw(people = t2$admissions, adp = t2$avg_count,
@@ -566,7 +575,8 @@ test_that("the Doob affidavit tables", {
     age_group = c("18-49", "50-59", "60+"),
     canada_adult_pop = c(15770626, 5305888, 8811720),
     csc_in_custody = c(10544, 2236, 1312),
-    csc_admissions_2017_18 = c(3920, 548, 250)
+    csc_admissions_2017_18 = c(3920, 548, 250),
+    stringsAsFactors = FALSE
   )
   r <- grprr(clprep(t3, "doob-t3-rr"))
   sh <- t3$csc_in_custody / sum(t3$csc_in_custody)
@@ -587,7 +597,8 @@ test_that("the Victorian tables, the pop recipe and numeric constants", {
     `Local Government Area` = c("Ararat", "Ballarat", "Casey"),
     `Incidents Recorded` = c(1200, 9800, 25000),
     `Rate per 100,000 population` = c(9800.5, 8650.2, 6900.1),
-    check.names = FALSE
+    check.names = FALSE,
+    stringsAsFactors = FALSE
   )
   p <- clprep(lga, "vic-lga-rr")
   expect_identical(p$per, 1e5)
@@ -602,7 +613,8 @@ test_that("the Victorian tables, the pop recipe and numeric constants", {
     `Indigenous Status` = rep(c("Aboriginal and/or Torres Strait Islander",
                                 "Non-Indigenous", "Total People"), 2),
     `Victim Reports` = c(120, 3000, 3120, 40, 2500, 2540),
-    check.names = FALSE
+    check.names = FALSE,
+    stringsAsFactors = FALSE
   )
   x <- ctabx(clprep(ind, "vic-indig-xtab"))
   expect_identical(as.numeric(x$tab), c(120, 40, 3000, 2500))
@@ -610,7 +622,7 @@ test_that("the Victorian tables, the pop recipe and numeric constants", {
   tr <- data.frame(Year = rep(2020:2022, each = 2),
                    `Offence Division` = rep(c("A", "B"), 3),
                    `Incidents Recorded` = c(5, 7, 6, 9, 8, 4),
-                   check.names = FALSE)
+                   check.names = FALSE, stringsAsFactors = FALSE)
   y <- ctabx(clprep(tr, "vic-trend-xtab"))
   expect_identical(as.numeric(y$tab), c(5, 6, 8, 7, 9, 4))
   rc <- ns$.recode
@@ -625,7 +637,8 @@ test_that("the Toronto neighbourhood crosswalks", {
     hood_140 = c("001", "002", "002", "003"),
     hood_158 = c("001", "160", "161", "003"),
     pct_140_in_158 = c(100, 40, 60, 100),
-    pct_158_in_140 = c(100, 100, 100, 100)
+    pct_158_in_140 = c(100, 100, 100, 100),
+    stringsAsFactors = FALSE
   )
   up <- bndxw(clprep(cw, "tps-hood158-140"), x = c(5, 2, 3, 7),
               unit = c("001", "160", "161", "003"))

@@ -7,7 +7,8 @@
 
 d <- data.frame(prd = rep(2019:2022, 2),
                 group = rep(c("Assault", "Robbery"), each = 4),
-                value = c(812, 845, 790, 901, 120, 131, 98, 98))
+                value = c(812, 845, 790, 901, 120, 131, 98, 98),
+                stringsAsFactors = FALSE)
 y <- yoypx(d$value, d$prd, d$group)
 rf <- function(f) test_path("ref", "yoyw", f)
 bytes <- function(f) rawToChar(readBin(f, "raw", file.size(f)))
@@ -118,10 +119,12 @@ test_that("a table written and read back is the table", {
   expect_match(j, "\"n\":0.3333333333333333", fixed = TRUE)
   expect_match(j, "\"ok\":null", fixed = TRUE)
   expect_match(yoyjs(y, meta = "simulated"), "\"meta\": \"simulated\"")
-  expect_match(yoycsv(data.frame(a = "x,\"y\"")), "\"x,\"\"y\"\"\"",
-               fixed = TRUE)
-  expect_match(yoytsv(data.frame(a = "x\ty")), "x y", fixed = TRUE)
-  expect_match(yoyjs(data.frame(a = "q\"\n\001", b = Inf)),
+  expect_match(yoycsv(data.frame(a = "x,\"y\"", stringsAsFactors = FALSE)),
+               "\"x,\"\"y\"\"\"", fixed = TRUE)
+  expect_match(yoytsv(data.frame(a = "x\ty", stringsAsFactors = FALSE)),
+               "x y", fixed = TRUE)
+  expect_match(yoyjs(data.frame(a = "q\"\n\001", b = Inf,
+                                stringsAsFactors = FALSE)),
                "\"q\\\"\\n\\u0001\"", fixed = TRUE)
   expect_error(yoycsv(1), "must be a data frame")
   expect_error(yoycsv(a, digits = 20), "from 0 to 15")
@@ -188,7 +191,8 @@ test_that("the writers refuse bad options and write the edge tables", {
 test_that("a group without values, and values of many decimals", {
   d <- data.frame(prd = c(1, 2, 1, 2), group = c("a", "a", "b", "b"),
                   value = c(NA, NA, 3, 4), prev = c(NA, NA, NA, 3),
-                  change = c(NA, NA, NA, 1), pctchg = c(NA, NA, NA, 100 / 3))
+                  change = c(NA, NA, NA, 1), pctchg = c(NA, NA, NA, 100 / 3),
+                  stringsAsFactors = FALSE)
   # group a has no value: no first or last, no periods
   s <- as.data.frame(unclass(yoysmry(d)))
   expect_true(all(is.nan(unlist(s[1L, c("first", "last", "totalpct",
@@ -215,7 +219,7 @@ test_that("a group without values, and values of many decimals", {
 test_that("HTML keeps a tab and shows other control characters", {
   d <- data.frame(prd = c(1, 2), value = c(3, 4), prev = c(NA, 3),
                   change = c(NA, 1), pctchg = c(NA, 100 / 3),
-                  group = "x\ty\u0001\u200e")
+                  group = "x\ty\u0001\u200e", stringsAsFactors = FALSE)
   f <- tempfile(fileext = ".html")
   on.exit(unlink(f), add = TRUE)
   yoyhtml(d, f)

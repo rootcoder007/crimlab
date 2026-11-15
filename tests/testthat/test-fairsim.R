@@ -119,7 +119,8 @@ test_that("fairsim() and nordet() refuse what they cannot use", {
   errs("nordet", list(
     list("two-column numeric matrix", 1:4, NULL, 1),
     list("columns x and y", data.frame(a = 1, b = 2, c = 3), NULL, 1),
-    list("numeric coordinates", data.frame(x = "a", y = 1), NULL, 1),
+    list("numeric coordinates", data.frame(x = "a", y = 1,
+                                           stringsAsFactors = FALSE), NULL, 1),
     list("finite coordinates", cbind(NA, 1), NULL, 1),
     list("at least one point", matrix(0, 0, 2), NULL, 1),
     list("greater than 0", cbind(0, 0), NULL, 0),

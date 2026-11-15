@@ -66,7 +66,8 @@
     dguid = c("2021A000011124", "2021A0005000001"),
     lvl = c("Country", "Census subdivision"),
     size = c(40000, 150),
-    tnr = c(3.1, 7.4)
+    tnr = c(3.1, 7.4),
+    stringsAsFactors = FALSE
   )
   ages <- c(
     "Total - Age groups",

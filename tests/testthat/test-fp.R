@@ -205,7 +205,8 @@ test_that("co2fp() adds the energy of other devices", {
     name = c("card 0", "package 0", "card 1", "unit 0"),
     watts = c(120, 35, NA, NA),
     energy = c(NA, NA, 0.002, NA),
-    how = "simulated reading"
+    how = "simulated reading",
+    stringsAsFactors = FALSE
   )
   fp <- co2fp(1 + 1, loc = 30, cpupwrw = 45, memgb = 8, usage = 0.5,
               meth = "model", devices = dev)
@@ -362,7 +363,7 @@ test_that("each argument of co2fp() is checked by its own message", {
   ef(co2fp(1, devices = 1),
      "co2fp: `devices` must be a data frame, one row per device.")
   dev <- data.frame(kind = "gpu", vendor = "v", name = "n", how = "h",
-                    watts = "5")
+                    watts = "5", stringsAsFactors = FALSE)
   ef(co2fp(1, devices = dev), "co2fp: `devices$watts` must be numeric.")
   # a table with watts only: no energy column, so no measured energy
   dev$watts <- 5

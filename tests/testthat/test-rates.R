@@ -99,7 +99,8 @@ test_that("direct standardisation: Fay and Feuer by hand", {
     age = rep(c("y", "m", "o"), 2),
     grp = rep(c("A", "B"), each = 3),
     x = c(30, 22, 5, 41, 30, 12),
-    n = c(5000, 9000, 6000, 3000, 8000, 7000)
+    n = c(5000, 9000, 6000, 3000, 8000, 7000),
+    stringsAsFactors = FALSE
   )
   std <- c(y = 30, m = 45, o = 25)
   r <- dastd(d$x, d$n, d$age, d$grp, std = std, per = 1e4)
@@ -151,7 +152,8 @@ test_that("indirect standardisation and shrinkage by hand", {
     area = rep(c("N", "S", "E", "W"), each = 2),
     age = rep(c("young", "old"), 4),
     x = c(12, 3, 30, 9, 4, 1, 20, 2),
-    n = c(4000, 2000, 8000, 3000, 1500, 900, 3000, 2500)
+    n = c(4000, 2000, 8000, 3000, 1500, 900, 3000, 2500),
+    stringsAsFactors = FALSE
   )
   r <- sirex(d$x, d$n, d$age, d$area)
   s <- r$sir

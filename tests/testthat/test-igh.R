@@ -343,7 +343,8 @@ test_that("unknown quality flags warn and count as ok", {
     e = c(10, 12, 11),
     lo = c(8, 10, 9),
     hi = c(12, 14, 13),
-    q = c("", "zz", NA)
+    q = c("", "zz", NA),
+    stringsAsFactors = FALSE
   )
   expect_warning(
     {
@@ -367,7 +368,8 @@ test_that("the results print, with the notes on how to read them", {
     ),
     VALUE = c("45.8", "", "61.5"),
     STATUS = c("", "x", ""),
-    check.names = FALSE
+    check.names = FALSE,
+    stringsAsFactors = FALSE
   )
   t <- sctidy(d)
   expect_output(expect_invisible(print(t)), "Statistics Canada table")
@@ -425,7 +427,8 @@ test_that("the results print, with the notes on how to read them", {
     group = c("A", "B", "Ref"),
     pct = c(10, 11, 18.9),
     lower = c(9, 10, 18.4),
-    upper = c(11, 12, 19.4)
+    upper = c(11, 12, 19.4),
+    stringsAsFactors = FALSE
   )
   expect_match(
     ls_flat(indgap(low, "group", "pct", "lower", "upper", ref = "Ref")),
@@ -440,7 +443,8 @@ test_that("a reference that looks like a total is said to be one", {
     g = c("A", "B", "Total"),
     e = c(10, 12, 11),
     lo = c(8, 10, 9),
-    hi = c(12, 14, 13)
+    hi = c(12, 14, 13),
+    stringsAsFactors = FALSE
   )
   expect_warning(
     indgap(d, "g", "e", "lo", "hi", ref = "Total"),

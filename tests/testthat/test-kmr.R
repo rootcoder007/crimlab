@@ -7,7 +7,8 @@ gd <- data.frame(
         32, 34, 35, 1, 1, 2, 2, 3, 4, 4, 5, 5, 8, 8, 8, 8, 11, 11, 12, 12,
         15, 17, 22, 23),
   e = c(rep(1, 9), rep(0, 12), rep(1, 21)),
-  g = rep(c("drug", "placebo"), c(21, 21))
+  g = rep(c("drug", "placebo"), c(21, 21)),
+  stringsAsFactors = FALSE
 )
 
 test_that("the curve and the test are survival's", {

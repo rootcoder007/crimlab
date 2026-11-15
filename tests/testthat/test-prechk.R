@@ -11,7 +11,8 @@ b03 <- data.frame(
                                         "Toronto South Detention Centre"), 4),
   Alert_Type = "Mental Health Alert",
   Alert_Presence = rep(c("Yes", "Yes", "No", "No"), 2),
-  Number_SegregationPlacements = c(31, 52, 140, 260, 28, 61, 133, 248)
+  Number_SegregationPlacements = c(31, 52, 140, 260, 28, 61, 133, 248),
+  stringsAsFactors = FALSE
 )
 
 test_that("a table that fits passes unchanged", {
@@ -24,7 +25,8 @@ test_that("a table that fits passes unchanged", {
   # filters read their column: b04 keeps the medians
   b04 <- data.frame(EndFiscalYear = 2022, Region_AtTimeOfPlacement = "Eastern",
                     Gender = c("Female", "All"), Measure = "Median",
-                    NumberConsecutiveDays_Segregation = c(3, 4))
+                    NumberConsecutiveDays_Segregation = c(3, 4),
+                    stringsAsFactors = FALSE)
   expect_identical(prechk(b04, "otis-b04-cnt"), b04)
   expect_error(prechk(b04[-4], "otis-b04-cnt"), "has no column Measure")
 })
@@ -61,7 +63,8 @@ test_that("recipes: the columns read, not the columns made", {
   b07 <- data.frame(EndFiscalYear = 2022, Alert_Type = "Transgender Alert",
                     Gender = "Male",
                     Number_Segregation_Placements_With_Alert = 4,
-                    Number_Segregation_Placements_Without_Alert = 9)
+                    Number_Segregation_Placements_Without_Alert = 9,
+                    stringsAsFactors = FALSE)
   expect_identical(prechk(b07, "otis-b07-cnt"), b07)
   expect_error(prechk(b07[-5], "otis-b07-cnt"),
                "no column Number_Segregation_Placements_Without_Alert")
@@ -77,10 +80,12 @@ test_that("a preset of one's own, with codes of its own", {
   # a made-up agency's layout, simulated: counts by sex and facility
   mine <- data.frame(
     preset = "dmo-cnt", generic = "cntreg", arg = c("y", "grp", "adj"),
-    column = c("n", "sex", "unit"), recode = c("", "f|female=1;m|male=0", "fac")
+    column = c("n", "sex", "unit"),
+    recode = c("", "f|female=1;m|male=0", "fac"), stringsAsFactors = FALSE
   )
   d <- data.frame(n = c(4, 30, 6, 41), sex = c("F", "m", "f", "Male"),
-                  unit = c("North", "North", "South", "South"))
+                  unit = c("North", "North", "South", "South"),
+                  stringsAsFactors = FALSE)
   expect_identical(prechk(d, mine), d)
   d$sex[2] <- "x"
   expect_error(prechk(d, mine), "column sex has labels with no recode: x.",
@@ -90,14 +95,16 @@ test_that("a preset of one's own, with codes of its own", {
   d$sex <- c("Female", "m", "female", "male")
   expect_identical(prechk(d, mine), d)
   # the agency's codes, given as a data frame
-  cd <- data.frame(column = "unit", value = c("North", "South"))
+  cd <- data.frame(column = "unit", value = c("North", "South"),
+                   stringsAsFactors = FALSE)
   expect_identical(prechk(d, mine, cd), d)
   d$unit[1] <- "East"
   expect_error(prechk(d, mine, cd), "not among its codes: East.", fixed = TRUE)
   # a constant and a mapping with a default are not checked for labels
   mine2 <- data.frame(preset = "dmo-c", generic = "cntreg",
                       arg = c("y", "grp", "gee"), column = c("n", "sex", ""),
-                      recode = c("", "f=1;*=0", "const:TRUE"))
+                      recode = c("", "f=1;*=0", "const:TRUE"),
+                      stringsAsFactors = FALSE)
   expect_identical(prechk(d, mine2), d)
 })
 
@@ -125,7 +132,7 @@ test_that("refusals", {
            data.frame(a = 1)),
       list("unknown recipe zz", b03,
            data.frame(preset = "x", generic = "ctabx", arg = "recipe",
-                      column = "zz"))
+                      column = "zz", stringsAsFactors = FALSE))
     )
   )
 })

@@ -190,7 +190,8 @@ test_that("the table forms give one answer", {
   # counts from records, through xtabs()
   d <- data.frame(g = rep(c("A", "B"), each = 100),
                   y = c(rep(c("yes", "no"), c(20, 80)),
-                        rep(c("yes", "no"), c(10, 90))))
+                        rep(c("yes", "no"), c(10, 90))),
+                  stringsAsFactors = FALSE)
   x <- xtabs(~ g + y, d)
   expect_identical(relchk(x, 2.25, ref = "B", event = "yes")$verdict, "holds")
   # unnamed rows and columns are "1", "2", ...

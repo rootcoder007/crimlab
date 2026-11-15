@@ -25,7 +25,8 @@ test_that("crsev() sums weighted counts per unit and period", {
   expect_equal(r$tab$srate, unname(sev[k] / pop[k] * 1e3), tolerance = 1e-14)
   expect_equal(r$tab$rate, unname(cnt[k] / pop[k] * 1e3), tolerance = 1e-14)
   expect_equal(r$tab$idx, 100 * r$tab$srate / r$tab$srate[4], tolerance = 1e-14)
-  expect_identical(r$w, data.frame(off = c("a", "b", "c"), w = c(0.5, 3, 40)))
+  expect_identical(r$w, data.frame(off = c("a", "b", "c"), w = c(0.5, 3, 40),
+                                   stringsAsFactors = FALSE))
   expect_identical(r$base, 4L)
   expect_output(print(r), "index 100 at row 4")
 })

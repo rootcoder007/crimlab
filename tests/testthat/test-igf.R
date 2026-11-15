@@ -450,7 +450,8 @@ test_that("the framework results print, distinctions and governance kept", {
     pct = c(64, 70, 58, 75),
     lo = c(59, 65, 52, 70),
     hi = c(69, 75, 64, 80),
-    q = c("", "E", "", "")
+    q = c("", "E", "", ""),
+    stringsAsFactors = FALSE
   )
   m <- mhcont(
     own,
@@ -534,7 +535,8 @@ test_that("the framework results print, distinctions and governance kept", {
     item = rep(c("Rarely hopeful", "Low satisfaction"), 2),
     pct = c(12, 18, 16, 22),
     lo = c(9, 14, 12, 17),
-    hi = c(15, 22, 20, 27)
+    hi = c(15, 22, 20, 27),
+    stringsAsFactors = FALSE
   )
   w <- welprof(
     rbind(
@@ -544,7 +546,8 @@ test_that("the framework results print, distinctions and governance kept", {
         item = "Hopeful",
         pct = 60,
         lo = 55,
-        hi = 65
+        hi = 65,
+        stringsAsFactors = FALSE
       )
     ),
     "community",

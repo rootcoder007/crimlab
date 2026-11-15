@@ -65,7 +65,7 @@ matter; the `ref` column marks the reference group:
 ```{r}
 stops <- data.frame(race = c("black", "white", "white", "black"),
                     light = c("day", "day", "night", "night"),
-                    n = c(400, 600, 700, 300))
+                    n = c(400, 600, 700, 300), stringsAsFactors = FALSE)
 vodtst(xtabs(n ~ race + light, stops), ref = "white")
 ```
 
@@ -325,7 +325,8 @@ is one call (here on a made-up excerpt; the presets ship no data):
 arr <- data.frame(
   perp_race = rep(c("A", "B", "C"), c(50, 30, 20)),
   law_cat_cd = c(rep(c("F", "M"), c(20, 30)), rep(c("F", "M"), c(18, 12)),
-                 rep(c("F", "M", "V"), c(6, 12, 2)))
+                 rep(c("F", "M", "V"), c(6, 12, 2))),
+  stringsAsFactors = FALSE
 )
 ft <- ctabx(clprep(arr, "nypd-felony-xtab"))
 ft$tab
@@ -338,7 +339,8 @@ preset of its own, laid out as the rows of `clprep()`'s table:
 ```{r}
 mine <- data.frame(preset = "my-felony", generic = "ctabx",
                    arg = c("row", "col"), column = c("race", "class"),
-                   recode = c("", "felony=felony;*=other"))
+                   recode = c("", "felony=felony;*=other"),
+                   stringsAsFactors = FALSE)
 other <- data.frame(race = arr$perp_race,
                     class = ifelse(arr$law_cat_cd == "F", "Felony", "Less"))
 identical(ctabx(clprep(other, mine))$tab, ft$tab)
@@ -375,7 +377,8 @@ d <- data.frame(
   pct = c(45.8, 52.8, 47.8, 61.5),
   lo = c(43.9, 50.6, 43.1, 61),
   hi = c(47.7, 55, 52.5, 62),
-  flag = c("", "", "E", "")
+  flag = c("", "", "E", ""),
+  stringsAsFactors = FALSE
 )
 indgap(d, "group", "pct", "lo", "hi", qual = "flag")
 ```
@@ -445,7 +448,8 @@ ministry's data dictionary lists. A table that fits is returned as it is.
 c01 <- data.frame(EndFiscalYear = rep(2020:2022, each = 2),
                   Gender = rep(c("Female", "Male"), 3),
                   NumberIndividuals_RestrictiveConfinement =
-                    c(40, 310, 52, 335, 47, 360))
+                    c(40, 310, 52, 335, 47, 360),
+                  stringsAsFactors = FALSE)
 cntreg(clprep(prechk(c01, "otis-c01-cnt"), "otis-c01-cnt"))
 bad <- c01[-3]
 bad$Gender[2] <- "Unknown"
@@ -461,13 +465,15 @@ simulated):
 adm <- data.frame(year = rep(2022:2023, each = 4),
                   sex = rep(c("F", "M"), 4),
                   unit = rep(c("North", "North", "South", "South"), 2),
-                  admissions = c(12, 140, 9, 122, 15, 151, 11, 118))
+                  admissions = c(12, 140, 9, 122, 15, 151, 11, 118),
+                  stringsAsFactors = FALSE)
 own <- data.frame(preset = "ns-cnt", generic = "cntreg",
                   arg = c("y", "grp", "adj", "adj"),
                   column = c("admissions", "sex", "unit", "year"),
                   recode = c("", "f=1;m=0", "fac", "fac"),
-                  units = c("admissions", "", "", ""))
-codes <- data.frame(column = "unit", value = c("North", "South"))
+                  units = c("admissions", "", "", ""), stringsAsFactors = FALSE)
+codes <- data.frame(column = "unit", value = c("North", "South"),
+                    stringsAsFactors = FALSE)
 cntreg(clprep(prechk(adm, own, codes), own))
 ```
 

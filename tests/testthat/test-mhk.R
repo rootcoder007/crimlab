@@ -63,7 +63,8 @@ test_that("ETAS: the direct sum, optim()'s maximum, the Lomax process", {
 test_that("multivariate: the direct sum, one type, optim()'s maximum", {
   a <- hwksim(c(log(0.3), 0.3, 1), 200, seed = 1)
   b <- hwksim(c(log(0.2), 0.4, 1), 200, seed = 2)
-  d <- rbind(data.frame(t = a$t, type = "a"), data.frame(t = b$t, type = "b"))
+  d <- rbind(data.frame(t = a$t, type = "a", stringsAsFactors = FALSE),
+             data.frame(t = b$t, type = "b", stringsAsFactors = FALSE))
   d <- d[order(d$t), ]
   f <- mvhwk(d$t, d$type, 200)
   ty <- match(d$type, c("a", "b"))

@@ -18,7 +18,8 @@ test_that("a baseline rate outside the band is refused unless declared", {
 
 test_that("the burden of each area, worst first, with its columns' names", {
   t <- data.frame(fsa = c("A1", "B2"), exposure = c(18, 28),
-                  population = c(60000, 40000), brate = 0.008)
+                  population = c(60000, 40000), brate = 0.008,
+                  stringsAsFactors = FALSE)
   r <- polbrdarea(t)
   expect_s3_class(r, "polbrdarea")
   expect_identical(r$fsa, c("B2", "A1"))

@@ -92,7 +92,8 @@ test_that("aggregation, distinct ids, the diagonal and empty rows", {
     r = c("A", "A", "B", "B", "B"),
     c = c("F", "M", "F", "F", "M"),
     n = c(3, 4, 5, 6, 7),
-    id = c(1, 2, 1, 1, 3)
+    id = c(1, 2, 1, 1, 3),
+    stringsAsFactors = FALSE
   )
   expect_identical(unname(ctabx(d$r, d$c, d$n)$tab), matrix(c(3, 11, 4, 7), 2))
   expect_identical(

@@ -131,7 +131,8 @@ test_that("rgnmapalt accepts the route as a data frame", {
 
 
 test_that("the results print and refuse what they cannot read", {
-  cw <- data.frame(inst = c("A", "B"), cd = c("1", "2"))
+  cw <- data.frame(inst = c("A", "B"), cd = c("1", "2"),
+                   stringsAsFactors = FALSE)
   expect_s3_class(rgnmapintg(cw, "inst", "cd"), "rgnmapintg")
   expect_output(print(rgnmapintg(cw, "inst", "cd")), "every check passed")
   expect_output(print(rgnmapintg(rbind(cw, cw), "inst", "cd")), "1 of 2")
@@ -146,8 +147,9 @@ test_that("the results print and refuse what they cannot read", {
 })
 
 test_that("rgnmapcmp names a unit found only in the recomputed map", {
-  pub <- data.frame(inst = "North", cd = "1")
-  obs <- data.frame(inst = c("North", "South"), cd = c("1", "2"))
+  pub <- data.frame(inst = "North", cd = "1", stringsAsFactors = FALSE)
+  obs <- data.frame(inst = c("North", "South"), cd = c("1", "2"),
+                    stringsAsFactors = FALSE)
   r <- rgnmapcmp(pub, obs, "inst")
   expect_identical(r$first[r$column == "rows"], "recomputed only: South")
   expect_identical(r$mismatched[r$column == "rows"], 1L)

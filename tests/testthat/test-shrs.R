@@ -2,7 +2,8 @@
 # by rmoriebricklayer 1.1.1's shrs() on the same simulated tables.
 
 s <- data.frame(division = c("North", "South", "East", "North", "East"),
-                yr = c(1, 1, 1, 2, 2), stops = c(412, 77, 3, 20, NA))
+                yr = c(1, 1, 1, 2, 2), stops = c(412, 77, 3, 20, NA),
+                stringsAsFactors = FALSE)
 
 test_that("the shares and intervals equal rmoriebricklayer's", {
   a <- shrs(s, stops, by = c("division", "yr"))
@@ -39,9 +40,10 @@ test_that("the ends are exact and the shares of a full grouping sum to 100", {
 })
 
 test_that("the refusals are those of rmoriebricklayer", {
-  d <- data.frame(n = c(1, 2), g = c("a", "b"))
+  d <- data.frame(n = c(1, 2), g = c("a", "b"), stringsAsFactors = FALSE)
   expect_error(shrs(d, count = "n", by = "zz"), "`by` column not found: zz")
-  expect_error(shrs(data.frame(n = c("a", "b")), count = "n"),
+  expect_error(shrs(data.frame(n = c("a", "b"),
+                               stringsAsFactors = FALSE), count = "n"),
                "`n` must be numeric")
   expect_error(shrs(d, count = "n", total = 0), "the total must be positive")
   expect_error(shrs(d, count = "nn"), "`count` column not found: nn")

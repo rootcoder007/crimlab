@@ -22,7 +22,8 @@ pin <- list(
     age = rep(c("y", "m", "o"), 2),
     grp = rep(c("A", "B"), each = 3),
     x = c(30, 22, 5, 41, 30, 12),
-    n = c(5000, 9000, 6000, 3000, 8000, 7000)
+    n = c(5000, 9000, 6000, 3000, 8000, 7000),
+    stringsAsFactors = FALSE
   ),
   chg = data.frame(
     year = c(2020, 2021),
@@ -38,7 +39,8 @@ pin <- list(
       rep(c(1, 0), c(8, 32)),
       rep(c(1, 0), c(10, 15)),
       rep(c(1, 0), c(3, 12))
-    )
+    ),
+    stringsAsFactors = FALSE
   ),
   siu = data.frame(
     police_service = rep(c("North PS", "Lake PS"), c(7, 5)),
@@ -55,7 +57,8 @@ pin <- list(
       FALSE,
       FALSE,
       TRUE
-    )
+    ),
+    stringsAsFactors = FALSE
   )
 )
 
@@ -236,7 +239,8 @@ pin <- c(pin, local({
   )
   siuy <- data.frame(
     date_of_incident_iso = sprintf("%d-03-01", sample(2018:2022, 120, TRUE)),
-    charges_recommended = sample(c(TRUE, FALSE), 120, TRUE, c(0.3, 0.7))
+    charges_recommended = sample(c(TRUE, FALSE), 120, TRUE, c(0.3, 0.7)),
+    stringsAsFactors = FALSE
   )
   siuo <- data.frame(
     police_service = sample(c("North PS", "Lake PS", "City PS"), 90, TRUE),

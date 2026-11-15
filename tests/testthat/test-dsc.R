@@ -28,7 +28,8 @@ test_that("inlhist() draws the reference sketches", {
 })
 
 test_that("freqtbl() counts as the reference does", {
-  df <- data.frame(grade = c("a", "b", "b", "c", NA, "b"))
+  df <- data.frame(grade = c("a", "b", "b", "c", NA, "b"),
+                   stringsAsFactors = FALSE)
   f1 <- freqtbl(df, "grade")
   expect_s3_class(f1, "freqtbl")
   expect_named(f1, c("value", "n", "pct", "pctvalid"))
@@ -83,7 +84,8 @@ test_that("cortbl() and topcors() give the reference correlations", {
 
 test_that("drpempty() and drpconst() drop what the reference drops", {
   de <- data.frame(keep = c(1, 2, NA), allna = c(NA, NA, NA),
-                   constant = c(7, 7, 7), s = c("x", NA, "y"))
+                   constant = c(7, 7, 7), s = c("x", NA, "y"),
+                   stringsAsFactors = FALSE)
   e1 <- drpempty(de, quiet = TRUE)
   expect_equal(cols(e1), dsref$de1, tolerance = testthat_tolerance())
   expect_identical(attr(e1, "dropped"), "allna")
@@ -225,7 +227,8 @@ test_that("mcartst() gives the reference statistics", {
 
 test_that("duprows() groups the reference duplicates", {
   dr <- data.frame(id = c(1, 2, 2, 3, 3, 3, NA, NA),
-                   value = c("a", "b", "b", "c", "d", "c", "e", "e"))
+                   value = c("a", "b", "b", "c", "d", "c", "e", "e"),
+                   stringsAsFactors = FALSE)
   d1 <- duprows(dr, quiet = TRUE)
   expect_named(d1, c("id", "value", "dupe_count"))
   expect_equal(cols(d1), dsref$dr1, tolerance = testthat_tolerance())
@@ -258,7 +261,7 @@ test_that("profcols() profiles as the reference does", {
 test_that("dstntst() gives the reference test", {
   own <- data.frame(group = c("Aboriginal", "Torres Strait Islander", "Both"),
                     est = c(24.0, 31.0, 24.6), lo = c(22.1, 26.2, 22.8),
-                    hi = c(25.9, 35.8, 26.4))
+                    hi = c(25.9, 35.8, 26.4), stringsAsFactors = FALSE)
   d1 <- dstntst(own, "group", "est", "lo", "hi", pooled = "Both")
   expect_s3_class(d1, "dstntst")
   expect_named(
@@ -274,7 +277,8 @@ test_that("dstntst() gives the reference test", {
   div <- data.frame(
     division = c("North", "Central", "South", "Total, all divisions"),
     rate = c(4.1, 5.3, 4.4, 4.6), lo = c(3.6, 4.7, 3.9, 4.3),
-    hi = c(4.6, 5.9, 4.9, 4.9), q = c("", "E", "ok", NA)
+    hi = c(4.6, 5.9, 4.9, 4.9), q = c("", "E", "ok", NA),
+    stringsAsFactors = FALSE
   )
   d2 <- dstntst(div, "division", "rate", "lo", "hi", qual = "q",
                 conflvl = 0.9)
@@ -414,7 +418,7 @@ test_that("the notes and printed forms say what was done", {
   )
   expect_message(clncolnms(c("a", "b")),
                  "-- Column names cleaned\n   no name changed", fixed = TRUE)
-  f1 <- freqtbl(data.frame(g = c("a", "b", "b")), "g")
+  f1 <- freqtbl(data.frame(g = c("a", "b", "b"), stringsAsFactors = FALSE), "g")
   # a subset of the columns prints as a plain table
   expect_identical(capture.output(print(f1[, c("pct", "pctvalid")])),
                    c("      pct pctvalid", " 66.66667 66.66667",
@@ -564,7 +568,7 @@ test_that("profiles hold for constant and overflowing columns", {
 test_that("dstntst() refuses and warns in its own words", {
   g <- data.frame(group = c("A", "B", "C"), est = c(1, 2, 3),
                   lo = c(0.5, 1.5, 2.5), hi = c(1.5, 2.5, 3.5),
-                  q = c("ok", "Z", "E"))
+                  q = c("ok", "Z", "E"), stringsAsFactors = FALSE)
   ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
   ef(dstntst(g, " ", "est", "lo", "hi"),
      "dstntst: `grp` must be a single non-empty string.")

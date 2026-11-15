@@ -3,7 +3,7 @@
 svdata <- function(seed = 1) {
   set.seed(seed)
   d <- data.frame(region = rep(c("n", "s", "e"), each = 60),
-                  block = rep(1:18, each = 10))
+                  block = rep(1:18, each = 10), stringsAsFactors = FALSE)
   d$v <- rbinom(180, 1, 0.3)
   d$y <- rpois(180, 3)
   d$x <- rpois(180, 5) + 1

@@ -32,7 +32,8 @@ test_that("indgap gives the source package's values", {
       e = c(31.2, 27.5, 30.8, 18.9),
       lo = c(28, 15, 28.5, 18.4),
       hi = c(34, 40, 33, 19.4),
-      q = c("", "E", "", "")
+      q = c("", "E", "", ""),
+      stringsAsFactors = FALSE
     ),
     "g",
     "e",
@@ -126,7 +127,8 @@ test_that("mhcont gives the source package's values", {
       i = rep(c("Hope", "Mean", "Belong"), 2),
       p = c(64, 70, 51, 58, 75, 49),
       lo = c(59, 65, 47, 52, 70, 44),
-      hi = c(69, 75, 55, 64, 80, 54)
+      hi = c(69, 75, 55, 64, 80, 54),
+      stringsAsFactors = FALSE
     ),
     "c",
     "i",
@@ -234,7 +236,8 @@ test_that("healchg gives the source package's values", {
       est = c(50, 55, 20, 18, 40, 41, 30, 35),
       lo = c(46, 51, 18, 16, 36, 37, 27, 32),
       hi = c(54, 59, 22, 20, 44, 45, 33, 38),
-      q = c("", "", "", "", "", "F", "", "E")
+      q = c("", "", "", "", "", "F", "", "E"),
+      stringsAsFactors = FALSE
     ),
     "g",
     "ind",
@@ -265,7 +268,8 @@ test_that("commidx gives the source package's values", {
       i = rep(c("Lang", "Doc", "Food"), 2),
       p = c(38, 72, 21, 25, 64, 30),
       lo = c(33, 67, 17, 20, 58, 25),
-      hi = c(43, 77, 25, 30, 70, 35)
+      hi = c(43, 77, 25, 30, 70, 35),
+      stringsAsFactors = FALSE
     ),
     "c",
     "i",
@@ -291,7 +295,8 @@ test_that("ordcmp gives the source package's values", {
       r = rep(c("Poor", "Fair", "Good", "Excellent"), 3),
       p = c(10, 25, 40, 25, 6, 20, 44, 30, 12, 30, 38, 20),
       lo = c(7, 21, 35, 21, 5, 18, 42, 28, 9, 26, 33, 16),
-      hi = c(13, 29, 45, 29, 7, 22, 46, 32, 15, 34, 43, 24)
+      hi = c(13, 29, 45, 29, 7, 22, 46, 32, 15, 34, 43, 24),
+      stringsAsFactors = FALSE
     ),
     "g",
     "r",
@@ -340,7 +345,8 @@ test_that("welprof gives the source package's values", {
       i = rep(c("Hope", "Sat", "Rare", "Low"), 2),
       p = c(64, 71, 12, 18, 58, 66, 16, 22),
       lo = c(59, 66, 9, 14, 52, 60, 12, 17),
-      hi = c(69, 76, 15, 22, 64, 72, 20, 27)
+      hi = c(69, 76, 15, 22, 64, 72, 20, 27),
+      stringsAsFactors = FALSE
     ),
     "c",
     "i",
@@ -366,7 +372,8 @@ test_that("holbal gives the source package's values", {
       d = rep(c("body", "mind", "spirit", "family"), 2),
       p = c(62, 58, 70, 75, 55, 61, 66, 80),
       lo = c(57, 53, 65, 70, 49, 55, 60, 75),
-      hi = c(67, 63, 75, 80, 61, 67, 72, 85)
+      hi = c(67, 63, 75, 80, 61, 67, 72, 85),
+      stringsAsFactors = FALSE
     ),
     "c",
     "d",
@@ -397,7 +404,8 @@ test_that("dualcont gives the source package's values", {
         i = rep(c("Hope", "Rare"), 2),
         p = c(64, 12, 58, 16),
         lo = c(59, 9, 52, 12),
-        hi = c(69, 15, 64, 20)
+        hi = c(69, 15, 64, 20),
+        stringsAsFactors = FALSE
       ),
       "c",
       "i",
@@ -440,7 +448,8 @@ test_that("scests gives the source package's values", {
       2
     ),
     VALUE = c(47.1, 45.2, 49, 2, 50.3, 48.1, 52.5, 2.2),
-    STATUS = ""
+    STATUS = "",
+    stringsAsFactors = FALSE
   )))
   want <- list(
     c(47.100000000000001, 50.299999999999997),
@@ -460,7 +469,8 @@ test_that("scestscv gives the source package's values", {
       "Standard error of count"
     ),
     VALUE = c(12.5, 8, 400, 30),
-    STATUS = ""
+    STATUS = "",
+    stringsAsFactors = FALSE
   )))
   want <- list(
     c(12.5, 400),

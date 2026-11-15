@@ -51,7 +51,8 @@ test_that("mndla() applies Rules 43 and 44, alerts, eligibility and contact", {
     c(5, 16, 20, 3),
     alert = data.frame(
       mh = c("Yes", "no", "No", " yes "),
-      sr = c(TRUE, FALSE, FALSE, FALSE)
+      sr = c(TRUE, FALSE, FALSE, FALSE),
+      stringsAsFactors = FALSE
     )
   )
   expect_identical(a$alerts, c(2L, 0L, 0L, 1L))

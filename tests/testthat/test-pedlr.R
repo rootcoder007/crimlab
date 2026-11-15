@@ -5,14 +5,16 @@
 frq <- data.frame(
   locus = rep(c("A", "B"), c(4, 3)),
   allele = c(10, 11, 12, 13, 7, 8, 9),
-  freq = c(0.1, 0.2, 0.3, 0.4, 0.25, 0.5, 0.25)
+  freq = c(0.1, 0.2, 0.3, 0.4, 0.25, 0.5, 0.25),
+  stringsAsFactors = FALSE
 )
 gt <- function(id, a1, a2) {
   data.frame(
     id = rep(id, each = 2),
     locus = rep(c("A", "B"), length(id)),
     a1 = a1,
-    a2 = a2
+    a2 = a2,
+    stringsAsFactors = FALSE
   )
 }
 mat <- function(g, who) {
@@ -32,22 +34,26 @@ test_that("pedlr() equals kinidx() for parents, siblings, halves, cousins", {
     parent = data.frame(
       id = c("x", "y", "m"),
       fid = c(NA, "x", NA),
-      mid = c(NA, "m", NA)
+      mid = c(NA, "m", NA),
+      stringsAsFactors = FALSE
     ),
     sibling = data.frame(
       id = c("f", "m", "x", "y"),
       fid = c(NA, NA, "f", "f"),
-      mid = c(NA, NA, "m", "m")
+      mid = c(NA, NA, "m", "m"),
+      stringsAsFactors = FALSE
     ),
     half = data.frame(
       id = c("f", "m1", "m2", "x", "y"),
       fid = c(NA, NA, NA, "f", "f"),
-      mid = c(NA, NA, NA, "m1", "m2")
+      mid = c(NA, NA, NA, "m1", "m2"),
+      stringsAsFactors = FALSE
     ),
     cousin = data.frame(
       id = c("gf", "gm", "a", "b", "sa", "sb", "x", "y"),
       fid = c(NA, NA, "gf", "gf", NA, NA, "a", "sb"),
-      mid = c(NA, NA, "gm", "gm", NA, NA, "sa", "b")
+      mid = c(NA, NA, "gm", "gm", NA, NA, "sa", "b"),
+      stringsAsFactors = FALSE
     )
   )
   for (rel in names(peds)) {
@@ -63,12 +69,14 @@ test_that("pedlr() equals patidx() for a trio", {
   trio <- data.frame(
     id = c("af", "m", "c"),
     fid = c(NA, NA, "af"),
-    mid = c(NA, NA, "m")
+    mid = c(NA, NA, "m"),
+    stringsAsFactors = FALSE
   )
   alt <- data.frame(
     id = c("af", "m", "c", "u"),
     fid = c(NA, NA, "u", NA),
-    mid = c(NA, NA, "m", NA)
+    mid = c(NA, NA, "m", NA),
+    stringsAsFactors = FALSE
   )
   r <- pedlr(trio, g, frq, alt)
   k <- patidx(
@@ -123,17 +131,20 @@ brute <- function(ped, typed, p, m) {
 
 test_that("pedlr() equals the enumeration of every allele, with mutation", {
   p <- c(0.2, 0.3, 0.5)
-  f3 <- data.frame(locus = "L", allele = c(14, 15, 16), freq = p)
+  f3 <- data.frame(locus = "L", allele = c(14, 15, 16), freq = p,
+                   stringsAsFactors = FALSE)
   ped <- data.frame(
     id = c("g", "h", "p", "s", "c"),
     fid = c(NA, NA, "g", NA, "p"),
-    mid = c(NA, NA, "h", NA, "s")
+    mid = c(NA, NA, "h", NA, "s"),
+    stringsAsFactors = FALSE
   )
   geno <- data.frame(
     id = c("g", "c"),
     locus = "L",
     a1 = c(14, 16),
-    a2 = c(15, 16)
+    a2 = c(15, 16),
+    stringsAsFactors = FALSE
   )
   w <- 0.4^abs(outer(14:16, 14:16, "-"))
   diag(w) <- 0
@@ -154,7 +165,8 @@ test_that("pedlr() equals the enumeration of every allele, with mutation", {
   pc <- data.frame(
     id = c("g", "s", "c"),
     fid = c(NA, NA, "g"),
-    mid = c(NA, NA, "s")
+    mid = c(NA, NA, "s"),
+    stringsAsFactors = FALSE
   )
   expect_identical(pedlr(pc, geno, f3)$lr, 0)
   expect_gt(pedlr(pc, geno, f3, mut = "equal")$lr, 0)
@@ -170,9 +182,11 @@ test_that("pedlr() agrees with pedprobr's likelihoods", {
       id = x$geno$id,
       locus = "L",
       a1 = x$geno$a1,
-      a2 = x$geno$a2
+      a2 = x$geno$a2,
+      stringsAsFactors = FALSE
     )
-    freq <- data.frame(locus = "L", allele = x$freq$allele, freq = x$freq$freq)
+    freq <- data.frame(locus = "L", allele = x$freq$allele, freq = x$freq$freq,
+                       stringsAsFactors = FALSE)
     r <- pedlr(x$ped, geno, freq, mut = x$mut, rate = x$rate, range = x$range)
     expect_equal(10^r$locus$l1, x$lik, tolerance = 1e-12, info = k)
   }
@@ -182,15 +196,18 @@ test_that("pedlr() takes sex-specific rates and lumps the alleles not listed", {
   ped <- data.frame(
     id = c("f", "m", "c"),
     fid = c(NA, NA, "f"),
-    mid = c(NA, NA, "m")
+    mid = c(NA, NA, "m"),
+    stringsAsFactors = FALSE
   )
   geno <- data.frame(
     id = c("f", "m", "c"),
     locus = "L",
     a1 = c(1, 3, 2),
-    a2 = c(1, 3, 3)
+    a2 = c(1, 3, 3),
+    stringsAsFactors = FALSE
   )
-  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.4))
+  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.4),
+                   stringsAsFactors = FALSE)
   # the father's 1 mutates (paternal rate 0.02, split over 2, 3 and the
   # rest) to 2 while the mother passes 3, or to 3 while her 3 mutates to 2
   # (maternal rate 0.004)
@@ -202,19 +219,24 @@ test_that("pedlr() takes sex-specific rates and lumps the alleles not listed", {
 })
 
 test_that("pedlr() prints and refuses bad input", {
-  ped <- data.frame(id = c("f", "c"), fid = c(NA, "f"), mid = c(NA, "m"))
+  ped <- data.frame(id = c("f", "c"), fid = c(NA, "f"), mid = c(NA, "m"),
+                    stringsAsFactors = FALSE)
   ok <- data.frame(
     id = c("f", "m", "c"),
     fid = c(NA, NA, "f"),
-    mid = c(NA, NA, "m")
+    mid = c(NA, NA, "m"),
+    stringsAsFactors = FALSE
   )
-  geno <- data.frame(id = c("f", "c"), locus = "L", a1 = c(1, 1), a2 = c(2, 3))
-  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5))
+  geno <- data.frame(id = c("f", "c"), locus = "L", a1 = c(1, 1), a2 = c(2, 3),
+                     stringsAsFactors = FALSE)
+  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5),
+                   stringsAsFactors = FALSE)
   expect_output(print(pedlr(ok, geno, fr)), "pedlr: 1 markers")
   cyc <- data.frame(
     id = c("a", "b", "c"),
     fid = c(NA, "c", "b"),
-    mid = c(NA, "a", "a")
+    mid = c(NA, "a", "a"),
+    stringsAsFactors = FALSE
   )
   errs(
     "pedlr",
@@ -270,7 +292,8 @@ test_that("pedlr() prints and refuses bad input", {
       list(
         "cycle",
         ped = cyc,
-        geno = data.frame(id = "a", locus = "L", a1 = 1, a2 = 1),
+        geno = data.frame(id = "a", locus = "L", a1 = 1, a2 = 1,
+                          stringsAsFactors = FALSE),
         freq = fr
       ),
       list(
@@ -278,7 +301,8 @@ test_that("pedlr() prints and refuses bad input", {
         ped = data.frame(
           id = c("a", "b", "c", "d"),
           fid = c(NA, NA, "a", "c"),
-          mid = c(NA, NA, "b", "a")
+          mid = c(NA, NA, "b", "a"),
+          stringsAsFactors = FALSE
         ),
         geno = geno[0, ],
         freq = fr
@@ -329,10 +353,11 @@ test_that("pedlr() prints and refuses bad input", {
 
 test_that("pedlr() refuses each malformed table in its own words", {
   ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
-                   mid = c(NA, NA, "m"))
+                   mid = c(NA, NA, "m"), stringsAsFactors = FALSE)
   geno <- data.frame(id = c("f", "c"), locus = "L", a1 = c(1, 1),
-                     a2 = c(2, 3))
-  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5))
+                     a2 = c(2, 3), stringsAsFactors = FALSE)
+  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5),
+                   stringsAsFactors = FALSE)
   ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
   ef(pedlr(transform(ok, id = c("f", NA, "c")), geno, fr),
      "pedlr: `ped` has an id that is missing.")
@@ -343,7 +368,7 @@ test_that("pedlr() refuses each malformed table in its own words", {
   ef(pedlr(ok, rbind(geno, geno[1, ]), fr),
      "pedlr: `geno` gives f twice at locus L.")
   ef(pedlr(ok, geno, fr, alt = data.frame(id = c("f", "x"), fid = NA,
-                                          mid = NA)),
+                                          mid = NA, stringsAsFactors = FALSE)),
      "pedlr: `geno`: the id c is not in `alt`.")
   ef(pedlr(ok, geno, transform(fr, locus = c("L", NA, "L"))),
      "pedlr: `freq` has a missing locus or allele.")
@@ -355,17 +380,20 @@ test_that("pedlr() refuses each malformed table in its own words", {
      "pedlr: `geno` has the locus Q, which `freq` does not list.")
   # nobody typed at any locus, with both pedigrees given
   ef(pedlr(ok, transform(geno, a1 = NA, a2 = NA), fr,
-           alt = data.frame(id = c("f", "c"), fid = NA, mid = NA)),
+           alt = data.frame(id = c("f", "c"), fid = NA, mid = NA,
+                            stringsAsFactors = FALSE)),
      "pedlr: `geno` must type someone.")
 })
 
 test_that("a locus of one allele cannot mutate", {
   ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
-                   mid = c(NA, NA, "m"))
+                   mid = c(NA, NA, "m"), stringsAsFactors = FALSE)
   # every allele is that one: the mutation matrix is the identity, and
   # both pedigrees have likelihood 1
-  r <- pedlr(ok, data.frame(id = c("f", "c"), locus = "S", a1 = 5, a2 = 5),
-             data.frame(locus = "S", allele = 5, freq = 1), mut = "equal")
+  r <- pedlr(ok, data.frame(id = c("f", "c"), locus = "S", a1 = 5, a2 = 5,
+                            stringsAsFactors = FALSE),
+             data.frame(locus = "S", allele = 5, freq = 1,
+                        stringsAsFactors = FALSE), mut = "equal")
   expect_identical(unlist(r$locus[1, c("l1", "l2", "lr")]),
                    c(l1 = 0, l2 = 0, lr = 1))
 })
@@ -375,9 +403,12 @@ test_that("a pedigree whose tables exceed the bound is refused", {
   # an allele needs a table of four alleles, 1e8 cells, past 2^26
   lp <- data.frame(id = letters[1:8],
                    fid = c(NA, NA, NA, "a", "a", NA, "d", "d"),
-                   mid = c(NA, NA, NA, "b", "c", NA, "e", "f"))
-  big <- data.frame(locus = "B", allele = 1:100, freq = 0.01)
-  gb <- data.frame(id = c("g", "h"), locus = "B", a1 = c(1, 2), a2 = c(2, 3))
+                   mid = c(NA, NA, NA, "b", "c", NA, "e", "f"),
+                   stringsAsFactors = FALSE)
+  big <- data.frame(locus = "B", allele = 1:100, freq = 0.01,
+                    stringsAsFactors = FALSE)
+  gb <- data.frame(id = c("g", "h"), locus = "B", a1 = c(1, 2), a2 = c(2, 3),
+                   stringsAsFactors = FALSE)
   expect_error(
     pedlr(lp, gb, big),
     "pedlr: the pedigrees are too large for exact computation at locus B.",
@@ -391,26 +422,31 @@ test_that("a table too large to build is refused before it is built", {
   # bound is checked before the table (and with mut = "none" no mutation
   # matrix of 2000^2) is made, so this allocates nothing large
   p3 <- data.frame(id = c("f", "m", "c", "u"), fid = c(NA, NA, "f", NA),
-                   mid = c(NA, NA, "m", NA))
-  g <- data.frame(id = "u", locus = "W", a1 = 1, a2 = 2)
-  w <- data.frame(locus = "W", allele = 1:2000, freq = 1 / 2000)
+                   mid = c(NA, NA, "m", NA), stringsAsFactors = FALSE)
+  g <- data.frame(id = "u", locus = "W", a1 = 1, a2 = 2,
+                  stringsAsFactors = FALSE)
+  w <- data.frame(locus = "W", allele = 1:2000, freq = 1 / 2000,
+                  stringsAsFactors = FALSE)
   msg <- "pedlr: the pedigrees are too large for exact computation at locus W."
   expect_error(pedlr(p3, g, w), msg, fixed = TRUE)
   # a typed trio needs small tables, but a mutation matrix at 9000
   # alleles would hold 8.1e7 cells: refused before it is made
-  w9 <- data.frame(locus = "W", allele = 1:9000, freq = 1 / 9000)
+  w9 <- data.frame(locus = "W", allele = 1:9000, freq = 1 / 9000,
+                   stringsAsFactors = FALSE)
   t3 <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
-                   mid = c(NA, NA, "m"))
-  g3 <- data.frame(id = c("f", "m", "c"), locus = "W", a1 = 1, a2 = 2)
+                   mid = c(NA, NA, "m"), stringsAsFactors = FALSE)
+  g3 <- data.frame(id = c("f", "m", "c"), locus = "W", a1 = 1, a2 = 2,
+                   stringsAsFactors = FALSE)
   expect_error(pedlr(t3, g3, w9, mut = "equal"), msg, fixed = TRUE)
 })
 
 test_that("the pedigree binding refuses columns, alt and mut it cannot use", {
   ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
-                   mid = c(NA, NA, "m"))
+                   mid = c(NA, NA, "m"), stringsAsFactors = FALSE)
   geno <- data.frame(id = c("f", "c"), locus = "L", a1 = c(1, 1),
-                     a2 = c(2, 3))
-  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5))
+                     a2 = c(2, 3), stringsAsFactors = FALSE)
+  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5),
+                   stringsAsFactors = FALSE)
   ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
   ef(pedlr(ok, transform(geno, locus = as.Date("2024-01-01")), fr),
      "pedlr: `geno` must hold labels: text or numbers.")

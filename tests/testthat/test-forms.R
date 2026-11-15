@@ -312,7 +312,7 @@ test_that("vodtst takes one table of day and night columns, by name", {
   # a 2-d table from xtabs(), light in the columns
   x <- data.frame(g = c("white", "black", "white", "black"),
                   light = c("night", "night", "day", "day"),
-                  k = c(700, 300, 600, 400))
+                  k = c(700, 300, 600, 400), stringsAsFactors = FALSE)
   expect_identical(vodtst(stats::xtabs(k ~ g + light, x), ref = "white"),
                    byg(vodtst(d, n), c("black", "white")))
   # automatic row names: groups "1", "2"
@@ -324,7 +324,8 @@ test_that("vodtst takes one table of day and night columns, by name", {
   expect_error(vodtst(matrix(c("1", "2", "3", "4"), 2,
                              dimnames = list(NULL, c("day", "night")))),
                "`day` must be finite numbers, one per group")
-  expect_error(vodtst(data.frame(day = c("a", "b"), night = c(1, 2))),
+  expect_error(vodtst(data.frame(day = c("a", "b"), night = c(1, 2),
+                                 stringsAsFactors = FALSE)),
                "`day` must be finite numbers, one per group")
 })
 

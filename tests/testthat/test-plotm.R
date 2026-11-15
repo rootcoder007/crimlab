@@ -10,7 +10,7 @@ test_that("estimates with intervals", {
   pr <- data.frame(EndFiscalYear = rep(2020:2022, each = 2),
                    Gender = rep(c("Female", "Male"), 3),
                    NumberIndividuals_RestrictiveConfinement =
-                     c(40, 310, 52, 335, 47, 360))
+                     c(40, 310, 52, 335, 47, 360), stringsAsFactors = FALSE)
   cr <- cntreg(clprep(pr, "otis-c01-cnt"))
   pc <- drw(plot(cr))
   expect_identical(pc$est, cr$irr$irr)
@@ -18,7 +18,8 @@ test_that("estimates with intervals", {
   ds <- data.frame(age = rep(c("18-29", "30-49", "50+"), 2),
                    grp = rep(c("A", "B"), each = 3),
                    x = c(30, 22, 5, 41, 30, 12),
-                   n = c(5000, 9000, 6000, 3000, 8000, 7000))
+                   n = c(5000, 9000, 6000, 3000, 8000, 7000),
+                   stringsAsFactors = FALSE)
   r <- dastd(ds$x, ds$n, ds$age, ds$grp, std = c(30, 45, 25), per = 1e4)
   expect_identical(drw(plot(r))$est, r$rates$rate)
   g <- grprr(c(a = 120, b = 95, c = 30), c(a = 6e4, b = 2.1e4, c = 1.5e4))
@@ -32,7 +33,7 @@ test_that("estimates with intervals", {
   sv <- data.frame(region = rep(c("north", "south"), each = 60),
                    block = rep(1:12, each = 10),
                    victim = stats::rbinom(120, 1, 0.3),
-                   w = stats::runif(120, 50, 150))
+                   w = stats::runif(120, 50, 150), stringsAsFactors = FALSE)
   s <- svymx(sv$victim, sv$w, sv$region, sv$block, stat = "prop")
   expect_identical(drw(plot(s))$hi, s$est$hi)
   set.seed(6)
@@ -44,7 +45,8 @@ test_that("estimates with intervals", {
   td <- data.frame(grp = rep(c("a", "b"), 4), area = rep(1:4, each = 2),
                    stops = c(1200, 800, 900, 1100, 1500, 700, 1000, 1000),
                    srch = c(60, 70, 50, 95, 80, 66, 52, 90),
-                   hits = c(24, 18, 19, 25, 30, 17, 21, 24))
+                   hits = c(24, 18, 19, 25, 30, 17, 21, 24),
+                   stringsAsFactors = FALSE)
   th <- thrtst(td$stops, td$srch, td$hits, td$grp, area = td$area)
   expect_identical(drw(plot(th))$est, th$thr$thr)
   set.seed(10)
@@ -128,7 +130,8 @@ test_that("paths over time", {
               top = 0.1)
   expect_identical(drw(plot(hs))$hotshr, hs$periods$hotshr)
   yd <- data.frame(year = rep(2019:2023, 2), svc = rep(c("A", "B"), each = 5),
-                   n = c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33))
+                   n = c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33),
+                   stringsAsFactors = FALSE)
   yy <- yoypx(yd$n, yd$year, yd$svc, rnd = 5)
   py <- drw(plot(yy))
   expect_identical(py$pct, yy$pctchg[is.finite(yy$pctchg)])
@@ -221,27 +224,31 @@ test_that("bars", {
   expect_identical(drw(plot(cs))$value, cs$tab$idx)
   peaks <- data.frame(locus = rep(c("D3", "vWA"), c(4, 3)),
                       allele = c(14, 15, 16, 17, 16, 17, 18),
-                      height = c(1210, 380, 1150, 420, 1400, 1960, 610))
+                      height = c(1210, 380, 1150, 420, 1400, 1960, 610),
+                      stringsAsFactors = FALSE)
   freq <- data.frame(locus = rep(c("D3", "vWA"), c(5, 5)),
                      allele = c(13, 14, 15, 16, 17, 15, 16, 17, 18, 19),
                      freq = c(0.05, 0.1, 0.25, 0.25, 0.2,
-                              0.1, 0.2, 0.3, 0.2, 0.1))
+                              0.1, 0.2, 0.3, 0.2, 0.1),
+                     stringsAsFactors = FALSE)
   ref <- data.frame(id = rep(c("V", "S"), each = 2),
                     locus = rep(c("D3", "vWA"), 2),
-                    a1 = c(14, 16, 15, 17), a2 = c(16, 17, 17, 18))
+                    a1 = c(14, 16, 15, 17), a2 = c(16, 17, 17, 18),
+                    stringsAsFactors = FALSE)
   gm <- gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
   expect_identical(drw(plot(gm))$value, gm$locus$log10lr)
   trio <- data.frame(id = c("AF", "M", "C"), fid = c(NA, NA, "AF"),
-                     mid = c(NA, NA, "M"))
+                     mid = c(NA, NA, "M"), stringsAsFactors = FALSE)
   alt <- data.frame(id = c("AF", "M", "C", "X"), fid = c(NA, NA, "X", NA),
-                    mid = c(NA, NA, "M", NA))
+                    mid = c(NA, NA, "M", NA), stringsAsFactors = FALSE)
   geno <- data.frame(id = rep(c("AF", "M", "C"), 2),
                      locus = rep(c("D3", "vWA"), each = 3),
                      a1 = c(14, 15, 15, 16, 17, 17),
-                     a2 = c(16, 17, 16, 18, 17, 19))
+                     a2 = c(16, 17, 16, 18, 17, 19), stringsAsFactors = FALSE)
   pf <- data.frame(locus = rep(c("D3", "vWA"), c(4, 4)),
                    allele = c(14, 15, 16, 17, 16, 17, 18, 19),
-                   freq = c(0.1, 0.25, 0.25, 0.2, 0.2, 0.3, 0.2, 0.1))
+                   freq = c(0.1, 0.25, 0.25, 0.2, 0.2, 0.3, 0.2, 0.1),
+                   stringsAsFactors = FALSE)
   pe <- pedlr(trio, geno, pf, alt)
   expect_identical(drw(plot(pe))$value, log10(pe$locus$lr))
   pref <- rbind(c(1, 2, 3), c(2, 1, 3), c(3, 2, 1), c(3, 1, 2))
