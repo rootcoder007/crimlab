@@ -3,57 +3,6 @@
 # dose-response bins and effects by offence type. Each builds the columns
 # of its design and fits it with ppmlfe(), ivfe() or ppmlcf() (R/apx.R).
 
-# A Wald test of R b = 0: the statistic, its degrees of freedom and the
-# chi-square p-value.
-.axwald <- function(b, v, r) {
-  rb <- r %*% b
-  m <- r %*% v %*% t(r)
-  # a cluster-robust covariance has rank below the number of clusters, so
-  # it cannot test more restrictions than that: no statistic, not a wrong
-  # one from a matrix that is singular up to rounding
-  if (qr(m)$rank < nrow(r)) {
-    warning(
-      "the joint test of ", nrow(r), " restrictions is not computed: the ",
-      "covariance has rank ", qr(m)$rank, " (too few clusters for it).",
-      call. = FALSE
-    )
-    return(data.frame(stat = NA_real_, df = nrow(r), p = NA_real_))
-  }
-  w <- as.numeric(t(rb) %*% solve(m, rb))
-  data.frame(
-    stat = w,
-    df = nrow(r),
-    p = stats::pchisq(w, nrow(r), lower.tail = FALSE)
-  )
-}
-
-# The covariance of a fit: vcov, or from the bootstrap draws.
-.axvcov <- function(r) {
-  if (!is.null(r[["vcov"]])) return(r[["vcov"]])
-  stats::cov(r[["draws"]], use = "complete.obs")
-}
-
-# The row of term in a fit's coefficients, or an error.
-.axrow <- function(r, term, fn) {
-  cf <- r[["coef"]]
-  if (!is.data.frame(cf) || !term %in% cf[["term"]]) {
-    .ckstop(fn, "the estimator returned no coefficient for `%s`", term)
-  }
-  cf[cf[["term"]] == term, , drop = FALSE]
-}
-
-# Replace var by new names in the estimator's arguments x and endo, and
-# each instrument by its interactions (inst).
-.axrepl <- function(a, var, new, inst = NULL) {
-  for (k in c("x", "endo")) {
-    if (!is.null(a[[k]]) && var %in% a[[k]]) {
-      a[[k]] <- c(setdiff(a[[k]], var), new)
-    }
-  }
-  if (!is.null(inst)) a[["inst"]] <- inst
-  a
-}
-
 #' Smoke instruments from plume data
 #'
 #' Builds the wildfire-smoke instruments of the recent papers from a daily
@@ -704,31 +653,6 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   do.call(est, c(list(data = d, y = y, fe = ".strat"), a))
 }
 
-# A restricted cubic spline basis (Harrell): x and k - 2 cubic terms, with
-# knots t at quantiles of x.
-.axrcs <- function(x, t) {
-  k <- length(t)
-  if (k < 3L) return(matrix(x))
-  p <- function(u) pmax(u, 0)^3
-  m <- cbind(x, vapply(seq_len(k - 2L), function(j) {
-    (p(x - t[j]) - p(x - t[k - 1L]) * (t[k] - t[j]) / (t[k] - t[k - 1L]) +
-       p(x - t[k]) * (t[k - 1L] - t[j]) / (t[k] - t[k - 1L])) / (t[k] - t[1L])^2
-  }, numeric(length(x))))
-  unname(m)
-}
-
-.axknots <- function(x, k) {
-  pr <- switch(
-    as.character(k),
-    `3` = c(0.1, 0.5, 0.9),
-    `4` = c(0.05, 0.35, 0.65, 0.95),
-    `5` = c(0.05, 0.275, 0.5, 0.725, 0.95),
-    `6` = c(0.05, 0.23, 0.41, 0.59, 0.77, 0.95),
-    `7` = c(0.025, 0.1833, 0.3417, 0.5, 0.6583, 0.8167, 0.975)
-  )
-  as.numeric(stats::quantile(x, pr, names = FALSE))
-}
-
 #' Two exposures together: their interaction and the surface of effects
 #'
 #' Estimates how two exposures (heat and ozone, smoke and heat) act
@@ -1104,6 +1028,82 @@ print.typefx <- function(x, ...) {
   )
   print(x[["tab"]], row.names = FALSE, digits = 4)
   invisible(x)
+}
+
+# A Wald test of R b = 0: the statistic, its degrees of freedom and the
+# chi-square p-value.
+.axwald <- function(b, v, r) {
+  rb <- r %*% b
+  m <- r %*% v %*% t(r)
+  # a cluster-robust covariance has rank below the number of clusters, so
+  # it cannot test more restrictions than that: no statistic, not a wrong
+  # one from a matrix that is singular up to rounding
+  if (qr(m)$rank < nrow(r)) {
+    warning(
+      "the joint test of ", nrow(r), " restrictions is not computed: the ",
+      "covariance has rank ", qr(m)$rank, " (too few clusters for it).",
+      call. = FALSE
+    )
+    return(data.frame(stat = NA_real_, df = nrow(r), p = NA_real_))
+  }
+  w <- as.numeric(t(rb) %*% solve(m, rb))
+  data.frame(
+    stat = w,
+    df = nrow(r),
+    p = stats::pchisq(w, nrow(r), lower.tail = FALSE)
+  )
+}
+
+# The covariance of a fit: vcov, or from the bootstrap draws.
+.axvcov <- function(r) {
+  if (!is.null(r[["vcov"]])) return(r[["vcov"]])
+  stats::cov(r[["draws"]], use = "complete.obs")
+}
+
+# The row of term in a fit's coefficients, or an error.
+.axrow <- function(r, term, fn) {
+  cf <- r[["coef"]]
+  if (!is.data.frame(cf) || !term %in% cf[["term"]]) {
+    .ckstop(fn, "the estimator returned no coefficient for `%s`", term)
+  }
+  cf[cf[["term"]] == term, , drop = FALSE]
+}
+
+# Replace var by new names in the estimator's arguments x and endo, and
+# each instrument by its interactions (inst).
+.axrepl <- function(a, var, new, inst = NULL) {
+  for (k in c("x", "endo")) {
+    if (!is.null(a[[k]]) && var %in% a[[k]]) {
+      a[[k]] <- c(setdiff(a[[k]], var), new)
+    }
+  }
+  if (!is.null(inst)) a[["inst"]] <- inst
+  a
+}
+
+# A restricted cubic spline basis (Harrell): x and k - 2 cubic terms, with
+# knots t at quantiles of x.
+.axrcs <- function(x, t) {
+  k <- length(t)
+  if (k < 3L) return(matrix(x))
+  p <- function(u) pmax(u, 0)^3
+  m <- cbind(x, vapply(seq_len(k - 2L), function(j) {
+    (p(x - t[j]) - p(x - t[k - 1L]) * (t[k] - t[j]) / (t[k] - t[k - 1L]) +
+       p(x - t[k]) * (t[k - 1L] - t[j]) / (t[k] - t[k - 1L])) / (t[k] - t[1L])^2
+  }, numeric(length(x))))
+  unname(m)
+}
+
+.axknots <- function(x, k) {
+  pr <- switch(
+    as.character(k),
+    `3` = c(0.1, 0.5, 0.9),
+    `4` = c(0.05, 0.35, 0.65, 0.95),
+    `5` = c(0.05, 0.275, 0.5, 0.725, 0.95),
+    `6` = c(0.05, 0.23, 0.41, 0.59, 0.77, 0.95),
+    `7` = c(0.025, 0.1833, 0.3417, 0.5, 0.6583, 0.8167, 0.975)
+  )
+  as.numeric(stats::quantile(x, pr, names = FALSE))
 }
 
 # The background of Childs et al. (2022, equation 2): for each row, the

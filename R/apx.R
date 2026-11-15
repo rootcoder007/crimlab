@@ -4,390 +4,6 @@
 # Saberian (2019, 2021). The numerics are in src/apx.cpp and src/cnt.cpp;
 # these wrappers check the arguments and build the results.
 
-# A data frame argument.
-.axdat <- function(data, fn, what = "data") {
-  if (!is.data.frame(data)) {
-    .ckstop(fn, "`%s` must be a data frame, got %s", what, class(data)[1L])
-  }
-  if (!nrow(data)) .ckstop(fn, "`%s` has no rows", what)
-  data
-}
-
-# Column names: character, present in d, no missing values in them.
-.axcols <- function(d, cols, what, fn, n = NULL, null = FALSE) {
-  if (is.null(cols)) {
-    if (null) return(NULL)
-    .ckstop(fn, "`%s` must name columns of `data`, got NULL", what)
-  }
-  if (!is.character(cols) || anyNA(cols) || !length(cols)) {
-    .ckstop(fn, "`%s` must name columns of `data`", what)
-  }
-  if (!is.null(n) && !length(cols) %in% n) {
-    .ckstop(
-      fn,
-      "`%s` must name %s column(s)",
-      what,
-      paste(n, collapse = " or ")
-    )
-  }
-  miss <- setdiff(cols, names(d))
-  if (length(miss)) {
-    .ckstop(fn, "`%s` names columns not in `data`: %s", what,
-            toString(miss))
-  }
-  if (anyDuplicated(cols)) .ckstop(fn, "`%s` names a column twice", what)
-  for (k in cols) {
-    if (anyNA(d[[k]])) .ckstop(fn, "column `%s` has missing values", k)
-  }
-  cols
-}
-
-# Numeric columns as a matrix (n x 0 for none), finite.
-.axmat <- function(d, cols, fn) {
-  if (!length(cols)) return(matrix(numeric(0), nrow(d), 0L))
-  for (k in cols) {
-    v <- d[[k]]
-    if (!is.numeric(v) && !is.logical(v)) {
-      .ckstop(fn, "column `%s` must be numeric, got %s", k, class(v)[1L])
-    }
-    if (!all(is.finite(v))) .ckstop(fn, "column `%s` must be finite", k)
-  }
-  m <- matrix(as.numeric(unlist(d[cols], use.names = FALSE)), nrow(d))
-  colnames(m) <- cols
-  m
-}
-
-# Codes from 0 of a label column, in order of first appearance.
-.axcode <- function(v) {
-  if (is.factor(v)) v <- as.character(v)
-  u <- unique(v)
-  list(c = match(v, u) - 1L, n = length(u))
-}
-
-# The effects as codes: the first two columns, and any more as an n x m
-# integer matrix cx with their counts nx (NULL for none).
-.axfe <- function(d, fe) {
-  a <- .axcode(d[[fe[1L]]])
-  b <- if (length(fe) >= 2L) .axcode(d[[fe[2L]]]) else list(c = NULL, n = 0L)
-  cx <- nx <- NULL
-  if (length(fe) > 2L) {
-    m <- lapply(fe[-(1:2)], function(v) .axcode(d[[v]]))
-    cx <- matrix(as.integer(unlist(lapply(m, `[[`, "c"))), nrow(d))
-    nx <- vapply(m, `[[`, 1L, "n")
-  }
-  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, cx = cx, nx = nx)
-}
-
-# The rows kept by the separation of the effects: a group of any set
-# without counts goes (clab_fesep on the first two sets, then on each
-# further set alone; dropping zeros changes no other group's total).
-.axfesep <- function(y, f) {
-  k <- .Call(C_clab_r_fesep, y, f$c1, f$n1, f$c2, f$n2)
-  for (j in seq_along(f$nx)) {
-    k <- k & .Call(C_clab_r_fesep, y, f$cx[, j], f$nx[j], NULL, 0L)
-  }
-  k
-}
-
-# The clusters (one or two columns) as codes; refuses one cluster, warns
-# under ten, as didfe() does.
-.axcl <- function(d, clus, fn) {
-  a <- .axcode(d[[clus[1L]]])
-  b <- if (length(clus) == 2L) {
-    .axcode(d[[clus[2L]]])
-  } else {
-    list(c = NULL, n = 0L)
-  }
-  g <- c(a$n, if (length(clus) == 2L) b$n)
-  if (any(g < 2L)) {
-    .ckstop(fn, paste0("`clus` has one cluster: a cluster-robust variance ",
-                       "needs two or more"))
-  }
-  if (any(g < 10L)) {
-    warning(fn, ": fewer than ten clusters; cluster-robust errors are ",
-            "unreliable with so few (wcbx() is made for this case).",
-            call. = FALSE)
-  }
-  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, g = g)
-}
-
-.axlevel <- function(level, fn) {
-  if (!is.numeric(level) || length(level) != 1L || !is.finite(level) ||
-        level <= 0 || level >= 1) {
-    .ckstop(fn, "`level` must be one number strictly between 0 and 1")
-  }
-  level
-}
-
-# The coefficient table: est, se, stat, p and the interval; t on df
-# degrees of freedom, or the normal when df is NULL.
-.axtab <- function(term, est, se, level, df = NULL) {
-  st <- est / se
-  if (is.null(df)) {
-    q <- stats::qnorm(0.5 + level / 2)
-    p <- 2 * stats::pnorm(-abs(st))
-  } else {
-    q <- stats::qt(0.5 + level / 2, df)
-    p <- 2 * stats::pt(-abs(st), df)
-  }
-  data.frame(term = term, est = est, se = se, stat = st, p = p,
-             lo = est - q * se, hi = est + q * se, row.names = NULL)
-}
-
-# The rows kept after separation by the effects, with a warning naming
-# how many rows and groups went.
-.axsep <- function(y, d, fe, fn) {
-  k <- .axfesep(y, .axfe(d, fe))
-  if (!any(k)) .ckstop(fn, "every group of the fixed effects has no counts")
-  if (!all(k)) {
-    warning(fn, ": ", sum(!k), " row(s) dropped: a group of `",
-            paste(fe, collapse = "` or `"), "` with no counts at all ",
-            "(its effect would be minus infinity; it carries nothing for the ",
-            "other coefficients).", call. = FALSE)
-  }
-  k
-}
-
-# The regressors to drop by the check of Santos Silva and Tenreyro (2010,
-# p. 311, steps 1 and 2): those that are linear combinations of the
-# others (after the effects) on the rows with positive counts, found as
-# least squares finds them, in order (qr() with its default tolerance on
-# the regressors demeaned by the effects on those rows).
-#
-# The effects are regressors too. One they absorb on those rows (it is
-# the same within each place there, or a place part plus a day part) is
-# left by the demeaning as rounding noise, and qr() judges a column
-# against its own size, so it would keep the noise as a column of full
-# rank. Such a column is set to zero first: what is left of it is below
-# qr()'s own tolerance, 1e-7, of its spread before the demeaning.
-.axsst <- function(d, yv, x, fe, tol, fn) {
-  pos <- yv > 0
-  dp <- d[pos, , drop = FALSE]
-  fx <- .axfe(dp, fe)
-  x0 <- .axmat(dp, x, fn)
-  m <- .Call(C_clab_r_demean, x0, fx$c1, fx$n1, fx$c2,
-             fx$n2, fx$cx, fx$nx, tol)
-  s0 <- sqrt(colSums(sweep(x0, 2L, colMeans(x0))^2))
-  m[, sqrt(colSums(m^2)) <= 1e-7 * s0] <- 0
-  q <- qr(m)
-  if (q$rank == length(x)) return(character())
-  x[sort(q$pivot[-seq_len(q$rank)])]
-}
-
-# Whether each level of f falls in one level of c (the effect is nested
-# in the clusters).
-.axnest <- function(f, c) {
-  u <- unique(data.frame(a = as.character(f), b = as.character(c),
-                         stringsAsFactors = FALSE))
-  !anyDuplicated(u$a)
-}
-
-# A time column as numbers (numbers or dates).
-.axtime <- function(d, time, fn) {
-  if (is.null(time)) {
-    .ckstop(fn, "`se = \"nw\"` needs `time`, the name of the day column")
-  }
-  .axcols(d, time, "time", fn, n = 1L)
-  tv <- d[[time]]
-  if (!is.numeric(tv) && !inherits(tv, "Date")) {
-    .ckstop(fn, "column `%s` must hold numbers or dates", time)
-  }
-  as.numeric(tv)
-}
-
-# The variance of a fit from its rows' scores (r$sco, r$brd), as `se`
-# asks: cluster (kind 0), twoway (1), hc1 (2), nw (3); the small-sample
-# factor by `ssc`. Returns the matrix, the cluster counts and the lag.
-.axvar <- function(r, d, se, clus, time, lag, ssc, fe, fn, twc = "min",
-                   psd = "none") {
-  n <- nrow(r$sco)
-  p <- ncol(r$sco)
-  kk <- function(cls) {
-    k <- p + 1
-    for (f in fe) {
-      if (!any(vapply(cls, function(cc) .axnest(d[[f]], d[[cc]]), NA))) {
-        k <- k + length(unique(d[[f]])) - 1
-      }
-    }
-    k
-  }
-  c1 <- c2 <- tv <- NULL
-  n1 <- n2 <- 0L
-  lg <- 0L
-  if (se == "quasi") {
-    # the model-based (X~'WX~)^-1 times the Pearson dispersion
-    k <- kk(character())
-    psi <- r$st[7L] / (n - k)
-    v <- r$brd * psi
-    return(list(v = v, g = n, lag = NA_integer_, k = k, psi = psi))
-  }
-  if (se %in% c("cluster", "twoway")) {
-    cl <- .axcl(d, clus, fn)
-    c1 <- cl$c1
-    n1 <- cl$n1
-    c2 <- cl$c2
-    n2 <- cl$n2
-    g <- cl$g
-    kind <- if (se == "twoway") 1L else 0L
-    k <- kk(clus)
-  } else {
-    g <- n
-    kind <- if (se == "hc1") 2L else 3L
-    k <- kk(character())
-    if (se == "nw") {
-      u <- .axcode(d[[clus[1L]]])
-      c1 <- u$c
-      n1 <- u$n
-      tv <- .axtime(d, time, fn)
-      if (is.null(lag)) lag <- .axnwlag(r$sco, u$c, tv)
-      lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
-    }
-  }
-  gm <- min(g)
-  fac <- switch(
-    ssc,
-    G = gm / (gm - 1),
-    nk = gm / (gm - 1) * (n - 1) / (n - k),
-    none = 1
-  )
-  if (se == "twoway" && twc == "each") {
-    # Cameron, Gelbach and Miller (2011, p. 241): each of the three
-    # components with its own factor, G, H and I (the intersections)
-    c12 <- .axcode(paste(c1, c2))
-    f1 <- function(gg) {
-      switch(ssc, G = gg / (gg - 1),
-             nk = gg / (gg - 1) * (n - 1) / (n - k), none = 1)
-    }
-    one <- function(cc, nc) {
-      .Call(C_clab_r_vcx, r$sco, r$brd, 0L, cc, nc, NULL, 0L, NULL, 0L,
-            f1(nc))
-    }
-    v <- one(c1, n1) + one(c2, n2) - one(c12$c, c12$n)
-  } else {
-    v <- .Call(
-      C_clab_r_vcx,
-      r$sco,
-      r$brd,
-      kind,
-      c1,
-      n1,
-      c2,
-      n2,
-      tv,
-      as.integer(lg),
-      fac
-    )
-  }
-  if (se == "twoway" && psd == "eig") {
-    # the eigenvalues below 0 set to 0 (Cameron, Gelbach and Miller 2011,
-    # p. 241-242, after Politis 2007)
-    e <- eigen(v, symmetric = TRUE)
-    v <- e$vectors %*% (pmax(e$values, 0) * t(e$vectors))
-  }
-  list(v = v, g = g, lag = if (se == "nw") lg else NA_integer_, k = k)
-}
-
-# The Newey-West (1994) bandwidth for the Bartlett kernel, without
-# prewhitening: with h the row scores summed over the coefficients (the
-# weight vector w of ones; their w = (0, 1, ..., 1)' drops a constant's
-# entry, and the absorbed effects leave none), sigma_j the sum of h_i h_i'
-# over the pairs of rows of one unit j days apart, n = [4 (T / 100)^(2/9)]
-# (T the most days of a unit), s1 = 2 sum_j j sigma_j, s0 = sigma_0 + 2
-# sum_j sigma_j (j = 1..n), gamma = 1.1447 ((s1 / s0)^2)^(1/3), the lag is
-# [gamma T^(1/3)] (their equation 2.2, p. 634, and m = [gamma T^(1/3)],
-# p. 635).
-.axnwlag <- function(sco, u, tv) {
-  h <- rowSums(sco)
-  tt <- max(tabulate(u + 1L))
-  nn <- floor(4 * (tt / 100)^(2 / 9))
-  key <- paste(u, tv)
-  sg <- vapply(0:nn, function(j) {
-    i <- match(paste(u, tv - j), key)
-    sum(h * h[i], na.rm = TRUE)
-  }, 1)
-  j <- seq_len(nn)
-  s1 <- 2 * sum(j * sg[-1L])
-  s0 <- sg[1L] + 2 * sum(sg[-1L])
-  if (!is.finite(s1 / s0)) return(0)
-  floor(1.1447 * ((s1 / s0)^2)^(1 / 3) * tt^(1 / 3))
-}
-
-# The cluster bootstrap: nboot draws of the clusters of column cl from R's
-# generator; fit(rows, w) returns the coefficients of the rows drawn with
-# their weights, or an error for a draw that cannot be fitted (left out).
-.axboot <- function(d, cl, nboot, seed, p, fit, fn) {
-  cc <- .axcode(d[[cl]])
-  if (cc$n < 2L) {
-    .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
-  }
-  bm <- .axdraw(cc$n, nboot, seed)
-  # one row per draw: with one coefficient vapply() gives a vector, and
-  # t() of it would be one row of nboot columns
-  dr <- matrix(vapply(seq_len(nboot), function(b) {
-    m <- bm[cc$c + 1L, b]
-    k <- m > 0
-    tryCatch(fit(which(k), m[k]), error = function(e) rep(NA_real_, p))
-  }, numeric(p)), nboot, p, byrow = TRUE)
-  nf <- sum(!stats::complete.cases(dr))
-  if (nf > 0L) {
-    warning(
-      fn,
-      ": ",
-      nf,
-      " of ",
-      nboot,
-      " bootstrap draws could not be fitted and are ",
-      "left out.",
-      call. = FALSE
-    )
-  }
-  if (nboot - nf < 2L) {
-    .ckstop(fn, "fewer than two bootstrap draws could be fitted")
-  }
-  list(
-    draws = dr,
-    se = apply(dr, 2L, stats::sd, na.rm = TRUE),
-    nfail = nf,
-    g = cc$n
-  )
-}
-
-# The Poisson fit on the rows of d (codes made here), with weights w.
-.axppfit <- function(d, y, x, fe, expo, w, tol, maxit, fn) {
-  fx <- .axfe(d, fe)
-  off <- if (!is.null(expo)) log(d[[expo]])
-  .Call(
-    C_clab_r_ppmlfe,
-    as.numeric(d[[y]]),
-    .axmat(d, x, fn),
-    off,
-    w,
-    fx$c1,
-    fx$n1,
-    fx$c2,
-    fx$n2,
-    fx$cx,
-    fx$nx,
-    NULL,
-    0L,
-    NULL,
-    0L,
-    tol,
-    as.integer(maxit)
-  )
-}
-
-.axsen <- function(se) {
-  c(
-    cluster = "clustered",
-    twoway = "two-way clustered",
-    hc1 = "heteroskedasticity-robust",
-    nw = "Newey-West",
-    boot = "cluster bootstrap",
-    quasi = "quasi-Poisson"
-  )[[se]]
-}
-
 #' Poisson pseudo-maximum likelihood with absorbed fixed effects
 #'
 #' Fits a count model with one or two sets of fixed effects, such as place
@@ -771,69 +387,6 @@ print.ppmlfe <- function(x, ...) {
 #' @export
 summary.ppmlfe <- function(object, ...) object[["coef"]]
 
-# The ivfe kernel on the rows of d with weights w; first-stage clusters
-# fc (codes) as the variance kind asks.
-.axivfit <- function(d, y, endo, inst, x, fe, w, fc, tol, fn) {
-  fx <- .axfe(d, fe)
-  .Call(
-    C_clab_r_ivfe,
-    as.numeric(d[[y]]),
-    .axmat(d, endo, fn),
-    .axmat(d, x, fn),
-    .axmat(d, inst, fn),
-    w,
-    fx$c1,
-    fx$n1,
-    fx$c2,
-    fx$n2,
-    fx$cx,
-    fx$nx,
-    fc$c1,
-    fc$n1,
-    fc$c2,
-    fc$n2,
-    tol
-  )
-}
-
-# The clusters of the first-stage statistics: those of the variance for
-# "cluster" and "twoway", each row for "hc1", the first clus column for
-# "nw" and "boot".
-.axfc <- function(d, se, clus, fn) {
-  if (se == "hc1") {
-    return(list(c1 = seq_len(nrow(d)) - 1L, n1 = nrow(d), c2 = NULL, n2 = 0L))
-  }
-  a <- .axcode(d[[clus[1L]]])
-  b <- if (se == "twoway") .axcode(d[[clus[2L]]]) else list(c = NULL, n = 0L)
-  if (a$n < 2L || (se == "twoway" && b$n < 2L)) {
-    .ckstop(fn, paste0("`clus` has one cluster: a cluster-robust variance ",
-                       "needs two or more"))
-  }
-  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n)
-}
-
-.axfirst <- function(endo, fst, q) {
-  m <- matrix(fst, ncol = 4L)
-  # the simplified test of Montiel Olea and Pflueger (2013, section
-  # 2.2.2 and table 1): the upper 5% quantile of a noncentral chi-squared
-  # on keff degrees of freedom with noncentrality x keff, over keff, x = 1
-  # / tau = 10
-  ke <- m[, 4L]
-  cv <- rep(NA_real_, length(ke))
-  ok <- is.finite(ke) & ke > 0
-  cv[ok] <- stats::qchisq(0.95, ke[ok], ncp = 10 * ke[ok]) / ke[ok]
-  data.frame(
-    endo = as.character(endo),
-    wald = m[, 1L],
-    kp = m[, 2L],
-    eff = m[, 3L],
-    keff = ke,
-    cv = cv,
-    ninst = rep(q, length(endo)),
-    stringsAsFactors = FALSE
-  )
-}
-
 #' Two-stage least squares with absorbed fixed effects
 #'
 #' Estimates the effect of an exposure that is measured with error or
@@ -1211,26 +764,6 @@ print.ivfe <- function(x, ...) {
 #' @export
 summary.ivfe <- function(object, ...) object[["coef"]]
 
-# The bootstrap draws: how often each of g clusters is drawn, b draws
-# (g x b), from R's generator; seed, when given, is used and the
-# generator's state put back.
-.axdraw <- function(g, b, seed) {
-  if (!is.null(seed)) {
-    env <- globalenv()
-    had <- exists(".Random.seed", envir = env, inherits = FALSE)
-    old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
-    on.exit(if (had) {
-      assign(".Random.seed", old, envir = env)
-    } else {
-      rm(".Random.seed", envir = env)
-    }, add = TRUE)
-    set.seed(seed)
-  }
-  vapply(seq_len(b), function(i) {
-    tabulate(sample.int(g, g, replace = TRUE), g)
-  }, integer(g))
-}
-
 #' Instrumental variables for a count outcome with fixed effects
 #'
 #' Instruments an exposure in the count model of [ppmlfe()], in one of two
@@ -1478,21 +1011,6 @@ print.ppmlcf <- function(x, ...) {
 #' @rdname ppmlcf
 #' @export
 summary.ppmlcf <- function(object, ...) object[["coef"]]
-
-# The fixed effects as indicator columns: every level of the first set (in
-# place of a constant; a constant when there is no set), all but the first
-# level of the others.
-.axdum <- function(d, fe) {
-  if (is.null(fe)) return(matrix(1, nrow(d), 1L, dimnames = list(NULL, "(1)")))
-  do.call(cbind, lapply(seq_along(fe), function(j) {
-    cc <- .axcode(d[[fe[j]]])
-    lv <- seq_len(cc$n)
-    if (j > 1L) lv <- lv[-1L]
-    o <- outer(cc$c + 1L, lv, "==") + 0
-    colnames(o) <- paste0(fe[j], ":", lv)
-    o
-  }))
-}
 
 #' Exponential-mean GMM for a count with an endogenous exposure
 #'
@@ -1784,17 +1302,6 @@ print.expgmm <- function(x, ...) {
 #' @rdname expgmm
 #' @export
 summary.expgmm <- function(object, ...) object[["coef"]]
-
-# The sector (1..nb) of each direction, by the kernel's edges.
-.axsec <- function(dir, width, start, edges) {
-  a <- (dir - start) %% 360
-  b <- if (edges == "paper") {
-    ifelse(a == 0, 0, ceiling(a / width) - 1)
-  } else {
-    floor(a / width)
-  }
-  pmin(b, round(360 / width) - 1) + 1
-}
 
 #' Wind-direction instruments
 #'
@@ -2872,4 +2379,497 @@ print.expjn <- function(x, ...) {
 summary.expjn <- function(object, ...) {
   data.frame(joined = nrow(object[["data"]]), nout = object[["nout"]],
              nexp = object[["nexp"]])
+}
+
+# A data frame argument.
+.axdat <- function(data, fn, what = "data") {
+  if (!is.data.frame(data)) {
+    .ckstop(fn, "`%s` must be a data frame, got %s", what, class(data)[1L])
+  }
+  if (!nrow(data)) .ckstop(fn, "`%s` has no rows", what)
+  data
+}
+
+# Column names: character, present in d, no missing values in them.
+.axcols <- function(d, cols, what, fn, n = NULL, null = FALSE) {
+  if (is.null(cols)) {
+    if (null) return(NULL)
+    .ckstop(fn, "`%s` must name columns of `data`, got NULL", what)
+  }
+  if (!is.character(cols) || anyNA(cols) || !length(cols)) {
+    .ckstop(fn, "`%s` must name columns of `data`", what)
+  }
+  if (!is.null(n) && !length(cols) %in% n) {
+    .ckstop(
+      fn,
+      "`%s` must name %s column(s)",
+      what,
+      paste(n, collapse = " or ")
+    )
+  }
+  miss <- setdiff(cols, names(d))
+  if (length(miss)) {
+    .ckstop(fn, "`%s` names columns not in `data`: %s", what,
+            toString(miss))
+  }
+  if (anyDuplicated(cols)) .ckstop(fn, "`%s` names a column twice", what)
+  for (k in cols) {
+    if (anyNA(d[[k]])) .ckstop(fn, "column `%s` has missing values", k)
+  }
+  cols
+}
+
+# Numeric columns as a matrix (n x 0 for none), finite.
+.axmat <- function(d, cols, fn) {
+  if (!length(cols)) return(matrix(numeric(0), nrow(d), 0L))
+  for (k in cols) {
+    v <- d[[k]]
+    if (!is.numeric(v) && !is.logical(v)) {
+      .ckstop(fn, "column `%s` must be numeric, got %s", k, class(v)[1L])
+    }
+    if (!all(is.finite(v))) .ckstop(fn, "column `%s` must be finite", k)
+  }
+  m <- matrix(as.numeric(unlist(d[cols], use.names = FALSE)), nrow(d))
+  colnames(m) <- cols
+  m
+}
+
+# Codes from 0 of a label column, in order of first appearance.
+.axcode <- function(v) {
+  if (is.factor(v)) v <- as.character(v)
+  u <- unique(v)
+  list(c = match(v, u) - 1L, n = length(u))
+}
+
+# The effects as codes: the first two columns, and any more as an n x m
+# integer matrix cx with their counts nx (NULL for none).
+.axfe <- function(d, fe) {
+  a <- .axcode(d[[fe[1L]]])
+  b <- if (length(fe) >= 2L) .axcode(d[[fe[2L]]]) else list(c = NULL, n = 0L)
+  cx <- nx <- NULL
+  if (length(fe) > 2L) {
+    m <- lapply(fe[-(1:2)], function(v) .axcode(d[[v]]))
+    cx <- matrix(as.integer(unlist(lapply(m, `[[`, "c"))), nrow(d))
+    nx <- vapply(m, `[[`, 1L, "n")
+  }
+  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, cx = cx, nx = nx)
+}
+
+# The rows kept by the separation of the effects: a group of any set
+# without counts goes (clab_fesep on the first two sets, then on each
+# further set alone; dropping zeros changes no other group's total).
+.axfesep <- function(y, f) {
+  k <- .Call(C_clab_r_fesep, y, f$c1, f$n1, f$c2, f$n2)
+  for (j in seq_along(f$nx)) {
+    k <- k & .Call(C_clab_r_fesep, y, f$cx[, j], f$nx[j], NULL, 0L)
+  }
+  k
+}
+
+# The clusters (one or two columns) as codes; refuses one cluster, warns
+# under ten, as didfe() does.
+.axcl <- function(d, clus, fn) {
+  a <- .axcode(d[[clus[1L]]])
+  b <- if (length(clus) == 2L) {
+    .axcode(d[[clus[2L]]])
+  } else {
+    list(c = NULL, n = 0L)
+  }
+  g <- c(a$n, if (length(clus) == 2L) b$n)
+  if (any(g < 2L)) {
+    .ckstop(fn, paste0("`clus` has one cluster: a cluster-robust variance ",
+                       "needs two or more"))
+  }
+  if (any(g < 10L)) {
+    warning(fn, ": fewer than ten clusters; cluster-robust errors are ",
+            "unreliable with so few (wcbx() is made for this case).",
+            call. = FALSE)
+  }
+  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, g = g)
+}
+
+.axlevel <- function(level, fn) {
+  if (!is.numeric(level) || length(level) != 1L || !is.finite(level) ||
+        level <= 0 || level >= 1) {
+    .ckstop(fn, "`level` must be one number strictly between 0 and 1")
+  }
+  level
+}
+
+# The coefficient table: est, se, stat, p and the interval; t on df
+# degrees of freedom, or the normal when df is NULL.
+.axtab <- function(term, est, se, level, df = NULL) {
+  st <- est / se
+  if (is.null(df)) {
+    q <- stats::qnorm(0.5 + level / 2)
+    p <- 2 * stats::pnorm(-abs(st))
+  } else {
+    q <- stats::qt(0.5 + level / 2, df)
+    p <- 2 * stats::pt(-abs(st), df)
+  }
+  data.frame(term = term, est = est, se = se, stat = st, p = p,
+             lo = est - q * se, hi = est + q * se, row.names = NULL)
+}
+
+# The rows kept after separation by the effects, with a warning naming
+# how many rows and groups went.
+.axsep <- function(y, d, fe, fn) {
+  k <- .axfesep(y, .axfe(d, fe))
+  if (!any(k)) .ckstop(fn, "every group of the fixed effects has no counts")
+  if (!all(k)) {
+    warning(fn, ": ", sum(!k), " row(s) dropped: a group of `",
+            paste(fe, collapse = "` or `"), "` with no counts at all ",
+            "(its effect would be minus infinity; it carries nothing for the ",
+            "other coefficients).", call. = FALSE)
+  }
+  k
+}
+
+# The regressors to drop by the check of Santos Silva and Tenreyro (2010,
+# p. 311, steps 1 and 2): those that are linear combinations of the
+# others (after the effects) on the rows with positive counts, found as
+# least squares finds them, in order (qr() with its default tolerance on
+# the regressors demeaned by the effects on those rows).
+#
+# The effects are regressors too. One they absorb on those rows (it is
+# the same within each place there, or a place part plus a day part) is
+# left by the demeaning as rounding noise, and qr() judges a column
+# against its own size, so it would keep the noise as a column of full
+# rank. Such a column is set to zero first: what is left of it is below
+# qr()'s own tolerance, 1e-7, of its spread before the demeaning.
+.axsst <- function(d, yv, x, fe, tol, fn) {
+  pos <- yv > 0
+  dp <- d[pos, , drop = FALSE]
+  fx <- .axfe(dp, fe)
+  x0 <- .axmat(dp, x, fn)
+  m <- .Call(C_clab_r_demean, x0, fx$c1, fx$n1, fx$c2,
+             fx$n2, fx$cx, fx$nx, tol)
+  s0 <- sqrt(colSums(sweep(x0, 2L, colMeans(x0))^2))
+  m[, sqrt(colSums(m^2)) <= 1e-7 * s0] <- 0
+  q <- qr(m)
+  if (q$rank == length(x)) return(character())
+  x[sort(q$pivot[-seq_len(q$rank)])]
+}
+
+# Whether each level of f falls in one level of c (the effect is nested
+# in the clusters).
+.axnest <- function(f, c) {
+  u <- unique(data.frame(a = as.character(f), b = as.character(c),
+                         stringsAsFactors = FALSE))
+  !anyDuplicated(u$a)
+}
+
+# A time column as numbers (numbers or dates).
+.axtime <- function(d, time, fn) {
+  if (is.null(time)) {
+    .ckstop(fn, "`se = \"nw\"` needs `time`, the name of the day column")
+  }
+  .axcols(d, time, "time", fn, n = 1L)
+  tv <- d[[time]]
+  if (!is.numeric(tv) && !inherits(tv, "Date")) {
+    .ckstop(fn, "column `%s` must hold numbers or dates", time)
+  }
+  as.numeric(tv)
+}
+
+# The variance of a fit from its rows' scores (r$sco, r$brd), as `se`
+# asks: cluster (kind 0), twoway (1), hc1 (2), nw (3); the small-sample
+# factor by `ssc`. Returns the matrix, the cluster counts and the lag.
+.axvar <- function(r, d, se, clus, time, lag, ssc, fe, fn, twc = "min",
+                   psd = "none") {
+  n <- nrow(r$sco)
+  p <- ncol(r$sco)
+  kk <- function(cls) {
+    k <- p + 1
+    for (f in fe) {
+      if (!any(vapply(cls, function(cc) .axnest(d[[f]], d[[cc]]), NA))) {
+        k <- k + length(unique(d[[f]])) - 1
+      }
+    }
+    k
+  }
+  c1 <- c2 <- tv <- NULL
+  n1 <- n2 <- 0L
+  lg <- 0L
+  if (se == "quasi") {
+    # the model-based (X~'WX~)^-1 times the Pearson dispersion
+    k <- kk(character())
+    psi <- r$st[7L] / (n - k)
+    v <- r$brd * psi
+    return(list(v = v, g = n, lag = NA_integer_, k = k, psi = psi))
+  }
+  if (se %in% c("cluster", "twoway")) {
+    cl <- .axcl(d, clus, fn)
+    c1 <- cl$c1
+    n1 <- cl$n1
+    c2 <- cl$c2
+    n2 <- cl$n2
+    g <- cl$g
+    kind <- if (se == "twoway") 1L else 0L
+    k <- kk(clus)
+  } else {
+    g <- n
+    kind <- if (se == "hc1") 2L else 3L
+    k <- kk(character())
+    if (se == "nw") {
+      u <- .axcode(d[[clus[1L]]])
+      c1 <- u$c
+      n1 <- u$n
+      tv <- .axtime(d, time, fn)
+      if (is.null(lag)) lag <- .axnwlag(r$sco, u$c, tv)
+      lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
+    }
+  }
+  gm <- min(g)
+  fac <- switch(
+    ssc,
+    G = gm / (gm - 1),
+    nk = gm / (gm - 1) * (n - 1) / (n - k),
+    none = 1
+  )
+  if (se == "twoway" && twc == "each") {
+    # Cameron, Gelbach and Miller (2011, p. 241): each of the three
+    # components with its own factor, G, H and I (the intersections)
+    c12 <- .axcode(paste(c1, c2))
+    f1 <- function(gg) {
+      switch(ssc, G = gg / (gg - 1),
+             nk = gg / (gg - 1) * (n - 1) / (n - k), none = 1)
+    }
+    one <- function(cc, nc) {
+      .Call(C_clab_r_vcx, r$sco, r$brd, 0L, cc, nc, NULL, 0L, NULL, 0L,
+            f1(nc))
+    }
+    v <- one(c1, n1) + one(c2, n2) - one(c12$c, c12$n)
+  } else {
+    v <- .Call(
+      C_clab_r_vcx,
+      r$sco,
+      r$brd,
+      kind,
+      c1,
+      n1,
+      c2,
+      n2,
+      tv,
+      as.integer(lg),
+      fac
+    )
+  }
+  if (se == "twoway" && psd == "eig") {
+    # the eigenvalues below 0 set to 0 (Cameron, Gelbach and Miller 2011,
+    # p. 241-242, after Politis 2007)
+    e <- eigen(v, symmetric = TRUE)
+    v <- e$vectors %*% (pmax(e$values, 0) * t(e$vectors))
+  }
+  list(v = v, g = g, lag = if (se == "nw") lg else NA_integer_, k = k)
+}
+
+# The Newey-West (1994) bandwidth for the Bartlett kernel, without
+# prewhitening: with h the row scores summed over the coefficients (the
+# weight vector w of ones; their w = (0, 1, ..., 1)' drops a constant's
+# entry, and the absorbed effects leave none), sigma_j the sum of h_i h_i'
+# over the pairs of rows of one unit j days apart, n = [4 (T / 100)^(2/9)]
+# (T the most days of a unit), s1 = 2 sum_j j sigma_j, s0 = sigma_0 + 2
+# sum_j sigma_j (j = 1..n), gamma = 1.1447 ((s1 / s0)^2)^(1/3), the lag is
+# [gamma T^(1/3)] (their equation 2.2, p. 634, and m = [gamma T^(1/3)],
+# p. 635).
+.axnwlag <- function(sco, u, tv) {
+  h <- rowSums(sco)
+  tt <- max(tabulate(u + 1L))
+  nn <- floor(4 * (tt / 100)^(2 / 9))
+  key <- paste(u, tv)
+  sg <- vapply(0:nn, function(j) {
+    i <- match(paste(u, tv - j), key)
+    sum(h * h[i], na.rm = TRUE)
+  }, 1)
+  j <- seq_len(nn)
+  s1 <- 2 * sum(j * sg[-1L])
+  s0 <- sg[1L] + 2 * sum(sg[-1L])
+  if (!is.finite(s1 / s0)) return(0)
+  floor(1.1447 * ((s1 / s0)^2)^(1 / 3) * tt^(1 / 3))
+}
+
+# The cluster bootstrap: nboot draws of the clusters of column cl from R's
+# generator; fit(rows, w) returns the coefficients of the rows drawn with
+# their weights, or an error for a draw that cannot be fitted (left out).
+.axboot <- function(d, cl, nboot, seed, p, fit, fn) {
+  cc <- .axcode(d[[cl]])
+  if (cc$n < 2L) {
+    .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
+  }
+  bm <- .axdraw(cc$n, nboot, seed)
+  # one row per draw: with one coefficient vapply() gives a vector, and
+  # t() of it would be one row of nboot columns
+  dr <- matrix(vapply(seq_len(nboot), function(b) {
+    m <- bm[cc$c + 1L, b]
+    k <- m > 0
+    tryCatch(fit(which(k), m[k]), error = function(e) rep(NA_real_, p))
+  }, numeric(p)), nboot, p, byrow = TRUE)
+  nf <- sum(!stats::complete.cases(dr))
+  if (nf > 0L) {
+    warning(
+      fn,
+      ": ",
+      nf,
+      " of ",
+      nboot,
+      " bootstrap draws could not be fitted and are ",
+      "left out.",
+      call. = FALSE
+    )
+  }
+  if (nboot - nf < 2L) {
+    .ckstop(fn, "fewer than two bootstrap draws could be fitted")
+  }
+  list(
+    draws = dr,
+    se = apply(dr, 2L, stats::sd, na.rm = TRUE),
+    nfail = nf,
+    g = cc$n
+  )
+}
+
+# The Poisson fit on the rows of d (codes made here), with weights w.
+.axppfit <- function(d, y, x, fe, expo, w, tol, maxit, fn) {
+  fx <- .axfe(d, fe)
+  off <- if (!is.null(expo)) log(d[[expo]])
+  .Call(
+    C_clab_r_ppmlfe,
+    as.numeric(d[[y]]),
+    .axmat(d, x, fn),
+    off,
+    w,
+    fx$c1,
+    fx$n1,
+    fx$c2,
+    fx$n2,
+    fx$cx,
+    fx$nx,
+    NULL,
+    0L,
+    NULL,
+    0L,
+    tol,
+    as.integer(maxit)
+  )
+}
+
+.axsen <- function(se) {
+  c(
+    cluster = "clustered",
+    twoway = "two-way clustered",
+    hc1 = "heteroskedasticity-robust",
+    nw = "Newey-West",
+    boot = "cluster bootstrap",
+    quasi = "quasi-Poisson"
+  )[[se]]
+}
+
+# The ivfe kernel on the rows of d with weights w; first-stage clusters
+# fc (codes) as the variance kind asks.
+.axivfit <- function(d, y, endo, inst, x, fe, w, fc, tol, fn) {
+  fx <- .axfe(d, fe)
+  .Call(
+    C_clab_r_ivfe,
+    as.numeric(d[[y]]),
+    .axmat(d, endo, fn),
+    .axmat(d, x, fn),
+    .axmat(d, inst, fn),
+    w,
+    fx$c1,
+    fx$n1,
+    fx$c2,
+    fx$n2,
+    fx$cx,
+    fx$nx,
+    fc$c1,
+    fc$n1,
+    fc$c2,
+    fc$n2,
+    tol
+  )
+}
+
+# The clusters of the first-stage statistics: those of the variance for
+# "cluster" and "twoway", each row for "hc1", the first clus column for
+# "nw" and "boot".
+.axfc <- function(d, se, clus, fn) {
+  if (se == "hc1") {
+    return(list(c1 = seq_len(nrow(d)) - 1L, n1 = nrow(d), c2 = NULL, n2 = 0L))
+  }
+  a <- .axcode(d[[clus[1L]]])
+  b <- if (se == "twoway") .axcode(d[[clus[2L]]]) else list(c = NULL, n = 0L)
+  if (a$n < 2L || (se == "twoway" && b$n < 2L)) {
+    .ckstop(fn, paste0("`clus` has one cluster: a cluster-robust variance ",
+                       "needs two or more"))
+  }
+  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n)
+}
+
+.axfirst <- function(endo, fst, q) {
+  m <- matrix(fst, ncol = 4L)
+  # the simplified test of Montiel Olea and Pflueger (2013, section
+  # 2.2.2 and table 1): the upper 5% quantile of a noncentral chi-squared
+  # on keff degrees of freedom with noncentrality x keff, over keff, x = 1
+  # / tau = 10
+  ke <- m[, 4L]
+  cv <- rep(NA_real_, length(ke))
+  ok <- is.finite(ke) & ke > 0
+  cv[ok] <- stats::qchisq(0.95, ke[ok], ncp = 10 * ke[ok]) / ke[ok]
+  data.frame(
+    endo = as.character(endo),
+    wald = m[, 1L],
+    kp = m[, 2L],
+    eff = m[, 3L],
+    keff = ke,
+    cv = cv,
+    ninst = rep(q, length(endo)),
+    stringsAsFactors = FALSE
+  )
+}
+
+# The bootstrap draws: how often each of g clusters is drawn, b draws
+# (g x b), from R's generator; seed, when given, is used and the
+# generator's state put back.
+.axdraw <- function(g, b, seed) {
+  if (!is.null(seed)) {
+    env <- globalenv()
+    had <- exists(".Random.seed", envir = env, inherits = FALSE)
+    old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
+    on.exit(if (had) {
+      assign(".Random.seed", old, envir = env)
+    } else {
+      rm(".Random.seed", envir = env)
+    }, add = TRUE)
+    set.seed(seed)
+  }
+  vapply(seq_len(b), function(i) {
+    tabulate(sample.int(g, g, replace = TRUE), g)
+  }, integer(g))
+}
+
+# The fixed effects as indicator columns: every level of the first set (in
+# place of a constant; a constant when there is no set), all but the first
+# level of the others.
+.axdum <- function(d, fe) {
+  if (is.null(fe)) return(matrix(1, nrow(d), 1L, dimnames = list(NULL, "(1)")))
+  do.call(cbind, lapply(seq_along(fe), function(j) {
+    cc <- .axcode(d[[fe[j]]])
+    lv <- seq_len(cc$n)
+    if (j > 1L) lv <- lv[-1L]
+    o <- outer(cc$c + 1L, lv, "==") + 0
+    colnames(o) <- paste0(fe[j], ":", lv)
+    o
+  }))
+}
+
+# The sector (1..nb) of each direction, by the kernel's edges.
+.axsec <- function(dir, width, start, edges) {
+  a <- (dir - start) %% 360
+  b <- if (edges == "paper") {
+    ifelse(a == 0, 0, ceiling(a / width) - 1)
+  } else {
+    floor(a / width)
+  }
+  pmin(b, round(360 / width) - 1) + 1
 }

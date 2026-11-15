@@ -2,118 +2,6 @@
 # draw from what each result holds, with the drawing kit of R/plot.R, and
 # return invisibly what they drew.
 
-# ---- helpers -----------------------------------------------------------------
-
-# normal intervals at `level` about estimates with standard errors
-.axci <- function(est, se, level) {
-  z <- stats::qnorm(0.5 + level / 2)
-  list(lo = est - z * se, hi = est + z * se)
-}
-
-# the rings of an updwn() fit from its term names "down:(a,b]": the ends
-# and the midpoint of each (cut() prints the breaks to three digits, so
-# the positions are drawn to that precision)
-.axring <- function(term) {
-  v <- gsub("^[^:]*:[[(]|[])]$", "", term)
-  e <- matrix(as.numeric(unlist(strsplit(v, ",", fixed = TRUE))), ncol = 2L,
-              byrow = TRUE)
-  data.frame(lo = e[, 1L], hi = e[, 2L], mid = (e[, 1L] + e[, 2L]) / 2)
-}
-
-# the day of a run of each runfx() term: "run2" is 2, "run3p" is 3
-.axrun <- function(term) as.numeric(gsub("^run|p$", "", term))
-
-# the coefficient rows drawn: every row, or the rows of `terms`
-.axterm <- function(cf, terms) {
-  if (is.null(terms)) {
-    return(cf)
-  }
-  if (!is.character(terms) || !length(terms) || anyNA(terms) ||
-        !all(terms %in% cf$term)) {
-    .ckstop("plot", "`terms` must be NULL or names of terms of the fit: %s",
-            toString(cf$term))
-  }
-  cf[cf$term %in% terms, , drop = FALSE]
-}
-
-# coefficients as a forest chart: rate ratios on a log scale for the
-# Poisson and exponential-mean fits, the coefficients for least squares
-.axcoef <- function(cf, rr, main, col = NULL, pal = NULL, ...) {
-  if (rr) {
-    .pdots(cf$term, exp(cf$est), exp(cf$lo), exp(cf$hi), main,
-           "Rate ratio (log scale)", col, pal, ref = 1, log = "x", ...)
-  } else {
-    .pdots(cf$term, cf$est, cf$lo, cf$hi, main, "Coefficient", col, pal,
-           ref = 0, ...)
-  }
-}
-
-# the strength of the first stage of each endogenous column: the robust
-# Wald F, the Kleibergen-Paap F and the effective F beside the 5% critical
-# value of Montiel Olea and Pflueger
-.axfst <- function(fs, col = NULL, pal = NULL, ...) {
-  k <- c("Wald F", "Kleibergen-Paap F", "effective F", "5% critical value")
-  .pdots(rep(fs$endo, 4L), c(fs$wald, fs$kp, fs$eff, fs$cv), NA, NA,
-         "First-stage strength", "F statistic", col, pal,
-         grp = rep(k, each = nrow(fs)), ...)
-}
-
-# the first-stage coefficient of each excluded instrument, with normal
-# intervals at the fit's level
-.axfstab <- function(fb, level, col = NULL, pal = NULL, ...) {
-  ci <- .axci(fb$est, fb$se, level)
-  .pdots(paste0(fb$inst, " (", fb$endo, ")"), fb$est, ci$lo, ci$hi,
-         "First-stage coefficients", "Change in the exposure", col, pal,
-         ref = 0, ...)
-}
-
-# estimates at positions on a numeric axis (days of a run, bin medians,
-# distances, offsets) with their intervals, joined by a dotted line; the
-# positions in `mark` (the reference, or the true design) are drawn as
-# squares in the second colour, named in the legend by `key`; `at` and
-# `lab` give the ticks of the axis; returns the rows drawn
-.axprof <- function(x, est, lo, hi, main, xlab, ylab, col = NULL, pal = NULL,
-                    mark = NULL, key = NULL, at = NULL, lab = NULL, ...) {
-  cl <- .pcols(2L, col, pal)
-  op <- .ppar()
-  on.exit(graphics::par(op), add = TRUE)
-  .pfrm(.prange(x), .prange(est, lo, hi, 0), main, xlab, ylab,
-        xaxt = if (is.null(at)) "s" else "n", ...)
-  if (!is.null(at)) graphics::axis(1, at = at, labels = lab)
-  graphics::abline(h = 0, lty = 2, col = "#636363")
-  m <- x %in% mark
-  o <- order(x)
-  graphics::lines(x[o], est[o], col = cl[1L], lty = 3)
-  w <- is.finite(lo) & is.finite(hi)
-  graphics::segments(x[w], lo[w], x[w], hi[w], col = cl[m + 1L][w],
-                     lwd = 1.6)
-  graphics::points(x, est, pch = ifelse(m, 15, 19), col = cl[m + 1L],
-                   cex = 1.2)
-  if (any(m) && !is.null(key)) .pkey("topright", key, cl, pch = c(19, 15))
-  invisible(data.frame(x = x, est = est, lo = lo, hi = hi, mark = m))
-}
-
-# the surface of a jntx() fit: the log rate ratio shaded on a scale
-# centred at 0, with contour lines labelled by the rate ratio
-.axsurf <- function(s, pal = NULL, ...) {
-  u <- sort(unique(s$x1))
-  v <- sort(unique(s$x2))
-  z <- matrix(log(s$rr[order(s$x2, s$x1)]), length(u), length(v))
-  sh <- blpal(.palnm(if (is.null(pal)) "diverging" else pal, "plot"), 9L)
-  r <- max(abs(.prange(z)))
-  op <- .ppar()
-  on.exit(graphics::par(op), add = TRUE)
-  graphics::image(u, v, z, col = sh, zlim = c(-r, r), main = "",
-                  xlab = "First exposure (x1)", ylab = "Second exposure (x2)",
-                  ...)
-  graphics::contour(u, v, exp(z), add = TRUE, col = "#636363", nlevels = 6,
-                    labcex = 0.7)
-  graphics::title(main = "Rate ratio against the reference point",
-                  font.main = 1, cex.main = 1.05)
-  graphics::box(col = "#8C8C8C")
-  invisible(s)
-}
-
 # ---- the methods -------------------------------------------------------------
 
 #' @rdname ppmlfe
@@ -342,4 +230,116 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   invisible(.pdots(lab, t$est, t$lo, t$hi,
                    .pmain(main, "Effect by outcome"), "Coefficient", col,
                    pal, ref = 0, ...))
+}
+
+# ---- helpers -----------------------------------------------------------------
+
+# normal intervals at `level` about estimates with standard errors
+.axci <- function(est, se, level) {
+  z <- stats::qnorm(0.5 + level / 2)
+  list(lo = est - z * se, hi = est + z * se)
+}
+
+# the rings of an updwn() fit from its term names "down:(a,b]": the ends
+# and the midpoint of each (cut() prints the breaks to three digits, so
+# the positions are drawn to that precision)
+.axring <- function(term) {
+  v <- gsub("^[^:]*:[[(]|[])]$", "", term)
+  e <- matrix(as.numeric(unlist(strsplit(v, ",", fixed = TRUE))), ncol = 2L,
+              byrow = TRUE)
+  data.frame(lo = e[, 1L], hi = e[, 2L], mid = (e[, 1L] + e[, 2L]) / 2)
+}
+
+# the day of a run of each runfx() term: "run2" is 2, "run3p" is 3
+.axrun <- function(term) as.numeric(gsub("^run|p$", "", term))
+
+# the coefficient rows drawn: every row, or the rows of `terms`
+.axterm <- function(cf, terms) {
+  if (is.null(terms)) {
+    return(cf)
+  }
+  if (!is.character(terms) || !length(terms) || anyNA(terms) ||
+        !all(terms %in% cf$term)) {
+    .ckstop("plot", "`terms` must be NULL or names of terms of the fit: %s",
+            toString(cf$term))
+  }
+  cf[cf$term %in% terms, , drop = FALSE]
+}
+
+# coefficients as a forest chart: rate ratios on a log scale for the
+# Poisson and exponential-mean fits, the coefficients for least squares
+.axcoef <- function(cf, rr, main, col = NULL, pal = NULL, ...) {
+  if (rr) {
+    .pdots(cf$term, exp(cf$est), exp(cf$lo), exp(cf$hi), main,
+           "Rate ratio (log scale)", col, pal, ref = 1, log = "x", ...)
+  } else {
+    .pdots(cf$term, cf$est, cf$lo, cf$hi, main, "Coefficient", col, pal,
+           ref = 0, ...)
+  }
+}
+
+# the strength of the first stage of each endogenous column: the robust
+# Wald F, the Kleibergen-Paap F and the effective F beside the 5% critical
+# value of Montiel Olea and Pflueger
+.axfst <- function(fs, col = NULL, pal = NULL, ...) {
+  k <- c("Wald F", "Kleibergen-Paap F", "effective F", "5% critical value")
+  .pdots(rep(fs$endo, 4L), c(fs$wald, fs$kp, fs$eff, fs$cv), NA, NA,
+         "First-stage strength", "F statistic", col, pal,
+         grp = rep(k, each = nrow(fs)), ...)
+}
+
+# the first-stage coefficient of each excluded instrument, with normal
+# intervals at the fit's level
+.axfstab <- function(fb, level, col = NULL, pal = NULL, ...) {
+  ci <- .axci(fb$est, fb$se, level)
+  .pdots(paste0(fb$inst, " (", fb$endo, ")"), fb$est, ci$lo, ci$hi,
+         "First-stage coefficients", "Change in the exposure", col, pal,
+         ref = 0, ...)
+}
+
+# estimates at positions on a numeric axis (days of a run, bin medians,
+# distances, offsets) with their intervals, joined by a dotted line; the
+# positions in `mark` (the reference, or the true design) are drawn as
+# squares in the second colour, named in the legend by `key`; `at` and
+# `lab` give the ticks of the axis; returns the rows drawn
+.axprof <- function(x, est, lo, hi, main, xlab, ylab, col = NULL, pal = NULL,
+                    mark = NULL, key = NULL, at = NULL, lab = NULL, ...) {
+  cl <- .pcols(2L, col, pal)
+  op <- .ppar()
+  on.exit(graphics::par(op), add = TRUE)
+  .pfrm(.prange(x), .prange(est, lo, hi, 0), main, xlab, ylab,
+        xaxt = if (is.null(at)) "s" else "n", ...)
+  if (!is.null(at)) graphics::axis(1, at = at, labels = lab)
+  graphics::abline(h = 0, lty = 2, col = "#636363")
+  m <- x %in% mark
+  o <- order(x)
+  graphics::lines(x[o], est[o], col = cl[1L], lty = 3)
+  w <- is.finite(lo) & is.finite(hi)
+  graphics::segments(x[w], lo[w], x[w], hi[w], col = cl[m + 1L][w],
+                     lwd = 1.6)
+  graphics::points(x, est, pch = ifelse(m, 15, 19), col = cl[m + 1L],
+                   cex = 1.2)
+  if (any(m) && !is.null(key)) .pkey("topright", key, cl, pch = c(19, 15))
+  invisible(data.frame(x = x, est = est, lo = lo, hi = hi, mark = m))
+}
+
+# the surface of a jntx() fit: the log rate ratio shaded on a scale
+# centred at 0, with contour lines labelled by the rate ratio
+.axsurf <- function(s, pal = NULL, ...) {
+  u <- sort(unique(s$x1))
+  v <- sort(unique(s$x2))
+  z <- matrix(log(s$rr[order(s$x2, s$x1)]), length(u), length(v))
+  sh <- blpal(.palnm(if (is.null(pal)) "diverging" else pal, "plot"), 9L)
+  r <- max(abs(.prange(z)))
+  op <- .ppar()
+  on.exit(graphics::par(op), add = TRUE)
+  graphics::image(u, v, z, col = sh, zlim = c(-r, r), main = "",
+                  xlab = "First exposure (x1)", ylab = "Second exposure (x2)",
+                  ...)
+  graphics::contour(u, v, exp(z), add = TRUE, col = "#636363", nlevels = 6,
+                    labcex = 0.7)
+  graphics::title(main = "Rate ratio against the reference point",
+                  font.main = 1, cex.main = 1.05)
+  graphics::box(col = "#8C8C8C")
+  invisible(s)
 }

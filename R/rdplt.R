@@ -4,6 +4,59 @@
 # the plot draws without refitting and the elements of the result stay
 # as they are.
 
+#' @rdname rdloc
+#' @inheritParams plotlrnz
+#' @return The attribute `"plt"` of the result holds what `plot()` draws:
+#'   `bins`, the outcome's means in 20 equal bins of the running variable
+#'   on each side (`x` the midpoint, `y`, `n`, `side`), and `fit`, the
+#'   ends of the local-linear line of each side over the rows within the
+#'   bandwidth, with the kernel's weights (`x`, `y`, `side`).
+#' @details `plot()` draws the binned means and the local-linear line of
+#'   each side, whose gap at the cutoff is the conventional estimate of a
+#'   sharp design (for a fuzzy one, the jump in the outcome, the numerator
+#'   of the ratio), and with `plac` the jump at each placebo cutoff with
+#'   its normal interval; it returns a list of what it drew (`bins`,
+#'   `fit`, `placebo`).
+#' @export
+plot.rdloc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
+  .pck(x, "rdloc", c("coef", "cut"))
+  p <- .rdpget(x, "rdloc")
+  pl <- x$placebo
+  op <- .ppanels(1L + !is.null(pl))
+  on.exit(graphics::par(op), add = TRUE)
+  out <- .rddraw(p, x$cut, .pmain(main, "Regression discontinuity"),
+                 "Running variable", "Outcome: bin means and fits", col, pal,
+                 ...)
+  if (!is.null(pl)) {
+    ci <- .axci(pl$est, pl$se, x$level)
+    out$placebo <- .pdots(paste("cutoff", signif(pl$cut, 4)), pl$est, ci$lo,
+                          ci$hi, "Jumps at placebo cutoffs", "Jump", col,
+                          pal, ref = 0, ...)
+  }
+  invisible(out)
+}
+
+#' @rdname rddens
+#' @inheritParams plotlrnz
+#' @return The attribute `"plt"` of the result holds what `plot()` draws:
+#'   `bins`, the first-step histogram (`x` the bin midpoint, `y` the
+#'   height, `side`), and `fit`, the local-linear smooth of the heights on
+#'   each side at 40 points up to the cutoff (`x`, `y`, `side`), whose
+#'   values at the cutoff are `fl` and `fr`.
+#' @details `plot()` draws the bin heights and the smooth of each side,
+#'   the log jump and its p-value in the axis title, and returns a list of
+#'   what it drew (`bins`, `fit`).
+#' @export
+plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
+  .pck(x, "rddens", c("tab", "cut"))
+  p <- .rdpget(x, "rddens")
+  t <- x$tab
+  xl <- paste0("Running variable (log jump ", signif(t$theta, 3), ", p ",
+               signif(t$p, 2), ")")
+  invisible(.rddraw(p, x$cut, .pmain(main, "Density at the cutoff"), xl,
+                    "Density: bin heights and fits", col, pal, ...))
+}
+
 # the weighted least-squares line y = a + b u: c(a, b), NA when the
 # weights rest on fewer than two distinct values of u
 .rdwls <- function(u, y, w) {
@@ -111,57 +164,4 @@
   .pkey("topleft", c("below the cutoff", "from the cutoff on"), cl,
         lty = 1:2, pch = c(1, 19))
   invisible(list(bins = b, fit = f))
-}
-
-#' @rdname rdloc
-#' @inheritParams plotlrnz
-#' @return The attribute `"plt"` of the result holds what `plot()` draws:
-#'   `bins`, the outcome's means in 20 equal bins of the running variable
-#'   on each side (`x` the midpoint, `y`, `n`, `side`), and `fit`, the
-#'   ends of the local-linear line of each side over the rows within the
-#'   bandwidth, with the kernel's weights (`x`, `y`, `side`).
-#' @details `plot()` draws the binned means and the local-linear line of
-#'   each side, whose gap at the cutoff is the conventional estimate of a
-#'   sharp design (for a fuzzy one, the jump in the outcome, the numerator
-#'   of the ratio), and with `plac` the jump at each placebo cutoff with
-#'   its normal interval; it returns a list of what it drew (`bins`,
-#'   `fit`, `placebo`).
-#' @export
-plot.rdloc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
-  .pck(x, "rdloc", c("coef", "cut"))
-  p <- .rdpget(x, "rdloc")
-  pl <- x$placebo
-  op <- .ppanels(1L + !is.null(pl))
-  on.exit(graphics::par(op), add = TRUE)
-  out <- .rddraw(p, x$cut, .pmain(main, "Regression discontinuity"),
-                 "Running variable", "Outcome: bin means and fits", col, pal,
-                 ...)
-  if (!is.null(pl)) {
-    ci <- .axci(pl$est, pl$se, x$level)
-    out$placebo <- .pdots(paste("cutoff", signif(pl$cut, 4)), pl$est, ci$lo,
-                          ci$hi, "Jumps at placebo cutoffs", "Jump", col,
-                          pal, ref = 0, ...)
-  }
-  invisible(out)
-}
-
-#' @rdname rddens
-#' @inheritParams plotlrnz
-#' @return The attribute `"plt"` of the result holds what `plot()` draws:
-#'   `bins`, the first-step histogram (`x` the bin midpoint, `y` the
-#'   height, `side`), and `fit`, the local-linear smooth of the heights on
-#'   each side at 40 points up to the cutoff (`x`, `y`, `side`), whose
-#'   values at the cutoff are `fl` and `fr`.
-#' @details `plot()` draws the bin heights and the smooth of each side,
-#'   the log jump and its p-value in the axis title, and returns a list of
-#'   what it drew (`bins`, `fit`).
-#' @export
-plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
-  .pck(x, "rddens", c("tab", "cut"))
-  p <- .rdpget(x, "rddens")
-  t <- x$tab
-  xl <- paste0("Running variable (log jump ", signif(t$theta, 3), ", p ",
-               signif(t$p, 2), ")")
-  invisible(.rddraw(p, x$cut, .pmain(main, "Density at the cutoff"), xl,
-                    "Density: bin heights and fits", col, pal, ...))
 }
