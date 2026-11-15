@@ -120,12 +120,13 @@ bbscal <- function(X, ndim = 2, minscale = 8) {
 #' Optimal Classification scaling
 #'
 #' Nonparametric ideal points from binary votes in the spirit of Poole
-#' (2000): each vote's cutting direction is the difference of the mean
-#' positions of its yea and nay voters, each legislator moves to the
-#' unit-length sum of the directions of the sides taken, for `maxit`
-#' sweeps from each of `nstart` random starts; the start with the fewest
-#' classification errors (a vote is split at the midpoint of the two
-#' sides' mean projections) is kept.
+#' (2000): each vote's cutting direction is the unit-length difference of
+#' the mean positions of its yea and nay voters, each legislator moves to
+#' the mean of the directions of the sides taken, for `maxit` sweeps
+#' from each of `nstart` random starts; the start with the fewest
+#' classification errors is kept. A vote is split at the point of its
+#' direction that misclassifies fewest of its voters, either side voting
+#' yea, so no vote has more errors than voting with the majority.
 #'
 #' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
 #' @param ndim The number of dimensions.

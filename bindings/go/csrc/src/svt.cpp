@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <utility>
 
 #include "kutil.h"
 #include "svk.h"
@@ -580,6 +581,31 @@ bool k_bbscal(const Node &a, Node &out, std::string &err) {
 
 // --- Optimal Classification ------------------------------------------------
 
+namespace {
+
+// The fewest errors of one vote split at a single point of the projections
+// pv (projection, 1 for yea), either side voting yea; a split falls only
+// between distinct projections. Adds them to te and returns the errors of
+// voting with the majority.
+int ocerr(std::vector<std::pair<double, int>> &pv, int &te) {
+  std::sort(pv.begin(), pv.end());
+  const int n = static_cast<int>(pv.size());
+  int ny = 0;
+  for (const auto &e : pv) ny += e.second;
+  const int nul = std::min(ny, n - ny);
+  int best = nul, below = 0;  // below: yeas at or below the split
+  for (int k = 1; k < n; ++k) {
+    below += pv[z(k - 1)].second;
+    if (pv[z(k - 1)].first == pv[z(k)].first) continue;
+    const int up = below + (n - k - (ny - below));  // yea above the split
+    best = std::min(best, std::min(up, n - up));
+  }
+  te += best;
+  return nul;
+}
+
+}  // namespace
+
 bool k_optcls(const Node &a, Node &out, std::string &err) {
   Mat V;
   int nd, mi, ns, seed;
@@ -628,38 +654,21 @@ bool k_optcls(const Node &a, Node &out, std::string &err) {
           for (int d = 0; d < nd; ++d) dir[z(d)] += V(i, j) == 1 ? nr(j, d) : -nr(j, d);
         }
         if (!nv) continue;
-        double l = 0;
-        for (double e : dir) l += e * e;
-        l = std::sqrt(l);
-        for (int d = 0; d < nd; ++d) xn(i, d) = l > 0 ? dir[z(d)] / l : x(i, d);
+        for (int d = 0; d < nd; ++d) xn(i, d) = dir[z(d)] / nv;
       }
       x = xn;
     }
     int te = 0, ne = 0;
+    std::vector<std::pair<double, int>> pv;
     for (int j = 0; j < m; ++j) {
-      int yc = 0, nc = 0;
-      double ys = 0, ns2 = 0;
+      pv.clear();
       for (int i = 0; i < n; ++i) {
         if (std::isnan(V(i, j))) continue;
         double pj = 0;
         for (int d = 0; d < nd; ++d) pj += x(i, d) * nr(j, d);
-        if (V(i, j) == 1) {
-          ++yc;
-          ys += pj;
-        } else if (V(i, j) == 0) {
-          ++nc;
-          ns2 += pj;
-        }
+        pv.emplace_back(pj, V(i, j) == 1);
       }
-      ne += std::min(yc, nc);
-      if (!yc || !nc) continue;
-      const double mid = (ys / yc + ns2 / nc) / 2;
-      for (int i = 0; i < n; ++i) {
-        if (std::isnan(V(i, j))) continue;
-        double pj = 0;
-        for (int d = 0; d < nd; ++d) pj += x(i, d) * nr(j, d);
-        te += (pj >= mid ? 1.0 : 0.0) != V(i, j);
-      }
+      ne += ocerr(pv, te);
     }
     if (te < best) {
       best = te;

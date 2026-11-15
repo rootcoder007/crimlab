@@ -25,12 +25,13 @@ dimensions), \code{pre} (the proportional reduction in error), \code{errors},
 }
 \description{
 Nonparametric ideal points from binary votes in the spirit of Poole
-(2000): each vote's cutting direction is the difference of the mean
-positions of its yea and nay voters, each legislator moves to the
-unit-length sum of the directions of the sides taken, for \code{maxit}
-sweeps from each of \code{nstart} random starts; the start with the fewest
-classification errors (a vote is split at the midpoint of the two
-sides' mean projections) is kept.
+(2000): each vote's cutting direction is the unit-length difference of
+the mean positions of its yea and nay voters, each legislator moves to
+the mean of the directions of the sides taken, for \code{maxit} sweeps
+from each of \code{nstart} random starts; the start with the fewest
+classification errors is kept. A vote is split at the point of its
+direction that misclassifies fewest of its voters, either side voting
+yea, so no vote has more errors than voting with the majority.
 }
 \examples{
 # 20 simulated legislators, 30 votes cut along one dimension
