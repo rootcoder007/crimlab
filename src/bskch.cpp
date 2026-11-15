@@ -11,6 +11,14 @@
 
 extern "C" {
 
+// the CRC-32 of the bytes of the raw vector x from position from (zero
+// based), as a double
+SEXP C_clab_r_crc32(SEXP x, SEXP from) {
+  const R_xlen_t n = XLENGTH(x), f = static_cast<R_xlen_t>(Rf_asReal(from));
+  const R_xlen_t k = f < 0 || f > n ? n : f;
+  return Rf_ScalarReal(clab_crc32(RAW(x) + k, static_cast<std::size_t>(n - k), 0));
+}
+
 SEXP C_clab_r_momupd(SEXP st, SEXP x) {
   clab::who = "smryupd";
   double b[5];

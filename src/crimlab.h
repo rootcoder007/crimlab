@@ -11,6 +11,7 @@
 #define CLAB_H
 
 #include <stddef.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -3408,6 +3409,9 @@ int clab_concidx(const double *h, const double *inc, int n, double *out, double 
 
 /* SHA-256 (FIPS 180-4) of n bytes into out (32 bytes). */
 void clab_sha256(const unsigned char *d, size_t n, unsigned char *out);
+/* The CRC-32 of gzip and zip (RFC 1952) of n bytes, continuing from crc
+ * (0 to start). */
+uint32_t clab_crc32(const unsigned char *d, size_t n, uint32_t crc);
 /* The moment state (n, mean, M2, M3, M4) of n values x, two passes. */
 int clab_momacc(const double *x, double n, double *out);
 /* Two moment states combined exactly (Chan, Golub and LeVeque; Terriberry). */

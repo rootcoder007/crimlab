@@ -869,7 +869,34 @@ print.vrfpol <- function(x, ...) {
       )
     }
   )
-  do.call(c, chunks)
+  out <- do.call(c, c(list(raw()), chunks))
+  if (identical(head[1:2], as.raw(c(0x1f, 0x8b)))) .vpgzend(path, out)
+  out
+}
+
+# Whether the data inflated from a gzip file match the CRC-32 and length
+# that end its last member (RFC 1952). R's reader checks them only when the
+# member ends, not when the file stops inside the data. The last member's
+# data are the last ISIZE bytes inflated.
+.vpgzend <- function(path, out) {
+  n <- file.size(path)
+  con <- file(path, "rb")
+  on.exit(close(con), add = TRUE)
+  seek(con, max(0, n - 8))
+  tl <- as.numeric(readBin(con, "raw", 8L))
+  len <- if (length(tl) == 8L) sum(tl[5:8] * 256^(0:3)) else Inf
+  if (len > length(out) ||
+        .Call(C_clab_r_crc32, out, length(out) - len) !=
+          sum(tl[1:4] * 256^(0:3))) {
+    stop(
+      paste(
+        "is truncated or damaged: its data do not match the length and",
+        "CRC-32 at its end"
+      ),
+      call. = FALSE
+    )
+  }
+  invisible(TRUE)
 }
 
 # Whether a bzip2 file ends with its end-of-stream marker.

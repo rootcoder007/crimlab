@@ -5,7 +5,7 @@
 // moments), reservoir sampling (Vitter 1985, Algorithm R) with Lemire's
 // (2019) unbiased bounded draw on std::mt19937_64, and the HyperLogLog
 // distinct-value sketch (Flajolet, Fusy, Gandouet and Meunier 2007) on
-// SHA-256 (FIPS 180-4).
+// SHA-256 (FIPS 180-4), and the CRC-32 of gzip (RFC 1952).
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
@@ -106,6 +106,16 @@ void clab_sha256(const unsigned char *d, std::size_t n, unsigned char *out) {
   for (int k = 0; k < 8; ++k) {
     for (int b = 0; b < 4; ++b) out[4 * k + b] = static_cast<unsigned char>(h[k] >> (24 - 8 * b));
   }
+}
+
+uint32_t clab_crc32(const unsigned char *d, std::size_t n, uint32_t crc) {
+  // the reflected polynomial 0xEDB88320, one byte at a time
+  crc = ~crc;
+  for (std::size_t i = 0; i < n; ++i) {
+    crc ^= d[i];
+    for (int k = 0; k < 8; ++k) crc = (crc >> 1) ^ (0xEDB88320u & (0u - (crc & 1u)));
+  }
+  return ~crc;
 }
 
 int clab_momacc(const double *x, double n, double *out) {

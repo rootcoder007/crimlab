@@ -667,6 +667,10 @@
   from the reading of its header.
 * `vrfpol()` ends its refusal of negative exposure values with the word
   it was missing: "a concentration cannot be negative".
+* `vrfpol()` refuses a gzip file cut short inside its data as "truncated
+  or damaged"; it used to read the part before the cut without a word,
+  so the report rested on some of the rows only. The data read are now
+  checked against the length and CRC-32 at the end of the file.
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.

@@ -601,6 +601,7 @@ SEXP C_clab_r_levin(SEXP, SEXP);
 SEXP C_clab_r_hif(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_concidx(SEXP, SEXP);
 // One-pass summaries (bskch.cpp).
+SEXP C_clab_r_crc32(SEXP, SEXP);
 SEXP C_clab_r_momupd(SEXP, SEXP);
 SEXP C_clab_r_mommrg(SEXP, SEXP);
 SEXP C_clab_r_momstat(SEXP);
@@ -947,6 +948,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_levin", fn<&C_clab_r_levin>(), 2},
     {"C_clab_r_hif", fn<&C_clab_r_hif>(), 4},
     {"C_clab_r_concidx", fn<&C_clab_r_concidx>(), 2},
+    {"C_clab_r_crc32", fn<&C_clab_r_crc32>(), 2},
     {"C_clab_r_momupd", fn<&C_clab_r_momupd>(), 2},
     {"C_clab_r_mommrg", fn<&C_clab_r_mommrg>(), 2},
     {"C_clab_r_momstat", fn<&C_clab_r_momstat>(), 1},
