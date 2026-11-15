@@ -528,6 +528,8 @@ SEXP C_clab_r_mtrbnd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_igh(SEXP, SEXP);
 // The accuracy of a hot-spot map (bhsa.cpp).
 SEXP C_clab_r_hsacc(SEXP, SEXP, SEXP, SEXP, SEXP);
+// Scaling, ideal points and counts over time (bsvt.cpp).
+SEXP C_clab_r_svk(SEXP, SEXP);
 // The age-period-cohort model (bapc.cpp).
 SEXP C_clab_r_apcie(SEXP, SEXP, SEXP, SEXP);
 // The split-population survival model (bspc.cpp).
@@ -884,6 +886,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_ascii", fn<&C_clab_r_ascii>(), 1},
     {"C_clab_r_prim", fn<&C_clab_r_prim>(), 4},
     {"C_clab_r_hsacc", fn<&C_clab_r_hsacc>(), 5},
+    {"C_clab_r_svk", fn<&C_clab_r_svk>(), 2},
     {"C_clab_r_apcie", fn<&C_clab_r_apcie>(), 4},
     {"C_clab_r_spcure", fn<&C_clab_r_spcure>(), 6},
     {"C_clab_r_lnkpr", fn<&C_clab_r_lnkpr>(), 5},

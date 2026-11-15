@@ -5943,3 +5943,732 @@ def dstfit(x: Any, fams: Any = None, nboot: Any = 200, conflvl: Any = 0.95, seed
     3.25
     """
     return jcall("dstfit", x=x, fams=fams, nboot=nboot, conflvl=conflvl, seed=seed, k=k)
+
+
+def votagr(x: Any) -> Any:
+    """Vote agreement between legislators.
+
+    The arguments and the result are those of R's ``votagr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = votagr(x=[[0, 0, 0, 1, 0, 0], [0, 1, None, 0, 1, 1], [0, 0, 0, 1, 0, 1], [0, 0, 1, 0, 0,
+    ... 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0], [0, 1, 1, 0, 0, 1]])
+    >>> list(r)
+    ['agree', 'mean', 'n', 'm']
+    """
+    return jcall("votagr", x=x)
+
+
+def amscal(Z: Any) -> Any:
+    """Aldrich-McKelvey scaling.
+
+    The arguments and the result are those of R's ``amscal()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = amscal(Z=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
+    ... 6, 7]])
+    >>> list(r)
+    []
+    """
+    return jcall("amscal", Z=Z)
+
+
+def bbscal(X: Any, ndim: Any = 2, minscale: Any = 8) -> Any:
+    """Basic Space (blackbox) scaling.
+
+    The arguments and the result are those of R's ``bbscal()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bbscal(X=[[1, 3, 5, 6, 3.5, 1.5], [2, 3, 4, 7, 2.5, 1.5], [1, 2, 6, 6, 2.5, 1.5], [3, 4,
+    ... 5, 7, 3.5, 2.5], [2, 4, 4, 6, 4.5, 2.5], [1, 3, 6, 7, 2.5, 0.5]], ndim=1, minscale=4)
+    >>> list(r)
+    []
+    """
+    return jcall("bbscal", X=X, ndim=ndim, minscale=minscale)
+
+
+def optcls(votes: Any, ndim: Any = 1, maxit: Any = 500, nstart: Any = 10, seed: Any = 42) -> Any:
+    """Optimal Classification scaling.
+
+    The arguments and the result are those of R's ``optcls()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = optcls(votes=[[0, 0, 0, 1, 0, 0], [0, 1, None, 0, 1, 1], [0, 0, 0, 1, 0, 1], [0, 0, 1,
+    ... 0, 0, 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0], [0, 1, 1, 0, 0,
+    ... 1]], maxit=5, nstart=2)
+    >>> list(r)
+    ['ideal', 'normals', 'pre', 'errors', 'null', 'ndim']
+    """
+    return jcall("optcls", votes=votes, ndim=ndim, maxit=maxit, nstart=nstart, seed=seed)
+
+
+def dblctr(D: Any) -> Any:
+    """Double-centre a distance matrix.
+
+    The arguments and the result are those of R's ``dblctr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = dblctr(D=[[0, 2.23606797749979, 3.1622776601683795, 5, 4.47213595499958],
+    ... [2.23606797749979, 0, 2.23606797749979, 3.1622776601683795, 2.23606797749979],
+    ... [3.1622776601683795, 2.23606797749979, 0, 2.23606797749979, 3.1622776601683795], [5,
+    ... 3.1622776601683795, 2.23606797749979, 0, 2.23606797749979], [4.47213595499958,
+    ... 2.23606797749979, 3.1622776601683795, 2.23606797749979, 0]])
+    >>> list(r)
+    ['B']
+    """
+    return jcall("dblctr", D=D)
+
+
+def cmdsf(D: Any, ndim: Any = 2) -> Any:
+    """Classical (metric) multidimensional scaling.
+
+    The arguments and the result are those of R's ``cmdsf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cmdsf(D=[[0, 2.23606797749979, 3.1622776601683795, 5, 4.47213595499958],
+    ... [2.23606797749979, 0, 2.23606797749979, 3.1622776601683795, 2.23606797749979],
+    ... [3.1622776601683795, 2.23606797749979, 0, 2.23606797749979, 3.1622776601683795], [5,
+    ... 3.1622776601683795, 2.23606797749979, 0, 2.23606797749979], [4.47213595499958,
+    ... 2.23606797749979, 3.1622776601683795, 2.23606797749979, 0]])
+    >>> list(r)
+    ['coords', 'eigen', 'stress', 'fit', 'B']
+    """
+    return jcall("cmdsf", D=D, ndim=ndim)
+
+
+def smacf(
+    D: Any,
+    ndim: Any = 2,
+    maxit: Any = 300,
+    tol: Any = 1e-06,
+    w: Any = None,
+    init: Any = None,
+) -> Any:
+    """SMACOF stress minimisation.
+
+    The arguments and the result are those of R's ``smacf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = smacf(D=[[0, 2.23606797749979, 3.1622776601683795, 5, 4.47213595499958],
+    ... [2.23606797749979, 0, 2.23606797749979, 3.1622776601683795, 2.23606797749979],
+    ... [3.1622776601683795, 2.23606797749979, 0, 2.23606797749979, 3.1622776601683795], [5,
+    ... 3.1622776601683795, 2.23606797749979, 0, 2.23606797749979], [4.47213595499958,
+    ... 2.23606797749979, 3.1622776601683795, 2.23606797749979, 0]], maxit=20)
+    >>> list(r)
+    ['coords', 'stress', 'iter', 'conv']
+    """
+    return jcall("smacf", D=D, ndim=ndim, maxit=maxit, tol=tol, w=w, init=init)
+
+
+def nmdsf(D: Any, ndim: Any = 2, maxit: Any = 300, tol: Any = 1e-06) -> Any:
+    """Nonmetric multidimensional scaling.
+
+    The arguments and the result are those of R's ``nmdsf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = nmdsf(D=[[0, 2.23606797749979, 3.1622776601683795, 5, 4.47213595499958],
+    ... [2.23606797749979, 0, 2.23606797749979, 3.1622776601683795, 2.23606797749979],
+    ... [3.1622776601683795, 2.23606797749979, 0, 2.23606797749979, 3.1622776601683795], [5,
+    ... 3.1622776601683795, 2.23606797749979, 0, 2.23606797749979], [4.47213595499958,
+    ... 2.23606797749979, 3.1622776601683795, 2.23606797749979, 0]], maxit=10)
+    >>> list(r)
+    ['coords', 'stress', 'iter', 'conv']
+    """
+    return jcall("nmdsf", D=D, ndim=ndim, maxit=maxit, tol=tol)
+
+
+def mdsfit(ev: Any) -> Any:
+    """Fit of a scaling by its eigenvalues.
+
+    The arguments and the result are those of R's ``mdsfit()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = mdsfit(ev=[4, 2, -1, 0.5])
+    >>> list(r)
+    ['fit', 'cumfit', 'ev']
+    """
+    return jcall("mdsfit", ev=ev)
+
+
+def unfstr(xr: Any, xs: Any, D: Any, w: Any = None) -> Any:
+    """Stress of an unfolding.
+
+    The arguments and the result are those of R's ``unfstr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = unfstr(xr=[[0, 0], [1, 1]], xs=[[1, 1], [0, 1], [2, 0]], D=[[1, None, 1], [2, 1, 1]])
+    >>> list(r)
+    ['stress']
+    """
+    return jcall("unfstr", xr=xr, xs=xs, D=D, w=w)
+
+
+def mlsmu(D: Any, ndim: Any = 2, maxit: Any = 200, tol: Any = 1e-06, nstart: Any = 5) -> Any:
+    """Least-squares metric unfolding.
+
+    The arguments and the result are those of R's ``mlsmu()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = mlsmu(D=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3, 6,
+    ... 7]], maxit=10, nstart=2)
+    >>> list(r)
+    ['xr', 'xs', 'stress', 'iter', 'conv']
+    """
+    return jcall("mlsmu", D=D, ndim=ndim, maxit=maxit, tol=tol, nstart=nstart)
+
+
+def smunf(D: Any, ndim: Any = 2, maxit: Any = 300, tol: Any = 1e-06) -> Any:
+    """SMACOF unfolding.
+
+    The arguments and the result are those of R's ``smunf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = smunf(D=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3, 6,
+    ... 7]], maxit=10)
+    >>> list(r)
+    ['xr', 'xs', 'stress', 'iter', 'conv']
+    """
+    return jcall("smunf", D=D, ndim=ndim, maxit=maxit, tol=tol)
+
+
+def ipsrec(xr: Any, xs: Any = None) -> Any:
+    """Ideal points from an unfolding.
+
+    The arguments and the result are those of R's ``ipsrec()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ipsrec(xr=[[1, 3], [2, 4]])
+    >>> list(r)
+    ['ideal']
+    """
+    return jcall("ipsrec", xr=xr, xs=xs)
+
+
+def nomutl(x: Any, zy: Any, zn: Any, beta: Any = 15, w: Any = None) -> Any:
+    """NOMINATE utilities and vote probabilities.
+
+    The arguments and the result are those of R's ``nomutl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = nomutl(x=[[0, -0.5], [0.5, 0.2]], zy=[[0.3, 0.1]], zn=[[-0.3, 0]])
+    >>> list(r)
+    ['uyea', 'unay', 'udiff', 'prob']
+    """
+    return jcall("nomutl", x=x, zy=zy, zn=zn, beta=beta, w=w)
+
+
+def nompr(x: Any, zy: Any, zn: Any, beta: Any = 15, w: Any = None) -> Any:
+    """One NOMINATE vote probability.
+
+    The arguments and the result are those of R's ``nompr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = nompr(x=0.1, zy=0.3, zn=-0.3)
+    >>> list(r)
+    ['prob']
+    """
+    return jcall("nompr", x=x, zy=zy, zn=zn, beta=beta, w=w)
+
+
+def nomll(votes: Any, x: Any, zy: Any, zn: Any, beta: Any = 15, w: Any = None) -> Any:
+    """NOMINATE log-likelihood and classification.
+
+    The arguments and the result are those of R's ``nomll()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = nomll(votes=[[1, None], [0, 1]], x=[[0.2], [-0.4]], zy=[[0.3], [-0.1]], zn=[[-0.3],
+    ... [0.4]])
+    >>> list(r)
+    ['loglik', 'gmp', 'correct', 'total']
+    """
+    return jcall("nomll", votes=votes, x=x, zy=zy, zn=zn, beta=beta, w=w)
+
+
+def procrs(X: Any, target: Any) -> Any:
+    """Procrustes rotation.
+
+    The arguments and the result are those of R's ``procrs()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = procrs(X=[[0, 2.23606797749979], [2.23606797749979, 0], [3.1622776601683795,
+    ... 2.23606797749979], [5, 3.1622776601683795], [4.47213595499958, 2.23606797749979]],
+    ... target=[[2.23606797749979, 0], [0, 2.23606797749979], [2.23606797749979,
+    ... 3.1622776601683795], [3.1622776601683795, 5], [2.23606797749979, 4.47213595499958]])
+    >>> list(r)
+    ['rotated', 'rotation', 'scale', 'mse']
+    """
+    return jcall("procrs", X=X, target=target)
+
+
+def irtlik(votes: Any, x: Any, alpha: Any, beta: Any) -> Any:
+    """Binary IRT likelihood.
+
+    The arguments and the result are those of R's ``irtlik()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = irtlik(votes=[[0, 0, 0, 1], [0, 1, None, 0], [0, 0, 0, 1]], x=[[-1], [0], [1]],
+    ... alpha=[0, 0.5, -0.5, 0], beta=[[1], [2], [-1], [0.5]])
+    >>> list(r)
+    ['loglik', 'prob', 'correct', 'total', 'accuracy']
+    """
+    return jcall("irtlik", votes=votes, x=x, alpha=alpha, beta=beta)
+
+
+def irtpst(chain: Any, std: Any = True) -> Any:
+    """Posterior summaries of ideal-point draws.
+
+    The arguments and the result are those of R's ``irtpst()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = irtpst(chain=[[[0.010000000000000002, 1.6900000000000006], [0.25, 2.8900000000000006],
+    ... [0.81, 4.41]], [[0.04000000000000001, 1.9600000000000004], [0.36, 3.240000000000001],
+    ... [1, 4.840000000000001]], [[0.09000000000000002, 2.250000000000001], [0.4900000000000001,
+    ... 3.6100000000000003], [1.2100000000000002, 5.290000000000001]], [[0.16000000000000003,
+    ... 2.5600000000000005], [0.6400000000000001, 4], [1.4400000000000004, 5.76]]])
+    >>> list(r)
+    ['mean', 'sd', 'lo', 'hi', 'nsamp', 'std']
+    """
+    return jcall("irtpst", chain=chain, std=std)
+
+
+def ordocl(Y: Any, ndim: Any = 2, maxit: Any = 500) -> Any:
+    """Ordered Optimal Classification.
+
+    The arguments and the result are those of R's ``ordocl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ordocl(Y=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
+    ... 6, 7]], ndim=1, maxit=5)
+    >>> list(r)
+    ['ideal', 'cuts', 'normals', 'correct', 'iter']
+    """
+    return jcall("ordocl", Y=Y, ndim=ndim, maxit=maxit)
+
+
+def anchv(y: Any, V: Any, ncat: Any = 5) -> Any:
+    """Anchoring vignettes.
+
+    The arguments and the result are those of R's ``anchv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = anchv(y=[1, 3, 5, None, 2, 4], V=[[1, 3, 5], [2, 3, 4], [1, 2, 6], [3, 4, 5], [2, 4, 4],
+    ... [1, 3, 6]])
+    >>> list(r)
+    ['scores', 'thresh', 'dif', 'order', 'n', 'nvig']
+    """
+    return jcall("anchv", y=y, V=V, ncat=ncat)
+
+
+def indscl(D: Any, ndim: Any = 2, maxit: Any = 300, tol: Any = 1e-06) -> Any:
+    """INDSCAL: scaling with individual differences.
+
+    The arguments and the result are those of R's ``indscl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = indscl(D=[[[0, 2.23606797749979, 3.1622776601683795, 5, 4.47213595499958],
+    ... [2.23606797749979, 0, 2.23606797749979, 3.1622776601683795, 2.23606797749979],
+    ... [3.1622776601683795, 2.23606797749979, 0, 2.23606797749979, 3.1622776601683795], [5,
+    ... 3.1622776601683795, 2.23606797749979, 0, 2.23606797749979], [4.47213595499958,
+    ... 2.23606797749979, 3.1622776601683795, 2.23606797749979, 0]], [[0, 2.23606797749979,
+    ... 3.1622776601683795, 5, 4.47213595499958], [2.6832815729997477, 0, 2.6832815729997477,
+    ... 3.794733192202055, 2.6832815729997477], [2.8460498941515415, 2.012461179749811, 0,
+    ... 2.012461179749811, 2.8460498941515415], [5.5, 3.478505426185218, 2.459674775249769, 0,
+    ... 2.459674775249769], [4.47213595499958, 2.23606797749979, 3.1622776601683795,
+    ... 2.23606797749979, 0]]], maxit=10)
+    >>> list(r)
+    ['config', 'weights', 'stress', 'iter', 'nind', 'nstim']
+    """
+    return jcall("indscl", D=D, ndim=ndim, maxit=maxit, tol=tol)
+
+
+def nrmvec(x: Any, y: Any) -> Any:
+    """Normal vector of an outside measure.
+
+    The arguments and the result are those of R's ``nrmvec()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = nrmvec(x=[[0, 2.23606797749979], [2.23606797749979, 0], [3.1622776601683795,
+    ... 2.23606797749979], [5, 3.1622776601683795], [4.47213595499958, 2.23606797749979]], y=[1,
+    ... 2, None, 4, 3])
+    >>> list(r)
+    ['normal', 'degrees', 'radians', 'r2', 'coef']
+    """
+    return jcall("nrmvec", x=x, y=y)
+
+
+def cutlns(normals: Any, cuts: Any, xlim: Any = (-1, 1)) -> Any:
+    """Cutting lines of votes in two dimensions.
+
+    The arguments and the result are those of R's ``cutlns()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cutlns(normals=[[0.6, 0.8], [1, 0], [0, 0]], cuts=[0.1, -0.2, 0])
+    >>> list(r)
+    ['ends', 'angles', 'mids', 'nlines']
+    """
+    return jcall("cutlns", normals=normals, cuts=cuts, xlim=xlim)
+
+
+def dwnom(votes: Any, ndim: Any = 2, maxit: Any = 100) -> Any:
+    """DW-NOMINATE-style ideal points.
+
+    The arguments and the result are those of R's ``dwnom()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = dwnom(votes=[[0, 0, 0, 1, 0, 0], [0, 1, None, 0, 1, 1], [0, 0, 0, 1, 0, 1], [0, 0, 1, 0,
+    ... 0, 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0], [0, 1, 1, 0, 0, 1]],
+    ... maxit=5)
+    >>> list(r)
+    ['ideal', 'weights', 'normals', 'mids', 'cuts', 'loglik', 'gmp', 'ndim']
+    """
+    return jcall("dwnom", votes=votes, ndim=ndim, maxit=maxit)
+
+
+def nombt(votes: Any, x: Any, normals: Any, cuts: Any, nboot: Any = 100, seed: Any = 42) -> Any:
+    """Parametric bootstrap of ideal points.
+
+    The arguments and the result are those of R's ``nombt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = nombt(votes=[[0, 0, 0], [0, 1, None], [0, 0, 0], [0, 0, 1]], x=[[-1], [-0.5], [0.5],
+    ... [1]], normals=[[1], [1], [-1]], cuts=[0, 0.2, -0.1], nboot=3)
+    >>> list(r)
+    ['se', 'mean', 'nboot']
+    """
+    return jcall("nombt", votes=votes, x=x, normals=normals, cuts=cuts, nboot=nboot, seed=seed)
+
+
+def irtem(
+    votes: Any,
+    ndim: Any = 1,
+    maxit: Any = 500,
+    tol: Any = 1e-06,
+    xprior: Any = (0, 1),
+    bprior: Any = (0, 25),
+    start: Any = None,
+    conv: Any = 'cor',
+) -> Any:
+    """EM estimation of binary IRT ideal points.
+
+    The arguments and the result are those of R's ``irtem()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = irtem(votes=[[0, 0, 0, 1, 0, 0], [0, 1, None, 0, 1, 1], [0, 0, 0, 1, 0, 1], [0, 0, 1, 0,
+    ... 0, 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0], [0, 1, 1, 0, 0, 1]],
+    ... maxit=20)
+    >>> list(r)
+    ['ideal', 'disc', 'diff', 'loglik', 'iter', 'conv']
+    """
+    return jcall(
+        "irtem",
+        votes=votes,
+        ndim=ndim,
+        maxit=maxit,
+        tol=tol,
+        xprior=xprior,
+        bprior=bprior,
+        start=start,
+        conv=conv,
+    )
+
+
+def scboot(Z: Any, method: Any = 'am', nboot: Any = 200, seed: Any = 42) -> Any:
+    """Bootstrap of scaling positions.
+
+    The arguments and the result are those of R's ``scboot()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = scboot(Z=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
+    ... 6, 7]], nboot=3)
+    >>> list(r)
+    ['se', 'mean', 'lo', 'hi', 'nboot']
+    """
+    return jcall("scboot", Z=Z, method=method, nboot=nboot, seed=seed)
+
+
+def wrdfsh(dtm: Any, maxit: Any = 100, tol: Any = 1e-06) -> Any:
+    """Wordfish: positions from word counts.
+
+    The arguments and the result are those of R's ``wrdfsh()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = wrdfsh(dtm=[[5, 4, 3], [3, 1, 1], [0, 6, 0], [2, 2, 7]], maxit=10)
+    >>> list(r)
+    ['pos', 'beta', 'alpha', 'psi', 'loglik', 'iter']
+    """
+    return jcall("wrdfsh", dtm=dtm, maxit=maxit, tol=tol)
+
+
+def bamscl(Z: Any, nsamp: Any = 1000, burn: Any = 200, polarity: Any = 1, seed: Any = 42) -> Any:
+    """Bayesian Aldrich-McKelvey scaling.
+
+    The arguments and the result are those of R's ``bamscl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bamscl(Z=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
+    ... 6, 7]], nsamp=5, burn=3)
+    >>> list(r)
+    ['zeta', 'sd', 'interval', 'a', 'b', 'tau', 'draws', 'nsamp']
+    """
+    return jcall("bamscl", Z=Z, nsamp=nsamp, burn=burn, polarity=polarity, seed=seed)
+
+
+def bmdsf(
+    D: Any,
+    ndim: Any = 2,
+    nsamp: Any = 1000,
+    burn: Any = 200,
+    sigma: Any = 1,
+    seed: Any = 42,
+) -> Any:
+    """Bayesian metric multidimensional scaling.
+
+    The arguments and the result are those of R's ``bmdsf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bmdsf(D=[[0, 2.23606797749979, 3.1622776601683795, 5, 4.47213595499958],
+    ... [2.23606797749979, 0, 2.23606797749979, 3.1622776601683795, 2.23606797749979],
+    ... [3.1622776601683795, 2.23606797749979, 0, 2.23606797749979, 3.1622776601683795], [5,
+    ... 3.1622776601683795, 2.23606797749979, 0, 2.23606797749979], [4.47213595499958,
+    ... 2.23606797749979, 3.1622776601683795, 2.23606797749979, 0]], nsamp=3, burn=2)
+    >>> list(r)
+    ['pos', 'sd', 'dist', 'sigma', 'tau', 'draws', 'nsamp']
+    """
+    return jcall("bmdsf", D=D, ndim=ndim, nsamp=nsamp, burn=burn, sigma=sigma, seed=seed)
+
+
+def bunfld(D: Any, ndim: Any = 2, nsamp: Any = 1000, burn: Any = 200, seed: Any = 42) -> Any:
+    """Bayesian unfolding.
+
+    The arguments and the result are those of R's ``bunfld()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bunfld(D=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
+    ... 6, 7]], nsamp=3, burn=2)
+    >>> list(r)
+    ['stim', 'sd', 'ideal', 'dist', 'sigma', 'tau', 'nsamp']
+    """
+    return jcall("bunfld", D=D, ndim=ndim, nsamp=nsamp, burn=burn, seed=seed)
+
+
+def cjrirt(
+    votes: Any,
+    ndim: Any = 1,
+    nsamp: Any = 1000,
+    burn: Any = 200,
+    bvar: Any = 25,
+    start: Any = None,
+    seed: Any = 0,
+    chains: Any = True,
+) -> Any:
+    """Clinton-Jackman-Rivers Bayesian IRT.
+
+    The arguments and the result are those of R's ``cjrirt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cjrirt(votes=[[0, 0, 0, 1, 0, 0], [0, 1, None, 0, 1, 1], [0, 0, 0, 1, 0, 1], [0, 0, 1,
+    ... 0, 0, 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0], [0, 1, 1, 0, 0,
+    ... 1]], nsamp=3, burn=2, chains=False)
+    >>> list(r)
+    ['ideal', 'sd', 'alpha', 'beta', 'nsamp']
+    """
+    return jcall(
+        "cjrirt",
+        votes=votes,
+        ndim=ndim,
+        nsamp=nsamp,
+        burn=burn,
+        bvar=bvar,
+        start=start,
+        seed=seed,
+        chains=chains,
+    )
+
+
+def anomin(
+    votes: Any,
+    ndim: Any = 1,
+    nsamp: Any = 500,
+    burn: Any = 100,
+    seed: Any = 42,
+    thin: Any = 1,
+    lop: Any = 0.025,
+    minvotes: Any = 20,
+    polarity: Any = 1,
+    fixalpha: Any = False,
+) -> Any:
+    """Alpha-NOMINATE.
+
+    The arguments and the result are those of R's ``anomin()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = anomin(votes=[[0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1], [0, 1, None, 0, 1, 1, 1, 0, None, 1,
+    ... 0, 0], [0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 0], [0, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1], [0,
+    ... 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1], [0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0], [1, 0, 1, 0, 1,
+    ... 0, 0, 1, 0, 1, 0, 1], [0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0]], nsamp=2, burn=1,
+    ... minvotes=5)
+    >>> list(r)
+    ['ideal', 'sd', 'yea', 'nay', 'alpha', 'interval', 'beta', 'draws', 'legis', 'votes',
+    'ndim']
+    """
+    return jcall(
+        "anomin",
+        votes=votes,
+        ndim=ndim,
+        nsamp=nsamp,
+        burn=burn,
+        seed=seed,
+        thin=thin,
+        lop=lop,
+        minvotes=minvotes,
+        polarity=polarity,
+        fixalpha=fixalpha,
+    )
+
+
+def ordirt(
+    Y: Any,
+    ndim: Any = 1,
+    nsamp: Any = 500,
+    burn: Any = 100,
+    seed: Any = 42,
+    lprec: Any = 0,
+) -> Any:
+    """Ordinal IRT (ordinal factor model).
+
+    The arguments and the result are those of R's ``ordirt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ordirt(Y=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
+    ... 6, 7]], nsamp=3, burn=2)
+    >>> list(r)
+    ['ideal', 'sd', 'disc', 'icept', 'cuts', 'accept', 'nsamp']
+    """
+    return jcall("ordirt", Y=Y, ndim=ndim, nsamp=nsamp, burn=burn, seed=seed, lprec=lprec)
+
+
+def dynirt(
+    votes: Any,
+    period: Any,
+    nsamp: Any = 500,
+    burn: Any = 100,
+    seed: Any = 42,
+    thin: Any = 1,
+    tau2: Any = 1,
+    c0: Any = -1,
+    d0: Any = -1,
+    e0: Any = 0,
+    E0: Any = 1,
+    a0: Any = 0,
+    A0: Any = 0.1,
+    b0: Any = 0,
+    B0: Any = 0.1,
+    anchor: Any = None,
+) -> Any:
+    """Dynamic IRT (ideal points that drift).
+
+    The arguments and the result are those of R's ``dynirt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = dynirt(votes=[[0, 0, 0, 1, 0, 0], [0, 1, None, 0, 1, 1], [0, 0, 0, 1, 0, 1], [0, 0, 1,
+    ... 0, 0, 0], [0, 1, 0, 1, 0, 0], [0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0], [0, 1, 1, 0, 0,
+    ... 1]], period=[1, 1, 2, 2, 3, 3], nsamp=3, burn=2)
+    >>> list(r)
+    ['theta', 'sd', 'alpha', 'beta', 'tau2', 'periods', 'nsamp', 'anchor']
+    """
+    return jcall(
+        "dynirt",
+        votes=votes,
+        period=period,
+        nsamp=nsamp,
+        burn=burn,
+        seed=seed,
+        thin=thin,
+        tau2=tau2,
+        c0=c0,
+        d0=d0,
+        e0=e0,
+        E0=E0,
+        a0=a0,
+        A0=A0,
+        b0=b0,
+        B0=B0,
+        anchor=anchor,
+    )
+
+
+
+
+

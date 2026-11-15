@@ -38,6 +38,25 @@
   in `clab_jrun()`, the command line and Python; the other two read files
   and write text in R.
 
+* Scaling and ideal points, for judges, courts, legislators and survey
+  respondents: vote agreement (`votagr()`), Aldrich-McKelvey scaling
+  (`amscal()`) and its Bayesian form (`bamscl()`), Basic Space scaling
+  (`bbscal()`), classical, SMACOF and nonmetric MDS (`cmdsf()`, `smacf()`,
+  `nmdsf()`, `dblctr()`, `mdsfit()`), Bayesian MDS and unfolding
+  (`bmdsf()`, `bunfld()`), unfolding by least squares and by SMACOF
+  (`mlsmu()`, `smunf()`, `unfstr()`, `ipsrec()`), INDSCAL (`indscl()`),
+  Procrustes rotation (`procrs()`), NOMINATE utilities, likelihood, fit
+  and bootstrap (`nomutl()`, `nompr()`, `nomll()`, `dwnom()`, `nombt()`),
+  alpha-NOMINATE (`anomin()`), Optimal Classification and its ordered
+  form (`optcls()`, `ordocl()`), binary IRT by EM (`irtem()`) and by Gibbs
+  sampling (`cjrirt()`, `irtlik()`, `irtpst()`), ordinal and dynamic IRT
+  (`ordirt()`, `dynirt()`), anchoring vignettes (`anchv()`), the bootstrap
+  of scaling positions (`scboot()`), normal vectors and cutting lines
+  (`nrmvec()`, `cutlns()`) and Wordfish (`wrdfsh()`). The samplers draw
+  from R's generator seeded as `set.seed()` (`cjrirt()` from Philox), so a
+  chain is the same in every front end. All are in `clab_jrun()`, the
+  command line and Python.
+
 * Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
   Gaussian plume and puff (`gplume()`, `gspuff()`, the field

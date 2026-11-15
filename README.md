@@ -199,6 +199,12 @@ The functions work on summary data, not on raw records:
 * Age, period and cohort: the parts of a change in a rate that belong to
   age, to the period and to the cohort, by the intrinsic estimator
   (`apcie()`).
+* Scaling and ideal points of judges, courts, legislators and survey
+  respondents: Aldrich-McKelvey and Basic Space scaling, MDS and
+  unfolding, NOMINATE, Optimal Classification, IRT by EM and MCMC,
+  dynamic and ordinal IRT, Wordfish (`amscal()`, `bbscal()`, `cmdsf()`,
+  `dwnom()`, `optcls()`, `irtem()`, `cjrirt()`, `dynirt()`, `wrdfsh()` and
+  more).
 * Hot-spot maps: how many later crimes a map's hot spots caught, by the
   hit rate, the predictive accuracy and efficiency indices and the
   recapture rate index (`hsacc()`).
@@ -587,7 +593,7 @@ Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
 of the R package but those that work in R only, the plot functions
 and the table check `prechk()`
-(369 of 390); `crimlab -l` lists them and
+(405 of 426); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

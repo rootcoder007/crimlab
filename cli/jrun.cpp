@@ -48,6 +48,7 @@
 #include "pevs.h"
 #include "pevw.h"
 #include "ynum.h"
+#include "svk.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1598,6 +1599,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jtxt.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
+#include "jsvt.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1918,6 +1920,42 @@ const Ent ents[] = {
     {"trcind", "", trcind},
     {"trchlthgap", "health? lifeexp? infmort? suiide? ref? agetot?", trchlthgap},
     {"polex", "seed?", polex},
+    {"votagr", "x", votagr},
+    {"amscal", "Z", amscal},
+    {"bbscal", "X ndim? minscale?", bbscal},
+    {"optcls", "votes ndim? maxit? nstart? seed?", optcls},
+    {"dblctr", "D", dblctr},
+    {"cmdsf", "D ndim?", cmdsf},
+    {"smacf", "D ndim? maxit? tol? w? init?", smacf},
+    {"nmdsf", "D ndim? maxit? tol?", nmdsf},
+    {"mdsfit", "ev", mdsfit},
+    {"unfstr", "xr xs D w?", unfstr},
+    {"mlsmu", "D ndim? maxit? tol? nstart?", mlsmu},
+    {"smunf", "D ndim? maxit? tol?", smunf},
+    {"ipsrec", "xr xs?", ipsrec},
+    {"nomutl", "x zy zn beta? w?", nomutl},
+    {"nompr", "x zy zn beta? w?", nompr},
+    {"nomll", "votes x zy zn beta? w?", nomll},
+    {"procrs", "X target", procrs},
+    {"irtlik", "votes x alpha beta", irtlik},
+    {"irtpst", "chain std?", irtpst},
+    {"ordocl", "Y ndim? maxit?", ordocl},
+    {"anchv", "y V ncat?", anchv},
+    {"indscl", "D ndim? maxit? tol?", indscl},
+    {"nrmvec", "x y", nrmvec},
+    {"cutlns", "normals cuts xlim?", cutlns},
+    {"dwnom", "votes ndim? maxit?", dwnom},
+    {"nombt", "votes x normals cuts nboot? seed?", nombt},
+    {"irtem", "votes ndim? maxit? tol? xprior? bprior? start? conv?", irtem},
+    {"scboot", "Z method? nboot? seed?", scboot},
+    {"wrdfsh", "dtm maxit? tol?", wrdfsh},
+    {"bamscl", "Z nsamp? burn? polarity? seed?", bamscl},
+    {"bmdsf", "D ndim? nsamp? burn? sigma? seed?", bmdsf},
+    {"bunfld", "D ndim? nsamp? burn? seed?", bunfld},
+    {"cjrirt", "votes ndim? nsamp? burn? bvar? start? seed? chains?", cjrirt},
+    {"anomin", "votes ndim? nsamp? burn? seed? thin? lop? minvotes? polarity? fixalpha?", anomin},
+    {"ordirt", "Y ndim? nsamp? burn? seed? lprec?", ordirt},
+    {"dynirt", "votes period nsamp? burn? seed? thin? tau2? c0? d0? e0? E0? a0? A0? b0? B0? anchor?", dynirt},
     {"mtrbnd", "y z ylo? yhi? assume? w?", mtrbnd},
     {"yoywr", "x file format? digits? na? meta? comment? pretty? align?", yoywr},
     {"yoymd", "x file? digits? align? meta?", yoymd},

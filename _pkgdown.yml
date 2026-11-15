@@ -586,3 +586,46 @@ reference:
       - co2int
       - dtctloc
       - fpeqv
+  - title: Scaling and ideal points
+    desc: >
+      Ideal points and spatial maps of judges, courts, legislators and
+      survey respondents: agreement, Aldrich-McKelvey and Basic Space
+      scaling, metric and nonmetric MDS, unfolding, NOMINATE, Optimal
+      Classification, IRT by EM and by MCMC, Wordfish.
+    contents:
+      - votagr
+      - amscal
+      - bbscal
+      - optcls
+      - ordocl
+      - dblctr
+      - cmdsf
+      - smacf
+      - nmdsf
+      - mdsfit
+      - indscl
+      - unfstr
+      - mlsmu
+      - smunf
+      - ipsrec
+      - procrs
+      - nomutl
+      - nompr
+      - nomll
+      - dwnom
+      - nombt
+      - irtlik
+      - irtem
+      - irtpst
+      - cjrirt
+      - bamscl
+      - bmdsf
+      - bunfld
+      - anomin
+      - ordirt
+      - dynirt
+      - anchv
+      - scboot
+      - nrmvec
+      - cutlns
+      - wrdfsh
