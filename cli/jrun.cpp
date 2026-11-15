@@ -1814,7 +1814,7 @@ const Ent ents[] = {
     {"dstnskch", "x p? regstr?", dstnskch},
     {"dstncnt", "regstr", dstncnt},
     {"skchmrg", "a b", skchmrg},
-    {"ibench", "y off x? minn? fdr?", ibench},
+    {"ibench", "y off x? minn? fdr? dr? local?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},
     {"rptvic", "id t? pop? brk?", rptvic},

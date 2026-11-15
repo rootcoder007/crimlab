@@ -46,7 +46,7 @@ int xcols(SEXP x, int n, std::vector<double> &v) {
 
 extern "C" {
 
-SEXP C_clab_r_ibench(SEXP y, SEXP off, SEXP x, SEXP minn, SEXP fdr) {
+SEXP C_clab_r_ibench(SEXP y, SEXP off, SEXP x, SEXP minn, SEXP fdr, SEXP dr, SEXP local) {
   clab::who = "ibench";
   int np = 0;
   SEXP yv = PROTECT(csp::bin01(y, "y", XLENGTH(y)));
@@ -60,33 +60,40 @@ SEXP C_clab_r_ibench(SEXP y, SEXP off, SEXP x, SEXP minn, SEXP fdr) {
   const int p = xcols(x, n, xv);
   const int mn = clab::whole(minn, "minn", 1);
   const double fd = clab::one(fdr, "fdr", 0.0, 1.0);
+  const bool udr = csp::flag(dr, "dr"), ulf = csp::flag(local, "local");
   std::vector<double> yd(static_cast<std::size_t>(n));
   for (int i = 0; i < n; ++i) yd[static_cast<std::size_t>(i)] = INTEGER(yv)[i];
   const int no = o.g;
-  std::vector<double> res(7 * static_cast<std::size_t>(no));
+  std::vector<double> res(8 * static_cast<std::size_t>(no)), nul(3);
   std::vector<int> ok(static_cast<std::size_t>(no));
-  const int rc = clab_ibench(yd.data(), INTEGER(o.code), p ? xv.data() : nullptr, n, p, no, mn, res.data(), ok.data());
+  const int rc = clab_ibench(yd.data(), INTEGER(o.code), p ? xv.data() : nullptr, n, p, no, mn, udr, ulf, res.data(),
+                             ok.data(), nul.data());
   clab::ichk(rc);
-  bj::kc(rc, "the kernel refused the input.");
-  bj::cols t(10, no);
+  bj::kc(rc, ulf ? "the local false discovery rate could not be estimated: the null could not be fitted to the "
+                   "middle of the officers' z statistics."
+                 : "the kernel refused the input.");
+  bj::cols t(11, no);
   t.put("off", o.lev);
-  static const char *const cn[] = {"n", "rate", "bench", "ess", "z", "p", "q"};
-  for (int k = 0; k < 7; ++k) {
+  static const char *const cn[] = {"n", "rate", "bench", "ess", "z", "p", "q", "lfdr"};
+  for (int k = 0; k < (ulf ? 8 : 7); ++k) {
     double *c = t.dbl(cn[k]);
     for (int j = 0; j < no; ++j) c[j] = bj::na(res[static_cast<std::size_t>(k) * no + j]);
   }
   int *fl = t.lgl("flag");
   for (int j = 0; j < no; ++j) {
-    const double q = res[6 * static_cast<std::size_t>(no) + j];
+    const double q = res[(ulf ? 7 : 6) * static_cast<std::size_t>(no) + j];
     fl[j] = std::isnan(q) ? NA_LOGICAL : q < fd;
   }
-  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 6));
   ++np;
   SET_VECTOR_ELT(out, 0, t.done());
   SET_VECTOR_ELT(out, 1, Rf_ScalarReal(fd));
   SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(mn));
   SET_VECTOR_ELT(out, 3, Rf_ScalarInteger(p));
-  static const char *const on[] = {"tab", "fdr", "minn", "nx"};
+  SET_VECTOR_ELT(out, 4, Rf_ScalarLogical(udr));
+  static const char *const nn[] = {"delta", "sigma", "p0"};
+  if (ulf) SET_VECTOR_ELT(out, 5, clab::nvec(3, nn, nul.data()));
+  static const char *const on[] = {"tab", "fdr", "minn", "nx", "dr", "null"};
   bj::named(out, on);
   Rf_classgets(out, PROTECT(Rf_mkString("ibench")));
   UNPROTECT(np + 2);

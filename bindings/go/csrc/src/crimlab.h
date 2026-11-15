@@ -3085,12 +3085,21 @@ int clab_thrrk(const double *stops, const double *srch, const double *hits, cons
  * that officer's stop on x, the weights e / (1 - e) on the other officers'
  * stops, the weighted benchmark and its effective size (sum w)^2 / sum
  * w^2, and z = (rate - bench) / sqrt(rate (1 - rate) / n_o + bench (1 -
- * bench) / ess). Out: res (no x 7, column-major: stops, rate, benchmark,
- * effective size, z, two-sided p, the Benjamini-Hochberg q over the
- * officers with a p; NaN where not tested); ok (no: 1 when tested).
- * O(no n p^2) per Newton step. */
-int clab_ibench(const double *y, const int *off, const double *x, int n, int p, int no, int minn,
-                double *res, int *ok);
+ * bench) / ess). With dr, the doubly robust benchmark: the weighted
+ * logistic regression of y on (1, the officer's indicator, x) over all
+ * stops (the officer's weighted 1, the others e / (1 - e)), the benchmark
+ * the officer's stops' mean fitted chance with the indicator at 0, and z
+ * the officer's rate less it over the sandwich standard error. With
+ * local, Efron's local false discovery rate of each tested officer's z
+ * (the defaults of the package locfdr: 120 breaks, a natural spline of 7
+ * df, the empirical null by maximum likelihood); CLAB_EDOM when that null
+ * cannot be fitted. Out: res (no x 8, column-major: stops, rate,
+ * benchmark, effective size, z, two-sided p, the Benjamini-Hochberg q
+ * over the officers with a p, the local fdr; NaN where not tested or not
+ * asked); ok (no: 1 when tested); nul (3: the null's delta, sigma and p0,
+ * NaN without local). O(no n p^2) per Newton step. */
+int clab_ibench(const double *y, const int *off, const double *x, int n, int p, int no, int minn, int dr,
+                int local, double *res, int *ok, double *nul);
 /* ------------------------------------------------------------------------
  * Eyewitness lineups (lnr.cpp).
  * ------------------------------------------------------------------------ */

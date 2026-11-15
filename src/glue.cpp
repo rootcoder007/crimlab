@@ -538,7 +538,7 @@ SEXP C_clab_r_rptvic(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lnroc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lnsize(SEXP, SEXP, SEXP, SEXP);
 // Internal benchmarking of officers (bibn.cpp).
-SEXP C_clab_r_ibench(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ibench(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Discrimination in searches (bthr.cpp).
 SEXP C_clab_r_thrtst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Search theory for search and rescue (bsar.cpp).
@@ -831,7 +831,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_rptvic", fn<&C_clab_r_rptvic>(), 4},
     {"C_clab_r_lnroc", fn<&C_clab_r_lnroc>(), 9},
     {"C_clab_r_lnsize", fn<&C_clab_r_lnsize>(), 4},
-    {"C_clab_r_ibench", fn<&C_clab_r_ibench>(), 5},
+    {"C_clab_r_ibench", fn<&C_clab_r_ibench>(), 7},
     {"C_clab_r_thrtst", fn<&C_clab_r_thrtst>(), 9},
     {"C_clab_r_sarlr", fn<&C_clab_r_sarlr>(), 5},
     {"C_clab_r_sarsw", fn<&C_clab_r_sarsw>(), 2},

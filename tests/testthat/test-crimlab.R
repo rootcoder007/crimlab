@@ -153,7 +153,7 @@ test_that("every exported function answers one valid call in its shape", {
          c("roc", "cac", "pauc", "far", "size", "nboot")),
     list(quote(lnsize(c(1, 2, 2, 3))), c("count", "stat", "susp")),
     list(quote(ibench(c(1, 0, 1, 0), c("a", "a", "b", "b"), minn = 1)),
-         c("tab", "fdr", "minn", "nx")),
+         c("tab", "fdr", "minn", "nx", "dr", "null")),
     list(quote(pgsig(100)), c("sigmay", "sigmaz")),
     list(quote(briggs(10, 4, 1, 12, 420, 285)),
          c("flux", "finalrise", "xfinal", "rise")),

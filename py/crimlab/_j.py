@@ -3393,7 +3393,8 @@ def thrtst(stops: Any, srch: Any, hits: Any, grp: Any, area: Any = None, off: An
                  level=level, maxit=maxit)
 
 
-def ibench(y: Any, off: Any, x: Any = None, minn: Any = 20, fdr: Any = 0.05) -> Any:
+def ibench(y: Any, off: Any, x: Any = None, minn: Any = 20, fdr: Any = 0.05, dr: Any = False,
+           local: Any = False) -> Any:
     """Internal benchmarking of officers.
 
     The arguments and the result are those of R's ``ibench()``: see its help
@@ -3404,9 +3405,9 @@ def ibench(y: Any, off: Any, x: Any = None, minn: Any = 20, fdr: Any = 0.05) -> 
     >>> r = ibench(y=[1, 0, 1, 1, 0, 0, 1, 0, 1], off=["a", "a", "a", "a", "b", "b", "b", "b",
     ... "c"], minn=2)
     >>> list(r)
-    ['tab', 'fdr', 'minn', 'nx']
+    ['tab', 'fdr', 'minn', 'nx', 'dr', 'null']
     """
-    return jcall("ibench", y=y, off=off, x=x, minn=minn, fdr=fdr)
+    return jcall("ibench", y=y, off=off, x=x, minn=minn, fdr=fdr, dr=dr, local=local)
 
 
 def lnroc(tp: Any, pick: Any, conf: Any, proc: Any = None, size: Any = None, far: Any = None, nboot: Any = 0,

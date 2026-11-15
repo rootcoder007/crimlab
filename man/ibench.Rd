@@ -4,7 +4,7 @@
 \alias{ibench}
 \title{Internal benchmarking of officers}
 \usage{
-ibench(y, off, x = NULL, minn = 20, fdr = 0.05)
+ibench(y, off, x = NULL, minn = 20, fdr = 0.05, dr = FALSE, local = FALSE)
 }
 \arguments{
 \item{y}{The outcome of each stop: 0 or 1 (or \code{FALSE} or \code{TRUE}), such
@@ -21,12 +21,20 @@ from 1.}
 
 \item{fdr}{The false discovery rate at which an officer is flagged: one
 number strictly between 0 and 1.}
+
+\item{dr}{\code{TRUE} for the doubly robust benchmark, \code{FALSE} for the
+propensity weights alone.}
+
+\item{local}{\code{TRUE} to estimate the local false discovery rate and flag
+by it.}
 }
 \value{
 An object of class \code{ibench}, a list: \code{tab}, one row per officer
 (\code{off}, \code{n} stops, \code{rate}, the officer's share of the outcome, \code{bench},
-the benchmark, \code{ess}, its effective number of stops, \code{z}, \code{p}, \code{q} and
-\code{flag}); \code{fdr}; \code{minn}; and \code{nx}, the number of columns of \code{x}.
+the benchmark, \code{ess}, its effective number of stops, \code{z}, \code{p}, \code{q},
+with \code{local} \code{lfdr}, and \code{flag}); \code{fdr}; \code{minn}; \code{nx}, the number of
+columns of \code{x}; \code{dr}; and \code{null}, \code{NULL} without \code{local}, otherwise
+the empirical null's \code{delta}, \code{sigma} and \code{p0}.
 }
 \description{
 Asks whether an officer stops more people of a group (or searches,
@@ -39,13 +47,36 @@ reason) is this officer's comes from a logistic regression on \code{x}
 (over all stops), and each other officer's stop gets the weight `e / (1
 \itemize{
 \item e)\verb{, the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, }(sum w)^2 /
-sum w^2\verb{. With many officers some will stand out by chance: }q\verb{is the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, and}flag\verb{marks those with}q\code{below}fdr`. (The paper adds a
-regression adjustment to the weights, a doubly robust estimate, and
-estimates the local false discovery rate; the plain weights and the
-step-up rate are used here.)
+sum w^2\verb{. With many officers some will stand out by chance: }q\verb{is the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, and}flag\verb{marks those with}q\code{below}fdr`.
 }
 }
 \details{
+Two options follow Ridgeway and MacDonald (2009) further:
+\itemize{
+\item \code{dr = TRUE}, the doubly robust benchmark: the propensity weights are
+kept, and a logistic regression of the outcome on an indicator of the
+officer's stops and on \code{x}, weighted 1 for the officer's stops and \code{e / (1 - e)} for the others, adjusts for what the weights leave
+unbalanced. The benchmark is the mean of its fitted chances for the
+officer's stops with the indicator set to 0 (the same stops made by
+the others), and \code{z} is the officer's rate less the benchmark over
+the sandwich (robust) standard error of that difference from the
+weighted fit. The estimate is right when either the propensity model
+or the outcome model is. This is the propensity-weighted regression
+of the first author's fastDR package (which fits the propensity by
+boosting, where a logistic regression is used here).
+\item \code{local = TRUE}, the local false discovery rate of Efron (2004) for
+each tested officer: the chance that an officer with that \code{z} is one
+of the unremarkable majority. The density of all the officers' \code{z}
+is fitted by a Poisson regression on a natural spline of 7 df over a
+histogram of 120 breaks, the null density is a normal \code{N(delta, sigma^2)} fitted by maximum likelihood to the middle of the \code{z}
+values (the empirical null, which absorbs spread that the benchmark
+misses), and \verb{lfdr = p0 f0(z) / f(z)}, as in the defaults of the
+package locfdr; \code{null} gives \code{delta}, \code{sigma} and \code{p0}. \code{flag} then
+marks the officers with \code{lfdr} below \code{fdr} (Efron suggests 0.2). The
+method is meant for many officers, hundreds rather than tens; when
+the null cannot be fitted the function refuses.
+}
+
 The comparison is only as good as \code{x}: circumstances that differ between
 officers and are not in \code{x} are left in the difference. An officer with
 fewer than \code{minn} stops, or whose propensity model does not converge
@@ -59,6 +90,7 @@ off <- sample(sprintf("o\%02d", 1:12), n, TRUE)
 night <- rbinom(n, 1, ifelse(off \%in\% c("o01", "o02"), 0.7, 0.3))
 y <- rbinom(n, 1, plogis(-1 + night + 0.8 * (off == "o03")))
 ibench(y, off, data.frame(night), minn = 50)
+ibench(y, off, data.frame(night), minn = 50, dr = TRUE)$tab
 }
 \references{
 Ridgeway, G. and MacDonald, J. M. (2009). Doubly robust internal
@@ -70,4 +102,8 @@ Benjamini, Y. and Hochberg, Y. (1995). Controlling the false discovery
 rate: a practical and powerful approach to multiple testing. \emph{Journal
 of the Royal Statistical Society, Series B}, 57(1), 289-300.
 \doi{10.1111/j.2517-6161.1995.tb02031.x}
+
+Efron, B. (2004). Large-scale simultaneous hypothesis testing: the
+choice of a null hypothesis. \emph{Journal of the American Statistical
+Association}, 99(465), 96-104. \doi{10.1198/016214504000000089}
 }

@@ -72,7 +72,7 @@ jobs:
         run: |
           cran <- c("testthat", "circular", "DescTools", "geosphere",
                     "geepack", "MASS", "sandwich", "sf", "spatstat.geom",
-                    "spatstat.explore", "spdep", "igraph")
+                    "spatstat.explore", "spdep", "igraph", "locfdr")
           uni <- c("rmorie", "rmoriebricklayer")
           rep <- c("https://rootcoder007.r-universe.dev", getOption("repos"))
           for (p in c(cran, uni)) {

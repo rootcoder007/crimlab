@@ -42,6 +42,17 @@
 * `polex()` makes the simulated policy panel the examples of the policy
   functions use: twenty districts, 36 months and a staged reform with a
   known effect. The same seed gives the same panel in every front end.
+* `ibench()` gains the two methods of Ridgeway and MacDonald (2009) it
+  left out: `dr = TRUE` gives the doubly robust benchmark (the
+  propensity-weighted logistic regression of the outcome on the officer's
+  indicator and the circumstances, with a sandwich standard error), and
+  `local = TRUE` Efron's local false discovery rate of each officer, with
+  the empirical null fitted as the package locfdr does by default (column
+  `lfdr`, element `null`), flagging by it. Benjamini and Hochberg's `q`
+  stays. The defaults give the results as before. The tests check the
+  doubly robust benchmark against `glm()` and a sandwich by hand, and the
+  local rate against locfdr (reference values from `dev/ref/lfdr.R`).
+
 * `lnsize()` follows Malpass (1981) for `esize`: members nobody chose
   (null foils) leave the nominal size and the chance expectation, as
   Tredoux (1996, Table 4.2) shows. Before, `esize` did not adjust; that

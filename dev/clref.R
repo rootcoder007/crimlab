@@ -1010,6 +1010,8 @@ ibo <- rep(c("a", "b", "c"), each = 10)
 ibx <- rbinom(30, 1, ifelse(ibo == "a", 0.7, 0.3))
 iby <- c(1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0)
 ok("ibench", y = iby, off = ibo, x = data.frame(night = ibx), minn = 5)
+ok("ibench", y = iby, off = ibo, x = data.frame(night = ibx), minn = 5, dr = TRUE)
+bad("ibench", y = iby, off = ibo, minn = 5, local = TRUE)
 ok("ibench", y = c(1, 0, 1, 1, 0, 0, 1, 0, 1), off = c("a", "a", "a", "a", "b", "b", "b", "b", "c"), minn = 2,
    fdr = 0.1)
 bad("ibench", y = c(1, 0), off = c("a", "a"))
