@@ -219,12 +219,13 @@ ts_cmp <- function(y, order, seasonal, tol, h = 4L) {
 }
 
 test_that("sarfc() with two AR terms and a seasonal AR term is arima()", {
-  # the coefficients agree to 2e-13, the forecasts to 3e-12
-  ts_cmp(ts_y, c(2, 1, 0), c(1, 0, 0, 4), 1e-10)
-  ts_cmp(ts_y, c(2, 1, 0), c(1, 0, 0, 3), 1e-10)
-  # three AR terms and an MA term: 1e-10 in the coefficients, 2e-9 in the
-  # forecasts, so 1e-8
-  ts_cmp(ts_y, c(3, 1, 1), c(0, 0, 0, 4), 1e-8)
+  # Both fits end where a quasi-Newton search stops, and where it stops
+  # depends on the last digits of the system's exp() and log(): on Linux
+  # the forecasts agree to 3e-12, on macOS and Windows to 4e-8. The bound
+  # is that of a search with a numerical gradient, as in cli/tol.tsv.
+  ts_cmp(ts_y, c(2, 1, 0), c(1, 0, 0, 4), 1e-6)
+  ts_cmp(ts_y, c(2, 1, 0), c(1, 0, 0, 3), 1e-6)
+  ts_cmp(ts_y, c(3, 1, 1), c(0, 0, 0, 4), 1e-6)
 })
 
 test_that("sarfc() fits a random walk and an AR(1) without CSS steps", {
