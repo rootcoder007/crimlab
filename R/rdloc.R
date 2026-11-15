@@ -154,17 +154,9 @@ rdloc <- function(
     cl <- d[[clus]]
   }
   kc <- match(kern, c("tri", "uni", "epa")) - 1L
-  ik <- NULL
-  if (bw == "user") {
-    if (is.null(h)) .ckstop(f, "`bw = \"user\"` needs `h`")
-    h <- .cknum(h, "h", f, positive = TRUE)
-  } else {
-    if (!is.null(h)) .ckstop(f, "give `h` with `bw = \"user\"`")
-    b <- .Call(C_clab_r_ikbw, as.numeric(yv), as.numeric(rv), cut, kc)
-    h <- b$h
-    ik <- stats::setNames(b$st, c("h1", "f", "vl", "vr", "m3", "h2l", "h2r",
-                                  "m2l", "m2r", "ck"))
-  }
+  bb <- .rdbw(bw, h, yv, rv, cut, kc, f)
+  h <- bb$h
+  ik <- bb$ik
   r1 <- .rdfit(yv, rv - cut, tv, h, kern, 1L, cl, ssc, f)
   r2 <- .rdfit(yv, rv - cut, tv, h, kern, 2L, cl, ssc, f)
   tab <- .axtab(c("conventional", "robust"), c(r1$est, r2$est),
@@ -173,17 +165,7 @@ rdloc <- function(
   if (ci == "robust") tab <- tab[2:1, , drop = FALSE]
   rownames(tab) <- NULL
   pl <- NULL
-  if (!is.null(plac)) {
-    plac <- .cknum(plac, "plac", f, scalar = FALSE)
-    if (any(plac == cut)) .ckstop(f, "`plac` must not hold `cut` itself")
-    pl <- do.call(rbind, lapply(plac, function(p0) {
-      s <- if (p0 < cut) rv < cut else rv >= cut
-      q <- .rdfit(yv[s], rv[s] - p0, NULL, h, kern, 1L,
-                  if (is.null(cl)) NULL else cl[s], ssc, f)
-      data.frame(cut = p0, est = q$est, se = q$se,
-                 p = 2 * stats::pnorm(-abs(q$est / q$se)), n = q$n)
-    }))
-  }
+  if (!is.null(plac)) pl <- .rdplc(plac, cut, yv, rv, h, kern, cl, ssc, f)
   structure(
     list(coef = tab, h = h, n = r1$n, nl = r1$nl, nr = r1$nr, ncl = r1$g,
          ik = ik, placebo = pl, cut = cut, kern = kern,
@@ -352,4 +334,35 @@ summary.rddens <- function(object, ...) object[["tab"]]
   }
   list(est = fit$beta[1L], se = sqrt(max(v[1L, 1L], 0)), n = n,
        nl = sum(!side[k]), nr = sum(side[k]), g = g)
+}
+
+# The bandwidth of rdloc(): h as given (bw = "user") or that of Imbens and
+# Kalyanaraman (2012) from src/rdd.cpp, with its steps: list(h, ik).
+.rdbw <- function(bw, h, yv, rv, cut, kc, f) {
+  ik <- NULL
+  if (bw == "user") {
+    if (is.null(h)) .ckstop(f, "`bw = \"user\"` needs `h`")
+    h <- .cknum(h, "h", f, positive = TRUE)
+  } else {
+    if (!is.null(h)) .ckstop(f, "give `h` with `bw = \"user\"`")
+    b <- .Call(C_clab_r_ikbw, as.numeric(yv), as.numeric(rv), cut, kc)
+    h <- b$h
+    ik <- stats::setNames(b$st, c("h1", "f", "vl", "vr", "m3", "h2l", "h2r",
+                                  "m2l", "m2r", "ck"))
+  }
+  list(h = h, ik = ik)
+}
+
+# The placebo cutoffs of rdloc(): the local linear fit at each false
+# cutoff on the rows of its own side of the true one.
+.rdplc <- function(plac, cut, yv, rv, h, kern, cl, ssc, f) {
+  plac <- .cknum(plac, "plac", f, scalar = FALSE)
+  if (any(plac == cut)) .ckstop(f, "`plac` must not hold `cut` itself")
+  do.call(rbind, lapply(plac, function(p0) {
+    s <- if (p0 < cut) rv < cut else rv >= cut
+    q <- .rdfit(yv[s], rv[s] - p0, NULL, h, kern, 1L,
+                if (is.null(cl)) NULL else cl[s], ssc, f)
+    data.frame(cut = p0, est = q$est, se = q$se,
+               p = 2 * stats::pnorm(-abs(q$est / q$se)), n = q$n)
+  }))
 }
