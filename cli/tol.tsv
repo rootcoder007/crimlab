@@ -32,3 +32,7 @@ dblctr	1e-12	1e-12	entries of the centred matrix that cancel to rounding, about 
 cmdsf	1e-10	1e-12	coordinates and stress that are zero up to rounding, and eigenvalues from an iteration
 arimfc	1e-8	0	fitted by a quasi-Newton search with a numerical gradient: the last digits follow the rounding of the likelihood
 sarfc	1e-6	0	fitted by a quasi-Newton search with a numerical gradient, a conditional stage then the exact likelihood
+ppmlfe	1e-8	0	the fit iterates until the relative change of the deviance is below 1e-10: where rounding differs the last step can differ, which moves the estimates by about 1e-10; the bootstrap errors are sd() and cov() of the draws, which R sums in long double
+ivfe	1e-10	0	the fixed effects are taken out by alternating projections to 1e-12 of each column, and p is a tail probability of the statistic: an error of 1e-14 in it gives 1e-12 in a small p
+ppmlcf	1e-8	0	the Poisson fits iterate as in ppmlfe, on the full sample and on each bootstrap draw
+updwn	1e-8	0	its fit is ivfe() or, for norm = "pois", ppmlfe()

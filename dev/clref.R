@@ -1766,6 +1766,79 @@ bad("ousim", y = 1:2)
 ok("fpdens", y = sv_y, ngrid = 8, nstep = 4)
 ok("lvfit", y = c(410, 455, 430, 470, 520, 498, 515), year = 2017:2023)
 bad("lvfit", y = 1:3)
+# Exposure and crime: counts by place and day against a daily exposure
+# (made-up numbers). The bootstrap cases give a seed: outside R there is
+# no generator to draw from without one.
+axd <- data.frame(area = rep(letters[1:11], each = 12), day = rep(1:12, 11))
+axd$wind <- (axd$day * 47 + seq_len(132) * 13) %% 360
+axd$w90 <- as.numeric(axd$wind >= 90 & axd$wind < 180)
+axd$w270 <- as.numeric(axd$wind >= 270)
+axd$temp <- round(15 + 4 * cos(axd$day / 2) + seq_len(132) %% 5, 2)
+axd$pm <- round(20 + 4 * axd$w90 - 3 * axd$w270 + 2 * sin(seq_len(132)) + 0.3 * axd$temp, 2)
+axd$pop <- rep(seq(1000, 3000, length.out = 11), each = 12)
+axd$crimes <- (axd$day * 3 + seq_len(132)) %% 7 + rep(0:10 %% 3, each = 12) + round(axd$pm / 10)
+ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = c("area", "day"), expo = "pop")
+ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = c("area", "day"), se = "twoway", ssc = "nk")
+ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "nw", time = "day", lag = 2)
+ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "hc1", ssc = "none", level = 0.9)
+ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = c("area", "day"), se = "boot", nboot = 20, seed = 1)
+bad("ppmlfe", data = axd, y = "crimes", x = "zz", fe = "area")
+bad("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "twoway")
+ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = c("area", "day"))
+ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "hc1")
+ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "nw", time = "day")
+ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = "w90", fe = "area", se = "boot", nboot = 20, seed = 2)
+bad("ivfe", data = axd, y = "crimes", inst = "w90", x = "temp", fe = "area")
+ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = c("area", "day"), nboot = 20,
+   seed = 3)
+ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = "area",
+   expo = "pop", how = "plug", se = "naive")
+bad("ppmlcf", data = axd, y = "crimes", endo = c("pm", "temp"), inst = "w90", fe = "area")
+ok("windiv", dir = c(10, 100, 200, 300, NA, 90))
+ok("windiv", dir = c(10, 100, 200, 300), width = 120, start = 30, area = c("x", "y", "x", "y"), base = 2,
+   edges = "paper")
+ok("windiv", dir = c(10, 350, 200, 300), sect = c(225, 285))
+ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), spd = c(1, 2, 1, 1, 3, 1))
+ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), avg = "mode")
+ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), share = TRUE,
+   area = c("x", "x", "y", "y", "x", "x"))
+bad("windiv", dir = c(10, 20), width = 70)
+ok("invsn", tlow = c(10, 12, 9, NA), tup = c(12, 11, 9, 8))
+ok("invsn", tlow = c(10, 12, 9), tup = c(12, 11, 9.5), sign = "ground", brk = c(-5, 0, 0.5, 5))
+bad("invsn", tlow = c(1, 2, 3), tup = c(1, 2))
+upd <- data.frame(area = rep(c("w1", "w2", "w3", "e1", "e2", "e3"), 10),
+                  ax = rep(c(-100, -300, -600, 150, 350, 700), 10),
+                  ay = rep(c(0, 200, -200, 100, -100, 0), 10), day = rep(1:10, each = 6),
+                  wind = rep(c(270, 90, 260, 80, 280, 100, 270, 90, 275, 95), each = 6))
+upd$y <- (seq_len(60) * 7) %% 11 + (upd$ax > 0) * (upd$wind < 180) * 3
+upd$temp <- 10 + upd$day / 2
+ups <- data.frame(x0 = 0, y0 = -1000, x1 = 0, y1 = 1000)
+ok("updwn", data = upd, y = "y", ax = "ax", ay = "ay", day = "day", wind = "wind", src = ups)
+ok("updwn", data = upd, y = "y", ax = "ax", ay = "ay", day = "day", wind = "wind", src = ups, area = "area",
+   dist = c(0, 250, 1000), norm = "pois", se = "cluster", clus = "day")
+ok("updwn", data = upd, y = "y", ax = "ax", ay = "ay", day = "day", wind = "wind", src = ups, area = "area",
+   agg = FALSE, wx = "temp", offs = c(-50, 2000))
+bad("updwn", data = upd, y = "y", ax = "ax", ay = "ay", day = "day", wind = "wind", src = data.frame(x0 = 0, y0 = 0))
+ok("expjn", expo = data.frame(area = c(1, 1, 2), day = c(1, 2, 1), pm = c(5, 7, 6)),
+   outc = data.frame(area = c(1, 2, 2), day = c(1, 1, 3), n = c(2, 4, 1)))
+bad("expjn", expo = data.frame(area = 1, day = 1), outc = data.frame(area = 1, day = 1))
+skd <- data.frame(place = rep(c("a", "b"), each = 8), day = rep(1:8, 2),
+                  plume = c(0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1),
+                  pm = c(8, 20, 7, 9, 25, 11, 8, 10, 6, 7, 18, 8, 9, 30, 7, 22),
+                  seas = rep(rep(c("s1", "s2"), each = 4), 2), near = rep(c("b", "a"), each = 8),
+                  dens = c("", "light", "", "", "heavy", "light", "", "", "", "", "medium", "", "", "heavy", "", NA))
+ok("smkiv", data = skd, plume = "plume", unit = "place", day = "day", pm = "pm", adj = "own", seas = "seas",
+   dens = "dens")
+ok("smkiv", data = skd, plume = "plume", unit = "place", day = "day", pm = "pm", adj = "nbr", nbr = "near",
+   seas = "seas", cf = "median", by = "seas")
+ok("smkiv", data = skd, plume = "plume", unit = "place", day = "day")
+bad("smkiv", data = skd, plume = "plume", unit = "place", day = "day", pm = "pm")
+ok("exprun", data = data.frame(area = rep(1:2, each = 6), day = rep(1:6, 2),
+                              smoke = c(0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1)),
+   var = "smoke", unit = "area", day = "day")
+ok("exprun", data = data.frame(area = 1, day = c(1, 2, 4, 5), pm = c(30, 40, 50, 10)), var = "pm", unit = "area",
+   day = "day", thr = 25, cap = 2)
+bad("exprun", data = data.frame(area = 1, day = c(1, 1), s = c(1, 0)), var = "s", unit = "area", day = "day")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)
