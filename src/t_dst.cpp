@@ -76,6 +76,20 @@ void t_dst(tk &t, int big) {
   tk_true(t, "qbeta.lim", clab_qbeta(0.3, 0, 0, 1) == 0 && clab_qbeta(0.7, 0, 0, 1) == 1 &&
                               clab_qbeta(0.3, 0, 2, 1) == 0 && clab_qbeta(0.3, 2, 0, 1) == 1 &&
                               clab_qbeta(0.3, HUGE_VAL, HUGE_VAL, 1) == 0.5);
+  // the point masses as R gives them, both tails: qbeta(c(0.3, 0.5, 0.7),
+  // 0, 0) is 0, 0.5, 1 with lower.tail TRUE and FALSE alike; a = 0 is 0
+  // and b = 0 is 1 inside (0, 1), the ends of p as for any shapes
+  tk_true(t, "qbeta.00", clab_qbeta(0.5, 0, 0, 1) == 0.5 && clab_qbeta(0.5, 0, 0, 0) == 0.5 &&
+                             clab_qbeta(0.3, 0, 0, 0) == 0 && clab_qbeta(0.7, 0, 0, 0) == 1 &&
+                             clab_qbeta(0, 0, 0, 0) == 1 && clab_qbeta(1, 0, 0, 0) == 0);
+  tk_true(t, "qbeta.0x", clab_qbeta(0.7, 0, 2, 1) == 0 && clab_qbeta(0.7, 0, 2, 0) == 0 &&
+                             clab_qbeta(1, 0, 2, 1) == 1 && clab_qbeta(0, 0, 2, 0) == 1 &&
+                             clab_qbeta(0.3, 2, 0, 0) == 1 && clab_qbeta(0, 2, 0, 1) == 0 &&
+                             clab_qbeta(1, 2, 0, 0) == 0);
+  // qgamma(c(0, 0.3, 1), 0) is 0, 0, Inf; upper tail Inf, 0, 0
+  tk_true(t, "qgamma.0", clab_qgamma(0.3, 0, 1) == 0 && clab_qgamma(1, 0, 1) == HUGE_VAL &&
+                             clab_qgamma(0, 0, 0) == HUGE_VAL && clab_qgamma(1, 0, 0) == 0 &&
+                             clab_qchisq(1, 0, 1) == HUGE_VAL);
   // t beyond 1e50: the tail from its logarithm, pt(-1e60, 3), pt(-1e60, 0.5)
   rel(t, "pt.far", clab_pt(-1e60, 3, 1), 1.1026577908435548e-180);
   rel(t, "pt.farup", clab_pt(1e60, 3, 0), 1.1026577908435548e-180);

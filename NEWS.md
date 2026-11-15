@@ -692,6 +692,11 @@
   `gmixlr()` no longer lists the genotypes of unknown contributors when
   there are none, and `ibench()` refuses more than 8190 columns of `x`,
   whose work arrays grow with the square of their number.
+* The quantile functions of the command line, the JSON entry and Python
+  give R's answers at a point mass: the beta quantile with both shapes 0
+  is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as
+  R's `qbeta()` does; the gamma and chi-square quantiles with shape or
+  degrees of freedom 0 are infinite at p = 1 (they were 0).
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.
