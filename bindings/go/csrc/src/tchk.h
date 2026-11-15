@@ -179,6 +179,7 @@ void t_rtm(tk &t, int big);
 void t_dst(tk &t, int big);
 void t_mtr(tk &t, int big);
 void t_hsa(tk &t, int big);
+void t_igh(tk &t, int big);
 void t_apc(tk &t, int big);
 void t_spc(tk &t, int big);
 void t_lnk(tk &t, int big);

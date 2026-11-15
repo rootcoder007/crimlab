@@ -4057,3 +4057,451 @@ def skchmrg(a: Any, b: Any) -> Any:
     [1.0, 2.0]
     """
     return jcall("skchmrg", a=a, b=b)
+
+
+def sctidy(x: Any) -> Any:
+    """Read a Statistics Canada table as published.
+
+    The arguments and the result are those of R's ``sctidy()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = sctidy(x={"GEO": ["Canada", "Canada"], "VALUE": ["45.8", "3"], "STATUS": ["", "x"]})
+    >>> list(r)
+    ['GEO', 'VALUE', 'STATUS', 'quality']
+    """
+    return jcall("sctidy", x=x)
+
+
+def qltyrcd(x: Any, suppr: Any = None, caution: Any = None) -> Any:
+    """Recode another agency's quality flags to the package's.
+
+    The arguments and the result are those of R's ``qltyrcd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> qltyrcd(x=["", "np", "*"], suppr="np", caution="*")
+    ['ok', 'x', 'E']
+    """
+    return jcall("qltyrcd", x=x, suppr=suppr, caution=caution)
+
+
+def limfrom(est: Any, se: Any = None, cv: Any = None, moe: Any = None, moelev: Any = 0.9,
+            conflvl: Any = 0.95) -> Any:
+    """Confidence limits from a standard error, a coefficient of variation or a margin of error.
+
+    The arguments and the result are those of R's ``limfrom()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = limfrom(est=[24.1, 31.5], cv=[8, 12])
+    >>> list(r)
+    ['estimate', 'lower', 'upper', 'se']
+    """
+    return jcall("limfrom", est=est, se=se, cv=cv, moe=moe, moelev=moelev, conflvl=conflvl)
+
+
+def indgap(data: Any, grp: Any, est: Any, lower: Any, upper: Any, ref: Any = "Non-Indigenous",
+           qual: Any = None, conflvl: Any = 0.95, pooled: Any = None) -> Any:
+    """Compare published group estimates with a reference group.
+
+    The arguments and the result are those of R's ``indgap()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"g": ["First Nations", "Non-Indigenous"], "e": [45.8, 61.5], "l": [43.9, 61], "u": [47.7, 62]}
+    >>> r = indgap(data=d, grp="g", est="e", lower="l", upper="u")
+    >>> list(r)[:4]
+    ['group', 'estimate', 'refest', 'ratio']
+    """
+    return jcall("indgap", data=data, grp=grp, est=est, lower=lower, upper=upper, ref=ref, qual=qual,
+                 conflvl=conflvl, pooled=pooled)
+
+
+def genexpo(parent: Any, gparent: Any, partial: Any = "na") -> Any:
+    """Generations of residential school attendance in a family.
+
+    The arguments and the result are those of R's ``genexpo()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> genexpo(parent=[True, False, True], gparent=[True, False, False])
+    [2.0, 0.0, 1.0]
+    """
+    return jcall("genexpo", parent=parent, gparent=gparent, partial=partial)
+
+
+def exptrnd(cases: Any, n: Any, dose: Any = None, conflvl: Any = 0.95) -> Any:
+    """A dose-response across generations of exposure.
+
+    The arguments and the result are those of R's ``exptrnd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = exptrnd(cases=[60, 95, 70], n=[500, 520, 300])
+    >>> list(r)
+    ['dose', 'cases', 'n', 'proportion', 'orratio', 'lower', 'upper']
+    """
+    return jcall("exptrnd", cases=cases, n=n, dose=dose, conflvl=conflvl)
+
+
+def trccmpl() -> Any:
+    """Calls to Action completed, year by year.
+
+    The result is that of R's ``trccmpl()``: see its help page.
+
+    Examples
+    --------
+    >>> list(trccmpl())
+    ['period', 'yearend', 'completed', 'cumulative', 'source']
+    """
+    return jcall("trccmpl")
+
+
+def trcprog(done: Any = None, yearend: Any = None, total: Any = 94, start: Any = 2015.96,
+            conflvl: Any = 0.95) -> Any:
+    """How fast the Calls to Action are being completed.
+
+    The arguments and the result are those of R's ``trcprog()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> list(trcprog())[:3]
+    ['completed', 'remaining', 'years']
+    """
+    return jcall("trcprog", done=done, yearend=yearend, total=total, start=start, conflvl=conflvl)
+
+
+def mhcont(data: Any, grp: Any, ind: Any, est: Any, lower: Any, upper: Any, hope: Any = None,
+           belong: Any = None, meaning: Any = None, purp: Any = None, qual: Any = None,
+           conflvl: Any = 0.95) -> Any:
+    """The four directions of the First Nations Mental Wellness Continuum, from published indicators.
+
+    The arguments and the result are those of R's ``mhcont()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"c": ["A", "A"], "i": ["Hopeful", "Meaning"], "p": [64, 70], "l": [59, 65], "u": [69, 75]}
+    >>> r = mhcont(data=d, grp="c", ind="i", est="p", lower="l", upper="u", hope="Hopeful")
+    >>> r["indicator"]
+    ['hope', 'belonging', 'meaning', 'purpose']
+    """
+    return jcall("mhcont", data=data, grp=grp, ind=ind, est=est, lower=lower, upper=upper, hope=hope,
+                 belong=belong, meaning=meaning, purp=purp, qual=qual, conflvl=conflvl)
+
+
+def cwbscr(incpercap: Any, highsch20p: Any, uni25p: Any, notcro: Any, nomajrep: Any, partic: Any,
+           empl: Any, bounds: Any = None) -> Any:
+    """The Community Well-Being index of a community.
+
+    The arguments and the result are those of R's ``cwbscr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cwbscr(incpercap=18000, highsch20p=58, uni25p=6, notcro=71, nomajrep=62, partic=55, empl=78)
+    >>> list(r)
+    ['income', 'education', 'housing', 'labour', 'cwb']
+    """
+    return jcall("cwbscr", incpercap=incpercap, highsch20p=highsch20p, uni25p=uni25p, notcro=notcro,
+                 nomajrep=nomajrep, partic=partic, empl=empl, bounds=bounds)
+
+
+def connassoc(data: Any, place: Any, x: Any, y: Any, xlo: Any = None, xup: Any = None, ylo: Any = None,
+              yup: Any = None, reps: Any = 10000, seed: Any = 1, conflvl: Any = 0.95) -> Any:
+    """Connection across places: does one indicator rise where another does?.
+
+    The arguments and the result are those of R's ``connassoc()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> d = {"p": ["N", "S", "E", "W"], "a": [41, 18, 27, 33], "b": [68, 55, 60, 66]}
+    >>> r = connassoc(data=d, place="p", x="a", y="b")
+    >>> round(r["rho"], 6)
+    1.0
+    """
+    return jcall("connassoc", data=data, place=place, x=x, y=y, xlo=xlo, xup=xup, ylo=ylo, yup=yup, reps=reps,
+                 seed=seed, conflvl=conflvl)
+
+
+def healchg(data: Any, grp: Any, ind: Any, prd: Any, est: Any, lower: Any, upper: Any, from_: Any,
+            to: Any, well: Any = None, qual: Any = None, conflvl: Any = 0.95, distress: Any = None) -> Any:
+    """Healing as a process: change in published indicators between two periods.
+
+    The arguments and the result are those of R's ``healchg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"c": ["A", "A"], "i": ["Good", "Good"], "s": ["2018", "2023"], "p": [55, 61], "l": [50, 56],
+    ...      "u": [60, 66]}
+    >>> r = healchg(data=d, grp="c", ind="i", prd="s", est="p", lower="l", upper="u", from_="2018", to="2023")
+    >>> r["change"]
+    [6.0]
+    """
+    return jcall("healchg", data=data, grp=grp, ind=ind, prd=prd, est=est, lower=lower, upper=upper,
+                 from_=from_, to=to, well=well, qual=qual, conflvl=conflvl, distress=distress)
+
+
+def commidx(data: Any, grp: Any, ind: Any, est: Any, lower: Any, upper: Any, w: Any = None,
+            qual: Any = None, conflvl: Any = 0.95) -> Any:
+    """A community-weighted index of protective and risk factors.
+
+    The arguments and the result are those of R's ``commidx()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"c": ["A", "A"], "i": ["Language", "Food insecure"], "p": [38, 21], "l": [33, 17],
+    ...      "u": [43, 25]}
+    >>> r = commidx(data=d, grp="c", ind="i", est="p", lower="l", upper="u",
+    ...             w={"Language": 2, "Food insecure": -1})
+    >>> list(r)
+    ['group', 'index', 'lower', 'upper', 'usewithcau']
+    """
+    return jcall("commidx", data=data, grp=grp, ind=ind, est=est, lower=lower, upper=upper, w=w, qual=qual,
+                 conflvl=conflvl)
+
+
+def frmaud(x: Any) -> Any:
+    """How deficit-framed is a set of results?.
+
+    The arguments and the result are those of R's ``frmaud()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = frmaud(x={"group": ["A", "A", "A"], "side": ["wellness", "distress", "distress"]})
+    >>> list(r)
+    ['bygrp', 'shrdef', 'defonly']
+    """
+    return jcall("frmaud", x=x)
+
+
+def scests(x: Any) -> Any:
+    """The estimates of a Statistics Canada table, with their confidence limits.
+
+    The arguments and the result are those of R's ``scests()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = scests(x={"GEO": ["Canada", "Canada"], "Characteristics": ["Rate", "Coefficient of variation for rate"],
+    ...               "VALUE": [12.5, 8], "STATUS": ["", ""]})
+    >>> r["cisou"]
+    ['cv']
+    """
+    return jcall("scests", x=x)
+
+
+def ordcmp(data: Any, grp: Any, cat: Any, est: Any, lower: Any, upper: Any, lvls: Any, ref: Any,
+           qual: Any = None, conflvl: Any = 0.95, pooled: Any = None) -> Any:
+    """Compare rated scales (perceived mental health, life satisfaction) between groups.
+
+    The arguments and the result are those of R's ``ordcmp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"g": ["A", "A", "B", "B"], "r": ["Low", "High", "Low", "High"], "p": [40, 60, 30, 70],
+    ...      "l": [35, 55, 27, 67], "u": [45, 65, 33, 73]}
+    >>> r = ordcmp(data=d, grp="g", cat="r", est="p", lower="l", upper="u", lvls=["Low", "High"], ref="B")
+    >>> r["group"]
+    ['A']
+    """
+    return jcall("ordcmp", data=data, grp=grp, cat=cat, est=est, lower=lower, upper=upper, lvls=lvls, ref=ref,
+                 qual=qual, conflvl=conflvl, pooled=pooled)
+
+
+def stdprev(est: Any, lower: Any, upper: Any, std: Any, grp: Any = None, qual: Any = None,
+            conflvl: Any = 0.95, scale: Any = 100) -> Any:
+    """Age-standardise survey percentages.
+
+    The arguments and the result are those of R's ``stdprev()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = stdprev(est=[12, 9, 6], lower=[9, 6, 3], upper=[15, 12, 9], std=[500, 300, 200])
+    >>> list(r)
+    ['group', 'estimate', 'lower', 'upper', 'se', 'usewithcau']
+    """
+    return jcall("stdprev", est=est, lower=lower, upper=upper, std=std, grp=grp, qual=qual, conflvl=conflvl,
+                 scale=scale)
+
+
+def welprof(data: Any, grp: Any, ind: Any, est: Any, lower: Any, upper: Any, well: Any, distress: Any,
+            domain: Any = None, qual: Any = None) -> Any:
+    """Wellness beside distress: a strengths-first profile of published indicators.
+
+    The arguments and the result are those of R's ``welprof()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"c": ["A", "A"], "i": ["Low", "Hopeful"], "p": [12, 64], "l": [9, 59], "u": [15, 69]}
+    >>> r = welprof(data=d, grp="c", ind="i", est="p", lower="l", upper="u", well="Hopeful", distress="Low")
+    >>> r["side"]
+    ['wellness', 'distress']
+    """
+    return jcall("welprof", data=data, grp=grp, ind=ind, est=est, lower=lower, upper=upper, well=well,
+                 distress=distress, domain=domain, qual=qual)
+
+
+def holbal(data: Any, grp: Any, domain: Any, est: Any, lower: Any, upper: Any, w: Any = None,
+           qual: Any = None, reps: Any = 10000, seed: Any = 1, conflvl: Any = 0.95) -> Any:
+    """Holistic balance: how evenly wellness is held across the domains of a framework.
+
+    The arguments and the result are those of R's ``holbal()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"c": ["A", "A"], "d": ["body", "mind"], "p": [62, 58], "l": [57, 53], "u": [67, 63]}
+    >>> r = holbal(data=d, grp="c", domain="d", est="p", lower="l", upper="u", reps=200)
+    >>> r["weadom"]
+    ['mind']
+    """
+    return jcall("holbal", data=data, grp=grp, domain=domain, est=est, lower=lower, upper=upper, w=w, qual=qual,
+                 reps=reps, seed=seed, conflvl=conflvl)
+
+
+def dualcont(x: Any, well: Any, distress: Any, conflvl: Any = 0.95) -> Any:
+    """Wellness and distress as two continua.
+
+    The arguments and the result are those of R's ``dualcont()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> w = {"group": ["A", "A"], "indicator": ["Hopeful", "Low"], "side": ["wellness", "distress"],
+    ...      "estimate": [64, 12], "lower": [59, 9], "upper": [69, 15], "usewithcau": [False, False]}
+    >>> r = dualcont(x=w, well="Hopeful", distress="Low")
+    >>> r["strratio"]
+    [5.333333333333333]
+    """
+    return jcall("dualcont", x=x, well=well, distress=distress, conflvl=conflvl)
+
+
+def cnsprof(x: Any) -> Any:
+    """Read the 2021 Census Indigenous Population Profile.
+
+    The arguments and the result are those of R's ``cnsprof()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> x = {"GEO_NAME": ["A"], "CHARACTERISTIC_ID": [1], "CHARACTERISTIC_NAME": ["Total - Age groups"],
+    ...      "NON_IND": [5000], "SYMBOL_NON_IND": [""]}
+    >>> cnsprof(x)["group"]
+    ['Non-Indigenous']
+    """
+    return jcall("cnsprof", x=x)
+
+
+def profshr(x: Any, num: Any, den: Any = None, smpfrac: Any = 0.25, deff: Any = 1, conflvl: Any = 0.95,
+            roubase: Any = 5) -> Any:
+    """The share of a population with a characteristic, from the census profile.
+
+    The arguments and the result are those of R's ``profshr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> x = cnsprof({"GEO_NAME": ["A", "A"], "CHARACTERISTIC_ID": [1, 2],
+    ...              "CHARACTERISTIC_NAME": ["Total - Age groups", "  0 to 14 years"],
+    ...              "NON_IND": [5000, 900], "SYMBOL_NON_IND": ["", ""]})
+    >>> profshr(x, num=2)["estimate"]
+    [18.0]
+    """
+    return jcall("profshr", x=x, num=num, den=den, smpfrac=smpfrac, deff=deff, conflvl=conflvl, roubase=roubase)
+
+
+def cnsstd(x: Any, grp: Any = "Indigenous identity", geo: Any = "Canada", ages: Any = None,
+           resid: Any = "Total - Residence on or off reserve") -> Any:
+    """An Indigenous standard population from the census.
+
+    The arguments and the result are those of R's ``cnsstd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> x = cnsprof({"GEO_NAME": ["A", "A"], "AGE_GROUP": ["0 to 14 years", "15 years and over"],
+    ...              "CHARACTERISTIC_ID": [1, 1], "CHARACTERISTIC_NAME": ["Total - Age groups"] * 2,
+    ...              "NON_IND": [900, 4100], "SYMBOL_NON_IND": ["", ""]})
+    >>> cnsstd(x, grp="Non-Indigenous", geo="A", ages=["0 to 14 years", "15 years and over"])["weight"]
+    [0.18, 0.82]
+    """
+    return jcall("cnsstd", x=x, grp=grp, geo=geo, ages=ages, resid=resid)
+
+
+def cnscwb(x: Any, dwell: Any = None, groups: Any = None, bounds: Any = None,
+           resid: Any = "Total - Residence on or off reserve", minpop: Any = 250) -> Any:
+    """A Community Well-Being score from the census profile.
+
+    The arguments and the result are those of R's ``cnscwb()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> x = cnsprof({"GEO_NAME": ["A"], "CHARACTERISTIC_ID": [1], "CHARACTERISTIC_NAME": ["Total - Age groups"],
+    ...              "NON_IND": [5000], "SYMBOL_NON_IND": [""]})
+    >>> list(cnscwb(x, groups="Non-Indigenous"))[:4]
+    ['geo', 'dguid', 'group', 'income']
+    """
+    return jcall("cnscwb", x=x, dwell=dwell, groups=groups, bounds=bounds, resid=resid, minpop=minpop)
+
+
+def trcind() -> Any:
+    """The indicators of Calls to Action 19 and 55, and the tables that measure them.
+
+    The result is that of R's ``trcind()``: see its help page.
+
+    Examples
+    --------
+    >>> list(trcind())
+    ['call', 'indicator', 'table', 'measure', 'better', 'note']
+    """
+    return jcall("trcind")
+
+
+def trchlthgap(health: Any = None, lifeexp: Any = None, infmort: Any = None, suiide: Any = None,
+               ref: Any = "Non-Indigenous", agetot: Any = None) -> Any:
+    """The Call to Action 19 health gaps, in one place.
+
+    The arguments and the result are those of R's ``trchlthgap()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> le = {"period": ["2017/2019"] * 2, "group": ["Inuit", "Non-Indigenous"], "estimate": [70.9, 81.8],
+    ...       "lower": [69.1, 81.6], "upper": [72.7, 82.0], "quality": ["ok", "ok"]}
+    >>> trchlthgap(lifeexp=le)["group"]
+    ['Inuit']
+    """
+    return jcall("trchlthgap", health=health, lifeexp=lifeexp, infmort=infmort, suiide=suiide, ref=ref,
+                 agetot=agetot)
+
+
+def polex(seed: Any = 20240101) -> Any:
+    """A simulated policy panel for the examples.
+
+    The arguments and the result are those of R's ``polex()``: see its help
+    page. The panel is simulated.
+
+    Examples
+    --------
+    >>> p = polex()
+    >>> len(p["district"])
+    720
+    """
+    return jcall("polex", seed=seed)

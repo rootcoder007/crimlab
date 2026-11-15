@@ -718,6 +718,87 @@ func Apcie(args string) (string, error) { return Jrun("apcie", args) }
 // Hsacc runs hsacc() of the R package (arguments: pred obs area? top? prev?; ? marks an optional one).
 func Hsacc(args string) (string, error) { return Jrun("hsacc", args) }
 
+// Sctidy runs sctidy() of the R package (arguments: x; ? marks an optional one).
+func Sctidy(args string) (string, error) { return Jrun("sctidy", args) }
+
+// Qltyrcd runs qltyrcd() of the R package (arguments: x suppr? caution?; ? marks an optional one).
+func Qltyrcd(args string) (string, error) { return Jrun("qltyrcd", args) }
+
+// Limfrom runs limfrom() of the R package (arguments: est se? cv? moe? moelev? conflvl?; ? marks an optional one).
+func Limfrom(args string) (string, error) { return Jrun("limfrom", args) }
+
+// Indgap runs indgap() of the R package (arguments: data grp est lower upper ref? qual? conflvl? pooled?; ? marks an optional one).
+func Indgap(args string) (string, error) { return Jrun("indgap", args) }
+
+// Genexpo runs genexpo() of the R package (arguments: parent gparent partial?; ? marks an optional one).
+func Genexpo(args string) (string, error) { return Jrun("genexpo", args) }
+
+// Exptrnd runs exptrnd() of the R package (arguments: cases n dose? conflvl?; ? marks an optional one).
+func Exptrnd(args string) (string, error) { return Jrun("exptrnd", args) }
+
+// Trccmpl runs trccmpl() of the R package (no arguments; ? marks an optional one).
+func Trccmpl(args string) (string, error) { return Jrun("trccmpl", args) }
+
+// Trcprog runs trcprog() of the R package (arguments: done? yearend? total? start? conflvl?; ? marks an optional one).
+func Trcprog(args string) (string, error) { return Jrun("trcprog", args) }
+
+// Mhcont runs mhcont() of the R package (arguments: data grp ind est lower upper hope? belong? meaning? purp? qual? conflvl?; ? marks an optional one).
+func Mhcont(args string) (string, error) { return Jrun("mhcont", args) }
+
+// Cwbscr runs cwbscr() of the R package (arguments: incpercap highsch20p uni25p notcro nomajrep partic empl bounds?; ? marks an optional one).
+func Cwbscr(args string) (string, error) { return Jrun("cwbscr", args) }
+
+// Connassoc runs connassoc() of the R package (arguments: data place x y xlo? xup? ylo? yup? reps? seed? conflvl?; ? marks an optional one).
+func Connassoc(args string) (string, error) { return Jrun("connassoc", args) }
+
+// Healchg runs healchg() of the R package (arguments: data grp ind prd est lower upper from to well? qual? conflvl? distress?; ? marks an optional one).
+func Healchg(args string) (string, error) { return Jrun("healchg", args) }
+
+// Commidx runs commidx() of the R package (arguments: data grp ind est lower upper w qual? conflvl?; ? marks an optional one).
+func Commidx(args string) (string, error) { return Jrun("commidx", args) }
+
+// Frmaud runs frmaud() of the R package (arguments: x; ? marks an optional one).
+func Frmaud(args string) (string, error) { return Jrun("frmaud", args) }
+
+// Scests runs scests() of the R package (arguments: x; ? marks an optional one).
+func Scests(args string) (string, error) { return Jrun("scests", args) }
+
+// Ordcmp runs ordcmp() of the R package (arguments: data grp cat est lower upper lvls ref qual? conflvl? pooled?; ? marks an optional one).
+func Ordcmp(args string) (string, error) { return Jrun("ordcmp", args) }
+
+// Stdprev runs stdprev() of the R package (arguments: est lower upper std grp? qual? conflvl? scale?; ? marks an optional one).
+func Stdprev(args string) (string, error) { return Jrun("stdprev", args) }
+
+// Welprof runs welprof() of the R package (arguments: data grp ind est lower upper well distress domain? qual?; ? marks an optional one).
+func Welprof(args string) (string, error) { return Jrun("welprof", args) }
+
+// Holbal runs holbal() of the R package (arguments: data grp domain est lower upper w? qual? reps? seed? conflvl?; ? marks an optional one).
+func Holbal(args string) (string, error) { return Jrun("holbal", args) }
+
+// Dualcont runs dualcont() of the R package (arguments: x well distress conflvl?; ? marks an optional one).
+func Dualcont(args string) (string, error) { return Jrun("dualcont", args) }
+
+// Cnsprof runs cnsprof() of the R package (arguments: x; ? marks an optional one).
+func Cnsprof(args string) (string, error) { return Jrun("cnsprof", args) }
+
+// Profshr runs profshr() of the R package (arguments: x num den? smpfrac? deff? conflvl? roubase?; ? marks an optional one).
+func Profshr(args string) (string, error) { return Jrun("profshr", args) }
+
+// Cnsstd runs cnsstd() of the R package (arguments: x grp? geo? ages? resid?; ? marks an optional one).
+func Cnsstd(args string) (string, error) { return Jrun("cnsstd", args) }
+
+// Cnscwb runs cnscwb() of the R package (arguments: x dwell? groups? bounds? resid? minpop?; ? marks an optional one).
+func Cnscwb(args string) (string, error) { return Jrun("cnscwb", args) }
+
+// Trcind runs trcind() of the R package (no arguments; ? marks an optional one).
+func Trcind(args string) (string, error) { return Jrun("trcind", args) }
+
+// Trchlthgap runs trchlthgap() of the R package (arguments: health? lifeexp? infmort? suiide? ref? agetot?; ? marks an optional one).
+func Trchlthgap(args string) (string, error) { return Jrun("trchlthgap", args) }
+
+// Polex runs polex() of the R package (arguments: seed?; ? marks an optional one).
+func Polex(args string) (string, error) { return Jrun("polex", args) }
+
 // Mtrbnd runs mtrbnd() of the R package (arguments: y z ylo? yhi? assume? w?; ? marks an optional one).
 func Mtrbnd(args string) (string, error) { return Jrun("mtrbnd", args) }
 

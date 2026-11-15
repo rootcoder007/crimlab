@@ -1197,6 +1197,144 @@ ok("dstncnt", regstr = dstnskch(as.character(1:3000), p = 6))
 bad("dstncnt", regstr = c(1, 99))
 ok("skchmrg", a = dstnskch(1:5, p = 4), b = dstnskch(6:9, p = 4))
 bad("skchmrg", a = dstnskch(1:10, p = 4), b = dstnskch(1:10, p = 5))
+# First Nations, Metis and Inuit health and wellbeing, published tables,
+# the census profile and the Calls to Action (made-up numbers)
+igd <- data.frame(g = c("First Nations", "Metis", "Total Indigenous", "Inuit", "Non-Indigenous"),
+                  est = c(45.8, 52.8, 49, 47.8, 61.5), lo = c(43.9, 50.6, 47.5, 43.1, 61),
+                  hi = c(47.7, 55, 50.5, 52.5, 62), q = c("", "", "", "E", ""))
+ok("sctidy", x = data.frame(GEO = "Canada", VALUE = c("45.8", "12", "", "3"), STATUS = c("", "E", "x", "F")))
+ok("sctidy", x = data.frame(GEO = "Canada", Coordinate = c("1.1", "1.2"), `Age (2):Total[1]` = c(10, 20),
+                           Symbol = c("", "x"), check.names = FALSE))
+bad("sctidy", x = data.frame(a = 1))
+ok("qltyrcd", x = c("", "np", "*", NA), suppr = "np", caution = "*")
+ok("qltyrcd", x = c("E", "Q"))
+bad("qltyrcd", x = c(1, 2))
+ok("limfrom", est = c(24.1, 31.5), cv = c(8, 12))
+ok("limfrom", est = 1520, moe = 210, conflvl = 0.9)
+bad("limfrom", est = 1)
+ok("indgap", data = igd, grp = "g", est = "est", lower = "lo", upper = "hi", qual = "q")
+ok("indgap", data = igd, grp = "g", est = "est", lower = "lo", upper = "hi", pooled = "Total Indigenous",
+   ref = "Metis")
+bad("indgap", data = igd, grp = "zz", est = "est", lower = "lo", upper = "hi")
+ok("genexpo", parent = c(TRUE, FALSE, TRUE, NA), gparent = c(TRUE, FALSE, FALSE, TRUE))
+ok("genexpo", parent = c(TRUE, NA), gparent = c(NA, TRUE), partial = "lowerbnd")
+bad("genexpo", parent = 1, gparent = TRUE)
+ok("exptrnd", cases = c(60, 95, 70), n = c(500, 520, 300))
+ok("exptrnd", cases = c(0, 5), n = c(10, 10), dose = c(1, 3), conflvl = 0.9)
+bad("exptrnd", cases = 1, n = 10)
+ok("trccmpl")
+ok("trcprog")
+ok("trcprog", done = c(2, 6, 9, 13), yearend = 2016:2019, total = 20)
+bad("trcprog", done = 1, yearend = 2010)
+iwm <- data.frame(community = rep(c("Lakeside", "Riverbend"), each = 2), item = rep(c("Hopeful", "Meaning"), 2),
+                  pct = c(64, 70, 58, 75), lo = c(59, 65, 52, 70), hi = c(69, 75, 64, 80))
+ok("mhcont", data = iwm, grp = "community", ind = "item", est = "pct", lower = "lo", upper = "hi",
+   hope = "Hopeful", meaning = "Meaning", purp = "Meaning")
+bad("mhcont", data = iwm, grp = "community", ind = "item", est = "pct", lower = "lo", upper = "hi")
+ok("cwbscr", incpercap = c(18000, 31000), highsch20p = c(58, 81), uni25p = c(6, 19), notcro = c(71, 95),
+   nomajrep = c(62, 90), partic = c(55, 68), empl = c(78, 92))
+bad("cwbscr", incpercap = -1, highsch20p = 58, uni25p = 6, notcro = 71, nomajrep = 62, partic = 55, empl = 78)
+icn <- data.frame(region = c("North", "South", "East", "West", "Coast", "Interior"), language = c(41, 18, 27, 33, 22, 38),
+                  wellbeing = c(68, 55, 60, 66, 57, 63))
+icn$llo <- icn$language - 3
+icn$lhi <- icn$language + 3
+icn$wlo <- icn$wellbeing - 2
+icn$whi <- icn$wellbeing + 2
+ok("connassoc", data = icn, place = "region", x = "language", y = "wellbeing", reps = 200)
+ok("connassoc", data = icn, place = "region", x = "language", y = "wellbeing", xlo = "llo", xup = "lhi",
+   ylo = "wlo", yup = "whi", reps = 200, seed = 3)
+bad("connassoc", data = icn, place = "region", x = "language", y = "wellbeing", xlo = "llo")
+ihc <- data.frame(community = "Lakeside", item = rep(c("Good mental health", "Anxiety"), 2),
+                  survey = rep(c("2018", "2023"), each = 2), pct = c(55, 14, 61, 11), lo = c(50, 11, 56, 8),
+                  hi = c(60, 17, 66, 14))
+ok("healchg", data = ihc, grp = "community", ind = "item", prd = "survey", est = "pct", lower = "lo", upper = "hi",
+   from = "2018", to = "2023", well = "Good mental health", distress = "Anxiety")
+bad("healchg", data = ihc, grp = "community", ind = "item", prd = "survey", est = "pct", lower = "lo",
+    upper = "hi", from = "2019", to = "2023")
+ici <- data.frame(community = rep(c("Lakeside", "Riverbend"), each = 3),
+                  item = rep(c("Speaks the language", "Has a doctor", "Food insecure"), 2),
+                  pct = c(38, 72, 21, 25, 64, 30), lo = c(33, 67, 17, 20, 58, 25), hi = c(43, 77, 25, 30, 70, 35))
+ok("commidx", data = ici, grp = "community", ind = "item", est = "pct", lower = "lo", upper = "hi",
+   w = c("Speaks the language" = 2, "Has a doctor" = 1, "Food insecure" = -1))
+bad("commidx", data = ici, grp = "community", ind = "item", est = "pct", lower = "lo", upper = "hi", w = c(1, 2))
+iwp <- data.frame(community = rep(c("Lakeside", "Riverbend"), each = 4),
+                  item = rep(c("Hopeful", "Satisfied", "Rarely hopeful", "Low satisfaction"), 2),
+                  pct = c(64, 71, 12, 18, 58, 66, 16, 22), lo = c(59, 66, 9, 14, 52, 60, 12, 17),
+                  hi = c(69, 76, 15, 22, 64, 72, 20, 27))
+ok("welprof", data = iwp, grp = "community", ind = "item", est = "pct", lower = "lo", upper = "hi",
+   well = c("Hopeful", "Satisfied"), distress = c("Rarely hopeful", "Low satisfaction"),
+   domain = c(Hopeful = "spirit"))
+bad("welprof", data = iwp, grp = "community", ind = "item", est = "pct", lower = "lo", upper = "hi",
+    well = "Hopeful", distress = "Hopeful")
+iw <- welprof(iwp, "community", "item", "pct", "lo", "hi", well = c("Hopeful", "Satisfied"),
+              distress = c("Rarely hopeful", "Low satisfaction"))
+ok("frmaud", x = iw)
+bad("frmaud", x = data.frame(a = 1))
+ok("dualcont", x = iw, well = "Hopeful", distress = "Rarely hopeful")
+bad("dualcont", x = iw, well = "Rarely hopeful", distress = "Hopeful")
+ok("scests", x = data.frame(GEO = "Canada", Characteristics = c("Rate", "Coefficient of variation for rate"),
+                           VALUE = c(12.5, 8), STATUS = ""))
+ok("scests", x = data.frame(GEO = "Canada", g = rep(c("A", "B"), each = 3),
+                           Statistics = rep(c("Percent", "Low 95% confidence interval",
+                                              "High 95% confidence interval"), 2),
+                           VALUE = c(47.1, 45.2, 49, 50.3, 48.1, 52.5), STATUS = ""))
+bad("scests", x = data.frame(GEO = "Canada", Statistics = c("Percent", "Percent"), VALUE = c(1, 2)))
+ioc <- data.frame(group = rep(c("Nation A", "Everyone else"), each = 4),
+                  rating = rep(c("Poor", "Fair", "Good", "Excellent"), 2), pct = c(10, 25, 40, 25, 6, 20, 44, 30),
+                  lo = c(7, 21, 35, 21, 5, 18, 42, 28), hi = c(13, 29, 45, 29, 7, 22, 46, 32))
+ok("ordcmp", data = ioc, grp = "group", cat = "rating", est = "pct", lower = "lo", upper = "hi",
+   lvls = c("Poor", "Fair", "Good", "Excellent"), ref = "Everyone else")
+bad("ordcmp", data = ioc, grp = "group", cat = "rating", est = "pct", lower = "lo", upper = "hi",
+    lvls = "Poor", ref = "Everyone else")
+ok("stdprev", est = c(12, 9, 6, 8, 6, 4), lower = c(9, 6, 3, 7, 5, 3), upper = c(15, 12, 9, 9, 7, 5),
+   std = c(500, 300, 200), grp = rep(c("Nation A", "Everyone else"), each = 3))
+bad("stdprev", est = 1, lower = 0, upper = 2, std = 0)
+ihb <- data.frame(community = rep(c("Lakeside", "Riverbend"), each = 4),
+                  domain = rep(c("body", "mind", "spirit", "family"), 2), pct = c(62, 58, 70, 75, 55, 61, 66, 80),
+                  lo = c(57, 53, 65, 70, 49, 55, 60, 75), hi = c(67, 63, 75, 80, 61, 67, 72, 85))
+ok("holbal", data = ihb, grp = "community", domain = "domain", est = "pct", lower = "lo", upper = "hi", reps = 200)
+ok("holbal", data = ihb, grp = "community", domain = "domain", est = "pct", lower = "lo", upper = "hi", reps = 100,
+   seed = 4, w = c(body = 1, mind = 1, spirit = 2, family = 1), conflvl = 0.9)
+bad("holbal", data = ihb, grp = "community", domain = "domain", est = "pct", lower = "lo", upper = "hi", reps = 1)
+ipp <- data.frame(GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+                  AGE_GROUP = c(rep("Total - Age groups", 3), rep("25 years and over", 3), rep("25 to 64 years", 2)),
+                  RESIDENCE = "Total - Residence on or off reserve", CHARACTERISTIC_ID = 1:8,
+                  CHARACTERISTIC_NAME = c(
+                    "Total - Age groups of the population - 100% data",
+                    paste("Number of total income recipients aged 15 years and over in private households in",
+                          "2020 - 25% sample data"),
+                    "Average total income in 2020 among recipients ($)",
+                    paste("Total - Highest certificate, diploma or degree for the population aged 25 years and",
+                          "over in private households - 25% sample data"),
+                    "  No certificate, diploma or degree", "  Bachelor's degree or higher", "Participation rate",
+                    "Unemployment rate"),
+                  `IND_IDENT (2)` = c(1200, 900, 38000, 700, 150, 120, 62, 14), SYMBOL_IND_IDENT = c("", "", "", "",
+                    "E", "", "", ""),
+                  NON_IND = c(5000, 4000, 52000, 3500, 400, 900, 66, 6), SYMBOL_NON_IND = "", check.names = FALSE)
+ok("cnsprof", x = ipp)
+bad("cnsprof", x = data.frame(a = 1))
+ip <- cnsprof(ipp)
+ok("profshr", x = ip, num = "No certificate, diploma or degree")
+ok("profshr", x = ip, num = 6, den = 4, smpfrac = 0.2, roubase = 10)
+bad("profshr", x = ip, num = 99)
+ist <- data.frame(GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+                  AGE_GROUP = c("Total - Age groups", "0 to 14 years", "15 to 64 years", "65 years and over"),
+                  RESIDENCE = "Total - Residence on or off reserve", CHARACTERISTIC_ID = 1,
+                  CHARACTERISTIC_NAME = "Total - Age groups of the population - 100% data",
+                  `IND_IDENT (2)` = c(1200, 400, 700, 100), SYMBOL_IND_IDENT = "", NON_IND = c(5000, 800, 3300, 900),
+                  SYMBOL_NON_IND = "", check.names = FALSE)
+ok("cnsstd", x = cnsprof(ist), geo = "Lakeside", ages = c("0 to 14 years", "15 to 64 years", "65 years and over"))
+bad("cnsstd", x = cnsprof(ist), geo = "Riverbend")
+ok("cnscwb", x = ip, groups = c("Indigenous identity", "Non-Indigenous"), minpop = 0)
+bad("cnscwb", x = data.frame(a = 1))
+ok("trcind")
+ilt <- data.frame(period = "2017/2019", group = c("First Nations", "Inuit", "Non-Indigenous"),
+                  estimate = c(74.2, 70.9, 81.8), lower = c(73.6, 69.1, 81.6), upper = c(74.8, 72.7, 82.0),
+                  quality = "ok")
+ok("trchlthgap", lifeexp = ilt)
+bad("trchlthgap")
+ok("polex", seed = 3)
+bad("polex", seed = 1.5)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

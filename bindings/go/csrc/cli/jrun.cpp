@@ -33,6 +33,7 @@
 
 #include "crimlab.h"
 #include "frx.h"
+#include "igh.h"
 #include "json.h"
 #include "kutil.h"
 #include "learn.h"
@@ -1573,6 +1574,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jspc.inc"
 #include "japc.inc"
 #include "jhsa.inc"
+#include "jigh.inc"
 #include "jmtr.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
@@ -1822,6 +1824,33 @@ const Ent ents[] = {
     {"spcure", "time event x? dist? level? maxit?", spcure},
     {"apcie", "y expo level? maxit?", apcie},
     {"hsacc", "pred obs area? top? prev?", hsacc},
+    {"sctidy", "x", sctidy},
+    {"qltyrcd", "x suppr? caution?", qltyrcd},
+    {"limfrom", "est se? cv? moe? moelev? conflvl?", limfrom},
+    {"indgap", "data grp est lower upper ref? qual? conflvl? pooled?", indgap},
+    {"genexpo", "parent gparent partial?", genexpo},
+    {"exptrnd", "cases n dose? conflvl?", exptrnd},
+    {"trccmpl", "", trccmpl},
+    {"trcprog", "done? yearend? total? start? conflvl?", trcprog},
+    {"mhcont", "data grp ind est lower upper hope? belong? meaning? purp? qual? conflvl?", mhcont},
+    {"cwbscr", "incpercap highsch20p uni25p notcro nomajrep partic empl bounds?", cwbscr},
+    {"connassoc", "data place x y xlo? xup? ylo? yup? reps? seed? conflvl?", connassoc},
+    {"healchg", "data grp ind prd est lower upper from to well? qual? conflvl? distress?", healchg},
+    {"commidx", "data grp ind est lower upper w qual? conflvl?", commidx},
+    {"frmaud", "x", frmaud},
+    {"scests", "x", scests},
+    {"ordcmp", "data grp cat est lower upper lvls ref qual? conflvl? pooled?", ordcmp},
+    {"stdprev", "est lower upper std grp? qual? conflvl? scale?", stdprev},
+    {"welprof", "data grp ind est lower upper well distress domain? qual?", welprof},
+    {"holbal", "data grp domain est lower upper w? qual? reps? seed? conflvl?", holbal},
+    {"dualcont", "x well distress conflvl?", dualcont},
+    {"cnsprof", "x", cnsprof},
+    {"profshr", "x num den? smpfrac? deff? conflvl? roubase?", profshr},
+    {"cnsstd", "x grp? geo? ages? resid?", cnsstd},
+    {"cnscwb", "x dwell? groups? bounds? resid? minpop?", cnscwb},
+    {"trcind", "", trcind},
+    {"trchlthgap", "health? lifeexp? infmort? suiide? ref? agetot?", trchlthgap},
+    {"polex", "seed?", polex},
     {"mtrbnd", "y z ylo? yhi? assume? w?", mtrbnd},
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
