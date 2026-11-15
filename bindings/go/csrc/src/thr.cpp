@@ -259,6 +259,54 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
       }
     }
     if (!std::isfinite(fbest)) return CLAB_EDOM;
+    // When the quasi-Newton steps of the best start end short of the
+    // gradient criterion (on this flat likelihood the path, and so where
+    // the steps stall, turns on the last bits of the arithmetic), Newton
+    // steps from there, the Hessian from differences of the analytic
+    // gradient, each halved until the likelihood does not fall, at most
+    // 20, and the same criterion.
+    if (cbest == 0) {
+      std::vector<double> gv(static_cast<std::size_t>(np)), xn(static_cast<std::size_t>(np)),
+          hv(static_cast<std::size_t>(3 * np)), cv2(static_cast<std::size_t>(np) * np);
+      double fx = nll(best.data(), gv.data(), &M);
+      for (int k = 0; k < 20 && std::isfinite(fx); ++k) {
+        double gm = 0;
+        for (double v : gv) gm = std::fmax(gm, std::fabs(v));
+        if (gm <= 1e-7 * (1 + std::fabs(fx))) {
+          cbest = 1;
+          break;
+        }
+        if (qn::hcov(np, best.data(), nll, &M, cv2.data(), hv.data()) != 0) break;
+        bool down = false;
+        for (double a = 1; a > 1e-10 && !down; a *= 0.5) {
+          for (int i = 0; i < np; ++i) {
+            double d = 0;
+            for (int j = 0; j < np; ++j) d -= cv2[static_cast<std::size_t>(j) * np + i] * gv[static_cast<std::size_t>(j)];
+            xn[static_cast<std::size_t>(i)] = best[static_cast<std::size_t>(i)] + a * d;
+          }
+          std::vector<double> gn(static_cast<std::size_t>(np));
+          const double fn = nll(xn.data(), gn.data(), &M);
+          double gmn = 0;
+          for (double v : gn) gmn = std::fmax(gmn, std::fabs(v));
+          // a step that lowers the likelihood or the gradient: near the
+          // optimum the likelihood changes by less than its rounding
+          if (std::isfinite(fn) && (fn <= fx || gmn < gm)) {
+            down = true;
+            fx = fn;
+            gv.swap(gn);
+            for (int i = 0; i < np; ++i) best[static_cast<std::size_t>(i)] = xn[static_cast<std::size_t>(i)];
+          }
+        }
+        if (!down) break;
+        ++ibest;
+        if (k == 19) {
+          double g2 = 0;
+          for (double v : gv) g2 = std::fmax(g2, std::fabs(v));
+          if (g2 <= 1e-7 * (1 + std::fabs(fx))) cbest = 1;
+        }
+      }
+      fbest = fx;
+    }
     ll[r] = -fbest;
     conv[r] = cbest;
     conv[2 + r] = ibest;

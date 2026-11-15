@@ -3053,7 +3053,9 @@ int clab_synexp(const double *coef, const double *ax, int na, int p, const doubl
  * t. BFGS from three starts (four for the full model, one the fit
  * with equal thresholds), at most maxit steps each, on the binomial
  * likelihood of searches among stops and hits among searches, once with a
- * threshold per group and once with c_j equal. Out: thr (ng: the threshold
+ * threshold per group and once with c_j equal, then, when the best start
+ * stops short of the gradient criterion, at most 20 Newton steps from it
+ * (the Hessian from differences of the gradient). Out: thr (ng: the threshold
  * averaged over the areas, weighted by their stops); tse (ng x 3: its
  * delta-method standard error, the difference from ref's, the standard
  * error of the difference); cfit (ng na x 5, cell j + ng q: phi, delta, t,

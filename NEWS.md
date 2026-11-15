@@ -42,6 +42,12 @@
 * `polex()` makes the simulated policy panel the examples of the policy
   functions use: twenty districts, 36 months and a staged reform with a
   known effect. The same seed gives the same panel in every front end.
+* `thrtst()`: when the quasi-Newton steps of the maximum-likelihood fit
+  end short of the gradient criterion, up to 20 Newton steps now follow,
+  so the fit converges on flat likelihoods on every architecture (arm64
+  builds reported the self-test's fit as not converged). Fits that met
+  the criterion give the same results as before.
+
 * `thrtst()` gains `fit = "bayes"`: the threshold test fitted by Bayesian
   inference, as Simoiu, Corbett-Davies and Goel (2017) and Pierson,
   Corbett-Davies and Goel (2017) fit it, with a threshold for every group
