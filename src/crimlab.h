@@ -4138,6 +4138,44 @@ int clab_ikbw(const double *y, const double *x, int n, double c, int kern, doubl
  * CLAB_EDOM when c is not inside the data or a side cannot be fitted. */
 int clab_mccr(const double *r, int n, double c, double b, double h, double *st);
 
+/* ------------------------------------------------------------------------
+ * Environmental crime (src/env.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The additive log-mean Divisia index (LMDI) decomposition of y1 - y0 over
+ * k factors whose product is y (the additive LMDI of Duan et al. 2026,
+ * eqs 2-5, after Ang 2005): for
+ * row i and factor j, out[j n + i] = L(y1_i, y0_i) ln(f1_ij / f0_ij), L
+ * the logarithmic mean (a - b) / (ln a - ln b) (a when a = b). f0 and f1
+ * are n x k, column-major. The contributions add up to y1 - y0 exactly
+ * when each y is the product of its factors. CLAB_EDOM for a value that
+ * is not finite and positive. O(n k). */
+int clab_lmdi(const double *y0, const double *y1, const double *f0, const double *f1, int n,
+              int k, double *out);
+/* Variance inflation factors of the p columns of x (n x p, column-major):
+ * out[j] = 1 / (1 - R2_j), R2_j of the least-squares regression of column
+ * j on a constant and the other columns; 1 when p = 1, NaN for a constant
+ * column, Inf when the column is an exact combination of the others or
+ * they are collinear. n >= p + 2. work: n (p + 1) + 2 p (p + 1) doubles. */
+int clab_vif(const double *x, int n, int p, double *out, double *work);
+/* The Jarque-Bera test of n >= 4 values r: with
+ * moments about the mean divided by n, out (4): the skewness S, the
+ * kurtosis K, JB = n / 6 (S^2 + (K - 3)^2 / 4) and its p-value exp(-JB /
+ * 2), the upper tail of chi-squared on 2 degrees of freedom. CLAB_EDOM
+ * when r is constant. */
+int clab_jb(const double *r, int n, double *out);
+/* Pesaran's CD test of cross-sectional dependence of nu units over nt
+ * periods: e (nu x nt, unit a's series at e[a nt + s], NaN where missing).
+ * For each pair of units the correlation rho_ab of their values over the
+ * T_ab periods both have, about the means over those periods; pairs with
+ * T_ab < 2 or no variation are left out. CD = sum sqrt(T_ab) rho_ab /
+ * sqrt(m) over the m pairs kept, which for a balanced panel is sqrt(2 T /
+ * (N (N - 1))) sum rho_ab: the statistic as plm::pcdtest() computes it.
+ * Out (5): CD, its two-sided
+ * normal p-value, the mean of rho_ab, the mean of |rho_ab|, m. CLAB_EDOM
+ * when no pair is kept. O(nu^2 nt). */
+int clab_pcd(const double *e, int nu, int nt, double *out);
+
 #ifdef __cplusplus
 }
 #endif
