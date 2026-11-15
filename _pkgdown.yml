@@ -272,11 +272,45 @@ reference:
       - smdbal
       - evlx
       - rswp
+  - title: Indigenous health and wellbeing
+    desc: First Nations, Metis and Inuit health, mental health and wellbeing
+      from Statistics Canada's published tables, read as published and
+      compared distinction by distinction, the frameworks for wellness put
+      to work on them, the 2021 Census Indigenous Population Profile, and the
+      Truth and Reconciliation Commission's Calls to Action.
+    contents:
+      - sctidy
+      - scests
+      - qltyrcd
+      - limfrom
+      - indgap
+      - ordcmp
+      - stdprev
+      - welprof
+      - dualcont
+      - holbal
+      - mhcont
+      - healchg
+      - connassoc
+      - commidx
+      - frmaud
+      - cwbscr
+      - genexpo
+      - exptrnd
+      - cnsprof
+      - profshr
+      - cnsstd
+      - cnscwb
+      - trcind
+      - trchlthgap
+      - trccmpl
+      - trcprog
   - title: Policy evaluation
     desc: Difference in differences with fixed effects, event studies,
       staggered adoption, synthetic controls and synthetic difference in
       differences.
     contents:
+      - polex
       - didfe
       - evtst
       - stgdid

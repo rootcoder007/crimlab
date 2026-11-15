@@ -23,6 +23,25 @@
   optimal allocation of effort (`opteffort()`, `optcrcsrch()`), Frost's
   optimal search squares (`optsqr()`) and the list of his book's figures
   (`srchfig()`). They are in `clab_jrun()`, the command line and Python.
+* First Nations, Metis and Inuit health and wellbeing, a core part of the
+  package beside the justice system it concerns: Statistics Canada's
+  published tables read with their quality flags (`sctidy()`, `scests()`,
+  `qltyrcd()`, `limfrom()`), compared group by group and as whole rated
+  scales (`indgap()`, `ordcmp()`), standardised by age (`stdprev()`),
+  wellness beside distress (`welprof()`, `dualcont()`, `holbal()`,
+  `frmaud()`), the First Nations Mental Wellness Continuum (`mhcont()`),
+  healing as change (`healchg()`), connection across places
+  (`connassoc()`), community-weighted indices (`commidx()`) and the
+  Community Well-Being index (`cwbscr()`); the generations of residential
+  school attendance and their dose-response (`genexpo()`, `exptrnd()`);
+  the 2021 Census Indigenous Population Profile (`cnsprof()`, `profshr()`,
+  `cnsstd()`, `cnscwb()`); and the Calls to Action (`trcind()`,
+  `trchlthgap()`, `trccmpl()`, `trcprog()`). They are in `clab_jrun()`, the
+  command line and Python.
+
+* `polex()` makes the simulated policy panel the examples of the policy
+  functions use: twenty districts, 36 months and a staged reform with a
+  known effect. The same seed gives the same panel in every front end.
 
 * `mtrbnd()` bounds the mean outcome under each of ordered sentences and
   the effect of each against the mildest, under the monotone treatment

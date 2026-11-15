@@ -344,6 +344,52 @@ other <- data.frame(race = arr$perp_race,
 identical(ctabx(clprep(other, mine))$tab, ft$tab)
 ```
 
+## Indigenous health, wellbeing and the justice system
+
+First Nations, Metis and Inuit people are over-represented in Canada's
+police contacts, courts and custody, and the Truth and Reconciliation
+Commission's Calls to Action ask for that to end (Calls 30 to 42, on
+justice) and for the health gaps beside it to close (Call 19). Health and
+wellbeing are the context any evaluation of a policy, a court programme or
+a custodial regime has to be read against, so the methods for Statistics
+Canada's published tables of Indigenous health, the census profile and the
+Calls to Action are a part of crimlab, not an addition to it.
+
+Two sets of principles say whose data these are: OCAP(R) of the First
+Nations Information Governance Centre (ownership, control, access and
+possession) and the CARE Principles for Indigenous Data Governance
+(Carroll et al. 2020). The functions follow them: First Nations, Metis and
+Inuit are compared one by one and a pooled total is marked
+(distinctions-based), a suppressed cell stays suppressed and is never
+worked back from totals, wellness is reported beside distress
+(`welprof()`, `dualcont()`, `frmaud()`), and a gap is read as a measure of
+colonial policy and unequal services, not as a deficit of the people
+(Walter and Andersen 2013; Walter 2016).
+
+A made-up table of a percentage with its published limits, compared group
+by group with the non-Indigenous population:
+
+```{r}
+d <- data.frame(
+  group = c("First Nations", "Metis", "Inuit", "Non-Indigenous"),
+  pct = c(45.8, 52.8, 47.8, 61.5),
+  lo = c(43.9, 50.6, 43.1, 61),
+  hi = c(47.7, 55, 52.5, 62),
+  flag = c("", "", "E", "")
+)
+indgap(d, "group", "pct", "lo", "hi", qual = "flag")
+```
+
+The estimators of holistic balance (`holbal()`), wellness beside distress
+(`dualcont()`), the four directions of the First Nations Mental Wellness
+Continuum (`mhcont()`), healing as a process (`healchg()`) and connection
+across places (`connassoc()`) put to quantitative use the frameworks of
+Professor Suzanne Stewart (Yellowknives Dene First Nation) and Professor
+Angela Mashford-Pringle (Timiskaming First Nation) of the University of
+Toronto's Waakebiness-Bryce Institute for Indigenous Health (Stewart 2008;
+Mashford-Pringle and Stewart 2019). The work stands on theirs; any error in
+turning their qualitative work into estimators is the package's, not theirs.
+
 ## Proofs
 
 `proof()` lists the theorems behind a function:
@@ -393,6 +439,10 @@ NULL
 
 ## References
 
+Carroll, S. R., Garba, I., Figueroa-Rodriguez, O. L., et al. (2020). The
+CARE Principles for Indigenous Data Governance. *Data Science Journal*, 19,
+43. <https://doi.org/10.5334/dsj-2020-043>
+
 Chouldechova, A. (2017). Fair prediction with disparate impact: a study of
 bias in recidivism prediction instruments. *Big Data*, 5(2), 153-163.
 <https://doi.org/10.1089/big.2016.0047>
@@ -411,6 +461,25 @@ treatment effects: a case study of sentencing and recidivism. *Sociological
 Methodology*, 28(1), 99-137.
 <https://doi.org/10.1111/0081-1750.00043>
 
+Mashford-Pringle, A. and Stewart, S. L. (2019). Akiikaa (it is the land):
+exploring land-based experiences with university students in Ontario.
+*Global Health Promotion*, 26(3 suppl), 64-72.
+<https://doi.org/10.1177/1757975919828722>
+
 Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
 Justice*, 10, 117-170.
 <https://doi.org/10.1086/449145>
+
+Stewart, S. L. (2008). Promoting Indigenous mental health: cultural
+perspectives on healing from Native counsellors in Canada. *International
+Journal of Health Promotion and Education*, 46(2), 49-56.
+
+Truth and Reconciliation Commission of Canada (2015). *Calls to Action*.
+Winnipeg.
+
+Walter, M. (2016). Data politics and Indigenous representation in
+Australian statistics. In T. Kukutai and J. Taylor (eds), *Indigenous Data
+Sovereignty: Toward an Agenda*, 79-97. ANU Press.
+
+Walter, M. and Andersen, C. (2013). *Indigenous Statistics: A Quantitative
+Research Methodology*. Left Coast Press.

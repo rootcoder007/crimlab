@@ -192,6 +192,18 @@ The functions work on summary data, not on raw records:
 * Ordered sentences: bounds on the outcome under each sentence and on its
   effect, with no assumption, under monotone treatment response, under
   monotone treatment selection and under both (`mtrbnd()`).
+* Indigenous health and wellbeing, the context of the justice system's
+  over-representation of First Nations, Metis and Inuit people: published
+  tables read with their quality flags and compared group by group
+  (`sctidy()`, `scests()`, `indgap()`, `ordcmp()`, `stdprev()`), wellness
+  beside distress and its balance (`welprof()`, `dualcont()`, `holbal()`,
+  `mhcont()`, `healchg()`, `frmaud()`), community indices (`commidx()`,
+  `cwbscr()`), the census profile (`cnsprof()`, `profshr()`, `cnsstd()`,
+  `cnscwb()`), exposure to residential schools (`genexpo()`, `exptrnd()`),
+  and the Calls to Action (`trcind()`, `trchlthgap()`, `trccmpl()`,
+  `trcprog()`), under OCAP(R) and the CARE Principles.
+* A simulated policy panel with a known effect, for the examples
+  (`polex()`).
 
 ## Algorithms
 
@@ -560,7 +572,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (244 of 244); `crimlab -l` lists them and
+of the R package (271 of 271); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of
