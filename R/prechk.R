@@ -57,24 +57,47 @@
 #' try(prechk(e, mine))
 #' @export
 prechk <- function(data, preset, codes = NULL) {
-  if (is.data.frame(preset)) {
-    r <- .ptab(preset)
-  } else {
-    if (!is.character(preset) || length(preset) != 1L || is.na(preset)) {
-      stop("prechk: `preset` must be one name or a preset table.",
-           call. = FALSE)
-    }
-    tab <- .presets()
-    r <- tab[tab$preset == preset, , drop = FALSE]
-    if (!nrow(r)) {
-      stop("prechk: no preset named ", preset, "; clprep() lists them.",
-           call. = FALSE)
-    }
-  }
+  r <- .pkrow(preset)
   if (!is.data.frame(data)) {
     stop("prechk: `data` must be a data frame.", call. = FALSE)
   }
   name <- r$preset[1L]
+  codes <- .pkcodes(codes, name)
+  rec <- r$arg == "recipe"
+  bad <- setdiff(r$column[rec], c(names(.rout), "keep"))
+  if (length(bad)) {
+    stop("prechk: unknown recipe ", toString(bad), " (preset ", name, ").",
+         call. = FALSE)
+  }
+  need <- .pkneed(r, rec)
+  msg <- .pkmsg(data, r, rec, need, codes)
+  if (length(msg)) {
+    stop("prechk: the table does not fit preset ", name, ":\n",
+         paste0("* ", msg, collapse = "\n"), call. = FALSE)
+  }
+  invisible(data)
+}
+
+# prechk(): the rows of the preset, named or given as a table
+.pkrow <- function(preset) {
+  if (is.data.frame(preset)) {
+    return(.ptab(preset))
+  }
+  if (!is.character(preset) || length(preset) != 1L || is.na(preset)) {
+    stop("prechk: `preset` must be one name or a preset table.",
+         call. = FALSE)
+  }
+  tab <- .presets()
+  r <- tab[tab$preset == preset, , drop = FALSE]
+  if (!nrow(r)) {
+    stop("prechk: no preset named ", preset, "; clprep() lists them.",
+         call. = FALSE)
+  }
+  r
+}
+
+# prechk(): the publisher's codes, by default those of the preset's agency
+.pkcodes <- function(codes, name) {
   if (is.null(codes)) {
     k <- .presets("codes.tsv")
     codes <- k[k$agency == sub("-.*$", "", name), , drop = FALSE]
@@ -83,18 +106,22 @@ prechk <- function(data, preset, codes = NULL) {
     stop("prechk: `codes` must be a data frame with columns column and ",
          "value.", call. = FALSE)
   }
-  rec <- r$arg == "recipe"
-  bad <- setdiff(r$column[rec], c(names(.rout), "keep"))
-  if (length(bad)) {
-    stop("prechk: unknown recipe ", toString(bad), " (preset ", name, ").",
-         call. = FALSE)
-  }
+  codes
+}
+
+# prechk(): the columns the preset reads from the table
+.pkneed <- function(r, rec) {
   ins <- unlist(Map(.rin, r$column[rec], r$recode[rec]), use.names = FALSE)
   ins <- ins[!is.na(ins) & nzchar(ins)]
   outs <- unlist(.rout[r$column[rec]])
   read <- setdiff(c(r$column[!rec & nzchar(r$column)], .fcols(r$filter)),
                   outs)
-  need <- unique(c(ins, read))
+  unique(c(ins, read))
+}
+
+# prechk(): what does not fit: missing columns, labels outside the codes,
+# labels a mapping leaves without a value
+.pkmsg <- function(data, r, rec, need, codes) {
   msg <- character()
   miss <- setdiff(need, names(data))
   if (length(miss)) {
@@ -114,11 +141,7 @@ prechk <- function(data, preset, codes = NULL) {
     msg <- c(msg, .unk(data[[r$column[i]]], r$column[i], "with no recode",
                        .known(r$recode[i])))
   }
-  if (length(msg)) {
-    stop("prechk: the table does not fit preset ", name, ":\n",
-         paste0("* ", msg, collapse = "\n"), call. = FALSE)
-  }
-  invisible(data)
+  msg
 }
 
 # The labels of x (column col) that known(), given labels in lower case
