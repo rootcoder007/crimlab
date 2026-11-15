@@ -67,6 +67,24 @@ Fac mkfac(const Elim &e, std::vector<int> vars, F val) {
   return r;
 }
 
+// the cells of the largest first table clab_pedlik() builds, and of all of
+// them with the allele lists, counted before any is made: a child's
+// transmission from a parent is a table over the child's allele and the
+// parent's two; d(i) is the number of alleles person i may carry
+void cells0(int n, const int *fa, const int *mo, const int *g, int na, double &big, double &all) {
+  auto d = [&](int i) { return g[2 * i] < 0 ? static_cast<double>(na) : g[2 * i] == g[2 * i + 1] ? 1.0 : 2.0; };
+  big = all = 0.0;
+  for (int i = 0; i < n; ++i) {
+    const double di = d(i);
+    all += 4 * di + 4;
+    for (int par : {fa[i], mo[i]}) {
+      const double t = par < 0 ? di : di * d(par) * d(par);
+      big = std::max(big, t);
+      all += t;
+    }
+  }
+}
+
 // the union of the scopes of the live factors that hold var v
 std::vector<int> scope(const Elim &e, int v, std::vector<std::size_t> &hold) {
   std::vector<int> u;
@@ -223,6 +241,11 @@ int clab_pedlik(int n, const int *fa, const int *mo, const int *g, int na, const
     if (got == 0) return CLAB_EARG;
     left -= got;
   }
+  // the first tables within the bound of elimination, which would refuse
+  // any of them anyway, before they are built
+  double big = 0.0, all = 0.0;
+  cells0(n, fa, mo, g, na, big, all);
+  if (big > maxcell || all > 4 * maxcell) return CLAB_EARG;
   Elim e;
   const std::size_t nv = 2 * static_cast<std::size_t>(n);
   e.dom.resize(nv);
@@ -541,9 +564,13 @@ int pedlr(const PedIn &in, PedOut &out, std::string &err) {
       any = true;
     }
     if (!any) continue;
-    std::vector<double> mmat(static_cast<std::size_t>(na) * static_cast<std::size_t>(na)), fmat = mmat;
-    int rc = CLAB_OK;
-    if (model > 0) {
+    // the mutation matrices, na x na each, only with mutation and within
+    // the bound of the tables
+    std::vector<double> mmat, fmat;
+    int rc = model > 0 && static_cast<double>(na) * na > maxcell ? CLAB_EARG : CLAB_OK;
+    if (model > 0 && rc == CLAB_OK) {
+      mmat.resize(static_cast<std::size_t>(na) * static_cast<std::size_t>(na));
+      fmat.resize(mmat.size());
       rc = clab_mutmat(model, na, num.empty() ? nullptr : num.data(), rm, in.range, mmat.data());
       if (rc == CLAB_OK) rc = clab_mutmat(model, na, num.empty() ? nullptr : num.data(), rf, in.range, fmat.data());
     }

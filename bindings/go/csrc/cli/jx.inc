@@ -591,10 +591,13 @@ inline const double *ptr(const std::vector<double> &v) { return v.empty() ? null
 
 // The helpers of src/bcol.h and src/bfx.h.
 
-// bj::inr(): one number from lo to hi, both included (hi Inf: from lo up).
+// bj::inr(): one finite number from lo to hi, both included (an infinite
+// bound is none).
 inline bool binr(Ctx &c, const Val &x, const char *nm, double lo, double hi, double &v) {
   v = val1(x);
   if (!(v >= lo && v <= hi) || !std::isfinite(v)) {
+    if (!std::isfinite(lo) && !std::isfinite(hi)) return c.fail("`%s` must be one number, neither infinite nor missing.", nm);
+    if (!std::isfinite(lo)) return c.fail("`%s` must be one number of at most %s.", nm, rfmt(hi).c_str());
     if (std::isfinite(hi)) return c.fail("`%s` must be one number from %s to %s.", nm, rfmt(lo).c_str(), rfmt(hi).c_str());
     return c.fail("`%s` must be one number from %s.", nm, rfmt(lo).c_str());
   }

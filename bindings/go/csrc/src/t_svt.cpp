@@ -4,8 +4,8 @@
 // generator after set.seed(42) (the first uniform and normal R draws),
 // vote agreement and the Mardia fit by hand, classical scaling of points
 // on a line, a Procrustes rotation onto itself, the correlation of two
-// categories over two units, the Lotka-Volterra rates of a flat series
-// and the refusals.
+// categories over two units, the Lotka-Volterra rates of a flat series,
+// R's gamma draws of a shape below 1, and the refusals.
 #include <cmath>
 #include <string>
 
@@ -89,4 +89,24 @@ void t_svt(tk &T, int big) {
   u1.add("theft", th);
   c1.add("units", u1);
   tk_ieq(T, "sv.cor1", svk::run("catcor", c1, out, err), 0);
+  // a category given as numbers, not the units' names (catcor() in R
+  // makes every category text first)
+  Node c2 = svk::list();
+  Node u2 = svk::list();
+  u2.add("theft", th);
+  u2.add("fraud", svk::vec({1, 2}));
+  c2.add("units", u2);
+  tk_ieq(T, "sv.cornum", svk::run("catcor", c2, out, err), 0);
+  tk_true(T, "sv.cornumm", err == "`units` must hold character vectors.");
+  // set.seed(42); rgamma(3, shape = 0.5, scale = 2): a shape below 1 by
+  // Ahrens and Dieter's GS; a zero shape or scale is a point mass at 0
+  svk::rng gg(42);
+  tk_eq(T, "sv.gam1", gg.gamma(0.5, 2), 1.52103366962146858, 1e-14);
+  tk_eq(T, "sv.gam2", gg.gamma(0.5, 2), 0.58739504553944721, 1e-14);
+  tk_eq(T, "sv.gam3", gg.gamma(0.5, 2), 3.73268704722661271, 1e-14);
+  tk_true(T, "sv.gam0", gg.gamma(0, 2) == 0 && gg.gamma(2, 0) == 0 && std::isnan(gg.gamma(-1, 2)));
+  // dnorm() far beyond its underflow, and a one-string node
+  tk_eq(T, "sv.dnfar", svk::dnorm(3e154), 0, 0);
+  const Node sn = svk::str("theft");
+  tk_true(T, "sv.str", sn.k == Node::STR && sn.s.size() == 1 && sn.s[0] == "theft");
 }

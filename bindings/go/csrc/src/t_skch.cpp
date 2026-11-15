@@ -18,6 +18,10 @@ void t_skch(tk &T, int) {
   const char *m2 = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
   clab_sha256(reinterpret_cast<const unsigned char *>(m2), std::strlen(m2), h);
   tk_true(T, "skch.sha2", std::memcmp(h, want2, 4) == 0 && h[31] == 0xc1);
+  // CRC-32 check value of "123456789" (RFC 1952), in one call and in two
+  const unsigned char *c9 = reinterpret_cast<const unsigned char *>("123456789");
+  tk_true(T, "skch.crc", clab_crc32(c9, 9, 0) == 0xCBF43926u && clab_crc32(c9, 0, 0) == 0);
+  tk_true(T, "skch.crc2", clab_crc32(c9 + 4, 5, clab_crc32(c9, 4, 0)) == 0xCBF43926u);
   // moments of 1, 2, 3, 4 in two blocks equal those of all four
   const double x[4] = {1, 2, 3, 4};
   double a[5], b[5], m[5], all[5], s[6];

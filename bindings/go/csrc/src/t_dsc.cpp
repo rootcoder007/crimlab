@@ -2,7 +2,8 @@
 //
 // Tests of src/dsc.cpp against their definitions: bins of an even grid,
 // perfect and tied correlations, runs, tallies, quantiles, distances of an
-// orthogonal design, a log tail beyond underflow, Cochran's Q by hand.
+// orthogonal design, a log tail beyond underflow, Cochran's Q by hand, and
+// Little's test unchanged by a row with nothing observed.
 #include <cmath>
 #include <vector>
 
@@ -67,4 +68,18 @@ void t_dsc(tk &T, int) {
   int gs[4], sh[8];
   tk_ieq(T, "dsc.grid", clab_mgrid(na, 8, 1, 4, gs, sh), 4);
   tk_true(T, "dsc.shade", sh[1] == 4 && sh[0] == 2);
+  // a row with every value missing carries no information: the EM fixed
+  // point and Little's statistic are those of the table without it, and
+  // the row is one more pattern and one more row used
+  const double m6[12] = {1, 2, 3, 4, 5, 6, 2, 1, 4, NAN, 6, NAN};
+  const double m7[14] = {1, 2, 3, 4, 5, 6, NAN, 2, 1, 4, NAN, 6, NAN, NAN};
+  double o6[8], o7[8], mu6[2], mu7[2], sg6[4], sg7[4];
+  tk_ieq(T, "dsc.mcar6", clab_mcar(m6, 6, 2, 100000, 1e-13, o6, mu6, sg6), CLAB_OK);
+  tk_ieq(T, "dsc.mcar7", clab_mcar(m7, 7, 2, 100000, 1e-13, o7, mu7, sg7), CLAB_OK);
+  tk_eq(T, "dsc.mcarst", o7[0], o6[0], 1e-9);
+  tk_eq(T, "dsc.mcardf", o7[1], o6[1], 0);
+  tk_eq(T, "dsc.mcarmu", mu7[1], mu6[1], 1e-9);
+  tk_eq(T, "dsc.mcarsg", sg7[3], sg6[3], 1e-9);
+  tk_eq(T, "dsc.mcarnp", o7[4], o6[4] + 1, 0);
+  tk_eq(T, "dsc.mcarnu", o7[5], o6[5] + 1, 0);
 }

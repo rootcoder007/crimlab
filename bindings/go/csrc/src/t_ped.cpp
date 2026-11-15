@@ -2,7 +2,8 @@
 //
 // Self-test of clab_mutmat and clab_pedlik (src/ped.cpp): likelihoods by
 // hand, and against brute force over every allele each person may carry
-// (a pedigree with a loop among them), with and without mutation.
+// (a pedigree with a loop among them), with and without mutation, and the
+// refusals of malformed input.
 #include <cmath>
 #include <vector>
 
@@ -118,6 +119,10 @@ void run(tk &t) {
   tk_ieq(t, "ped19", clab_pedlik(3, ofa, omo, cg, 3, p, nullptr, nullptr, &l1), CLAB_EARG);
   const double pb[3] = {0.1, 0.3, 0.5};
   tk_ieq(t, "ped20", clab_pedlik(3, fa, mo, g, 3, pb, nullptr, nullptr, &l1), CLAB_EDOM);
+  // a genotype with one allele of two, and an allele code past the last
+  const int g1[6] = {0, -1, -1, -1, 0, 2}, g3[6] = {0, 3, -1, -1, 0, 2};
+  tk_ieq(t, "ped21", clab_pedlik(3, fa, mo, g1, 3, p, nullptr, nullptr, &l1), CLAB_EARG);
+  tk_ieq(t, "ped22", clab_pedlik(3, fa, mo, g3, 3, p, nullptr, nullptr, &l1), CLAB_EARG);
 }
 
 }  // namespace

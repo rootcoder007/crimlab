@@ -437,9 +437,11 @@ double clab_pgamma(double x, double a, int lower) { return pgam(x, a, lower); }
 
 double clab_qgamma(double p, double a, int lower) {
   if (std::isnan(p) || std::isnan(a) || p < 0 || p > 1 || a < 0) return qnan;
-  if (a == 0) return 0;
+  // R's order: the ends of p first, so qgamma(1, 0) is Inf, then the
+  // point mass at 0
   if (p == (lower ? 0 : 1)) return 0;
   if (p == (lower ? 1 : 0)) return HUGE_VAL;
+  if (a == 0) return 0;
   // Wilson and Hilferty's start, or the small-x one
   const double z = lower ? clab_qnorm(p) : -clab_qnorm(p), c = 1 / (9 * a);
   double x0 = a * std::pow(1 - c + z * std::sqrt(c), 3);
@@ -461,7 +463,9 @@ double clab_qbeta(double p, double a, double b, int lower) {
   if (p == (lower ? 0 : 1)) return 0;
   if (p == (lower ? 1 : 0)) return 1;
   if (a == 0 || b == 0 || std::isinf(a) || std::isinf(b)) {
-    if (a == 0 && b == 0) return (lower ? p < 0.5 : p > 0.5) ? 0 : 1;
+    // half the mass at 0 and half at 1: R's qbeta() gives 0 below 1/2, 1
+    // above and 1/2 at 1/2, comparing p itself in either tail
+    if (a == 0 && b == 0) return p < 0.5 ? 0 : p > 0.5 ? 1 : 0.5;
     if (a == 0 || a / b == 0) return 0;
     if (b == 0 || b / a == 0) return 1;
     return 0.5;

@@ -62,10 +62,17 @@ int clab_gmxlik(int nl, const int *np, const double *p, const double *y, const d
     if (n < 1) return CLAB_EARG;
     const double *pl = p + off, *yl = y + off, *zl = sz ? sz + off : nullptr, *cnl = cn + off;
     const int *sl = st ? st + off : nullptr;
-    // the genotypes a contributor may have: pairs of carriable positions
-    std::vector<int> ga, gb;
+    // the genotypes an unknown contributor may have: pairs of carriable
+    // positions, counted first and built only for unknowns, at most 2e6
+    // combinations of them (as gmixlr() checks)
+    double npos = 0.0;
     for (int i = 0; i < n; ++i) {
       if (!(pl[i] >= 0) || (yl[i] > 0 && yl[i] < at) || (sl && (sl[i] < -1 || sl[i] >= n))) return CLAB_EDOM;
+      npos += pl[i] > 0;
+    }
+    if (nu > 0 && std::pow(npos * (npos + 1) / 2, nu) > 2e6) return CLAB_EARG;
+    std::vector<int> ga, gb;
+    for (int i = 0; i < n && nu > 0; ++i) {
       for (int j = i; j < n && pl[i] > 0; ++j) {
         if (pl[j] > 0) {
           ga.push_back(i);
