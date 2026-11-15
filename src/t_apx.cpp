@@ -107,7 +107,7 @@ void t_apx(tk &T, int) {
   // quadrants from 0, the first left out; 360 is 0; by area
   {
     const double d[4] = {45, 135, 359.5, 360};
-    double o[6];
+    double o[12];
     tk_ieq(T, "apx.wb", clab_windbin(d, 4, 90, 0, nullptr, 1, 0, o), CLAB_OK);
     tk_eq(T, "apx.wb1", o[0 * 4 + 1], 1, 0);
     tk_eq(T, "apx.wb3", o[2 * 4 + 2], 1, 0);
