@@ -623,3 +623,136 @@ print.ppmlcf <- function(x, ...) {
 #' @rdname ppmlcf
 #' @export
 summary.ppmlcf <- function(object, ...) object[["coef"]]
+
+#' Wind-direction instruments
+#'
+#' Turns daily wind directions into indicators of the sector the wind
+#' blows from, one sector left out, optionally one set per area so that
+#' the same wind may act differently in different parts of a city. These
+#' are the instruments of Bondy, Roth and Sager (2020), who use four
+#' quadrants (0-90, 91-180, 181-270 degrees; the fourth left out) in each
+#' of five regions of London, 15 instruments; and, with `sect`, the single
+#' westerly-wind indicator of Herrnstadt, Heyes, Muehlegger and Saberian
+#' (2019), wind from between 225 and 285 degrees.
+#'
+#' Directions are where the wind blows from, in degrees clockwise from
+#' north (the meteorological convention); 360 is 0. Sector `b` is `[start
+#' + (b - 1) width, start + b width)`, so a direction on a boundary goes to
+#' the sector it opens. A daily direction should be the direction of the
+#' day's mean wind vector, not the mean of the angles (1 and 359 degrees
+#' average to north, not south): `(atan2(mean(sin(r)), mean(cos(r))) * 180
+#' / pi) %% 360` for the hourly directions `r` in radians. Bondy, Roth and
+#' Sager use instead the share of the day's hours in each quadrant; the
+#' daily mean of these indicators over hourly directions gives that share.
+#'
+#' The indicators are instruments only if the wind direction affects the
+#' outcome through the exposure alone (see [ivfe()]).
+#'
+#' @param dir Wind directions in degrees (numbers; `NA` gives a row of
+#'   `NA`).
+#' @param width The width of a sector in degrees; it must divide 360.
+#' @param start Where the first sector begins, in degrees.
+#' @param area `NULL` or the area of each direction (labels): one set of
+#'   indicators per area, in sorted order of the labels.
+#' @param base The sector left out, counted from 1.
+#' @param sect `NULL`, or two numbers `c(from, to)` in degrees: then one
+#'   indicator, 1 when the wind blows from between `from` (included) and
+#'   `to` (excluded), going clockwise; `width`, `start` and `base` are not
+#'   used.
+#' @return A numeric matrix, one row per direction, columns named
+#'   `"w<from>_<to>"`, with `":<area>"` added when `area` is given.
+#' @references
+#'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+#'   contemporaneous relationship between air pollution and crime.
+#'   *Journal of the Association of Environmental and Resource Economists*,
+#'   7(3), 555-585. \doi{10.1086/707127}
+#'
+#'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
+#'   pollution as a cause of violent crime. Working paper.
+#' @seealso [ivfe()], [ppmlcf()], [invsn()]
+#' @examples
+#' windiv(c(10, 100, 200, 300))
+#' # quadrants by region, as in London
+#' windiv(c(10, 100, 200, 300), area = c("east", "east", "west", "west"))
+#' # one westerly sector
+#' windiv(c(230, 300), sect = c(225, 285))
+#' @export
+windiv <- function(dir, width = 90, start = 0, area = NULL, base = 1, sect = NULL) {
+  f <- "windiv"
+  if (!is.numeric(dir) || !length(dir)) .ckstop(f, "`dir` must be numeric directions in degrees")
+  dir <- as.numeric(dir)
+  if (!is.null(sect)) {
+    if (!is.numeric(sect) || length(sect) != 2L || !all(is.finite(sect)) ||
+          sect[1L] %% 360 == sect[2L] %% 360) {
+      .ckstop(f, "`sect` must be two different finite directions in degrees")
+    }
+    m <- matrix(as.numeric((dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360))
+    colnames(m) <- paste0("w", format(sect[1L]), "_", format(sect[2L]))
+    return(m)
+  }
+  width <- .cknum(width, "width", f, positive = TRUE)
+  start <- .cknum(start, "start", f)
+  nb <- round(360 / width)
+  if (width >= 360 || abs(360 / width - nb) > 1e-9) {
+    .ckstop(f, "`width` must divide 360 into two or more sectors")
+  }
+  base <- .cknum(base, "base", f, min = 1, max = nb, whole = TRUE)
+  ac <- NULL
+  na <- 1L
+  lev <- NULL
+  if (!is.null(area)) {
+    if (length(area) != length(dir) || anyNA(area)) {
+      .ckstop(f, "`area` must give one label per direction, none missing")
+    }
+    lev <- if (is.factor(area)) levels(droplevels(area)) else sort(unique(as.character(area)))
+    ac <- match(as.character(area), lev) - 1L
+    na <- length(lev)
+  }
+  m <- .Call(C_clab_r_windbin, dir, width, start, ac, na, as.integer(base - 1))
+  lo <- (start + (seq_len(nb) - 1) * width) %% 360
+  nm <- paste0("w", format(lo, trim = TRUE), "_", format((lo + width) %% 360, trim = TRUE))[-base]
+  colnames(m) <- if (is.null(lev)) nm else paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
+  m
+}
+
+#' Temperature inversions
+#'
+#' The instrument of Bondy, Roth and Sager (2020, p. 566-567): "the
+#' continuous difference between temperatures at the ground level and
+#' temperatures at circa 750 m altitude (925 hectopascals [hPa] pressure
+#' level)". On most days the air cools with height; in an inversion it is
+#' warmer above than at the ground, and pollutants are trapped near the
+#' ground. The paper does not say which temperature is subtracted from
+#' which; here `diff` is the upper temperature less the ground one, so it
+#' is positive in an inversion, and `inv` is 1 then.
+#'
+#' Inversions cover large areas (the paper's satellite readings are on a
+#' grid of about 110 by 70 km), so they vary little between places in a
+#' city; Bondy, Roth and Sager use them at the borough and city level. As
+#' an instrument the inversion must affect the outcome only through the
+#' exposure; cold, still days may change what people do as well, so
+#' weather controls matter (see [ivfe()]).
+#'
+#' @param tlow Temperatures at the ground (numbers, `NA` allowed).
+#' @param tup Temperatures aloft, at the same places and times, in the same
+#'   unit.
+#' @return A data frame: `diff`, `tup - tlow`, and `inv`, 1 when `diff` is
+#'   above 0 and 0 otherwise (`NA` where a temperature is missing).
+#' @references
+#'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+#'   contemporaneous relationship between air pollution and crime.
+#'   *Journal of the Association of Environmental and Resource Economists*,
+#'   7(3), 555-585. \doi{10.1086/707127}
+#' @seealso [windiv()], [ivfe()], [ppmlcf()]
+#' @examples
+#' invsn(c(10, 5, 2), c(8, 6, 2))
+#' @export
+invsn <- function(tlow, tup) {
+  f <- "invsn"
+  if (!is.numeric(tlow) || !is.numeric(tup) || length(tlow) != length(tup) ||
+        !length(tlow)) {
+    .ckstop(f, "`tlow` and `tup` must be numeric vectors of one length")
+  }
+  dd <- as.numeric(tup) - as.numeric(tlow)
+  data.frame(diff = dd, inv = as.integer(dd > 0))
+}

@@ -104,4 +104,18 @@ void t_apx(tk &T, int) {
     tk_ieq(T, "apx.ivq", clab_ivfe(y, x, 1, nullptr, 0, z, 0, 5, nullptr, g, 1, nullptr, 0, c, 2,
                                    nullptr, 0, 1e-13, &b, &vc, &f, nullptr, nullptr, st), CLAB_EARG);
   }
+  // quadrants from 0, the first left out; 360 is 0; by area
+  {
+    const double d[4] = {45, 135, 359.5, 360};
+    double o[6];
+    tk_ieq(T, "apx.wb", clab_windbin(d, 4, 90, 0, nullptr, 1, 0, o), CLAB_OK);
+    tk_eq(T, "apx.wb1", o[0 * 4 + 1], 1, 0);
+    tk_eq(T, "apx.wb3", o[2 * 4 + 2], 1, 0);
+    tk_eq(T, "apx.wb0", o[0 * 4 + 3] + o[1 * 4 + 3] + o[2 * 4 + 3], 0, 0);
+    const int a[2] = {0, 1};
+    double o2[12];
+    clab_windbin(d, 2, 90, 0, a, 2, 0, o2);
+    tk_eq(T, "apx.wba", o2[(3 + 0) * 2 + 1], 1, 0);
+    tk_ieq(T, "apx.wbw", clab_windbin(d, 4, 70, 0, nullptr, 1, 0, o), CLAB_EARG);
+  }
 }

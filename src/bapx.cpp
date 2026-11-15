@@ -119,4 +119,15 @@ SEXP C_clab_r_ppmlcf(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP off, SEXP f1, SEXP 
   return r;
 }
 
+SEXP C_clab_r_windbin(SEXP dir, SEXP width, SEXP start, SEXP area, SEXP na, SEXP base) {
+  clab::who = "windiv";
+  const int n = n32(dir), a = Rf_asInteger(na);
+  const int nb = static_cast<int>(std::nearbyint(360 / Rf_asReal(width)));
+  SEXP r = PROTECT(Rf_allocMatrix(REALSXP, n, a * (nb - 1)));
+  kc(clab_windbin(REAL(dir), n, Rf_asReal(width), Rf_asReal(start), icodes(area), a,
+                  Rf_asInteger(base), REAL(r)));
+  UNPROTECT(1);
+  return r;
+}
+
 }  // extern "C"

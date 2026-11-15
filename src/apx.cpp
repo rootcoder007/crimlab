@@ -241,4 +241,30 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
   return CLAB_OK;
 }
 
+int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
+                 int base, double *out) {
+  if (n < 1 || !(width > 0) || !(width < 360) || !std::isfinite(start) || na < 1) return CLAB_EARG;
+  const double nbd = 360 / width;
+  const int nb = static_cast<int>(std::nearbyint(nbd));
+  if (std::fabs(nbd - nb) > 1e-9 || nb < 2 || base < 0 || base >= nb) return CLAB_EARG;
+  const int k = nb - 1;
+  for (size_t a = 0; a < sz(n, na * k); ++a) out[a] = 0.0;
+  for (int i = 0; i < n; ++i) {
+    const int ar = area ? area[i] : 0;
+    if (ar < 0 || ar >= na) return CLAB_EARG;
+    if (!std::isfinite(dir[i])) {
+      for (int c = 0; c < na * k; ++c) out[sz(c, n) + static_cast<size_t>(i)] = kutil::nan();
+      continue;
+    }
+    double a = std::fmod(dir[i] - start, 360.0);
+    if (a < 0) a += 360.0;
+    int b = static_cast<int>(std::floor(a / width));
+    if (b >= nb) b = nb - 1;  // a rounding at the top edge
+    if (b == base) continue;
+    const int c = ar * k + (b < base ? b : b - 1);
+    out[sz(c, n) + static_cast<size_t>(i)] = 1.0;
+  }
+  return CLAB_OK;
+}
+
 }  // extern "C"

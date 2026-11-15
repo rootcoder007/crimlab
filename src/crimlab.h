@@ -1990,6 +1990,17 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
                 int maxit, double eps, double tol, double *beta, double *fst, double *draw,
                 double *st);
 
+/* Wind-direction instruments (windiv): dir, n directions the wind blows
+ * from, degrees clockwise from north; the circle is cut into nb = 360 /
+ * width sectors [start + b width, start + (b + 1) width) (width must
+ * divide 360), sector base (0..nb-1) left out. Without area (NULL, na 1):
+ * out is n x (nb - 1), 1 in the column of the row's sector; with area (n
+ * codes 0..na-1), n x na (nb - 1), area a's sectors in columns a (nb - 1)
+ * on, so a direction may act differently in each area. A row with a
+ * non-finite direction is NaN throughout. */
+int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
+                 int base, double *out);
+
 
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect

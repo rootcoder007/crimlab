@@ -431,6 +431,8 @@ test_that("every exported function answers one valid call in its shape", {
                       seed = 1)),
          c("coef", "first", "draws", "nfail", "n", "nsep", "ncl", "nboot", "fe",
            "clus", "level")),
+    list(quote(windiv(c(10, 100))), NULL),
+    list(quote(invsn(1, 2)), c("diff", "inv")),
     list(quote(onlsmry(1:3)), "state"),
     list(quote(smryupd(onlsmry(), 1:3)), "state"),
     list(quote(smrymrg(onlsmry(1), onlsmry(2))), "state"),

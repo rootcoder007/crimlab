@@ -118,3 +118,23 @@ test_that("the refusals: no variation, too few clusters, bad columns", {
   d$y[1] <- -1
   expect_error(ppmlfe(d, "y", "x", fe = "unit"), "at least 0")
 })
+
+test_that("windiv cuts sectors, leaves one out and interacts with areas", {
+  m <- windiv(c(10, 100, 200, 300, 360))
+  expect_identical(colnames(m), c("w90_180", "w180_270", "w270_0"))
+  expect_identical(unname(m[2, ]), c(1, 0, 0))
+  expect_identical(unname(m[5, ]), c(0, 0, 0))
+  m2 <- windiv(c(10, 100), area = c("b", "a"))
+  expect_identical(colnames(m2)[c(1, 4)], c("w90_180:a", "w90_180:b"))
+  expect_identical(unname(m2[2, 1]), 1)
+  m3 <- windiv(c(230, 300, 20), sect = c(225, 285))
+  expect_identical(unname(m3[, 1]), c(1, 0, 0))
+  expect_true(all(is.na(windiv(NA_real_)[1, ])))
+  expect_error(windiv(1, width = 70), "must divide 360")
+})
+
+test_that("invsn is the temperature aloft less the ground", {
+  r <- invsn(c(10, 5, 2), c(8, 6, 2))
+  expect_identical(r$diff, c(-2, 1, 0))
+  expect_identical(r$inv, c(0L, 1L, 0L))
+})
