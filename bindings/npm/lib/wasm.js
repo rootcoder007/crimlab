@@ -97,7 +97,13 @@ export async function load(stdin = () => new Uint8Array(0)) {
       throw new Exit(code);
     },
   };
-  const { instance } = await WebAssembly.instantiate(await bytes(), { wasi_snapshot_preview1: wasi });
+  // There is no file system here. A function that would read a folder or a
+  // file (the power counters of raplok(), the time-zone files of dtctloc())
+  // imports calls this object does not list; each answers "not supported",
+  // so the function refuses or falls back as it does where the file is
+  // absent, and a new import cannot stop the module from loading.
+  const host = new Proxy(wasi, { get: (t, k) => (k in t ? t[k] : () => NOSYS) });
+  const { instance } = await WebAssembly.instantiate(await bytes(), { wasi_snapshot_preview1: host });
   const x = instance.exports;
   mem = x.memory;
   x._initialize();
