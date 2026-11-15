@@ -6,37 +6,6 @@
 # anything unmapped, prove a recode with a before/after cross-tabulation
 # and check recoded counts against the counts a release published.
 
-.cq <- function(v) paste0("'", v, "'")
-
-.catx <- function(x, fn, nm = "x") {
-  if (is.null(x) || !is.atomic(x)) {
-    stop(fn, ": `", nm, "` must be a vector of labels.", call. = FALSE)
-  }
-  if (is.factor(x)) as.character(x) else x
-}
-
-.catmap <- function(map, fn, nm = "map") {
-  if (!is.character(map) || is.null(names(map)) || anyNA(names(map)) ||
-        !all(nzchar(names(map)))) {
-    stop(fn, ": `", nm, "` must be a named character vector (old = new).",
-         call. = FALSE)
-  }
-}
-
-.crec <- function(x, map, keep, fn) {
-  seen <- unique(x[!is.na(x)])
-  un <- setdiff(seen, c(names(map), keep))
-  if (length(un)) {
-    stop(fn, ": values with no mapping: ", toString(.cq(un)), ". Every ",
-         "observed category must be mapped by name (or listed in `keep`).",
-         call. = FALSE)
-  }
-  out <- ifelse(x %in% names(map), unname(map[x]), x)
-  out[is.na(x)] <- NA_character_
-  attr(out, "recode") <- list(mapping = map, kept = keep)
-  out
-}
-
 #' Recode categories by name
 #'
 #' `grdrcd()` recodes a categorical column by an explicit mapping from old
@@ -97,14 +66,7 @@ deccodes <- function(x, vlabs, keepna = TRUE) {
 #' @rdname grdrcd
 #' @export
 relbl <- function(x, map, keep = character()) {
-  if (is.null(x) || !is.atomic(x) || is.complex(x) || is.raw(x)) {
-    stop("relbl: `x` must be a vector of labels (text, a factor or ",
-         "numbers).", call. = FALSE)
-  }
-  if (is.null(names(map)) || anyNA(names(map)) || !all(nzchar(names(map)))) {
-    stop("relbl: `map` must be named (old label = new label); labels are ",
-         "never assigned by position.", call. = FALSE)
-  }
+  .rlargs(x, map)
   old <- if (is.factor(x)) {
     levels(x)
   } else {
@@ -332,13 +294,7 @@ vrfmrg <- function(x, pub, tol = 0, strict = TRUE) {
     x <- as.character(x)
   }
   strict <- isTRUE(strict)
-  if (!is.numeric(tol) || length(tol) != 1L || !is.finite(tol) || tol < 0) {
-    stop("vrfmrg: `tol` must be one number from 0.", call. = FALSE)
-  }
-  if (!is.numeric(pub) || !length(pub) || anyNA(pub) || is.null(names(pub)) ||
-        anyNA(names(pub)) || !all(nzchar(names(pub)))) {
-    stop("vrfmrg: `pub` must be a named numeric vector.", call. = FALSE)
-  }
+  .mrgargs(pub, tol)
   labs <- names(pub)
   obs <- vapply(labs, function(l) sum(!is.na(x) & x == l), 0)
   pubv <- pub[labs]
@@ -358,46 +314,11 @@ vrfmrg <- function(x, pub, tol = 0, strict = TRUE) {
   if (out$ok) {
     return(invisible(out))
   }
-  if (length(labs) <= 7L) {
-    out["permutation"] <- list(.mrgperm(obs, pubv, labs, tol))
-  }
-  hint <- ""
-  p <- out$permutation
-  if (!is.null(p)) {
-    mv <- names(p)[p != names(p)]
-    hint <- paste0(" The observed counts match the published ones if the ",
-                   "labels are permuted (",
-                   toString(paste(mv, "->", p[mv])),
-                   "): the labels are attached to the wrong groups.")
-  }
-  out$message <- paste0(
-    "vrfmrg: recoded counts do not match the published counts. ",
-    paste(sprintf("%s: observed %s, published %s", labs, obs, pubv),
-          collapse = "; "), ".", hint)
+  out <- .mrgfail(out, labs, tol)
   if (strict) {
     stop(out$message, call. = FALSE)
   }
   out
-}
-
-# the first permutation p of labs (in the order of the recursion) under
-# which the observed counts, relabelled by p, match the published ones
-.mrgperm <- function(obs, pub, labs, tol) {
-  perms <- function(v) {
-    if (length(v) <= 1L) {
-      return(list(v))
-    }
-    unlist(lapply(seq_along(v), function(i) {
-      lapply(perms(v[-i]), function(r) c(v[i], r))
-    }), recursive = FALSE)
-  }
-  for (p in perms(labs)) {
-    r <- stats::setNames(obs, p)[labs]
-    if (!identical(p, labs) && all(abs(r - pub) <= tol)) {
-      return(stats::setNames(p, labs))
-    }
-  }
-  NULL
 }
 
 #' @export
@@ -444,30 +365,12 @@ xfrvrf <- function(imported, soucnts, codebook = NULL, tol = 0, strict = TRUE) {
          call. = FALSE)
   }
   lab <- attr(imported, "labels", exact = TRUE)
-  cbok <- NA
-  if (!is.null(lab) && !is.null(codebook)) {
-    got <- stats::setNames(names(lab), as.character(unname(lab)))
-    want <- stats::setNames(as.character(codebook), names(codebook))
-    bad <- setdiff(union(names(got), names(want)),
-                   names(got)[names(got) %in% names(want) &
-                                got == want[names(got)]])
-    cbok <- !length(bad)
-    if (!cbok && strict) {
-      stop("xfrvrf: the value labels that arrived disagree with the source ",
-           "code book at codes ", toString(bad), ": arrived ",
-           toString(paste0(bad, "=", got[bad])), "; source ",
-           toString(paste0(bad, "=", want[bad])), ".", call. = FALSE)
-    }
-  }
-  dec <- if (!is.null(lab)) {
-    declbld(imported)
-  } else if (!is.null(codebook)) {
-    declbld(imported,
-            stats::setNames(as.character(codebook), names(codebook)))
+  cbok <- if (!is.null(lab) && !is.null(codebook)) {
+    .xfcb(lab, codebook, strict)
   } else {
-    v <- as.character(imported)
-    factor(v, levels = unique(c(names(soucnts), v[!is.na(v)])))
+    NA
   }
+  dec <- .xfdec(imported, lab, codebook, soucnts)
   m <- vrfmrg(as.character(dec), soucnts, tol = tol, strict = strict)
   ok <- isTRUE(m$ok) && !isFALSE(cbok)
   reasons <- c(if (isFALSE(cbok)) {
@@ -487,4 +390,131 @@ print.xfrvrf <- function(x, ...) {
   print(x$marginals)
   if (length(x$reasons)) cat(paste("failed:", x$reasons), sep = "\n")
   invisible(x)
+}
+
+.cq <- function(v) paste0("'", v, "'")
+
+.catx <- function(x, fn, nm = "x") {
+  if (is.null(x) || !is.atomic(x)) {
+    stop(fn, ": `", nm, "` must be a vector of labels.", call. = FALSE)
+  }
+  if (is.factor(x)) as.character(x) else x
+}
+
+.catmap <- function(map, fn, nm = "map") {
+  if (!is.character(map) || is.null(names(map)) || anyNA(names(map)) ||
+        !all(nzchar(names(map)))) {
+    stop(fn, ": `", nm, "` must be a named character vector (old = new).",
+         call. = FALSE)
+  }
+}
+
+.crec <- function(x, map, keep, fn) {
+  seen <- unique(x[!is.na(x)])
+  un <- setdiff(seen, c(names(map), keep))
+  if (length(un)) {
+    stop(fn, ": values with no mapping: ", toString(.cq(un)), ". Every ",
+         "observed category must be mapped by name (or listed in `keep`).",
+         call. = FALSE)
+  }
+  out <- ifelse(x %in% names(map), unname(map[x]), x)
+  out[is.na(x)] <- NA_character_
+  attr(out, "recode") <- list(mapping = map, kept = keep)
+  out
+}
+
+.mrgargs <- function(pub, tol) {
+  if (!is.numeric(tol) || length(tol) != 1L || !is.finite(tol) || tol < 0) {
+    stop("vrfmrg: `tol` must be one number from 0.", call. = FALSE)
+  }
+  if (!is.numeric(pub) || !length(pub) || anyNA(pub) || is.null(names(pub)) ||
+        anyNA(names(pub)) || !all(nzchar(names(pub)))) {
+    stop("vrfmrg: `pub` must be a named numeric vector.", call. = FALSE)
+  }
+}
+
+# vrfmrg(): counts that differ, with the permutation of the labels that
+# would make them agree (searched for up to seven labels) and the message
+.mrgfail <- function(out, labs, tol) {
+  obs <- out$counts
+  pubv <- out$published
+  if (length(labs) <= 7L) {
+    out["permutation"] <- list(.mrgperm(obs, pubv, labs, tol))
+  }
+  hint <- ""
+  p <- out$permutation
+  if (!is.null(p)) {
+    mv <- names(p)[p != names(p)]
+    hint <- paste0(" The observed counts match the published ones if the ",
+                   "labels are permuted (",
+                   toString(paste(mv, "->", p[mv])),
+                   "): the labels are attached to the wrong groups.")
+  }
+  out$message <- paste0(
+    "vrfmrg: recoded counts do not match the published counts. ",
+    paste(sprintf("%s: observed %s, published %s", labs, obs, pubv),
+          collapse = "; "), ".", hint)
+  out
+}
+
+# the first permutation p of labs (in the order of the recursion) under
+# which the observed counts, relabelled by p, match the published ones
+.mrgperm <- function(obs, pub, labs, tol) {
+  perms <- function(v) {
+    if (length(v) <= 1L) {
+      return(list(v))
+    }
+    unlist(lapply(seq_along(v), function(i) {
+      lapply(perms(v[-i]), function(r) c(v[i], r))
+    }), recursive = FALSE)
+  }
+  for (p in perms(labs)) {
+    r <- stats::setNames(obs, p)[labs]
+    if (!identical(p, labs) && all(abs(r - pub) <= tol)) {
+      return(stats::setNames(p, labs))
+    }
+  }
+  NULL
+}
+
+# relbl(): `x` a vector of labels, `map` named
+.rlargs <- function(x, map) {
+  if (is.null(x) || !is.atomic(x) || is.complex(x) || is.raw(x)) {
+    stop("relbl: `x` must be a vector of labels (text, a factor or ",
+         "numbers).", call. = FALSE)
+  }
+  if (is.null(names(map)) || anyNA(names(map)) || !all(nzchar(names(map)))) {
+    stop("relbl: `map` must be named (old label = new label); labels are ",
+         "never assigned by position.", call. = FALSE)
+  }
+}
+
+# xfrvrf(): do the value labels that arrived agree with the code book?
+.xfcb <- function(lab, codebook, strict) {
+  got <- stats::setNames(names(lab), as.character(unname(lab)))
+  want <- stats::setNames(as.character(codebook), names(codebook))
+  bad <- setdiff(union(names(got), names(want)),
+                 names(got)[names(got) %in% names(want) &
+                              got == want[names(got)]])
+  cbok <- !length(bad)
+  if (!cbok && strict) {
+    stop("xfrvrf: the value labels that arrived disagree with the source ",
+         "code book at codes ", toString(bad), ": arrived ",
+         toString(paste0(bad, "=", got[bad])), "; source ",
+         toString(paste0(bad, "=", want[bad])), ".", call. = FALSE)
+  }
+  cbok
+}
+
+# xfrvrf(): the column decoded by its labels, the code book, or as labels
+.xfdec <- function(imported, lab, codebook, soucnts) {
+  if (!is.null(lab)) {
+    declbld(imported)
+  } else if (!is.null(codebook)) {
+    declbld(imported,
+            stats::setNames(as.character(codebook), names(codebook)))
+  } else {
+    v <- as.character(imported)
+    factor(v, levels = unique(c(names(soucnts), v[!is.na(v)])))
+  }
 }
