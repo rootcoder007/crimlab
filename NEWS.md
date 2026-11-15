@@ -818,6 +818,9 @@
   no bound can be found are refused. `evfilt()` stops selecting when no
   eigenvector has a finite criterion (values whose sums overflow); it
   used to add one that does not exist and abort R.
+* `dualcont()`, `frmaud()` and the readers of `cnsprof()` results check
+  the columns they read even when the class says where the object came
+  from; an object of that class with a column missing crashed R.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

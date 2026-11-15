@@ -996,11 +996,9 @@ V f_holbal(const Cx &c) {
 V f_dualcont(const Cx &c) {
   const V &x = c["x"];
   static const char *const need[] = {"group", "indicator", "side", "estimate", "lower", "upper", "usewithcau"};
-  bool from = inh(x, "welprof");
-  if (!from && x.js && isdf(x)) {
-    from = true;
-    for (const char *n : need) from = from && col(x, n);
-  }
+  // the columns read below, whatever the class says
+  bool from = inh(x, "welprof") || (x.js && isdf(x));
+  for (const char *n : need) from = from && col(x, n);
   if (!from) return stop("`x` must come from welprof()");
   const std::string well = str1(c["well"], "well"), dis = str1(c["distress"], "distress");
   if (bad()) return {};

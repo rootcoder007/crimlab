@@ -73,8 +73,9 @@ std::vector<int> ci(const V &x, const char *nm) {
 
 // x is a cnsprof() result (or, from JSON, a frame with its columns)
 bool isprof(const V &x) {
-  if (inh(x, "cnsprof")) return true;
-  if (!x.js || !isdf(x)) return false;
+  // the columns are checked with the class too: they are read without
+  // a further check
+  if (!inh(x, "cnsprof") && (!x.js || !isdf(x))) return false;
   for (const char *n : {"geo", "dguid", "residence", "gender", "age", "group", "chaid", "characteristic", "parid",
                         "rootid", "sample", "value", "quality"}) {
     if (!col(x, n)) return false;

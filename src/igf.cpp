@@ -580,7 +580,7 @@ V f_commidx(const Cx &c) {
 
 V f_frmaud(const Cx &c) {
   const V &x = c["x"];
-  const bool from = inh(x, "welprof") || (x.js && isdf(x) && col(x, "group") && col(x, "side"));
+  const bool from = (inh(x, "welprof") || (x.js && isdf(x))) && col(x, "group") && col(x, "side");
   if (!from) return stop("`x` must come from welprof()");
   const Lab g = lab(*col(x, "group")), s = lab(*col(x, "side"));
   bool any = false;

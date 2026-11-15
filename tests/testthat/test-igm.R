@@ -453,6 +453,12 @@ test_that("dualcont(): the strength ratio and its log-normal interval", {
   expect_error(dualcont(w, "Distress", "Distress"), "not a wellness indicator")
   expect_error(dualcont(w, "Hopeful", "Hopeful"), "not a distress indicator")
   expect_error(dualcont(data.frame(), "a", "b"), "must come from welprof")
+  # a profile whose last column was renamed: it used to be read anyway,
+  # and the missing column crashed R
+  v <- w
+  names(v)[length(v)] <- names(v)[1]
+  expect_error(dualcont(v, "Hopeful", "Distress"),
+               "must come from welprof()", fixed = TRUE)
 })
 
 
