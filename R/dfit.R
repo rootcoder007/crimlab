@@ -60,7 +60,7 @@
 #' @param seed Whole number, default 1: the seed of the bootstrap.
 #' @param k Whole number or \code{NULL}: the upper order statistics of the
 #'   Hill estimate.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{c("dstfit", "list")}:
 #'   \describe{
 #'     \item{\code{table}}{data frame, one row per family ranked by AIC:
@@ -108,115 +108,26 @@
 dstfit <- function(x, fams = NULL, nboot = 200L, conflvl = 0.95, seed = 1L,
                    k = NULL) {
   f <- "dstfit"
-  if (!is.numeric(x) || is.object(x)) {
-    .ckstop(f, "`x` must be a numeric vector")
-  }
-  if (any(is.infinite(x))) .ckstop(f, "`x` has an infinite value")
-  nmiss <- sum(is.na(x))
-  x <- sort(as.numeric(x[!is.na(x)]))
-  if (length(x) < 5L) {
-    .ckstop(f, "`x` needs at least five values that are not missing")
-  }
-  if (length(unique(x)) < 2L) {
-    .ckstop(
-      f,
-      "every value of `x` is the same; there is no distribution to fit"
-    )
-  }
-  nboot <- .ckn(nboot, "nboot", f, integer = TRUE)
-  if (length(nboot) != 1L || is.na(nboot) || nboot < 0 || nboot > 1e5) {
-    .ckstop(f, "`nboot` must be one whole number from 0 to 1e+05")
-  }
-  conflvl <- .ckn(conflvl, "conflvl", f)
-  if (length(conflvl) != 1L || is.na(conflvl) || conflvl <= 0 ||
-        conflvl >= 1) {
-    .ckstop(f, "`conflvl` must be a single number strictly between 0 and 1")
-  }
+  v <- .dfx(x, f)
+  x <- v$x
+  nboot <- .dfnb(nboot, f)
+  conflvl <- .dfcl(conflvl, f)
   fm <- .dfams()
-  pos <- all(x > 0)
-  cnt <- all(x >= 0 & x == round(x))
-  okf <- c(TRUE, pos, all(x >= 0), pos, pos, TRUE, pos, all(x > 0 & x < 1),
-           cnt, cnt, cnt && any(x == 0), cnt && any(x == 0))
-  disc <- cnt
-  if (is.null(fams)) {
-    fams <- fm$name[okf & (fm$disc | !disc | fm$name %in% c("normal", "t"))]
-  }
-  fams <- .ckargs(fams, fm$name, "fams", f)
-  for (nm in fams) {
-    if (!okf[fm$name == nm]) {
-      .ckstop(f, "`%s` needs %s", nm, fm$need[fm$name == nm])
-    }
-  }
-  n <- length(x)
+  disc <- all(x >= 0 & x == round(x))
+  fams <- .dffams(fams, x, fm, f)
   fits <- list()
-  rows <- lapply(fams, function(nm) {
-    i <- match(nm, fm$name)
-    p <- .Call(C_clab_r_dfit, i - 1L, x)
-    if (is.null(p)) {
-      return(data.frame(family = nm, npar = NA_integer_, loglik = NA_real_,
-                        aic = NA_real_, bic = NA_real_, ks = NA_real_,
-                        ad = NA_real_, converged = FALSE, params = "",
-                        stringsAsFactors = FALSE))
-    }
-    names(p) <- fm$par[[i]]
-    fits[[nm]] <<- p
-    g <- .Call(C_clab_r_dfgof, i - 1L, x, p)
-    data.frame(
-      family = nm, npar = length(p), loglik = g[1L],
-      aic = 2 * length(p) - 2 * g[1L], bic = log(n) * length(p) - 2 * g[1L],
-      ks = g[2L], ad = g[3L], converged = TRUE,
-      params = toString(sprintf("%s = %s", names(p), format(signif(p, 4)))),
-      stringsAsFactors = FALSE
-    )
-  })
-  tab <- do.call(rbind, rows)
+  rows <- lapply(fams, .dfone, x = x, fm = fm)
+  for (r in rows) if (!is.null(r$p)) fits[[r$row$family]] <- r$p
+  tab <- do.call(rbind, lapply(rows, `[[`, "row"))
   tab <- tab[order(tab$aic, na.last = TRUE), , drop = FALSE]
   tab <- cbind(rank = seq_len(nrow(tab)), tab)
   rownames(tab) <- NULL
   fits <- fits[intersect(tab$family, names(fits))]
-  a <- (1 - conflvl) / 2
-  idx <- if (nboot > 0L) {
-    seed <- .ckseed(seed, "seed", f)
-    .clseed(seed, lapply(names(fits), function(nm) {
-      vapply(seq_len(nboot), function(b) sample.int(n, n, replace = TRUE),
-             integer(n))
-    }))
-  }
-  boot <- do.call(rbind, c(
-    list(data.frame(family = character(), param = character(),
-                    estimate = numeric(), lower = numeric(), upper = numeric(),
-                    stringsAsFactors = FALSE)),
-    lapply(seq_along(fits), function(j) {
-      p <- fits[[j]]
-      lim <- if (nboot > 0L) {
-        .Call(C_clab_r_dfboot, match(names(fits)[j], fm$name) - 1L, x,
-              matrix(idx[[j]], nrow = n), a)
-      } else {
-        matrix(NA_real_, 2L, length(p))
-      }
-      data.frame(family = names(fits)[j], param = names(p),
-                 estimate = unname(p), lower = lim[1L, ], upper = lim[2L, ],
-                 stringsAsFactors = FALSE)
-    })
-  ))
-  hill <- NULL
-  if (n >= 10L && all(x > 0)) {
-    kk <- if (is.null(k)) {
-      floor(sqrt(n))
-    } else {
-      v <- .ckn(k, "k", f, integer = TRUE)
-      if (length(v) != 1L || is.na(v) || v < 2 || v > n - 1) {
-        .ckstop(f, "`k` must be one whole number from 2 to %s", format(n - 1))
-      }
-      v
-    }
-    h <- .Call(C_clab_r_dfhill, x, as.integer(kk), conflvl)
-    hill <- list(k = as.integer(kk), alpha = h[1L], lower = h[2L],
-                 upper = h[3L])
-  }
+  boot <- .dfboot(fits, x, fm, nboot, conflvl, seed, f)
+  hill <- .dfhill(x, k, conflvl, f)
   structure(
     list(table = tab, fits = fits, boot = boot, hill = hill, x = x,
-         nmiss = nmiss, discrete = disc, conflvl = conflvl),
+         nmiss = v$nmiss, discrete = disc, conflvl = conflvl),
     class = c("dstfit", "list")
   )
 }
@@ -254,4 +165,133 @@ print.dstfit <- function(x, ...) {
       c("pi", "size", "mu")
     )
   )
+}
+
+# dstfit(): `x` checked, its missing values counted and dropped, sorted
+.dfx <- function(x, f) {
+  if (!is.numeric(x) || is.object(x)) {
+    .ckstop(f, "`x` must be a numeric vector")
+  }
+  if (any(is.infinite(x))) .ckstop(f, "`x` has an infinite value")
+  nmiss <- sum(is.na(x))
+  x <- sort(as.numeric(x[!is.na(x)]))
+  if (length(x) < 5L) {
+    .ckstop(f, "`x` needs at least five values that are not missing")
+  }
+  if (length(unique(x)) < 2L) {
+    .ckstop(
+      f,
+      "every value of `x` is the same; there is no distribution to fit"
+    )
+  }
+  list(x = x, nmiss = nmiss)
+}
+
+.dfnb <- function(nboot, f) {
+  nboot <- .ckn(nboot, "nboot", f, integer = TRUE)
+  if (length(nboot) != 1L || is.na(nboot) || nboot < 0 || nboot > 1e5) {
+    .ckstop(f, "`nboot` must be one whole number from 0 to 1e+05")
+  }
+  nboot
+}
+
+.dfcl <- function(conflvl, f) {
+  conflvl <- .ckn(conflvl, "conflvl", f)
+  if (length(conflvl) != 1L || is.na(conflvl) || conflvl <= 0 ||
+        conflvl >= 1) {
+    .ckstop(f, "`conflvl` must be a single number strictly between 0 and 1")
+  }
+  conflvl
+}
+
+# the families asked for (by default every one the data allow), each
+# checked against what it needs
+.dffams <- function(fams, x, fm, f) {
+  pos <- all(x > 0)
+  cnt <- all(x >= 0 & x == round(x))
+  okf <- c(TRUE, pos, all(x >= 0), pos, pos, TRUE, pos, all(x > 0 & x < 1),
+           cnt, cnt, cnt && any(x == 0), cnt && any(x == 0))
+  if (is.null(fams)) {
+    fams <- fm$name[okf & (fm$disc | !cnt | fm$name %in% c("normal", "t"))]
+  }
+  fams <- .ckargs(fams, fm$name, "fams", f)
+  for (nm in fams) {
+    if (!okf[fm$name == nm]) {
+      .ckstop(f, "`%s` needs %s", nm, fm$need[fm$name == nm])
+    }
+  }
+  fams
+}
+
+# one family fitted: its row of the table and its parameters (NULL when
+# the fit failed)
+.dfone <- function(nm, x, fm) {
+  n <- length(x)
+  i <- match(nm, fm$name)
+  p <- .Call(C_clab_r_dfit, i - 1L, x)
+  if (is.null(p)) {
+    return(list(row = data.frame(
+      family = nm, npar = NA_integer_, loglik = NA_real_, aic = NA_real_,
+      bic = NA_real_, ks = NA_real_, ad = NA_real_, converged = FALSE,
+      params = "", stringsAsFactors = FALSE
+    ), p = NULL))
+  }
+  names(p) <- fm$par[[i]]
+  g <- .Call(C_clab_r_dfgof, i - 1L, x, p)
+  list(row = data.frame(
+    family = nm, npar = length(p), loglik = g[1L],
+    aic = 2 * length(p) - 2 * g[1L], bic = log(n) * length(p) - 2 * g[1L],
+    ks = g[2L], ad = g[3L], converged = TRUE,
+    params = toString(sprintf("%s = %s", names(p), format(signif(p, 4)))),
+    stringsAsFactors = FALSE
+  ), p = p)
+}
+
+# the bootstrap intervals of every fitted family's parameters
+.dfboot <- function(fits, x, fm, nboot, conflvl, seed, f) {
+  n <- length(x)
+  a <- (1 - conflvl) / 2
+  idx <- if (nboot > 0L) {
+    seed <- .ckseed(seed, "seed", f)
+    .clseed(seed, lapply(names(fits), function(nm) {
+      vapply(seq_len(nboot), function(b) sample.int(n, n, replace = TRUE),
+             integer(n))
+    }))
+  }
+  do.call(rbind, c(
+    list(data.frame(family = character(), param = character(),
+                    estimate = numeric(), lower = numeric(), upper = numeric(),
+                    stringsAsFactors = FALSE)),
+    lapply(seq_along(fits), function(j) {
+      p <- fits[[j]]
+      lim <- if (nboot > 0L) {
+        .Call(C_clab_r_dfboot, match(names(fits)[j], fm$name) - 1L, x,
+              matrix(idx[[j]], nrow = n), a)
+      } else {
+        matrix(NA_real_, 2L, length(p))
+      }
+      data.frame(family = names(fits)[j], param = names(p),
+                 estimate = unname(p), lower = lim[1L, ], upper = lim[2L, ],
+                 stringsAsFactors = FALSE)
+    })
+  ))
+}
+
+# the Hill estimate of the tail index, for ten or more positive values
+.dfhill <- function(x, k, conflvl, f) {
+  n <- length(x)
+  if (n < 10L || !all(x > 0)) {
+    return(NULL)
+  }
+  kk <- if (is.null(k)) floor(sqrt(n)) else .dfk(k, n, f)
+  h <- .Call(C_clab_r_dfhill, x, as.integer(kk), conflvl)
+  list(k = as.integer(kk), alpha = h[1L], lower = h[2L], upper = h[3L])
+}
+
+.dfk <- function(k, n, f) {
+  v <- .ckn(k, "k", f, integer = TRUE)
+  if (length(v) != 1L || is.na(v) || v < 2 || v > n - 1) {
+    .ckstop(f, "`k` must be one whole number from 2 to %s", format(n - 1))
+  }
+  v
 }
