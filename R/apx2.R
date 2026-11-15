@@ -517,6 +517,21 @@ print.hetfx <- function(x, ...) {
 #' adjustment for autocorrelation (Brumback's method, in their additional
 #' file) is not built: the paper does not state it.
 #'
+#' Han et al. (2026, Methods, p. 2) run the design on 483,718 crime events
+#' in China, 2013-19: control days the same weekday of the same calendar
+#' month (`strat = "ymw"`), conditional logistic regression (equivalent to
+#' the Poisson with stratum effects on daily counts by place, as above),
+#' an indicator of public holidays, natural cubic splines of temperature
+#' (6 degrees of freedom) and relative humidity (3) (`ns`), single-day lags
+#' 0 to 6 (`lagv`, `lag`; their main table is lag 0), exposure-response
+#' curves by a natural spline of the pollutant with 3 degrees of freedom
+#' (give the pollutant in `ns` and plot its fitted terms), effect
+#' modification by stratified fits compared by two-sample z-tests (fit
+#' each subset, or [hetfx()] with `how = "split"`), and two-pollutant
+#' models (two exposures in `x`), reporting percent changes per
+#' interquartile range, `100 (exp(b IQR) - 1)`. Their weighted quantile sum
+#' regression and air quality score are not built.
+#'
 #' The choices: `strat = "ymw"` (place, year, month and weekday) or `"ym"`
 #' (place, year and month, the plain time-stratified design); `ma`, the
 #' columns to replace by their mean over the day and the `k - 1` days
@@ -532,6 +547,12 @@ print.hetfx <- function(x, ...) {
 #' @param strat `"ymw"` or `"ym"`.
 #' @param ma `NULL` or the names of columns to average over days.
 #' @param k The days of the moving average.
+#' @param lagv `NULL` or the names of columns to replace by their value
+#'   `lag` days before (single-day lags).
+#' @param lag The lag in days for `lagv`.
+#' @param ns `NULL` or degrees of freedom named by column, for example
+#'   `c(temp = 6, rh = 3)`: natural cubic splines of those columns join
+#'   the controls `x` (named `"<col>:ns<j>"`).
 #' @param est The estimator, [ppmlfe()] or [ppmlcf()].
 #' @param ... The other arguments of `est` (`x`, or `endo` and `inst`;
 #'   `clus` to change the clustering).
@@ -558,6 +579,11 @@ print.hetfx <- function(x, ...) {
 #'   effect of pollution on crime: evidence from data on particulate matter
 #'   and ozone. *Journal of Environmental Economics and Management*, 98,
 #'   102267. \doi{10.1016/j.jeem.2019.102267}
+#'
+#'   Han, D., Guo, Y., Jiang, Y., Niu, Y., Chen, R., Kan, H. and others
+#'   (2026). Air pollution and criminal behavior: a nationwide
+#'   case-crossover analysis in China. *International Journal of
+#'   Epidemiology*, 55(5), dyag214. \doi{10.1093/ije/dyag214}
 #' @seealso [ppmlfe()], [ppmlcf()], [jntx()]
 #' @examples
 #' set.seed(9)
@@ -571,9 +597,24 @@ print.hetfx <- function(x, ...) {
 #' # effects, errors clustered by county (simulated)
 #' d$o3 <- rnorm(nrow(d), 0.03, 0.01)
 #' ccross(d, "crimes", "area", "day", x = c("pm", "o3"), clus = "area")
+#'
+#' # shaped as Han et al. (2026, Methods p. 2 and table 1): city-day
+#' # counts, same-weekday-same-month strata, a holiday indicator, natural
+#' # splines of temperature (6 df) and humidity (3 df), NO2 at lag 0, the
+#' # percent change per interquartile range (simulated)
+#' d$no2 <- rnorm(nrow(d), 30, 10)
+#' d$temp <- 15 + 10 * sin(2 * pi * as.numeric(d$day) / 365) +
+#'   rnorm(nrow(d))
+#' d$rh <- runif(nrow(d), 30, 90)
+#' d$hol <- as.numeric(format(d$day, "%m-%d") %in% c("01-01", "10-01"))
+#' d$crimes <- rpois(nrow(d), exp(1 + 0.004 * d$no2))
+#' h <- ccross(d, "crimes", "area", "day", x = c("no2", "hol"),
+#'             ns = c(temp = 6, rh = 3), clus = "area")
+#' b <- h$coef[h$coef$term == "no2", ]
+#' 100 * (exp(c(b$est, b$lo, b$hi) * IQR(d$no2)) - 1)
 #' @export
 ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
-                   est = ppmlfe, ...) {
+                   lagv = NULL, lag = 0, ns = NULL, est = ppmlfe, ...) {
   f <- "ccross"
   strat <- match.arg(strat)
   d <- .axdat(data, f)
@@ -586,6 +627,23 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   k <- .cknum(k, "k", f, min = 1, whole = TRUE)
+  .axcols(d, lagv, "lagv", f, null = TRUE)
+  lag <- .cknum(lag, "lag", f, min = 0, whole = TRUE)
+  if (!is.null(ns)) {
+    if (!is.numeric(ns) || is.null(names(ns)) || anyNA(ns) ||
+          any(ns < 1 | ns != round(ns))) {
+      .ckstop(f, "`ns` must be whole degrees of freedom named by column")
+    }
+    .axcols(d, names(ns), "names(ns)", f)
+  }
+  if (length(lagv) && lag > 0) {
+    # the value lag days before, of the same place (a day without one is
+    # dropped)
+    ix <- .Call(C_clab_r_dshift, .axcode(d[[unit]])$c,
+                as.numeric(d[[day]]), -lag)
+    for (v in lagv) d[[v]] <- d[[v]][ix]
+    d <- d[stats::complete.cases(d[lagv]), , drop = FALSE]
+  }
   if (length(ma) && k > 1) {
     uc <- .axcode(d[[unit]])$c
     tv <- as.numeric(d[[day]])
@@ -606,6 +664,21 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   )
   d$.ym <- ym
   a <- list(...)
+  # natural cubic splines of the covariates in ns: with d degrees of
+  # freedom, knots at the range and the quantiles 1/d, ..., (d-1)/d (those
+  # of splines::ns(x, df = d)), in the restricted cubic spline basis,
+  # which spans the same functions
+  for (v in names(ns)) {
+    x <- d[[v]]
+    if (!is.numeric(x)) .ckstop(f, "column `%s` must be numeric", v)
+    dg <- ns[[v]]
+    kn <- c(min(x), stats::quantile(x, seq_len(dg - 1L) / dg, names = FALSE),
+            max(x))
+    b <- .axrcs(x, kn)
+    nm <- paste0(v, ":ns", seq_len(ncol(b)))
+    for (j in seq_len(ncol(b))) d[[nm[j]]] <- b[, j]
+    a[["x"]] <- c(a[["x"]], nm)
+  }
   if (is.null(a[["clus"]])) a[["clus"]] <- ".ym"
   do.call(est, c(list(data = d, y = y, fe = ".strat"), a))
 }

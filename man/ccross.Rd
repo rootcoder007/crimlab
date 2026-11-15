@@ -12,6 +12,9 @@ ccross(
   strat = c("ymw", "ym"),
   ma = NULL,
   k = 2,
+  lagv = NULL,
+  lag = 0,
+  ns = NULL,
   est = ppmlfe,
   ...
 )
@@ -30,6 +33,15 @@ ccross(
 \item{ma}{\code{NULL} or the names of columns to average over days.}
 
 \item{k}{The days of the moving average.}
+
+\item{lagv}{\code{NULL} or the names of columns to replace by their value
+\code{lag} days before (single-day lags).}
+
+\item{lag}{The lag in days for \code{lagv}.}
+
+\item{ns}{\code{NULL} or degrees of freedom named by column, for example
+\code{c(temp = 6, rh = 3)}: natural cubic splines of those columns join
+the controls \code{x} (named \code{"<col>:ns<j>"}).}
 
 \item{est}{The estimator, \code{\link[=ppmlfe]{ppmlfe()}} or \code{\link[=ppmlcf]{ppmlcf()}}.}
 
@@ -64,6 +76,21 @@ overdispersion and for correlation within a year-month. Their
 adjustment for autocorrelation (Brumback's method, in their additional
 file) is not built: the paper does not state it.
 
+Han et al. (2026, Methods, p. 2) run the design on 483,718 crime events
+in China, 2013-19: control days the same weekday of the same calendar
+month (\code{strat = "ymw"}), conditional logistic regression (equivalent to
+the Poisson with stratum effects on daily counts by place, as above),
+an indicator of public holidays, natural cubic splines of temperature
+(6 degrees of freedom) and relative humidity (3) (\code{ns}), single-day lags
+0 to 6 (\code{lagv}, \code{lag}; their main table is lag 0), exposure-response
+curves by a natural spline of the pollutant with 3 degrees of freedom
+(give the pollutant in \code{ns} and plot its fitted terms), effect
+modification by stratified fits compared by two-sample z-tests (fit
+each subset, or \code{\link[=hetfx]{hetfx()}} with \code{how = "split"}), and two-pollutant
+models (two exposures in \code{x}), reporting percent changes per
+interquartile range, \code{100 (exp(b IQR) - 1)}. Their weighted quantile sum
+regression and air quality score are not built.
+
 The choices: \code{strat = "ymw"} (place, year, month and weekday) or \code{"ym"}
 (place, year and month, the plain time-stratified design); \code{ma}, the
 columns to replace by their mean over the day and the \code{k - 1} days
@@ -84,6 +111,21 @@ ccross(d, "crimes", "area", "day", ma = "pm", x = "pm")
 # effects, errors clustered by county (simulated)
 d$o3 <- rnorm(nrow(d), 0.03, 0.01)
 ccross(d, "crimes", "area", "day", x = c("pm", "o3"), clus = "area")
+
+# shaped as Han et al. (2026, Methods p. 2 and table 1): city-day
+# counts, same-weekday-same-month strata, a holiday indicator, natural
+# splines of temperature (6 df) and humidity (3 df), NO2 at lag 0, the
+# percent change per interquartile range (simulated)
+d$no2 <- rnorm(nrow(d), 30, 10)
+d$temp <- 15 + 10 * sin(2 * pi * as.numeric(d$day) / 365) +
+  rnorm(nrow(d))
+d$rh <- runif(nrow(d), 30, 90)
+d$hol <- as.numeric(format(d$day, "\%m-\%d") \%in\% c("01-01", "10-01"))
+d$crimes <- rpois(nrow(d), exp(1 + 0.004 * d$no2))
+h <- ccross(d, "crimes", "area", "day", x = c("no2", "hol"),
+            ns = c(temp = 6, rh = 3), clus = "area")
+b <- h$coef[h$coef$term == "no2", ]
+100 * (exp(c(b$est, b$lo, b$hi) * IQR(d$no2)) - 1)
 }
 \references{
 Ju, K., Xu, R., Huang, W., Zhang, Y., Ye, T., Yu, W., Yang, Z., Chen,
@@ -106,6 +148,11 @@ O'Dell, K., Ford, B., Fischer, E. V. and Pierce, J. R. (2019). The
 effect of pollution on crime: evidence from data on particulate matter
 and ozone. \emph{Journal of Environmental Economics and Management}, 98,
 102267. \doi{10.1016/j.jeem.2019.102267}
+
+Han, D., Guo, Y., Jiang, Y., Niu, Y., Chen, R., Kan, H. and others
+(2026). Air pollution and criminal behavior: a nationwide
+case-crossover analysis in China. \emph{International Journal of
+Epidemiology}, 55(5), dyag214. \doi{10.1093/ije/dyag214}
 }
 \seealso{
 \code{\link[=ppmlfe]{ppmlfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=jntx]{jntx()}}

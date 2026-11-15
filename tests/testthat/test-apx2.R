@@ -153,3 +153,24 @@ test_that("smkiv cf = childs is the three-year month median (Childs 2022)", {
   expect_error(smkiv(transform(d, day = 1:9), "plume", "area", "day",
                      pm = "pm", cf = "childs", seas = "area"), "as dates")
 })
+
+test_that("ccross: single-day lags and spline controls (Han et al. 2026)", {
+  set.seed(31)
+  d <- expand.grid(day = as.Date("2023-01-01") + 0:180, area = 1:3)
+  d$pm <- rnorm(nrow(d), 15, 4)
+  d$temp <- rnorm(nrow(d), 10, 5)
+  d$crimes <- rpois(nrow(d), exp(1 + 0.02 * d$pm))
+  f <- ccross(d, "crimes", "area", "day", lagv = "pm", lag = 1, x = "pm")
+  # the same fit by hand: pm of the day before, the first day dropped
+  e <- d[order(d$area, d$day), ]
+  e$pm <- stats::ave(e$pm, e$area, FUN = function(v) c(NA, v[-length(v)]))
+  e <- e[!is.na(e$pm), ]
+  e$.strat <- paste(e$area, format(e$day, "%Y-%m"), as.POSIXlt(e$day)$wday)
+  e$.ym <- format(e$day, "%Y-%m")
+  g <- ppmlfe(e, "crimes", "pm", fe = ".strat", clus = ".ym")
+  expect_equal(f$coef$est, g$coef$est, tolerance = 1e-10)
+  h <- ccross(d, "crimes", "area", "day", x = "pm", ns = c(temp = 4))
+  expect_identical(h$coef$term, c("pm", paste0("temp:ns", 1:4)))
+  expect_error(ccross(d, "crimes", "area", "day", x = "pm", ns = 3),
+               "named by column")
+})

@@ -87,6 +87,10 @@
   (a third set such as hour or region-by-year, which several of the
   papers use); one or two sets are computed exactly as before.
 
+* `ccross()` gains single-day lags (`lagv`, `lag`) and natural-spline
+  controls (`ns`), the specification of the nationwide case-crossover
+  study of Han et al. (2026), with a worked example of its main table.
+
 * `smkiv(cf = "childs")`: smoke PM2.5 as Childs et al. (2022) define it,
   PM2.5 above the three-year median of the same place and month on
   smoke-free days, on smoke days.
