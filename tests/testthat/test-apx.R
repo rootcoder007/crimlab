@@ -944,7 +944,7 @@ test_that("ppmlfe and expgmm warn when the fit does not converge", {
   # iterated GMM: the second weight is already past maxit = 1
   expect_warning(
     g <- expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
-                fe = "day", clus = "unit", step = "iter", maxit = 1),
+                fe = "day", se = "hc1", step = "iter", maxit = 1),
     "the fit did not converge in 1 iterations"
   )
   expect_false(g$conv)
@@ -1205,7 +1205,8 @@ test_that("updwn refuses what it cannot classify or fit", {
       c("column `crimes` must hold counts, at least 0", a(data = dn,
                                                           src = road)),
       c("`se = \"nw\"` needs a day column of numbers or dates",
-        a(data = dc, src = road, se = "nw", day = "dc")),
+        utils::modifyList(a(data = dc, src = road, se = "nw"),
+                          list(day = "dc"))),
       c("an area has two rows on one day",
         a(data = rbind(d, d[1, ]), src = road, area = "area")),
       c("fewer than two rows are upwind or downwind of a source",
