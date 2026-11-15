@@ -5,14 +5,7 @@
 # set, a rise in days in segregation or in reported assaults is drawn as
 # worse and a rise in a completion rate as better.
 
-.ypals <- list(
-  diverging = list(bad = "#c2492f", good = "#1b7f6b", flat = "#6b6b6b",
-                   badbg = "#fbeae6", goodbg = "#e6f4f1"),
-  safe = list(bad = "#b8621b", good = "#18567d", flat = "#6b6b6b",
-              badbg = "#fdf0e4", goodbg = "#e7eff6"),
-  mono = list(bad = "#1a1a1a", good = "#1a1a1a", flat = "#6b6b6b",
-              badbg = "#f0f0f0", goodbg = "#f7f7f7")
-)
+# the palettes are .YOY_PALETTES (R/plotx.R), shared with the plots
 
 .ypick <- function(x, opt, nm, fn) {
   if (!is.character(x) || length(x) != 1L || !x %in% opt) {
@@ -188,7 +181,7 @@ yoyhtml <- function(x, file, title = "Year-over-year change", sub = "",
     stop("yoyhtml: `file` must be one file path.", call. = FALSE)
   }
   .yargs(title, sub, notes, "yoyhtml")
-  p <- .ypals[[.ypick(pal, names(.ypals), "pal", "yoyhtml")]]
+  p <- .YOY_PALETTES[[.ypick(pal, names(.YOY_PALETTES), "pal", "yoyhtml")]]
   better <- .ypick(better, c("neutral", "higher", "lower"), "better",
                    "yoyhtml")
   digits <- .ydig(digits, "yoyhtml")
@@ -324,7 +317,7 @@ yoypdf <- function(x, file, title = "Year-over-year change", sub = "",
     stop("yoypdf: `file` must be one file path.", call. = FALSE)
   }
   .yargs(title, sub, notes, "yoypdf")
-  p <- .ypals[[.ypick(pal, names(.ypals), "pal", "yoypdf")]]
+  p <- .YOY_PALETTES[[.ypick(pal, names(.YOY_PALETTES), "pal", "yoypdf")]]
   better <- .ypick(better, c("neutral", "higher", "lower"), "better",
                    "yoypdf")
   digits <- .ydig(digits, "yoypdf")
