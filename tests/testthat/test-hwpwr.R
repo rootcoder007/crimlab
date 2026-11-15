@@ -389,3 +389,126 @@ test_that("IOReport on this Mac: CPU and GPU energy, or the reason", {
   expect_identical(nrow(cpu), 1L)
   expect_true(cpu$joules > 0 || nzchar(cpu$why))
 })
+
+test_that("rated power: the long-term limit, the one given, through hwpwr()", {
+  skip_on_os("windows")
+  d <- tree()
+  rapl(d, "intel-rapl:0", "package-0", NA)
+  z <- "sys/class/powercap/intel-rapl:0"
+  put(d, file.path(z, "constraint_0_name"), "long_term")
+  put(d, file.path(z, "constraint_0_power_limit_uw"), 10e6)
+  put(d, "proc/stat", "cpu  100 0 100 800 0 0 0 0 0 0")
+  s1 <- snap(d)
+  Sys.sleep(0.02)
+  put(d, "proc/stat", "cpu  200 0 200 1400 0 0 0 0 0 0")
+  s2 <- snap(d)
+  # the zone has no energy counter: the limit 10 W x the busy share 0.25
+  p <- row(rows(c(s1, s2)), "package-0")
+  expect_identical(p$how, "rated x utilisation")
+  expect_equal(p$watts, 2.5, tolerance = 1e-12)
+  expect_match(p$why, "the rated power the machine reports \\(10 W\\)")
+  g <- row(rows(c(s1, s2), c(20, NA)), "package-0")
+  expect_equal(g$watts, 5, tolerance = 1e-12)
+  expect_match(g$why, "the rated power given \\(20 W\\)")
+  # the same through hwpwr(), the tree given by paths: busy 200 of 1000
+  a <- hwpwr(0, skip = off, paths = c(root = d))
+  Sys.sleep(0.02)
+  put(d, "proc/stat", "cpu  300 0 300 2200 0 0 0 0 0 0")
+  b <- hwpwr(since = a, skip = off, paths = c(root = d), rated = c(cpu = 20))
+  h <- row(b, "package-0")
+  expect_equal(h$util, 0.2, tolerance = 1e-12)
+  expect_equal(h$watts, 4, tolerance = 1e-12)
+  expect_match(h$why, "the rated power given \\(20 W\\)")
+})
+
+test_that("hwpwr() reads every step over dt", {
+  r <- hwpwr(0.05, step = 0.01, skip = none)
+  expect_gt(attr(r, "dt"), 0)
+  expect_identical(r$kind, "total")
+})
+
+test_that("GPUs and a battery that give no number", {
+  skip_on_os("windows")
+  d <- tree()
+  card <- function(n, ven, dev, slot) {
+    p <- file.path("sys/class/drm", n, "device")
+    put(d, file.path(p, "vendor"), ven)
+    put(d, file.path(p, "device"), dev)
+    put(d, file.path(p, "uevent"), paste0("PCI_SLOT_NAME=", slot))
+  }
+  card("card0", "0x8086", "0x56a0", "0000:05:00.0")
+  card("card1", "0x1a03", "0x2000", "0000:07:00.0")
+  b <- "sys/class/power_supply/BAT0"
+  put(d, file.path(b, "type"), "Battery")
+  put(d, file.path(b, "status"), "Discharging")
+  r <- rows(snap(d))
+  # a discrete Intel card without hwmon energy, a vendor with no reader
+  expect_match(row(r, "card0 (8086:56a0)")$why,
+               "the kernel exposes no energy file for it")
+  expect_match(row(r, "card1 (1a03:2000)")$why, "no reader for this vendor")
+  expect_match(row(r, "battery BAT0", "machine")$why,
+               "the battery reports no discharge power")
+})
+
+test_that("the NVIDIA library: one without the NVML functions", {
+  # the package's own library loads but exports no nvml symbol
+  lib <- getLoadedDLLs()[["crimlab"]][["path"]]
+  sk <- setdiff(off, "nvml")
+  r <- rows(snap(tree(), skip = sk, nvml = lib))
+  expect_match(r$why[r$kind == "gpu"],
+               "the NVIDIA driver library lacks the functions to enumerate")
+  # the default names: no library here, or the GPUs of a real one
+  r0 <- rows(snap(tree(), skip = sk, nvml = ""))
+  expect_true(all(r0$vendor[r0$kind == "gpu"] == "nvidia"))
+})
+
+test_that("parsers: a charging battery and an unknown parser", {
+  bt <- paste0(
+    "  \"ExternalConnected\" = No\n",
+    "  \"InstantAmperage\" = 1500\n",
+    "  \"Voltage\" = 12302\n"
+  )
+  b <- .Call(C_clab_r_pwrp, "iobat", bt, NULL)
+  expect_true(is.na(b$watts))
+  expect_identical(b$why, "the battery is charging")
+  expect_error(.Call(C_clab_r_pwrp, "nope", "", NULL), "unknown parser")
+})
+
+test_that("snapshot rows: other kinds, process GPU shares, gaps", {
+  # one device line of the snapshot text: id, kind, vendor, name, why,
+  # src, ctr, wrap, w, util, rated, pown, inpkg, aon, bad
+  dv <- function(id, kind, src, ctr = 0, w = -1, pown = -1, bad = 0) {
+    paste(id, kind, "v", id, "", src, ctr, 0, w, -1, -1, pown, 0, 0, bad,
+          sep = "\t")
+  }
+  sn <- function(t, ...) {
+    paste0("hwpwr1\t", t, "\t-1\t-1\t-1\n", paste0(c(...), "\n",
+                                                   collapse = ""))
+  }
+  two <- function(t) {
+    sn(t, dv("zz", "zz", 2, w = 5), dv("g", "gpu", 2, w = 10, pown = 0.5),
+       dv("c", "cpu", 2, w = 1))
+  }
+  r <- rows(c(two(1), two(3)))
+  # known kinds first, in their order; an unknown kind after them
+  expect_identical(r$kind, c("cpu", "gpu", "zz", "gpu", "total"))
+  p <- row(r, "g", "process")
+  expect_equal(p$joules, 10, tolerance = 1e-12)
+  expect_equal(p$util, 0.5)
+  expect_identical(
+    p$why,
+    "the process's share of the GPU's compute samples, 50.0%"
+  )
+  expect_equal(r$joules[r$kind == "total"], 22, tolerance = 1e-12)
+  one <- rows(sn(1, dv("c", "cpu", 1, ctr = 5)))
+  expect_match(one$why[1], "a counter needs an interval: dt > 0 or since")
+  gap <- rows(c(sn(1, dv("c", "cpu", 1, ctr = 1)),
+                sn(2, dv("c", "cpu", 1, ctr = 2, bad = 1)),
+                sn(3, dv("c", "cpu", 1, ctr = 3))))
+  expect_true(is.na(gap$joules[1]))
+  expect_match(gap$why[1], "not readable at every snapshot")
+  pw <- rows(c(sn(1, dv("g", "gpu", 2, w = 5)), sn(2, dv("g", "gpu", 2)),
+               sn(3, dv("g", "gpu", 2, w = 5))))
+  expect_true(is.na(pw$joules[1]))
+  expect_match(pw$why[1], "power was not read at every snapshot")
+})
