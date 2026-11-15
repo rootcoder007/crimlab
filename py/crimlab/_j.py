@@ -6780,7 +6780,7 @@ def ppmlfe(data: Any, y: Any, x: Any, fe: Any, expo: Any = None, clus: Any = Non
     >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "a": ["p"] * 4 + ["q"] * 4}
     >>> r = ppmlfe(data=d, y="y", x="x", fe="a", se="hc1")
     >>> list(r)[:5]
-    ['coef', 'vcov', 'n', 'nsep', 'ncl']
+    ['coef', 'vcov', 'n', 'nsep', 'xdrop']
     """
     return jcall("ppmlfe", data=data, y=y, x=x, fe=fe, expo=expo, clus=clus, se=se, ssc=ssc, time=time, lag=lag,
                  nboot=nboot, seed=seed, sep=sep, level=level, tol=tol, maxit=maxit, twc=twc, psd=psd)
@@ -6799,7 +6799,7 @@ def ivfe(data: Any, y: Any, endo: Any = None, inst: Any = None, x: Any = None, f
     >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "a": ["p"] * 4 + ["q"] * 4}
     >>> r = ivfe(data=d, y="y", x="x", fe="a", se="hc1")
     >>> list(r)[:5]
-    ['coef', 'first', 'fstab', 'vcov', 'n']
+    ['coef', 'first', 'fstab', 'overid', 'gmm']
     """
     return jcall("ivfe", data=data, y=y, endo=endo, inst=inst, x=x, fe=fe, clus=clus, se=se, ssc=ssc, time=time,
                  lag=lag, nboot=nboot, seed=seed, level=level, tol=tol, twc=twc, psd=psd)

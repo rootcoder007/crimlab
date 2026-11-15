@@ -125,6 +125,7 @@ h <- ccross(d, "crimes", "area", "day", x = c("no2", "hol"),
             ns = c(temp = 6, rh = 3), clus = "area")
 b <- h$coef[h$coef$term == "no2", ]
 100 * (exp(c(b$est, b$lo, b$hi) * IQR(d$no2)) - 1)
+plot(h, terms = "no2")
 }
 \references{
 Ju, K., Xu, R., Huang, W., Zhang, Y., Ye, T., Yu, W., Yang, Z., Chen,
