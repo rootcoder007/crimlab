@@ -966,7 +966,7 @@ cgamcdf	{"shape":3.5,"x":[0.5,1,4,12,0,-1]}	[0.0051714634834845201,0.04015963126
 cgamcdf	{"shape":0,"x":1}	!cgamcdf: `shape` must be one positive number.
 cunif	{"n":4,"seed":42}	[0.74156487877182331,0.1599103928769201,0.27860113025513866,0.34419071652363753]
 cunif	{"n":2,"seed":9007199254740992}	!cunif: `seed` must be one whole number from 0, below 2^53.
-toascii	{"x":["Prof. Ángela Zorro Medina","Straße Æsir Œuvre Þþ","Łódź Škoda",null,"a	b","×ÿ"]}	["Prof. Angela Zorro Medina","Strasse AEsir OEuvre Thth","Lodz Skoda","","ab","y"]
+toascii	{"x":["Prof. Ángela Zorro Medina","Straße Æsir Œuvre Þþ","Łódź Škoda",null,"a\tb","×ÿ"]}	["Prof. Angela Zorro Medina","Strasse AEsir OEuvre Thth","Lodz Skoda","","ab","y"]
 toascii	{"x":[1.5,2]}	["1.5","2"]
 asciifb	{"x":["Ángela",null,"plain"]}	["Ángela",null,"plain"]
 asciifb	{"x":["Ángela",null],"force":true}	["Angela",""]
