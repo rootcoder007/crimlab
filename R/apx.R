@@ -1331,45 +1331,12 @@ plcday <- function(
   f <- "plcday"
   shift <- match.arg(shift)
   d <- .axdat(data, f)
-  .axcols(d, var, "var", f, n = 1L)
-  .axcols(d, unit, "unit", f, n = 1L)
-  .axcols(d, day, "day", f, n = 1L)
-  .axcols(d, with, "with", f, null = TRUE)
-  if (shift == "z" && !length(with)) {
-    .ckstop(f, "`shift = \"z\"` needs the instruments in `with`")
-  }
-  if (!is.function(est)) {
-    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
-  }
-  if (!is.numeric(shifts) || !length(shifts) || !all(is.finite(shifts)) ||
-        any(shifts != round(shifts)) || any(shifts == 0) ||
-        anyDuplicated(shifts)) {
-    .ckstop(f, "`shifts` must be distinct whole numbers of days other than 0")
-  }
-  tv <- d[[day]]
-  if (!is.numeric(tv) && !inherits(tv, "Date")) {
-    .ckstop(f, "column `%s` must hold numbers or dates", day)
-  }
-  tv <- as.numeric(tv)
+  tv <- .axpdck(d, var, unit, day, with, shift, est, shifts, f)
   uc <- .axcode(d[[unit]])$c
   mv <- switch(shift, both = c(var, with), x = var, z = with)
-  rows <- lapply(c(0, shifts), function(s) {
-    ix <- .Call(C_clab_r_dshift, uc, tv, s)
-    k <- !is.na(ix)
-    if (sum(k) < 2L) {
-      .ckstop(f, "a shift of %s days leaves fewer than two rows", format(s))
-    }
-    ds <- d[k, , drop = FALSE]
-    for (v in mv) ds[[v]] <- d[[v]][ix[k]]
-    r <- est(data = ds, ...)
-    cf <- r[["coef"]]
-    if (!is.data.frame(cf) || !var %in% cf[["term"]]) {
-      .ckstop(f, "`est` returned no coefficient for `%s`", var)
-    }
-    cf <- cf[cf[["term"]] == var, , drop = FALSE]
-    data.frame(shift = s, est = cf[["est"]], se = cf[["se"]], lo = cf[["lo"]],
-               hi = cf[["hi"]], p = cf[["p"]], n = sum(k))
-  })
+  fit <- function(ds) est(data = ds, ...)
+  rows <- lapply(c(0, shifts), .axpdrow, d = d, uc = uc, tv = tv, mv = mv,
+                 var = var, fit = fit, f = f)
   structure(
     list(tab = do.call(rbind, rows), var = var, shift = shift),
     class = "plcday"
@@ -3215,4 +3182,59 @@ summary.expjn <- function(object, ...) {
     min = if (any(ok)) min(dv[ok]) else NA_real_,
     max = if (any(ok)) max(dv[ok]) else NA_real_
   )
+}
+
+# The checks of plcday()'s columns, estimator, shifts and days, in their
+# order: the days as numbers.
+.axpdck <- function(d, var, unit, day, with, shift, est, shifts, f) {
+  .axcols(d, var, "var", f, n = 1L)
+  .axcols(d, unit, "unit", f, n = 1L)
+  .axcols(d, day, "day", f, n = 1L)
+  .axcols(d, with, "with", f, null = TRUE)
+  if (shift == "z" && !length(with)) {
+    .ckstop(f, "`shift = \"z\"` needs the instruments in `with`")
+  }
+  if (!is.function(est)) {
+    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
+  }
+  .axpdsh(shifts, f)
+  tv <- d[[day]]
+  if (!is.numeric(tv) && !inherits(tv, "Date")) {
+    .ckstop(f, "column `%s` must hold numbers or dates", day)
+  }
+  as.numeric(tv)
+}
+
+# The check of plcday()'s shifts, in two steps: numbers, then whole,
+# not 0 and distinct.
+.axpdsh <- function(shifts, f) {
+  m <- "`shifts` must be distinct whole numbers of days other than 0"
+  if (!is.numeric(shifts) || !length(shifts) || !all(is.finite(shifts))) {
+    .ckstop(f, m)
+  }
+  if (any(shifts != round(shifts)) || any(shifts == 0) ||
+        anyDuplicated(shifts)) {
+    .ckstop(f, m)
+  }
+  invisible(NULL)
+}
+
+# One row of plcday()'s table: the columns mv moved by s days within the
+# place, fit() on the rows left, the coefficient of var.
+.axpdrow <- function(s, d, uc, tv, mv, var, fit, f) {
+  ix <- .Call(C_clab_r_dshift, uc, tv, s)
+  k <- !is.na(ix)
+  if (sum(k) < 2L) {
+    .ckstop(f, "a shift of %s days leaves fewer than two rows", format(s))
+  }
+  ds <- d[k, , drop = FALSE]
+  for (v in mv) ds[[v]] <- d[[v]][ix[k]]
+  r <- fit(ds)
+  cf <- r[["coef"]]
+  if (!is.data.frame(cf) || !var %in% cf[["term"]]) {
+    .ckstop(f, "`est` returned no coefficient for `%s`", var)
+  }
+  cf <- cf[cf[["term"]] == var, , drop = FALSE]
+  data.frame(shift = s, est = cf[["est"]], se = cf[["se"]], lo = cf[["lo"]],
+             hi = cf[["hi"]], p = cf[["p"]], n = sum(k))
 }
