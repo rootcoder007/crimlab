@@ -18,7 +18,7 @@ ci_names <- c("g_per_kwh", "location", "name", "year", "basis", "source",
 test_that("co2int() gives the reference rows", {
   r <- co2int("CA-ON")
   expect_s3_class(r, "co2int")
-  expect_identical(names(r), ci_names)
+  expect_named(r, ci_names)
   # the intensity is a weighted sum: its last digit differs between systems
   expect_equal(
     unclass(r),
@@ -50,8 +50,8 @@ test_that("co2int() gives the reference rows", {
 test_that("co2inttab() is the reference table", {
   tab <- co2inttab()
   expect_identical(dim(tab), c(378L, 7L))
-  expect_identical(
-    names(tab),
+  expect_named(
+    tab,
     c("location", "iso3", "name", "g_per_kwh", "year", "basis", "source")
   )
   expect_identical(
@@ -111,7 +111,7 @@ test_that("fpeqv() divides as the reference does", {
   expect_s3_class(e, "fpeqv")
   expect_identical(e$carkm, 6.8571428571428568)
   expect_identical(e$treemon, 1.3086150490730644)
-  expect_identical(names(e$sources), c("car", "tree"))
+  expect_named(e$sources, c("car", "tree"))
   expect_identical(fpeqv(0)$carkm, 0)
   expect_error(fpeqv(c(10, 20)),
                "^fpeqv: `co2eg` must be a single non-negative number\\.$")
@@ -171,12 +171,12 @@ test_that("co2fp() has the reference's shape and assumptions", {
   fp <- co2fp(1 + 1, loc = "CA-ON", cpupwrw = 45, memgb = 8, usage = 0.5,
               meth = "model")
   expect_s3_class(fp, "co2fp")
-  expect_identical(
-    names(fp),
+  expect_named(
+    fp,
     c("value", "durs", "cputms", "usage", "usagemode", "cores", "memgb",
       "enekwh", "co2eg", "co2int", "method", "assumptions", "citations")
   )
-  expect_identical(names(fp$enekwh), c("cpu", "memory", "total"))
+  expect_named(fp$enekwh, c("cpu", "memory", "total"))
   expect_identical(fp$value, 2)
   expect_identical(fp$assumptions, character(0))
   expect_identical(fp$citations[3L], paste0(

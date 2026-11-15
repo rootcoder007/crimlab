@@ -521,7 +521,7 @@ test_that("the refusals name the argument", {
   expect_error(cunif(2, 2^53), "below 2\\^53")
   expect_error(ccovm(matrix(letters[1:4], 2)), "numeric matrix")
   expect_identical(cgamcdf(2, c(NA, Inf)), c(NA, 1))
-  expect_identical(length(cbootmean(numeric(), 3)), 3L)
+  expect_length(cbootmean(numeric(), 3), 3L)
   expect_true(all(is.nan(cbootmean(numeric(), 3))))
   expect_identical(cmn(NULL), NaN)
 })

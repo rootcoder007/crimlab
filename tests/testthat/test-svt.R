@@ -27,9 +27,9 @@ test_that("votagr() equals the reference agreement matrix", {
 test_that("amscal() equals the reference Aldrich-McKelvey fit", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) {
+  Z <- t(vapply(1:12, function(i) {
     4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
-  }))
+  }, numeric(5)))
   Z[2, 3] <- NA
   r <- amscal(Z)
   # rmorie 1.5.0: R$morie_spatial_voting_aldrich_mckelvey(), the same input,
@@ -140,7 +140,7 @@ test_that("optcls() equals the Optimal Classification it states", {
   expect_identical(r$errors, as.integer(ref$errors))
   # the errors of voting with the majority, as rmorie counts them
   expect_identical(r$null, 25L)
-  expect_equal(r$pre, (25 - ref$errors) / 25)
+  expect_equal(r$pre, (25 - ref$errors) / 25, tolerance = testthat_tolerance())
 })
 
 
@@ -665,9 +665,9 @@ test_that("irtem() in two dimensions equals the reference fit", {
 test_that("scboot() equals the reference bootstrap", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) {
+  Z <- t(vapply(1:12, function(i) {
     4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
-  }))
+  }, numeric(5)))
   r <- scboot(Z, nboot = 5, seed = 5)
   # rmorie 1.5.0: R$morie_spatial_voting_nonparametric_bootstrap(),
   # the same input, its values printed with 17 significant digits
@@ -717,9 +717,9 @@ test_that("wrdfsh() equals the reference Wordfish fit", {
 test_that("amscal() gives z-scored stimuli in the true order", {
   set.seed(1)
   truth <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:60, function(i) {
+  Z <- t(vapply(1:60, function(i) {
     4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * truth + rnorm(5, 0, 0.3)
-  }))
+  }, numeric(5)))
   f <- amscal(Z)
   expect_s3_class(f, c("amscal", "svfit"))
   expect_equal(mean(f$zhat), 0, tolerance = 1e-12)
@@ -763,11 +763,13 @@ test_that("classical scaling recovers a configuration from its distances", {
   expect_equal(unname(as.matrix(dist(f$coords))), unname(D), tolerance = 1e-10)
   expect_equal(f$stress, 0, tolerance = 1e-10)
   B <- dblctr(D)$B
-  expect_equal(B, t(B))
+  expect_equal(B, t(B), tolerance = testthat_tolerance())
   ev <- eigen(B, symmetric = TRUE)$values
-  expect_equal(mdsfit(ev)$fit[1:2], pmax(ev[1:2], 0) / sum(abs(ev)))
-  expect_equal(sum(mdsfit(ev)$fit[1:2]), f$fit)
-  expect_identical(length(mdsfit(c(0, 0))$fit), 0L)
+  expect_equal(mdsfit(ev)$fit[1:2], pmax(ev[1:2], 0) / sum(abs(ev)),
+               tolerance = testthat_tolerance())
+  expect_equal(sum(mdsfit(ev)$fit[1:2]), f$fit,
+               tolerance = testthat_tolerance())
+  expect_length(mdsfit(c(0, 0))$fit, 0L)
   expect_error(cmdsf(matrix(1:6, 2)), "square")
   expect_error(cmdsf(D, ndim = 11), "at most")
 })
@@ -783,7 +785,8 @@ test_that("SMACOF stress does not rise with more iterations", {
   expect_error(smacf(D, w = matrix(1, 2, 2)), "`w` must be")
   expect_error(smacf(D, init = matrix(0, 3, 2)), "`init` must have")
   g <- nmdsf(D, maxit = 50)
-  expect_true(is.finite(g$stress) && g$stress >= 0)
+  expect_true(is.finite(g$stress))
+  expect_gte(g$stress, 0)
 })
 
 test_that("unfolding gives finite stress and passes ideal points on", {
@@ -807,13 +810,15 @@ test_that("NOMINATE utilities, probabilities and likelihood", {
   u <- nomutl(x, zy, zn)
   expect_identical(dim(u$prob), c(4L, 3L))
   expect_true(all(u$prob > 0 & u$prob < 1))
-  expect_equal(u$udiff, u$uyea - u$unay)
+  expect_equal(u$udiff, u$uyea - u$unay, tolerance = testthat_tolerance())
   expect_equal(nompr(c(0, 0), c(1, 0), c(-1, 0))$prob, 0.5)
-  expect_equal(nompr(x[1, ], zy[1, ], zn[1, ])$prob, u$prob[1, 1])
+  expect_equal(nompr(x[1, ], zy[1, ], zn[1, ])$prob, u$prob[1, 1],
+               tolerance = testthat_tolerance())
   v <- matrix(rbinom(12, 1, 0.5), 4)
   l <- nomll(v, x, zy, zn)
   expect_true(is.finite(l$loglik))
-  expect_true(l$gmp >= 0 && l$gmp <= 1)
+  expect_gte(l$gmp, 0)
+  expect_lte(l$gmp, 1)
   expect_identical(l$total, 12L)
   expect_error(nompr(c(0, 0), 1, 1), "same length")
   expect_error(nomutl(x, zy, zn, w = 1:3), "one weight per dimension")
@@ -826,7 +831,7 @@ test_that("procrs() recovers an orthogonal rotation", {
   f <- procrs(A, A %*% Q)
   expect_equal(f$rotation, Q, tolerance = 1e-12)
   expect_equal(f$mse, 0, tolerance = 1e-20)
-  expect_equal(det(f$rotation), 1)
+  expect_equal(det(f$rotation), 1, tolerance = testthat_tolerance())
   expect_error(procrs(A, A[1:3, ]), "same dimensions")
 })
 
@@ -846,29 +851,33 @@ test_that("geometry: normal vectors and cutting lines", {
   x <- matrix(rnorm(40), 20)
   y <- 2 * x[, 1] - x[, 2] + 1
   f <- nrmvec(x, y)
-  expect_equal(f$r2, 1)
-  expect_equal(f$normal, c(2, -1) / sqrt(5))
-  expect_equal(f$coef, c(1, 2, -1))
-  expect_equal(f$degrees, f$radians * 180 / pi)
+  expect_equal(f$r2, 1, tolerance = testthat_tolerance())
+  expect_equal(f$normal, c(2, -1) / sqrt(5), tolerance = testthat_tolerance())
+  expect_equal(f$coef, c(1, 2, -1), tolerance = testthat_tolerance())
+  expect_equal(f$degrees, f$radians * 180 / pi,
+               tolerance = testthat_tolerance())
   g <- cutlns(rbind(c(0, 1), c(1, 0), c(0, 0)), c(0.5, 0.2, 0))
   expect_equal(g$ends[1, ], c(-1, 0.5, 1, 0.5))
   expect_equal(g$ends[2, ], c(0.2, -10, 0.2, 10))
-  expect_equal(g$ends[3, ], rep(0, 4))
-  expect_equal(g$angles, c(90, 0, 0))
+  expect_equal(g$ends[3, ], rep(0, 4), tolerance = testthat_tolerance())
+  expect_equal(g$angles, c(90, 0, 0), tolerance = testthat_tolerance())
   expect_error(cutlns(matrix(1, 2, 3), 1:2), "two columns")
 })
 
 test_that("IRT likelihood and posterior summaries", {
   v <- rbind(c(1, 0), c(0, 1))
   f <- irtlik(v, matrix(c(1, -1)), c(0, 0), matrix(c(1, -1)))
-  expect_equal(f$prob, matrix(pnorm(c(1, -1, -1, 1)), 2))
-  expect_equal(f$loglik, 4 * log(pnorm(1)))
+  expect_equal(f$prob, matrix(pnorm(c(1, -1, -1, 1)), 2),
+               tolerance = testthat_tolerance())
+  expect_equal(f$loglik, 4 * log(pnorm(1)), tolerance = testthat_tolerance())
   expect_identical(f$accuracy, 1)
   set.seed(8)
   ch <- array(rnorm(200 * 4), c(200, 4, 1))
   p <- irtpst(ch, std = FALSE)
-  expect_equal(p$mean[, 1], colMeans(ch[, , 1]))
-  expect_equal(p$lo[, 1], unname(apply(ch[, , 1], 2, quantile, 0.025)))
+  expect_equal(p$mean[, 1], colMeans(ch[, , 1]),
+               tolerance = testthat_tolerance())
+  expect_equal(p$lo[, 1], unname(apply(ch[, , 1], 2, quantile, 0.025)),
+               tolerance = testthat_tolerance())
   q <- irtpst(ch)
   expect_equal(mean(q$mean), 0, tolerance = 1e-12)
   expect_error(irtpst(1:3), "numeric array")
@@ -884,13 +893,14 @@ test_that("Optimal Classification beats the null model on clean votes", {
   expect_lte(f$errors, f$null)
   g <- ordocl(matrix(sample(1:4, 60, TRUE), 15), ndim = 1, maxit = 20)
   expect_length(g$cuts, 4)
-  expect_true(g$correct >= 0 && g$correct <= 1)
+  expect_gte(g$correct, 0)
+  expect_lte(g$correct, 1)
 })
 
 test_that("anchoring vignettes recode each rating by its own thresholds", {
   f <- anchv(c(2, 4, NA), rbind(c(1, 3, 5), c(1, 3, 5), c(2, 2, NA)), ncat = 3)
-  expect_equal(f$thresh[1, ], c(1, 3))
-  expect_equal(f$scores, c(1, 2, NA))
+  expect_equal(f$thresh[1, ], c(1, 3), tolerance = testthat_tolerance())
+  expect_equal(f$scores, c(1, 2, NA), tolerance = testthat_tolerance())
   expect_identical(f$order, c(1L, 2L, 3L))
   expect_error(anchv(1:2, matrix(1, 3, 2)), "one row per rating")
 })

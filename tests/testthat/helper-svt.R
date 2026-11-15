@@ -49,6 +49,6 @@ em_votes <- function() {
     "1010011n111010001110",
     "n0010100001n01000100"
   )
-  v <- do.call(rbind, strsplit(rows, ""))
+  v <- do.call(rbind, strsplit(rows, "", fixed = TRUE))
   matrix(suppressWarnings(as.numeric(v)), 30, 20)
 }

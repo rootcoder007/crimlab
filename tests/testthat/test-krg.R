@@ -122,7 +122,7 @@ test_that("kriging, block kriging and cross-validation agree with gstat", {
   expect_equal(r$var, ref$var, tolerance = 1e-10)
   g <- vgemp(k$p, v = k$v, nbins = 10)
   expect_equal(g$gamma, ref$gamma, tolerance = 1e-12)
-  expect_equal(g$np, ref$np)
+  expect_equal(g$np, ref$np, tolerance = testthat_tolerance())
   b <- bkrig(k$p, v = k$v, blocks = k$blk, nq = 16, range = 0.3)
   expect_equal(b$est, vapply(ref$bk, `[`, 0, 1), tolerance = 1e-10)
   expect_equal(b$se^2, vapply(ref$bk, `[`, 0, 2), tolerance = 1e-10)
@@ -171,7 +171,7 @@ test_that("the spatial object agrees with rmorie and sf", {
   expect_equal(unname(spxy(s)), ref$coords, tolerance = 0)
   expect_identical(colnames(spxy(s)), c("lon", "lat"))
   expect_identical(crsof(s), ref$crs)
-  expect_identical(names(s$data), "val")
+  expect_named(s$data, "val")
   m <- spobj(
     data.frame(e = ref$merc[, 1], n = ref$merc[, 2], val = 1:4),
     c("e", "n"),
@@ -208,7 +208,8 @@ test_that("sampling draws without replacement, by density or uniformly", {
   expect_setequal(as.vector(a), 1:25)
   expect_identical(spsamp(s, 5, seed = 3), spsamp(s, 5, seed = 3))
   u <- spsamp(s, 4, dens = FALSE, seed = 9)
-  expect_equal(attr(u, "prob"), rep(1 / 25, 25))
+  expect_equal(attr(u, "prob"), rep(1 / 25, 25),
+               tolerance = testthat_tolerance())
   set.seed(1)
   r1 <- spsamp(s, 3)
   set.seed(1)
@@ -238,7 +239,8 @@ test_that("rmorie's structural checks hold", {
   kr <- okrge(xy, v = y, at = xy[1:10, ], vgm = fit)
   expect_equal(kr$pred, y[1:10], tolerance = 0.15)
   k2 <- okrge(xy, v = y, at = cbind(0.5, 0.5), vgm = fit)
-  expect_true(k2$pred > min(y) && k2$pred < max(y))
+  expect_gt(k2$pred, min(y))
+  expect_lt(k2$pred, max(y))
   k3 <- okrge(xy, v = y, at = cbind(5, 5), vgm = fit)
   expect_gt(k3$var, k2$var)
   # a line is fitted exactly (rmorie's canonical case, on two dimensions)
@@ -268,21 +270,21 @@ test_that("results print and summarise", {
     st$term,
     c("1", "x", "y", "x2", "y2", "xy", "x3", "y3", "x2y", "xy2")
   )
-  expect_equal(st$z, st$est / st$se)
+  expect_equal(st$z, st$est / st$se, tolerance = testthat_tolerance())
   s <- sglmx(k$v, NULL, k$p)
-  expect_identical(names(s$coef), "1")
+  expect_named(s$coef, "1")
   expect_output(print(s), "sglmx: spatial linear model")
   expect_named(summary(s), c("term", "est", "se", "z"))
   zz <- cbind(a = 1, b = k$p[, 1])
   m <- smixm(k$v, zz, k$p)
-  expect_identical(names(m$coef), c("a", "b"))
+  expect_named(m$coef, c("a", "b"))
   expect_output(
     print(m),
     "smixm: spatial linear mixed model by REML, 30 points"
   )
   expect_identical(summary(m)$term, c("a", "b"))
-  expect_identical(names(sglmx(k$v, k$p[, 1], k$p)$coef), "z1")
-  expect_identical(names(sglmx(k$v, as.data.frame(zz), k$p)$coef), c("a", "b"))
+  expect_named(sglmx(k$v, k$p[, 1], k$p)$coef, "z1")
+  expect_named(sglmx(k$v, as.data.frame(zz), k$p)$coef, c("a", "b"))
   expect_identical(nrow(bkrig(k$p, v = k$v, blocks = list(k$p[1:3, ]))), 1L)
 })
 

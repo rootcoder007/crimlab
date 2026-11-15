@@ -48,7 +48,7 @@ test_that("the built-in estimator gives the reference values", {
   for (r in ref) {
     e <- do.call(exprspplr, r[[1L]])
     expect_s3_class(e, "exprspplr")
-    expect_identical(names(e), ex_nm)
+    expect_named(e, ex_nm)
     expect_equal(unlist(e[1:5]), stats::setNames(r[[2L]], ex_nm[1:5]),
                  tolerance = 1e-10)
     expect_identical(e$nboot, r[[3L]])

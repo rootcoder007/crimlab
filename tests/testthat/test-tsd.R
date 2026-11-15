@@ -143,10 +143,12 @@ test_that("arimfc() and sarfc() forecast and refuse short series", {
   f <- arimfc(y, h = 6)
   expect_length(f$fc, 6)
   expect_true(all(diff(f$se) >= 0))
-  expect_equal(f$bic, f$aic + 3 * (log(60) - 2))
+  expect_equal(f$bic, f$aic + 3 * (log(60) - 2),
+               tolerance = testthat_tolerance())
   s <- sarfc(y, h = 6)
   expect_length(s$actual, 6)
-  expect_equal(s$rmse, sqrt(mean((s$actual - s$fc)^2)))
+  expect_equal(s$rmse, sqrt(mean((s$actual - s$fc)^2)),
+               tolerance = testthat_tolerance())
   expect_error(arimfc(1:5), "24 values")
   expect_error(sarfc(y, order = c(1, 0, 0), seasonal = c(0, 0, 0, 12)),
                "difference")
@@ -159,9 +161,11 @@ test_that("catcor() counts by unit and correlates the categories", {
   u <- list(b = c("x", "y", "y"), a = c("x", "x", "y", "z"))
   f <- catcor(u)
   expect_identical(f$cats, c("a", "b"))
-  expect_equal(unname(f$counts), cbind(c(2, 1, 1), c(1, 2, 0)))
-  expect_equal(f$r[1, 2], cor(c(2, 1, 1), c(1, 2, 0)))
-  expect_equal(unname(diag(f$r)), c(1, 1))
+  expect_equal(unname(f$counts), cbind(c(2, 1, 1), c(1, 2, 0)),
+               tolerance = testthat_tolerance())
+  expect_equal(f$r[1, 2], cor(c(2, 1, 1), c(1, 2, 0)),
+               tolerance = testthat_tolerance())
+  expect_equal(unname(diag(f$r)), c(1, 1), tolerance = testthat_tolerance())
   expect_error(catcor(list(a = "x")), "two categories")
   expect_error(catcor(1:3), "named list")
 })
@@ -171,21 +175,25 @@ test_that("ousim() and fpdens() share the Ornstein-Uhlenbeck fit", {
   y <- rpois(100, 20)
   s <- ousim(y, npath = 4, days = 10)
   d <- fpdens(y, ngrid = 32, nstep = 50)
-  expect_equal(s$theta, d$theta)
-  expect_equal(s$halflife, log(2) / s$theta)
+  expect_equal(s$theta, d$theta, tolerance = testthat_tolerance())
+  expect_equal(s$halflife, log(2) / s$theta, tolerance = testthat_tolerance())
   expect_identical(dim(s$paths), c(4L, 10L))
-  expect_equal(s$paths[, 1], rep(y[100], 4))
-  expect_equal(sum(d$density) * diff(d$grid[1:2]), 1)
-  expect_equal(d$statvar, d$sigma^2 / (2 * d$theta))
+  expect_equal(s$paths[, 1], rep(y[100], 4), tolerance = testthat_tolerance())
+  expect_equal(sum(d$density) * diff(d$grid[1:2]), 1,
+               tolerance = testthat_tolerance())
+  expect_equal(d$statvar, d$sigma^2 / (2 * d$theta),
+               tolerance = testthat_tolerance())
   expect_error(ousim(1:2), "three values")
 })
 
 test_that("lvfit() follows its formulas", {
   y <- c(410, 455, 430, 470, 520, 498, 515)
   f <- lvfit(y)
-  expect_equal(f$alpha, median(diff(log(y))) + 0.05)
-  expect_equal(f$period, 2 * pi / sqrt(f$alpha * f$gamma))
-  expect_equal(f$year, 1:7)
+  expect_equal(f$alpha, median(diff(log(y))) + 0.05,
+               tolerance = testthat_tolerance())
+  expect_equal(f$period, 2 * pi / sqrt(f$alpha * f$gamma),
+               tolerance = testthat_tolerance())
+  expect_equal(f$year, 1:7, tolerance = testthat_tolerance())
   expect_error(lvfit(1:3), "five years")
   expect_error(lvfit(y, 1:2), "one value per count")
   expect_output(print(f), "lvfit:")

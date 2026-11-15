@@ -50,7 +50,7 @@ test_that("recipes: the columns read, not the columns made", {
                "column SuicideWatch_Alert has labels not among its codes: y.",
                fixed = TRUE)
   o <- opre
-  o$SuicideWatch_Alert[o$SuicideWatch_Alert %in% "y"] <- "Yes"
+  o$SuicideWatch_Alert[which(o$SuicideWatch_Alert == "y")] <- "Yes"
   expect_identical(prechk(o, "otis-a01-cbatt"), o)
   expect_identical(prechk(opre, "otis-pc-cbatt"), opre)
   expect_error(prechk(o[-9], "otis-a01-cbatt"),

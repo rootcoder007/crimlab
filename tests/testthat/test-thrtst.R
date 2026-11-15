@@ -207,7 +207,7 @@ bfit <- function(..., iter = 1000) {
     b <- tryCatch(
       thrtst(..., fit = "bayes", iter = iter, seed = s),
       error = function(e) {
-        if (!grepl("have not mixed", conditionMessage(e))) stop(e)
+        if (!grepl("have not mixed", conditionMessage(e), fixed = TRUE)) stop(e)
         NULL
       }
     )

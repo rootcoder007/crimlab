@@ -20,8 +20,7 @@ bl <- function(y) {
                                    "pctchg", "flag", "pctlo", "pctup")]
   names(x)[4L] <- "previous"
   x$flag[!is.na(x$flag)] <- "no comparison period"
-  x$verdict <- ifelse(is.na(x$change), NA, ifelse(x$change > 0, "up",
-                      ifelse(x$change < 0, "down", "unchanged")))
+  x$verdict <- c("down", "unchanged", "up")[sign(x$change) + 2L]
   x
 }
 

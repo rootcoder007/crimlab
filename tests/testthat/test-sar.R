@@ -18,7 +18,7 @@ ref <- local({
     0.33653789842741721, 0.39999977067874248, 0.39997106066950366,
     0.00053995921265204139
   )
-  sw1 <- c(1.8729434674176879)
+  sw1 <- 1.8729434674176879
   pod_random <- c(
     0, 0.095162581964040482, 0.39346934028736658, 0.63212055882855767,
     0.81731647594726531, 0.95021293163213605, 0.99966453737209748
@@ -40,7 +40,7 @@ ref <- local({
     0.93597876680131586, 0.77333333333333332, 0.71054229092428134,
     0.32533333333333331, 0.33191276415089449
   )
-  psw0 <- c(0.66499809026450218)
+  psw0 <- 0.66499809026450218
   scs <- c(
     0.77450000000000008, 0.33600000000000008, 0.23999999999999999,
     0.18000000000000002, 0.018499999999999999, 0.28381374722838154,
@@ -575,7 +575,7 @@ test_that("bad inputs are refused with the function named", {
   )
   # the kernels refuse what the wrappers would never pass them
   expect_error(
-    .Call(crimlab:::C_clab_r_sarlr, 1, -1, 0L, 1, 0),
+    .Call(C_clab_r_sarlr, 1, -1, 0L, 1, 0),
     "ltrlrng: a size or an index"
   )
 })
@@ -689,7 +689,7 @@ test_that("srchfig() lists the book's figures", {
   expect_identical(srchfig("6-1")$yours, "optsqr(effort = 2)")
   # each figure's own-numbers line that computes without drawing runs
   for (y in tab$yours[!grepl("^plot|^with", tab$yours)]) {
-    expect_true(is.numeric(unlist(eval(str2lang(y)))))
+    expect_type(unlist(eval(str2lang(y))), "double")
   }
   expect_error(srchfig("9-9"), "srchfig: `fig` must be one of the book's")
   expect_error(srchfig(c("3-1", "3-2")), "`fig` must be a single")
@@ -710,14 +710,14 @@ test_that("the search results print", {
     )),
     capture.output(print(optsqr(c(4, 2))))
   )
-  expect_true(any(grepl("M-Beta model", out)))
+  expect_true(any(grepl("M-Beta model", out, fixed = TRUE)))
   expect_true(any(grepl("navigation error sd 0.2", out)))
-  expect_true(any(grepl("and 5 more", out)))
-  expect_true(any(grepl("after 2 searches", out)))
-  expect_true(any(grepl("area datum", out)))
+  expect_true(any(grepl("and 5 more", out, fixed = TRUE)))
+  expect_true(any(grepl("after 2 searches", out, fixed = TRUE)))
+  expect_true(any(grepl("area datum", out, fixed = TRUE)))
   expect_true(any(grepl("radius 1.414", out)))
-  expect_true(any(grepl("more cells", out)))
-  expect_true(any(grepl("Optimal square searches: 2", out)))
+  expect_true(any(grepl("more cells", out, fixed = TRUE)))
+  expect_true(any(grepl("Optimal square searches: 2", out, fixed = TRUE)))
   capture.output(r <- withVisible(print(srchpod(1))))
   expect_false(r$visible)
   expect_s3_class(r$value, "srchpod")

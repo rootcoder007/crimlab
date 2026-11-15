@@ -498,7 +498,7 @@ test_that("the framework results print, distinctions and governance kept", {
     c(78, 92)
   )
   expect_output(print(cw), "Community Well-Being scores")
-  expect_match(ls_flat(cw[c("cwb")]), "cwb", fixed = TRUE)
+  expect_match(ls_flat(cw["cwb"]), "cwb", fixed = TRUE)
   hc <- healchg(
     .hc(),
     "g",

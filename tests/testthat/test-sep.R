@@ -239,7 +239,8 @@ test_that("rmorie's own checks hold", {
   r <- bayout(obs, w = 5)
   for (q in seq_along(r$t)) {
     t <- r$t[q]
-    expect_equal(r$ub[q], qnbinom(0.95, sum(obs[(t - 5):(t - 1)]) + 0.5, 5 / 6))
+    expect_equal(r$ub[q], qnbinom(0.95, sum(obs[(t - 5):(t - 1)]) + 0.5, 5 / 6),
+                 tolerance = testthat_tolerance())
   }
   A <- rbind(c(0, 1, 1, 0), c(1, 0, 1, 0), c(1, 1, 0, 1), c(0, 0, 1, 0))
   expect_equal(rowSums(lerprc(A, 1)), rep(0, 4), tolerance = 1e-15)
@@ -272,7 +273,7 @@ test_that("rmorie's own checks hold", {
     tmax = 40,
     dt = 0.25
   )
-  expect_equal(iso$R[161, 3], 0)
+  expect_equal(iso$R[161, 3], 0, tolerance = testthat_tolerance())
   C <- 0.9 * diag(4) + 0.1 * W / rowSums(W)
   f <- function(y) {
     S <- y[1:4]
@@ -339,7 +340,7 @@ test_that("results print and summarise", {
   expect_output(print(f), "sfrail: Weibull frailty model")
   sf <- summary(f)
   expect_identical(sf$term, c("logshape", "x1", "frail1", "frail2", "frail3"))
-  expect_equal(sf$z, sf$est / sf$se)
+  expect_equal(sf$z, sf$est / sf$se, tolerance = testthat_tolerance())
   c0 <- sfcure(k$ct, k$ce, NULL, k$cr, k$W3)
   expect_length(c0$coef, 0)
   expect_output(print(c0), "sfcure: promotion-time cure model")
@@ -355,8 +356,10 @@ test_that("results print and summarise", {
     c("sel", "coef", "imoran", "aic", "r2", "fr2", "resid", "mi")
   )
   lw <- spwt(nb = list(2, c(1, 3), 2), type = "contig", style = "raw")
-  expect_equal(lerprc(lw, 0.5), lerprc(k$W3, 0.5))
-  expect_equal(bym2sc(lw)$scale, bym2sc(k$W3)$scale)
+  expect_equal(lerprc(lw, 0.5), lerprc(k$W3, 0.5),
+               tolerance = testthat_tolerance())
+  expect_equal(bym2sc(lw)$scale, bym2sc(k$W3)$scale,
+               tolerance = testthat_tolerance())
 })
 
 test_that("spatial epidemiology refuses bad input in words", {

@@ -7,19 +7,19 @@
 
 df_check <- function(r, ref, tol = 1e-6, flat = character(0)) {
   expect_s3_class(r, "dstfit")
-  expect_identical(
-    names(r),
+  expect_named(
+    r,
     c("table", "fits", "boot", "hill", "x", "nmiss", "discrete", "conflvl")
   )
   t <- r$table
-  expect_identical(
-    names(t),
+  expect_named(
+    t,
     c("rank", "family", "npar", "loglik", "aic", "bic", "ks", "ad",
       "converged", "params")
   )
   rt <- ref[[1L]]
   expect_identical(t$family, rt[[2L]])
-  expect_equal(t$npar, rt[[3L]])
+  expect_equal(t$npar, rt[[3L]], tolerance = testthat_tolerance())
   ok <- !t$family %in% flat
   for (j in 4:8) {
     expect_equal(t[[j]][ok], rt[[j]][ok], tolerance = tol, info = names(t)[j])
@@ -45,7 +45,7 @@ df_check <- function(r, ref, tol = 1e-6, flat = character(0)) {
   } else {
     expect_equal(unname(unlist(r$hill)), unlist(ref[[4L]]), tolerance = 1e-12)
   }
-  expect_equal(r$nmiss, ref[[5L]])
+  expect_equal(r$nmiss, ref[[5L]], tolerance = testthat_tolerance())
   expect_identical(r$discrete, ref[[6L]])
 }
 

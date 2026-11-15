@@ -33,9 +33,7 @@ ref <- local({
     7, 5, 7, 7, 7, 7, 5, 6, 6, 6, 6, 12, 5, 11, 10, 8, 7, 6, 12, 6, 6, 6, 8, 6,
     7, 9, 6, 7, 5, 8, 7, 4, 10, 10, 9, 6, 7, 7, 8, 12, 4024.0345548037885
   )
-  hl3 <- c(
-    2.0652326764022773
-  )
+  hl3 <- 2.0652326764022773
   environment()
 })
 
@@ -46,7 +44,8 @@ test_that("the one-pass summaries equal the reference implementation", {
   expect_equal(a$state, ref$mo1, tolerance = 1e-12)
   expect_equal(smrymrg(a, b)$state, ref$mo2, tolerance = 1e-12)
   expect_equal(unname(smrystat(smrymrg(a, b))), ref$mo3, tolerance = 1e-10)
-  expect_equal(unname(smrystat(onlsmry(c(1, 2)))), ref$mo4)
+  expect_equal(unname(smrystat(onlsmry(c(1, 2)))), ref$mo4,
+               tolerance = testthat_tolerance())
   expect_identical(rsvidx(1000, 7, seed = 1), ref$rv1)
   expect_identical(rsvidx(50, 5, seed = 123456789), ref$rv2)
   expect_identical(rsvidx(10, 0), ref$rv3)
@@ -72,16 +71,17 @@ test_that("block accumulation is exact against base R", {
   s <- smrystat(acc)
   expect_named(s, c("n", "mean", "variance", "sd", "skewness", "kurtosis"))
   expect_identical(s[["n"]], 1000)
-  expect_equal(s[["mean"]], mean(x))
+  expect_equal(s[["mean"]], mean(x), tolerance = testthat_tolerance())
   expect_equal(s[["variance"]], stats::var(x), tolerance = 1e-12)
   for (bs in c(1L, 7L, 333L)) {
     a2 <- onlsmry()
     for (i in seq(1, 1000, by = bs)) {
       a2 <- smryupd(a2, x[i:min(1000, i + bs - 1L)])
     }
-    expect_equal(smrystat(a2)[["variance"]], stats::var(x))
+    expect_equal(smrystat(a2)[["variance"]], stats::var(x),
+                 tolerance = testthat_tolerance())
   }
-  expect_equal(smrystat(onlsmry(x)), s)
+  expect_equal(smrystat(onlsmry(x)), s, tolerance = testthat_tolerance())
   # far from zero the digits survive
   y <- 1e8 + stats::rnorm(1000)
   b <- onlsmry()
@@ -90,14 +90,16 @@ test_that("block accumulation is exact against base R", {
   # merging in either order, with empty sides
   a <- onlsmry(x[1:250])
   b <- onlsmry(x[251:1000])
-  expect_equal(smrystat(smrymrg(a, b)), smrystat(smrymrg(b, a)))
+  expect_equal(smrystat(smrymrg(a, b)), smrystat(smrymrg(b, a)),
+               tolerance = testthat_tolerance())
   expect_identical(smrymrg(onlsmry(), a)$state, a$state)
   expect_identical(smrymrg(a, onlsmry())$state, a$state)
   expect_identical(smryupd(a, c(NA, NA))$state, a$state)
   e <- smrystat(onlsmry())
   expect_true(all(is.nan(e[-1L])))
   expect_true(is.nan(smrystat(onlsmry(c(2, 2, 2, 2)))[["skewness"]]))
-  expect_equal(smrystat(onlsmry(c("1", "3")))[["mean"]], 2)
+  expect_equal(smrystat(onlsmry(c("1", "3")))[["mean"]], 2,
+               tolerance = testthat_tolerance())
 })
 
 test_that("the summaries refuse what they cannot hold", {
@@ -120,7 +122,7 @@ test_that("the reservoir is uniform and reproducible", {
   expect_error(rsvidx(10.5, 1), "`n` must be a single")
   expect_error(rsvidx(3e9, 1), "at most 2147483647")
   expect_error(rsvidx(10, 1, seed = -1), "`seed` must be a whole number")
-  expect_error(.Call(crimlab:::C_clab_r_rsv, 10, 2e8, 1), "rsvidx:")
+  expect_error(.Call(C_clab_r_rsv, 10, 2e8, 1), "rsvidx:")
 })
 
 test_that("the sketch counts near the truth and refuses bad registers", {

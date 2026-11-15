@@ -19,12 +19,14 @@ test_that("drftks() equals rmoriebricklayer and stats::ks.test()", {
   a <- c(0.3, 1.2, -0.5, 2.2, 0.9)
   b <- c(1.1, 2.5, 0.4, 3.1)
   expect_equal(drftks(a, b)[["statistic"]],
-               unname(suppressWarnings(stats::ks.test(a, b))$statistic))
+               unname(suppressWarnings(stats::ks.test(a, b))$statistic),
+               tolerance = testthat_tolerance())
   r <- drftks(c(x, NA), y)
   expect_identical(attr(r, "lakner"), list(nx = 11L, ny = 12L))
   expect_s3_class(r, "drftks")
   expect_output(print(r), "inputs: nx = 11")
-  expect_identical(class(r[1:2]), "numeric")
+  expect_type(r[1:2], "double")
+  expect_false(is.object(r[1:2]))
   expect_error(drftks(c(1, Inf), 1), "finite")
   expect_error(drftks(NA, 1), "at least one non-missing value")
   expect_error(drftks("a", 1), "must be numbers")
@@ -47,11 +49,13 @@ test_that("drftchisq() equals rmoriebricklayer and stats::chisq.test()", {
   r <- drftchisq(c(a = 40, b = 60, c = 100), c(a = 50, b = 30, c = 20))
   expect_equal(v(r), c(126, 2, 4.3596100000630809e-28, -63), tolerance = t)
   expect_equal(r[["statistic"]], unname(stats::chisq.test(
-    c(40, 60, 100), p = c(0.5, 0.3, 0.2))$statistic))
+    c(40, 60, 100), p = c(0.5, 0.3, 0.2))$statistic),
+               tolerance = testthat_tolerance())
   expect_identical(v(drftchisq(c(a = 5), c(a = 2))), c(0, 0, NA, NA))
   expect_identical(v(drftchisq(c("a", "a", "b", "d"), c("a", "a", "b", "b"))),
                    c(Inf, 1, 0, -Inf))
-  expect_equal(v(drftchisq(c("a", "a", "b", "b"), c("a", "b"))), c(0, 1, 1, 0))
+  expect_equal(v(drftchisq(c("a", "a", "b", "b"), c("a", "b"))), c(0, 1, 1, 0),
+               tolerance = testthat_tolerance())
   expect_error(drftchisq(c(1, 2), c(a = 1)), "must be named")
   expect_error(drftchisq(c(a = -1), c(a = 1)), "non-negative counts")
   expect_error(drftchisq(c(a = 0), c(a = 1)), "`obs` has no counts")

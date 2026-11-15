@@ -31,14 +31,17 @@ test_that("freqtbl() counts as the reference does", {
   df <- data.frame(grade = c("a", "b", "b", "c", NA, "b"))
   f1 <- freqtbl(df, "grade")
   expect_s3_class(f1, "freqtbl")
-  expect_identical(names(f1), c("value", "n", "pct", "pctvalid"))
-  expect_equal(cols(f1), dsref$fq1)
+  expect_named(f1, c("value", "n", "pct", "pctvalid"))
+  expect_equal(cols(f1), dsref$fq1, tolerance = testthat_tolerance())
   expect_type(f1$n, "integer")
-  expect_equal(cols(freqtbl(c(1, 1, 2, 3, 3, 3))), dsref$fq2)
-  expect_equal(cols(freqtbl(c("c", "a", "b", "a"), sort = FALSE)), dsref$fq3)
+  expect_equal(cols(freqtbl(c(1, 1, 2, 3, 3, 3))), dsref$fq2,
+               tolerance = testthat_tolerance())
+  expect_equal(cols(freqtbl(c("c", "a", "b", "a"), sort = FALSE)), dsref$fq3,
+               tolerance = testthat_tolerance())
   set.seed(1)
   s <- sample(letters, 50, TRUE)
-  expect_equal(cols(freqtbl(s, maxlvl = 5)), dsref$fq4)
+  expect_equal(cols(freqtbl(s, maxlvl = 5)), dsref$fq4,
+               tolerance = testthat_tolerance())
   expect_identical(nrow(freqtbl(character(0))), 0L)
   expect_error(freqtbl(df),
                "^freqtbl: `col` is required when `data` is a data frame\\.$")
@@ -82,15 +85,17 @@ test_that("drpempty() and drpconst() drop what the reference drops", {
   de <- data.frame(keep = c(1, 2, NA), allna = c(NA, NA, NA),
                    constant = c(7, 7, 7), s = c("x", NA, "y"))
   e1 <- drpempty(de, quiet = TRUE)
-  expect_equal(cols(e1), dsref$de1)
+  expect_equal(cols(e1), dsref$de1, tolerance = testthat_tolerance())
   expect_identical(attr(e1, "dropped"), "allna")
   expect_equal(cols(drpempty(data.frame(a = c(1, NA), b = c(2, NA)),
-                             which = "rows", quiet = TRUE)), dsref$de2)
+                             which = "rows", quiet = TRUE)), dsref$de2,
+               tolerance = testthat_tolerance())
   c1 <- drpconst(de, quiet = TRUE)
-  expect_equal(cols(c1), dsref$dc1)
+  expect_equal(cols(c1), dsref$dc1, tolerance = testthat_tolerance())
   expect_identical(attr(c1, "dropped"), c("allna", "constant"))
   expect_equal(cols(drpconst(data.frame(v = c(NA, NA, 5)), naasval = TRUE,
-                             quiet = TRUE)), dsref$dc2)
+                             quiet = TRUE)), dsref$dc2,
+               tolerance = testthat_tolerance())
   expect_message(drpempty(de), "Empty rows and columns dropped")
   expect_error(drpempty(c(1, NA)),
                "^drpempty: `data` must be a data frame\\.$")
@@ -110,7 +115,7 @@ test_that("clncolnms() cleans names as the reference does", {
   }
   df <- data.frame(`Total Pop` = 1:2, `% change` = 3:4, check.names = FALSE)
   cl <- clncolnms(df, quiet = TRUE)
-  expect_identical(names(cl), c("total_pop", "pct_change"))
+  expect_named(cl, c("total_pop", "pct_change"))
   expect_identical(attr(cl, "orignms"), c("Total Pop", "% change"))
   expect_error(clncolnms("a b", case = "kebab"), "`case` must be one of")
   expect_error(clncolnms(c("a", NA)), "without NA")
@@ -130,7 +135,7 @@ test_that("mahaoutl() gives the reference distances", {
   m <- maha_data()
   r1 <- mahaoutl(m)
   expect_s3_class(r1, "mahaoutl")
-  expect_identical(names(r1),
+  expect_named(r1,
                    c("row", "distance", "p_value", "logpvalue", "outlier"))
   expect_equal(cols(r1), dsref$mh1, tolerance = 1e-10)
   expect_equal(cols(mahaoutl(m, robust = FALSE, alpha = 0.05)), dsref$mh2,
@@ -147,25 +152,29 @@ test_that("missruns(), missgrid(), misspat() and misssmry() match", {
   mr <- data.frame(outage = c(1, 2, NA, NA, NA, NA, 7, 8),
                    scattered = c(1, NA, 3, 4, NA, 6, NA, NA),
                    b = c(NA, NA, NA, NA, 1, 2, 3, 4))
-  expect_equal(cols(missruns(mr)), dsref$mr1)
-  expect_equal(cols(missruns(mr, minrun = 1)), dsref$mr2)
+  expect_equal(cols(missruns(mr)), dsref$mr1, tolerance = testthat_tolerance())
+  expect_equal(cols(missruns(mr, minrun = 1)), dsref$mr2,
+               tolerance = testthat_tolerance())
   expect_identical(nrow(missruns(data.frame(x = 1:5))), 0L)
   expect_error(missruns(mr, minrun = 0), "`minrun` must be a single positive")
   mp <- data.frame(id = 1:10, a = c(rep(NA, 3), 4:10), b = c(1:7, rep(NA, 3)),
                    cc = c(NA, 2:9, NA))
   p1 <- misspat(mp)
-  expect_equal(cols(p1), dsref$mp1)
+  expect_equal(cols(p1), dsref$mp1, tolerance = testthat_tolerance())
   expect_identical(attr(p1, "columns"), c("id", "a", "b", "cc"))
-  expect_equal(cols(misspat(mp, maxpat = 2)), dsref$mp2)
+  expect_equal(cols(misspat(mp, maxpat = 2)), dsref$mp2,
+               tolerance = testthat_tolerance())
   expect_error(misspat(data.frame()), "^misspat: `data` has no columns\\.$")
   ms <- data.frame(a = c(1, NA, 3), b = c(NA, NA, 3), c = 1:3)
-  expect_equal(unname(misssmry(ms)), dsref$ms1)
-  expect_identical(
-    names(misssmry(ms)),
+  expect_equal(unname(misssmry(ms)), dsref$ms1,
+               tolerance = testthat_tolerance())
+  expect_named(
+    misssmry(ms),
     c("n_rows", "n_cols", "n_missing", "pct_missing", "n_complete_rows",
       "pct_complete_rows", "n_cols_any_missing", "n_cols_all_missing")
   )
-  expect_equal(unname(misssmry(data.frame(x = 1:4, note = NA))), dsref$ms2)
+  expect_equal(unname(misssmry(data.frame(x = 1:4, note = NA))), dsref$ms2,
+               tolerance = testthat_tolerance())
   expect_error(misssmry(c(1, NA)), "^misssmry: `data` must be a data frame")
   utf8()
   set.seed(1)
@@ -192,11 +201,11 @@ test_that("mcartst() gives the reference statistics", {
   ref <- dsref$mc1
   nm <- c("statistic", "df", "logpvalue", "p_value", "npat", "nused",
           "nvars", "iterations", "mu", "sigma", "note")
-  expect_identical(names(r), nm)
+  expect_named(r, nm)
   expect_equal(unname(unlist(r[1:8])), unlist(ref[1:8]), tolerance = 1e-8)
   expect_equal(unname(r$mu), ref[[9L]], tolerance = 1e-8)
   expect_equal(as.vector(r$sigma), ref[[10L]], tolerance = 1e-8)
-  expect_identical(names(r$mu), c("x", "y", "z"))
+  expect_named(r$mu, c("x", "y", "z"))
   mc2 <- data.frame(x = xx, y = yy)
   mc2$y[sample(n, 20)] <- NA
   r2 <- mcartst(mc2)
@@ -218,9 +227,10 @@ test_that("duprows() groups the reference duplicates", {
   dr <- data.frame(id = c(1, 2, 2, 3, 3, 3, NA, NA),
                    value = c("a", "b", "b", "c", "d", "c", "e", "e"))
   d1 <- duprows(dr, quiet = TRUE)
-  expect_identical(names(d1), c("id", "value", "dupe_count"))
-  expect_equal(cols(d1), dsref$dr1)
-  expect_equal(cols(duprows(dr, "id", quiet = TRUE)), dsref$dr2)
+  expect_named(d1, c("id", "value", "dupe_count"))
+  expect_equal(cols(d1), dsref$dr1, tolerance = testthat_tolerance())
+  expect_equal(cols(duprows(dr, "id", quiet = TRUE)), dsref$dr2,
+               tolerance = testthat_tolerance())
   expect_identical(nrow(duprows(data.frame(x = 1:3), quiet = TRUE)), 0L)
   expect_error(duprows(dr, "code"), "^duprows: no such column\\(s\\): code\\.$")
   expect_message(duprows(dr), "Duplicated rows")
@@ -237,9 +247,9 @@ test_that("profcols() profiles as the reference does", {
   )
   p <- profcols(pc)
   expect_s3_class(p, "profcols")
-  expect_identical(names(p), c(dsref$pc2[1:19], "q25", "q50", "q75"))
+  expect_named(p, c(dsref$pc2[1:19], "q25", "q50", "q75"))
   expect_equal(cols(p), dsref$pc1, tolerance = 1e-12)
-  expect_identical(names(profcols(pc, qnts = c(0.025, 0.5))), dsref$pc2)
+  expect_named(profcols(pc, qnts = c(0.025, 0.5)), dsref$pc2)
   expect_error(profcols(pc[, 0]), "has no columns to profile")
   expect_error(profcols(pc, qnts = 2), "must be probabilities")
   expect_output(print(p), "Column profile")
@@ -251,8 +261,8 @@ test_that("dstntst() gives the reference test", {
                     hi = c(25.9, 35.8, 26.4))
   d1 <- dstntst(own, "group", "est", "lo", "hi", pooled = "Both")
   expect_s3_class(d1, "dstntst")
-  expect_identical(
-    names(d1),
+  expect_named(
+    d1,
     c("groups", "pooled", "poose", "q", "df", "p_value", "i2", "leftout",
       "conflvl")
   )

@@ -33,7 +33,7 @@ test_that("the ends are exact and the shares of a full grouping sum to 100", {
   u <- unclass(shrs(c(a = 0, b = 10)))
   expect_identical(u$lower[1L], 0)
   expect_identical(u$upper[2L], 100)
-  expect_equal(sum(shrs(c(3, 7))$share), 100)
+  expect_equal(sum(shrs(c(3, 7))$share), 100, tolerance = testthat_tolerance())
   expect_false("label" %in% names(shrs(c(3, 7))))
   expect_identical(shrs(s, "stops", total = "stops")$total, 512)
 })

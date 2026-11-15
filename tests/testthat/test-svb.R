@@ -8,9 +8,9 @@
 test_that("bamscl() equals the reference chain", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) {
+  Z <- t(vapply(1:12, function(i) {
     4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
-  }))
+  }, numeric(5)))
   r <- bamscl(Z, 10, 10)
   # rmorie 1.5.0: R$morie_spatial_voting_bayesian_am(), the same input,
   # its values printed with 17 significant digits
@@ -247,7 +247,8 @@ test_that("bmdsf() recovers the distances and aligns its draws", {
   f <- bmdsf(D, nsamp = 60, burn = 60)
   expect_gt(cor(f$dist[upper.tri(D)], D[upper.tri(D)]), 0.95)
   expect_identical(dim(f$draws), c(60L, 8L, 2L))
-  expect_equal(f$pos, apply(f$draws, c(2, 3), mean))
+  expect_equal(f$pos, apply(f$draws, c(2, 3), mean),
+               tolerance = testthat_tolerance())
   expect_error(bmdsf(matrix(0, 3, 3)), "positive distances")
   expect_error(bmdsf(matrix(1, 2, 3)), "square")
 })
@@ -271,7 +272,8 @@ test_that("anomin() keeps the order of simulated legislators", {
   V[flip] <- 1 - V[flip]
   f <- anomin(V, nsamp = 30, burn = 20, minvotes = 10, polarity = 20)
   expect_gt(cor(f$ideal[, 1], x[f$legis]), 0.95)
-  expect_true(f$alpha >= 0 && f$alpha <= 1)
+  expect_gte(f$alpha, 0)
+  expect_lte(f$alpha, 1)
   g <- anomin(V, nsamp = 5, burn = 2, minvotes = 10, polarity = 20,
               fixalpha = TRUE)
   expect_identical(unique(g$draws$alpha), 1)
@@ -298,7 +300,8 @@ test_that("ordirt() recovers ideal points and keeps each item's categories", {
   Y2 <- Y
   Y2[, 1] <- c(10, 20, 30, 40)[Y[, 1]]
   g <- ordirt(Y2, nsamp = 20, burn = 10)
-  expect_equal(g$ideal, ordirt(Y, nsamp = 20, burn = 10)$ideal)
+  expect_equal(g$ideal, ordirt(Y, nsamp = 20, burn = 10)$ideal,
+               tolerance = testthat_tolerance())
   expect_error(ordirt(cbind(Y, 1)), "two observed categories")
 })
 
@@ -306,7 +309,7 @@ test_that("dynirt() recovers paths; -1/1 votes and bad periods", {
   set.seed(7)
   period <- rep(1:3, each = 15)
   walk <- function(s) s + cumsum(c(0, rnorm(2, 0, 0.3)))
-  truth <- t(sapply(rnorm(12), walk))
+  truth <- t(vapply(rnorm(12), walk, numeric(3)))
   p <- pnorm(-rep(rnorm(45, 0, 0.5), each = 12) +
     rep(rnorm(45, 1.5, 0.5), each = 12) * truth[, period])
   V <- matrix(rbinom(length(p), 1, p), 12)
@@ -314,7 +317,7 @@ test_that("dynirt() recovers paths; -1/1 votes and bad periods", {
   expect_gt(abs(cor(as.numeric(f$theta), as.numeric(truth))), 0.8)
   expect_identical(dim(f$theta), c(12L, 3L))
   g <- dynirt(2 * V - 1, period, nsamp = 100, burn = 50)
-  expect_equal(g$theta, f$theta)
+  expect_equal(g$theta, f$theta, tolerance = testthat_tolerance())
   h <- dynirt(V, as.character(period), nsamp = 10, burn = 5)
   expect_identical(h$periods, c("1", "2", "3"))
   expect_error(dynirt(V, 1:2), "one period per roll call")

@@ -342,17 +342,19 @@ test_that("gplume and gspuff reproduce their closed forms", {
 test_that("advdif2d: advection shifts, diffusion spreads, source adds", {
   c0 <- matrix(0, 6, 6)
   c0[3, 4] <- 1
-  expect_equal(advdif2d(c0, 1, 0, 0, 0, 1, 1, 1, 1)$field[4, 4], 1)
+  expect_equal(advdif2d(c0, 1, 0, 0, 0, 1, 1, 1, 1)$field[4, 4], 1,
+               tolerance = testthat_tolerance())
   d <- advdif2d(c0, 0, 0, 0.1, 0.2, 1, 1, 1, 1)
   expect_equal(c(d$field[3, 4], d$field[2, 4], d$field[3, 5]), c(0.4, 0.1, 0.2),
                tolerance = 1e-15)
   n <- advdif2d(c0, -1, 0, 0, 0, 1, 1, 1, 1)
-  expect_equal(n$field[2, 4], 1)
-  expect_equal(advdif2d(c0, 0, -1, 0, 0, 1, 1, 1, 1)$field[3, 3], 1)
+  expect_equal(n$field[2, 4], 1, tolerance = testthat_tolerance())
+  expect_equal(advdif2d(c0, 0, -1, 0, 0, 1, 1, 1, 1)$field[3, 3], 1,
+               tolerance = testthat_tolerance())
   src <- matrix(0, 6, 6)
   src[4, 4] <- 2
   w <- advdif2d(matrix(0, 6, 6), 0, 0, 0, 0, 1, 1, 0.5, 1, source = src)
-  expect_equal(w$mass, 1)
+  expect_equal(w$mass, 1, tolerance = testthat_tolerance())
   expect_identical(advdif2d(c0, 1, 0, 0, 0, 1, 1, 1, 0)$field, c0)
   expect_error(advdif2d(c0, 0, 0, 0, 0, 1, 1, 1, 1, source = matrix(0, 2, 2)),
                "dimensions")
@@ -379,14 +381,15 @@ test_that("advdif2d: advection shifts, diffusion spreads, source adds", {
 test_that("lagrprt: the random walk, the normals seam and the grid", {
   zeros <- function(n, seed, stream) rep(0, n)
   det <- lagrprt(3, 0, 0, 1, 2, 0.5, 0.5, 1, 4, normals = zeros)
-  expect_equal(det$x, rep(4, 3))
-  expect_equal(det$y, rep(8, 3))
+  expect_equal(det$x, rep(4, 3), tolerance = testthat_tolerance())
+  expect_equal(det$y, rep(8, 3), tolerance = testthat_tolerance())
   g <- lagrprt(10, 0.5, 0.5, 0, 0, 0, 0, 1, 1, grid = c(0, 1, 0, 1, 2, 2),
                normals = zeros)
-  expect_equal(g$concentration[2, 2], 10 / (10 * 0.5 * 0.5))
-  expect_equal(sum(g$concentration) * 0.25, 1)
+  expect_equal(g$concentration[2, 2], 10 / (10 * 0.5 * 0.5),
+               tolerance = testthat_tolerance())
+  expect_equal(sum(g$concentration) * 0.25, 1, tolerance = testthat_tolerance())
   out <- lagrprt(4, 5, 5, 0, 0, 0, 0, 1, 1, grid = c(0, 1, 0, 1, 2, 2))
-  expect_equal(sum(out$concentration), 0)
+  expect_equal(sum(out$concentration), 0, tolerance = testthat_tolerance())
   # the default stream's normals are standard normal
   p <- lagrprt(20000, 0, 0, 0, 0, 0.5, 0.5, 1, 1, seed = 1)
   expect_lt(abs(mean(p$x)), 0.03)
@@ -505,7 +508,7 @@ test_that("polbrdarea sorts worst first and refuses bad tables", {
 
 test_that("expconcidx: zero, pro-poor, pro-rich, and its refusals", {
   e <- expconcidx(data.frame(e = 20, i = c(1, 1, 2, 3)), "e", "i")
-  expect_equal(e$concidx, 0)
+  expect_equal(e$concidx, 0, tolerance = testthat_tolerance())
   expect_match(e$interpretation, "evenly")
   expect_match(
     expconcidx(data.frame(e = 5:1, i = 1:5), "e", "i")$interpretation,
@@ -556,12 +559,12 @@ test_that("the air pollution results print", {
     )))),
     capture.output(print(expconcidx(data.frame(e = 5:1, i = 1:5), "e", "i")))
   )
-  expect_true(any(grepl("sub-steps", out)))
-  expect_true(any(grepl("receptors; peak", out)))
-  expect_true(any(grepl("peak density", out)))
-  expect_true(any(grepl("their mean", out)))
-  expect_true(any(grepl("protects", out)))
-  expect_true(any(grepl("attributable", out)))
-  expect_true(any(grepl("by area: 1 areas", out)))
-  expect_true(any(grepl("Concentration index", out)))
+  expect_true(any(grepl("sub-steps", out, fixed = TRUE)))
+  expect_true(any(grepl("receptors; peak", out, fixed = TRUE)))
+  expect_true(any(grepl("peak density", out, fixed = TRUE)))
+  expect_true(any(grepl("their mean", out, fixed = TRUE)))
+  expect_true(any(grepl("protects", out, fixed = TRUE)))
+  expect_true(any(grepl("attributable", out, fixed = TRUE)))
+  expect_true(any(grepl("by area: 1 areas", out, fixed = TRUE)))
+  expect_true(any(grepl("Concentration index", out, fixed = TRUE)))
 })
