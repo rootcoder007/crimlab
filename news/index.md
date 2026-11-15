@@ -545,6 +545,15 @@
   builders on a simulated placement table, with the values stored in
   `tests/testthat/ref/preset.txt` by `dev/ref/preset.R`.
 
+- [`hwpwr()`](https://rootcoder007.github.io/crimlab/reference/hwpwr.md)
+  reads the power and energy of the machine’s devices over an interval
+  from the operating system’s own counters: RAPL on Linux, the NVIDIA
+  management library, the amdgpu and Intel GPU hwmon files, the IOReport
+  energy counters of Apple silicon, the Energy Meter Interface on
+  Windows, and the battery while it discharges. Each figure says how it
+  was obtained; an estimate carries its range, and a device that cannot
+  be measured is listed with the reason.
+
 - [`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)
   bounds the mean outcome under each of ordered sentences and the effect
   of each against the mildest, under the monotone treatment response and
