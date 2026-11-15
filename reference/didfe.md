@@ -229,4 +229,11 @@ didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE)$bacon
 #> 2 treated vs never    2021     Inf -4.029237  0.375
 #> 3 earlier vs later    2019    2021 -4.561454  0.125
 #> 4 later vs earlier    2021    2019 -4.542020  0.125
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+didfe(p$crmrate, p$district, p$month, p$reformed)
+#> didfe: ols, 720 rows, 20 units, 36 periods, 20 clusters
+#>  term      est        se        lo        hi      stat           p
+#>   trt -3.23164 0.1164121 -3.475293 -2.987986 -27.76034 7.66007e-17
+#> comparison mean 26.52167, relative effect -0.121849
 ```

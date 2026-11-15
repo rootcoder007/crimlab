@@ -22,9 +22,6 @@ hwkres(
   base = "const",
   per = 365.25
 )
-
-# S3 method for class 'hwkres'
-plot(x, ...)
 ```
 
 ## Arguments
@@ -46,15 +43,6 @@ plot(x, ...)
   The parameters, as `par` of
   [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md)
   (not read with a fit).
-
-- x:
-
-  An `hwkres` object.
-
-- ...:
-
-  Passed to
-  [`graphics::plot()`](https://rdrr.io/r/graphics/plot.default.html).
 
 ## Value
 

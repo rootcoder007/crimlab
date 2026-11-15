@@ -3,13 +3,15 @@
 around it (displacement) or reduced it there too (a diffusion of
 benefits). Counts before and after the intervention are needed for the
 treated area a, a buffer b around it and a control area c that
-neither can reach (see bufas() for drawing them). Following Bowers and
-Johnson (2003), with subscripts 0 before and 1 after:"><meta property="og:description" content="Asks whether an intervention in an area pushed crime into the area
+neither can reach (see bufas() for drawing them). With subscripts 0
+before and 1 after, the measures of Bowers and Johnson (2003), as
+Guerette (2009, Appendix B, equations 1 to 4) states them:"><meta property="og:description" content="Asks whether an intervention in an area pushed crime into the area
 around it (displacement) or reduced it there too (a diffusion of
 benefits). Counts before and after the intervention are needed for the
 treated area a, a buffer b around it and a control area c that
-neither can reach (see bufas() for drawing them). Following Bowers and
-Johnson (2003), with subscripts 0 before and 1 after:"><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
+neither can reach (see bufas() for drawing them). With subscripts 0
+before and 1 after, the measures of Bowers and Johnson (2003), as
+Guerette (2009, Appendix B, equations 1 to 4) states them:"><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -48,8 +50,9 @@ Johnson (2003), with subscripts 0 before and 1 after:"><meta property="og:image"
 around it (displacement) or reduced it there too (a diffusion of
 benefits). Counts before and after the intervention are needed for the
 treated area <code>a</code>, a buffer <code>b</code> around it and a control area <code>c</code> that
-neither can reach (see <code><a href="bufas.html">bufas()</a></code> for drawing them). Following Bowers and
-Johnson (2003), with subscripts 0 before and 1 after:</p>
+neither can reach (see <code><a href="bufas.html">bufas()</a></code> for drawing them). With subscripts 0
+before and 1 after, the measures of Bowers and Johnson (2003), as
+Guerette (2009, Appendix B, equations 1 to 4) states them:</p>
     </div>
 
     <div class="section level2">
@@ -69,8 +72,8 @@ buffer and the control: two numbers from 0 each, before first; those of
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A named numeric vector: <code>sm</code>, <code>bdm</code>, <code>wdq</code>, <code>ea</code>, <code>eb</code> and
-<code>net</code>.</p>
+    <p>A named numeric vector: <code>sm</code>, <code>bdm</code>, <code>wdq</code>, <code>ge</code>, <code>ne</code>, <code>ea</code>,
+<code>eb</code> and <code>tne</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -81,30 +84,50 @@ worked;</p></li>
 <li><p>the buffer displacement measure <code>bdm = b1 / c1 - b0 / c0</code>; positive
 when crime rose in the buffer (displacement), negative when it fell
 (diffusion);</p></li>
-<li><p>the quotient <code>wdq = bdm / sm</code>. With <code>sm</code> negative, <code>wdq</code> above 0 is a
-diffusion of benefits, below 0 displacement, and below -1 displacement
-larger than the gain in the treated area;</p></li>
-<li><p>the counts expected after in the treated area and the buffer had they
-followed the control (<code>ea = a0 c1 / c0</code>, <code>eb</code>), and <code>net</code>, the crimes
-prevented in both together, <code>(ea - a1) + (eb - b1)</code>.</p></li>
+<li><p>the weighted displacement quotient <code>wdq = bdm / sm</code>. With <code>sm</code>
+negative, <code>wdq</code> above 0 is a diffusion of benefits, below 0
+displacement, and below -1 displacement larger than the gain in the
+treated area;</p></li>
+<li><p>the gross effect <code>ge = a0 - a1</code>, the fall in the treated area, and the
+net effect <code>ne = a0 / c0 - a1 / c1</code> (that is <code>-sm</code>), the fall relative
+to the control;</p></li>
+<li><p>the total net effect <code>tne = (a0 c1 / c0 - a1) + (b0 c1 / c0 - b1)</code>,
+the crimes prevented in the treated area and the buffer together
+(positive when crime was prevented), with <code>ea = a0 c1 / c0</code> and <code>eb = b0 c1 / c0</code> the counts expected after had both areas followed the
+control. <code>ge</code> and <code>tne</code> count crimes, so they need counts, not rates.</p></li>
 </ul><p>The quotient means little when <code>sm</code> is close to 0 (<code>NA</code> at exactly 0)
 or the counts are small; the control must be like the other two areas
-in trend, and far enough not to be reached by either.</p>
+in trend, and far enough not to be reached by either. Guerette's worked
+example (Appendix D: the treated area 207 before and 110 after, the
+buffer 178 and 157, the control 308 and 318) gives <code>ge</code> 97, <code>ne</code> 0.326
+and <code>tne</code> 130.5, as printed there; the guide prints the quotient as
+0.411, which its own formula and counts do not give (they give 0.258).</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Bowers, K. J. and Johnson, S. D. (2003). Measuring the
-geographical displacement and diffusion of benefit effects of crime
-prevention activity. <em>Journal of Quantitative Criminology</em>, 19(3),
-275-301. <a href="https://doi.org/10.1023/A%3A1024909009240" class="external-link">doi:10.1023/A:1024909009240</a></p>
+    <p>Bowers, K. J. and Johnson, S. D. (2003). Measuring the geographical
+displacement and diffusion of benefit effects of crime prevention
+activity. <em>Journal of Quantitative Criminology</em>, 19(3), 275-301.
+<a href="https://doi.org/10.1023/A%3A1024909009240" class="external-link">doi:10.1023/A:1024909009240</a></p>
+<p>Guerette, R. T. (2009). <em>Analyzing Crime Displacement and Diffusion</em>.
+Tool Guide No. 10. Center for Problem-Oriented Policing, Arizona State
+University.</p>
     </div>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># burglaries: treated 100 -&gt; 60, buffer 50 -&gt; 40, control 200 -&gt; 180</span></span></span>
 <span class="r-in"><span><span class="fu">wdqx</span><span class="op">(</span>a <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">60</span><span class="op">)</span>, b <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">40</span><span class="op">)</span>, c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">180</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          sm         bdm         wdq          ea          eb         net </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> -0.16666667 -0.02777778  0.16666667 90.00000000 45.00000000 35.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          sm         bdm         wdq          ge          ne          ea </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -0.16666667 -0.02777778  0.16666667 40.00000000  0.16666667 90.00000000 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          eb         tne </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 45.00000000 35.00000000 </span>
+<span class="r-in"><span><span class="co"># Guerette (2009), Appendix D</span></span></span>
+<span class="r-in"><span><span class="fu">wdqx</span><span class="op">(</span>a <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">207</span>, <span class="fl">110</span><span class="op">)</span>, b <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">178</span>, <span class="fl">157</span><span class="op">)</span>, c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">308</span>, <span class="fl">318</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           sm          bdm          wdq           ge           ne           ea </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.32616597  -0.08421139   0.25818569  97.00000000   0.32616597 213.72077922 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           eb          tne </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 183.77922078 130.50000000 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

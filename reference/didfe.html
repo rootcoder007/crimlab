@@ -265,6 +265,13 @@ Research</em>, 53(6), 4138-4156. <a href="https://doi.org/10.1111/1475-6773.1299
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 treated vs never    2021     Inf -4.029237  0.375</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 3 earlier vs later    2019    2021 -4.561454  0.125</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4 later vs earlier    2021    2019 -4.542020  0.125</span>
+<span class="r-in"><span><span class="co"># the simulated panel of polex(): a reform with a known effect of -3</span></span></span>
+<span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="polex.html">polex</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">didfe</span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">crmrate</span>, <span class="va">p</span><span class="op">$</span><span class="va">district</span>, <span class="va">p</span><span class="op">$</span><span class="va">month</span>, <span class="va">p</span><span class="op">$</span><span class="va">reformed</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> didfe: ols, 720 rows, 20 units, 36 periods, 20 clusters</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  term      est        se        lo        hi      stat           p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   trt -3.23164 0.1164121 -3.475293 -2.987986 -27.76034 7.66007e-17</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> comparison mean 26.52167, relative effect -0.121849</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

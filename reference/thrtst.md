@@ -16,7 +16,12 @@ thrtst(
   off = NULL,
   ref = NULL,
   level = 0.95,
-  maxit = 2000
+  maxit = 2000,
+  rank = "pair",
+  fit = "ml",
+  chains = 4,
+  iter = 1000,
+  seed = NULL
 )
 ```
 
@@ -63,6 +68,30 @@ thrtst(
   The quasi-Newton steps of each of the three starts of each fit: one
   whole number from 1.
 
+- rank:
+
+  `"pair"` or `"joint"`: the rank-order test by pairs of officer groups
+  or for all of them at once.
+
+- fit:
+
+  `"ml"` or `"bayes"`: the threshold model by maximum likelihood or by
+  Bayesian inference.
+
+- chains:
+
+  The chains of the Bayesian fit: one whole number from 2.
+
+- iter:
+
+  The steps of each chain, half of them warm-up: one whole number from
+  20.
+
+- seed:
+
+  The seed of the Bayesian fit: `NULL` to draw it from R's generator, or
+  one whole number from 0.
+
 ## Value
 
 An object of class `thrtst`, a list: `hit`, one row per group (`group`,
@@ -73,11 +102,20 @@ one row per group (`group`, `thr`, `se`, `lo`, `hi`, and `diff`, `dse`,
 `z`, `p` against the reference), `NULL` when the model is not
 identified; `lrt`, the likelihood-ratio test of equal thresholds
 (`stat`, `df`, `p`, the log-likelihoods `llfull` and `llsame`, and the
-number of `cells`); `fit`, one row per model (`model`, `conv`, `iter`);
+number of `cells`); `fit`, one row per model (`model`, `conv`, `iter`;
+with `fit = "bayes"` one row with `chains`, the divergent transitions
+`div`, the mean acceptance `acc` and the step size `eps` as well);
 `cells`, the fitted `phi`, `delta`, `thr`, `srate` and `hrate` of each
-group and area with stops; `rank`, `NULL` without `off`, otherwise one
-row per pair of officer groups and measure (`off1`, `off2`, `meas`,
-`zmin`, `zmax`, `rej`); and `ref`.
+group and area with stops; `rank`, `NULL` without `off`, otherwise with
+`rank = "pair"` one row per pair of officer groups and measure (`off1`,
+`off2`, `meas`, `zmin`, `zmax`, `rej`) and with `rank = "joint"` one row
+per measure and officer group (`meas`, `off`, `rank`, `rej`); `ref`; and
+`mono`, `NULL` without `off`, otherwise one row per group of the people
+stopped and measure (`grp`, `meas`, `chisq`, `df`, `p`); `post`, `NULL`
+unless `fit = "bayes"`, otherwise one row per quantity (`param`, `mean`,
+`sd`, `lo`, `hi`, `ess`, `rhat`). With `fit = "bayes"` `thr` has the
+columns `group`, `thr`, `se`, `lo`, `hi`, `diff`, `dse`, `dlo` and
+`dhi`, and `lrt` is `NULL`.
 
 ## Details
 
@@ -101,26 +139,91 @@ row per pair of officer groups and measure (`off1`, `off2`, `meas`,
   `delta` and `t` are the logistic (`phi`, `t`) or exponential (`delta`)
   of a group term plus an area term, so a group's threshold may differ
   from another's by the same amount on the logit scale in every area.
-  The model is fitted by maximum likelihood to the binomial counts of
-  searches among stops and hits among searches (where the published
-  method uses Bayesian inference). A lower threshold for a group is
-  evidence of discrimination against it. `thr` is each group's threshold
-  averaged over the areas, weighted by the areas' stops, with a
-  delta-method standard error; the likelihood-ratio test compares the
-  fit with one threshold for every group. The model is fitted only when
-  it has more rates (two per group and area with stops) than parameters
+  With `fit = "ml"` (the default) the model is fitted by maximum
+  likelihood to the binomial counts of searches among stops and hits
+  among searches. A lower threshold for a group is evidence of
+  discrimination against it. `thr` is each group's threshold averaged
+  over the areas, weighted by the areas' stops, with a delta-method
+  standard error; the likelihood-ratio test compares the fit with one
+  threshold for every group. The model is fitted only when it has more
+  rates (two per group and area with stops) than parameters
   (`3 (groups + areas - 1)`): with `area` `NULL` it is not.
 
-- The rank-order test of Anwar and Fang (2006), when `off` gives the
-  officer's group: if officers of no group are prejudiced relative to
-  the others, officers of one group search people of every group more
-  often than officers of another (or less often, in every group), and
-  likewise for hit rates. For each pair of officer groups and each
-  measure the z statistics of the difference across the suspects' groups
-  are given; `rej` is `TRUE` when one is significantly positive and
-  another significantly negative at `level`, a ranking that changes with
-  the suspect's group. This is a pairwise simplification of their test,
-  not its joint form.
+- The tests of Anwar and Fang (2006), when `off` gives the officer's
+  group. If officers of no group are prejudiced relative to the others,
+  the ranking of the officer groups by search rate is the same for
+  people of every group, and likewise the ranking by hit rate
+  (Proposition 3; Section 2.1.2). `mono` is their test of monolithic
+  behaviour (Proposition 2, equations 3 and 4; Section 3.2.3): for each
+  group of the people stopped and each measure, Pearson's chi-square of
+  equal rates across the officer groups, on (officer groups - 1) df.
+  With `rank = "pair"` (the default) each pair of officer groups is
+  taken alone: for each measure the z statistics of the difference
+  across the suspects' groups are given, and `rej` is `TRUE` when one is
+  significantly positive and another significantly negative at `level`
+  (two-sided), a ranking that changes with the suspect's group. With
+  `rank = "joint"` the ranking of all officer groups is tested at once,
+  as the paper states it: each one-sided z of their equation 7 (the
+  difference of two rates over the root of the sum of the sample
+  variances of the 0/1 outcomes over the counts) beyond the normal
+  quantile at `level` orders two officer groups among the people of one
+  group; the null of no prejudice holds when one ranking agrees with
+  every such order in every group, and is rejected (`rej`) when the
+  orders form a cycle (a above b in one group, b above c in another, c
+  above a in a third, or a reversed pair). The common `rank` (1 the
+  highest rate, ties broken by the pooled rate) is given when it is not
+  rejected. As the paper notes, the test has power below one: a group of
+  officers prejudiced against every group alike is not detected. The
+  paper's p-values come from the normal and chi-square distributions, as
+  here; its resampling (Section 2.2) that balances the officers'
+  assignment across stations needs data on single officers and is not
+  done.
+
+With `fit = "bayes"` the threshold test is fitted as the papers fit it,
+by Bayesian inference. The signal distributions are those above, with
+the area with the most stops as the reference (its terms 0), and each
+group and area has its own threshold. The priors are those of Simoiu,
+Corbett-Davies and Goel (2017, Section 2): normal priors with standard
+deviation 2 on the groups' terms `phi_r` and `delta_r`; the areas' terms
+drawn from `N(mu, sigma)`, with `mu ~ N(0, 2)` and `sigma` half normal
+with scale 2, for each of `phi` and `delta`; and each threshold on the
+logit scale drawn from `N(mu_t, sigma_t)` of its group, again with
+`mu_t ~ N(0, 2)` and half-normal `sigma_t`. Pierson, Corbett-Davies and
+Goel (2017) keep this model and put the discriminant distributions in
+place of the beta distributions of Simoiu et al. The posterior is
+sampled by Hamiltonian Monte Carlo, as both papers do with Stan, here
+with the No-U-Turn sampler of Hoffman and Gelman (2014) and a diagonal
+mass matrix: `chains` chains of `iter` steps, the first half of each
+tuning the step size (to an acceptance of 0.8) and the scale of each
+parameter and then dropped, at most 2^10 leapfrog steps a draw; `seed`
+fixes the draws. Each chain starts at the maximum-likelihood fit with
+every parameter moved at random by up to 0.25, because random starts can
+leave a chain in a far worse mode. `thr` then holds each group's
+threshold averaged over its areas by their stops (posterior mean `thr`,
+standard deviation `se` and the interval `lo`, `hi` of probability
+`level`) and its difference from the reference group's (`diff`, `dse`,
+`dlo`, `dhi`); `post` gives the same summaries with the effective sample
+size and the split R-hat of Gelman et al. (2013) for every parameter.
+The function refuses to report chains that have not mixed: an R-hat of
+1.05 or more for any parameter (the rule of Simoiu et al., Section 3.1),
+or fewer than 100 effective draws of a threshold or a difference; more
+iterations then help. The data identify the model only when there are
+more cells with stops than `2 (groups + areas - 1)`, three groups and
+five areas at least (Simoiu et al., Section 2); with fewer the function
+refuses. The authors' published code for the faster model sets other
+priors (a threshold scale shared by the groups, tighter priors on the
+areas); the priors here are those the paper states.
+
+The two fits answer under different models and should be reported as
+such, not as checks of one another. The Bayesian model gives each group
+and area its own threshold under a hierarchical prior; on data made with
+one threshold per group (and area offsets) it can report thresholds far
+from the maximum-likelihood ones and from the values that made the data.
+For three groups in ten areas with 20,000 stops a cell its posterior
+means were about 0.13, 0.07 and 0.14, against 0.27, 0.20 and 0.31 from
+maximum likelihood and from the generating model. Stan's sampler gives
+the same posterior on the same model, so this is a property of the
+model, not of the sampler.
 
 Rows are cells of a table (or single stops, with counts of 0 and 1):
 rows of the same group and area (and officer group) add up.
@@ -145,6 +248,14 @@ Pierson, E., Corbett-Davies, S. and Goel, S. (2017). Fast threshold
 tests for detecting discrimination. arXiv:1702.08536.
 [doi:10.48550/arXiv.1702.08536](https://doi.org/10.48550/arXiv.1702.08536)
 
+Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A. and
+Rubin, D. B. (2013). *Bayesian Data Analysis*, 3rd ed. Chapman and
+Hall/CRC. [doi:10.1201/b16018](https://doi.org/10.1201/b16018)
+
+Hoffman, M. D. and Gelman, A. (2014). The No-U-Turn sampler: adaptively
+setting path lengths in Hamiltonian Monte Carlo. *Journal of Machine
+Learning Research*, 15, 1593-1623.
+
 ## Examples
 
 ``` r
@@ -165,16 +276,27 @@ thrtst(d$stops, d$srch, d$hits, d$grp, area = d$area)
 #>          NA
 #>  0.00144679
 #> thresholds (likelihood ratio 0.03214 on 1 df, p 0.858):
-#>  group          thr         se         lo        hi      diff        dse
-#>      a 0.0002588271 0.08729044 -0.1708273 0.1713450 0.0000000         NA
-#>      b 0.2601602016 0.02633179  0.2085508 0.3117696 0.2599014 0.09127834
-#>        z           p
-#>       NA          NA
-#>  2.84735 0.004408487
+#>  group          thr         se         lo        hi    diff        dse        z
+#>      a 0.0001513307 0.09175977 -0.1796945 0.1799972 0.00000         NA       NA
+#>      b 0.2601813432 0.02657569  0.2080940 0.3122687 0.26003 0.09569318 2.717331
+#>           p
+#>          NA
+#>  0.00658108
 # the rank-order test needs the officers' groups
 thrtst(c(100, 100, 100, 100), c(10, 20, 30, 10), c(5, 5, 5, 5),
        grp = c(1, 1, 2, 2), off = c("x", "y", "x", "y"))$rank
 #>   off1 off2   meas      zmin     zmax   rej
 #> 1    x    y search -2.000000 3.651484  TRUE
 #> 2    x    y    hit -1.936492 1.348400 FALSE
+# the joint test of three officer groups
+thrtst(rep(600, 9), c(72, 48, 60, 60, 72, 48, 48, 60, 72),
+       rep(c(36, 24, 30), 3), grp = rep(1:3, each = 3),
+       off = rep(c("a", "b", "c"), 3), rank = "joint")$rank
+#>     meas off rank   rej
+#> 1 search   a   NA  TRUE
+#> 2 search   b   NA  TRUE
+#> 3 search   c   NA  TRUE
+#> 4    hit   a    1 FALSE
+#> 5    hit   b    3 FALSE
+#> 6    hit   c    2 FALSE
 ```

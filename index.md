@@ -307,6 +307,41 @@ The functions work on summary data, not on raw records:
   its effect, with no assumption, under monotone treatment response,
   under monotone treatment selection and under both
   ([`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)).
+- Indigenous health and wellbeing, the context of the justice system’s
+  over-representation of First Nations, Metis and Inuit people:
+  published tables read with their quality flags and compared group by
+  group
+  ([`sctidy()`](https://rootcoder007.github.io/crimlab/reference/sctidy.md),
+  [`scests()`](https://rootcoder007.github.io/crimlab/reference/scests.md),
+  [`indgap()`](https://rootcoder007.github.io/crimlab/reference/indgap.md),
+  [`ordcmp()`](https://rootcoder007.github.io/crimlab/reference/ordcmp.md),
+  [`stdprev()`](https://rootcoder007.github.io/crimlab/reference/stdprev.md)),
+  wellness beside distress and its balance
+  ([`welprof()`](https://rootcoder007.github.io/crimlab/reference/welprof.md),
+  [`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md),
+  [`holbal()`](https://rootcoder007.github.io/crimlab/reference/holbal.md),
+  [`mhcont()`](https://rootcoder007.github.io/crimlab/reference/mhcont.md),
+  [`healchg()`](https://rootcoder007.github.io/crimlab/reference/healchg.md),
+  [`frmaud()`](https://rootcoder007.github.io/crimlab/reference/frmaud.md)),
+  community indices
+  ([`commidx()`](https://rootcoder007.github.io/crimlab/reference/commidx.md),
+  [`cwbscr()`](https://rootcoder007.github.io/crimlab/reference/cwbscr.md)),
+  the census profile
+  ([`cnsprof()`](https://rootcoder007.github.io/crimlab/reference/cnsprof.md),
+  [`profshr()`](https://rootcoder007.github.io/crimlab/reference/profshr.md),
+  [`cnsstd()`](https://rootcoder007.github.io/crimlab/reference/cnsstd.md),
+  [`cnscwb()`](https://rootcoder007.github.io/crimlab/reference/cnscwb.md)),
+  exposure to residential schools
+  ([`genexpo()`](https://rootcoder007.github.io/crimlab/reference/genexpo.md),
+  [`exptrnd()`](https://rootcoder007.github.io/crimlab/reference/exptrnd.md)),
+  and the Calls to Action
+  ([`trcind()`](https://rootcoder007.github.io/crimlab/reference/trcind.md),
+  [`trchlthgap()`](https://rootcoder007.github.io/crimlab/reference/trchlthgap.md),
+  [`trccmpl()`](https://rootcoder007.github.io/crimlab/reference/trccmpl.md),
+  [`trcprog()`](https://rootcoder007.github.io/crimlab/reference/trcprog.md)),
+  under OCAP(R) and the CARE Principles.
+- A simulated policy panel with a known effect, for the examples
+  ([`polex()`](https://rootcoder007.github.io/crimlab/reference/polex.md)).
 
 ## Algorithms
 
@@ -765,13 +800,14 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package (244 of 244); `crimlab -l` lists them and
-their arguments, and `cli/test.tsv` holds the values the R package gives
-for them (`dev/clref.R`), which every front end is tested against. A
-warning R would give is returned in the result as `warnings`, an array
-of its messages. Outside R a matrix is an array of its rows, without row
-or column names, so a result names its columns as R does for an unnamed
-matrix; and an argument that R takes as a function (the `stat` of
+function of the R package but the plot functions, which draw in R (271
+of 286); `crimlab -l` lists them and their arguments, and `cli/test.tsv`
+holds the values the R package gives for them (`dev/clref.R`), which
+every front end is tested against. A warning R would give is returned in
+the result as `warnings`, an array of its messages. Outside R a matrix
+is an array of its rows, without row or column names, so a result names
+its columns as R does for an unnamed matrix; and an argument that R
+takes as a function (the `stat` of
 [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md))
 has no counterpart.
 

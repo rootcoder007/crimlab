@@ -6,8 +6,9 @@ benefits). Counts before and after the intervention are needed for the
 treated area `a`, a buffer `b` around it and a control area `c` that
 neither can reach (see
 [`bufas()`](https://rootcoder007.github.io/crimlab/reference/bufas.md)
-for drawing them). Following Bowers and Johnson (2003), with subscripts
-0 before and 1 after:
+for drawing them). With subscripts 0 before and 1 after, the measures of
+Bowers and Johnson (2003), as Guerette (2009, Appendix B, equations 1 to
+4) states them:
 
 ## Usage
 
@@ -24,7 +25,8 @@ wdqx(a, b, c)
 
 ## Value
 
-A named numeric vector: `sm`, `bdm`, `wdq`, `ea`, `eb` and `net`.
+A named numeric vector: `sm`, `bdm`, `wdq`, `ge`, `ne`, `ea`, `eb` and
+`tne`.
 
 ## Details
 
@@ -36,17 +38,29 @@ A named numeric vector: `sm`, `bdm`, `wdq`, `ea`, `eb` and `net`.
   when crime rose in the buffer (displacement), negative when it fell
   (diffusion);
 
-- the quotient `wdq = bdm / sm`. With `sm` negative, `wdq` above 0 is a
-  diffusion of benefits, below 0 displacement, and below -1 displacement
-  larger than the gain in the treated area;
+- the weighted displacement quotient `wdq = bdm / sm`. With `sm`
+  negative, `wdq` above 0 is a diffusion of benefits, below 0
+  displacement, and below -1 displacement larger than the gain in the
+  treated area;
 
-- the counts expected after in the treated area and the buffer had they
-  followed the control (`ea = a0 c1 / c0`, `eb`), and `net`, the crimes
-  prevented in both together, `(ea - a1) + (eb - b1)`.
+- the gross effect `ge = a0 - a1`, the fall in the treated area, and the
+  net effect `ne = a0 / c0 - a1 / c1` (that is `-sm`), the fall relative
+  to the control;
+
+- the total net effect `tne = (a0 c1 / c0 - a1) + (b0 c1 / c0 - b1)`,
+  the crimes prevented in the treated area and the buffer together
+  (positive when crime was prevented), with `ea = a0 c1 / c0` and
+  `eb = b0 c1 / c0` the counts expected after had both areas followed
+  the control. `ge` and `tne` count crimes, so they need counts, not
+  rates.
 
 The quotient means little when `sm` is close to 0 (`NA` at exactly 0) or
 the counts are small; the control must be like the other two areas in
-trend, and far enough not to be reached by either.
+trend, and far enough not to be reached by either. Guerette's worked
+example (Appendix D: the treated area 207 before and 110 after, the
+buffer 178 and 157, the control 308 and 318) gives `ge` 97, `ne` 0.326
+and `tne` 130.5, as printed there; the guide prints the quotient as
+0.411, which its own formula and counts do not give (they give 0.258).
 
 ## References
 
@@ -55,11 +69,23 @@ displacement and diffusion of benefit effects of crime prevention
 activity. *Journal of Quantitative Criminology*, 19(3), 275-301.
 [doi:10.1023/A:1024909009240](https://doi.org/10.1023/A%3A1024909009240)
 
+Guerette, R. T. (2009). *Analyzing Crime Displacement and Diffusion*.
+Tool Guide No. 10. Center for Problem-Oriented Policing, Arizona State
+University.
+
 ## Examples
 
 ``` r
 # burglaries: treated 100 -> 60, buffer 50 -> 40, control 200 -> 180
 wdqx(a = c(100, 60), b = c(50, 40), c = c(200, 180))
-#>          sm         bdm         wdq          ea          eb         net 
-#> -0.16666667 -0.02777778  0.16666667 90.00000000 45.00000000 35.00000000 
+#>          sm         bdm         wdq          ge          ne          ea 
+#> -0.16666667 -0.02777778  0.16666667 40.00000000  0.16666667 90.00000000 
+#>          eb         tne 
+#> 45.00000000 35.00000000 
+# Guerette (2009), Appendix D
+wdqx(a = c(207, 110), b = c(178, 157), c = c(308, 318))
+#>           sm          bdm          wdq           ge           ne           ea 
+#>  -0.32616597  -0.08421139   0.25818569  97.00000000   0.32616597 213.72077922 
+#>           eb          tne 
+#> 183.77922078 130.50000000 
 ```

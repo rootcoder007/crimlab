@@ -194,4 +194,10 @@ wcbx(d$rate, d$town, d$year, d$bylaw)
 wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
 #>   outcome       est      stat          p      pstep
 #> 1      y1 -1.987082 -9.207341 0.01785714 0.01785714
+# the simulated panel of polex(), its four regions the clusters
+p <- polex()
+wcbx(p$crmrate, p$district, p$month, p$reformed, clus = p$region)
+#> wcbx: wild, 4 clusters, 16 draws (all enumerated)
+#>       est      stat     p   lo  hi
+#>  -3.23164 -19.51674 0.125 -Inf Inf
 ```

@@ -94,16 +94,28 @@ bootstrap); `far`, the false alarm rate used; `size`; and `nboot`.
 - `pauc`: the partial area under the curve from a false alarm rate of 0
   to `far` (by default the smallest of the procedures' largest false
   alarm rates, so all are compared over the same range), by the
-  trapezoid rule; a curve that ends before `far` is taken flat from its
-  last point. With `nboot` the standard errors come from resampling the
-  target-present and target-absent witnesses of each procedure, and each
-  procedure is compared with the first by `z = diff / dse`, as
-  `pROC::roc.test(method = "bootstrap")` compares partial areas.
+  trapezoid rule. A curve that ends before `far` is continued by the
+  straight line from its last point to the point where every lineup
+  counts as an identification (false alarm rate 1, or `1 / size` with
+  `size`, and hit rate 1), as the package pROC that Mickes, Flowe and
+  Wixted (2012) used joins a curve to (1, 1). With `nboot` the standard
+  errors come from resampling the target-present and target-absent
+  witnesses of each procedure, and each procedure is compared with the
+  first by `z = diff / dse`, their `D` statistic, as
+  `pROC::roc.test(method = "bootstrap")` compares partial areas. Their
+  partial areas (0.13 and 0.09 in Experiment 1a, p. 371) are on the
+  scale of all identifications in target-absent lineups, not divided by
+  the lineup's size as the false alarm rates of their Table 3 are: with
+  `size`, `size * pauc` is on their scale.
 
 - `cac`: the confidence-accuracy characteristic (Mickes 2015): at each
   confidence level alone, the share of suspect identifications that are
   correct, `hr / (hr + far)` of that level, which assumes guilty and
   innocent suspects equally common.
+
+The ROC points and the partial areas reproduce the rates of Table 3 of
+Mickes, Flowe and Wixted (2012) and, on their scale, its partial areas
+(see the tests).
 
 ## References
 
@@ -138,7 +150,7 @@ conf <- ifelse(pick == "none", NA, sample(1:5, n, TRUE))
 r <- lnroc(tp, pick, conf, proc = proc, nboot = 200, seed = 1)
 r$pauc
 #>   proc    pauc          se          lo         hi   diff         dse         p
-#> 1  seq 0.02375 0.006409411 0.011187785 0.03631221  0.000          NA        NA
-#> 2  sim 0.01475 0.004083972 0.006745562 0.02275444 -0.009 0.007664245 0.2402813
+#> 1  seq 0.02375 0.006495450 0.011019152 0.03648085  0.000          NA        NA
+#> 2  sim 0.01475 0.004086343 0.006740914 0.02275909 -0.009 0.007738077 0.2447972
 plot(r$roc$far, r$roc$hr, col = factor(r$roc$proc))
 ```

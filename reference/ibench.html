@@ -8,10 +8,7 @@ propensity e(x) that a stop with circumstances x (place, hour, day,
 reason) is this officer's comes from a logistic regression on x
 (over all stops), and each other officer's stop gets the weight `e / (1
 e), the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, (sum w)^2 /
-sum w^2. With many officers some will stand out by chance: qis the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, andflagmarks those withqbelowfdr`. (The paper adds a
-regression adjustment to the weights, a doubly robust estimate, and
-estimates the local false discovery rate; the plain weights and the
-step-up rate are used here.)
+sum w^2. With many officers some will stand out by chance: qis the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, andflagmarks those withqbelowfdr`.
 
 "><meta property="og:description" content="Asks whether an officer stops more people of a group (or searches,
 arrests, uses force more often) than other officers do in the same
@@ -22,10 +19,7 @@ propensity e(x) that a stop with circumstances x (place, hour, day,
 reason) is this officer's comes from a logistic regression on x
 (over all stops), and each other officer's stop gets the weight `e / (1
 e), the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, (sum w)^2 /
-sum w^2. With many officers some will stand out by chance: qis the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, andflagmarks those withqbelowfdr`. (The paper adds a
-regression adjustment to the weights, a doubly robust estimate, and
-estimates the local false discovery rate; the plain weights and the
-step-up rate are used here.)
+sum w^2. With many officers some will stand out by chance: qis the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, andflagmarks those withqbelowfdr`.
 
 "><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -70,15 +64,12 @@ other officers' stops weighted to look like this officer's: the
 propensity <code>e(x)</code> that a stop with circumstances <code>x</code> (place, hour, day,
 reason) is this officer's comes from a logistic regression on <code>x</code>
 (over all stops), and each other officer's stop gets the weight `e / (1</p><ul><li><p>e)<code>, the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, </code>(sum w)^2 /
-sum w^2<code>. With many officers some will stand out by chance: </code>q<code>is the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, and</code>flag<code>marks those with</code>q<code>below</code>fdr`. (The paper adds a
-regression adjustment to the weights, a doubly robust estimate, and
-estimates the local false discovery rate; the plain weights and the
-step-up rate are used here.)</p></li>
+sum w^2<code>. With many officers some will stand out by chance: </code>q<code>is the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, and</code>flag<code>marks those with</code>q<code>below</code>fdr`.</p></li>
 </ul></div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ibench</span><span class="op">(</span><span class="va">y</span>, <span class="va">off</span>, x <span class="op">=</span> <span class="cn">NULL</span>, minn <span class="op">=</span> <span class="fl">20</span>, fdr <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ibench</span><span class="op">(</span><span class="va">y</span>, <span class="va">off</span>, x <span class="op">=</span> <span class="cn">NULL</span>, minn <span class="op">=</span> <span class="fl">20</span>, fdr <span class="op">=</span> <span class="fl">0.05</span>, dr <span class="op">=</span> <span class="cn">FALSE</span>, local <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -109,17 +100,51 @@ from 1.</p></dd>
 <dd><p>The false discovery rate at which an officer is flagged: one
 number strictly between 0 and 1.</p></dd>
 
+
+<dt id="arg-dr">dr<a class="anchor" aria-label="anchor" href="#arg-dr"></a></dt>
+<dd><p><code>TRUE</code> for the doubly robust benchmark, <code>FALSE</code> for the
+propensity weights alone.</p></dd>
+
+
+<dt id="arg-local">local<a class="anchor" aria-label="anchor" href="#arg-local"></a></dt>
+<dd><p><code>TRUE</code> to estimate the local false discovery rate and flag
+by it.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>ibench</code>, a list: <code>tab</code>, one row per officer
 (<code>off</code>, <code>n</code> stops, <code>rate</code>, the officer's share of the outcome, <code>bench</code>,
-the benchmark, <code>ess</code>, its effective number of stops, <code>z</code>, <code>p</code>, <code>q</code> and
-<code>flag</code>); <code>fdr</code>; <code>minn</code>; and <code>nx</code>, the number of columns of <code>x</code>.</p>
+the benchmark, <code>ess</code>, its effective number of stops, <code>z</code>, <code>p</code>, <code>q</code>,
+with <code>local</code> <code>lfdr</code>, and <code>flag</code>); <code>fdr</code>; <code>minn</code>; <code>nx</code>, the number of
+columns of <code>x</code>; <code>dr</code>; and <code>null</code>, <code>NULL</code> without <code>local</code>, otherwise
+the empirical null's <code>delta</code>, <code>sigma</code> and <code>p0</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The comparison is only as good as <code>x</code>: circumstances that differ between
+    <p>Two options follow Ridgeway and MacDonald (2009) further:</p><ul><li><p><code>dr = TRUE</code>, the doubly robust benchmark: the propensity weights are
+kept, and a logistic regression of the outcome on an indicator of the
+officer's stops and on <code>x</code>, weighted 1 for the officer's stops and <code>e / (1 - e)</code> for the others, adjusts for what the weights leave
+unbalanced. The benchmark is the mean of its fitted chances for the
+officer's stops with the indicator set to 0 (the same stops made by
+the others), and <code>z</code> is the officer's rate less the benchmark over
+the sandwich (robust) standard error of that difference from the
+weighted fit. The estimate is right when either the propensity model
+or the outcome model is. This is the propensity-weighted regression
+of the first author's fastDR package (which fits the propensity by
+boosting, where a logistic regression is used here).</p></li>
+<li><p><code>local = TRUE</code>, the local false discovery rate of Efron (2004) for
+each tested officer: the chance that an officer with that <code>z</code> is one
+of the unremarkable majority. The density of all the officers' <code>z</code>
+is fitted by a Poisson regression on a natural spline of 7 df over a
+histogram of 120 breaks, the null density is a normal <code>N(delta, sigma^2)</code> fitted by maximum likelihood to the middle of the <code>z</code>
+values (the empirical null, which absorbs spread that the benchmark
+misses), and <code>lfdr = p0 f0(z) / f(z)</code>, as in the defaults of the
+package locfdr; <code>null</code> gives <code>delta</code>, <code>sigma</code> and <code>p0</code>. <code>flag</code> then
+marks the officers with <code>lfdr</code> below <code>fdr</code> (Efron suggests 0.2). The
+method is meant for many officers, hundreds rather than tens; when
+the null cannot be fitted the function refuses.</p></li>
+</ul><p>The comparison is only as good as <code>x</code>: circumstances that differ between
 officers and are not in <code>x</code> are left in the difference. An officer with
 fewer than <code>minn</code> stops, or whose propensity model does not converge
 (circumstances that separate this officer's stops from all others), is
@@ -135,6 +160,9 @@ police stops. <em>Journal of the American Statistical Association</em>,
 rate: a practical and powerful approach to multiple testing. <em>Journal
 of the Royal Statistical Society, Series B</em>, 57(1), 289-300.
 <a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x" class="external-link">doi:10.1111/j.2517-6161.1995.tb02031.x</a></p>
+<p>Efron, B. (2004). Large-scale simultaneous hypothesis testing: the
+choice of a null hypothesis. <em>Journal of the American Statistical
+Association</em>, 99(465), 96-104. <a href="https://doi.org/10.1198/016214504000000089" class="external-link">doi:10.1198/016214504000000089</a></p>
     </div>
 
     <div class="section level2">
@@ -172,6 +200,33 @@ of the Royal Statistical Society, Series B</em>, 57(1), 289-300.
 <span class="r-out co"><span class="r-pr">#&gt;</span>  FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  FALSE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   TRUE</span>
+<span class="r-in"><span><span class="fu">ibench</span><span class="op">(</span><span class="va">y</span>, <span class="va">off</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">night</span><span class="op">)</span>, minn <span class="op">=</span> <span class="fl">50</span>, dr <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">tab</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    off   n      rate     bench      ess           z            p            q</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  o01 252 0.4484127 0.4393818 1738.745  0.27653108 7.821402e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  o02 246 0.4471545 0.4379157 1725.956  0.28607426 7.748212e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3  o03 255 0.5294118 0.3417565 2701.527  5.92119984 3.196012e-09 3.835214e-08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  o04 266 0.3646617 0.3691144 2733.526 -0.14637442 8.836258e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  o05 247 0.3805668 0.3619805 2740.723  0.58858288 5.561411e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  o06 273 0.3040293 0.3701072 2717.313 -2.27360614 2.298968e-02 9.195871e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  o07 246 0.3252033 0.3518533 2638.673 -0.86671658 3.860973e-01 9.266336e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  o08 235 0.3531915 0.3488650 2641.215  0.13672962 8.912445e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  o09 254 0.3425197 0.3449036 2577.094 -0.07715986 9.384964e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 o10 235 0.2936170 0.3549139 2651.348 -2.01670530 4.372628e-02 1.311788e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 o11 249 0.3694779 0.3490945 2646.200  0.65262224 5.139998e-01 9.384964e-01</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12 o12 242 0.2768595 0.3613048 2687.908 -2.86006053 4.235602e-03 2.541361e-02</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     flag</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3   TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9  FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10 FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11 FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12  TRUE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -54,7 +54,12 @@ searches and successful searches ("hits", contraband found):</p>
 <span>  off <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ref <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span>,</span>
-<span>  maxit <span class="op">=</span> <span class="fl">2000</span></span>
+<span>  maxit <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>  rank <span class="op">=</span> <span class="st">"pair"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"ml"</span>,</span>
+<span>  chains <span class="op">=</span> <span class="fl">4</span>,</span>
+<span>  iter <span class="op">=</span> <span class="fl">1000</span>,</span>
+<span>  seed <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -103,6 +108,30 @@ between 0 and 1.</p></dd>
 <dd><p>The quasi-Newton steps of each of the three starts of each
 fit: one whole number from 1.</p></dd>
 
+
+<dt id="arg-rank">rank<a class="anchor" aria-label="anchor" href="#arg-rank"></a></dt>
+<dd><p><code>"pair"</code> or <code>"joint"</code>: the rank-order test by pairs of officer
+groups or for all of them at once.</p></dd>
+
+
+<dt id="arg-fit">fit<a class="anchor" aria-label="anchor" href="#arg-fit"></a></dt>
+<dd><p><code>"ml"</code> or <code>"bayes"</code>: the threshold model by maximum likelihood
+or by Bayesian inference.</p></dd>
+
+
+<dt id="arg-chains">chains<a class="anchor" aria-label="anchor" href="#arg-chains"></a></dt>
+<dd><p>The chains of the Bayesian fit: one whole number from 2.</p></dd>
+
+
+<dt id="arg-iter">iter<a class="anchor" aria-label="anchor" href="#arg-iter"></a></dt>
+<dd><p>The steps of each chain, half of them warm-up: one whole
+number from 20.</p></dd>
+
+
+<dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
+<dd><p>The seed of the Bayesian fit: <code>NULL</code> to draw it from R's
+generator, or one whole number from 0.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -115,10 +144,19 @@ reference); <code>kpt</code>, the chi-square of equal hit rates (<code>chisq</co
 is not identified; <code>lrt</code>, the likelihood-ratio test of equal
 thresholds (<code>stat</code>, <code>df</code>, <code>p</code>, the log-likelihoods <code>llfull</code> and
 <code>llsame</code>, and the number of <code>cells</code>); <code>fit</code>, one row per model
-(<code>model</code>, <code>conv</code>, <code>iter</code>); <code>cells</code>, the fitted <code>phi</code>, <code>delta</code>, <code>thr</code>,
+(<code>model</code>, <code>conv</code>, <code>iter</code>; with <code>fit = "bayes"</code> one row with <code>chains</code>,
+the divergent transitions <code>div</code>, the mean acceptance <code>acc</code> and the
+step size <code>eps</code> as well); <code>cells</code>, the fitted <code>phi</code>, <code>delta</code>, <code>thr</code>,
 <code>srate</code> and <code>hrate</code> of each group and area with stops; <code>rank</code>, <code>NULL</code>
-without <code>off</code>, otherwise one row per pair of officer groups and
-measure (<code>off1</code>, <code>off2</code>, <code>meas</code>, <code>zmin</code>, <code>zmax</code>, <code>rej</code>); and <code>ref</code>.</p>
+without <code>off</code>, otherwise with <code>rank = "pair"</code> one row per pair of
+officer groups and measure (<code>off1</code>, <code>off2</code>, <code>meas</code>, <code>zmin</code>, <code>zmax</code>,
+<code>rej</code>) and with <code>rank = "joint"</code> one row per measure and officer group
+(<code>meas</code>, <code>off</code>, <code>rank</code>, <code>rej</code>); <code>ref</code>; and <code>mono</code>, <code>NULL</code> without
+<code>off</code>, otherwise one row per group of the people stopped and measure
+(<code>grp</code>, <code>meas</code>, <code>chisq</code>, <code>df</code>, <code>p</code>); <code>post</code>, <code>NULL</code> unless <code>fit = "bayes"</code>, otherwise one row per quantity (<code>param</code>, <code>mean</code>, <code>sd</code>, <code>lo</code>,
+<code>hi</code>, <code>ess</code>, <code>rhat</code>). With <code>fit = "bayes"</code> <code>thr</code> has the columns
+<code>group</code>, <code>thr</code>, <code>se</code>, <code>lo</code>, <code>hi</code>, <code>diff</code>, <code>dse</code>, <code>dlo</code> and <code>dhi</code>, and
+<code>lrt</code> is <code>NULL</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -142,26 +180,90 @@ chance exceeds the threshold <code>t</code>. In each group and area <code>phi</c
 <code>delta</code> and <code>t</code> are the logistic (<code>phi</code>, <code>t</code>) or exponential (<code>delta</code>)
 of a group term plus an area term, so a group's threshold may differ
 from another's by the same amount on the logit scale in every area.
-The model is fitted by maximum likelihood to the binomial counts of
-searches among stops and hits among searches (where the published
-method uses Bayesian inference). A lower threshold for a group is
+With <code>fit = "ml"</code> (the default) the model is fitted by maximum
+likelihood to the binomial counts of searches among stops and hits
+among searches. A lower threshold for a group is
 evidence of discrimination against it. <code>thr</code> is each group's threshold
 averaged over the areas, weighted by the areas' stops, with a
 delta-method standard error; the likelihood-ratio test compares the
 fit with one threshold for every group. The model is fitted only when
 it has more rates (two per group and area with stops) than parameters
 (<code>3 (groups + areas - 1)</code>): with <code>area</code> <code>NULL</code> it is not.</p></li>
-<li><p>The rank-order test of Anwar and Fang (2006), when <code>off</code> gives the
-officer's group: if officers of no group are prejudiced relative to
-the others, officers of one group search people of every group more
-often than officers of another (or less often, in every group), and
-likewise for hit rates. For each pair of officer groups and each
-measure the z statistics of the difference across the suspects'
-groups are given; <code>rej</code> is <code>TRUE</code> when one is significantly positive
-and another significantly negative at <code>level</code>, a ranking that changes
-with the suspect's group. This is a pairwise simplification of their
-test, not its joint form.</p></li>
-</ul><p>Rows are cells of a table (or single stops, with counts of 0 and 1):
+<li><p>The tests of Anwar and Fang (2006), when <code>off</code> gives the officer's
+group. If officers of no group are prejudiced relative to the others,
+the ranking of the officer groups by search rate is the same for
+people of every group, and likewise the ranking by hit rate
+(Proposition 3; Section 2.1.2). <code>mono</code> is their test of monolithic
+behaviour (Proposition 2, equations 3 and 4; Section 3.2.3): for each
+group of the people stopped and each measure, Pearson's chi-square of
+equal rates across the officer groups, on (officer groups - 1) df.
+With <code>rank = "pair"</code> (the default) each pair of officer groups is
+taken alone: for each measure the z statistics of the difference
+across the suspects' groups are given, and <code>rej</code> is <code>TRUE</code> when one
+is significantly positive and another significantly negative at
+<code>level</code> (two-sided), a ranking that changes with the suspect's group.
+With <code>rank = "joint"</code> the ranking of all officer groups is tested at
+once, as the paper states it: each one-sided z of their equation 7
+(the difference of two rates over the root of the sum of the sample
+variances of the 0/1 outcomes over the counts) beyond the normal
+quantile at <code>level</code> orders two officer groups among the people of one
+group; the null of no prejudice holds when one ranking agrees with
+every such order in every group, and is rejected (<code>rej</code>) when the
+orders form a cycle (a above b in one group, b above c in another, c
+above a in a third, or a reversed pair). The common <code>rank</code> (1 the
+highest rate, ties broken by the pooled rate) is given when it is not
+rejected. As the paper notes, the test has power below one: a group
+of officers prejudiced against every group alike is not detected. The
+paper's p-values come from the normal and chi-square distributions,
+as here; its resampling (Section 2.2) that balances the officers'
+assignment across stations needs data on single officers and is not
+done.</p></li>
+</ul><p>With <code>fit = "bayes"</code> the threshold test is fitted as the papers fit it,
+by Bayesian inference. The signal distributions are those above, with
+the area with the most stops as the reference (its terms 0), and each
+group and area has its own threshold. The priors are those of Simoiu,
+Corbett-Davies and Goel (2017, Section 2): normal priors with standard
+deviation 2 on the groups' terms <code>phi_r</code> and <code>delta_r</code>; the areas'
+terms drawn from <code>N(mu, sigma)</code>, with <code>mu ~ N(0, 2)</code> and <code>sigma</code> half
+normal with scale 2, for each of <code>phi</code> and <code>delta</code>; and each threshold
+on the logit scale drawn from <code>N(mu_t, sigma_t)</code> of its group, again
+with <code>mu_t ~ N(0, 2)</code> and half-normal <code>sigma_t</code>. Pierson,
+Corbett-Davies and Goel (2017) keep this model and put the
+discriminant distributions in place of the beta distributions of
+Simoiu et al. The posterior is sampled by Hamiltonian Monte Carlo, as
+both papers do with Stan, here with the No-U-Turn sampler of Hoffman
+and Gelman (2014) and a diagonal mass matrix: <code>chains</code> chains of <code>iter</code>
+steps, the first half of each tuning the step size (to an acceptance
+of 0.8) and the scale of each parameter and then dropped, at most 2^10
+leapfrog steps a draw; <code>seed</code> fixes the draws. Each chain starts at the
+maximum-likelihood fit with every parameter moved at random by up to
+0.25, because random starts can leave a chain in a far worse mode.
+<code>thr</code> then holds each group's threshold averaged over its areas by
+their stops (posterior mean <code>thr</code>, standard deviation <code>se</code> and the
+interval <code>lo</code>, <code>hi</code> of probability <code>level</code>) and its difference from
+the reference group's (<code>diff</code>, <code>dse</code>, <code>dlo</code>, <code>dhi</code>); <code>post</code> gives the
+same summaries with the
+effective sample size and the split R-hat of Gelman et al. (2013) for
+every parameter. The function refuses to report chains that have not
+mixed: an R-hat of 1.05 or more for any parameter (the rule of Simoiu
+et al., Section 3.1), or fewer than 100 effective draws of a threshold
+or a difference; more iterations then help. The data identify the
+model only when there are more cells with stops than <code>2 (groups + areas - 1)</code>, three groups and five areas at least (Simoiu et al.,
+Section 2); with fewer the function refuses. The authors' published
+code for the faster model sets other priors (a threshold scale shared
+by the groups, tighter priors on the areas); the priors here are those
+the paper states.</p>
+<p>The two fits answer under different models and should be reported as
+such, not as checks of one another. The Bayesian model gives each
+group and area its own threshold under a hierarchical prior; on data
+made with one threshold per group (and area offsets) it can report
+thresholds far from the maximum-likelihood ones and from the values
+that made the data. For three groups in ten areas with 20,000 stops a
+cell its posterior means were about 0.13, 0.07 and 0.14, against 0.27,
+0.20 and 0.31 from maximum likelihood and from the generating model.
+Stan's sampler gives the same posterior on the same model, so this is
+a property of the model, not of the sampler.</p>
+<p>Rows are cells of a table (or single stops, with counts of 0 and 1):
 rows of the same group and area (and officer group) add up.</p>
     </div>
     <div class="section level2">
@@ -178,6 +280,12 @@ Applied Statistics</em>, 11(3), 1193-1216. <a href="https://doi.org/10.1214/17-A
 <p>Pierson, E., Corbett-Davies, S. and Goel, S. (2017). Fast threshold
 tests for detecting discrimination. arXiv:1702.08536.
 <a href="https://doi.org/10.48550/arXiv.1702.08536" class="external-link">doi:10.48550/arXiv.1702.08536</a></p>
+<p>Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A.
+and Rubin, D. B. (2013). <em>Bayesian Data Analysis</em>, 3rd ed. Chapman and
+Hall/CRC. <a href="https://doi.org/10.1201/b16018" class="external-link">doi:10.1201/b16018</a></p>
+<p>Hoffman, M. D. and Gelman, A. (2014). The No-U-Turn sampler:
+adaptively setting path lengths in Hamiltonian Monte Carlo. <em>Journal
+of Machine Learning Research</em>, 15, 1593-1623.</p>
     </div>
 
     <div class="section level2">
@@ -199,18 +307,29 @@ tests for detecting discrimination. arXiv:1702.08536.
 <span class="r-out co"><span class="r-pr">#&gt;</span>          NA</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  0.00144679</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> thresholds (likelihood ratio 0.03214 on 1 df, p 0.858):</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  group          thr         se         lo        hi      diff        dse</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      a 0.0002588271 0.08729044 -0.1708273 0.1713450 0.0000000         NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      b 0.2601602016 0.02633179  0.2085508 0.3117696 0.2599014 0.09127834</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        z           p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       NA          NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  2.84735 0.004408487</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  group          thr         se         lo        hi    diff        dse        z</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      a 0.0001513307 0.09175977 -0.1796945 0.1799972 0.00000         NA       NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      b 0.2601813432 0.02657569  0.2080940 0.3122687 0.26003 0.09569318 2.717331</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  0.00658108</span>
 <span class="r-in"><span><span class="co"># the rank-order test needs the officers' groups</span></span></span>
 <span class="r-in"><span><span class="fu">thrtst</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">100</span>, <span class="fl">100</span>, <span class="fl">100</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">10</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">5</span>, <span class="fl">5</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>       grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, off <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"x"</span>, <span class="st">"y"</span>, <span class="st">"x"</span>, <span class="st">"y"</span><span class="op">)</span><span class="op">)</span><span class="op">$</span><span class="va">rank</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   off1 off2   meas      zmin     zmax   rej</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1    x    y search -2.000000 3.651484  TRUE</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2    x    y    hit -1.936492 1.348400 FALSE</span>
+<span class="r-in"><span><span class="co"># the joint test of three officer groups</span></span></span>
+<span class="r-in"><span><span class="fu">thrtst</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">600</span>, <span class="fl">9</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">72</span>, <span class="fl">48</span>, <span class="fl">60</span>, <span class="fl">60</span>, <span class="fl">72</span>, <span class="fl">48</span>, <span class="fl">48</span>, <span class="fl">60</span>, <span class="fl">72</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>       <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">36</span>, <span class="fl">24</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">3</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>       off <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>, rank <span class="op">=</span> <span class="st">"joint"</span><span class="op">)</span><span class="op">$</span><span class="va">rank</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     meas off rank   rej</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1 search   a   NA  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2 search   b   NA  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3 search   c   NA  TRUE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4    hit   a    1 FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5    hit   b    3 FALSE</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6    hit   c    2 FALSE</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

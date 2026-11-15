@@ -450,6 +450,141 @@ identical(ctabx(clprep(other, mine))$tab, ft$tab)
 #> [1] TRUE
 ```
 
+## Indigenous health, wellbeing and the justice system
+
+First Nations, Metis and Inuit people are over-represented in Canada’s
+police contacts, courts and custody, and the Truth and Reconciliation
+Commission’s Calls to Action ask for that to end (Calls 30 to 42, on
+justice) and for the health gaps beside it to close (Call 19). Health
+and wellbeing are the context any evaluation of a policy, a court
+programme or a custodial regime has to be read against, so the methods
+for Statistics Canada’s published tables of Indigenous health, the
+census profile and the Calls to Action are a part of crimlab, not an
+addition to it.
+
+Two sets of principles say whose data these are: OCAP(R) of the First
+Nations Information Governance Centre (ownership, control, access and
+possession) and the CARE Principles for Indigenous Data Governance
+(Carroll et al. 2020). The functions follow them: First Nations, Metis
+and Inuit are compared one by one and a pooled total is marked
+(distinctions-based), a suppressed cell stays suppressed and is never
+worked back from totals, wellness is reported beside distress
+([`welprof()`](https://rootcoder007.github.io/crimlab/reference/welprof.md),
+[`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md),
+[`frmaud()`](https://rootcoder007.github.io/crimlab/reference/frmaud.md)),
+and a gap is read as a measure of colonial policy and unequal services,
+not as a deficit of the people (Walter and Andersen 2013; Walter 2016).
+
+A made-up table of a percentage with its published limits, compared
+group by group with the non-Indigenous population:
+
+``` r
+
+d <- data.frame(
+  group = c("First Nations", "Metis", "Inuit", "Non-Indigenous"),
+  pct = c(45.8, 52.8, 47.8, 61.5),
+  lo = c(43.9, 50.6, 43.1, 61),
+  hi = c(47.7, 55, 52.5, 62),
+  flag = c("", "", "E", "")
+)
+indgap(d, "group", "pct", "lo", "hi", qual = "flag")
+#> Gap against a reference group
+#> -----------------------------
+#> Reference: Non-Indigenous
+#> Groups:    3
+#> Intervals: 95%
+#> 
+#>         group  estimate  refest   ratio        ratio CI  difference   difference CI
+#> First Nations      45.8    61.5  0.7447  [0.714, 0.777]       -15.7  [-17.7, -13.7]
+#>         Metis      52.8    61.5  0.8585  [0.823, 0.896]        -8.7    [-11, -6.44]
+#>       Inuit *      47.8    61.5  0.7772  [0.704, 0.858]       -13.7  [-18.4, -8.97]
+#> 
+#> Below the reference (interval below 1): First Nations, Metis and Inuit *.
+#> 
+#> ratio: the group's estimate over the reference's; difference: the
+#> group's less the reference's, in the estimate's own units.
+#> Report a gap beside each group's own level, not alone.
+#> * use with caution: the source flags the estimate (E, high sampling variability).
+```
+
+The estimators of holistic balance
+([`holbal()`](https://rootcoder007.github.io/crimlab/reference/holbal.md)),
+wellness beside distress
+([`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md)),
+the four directions of the First Nations Mental Wellness Continuum
+([`mhcont()`](https://rootcoder007.github.io/crimlab/reference/mhcont.md)),
+healing as a process
+([`healchg()`](https://rootcoder007.github.io/crimlab/reference/healchg.md))
+and connection across places
+([`connassoc()`](https://rootcoder007.github.io/crimlab/reference/connassoc.md))
+put to quantitative use the frameworks of Professor Suzanne Stewart
+(Yellowknives Dene First Nation) and Professor Angela Mashford-Pringle
+(Timiskaming First Nation) of the University of Toronto’s
+Waakebiness-Bryce Institute for Indigenous Health (Stewart 2008;
+Mashford-Pringle and Stewart 2019). The work stands on theirs; any error
+in turning their qualitative work into estimators is the package’s, not
+theirs.
+
+## Plots: every result draws itself
+
+A result with something to draw has a
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) method. The
+event study of a (simulated) by-law adopted by four towns in 2019 and
+four in 2021, with four towns that never adopt it:
+
+``` r
+
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+d$first <- rep(c(2019, 2021, NA), each = 4)[i]
+d$rate <- 30 + i + 0.5 * (d$year - 2015) -
+  4 * (!is.na(d$first) & d$year >= d$first) + sin(seq_len(120))
+es <- plot(evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3))
+```
+
+![](crimlab_files/figure-html/unnamed-chunk-20-1.png)
+
+``` r
+
+head(es)
+#>    t         est         lo         hi
+#> 1 -3 -0.09567324 -1.2470766  1.0557301
+#> 2 -2  0.05394300 -0.7325173  0.8404033
+#> 3 -1  0.00000000         NA         NA
+#> 4  0 -4.13423655 -4.6354427 -3.6330304
+#> 5  1 -4.25980824 -5.2052505 -3.3143660
+#> 6  2 -4.29625671 -5.7017379 -2.8907756
+```
+
+Periods before adoption are open circles and periods after are filled,
+in different colours, so the picture reads the same in grey print. The
+plot returns the numbers it drew, so the same picture can be redrawn
+with any other tool. Survival curves by group, and the Lorenz curve of
+incidents over places:
+
+``` r
+
+plot(kmrec(c(3, 8, 8, 12, 20, 24, 5, 9, 30), event = c(1, 1, 0, 1, 0, 1,
+     1, 1, 0), grp = rep(c("a", "b", "c"), each = 3)))
+```
+
+![](crimlab_files/figure-html/unnamed-chunk-21-1.png)
+
+``` r
+
+set.seed(4)
+plot(cconc(rnbinom(200, mu = 2, size = 0.4), nsim = 0))
+```
+
+![](crimlab_files/figure-html/unnamed-chunk-21-2.png)
+
+[`plotopt()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+sets the look for the session (for example `plotopt(palette = "grey")`),
+and each plot takes `main`, `col` and `pal` for one change. What this
+does not license: a plot shows the estimate and its interval as
+computed; a narrow interval drawn on a clean axis is no more credible
+than the assumptions of the method that produced it.
+
 ## Proofs
 
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
@@ -499,6 +634,10 @@ other things:
 
 ## References
 
+Carroll, S. R., Garba, I., Figueroa-Rodriguez, O. L., et al. (2020). The
+CARE Principles for Indigenous Data Governance. *Data Science Journal*,
+19, 43. <https://doi.org/10.5334/dsj-2020-043>
+
 Chouldechova, A. (2017). Fair prediction with disparate impact: a study
 of bias in recidivism prediction instruments. *Big Data*, 5(2), 153-163.
 <https://doi.org/10.1089/big.2016.0047>
@@ -517,5 +656,24 @@ treatment effects: a case study of sentencing and recidivism.
 *Sociological Methodology*, 28(1), 99-137.
 <https://doi.org/10.1111/0081-1750.00043>
 
+Mashford-Pringle, A. and Stewart, S. L. (2019). Akiikaa (it is the
+land): exploring land-based experiences with university students in
+Ontario. *Global Health Promotion*, 26(3 suppl), 64-72.
+<https://doi.org/10.1177/1757975919828722>
+
 Reiss, A. J. (1988). Co-offending and criminal careers. *Crime and
 Justice*, 10, 117-170. <https://doi.org/10.1086/449145>
+
+Stewart, S. L. (2008). Promoting Indigenous mental health: cultural
+perspectives on healing from Native counsellors in Canada.
+*International Journal of Health Promotion and Education*, 46(2), 49-56.
+
+Truth and Reconciliation Commission of Canada (2015). *Calls to Action*.
+Winnipeg.
+
+Walter, M. (2016). Data politics and Indigenous representation in
+Australian statistics. In T. Kukutai and J. Taylor (eds), *Indigenous
+Data Sovereignty: Toward an Agenda*, 79-97. ANU Press.
+
+Walter, M. and Andersen, C. (2013). *Indigenous Statistics: A
+Quantitative Research Methodology*. Left Coast Press.

@@ -437,10 +437,116 @@ table:</p>
 <span><span class="co">#&gt; [1] TRUE</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="indigenous-health-wellbeing-and-the-justice-system">Indigenous health, wellbeing and the justice system<a class="anchor" aria-label="anchor" href="#indigenous-health-wellbeing-and-the-justice-system"></a>
+</h2>
+<p>First Nations, Metis and Inuit people are over-represented in
+Canada’s police contacts, courts and custody, and the Truth and
+Reconciliation Commission’s Calls to Action ask for that to end (Calls
+30 to 42, on justice) and for the health gaps beside it to close (Call
+19). Health and wellbeing are the context any evaluation of a policy, a
+court programme or a custodial regime has to be read against, so the
+methods for Statistics Canada’s published tables of Indigenous health,
+the census profile and the Calls to Action are a part of crimlab, not an
+addition to it.</p>
+<p>Two sets of principles say whose data these are: OCAP(R) of the First
+Nations Information Governance Centre (ownership, control, access and
+possession) and the CARE Principles for Indigenous Data Governance
+(Carroll et al. 2020). The functions follow them: First Nations, Metis
+and Inuit are compared one by one and a pooled total is marked
+(distinctions-based), a suppressed cell stays suppressed and is never
+worked back from totals, wellness is reported beside distress
+(<code><a href="../reference/welprof.html">welprof()</a></code>, <code><a href="../reference/dualcont.html">dualcont()</a></code>,
+<code><a href="../reference/frmaud.html">frmaud()</a></code>), and a gap is read as a measure of colonial
+policy and unequal services, not as a deficit of the people (Walter and
+Andersen 2013; Walter 2016).</p>
+<p>A made-up table of a percentage with its published limits, compared
+group by group with the non-Indigenous population:</p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"First Nations"</span>, <span class="st">"Metis"</span>, <span class="st">"Inuit"</span>, <span class="st">"Non-Indigenous"</span><span class="op">)</span>,</span>
+<span>  pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">45.8</span>, <span class="fl">52.8</span>, <span class="fl">47.8</span>, <span class="fl">61.5</span><span class="op">)</span>,</span>
+<span>  lo <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">43.9</span>, <span class="fl">50.6</span>, <span class="fl">43.1</span>, <span class="fl">61</span><span class="op">)</span>,</span>
+<span>  hi <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">47.7</span>, <span class="fl">55</span>, <span class="fl">52.5</span>, <span class="fl">62</span><span class="op">)</span>,</span>
+<span>  flag <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">""</span>, <span class="st">""</span>, <span class="st">"E"</span>, <span class="st">""</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/indgap.html">indgap</a></span><span class="op">(</span><span class="va">d</span>, <span class="st">"group"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>, qual <span class="op">=</span> <span class="st">"flag"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Gap against a reference group</span></span>
+<span><span class="co">#&gt; -----------------------------</span></span>
+<span><span class="co">#&gt; Reference: Non-Indigenous</span></span>
+<span><span class="co">#&gt; Groups:    3</span></span>
+<span><span class="co">#&gt; Intervals: 95%</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt;         group  estimate  refest   ratio        ratio CI  difference   difference CI</span></span>
+<span><span class="co">#&gt; First Nations      45.8    61.5  0.7447  [0.714, 0.777]       -15.7  [-17.7, -13.7]</span></span>
+<span><span class="co">#&gt;         Metis      52.8    61.5  0.8585  [0.823, 0.896]        -8.7    [-11, -6.44]</span></span>
+<span><span class="co">#&gt;       Inuit *      47.8    61.5  0.7772  [0.704, 0.858]       -13.7  [-18.4, -8.97]</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Below the reference (interval below 1): First Nations, Metis and Inuit *.</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ratio: the group's estimate over the reference's; difference: the</span></span>
+<span><span class="co">#&gt; group's less the reference's, in the estimate's own units.</span></span>
+<span><span class="co">#&gt; Report a gap beside each group's own level, not alone.</span></span>
+<span><span class="co">#&gt; * use with caution: the source flags the estimate (E, high sampling variability).</span></span></code></pre></div>
+<p>The estimators of holistic balance (<code><a href="../reference/holbal.html">holbal()</a></code>), wellness
+beside distress (<code><a href="../reference/dualcont.html">dualcont()</a></code>), the four directions of the
+First Nations Mental Wellness Continuum (<code><a href="../reference/mhcont.html">mhcont()</a></code>), healing
+as a process (<code><a href="../reference/healchg.html">healchg()</a></code>) and connection across places
+(<code><a href="../reference/connassoc.html">connassoc()</a></code>) put to quantitative use the frameworks of
+Professor Suzanne Stewart (Yellowknives Dene First Nation) and Professor
+Angela Mashford-Pringle (Timiskaming First Nation) of the University of
+Toronto’s Waakebiness-Bryce Institute for Indigenous Health (Stewart
+2008; Mashford-Pringle and Stewart 2019). The work stands on theirs; any
+error in turning their qualitative work into estimators is the
+package’s, not theirs.</p>
+</div>
+<div class="section level2">
+<h2 id="plots-every-result-draws-itself">Plots: every result draws itself<a class="anchor" aria-label="anchor" href="#plots-every-result-draws-itself"></a>
+</h2>
+<p>A result with something to draw has a <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> method. The
+event study of a (simulated) by-law adopted by four towns in 2019 and
+four in 2021, with four towns that never adopt it:</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2015</span><span class="op">:</span><span class="fl">2024</span>, town <span class="op">=</span> <span class="va">LETTERS</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">]</span><span class="op">)</span></span>
+<span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/match.html" class="external-link">match</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">LETTERS</span><span class="op">)</span></span>
+<span><span class="va">d</span><span class="op">$</span><span class="va">first</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2019</span>, <span class="fl">2021</span>, <span class="cn">NA</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span><span class="op">[</span><span class="va">i</span><span class="op">]</span></span>
+<span><span class="va">d</span><span class="op">$</span><span class="va">rate</span> <span class="op">&lt;-</span> <span class="fl">30</span> <span class="op">+</span> <span class="va">i</span> <span class="op">+</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">year</span> <span class="op">-</span> <span class="fl">2015</span><span class="op">)</span> <span class="op">-</span></span>
+<span>  <span class="fl">4</span> <span class="op">*</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">first</span><span class="op">)</span> <span class="op">&amp;</span> <span class="va">d</span><span class="op">$</span><span class="va">year</span> <span class="op">&gt;=</span> <span class="va">d</span><span class="op">$</span><span class="va">first</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">120</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">es</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/evtst.html">evtst</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">rate</span>, <span class="va">d</span><span class="op">$</span><span class="va">town</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, <span class="va">d</span><span class="op">$</span><span class="va">first</span>, leads <span class="op">=</span> <span class="fl">3</span>, lags <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="crimlab_files/figure-html/unnamed-chunk-20-1.png" class="r-plt" alt="" width="576"></p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">es</span><span class="op">)</span></span>
+<span><span class="co">#&gt;    t         est         lo         hi</span></span>
+<span><span class="co">#&gt; 1 -3 -0.09567324 -1.2470766  1.0557301</span></span>
+<span><span class="co">#&gt; 2 -2  0.05394300 -0.7325173  0.8404033</span></span>
+<span><span class="co">#&gt; 3 -1  0.00000000         NA         NA</span></span>
+<span><span class="co">#&gt; 4  0 -4.13423655 -4.6354427 -3.6330304</span></span>
+<span><span class="co">#&gt; 5  1 -4.25980824 -5.2052505 -3.3143660</span></span>
+<span><span class="co">#&gt; 6  2 -4.29625671 -5.7017379 -2.8907756</span></span></code></pre></div>
+<p>Periods before adoption are open circles and periods after are
+filled, in different colours, so the picture reads the same in grey
+print. The plot returns the numbers it drew, so the same picture can be
+redrawn with any other tool. Survival curves by group, and the Lorenz
+curve of incidents over places:</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/kmrec.html">kmrec</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">8</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">20</span>, <span class="fl">24</span>, <span class="fl">5</span>, <span class="fl">9</span>, <span class="fl">30</span><span class="op">)</span>, event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>,</span>
+<span>     <span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span><span class="op">)</span>, grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="crimlab_files/figure-html/unnamed-chunk-21-1.png" class="r-plt" alt="" width="576"></p>
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">4</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="fu"><a href="../reference/cconc.html">cconc</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/NegBinomial.html" class="external-link">rnbinom</a></span><span class="op">(</span><span class="fl">200</span>, mu <span class="op">=</span> <span class="fl">2</span>, size <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span>, nsim <span class="op">=</span> <span class="fl">0</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="crimlab_files/figure-html/unnamed-chunk-21-2.png" class="r-plt" alt="" width="576"></p>
+<p><code><a href="../reference/blpal.html">plotopt()</a></code> sets the look for the session (for example
+<code>plotopt(palette = "grey")</code>), and each plot takes
+<code>main</code>, <code>col</code> and <code>pal</code> for one change.
+What this does not license: a plot shows the estimate and its interval
+as computed; a narrow interval drawn on a clean axis is no more credible
+than the assumptions of the method that produced it.</p>
+</div>
+<div class="section level2">
 <h2 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
 </h2>
 <p><code><a href="../reference/proof.html">proof()</a></code> lists the theorems behind a function:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proof.html">proof</a></span><span class="op">(</span><span class="st">"clrsmp"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span>
 <span><span class="co">#&gt;       fn                                 theorem                file</span></span>
@@ -452,7 +558,7 @@ table:</p>
 <p>The files ship with the package and can be read in R or checked with
 Lean (see the README). This is the statement of Kitagawa’s identity, the
 reason the rate and mix effects always add up to the change:</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">src</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="va">p</span><span class="op">[[</span><span class="st">"file"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, package <span class="op">=</span> <span class="st">"crimlab"</span><span class="op">)</span>,</span>
 <span>                 encoding <span class="op">=</span> <span class="st">"UTF-8"</span><span class="op">)</span></span>
 <span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^theorem kitagawa"</span>, <span class="va">src</span><span class="op">)</span></span>
@@ -480,6 +586,9 @@ not about the proof.</li>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
+<p>Carroll, S. R., Garba, I., Figueroa-Rodriguez, O. L., et al. (2020).
+The CARE Principles for Indigenous Data Governance. <em>Data Science
+Journal</em>, 19, 43. <a href="https://doi.org/10.5334/dsj-2020-043" class="external-link uri">https://doi.org/10.5334/dsj-2020-043</a></p>
 <p>Chouldechova, A. (2017). Fair prediction with disparate impact: a
 study of bias in recidivism prediction instruments. <em>Big Data</em>,
 5(2), 153-163. <a href="https://doi.org/10.1089/big.2016.0047" class="external-link uri">https://doi.org/10.1089/big.2016.0047</a></p>
@@ -492,8 +601,22 @@ American Statistical Association</em>, 101(475), 878-887. <a href="https://doi.o
 <p>Manski, C. F. and Nagin, D. S. (1998). Bounding disagreements about
 treatment effects: a case study of sentencing and recidivism.
 <em>Sociological Methodology</em>, 28(1), 99-137. <a href="https://doi.org/10.1111/0081-1750.00043" class="external-link uri">https://doi.org/10.1111/0081-1750.00043</a></p>
+<p>Mashford-Pringle, A. and Stewart, S. L. (2019). Akiikaa (it is the
+land): exploring land-based experiences with university students in
+Ontario. <em>Global Health Promotion</em>, 26(3 suppl), 64-72. <a href="https://doi.org/10.1177/1757975919828722" class="external-link uri">https://doi.org/10.1177/1757975919828722</a></p>
 <p>Reiss, A. J. (1988). Co-offending and criminal careers. <em>Crime and
 Justice</em>, 10, 117-170. <a href="https://doi.org/10.1086/449145" class="external-link uri">https://doi.org/10.1086/449145</a></p>
+<p>Stewart, S. L. (2008). Promoting Indigenous mental health: cultural
+perspectives on healing from Native counsellors in Canada.
+<em>International Journal of Health Promotion and Education</em>, 46(2),
+49-56.</p>
+<p>Truth and Reconciliation Commission of Canada (2015). <em>Calls to
+Action</em>. Winnipeg.</p>
+<p>Walter, M. (2016). Data politics and Indigenous representation in
+Australian statistics. In T. Kukutai and J. Taylor (eds), <em>Indigenous
+Data Sovereignty: Toward an Agenda</em>, 79-97. ANU Press.</p>
+<p>Walter, M. and Andersen, C. (2013). <em>Indigenous Statistics: A
+Quantitative Research Methodology</em>. Left Coast Press.</p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

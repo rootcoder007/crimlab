@@ -160,16 +160,27 @@ ratio <code>dr = hr / far</code> at each cut.</p></li>
 <li><p><code>pauc</code>: the partial area under the curve from a false alarm rate of 0
 to <code>far</code> (by default the smallest of the procedures' largest false
 alarm rates, so all are compared over the same range), by the
-trapezoid rule; a curve that ends before <code>far</code> is taken flat from its
-last point. With <code>nboot</code> the standard errors come from resampling the
-target-present and target-absent witnesses of each procedure, and
-each procedure is compared with the first by <code>z = diff / dse</code>, as
-<code>pROC::roc.test(method = "bootstrap")</code> compares partial areas.</p></li>
+trapezoid rule. A curve that ends before <code>far</code> is continued by the
+straight line from its last point to the point where every lineup
+counts as an identification (false alarm rate 1, or <code>1 / size</code> with
+<code>size</code>, and hit rate 1), as the package pROC that Mickes, Flowe and
+Wixted (2012) used joins a curve to (1, 1). With <code>nboot</code> the standard
+errors come from resampling the target-present and target-absent
+witnesses of each procedure, and each procedure is compared with the
+first by <code>z = diff / dse</code>, their <code>D</code> statistic, as
+<code>pROC::roc.test(method = "bootstrap")</code> compares partial areas.
+Their partial areas (0.13 and 0.09 in Experiment 1a, p. 371) are on
+the scale of all identifications in target-absent lineups, not
+divided by the lineup's size as the false alarm rates of their Table
+3 are: with <code>size</code>, <code>size * pauc</code> is on their scale.</p></li>
 <li><p><code>cac</code>: the confidence-accuracy characteristic (Mickes 2015): at each
 confidence level alone, the share of suspect identifications that are
 correct, <code>hr / (hr + far)</code> of that level, which assumes guilty and
 innocent suspects equally common.</p></li>
-</ul></div>
+</ul><p>The ROC points and the partial areas reproduce the rates of Table 3 of
+Mickes, Flowe and Wixted (2012) and, on their scale, its partial areas
+(see the tests).</p>
+    </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Mickes, L., Flowe, H. D. and Wixted, J. T. (2012). Receiver operating
@@ -201,8 +212,8 @@ variables and estimator variables that affect eyewitness memory.
 <span class="r-in"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu">lnroc</span><span class="op">(</span><span class="va">tp</span>, <span class="va">pick</span>, <span class="va">conf</span>, proc <span class="op">=</span> <span class="va">proc</span>, nboot <span class="op">=</span> <span class="fl">200</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">r</span><span class="op">$</span><span class="va">pauc</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   proc    pauc          se          lo         hi   diff         dse         p</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1  seq 0.02375 0.006409411 0.011187785 0.03631221  0.000          NA        NA</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  sim 0.01475 0.004083972 0.006745562 0.02275444 -0.009 0.007664245 0.2402813</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  seq 0.02375 0.006495450 0.011019152 0.03648085  0.000          NA        NA</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2  sim 0.01475 0.004086343 0.006740914 0.02275909 -0.009 0.007738077 0.2447972</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">roc</span><span class="op">$</span><span class="va">far</span>, <span class="va">r</span><span class="op">$</span><span class="va">roc</span><span class="op">$</span><span class="va">hr</span>, col <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">r</span><span class="op">$</span><span class="va">roc</span><span class="op">$</span><span class="va">proc</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="lnroc-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>

@@ -63,6 +63,167 @@
   ([`srchfig()`](https://rootcoder007.github.io/crimlab/reference/srchfig.md)).
   They are in `clab_jrun()`, the command line and Python.
 
+- First Nations, Metis and Inuit health and wellbeing, a core part of
+  the package beside the justice system it concerns: Statistics Canada’s
+  published tables read with their quality flags
+  ([`sctidy()`](https://rootcoder007.github.io/crimlab/reference/sctidy.md),
+  [`scests()`](https://rootcoder007.github.io/crimlab/reference/scests.md),
+  [`qltyrcd()`](https://rootcoder007.github.io/crimlab/reference/qltyrcd.md),
+  [`limfrom()`](https://rootcoder007.github.io/crimlab/reference/limfrom.md)),
+  compared group by group and as whole rated scales
+  ([`indgap()`](https://rootcoder007.github.io/crimlab/reference/indgap.md),
+  [`ordcmp()`](https://rootcoder007.github.io/crimlab/reference/ordcmp.md)),
+  standardised by age
+  ([`stdprev()`](https://rootcoder007.github.io/crimlab/reference/stdprev.md)),
+  wellness beside distress
+  ([`welprof()`](https://rootcoder007.github.io/crimlab/reference/welprof.md),
+  [`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md),
+  [`holbal()`](https://rootcoder007.github.io/crimlab/reference/holbal.md),
+  [`frmaud()`](https://rootcoder007.github.io/crimlab/reference/frmaud.md)),
+  the First Nations Mental Wellness Continuum
+  ([`mhcont()`](https://rootcoder007.github.io/crimlab/reference/mhcont.md)),
+  healing as change
+  ([`healchg()`](https://rootcoder007.github.io/crimlab/reference/healchg.md)),
+  connection across places
+  ([`connassoc()`](https://rootcoder007.github.io/crimlab/reference/connassoc.md)),
+  community-weighted indices
+  ([`commidx()`](https://rootcoder007.github.io/crimlab/reference/commidx.md))
+  and the Community Well-Being index
+  ([`cwbscr()`](https://rootcoder007.github.io/crimlab/reference/cwbscr.md));
+  the generations of residential school attendance and their
+  dose-response
+  ([`genexpo()`](https://rootcoder007.github.io/crimlab/reference/genexpo.md),
+  [`exptrnd()`](https://rootcoder007.github.io/crimlab/reference/exptrnd.md));
+  the 2021 Census Indigenous Population Profile
+  ([`cnsprof()`](https://rootcoder007.github.io/crimlab/reference/cnsprof.md),
+  [`profshr()`](https://rootcoder007.github.io/crimlab/reference/profshr.md),
+  [`cnsstd()`](https://rootcoder007.github.io/crimlab/reference/cnsstd.md),
+  [`cnscwb()`](https://rootcoder007.github.io/crimlab/reference/cnscwb.md));
+  and the Calls to Action
+  ([`trcind()`](https://rootcoder007.github.io/crimlab/reference/trcind.md),
+  [`trchlthgap()`](https://rootcoder007.github.io/crimlab/reference/trchlthgap.md),
+  [`trccmpl()`](https://rootcoder007.github.io/crimlab/reference/trccmpl.md),
+  [`trcprog()`](https://rootcoder007.github.io/crimlab/reference/trcprog.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
+- [`polex()`](https://rootcoder007.github.io/crimlab/reference/polex.md)
+  makes the simulated policy panel the examples of the policy functions
+  use: twenty districts, 36 months and a staged reform with a known
+  effect. The same seed gives the same panel in every front end.
+
+- [`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md):
+  when the quasi-Newton steps of the maximum-likelihood fit end short of
+  the gradient criterion, up to 20 Newton steps now follow, so the fit
+  converges on flat likelihoods on every architecture (arm64 builds
+  reported the self-test’s fit as not converged). Fits that met the
+  criterion give the same results as before.
+
+- [`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)
+  gains `fit = "bayes"`: the threshold test fitted by Bayesian
+  inference, as Simoiu, Corbett-Davies and Goel (2017) and Pierson,
+  Corbett-Davies and Goel (2017) fit it, with a threshold for every
+  group and area and the hierarchical priors that Simoiu et al. state,
+  on the discriminant distributions. The posterior is sampled in C++ by
+  the No-U-Turn sampler (`chains`, `iter`, `seed`), starting near the
+  maximum-likelihood fit. `thr` gives the posterior means and intervals
+  of the thresholds and of their differences from the reference group,
+  and `post` the summaries, effective sample size and R-hat of every
+  parameter. Chains with an R-hat of 1.05 or more, or fewer than 100
+  effective draws of a threshold, are refused. The fit agrees with
+  Stan’s sampler on the same model. `fit = "ml"` stays the default. The
+  two fits answer under different models and should be reported as such,
+  not as checks of one another: with a threshold for every group and
+  area under a hierarchical prior, on data made with one threshold per
+  group the Bayesian fit can report thresholds far from the
+  maximum-likelihood ones and from the generating values (three groups
+  in ten areas, 20,000 stops a cell: about 0.13, 0.07 and 0.14 against
+  0.27, 0.20 and 0.31), which Stan reproduces on the same model.
+
+- [`thrtst()`](https://rootcoder007.github.io/crimlab/reference/thrtst.md)
+  gains `rank = "joint"`, the rank-order test of Anwar and Fang (2006)
+  as the paper states it: the ranking of all officer groups is tested at
+  once by their one-sided z statistics, and the null of no relative
+  prejudice is rejected when the significant orders form a cycle; the
+  common ranking is given otherwise. The pairwise form stays the
+  default. With `off`, the new element `mono` holds their test of
+  monolithic behaviour (Pearson’s chi-square of equal rates across
+  officer groups, by group of the people stopped and measure).
+
+- [`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md)
+  gains the two methods of Ridgeway and MacDonald (2009) it left out:
+  `dr = TRUE` gives the doubly robust benchmark (the propensity-weighted
+  logistic regression of the outcome on the officer’s indicator and the
+  circumstances, with a sandwich standard error), and `local = TRUE`
+  Efron’s local false discovery rate of each officer, with the empirical
+  null fitted as the package locfdr does by default (column `lfdr`,
+  element `null`), flagging by it. Benjamini and Hochberg’s `q` stays.
+  The defaults give the results as before. The tests check the doubly
+  robust benchmark against [`glm()`](https://rdrr.io/r/stats/glm.html)
+  and a sandwich by hand, and the local rate against locfdr (reference
+  values from `dev/ref/lfdr.R`).
+
+- [`lnsize()`](https://rootcoder007.github.io/crimlab/reference/lnsize.md)
+  follows Malpass (1981) for `esize`: members nobody chose (null foils)
+  leave the nominal size and the chance expectation, as Tredoux (1996,
+  Table 4.2) shows. Before, `esize` did not adjust; that value is now
+  `esizeb`. The two differ only when a member was never chosen. The
+  interval of Tredoux’s `E'` (`etrlo`, `etrhi`) now takes the ends of
+  the interval of `I = 1 - sum p^2` to `1 / (1 - I)`, as Tredoux does,
+  in place of a symmetric delta-method interval around `E'`; the ends
+  move for every lineup (for 40 mock witnesses choosing 15, 5, 6, 4, 7
+  and 3 of six, E’ 4.44: from 2.98 to 5.90 before, 3.35 to 6.62 now). A
+  choice of 0 records a mock witness who chose no one: it counts for
+  `psusp` and `fsize` (as in Wells, Leippe and Ostrom 1979) and not for
+  the spread of choices; `nm` is the number who chose a member. The
+  tests reproduce the worked examples of Tredoux (1996, 1999).
+
+- [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md)
+  continues a curve that ends before `far` by the straight line to the
+  point where every lineup counts as an identification, as pROC does, in
+  place of a flat line; this changes `pauc` only when `far` is given
+  above a procedure’s largest false alarm rate (the default never is).
+  The tests reproduce Table 3 and the partial areas of Mickes, Flowe and
+  Wixted (2012).
+
+- [`wdqx()`](https://rootcoder007.github.io/crimlab/reference/wdqx.md)
+  now names the crimes prevented in the treated area and the buffer
+  `tne`, the total net effect of Guerette (2009, Appendix B, equation
+  4), in place of `net` (same value), and adds the gross effect `ge` and
+  the net effect `ne` of the same appendix. Its help page gives the
+  formulas and Guerette’s worked example; the tests reproduce it.
+
+- Every result that holds something to draw has a
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) method on
+  base graphics: estimates with intervals as dot-and-interval charts,
+  effects by time since adoption, paths, survival and ROC curves, Lorenz
+  curves, bars, matrices with their numbers in the cells, and surfaces.
+  Each returns, invisibly, the data it drew.
+  [`blpal()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  gives the colour-blind-safe palettes they share,
+  [`plotopt()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  their session look and
+  [`yoypals()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  the palettes of change tables; series differ in line type or point
+  shape as well as colour. The general plots come with them: Lorenz and
+  funnel plots
+  ([`plotlrnz()`](https://rootcoder007.github.io/crimlab/reference/plotlrnz.md),
+  [`plotfnl()`](https://rootcoder007.github.io/crimlab/reference/plotlrnz.md)),
+  distributions by group
+  ([`plotrdg()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotcdfs()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plothex()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotgain()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)),
+  series over time
+  ([`plotcal()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plothrz()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plotmult()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plotbump()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md))
+  and event studies in a grid
+  ([`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)).
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of an
+  `hwkres` result now returns the quantiles it drew.
+
 - [`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)
   bounds the mean outcome under each of ordered sentences and the effect
   of each against the mildest, under the monotone treatment response and

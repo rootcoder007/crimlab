@@ -281,6 +281,99 @@ known disparity.
 - [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md) :
   Fairness metrics of a binary risk tool by group
 
+## Plots
+
+A plot() method for every result with something to draw, the palettes
+and session look they share, and general plots of distributions,
+concentration and series over time.
+
+- [`plot(`*`<cntreg>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<dastd>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<grprr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<sirex>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<svymx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<mndla>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<thrtst>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<sarml>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<spcure>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<mtrbnd>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<pbbnd>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<dkfig>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<smdbal>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<jmono>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<relchk>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<dissix>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<didfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<evtst>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<stgdid>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<synthc>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<sdidx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<trndrr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<stkflw>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<dktflw>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<jpipe>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<hsper>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<yoypx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<cumrsk>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<agemix>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<apcie>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<kmrec>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<lftab>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<lnroc>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<lnkpr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<cconc>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<crossk>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<bandx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<jdgiv>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<xcser>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<hwkres>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<arwt>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<crsev>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<gmixlr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<pedlr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<hypq>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<lnsize>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<lostay>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<pinpl>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<mmshr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<rptvic>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<ctabx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<knxnr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<qdrtst>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<trnmat>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<zcomp>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<kdsurf>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<prohs>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<sdbsim>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<bufas>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<cmpsc>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<ebshr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<ibench>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<kscan>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  : Plot methods for the package's results
+- [`blpal()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  [`plotopt()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  [`yoypals()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  : Plot styling: palettes and session options
+- [`plotlrnz()`](https://rootcoder007.github.io/crimlab/reference/plotlrnz.md)
+  [`plotfnl()`](https://rootcoder007.github.io/crimlab/reference/plotlrnz.md)
+  : Lorenz and funnel plots
+- [`plotrdg()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  [`plotcdfs()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  [`plothex()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  [`plotgain()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  : Distributions by group: ridgelines, distribution functions, violins,
+  hexagonal bins and concentration curves
+- [`plotcal()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md)
+  [`plothrz()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md)
+  [`plotmult()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md)
+  [`plotbump()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md)
+  : Many series over time: calendar, horizon, small-multiple and bump
+  charts
+- [`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)
+  : Event studies for several outcomes in one grid
+
 ## Checks
 
 Which labelling of a table reproduces a reported contrast, and an audit
@@ -462,11 +555,84 @@ matched comparison.
   [`rshl()`](https://rootcoder007.github.io/crimlab/reference/rswp.md) :
   Rosenbaum sensitivity bounds for matched pairs
 
+## Indigenous health and wellbeing
+
+First Nations, Metis and Inuit health, mental health and wellbeing from
+Statistics Canada’s published tables, read as published and compared
+distinction by distinction, the frameworks for wellness put to work on
+them, the 2021 Census Indigenous Population Profile, and the Truth and
+Reconciliation Commission’s Calls to Action.
+
+- [`sctidy()`](https://rootcoder007.github.io/crimlab/reference/sctidy.md)
+  : Read a Statistics Canada table as published
+- [`scests()`](https://rootcoder007.github.io/crimlab/reference/scests.md)
+  : The estimates of a Statistics Canada table, with their confidence
+  limits
+- [`qltyrcd()`](https://rootcoder007.github.io/crimlab/reference/qltyrcd.md)
+  : Recode another agency's quality flags to the package's
+- [`limfrom()`](https://rootcoder007.github.io/crimlab/reference/limfrom.md)
+  : Confidence limits from a standard error, a coefficient of variation
+  or a margin of error
+- [`indgap()`](https://rootcoder007.github.io/crimlab/reference/indgap.md)
+  : Compare published group estimates with a reference group
+- [`ordcmp()`](https://rootcoder007.github.io/crimlab/reference/ordcmp.md)
+  : Compare rated scales (perceived mental health, life satisfaction)
+  between groups
+- [`stdprev()`](https://rootcoder007.github.io/crimlab/reference/stdprev.md)
+  : Age-standardise survey percentages
+- [`welprof()`](https://rootcoder007.github.io/crimlab/reference/welprof.md)
+  : Wellness beside distress: a strengths-first profile of published
+  indicators
+- [`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md)
+  : Wellness and distress as two continua
+- [`holbal()`](https://rootcoder007.github.io/crimlab/reference/holbal.md)
+  : Holistic balance: how evenly wellness is held across the domains of
+  a whole person
+- [`mhcont()`](https://rootcoder007.github.io/crimlab/reference/mhcont.md)
+  : The four directions of the First Nations Mental Wellness Continuum,
+  from published indicators
+- [`healchg()`](https://rootcoder007.github.io/crimlab/reference/healchg.md)
+  : Healing as a process: change in published indicators between two
+  periods
+- [`connassoc()`](https://rootcoder007.github.io/crimlab/reference/connassoc.md)
+  : Connection across places: does one indicator rise where another
+  does?
+- [`commidx()`](https://rootcoder007.github.io/crimlab/reference/commidx.md)
+  : A community-weighted index of protective and risk factors
+- [`frmaud()`](https://rootcoder007.github.io/crimlab/reference/frmaud.md)
+  : How deficit-framed is a set of results?
+- [`cwbscr()`](https://rootcoder007.github.io/crimlab/reference/cwbscr.md)
+  : The Community Well-Being index of a community
+- [`genexpo()`](https://rootcoder007.github.io/crimlab/reference/genexpo.md)
+  : Generations of residential school attendance in a family
+- [`exptrnd()`](https://rootcoder007.github.io/crimlab/reference/exptrnd.md)
+  : A dose-response across generations of exposure
+- [`cnsprof()`](https://rootcoder007.github.io/crimlab/reference/cnsprof.md)
+  : Read the 2021 Census Indigenous Population Profile
+- [`profshr()`](https://rootcoder007.github.io/crimlab/reference/profshr.md)
+  : The share of a population with a characteristic, from the census
+  profile
+- [`cnsstd()`](https://rootcoder007.github.io/crimlab/reference/cnsstd.md)
+  : An Indigenous standard population from the census
+- [`cnscwb()`](https://rootcoder007.github.io/crimlab/reference/cnscwb.md)
+  : A Community Well-Being score from the census profile
+- [`trcind()`](https://rootcoder007.github.io/crimlab/reference/trcind.md)
+  : The indicators of Calls to Action 19 and 55, and the tables that
+  measure them
+- [`trchlthgap()`](https://rootcoder007.github.io/crimlab/reference/trchlthgap.md)
+  : The Call to Action 19 health gaps, in one place
+- [`trccmpl()`](https://rootcoder007.github.io/crimlab/reference/trccmpl.md)
+  : Calls to Action completed, year by year
+- [`trcprog()`](https://rootcoder007.github.io/crimlab/reference/trcprog.md)
+  : How fast the Calls to Action are being completed
+
 ## Policy evaluation
 
 Difference in differences with fixed effects, event studies, staggered
 adoption, synthetic controls and synthetic difference in differences.
 
+- [`polex()`](https://rootcoder007.github.io/crimlab/reference/polex.md)
+  : A simulated policy panel for the examples
 - [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md)
   : Difference in differences with two-way fixed effects
 - [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
@@ -491,7 +657,6 @@ only within an interval.
 - [`hwkfit()`](https://rootcoder007.github.io/crimlab/reference/hwkfit.md)
   : Hawkes process: self-exciting event times
 - [`hwkres()`](https://rootcoder007.github.io/crimlab/reference/hwkres.md)
-  [`plot(`*`<hwkres>`*`)`](https://rootcoder007.github.io/crimlab/reference/hwkres.md)
   : Hawkes process: time-rescaling residuals
 - [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
   : Hawkes process: simulation

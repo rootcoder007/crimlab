@@ -234,6 +234,12 @@ Economic Review</em>, 110(9), 2964-2996. <a href="https://doi.org/10.1257/aer.20
 <span class="r-out co"><span class="r-pr">#&gt;</span>      term        est        se         lo         hi n</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1  effect -3.6698465 0.4276516 -4.5080282 -2.8316647 9</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 2 placebo -0.0742311 0.3569557 -0.7738514  0.6253892 9</span>
+<span class="r-in"><span><span class="co"># the simulated panel of polex(): a reform with a known effect of -3</span></span></span>
+<span class="r-in"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="polex.html">polex</a></span><span class="op">(</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">stgdid</span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">crmrate</span>, <span class="va">p</span><span class="op">$</span><span class="va">district</span>, <span class="va">p</span><span class="op">$</span><span class="va">month</span>, <span class="va">p</span><span class="op">$</span><span class="va">refmonth</span>, reps <span class="op">=</span> <span class="fl">49</span>,</span></span>
+<span class="r-in"><span>       seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">$</span><span class="va">overall</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   term       est        se       lo        hi</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1  att -2.825844 0.3376925 -3.48771 -2.163979</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

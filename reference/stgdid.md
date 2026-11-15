@@ -196,4 +196,10 @@ stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
 #>      term        est        se         lo         hi n
 #> 1  effect -3.6698465 0.4276516 -4.5080282 -2.8316647 9
 #> 2 placebo -0.0742311 0.3569557 -0.7738514  0.6253892 9
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+stgdid(p$crmrate, p$district, p$month, p$refmonth, reps = 49,
+       seed = 1)$overall
+#>   term       est        se       lo        hi
+#> 1  att -2.825844 0.3376925 -3.48771 -2.163979
 ```

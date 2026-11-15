@@ -1,0 +1,86 @@
+# Read a Statistics Canada table as published
+
+Tidies a Statistics Canada full-table download (the “CSV for database
+loading” form, ): `VALUE` as a number, and the quality flags kept beside
+it in `quality`.
+
+## Usage
+
+``` r
+sctidy(x)
+```
+
+## Arguments
+
+- x:
+
+  A data frame read from a Statistics Canada table (English-language
+  full-table CSV).
+
+## Value
+
+The data frame with `VALUE` numeric and a factor column `quality` with
+levels `"ok"`, `"E"`, `"F"`, `"x"`, `".."`, `"..."`, of class
+`c("sctidy", "data.frame")`.
+
+## Details
+
+Statistics Canada flags every estimate: `E` use with caution, `F` too
+unreliable to be published, `x` suppressed to meet the confidentiality
+requirements of the Statistics Act, `..` not available, `...` not
+applicable. An `F`, `x`, `..` or `...` cell has no value here (`NA`),
+whatever the file holds, and nothing in the package imputes it or works
+it back from totals and margins: a suppressed cell is suppressed to
+protect people, and small First Nations, Metis and Inuit communities
+most of all. `E` values are kept and marked.
+
+The census data tables (98-10-xxxx) come in a wide layout: one column
+per member of a dimension (`"Indigenous identity (9):Inuk (Inuit)[6]"`),
+each followed by its `Symbol` column, and no `VALUE`. They are made long
+first: the dimension becomes a column of member labels
+(`"Indigenous identity (9)"`), the values `VALUE` and the symbols
+`STATUS`, so every Statistics Canada table reads the same way.
+
+A label that names two members of one dimension (the census tables
+repeat labels under different parents, and the file drops the hierarchy)
+gets its member number from the coordinate: `"Without children [3]"` and
+`"Without children [7]"`. Other labels are left as they are.
+
+## References
+
+Statistics Canada. Symbol legend.
+statcan.gc.ca/en/concepts/definitions/guide-symbol
+
+## See also
+
+[`indgap`](https://rootcoder007.github.io/crimlab/reference/indgap.md),
+[`scests`](https://rootcoder007.github.io/crimlab/reference/scests.md).
+
+## Examples
+
+``` r
+# the layout of a downloaded table, with one cell suppressed (made-up
+# numbers)
+d <- data.frame(REF_DATE = "2019/2022", GEO = "Canada",
+                `Indigenous identity` = c("First Nations", "Inuk (Inuit)",
+                                          "Non-Indigenous"),
+                VALUE = c("45.8", "", "61.5"), STATUS = c("", "x", ""),
+                check.names = FALSE)
+sctidy(d)
+#> Statistics Canada table, tidied
+#> -------------------------------
+#> Rows:    3
+#> Columns: 6
+#> Quality: ok 2, x 1
+#> 
+#>  REF_DATE     GEO  Indigenous identity  VALUE  quality
+#> 2019/2022  Canada        First Nations   45.8       ok
+#> 2019/2022  Canada         Inuk (Inuit)     NA        x
+#> 2019/2022  Canada       Non-Indigenous   61.5       ok
+#> 
+#> VALUE is numeric; a suppressed cell (F, x, .., ...) is NA, with its
+#> flag kept in quality.
+#> 
+#> Symbols: E use with caution; F too unreliable to be published;
+#> x suppressed (confidentiality); .. not available; ... not applicable.
+```
