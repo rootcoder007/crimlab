@@ -26,6 +26,14 @@ const double Inf = std::numeric_limits<double>::infinity();
 
 std::size_t z(int i) { return static_cast<std::size_t>(i); }
 
+// What a sampler keeps and how far it counts, checked before anything is
+// made: the values kept over all draws within kutil::maxcell, and the
+// iterations (burn-in and draws, thinned) within int.
+const char *const kept = "`nsamp` times the values kept per draw";
+bool sizes(double cells, double iters, const char *what, std::string &err) {
+  return cap(cells, kutil::maxcell, kept, err) && cap(iters, 2147483647.0, what, err);
+}
+
 bool intr(std::string &err, double w) {
   if (!kutil::stop(w)) return false;
   err.clear();
@@ -293,6 +301,7 @@ bool k_bamscl(const Node &a, Node &out, std::string &err) {
     if (f) rows.push_back(i);
   }
   const int N = static_cast<int>(rows.size());
+  if (!sizes(2.0 * S * (N + q), static_cast<double>(B) + S, "`burn` plus `nsamp`", err)) return false;
   Mat Z(N, q), ob(N, q);
   for (int t = 0; t < N; ++t) {
     for (int j = 0; j < q; ++j) {
@@ -488,6 +497,9 @@ bool k_bmdsf(const Node &a, Node &out, std::string &err) {
     err = "`D` must contain positive distances.";
     return false;
   }
+  if (!sizes(static_cast<double>(S) * (static_cast<double>(m) * nd + 1.0), static_cast<double>(B) + S, "`burn` plus `nsamp`", err)) {
+    return false;
+  }
   rng g(seed);
   std::vector<char> ok(z(m) * z(m));
   Mat LD(m, m), D0(m, m);
@@ -611,6 +623,10 @@ bool k_bunfld(const Node &a, Node &out, std::string &err) {
   const int n = P.r, m = P.c;
   if (nd > std::min(n, m)) {
     err = msg("`ndim` must be at most %d, the smaller dimension of `D`.", std::min(n, m));
+    return false;
+  }
+  if (!sizes(static_cast<double>(S) * ((n + m) * static_cast<double>(nd) + 1), static_cast<double>(B) + S,
+             "`burn` plus `nsamp`", err)) {
     return false;
   }
   Mat ok(n, m), LP(n, m), Pz = P;
@@ -842,6 +858,10 @@ bool k_cjrirt(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int N = Y.r, J = Y.c;
+  if (!sizes(static_cast<double>(S) * ((N + J) * static_cast<double>(D) + J), static_cast<double>(B) + S,
+             "`burn` plus `nsamp`", err)) {
+    return false;
+  }
   Mat x;
   if (has(a, "start")) {
     Mat st;
@@ -1007,6 +1027,9 @@ bool k_anomin(const Node &a, Node &out, std::string &err) {
       return false;
     }
   }
+  // at most one dimension per legislator, before the polarity is spread
+  // over them
+  if (!cap(nd, V0.r, "`ndim`", err)) return false;
   // a copy first: assign(n, pv[0]) reads pv[0] after freeing it (libc++)
   if (pv.size() == 1) pv = std::vector<double>(z(nd), pv[0]);
   if (static_cast<int>(pv.size()) != nd) {
@@ -1044,6 +1067,10 @@ bool k_anomin(const Node &a, Node &out, std::string &err) {
     pol[z(k)] = static_cast<int>(f - ul.begin());
   }
   const int n = static_cast<int>(ul.size()), m = static_cast<int>(uv.size()), d = nd;
+  if (!sizes(static_cast<double>(S) * ((n + 2.0 * m) * d + 2), B + static_cast<double>(S) * th,
+             "`burn` plus `nsamp` times `thin`", err)) {
+    return false;
+  }
   Mat V(n, m);
   for (int j = 0; j < m; ++j) {
     for (int i = 0; i < n; ++i) V(i, j) = V0(ul[z(i)], uv[z(j)]);
@@ -1285,6 +1312,10 @@ bool k_ordirt(const Node &a, Node &out, std::string &err) {
   const int n = Y.r, J = Y.c;
   if (D > std::min(n, J)) {
     err = msg("`ndim` must be at most %d, the smaller dimension of `Y`.", std::min(n, J));
+    return false;
+  }
+  if (!sizes(static_cast<double>(S) * (n * static_cast<double>(D) + J * (D + 1.0)), static_cast<double>(B) + S,
+             "`burn` plus `nsamp`", err)) {
     return false;
   }
   std::vector<int> nc(z(J));
@@ -1554,6 +1585,7 @@ bool k_dynirt(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int N = Y.r, K = Y.c;
+  if (!cap(B + static_cast<double>(S) * th, 2147483647.0, "`burn` plus `nsamp` times `thin`", err)) return false;
   for (double &e : Y.v) {
     if (!std::isnan(e) && e < 0) e = 0;
     if (!std::isnan(e) && e != 0 && e != 1) {

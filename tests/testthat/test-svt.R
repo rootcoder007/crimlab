@@ -1150,3 +1150,28 @@ test_that("the printed parts name NULL, lists and short numbers", {
   expect_identical(capture.output(print(s)),
                    c("x:", "  a NULL", "  b list of 2", "  c 1.235 2.000"))
 })
+
+test_that("dimensions and replicates past their bounds are refused at once", {
+  # ndim, nboot or ncat times the points past 2^26 values: refused before
+  # any configuration is drawn
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  nd <- "`ndim` times the points scaled must be at most 67108864."
+  V <- matrix(c(1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1), 4)
+  D <- as.matrix(dist(1:4))
+  Y <- matrix(c(1, 2, 3, 1, 2, 3, 3, 2, 1, 1, 3, 2), 4)
+  ef(optcls(V, ndim = 1e9), paste("optcls:", nd))
+  ef(smacf(D, ndim = 1e9), paste("smacf:", nd))
+  ef(nmdsf(D, ndim = 1e9), paste("nmdsf:", nd))
+  ef(mlsmu(D[, 1:3], ndim = 1e9), paste("mlsmu:", nd))
+  ef(smunf(D[, 1:3], ndim = 1e9), paste("smunf:", nd))
+  ef(ordocl(Y, ndim = 1e9), paste("ordocl:", nd))
+  ef(indscl(list(D, D), ndim = 1e9), paste("indscl:", nd))
+  ef(dwnom(V, ndim = 1e9), paste("dwnom:", nd))
+  ef(irtem(V, ndim = 1e9), paste("irtem:", nd))
+  ef(nombt(V, matrix(0, 4, 1), matrix(1, 3, 1), c(0, 0, 0), nboot = 1e9),
+     "nombt: `nboot` times the ideal points must be at most 67108864.")
+  ef(scboot(Y, nboot = 1e9),
+     "scboot: `nboot` times the positions must be at most 67108864.")
+  ef(anchv(c(1, 2, 3, 2), Y, ncat = 1e9),
+     "anchv: `ncat` times the ratings must be at most 67108864.")
+})

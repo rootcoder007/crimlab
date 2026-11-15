@@ -18,8 +18,10 @@
 #'
 #' @param Z A respondent-by-stimulus matrix of placements, `NA` for
 #'   missing.
-#' @param nsamp The draws kept.
-#' @param burn The sweeps discarded first.
+#' @param nsamp The draws kept; `nsamp` times the values kept per draw
+#'   must be at most 67108864 (2^26).
+#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
+#'   most 2147483647.
 #' @param polarity The column of the stimulus placed on the left.
 #' @param seed The seed.
 #' @return A list of class `bamscl`: `zeta`, `sd` and `interval` (2.5%
@@ -64,8 +66,10 @@ bamscl <- function(Z, nsamp = 1000, burn = 200, polarity = 1, seed = 42) {
 #'
 #' @param D A square matrix of dissimilarities.
 #' @inheritParams optcls
-#' @param nsamp The draws kept.
-#' @param burn The sweeps discarded first.
+#' @param nsamp The draws kept; `nsamp` times the values kept per draw
+#'   must be at most 67108864 (2^26).
+#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
+#'   most 2147483647.
 #' @param sigma The starting \eqn{\sigma = \tau^{-1/2}}.
 #' @param seed The seed.
 #' @return A list of class `bmdsf`: `pos` (aligned posterior means), `sd`,
@@ -139,8 +143,10 @@ bunfld <- function(D, ndim = 2, nsamp = 1000, burn = 200, seed = 42) {
 #' every platform. The default start is the posterior mode of [irtem()].
 #'
 #' @inheritParams optcls
-#' @param nsamp The draws kept.
-#' @param burn The sweeps discarded first.
+#' @param nsamp The draws kept; `nsamp` times the values kept per draw
+#'   must be at most 67108864 (2^26).
+#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
+#'   most 2147483647.
 #' @param bvar The prior variance \eqn{v} of the vote parameters.
 #' @param start `NULL`, or starting ideal points.
 #' @param seed The Philox key, a whole number from 0.
@@ -195,8 +201,10 @@ cjrirt <- function(votes, ndim = 1, nsamp = 1000, burn = 200, bvar = 25,
 #' as [set.seed()] takes it.
 #'
 #' @inheritParams optcls
-#' @param nsamp The draws kept.
-#' @param burn The sweeps discarded first.
+#' @param nsamp The draws kept; `nsamp` times the values kept per draw
+#'   must be at most 67108864 (2^26).
+#' @param burn The sweeps discarded first; `burn` plus `nsamp` times
+#'   `thin` must be at most 2147483647.
 #' @param seed The seed.
 #' @param thin Keep every `thin`-th sweep after `burn`.
 #' @param lop The smallest minority share of a kept roll call.
@@ -257,8 +265,10 @@ anomin <- function(votes, ndim = 1, nsamp = 500, burn = 100, seed = 42,
 #' @param Y A respondent-by-item matrix of ordinal responses (any ordered
 #'   numeric coding), `NA` for missing.
 #' @inheritParams optcls
-#' @param nsamp The draws kept.
-#' @param burn The sweeps discarded first.
+#' @param nsamp The draws kept; `nsamp` times the values kept per draw
+#'   must be at most 67108864 (2^26).
+#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
+#'   most 2147483647.
 #' @param seed The seed.
 #' @param lprec The prior precision \eqn{L_0} of the loadings and
 #'   intercepts (0, flat).
@@ -309,8 +319,10 @@ ordirt <- function(Y, ndim = 1, nsamp = 500, burn = 100, seed = 42,
 #' @param votes A member-by-vote matrix of 0/1 votes (-1/1 is read as
 #'   0/1), `NA` absent.
 #' @param period The period (term) of each vote, one per column.
-#' @param nsamp The draws kept.
-#' @param burn The sweeps discarded first.
+#' @param nsamp The draws kept; `nsamp` times the values kept per draw
+#'   must be at most 67108864 (2^26).
+#' @param burn The sweeps discarded first; `burn` plus `nsamp` times
+#'   `thin` must be at most 2147483647.
 #' @param seed The seed.
 #' @param thin Keep every `thin`-th sweep.
 #' @param tau2 The evolution variance (its start when estimated).

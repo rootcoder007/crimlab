@@ -395,12 +395,12 @@ double det(const Mat &a0) {
 // --- R's generators ------------------------------------------------------
 
 rng::rng(int seed) {
-  std::uint32_t s = static_cast<std::uint32_t>(seed);
-  for (int j = 0; j < 50; ++j) s = 69069u * s + 1u;
-  s = 69069u * s + 1u;  // the first word is the position, reset to 624
+  std::uint32_t w = static_cast<std::uint32_t>(seed);
+  for (int j = 0; j < 50; ++j) w = 69069u * w + 1u;
+  w = 69069u * w + 1u;  // the first word is the position, reset to 624
   for (int j = 0; j < 624; ++j) {
-    s = 69069u * s + 1u;
-    mt[j] = s;
+    w = 69069u * w + 1u;
+    mt[j] = w;
   }
   mti = 624;
 }
@@ -446,11 +446,11 @@ double rng::expo() {
   static bool done = false;
   if (!done) {
     // q[k] = sum_{i = 1}^{k + 1} log(2)^i / i!
-    double t = 1, s = 0;
+    double t = 1, acc = 0;
     for (int k = 0; k < 16; ++k) {
       t *= 0.693147180559945309417232121458 / (k + 1);
-      s += t;
-      q[k] = s;
+      acc += t;
+      q[k] = acc;
     }
     q[15] = 1.0;
     done = true;
@@ -750,6 +750,12 @@ bool geti(const Node &a, const char *nm, int &x, std::string &err, int lo) {
   }
   x = static_cast<int>(n->d[0]);
   return true;
+}
+
+bool cap(double n, double lim, const char *what, std::string &err) {
+  if (n <= lim) return true;
+  err = msg("%s must be at most %.0f.", what, lim);
+  return false;
 }
 
 bool getb(const Node &a, const char *nm, bool &x, std::string &err) {

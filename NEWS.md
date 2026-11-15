@@ -778,6 +778,17 @@
   `gmixlr()` no longer lists the genotypes of unknown contributors when
   there are none, and `ibench()` refuses more than 8190 columns of `x`,
   whose work arrays grow with the square of their number.
+* The Bayesian samplers `bamscl()`, `bmdsf()`, `bunfld()`, `cjrirt()`,
+  `anomin()` and `ordirt()` refuse an `nsamp` whose draws would pass 2^26
+  values before any is kept, and all seven, with `dynirt()`, refuse a
+  `burn` plus `nsamp` (times `thin`) past the largest integer; a large
+  `nsamp` used to abort R, and the sweep count overflowed. `optcls()`,
+  `smacf()`, `nmdsf()`, `mlsmu()`, `smunf()`, `ordocl()`, `indscl()`,
+  `dwnom()` and `irtem()` refuse an `ndim` whose configurations would pass
+  2^26 values, `anomin()` more dimensions than legislators, `nombt()` and
+  `scboot()` too many replicates and `anchv()` too many categories, all
+  before allocating; `smacf()` can now be interrupted. The command line
+  gives the same messages.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

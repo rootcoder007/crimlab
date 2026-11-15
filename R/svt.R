@@ -122,7 +122,8 @@ bbscal <- function(X, ndim = 2, minscale = 8) {
 #' yea, so no vote has more errors than voting with the majority.
 #'
 #' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The sweeps per start.
 #' @param nstart The random starts.
 #' @param seed The seed of the starts, as [set.seed()] takes it.
@@ -203,7 +204,8 @@ cmdsf <- function(D, ndim = 2) .sv("cmdsf", list(D = D, ndim = ndim))
 #' w_{ij} (d_{ij} - \delta_{ij})^2} changes by less than `tol`.
 #'
 #' @param D A symmetric matrix of dissimilarities.
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The most steps.
 #' @param tol The convergence tolerance on the change in stress.
 #' @param w `NULL` for equal weights, or a matrix of weights.
@@ -308,7 +310,8 @@ unfstr <- function(xr, xs, D, w = NULL) {
 #' (seed 42, as [set.seed()] takes it) the lowest stress is kept.
 #'
 #' @param D A respondent-by-stimulus matrix of dissimilarities.
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The most sweeps per start.
 #' @param tol The convergence tolerance on the relative change in stress.
 #' @param nstart The random starts.
@@ -533,7 +536,8 @@ irtpst <- function(chain, std = TRUE) {
 #'
 #' @param Y A respondent-by-item matrix of ordinal responses, `NA` for
 #'   missing.
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The most sweeps.
 #' @return A list of class `ordocl`: `ideal`, `cuts` (one vector per
 #'   item), `normals`, `correct` (the share classified correctly) and
@@ -564,7 +568,8 @@ ordocl <- function(Y, ndim = 2, maxit = 500) {
 #' @param y Each respondent's self-rating, `NA` for missing.
 #' @param V The respondents' ratings of the vignettes (respondents by
 #'   vignettes), `NA` for missing.
-#' @param ncat The number of ordered categories.
+#' @param ncat The number of ordered categories; `ncat` times the ratings
+#'   must be at most 67108864 (2^26).
 #' @return A list of class `anchv`: `scores` (the corrected ratings),
 #'   `thresh` (respondents by thresholds), `dif` (the standard deviation
 #'   of each threshold), `order` (the vignettes by mean rating), `n` and
@@ -593,7 +598,8 @@ anchv <- function(y, V, ncat = 5) .sv("anchv", list(y = y, V = V, ncat = ncat))
 #'
 #' @param D A list of square dissimilarity matrices of one size, one per
 #'   individual (judge, panel, survey wave).
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The most sweeps.
 #' @param tol The convergence tolerance on the relative change of the
 #'   configuration.
@@ -674,7 +680,8 @@ cutlns <- function(normals, cuts, xlim = c(-1, 1)) {
 #' equal dimension weights.
 #'
 #' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The sweeps.
 #' @return A list of class `dwnom`: `ideal`, `weights`, `normals`, `mids`
 #'   (the outcome midpoints), `cuts`, `loglik`, `gmp` and `ndim`.
@@ -704,7 +711,8 @@ dwnom <- function(votes, ndim = 2, maxit = 100) {
 #' @param x Fitted ideal points.
 #' @param normals Fitted normal vectors (votes by dimensions).
 #' @param cuts Fitted cutpoints, one per vote.
-#' @param nboot The bootstrap replicates.
+#' @param nboot The bootstrap replicates; `nboot` times the ideal points
+#'   must be at most 67108864 (2^26).
 #' @inheritParams bamscl
 #' @return A list of class `nombt`: `se` and `mean` (legislators by
 #'   dimensions) and `nboot`.
@@ -739,7 +747,8 @@ nombt <- function(votes, x, normals, cuts, nboot = 100, seed = 42) {
 #' the column-centred +1/-1 votes.
 #'
 #' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions.
+#' @param ndim The number of dimensions; `ndim` times the points scaled
+#'   must be at most 67108864 (2^26).
 #' @param maxit The most iterations.
 #' @param tol The convergence threshold.
 #' @param xprior The prior mean and variance of the ideal points.
@@ -783,7 +792,8 @@ irtem <- function(votes, ndim = 1, maxit = 500, tol = 1e-6,
 #'
 #' @param Z A respondent-by-stimulus (or issue) matrix, `NA` for missing.
 #' @param method `"am"`, `"blackbox"` or `"blackbox_t"`.
-#' @param nboot The replicates.
+#' @param nboot The replicates; `nboot` times the positions (rows and
+#'   columns of `Z`) must be at most 67108864 (2^26).
 #' @inheritParams bamscl
 #' @return A list of class `scboot`: `se`, `mean`, `lo`, `hi` (2.5% and
 #'   97.5%) and `nboot`.

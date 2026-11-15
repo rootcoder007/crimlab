@@ -127,6 +127,10 @@ bool getd(const Node &a, const char *nm, double &x, std::string &err, double lo,
 bool geti(const Node &a, const char *nm, int &x, std::string &err, int lo);
 bool getb(const Node &a, const char *nm, bool &x, std::string &err);
 bool has(const Node &a, const char *nm);
+// A size checked before anything is made: false with err "<what> must be
+// at most <lim>." when n, the cells it would make (or the iterations it
+// counts in int), is past lim (kutil::maxcell, or INT_MAX).
+bool cap(double n, double lim, const char *what, std::string &err);
 std::string msg(const char *f, ...);
 
 // The EM fit of the binary IRT model (svt.cpp), also the start of the

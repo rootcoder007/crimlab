@@ -101,6 +101,12 @@ int fint(double x, const std::vector<double> &v) {
   return k;
 }
 
+// The coordinates of `ndim` dimensions for rows points (all the
+// configurations of one fit), within kutil::maxcell before any is made.
+bool dims(double rows, int nd, std::string &err) {
+  return cap(rows * nd, kutil::maxcell, "`ndim` times the points scaled", err);
+}
+
 bool intr(std::string &err, double w) {
   if (!kutil::stop(w)) return false;
   err.clear();
@@ -614,6 +620,7 @@ bool k_optcls(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int n = V.r, m = V.c;
+  if (!dims(static_cast<double>(n) + m, nd, err)) return false;
   rng g(seed);
   double best = std::numeric_limits<double>::infinity();
   for (int r = 0; r < ns; ++r) {
@@ -781,6 +788,7 @@ struct Sm {
   double stress;
   int it;
   bool conv;
+  bool stop = false;  // interrupted
 };
 
 Sm smacof(const Mat &D, Mat W, Mat X, int mi, double tol) {
@@ -795,6 +803,7 @@ Sm smacof(const Mat &D, Mat W, Mat X, int mi, double tol) {
   st /= 2;
   int it = 0;
   for (it = 1; it <= mi; ++it) {
+    if (kutil::stop(static_cast<double>(n) * n * X.c)) return {X, st, it, false, true};
     double sn;
     const Mat Xn = smstep(X, D, W, Vi, sn);
     const bool done = std::fabs(st - sn) < tol;
@@ -825,6 +834,7 @@ bool k_smacf(const Node &a, Node &out, std::string &err) {
     return false;
   }
   if (X.v.empty()) {
+    if (!dims(n, nd, err)) return false;
     rng g(42);
     X = rnormm(g, n, nd);
   } else if (X.r != n) {
@@ -832,6 +842,7 @@ bool k_smacf(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const Sm s = smacof(D, W, X, mi, tol);
+  if (s.stop) return intr(err, 0);
   out.add("coords", mnode(s.X));
   out.add("stress", num(s.stress));
   out.add("iter", ival(s.it));
@@ -877,6 +888,7 @@ bool k_nmdsf(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int n = D.r;
+  if (!dims(n, nd, err)) return false;
   rng g(42);
   Mat X = rnormm(g, n, nd);
   std::vector<int> ui, uj;
@@ -998,6 +1010,7 @@ bool k_mlsmu(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int nr = D.r, nc = D.c;
+  if (!dims(static_cast<double>(nr) + nc, nd, err)) return false;
   rng g(42);
   double best = std::numeric_limits<double>::infinity();
   bool any = false;
@@ -1088,6 +1101,7 @@ bool k_smunf(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int nr = D.r, nc = D.c, n = nr + nc;
+  if (!dims(2.0 * n, nd, err)) return false;
   rng g(42);
   const Mat Xr = rnormm(g, nr, nd), Xs = rnormm(g, nc, nd);
   Mat Df(n, n), W(n, n), X(n, nd);
@@ -1414,6 +1428,7 @@ bool k_ordocl(const Node &a, Node &out, std::string &err) {
   int nd, mi;
   if (!getm(a, "Y", Y, err, true) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 1)) return false;
   const int n = Y.r, m = Y.c;
+  if (!dims(static_cast<double>(n) + m, nd, err)) return false;
   rng g(42);
   const Mat X = rnormm(g, n, nd);
   std::vector<std::vector<double>> cats(z(m)), cuts(z(m));
@@ -1503,6 +1518,8 @@ bool k_anchv(const Node &a, Node &out, std::string &err) {
     err = msg("`V` must have one row per rating in `y`, %d.", n);
     return false;
   }
+  // the thresholds, n by ncat - 1
+  if (!cap((K - 1.0) * std::max(n, 1), kutil::maxcell, "`ncat` times the ratings", err)) return false;
   std::vector<double> vm(z(nv));
   for (int j = 0; j < nv; ++j) {
     double s = 0, c = 0;
@@ -1598,6 +1615,7 @@ bool k_indscl(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const int K = static_cast<int>(Ds.size()), n = Ds[0].r;
+  if (!dims(static_cast<double>(n) + K, nd, err)) return false;
   for (const Mat &m : Ds) {
     if (m.r != n || m.c != n || n < 2) {
       err = "`D` must hold square matrices of one size, two rows at least.";
@@ -1782,6 +1800,7 @@ bool k_dwnom(const Node &a, Node &out, std::string &err) {
   int nd, mi;
   if (!getm(a, "votes", V, err, true) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 0)) return false;
   const int n = V.r, m = V.c;
+  if (!dims(n + 2.0 * m, nd, err)) return false;
   rng g(42);
   Mat X = rnormm(g, n, nd, 0.5);
   std::vector<double> w(z(nd), 1.0 / nd);
@@ -1903,6 +1922,7 @@ bool k_nombt(const Node &a, Node &out, std::string &err) {
       P(i, j) = 1 / (1 + std::exp(-(beta * (p - cp[z(j)]))));
     }
   }
+  if (!cap(static_cast<double>(nb) * n * d, kutil::maxcell, "`nboot` times the ideal points", err)) return false;
   std::vector<double> bp(z(nb) * z(n) * z(d));
   for (int b = 0; b < nb; ++b) {
     if (intr(err, 20.0 * n * m * d)) return false;
@@ -1987,6 +2007,7 @@ double emdev(const Mat &o, const Mat &n, bool ab) {
 bool emfit(const Mat &Y, int D, int mi, double tol, const double *xp, const double *bp, const Node *start, bool ab,
            Em &r, std::string &err) {
   const int N = Y.r, J = Y.c;
+  if (!dims(static_cast<double>(N) + J, D, err)) return false;
   Mat x(N, D), b(J, D);
   std::vector<double> al(z(J));
   if (!start) {
@@ -2158,6 +2179,7 @@ bool k_scboot(const Node &a, Node &out, std::string &err) {
   }
   const std::string &me = mt->s[0];
   const int n = Z.r;
+  if (!cap(static_cast<double>(nb) * (n + Z.c), kutil::maxcell, "`nboot` times the positions", err)) return false;
   rng g(seed);
   std::vector<std::vector<double>> bs;
   for (int b = 0; b < nb; ++b) {

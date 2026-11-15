@@ -444,3 +444,33 @@ test_that("dynirt() anchors, and refuses what it cannot fit", {
   expect_identical(dim(g$theta), c(12L, 3L))
   expect_true(all(is.finite(g$theta)))
 })
+
+test_that("draws and sweeps past their bounds are refused before any is made", {
+  # each refusal comes before the draws are allocated or the first sweep
+  # runs, so none of these makes anything large
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  big <- "`nsamp` times the values kept per draw must be at most 67108864."
+  it <- "`burn` plus `nsamp` must be at most 2147483647."
+  itt <- "`burn` plus `nsamp` times `thin` must be at most 2147483647."
+  imax <- .Machine$integer.max
+  Z <- matrix(c(1, 2, 3, 2, 3, 1), 3)
+  ef(bamscl(Z, nsamp = 1e9), paste("bamscl:", big))
+  ef(bamscl(Z, burn = imax), paste("bamscl:", it))
+  D <- as.matrix(dist(1:4))
+  ef(bmdsf(D, ndim = 1, nsamp = 1e9), paste("bmdsf:", big))
+  ef(bmdsf(D, ndim = 1, burn = imax), paste("bmdsf:", it))
+  ef(bunfld(D, ndim = 1, nsamp = 1e9), paste("bunfld:", big))
+  ef(bunfld(D, ndim = 1, burn = imax), paste("bunfld:", it))
+  V <- matrix(c(1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 1), 4)
+  ef(cjrirt(V, nsamp = 1e9), paste("cjrirt:", big))
+  ef(cjrirt(V, ndim = 1e9), paste("cjrirt:", big))
+  ef(cjrirt(V, burn = imax), paste("cjrirt:", it))
+  ef(anomin(V, ndim = 1e9), "anomin: `ndim` must be at most 4.")
+  ef(anomin(V, nsamp = 1e9, lop = 0, minvotes = 0), paste("anomin:", big))
+  ef(anomin(V, burn = imax, lop = 0, minvotes = 0), paste("anomin:", itt))
+  Y <- matrix(c(1, 2, 3, 1, 2, 3, 3, 2, 1, 1, 3, 2), 4)
+  ef(ordirt(Y, nsamp = 1e9), paste("ordirt:", big))
+  ef(ordirt(Y, burn = imax), paste("ordirt:", it))
+  ef(dynirt(V, 1:3, burn = imax), paste("dynirt:", itt))
+  ef(dynirt(V, 1:3, nsamp = 1e9, thin = 3), paste("dynirt:", itt))
+})
