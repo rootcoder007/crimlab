@@ -828,6 +828,9 @@
 * `tfrp()` refuses a `ymax` of 2^26 or more, `fairsim()` more than 2^26
   records and `aorwt()` more than 2^26 bins, before anything is made; the
   command line gives the same messages.
+* `crwalk()` refuses `h` times `nsim` past 2^26, the simulated steps it
+  keeps, and `vgemp()` more than 2^26 distance bins, in R and in the
+  command line.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

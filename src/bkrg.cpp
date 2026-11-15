@@ -101,6 +101,7 @@ SEXP C_clab_r_vgemp(SEXP x, SEXP y, SEXP v, SEXP nbins, SEXP cutoff) {
   if (n < 2) fail("`x` must hold at least 2 points.");
   SEXP vv = PROTECT(num(v, "v", n));
   const int nb = clab::whole(nbins, "nbins", 1);
+  if (nb > kutil::maxcell) fail("`nbins` must be at most %.0f.", kutil::maxcell);
   double cut = NAN;
   if (!Rf_isNull(cutoff)) cut = clab::one(cutoff, "cutoff", 0.0, HUGE_VAL);
   double *d = dal(nb), *g = dal(nb), *np = dal(nb);

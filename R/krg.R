@@ -9,7 +9,8 @@
 #'
 #' @inheritParams cgstat
 #' @param v The values: finite numbers, one per point.
-#' @param nbins The number of distance bins: one whole number from 1.
+#' @param nbins The number of distance bins: one whole number from 1 to
+#'   67108864 (2^26).
 #' @param cutoff The largest distance used: `NULL` for a third of the
 #'   largest distance between two points (the convention of gstat), or one
 #'   positive number.

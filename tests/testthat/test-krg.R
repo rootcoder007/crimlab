@@ -495,3 +495,9 @@ test_that("block points past their bound are refused before they are made", {
   expect_error(bkrig(p, v = 1:3, blocks = rep(box, 3), nq = 3e7), msg,
                fixed = TRUE)
 })
+
+test_that("vgemp() refuses more distance bins than its bound", {
+  p <- cbind(x = c(0.1, 0.4, 0.8), y = c(0.2, 0.9, 0.5))
+  expect_error(vgemp(p, v = 1:3, nbins = 1e9),
+               "vgemp: `nbins` must be at most 67108864.", fixed = TRUE)
+})

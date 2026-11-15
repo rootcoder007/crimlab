@@ -10,6 +10,7 @@
 #include <Rmath.h>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "rchk.h"
 #include "spin.h"
 
@@ -76,6 +77,8 @@ SEXP C_clab_r_crwalk(SEXP x, SEXP y, SEXP h, SEXP nsim, SEXP seed,
   if (n < 3) fail("at least 3 locations are needed.");
   const int hh = clab::whole(h, "h", 1);
   const int ns = clab::whole(nsim, "nsim", 1);
+  // the simulated paths, h steps of each of nsim walks, are kept
+  if (static_cast<double>(hh) * ns > kutil::maxcell) fail("`h` times `nsim` must be at most %.0f.", kutil::maxcell);
   const unsigned int sd = csp::seed(seed);
   SEXP st = PROTECT(real(n - 1));
   SEXP tu = PROTECT(real(n - 2));

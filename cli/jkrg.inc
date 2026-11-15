@@ -47,6 +47,7 @@ bool vgemp(Ctx &c, Val &out) {
   CK(num(c, c["v"], "v", v, p.n));
   int nb = 0;
   CK(wholed(c, "nbins", 15, 1, nb));
+  if (nb > kutil::maxcell) return c.fail("`nbins` must be at most %.0f.", kutil::maxcell);
   double cut = NaN;
   if (c.has("cutoff")) CK(one(c, c["cutoff"], "cutoff", 0.0, Inf, cut));
   std::vector<double> d(zz(nb)), g(zz(nb)), np(zz(nb));

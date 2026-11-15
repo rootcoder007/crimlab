@@ -360,6 +360,7 @@ set.seed(6)
 cw <- data.frame(x = round(cumsum(rnorm(12)), 3), y = round(cumsum(rnorm(12)), 3))
 ok("crwalk", x = cw, h = 3, nsim = 9, seed = 1)
 bad("crwalk", x = cw[1:2, ], seed = 1)
+bad("crwalk", x = cw, h = 1e5, nsim = 1e5, seed = 1)
 
 # Forensic toxicology
 ok("txcal", conc = c(1, 2, 5, 10, 20), resp = c(0.11, 0.2, 0.52, 0.98, 2.05), unk = c(0.05, 0.4, 1.5, NA))
@@ -1371,6 +1372,7 @@ gp <- cbind(x = c(0, 1, 0, 1, 2, 0.5, 1.5, 2.2), y = c(0, 0, 1, 1, 2, 1.7, 0.4, 
 gv <- c(1, 2, 3, 5, 4, 2.5, 3.1, 4.4)
 ok("vgemp", x = gp, v = gv)
 ok("vgemp", x = gp, v = gv, nbins = 4, cutoff = 2)
+bad("vgemp", x = gp, v = gv, nbins = 1e9)
 bad("vgemp", x = gp, v = gv[1:3])
 ok("vgfit", x = gp, v = gv)
 ok("vgfit", x = gp, v = gv, model = "spherical")
