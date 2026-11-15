@@ -223,3 +223,18 @@ test_that("HTML keeps a tab and shows other control characters", {
   # the tab as it is; \001 in octal; the left-to-right mark as a code
   expect_true(grepl("x\ty\\001&lt;U+200E&gt;", h, fixed = TRUE))
 })
+
+test_that("every digit is the shortest text that reads back", {
+  # the shortest round-trip texts (as Python's repr() gives them): a
+  # subnormal, a power of two and numbers past 2^52, and 1e23, whose
+  # digits 9.99... carry to 1
+  v <- c(5e-324, 2^60, 1e17, 1e23, 1.5e20, 2^52)
+  txt <- c("5e-324", "1.152921504606847e+18", "1e+17", "1e+23", "1.5e+20",
+           "4503599627370496")
+  expect_identical(
+    yoyjs(data.frame(v = v), pretty = FALSE),
+    paste0("{\"rows\":[", paste0("{\"v\":", txt, "}", collapse = ","),
+           "]}\n")
+  )
+  expect_identical(as.numeric(txt), v)
+})
