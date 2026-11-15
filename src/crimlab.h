@@ -1960,11 +1960,16 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
  * residuals y - xe b - xx c, two-way V1 + V2 - V12, each times G / (G - 1)
  * of G the smaller number of clusters; fst (pe): each first stage's
  * cluster-robust Wald statistic of its q excluded instruments, divided by
- * q (NaN when its covariance is singular); fst is pe x 3: that statistic,
- * the Kleibergen-Paap rk Wald F (equal to it for one endogenous column,
- * NaN for more) and the effective F of Montiel Olea and Pflueger (2013),
- * bz' Q bz / tr(Vzz Q) with Q the instruments' weighted cross products
- * after xx and the effects (one endogenous column; NaN for more). Out: beta (pe + px; the
+ * q (NaN when its covariance is singular); fst is pe x 4: that statistic,
+ * the Kleibergen-Paap rk Wald statistic divided by q (equal to the Wald
+ * statistic for one endogenous column; for more, the rk statistic of
+ * rank pe - 1 of the instruments' first-stage coefficients, Kleibergen and
+ * Paap 2006, equation 22, the same in every row), the effective F of
+ * Montiel Olea and Pflueger (2013, equation 3), bz' Q bz / tr(Vzz Q) with
+ * Q the instruments' weighted cross products after xx and the effects,
+ * and its effective degrees of freedom for the simplified test with tau
+ * = 10% (their equation 4 with x = 10; both for one endogenous column,
+ * NaN for more). Out: beta (pe + px; the
  * endogenous first); fres: NULL or n x pe, the first stages' residuals
  * (demeaned); res: NULL or n, the structural residuals (demeaned); sco:
  * NULL or n x (pe + px), each row's second-stage score w u h, and brd:
@@ -1992,7 +1997,7 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
  * reproduces it); each draw refits both stages on the drawn clusters
  * weighted by those counts (equal to stacking the copies, each copy with
  * its own effects when the effect is nested in the cluster), after
- * clab_fesep on the draw. fst: 3 pe, as in clab_ivfe. Out: beta (2 pe +
+ * clab_fesep on the draw. fst: 4 pe, as in clab_ivfe. Out: beta (2 pe +
  * px, or pe + px for how 1); draw (nb x the same,
  * column-major by coefficient; NaN for a draw that could not be fitted);
  * st (3): the full fit's steps and convergence, the draws that failed.

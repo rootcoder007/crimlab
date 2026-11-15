@@ -54,7 +54,7 @@ an object of class \code{ivfe}.}
 \value{
 An object of class \code{ivfe}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
 without \code{rr}); \code{first}, one row per endogenous column (\code{endo}, \code{wald},
-\code{kp}, \code{eff}, \code{ninst}); \code{fstab}, the first-stage coefficient of each
+\code{kp}, \code{eff}, \code{keff}, \code{cv}, \code{ninst}); \code{fstab}, the first-stage coefficient of each
 excluded instrument (\code{endo}, \code{inst}, \code{est}, \code{se}, and \code{rel}, \code{est}
 over the mean of the endogenous column; \code{NULL} without \code{endo});
 \code{vcov}; \code{n}; \code{ncl}; \code{se}, \code{ssc}, \code{lag}; \code{rss};
@@ -86,18 +86,34 @@ and only if the instrument pushes the exposure the same way everywhere
 (monotonicity; Bondy, Roth and Sager let wind act differently by region
 for that reason: see \code{\link[=windiv]{windiv()}}).
 
-First-stage strength, all three in \code{first}: \code{wald}, the robust Wald
-statistic of the excluded instruments divided by their number (the
-"F-test" Bondy, Roth and Sager report, as far as their text says);
-\code{kp}, the Kleibergen-Paap rk Wald F of Herrnstadt and others (2019,
-table 7), which for one endogenous column is the same robust Wald F (it
-is \code{NA} for more than one: the rank statistic is not computed); and
-\code{eff}, the effective F of Montiel Olea and Pflueger (2013), \code{b'Qb /
-tr(V Q)} with \code{b} the instruments' first-stage coefficients, \code{V} their
-robust covariance and \code{Q} their cross products after the controls and
-the fixed effects (one endogenous column only). A common rule of thumb
-asks for more than 10; Montiel Olea and Pflueger give critical values
-for the effective F. The first-stage statistics use the clusters of
+First-stage strength, in \code{first}: \code{wald}, the robust Wald statistic of
+the excluded instruments divided by their number (the "F-test" Bondy,
+Roth and Sager report, as far as their text says); \code{kp}, the
+Kleibergen-Paap rk Wald statistic divided by the number of instruments
+(the "rk Wald F" of Herrnstadt and others 2019, table 7): for one
+endogenous column it is the same robust Wald statistic over \code{q}; for
+more, the rk statistic of Kleibergen and Paap (2006, equation 22, p.
+104) that the instruments' first-stage coefficients have rank one less
+than the endogenous columns, with their normalisation \code{Theta = G Pi F'},
+\code{F F'} the instruments' cross products and \code{G'G} the inverse of the
+endogenous columns' (p. 103), all after the controls and the effects,
+and the clustered covariance of \code{Pi}; under that null the rk statistic
+(\code{kp} times \code{ninst}) is chi-squared on \code{ninst - length(endo) + 1}
+degrees of freedom (their Corollary 1); dividing by \code{ninst} is the
+convention of the "F" form, not the paper's. \code{eff}, the effective F of
+Montiel Olea and Pflueger (2013, equation 3, p. 360), \code{b'Qb / tr(V Q)}
+with \code{b} the instruments' first-stage coefficients, \code{V} their robust
+covariance and \code{Q} their cross products after the controls and the
+fixed effects: the paper's \code{Y'ZZ'Y / (S tr(W2))} once the instruments
+are made orthonormal (their step 1), checked to be the same; \code{keff},
+its effective degrees of freedom for their simplified test (equation 4
+with \code{x = 1 / tau}, \code{tau = 10\%}), and \code{cv}, the simplified test's 5\%
+critical value, the upper 5\% point of a noncentral chi-squared on
+\code{keff} degrees of freedom with noncentrality \code{10 keff}, over \code{keff}
+(section 2.2.2 and table 1; 23.1 for one instrument): the Nagar bias of
+two-stage least squares is less than 10\% of the benchmark when \code{eff}
+exceeds \code{cv}. \code{eff}, \code{keff} and \code{cv} are for one endogenous column only.
+The generalised test, which needs their function \code{B_e}, is not built. The first-stage statistics use the clusters of
 \code{se} (each row for \code{"hc1"}, the first \code{clus} column for \code{"nw"} and
 \code{"boot"}).
 

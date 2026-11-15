@@ -87,14 +87,14 @@ SEXP C_clab_r_ivfe(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP w, SEXP f1, SEXP n1, 
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 8));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, p));
   SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, p, p));
-  SET_VECTOR_ELT(r, 2, Rf_allocMatrix(REALSXP, pe, 3));
+  SET_VECTOR_ELT(r, 2, Rf_allocMatrix(REALSXP, pe, 4));
   SET_VECTOR_ELT(r, 3, Rf_allocVector(REALSXP, 3));
   SET_VECTOR_ELT(r, 4, Rf_allocVector(REALSXP, n));
   SET_VECTOR_ELT(r, 5, Rf_allocMatrix(REALSXP, n, pe));
   SET_VECTOR_ELT(r, 6, Rf_allocMatrix(REALSXP, n, p));
   SET_VECTOR_ELT(r, 7, Rf_allocMatrix(REALSXP, p, p));
   for (int a = 0; a < p * p; ++a) REAL(VECTOR_ELT(r, 1))[a] = NA_REAL;
-  for (int a = 0; a < 3 * pe; ++a) REAL(VECTOR_ELT(r, 2))[a] = NA_REAL;
+  for (int a = 0; a < 4 * pe; ++a) REAL(VECTOR_ELT(r, 2))[a] = NA_REAL;
   kc(clab_ivfe(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, dnul(w), INTEGER(f1),
                Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), icodes(cl),
                Rf_isNull(cl) ? 0 : Rf_asInteger(ncl), icodes(cl2),
@@ -116,7 +116,7 @@ SEXP C_clab_r_ppmlcf(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP off, SEXP f1, SEXP 
   const int k = (hw == 1 ? 1 : 2) * pe + px, nb = Rf_ncols(bm);
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 4));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, k));
-  SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, pe, 3));
+  SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, pe, 4));
   SET_VECTOR_ELT(r, 2, Rf_allocMatrix(REALSXP, nb, k));
   SET_VECTOR_ELT(r, 3, Rf_allocVector(REALSXP, 3));
   kc(clab_ppmlcf(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, dnul(off), INTEGER(f1),

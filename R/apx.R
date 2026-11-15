@@ -695,12 +695,22 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 }
 
 .axfirst <- function(endo, fst, q) {
-  m <- matrix(fst, ncol = 3L)
+  m <- matrix(fst, ncol = 4L)
+  # the simplified test of Montiel Olea and Pflueger (2013, section
+  # 2.2.2 and table 1): the upper 5% quantile of a noncentral chi-squared
+  # on keff degrees of freedom with noncentrality x keff, over keff, x = 1
+  # / tau = 10
+  ke <- m[, 4L]
+  cv <- rep(NA_real_, length(ke))
+  ok <- is.finite(ke) & ke > 0
+  cv[ok] <- stats::qchisq(0.95, ke[ok], ncp = 10 * ke[ok]) / ke[ok]
   data.frame(
     endo = as.character(endo),
     wald = m[, 1L],
     kp = m[, 2L],
     eff = m[, 3L],
+    keff = ke,
+    cv = cv,
     ninst = rep(q, length(endo))
   )
 }
@@ -730,18 +740,34 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' (monotonicity; Bondy, Roth and Sager let wind act differently by region
 #' for that reason: see [windiv()]).
 #'
-#' First-stage strength, all three in `first`: `wald`, the robust Wald
-#' statistic of the excluded instruments divided by their number (the
-#' "F-test" Bondy, Roth and Sager report, as far as their text says);
-#' `kp`, the Kleibergen-Paap rk Wald F of Herrnstadt and others (2019,
-#' table 7), which for one endogenous column is the same robust Wald F (it
-#' is `NA` for more than one: the rank statistic is not computed); and
-#' `eff`, the effective F of Montiel Olea and Pflueger (2013), `b'Qb /
-#' tr(V Q)` with `b` the instruments' first-stage coefficients, `V` their
-#' robust covariance and `Q` their cross products after the controls and
-#' the fixed effects (one endogenous column only). A common rule of thumb
-#' asks for more than 10; Montiel Olea and Pflueger give critical values
-#' for the effective F. The first-stage statistics use the clusters of
+#' First-stage strength, in `first`: `wald`, the robust Wald statistic of
+#' the excluded instruments divided by their number (the "F-test" Bondy,
+#' Roth and Sager report, as far as their text says); `kp`, the
+#' Kleibergen-Paap rk Wald statistic divided by the number of instruments
+#' (the "rk Wald F" of Herrnstadt and others 2019, table 7): for one
+#' endogenous column it is the same robust Wald statistic over `q`; for
+#' more, the rk statistic of Kleibergen and Paap (2006, equation 22, p.
+#' 104) that the instruments' first-stage coefficients have rank one less
+#' than the endogenous columns, with their normalisation `Theta = G Pi F'`,
+#' `F F'` the instruments' cross products and `G'G` the inverse of the
+#' endogenous columns' (p. 103), all after the controls and the effects,
+#' and the clustered covariance of `Pi`; under that null the rk statistic
+#' (`kp` times `ninst`) is chi-squared on `ninst - length(endo) + 1`
+#' degrees of freedom (their Corollary 1); dividing by `ninst` is the
+#' convention of the "F" form, not the paper's. `eff`, the effective F of
+#' Montiel Olea and Pflueger (2013, equation 3, p. 360), `b'Qb / tr(V Q)`
+#' with `b` the instruments' first-stage coefficients, `V` their robust
+#' covariance and `Q` their cross products after the controls and the
+#' fixed effects: the paper's `Y'ZZ'Y / (S tr(W2))` once the instruments
+#' are made orthonormal (their step 1), checked to be the same; `keff`,
+#' its effective degrees of freedom for their simplified test (equation 4
+#' with `x = 1 / tau`, `tau = 10%`), and `cv`, the simplified test's 5%
+#' critical value, the upper 5% point of a noncentral chi-squared on
+#' `keff` degrees of freedom with noncentrality `10 keff`, over `keff`
+#' (section 2.2.2 and table 1; 23.1 for one instrument): the Nagar bias of
+#' two-stage least squares is less than 10% of the benchmark when `eff`
+#' exceeds `cv`. `eff`, `keff` and `cv` are for one endogenous column only.
+#' The generalised test, which needs their function `B_e`, is not built. The first-stage statistics use the clusters of
 #' `se` (each row for `"hc1"`, the first `clus` column for `"nw"` and
 #' `"boot"`).
 #'
@@ -767,7 +793,7 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' @param ... Not used.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
 #'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
-#'   `kp`, `eff`, `ninst`); `fstab`, the first-stage coefficient of each
+#'   `kp`, `eff`, `keff`, `cv`, `ninst`); `fstab`, the first-stage coefficient of each
 #'   excluded instrument (`endo`, `inst`, `est`, `se`, and `rel`, `est`
 #'   over the mean of the endogenous column; `NULL` without `endo`);
 #'   `vcov`; `n`; `ncl`; `se`, `ssc`, `lag`; `rss`;
@@ -1002,7 +1028,8 @@ print.ivfe <- function(x, ...) {
   )
   print(x[["coef"]], row.names = FALSE, digits = 4)
   if (iv) {
-    cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F:\n")
+    cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F,",
+        "its keff and 5% critical value (tau 10%):\n")
     print(x[["first"]], row.names = FALSE, digits = 4)
   }
   invisible(x)
@@ -1268,7 +1295,8 @@ print.ppmlcf <- function(x, ...) {
         "naive second-stage errors (they ignore the first stage)"
       }, "\n", sep = "")
   print(x[["coef"]], row.names = FALSE, digits = 4)
-  cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F:\n")
+  cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F,",
+      "its keff and 5% critical value (tau 10%):\n")
   print(x[["first"]], row.names = FALSE, digits = 4)
   invisible(x)
 }

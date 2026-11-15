@@ -95,13 +95,16 @@ void t_apx(tk &T, int) {
       szy += (z[i] - mz) * (y[i] - my);
       szx += (z[i] - mz) * (x[i] - mx);
     }
-    double b = 0, vc = 0, f[3] = {0, 0, 0}, st[3];
+    double b = 0, vc = 0, f[4] = {0, 0, 0, 0}, st[3];
     tk_ieq(T, "apx.iv", clab_ivfe(y, x, 1, nullptr, 0, z, 1, 5, nullptr, g, 1, nullptr, 0, c, 2,
                                   nullptr, 0, 1e-13, &b, &vc, f, nullptr, nullptr, nullptr, nullptr, st), CLAB_OK);
     tk_eq(T, "apx.ivb", b, szy / szx, 1e-12);
     // one instrument: the effective F is the Wald F
     tk_eq(T, "apx.ivef", f[2], f[0], 1e-10);
     tk_eq(T, "apx.ivkp", f[1], f[0], 0);
+    // one instrument: Montiel Olea and Pflueger's effective degrees of
+    // freedom are 1 (equation 4 with a scalar W2)
+    tk_eq(T, "apx.keff", f[3], 1, 1e-12);
     // the score variance by clusters equals the kernel's own sandwich
     double sco[5], brd = 0, v2 = 0;
     clab_ivfe(y, x, 1, nullptr, 0, z, 1, 5, nullptr, g, 1, nullptr, 0, c, 2, nullptr, 0, 1e-13, &b,
@@ -204,7 +207,7 @@ void t_apx(tk &T, int) {
       xe[i] = zi[i] - 0.5 * zi[n + i] + e + 0.1 * g[i];
       y[i] = 0.5 * xe[i] + e + runi(r, -1, 1);
     }
-    double b = 0, b2 = 0, st[3], s3[3], f[3];
+    double b = 0, b2 = 0, st[3], s3[3], f[4];
     std::vector<double> res(n);
     tk_ieq(T, "apx.oi", clab_ivoid(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 2, n, g.data(), 5,
                                    nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
@@ -227,6 +230,35 @@ void t_apx(tk &T, int) {
     tk_eq(T, "apx.oi1b", b2, b, 1e-10);
     tk_eq(T, "apx.oi1s", st[0], 0, 1e-9);
     tk_nan(T, "apx.oi1j", st[1]);
+  }
+  // the rk statistic of two endogenous columns does not change when they
+  // are replaced by invertible combinations of themselves (Kleibergen and
+  // Paap 2006, p. 103: the normalised estimator is invariant to such
+  // transformations), and is the same in both rows
+  {
+    const int n = 60;
+    rng r{20261118};
+    std::vector<double> y(n), xe(2 * n), xa(2 * n), zi(3 * n);
+    std::vector<int> g(n), c(n);
+    for (int i = 0; i < n; ++i) {
+      g[i] = i % 3;
+      c[i] = i % 12;
+      for (int a = 0; a < 3; ++a) zi[a * n + i] = runi(r, -1, 1);
+      xe[i] = zi[i] + 0.5 * zi[n + i] + runi(r, -1, 1);
+      xe[n + i] = 0.3 * zi[i] + zi[2 * n + i] + runi(r, -1, 1);
+      xa[i] = 2 * xe[i] + xe[n + i];
+      xa[n + i] = 0.5 * xe[i] + 3 * xe[n + i];
+      y[i] = xe[i] - xe[n + i] + runi(r, -1, 1);
+    }
+    double b[2], f1[8], f2[8], st[3];
+    tk_ieq(T, "apx.rk", clab_ivfe(y.data(), xe.data(), 2, nullptr, 0, zi.data(), 3, n, nullptr,
+                                  g.data(), 3, nullptr, 0, c.data(), 12, nullptr, 0, 1e-13, b,
+                                  nullptr, f1, nullptr, nullptr, nullptr, nullptr, st), CLAB_OK);
+    clab_ivfe(y.data(), xa.data(), 2, nullptr, 0, zi.data(), 3, n, nullptr, g.data(), 3, nullptr, 0,
+              c.data(), 12, nullptr, 0, 1e-13, b, nullptr, f2, nullptr, nullptr, nullptr, nullptr, st);
+    tk_gt(T, "apx.rkp", f1[2], 0);
+    tk_eq(T, "apx.rki", f2[2], f1[2], 1e-8);
+    tk_eq(T, "apx.rk2", f1[3], f1[2], 0);
   }
   // runs: days 1, 2, 3 of a run, a gap breaks it, a new unit starts afresh
   {

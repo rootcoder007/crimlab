@@ -70,7 +70,11 @@
   parameter `n`, so results with that default change; two-way clustering
   gains the factor of each component (`twc = "each"`) and the
   eigenvalue fix (`psd = "eig"`) of Cameron, Gelbach and Miller (2011)
-  in `ppmlfe()` and `ivfe()`.
+  in `ppmlfe()` and `ivfe()`. The first-stage table of `ivfe()` gains the
+  Kleibergen-Paap rk statistic for several endogenous columns (it was
+  `NA`) and the effective degrees of freedom and 5% critical value of
+  the simplified test of Montiel Olea and Pflueger (2013); the effective
+  F itself was checked against their equation 3 and is unchanged.
 
 * Exposure and crime, a count with an endogenous exposure by the
   exponential-mean generalised method of moments of Mullahy (1997) and

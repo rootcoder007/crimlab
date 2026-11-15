@@ -125,6 +125,14 @@ test_that("ivfe equals feols IV: estimates, errors, first-stage F", {
   # products after the control and the effects)
   expect_equal(f$first$eff, 536.97395780637555, tolerance = 1e-6)
   expect_identical(f$first$kp, f$first$wald)
+  # the effective degrees of freedom of the simplified test (Montiel Olea
+  # and Pflueger 2013, equation 4, x = 10), by base R matrix algebra on
+  # the same Q and clustered V; the critical value is their Patnaik
+  # formula, 23.11 for keff = 1 in their table 1
+  expect_equal(f$first$keff, 1.51825656086039, tolerance = 1e-6)
+  expect_equal(f$first$cv, stats::qchisq(0.95, f$first$keff,
+                                         ncp = 10 * f$first$keff) /
+                 f$first$keff, tolerance = 1e-12)
   # the first stage in units (Yamada 2026, item 5): fixest's first-stage
   # coefficients over the mean of x
   expect_equal(f$fstab$est, c(0.73993728634395717, -0.5556931692314554),
@@ -652,4 +660,22 @@ test_that("the Newey-West (1994) automatic lag, by hand", {
   # 2 (1) = 9
   g <- crimlab:::.axnwlag(matrix(c(1, -1, 2, 0, 1)), rep(0L, 5), 1:5)
   expect_identical(g, floor(1.1447 * ((10 / 9)^2)^(1 / 3) * 5^(1 / 3)))
+})
+
+test_that("the Kleibergen-Paap rk statistic for two endogenous columns", {
+  # the reference follows the paper's own route (Kleibergen and Paap
+  # 2006, equations 11, 12, 19 and 22) in base R: the endogenous columns
+  # and the instruments less w and the two sets of effects by lm(),
+  # Theta = G Pi F' with F = (Z'Z)^(1/2) and G = (Y'Y)^(-1/2), svd(),
+  # Lambda from U22 and V22, Omega from the unit-clustered covariance of
+  # vec(Pi) times 15 / 14; the kernel takes a shorter route (the
+  # orthonormal bases of the singular vectors), so agreement checks both
+  d <- simpan()
+  set.seed(7)
+  d$z3 <- rnorm(nrow(d))
+  d$x2 <- 0.4 * d$z2 + 0.5 * d$z3 + 0.2 * d$z1 + rnorm(nrow(d))
+  f <- ivfe(d, "yl", endo = c("x", "x2"), inst = c("z1", "z2", "z3"),
+            x = "w", fe = c("unit", "day"))
+  expect_equal(f$first$kp, rep(79.3812891173097, 2), tolerance = 1e-6)
+  expect_true(all(is.na(f$first$eff)))
 })

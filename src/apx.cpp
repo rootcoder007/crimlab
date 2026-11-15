@@ -49,6 +49,227 @@ bool spdinv(const double *a, int p, double *ai, double *sc) {
   return true;
 }
 
+// The eigenvalues (ascending, into ev) and eigenvectors (columns of vec)
+// of the symmetric p x p matrix a, by cyclic Jacobi rotations; a is
+// overwritten. Returns false when 100 sweeps leave it off diagonal.
+bool jacobi(double *a, int p, double *ev, double *vec) {
+  const size_t sp = static_cast<size_t>(p);
+  for (size_t q = 0; q < sp * sp; ++q) vec[q] = 0.0;
+  for (size_t j = 0; j < sp; ++j) vec[j * sp + j] = 1.0;
+  bool ok = false;
+  for (int sw = 0; sw < 100 && !ok; ++sw) {
+    double off = 0.0, tot = 0.0;
+    for (size_t j = 0; j < sp; ++j) {
+      for (size_t i = 0; i < sp; ++i) {
+        tot += a[j * sp + i] * a[j * sp + i];
+        if (i != j) off += a[j * sp + i] * a[j * sp + i];
+      }
+    }
+    if (!(off > 1e-30 * tot)) {
+      ok = true;
+      break;
+    }
+    for (size_t r = 0; r + 1 < sp; ++r) {
+      for (size_t c = r + 1; c < sp; ++c) {
+        const double arc = a[c * sp + r];
+        if (arc == 0.0) continue;
+        const double th = (a[c * sp + c] - a[r * sp + r]) / (2 * arc);
+        const double t = (th >= 0 ? 1.0 : -1.0) / (std::fabs(th) + std::sqrt(th * th + 1));
+        const double cs = 1 / std::sqrt(t * t + 1), sn = t * cs;
+        for (size_t k = 0; k < sp; ++k) {
+          const double akr = a[r * sp + k], akc = a[c * sp + k];
+          a[r * sp + k] = cs * akr - sn * akc;
+          a[c * sp + k] = sn * akr + cs * akc;
+        }
+        for (size_t k = 0; k < sp; ++k) {
+          const double ark = a[k * sp + r], ack = a[k * sp + c];
+          a[k * sp + r] = cs * ark - sn * ack;
+          a[k * sp + c] = sn * ark + cs * ack;
+        }
+        for (size_t k = 0; k < sp; ++k) {
+          const double vr = vec[r * sp + k], vc = vec[c * sp + k];
+          vec[r * sp + k] = cs * vr - sn * vc;
+          vec[c * sp + k] = sn * vr + cs * vc;
+        }
+      }
+    }
+  }
+  // ascending order
+  std::vector<size_t> ix(sp);
+  for (size_t j = 0; j < sp; ++j) ix[j] = j;
+  for (size_t j = 1; j < sp; ++j) {
+    for (size_t i = j; i > 0 && a[ix[i] * sp + ix[i]] < a[ix[i - 1] * sp + ix[i - 1]]; --i) {
+      const size_t t = ix[i];
+      ix[i] = ix[i - 1];
+      ix[i - 1] = t;
+    }
+  }
+  std::vector<double> vv(vec, vec + sp * sp);
+  for (size_t j = 0; j < sp; ++j) {
+    ev[j] = a[ix[j] * sp + ix[j]];
+    for (size_t k = 0; k < sp; ++k) vec[j * sp + k] = vv[ix[j] * sp + k];
+  }
+  return ok;
+}
+
+// The symmetric power s^e (e = 1/2 or -1/2) of the symmetric positive
+// definite p x p matrix s into o; false when it is not positive definite.
+bool spow(const double *s, int p, double e, double *o) {
+  const size_t sp = static_cast<size_t>(p);
+  std::vector<double> a(s, s + sp * sp), ev(sp), vec(sp * sp);
+  if (!jacobi(a.data(), p, ev.data(), vec.data()) || !(ev[0] > 1e-12 * ev[sp - 1])) return false;
+  for (size_t j = 0; j < sp; ++j) {
+    for (size_t i = 0; i < sp; ++i) {
+      double t = 0.0;
+      for (size_t k = 0; k < sp; ++k) t += vec[k * sp + i] * std::pow(ev[k], e) * vec[k * sp + j];
+      o[j * sp + i] = t;
+    }
+  }
+  return true;
+}
+
+// The rk Wald statistic of Kleibergen and Paap (2006, equation 22, p.
+// 104) that the first stages of pe > 1 endogenous columns have rank pe - 1
+// (Corollary 1: chi-squared on q - pe + 1 degrees of freedom). Pi (pe x q)
+// holds the first stages' instrument coefficients (pz, column j the jth
+// stage), V its cluster-robust covariance from the residuals fr and the
+// instruments rz less the controls, Q = rz'W rz; Theta = G Pi F' with F F'
+// = Q and G'G = the inverse of the cross products of the endogenous
+// columns less the controls (their normalisation, p. 103, with the sample
+// moments in place of T^-1 sums, which only scales). Their Lambda_q (11)
+// is the smallest singular value, pre- and post-multiplied by
+// orthonormal matrices, so lambda = V2' Theta' u with u the left singular
+// vector of the smallest singular value and V2 an orthonormal basis of
+// the right singular vectors from the pe-th on; rk = lambda' Omega^-1
+// lambda with Omega = (V2'F (x) u'G) V (V2'F (x) u'G)'. The statistic does
+// not depend on which orthonormal bases are taken. NaN when a matrix is
+// singular.
+double rkwald(const double *fr, const double *pz, const double *rz, const double *qq,
+              const double *ee, const double *ex, int n, int pe, int px, int q, const double *w,
+              const int *cl, int ncl, const int *cl2, int ncl2, const int *c12, int n12, double *b,
+              double *xi, double *sc) {
+  const size_t sn = static_cast<size_t>(n), k = static_cast<size_t>(pe), m = static_cast<size_t>(q);
+  const size_t km = k * m, d = m - k + 1;
+  // the cross products of the endogenous columns less the controls
+  std::vector<double> ey(sz(n, pe)), sy(k * k), qi(m * m), qs(m * m);
+  for (int j = 0; j < pe; ++j) {
+    const double *ej = ee + sz(n, j);
+    if (px > 0) {
+      if (pev::ols(ex, ej, n, px, w, b, xi, ey.data() + sz(n, j), sc) != CLAB_OK) return kutil::nan();
+    } else {
+      for (size_t i = 0; i < sn; ++i) ey[sz(n, j) + i] = ej[i];
+    }
+  }
+  for (size_t j = 0; j < k; ++j) {
+    for (size_t l = 0; l < k; ++l) {
+      double t = 0.0;
+      for (size_t i = 0; i < sn; ++i) t += (w ? w[i] : 1.0) * ey[j * sn + i] * ey[l * sn + i];
+      sy[l * k + j] = t;
+    }
+  }
+  if (!spdinv(qq, q, qi.data(), qs.data())) return kutil::nan();
+  // the scores of vec(Pi), element (j, a) at a pe + j: w_i e_ij (Q^-1 rz_i)_a
+  std::vector<double> xs(sn * km), one(sn, 1.0), vh(km * km), m2(km * km);
+  for (size_t a = 0; a < m; ++a) {
+    for (size_t i = 0; i < sn; ++i) {
+      double t = 0.0;
+      for (size_t c = 0; c < m; ++c) t += qi[c * m + a] * rz[c * sn + i];
+      for (size_t j = 0; j < k; ++j) xs[(a * k + j) * sn + i] = t * fr[j * sn + i];
+    }
+  }
+  const int g = cl2 && ncl2 < ncl ? ncl2 : ncl;
+  const int big = ncl > ncl2 ? (ncl > n12 ? ncl : n12) : (ncl2 > n12 ? ncl2 : n12);
+  std::vector<double> mk(static_cast<size_t>(big) * km);
+  pev::meat(xs.data(), one.data(), w, n, static_cast<int>(km), cl, ncl, vh.data(), mk.data());
+  if (cl2) {
+    pev::meat(xs.data(), one.data(), w, n, static_cast<int>(km), cl2, ncl2, m2.data(), mk.data());
+    for (size_t a = 0; a < km * km; ++a) vh[a] += m2[a];
+    pev::meat(xs.data(), one.data(), w, n, static_cast<int>(km), c12, n12, m2.data(), mk.data());
+    for (size_t a = 0; a < km * km; ++a) vh[a] -= m2[a];
+  }
+  for (size_t a = 0; a < km * km; ++a) vh[a] *= static_cast<double>(g) / (g - 1);
+  // F = Q^(1/2), G = Sy^(-1/2), Theta = G Pi F
+  std::vector<double> ff(m * m), gg(k * k), gp(k * m), th(k * m);
+  if (!spow(qq, q, 0.5, ff.data()) || !spow(sy.data(), pe, -0.5, gg.data())) return kutil::nan();
+  for (size_t j = 0; j < k; ++j) {
+    for (size_t a = 0; a < m; ++a) {
+      double t = 0.0;
+      for (size_t l = 0; l < k; ++l) t += gg[l * k + j] * pz[l * m + a];
+      gp[a * k + j] = t;
+    }
+  }
+  for (size_t j = 0; j < k; ++j) {
+    for (size_t a = 0; a < m; ++a) {
+      double t = 0.0;
+      for (size_t c = 0; c < m; ++c) t += gp[c * k + j] * ff[a * m + c];
+      th[a * k + j] = t;
+    }
+  }
+  std::vector<double> tt(k * k), ek(k), uk(k * k), ss(m * m), em(m), vm(m * m);
+  for (size_t j = 0; j < k; ++j) {
+    for (size_t l = 0; l < k; ++l) {
+      double t = 0.0;
+      for (size_t a = 0; a < m; ++a) t += th[a * k + j] * th[a * k + l];
+      tt[l * k + j] = t;
+    }
+  }
+  for (size_t a = 0; a < m; ++a) {
+    for (size_t c = 0; c < m; ++c) {
+      double t = 0.0;
+      for (size_t j = 0; j < k; ++j) t += th[a * k + j] * th[c * k + j];
+      ss[c * m + a] = t;
+    }
+  }
+  if (!jacobi(tt.data(), pe, ek.data(), uk.data()) || !jacobi(ss.data(), q, em.data(), vm.data())) {
+    return kutil::nan();
+  }
+  // u: the first (smallest) eigenvector of Theta Theta'; V2: the d
+  // smallest of Theta'Theta
+  const double *u = uk.data();
+  std::vector<double> lam(d), gu(k), vf(d * m), mm(d * km), om(d * d), oi(d * d), os(d * d);
+  for (size_t r = 0; r < d; ++r) {
+    double t = 0.0;
+    for (size_t a = 0; a < m; ++a) {
+      double tu = 0.0;
+      for (size_t j = 0; j < k; ++j) tu += th[a * k + j] * u[j];
+      t += vm[r * m + a] * tu;
+    }
+    lam[r] = t;
+    for (size_t a = 0; a < m; ++a) {
+      double f = 0.0;
+      for (size_t c = 0; c < m; ++c) f += vm[r * m + c] * ff[a * m + c];
+      vf[a * d + r] = f;
+    }
+  }
+  for (size_t j = 0; j < k; ++j) {
+    double t = 0.0;
+    for (size_t l = 0; l < k; ++l) t += u[l] * gg[j * k + l];
+    gu[j] = t;
+  }
+  for (size_t r = 0; r < d; ++r) {
+    for (size_t a = 0; a < m; ++a) {
+      for (size_t j = 0; j < k; ++j) mm[(a * k + j) * d + r] = vf[a * d + r] * gu[j];
+    }
+  }
+  for (size_t r = 0; r < d; ++r) {
+    for (size_t c = 0; c < d; ++c) {
+      double t = 0.0;
+      for (size_t x = 0; x < km; ++x) {
+        double s2 = 0.0;
+        for (size_t y = 0; y < km; ++y) s2 += vh[y * km + x] * mm[y * d + c];
+        t += mm[x * d + r] * s2;
+      }
+      om[c * d + r] = t;
+    }
+  }
+  if (!spdinv(om.data(), static_cast<int>(d), oi.data(), os.data())) return kutil::nan();
+  double rk = 0.0;
+  for (size_t r = 0; r < d; ++r) {
+    for (size_t c = 0; c < d; ++c) rk += lam[r] * oi[c * d + r] * lam[c];
+  }
+  return rk;
+}
+
 // The angle in degrees, 0 to 180, between the directions (ax, ay) and (bx, by).
 double ang(double ax, double ay, double bx, double by) {
   const double c = (ax * bx + ay * by) / (std::hypot(ax, ay) * std::hypot(bx, by));
@@ -116,10 +337,39 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
   std::vector<double> fz(sz(n, q + px));
   for (size_t a = 0; a < sz(n, q); ++a) fz[a] = v[sn * (1 + pe + px) + a];
   for (size_t a = 0; a < sz(n, px); ++a) fz[sz(n, q) + a] = ex[a];
+  // the instruments less their fit on the controls (all demeaned), and
+  // their weighted cross products Q
+  std::vector<double> rz, qq;
+  if (cl) {
+    rz.resize(sz(n, q));
+    qq.resize(sz(q, q));
+    for (int a = 0; a < q; ++a) {
+      const double *za = fz.data() + sz(n, a);
+      if (px > 0) {
+        if (pev::ols(ex, za, n, px, w, b, xi, rz.data() + sz(n, a), sc) != CLAB_OK) return CLAB_EDOM;
+      } else {
+        for (size_t i = 0; i < sn; ++i) rz[sz(n, a) + i] = za[i];
+      }
+    }
+    for (int a = 0; a < q; ++a) {
+      for (int c = 0; c < q; ++c) {
+        kutil::ksum t;
+        for (size_t i = 0; i < sn; ++i) t.add((w ? w[i] : 1.0) * rz[sz(n, a) + i] * rz[sz(n, c) + i]);
+        qq[sz(c, q) + static_cast<size_t>(a)] = t.val();
+      }
+    }
+  }
+  // each first stage's residuals and instrument coefficients, for the
+  // rank statistic of several endogenous columns
+  std::vector<double> fr(sz(n, pe)), pz(sz(q, pe));
   for (int j = 0; j < pe; ++j) {
     const double *ej = ee + sz(n, j);
     if (pev::ols(fz.data(), ej, n, q + px, w, b, xi, r, sc) != CLAB_OK) return CLAB_EDOM;
-    for (size_t i = 0; i < sn; ++i) h[sz(n, j) + i] = ej[i] - r[i];
+    for (size_t i = 0; i < sn; ++i) {
+      h[sz(n, j) + i] = ej[i] - r[i];
+      fr[sz(n, j) + i] = r[i];
+    }
+    for (int a = 0; a < q; ++a) pz[sz(j, q) + static_cast<size_t>(a)] = b[a];
     if (fres) {
       for (size_t i = 0; i < sn; ++i) fres[sz(n, j) + i] = r[i];
     }
@@ -151,26 +401,8 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
       }
       fst[j] = wald;
       fst[pe + j] = pe == 1 ? wald : kutil::nan();
-      double eff = kutil::nan();
+      double eff = kutil::nan(), keff = kutil::nan();
       if (pe == 1) {
-        // the instruments less their fit on the controls (all demeaned)
-        std::vector<double> rz(sz(n, q));
-        for (int a = 0; a < q; ++a) {
-          const double *za = fz.data() + sz(n, a);
-          if (px > 0) {
-            if (pev::ols(ex, za, n, px, w, b, xi, rz.data() + sz(n, a), sc) != CLAB_OK) return CLAB_EDOM;
-          } else {
-            for (size_t i = 0; i < sn; ++i) rz[sz(n, a) + i] = za[i];
-          }
-        }
-        std::vector<double> qq(sz(q, q));
-        for (int a = 0; a < q; ++a) {
-          for (int c = 0; c < q; ++c) {
-            kutil::ksum t;
-            for (size_t i = 0; i < sn; ++i) t.add((w ? w[i] : 1.0) * rz[sz(n, a) + i] * rz[sz(n, c) + i]);
-            qq[sz(c, q) + static_cast<size_t>(a)] = t.val();
-          }
-        }
         double num = 0.0, den = 0.0;
         for (int a = 0; a < q; ++a) {
           for (int c = 0; c < q; ++c) {
@@ -179,9 +411,57 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
           }
         }
         if (den > 0) eff = num / den;
+        // the effective degrees of freedom of the simplified test,
+        // Montiel Olea and Pflueger (2013, equation 4, p. 360) with x =
+        // 1 / tau = 10: tr(M)^2 (1 + 2x) / (tr(M M) + 2x tr(M) maxeval(M)),
+        // M = Q V (similar to their normalised W2, so the same traces and
+        // eigenvalues)
+        std::vector<double> mq(sz(q, q)), ev(static_cast<size_t>(q)), vec(sz(q, q));
+        for (int a = 0; a < q; ++a) {
+          for (int c = 0; c < q; ++c) {
+            double t = 0.0;
+            for (int e = 0; e < q; ++e) {
+              t += qq[sz(e, q) + static_cast<size_t>(a)] * vz[sz(c, q) + static_cast<size_t>(e)];
+            }
+            mq[sz(c, q) + static_cast<size_t>(a)] = t;
+          }
+        }
+        double tr = 0.0, tr2 = 0.0;
+        for (int a = 0; a < q; ++a) {
+          tr += mq[sz(a, q) + static_cast<size_t>(a)];
+          for (int c = 0; c < q; ++c) {
+            tr2 += mq[sz(c, q) + static_cast<size_t>(a)] * mq[sz(a, q) + static_cast<size_t>(c)];
+          }
+        }
+        // the largest eigenvalue of Q V: that of L'VL, Q = LL'
+        std::vector<double> lq(qq), lvl(sz(q, q));
+        if (pev::chol(lq.data(), q)) {
+          for (int a = 0; a < q; ++a) {
+            for (int c = 0; c < q; ++c) {
+              double t = 0.0;
+              for (int e = a; e < q; ++e) {
+                for (int f = c; f < q; ++f) {
+                  t += lq[sz(a, q) + static_cast<size_t>(e)] * vz[sz(f, q) + static_cast<size_t>(e)] *
+                       lq[sz(c, q) + static_cast<size_t>(f)];
+                }
+              }
+              lvl[sz(c, q) + static_cast<size_t>(a)] = t;
+            }
+          }
+          if (jacobi(lvl.data(), q, ev.data(), vec.data()) && tr > 0) {
+            const double x = 10.0;
+            keff = tr * tr * (1 + 2 * x) / (tr2 + 2 * x * tr * ev[static_cast<size_t>(q) - 1]);
+          }
+        }
       }
       fst[2 * pe + j] = eff;
+      fst[3 * pe + j] = keff;
     }
+  }
+  if (cl && pe > 1) {
+    const double rk = rkwald(fr.data(), pz.data(), rz.data(), qq.data(), ee, ex, n, pe, px, q, w, cl,
+                             ncl, cl2, ncl2, c12.data(), n12, b, xi, sc);
+    for (int j = 0; j < pe; ++j) fst[pe + j] = rk / q;
   }
   // the second stage on H, the residuals on the actual columns
   if (pev::ols(h.data(), ye, n, p, w, beta, xi, r, sc) != CLAB_OK) return CLAB_EDOM;
@@ -279,7 +559,7 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
   st[1] = s0[1];
   int bad = 0;
   std::vector<double> fw(static_cast<size_t>(n)), sep(static_cast<size_t>(n1 + n2));
-  std::vector<double> fsb(3 * static_cast<size_t>(pe)), sb(6), bb(static_cast<size_t>(p));
+  std::vector<double> fsb(4 * static_cast<size_t>(pe)), sb(6), bb(static_cast<size_t>(p));
   for (int d = 0; d < nb; ++d) {
     if (kutil::stop(static_cast<double>(n) * p * 20)) return CLAB_EINTR;
     // the rows of the clusters drawn, each weighted by how often it was drawn
