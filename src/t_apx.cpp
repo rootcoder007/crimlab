@@ -260,6 +260,15 @@ void t_apx(tk &T, int) {
     tk_eq(T, "apx.rki", f2[2], f1[2], 1e-8);
     tk_eq(T, "apx.rk2", f1[3], f1[2], 0);
   }
+  // the demeaning of the separation check: one effect is the group means
+  {
+    double v[4] = {1, 3, 2, 6};
+    const int g[4] = {0, 0, 1, 1};
+    double wk[8];
+    tk_ieq(T, "apx.dm", clab_demean(v, 4, 1, g, 2, nullptr, 0, 1e-12, wk), CLAB_OK);
+    tk_eq(T, "apx.dm0", v[0], -1, 1e-15);
+    tk_eq(T, "apx.dm3", v[3], 2, 1e-15);
+  }
   // runs: days 1, 2, 3 of a run, a gap breaks it, a new unit starts afresh
   {
     const int u[6] = {0, 0, 0, 0, 1, 1};

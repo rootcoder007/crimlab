@@ -19,7 +19,7 @@ ppmlfe(
   lag = NULL,
   nboot = 199,
   seed = NULL,
-  sep = c("fe", "none"),
+  sep = c("fe", "sst", "none"),
   level = 0.95,
   tol = 1e-12,
   maxit = 100,
@@ -65,7 +65,7 @@ number for R's generator, for \code{se = "boot"}.}
 \item{twc,psd}{The two-way factors, \code{"min"} or \code{"each"}, and \code{"none"}
 or \code{"eig"}: see Two-way clustering.}
 
-\item{sep}{\code{"fe"} or \code{"none"}: see Separation.}
+\item{sep}{\code{"fe"}, \code{"sst"} or \code{"none"}: see Separation.}
 
 \item{level}{The confidence level of the intervals.}
 
@@ -82,7 +82,8 @@ An object of class \code{ppmlfe}, a list: \code{coef}, a data frame with
 one row per regressor (\code{term}, \code{est} on the log scale, \code{se}, \code{stat}
 (z), \code{p}, \code{lo}, \code{hi}, and \code{rr}, \code{exp(est)}, the rate ratio of one more
 unit); \code{vcov}; \code{n}, the rows used; \code{nsep}, the rows dropped for
-separation; \code{ncl}, the number of clusters (rows for \code{"hc1"} and
+separation; \code{xdrop}, the regressors dropped by \code{sep = "sst"}; \code{ncl}, the
+number of clusters (rows for \code{"hc1"} and
 \code{"nw"}); \code{se}, \code{ssc}, \code{lag}; \code{iter}, \code{conv}, \code{dev} and \code{loglik} of the
 fit; \code{draws} for the bootstrap; \code{fe}, \code{clus} and \code{level}. \code{summary()}
 returns \code{coef}, ready to plot.
@@ -116,14 +117,29 @@ each column's largest value), starting from \code{mu = (y + mean(y)) / 2},
 until the relative change of the deviance is below 1e-10. A regressor
 that does not vary within the fixed effects is refused.
 
-Separation (\code{sep}). A place (or a day) whose counts are all zero has a
-fixed effect of minus infinity and says nothing about the coefficients;
-\code{sep = "fe"} (the default) drops its rows with a warning, the rule of
-'fixest' and of Stata's ppmlhdfe; \code{sep = "none"} keeps them (the fit
-then converges slowly towards the boundary). Separation by the
-regressors (a regressor whose value predicts zeros exactly) is not
-detected: the iterative rectifier of Correia, Guimaraes and Zylkin that
-finds it is not offered, as its paper was not at hand to build it from.
+Separation (\code{sep}). The Poisson estimates may not exist: the
+likelihood can rise without end as a coefficient goes to infinity.
+Santos Silva and Tenreyro (2010, p. 311) show that this happens when
+regressors are perfectly collinear on the rows with positive counts
+(for instance a regressor that is 0 wherever the count is positive),
+depending on their range among the zeros; a fit that converges anyway
+then fits the zeros almost exactly. A place (or a day) whose counts are
+all zero is the simplest case: its fixed effect is minus infinity and
+says nothing about the other coefficients. \code{sep = "fe"} (the default)
+drops the rows of such groups with a warning, the rule of 'fixest' and
+of Stata's ppmlhdfe. \code{sep = "sst"} does that and then the check of
+Santos Silva and Tenreyro (p. 311, steps 1 to 3): on the rows with
+positive counts, the regressors that are linear combinations of the
+others after the fixed effects (found in order, as least squares drops
+aliased columns) are dropped from the fit with a warning naming them
+(\code{xdrop}); as the authors say, this drops every regressor that might
+cause the problem, including some that do not, so each should be
+looked at again. \code{sep = "none"} keeps everything (the fit then
+converges slowly towards the boundary). Correia, Guimaraes and Zylkin
+(2020, p. 101-102) drop the separated rows instead of the regressors,
+which always restores existence, by the iterative rectifier ("ir") and
+other methods of Correia, Guimaraes and Zylkin (2019); their 2020 paper
+names these methods but does not state them, so they are not built.
 Neither Bondy, Roth and Sager nor Herrnstadt and others discuss
 separation.
 
@@ -199,6 +215,14 @@ Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air
 pollution and criminal activity: microgeographic evidence from
 Chicago. \emph{American Economic Journal: Applied Economics}, 13(4),
 70-100. \doi{10.1257/app.20190091}
+
+Santos Silva, J. M. C. and Tenreyro, S. (2010). On the existence of
+the maximum likelihood estimates in Poisson regression. \emph{Economics
+Letters}, 107(3), 310-312. \doi{10.1016/j.econlet.2010.02.020}
+
+Correia, S., Guimaraes, P. and Zylkin, T. (2020). Fast Poisson
+estimation with high-dimensional fixed effects. \emph{The Stata Journal},
+20(1), 95-115. \doi{10.1177/1536867X20909691}
 
 Santos Silva, J. M. C. and Tenreyro, S. (2006). The log of gravity.
 \emph{Review of Economics and Statistics}, 88(4), 641-658.

@@ -2008,6 +2008,13 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
                 int how, int maxit, double eps, double tol, double *beta, double *fst,
                 double *draw, double *st);
 
+/* The columns of v (n x k), in place, less their means by the effects f1
+ * (n1 codes) and f2 (NULL or n2 codes), as clab_ivfe demeans (ppmlfe's
+ * separation check). work: 4 (n1 + n2) doubles. CLAB_EDOM when the
+ * alternating projections do not converge. */
+int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2, double tol,
+                double *work);
+
 /* The exponential-mean generalised method of moments (expgmm): y (n,
  * at least 0) with mean exp(x b + off), x (n x k; the endogenous columns,
  * the controls and any indicator columns of fixed effects, with a constant

@@ -131,6 +131,22 @@
   k
 }
 
+# The regressors to drop by the check of Santos Silva and Tenreyro (2010,
+# p. 311, steps 1 and 2): those that are linear combinations of the
+# others (after the effects) on the rows with positive counts, found as
+# least squares finds them, in order (qr() with its default tolerance on
+# the regressors demeaned by the effects on those rows).
+.axsst <- function(d, yv, x, fe, tol, fn) {
+  pos <- yv > 0
+  dp <- d[pos, , drop = FALSE]
+  fx <- .axfe(dp, fe)
+  m <- .Call(C_clab_r_demean, .axmat(dp, x, fn), fx$c1, fx$n1, fx$c2,
+             fx$n2, tol)
+  q <- qr(m)
+  if (q$rank == length(x)) return(character())
+  x[sort(q$pivot[-seq_len(q$rank)])]
+}
+
 # Whether each level of f falls in one level of c (the effect is nested
 # in the clusters).
 .axnest <- function(f, c) {
@@ -361,14 +377,29 @@
 #' until the relative change of the deviance is below 1e-10. A regressor
 #' that does not vary within the fixed effects is refused.
 #'
-#' Separation (`sep`). A place (or a day) whose counts are all zero has a
-#' fixed effect of minus infinity and says nothing about the coefficients;
-#' `sep = "fe"` (the default) drops its rows with a warning, the rule of
-#' 'fixest' and of Stata's ppmlhdfe; `sep = "none"` keeps them (the fit
-#' then converges slowly towards the boundary). Separation by the
-#' regressors (a regressor whose value predicts zeros exactly) is not
-#' detected: the iterative rectifier of Correia, Guimaraes and Zylkin that
-#' finds it is not offered, as its paper was not at hand to build it from.
+#' Separation (`sep`). The Poisson estimates may not exist: the
+#' likelihood can rise without end as a coefficient goes to infinity.
+#' Santos Silva and Tenreyro (2010, p. 311) show that this happens when
+#' regressors are perfectly collinear on the rows with positive counts
+#' (for instance a regressor that is 0 wherever the count is positive),
+#' depending on their range among the zeros; a fit that converges anyway
+#' then fits the zeros almost exactly. A place (or a day) whose counts are
+#' all zero is the simplest case: its fixed effect is minus infinity and
+#' says nothing about the other coefficients. `sep = "fe"` (the default)
+#' drops the rows of such groups with a warning, the rule of 'fixest' and
+#' of Stata's ppmlhdfe. `sep = "sst"` does that and then the check of
+#' Santos Silva and Tenreyro (p. 311, steps 1 to 3): on the rows with
+#' positive counts, the regressors that are linear combinations of the
+#' others after the fixed effects (found in order, as least squares drops
+#' aliased columns) are dropped from the fit with a warning naming them
+#' (`xdrop`); as the authors say, this drops every regressor that might
+#' cause the problem, including some that do not, so each should be
+#' looked at again. `sep = "none"` keeps everything (the fit then
+#' converges slowly towards the boundary). Correia, Guimaraes and Zylkin
+#' (2020, p. 101-102) drop the separated rows instead of the regressors,
+#' which always restores existence, by the iterative rectifier ("ir") and
+#' other methods of Correia, Guimaraes and Zylkin (2019); their 2020 paper
+#' names these methods but does not state them, so they are not built.
 #' Neither Bondy, Roth and Sager nor Herrnstadt and others discuss
 #' separation.
 #'
@@ -437,7 +468,7 @@
 #'   number for R's generator, for `se = "boot"`.
 #' @param twc,psd The two-way factors, `"min"` or `"each"`, and `"none"`
 #'   or `"eig"`: see Two-way clustering.
-#' @param sep `"fe"` or `"none"`: see Separation.
+#' @param sep `"fe"`, `"sst"` or `"none"`: see Separation.
 #' @param level The confidence level of the intervals.
 #' @param tol The convergence tolerance of the demeaning.
 #' @param maxit The most iterations of the fit.
@@ -447,7 +478,8 @@
 #'   one row per regressor (`term`, `est` on the log scale, `se`, `stat`
 #'   (z), `p`, `lo`, `hi`, and `rr`, `exp(est)`, the rate ratio of one more
 #'   unit); `vcov`; `n`, the rows used; `nsep`, the rows dropped for
-#'   separation; `ncl`, the number of clusters (rows for `"hc1"` and
+#'   separation; `xdrop`, the regressors dropped by `sep = "sst"`; `ncl`, the
+#'   number of clusters (rows for `"hc1"` and
 #'   `"nw"`); `se`, `ssc`, `lag`; `iter`, `conv`, `dev` and `loglik` of the
 #'   fit; `draws` for the bootstrap; `fe`, `clus` and `level`. `summary()`
 #'   returns `coef`, ready to plot.
@@ -461,6 +493,14 @@
 #'   pollution and criminal activity: microgeographic evidence from
 #'   Chicago. *American Economic Journal: Applied Economics*, 13(4),
 #'   70-100. \doi{10.1257/app.20190091}
+#'
+#'   Santos Silva, J. M. C. and Tenreyro, S. (2010). On the existence of
+#'   the maximum likelihood estimates in Poisson regression. *Economics
+#'   Letters*, 107(3), 310-312. \doi{10.1016/j.econlet.2010.02.020}
+#'
+#'   Correia, S., Guimaraes, P. and Zylkin, T. (2020). Fast Poisson
+#'   estimation with high-dimensional fixed effects. *The Stata Journal*,
+#'   20(1), 95-115. \doi{10.1177/1536867X20909691}
 #'
 #'   Santos Silva, J. M. C. and Tenreyro, S. (2006). The log of gravity.
 #'   *Review of Economics and Statistics*, 88(4), 641-658.
@@ -518,7 +558,7 @@ ppmlfe <- function(
   lag = NULL,
   nboot = 199,
   seed = NULL,
-  sep = c("fe", "none"),
+  sep = c("fe", "sst", "none"),
   level = 0.95,
   tol = 1e-12,
   maxit = 100,
@@ -548,8 +588,21 @@ ppmlfe <- function(
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
   if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
-  k <- if (sep == "fe") .axsep(yv, d, fe, f) else rep(TRUE, length(yv))
+  k <- if (sep != "none") .axsep(yv, d, fe, f) else rep(TRUE, length(yv))
   d <- d[k, , drop = FALSE]
+  xdrop <- character()
+  if (sep == "sst") {
+    xdrop <- .axsst(d, yv[k], x, fe, tol, f)
+    if (length(xdrop) == length(x)) {
+      .ckstop(f, "every regressor is collinear on the rows with counts")
+    }
+    if (length(xdrop)) {
+      warning(f, ": regressor(s) dropped, collinear with the others on the ",
+              "rows with positive counts (Santos Silva and Tenreyro 2010): ",
+              paste(xdrop, collapse = ", "), ".", call. = FALSE)
+      x <- setdiff(x, xdrop)
+    }
+  }
   .axmat(d, x, f)
   if (!is.null(expo) && any(.axmat(d, expo, f)[, 1L] <= 0)) {
     .ckstop(f, "column `%s` must be positive", expo)
@@ -570,7 +623,7 @@ ppmlfe <- function(
     if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
     b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
       ds <- d[rows, , drop = FALSE]
-      kk <- if (sep == "fe") {
+      kk <- if (sep != "none") {
         fx <- .axfe(ds, fe)
         .Call(C_clab_r_fesep, as.numeric(ds[[y]]), fx$c1, fx$n1, fx$c2, fx$n2)
       } else {
@@ -610,6 +663,7 @@ ppmlfe <- function(
       vcov = v,
       n = nrow(d),
       nsep = sum(!k),
+      xdrop = xdrop,
       ncl = g,
       se = se,
       ssc = ssc,
@@ -767,7 +821,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' (section 2.2.2 and table 1; 23.1 for one instrument): the Nagar bias of
 #' two-stage least squares is less than 10% of the benchmark when `eff`
 #' exceeds `cv`. `eff`, `keff` and `cv` are for one endogenous column only.
-#' The generalised test, which needs their function `B_e`, is not built. The first-stage statistics use the clusters of
+#' The generalised test, which needs their function `B_e`, is not built. The
+#' first-stage statistics use the clusters of
 #' `se` (each row for `"hc1"`, the first `clus` column for `"nw"` and
 #' `"boot"`).
 #'
@@ -793,7 +848,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' @param ... Not used.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
 #'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
-#'   `kp`, `eff`, `keff`, `cv`, `ninst`); `fstab`, the first-stage coefficient of each
+#'   `kp`, `eff`, `keff`, `cv`, `ninst`); `fstab`, the first-stage coefficient
+#'   of each
 #'   excluded instrument (`endo`, `inst`, `est`, `se`, and `rel`, `est`
 #'   over the mean of the endogenous column; `NULL` without `endo`);
 #'   `vcov`; `n`; `ncl`; `se`, `ssc`, `lag`; `rss`;

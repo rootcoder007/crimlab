@@ -54,7 +54,8 @@ an object of class \code{ivfe}.}
 \value{
 An object of class \code{ivfe}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
 without \code{rr}); \code{first}, one row per endogenous column (\code{endo}, \code{wald},
-\code{kp}, \code{eff}, \code{keff}, \code{cv}, \code{ninst}); \code{fstab}, the first-stage coefficient of each
+\code{kp}, \code{eff}, \code{keff}, \code{cv}, \code{ninst}); \code{fstab}, the first-stage coefficient
+of each
 excluded instrument (\code{endo}, \code{inst}, \code{est}, \code{se}, and \code{rel}, \code{est}
 over the mean of the endogenous column; \code{NULL} without \code{endo});
 \code{vcov}; \code{n}; \code{ncl}; \code{se}, \code{ssc}, \code{lag}; \code{rss};
@@ -113,7 +114,8 @@ critical value, the upper 5\% point of a noncentral chi-squared on
 (section 2.2.2 and table 1; 23.1 for one instrument): the Nagar bias of
 two-stage least squares is less than 10\% of the benchmark when \code{eff}
 exceeds \code{cv}. \code{eff}, \code{keff} and \code{cv} are for one endogenous column only.
-The generalised test, which needs their function \code{B_e}, is not built. The first-stage statistics use the clusters of
+The generalised test, which needs their function \code{B_e}, is not built. The
+first-stage statistics use the clusters of
 \code{se} (each row for \code{"hc1"}, the first \code{clus} column for \code{"nw"} and
 \code{"boot"}).
 

@@ -679,3 +679,23 @@ test_that("the Kleibergen-Paap rk statistic for two endogenous columns", {
   expect_equal(f$first$kp, rep(79.3812891173097, 2), tolerance = 1e-6)
   expect_true(all(is.na(f$first$eff)))
 })
+
+test_that("sep = sst drops a regressor collinear on the positive counts", {
+  # Santos Silva and Tenreyro (2010, p. 310-311): a dummy that is 0
+  # wherever the count is positive and 1 on some zeros has no estimate;
+  # their steps drop it and refit, which is the fit without it
+  d <- simpan()
+  z <- which(d$y == 0)
+  d$bad <- 0
+  d$bad[z[seq_len(min(5L, length(z)))]] <- 1
+  skip_if(length(z) == 0L)
+  expect_warning(
+    f <- ppmlfe(d, "y", c("x", "bad", "w"), fe = c("unit", "day"),
+                expo = "pop", sep = "sst"),
+    "Santos Silva and Tenreyro"
+  )
+  expect_identical(f$xdrop, "bad")
+  g <- ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop")
+  expect_equal(f$coef, g$coef, tolerance = 1e-12)
+  expect_identical(g$xdrop, character())
+})

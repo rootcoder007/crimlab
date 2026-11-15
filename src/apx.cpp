@@ -929,6 +929,18 @@ int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int 
   return CLAB_OK;
 }
 
+int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2, double tol,
+                double *work) {
+  if (n < 1 || k < 0 || n1 < 1 || (f2 && n2 < 1) || !(tol > 0)) return CLAB_EARG;
+  for (int i = 0; i < n; ++i) {
+    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
+  }
+  if (demean(v, n, k, f1, n1, f2, n2, nullptr, tol, work) < 0) {
+    return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
+  }
+  return CLAB_OK;
+}
+
 int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
                  int base, int edge, double *out) {
   if (n < 1 || !(width > 0) || !(width < 360) || !std::isfinite(start) || na < 1 || edge < 0 ||

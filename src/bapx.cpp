@@ -130,6 +130,19 @@ SEXP C_clab_r_ppmlcf(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP off, SEXP f1, SEXP 
   return r;
 }
 
+SEXP C_clab_r_demean(SEXP v, SEXP f1, SEXP n1, SEXP f2, SEXP n2, SEXP tol) {
+  clab::who = "ppmlfe";
+  const int n = Rf_nrows(v), k = Rf_ncols(v), a = Rf_asInteger(n1);
+  const int b = Rf_isNull(f2) ? 0 : Rf_asInteger(n2);
+  SEXP r = PROTECT(Rf_duplicate(v));
+  double *w = reinterpret_cast<double *>(R_alloc(4 * static_cast<size_t>(a + b) + 1, sizeof(double)));
+  const int rc = clab_demean(REAL(r), n, k, INTEGER(f1), a, icodes(f2), b, Rf_asReal(tol), w);
+  clab::ichk(rc);
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  UNPROTECT(1);
+  return r;
+}
+
 SEXP C_clab_r_expgmm(SEXP y, SEXP x, SEXP z, SEXP off, SEXP b0, SEXP cl, SEXP ncl, SEXP err,
                      SEXP step, SEXP maxit, SEXP tol) {
   clab::who = "expgmm";

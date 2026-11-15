@@ -76,6 +76,12 @@
   the simplified test of Montiel Olea and Pflueger (2013); the effective
   F itself was checked against their equation 3 and is unchanged.
 
+* `ppmlfe(sep = "sst")`: the check of Santos Silva and Tenreyro (2010)
+  for Poisson estimates that do not exist, dropping the regressors that
+  are collinear on the rows with positive counts. The iterative
+  rectifier of Correia, Guimaraes and Zylkin, which drops rows instead,
+  is not built: their 2020 paper names it without stating it.
+
 * Exposure and crime, a count with an endogenous exposure by the
   exponential-mean generalised method of moments of Mullahy (1997) and
   Windmeijer and Santos Silva (1997): multiplicative or additive
