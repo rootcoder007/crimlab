@@ -109,3 +109,10 @@ test_that("the learners stop on bad input, naming the argument", {
     list("no fit", x[, 1, drop = FALSE], sep)
   ))
 })
+
+test_that("enpath() refuses a path longer than its bound", {
+  set.seed(1)
+  x <- matrix(rnorm(40), 20)
+  expect_error(enpath(x, rnorm(20), nlam = 1e9),
+               "enpath: `nlam` must be at most 67108864.", fixed = TRUE)
+})

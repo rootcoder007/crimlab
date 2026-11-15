@@ -166,3 +166,8 @@ test_that("dmlx stops on bad input, naming the argument", {
     list("no estimate", y, d, x, "plr", f, pred = cbind(0, d))
   ))
 })
+
+test_that("dmlx() refuses a path longer than its bound", {
+  expect_error(dmlx(ref$yc, ref$dc, x, "plr", ref$clu$fold, nlam = 1e9),
+               "dmlx: `nlam` must be at most 67108864.", fixed = TRUE)
+})

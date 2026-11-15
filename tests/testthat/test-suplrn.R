@@ -149,3 +149,10 @@ test_that("dmlx takes the stack as a nuisance learner", {
          lrn = "stack", stk = "glm", nstk = 4)
   ))
 })
+
+test_that("suplrn() refuses a path longer than its bound", {
+  set.seed(1)
+  x <- matrix(rnorm(60), 20)
+  expect_error(suplrn(x, rnorm(20), nlam = 1e9),
+               "suplrn: `nlam` must be at most 67108864.", fixed = TRUE)
+})

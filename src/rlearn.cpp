@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "learn.h"
 #include "rchk.h"
 
@@ -139,6 +140,7 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
   SEXP lam;
   if (Rf_isNull(lambda)) {
     nl = clab::whole(nlam, "nlam", 1);
+    if (nl > kutil::maxcell) fail("`nlam` must be at most %.0f.", kutil::maxcell);
     r = Rf_isNull(lmr) ? (n > p ? 1e-4 : 1e-2) : clab::one(lmr, "lmr", 0, 1);
     lam = PROTECT(Rf_allocVector(REALSXP, nl));
   } else {
@@ -483,6 +485,7 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   }
   const double al = clab::p01(alpha, "alpha");
   const int nl = clab::whole(nlam, "nlam", 1);
+  if (nl > kutil::maxcell) fail("`nlam` must be at most %.0f.", kutil::maxcell);
   const int ni = clab::whole(nfin, "nfin", 2);
   const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
   const unsigned int us = static_cast<unsigned int>(std::fmod(sd, 4294967296.0));
@@ -537,7 +540,7 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   const long nw = clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw);
   double *w = rl::dalloc(static_cast<double>(nw));
   int *iw = rl::ialloc(static_cast<double>(niw));
-  SEXP est = PROTECT(Rf_allocVector(REALSXP, 2 + 2 * nrk));
+  SEXP est = PROTECT(Rf_allocVector(REALSXP, 2 + 2 * static_cast<R_xlen_t>(nrk)));
   SEXP psia = PROTECT(Rf_allocMatrix(REALSXP, n, nrk));
   SEXP psib = PROTECT(Rf_allocMatrix(REALSXP, n, nrk));
   double *ps = rl::dalloc(2.0 * n * nrk);
@@ -606,6 +609,7 @@ SEXP C_clab_r_suplrn(SEXP x, SEXP y, SEXP fam, SEXP lrns, SEXP nfold, SEXP fold,
                    clab::whole(nfin, "nfin", 2), 1e-7, 1, 0, us,
                    clab::whole(ntree, "ntree", 1),
                    Rf_isNull(mtry) ? 0 : clab::whole(mtry, "mtry", 1)};
+  if (ls.nlam > kutil::maxcell) fail("`nlam` must be at most %.0f.", kutil::maxcell);
   clab::lgl(disc, "disc", 1);
   clab_lrn sub[5];
   const int ns = subs(lrns, "lrns", ls, sub);

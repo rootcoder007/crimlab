@@ -78,7 +78,8 @@
 #' @param lrnd The learner of the treatment, instrument and selection
 #'   nuisances, from the same choices.
 #' @param alpha The mixing parameter of `"enet"`, from 0 to 1.
-#' @param nlam The number of penalties on each elastic net path.
+#' @param nlam The number of penalties on each elastic net path, at most
+#'   67108864 (2^26).
 #' @param nfin The number of inner folds that choose the penalty, at
 #'   least 2.
 #' @param tol,scr The convergence threshold and the screening of the

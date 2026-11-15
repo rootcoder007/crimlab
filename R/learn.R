@@ -43,7 +43,7 @@
 #' @param lambda `NULL`, or the penalties to fit: non-negative numbers in
 #'   decreasing order.
 #' @param nlam When `lambda` is `NULL`, the number of penalties on the
-#'   path: one whole number, at least 1.
+#'   path: one whole number from 1 to 67108864 (2^26).
 #' @param lmr When `lambda` is `NULL`, the smallest penalty as a share of
 #'   the largest: one number strictly between 0 and 1, or `NULL` for 1e-4
 #'   when `x` has more rows than columns and 0.01 otherwise. The path runs

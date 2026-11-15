@@ -79,6 +79,7 @@ bool enpath(Ctx &c, Val &out) {
   std::vector<double> lam;
   if (!c.has("lambda")) {
     CK(wholed(c, "nlam", 100, 1, nl));
+    if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
     r = n > p ? 1e-4 : 1e-2;
     if (c.has("lmr")) CK(one(c, c["lmr"], "lmr", 0, 1, r));
     lam.assign(static_cast<std::size_t>(nl), 0.0);
@@ -374,6 +375,7 @@ bool dmlx(Ctx &c, Val &out) {
   CK(p01d(c, "alpha", 0.5, al));
   int nl = 0, ni = 0, nt = 0, mt = 0, ks = 0;
   CK(wholed(c, "nlam", 100, 1, nl));
+  if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
   CK(wholed(c, "nfin", 5, 2, ni));
   Dv sdv, tlv;
   Val d1, d2;
@@ -487,6 +489,7 @@ bool suplrn(Ctx &c, Val &out) {
   int nl = 0, ni = 0, ntr = 0, mt = 0, dc = 0;
   CK(p01d(c, "alpha", 0.5, al));
   CK(wholed(c, "nlam", 100, 1, nl));
+  if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
   CK(wholed(c, "nfin", 5, 2, ni));
   CK(wholed(c, "ntree", 500, 1, ntr));
   if (c.has("mtry")) CK(whole(c, c["mtry"], "mtry", 1, mt));

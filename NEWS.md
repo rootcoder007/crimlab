@@ -838,6 +838,8 @@
   would pass 2^26, in R and in the command line. The draws of `evtst()`,
   the bootstrap of `cbatt()`, the placebo replicates of `sdidx()` and the
   permutation and power replicates of `wcbx()` can now be interrupted.
+* `enpath()`, `dmlx()` and `suplrn()` refuse an `nlam` past 2^26, in R
+  and in the command line.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as
