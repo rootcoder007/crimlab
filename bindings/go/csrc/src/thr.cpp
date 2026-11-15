@@ -666,7 +666,13 @@ double q7(const std::vector<double> &x, double p) {
 void diag(const double *x, int m, int nd, double &rhat, double &ess) {
   const int h = nd / 2, mm = 2 * m;
   std::vector<double> mu(static_cast<std::size_t>(mm)), va(static_cast<std::size_t>(mm));
-  auto at = [&](int c, int i) { return x[static_cast<std::size_t>(c / 2) * nd + (c % 2) * (nd - h) + i]; };
+  // every term as std::size_t: the product of two ints is not widened by
+  // being added to one
+  auto at = [&](int c, int i) {
+    const std::size_t half = static_cast<std::size_t>(nd - h);
+    return x[static_cast<std::size_t>(c / 2) * static_cast<std::size_t>(nd) + static_cast<std::size_t>(c % 2) * half +
+             static_cast<std::size_t>(i)];
+  };
   for (int c = 0; c < mm; ++c) {
     double s = 0;
     for (int i = 0; i < h; ++i) s += at(c, i);
