@@ -481,12 +481,16 @@ reference:
       why pollution offences, illegal waste disposal and safety crimes are
       recorded, and how enforcement shapes the counts. The LMDI
       decomposition of a count over a Kaya identity, two-way fixed effects
-      with an interaction and its checks, and Pesaran's CD test of a
-      panel."
+      with an interaction and its checks, Pesaran's CD test of a panel,
+      difference and system GMM for dynamic panels, Wooldridge's test of
+      serial correlation and common correlated effects."
     contents:
       - lmdix
       - fepnl
       - pcdtst
+      - gmmpnl
+      - wsctst
+      - ccepnl
   - title: Data larger than memory
     desc: One-pass summaries for data that arrive in pieces or do not fit
       in memory - moments accumulated and merged exactly, a uniform

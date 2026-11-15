@@ -47,7 +47,10 @@
 #'   tools are [lmdix()] (decomposition over a Kaya identity, Duan et al.
 #'   2026), [fepnl()] (two-way fixed effects with an interaction and the
 #'   checks Duan et al. report) and [pcdtst()] (cross-sectional dependence
-#'   of a panel, Andreatta et al. 2023), with the package's spatial tests
+#'   of a panel, Andreatta et al. 2023), [gmmpnl()] (difference and system
+#'   GMM for dynamic panels, as Andreatta et al. fit them), [wsctst()]
+#'   (Wooldridge's test of serial correlation) and [ccepnl()] (common
+#'   correlated effects), with the package's spatial tests
 #'   ([gmoran()], [gearc()], [lmorn()]) for the spatial checks Andreatta et
 #'   al. run. Recorded counts are counts of detected, prosecuted or judged
 #'   cases: Duan et al. count first-instance judgments, Andreatta et al.
@@ -197,7 +200,7 @@ plot.lmdix <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 #' Duan et al.'s model is linear in a count. For a Poisson or negative
 #' binomial model with the same effects see [didfe()] (binary treatment)
 #' and [cntreg()]; Andreatta et al. (2023) fit a dynamic panel of the
-#' logged rate by system GMM, which the package does not have.
+#' logged rate by system GMM, as [gmmpnl()] does.
 #'
 #' @inheritParams lmdix
 #' @inheritParams ppmlfe
