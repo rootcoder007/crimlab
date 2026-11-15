@@ -15,12 +15,36 @@ unit.}
 \item{sign}{\code{"upper"} or \code{"ground"}: which temperature comes first.}
 
 \item{brk}{\code{NULL} or the breaks of the bins of the difference (as in
-\code{\link[=cut]{cut()}}, right-closed).}
+\code{\link[=cut]{cut()}}, right-closed).
+Cautions from a review of 81 studies that use the instrument (Yamada
+2026, section 7 and table 8, pp. 24-25), whose nine checks the help
+here follows. The instrument's strong first stages, mostly from China,
+do not carry over: in Sub-Saharan Africa and South Asia definitions
+drawn from published practice gave first stages that were strong yet
+second stages of opposite sign, and an inversion day moved PM2.5 by
+about one microgram per cubic metre, small beside the direct effects of
+the cold, still weather that comes with it, so the exclusion
+restriction fails through weather and season. The checks: (1) the
+reference layers must lie above ground everywhere in the study area;
+(2) the temperatures should be taken at local dawn; (3) report the
+share of zeros and the support of the instrument (the \code{diag} attribute
+of the result gives them); (4) estimate with both a pressure-level and
+a surface-layer definition and report both; (5) report the first stage
+in physical units relative to the mean exposure, not only its F (the
+\code{fstab} table of \code{\link[=ivfe]{ivfe()}}); (6) where two definitions are available,
+test them against each other (an over-identification test across
+them; not computed here); (7) run a placebo outcome without a pollution
+pathway (any outcome in \code{\link[=ivfe]{ivfe()}} or \code{\link[=ppmlcf]{ppmlcf()}}); (8) check robustness
+to place-by-month fixed effects; (9) validate the exposure against
+ground monitors at the scale of the contrasts used.}
 }
 \value{
 A data frame: \code{diff}, the difference by \code{sign}; \code{inv}, 1 when
 \code{tup} is above \code{tlow} and 0 otherwise (\code{NA} where a temperature is
-missing); and with \code{brk}, \code{bin}, a factor.
+missing); and with \code{brk}, \code{bin}, a factor. The attribute \code{"diag"} is a
+one-row data frame: \code{n}, the rows with both temperatures; \code{zero}, the
+share of them without an inversion; \code{min}, \code{max}, the support of
+\code{diff}.
 }
 \description{
 The instrument of Bondy, Roth and Sager (2020, p. 566-567): "the
@@ -53,12 +77,18 @@ change what people do as well, so weather controls matter (see
 \examples{
 invsn(c(10, 5, 2), c(8, 6, 2))
 invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
+# the share of days without an inversion and the support (check 3)
+attr(invsn(c(10, 5, 2), c(8, 6, 2)), "diag")
 }
 \references{
 Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 contemporaneous relationship between air pollution and crime.
 \emph{Journal of the Association of Environmental and Resource Economists},
 7(3), 555-585. \doi{10.1086/707127}
+
+Yamada, H. (2026). When the air doesn't move the data: the thermal
+inversion instrument in developing countries. Keio-IES Discussion
+Paper DP2026-018, Keio University.
 }
 \seealso{
 \code{\link[=windiv]{windiv()}}, \code{\link[=ivfe]{ivfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}

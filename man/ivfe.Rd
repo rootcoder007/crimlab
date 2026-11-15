@@ -51,7 +51,10 @@ an object of class \code{ivfe}.}
 \value{
 An object of class \code{ivfe}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
 without \code{rr}); \code{first}, one row per endogenous column (\code{endo}, \code{wald},
-\code{kp}, \code{eff}, \code{ninst}); \code{vcov}; \code{n}; \code{ncl}; \code{se}, \code{ssc}, \code{lag}; \code{rss};
+\code{kp}, \code{eff}, \code{ninst}); \code{fstab}, the first-stage coefficient of each
+excluded instrument (\code{endo}, \code{inst}, \code{est}, \code{se}, and \code{rel}, \code{est}
+over the mean of the endogenous column; \code{NULL} without \code{endo});
+\code{vcov}; \code{n}; \code{ncl}; \code{se}, \code{ssc}, \code{lag}; \code{rss};
 \code{draws} for the bootstrap; \code{fe}, \code{clus} and \code{level}. \code{summary()}
 returns \code{coef}.
 }
@@ -118,6 +121,54 @@ f <- ivfe(d, "out", endo = "oz", inst = colnames(w), fe = c("area", "day"),
           se = "twoway")
 f
 f$first
+f$fstab
+
+# shaped as Chen and Li (2020, equations 4-5, p. 4): county-season-year
+# cells, the triple difference (treated state x summer x after) as the
+# instrument of the AQI, county-by-year and state-by-season effects
+# absorbed, the county-by-season effects as indicator columns, errors
+# clustered by state (simulated)
+set.seed(14)
+g <- expand.grid(county = 1:30, season = c("s", "w"), year = 2000:2007)
+g$state <- (g$county - 1) \%/\% 3 + 1
+g$ddd <- as.numeric(g$state <= 5 & g$season == "s" & g$year >= 2003)
+g$aqi <- 50 - 6 * g$ddd + rnorm(nrow(g), 0, 3)
+g$lcrime <- 2 + 0.01 * g$aqi + rnorm(nrow(g), 0, 0.1)
+g$cy <- paste(g$county, g$year)
+g$ss <- paste(g$state, g$season)
+# county x summer, less the first county of each state (the rest is
+# absorbed by the two sets of effects)
+for (k in unique(g$county[g$county \%\% 3 != 1])) {
+  g[[paste0("cs", k)]] <- as.numeric(g$county == k & g$season == "s")
+}
+ivfe(g, "lcrime", endo = "aqi", inst = "ddd",
+     x = grep("^cs", names(g), value = TRUE), fe = c("cy", "ss"),
+     clus = "state")$coef[1, ]
+
+# shaped as Carrillo, Lopez-Luzuriaga and Malik (2018): the difference
+# in differences of equation (4), p. 7 (city-day-hour counts, the
+# treated city after the start, year-month and hour-by-weekday
+# effects, errors clustered by week) and the spatial regression
+# discontinuity of equation (6), p. 8 (counts by distance bin, the
+# inside indicator, a line on each side, within a window)
+set.seed(15)
+h <- expand.grid(city = c("quito", "other"), day = 1:120, hour = 0:23)
+h$after <- as.numeric(h$day > 60)
+h$treat <- h$after * (h$city == "quito")
+h$ym <- (h$day - 1) \%/\% 30
+h$hd <- paste(h$hour, h$day \%\% 7)
+h$week <- (h$day - 1) \%/\% 7
+h$crimes <- rpois(nrow(h), 2 + 0.3 * h$treat)
+h$q <- as.numeric(h$city == "quito")
+ivfe(h, "crimes", x = c("treat", "q"), fe = c("ym", "hd"),
+     clus = "week")$coef[1, ]
+b <- data.frame(dist = seq(-975, 975, by = 50))
+b$inside <- as.numeric(b$dist > 0)
+b$dside <- b$dist * b$inside
+b$n <- rpois(nrow(b), 20 + 5 * b$inside)
+b$one <- 1
+ivfe(b[abs(b$dist) <= 800, ], "n", x = c("inside", "dist", "dside"),
+     fe = "one", se = "hc1")$coef[1, ]
 }
 \references{
 Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
@@ -131,6 +182,16 @@ contemporaneous relationship between air pollution and crime.
 Kleibergen, F. and Paap, R. (2006). Generalized reduced rank tests
 using the singular value decomposition. \emph{Journal of Econometrics},
 133(1), 97-126. \doi{10.1016/j.jeconom.2005.02.011}
+
+Chen, S. and Li, T. (2020). The effect of air pollution on criminal
+activities: evidence from the NOx Budget Trading Program. \emph{Regional
+Science and Urban Economics}, 83, 103528.
+\doi{10.1016/j.regsciurbeco.2020.103528}
+
+Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018).
+Pollution or crime: the effect of driving restrictions on criminal
+activity. \emph{Journal of Public Economics}, 164, 50-69.
+\doi{10.1016/j.jpubeco.2018.05.007}
 
 Montiel Olea, J. L. and Pflueger, C. (2013). A robust test for weak
 instruments. \emph{Journal of Business and Economic Statistics}, 31(3),

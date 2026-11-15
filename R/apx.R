@@ -328,6 +328,13 @@
 #' Neither Bondy, Roth and Sager nor Herrnstadt and others discuss
 #' separation.
 #'
+#' The mechanism. Laboratory and field studies in psychology report that
+#' polluted air raises anxiety and unethical behaviour (Lu et al. 2018),
+#' summarised in a meta-analysis (Lu et al. 2020); a replication found the
+#' effect limited in generality (Heck et al. 2020). These are experiments
+#' and a meta-analysis, not estimators: they motivate the designs here and
+#' are cited as their mechanism literature and its critique.
+#'
 #' Standard errors (`se`), all from the rows' scores `s_i` at the final fit
 #' and the bread `(X'WX)^-1` of the demeaned regressors `X`:
 #' `"cluster"` (the default; `sum_g s_g s_g'` over the clusters of the
@@ -404,6 +411,19 @@
 #'   Newey, W. K. and West, K. D. (1994). Automatic lag selection in
 #'   covariance matrix estimation. *Review of Economic Studies*, 61(4),
 #'   631-653. \doi{10.2307/2297912}
+#'
+#'   Lu, J. G., Lee, J. J., Gino, F. and Galinsky, A. D. (2018). Polluted
+#'   morality: air pollution predicts criminal activity and unethical
+#'   behavior. *Psychological Science*. \doi{10.1177/0956797617735807}
+#'
+#'   Lu, J. G., Lee, J. J., Gino, F. and Galinsky, A. D. (2020). Air
+#'   pollution, state anxiety, and unethical behavior: a meta-analytic
+#'   review. *Psychological Science*. \doi{10.1177/0956797620924765}
+#'
+#'   Heck, D. W., Thielmann, I., Klein, S. A. and others (2020). On the
+#'   limited generality of air pollution and anxiety as causal
+#'   determinants of unethical behavior. *Psychological Science*.
+#'   \doi{10.1177/0956797619866627}
 #' @seealso [ivfe()], [ppmlcf()], [plcday()], [expjn()]
 #' @examples
 #' # simulated counts in 12 areas over 40 days
@@ -680,7 +700,10 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' @param ... Not used.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
 #'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
-#'   `kp`, `eff`, `ninst`); `vcov`; `n`; `ncl`; `se`, `ssc`, `lag`; `rss`;
+#'   `kp`, `eff`, `ninst`); `fstab`, the first-stage coefficient of each
+#'   excluded instrument (`endo`, `inst`, `est`, `se`, and `rel`, `est`
+#'   over the mean of the endogenous column; `NULL` without `endo`);
+#'   `vcov`; `n`; `ncl`; `se`, `ssc`, `lag`; `rss`;
 #'   `draws` for the bootstrap; `fe`, `clus` and `level`. `summary()`
 #'   returns `coef`.
 #' @references
@@ -695,6 +718,16 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   Kleibergen, F. and Paap, R. (2006). Generalized reduced rank tests
 #'   using the singular value decomposition. *Journal of Econometrics*,
 #'   133(1), 97-126. \doi{10.1016/j.jeconom.2005.02.011}
+#'
+#'   Chen, S. and Li, T. (2020). The effect of air pollution on criminal
+#'   activities: evidence from the NOx Budget Trading Program. *Regional
+#'   Science and Urban Economics*, 83, 103528.
+#'   \doi{10.1016/j.regsciurbeco.2020.103528}
+#'
+#'   Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018).
+#'   Pollution or crime: the effect of driving restrictions on criminal
+#'   activity. *Journal of Public Economics*, 164, 50-69.
+#'   \doi{10.1016/j.jpubeco.2018.05.007}
 #'
 #'   Montiel Olea, J. L. and Pflueger, C. (2013). A robust test for weak
 #'   instruments. *Journal of Business and Economic Statistics*, 31(3),
@@ -715,6 +748,54 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'           se = "twoway")
 #' f
 #' f$first
+#' f$fstab
+#'
+#' # shaped as Chen and Li (2020, equations 4-5, p. 4): county-season-year
+#' # cells, the triple difference (treated state x summer x after) as the
+#' # instrument of the AQI, county-by-year and state-by-season effects
+#' # absorbed, the county-by-season effects as indicator columns, errors
+#' # clustered by state (simulated)
+#' set.seed(14)
+#' g <- expand.grid(county = 1:30, season = c("s", "w"), year = 2000:2007)
+#' g$state <- (g$county - 1) %/% 3 + 1
+#' g$ddd <- as.numeric(g$state <= 5 & g$season == "s" & g$year >= 2003)
+#' g$aqi <- 50 - 6 * g$ddd + rnorm(nrow(g), 0, 3)
+#' g$lcrime <- 2 + 0.01 * g$aqi + rnorm(nrow(g), 0, 0.1)
+#' g$cy <- paste(g$county, g$year)
+#' g$ss <- paste(g$state, g$season)
+#' # county x summer, less the first county of each state (the rest is
+#' # absorbed by the two sets of effects)
+#' for (k in unique(g$county[g$county %% 3 != 1])) {
+#'   g[[paste0("cs", k)]] <- as.numeric(g$county == k & g$season == "s")
+#' }
+#' ivfe(g, "lcrime", endo = "aqi", inst = "ddd",
+#'      x = grep("^cs", names(g), value = TRUE), fe = c("cy", "ss"),
+#'      clus = "state")$coef[1, ]
+#'
+#' # shaped as Carrillo, Lopez-Luzuriaga and Malik (2018): the difference
+#' # in differences of equation (4), p. 7 (city-day-hour counts, the
+#' # treated city after the start, year-month and hour-by-weekday
+#' # effects, errors clustered by week) and the spatial regression
+#' # discontinuity of equation (6), p. 8 (counts by distance bin, the
+#' # inside indicator, a line on each side, within a window)
+#' set.seed(15)
+#' h <- expand.grid(city = c("quito", "other"), day = 1:120, hour = 0:23)
+#' h$after <- as.numeric(h$day > 60)
+#' h$treat <- h$after * (h$city == "quito")
+#' h$ym <- (h$day - 1) %/% 30
+#' h$hd <- paste(h$hour, h$day %% 7)
+#' h$week <- (h$day - 1) %/% 7
+#' h$crimes <- rpois(nrow(h), 2 + 0.3 * h$treat)
+#' h$q <- as.numeric(h$city == "quito")
+#' ivfe(h, "crimes", x = c("treat", "q"), fe = c("ym", "hd"),
+#'      clus = "week")$coef[1, ]
+#' b <- data.frame(dist = seq(-975, 975, by = 50))
+#' b$inside <- as.numeric(b$dist > 0)
+#' b$dside <- b$dist * b$inside
+#' b$n <- rpois(nrow(b), 20 + 5 * b$inside)
+#' b$one <- 1
+#' ivfe(b[abs(b$dist) <= 800, ], "n", x = c("inside", "dist", "dside"),
+#'      fe = "one", se = "hc1")$coef[1, ]
 #' @export
 ivfe <- function(
   data,
@@ -793,10 +874,24 @@ ivfe <- function(
     if (se %in% c("cluster", "twoway")) df <- min(g) - 1
   }
   dimnames(v) <- list(tm, tm)
+  # the first stages in the exposure's units, per unit of each instrument
+  # and over the exposure's mean (Yamada 2026, table 8, item 5)
+  fstab <- NULL
+  if (length(endo)) {
+    fstab <- do.call(rbind, lapply(endo, function(e) {
+      s1 <- ivfe(d, e, x = c(inst, x), fe = fe, clus = clus,
+                 se = if (se == "boot") "cluster" else se, ssc = ssc,
+                 time = time, lag = lag, level = level, tol = tol)$coef
+      s1 <- s1[s1$term %in% inst, , drop = FALSE]
+      data.frame(endo = e, inst = s1$term, est = s1$est, se = s1$se,
+                 rel = s1$est / mean(d[[e]]))
+    }))
+  }
   structure(
     list(
       coef = .axtab(tm, r$beta, sev, level, df = df),
       first = .axfirst(endo, r$fst, length(inst)),
+      fstab = fstab,
       vcov = v,
       n = nrow(d),
       ncl = g,
@@ -1400,18 +1495,49 @@ windiv <- function(
 #' @param sign `"upper"` or `"ground"`: which temperature comes first.
 #' @param brk `NULL` or the breaks of the bins of the difference (as in
 #'   [cut()], right-closed).
+#' Cautions from a review of 81 studies that use the instrument (Yamada
+#' 2026, section 7 and table 8, pp. 24-25), whose nine checks the help
+#' here follows. The instrument's strong first stages, mostly from China,
+#' do not carry over: in Sub-Saharan Africa and South Asia definitions
+#' drawn from published practice gave first stages that were strong yet
+#' second stages of opposite sign, and an inversion day moved PM2.5 by
+#' about one microgram per cubic metre, small beside the direct effects of
+#' the cold, still weather that comes with it, so the exclusion
+#' restriction fails through weather and season. The checks: (1) the
+#' reference layers must lie above ground everywhere in the study area;
+#' (2) the temperatures should be taken at local dawn; (3) report the
+#' share of zeros and the support of the instrument (the `diag` attribute
+#' of the result gives them); (4) estimate with both a pressure-level and
+#' a surface-layer definition and report both; (5) report the first stage
+#' in physical units relative to the mean exposure, not only its F (the
+#' `fstab` table of [ivfe()]); (6) where two definitions are available,
+#' test them against each other (an over-identification test across
+#' them; not computed here); (7) run a placebo outcome without a pollution
+#' pathway (any outcome in [ivfe()] or [ppmlcf()]); (8) check robustness
+#' to place-by-month fixed effects; (9) validate the exposure against
+#' ground monitors at the scale of the contrasts used.
+#'
 #' @return A data frame: `diff`, the difference by `sign`; `inv`, 1 when
 #'   `tup` is above `tlow` and 0 otherwise (`NA` where a temperature is
-#'   missing); and with `brk`, `bin`, a factor.
+#'   missing); and with `brk`, `bin`, a factor. The attribute `"diag"` is a
+#'   one-row data frame: `n`, the rows with both temperatures; `zero`, the
+#'   share of them without an inversion; `min`, `max`, the support of
+#'   `diff`.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
 #'   *Journal of the Association of Environmental and Resource Economists*,
 #'   7(3), 555-585. \doi{10.1086/707127}
+#'
+#'   Yamada, H. (2026). When the air doesn't move the data: the thermal
+#'   inversion instrument in developing countries. Keio-IES Discussion
+#'   Paper DP2026-018, Keio University.
 #' @seealso [windiv()], [ivfe()], [ppmlcf()]
 #' @examples
 #' invsn(c(10, 5, 2), c(8, 6, 2))
 #' invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
+#' # the share of days without an inversion and the support (check 3)
+#' attr(invsn(c(10, 5, 2), c(8, 6, 2)), "diag")
 #' @export
 invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
   f <- "invsn"
@@ -1432,6 +1558,12 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
     }
     r$bin <- cut(r$diff, brk)
   }
+  ok <- is.finite(up)
+  attr(r, "diag") <- data.frame(
+    n = sum(ok), zero = if (any(ok)) mean(up[ok] <= 0) else NA_real_,
+    min = if (any(ok)) min(r$diff[ok]) else NA_real_,
+    max = if (any(ok)) max(r$diff[ok]) else NA_real_
+  )
   r
 }
 

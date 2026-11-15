@@ -122,6 +122,13 @@ finds it is not offered, as its paper was not at hand to build it from.
 Neither Bondy, Roth and Sager nor Herrnstadt and others discuss
 separation.
 
+The mechanism. Laboratory and field studies in psychology report that
+polluted air raises anxiety and unethical behaviour (Lu et al. 2018),
+summarised in a meta-analysis (Lu et al. 2020); a replication found the
+effect limited in generality (Heck et al. 2020). These are experiments
+and a meta-analysis, not estimators: they motivate the designs here and
+are cited as their mechanism literature and its critique.
+
 Standard errors (\code{se}), all from the rows' scores \code{s_i} at the final fit
 and the bread \code{(X'WX)^-1} of the demeaned regressors \code{X}:
 \code{"cluster"} (the default; \code{sum_g s_g s_g'} over the clusters of the
@@ -183,6 +190,19 @@ Statistics}, 29(2), 238-249. \doi{10.1198/jbes.2010.07136}
 Newey, W. K. and West, K. D. (1994). Automatic lag selection in
 covariance matrix estimation. \emph{Review of Economic Studies}, 61(4),
 631-653. \doi{10.2307/2297912}
+
+Lu, J. G., Lee, J. J., Gino, F. and Galinsky, A. D. (2018). Polluted
+morality: air pollution predicts criminal activity and unethical
+behavior. \emph{Psychological Science}. \doi{10.1177/0956797617735807}
+
+Lu, J. G., Lee, J. J., Gino, F. and Galinsky, A. D. (2020). Air
+pollution, state anxiety, and unethical behavior: a meta-analytic
+review. \emph{Psychological Science}. \doi{10.1177/0956797620924765}
+
+Heck, D. W., Thielmann, I., Klein, S. A. and others (2020). On the
+limited generality of air pollution and anxiety as causal
+determinants of unethical behavior. \emph{Psychological Science}.
+\doi{10.1177/0956797619866627}
 }
 \seealso{
 \code{\link[=ivfe]{ivfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=plcday]{plcday()}}, \code{\link[=expjn]{expjn()}}

@@ -125,6 +125,11 @@ test_that("ivfe equals feols IV: estimates, errors, first-stage F", {
   # products after the control and the effects)
   expect_equal(f$first$eff, 536.97395780637555, tolerance = 1e-6)
   expect_identical(f$first$kp, f$first$wald)
+  # the first stage in units (Yamada 2026, item 5): fixest's first-stage
+  # coefficients over the mean of x
+  expect_equal(f$fstab$est, c(0.73993728634395717, -0.5556931692314554),
+               tolerance = 1e-8)
+  expect_equal(f$fstab$rel, f$fstab$est / mean(d$x))
   f2 <- ivfe(
     d,
     "yl",
@@ -533,6 +538,10 @@ test_that("invsn: the sign, the indicator and bins", {
   expect_identical(r$inv, c(0L, 1L, 0L))
   expect_identical(as.integer(r$bin), c(2L, 1L, 1L))
   expect_error(invsn(1, 2, brk = 3), "two or more increasing")
+  g <- attr(invsn(c(10, 5, NA), c(8, 6, 2)), "diag")
+  expect_identical(g$n, 2L)
+  expect_equal(g$zero, 0.5)
+  expect_identical(c(g$min, g$max), c(-2, 1))
 })
 
 test_that("plcday moves the exposure, the instruments or both", {

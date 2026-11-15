@@ -66,6 +66,12 @@ d <- expand.grid(day = as.Date("2023-01-01") + 0:364, area = 1:4)
 d$pm <- rnorm(nrow(d), 15, 4)
 d$crimes <- rpois(nrow(d), exp(1 + 0.02 * d$pm))
 ccross(d, "crimes", "area", "day", ma = "pm", x = "pm")
+
+# shaped as Burkhardt et al. (2019, JEEM, equation 1, p. 5): county-day
+# counts on PM2.5 and ozone together, county-by-year-by-month-by-weekday
+# effects, errors clustered by county (simulated)
+d$o3 <- rnorm(nrow(d), 0.03, 0.01)
+ccross(d, "crimes", "area", "day", x = c("pm", "o3"), clus = "area")
 }
 \references{
 Ju, K., Xu, R., Huang, W., Zhang, Y., Ye, T., Yu, W., Yang, Z., Chen,
@@ -78,6 +84,12 @@ Heo, S., Berman, J. D. and Bell, M. L. (2026). Multi-city study of the
 joint effects of ozone and temperature exposure on violent crime during
 warm months in the United States. \emph{Environmental Research}, 310,
 125969. \doi{10.1016/j.envres.2026.125969}
+
+Burkhardt, J., Bayham, J., Wilson, A., Carter, E., Berman, J. D.,
+O'Dell, K., Ford, B., Fischer, E. V. and Pierce, J. R. (2019). The
+effect of pollution on crime: evidence from data on particulate matter
+and ozone. \emph{Journal of Environmental Economics and Management}, 98,
+102267. \doi{10.1016/j.jeem.2019.102267}
 }
 \seealso{
 \code{\link[=ppmlfe]{ppmlfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=jntx]{jntx()}}
