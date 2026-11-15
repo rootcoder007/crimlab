@@ -249,3 +249,178 @@ test_that("co2fp() refuses bad arguments before the expression runs", {
   expect_error(co2int("Atlantis"), "^co2int: Unknown location 'Atlantis'")
   expect_error(co2int(c(1, 2)), "numeric `loc` must be a single")
 })
+
+test_that("co2int() prints its row and refuses a loc it cannot use", {
+  expect_identical(
+    capture.output(print(co2int("CA-XX"))),
+    c("Carbon intensity of electricity: 190.72 gCO2e/kWh",
+      "  Location: CA (Canada), 2025", "  Basis: lifecycle",
+      paste0("  Source: ", src_ember),
+      "  Note: no row for zone CA-XX; its country CA used")
+  )
+  # a user value has no year
+  expect_identical(
+    capture.output(print(co2int(120)))[2L],
+    "  Location: user (user-supplied)"
+  )
+  for (bad in list(TRUE, c("a", "b"))) {
+    expect_error(
+      co2int(bad),
+      paste("co2int: `loc` must be a single location code or name, a",
+            "number in gCO2e/kWh, or NULL."),
+      fixed = TRUE
+    )
+  }
+})
+
+test_that("a locale without a known country falls back to the world", {
+  fb <- list(
+    location = "WORLD",
+    method = "fallback, no location found in environment, time zone or locale"
+  )
+  for (lc in c(NA_character_, "en_ZZ.UTF-8")) {
+    expect_identical(dtctloc(envloc = "", codloc = "", tz = "", locale = lc),
+                     fb)
+  }
+  # the binding's proxy for a territory: its neighbour's grid, and the
+  # world average ("") for one the proxy list does not name
+  expect_identical(.Call(C_clab_r_proxy, "MC"), "FR")
+  expect_identical(.Call(C_clab_r_proxy, "ZZ"), "")
+})
+
+test_that("machine utilisation is read from the CPU accounting file", {
+  ps <- tempfile()
+  on.exit(unlink(ps), add = TRUE)
+  mfp <- function(expr, ...) {
+    co2fp(expr, loc = 30, cpupwrw = 45, memgb = 8, usage = "machine",
+          procstat = ps, meth = "model", ...)
+  }
+  # idle is the fourth and fifth numbers: 850 of 1000 ticks, then 1600 of
+  # 1900, so 1 - 750 / 900 of the machine was busy
+  writeLines("cpu  100 0 50 800 50 0 0 0 0 0", ps)
+  fp <- mfp(writeLines("cpu  200 0 100 1500 100 0 0 0 0 0", ps),
+            loadcur = "codecarbon")
+  expect_identical(fp$usagemode, "machine")
+  expect_equal(fp$usage, 1 / 6, tolerance = 1e-12)
+  expect_identical(fp$assumptions,
+                   "codecarbon machine load curve applied to the CPU power")
+  # no change in the file: no time passed on the machine, utilisation 0
+  fp <- mfp(1)
+  expect_identical(fp$usage, 0)
+  expect_identical(fp$assumptions, character(0))
+  unread <- paste0("machine CPU accounting unreadable (no /proc/stat); ",
+                   "process utilisation used")
+  for (l in c("intr 5", "cpu 1 2 3", "cpu 1 2 x 4")) {
+    writeLines(l, ps)
+    fp <- mfp(1)
+    expect_identical(fp$usagemode, "process")
+    expect_identical(fp$assumptions, unread)
+  }
+  # the file is gone by the end of the run
+  writeLines("cpu  100 0 50 800", ps)
+  fp <- mfp(unlink(ps))
+  expect_identical(fp$usagemode, "process")
+  expect_identical(
+    fp$assumptions,
+    "machine CPU accounting became unreadable; process utilisation used"
+  )
+})
+
+test_that("the kernel applies the machine curve and its fallback", {
+  # an hour on 45 W at machine utilisation 1/6: codecarbon's curve gives
+  # 45 (0.1 + 0.9 u^3) W; with the second reading missing, the process
+  # utilisation 1800 / (3600 x 2) and the linear 45 u W instead
+  run <- function(i1, i2) {
+    inp <- c(3600, 1800, 2, 1, NA, 850, 1000, i1, i2, 45, 1, 0, 0.3725, 1,
+             100, 0)
+    .Call(C_clab_r_fpe, as.numeric(inp), numeric(0), numeric(0),
+          numeric(0), numeric(0), numeric(0), integer(0))[[1L]]
+  }
+  o <- run(1600, 1900)
+  expect_equal(o[2L], 1 / 6, tolerance = 1e-12)
+  expect_equal(o[6L], 45 * (0.1 + 0.9 / 216) / 1000, tolerance = 1e-12)
+  expect_identical(o[c(3L, 5L)], c(1, 16))
+  o <- run(NA, NA)
+  expect_identical(o[c(3L, 5L)], c(0, 17))
+  expect_equal(o[2L], 0.25, tolerance = 1e-12)
+  # the process curve: power floored at 10% of the CPU's
+  expect_equal(o[6L], 45 * 0.25 / 1000, tolerance = 1e-12)
+})
+
+test_that("each argument of co2fp() is checked by its own message", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(co2fp(1, rapldir = NA), "co2fp: `rapldir` must be a single path.")
+  ef(co2fp(1, procstat = 1), "co2fp: `procstat` must be a single path.")
+  ef(co2fp(1, usage = c(0.1, 0.2)),
+     paste0("co2fp: `usage` takes one value: \"process\", \"machine\" or a ",
+            "single number in [0, 1]."))
+  expect_identical(
+    co2fp(1, loc = 30, cpupwrw = 45, memgb = 8, usage = NULL,
+          meth = "model")$usagemode,
+    "process"
+  )
+  ef(co2fp(1, devices = 1),
+     "co2fp: `devices` must be a data frame, one row per device.")
+  dev <- data.frame(kind = "gpu", vendor = "v", name = "n", how = "h",
+                    watts = "5")
+  ef(co2fp(1, devices = dev), "co2fp: `devices$watts` must be numeric.")
+  # a table with watts only: no energy column, so no measured energy
+  dev$watts <- 5
+  fp <- co2fp(1, loc = 30, cpupwrw = 45, memgb = 8, usage = 0.5,
+              meth = "model", devices = dev)
+  expect_identical(fp$devices$note, "average power over the run")
+  expect_equal(fp$devices$kwh, fp$durs / 3600 * 5 / 1000, tolerance = 1e-12)
+})
+
+test_that("unknown cores and memory are assumed and said so", {
+  local_mocked_bindings(.memgb = function() NA_real_)
+  fp <- co2fp(1, loc = 30, cpupwrw = 45, cores = 2, usage = 0.5,
+              meth = "model")
+  expect_identical(fp$memgb, 8)
+  expect_identical(fp$assumptions, "memory size unknown: 8 GB assumed")
+  local_mocked_bindings(detectCores = function(...) NA_integer_,
+                        .package = "parallel")
+  fp <- co2fp(1, loc = 30, cpupwrw = 45, memgb = 4, usage = 0.5,
+              meth = "model")
+  expect_identical(fp$cores, 1L)
+  expect_identical(fp$assumptions, "core count unknown; 1 assumed")
+})
+
+test_that("RAPL counters are measured, wrapped, or given up", {
+  skip_on_os("windows")
+  d <- file.path(tempfile(), "intel-rapl:0")
+  on.exit(unlink(dirname(d), recursive = TRUE), add = TRUE)
+  dir.create(d, recursive = TRUE)
+  writeLines("package-0", file.path(d, "name"))
+  uj <- file.path(d, "energy_uj")
+  rfp <- function(expr) {
+    co2fp(expr, loc = 30, cpupwrw = 45, memgb = 8, usage = 0.5,
+          rapldir = dirname(d))
+  }
+  # 3.6 J between the readings is 1e-6 kWh
+  writeLines("1000000", uj)
+  fp <- rfp(writeLines("4600000", uj))
+  expect_identical(fp$method, "rapl")
+  expect_equal(fp$enekwh$cpu, 1e-6, tolerance = 1e-12)
+  writeLines("1000000", uj)
+  fp <- rfp(writeLines("x", uj))
+  expect_identical(fp$method, "model")
+  expect_identical(
+    fp$assumptions,
+    "RAPL counters became unreadable during the run; modelled instead"
+  )
+  # a counter that went down, with no range to wrap it through
+  writeLines("5000000", uj)
+  fp <- rfp(writeLines("1000000", uj))
+  expect_identical(fp$method, "model")
+  expect_identical(
+    fp$assumptions,
+    "a RAPL counter wrapped and its range was unknown; modelled instead"
+  )
+  # with its range: 1e6 - 5e6 + 9e6 microjoules, 5 J
+  writeLines("9000000", file.path(d, "max_energy_range_uj"))
+  writeLines("5000000", uj)
+  fp <- rfp(writeLines("1000000", uj))
+  expect_identical(fp$method, "rapl")
+  expect_equal(fp$enekwh$cpu, 5 / 3.6e6, tolerance = 1e-12)
+})
