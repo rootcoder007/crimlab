@@ -98,22 +98,22 @@ Kleibergen-Paap rk Wald statistic divided by the number of instruments
 endogenous column it is the same robust Wald statistic over \code{q}; for
 more, the rk statistic of Kleibergen and Paap (2006, equation 22, p.
 104) that the instruments' first-stage coefficients have rank one less
-than the endogenous columns, with their normalisation \code{Theta = G Pi F'},
-\code{F F'} the instruments' cross products and \code{G'G} the inverse of the
+than the endogenous columns, with their normalisation \verb{Theta = G Pi F'},
+\verb{F F'} the instruments' cross products and \verb{G'G} the inverse of the
 endogenous columns' (p. 103), all after the controls and the effects,
 and the clustered covariance of \code{Pi}; under that null the rk statistic
 (\code{kp} times \code{ninst}) is chi-squared on \code{ninst - length(endo) + 1}
 degrees of freedom (their Corollary 1); dividing by \code{ninst} is the
 convention of the "F" form, not the paper's. \code{eff}, the effective F of
-Montiel Olea and Pflueger (2013, equation 3, p. 360), \code{b'Qb / tr(V Q)}
+Montiel Olea and Pflueger (2013, equation 3, p. 360), \verb{b'Qb / tr(V Q)}
 with \code{b} the instruments' first-stage coefficients, \code{V} their robust
 covariance and \code{Q} their cross products after the controls and the
-fixed effects: the paper's \code{Y'ZZ'Y / (S tr(W2))} once the instruments
+fixed effects: the paper's \verb{Y'ZZ'Y / (S tr(W2))} once the instruments
 are made orthonormal (their step 1), checked to be the same; \code{keff},
 its effective degrees of freedom for their simplified test (equation 4
-with \code{x = 1 / tau}, \code{tau = 10\%}), and \code{cv}, the simplified test's 5\%
+with \code{x = 1 / tau}, \verb{tau = 10\%}), and \code{cv}, the simplified test's 5\%
 critical value, the upper 5\% point of a noncentral chi-squared on
-\code{keff} degrees of freedom with noncentrality \code{10 keff}, over \code{keff}
+\code{keff} degrees of freedom with noncentrality \verb{10 keff}, over \code{keff}
 (section 2.2.2 and table 1; 23.1 for one instrument): the Nagar bias of
 two-stage least squares is less than 10\% of the benchmark when \code{eff}
 exceeds \code{cv}. \code{eff}, \code{keff} and \code{cv} are for one endogenous column only.
@@ -125,11 +125,11 @@ first-stage statistics use the clusters of
 Over-identification. With more instruments than endogenous columns,
 \code{overid} gives the two statistics the review of Yamada (2026, section
 4.3, section 7 and table 8, item 6) asks for, across instrument definitions:
-the Sargan statistic \code{n u'Z(Z'Z)^-1 Z'u / u'u} at the two-stage least
-squares residuals \code{u}, and the cluster-robust Hansen J, \code{u2'Z S^-1
-Z'u2}, with \code{S} the sum over the clusters of \code{(Z_g'u_g)(Z_g'u_g)'} at
+the Sargan statistic \verb{n u'Z(Z'Z)^-1 Z'u / u'u} at the two-stage least
+squares residuals \code{u}, and the cluster-robust Hansen J, \verb{u2'Z S^-1
+Z'u2}, with \code{S} the sum over the clusters of \verb{(Z_g'u_g)(Z_g'u_g)'} at
 \code{u} (two-way: \code{S1 + S2 - S12}) and \code{u2} the residuals of the two-step
-GMM estimate \code{(X'Z S^-1 Z'X)^-1 X'Z S^-1 Z'y} (returned as \code{gmm}), all
+GMM estimate \verb{(X'Z S^-1 Z'X)^-1 X'Z S^-1 Z'y} (returned as \code{gmm}), all
 after the fixed effects, \code{Z} the excluded instruments and the
 controls. Both are chi-squared on the number of instruments less the
 number of endogenous columns when all the instruments are valid (the J

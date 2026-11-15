@@ -717,3 +717,16 @@ test_that("ivfe gives Sargan and the clustered Hansen J (Yamada 2026)", {
   f1 <- ivfe(d, "yl", endo = "x", inst = "z1", x = "w", fe = c("unit", "day"))
   expect_null(f1$overid)
 })
+
+test_that("se = quasi is glm()'s quasi-Poisson with dummy columns", {
+  # the reference: glm(y ~ x + w + factor(unit) + factor(day) +
+  # offset(log(pop)), family = quasipoisson), epsilon = 1e-14; its
+  # dispersion is Pearson's chi-squared over the residual degrees of
+  # freedom, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate it
+  d <- simpan()
+  f <- ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop",
+              se = "quasi")
+  expect_equal(f$coef$se, c(0.0250069325985391, 0.0308754583727149),
+               tolerance = 1e-6)
+  expect_equal(f$psi, 1.20631966625669, tolerance = 1e-7)
+})

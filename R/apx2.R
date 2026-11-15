@@ -486,6 +486,18 @@ print.hetfx <- function(x, ...) {
 #' wind speed, the 2-day moving average of exposure (`ma`), and errors
 #' clustered by calendar year-month (the default `clus` here).
 #'
+#' Armstrong, Gasparrini and Tobias (2014, p. 3-4 and table 4) show that
+#' the Poisson model with stratum indicators gives the same estimates as
+#' the conditional Poisson and the conditional logistic case-crossover
+#' model, and that the Poisson forms, unlike the conditional logistic one,
+#' allow for overdispersion (quasi-Poisson, the dispersion estimated from
+#' Pearson's chi-squared: `se = "quasi"` of [ppmlfe()], passed through
+#' `...`), for autocorrelation and for varying denominators (an offset:
+#' `expo`). The clustered errors used by default here also allow for
+#' overdispersion and for correlation within a year-month. Their
+#' adjustment for autocorrelation (Brumback's method, in their additional
+#' file) is not built: the paper does not state it.
+#'
 #' The choices: `strat = "ymw"` (place, year, month and weekday) or `"ym"`
 #' (place, year and month, the plain time-stratified design); `ma`, the
 #' columns to replace by their mean over the day and the `k - 1` days
@@ -517,6 +529,10 @@ print.hetfx <- function(x, ...) {
 #'   joint effects of ozone and temperature exposure on violent crime during
 #'   warm months in the United States. *Environmental Research*, 310,
 #'   125969. \doi{10.1016/j.envres.2026.125969}
+#'
+#'   Armstrong, B. G., Gasparrini, A. and Tobias, A. (2014). Conditional
+#'   Poisson models: a flexible alternative to conditional logistic case
+#'   cross-over analysis. *BMC Medical Research Methodology*, 14, 122.
 #'
 #'   Burkhardt, J., Bayham, J., Wilson, A., Carter, E., Berman, J. D.,
 #'   O'Dell, K., Ford, B., Fischer, E. V. and Pierce, J. R. (2019). The

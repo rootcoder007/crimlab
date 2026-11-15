@@ -13,7 +13,7 @@ ppmlfe(
   fe,
   expo = NULL,
   clus = NULL,
-  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  se = c("cluster", "twoway", "hc1", "nw", "boot", "quasi"),
   ssc = c("G", "nk", "none"),
   time = NULL,
   lag = NULL,
@@ -49,8 +49,8 @@ week and year-month), give their combination as one column.}
 \item{clus}{\code{NULL} (the fixed effects: the first, or both for
 \code{se = "twoway"}) or the names of one or two cluster columns.}
 
-\item{se}{The standard errors: \code{"cluster"}, \code{"twoway"}, \code{"hc1"}, \code{"nw"}
-or \code{"boot"}.}
+\item{se}{The standard errors: \code{"cluster"}, \code{"twoway"}, \code{"hc1"}, \code{"nw"},
+\code{"boot"} or \code{"quasi"}.}
 
 \item{ssc}{The small-sample factor: \code{"G"}, \code{"nk"} or \code{"none"}.}
 
@@ -82,7 +82,8 @@ An object of class \code{ppmlfe}, a list: \code{coef}, a data frame with
 one row per regressor (\code{term}, \code{est} on the log scale, \code{se}, \code{stat}
 (z), \code{p}, \code{lo}, \code{hi}, and \code{rr}, \code{exp(est)}, the rate ratio of one more
 unit); \code{vcov}; \code{n}, the rows used; \code{nsep}, the rows dropped for
-separation; \code{xdrop}, the regressors dropped by \code{sep = "sst"}; \code{ncl}, the
+separation; \code{xdrop}, the regressors dropped by \code{sep = "sst"}; \code{psi},
+the dispersion for \code{se = "quasi"} (else \code{NA}); \code{ncl}, the
 number of clusters (rows for \code{"hc1"} and
 \code{"nw"}); \code{se}, \code{ssc}, \code{lag}; \code{iter}, \code{conv}, \code{dev} and \code{loglik} of the
 fit; \code{draws} for the bootstrap; \code{fe}, \code{clus} and \code{level}. \code{summary()}
@@ -97,7 +98,7 @@ ward, ward fixed effects and time effects, and ward population as the
 offset. It serves any count by place and period against any exposure.
 }
 \details{
-The model is \code{E(y | x) = exp(x'b + a_i + g_t + log(expo))}. Poisson
+The model is \verb{E(y | x) = exp(x'b + a_i + g_t + log(expo))}. Poisson
 pseudo-maximum likelihood (Santos Silva and Tenreyro 2006) needs only
 that mean to be right: the counts need not be Poisson, their variance
 need not equal their mean, and zero counts are kept (a regression of
@@ -151,8 +152,8 @@ and a meta-analysis, not estimators: they motivate the designs here and
 are cited as their mechanism literature and its critique.
 
 Standard errors (\code{se}), all from the rows' scores \code{s_i} at the final fit
-and the bread \code{(X'WX)^-1} of the demeaned regressors \code{X}:
-\code{"cluster"} (the default; \code{sum_g s_g s_g'} over the clusters of the
+and the bread \verb{(X'WX)^-1} of the demeaned regressors \code{X}:
+\code{"cluster"} (the default; \verb{sum_g s_g s_g'} over the clusters of the
 first \code{clus} column); \code{"twoway"} (Cameron, Gelbach and Miller 2011, \code{V1
 + V2 - V12}; Bondy, Roth and Sager cluster by ward and year-month, table
 2; Herrnstadt and others 2019 by monitor and date; given two \code{clus}
@@ -161,16 +162,23 @@ robust errors of Herrnstadt and others 2021); \code{"nw"} (Newey-West within
 each unit of the first \code{clus} column over the days of \code{time}, Bartlett
 weights \code{1 - d / (lag + 1)} for days \code{d} apart up to \code{lag}; by default
 the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
-and p. 635) for the Bartlett kernel without their prewhitening: \code{lag =
-[gamma T^(1/3)]}, \code{gamma = 1.1447 ((s1 / s0)^2)^(1/3)}, \code{s1 = 2 sum_j j
-sigma_j}, \code{s0 = sigma_0 + 2 sum_j sigma_j} over \code{j = 1..n}, \code{n = [4 (T /
+and p. 635) for the Bartlett kernel without their prewhitening: \verb{lag =
+[gamma T^(1/3)]}, \code{gamma = 1.1447 ((s1 / s0)^2)^(1/3)}, \verb{s1 = 2 sum_j j
+sigma_j}, \verb{s0 = sigma_0 + 2 sum_j sigma_j} over \verb{j = 1..n}, \verb{n = [4 (T /
 100)^(2/9)]}, \code{T} the most days of a unit and \code{sigma_j} the sum of the
 products of the rows' scores (summed over the coefficients) of one unit
-\code{j} days apart (the earlier default here, \code{[4 (T / 100)^(2/9)]}, is
+\code{j} days apart (the earlier default here, \verb{[4 (T / 100)^(2/9)]}, is
 their lag-selection parameter \code{n}, not the lag); the appendix of
 Herrnstadt and others 2021); \code{"boot"} (a cluster bootstrap
 over the first \code{clus} column, \code{nboot} draws from R's generator, each
-refitting the model). The small-sample factor \code{ssc}: \code{"G"} (the default)
+refitting the model); \code{"quasi"} (the quasi-Poisson variance, the
+model-based \verb{(X'WX)^-1} times the dispersion \code{psi}, Pearson's
+chi-squared over the residual degrees of freedom \code{n - K} with \code{K} the
+coefficients and the effects' levels less one each and the
+intercept, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate
+the overdispersion of a case-crossover count, returned as \code{psi}; not
+robust to correlation, and \code{ssc} does not apply). The small-sample
+factor \code{ssc}: \code{"G"} (the default)
 \code{G / (G - 1)} with \code{G} the (smaller) number of clusters, or \code{n / (n - 1)}
 for \code{"hc1"} and \code{"nw"}; \code{"nk"} that times \code{(n - 1) / (n - K)}, \code{K} the
 coefficients, an intercept and the levels less one of each fixed effect
@@ -215,6 +223,10 @@ Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air
 pollution and criminal activity: microgeographic evidence from
 Chicago. \emph{American Economic Journal: Applied Economics}, 13(4),
 70-100. \doi{10.1257/app.20190091}
+
+Armstrong, B. G., Gasparrini, A. and Tobias, A. (2014). Conditional
+Poisson models: a flexible alternative to conditional logistic case
+cross-over analysis. \emph{BMC Medical Research Methodology}, 14, 122.
 
 Santos Silva, J. M. C. and Tenreyro, S. (2010). On the existence of
 the maximum likelihood estimates in Poisson regression. \emph{Economics

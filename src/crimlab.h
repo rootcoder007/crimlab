@@ -1928,9 +1928,9 @@ int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int
  * s_g') (X~'WX~)^-1 at the final mu, s_g the clusters' sums of w (y - mu)
  * x~, x~ the demeaned columns, V1 + V2 - V12 for two-way, every term times
  * G / (G - 1) of G the smaller number of clusters (fixest's ssc(K.adj =
- * FALSE, G.df = "min")). Out: beta (p); st (6): steps, converged (1 or
+ * FALSE, G.df = "min")). Out: beta (p); st (7): steps, converged (1 or
  * 0), deviance, the pseudo log-likelihood, G, the most sweeps of the
- * within transformation; sco: NULL or n x p, each row's score w (y - mu)
+ * within transformation, Pearson's chi-squared sum w (y - mu)^2 / mu; sco: NULL or n x p, each row's score w (y - mu)
  * x~ at the final mu, and brd: NULL or p x p, (X~'WX~)^-1, for the other
  * variances of clab_vcx. CLAB_EDOM when a column of x is absorbed by the
  * effects or the columns are collinear, or the transformation does not

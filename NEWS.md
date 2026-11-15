@@ -76,6 +76,10 @@
   the simplified test of Montiel Olea and Pflueger (2013); the effective
   F itself was checked against their equation 3 and is unchanged.
 
+* `ppmlfe(se = "quasi")`, the quasi-Poisson variance with the Pearson
+  dispersion, the overdispersion adjustment Armstrong, Gasparrini and
+  Tobias (2014) give for the case-crossover design of `ccross()`.
+
 * `ivfe()` reports the Sargan statistic and the cluster-robust Hansen J
   of the two-step GMM estimate when there are more instruments than
   endogenous columns (`overid`, `gmm`), the cross-definition

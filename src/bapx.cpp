@@ -61,7 +61,7 @@ SEXP C_clab_r_ppmlfe(SEXP y, SEXP x, SEXP off, SEXP w, SEXP f1, SEXP n1, SEXP f2
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 5));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, p));
   SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, p, p));
-  SET_VECTOR_ELT(r, 2, Rf_allocVector(REALSXP, 6));
+  SET_VECTOR_ELT(r, 2, Rf_allocVector(REALSXP, 7));
   SET_VECTOR_ELT(r, 3, Rf_allocMatrix(REALSXP, n, p));
   SET_VECTOR_ELT(r, 4, Rf_allocMatrix(REALSXP, p, p));
   for (int q = 0; q < p * p; ++q) REAL(VECTOR_ELT(r, 1))[q] = NA_REAL;

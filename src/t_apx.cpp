@@ -29,7 +29,7 @@ void t_apx(tk &T, int) {
   {
     const double y[4] = {3, 5, 2, 7}, x[4] = {0, 1, 0, 1};
     const int u[4] = {0, 0, 1, 1}, c[4] = {0, 0, 1, 1};
-    double b = 0, vc = 0, st[6];
+    double b = 0, vc = 0, st[7];
     tk_ieq(T, "apx.pp2", ppml(y, x, 4, 1, u, 2, nullptr, 0, c, 2, &b, &vc, st), CLAB_OK);
     tk_eq(T, "apx.pp2b", b, std::log(12.0 / 5.0), 1e-10);
     tk_ieq(T, "apx.pp2c", static_cast<int>(st[1]), 1);
@@ -47,7 +47,7 @@ void t_apx(tk &T, int) {
       x[i] = runi(r, -1, 1);
       y[i] = rpois(r, std::exp(0.5 + 0.4 * x[i] + 0.2 * u[i] - 0.1 * t[i]));
     }
-    double b = 0, vc = 0, st[6];
+    double b = 0, vc = 0, st[7];
     tk_ieq(T, "apx.pfe", ppml(y.data(), x.data(), n, 1, u.data(), nu, t.data(), nt, u.data(), nu,
                               &b, &vc, st), CLAB_OK);
     const int p = 1 + 1 + (nu - 1) + (nt - 1);

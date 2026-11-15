@@ -72,22 +72,22 @@ it converged and the weights used; \code{fe}, \code{clus} and \code{level}.
 \code{summary()} returns \code{coef}.
 }
 \description{
-Estimates \code{E(y | x) = exp(x'b + log(expo))} with some regressors
+Estimates \verb{E(y | x) = exp(x'b + log(expo))} with some regressors
 endogenous, by the generalised method of moments on the first-order
 moment conditions alone, as Mullahy (1997) and Windmeijer and Santos
-Silva (1997) set it out: \code{sum_i z_i u_i(b) = 0} with \code{z} the excluded
+Silva (1997) set it out: \verb{sum_i z_i u_i(b) = 0} with \code{z} the excluded
 instruments and the exogenous regressors. The residual (\code{err}):
 }
 \details{
-\code{"mult"} (the default), \code{u = y exp(-x'b) - 1}, the transformed residual
+\code{"mult"} (the default), \verb{u = y exp(-x'b) - 1}, the transformed residual
 "IV-T" of Mullahy (1997, equations 4-5, p. 589) and the multiplicative
 model of Windmeijer and Santos Silva (1997, equation 3, p. 284). It is
-consistent when the unmeasured causes multiply the mean, \code{y =
+consistent when the unmeasured causes multiply the mean, \verb{y =
 exp(x'b) h + e} with \code{E(h | z) = 1}: the omitted-variable model in which
 observed and unobserved causes enter alike, which Mullahy argues is the
 natural one, and the default for that reason.
 
-\code{"add"}, \code{u = y - exp(x'b)}, the additive error of Windmeijer and Santos
+\code{"add"}, \verb{u = y - exp(x'b)}, the additive error of Windmeijer and Santos
 Silva (1997, equation 2, p. 283; Mullahy's "IV-A", p. 588, which he shows
 inconsistent under the multiplicative model). The same instruments are
 not in general orthogonal to both residuals; which holds is an
@@ -96,7 +96,7 @@ empirical matter that the J test speaks to (Windmeijer and Santos Silva
 multiplicative is rejected, p. 291).
 
 The weighting (\code{step}): \code{"two"} (the default), the efficient two-step
-estimator: a first step with \code{W = (Z'Z)^-1}, the nonlinear
+estimator: a first step with \verb{W = (Z'Z)^-1}, the nonlinear
 instrumental-variables estimator, then \code{W = S^-1} with \code{S} the
 variance of the moments at the first estimate (Windmeijer and Santos
 Silva 1997, p. 283; Mullahy 1997, p. 589, "a preliminary consistent
@@ -104,20 +104,20 @@ estimate (e.g., nonlinear two-stage least squares)"); \code{"one"}, the
 first step alone; \code{"iter"}, \code{S} and the estimate updated in turn until
 the estimate settles (the "GMM iterated until convergence" of
 Windmeijer and Santos Silva, table 2 notes). Each step minimises
-\code{g'Wg} by Gauss-Newton from the Poisson start below, halving any step
+\verb{g'Wg} by Gauss-Newton from the Poisson start below, halving any step
 that does not lower it.
 
-Variance. \code{S} is the sum over the clusters of \code{clus} of \code{(Z_g'u_g)
+Variance. \code{S} is the sum over the clusters of \code{clus} of \verb{(Z_g'u_g)
 (Z_g'u_g)'} (\code{se = "cluster"}), or over the rows (\code{"hc1"}, the
-\code{sum_i (y_i - mu_i)^2 z_i z_i'} of Windmeijer and Santos Silva, p. 283).
-Two-step and iterated: \code{(G'S^-1 G)^-1}, \code{G = sum_i z_i du_i / db'}
+\verb{sum_i (y_i - mu_i)^2 z_i z_i'} of Windmeijer and Santos Silva, p. 283).
+Two-step and iterated: \verb{(G'S^-1 G)^-1}, \verb{G = sum_i z_i du_i / db'}
 (Mullahy, p. 589; Windmeijer and Santos Silva, p. 284), with \code{S} from
-the previous estimate; one step: the sandwich \code{(G'WG)^-1 G'W S W G
+the previous estimate; one step: the sandwich \verb{(G'WG)^-1 G'W S W G
 (G'WG)^-1} with \code{S} at the estimate. \code{ssc = "G"} multiplies it by \code{G /
 (G - 1)}, \code{G} the clusters (rows for \code{"hc1"}); \code{"none"} does not.
 Tests use the normal.
 
-Hansen's J. The criterion \code{g'S^-1 g} at the two-step (or iterated)
+Hansen's J. The criterion \verb{g'S^-1 g} at the two-step (or iterated)
 estimate, chi-squared on the number of instruments less the number of
 endogenous columns when they are valid (Mullahy 1997, p. 590); not
 given for \code{step = "one"} (its weight is not the efficient one) or when

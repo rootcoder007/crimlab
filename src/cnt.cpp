@@ -711,6 +711,9 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
   st[3] = ll;
   st[4] = g;
   st[5] = most;
+  double px2 = 0.0;
+  for (int i = 0; i < n; ++i) px2 += (w ? w[i] : 1.0) * (y[i] - mu[i]) * (y[i] - mu[i]) / mu[i];
+  st[6] = px2;
   return CLAB_OK;
 }
 

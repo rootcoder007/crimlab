@@ -552,14 +552,14 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
   };
   std::vector<int> all(static_cast<size_t>(n));
   for (int i = 0; i < n; ++i) all[static_cast<size_t>(i)] = i;
-  double s0[6];
+  double s0[7];
   int rc = one(all, nullptr, cl, ncl, beta, fst, s0);
   if (rc != CLAB_OK) return rc;
   st[0] = s0[0];
   st[1] = s0[1];
   int bad = 0;
   std::vector<double> fw(static_cast<size_t>(n)), sep(static_cast<size_t>(n1 + n2));
-  std::vector<double> fsb(4 * static_cast<size_t>(pe)), sb(6), bb(static_cast<size_t>(p));
+  std::vector<double> fsb(4 * static_cast<size_t>(pe)), sb(7), bb(static_cast<size_t>(p));
   for (int d = 0; d < nb; ++d) {
     if (kutil::stop(static_cast<double>(n) * p * 20)) return CLAB_EINTR;
     // the rows of the clusters drawn, each weighted by how often it was drawn

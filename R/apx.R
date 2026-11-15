@@ -186,6 +186,13 @@
   c1 <- c2 <- tv <- NULL
   n1 <- n2 <- 0L
   lg <- 0L
+  if (se == "quasi") {
+    # the model-based (X~'WX~)^-1 times the Pearson dispersion
+    k <- kk(character())
+    psi <- r$st[7L] / (n - k)
+    v <- r$brd * psi
+    return(list(v = v, g = n, lag = NA_integer_, k = k, psi = psi))
+  }
   if (se %in% c("cluster", "twoway")) {
     cl <- .axcl(d, clus, fn)
     c1 <- cl$c1
@@ -344,7 +351,8 @@
     twoway = "two-way clustered",
     hc1 = "heteroskedasticity-robust",
     nw = "Newey-West",
-    boot = "cluster bootstrap"
+    boot = "cluster bootstrap",
+    quasi = "quasi-Poisson"
   )[[se]]
 }
 
@@ -430,7 +438,14 @@
 #' their lag-selection parameter `n`, not the lag); the appendix of
 #' Herrnstadt and others 2021); `"boot"` (a cluster bootstrap
 #' over the first `clus` column, `nboot` draws from R's generator, each
-#' refitting the model). The small-sample factor `ssc`: `"G"` (the default)
+#' refitting the model); `"quasi"` (the quasi-Poisson variance, the
+#' model-based `(X'WX)^-1` times the dispersion `psi`, Pearson's
+#' chi-squared over the residual degrees of freedom `n - K` with `K` the
+#' coefficients and the effects' levels less one each and the
+#' intercept, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate
+#' the overdispersion of a case-crossover count, returned as `psi`; not
+#' robust to correlation, and `ssc` does not apply). The small-sample
+#' factor `ssc`: `"G"` (the default)
 #' `G / (G - 1)` with `G` the (smaller) number of clusters, or `n / (n - 1)`
 #' for `"hc1"` and `"nw"`; `"nk"` that times `(n - 1) / (n - K)`, `K` the
 #' coefficients, an intercept and the levels less one of each fixed effect
@@ -458,8 +473,8 @@
 #'   (population): its logarithm is the offset.
 #' @param clus `NULL` (the fixed effects: the first, or both for
 #'   `se = "twoway"`) or the names of one or two cluster columns.
-#' @param se The standard errors: `"cluster"`, `"twoway"`, `"hc1"`, `"nw"`
-#'   or `"boot"`.
+#' @param se The standard errors: `"cluster"`, `"twoway"`, `"hc1"`, `"nw"`,
+#'   `"boot"` or `"quasi"`.
 #' @param ssc The small-sample factor: `"G"`, `"nk"` or `"none"`.
 #' @param time The name of the day column (numbers or dates), for
 #'   `se = "nw"`.
@@ -478,7 +493,8 @@
 #'   one row per regressor (`term`, `est` on the log scale, `se`, `stat`
 #'   (z), `p`, `lo`, `hi`, and `rr`, `exp(est)`, the rate ratio of one more
 #'   unit); `vcov`; `n`, the rows used; `nsep`, the rows dropped for
-#'   separation; `xdrop`, the regressors dropped by `sep = "sst"`; `ncl`, the
+#'   separation; `xdrop`, the regressors dropped by `sep = "sst"`; `psi`,
+#'   the dispersion for `se = "quasi"` (else `NA`); `ncl`, the
 #'   number of clusters (rows for `"hc1"` and
 #'   `"nw"`); `se`, `ssc`, `lag`; `iter`, `conv`, `dev` and `loglik` of the
 #'   fit; `draws` for the bootstrap; `fe`, `clus` and `level`. `summary()`
@@ -493,6 +509,10 @@
 #'   pollution and criminal activity: microgeographic evidence from
 #'   Chicago. *American Economic Journal: Applied Economics*, 13(4),
 #'   70-100. \doi{10.1257/app.20190091}
+#'
+#'   Armstrong, B. G., Gasparrini, A. and Tobias, A. (2014). Conditional
+#'   Poisson models: a flexible alternative to conditional logistic case
+#'   cross-over analysis. *BMC Medical Research Methodology*, 14, 122.
 #'
 #'   Santos Silva, J. M. C. and Tenreyro, S. (2010). On the existence of
 #'   the maximum likelihood estimates in Poisson regression. *Economics
@@ -552,7 +572,7 @@ ppmlfe <- function(
   fe,
   expo = NULL,
   clus = NULL,
-  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  se = c("cluster", "twoway", "hc1", "nw", "boot", "quasi"),
   ssc = c("G", "nk", "none"),
   time = NULL,
   lag = NULL,
@@ -618,6 +638,7 @@ ppmlfe <- function(
     )
   }
   dr <- NULL
+  psi <- NA_real_
   if (se == "boot") {
     nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
     if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
@@ -653,6 +674,7 @@ ppmlfe <- function(
     sev <- sqrt(pmax(diag(v), 0))
     g <- vv$g
     lg <- vv$lag
+    psi <- if (se == "quasi") vv$psi else NA_real_
   }
   dimnames(v) <- list(x, x)
   tab <- .axtab(x, r$beta, sev, level)
@@ -668,6 +690,7 @@ ppmlfe <- function(
       se = se,
       ssc = ssc,
       lag = lg,
+      psi = psi,
       iter = r$st[1L],
       conv = r$st[2L] == 1,
       dev = r$st[3L],
