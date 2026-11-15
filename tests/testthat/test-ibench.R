@@ -134,3 +134,21 @@ test_that("ibench() refuses bad input in words", {
     )
   )
 })
+
+test_that("covariates as a matrix or one vector fit as the data frame", {
+  set.seed(5)
+  n <- 600
+  off <- sample(c("a", "b", "c", "d"), n, TRUE)
+  night <- rbinom(n, 1, ifelse(off == "a", 0.7, 0.3))
+  pl <- runif(n)
+  y <- rbinom(n, 1, plogis(-1 + night + 0.5 * (off == "b")))
+  expect_identical(unclass(ibench(y, off, cbind(night, pl), minn = 10)),
+                   unclass(ibench(y, off, data.frame(night, pl), minn = 10)))
+  # one vector is the one-column frame of it
+  expect_equal(unclass(ibench(y, off, night, minn = 10)),
+               unclass(ibench(y, off, data.frame(night), minn = 10)),
+               tolerance = 0)
+  expect_error(ibench(y, off, cbind(night, c(pl[-1], NA)), minn = 10),
+               "ibench: `x` must hold finite numbers with no missing values.",
+               fixed = TRUE)
+})

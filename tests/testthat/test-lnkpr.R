@@ -81,3 +81,17 @@ test_that("lnkpr() refuses bad input in words", {
     )
   )
 })
+
+test_that("modus operandi as a data frame is the matrix of its columns", {
+  d <- lksim()
+  a <- lnkpr(d$x, t = d$t, series = d$s, mo = d$mo)
+  b <- lnkpr(d$x, t = d$t, series = d$s, mo = as.data.frame(d$mo))
+  expect_identical(b$pairs, a$pairs)
+  expect_identical(b$model, a$model)
+  expect_error(lnkpr(d$x, t = d$t, series = d$s, mo = d$mo[-1, ]),
+               paste("lnkpr: `mo` must be a 0/1 or logical matrix with one",
+                     "row per crime, 40."), fixed = TRUE)
+  expect_error(lnkpr(d$x, t = d$t, series = d$s, mo = "a"),
+               paste("lnkpr: `mo` must be a matrix, a data frame or a list",
+                     "of 0/1 columns."), fixed = TRUE)
+})
