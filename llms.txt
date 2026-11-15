@@ -860,7 +860,7 @@ do most functions of the Python package. It holds every exported
 function of the R package but those that work in R only, the plot
 functions and the table check
 [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
-(411 of 433); `crimlab -l` lists them and their arguments, and
+(420 of 454); `crimlab -l` lists them and their arguments, and
 `cli/test.tsv` holds the values the R package gives for them
 (`dev/clref.R`), which every front end is tested against. A warning R
 would give is returned in the result as `warnings`, an array of its
@@ -1745,6 +1745,119 @@ by area and the concentration index of exposure by income.
   [`polrpttxt()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
   [`print(`*`<vrfpol>`*`)`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
   : Run the pollution-to-health pipeline and report it
+
+## Exposure and crime
+
+Environmental criminology asks how the places and conditions in which
+people live and move shape offending and victimisation. These functions
+estimate the effect of a daily exposure such as air pollution on counts
+by place and day, with fixed effects, wind and inversion instruments, an
+irrelevant-day placebo and the upwind and downwind design, after Bondy,
+Roth and Sager (2020, Crime is in the air, Journal of the Association of
+Environmental and Resource Economists 7(3), <doi:10.1086/707127>) and
+Herrnstadt, Heyes, Muehlegger and Saberian (2019, Air pollution as a
+cause of violent crime; 2021, Air pollution and criminal activity,
+American Economic Journal - Applied Economics 13(4),
+<doi:10.1257/app.20190091>).
+
+- [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  [`print(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  [`summary(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  [`plot(`*`<ppmlfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  : Poisson pseudo-maximum likelihood with absorbed fixed effects
+- [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  [`print(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  [`summary(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  [`plot(`*`<ivfe>`*`)`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  : Two-stage least squares with absorbed fixed effects
+- [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
+  [`print(`*`<ppmlcf>`*`)`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
+  [`summary(`*`<ppmlcf>`*`)`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
+  [`plot(`*`<ppmlcf>`*`)`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
+  : Instrumental variables for a count outcome with fixed effects
+- [`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
+  [`print(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
+  [`summary(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
+  [`plot(`*`<expgmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
+  : Exponential-mean GMM for a count with an endogenous exposure
+- [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
+  : Wind-direction instruments
+- [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md)
+  : Temperature inversions
+- [`plcday()`](https://rootcoder007.github.io/crimlab/reference/plcday.md)
+  [`print(`*`<plcday>`*`)`](https://rootcoder007.github.io/crimlab/reference/plcday.md)
+  [`summary(`*`<plcday>`*`)`](https://rootcoder007.github.io/crimlab/reference/plcday.md)
+  [`plot(`*`<plcday>`*`)`](https://rootcoder007.github.io/crimlab/reference/plcday.md)
+  : Irrelevant-day placebo
+- [`updwn()`](https://rootcoder007.github.io/crimlab/reference/updwn.md)
+  [`print(`*`<updwn>`*`)`](https://rootcoder007.github.io/crimlab/reference/updwn.md)
+  [`summary(`*`<updwn>`*`)`](https://rootcoder007.github.io/crimlab/reference/updwn.md)
+  [`plot(`*`<updwn>`*`)`](https://rootcoder007.github.io/crimlab/reference/updwn.md)
+  : The upwind and downwind design around a road or a point source
+- [`expjn()`](https://rootcoder007.github.io/crimlab/reference/expjn.md)
+  [`print(`*`<expjn>`*`)`](https://rootcoder007.github.io/crimlab/reference/expjn.md)
+  [`summary(`*`<expjn>`*`)`](https://rootcoder007.github.io/crimlab/reference/expjn.md)
+  : Join an exposure table to counts by place and day
+- [`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md)
+  : Smoke instruments from plume data
+- [`exprun()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  [`runfx()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  [`print(`*`<runfx>`*`)`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  [`plot(`*`<runfx>`*`)`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  : Runs of exposed days
+- [`hetfx()`](https://rootcoder007.github.io/crimlab/reference/hetfx.md)
+  [`print(`*`<hetfx>`*`)`](https://rootcoder007.github.io/crimlab/reference/hetfx.md)
+  [`plot(`*`<hetfx>`*`)`](https://rootcoder007.github.io/crimlab/reference/hetfx.md)
+  : Effects by a moderator, with the joint test of equality
+- [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  : The time-stratified case-crossover design
+- [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md)
+  [`print(`*`<jntx>`*`)`](https://rootcoder007.github.io/crimlab/reference/jntx.md)
+  [`plot(`*`<jntx>`*`)`](https://rootcoder007.github.io/crimlab/reference/jntx.md)
+  : Two exposures together: their interaction and the surface of effects
+- [`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
+  [`print(`*`<dosebin>`*`)`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
+  [`plot(`*`<dosebin>`*`)`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
+  : Exposure in bins: dose-response and tests of non-linearity
+- [`typefx()`](https://rootcoder007.github.io/crimlab/reference/typefx.md)
+  [`print(`*`<typefx>`*`)`](https://rootcoder007.github.io/crimlab/reference/typefx.md)
+  [`plot(`*`<typefx>`*`)`](https://rootcoder007.github.io/crimlab/reference/typefx.md)
+  : Effects by offence type in one call, with a multiple-testing
+  correction
+
+## Regression discontinuity
+
+Local polynomial fits at a cutoff with the bandwidth of Imbens and
+Kalyanaraman (2012), robust intervals after Calonico, Cattaneo and
+Titiunik (2014), placebo cutoffs and the density test of McCrary (2008).
+
+- [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  [`print(`*`<rdloc>`*`)`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  [`summary(`*`<rdloc>`*`)`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  [`plot(`*`<rdloc>`*`)`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  : Regression discontinuity by local polynomials
+- [`rddens()`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  [`print(`*`<rddens>`*`)`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  [`summary(`*`<rddens>`*`)`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  [`plot(`*`<rddens>`*`)`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  : The density test of McCrary at a cutoff
+
+## Environmental crime
+
+Offences against the environment as the outcome: where, when and why
+pollution offences, illegal waste disposal and safety crimes are
+recorded, and how enforcement shapes the counts. The LMDI decomposition
+of a count over a Kaya identity, two-way fixed effects with an
+interaction and its checks, and Pesaran’s CD test of a panel.
+
+- [`lmdix()`](https://rootcoder007.github.io/crimlab/reference/lmdix.md)
+  [`plot(`*`<lmdix>`*`)`](https://rootcoder007.github.io/crimlab/reference/lmdix.md)
+  : LMDI decomposition of a count over the factors of a Kaya identity
+- [`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md)
+  [`plot(`*`<fepnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/fepnl.md)
+  : Two-way fixed effects with an interaction, for counts of offences
+- [`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md)
+  : Pesaran's CD test of cross-sectional dependence in a panel
 
 ## Data larger than memory
 

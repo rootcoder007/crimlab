@@ -2,6 +2,20 @@
 
 ## crimlab 0.0.0.9000
 
+- Environmental crime, with offences against the environment as the
+  outcome: the LMDI decomposition of a count over the factors of a Kaya
+  identity, over time and against a reference region
+  ([`lmdix()`](https://rootcoder007.github.io/crimlab/reference/lmdix.md),
+  after Duan et al. 2026), the two-way fixed-effects regression of a
+  count on drivers with an interaction, standardised coefficients,
+  variance inflation factors, simple slopes and the Jarque-Bera test of
+  the residuals
+  ([`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md)),
+  and Pesaran’s CD test of cross-sectional dependence
+  ([`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md),
+  as Andreatta et al. 2023 use it). They are not yet in `clab_jrun()`,
+  the command line or Python.
+
 - Spatial epidemiology and surveillance: Bayes outbreak detection
   ([`bayout()`](https://rootcoder007.github.io/crimlab/reference/bayout.md)),
   exposure within a buffer and by kernel
@@ -156,6 +170,113 @@
   and the correlation of counts per unit between categories
   ([`catcor()`](https://rootcoder007.github.io/crimlab/reference/catcor.md)).
   They are in `clab_jrun()`, the command line and Python.
+
+- Regression discontinuity: local-linear sharp and fuzzy estimates with
+  the bandwidth of Imbens and Kalyanaraman (2012) or one given, three
+  kernels, conventional and robust intervals (Calonico, Cattaneo and
+  Titiunik 2014, with the pilot bandwidth equal to the main one),
+  heteroskedasticity-robust or clustered errors and placebo cutoffs
+  ([`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md));
+  the density test of McCrary (2008)
+  ([`rddens()`](https://rootcoder007.github.io/crimlab/reference/rddens.md)).
+
+- Exposure and crime, checked against the papers: the Newey-West lag of
+  `se = "nw"` when `lag` is not given is now the automatic bandwidth of
+  Newey and West (1994, equation 2.2) instead of their lag-selection
+  parameter `n`, so results with that default change; two-way clustering
+  gains the factor of each component (`twc = "each"`) and the eigenvalue
+  fix (`psd = "eig"`) of Cameron, Gelbach and Miller (2011) in
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  and
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md).
+  The first-stage table of
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  gains the Kleibergen-Paap rk statistic for several endogenous columns
+  (it was `NA`) and the effective degrees of freedom and 5% critical
+  value of the simplified test of Montiel Olea and Pflueger (2013); the
+  effective F itself was checked against their equation 3 and is
+  unchanged.
+
+- [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  and
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  absorb any number of sets of fixed effects (a third set such as hour
+  or region-by-year, which several of the papers use); one or two sets
+  are computed exactly as before.
+
+- [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  gains single-day lags (`lagv`, `lag`) and natural-spline controls
+  (`ns`), the specification of the nationwide case-crossover study of
+  Han et al. (2026), with a worked example of its main table.
+
+- `smkiv(cf = "childs")`: smoke PM2.5 as Childs et al. (2022) define it,
+  PM2.5 above the three-year median of the same place and month on
+  smoke-free days, on smoke days.
+
+- `ppmlfe(se = "quasi")`, the quasi-Poisson variance with the Pearson
+  dispersion, the overdispersion adjustment Armstrong, Gasparrini and
+  Tobias (2014) give for the case-crossover design of
+  [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md).
+
+- [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  reports the Sargan statistic and the cluster-robust Hansen J of the
+  two-step GMM estimate when there are more instruments than endogenous
+  columns (`overid`, `gmm`), the cross-definition over-identification
+  test the review of Yamada (2026) recommends.
+
+- `ppmlfe(sep = "sst")`: the check of Santos Silva and Tenreyro (2010)
+  for Poisson estimates that do not exist, dropping the regressors that
+  are collinear on the rows with positive counts. The iterative
+  rectifier of Correia, Guimaraes and Zylkin, which drops rows instead,
+  is not built: their 2020 paper names it without stating it.
+
+- Exposure and crime, a count with an endogenous exposure by the
+  exponential-mean generalised method of moments of Mullahy (1997) and
+  Windmeijer and Santos Silva (1997): multiplicative or additive
+  residual, one-step, two-step or iterated weighting, cluster-robust
+  errors and Hansen’s J
+  ([`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)).
+
+- Exposure and crime, the designs of 2019-2026: smoke instruments from
+  plume data, raw or adjusted to the plumes that reached the ground
+  ([`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md));
+  runs of exposed days and the effect by day in the run
+  ([`exprun()`](https://rootcoder007.github.io/crimlab/reference/exprun.md),
+  [`runfx()`](https://rootcoder007.github.io/crimlab/reference/exprun.md));
+  effects by a moderator with the test of equality
+  ([`hetfx()`](https://rootcoder007.github.io/crimlab/reference/hetfx.md));
+  the time-stratified case-crossover design
+  ([`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md));
+  two exposures together as a surface
+  ([`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md));
+  exposure in bins with tests of non-linearity
+  ([`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md));
+  and effects by offence type with a multiple-testing correction
+  ([`typefx()`](https://rootcoder007.github.io/crimlab/reference/typefx.md)).
+  Every choice the papers leave open is an option of the estimators,
+  with the standard errors of each kind, the three first-stage
+  statistics and the plug-in of the count instrument.
+
+- Exposure and crime, for counts by place and day against a daily
+  exposure: Poisson pseudo-maximum likelihood with one or two sets of
+  absorbed fixed effects, an offset and one- or two-way clustered errors
+  ([`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md));
+  two-stage least squares with the same effects and the first-stage Wald
+  statistic
+  ([`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md));
+  the Poisson control function with a cluster bootstrap
+  ([`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md));
+  wind-direction and inversion instruments
+  ([`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md),
+  [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md));
+  the irrelevant-day placebo
+  ([`plcday()`](https://rootcoder007.github.io/crimlab/reference/plcday.md));
+  the upwind and downwind design around a road or a point source
+  ([`updwn()`](https://rootcoder007.github.io/crimlab/reference/updwn.md));
+  and the join of exposure to counts
+  ([`expjn()`](https://rootcoder007.github.io/crimlab/reference/expjn.md)).
+  The methods are those of Bondy, Roth and Sager (2020) and of
+  Herrnstadt, Heyes, Muehlegger and Saberian (2019, 2021).
 
 - Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients

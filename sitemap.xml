@@ -40,6 +40,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cbootmean.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cconc.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/ccovm.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/ccross.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cgamcdf.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cgmedn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cgstat.html</loc></url>
@@ -100,6 +101,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/dkfig.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/dktflw.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/dmlx.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/dosebin.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/drftchisq.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/drfthomog.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/drftks.html</loc></url>
@@ -128,11 +130,15 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/evtst.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/expbnd.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/expconcidx.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/expgmm.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/expjn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/exprspplr.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/exprun.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/exptrnd.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/fair.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/fairdf.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/fairsim.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/fepnl.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/fpdens.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/fpeqv.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/freqtbl.html</loc></url>
@@ -151,6 +157,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/gtmp.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hdbang.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/healchg.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/hetfx.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hilltl.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hitscr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/holbal.html</loc></url>
@@ -173,12 +180,15 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/inlhist.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/inspg.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/insphs.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/invsn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/ipsrec.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/irtem.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/irtlik.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/irtpst.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/ivfe.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/jdgiv.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/jmono.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/jntx.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/jpipe.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/jtacc.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/jtcal.html</loc></url>
@@ -198,6 +208,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lgtreg.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/limfrom.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lipaud.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/lmdix.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lmorn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lnkpr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lnroc.html</loc></url>
@@ -264,9 +275,11 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/outtst.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/patidx.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/pbbnd.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/pcdtst.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/pedlr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/pgsig.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/pinpl.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/plcday.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/plmfld.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/plotcal.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/plotevgrid.html</loc></url>
@@ -277,6 +290,8 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/polbrdarea.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/polbrdn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/polex.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/ppmlcf.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/ppmlfe.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/prechk.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/preslr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/procrs.html</loc></url>
@@ -287,6 +302,8 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/qdrtst.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/qltyrcd.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/raplok.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/rddens.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/rdloc.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/relchk.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/rfor.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/rgnmapalt.html</loc></url>
@@ -321,6 +338,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/smacf.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/smdbal.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/smixm.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/smkiv.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/smunf.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/sntbnd.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/spbias.html</loc></url>
@@ -362,7 +380,9 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/trnmat.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/trsurf.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/txcal.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/typefx.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/unfstr.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/updwn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/vgemp.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/vgfit.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/vodtst.html</loc></url>
@@ -374,6 +394,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/wdqx.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/webpt.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/welprof.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/windiv.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/wrdfsh.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/wrtxtfb.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/wystep.html</loc></url>

@@ -860,7 +860,7 @@ do most functions of the Python package. It holds every exported
 function of the R package but those that work in R only, the plot
 functions and the table check
 [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
-(411 of 433); `crimlab -l` lists them and their arguments, and
+(420 of 454); `crimlab -l` lists them and their arguments, and
 `cli/test.tsv` holds the values the R package gives for them
 (`dev/clref.R`), which every front end is tested against. A warning R
 would give is returned in the result as `warnings`, an array of its

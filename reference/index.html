@@ -2107,6 +2107,180 @@
         </dt>
         <dd>Run the pollution-to-health pipeline and report it</dd>
       </dl></div><div class="section level2">
+      <h2 id="exposure-and-crime">Exposure and crime<a class="anchor" aria-label="anchor" href="#exposure-and-crime"></a></h2>
+
+      <div class="section-desc"><p>Environmental criminology asks how the places and conditions in which people live and move shape offending and victimisation. These functions estimate the effect of a daily exposure such as air pollution on counts by place and day, with fixed effects, wind and inversion instruments, an irrelevant-day placebo and the upwind and downwind design, after Bondy, Roth and Sager (2020, Crime is in the air, Journal of the Association of Environmental and Resource Economists 7(3), <a href="doi:10.1086/707127" class="uri">doi:10.1086/707127</a>) and Herrnstadt, Heyes, Muehlegger and Saberian (2019, Air pollution as a cause of violent crime; 2021, Air pollution and criminal activity, American Economic Journal - Applied Economics 13(4), <a href="doi:10.1257/app.20190091" class="uri">doi:10.1257/app.20190091</a>).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="ppmlfe.html">ppmlfe()</a></code> <code><a href="ppmlfe.html">print(<i>&lt;ppmlfe&gt;</i>)</a></code> <code><a href="ppmlfe.html">summary(<i>&lt;ppmlfe&gt;</i>)</a></code> <code><a href="ppmlfe.html">plot(<i>&lt;ppmlfe&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Poisson pseudo-maximum likelihood with absorbed fixed effects</dd>
+
+        <dt>
+
+          <code><a href="ivfe.html">ivfe()</a></code> <code><a href="ivfe.html">print(<i>&lt;ivfe&gt;</i>)</a></code> <code><a href="ivfe.html">summary(<i>&lt;ivfe&gt;</i>)</a></code> <code><a href="ivfe.html">plot(<i>&lt;ivfe&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Two-stage least squares with absorbed fixed effects</dd>
+
+        <dt>
+
+          <code><a href="ppmlcf.html">ppmlcf()</a></code> <code><a href="ppmlcf.html">print(<i>&lt;ppmlcf&gt;</i>)</a></code> <code><a href="ppmlcf.html">summary(<i>&lt;ppmlcf&gt;</i>)</a></code> <code><a href="ppmlcf.html">plot(<i>&lt;ppmlcf&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Instrumental variables for a count outcome with fixed effects</dd>
+
+        <dt>
+
+          <code><a href="expgmm.html">expgmm()</a></code> <code><a href="expgmm.html">print(<i>&lt;expgmm&gt;</i>)</a></code> <code><a href="expgmm.html">summary(<i>&lt;expgmm&gt;</i>)</a></code> <code><a href="expgmm.html">plot(<i>&lt;expgmm&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Exponential-mean GMM for a count with an endogenous exposure</dd>
+
+        <dt>
+
+          <code><a href="windiv.html">windiv()</a></code>
+
+        </dt>
+        <dd>Wind-direction instruments</dd>
+
+        <dt>
+
+          <code><a href="invsn.html">invsn()</a></code>
+
+        </dt>
+        <dd>Temperature inversions</dd>
+
+        <dt>
+
+          <code><a href="plcday.html">plcday()</a></code> <code><a href="plcday.html">print(<i>&lt;plcday&gt;</i>)</a></code> <code><a href="plcday.html">summary(<i>&lt;plcday&gt;</i>)</a></code> <code><a href="plcday.html">plot(<i>&lt;plcday&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Irrelevant-day placebo</dd>
+
+        <dt>
+
+          <code><a href="updwn.html">updwn()</a></code> <code><a href="updwn.html">print(<i>&lt;updwn&gt;</i>)</a></code> <code><a href="updwn.html">summary(<i>&lt;updwn&gt;</i>)</a></code> <code><a href="updwn.html">plot(<i>&lt;updwn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>The upwind and downwind design around a road or a point source</dd>
+
+        <dt>
+
+          <code><a href="expjn.html">expjn()</a></code> <code><a href="expjn.html">print(<i>&lt;expjn&gt;</i>)</a></code> <code><a href="expjn.html">summary(<i>&lt;expjn&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Join an exposure table to counts by place and day</dd>
+
+        <dt>
+
+          <code><a href="smkiv.html">smkiv()</a></code>
+
+        </dt>
+        <dd>Smoke instruments from plume data</dd>
+
+        <dt>
+
+          <code><a href="exprun.html">exprun()</a></code> <code><a href="exprun.html">runfx()</a></code> <code><a href="exprun.html">print(<i>&lt;runfx&gt;</i>)</a></code> <code><a href="exprun.html">plot(<i>&lt;runfx&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Runs of exposed days</dd>
+
+        <dt>
+
+          <code><a href="hetfx.html">hetfx()</a></code> <code><a href="hetfx.html">print(<i>&lt;hetfx&gt;</i>)</a></code> <code><a href="hetfx.html">plot(<i>&lt;hetfx&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Effects by a moderator, with the joint test of equality</dd>
+
+        <dt>
+
+          <code><a href="ccross.html">ccross()</a></code>
+
+        </dt>
+        <dd>The time-stratified case-crossover design</dd>
+
+        <dt>
+
+          <code><a href="jntx.html">jntx()</a></code> <code><a href="jntx.html">print(<i>&lt;jntx&gt;</i>)</a></code> <code><a href="jntx.html">plot(<i>&lt;jntx&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Two exposures together: their interaction and the surface of effects</dd>
+
+        <dt>
+
+          <code><a href="dosebin.html">dosebin()</a></code> <code><a href="dosebin.html">print(<i>&lt;dosebin&gt;</i>)</a></code> <code><a href="dosebin.html">plot(<i>&lt;dosebin&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Exposure in bins: dose-response and tests of non-linearity</dd>
+
+        <dt>
+
+          <code><a href="typefx.html">typefx()</a></code> <code><a href="typefx.html">print(<i>&lt;typefx&gt;</i>)</a></code> <code><a href="typefx.html">plot(<i>&lt;typefx&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Effects by offence type in one call, with a multiple-testing correction</dd>
+      </dl></div><div class="section level2">
+      <h2 id="regression-discontinuity">Regression discontinuity<a class="anchor" aria-label="anchor" href="#regression-discontinuity"></a></h2>
+
+      <div class="section-desc"><p>Local polynomial fits at a cutoff with the bandwidth of Imbens and Kalyanaraman (2012), robust intervals after Calonico, Cattaneo and Titiunik (2014), placebo cutoffs and the density test of McCrary (2008).</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="rdloc.html">rdloc()</a></code> <code><a href="rdloc.html">print(<i>&lt;rdloc&gt;</i>)</a></code> <code><a href="rdloc.html">summary(<i>&lt;rdloc&gt;</i>)</a></code> <code><a href="rdloc.html">plot(<i>&lt;rdloc&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Regression discontinuity by local polynomials</dd>
+
+        <dt>
+
+          <code><a href="rddens.html">rddens()</a></code> <code><a href="rddens.html">print(<i>&lt;rddens&gt;</i>)</a></code> <code><a href="rddens.html">summary(<i>&lt;rddens&gt;</i>)</a></code> <code><a href="rddens.html">plot(<i>&lt;rddens&gt;</i>)</a></code>
+
+        </dt>
+        <dd>The density test of McCrary at a cutoff</dd>
+      </dl></div><div class="section level2">
+      <h2 id="environmental-crime">Environmental crime<a class="anchor" aria-label="anchor" href="#environmental-crime"></a></h2>
+
+      <div class="section-desc"><p>Offences against the environment as the outcome: where, when and why pollution offences, illegal waste disposal and safety crimes are recorded, and how enforcement shapes the counts. The LMDI decomposition of a count over a Kaya identity, two-way fixed effects with an interaction and its checks, and Pesaran’s CD test of a panel.</p></div>
+
+      <dl></dl></div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="lmdix.html">lmdix()</a></code> <code><a href="lmdix.html">plot(<i>&lt;lmdix&gt;</i>)</a></code>
+
+        </dt>
+        <dd>LMDI decomposition of a count over the factors of a Kaya identity</dd>
+
+        <dt>
+
+          <code><a href="fepnl.html">fepnl()</a></code> <code><a href="fepnl.html">plot(<i>&lt;fepnl&gt;</i>)</a></code>
+
+        </dt>
+        <dd>Two-way fixed effects with an interaction, for counts of offences</dd>
+
+        <dt>
+
+          <code><a href="pcdtst.html">pcdtst()</a></code>
+
+        </dt>
+        <dd>Pesaran's CD test of cross-sectional dependence in a panel</dd>
+      </dl></div><div class="section level2">
       <h2 id="data-larger-than-memory">Data larger than memory<a class="anchor" aria-label="anchor" href="#data-larger-than-memory"></a></h2>
 
       <div class="section-desc"><p>One-pass summaries for data that arrive in pieces or do not fit in memory - moments accumulated and merged exactly, a uniform reservoir sample of a stream, and the HyperLogLog count of distinct values in fixed memory.</p></div>
