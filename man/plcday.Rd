@@ -14,6 +14,7 @@ plcday(
   shifts = c(-365, -31, -7, 7, 31, 365),
   est = ppmlfe,
   with = NULL,
+  shift = c("both", "x", "z"),
   ...
 )
 
@@ -24,19 +25,22 @@ plcday(
 \arguments{
 \item{data}{A data frame, one row per place and day.}
 
-\item{var}{The name of the exposure column to shift.}
+\item{var}{The name of the exposure column.}
 
 \item{unit,day}{The names of the place and day columns; days are
 numbers or dates (one per unit at most).}
 
-\item{shifts}{The shifts in days, whole numbers other than 0; negative
-is the past.}
+\item{shifts}{The leads and lags in days, whole numbers other than 0;
+negative is the past.}
 
 \item{est}{The estimator: \code{\link[=ppmlfe]{ppmlfe()}}, \code{\link[=ivfe]{ivfe()}} or \code{\link[=ppmlcf]{ppmlcf()}}, or
 another function with a \code{data} argument returning a list with \code{coef}
 holding a row whose \code{term} is \code{var}.}
 
-\item{with}{\code{NULL} or the names of other columns to shift with \code{var}.}
+\item{with}{\code{NULL} or the names of other columns to move (the
+instruments).}
+
+\item{shift}{\code{"both"}, \code{"x"} or \code{"z"}: what is moved.}
 
 \item{...}{The other arguments of \code{est} (\code{y}, \code{x}, \code{fe}, ...).}
 
@@ -45,14 +49,16 @@ holding a row whose \code{term} is \code{var}.}
 \value{
 An object of class \code{plcday}, a list: \code{tab}, a data frame with
 one row per shift, 0 (the same day) first (\code{shift}, \code{est}, \code{se},
-\code{lo}, \code{hi}, \code{p}, \code{n}); \code{var} and \code{level}. \code{summary()} returns \code{tab}.
+\code{lo}, \code{hi}, \code{p}, \code{n}); \code{var}, \code{shift}. \code{summary()} returns \code{tab}.
 }
 \description{
 Refits an estimator with the exposure taken from other days of the same
-place, a week, a month or a year before and after, and returns the
-table of coefficients, the same day first. This is the placebo of Bondy,
-Roth and Sager (2020, table A1: 7, 31 and 365 days back and forward) and
-of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table 9: 100 days).
+place, leads and lags in one call, and returns one table of
+coefficients, the same day first. This is the placebo of Bondy, Roth
+and Sager (2020, table A1 and footnote 27: 7, 31 and 365 days back and
+forward) and of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table
+9: 100 days); \code{shifts = c(-365, -100, -31, -7, 7, 31, 100, 365)} runs
+both.
 }
 \details{
 What it can show: if pollution on irrelevant days predicts crime as
@@ -65,11 +71,14 @@ is necessary for, not proof of, a causal reading. Shifted exposure is
 correlated with same-day exposure when pollution persists, so a small
 placebo coefficient is expected even then.
 
-The shift is by the day's value: row \code{(place, day)} gets the exposure
-of \code{(place, day + shift)} and is dropped when that row does not exist;
-\code{n} reports the rows left. For the instrumental-variable estimators,
-Bondy, Roth and Sager do not say whether the instruments are shifted
-with the exposure; name them in \code{with} to shift them too.
+The shift is by the day's value: row \code{(place, day)} gets the value of
+\code{(place, day + shift)} and is dropped when that row does not exist;
+\code{n} reports the rows left. For the instrumental-variable estimators the
+papers do not say what is moved: \code{shift = "both"} (the default) moves
+the exposure \code{var} and the columns in \code{with} (the instruments) together,
+a placebo of the whole design on another day; \code{"x"} moves the exposure
+alone and keeps the same-day instruments; \code{"z"} moves the instruments
+alone (a reduced-form placebo).
 }
 \examples{
 # simulated: crime responds to same-day pollution only

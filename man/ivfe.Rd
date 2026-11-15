@@ -14,6 +14,12 @@ ivfe(
   x = NULL,
   fe,
   clus = NULL,
+  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  ssc = c("G", "nk", "none"),
+  time = NULL,
+  lag = NULL,
+  nboot = 199,
+  seed = NULL,
   level = 0.95,
   tol = 1e-12
 )
@@ -36,7 +42,7 @@ many as \code{endo} (from \code{\link[=windiv]{windiv()}} or \code{\link[=invsn]
 \item{x}{\code{NULL} or the names of the exogenous controls. For \code{print()},
 an object of class \code{ivfe}.}
 
-\item{fe,clus,level,tol}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
+\item{fe,clus,se,ssc,time,lag,nboot,seed,level,tol}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
 
 \item{object}{An object of class \code{ivfe}.}
 
@@ -44,9 +50,10 @@ an object of class \code{ivfe}.}
 }
 \value{
 An object of class \code{ivfe}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
-without \code{rr}); \code{first}, one row per endogenous column (\code{endo},
-\code{fstat}, \code{ninst}); \code{vcov}; \code{n}; \code{ncl}; \code{rss}; \code{fe}, \code{clus} and
-\code{level}. \code{summary()} returns \code{coef}.
+without \code{rr}); \code{first}, one row per endogenous column (\code{endo}, \code{wald},
+\code{kp}, \code{eff}, \code{ninst}); \code{vcov}; \code{n}; \code{ncl}; \code{se}, \code{ssc}, \code{lag}; \code{rss};
+\code{draws} for the bootstrap; \code{fe}, \code{clus} and \code{level}. \code{summary()}
+returns \code{coef}.
 }
 \description{
 Estimates the effect of an exposure that is measured with error or
@@ -63,28 +70,38 @@ effects.
 }
 \details{
 What an instrument must satisfy, in plain words. Relevance: it moves the
-exposure, after the fixed effects and controls; the first-stage
-statistic \code{fstat} measures this (a common rule of thumb asks for more
-than 10; Bondy, Roth and Sager report 13 to 25, Herrnstadt and others
-94 to 100). Exclusion: it changes the outcome only through the
-exposure. Wind direction moves pollution, but if it also moves where
-people are (a wind off a lake on a warm day) the exclusion fails; no
-statistic can show that it holds. With effects that differ between
-places, two-stage least squares estimates a weighted average of them
-over the places and days the instrument moves, and only if the
-instrument pushes the exposure the same way everywhere (monotonicity;
-Bondy, Roth and Sager let wind act differently by region for that
-reason: see \code{\link[=windiv]{windiv()}}).
+exposure, after the fixed effects and controls. Exclusion: it changes
+the outcome only through the exposure. Wind direction moves pollution,
+but if it also moves where people are (a wind off a lake on a warm day)
+the exclusion fails; no statistic can show that it holds. With effects
+that differ between places, two-stage least squares estimates a
+weighted average of them over the places and days the instrument moves,
+and only if the instrument pushes the exposure the same way everywhere
+(monotonicity; Bondy, Roth and Sager let wind act differently by region
+for that reason: see \code{\link[=windiv]{windiv()}}).
 
-Standard errors are cluster-robust on the second-stage design with the
-structural residuals (the outcome less the actual, not the fitted,
-endogenous columns times their coefficients), times \code{G / (G - 1)};
-two-way as in \code{\link[=ppmlfe]{ppmlfe()}}. \code{fstat} is the cluster-robust Wald statistic
-of the excluded instruments in each first stage divided by their
-number, with the same clusters. These equal \code{fixest::feols()} with
-\code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")} and its \code{fitstat}
-\code{"ivwald1"}. Tests use the t distribution on \code{G - 1} degrees of
-freedom.
+First-stage strength, all three in \code{first}: \code{wald}, the robust Wald
+statistic of the excluded instruments divided by their number (the
+"F-test" Bondy, Roth and Sager report, as far as their text says);
+\code{kp}, the Kleibergen-Paap rk Wald F of Herrnstadt and others (2019,
+table 7), which for one endogenous column is the same robust Wald F (it
+is \code{NA} for more than one: the rank statistic is not computed); and
+\code{eff}, the effective F of Montiel Olea and Pflueger (2013), \code{b'Qb /
+tr(V Q)} with \code{b} the instruments' first-stage coefficients, \code{V} their
+robust covariance and \code{Q} their cross products after the controls and
+the fixed effects (one endogenous column only). A common rule of thumb
+asks for more than 10; Montiel Olea and Pflueger give critical values
+for the effective F. The first-stage statistics use the clusters of
+\code{se} (each row for \code{"hc1"}, the first \code{clus} column for \code{"nw"} and
+\code{"boot"}).
+
+Standard errors (\code{se}, \code{ssc}, \code{time}, \code{lag}, \code{nboot}, \code{seed}) are as in
+\code{\link[=ppmlfe]{ppmlfe()}}, on the second-stage design with the structural residuals
+(the outcome less the actual, not the fitted, endogenous columns times
+their coefficients). With \code{"cluster"} and \code{ssc = "G"} they equal
+\code{fixest::feols()} with \code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}.
+Tests use the t distribution on \code{G - 1} degrees of freedom for
+clustered errors and the normal otherwise.
 }
 \examples{
 # simulated: an unmeasured daily shock u raises both the exposure and
@@ -97,8 +114,10 @@ d <- cbind(d, w)
 u <- rnorm(nrow(d))
 d$oz <- 3 * w[, 1] - 2 * w[, 2] + u + rnorm(nrow(d))
 d$out <- 0.5 * d$oz + u + rnorm(nrow(d))
-ivfe(d, "out", endo = "oz", inst = colnames(w), fe = c("area", "day"),
-     clus = c("area", "day"))
+f <- ivfe(d, "out", endo = "oz", inst = colnames(w), fe = c("area", "day"),
+          se = "twoway")
+f
+f$first
 }
 \references{
 Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
@@ -108,6 +127,14 @@ Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 contemporaneous relationship between air pollution and crime.
 \emph{Journal of the Association of Environmental and Resource Economists},
 7(3), 555-585. \doi{10.1086/707127}
+
+Kleibergen, F. and Paap, R. (2006). Generalized reduced rank tests
+using the singular value decomposition. \emph{Journal of Econometrics},
+133(1), 97-126. \doi{10.1016/j.jeconom.2005.02.011}
+
+Montiel Olea, J. L. and Pflueger, C. (2013). A robust test for weak
+instruments. \emph{Journal of Business and Economic Statistics}, 31(3),
+358-369. \doi{10.1080/00401706.2013.806694}
 }
 \seealso{
 \code{\link[=ppmlcf]{ppmlcf()}} for counts, \code{\link[=windiv]{windiv()}}, \code{\link[=invsn]{invsn()}}, \code{\link[=plcday]{plcday()}}

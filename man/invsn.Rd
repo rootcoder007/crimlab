@@ -4,17 +4,23 @@
 \alias{invsn}
 \title{Temperature inversions}
 \usage{
-invsn(tlow, tup)
+invsn(tlow, tup, sign = c("upper", "ground"), brk = NULL)
 }
 \arguments{
 \item{tlow}{Temperatures at the ground (numbers, \code{NA} allowed).}
 
 \item{tup}{Temperatures aloft, at the same places and times, in the same
 unit.}
+
+\item{sign}{\code{"upper"} or \code{"ground"}: which temperature comes first.}
+
+\item{brk}{\code{NULL} or the breaks of the bins of the difference (as in
+\code{\link[=cut]{cut()}}, right-closed).}
 }
 \value{
-A data frame: \code{diff}, \code{tup - tlow}, and \code{inv}, 1 when \code{diff} is
-above 0 and 0 otherwise (\code{NA} where a temperature is missing).
+A data frame: \code{diff}, the difference by \code{sign}; \code{inv}, 1 when
+\code{tup} is above \code{tlow} and 0 otherwise (\code{NA} where a temperature is
+missing); and with \code{brk}, \code{bin}, a factor.
 }
 \description{
 The instrument of Bondy, Roth and Sager (2020, p. 566-567): "the
@@ -22,20 +28,31 @@ continuous difference between temperatures at the ground level and
 temperatures at circa 750 m altitude (925 hectopascals [hPa] pressure
 level)". On most days the air cools with height; in an inversion it is
 warmer above than at the ground, and pollutants are trapped near the
-ground. The paper does not say which temperature is subtracted from
-which; here \code{diff} is the upper temperature less the ground one, so it
-is positive in an inversion, and \code{inv} is 1 then.
+ground.
 }
 \details{
-Inversions cover large areas (the paper's satellite readings are on a
-grid of about 110 by 70 km), so they vary little between places in a
-city; Bondy, Roth and Sager use them at the borough and city level. As
+The choices. The paper does not say which temperature is subtracted
+from which: \code{sign = "upper"} (the default) gives the upper temperature
+less the ground one, positive in an inversion; \code{sign = "ground"} the
+reverse, as the paper's words run. \code{inv} is 1 in an inversion (upper
+warmer than ground) whatever the sign; the indicator, rather than the
+continuous difference, is the other common form of the instrument. With
+\code{brk}, \code{bin} gives the strength in bins of the difference (by the
+chosen sign), for an instrument that lets weak and strong inversions act
+differently.
+
+Cautions. Inversions cover large areas (the paper's satellite readings
+are on a grid of about 110 by 70 km), so they vary little between places
+in a city; Bondy, Roth and Sager use them at the borough and city level
+and report a weaker first stage there than for wind (their table 5). As
 an instrument the inversion must affect the outcome only through the
-exposure; cold, still days may change what people do as well, so
-weather controls matter (see \code{\link[=ivfe]{ivfe()}}).
+exposure; inversions come with cold, still, clear weather, which may
+change what people do as well, so weather controls matter (see
+\code{\link[=ivfe]{ivfe()}}).
 }
 \examples{
 invsn(c(10, 5, 2), c(8, 6, 2))
+invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
 }
 \references{
 Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the

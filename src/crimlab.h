@@ -1930,14 +1930,17 @@ int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int
  * G / (G - 1) of G the smaller number of clusters (fixest's ssc(K.adj =
  * FALSE, G.df = "min")). Out: beta (p); st (6): steps, converged (1 or
  * 0), deviance, the pseudo log-likelihood, G, the most sweeps of the
- * within transformation. CLAB_EDOM when a column of x is absorbed by the
+ * within transformation; sco: NULL or n x p, each row's score w (y - mu)
+ * x~ at the final mu, and brd: NULL or p x p, (X~'WX~)^-1, for the other
+ * variances of clab_vcx. CLAB_EDOM when a column of x is absorbed by the
  * effects or the columns are collinear, or the transformation does not
  * converge in 10000 sweeps. work: n (2 p + 8) + 3 p p + p + 4 (n1 + n2)
  * doubles; iwork: n + ncl ncl2 ints (two-way only). */
 int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *off,
                 const double *w, const int *f1, int n1, const int *f2, int n2,
                 const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
-                double tol, double *beta, double *vc, double *st, double *work, int *iwork);
+                double tol, double *beta, double *vc, double *sco, double *brd, double *st,
+                double *work, int *iwork);
 
 /* ------------------------------------------------------------------------
  * Exposure and crime (src/apx.cpp): estimators of the effect of a daily
@@ -1957,9 +1960,15 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
  * residuals y - xe b - xx c, two-way V1 + V2 - V12, each times G / (G - 1)
  * of G the smaller number of clusters; fst (pe): each first stage's
  * cluster-robust Wald statistic of its q excluded instruments, divided by
- * q (NaN when its covariance is singular). Out: beta (pe + px; the
+ * q (NaN when its covariance is singular); fst is pe x 3: that statistic,
+ * the Kleibergen-Paap rk Wald F (equal to it for one endogenous column,
+ * NaN for more) and the effective F of Montiel Olea and Pflueger (2013),
+ * bz' Q bz / tr(Vzz Q) with Q the instruments' weighted cross products
+ * after xx and the effects (one endogenous column; NaN for more). Out: beta (pe + px; the
  * endogenous first); fres: NULL or n x pe, the first stages' residuals
- * (demeaned); res: NULL or n, the structural residuals (demeaned); st
+ * (demeaned); res: NULL or n, the structural residuals (demeaned); sco:
+ * NULL or n x (pe + px), each row's second-stage score w u h, and brd:
+ * NULL or the second stage's (H'WH)^-1, for clab_vcx; st
  * (3): G (0 without cl), the sweeps of the transformation, the weighted
  * residual sum of squares. CLAB_EDOM when a column is absorbed by the
  * effects or the columns of a stage are collinear (an instrument without
@@ -1968,27 +1977,31 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
               const double *zi, int q, int n, const double *w, const int *f1, int n1,
               const int *f2, int n2, const int *cl, int ncl, const int *cl2, int ncl2,
               double tol, double *beta, double *vc, double *fst, double *fres, double *res,
-              double *st);
+              double *sco, double *brd, double *st);
 
 /* The control function for a count (ppmlcf): the first stages of
  * clab_ivfe (each endogenous column on zi and xx with the effects), then
  * clab_ppmlfe of y on (xe, xx, the first-stage residuals) with the same
- * effects and offset off (NULL or n). cl: n cluster codes (ncl >= 2), the
+ * effects and offset off (NULL or n); how 1 instead puts the fitted
+ * endogenous columns (xe less the residuals) in place of xe, without the
+ * residuals (the second stage as Bondy, Roth and Sager 2020 write it).
+ * cl: n cluster codes (ncl >= 2), the
  * units of the bootstrap and of the first-stage statistics fst (pe). bm:
  * nb x ncl, column-major by draw (draw d at bm[d ncl ..]): how often each
  * cluster was drawn, made by the caller (R's generator, so set.seed()
  * reproduces it); each draw refits both stages on the drawn clusters
  * weighted by those counts (equal to stacking the copies, each copy with
  * its own effects when the effect is nested in the cluster), after
- * clab_fesep on the draw. Out: beta (2 pe + px); draw (nb x (2 pe + px),
+ * clab_fesep on the draw. fst: 3 pe, as in clab_ivfe. Out: beta (2 pe +
+ * px, or pe + px for how 1); draw (nb x the same,
  * column-major by coefficient; NaN for a draw that could not be fitted);
  * st (3): the full fit's steps and convergence, the draws that failed.
  * The kernel allocates its arrays. */
 int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int px,
                 const double *zi, int q, int n, const double *off, const int *f1, int n1,
                 const int *f2, int n2, const int *cl, int ncl, const int *bm, int nb,
-                int maxit, double eps, double tol, double *beta, double *fst, double *draw,
-                double *st);
+                int how, int maxit, double eps, double tol, double *beta, double *fst,
+                double *draw, double *st);
 
 /* Wind-direction instruments (windiv): dir, n directions the wind blows
  * from, degrees clockwise from north; the circle is cut into nb = 360 /
@@ -1997,9 +2010,12 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
  * out is n x (nb - 1), 1 in the column of the row's sector; with area (n
  * codes 0..na-1), n x na (nb - 1), area a's sectors in columns a (nb - 1)
  * on, so a direction may act differently in each area. A row with a
- * non-finite direction is NaN throughout. */
+ * non-finite direction is NaN throughout. edge 1 closes the sectors at
+ * the top instead, (lo, hi], with the start itself in the first: in whole
+ * degrees 0-90, 91-180, 181-270, 271-359 (Bondy, Roth and Sager 2020,
+ * footnote 18). */
 int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
-                 int base, double *out);
+                 int base, int edge, double *out);
 
 /* The same unit on another day (plcday): for row i of unit u[i] on day
  * t[i], idx[i] is the row of unit u[i] on day t[i] + k, or -1. CLAB_EDOM
@@ -2023,10 +2039,24 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
  * where the wind blows to is downwind, within tol of where it comes from
  * upwind, otherwise crosswind (-1). dn -4 for an area on the line or at
  * the point, -5 for a non-finite position or direction. 0 < tol <= 90.
- * Out: src (n; -1 when none), side, dn. O(n ns). */
+ * twin 0 drops an area near two sources (dn -3), twin 1 gives it to the
+ * nearest. Out: src (n; -1 when none), side, dn; dst: NULL or n, the
+ * distance to the source (NaN when none). O(n ns). */
+
+/* Variances from the rows' scores (ppmlfe, ivfe, updwn): sco (n x p,
+ * column-major) and the bread brd (p x p); vc = fac brd M brd with M:
+ * kind 0, sum over the clusters cl (ncl) of s_g s_g'; kind 1, two-way by
+ * cl and cl2, M1 + M2 - M12 (Cameron, Gelbach and Miller 2011); kind 2,
+ * each row alone (heteroskedasticity-robust); kind 3, Newey-West within
+ * the units cl: each row alone plus, for the pairs of rows of one unit
+ * whose times t differ by d in (0, lag], (1 - d / (lag + 1)) (s_i s_j' +
+ * s_j s_i'). fac: the small-sample factor, chosen by the caller.
+ * CLAB_EDOM for a non-finite time. */
+int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
+             const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc);
 int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
                const double *sy0, const double *sx1, const double *sy1, int ns, double band,
-               double tol, int *src, int *side, int *dn);
+               double tol, int twin, int *src, int *side, int *dn, double *dst);
 
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect

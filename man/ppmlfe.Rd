@@ -13,6 +13,13 @@ ppmlfe(
   fe,
   expo = NULL,
   clus = NULL,
+  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  ssc = c("G", "nk", "none"),
+  time = NULL,
+  lag = NULL,
+  nboot = 199,
+  seed = NULL,
+  sep = c("fe", "none"),
   level = 0.95,
   tol = 1e-12,
   maxit = 100
@@ -37,8 +44,23 @@ week and year-month), give their combination as one column.}
 \item{expo}{\code{NULL} or the name of a column of positive exposures
 (population): its logarithm is the offset.}
 
-\item{clus}{\code{NULL} (the first fixed effect) or the names of one or two
-cluster columns.}
+\item{clus}{\code{NULL} (the fixed effects: the first, or both for
+\code{se = "twoway"}) or the names of one or two cluster columns.}
+
+\item{se}{The standard errors: \code{"cluster"}, \code{"twoway"}, \code{"hc1"}, \code{"nw"}
+or \code{"boot"}.}
+
+\item{ssc}{The small-sample factor: \code{"G"}, \code{"nk"} or \code{"none"}.}
+
+\item{time}{The name of the day column (numbers or dates), for
+\code{se = "nw"}.}
+
+\item{lag}{\code{NULL} (the rule above) or the Newey-West lag in days.}
+
+\item{nboot,seed}{The bootstrap draws (at least 2) and \code{NULL} or a whole
+number for R's generator, for \code{se = "boot"}.}
+
+\item{sep}{\code{"fe"} or \code{"none"}: see Separation.}
 
 \item{level}{The confidence level of the intervals.}
 
@@ -54,17 +76,18 @@ cluster columns.}
 An object of class \code{ppmlfe}, a list: \code{coef}, a data frame with
 one row per regressor (\code{term}, \code{est} on the log scale, \code{se}, \code{stat}
 (z), \code{p}, \code{lo}, \code{hi}, and \code{rr}, \code{exp(est)}, the rate ratio of one more
-unit); \code{vcov}, the covariance matrix; \code{n}, the rows used; \code{nsep}, the
-rows dropped for separation; \code{ncl}, the number of clusters of each
-clustering; \code{iter}, \code{conv}, \code{dev} and \code{loglik} of the fit; \code{fe},
-\code{clus} and \code{level}. \code{summary()} returns \code{coef}, ready to plot.
+unit); \code{vcov}; \code{n}, the rows used; \code{nsep}, the rows dropped for
+separation; \code{ncl}, the number of clusters (rows for \code{"hc1"} and
+\code{"nw"}); \code{se}, \code{ssc}, \code{lag}; \code{iter}, \code{conv}, \code{dev} and \code{loglik} of the
+fit; \code{draws} for the bootstrap; \code{fe}, \code{clus} and \code{level}. \code{summary()}
+returns \code{coef}, ready to plot.
 }
 \description{
 Fits a count model with one or two sets of fixed effects, such as place
 and day, absorbed rather than estimated as columns, an optional exposure
-(offset) and cluster-robust standard errors, one-way or two-way. This is
-the estimator of Bondy, Roth and Sager (2020): daily counts of offences
-by ward, ward fixed effects and time effects, and ward population as the
+(offset) and robust standard errors of several kinds. This is the
+estimator of Bondy, Roth and Sager (2020): daily counts of offences by
+ward, ward fixed effects and time effects, and ward population as the
 offset. It serves any count by place and period against any exposure.
 }
 \details{
@@ -88,19 +111,37 @@ each column's largest value), starting from \code{mu = (y + mean(y)) / 2},
 until the relative change of the deviance is below 1e-10. A regressor
 that does not vary within the fixed effects is refused.
 
-Separation. A place (or a day) whose counts are all zero has a fixed
-effect of minus infinity and says nothing about the coefficients; its
-rows are dropped with a warning, the rule of 'fixest' and of Stata's
-ppmlhdfe. Separation by the regressors (a regressor whose value
-predicts zeros exactly) is not detected; neither paper discusses it.
+Separation (\code{sep}). A place (or a day) whose counts are all zero has a
+fixed effect of minus infinity and says nothing about the coefficients;
+\code{sep = "fe"} (the default) drops its rows with a warning, the rule of
+'fixest' and of Stata's ppmlhdfe; \code{sep = "none"} keeps them (the fit
+then converges slowly towards the boundary). Separation by the
+regressors (a regressor whose value predicts zeros exactly) is not
+detected: the iterative rectifier of Correia, Guimaraes and Zylkin that
+finds it is not offered, as its paper was not at hand to build it from.
+Neither Bondy, Roth and Sager nor Herrnstadt and others discuss
+separation.
 
-Standard errors are cluster-robust: \code{(X'WX)^-1 (sum_g s_g s_g') (X'WX)^-1}
-with the scores \code{s_g} of each cluster at the final fit, \code{X} the demeaned
-regressors, times \code{G / (G - 1)}; two-way clustering (Cameron, Gelbach and
-Miller 2011) is \code{V1 + V2 - V12}, each term with the factor of \code{G} the
-smaller number of clusters. This equals \code{fixest::fepois()} with
-\code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}. Bondy, Roth and Sager
-cluster by ward and year-month (their table 2).
+Standard errors (\code{se}), all from the rows' scores \code{s_i} at the final fit
+and the bread \code{(X'WX)^-1} of the demeaned regressors \code{X}:
+\code{"cluster"} (the default; \code{sum_g s_g s_g'} over the clusters of the
+first \code{clus} column); \code{"twoway"} (Cameron, Gelbach and Miller 2011, \code{V1
++ V2 - V12}; Bondy, Roth and Sager cluster by ward and year-month, table
+2; Herrnstadt and others 2019 by monitor and date; given two \code{clus}
+columns, \code{"cluster"} means this too); \code{"hc1"} (each row alone, the
+robust errors of Herrnstadt and others 2021); \code{"nw"} (Newey-West within
+each unit of the first \code{clus} column over the days of \code{time}, Bartlett
+weights \code{1 - d / (lag + 1)} for days \code{d} apart up to \code{lag}, by default
+\code{floor(4 (T / 100)^(2/9))} for \code{T} days (Newey and West 1994); the
+appendix of Herrnstadt and others 2021); \code{"boot"} (a cluster bootstrap
+over the first \code{clus} column, \code{nboot} draws from R's generator, each
+refitting the model). The small-sample factor \code{ssc}: \code{"G"} (the default)
+\code{G / (G - 1)} with \code{G} the (smaller) number of clusters, or \code{n / (n - 1)}
+for \code{"hc1"} and \code{"nw"}; \code{"nk"} that times \code{(n - 1) / (n - K)}, \code{K} the
+coefficients, an intercept and the levels less one of each fixed effect
+not nested in a cluster (fixest's default for clustered errors); \code{"none"}
+no factor. \code{"cluster"} with \code{"G"} equals \code{fixest::fepois()} with
+\code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}.
 }
 \examples{
 # simulated counts in 12 areas over 40 days
@@ -114,15 +155,22 @@ d$crimes <- rpois(nrow(d), d$pop / 1000 *
 f <- ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
             expo = "pop")
 f
-# two-way clustering, by area and by day
+# two-way clustering by area and day; Newey-West within areas
 summary(ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
-               expo = "pop", clus = c("area", "day")))
+               expo = "pop", se = "twoway"))
+summary(ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
+               expo = "pop", se = "nw", time = "day", lag = 3))
 }
 \references{
 Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 contemporaneous relationship between air pollution and crime.
 \emph{Journal of the Association of Environmental and Resource Economists},
 7(3), 555-585. \doi{10.1086/707127}
+
+Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air
+pollution and criminal activity: microgeographic evidence from
+Chicago. \emph{American Economic Journal: Applied Economics}, 13(4),
+70-100. \doi{10.1257/app.20190091}
 
 Santos Silva, J. M. C. and Tenreyro, S. (2006). The log of gravity.
 \emph{Review of Economics and Statistics}, 88(4), 641-658.
@@ -131,6 +179,10 @@ Santos Silva, J. M. C. and Tenreyro, S. (2006). The log of gravity.
 Cameron, A. C., Gelbach, J. B. and Miller, D. L. (2011). Robust
 inference with multiway clustering. \emph{Journal of Business and Economic
 Statistics}, 29(2), 238-249. \doi{10.1198/jbes.2010.07136}
+
+Newey, W. K. and West, K. D. (1994). Automatic lag selection in
+covariance matrix estimation. \emph{Review of Economic Studies}, 61(4),
+631-653. \doi{10.2307/2297912}
 }
 \seealso{
 \code{\link[=ivfe]{ivfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=plcday]{plcday()}}, \code{\link[=expjn]{expjn()}}

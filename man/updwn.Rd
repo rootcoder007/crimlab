@@ -17,10 +17,17 @@ updwn(
   area = NULL,
   tol = 60,
   band = Inf,
+  dist = NULL,
+  twin = c("drop", "near", "keep"),
   agg = TRUE,
-  fam = "ols",
-  norm = TRUE,
+  norm = c("mean", "none", "log", "pois"),
+  wx = NULL,
+  se = c("hc1", "cluster", "twoway", "nw", "boot"),
+  ssc = c("G", "nk", "none"),
   clus = NULL,
+  lag = NULL,
+  nboot = 199,
+  seed = NULL,
   offs = NULL,
   level = 0.95
 )
@@ -53,15 +60,22 @@ sources and for \code{agg = FALSE}).}
 \item{band}{The largest distance of an area from its source, in the
 coordinates' unit.}
 
+\item{dist}{\code{NULL} or increasing breaks of distance from 0 for rings.}
+
+\item{twin}{\code{"drop"}, \code{"near"} or \code{"keep"}.}
+
 \item{agg}{\code{TRUE} to sum the areas on each side of each segment by day.}
 
-\item{fam}{\code{"ols"} (least squares, the paper's main model) or \code{"ppml"}.}
+\item{norm}{\code{"mean"}, \code{"none"}, \code{"log"} or \code{"pois"}.}
 
-\item{norm}{\code{TRUE} to divide the outcome by its mean (least squares
-only).}
+\item{wx}{\code{NULL} or the names of weather columns, constant within a side
+and day.}
 
-\item{clus}{\code{NULL} (robust by row) or the name of a cluster column,
-constant within each side (area) and day.}
+\item{se,ssc,lag,nboot,seed}{As in \code{\link[=ppmlfe]{ppmlfe()}}; the units of \code{"nw"} are
+the sides (areas) and the time is \code{day}.}
+
+\item{clus}{\code{NULL} (for \code{"cluster"}, the sides) or the names of cluster
+columns, constant within each side (area) and day.}
 
 \item{offs}{\code{NULL} or offsets (in the coordinates' unit, positive to the
 left of each segment) for the placebo segments; segments only.}
@@ -73,14 +87,14 @@ left of each segment) for the placebo segments; segments only.}
 \item{...}{Not used.}
 }
 \value{
-An object of class \code{updwn}, a list: \code{coef}, the row of the
-downwind indicator (as in \code{\link[=ivfe]{ivfe()}} or \code{\link[=ppmlfe]{ppmlfe()}}); \code{class}, the rows
-by outcome of the classification (\code{downwind}, \code{upwind}, \code{along}
-(wind along the road or crosswind), \code{nosource}, \code{twosources},
-\code{onsource}, \code{missing}); \code{n}, the rows of the fit; \code{fit}, the fit;
-\code{placebo}, \code{NULL} or one row per offset (\code{off}, \code{est}, \code{se}, \code{lo},
-\code{hi}, \code{p}, \code{n}). \code{summary()} returns \code{coef}, with the placebo rows
-when there are any.
+An object of class \code{updwn}, a list: \code{coef}, the rows of the
+downwind terms (one, or one per ring); \code{class}, the rows by outcome of
+the classification (\code{downwind}, \code{upwind}, \code{along} (wind along the road
+or crosswind), \code{nosource}, \code{twosources}, \code{onsource}, \code{missing}); \code{n},
+the rows of the fit; \code{fit}, the fit; \code{placebo}, \code{NULL} or one row per
+offset (\code{off}, \code{est}, \code{se}, \code{lo}, \code{hi}, \code{p}, \code{n}); \code{norm}, \code{tol},
+\code{band}. \code{summary()} returns \code{coef}, with the placebo rows when there
+are any.
 }
 \description{
 Compares counts on the downwind side of a pollution source with counts
@@ -102,39 +116,55 @@ into straight segments, as the paper splits I-90) or a point (\code{x1},
 \code{y1} \code{NA}: a stack, a port, an airport).
 
 The classification (crimlab's kernel, following the paper's rules). An
-area belongs to the one source within \code{band} of it; areas within \code{band}
-of two sources are dropped, as the paper drops crimes within a mile of
-two interstates. For a segment, the side of the area is set by which
-side of the line it lies on; the area is downwind on a day when the
-direction the wind blows to is within \code{tol} degrees of the line
-orthogonal to the road pointing to its side, upwind when within \code{tol}
-of the opposite direction, and the day is dropped for that road
-otherwise (wind along the road). The paper's main rule is a band of one
-mile and 60 degrees; its robustness checks use 30 to 90 degrees and a
-quarter mile to one mile. For a point source the same rule applies to
-the direction from the source to the area (downwind within \code{tol} of
-where the wind blows to): this extends the design and is not in the
-papers.
+area belongs to a source within \code{band} of it. For a segment, the side of
+the area is set by which side of the line it lies on; the area is
+downwind on a day when the direction the wind blows to is within \code{tol}
+degrees of the line orthogonal to the road pointing to its side, upwind
+when within \code{tol} of the opposite direction, and the day is dropped for
+that road otherwise (wind along the road). For a point source the same
+rule applies to the direction from the source to the area: this extends
+the design and is not in the papers.
 
-The estimate is the paper's equation (3): \code{y_ist = a_is + g_it + b
-downwind_ist + e_ist}, with route-side fixed effects \code{a_is} and
+The choices, with the paper's own first:
+
+\itemize{
+\item \code{tol}: 60 degrees in the paper's main results (p. 12); 30 to 90 in its
+robustness table (pp. 15-16).
+\item \code{band}: one mile (1609 m) in the paper (footnote 23); a quarter mile
+to one mile in its robustness table. \code{dist} (breaks of distance) gives
+one downwind coefficient per ring instead, the paper's finding that
+the effect declines with distance.
+\item \code{twin}, areas within \code{band} of two sources: \code{"drop"} as the paper
+(p. 11-12); \code{"near"} gives them to the nearer source; \code{"keep"} counts
+them for each source.
+\item \code{norm}, the outcome: \code{"mean"}, counts divided by their mean over the
+rows used, least squares (the paper's main tables: the coefficient is
+a share of the mean count); \code{"none"}, raw counts, least squares;
+\code{"log"}, \code{log(1 + y)}, least squares; \code{"pois"}, the Poisson
+pseudo-likelihood of \code{\link[=ppmlfe]{ppmlfe()}} (the paper's appendix table A.1).
+\item \code{wx}: weather columns interacted with the side effects, the paper's
+equation (4), p. 14, which lets each side respond to the weather in
+its own way (one side's interactions are left out: the route-date
+effects absorb the weather itself).
+\item \code{se}: \code{"hc1"} (the default), robust errors as the paper reports;
+\code{"cluster"} (by \code{clus}, such as side-month or side-year as in its
+appendix table A.2), \code{"twoway"}, \code{"nw"} (Newey-West within each side
+over days, its appendix too) or \code{"boot"}, as in \code{\link[=ppmlfe]{ppmlfe()}}. Stata's
+robust errors use \code{n / (n - K)}; here that is \code{ssc = "nk"}.
+}
+
+The estimate is the paper's equation (3), p. 12: \code{y_ist = a_is + g_it +
+b downwind_ist + e_ist}, with route-side fixed effects \code{a_is} and
 route-date fixed effects \code{g_it}; with \code{agg = TRUE} the counts of the
 areas on one side of one segment are summed by day first, as the paper
 counts crimes by interstate side and day. Without aggregation (and for
-point sources) the first effect is the area. With \code{norm = TRUE} the
-outcome is divided by its mean over the rows used, so that \code{b} is a
-share of the mean count, as in the paper; \code{fam = "ppml"} fits the count
-model of \code{\link[=ppmlfe]{ppmlfe()}} instead (the paper's appendix table A.1). The paper
-reports heteroskedasticity-robust errors (here \code{clus = NULL}: each row
-its own cluster, with the factor \code{n / (n - 1)}, not Stata's), and
-clustered by side and month or year in its appendix (give such a
-column, constant within a side and day, as \code{clus}).
+point sources) the first effect is the area.
 
 Placebos. Run the design on an outcome the exposure should not affect
 (the paper uses property crime); and, with \code{offs}, move every segment
 sideways by each offset and re-estimate, the paper's placebo
-interstates drawn parallel to I-290 a mile apart: the effect should
-peak at offset 0.
+interstates drawn parallel to I-290 a mile apart (pp. 17-18): the effect
+should peak at offset 0.
 }
 \examples{
 # simulated: a road along the x axis, areas on both sides, crime up 10\%
@@ -143,13 +173,16 @@ set.seed(5)
 a <- data.frame(area = 1:20, ax = runif(20, 0, 5000),
                 ay = rep(c(-800, 800), 10))
 d <- merge(a, data.frame(day = 1:120))
-d$wind <- rep(runif(120, 0, 360), each = 1)[d$day]
+d$wind <- runif(120, 0, 360)[d$day]
 blowsn <- cos((d$wind + 180) * pi / 180)  # +1 when the wind blows north
 dn <- (d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5)
 d$crimes <- rpois(nrow(d), 3 * (1 + 0.1 * dn))
 road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
 updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
       offs = c(-1600, 0, 1600))
+# the Poisson model and two distance rings
+summary(updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
+              norm = "pois", dist = c(0, 500, 1600)))
 }
 \references{
 Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air

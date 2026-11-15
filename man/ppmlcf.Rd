@@ -4,7 +4,7 @@
 \alias{ppmlcf}
 \alias{print.ppmlcf}
 \alias{summary.ppmlcf}
-\title{The control function for a count outcome with fixed effects}
+\title{Instrumental variables for a count outcome with fixed effects}
 \usage{
 ppmlcf(
   data,
@@ -15,6 +15,9 @@ ppmlcf(
   fe,
   expo = NULL,
   clus = NULL,
+  how = c("cf", "plug"),
+  se = c("boot", "naive"),
+  ssc = c("G", "nk", "none"),
   nboot = 199,
   seed = NULL,
   level = 0.95,
@@ -37,7 +40,14 @@ ppmlcf(
 an object of class \code{ppmlcf}.}
 
 \item{clus}{\code{NULL} (the first fixed effect) or the name of one cluster
-column: the unit the bootstrap draws.}
+column: the unit the bootstrap draws and the naive errors cluster by.}
+
+\item{how}{\code{"cf"} or \code{"plug"}.}
+
+\item{se}{\code{"boot"} or \code{"naive"}.}
+
+\item{ssc}{The small-sample factor of the naive errors, as in
+\code{\link[=ppmlfe]{ppmlfe()}}.}
 
 \item{nboot}{The number of bootstrap draws, at least 2.}
 
@@ -49,42 +59,51 @@ column: the unit the bootstrap draws.}
 }
 \value{
 An object of class \code{ppmlcf}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
-the endogenous columns, the controls, then the residual terms
-\code{"vhat:<endo>"}); \code{first} (as in \code{\link[=ivfe]{ivfe()}}); \code{draws}, the bootstrap
-estimates (one row per draw); \code{nfail}; \code{n}; \code{nsep}; \code{ncl}; \code{nboot};
-\code{fe}, \code{clus} and \code{level}. \code{summary()} returns \code{coef}.
+the endogenous columns, the controls, then for \code{"cf"} the residual
+terms \code{"vhat:<endo>"}); \code{first} (as in \code{\link[=ivfe]{ivfe()}}); \code{draws}, the
+bootstrap estimates (one row per draw; \code{NULL} for \code{"naive"}); \code{nfail};
+\code{n}; \code{nsep}; \code{ncl}; \code{nboot}; \code{how}, \code{se}; \code{fe}, \code{clus} and \code{level}.
+\code{summary()} returns \code{coef}.
 }
 \description{
-Instruments an exposure in the count model of \code{\link[=ppmlfe]{ppmlfe()}}: the first
-stages regress each endogenous column on the excluded instruments and
-the controls with the fixed effects (as in \code{\link[=ivfe]{ivfe()}}), and their
-residuals are added to the Poisson pseudo-likelihood fit with the same
-fixed effects and offset. The residual takes up the part of the
-exposure that moves with unmeasured causes of the outcome, so the
-coefficient on the exposure is that of its part the instruments move.
-Its own coefficient tests whether the exposure was endogenous at all.
+Instruments an exposure in the count model of \code{\link[=ppmlfe]{ppmlfe()}}, in one of two
+ways (\code{how}). The first stages regress each endogenous column on the
+excluded instruments and the controls with the fixed effects (as in
+\code{\link[=ivfe]{ivfe()}}). Then:
 }
 \details{
-Bondy, Roth and Sager (2020) instrument pollution in their Poisson
-model by wind direction and by inversions (their equations 2 and 3);
-their text writes the second stage with the fitted pollution in place
-of pollution, and does not say how its standard errors account for the
-first stage. With a log link, putting the fitted values in place is not
-consistent in general; the control function is, when the first-stage
-residual enters the mean as a linear index (Wooldridge 2014). That is
-the method here, and it is a choice made for crimlab, not a
-reproduction of the papers' computations.
+\code{how = "cf"} (the default), the control function: the first-stage
+residuals are added to the Poisson pseudo-likelihood fit with the same
+fixed effects and offset. The residual takes up the part of the exposure
+that moves with unmeasured causes of the outcome; its own coefficient
+tests whether the exposure was endogenous at all. With a log link this
+is consistent when the first-stage residual enters the mean as a linear
+index (Wooldridge 2014), and it is the default for that reason.
 
-Standard errors come from a cluster bootstrap that refits both stages:
-\code{nboot} draws of the clusters with replacement (the first \code{clus}
-column), made on the R side with R's generator (so \code{set.seed()} or
-\code{seed} reproduce them), each draw weighting a cluster by how often it
-was drawn. The interval is the estimate plus or minus the normal
-quantile times the bootstrap standard error. Separation is handled as
-in \code{\link[=ppmlfe]{ppmlfe()}}, in the full sample and in each draw; a draw that cannot
-be fitted (an instrument without variation in it, say) is left out and
-counted in \code{nfail}. The first-stage statistic is that of \code{\link[=ivfe]{ivfe()}},
-clustered by \code{clus}.
+\code{how = "plug"}, the fitted exposure (the exposure less its first-stage
+residual) in place of the exposure in the Poisson fit: the second stage
+as Bondy, Roth and Sager (2020, equation 3, p. 565) write it, with
+"AQI-hat". With a log link the plug-in is not consistent in general
+(the mean of \code{exp()} of a fitted value is not \code{exp()} of the mean); it
+is offered to reproduce the paper's specification.
+
+Standard errors (\code{se}): \code{"boot"} (the default), a cluster bootstrap that
+refits both stages on each of \code{nboot} draws of the clusters of \code{clus},
+made on the R side with R's generator (so \code{set.seed()} or \code{seed}
+reproduce them), each draw weighting a cluster by how often it was
+drawn; \code{"naive"}, the clustered errors of the second-stage Poisson fit
+alone, which treat the first-stage residual or fitted value as data and
+are therefore wrong (too small, as a rule): they are given only to
+reproduce papers that report them. Bondy, Roth and Sager do not say how
+their second-stage errors account for the first stage. The exponential
+generalised method of moments with multiplicative errors (Mullahy 1997;
+Windmeijer and Santos Silva 1997) is not offered: its papers were not at
+hand to build it from.
+
+Separation is handled as in \code{\link[=ppmlfe]{ppmlfe()}} (groups of zeros dropped), in the
+full sample and in each draw; a draw that cannot be fitted (an
+instrument without variation in it, say) is left out and counted in
+\code{nfail}. The first-stage table is that of \code{\link[=ivfe]{ivfe()}}, clustered by \code{clus}.
 }
 \examples{
 # simulated counts; the shock u raises pollution and crime together
@@ -98,6 +117,9 @@ d$pm <- 2 * w[, 1] - w[, 3] + u + rnorm(nrow(d))
 d$crimes <- rpois(nrow(d), exp(1 + 0.1 * d$pm + 0.5 * u))
 ppmlcf(d, "crimes", endo = "pm", inst = colnames(w), fe = c("area", "day"),
        nboot = 49, seed = 1)
+# the paper's plug-in, with its naive errors
+summary(ppmlcf(d, "crimes", endo = "pm", inst = colnames(w),
+               fe = c("area", "day"), how = "plug", se = "naive"))
 }
 \references{
 Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
@@ -108,6 +130,7 @@ contemporaneous relationship between air pollution and crime.
 Wooldridge, J. M. (2014). Quasi-maximum likelihood estimation and
 testing for nonlinear models with endogenous explanatory variables.
 \emph{Journal of Econometrics}, 182(1), 226-234.
+\doi{10.1016/j.jeconom.2014.04.020}
 }
 \seealso{
 \code{\link[=ppmlfe]{ppmlfe()}}, \code{\link[=ivfe]{ivfe()}}, \code{\link[=windiv]{windiv()}}, \code{\link[=invsn]{invsn()}}

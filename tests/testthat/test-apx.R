@@ -62,7 +62,12 @@ test_that("ivfe equals feols IV: coefficients, clustered errors, first-stage Wal
   f <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"))
   expect_equal(f$coef$est, c(0.53281354358983513, 0.21211428905136548), tolerance = 1e-8)
   expect_equal(f$coef$se, c(0.04844890651382984, 0.043953255267726352), tolerance = 1e-6)
-  expect_equal(f$first$fstat, 420.99264832346375, tolerance = 1e-6)
+  expect_equal(f$first$wald, 420.99264832346375, tolerance = 1e-6)
+  # the effective F of Montiel Olea and Pflueger, by hand from fixest's
+  # first stage (its clustered covariance and the instruments' cross
+  # products after the control and the effects)
+  expect_equal(f$first$eff, 536.97395780637555, tolerance = 1e-6)
+  expect_identical(f$first$kp, f$first$wald)
   f2 <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"),
              clus = c("unit", "day"))
   expect_equal(f2$coef$se, c(0.070034681564906318, 0.062053418838878639), tolerance = 1e-6)
@@ -201,3 +206,174 @@ test_that("expjn joins, counts what does not match and refuses duplicate keys", 
   expect_error(expjn(ex, rbind(oc, oc[2, ])), "`outc` has 1 duplicate key")
   expect_output(print(j), "1 outcome row\\(s\\) without an exposure")
 })
+
+# Second round: the options. References from the same fixest session
+# (fepois with ssc() at its default for "nk"; vcov = "hetero" with
+# ssc(K.adj = FALSE, G.adj = FALSE) for "hc1" with "none"; NW(2) ~ unit +
+# day with no adjustment, which equals the panel Newey-West computed by
+# hand; the plug-in as fepois on x less feols' residual, and the cluster
+# bootstraps with the draws of set.seed(7) as above).
+
+test_that("ppmlfe's standard errors: nk, hc1, nw, boot", {
+  d <- simpan()
+  a <- function(...) ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop", ...)
+  expect_equal(a(ssc = "nk")$coef$se, c(0.02103345634587318, 0.020112441014339042),
+               tolerance = 1e-6)
+  h0 <- a(se = "hc1", ssc = "none")
+  expect_equal(h0$coef$se, c(0.024527219446829767, 0.027257790635697002), tolerance = 1e-6)
+  expect_equal(a(se = "hc1")$coef$se, h0$coef$se * sqrt(450 / 449), tolerance = 1e-12)
+  nw <- a(se = "nw", ssc = "none", time = "day", lag = 2)
+  expect_equal(nw$coef$se, c(0.023987274516971947, 0.027108298235302562), tolerance = 1e-6)
+  expect_equal(a(se = "nw", ssc = "none", time = "day", lag = 0)$coef$se, h0$coef$se,
+               tolerance = 1e-12)
+  expect_identical(nw$lag, 2L)
+  expect_error(a(se = "nw"), "needs `time`")
+  b <- a(se = "boot", nboot = 30, seed = 7)
+  expect_equal(b$coef$se, c(0.022722352431319974, 0.028702646182253613), tolerance = 1e-6)
+  expect_identical(dim(b$draws), c(30L, 2L))
+  expect_equal(a(ssc = "none")$coef$se, a()$coef$se * sqrt(14 / 15), tolerance = 1e-12)
+  expect_error(a(se = "twoway", clus = "unit"), "needs two `clus` columns")
+  expect_error(a(se = "robust"), "should be one of")
+})
+
+test_that("ppmlfe sep = \"none\" keeps a unit of zeros", {
+  d <- simpan()
+  z <- data.frame(unit = 16L, day = 1:30, z1 = 0, z2 = 0, w = seq(-1, 1, length.out = 30),
+                  x = seq(0, 2, length.out = 30), pop = 1000, y = 0, yl = 0)
+  f <- suppressWarnings(ppmlfe(rbind(d, z), "y", c("x", "w"), fe = c("unit", "day"),
+                               expo = "pop", sep = "none", maxit = 200))
+  expect_identical(f$n, 480L)
+  expect_identical(f$nsep, 0L)
+  expect_equal(f$coef$est, c(0.29195662923680077, 0.073073645297524289), tolerance = 1e-4)
+})
+
+test_that("ivfe's other errors agree with ppmlfe's machinery", {
+  d <- simpan()
+  f <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"),
+            se = "hc1")
+  expect_identical(f$se, "hc1")
+  expect_true(all(is.finite(f$first$wald)))
+  d$id <- seq_len(nrow(d))
+  g <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"),
+            clus = "id")
+  expect_equal(f$coef$se, g$coef$se, tolerance = 1e-12)
+  b <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"),
+            se = "boot", nboot = 5, seed = 1)
+  expect_identical(nrow(b$draws), 5L)
+})
+
+test_that("ppmlcf: the plug-in of the paper, naive and bootstrap errors", {
+  d <- simpan()
+  a <- function(...) ppmlcf(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+                            fe = c("unit", "day"), expo = "pop", ...)
+  p <- a(how = "plug", nboot = 30, seed = 7)
+  expect_equal(p$coef$est, c(0.23021881035819208, 0.085582594321049033), tolerance = 1e-8)
+  expect_equal(p$coef$se, c(0.03480437819221463, 0.033705894253545116), tolerance = 1e-6)
+  expect_identical(p$coef$term, c("x", "w"))
+  n <- a(how = "plug", se = "naive")
+  expect_equal(n$coef$est, p$coef$est, tolerance = 1e-8)
+  expect_equal(n$coef$se, c(0.033905920356246934, 0.02426990187010988), tolerance = 1e-6)
+  cn <- a(se = "naive")
+  expect_equal(cn$coef$est, c(0.21298786456069305, 0.09126882860013609, 0.26288312058292385),
+               tolerance = 1e-8)
+  expect_equal(p$first$eff, 536.97395780637555, tolerance = 1e-6)
+  expect_error(a(how = "gmm"), "should be one of")
+})
+
+test_that("windiv: the paper's edges, hours to days", {
+  expect_identical(unname(windiv(c(90, 91, 180, 181), edges = "paper")[, 1]), c(0, 1, 1, 0))
+  expect_identical(unname(windiv(c(90, 91, 180, 181))[, 1]), c(1, 1, 0, 0))
+  v <- windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2))
+  # 350 and 10 degrees average to north (0, or 360 less a rounding)
+  expect_lt(min(attr(v, "dir")[1L], 360 - attr(v, "dir")[1L]), 1e-9)
+  expect_equal(attr(v, "dir")[2L], 110, tolerance = 1e-12)
+  expect_identical(rownames(v), c("1", "2"))
+  expect_identical(unname(v[2, ]), c(1, 0, 0))
+  m <- windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2), avg = "mean")
+  expect_equal(attr(m, "dir"), c(180, 110))
+  o <- windiv(c(100, 110, 200), by = c(1, 1, 1), avg = "mode")
+  expect_identical(unname(o[1, ]), c(1, 0, 0))
+  s <- windiv(c(100, 200, 200, 10), by = c(1, 1, 1, 1), share = TRUE)
+  expect_equal(unname(s[1, ]), c(0.25, 0.5, 0))
+  sa <- windiv(c(100, 200, 10, 10), by = c(1, 1, 2, 2), area = c("a", "a", "b", "b"),
+               share = TRUE)
+  expect_identical(dim(sa), c(2L, 6L))
+  expect_equal(unname(sa[1, 1:3]), c(0.5, 0.5, 0))
+  sp <- windiv(c(0, 90), by = c(1, 1), spd = c(1, 3))
+  expect_equal(attr(sp, "dir"), atan2(3, 1) * 180 / pi, tolerance = 1e-12)
+})
+
+test_that("invsn: the sign, the indicator and bins", {
+  r <- invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, 0, Inf))
+  expect_identical(r$diff, c(2, -1, 0))
+  expect_identical(r$inv, c(0L, 1L, 0L))
+  expect_identical(as.integer(r$bin), c(2L, 1L, 1L))
+  expect_error(invsn(1, 2, brk = 3), "two or more increasing")
+})
+
+test_that("plcday moves the exposure, the instruments or both", {
+  d <- simpan()
+  a <- function(s) plcday(d, "x", "unit", "day", shifts = 7, est = ivfe, with = c("z1", "z2"),
+                          shift = s, y = "yl", endo = "x", inst = c("z1", "z2"), x = "w",
+                          fe = c("unit", "day"))
+  b <- a("both")$tab
+  x <- a("x")$tab
+  z <- a("z")$tab
+  expect_equal(b$est[1L], x$est[1L])
+  expect_equal(b$est[1L], z$est[1L])
+  d7 <- d[d$day <= 23, ]
+  k <- match(paste(d7$unit, d7$day + 7), paste(d$unit, d$day))
+  d7$z1 <- d$z1[k]
+  d7$z2 <- d$z2[k]
+  h <- ivfe(d7, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"))
+  expect_equal(z$est[2L], h$coef$est[1L])
+  expect_false(isTRUE(all.equal(x$est[2L], b$est[2L])))
+  expect_error(plcday(d, "x", "unit", "day", shift = "z", y = "y", x = "x", fe = "unit"),
+               "needs the instruments")
+})
+
+test_that("updwn: the outcome, the rings, two roads and the weather", {
+  set.seed(5)
+  a <- data.frame(area = 1:20, ax = runif(20, 0, 5000), ay = rep(c(-800, 800), 10))
+  d <- merge(a, data.frame(day = 1:150))
+  wnd <- runif(150, 0, 360)
+  d$wind <- wnd[d$day]
+  d$temp <- rnorm(150, 20, 5)[d$day]
+  blown <- cos((d$wind + 180) * pi / 180)
+  dn <- (d$ay > 0 & blown > 0.5) | (d$ay < 0 & blown < -0.5)
+  d$crimes <- rpois(nrow(d), 3 * (1 + 0.2 * dn))
+  road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
+  u <- function(...) updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600, ...)
+  k <- abs(cos(d$wind * pi / 180)) >= 0.5
+  s <- aggregate(crimes ~ day + north, data.frame(d[k, ], north = d$ay[k] > 0), sum)
+  s$down <- as.numeric((s$north & cos((wnd[s$day] + 180) * pi / 180) > 0) |
+                         (!s$north & cos((wnd[s$day] + 180) * pi / 180) < 0))
+  s$cl <- seq_len(nrow(s))
+  s$ly <- log1p(s$crimes)
+  expect_equal(u(norm = "none")$coef$est,
+               ivfe(s, "crimes", x = "down", fe = c("north", "day"), clus = "cl")$coef$est,
+               tolerance = 1e-10)
+  expect_equal(u(norm = "log")$coef$est,
+               ivfe(s, "ly", x = "down", fe = c("north", "day"), clus = "cl")$coef$est,
+               tolerance = 1e-10)
+  expect_equal(u(norm = "pois")$coef$est,
+               ppmlfe(s, "crimes", "down", fe = c("north", "day"), clus = "cl")$coef$est,
+               tolerance = 1e-8)
+  r2 <- u(dist = c(0, 500, 1600))
+  expect_identical(nrow(r2$coef), 1L + any(abs(d$ay) <= 500))
+  rw <- u(wx = "temp")
+  expect_identical(rw$coef$term, "down")
+  expect_true("temp:side2" %in% rw$fit$coef$term)
+  expect_identical(u(se = "nw", lag = 1)$fit$se, "nw")
+  # two parallel roads 1600 apart: areas between them are near both
+  two <- data.frame(x0 = c(0, 0), y0 = c(0, 1600), x1 = c(5000, 5000), y1 = c(0, 1600))
+  dd <- u(twin = "drop")$n
+  r0 <- updwn(d, "crimes", "ax", "ay", "day", "wind", two, band = 1000, twin = "drop")
+  rk <- updwn(d, "crimes", "ax", "ay", "day", "wind", two, band = 1000, twin = "keep")
+  rn <- updwn(d, "crimes", "ax", "ay", "day", "wind", two, band = 1000, twin = "near")
+  expect_gt(unname(r0$class[["twosources"]]), 0L)
+  expect_gt(rk$n, r0$n)
+  expect_gte(rn$n, r0$n)
+  expect_gt(dd, 0L)
+})
+

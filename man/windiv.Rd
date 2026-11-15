@@ -4,60 +4,111 @@
 \alias{windiv}
 \title{Wind-direction instruments}
 \usage{
-windiv(dir, width = 90, start = 0, area = NULL, base = 1, sect = NULL)
+windiv(
+  dir,
+  width = 90,
+  start = 0,
+  area = NULL,
+  base = 1,
+  sect = NULL,
+  edges = c("halfopen", "paper"),
+  by = NULL,
+  avg = c("vector", "mode", "mean"),
+  share = FALSE,
+  spd = NULL
+)
 }
 \arguments{
 \item{dir}{Wind directions in degrees (numbers; \code{NA} gives a row of
-\code{NA}).}
+\code{NA}, and is left out of a group's average).}
 
 \item{width}{The width of a sector in degrees; it must divide 360.}
 
 \item{start}{Where the first sector begins, in degrees.}
 
-\item{area}{\code{NULL} or the area of each direction (labels): one set of
-indicators per area, in sorted order of the labels.}
+\item{area}{\code{NULL} or the area of each direction (labels; constant
+within a \code{by} group): one set of indicators per area, in sorted order
+of the labels.}
 
 \item{base}{The sector left out, counted from 1.}
 
 \item{sect}{\code{NULL}, or two numbers \code{c(from, to)} in degrees: then one
 indicator, 1 when the wind blows from between \code{from} (included) and
-\code{to} (excluded), going clockwise; \code{width}, \code{start} and \code{base} are not
-used.}
+\code{to} (excluded), going clockwise; \code{width}, \code{start}, \code{base} and \code{edges}
+are not used.}
+
+\item{edges}{\code{"halfopen"} or \code{"paper"}.}
+
+\item{by}{\code{NULL}, or a group (day, or place and day) for each direction.}
+
+\item{avg}{\code{"vector"}, \code{"mode"} or \code{"mean"}: how a group's directions
+become one.}
+
+\item{share}{\code{TRUE} for the shares of each group's directions in each
+sector.}
+
+\item{spd}{\code{NULL} or wind speeds, weights of the vector average.}
 }
 \value{
-A numeric matrix, one row per direction, columns named
-\code{"w<from>_<to>"}, with \code{":<area>"} added when \code{area} is given.
+A numeric matrix, one row per direction (or per \code{by} group,
+named by it), columns named \code{"w<from>_<to>"}, with \code{":<area>"} added
+when \code{area} is given. With \code{by}, the attribute \code{"dir"} holds the
+group's direction (for \code{share}, its vector average).
 }
 \description{
-Turns daily wind directions into indicators of the sector the wind
-blows from, one sector left out, optionally one set per area so that
-the same wind may act differently in different parts of a city. These
-are the instruments of Bondy, Roth and Sager (2020), who use four
-quadrants (0-90, 91-180, 181-270 degrees; the fourth left out) in each
-of five regions of London, 15 instruments; and, with \code{sect}, the single
-westerly-wind indicator of Herrnstadt, Heyes, Muehlegger and Saberian
-(2019), wind from between 225 and 285 degrees.
+Turns wind directions into indicators of the sector the wind blows
+from, one sector left out, optionally one set per area so that the same
+wind may act differently in different parts of a city; from hourly
+directions it first makes one per day.
 }
 \details{
-Directions are where the wind blows from, in degrees clockwise from
-north (the meteorological convention); 360 is 0. Sector \code{b} is \code{[start
-+ (b - 1) width, start + b width)}, so a direction on a boundary goes to
-the sector it opens. A daily direction should be the direction of the
-day's mean wind vector, not the mean of the angles (1 and 359 degrees
-average to north, not south): \code{(atan2(mean(sin(r)), mean(cos(r))) * 180
-/ pi) \%\% 360} for the hourly directions \code{r} in radians. Bondy, Roth and
-Sager use instead the share of the day's hours in each quadrant; the
-daily mean of these indicators over hourly directions gives that share.
+The choices, and which paper made which:
 
-The indicators are instruments only if the wind direction affects the
-outcome through the exposure alone (see \code{\link[=ivfe]{ivfe()}}).
+Sectors (\code{width}, \code{start}, \code{edges}). Bondy, Roth and Sager (2020,
+footnote 18) use quadrants "0-90, 91-180, 181-270" degrees with the
+fourth left out, whole degrees closed at the top: \code{edges = "paper"}.
+The default \code{"halfopen"} puts a boundary direction in the sector it
+opens, \code{[lo, hi)}, which is the same for directions that are not whole
+numbers. Bondy, Roth and Sager let each of five regions of London have
+its own set (\code{area}), 15 instruments; their appendix also ranks four or
+eight directions by each ward's long-run pollution (table A3), which is
+not built here.
+
+One sector (\code{sect}). Herrnstadt, Heyes, Muehlegger and Saberian (2019,
+footnote 24) use one indicator, wind from between 225 and 285 degrees
+(60 degrees); their table 5 widens it to 75 and 90 degrees without
+saying where the wider sectors start, so give \code{sect} as you choose it
+(for example \code{c(217.5, 292.5)} for 75 degrees about the same centre).
+
+From hours to days (\code{by}, \code{avg}, \code{share}). With \code{by}, \code{dir} holds
+several directions per day (hours) and each group gives one row. \code{avg =
+"vector"} (the default) takes the direction of the mean wind vector,
+\code{atan2(mean(sin), mean(cos))}, weighted by \code{spd} when given: Herrnstadt
+and Muehlegger (2015, footnote 7) point out that 1 and 359 degrees
+average to north, not south. \code{avg = "mode"} takes the sector most hours
+fall in (ties: the first), the "predominant wind direction" of Bondy,
+Roth and Sager's figure A1. \code{avg = "mean"} is the plain mean of the
+angles, wrong across north and given only for comparison. \code{share =
+TRUE} instead gives the share of each group's hours in each sector,
+Bondy, Roth and Sager's instrument ("the share of hours in the 24 hours
+of each day", footnote 18); \code{avg} is then not used.
+
+Directions are where the wind blows from, in degrees clockwise from
+north; 360 is 0. The indicators are instruments only if the wind
+direction affects the outcome through the exposure alone (see
+\code{\link[=ivfe]{ivfe()}}).
 }
 \examples{
 windiv(c(10, 100, 200, 300))
+# the paper's whole-degree quadrants: 90 is in the first
+windiv(c(90, 91), edges = "paper")
 # quadrants by region, as in London
 windiv(c(10, 100, 200, 300), area = c("east", "east", "west", "west"))
 # one westerly sector
 windiv(c(230, 300), sect = c(225, 285))
+# hours to days: 350 and 10 degrees average to north
+windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2))
+windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2), share = TRUE)
 }
 \references{
 Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
@@ -67,6 +118,10 @@ contemporaneous relationship between air pollution and crime.
 
 Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
 pollution as a cause of violent crime. Working paper.
+
+Herrnstadt, E. and Muehlegger, E. (2015). Air pollution and criminal
+activity: evidence from Chicago microdata. NBER Working Paper 21787.
+\doi{10.3386/w21787}
 }
 \seealso{
 \code{\link[=ivfe]{ivfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=invsn]{invsn()}}

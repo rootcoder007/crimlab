@@ -122,13 +122,114 @@
   k
 }
 
+# Whether each level of f falls in one level of c (the effect is nested
+# in the clusters).
+.axnest <- function(f, c) {
+  u <- unique(data.frame(a = as.character(f), b = as.character(c)))
+  !anyDuplicated(u$a)
+}
+
+# A time column as numbers (numbers or dates).
+.axtime <- function(d, time, fn) {
+  if (is.null(time)) .ckstop(fn, "`se = \"nw\"` needs `time`, the name of the day column")
+  .axcols(d, time, "time", fn, n = 1L)
+  tv <- d[[time]]
+  if (!is.numeric(tv) && !inherits(tv, "Date")) {
+    .ckstop(fn, "column `%s` must hold numbers or dates", time)
+  }
+  as.numeric(tv)
+}
+
+# The variance of a fit from its rows' scores (r$sco, r$brd), as `se`
+# asks: cluster (kind 0), twoway (1), hc1 (2), nw (3); the small-sample
+# factor by `ssc`. Returns the matrix, the cluster counts and the lag.
+.axvar <- function(r, d, se, clus, time, lag, ssc, fe, fn) {
+  n <- nrow(r$sco)
+  p <- ncol(r$sco)
+  kk <- function(cls) {
+    k <- p + 1
+    for (f in fe) {
+      if (!any(vapply(cls, function(cc) .axnest(d[[f]], d[[cc]]), NA))) {
+        k <- k + length(unique(d[[f]])) - 1
+      }
+    }
+    k
+  }
+  c1 <- c2 <- tv <- NULL
+  n1 <- n2 <- 0L
+  lg <- 0L
+  if (se %in% c("cluster", "twoway")) {
+    cl <- .axcl(d, clus, fn)
+    c1 <- cl$c1
+    n1 <- cl$n1
+    c2 <- cl$c2
+    n2 <- cl$n2
+    g <- cl$g
+    kind <- if (se == "twoway") 1L else 0L
+    k <- kk(clus)
+  } else {
+    g <- n
+    kind <- if (se == "hc1") 2L else 3L
+    k <- kk(character())
+    if (se == "nw") {
+      u <- .axcode(d[[clus[1L]]])
+      c1 <- u$c
+      n1 <- u$n
+      tv <- .axtime(d, time, fn)
+      if (is.null(lag)) {
+        tt <- max(tabulate(u$c + 1L, u$n))
+        lag <- floor(4 * (tt / 100)^(2 / 9))
+      }
+      lg <- .cknum(lag, "lag", fn, min = 0, whole = TRUE)
+    }
+  }
+  gm <- min(g)
+  fac <- switch(ssc, G = gm / (gm - 1), nk = gm / (gm - 1) * (n - 1) / (n - k), none = 1)
+  v <- .Call(C_clab_r_vcx, r$sco, r$brd, kind, c1, n1, c2, n2, tv, as.integer(lg), fac)
+  list(v = v, g = g, lag = if (se == "nw") lg else NA_integer_, k = k)
+}
+
+# The cluster bootstrap: nboot draws of the clusters of column cl from R's
+# generator; fit(rows, w) returns the coefficients of the rows drawn with
+# their weights, or an error for a draw that cannot be fitted (left out).
+.axboot <- function(d, cl, nboot, seed, p, fit, fn) {
+  cc <- .axcode(d[[cl]])
+  if (cc$n < 2L) .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
+  bm <- .axdraw(cc$n, nboot, seed)
+  dr <- t(vapply(seq_len(nboot), function(b) {
+    m <- bm[cc$c + 1L, b]
+    k <- m > 0
+    tryCatch(fit(which(k), m[k]), error = function(e) rep(NA_real_, p))
+  }, numeric(p)))
+  nf <- sum(!stats::complete.cases(dr))
+  if (nf > 0L) {
+    warning(fn, ": ", nf, " of ", nboot, " bootstrap draws could not be fitted and are ",
+            "left out.", call. = FALSE)
+  }
+  if (nboot - nf < 2L) .ckstop(fn, "fewer than two bootstrap draws could be fitted")
+  list(draws = dr, se = apply(dr, 2L, stats::sd, na.rm = TRUE), nfail = nf, g = cc$n)
+}
+
+# The Poisson fit on the rows of d (codes made here), with weights w.
+.axppfit <- function(d, y, x, fe, expo, w, tol, maxit, fn) {
+  fx <- .axfe(d, fe)
+  off <- if (!is.null(expo)) log(d[[expo]])
+  .Call(C_clab_r_ppmlfe, as.numeric(d[[y]]), .axmat(d, x, fn), off, w, fx$c1, fx$n1,
+        fx$c2, fx$n2, NULL, 0L, NULL, 0L, tol, as.integer(maxit))
+}
+
+.axsen <- function(se) {
+  c(cluster = "clustered", twoway = "two-way clustered", hc1 = "heteroskedasticity-robust",
+    nw = "Newey-West", boot = "cluster bootstrap")[[se]]
+}
+
 #' Poisson pseudo-maximum likelihood with absorbed fixed effects
 #'
 #' Fits a count model with one or two sets of fixed effects, such as place
 #' and day, absorbed rather than estimated as columns, an optional exposure
-#' (offset) and cluster-robust standard errors, one-way or two-way. This is
-#' the estimator of Bondy, Roth and Sager (2020): daily counts of offences
-#' by ward, ward fixed effects and time effects, and ward population as the
+#' (offset) and robust standard errors of several kinds. This is the
+#' estimator of Bondy, Roth and Sager (2020): daily counts of offences by
+#' ward, ward fixed effects and time effects, and ward population as the
 #' offset. It serves any count by place and period against any exposure.
 #'
 #' The model is `E(y | x) = exp(x'b + a_i + g_t + log(expo))`. Poisson
@@ -151,19 +252,37 @@
 #' until the relative change of the deviance is below 1e-10. A regressor
 #' that does not vary within the fixed effects is refused.
 #'
-#' Separation. A place (or a day) whose counts are all zero has a fixed
-#' effect of minus infinity and says nothing about the coefficients; its
-#' rows are dropped with a warning, the rule of 'fixest' and of Stata's
-#' ppmlhdfe. Separation by the regressors (a regressor whose value
-#' predicts zeros exactly) is not detected; neither paper discusses it.
+#' Separation (`sep`). A place (or a day) whose counts are all zero has a
+#' fixed effect of minus infinity and says nothing about the coefficients;
+#' `sep = "fe"` (the default) drops its rows with a warning, the rule of
+#' 'fixest' and of Stata's ppmlhdfe; `sep = "none"` keeps them (the fit
+#' then converges slowly towards the boundary). Separation by the
+#' regressors (a regressor whose value predicts zeros exactly) is not
+#' detected: the iterative rectifier of Correia, Guimaraes and Zylkin that
+#' finds it is not offered, as its paper was not at hand to build it from.
+#' Neither Bondy, Roth and Sager nor Herrnstadt and others discuss
+#' separation.
 #'
-#' Standard errors are cluster-robust: `(X'WX)^-1 (sum_g s_g s_g') (X'WX)^-1`
-#' with the scores `s_g` of each cluster at the final fit, `X` the demeaned
-#' regressors, times `G / (G - 1)`; two-way clustering (Cameron, Gelbach and
-#' Miller 2011) is `V1 + V2 - V12`, each term with the factor of `G` the
-#' smaller number of clusters. This equals `fixest::fepois()` with
-#' `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`. Bondy, Roth and Sager
-#' cluster by ward and year-month (their table 2).
+#' Standard errors (`se`), all from the rows' scores `s_i` at the final fit
+#' and the bread `(X'WX)^-1` of the demeaned regressors `X`:
+#' `"cluster"` (the default; `sum_g s_g s_g'` over the clusters of the
+#' first `clus` column); `"twoway"` (Cameron, Gelbach and Miller 2011, `V1
+#' + V2 - V12`; Bondy, Roth and Sager cluster by ward and year-month, table
+#' 2; Herrnstadt and others 2019 by monitor and date; given two `clus`
+#' columns, `"cluster"` means this too); `"hc1"` (each row alone, the
+#' robust errors of Herrnstadt and others 2021); `"nw"` (Newey-West within
+#' each unit of the first `clus` column over the days of `time`, Bartlett
+#' weights `1 - d / (lag + 1)` for days `d` apart up to `lag`, by default
+#' `floor(4 (T / 100)^(2/9))` for `T` days (Newey and West 1994); the
+#' appendix of Herrnstadt and others 2021); `"boot"` (a cluster bootstrap
+#' over the first `clus` column, `nboot` draws from R's generator, each
+#' refitting the model). The small-sample factor `ssc`: `"G"` (the default)
+#' `G / (G - 1)` with `G` the (smaller) number of clusters, or `n / (n - 1)`
+#' for `"hc1"` and `"nw"`; `"nk"` that times `(n - 1) / (n - K)`, `K` the
+#' coefficients, an intercept and the levels less one of each fixed effect
+#' not nested in a cluster (fixest's default for clustered errors); `"none"`
+#' no factor. `"cluster"` with `"G"` equals `fixest::fepois()` with
+#' `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
 #'
 #' @param data A data frame, one row per place and period.
 #' @param y The name of the count column: numbers from 0, not all 0.
@@ -174,8 +293,17 @@
 #'   week and year-month), give their combination as one column.
 #' @param expo `NULL` or the name of a column of positive exposures
 #'   (population): its logarithm is the offset.
-#' @param clus `NULL` (the first fixed effect) or the names of one or two
-#'   cluster columns.
+#' @param clus `NULL` (the fixed effects: the first, or both for
+#'   `se = "twoway"`) or the names of one or two cluster columns.
+#' @param se The standard errors: `"cluster"`, `"twoway"`, `"hc1"`, `"nw"`
+#'   or `"boot"`.
+#' @param ssc The small-sample factor: `"G"`, `"nk"` or `"none"`.
+#' @param time The name of the day column (numbers or dates), for
+#'   `se = "nw"`.
+#' @param lag `NULL` (the rule above) or the Newey-West lag in days.
+#' @param nboot,seed The bootstrap draws (at least 2) and `NULL` or a whole
+#'   number for R's generator, for `se = "boot"`.
+#' @param sep `"fe"` or `"none"`: see Separation.
 #' @param level The confidence level of the intervals.
 #' @param tol The convergence tolerance of the demeaning.
 #' @param maxit The most iterations of the fit.
@@ -184,15 +312,21 @@
 #' @return An object of class `ppmlfe`, a list: `coef`, a data frame with
 #'   one row per regressor (`term`, `est` on the log scale, `se`, `stat`
 #'   (z), `p`, `lo`, `hi`, and `rr`, `exp(est)`, the rate ratio of one more
-#'   unit); `vcov`, the covariance matrix; `n`, the rows used; `nsep`, the
-#'   rows dropped for separation; `ncl`, the number of clusters of each
-#'   clustering; `iter`, `conv`, `dev` and `loglik` of the fit; `fe`,
-#'   `clus` and `level`. `summary()` returns `coef`, ready to plot.
+#'   unit); `vcov`; `n`, the rows used; `nsep`, the rows dropped for
+#'   separation; `ncl`, the number of clusters (rows for `"hc1"` and
+#'   `"nw"`); `se`, `ssc`, `lag`; `iter`, `conv`, `dev` and `loglik` of the
+#'   fit; `draws` for the bootstrap; `fe`, `clus` and `level`. `summary()`
+#'   returns `coef`, ready to plot.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
 #'   *Journal of the Association of Environmental and Resource Economists*,
 #'   7(3), 555-585. \doi{10.1086/707127}
+#'
+#'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air
+#'   pollution and criminal activity: microgeographic evidence from
+#'   Chicago. *American Economic Journal: Applied Economics*, 13(4),
+#'   70-100. \doi{10.1257/app.20190091}
 #'
 #'   Santos Silva, J. M. C. and Tenreyro, S. (2006). The log of gravity.
 #'   *Review of Economics and Statistics*, 88(4), 641-658.
@@ -201,6 +335,10 @@
 #'   Cameron, A. C., Gelbach, J. B. and Miller, D. L. (2011). Robust
 #'   inference with multiway clustering. *Journal of Business and Economic
 #'   Statistics*, 29(2), 238-249. \doi{10.1198/jbes.2010.07136}
+#'
+#'   Newey, W. K. and West, K. D. (1994). Automatic lag selection in
+#'   covariance matrix estimation. *Review of Economic Studies*, 61(4),
+#'   631-653. \doi{10.2307/2297912}
 #' @seealso [ivfe()], [ppmlcf()], [plcday()], [expjn()]
 #' @examples
 #' # simulated counts in 12 areas over 40 days
@@ -214,9 +352,11 @@
 #' f <- ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
 #'             expo = "pop")
 #' f
-#' # two-way clustering, by area and by day
+#' # two-way clustering by area and day; Newey-West within areas
 #' summary(ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
-#'                expo = "pop", clus = c("area", "day")))
+#'                expo = "pop", se = "twoway"))
+#' summary(ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
+#'                expo = "pop", se = "nw", time = "day", lag = 3))
 #' @export
 ppmlfe <- function(
   data,
@@ -225,50 +365,80 @@ ppmlfe <- function(
   fe,
   expo = NULL,
   clus = NULL,
+  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  ssc = c("G", "nk", "none"),
+  time = NULL,
+  lag = NULL,
+  nboot = 199,
+  seed = NULL,
+  sep = c("fe", "none"),
   level = 0.95,
   tol = 1e-12,
   maxit = 100
 ) {
   f <- "ppmlfe"
+  se <- match.arg(se)
+  ssc <- match.arg(ssc)
+  sep <- match.arg(sep)
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, x, "x", f)
   .axcols(d, fe, "fe", f, n = 1:2)
   .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
-  if (is.null(clus)) clus <- fe[1L]
+  if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
+  if (se == "cluster" && length(clus) == 2L) se <- "twoway"
+  if (se == "twoway" && length(clus) != 2L) .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
   maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
   if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
-  k <- .axsep(yv, d, fe, f)
+  k <- if (sep == "fe") .axsep(yv, d, fe, f) else rep(TRUE, length(yv))
   d <- d[k, , drop = FALSE]
-  yv <- yv[k]
-  X <- .axmat(d, x, f)
-  off <- NULL
-  if (!is.null(expo)) {
-    e <- .axmat(d, expo, f)[, 1L]
-    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
-    off <- log(e)
+  .axmat(d, x, f)
+  if (!is.null(expo) && any(.axmat(d, expo, f)[, 1L] <= 0)) {
+    .ckstop(f, "column `%s` must be positive", expo)
   }
-  fx <- .axfe(d, fe)
-  cl <- .axcl(d, clus, f)
-  r <- .Call(C_clab_r_ppmlfe, yv, X, off, fx$c1, fx$n1, fx$c2, fx$n2,
-             cl$c1, cl$n1, cl$c2, cl$n2, tol, as.integer(maxit))
+  r <- .axppfit(d, y, x, fe, expo, NULL, tol, maxit, f)
   if (r$st[2L] != 1) {
-    warning(f, ": the fit did not converge in ", maxit, " iterations.",
-            call. = FALSE)
+    warning(f, ": the fit did not converge in ", maxit, " iterations.", call. = FALSE)
   }
-  v <- r$vc
+  dr <- NULL
+  if (se == "boot") {
+    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+    b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
+      ds <- d[rows, , drop = FALSE]
+      kk <- if (sep == "fe") {
+        fx <- .axfe(ds, fe)
+        .Call(C_clab_r_fesep, as.numeric(ds[[y]]), fx$c1, fx$n1, fx$c2, fx$n2)
+      } else {
+        rep(TRUE, nrow(ds))
+      }
+      .axppfit(ds[kk, , drop = FALSE], y, x, fe, expo, as.numeric(w[kk]), tol, maxit, f)$beta
+    }, f)
+    v <- stats::cov(b$draws, use = "complete.obs")
+    sev <- b$se
+    g <- b$g
+    lg <- NA_integer_
+    dr <- b$draws
+    colnames(dr) <- x
+  } else {
+    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f)
+    v <- vv$v
+    sev <- sqrt(pmax(diag(v), 0))
+    g <- vv$g
+    lg <- vv$lag
+  }
   dimnames(v) <- list(x, x)
-  tab <- .axtab(x, r$beta, sqrt(pmax(diag(v), 0)), level)
+  tab <- .axtab(x, r$beta, sev, level)
   tab$rr <- exp(tab$est)
   structure(
-    list(coef = tab, vcov = v, n = length(yv), nsep = sum(!k), ncl = cl$g,
-         iter = r$st[1L], conv = r$st[2L] == 1, dev = r$st[3L],
-         loglik = r$st[4L], fe = fe, clus = clus, level = level),
+    list(coef = tab, vcov = v, n = nrow(d), nsep = sum(!k), ncl = g, se = se, ssc = ssc,
+         lag = lg, iter = r$st[1L], conv = r$st[2L] == 1, dev = r$st[3L], loglik = r$st[4L],
+         draws = dr, fe = fe, clus = clus, level = level),
     class = "ppmlfe"
   )
 }
@@ -277,9 +447,9 @@ ppmlfe <- function(
 #' @export
 print.ppmlfe <- function(x, ...) {
   cat("ppmlfe: Poisson pseudo-likelihood, ", x[["n"]], " rows, fixed effects ",
-      paste(x[["fe"]], collapse = " and "), "; clusters ",
-      paste0(x[["clus"]], " (", x[["ncl"]], ")", collapse = " and "), "\n",
-      sep = "")
+      paste(x[["fe"]], collapse = " and "), "; ", .axsen(x[["se"]]), " errors (",
+      paste0(x[["clus"]], collapse = ", "), "; ", paste(x[["ncl"]], collapse = " and "),
+      ")\n", sep = "")
   if (x[["nsep"]] > 0) {
     cat(x[["nsep"]], " row(s) dropped for groups with no counts\n", sep = "")
   }
@@ -290,6 +460,34 @@ print.ppmlfe <- function(x, ...) {
 #' @rdname ppmlfe
 #' @export
 summary.ppmlfe <- function(object, ...) object[["coef"]]
+
+# The ivfe kernel on the rows of d with weights w; first-stage clusters
+# fc (codes) as the variance kind asks.
+.axivfit <- function(d, y, endo, inst, x, fe, w, fc, tol, fn) {
+  fx <- .axfe(d, fe)
+  .Call(C_clab_r_ivfe, as.numeric(d[[y]]), .axmat(d, endo, fn), .axmat(d, x, fn),
+        .axmat(d, inst, fn), w, fx$c1, fx$n1, fx$c2, fx$n2, fc$c1, fc$n1, fc$c2, fc$n2, tol)
+}
+
+# The clusters of the first-stage statistics: those of the variance for
+# "cluster" and "twoway", each row for "hc1", the first clus column for
+# "nw" and "boot".
+.axfc <- function(d, se, clus, fn) {
+  if (se == "hc1") return(list(c1 = seq_len(nrow(d)) - 1L, n1 = nrow(d), c2 = NULL, n2 = 0L))
+  a <- .axcode(d[[clus[1L]]])
+  b <- if (se == "twoway") .axcode(d[[clus[2L]]]) else list(c = NULL, n = 0L)
+  if (a$n < 2L || (se == "twoway" && b$n < 2L)) {
+    .ckstop(fn, paste0("`clus` has one cluster: a cluster-robust variance ",
+                       "needs two or more"))
+  }
+  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n)
+}
+
+.axfirst <- function(endo, fst, q) {
+  m <- matrix(fst, ncol = 3L)
+  data.frame(endo = as.character(endo), wald = m[, 1L], kp = m[, 2L], eff = m[, 3L],
+             ninst = rep(q, length(endo)))
+}
 
 #' Two-stage least squares with absorbed fixed effects
 #'
@@ -306,28 +504,38 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' effects.
 #'
 #' What an instrument must satisfy, in plain words. Relevance: it moves the
-#' exposure, after the fixed effects and controls; the first-stage
-#' statistic `fstat` measures this (a common rule of thumb asks for more
-#' than 10; Bondy, Roth and Sager report 13 to 25, Herrnstadt and others
-#' 94 to 100). Exclusion: it changes the outcome only through the
-#' exposure. Wind direction moves pollution, but if it also moves where
-#' people are (a wind off a lake on a warm day) the exclusion fails; no
-#' statistic can show that it holds. With effects that differ between
-#' places, two-stage least squares estimates a weighted average of them
-#' over the places and days the instrument moves, and only if the
-#' instrument pushes the exposure the same way everywhere (monotonicity;
-#' Bondy, Roth and Sager let wind act differently by region for that
-#' reason: see [windiv()]).
+#' exposure, after the fixed effects and controls. Exclusion: it changes
+#' the outcome only through the exposure. Wind direction moves pollution,
+#' but if it also moves where people are (a wind off a lake on a warm day)
+#' the exclusion fails; no statistic can show that it holds. With effects
+#' that differ between places, two-stage least squares estimates a
+#' weighted average of them over the places and days the instrument moves,
+#' and only if the instrument pushes the exposure the same way everywhere
+#' (monotonicity; Bondy, Roth and Sager let wind act differently by region
+#' for that reason: see [windiv()]).
 #'
-#' Standard errors are cluster-robust on the second-stage design with the
-#' structural residuals (the outcome less the actual, not the fitted,
-#' endogenous columns times their coefficients), times `G / (G - 1)`;
-#' two-way as in [ppmlfe()]. `fstat` is the cluster-robust Wald statistic
-#' of the excluded instruments in each first stage divided by their
-#' number, with the same clusters. These equal `fixest::feols()` with
-#' `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")` and its `fitstat`
-#' `"ivwald1"`. Tests use the t distribution on `G - 1` degrees of
-#' freedom.
+#' First-stage strength, all three in `first`: `wald`, the robust Wald
+#' statistic of the excluded instruments divided by their number (the
+#' "F-test" Bondy, Roth and Sager report, as far as their text says);
+#' `kp`, the Kleibergen-Paap rk Wald F of Herrnstadt and others (2019,
+#' table 7), which for one endogenous column is the same robust Wald F (it
+#' is `NA` for more than one: the rank statistic is not computed); and
+#' `eff`, the effective F of Montiel Olea and Pflueger (2013), `b'Qb /
+#' tr(V Q)` with `b` the instruments' first-stage coefficients, `V` their
+#' robust covariance and `Q` their cross products after the controls and
+#' the fixed effects (one endogenous column only). A common rule of thumb
+#' asks for more than 10; Montiel Olea and Pflueger give critical values
+#' for the effective F. The first-stage statistics use the clusters of
+#' `se` (each row for `"hc1"`, the first `clus` column for `"nw"` and
+#' `"boot"`).
+#'
+#' Standard errors (`se`, `ssc`, `time`, `lag`, `nboot`, `seed`) are as in
+#' [ppmlfe()], on the second-stage design with the structural residuals
+#' (the outcome less the actual, not the fitted, endogenous columns times
+#' their coefficients). With `"cluster"` and `ssc = "G"` they equal
+#' `fixest::feols()` with `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
+#' Tests use the t distribution on `G - 1` degrees of freedom for
+#' clustered errors and the normal otherwise.
 #'
 #' @param data A data frame, one row per place and period.
 #' @param y The name of the outcome column (numeric).
@@ -337,13 +545,14 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   many as `endo` (from [windiv()] or [invsn()], say).
 #' @param x `NULL` or the names of the exogenous controls. For `print()`,
 #'   an object of class `ivfe`.
-#' @param fe,clus,level,tol As in [ppmlfe()].
+#' @param fe,clus,se,ssc,time,lag,nboot,seed,level,tol As in [ppmlfe()].
 #' @param object An object of class `ivfe`.
 #' @param ... Not used.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
-#'   without `rr`); `first`, one row per endogenous column (`endo`,
-#'   `fstat`, `ninst`); `vcov`; `n`; `ncl`; `rss`; `fe`, `clus` and
-#'   `level`. `summary()` returns `coef`.
+#'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
+#'   `kp`, `eff`, `ninst`); `vcov`; `n`; `ncl`; `se`, `ssc`, `lag`; `rss`;
+#'   `draws` for the bootstrap; `fe`, `clus` and `level`. `summary()`
+#'   returns `coef`.
 #' @references
 #'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
 #'   pollution as a cause of violent crime. Working paper.
@@ -352,6 +561,14 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   contemporaneous relationship between air pollution and crime.
 #'   *Journal of the Association of Environmental and Resource Economists*,
 #'   7(3), 555-585. \doi{10.1086/707127}
+#'
+#'   Kleibergen, F. and Paap, R. (2006). Generalized reduced rank tests
+#'   using the singular value decomposition. *Journal of Econometrics*,
+#'   133(1), 97-126. \doi{10.1016/j.jeconom.2005.02.011}
+#'
+#'   Montiel Olea, J. L. and Pflueger, C. (2013). A robust test for weak
+#'   instruments. *Journal of Business and Economic Statistics*, 31(3),
+#'   358-369. \doi{10.1080/00401706.2013.806694}
 #' @seealso [ppmlcf()] for counts, [windiv()], [invsn()], [plcday()]
 #' @examples
 #' # simulated: an unmeasured daily shock u raises both the exposure and
@@ -364,8 +581,10 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' u <- rnorm(nrow(d))
 #' d$oz <- 3 * w[, 1] - 2 * w[, 2] + u + rnorm(nrow(d))
 #' d$out <- 0.5 * d$oz + u + rnorm(nrow(d))
-#' ivfe(d, "out", endo = "oz", inst = colnames(w), fe = c("area", "day"),
-#'      clus = c("area", "day"))
+#' f <- ivfe(d, "out", endo = "oz", inst = colnames(w), fe = c("area", "day"),
+#'           se = "twoway")
+#' f
+#' f$first
 #' @export
 ivfe <- function(
   data,
@@ -375,18 +594,28 @@ ivfe <- function(
   x = NULL,
   fe,
   clus = NULL,
+  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  ssc = c("G", "nk", "none"),
+  time = NULL,
+  lag = NULL,
+  nboot = 199,
+  seed = NULL,
   level = 0.95,
   tol = 1e-12
 ) {
   f <- "ivfe"
+  se <- match.arg(se)
+  ssc <- match.arg(ssc)
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, endo, "endo", f, null = TRUE)
   .axcols(d, inst, "inst", f, null = TRUE)
   .axcols(d, x, "x", f, null = TRUE)
   .axcols(d, fe, "fe", f, n = 1:2)
-  if (is.null(clus)) clus <- fe[1L]
+  if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
+  if (se == "cluster" && length(clus) == 2L) se <- "twoway"
+  if (se == "twoway" && length(clus) != 2L) .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
   if (length(inst) < length(endo)) {
@@ -399,22 +628,39 @@ ivfe <- function(
   if (length(intersect(c(endo, x), inst))) {
     .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
   }
-  yv <- .axmat(d, y, f)[, 1L]
-  fx <- .axfe(d, fe)
-  cl <- .axcl(d, clus, f)
-  r <- .Call(C_clab_r_ivfe, yv, .axmat(d, endo, f), .axmat(d, x, f),
-             .axmat(d, inst, f), fx$c1, fx$n1, fx$c2, fx$n2, cl$c1, cl$n1,
-             cl$c2, cl$n2, tol)
+  .axmat(d, c(y, endo, x, inst), f)
+  fc <- .axfc(d, se, clus, f)
+  r <- .axivfit(d, y, endo, inst, x, fe, NULL, fc, tol, f)
   tm <- c(endo, x)
-  v <- r$vc
+  dr <- NULL
+  df <- NULL
+  if (se == "boot") {
+    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+    b <- .axboot(d, clus[1L], nboot, seed, length(tm), function(rows, w) {
+      .axivfit(d[rows, , drop = FALSE], y, endo, inst, x, fe, as.numeric(w),
+               list(c1 = NULL, n1 = 0L, c2 = NULL, n2 = 0L), tol, f)$beta
+    }, f)
+    v <- stats::cov(b$draws, use = "complete.obs")
+    sev <- b$se
+    g <- b$g
+    lg <- NA_integer_
+    dr <- b$draws
+    colnames(dr) <- tm
+  } else {
+    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f)
+    v <- vv$v
+    sev <- sqrt(pmax(diag(v), 0))
+    g <- vv$g
+    lg <- vv$lag
+    if (se %in% c("cluster", "twoway")) df <- min(g) - 1
+  }
   dimnames(v) <- list(tm, tm)
-  g <- min(cl$g)
   structure(
-    list(coef = .axtab(tm, r$beta, sqrt(pmax(diag(v), 0)), level, df = g - 1),
-         first = data.frame(endo = as.character(endo), fstat = r$fst,
-                            ninst = rep(length(inst), length(endo))),
-         vcov = v, n = length(yv), ncl = cl$g, rss = r$st[3L], fe = fe,
-         clus = clus, level = level),
+    list(coef = .axtab(tm, r$beta, sev, level, df = df),
+         first = .axfirst(endo, r$fst, length(inst)), vcov = v, n = nrow(d), ncl = g,
+         se = se, ssc = ssc, lag = lg, rss = r$st[3L], draws = dr, fe = fe, clus = clus,
+         level = level),
     class = "ivfe"
   )
 }
@@ -424,12 +670,12 @@ ivfe <- function(
 print.ivfe <- function(x, ...) {
   iv <- nrow(x[["first"]]) > 0L
   cat("ivfe: ", if (iv) "two-stage least squares" else "least squares", ", ",
-      x[["n"]], " rows, fixed effects ", paste(x[["fe"]], collapse = " and "),
-      "; clusters ", paste0(x[["clus"]], " (", x[["ncl"]], ")", collapse = " and "),
-      "\n", sep = "")
+      x[["n"]], " rows, fixed effects ", paste(x[["fe"]], collapse = " and "), "; ",
+      .axsen(x[["se"]]), " errors (", paste0(x[["clus"]], collapse = ", "), "; ",
+      paste(x[["ncl"]], collapse = " and "), ")\n", sep = "")
   print(x[["coef"]], row.names = FALSE, digits = 4)
   if (iv) {
-    cat("first stage, cluster-robust Wald F of the excluded instruments:\n")
+    cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F:\n")
     print(x[["first"]], row.names = FALSE, digits = 4)
   }
   invisible(x)
@@ -459,37 +705,45 @@ summary.ivfe <- function(object, ...) object[["coef"]]
   }, integer(g))
 }
 
-#' The control function for a count outcome with fixed effects
+#' Instrumental variables for a count outcome with fixed effects
 #'
-#' Instruments an exposure in the count model of [ppmlfe()]: the first
-#' stages regress each endogenous column on the excluded instruments and
-#' the controls with the fixed effects (as in [ivfe()]), and their
+#' Instruments an exposure in the count model of [ppmlfe()], in one of two
+#' ways (`how`). The first stages regress each endogenous column on the
+#' excluded instruments and the controls with the fixed effects (as in
+#' [ivfe()]). Then:
+#'
+#' `how = "cf"` (the default), the control function: the first-stage
 #' residuals are added to the Poisson pseudo-likelihood fit with the same
-#' fixed effects and offset. The residual takes up the part of the
-#' exposure that moves with unmeasured causes of the outcome, so the
-#' coefficient on the exposure is that of its part the instruments move.
-#' Its own coefficient tests whether the exposure was endogenous at all.
+#' fixed effects and offset. The residual takes up the part of the exposure
+#' that moves with unmeasured causes of the outcome; its own coefficient
+#' tests whether the exposure was endogenous at all. With a log link this
+#' is consistent when the first-stage residual enters the mean as a linear
+#' index (Wooldridge 2014), and it is the default for that reason.
 #'
-#' Bondy, Roth and Sager (2020) instrument pollution in their Poisson
-#' model by wind direction and by inversions (their equations 2 and 3);
-#' their text writes the second stage with the fitted pollution in place
-#' of pollution, and does not say how its standard errors account for the
-#' first stage. With a log link, putting the fitted values in place is not
-#' consistent in general; the control function is, when the first-stage
-#' residual enters the mean as a linear index (Wooldridge 2014). That is
-#' the method here, and it is a choice made for crimlab, not a
-#' reproduction of the papers' computations.
+#' `how = "plug"`, the fitted exposure (the exposure less its first-stage
+#' residual) in place of the exposure in the Poisson fit: the second stage
+#' as Bondy, Roth and Sager (2020, equation 3, p. 565) write it, with
+#' "AQI-hat". With a log link the plug-in is not consistent in general
+#' (the mean of `exp()` of a fitted value is not `exp()` of the mean); it
+#' is offered to reproduce the paper's specification.
 #'
-#' Standard errors come from a cluster bootstrap that refits both stages:
-#' `nboot` draws of the clusters with replacement (the first `clus`
-#' column), made on the R side with R's generator (so `set.seed()` or
-#' `seed` reproduce them), each draw weighting a cluster by how often it
-#' was drawn. The interval is the estimate plus or minus the normal
-#' quantile times the bootstrap standard error. Separation is handled as
-#' in [ppmlfe()], in the full sample and in each draw; a draw that cannot
-#' be fitted (an instrument without variation in it, say) is left out and
-#' counted in `nfail`. The first-stage statistic is that of [ivfe()],
-#' clustered by `clus`.
+#' Standard errors (`se`): `"boot"` (the default), a cluster bootstrap that
+#' refits both stages on each of `nboot` draws of the clusters of `clus`,
+#' made on the R side with R's generator (so `set.seed()` or `seed`
+#' reproduce them), each draw weighting a cluster by how often it was
+#' drawn; `"naive"`, the clustered errors of the second-stage Poisson fit
+#' alone, which treat the first-stage residual or fitted value as data and
+#' are therefore wrong (too small, as a rule): they are given only to
+#' reproduce papers that report them. Bondy, Roth and Sager do not say how
+#' their second-stage errors account for the first stage. The exponential
+#' generalised method of moments with multiplicative errors (Mullahy 1997;
+#' Windmeijer and Santos Silva 1997) is not offered: its papers were not at
+#' hand to build it from.
+#'
+#' Separation is handled as in [ppmlfe()] (groups of zeros dropped), in the
+#' full sample and in each draw; a draw that cannot be fitted (an
+#' instrument without variation in it, say) is left out and counted in
+#' `nfail`. The first-stage table is that of [ivfe()], clustered by `clus`.
 #'
 #' @param data,y,fe,expo,level,tol,maxit As in [ppmlfe()].
 #' @param endo The names of the endogenous columns.
@@ -497,16 +751,21 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' @param x `NULL` or the names of the exogenous controls. For `print()`,
 #'   an object of class `ppmlcf`.
 #' @param clus `NULL` (the first fixed effect) or the name of one cluster
-#'   column: the unit the bootstrap draws.
+#'   column: the unit the bootstrap draws and the naive errors cluster by.
+#' @param how `"cf"` or `"plug"`.
+#' @param se `"boot"` or `"naive"`.
+#' @param ssc The small-sample factor of the naive errors, as in
+#'   [ppmlfe()].
 #' @param nboot The number of bootstrap draws, at least 2.
 #' @param seed `NULL` (the generator's current state) or one whole number.
 #' @param object An object of class `ppmlcf`.
 #' @param ... Not used.
 #' @return An object of class `ppmlcf`, a list: `coef` (as in [ppmlfe()],
-#'   the endogenous columns, the controls, then the residual terms
-#'   `"vhat:<endo>"`); `first` (as in [ivfe()]); `draws`, the bootstrap
-#'   estimates (one row per draw); `nfail`; `n`; `nsep`; `ncl`; `nboot`;
-#'   `fe`, `clus` and `level`. `summary()` returns `coef`.
+#'   the endogenous columns, the controls, then for `"cf"` the residual
+#'   terms `"vhat:<endo>"`); `first` (as in [ivfe()]); `draws`, the
+#'   bootstrap estimates (one row per draw; `NULL` for `"naive"`); `nfail`;
+#'   `n`; `nsep`; `ncl`; `nboot`; `how`, `se`; `fe`, `clus` and `level`.
+#'   `summary()` returns `coef`.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -516,6 +775,7 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #'   Wooldridge, J. M. (2014). Quasi-maximum likelihood estimation and
 #'   testing for nonlinear models with endogenous explanatory variables.
 #'   *Journal of Econometrics*, 182(1), 226-234.
+#'   \doi{10.1016/j.jeconom.2014.04.020}
 #' @seealso [ppmlfe()], [ivfe()], [windiv()], [invsn()]
 #' @examples
 #' # simulated counts; the shock u raises pollution and crime together
@@ -529,6 +789,9 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' d$crimes <- rpois(nrow(d), exp(1 + 0.1 * d$pm + 0.5 * u))
 #' ppmlcf(d, "crimes", endo = "pm", inst = colnames(w), fe = c("area", "day"),
 #'        nboot = 49, seed = 1)
+#' # the paper's plug-in, with its naive errors
+#' summary(ppmlcf(d, "crimes", endo = "pm", inst = colnames(w),
+#'                fe = c("area", "day"), how = "plug", se = "naive"))
 #' @export
 ppmlcf <- function(
   data,
@@ -539,6 +802,9 @@ ppmlcf <- function(
   fe,
   expo = NULL,
   clus = NULL,
+  how = c("cf", "plug"),
+  se = c("boot", "naive"),
+  ssc = c("G", "nk", "none"),
   nboot = 199,
   seed = NULL,
   level = 0.95,
@@ -546,6 +812,9 @@ ppmlcf <- function(
   maxit = 100
 ) {
   f <- "ppmlcf"
+  how <- match.arg(how)
+  se <- match.arg(se)
+  ssc <- match.arg(ssc)
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, endo, "endo", f)
@@ -558,8 +827,6 @@ ppmlcf <- function(
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
   maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
-  nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-  if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
   if (length(inst) < length(endo)) {
     .ckstop(f, "`inst` must give at least as many instruments as `endo` has columns")
   }
@@ -580,12 +847,33 @@ ppmlcf <- function(
   }
   fx <- .axfe(d, fe)
   cl <- .axcl(d, clus, f)
+  tm <- c(endo, x, if (how == "cf") paste0("vhat:", endo))
+  if (se == "naive") {
+    r1 <- .axivfit(d, y, endo, inst, x, fe, NULL,
+                   list(c1 = cl$c1, n1 = cl$n1, c2 = NULL, n2 = 0L), tol, f)
+    fr <- r1$fres
+    e <- d
+    if (how == "cf") {
+      for (j in seq_along(endo)) e[[paste0("vhat:", endo[j])]] <- fr[, j]
+    } else {
+      for (j in seq_along(endo)) e[[endo[j]]] <- e[[endo[j]]] - fr[, j]
+    }
+    p <- ppmlfe(e, y, tm, fe, expo = expo, clus = clus, ssc = ssc, level = level,
+                tol = tol, maxit = maxit, sep = "none")
+    return(structure(
+      list(coef = p$coef, first = .axfirst(endo, r1$fst, length(inst)), draws = NULL,
+           nfail = 0L, n = length(yv), nsep = sum(!k), ncl = cl$g, nboot = 0L, how = how,
+           se = se, fe = fe, clus = clus, level = level),
+      class = "ppmlcf"
+    ))
+  }
+  nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+  if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
   bm <- .axdraw(cl$n1, nboot, seed)
   storage.mode(bm) <- "integer"
   r <- .Call(C_clab_r_ppmlcf, yv, .axmat(d, endo, f), .axmat(d, x, f),
              .axmat(d, inst, f), off, fx$c1, fx$n1, fx$c2, fx$n2, cl$c1,
-             cl$n1, bm, tol, as.integer(maxit))
-  tm <- c(endo, x, paste0("vhat:", endo))
+             cl$n1, bm, if (how == "plug") 1L else 0L, tol, as.integer(maxit))
   dr <- r$draw
   colnames(dr) <- tm
   nfail <- as.integer(r$st[3L])
@@ -594,15 +882,13 @@ ppmlcf <- function(
             "fitted and are left out.", call. = FALSE)
   }
   if (nboot - nfail < 2L) .ckstop(f, "fewer than two bootstrap draws could be fitted")
-  se <- apply(dr, 2L, stats::sd, na.rm = TRUE)
-  tab <- .axtab(tm, r$beta, se, level)
+  sev <- apply(dr, 2L, stats::sd, na.rm = TRUE)
+  tab <- .axtab(tm, r$beta, sev, level)
   tab$rr <- exp(tab$est)
   structure(
-    list(coef = tab,
-         first = data.frame(endo = endo, fstat = r$fst,
-                            ninst = rep(length(inst), length(endo))),
-         draws = dr, nfail = nfail, n = length(yv), nsep = sum(!k),
-         ncl = cl$g, nboot = nboot, fe = fe, clus = clus, level = level),
+    list(coef = tab, first = .axfirst(endo, r$fst, length(inst)), draws = dr, nfail = nfail,
+         n = length(yv), nsep = sum(!k), ncl = cl$g, nboot = nboot, how = how, se = se,
+         fe = fe, clus = clus, level = level),
     class = "ppmlcf"
   )
 }
@@ -610,12 +896,15 @@ ppmlcf <- function(
 #' @rdname ppmlcf
 #' @export
 print.ppmlcf <- function(x, ...) {
-  cat("ppmlcf: Poisson control function, ", x[["n"]], " rows, fixed effects ",
-      paste(x[["fe"]], collapse = " and "), "; ", x[["nboot"]],
-      " bootstrap draws of ", x[["ncl"]], " clusters (", x[["clus"]], ")\n",
-      sep = "")
+  cat("ppmlcf: Poisson ", if (x[["how"]] == "cf") "control function" else "plug-in",
+      ", ", x[["n"]], " rows, fixed effects ", paste(x[["fe"]], collapse = " and "), "; ",
+      if (x[["se"]] == "boot") {
+        paste0(x[["nboot"]], " bootstrap draws of ", x[["ncl"]], " clusters (", x[["clus"]], ")")
+      } else {
+        "naive second-stage errors (they ignore the first stage)"
+      }, "\n", sep = "")
   print(x[["coef"]], row.names = FALSE, digits = 4)
-  cat("first stage, cluster-robust Wald F of the excluded instruments:\n")
+  cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F:\n")
   print(x[["first"]], row.names = FALSE, digits = 4)
   invisible(x)
 }
@@ -624,43 +913,79 @@ print.ppmlcf <- function(x, ...) {
 #' @export
 summary.ppmlcf <- function(object, ...) object[["coef"]]
 
+# The sector (1..nb) of each direction, by the kernel's edges.
+.axsec <- function(dir, width, start, edges) {
+  a <- (dir - start) %% 360
+  b <- if (edges == "paper") ifelse(a == 0, 0, ceiling(a / width) - 1) else floor(a / width)
+  pmin(b, round(360 / width) - 1) + 1
+}
+
 #' Wind-direction instruments
 #'
-#' Turns daily wind directions into indicators of the sector the wind
-#' blows from, one sector left out, optionally one set per area so that
-#' the same wind may act differently in different parts of a city. These
-#' are the instruments of Bondy, Roth and Sager (2020), who use four
-#' quadrants (0-90, 91-180, 181-270 degrees; the fourth left out) in each
-#' of five regions of London, 15 instruments; and, with `sect`, the single
-#' westerly-wind indicator of Herrnstadt, Heyes, Muehlegger and Saberian
-#' (2019), wind from between 225 and 285 degrees.
+#' Turns wind directions into indicators of the sector the wind blows
+#' from, one sector left out, optionally one set per area so that the same
+#' wind may act differently in different parts of a city; from hourly
+#' directions it first makes one per day.
+#'
+#' The choices, and which paper made which:
+#'
+#' Sectors (`width`, `start`, `edges`). Bondy, Roth and Sager (2020,
+#' footnote 18) use quadrants "0-90, 91-180, 181-270" degrees with the
+#' fourth left out, whole degrees closed at the top: `edges = "paper"`.
+#' The default `"halfopen"` puts a boundary direction in the sector it
+#' opens, `[lo, hi)`, which is the same for directions that are not whole
+#' numbers. Bondy, Roth and Sager let each of five regions of London have
+#' its own set (`area`), 15 instruments; their appendix also ranks four or
+#' eight directions by each ward's long-run pollution (table A3), which is
+#' not built here.
+#'
+#' One sector (`sect`). Herrnstadt, Heyes, Muehlegger and Saberian (2019,
+#' footnote 24) use one indicator, wind from between 225 and 285 degrees
+#' (60 degrees); their table 5 widens it to 75 and 90 degrees without
+#' saying where the wider sectors start, so give `sect` as you choose it
+#' (for example `c(217.5, 292.5)` for 75 degrees about the same centre).
+#'
+#' From hours to days (`by`, `avg`, `share`). With `by`, `dir` holds
+#' several directions per day (hours) and each group gives one row. `avg =
+#' "vector"` (the default) takes the direction of the mean wind vector,
+#' `atan2(mean(sin), mean(cos))`, weighted by `spd` when given: Herrnstadt
+#' and Muehlegger (2015, footnote 7) point out that 1 and 359 degrees
+#' average to north, not south. `avg = "mode"` takes the sector most hours
+#' fall in (ties: the first), the "predominant wind direction" of Bondy,
+#' Roth and Sager's figure A1. `avg = "mean"` is the plain mean of the
+#' angles, wrong across north and given only for comparison. `share =
+#' TRUE` instead gives the share of each group's hours in each sector,
+#' Bondy, Roth and Sager's instrument ("the share of hours in the 24 hours
+#' of each day", footnote 18); `avg` is then not used.
 #'
 #' Directions are where the wind blows from, in degrees clockwise from
-#' north (the meteorological convention); 360 is 0. Sector `b` is `[start
-#' + (b - 1) width, start + b width)`, so a direction on a boundary goes to
-#' the sector it opens. A daily direction should be the direction of the
-#' day's mean wind vector, not the mean of the angles (1 and 359 degrees
-#' average to north, not south): `(atan2(mean(sin(r)), mean(cos(r))) * 180
-#' / pi) %% 360` for the hourly directions `r` in radians. Bondy, Roth and
-#' Sager use instead the share of the day's hours in each quadrant; the
-#' daily mean of these indicators over hourly directions gives that share.
-#'
-#' The indicators are instruments only if the wind direction affects the
-#' outcome through the exposure alone (see [ivfe()]).
+#' north; 360 is 0. The indicators are instruments only if the wind
+#' direction affects the outcome through the exposure alone (see
+#' [ivfe()]).
 #'
 #' @param dir Wind directions in degrees (numbers; `NA` gives a row of
-#'   `NA`).
+#'   `NA`, and is left out of a group's average).
 #' @param width The width of a sector in degrees; it must divide 360.
 #' @param start Where the first sector begins, in degrees.
-#' @param area `NULL` or the area of each direction (labels): one set of
-#'   indicators per area, in sorted order of the labels.
+#' @param area `NULL` or the area of each direction (labels; constant
+#'   within a `by` group): one set of indicators per area, in sorted order
+#'   of the labels.
 #' @param base The sector left out, counted from 1.
 #' @param sect `NULL`, or two numbers `c(from, to)` in degrees: then one
 #'   indicator, 1 when the wind blows from between `from` (included) and
-#'   `to` (excluded), going clockwise; `width`, `start` and `base` are not
-#'   used.
-#' @return A numeric matrix, one row per direction, columns named
-#'   `"w<from>_<to>"`, with `":<area>"` added when `area` is given.
+#'   `to` (excluded), going clockwise; `width`, `start`, `base` and `edges`
+#'   are not used.
+#' @param edges `"halfopen"` or `"paper"`.
+#' @param by `NULL`, or a group (day, or place and day) for each direction.
+#' @param avg `"vector"`, `"mode"` or `"mean"`: how a group's directions
+#'   become one.
+#' @param share `TRUE` for the shares of each group's directions in each
+#'   sector.
+#' @param spd `NULL` or wind speeds, weights of the vector average.
+#' @return A numeric matrix, one row per direction (or per `by` group,
+#'   named by it), columns named `"w<from>_<to>"`, with `":<area>"` added
+#'   when `area` is given. With `by`, the attribute `"dir"` holds the
+#'   group's direction (for `share`, its vector average).
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -669,49 +994,134 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 #'
 #'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
 #'   pollution as a cause of violent crime. Working paper.
+#'
+#'   Herrnstadt, E. and Muehlegger, E. (2015). Air pollution and criminal
+#'   activity: evidence from Chicago microdata. NBER Working Paper 21787.
+#'   \doi{10.3386/w21787}
 #' @seealso [ivfe()], [ppmlcf()], [invsn()]
 #' @examples
 #' windiv(c(10, 100, 200, 300))
+#' # the paper's whole-degree quadrants: 90 is in the first
+#' windiv(c(90, 91), edges = "paper")
 #' # quadrants by region, as in London
 #' windiv(c(10, 100, 200, 300), area = c("east", "east", "west", "west"))
 #' # one westerly sector
 #' windiv(c(230, 300), sect = c(225, 285))
+#' # hours to days: 350 and 10 degrees average to north
+#' windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2))
+#' windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2), share = TRUE)
 #' @export
-windiv <- function(dir, width = 90, start = 0, area = NULL, base = 1, sect = NULL) {
+windiv <- function(
+  dir,
+  width = 90,
+  start = 0,
+  area = NULL,
+  base = 1,
+  sect = NULL,
+  edges = c("halfopen", "paper"),
+  by = NULL,
+  avg = c("vector", "mode", "mean"),
+  share = FALSE,
+  spd = NULL
+) {
   f <- "windiv"
+  edges <- match.arg(edges)
+  avg <- match.arg(avg)
   if (!is.numeric(dir) || !length(dir)) .ckstop(f, "`dir` must be numeric directions in degrees")
   dir <- as.numeric(dir)
-  if (!is.null(sect)) {
-    if (!is.numeric(sect) || length(sect) != 2L || !all(is.finite(sect)) ||
-          sect[1L] %% 360 == sect[2L] %% 360) {
-      .ckstop(f, "`sect` must be two different finite directions in degrees")
+  if (!is.logical(share) || length(share) != 1L || is.na(share)) {
+    .ckstop(f, "`share` must be TRUE or FALSE")
+  }
+  if (!is.null(spd) && (!is.numeric(spd) || length(spd) != length(dir) || any(spd < 0, na.rm = TRUE))) {
+    .ckstop(f, "`spd` must give one speed from 0 per direction")
+  }
+  if (!is.null(area) && (length(area) != length(dir) || anyNA(area))) {
+    .ckstop(f, "`area` must give one label per direction, none missing")
+  }
+  if (is.null(sect)) {
+    width <- .cknum(width, "width", f, positive = TRUE)
+    start <- .cknum(start, "start", f)
+    nb <- round(360 / width)
+    if (width >= 360 || abs(360 / width - nb) > 1e-9) {
+      .ckstop(f, "`width` must divide 360 into two or more sectors")
     }
+    base <- .cknum(base, "base", f, min = 1, max = nb, whole = TRUE)
+  } else if (!is.numeric(sect) || length(sect) != 2L || !all(is.finite(sect)) ||
+               sect[1L] %% 360 == sect[2L] %% 360) {
+    .ckstop(f, "`sect` must be two different finite directions in degrees")
+  }
+  gl <- NULL
+  if (!is.null(by)) {
+    if (length(by) != length(dir) || anyNA(by)) {
+      .ckstop(f, "`by` must give one group per direction, none missing")
+    }
+    gk <- .axcode(by)
+    gl <- unique(as.character(by))
+    rd <- dir * pi / 180
+    wv <- if (is.null(spd)) rep(1, length(dir)) else as.numeric(spd)
+    ok <- is.finite(dir) & is.finite(wv)
+    vs <- function(fun) as.numeric(tapply(ifelse(ok, fun(rd) * wv, NA), gk$c, mean, na.rm = TRUE))
+    vdir <- (atan2(vs(sin), vs(cos)) * 180 / pi) %% 360
+    if (!is.null(area)) {
+      if (any(tapply(as.character(area), gk$c, function(v) length(unique(v))) > 1L)) {
+        .ckstop(f, "`area` must be constant within each `by` group")
+      }
+      area <- as.character(area)[!duplicated(gk$c)]
+    }
+    if (share) {
+      if (!is.null(sect)) .ckstop(f, "`share` needs sectors by `width`, not `sect`")
+      full <- windiv(ifelse(ok, dir, NA), width, start, NULL, base = base, edges = edges)
+      lev <- if (is.null(area)) NULL else sort(unique(area))
+      m <- rowsum(ifelse(is.na(full), 0, full), gk$c, reorder = TRUE) /
+        as.numeric(tabulate(gk$c[ok] + 1L, gk$n))
+      if (!is.null(lev)) {
+        ai <- match(area, lev)
+        mm <- matrix(0, nrow(m), ncol(m) * length(lev))
+        for (r in seq_len(nrow(m))) mm[r, (ai[r] - 1L) * ncol(m) + seq_len(ncol(m))] <- m[r, ]
+        colnames(mm) <- paste0(rep(colnames(full), length(lev)), ":", rep(lev, each = ncol(m)))
+        m <- mm
+      }
+      rownames(m) <- gl
+      attr(m, "dir") <- vdir
+      return(m)
+    }
+    dir <- switch(avg,
+      vector = vdir,
+      mean = as.numeric(tapply(ifelse(ok, dir, NA), gk$c, mean, na.rm = TRUE)),
+      mode = {
+        if (!is.null(sect)) .ckstop(f, "`avg = \"mode\"` needs sectors by `width`, not `sect`")
+        sc <- .axsec(dir, width, start, edges)
+        md <- as.numeric(tapply(ifelse(ok, sc, NA), gk$c, function(v) {
+          v <- v[!is.na(v)]
+          if (!length(v)) NA else as.numeric(names(which.max(table(factor(v, levels = seq_len(nb))))))
+        }))
+        # the middle of the sector, which falls in it under either edges
+        (start + (md - 0.5) * width) %% 360
+      })
+  }
+  if (!is.null(sect)) {
     m <- matrix(as.numeric((dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360))
     colnames(m) <- paste0("w", format(sect[1L]), "_", format(sect[2L]))
-    return(m)
-  }
-  width <- .cknum(width, "width", f, positive = TRUE)
-  start <- .cknum(start, "start", f)
-  nb <- round(360 / width)
-  if (width >= 360 || abs(360 / width - nb) > 1e-9) {
-    .ckstop(f, "`width` must divide 360 into two or more sectors")
-  }
-  base <- .cknum(base, "base", f, min = 1, max = nb, whole = TRUE)
-  ac <- NULL
-  na <- 1L
-  lev <- NULL
-  if (!is.null(area)) {
-    if (length(area) != length(dir) || anyNA(area)) {
-      .ckstop(f, "`area` must give one label per direction, none missing")
+  } else {
+    ac <- NULL
+    na <- 1L
+    lev <- NULL
+    if (!is.null(area)) {
+      lev <- if (is.factor(area)) levels(droplevels(area)) else sort(unique(as.character(area)))
+      ac <- match(as.character(area), lev) - 1L
+      na <- length(lev)
     }
-    lev <- if (is.factor(area)) levels(droplevels(area)) else sort(unique(as.character(area)))
-    ac <- match(as.character(area), lev) - 1L
-    na <- length(lev)
+    m <- .Call(C_clab_r_windbin, dir, width, start, ac, na, as.integer(base - 1),
+               if (edges == "paper") 1L else 0L)
+    lo <- (start + (seq_len(nb) - 1) * width) %% 360
+    nm <- paste0("w", format(lo, trim = TRUE), "_",
+                 format((lo + width) %% 360, trim = TRUE))[-base]
+    colnames(m) <- if (is.null(lev)) nm else paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
   }
-  m <- .Call(C_clab_r_windbin, dir, width, start, ac, na, as.integer(base - 1))
-  lo <- (start + (seq_len(nb) - 1) * width) %% 360
-  nm <- paste0("w", format(lo, trim = TRUE), "_", format((lo + width) %% 360, trim = TRUE))[-base]
-  colnames(m) <- if (is.null(lev)) nm else paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
+  if (!is.null(gl)) {
+    rownames(m) <- gl
+    attr(m, "dir") <- dir
+  }
   m
 }
 
@@ -722,22 +1132,36 @@ windiv <- function(dir, width = 90, start = 0, area = NULL, base = 1, sect = NUL
 #' temperatures at circa 750 m altitude (925 hectopascals [hPa] pressure
 #' level)". On most days the air cools with height; in an inversion it is
 #' warmer above than at the ground, and pollutants are trapped near the
-#' ground. The paper does not say which temperature is subtracted from
-#' which; here `diff` is the upper temperature less the ground one, so it
-#' is positive in an inversion, and `inv` is 1 then.
+#' ground.
 #'
-#' Inversions cover large areas (the paper's satellite readings are on a
-#' grid of about 110 by 70 km), so they vary little between places in a
-#' city; Bondy, Roth and Sager use them at the borough and city level. As
+#' The choices. The paper does not say which temperature is subtracted
+#' from which: `sign = "upper"` (the default) gives the upper temperature
+#' less the ground one, positive in an inversion; `sign = "ground"` the
+#' reverse, as the paper's words run. `inv` is 1 in an inversion (upper
+#' warmer than ground) whatever the sign; the indicator, rather than the
+#' continuous difference, is the other common form of the instrument. With
+#' `brk`, `bin` gives the strength in bins of the difference (by the
+#' chosen sign), for an instrument that lets weak and strong inversions act
+#' differently.
+#'
+#' Cautions. Inversions cover large areas (the paper's satellite readings
+#' are on a grid of about 110 by 70 km), so they vary little between places
+#' in a city; Bondy, Roth and Sager use them at the borough and city level
+#' and report a weaker first stage there than for wind (their table 5). As
 #' an instrument the inversion must affect the outcome only through the
-#' exposure; cold, still days may change what people do as well, so
-#' weather controls matter (see [ivfe()]).
+#' exposure; inversions come with cold, still, clear weather, which may
+#' change what people do as well, so weather controls matter (see
+#' [ivfe()]).
 #'
 #' @param tlow Temperatures at the ground (numbers, `NA` allowed).
 #' @param tup Temperatures aloft, at the same places and times, in the same
 #'   unit.
-#' @return A data frame: `diff`, `tup - tlow`, and `inv`, 1 when `diff` is
-#'   above 0 and 0 otherwise (`NA` where a temperature is missing).
+#' @param sign `"upper"` or `"ground"`: which temperature comes first.
+#' @param brk `NULL` or the breaks of the bins of the difference (as in
+#'   [cut()], right-closed).
+#' @return A data frame: `diff`, the difference by `sign`; `inv`, 1 when
+#'   `tup` is above `tlow` and 0 otherwise (`NA` where a temperature is
+#'   missing); and with `brk`, `bin`, a factor.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -746,24 +1170,35 @@ windiv <- function(dir, width = 90, start = 0, area = NULL, base = 1, sect = NUL
 #' @seealso [windiv()], [ivfe()], [ppmlcf()]
 #' @examples
 #' invsn(c(10, 5, 2), c(8, 6, 2))
+#' invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
 #' @export
-invsn <- function(tlow, tup) {
+invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
   f <- "invsn"
+  sign <- match.arg(sign)
   if (!is.numeric(tlow) || !is.numeric(tup) || length(tlow) != length(tup) ||
         !length(tlow)) {
     .ckstop(f, "`tlow` and `tup` must be numeric vectors of one length")
   }
-  dd <- as.numeric(tup) - as.numeric(tlow)
-  data.frame(diff = dd, inv = as.integer(dd > 0))
+  up <- as.numeric(tup) - as.numeric(tlow)
+  r <- data.frame(diff = if (sign == "upper") up else -up, inv = as.integer(up > 0))
+  if (!is.null(brk)) {
+    if (!is.numeric(brk) || length(brk) < 2L || anyNA(brk) || is.unsorted(brk, strictly = TRUE)) {
+      .ckstop(f, "`brk` must be two or more increasing numbers")
+    }
+    r$bin <- cut(r$diff, brk)
+  }
+  r
 }
 
 #' Irrelevant-day placebo
 #'
 #' Refits an estimator with the exposure taken from other days of the same
-#' place, a week, a month or a year before and after, and returns the
-#' table of coefficients, the same day first. This is the placebo of Bondy,
-#' Roth and Sager (2020, table A1: 7, 31 and 365 days back and forward) and
-#' of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table 9: 100 days).
+#' place, leads and lags in one call, and returns one table of
+#' coefficients, the same day first. This is the placebo of Bondy, Roth
+#' and Sager (2020, table A1 and footnote 27: 7, 31 and 365 days back and
+#' forward) and of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table
+#' 9: 100 days); `shifts = c(-365, -100, -31, -7, 7, 31, 100, 365)` runs
+#' both.
 #'
 #' What it can show: if pollution on irrelevant days predicts crime as
 #' well as pollution on the day does, the estimate is picking up something
@@ -775,27 +1210,32 @@ invsn <- function(tlow, tup) {
 #' correlated with same-day exposure when pollution persists, so a small
 #' placebo coefficient is expected even then.
 #'
-#' The shift is by the day's value: row `(place, day)` gets the exposure
-#' of `(place, day + shift)` and is dropped when that row does not exist;
-#' `n` reports the rows left. For the instrumental-variable estimators,
-#' Bondy, Roth and Sager do not say whether the instruments are shifted
-#' with the exposure; name them in `with` to shift them too.
+#' The shift is by the day's value: row `(place, day)` gets the value of
+#' `(place, day + shift)` and is dropped when that row does not exist;
+#' `n` reports the rows left. For the instrumental-variable estimators the
+#' papers do not say what is moved: `shift = "both"` (the default) moves
+#' the exposure `var` and the columns in `with` (the instruments) together,
+#' a placebo of the whole design on another day; `"x"` moves the exposure
+#' alone and keeps the same-day instruments; `"z"` moves the instruments
+#' alone (a reduced-form placebo).
 #'
 #' @param data A data frame, one row per place and day.
-#' @param var The name of the exposure column to shift.
+#' @param var The name of the exposure column.
 #' @param unit,day The names of the place and day columns; days are
 #'   numbers or dates (one per unit at most).
-#' @param shifts The shifts in days, whole numbers other than 0; negative
-#'   is the past.
+#' @param shifts The leads and lags in days, whole numbers other than 0;
+#'   negative is the past.
 #' @param est The estimator: [ppmlfe()], [ivfe()] or [ppmlcf()], or
 #'   another function with a `data` argument returning a list with `coef`
 #'   holding a row whose `term` is `var`.
-#' @param with `NULL` or the names of other columns to shift with `var`.
+#' @param with `NULL` or the names of other columns to move (the
+#'   instruments).
+#' @param shift `"both"`, `"x"` or `"z"`: what is moved.
 #' @param ... The other arguments of `est` (`y`, `x`, `fe`, ...).
 #' @param object,x An object of class `plcday` (for the methods).
 #' @return An object of class `plcday`, a list: `tab`, a data frame with
 #'   one row per shift, 0 (the same day) first (`shift`, `est`, `se`,
-#'   `lo`, `hi`, `p`, `n`); `var` and `level`. `summary()` returns `tab`.
+#'   `lo`, `hi`, `p`, `n`); `var`, `shift`. `summary()` returns `tab`.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -822,14 +1262,17 @@ plcday <- function(
   shifts = c(-365, -31, -7, 7, 31, 365),
   est = ppmlfe,
   with = NULL,
+  shift = c("both", "x", "z"),
   ...
 ) {
   f <- "plcday"
+  shift <- match.arg(shift)
   d <- .axdat(data, f)
   .axcols(d, var, "var", f, n = 1L)
   .axcols(d, unit, "unit", f, n = 1L)
   .axcols(d, day, "day", f, n = 1L)
   .axcols(d, with, "with", f, null = TRUE)
+  if (shift == "z" && !length(with)) .ckstop(f, "`shift = \"z\"` needs the instruments in `with`")
   if (!is.function(est)) .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   if (!is.numeric(shifts) || !length(shifts) || !all(is.finite(shifts)) ||
         any(shifts != round(shifts)) || any(shifts == 0) || anyDuplicated(shifts)) {
@@ -841,12 +1284,13 @@ plcday <- function(
   }
   tv <- as.numeric(tv)
   uc <- .axcode(d[[unit]])$c
+  mv <- switch(shift, both = c(var, with), x = var, z = with)
   rows <- lapply(c(0, shifts), function(s) {
     ix <- .Call(C_clab_r_dshift, uc, tv, s)
     k <- !is.na(ix)
     if (sum(k) < 2L) .ckstop(f, "a shift of %s days leaves fewer than two rows", format(s))
     ds <- d[k, , drop = FALSE]
-    for (v in c(var, with)) ds[[v]] <- d[[v]][ix[k]]
+    for (v in mv) ds[[v]] <- d[[v]][ix[k]]
     r <- est(data = ds, ...)
     cf <- r[["coef"]]
     if (!is.data.frame(cf) || !var %in% cf[["term"]]) {
@@ -856,14 +1300,15 @@ plcday <- function(
     data.frame(shift = s, est = cf[["est"]], se = cf[["se"]], lo = cf[["lo"]],
                hi = cf[["hi"]], p = cf[["p"]], n = sum(k))
   })
-  structure(list(tab = do.call(rbind, rows), var = var), class = "plcday")
+  structure(list(tab = do.call(rbind, rows), var = var, shift = shift), class = "plcday")
 }
 
 #' @rdname plcday
 #' @export
 print.plcday <- function(x, ...) {
   cat("plcday: the coefficient of ", x[["var"]],
-      " with the exposure of other days (shift 0 is the same day)\n", sep = "")
+      " with values of other days (shift 0 is the same day; moved: ",
+      x[["shift"]], ")\n", sep = "")
   print(x[["tab"]], row.names = FALSE, digits = 4)
   invisible(x)
 }
@@ -892,39 +1337,53 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #' `y1` `NA`: a stack, a port, an airport).
 #'
 #' The classification (crimlab's kernel, following the paper's rules). An
-#' area belongs to the one source within `band` of it; areas within `band`
-#' of two sources are dropped, as the paper drops crimes within a mile of
-#' two interstates. For a segment, the side of the area is set by which
-#' side of the line it lies on; the area is downwind on a day when the
-#' direction the wind blows to is within `tol` degrees of the line
-#' orthogonal to the road pointing to its side, upwind when within `tol`
-#' of the opposite direction, and the day is dropped for that road
-#' otherwise (wind along the road). The paper's main rule is a band of one
-#' mile and 60 degrees; its robustness checks use 30 to 90 degrees and a
-#' quarter mile to one mile. For a point source the same rule applies to
-#' the direction from the source to the area (downwind within `tol` of
-#' where the wind blows to): this extends the design and is not in the
-#' papers.
+#' area belongs to a source within `band` of it. For a segment, the side of
+#' the area is set by which side of the line it lies on; the area is
+#' downwind on a day when the direction the wind blows to is within `tol`
+#' degrees of the line orthogonal to the road pointing to its side, upwind
+#' when within `tol` of the opposite direction, and the day is dropped for
+#' that road otherwise (wind along the road). For a point source the same
+#' rule applies to the direction from the source to the area: this extends
+#' the design and is not in the papers.
 #'
-#' The estimate is the paper's equation (3): `y_ist = a_is + g_it + b
-#' downwind_ist + e_ist`, with route-side fixed effects `a_is` and
+#' The choices, with the paper's own first:
+#'
+#' * `tol`: 60 degrees in the paper's main results (p. 12); 30 to 90 in its
+#'   robustness table (pp. 15-16).
+#' * `band`: one mile (1609 m) in the paper (footnote 23); a quarter mile
+#'   to one mile in its robustness table. `dist` (breaks of distance) gives
+#'   one downwind coefficient per ring instead, the paper's finding that
+#'   the effect declines with distance.
+#' * `twin`, areas within `band` of two sources: `"drop"` as the paper
+#'   (p. 11-12); `"near"` gives them to the nearer source; `"keep"` counts
+#'   them for each source.
+#' * `norm`, the outcome: `"mean"`, counts divided by their mean over the
+#'   rows used, least squares (the paper's main tables: the coefficient is
+#'   a share of the mean count); `"none"`, raw counts, least squares;
+#'   `"log"`, `log(1 + y)`, least squares; `"pois"`, the Poisson
+#'   pseudo-likelihood of [ppmlfe()] (the paper's appendix table A.1).
+#' * `wx`: weather columns interacted with the side effects, the paper's
+#'   equation (4), p. 14, which lets each side respond to the weather in
+#'   its own way (one side's interactions are left out: the route-date
+#'   effects absorb the weather itself).
+#' * `se`: `"hc1"` (the default), robust errors as the paper reports;
+#'   `"cluster"` (by `clus`, such as side-month or side-year as in its
+#'   appendix table A.2), `"twoway"`, `"nw"` (Newey-West within each side
+#'   over days, its appendix too) or `"boot"`, as in [ppmlfe()]. Stata's
+#'   robust errors use `n / (n - K)`; here that is `ssc = "nk"`.
+#'
+#' The estimate is the paper's equation (3), p. 12: `y_ist = a_is + g_it +
+#' b downwind_ist + e_ist`, with route-side fixed effects `a_is` and
 #' route-date fixed effects `g_it`; with `agg = TRUE` the counts of the
 #' areas on one side of one segment are summed by day first, as the paper
 #' counts crimes by interstate side and day. Without aggregation (and for
-#' point sources) the first effect is the area. With `norm = TRUE` the
-#' outcome is divided by its mean over the rows used, so that `b` is a
-#' share of the mean count, as in the paper; `fam = "ppml"` fits the count
-#' model of [ppmlfe()] instead (the paper's appendix table A.1). The paper
-#' reports heteroskedasticity-robust errors (here `clus = NULL`: each row
-#' its own cluster, with the factor `n / (n - 1)`, not Stata's), and
-#' clustered by side and month or year in its appendix (give such a
-#' column, constant within a side and day, as `clus`).
+#' point sources) the first effect is the area.
 #'
 #' Placebos. Run the design on an outcome the exposure should not affect
 #' (the paper uses property crime); and, with `offs`, move every segment
 #' sideways by each offset and re-estimate, the paper's placebo
-#' interstates drawn parallel to I-290 a mile apart: the effect should
-#' peak at offset 0.
+#' interstates drawn parallel to I-290 a mile apart (pp. 17-18): the effect
+#' should peak at offset 0.
 #'
 #' @param data A data frame, one row per area and day.
 #' @param y The name of the count column.
@@ -940,25 +1399,29 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #' @param tol The angle in degrees, above 0 and at most 90.
 #' @param band The largest distance of an area from its source, in the
 #'   coordinates' unit.
+#' @param dist `NULL` or increasing breaks of distance from 0 for rings.
+#' @param twin `"drop"`, `"near"` or `"keep"`.
 #' @param agg `TRUE` to sum the areas on each side of each segment by day.
-#' @param fam `"ols"` (least squares, the paper's main model) or `"ppml"`.
-#' @param norm `TRUE` to divide the outcome by its mean (least squares
-#'   only).
-#' @param clus `NULL` (robust by row) or the name of a cluster column,
-#'   constant within each side (area) and day.
+#' @param norm `"mean"`, `"none"`, `"log"` or `"pois"`.
+#' @param wx `NULL` or the names of weather columns, constant within a side
+#'   and day.
+#' @param se,ssc,lag,nboot,seed As in [ppmlfe()]; the units of `"nw"` are
+#'   the sides (areas) and the time is `day`.
+#' @param clus `NULL` (for `"cluster"`, the sides) or the names of cluster
+#'   columns, constant within each side (area) and day.
 #' @param offs `NULL` or offsets (in the coordinates' unit, positive to the
 #'   left of each segment) for the placebo segments; segments only.
 #' @param level The confidence level.
 #' @param object,x An object of class `updwn` (for the methods).
 #' @param ... Not used.
-#' @return An object of class `updwn`, a list: `coef`, the row of the
-#'   downwind indicator (as in [ivfe()] or [ppmlfe()]); `class`, the rows
-#'   by outcome of the classification (`downwind`, `upwind`, `along`
-#'   (wind along the road or crosswind), `nosource`, `twosources`,
-#'   `onsource`, `missing`); `n`, the rows of the fit; `fit`, the fit;
-#'   `placebo`, `NULL` or one row per offset (`off`, `est`, `se`, `lo`,
-#'   `hi`, `p`, `n`). `summary()` returns `coef`, with the placebo rows
-#'   when there are any.
+#' @return An object of class `updwn`, a list: `coef`, the rows of the
+#'   downwind terms (one, or one per ring); `class`, the rows by outcome of
+#'   the classification (`downwind`, `upwind`, `along` (wind along the road
+#'   or crosswind), `nosource`, `twosources`, `onsource`, `missing`); `n`,
+#'   the rows of the fit; `fit`, the fit; `placebo`, `NULL` or one row per
+#'   offset (`off`, `est`, `se`, `lo`, `hi`, `p`, `n`); `norm`, `tol`,
+#'   `band`. `summary()` returns `coef`, with the placebo rows when there
+#'   are any.
 #' @references
 #'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air
 #'   pollution and criminal activity: microgeographic evidence from
@@ -977,13 +1440,16 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #' a <- data.frame(area = 1:20, ax = runif(20, 0, 5000),
 #'                 ay = rep(c(-800, 800), 10))
 #' d <- merge(a, data.frame(day = 1:120))
-#' d$wind <- rep(runif(120, 0, 360), each = 1)[d$day]
+#' d$wind <- runif(120, 0, 360)[d$day]
 #' blowsn <- cos((d$wind + 180) * pi / 180)  # +1 when the wind blows north
 #' dn <- (d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5)
 #' d$crimes <- rpois(nrow(d), 3 * (1 + 0.1 * dn))
 #' road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
 #' updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
 #'       offs = c(-1600, 0, 1600))
+#' # the Poisson model and two distance rings
+#' summary(updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
+#'               norm = "pois", dist = c(0, 500, 1600)))
 #' @export
 updwn <- function(
   data,
@@ -996,21 +1462,33 @@ updwn <- function(
   area = NULL,
   tol = 60,
   band = Inf,
+  dist = NULL,
+  twin = c("drop", "near", "keep"),
   agg = TRUE,
-  fam = "ols",
-  norm = TRUE,
+  norm = c("mean", "none", "log", "pois"),
+  wx = NULL,
+  se = c("hc1", "cluster", "twoway", "nw", "boot"),
+  ssc = c("G", "nk", "none"),
   clus = NULL,
+  lag = NULL,
+  nboot = 199,
+  seed = NULL,
   offs = NULL,
   level = 0.95
 ) {
   f <- "updwn"
+  twin <- match.arg(twin)
+  norm <- match.arg(norm)
+  se <- match.arg(se)
+  ssc <- match.arg(ssc)
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, c(ax, ay), "ax, ay", f, n = 2L)
   .axcols(d, day, "day", f, n = 1L)
   .axcols(d, wind, "wind", f, n = 1L)
   .axcols(d, area, "area", f, n = 1L, null = TRUE)
-  .axcols(d, clus, "clus", f, n = 1L, null = TRUE)
+  .axcols(d, clus, "clus", f, n = 1:2, null = TRUE)
+  .axcols(d, wx, "wx", f, null = TRUE)
   s <- .axdat(src, f, "src")
   if (!all(c("x0", "y0") %in% names(s))) .ckstop(f, "`src` must have columns x0 and y0")
   for (k in c("x1", "y1")) if (is.null(s[[k]])) s[[k]] <- NA_real_
@@ -1025,11 +1503,13 @@ updwn <- function(
   line <- is.finite(s1) & is.finite(t1)
   tol <- .cknum(tol, "tol", f, positive = TRUE, min = 0, max = 90)
   if (!identical(band, Inf)) band <- .cknum(band, "band", f, positive = TRUE)
-  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) .ckstop(f, "`agg` must be TRUE or FALSE")
-  if (!is.logical(norm) || length(norm) != 1L || is.na(norm)) .ckstop(f, "`norm` must be TRUE or FALSE")
-  if (!is.character(fam) || length(fam) != 1L || !fam %in% c("ols", "ppml")) {
-    .ckstop(f, "`fam` must be \"ols\" or \"ppml\"")
+  if (!is.null(dist)) {
+    if (!is.numeric(dist) || length(dist) < 2L || anyNA(dist) || dist[1L] < 0 ||
+          is.unsorted(dist, strictly = TRUE)) {
+      .ckstop(f, "`dist` must be two or more increasing distances from 0")
+    }
   }
+  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) .ckstop(f, "`agg` must be TRUE or FALSE")
   if (is.null(area) && (!agg || any(!line))) {
     .ckstop(f, "`area` is needed for point sources and for agg = FALSE")
   }
@@ -1039,51 +1519,118 @@ updwn <- function(
       .ckstop(f, "`offs` must be finite numbers")
     }
   }
+  if (se == "twoway" && length(clus) != 2L) .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
   level <- .axlevel(level, f)
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
   xy <- .axmat(d, c(ax, ay), f)
   wd <- .axmat(d, wind, f)[, 1L]
+  if (length(wx)) .axmat(d, wx, f)
   dv <- as.character(d[[day]])
+  tnum <- if (is.numeric(d[[day]]) || inherits(d[[day]], "Date")) as.numeric(d[[day]])
+  if (se == "nw" && is.null(tnum)) .ckstop(f, "`se = \"nw\"` needs a day column of numbers or dates")
   av <- if (!is.null(area)) as.character(d[[area]])
   if (!is.null(area) && anyDuplicated(paste(av, dv, sep = "\r"))) {
     .ckstop(f, "an area has two rows on one day")
   }
   labs <- c(`1` = "downwind", `0` = "upwind", `-1` = "along", `-2` = "nosource",
             `-3` = "twosources", `-4` = "onsource", `-5` = "missing")
+  same <- function(v, cell) any(tapply(v, cell, function(u) length(unique(u))) > 1L)
   run <- function(a0, b0, a1, b1) {
-    k <- .Call(C_clab_r_updwn, xy[, 1L], xy[, 2L], wd, a0, b0, a1, b1, band, tol)
-    tb <- table(factor(labs[as.character(k$dn)], levels = labs))
+    if (twin == "keep") {
+      parts <- lapply(seq_along(a0), function(j) {
+        k <- .Call(C_clab_r_updwn, xy[, 1L], xy[, 2L], wd, a0[j], b0[j], a1[j], b1[j], band,
+                   tol, 0L)
+        k$src[!is.na(k$src)] <- j
+        k$row <- seq_len(nrow(xy))
+        k
+      })
+      k <- list(src = unlist(lapply(parts, `[[`, "src")), side = unlist(lapply(parts, `[[`, "side")),
+                dn = unlist(lapply(parts, `[[`, "dn")), dst = unlist(lapply(parts, `[[`, "dst")),
+                row = unlist(lapply(parts, `[[`, "row")))
+      # an area near no source counts once in the table
+      hit <- k$dn != -2L
+      none <- setdiff(seq_len(nrow(xy)), k$row[hit])
+      tb <- table(factor(labs[as.character(c(k$dn[hit], rep(-2L, length(none))))], levels = labs))
+    } else {
+      k <- .Call(C_clab_r_updwn, xy[, 1L], xy[, 2L], wd, a0, b0, a1, b1, band, tol,
+                 if (twin == "near") 1L else 0L)
+      k$row <- seq_len(nrow(xy))
+      tb <- table(factor(labs[as.character(k$dn)], levels = labs))
+    }
     use <- k$dn >= 0L
     if (sum(use) < 2L) .ckstop(f, "fewer than two rows are upwind or downwind of a source")
-    ln <- line[k$src[use]]
-    g <- ifelse(ln & agg, paste("s", k$src[use], k$side[use], sep = "\r"),
-                paste("a", if (is.null(area)) "" else av[use], sep = "\r"))
-    cell <- paste(g, dv[use], sep = "\r")
-    sd <- paste(k$src[use], dv[use], sep = "\r")
-    dn <- k$dn[use]
-    if (any(tapply(dn, cell, function(v) length(unique(v))) > 1L)) {
+    rw <- k$row[use]
+    ring <- if (is.null(dist)) rep("", sum(use)) else {
+      rg <- cut(k$dst[use], dist, include.lowest = TRUE)
+      as.character(rg)
+    }
+    keep <- !is.na(ring)
+    rw <- rw[keep]
+    ring <- ring[keep]
+    sr <- k$src[use][keep]
+    sd0 <- k$side[use][keep]
+    dn <- k$dn[use][keep]
+    if (!length(rw)) .ckstop(f, "no row falls in the rings of `dist`")
+    ln <- line[sr]
+    g <- ifelse(ln & agg, paste("s", sr, sd0, ring, sep = "\r"),
+                paste("a", if (is.null(area)) "" else av[rw], sr, ring, sep = "\r"))
+    cell <- paste(g, dv[rw], sep = "\r")
+    sdy <- paste(sr, dv[rw], sep = "\r")
+    if (same(dn, cell)) {
       .ckstop(f, "the wind differs between areas of one side and day: give one direction per day, or agg = FALSE")
     }
-    cv <- if (!is.null(clus)) as.character(d[[clus]])[use]
-    if (!is.null(clus) && any(tapply(cv, cell, function(v) length(unique(v))) > 1L)) {
-      .ckstop(f, "column `%s` must be constant within each side (area) and day", clus)
+    for (cc in c(clus, wx)) {
+      if (same(as.character(d[[cc]])[rw], cell)) {
+        .ckstop(f, "column `%s` must be constant within each side (area) and day", cc)
+      }
     }
     o <- !duplicated(cell)
-    e <- data.frame(y = as.numeric(rowsum(yv[use], cell, reorder = FALSE)),
-                    g = g[o], sd = sd[o], down = as.numeric(dn[o]),
-                    cl = if (is.null(clus)) seq_len(sum(o)) else cv[o])
-    if (fam == "ols") {
-      if (norm) {
+    e <- data.frame(y = as.numeric(rowsum(yv[rw], cell, reorder = FALSE)),
+                    g = g[o], sd = sdy[o], down = as.numeric(dn[o]), row = seq_len(sum(o)))
+    if (!is.null(tnum)) e$t <- tnum[rw][o]
+    for (cc in clus) e[[cc]] <- d[[cc]][rw][o]
+    xs <- "down"
+    if (!is.null(dist)) {
+      rl <- ring[o]
+      lv <- levels(cut(dist[-1L], dist, include.lowest = TRUE))
+      xs <- character()
+      for (l in lv[lv %in% rl]) {
+        nm <- paste0("down:", l)
+        e[[nm]] <- e$down * (rl == l)
+        xs <- c(xs, nm)
+      }
+    }
+    if (length(wx)) {
+      # each side's own response to the weather, less one side per source
+      # (the route-date effects absorb the weather of each route)
+      gl <- unique(e$g)
+      gs <- sr[o][match(gl, e$g)]
+      for (w in wx) {
+        wv <- as.numeric(d[[w]][rw][o])
+        for (l in gl[duplicated(gs)]) {
+          nm <- paste0(w, ":side", match(l, gl))
+          e[[nm]] <- wv * (e$g == l)
+        }
+      }
+    }
+    xa <- setdiff(names(e), c("y", "g", "sd", "down", "row", "t", clus))
+    xa <- c(xs, setdiff(xa, xs))
+    cl <- if (se == "hc1") "row" else if (is.null(clus)) "g" else clus
+    tcol <- if (se == "nw") "t" else NULL
+    if (norm == "pois") {
+      r <- ppmlfe(e, "y", xa, fe = c("g", "sd"), clus = cl, se = se, ssc = ssc, time = tcol,
+                  lag = lag, nboot = nboot, seed = seed, level = level)
+    } else {
+      e$y <- switch(norm, mean = {
         m <- mean(e$y)
         if (!(m > 0)) .ckstop(f, "the counts are all 0")
-        e$y <- e$y / m
-      }
-      r <- ivfe(e, "y", x = "down", fe = c("g", "sd"), clus = "cl", level = level)
-    } else {
-      r <- ppmlfe(e, "y", "down", fe = c("g", "sd"), clus = "cl", level = level)
+        e$y / m
+      }, none = e$y, log = log1p(e$y))
+      r <- ivfe(e, "y", x = xa, fe = c("g", "sd"), clus = cl, se = se, ssc = ssc, time = tcol,
+                lag = lag, nboot = nboot, seed = seed, level = level)
     }
-    list(fit = r, tab = tb, n = nrow(e))
+    list(fit = r, tab = tb, n = nrow(e), coef = r$coef[r$coef$term %in% xs, , drop = FALSE])
   }
   r0 <- run(s0, t0, s1, t1)
   pl <- NULL
@@ -1093,14 +1640,14 @@ updwn <- function(
     ny <- (s1 - s0) / len
     pl <- do.call(rbind, lapply(offs, function(o) {
       ro <- run(s0 + o * nx, t0 + o * ny, s1 + o * nx, t1 + o * ny)
-      c0 <- ro$fit$coef
+      c0 <- ro$coef[1L, ]
       data.frame(off = o, est = c0$est, se = c0$se, lo = c0$lo, hi = c0$hi,
                  p = c0$p, n = ro$n)
     }))
   }
   structure(
-    list(coef = r0$fit$coef, class = r0$tab, n = r0$n, fit = r0$fit,
-         placebo = pl, fam = fam, tol = tol, band = band),
+    list(coef = r0$coef, class = r0$tab, n = r0$n, fit = r0$fit, placebo = pl,
+         norm = norm, tol = tol, band = band),
     class = "updwn"
   )
 }
@@ -1108,8 +1655,9 @@ updwn <- function(
 #' @rdname updwn
 #' @export
 print.updwn <- function(x, ...) {
-  cat("updwn: downwind against upwind, ", x[["n"]], " side (area) days, ",
-      if (x[["fam"]] == "ols") "least squares" else "Poisson pseudo-likelihood",
+  cat("updwn: downwind against upwind, ", x[["n"]], " side (area) days, outcome ",
+      c(mean = "over its mean", none = "as counts", log = "log(1 + y)",
+        pois = "by Poisson")[[x[["norm"]]]],
       ", tolerance ", format(x[["tol"]]), " degrees\n", sep = "")
   print(x[["coef"]], row.names = FALSE, digits = 4)
   cat("rows by classification:\n")
@@ -1126,7 +1674,7 @@ print.updwn <- function(x, ...) {
 summary.updwn <- function(object, ...) {
   cf <- object[["coef"]]
   if (is.null(object[["placebo"]])) return(cf)
-  cbind(off = c(NA, object[["placebo"]][["off"]]),
+  cbind(off = c(rep(NA, nrow(cf)), object[["placebo"]][["off"]]),
         rbind(cf[c("est", "se", "lo", "hi", "p")],
               object[["placebo"]][c("est", "se", "lo", "hi", "p")]))
 }

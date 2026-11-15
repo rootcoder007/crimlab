@@ -52,7 +52,7 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
               const double *zi, int q, int n, const double *w, const int *f1, int n1,
               const int *f2, int n2, const int *cl, int ncl, const int *cl2, int ncl2,
               double tol, double *beta, double *vc, double *fst, double *fres, double *res,
-              double *st) {
+              double *sco, double *brd, double *st) {
   const int p = pe + px, k = 1 + pe + px + q;
   if (n < 2 || pe < 0 || px < 0 || q < pe || p < 1 || n1 < 1 || (f2 && n2 < 1) ||
       !(tol > 0) || (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2))) {
@@ -102,24 +102,63 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
       for (size_t i = 0; i < sn; ++i) fres[sz(n, j) + i] = r[i];
     }
     if (cl) {
-      // the cluster-robust Wald statistic of the excluded instruments, over q
-      std::vector<double> vf(sz(q + px, q + px));
+      // the cluster-robust Wald statistic of the excluded instruments over
+      // q; the Kleibergen-Paap rk Wald F, which for one endogenous column
+      // is that statistic; and the effective F of Montiel Olea and
+      // Pflueger (2013), bz' Q bz / tr(Vzz Q), Q the instruments' cross
+      // products after the controls and the effects
+      std::vector<double> vf(sz(q + px, q + px)), bz(b, b + q);
       g = pev::crv(fz.data(), r, w, n, q + px, xi, cl, ncl, cl2, ncl2, c12.data(), n12, 1.0,
                    vf.data(), sc);
+      std::vector<double> vz(sz(q, q));
       for (int a = 0; a < q; ++a) {
-        for (int c = 0; c < q; ++c) xi2[sz(c, q) + static_cast<size_t>(a)] = vf[sz(c, q + px) + static_cast<size_t>(a)];
+        for (int c = 0; c < q; ++c) {
+          vz[sz(c, q) + static_cast<size_t>(a)] = vf[sz(c, q + px) + static_cast<size_t>(a)];
+          xi2[sz(c, q) + static_cast<size_t>(a)] = vz[sz(c, q) + static_cast<size_t>(a)];
+        }
       }
-      if (!pev::chol(xi2, q)) {
-        fst[j] = kutil::nan();
-      } else {
+      double wald = kutil::nan();
+      if (pev::chol(xi2, q)) {
         std::vector<double> iv(sz(q, q));
         pev::cinv(xi2, q, iv.data());
         double wd = 0.0;
         for (int a = 0; a < q; ++a) {
-          for (int c = 0; c < q; ++c) wd += b[a] * iv[sz(c, q) + static_cast<size_t>(a)] * b[c];
+          for (int c = 0; c < q; ++c) wd += bz[a] * iv[sz(c, q) + static_cast<size_t>(a)] * bz[c];
         }
-        fst[j] = wd / q;
+        wald = wd / q;
       }
+      fst[j] = wald;
+      fst[pe + j] = pe == 1 ? wald : kutil::nan();
+      double eff = kutil::nan();
+      if (pe == 1) {
+        // the instruments less their fit on the controls (all demeaned)
+        std::vector<double> rz(sz(n, q));
+        for (int a = 0; a < q; ++a) {
+          const double *za = fz.data() + sz(n, a);
+          if (px > 0) {
+            if (pev::ols(ex, za, n, px, w, b, xi, rz.data() + sz(n, a), sc) != CLAB_OK) return CLAB_EDOM;
+          } else {
+            for (size_t i = 0; i < sn; ++i) rz[sz(n, a) + i] = za[i];
+          }
+        }
+        std::vector<double> qq(sz(q, q));
+        for (int a = 0; a < q; ++a) {
+          for (int c = 0; c < q; ++c) {
+            kutil::ksum t;
+            for (size_t i = 0; i < sn; ++i) t.add((w ? w[i] : 1.0) * rz[sz(n, a) + i] * rz[sz(n, c) + i]);
+            qq[sz(c, q) + static_cast<size_t>(a)] = t.val();
+          }
+        }
+        double num = 0.0, den = 0.0;
+        for (int a = 0; a < q; ++a) {
+          for (int c = 0; c < q; ++c) {
+            num += bz[a] * qq[sz(c, q) + static_cast<size_t>(a)] * bz[c];
+            den += vz[sz(c, q) + static_cast<size_t>(a)] * qq[sz(a, q) + static_cast<size_t>(c)];
+          }
+        }
+        if (den > 0) eff = num / den;
+      }
+      fst[2 * pe + j] = eff;
     }
   }
   // the second stage on H, the residuals on the actual columns
@@ -130,6 +169,14 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
     for (int j = 0; j < px; ++j) f += ex[sz(n, j) + i] * beta[pe + j];
     u[i] = ye[i] - f;
     if (res) res[i] = u[i];
+  }
+  if (brd) {
+    for (size_t a = 0; a < sz(p, p); ++a) brd[a] = xi[a];
+  }
+  if (sco) {
+    for (int j = 0; j < p; ++j) {
+      for (size_t i = 0; i < sn; ++i) sco[sz(n, j) + i] = (w ? w[i] : 1.0) * u[i] * h[sz(n, j) + i];
+    }
   }
   if (cl && vc) {
     g = pev::crv(h.data(), u, w, n, p, xi, cl, ncl, cl2, ncl2, c12.data(), n12, 1.0, vc, sc);
@@ -145,9 +192,12 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
 int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int px,
                 const double *zi, int q, int n, const double *off, const int *f1, int n1,
                 const int *f2, int n2, const int *cl, int ncl, const int *bm, int nb,
-                int maxit, double eps, double tol, double *beta, double *fst, double *draw,
-                double *st) {
-  const int p = pe + px + pe;
+                int how, int maxit, double eps, double tol, double *beta, double *fst,
+                double *draw, double *st) {
+  // how 0: the control function (the residuals join the regressors); 1:
+  // the fitted exposure in place of the exposure
+  const int p = how == 1 ? pe + px : pe + px + pe;
+  if (how < 0 || how > 1) return CLAB_EARG;
   if (n < 2 || pe < 1 || px < 0 || q < pe || ncl < 2 || nb < 0 || !cl) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (cl[i] < 0 || cl[i] >= ncl) return CLAB_EARG;
@@ -181,19 +231,22 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
     std::vector<double> fres(sz(m, pe)), b1(static_cast<size_t>(pe + px)), s1(3);
     const int rc = clab_ivfe(yy.data(), e.data(), pe, x2.data(), px, z2.data(), q, m, fw ? ww.data() : nullptr,
                    a1.data(), n1, f2 ? a2.data() : nullptr, n2, c ? cc.data() : nullptr, nc,
-                   nullptr, 0, tol, b1.data(), nullptr, fs, fres.data(), nullptr, s1.data());
+                   nullptr, 0, tol, b1.data(), nullptr, fs, fres.data(), nullptr, nullptr, nullptr,
+                   s1.data());
     if (rc != CLAB_OK) return rc;
     std::vector<double> xp(sz(m, p));
-    for (size_t a = 0; a < sz(m, pe); ++a) xp[a] = e[a];
+    for (size_t a = 0; a < sz(m, pe); ++a) xp[a] = how == 1 ? e[a] - fres[a] : e[a];
     for (size_t a = 0; a < sz(m, px); ++a) xp[sz(m, pe) + a] = x2[a];
-    for (size_t a = 0; a < sz(m, pe); ++a) xp[sz(m, pe + px) + a] = fres[a];
+    if (how == 0) {
+      for (size_t a = 0; a < sz(m, pe); ++a) xp[sz(m, pe + px) + a] = fres[a];
+    }
     std::vector<double> wk(sm * (2 * static_cast<size_t>(p) + 8) + 3 * sz(p, p) +
                            static_cast<size_t>(p) + 4 * (static_cast<size_t>(n1) + static_cast<size_t>(n2)));
     std::vector<int> iw(1);
     return clab_ppmlfe(yy.data(), xp.data(), m, p, off ? oo.data() : nullptr,
                        fw ? ww.data() : nullptr, a1.data(), n1, f2 ? a2.data() : nullptr, n2,
-                       nullptr, 0, nullptr, 0, maxit, eps, tol, bt, nullptr, s, wk.data(),
-                       iw.data());
+                       nullptr, 0, nullptr, 0, maxit, eps, tol, bt, nullptr, nullptr, nullptr, s,
+                       wk.data(), iw.data());
   };
   std::vector<int> all(static_cast<size_t>(n));
   for (int i = 0; i < n; ++i) all[static_cast<size_t>(i)] = i;
@@ -204,7 +257,7 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
   st[1] = s0[1];
   int bad = 0;
   std::vector<double> fw(static_cast<size_t>(n)), sep(static_cast<size_t>(n1 + n2));
-  std::vector<double> fsb(static_cast<size_t>(pe)), sb(6), bb(static_cast<size_t>(p));
+  std::vector<double> fsb(3 * static_cast<size_t>(pe)), sb(6), bb(static_cast<size_t>(p));
   for (int d = 0; d < nb; ++d) {
     if (kutil::stop(static_cast<double>(n) * p * 20)) return CLAB_EINTR;
     // the rows of the clusters drawn, each weighted by how often it was drawn
@@ -242,8 +295,11 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
 }
 
 int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
-                 int base, double *out) {
-  if (n < 1 || !(width > 0) || !(width < 360) || !std::isfinite(start) || na < 1) return CLAB_EARG;
+                 int base, int edge, double *out) {
+  if (n < 1 || !(width > 0) || !(width < 360) || !std::isfinite(start) || na < 1 || edge < 0 ||
+      edge > 1) {
+    return CLAB_EARG;
+  }
   const double nbd = 360 / width;
   const int nb = static_cast<int>(std::nearbyint(nbd));
   if (std::fabs(nbd - nb) > 1e-9 || nb < 2 || base < 0 || base >= nb) return CLAB_EARG;
@@ -258,8 +314,12 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
     }
     double a = std::fmod(dir[i] - start, 360.0);
     if (a < 0) a += 360.0;
-    int b = static_cast<int>(std::floor(a / width));
+    // edge 0: [lo, hi); edge 1: (lo, hi], the start itself in the first
+    // sector (whole degrees 0-90, 91-180, ... as Bondy, Roth and Sager)
+    int b = edge ? (a == 0 ? 0 : static_cast<int>(std::ceil(a / width)) - 1)
+                 : static_cast<int>(std::floor(a / width));
     if (b >= nb) b = nb - 1;  // a rounding at the top edge
+    if (b < 0) b = 0;
     if (b == base) continue;
     const int c = ar * k + (b < base ? b : b - 1);
     out[sz(c, n) + static_cast<size_t>(i)] = 1.0;
@@ -297,8 +357,10 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
 
 int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
                const double *sy0, const double *sx1, const double *sy1, int ns, double band,
-               double tol, int *src, int *side, int *dn) {
-  if (n < 1 || ns < 1 || !(band > 0) || !(tol > 0) || tol > 90) return CLAB_EARG;
+               double tol, int twin, int *src, int *side, int *dn, double *dst) {
+  if (n < 1 || ns < 1 || !(band > 0) || !(tol > 0) || tol > 90 || twin < 0 || twin > 1) {
+    return CLAB_EARG;
+  }
   for (int s = 0; s < ns; ++s) {
     if (!std::isfinite(sx0[s]) || !std::isfinite(sy0[s])) return CLAB_EDOM;
     const bool line = std::isfinite(sx1[s]) && std::isfinite(sy1[s]);
@@ -308,12 +370,14 @@ int clab_updwn(const double *ax, const double *ay, const double *wd, int n, cons
     src[i] = -1;
     side[i] = -1;
     dn[i] = -2;
+    if (dst) dst[i] = kutil::nan();
     if (!std::isfinite(ax[i]) || !std::isfinite(ay[i]) || !std::isfinite(wd[i])) {
       dn[i] = -5;
       continue;
     }
     // the sources within band: exactly one is needed
     int hit = -1, nh = 0;
+    double best = 0.0;
     for (int s = 0; s < ns; ++s) {
       double d;
       if (std::isfinite(sx1[s]) && std::isfinite(sy1[s])) {
@@ -325,16 +389,21 @@ int clab_updwn(const double *ax, const double *ay, const double *wd, int n, cons
         d = std::hypot(ax[i] - sx0[s], ay[i] - sy0[s]);
       }
       if (d <= band) {
-        hit = s;
+        // twin 1 keeps the nearest (the first of equal distances)
+        if (nh == 0 || d < best) {
+          hit = s;
+          best = d;
+        }
         ++nh;
       }
     }
     if (nh == 0) continue;
-    if (nh > 1) {
+    if (nh > 1 && twin == 0) {
       dn[i] = -3;
       continue;
     }
     src[i] = hit;
+    if (dst) dst[i] = best;
     // where the wind blows to: from direction theta, clockwise from north,
     // x east and y north
     const double th = wd[i] * pi / 180;
@@ -361,6 +430,95 @@ int clab_updwn(const double *ax, const double *ay, const double *wd, int n, cons
     }
     const double a = ang(tx, ty, nx, ny);
     dn[i] = a <= tol ? 1 : (a >= 180 - tol ? 0 : -1);
+  }
+  return CLAB_OK;
+}
+
+int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
+             const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc) {
+  if (n < 2 || p < 1 || kind < 0 || kind > 3 || !(fac >= 0)) return CLAB_EARG;
+  if ((kind == 0 || kind == 1 || kind == 3) && (!cl || ncl < 1)) return CLAB_EARG;
+  if (kind == 1 && (!cl2 || ncl2 < 1)) return CLAB_EARG;
+  if (kind == 3 && (!t || lag < 0)) return CLAB_EARG;
+  const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
+  std::vector<double> m(sp * sp, 0.0);
+  // m += sg * sum over the groups g of s_g s_g'
+  auto grp = [&](const int *c, int nc, double sg) {
+    std::vector<double> s(static_cast<size_t>(nc) * sp, 0.0);
+    for (size_t j = 0; j < sp; ++j) {
+      for (size_t i = 0; i < sn; ++i) s[static_cast<size_t>(c[i]) * sp + j] += sco[j * sn + i];
+    }
+    for (int g = 0; g < nc; ++g) {
+      const double *v = s.data() + static_cast<size_t>(g) * sp;
+      for (size_t j = 0; j < sp; ++j) {
+        for (size_t k = 0; k < sp; ++k) m[k * sp + j] += sg * v[j] * v[k];
+      }
+    }
+  };
+  for (int i = 0; i < n; ++i) {
+    if ((cl && (cl[i] < 0 || cl[i] >= ncl)) || (kind == 1 && (cl2[i] < 0 || cl2[i] >= ncl2))) {
+      return CLAB_EARG;
+    }
+  }
+  if (kind == 0) {
+    grp(cl, ncl, 1.0);
+  } else if (kind == 1) {
+    std::vector<int> c12(sn), pw(sz(ncl, ncl2));
+    const int n12 = pev::pairs(cl, cl2, n, ncl, ncl2, c12.data(), pw.data());
+    grp(cl, ncl, 1.0);
+    grp(cl2, ncl2, 1.0);
+    grp(c12.data(), n12, -1.0);
+  } else {
+    // each row alone (kind 2), then for Newey-West (kind 3) the pairs of
+    // rows of one unit whose times differ by 1 to lag, with Bartlett
+    // weights 1 - d / (lag + 1)
+    for (size_t i = 0; i < sn; ++i) {
+      for (size_t j = 0; j < sp; ++j) {
+        for (size_t k = 0; k < sp; ++k) m[k * sp + j] += sco[j * sn + i] * sco[k * sn + i];
+      }
+    }
+    if (kind == 3 && lag > 0) {
+      std::vector<int> ord(sn);
+      for (int i = 0; i < n; ++i) {
+        if (!std::isfinite(t[i])) return CLAB_EDOM;
+        ord[static_cast<size_t>(i)] = i;
+      }
+      auto less = [&](int a, int b) { return cl[a] < cl[b] || (cl[a] == cl[b] && t[a] < t[b]); };
+      kutil::hsort(ord.data(), n, less);
+      for (size_t a = 0; a < sn; ++a) {
+        const int i = ord[a];
+        for (size_t b = a + 1; b < sn; ++b) {
+          const int r = ord[b];
+          if (cl[r] != cl[i]) break;
+          const double d = t[r] - t[i];
+          if (d > lag) break;
+          if (!(d > 0)) continue;
+          const double wl = 1.0 - d / (lag + 1.0);
+          for (size_t j = 0; j < sp; ++j) {
+            for (size_t k = 0; k < sp; ++k) {
+              m[k * sp + j] += wl * (sco[j * sn + static_cast<size_t>(i)] * sco[k * sn + static_cast<size_t>(r)] +
+                                     sco[j * sn + static_cast<size_t>(r)] * sco[k * sn + static_cast<size_t>(i)]);
+            }
+          }
+        }
+      }
+    }
+  }
+  // fac brd m brd
+  std::vector<double> t1(sp * sp, 0.0);
+  for (size_t j = 0; j < sp; ++j) {
+    for (size_t k = 0; k < sp; ++k) {
+      double a = 0.0;
+      for (size_t l = 0; l < sp; ++l) a += brd[l * sp + j] * m[k * sp + l];
+      t1[k * sp + j] = a;
+    }
+  }
+  for (size_t j = 0; j < sp; ++j) {
+    for (size_t k = 0; k < sp; ++k) {
+      double a = 0.0;
+      for (size_t l = 0; l < sp; ++l) a += t1[l * sp + j] * brd[k * sp + l];
+      vc[k * sp + j] = fac * a;
+    }
   }
   return CLAB_OK;
 }

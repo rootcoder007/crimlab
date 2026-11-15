@@ -582,7 +582,8 @@ int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int
 int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *off,
                 const double *w, const int *f1, int n1, const int *f2, int n2,
                 const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
-                double tol, double *beta, double *vc, double *st, double *work, int *iwork) {
+                double tol, double *beta, double *vc, double *sco, double *brd, double *st,
+                double *work, int *iwork) {
   if (maxit < 1 || !(eps > 0) || !(tol > 0) || n1 < 1 || (f2 && n2 < 1) ||
       (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2))) {
     return CLAB_EARG;
@@ -661,7 +662,7 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
           ((y[i] > 0 ? y[i] * std::log(mu[i]) : 0.0) - mu[i] - std::lgamma(y[i] + 1));
   }
   int g = 0;
-  if (cl) {
+  if (cl || sco || brd) {
     // the sandwich at the final mu: x demeaned with the final weights,
     // scores w (y - mu) x~ (r below times wt), as fixest's fepois
     for (int i = 0; i < n; ++i) {
@@ -676,10 +677,21 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
     double *bb = eo, *rr = eta;
     for (int i = 0; i < n; ++i) z[i] = 0.0;
     if (pev::ols(v + sn, z, n, p, wt, bb, xi, rr, sc) != CLAB_OK) return CLAB_EDOM;
-    int *c12 = iwork, n12 = 0;
-    if (cl2) n12 = pev::pairs(cl, cl2, n, ncl, ncl2, c12, iwork + sn);
-    // kk = 1: the factor is G / (G - 1) alone (fixest's ssc(K.adj = FALSE))
-    g = pev::crv(v + sn, r, wt, n, p, xi, cl, ncl, cl2, ncl2, c12, n12, 1.0, vc, sc);
+    if (brd) {
+      for (size_t q = 0; q < sp * sp; ++q) brd[q] = xi[q];
+    }
+    if (sco) {
+      // each row's score, for the other variances (clab_vcx)
+      for (size_t j = 0; j < sp; ++j) {
+        for (size_t i = 0; i < sn; ++i) sco[j * sn + i] = wt[i] * r[i] * v[sn * (j + 1) + i];
+      }
+    }
+    if (cl) {
+      int *c12 = iwork, n12 = 0;
+      if (cl2) n12 = pev::pairs(cl, cl2, n, ncl, ncl2, c12, iwork + sn);
+      // kk = 1: the factor is G / (G - 1) alone (fixest's ssc(K.adj = FALSE))
+      g = pev::crv(v + sn, r, wt, n, p, xi, cl, ncl, cl2, ncl2, c12, n12, 1.0, vc, sc);
+    }
   }
   st[0] = it;
   st[1] = conv;
