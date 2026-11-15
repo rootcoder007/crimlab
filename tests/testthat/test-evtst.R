@@ -121,3 +121,9 @@ test_that("a window wider than the rows is refused before it is built", {
   expect_error(evtst(pd$rate, pd$town, pd$year, pd$first,
                      lags = .Machine$integer.max), msg, fixed = TRUE)
 })
+
+test_that("more sensitivity draws than the bound are refused", {
+  expect_error(evtst(pd$rate, pd$town, pd$year, pd$first, leads = 3,
+                     lags = 3, mbar = 0, seed = 1, draws = 1e9),
+               "evtst: `draws` must be at most 67108864.", fixed = TRUE)
+})

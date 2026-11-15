@@ -9,6 +9,7 @@
 #include <cmath>
 #include <vector>
 
+#include "crimlab.h"
 #include "kutil.h"
 #include "pev.h"
 #include "pevr.h"
@@ -189,6 +190,7 @@ SEXP C_clab_r_sdidx(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP reps, SEXP se
     kutil::ksum s1, s2;
     double k = 0;
     for (int r = 0; r < nr; ++r) {
+      if (kutil::stop(static_cast<double>(n0) * w.t0)) clab::ichk(CLAB_EINTR);
       std::vector<int> c = w.ctl;
       const int pick = g.below(n0);
       const std::vector<int> t1 = {c[z(pick)]};

@@ -732,6 +732,7 @@ bool evtst(Ctx &c, Val &out) {
     const int nb = static_cast<int>(mb.n());
     int nd = 0;
     CK(wholed(c, "draws", 5000, 100, nd));
+    if (nd > kutil::maxcell) return c.fail("`draws` must be at most %.0f.", kutil::maxcell);
     if (nq == 0) return c.fail("`mbar` needs one lead at least besides the reference period.");
     std::vector<int> tg;
     if (!c.has("target")) {

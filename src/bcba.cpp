@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "crimlab.h"
 #include "kutil.h"
 #include "pevc.h"
 #include "pevr.h"
@@ -196,6 +197,7 @@ SEXP C_clab_r_cbatt(SEXP y, SEXP d, SEXP x, SEXP est, SEXP tgt, SEXP ps, SEXP k,
       std::vector<int> idx(z(n));
       std::vector<double> eb = e;
       for (int r = 0; r < nr; ++r) {
+        if (kutil::stop(4.0 * n)) clab::ichk(CLAB_EINTR);
         for (int i = 0; i < n; ++i) idx[z(i)] = g.below(n);
         const double v = one(idx, eb);
         if (std::isnan(v)) continue;

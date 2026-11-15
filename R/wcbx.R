@@ -50,7 +50,8 @@
 #' @param clus `NULL` (cluster by unit) or the cluster of each row.
 #' @param meth `"wild"`, `"perm"` or `"power"`.
 #' @param reps The draws: a whole number from 9; `NULL` for 9999 (200 for
-#'   `"power"`).
+#'   `"power"`). `reps` times the clusters and outcomes must be at most
+#'   67108864 (2^26).
 #' @param wtype `"rad"` (Rademacher) or `"webb"`.
 #' @param ties `"count"` or `"strict"`.
 #' @param stat `"t"` or `"est"`: the statistic permuted.

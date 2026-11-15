@@ -503,7 +503,7 @@ SEXP C_clab_r_didfe(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus,
   SEXP info = PROTECT(fs.frame());
   SEXP vc = PROTECT(Rf_allocMatrix(REALSXP, p, p));
   np += 2;
-  for (int q = 0; q < p * p; ++q) REAL(vc)[q] = f.v[z(q)];
+  for (std::size_t q = 0; q < static_cast<std::size_t>(p) * static_cast<std::size_t>(p); ++q) REAL(vc)[q] = f.v[z(q)];
   SEXP fam1 = PROTECT(Rf_mkString(fmo[fm])), lvs = PROTECT(Rf_ScalarReal(lv));
   np += 2;
   SEXP out = PROTECT(nlist({{"coef", co}, {"fit", info}, {"vcov", vc}, {"loo", lo},
@@ -713,6 +713,7 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
     SEXP mb = PROTECT(clab::num(mbar, "mbar", -1, 0.0));
     ++np;
     const int nb = static_cast<int>(XLENGTH(mb)), nd = clab::whole(draws, "draws", 100);
+    if (nd > kutil::maxcell) fail("`draws` must be at most %.0f.", kutil::maxcell);
     if (nq == 0) fail("`mbar` needs one lead at least besides the reference period.");
     std::vector<int> tg;
     if (Rf_isNull(target)) {
@@ -751,6 +752,7 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
     pev::chol(lv2.data(), q);
     kutil::rng rg(csp::seed(seed));
     for (int d = 0; d < nd; ++d) {
+      if (kutil::stop(static_cast<double>(q) * q)) clab::ichk(CLAB_EINTR);
       for (int a = 0; a < q; a += 2) {
         // Box-Muller: two normals from two uniforms
         const double u1 = 1.0 - rg.unif(), u2 = rg.unif();

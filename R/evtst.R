@@ -65,7 +65,7 @@
 #' @param target `NULL` for the mean effect after adoption, or one event
 #'   time from 0.
 #' @param draws The normal draws of the sensitivity interval: a whole
-#'   number from 100.
+#'   number from 100 to 67108864 (2^26).
 #' @param seed The seed of the draws: `NULL` to draw it from R's generator,
 #'   or a whole number from 0.
 #' @return An object of class `evtst`, a list: `est`, one row per event

@@ -706,6 +706,8 @@ ok("didfe", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw, mtch = 
 ok("didfe", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw, mtch = 1e9, level = 0.9)
 bad("didfe", y = dd$rate, unit = dd$town, time = dd$year, trt = rep(0, 48))
 ok("evtst", y = dd$rate, unit = dd$town, time = dd$year, first = dd$first, leads = 2, lags = 2)
+bad("evtst", y = dd$rate, unit = dd$town, time = dd$year, first = dd$first, leads = 2, lags = 2, mbar = 0, draws = 1e9,
+    seed = 1)
 ok("evtst", y = dd$rate, unit = dd$town, time = dd$year, first = dd$first, leads = 2, lags = 2, mbar = c(0, 1), draws = 200,
    seed = 1, bin = FALSE, ma = 2)
 bad("evtst", y = dd$rate, unit = dd$town, time = dd$year, first = rep(NA, 48))
@@ -725,6 +727,7 @@ ok("sdidx", y = sc$rate, unit = sc$town, time = sc$year, first = sc$first, reps 
 ok("sdidx", y = sc$rate, unit = sc$town, time = sc$year, first = ifelse(si2 <= 2, 2015, NA), level = 0.9)
 bad("sdidx", y = sc$rate, unit = sc$town, time = sc$year, first = rep(NA, 48))
 ok("wcbx", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw)
+bad("wcbx", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw, reps = 1e9, seed = 1)
 ok("wcbx", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw, meth = "perm", reps = 99, seed = 1)
 ok("wcbx", y = dd$rate, unit = dd$town, time = dd$year, meth = "power", reps = 20, adopt = 2018, ntrt = 2, eff = c(0, 2, 5),
    seed = 1)

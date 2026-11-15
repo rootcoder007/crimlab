@@ -107,6 +107,10 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
     UNPROTECT(2);
     if (ncl < 2) fail("`clus` has one cluster: the inference needs two or more.");
   }
+  // the draws (reps of them, one value per cluster and per outcome) are kept
+  if (static_cast<double>(nr) * (ncl + k) > kutil::maxcell) {
+    fail("`reps` times the clusters and outcomes must be at most %.0f.", kutil::maxcell);
+  }
   std::vector<pevr::term> x;
   pevr::adjcols(adj, n, x);
   const int pa = static_cast<int>(x.size());
@@ -229,6 +233,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
       std::vector<double> nul(z(nd) * z(k), NA_REAL), xp = xa;
       std::vector<double> cnt(z(k), 0.0), ok(z(k), 0.0);
       for (int d = 0; d < nd; ++d) {
+        if (kutil::stop(static_cast<double>(n) * k * (p + 1))) clab::ichk(CLAB_EINTR);
         for (int i = 0; i < n; ++i) xp[z(i)] = pn.t[z(i)] >= as[z(d)][z(cl[z(i)])] ? 1.0 : 0.0;
         for (int j = 0; j < k; ++j) {
           double b, t;
@@ -307,6 +312,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
     std::vector<double> rej(z(ne), 0.0), tot(z(ne), 0.0), yy(z(n)), xp = xa;
     kutil::rng rg(csp::seed(seed));
     for (int r = 0; r < nr; ++r) {
+      if (kutil::stop(static_cast<double>(n) * ne * (pa + 1))) clab::ichk(CLAB_EINTR);
       std::vector<int> q(z(ncl)), ga(z(ncl), pn.nt);
       for (int a = 0; a < ncl; ++a) q[z(a)] = a;
       for (int a = 0; a < nt1; ++a) {

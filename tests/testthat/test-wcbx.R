@@ -192,3 +192,10 @@ test_that("wcbx() and wystep() refuse what they cannot test", {
   expect_error(wystep(1:2, matrix(0, 2, 3)), "one column per")
   expect_error(wystep(1, matrix(NA_real_, 2, 1)), "no draw")
 })
+
+test_that("draws past the bound of what they keep are refused at once", {
+  d <- wpanel(1)
+  expect_error(wcbx(d$rate, d$town, d$year, d$on, reps = 1e9),
+               paste("wcbx: `reps` times the clusters and outcomes must be",
+                     "at most 67108864."), fixed = TRUE)
+})
