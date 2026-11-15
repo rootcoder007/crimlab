@@ -152,6 +152,28 @@ hwpwr <- function(
   if (!is.character(skip) || anyNA(skip) || !all(skip %in% src)) {
     bad("`skip` must name sources among ", toString(src), ".")
   }
+  pth <- .hwpth(paths, bad)
+  rt <- .hwrt(rated, bad)
+  if (!is.null(since)) {
+    sn <- attr(since, "snap")
+    if (
+      !is.data.frame(since) ||
+        !is.character(sn) ||
+        length(sn) != 1L ||
+        is.na(sn)
+    ) {
+      bad("`since` must be an earlier result of hwpwr().")
+    }
+  }
+  s <- .hwsnap(pth, skip, pid, since, dt, step)
+  r <- .Call(C_clab_r_pwrd, s, unname(rt))
+  attr(r, "snap") <- s[length(s)]
+  r
+}
+
+# The programs and roots hwpwr() reads, the defaults overridden by
+# paths; bad() is hwpwr()'s error.
+.hwpth <- function(paths, bad) {
   lnx <- identical(Sys.info()[["sysname"]], "Linux")
   pth <- c(
     root = "",
@@ -172,6 +194,11 @@ hwpwr <- function(
     }
     pth[nm] <- paths
   }
+  pth
+}
+
+# The rated watts of the CPU and the GPU, NA where not given.
+.hwrt <- function(rated, bad) {
   rt <- c(cpu = NA_real_, gpu = NA_real_)
   if (!is.null(rated)) {
     nm <- names(rated)
@@ -187,17 +214,12 @@ hwpwr <- function(
     }
     rt[nm] <- rated
   }
-  if (!is.null(since)) {
-    sn <- attr(since, "snap")
-    if (
-      !is.data.frame(since) ||
-        !is.character(sn) ||
-        length(sn) != 1L ||
-        is.na(sn)
-    ) {
-      bad("`since` must be an earlier result of hwpwr().")
-    }
-  }
+  rt
+}
+
+# The snapshot text of hwpwr(): one reading, then one every step seconds
+# for dt seconds, or after the snapshots of since.
+.hwsnap <- function(pth, skip, pid, since, dt, step) {
   rd <- function() {
     .Call(
       C_clab_r_pwrs,
@@ -223,9 +245,7 @@ hwpwr <- function(
       }
     }
   } else {
-    s <- c(sn, rd())
+    s <- c(attr(since, "snap"), rd())
   }
-  r <- .Call(C_clab_r_pwrd, s, unname(rt))
-  attr(r, "snap") <- s[length(s)]
-  r
+  s
 }
