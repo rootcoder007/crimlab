@@ -797,6 +797,11 @@
   refuses more than 2^26: `nq = .Machine$integer.max` overflowed the count
   and crashed R. The block integrals can now be interrupted within a block.
   The command line gives the same message.
+* `evtst()` refuses `leads` plus `lags` past the number of rows, which
+  cannot be estimated (each event time needs a row), before it builds the
+  indicators; a large window used to abort R. `didfe()` with an `mtch`
+  larger than the number of comparison units matches as that many does,
+  instead of sizing its tables by `mtch`. The command line does the same.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

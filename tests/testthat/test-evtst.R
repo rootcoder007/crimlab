@@ -109,3 +109,15 @@ test_that("the bounds under departures from parallel trends", {
   expect_error(evtst(pd$rate, pd$town, pd$year, pd$first, mbar = 1,
                      target = 9), "target")
 })
+
+test_that("a window wider than the rows is refused before it is built", {
+  # every event time but ref needs a row: leads plus lags past the rows
+  # cannot be estimated, and used to size two billion indicator columns
+  msg <- sprintf(
+    "evtst: `leads` plus `lags` must be at most %d, the rows of `y`.", nrow(pd)
+  )
+  expect_error(evtst(pd$rate, pd$town, pd$year, pd$first, leads = 1e9), msg,
+               fixed = TRUE)
+  expect_error(evtst(pd$rate, pd$town, pd$year, pd$first,
+                     lags = .Machine$integer.max), msg, fixed = TRUE)
+})

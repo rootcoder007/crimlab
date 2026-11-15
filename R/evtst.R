@@ -50,7 +50,8 @@
 #'   constant within units; `NA`, 0 or `Inf` for a unit never treated.
 #'   Treatment is taken to stay on.
 #' @param leads,lags The periods before and after adoption estimated: whole
-#'   numbers, `leads` at least 1 and `lags` at least 0.
+#'   numbers, `leads` at least 1 and `lags` at least 0, with `leads` plus
+#'   `lags` at most the number of rows.
 #' @param ref The event time left out: a whole number from `-leads` to
 #'   `lags`.
 #' @param bin `TRUE` to bin event times beyond the window into its ends,

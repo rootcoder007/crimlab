@@ -433,9 +433,11 @@ bool didfe(Ctx &c, Val &out) {
       if (pn.t[i] < g0) f[zz(pn.t[i]) * zz(pn.nu) + zz(pn.u[i])] = pn.y[i];
     }
     const int n1 = static_cast<int>(std::count(tr.begin(), tr.end(), 1));
-    std::vector<int> ma(zz(n1) * zz(ratio)), mc(zz(n1) * zz(ratio));
-    std::vector<double> md(zz(n1) * zz(ratio)), wu(zz(pn.nu)), work(zz(g0) * zz(g0) + 3 * zz(g0));
-    const int nm = pev::mtch(f.data(), pn.nu, g0, tr.data(), ex.data(), ratio, cal, ma.data(), mc.data(), md.data(),
+    // at most as many matches as comparison units, as in R
+    const int rr = std::min(ratio, pn.nu - n1);
+    std::vector<int> ma(zz(n1) * zz(rr)), mc(zz(n1) * zz(rr));
+    std::vector<double> md(zz(n1) * zz(rr)), wu(zz(pn.nu)), work(zz(g0) * zz(g0) + 3 * zz(g0));
+    const int nm = pev::mtch(f.data(), pn.nu, g0, tr.data(), ex.data(), rr, cal, ma.data(), mc.data(), md.data(),
                              wu.data(), work.data());
     if (nm < 0) {
       return c.fail("the pre-period outcomes are collinear across units: too many periods before the first adoption "
@@ -555,6 +557,7 @@ bool evtst(Ctx &c, Val &out) {
   Pan pn;
   CK(panel(c, -HUGE_VAL, pn));
   const int n = pn.n;
+  if (static_cast<double>(ld) + lg > n) return c.fail("`leads` plus `lags` must be at most %d, the rows of `y`.", n);
   for (double v : pn.tv) {
     if (v != std::floor(v)) return c.fail("`time` must be whole numbers (years, or months counted from a start).");
   }

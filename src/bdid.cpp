@@ -398,9 +398,12 @@ SEXP C_clab_r_didfe(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus,
       if (pn.t[z(i)] < g0) f[z(pn.t[z(i)]) * z(pn.nu) + z(pn.u[z(i)])] = pn.y[i];
     }
     const int n1 = static_cast<int>(std::count(tr.begin(), tr.end(), 1));
-    std::vector<int> ma(z(n1) * z(ratio)), mc(z(n1) * z(ratio));
-    std::vector<double> md(z(n1) * z(ratio)), wu(z(pn.nu)), work(z(g0) * z(g0) + 3 * z(g0));
-    const int nm = pev::mtch(f.data(), pn.nu, g0, tr.data(), ex.data(), ratio, cal, ma.data(),
+    // no treated unit has more matches than there are comparison units, so
+    // a larger ratio matches as that many does, and sizes nothing beyond it
+    const int rr = std::min(ratio, pn.nu - n1);
+    std::vector<int> ma(z(n1) * z(rr)), mc(z(n1) * z(rr));
+    std::vector<double> md(z(n1) * z(rr)), wu(z(pn.nu)), work(z(g0) * z(g0) + 3 * z(g0));
+    const int nm = pev::mtch(f.data(), pn.nu, g0, tr.data(), ex.data(), rr, cal, ma.data(),
                              mc.data(), md.data(), wu.data(), work.data());
     if (nm < 0) {
       fail("the pre-period outcomes are collinear across units: too many periods before the "
@@ -527,6 +530,8 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
   const int n = pn.n;
+  // each event time of the window but `ref` needs a row of its own
+  if (static_cast<double>(ld) + lg > n) fail("`leads` plus `lags` must be at most %d, the rows of `y`.", n);
   for (double v : pn.tv) {
     if (v != std::floor(v)) fail("`time` must be whole numbers (years, or months counted from a start).");
   }
@@ -739,7 +744,7 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
     };
     double c0, d0;
     parts(f.b.data(), &c0, &d0);
-    std::vector<double> lv2(z(q) * z(q)), cs(z(nd)), ds(z(nd)), bs(z(q)), e(z(q));
+    std::vector<double> lv2(z(q) * z(q)), cs(z(nd)), ds(z(nd)), bs(z(q)), zn(z(q));
     for (int a = 0; a < q; ++a) {
       for (int b = 0; b < q; ++b) lv2[z(b) * z(q) + z(a)] = f.v[z(b) * z(p) + z(a)] + (a == b ? 1e-12 : 0.0);
     }
@@ -750,12 +755,12 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
         // Box-Muller: two normals from two uniforms
         const double u1 = 1.0 - rg.unif(), u2 = rg.unif();
         const double rr = std::sqrt(-2.0 * std::log(u1));
-        e[z(a)] = rr * std::cos(6.283185307179586 * u2);
-        if (a + 1 < q) e[z(a + 1)] = rr * std::sin(6.283185307179586 * u2);
+        zn[z(a)] = rr * std::cos(6.283185307179586 * u2);
+        if (a + 1 < q) zn[z(a + 1)] = rr * std::sin(6.283185307179586 * u2);
       }
       for (int a = 0; a < q; ++a) {
         double v = f.b[z(a)];
-        for (int b = 0; b <= a; ++b) v += lv2[z(b) * z(q) + z(a)] * e[z(b)];
+        for (int b = 0; b <= a; ++b) v += lv2[z(b) * z(q) + z(a)] * zn[z(b)];
         bs[z(a)] = v;
       }
       parts(bs.data(), &cs[z(d)], &ds[z(d)]);
@@ -781,11 +786,11 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
     double *sm = sc.dbl("mbar", nb), *sl = sc.dbl("lob", nb), *su = sc.dbl("upb", nb),
            *slo = sc.dbl("lo", nb), *shi = sc.dbl("hi", nb);
     for (int a = 0; a < nb; ++a) {
-      const double m = REAL(mb)[a];
-      sm[a] = m;
-      sl[a] = c0 - m * d0 * kk;
-      su[a] = c0 + m * d0 * kk;
-      ends(m, &slo[a], &shi[a]);
+      const double mv = REAL(mb)[a];
+      sm[a] = mv;
+      sl[a] = c0 - mv * d0 * kk;
+      su[a] = c0 + mv * d0 * kk;
+      ends(mv, &slo[a], &shi[a]);
     }
     sens = PROTECT(sc.frame());
     // the breakdown: the smallest mbar whose interval holds 0, by bisection
@@ -796,12 +801,12 @@ SEXP C_clab_r_evtst(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP leads, SEXP l
     };
     double bd = covers(0) ? 0.0 : R_PosInf;
     if (bd > 0 && covers(10)) {
-      double lo = 0, hi = 10;
+      double blo = 0, bhi = 10;
       for (int it = 0; it < 40; ++it) {
-        const double mid = 0.5 * (lo + hi);
-        (covers(mid) ? hi : lo) = mid;
+        const double mid = 0.5 * (blo + bhi);
+        (covers(mid) ? bhi : blo) = mid;
       }
-      bd = hi;
+      bd = bhi;
     }
     brk = PROTECT(Rf_ScalarReal(bd));
     np += 2;

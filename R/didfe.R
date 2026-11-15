@@ -83,7 +83,8 @@
 #'   turn.
 #' @param bacon `TRUE` for the Goodman-Bacon decomposition.
 #' @param mtch `0`, or the number of comparison units matched to each
-#'   treated unit before the fit.
+#'   treated unit before the fit (more than there are comparison units
+#'   matches them all).
 #' @param exact `NULL` or labels, constant within units: match only within
 #'   them (a region, a district).
 #' @param calip `NULL` or the largest distance of a match, in standard

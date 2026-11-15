@@ -289,3 +289,14 @@ test_that("labelled controls enter as indicators; print shows the fit", {
   expect_identical(r3$coef$term, c("trt", "adj"))
   expect_output(print(r3), "didfe: ols, 300 rows, 30 units")
 })
+
+test_that("a matching ratio past the comparison units matches them all", {
+  # mtch = 1e9 used to size 1e9 matches per treated unit; no unit can
+  # have more matches than there are comparison units, so it now fits as
+  # that many does
+  tr <- !is.na(tapply(pd$first, pd$town, max))
+  a <- didfe(pd$rate, pd$town, pd$year, pd$on, mtch = sum(!tr))
+  b <- didfe(pd$rate, pd$town, pd$year, pd$on, mtch = 1e9)
+  expect_identical(b$match, a$match)
+  expect_equal(b$coef, a$coef, tolerance = 1e-12)
+})
