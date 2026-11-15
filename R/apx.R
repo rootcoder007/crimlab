@@ -154,7 +154,8 @@
 # The variance of a fit from its rows' scores (r$sco, r$brd), as `se`
 # asks: cluster (kind 0), twoway (1), hc1 (2), nw (3); the small-sample
 # factor by `ssc`. Returns the matrix, the cluster counts and the lag.
-.axvar <- function(r, d, se, clus, time, lag, ssc, fe, fn) {
+.axvar <- function(r, d, se, clus, time, lag, ssc, fe, fn, twc = "min",
+                   psd = "none") {
   n <- nrow(r$sco)
   p <- ncol(r$sco)
   kk <- function(cls) {
@@ -187,10 +188,7 @@
       c1 <- u$c
       n1 <- u$n
       tv <- .axtime(d, time, fn)
-      if (is.null(lag)) {
-        tt <- max(tabulate(u$c + 1L, u$n))
-        lag <- floor(4 * (tt / 100)^(2 / 9))
-      }
+      if (is.null(lag)) lag <- .axnwlag(r$sco, u$c, tv)
       lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
     }
   }
@@ -201,20 +199,66 @@
     nk = gm / (gm - 1) * (n - 1) / (n - k),
     none = 1
   )
-  v <- .Call(
-    C_clab_r_vcx,
-    r$sco,
-    r$brd,
-    kind,
-    c1,
-    n1,
-    c2,
-    n2,
-    tv,
-    as.integer(lg),
-    fac
-  )
+  if (se == "twoway" && twc == "each") {
+    # Cameron, Gelbach and Miller (2011, p. 241): each of the three
+    # components with its own factor, G, H and I (the intersections)
+    c12 <- .axcode(paste(c1, c2))
+    f1 <- function(gg) {
+      switch(ssc, G = gg / (gg - 1),
+             nk = gg / (gg - 1) * (n - 1) / (n - k), none = 1)
+    }
+    one <- function(cc, nc) {
+      .Call(C_clab_r_vcx, r$sco, r$brd, 0L, cc, nc, NULL, 0L, NULL, 0L,
+            f1(nc))
+    }
+    v <- one(c1, n1) + one(c2, n2) - one(c12$c, c12$n)
+  } else {
+    v <- .Call(
+      C_clab_r_vcx,
+      r$sco,
+      r$brd,
+      kind,
+      c1,
+      n1,
+      c2,
+      n2,
+      tv,
+      as.integer(lg),
+      fac
+    )
+  }
+  if (se == "twoway" && psd == "eig") {
+    # the eigenvalues below 0 set to 0 (Cameron, Gelbach and Miller 2011,
+    # p. 241-242, after Politis 2007)
+    e <- eigen(v, symmetric = TRUE)
+    v <- e$vectors %*% (pmax(e$values, 0) * t(e$vectors))
+  }
   list(v = v, g = g, lag = if (se == "nw") lg else NA_integer_, k = k)
+}
+
+# The Newey-West (1994) bandwidth for the Bartlett kernel, without
+# prewhitening: with h the row scores summed over the coefficients (the
+# weight vector w of ones; their w = (0, 1, ..., 1)' drops a constant's
+# entry, and the absorbed effects leave none), sigma_j the sum of h_i h_i'
+# over the pairs of rows of one unit j days apart, n = [4 (T / 100)^(2/9)]
+# (T the most days of a unit), s1 = 2 sum_j j sigma_j, s0 = sigma_0 + 2
+# sum_j sigma_j (j = 1..n), gamma = 1.1447 ((s1 / s0)^2)^(1/3), the lag is
+# [gamma T^(1/3)] (their equation 2.2, p. 634, and m = [gamma T^(1/3)],
+# p. 635).
+.axnwlag <- function(sco, u, tv) {
+  h <- rowSums(sco)
+  tt <- max(tabulate(u + 1L))
+  nn <- floor(4 * (tt / 100)^(2 / 9))
+  key <- paste(u, tv)
+  sg <- vapply(0:nn, function(j) {
+    i <- match(paste(u, tv - j), key)
+    sum(h * h[i], na.rm = TRUE)
+  }, 1)
+  j <- seq_len(nn)
+  s1 <- 2 * sum(j * sg[-1L])
+  s0 <- sg[1L] + 2 * sum(sg[-1L])
+  if (!is.finite(s1 / s0)) return(0)
+  floor(1.1447 * ((s1 / s0)^2)^(1 / 3) * tt^(1 / 3))
 }
 
 # The cluster bootstrap: nboot draws of the clusters of column cl from R's
@@ -344,9 +388,16 @@
 #' columns, `"cluster"` means this too); `"hc1"` (each row alone, the
 #' robust errors of Herrnstadt and others 2021); `"nw"` (Newey-West within
 #' each unit of the first `clus` column over the days of `time`, Bartlett
-#' weights `1 - d / (lag + 1)` for days `d` apart up to `lag`, by default
-#' `floor(4 (T / 100)^(2/9))` for `T` days (Newey and West 1994); the
-#' appendix of Herrnstadt and others 2021); `"boot"` (a cluster bootstrap
+#' weights `1 - d / (lag + 1)` for days `d` apart up to `lag`; by default
+#' the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
+#' and p. 635) for the Bartlett kernel without their prewhitening: `lag =
+#' [gamma T^(1/3)]`, `gamma = 1.1447 ((s1 / s0)^2)^(1/3)`, `s1 = 2 sum_j j
+#' sigma_j`, `s0 = sigma_0 + 2 sum_j sigma_j` over `j = 1..n`, `n = [4 (T /
+#' 100)^(2/9)]`, `T` the most days of a unit and `sigma_j` the sum of the
+#' products of the rows' scores (summed over the coefficients) of one unit
+#' `j` days apart (the earlier default here, `[4 (T / 100)^(2/9)]`, is
+#' their lag-selection parameter `n`, not the lag); the appendix of
+#' Herrnstadt and others 2021); `"boot"` (a cluster bootstrap
 #' over the first `clus` column, `nboot` draws from R's generator, each
 #' refitting the model). The small-sample factor `ssc`: `"G"` (the default)
 #' `G / (G - 1)` with `G` the (smaller) number of clusters, or `n / (n - 1)`
@@ -355,6 +406,15 @@
 #' not nested in a cluster (fixest's default for clustered errors); `"none"`
 #' no factor. `"cluster"` with `"G"` equals `fixest::fepois()` with
 #' `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
+#'
+#' Two-way clustering (`twc`, `psd`), as Cameron, Gelbach and Miller (2011,
+#' p. 241) give it: `twc = "min"` (the default, their second method and
+#' fixest's) puts the one factor of `G = min(G, H)` on all three
+#' components; `"each"` (their first, which they use in their simulations
+#' and applications) gives each component its own, `G`, `H` and `I`, the
+#' number of intersections. The two-way matrix need not be positive
+#' semi-definite; `psd = "eig"` sets its negative eigenvalues to 0 (their
+#' p. 241-242, after Politis 2007), `"none"` (the default) leaves it.
 #'
 #' @param data A data frame, one row per place and period.
 #' @param y The name of the count column: numbers from 0, not all 0.
@@ -375,6 +435,8 @@
 #' @param lag `NULL` (the rule above) or the Newey-West lag in days.
 #' @param nboot,seed The bootstrap draws (at least 2) and `NULL` or a whole
 #'   number for R's generator, for `se = "boot"`.
+#' @param twc,psd The two-way factors, `"min"` or `"each"`, and `"none"`
+#'   or `"eig"`: see Two-way clustering.
 #' @param sep `"fe"` or `"none"`: see Separation.
 #' @param level The confidence level of the intervals.
 #' @param tol The convergence tolerance of the demeaning.
@@ -459,11 +521,15 @@ ppmlfe <- function(
   sep = c("fe", "none"),
   level = 0.95,
   tol = 1e-12,
-  maxit = 100
+  maxit = 100,
+  twc = c("min", "each"),
+  psd = c("none", "eig")
 ) {
   f <- "ppmlfe"
   se <- match.arg(se)
   ssc <- match.arg(ssc)
+  twc <- match.arg(twc)
+  psd <- match.arg(psd)
   sep <- match.arg(sep)
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
@@ -529,7 +595,7 @@ ppmlfe <- function(
     dr <- b$draws
     colnames(dr) <- x
   } else {
-    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f)
+    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f, twc, psd)
     v <- vv$v
     sev <- sqrt(pmax(diag(v), 0))
     g <- vv$g
@@ -695,7 +761,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   many as `endo` (from [windiv()] or [invsn()], say).
 #' @param x `NULL` or the names of the exogenous controls. For `print()`,
 #'   an object of class `ivfe`.
-#' @param fe,clus,se,ssc,time,lag,nboot,seed,level,tol As in [ppmlfe()].
+#' @param fe,clus,se,ssc,time,lag,nboot,seed,level,tol,twc,psd As in
+#'   [ppmlfe()].
 #' @param object An object of class `ivfe`.
 #' @param ... Not used.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
@@ -812,11 +879,15 @@ ivfe <- function(
   nboot = 199,
   seed = NULL,
   level = 0.95,
-  tol = 1e-12
+  tol = 1e-12,
+  twc = c("min", "each"),
+  psd = c("none", "eig")
 ) {
   f <- "ivfe"
   se <- match.arg(se)
   ssc <- match.arg(ssc)
+  twc <- match.arg(twc)
+  psd <- match.arg(psd)
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, endo, "endo", f, null = TRUE)
@@ -866,7 +937,7 @@ ivfe <- function(
     dr <- b$draws
     colnames(dr) <- tm
   } else {
-    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f)
+    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f, twc, psd)
     v <- vv$v
     sev <- sqrt(pmax(diag(v), 0))
     g <- vv$g
@@ -881,7 +952,8 @@ ivfe <- function(
     fstab <- do.call(rbind, lapply(endo, function(e) {
       s1 <- ivfe(d, e, x = c(inst, x), fe = fe, clus = clus,
                  se = if (se == "boot") "cluster" else se, ssc = ssc,
-                 time = time, lag = lag, level = level, tol = tol)$coef
+                 time = time, lag = lag, level = level, tol = tol,
+                 twc = twc, psd = psd)$coef
       s1 <- s1[s1$term %in% inst, , drop = FALSE]
       data.frame(endo = e, inst = s1$term, est = s1$est, se = s1$se,
                  rel = s1$est / mean(d[[e]]))

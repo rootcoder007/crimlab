@@ -21,7 +21,9 @@ ivfe(
   nboot = 199,
   seed = NULL,
   level = 0.95,
-  tol = 1e-12
+  tol = 1e-12,
+  twc = c("min", "each"),
+  psd = c("none", "eig")
 )
 
 \method{print}{ivfe}(x, ...)
@@ -42,7 +44,8 @@ many as \code{endo} (from \code{\link[=windiv]{windiv()}} or \code{\link[=invsn]
 \item{x}{\code{NULL} or the names of the exogenous controls. For \code{print()},
 an object of class \code{ivfe}.}
 
-\item{fe,clus,se,ssc,time,lag,nboot,seed,level,tol}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
+\item{fe,clus,se,ssc,time,lag,nboot,seed,level,tol,twc,psd}{As in
+\code{\link[=ppmlfe]{ppmlfe()}}.}
 
 \item{object}{An object of class \code{ivfe}.}
 

@@ -626,3 +626,30 @@ test_that("updwn: the outcome, the rings, two roads and the weather", {
   expect_identical(rn$n, r0$n)
   expect_false(isTRUE(all.equal(rk$coef$est, r0$coef$est)))
 })
+
+test_that("two-way factors each and the eigenvalue fix (CGM 2011)", {
+  # twc = "each": V1 + V2 - V12, each one-way variance with its own G / (G
+  # - 1), the intersections being the rows here
+  d <- simpan()
+  d$ud <- paste(d$unit, d$day)
+  a <- function(...) {
+    ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop", ...)
+  }
+  fe2 <- a(clus = c("unit", "day"), twc = "each")
+  v <- a(clus = "unit")$vcov + a(clus = "day")$vcov - a(clus = "ud")$vcov
+  expect_equal(fe2$vcov, v, tolerance = 1e-10)
+  fm <- a(clus = c("unit", "day"))
+  fp <- a(clus = c("unit", "day"), psd = "eig")
+  if (all(eigen(fm$vcov)$values >= 0)) {
+    expect_equal(fp$vcov, fm$vcov, tolerance = 1e-10)
+  }
+  expect_true(all(eigen(fp$vcov)$values >= -1e-14))
+})
+
+test_that("the Newey-West (1994) automatic lag, by hand", {
+  # one unit, 5 days, scores 1, -1, 2, 0, 1: n = [4 (5 / 100)^(2/9)] = 2,
+  # sigma_0 = 7, sigma_1 = -3, sigma_2 = 4, s1 = 2 (-3 + 8) = 10, s0 = 7 +
+  # 2 (1) = 9
+  g <- crimlab:::.axnwlag(matrix(c(1, -1, 2, 0, 1)), rep(0L, 5), 1:5)
+  expect_identical(g, floor(1.1447 * ((10 / 9)^2)^(1 / 3) * 5^(1 / 3)))
+})

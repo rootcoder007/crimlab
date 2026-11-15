@@ -22,7 +22,9 @@ ppmlfe(
   sep = c("fe", "none"),
   level = 0.95,
   tol = 1e-12,
-  maxit = 100
+  maxit = 100,
+  twc = c("min", "each"),
+  psd = c("none", "eig")
 )
 
 \method{print}{ppmlfe}(x, ...)
@@ -59,6 +61,9 @@ or \code{"boot"}.}
 
 \item{nboot,seed}{The bootstrap draws (at least 2) and \code{NULL} or a whole
 number for R's generator, for \code{se = "boot"}.}
+
+\item{twc,psd}{The two-way factors, \code{"min"} or \code{"each"}, and \code{"none"}
+or \code{"eig"}: see Two-way clustering.}
 
 \item{sep}{\code{"fe"} or \code{"none"}: see Separation.}
 
@@ -138,9 +143,16 @@ first \code{clus} column); \code{"twoway"} (Cameron, Gelbach and Miller 2011, \c
 columns, \code{"cluster"} means this too); \code{"hc1"} (each row alone, the
 robust errors of Herrnstadt and others 2021); \code{"nw"} (Newey-West within
 each unit of the first \code{clus} column over the days of \code{time}, Bartlett
-weights \code{1 - d / (lag + 1)} for days \code{d} apart up to \code{lag}, by default
-\code{floor(4 (T / 100)^(2/9))} for \code{T} days (Newey and West 1994); the
-appendix of Herrnstadt and others 2021); \code{"boot"} (a cluster bootstrap
+weights \code{1 - d / (lag + 1)} for days \code{d} apart up to \code{lag}; by default
+the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
+and p. 635) for the Bartlett kernel without their prewhitening: \code{lag =
+[gamma T^(1/3)]}, \code{gamma = 1.1447 ((s1 / s0)^2)^(1/3)}, \code{s1 = 2 sum_j j
+sigma_j}, \code{s0 = sigma_0 + 2 sum_j sigma_j} over \code{j = 1..n}, \code{n = [4 (T /
+100)^(2/9)]}, \code{T} the most days of a unit and \code{sigma_j} the sum of the
+products of the rows' scores (summed over the coefficients) of one unit
+\code{j} days apart (the earlier default here, \code{[4 (T / 100)^(2/9)]}, is
+their lag-selection parameter \code{n}, not the lag); the appendix of
+Herrnstadt and others 2021); \code{"boot"} (a cluster bootstrap
 over the first \code{clus} column, \code{nboot} draws from R's generator, each
 refitting the model). The small-sample factor \code{ssc}: \code{"G"} (the default)
 \code{G / (G - 1)} with \code{G} the (smaller) number of clusters, or \code{n / (n - 1)}
@@ -149,6 +161,15 @@ coefficients, an intercept and the levels less one of each fixed effect
 not nested in a cluster (fixest's default for clustered errors); \code{"none"}
 no factor. \code{"cluster"} with \code{"G"} equals \code{fixest::fepois()} with
 \code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}.
+
+Two-way clustering (\code{twc}, \code{psd}), as Cameron, Gelbach and Miller (2011,
+p. 241) give it: \code{twc = "min"} (the default, their second method and
+fixest's) puts the one factor of \code{G = min(G, H)} on all three
+components; \code{"each"} (their first, which they use in their simulations
+and applications) gives each component its own, \code{G}, \code{H} and \code{I}, the
+number of intersections. The two-way matrix need not be positive
+semi-definite; \code{psd = "eig"} sets its negative eigenvalues to 0 (their
+p. 241-242, after Politis 2007), \code{"none"} (the default) leaves it.
 }
 \examples{
 # simulated counts in 12 areas over 40 days

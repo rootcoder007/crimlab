@@ -64,6 +64,14 @@
   (`lvfit()`) and the correlation of counts per unit between categories
   (`catcor()`). They are in `clab_jrun()`, the command line and Python.
 
+* Exposure and crime, checked against the papers: the Newey-West lag
+  of `se = "nw"` when `lag` is not given is now the automatic bandwidth
+  of Newey and West (1994, equation 2.2) instead of their lag-selection
+  parameter `n`, so results with that default change; two-way clustering
+  gains the factor of each component (`twc = "each"`) and the
+  eigenvalue fix (`psd = "eig"`) of Cameron, Gelbach and Miller (2011)
+  in `ppmlfe()` and `ivfe()`.
+
 * Exposure and crime, a count with an endogenous exposure by the
   exponential-mean generalised method of moments of Mullahy (1997) and
   Windmeijer and Santos Silva (1997): multiplicative or additive
