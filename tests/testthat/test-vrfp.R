@@ -295,11 +295,11 @@ test_that("the text names cases for asthma and leaves out a missing CI", {
 })
 
 test_that("rows and columns of a CSV are checked before they are used", {
-  fs <- character()
-  on.exit(unlink(fs), add = TRUE)
+  td <- tempfile("vrfp")
+  dir.create(td)
+  on.exit(unlink(td, recursive = TRUE), add = TRUE)
   w <- function(lines) {
-    f <- tempfile(fileext = ".csv")
-    fs <<- c(fs, f)
+    f <- tempfile(fileext = ".csv", tmpdir = td)
     writeLines(lines, f)
     f
   }
@@ -356,8 +356,7 @@ test_that("rows and columns of a CSV are checked before they are used", {
   expect_identical(unlist(r$inputs[c("expomean", "expoprev")]),
                    c(expomean = 5, expoprev = 0))
   expect_identical(r$pipeline$paf, 0)
-  f <- tempfile(fileext = ".csv")
-  fs <- c(fs, f)
+  f <- tempfile(fileext = ".csv", tmpdir = td)
   file.create(f)
   emp <- function(f) {
     sprintf(paste0("%s is empty (expected a column exposure in ug/m3, or a ",
@@ -386,8 +385,7 @@ test_that("rows and columns of a CSV are checked before they are used", {
            "rows are used from a file the parser stopped part-way through")
   )
   # no newline at the end is not a problem
-  f <- tempfile(fileext = ".csv")
-  fs <- c(fs, f)
+  f <- tempfile(fileext = ".csv", tmpdir = td)
   writeChar("exposure\n12\n30", f, eos = NULL)
   expect_identical(vrfpol("no2", expcsv = f)$inputs$expomean, 21)
 })
@@ -411,11 +409,11 @@ test_that("BUG: the negative-value refusal is a whole sentence", {
 })
 
 test_that("compressed files are read whole or refused", {
-  fs <- character()
-  on.exit(unlink(fs), add = TRUE)
+  td <- tempfile("vrfp")
+  dir.create(td)
+  on.exit(unlink(td, recursive = TRUE), add = TRUE)
   tf <- function(ext = ".csv") {
-    f <- tempfile(fileext = ext)
-    fs <<- c(fs, f)
+    f <- tempfile(fileext = ext, tmpdir = td)
     f
   }
   wb <- function(raw) {
@@ -501,11 +499,11 @@ test_that("a file that decompresses past the limit is refused", {
 })
 
 test_that("UTF-16, UTF-32, a UTF-8 mark and Latin-1 are decoded", {
-  fs <- character()
-  on.exit(unlink(fs), add = TRUE)
+  td <- tempfile("vrfp")
+  dir.create(td)
+  on.exit(unlink(td, recursive = TRUE), add = TRUE)
   wb <- function(raw) {
-    f <- tempfile(fileext = ".csv")
-    fs <<- c(fs, f)
+    f <- tempfile(fileext = ".csv", tmpdir = td)
     writeBin(raw, f)
     f
   }

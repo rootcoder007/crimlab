@@ -20,7 +20,9 @@ test_that("exprun counts runs and runfx fits the day-in-run indicators", {
   f <- runfx(s, "crimes", "smoke", "area", "day", fe = c("area", "day"))
   h <- ppmlfe(cbind(s, rr[-1L]), "crimes", c("run1", "run2", "run3p"),
               fe = c("area", "day"))
-  expect_equal(f$coef$est, h$coef$est)
+  # the hand fit builds its own design: the iterative fits agree to their
+  # convergence, not to the last digit
+  expect_equal(f$coef$est, h$coef$est, tolerance = 1e-10)
 })
 
 test_that("smkiv: raw, own and neighbour adjustment, density, counts", {
@@ -35,13 +37,12 @@ test_that("smkiv: raw, own and neighbour adjustment, density, counts", {
   expect_identical(smkiv(d, "plume", "place", "day")$smoke, d$plume)
   o <- smkiv(d, "plume", "place", "day", pm = "pm", adj = "own")
   expect_identical(o$smoke, c(0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0))
-  expect_equal(o$spm[4L], 20 - mean(c(5, 6, 7, 6)))
+  expect_equal(o$spm[4L], 20 - mean(c(5, 6, 7, 6)), tolerance = 1e-12)
   n <- smkiv(d, "plume", "place", "day", pm = "pm", adj = "nbr", nbr = "near")
   expect_identical(n$smoke[4L], 1)
   expect_identical(n$smoke[10L], 1)
   ds <- smkiv(d, "plume", "place", "day", dens = "dens")
-  expect_identical(names(ds), c("smoke", "dens:heavy", "dens:light",
-                                "dens:medium"))
+  expect_named(ds, c("smoke", "dens:heavy", "dens:light", "dens:medium"))
   m <- smkiv(d, "plume", "place", "day", pm = "pm", adj = "own", by = "place")
   expect_identical(m$smoke, c(1, 1))
   expect_error(smkiv(d, "plume", "place", "day", adj = "own"), "needs `pm`")
@@ -57,14 +58,16 @@ test_that("hetfx: interactions equal a hand fit, split equals subsets", {
   d$a <- d$pm * (d$poor == "poor")
   d$b <- d$pm * (d$poor == "rich")
   f <- ppmlfe(d, "crimes", c("a", "b"), fe = c("area", "day"))
-  expect_equal(h$tab$est, f$coef$est)
+  # the hand fit builds its own design: the iterative fits agree to their
+  # convergence, not to the last digit
+  expect_equal(h$tab$est, f$coef$est, tolerance = 1e-10)
   dd <- f$coef$est[1L] - f$coef$est[2L]
   v <- f$vcov[1, 1] + f$vcov[2, 2] - 2 * f$vcov[1, 2]
-  expect_equal(h$test$stat, dd^2 / v)
+  expect_equal(h$test$stat, dd^2 / v, tolerance = 1e-10)
   sp <- hetfx(d, "pm", "poor", how = "split", y = "crimes", x = "pm",
               fe = c("area", "day"))
   s1 <- ppmlfe(d[d$poor == "poor", ], "crimes", "pm", fe = c("area", "day"))
-  expect_equal(sp$tab$est[1L], s1$coef$est)
+  expect_equal(sp$tab$est[1L], s1$coef$est, tolerance = 1e-10)
   expect_identical(sp$test$df, 1L)
 })
 
@@ -77,8 +80,10 @@ test_that("ccross is Poisson with place-year-month-weekday strata", {
   d$s <- paste(d$area, format(d$day, "%Y-%m"), as.POSIXlt(d$day)$wday)
   d$ym <- format(d$day, "%Y-%m")
   h <- ppmlfe(d, "crimes", "pm", fe = "s", clus = "ym")
-  expect_equal(r$coef$est, h$coef$est)
-  expect_equal(r$coef$se, h$coef$se)
+  # the hand fit builds its own design: the iterative fits agree to their
+  # convergence, not to the last digit
+  expect_equal(r$coef$est, h$coef$est, tolerance = 1e-10)
+  expect_equal(r$coef$se, h$coef$se, tolerance = 1e-10)
   m <- ccross(d, "crimes", "area", "day", ma = "pm", x = "pm")
   expect_identical(m$n, nrow(d) - 4L)
   expect_error(ccross(transform(d, day = 1), "crimes", "area", "day"),
@@ -94,12 +99,15 @@ test_that("jntx: the linear form equals a hand fit with the product", {
   j <- jntx(d, "crimes", "temp", "o3", form = "linear", fe = "city")
   d$tx <- d$temp * d$o3
   h <- ppmlfe(d, "crimes", c("temp", "o3", "tx"), fe = "city")
-  expect_equal(j$fit$coef$est, h$coef$est)
+  # the hand fit builds its own design: the iterative fits agree to their
+  # convergence, not to the last digit
+  expect_equal(j$fit$coef$est, h$coef$est, tolerance = 1e-10)
   q1 <- stats::quantile(d$temp, c(0.1, 0.9), names = FALSE)
   q2 <- stats::quantile(d$o3, 0.5, names = FALSE)
   b <- h$coef$est
-  expect_equal(j$cond$est[2L], (q1[2] - q1[1]) * (b[1] + b[3] * q2))
-  expect_equal(j$test$stat, (b[3] / h$coef$se[3])^2)
+  expect_equal(j$cond$est[2L], (q1[2] - q1[1]) * (b[1] + b[3] * q2),
+               tolerance = 1e-10)
+  expect_equal(j$test$stat, (b[3] / h$coef$se[3])^2, tolerance = 1e-10)
   s <- jntx(d, "crimes", "temp", "o3", fe = "city")
   expect_identical(ncol(s$fit$vcov), 4L + 3L + 12L)
   expect_identical(nrow(s$surf), 225L)
@@ -128,8 +136,8 @@ test_that("typefx: one fit per outcome and the Holm correction", {
   d$theft <- rpois(nrow(d), 2)
   t <- typefx(d, c("assault", "theft"), "pm", x = "pm", fe = c("area", "day"))
   a <- ppmlfe(d, "assault", "pm", fe = c("area", "day"))
-  expect_equal(t$tab$est[1L], a$coef$est)
-  expect_equal(t$tab$padj, stats::p.adjust(t$tab$p, "holm"))
+  expect_equal(t$tab$est[1L], a$coef$est, tolerance = 1e-12)
+  expect_identical(t$tab$padj, stats::p.adjust(t$tab$p, "holm"))
   expect_error(typefx(d, "assault", "pm", adj = "romano"), "should be one of")
 })
 
@@ -148,8 +156,8 @@ test_that("smkiv cf = childs is the three-year month median (Childs 2022)", {
     plume = c(0, 0, 1, 0, 0, 1, 0, 1, 1)
   )
   r <- smkiv(d, "plume", "area", "day", pm = "pm", cf = "childs")
-  expect_equal(r$bg, rep(c(16, 20, 22), each = 3))
-  expect_equal(r$spm, c(0, 0, 24, 0, 0, 30, 0, 38, 0))
+  expect_equal(r$bg, rep(c(16, 20, 22), each = 3), tolerance = 1e-12)
+  expect_equal(r$spm, c(0, 0, 24, 0, 0, 30, 0, 38, 0), tolerance = 1e-12)
   expect_error(smkiv(transform(d, day = 1:9), "plume", "area", "day",
                      pm = "pm", cf = "childs", seas = "area"), "as dates")
 })

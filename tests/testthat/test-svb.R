@@ -350,15 +350,16 @@ test_that("cjrirt() from its own EM start is the default chain", {
   st[1] <- -st[1]
   x <- cjrirt(v, 1, 20, 0, start = st, seed = 1)
   expect_true(all(is.finite(x$xchain)))
-  expect_true(all(is.finite(x$alpha)) && all(is.finite(x$beta)))
+  expect_true(all(is.finite(x$alpha)))
+  expect_true(all(is.finite(x$beta)))
 })
 
 test_that("bamscl() puts the polarity stimulus on the left", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) {
+  Z <- t(vapply(1:12, function(i) {
     4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
-  }))
+  }, numeric(5)))
   # the fifth stimulus is the rightmost: as the polarity it is flipped
   # to the left, and the order of the others with it
   r <- bamscl(Z, 10, 10, polarity = 5)
@@ -413,7 +414,7 @@ test_that("dynirt() anchors, and refuses what it cannot fit", {
   set.seed(7)
   period <- rep(1:3, each = 15)
   walk <- function(s) s + cumsum(c(0, rnorm(2, 0, 0.3)))
-  truth <- t(sapply(rnorm(12), walk))
+  truth <- t(vapply(rnorm(12), walk, numeric(3)))
   p <- pnorm(-rep(rnorm(45, 0, 0.5), each = 12) +
     rep(rnorm(45, 1.5, 0.5), each = 12) * truth[, period])
   V <- matrix(rbinom(length(p), 1, p), 12)

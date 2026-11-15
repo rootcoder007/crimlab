@@ -73,10 +73,10 @@ test_that("RAPL: packages only, DRAM as memory, wrap-around", {
   rapl(d, "intel-rapl:1", "psys", 9e9)
   r <- rows(c(s1, snap(d)))
   expect_identical(sum(r$kind == "cpu"), 1L)
-  expect_equal(row(r, "package-0")$joules, 1)
-  expect_equal(row(r, "dram of package-0")$joules, 2)
+  expect_equal(row(r, "package-0")$joules, 1, tolerance = 1e-12)
+  expect_equal(row(r, "dram of package-0")$joules, 2, tolerance = 1e-12)
   expect_identical(row(r, "package-0")$vendor, "intel")
-  expect_equal(r$joules[r$kind == "total"], 3)
+  expect_equal(r$joules[r$kind == "total"], 3, tolerance = 1e-12)
   expect_false(any(grepl("core|psys", r$name)))
 })
 
@@ -97,7 +97,7 @@ test_that("RAPL: an MMIO copy and per-die mirrors are counted once", {
   expect_identical(sum(r$name == "package-0"), 1L)
   expect_true(is.na(row(r, "package-1-die-1")$joules))
   expect_match(row(r, "package-1-die-1")$why, "per-die copy")
-  expect_equal(r$joules[r$kind == "total"], 14)
+  expect_equal(r$joules[r$kind == "total"], 14, tolerance = 1e-12)
 })
 
 test_that("RAPL: unreadable, absent, malformed, and an estimate", {
@@ -168,15 +168,15 @@ test_that("GPUs: several cards of mixed vendors, with and without power", {
   # present without power, estimated from the rated power given
   h <- row(r, "card1 (1002:6900)")
   expect_identical(h$how, "rated x utilisation")
-  expect_equal(h$watts, 20)
-  expect_equal(row(r, "card3 (8086:56a0)")$joules, 30)
+  expect_equal(h$watts, 20, tolerance = 1e-12)
+  expect_equal(row(r, "card3 (8086:56a0)")$joules, 30, tolerance = 1e-12)
   ig <- row(r, "card2 (8086:9b41)")
   expect_true(is.na(ig$joules))
   expect_match(ig$why, "integrated")
   expect_match(row(r, "card4 (10de:2230)")$why, "NVIDIA driver library")
   tot <- r[r$kind == "total", ]
   expect_match(tot$why, "card4")
-  expect_false(grepl("card2", tot$why))
+  expect_false(grepl("card2", tot$why, fixed = TRUE))
 })
 
 test_that("nvidia-smi: output, a failing program, an absent one", {
@@ -217,7 +217,7 @@ test_that("the battery counts only while it discharges", {
   put(d, file.path(b, "current_now"), 1e6)
   put(d, file.path(b, "voltage_now"), 12e6)
   r <- rows(snap(d))
-  expect_equal(row(r, "battery BAT0", "machine")$watts, 12)
+  expect_equal(row(r, "battery BAT0", "machine")$watts, 12, tolerance = 1e-12)
   # the machine is beside the devices, not in their total
   expect_true(is.na(r$watts[r$kind == "total"]))
 })
@@ -255,9 +255,9 @@ test_that("the process tree's share of the package", {
   r <- rows(c(s1, snap(d, pid = 100L)))
   # the tree used 30 of the 100 busy ticks
   p <- row(r, "package-0", "process")
-  expect_equal(p$joules, 3)
+  expect_equal(p$joules, 3, tolerance = 1e-12)
   expect_equal(p$util, 0.3)
-  expect_equal(row(r, "package-0")$joules, 10)
+  expect_equal(row(r, "package-0")$joules, 10, tolerance = 1e-12)
 })
 
 test_that("the NVIDIA library: absent is no reading, not an error", {
@@ -270,9 +270,9 @@ test_that("Apple counters: steady, paused, frozen, caught up", {
   sq <- function(ctr) {
     rows(vapply(seq_along(ctr), function(k) stxt(0.25 * k, ctr[k]), ""))
   }
-  expect_equal(sq(0:4)$joules[1], 4)
+  expect_equal(sq(0:4)$joules[1], 4, tolerance = 1e-12)
   r <- sq(c(0, 1, 1, 3, 4))
-  expect_equal(r$joules[1], 4)
+  expect_equal(r$joules[1], 4, tolerance = 1e-12)
   expect_match(r$why[1], "spread over the pause")
   r <- sq(c(0, 1, 2, 3, 3))
   expect_true(is.na(r$joules[1]))
@@ -280,8 +280,8 @@ test_that("Apple counters: steady, paused, frozen, caught up", {
   expect_true(is.na(sq(c(0, 30, 31, 32, 33))$joules[1]))
   expect_true(is.na(sq(c(5, 5))$joules[1]))
   # a counter that may rest at zero (the neural engine) is not a fault
-  z <- vapply(1:3, function(k) stxt(k, 0, aon = 0L, "ane"), "")
-  expect_equal(rows(z)$joules[1], 0)
+  z <- vapply(1:3, stxt, "", ctr = 0, aon = 0L, kind = "ane")
+  expect_equal(rows(z)$joules[1], 0, tolerance = 1e-12)
 })
 
 test_that("snapshot text that is not a reading is refused", {
@@ -378,7 +378,7 @@ test_that("hwpwr(): the shape, and an interval since a reading", {
   expect_identical(a$kind, "total")
   b <- hwpwr(since = a, skip = none)
   expect_gte(attr(b, "dt"), 0)
-  expect_true(is.character(attr(b, "snap")))
+  expect_type(attr(b, "snap"), "character")
 })
 
 test_that("IOReport on this Mac: CPU and GPU energy, or the reason", {

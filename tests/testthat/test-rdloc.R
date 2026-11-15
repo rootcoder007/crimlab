@@ -49,7 +49,7 @@ fitref <- function(y, r, h, p, tt = NULL) {
   w <- pmax(1 - abs(r / h), 0)
   k <- w > 0
   dd <- as.numeric(r >= 0)
-  pw <- sapply(1:p, function(j) r^j)
+  pw <- vapply(1:p, function(j) r^j, numeric(length(r)))
   x <- cbind(1, dd, pw, dd * pw)[k, , drop = FALSE]
   w <- w[k]
   z <- x
@@ -65,12 +65,13 @@ fitref <- function(y, r, h, p, tt = NULL) {
 mcref <- function(r, c, b, h) {
   g <- floor((r - c) / b) * b + b / 2 + c
   xj <- seq(min(g), max(g), by = b)
-  yj <- sapply(xj, function(v) sum(abs(g - v) < b / 4)) / (length(r) * b)
-  fe <- sapply(c(FALSE, TRUE), function(right) {
+  yj <- vapply(xj, function(v) sum(abs(g - v) < b / 4), 0L) /
+    (length(r) * b)
+  fe <- vapply(c(FALSE, TRUE), function(right) {
     s <- if (right) xj > c else xj < c
     u <- xj[s] - c
     stats::coef(stats::lm(yj[s] ~ u, weights = pmax(1 - abs(u / h), 0)))[1]
-  })
+  }, 0)
   c(log(fe[2]) - log(fe[1]),
     sqrt(24 / 5 / (length(r) * h) * (1 / fe[2] + 1 / fe[1])))
 }
@@ -118,7 +119,7 @@ test_that("rddens is McCrary's two steps", {
                tolerance = 1e-8)
   a <- rddens(d$r)
   expect_equal(a$b, 2 * stats::sd(d$r) / sqrt(nrow(d)), tolerance = 1e-12)
-  expect_true(a$h > 0)
+  expect_gt(a$h, 0)
   expect_error(rddens(c(1, NA)), "rddens: ")
   expect_output(print(m), "McCrary")
 })

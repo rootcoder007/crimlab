@@ -65,7 +65,8 @@ test_that("the positions the plots compute, by hand", {
   expect_identical(.axrun(c("run1", "run2", "run3p")), c(1, 2, 3))
   # a line through (-1, 1), (0, 2), (1, 3); with weights 1, 2, 1 on
   # 0, 1, 4: s1 = 0, so a = 6 / 4 and b = 4 / 2
-  expect_equal(.rdwls(c(-1, 0, 1), c(1, 2, 3), c(1, 1, 1)), c(2, 1))
+  expect_equal(.rdwls(c(-1, 0, 1), c(1, 2, 3), c(1, 1, 1)), c(2, 1),
+               tolerance = 1e-12)
   expect_equal(.rdwls(c(-1, 0, 1), c(0, 1, 4), c(1, 2, 1)), c(1.5, 2))
   expect_identical(.rdwls(c(1, 1), c(1, 2), c(1, 1)), c(NA_real_, NA_real_))
   # two bins of [-1, 0]: -1 and -0.9 in the first, -0.4 in the second

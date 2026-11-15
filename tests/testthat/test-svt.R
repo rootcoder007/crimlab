@@ -1007,9 +1007,9 @@ test_that("the refusals name the argument", {
 test_that("amscal() leaves a one-placement respondent unscaled", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) {
+  Z <- t(vapply(1:12, function(i) {
     4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
-  }))
+  }, numeric(5)))
   # one placement cannot give an intercept and a slope: 0 and 1
   z1 <- Z
   z1[3, -2] <- NA

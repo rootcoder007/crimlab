@@ -97,7 +97,7 @@ test_that("expgmm equals the moment conditions solved by nlminb()", {
   expect_equal(fa$j$stat, 0.578064017487062, tolerance = 1e-5)
   fi <- expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
                fe = "day", clus = "unit", step = "iter")
-  expect_true(fi$nw >= 2L)
+  expect_gte(fi$nw, 2L)
   expect_equal(fi$coef$est, f2$coef$est, tolerance = 1e-2)
   expect_output(print(f2), "Hansen J")
   expect_identical(summary(f2), f2$coef)

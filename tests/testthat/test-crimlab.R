@@ -484,7 +484,7 @@ test_that("every exported function answers one valid call in its shape", {
          c("data", "nout", "nexp", "unout")),
     list(quote(smkiv(data.frame(p = c(0, 1), u = "a", t = 1:2,
                                 stringsAsFactors = FALSE), "p", "u", "t")),
-         c("smoke")),
+         "smoke"),
     list(quote(exprun(data.frame(e = c(0, 1, 1), u = 1, t = 1:3),
                       "e", "u", "t")),
          c("run", "run1", "run2", "run3p")),

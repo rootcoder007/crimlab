@@ -358,7 +358,7 @@ test_that("the shared checks refuse each kind of bad argument", {
   # the all-missing column goes, and one column is left
   ef(mcartst(data.frame(a = c(1, 2), b = NA_real_)),
      "mcartst: too few complete columns or rows remain for Little's test.")
-  dd <- data.frame(a = 1:2, a = 1:2, check.names = FALSE)
+  dd <- stats::setNames(data.frame(1:2, 1:2), c("a", "a"))
   ef(duprows(dd, "a"),
      paste0("duprows: `data` has two columns named a: give the columns by ",
             "position, or rename one."))
@@ -391,7 +391,7 @@ test_that("empty and one-row tables keep their shape", {
   expect_identical(z[2L], "  (no rows)")
   expect_length(z, 3L)
   d0 <- duprows(data.frame(a = 1:2, b = 3:4)[0, ], quiet = TRUE)
-  expect_identical(names(d0), c("a", "b", "dupe_count"))
+  expect_named(d0, c("a", "b", "dupe_count"))
   expect_identical(nrow(d0), 0L)
   expect_identical(
     as.matrix(mahaoutl(as.matrix(data.frame(a = c(1, 2, 3, 4, 10),
@@ -408,7 +408,7 @@ test_that("the notes and printed forms say what was done", {
            "   columns dropped (one value): a"),
     fixed = TRUE
   )
-  expect_identical(names(out), "b")
+  expect_named(out, "b")
   expect_message(drpconst(data.frame(b = 1:2)),
                  "-- Constant columns dropped\n   columns 1 -> 1\n",
                  fixed = TRUE)
@@ -536,7 +536,8 @@ test_that("near-collinear distances use the floored covariance", {
   e <- eigen(stats::cov(z), symmetric = TRUE)
   # the small eigenvalue, 5.2e-9, is above the rank check (1e-8 of the
   # largest) and below the floor (1e-8 times max(1, largest))
-  expect_true(e$values[2] > 1e-8 * e$values[1] && e$values[2] < 1e-8)
+  expect_gt(e$values[2], 1e-8 * e$values[1])
+  expect_lt(e$values[2], 1e-8)
   sf <- e$vectors %*% diag(pmax(e$values, 1e-8)) %*% t(e$vectors)
   m <- mahaoutl(d, robust = FALSE)
   m <- m[order(m$row), ]

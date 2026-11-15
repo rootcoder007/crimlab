@@ -67,7 +67,7 @@ test_that("ppmlfe equals fepois: two effects, an offset, two clusterings", {
     c(0.023525811320309342, 0.029059218018322456),
     tolerance = 1e-6
   )
-  expect_equal(f$coef$rr, exp(f$coef$est))
+  expect_equal(f$coef$rr, exp(f$coef$est), tolerance = 1e-12)
   expect_identical(summary(f), f$coef)
   expect_output(print(f), "ppmlfe: Poisson pseudo-likelihood, 450 rows")
 })
@@ -137,7 +137,7 @@ test_that("ivfe equals feols IV: estimates, errors, first-stage F", {
   # coefficients over the mean of x
   expect_equal(f$fstab$est, c(0.73993728634395717, -0.5556931692314554),
                tolerance = 1e-8)
-  expect_equal(f$fstab$rel, f$fstab$est / mean(d$x))
+  expect_equal(f$fstab$rel, f$fstab$est / mean(d$x), tolerance = 1e-12)
   f2 <- ivfe(
     d,
     "yl",
@@ -277,13 +277,13 @@ test_that("plcday refits on shifted days; shift 0 is the plain fit", {
   )
   f <- ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop")
   expect_identical(p$tab$shift, c(0, -7, 7))
-  expect_equal(p$tab$est[1L], f$coef$est[1L])
+  expect_equal(p$tab$est[1L], f$coef$est[1L], tolerance = 1e-12)
   expect_identical(p$tab$n, c(450L, 345L, 345L))
   # by hand: the exposure of a week later
   d7 <- d[d$day <= 23, ]
   d7$x <- d$x[match(paste(d7$unit, d7$day + 7), paste(d$unit, d$day))]
   f7 <- ppmlfe(d7, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop")
-  expect_equal(p$tab$est[3L], f7$coef$est[1L])
+  expect_equal(p$tab$est[3L], f7$coef$est[1L], tolerance = 1e-12)
   d2 <- rbind(d, d[1, ])
   expect_error(plcday(d2, "x", "unit", "day", y = "y", x = "x", fe = "unit"),
                "two rows on one day")
@@ -334,7 +334,7 @@ test_that("updwn classifies sides and estimates the downwind difference", {
   rp <- updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
               offs = c(-1600, 0, 1600))
   expect_identical(rp$placebo$off, c(-1600, 0, 1600))
-  expect_equal(rp$placebo$est[2L], r$coef$est)
+  expect_equal(rp$placebo$est[2L], r$coef$est, tolerance = 1e-12)
   expect_true(all(is.finite(rp$placebo$est)))
   expect_error(updwn(d, "crimes", "ax", "ay", "day", "wind", road, tol = 100),
                "between 0 and 90")
@@ -527,7 +527,7 @@ test_that("windiv: the paper's edges, hours to days", {
   expect_identical(rownames(v), c("1", "2"))
   expect_identical(unname(v[2, ]), c(1, 0, 0))
   m <- windiv(c(350, 10, 100, 120), by = c(1, 1, 2, 2), avg = "mean")
-  expect_equal(attr(m, "dir"), c(180, 110))
+  expect_equal(attr(m, "dir"), c(180, 110), tolerance = 1e-12)
   o <- windiv(c(100, 110, 200), by = c(1, 1, 1), avg = "mode")
   expect_identical(unname(o[1, ]), c(1, 0, 0))
   s <- windiv(c(100, 200, 200, 10), by = c(1, 1, 1, 1), share = TRUE)
@@ -566,8 +566,8 @@ test_that("plcday moves the exposure, the instruments or both", {
   b <- a("both")$tab
   x <- a("x")$tab
   z <- a("z")$tab
-  expect_equal(b$est[1L], x$est[1L])
-  expect_equal(b$est[1L], z$est[1L])
+  expect_equal(b$est[1L], x$est[1L], tolerance = 1e-12)
+  expect_equal(b$est[1L], z$est[1L], tolerance = 1e-12)
   d7 <- d[d$day <= 23, ]
   k <- match(paste(d7$unit, d7$day + 7), paste(d$unit, d$day))
   d7$z1 <- d$z1[k]
@@ -580,7 +580,7 @@ test_that("plcday moves the exposure, the instruments or both", {
     x = "w",
     fe = c("unit", "day")
   )
-  expect_equal(z$est[2L], h$coef$est[1L])
+  expect_equal(z$est[2L], h$coef$est[1L], tolerance = 1e-12)
   expect_false(isTRUE(all.equal(x$est[2L], b$est[2L])))
   expect_error(
     plcday(d, "x", "unit", "day", shift = "z", y = "y", x = "x", fe = "unit"),
@@ -663,7 +663,7 @@ test_that("the Newey-West (1994) automatic lag, by hand", {
   # the whole part of 4 (5 / 100)^(2/9), which is 2. The autocovariances
   # at lags 0, 1 and 2 are 7, -3 and 4, so s1 is twice (-3 + 8), which is
   # 10, and s0 is 7 plus twice 1, which is 9.
-  g <- crimlab:::.axnwlag(matrix(c(1, -1, 2, 0, 1)), rep(0L, 5), 1:5)
+  g <- .axnwlag(matrix(c(1, -1, 2, 0, 1)), rep(0L, 5), 1:5)
   expect_identical(g, floor(1.1447 * ((10 / 9)^2)^(1 / 3) * 5^(1 / 3)))
 })
 
