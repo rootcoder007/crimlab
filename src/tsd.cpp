@@ -399,12 +399,14 @@ void like(const std::vector<double> &y, Model &m, double *out) {
   out[2] = nu;
 }
 
-void fore(int h, Model m, std::vector<double> &fc, std::vector<double> &se) {
+// False when interrupted (the outputs are then incomplete).
+bool fore(int h, Model m, std::vector<double> &fc, std::vector<double> &se) {
   const int p = m.rd;
   std::vector<double> anew(z(p)), Pnew(z(p) * z(p)), mm(z(p) * z(p));
   fc.assign(z(h), 0.0);
   se.assign(z(h), 0.0);
   for (int l = 0; l < h; ++l) {
+    if (kutil::stop(3.0 * p * p * p)) return false;
     double f = 0;
     for (int i = 0; i < p; ++i) {
       double t = 0;
@@ -437,6 +439,7 @@ void fore(int h, Model m, std::vector<double> &fc, std::vector<double> &se) {
     }
     se[z(l)] = t;
   }
+  return true;
 }
 
 // R's vmmin (BFGS) with the central differences of optim() (ndeps 1e-3,
@@ -709,7 +712,7 @@ bool getord(const Node &a, const char *nm, int n, std::vector<int> &o, std::stri
 bool k_arimfc(const Node &a, Node &out, std::string &err) {
   std::vector<double> y;
   int h;
-  if (!getv(a, "y", y, err) || !geti(a, "h", h, err, 1)) return false;
+  if (!getv(a, "y", y, err) || !geti(a, "h", h, err, 1) || !cap(h, kutil::maxcell, "`h`", err)) return false;
   if (y.size() < 24) {
     err = msg("`y` must have 24 values at least, got %d.", static_cast<int>(y.size()));
     return false;
@@ -717,7 +720,10 @@ bool k_arimfc(const Node &a, Node &out, std::string &err) {
   Fit f;
   if (!arima(y, {1, 1, 0, 0, 12, 1, 0}, f, err)) return false;
   std::vector<double> fc, se;
-  fore(h, f.mod, fc, se);
+  if (!fore(h, f.mod, fc, se)) {
+    err.clear();
+    return false;
+  }
   for (double &e : se) e = std::sqrt(e * f.sigma2);
   const double k = static_cast<double>(f.coef.size()) + 1;
   out.add("fc", vec(fc));
@@ -759,7 +765,10 @@ bool k_sarfc(const Node &a, Node &out, std::string &err) {
   Fit f;
   if (!arima(tr, {o[0], o[2], s[0], s[2], s[3], o[1], s[1]}, f, err)) return false;
   std::vector<double> fc, se;
-  fore(h, f.mod, fc, se);
+  if (!fore(h, f.mod, fc, se)) {
+    err.clear();
+    return false;
+  }
   double ap = 0, sq = 0;
   for (int i = 0; i < h; ++i) {
     const double e = te[z(i)] - fc[z(i)];
@@ -934,7 +943,10 @@ bool k_ousim(const Node &a, Node &out, std::string &err) {
 bool k_fpdens(const Node &a, Node &out, std::string &err) {
   std::vector<double> y;
   int ng, ns;
-  if (!series(a, y, err) || !geti(a, "ngrid", ng, err, 3) || !geti(a, "nstep", ns, err, 0)) return false;
+  if (!series(a, y, err) || !geti(a, "ngrid", ng, err, 3) || !geti(a, "nstep", ns, err, 0) ||
+      !cap(ng, kutil::maxcell, "`ngrid`", err)) {
+    return false;
+  }
   const Ou f = oufit(y);
   double mx = y[0];
   for (double e : y) mx = std::max(mx, e);
@@ -957,6 +969,10 @@ bool k_fpdens(const Node &a, Node &out, std::string &err) {
   }
   const double dc = 0.5 * f.sigma * f.sigma;
   for (int st = 0; st < ns; ++st) {
+    if (kutil::stop(10.0 * ng)) {
+      err.clear();
+      return false;
+    }
     std::vector<double> np(z(ng));
     for (int i = 0; i < ng; ++i) {
       const double l = p[z((i + 1) % ng)], r = p[z((i + ng - 1) % ng)];

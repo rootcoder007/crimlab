@@ -12,7 +12,7 @@
 #' coefficients.
 #'
 #' @param y The counts, in time order, 24 at least.
-#' @param h The periods to forecast.
+#' @param h The periods to forecast, at most 67108864 (2^26).
 #' @return A list of class `arimfc`: `fc` and `se` (forecasts and their
 #'   standard errors), `coef` (ar1, ma1), `sigma2`, `aic`, `bic` and `n`.
 #' @references Box, G. E. P. and Jenkins, G. M. (1970). *Time Series
@@ -152,7 +152,7 @@ ousim <- function(y, npath = 100, days = 365, dt = 1, seed = 42) {
 #' \theta)}.
 #'
 #' @param y The counts, in time order, three at least.
-#' @param ngrid The grid points.
+#' @param ngrid The grid points, at most 67108864 (2^26).
 #' @param nstep The steps.
 #' @return A list of class `fpdens`: `theta`, `mu`, `sigma`, `grid`,
 #'   `density`, `peak` (the grid point of the highest density) and

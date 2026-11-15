@@ -789,6 +789,10 @@
   `scboot()` too many replicates and `anchv()` too many categories, all
   before allocating; `smacf()` can now be interrupted. The command line
   gives the same messages.
+* `arimfc()` refuses a horizon `h` past 2^26 and `fpdens()` a grid past
+  2^26 points before making them (both used to abort R); the forecast
+  and the steps of `fpdens()` can now be interrupted. The command line
+  gives the same messages.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

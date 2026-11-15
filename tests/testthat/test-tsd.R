@@ -290,3 +290,12 @@ test_that("BUG: an AR(1) fit at the unit root is refused", {
     "sarfc: the fitted ARMA part is not stationary.", fixed = TRUE
   )
 })
+
+test_that("a horizon or a grid past its bound is refused before it is made", {
+  y <- c(3, 5, 4, 6, 8, 7, 9, 11, 10, 12, 14, 13, 15, 17, 16, 18, 20, 19,
+         21, 23, 22, 24, 26, 25)
+  expect_error(arimfc(y, h = 1e9),
+               "arimfc: `h` must be at most 67108864.", fixed = TRUE)
+  expect_error(fpdens(y, ngrid = 1e9),
+               "fpdens: `ngrid` must be at most 67108864.", fixed = TRUE)
+})
