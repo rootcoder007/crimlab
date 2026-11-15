@@ -1211,6 +1211,71 @@
   names the Lean theorem behind each function; the proofs ship in
   `inst/lean`.
 
+- [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  refuses a CSV with a quote left open in its first rows as a file that
+  “could not be read cleanly”; it used to call the file empty. A file
+  without a newline at its end no longer lets a warning escape from the
+  reading of its header.
+
+- [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  ends its refusal of negative exposure values with the word it was
+  missing: “a concentration cannot be negative”.
+
+- [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  refuses a gzip file cut short inside its data as “truncated or
+  damaged”; it used to read the part before the cut without a word, so
+  the report rested on some of the rows only. The data read are now
+  checked against the length and CRC-32 at the end of the file.
+
+- [`missgrid()`](https://rootcoder007.github.io/crimlab/reference/missgrid.md)
+  keeps each letter of the header under its own column when the names
+  have different lengths; the letters of a longer name used to slide
+  left under the column of a shorter one. The command line had the same
+  fault and is fixed with it.
+
+- [`sarfc()`](https://rootcoder007.github.io/crimlab/reference/sarfc.md)
+  refuses an AR(1) fit whose coefficient reaches 1 or beyond with “the
+  fitted ARMA part is not stationary.”, as it does for higher orders; it
+  used to go on with an infinite or negative starting variance.
+
+- A number with no bounds given badly is refused as “must be one
+  number.” (`beta` of
+  [`nomutl()`](https://rootcoder007.github.io/crimlab/reference/nomutl.md),
+  [`nompr()`](https://rootcoder007.github.io/crimlab/reference/nompr.md)
+  and
+  [`nomll()`](https://rootcoder007.github.io/crimlab/reference/nomll.md);
+  `c0`, `d0`, `e0`, `a0` and `b0` of
+  [`dynirt()`](https://rootcoder007.github.io/crimlab/reference/dynirt.md))
+  or “must be one number, neither infinite nor missing.” (`rho` of
+  [`dtrid()`](https://rootcoder007.github.io/crimlab/reference/dtrid.md),
+  `a` of
+  [`inspg()`](https://rootcoder007.github.io/crimlab/reference/inspg.md),
+  `cap` and `floor` of
+  [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md));
+  the messages used to name a bound of “-inf” or “-Inf” that does not
+  exist. The command line gives the same messages.
+
+- [`pedlr()`](https://rootcoder007.github.io/crimlab/reference/pedlr.md)
+  refuses a pedigree whose tables would pass its size bound before it
+  builds them: an untyped child of untyped parents at a locus of 2000
+  alleles used to try to allocate 8e9 cells and abort R. The mutation
+  matrices are made only with a mutation model, and refused past the
+  same bound (more than 8192 alleles); they were made even with
+  `mut = "none"`.
+  [`gmixlr()`](https://rootcoder007.github.io/crimlab/reference/gmixlr.md)
+  no longer lists the genotypes of unknown contributors when there are
+  none, and
+  [`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md)
+  refuses more than 8190 columns of `x`, whose work arrays grow with the
+  square of their number.
+
+- The quantile functions of the command line, the JSON entry and Python
+  give R’s answers at a point mass: the beta quantile with both shapes 0
+  is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail
+  as R’s [`qbeta()`](https://rdrr.io/r/stats/Beta.html) does; the gamma
+  and chi-square quantiles with shape or degrees of freedom 0 are
+  infinite at p = 1 (they were 0).
+
 - A vector longer than the largest integer is refused with an error, by
   the exported functions and by the compiled entry points alike; the
   compiled code used to truncate its length.

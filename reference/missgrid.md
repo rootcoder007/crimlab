@@ -70,11 +70,11 @@ missgrid(df)
 #>          moas
 #>          pctt
 #>          lktl
-#>          eey
-#>          trg
-#>          eeo
-#>          dn
-#>          e
+#>          e ey
+#>          t rg
+#>          e eo
+#>            dn
+#>             e
 #>        1  █▒ 
 #>        6  █░ 
 #>       11  █▒█
