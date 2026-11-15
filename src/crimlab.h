@@ -3558,6 +3558,24 @@ int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const
  * tree-months of uptake (917 g each). */
 void clab_fpeqv(double g, double *out);
 
+/* ------------------------------------------------------------------------
+ * The exposure-response estimate of exprspplr() (plr.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The partially linear regression of y on d given covariates x (n x p,
+ * column-major; p may be 0) with cross-fitted least squares nuisances
+ * (DML2) over the m rows rows (from 0, repeats allowed) in the folds fold
+ * (1 to k, one per row). The nuisances are fitted on the centred and scaled
+ * design by Cholesky, or by Householder QR with limited pivoting (aliased
+ * columns 0) when its reciprocal condition number is below 1e-5. Out: the
+ * effect and its standard error; CLAB_EDOM when the treatment has no
+ * variation left after partialling out the covariates. */
+int clab_plr(const double *y, const double *d, const double *x, int n, int p, const int *rows, int m,
+             const int *fold, int k, double *out);
+/* The standard deviation (n - 1) and the type-7 quantiles at the np
+ * probabilities pr of m values: out, 1 + np. */
+void clab_bootci(const double *v, int m, const double *pr, int np, double *out);
+
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

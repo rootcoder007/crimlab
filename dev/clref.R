@@ -1596,6 +1596,20 @@ bad("dtctloc", tz = c("a", "b"))
 ok("raplok", rapldir = "/nonexistent/powercap")
 ok("fpeqv", co2eg = 1200)
 bad("fpeqv", co2eg = -1)
+
+# The exposure-response estimate (simulated areas)
+set.seed(1)
+exd <- data.frame(x1 = round(rnorm(40), 3), x2 = round(rnorm(40), 3))
+exd$exposure <- round(20 + 2 * exd$x1 + rnorm(40), 3)
+exd$asthma <- round(5 + 0.3 * exd$exposure + exd$x2 + rnorm(40), 3)
+exd2 <- exd
+exd2$x2[c(3, 7)] <- NA
+exd2$asthma[11] <- NA
+ok("exprspplr", data = exd[1:30, ], y = "asthma", expo = "exposure", confs = c("x1", "x2"), nboot = 12)
+ok("exprspplr", data = exd2, y = "asthma", expo = "exposure", confs = "x1", nboot = 10, rstate = 2^35 + 1)
+bad("exprspplr", data = exd[1:12, ], y = "asthma", expo = "exposure", confs = "x1", nboot = 5)
+bad("exprspplr", data = exd[1:8, ], y = "asthma", expo = "exposure", confs = "x1")
+bad("exprspplr", data = exd[1:12, ], y = "asthma", expo = "exposure", confs = "zz")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

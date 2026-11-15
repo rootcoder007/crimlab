@@ -29,6 +29,15 @@
   (`fpeqv()`). All but `co2fp()`, which evaluates an R expression, are in
   `clab_jrun()`, the command line and Python.
 
+* Air pollution, for environmental criminology: the exposure-response
+  estimate with a bootstrap sensitivity interval (`exprspplr()`), by the
+  cross-fitted partially linear regression in the compiled core or any
+  estimator with its interface, and the whole pollution-to-health pipeline
+  from demo data, a (compressed) CSV or scalars to a report and its text
+  (`vrfpol()`, `polrpttxt()`). `exprspplr()` with its built-in estimator is
+  in `clab_jrun()`, the command line and Python; the other two read files
+  and write text in R.
+
 * Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
   Gaussian plume and puff (`gplume()`, `gspuff()`, the field

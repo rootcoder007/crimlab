@@ -161,7 +161,9 @@ The functions work on summary data, not on raw records:
   exposure series to join to crime counts by place and day (`pgsig()`,
   `briggs()`, `gplume()`, `gspuff()`, `plmfld()`, `advdif2d()`,
   `lagrprt()`, `crfpm25()`, `crfno2()`, `attrfrac()`, `mortdisp()`,
-  `polbrdn()`, `polbrdarea()`, `expconcidx()`).
+  `polbrdn()`, `polbrdarea()`, `expconcidx()`), the exposure-response
+  estimate with a bootstrap check (`exprspplr()`) and the whole pipeline
+  as one report (`vrfpol()`, `polrpttxt()`).
 * Data larger than memory: moments, samples and distinct counts in one
   pass (`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`, `rsvidx()`,
   `rsvsmp()`, `dstnskch()`, `dstncnt()`, `skchmrg()`).
@@ -578,7 +580,7 @@ Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
 of the R package but those that work in R only, the plot functions
 and the table check `prechk()`
-(351 of 370); `crimlab -l` lists them and
+(352 of 373); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

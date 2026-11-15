@@ -5696,3 +5696,22 @@ def fpeqv(co2eg: Any) -> Any:
     10.0
     """
     return jcall("fpeqv", co2eg=co2eg)
+
+
+def exprspplr(data: Any, y: Any, expo: Any, confs: Any, nboot: Any = 100,
+              rstate: Any = 42) -> Any:
+    """Exposure-response estimate with a bootstrap sensitivity interval.
+
+    The arguments and the result are those of R's ``exprspplr()`` with its
+    built-in estimator: see its help page.
+
+    Examples
+    --------
+    >>> import math
+    >>> d = {'x': [math.sin(i) for i in range(40)],
+    ...      'e': [math.sin(i) + math.cos(3 * i) for i in range(40)]}
+    >>> d['y'] = [3 * e + 2 * x for e, x in zip(d['e'], d['x'])]
+    >>> round(exprspplr(data=d, y='y', expo='e', confs='x', nboot=10)['ate'], 6)
+    3.0
+    """
+    return jcall("exprspplr", data=data, y=y, expo=expo, confs=confs, nboot=nboot, rstate=rstate)

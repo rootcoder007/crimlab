@@ -435,6 +435,8 @@ reference:
       - polbrdn
       - polbrdarea
       - expconcidx
+      - exprspplr
+      - vrfpol
   - title: Data larger than memory
     desc: One-pass summaries for data that arrive in pieces or do not fit
       in memory - moments accumulated and merged exactly, a uniform

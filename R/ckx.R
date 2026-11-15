@@ -103,3 +103,51 @@
   }
   x
 }
+
+# A seed for R's own generator: one whole number from -2147483647 to
+# 2^53 - 1; an integer when it fits.
+.ckseed <- function(seed, what, fn) {
+  if (
+    !is.numeric(seed) || length(seed) != 1L || !is.finite(seed) ||
+      seed != round(seed) || seed < -.Machine$integer.max || seed >= 2^53
+  ) {
+    .ckstop(
+      fn,
+      "`%s` must be a single whole number from -2147483647 to 2^53 - 1",
+      what
+    )
+  }
+  if (abs(seed) <= .Machine$integer.max) as.integer(seed) else as.numeric(seed)
+}
+
+# expr evaluated with R's generator set from seed (checked by .ckseed()),
+# the caller's stream restored afterwards. Past 2147483647 the
+# Mersenne-Twister state is that set.seed() makes from the seed's low 31
+# bits, XORed with the state it makes from minus its high bits, shifted by
+# one word, so that every seed up to 2^53 has a stream of its own.
+.clseed <- function(seed, expr) {
+  had <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  old <- if (had) get(".Random.seed", envir = globalenv(), inherits = FALSE)
+  on.exit(
+    if (had) {
+      assign(".Random.seed", old, envir = globalenv())
+    } else if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+      rm(".Random.seed", envir = globalenv())
+    },
+    add = TRUE
+  )
+  if (is.integer(seed)) {
+    set.seed(seed)
+  } else {
+    st <- function(s) {
+      set.seed(s)
+      get(".Random.seed", envir = globalenv())
+    }
+    lo <- st(as.integer(seed %% 2^31))
+    hi <- st(-as.integer(seed %/% 2^31))
+    w <- bitwXor(lo[3:626], hi[c(4:626, 3L)])
+    w[is.na(w)] <- 1L
+    assign(".Random.seed", c(lo[[1L]], 624L, w), envir = globalenv())
+  }
+  expr
+}

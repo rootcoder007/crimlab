@@ -23,3 +23,4 @@ ecolrg	1e-9	0	theta and the zero-inflated fit are iterated to a tolerance, and t
 sfrail	1e-8	0	Newton-Raphson to a step of 1e-10 with a numerical Hessian: the standard errors carry its rounding, about 1e-10 relative
 sfcure	1e-8	0	Newton-Raphson to a step of 1e-10 with a numerical Hessian: the standard errors carry its rounding, about 1e-10 relative
 optsqr	1e-6	0	the factor is the place of a minimum found by Brent's method, known only to about the square root of the machine precision
+exprspplr	1e-10	1e-14	least squares fits whose sums the R package runs through the BLAS in another order

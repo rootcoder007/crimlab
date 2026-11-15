@@ -1573,6 +1573,7 @@ bool proof(Ctx &c, Val &out) {
 #include "japol.inc"
 #include "jskch.inc"
 #include "jfp.inc"
+#include "jaexp.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
 #include "jrpv.inc"
@@ -1836,6 +1837,7 @@ const Ent ents[] = {
     {"dtctloc", "envloc? codloc? tz? locale?", dtctloc},
     {"raplok", "rapldir?", raplok},
     {"fpeqv", "co2eg", fpeqv},
+    {"exprspplr", "data y expo confs nboot? rstate?", exprspplr},
     {"ibench", "y off x? minn? fdr? dr? local?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},

@@ -608,6 +608,9 @@ SEXP C_clab_r_tzterr(SEXP);
 SEXP C_clab_r_proxy(SEXP);
 SEXP C_clab_r_fpe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_fpeqv(SEXP);
+// The exposure-response estimate (bplr.cpp).
+SEXP C_clab_r_plr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bootci(SEXP, SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
@@ -927,6 +930,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_proxy", fn<&C_clab_r_proxy>(), 1},
     {"C_clab_r_fpe", fn<&C_clab_r_fpe>(), 7},
     {"C_clab_r_fpeqv", fn<&C_clab_r_fpeqv>(), 1},
+    {"C_clab_r_plr", fn<&C_clab_r_plr>(), 6},
+    {"C_clab_r_bootci", fn<&C_clab_r_bootci>(), 2},
     {"C_clab_r_svymx", fn<&C_clab_r_svymx>(), 10},
     {"C_clab_r_crsev", fn<&C_clab_r_crsev>(), 9},
     {"C_clab_r_zcomp", fn<&C_clab_r_zcomp>(), 4},
