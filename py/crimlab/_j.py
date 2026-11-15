@@ -5626,3 +5626,73 @@ def yoywr(x: Any, file: Any,
     True
     """
     return jcall("yoywr", x=x, file=file, format=format, digits=digits, na=na, meta=meta, comment=comment, pretty=pretty, align=align)
+
+
+def co2int(loc: Any = None) -> Any:
+    """Carbon intensity of electricity at a location, offline.
+
+    The arguments and the result are those of R's ``co2int()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> co2int(loc='CA-ON')['g_per_kwh']
+    90.97
+    """
+    return jcall("co2int", loc=loc)
+
+
+def co2inttab() -> Any:
+    """The carbon-intensity table, every location it holds.
+
+    The arguments and the result are those of R's ``co2inttab()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> len(co2inttab()['location'])
+    378
+    """
+    return jcall("co2inttab")
+
+
+def dtctloc(envloc: Any = None, codloc: Any = None, tz: Any = None, locale: Any = None) -> Any:
+    """The location of this computation, without network access.
+
+    The arguments and the result are those of R's ``dtctloc()``: see its help
+    page. Left out, an argument is read from the environment.
+
+    Examples
+    --------
+    >>> dtctloc(envloc='', codloc='', tz='Europe/Paris')['location']
+    'FR'
+    """
+    return jcall("dtctloc", envloc=envloc, codloc=codloc, tz=tz, locale=locale)
+
+
+def raplok(rapldir: Any = None) -> Any:
+    """Whether the CPU's RAPL energy counters are readable here.
+
+    The arguments and the result are those of R's ``raplok()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> raplok(rapldir='/no/such/dir')
+    False
+    """
+    return jcall("raplok", rapldir=rapldir)
+
+
+def fpeqv(co2eg: Any) -> Any:
+    """Grams of CO2-equivalent in everyday terms.
+
+    The arguments and the result are those of R's ``fpeqv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(fpeqv(co2eg=1750)['carkm'], 6)
+    10.0
+    """
+    return jcall("fpeqv", co2eg=co2eg)

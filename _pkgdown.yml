@@ -553,3 +553,13 @@ reference:
       - yoyhtml
       - yoypdf
       - yoywr
+  - title: The footprint of a computation
+    desc: The energy an analysis used and the emissions of making it on the
+      local grid, offline - modelled or measured, with the measured energy
+      of other devices added, and every assumption listed.
+    contents:
+      - co2fp
+      - raplok
+      - co2int
+      - dtctloc
+      - fpeqv

@@ -3519,6 +3519,45 @@ void clab_chih(const double *x, const double *y, int k, double *out);
  * NaN unless the first value is positive), the number of values, and the
  * changes above, below and at 0. */
 void clab_ysum(const double *v, const double *chg, int n, double lag, double *out);
+/* ------------------------------------------------------------------------
+ * The footprint of a computation (fp.cpp, fpdat.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The carbon-intensity table: its number of rows, and row i (from 0): the
+ * location code, ISO 3166-1 alpha-3 code, name, lifecycle gCO2e/kWh, year
+ * and source (static storage). */
+int clab_cin(void);
+void clab_cirow(int i, const char **loc, const char **iso3, const char **name, double *g, int *year,
+                const char **src);
+/* The row of key, matched as upper-case text without surrounding space to
+ * the location codes, then the alpha-3 codes, then the names; -1 when none. */
+int clab_cimatch(const char *key);
+/* The territory (alpha-2) of an IANA time zone, a leading posix/ or right/
+ * dropped; NULL for a zone not in the table. */
+const char *clab_tzterr(const char *tz);
+/* The country whose grid a territory without a row of its own draws on;
+ * "" for the world average and for a territory not listed. */
+const char *clab_terrproxy(const char *terr);
+/* The energy of a run. in, 16: wall and CPU seconds, cores, utilisation
+ * mode (0 process, 1 machine, 2 fixed), the fixed utilisation, the idle and
+ * total machine ticks before and after (NaN after: unreadable), CPU watts
+ * (NaN: unknown, codecarbon's 85 W x 50%), load curve (0 linear, 1
+ * codecarbon), memory GB, W per GB, PUE, gCO2e/kWh, RAPL read before (0
+ * or 1). r0, r1, rmx: nr RAPL counters (microjoules) before and after (NaN:
+ * unreadable) and their ranges (NaN: unknown). dw, de, dk: nd other devices'
+ * average watts and energy in kWh (NaN: not measured) and kind (0 counted,
+ * 1 already in the CPU or memory energy). Out, 10: wall (floored at the CPU
+ * time over the cores), utilisation, mode used, method (0 RAPL, 1 model),
+ * flags (1 machine accounting lost, 2 a counter wrapped with no range, 4
+ * the counters lost, 8 the CPU power unknown, 16 codecarbon's curve), CPU,
+ * memory and device kWh and the total, PUE included, and grams of CO2e.
+ * dout: each device's kWh before PUE, NaN when not counted. */
+int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const double *rmx, int nd,
+             const double *dw, const double *de, const int *dk, double *out, double *dout);
+/* Grams of CO2e as kilometres in a European passenger car (175 g/km) and
+ * tree-months of uptake (917 g each). */
+void clab_fpeqv(double g, double *out);
+
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

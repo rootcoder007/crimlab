@@ -24,12 +24,18 @@
 #include <cstdlib>
 #include <cctype>
 #include <cstring>
+#include <fstream>
 #include <initializer_list>
 #include <limits>
 #include <regex>
 #include <string>
 #include <utility>
 #include <vector>
+
+#ifndef _WIN32
+#include <dirent.h>
+#include <unistd.h>
+#endif
 
 #include "crimlab.h"
 #include "frx.h"
@@ -1566,6 +1572,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jsar.inc"
 #include "japol.inc"
 #include "jskch.inc"
+#include "jfp.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
 #include "jrpv.inc"
@@ -1824,6 +1831,11 @@ const Ent ents[] = {
     {"dstnskch", "x p? regstr?", dstnskch},
     {"dstncnt", "regstr", dstncnt},
     {"skchmrg", "a b", skchmrg},
+    {"co2int", "loc?", co2int},
+    {"co2inttab", "", co2inttab},
+    {"dtctloc", "envloc? codloc? tz? locale?", dtctloc},
+    {"raplok", "rapldir?", raplok},
+    {"fpeqv", "co2eg", fpeqv},
     {"ibench", "y off x? minn? fdr? dr? local?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},

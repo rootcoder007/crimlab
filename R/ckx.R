@@ -82,3 +82,24 @@
   }
   choices[[i]]
 }
+
+# Text that is valid in its encoding (or anything that is not text).
+.cktxt <- function(x, what, fn) {
+  if (is.character(x) && !all(validEnc(x))) {
+    .ckstop(
+      fn,
+      "`%s` holds text that is not valid %s",
+      what,
+      if (isTRUE(l10n_info()[["UTF-8"]])) "UTF-8" else "in this locale"
+    )
+  }
+  x
+}
+
+# TRUE or FALSE.
+.ckflag <- function(x, what, fn) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    .ckstop(fn, "`%s` must be TRUE or FALSE", what)
+  }
+  x
+}

@@ -601,6 +601,13 @@ SEXP C_clab_r_momstat(SEXP);
 SEXP C_clab_r_rsv(SEXP, SEXP, SEXP);
 SEXP C_clab_r_hlladd(SEXP, SEXP, SEXP);
 SEXP C_clab_r_hllcnt(SEXP);
+// The footprint of a computation (bfp.cpp).
+SEXP C_clab_r_citab(void);
+SEXP C_clab_r_cimatch(SEXP);
+SEXP C_clab_r_tzterr(SEXP);
+SEXP C_clab_r_proxy(SEXP);
+SEXP C_clab_r_fpe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_fpeqv(SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
@@ -914,6 +921,12 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_rsv", fn<&C_clab_r_rsv>(), 3},
     {"C_clab_r_hlladd", fn<&C_clab_r_hlladd>(), 3},
     {"C_clab_r_hllcnt", fn<&C_clab_r_hllcnt>(), 1},
+    {"C_clab_r_citab", fn<&C_clab_r_citab>(), 0},
+    {"C_clab_r_cimatch", fn<&C_clab_r_cimatch>(), 1},
+    {"C_clab_r_tzterr", fn<&C_clab_r_tzterr>(), 1},
+    {"C_clab_r_proxy", fn<&C_clab_r_proxy>(), 1},
+    {"C_clab_r_fpe", fn<&C_clab_r_fpe>(), 7},
+    {"C_clab_r_fpeqv", fn<&C_clab_r_fpeqv>(), 1},
     {"C_clab_r_svymx", fn<&C_clab_r_svymx>(), 10},
     {"C_clab_r_crsev", fn<&C_clab_r_crsev>(), 9},
     {"C_clab_r_zcomp", fn<&C_clab_r_zcomp>(), 4},

@@ -20,6 +20,15 @@
   map (`lfspec()`) and density-weighted sampling of points (`spsamp()`).
   They are in `clab_jrun()`, the command line and Python.
 
+* The energy and carbon footprint of a computation (`co2fp()`), modelled
+  from running time, utilisation and memory (Green Algorithms) or measured
+  from the CPU's RAPL counters (`raplok()`), with the measured energy of
+  other devices added from a table; the carbon intensity of electricity by
+  location, offline (`co2int()`, `co2inttab()`), the location found
+  without network access (`dtctloc()`) and everyday equivalents
+  (`fpeqv()`). All but `co2fp()`, which evaluates an R expression, are in
+  `clab_jrun()`, the command line and Python.
+
 * Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
   Gaussian plume and puff (`gplume()`, `gspuff()`, the field

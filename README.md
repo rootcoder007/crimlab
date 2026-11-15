@@ -165,6 +165,10 @@ The functions work on summary data, not on raw records:
 * Data larger than memory: moments, samples and distinct counts in one
   pass (`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`, `rsvidx()`,
   `rsvsmp()`, `dstnskch()`, `dstncnt()`, `skchmrg()`).
+* The footprint of the analysis itself: the energy a computation used and
+  its emissions on the local grid, offline, with what was assumed rather
+  than measured (`co2fp()`, `raplok()`, `co2int()`, `co2inttab()`,
+  `dtctloc()`, `fpeqv()`).
 * Officers: whether an officer's stops differ from those other officers
   make in the same circumstances, with a false discovery rate over the
   officers (`ibench()`).
@@ -574,7 +578,7 @@ Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
 of the R package but those that work in R only, the plot functions
 and the table check `prechk()`
-(346 of 364); `crimlab -l` lists them and
+(351 of 370); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of
