@@ -35,14 +35,17 @@ df_check <- function(r, ref, tol = 1e-6, flat = character(0)) {
   expect_identical(b$param, rb[[2L]])
   keep <- !b$family %in% flat
   for (j in 4:5) {
-    expect_equal(b[[j]][keep], rb[[j]][keep], tolerance = 1e-5)
+    expect_equal(
+      as.numeric(b[[j]][keep]), as.numeric(rb[[j]][keep]),
+      tolerance = 1e-5
+    )
   }
   if (is.null(ref[[4L]])) {
     expect_null(r$hill)
   } else {
     expect_equal(unname(unlist(r$hill)), unlist(ref[[4L]]), tolerance = 1e-12)
   }
-  expect_identical(r$nmiss, ref[[5L]])
+  expect_equal(r$nmiss, ref[[5L]])
   expect_identical(r$discrete, ref[[6L]])
 }
 

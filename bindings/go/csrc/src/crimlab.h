@@ -3519,6 +3519,142 @@ void clab_chih(const double *x, const double *y, int k, double *out);
  * NaN unless the first value is positive), the number of values, and the
  * changes above, below and at 0. */
 void clab_ysum(const double *v, const double *chg, int n, double lag, double *out);
+/* ------------------------------------------------------------------------
+ * The footprint of a computation (fp.cpp, fpdat.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The carbon-intensity table: its number of rows, and row i (from 0): the
+ * location code, ISO 3166-1 alpha-3 code, name, lifecycle gCO2e/kWh, year
+ * and source (static storage). */
+int clab_cin(void);
+void clab_cirow(int i, const char **loc, const char **iso3, const char **name, double *g, int *year,
+                const char **src);
+/* The row of key, matched as upper-case text without surrounding space to
+ * the location codes, then the alpha-3 codes, then the names; -1 when none. */
+int clab_cimatch(const char *key);
+/* The territory (alpha-2) of an IANA time zone, a leading posix/ or right/
+ * dropped; NULL for a zone not in the table. */
+const char *clab_tzterr(const char *tz);
+/* The country whose grid a territory without a row of its own draws on;
+ * "" for the world average and for a territory not listed. */
+const char *clab_terrproxy(const char *terr);
+/* The energy of a run. in, 16: wall and CPU seconds, cores, utilisation
+ * mode (0 process, 1 machine, 2 fixed), the fixed utilisation, the idle and
+ * total machine ticks before and after (NaN after: unreadable), CPU watts
+ * (NaN: unknown, codecarbon's 85 W x 50%), load curve (0 linear, 1
+ * codecarbon), memory GB, W per GB, PUE, gCO2e/kWh, RAPL read before (0
+ * or 1). r0, r1, rmx: nr RAPL counters (microjoules) before and after (NaN:
+ * unreadable) and their ranges (NaN: unknown). dw, de, dk: nd other devices'
+ * average watts and energy in kWh (NaN: not measured) and kind (0 counted,
+ * 1 already in the CPU or memory energy). Out, 10: wall (floored at the CPU
+ * time over the cores), utilisation, mode used, method (0 RAPL, 1 model),
+ * flags (1 machine accounting lost, 2 a counter wrapped with no range, 4
+ * the counters lost, 8 the CPU power unknown, 16 codecarbon's curve), CPU,
+ * memory and device kWh and the total, PUE included, and grams of CO2e.
+ * dout: each device's kWh before PUE, NaN when not counted. */
+int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const double *rmx, int nd,
+             const double *dw, const double *de, const int *dk, double *out, double *dout);
+/* Grams of CO2e as kilometres in a European passenger car (175 g/km) and
+ * tree-months of uptake (917 g each). */
+void clab_fpeqv(double g, double *out);
+
+/* ------------------------------------------------------------------------
+ * The exposure-response estimate of exprspplr() (plr.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The partially linear regression of y on d given covariates x (n x p,
+ * column-major; p may be 0) with cross-fitted least squares nuisances
+ * (DML2) over the m rows rows (from 0, repeats allowed) in the folds fold
+ * (1 to k, one per row). The nuisances are fitted on the centred and scaled
+ * design by Cholesky, or by Householder QR with limited pivoting (aliased
+ * columns 0) when its reciprocal condition number is below 1e-5. Out: the
+ * effect and its standard error; CLAB_EDOM when the treatment has no
+ * variation left after partialling out the covariates. */
+int clab_plr(const double *y, const double *d, const double *x, int n, int p, const int *rows, int m,
+             const int *fold, int k, double *out);
+/* The standard deviation (n - 1) and the type-7 quantiles at the np
+ * probabilities pr of m values: out, 1 + np. */
+void clab_bootci(const double *v, int m, const double *pr, int np, double *out);
+
+/* ------------------------------------------------------------------------
+ * Data description (dsc.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The counts of bins equal-width bins over the range of the n values x, as
+ * R's hist() with breaks seq(min, max, length.out = bins + 1) counts them
+ * (breaks moved by 1e-7 of the median width, both ends included); non-finite
+ * values are skipped. CLAB_EDOM when the finite values have no spread. */
+int clab_hbin(const double *x, int n, int bins, int *cnt);
+/* The Spearman (meth 0: Pearson's of the midranks) or Pearson (1)
+ * correlation of every pair of the p columns of x (n x p, NaN missing), the
+ * pairs in column order, over the rows where both are present: np[k] such
+ * rows; NaN below minprs of them or for a column with no spread. */
+int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, int *np);
+/* The runs of nonzero na (n) of length minrun or more: their first and last
+ * positions (from 1) into st and en; returns their number. */
+int clab_nrun(const int *na, int n, int minrun, int *st, int *en);
+/* Missingness of na (n x p, nonzero missing): rows, columns, missing
+ * cells, their percent, complete rows, their percent, columns with any and
+ * with only missing values (out, 8). */
+void clab_msum(const int *na, int n, int p, double *out);
+/* Of n finite values: mean, sd (n - 1), moment skewness, median, MAD
+ * (1.4826) and the Tukey fences at 1.5 IQR (out, 7), the quantiles type 7. */
+void clab_pstat(const double *x, int n, double *out);
+/* Type-7 quantiles of n values at the np probabilities pr. */
+void clab_q7(const double *x, int n, const double *pr, int np, double *out);
+/* The log of the upper tail of the chi-square on df at x, finite where the
+ * tail underflows. */
+double clab_lpchisq(double x, double df);
+/* Squared Mahalanobis distances of the m rows of x (m x p, complete):
+ * centred and scaled by median and MAD (robust; the sd when the MAD is 0)
+ * or by mean and range, the covariance of the scaled columns inverted.
+ * CLAB_EDOM when its smallest eigenvalue is at most 1e-8 of the largest. */
+int clab_maha(const double *x, int m, int p, int robust, double *d2);
+/* Little's MCAR test of x (n x p, NaN missing; no row or column wholly
+ * missing): the multivariate normal mean and covariance by EM (at most
+ * maxit steps, until no estimate moves by tol), then d^2 over the
+ * missingness patterns. Out, 8: d^2, df, p-value, its log, patterns, rows
+ * used, iterations, patterns skipped; mu (p), sig (p x p). CLAB_EDOM with
+ * out[0] 1 for collinear columns, 2 when EM cannot invert a block. */
+int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out, double *mu, double *sig);
+/* A frequency table of the codes (1 to nlev, n of them): the levels (from
+ * 1) and counts of the first maxlvl, by descending count when sort (ties
+ * in level order), the rest folded into level nlev + 1 when fold. Returns
+ * the rows written. */
+int clab_freq(const int *code, int n, int nlev, int sort, int maxlvl, int fold, int *lev, int *cnt);
+/* The missingness map of na (n x p): at most bins row blocks, their first
+ * rows (from 1) and each column's share missing in quarters (0 to 4,
+ * shade, blocks x p). Returns the blocks. */
+int clab_mgrid(const int *na, int n, int p, int bins, int *start, int *shade);
+/* The rows (from 1) whose code (1 to nlev) occurs more than once, ordered
+ * by code then position, with their code's count. Returns their number. */
+int clab_dups(const int *code, int n, int nlev, int *rows, int *cnt);
+/* Cochran's Q of g estimates y with standard errors s: the
+ * inverse-variance mean, its standard error, Q, df, p-value and I^2 (out,
+ * 6). */
+void clab_cochq(const double *y, const double *s, int g, double *out);
+
+/* ------------------------------------------------------------------------
+ * Distributions fitted by maximum likelihood (dfit.cpp). Families: 0
+ * normal, 1 lognormal, 2 exponential, 3 gamma, 4 Weibull, 5 location-scale
+ * t, 6 Pareto, 7 beta, 8 Poisson, 9 negative binomial, 10 zero-inflated
+ * Poisson, 11 zero-inflated negative binomial.
+ * ------------------------------------------------------------------------ */
+
+/* The number of parameters of family f (0 for none). */
+int clab_dfnp(int f);
+/* The ML estimate of family f from the n values x into par: closed forms,
+ * Brent's minimiser for the negative binomial size, otherwise the
+ * Nelder-Mead simplex then BFGS of R's optim() on a log or logit scale.
+ * CLAB_EDOM when the fit fails (a likelihood or a gradient not finite). */
+int clab_dfit(int f, const double *x, int n, double *par);
+/* The log-likelihood of family f at par. */
+double clab_dfll(int f, const double *x, int n, const double *par);
+/* Kolmogorov-Smirnov and Anderson-Darling statistics of family f at par
+ * for the sorted values xs; for the count families the largest gap of the
+ * distribution functions over 0 to max(xs), and NaN. */
+void clab_dfgof(int f, const double *xs, int n, const double *par, double *out);
+
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

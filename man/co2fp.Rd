@@ -122,7 +122,7 @@ with \eqn{t} the running time, \eqn{P_{cpu}} the CPU's thermal design
 power in watts, \eqn{u} its utilisation, \eqn{M} the memory in GB,
 \eqn{P_{mem} = 0.3725} W/GB and \eqn{PUE} the data-centre overhead. When
 the CPU's power is unknown (\code{cpupwrw = NULL}) the fallback is
-codecarbon's: 50\% of a constant 85 W, that is 42.5 W charged for the whole
+codecarbon's: 50\\% of a constant 85 W, that is 42.5 W charged for the whole
 running time whatever the measured utilisation (the utilisation is still
 reported, but not applied).
 
@@ -138,7 +138,7 @@ machine is doing or when the question is what the machine drew. Where
 say so. A number between 0 and 1 fixes the utilisation, as the Green
 Algorithms calculator asks for it. \code{loadcur} chooses how power scales
 with that utilisation: linearly (Green Algorithms) or along codecarbon's
-curves, a floor at 10\% of \eqn{P_{cpu}} for a process and
+curves, a floor at 10\\% of \eqn{P_{cpu}} for a process and
 \eqn{0.1 + 0.9 u^3} for a machine, so a figure can be made comparable with
 either tool.
 

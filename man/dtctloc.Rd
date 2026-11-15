@@ -31,7 +31,8 @@ the territory in the locale (\code{en_CA.UTF-8} is Canada). } When none of
 these yields a location in the table the answer is \code{"WORLD"}, and the
 method says so, so a report never silently applies one country's grid to
 another's computation.
-
+}
+\details{
 The zone table, built from the IANA database, holds every zone of
 \code{zone.tab}, which names exactly one country per zone
 (\code{Europe/Stockholm} is Sweden even though the database now keeps its

@@ -28,15 +28,15 @@ by column name. Zero rows when there are no qualifying runs.
 \description{
 Finds the maximal stretches of consecutive \code{NA} in each column, with
 where each begins and how long it is.
-
+}
+\details{
 Row order carries meaning in a table far more often than people allow for
 -- a time series, an ordered export, a paginated download -- and a long
 unbroken run of missingness means something different from the same count
 scattered about. A run says an instrument was down, a page failed to
 fetch, or a period was never collected; scattered gaps say individual
 records failed. The rate cannot distinguish them.
-}
-\details{
+
 Each column's missingness indicator \code{is.na(x)} is run-length encoded;
 every run of \code{TRUE} with length at least \code{minrun} is reported.
 Rows are taken in their current order, so sort the data by time (or by

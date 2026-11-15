@@ -340,7 +340,7 @@ test_that("every exported function answers one valid call in its shape", {
          c("row", "distance", "p_value", "logpvalue", "outlier")),
     list(quote(missruns(data.frame(a = c(NA, NA, 1)))),
          c("column", "start", "end", "length")),
-    list(quote(utils::capture.output(missgrid(data.frame(a = c(NA, 1))))),
+    list(quote(missgrid(data.frame(a = c(NA, 1)))),
          NULL),
     list(quote(mcartst(data.frame(a = c(1, 2, 3, 4), b = c(2, NA, 4, 1)))),
          c("statistic", "df", "logpvalue", "p_value", "npat", "nused",

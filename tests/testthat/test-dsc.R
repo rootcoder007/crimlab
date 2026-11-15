@@ -2,7 +2,11 @@
 # (helper-dsref.R: rmoriebricklayer 1.1.1 on these simulated inputs), and
 # the refusals in crimlab's words.
 
-cols <- function(x) unname(as.list(x))
+cols <- function(x) {
+  x <- unname(as.list(x))
+  attributes(x) <- NULL
+  x
+}
 utf8 <- function() {
   skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   skip_if_not(identical(Sys.getenv("CRIMLAB_ASCII_ONLY"), ""))

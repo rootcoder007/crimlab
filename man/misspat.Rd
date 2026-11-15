@@ -36,8 +36,8 @@ to handle gaps (drop rows, impute, model separately), because the right
 choice depends on whether columns are missing together.
 }
 \details{
-The distinction decides what to do about the gaps. Two columns each 30\%
-missing at random need different handling from two columns 30\% missing in
+The distinction decides what to do about the gaps. Two columns each 30\\%
+missing at random need different handling from two columns 30\\% missing in
 THE SAME rows -- the second is one structural gap (a join that failed, a
 form section nobody filled in) and often means those rows should be
 dropped or modelled separately, while the first does not. A per-column

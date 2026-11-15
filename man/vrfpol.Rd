@@ -109,12 +109,12 @@ attributable-fraction, displaced-mortality, burden and equity stages.
 version of the air pollution functions, made for scripts: it never stops
 with an R error for bad input, but returns a report whose status says what
 went wrong.
-
+}
+\details{
 In environmental criminology the report is the burden side of green
 criminology: the harm a pollutant does to a population and how it falls
 by income, from monitoring data an agency or a court can be given.
-}
-\details{
+
 The assumption log checks that the exposure mean is finite and
 non-negative and at most 10,000 micrograms per cubic metre, the prevalence
 is in \eqn{[0, 1]}, the baseline rate (converted to per 100,000) is zero or

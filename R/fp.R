@@ -256,7 +256,7 @@ dtctloc <- function(
   r
 }
 
-.known <- function(key) {
+.fpknown <- function(key) {
   if (is.null(key) || length(key) != 1L || is.na(key) || !nzchar(key)) {
     return(NA_character_)
   }
@@ -283,7 +283,7 @@ dtctloc <- function(
 }
 
 .locenv <- function(envloc, codloc, fn) {
-  loc <- .known(envloc)
+  loc <- .fpknown(envloc)
   if (!is.na(loc)) {
     return(list(
       location = loc,
@@ -291,7 +291,7 @@ dtctloc <- function(
     ))
   }
   .locign(envloc, "CRIMLAB_LOCATION", fn)
-  loc <- .known(codloc)
+  loc <- .fpknown(codloc)
   if (!is.na(loc)) {
     return(list(
       location = loc,
@@ -307,7 +307,7 @@ dtctloc <- function(
     return(NULL)
   }
   terr <- .Call(C_clab_r_tzterr, enc2utf8(tz))
-  loc <- .known(terr)
+  loc <- .fpknown(terr)
   if (!is.na(loc)) {
     return(list(location = loc, method = sprintf("system time zone %s", tz)))
   }
@@ -318,7 +318,7 @@ dtctloc <- function(
   # Antarctic stations): its administering or neighbouring country's grid,
   # or the world average, never the locale's country
   proxy <- .Call(C_clab_r_proxy, terr)
-  loc <- if (nzchar(proxy)) .known(proxy) else NA_character_
+  loc <- if (nzchar(proxy)) .fpknown(proxy) else NA_character_
   if (is.na(loc)) loc <- "WORLD"
   list(
     location = loc,
@@ -339,7 +339,7 @@ dtctloc <- function(
   if (length(m) != 1L) {
     return(NULL)
   }
-  loc <- .known(sub("^.*_", "", m))
+  loc <- .fpknown(sub("^.*_", "", m))
   if (is.na(loc)) {
     return(NULL)
   }

@@ -42,7 +42,7 @@ region, a response category).
 Two percentage columns, because both questions get asked and conflating
 them is how missingness gets hidden: \code{pct} is the share of ALL rows,
 \code{pctvalid} the share of rows where the value is present. When a column
-is 40\% missing those two differ enormously, and only the second describes
+is 40\\% missing those two differ enormously, and only the second describes
 the values that are actually there.
 
 Values are tabulated as text (\code{as.character()}), so numbers and

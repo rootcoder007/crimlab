@@ -43,7 +43,8 @@ territories, US balancing authorities, Australian states, Indian and
 Japanese regions, Brazilian and Chilean systems, ...), and the world
 average. All figures are lifecycle intensities (generation plus upstream),
 the basis both sources publish.
-
+}
+\details{
 A location is matched by its code (\code{"CA"}, \code{"CA-ON"},
 \code{"US-CAL-CISO"}), its ISO 3166-1 alpha-3 code (\code{"CAN"}) or its
 name (\code{"Canada"}), case-insensitively. An unknown sub-national code
@@ -68,6 +69,7 @@ once, under the code \code{XK}.
 Errors: a location the table does not know; a number that is not a single
 non-negative value; text that is not valid in its encoding.
 }
+
 \examples{
 co2int("CA-ON")
 co2int("Canada")$year

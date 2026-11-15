@@ -37,13 +37,13 @@ One row per column: type, missingness, and the summaries that suit the
 column's type -- mean and standard deviation alongside their robust
 counterparts (median, MAD) for a numeric column, and the number of
 distinct levels plus the most common one for a categorical column.
-
+}
+\details{
 Reporting the classical and robust centres side by side is the point:
 where they disagree, the column has outliers or a heavy tail, and the mean
 is not describing it. That is visible in one glance here and in no single
 number.
-}
-\details{
+
 A column is numeric when \code{is.numeric()} is \code{TRUE}; every other
 column (character, factor, logical, \code{Date}, ...) is treated as
 categorical, and \code{top} is its most frequent non-missing value as text

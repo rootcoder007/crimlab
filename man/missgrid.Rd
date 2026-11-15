@@ -23,13 +23,13 @@ printed with \code{cat()} as a side effect.
 Draws the missingness of a whole table as a grid, one character per cell
 block, a console map that needs no graphics device, so it works over a
 terminal connection, in a log, and in a plain-text summary.
-
+}
+\details{
 Rows are binned so the map fits \code{height} lines; a block is drawn at
 the shade its missing proportion falls in. Seeing the table at once is the
 point: a diagonal band, a block of rows, or a single ragged column are all
 instantly recognisable shapes that a column of percentages is not.
-}
-\details{
+
 The rows are split into at most \code{height} consecutive blocks of nearly
 equal size; each map line is one block, labelled with its first row
 number, and each map column is one column of \code{data}. A cell's shade is

@@ -37,15 +37,15 @@ and \code{p_value} is \code{NA} -- there is nothing to test.
 \description{
 Tests the MCAR assumption: that whether a value is missing is unrelated to
 any value in the data, observed or not.
-
+}
+\details{
 The assumption matters because it is what licenses the easy options.
 Dropping incomplete rows is unbiased under MCAR and biased otherwise; mean
 imputation understates variance under MCAR and distorts the centre as well
 otherwise. A small p-value here says the easy options are not available.
 Run it on the numeric columns of a table before deciding how to handle its
 missing values.
-}
-\details{
+
 Rows are grouped by their pattern of missingness. If missingness is
 unrelated to the values, then each pattern's observed-variable means should
 agree with the overall estimates, up to sampling error. The statistic sums

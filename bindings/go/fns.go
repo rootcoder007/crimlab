@@ -688,6 +688,75 @@ func Dstncnt(args string) (string, error) { return Jrun("dstncnt", args) }
 // Skchmrg runs skchmrg() of the R package (arguments: a b; ? marks an optional one).
 func Skchmrg(args string) (string, error) { return Jrun("skchmrg", args) }
 
+// Co2int runs co2int() of the R package (arguments: loc?; ? marks an optional one).
+func Co2int(args string) (string, error) { return Jrun("co2int", args) }
+
+// Co2inttab runs co2inttab() of the R package (no arguments; ? marks an optional one).
+func Co2inttab(args string) (string, error) { return Jrun("co2inttab", args) }
+
+// Dtctloc runs dtctloc() of the R package (arguments: envloc? codloc? tz? locale?; ? marks an optional one).
+func Dtctloc(args string) (string, error) { return Jrun("dtctloc", args) }
+
+// Raplok runs raplok() of the R package (arguments: rapldir?; ? marks an optional one).
+func Raplok(args string) (string, error) { return Jrun("raplok", args) }
+
+// Fpeqv runs fpeqv() of the R package (arguments: co2eg; ? marks an optional one).
+func Fpeqv(args string) (string, error) { return Jrun("fpeqv", args) }
+
+// Exprspplr runs exprspplr() of the R package (arguments: data y expo confs nboot? rstate?; ? marks an optional one).
+func Exprspplr(args string) (string, error) { return Jrun("exprspplr", args) }
+
+// Inlhist runs inlhist() of the R package (arguments: x bins?; ? marks an optional one).
+func Inlhist(args string) (string, error) { return Jrun("inlhist", args) }
+
+// Freqtbl runs freqtbl() of the R package (arguments: data col? maxlvl? sort?; ? marks an optional one).
+func Freqtbl(args string) (string, error) { return Jrun("freqtbl", args) }
+
+// Cortbl runs cortbl() of the R package (arguments: data meth? minprs?; ? marks an optional one).
+func Cortbl(args string) (string, error) { return Jrun("cortbl", args) }
+
+// Topcors runs topcors() of the R package (arguments: data n? meth? minabs?; ? marks an optional one).
+func Topcors(args string) (string, error) { return Jrun("topcors", args) }
+
+// Drpempty runs drpempty() of the R package (arguments: data which? quiet?; ? marks an optional one).
+func Drpempty(args string) (string, error) { return Jrun("drpempty", args) }
+
+// Drpconst runs drpconst() of the R package (arguments: data naasval? quiet?; ? marks an optional one).
+func Drpconst(args string) (string, error) { return Jrun("drpconst", args) }
+
+// Clncolnms runs clncolnms() of the R package (arguments: data case? sep? quiet?; ? marks an optional one).
+func Clncolnms(args string) (string, error) { return Jrun("clncolnms", args) }
+
+// Mahaoutl runs mahaoutl() of the R package (arguments: data alpha? robust?; ? marks an optional one).
+func Mahaoutl(args string) (string, error) { return Jrun("mahaoutl", args) }
+
+// Missruns runs missruns() of the R package (arguments: data minrun?; ? marks an optional one).
+func Missruns(args string) (string, error) { return Jrun("missruns", args) }
+
+// Missgrid runs missgrid() of the R package (arguments: data height? width?; ? marks an optional one).
+func Missgrid(args string) (string, error) { return Jrun("missgrid", args) }
+
+// Mcartst runs mcartst() of the R package (arguments: data maxit? tol?; ? marks an optional one).
+func Mcartst(args string) (string, error) { return Jrun("mcartst", args) }
+
+// Misspat runs misspat() of the R package (arguments: data maxpat?; ? marks an optional one).
+func Misspat(args string) (string, error) { return Jrun("misspat", args) }
+
+// Duprows runs duprows() of the R package (arguments: data cols? quiet?; ? marks an optional one).
+func Duprows(args string) (string, error) { return Jrun("duprows", args) }
+
+// Misssmry runs misssmry() of the R package (arguments: data; ? marks an optional one).
+func Misssmry(args string) (string, error) { return Jrun("misssmry", args) }
+
+// Profcols runs profcols() of the R package (arguments: data qnts?; ? marks an optional one).
+func Profcols(args string) (string, error) { return Jrun("profcols", args) }
+
+// Dstntst runs dstntst() of the R package (arguments: data grp est lower upper qual? conflvl? pooled?; ? marks an optional one).
+func Dstntst(args string) (string, error) { return Jrun("dstntst", args) }
+
+// Dstfit runs dstfit() of the R package (arguments: x fams? nboot? conflvl? seed? k?; ? marks an optional one).
+func Dstfit(args string) (string, error) { return Jrun("dstfit", args) }
+
 // Ibench runs ibench() of the R package (arguments: y off x? minn? fdr? dr? local?; ? marks an optional one).
 func Ibench(args string) (string, error) { return Jrun("ibench", args) }
 

@@ -34,7 +34,7 @@ partially linear regression, or a function (or the name of one)
 A list of class \code{exprspplr} with \code{ate} (the
 full-sample estimate), \code{seana} (the estimator's standard error),
 \code{seboot} (the standard deviation of the replicates), \code{cilobs}
-and \code{ciupbs} (the 95\% percentile interval), \code{nboot} (the
+and \code{ciupbs} (the 95\\% percentile interval), \code{nboot} (the
 number of successful resamples) and \code{method} (the estimator's
 method with \code{" + percentile bootstrap"}).
 }
@@ -46,13 +46,13 @@ on \code{nboot} non-parametric resamples of the rows for a percentile
 interval (Efron and Tibshirani 1993, chapter 13). The bootstrap interval
 does not lean on the estimator's own standard error, so it is a check on
 it: when the two disagree, the analytic one should not be trusted alone.
-
+}
+\details{
 In environmental criminology the exposure is a pollutant or heat and the
 outcome a count of offences or victimisations by place and period, with
 the neighbourhood's population and deprivation as confounders: the
 estimate is the change in the outcome per unit of exposure.
-}
-\details{
+
 The built-in estimator (\code{estr = NULL}) is the partially linear
 regression \eqn{y = \theta d + g(x) + e} fitted by double machine
 learning with cross-fitting (the DML2 estimator of Chernozhukov et al.
@@ -69,7 +69,7 @@ with no variation left after the confounders are partialled out.
 Each resample draws \code{nrow(data)} rows with replacement and calls
 \code{estr(resample, y, expo, confs)}; a resample on which the estimator
 fails is skipped, and the run stops if fewer than 10 succeed. The interval
-is the 2.5\% and 97.5\% type-7 quantiles of the replicate estimates, and
+is the 2.5\\% and 97.5\\% type-7 quantiles of the replicate estimates, and
 \code{seboot} their standard deviation. Resampling uses R's generator
 seeded with \code{rstate} and restores R's own random stream afterwards.
 The cost is \code{nboot + 1} estimator calls; the built-in estimator runs
