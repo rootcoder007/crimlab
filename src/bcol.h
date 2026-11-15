@@ -79,7 +79,8 @@ inline SEXP nums(SEXP x, const char *nm, R_xlen_t n = -1, double lo = clab::ninf
   return clab::num(x, nm, n, lo, open);
 }
 
-// One number from lo to hi, both included (hi Inf: from lo up).
+// One finite number from lo to hi, both included (an infinite bound is
+// none).
 inline double inr(SEXP x, const char *nm, double lo, double hi) {
   clab::unlab(x, nm);
   const double v = clab::val1(x);
@@ -87,6 +88,9 @@ inline double inr(SEXP x, const char *nm, double lo, double hi) {
     char a[48], b[48];
     clab::fmt(lo, a, sizeof a);
     clab::fmt(hi, b, sizeof b);
+    // an infinite bound is no bound: it is left out of the message
+    if (!std::isfinite(lo) && !std::isfinite(hi)) clab::fail("`%s` must be one number, neither infinite nor missing.", nm);
+    if (!std::isfinite(lo)) clab::fail("`%s` must be one number of at most %s.", nm, b);
     if (std::isfinite(hi)) clab::fail("`%s` must be one number from %s to %s.", nm, a, b);
     clab::fail("`%s` must be one number from %s.", nm, a);
   }

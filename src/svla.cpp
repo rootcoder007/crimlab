@@ -730,8 +730,11 @@ bool getv(const Node &a, const char *nm, std::vector<double> &v, std::string &er
 bool getd(const Node &a, const char *nm, double &x, std::string &err, double lo, double hi) {
   const Node *n = a.at(nm);
   if (!isnum(n) || n->d.size() != 1 || !(n->d[0] >= lo && n->d[0] <= hi)) {
-    err = std::isinf(hi) ? msg("`%s` must be one number of at least %g.", nm, lo)
-                         : msg("`%s` must be one number from %g to %g.", nm, lo, hi);
+    // an infinite bound is no bound: it is left out of the message
+    err = std::isinf(lo) && std::isinf(hi) ? msg("`%s` must be one number.", nm)
+          : std::isinf(lo)                 ? msg("`%s` must be one number of at most %g.", nm, hi)
+          : std::isinf(hi)                 ? msg("`%s` must be one number of at least %g.", nm, lo)
+                                           : msg("`%s` must be one number from %g to %g.", nm, lo, hi);
     return false;
   }
   x = n->d[0];

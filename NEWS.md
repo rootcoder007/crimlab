@@ -678,6 +678,12 @@
 * `sarfc()` refuses an AR(1) fit whose coefficient reaches 1 or beyond with
   "the fitted ARMA part is not stationary.", as it does for higher orders;
   it used to go on with an infinite or negative starting variance.
+* A number with no bounds given badly is refused as "must be one number."
+  (`beta` of `nomutl()`, `nompr()` and `nomll()`; `c0`, `d0`, `e0`, `a0`
+  and `b0` of `dynirt()`) or "must be one number, neither infinite nor
+  missing." (`rho` of `dtrid()`, `a` of `inspg()`, `cap` and `floor` of
+  `bandx()`); the messages used to name a bound of "-inf" or "-Inf" that
+  does not exist. The command line gives the same messages.
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.
