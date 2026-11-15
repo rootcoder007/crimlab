@@ -15,3 +15,4 @@ sthwk	1e-3	0	fitted by BFGS to a tolerance of 1e-7 on a likelihood that is flat 
 mvhwk	1e-10	0	two excitation coefficients are estimated at about 1e-10, zero up to the tolerance of the search: their last digits are rounding
 didfe	1e-10	0	p is a tail probability of the test statistic: an error of 1e-14 in it gives 1e-12 in a p of 1e-50
 gmixlr	1e-7	0	the case without par is fitted by BFGS with a numerical gradient: built with fused multiply-adds (x86-64, -march=native -ffp-contract=fast) its values moved by 5e-9 relative from R's, those of the cases with par by 5e-15
+spcure	1e-9	0	the standard errors come from a numerical inverse of the Hessian at the fitted point: on GitHub's x86-64 and arm64 runners they differ from the values of the R package by 4e-12 relative (0.5699719719486 against 0.5699719719508), the estimates by less
