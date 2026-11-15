@@ -675,6 +675,9 @@
   the names have different lengths; the letters of a longer name used to
   slide left under the column of a shorter one. The command line had the
   same fault and is fixed with it.
+* `sarfc()` refuses an AR(1) fit whose coefficient reaches 1 or beyond with
+  "the fitted ARMA part is not stationary.", as it does for higher orders;
+  it used to go on with an infinite or negative starting variance.
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.

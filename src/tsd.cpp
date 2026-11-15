@@ -667,7 +667,11 @@ bool arima(const std::vector<double> &x, const Arma &a, Fit &ft, std::string &er
   coef = undopars(coef, a);
   std::vector<double> phi, theta;
   transpars(coef, a, false, phi, theta);
-  if (!makearima(phi, theta, delta, 1e6, ft.mod)) {
+  // an AR(1) has no system for q0() to find singular: its state variance
+  // 1 / (1 - phi^2) is refused where 1 - phi^2 is below the 1e-14 that
+  // solve() asks of a pivot (so at and past |phi| = 1 too)
+  const bool unit = phi.size() == 1 && theta.empty() && !(1 - phi[0] * phi[0] > 1e-14);
+  if (unit || !makearima(phi, theta, delta, 1e6, ft.mod)) {
     err = "the fitted ARMA part is not stationary.";
     return false;
   }
