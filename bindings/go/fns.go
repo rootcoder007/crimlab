@@ -619,6 +619,48 @@ func Optsqr(args string) (string, error) { return Jrun("optsqr", args) }
 // Srchfig runs srchfig() of the R package (arguments: fig? num?; ? marks an optional one).
 func Srchfig(args string) (string, error) { return Jrun("srchfig", args) }
 
+// Pgsig runs pgsig() of the R package (arguments: x stab? set?; ? marks an optional one).
+func Pgsig(args string) (string, error) { return Jrun("pgsig", args) }
+
+// Briggs runs briggs() of the R package (arguments: x u diam exitvel stktmp ambtmp stab? dthdz? g?; ? marks an optional one).
+func Briggs(args string) (string, error) { return Jrun("briggs", args) }
+
+// Gplume runs gplume() of the R package (arguments: q u h rcpt stab? set? mixh? nimg?; ? marks an optional one).
+func Gplume(args string) (string, error) { return Jrun("gplume", args) }
+
+// Gspuff runs gspuff() of the R package (arguments: mass u h rcpt t stab? set? mixh? nimg?; ? marks an optional one).
+func Gspuff(args string) (string, error) { return Jrun("gspuff", args) }
+
+// Advdif2d runs advdif2d() of the R package (arguments: c0 u v kx ky dx dy dt nsteps source? maxwork?; ? marks an optional one).
+func Advdif2d(args string) (string, error) { return Jrun("advdif2d", args) }
+
+// Lagrprt runs lagrprt() of the R package (arguments: n x0 y0 u v kx ky dt nsteps seed? grid? maxwork?; ? marks an optional one).
+func Lagrprt(args string) (string, error) { return Jrun("lagrprt", args) }
+
+// Plmfld runs plmfld() of the R package (arguments: q u h x y z? stab? set? mixh? nimg?; ? marks an optional one).
+func Plmfld(args string) (string, error) { return Jrun("plmfld", args) }
+
+// Crfpm25 runs crfpm25() of the R package (arguments: expo y? refconc?; ? marks an optional one).
+func Crfpm25(args string) (string, error) { return Jrun("crfpm25", args) }
+
+// Crfno2 runs crfno2() of the R package (arguments: expo y? refconc? betaper10?; ? marks an optional one).
+func Crfno2(args string) (string, error) { return Jrun("crfno2", args) }
+
+// Attrfrac runs attrfrac() of the R package (arguments: rr expoprev rrlo? rrup?; ? marks an optional one).
+func Attrfrac(args string) (string, error) { return Jrun("attrfrac", args) }
+
+// Mortdisp runs mortdisp() of the R package (arguments: expdel pop brate betaperunit rare? hirate?; ? marks an optional one).
+func Mortdisp(args string) (string, error) { return Jrun("mortdisp", args) }
+
+// Polbrdn runs polbrdn() of the R package (arguments: expomean expoprev brate pop poll? y? refconc? rare? hirate?; ? marks an optional one).
+func Polbrdn(args string) (string, error) { return Jrun("polbrdn", args) }
+
+// Polbrdarea runs polbrdarea() of the R package (arguments: areatab areacol? expcol? popcol? basratecol? poll? y? rare? hirate?; ? marks an optional one).
+func Polbrdarea(args string) (string, error) { return Jrun("polbrdarea", args) }
+
+// Expconcidx runs expconcidx() of the R package (arguments: data expo income; ? marks an optional one).
+func Expconcidx(args string) (string, error) { return Jrun("expconcidx", args) }
+
 // Ibench runs ibench() of the R package (arguments: y off x? minn? fdr?; ? marks an optional one).
 func Ibench(args string) (string, error) { return Jrun("ibench", args) }
 

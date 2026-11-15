@@ -550,6 +550,19 @@ SEXP C_clab_r_sarcrc(SEXP, SEXP, SEXP);
 SEXP C_clab_r_saropt(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_sarsq(SEXP, SEXP, SEXP);
 SEXP C_clab_r_sarfig(void);
+// Air pollution (bapol.cpp).
+SEXP C_clab_r_pgsig(SEXP, SEXP, SEXP);
+SEXP C_clab_r_briggs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gplume(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gspuff(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_advdif(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_laggrid(SEXP, SEXP, SEXP);
+SEXP C_clab_r_lagr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lagstep(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_crf(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_levin(SEXP, SEXP);
+SEXP C_clab_r_hif(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_concidx(SEXP, SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
@@ -820,6 +833,18 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_saropt", fn<&C_clab_r_saropt>(), 5},
     {"C_clab_r_sarsq", fn<&C_clab_r_sarsq>(), 3},
     {"C_clab_r_sarfig", fn<&C_clab_r_sarfig>(), 0},
+    {"C_clab_r_pgsig", fn<&C_clab_r_pgsig>(), 3},
+    {"C_clab_r_briggs", fn<&C_clab_r_briggs>(), 9},
+    {"C_clab_r_gplume", fn<&C_clab_r_gplume>(), 8},
+    {"C_clab_r_gspuff", fn<&C_clab_r_gspuff>(), 9},
+    {"C_clab_r_advdif", fn<&C_clab_r_advdif>(), 10},
+    {"C_clab_r_laggrid", fn<&C_clab_r_laggrid>(), 3},
+    {"C_clab_r_lagr", fn<&C_clab_r_lagr>(), 11},
+    {"C_clab_r_lagstep", fn<&C_clab_r_lagstep>(), 9},
+    {"C_clab_r_crf", fn<&C_clab_r_crf>(), 4},
+    {"C_clab_r_levin", fn<&C_clab_r_levin>(), 2},
+    {"C_clab_r_hif", fn<&C_clab_r_hif>(), 4},
+    {"C_clab_r_concidx", fn<&C_clab_r_concidx>(), 2},
     {"C_clab_r_svymx", fn<&C_clab_r_svymx>(), 10},
     {"C_clab_r_crsev", fn<&C_clab_r_crsev>(), 9},
     {"C_clab_r_zcomp", fn<&C_clab_r_zcomp>(), 4},

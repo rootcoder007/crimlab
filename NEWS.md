@@ -1,5 +1,15 @@
 # crimlab 0.0.0.9000
 
+* Air pollution, for environmental criminology: Pasquill-Gifford
+  dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
+  Gaussian plume and puff (`gplume()`, `gspuff()`, the field
+  `plmfld()`), an advection-diffusion grid (`advdif2d()`) and a particle
+  walk (`lagrprt()`); the concentration-response functions of PM2.5 and
+  NO2 (`crfpm25()`, `crfno2()`), the attributable fraction
+  (`attrfrac()`), deaths avoided (`mortdisp()`), the burden of a
+  population and of areas (`polbrdn()`, `polbrdarea()`) and the
+  concentration index of exposure by income (`expconcidx()`).
+
 * Search theory for search and rescue planning: lateral range curves
   (`ltrlrng()`) and sweep width (`swpwdth()`), the probability of detection
   from coverage (`srchpod()`) and of a parallel sweep with navigation error

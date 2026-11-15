@@ -1562,6 +1562,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jspx.inc"
 #include "jthr.inc"
 #include "jsar.inc"
+#include "japol.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
 #include "jrpv.inc"
@@ -1787,6 +1788,20 @@ const Ent ents[] = {
     {"opteffort", "poc area? W effort tol?", opteffort},
     {"optsqr", "effort model? m? E?", optsqr},
     {"srchfig", "fig? num?", srchfig},
+    {"pgsig", "x stab? set?", pgsig},
+    {"briggs", "x u diam exitvel stktmp ambtmp stab? dthdz? g?", briggs},
+    {"gplume", "q u h rcpt stab? set? mixh? nimg?", gplume},
+    {"gspuff", "mass u h rcpt t stab? set? mixh? nimg?", gspuff},
+    {"advdif2d", "c0 u v kx ky dx dy dt nsteps source? maxwork?", advdif2d},
+    {"lagrprt", "n x0 y0 u v kx ky dt nsteps seed? grid? maxwork?", lagrprt},
+    {"plmfld", "q u h x y z? stab? set? mixh? nimg?", plmfld},
+    {"crfpm25", "expo y? refconc?", crfpm25},
+    {"crfno2", "expo y? refconc? betaper10?", crfno2},
+    {"attrfrac", "rr expoprev rrlo? rrup?", attrfrac},
+    {"mortdisp", "expdel pop brate betaperunit rare? hirate?", mortdisp},
+    {"polbrdn", "expomean expoprev brate pop poll? y? refconc? rare? hirate?", polbrdn},
+    {"polbrdarea", "areatab areacol? expcol? popcol? basratecol? poll? y? rare? hirate?", polbrdarea},
+    {"expconcidx", "data expo income", expconcidx},
     {"ibench", "y off x? minn? fdr?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},

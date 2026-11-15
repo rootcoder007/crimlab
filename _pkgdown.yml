@@ -369,3 +369,23 @@ reference:
       - ltrlrng
       - optsqr
       - srchfig
+  - title: Air pollution
+    desc: Environmental criminology in its two senses. Pollution as harm
+      and offence (green criminology) - who bears the exposure from an
+      emitting site and the burden it causes, by area and by income; and
+      the environment as a driver of offending and victimisation, where
+      exposure series are joined to crime counts by place and day.
+      Dispersion models (Pasquill-Gifford sigmas, Briggs plume rise, the
+      Gaussian plume and puff, a grid and a particle model), the
+      concentration-response functions of PM2.5 and NO2, the attributable
+      fraction, deaths avoided, the burden by area and the concentration
+      index of exposure by income.
+    contents:
+      - pgsig
+      - plmfld
+      - crfpm25
+      - attrfrac
+      - mortdisp
+      - polbrdn
+      - polbrdarea
+      - expconcidx

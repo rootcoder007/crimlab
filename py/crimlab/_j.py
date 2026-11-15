@@ -3715,3 +3715,219 @@ def srchfig(fig: Any = None, num: Any = None) -> Any:
     36
     """
     return jcall("srchfig", fig=fig, num=num)
+
+
+def pgsig(x: Any, stab: Any = None, set: Any = None) -> Any:
+    """Pasquill-Gifford dispersion coefficients by stability class.
+
+    The arguments and the result are those of R's ``pgsig()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(pgsig(x=1000)['sigmay'], 4)
+    76.277
+    """
+    return jcall("pgsig", x=x, stab=stab, set=set)
+
+
+def briggs(x: Any, u: Any, diam: Any, exitvel: Any, stktmp: Any, ambtmp: Any, stab: Any = None,
+           dthdz: Any = None, g: Any = 9.80616) -> Any:
+    """Briggs plume rise of a buoyant stack plume.
+
+    The arguments and the result are those of R's ``briggs()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(briggs(x=100, u=4, diam=1, exitvel=12, stktmp=420, ambtmp=285)['flux'], 4)
+    9.4559
+    """
+    return jcall("briggs", x=x, u=u, diam=diam, exitvel=exitvel, stktmp=stktmp, ambtmp=ambtmp,
+                 stab=stab, dthdz=dthdz, g=g)
+
+
+def gplume(q: Any, u: Any, h: Any, rcpt: Any, stab: Any = None, set: Any = None, mixh: Any = None,
+           nimg: Any = 3) -> Any:
+    """Gaussian plume concentration at receptor points.
+
+    The arguments and the result are those of R's ``gplume()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> gplume(q=100, u=4, h=50, rcpt=[-10, 0, 0])
+    0.0
+    """
+    return jcall("gplume", q=q, u=u, h=h, rcpt=rcpt, stab=stab, set=set, mixh=mixh, nimg=nimg)
+
+
+def gspuff(mass: Any, u: Any, h: Any, rcpt: Any, t: Any, stab: Any = None, set: Any = None,
+           mixh: Any = None, nimg: Any = 3) -> Any:
+    """Gaussian puff concentration some time after an instantaneous release.
+
+    The arguments and the result are those of R's ``gspuff()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> gspuff(mass=0, u=3, h=10, rcpt=[1800, 0, 0], t=600)
+    0.0
+    """
+    return jcall("gspuff", mass=mass, u=u, h=h, rcpt=rcpt, t=t, stab=stab, set=set, mixh=mixh,
+                 nimg=nimg)
+
+
+def advdif2d(c0: Any, u: Any, v: Any, kx: Any, ky: Any, dx: Any, dy: Any, dt: Any, nsteps: Any,
+             source: Any = None, maxwork: Any = 1e8) -> Any:
+    """Explicit advection-diffusion of a concentration field on a grid.
+
+    The arguments and the result are those of R's ``advdif2d()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> advdif2d(c0=[[0, 0, 0], [0, 1, 0], [0, 0, 0]], u=0, v=0, kx=0, ky=0, dx=1, dy=1, dt=1,
+    ... nsteps=0)['mass']
+    1.0
+    """
+    return jcall("advdif2d", c0=c0, u=u, v=v, kx=kx, ky=ky, dx=dx, dy=dy, dt=dt, nsteps=nsteps,
+                 source=source, maxwork=maxwork)
+
+
+def lagrprt(n: Any, x0: Any, y0: Any, u: Any, v: Any, kx: Any, ky: Any, dt: Any, nsteps: Any,
+            seed: Any = 0, grid: Any = None, maxwork: Any = 1e8) -> Any:
+    """Lagrangian random walk of released particles.
+
+    The arguments and the result are those of R's ``lagrprt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> lagrprt(n=2, x0=0, y0=0, u=1, v=0, kx=0, ky=0, dt=1, nsteps=3)['mean_x']
+    3.0
+    """
+    return jcall("lagrprt", n=n, x0=x0, y0=y0, u=u, v=v, kx=kx, ky=ky, dt=dt, nsteps=nsteps,
+                 seed=seed, grid=grid, maxwork=maxwork)
+
+
+def plmfld(q: Any, u: Any, h: Any, x: Any, y: Any, z: Any = 0, stab: Any = None, set: Any = None,
+           mixh: Any = None, nimg: Any = 3) -> Any:
+    """A Gaussian-plume concentration field on a grid.
+
+    The arguments and the result are those of R's ``plmfld()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> plmfld(q=100, u=5, h=50, x=[100, 200], y=[-50, 0, 50])['units']
+    'concentration'
+    """
+    return jcall("plmfld", q=q, u=u, h=h, x=x, y=y, z=z, stab=stab, set=set, mixh=mixh, nimg=nimg)
+
+
+def crfpm25(expo: Any, y: Any = None, refconc: Any = 5.8) -> Any:
+    """Concentration-response function for PM2.5.
+
+    The arguments and the result are those of R's ``crfpm25()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> crfpm25(expo=5)['rr']
+    1.0
+    """
+    return jcall("crfpm25", expo=expo, y=y, refconc=refconc)
+
+
+def crfno2(expo: Any, y: Any = None, refconc: Any = 10, betaper10: Any = None) -> Any:
+    """Concentration-response function for NO2.
+
+    The arguments and the result are those of R's ``crfno2()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> crfno2(expo=8)['rr']
+    1.0
+    """
+    return jcall("crfno2", expo=expo, y=y, refconc=refconc, betaper10=betaper10)
+
+
+def attrfrac(rr: Any, expoprev: Any, rrlo: Any = None, rrup: Any = None) -> Any:
+    """Population attributable fraction (Levin).
+
+    The arguments and the result are those of R's ``attrfrac()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> attrfrac(rr=2, expoprev=1)
+    0.5
+    """
+    return jcall("attrfrac", rr=rr, expoprev=expoprev, rrlo=rrlo, rrup=rrup)
+
+
+def mortdisp(expdel: Any, pop: Any, brate: Any, betaperunit: Any, rare: Any = False,
+             hirate: Any = False) -> Any:
+    """Deaths avoided under a counterfactual exposure reduction.
+
+    The arguments and the result are those of R's ``mortdisp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> mortdisp(expdel=0, pop=1e6, brate=0.008, betaperunit=0.0039)
+    0.0
+    """
+    return jcall("mortdisp", expdel=expdel, pop=pop, brate=brate, betaperunit=betaperunit,
+                 rare=rare, hirate=hirate)
+
+
+def polbrdn(expomean: Any, expoprev: Any, brate: Any, pop: Any, poll: Any = None, y: Any = None,
+            refconc: Any = None, rare: Any = False, hirate: Any = False) -> Any:
+    """End-to-end pollution burden of one population.
+
+    The arguments and the result are those of R's ``polbrdn()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> polbrdn(expomean=25, expoprev=1, brate=0.008, pop=1e6)['basecases']
+    8000.0
+    """
+    return jcall("polbrdn", expomean=expomean, expoprev=expoprev, brate=brate, pop=pop, poll=poll,
+                 y=y, refconc=refconc, rare=rare, hirate=hirate)
+
+
+def polbrdarea(areatab: Any, areacol: Any = None, expcol: Any = None, popcol: Any = None,
+               basratecol: Any = None, poll: Any = None, y: Any = None, rare: Any = False,
+               hirate: Any = False) -> Any:
+    """Pollution burden by area, worst first.
+
+    The arguments and the result are those of R's ``polbrdarea()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> polbrdarea(areatab={'fsa': ['A1', 'B2'], 'exposure': [28, 18], 'population': [40000, 60000],
+    ... 'brate': [0.008, 0.008]})['fsa']
+    ['A1', 'B2']
+    """
+    return jcall("polbrdarea", areatab=areatab, areacol=areacol, expcol=expcol, popcol=popcol,
+                 basratecol=basratecol, poll=poll, y=y, rare=rare, hirate=hirate)
+
+
+def expconcidx(data: Any, expo: Any, income: Any) -> Any:
+    """Concentration index of exposure by income.
+
+    The arguments and the result are those of R's ``expconcidx()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(expconcidx(data={'e': [30, 25, 20, 15, 10], 'i': [1, 2, 3, 4, 5]}, expo='e',
+    ... income='i')['concidx'], 4)
+    -0.2
+    """
+    return jcall("expconcidx", data=data, expo=expo, income=income)

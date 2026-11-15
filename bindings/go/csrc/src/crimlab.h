@@ -3301,6 +3301,51 @@ int clab_sarsq(const double *z, int k, int model, double m, double *out);
  * the count again, or -1 past the last. */
 int clab_sarfig(int i, const char **out);
 
+/* ------------------------------------------------------------------------
+ * Air pollution: dispersion and health (apol.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Pasquill-Gifford sigmas (Briggs 1973) at n distances x, class cls 0-5
+ * (A-F), urban coefficients when urb. */
+int clab_pgsig(const double *x, int n, int cls, int urb, double *sy, double *sz);
+/* Briggs plume rise: out = flux, final rise, distance to it; rise at the n
+ * distances x. dthdz NaN takes 0.020 (E) or 0.035 (F). */
+int clab_briggs(const double *x, int n, double u, double diam, double ev, double ts, double ta, int cls,
+                double dthdz, double g, double *out, double *rise);
+/* The Gaussian plume at n receptors r (n x 3, column-major x, y, z); lid
+ * NaN for no mixing lid, else nimg image pairs. */
+int clab_gplume(double q, double u, double h, const double *r, int n, int cls, int urb, double lid, int nimg,
+                double *c);
+/* The Gaussian puff of mass released t seconds before. */
+int clab_gspuff(double mass, double u, double h, const double *r, int n, double t, int cls, int urb, double lid,
+                int nimg, double *c);
+/* nsteps explicit steps (upwind advection, central diffusion, zero
+ * boundary ring) of the nx x ny field cm in place; src NULL or a field of
+ * emission rates. */
+int clab_advdif(double *cm, int nx, int ny, double u, double v, double kx, double ky, double dx, double dy, double dt,
+                double nsteps, const double *src);
+/* The random walk of n particles from (x0, y0), the normals of step k from
+ * the splitmix64 stream seeded (seed 65536 + 2k (+1 for y)) mod 2^31 - 1
+ * through the normal quantile. */
+int clab_lagr(int n, double x0, double y0, double u, double v, double kx, double ky, double dt, double nsteps,
+              double seed, double *xs, double *ys);
+/* One step with the caller's normals zx, zy. */
+int clab_lagstep(int n, double u, double v, double fx, double fy, double dt, const double *zx, const double *zy,
+                 double *xs, double *ys);
+/* The positions' means (mean, 2) and, g = (xmin, xmax, ymin, ymax, nx, ny)
+ * not NULL, the particle density on that grid (conc, nx x ny). */
+int clab_laggrid(const double *xs, const double *ys, int n, const double *g, double *conc, double *mean);
+/* A concentration-response function at n exposures z: form 0 log-linear,
+ * par[0] the log RR per 10; form 1 the IER, par = alpha, gamma, delta. */
+int clab_crf(const double *z, int n, double refc, int form, const double *par, double *rr, double *lrr);
+/* Levin's attributable fraction at relative risk rr and prevalence p. */
+double clab_levin(double rr, double p);
+/* The BenMAP health-impact function rate pop (1 - exp(-beta dx)). */
+double clab_hif(double dx, double pop, double rate, double beta);
+/* The concentration index of h by income inc (n >= 2): out = index,
+ * covariance, mean exposure; the concentration curve cpop, cexp (n). */
+int clab_concidx(const double *h, const double *inc, int n, double *out, double *cpop, double *cexp);
+
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);
