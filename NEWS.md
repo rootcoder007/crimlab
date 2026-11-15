@@ -1,5 +1,15 @@
 # crimlab 0.0.0.9000
 
+* Environmental crime, with offences against the environment as the
+  outcome: the LMDI decomposition of a count over the factors of a Kaya
+  identity, over time and against a reference region (`lmdix()`, after
+  Duan et al. 2026), the two-way fixed-effects regression of a count on
+  drivers with an interaction, standardised coefficients, variance
+  inflation factors, simple slopes and the Jarque-Bera test of the
+  residuals (`fepnl()`), and Pesaran's CD test of cross-sectional
+  dependence (`pcdtst()`, as Andreatta et al. 2023 use it). They are not
+  yet in `clab_jrun()`, the command line or Python.
+
 * Spatial epidemiology and surveillance: Bayes outbreak detection
   (`bayout()`), exposure within a buffer and by kernel (`bufexp()`,
   `kerexp()`), the Leroux and BYM2 area structures (`lerprc()`,
