@@ -64,6 +64,18 @@
   (`lvfit()`) and the correlation of counts per unit between categories
   (`catcor()`). They are in `clab_jrun()`, the command line and Python.
 
+* Exposure and crime, for counts by place and day against a daily
+  exposure: Poisson pseudo-maximum likelihood with one or two sets of
+  absorbed fixed effects, an offset and one- or two-way clustered errors
+  (`ppmlfe()`); two-stage least squares with the same effects and the
+  first-stage Wald statistic (`ivfe()`); the Poisson control function with
+  a cluster bootstrap (`ppmlcf()`); wind-direction and inversion
+  instruments (`windiv()`, `invsn()`); the irrelevant-day placebo
+  (`plcday()`); the upwind and downwind design around a road or a point
+  source (`updwn()`); and the join of exposure to counts (`expjn()`). The
+  methods are those of Bondy, Roth and Sager (2020) and of Herrnstadt,
+  Heyes, Muehlegger and Saberian (2019, 2021).
+
 * Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
   Gaussian plume and puff (`gplume()`, `gspuff()`, the field

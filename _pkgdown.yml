@@ -438,6 +438,27 @@ reference:
       - expconcidx
       - exprspplr
       - vrfpol
+  - title: Exposure and crime
+    desc: Environmental criminology asks how the places and conditions in
+      which people live and move shape offending and victimisation. These
+      functions estimate the effect of a daily exposure such as air
+      pollution on counts by place and day, with fixed effects, wind and
+      inversion instruments, an irrelevant-day placebo and the upwind and
+      downwind design, after Bondy, Roth and Sager (2020, Crime is in the
+      air, Journal of the Association of Environmental and Resource
+      Economists 7(3), doi:10.1086/707127) and Herrnstadt, Heyes,
+      Muehlegger and Saberian (2019, Air pollution as a cause of violent
+      crime; 2021, Air pollution and criminal activity, American Economic
+      Journal - Applied Economics 13(4), doi:10.1257/app.20190091).
+    contents:
+      - ppmlfe
+      - ivfe
+      - ppmlcf
+      - windiv
+      - invsn
+      - plcday
+      - updwn
+      - expjn
   - title: Data larger than memory
     desc: One-pass summaries for data that arrive in pieces or do not fit
       in memory - moments accumulated and merged exactly, a uniform
