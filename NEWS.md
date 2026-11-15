@@ -812,6 +812,12 @@
   line gives the same message.
 * `inlhist()` refuses more than 2^26 `bins`; the command line gives the
   same message.
+* `bayout()` gives the negative binomial bound for large counts (more than
+  about 750 a period in the reference window): the search started where
+  the probability underflows to 0 and never ended. Counts so large that
+  no bound can be found are refused. `evfilt()` stops selecting when no
+  eigenvector has a finite criterion (values whose sums overflow); it
+  used to add one that does not exist and abort R.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

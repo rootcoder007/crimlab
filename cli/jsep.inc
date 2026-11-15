@@ -40,8 +40,9 @@ bool bayout(Ctx &c, Val &out) {
   const int m = static_cast<int>(t.size());
   std::vector<double> ub(zz(m));
   std::vector<int> al2(zz(m));
-  CK(kc(c, clab_bayout(x.p(), n, fq, bb, ww, ay, al, t.data(), m, ub.data(), al2.data()),
-        "a reference window holds no observed count."));
+  const int rc = clab_bayout(x.p(), n, fq, bb, ww, ay, al, t.data(), m, ub.data(), al2.data());
+  if (rc == CLAB_EARG) return c.fail("the counts of a reference window are too large for the negative binomial bound.");
+  CK(kc(c, rc, "a reference window holds no observed count."));
   Frame f;
   f.ints("t", t.data(), zz(m));
   f.num("ub", ub);

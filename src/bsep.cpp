@@ -171,8 +171,9 @@ SEXP C_clab_r_bayout(SEXP x, SEXP freq, SEXP b, SEXP w, SEXP acty, SEXP alpha, S
   SET_VECTOR_ELT(c, 1, real(m));
   SET_VECTOR_ELT(c, 2, Rf_allocVector(LGLSXP, m));
   int *al2 = ial(m);
-  kc(clab_bayout(REAL(xv), n, fq, bb, ww, ay, al, t, m, REAL(VECTOR_ELT(c, 1)), al2),
-     "a reference window holds no observed count.");
+  const int rc = clab_bayout(REAL(xv), n, fq, bb, ww, ay, al, t, m, REAL(VECTOR_ELT(c, 1)), al2);
+  if (rc == CLAB_EARG) fail("the counts of a reference window are too large for the negative binomial bound.");
+  kc(rc, "a reference window holds no observed count.");
   for (int q = 0; q < m; ++q) {
     INTEGER(VECTOR_ELT(c, 0))[q] = t[q];
     LOGICAL(VECTOR_ELT(c, 2))[q] = al2[q] < 0 ? NA_LOGICAL : al2[q];

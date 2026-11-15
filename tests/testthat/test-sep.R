@@ -545,3 +545,21 @@ test_that("data frames of covariates are read as matrices", {
   c2 <- sfcure(k$ct, k$ce, k$cx, k$cr, k$W3)
   expect_equal(c1$coef, c2$coef, tolerance = 1e-12)
 })
+
+test_that("bayout() bounds large counts and refuses counts past any bound", {
+  # six weeks of 5000: p^s underflows, so the search from 0 never moved
+  # and the call ran for ever; the bound is now R's quantile
+  r <- bayout(rep(5000, 20))
+  expect_equal(r$ub, rep(qnbinom(0.95, 30000.5, 6 / 7), 14), tolerance = 0)
+  expect_error(bayout(rep(1e300, 10)),
+               paste("bayout: the counts of a reference window are too large",
+                     "for the negative binomial bound."), fixed = TRUE)
+})
+
+test_that("evfilt() on values whose sums overflow adds no eigenvector", {
+  # every criterion is NaN: no candidate is best, and the selection used
+  # to add an eigenvector that does not exist
+  k <- sin_()
+  e <- evfilt(k$fv * 1e300, k$P)
+  expect_length(e$sel, 0L)
+})
