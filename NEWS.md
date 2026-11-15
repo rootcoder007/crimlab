@@ -48,6 +48,18 @@
   population and of areas (`polbrdn()`, `polbrdarea()`) and the
   concentration index of exposure by income (`expconcidx()`).
 
+* Describing a table before trusting it: inline histograms
+  (`inlhist()`), frequency tables (`freqtbl()`), pairwise correlations
+  (`cortbl()`, `topcors()`), empty and constant rows and columns
+  (`drpempty()`, `drpconst()`), clean column names (`clncolnms()`),
+  multivariate outliers (`mahaoutl()`), the shape of missingness
+  (`missruns()`, `missgrid()`, `misspat()`, `misssmry()`) and Little's test
+  of missing completely at random (`mcartst()`), duplicated rows
+  (`duprows()`), a column report (`profcols()`), candidate distributions
+  fitted by maximum likelihood and ranked by AIC (`dstfit()`) and
+  Cochran's Q for distinct groups before pooling (`dstntst()`). They are
+  in `clab_jrun()`, the command line and Python.
+
 * One-pass summaries of data larger than memory: moment accumulators
   (`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`), reservoir sampling
   (`rsvidx()`, `rsvsmp()`) and the HyperLogLog distinct count

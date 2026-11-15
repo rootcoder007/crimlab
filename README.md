@@ -167,6 +167,13 @@ The functions work on summary data, not on raw records:
 * Data larger than memory: moments, samples and distinct counts in one
   pass (`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`, `rsvidx()`,
   `rsvsmp()`, `dstnskch()`, `dstncnt()`, `skchmrg()`).
+* Describing a table before trusting it: its columns, gaps, outliers,
+  duplicates and whether its values are missing at random (`profcols()`,
+  `inlhist()`, `freqtbl()`, `cortbl()`, `topcors()`, `drpempty()`,
+  `drpconst()`, `clncolnms()`, `mahaoutl()`, `missruns()`, `missgrid()`,
+  `misspat()`, `misssmry()`, `mcartst()`, `duprows()`), which
+  distribution describes a variable (`dstfit()`), and whether
+  distinct groups differ before their figures are pooled (`dstntst()`).
 * The footprint of the analysis itself: the energy a computation used and
   its emissions on the local grid, offline, with what was assumed rather
   than measured (`co2fp()`, `raplok()`, `co2int()`, `co2inttab()`,
@@ -580,7 +587,7 @@ Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
 of the R package but those that work in R only, the plot functions
 and the table check `prechk()`
-(352 of 373); `crimlab -l` lists them and
+(369 of 390); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

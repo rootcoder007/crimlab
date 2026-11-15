@@ -611,6 +611,25 @@ SEXP C_clab_r_fpeqv(SEXP);
 // The exposure-response estimate (bplr.cpp).
 SEXP C_clab_r_plr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_bootci(SEXP, SEXP);
+// Data description (bdsc.cpp).
+SEXP C_clab_r_hbin(SEXP, SEXP);
+SEXP C_clab_r_freq(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pcor(SEXP, SEXP, SEXP);
+SEXP C_clab_r_rowany(SEXP);
+SEXP C_clab_r_nrun(SEXP, SEXP);
+SEXP C_clab_r_msum(SEXP);
+SEXP C_clab_r_pstat(SEXP);
+SEXP C_clab_r_q7(SEXP, SEXP);
+SEXP C_clab_r_maha(SEXP, SEXP, SEXP);
+SEXP C_clab_r_mcar(SEXP, SEXP, SEXP);
+SEXP C_clab_r_mgrid(SEXP, SEXP);
+SEXP C_clab_r_dups(SEXP, SEXP);
+SEXP C_clab_r_cochq(SEXP, SEXP);
+// Distributions fitted by maximum likelihood (bdfit.cpp).
+SEXP C_clab_r_dfit(SEXP, SEXP);
+SEXP C_clab_r_dfgof(SEXP, SEXP, SEXP);
+SEXP C_clab_r_dfboot(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dfhill(SEXP, SEXP, SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
@@ -932,6 +951,23 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_fpeqv", fn<&C_clab_r_fpeqv>(), 1},
     {"C_clab_r_plr", fn<&C_clab_r_plr>(), 6},
     {"C_clab_r_bootci", fn<&C_clab_r_bootci>(), 2},
+    {"C_clab_r_hbin", fn<&C_clab_r_hbin>(), 2},
+    {"C_clab_r_freq", fn<&C_clab_r_freq>(), 7},
+    {"C_clab_r_pcor", fn<&C_clab_r_pcor>(), 3},
+    {"C_clab_r_rowany", fn<&C_clab_r_rowany>(), 1},
+    {"C_clab_r_nrun", fn<&C_clab_r_nrun>(), 2},
+    {"C_clab_r_msum", fn<&C_clab_r_msum>(), 1},
+    {"C_clab_r_pstat", fn<&C_clab_r_pstat>(), 1},
+    {"C_clab_r_q7", fn<&C_clab_r_q7>(), 2},
+    {"C_clab_r_maha", fn<&C_clab_r_maha>(), 3},
+    {"C_clab_r_mcar", fn<&C_clab_r_mcar>(), 3},
+    {"C_clab_r_mgrid", fn<&C_clab_r_mgrid>(), 2},
+    {"C_clab_r_dups", fn<&C_clab_r_dups>(), 2},
+    {"C_clab_r_cochq", fn<&C_clab_r_cochq>(), 2},
+    {"C_clab_r_dfit", fn<&C_clab_r_dfit>(), 2},
+    {"C_clab_r_dfgof", fn<&C_clab_r_dfgof>(), 3},
+    {"C_clab_r_dfboot", fn<&C_clab_r_dfboot>(), 4},
+    {"C_clab_r_dfhill", fn<&C_clab_r_dfhill>(), 3},
     {"C_clab_r_svymx", fn<&C_clab_r_svymx>(), 10},
     {"C_clab_r_crsev", fn<&C_clab_r_crsev>(), 9},
     {"C_clab_r_zcomp", fn<&C_clab_r_zcomp>(), 4},

@@ -555,6 +555,27 @@ reference:
       - yoyhtml
       - yoypdf
       - yoywr
+  - title: Describing a table
+    desc: The look at a table before trusting it - the shape of every column,
+      where the gaps are and whether they are random, which values dominate,
+      which rows do not belong, and whether distinct groups differ.
+    contents:
+      - profcols
+      - inlhist
+      - freqtbl
+      - cortbl
+      - topcors
+      - drp
+      - clncolnms
+      - mahaoutl
+      - missruns
+      - missgrid
+      - misspat
+      - misssmry
+      - mcartst
+      - duprows
+      - dstfit
+      - dstntst
   - title: The footprint of a computation
     desc: The energy an analysis used and the emissions of making it on the
       local grid, offline - modelled or measured, with the measured energy

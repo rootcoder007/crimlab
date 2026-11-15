@@ -3576,6 +3576,85 @@ int clab_plr(const double *y, const double *d, const double *x, int n, int p, co
  * probabilities pr of m values: out, 1 + np. */
 void clab_bootci(const double *v, int m, const double *pr, int np, double *out);
 
+/* ------------------------------------------------------------------------
+ * Data description (dsc.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The counts of bins equal-width bins over the range of the n values x, as
+ * R's hist() with breaks seq(min, max, length.out = bins + 1) counts them
+ * (breaks moved by 1e-7 of the median width, both ends included); non-finite
+ * values are skipped. CLAB_EDOM when the finite values have no spread. */
+int clab_hbin(const double *x, int n, int bins, int *cnt);
+/* The Spearman (meth 0: Pearson's of the midranks) or Pearson (1)
+ * correlation of every pair of the p columns of x (n x p, NaN missing), the
+ * pairs in column order, over the rows where both are present: np[k] such
+ * rows; NaN below minprs of them or for a column with no spread. */
+int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, int *np);
+/* The runs of nonzero na (n) of length minrun or more: their first and last
+ * positions (from 1) into st and en; returns their number. */
+int clab_nrun(const int *na, int n, int minrun, int *st, int *en);
+/* Missingness of na (n x p, nonzero missing): rows, columns, missing
+ * cells, their percent, complete rows, their percent, columns with any and
+ * with only missing values (out, 8). */
+void clab_msum(const int *na, int n, int p, double *out);
+/* Of n finite values: mean, sd (n - 1), moment skewness, median, MAD
+ * (1.4826) and the Tukey fences at 1.5 IQR (out, 7), the quantiles type 7. */
+void clab_pstat(const double *x, int n, double *out);
+/* Type-7 quantiles of n values at the np probabilities pr. */
+void clab_q7(const double *x, int n, const double *pr, int np, double *out);
+/* The log of the upper tail of the chi-square on df at x, finite where the
+ * tail underflows. */
+double clab_lpchisq(double x, double df);
+/* Squared Mahalanobis distances of the m rows of x (m x p, complete):
+ * centred and scaled by median and MAD (robust; the sd when the MAD is 0)
+ * or by mean and range, the covariance of the scaled columns inverted.
+ * CLAB_EDOM when its smallest eigenvalue is at most 1e-8 of the largest. */
+int clab_maha(const double *x, int m, int p, int robust, double *d2);
+/* Little's MCAR test of x (n x p, NaN missing; no row or column wholly
+ * missing): the multivariate normal mean and covariance by EM (at most
+ * maxit steps, until no estimate moves by tol), then d^2 over the
+ * missingness patterns. Out, 8: d^2, df, p-value, its log, patterns, rows
+ * used, iterations, patterns skipped; mu (p), sig (p x p). CLAB_EDOM with
+ * out[0] 1 for collinear columns, 2 when EM cannot invert a block. */
+int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out, double *mu, double *sig);
+/* A frequency table of the codes (1 to nlev, n of them): the levels (from
+ * 1) and counts of the first maxlvl, by descending count when sort (ties
+ * in level order), the rest folded into level nlev + 1 when fold. Returns
+ * the rows written. */
+int clab_freq(const int *code, int n, int nlev, int sort, int maxlvl, int fold, int *lev, int *cnt);
+/* The missingness map of na (n x p): at most bins row blocks, their first
+ * rows (from 1) and each column's share missing in quarters (0 to 4,
+ * shade, blocks x p). Returns the blocks. */
+int clab_mgrid(const int *na, int n, int p, int bins, int *start, int *shade);
+/* The rows (from 1) whose code (1 to nlev) occurs more than once, ordered
+ * by code then position, with their code's count. Returns their number. */
+int clab_dups(const int *code, int n, int nlev, int *rows, int *cnt);
+/* Cochran's Q of g estimates y with standard errors s: the
+ * inverse-variance mean, its standard error, Q, df, p-value and I^2 (out,
+ * 6). */
+void clab_cochq(const double *y, const double *s, int g, double *out);
+
+/* ------------------------------------------------------------------------
+ * Distributions fitted by maximum likelihood (dfit.cpp). Families: 0
+ * normal, 1 lognormal, 2 exponential, 3 gamma, 4 Weibull, 5 location-scale
+ * t, 6 Pareto, 7 beta, 8 Poisson, 9 negative binomial, 10 zero-inflated
+ * Poisson, 11 zero-inflated negative binomial.
+ * ------------------------------------------------------------------------ */
+
+/* The number of parameters of family f (0 for none). */
+int clab_dfnp(int f);
+/* The ML estimate of family f from the n values x into par: closed forms,
+ * Brent's minimiser for the negative binomial size, otherwise the
+ * Nelder-Mead simplex then BFGS of R's optim() on a log or logit scale.
+ * CLAB_EDOM when the fit fails (a likelihood or a gradient not finite). */
+int clab_dfit(int f, const double *x, int n, double *par);
+/* The log-likelihood of family f at par. */
+double clab_dfll(int f, const double *x, int n, const double *par);
+/* Kolmogorov-Smirnov and Anderson-Darling statistics of family f at par
+ * for the sorted values xs; for the count families the largest gap of the
+ * distribution functions over 0 to max(xs), and NaN. */
+void clab_dfgof(int f, const double *xs, int n, const double *par, double *out);
+
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

@@ -1574,6 +1574,8 @@ bool proof(Ctx &c, Val &out) {
 #include "jskch.inc"
 #include "jfp.inc"
 #include "jaexp.inc"
+#include "jdsc.inc"
+#include "jdfit.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
 #include "jrpv.inc"
@@ -1838,6 +1840,23 @@ const Ent ents[] = {
     {"raplok", "rapldir?", raplok},
     {"fpeqv", "co2eg", fpeqv},
     {"exprspplr", "data y expo confs nboot? rstate?", exprspplr},
+    {"inlhist", "x bins?", inlhist},
+    {"freqtbl", "data col? maxlvl? sort?", freqtbl},
+    {"cortbl", "data meth? minprs?", cortbl},
+    {"topcors", "data n? meth? minabs?", topcors},
+    {"drpempty", "data which? quiet?", drpempty},
+    {"drpconst", "data naasval? quiet?", drpconst},
+    {"clncolnms", "data case? sep? quiet?", clncolnms},
+    {"mahaoutl", "data alpha? robust?", mahaoutl},
+    {"missruns", "data minrun?", missruns},
+    {"missgrid", "data height? width?", missgrid},
+    {"mcartst", "data maxit? tol?", mcartst},
+    {"misspat", "data maxpat?", misspat},
+    {"duprows", "data cols? quiet?", duprows},
+    {"misssmry", "data", misssmry},
+    {"profcols", "data qnts?", profcols},
+    {"dstntst", "data grp est lower upper qual? conflvl? pooled?", dstntst},
+    {"dstfit", "x fams? nboot? conflvl? seed? k?", dstfit},
     {"ibench", "y off x? minn? fdr? dr? local?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},

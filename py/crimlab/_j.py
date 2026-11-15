@@ -5715,3 +5715,231 @@ def exprspplr(data: Any, y: Any, expo: Any, confs: Any, nboot: Any = 100,
     3.0
     """
     return jcall("exprspplr", data=data, y=y, expo=expo, confs=confs, nboot=nboot, rstate=rstate)
+
+
+def inlhist(x: Any, bins: Any = 10) -> Any:
+    """Inline histogram of a numeric vector.
+
+    The arguments and the result are those of R's ``inlhist()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> len(inlhist(x=[1, 2, 2, 3], bins=4))
+    4
+    """
+    return jcall("inlhist", x=x, bins=bins)
+
+def freqtbl(data: Any, col: Any = None, maxlvl: Any = 25, sort: Any = True) -> Any:
+    """Frequency table of one column.
+
+    The arguments and the result are those of R's ``freqtbl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> freqtbl(data=['a', 'b', 'b'])['n']
+    [2.0, 1.0]
+    """
+    return jcall("freqtbl", data=data, col=col, maxlvl=maxlvl, sort=sort)
+
+def cortbl(data: Any, meth: Any = None, minprs: Any = 3) -> Any:
+    """Correlation of every pair of numeric columns.
+
+    The arguments and the result are those of R's ``cortbl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cortbl(data={'a': [1, 2, 3], 'b': [2, 4, 7]})['correlation']
+    [1.0]
+    """
+    return jcall("cortbl", data=data, meth=meth, minprs=minprs)
+
+def topcors(data: Any, n: Any = 10, meth: Any = None, minabs: Any = 0) -> Any:
+    """The strongest pairwise correlations.
+
+    The arguments and the result are those of R's ``topcors()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> topcors(data={'a': [1, 2, 3], 'b': [3, 2, 1]})['abscor']
+    [1.0]
+    """
+    return jcall("topcors", data=data, n=n, meth=meth, minabs=minabs)
+
+def drpempty(data: Any, which: Any = None, quiet: Any = False) -> Any:
+    """Drop rows and columns that are entirely missing.
+
+    The arguments and the result are those of R's ``drpempty()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> drpempty(data={'a': [1, None], 'b': [None, None]}, quiet=True)['a']
+    [1.0]
+    """
+    return jcall("drpempty", data=data, which=which, quiet=quiet)
+
+def drpconst(data: Any, naasval: Any = False, quiet: Any = False) -> Any:
+    """Drop columns that hold one value.
+
+    The arguments and the result are those of R's ``drpconst()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> drpconst(data={'a': [1, 2], 'b': [7, 7]}, quiet=True)['a']
+    [1.0, 2.0]
+    """
+    return jcall("drpconst", data=data, naasval=naasval, quiet=quiet)
+
+def clncolnms(data: Any, case: Any = None, sep: Any = "_", quiet: Any = False) -> Any:
+    """Tidy column names.
+
+    The arguments and the result are those of R's ``clncolnms()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> clncolnms(data=['Total Pop', '% change'], quiet=True)
+    ['total_pop', 'pct_change']
+    """
+    return jcall("clncolnms", data=data, case=case, sep=sep, quiet=quiet)
+
+def mahaoutl(data: Any, alpha: Any = 0.001, robust: Any = True) -> Any:
+    """Multivariate outliers by Mahalanobis distance.
+
+    The arguments and the result are those of R's ``mahaoutl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> mahaoutl(data={'x': [1, 2, 3, 4, 10], 'y': [2, 1, 4, 3, 0]})['row'][0]
+    5.0
+    """
+    return jcall("mahaoutl", data=data, alpha=alpha, robust=robust)
+
+def missruns(data: Any, minrun: Any = 2) -> Any:
+    """Runs of consecutive missing values.
+
+    The arguments and the result are those of R's ``missruns()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> missruns(data={'a': [1, None, None, 4]})['length']
+    [2.0]
+    """
+    return jcall("missruns", data=data, minrun=minrun)
+
+def missgrid(data: Any, height: Any = 20, width: Any = 12) -> Any:
+    """A text map of where the missing values are.
+
+    The arguments and the result are those of R's ``missgrid()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> len(missgrid(data={'a': [1, None]}, height=2))
+    7
+    """
+    return jcall("missgrid", data=data, height=height, width=width)
+
+def mcartst(data: Any, maxit: Any = 500, tol: Any = 1e-07) -> Any:
+    """Little's test of missing completely at random.
+
+    The arguments and the result are those of R's ``mcartst()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> mcartst(data={'a': [1, 2, 3, 4], 'b': [2, 1, 4, 3]})['df']
+    0.0
+    """
+    return jcall("mcartst", data=data, maxit=maxit, tol=tol)
+
+def misspat(data: Any, maxpat: Any = 20) -> Any:
+    """Which columns are missing together.
+
+    The arguments and the result are those of R's ``misspat()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> misspat(data={'a': [1, None], 'b': [1, 2]})['pattern']
+    ['..', 'X.']
+    """
+    return jcall("misspat", data=data, maxpat=maxpat)
+
+def duprows(data: Any, cols: Any = None, quiet: Any = False) -> Any:
+    """Duplicated rows, with their groups.
+
+    The arguments and the result are those of R's ``duprows()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> duprows(data={'a': [1, 1, 2]}, quiet=True)['dupe_count']
+    [2.0, 2.0]
+    """
+    return jcall("duprows", data=data, cols=cols, quiet=quiet)
+
+def misssmry(data: Any) -> Any:
+    """Missingness in one line per question.
+
+    The arguments and the result are those of R's ``misssmry()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> misssmry(data={'a': [1, None]})['n_missing']
+    1.0
+    """
+    return jcall("misssmry", data=data)
+
+def profcols(data: Any, qnts: Any = None) -> Any:
+    """A report of every column of a data frame.
+
+    The arguments and the result are those of R's ``profcols()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> profcols(data={'v': [1, 2, 3]})['median']
+    [2.0]
+    """
+    return jcall("profcols", data=data, qnts=qnts)
+
+def dstntst(data: Any, grp: Any, est: Any, lower: Any, upper: Any, qual: Any = None,
+            conflvl: Any = 0.95, pooled: Any = None) -> Any:
+    """Whether distinct groups differ: Cochran's Q before pooling.
+
+    The arguments and the result are those of R's ``dstntst()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {'g': ['a', 'b'], 'e': [1, 3], 'lo': [0, 2], 'hi': [2, 4]}
+    >>> round(dstntst(data=d, grp='g', est='e', lower='lo', upper='hi')['pooled'], 6)
+    2.0
+    """
+    return jcall("dstntst", data=data, grp=grp, est=est, lower=lower, upper=upper,
+                 qual=qual, conflvl=conflvl, pooled=pooled)
+
+
+def dstfit(x: Any, fams: Any = None, nboot: Any = 200, conflvl: Any = 0.95, seed: Any = 1,
+           k: Any = None) -> Any:
+    """Fit and rank candidate distributions by maximum likelihood.
+
+    The arguments and the result are those of R's ``dstfit()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> dstfit(x=[0.5, 1.2, 1.9, 2.4, 3.1, 4.0, 5.2, 7.7], fams='normal',
+    ...        nboot=0)['fits']['normal']['mean']
+    3.25
+    """
+    return jcall("dstfit", x=x, fams=fams, nboot=nboot, conflvl=conflvl, seed=seed, k=k)
