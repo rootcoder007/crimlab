@@ -115,3 +115,13 @@ test_that("exprspplr() refuses what it cannot use", {
   expect_error(exprspplr(d, "asthma", "exposure", "x1"),
                "column `x1` must be numeric")
 })
+
+test_that("exprspplr() reports an estimator that fails on the full sample", {
+  d <- ex_data()
+  bad <- function(data, outcome, treatment, covariates) stop("no model.")
+  expect_error(
+    exprspplr(d, "asthma", "exposure", "x1", nboot = 10, estr = bad),
+    paste0("^exprspplr: `estr` failed on the full sample, called as ",
+           "estr\\(data, y, expo, confs\\): no model\\.$")
+  )
+})
