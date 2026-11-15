@@ -173,10 +173,10 @@ test_that("every exported function answers one valid call in its shape", {
          c("provider", "interactive", "center", "zoom", "points")),
     list(quote(spsamp(spobj(data.frame(lon = 1:2, lat = 2:3)), 1, seed = 1)),
          NULL),
-
-# none
     list(quote(fylbl(2023)), NULL),
-    list(quote(yoylbl(yoypx(c(1, 2), 1:2), fylbl)), NULL),
+    list(quote(yoylbl(yoypx(c(1, 2), 1:2), fylbl)),
+         c("prd", "value", "prev", "change", "pctchg", "flag", "pctlo",
+           "pctup", "p", "padj", "signif", "perlbl")),
     list(quote(yoysmry(yoypx(c(1, 2), 1:2))),
          c("from", "to", "first", "last", "totalpct", "cagrpct", "periods",
            "up", "down", "flat")),
