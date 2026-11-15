@@ -525,3 +525,13 @@ test_that("the refusals name the argument", {
   expect_true(all(is.nan(cbootmean(numeric(), 3))))
   expect_identical(cmn(NULL), NaN)
 })
+
+test_that("an infinite value, a single row and a bad mean are handled", {
+  # the sum is not finite: the mean is what R's mean() gives
+  expect_identical(cmn(c(1, Inf)), mean(c(1, Inf)))
+  expect_identical(cmn(c(Inf, -Inf)), mean(c(Inf, -Inf)))
+  # one row has no covariance: every entry NaN
+  expect_identical(ccovm(matrix(1:3, 1)), matrix(NaN, 3, 3))
+  expect_error(cnormpdf(1, mean = NA),
+               "cnormpdf: `mean` must be one finite number.", fixed = TRUE)
+})

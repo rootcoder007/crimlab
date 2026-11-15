@@ -292,3 +292,34 @@ test_that("the results equal rmoriebricklayer's", {
   expect_identical(levels(y$decoded), c("No", "Yes"))
   expect_output(print(y), "as the source reported")
 })
+
+test_that("each recode function refuses input that is not labels", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(grdrcd(list(1), c(a = "b")), "grdrcd: `x` must be a vector of labels.")
+  ef(deccodes(c(1, NA), c("1" = "a"), keepna = FALSE),
+     "deccodes: `x` has missing codes and `keepna` is FALSE.")
+  ef(relbl(1i, c(a = "b")),
+     "relbl: `x` must be a vector of labels (text, a factor or numbers).")
+  ef(grdlvls("a", character(0)),
+     "grdlvls: `lvls` must be a non-empty character vector.")
+  ef(declbld(list(1)), "declbld: `x` must be a vector of codes.")
+  ef(grdbin(list(1), "custody"),
+     "grdbin: column `custody` must be an atomic vector.")
+  ef(vrfmrg("a", c(a = 1), tol = -1),
+     "vrfmrg: `tol` must be one number from 0.")
+  ef(xfrvrf("a", c(a = 1), codebook = list(a = 1)),
+     "xfrvrf: `codebook` must be a named vector (code = label), or NULL.")
+})
+
+test_that("dates are counted as their text, and failures are printed", {
+  d <- as.Date(c("2024-01-01", "2024-01-01", "2024-02-01"))
+  v <- vrfmrg(d, c("2024-01-01" = 2, "2024-02-01" = 1))
+  expect_true(v$ok)
+  x <- xfrvrf(c("No", "Yes", "Yes"), c(No = 2, Yes = 1), strict = FALSE)
+  out <- capture.output(print(x))
+  expect_identical(out[1:2], c("xfrvrf: does not match the source ",
+                               "code book: nothing to compare "))
+  expect_identical(out[length(out)], paste("failed:", x$reasons))
+  expect_match(x$reasons, "labels are permuted (No -> Yes, Yes -> No)",
+               fixed = TRUE)
+})
