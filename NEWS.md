@@ -64,6 +64,12 @@
   (`lvfit()`) and the correlation of counts per unit between categories
   (`catcor()`). They are in `clab_jrun()`, the command line and Python.
 
+* Exposure and crime, a count with an endogenous exposure by the
+  exponential-mean generalised method of moments of Mullahy (1997) and
+  Windmeijer and Santos Silva (1997): multiplicative or additive
+  residual, one-step, two-step or iterated weighting, cluster-robust
+  errors and Hansen's J (`expgmm()`).
+
 * Exposure and crime, the designs of 2019-2026: smoke instruments from
   plume data, raw or adjusted to the plumes that reached the ground
   (`smkiv()`); runs of exposed days and the effect by day in the run

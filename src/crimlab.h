@@ -2003,6 +2003,46 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
                 int how, int maxit, double eps, double tol, double *beta, double *fst,
                 double *draw, double *st);
 
+/* The exponential-mean generalised method of moments (expgmm): y (n,
+ * at least 0) with mean exp(x b + off), x (n x k; the endogenous columns,
+ * the controls and any indicator columns of fixed effects, with a constant
+ * among them), z (n x s, s >= k; the excluded instruments and the
+ * exogenous columns of x), off NULL or n. err 0, the multiplicative
+ * residual u = y exp(-x b - off) - 1 (Mullahy 1997); err 1, the additive
+ * u = y - exp(x b + off) (Windmeijer and Santos Silva 1997). The moments
+ * are g = sum_i z_i u_i; each step minimises g'Wg by Gauss-Newton from b0
+ * (k), halving a step that does not lower it, until the largest change
+ * relative to 1 + |b| is below tol (maxit iterations). step 1: W =
+ * (Z'Z)^-1, the nonlinear instrumental-variables estimator; step 2: then
+ * W = S^-1, S = sum over the clusters cl (ncl codes; the rows themselves
+ * for heteroskedasticity-robust errors) of (Z_g'u_g)(Z_g'u_g)' at the
+ * first estimate; step 3: W updated so until the estimate changes by
+ * less than tol. Out: beta (k); vc (k x k), (G'WG)^-1 for steps 2 and 3,
+ * the sandwich (G'WG)^-1 G'W S W G (G'WG)^-1 with S at the estimate for
+ * step 1 (G = sum_i z_i du_i/db', no small-sample factor); st (6):
+ * Hansen's J, g'Wg at the last estimate (NaN for step 1 or s = k), its
+ * degrees of freedom s - k, the Gauss-Newton iterations of the last
+ * step, convergence (1 or 0), the weights used, g'Wg. CLAB_EDOM when Z'Z,
+ * S or G'WG is singular or the start overflows. The kernel allocates its
+ * arrays. */
+int clab_expgmm(const double *y, const double *x, int k, const double *z, int s, int n,
+                const double *off, const double *b0, const int *cl, int ncl, int err, int step,
+                int maxit, double tol, double *beta, double *vc, double *st);
+
+/* The over-identification tests of clab_ivfe (ivfe): the same data,
+ * effects and demeaning; X = (xe, xx), Z = (zi, xx), q >= pe. st (3): the
+ * Sargan statistic n u'Z(Z'Z)^-1 Z'u / u'u at the two-stage least squares
+ * residuals u; Hansen's J, u2'Z S^-1 Z'u2 with S the cluster sum of
+ * (Z_g'u_g)(Z_g'u_g)' at u (cl, and for two-way cl2: S1 + S2 - S12) and
+ * u2 the residuals of the two-step estimate (X'Z S^-1 Z'X)^-1 X'Z S^-1
+ * Z'y, into beta (pe + px; NaN, with J, when S is singular; J is NaN too
+ * when q = pe); and the degrees of freedom q - pe. The kernel allocates
+ * its arrays. */
+int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int px,
+               const double *zi, int q, int n, const int *f1, int n1, const int *f2, int n2,
+               const int *cl, int ncl, const int *cl2, int ncl2, double tol, double *beta,
+               double *st);
+
 /* Wind-direction instruments (windiv): dir, n directions the wind blows
  * from, degrees clockwise from north; the circle is cut into nb = 360 /
  * width sectors [start + b width, start + (b + 1) width) (width must

@@ -96,9 +96,8 @@ alone, which treat the first-stage residual or fitted value as data and
 are therefore wrong (too small, as a rule): they are given only to
 reproduce papers that report them. Bondy, Roth and Sager do not say how
 their second-stage errors account for the first stage. The exponential
-generalised method of moments with multiplicative errors (Mullahy 1997;
-Windmeijer and Santos Silva 1997) is not offered: its papers were not at
-hand to build it from.
+generalised method of moments of Mullahy (1997) and Windmeijer and
+Santos Silva (1997), which needs no first-stage model, is \code{\link[=expgmm]{expgmm()}}.
 
 Separation is handled as in \code{\link[=ppmlfe]{ppmlfe()}} (groups of zeros dropped), in the
 full sample and in each draw; a draw that cannot be fitted (an
@@ -133,5 +132,5 @@ testing for nonlinear models with endogenous explanatory variables.
 \doi{10.1016/j.jeconom.2014.04.020}
 }
 \seealso{
-\code{\link[=ppmlfe]{ppmlfe()}}, \code{\link[=ivfe]{ivfe()}}, \code{\link[=windiv]{windiv()}}, \code{\link[=invsn]{invsn()}}
+\code{\link[=ppmlfe]{ppmlfe()}}, \code{\link[=ivfe]{ivfe()}}, \code{\link[=expgmm]{expgmm()}}, \code{\link[=windiv]{windiv()}}, \code{\link[=invsn]{invsn()}}
 }

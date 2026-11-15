@@ -130,6 +130,48 @@ SEXP C_clab_r_ppmlcf(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP off, SEXP f1, SEXP 
   return r;
 }
 
+SEXP C_clab_r_expgmm(SEXP y, SEXP x, SEXP z, SEXP off, SEXP b0, SEXP cl, SEXP ncl, SEXP err,
+                     SEXP step, SEXP maxit, SEXP tol) {
+  clab::who = "expgmm";
+  const int n = n32(y), k = Rf_ncols(x), s = Rf_ncols(z);
+  SEXP r = PROTECT(Rf_allocVector(VECSXP, 3));
+  SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, k));
+  SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, k, k));
+  SET_VECTOR_ELT(r, 2, Rf_allocVector(REALSXP, 6));
+  const int rc = clab_expgmm(REAL(y), REAL(x), k, REAL(z), s, n, dnul(off), REAL(b0), INTEGER(cl),
+                             Rf_asInteger(ncl), Rf_asInteger(err), Rf_asInteger(step),
+                             Rf_asInteger(maxit), Rf_asReal(tol), REAL(VECTOR_ELT(r, 0)),
+                             REAL(VECTOR_ELT(r, 1)), REAL(VECTOR_ELT(r, 2)));
+  clab::ichk(rc);
+  if (rc == CLAB_EDOM) {
+    clab::fail("the fit failed: the instruments or the regressors are collinear, there are no "
+               "more clusters than moment conditions (the weight matrix is singular), or the "
+               "mean overflows from the start values.");
+  }
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  static const char *const nm[] = {"beta", "vc", "st"};
+  named(r, nm, 3);
+  UNPROTECT(1);
+  return r;
+}
+
+SEXP C_clab_r_ivoid(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP f1, SEXP n1, SEXP f2, SEXP n2,
+                    SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol) {
+  clab::who = "ivfe";
+  const int n = n32(y), pe = Rf_ncols(xe), px = Rf_ncols(xx), q = Rf_ncols(zi);
+  SEXP r = PROTECT(Rf_allocVector(VECSXP, 2));
+  SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, pe + px));
+  SET_VECTOR_ELT(r, 1, Rf_allocVector(REALSXP, 3));
+  kc(clab_ivoid(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, INTEGER(f1),
+                Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), INTEGER(cl),
+                Rf_asInteger(ncl), icodes(cl2), Rf_isNull(cl2) ? 0 : Rf_asInteger(ncl2),
+                Rf_asReal(tol), REAL(VECTOR_ELT(r, 0)), REAL(VECTOR_ELT(r, 1))));
+  static const char *const nm[] = {"beta", "st"};
+  named(r, nm, 2);
+  UNPROTECT(1);
+  return r;
+}
+
 SEXP C_clab_r_windbin(SEXP dir, SEXP width, SEXP start, SEXP area, SEXP na, SEXP base,
                       SEXP edge) {
   clab::who = "windiv";

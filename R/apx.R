@@ -991,9 +991,8 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' are therefore wrong (too small, as a rule): they are given only to
 #' reproduce papers that report them. Bondy, Roth and Sager do not say how
 #' their second-stage errors account for the first stage. The exponential
-#' generalised method of moments with multiplicative errors (Mullahy 1997;
-#' Windmeijer and Santos Silva 1997) is not offered: its papers were not at
-#' hand to build it from.
+#' generalised method of moments of Mullahy (1997) and Windmeijer and
+#' Santos Silva (1997), which needs no first-stage model, is [expgmm()].
 #'
 #' Separation is handled as in [ppmlfe()] (groups of zeros dropped), in the
 #' full sample and in each draw; a draw that cannot be fitted (an
@@ -1031,7 +1030,7 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #'   testing for nonlinear models with endogenous explanatory variables.
 #'   *Journal of Econometrics*, 182(1), 226-234.
 #'   \doi{10.1016/j.jeconom.2014.04.020}
-#' @seealso [ppmlfe()], [ivfe()], [windiv()], [invsn()]
+#' @seealso [ppmlfe()], [ivfe()], [expgmm()], [windiv()], [invsn()]
 #' @examples
 #' # simulated counts; the shock u raises pollution and crime together
 #' set.seed(3)
@@ -1205,6 +1204,311 @@ print.ppmlcf <- function(x, ...) {
 #' @rdname ppmlcf
 #' @export
 summary.ppmlcf <- function(object, ...) object[["coef"]]
+
+# The fixed effects as indicator columns: every level of the first set (in
+# place of a constant; a constant when there is no set), all but the first
+# level of the others.
+.axdum <- function(d, fe) {
+  if (is.null(fe)) return(matrix(1, nrow(d), 1L, dimnames = list(NULL, "(1)")))
+  do.call(cbind, lapply(seq_along(fe), function(j) {
+    cc <- .axcode(d[[fe[j]]])
+    lv <- seq_len(cc$n)
+    if (j > 1L) lv <- lv[-1L]
+    o <- outer(cc$c + 1L, lv, "==") + 0
+    colnames(o) <- paste0(fe[j], ":", lv)
+    o
+  }))
+}
+
+#' Exponential-mean GMM for a count with an endogenous exposure
+#'
+#' Estimates `E(y | x) = exp(x'b + log(expo))` with some regressors
+#' endogenous, by the generalised method of moments on the first-order
+#' moment conditions alone, as Mullahy (1997) and Windmeijer and Santos
+#' Silva (1997) set it out: `sum_i z_i u_i(b) = 0` with `z` the excluded
+#' instruments and the exogenous regressors. The residual (`err`):
+#'
+#' `"mult"` (the default), `u = y exp(-x'b) - 1`, the transformed residual
+#' "IV-T" of Mullahy (1997, equations 4-5, p. 589) and the multiplicative
+#' model of Windmeijer and Santos Silva (1997, equation 3, p. 284). It is
+#' consistent when the unmeasured causes multiply the mean, `y =
+#' exp(x'b) h + e` with `E(h | z) = 1`: the omitted-variable model in which
+#' observed and unobserved causes enter alike, which Mullahy argues is the
+#' natural one, and the default for that reason.
+#'
+#' `"add"`, `u = y - exp(x'b)`, the additive error of Windmeijer and Santos
+#' Silva (1997, equation 2, p. 283; Mullahy's "IV-A", p. 588, which he shows
+#' inconsistent under the multiplicative model). The same instruments are
+#' not in general orthogonal to both residuals; which holds is an
+#' empirical matter that the J test speaks to (Windmeijer and Santos Silva
+#' 1997, p. 284; in their application the additive form passes and the
+#' multiplicative is rejected, p. 291).
+#'
+#' The weighting (`step`): `"two"` (the default), the efficient two-step
+#' estimator: a first step with `W = (Z'Z)^-1`, the nonlinear
+#' instrumental-variables estimator, then `W = S^-1` with `S` the
+#' variance of the moments at the first estimate (Windmeijer and Santos
+#' Silva 1997, p. 283; Mullahy 1997, p. 589, "a preliminary consistent
+#' estimate (e.g., nonlinear two-stage least squares)"); `"one"`, the
+#' first step alone; `"iter"`, `S` and the estimate updated in turn until
+#' the estimate settles (the "GMM iterated until convergence" of
+#' Windmeijer and Santos Silva, table 2 notes). Each step minimises
+#' `g'Wg` by Gauss-Newton from the Poisson start below, halving any step
+#' that does not lower it.
+#'
+#' Variance. `S` is the sum over the clusters of `clus` of `(Z_g'u_g)
+#' (Z_g'u_g)'` (`se = "cluster"`), or over the rows (`"hc1"`, the
+#' `sum_i (y_i - mu_i)^2 z_i z_i'` of Windmeijer and Santos Silva, p. 283).
+#' Two-step and iterated: `(G'S^-1 G)^-1`, `G = sum_i z_i du_i / db'`
+#' (Mullahy, p. 589; Windmeijer and Santos Silva, p. 284), with `S` from
+#' the previous estimate; one step: the sandwich `(G'WG)^-1 G'W S W G
+#' (G'WG)^-1` with `S` at the estimate. `ssc = "G"` multiplies it by `G /
+#' (G - 1)`, `G` the clusters (rows for `"hc1"`); `"none"` does not.
+#' Tests use the normal.
+#'
+#' Hansen's J. The criterion `g'S^-1 g` at the two-step (or iterated)
+#' estimate, chi-squared on the number of instruments less the number of
+#' endogenous columns when they are valid (Mullahy 1997, p. 590); not
+#' given for `step = "one"` (its weight is not the efficient one) or when
+#' exactly identified.
+#'
+#' Fixed effects. They enter as indicator columns in both the regressors
+#' and the instruments (every level of the first `fe` column, standing for
+#' the constant, all but one of the second), so at most 200 levels in all;
+#' groups with no counts are dropped first, as in [ppmlfe()]. As `S` has
+#' rank at most the number of clusters, the moment conditions (the
+#' instruments, the controls and the indicator columns) must be fewer than
+#' the clusters: place effects with errors clustered by place cannot be
+#' had, and are refused. For many place effects use [ppmlcf()]; the
+#' concentrated (mean-scaled) GMM that would absorb them is not built, as
+#' neither paper gives it. The start is Poisson-like: each first-set
+#' effect at the log of its group's counts over its exposure (the constant
+#' at the overall one), everything else at 0.
+#'
+#' @param data,y,expo,level As in [ppmlfe()].
+#' @param endo The names of the endogenous columns.
+#' @param inst The names of the excluded instruments, at least as many.
+#' @param x `NULL` or the names of the exogenous controls. For `print()`,
+#'   an object of class `expgmm`.
+#' @param fe `NULL` or the names of one or two fixed-effect columns, as
+#'   indicator columns (see Fixed effects).
+#' @param clus `NULL` (the first `fe` column) or the name of one cluster
+#'   column, for `se = "cluster"`.
+#' @param err `"mult"` or `"add"`: the residual.
+#' @param step `"two"`, `"one"` or `"iter"`: the weighting.
+#' @param se `"cluster"` or `"hc1"`.
+#' @param ssc `"G"` or `"none"`: the small-sample factor.
+#' @param tol The convergence tolerance: the largest change of a
+#'   coefficient relative to 1 plus its size.
+#' @param maxit The most Gauss-Newton iterations of a step (and the most
+#'   weights for `"iter"`).
+#' @param object An object of class `expgmm`.
+#' @param ... Not used.
+#' @return An object of class `expgmm`, a list: `coef` (as in [ppmlfe()],
+#'   with `rr`; the endogenous columns, then the controls; the effects are
+#'   not shown); `j`, one row (`stat`, `df`, `p`; `NA` where not given);
+#'   `vcov`; `n`; `nsep`; `ncl`; `err`, `step`, `se`, `ssc`; `iter`,
+#'   `conv` and `nw`, the Gauss-Newton iterations of the last step, whether
+#'   it converged and the weights used; `fe`, `clus` and `level`.
+#'   `summary()` returns `coef`.
+#' @references
+#'   Mullahy, J. (1997). Instrumental-variable estimation of count data
+#'   models: applications to models of cigarette smoking behavior. *Review
+#'   of Economics and Statistics*, 79(4), 586-593.
+#'   \doi{10.1162/003465397557169}
+#'
+#'   Windmeijer, F. A. G. and Santos Silva, J. M. C. (1997). Endogeneity in
+#'   count data models: an application to demand for health care. *Journal
+#'   of Applied Econometrics*, 12(3), 281-294.
+#' @seealso [ppmlcf()], [ppmlfe()], [ivfe()]
+#' @examples
+#' # simulated: an unmeasured shock v multiplies the mean and moves the
+#' # exposure; two instruments, day effects, errors clustered by area
+#' set.seed(4)
+#' d <- expand.grid(day = 1:10, area = 1:40)
+#' d$z1 <- rnorm(nrow(d))
+#' d$z2 <- rnorm(nrow(d))
+#' v <- rnorm(nrow(d), 0, 0.5)
+#' d$pm <- 0.6 * d$z1 - 0.4 * d$z2 + v + rnorm(nrow(d), 0, 0.5)
+#' d$crimes <- rpois(nrow(d), exp(0.5 + 0.2 * d$pm + v))
+#' f <- expgmm(d, "crimes", endo = "pm", inst = c("z1", "z2"), fe = "day",
+#'             clus = "area")
+#' f
+#' f$j
+#' # the additive residual, one step
+#' summary(expgmm(d, "crimes", endo = "pm", inst = c("z1", "z2"),
+#'                fe = "day", clus = "area", err = "add", step = "one"))
+#' @export
+expgmm <- function(
+  data,
+  y,
+  endo,
+  inst,
+  x = NULL,
+  fe = NULL,
+  expo = NULL,
+  clus = NULL,
+  err = c("mult", "add"),
+  step = c("two", "one", "iter"),
+  se = c("cluster", "hc1"),
+  ssc = c("G", "none"),
+  level = 0.95,
+  tol = 1e-10,
+  maxit = 100
+) {
+  f <- "expgmm"
+  err <- match.arg(err)
+  step <- match.arg(step)
+  se <- match.arg(se)
+  ssc <- match.arg(ssc)
+  d <- .axdat(data, f)
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, endo, "endo", f)
+  .axcols(d, inst, "inst", f)
+  .axcols(d, x, "x", f, null = TRUE)
+  .axcols(d, fe, "fe", f, n = 1:2, null = TRUE)
+  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
+  if (se == "cluster") {
+    if (is.null(clus)) clus <- fe[1L]
+    if (is.null(clus)) {
+      .ckstop(f, "`se = \"cluster\"` needs `clus` (or `fe`, its first column)")
+    }
+    .axcols(d, clus, "clus", f, n = 1L)
+  } else {
+    clus <- NULL
+  }
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  if (length(inst) < length(endo)) {
+    .ckstop(
+      f,
+      "`inst` must give at least as many instruments as `endo` has columns"
+    )
+  }
+  if (length(intersect(c(endo, x), inst))) {
+    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
+  }
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
+  k <- if (is.null(fe)) rep(TRUE, length(yv)) else .axsep(yv, d, fe, f)
+  d <- d[k, , drop = FALSE]
+  yv <- yv[k]
+  off <- NULL
+  if (!is.null(expo)) {
+    e <- .axmat(d, expo, f)[, 1L]
+    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
+    off <- log(e)
+  }
+  nl <- sum(vapply(fe, function(v) length(unique(d[[v]])), 1L))
+  if (nl > 200L) {
+    .ckstop(f, paste0("the fixed effects have %d levels; they enter as ",
+                      "indicator columns, at most 200 (use ppmlcf() for ",
+                      "many)"), nl)
+  }
+  dm <- .axdum(d, fe)
+  xm <- cbind(.axmat(d, c(endo, x), f), dm)
+  zm <- cbind(.axmat(d, c(inst, x), f), dm)
+  if (se == "cluster") {
+    cl <- .axcl(d, clus, f)
+    cc <- cl$c1
+    nc <- cl$n1
+  } else {
+    cc <- seq_len(nrow(d)) - 1L
+    nc <- nrow(d)
+  }
+  if (ncol(zm) > nc) {
+    .ckstop(f, paste0("%d moment conditions but %d clusters: the weight ",
+                      "matrix would be singular (fewer instruments, ",
+                      "controls or effects, or more clusters)"),
+            ncol(zm), nc)
+  }
+  # the start: each first-set effect (or the constant) at the log of its
+  # counts over its exposure
+  b0 <- numeric(ncol(xm))
+  ee <- if (is.null(off)) rep(1, length(yv)) else exp(off)
+  g1 <- if (is.null(fe)) rep(1L, length(yv)) else .axcode(d[[fe[1L]]])$c + 1L
+  st0 <- log(rowsum(yv, g1)[, 1L] / rowsum(ee, g1)[, 1L])
+  b0[length(c(endo, x)) + seq_along(st0)] <- st0
+  r <- .Call(C_clab_r_expgmm, as.numeric(yv), xm, zm, off, b0,
+             as.integer(cc), as.integer(nc), if (err == "mult") 0L else 1L,
+             match(step, c("one", "two", "iter")), as.integer(maxit), tol)
+  if (r$st[4L] != 1) {
+    warning(f, ": the fit did not converge in ", maxit, " iterations.",
+            call. = FALSE)
+  }
+  tm <- c(endo, x)
+  p <- length(tm)
+  fac <- if (ssc == "G") nc / (nc - 1) else 1
+  v <- r$vc[seq_len(p), seq_len(p), drop = FALSE] * fac
+  dimnames(v) <- list(tm, tm)
+  tab <- .axtab(tm, r$beta[seq_len(p)], sqrt(pmax(diag(v), 0)), level)
+  tab$rr <- exp(tab$est)
+  jd <- r$st[2L]
+  jt <- data.frame(
+    stat = r$st[1L],
+    df = jd,
+    p = if (is.na(r$st[1L])) NA_real_ else
+      stats::pchisq(r$st[1L], jd, lower.tail = FALSE)
+  )
+  structure(
+    list(
+      coef = tab,
+      j = jt,
+      vcov = v,
+      n = length(yv),
+      nsep = sum(!k),
+      ncl = nc,
+      err = err,
+      step = step,
+      se = se,
+      ssc = ssc,
+      iter = as.integer(r$st[3L]),
+      conv = r$st[4L] == 1,
+      nw = as.integer(r$st[5L]),
+      fe = fe,
+      clus = clus,
+      level = level
+    ),
+    class = "expgmm"
+  )
+}
+
+#' @rdname expgmm
+#' @export
+print.expgmm <- function(x, ...) {
+  cat(
+    "expgmm: exponential-mean GMM, ",
+    if (x[["err"]] == "mult") "multiplicative" else "additive",
+    " residual, ",
+    c(one = "one step", two = "two-step", iter = "iterated")[[x[["step"]]]],
+    ", ",
+    x[["n"]],
+    " rows; ",
+    if (x[["se"]] == "cluster") {
+      paste0("errors clustered by ", x[["clus"]], " (", x[["ncl"]], ")")
+    } else {
+      "heteroskedasticity-robust errors"
+    },
+    "\n",
+    sep = ""
+  )
+  if (x[["nsep"]] > 0) {
+    cat(x[["nsep"]], " row(s) dropped for groups with no counts\n", sep = "")
+  }
+  print(x[["coef"]], row.names = FALSE, digits = 4)
+  j <- x[["j"]]
+  if (!is.na(j$stat)) {
+    cat("Hansen J = ", format(j$stat, digits = 4), " on ", j$df,
+        " df, p = ", format(j$p, digits = 4), "\n", sep = "")
+  }
+  invisible(x)
+}
+
+#' @rdname expgmm
+#' @export
+summary.expgmm <- function(object, ...) object[["coef"]]
 
 # The sector (1..nb) of each direction, by the kernel's edges.
 .axsec <- function(dir, width, start, edges) {

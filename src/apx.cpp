@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // libcrimlab, exposure and crime: two-stage least squares with absorbed
-// fixed effects (clab_ivfe), the Poisson control function with a cluster
-// bootstrap (clab_ppmlcf, on clab_ppmlfe of cnt.cpp), the lookup of the
+// fixed effects (clab_ivfe) and its over-identification tests
+// (clab_ivoid), the Poisson control function with a cluster bootstrap
+// (clab_ppmlcf, on clab_ppmlfe of cnt.cpp), the exponential-mean
+// generalised method of moments (clab_expgmm), the lookup of the
 // same unit on another day (clab_dshift), wind-direction instruments
 // (clab_windbin) and the upwind and downwind classification of areas
 // around a road or a point source (clab_updwn). The linear algebra is that
@@ -36,6 +38,15 @@ size_t ivwork(int n, int k, int m, int n1, int n2) {
   const size_t b = sz(n, m) + 2 * sz(m, m) + static_cast<size_t>(m);
   return sz(n, k) + 3 * static_cast<size_t>(n) + 2 * sz(m, m) + 2 * static_cast<size_t>(m) +
          (a > b ? a : b);
+}
+
+// The inverse of the symmetric positive definite p x p matrix a into ai;
+// false when it is singular to working precision. sc: p p doubles.
+bool spdinv(const double *a, int p, double *ai, double *sc) {
+  for (size_t q = 0; q < sz(p, p); ++q) sc[q] = a[q];
+  if (!pev::chol(sc, p)) return false;
+  pev::cinv(sc, p, ai);
+  return true;
 }
 
 // The angle in degrees, 0 to 180, between the directions (ax, ay) and (bx, by).
@@ -302,6 +313,339 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
     bad += rc != CLAB_OK;
   }
   st[2] = bad;
+  return CLAB_OK;
+}
+
+int clab_expgmm(const double *y, const double *x, int k, const double *z, int s, int n,
+                const double *off, const double *b0, const int *cl, int ncl, int err, int step,
+                int maxit, double tol, double *beta, double *vc, double *st) {
+  if (n < 2 || k < 1 || s < k || !cl || ncl < 2 || err < 0 || err > 1 || step < 1 || step > 3 ||
+      maxit < 1 || !(tol > 0)) {
+    return CLAB_EARG;
+  }
+  for (int i = 0; i < n; ++i) {
+    if (cl[i] < 0 || cl[i] >= ncl) return CLAB_EARG;
+    if (!(y[i] >= 0) || !std::isfinite(y[i]) || (off && !std::isfinite(off[i]))) return CLAB_EDOM;
+  }
+  for (size_t a = 0; a < sz(n, k); ++a) {
+    if (!std::isfinite(x[a])) return CLAB_EDOM;
+  }
+  for (size_t a = 0; a < sz(n, s); ++a) {
+    if (!std::isfinite(z[a])) return CLAB_EDOM;
+  }
+  const size_t sn = static_cast<size_t>(n), sk = static_cast<size_t>(k);
+  const size_t ss = static_cast<size_t>(s);
+  std::vector<double> u(sn), d(sz(n, k)), g(ss), gg(sz(s, k)), w(sz(s, s)), sm(sz(s, s));
+  std::vector<double> wg(sz(s, k)), a(sz(k, k)), ai(sz(k, k)), h(sk), dl(sk), bt(b0, b0 + k);
+  std::vector<double> tb(sk), bp(sk), sc(ss > sk ? sz(s, s) : sz(k, k));
+  std::vector<double> mk(sz(ncl, s)), mm(sz(k, k)), wsw(sz(s, k));
+  // u (n) and its derivative d (n x k) at b; false when not finite. mult:
+  // u = y exp(-x'b) - 1 (Mullahy 1997, the residual of IV-T); add: u = y -
+  // exp(x'b) (Windmeijer and Santos Silva 1997, equation 2)
+  auto res = [&](const double *b) -> bool {
+    for (size_t i = 0; i < sn; ++i) {
+      double eta = off ? off[i] : 0.0;
+      for (size_t j = 0; j < sk; ++j) eta += x[j * sn + i] * b[j];
+      double ui, di;
+      if (err == 0) {
+        const double e = std::exp(-eta);
+        ui = y[i] * e - 1.0;
+        di = -y[i] * e;
+      } else {
+        const double m = std::exp(eta);
+        ui = y[i] - m;
+        di = -m;
+      }
+      if (!std::isfinite(ui) || !std::isfinite(di)) return false;
+      u[i] = ui;
+      for (size_t j = 0; j < sk; ++j) d[j * sn + i] = di * x[j * sn + i];
+    }
+    return true;
+  };
+  // g = Z'u (s) and G = Z'D (s x k), sums over the rows
+  auto mom = [&]() {
+    for (size_t c = 0; c < ss; ++c) {
+      const double *zc = z + c * sn;
+      double t = 0.0;
+      for (size_t i = 0; i < sn; ++i) t += zc[i] * u[i];
+      g[c] = t;
+      for (size_t j = 0; j < sk; ++j) {
+        double v = 0.0;
+        for (size_t i = 0; i < sn; ++i) v += zc[i] * d[j * sn + i];
+        gg[j * ss + c] = v;
+      }
+    }
+  };
+  auto obj = [&]() {
+    double q = 0.0;
+    for (size_t c = 0; c < ss; ++c) {
+      for (size_t e = 0; e < ss; ++e) q += g[e] * w[c * ss + e] * g[c];
+    }
+    return q;
+  };
+  // A = G'WG into a, its inverse into ai, h = G'Wg; false when singular
+  auto norm = [&]() -> bool {
+    for (size_t j = 0; j < sk; ++j) {
+      for (size_t c = 0; c < ss; ++c) {
+        double v = 0.0;
+        for (size_t e = 0; e < ss; ++e) v += w[e * ss + c] * gg[j * ss + e];
+        wg[j * ss + c] = v;
+      }
+    }
+    for (size_t j = 0; j < sk; ++j) {
+      double t = 0.0;
+      for (size_t c = 0; c < ss; ++c) t += wg[j * ss + c] * g[c];
+      h[j] = t;
+      for (size_t l = 0; l < sk; ++l) {
+        double v = 0.0;
+        for (size_t c = 0; c < ss; ++c) v += gg[j * ss + c] * wg[l * ss + c];
+        a[l * sk + j] = v;
+      }
+    }
+    return spdinv(a.data(), k, ai.data(), sc.data());
+  };
+  // the inverse of the cluster sum of Z_g'u_g (Z_g'u_g)' at the current u
+  // into w; false when singular (fewer clusters than moments, say)
+  auto wopt = [&]() -> bool {
+    pev::meat(z, u.data(), nullptr, n, s, cl, ncl, sm.data(), mk.data());
+    return spdinv(sm.data(), s, w.data(), sc.data());
+  };
+  // Gauss-Newton on g'Wg from bt, halving a step that does not lower it;
+  // returns the iterations, -1 when the start is not finite, -2 when
+  // G'WG is singular, -3 on an interrupt
+  int conv = 0;
+  auto fit = [&]() -> int {
+    conv = 0;
+    if (!res(bt.data())) return -1;
+    mom();
+    double q = obj();
+    for (int it = 1; it <= maxit; ++it) {
+      if (kutil::stop(static_cast<double>(n) * s * (k + 1))) return -3;
+      if (!norm()) return -2;
+      for (size_t j = 0; j < sk; ++j) {
+        double v = 0.0;
+        for (size_t l = 0; l < sk; ++l) v += ai[l * sk + j] * h[l];
+        dl[j] = -v;
+      }
+      double lam = 1.0;
+      bool ok = false;
+      for (int hv = 0; hv <= 50 && !ok; ++hv, lam /= 2) {
+        for (size_t j = 0; j < sk; ++j) tb[j] = bt[j] + lam * dl[j];
+        if (!res(tb.data())) continue;
+        mom();
+        const double qn = obj();
+        if (qn <= q) {
+          ok = true;
+          q = qn;
+        }
+      }
+      if (!ok) {
+        // no step lowers the criterion: a minimum to working precision
+        res(bt.data());
+        mom();
+        conv = 1;
+        return it;
+      }
+      double ch = 0.0;
+      for (size_t j = 0; j < sk; ++j) {
+        ch = std::fmax(ch, std::fabs(tb[j] - bt[j]) / (1.0 + std::fabs(bt[j])));
+        bt[j] = tb[j];
+      }
+      if (ch < tol) {
+        conv = 1;
+        return it;
+      }
+    }
+    return maxit;
+  };
+  auto fail = [](int r) { return r == -3 ? CLAB_EINTR : CLAB_EDOM; };
+  // the first step: the nonlinear instrumental-variables weight (Z'Z)^-1
+  for (size_t c = 0; c < ss; ++c) {
+    for (size_t e = 0; e < ss; ++e) {
+      double v = 0.0;
+      for (size_t i = 0; i < sn; ++i) v += z[c * sn + i] * z[e * sn + i];
+      sm[c * ss + e] = v;
+    }
+  }
+  if (!spdinv(sm.data(), s, w.data(), sc.data())) return CLAB_EDOM;
+  int it = fit();
+  if (it < 0) return fail(it);
+  int nw = 1;
+  while (step >= 2) {
+    // the optimal weight from the last estimate's residuals
+    if (!wopt()) return CLAB_EDOM;
+    bp = bt;
+    it = fit();
+    if (it < 0) return fail(it);
+    ++nw;
+    if (step == 2) break;
+    double ch = 0.0;
+    for (size_t j = 0; j < sk; ++j) {
+      ch = std::fmax(ch, std::fabs(bt[j] - bp[j]) / (1.0 + std::fabs(bp[j])));
+    }
+    if (ch < tol) break;
+    if (nw > maxit) {
+      conv = 0;
+      break;
+    }
+  }
+  if (!norm()) return CLAB_EDOM;
+  for (size_t q = 0; q < sz(k, k); ++q) vc[q] = 0.0;
+  if (step == 1) {
+    // the sandwich (G'WG)^-1 G'W S W G (G'WG)^-1, S at the estimate
+    pev::meat(z, u.data(), nullptr, n, s, cl, ncl, sm.data(), mk.data());
+    for (size_t j = 0; j < sk; ++j) {
+      for (size_t c = 0; c < ss; ++c) {
+        double v = 0.0;
+        for (size_t e = 0; e < ss; ++e) v += sm[e * ss + c] * wg[j * ss + e];
+        wsw[j * ss + c] = v;
+      }
+    }
+    for (size_t j = 0; j < sk; ++j) {
+      for (size_t l = 0; l < sk; ++l) {
+        double v = 0.0;
+        for (size_t c = 0; c < ss; ++c) v += wg[j * ss + c] * wsw[l * ss + c];
+        mm[l * sk + j] = v;
+      }
+    }
+    pev::sand(ai.data(), mm.data(), k, 1.0, vc, sc.data());
+  } else {
+    // the efficient (G'WG)^-1 with W the inverse of S at the last step
+    for (size_t q = 0; q < sz(k, k); ++q) vc[q] = ai[q];
+  }
+  for (size_t j = 0; j < sk; ++j) beta[j] = bt[j];
+  // Hansen's J: the criterion at the efficient estimate (Mullahy 1997,
+  // p. 590), chi-squared on s - k degrees of freedom
+  st[0] = step >= 2 && s > k ? obj() : kutil::nan();
+  st[1] = s - k;
+  st[2] = it;
+  st[3] = conv;
+  st[4] = nw;
+  st[5] = obj();
+  return CLAB_OK;
+}
+
+int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int px,
+               const double *zi, int q, int n, const int *f1, int n1, const int *f2, int n2,
+               const int *cl, int ncl, const int *cl2, int ncl2, double tol, double *beta,
+               double *st) {
+  const int p = pe + px, m = q + px, k = 1 + pe + px + q;
+  if (n < 2 || pe < 1 || px < 0 || q < pe || n1 < 1 || (f2 && n2 < 1) || !(tol > 0) || !cl ||
+      ncl < 2 || (cl2 && ncl2 < 2)) {
+    return CLAB_EARG;
+  }
+  for (int i = 0; i < n; ++i) {
+    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
+    if (cl[i] < 0 || cl[i] >= ncl || (cl2 && (cl2[i] < 0 || cl2[i] >= ncl2))) return CLAB_EARG;
+  }
+  const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
+  const size_t smm = static_cast<size_t>(m);
+  // v: y, xe, xx, zi, each demeaned
+  std::vector<double> v(sz(n, k));
+  for (size_t i = 0; i < sn; ++i) v[i] = y[i];
+  for (size_t a = 0; a < sz(n, pe); ++a) v[sn + a] = xe[a];
+  for (size_t a = 0; a < sz(n, px); ++a) v[sn * (1 + pe) + a] = xx[a];
+  for (size_t a = 0; a < sz(n, q); ++a) v[sn * (1 + pe + px) + a] = zi[a];
+  std::vector<double> wk(4 * (static_cast<size_t>(n1) + static_cast<size_t>(n2)));
+  if (demean(v.data(), n, k, f1, n1, f2, n2, nullptr, tol, wk.data()) < 0) {
+    return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
+  }
+  // X = (xe, xx) and Z = (zi, xx), demeaned
+  std::vector<double> xm(sz(n, p)), zm(sz(n, m));
+  for (size_t a = 0; a < sz(n, p); ++a) xm[a] = v[sn + a];
+  for (size_t a = 0; a < sz(n, q); ++a) zm[a] = v[sn * (1 + pe + px) + a];
+  for (size_t a = 0; a < sz(n, px); ++a) zm[sz(n, q) + a] = v[sn * (1 + pe) + a];
+  const double *ye = v.data();
+  std::vector<double> zz(sz(m, m)), zzi(sz(m, m)), zx(sz(m, p)), zy(smm), zu(smm);
+  std::vector<double> sc(sz(m > p ? m : p, m > p ? m : p)), wz(sz(m, p)), aa(sz(p, p));
+  std::vector<double> ai(sz(p, p)), hh(sp), u(sn), wm(sz(m, m)), sm(sz(m, m)), sm2(sz(m, m));
+  for (size_t c = 0; c < smm; ++c) {
+    for (size_t e = 0; e < smm; ++e) {
+      double t = 0.0;
+      for (size_t i = 0; i < sn; ++i) t += zm[c * sn + i] * zm[e * sn + i];
+      zz[e * smm + c] = t;
+    }
+    double t = 0.0;
+    for (size_t i = 0; i < sn; ++i) t += zm[c * sn + i] * ye[i];
+    zy[c] = t;
+    for (size_t j = 0; j < sp; ++j) {
+      double r = 0.0;
+      for (size_t i = 0; i < sn; ++i) r += zm[c * sn + i] * xm[j * sn + i];
+      zx[j * smm + c] = r;
+    }
+  }
+  if (!spdinv(zz.data(), m, zzi.data(), sc.data())) return CLAB_EDOM;
+  // the linear GMM estimate with weight wt (m x m) into b; residuals into
+  // u and Z'u into zu; false when X'Z W Z'X is singular
+  auto lgmm = [&](const double *wt, double *b) -> bool {
+    for (size_t j = 0; j < sp; ++j) {
+      for (size_t c = 0; c < smm; ++c) {
+        double t = 0.0;
+        for (size_t e = 0; e < smm; ++e) t += wt[e * smm + c] * zx[j * smm + e];
+        wz[j * smm + c] = t;
+      }
+    }
+    for (size_t j = 0; j < sp; ++j) {
+      double t = 0.0;
+      for (size_t c = 0; c < smm; ++c) t += wz[j * smm + c] * zy[c];
+      hh[j] = t;
+      for (size_t l = 0; l < sp; ++l) {
+        double r = 0.0;
+        for (size_t c = 0; c < smm; ++c) r += zx[j * smm + c] * wz[l * smm + c];
+        aa[l * sp + j] = r;
+      }
+    }
+    if (!spdinv(aa.data(), p, ai.data(), sc.data())) return false;
+    for (size_t j = 0; j < sp; ++j) {
+      double t = 0.0;
+      for (size_t l = 0; l < sp; ++l) t += ai[l * sp + j] * hh[l];
+      b[j] = t;
+    }
+    for (size_t i = 0; i < sn; ++i) {
+      double f = ye[i];
+      for (size_t j = 0; j < sp; ++j) f -= xm[j * sn + i] * b[j];
+      u[i] = f;
+    }
+    for (size_t c = 0; c < smm; ++c) {
+      double t = 0.0;
+      for (size_t i = 0; i < sn; ++i) t += zm[c * sn + i] * u[i];
+      zu[c] = t;
+    }
+    return true;
+  };
+  auto quad = [&](const double *wt) {
+    double t = 0.0;
+    for (size_t c = 0; c < smm; ++c) {
+      for (size_t e = 0; e < smm; ++e) t += zu[e] * wt[c * smm + e] * zu[c];
+    }
+    return t;
+  };
+  // two-stage least squares (weight (Z'Z)^-1) and the Sargan statistic
+  // n u'Pz u / u'u
+  std::vector<double> b1(sp);
+  if (!lgmm(zzi.data(), b1.data())) return CLAB_EDOM;
+  double uu = 0.0;
+  for (size_t i = 0; i < sn; ++i) uu += u[i] * u[i];
+  st[0] = uu > 0 ? n * quad(zzi.data()) / uu : kutil::nan();
+  // the cluster-robust S of Z'u at the 2SLS residuals, one-way or
+  // V1 + V2 - V12, then the two-step estimate and Hansen's J
+  std::vector<double> mk(sz(ncl > ncl2 ? ncl : ncl2, m));
+  pev::meat(zm.data(), u.data(), nullptr, n, m, cl, ncl, sm.data(), mk.data());
+  if (cl2) {
+    std::vector<int> c12(sn), pw(sz(ncl, ncl2));
+    const int n12 = pev::pairs(cl, cl2, n, ncl, ncl2, c12.data(), pw.data());
+    std::vector<double> m12(sz(n12, m));
+    pev::meat(zm.data(), u.data(), nullptr, n, m, cl2, ncl2, sm2.data(), mk.data());
+    for (size_t a = 0; a < sz(m, m); ++a) sm[a] += sm2[a];
+    pev::meat(zm.data(), u.data(), nullptr, n, m, c12.data(), n12, sm2.data(), m12.data());
+    for (size_t a = 0; a < sz(m, m); ++a) sm[a] -= sm2[a];
+  }
+  st[1] = kutil::nan();
+  st[2] = q - pe;
+  for (size_t j = 0; j < sp; ++j) beta[j] = kutil::nan();
+  if (spdinv(sm.data(), m, wm.data(), sc.data()) && lgmm(wm.data(), beta)) {
+    st[1] = q > pe ? quad(wm.data()) : kutil::nan();
+  }
   return CLAB_OK;
 }
 

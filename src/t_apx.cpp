@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Tests of src/apx.cpp and of clab_ppmlfe and clab_fesep (cnt.cpp): closed
-// forms on tiny panels, the absorbed Poisson fit against the same model
+// forms on tiny panels (the exponential GMM just identified by a binary
+// instrument among them), the absorbed Poisson fit against the same model
 // with the effects as columns (clab_cntreg), and the refusals.
 #include <cmath>
 #include <vector>
@@ -126,6 +127,106 @@ void t_apx(tk &T, int) {
                                    nullptr, 0, 1e-13, &b, &vc, f, nullptr, nullptr, nullptr, nullptr, st), CLAB_EDOM);
     tk_ieq(T, "apx.ivq", clab_ivfe(y, x, 1, nullptr, 0, z, 0, 5, nullptr, g, 1, nullptr, 0, c, 2,
                                    nullptr, 0, 1e-13, &b, &vc, f, nullptr, nullptr, nullptr, nullptr, st), CLAB_EARG);
+  }
+  // the exponential GMM, just identified by a binary instrument w for a
+  // binary d: with A_w, B_w the count totals of d = 0 and d = 1 among
+  // the rows with instrument w, the multiplicative moments give exp(-b) =
+  // (n A1 - n1 (A0 + A1)) / (n1 (B0 + B1) - n B1); with z = x (no
+  // endogeneity) both residuals give the log ratio of the two means
+  {
+    const int n = 60;
+    rng r{20261116};
+    std::vector<double> x(2 * n), z(2 * n), y(n);
+    std::vector<int> c(n);
+    double a0 = 0, a1 = 0, bb0 = 0, bb1 = 0, n1 = 0, s0 = 0, s1 = 0, m0 = 0, m1 = 0;
+    for (int i = 0; i < n; ++i) {
+      const double w = runi(r) < 0.5 ? 1 : 0;
+      const double d = runi(r) < 0.3 + 0.4 * w ? 1 : 0;
+      y[i] = rpois(r, std::exp(0.5 + 0.7 * d));
+      x[i] = 1;
+      x[n + i] = d;
+      z[i] = 1;
+      z[n + i] = w;
+      c[i] = i;
+      n1 += w;
+      if (w > 0) {
+        (d > 0 ? bb1 : a1) += y[i];
+      } else {
+        (d > 0 ? bb0 : a0) += y[i];
+      }
+      (d > 0 ? s1 : s0) += y[i];
+      (d > 0 ? m1 : m0) += 1;
+    }
+    const double t = (n * a1 - n1 * (a0 + a1)) / (n1 * (bb0 + bb1) - n * bb1);
+    const double b0[2] = {std::log((s0 + s1) / n), 0};
+    double b[2], v1[4], v2[4], st[6];
+    tk_ieq(T, "apx.gm", clab_expgmm(y.data(), x.data(), 2, z.data(), 2, n, nullptr, b0, c.data(), n,
+                                    0, 2, 100, 1e-12, b, v2, st), CLAB_OK);
+    tk_eq(T, "apx.gmb", b[1], -std::log(t), 1e-9);
+    tk_nan(T, "apx.gmj", st[0]);
+    tk_ieq(T, "apx.gmc", static_cast<int>(st[3]), 1);
+    // just identified: the one-step sandwich is the efficient variance
+    clab_expgmm(y.data(), x.data(), 2, z.data(), 2, n, nullptr, b0, c.data(), n, 0, 1, 100, 1e-12,
+                b, v1, st);
+    tk_veq(T, "apx.gmv", v1, v2, 4, 1e-7);
+    tk_ieq(T, "apx.gmx", clab_expgmm(y.data(), x.data(), 2, x.data(), 2, n, nullptr, b0, c.data(),
+                                     n, 0, 2, 100, 1e-12, b, v1, st), CLAB_OK);
+    tk_eq(T, "apx.gmxm", b[1], std::log((s1 / m1) / (s0 / m0)), 1e-9);
+    clab_expgmm(y.data(), x.data(), 2, x.data(), 2, n, nullptr, b0, c.data(), n, 1, 3, 100, 1e-12,
+                b, v1, st);
+    tk_eq(T, "apx.gmxa", b[1], std::log((s1 / m1) / (s0 / m0)), 1e-9);
+    tk_ieq(T, "apx.gmk", clab_expgmm(y.data(), x.data(), 2, z.data(), 1, n, nullptr, b0, c.data(),
+                                     n, 0, 2, 100, 1e-12, b, v1, st), CLAB_EARG);
+    // the cluster weight is singular with fewer clusters than moments
+    std::vector<int> c1(n, 0);
+    c1[0] = 1;
+    std::vector<double> z3(3 * n);
+    for (int i = 0; i < 2 * n; ++i) z3[i] = z[i];
+    for (int i = 0; i < n; ++i) z3[2 * n + i] = runi(r);
+    tk_ieq(T, "apx.gms", clab_expgmm(y.data(), x.data(), 2, z3.data(), 3, n, nullptr, b0, c1.data(),
+                                     2, 0, 2, 100, 1e-12, b, v1, st), CLAB_EDOM);
+  }
+  // the over-identification tests: Sargan is n times the share of the
+  // squared 2SLS residuals that the instruments explain (the residual's
+  // regression on them, clab_ivfe without endogenous columns); just
+  // identified it is 0, J is NaN and the two-step estimate is 2SLS
+  {
+    const int n = 50;
+    rng r{20261117};
+    std::vector<double> y(n), xe(n), zi(2 * n);
+    std::vector<int> g(n), c(n);
+    for (int i = 0; i < n; ++i) {
+      g[i] = i % 5;
+      c[i] = i % 10;
+      zi[i] = runi(r, -1, 1);
+      zi[n + i] = runi(r, -1, 1);
+      const double e = runi(r, -1, 1);
+      xe[i] = zi[i] - 0.5 * zi[n + i] + e + 0.1 * g[i];
+      y[i] = 0.5 * xe[i] + e + runi(r, -1, 1);
+    }
+    double b = 0, b2 = 0, st[3], s3[3], f[3];
+    std::vector<double> res(n);
+    tk_ieq(T, "apx.oi", clab_ivoid(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 2, n, g.data(), 5,
+                                   nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
+    clab_ivfe(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 2, n, nullptr, g.data(), 5, nullptr, 0,
+              nullptr, 0, nullptr, 0, 1e-13, &b, nullptr, f, nullptr, res.data(), nullptr, nullptr,
+              s3);
+    double uu = 0;
+    for (int i = 0; i < n; ++i) uu += res[i] * res[i];
+    double ba[2], sa[3];
+    clab_ivfe(res.data(), nullptr, 0, zi.data(), 2, nullptr, 0, n, nullptr, g.data(), 5, nullptr, 0,
+              nullptr, 0, nullptr, 0, 1e-13, ba, nullptr, nullptr, nullptr, nullptr, nullptr,
+              nullptr, sa);
+    tk_eq(T, "apx.oisg", st[0], n * (1 - sa[2] / uu), 1e-9);
+    tk_ge(T, "apx.oij", st[1], 0);
+    tk_eq(T, "apx.oidf", st[2], 1, 0);
+    tk_ieq(T, "apx.oi1", clab_ivoid(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 1, n, g.data(), 5,
+                                    nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
+    clab_ivfe(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 1, n, nullptr, g.data(), 5, nullptr, 0,
+              nullptr, 0, nullptr, 0, 1e-13, &b, nullptr, f, nullptr, nullptr, nullptr, nullptr, s3);
+    tk_eq(T, "apx.oi1b", b2, b, 1e-10);
+    tk_eq(T, "apx.oi1s", st[0], 0, 1e-9);
+    tk_nan(T, "apx.oi1j", st[1]);
   }
   // runs: days 1, 2, 3 of a run, a gap breaks it, a new unit starts afresh
   {
