@@ -629,3 +629,16 @@ reference:
       - nrmvec
       - cutlns
       - wrdfsh
+  - title: Counts over time and across categories
+    desc: General methods for counts over time and across categories, usable
+      on the data of any agency - ARIMA and seasonal ARIMA forecasts, the
+      Ornstein-Uhlenbeck fit, simulation and Fokker-Planck density of a
+      series, Lotka-Volterra rates of a yearly series and the correlation of
+      counts per unit between categories.
+    contents:
+      - arimfc
+      - sarfc
+      - ousim
+      - fpdens
+      - lvfit
+      - catcor

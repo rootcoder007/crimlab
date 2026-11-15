@@ -205,6 +205,10 @@ The functions work on summary data, not on raw records:
   dynamic and ordinal IRT, Wordfish (`amscal()`, `bbscal()`, `cmdsf()`,
   `dwnom()`, `optcls()`, `irtem()`, `cjrirt()`, `dynirt()`, `wrdfsh()` and
   more).
+* Counts over time: ARIMA forecasts, Ornstein-Uhlenbeck and
+  Lotka-Volterra descriptions of a series, correlations of counts by
+  place between categories (`arimfc()`, `sarfc()`, `ousim()`, `lvfit()`,
+  `catcor()`).
 * Hot-spot maps: how many later crimes a map's hot spots caught, by the
   hit rate, the predictive accuracy and efficiency indices and the
   recapture rate index (`hsacc()`).
@@ -593,7 +597,7 @@ Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
 of the R package but those that work in R only, the plot functions
 and the table check `prechk()`
-(405 of 426); `crimlab -l` lists them and
+(411 of 432); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

@@ -15,12 +15,14 @@ test_that("the compiled self-test passes every check", {
 test_that("every exported function answers one valid call in its shape", {
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off())
-  # the inputs of the scaling calls
+  # the inputs of the scaling and count-dynamics calls
   set.seed(21)
   sv_v <- matrix(rbinom(48, 1, plogis(outer(rnorm(8), rnorm(6), "*") * 3)), 8)
   sv_v[2, 3] <- NA
   sv_d <- as.matrix(dist(cbind(c(0, 1, 3, 4, 2), c(0, 2, 1, 3, 4))))
   sv_z <- rbind(c(1, 3, 5, 6), c(2, 3, 4, 7), c(1, 2, 6, 6), c(3, 4, 5, 7), c(2, 4, 4, 6), c(1, 3, 6, 7))
+  sv_y <- c(52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52, 71, 74, 61, 50, 47, 55,
+            59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58)
   calls <- list(
     list(quote(sctidy(data.frame(GEO = "C", VALUE = "1", STATUS = ""))),
          c("GEO", "VALUE", "STATUS", "quality")),
@@ -334,6 +336,23 @@ test_that("every exported function answers one valid call in its shape", {
                3, burn = 2)),
          c("theta", "sd", "alpha", "beta", "tau2", "periods", "nsamp",
            "anchor")),
+    list(quote(arimfc(y = sv_y, h = 3)),
+         c("fc", "se", "coef", "sigma2", "aic", "bic", "n")),
+    list(quote(sarfc(y = sv_y, h = 3, order = c(0, 1, 1), seasonal = c(0,
+               0, 0, 12))),
+         c("fc", "actual", "coef", "aic", "bic", "mape", "rmse",
+           "ntrain")),
+    list(quote(catcor(units = list(theft = c("a", "b", "b", "c", "d"),
+               fraud = c("b", "c", "c", "d"), arson = c("a", "a", "d")))),
+         c("r", "counts", "units", "cats")),
+    list(quote(ousim(y = sv_y, npath = 2, days = 3)),
+         c("theta", "mu", "sigma", "halflife", "q", "paths", "n")),
+    list(quote(fpdens(y = sv_y, ngrid = 8, nstep = 4)),
+         c("theta", "mu", "sigma", "grid", "density", "peak", "statvar")),
+    list(quote(lvfit(y = c(410, 455, 430, 470, 520, 498, 515), year =
+               2017:2023)),
+         c("alpha", "beta", "gamma", "delta", "period", "year", "prey",
+           "pred")),
     list(quote(mtrbnd(c(1, 0, 0, 1), c(1, 1, 2, 2))),
          c("bnd", "assume", "range")),
     list(quote(hsacc(c(3, 2, 1), c(1, 0, 2))),

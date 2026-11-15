@@ -6669,6 +6669,98 @@ def dynirt(
     )
 
 
+def arimfc(y: Any, h: Any = 12) -> Any:
+    """ARIMA(1,1,1) forecast of a count series.
+
+    The arguments and the result are those of R's ``arimfc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = arimfc(y=[52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52, 71,
+    ... 74, 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58], h=3)
+    >>> list(r)
+    ['fc', 'se', 'coef', 'sigma2', 'aic', 'bic', 'n']
+    """
+    return jcall("arimfc", y=y, h=h)
 
 
+def sarfc(y: Any, h: Any = 12, order: Any = (1, 1, 1), seasonal: Any = (0, 1, 1, 12)) -> Any:
+    """Seasonal ARIMA forecast with a hold-out check.
 
+    The arguments and the result are those of R's ``sarfc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = sarfc(y=[52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52, 71, 74,
+    ... 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58], h=3, order=[0, 1, 1],
+    ... seasonal=[0, 0, 0, 12])
+    >>> list(r)
+    ['fc', 'actual', 'coef', 'aic', 'bic', 'mape', 'rmse', 'ntrain']
+    """
+    return jcall("sarfc", y=y, h=h, order=order, seasonal=seasonal)
+
+
+def catcor(units: Any) -> Any:
+    """Correlation of counts per unit between categories.
+
+    The arguments and the result are those of R's ``catcor()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = catcor(units={'theft': ['a', 'b', 'b', 'c', 'd'], 'fraud': ['b', 'c', 'c', 'd'],
+    ... 'arson': ['a', 'a', 'd']})
+    >>> list(r)
+    ['r', 'counts', 'units', 'cats']
+    """
+    return jcall("catcor", units=units)
+
+
+def ousim(y: Any, npath: Any = 100, days: Any = 365, dt: Any = 1, seed: Any = 42) -> Any:
+    """Ornstein-Uhlenbeck (Langevin) fit and simulation of a count series.
+
+    The arguments and the result are those of R's ``ousim()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ousim(y=[52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52, 71, 74,
+    ... 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58], npath=2, days=3)
+    >>> list(r)
+    ['theta', 'mu', 'sigma', 'halflife', 'q', 'paths', 'n']
+    """
+    return jcall("ousim", y=y, npath=npath, days=days, dt=dt, seed=seed)
+
+
+def fpdens(y: Any, ngrid: Any = 64, nstep: Any = 200) -> Any:
+    """Fokker-Planck evolution of a count density.
+
+    The arguments and the result are those of R's ``fpdens()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = fpdens(y=[52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52, 71,
+    ... 74, 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58], ngrid=8, nstep=4)
+    >>> list(r)
+    ['theta', 'mu', 'sigma', 'grid', 'density', 'peak', 'statvar']
+    """
+    return jcall("fpdens", y=y, ngrid=ngrid, nstep=nstep)
+
+
+def lvfit(y: Any, year: Any = None) -> Any:
+    """Lotka-Volterra rates of a yearly count series.
+
+    The arguments and the result are those of R's ``lvfit()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = lvfit(y=[410, 455, 430, 470, 520, 498, 515], year=[2017, 2018, 2019, 2020, 2021, 2022,
+    ... 2023])
+    >>> list(r)
+    ['alpha', 'beta', 'gamma', 'delta', 'period', 'year', 'prey', 'pred']
+    """
+    return jcall("lvfit", y=y, year=year)

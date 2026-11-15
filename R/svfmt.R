@@ -1,5 +1,5 @@
 # print, format and summary of the results of the scaling (class svfit)
-# functions: one line per part.
+# and count-dynamics (class tsfit) functions: one line per part.
 
 .svpart <- function(v) {
   if (is.null(v)) {
@@ -64,3 +64,11 @@ print.summary.svfit <- function(x, ...) {
   invisible(x)
 }
 
+#' @export
+format.tsfit <- function(x, ...) format.svfit(x, ...)
+
+#' @export
+print.tsfit <- function(x, ...) print.svfit(x, ...)
+
+#' @export
+summary.tsfit <- function(object, ...) summary.svfit(object, ...)

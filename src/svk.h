@@ -149,7 +149,8 @@ bool emfit(const Mat &Y, int D, int mi, double tol, const double *xp, const doub
   X(votagr) X(amscal) X(bbscal) X(optcls) X(dblctr) X(cmdsf) X(smacf) X(nmdsf) X(mdsfit) X(unfstr)     \
   X(mlsmu) X(smunf) X(ipsrec) X(nomutl) X(nompr) X(nomll) X(procrs) X(irtlik) X(irtpst) X(ordocl)       \
   X(anchv) X(indscl) X(nrmvec) X(cutlns) X(dwnom) X(nombt) X(irtem) X(scboot) X(wrdfsh) X(bamscl)       \
-  X(bmdsf) X(bunfld) X(cjrirt) X(anomin) X(ordirt) X(dynirt)
+  X(bmdsf) X(bunfld) X(cjrirt) X(anomin) X(ordirt) X(dynirt) X(arimfc) X(sarfc) X(catcor) X(ousim)      \
+  X(fpdens) X(lvfit)
 SVK_ALL(SVK_DECL)
 #undef SVK_DECL
 

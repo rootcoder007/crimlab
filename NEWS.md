@@ -57,6 +57,13 @@
   chain is the same in every front end. All are in `clab_jrun()`, the
   command line and Python.
 
+* Counts over time and across categories: ARIMA and seasonal ARIMA
+  forecasts by exact maximum likelihood (`arimfc()`, `sarfc()`), the
+  Ornstein-Uhlenbeck fit, simulation and Fokker-Planck density of a count
+  series (`ousim()`, `fpdens()`), Lotka-Volterra rates of a yearly series
+  (`lvfit()`) and the correlation of counts per unit between categories
+  (`catcor()`). They are in `clab_jrun()`, the command line and Python.
+
 * Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
   Gaussian plume and puff (`gplume()`, `gspuff()`, the field

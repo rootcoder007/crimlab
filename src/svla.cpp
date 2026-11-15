@@ -801,6 +801,12 @@ const Fn table[] = {
     {"dynirt",
      "votes period nsamp=500 burn=100 seed=42 thin=1 tau2=1 c0=-1 d0=-1 e0=0 E0=1 a0=0 A0=0.1 b0=0 B0=0.1 anchor?",
      k_dynirt},
+    {"arimfc", "y h=12", k_arimfc},
+    {"sarfc", "y h=12 order=1,1,1 seasonal=0,1,1,12", k_sarfc},
+    {"catcor", "units", k_catcor},
+    {"ousim", "y npath=100 days=365 dt=1 seed=42", k_ousim},
+    {"fpdens", "y ngrid=64 nstep=200", k_fpdens},
+    {"lvfit", "y year?", k_lvfit},
 };
 const int ntable = static_cast<int>(sizeof table / sizeof table[0]);
 
