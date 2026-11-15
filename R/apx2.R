@@ -141,82 +141,18 @@ smkiv <- function(
   if (!all(pl %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", plume)
   z <- .cknum(z, "z", f, min = 0)
   if (adj != "raw" && is.null(pm)) .ckstop(f, "`adj = \"%s\"` needs `pm`", adj)
-  sv <- if (!is.null(seas)) {
-    as.character(d[[seas]])
-  } else {
-    if (!inherits(d[[day]], "Date") && !is.null(pm)) {
-      .ckstop(
-        f,
-        "give `seas`, or `day` as dates for the meteorological seasons"
-      )
-    }
-    if (inherits(d[[day]], "Date")) {
-      m <- as.integer(format(d[[day]], "%m"))
-      c("DJF", "MAM", "JJA", "SON")[(m %/% 3) %% 4 + 1L]
-    } else {
-      rep("all", nrow(d))
-    }
-  }
+  sv <- .axsmsea(d, day, seas, pm, f)
   key <- paste(as.character(d[[unit]]), sv, sep = "\r")
   out <- data.frame(smoke = pl)
   if (!is.null(pm)) {
-    pv <- .axmat(d, pm, f)[, 1L]
-    cl <- pl == 0
-    if (any(tapply(cl, key, sum) < 2L)) {
-      .ckstop(
-        f,
-        paste0(
-          "a place and season has fewer than two days without a plume for ",
-          "its background"
-        )
-      )
-    }
-    mu <- tapply(pv[cl], key[cl], mean)
-    sdv <- tapply(pv[cl], key[cl], stats::sd)
-    md <- tapply(pv[cl], key[cl], stats::median)
-    bmu <- as.numeric(mu[key])
-    bsd <- as.numeric(sdv[key])
-    hi <- pl == 1 & pv > bmu + z * bsd
-    if (adj == "own") out$smoke <- as.numeric(hi)
-    if (adj == "nbr") {
-      if (is.null(nbr)) {
-        .ckstop(f, "`adj = \"nbr\"` needs `nbr`, the neighbour of each row")
-      }
-      .axcols(d, nbr, "nbr", f, n = 1L)
-      j <- match(
-        paste(as.character(d[[nbr]]), as.character(d[[day]]), sep = "\r"),
-        paste(as.character(d[[unit]]), as.character(d[[day]]), sep = "\r")
-      )
-      out$smoke <- as.numeric(hi[j])
-    }
-    if (cf == "childs") {
-      out$bg <- .axchilds(d, unit, day, pv, pl, f)
-      out$spm <- ifelse(pl == 1, pmax(pv - out$bg, 0), 0)
-    } else {
-      out$bg <- if (cf == "mean") bmu else as.numeric(md[key])
-      out$spm <- ifelse(!is.na(out$smoke) & out$smoke == 1,
-                        pmax(pv - out$bg, 0), 0)
-    }
+    out <- .axsmpm(d, out, pl, key, pm, adj, nbr, z, cf, unit, day, f)
   }
   if (!is.null(dens)) {
     dv <- as.character(d[[dens]])
     lv <- sort(unique(dv[!is.na(dv) & dv != ""]))
     for (l in lv) out[[paste0("dens:", l)]] <- as.numeric(!is.na(dv) & dv == l)
   }
-  if (!is.null(by)) {
-    g <- .axcode(d[[by]])
-    a <- data.frame(by = unique(as.character(d[[by]])))
-    names(a) <- by
-    for (k in names(out)) {
-      v <- out[[k]]
-      a[[k]] <- if (k %in% c("bg", "spm")) {
-        as.numeric(tapply(v, g$c, mean))
-      } else {
-        as.numeric(tapply(v, g$c, sum))
-      }
-    }
-    return(a)
-  }
+  if (!is.null(by)) return(.axsmby(out, d, by))
   out
 }
 
@@ -391,53 +327,14 @@ hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
     .ckstop(f, "column `%s` has one level: nothing to compare", mod)
   }
   a <- list(...)
-  if (how == "split") {
-    rows <- lapply(lv, function(l) {
-      r <- do.call(est, c(list(data = d[mv == l, , drop = FALSE]), a))
-      cf <- .axrow(r, var, f)
-      data.frame(
-        level = l,
-        est = cf$est,
-        se = cf$se,
-        lo = cf$lo,
-        hi = cf$hi,
-        p = cf$p,
-        n = r$n
-      )
-    })
-    tab <- do.call(rbind, rows)
-    b <- tab$est
-    v <- diag(tab$se^2, length(b))
+  h <- if (how == "split") {
+    .axhtspl(d, est, a, var, mv, lv, f)
   } else {
-    nm <- paste0(var, ":", lv)
-    for (j in seq_along(lv)) d[[nm[j]]] <- d[[var]] * (mv == lv[j])
-    zi <- NULL
-    if (!is.null(a[["inst"]])) {
-      zi <- character()
-      for (z in a[["inst"]]) {
-        for (j in seq_along(lv)) {
-          zn <- paste0(z, ":", lv[j])
-          d[[zn]] <- d[[z]] * (mv == lv[j])
-          zi <- c(zi, zn)
-        }
-      }
-    }
-    a <- .axrepl(a, var, nm, zi)
-    r <- do.call(est, c(list(data = d), a))
-    vc <- .axvcov(r)
-    cf <- r$coef[match(nm, r$coef$term), , drop = FALSE]
-    tab <- data.frame(
-      level = lv,
-      est = cf$est,
-      se = cf$se,
-      lo = cf$lo,
-      hi = cf$hi,
-      p = cf$p,
-      n = as.integer(table(factor(mv, levels = lv)))
-    )
-    b <- cf$est
-    v <- vc[nm, nm, drop = FALSE]
+    .axhtint(d, est, a, var, mv, lv)
   }
+  tab <- h$tab
+  b <- h$b
+  v <- h$v
   k <- length(b)
   rr <- cbind(diag(k - 1L), 0) - cbind(0, diag(k - 1L))
   structure(
@@ -606,25 +503,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
     }
     .axcols(d, names(ns), "names(ns)", f)
   }
-  if (length(lagv) && lag > 0) {
-    # the value lag days before, of the same place (a day without one is
-    # dropped)
-    ix <- .Call(C_clab_r_dshift, .axcode(d[[unit]])$c,
-                as.numeric(d[[day]]), -lag)
-    for (v in lagv) d[[v]] <- d[[v]][ix]
-    d <- d[stats::complete.cases(d[lagv]), , drop = FALSE]
-  }
-  if (length(ma) && k > 1) {
-    uc <- .axcode(d[[unit]])$c
-    tv <- as.numeric(d[[day]])
-    s <- lapply(ma, function(v) d[[v]])
-    for (j in seq_len(k - 1)) {
-      ix <- .Call(C_clab_r_dshift, uc, tv, -j)
-      for (m in seq_along(ma)) s[[m]] <- s[[m]] + d[[ma[m]]][ix]
-    }
-    for (m in seq_along(ma)) d[[ma[m]]] <- s[[m]] / k
-    d <- d[stats::complete.cases(d[ma]), , drop = FALSE]
-  }
+  d <- .axccma(d, unit, day, ma, k, lagv, lag)
   ym <- format(d[[day]], "%Y-%m")
   d$.strat <- paste(
     as.character(d[[unit]]),
@@ -634,21 +513,9 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   )
   d$.ym <- ym
   a <- list(...)
-  # natural cubic splines of the covariates in ns: with d degrees of
-  # freedom, knots at the range and the quantiles 1/d, ..., (d-1)/d (those
-  # of splines::ns(x, df = d)), in the restricted cubic spline basis,
-  # which spans the same functions
-  for (v in names(ns)) {
-    x <- d[[v]]
-    if (!is.numeric(x)) .ckstop(f, "column `%s` must be numeric", v)
-    dg <- ns[[v]]
-    kn <- c(min(x), stats::quantile(x, seq_len(dg - 1L) / dg, names = FALSE),
-            max(x))
-    b <- .axrcs(x, kn)
-    nm <- paste0(v, ":ns", seq_len(ncol(b)))
-    for (j in seq_len(ncol(b))) d[[nm[j]]] <- b[, j]
-    a[["x"]] <- c(a[["x"]], nm)
-  }
+  sp <- .axccns(d, a, ns, f)
+  d <- sp$d
+  a <- sp$a
   if (is.null(a[["clus"]])) a[["clus"]] <- ".ym"
   do.call(est, c(list(data = d, y = y, fe = ".strat"), a))
 }
@@ -726,32 +593,19 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
   f <- "jntx"
   form <- match.arg(form)
   d <- .axdat(data, f)
-  .axcols(d, c(y, x1, x2), "y, x1, x2", f, n = 3L)
-  if (!is.function(est)) {
-    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
-  }
-  k1 <- .cknum(k1, "k1", f, min = 3, max = 7, whole = TRUE)
-  k2 <- .cknum(k2, "k2", f, min = 3, max = 7, whole = TRUE)
-  p1 <- .cknum(p1, "p1", f, scalar = FALSE, min = 0, max = 1)
-  p2 <- .cknum(p2, "p2", f, scalar = FALSE, min = 0, max = 1)
-  if (length(p1) != 2L) .ckstop(f, "`p1` must be two quantiles")
-  ngrid <- .cknum(ngrid, "ngrid", f, min = 2, whole = TRUE)
+  ck <- .axjxck(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f)
+  k1 <- ck$k1
+  k2 <- ck$k2
+  p1 <- ck$p1
+  p2 <- ck$p2
+  ngrid <- ck$ngrid
   a <- .axmat(d, c(x1, x2), f)
   t1 <- .axknots(a[, 1L], k1)
   t2 <- .axknots(a[, 2L], k2)
   if (form == "spline" && (anyDuplicated(t1) || anyDuplicated(t2))) {
     .ckstop(f, "an exposure has too few distinct values for its knots")
   }
-  basis <- function(u, v) {
-    if (form == "linear") return(cbind(u, v, u * v))
-    b1 <- .axrcs(u, t1)
-    b2 <- .axrcs(v, t2)
-    cbind(
-      b1,
-      b2,
-      do.call(cbind, lapply(seq_len(ncol(b2)), function(j) b1 * b2[, j]))
-    )
-  }
+  basis <- function(u, v) .axjxbas(u, v, form, t1, t2)
   bm <- basis(a[, 1L], a[, 2L])
   nb1 <- if (form == "linear") 1L else k1 - 1L
   nb2 <- if (form == "linear") 1L else k2 - 1L
@@ -767,29 +621,12 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
     s <- sqrt(pmax(rowSums((db %*% v) * db), 0))
     list(e = e, s = s)
   }
-  q1 <- as.numeric(stats::quantile(a[, 1L], p1, names = FALSE))
-  q2 <- as.numeric(stats::quantile(a[, 2L], p2, names = FALSE))
-  cc <- rel(rep(q1[2L], length(q2)), q2, rep(q1[1L], length(q2)), q2)
-  z <- stats::qnorm(0.975)
-  cond <- data.frame(
-    x2 = q2,
-    p2 = p2,
-    est = cc$e,
-    se = cc$s,
-    lo = cc$e - z * cc$s,
-    hi = cc$e + z * cc$s,
-    rr = exp(cc$e)
-  )
-  g <- expand.grid(x1 = seq(min(a[, 1L]), max(a[, 1L]), length.out = ngrid),
-                   x2 = seq(min(a[, 2L]), max(a[, 2L]), length.out = ngrid))
-  sf <- rel(g$x1, g$x2, rep(ref[1L], nrow(g)), rep(ref[2L], nrow(g)))
-  g$est <- sf$e
-  g$se <- sf$s
-  g$rr <- exp(sf$e)
+  o <- .axjxout(a, p1, p2, ref, ngrid, rel)
   ii <- (nb1 + nb2 + 1L):ncol(bm)
   rr <- diag(ncol(bm))[ii, , drop = FALSE]
   structure(
-    list(cond = cond, surf = g, test = .axwald(b, v, rr), fit = r, form = form),
+    list(cond = o$cond, surf = o$surf, test = .axwald(b, v, rr), fit = r,
+         form = form),
     class = "jntx"
   )
 }
@@ -867,19 +704,10 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   xv <- .axmat(d, var, f)[, 1L]
-  if (is.null(brk)) {
-    nq <- .cknum(nq, "nq", f, min = 2, whole = TRUE)
-    qs <- seq(0, 1, length.out = nq + 1L)
-    brk <- unique(as.numeric(stats::quantile(xv, qs, names = FALSE)))
-  } else if (!is.numeric(brk) || length(brk) < 3L || anyNA(brk) ||
-               is.unsorted(brk, strictly = TRUE)) {
-    .ckstop(f, "`brk` must be three or more increasing numbers")
-  }
-  bn <- cut(xv, brk, include.lowest = TRUE)
-  if (anyNA(bn)) .ckstop(f, "some values of `%s` fall outside `brk`", var)
-  lv <- levels(bn)
-  nbin <- length(lv)
-  if (nbin < 2L) .ckstop(f, "`%s` gives fewer than two bins", var)
+  bb <- .axdbbin(xv, nq, brk, var, f)
+  bn <- bb$bn
+  lv <- bb$lv
+  nbin <- bb$nbin
   ref <- .cknum(ref, "ref", f, min = 1, max = nbin, whole = TRUE)
   nm <- paste0("bin:", lv)
   use <- seq_len(nbin)[-ref]
@@ -904,20 +732,7 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
   b <- cf$est
   v <- .axvcov(r)[nm[use], nm[use], drop = FALSE]
   k <- length(b)
-  tst <- .axwald(b, v, diag(k))
-  tst$test <- "all"
-  if (k >= 2L) {
-    dd <- mid[use] - mid[ref]
-    rl <- t(vapply(2:k, function(q) {
-      w <- numeric(k)
-      w[q] <- 1 / dd[q]
-      w[1L] <- -1 / dd[1L]
-      w
-    }, numeric(k)))
-    tl <- .axwald(b, v, rl)
-    tl$test <- "linear"
-    tst <- rbind(tst, tl)
-  }
+  tst <- .axdbtst(b, v, mid, use, ref, k)
   structure(list(tab = tab, test = tst[c("test", "stat", "df", "p")], fit = r),
             class = "dosebin")
 }
@@ -1128,4 +943,285 @@ print.typefx <- function(x, ...) {
             call. = FALSE)
   }
   bg
+}
+
+# The season of each row for smkiv()'s backgrounds: the column seas, or
+# the meteorological season of a date day, or one season.
+.axsmsea <- function(d, day, seas, pm, f) {
+  if (!is.null(seas)) {
+    as.character(d[[seas]])
+  } else {
+    if (!inherits(d[[day]], "Date") && !is.null(pm)) {
+      .ckstop(
+        f,
+        "give `seas`, or `day` as dates for the meteorological seasons"
+      )
+    }
+    if (inherits(d[[day]], "Date")) {
+      m <- as.integer(format(d[[day]], "%m"))
+      c("DJF", "MAM", "JJA", "SON")[(m %/% 3) %% 4 + 1L]
+    } else {
+      rep("all", nrow(d))
+    }
+  }
+}
+
+# The PM2.5 columns of smkiv(): the background of each place and season
+# from its days without a plume, the indicator adjusted by its own or its
+# neighbour's PM2.5, and the smoke PM2.5 above the background.
+.axsmpm <- function(d, out, pl, key, pm, adj, nbr, z, cf, unit, day, f) {
+  pv <- .axmat(d, pm, f)[, 1L]
+  cl <- pl == 0
+  if (any(tapply(cl, key, sum) < 2L)) {
+    .ckstop(
+      f,
+      paste0(
+        "a place and season has fewer than two days without a plume for ",
+        "its background"
+      )
+    )
+  }
+  mu <- tapply(pv[cl], key[cl], mean)
+  sdv <- tapply(pv[cl], key[cl], stats::sd)
+  md <- tapply(pv[cl], key[cl], stats::median)
+  bmu <- as.numeric(mu[key])
+  bsd <- as.numeric(sdv[key])
+  hi <- pl == 1 & pv > bmu + z * bsd
+  if (adj == "own") out$smoke <- as.numeric(hi)
+  if (adj == "nbr") {
+    if (is.null(nbr)) {
+      .ckstop(f, "`adj = \"nbr\"` needs `nbr`, the neighbour of each row")
+    }
+    .axcols(d, nbr, "nbr", f, n = 1L)
+    j <- match(
+      paste(as.character(d[[nbr]]), as.character(d[[day]]), sep = "\r"),
+      paste(as.character(d[[unit]]), as.character(d[[day]]), sep = "\r")
+    )
+    out$smoke <- as.numeric(hi[j])
+  }
+  if (cf == "childs") {
+    out$bg <- .axchilds(d, unit, day, pv, pl, f)
+    out$spm <- ifelse(pl == 1, pmax(pv - out$bg, 0), 0)
+  } else {
+    out$bg <- if (cf == "mean") bmu else as.numeric(md[key])
+    out$spm <- ifelse(!is.na(out$smoke) & out$smoke == 1,
+                      pmax(pv - out$bg, 0), 0)
+  }
+  out
+}
+
+# smkiv()'s columns aggregated to the groups of by: means of the
+# PM2.5 columns, sums of the others.
+.axsmby <- function(out, d, by) {
+  g <- .axcode(d[[by]])
+  a <- data.frame(by = unique(as.character(d[[by]])))
+  names(a) <- by
+  for (k in names(out)) {
+    v <- out[[k]]
+    a[[k]] <- if (k %in% c("bg", "spm")) {
+      as.numeric(tapply(v, g$c, mean))
+    } else {
+      as.numeric(tapply(v, g$c, sum))
+    }
+  }
+  a
+}
+
+# hetfx(how = "split"): est on the rows of each level of the moderator:
+# list(tab, b the estimates, v their covariance, diagonal).
+.axhtspl <- function(d, est, a, var, mv, lv, f) {
+  rows <- lapply(lv, function(l) {
+    r <- do.call(est, c(list(data = d[mv == l, , drop = FALSE]), a))
+    cf <- .axrow(r, var, f)
+    data.frame(
+      level = l,
+      est = cf$est,
+      se = cf$se,
+      lo = cf$lo,
+      hi = cf$hi,
+      p = cf$p,
+      n = r$n
+    )
+  })
+  tab <- do.call(rbind, rows)
+  b <- tab$est
+  v <- diag(tab$se^2, length(b))
+  list(tab = tab, b = b, v = v)
+}
+
+# hetfx(how = "inter"): one fit of est with the exposure (and the
+# instruments) times the indicator of each level of the moderator:
+# list(tab, b the estimates, v their covariance).
+.axhtint <- function(d, est, a, var, mv, lv) {
+  nm <- paste0(var, ":", lv)
+  for (j in seq_along(lv)) d[[nm[j]]] <- d[[var]] * (mv == lv[j])
+  zi <- NULL
+  if (!is.null(a[["inst"]])) {
+    zi <- character()
+    for (z in a[["inst"]]) {
+      for (j in seq_along(lv)) {
+        zn <- paste0(z, ":", lv[j])
+        d[[zn]] <- d[[z]] * (mv == lv[j])
+        zi <- c(zi, zn)
+      }
+    }
+  }
+  a <- .axrepl(a, var, nm, zi)
+  r <- do.call(est, c(list(data = d), a))
+  vc <- .axvcov(r)
+  cf <- r$coef[match(nm, r$coef$term), , drop = FALSE]
+  tab <- data.frame(
+    level = lv,
+    est = cf$est,
+    se = cf$se,
+    lo = cf$lo,
+    hi = cf$hi,
+    p = cf$p,
+    n = as.integer(table(factor(mv, levels = lv)))
+  )
+  b <- cf$est
+  v <- vc[nm, nm, drop = FALSE]
+  list(tab = tab, b = b, v = v)
+}
+
+# The exposures of ccross(): the columns of lagv lag days before, and the
+# columns of ma averaged over k days, a place's day left out where one of
+# them is missing.
+.axccma <- function(d, unit, day, ma, k, lagv, lag) {
+  if (length(lagv) && lag > 0) {
+    # the value lag days before, of the same place (a day without one is
+    # dropped)
+    ix <- .Call(C_clab_r_dshift, .axcode(d[[unit]])$c,
+                as.numeric(d[[day]]), -lag)
+    for (v in lagv) d[[v]] <- d[[v]][ix]
+    d <- d[stats::complete.cases(d[lagv]), , drop = FALSE]
+  }
+  if (length(ma) && k > 1) {
+    uc <- .axcode(d[[unit]])$c
+    tv <- as.numeric(d[[day]])
+    s <- lapply(ma, function(v) d[[v]])
+    for (j in seq_len(k - 1)) {
+      ix <- .Call(C_clab_r_dshift, uc, tv, -j)
+      for (m in seq_along(ma)) s[[m]] <- s[[m]] + d[[ma[m]]][ix]
+    }
+    for (m in seq_along(ma)) d[[ma[m]]] <- s[[m]] / k
+    d <- d[stats::complete.cases(d[ma]), , drop = FALSE]
+  }
+  d
+}
+
+# The natural cubic splines of ccross() of the covariates in ns: with d
+# degrees of freedom, knots at the range and the quantiles 1/d, ...,
+# (d-1)/d (those of splines::ns(x, df = d)), in the restricted cubic
+# spline basis, which spans the same functions: list(d with the basis
+# columns, a with them among the regressors x).
+.axccns <- function(d, a, ns, f) {
+  for (v in names(ns)) {
+    x <- d[[v]]
+    if (!is.numeric(x)) .ckstop(f, "column `%s` must be numeric", v)
+    dg <- ns[[v]]
+    kn <- c(min(x), stats::quantile(x, seq_len(dg - 1L) / dg, names = FALSE),
+            max(x))
+    b <- .axrcs(x, kn)
+    nm <- paste0(v, ":ns", seq_len(ncol(b)))
+    for (j in seq_len(ncol(b))) d[[nm[j]]] <- b[, j]
+    a[["x"]] <- c(a[["x"]], nm)
+  }
+  list(d = d, a = a)
+}
+
+# The checks of jntx()'s columns and numbers, in their order:
+# list(k1, k2, p1, p2, ngrid).
+.axjxck <- function(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f) {
+  .axcols(d, c(y, x1, x2), "y, x1, x2", f, n = 3L)
+  if (!is.function(est)) {
+    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
+  }
+  k1 <- .cknum(k1, "k1", f, min = 3, max = 7, whole = TRUE)
+  k2 <- .cknum(k2, "k2", f, min = 3, max = 7, whole = TRUE)
+  p1 <- .cknum(p1, "p1", f, scalar = FALSE, min = 0, max = 1)
+  p2 <- .cknum(p2, "p2", f, scalar = FALSE, min = 0, max = 1)
+  if (length(p1) != 2L) .ckstop(f, "`p1` must be two quantiles")
+  ngrid <- .cknum(ngrid, "ngrid", f, min = 2, whole = TRUE)
+  list(k1 = k1, k2 = k2, p1 = p1, p2 = p2, ngrid = ngrid)
+}
+
+# The basis of jntx() at u and v: the two exposures and their product
+# (linear), or their restricted cubic splines at the knots t1 and t2 and
+# the products of the two bases (spline).
+.axjxbas <- function(u, v, form, t1, t2) {
+  if (form == "linear") return(cbind(u, v, u * v))
+  b1 <- .axrcs(u, t1)
+  b2 <- .axrcs(v, t2)
+  cbind(
+    b1,
+    b2,
+    do.call(cbind, lapply(seq_len(ncol(b2)), function(j) b1 * b2[, j]))
+  )
+}
+
+# What jntx() reports from rel(), the change of the linear predictor
+# between two points: the effect of x1 from its p1 quantiles at the p2
+# quantiles of x2 (cond), and over a grid of both against ref (surf).
+.axjxout <- function(a, p1, p2, ref, ngrid, rel) {
+  q1 <- as.numeric(stats::quantile(a[, 1L], p1, names = FALSE))
+  q2 <- as.numeric(stats::quantile(a[, 2L], p2, names = FALSE))
+  cc <- rel(rep(q1[2L], length(q2)), q2, rep(q1[1L], length(q2)), q2)
+  z <- stats::qnorm(0.975)
+  cond <- data.frame(
+    x2 = q2,
+    p2 = p2,
+    est = cc$e,
+    se = cc$s,
+    lo = cc$e - z * cc$s,
+    hi = cc$e + z * cc$s,
+    rr = exp(cc$e)
+  )
+  g <- expand.grid(x1 = seq(min(a[, 1L]), max(a[, 1L]), length.out = ngrid),
+                   x2 = seq(min(a[, 2L]), max(a[, 2L]), length.out = ngrid))
+  sf <- rel(g$x1, g$x2, rep(ref[1L], nrow(g)), rep(ref[2L], nrow(g)))
+  g$est <- sf$e
+  g$se <- sf$s
+  g$rr <- exp(sf$e)
+  list(cond = cond, surf = g)
+}
+
+# The bins of dosebin(): nq quantile bins of xv or the breaks brk, two at
+# least, every value in one: list(bn the bin of each row, lv, nbin).
+.axdbbin <- function(xv, nq, brk, var, f) {
+  if (is.null(brk)) {
+    nq <- .cknum(nq, "nq", f, min = 2, whole = TRUE)
+    qs <- seq(0, 1, length.out = nq + 1L)
+    brk <- unique(as.numeric(stats::quantile(xv, qs, names = FALSE)))
+  } else if (!is.numeric(brk) || length(brk) < 3L || anyNA(brk) ||
+               is.unsorted(brk, strictly = TRUE)) {
+    .ckstop(f, "`brk` must be three or more increasing numbers")
+  }
+  bn <- cut(xv, brk, include.lowest = TRUE)
+  if (anyNA(bn)) .ckstop(f, "some values of `%s` fall outside `brk`", var)
+  lv <- levels(bn)
+  nbin <- length(lv)
+  if (nbin < 2L) .ckstop(f, "`%s` gives fewer than two bins", var)
+  list(bn = bn, lv = lv, nbin = nbin)
+}
+
+# The Wald tests of dosebin(): every bin equal to the reference (all),
+# and, with two bins or more, the bins on the line through the reference
+# and the first bin at their medians (linear).
+.axdbtst <- function(b, v, mid, use, ref, k) {
+  tst <- .axwald(b, v, diag(k))
+  tst$test <- "all"
+  if (k >= 2L) {
+    dd <- mid[use] - mid[ref]
+    rl <- t(vapply(2:k, function(q) {
+      w <- numeric(k)
+      w[q] <- 1 / dd[q]
+      w[1L] <- -1 / dd[1L]
+      w
+    }, numeric(k)))
+    tl <- .axwald(b, v, rl)
+    tl$test <- "linear"
+    tst <- rbind(tst, tl)
+  }
+  tst
 }
