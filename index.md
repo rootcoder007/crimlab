@@ -697,8 +697,9 @@ A build with no error and no `sorry` is the check.
 
 `citation("crimlab")` gives the reference for the installed version:
 
-> Ruhela, V. S. (2026). *crimlab: Criminology and Sociolegal
-> Statistics.* R package. <https://github.com/rootcoder007/crimlab>
+> Ruhela, V. S. (2026). *crimlab: Statistical Methods for Criminology
+> and Sociolegal Research.* R package.
+> <https://github.com/rootcoder007/crimlab>
 
 ## Licence
 

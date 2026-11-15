@@ -1,4 +1,4 @@
-# crimlab: Criminology and Sociolegal Statistics
+# crimlab: Statistical Methods for Criminology and Sociolegal Research
 
 Statistical methods for courts, corrections, policing, forensics and
 sociolegal research, computed in a compiled core with a thin R layer.

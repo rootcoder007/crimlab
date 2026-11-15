@@ -558,7 +558,7 @@ from stratified, clustered and weighted samples.
 
 - [`crimlab`](https://rootcoder007.github.io/crimlab/reference/crimlab-package.md)
   [`crimlab-package`](https://rootcoder007.github.io/crimlab/reference/crimlab-package.md)
-  : crimlab: Criminology and Sociolegal Statistics
+  : crimlab: Statistical Methods for Criminology and Sociolegal Research
 
 ## Spatial crime analysis
 
