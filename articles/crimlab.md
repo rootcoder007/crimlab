@@ -585,6 +585,72 @@ does not license: a plot shows the estimate and its interval as
 computed; a narrow interval drawn on a clean axis is no more credible
 than the assumptions of the method that produced it.
 
+## Published correctional tables: presets
+
+Corrections and police services publish their data as tables of counts
+and as de-identified records, each in a layout of its own. A preset
+describes one such layout: which column is the count, which the group
+compared and which the adjustments, how a label becomes a number, which
+rows a filter keeps. The presets read the published tables; crimlab
+ships none of them, and the tables below are simulated.
+
+The Ontario Ministry of the Solicitor General publishes its segregation,
+restrictive confinement and deaths-in-custody tables (OTIS, the Offender
+Tracking Information System) as series a, b, c and d;
+[`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+lists a preset for each analysis of them.
+[`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
+checks a table against a preset first: the columns it reads, and the
+labels against the codes the ministry’s data dictionary lists. A table
+that fits is returned as it is.
+
+``` r
+
+c01 <- data.frame(EndFiscalYear = rep(2020:2022, each = 2),
+                  Gender = rep(c("Female", "Male"), 3),
+                  NumberIndividuals_RestrictiveConfinement =
+                    c(40, 310, 52, 335, 47, 360))
+cntreg(clprep(prechk(c01, "otis-c01-cnt"), "otis-c01-cnt"))
+#> cntreg: 6 counts; reference 0
+#> rate ratios (95% intervals):
+#>   fit term       irr        lo        hi             p   sep
+#>  pois    1 0.1383085 0.1158296 0.1651497 6.153279e-106 FALSE
+#>    nb    1 0.1383085 0.1158295 0.1651499 6.174131e-106 FALSE
+#> negative binomial theta 7655874; AIC Poisson 48.8636, negative binomial 50.86374
+bad <- c01[-3]
+bad$Gender[2] <- "Unknown"
+try(prechk(bad, "otis-c01-cnt"))
+#> Error : prechk: the table does not fit preset otis-c01-cnt:
+#> * `data` has no column NumberIndividuals_RestrictiveConfinement.
+#> * column Gender has labels not among its codes: Unknown.
+```
+
+Another agency’s table needs a preset of its own: a few rows, one per
+argument, and, for the check, the labels its columns may hold. For a
+made-up service publishing admissions by sex, unit and year (the numbers
+simulated):
+
+``` r
+
+adm <- data.frame(year = rep(2022:2023, each = 4),
+                  sex = rep(c("F", "M"), 4),
+                  unit = rep(c("North", "North", "South", "South"), 2),
+                  admissions = c(12, 140, 9, 122, 15, 151, 11, 118))
+own <- data.frame(preset = "ns-cnt", generic = "cntreg",
+                  arg = c("y", "grp", "adj", "adj"),
+                  column = c("admissions", "sex", "unit", "year"),
+                  recode = c("", "f=1;m=0", "fac", "fac"),
+                  units = c("admissions", "", "", ""))
+codes <- data.frame(column = "unit", value = c("North", "South"))
+cntreg(clprep(prechk(adm, own, codes), own))
+#> cntreg: 8 counts; reference 0
+#> rate ratios (95% intervals):
+#>   fit term        irr         lo        hi            p   sep
+#>  pois    1 0.08851224 0.06568484 0.1192728 3.784566e-57 FALSE
+#>    nb    1 0.08851224 0.06568468 0.1192731 3.792337e-57 FALSE
+#> negative binomial theta 3955779; AIC Poisson 52.97866, negative binomial 54.97879
+```
+
 ## Proofs
 
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)

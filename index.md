@@ -258,7 +258,12 @@ The functions work on summary data, not on raw records:
   [`mortdisp()`](https://rootcoder007.github.io/crimlab/reference/mortdisp.md),
   [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md),
   [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md),
-  [`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)).
+  [`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)),
+  the exposure-response estimate with a bootstrap check
+  ([`exprspplr()`](https://rootcoder007.github.io/crimlab/reference/exprspplr.md))
+  and the whole pipeline as one report
+  ([`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md),
+  [`polrpttxt()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)).
 - Data larger than memory: moments, samples and distinct counts in one
   pass
   ([`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
@@ -270,6 +275,36 @@ The functions work on summary data, not on raw records:
   [`dstnskch()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
   [`dstncnt()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
   [`skchmrg()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md)).
+- Describing a table before trusting it: its columns, gaps, outliers,
+  duplicates and whether its values are missing at random
+  ([`profcols()`](https://rootcoder007.github.io/crimlab/reference/profcols.md),
+  [`inlhist()`](https://rootcoder007.github.io/crimlab/reference/inlhist.md),
+  [`freqtbl()`](https://rootcoder007.github.io/crimlab/reference/freqtbl.md),
+  [`cortbl()`](https://rootcoder007.github.io/crimlab/reference/cortbl.md),
+  [`topcors()`](https://rootcoder007.github.io/crimlab/reference/topcors.md),
+  [`drpempty()`](https://rootcoder007.github.io/crimlab/reference/drp.md),
+  [`drpconst()`](https://rootcoder007.github.io/crimlab/reference/drp.md),
+  [`clncolnms()`](https://rootcoder007.github.io/crimlab/reference/clncolnms.md),
+  [`mahaoutl()`](https://rootcoder007.github.io/crimlab/reference/mahaoutl.md),
+  [`missruns()`](https://rootcoder007.github.io/crimlab/reference/missruns.md),
+  [`missgrid()`](https://rootcoder007.github.io/crimlab/reference/missgrid.md),
+  [`misspat()`](https://rootcoder007.github.io/crimlab/reference/misspat.md),
+  [`misssmry()`](https://rootcoder007.github.io/crimlab/reference/misssmry.md),
+  [`mcartst()`](https://rootcoder007.github.io/crimlab/reference/mcartst.md),
+  [`duprows()`](https://rootcoder007.github.io/crimlab/reference/duprows.md)),
+  which distribution describes a variable
+  ([`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md)),
+  and whether distinct groups differ before their figures are pooled
+  ([`dstntst()`](https://rootcoder007.github.io/crimlab/reference/dstntst.md)).
+- The footprint of the analysis itself: the energy a computation used
+  and its emissions on the local grid, offline, with what was assumed
+  rather than measured
+  ([`co2fp()`](https://rootcoder007.github.io/crimlab/reference/co2fp.md),
+  [`raplok()`](https://rootcoder007.github.io/crimlab/reference/raplok.md),
+  [`co2int()`](https://rootcoder007.github.io/crimlab/reference/co2int.md),
+  [`co2inttab()`](https://rootcoder007.github.io/crimlab/reference/co2int.md),
+  [`dtctloc()`](https://rootcoder007.github.io/crimlab/reference/dtctloc.md),
+  [`fpeqv()`](https://rootcoder007.github.io/crimlab/reference/fpeqv.md)).
 - Officers: whether an officer’s stops differ from those other officers
   make in the same circumstances, with a false discovery rate over the
   officers
@@ -299,6 +334,28 @@ The functions work on summary data, not on raw records:
 - Age, period and cohort: the parts of a change in a rate that belong to
   age, to the period and to the cohort, by the intrinsic estimator
   ([`apcie()`](https://rootcoder007.github.io/crimlab/reference/apcie.md)).
+- Scaling and ideal points of judges, courts, legislators and survey
+  respondents: Aldrich-McKelvey and Basic Space scaling, MDS and
+  unfolding, NOMINATE, Optimal Classification, IRT by EM and MCMC,
+  dynamic and ordinal IRT, Wordfish
+  ([`amscal()`](https://rootcoder007.github.io/crimlab/reference/amscal.md),
+  [`bbscal()`](https://rootcoder007.github.io/crimlab/reference/bbscal.md),
+  [`cmdsf()`](https://rootcoder007.github.io/crimlab/reference/cmdsf.md),
+  [`dwnom()`](https://rootcoder007.github.io/crimlab/reference/dwnom.md),
+  [`optcls()`](https://rootcoder007.github.io/crimlab/reference/optcls.md),
+  [`irtem()`](https://rootcoder007.github.io/crimlab/reference/irtem.md),
+  [`cjrirt()`](https://rootcoder007.github.io/crimlab/reference/cjrirt.md),
+  [`dynirt()`](https://rootcoder007.github.io/crimlab/reference/dynirt.md),
+  [`wrdfsh()`](https://rootcoder007.github.io/crimlab/reference/wrdfsh.md)
+  and more).
+- Counts over time: ARIMA forecasts, Ornstein-Uhlenbeck and
+  Lotka-Volterra descriptions of a series, correlations of counts by
+  place between categories
+  ([`arimfc()`](https://rootcoder007.github.io/crimlab/reference/arimfc.md),
+  [`sarfc()`](https://rootcoder007.github.io/crimlab/reference/sarfc.md),
+  [`ousim()`](https://rootcoder007.github.io/crimlab/reference/ousim.md),
+  [`lvfit()`](https://rootcoder007.github.io/crimlab/reference/lvfit.md),
+  [`catcor()`](https://rootcoder007.github.io/crimlab/reference/catcor.md)).
 - Hot-spot maps: how many later crimes a map’s hot spots caught, by the
   hit rate, the predictive accuracy and efficiency indices and the
   recapture rate index
@@ -800,14 +857,16 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package but the plot functions, which draw in R (271
-of 286); `crimlab -l` lists them and their arguments, and `cli/test.tsv`
-holds the values the R package gives for them (`dev/clref.R`), which
-every front end is tested against. A warning R would give is returned in
-the result as `warnings`, an array of its messages. Outside R a matrix
-is an array of its rows, without row or column names, so a result names
-its columns as R does for an unnamed matrix; and an argument that R
-takes as a function (the `stat` of
+function of the R package but those that work in R only, the plot
+functions and the table check
+[`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
+(411 of 432); `crimlab -l` lists them and their arguments, and
+`cli/test.tsv` holds the values the R package gives for them
+(`dev/clref.R`), which every front end is tested against. A warning R
+would give is returned in the result as `warnings`, an array of its
+messages. Outside R a matrix is an array of its rows, without row or
+column names, so a result names its columns as R does for an unnamed
+matrix; and an argument that R takes as a function (the `stat` of
 [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md))
 has no counterpart.
 

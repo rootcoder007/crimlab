@@ -135,6 +135,6 @@ cntreg(clprep(e, mine))
 #> rate ratios (95% intervals):
 #>   fit term       irr         lo        hi            p   sep
 #>  pois    1 0.1408451 0.07265014 0.2730529 6.508047e-09 FALSE
-#>    nb    1 0.1408451 0.07265012 0.2730530 6.508132e-09 FALSE
-#> negative binomial theta 19990669; AIC Poisson 23.74163, negative binomial 25.74164
+#>    nb    1 0.1408451 0.07265012 0.2730530 6.508134e-09 FALSE
+#> negative binomial theta 19720034; AIC Poisson 23.74163, negative binomial 25.74164
 ```

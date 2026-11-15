@@ -543,10 +543,67 @@ as computed; a narrow interval drawn on a clean axis is no more credible
 than the assumptions of the method that produced it.</p>
 </div>
 <div class="section level2">
+<h2 id="published-correctional-tables-presets">Published correctional tables: presets<a class="anchor" aria-label="anchor" href="#published-correctional-tables-presets"></a>
+</h2>
+<p>Corrections and police services publish their data as tables of
+counts and as de-identified records, each in a layout of its own. A
+preset describes one such layout: which column is the count, which the
+group compared and which the adjustments, how a label becomes a number,
+which rows a filter keeps. The presets read the published tables;
+crimlab ships none of them, and the tables below are simulated.</p>
+<p>The Ontario Ministry of the Solicitor General publishes its
+segregation, restrictive confinement and deaths-in-custody tables (OTIS,
+the Offender Tracking Information System) as series a, b, c and d;
+<code><a href="../reference/clprep.html">clprep()</a></code> lists a preset for each analysis of them.
+<code><a href="../reference/prechk.html">prechk()</a></code> checks a table against a preset first: the columns
+it reads, and the labels against the codes the ministry’s data
+dictionary lists. A table that fits is returned as it is.</p>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">c01</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>EndFiscalYear <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2022</span>, each <span class="op">=</span> <span class="fl">2</span><span class="op">)</span>,</span>
+<span>                  Gender <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Female"</span>, <span class="st">"Male"</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>                  NumberIndividuals_RestrictiveConfinement <span class="op">=</span></span>
+<span>                    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">310</span>, <span class="fl">52</span>, <span class="fl">335</span>, <span class="fl">47</span>, <span class="fl">360</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cntreg.html">cntreg</a></span><span class="op">(</span><span class="fu"><a href="../reference/clprep.html">clprep</a></span><span class="op">(</span><span class="fu"><a href="../reference/prechk.html">prechk</a></span><span class="op">(</span><span class="va">c01</span>, <span class="st">"otis-c01-cnt"</span><span class="op">)</span>, <span class="st">"otis-c01-cnt"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; cntreg: 6 counts; reference 0</span></span>
+<span><span class="co">#&gt; rate ratios (95% intervals):</span></span>
+<span><span class="co">#&gt;   fit term       irr        lo        hi             p   sep</span></span>
+<span><span class="co">#&gt;  pois    1 0.1383085 0.1158296 0.1651497 6.153279e-106 FALSE</span></span>
+<span><span class="co">#&gt;    nb    1 0.1383085 0.1158295 0.1651499 6.174131e-106 FALSE</span></span>
+<span><span class="co">#&gt; negative binomial theta 7655874; AIC Poisson 48.8636, negative binomial 50.86374</span></span>
+<span><span class="va">bad</span> <span class="op">&lt;-</span> <span class="va">c01</span><span class="op">[</span><span class="op">-</span><span class="fl">3</span><span class="op">]</span></span>
+<span><span class="va">bad</span><span class="op">$</span><span class="va">Gender</span><span class="op">[</span><span class="fl">2</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="st">"Unknown"</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html" class="external-link">try</a></span><span class="op">(</span><span class="fu"><a href="../reference/prechk.html">prechk</a></span><span class="op">(</span><span class="va">bad</span>, <span class="st">"otis-c01-cnt"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : prechk: the table does not fit preset otis-c01-cnt:</span></span>
+<span><span class="co">#&gt; * `data` has no column NumberIndividuals_RestrictiveConfinement.</span></span>
+<span><span class="co">#&gt; * column Gender has labels not among its codes: Unknown.</span></span></code></pre></div>
+<p>Another agency’s table needs a preset of its own: a few rows, one per
+argument, and, for the check, the labels its columns may hold. For a
+made-up service publishing admissions by sex, unit and year (the numbers
+simulated):</p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">adm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2022</span><span class="op">:</span><span class="fl">2023</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
+<span>                  sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"F"</span>, <span class="st">"M"</span><span class="op">)</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>                  unit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"North"</span>, <span class="st">"South"</span>, <span class="st">"South"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>                  admissions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">140</span>, <span class="fl">9</span>, <span class="fl">122</span>, <span class="fl">15</span>, <span class="fl">151</span>, <span class="fl">11</span>, <span class="fl">118</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>preset <span class="op">=</span> <span class="st">"ns-cnt"</span>, generic <span class="op">=</span> <span class="st">"cntreg"</span>,</span>
+<span>                  arg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"y"</span>, <span class="st">"grp"</span>, <span class="st">"adj"</span>, <span class="st">"adj"</span><span class="op">)</span>,</span>
+<span>                  column <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"admissions"</span>, <span class="st">"sex"</span>, <span class="st">"unit"</span>, <span class="st">"year"</span><span class="op">)</span>,</span>
+<span>                  recode <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">""</span>, <span class="st">"f=1;m=0"</span>, <span class="st">"fac"</span>, <span class="st">"fac"</span><span class="op">)</span>,</span>
+<span>                  units <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"admissions"</span>, <span class="st">""</span>, <span class="st">""</span>, <span class="st">""</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">codes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>column <span class="op">=</span> <span class="st">"unit"</span>, value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"South"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cntreg.html">cntreg</a></span><span class="op">(</span><span class="fu"><a href="../reference/clprep.html">clprep</a></span><span class="op">(</span><span class="fu"><a href="../reference/prechk.html">prechk</a></span><span class="op">(</span><span class="va">adm</span>, <span class="va">own</span>, <span class="va">codes</span><span class="op">)</span>, <span class="va">own</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; cntreg: 8 counts; reference 0</span></span>
+<span><span class="co">#&gt; rate ratios (95% intervals):</span></span>
+<span><span class="co">#&gt;   fit term        irr         lo        hi            p   sep</span></span>
+<span><span class="co">#&gt;  pois    1 0.08851224 0.06568484 0.1192728 3.784566e-57 FALSE</span></span>
+<span><span class="co">#&gt;    nb    1 0.08851224 0.06568468 0.1192731 3.792337e-57 FALSE</span></span>
+<span><span class="co">#&gt; negative binomial theta 3955779; AIC Poisson 52.97866, negative binomial 54.97879</span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="proofs">Proofs<a class="anchor" aria-label="anchor" href="#proofs"></a>
 </h2>
 <p><code><a href="../reference/proof.html">proof()</a></code> lists the theorems behind a function:</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/proof.html">proof</a></span><span class="op">(</span><span class="st">"clrsmp"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span>
 <span><span class="co">#&gt;       fn                                 theorem                file</span></span>
@@ -558,7 +615,7 @@ than the assumptions of the method that produced it.</p>
 <p>The files ship with the package and can be read in R or checked with
 Lean (see the README). This is the statement of Kitagawa’s identity, the
 reason the rate and mix effects always add up to the change:</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">src</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="va">p</span><span class="op">[[</span><span class="st">"file"</span><span class="op">]</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>, package <span class="op">=</span> <span class="st">"crimlab"</span><span class="op">)</span>,</span>
 <span>                 encoding <span class="op">=</span> <span class="st">"UTF-8"</span><span class="op">)</span></span>
 <span><span class="va">i</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grep</a></span><span class="op">(</span><span class="st">"^theorem kitagawa"</span>, <span class="va">src</span><span class="op">)</span></span>

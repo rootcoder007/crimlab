@@ -75,8 +75,8 @@ burden a polluting activity places on an area or group, and how unevenly
 it falls, is the measure of the harm; and the study of the environment
 as a driver of offending and victimisation, where exposure series are
 joined to crime counts by place and day, as in work relating air
-pollution and heat to violent crime. The second example below is of that
-kind.
+pollution to crime (Bondy, Roth and Sager 2020; Herrnstadt et al. 2019).
+The second example below is of that kind.
 
 `crfpm25()` is log-linear for all-cause mortality with the pooled cohort
 estimate of the WHO 2021 guideline review (Chen and Hoek 2020: RR 1.08,
@@ -108,19 +108,25 @@ association) and replaces the table, in which case `y` is only a label.
 
 ## References
 
-Chen, J. and Hoek, G. (2020). Long-term exposure to PM and all-cause and
-cause-specific mortality: a systematic review and meta-analysis.
-Environment International 143, 105974. Huangfu, P. and Atkinson, R.
-(2020). Long-term exposure to NO2 and O3 and all-cause and respiratory
-mortality: a systematic review and meta-analysis. Environment
-International 144, 105998. Khreis, H. et al. (2017). Exposure to
-traffic-related air pollution and risk of development of childhood
-asthma: a systematic review and meta-analysis. Environment International
-100, 1-31. GBD 2019 Risk Factors Collaborators (2020). The Lancet
-396(10258), 1223-1249. Burnett, R. T. et al. (2014). An integrated risk
-function for estimating the global burden of disease attributable to
-ambient fine particulate matter exposure. Environmental Health
-Perspectives 122(4), 397-403. WHO (2021). Global Air Quality Guidelines.
+Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+contemporaneous relationship between air pollution and crime. Journal of
+the Association of Environmental and Resource Economists 7(3), 555-585.
+[doi:10.1086/707127](https://doi.org/10.1086/707127) . Herrnstadt, E.,
+Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air pollution as a
+cause of violent crime. Working paper. Chen, J. and Hoek, G. (2020).
+Long-term exposure to PM and all-cause and cause-specific mortality: a
+systematic review and meta-analysis. Environment International 143,
+105974. Huangfu, P. and Atkinson, R. (2020). Long-term exposure to NO2
+and O3 and all-cause and respiratory mortality: a systematic review and
+meta-analysis. Environment International 144, 105998. Khreis, H. et al.
+(2017). Exposure to traffic-related air pollution and risk of
+development of childhood asthma: a systematic review and meta-analysis.
+Environment International 100, 1-31. GBD 2019 Risk Factors Collaborators
+(2020). The Lancet 396(10258), 1223-1249. Burnett, R. T. et al. (2014).
+An integrated risk function for estimating the global burden of disease
+attributable to ambient fine particulate matter exposure. Environmental
+Health Perspectives 122(4), 397-403. WHO (2021). Global Air Quality
+Guidelines.
 
 ## Examples
 

@@ -2,6 +2,161 @@
 
 ## crimlab 0.0.0.9000
 
+- Spatial epidemiology and surveillance: Bayes outbreak detection
+  ([`bayout()`](https://rootcoder007.github.io/crimlab/reference/bayout.md)),
+  exposure within a buffer and by kernel
+  ([`bufexp()`](https://rootcoder007.github.io/crimlab/reference/bufexp.md),
+  [`kerexp()`](https://rootcoder007.github.io/crimlab/reference/kerexp.md)),
+  the Leroux and BYM2 area structures
+  ([`lerprc()`](https://rootcoder007.github.io/crimlab/reference/lerprc.md),
+  [`bym2sc()`](https://rootcoder007.github.io/crimlab/reference/bym2sc.md)),
+  ecological Poisson, negative binomial and zero-inflated regression
+  with expected counts
+  ([`ecolrg()`](https://rootcoder007.github.io/crimlab/reference/ecolrg.md)),
+  eigenvector spatial filtering
+  ([`evfilt()`](https://rootcoder007.github.io/crimlab/reference/evfilt.md)),
+  the metapopulation SIR model
+  ([`spsir()`](https://rootcoder007.github.io/crimlab/reference/spsir.md)),
+  Weibull frailty and promotion-time cure models with CAR area effects
+  ([`sfrail()`](https://rootcoder007.github.io/crimlab/reference/sfrail.md),
+  [`sfcure()`](https://rootcoder007.github.io/crimlab/reference/sfrail.md))
+  and the spatial encoding of graph attention
+  ([`spbias()`](https://rootcoder007.github.io/crimlab/reference/spbias.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
+- Geostatistics on planar coordinates: the empirical semivariogram
+  ([`vgemp()`](https://rootcoder007.github.io/crimlab/reference/vgemp.md)),
+  variogram models fitted by maximum likelihood
+  ([`vgfit()`](https://rootcoder007.github.io/crimlab/reference/vgfit.md)),
+  ordinary kriging
+  ([`okrge()`](https://rootcoder007.github.io/crimlab/reference/okrge.md)),
+  block kriging
+  ([`bkrig()`](https://rootcoder007.github.io/crimlab/reference/bkrig.md))
+  and its leave-one-out cross-validation
+  ([`krigcv()`](https://rootcoder007.github.io/crimlab/reference/krigcv.md)),
+  polynomial trend surfaces
+  ([`trsurf()`](https://rootcoder007.github.io/crimlab/reference/trsurf.md)),
+  the spatial linear model by profile likelihood
+  ([`sglmx()`](https://rootcoder007.github.io/crimlab/reference/sglmx.md))
+  and the spatial linear mixed model by REML
+  ([`smixm()`](https://rootcoder007.github.io/crimlab/reference/smixm.md)),
+  with a spatial data object
+  ([`spobj()`](https://rootcoder007.github.io/crimlab/reference/spobj.md),
+  [`spxy()`](https://rootcoder007.github.io/crimlab/reference/spxy.md),
+  [`crsof()`](https://rootcoder007.github.io/crimlab/reference/crsof.md)),
+  the specification of a web map
+  ([`lfspec()`](https://rootcoder007.github.io/crimlab/reference/lfspec.md))
+  and density-weighted sampling of points
+  ([`spsamp()`](https://rootcoder007.github.io/crimlab/reference/spsamp.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
+- The energy and carbon footprint of a computation
+  ([`co2fp()`](https://rootcoder007.github.io/crimlab/reference/co2fp.md)),
+  modelled from running time, utilisation and memory (Green Algorithms)
+  or measured from the CPU’s RAPL counters
+  ([`raplok()`](https://rootcoder007.github.io/crimlab/reference/raplok.md)),
+  with the measured energy of other devices added from a table; the
+  carbon intensity of electricity by location, offline
+  ([`co2int()`](https://rootcoder007.github.io/crimlab/reference/co2int.md),
+  [`co2inttab()`](https://rootcoder007.github.io/crimlab/reference/co2int.md)),
+  the location found without network access
+  ([`dtctloc()`](https://rootcoder007.github.io/crimlab/reference/dtctloc.md))
+  and everyday equivalents
+  ([`fpeqv()`](https://rootcoder007.github.io/crimlab/reference/fpeqv.md)).
+  All but
+  [`co2fp()`](https://rootcoder007.github.io/crimlab/reference/co2fp.md),
+  which evaluates an R expression, are in `clab_jrun()`, the command
+  line and Python.
+
+- Air pollution, for environmental criminology: the exposure-response
+  estimate with a bootstrap sensitivity interval
+  ([`exprspplr()`](https://rootcoder007.github.io/crimlab/reference/exprspplr.md)),
+  by the cross-fitted partially linear regression in the compiled core
+  or any estimator with its interface, and the whole pollution-to-health
+  pipeline from demo data, a (compressed) CSV or scalars to a report and
+  its text
+  ([`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md),
+  [`polrpttxt()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)).
+  [`exprspplr()`](https://rootcoder007.github.io/crimlab/reference/exprspplr.md)
+  with its built-in estimator is in `clab_jrun()`, the command line and
+  Python; the other two read files and write text in R.
+
+- Scaling and ideal points, for judges, courts, legislators and survey
+  respondents: vote agreement
+  ([`votagr()`](https://rootcoder007.github.io/crimlab/reference/votagr.md)),
+  Aldrich-McKelvey scaling
+  ([`amscal()`](https://rootcoder007.github.io/crimlab/reference/amscal.md))
+  and its Bayesian form
+  ([`bamscl()`](https://rootcoder007.github.io/crimlab/reference/bamscl.md)),
+  Basic Space scaling
+  ([`bbscal()`](https://rootcoder007.github.io/crimlab/reference/bbscal.md)),
+  classical, SMACOF and nonmetric MDS
+  ([`cmdsf()`](https://rootcoder007.github.io/crimlab/reference/cmdsf.md),
+  [`smacf()`](https://rootcoder007.github.io/crimlab/reference/smacf.md),
+  [`nmdsf()`](https://rootcoder007.github.io/crimlab/reference/nmdsf.md),
+  [`dblctr()`](https://rootcoder007.github.io/crimlab/reference/dblctr.md),
+  [`mdsfit()`](https://rootcoder007.github.io/crimlab/reference/mdsfit.md)),
+  Bayesian MDS and unfolding
+  ([`bmdsf()`](https://rootcoder007.github.io/crimlab/reference/bmdsf.md),
+  [`bunfld()`](https://rootcoder007.github.io/crimlab/reference/bunfld.md)),
+  unfolding by least squares and by SMACOF
+  ([`mlsmu()`](https://rootcoder007.github.io/crimlab/reference/mlsmu.md),
+  [`smunf()`](https://rootcoder007.github.io/crimlab/reference/smunf.md),
+  [`unfstr()`](https://rootcoder007.github.io/crimlab/reference/unfstr.md),
+  [`ipsrec()`](https://rootcoder007.github.io/crimlab/reference/ipsrec.md)),
+  INDSCAL
+  ([`indscl()`](https://rootcoder007.github.io/crimlab/reference/indscl.md)),
+  Procrustes rotation
+  ([`procrs()`](https://rootcoder007.github.io/crimlab/reference/procrs.md)),
+  NOMINATE utilities, likelihood, fit and bootstrap
+  ([`nomutl()`](https://rootcoder007.github.io/crimlab/reference/nomutl.md),
+  [`nompr()`](https://rootcoder007.github.io/crimlab/reference/nompr.md),
+  [`nomll()`](https://rootcoder007.github.io/crimlab/reference/nomll.md),
+  [`dwnom()`](https://rootcoder007.github.io/crimlab/reference/dwnom.md),
+  [`nombt()`](https://rootcoder007.github.io/crimlab/reference/nombt.md)),
+  alpha-NOMINATE
+  ([`anomin()`](https://rootcoder007.github.io/crimlab/reference/anomin.md)),
+  Optimal Classification and its ordered form
+  ([`optcls()`](https://rootcoder007.github.io/crimlab/reference/optcls.md),
+  [`ordocl()`](https://rootcoder007.github.io/crimlab/reference/ordocl.md)),
+  binary IRT by EM
+  ([`irtem()`](https://rootcoder007.github.io/crimlab/reference/irtem.md))
+  and by Gibbs sampling
+  ([`cjrirt()`](https://rootcoder007.github.io/crimlab/reference/cjrirt.md),
+  [`irtlik()`](https://rootcoder007.github.io/crimlab/reference/irtlik.md),
+  [`irtpst()`](https://rootcoder007.github.io/crimlab/reference/irtpst.md)),
+  ordinal and dynamic IRT
+  ([`ordirt()`](https://rootcoder007.github.io/crimlab/reference/ordirt.md),
+  [`dynirt()`](https://rootcoder007.github.io/crimlab/reference/dynirt.md)),
+  anchoring vignettes
+  ([`anchv()`](https://rootcoder007.github.io/crimlab/reference/anchv.md)),
+  the bootstrap of scaling positions
+  ([`scboot()`](https://rootcoder007.github.io/crimlab/reference/scboot.md)),
+  normal vectors and cutting lines
+  ([`nrmvec()`](https://rootcoder007.github.io/crimlab/reference/nrmvec.md),
+  [`cutlns()`](https://rootcoder007.github.io/crimlab/reference/cutlns.md))
+  and Wordfish
+  ([`wrdfsh()`](https://rootcoder007.github.io/crimlab/reference/wrdfsh.md)).
+  The samplers draw from R’s generator seeded as
+  [`set.seed()`](https://rdrr.io/r/base/Random.html)
+  ([`cjrirt()`](https://rootcoder007.github.io/crimlab/reference/cjrirt.md)
+  from Philox), so a chain is the same in every front end. All are in
+  `clab_jrun()`, the command line and Python.
+
+- Counts over time and across categories: ARIMA and seasonal ARIMA
+  forecasts by exact maximum likelihood
+  ([`arimfc()`](https://rootcoder007.github.io/crimlab/reference/arimfc.md),
+  [`sarfc()`](https://rootcoder007.github.io/crimlab/reference/sarfc.md)),
+  the Ornstein-Uhlenbeck fit, simulation and Fokker-Planck density of a
+  count series
+  ([`ousim()`](https://rootcoder007.github.io/crimlab/reference/ousim.md),
+  [`fpdens()`](https://rootcoder007.github.io/crimlab/reference/fpdens.md)),
+  Lotka-Volterra rates of a yearly series
+  ([`lvfit()`](https://rootcoder007.github.io/crimlab/reference/lvfit.md))
+  and the correlation of counts per unit between categories
+  ([`catcor()`](https://rootcoder007.github.io/crimlab/reference/catcor.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
 - Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients
   ([`pgsig()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md)),
@@ -28,6 +183,37 @@
   [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md))
   and the concentration index of exposure by income
   ([`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)).
+
+- Describing a table before trusting it: inline histograms
+  ([`inlhist()`](https://rootcoder007.github.io/crimlab/reference/inlhist.md)),
+  frequency tables
+  ([`freqtbl()`](https://rootcoder007.github.io/crimlab/reference/freqtbl.md)),
+  pairwise correlations
+  ([`cortbl()`](https://rootcoder007.github.io/crimlab/reference/cortbl.md),
+  [`topcors()`](https://rootcoder007.github.io/crimlab/reference/topcors.md)),
+  empty and constant rows and columns
+  ([`drpempty()`](https://rootcoder007.github.io/crimlab/reference/drp.md),
+  [`drpconst()`](https://rootcoder007.github.io/crimlab/reference/drp.md)),
+  clean column names
+  ([`clncolnms()`](https://rootcoder007.github.io/crimlab/reference/clncolnms.md)),
+  multivariate outliers
+  ([`mahaoutl()`](https://rootcoder007.github.io/crimlab/reference/mahaoutl.md)),
+  the shape of missingness
+  ([`missruns()`](https://rootcoder007.github.io/crimlab/reference/missruns.md),
+  [`missgrid()`](https://rootcoder007.github.io/crimlab/reference/missgrid.md),
+  [`misspat()`](https://rootcoder007.github.io/crimlab/reference/misspat.md),
+  [`misssmry()`](https://rootcoder007.github.io/crimlab/reference/misssmry.md))
+  and Little’s test of missing completely at random
+  ([`mcartst()`](https://rootcoder007.github.io/crimlab/reference/mcartst.md)),
+  duplicated rows
+  ([`duprows()`](https://rootcoder007.github.io/crimlab/reference/duprows.md)),
+  a column report
+  ([`profcols()`](https://rootcoder007.github.io/crimlab/reference/profcols.md)),
+  candidate distributions fitted by maximum likelihood and ranked by AIC
+  ([`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md))
+  and Cochran’s Q for distinct groups before pooling
+  ([`dstntst()`](https://rootcoder007.github.io/crimlab/reference/dstntst.md)).
+  They are in `clab_jrun()`, the command line and Python.
 
 - One-pass summaries of data larger than memory: moment accumulators
   ([`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md),
@@ -223,6 +409,141 @@
   ([`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)).
   [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of an
   `hwkres` result now returns the quantiles it drew.
+
+- Change tables from
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  (or any table with its columns) can be labelled
+  ([`yoylbl()`](https://rootcoder007.github.io/crimlab/reference/yoylbl.md),
+  [`fylbl()`](https://rootcoder007.github.io/crimlab/reference/yoylbl.md)),
+  summarised
+  ([`yoysmry()`](https://rootcoder007.github.io/crimlab/reference/yoysmry.md))
+  and written: CSV, TSV and JSON with every digit and every code as it
+  is
+  ([`yoycsv()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md),
+  [`yoytsv()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md),
+  [`yoyjs()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md)),
+  Markdown
+  ([`yoymd()`](https://rootcoder007.github.io/crimlab/reference/yoycsv.md)),
+  a self-contained HTML page
+  ([`yoyhtml()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md))
+  and a PDF written by the package itself
+  ([`yoypdf()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md)),
+  the format picked from the file name by
+  [`yoywr()`](https://rootcoder007.github.io/crimlab/reference/yoywr.md).
+
+- The drift battery: the two-sample Kolmogorov-Smirnov test
+  ([`drftks()`](https://rootcoder007.github.io/crimlab/reference/drftks.md)),
+  the population stability index and Jensen-Shannon divergence
+  ([`drftpsi()`](https://rootcoder007.github.io/crimlab/reference/drftpsi.md))
+  and the chi-square tests of a categorical column against a known
+  distribution and of two samples’ homogeneity
+  ([`drftchisq()`](https://rootcoder007.github.io/crimlab/reference/drftchisq.md),
+  [`drfthomog()`](https://rootcoder007.github.io/crimlab/reference/drfthomog.md)),
+  each result keeping its inputs in the attribute `lakner`. They check a
+  new release of a published table against the last one before
+  year-over-year change is computed from it. They are in `clab_jrun()`,
+  the command line and Python (there without the Monte Carlo branch of
+  [`drfthomog()`](https://rootcoder007.github.io/crimlab/reference/drfthomog.md)).
+
+- [`rgnmapintg()`](https://rootcoder007.github.io/crimlab/reference/rgnmapintg.md),
+  [`rgnmapcmp()`](https://rootcoder007.github.io/crimlab/reference/rgnmapcmp.md)
+  and
+  [`rgnmapalt()`](https://rootcoder007.github.io/crimlab/reference/rgnmapalt.md)
+  check a crosswalk from units to regions: each unit once and with a
+  known region, a rebuilt map against the published one, and the map
+  against an assignment by another route with the known disagreements
+  named. They are in `clab_jrun()`, the command line and Python.
+
+- The categorical-integrity checks: codes decoded by an explicit
+  dictionary or by their value labels
+  ([`deccodes()`](https://rootcoder007.github.io/crimlab/reference/grdrcd.md),
+  [`declbld()`](https://rootcoder007.github.io/crimlab/reference/declbld.md)),
+  recodes and relabels by name with every value mapped
+  ([`grdrcd()`](https://rootcoder007.github.io/crimlab/reference/grdrcd.md),
+  [`relbl()`](https://rootcoder007.github.io/crimlab/reference/grdrcd.md)),
+  declared levels
+  ([`grdlvls()`](https://rootcoder007.github.io/crimlab/reference/grdlvls.md)),
+  a 0/1 indicator that refuses a factor
+  ([`grdbin()`](https://rootcoder007.github.io/crimlab/reference/grdbin.md)),
+  a recode proved by its cross-tabulation
+  ([`vrfrcd()`](https://rootcoder007.github.io/crimlab/reference/vrfrcd.md)),
+  counts checked against those a release published, with the label
+  permutation that would explain a mismatch
+  ([`vrfmrg()`](https://rootcoder007.github.io/crimlab/reference/vrfmrg.md)),
+  and a variable checked after it crossed from one program to another
+  ([`xfrvrf()`](https://rootcoder007.github.io/crimlab/reference/xfrvrf.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
+- [`shrs()`](https://rootcoder007.github.io/crimlab/reference/shrs.md)
+  gives each count’s share of a total in percent with Wilson’s score
+  interval, from a vector or from a table summed by groups. It is in
+  `clab_jrun()`, the command line and Python.
+
+- [`toascii()`](https://rootcoder007.github.io/crimlab/reference/toascii.md),
+  [`asciifb()`](https://rootcoder007.github.io/crimlab/reference/asciifb.md)
+  and
+  [`wrtxtfb()`](https://rootcoder007.github.io/crimlab/reference/wrtxtfb.md)
+  transliterate text to plain ASCII by a fixed table, keep valid UTF-8
+  as it is, and write text as UTF-8 bytes whatever the locale. They are
+  in `clab_jrun()`, the command line and Python.
+
+- The summary statistics of the compiled core are exported: the mean,
+  variance, correlation and standard deviation
+  ([`cmn()`](https://rootcoder007.github.io/crimlab/reference/cstat.md),
+  [`cvari()`](https://rootcoder007.github.io/crimlab/reference/cstat.md),
+  [`ccorr()`](https://rootcoder007.github.io/crimlab/reference/cstat.md),
+  [`csdev()`](https://rootcoder007.github.io/crimlab/reference/cspread.md),
+  [`cdistm()`](https://rootcoder007.github.io/crimlab/reference/cspread.md)),
+  the normal density
+  ([`cnormpdf()`](https://rootcoder007.github.io/crimlab/reference/cnorm.md),
+  [`cnormlpdf()`](https://rootcoder007.github.io/crimlab/reference/cnorm.md)),
+  moments
+  ([`cmom()`](https://rootcoder007.github.io/crimlab/reference/cmom.md)),
+  quantiles and robust spread
+  ([`cqnt()`](https://rootcoder007.github.io/crimlab/reference/crob.md),
+  [`cmed()`](https://rootcoder007.github.io/crimlab/reference/crob.md),
+  [`cmad()`](https://rootcoder007.github.io/crimlab/reference/crob.md),
+  [`ciqr()`](https://rootcoder007.github.io/crimlab/reference/crob.md),
+  [`ctkyfnc()`](https://rootcoder007.github.io/crimlab/reference/crob.md)),
+  trimmed and winsorized means
+  ([`ctrmmean()`](https://rootcoder007.github.io/crimlab/reference/ctrm.md),
+  [`cwinsmean()`](https://rootcoder007.github.io/crimlab/reference/ctrm.md)),
+  weighted moments
+  ([`cwtd()`](https://rootcoder007.github.io/crimlab/reference/cwtd.md)),
+  ranks
+  ([`cspr()`](https://rootcoder007.github.io/crimlab/reference/crank.md),
+  [`cmidrk()`](https://rootcoder007.github.io/crimlab/reference/crank.md)),
+  the covariance matrix
+  ([`ccovm()`](https://rootcoder007.github.io/crimlab/reference/ccovm.md)),
+  bootstrap means
+  ([`cbootmean()`](https://rootcoder007.github.io/crimlab/reference/cbootmean.md)),
+  trimmed inverse- probability weights
+  ([`cipw()`](https://rootcoder007.github.io/crimlab/reference/cipw.md)),
+  the incomplete gamma function
+  ([`cgamcdf()`](https://rootcoder007.github.io/crimlab/reference/cgamcdf.md))
+  and splitmix64 uniforms
+  ([`cunif()`](https://rootcoder007.github.io/crimlab/reference/cunif.md)).
+  They are in `clab_jrun()`, the command line and Python.
+
+- [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
+  checks a table against a preset before
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  reads it, and names in one error every column the preset reads
+  (directly, in a filter or in a recipe) that the table lacks, every
+  label outside the codes the publisher lists for its column, and every
+  label a mapping recode without a default does not cover. The codes of
+  the Ontario segregation, restrictive confinement and deaths-in-custody
+  tables are `inst/presets/codes.tsv`, from the ministry’s data
+  dictionary; a preset of one’s own takes its codes as a data frame. The
+  presets describe the layouts of published tables, and crimlab ships
+  none of the tables.
+
+- The OTIS treatment-outcome presets of
+  [`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md)
+  (`otis-a01-cbatt`, `otis-a01n-cbatt`, `otis-pa-cbatt`,
+  `otis-pb-cbatt`, `otis-pc-cbatt`) are tested against rmorie’s pair
+  builders on a simulated placement table, with the values stored in
+  `tests/testthat/ref/preset.txt` by `dev/ref/preset.R`.
 
 - [`mtrbnd()`](https://rootcoder007.github.io/crimlab/reference/mtrbnd.md)
   bounds the mean outcome under each of ordered sentences and the effect

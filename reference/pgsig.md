@@ -35,9 +35,10 @@ environmental justice measures
 [`polbrdarea`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md),
 [`expconcidx`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md)).
 In the second, the environment is a driver of offending and
-victimisation: studies relating air pollution and heat to violent crime
-join an exposure series to crime counts by place and day, and these
-models supply the exposure where no monitor stands.
+victimisation: studies relating air pollution to crime join an exposure
+series to crime counts by place and day (Bondy, Roth and Sager 2020, on
+London wards; Herrnstadt et al. 2019, on Los Angeles), and these models
+supply the exposure where no monitor stands.
 
 ## Usage
 
@@ -284,15 +285,21 @@ with empty cells so the plume of interest stays inside the ring.
 
 ## References
 
-Briggs, G. A. (1973). Diffusion estimation for small emissions. ATDL
-Contribution 79. Briggs, G. A. (1975). Plume rise predictions. American
-Meteorological Society. Turner, D. B. (1970). Workbook of Atmospheric
-Dispersion Estimates. EPA AP-26. Seinfeld, J. H. and Pandis, S. N.
-(2016). Atmospheric Chemistry and Physics, 3rd ed. Thomson, D. J.
-(1987). Criteria for the selection of stochastic models of particle
-trajectories in turbulent flows. Journal of Fluid Mechanics 180,
-529-556. Steele, G. L., Lea, D. and Flood, C. H. (2014). Fast splittable
-pseudorandom number generators. OOPSLA 2014, 453-472.
+Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+contemporaneous relationship between air pollution and crime. Journal of
+the Association of Environmental and Resource Economists 7(3), 555-585.
+[doi:10.1086/707127](https://doi.org/10.1086/707127) . Herrnstadt, E.,
+Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air pollution as a
+cause of violent crime. Working paper. Briggs, G. A. (1973). Diffusion
+estimation for small emissions. ATDL Contribution 79. Briggs, G. A.
+(1975). Plume rise predictions. American Meteorological Society. Turner,
+D. B. (1970). Workbook of Atmospheric Dispersion Estimates. EPA AP-26.
+Seinfeld, J. H. and Pandis, S. N. (2016). Atmospheric Chemistry and
+Physics, 3rd ed. Thomson, D. J. (1987). Criteria for the selection of
+stochastic models of particle trajectories in turbulent flows. Journal
+of Fluid Mechanics 180, 529-556. Steele, G. L., Lea, D. and Flood, C. H.
+(2014). Fast splittable pseudorandom number generators. OOPSLA 2014,
+453-472.
 [doi:10.1145/2660193.2660195](https://doi.org/10.1145/2660193.2660195)
 
 ## Examples
