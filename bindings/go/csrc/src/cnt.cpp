@@ -4,7 +4,9 @@
 // models by iteratively reweighted least squares (the steps of R's glm.fit
 // and of MASS::glm.nb), with model-based and cluster-robust covariances
 // (clab_cntreg), and the Poisson model by generalised estimating equations
-// with an exchangeable working correlation (clab_geeex). No allocation:
+// with an exchangeable working correlation (clab_geeex), and the Poisson
+// pseudo-likelihood with one or two sets of fixed effects absorbed by the
+// within transformation (clab_ppmlfe, after clab_fesep). No allocation:
 // the caller passes the work arrays.
 #include <cfloat>
 #include <cmath>
@@ -13,6 +15,7 @@
 
 #include "crimlab.h"
 #include "kutil.h"
+#include "pev.h"
 
 namespace {
 
@@ -552,6 +555,138 @@ int clab_geeex(const double *y, const double *x, int n, int p, const double *off
   st[1] = phi;
   st[2] = it;
   st[3] = conv;
+  return CLAB_OK;
+}
+
+int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int n2,
+               int *keep, double *work) {
+  if (n < 1 || n1 < 1 || (f2 && n2 < 1)) return -1;
+  double *s1 = work, *s2 = work + n1;
+  for (int a = 0; a < n1; ++a) s1[a] = 0.0;
+  for (int a = 0; a < (f2 ? n2 : 0); ++a) s2[a] = 0.0;
+  for (int i = 0; i < n; ++i) {
+    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return -1;
+    s1[f1[i]] += y[i];
+    if (f2) s2[f2[i]] += y[i];
+  }
+  // dropping rows of groups without counts removes only zeros, so the
+  // other groups' sums do not change: one pass is enough
+  int d = 0;
+  for (int i = 0; i < n; ++i) {
+    keep[i] = s1[f1[i]] > 0 && (!f2 || s2[f2[i]] > 0);
+    d += !keep[i];
+  }
+  return d;
+}
+
+int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *off,
+                const double *w, const int *f1, int n1, const int *f2, int n2,
+                const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
+                double tol, double *beta, double *vc, double *st, double *work, int *iwork) {
+  if (maxit < 1 || !(eps > 0) || !(tol > 0) || n1 < 1 || (f2 && n2 < 1) ||
+      (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2))) {
+    return CLAB_EARG;
+  }
+  if (!chkin(y, x, n, p, off, cl, ncl)) return CLAB_EDOM;
+  double ysum = 0.0, wsum = 0.0;
+  for (int i = 0; i < n; ++i) {
+    const double fw = w ? w[i] : 1.0;
+    if (!(fw > 0) || !std::isfinite(fw)) return CLAB_EDOM;
+    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
+    if (cl2 && (cl2[i] < 0 || cl2[i] >= ncl2)) return CLAB_EARG;
+    ysum += fw * y[i];
+    wsum += fw;
+  }
+  if (!(ysum > 0)) return CLAB_EDOM;
+  const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
+  double *v = work;               // the working response then x, demeaned: n (p + 1)
+  double *z = v + sn * (sp + 1);  // the working response: n
+  double *eta = z + sn, *mu = eta + sn, *wt = mu + sn, *eo = wt + sn, *r = eo + sn;
+  double *xi = r + sn;            // p p
+  double *sc = xi + sp * sp;      // scratch: max(4 (n1 + n2), p p + p, n p + 2 p p)
+  // one effect: pev::within's "period" pass alone, which is exact
+  const int *u1 = f1, *t1 = f2 ? f2 : f1;
+  const int nu1 = n1, nt1 = f2 ? n2 : n1, two = f2 ? 1 : 0;
+  const fam fm{0.0};
+  // the start of ppmlhdfe (Correia, Guimaraes and Zylkin 2020): halfway
+  // between each count and the mean
+  const double ybar = ysum / wsum;
+  double dold = 0.0;
+  for (int i = 0; i < n; ++i) {
+    mu[i] = (y[i] + ybar) / 2;
+    eta[i] = std::log(mu[i]);
+    dold += (w ? w[i] : 1.0) * fm.dev(y[i], mu[i]);
+  }
+  int it = 0, conv = 0, most = 0;
+  double dv = dold;
+  while (it < maxit) {
+    ++it;
+    if (kutil::stop(static_cast<double>(n) * (p + 1) * 4)) return CLAB_EINTR;
+    for (int i = 0; i < n; ++i) {
+      wt[i] = (w ? w[i] : 1.0) * mu[i];
+      z[i] = eta[i] - (off ? off[i] : 0.0) + (y[i] - mu[i]) / mu[i];
+      v[i] = z[i];
+    }
+    for (size_t q = 0; q < sn * sp; ++q) v[sn + q] = x[q];
+    const int sw = pev::within(v, n, p + 1, u1, nu1, t1, nt1, two, wt, tol, 10000, sc);
+    if (sw < 0) return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
+    if (sw > most) most = sw;
+    if (pev::ols(v + sn, v, n, p, wt, beta, xi, r, sc) != CLAB_OK) return CLAB_EDOM;
+    // the fit of z on x and the effects is z - r; the offset goes back in
+    for (int i = 0; i < n; ++i) {
+      eo[i] = eta[i];
+      eta[i] = z[i] - r[i] + (off ? off[i] : 0.0);
+    }
+    double d = 0.0;
+    for (int h = 0; h <= 60; ++h) {
+      d = 0.0;
+      for (int i = 0; i < n; ++i) {
+        mu[i] = inv(eta[i]);
+        d += (w ? w[i] : 1.0) * fm.dev(y[i], mu[i]);
+      }
+      if (std::isfinite(d)) break;
+      for (int i = 0; i < n; ++i) eta[i] = (eta[i] + eo[i]) / 2;
+    }
+    if (!std::isfinite(d)) return CLAB_EDOM;
+    dv = d;
+    if (std::fabs(d - dold) / (std::fabs(d) + 0.1) < eps) {
+      conv = 1;
+      break;
+    }
+    dold = d;
+  }
+  double ll = 0.0;
+  for (int i = 0; i < n; ++i) {
+    ll += (w ? w[i] : 1.0) *
+          ((y[i] > 0 ? y[i] * std::log(mu[i]) : 0.0) - mu[i] - std::lgamma(y[i] + 1));
+  }
+  int g = 0;
+  if (cl) {
+    // the sandwich at the final mu: x demeaned with the final weights,
+    // scores w (y - mu) x~ (r below times wt), as fixest's fepois
+    for (int i = 0; i < n; ++i) {
+      wt[i] = (w ? w[i] : 1.0) * mu[i];
+      r[i] = (y[i] - mu[i]) / mu[i];
+    }
+    for (size_t q = 0; q < sn * sp; ++q) v[sn + q] = x[q];
+    if (pev::within(v + sn, n, p, u1, nu1, t1, nt1, two, wt, tol, 10000, sc) < 0) {
+      return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
+    }
+    // (X~'WX~)^-1 by ols() on any response: eo takes the throwaway fit
+    double *bb = eo, *rr = eta;
+    for (int i = 0; i < n; ++i) z[i] = 0.0;
+    if (pev::ols(v + sn, z, n, p, wt, bb, xi, rr, sc) != CLAB_OK) return CLAB_EDOM;
+    int *c12 = iwork, n12 = 0;
+    if (cl2) n12 = pev::pairs(cl, cl2, n, ncl, ncl2, c12, iwork + sn);
+    // kk = 1: the factor is G / (G - 1) alone (fixest's ssc(K.adj = FALSE))
+    g = pev::crv(v + sn, r, wt, n, p, xi, cl, ncl, cl2, ncl2, c12, n12, 1.0, vc, sc);
+  }
+  st[0] = it;
+  st[1] = conv;
+  st[2] = dv;
+  st[3] = ll;
+  st[4] = g;
+  st[5] = most;
   return CLAB_OK;
 }
 

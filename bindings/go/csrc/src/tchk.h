@@ -197,6 +197,7 @@ void t_ibn(tk &t, int big);
 void t_thr(tk &t, int big);
 void t_sar(tk &t, int big);
 void t_apol(tk &t, int big);
+void t_apx(tk &t, int big);
 void t_skch(tk &t, int big);
 void t_fp(tk &t, int big);
 void t_plr(tk &t, int big);

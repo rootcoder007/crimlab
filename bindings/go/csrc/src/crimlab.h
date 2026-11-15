@@ -1899,6 +1899,135 @@ int clab_geeex(const double *y, const double *x, int n, int p, const double *off
                const int *cl, int ncl, const int *alias, int maxit, double eps,
                double *beta, double *vc, double *st, double *work, int *iwork);
 
+/* Separation by the fixed effects (ppmlfe): a row whose group in f1 (n1
+ * codes) or in f2 (NULL, or n2 codes) has no counts at all is dropped, as
+ * fixest's fepois and Stata's ppmlhdfe drop them: its effect would run
+ * off to minus infinity and it carries nothing for the other
+ * coefficients. Separation by the regressors is not detected. Out:
+ * keep (n), 1 to keep and 0 to drop. Returns the rows dropped, or -1 for a
+ * code out of range. work: n1 + n2 doubles. O(n). */
+int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int n2,
+               int *keep, double *work);
+
+/* Poisson pseudo-maximum likelihood (Santos Silva and Tenreyro 2006,
+ * doi:10.1162/rest.88.4.641) of y (n counts, at least 0, not all 0) on the
+ * p columns of x (n x p, column-major) with the effects f1 (n1 codes) and
+ * f2 (NULL or n2 codes) absorbed, not estimated as columns: each step of
+ * the iteratively reweighted least squares demeans the working response
+ * and x by the effects with weights mu (pev::within, alternating
+ * projections until the means left are below tol of each column's largest
+ * value) and solves weighted least squares, the method of Stata's
+ * ppmlhdfe (Correia, Guimaraes and Zylkin 2020), from mu = (y +
+ * mean y) / 2, until the relative change of the deviance is below eps, at
+ * most maxit steps. off: NULL or n offsets (log exposure); w: NULL or n
+ * positive frequency weights. Run clab_fesep first: a group of zeros
+ * leaves the fit converging slowly towards a boundary. cl: NULL (no
+ * variance; vc not written) or n cluster codes (ncl >= 2); cl2: NULL or a
+ * second set (two-way, Cameron, Gelbach and Miller 2011,
+ * doi:10.1198/jbes.2010.07136): vc (p x p) is (X~'WX~)^-1 (sum_g s_g
+ * s_g') (X~'WX~)^-1 at the final mu, s_g the clusters' sums of w (y - mu)
+ * x~, x~ the demeaned columns, V1 + V2 - V12 for two-way, every term times
+ * G / (G - 1) of G the smaller number of clusters (fixest's ssc(K.adj =
+ * FALSE, G.df = "min")). Out: beta (p); st (6): steps, converged (1 or
+ * 0), deviance, the pseudo log-likelihood, G, the most sweeps of the
+ * within transformation. CLAB_EDOM when a column of x is absorbed by the
+ * effects or the columns are collinear, or the transformation does not
+ * converge in 10000 sweeps. work: n (2 p + 8) + 3 p p + p + 4 (n1 + n2)
+ * doubles; iwork: n + ncl ncl2 ints (two-way only). */
+int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *off,
+                const double *w, const int *f1, int n1, const int *f2, int n2,
+                const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
+                double tol, double *beta, double *vc, double *st, double *work, int *iwork);
+
+/* ------------------------------------------------------------------------
+ * Exposure and crime (src/apx.cpp): estimators of the effect of a daily
+ * exposure (air pollution, heat, noise) on counts by place and day.
+ * ------------------------------------------------------------------------ */
+
+/* Two-stage least squares with the effects f1 (n1 codes) and f2 (NULL or
+ * n2 codes) absorbed: y (n) on the pe endogenous columns xe (n x pe) and
+ * the px exogenous columns xx (n x px), with the q >= pe excluded
+ * instruments zi (n x q); pe = q = 0 is least squares with the effects.
+ * Every column is demeaned by the effects (pev::within, tol), each
+ * endogenous column is regressed on (zi, xx) (the first stages), and y on
+ * the fitted endogenous columns and xx (the second stage). w: NULL or n
+ * positive weights. cl: NULL (no variance: vc and fst not written) or n
+ * cluster codes (vc may then be NULL for fst alone), cl2 NULL or a second set: vc ((pe + px)^2) is the
+ * cluster sandwich on the second-stage design with the structural
+ * residuals y - xe b - xx c, two-way V1 + V2 - V12, each times G / (G - 1)
+ * of G the smaller number of clusters; fst (pe): each first stage's
+ * cluster-robust Wald statistic of its q excluded instruments, divided by
+ * q (NaN when its covariance is singular). Out: beta (pe + px; the
+ * endogenous first); fres: NULL or n x pe, the first stages' residuals
+ * (demeaned); res: NULL or n, the structural residuals (demeaned); st
+ * (3): G (0 without cl), the sweeps of the transformation, the weighted
+ * residual sum of squares. CLAB_EDOM when a column is absorbed by the
+ * effects or the columns of a stage are collinear (an instrument without
+ * variation within the effects, say). */
+int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int px,
+              const double *zi, int q, int n, const double *w, const int *f1, int n1,
+              const int *f2, int n2, const int *cl, int ncl, const int *cl2, int ncl2,
+              double tol, double *beta, double *vc, double *fst, double *fres, double *res,
+              double *st);
+
+/* The control function for a count (ppmlcf): the first stages of
+ * clab_ivfe (each endogenous column on zi and xx with the effects), then
+ * clab_ppmlfe of y on (xe, xx, the first-stage residuals) with the same
+ * effects and offset off (NULL or n). cl: n cluster codes (ncl >= 2), the
+ * units of the bootstrap and of the first-stage statistics fst (pe). bm:
+ * nb x ncl, column-major by draw (draw d at bm[d ncl ..]): how often each
+ * cluster was drawn, made by the caller (R's generator, so set.seed()
+ * reproduces it); each draw refits both stages on the drawn clusters
+ * weighted by those counts (equal to stacking the copies, each copy with
+ * its own effects when the effect is nested in the cluster), after
+ * clab_fesep on the draw. Out: beta (2 pe + px); draw (nb x (2 pe + px),
+ * column-major by coefficient; NaN for a draw that could not be fitted);
+ * st (3): the full fit's steps and convergence, the draws that failed.
+ * The kernel allocates its arrays. */
+int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int px,
+                const double *zi, int q, int n, const double *off, const int *f1, int n1,
+                const int *f2, int n2, const int *cl, int ncl, const int *bm, int nb,
+                int maxit, double eps, double tol, double *beta, double *fst, double *draw,
+                double *st);
+
+/* Wind-direction instruments (windiv): dir, n directions the wind blows
+ * from, degrees clockwise from north; the circle is cut into nb = 360 /
+ * width sectors [start + b width, start + (b + 1) width) (width must
+ * divide 360), sector base (0..nb-1) left out. Without area (NULL, na 1):
+ * out is n x (nb - 1), 1 in the column of the row's sector; with area (n
+ * codes 0..na-1), n x na (nb - 1), area a's sectors in columns a (nb - 1)
+ * on, so a direction may act differently in each area. A row with a
+ * non-finite direction is NaN throughout. */
+int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
+                 int base, double *out);
+
+/* The same unit on another day (plcday): for row i of unit u[i] on day
+ * t[i], idx[i] is the row of unit u[i] on day t[i] + k, or -1. CLAB_EDOM
+ * for a non-finite day or a unit with two rows on one day. ord: n ints of
+ * scratch. O(n log n). */
+int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *ord);
+
+/* Upwind and downwind (updwn): n areas at planar points (ax, ay) with the
+ * day's wind direction wd (blowing from, degrees clockwise from north, y
+ * pointing north); ns sources, segments from (sx0, sy0) to (sx1, sy1) (a
+ * road) or points (sx1 or sy1 NaN). An area is assigned to the one source
+ * within distance band of it (closed; to a segment, the nearest point on
+ * it); dn -2 when none is, -3 when more than one is (both as Herrnstadt et
+ * al. 2021 drop areas near two interstates). For a segment, side is 1 on
+ * its left (looking from the first end to the second) and 0 on its right,
+ * and the area is downwind (dn 1) when the direction the wind blows to is
+ * within tol degrees of the normal of the segment pointing to the area's
+ * side, upwind (0) when within tol of the opposite normal, and -1
+ * otherwise (wind along the road). For a point, side is -1 and the same
+ * rule uses the direction from the source to the area: within tol of
+ * where the wind blows to is downwind, within tol of where it comes from
+ * upwind, otherwise crosswind (-1). dn -4 for an area on the line or at
+ * the point, -5 for a non-finite position or direction. 0 < tol <= 90.
+ * Out: src (n; -1 when none), side, dn. O(n ns). */
+int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
+               const double *sy0, const double *sx1, const double *sy1, int ns, double band,
+               double tol, int *src, int *side, int *dn);
+
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect
  * standardisation.
