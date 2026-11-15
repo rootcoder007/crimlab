@@ -55,7 +55,8 @@ thrtst(
 
 - level:
 
-  The confidence level: one number strictly between 0 and 1.
+  The confidence level of the intervals: one number strictly between 0
+  and 1.
 
 - maxit:
 
