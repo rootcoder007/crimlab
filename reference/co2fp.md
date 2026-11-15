@@ -245,7 +245,7 @@ fp$assumptions
 #> [2] "memory charged: the machine's total 15.6 GB"        
 print(fp)
 #> Computation footprint (modelled)
-#>   Time: 0.004 s wall, 0.003 s CPU; utilisation 0.19 (process) on 4 cores
+#>   Time: 0.004 s wall, 0.004 s CPU; utilisation 0.25 (process) on 4 cores
 #>   Energy: 5.37e-08 kWh (cpu 4.72e-08, memory 6.46e-09)
 #>   CO2e: 4.88e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
 #>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.6 GB
@@ -275,18 +275,18 @@ fp2 <- co2fp(
 )
 fp2$enekwh
 #> $cpu
-#> [1] 6.030556e-08
+#> [1] 4.522917e-08
 #> 
 #> $memory
-#> [1] 1.105911e-08
+#> [1] 8.294333e-09
 #> 
 #> $total
-#> [1] 7.136467e-08
+#> [1] 5.35235e-08
 #> 
 fpeqv(fp2$co2eg)
 #> Footprint in everyday terms
-#>   Car travel: 1.223e-08 km
-#>   Tree uptake: 2.335e-09 tree-months
+#>   Car travel: 9.175e-09 km
+#>   Tree uptake: 1.751e-09 tree-months
 # a graphics card measured at 120 W on average (a simulated reading) and
 # a CPU row, which is not counted twice
 dev <- data.frame(
