@@ -1183,3 +1183,10 @@ SEXP C_clab_r_bufas(SEXP x, SEXP y, SEXP site, SEXP comp, SEXP r, SEXP buf, SEXP
 }
 
 }  // extern "C"
+
+    namespace csp {
+
+    SEXP wts(SEXP w, int n) { return wread(w, n).v; }
+
+    }  // namespace csp
+    

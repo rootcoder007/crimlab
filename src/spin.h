@@ -93,6 +93,11 @@ unsigned int seed(SEXP s);
 // The position of the one string in s among the n options of opt.
 int pick(SEXP s, const char *nm, const char *const *opt, int n);
 
+    // The weights argument w of a spatial function for n units, as wread() of
+    // bspx.cpp reads it (spwt()'s list, an spdep listw, or an n x n matrix):
+    // list(rp, ci, w), the compressed sparse rows, protected on return.
+    SEXP wts(SEXP w, int n);
+    
 // A rectangle c(xmin, xmax, ymin, ymax), finite, with xmin < xmax and
 // ymin < ymax, into w.
 void win(SEXP s, double *w);

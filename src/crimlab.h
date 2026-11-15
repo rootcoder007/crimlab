@@ -3533,6 +3533,104 @@ int clab_spdens(const double *x, const double *y, int n, int ll, double *prob);
 int clab_spsamp(const double *prob, int n, int size, unsigned int seed, int *idx);
 
 
+/* ------------------------------------------------------------------------
+ * Spatial epidemiology (src/sep.cpp). Areas are linked by a weights
+ * structure rp, ci, w (compressed sparse rows, as the spatial weights
+ * kernels; read as the dense matrix A); Q = diag(rowSums(A)) - A.
+ * ------------------------------------------------------------------------ */
+
+/* The Bayes outbreak detector (Riebler 2004; Hoehle 2007): at each of the m
+ * times at[q] (from 1), the reference counts are the w before it (acty)
+ * and the 2 w + 1 around the same time in each of the b years before
+ * (freq per year), missing ones (NaN) left out; with s their sum and c
+ * their number, ub = the 1 - alpha quantile of the negative binomial of
+ * size s + 0.5 and probability c / (c + 1), alarm 1 when x[t] > ub (-1
+ * when x[t] is missing). CLAB_EDOM when a window reaches before time 1 or
+ * holds no count. */
+int clab_bayout(const double *x, int n, int freq, int b, int w, int acty, double alpha, const int *at, int m,
+                double *ub, int *alarm);
+/* Exposure of n receptors to m sources within distance r: cnt (sources
+ * within r), ws (their summed weights w, NULL for 1 each) and near (the
+ * distance to the nearest). ll: longitude and latitude, great-circle
+ * metres (radius 6371008.8); otherwise planar. O(n m). */
+int clab_bufexp(const double *rx, const double *ry, int n, const double *sx, const double *sy, int m, double r,
+                const double *w, int ll, double *cnt, double *ws, double *near);
+/* Kernel exposure: sum_j w_j K(d_ij / h) / h^2 at each receptor, K the
+ * bivariate normal exp(-u^2 / 2) / (2 pi) (kern 0) or the quartic 3 / pi
+ * (1 - u^2)^2 for u < 1 (kern 1). out: n. */
+int clab_kerexp(const double *rx, const double *ry, int n, const double *sx, const double *sy, int m, double h,
+                const double *w, int kern, double *out);
+/* The Leroux precision tau (rho Q + (1 - rho) I), rho in [0, 1] (Leroux,
+ * Lei and Breslow 2000): q, n x n. */
+int clab_lerprc(const int *rp, const int *ci, const double *w, int n, double rho, double tau, double *q);
+/* The BYM2 structure (Riebler et al. 2016): g, the generalised inverse of
+ * Q from its eigenvalues above tol times the largest; scale, the geometric
+ * mean of diag(g); cov, ((1 - phi) I + phi g / scale) / tau. CLAB_EDOM
+ * when a diagonal element of g is not positive (an area without
+ * neighbours). O(n^3). */
+int clab_bym2(const int *rp, const int *ci, const double *w, int n, double tau, double phi, double tol,
+              double *scale, double *g, double *cov);
+/* Ecological regression of counts y on the p columns of x (an intercept
+ * added) with offset log(e): fam 0 Poisson (IRLS), 1 negative binomial
+ * (theta by Newton steps on its score between IRLS fits, maxit rounds), 2
+ * zero-inflated Poisson (Lambert 1992; EM over maxit * 20 rounds, the zero
+ * part on the q columns of z with an intercept). tol: the convergence of
+ * theta and of the zero-inflated log-likelihood. Out: coef (p + 1), zcoef
+ * (q + 1, fam 2), theta (fam 1, NaN otherwise), fit (n fitted means of the
+ * count part) and ll (the log-likelihood). */
+int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p, int fam, const double *z, int q,
+                double tol, int maxit, double *coef, double *zcoef, double *theta, double *fit, double *ll);
+/* The spatial encoding of Graphormer (Ying et al. 2021): each hop distance
+ * d (nr x nc, -1 for unreachable) becomes b[min(d, nb - 1)], unreachable
+ * pairs ub. out: nr x nc. */
+int clab_spbias(const int *d, int nr, int nc, const double *b, int nb, double ub, double *out);
+/* The metapopulation SIR model (Keeling and Rohani 2008, sec. 7.3) of n
+ * patches of populations pop, i0 infected at first, force of infection on
+ * patch i beta sum_j C_ij I_j / N_j with C = (1 - kappa) I + kappa times
+ * the row-standardised weights (rp NULL: isolated patches), recovery
+ * gamma; classical fourth-order Runge-Kutta, steps of dt. Out: S, I, R,
+ * (steps + 1) x n each (row k at time k dt). */
+int clab_spsir(const double *i0, int n, const double *pop, const int *rp, const int *ci, const double *w, double beta,
+               double gamma, double kappa, double dt, int steps, double *S, double *I, double *R);
+/* Weibull proportional hazards with intrinsic CAR log-frailties of the nr
+ * areas (Banerjee, Wall and Carlin 2003) by penalised likelihood, penalty
+ * tau u'Qu / 2: t > 0 times, d 0/1 events, x n x p covariates, reg area of
+ * each subject (0 to nr - 1). Newton-Raphson from 0 on the analytic
+ * gradient with a central-difference Hessian (steps halved while the
+ * objective falls), until a step is below tol or 200 iterations. Out: th
+ * (1 + p + nr: the shape, the coefficients, the frailties), se (their
+ * standard errors from the last Hessian, the first on the log shape; NaN
+ * where the variance is not positive), f (the penalised log-likelihood),
+ * iters. */
+int clab_sfrail(const double *t, const double *d, int n, const double *x, int p, const int *reg, const int *rp,
+                const int *ci, const double *w, int nr, double tau, double tol, double *th, double *se, double *f,
+                int *iters);
+/* The promotion-time cure model (Chen, Ibrahim and Sinha 1999) with
+ * Weibull promotion times G = exp(c + rho log t) and intrinsic CAR area
+ * effects, fitted as clab_sfrail. Out: th (2 + p + nr: the shape, the log
+ * scale c, the coefficients, the area effects), se, f, cure (n: each
+ * subject's cure fraction exp(-exp(x b + u))), iters. */
+int clab_sfcure(const double *t, const double *d, int n, const double *x, int p, const int *reg, const int *rp,
+                const int *ci, const double *w, int nr, double tau, double tol, double *th, double *se, double *f,
+                double *cure, int *iters);
+/* Eigenvector spatial filtering (Griffith 2003; Tiefelsdorf and Griffith
+ * 2007): the Moran eigenvectors of the weights (the eigenvectors of (A +
+ * A') / 2 in the Helmert basis orthogonal to the constant, each signed so
+ * that its first entry above 1e-12 in size is positive; mi, n - 1 values,
+ * their Moran's I n / S0 lambda) are added by forward selection to the
+ * regression of y on an intercept and x (n x p), among the candidates
+ * cand (0 those with Moran's I above -1 / (n - 1), 1 below, 2 all), by
+ * crit: 0 the smallest absolute residual Moran's I, until it is below tol;
+ * 1 AIC, 2 the leave-one-out prediction error, while they fall; 3 the
+ * R-squared, while it rises by tol or more. At most maxv (< 0: all) and n
+ * - p - 3 vectors. Out: sel (nsel eigenvector numbers from 1, in order of
+ * selection), coef (p + 1 + nsel), st (4: the residual Moran's I, AIC,
+ * R-squared, its gain over no filter), res (n residuals), mi. O(n^3) per
+ * candidate fit. */
+int clab_evfilt(const double *y, int n, const double *x, int p, const int *rp, const int *ci, const double *w,
+                int crit, int cand, double tol, int maxv, int *sel, int *nsel, double *coef, double *st,
+                double *res, double *mi);
+
 #ifdef __cplusplus
 }
 #endif

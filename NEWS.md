@@ -1,5 +1,15 @@
 # crimlab 0.0.0.9000
 
+* Spatial epidemiology and surveillance: Bayes outbreak detection
+  (`bayout()`), exposure within a buffer and by kernel (`bufexp()`,
+  `kerexp()`), the Leroux and BYM2 area structures (`lerprc()`,
+  `bym2sc()`), ecological Poisson, negative binomial and zero-inflated
+  regression with expected counts (`ecolrg()`), eigenvector spatial
+  filtering (`evfilt()`), the metapopulation SIR model (`spsir()`), Weibull
+  frailty and promotion-time cure models with CAR area effects (`sfrail()`,
+  `sfcure()`) and the spatial encoding of graph attention (`spbias()`).
+  They are in `clab_jrun()`, the command line and Python.
+
 * Geostatistics on planar coordinates: the empirical semivariogram
   (`vgemp()`), variogram models fitted by maximum likelihood (`vgfit()`),
   ordinary kriging (`okrge()`), block kriging (`bkrig()`) and its

@@ -532,6 +532,18 @@ SEXP C_clab_r_lnkpr(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_prohs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The weighted displacement quotient (bwdq.cpp).
 SEXP C_clab_r_wdqx(SEXP, SEXP, SEXP);
+// Spatial epidemiology (bsep.cpp).
+SEXP C_clab_r_bayout(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bufexp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_kerexp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lerprc(SEXP, SEXP, SEXP);
+SEXP C_clab_r_bym2sc(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ecolrg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_spbias(SEXP, SEXP, SEXP);
+SEXP C_clab_r_spsir(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sfrail(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sfcure(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_evfilt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Geostatistics (bkrg.cpp).
 SEXP C_clab_r_vgemp(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_vgfit(SEXP, SEXP, SEXP, SEXP);
@@ -839,6 +851,17 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_lnkpr", fn<&C_clab_r_lnkpr>(), 5},
     {"C_clab_r_prohs", fn<&C_clab_r_prohs>(), 11},
     {"C_clab_r_wdqx", fn<&C_clab_r_wdqx>(), 3},
+    {"C_clab_r_bayout", fn<&C_clab_r_bayout>(), 7},
+    {"C_clab_r_bufexp", fn<&C_clab_r_bufexp>(), 6},
+    {"C_clab_r_kerexp", fn<&C_clab_r_kerexp>(), 6},
+    {"C_clab_r_lerprc", fn<&C_clab_r_lerprc>(), 3},
+    {"C_clab_r_bym2sc", fn<&C_clab_r_bym2sc>(), 4},
+    {"C_clab_r_ecolrg", fn<&C_clab_r_ecolrg>(), 7},
+    {"C_clab_r_spbias", fn<&C_clab_r_spbias>(), 3},
+    {"C_clab_r_spsir", fn<&C_clab_r_spsir>(), 8},
+    {"C_clab_r_sfrail", fn<&C_clab_r_sfrail>(), 7},
+    {"C_clab_r_sfcure", fn<&C_clab_r_sfcure>(), 7},
+    {"C_clab_r_evfilt", fn<&C_clab_r_evfilt>(), 7},
     {"C_clab_r_vgemp", fn<&C_clab_r_vgemp>(), 5},
     {"C_clab_r_vgfit", fn<&C_clab_r_vgfit>(), 4},
     {"C_clab_r_okrge", fn<&C_clab_r_okrge>(), 5},

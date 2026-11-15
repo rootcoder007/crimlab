@@ -461,3 +461,20 @@ reference:
       - crsof
       - lfspec
       - spsamp
+  - title: Spatial epidemiology
+    desc: Outbreak detection, exposure assessment, area structures,
+      ecological regression, eigenvector filtering, the metapopulation SIR
+      model, spatial frailty and cure models, and the spatial bias of graph
+      attention.
+    contents:
+      - bayout
+      - bufexp
+      - kerexp
+      - lerprc
+      - bym2sc
+      - ecolrg
+      - evfilt
+      - spsir
+      - sfrail
+      - sfcure
+      - spbias

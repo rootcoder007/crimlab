@@ -185,6 +185,7 @@ void t_spc(tk &t, int big);
 void t_lnk(tk &t, int big);
 void t_prh(tk &t, int big);
 void t_wdq(tk &t, int big);
+void t_sep(tk &t, int big);
 void t_krg(tk &t, int big);
 void t_rpv(tk &t, int big);
 void t_lnr(tk &t, int big);

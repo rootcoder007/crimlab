@@ -164,3 +164,16 @@ krg,oth/ml,equal,1e-2,test-krg.R
 krg,oth/glm,equal,1e-3,test-krg.R
 krg,oth/reml,equal,1e-2,test-krg.R
 krg,oth/sf,equal,1e-10,test-krg.R
+sep,rm,equal,1e-12,test-sep.R
+sep,rm/inp,equal,1e-12,test-sep.R
+sep,rm/fr,equal,1e-6,test-sep.R
+sep,rm/cr,equal,1e-6,test-sep.R
+sep,rm/nb,equal,1e-10,test-sep.R
+sep,rm/zip,equal,1e-10,test-sep.R
+sep,oth,equal,1e-10,test-sep.R
+sep,oth/nb,equal,1e-6,test-sep.R
+sep,oth/theta,equal,1e-5,test-sep.R
+sep,oth/zip,equal,1e-5,test-sep.R
+sep,oth/weib,equal,1e-7,test-sep.R
+sep,oth/fr1,equal,1e-9,test-sep.R
+sep,oth/near,equal,1e-9,test-sep.R
