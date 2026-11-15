@@ -52,7 +52,7 @@
 #'   \code{(data, outcome, treatment, covariates)} returning a list with
 #'   \code{ate} and \code{se} (and optionally \code{method}).
 #' @param x A result of \code{exprspplr()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{exprspplr} with \code{ate} (the
 #'   full-sample estimate), \code{seana} (the estimator's standard error),
 #'   \code{seboot} (the standard deviation of the replicates), \code{cilobs}
@@ -105,79 +105,15 @@ exprspplr <- function(
   .colnm(y, "y", f)
   .colnm(expo, "expo", f)
   .colnm(confs, "confs", f, several = TRUE)
-  if (is.character(estr) && length(estr) == 1L && !is.na(estr)) {
-    nm <- estr
-    estr <- tryCatch(match.fun(estr), error = function(e) {
-      .ckstop(f, "`estr` names no function: \"%s\"", nm)
-    })
-  }
-  if (!is.null(estr) && !is.function(estr)) {
-    .ckstop(
-      f,
-      "`estr` must be a function (one like the built-in estimator), or NULL"
-    )
-  }
+  estr <- .esfun(estr, f)
   rstate <- .ckseed(rstate, "rstate", f)
-  nboot <- .polsc(nboot, "nboot", f)
-  if (nboot != round(nboot) || nboot > 1e6) {
-    .ckstop(f, "`nboot` must be a whole number of resamples, at most 1000000")
-  }
-  nboot <- as.integer(nboot)
-  n <- nrow(data)
-  if (is.null(estr)) {
-    r <- .plrfit(data, y, expo, confs, nboot, rstate, f)
-    base <- r$base
-    boot <- r$boot
+  nboot <- .esnb(nboot, f)
+  r <- if (is.null(estr)) {
+    .plrfit(data, y, expo, confs, nboot, rstate, f)
   } else {
-    base <- tryCatch(estr(data, y, expo, confs), error = function(e) {
-      .ckstop(
-        f,
-        paste(
-          "`estr` failed on the full sample, called as",
-          "estr(data, y, expo, confs): %s"
-        ),
-        sub("\\.$", "", conditionMessage(e))
-      )
-    })
-    boot <- .clseed(rstate, {
-      out <- numeric(0)
-      for (b in seq_len(nboot)) {
-        idx <- sample.int(n, n, replace = TRUE)
-        rb <- tryCatch(
-          estr(data[idx, , drop = FALSE], y, expo, confs),
-          error = function(e) NULL
-        )
-        if (!is.null(rb)) out <- c(out, as.numeric(rb$ate))
-      }
-      out
-    })
+    .esuser(data, y, expo, confs, nboot, rstate, estr, f)
   }
-  if (length(boot) < 10L) {
-    .ckstop(
-      f,
-      paste0(
-        "Only %d successful bootstrap fits; need >=10. Inspect the ",
-        "model's convergence on your resamples"
-      ),
-      length(boot)
-    )
-  }
-  s <- .Call(C_clab_r_bootci, as.numeric(boot), c(0.025, 0.975))
-  structure(
-    list(
-      ate = as.numeric(base$ate),
-      seana = as.numeric(base$se),
-      seboot = s[1L],
-      cilobs = s[2L],
-      ciupbs = s[3L],
-      nboot = length(boot),
-      method = paste0(
-        if (is.null(base$method)) "exposure-response" else base$method,
-        " + percentile bootstrap"
-      )
-    ),
-    class = c("exprspplr", "list")
-  )
+  .esout(r$base, r$boot, f)
 }
 
 #' @rdname exprspplr
@@ -199,47 +135,15 @@ print.exprspplr <- function(x, ...) {
 # The built-in estimator on the full sample and the resamples: the rows and
 # folds drawn here with R's generator, the fits in the core.
 .plrfit <- function(data, y, expo, confs, nboot, rstate, fn) {
-  cols <- c(y, expo, confs)
-  miss <- setdiff(cols, names(data))
-  if (length(miss)) {
-    .ckstop(fn, "data is missing columns: %s", toString(miss))
-  }
-  keep <- stats::complete.cases(data[, cols, drop = FALSE])
-  for (cl in cols) {
-    if (!is.numeric(data[[cl]][keep])) {
-      .ckstop(
-        fn,
-        paste0(
-          "column `%s` must be numeric (a factor or character column is ",
-          "not a code)"
-        ),
-        cl
-      )
-    }
-  }
+  keep <- .plrkeep(data, c(y, expo, confs), fn)
   n <- nrow(data)
-  if (sum(keep) < 10L) {
-    .ckstop(
-      fn,
-      "need at least 10 complete rows for 5 folds; have %d",
-      sum(keep)
-    )
-  }
   yv <- as.numeric(data[[y]])
   dv <- as.numeric(data[[expo]])
   xm <- matrix(
     as.numeric(unlist(data[confs], use.names = FALSE)),
     nrow = n
   )
-  # the folds plrcf() draws: seed 1 for every fit, so one set per size
-  fd <- new.env(parent = emptyenv())
-  folds <- function(m) {
-    k <- as.character(m)
-    if (is.null(fd[[k]])) {
-      fd[[k]] <- .clseed(1L, sample(rep_len(seq_len(5L), m)))
-    }
-    fd[[k]]
-  }
+  folds <- .plrfolds()
   rows0 <- which(keep)
   idx <- .clseed(rstate, lapply(seq_len(nboot), function(b) {
     sample.int(n, n, replace = TRUE)
@@ -270,4 +174,129 @@ print.exprspplr <- function(x, ...) {
     ),
     boot = est[!is.na(est)]
   )
+}
+
+# exprspplr(): `estr` as a function (a name looked up), or NULL
+.esfun <- function(estr, f) {
+  if (is.character(estr) && length(estr) == 1L && !is.na(estr)) {
+    nm <- estr
+    estr <- tryCatch(match.fun(estr), error = function(e) {
+      .ckstop(f, "`estr` names no function: \"%s\"", nm)
+    })
+  }
+  if (!is.null(estr) && !is.function(estr)) {
+    .ckstop(
+      f,
+      "`estr` must be a function (one like the built-in estimator), or NULL"
+    )
+  }
+  estr
+}
+
+.esnb <- function(nboot, f) {
+  nboot <- .polsc(nboot, "nboot", f)
+  if (nboot != round(nboot) || nboot > 1e6) {
+    .ckstop(f, "`nboot` must be a whole number of resamples, at most 1000000")
+  }
+  as.integer(nboot)
+}
+
+# exprspplr(): the caller's estimator on the full sample and the resamples
+# (a resample it fails on is left out)
+.esuser <- function(data, y, expo, confs, nboot, rstate, estr, f) {
+  n <- nrow(data)
+  base <- tryCatch(estr(data, y, expo, confs), error = function(e) {
+    .ckstop(
+      f,
+      paste(
+        "`estr` failed on the full sample, called as",
+        "estr(data, y, expo, confs): %s"
+      ),
+      sub("\\.$", "", conditionMessage(e))
+    )
+  })
+  boot <- .clseed(rstate, {
+    out <- numeric(0)
+    for (b in seq_len(nboot)) {
+      idx <- sample.int(n, n, replace = TRUE)
+      rb <- tryCatch(
+        estr(data[idx, , drop = FALSE], y, expo, confs),
+        error = function(e) NULL
+      )
+      if (!is.null(rb)) out <- c(out, as.numeric(rb$ate))
+    }
+    out
+  })
+  list(base = base, boot = boot)
+}
+
+# exprspplr(): the result from the estimate and its resampled estimates
+.esout <- function(base, boot, f) {
+  if (length(boot) < 10L) {
+    .ckstop(
+      f,
+      paste0(
+        "Only %d successful bootstrap fits; need >=10. Inspect the ",
+        "model's convergence on your resamples"
+      ),
+      length(boot)
+    )
+  }
+  s <- .Call(C_clab_r_bootci, as.numeric(boot), c(0.025, 0.975))
+  structure(
+    list(
+      ate = as.numeric(base$ate),
+      seana = as.numeric(base$se),
+      seboot = s[1L],
+      cilobs = s[2L],
+      ciupbs = s[3L],
+      nboot = length(boot),
+      method = paste0(
+        if (is.null(base$method)) "exposure-response" else base$method,
+        " + percentile bootstrap"
+      )
+    ),
+    class = c("exprspplr", "list")
+  )
+}
+
+# .plrfit(): the complete rows of the columns, each column checked
+.plrkeep <- function(data, cols, fn) {
+  miss <- setdiff(cols, names(data))
+  if (length(miss)) {
+    .ckstop(fn, "data is missing columns: %s", toString(miss))
+  }
+  keep <- stats::complete.cases(data[, cols, drop = FALSE])
+  for (cl in cols) {
+    if (!is.numeric(data[[cl]][keep])) {
+      .ckstop(
+        fn,
+        paste0(
+          "column `%s` must be numeric (a factor or character column is ",
+          "not a code)"
+        ),
+        cl
+      )
+    }
+  }
+  if (sum(keep) < 10L) {
+    .ckstop(
+      fn,
+      "need at least 10 complete rows for 5 folds; have %d",
+      sum(keep)
+    )
+  }
+  keep
+}
+
+# the folds plrcf() draws: seed 1 for every fit, so one set per size
+.plrfolds <- function() {
+  fd <- new.env(parent = emptyenv())
+  function(m) {
+    k <- as.character(m)
+    if (is.null(fd[[k]])) {
+      fd[[k]] <- .clseed(1L, sample(rep_len(seq_len(5L), m)))
+    }
+    fd[[k]]
+  }
 }
