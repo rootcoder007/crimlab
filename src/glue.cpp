@@ -18,6 +18,11 @@
 #include <R.h>
 #include <Rinternals.h>
 
+#include <cstdio>
+#include <exception>
+#include <new>
+#include <stdexcept>
+
 #include "crimlab.h"
 #include "rchk.h"
 
@@ -27,7 +32,15 @@ void rchk1(void *) { R_CheckUserInterrupt(); }
 int rintr() { return R_ToplevelExec(rchk1, nullptr) ? 0 : 1; }
 int yes() { return 1; }
 
-// An entry point F wrapped as above.
+// What a C++ exception that reached an entry point said: copied here, a
+// plain buffer, so that the error is raised after the try has unwound.
+char xmsg[256];
+
+// An entry point F wrapped as above. No C++ exception crosses into R: a
+// failed allocation (std::bad_alloc, or std::length_error for a vector
+// past its largest size) and any other std::exception are caught here and
+// raised, once the binding's frames are gone, as an ordinary error named
+// after the function (clab::who).
 template <auto F>
 struct Safe;
 template <class... A, SEXP (*F)(A...)>
@@ -35,14 +48,25 @@ struct Safe<F> {
   static SEXP call(A... a) {
     clab_intrd(1);
     bool stop = false;
+    const char *bad = nullptr;
     SEXP r = R_NilValue;
     try {
       r = F(a...);
     } catch (const clab::Intr &) {
       stop = true;
+    } catch (const std::bad_alloc &) {
+      bad = "not enough memory for this size.";
+    } catch (const std::length_error &) {
+      bad = "not enough memory for this size.";
+    } catch (const std::exception &e) {
+      std::snprintf(xmsg, sizeof xmsg, "%s", e.what());
+      bad = xmsg;
+    } catch (...) {
+      bad = "an unexpected internal error.";
     }
     const bool hit = clab_intrd(1) != 0 || stop;
     if (hit) Rf_onintr();  // returns only while R holds interrupts back
+    if (bad != nullptr) Rf_errorcall(R_NilValue, "%s: %s", clab::who, bad);
     return hit ? R_NilValue : r;
   }
 };
