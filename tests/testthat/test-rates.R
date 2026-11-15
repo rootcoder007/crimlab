@@ -383,3 +383,10 @@ test_that("grprr() reproduces use-of-force and SIU rates", {
   t <- portref("tpsuof")
   expect_equal(grprr(t$n, 250)$rates$rate, t$rate, tolerance = 1e-15)
 })
+
+test_that("sirex() checks `level` before reading it", {
+  # an empty level was read past its end, and crashed R
+  expect_error(sirex(c(10, 10), c(1000, 1000), c(1, 1), c("a", "b"),
+                     level = numeric(0)),
+               "sirex: `level` must be", fixed = TRUE)
+})

@@ -722,9 +722,9 @@ SEXP C_clab_r_sirex(SEXP x, SEXP n, SEXP strat, SEXP grp, SEXP rates, SEXP level
   np += 4;
   std::vector<double> sr;
   if (!Rf_isNull(rates)) sr = perstr(rates, "rates", s.lev, s.g);
+  (void)zq(level);  // checked before its value is read
   const double a = 1 - REAL_RO(PROTECT(clab::dbl(level)))[0];
   ++np;
-  (void)zq(level);
   const int k = g.g;
   const std::size_t sk = static_cast<std::size_t>(k);
   std::vector<double> o(5 * sk), wk(2 * static_cast<std::size_t>(s.g));

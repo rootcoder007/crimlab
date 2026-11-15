@@ -823,6 +823,8 @@
   from; an object of that class with a column missing crashed R.
 * `tpdmc()` refuses more than 2^26 `steps` before it makes the path; the
   command line gives the same message.
+* `sirex()` checks `level` before it reads it; an empty `level` was read
+  past its end and crashed R.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as
