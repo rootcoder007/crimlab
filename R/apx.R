@@ -1236,28 +1236,17 @@ windiv <- function(
 invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
   f <- "invsn"
   sign <- match.arg(sign)
-  if (!is.numeric(tlow) || !is.numeric(tup) || length(tlow) != length(tup) ||
-        !length(tlow)) {
-    .ckstop(f, "`tlow` and `tup` must be numeric vectors of one length")
-  }
+  .axinck(tlow, tup, f)
   up <- as.numeric(tup) - as.numeric(tlow)
   r <- data.frame(
     diff = if (sign == "upper") up else -up,
     inv = as.integer(up > 0)
   )
   if (!is.null(brk)) {
-    if (!is.numeric(brk) || length(brk) < 2L || anyNA(brk) ||
-          is.unsorted(brk, strictly = TRUE)) {
-      .ckstop(f, "`brk` must be two or more increasing numbers")
-    }
+    .axinbrk(brk, f)
     r$bin <- cut(r$diff, brk)
   }
-  ok <- is.finite(up)
-  attr(r, "diag") <- data.frame(
-    n = sum(ok), zero = if (any(ok)) mean(up[ok] <= 0) else NA_real_,
-    min = if (any(ok)) min(r$diff[ok]) else NA_real_,
-    max = if (any(ok)) max(r$diff[ok]) else NA_real_
-  )
+  attr(r, "diag") <- .axindg(up, r$diff)
   r
 }
 
@@ -3196,4 +3185,34 @@ summary.expjn <- function(object, ...) {
     )
   }
   v
+}
+
+# The check of invsn()'s temperatures.
+.axinck <- function(tlow, tup, f) {
+  if (!is.numeric(tlow) || !is.numeric(tup) || length(tlow) != length(tup) ||
+        !length(tlow)) {
+    .ckstop(f, "`tlow` and `tup` must be numeric vectors of one length")
+  }
+  invisible(NULL)
+}
+
+# The check of invsn()'s breaks.
+.axinbrk <- function(brk, f) {
+  if (!is.numeric(brk) || length(brk) < 2L || anyNA(brk) ||
+        is.unsorted(brk, strictly = TRUE)) {
+    .ckstop(f, "`brk` must be two or more increasing numbers")
+  }
+  invisible(NULL)
+}
+
+# The "diag" attribute of invsn(): the rows with both temperatures, the
+# share of them without an inversion and the support of the difference
+# dv.
+.axindg <- function(up, dv) {
+  ok <- is.finite(up)
+  data.frame(
+    n = sum(ok), zero = if (any(ok)) mean(up[ok] <= 0) else NA_real_,
+    min = if (any(ok)) min(dv[ok]) else NA_real_,
+    max = if (any(ok)) max(dv[ok]) else NA_real_
+  )
 }
