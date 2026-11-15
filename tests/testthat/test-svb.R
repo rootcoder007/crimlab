@@ -323,3 +323,123 @@ test_that("dynirt() recovers paths; -1/1 votes and bad periods", {
   expect_error(dynirt(V, 1:2), "one period per roll call")
   expect_error(dynirt(V * 3, period), "0/1")
 })
+
+test_that("cjrirt() from its own EM start is the default chain", {
+  set.seed(4)
+  v <- matrix(rbinom(80, 1, plogis(outer(rnorm(8), rnorm(10)) * 3)), 8)
+  v[2, 3] <- NA
+  # the default start is irtem() with its defaults
+  a <- cjrirt(v, 1, 10, 5, seed = 3)
+  b <- cjrirt(v, 1, 10, 5, seed = 3, start = irtem(v)$ideal)
+  expect_identical(b$ideal, a$ideal)
+  expect_identical(b$beta, a$beta)
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(cjrirt(v, 1, 10, 5, start = 1:3),
+     "cjrirt: `start` must hold 8 ideal points.")
+  ef(cjrirt(v, 1, 10, 5, start = "a"),
+     "cjrirt: `start` must be a numeric matrix.")
+  ef(cjrirt(v, chains = NA), "cjrirt: `chains` must be TRUE or FALSE.")
+  # a flat prior on the roll-call parameters and identical ideal points:
+  # the intercept and the slope cannot be told apart
+  ef(cjrirt(v, 1, 10, 5, bvar = Inf, start = rep(0, 8)),
+     paste("cjrirt: the conditional covariance of the roll-call parameters",
+          "is not positive definite."))
+  # ideal points at +-60 put the votes against them 30 standard
+  # deviations into the tail: the truncated draws stay finite
+  st <- ifelse(rowMeans(v, na.rm = TRUE) > 0.5, 60, -60)
+  st[1] <- -st[1]
+  x <- cjrirt(v, 1, 20, 0, start = st, seed = 1)
+  expect_true(all(is.finite(x$xchain)))
+  expect_true(all(is.finite(x$alpha)) && all(is.finite(x$beta)))
+})
+
+test_that("bamscl() puts the polarity stimulus on the left", {
+  set.seed(2)
+  tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
+  Z <- t(sapply(1:12, function(i) {
+    4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
+  }))
+  # the fifth stimulus is the rightmost: as the polarity it is flipped
+  # to the left, and the order of the others with it
+  r <- bamscl(Z, 10, 10, polarity = 5)
+  expect_lt(r$zeta[5], 0)
+  expect_identical(order(r$zeta), 5:1)
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(bamscl(Z, 1), "bamscl: `nsamp` must be one whole number of at least 2.")
+  ef(bamscl(Z, polarity = 6),
+     "bamscl: `polarity` must be a column of `Z`, at most 5.")
+})
+
+test_that("the dimensions of the samplers are checked", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  set.seed(7)
+  D <- as.matrix(dist(matrix(rnorm(12), 6)))
+  ef(bmdsf(D, 0), "bmdsf: `ndim` must be one whole number of at least 1.")
+  ef(bmdsf(D, 6), "bmdsf: `ndim` must be below the number of objects, 6.")
+  ef(bunfld(D, 0), "bunfld: `ndim` must be one whole number of at least 1.")
+  ef(bunfld(D[, 1:3], 4),
+     "bunfld: `ndim` must be at most 3, the smaller dimension of `D`.")
+  Y <- matrix(sample(1:3, 60, TRUE), 20)
+  ef(ordirt(Y, 0), "ordirt: `ndim` must be one whole number of at least 1.")
+  ef(ordirt(Y, 4),
+     "ordirt: `ndim` must be at most 3, the smaller dimension of `Y`.")
+  # two dimensions: the draws are rotated onto the first, which is kept
+  o2 <- ordirt(Y, ndim = 2, nsamp = 5, burn = 2)
+  expect_identical(dim(o2$ideal), c(20L, 2L))
+  # an item two respondents answered, with no prior on its intercept and
+  # two loadings: three coefficients from two answers
+  Y[3:20, 1] <- NA
+  Y[1:2, 1] <- 1:2
+  ef(ordirt(Y, ndim = 2, nsamp = 5, burn = 2),
+     paste("ordirt: the conditional covariance of an item's loadings is not",
+           "positive definite."))
+})
+
+test_that("anomin() refuses polarities and too few roll calls", {
+  set.seed(4)
+  x <- seq(-1, 1, length.out = 20)
+  V <- outer(x, runif(40, -0.7, 0.7), ">") * 1
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(anomin(V, polarity = "a", minvotes = 10),
+     "anomin: `polarity` must be a numeric vector.")
+  ef(anomin(V, ndim = 2, polarity = 1:3, minvotes = 10),
+     "anomin: `polarity` must give one legislator per dimension, 2.")
+  # two roll calls cannot place legislators in three dimensions
+  ef(anomin(V[, c(10, 30)], ndim = 3, minvotes = 1, polarity = 20),
+     "anomin: the cross-product of the coordinates is singular.")
+})
+
+test_that("dynirt() anchors, and refuses what it cannot fit", {
+  set.seed(7)
+  period <- rep(1:3, each = 15)
+  walk <- function(s) s + cumsum(c(0, rnorm(2, 0, 0.3)))
+  truth <- t(sapply(rnorm(12), walk))
+  p <- pnorm(-rep(rnorm(45, 0, 0.5), each = 12) +
+    rep(rnorm(45, 1.5, 0.5), each = 12) * truth[, period])
+  V <- matrix(rbinom(length(p), 1, p), 12)
+  # anchored at the legislator furthest to the left: the anchor's mean is
+  # made positive, so the paths come out reversed
+  lo <- which.min(rowMeans(truth))
+  f <- dynirt(V, period, nsamp = 100, burn = 50, anchor = lo)
+  expect_gt(mean(f$theta[lo, ]), 0)
+  expect_lt(cor(as.numeric(f$theta), as.numeric(truth)), -0.8)
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(dynirt(V, c(1, NA, period[-(1:2)]), nsamp = 5, burn = 2),
+     "dynirt: `period` must not be NA.")
+  ef(dynirt(V, period, nsamp = 5, burn = 2, anchor = 13),
+     "dynirt: `anchor` must be a row of `votes`, at most 12.")
+  ef(dynirt(V, period, nsamp = 5, burn = 2, anchor = "a"),
+     "dynirt: `anchor` must be one whole number of at least 1.")
+  # one legislator and flat priors: an intercept and a slope from one
+  # ideal point per period
+  ef(dynirt(V[1, , drop = FALSE], period, nsamp = 5, burn = 2, A0 = 0,
+            B0 = 0),
+     paste("dynirt: the conditional covariance of a roll call's parameters",
+           "is not positive definite."))
+  # every legislator votes alike: no first principal component to start
+  # from, so every start is 0
+  same <- matrix(V[1, ], 12, 45, byrow = TRUE)
+  g <- dynirt(same, period, nsamp = 5, burn = 2)
+  expect_identical(dim(g$theta), c(12L, 3L))
+  expect_true(all(is.finite(g$theta)))
+})
