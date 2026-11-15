@@ -92,3 +92,13 @@ test_that("drfthomog() equals rmoriebricklayer on each branch", {
   expect_error(drfthomog(c(a = 3, b = 1), c(a = 1, b = 4), seed = 0.5),
                "one whole number")
 })
+
+test_that("a Monte Carlo test leaves no seed where there was none", {
+  had <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  old <- if (had) get(".Random.seed", envir = globalenv())
+  on.exit(if (had) assign(".Random.seed", old, envir = globalenv()),
+          add = TRUE)
+  if (had) rm(".Random.seed", envir = globalenv())
+  drfthomog(c(a = 3, b = 1, c = 2), c(a = 1, b = 4, c = 1))
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+})

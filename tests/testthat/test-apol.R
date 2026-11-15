@@ -568,3 +568,10 @@ test_that("the air pollution results print", {
   expect_true(any(grepl("by area: 1 areas", out, fixed = TRUE)))
   expect_true(any(grepl("Concentration index", out, fixed = TRUE)))
 })
+
+test_that("the stage functions refuse a logical or NULL number", {
+  expect_error(attrfrac(TRUE, 1),
+               "attrfrac: `rr` must be numeric, not logical.", fixed = TRUE)
+  expect_error(attrfrac(NULL, 1), "attrfrac: `rr` must be numeric, got NULL.",
+               fixed = TRUE)
+})

@@ -91,3 +91,11 @@ test_that("dstfit() refuses what it cannot fit", {
                "^dstfit: `k` must be one whole number from 2 to 19\\.$")
   expect_output(print(dstfit(1:10 + 0.5, nboot = 0)), "maximum likelihood")
 })
+
+test_that("dstfit() refuses a confidence level outside (0, 1)", {
+  expect_error(
+    dstfit(c(1.2, 2.3, 3.1, 4.8, 2.2), conflvl = 1),
+    "dstfit: `conflvl` must be a single number strictly between 0 and 1.",
+    fixed = TRUE
+  )
+})

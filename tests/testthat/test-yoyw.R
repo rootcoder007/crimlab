@@ -238,3 +238,16 @@ test_that("every digit is the shortest text that reads back", {
   )
   expect_identical(as.numeric(txt), v)
 })
+
+test_that("the file writers refuse a missing path; an empty PDF has a page", {
+  expect_error(yoypdf(y, NA), "yoypdf: `file` must be one file path.",
+               fixed = TRUE)
+  expect_error(yoywr(y, NA), "yoywr: `file` must be one file path.",
+               fixed = TRUE)
+  f <- tempfile(fileext = ".pdf")
+  on.exit(unlink(f), add = TRUE)
+  yoypdf(y[0, ], f)
+  b <- readBin(f, "raw", file.size(f))
+  expect_identical(rawToChar(b[1:5]), "%PDF-")
+  expect_true(grepl("/Count 1", rawToChar(b[b != as.raw(0)]), fixed = TRUE))
+})

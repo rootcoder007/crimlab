@@ -144,3 +144,11 @@ test_that("the results print and refuse what they cannot read", {
   expect_error(rgnmapalt(cw, "inst", "cd", c("1", "2")), "named by unit")
   expect_identical(nrow(rgnmapalt(cw, "inst", "cd", c(A = "1", B = NA))), 0L)
 })
+
+test_that("rgnmapcmp names a unit found only in the recomputed map", {
+  pub <- data.frame(inst = "North", cd = "1")
+  obs <- data.frame(inst = c("North", "South"), cd = c("1", "2"))
+  r <- rgnmapcmp(pub, obs, "inst")
+  expect_identical(r$first[r$column == "rows"], "recomputed only: South")
+  expect_identical(r$mismatched[r$column == "rows"], 1L)
+})

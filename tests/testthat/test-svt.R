@@ -1143,3 +1143,10 @@ test_that("the binding refuses arguments of a type no kernel takes", {
   ef(nrmvec(matrix(1:3), c(1, Inf, 2)),
      "nrmvec: `y` must hold finite numbers or NA.")
 })
+
+test_that("the printed parts name NULL, lists and short numbers", {
+  s <- structure(list(a = NULL, b = list(1, 2), c = c(1.23456, 2)),
+                 class = c("x", "svfit"))
+  expect_identical(capture.output(print(s)),
+                   c("x:", "  a NULL", "  b list of 2", "  c 1.235 2.000"))
+})

@@ -588,3 +588,8 @@ test_that("dstntst() refuses and warns in its own words", {
   ef(dstntst(rbind(g, g[1, ]), "group", "est", "lo", "hi"),
      "dstntst: a group appears twice.")
 })
+
+test_that("freqtbl() refuses a sort that is not TRUE or FALSE", {
+  expect_error(freqtbl(c("a", "b"), sort = NA),
+               "freqtbl: `sort` must be TRUE or FALSE.", fixed = TRUE)
+})

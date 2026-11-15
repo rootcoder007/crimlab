@@ -546,3 +546,26 @@ test_that("UTF-16, UTF-32, a UTF-8 mark and Latin-1 are decoded", {
   )
   expect_identical(r$inputs$expomean, 21)
 })
+
+test_that("the demo leaves no seed where there was none", {
+  had <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+  old <- if (had) get(".Random.seed", envir = globalenv())
+  on.exit(if (had) assign(".Random.seed", old, envir = globalenv()),
+          add = TRUE)
+  if (had) rm(".Random.seed", envir = globalenv())
+  vrfpol("no2", demo = TRUE)
+  expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
+})
+
+test_that("a pollutant name that is not valid text is refused", {
+  p <- rawToChar(as.raw(0xff))
+  if (isTRUE(l10n_info()[["UTF-8"]])) {
+    expect_error(vrfpol(p),
+                 "vrfpol: `poll` holds text that is not valid UTF-8.",
+                 fixed = TRUE)
+  } else {
+    # one byte is a character of a single-byte locale: an unknown name
+    expect_identical(vrfpol(p, expomean = 20, expoprev = 1)$status,
+                     "assumption_failure")
+  }
+})
