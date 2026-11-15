@@ -218,16 +218,6 @@ trsurf <- function(x, y = NULL, v, order = 2) {
   .Call(C_clab_r_trsurf, x, y, v, order)
 }
 
-# the coefficient table of a fit
-.ctab <- function(b, s) {
-  data.frame(
-    term = names(b),
-    est = unname(b),
-    se = unname(s),
-    z = unname(b / s)
-  )
-}
-
 #' @export
 print.trsurf <- function(x, ...) {
   cat(
@@ -376,26 +366,7 @@ summary.smixm <- function(object, ...) .ctab(object[["coef"]], object[["se"]])
 #' @family geostatistics
 #' @export
 spobj <- function(data, coords = c("lon", "lat"), crs = 4326) {
-  if (!is.data.frame(data)) {
-    stop("spobj: `data` must be a data frame.", call. = FALSE)
-  }
-  if (
-    !is.character(coords) ||
-      length(coords) != 2L ||
-      anyNA(coords) ||
-      !all(coords %in% names(data))
-  ) {
-    stop("spobj: `coords` must name two columns of `data`.", call. = FALSE)
-  }
-  if (
-    !is.numeric(crs) ||
-      length(crs) != 1L ||
-      is.na(crs) ||
-      crs != round(crs) ||
-      crs < 1
-  ) {
-    stop("spobj: `crs` must be one EPSG code, a whole number.", call. = FALSE)
-  }
+  .spargs(data, coords, crs)
   xy <- as.matrix(data[coords])
   if (!is.numeric(xy) || !all(is.finite(xy))) {
     stop("spobj: the coordinates must be finite numbers.", call. = FALSE)
@@ -440,12 +411,6 @@ summary.spobj <- function(object, ...) {
     max = apply(xy, 2L, max),
     row.names = NULL
   )
-}
-
-.isobj <- function(x, f) {
-  if (!inherits(x, "spobj")) {
-    stop(f, ": `x` must be the object spobj() returns.", call. = FALSE)
-  }
 }
 
 #' The coordinates of a spatial data object
@@ -525,4 +490,43 @@ lfspec <- function(x) {
 #' @export
 spsamp <- function(x, size, dens = TRUE, seed = NULL) {
   .Call(C_clab_r_spsamp, x, size, dens, seed)
+}
+
+# the coefficient table of a fit
+.ctab <- function(b, s) {
+  data.frame(
+    term = names(b),
+    est = unname(b),
+    se = unname(s),
+    z = unname(b / s)
+  )
+}
+
+.spargs <- function(data, coords, crs) {
+  if (!is.data.frame(data)) {
+    stop("spobj: `data` must be a data frame.", call. = FALSE)
+  }
+  if (
+    !is.character(coords) ||
+      length(coords) != 2L ||
+      anyNA(coords) ||
+      !all(coords %in% names(data))
+  ) {
+    stop("spobj: `coords` must name two columns of `data`.", call. = FALSE)
+  }
+  if (
+    !is.numeric(crs) ||
+      length(crs) != 1L ||
+      is.na(crs) ||
+      crs != round(crs) ||
+      crs < 1
+  ) {
+    stop("spobj: `crs` must be one EPSG code, a whole number.", call. = FALSE)
+  }
+}
+
+.isobj <- function(x, f) {
+  if (!inherits(x, "spobj")) {
+    stop(f, ": `x` must be the object spobj() returns.", call. = FALSE)
+  }
 }

@@ -68,39 +68,10 @@ shrs.data.frame <- function(x, count = NULL, by = NULL, total = NULL,
   } else {
     tryCatch(count, error = function(e) NULL)
   }
-  if (!is.character(nm) || length(nm) != 1L || is.na(nm)) {
-    stop("shrs: `count` must name the column of counts.", call. = FALSE)
-  }
-  if (!nm %in% names(x)) {
-    stop("shrs: `count` column not found: ", nm, ".", call. = FALSE)
-  }
-  if (!is.numeric(x[[nm]])) {
-    stop("shrs: `", nm, "` must be numeric.", call. = FALSE)
-  }
-  if (!is.null(by)) {
-    by <- as.character(by)
-    miss <- setdiff(by, names(x))
-    if (length(miss)) {
-      stop("shrs: `by` column not found: ", toString(miss), ".", call. = FALSE)
-    }
-  }
-  agg <- if (is.null(by)) {
-    data.frame(count = sum(x[[nm]], na.rm = TRUE))
-  } else {
-    a <- stats::aggregate(x[nm], by = x[by], FUN = sum, na.rm = TRUE)
-    names(a) <- c(by, "count")
-    a
-  }
-  den <- if (is.null(total)) {
-    sum(agg$count)
-  } else if (is.character(total) && length(total) == 1L && !is.na(total)) {
-    if (!total %in% names(x)) {
-      stop("shrs: `total` column not found: ", total, ".", call. = FALSE)
-    }
-    sum(x[[total]], na.rm = TRUE)
-  } else {
-    .shtot(total, "a column name or ")
-  }
+  .shnm(nm, x)
+  if (!is.null(by)) by <- .shby(by, x)
+  agg <- .shagg(x, nm, by)
+  den <- .shden(total, x, agg)
   .shout(agg, den, conflvl, nm, by)
 }
 
@@ -119,6 +90,63 @@ shrs.default <- function(x, total = NULL, conflvl = 0.95, ...) {
   }
   den <- if (is.null(total)) sum(x, na.rm = TRUE) else .shtot(total, "")
   .shout(agg, den, conflvl, "count", NULL)
+}
+
+#' @export
+print.shrs <- function(x, ...) {
+  m <- attr(x, "share")
+  cat("shrs: shares of ", format(m$total), " in percent, ",
+      format(100 * m$conflvl), "% Wilson intervals\n", sep = "")
+  print(as.data.frame(unclass(x)), row.names = FALSE)
+  invisible(x)
+}
+
+# shrs.data.frame(): `count` names one numeric column of `x`
+.shnm <- function(nm, x) {
+  if (!is.character(nm) || length(nm) != 1L || is.na(nm)) {
+    stop("shrs: `count` must name the column of counts.", call. = FALSE)
+  }
+  if (!nm %in% names(x)) {
+    stop("shrs: `count` column not found: ", nm, ".", call. = FALSE)
+  }
+  if (!is.numeric(x[[nm]])) {
+    stop("shrs: `", nm, "` must be numeric.", call. = FALSE)
+  }
+}
+
+.shby <- function(by, x) {
+  by <- as.character(by)
+  miss <- setdiff(by, names(x))
+  if (length(miss)) {
+    stop("shrs: `by` column not found: ", toString(miss), ".", call. = FALSE)
+  }
+  by
+}
+
+# shrs.data.frame(): the counts summed, by the `by` columns
+.shagg <- function(x, nm, by) {
+  if (is.null(by)) {
+    data.frame(count = sum(x[[nm]], na.rm = TRUE))
+  } else {
+    a <- stats::aggregate(x[nm], by = x[by], FUN = sum, na.rm = TRUE)
+    names(a) <- c(by, "count")
+    a
+  }
+}
+
+# shrs.data.frame(): the denominator: the counts' sum, a column's sum or a
+# number
+.shden <- function(total, x, agg) {
+  if (is.null(total)) {
+    sum(agg$count)
+  } else if (is.character(total) && length(total) == 1L && !is.na(total)) {
+    if (!total %in% names(x)) {
+      stop("shrs: `total` column not found: ", total, ".", call. = FALSE)
+    }
+    sum(x[[total]], na.rm = TRUE)
+  } else {
+    .shtot(total, "a column name or ")
+  }
 }
 
 .shnodots <- function(...) {
@@ -166,13 +194,4 @@ shrs.default <- function(x, total = NULL, conflvl = 0.95, ...) {
   rownames(out) <- NULL
   structure(out, class = c("shrs", "data.frame"),
             share = list(count = nm, by = by, total = den, conflvl = conflvl))
-}
-
-#' @export
-print.shrs <- function(x, ...) {
-  m <- attr(x, "share")
-  cat("shrs: shares of ", format(m$total), " in percent, ",
-      format(100 * m$conflvl), "% Wilson intervals\n", sep = "")
-  print(as.data.frame(unclass(x)), row.names = FALSE)
-  invisible(x)
 }
