@@ -354,3 +354,16 @@ test_that("jntx and dosebin refuse exposures that give no bins", {
          var = "two", nq = 5)
   ))
 })
+
+test_that("dosebin refuses a constant exposure: fewer than two bins", {
+  # A known fault, expected to fail until it is fixed: with one distinct
+  # value the quantile breaks are a single number, which cut() reads as
+  # a number of intervals (7 here), so the refusal of fewer than two bins
+  # is never reached and the fit fails on empty bins instead.
+  set.seed(19)
+  d <- expand.grid(day = 1:30, area = 1:4)
+  d$k <- 7
+  d$crimes <- rpois(nrow(d), 3)
+  expect_error(dosebin(d, "crimes", "k", fe = "area", se = "hc1"),
+               "dosebin: `k` gives fewer than two bins")
+})
