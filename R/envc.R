@@ -67,7 +67,7 @@
 #' @param q The quantities of the chain, in order: a numeric matrix or
 #'   data frame with one row per row of `y` and one column per quantity,
 #'   numbers from 0; the column names name the factors.
-#' @param unit The unit of each row: labels.
+#' @inheritParams didfe
 #' @param time The period of each row: numbers; each unit at most once
 #'   per period.
 #' @param type `"time"` (change between periods) or `"space"` (gap to the
@@ -145,7 +145,7 @@ print.lmdix <- function(x, ...) {
 #' @rdname lmdix
 #' @param x An `lmdix` result.
 #' @param ... Passed to the base-graphics call.
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @param units `NULL` (every unit) or the units whose rows are summed.
 #' @details The plot draws the contribution of each factor summed over the
 #'   rows (of `units`), as horizontal bars, and returns those sums.
@@ -200,6 +200,7 @@ plot.lmdix <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 #' logged rate by system GMM, which the package does not have.
 #'
 #' @inheritParams lmdix
+#' @inheritParams ppmlfe
 #' @param y The outcome of each row: finite numbers.
 #' @param x The drivers: a numeric matrix or data frame, one row per row
 #'   of `y` (or one vector); column names name the terms. For `plot()`, a
@@ -211,7 +212,6 @@ plot.lmdix <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 #' @param at `NULL` or the values of `int[2]` for the simple slopes.
 #' @param ssc `"cr1"` or `"none"`: the small-sample factor of the
 #'   variance.
-#' @param level The confidence level of the intervals.
 #' @return An object of class `fepnl`, a list: `coef`, one row per term
 #'   (`term`, `est`, `se`, `lo`, `hi`, `t`, `p`, `beta`, `vif`); `slopes`
 #'   (`at`, `slope`, `se`, `lo`, `hi`, `t`, `p`), `NULL` without `int`;
@@ -270,7 +270,7 @@ print.fepnl <- function(x, ...) {
 
 #' @rdname fepnl
 #' @param ... Passed to the base-graphics call.
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details The plot draws the coefficients with their intervals and, with
 #'   an interaction, the simple slopes at each value of the moderator; it
 #'   returns what it drew.

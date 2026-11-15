@@ -114,7 +114,7 @@
 }
 
 #' @rdname rdloc
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @return The attribute `"plt"` of the result holds what `plot()` draws:
 #'   `bins`, the outcome's means in 20 equal bins of the running variable
 #'   on each side (`x` the midpoint, `y`, `n`, `side`), and `fit`, the
@@ -146,7 +146,7 @@ plot.rdloc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 #' @rdname rddens
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @return The attribute `"plt"` of the result holds what `plot()` draws:
 #'   `bins`, the first-step histogram (`x` the bin midpoint, `y` the
 #'   height, `side`), and `fit`, the local-linear smooth of the heights on

@@ -44,7 +44,7 @@
 #' @param by `NULL` or the domain of each respondent: labels.
 #' @param ref The reference domain of the comparisons: a label or a
 #'   position; the first by default.
-#' @param level The confidence level of the intervals.
+#' @inheritParams ppmlfe
 #' @return An object of class `svymx`, a list: `est`, one row per domain
 #'   (`dom`, `est`, `se`, `lo`, `hi`, `cv` the coefficient of variation in
 #'   percent, `n` the respondents, `df`); `cmp`, each domain against the

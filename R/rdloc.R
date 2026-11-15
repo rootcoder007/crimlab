@@ -121,8 +121,8 @@
 #' found there speak against the design. For the density of the running
 #' variable at the cutoff see [rddens()].
 #'
-#' @param data A data frame.
-#' @param y The name of the outcome column.
+#' @inheritParams rddens
+#' @inheritParams dosebin
 #' @param run The name of the running-variable column.
 #' @param cut The cutoff (treated from `cut` on).
 #' @param trt `NULL` (sharp) or the name of the treatment column (fuzzy).
@@ -134,11 +134,8 @@
 #' @param clus The name of the cluster column, for `se = "cluster"`.
 #' @param ssc `"G"` or `"none"`.
 #' @param plac `NULL` or false cutoffs, none equal to `cut`.
-#' @param level The confidence level.
 #' @param x An object of class `rdloc`.
 #' @param object An object of class `rdloc`.
-#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
-#'   to the base-graphics call.
 #' @return An object of class `rdloc`, a list: `coef`, two rows (`method`,
 #'   `est`, `se`, `stat`, `p`, `lo`, `hi`), the one of `ci` first; `h`;
 #'   `n`, `nl`, `nr`, the rows within the bandwidth (all, left, right);
@@ -303,8 +300,7 @@ summary.rdloc <- function(object, ...) object[["coef"]]
 #' @param level The confidence level.
 #' @param x An object of class `rddens`.
 #' @param object An object of class `rddens`.
-#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
-#'   to the base-graphics call.
+#' @inheritParams ppmlfe
 #' @return An object of class `rddens`, a list: `tab`, one row (`theta`,
 #'   `se`, `stat`, `p`, `lo`, `hi`, `fl`, `fr`, the densities left and
 #'   right); `b`, `h`, `nbin`, `n`, `cut`, `level`. `summary()` returns

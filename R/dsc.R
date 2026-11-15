@@ -201,7 +201,7 @@ print.freqtbl <- function(x, ...) {
 #'   computed, a whole number of at least 2 (default 3). Below it the pair is
 #'   \code{NA} rather than a number computed from almost nothing.
 #' @param x A result of \code{cortbl()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{c("cortbl", "data.frame")} with one
 #'   row per pair of numeric columns and the columns \code{x} and \code{y}
 #'   (character, the column names), \code{correlation} (numeric, in
@@ -297,7 +297,7 @@ print.cortbl <- function(x, ...) {
 #' @param minabs Report only pairs whose absolute correlation reaches this, a
 #'   number in \eqn{[0, 1]} (default 0).
 #' @param x A result of \code{topcors()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{c("topcors", "data.frame")} with
 #'   \code{x} and \code{y} (character, column names), \code{correlation}
 #'   (numeric) and \code{abscor} (numeric), strongest first, at most \code{n}
@@ -657,7 +657,7 @@ clncolnms <- function(
 #'   construction).
 #' @param robust Use the median/MAD centre and scale (default \code{TRUE}).
 #' @param x A result of \code{mahaoutl()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{c("mahaoutl", "data.frame")} with
 #'   \code{row}, \code{distance} (the square root of the squared Mahalanobis
 #'   distance), \code{p_value}, \code{logpvalue} (the log of the chi-square
@@ -786,7 +786,7 @@ print.mahaoutl <- function(x, ...) {
 #' @param minrun Whole number, default 2: report only runs at least this long
 #'   (a run of 1 is an isolated gap).
 #' @param x A result of \code{missruns()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{c("missruns", "data.frame")} with
 #'   \code{column} (character), \code{start} and \code{end} (integer row
 #'   numbers, inclusive) and \code{length} (integer), longest first and then
@@ -989,7 +989,7 @@ missgrid <- function(data, height = 20L, width = 12L) {
 #' @param tol Number, default 1e-7: EM stops when the largest absolute change
 #'   in any mean or covariance entry between iterations falls below it.
 #' @param x A result of \code{mcartst()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{c("mcartst", "list")}: \code{statistic},
 #'   \code{df}, \code{logpvalue} (the log of \code{p_value}, finite where
 #'   \code{p_value} underflows to 0), \code{p_value}, \code{npat} (distinct
@@ -1122,7 +1122,7 @@ print.mcartst <- function(x, ...) {
 #' @param maxpat Maximum patterns to return, most frequent first, one
 #'   positive whole number (default 20).
 #' @param x A result of \code{misspat()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{c("misspat", "data.frame")}, one row
 #'   per pattern: \code{pattern} (character, \code{.} for present and
 #'   \code{X} for missing, in column order), \code{n_rows} (integer),
@@ -1380,7 +1380,7 @@ misssmry <- function(data) {
 #'   (\code{q25}, \code{q50}, ...); default the quartiles. \code{NULL} or an
 #'   empty vector adds none.
 #' @param x A result of \code{profcols()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{c("profcols", "data.frame")}, one row
 #'   per column, with the columns \code{column}, \code{type} (the first
 #'   class), \code{n}, \code{n_missing}, \code{pct_missing},
@@ -1495,7 +1495,7 @@ print.profcols <- function(x, ...) {
 #'   of the verdict printed (default 0.95).
 #' @param pooled Optional labels of rows that pool other groups.
 #' @param x A result of \code{dstntst()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{dstntst}: \code{groups} (the estimates used,
 #'   with their standard errors), \code{pooled} (the inverse-variance mean)
 #'   and \code{poose}, \code{q}, \code{df}, \code{p_value}, \code{i2},

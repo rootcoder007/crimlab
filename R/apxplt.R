@@ -117,7 +117,7 @@
 # ---- the methods -------------------------------------------------------------
 
 #' @rdname ppmlfe
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @param terms `NULL` (every coefficient) or the names of the terms to
 #'   draw.
 #' @details `plot()` draws the rate ratio `exp(est)` of each term with its
@@ -134,7 +134,7 @@ plot.ppmlfe <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 }
 
 #' @rdname ivfe
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @param terms `NULL` (every coefficient) or the names of the terms to
 #'   draw.
 #' @details `plot()` draws the coefficients with their intervals and, with
@@ -161,7 +161,7 @@ plot.ivfe <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 }
 
 #' @rdname ppmlcf
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @param terms `NULL` (every coefficient) or the names of the terms to
 #'   draw.
 #' @details `plot()` draws the rate ratios with their intervals on a log
@@ -183,7 +183,7 @@ plot.ppmlcf <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 }
 
 #' @rdname expgmm
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @param terms `NULL` (every coefficient) or the names of the terms to
 #'   draw.
 #' @details `plot()` draws the rate ratio `exp(est)` of each term with its
@@ -198,7 +198,7 @@ plot.expgmm <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 }
 
 #' @rdname plcday
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details `plot()` draws the coefficient of each shift with its interval,
 #'   from the earliest day to the latest, the same day in its own colour
 #'   and shape, and returns the rows drawn.
@@ -216,7 +216,7 @@ plot.plcday <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 #' @rdname updwn
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details `plot()` draws the downwind difference with its interval (by
 #'   distance, at the midpoints of the rings, with `dist`), the
 #'   estimates of the placebo segments by offset with the source itself
@@ -255,7 +255,7 @@ plot.updwn <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 #' @rdname exprun
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details `plot()` draws the effect of each day of a run with its
 #'   interval (the last day standing for that day and later), and returns
 #'   the rows drawn.
@@ -272,7 +272,7 @@ plot.runfx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 #' @rdname hetfx
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details `plot()` draws the effect of each level with its interval, the
 #'   p-value of the test of equal effects in the axis title, and returns
 #'   the rows drawn.
@@ -310,7 +310,7 @@ plot.jntx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 #' @rdname dosebin
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details `plot()` draws the effect of each bin with its interval at the
 #'   bin's median exposure, the reference bin (0) marked, the p-values of
 #'   the two tests in the axis title, and returns the rows drawn.
@@ -330,7 +330,7 @@ plot.dosebin <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 #' @rdname typefx
-#' @param main,col,pal The title, colour and palette, as in [plotm].
+#' @inheritParams plotlrnz
 #' @details `plot()` draws the effect on each outcome with its interval,
 #'   the adjusted p-value beside the outcome's name, and returns the rows
 #'   drawn.

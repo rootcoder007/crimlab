@@ -290,14 +290,13 @@ smkiv <- function(
 #' (p. 11 and table 3); [ppmlfe()] absorbs one or two sets of effects, so
 #' give others as columns of `ctrl`.
 #'
-#' @param data A data frame, one row per place and day.
-#' @param var The name of the exposure column.
+#' @inheritParams smkiv
+#' @inheritParams dosebin
 #' @param unit,day The names of the place and day columns (days numbers or
 #'   dates).
 #' @param thr A day is exposed when `var` is above `thr`.
 #' @param cap The day of a run from which one indicator takes all.
 #' @param step The length of a day in the units of `day`.
-#' @param y The name of the outcome column.
 #' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator: [ppmlfe()] (the default) or [ivfe()] as least
 #'   squares.
@@ -395,7 +394,7 @@ print.runfx <- function(x, ...) {
 #' equality; it is the Wald test of `b_1 = b_2 = ... = b_K` on `K - 1`
 #' degrees of freedom.
 #'
-#' @param data A data frame.
+#' @inheritParams dosebin
 #' @param var The name of the exposure (a regressor `x` or endogenous
 #'   `endo` of the estimator).
 #' @param mod The name of the moderator column (labels).
@@ -561,8 +560,8 @@ print.hetfx <- function(x, ...) {
 #' exposure taken as exogenous or [ppmlcf()] for the instrumented design of
 #' Ju et al. (give `endo` and `inst`).
 #'
-#' @param data A data frame, one row per place and day.
-#' @param y The name of the count column.
+#' @inheritParams smkiv
+#' @inheritParams jntx
 #' @param unit The name of the place column.
 #' @param day The name of the day column (dates).
 #' @param strat `"ymw"` or `"ym"`.
@@ -753,7 +752,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' the paper's spline of calendar time and day of week (or give them in
 #' `...`).
 #'
-#' @param data A data frame.
+#' @inheritParams dosebin
 #' @param y The name of the count column.
 #' @param x1,x2 The names of the two exposures.
 #' @param form `"spline"` or `"linear"`.
@@ -1024,7 +1023,7 @@ print.dosebin <- function(x, ...) {
 #' Corrections that use the correlation of the estimates (Romano-Wolf) are
 #' not offered.
 #'
-#' @param data A data frame.
+#' @inheritParams dosebin
 #' @param ys The names of the outcome columns, one fit each.
 #' @param term The coefficient reported (the exposure).
 #' @param est The estimator.

@@ -926,8 +926,7 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' @param fe,clus,se,ssc,time,lag,nboot,seed,level,tol,twc,psd As in
 #'   [ppmlfe()].
 #' @param object An object of class `ivfe`.
-#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
-#'   to the base-graphics call.
+#' @inheritParams ppmlfe
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
 #'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
 #'   `kp`, `eff`, `keff`, `cv`, `ninst`); `overid`, with more instruments
@@ -1285,8 +1284,7 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' @param nboot The number of bootstrap draws, at least 2.
 #' @param seed `NULL` (the generator's current state) or one whole number.
 #' @param object An object of class `ppmlcf`.
-#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
-#'   to the base-graphics call.
+#' @inheritParams ppmlfe
 #' @return An object of class `ppmlcf`, a list: `coef` (as in [ppmlfe()],
 #'   the endogenous columns, the controls, then for `"cf"` the residual
 #'   terms `"vhat:<endo>"`); `first` (as in [ivfe()]); `draws`, the
@@ -1579,8 +1577,7 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 #' @param maxit The most Gauss-Newton iterations of a step (and the most
 #'   weights for `"iter"`).
 #' @param object An object of class `expgmm`.
-#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
-#'   to the base-graphics call.
+#' @inheritParams ppmlfe
 #' @return An object of class `expgmm`, a list: `coef` (as in [ppmlfe()],
 #'   with `rr`; the endogenous columns, then the controls; the effects are
 #'   not shown); `j`, one row (`stat`, `df`, `p`; `NA` where not given);
@@ -2178,8 +2175,8 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
 #' alone and keeps the same-day instruments; `"z"` moves the instruments
 #' alone (a reduced-form placebo).
 #'
-#' @param data A data frame, one row per place and day.
-#' @param var The name of the exposure column.
+#' @inheritParams smkiv
+#' @inheritParams dosebin
 #' @param unit,day The names of the place and day columns; days are
 #'   numbers or dates (one per unit at most).
 #' @param shifts The leads and lags in days, whole numbers other than 0;
@@ -2358,7 +2355,8 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #' should peak at offset 0.
 #'
 #' @param data A data frame, one row per area and day.
-#' @param y The name of the count column.
+#' @inheritParams rddens
+#' @inheritParams jntx
 #' @param ax,ay The names of the columns of the areas' planar coordinates.
 #' @param day The name of the day column.
 #' @param wind The name of the wind-direction column (degrees, blowing
@@ -2383,10 +2381,7 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #'   columns, constant within each side (area) and day.
 #' @param offs `NULL` or offsets (in the coordinates' unit, positive to the
 #'   left of each segment) for the placebo segments; segments only.
-#' @param level The confidence level.
 #' @param object,x An object of class `updwn` (for the methods).
-#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
-#'   to the base-graphics call.
 #' @return An object of class `updwn`, a list: `coef`, the rows of the
 #'   downwind terms (one, or one per ring); `class`, the rows by outcome of
 #'   the classification (`downwind`, `upwind`, `along` (wind along the road
@@ -2791,7 +2786,7 @@ summary.updwn <- function(object, ...) {
 #' @param outc The outcome table: a data frame with the key columns.
 #' @param by The names of the key columns, in both tables.
 #' @param object,x An object of class `expjn`.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return An object of class `expjn`, a list: `data`, the joined table
 #'   (the outcome table's columns, then the exposure's other columns);
 #'   `nout`, `nexp`; `unout`, the keys of the outcome rows left out.
