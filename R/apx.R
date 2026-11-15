@@ -1851,6 +1851,9 @@ summary.expjn <- function(object, ...) {
   m[, sqrt(colSums(m^2)) <= 1e-7 * s0] <- 0
   q <- qr(m)
   if (q$rank == length(x)) return(character())
+  # with rank 0 the index below, -seq_len(0), would select nothing: every
+  # regressor is aliased, and every one is named
+  if (q$rank == 0L) return(x)
   x[sort(q$pivot[-seq_len(q$rank)])]
 }
 
