@@ -78,6 +78,17 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
   for (size_t a = 0; a < sz(n, q); ++a) v[sn * (1 + pe + px) + a] = zi[a];
   const int sw = demean(v, n, k, f1, n1, f2, n2, w, tol, sc);
   if (sw < 0) return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
+  // a column the effects absorb keeps only rounding after the demeaning
+  for (int j = 1; j < k; ++j) {
+    const double *src = j < 1 + pe ? xe + sz(n, j - 1)
+                        : j < 1 + pe + px ? xx + sz(n, j - 1 - pe) : zi + sz(n, j - 1 - pe - px);
+    double a = 0.0, b = 0.0;
+    for (size_t i = 0; i < sn; ++i) {
+      a += src[i] * src[i];
+      b += v[sz(n, j) + i] * v[sz(n, j) + i];
+    }
+    if (!(b > 1e-16 * a)) return CLAB_EDOM;
+  }
   double *ye = v, *ee = v + sn, *ex = v + sn * (1 + pe);
   std::vector<int> c12, pw;
   int n12 = 0;

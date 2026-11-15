@@ -47,7 +47,11 @@ are compared as text, so a day given as a date in one table must be a
 date in the other.
 }
 \examples{
-ex <- data.frame(area = c("a", "a", "b"), day = c(1, 2, 1), pm = c(10, 12, 8))
+ex <- data.frame(
+  area = c("a", "a", "b"),
+  day = c(1, 2, 1),
+  pm = c(10, 12, 8)
+)
 oc <- data.frame(area = c("a", "a", "b", "b"), day = c(1, 2, 1, 2),
                  crimes = c(3, 1, 0, 2))
 j <- expjn(ex, oc)

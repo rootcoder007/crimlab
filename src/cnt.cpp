@@ -632,6 +632,18 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
     const int sw = pev::within(v, n, p + 1, u1, nu1, t1, nt1, two, wt, tol, 10000, sc);
     if (sw < 0) return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
     if (sw > most) most = sw;
+    if (it == 1) {
+      // a column the effects absorb keeps only rounding after the
+      // demeaning (the Cholesky pivot of one column cannot see that)
+      for (size_t j = 0; j < sp; ++j) {
+        double a = 0.0, b = 0.0;
+        for (size_t i = 0; i < sn; ++i) {
+          a += x[j * sn + i] * x[j * sn + i];
+          b += v[sn * (j + 1) + i] * v[sn * (j + 1) + i];
+        }
+        if (!(b > 1e-16 * a)) return CLAB_EDOM;
+      }
+    }
     if (pev::ols(v + sn, v, n, p, wt, beta, xi, r, sc) != CLAB_OK) return CLAB_EDOM;
     // the fit of z on x and the effects is z - r; the offset goes back in
     for (int i = 0; i < n; ++i) {

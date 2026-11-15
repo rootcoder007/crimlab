@@ -25,7 +25,7 @@ missing); and with \code{brk}, \code{bin}, a factor.
 \description{
 The instrument of Bondy, Roth and Sager (2020, p. 566-567): "the
 continuous difference between temperatures at the ground level and
-temperatures at circa 750 m altitude (925 hectopascals [hPa] pressure
+temperatures at circa 750 m altitude (925 hectopascals (hPa) pressure
 level)". On most days the air cools with height; in an inversion it is
 warmer above than at the ground, and pollutants are trapped near the
 ground.

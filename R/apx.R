@@ -23,7 +23,12 @@
     .ckstop(fn, "`%s` must name columns of `data`", what)
   }
   if (!is.null(n) && !length(cols) %in% n) {
-    .ckstop(fn, "`%s` must name %s column(s)", what, paste(n, collapse = " or "))
+    .ckstop(
+      fn,
+      "`%s` must name %s column(s)",
+      what,
+      paste(n, collapse = " or ")
+    )
   }
   miss <- setdiff(cols, names(d))
   if (length(miss)) {
@@ -70,7 +75,11 @@
 # under ten, as didfe() does.
 .axcl <- function(d, clus, fn) {
   a <- .axcode(d[[clus[1L]]])
-  b <- if (length(clus) == 2L) .axcode(d[[clus[2L]]]) else list(c = NULL, n = 0L)
+  b <- if (length(clus) == 2L) {
+    .axcode(d[[clus[2L]]])
+  } else {
+    list(c = NULL, n = 0L)
+  }
   g <- c(a$n, if (length(clus) == 2L) b$n)
   if (any(g < 2L)) {
     .ckstop(fn, paste0("`clus` has one cluster: a cluster-robust variance ",
@@ -131,7 +140,9 @@
 
 # A time column as numbers (numbers or dates).
 .axtime <- function(d, time, fn) {
-  if (is.null(time)) .ckstop(fn, "`se = \"nw\"` needs `time`, the name of the day column")
+  if (is.null(time)) {
+    .ckstop(fn, "`se = \"nw\"` needs `time`, the name of the day column")
+  }
   .axcols(d, time, "time", fn, n = 1L)
   tv <- d[[time]]
   if (!is.numeric(tv) && !inherits(tv, "Date")) {
@@ -180,12 +191,29 @@
         tt <- max(tabulate(u$c + 1L, u$n))
         lag <- floor(4 * (tt / 100)^(2 / 9))
       }
-      lg <- .cknum(lag, "lag", fn, min = 0, whole = TRUE)
+      lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
     }
   }
   gm <- min(g)
-  fac <- switch(ssc, G = gm / (gm - 1), nk = gm / (gm - 1) * (n - 1) / (n - k), none = 1)
-  v <- .Call(C_clab_r_vcx, r$sco, r$brd, kind, c1, n1, c2, n2, tv, as.integer(lg), fac)
+  fac <- switch(
+    ssc,
+    G = gm / (gm - 1),
+    nk = gm / (gm - 1) * (n - 1) / (n - k),
+    none = 1
+  )
+  v <- .Call(
+    C_clab_r_vcx,
+    r$sco,
+    r$brd,
+    kind,
+    c1,
+    n1,
+    c2,
+    n2,
+    tv,
+    as.integer(lg),
+    fac
+  )
   list(v = v, g = g, lag = if (se == "nw") lg else NA_integer_, k = k)
 }
 
@@ -194,7 +222,9 @@
 # their weights, or an error for a draw that cannot be fitted (left out).
 .axboot <- function(d, cl, nboot, seed, p, fit, fn) {
   cc <- .axcode(d[[cl]])
-  if (cc$n < 2L) .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
+  if (cc$n < 2L) {
+    .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
+  }
   bm <- .axdraw(cc$n, nboot, seed)
   dr <- t(vapply(seq_len(nboot), function(b) {
     m <- bm[cc$c + 1L, b]
@@ -203,24 +233,59 @@
   }, numeric(p)))
   nf <- sum(!stats::complete.cases(dr))
   if (nf > 0L) {
-    warning(fn, ": ", nf, " of ", nboot, " bootstrap draws could not be fitted and are ",
-            "left out.", call. = FALSE)
+    warning(
+      fn,
+      ": ",
+      nf,
+      " of ",
+      nboot,
+      " bootstrap draws could not be fitted and are ",
+      "left out.",
+      call. = FALSE
+    )
   }
-  if (nboot - nf < 2L) .ckstop(fn, "fewer than two bootstrap draws could be fitted")
-  list(draws = dr, se = apply(dr, 2L, stats::sd, na.rm = TRUE), nfail = nf, g = cc$n)
+  if (nboot - nf < 2L) {
+    .ckstop(fn, "fewer than two bootstrap draws could be fitted")
+  }
+  list(
+    draws = dr,
+    se = apply(dr, 2L, stats::sd, na.rm = TRUE),
+    nfail = nf,
+    g = cc$n
+  )
 }
 
 # The Poisson fit on the rows of d (codes made here), with weights w.
 .axppfit <- function(d, y, x, fe, expo, w, tol, maxit, fn) {
   fx <- .axfe(d, fe)
   off <- if (!is.null(expo)) log(d[[expo]])
-  .Call(C_clab_r_ppmlfe, as.numeric(d[[y]]), .axmat(d, x, fn), off, w, fx$c1, fx$n1,
-        fx$c2, fx$n2, NULL, 0L, NULL, 0L, tol, as.integer(maxit))
+  .Call(
+    C_clab_r_ppmlfe,
+    as.numeric(d[[y]]),
+    .axmat(d, x, fn),
+    off,
+    w,
+    fx$c1,
+    fx$n1,
+    fx$c2,
+    fx$n2,
+    NULL,
+    0L,
+    NULL,
+    0L,
+    tol,
+    as.integer(maxit)
+  )
 }
 
 .axsen <- function(se) {
-  c(cluster = "clustered", twoway = "two-way clustered", hc1 = "heteroskedasticity-robust",
-    nw = "Newey-West", boot = "cluster bootstrap")[[se]]
+  c(
+    cluster = "clustered",
+    twoway = "two-way clustered",
+    hc1 = "heteroskedasticity-robust",
+    nw = "Newey-West",
+    boot = "cluster bootstrap"
+  )[[se]]
 }
 
 #' Poisson pseudo-maximum likelihood with absorbed fixed effects
@@ -388,7 +453,9 @@ ppmlfe <- function(
   if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
   if (se == "cluster" && length(clus) == 2L) se <- "twoway"
-  if (se == "twoway" && length(clus) != 2L) .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  if (se == "twoway" && length(clus) != 2L) {
+    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  }
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
   maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
@@ -403,7 +470,13 @@ ppmlfe <- function(
   }
   r <- .axppfit(d, y, x, fe, expo, NULL, tol, maxit, f)
   if (r$st[2L] != 1) {
-    warning(f, ": the fit did not converge in ", maxit, " iterations.", call. = FALSE)
+    warning(
+      f,
+      ": the fit did not converge in ",
+      maxit,
+      " iterations.",
+      call. = FALSE
+    )
   }
   dr <- NULL
   if (se == "boot") {
@@ -417,7 +490,17 @@ ppmlfe <- function(
       } else {
         rep(TRUE, nrow(ds))
       }
-      .axppfit(ds[kk, , drop = FALSE], y, x, fe, expo, as.numeric(w[kk]), tol, maxit, f)$beta
+      .axppfit(
+        ds[kk, , drop = FALSE],
+        y,
+        x,
+        fe,
+        expo,
+        as.numeric(w[kk]),
+        tol,
+        maxit,
+        f
+      )$beta
     }, f)
     v <- stats::cov(b$draws, use = "complete.obs")
     sev <- b$se
@@ -436,9 +519,24 @@ ppmlfe <- function(
   tab <- .axtab(x, r$beta, sev, level)
   tab$rr <- exp(tab$est)
   structure(
-    list(coef = tab, vcov = v, n = nrow(d), nsep = sum(!k), ncl = g, se = se, ssc = ssc,
-         lag = lg, iter = r$st[1L], conv = r$st[2L] == 1, dev = r$st[3L], loglik = r$st[4L],
-         draws = dr, fe = fe, clus = clus, level = level),
+    list(
+      coef = tab,
+      vcov = v,
+      n = nrow(d),
+      nsep = sum(!k),
+      ncl = g,
+      se = se,
+      ssc = ssc,
+      lag = lg,
+      iter = r$st[1L],
+      conv = r$st[2L] == 1,
+      dev = r$st[3L],
+      loglik = r$st[4L],
+      draws = dr,
+      fe = fe,
+      clus = clus,
+      level = level
+    ),
     class = "ppmlfe"
   )
 }
@@ -446,10 +544,20 @@ ppmlfe <- function(
 #' @rdname ppmlfe
 #' @export
 print.ppmlfe <- function(x, ...) {
-  cat("ppmlfe: Poisson pseudo-likelihood, ", x[["n"]], " rows, fixed effects ",
-      paste(x[["fe"]], collapse = " and "), "; ", .axsen(x[["se"]]), " errors (",
-      paste0(x[["clus"]], collapse = ", "), "; ", paste(x[["ncl"]], collapse = " and "),
-      ")\n", sep = "")
+  cat(
+    "ppmlfe: Poisson pseudo-likelihood, ",
+    x[["n"]],
+    " rows, fixed effects ",
+    paste(x[["fe"]], collapse = " and "),
+    "; ",
+    .axsen(x[["se"]]),
+    " errors (",
+    paste0(x[["clus"]], collapse = ", "),
+    "; ",
+    paste(x[["ncl"]], collapse = " and "),
+    ")\n",
+    sep = ""
+  )
   if (x[["nsep"]] > 0) {
     cat(x[["nsep"]], " row(s) dropped for groups with no counts\n", sep = "")
   }
@@ -465,15 +573,32 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 # fc (codes) as the variance kind asks.
 .axivfit <- function(d, y, endo, inst, x, fe, w, fc, tol, fn) {
   fx <- .axfe(d, fe)
-  .Call(C_clab_r_ivfe, as.numeric(d[[y]]), .axmat(d, endo, fn), .axmat(d, x, fn),
-        .axmat(d, inst, fn), w, fx$c1, fx$n1, fx$c2, fx$n2, fc$c1, fc$n1, fc$c2, fc$n2, tol)
+  .Call(
+    C_clab_r_ivfe,
+    as.numeric(d[[y]]),
+    .axmat(d, endo, fn),
+    .axmat(d, x, fn),
+    .axmat(d, inst, fn),
+    w,
+    fx$c1,
+    fx$n1,
+    fx$c2,
+    fx$n2,
+    fc$c1,
+    fc$n1,
+    fc$c2,
+    fc$n2,
+    tol
+  )
 }
 
 # The clusters of the first-stage statistics: those of the variance for
 # "cluster" and "twoway", each row for "hc1", the first clus column for
 # "nw" and "boot".
 .axfc <- function(d, se, clus, fn) {
-  if (se == "hc1") return(list(c1 = seq_len(nrow(d)) - 1L, n1 = nrow(d), c2 = NULL, n2 = 0L))
+  if (se == "hc1") {
+    return(list(c1 = seq_len(nrow(d)) - 1L, n1 = nrow(d), c2 = NULL, n2 = 0L))
+  }
   a <- .axcode(d[[clus[1L]]])
   b <- if (se == "twoway") .axcode(d[[clus[2L]]]) else list(c = NULL, n = 0L)
   if (a$n < 2L || (se == "twoway" && b$n < 2L)) {
@@ -485,8 +610,13 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 
 .axfirst <- function(endo, fst, q) {
   m <- matrix(fst, ncol = 3L)
-  data.frame(endo = as.character(endo), wald = m[, 1L], kp = m[, 2L], eff = m[, 3L],
-             ninst = rep(q, length(endo)))
+  data.frame(
+    endo = as.character(endo),
+    wald = m[, 1L],
+    kp = m[, 2L],
+    eff = m[, 3L],
+    ninst = rep(q, length(endo))
+  )
 }
 
 #' Two-stage least squares with absorbed fixed effects
@@ -615,16 +745,23 @@ ivfe <- function(
   if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
   if (se == "cluster" && length(clus) == 2L) se <- "twoway"
-  if (se == "twoway" && length(clus) != 2L) .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  if (se == "twoway" && length(clus) != 2L) {
+    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  }
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
   if (length(inst) < length(endo)) {
-    .ckstop(f, "`inst` must give at least as many instruments as `endo` has columns")
+    .ckstop(
+      f,
+      "`inst` must give at least as many instruments as `endo` has columns"
+    )
   }
   if (!length(endo) && length(inst)) {
     .ckstop(f, "`inst` needs `endo`: the columns it instruments")
   }
-  if (!length(endo) && !length(x)) .ckstop(f, "give `endo` or `x`: there is nothing to estimate")
+  if (!length(endo) && !length(x)) {
+    .ckstop(f, "give `endo` or `x`: there is nothing to estimate")
+  }
   if (length(intersect(c(endo, x), inst))) {
     .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
   }
@@ -657,10 +794,21 @@ ivfe <- function(
   }
   dimnames(v) <- list(tm, tm)
   structure(
-    list(coef = .axtab(tm, r$beta, sev, level, df = df),
-         first = .axfirst(endo, r$fst, length(inst)), vcov = v, n = nrow(d), ncl = g,
-         se = se, ssc = ssc, lag = lg, rss = r$st[3L], draws = dr, fe = fe, clus = clus,
-         level = level),
+    list(
+      coef = .axtab(tm, r$beta, sev, level, df = df),
+      first = .axfirst(endo, r$fst, length(inst)),
+      vcov = v,
+      n = nrow(d),
+      ncl = g,
+      se = se,
+      ssc = ssc,
+      lag = lg,
+      rss = r$st[3L],
+      draws = dr,
+      fe = fe,
+      clus = clus,
+      level = level
+    ),
     class = "ivfe"
   )
 }
@@ -669,10 +817,22 @@ ivfe <- function(
 #' @export
 print.ivfe <- function(x, ...) {
   iv <- nrow(x[["first"]]) > 0L
-  cat("ivfe: ", if (iv) "two-stage least squares" else "least squares", ", ",
-      x[["n"]], " rows, fixed effects ", paste(x[["fe"]], collapse = " and "), "; ",
-      .axsen(x[["se"]]), " errors (", paste0(x[["clus"]], collapse = ", "), "; ",
-      paste(x[["ncl"]], collapse = " and "), ")\n", sep = "")
+  cat(
+    "ivfe: ",
+    if (iv) "two-stage least squares" else "least squares",
+    ", ",
+    x[["n"]],
+    " rows, fixed effects ",
+    paste(x[["fe"]], collapse = " and "),
+    "; ",
+    .axsen(x[["se"]]),
+    " errors (",
+    paste0(x[["clus"]], collapse = ", "),
+    "; ",
+    paste(x[["ncl"]], collapse = " and "),
+    ")\n",
+    sep = ""
+  )
   print(x[["coef"]], row.names = FALSE, digits = 4)
   if (iv) {
     cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F:\n")
@@ -828,7 +988,10 @@ ppmlcf <- function(
   tol <- .cknum(tol, "tol", f, positive = TRUE)
   maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
   if (length(inst) < length(endo)) {
-    .ckstop(f, "`inst` must give at least as many instruments as `endo` has columns")
+    .ckstop(
+      f,
+      "`inst` must give at least as many instruments as `endo` has columns"
+    )
   }
   if (length(intersect(c(endo, x), inst))) {
     .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
@@ -858,12 +1021,24 @@ ppmlcf <- function(
     } else {
       for (j in seq_along(endo)) e[[endo[j]]] <- e[[endo[j]]] - fr[, j]
     }
-    p <- ppmlfe(e, y, tm, fe, expo = expo, clus = clus, ssc = ssc, level = level,
-                tol = tol, maxit = maxit, sep = "none")
+    p <- ppmlfe(
+      e,
+      y,
+      tm,
+      fe,
+      expo = expo,
+      clus = clus,
+      ssc = ssc,
+      level = level,
+      tol = tol,
+      maxit = maxit,
+      sep = "none"
+    )
     return(structure(
-      list(coef = p$coef, first = .axfirst(endo, r1$fst, length(inst)), draws = NULL,
-           nfail = 0L, n = length(yv), nsep = sum(!k), ncl = cl$g, nboot = 0L, how = how,
-           se = se, fe = fe, clus = clus, level = level),
+      list(coef = p$coef, first = .axfirst(endo, r1$fst, length(inst)),
+           draws = NULL, nfail = 0L, n = length(yv), nsep = sum(!k),
+           ncl = cl$g, nboot = 0L, how = how, se = se, fe = fe, clus = clus,
+           level = level),
       class = "ppmlcf"
     ))
   }
@@ -881,14 +1056,28 @@ ppmlcf <- function(
     warning(f, ": ", nfail, " of ", nboot, " bootstrap draws could not be ",
             "fitted and are left out.", call. = FALSE)
   }
-  if (nboot - nfail < 2L) .ckstop(f, "fewer than two bootstrap draws could be fitted")
+  if (nboot - nfail < 2L) {
+    .ckstop(f, "fewer than two bootstrap draws could be fitted")
+  }
   sev <- apply(dr, 2L, stats::sd, na.rm = TRUE)
   tab <- .axtab(tm, r$beta, sev, level)
   tab$rr <- exp(tab$est)
   structure(
-    list(coef = tab, first = .axfirst(endo, r$fst, length(inst)), draws = dr, nfail = nfail,
-         n = length(yv), nsep = sum(!k), ncl = cl$g, nboot = nboot, how = how, se = se,
-         fe = fe, clus = clus, level = level),
+    list(
+      coef = tab,
+      first = .axfirst(endo, r$fst, length(inst)),
+      draws = dr,
+      nfail = nfail,
+      n = length(yv),
+      nsep = sum(!k),
+      ncl = cl$g,
+      nboot = nboot,
+      how = how,
+      se = se,
+      fe = fe,
+      clus = clus,
+      level = level
+    ),
     class = "ppmlcf"
   )
 }
@@ -896,10 +1085,19 @@ ppmlcf <- function(
 #' @rdname ppmlcf
 #' @export
 print.ppmlcf <- function(x, ...) {
-  cat("ppmlcf: Poisson ", if (x[["how"]] == "cf") "control function" else "plug-in",
-      ", ", x[["n"]], " rows, fixed effects ", paste(x[["fe"]], collapse = " and "), "; ",
+  cat("ppmlcf: Poisson ",
+      if (x[["how"]] == "cf") "control function" else "plug-in",
+      ", ", x[["n"]], " rows, fixed effects ",
+      paste(x[["fe"]], collapse = " and "), "; ",
       if (x[["se"]] == "boot") {
-        paste0(x[["nboot"]], " bootstrap draws of ", x[["ncl"]], " clusters (", x[["clus"]], ")")
+        paste0(
+          x[["nboot"]],
+          " bootstrap draws of ",
+          x[["ncl"]],
+          " clusters (",
+          x[["clus"]],
+          ")"
+        )
       } else {
         "naive second-stage errors (they ignore the first stage)"
       }, "\n", sep = "")
@@ -916,7 +1114,11 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 # The sector (1..nb) of each direction, by the kernel's edges.
 .axsec <- function(dir, width, start, edges) {
   a <- (dir - start) %% 360
-  b <- if (edges == "paper") ifelse(a == 0, 0, ceiling(a / width) - 1) else floor(a / width)
+  b <- if (edges == "paper") {
+    ifelse(a == 0, 0, ceiling(a / width) - 1)
+  } else {
+    floor(a / width)
+  }
   pmin(b, round(360 / width) - 1) + 1
 }
 
@@ -1027,12 +1229,15 @@ windiv <- function(
   f <- "windiv"
   edges <- match.arg(edges)
   avg <- match.arg(avg)
-  if (!is.numeric(dir) || !length(dir)) .ckstop(f, "`dir` must be numeric directions in degrees")
+  if (!is.numeric(dir) || !length(dir)) {
+    .ckstop(f, "`dir` must be numeric directions in degrees")
+  }
   dir <- as.numeric(dir)
   if (!is.logical(share) || length(share) != 1L || is.na(share)) {
     .ckstop(f, "`share` must be TRUE or FALSE")
   }
-  if (!is.null(spd) && (!is.numeric(spd) || length(spd) != length(dir) || any(spd < 0, na.rm = TRUE))) {
+  if (!is.null(spd) && (!is.numeric(spd) || length(spd) != length(dir) ||
+                          any(spd < 0, na.rm = TRUE))) {
     .ckstop(f, "`spd` must give one speed from 0 per direction")
   }
   if (!is.null(area) && (length(area) != length(dir) || anyNA(area))) {
@@ -1060,25 +1265,40 @@ windiv <- function(
     rd <- dir * pi / 180
     wv <- if (is.null(spd)) rep(1, length(dir)) else as.numeric(spd)
     ok <- is.finite(dir) & is.finite(wv)
-    vs <- function(fun) as.numeric(tapply(ifelse(ok, fun(rd) * wv, NA), gk$c, mean, na.rm = TRUE))
+    vs <- function(fun) {
+      as.numeric(tapply(ifelse(ok, fun(rd) * wv, NA), gk$c, mean, na.rm = TRUE))
+    }
     vdir <- (atan2(vs(sin), vs(cos)) * 180 / pi) %% 360
     if (!is.null(area)) {
-      if (any(tapply(as.character(area), gk$c, function(v) length(unique(v))) > 1L)) {
+      nar <- tapply(as.character(area), gk$c, function(v) length(unique(v)))
+      if (any(nar > 1L)) {
         .ckstop(f, "`area` must be constant within each `by` group")
       }
       area <- as.character(area)[!duplicated(gk$c)]
     }
     if (share) {
-      if (!is.null(sect)) .ckstop(f, "`share` needs sectors by `width`, not `sect`")
-      full <- windiv(ifelse(ok, dir, NA), width, start, NULL, base = base, edges = edges)
+      if (!is.null(sect)) {
+        .ckstop(f, "`share` needs sectors by `width`, not `sect`")
+      }
+      full <- windiv(
+        ifelse(ok, dir, NA),
+        width,
+        start,
+        NULL,
+        base = base,
+        edges = edges
+      )
       lev <- if (is.null(area)) NULL else sort(unique(area))
       m <- rowsum(ifelse(is.na(full), 0, full), gk$c, reorder = TRUE) /
         as.numeric(tabulate(gk$c[ok] + 1L, gk$n))
       if (!is.null(lev)) {
         ai <- match(area, lev)
         mm <- matrix(0, nrow(m), ncol(m) * length(lev))
-        for (r in seq_len(nrow(m))) mm[r, (ai[r] - 1L) * ncol(m) + seq_len(ncol(m))] <- m[r, ]
-        colnames(mm) <- paste0(rep(colnames(full), length(lev)), ":", rep(lev, each = ncol(m)))
+        for (r in seq_len(nrow(m))) {
+          mm[r, (ai[r] - 1L) * ncol(m) + seq_len(ncol(m))] <- m[r, ]
+        }
+        colnames(mm) <- paste0(rep(colnames(full), length(lev)), ":",
+                               rep(lev, each = ncol(m)))
         m <- mm
       }
       rownames(m) <- gl
@@ -1089,34 +1309,55 @@ windiv <- function(
       vector = vdir,
       mean = as.numeric(tapply(ifelse(ok, dir, NA), gk$c, mean, na.rm = TRUE)),
       mode = {
-        if (!is.null(sect)) .ckstop(f, "`avg = \"mode\"` needs sectors by `width`, not `sect`")
+        if (!is.null(sect)) {
+          .ckstop(f, "`avg = \"mode\"` needs sectors by `width`, not `sect`")
+        }
         sc <- .axsec(dir, width, start, edges)
         md <- as.numeric(tapply(ifelse(ok, sc, NA), gk$c, function(v) {
           v <- v[!is.na(v)]
-          if (!length(v)) NA else as.numeric(names(which.max(table(factor(v, levels = seq_len(nb))))))
+          if (!length(v)) return(NA)
+          tb <- table(factor(v, levels = seq_len(nb)))
+          as.numeric(names(which.max(tb)))
         }))
         # the middle of the sector, which falls in it under either edges
         (start + (md - 0.5) * width) %% 360
       })
   }
   if (!is.null(sect)) {
-    m <- matrix(as.numeric((dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360))
+    inside <- (dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360
+    m <- matrix(as.numeric(inside))
     colnames(m) <- paste0("w", format(sect[1L]), "_", format(sect[2L]))
   } else {
     ac <- NULL
     na <- 1L
     lev <- NULL
     if (!is.null(area)) {
-      lev <- if (is.factor(area)) levels(droplevels(area)) else sort(unique(as.character(area)))
+      lev <- if (is.factor(area)) {
+        levels(droplevels(area))
+      } else {
+        sort(unique(as.character(area)))
+      }
       ac <- match(as.character(area), lev) - 1L
       na <- length(lev)
     }
-    m <- .Call(C_clab_r_windbin, dir, width, start, ac, na, as.integer(base - 1),
-               if (edges == "paper") 1L else 0L)
+    m <- .Call(
+      C_clab_r_windbin,
+      dir,
+      width,
+      start,
+      ac,
+      na,
+      as.integer(base - 1),
+      if (edges == "paper") 1L else 0L
+    )
     lo <- (start + (seq_len(nb) - 1) * width) %% 360
     nm <- paste0("w", format(lo, trim = TRUE), "_",
                  format((lo + width) %% 360, trim = TRUE))[-base]
-    colnames(m) <- if (is.null(lev)) nm else paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
+    colnames(m) <- if (is.null(lev)) {
+      nm
+    } else {
+      paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
+    }
   }
   if (!is.null(gl)) {
     rownames(m) <- gl
@@ -1129,7 +1370,7 @@ windiv <- function(
 #'
 #' The instrument of Bondy, Roth and Sager (2020, p. 566-567): "the
 #' continuous difference between temperatures at the ground level and
-#' temperatures at circa 750 m altitude (925 hectopascals [hPa] pressure
+#' temperatures at circa 750 m altitude (925 hectopascals (hPa) pressure
 #' level)". On most days the air cools with height; in an inversion it is
 #' warmer above than at the ground, and pollutants are trapped near the
 #' ground.
@@ -1180,9 +1421,13 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
     .ckstop(f, "`tlow` and `tup` must be numeric vectors of one length")
   }
   up <- as.numeric(tup) - as.numeric(tlow)
-  r <- data.frame(diff = if (sign == "upper") up else -up, inv = as.integer(up > 0))
+  r <- data.frame(
+    diff = if (sign == "upper") up else -up,
+    inv = as.integer(up > 0)
+  )
   if (!is.null(brk)) {
-    if (!is.numeric(brk) || length(brk) < 2L || anyNA(brk) || is.unsorted(brk, strictly = TRUE)) {
+    if (!is.numeric(brk) || length(brk) < 2L || anyNA(brk) ||
+          is.unsorted(brk, strictly = TRUE)) {
       .ckstop(f, "`brk` must be two or more increasing numbers")
     }
     r$bin <- cut(r$diff, brk)
@@ -1272,10 +1517,15 @@ plcday <- function(
   .axcols(d, unit, "unit", f, n = 1L)
   .axcols(d, day, "day", f, n = 1L)
   .axcols(d, with, "with", f, null = TRUE)
-  if (shift == "z" && !length(with)) .ckstop(f, "`shift = \"z\"` needs the instruments in `with`")
-  if (!is.function(est)) .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
+  if (shift == "z" && !length(with)) {
+    .ckstop(f, "`shift = \"z\"` needs the instruments in `with`")
+  }
+  if (!is.function(est)) {
+    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
+  }
   if (!is.numeric(shifts) || !length(shifts) || !all(is.finite(shifts)) ||
-        any(shifts != round(shifts)) || any(shifts == 0) || anyDuplicated(shifts)) {
+        any(shifts != round(shifts)) || any(shifts == 0) ||
+        anyDuplicated(shifts)) {
     .ckstop(f, "`shifts` must be distinct whole numbers of days other than 0")
   }
   tv <- d[[day]]
@@ -1288,7 +1538,9 @@ plcday <- function(
   rows <- lapply(c(0, shifts), function(s) {
     ix <- .Call(C_clab_r_dshift, uc, tv, s)
     k <- !is.na(ix)
-    if (sum(k) < 2L) .ckstop(f, "a shift of %s days leaves fewer than two rows", format(s))
+    if (sum(k) < 2L) {
+      .ckstop(f, "a shift of %s days leaves fewer than two rows", format(s))
+    }
     ds <- d[k, , drop = FALSE]
     for (v in mv) ds[[v]] <- d[[v]][ix[k]]
     r <- est(data = ds, ...)
@@ -1300,7 +1552,10 @@ plcday <- function(
     data.frame(shift = s, est = cf[["est"]], se = cf[["se"]], lo = cf[["lo"]],
                hi = cf[["hi"]], p = cf[["p"]], n = sum(k))
   })
-  structure(list(tab = do.call(rbind, rows), var = var, shift = shift), class = "plcday")
+  structure(
+    list(tab = do.call(rbind, rows), var = var, shift = shift),
+    class = "plcday"
+  )
 }
 
 #' @rdname plcday
@@ -1437,12 +1692,13 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #' # simulated: a road along the x axis, areas on both sides, crime up 10%
 #' # on the downwind side
 #' set.seed(5)
-#' a <- data.frame(area = 1:20, ax = runif(20, 0, 5000),
-#'                 ay = rep(c(-800, 800), 10))
+#' a <- data.frame(area = 1:40, ax = runif(40, 0, 5000),
+#'                 ay = runif(40, -4000, 4000))
 #' d <- merge(a, data.frame(day = 1:120))
 #' d$wind <- runif(120, 0, 360)[d$day]
 #' blowsn <- cos((d$wind + 180) * pi / 180)  # +1 when the wind blows north
-#' dn <- (d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5)
+#' dn <- abs(d$ay) < 1600 &
+#'   ((d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5))
 #' d$crimes <- rpois(nrow(d), 3 * (1 + 0.1 * dn))
 #' road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
 #' updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
@@ -1490,16 +1746,22 @@ updwn <- function(
   .axcols(d, clus, "clus", f, n = 1:2, null = TRUE)
   .axcols(d, wx, "wx", f, null = TRUE)
   s <- .axdat(src, f, "src")
-  if (!all(c("x0", "y0") %in% names(s))) .ckstop(f, "`src` must have columns x0 and y0")
+  if (!all(c("x0", "y0") %in% names(s))) {
+    .ckstop(f, "`src` must have columns x0 and y0")
+  }
   for (k in c("x1", "y1")) if (is.null(s[[k]])) s[[k]] <- NA_real_
   for (k in c("x0", "y0", "x1", "y1")) {
-    if (!is.numeric(s[[k]]) && !all(is.na(s[[k]]))) .ckstop(f, "`src` column %s must be numeric", k)
+    if (!is.numeric(s[[k]]) && !all(is.na(s[[k]]))) {
+      .ckstop(f, "`src` column %s must be numeric", k)
+    }
   }
   s0 <- as.numeric(s$x0)
   t0 <- as.numeric(s$y0)
   s1 <- as.numeric(s$x1)
   t1 <- as.numeric(s$y1)
-  if (!all(is.finite(s0) & is.finite(t0))) .ckstop(f, "`src` x0 and y0 must be finite")
+  if (!all(is.finite(s0) & is.finite(t0))) {
+    .ckstop(f, "`src` x0 and y0 must be finite")
+  }
   line <- is.finite(s1) & is.finite(t1)
   tol <- .cknum(tol, "tol", f, positive = TRUE, min = 0, max = 90)
   if (!identical(band, Inf)) band <- .cknum(band, "band", f, positive = TRUE)
@@ -1509,17 +1771,23 @@ updwn <- function(
       .ckstop(f, "`dist` must be two or more increasing distances from 0")
     }
   }
-  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) .ckstop(f, "`agg` must be TRUE or FALSE")
+  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) {
+    .ckstop(f, "`agg` must be TRUE or FALSE")
+  }
   if (is.null(area) && (!agg || any(!line))) {
     .ckstop(f, "`area` is needed for point sources and for agg = FALSE")
   }
   if (!is.null(offs)) {
-    if (any(!line)) .ckstop(f, "`offs` moves segments: every source must be a segment")
+    if (any(!line)) {
+      .ckstop(f, "`offs` moves segments: every source must be a segment")
+    }
     if (!is.numeric(offs) || !length(offs) || !all(is.finite(offs))) {
       .ckstop(f, "`offs` must be finite numbers")
     }
   }
-  if (se == "twoway" && length(clus) != 2L) .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  if (se == "twoway" && length(clus) != 2L) {
+    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  }
   level <- .axlevel(level, f)
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
@@ -1527,39 +1795,75 @@ updwn <- function(
   wd <- .axmat(d, wind, f)[, 1L]
   if (length(wx)) .axmat(d, wx, f)
   dv <- as.character(d[[day]])
-  tnum <- if (is.numeric(d[[day]]) || inherits(d[[day]], "Date")) as.numeric(d[[day]])
-  if (se == "nw" && is.null(tnum)) .ckstop(f, "`se = \"nw\"` needs a day column of numbers or dates")
+  tnum <- NULL
+  if (is.numeric(d[[day]]) || inherits(d[[day]], "Date")) {
+    tnum <- as.numeric(d[[day]])
+  }
+  if (se == "nw" && is.null(tnum)) {
+    .ckstop(f, "`se = \"nw\"` needs a day column of numbers or dates")
+  }
   av <- if (!is.null(area)) as.character(d[[area]])
   if (!is.null(area) && anyDuplicated(paste(av, dv, sep = "\r"))) {
     .ckstop(f, "an area has two rows on one day")
   }
   labs <- c(`1` = "downwind", `0` = "upwind", `-1` = "along", `-2` = "nosource",
             `-3` = "twosources", `-4` = "onsource", `-5` = "missing")
-  same <- function(v, cell) any(tapply(v, cell, function(u) length(unique(u))) > 1L)
+  same <- function(v, cell) {
+    any(tapply(v, cell, function(u) length(unique(u))) > 1L)
+  }
   run <- function(a0, b0, a1, b1) {
     if (twin == "keep") {
       parts <- lapply(seq_along(a0), function(j) {
-        k <- .Call(C_clab_r_updwn, xy[, 1L], xy[, 2L], wd, a0[j], b0[j], a1[j], b1[j], band,
-                   tol, 0L)
+        k <- .Call(
+          C_clab_r_updwn,
+          xy[, 1L],
+          xy[, 2L],
+          wd,
+          a0[j],
+          b0[j],
+          a1[j],
+          b1[j],
+          band,
+          tol,
+          0L
+        )
         k$src[!is.na(k$src)] <- j
         k$row <- seq_len(nrow(xy))
         k
       })
-      k <- list(src = unlist(lapply(parts, `[[`, "src")), side = unlist(lapply(parts, `[[`, "side")),
-                dn = unlist(lapply(parts, `[[`, "dn")), dst = unlist(lapply(parts, `[[`, "dst")),
-                row = unlist(lapply(parts, `[[`, "row")))
+      k <- list(
+        src = unlist(lapply(parts, `[[`, "src")),
+        side = unlist(lapply(parts, `[[`, "side")),
+        dn = unlist(lapply(parts, `[[`, "dn")),
+        dst = unlist(lapply(parts, `[[`, "dst")),
+        row = unlist(lapply(parts, `[[`, "row"))
+      )
       # an area near no source counts once in the table
       hit <- k$dn != -2L
       none <- setdiff(seq_len(nrow(xy)), k$row[hit])
-      tb <- table(factor(labs[as.character(c(k$dn[hit], rep(-2L, length(none))))], levels = labs))
+      lab <- labs[as.character(c(k$dn[hit], rep(-2L, length(none))))]
+      tb <- table(factor(lab, levels = labs))
     } else {
-      k <- .Call(C_clab_r_updwn, xy[, 1L], xy[, 2L], wd, a0, b0, a1, b1, band, tol,
-                 if (twin == "near") 1L else 0L)
+      k <- .Call(
+        C_clab_r_updwn,
+        xy[, 1L],
+        xy[, 2L],
+        wd,
+        a0,
+        b0,
+        a1,
+        b1,
+        band,
+        tol,
+        if (twin == "near") 1L else 0L
+      )
       k$row <- seq_len(nrow(xy))
       tb <- table(factor(labs[as.character(k$dn)], levels = labs))
     }
     use <- k$dn >= 0L
-    if (sum(use) < 2L) .ckstop(f, "fewer than two rows are upwind or downwind of a source")
+    if (sum(use) < 2L) {
+      .ckstop(f, "fewer than two rows are upwind or downwind of a source")
+    }
     rw <- k$row[use]
     ring <- if (is.null(dist)) rep("", sum(use)) else {
       rg <- cut(k$dst[use], dist, include.lowest = TRUE)
@@ -1573,21 +1877,39 @@ updwn <- function(
     dn <- k$dn[use][keep]
     if (!length(rw)) .ckstop(f, "no row falls in the rings of `dist`")
     ln <- line[sr]
-    g <- ifelse(ln & agg, paste("s", sr, sd0, ring, sep = "\r"),
-                paste("a", if (is.null(area)) "" else av[rw], sr, ring, sep = "\r"))
+    g <- ifelse(
+      ln & agg,
+      paste("s", sr, sd0, ring, sep = "\r"),
+      paste("a", if (is.null(area)) "" else av[rw], sr, ring, sep = "\r")
+    )
     cell <- paste(g, dv[rw], sep = "\r")
     sdy <- paste(sr, dv[rw], sep = "\r")
     if (same(dn, cell)) {
-      .ckstop(f, "the wind differs between areas of one side and day: give one direction per day, or agg = FALSE")
+      .ckstop(
+        f,
+        paste0(
+          "the wind differs between areas of one side and day: give one ",
+          "direction per day, or agg = FALSE"
+        )
+      )
     }
     for (cc in c(clus, wx)) {
       if (same(as.character(d[[cc]])[rw], cell)) {
-        .ckstop(f, "column `%s` must be constant within each side (area) and day", cc)
+        .ckstop(
+          f,
+          "column `%s` must be constant within each side (area) and day",
+          cc
+        )
       }
     }
     o <- !duplicated(cell)
-    e <- data.frame(y = as.numeric(rowsum(yv[rw], cell, reorder = FALSE)),
-                    g = g[o], sd = sdy[o], down = as.numeric(dn[o]), row = seq_len(sum(o)))
+    e <- data.frame(
+      y = as.numeric(rowsum(yv[rw], cell, reorder = FALSE)),
+      g = g[o],
+      sd = sdy[o],
+      down = as.numeric(dn[o]),
+      row = seq_len(sum(o))
+    )
     if (!is.null(tnum)) e$t <- tnum[rw][o]
     for (cc in clus) e[[cc]] <- d[[cc]][rw][o]
     xs <- "down"
@@ -1619,18 +1941,47 @@ updwn <- function(
     cl <- if (se == "hc1") "row" else if (is.null(clus)) "g" else clus
     tcol <- if (se == "nw") "t" else NULL
     if (norm == "pois") {
-      r <- ppmlfe(e, "y", xa, fe = c("g", "sd"), clus = cl, se = se, ssc = ssc, time = tcol,
-                  lag = lag, nboot = nboot, seed = seed, level = level)
+      r <- ppmlfe(
+        e,
+        "y",
+        xa,
+        fe = c("g", "sd"),
+        clus = cl,
+        se = se,
+        ssc = ssc,
+        time = tcol,
+        lag = lag,
+        nboot = nboot,
+        seed = seed,
+        level = level
+      )
     } else {
       e$y <- switch(norm, mean = {
         m <- mean(e$y)
         if (!(m > 0)) .ckstop(f, "the counts are all 0")
         e$y / m
       }, none = e$y, log = log1p(e$y))
-      r <- ivfe(e, "y", x = xa, fe = c("g", "sd"), clus = cl, se = se, ssc = ssc, time = tcol,
-                lag = lag, nboot = nboot, seed = seed, level = level)
+      r <- ivfe(
+        e,
+        "y",
+        x = xa,
+        fe = c("g", "sd"),
+        clus = cl,
+        se = se,
+        ssc = ssc,
+        time = tcol,
+        lag = lag,
+        nboot = nboot,
+        seed = seed,
+        level = level
+      )
     }
-    list(fit = r, tab = tb, n = nrow(e), coef = r$coef[r$coef$term %in% xs, , drop = FALSE])
+    list(
+      fit = r,
+      tab = tb,
+      n = nrow(e),
+      coef = r$coef[r$coef$term %in% xs, , drop = FALSE]
+    )
   }
   r0 <- run(s0, t0, s1, t1)
   pl <- NULL
@@ -1639,7 +1990,15 @@ updwn <- function(
     nx <- -(t1 - t0) / len
     ny <- (s1 - s0) / len
     pl <- do.call(rbind, lapply(offs, function(o) {
-      ro <- run(s0 + o * nx, t0 + o * ny, s1 + o * nx, t1 + o * ny)
+      # a moved segment with areas on one side only has nothing to compare
+      ro <- tryCatch(run(s0 + o * nx, t0 + o * ny, s1 + o * nx, t1 + o * ny),
+                     error = function(e) NULL)
+      if (is.null(ro)) {
+        warning(f, ": no estimate for the segments moved by ", format(o),
+                ": too few areas upwind and downwind of them.", call. = FALSE)
+        return(data.frame(off = o, est = NA_real_, se = NA_real_, lo = NA_real_,
+                          hi = NA_real_, p = NA_real_, n = 0L))
+      }
       c0 <- ro$coef[1L, ]
       data.frame(off = o, est = c0$est, se = c0$se, lo = c0$lo, hi = c0$hi,
                  p = c0$p, n = ro$n)
@@ -1655,10 +2014,21 @@ updwn <- function(
 #' @rdname updwn
 #' @export
 print.updwn <- function(x, ...) {
-  cat("updwn: downwind against upwind, ", x[["n"]], " side (area) days, outcome ",
-      c(mean = "over its mean", none = "as counts", log = "log(1 + y)",
-        pois = "by Poisson")[[x[["norm"]]]],
-      ", tolerance ", format(x[["tol"]]), " degrees\n", sep = "")
+  cat(
+    "updwn: downwind against upwind, ",
+    x[["n"]],
+    " side (area) days, outcome ",
+    c(
+      mean = "over its mean",
+      none = "as counts",
+      log = "log(1 + y)",
+      pois = "by Poisson"
+    )[[x[["norm"]]]],
+    ", tolerance ",
+    format(x[["tol"]]),
+    " degrees\n",
+    sep = ""
+  )
   print(x[["coef"]], row.names = FALSE, digits = 4)
   cat("rows by classification:\n")
   print(x[["class"]])
@@ -1707,7 +2077,11 @@ summary.updwn <- function(object, ...) {
 #'   `summary()` returns the counts as a data frame.
 #' @seealso [ppmlfe()], [plmfld()]
 #' @examples
-#' ex <- data.frame(area = c("a", "a", "b"), day = c(1, 2, 1), pm = c(10, 12, 8))
+#' ex <- data.frame(
+#'   area = c("a", "a", "b"),
+#'   day = c(1, 2, 1),
+#'   pm = c(10, 12, 8)
+#' )
 #' oc <- data.frame(area = c("a", "a", "b", "b"), day = c(1, 2, 1, 2),
 #'                  crimes = c(3, 1, 0, 2))
 #' j <- expjn(ex, oc)
@@ -1724,29 +2098,48 @@ expjn <- function(expo, outc, by = c("area", "day")) {
   for (nm in c("expo", "outc")) {
     t <- if (nm == "expo") e else o
     miss <- setdiff(by, names(t))
-    if (length(miss)) .ckstop(f, "`%s` lacks the key columns: %s", nm, paste(miss, collapse = ", "))
+    if (length(miss)) {
+      .ckstop(
+        f,
+        "`%s` lacks the key columns: %s",
+        nm,
+        paste(miss, collapse = ", ")
+      )
+    }
     if (anyNA(t[by])) .ckstop(f, "`%s` has missing keys", nm)
   }
   val <- setdiff(names(e), by)
   if (!length(val)) .ckstop(f, "`expo` has no columns besides the keys")
   clash <- intersect(val, names(o))
   if (length(clash)) {
-    .ckstop(f, "columns in both tables besides the keys: %s", paste(clash, collapse = ", "))
+    .ckstop(
+      f,
+      "columns in both tables besides the keys: %s",
+      paste(clash, collapse = ", ")
+    )
   }
   key <- function(t) do.call(paste, c(lapply(t[by], as.character), sep = "\r"))
   ke <- key(e)
   ko <- key(o)
-  if (anyDuplicated(ke)) .ckstop(f, "`expo` has %d duplicate key(s)", sum(duplicated(ke)))
-  if (anyDuplicated(ko)) .ckstop(f, "`outc` has %d duplicate key(s)", sum(duplicated(ko)))
+  if (anyDuplicated(ke)) {
+    .ckstop(f, "`expo` has %d duplicate key(s)", sum(duplicated(ke)))
+  }
+  if (anyDuplicated(ko)) {
+    .ckstop(f, "`outc` has %d duplicate key(s)", sum(duplicated(ko)))
+  }
   m <- match(ko, ke)
   hit <- !is.na(m)
-  if (!any(hit)) .ckstop(f, "no outcome row has an exposure: check that the keys agree")
+  if (!any(hit)) {
+    .ckstop(f, "no outcome row has an exposure: check that the keys agree")
+  }
   dd <- cbind(o[hit, , drop = FALSE], e[m[hit], val, drop = FALSE])
   rownames(dd) <- NULL
   un <- o[!hit, by, drop = FALSE]
   rownames(un) <- NULL
-  structure(list(data = dd, nout = sum(!hit), nexp = sum(!ke %in% ko), unout = un),
-            class = "expjn")
+  structure(
+    list(data = dd, nout = sum(!hit), nexp = sum(!ke %in% ko), unout = un),
+    class = "expjn"
+  )
 }
 
 #' @rdname expjn

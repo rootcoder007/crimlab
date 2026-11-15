@@ -170,12 +170,13 @@ should peak at offset 0.
 # simulated: a road along the x axis, areas on both sides, crime up 10\%
 # on the downwind side
 set.seed(5)
-a <- data.frame(area = 1:20, ax = runif(20, 0, 5000),
-                ay = rep(c(-800, 800), 10))
+a <- data.frame(area = 1:40, ax = runif(40, 0, 5000),
+                ay = runif(40, -4000, 4000))
 d <- merge(a, data.frame(day = 1:120))
 d$wind <- runif(120, 0, 360)[d$day]
 blowsn <- cos((d$wind + 180) * pi / 180)  # +1 when the wind blows north
-dn <- (d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5)
+dn <- abs(d$ay) < 1600 &
+  ((d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5))
 d$crimes <- rpois(nrow(d), 3 * (1 + 0.1 * dn))
 road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
 updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
