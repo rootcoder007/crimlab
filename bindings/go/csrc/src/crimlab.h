@@ -3227,6 +3227,80 @@ int clab_hsacc(const double *pred, const int *ishot, const double *obs, const do
  * response; NaN for treatment 0). */
 int clab_mtrbnd(const double *y, const int *z, const double *w, int n, int k, double ylo, double yhi, int as,
                 double *out);
+/* ------------------------------------------------------------------------
+ * Search theory for search and rescue (sar.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The n nodes t and weights w of the Gauss rule of kind 0 (Hermite, weight
+ * exp(-x^2)) or 1 (Legendre on [-1, 1]) by the Golub-Welsch method; n from
+ * 2 to 1000. */
+int clab_sargs(int n, int kind, double *t, double *w);
+
+/* Lateral range curves (Koopman 1946): the detection probability p at the n
+ * lateral ranges x for sweep width W > 0 under model 0 (inverse cube), 1
+ * (definite range) or 2 (M-Beta, height m in (0, 1]), seen through a normal
+ * cross-track navigation error of standard deviation navsd >= 0 (Frost
+ * 1996, equation 5-14: exact for the rectangular curves, the trapezoid
+ * rule on 641 points over 8 standard deviations for the inverse cube). */
+int clab_sarlr(const double *x, int n, double W, int model, double m, double navsd, double *p);
+
+/* The sweep width of a sampled curve: the trapezoid rule over n >= 2
+ * abscissae x with values p. */
+int clab_sarsw(const double *x, const double *p, int n, double *w);
+
+/* The probability of detection at n coverages cv under model 0 (random
+ * search), 1 (definite range), 2 (inverse cube parallel sweep) or 3 (M-Beta
+ * parallel sweep, height m). */
+int clab_sarpod(const double *cv, int n, int model, double m, double *pod);
+
+/* The POD of a parallel sweep at track spacing S: Simpson's rule on npts
+ * (raised to odd) points over one spacing of the chance that one of the
+ * tracks -ntrk..ntrk detects (lateral range model as in clab_sarlr), the
+ * inverse cube tracks beyond ntrk added in closed form; navsd > 0 averages
+ * the curve over a normal error by 40-point Gauss-Hermite. */
+int clab_sarpsw(double W, double S, int model, double m, double navsd, int npts, int ntrk, double *pod);
+
+/* The probability of success of ns searches of na areas: poc (na), D (ns x
+ * na, column-major, the POD of each search in each area). Out: pos,
+ * posarea and cumpod (na), and pocupd (na), the containment after the
+ * searches failed (Bayes, in turn); all NaN, with certain = 1, when a search
+ * is certain to succeed. */
+int clab_sarscs(const double *poc, int na, const double *D, int ns, double *pos, double *posarea, double *pocupd,
+                double *cumpod, int *certain);
+
+/* A datum probability map on the grid of nxe x-edges and nye y-edges: poc,
+ * (nye - 1) x (nxe - 1) column-major (rows y). datum 0 a point (circular
+ * normal sd sigma about cen), 1 a line from cen to end (Gauss-Legendre on
+ * nodes points), 2 an area (uniform over the rectangle cen, end), 3 a
+ * corridor (normal across the segment, uniform along it; along x or y
+ * only), 4 the cell weights wts scaled to sum to 1. CLAB_EDOM for an empty
+ * rectangle or corridor, an oblique corridor, or weights without a positive
+ * one. */
+int clab_sarmap(const double *xe, int nxe, const double *ye, int nye, int datum, const double *cen, double sigma,
+                const double *end, int nodes, const double *wts, double *poc);
+
+/* Koopman's (1957) optimal search of a circular normal datum with track
+ * length effort: out = radius, probability of success, coverage at the
+ * centre. */
+int clab_sarcrc(double sigma, double W, double effort, double *out);
+
+/* The optimal allocation of effort over n cells under random search
+ * detection (Stone 1975, chapter 2): the Lagrange multiplier by bisection
+ * on its logarithm to tol. Out (n each): z (effort), cov, pod; pos and lam. */
+int clab_saropt(const double *poc, const double *area, int n, double W, double effort, double tol, double *z,
+                double *cov, double *pod, double *pos, double *lam);
+
+/* Frost's (1996, chapter 6) optimal square searches of a circular normal
+ * datum: k relative efforts z (> 0) in turn, POD model as in clab_sarpod.
+ * Out: k rows of 8 (row-major): cumulative relative effort, search factor,
+ * poc, coverage, pod, pos, cumulative pos, relative effort. */
+int clab_sarsq(const double *z, int k, int model, double m, double *out);
+
+/* The figures of Frost (1996): the count with i < 0; otherwise figure i
+ * (from 0) into out (4: number, caption, how it is drawn, a line of R),
+ * the count again, or -1 past the last. */
+int clab_sarfig(int i, const char **out);
+
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */
 double clab_qnorm(double p);

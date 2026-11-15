@@ -3357,7 +3357,8 @@ def gmixlr(peaks: Any, freq: Any, ref: Any = None, hp: Any = None, nc: Any = Non
                  lambda_=lambda_, theta=theta, stut=stut, deg=deg, par=par)
 
 
-def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25, full: Any = False) -> Any:
+def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25,
+          full: Any = False) -> Any:
     """Congruent matching profile segments (CMPS) of two bullet signatures.
 
     The arguments and the result are those of R's ``cmpsc()``: see its help
@@ -3480,7 +3481,8 @@ def prohs(x: Any, y: Any = None, t: Any = None, at: Any = None, win: Any = None,
 
     Examples
     --------
-    >>> r = prohs(x=[[0.5, 0.5], [0.6, 0.4], [1.6, 0.5]], t=[0, 8, 9], at=7, win=[0, 2, 0, 1], cell=1,
+    >>> r = prohs(x=[[0.5, 0.5], [0.6, 0.4], [1.6, 0.5]], t=[0, 8, 9], at=7, win=[0, 2, 0, 1],
+    ... cell=1,
     ... bw=2, top=0.5)
     >>> list(r)
     ['x', 'y', 'z', 'hot', 'eval', 'par']
@@ -3497,7 +3499,8 @@ def lnkpr(x: Any, y: Any = None, t: Any = None, series: Any = None, mo: Any = No
 
     Examples
     --------
-    >>> r = lnkpr(x=[[20, 45], [20, 60], [49, 41], [7, 41], [-8, 21], [26, 49], [-1, 28], [4, 45], [25, 46],
+    >>> r = lnkpr(x=[[20, 45], [20, 60], [49, 41], [7, 41], [-8, 21], [26, 49], [-1, 28], [4, 45],
+    ... [25, 46],
     ... [55, 35], [14, 22], [29, 45]], t=[35, 59, 27, 70, 30, 26, 54, 30, 5, 18, 8, -6],
     ... series=[1, 1, 1, 1, None, 2, 2, 2, 3, 3, None, 3])
     >>> list(r)
@@ -3506,7 +3509,8 @@ def lnkpr(x: Any, y: Any = None, t: Any = None, series: Any = None, mo: Any = No
     return jcall("lnkpr", x=x, y=y, t=t, series=series, mo=mo)
 
 
-def spcure(time: Any, event: Any, x: Any = None, dist: Any = "weibull", level: Any = 0.95, maxit: Any = 500) -> Any:
+def spcure(time: Any, event: Any, x: Any = None, dist: Any = "weibull", level: Any = 0.95,
+           maxit: Any = 500) -> Any:
     """Split-population (cure) model of recidivism.
 
     The arguments and the result are those of R's ``spcure()``: see its help
@@ -3529,7 +3533,8 @@ def apcie(y: Any, expo: Any, level: Any = 0.95, maxit: Any = 100) -> Any:
 
     Examples
     --------
-    >>> r = apcie(y=[[5, 9, 4], [8, 12, 10], [3, 6, 7]], expo=[[100, 100, 100], [100, 100, 100], [100, 100, 100]])
+    >>> r = apcie(y=[[5, 9, 4], [8, 12, 10], [3, 6, 7]], expo=[[100, 100, 100], [100, 100, 100],
+    ... [100, 100, 100]])
     >>> list(r)
     ['coef', 'fit', 'dims']
     """
@@ -3544,7 +3549,8 @@ def hsacc(pred: Any, obs: Any, area: Any = None, top: Any = 0.1, prev: Any = Non
 
     Examples
     --------
-    >>> r = hsacc(pred=[9, 8, 7, 6, 5, 4, 3, 2, 1, 0], obs=[3, 0, 5, 1, 0, 0, 2, 9, 0, 0], top=[0.2, 0.3])
+    >>> r = hsacc(pred=[9, 8, 7, 6, 5, 4, 3, 2, 1, 0], obs=[3, 0, 5, 1, 0, 0, 2, 9, 0, 0], top=[0.2,
+    ... 0.3])
     >>> list(r)
     ['top', 'cells', 'area', 'ashare', 'n', 'N', 'hit', 'pai', 'nmax', 'pei', 'rri']
     """
@@ -3564,3 +3570,148 @@ def mtrbnd(y: Any, z: Any, ylo: Any = 0, yhi: Any = 1, assume: Any = "both", w: 
     ['bnd', 'assume', 'range']
     """
     return jcall("mtrbnd", y=y, z=z, ylo=ylo, yhi=yhi, assume=assume, w=w)
+
+
+def ltrlrng(x: Any, W: Any, model: Any = None, m: Any = 1, navsd: Any = 0) -> Any:
+    """Lateral range curve of search theory: the chance of detection at each distance.
+
+    The arguments and the result are those of R's ``ltrlrng()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(ltrlrng(x=0.5, W=1), 6)
+    0.272623
+    """
+    return jcall("ltrlrng", x=x, W=W, model=model, m=m, navsd=navsd)
+
+
+def swpwdth(x: Any, p: Any) -> Any:
+    """Sweep width: the area under a sampled lateral range curve.
+
+    The arguments and the result are those of R's ``swpwdth()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> swpwdth(x=[-1, 0, 1], p=[0, 1, 0])
+    1.0
+    """
+    return jcall("swpwdth", x=x, p=p)
+
+
+def srchpod(coverage: Any = None, model: Any = None, m: Any = 1, W: Any = None, effort: Any = None,
+            area: Any = None) -> Any:
+    """Probability of detection from coverage.
+
+    The arguments and the result are those of R's ``srchpod()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(srchpod(coverage=1, model="invcube"), 4)
+    0.7899
+    """
+    return jcall("srchpod", coverage=coverage, model=model, m=m, W=W, effort=effort, area=area)
+
+
+def pswppod(W: Any, S: Any, model: Any = None, m: Any = 1, navsd: Any = 0, npts: Any = 2001,
+            ntrk: Any = 60) -> Any:
+    """Probability of detection of a parallel sweep at track spacing S.
+
+    The arguments and the result are those of R's ``pswppod()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(pswppod(W=1, S=2, model="definite"), 3)
+    0.5
+    """
+    return jcall("pswppod", W=W, S=S, model=model, m=m, navsd=navsd, npts=npts, ntrk=ntrk)
+
+
+def srchscs(poc: Any, pod: Any) -> Any:
+    """Probability of success of a search and the containment after it failed.
+
+    The arguments and the result are those of R's ``srchscs()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(srchscs(poc=[0.5, 0.3, 0.2], pod=[0.8, 0.5, 0])["pos"], 2)
+    0.55
+    """
+    return jcall("srchscs", poc=poc, pod=pod)
+
+
+def datumpmap(xedg: Any, yedg: Any, datum: Any = None, center: Any = (0, 0), sigma: Any = 1, end: Any = None,
+              nodes: Any = 64, wts: Any = None) -> Any:
+    """Datum probability map: the chance that each grid cell holds the object.
+
+    The arguments and the result are those of R's ``datumpmap()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(datumpmap(xedg=[-1, 0, 1], yedg=[-1, 0, 1])["outside"], 6)
+    0.533935
+    """
+    return jcall("datumpmap", xedg=xedg, yedg=yedg, datum=datum, center=center, sigma=sigma, end=end,
+                 nodes=nodes, wts=wts)
+
+
+def optcrcsrch(sigma: Any, W: Any, effort: Any) -> Any:
+    """Koopman's optimal search of a circular normal datum.
+
+    The arguments and the result are those of R's ``optcrcsrch()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> round(optcrcsrch(sigma=1, W=1, effort=3.141592653589793)["radius"] ** 2, 10)
+    2.0
+    """
+    return jcall("optcrcsrch", sigma=sigma, W=W, effort=effort)
+
+
+def opteffort(poc: Any, area: Any = None, W: Any = None, effort: Any = None,
+              tol: Any = 1e-14) -> Any:
+    """Optimal allocation of a fixed search effort over cells.
+
+    The arguments and the result are those of R's ``opteffort()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> [round(z, 8) for z in opteffort(poc=[0.5, 0.5], area=[1, 1], W=1, effort=2)["effort"]]
+    [1.0, 1.0]
+    """
+    return jcall("opteffort", poc=poc, area=area, W=W, effort=effort, tol=tol)
+
+
+def optsqr(effort: Any, model: Any = None, m: Any = 1, E: Any = 1) -> Any:
+    """Optimal square searches of a circular normal datum (Frost, chapter 6).
+
+    The arguments and the result are those of R's ``optsqr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> round(optsqr(effort=4)["factor"][0], 2)
+    1.02
+    """
+    return jcall("optsqr", effort=effort, model=model, m=m, E=E)
+
+
+def srchfig(fig: Any = None, num: Any = None) -> Any:
+    """The figures of Frost's The Theory of Search, with a line of R for each.
+
+    The arguments and the result are those of R's ``srchfig()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> len(srchfig()["fig"])
+    36
+    """
+    return jcall("srchfig", fig=fig, num=num)

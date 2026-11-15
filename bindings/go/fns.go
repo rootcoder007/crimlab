@@ -589,6 +589,36 @@ func Bufas(args string) (string, error) { return Jrun("bufas", args) }
 // Thrtst runs thrtst() of the R package (arguments: stops srch hits grp area? off? ref? level? maxit?; ? marks an optional one).
 func Thrtst(args string) (string, error) { return Jrun("thrtst", args) }
 
+// Ltrlrng runs ltrlrng() of the R package (arguments: x W model? m? navsd?; ? marks an optional one).
+func Ltrlrng(args string) (string, error) { return Jrun("ltrlrng", args) }
+
+// Swpwdth runs swpwdth() of the R package (arguments: x p; ? marks an optional one).
+func Swpwdth(args string) (string, error) { return Jrun("swpwdth", args) }
+
+// Srchpod runs srchpod() of the R package (arguments: coverage? model? m? W? effort? area?; ? marks an optional one).
+func Srchpod(args string) (string, error) { return Jrun("srchpod", args) }
+
+// Pswppod runs pswppod() of the R package (arguments: W S model? m? navsd? npts? ntrk?; ? marks an optional one).
+func Pswppod(args string) (string, error) { return Jrun("pswppod", args) }
+
+// Srchscs runs srchscs() of the R package (arguments: poc pod; ? marks an optional one).
+func Srchscs(args string) (string, error) { return Jrun("srchscs", args) }
+
+// Datumpmap runs datumpmap() of the R package (arguments: xedg yedg datum? center? sigma? end? nodes? wts?; ? marks an optional one).
+func Datumpmap(args string) (string, error) { return Jrun("datumpmap", args) }
+
+// Optcrcsrch runs optcrcsrch() of the R package (arguments: sigma W effort; ? marks an optional one).
+func Optcrcsrch(args string) (string, error) { return Jrun("optcrcsrch", args) }
+
+// Opteffort runs opteffort() of the R package (arguments: poc area? W effort tol?; ? marks an optional one).
+func Opteffort(args string) (string, error) { return Jrun("opteffort", args) }
+
+// Optsqr runs optsqr() of the R package (arguments: effort model? m? E?; ? marks an optional one).
+func Optsqr(args string) (string, error) { return Jrun("optsqr", args) }
+
+// Srchfig runs srchfig() of the R package (arguments: fig? num?; ? marks an optional one).
+func Srchfig(args string) (string, error) { return Jrun("srchfig", args) }
+
 // Ibench runs ibench() of the R package (arguments: y off x? minn? fdr?; ? marks an optional one).
 func Ibench(args string) (string, error) { return Jrun("ibench", args) }
 

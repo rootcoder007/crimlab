@@ -358,3 +358,14 @@ reference:
       - lnkpr
       - hsacc
       - rtmfit
+  - title: Search and rescue
+    desc: Koopman's search theory as search and rescue planning uses it -
+      lateral range curves and sweep width, the probability of detection
+      from coverage and of parallel sweeps with navigation error, the
+      probability of success with Bayesian updating, datum probability maps,
+      the optimal allocation of effort, Frost's optimal search squares and
+      the figures of his book.
+    contents:
+      - ltrlrng
+      - optsqr
+      - srchfig

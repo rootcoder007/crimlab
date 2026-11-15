@@ -1561,6 +1561,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jwcb.inc"
 #include "jspx.inc"
 #include "jthr.inc"
+#include "jsar.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
 #include "jrpv.inc"
@@ -1776,6 +1777,16 @@ const Ent ents[] = {
     {"arwt", "x from to area? id? top?", arwt},
     {"bufas", "x y? site comp r buf? lonlat?", bufas},
     {"thrtst", "stops srch hits grp area? off? ref? level? maxit?", thrtst},
+    {"ltrlrng", "x W model? m? navsd?", ltrlrng},
+    {"swpwdth", "x p", swpwdth},
+    {"srchpod", "coverage? model? m? W? effort? area?", srchpod},
+    {"pswppod", "W S model? m? navsd? npts? ntrk?", pswppod},
+    {"srchscs", "poc pod", srchscs},
+    {"datumpmap", "xedg yedg datum? center? sigma? end? nodes? wts?", datumpmap},
+    {"optcrcsrch", "sigma W effort", optcrcsrch},
+    {"opteffort", "poc area? W effort tol?", opteffort},
+    {"optsqr", "effort model? m? E?", optsqr},
+    {"srchfig", "fig? num?", srchfig},
     {"ibench", "y off x? minn? fdr?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},

@@ -1,5 +1,14 @@
 # crimlab 0.0.0.9000
 
+* Search theory for search and rescue planning: lateral range curves
+  (`ltrlrng()`) and sweep width (`swpwdth()`), the probability of detection
+  from coverage (`srchpod()`) and of a parallel sweep with navigation error
+  (`pswppod()`), the probability of success with Bayesian updating of
+  containment (`srchscs()`), datum probability maps (`datumpmap()`), the
+  optimal allocation of effort (`opteffort()`, `optcrcsrch()`), Frost's
+  optimal search squares (`optsqr()`) and the list of his book's figures
+  (`srchfig()`). They are in `clab_jrun()`, the command line and Python.
+
 * `mtrbnd()` bounds the mean outcome under each of ordered sentences and
   the effect of each against the mildest, under the monotone treatment
   response and selection assumptions of Manski and Pepper. It is in
