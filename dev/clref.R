@@ -973,7 +973,10 @@ ok("gmixlr", peaks = gp, freq = gf, ref = gr, hp = c("V", "S"), nc = 2, hd = "V"
    stut = TRUE, deg = TRUE, par = c(mu = 1900, omega = 0.12, beta = 0.9, xi = 0.05, m1 = 0.7, m2 = 0.3))
 ok("gmixlr", peaks = gp[c(1, 3, 4, 5, 6), ], freq = gf, ref = gr, hp = "S", nc = 2, at = 100,
    pc = 0.1, lambda = 0.02, par = c(mu = 1500, omega = 0.2, m1 = 0.25, m2 = 0.75))
-ok("gmixlr", peaks = gp, freq = gf, ref = gr, hp = c("V", "S"), nc = 2, hd = "V")
+# no case without `par`: a free fit ends after a number of steps that
+# differs between machines (9 on x86-64, 13 on arm64 for these data), and
+# `iter` is part of the result; the fit is tested in the R package against
+# EuroForMix (tests/testthat/test-gmixlr.R)
 bad("gmixlr", peaks = gp, freq = gf, ref = gr, hp = "S", nc = 0)
 bad("gmixlr", peaks = gp, freq = gf, ref = gr, hp = "W", nc = 2)
 bad("gmixlr", peaks = gp, freq = gf[1:3], ref = gr, hp = "S", nc = 1, deg = TRUE)
