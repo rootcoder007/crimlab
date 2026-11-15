@@ -168,6 +168,17 @@ reference:
       - fairsim
       - nordet
       - fair
+  - title: Plots
+    desc: A plot() method for every result with something to draw, the
+      palettes and session look they share, and general plots of
+      distributions, concentration and series over time.
+    contents:
+      - plotm
+      - blpal
+      - plotlrnz
+      - plotrdg
+      - plotcal
+      - plotevgrid
   - title: Checks
     desc: Which labelling of a table reproduces a reported contrast, and an
       audit of categorical inputs.

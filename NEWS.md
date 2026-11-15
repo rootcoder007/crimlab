@@ -115,6 +115,19 @@
   `ge` and the net effect `ne` of the same appendix. Its help page gives
   the formulas and Guerette's worked example; the tests reproduce it.
 
+* Every result that holds something to draw has a `plot()` method on base
+  graphics: estimates with intervals as dot-and-interval charts, effects by
+  time since adoption, paths, survival and ROC curves, Lorenz curves, bars,
+  matrices with their numbers in the cells, and surfaces. Each returns,
+  invisibly, the data it drew. `blpal()` gives the colour-blind-safe
+  palettes they share and `plotopt()` their session look; series differ in
+  line type or point shape as well as colour. The general plots come with
+  them: Lorenz and funnel plots (`plotlrnz()`, `plotfnl()`), distributions
+  by group (`plotrdg()`, `plotcdfs()`, `plotvln()`, `plothex()`,
+  `plotgain()`), series over time (`plotcal()`, `plothrz()`, `plotmult()`,
+  `plotbump()`) and event studies in a grid (`plotevgrid()`).
+  `plot()` of an `hwkres` result now returns the quantiles it drew.
+
 * `mtrbnd()` bounds the mean outcome under each of ordered sentences and
   the effect of each against the mildest, under the monotone treatment
   response and selection assumptions of Manski and Pepper. It is in

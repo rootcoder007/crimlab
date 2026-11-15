@@ -390,6 +390,41 @@ Toronto's Waakebiness-Bryce Institute for Indigenous Health (Stewart 2008;
 Mashford-Pringle and Stewart 2019). The work stands on theirs; any error in
 turning their qualitative work into estimators is the package's, not theirs.
 
+## Plots: every result draws itself
+
+A result with something to draw has a `plot()` method. The event study of
+a (simulated) by-law adopted by four towns in 2019 and four in 2021, with
+four towns that never adopt it:
+
+```{r, fig.width = 6, fig.height = 4}
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+d$first <- rep(c(2019, 2021, NA), each = 4)[i]
+d$rate <- 30 + i + 0.5 * (d$year - 2015) -
+  4 * (!is.na(d$first) & d$year >= d$first) + sin(seq_len(120))
+es <- plot(evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3))
+head(es)
+```
+
+Periods before adoption are open circles and periods after are filled, in
+different colours, so the picture reads the same in grey print. The plot
+returns the numbers it drew, so the same picture can be redrawn with any
+other tool. Survival curves by group, and the Lorenz curve of incidents
+over places:
+
+```{r, fig.width = 6, fig.height = 4}
+plot(kmrec(c(3, 8, 8, 12, 20, 24, 5, 9, 30), event = c(1, 1, 0, 1, 0, 1,
+     1, 1, 0), grp = rep(c("a", "b", "c"), each = 3)))
+set.seed(4)
+plot(cconc(rnbinom(200, mu = 2, size = 0.4), nsim = 0))
+```
+
+`plotopt()` sets the look for the session (for example
+`plotopt(palette = "grey")`), and each plot takes `main`, `col` and `pal`
+for one change. What this does not license: a plot shows the estimate and
+its interval as computed; a narrow interval drawn on a clean axis is no
+more credible than the assumptions of the method that produced it.
+
 ## Proofs
 
 `proof()` lists the theorems behind a function:
