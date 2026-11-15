@@ -598,3 +598,13 @@ test_that("freqtbl() refuses a sort that is not TRUE or FALSE", {
   expect_error(freqtbl(c("a", "b"), sort = NA),
                "freqtbl: `sort` must be TRUE or FALSE.", fixed = TRUE)
 })
+
+test_that("mcartst() takes a numeric matrix as its data frame", {
+  set.seed(5)
+  m <- cbind(x = rnorm(60), y = rnorm(60))
+  m[sample(60, 12), "y"] <- NA
+  a <- mcartst(m)
+  b <- mcartst(as.data.frame(m))
+  expect_equal(a$statistic, b$statistic, tolerance = 1e-12)
+  expect_identical(a$df, b$df)
+})
