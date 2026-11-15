@@ -1129,3 +1129,17 @@ test_that("irtem() refuses its start, its convergence and singular steps", {
   ef(irtem(v[, 1, drop = FALSE], ndim = 2, xprior = c(0, 1e300)),
      "irtem: the M-step of the ideal points is singular.")
 })
+
+test_that("the binding refuses arguments of a type no kernel takes", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(votagr(factor(c("a", "b"))), "votagr: `x` must not be a factor.")
+  ef(votagr(1i), "votagr: `x` must be numbers, strings or a list of them.")
+  ef(dynirt(matrix(c(1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1), 3),
+            c(NA, "1", "2", "2")),
+     "dynirt: `period` must not hold NA.")
+  ef(nompr("a", 1, 1), "nompr: `x` must be a numeric vector.")
+  ef(nompr(c(1, Inf), 1:2, 1:2),
+     "nompr: `x` must hold finite numbers with no missing values.")
+  ef(nrmvec(matrix(1:3), c(1, Inf, 2)),
+     "nrmvec: `y` must hold finite numbers or NA.")
+})
