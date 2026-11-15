@@ -79,7 +79,7 @@
 #' @param report A result of \code{vrfpol()} (or a list with the same parts);
 #'   anything else is refused with an R error.
 #' @param x A result of \code{vrfpol()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return \code{vrfpol()}: the report as a list of class \code{vrfpol}; its
 #'   \code{status} is \code{"ok"}, \code{"assumption_failure"} or
 #'   \code{"error"}, and the attribute \code{exitstat} carries a command-line
@@ -167,15 +167,7 @@ polrpttxt <- function(report) {
   if (identical(report$status, "error")) {
     return(paste0("ERROR: ", report$error, "\n"))
   }
-  ok <- is.list(report$inputs) &&
-    is.list(report$assumptions) &&
-    all(vapply(
-      report$assumptions,
-      function(a) is.list(a) && is.logical(a$ok),
-      logical(1)
-    )) &&
-    (!identical(report$status, "ok") || is.list(report$pipeline))
-  if (!ok) {
+  if (!.vpok(report)) {
     .ckstop(
       "polrpttxt",
       paste0(
@@ -202,7 +194,20 @@ print.vrfpol <- function(x, ...) {
   invisible(x)
 }
 
-`%|%` <- function(a, b) if (is.null(a)) b else a
+# polrpttxt(): does the report have its inputs, assumptions and pipeline?
+.vpok <- function(report) {
+  is.list(report$inputs) &&
+    is.list(report$assumptions) &&
+    all(vapply(
+      report$assumptions,
+      function(a) is.list(a) && is.logical(a$ok),
+      logical(1)
+    )) &&
+    (!identical(report$status, "ok") || is.list(report$pipeline))
+}
+
+# `b` when `a` is NULL
+.vpor <- function(a, b) if (is.null(a)) b else a
 
 .vpkey <- function(poll, fn) {
   if (!is.character(poll) || length(poll) != 1L || is.na(poll)) {
@@ -436,6 +441,12 @@ print.vrfpol <- function(x, ...) {
 }
 
 .vpcheck <- function(demo, expcsv, sc, rare, hirate, y) {
+  m <- .vpsrc(demo, expcsv, sc)
+  if (is.null(m)) .vpnums(sc, rare, hirate, y) else m
+}
+
+# .vpcheck(): one source of exposure, and a population
+.vpsrc <- function(demo, expcsv, sc) {
   noscalar <- is.null(sc$expomean) && is.null(sc$expoprev)
   if (isTRUE(demo) && !is.null(expcsv)) {
     return(paste(
@@ -458,6 +469,11 @@ print.vrfpol <- function(x, ...) {
   if (is.null(sc$pop)) {
     return("population must be a single number (persons at risk), not NULL")
   }
+  NULL
+}
+
+# .vpcheck(): the numbers and flags, each of the right kind and length
+.vpnums <- function(sc, rare, hirate, y) {
   for (nm in c("expomean", "expoprev", "brate", "basrateper", "pop", "ref")) {
     v <- sc[[nm]]
     if (!is.null(v) && !is.numeric(v) && !(is.logical(v) && all(is.na(v)))) {
@@ -552,14 +568,7 @@ print.vrfpol <- function(x, ...) {
 }
 
 .vppipeline <- function(poll, y, em, ep, brate, pop, ref, rare, hirate, eq) {
-  crf <- tryCatch(
-    if (poll == "no2") {
-      crfno2(em, y = y, refconc = ref)
-    } else {
-      crfpm25(em, y = y, refconc = ref)
-    },
-    error = function(e) e
-  )
+  crf <- .vpcrf(poll, em, y, ref)
   if (inherits(crf, "error")) {
     return(conditionMessage(crf))
   }
@@ -591,6 +600,23 @@ print.vrfpol <- function(x, ...) {
   if (inherits(st, "error")) {
     return(conditionMessage(st))
   }
+  .vpout(crf, paf, st, del, bpu, y)
+}
+
+# .vppipeline(): the concentration-response function, or its error
+.vpcrf <- function(poll, em, y, ref) {
+  tryCatch(
+    if (poll == "no2") {
+      crfno2(em, y = y, refconc = ref)
+    } else {
+      crfpm25(em, y = y, refconc = ref)
+    },
+    error = function(e) e
+  )
+}
+
+# .vppipeline(): the stages' results as the report's pipeline
+.vpout <- function(crf, paf, st, del, bpu, y) {
   list(
     crf = unclass(crf),
     paf = as.numeric(paf),
@@ -785,7 +811,7 @@ print.vrfpol <- function(x, ...) {
   enc <- .vpenc(raw, path)
   dec <- .vpdec(enc$raw, enc$utf16, path)
   txt <- dec$txt
-  note <- dec$note %|% enc$note
+  note <- .vpor(dec$note, enc$note)
   changed <- comp || !is.null(enc$utf16) || dec$transformed
   rm(raw, enc, dec)
   if (!is.null(note)) {
@@ -1077,14 +1103,14 @@ print.vrfpol <- function(x, ...) {
     },
     sprintf(
       "  expected avoided %s: %.1f",
-      p$displaced$unit %|% "deaths",
+      .vpor(p$displaced$unit, "deaths"),
       p$displaced$deadisp
     ),
     "",
     "Burden of pollution",
     sprintf(
       "  attributable %s:   %.1f",
-      p$burden$extra$unit %|% "deaths",
+      .vpor(p$burden$extra$unit, "deaths"),
       p$burden$attrcases
     )
   )
