@@ -169,3 +169,57 @@ test_that("the colour follows the better direction; control bytes show", {
   yoyhtml(z, f)
   expect_match(bytes(f), ">046 &amp; A\\*b<", fixed = TRUE)
 })
+
+test_that("the writers refuse bad options and write the edge tables", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(fylbl(2024, sep = 1), "fylbl: `sep` must be one string.")
+  ef(fylbl(2024, short = NA), "fylbl: `short` must be TRUE or FALSE.")
+  ef(yoyjs(data.frame(a = 1), file = ""),
+     "yoyjs: `file` must be NULL or one file path.")
+  # no rows: an empty array; factors are written as their labels
+  expect_identical(yoyjs(data.frame(a = 1)[0, , drop = FALSE], pretty = FALSE),
+                   "{\"rows\":[]}\n")
+  expect_identical(yoycsv(data.frame(f = factor(c("b", "a")), n = 1:2)),
+                   "f,n\nb,1\na,2\n")
+  expect_identical(yoyjs(data.frame(f = factor("b")), pretty = FALSE),
+                   "{\"rows\":[{\"f\":\"b\"}]}\n")
+})
+
+test_that("a group without values, and values of many decimals", {
+  d <- data.frame(prd = c(1, 2, 1, 2), group = c("a", "a", "b", "b"),
+                  value = c(NA, NA, 3, 4), prev = c(NA, NA, NA, 3),
+                  change = c(NA, NA, NA, 1), pctchg = c(NA, NA, NA, 100 / 3))
+  # group a has no value: no first or last, no periods
+  s <- as.data.frame(unclass(yoysmry(d)))
+  expect_true(all(is.nan(unlist(s[1L, c("first", "last", "totalpct",
+                                         "cagrpct")]))))
+  expect_identical(unlist(s[1L, c("periods", "up", "down", "flat")]),
+                   c(periods = 0L, up = 0L, down = 0L, flat = 0L))
+  # no value at all: no decimals, a dash in every cell
+  d2 <- d
+  d2[c("value", "prev", "change", "pctchg")] <- NA_real_
+  m <- strsplit(yoymd(d2), "\n", fixed = TRUE)[[1L]]
+  dash <- "\u2014"
+  expect_identical(
+    m[3L],
+    sprintf("| a     | 1   |     %s |        %s |      %s |        %s |      |",
+            dash, dash, dash, dash)
+  )
+  # a value of ten decimals is shown to six, and so is every value
+  d$value <- c(0.1234567891, 0.2, 0.3, 0.4)
+  m <- strsplit(yoymd(d), "\n", fixed = TRUE)[[1L]]
+  expect_match(m[3L], "| 0.123457 |", fixed = TRUE)
+  expect_match(m[4L], "| 0.200000 |", fixed = TRUE)
+})
+
+test_that("HTML keeps a tab and shows other control characters", {
+  d <- data.frame(prd = c(1, 2), value = c(3, 4), prev = c(NA, 3),
+                  change = c(NA, 1), pctchg = c(NA, 100 / 3),
+                  group = "x\ty\001\u200e")
+  f <- tempfile(fileext = ".html")
+  on.exit(unlink(f), add = TRUE)
+  yoyhtml(d, f)
+  h <- rawToChar(readBin(f, "raw", file.size(f)))
+  # the tab as it is; \001 in octal; the left-to-right mark as a code
+  expect_true(grepl("x\ty\\001&lt;U+200E&gt;", h, fixed = TRUE))
+})

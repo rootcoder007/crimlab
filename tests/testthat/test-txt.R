@@ -52,3 +52,12 @@ test_that("wrtxtfb() writes the UTF-8 bytes with one newline per line", {
   expect_error(wrtxtfb("x", ""), "one non-empty file path")
   expect_error(wrtxtfb(mean, p), "`text` must be text")
 })
+
+test_that("four-byte characters and bytes that start nothing are dropped", {
+  expect_identical(
+    toascii(c("a\U0001F600b", rawToChar(as.raw(c(0x61, 0xff, 0x62))),
+              rawToChar(as.raw(c(0x61, 0x80, 0x62))),
+              rawToChar(as.raw(c(0x61, 0xf0, 0x9f, 0x62))))),
+    rep("ab", 4)
+  )
+})
