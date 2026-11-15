@@ -1570,6 +1570,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jrpv.inc"
 #include "jwdq.inc"
 #include "jkrg.inc"
+#include "jsep.inc"
 #include "jprh.inc"
 #include "jlnk.inc"
 #include "jspc.inc"
@@ -1820,6 +1821,17 @@ const Ent ents[] = {
     {"lnsize", "choice k? susp? level?", lnsize},
     {"rptvic", "id t? pop? brk?", rptvic},
     {"wdqx", "a b c", wdqx},
+    {"bayout", "x freq? b? w? acty? alpha? at?", bayout},
+    {"bufexp", "x y? src r w? lonlat?", bufexp},
+    {"kerexp", "x y? src h w? kern?", kerexp},
+    {"lerprc", "w rho tau?", lerprc},
+    {"bym2sc", "w tau? phi? tol?", bym2sc},
+    {"ecolrg", "y e x? family? z? tol? maxit?", ecolrg},
+    {"spbias", "d b ub?", spbias},
+    {"spsir", "i0 w? pop? beta? gamma? kappa? tmax? dt?", spsir},
+    {"sfrail", "time event x? reg w tau? tol?", sfrail},
+    {"sfcure", "time event x? reg w tau? tol?", sfcure},
+    {"evfilt", "v w x? method? cand? tol? maxv?", evfilt},
     {"vgemp", "x y? v nbins? cutoff?", vgemp},
     {"vgfit", "x y? v model?", vgfit},
     {"okrge", "x y? v at vgm?", okrge},

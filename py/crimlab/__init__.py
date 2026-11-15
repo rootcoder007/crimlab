@@ -20,6 +20,17 @@ from . import _clab
 from ._corr import hzdsel, incap, incapr, losbnd, sellab, sntbnd
 from ._disp import dspbm, dyadrt, impfpr, orrisk, outtst, vodtst
 from ._j import (
+    spsir,
+    spbias,
+    sfrail,
+    sfcure,
+    lerprc,
+    kerexp,
+    evfilt,
+    ecolrg,
+    bym2sc,
+    bufexp,
+    bayout,
     vgfit,
     vgemp,
     trsurf,
@@ -283,6 +294,17 @@ from ._proof import proof
 from ._version import __version__
 
 __all__ = [
+    "spsir",
+    "spbias",
+    "sfrail",
+    "sfcure",
+    "lerprc",
+    "kerexp",
+    "evfilt",
+    "ecolrg",
+    "bym2sc",
+    "bufexp",
+    "bayout",
     "vgfit",
     "vgemp",
     "trsurf",

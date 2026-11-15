@@ -4704,3 +4704,178 @@ def spsamp(x: Any, size: Any = None, dens: Any = True, seed: Any = None) -> Any:
     True
     """
     return jcall("spsamp", x=x, size=size, dens=dens, seed=seed)
+
+
+def bayout(x: Any, freq: Any = 52, b: Any = 0, w: Any = 6, acty: Any = True, alpha: Any = 0.05, at: Any = None) -> Any:
+    """Bayes outbreak detection.
+
+    The arguments and the result are those of R's ``bayout()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bayout(x=[3, 5, 2, 4, 6, 3, 4, 12], at=8)
+    >>> list(r)
+    ['t', 'ub', 'alarm']
+    """
+    return jcall("bayout", x=x, freq=freq, b=b, w=w, acty=acty, alpha=alpha, at=at)
+
+
+def bufexp(x: Any, y: Any = None, src: Any = None, r: Any = None, w: Any = None, lonlat: Any = False) -> Any:
+    """Exposure within a buffer.
+
+    The arguments and the result are those of R's ``bufexp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bufexp(x=[[0, 0], [5, 5]], src=[[0.5, 0.5], [4, 4]], r=1.5)
+    >>> list(r)
+    ['count', 'wsum', 'near']
+    """
+    return jcall("bufexp", x=x, y=y, src=src, r=r, w=w, lonlat=lonlat)
+
+
+def kerexp(x: Any, y: Any = None, src: Any = None, h: Any = None, w: Any = None, kern: Any = "gaussian") -> Any:
+    """Exposure by kernel.
+
+    The arguments and the result are those of R's ``kerexp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = kerexp(x=[[0.2, 0.3], [1, 1]], src=[[0.25, 0.35]], h=0.5)
+    >>> isinstance(r, list)
+    True
+    """
+    return jcall("kerexp", x=x, y=y, src=src, h=h, w=w, kern=kern)
+
+
+def lerprc(w: Any, rho: Any, tau: Any = 1) -> Any:
+    """The Leroux precision matrix.
+
+    The arguments and the result are those of R's ``lerprc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = lerprc(w=[[0, 1, 0], [1, 0, 1], [0, 1, 0]], rho=0.5)
+    >>> isinstance(r, list)
+    True
+    """
+    return jcall("lerprc", w=w, rho=rho, tau=tau)
+
+
+def bym2sc(w: Any, tau: Any = 1, phi: Any = 0.5, tol: Any = 1e-10) -> Any:
+    """The BYM2 area structure.
+
+    The arguments and the result are those of R's ``bym2sc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bym2sc(w=[[0, 1, 0], [1, 0, 1], [0, 1, 0]])
+    >>> list(r)
+    ['scale', 'ginv', 'cov']
+    """
+    return jcall("bym2sc", w=w, tau=tau, phi=phi, tol=tol)
+
+
+def ecolrg(y: Any, e: Any, x: Any = None, family: Any = "poisson", z: Any = None, tol: Any = 1e-12,
+           maxit: Any = 500) -> Any:
+    """Ecological regression with expected counts.
+
+    The arguments and the result are those of R's ``ecolrg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ecolrg(y=[2, 0, 5, 3, 0, 7], e=[2.5, 1, 4, 3, 1.5, 5])
+    >>> list(r)
+    ['coef', 'fitted', 'loglik']
+    """
+    return jcall("ecolrg", y=y, e=e, x=x, family=family, z=z, tol=tol, maxit=maxit)
+
+
+def spbias(d: Any, b: Any, ub: Any = -10) -> Any:
+    """The spatial encoding of graph attention.
+
+    The arguments and the result are those of R's ``spbias()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = spbias(d=[[0, 1], [1, -1]], b=[1, 0.5])
+    >>> list(r)
+    ['bias', 'ub']
+    """
+    return jcall("spbias", d=d, b=b, ub=ub)
+
+
+def spsir(i0: Any, w: Any = None, pop: Any = None, beta: Any = 0.5, gamma: Any = 0.2, kappa: Any = 0.1,
+          tmax: Any = 100, dt: Any = 0.1) -> Any:
+    """The metapopulation SIR model.
+
+    The arguments and the result are those of R's ``spsir()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = spsir(i0=[10, 0], w=[[0, 1], [1, 0]], tmax=2, dt=1)
+    >>> list(r)
+    ['attack', 'r0', 't', 'S', 'I', 'R']
+    """
+    return jcall("spsir", i0=i0, w=w, pop=pop, beta=beta, gamma=gamma, kappa=kappa, tmax=tmax, dt=dt)
+
+
+def sfrail(time: Any, event: Any, x: Any = None, reg: Any = None, w: Any = None, tau: Any = 1,
+           tol: Any = 1e-10) -> Any:
+    """Spatial frailty model.
+
+    The arguments and the result are those of R's ``sfrail()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = sfrail(time=[1, 2, 3, 4, 5, 6], event=[1, 1, 0, 1, 1, 0], reg=[1, 1, 1, 2, 2, 2],
+    ... w=[[0, 1], [1, 0]])
+    >>> list(r)
+    ['pll', 'shape', 'coef', 'frail', 'se', 'iter', 'tau']
+    """
+    return jcall("sfrail", time=time, event=event, x=x, reg=reg, w=w, tau=tau, tol=tol)
+
+
+def sfcure(time: Any, event: Any, x: Any = None, reg: Any = None, w: Any = None, tau: Any = 1,
+           tol: Any = 1e-10) -> Any:
+    """Spatial promotion-time cure model.
+
+    The arguments and the result are those of R's ``sfcure()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = sfcure(time=[1, 2, 3, 4, 5, 6, 8, 9], event=[1, 1, 0, 1, 1, 0, 0, 0],
+    ... reg=[1, 1, 1, 1, 2, 2, 2, 2], w=[[0, 1], [1, 0]])
+    >>> list(r)
+    ['pll', 'shape', 'lscale', 'coef', 'effect', 'se', 'cure', 'iter', 'tau']
+    """
+    return jcall("sfcure", time=time, event=event, x=x, reg=reg, w=w, tau=tau, tol=tol)
+
+
+def evfilt(v: Any, w: Any, x: Any = None, method: Any = "moran", cand: Any = "positive", tol: Any = 0.1,
+           maxv: Any = None) -> Any:
+    """Eigenvector spatial filtering.
+
+    The arguments and the result are those of R's ``evfilt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = evfilt(v=[1, 2, 2.5, 4, 3.5, 3, 1.5, 1], w=[[0, 1, 0, 0, 0, 0, 0, 0],
+    ... [1, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 1, 0, 0, 0],
+    ... [0, 0, 0, 1, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 1],
+    ... [0, 0, 0, 0, 0, 0, 1, 0]], method="aic")
+    >>> list(r)
+    ['sel', 'coef', 'imoran', 'aic', 'r2', 'fr2', 'resid', 'mi']
+    """
+    return jcall("evfilt", v=v, w=w, x=x, method=method, cand=cand, tol=tol, maxv=maxv)

@@ -19,3 +19,6 @@ vgfit	1e-8	0	fitted by Nelder-Mead to a relative tolerance of 1.5e-8 on the like
 okrge	1e-8	0	without a variogram the model is fitted by Nelder-Mead first, to a relative tolerance of 1.5e-8
 sglmx	1e-8	0	the range is the minimum found by Brent's method to a tolerance of 1.2e-4 in its log; the other estimates follow it
 smixm	1e-8	0	fitted by Nelder-Mead to a relative tolerance of 1e-6 on the restricted likelihood
+ecolrg	1e-9	0	theta and the zero-inflated fit are iterated to a tolerance, and their last digits follow the rounding of the scores
+sfrail	1e-8	0	Newton-Raphson to a step of 1e-10 with a numerical Hessian: the standard errors carry its rounding, about 1e-10 relative
+sfcure	1e-8	0	Newton-Raphson to a step of 1e-10 with a numerical Hessian: the standard errors carry its rounding, about 1e-10 relative

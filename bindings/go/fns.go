@@ -703,6 +703,39 @@ func Rptvic(args string) (string, error) { return Jrun("rptvic", args) }
 // Wdqx runs wdqx() of the R package (arguments: a b c; ? marks an optional one).
 func Wdqx(args string) (string, error) { return Jrun("wdqx", args) }
 
+// Bayout runs bayout() of the R package (arguments: x freq? b? w? acty? alpha? at?; ? marks an optional one).
+func Bayout(args string) (string, error) { return Jrun("bayout", args) }
+
+// Bufexp runs bufexp() of the R package (arguments: x y? src r w? lonlat?; ? marks an optional one).
+func Bufexp(args string) (string, error) { return Jrun("bufexp", args) }
+
+// Kerexp runs kerexp() of the R package (arguments: x y? src h w? kern?; ? marks an optional one).
+func Kerexp(args string) (string, error) { return Jrun("kerexp", args) }
+
+// Lerprc runs lerprc() of the R package (arguments: w rho tau?; ? marks an optional one).
+func Lerprc(args string) (string, error) { return Jrun("lerprc", args) }
+
+// Bym2sc runs bym2sc() of the R package (arguments: w tau? phi? tol?; ? marks an optional one).
+func Bym2sc(args string) (string, error) { return Jrun("bym2sc", args) }
+
+// Ecolrg runs ecolrg() of the R package (arguments: y e x? family? z? tol? maxit?; ? marks an optional one).
+func Ecolrg(args string) (string, error) { return Jrun("ecolrg", args) }
+
+// Spbias runs spbias() of the R package (arguments: d b ub?; ? marks an optional one).
+func Spbias(args string) (string, error) { return Jrun("spbias", args) }
+
+// Spsir runs spsir() of the R package (arguments: i0 w? pop? beta? gamma? kappa? tmax? dt?; ? marks an optional one).
+func Spsir(args string) (string, error) { return Jrun("spsir", args) }
+
+// Sfrail runs sfrail() of the R package (arguments: time event x? reg w tau? tol?; ? marks an optional one).
+func Sfrail(args string) (string, error) { return Jrun("sfrail", args) }
+
+// Sfcure runs sfcure() of the R package (arguments: time event x? reg w tau? tol?; ? marks an optional one).
+func Sfcure(args string) (string, error) { return Jrun("sfcure", args) }
+
+// Evfilt runs evfilt() of the R package (arguments: v w x? method? cand? tol? maxv?; ? marks an optional one).
+func Evfilt(args string) (string, error) { return Jrun("evfilt", args) }
+
 // Vgemp runs vgemp() of the R package (arguments: x y? v nbins? cutoff?; ? marks an optional one).
 func Vgemp(args string) (string, error) { return Jrun("vgemp", args) }
 
