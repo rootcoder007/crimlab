@@ -301,6 +301,7 @@ smkiv <- function(
 #' @param est The estimator: [ppmlfe()] (the default) or [ivfe()] as least
 #'   squares.
 #' @param ... The other arguments of `est` (`fe`, `clus`, `se`, ...).
+#'   For `plot()`, passed to the base-graphics call.
 #' @param x An object of class `runfx`.
 #' @return `exprun()`: a data frame with `run` (0 when not exposed) and the
 #'   indicators `run1`, ..., `run<cap>p`. `runfx()`: a list of class
@@ -319,7 +320,9 @@ smkiv <- function(
 #' d$smoke <- rbinom(nrow(d), 1, 0.3)
 #' r <- exprun(d, "smoke", "area", "day")
 #' d$crimes <- rpois(nrow(d), exp(1 + 0.2 * r$run1 + 0.1 * r$run2))
-#' runfx(d, "crimes", "smoke", "area", "day", fe = c("area", "day"))
+#' f <- runfx(d, "crimes", "smoke", "area", "day", fe = c("area", "day"))
+#' f
+#' plot(f)
 #' @export
 exprun <- function(data, var, unit, day, thr = 0, cap = 3, step = 1) {
   f <- "exprun"
@@ -397,7 +400,8 @@ print.runfx <- function(x, ...) {
 #' @param mod The name of the moderator column (labels).
 #' @param est The estimator: [ppmlfe()], [ivfe()] or [ppmlcf()].
 #' @param how `"inter"` or `"split"`.
-#' @param ... The other arguments of `est`.
+#' @param ... The other arguments of `est`. For `plot()`, passed to the
+#'   base-graphics call.
 #' @param x An object of class `hetfx`.
 #' @return A list of class `hetfx`: `tab`, one row per level (`level`,
 #'   `est`, `se`, `lo`, `hi`, `p`, `n`); `test`, the Wald test of equality
@@ -419,7 +423,9 @@ print.runfx <- function(x, ...) {
 #' d$poor <- ifelse(d$area <= 10, "poor", "not poor")
 #' d$pm <- rnorm(nrow(d), 20, 5)
 #' d$crimes <- rpois(nrow(d), exp(0.5 + 0.04 * d$pm * (d$poor == "poor")))
-#' hetfx(d, "pm", "poor", y = "crimes", x = "pm", fe = c("area", "day"))
+#' h <- hetfx(d, "pm", "poor", y = "crimes", x = "pm", fe = c("area", "day"))
+#' h
+#' plot(h)
 #' @export
 hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
                   ...) {
@@ -626,6 +632,7 @@ print.hetfx <- function(x, ...) {
 #'             ns = c(temp = 6, rh = 3), clus = "area")
 #' b <- h$coef[h$coef$term == "no2", ]
 #' 100 * (exp(c(b$est, b$lo, b$hi) * IQR(d$no2)) - 1)
+#' plot(h, terms = "no2")
 #' @export
 ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
                    lagv = NULL, lag = 0, ns = NULL, est = ppmlfe, ...) {
@@ -757,6 +764,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator, [ppmlfe()] by default.
 #' @param ... The other arguments of `est` (`fe`, `clus`, `se`, ...).
+#'   For `plot()`, passed to the base-graphics call.
 #' @param x An object of class `jntx`.
 #' @return A list of class `jntx`: `cond`, the log rate ratio (and `rr`)
 #'   of `x1` at `p1[2]` against `p1[1]` at each quantile of `x2`, with
@@ -783,6 +791,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' )
 #' j <- jntx(d, "crimes", "temp", "o3", fe = "city")
 #' j
+#' plot(j)
 #' @export
 jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
                  p1 = c(
@@ -906,6 +915,7 @@ print.jntx <- function(x, ...) {
 #' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator, [ppmlfe()] or [ivfe()] as least squares.
 #' @param ... The other arguments of `est` (`fe`, `clus`, `se`, ...).
+#'   For `plot()`, passed to the base-graphics call.
 #' @param x An object of class `dosebin`.
 #' @return A list of class `dosebin`: `tab`, one row per bin (`bin`, `mid`,
 #'   the median exposure, `n`, `est`, `se`, `lo`, `hi`, `p`; the reference
@@ -920,7 +930,9 @@ print.jntx <- function(x, ...) {
 #' d <- expand.grid(day = 1:100, area = 1:10)
 #' d$aqi <- rgamma(nrow(d), 4, 0.1)
 #' d$crimes <- rpois(nrow(d), exp(1 + 0.3 * (d$aqi > 50)))
-#' dosebin(d, "crimes", "aqi", fe = c("area", "day"))
+#' b <- dosebin(d, "crimes", "aqi", fe = c("area", "day"))
+#' b
+#' plot(b)
 #' @export
 dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
                     est = ppmlfe, ...) {
@@ -1017,6 +1029,7 @@ print.dosebin <- function(x, ...) {
 #' @param est The estimator.
 #' @param adj `"holm"`, `"bonferroni"`, `"BH"` or `"none"`.
 #' @param ... The other arguments of `est` (`x`, `fe`, ...).
+#'   For `plot()`, passed to the base-graphics call.
 #' @param x An object of class `typefx`.
 #' @return A list of class `typefx`: `tab`, one row per outcome (`y`,
 #'   `est`, `se`, `lo`, `hi`, `p`, `padj`, `n`); `adj`.
@@ -1039,7 +1052,10 @@ print.dosebin <- function(x, ...) {
 #' d$pm <- rnorm(nrow(d), 20, 5)
 #' d$assault <- rpois(nrow(d), exp(0.5 + 0.03 * d$pm))
 #' d$theft <- rpois(nrow(d), 2)
-#' typefx(d, c("assault", "theft"), "pm", x = "pm", fe = c("area", "day"))
+#' r <- typefx(d, c("assault", "theft"), "pm", x = "pm",
+#'             fe = c("area", "day"))
+#' r
+#' plot(r)
 #' @export
 typefx <- function(data, ys, term, est = ppmlfe,
                    adj = c("holm", "bonferroni", "BH", "none"), ...) {

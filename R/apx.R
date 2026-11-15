@@ -491,7 +491,8 @@
 #' @param data A data frame, one row per place and period.
 #' @param y The name of the count column: numbers from 0, not all 0.
 #' @param x The names of the regressors: the exposure and any controls
-#'   (numeric columns). For `print()`, an object of class `ppmlfe`.
+#'   (numeric columns). For `print()` and `plot()`, an object of class
+#'   `ppmlfe`.
 #' @param fe The names of one or more fixed-effect columns (labels), for
 #'   example `c("area", "day")`, or `c("area", "day", "hour")` for a third
 #'   set: each is absorbed (see the alternating projections above).
@@ -514,7 +515,8 @@
 #' @param tol The convergence tolerance of the demeaning.
 #' @param maxit The most iterations of the fit.
 #' @param object An object of class `ppmlfe`.
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `ppmlfe`, a list: `coef`, a data frame with
 #'   one row per regressor (`term`, `est` on the log scale, `se`, `stat`
 #'   (z), `p`, `lo`, `hi`, and `rr`, `exp(est)`, the rate ratio of one more
@@ -585,6 +587,7 @@
 #' f <- ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
 #'             expo = "pop")
 #' f
+#' plot(f)
 #' # two-way clustering by area and day; Newey-West within areas
 #' summary(ppmlfe(d, "crimes", c("pm", "temp"), fe = c("area", "day"),
 #'                expo = "pop", se = "twoway"))
@@ -906,12 +909,13 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   exposure).
 #' @param inst `NULL` or the names of the excluded instruments, at least as
 #'   many as `endo` (from [windiv()] or [invsn()], say).
-#' @param x `NULL` or the names of the exogenous controls. For `print()`,
-#'   an object of class `ivfe`.
+#' @param x `NULL` or the names of the exogenous controls. For
+#'   `print()` and `plot()`, an object of class `ivfe`.
 #' @param fe,clus,se,ssc,time,lag,nboot,seed,level,tol,twc,psd As in
 #'   [ppmlfe()].
 #' @param object An object of class `ivfe`.
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
 #'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
 #'   `kp`, `eff`, `keff`, `cv`, `ninst`); `overid`, with more instruments
@@ -971,6 +975,7 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' f
 #' f$first
 #' f$fstab
+#' plot(f)
 #'
 #' # shaped as Chen and Li (2020, equations 4-5, p. 4): county-season-year
 #' # cells, the triple difference (treated state x summer x after) as the
@@ -1256,8 +1261,8 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' @param data,y,fe,expo,level,tol,maxit As in [ppmlfe()].
 #' @param endo The names of the endogenous columns.
 #' @param inst The names of the excluded instruments, at least as many.
-#' @param x `NULL` or the names of the exogenous controls. For `print()`,
-#'   an object of class `ppmlcf`.
+#' @param x `NULL` or the names of the exogenous controls. For
+#'   `print()` and `plot()`, an object of class `ppmlcf`.
 #' @param clus `NULL` (the first fixed effect) or the name of one cluster
 #'   column: the unit the bootstrap draws and the naive errors cluster by.
 #' @param how `"cf"` or `"plug"`.
@@ -1267,7 +1272,8 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' @param nboot The number of bootstrap draws, at least 2.
 #' @param seed `NULL` (the generator's current state) or one whole number.
 #' @param object An object of class `ppmlcf`.
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `ppmlcf`, a list: `coef` (as in [ppmlfe()],
 #'   the endogenous columns, the controls, then for `"cf"` the residual
 #'   terms `"vhat:<endo>"`); `first` (as in [ivfe()]); `draws`, the
@@ -1295,8 +1301,10 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' u <- rnorm(nrow(d), 0, 0.5)
 #' d$pm <- 2 * w[, 1] - w[, 3] + u + rnorm(nrow(d))
 #' d$crimes <- rpois(nrow(d), exp(1 + 0.1 * d$pm + 0.5 * u))
-#' ppmlcf(d, "crimes", endo = "pm", inst = colnames(w), fe = c("area", "day"),
-#'        nboot = 49, seed = 1)
+#' f <- ppmlcf(d, "crimes", endo = "pm", inst = colnames(w),
+#'             fe = c("area", "day"), nboot = 49, seed = 1)
+#' f
+#' plot(f)
 #' # the paper's plug-in, with its naive errors
 #' summary(ppmlcf(d, "crimes", endo = "pm", inst = colnames(w),
 #'                fe = c("area", "day"), how = "plug", se = "naive"))
@@ -1543,8 +1551,8 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 #' @param data,y,expo,level As in [ppmlfe()].
 #' @param endo The names of the endogenous columns.
 #' @param inst The names of the excluded instruments, at least as many.
-#' @param x `NULL` or the names of the exogenous controls. For `print()`,
-#'   an object of class `expgmm`.
+#' @param x `NULL` or the names of the exogenous controls. For
+#'   `print()` and `plot()`, an object of class `expgmm`.
 #' @param fe `NULL` or the names of one or two fixed-effect columns, as
 #'   indicator columns (see Fixed effects).
 #' @param clus `NULL` (the first `fe` column) or the name of one cluster
@@ -1558,7 +1566,8 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 #' @param maxit The most Gauss-Newton iterations of a step (and the most
 #'   weights for `"iter"`).
 #' @param object An object of class `expgmm`.
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `expgmm`, a list: `coef` (as in [ppmlfe()],
 #'   with `rr`; the endogenous columns, then the controls; the effects are
 #'   not shown); `j`, one row (`stat`, `df`, `p`; `NA` where not given);
@@ -1590,6 +1599,7 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 #'             clus = "area")
 #' f
 #' f$j
+#' plot(f)
 #' # the additive residual, one step
 #' summary(expgmm(d, "crimes", endo = "pm", inst = c("z1", "z2"),
 #'                fe = "day", clus = "area", err = "add", step = "one"))
@@ -2168,6 +2178,7 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
 #'   instruments).
 #' @param shift `"both"`, `"x"` or `"z"`: what is moved.
 #' @param ... The other arguments of `est` (`y`, `x`, `fe`, ...).
+#'   For `plot()`, passed to the base-graphics call.
 #' @param object,x An object of class `plcday` (for the methods).
 #' @return An object of class `plcday`, a list: `tab`, a data frame with
 #'   one row per shift, 0 (the same day) first (`shift`, `est`, `se`,
@@ -2187,8 +2198,10 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
 #' d <- expand.grid(day = 1:80, area = 1:12)
 #' d$pm <- rnorm(nrow(d), 20, 5)
 #' d$crimes <- rpois(nrow(d), exp(0.5 + 0.03 * d$pm))
-#' plcday(d, "pm", "area", "day", shifts = c(-7, 7), y = "crimes", x = "pm",
-#'        fe = c("area", "day"))
+#' p <- plcday(d, "pm", "area", "day", shifts = c(-7, 7), y = "crimes",
+#'             x = "pm", fe = c("area", "day"))
+#' p
+#' plot(p)
 #' @export
 plcday <- function(
   data,
@@ -2359,7 +2372,8 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #'   left of each segment) for the placebo segments; segments only.
 #' @param level The confidence level.
 #' @param object,x An object of class `updwn` (for the methods).
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `updwn`, a list: `coef`, the rows of the
 #'   downwind terms (one, or one per ring); `class`, the rows by outcome of
 #'   the classification (`downwind`, `upwind`, `along` (wind along the road
@@ -2392,8 +2406,10 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #'   ((d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5))
 #' d$crimes <- rpois(nrow(d), 3 * (1 + 0.1 * dn))
 #' road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
-#' updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
-#'       offs = c(-1600, 0, 1600))
+#' u <- updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
+#'            offs = c(-1600, 0, 1600))
+#' u
+#' plot(u)
 #' # the Poisson model and two distance rings
 #' summary(updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
 #'               norm = "pois", dist = c(0, 500, 1600)))

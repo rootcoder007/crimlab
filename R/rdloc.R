@@ -137,7 +137,8 @@
 #' @param level The confidence level.
 #' @param x An object of class `rdloc`.
 #' @param object An object of class `rdloc`.
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `rdloc`, a list: `coef`, two rows (`method`,
 #'   `est`, `se`, `stat`, `p`, `lo`, `hi`), the one of `ci` first; `h`;
 #'   `n`, `nl`, `nr`, the rows within the bandwidth (all, left, right);
@@ -165,6 +166,7 @@
 #' d$y <- 1 + 0.8 * d$r + 0.5 * (d$r >= 0) + rnorm(2000, 0, 0.3)
 #' f <- rdloc(d, "y", "r")
 #' f
+#' plot(f)
 #' # a given bandwidth, the uniform kernel and two placebo cutoffs
 #' summary(rdloc(d, "y", "r", bw = "user", h = 0.3, kern = "uni",
 #'               plac = c(-0.5, 0.5)))
@@ -247,7 +249,8 @@ rdloc <- function(
     list(coef = tab, h = h, n = r1$n, nl = r1$nl, nr = r1$nr, ncl = r1$g,
          ik = ik, placebo = pl, cut = cut, kern = kern,
          fuzzy = !is.null(trt), se = se, level = level),
-    class = "rdloc"
+    class = "rdloc",
+    plt = .rdplt(yv, rv, cut, h, kern)
   )
 }
 
@@ -300,7 +303,8 @@ summary.rdloc <- function(object, ...) object[["coef"]]
 #' @param level The confidence level.
 #' @param x An object of class `rddens`.
 #' @param object An object of class `rddens`.
-#' @param ... Not used.
+#' @param ... Not used by `print()` and `summary()`; for `plot()`, passed
+#'   to the base-graphics call.
 #' @return An object of class `rddens`, a list: `tab`, one row (`theta`,
 #'   `se`, `stat`, `p`, `lo`, `hi`, `fl`, `fr`, the densities left and
 #'   right); `b`, `h`, `nbin`, `n`, `cut`, `level`. `summary()` returns
@@ -314,7 +318,9 @@ summary.rdloc <- function(object, ...) object[["coef"]]
 #' set.seed(6)
 #' rddens(runif(3000, -1, 1))
 #' # bunching just above the cutoff
-#' rddens(c(runif(3000, -1, 1), runif(300, 0, 0.1)))
+#' r <- rddens(c(runif(3000, -1, 1), runif(300, 0, 0.1)))
+#' r
+#' plot(r)
 #' @export
 rddens <- function(r, cut = 0, b = NULL, h = NULL, level = 0.95) {
   f <- "rddens"
@@ -333,7 +339,8 @@ rddens <- function(r, cut = 0, b = NULL, h = NULL, level = 0.95) {
   structure(
     list(tab = tab, b = s[5L], h = s[6L], nbin = as.integer(s[7L]),
          n = length(r), cut = cut, level = level),
-    class = "rddens"
+    class = "rddens",
+    plt = .rddplt(as.numeric(r), cut, s[5L], s[6L])
   )
 }
 
