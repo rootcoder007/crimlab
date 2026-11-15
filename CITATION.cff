@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "To cite crimlab in publications use the reference below."
 type: software
-title: "crimlab: Criminology and Sociolegal Statistics"
+title: "crimlab: Statistical Methods for Criminology and Sociolegal Research"
 authors:
   - family-names: Ruhela
     given-names: Vansh Singh
