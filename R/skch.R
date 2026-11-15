@@ -35,7 +35,7 @@
 #' @param x Numeric vector (finite; \code{NA} is skipped). Text that reads
 #'   as numbers is taken as those numbers.
 #' @param acc,a,b Accumulators from \code{onlsmry()}.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return \code{onlsmry()}, \code{smryupd()} and \code{smrymrg()}: an
 #'   accumulator, a list of class \code{onlsmry} with \code{state}.
 #'   \code{smrystat()}: a named numeric vector \code{n}, \code{mean},
@@ -64,41 +64,6 @@ onlsmry <- function(x = NULL) {
   acc <- structure(list(state = c(0, 0, 0, 0, 0)), class = c("onlsmry", "list"))
   if (is.null(x)) return(acc)
   .skupd(acc, .sknum(x, "x", "onlsmry"), "onlsmry")
-}
-
-# .rmbl_num(): numbers, or text that reads as numbers; not flags.
-.sknum <- function(x, what, fn) {
-  if (is.factor(x) || is.list(x) ||
-        !(is.numeric(x) || is.logical(x) || is.character(x))) {
-    .ckstop(fn, "`%s` must be numeric, got %s", what, class(x)[1L])
-  }
-  if (is.character(x)) {
-    v <- suppressWarnings(as.numeric(x))
-    bad <- !is.na(x) & is.na(v) & nzchar(trimws(x)) & x != "NA"
-    if (any(bad)) {
-      .ckstop(
-        fn, "`%s` must be numeric, not text such as \"%s\"", what, x[bad][1L]
-      )
-    }
-    x <- v
-  }
-  if (is.logical(x) && !all(is.na(x))) {
-    .ckstop(fn, "`%s` must be a number, not %s", what, format(x[!is.na(x)][1L]))
-  }
-  as.numeric(x)
-}
-
-.skupd <- function(acc, x, fn) {
-  x <- x[!is.na(x)]
-  if (any(is.infinite(x))) {
-    .ckstop(
-      fn,
-      "`x` has infinite values, which no moment can hold; set them to NA first"
-    )
-  }
-  if (!length(x)) return(acc)
-  acc$state <- .Call(C_clab_r_momupd, acc$state, x)
-  acc
 }
 
 #' @rdname onlsmry
@@ -203,21 +168,9 @@ rsvidx <- function(n, k, seed = 42L) {
   f <- "rsvidx"
   n <- .sknum(n, "n", f)
   k <- .sknum(k, "k", f)
-  for (a in list(list(n, "n"), list(k, "k"))) {
-    v <- a[[1L]]
-    if (length(v) != 1L || is.na(v) || !is.finite(v) || v < 0 ||
-          v != floor(v)) {
-      .ckstop(f, "`%s` must be a single non-negative whole number", a[[2L]])
-    }
-    if (v > .Machine$integer.max) {
-      .ckstop(f, "`%s` must be at most 2147483647", a[[2L]])
-    }
-  }
-  seed <- .sknum(seed, "seed", f)
-  if (length(seed) != 1L || is.na(seed) || seed < 0 || seed != floor(seed) ||
-        seed >= 2^53) {
-    .ckstop(f, "`seed` must be a whole number in [0, 2^53)")
-  }
+  .rswhole(n, "n", f)
+  .rswhole(k, "k", f)
+  seed <- .rsseed(.sknum(seed, "seed", f), f)
   .Call(C_clab_r_rsv, n, k, seed)
 }
 
@@ -285,31 +238,9 @@ rsvsmp <- function(x, k, seed = 42L) {
 #' @export
 dstnskch <- function(x, p = 14L, regstr = NULL) {
   f <- "dstnskch"
-  p <- .sknum(p, "p", f)
-  if (length(p) != 1L || is.na(p) || p < 4 || p > 20 || p != round(p)) {
-    .ckstop(f, "`p` must be a single integer between 4 and 20")
-  }
-  if (!is.null(regstr)) {
-    regstr <- .skreg(regstr, "regstr", f)
-    if (length(regstr) != 2^p) {
-      .ckstop(
-        f,
-        "`regstr` must have 2^p entries, from a sketch with the same `p`"
-      )
-    }
-  }
+  p <- .dsp(.sknum(p, "p", f), f)
+  if (!is.null(regstr)) regstr <- .dsreg(regstr, p, f)
   .Call(C_clab_r_hlladd, enc2utf8(as.character(x)), as.integer(p), regstr)
-}
-
-.skreg <- function(r, what, fn) {
-  if (is.factor(r) || is.list(r) || !(is.numeric(r) || is.logical(r))) {
-    .ckstop(fn, "`%s` must be numeric, got %s", what, class(r)[1L])
-  }
-  r <- as.numeric(r)
-  if (!all(is.finite(r)) || any(r < 0) || any(r > 64) || any(r != floor(r))) {
-    .ckstop(fn, "`%s` must be non-negative integer registers", what)
-  }
-  as.integer(r)
 }
 
 #' @rdname dstnskch
@@ -330,4 +261,88 @@ skchmrg <- function(a, b) {
     )
   }
   pmax(a, b)
+}
+
+# .rmbl_num(): numbers, or text that reads as numbers; not flags.
+.sknum <- function(x, what, fn) {
+  if (is.factor(x) || is.list(x) ||
+        !(is.numeric(x) || is.logical(x) || is.character(x))) {
+    .ckstop(fn, "`%s` must be numeric, got %s", what, class(x)[1L])
+  }
+  if (is.character(x)) {
+    v <- suppressWarnings(as.numeric(x))
+    bad <- !is.na(x) & is.na(v) & nzchar(trimws(x)) & x != "NA"
+    if (any(bad)) {
+      .ckstop(
+        fn, "`%s` must be numeric, not text such as \"%s\"", what, x[bad][1L]
+      )
+    }
+    x <- v
+  }
+  if (is.logical(x) && !all(is.na(x))) {
+    .ckstop(fn, "`%s` must be a number, not %s", what, format(x[!is.na(x)][1L]))
+  }
+  as.numeric(x)
+}
+
+.skupd <- function(acc, x, fn) {
+  x <- x[!is.na(x)]
+  if (any(is.infinite(x))) {
+    .ckstop(
+      fn,
+      "`x` has infinite values, which no moment can hold; set them to NA first"
+    )
+  }
+  if (!length(x)) return(acc)
+  acc$state <- .Call(C_clab_r_momupd, acc$state, x)
+  acc
+}
+
+# rsvidx(): `n` and `k`, whole numbers from 0 to 2147483647
+.rswhole <- function(v, what, f) {
+  if (length(v) != 1L || is.na(v) || !is.finite(v) || v < 0 ||
+        v != floor(v)) {
+    .ckstop(f, "`%s` must be a single non-negative whole number", what)
+  }
+  if (v > .Machine$integer.max) {
+    .ckstop(f, "`%s` must be at most 2147483647", what)
+  }
+}
+
+.rsseed <- function(seed, f) {
+  if (length(seed) != 1L || is.na(seed) || seed < 0 || seed != floor(seed) ||
+        seed >= 2^53) {
+    .ckstop(f, "`seed` must be a whole number in [0, 2^53)")
+  }
+  seed
+}
+
+.dsp <- function(p, f) {
+  if (length(p) != 1L || is.na(p) || p < 4 || p > 20 || p != round(p)) {
+    .ckstop(f, "`p` must be a single integer between 4 and 20")
+  }
+  p
+}
+
+# dstnskch(): the registers of a sketch with the same `p`
+.dsreg <- function(regstr, p, f) {
+  regstr <- .skreg(regstr, "regstr", f)
+  if (length(regstr) != 2^p) {
+    .ckstop(
+      f,
+      "`regstr` must have 2^p entries, from a sketch with the same `p`"
+    )
+  }
+  regstr
+}
+
+.skreg <- function(r, what, fn) {
+  if (is.factor(r) || is.list(r) || !(is.numeric(r) || is.logical(r))) {
+    .ckstop(fn, "`%s` must be numeric, got %s", what, class(r)[1L])
+  }
+  r <- as.numeric(r)
+  if (!all(is.finite(r)) || any(r < 0) || any(r > 64) || any(r != floor(r))) {
+    .ckstop(fn, "`%s` must be non-negative integer registers", what)
+  }
+  as.integer(r)
 }
