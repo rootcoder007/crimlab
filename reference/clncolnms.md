@@ -57,16 +57,15 @@ when a re-release renames `"% change"` to `"% Change"` or adds a
 trailing space. Normalising once at ingestion makes the schema stable
 against that.
 
-The steps, in order: transliterate to ASCII
-(`iconv(..., "ASCII//TRANSLIT")`, keeping the original where that
-fails); replace `%` by `pct`, `&` by `and` and `#` by `n` as words;
-split camelCase at a lower-to-upper boundary; turn every run of other
-characters into one word break; an empty name becomes `x`; join the
-words in the chosen case; prefix `x` to a name starting with a digit;
-and give repeated names the suffixes `<sep>2`, `<sep>3`, ... in order of
-appearance (the first keeps its name). The transliteration depends on
-the platform's iconv, so an accented letter may come out slightly
-differently on different systems.
+The steps, in order: transliterate to ASCII with
+[`toascii()`](https://rootcoder007.github.io/crimlab/reference/toascii.md),
+which gives the same letters on every system; replace `%` by `pct`, `&`
+by `and` and `#` by `n` as words; split camelCase at a lower-to-upper
+boundary; turn every run of other characters into one word break; an
+empty name becomes `x`; join the words in the chosen case; prefix `x` to
+a name starting with a digit; and give repeated names the suffixes
+`<sep>2`, `<sep>3`, ... in order of appearance (the first keeps its
+name).
 
 Record the mapping with the data. Cleaning names changes what a
 downstream script must refer to, so an unrecorded cleaning is itself a

@@ -99,16 +99,14 @@ character vector, the cleaned character vector.</p>
 silently when a re-release renames <code>"% change"</code> to <code>"%
 Change"</code> or adds a trailing space. Normalising once at ingestion makes the
 schema stable against that.</p>
-<p>The steps, in order: transliterate to ASCII (<code>iconv(...,
-"ASCII//TRANSLIT")</code>, keeping the original where that fails); replace
+<p>The steps, in order: transliterate to ASCII with <code><a href="toascii.html">toascii()</a></code>, which
+gives the same letters on every system; replace
 <code>%</code> by <code>pct</code>, <code>&amp;</code> by <code>and</code> and <code>#</code> by <code>n</code> as
 words; split camelCase at a lower-to-upper boundary; turn every run of
 other characters into one word break; an empty name becomes <code>x</code>; join
 the words in the chosen case; prefix <code>x</code> to a name starting with a
 digit; and give repeated names the suffixes <code>&lt;sep&gt;2</code>, <code>&lt;sep&gt;3</code>,
-... in order of appearance (the first keeps its name). The
-transliteration depends on the platform's iconv, so an accented letter may
-come out slightly differently on different systems.</p>
+... in order of appearance (the first keeps its name).</p>
 <p>Record the mapping with the data. Cleaning names changes what a
 downstream script must refer to, so an unrecorded cleaning is itself a
 reproducibility hazard – the returned object carries the original names
