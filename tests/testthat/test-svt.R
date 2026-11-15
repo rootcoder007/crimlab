@@ -27,8 +27,9 @@ test_that("votagr() equals the reference agreement matrix", {
 test_that("amscal() equals the reference Aldrich-McKelvey fit", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) 4 + rnorm(1, 0, 0.3) +
-    runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)))
+  Z <- t(sapply(1:12, function(i) {
+    4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
+  }))
   Z[2, 3] <- NA
   r <- amscal(Z)
   # rmorie 1.5.0: R$morie_spatial_voting_aldrich_mckelvey(), the same input,
@@ -69,40 +70,77 @@ test_that("bbscal() equals the reference Basic Space fit", {
         0.067857539659783458, 0.270279154638007, 0.01564631920960162,
         0.41395160849782847, -0.54346628458363955, -0.31129406652879166,
         0.82711687999328132, -0.33428094533054248, 0.65065231578663785,
-        -0.95324265324782276, 0.26080152994556449, -0.3640213980399073 )
+        -0.95324265324782276, 0.26080152994556449, -0.3640213980399073)
   expect_equal(unname(c(colsgn(r$ideal, ref))), c(ref), tolerance = 1e-10)
   ref <- c(-1.092912986400159, 1.7545954901064482, -0.83277773174660374,
         1.0573839509113865, 1.0994902102241524, 0.43151556980633976,
         0.27328108670824508, -0.47323096605039405, -1.1851001823101246,
-        -0.047356143614779869, -0.25508093156693762, 1.0952303278770372 )
+        -0.047356143614779869, -0.25508093156693762, 1.0952303278770372)
   expect_equal(unname(c(colsgn(r$weights, ref))), c(ref), tolerance = 1e-10)
   ref <- c(55.946332588245276, 8.8204895435381658)
   expect_equal(unname(c(r$eigen)), c(ref), tolerance = 1e-10)
   ref <- 0.98943751712465788
   expect_equal(unname(c(r$fit)), c(ref), tolerance = 1e-10)
   ref <- c(0.35579191905573526, -0.70737693110774391, 0.51937947262822171,
-        -0.36762141193096931, -0.46719044780073854, -0.1063540634357983 )
+        -0.36762141193096931, -0.46719044780073854, -0.1063540634357983)
   expect_equal(unname(c(r$cmeans)), c(ref), tolerance = 1e-10)
 })
 
 
-test_that("optcls() equals the reference Optimal Classification", {
+test_that("optcls() equals the Optimal Classification it states", {
+  # rmorie 1.5.0 (morie_spatial_voting_optimal_classification) puts every
+  # legislator on the unit sphere, which in one dimension leaves two
+  # positions, and splits each vote at the midpoint of its two sides, so
+  # its fit can be worse than voting with the majority. crimlab keeps the
+  # mean of the directions and splits each vote where it misclassifies
+  # least; this is that algorithm written out in R.
+  oc <- function(v, maxit, nstart, seed) {
+    set.seed(seed)
+    n <- nrow(v)
+    best <- Inf
+    for (r in seq_len(nstart)) {
+      x <- rnorm(n)
+      nr <- numeric(ncol(v))
+      for (k in seq_len(maxit)) {
+        for (j in seq_len(ncol(v))) {
+          y <- v[, j]
+          d <- mean(x[which(y == 1)]) - mean(x[which(y == 0)])
+          if (!is.na(d) && d != 0) nr[j] <- sign(d)
+        }
+        s <- ifelse(v == 1, 1, -1) * rep(nr, each = n)
+        x <- rowMeans(s, na.rm = TRUE)
+      }
+      e <- 0
+      for (j in seq_len(ncol(v))) {
+        ok <- !is.na(v[, j])
+        p <- x[ok] * nr[j]
+        y <- v[ok, j][order(p)]
+        p <- sort(p)
+        m <- length(p)
+        up <- vapply(0:m, function(k) {
+          sum(y[seq_len(k)]) + sum(y[seq_len(m) > k] == 0)
+        }, 0)
+        up <- up[c(TRUE, p[-m] < p[-1], TRUE)]
+        e <- e + min(up, m - up)
+      }
+      if (e < best) {
+        best <- e
+        fit <- list(ideal = x, normals = nr, errors = e)
+      }
+    }
+    fit
+  }
   set.seed(4)
   v <- matrix(rbinom(80, 1, plogis(outer(rnorm(8), rnorm(10)) * 3)), 8)
   v[2, 3] <- NA
   r <- optcls(v, 1, 10, 2, 7)
-  # rmorie 1.5.0: R$morie_spatial_voting_optimal_classification(), the same input,
-  # its values printed with 17 significant digits
-  ref <- c(1, 1, -1, -1, -1, -1, 1, -1)
-  expect_equal(unname(c(r$ideal)), c(ref), tolerance = 1e-10)
-  ref <- c(-1, -1, -1, -1, -1, -1, -1, -1, -1, 1)
-  expect_equal(unname(c(r$normals)), c(ref), tolerance = 1e-10)
-  ref <- 0.20000000000000001
-  expect_equal(unname(c(r$pre)), c(ref), tolerance = 1e-10)
-  ref <- 20
-  expect_equal(unname(c(r$errors)), c(ref), tolerance = 1e-10)
-  ref <- 25
-  expect_equal(unname(c(r$null)), c(ref), tolerance = 1e-10)
+  ref <- oc(v, 10, 2, 7)
+  expect_equal(unname(c(r$ideal)), ref$ideal, tolerance = 1e-12)
+  expect_equal(unname(c(r$normals)), ref$normals, tolerance = 1e-12)
+  expect_identical(r$errors, as.integer(ref$errors))
+  # the errors of voting with the majority, as rmorie counts them
+  expect_identical(r$null, 25L)
+  expect_equal(r$pre, (25 - ref$errors) / 25)
 })
 
 
@@ -123,7 +161,7 @@ test_that("dblctr() equals the reference double centring", {
         -1.9568549977194867, 1.4554741714993467, -2.3796440989621281,
         0.36495309405716214, 4.534405507357695, -2.0183336762325896,
         0.84689409719886999, -0.55949043362950002, 1.0054509573316599,
-        -0.17816283385688664, -2.0183336762325896, 0.90364188918844701 )
+        -0.17816283385688664, -2.0183336762325896, 0.90364188918844701)
   expect_equal(unname(c(r$B)), c(ref), tolerance = 1e-10)
 })
 
@@ -137,7 +175,7 @@ test_that("cmdsf() equals the reference classical scaling", {
   ref <- c(0.97550941473972774, -0.99845742163080309, 1.2809099300892759,
         -0.10358051211826237, -2.0437277891939911, 0.88934637811405337,
         -0.06157495414148504, 0.97845956035850223, -0.39831834566598728,
-        -0.25629998015254962, -0.59798179824634734, 0.33571551784786735 )
+        -0.25629998015254962, -0.59798179824634734, 0.33571551784786735)
   expect_equal(unname(c(colsgn(r$coords, ref))), c(ref), tolerance = 1e-10)
   ref <- c(8.5677552691358194, 1.6558089105125635)
   expect_equal(unname(c(r$eigen)), c(ref), tolerance = 1e-10)
@@ -157,7 +195,7 @@ test_that("smacf() equals the reference SMACOF fit", {
   ref <- c(0.39774166480659567, -1.264250114939238, 0.81736884706550483,
         0.20993433832860894, -0.15585841350872284, -0.0049363217527489192,
         0.89224077624019138, -0.59423369426109751, 1.0647243563465856,
-        -0.18817814746627251, -2.1239131825945585, 0.94935989173515145 )
+        -0.18817814746627251, -2.1239131825945585, 0.94935989173515145)
   expect_equal(unname(c(r$coords)), c(ref), tolerance = 1e-10)
   ref <- 4.9009244786191755e-05
   expect_equal(unname(c(r$stress)), c(ref), tolerance = 1e-10)
@@ -177,7 +215,7 @@ test_that("smacf() with weights equals the reference fit", {
   ref <- c(0.34197650741053448, -1.2148261713840094, 0.71871419355552391,
         0.27318491929774102, -0.051675657312573293, -0.067373791567216873,
         0.90817639245799042, -0.67062933473735753, 1.1422193334692721,
-        -0.18398332917436114, -2.1308768054940388, 0.93509374347849361 )
+        -0.18398332917436114, -2.1308768054940388, 0.93509374347849361)
   expect_equal(unname(c(r$coords)), c(ref), tolerance = 1e-09)
   ref <- 0.0049825778718769189
   expect_equal(unname(c(r$stress)), c(ref), tolerance = 1e-09)
@@ -193,7 +231,7 @@ test_that("nmdsf() equals the reference nonmetric scaling", {
   ref <- c(0.2601351727808689, -0.49178271496170345, 0.19758197763432603,
         0.18215178267922996, -0.13841158499730769, -0.0096746331354138574,
         0.24495088143877694, -0.18035844987741778, 0.51540608260810483,
-        -0.1590401599574213, -0.75081826603076285, 0.32985991181871993 )
+        -0.1590401599574213, -0.75081826603076285, 0.32985991181871993)
   expect_equal(unname(c(r$coords)), c(ref), tolerance = 1e-10)
   ref <- 0.0021260064168143024
   expect_equal(unname(c(r$stress)), c(ref), tolerance = 1e-10)
@@ -207,7 +245,7 @@ test_that("mdsfit() equals the reference Mardia fit", {
   r <- mdsfit(ev)
   # rmorie 1.5.0: R$morie_spatial_voting_mds_fit_stats(), the same input,
   # its values printed with 17 significant digits
-  ref <- c(0.53333333333333333, 0.26666666666666666, 0, 0.066666666666666666 )
+  ref <- c(0.53333333333333333, 0.26666666666666666, 0, 0.066666666666666666)
   expect_equal(unname(c(r$fit)), c(ref), tolerance = 1e-10)
   ref <- c(0.53333333333333333, 0.80000000000000004, 0.80000000000000004,
         0.8666666666666667)
@@ -313,7 +351,7 @@ test_that("nomutl() equals the reference utilities", {
         0.00025186089499537292, 0.00073964479295696498,
         0.83625946808660201, 0.83943776194015551, 0.95330397324490623,
         0.97035996672670877, 0.90613801273102312, 0.0035421386890378179,
-        0.99882883143516787, 0.99982341717363377 )
+        0.99882883143516787, 0.99982341717363377)
   expect_equal(unname(c(r$prob)), c(ref), tolerance = 1e-10)
 })
 
@@ -358,7 +396,7 @@ test_that("procrs() equals the reference rotation", {
   ref <- c(-1.4211558016837851, -0.50141448839648439, 0.096909991106336191,
         0.10289122493023745, -0.74367700335552733, -0.37670535748095813,
         0.1476950152922111, -0.64038571606243244, -0.25259652701660146,
-        -0.43055797366152626, 1.1455946628832254, -1.2102900249143684 )
+        -0.43055797366152626, 1.1455946628832254, -1.2102900249143684)
   expect_equal(unname(c(r$rotated)), c(ref), tolerance = 1e-10)
   ref <- c(0.618980089151414, -0.7854066776098273, 0.78540667760982752,
         0.61898008915141423)
@@ -375,8 +413,8 @@ test_that("irtlik() equals the reference likelihood", {
   x <- matrix(c(-1, 0.5, 0, 1.2))
   b <- matrix(c(1, -0.5, 2))
   r <- irtlik(vv, x, c(0, 0.2, -0.1), b)
-  # rmorie 1.5.0: R$morie_spatial_voting_bayesian_irt_likelihood(), the same input,
-  # its values printed with 17 significant digits
+  # rmorie 1.5.0: R$morie_spatial_voting_bayesian_irt_likelihood(),
+  # the same input, its values printed with 17 significant digits
   ref <- -17.301215088491542
   expect_equal(unname(c(r$loglik)), c(ref), tolerance = 1e-10)
   ref <- c(0.15865525393145705, 0.69146246127401301, 0.5, 0.88493032977829178,
@@ -393,8 +431,8 @@ test_that("irtpst() equals the reference summaries", {
   set.seed(10)
   ch <- array(rnorm(20 * 4 * 2), c(20, 4, 2))
   r <- irtpst(ch)
-  # rmorie 1.5.0: R$morie_spatial_voting_bayesian_irt_posterior(), the same input,
-  # its values printed with 17 significant digits
+  # rmorie 1.5.0: R$morie_spatial_voting_bayesian_irt_posterior(),
+  # the same input, its values printed with 17 significant digits
   ref <- c(0.12536087849772037, -0.51377702800764369, 0.37353480222527613,
         0.014881347284647281, 0.20313093251790099, 0.24294228030738496,
         -0.23058909721969109, -0.21548411560559486)
@@ -426,10 +464,11 @@ test_that("ordocl() equals the reference ordered classification", {
         1.5115219974389389, -0.094659038413097557, 2.0184237138770418,
         -0.062714099052420993)
   expect_equal(unname(c(r$ideal)), c(ref), tolerance = 1e-10)
+  # one vector of cutpoints per item, as in rmorie
   ref <- c(1.0019105260530865, -0.10039177725221385, -1, -0.10039177725224689,
-        -0.5185654640506463, -0.5185654640506463, 0.1003917772522185,
-        0.3354113437425833, -0.51856546404915971, -0.33438631009553998 )
-  expect_equal(unname(c(r$cuts)), c(ref), tolerance = 1e-10)
+    -0.5185654640506463, -0.5185654640506463, 0.1003917772522185,
+    0.3354113437425833, -0.51856546404915971, -0.33438631009553998)
+  expect_equal(unlist(r$cuts), ref, tolerance = 1e-10)
   ref <- 0.28205128205128205
   expect_equal(unname(c(r$correct)), c(ref), tolerance = 1e-10)
   ref <- 3
@@ -496,7 +535,7 @@ test_that("nrmvec() equals the reference normal vector", {
   expect_equal(unname(c(r$degrees)), c(ref), tolerance = 1e-10)
   ref <- 0.088897631298404001
   expect_equal(unname(c(r$r2)), c(ref), tolerance = 1e-10)
-  ref <- c(0.47944637203201823, 0.27283115757210058, -0.62419830634442686 )
+  ref <- c(0.47944637203201823, 0.27283115757210058, -0.62419830634442686)
   expect_equal(unname(c(r$coef)), c(ref), tolerance = 1e-10)
 })
 
@@ -626,11 +665,12 @@ test_that("irtem() in two dimensions equals the reference fit", {
 test_that("scboot() equals the reference bootstrap", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) 4 + rnorm(1, 0, 0.3) +
-    runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)))
+  Z <- t(sapply(1:12, function(i) {
+    4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
+  }))
   r <- scboot(Z, nboot = 5, seed = 5)
-  # rmorie 1.5.0: R$morie_spatial_voting_nonparametric_bootstrap(), the same input,
-  # its values printed with 17 significant digits
+  # rmorie 1.5.0: R$morie_spatial_voting_nonparametric_bootstrap(),
+  # the same input, its values printed with 17 significant digits
   ref <- c(0.055653564556787959, 0.12997557285678746, 0.092370380124841625,
         0.039820359295141203, 0.027931849613045383)
   expect_equal(unname(c(r$se)), c(ref), tolerance = 1e-10)
@@ -677,8 +717,9 @@ test_that("wrdfsh() equals the reference Wordfish fit", {
 test_that("amscal() gives z-scored stimuli in the true order", {
   set.seed(1)
   truth <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:60, function(i) 4 + rnorm(1, 0, 0.3) +
-    runif(1, 0.6, 1.4) * truth + rnorm(5, 0, 0.3)))
+  Z <- t(sapply(1:60, function(i) {
+    4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * truth + rnorm(5, 0, 0.3)
+  }))
   f <- amscal(Z)
   expect_s3_class(f, c("amscal", "svfit"))
   expect_equal(mean(f$zhat), 0, tolerance = 1e-12)
@@ -696,10 +737,11 @@ test_that("amscal() gives z-scored stimuli in the true order", {
     expect_gt(loss(f$zhat + e), l0 - 1e-12)
   }
   expect_error(amscal(matrix(1:4, 4)), "at least two stimuli")
-  expect_error(amscal(matrix(c(1, 1, NA, 2, 2, 2), 2)), "at least one respondent")
+  # one row with a gap, one placing both stimuli at the same point
+  expect_error(amscal(matrix(c(1, 1, NA, 1), 2)), "at least one respondent")
 })
 
-test_that("bbscal() returns the dimensions asked and leaves sparse rows unscaled", {
+test_that("bbscal() gives the dimensions asked, sparse rows unscaled", {
   set.seed(1)
   X <- matrix(rnorm(60), 30, 2) %*% matrix(rnorm(16), 2, 8) +
     matrix(rnorm(240, 0, 0.3), 30, 8)
@@ -744,7 +786,7 @@ test_that("SMACOF stress does not rise with more iterations", {
   expect_true(is.finite(g$stress) && g$stress >= 0)
 })
 
-test_that("unfolding gives finite, non-negative stress and passes ideal points on", {
+test_that("unfolding gives finite stress and passes ideal points on", {
   set.seed(3)
   D <- matrix(runif(40), 10)
   expect_gte(unfstr(matrix(rnorm(20), 10), matrix(rnorm(8), 4), D)$stress, 0)
@@ -845,7 +887,7 @@ test_that("Optimal Classification beats the null model on clean votes", {
   expect_true(g$correct >= 0 && g$correct <= 1)
 })
 
-test_that("anchoring vignettes recode each self-rating against its own thresholds", {
+test_that("anchoring vignettes recode each rating by its own thresholds", {
   f <- anchv(c(2, 4, NA), rbind(c(1, 3, 5), c(1, 3, 5), c(2, 2, NA)), ncat = 3)
   expect_equal(f$thresh[1, ], c(1, 3))
   expect_equal(f$scores, c(1, 2, NA))
@@ -878,8 +920,17 @@ test_that("DW-NOMINATE fit, bootstrap and EM ideal points", {
   e <- irtem(v)
   expect_true(e$conv)
   expect_gt(abs(cor(e$ideal[, 1], x)), 0.9)
+  # A restart from the fit stays at it: each of three more steps changes
+  # the measure of convergence by less than tol = 1e-6. Under the default
+  # measure (1 minus the correlation) the points may still move by 4e-3,
+  # as rmorie's do on this input.
   s <- irtem(v, start = list(e$diff, e$disc, e$ideal), maxit = 3)
-  expect_lt(max(abs(s$ideal - e$ideal)), 1e-3)
+  expect_lt(1 - min(cor(s$ideal, e$ideal)), 3e-6)
+  a <- irtem(v, conv = "abs", maxit = 5000)
+  expect_true(a$conv)
+  s <- irtem(v, start = list(a$diff, a$disc, a$ideal), maxit = 3,
+    conv = "abs")
+  expect_lt(max(abs(s$ideal - a$ideal)), 3e-6)
   expect_error(irtem(v, xprior = 1), "mean and a positive variance")
   expect_error(irtem(v, start = list(1)), "`start` must")
 })
@@ -908,7 +959,8 @@ test_that("the two-dimensional EM fixed point is a posterior mode", {
   h <- 1e-5
   e <- matrix(0, 30, 2)
   e[1, 2] <- h
-  g <- (lp(r$diff, r$disc, r$ideal + e) - lp(r$diff, r$disc, r$ideal - e)) / (2 * h)
+  g <- (lp(r$diff, r$disc, r$ideal + e) -
+    lp(r$diff, r$disc, r$ideal - e)) / (2 * h)
   expect_lt(abs(g), 1e-5)
 })
 

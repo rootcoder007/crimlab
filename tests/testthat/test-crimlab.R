@@ -20,9 +20,11 @@ test_that("every exported function answers one valid call in its shape", {
   sv_v <- matrix(rbinom(48, 1, plogis(outer(rnorm(8), rnorm(6), "*") * 3)), 8)
   sv_v[2, 3] <- NA
   sv_d <- as.matrix(dist(cbind(c(0, 1, 3, 4, 2), c(0, 2, 1, 3, 4))))
-  sv_z <- rbind(c(1, 3, 5, 6), c(2, 3, 4, 7), c(1, 2, 6, 6), c(3, 4, 5, 7), c(2, 4, 4, 6), c(1, 3, 6, 7))
-  sv_y <- c(52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52, 71, 74, 61, 50, 47, 55,
-            59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58)
+  sv_z <- rbind(c(1, 3, 5, 6), c(2, 3, 4, 7), c(1, 2, 6, 6), c(3, 4, 5, 7),
+    c(2, 4, 4, 6), c(1, 3, 6, 7))
+  sv_y <- c(52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60,
+    49, 52, 71, 74, 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54,
+    49, 58)
   calls <- list(
     list(quote(sctidy(data.frame(GEO = "C", VALUE = "1", STATUS = ""))),
          c("GEO", "VALUE", "STATUS", "quality")),
@@ -249,10 +251,10 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(votagr(x = sv_v)),
          c("agree", "mean", "n", "m")),
     list(quote(amscal(Z = sv_z)),
-         c()),
+         c("zhat", "alpha", "beta", "weights")),
     list(quote(bbscal(X = cbind(sv_z, sv_z[, 2:1] + c(0.5, -0.5)), ndim =
                1, minscale = 4)),
-         c()),
+         c("ideal", "weights", "eigen", "singular", "fit", "cmeans", "ndim")),
     list(quote(optcls(votes = sv_v, maxit = 5, nstart = 2)),
          c("ideal", "normals", "pre", "errors", "null", "ndim")),
     list(quote(dblctr(D = sv_d)),

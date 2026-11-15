@@ -81,7 +81,7 @@ sarfc <- function(y, h = 12, order = c(1, 1, 1), seasonal = c(0, 1, 1, 12)) {
 #' @references Pearson, K. (1896). Mathematical contributions to the
 #'   theory of evolution. III. Regression, heredity, and panmixia.
 #'   *Philosophical Transactions of the Royal Society A*, 187, 253-318.
-#'  
+#'
 #' @examples
 #' # simulated events of three categories in 20 areas
 #' set.seed(1)

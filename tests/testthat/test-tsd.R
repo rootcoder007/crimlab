@@ -1,7 +1,10 @@
 # Counts over time and across categories (src/tsd.cpp) against the values
-# of the rmorie functions they port. The ARIMA fits stop where the BFGS
-# optimiser of optim() stops (relative tolerance 1.5e-8 on the objective),
-# so their forecasts are compared at 1e-4.
+# of the rmorie functions they port. The ARIMA fits take the steps of the
+# BFGS optimiser of optim(); the ARIMA(1,1,1) fit equals the reference to
+# 1e-13 and is compared at 1e-10. The seasonal fit differs from it by
+# 1e-7 in its coefficients, 6e-10 (relative) in its forecasts and 2e-8 in
+# the errors of those forecasts, so it is compared at 1e-8 and its errors
+# at 1e-7.
 
 test_that("arimfc() equals the reference forecast", {
   y <- c(52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49,
@@ -12,10 +15,10 @@ test_that("arimfc() equals the reference forecast", {
   # its values printed with 17 significant digits
   ref <- c(58.579828274521411, 60.799864215173187, 59.890564689732336,
         60.26300263626586, 60.110456615799329, 60.172937597065506)
-  expect_equal(unname(c(r$fc)), c(ref), tolerance = 0.0001)
+  expect_equal(unname(c(r$fc)), c(ref), tolerance = 1e-10)
   ref <- c(8.4923465829595219, 14.373636721695604, 17.697741289767642,
         20.756784480260087, 23.321592697261575, 25.667387510573167)
-  expect_equal(unname(c(r$se)), c(ref), tolerance = 0.0001)
+  expect_equal(unname(c(r$se)), c(ref), tolerance = 1e-10)
   ref <- 283.87014784803432
   expect_equal(unname(c(r$aic)), c(ref), tolerance = 1e-08)
   ref <- 288.93678621037611
@@ -32,13 +35,13 @@ test_that("sarfc() equals the reference hold-out forecast", {
   # its values printed with 17 significant digits
   ref <- c(61.633732308124713, 56.553996127378085, 68.770543598695468,
         64.63414379219671)
-  expect_equal(unname(c(r$fc)), c(ref), tolerance = 0.0001)
+  expect_equal(unname(c(r$fc)), c(ref), tolerance = 1e-8)
   ref <- 78.309663098001835
   expect_equal(unname(c(r$aic)), c(ref), tolerance = 1e-08)
   ref <- 1.5631415193793825
-  expect_equal(unname(c(r$mape)), c(ref), tolerance = 0.0001)
+  expect_equal(unname(c(r$mape)), c(ref), tolerance = 1e-7)
   ref <- 1.093355168837483
-  expect_equal(unname(c(r$rmse)), c(ref), tolerance = 0.0001)
+  expect_equal(unname(c(r$rmse)), c(ref), tolerance = 1e-7)
 })
 
 
@@ -64,7 +67,7 @@ test_that("ousim() equals the reference simulation", {
         41.168570546455072, 40.115791627890154, 67.820364507831911,
         49.14439503218388, 37.398379622692133, 60.71309914362768,
         63.984981259954637, 64.571023885118294, 55.917622084439763,
-        58.541471893188607 )
+        58.541471893188607)
   expect_equal(unname(c(r$paths)), c(ref), tolerance = 1e-10)
   ref <- c(56.180007065314648, 58.541471893188607, 63.968068685925324)
   expect_equal(unname(c(r$q)), c(ref), tolerance = 1e-10)
@@ -82,7 +85,7 @@ test_that("fpdens() equals the reference density", {
         31.066666666666666, 38.833333333333336, 46.600000000000001,
         54.366666666666667, 62.133333333333333, 69.900000000000006,
         77.666666666666671, 85.433333333333337, 93.200000000000003,
-        100.96666666666667, 108.73333333333333, 116.5 )
+        100.96666666666667, 108.73333333333333, 116.5)
   expect_equal(unname(c(r$grid)), c(ref), tolerance = 1e-10)
   ref <- c(0, 0, 0, 0, 0, 0, 0.0050731645512773422, 0.034271422215353689,
         0.05701804208933807, 0.031119481711771927, 0.0012732542391259186,
@@ -105,7 +108,8 @@ test_that("catcor() equals the reference correlations (to its 3 decimals)", {
   ref <- c(1, 0.46100000000000002, -0.040000000000000001, 0.46100000000000002,
         1, -0.085000000000000006, -0.040000000000000001,
         -0.085000000000000006, 1)
-  expect_equal(unname(c(r$r)), c(ref), tolerance = 0.0005)
+  # rmorie rounds the correlations to 3 decimals; crimlab does not
+  expect_equal(round(unname(c(r$r)), 3), ref, tolerance = 1e-12)
 })
 
 
@@ -145,7 +149,8 @@ test_that("arimfc() and sarfc() forecast and refuse short series", {
   expect_error(sarfc(y, order = c(1, 0, 0), seasonal = c(0, 0, 0, 12)),
                "difference")
   expect_error(sarfc(y[1:30]), "36 values")
-  expect_error(sarfc(y, h = 30), "training values")
+  # 60 - 40 = 20 training values, fewer than the 24 needed
+  expect_error(sarfc(y, h = 40), "training values")
 })
 
 test_that("catcor() counts by unit and correlates the categories", {

@@ -8,8 +8,9 @@
 test_that("bamscl() equals the reference chain", {
   set.seed(2)
   tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-  Z <- t(sapply(1:12, function(i) 4 + rnorm(1, 0, 0.3) +
-    runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)))
+  Z <- t(sapply(1:12, function(i) {
+    4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
+  }))
   r <- bamscl(Z, 10, 10)
   # rmorie 1.5.0: R$morie_spatial_voting_bayesian_am(), the same input,
   # its values printed with 17 significant digits
@@ -39,7 +40,7 @@ test_that("bmdsf() equals the reference chain", {
   ref <- c(2.071720377634779, -1.1849358962043985, -0.75500315045888933,
         -0.97979711246753065, -0.88474299571158677, -1.1988404886714361,
         -2.787032299189101, -1.8446581724321072, -1.3261647971872881,
-        0.43402461715217711, -1.3635280183332703, 0.93698326597392045 )
+        0.43402461715217711, -1.3635280183332703, 0.93698326597392045)
   expect_equal(unname(c(r$pos)), c(ref), tolerance = 1e-10)
   ref <- c(0, 3.4246674128304067, 3.2348968655973378, 4.4568518584753418,
         3.3108632125010047, 4.9659835663537137, 3.4246674128304067, 0,
@@ -68,7 +69,7 @@ test_that("bunfld() equals the reference chain", {
   # rmorie 1.5.0: R$morie_spatial_voting_bayesian_unfolding(), the same input,
   # its values printed with 17 significant digits
   ref <- c(-1.3162085014919538, -1.5519129052647065, -2.2937746672884272,
-        0.081275419307444557, 0.84998229951063475, 0.1673992766492842 )
+        0.081275419307444557, 0.84998229951063475, 0.1673992766492842)
   expect_equal(unname(c(r$stim)), c(ref), tolerance = 1e-10)
   ref <- c(-1.2897221482803696, -1.8558840189220021, -2.4533838649828597,
         -1.2487210974783627, -1.1772068122135217, -1.5664459876016772,
@@ -163,40 +164,49 @@ test_that("ordirt() equals the reference chain", {
   ref <- c(0.63921568326131417, -0.017606217791777796, 0.81543772770073786,
         0.21937960161625084)
   expect_equal(unname(c(r$icept)), c(ref), tolerance = 1e-10)
+  # one vector of cutpoints per item, as in rmorie
   ref <- c(0, 0.51320773329748204, 0, 0.48738314450348674, 0,
-        0.46753967202491731, 0, 0.50924824205705455)
-  expect_equal(unname(c(r$cuts)), c(ref), tolerance = 1e-10)
+    0.46753967202491731, 0, 0.50924824205705455)
+  expect_equal(unlist(r$cuts), ref, tolerance = 1e-10)
 })
 
 
 test_that("dynirt() equals the reference chain", {
-  set.seed(14)
+  # The chain starts from the first principal component of the votes,
+  # whose sign is arbitrary: crimlab makes its largest loading positive,
+  # rmorie takes the sign LAPACK gives. On this input the two agree. (On
+  # the input of set.seed(14) they do not, and the chains then differ from
+  # the first sweep; rmorie's sampler started from the reflected component
+  # gives crimlab's chain there to 1e-15.)
+  set.seed(15)
   per <- rep(1:3, each = 4)
   V <- matrix(rbinom(72, 1, 0.5), 6)
   V[2, 5] <- NA
+  rot <- prcomp(replace(V, is.na(V), 0.5))$rotation[, 1]
+  skip_if(rot[which.max(abs(rot))] < 0, "LAPACK gives the other sign")
   r <- dynirt(V, per, 8, 4, c0 = 1, d0 = 1)
   # rmorie 1.5.0: R$morie_spatial_voting_dynamic_irt(), the same input,
   # its values printed with 17 significant digits
-  ref <- c(-0.14670357418221244, 0.46347361342498128, 1.6902421095759241,
-        0.87868091272369353, -0.48514423273561458, 1.6309486481136499,
-        0.31214739245024448, -0.98197644907692061, 1.5266501645851991,
-        0.73023380976506591, -1.4099242910612928, 1.2337913401447596,
-        -0.2853385171390298, -1.3107500983491729, 1.1310069766664907,
-        0.76254042121654986, -2.4261092133146662, 0.73662047040016088 )
-  expect_equal(unname(c(r$theta)), c(ref), tolerance = 1e-10)
-  ref <- c(-0.40946351399000602, -0.87960611300462166, -0.099097899655948007,
-        -1.5117858891666267, -1.3617558246218697, -0.74214380995392837,
-        -0.28910285529680652, 1.6363930476985198, 0.088113165169424412,
-        -0.32365265251591857, 1.0381708515156474, -0.16989862837143571 )
-  expect_equal(unname(c(r$alpha)), c(ref), tolerance = 1e-10)
-  ref <- c(1.1595501800344867, -2.4519540396730881, 0.980428737718954,
-        -1.3873978930457891, -0.79264112693074029, 0.17593024930551054,
-        2.0712159276073367, 1.0457170292557409, -2.9259999096956157,
-        0.36519383499218644, -1.211846171734716, -0.023884082989051904 )
-  expect_equal(unname(c(r$beta)), c(ref), tolerance = 1e-10)
-  ref <- c(1.0717527495694199, 11.220599057110432, 0.59436102157405846,
-        0.67083767907884873, 2.5366174748167514, 1.3023148425968261)
-  expect_equal(unname(c(r$tau2)), c(ref), tolerance = 1e-10)
+  ref <- c(0.38310770340618888, 0.70107336274899745, 0.25878558556496961,
+    -0.17035657826539177, 0.96757437081786302, 0.5323069400141307,
+    -0.60321299446323862, 0.50799940604980787, -0.021349635579193369,
+    0.25868360230260079, 0.80365989519072012, -0.23484570066134691,
+    -1.4256119992224869, 0.41912911283156534, -0.15618560158209968,
+    -0.080210634495035252, -0.428578663652187, -0.68728676370188402)
+  expect_equal(unname(c(r$theta)), ref, tolerance = 1e-10)
+  ref <- c(-1.0121492607245173, -4.0016337133816524, -2.1086315746335722,
+    -1.189019551023718, -0.20622898787958033, 0.15025395298632915,
+    0.4567927241254508, 0.51275527171353441, -1.1836630579831739,
+    -1.7549490107770502, -2.2381011822944874, -0.18867468907781204)
+  expect_equal(unname(c(r$alpha)), ref, tolerance = 1e-10)
+  ref <- c(-2.3025198281026422, -7.1225112599092677, -2.4839223505686263,
+    -1.6585430384257482, -0.098049599593633643, 0.30559601063768504,
+    2.3943971144116367, -1.9976014264182593, -2.8257189023912566,
+    2.7574343152324454, 2.3991517320802913, -2.2996838460148532)
+  expect_equal(unname(c(r$beta)), ref, tolerance = 1e-10)
+  ref <- c(1.7446268661944062, 3.0195581205270954, 0.46021856058776561,
+    1.0411010003484291, 1.9369779672829677, 1.5345057441925645)
+  expect_equal(unname(c(r$tau2)), ref, tolerance = 1e-10)
 })
 
 
@@ -271,17 +281,24 @@ test_that("anomin() keeps the order of simulated legislators", {
 })
 
 test_that("ordirt() recovers ideal points and keeps each item's categories", {
-  set.seed(5)
-  th <- rnorm(60)
-  Y <- matrix(cut(outer(th, runif(6, 0.8, 1.5)) + rnorm(360),
-                  c(-Inf, -0.5, 0.5, Inf), labels = FALSE), 60, 6)
-  f <- ordirt(Y, nsamp = 60, burn = 60)
-  expect_gt(abs(cor(f$ideal[, 1], th)), 0.9)
-  expect_true(all(vapply(f$cuts, function(g) g[1] == 0, NA)))
+  # the simulation of rmorie's own test of the sampler: 120 respondents,
+  # 8 items of 4 categories, 30 answers missing
+  set.seed(7)
+  th <- rnorm(120)
+  eta <- outer(th, runif(8, 0.8, 1.6)) +
+    matrix(rnorm(8, 0, 0.5), 120, 8, byrow = TRUE)
+  Y <- matrix(cut(eta + rnorm(960), c(-Inf, -0.5, 0.4, 1.2, Inf),
+    labels = FALSE), 120, 8)
+  Y[sample(length(Y), 30)] <- NA
+  f <- ordirt(Y, nsamp = 300, burn = 300, seed = 1)
+  expect_gt(cor(f$ideal[, 1], th), 0.9)
+  expect_gt(f$disc[1, 1], 0)
+  expect_true(all(vapply(f$cuts, function(g) g[1] == 0 && all(diff(g) > 0),
+    NA)))
   Y2 <- Y
-  Y2[, 1] <- c(10, 20, 30)[Y[, 1]]
-  g <- ordirt(Y2, nsamp = 60, burn = 60)
-  expect_equal(g$ideal, f$ideal)
+  Y2[, 1] <- c(10, 20, 30, 40)[Y[, 1]]
+  g <- ordirt(Y2, nsamp = 20, burn = 10)
+  expect_equal(g$ideal, ordirt(Y, nsamp = 20, burn = 10)$ideal)
   expect_error(ordirt(cbind(Y, 1)), "two observed categories")
 })
 
