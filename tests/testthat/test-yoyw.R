@@ -33,7 +33,14 @@ test_that("the delimited writers give rmoriebricklayer's bytes", {
 test_that("yoymd() gives rmoriebricklayer's bytes", {
   z <- y
   z$flag[!is.na(z$flag)] <- "no comparison period"
-  expect_identical(yoymd(z, meta = meta), bytes(rf("bl.md")))
+  # bl.md is the file rmoriebricklayer wrote with writeLines(), which adds
+  # one newline after the text its yoymd() returns; the text is the table
+  ref <- sub("\n$", "", bytes(rf("bl.md")))
+  expect_identical(yoymd(z, meta = meta), ref)
+  f <- tempfile(fileext = ".md")
+  on.exit(unlink(f))
+  yoymd(z, f, meta = meta)
+  expect_identical(bytes(f), ref)
 })
 
 test_that("yoyhtml() gives rmoriebricklayer's bytes", {
@@ -153,5 +160,13 @@ test_that("the colour follows the better direction; control bytes show", {
   expect_match(h, "A&lt;b&gt;\\033", fixed = TRUE)
   yoyhtml(z, f, better = "higher")
   expect_match(bytes(f), "<tr class=\"good\">", fixed = TRUE)
-  expect_match(yoymd(z), "A&lt;b&gt;\\\\033", fixed = TRUE)
+  # as rmoriebricklayer writes it: the control byte as the text \033, whose
+  # backslash Markdown leaves alone (a backslash escapes only punctuation)
+  expect_match(yoymd(z), "| A&lt;b&gt;\\033 |", fixed = TRUE)
+  z$group[1] <- "046 & A\\*b"
+  m <- yoymd(z)
+  expect_match(m, "| 046 &amp; A\\\\\\*b |", fixed = TRUE)
+  expect_match(m, "| 2019 |   812 |", fixed = TRUE)
+  yoyhtml(z, f)
+  expect_match(bytes(f), ">046 &amp; A\\*b<", fixed = TRUE)
 })
