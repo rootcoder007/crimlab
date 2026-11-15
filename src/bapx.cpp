@@ -130,4 +130,18 @@ SEXP C_clab_r_windbin(SEXP dir, SEXP width, SEXP start, SEXP area, SEXP na, SEXP
   return r;
 }
 
+SEXP C_clab_r_dshift(SEXP u, SEXP t, SEXP k) {
+  clab::who = "plcday";
+  const int n = n32(t);
+  SEXP r = PROTECT(Rf_allocVector(INTSXP, n));
+  int *ord = reinterpret_cast<int *>(R_alloc(static_cast<size_t>(n), sizeof(int)));
+  const int rc = clab_dshift(INTEGER(u), REAL(t), n, Rf_asReal(k), INTEGER(r), ord);
+  clab::ichk(rc);
+  if (rc == CLAB_EDOM) clab::fail("a unit has two rows on one day: give one row per unit and day.");
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  for (int i = 0; i < n; ++i) INTEGER(r)[i] = INTEGER(r)[i] < 0 ? NA_INTEGER : INTEGER(r)[i] + 1;
+  UNPROTECT(1);
+  return r;
+}
+
 }  // extern "C"

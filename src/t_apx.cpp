@@ -118,4 +118,16 @@ void t_apx(tk &T, int) {
     tk_eq(T, "apx.wba", o2[(3 + 0) * 2 + 1], 1, 0);
     tk_ieq(T, "apx.wbw", clab_windbin(d, 4, 70, 0, nullptr, 1, 0, o), CLAB_EARG);
   }
+  // the same unit a day later; a repeated day is refused
+  {
+    const int u[4] = {0, 0, 1, 1};
+    const double t[4] = {1, 2, 1, 3};
+    int idx[4], ord[4];
+    tk_ieq(T, "apx.sh", clab_dshift(u, t, 4, 1, idx, ord), CLAB_OK);
+    tk_ieq(T, "apx.sh0", idx[0], 1);
+    tk_ieq(T, "apx.sh1", idx[1], -1);
+    tk_ieq(T, "apx.sh2", idx[2], -1);
+    const double td[4] = {1, 1, 1, 3};
+    tk_ieq(T, "apx.shd", clab_dshift(u, td, 4, 1, idx, ord), CLAB_EDOM);
+  }
 }

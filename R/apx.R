@@ -756,3 +756,118 @@ invsn <- function(tlow, tup) {
   dd <- as.numeric(tup) - as.numeric(tlow)
   data.frame(diff = dd, inv = as.integer(dd > 0))
 }
+
+#' Irrelevant-day placebo
+#'
+#' Refits an estimator with the exposure taken from other days of the same
+#' place, a week, a month or a year before and after, and returns the
+#' table of coefficients, the same day first. This is the placebo of Bondy,
+#' Roth and Sager (2020, table A1: 7, 31 and 365 days back and forward) and
+#' of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table 9: 100 days).
+#'
+#' What it can show: if pollution on irrelevant days predicts crime as
+#' well as pollution on the day does, the estimate is picking up something
+#' slow (a season, a trend, a place that is polluted and violent for other
+#' reasons) that the fixed effects did not remove. What it cannot show: a
+#' cause on the same day that moves with the exposure (a heat wave, an
+#' event) passes this test, and so does a wrong instrument; a null placebo
+#' is necessary for, not proof of, a causal reading. Shifted exposure is
+#' correlated with same-day exposure when pollution persists, so a small
+#' placebo coefficient is expected even then.
+#'
+#' The shift is by the day's value: row `(place, day)` gets the exposure
+#' of `(place, day + shift)` and is dropped when that row does not exist;
+#' `n` reports the rows left. For the instrumental-variable estimators,
+#' Bondy, Roth and Sager do not say whether the instruments are shifted
+#' with the exposure; name them in `with` to shift them too.
+#'
+#' @param data A data frame, one row per place and day.
+#' @param var The name of the exposure column to shift.
+#' @param unit,day The names of the place and day columns; days are
+#'   numbers or dates (one per unit at most).
+#' @param shifts The shifts in days, whole numbers other than 0; negative
+#'   is the past.
+#' @param est The estimator: [ppmlfe()], [ivfe()] or [ppmlcf()], or
+#'   another function with a `data` argument returning a list with `coef`
+#'   holding a row whose `term` is `var`.
+#' @param with `NULL` or the names of other columns to shift with `var`.
+#' @param ... The other arguments of `est` (`y`, `x`, `fe`, ...).
+#' @param object,x An object of class `plcday` (for the methods).
+#' @return An object of class `plcday`, a list: `tab`, a data frame with
+#'   one row per shift, 0 (the same day) first (`shift`, `est`, `se`,
+#'   `lo`, `hi`, `p`, `n`); `var` and `level`. `summary()` returns `tab`.
+#' @references
+#'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+#'   contemporaneous relationship between air pollution and crime.
+#'   *Journal of the Association of Environmental and Resource Economists*,
+#'   7(3), 555-585. \doi{10.1086/707127}
+#'
+#'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
+#'   pollution as a cause of violent crime. Working paper.
+#' @seealso [ppmlfe()], [ivfe()], [ppmlcf()]
+#' @examples
+#' # simulated: crime responds to same-day pollution only
+#' set.seed(4)
+#' d <- expand.grid(day = 1:80, area = 1:12)
+#' d$pm <- rnorm(nrow(d), 20, 5)
+#' d$crimes <- rpois(nrow(d), exp(0.5 + 0.03 * d$pm))
+#' plcday(d, "pm", "area", "day", shifts = c(-7, 7), y = "crimes", x = "pm",
+#'        fe = c("area", "day"))
+#' @export
+plcday <- function(
+  data,
+  var,
+  unit,
+  day,
+  shifts = c(-365, -31, -7, 7, 31, 365),
+  est = ppmlfe,
+  with = NULL,
+  ...
+) {
+  f <- "plcday"
+  d <- .axdat(data, f)
+  .axcols(d, var, "var", f, n = 1L)
+  .axcols(d, unit, "unit", f, n = 1L)
+  .axcols(d, day, "day", f, n = 1L)
+  .axcols(d, with, "with", f, null = TRUE)
+  if (!is.function(est)) .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
+  if (!is.numeric(shifts) || !length(shifts) || !all(is.finite(shifts)) ||
+        any(shifts != round(shifts)) || any(shifts == 0) || anyDuplicated(shifts)) {
+    .ckstop(f, "`shifts` must be distinct whole numbers of days other than 0")
+  }
+  tv <- d[[day]]
+  if (!is.numeric(tv) && !inherits(tv, "Date")) {
+    .ckstop(f, "column `%s` must hold numbers or dates", day)
+  }
+  tv <- as.numeric(tv)
+  uc <- .axcode(d[[unit]])$c
+  rows <- lapply(c(0, shifts), function(s) {
+    ix <- .Call(C_clab_r_dshift, uc, tv, s)
+    k <- !is.na(ix)
+    if (sum(k) < 2L) .ckstop(f, "a shift of %s days leaves fewer than two rows", format(s))
+    ds <- d[k, , drop = FALSE]
+    for (v in c(var, with)) ds[[v]] <- d[[v]][ix[k]]
+    r <- est(data = ds, ...)
+    cf <- r[["coef"]]
+    if (!is.data.frame(cf) || !var %in% cf[["term"]]) {
+      .ckstop(f, "`est` returned no coefficient for `%s`", var)
+    }
+    cf <- cf[cf[["term"]] == var, , drop = FALSE]
+    data.frame(shift = s, est = cf[["est"]], se = cf[["se"]], lo = cf[["lo"]],
+               hi = cf[["hi"]], p = cf[["p"]], n = sum(k))
+  })
+  structure(list(tab = do.call(rbind, rows), var = var), class = "plcday")
+}
+
+#' @rdname plcday
+#' @export
+print.plcday <- function(x, ...) {
+  cat("plcday: the coefficient of ", x[["var"]],
+      " with the exposure of other days (shift 0 is the same day)\n", sep = "")
+  print(x[["tab"]], row.names = FALSE, digits = 4)
+  invisible(x)
+}
+
+#' @rdname plcday
+#' @export
+summary.plcday <- function(object, ...) object[["tab"]]

@@ -267,4 +267,32 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
   return CLAB_OK;
 }
 
+int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *ord) {
+  if (n < 1 || !std::isfinite(k)) return CLAB_EARG;
+  for (int i = 0; i < n; ++i) {
+    if (!std::isfinite(t[i])) return CLAB_EDOM;
+    ord[i] = i;
+  }
+  auto less = [&](int a, int b) { return u[a] < u[b] || (u[a] == u[b] && t[a] < t[b]); };
+  kutil::hsort(ord, n, less);
+  for (int q = 1; q < n; ++q) {
+    if (u[ord[q]] == u[ord[q - 1]] && t[ord[q]] == t[ord[q - 1]]) return CLAB_EDOM;
+  }
+  for (int i = 0; i < n; ++i) {
+    const double want = t[i] + k;
+    int lo = 0, hi = n;  // the first position not below (u[i], want)
+    while (lo < hi) {
+      const int mid = lo + (hi - lo) / 2;
+      const int o = ord[mid];
+      if (u[o] < u[i] || (u[o] == u[i] && t[o] < want)) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+    idx[i] = lo < n && u[ord[lo]] == u[i] && t[ord[lo]] == want ? ord[lo] : -1;
+  }
+  return CLAB_OK;
+}
+
 }  // extern "C"

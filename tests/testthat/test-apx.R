@@ -138,3 +138,21 @@ test_that("invsn is the temperature aloft less the ground", {
   expect_identical(r$diff, c(-2, 1, 0))
   expect_identical(r$inv, c(0L, 1L, 0L))
 })
+
+test_that("plcday refits on shifted days and the same day equals the plain fit", {
+  d <- simpan()
+  p <- plcday(d, "x", "unit", "day", shifts = c(-7, 7), y = "y", x = c("x", "w"),
+              fe = c("unit", "day"), expo = "pop")
+  f <- ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop")
+  expect_identical(p$tab$shift, c(0, -7, 7))
+  expect_equal(p$tab$est[1L], f$coef$est[1L])
+  expect_identical(p$tab$n, c(450L, 345L, 345L))
+  # by hand: the exposure of a week later
+  d7 <- d[d$day <= 23, ]
+  d7$x <- d$x[match(paste(d7$unit, d7$day + 7), paste(d$unit, d$day))]
+  f7 <- ppmlfe(d7, "y", c("x", "w"), fe = c("unit", "day"), expo = "pop")
+  expect_equal(p$tab$est[3L], f7$coef$est[1L])
+  d2 <- rbind(d, d[1, ])
+  expect_error(plcday(d2, "x", "unit", "day", y = "y", x = "x", fe = "unit"),
+               "two rows on one day")
+})

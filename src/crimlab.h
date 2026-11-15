@@ -2001,6 +2001,12 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
 int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
                  int base, double *out);
 
+/* The same unit on another day (plcday): for row i of unit u[i] on day
+ * t[i], idx[i] is the row of unit u[i] on day t[i] + k, or -1. CLAB_EDOM
+ * for a non-finite day or a unit with two rows on one day. ord: n ints of
+ * scratch. O(n log n). */
+int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *ord);
+
 
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect
