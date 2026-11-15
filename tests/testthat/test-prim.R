@@ -503,7 +503,11 @@ test_that("the values equal those of rmoriebricklayer", {
   expect_identical(cunif(4, 42),
                    c(0.74156487877182331, 0.1599103928769201,
                      0.27860113025513866, 0.34419071652363753))
-  expect_identical(cunif(2, 0), c(0.88331080821364261, 0.43152799704850997))
+  # the last digit differs between systems
+  expect_equal(
+    cunif(2, 0), c(0.88331080821364261, 0.43152799704850997),
+    tolerance = 1e-14
+  )
 })
 
 test_that("the refusals name the argument", {

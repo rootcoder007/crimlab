@@ -62,7 +62,11 @@ test_that(
     expect_identical(r$indicator, c("well", "well", "ill", "ill"))
     expect_identical(r$side, c("wellness", "wellness", "distress", "distress"))
     expect_identical(r$change[1], 5)
-    expect_identical(r$upper[1], 5 + z * sqrt(2 * (8 / (2 * z))^2))
+    # the last digit of the square root differs between systems
+    expect_equal(
+      r$upper[1], 5 + z * sqrt(2 * (8 / (2 * z))^2),
+      tolerance = 1e-14
+    )
     expect_true(is.na(r$change[2]))
     expect_true(r$usewithcau[4])
     expect_true(all(is.na(

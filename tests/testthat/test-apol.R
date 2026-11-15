@@ -436,8 +436,10 @@ test_that("CRFs: 1 at the reference, the log-linear and IER forms", {
   r <- crfpm25(12)
   expect_identical(r$rr, exp(log(1.08) * (12 - 5.8) / 10))
   expect_null(r$extra$rrperunit)
-  expect_identical(
-    crfpm25(12, y = "ihd")$rr, 1 + 1.91 * (1 - exp(-0.14 * (12 - 5.8)^0.49))
+  # pow() and exp() differ in the last digit between systems
+  expect_equal(
+    crfpm25(12, y = "ihd")$rr, 1 + 1.91 * (1 - exp(-0.14 * (12 - 5.8)^0.49)),
+    tolerance = 1e-14
   )
   expect_true(is.na(crfpm25(12, y = "ihd")$rrlo))
   expect_identical(crfno2(10)$rr, 1)

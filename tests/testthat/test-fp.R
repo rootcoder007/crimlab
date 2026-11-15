@@ -19,11 +19,13 @@ test_that("co2int() gives the reference rows", {
   r <- co2int("CA-ON")
   expect_s3_class(r, "co2int")
   expect_identical(names(r), ci_names)
-  expect_identical(
+  # the intensity is a weighted sum: its last digit differs between systems
+  expect_equal(
     unclass(r),
     list(g_per_kwh = 90.969999999999999, location = "CA-ON",
          name = "Canada, Ontario", year = 2024L, basis = "lifecycle",
-         source = src_ca, note = character(0))
+         source = src_ca, note = character(0)),
+    tolerance = 1e-14
   )
   for (k in c("Canada", "can")) {
     expect_identical(co2int(k)[1:6], co2int("CA")[1:6])

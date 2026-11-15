@@ -46,16 +46,14 @@ silently when a re-release renames \code{"\% change"} to \code{"\%
 Change"} or adds a trailing space. Normalising once at ingestion makes the
 schema stable against that.
 
-The steps, in order: transliterate to ASCII (\code{iconv(...,
-"ASCII//TRANSLIT")}, keeping the original where that fails); replace
+The steps, in order: transliterate to ASCII with \code{\link[=toascii]{toascii()}}, which
+gives the same letters on every system; replace
 \code{\%} by \code{pct}, \code{&} by \code{and} and \code{#} by \code{n} as
 words; split camelCase at a lower-to-upper boundary; turn every run of
 other characters into one word break; an empty name becomes \code{x}; join
 the words in the chosen case; prefix \code{x} to a name starting with a
 digit; and give repeated names the suffixes \code{<sep>2}, \code{<sep>3},
-... in order of appearance (the first keeps its name). The
-transliteration depends on the platform's iconv, so an accented letter may
-come out slightly differently on different systems.
+... in order of appearance (the first keeps its name).
 
 Record the mapping with the data. Cleaning names changes what a
 downstream script must refer to, so an unrecorded cleaning is itself a

@@ -11,6 +11,12 @@
 // Adding a function: its entry point below and one line in the table at
 // the end. The command-line program and every binding pick it up from
 // there.
+// Standard getenv() and fopen() are used; MSVC warns of both in favour
+// of functions only its own library has, and the Python build stops on a
+// warning. This must come before the first header.
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS
+#endif
 #include "jrun.h"
 
 #include <algorithm>

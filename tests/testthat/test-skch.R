@@ -55,7 +55,9 @@ test_that("the one-pass summaries equal the reference implementation", {
     ref$hl1
   )
   s <- dstnskch(as.character(1:3000), p = 6)
-  expect_identical(c(as.numeric(s), dstncnt(s)), ref$hl2)
+  # the registers are whole numbers; the estimate ends in a logarithm,
+  # whose last digit differs between systems
+  expect_equal(c(as.numeric(s), dstncnt(s)), ref$hl2, tolerance = 1e-14)
   expect_identical(dstncnt(dstnskch(c("café", "x"), p = 5)), ref$hl3)
   # the same text in latin1 is the same value
   lat <- iconv("café", "UTF-8", "latin1")
