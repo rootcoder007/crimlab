@@ -2,17 +2,6 @@
 # the statistical regions that contain them, checked before tables are
 # built on top of them.
 
-.rmcol <- function(d, nm, arg, fn) {
-  if (!is.data.frame(d)) {
-    stop(fn, ": `", arg, "` must be a data frame.", call. = FALSE)
-  }
-  if (!is.character(nm) || length(nm) != 1L || !nm %in% names(d)) {
-    stop(fn, ": `", arg, "` has no column `", paste(nm, collapse = ", "), "`.",
-         call. = FALSE)
-  }
-  d[[nm]]
-}
-
 #' Internal soundness of a region map
 #'
 #' Checks that a region map (a crosswalk from units, such as correctional
@@ -234,4 +223,15 @@ rgnmapalt <- function(map, unit, reg, route, known = character()) {
   out <- out[order(out$known, out$unit, method = "radix"), , drop = FALSE]
   row.names(out) <- NULL
   out
+}
+
+.rmcol <- function(d, nm, arg, fn) {
+  if (!is.data.frame(d)) {
+    stop(fn, ": `", arg, "` must be a data frame.", call. = FALSE)
+  }
+  if (!is.character(nm) || length(nm) != 1L || !nm %in% names(d)) {
+    stop(fn, ": `", arg, "` has no column `", toString(nm), "`.",
+         call. = FALSE)
+  }
+  d[[nm]]
 }

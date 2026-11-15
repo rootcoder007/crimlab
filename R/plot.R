@@ -76,7 +76,7 @@ plotopt <- function(...) {
     return(cur)
   }
   nm <- names(new)
-  if (is.null(nm) || any(!nm %in% names(cur))) {
+  if (is.null(nm) || !all(nm %in% names(cur))) {
     stop("plotopt: the options are ", toString(names(cur)), ".",
          call. = FALSE)
   }
@@ -171,7 +171,7 @@ yoypals <- function() names(.YOY_PALETTES)
 # n colours: `col` as given (recycled) or the palette's
 .pcols <- function(n, col = NULL, pal = NULL, fn = "plot") {
   if (!is.null(col)) {
-    if (!length(col) || any(!vapply(col, .iscol, NA))) {
+    if (!length(col) || !all(vapply(col, .iscol, NA))) {
       stop(fn, ": `col` must be colours.", call. = FALSE)
     }
     return(rep_len(col, n))
@@ -226,7 +226,7 @@ yoypals <- function() names(.YOY_PALETTES)
 
 .prange <- function(...) {
   r <- suppressWarnings(range(c(...), finite = TRUE))
-  if (any(!is.finite(r))) r <- c(0, 1)
+  if (!all(is.finite(r))) r <- c(0, 1)
   if (diff(r) == 0) r <- r + c(-0.5, 0.5)
   r
 }
@@ -245,8 +245,8 @@ yoypals <- function() names(.YOY_PALETTES)
 # a legend that pairs every colour with a line type or point shape
 .pkey <- function(where, lab, col, lty = NA, pch = NA, ...) {
   a <- list(where, legend = lab, col = col, bty = "n", cex = 0.85, ...)
-  if (any(!is.na(lty))) a$lty <- lty
-  if (any(!is.na(pch))) a$pch <- pch
+  if (!all(is.na(lty))) a$lty <- lty
+  if (!all(is.na(pch))) a$pch <- pch
   do.call(graphics::legend, a)
 }
 
@@ -373,7 +373,7 @@ yoypals <- function() names(.YOY_PALETTES)
   graphics::axis(2, at = y, labels = lab, tick = FALSE, las = 1)
   w <- is.finite(v)
   graphics::rect(0, y[w] - 0.35, v[w], y[w] + 0.35, col = cl, border = NA)
-  if (any(!w)) graphics::text(0, y[!w], "no finite value", pos = 4, cex = 0.75)
+  if (!all(w)) graphics::text(0, y[!w], "no finite value", pos = 4, cex = 0.75)
   if (!is.null(ref)) graphics::abline(v = ref, lty = 2, col = "#636363")
   invisible(data.frame(label = lab, value = v, stringsAsFactors = FALSE))
 }

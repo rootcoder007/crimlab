@@ -582,7 +582,7 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 .plz <- function(d) {
-  if (any(!c("pop", "share") %in% names(d))) {
+  if (!all(c("pop", "share") %in% names(d))) {
     stop("plotlrnz: a frame `x` needs the columns pop and share.",
          call. = FALSE)
   }
