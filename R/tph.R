@@ -90,7 +90,7 @@ preslr <- function(x, m1, s1, m2, s2) {
 #' @param start The stage a drawn path starts from: a name of `states` or
 #'   its number.
 #' @param steps The longest path drawn (it stops when absorbed): one whole
-#'   number from 0, 0 for none.
+#'   number from 0 to 67108864 (2^26), 0 for none.
 #' @inheritParams agemix
 #' @return A list: `P`, the transition matrix (stages, then `skeletal` and
 #'   `mummified`); `N`, the fundamental matrix of the transient stages;

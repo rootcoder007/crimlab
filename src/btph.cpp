@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "bfx.h"
+#include "kutil.h"
 #include "rchk.h"
 
 extern "C" double Rf_pnorm5(double, double, double, int, int);
@@ -114,6 +115,8 @@ SEXP C_clab_r_tpdmc(SEXP pres, SEXP decay, SEXP mum, SEXP states, SEXP start, SE
   }
   if (s0 < 0) fail("`start` must be a transient stage, by name or number from 1 to %d.", k);
   const int ns = clab::whole(steps, "steps", 0);
+  // the path, one stage a step, is made at its longest before it is drawn
+  if (ns > kutil::maxcell) fail("`steps` must be at most %.0f.", kutil::maxcell);
   SEXP pm = PROTECT(Rf_allocMatrix(REALSXP, m, m));
   SEXP nm = PROTECT(Rf_allocMatrix(REALSXP, k, k));
   SEXP bm = PROTECT(Rf_allocMatrix(REALSXP, k, 2));

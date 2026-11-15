@@ -159,3 +159,8 @@ test_that("the taphonomy functions refuse bad input", {
     list("`level` must be one number", 1:6, x, level = 0)
   ))
 })
+
+test_that("tpdmc() refuses a path longer than its bound before making it", {
+  expect_error(tpdmc(0.5, 0.6, 0.4, steps = .Machine$integer.max),
+               "tpdmc: `steps` must be at most 67108864.", fixed = TRUE)
+})
