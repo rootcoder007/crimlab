@@ -21,8 +21,54 @@
 #include <windows.h>
 #include <winioctl.h>
 #include <cfgmgr32.h>
+// emi.h and batclass.h are in the Windows SDK; the MinGW headers that R
+// is built with lack the first and may lack the second. Where a header is
+// missing, the few names used here are declared as the SDK documents
+// them (Energy Meter Interface; IOCTL_BATTERY_QUERY_STATUS).
+#if defined(__has_include) && __has_include(<emi.h>)
 #include <emi.h>
+#else
+#define EMI_VERSION_V1 1
+#define EMI_VERSION_V2 2
+#define IOCTL_EMI_GET_VERSION CTL_CODE(FILE_DEVICE_UNKNOWN, 0x0, METHOD_BUFFERED, FILE_READ_ACCESS)
+#define IOCTL_EMI_GET_METADATA_SIZE CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1, METHOD_BUFFERED, FILE_READ_ACCESS)
+#define IOCTL_EMI_GET_METADATA CTL_CODE(FILE_DEVICE_UNKNOWN, 0x2, METHOD_BUFFERED, FILE_READ_ACCESS)
+#define IOCTL_EMI_GET_MEASUREMENT CTL_CODE(FILE_DEVICE_UNKNOWN, 0x3, METHOD_BUFFERED, FILE_READ_ACCESS)
+struct EMI_VERSION {
+  USHORT EmiVersion;
+};
+struct EMI_METADATA_SIZE {
+  ULONG MetadataSize;
+};
+struct EMI_CHANNEL_MEASUREMENT_DATA {
+  ULONGLONG AbsoluteEnergy;
+  ULONGLONG AbsoluteTime;
+};
+#endif
+#if defined(__has_include) && __has_include(<batclass.h>)
 #include <batclass.h>
+#else
+#ifndef FILE_DEVICE_BATTERY
+#define FILE_DEVICE_BATTERY 0x00000029
+#endif
+#define IOCTL_BATTERY_QUERY_TAG CTL_CODE(FILE_DEVICE_BATTERY, 0x10, METHOD_BUFFERED, FILE_READ_ACCESS)
+#define IOCTL_BATTERY_QUERY_STATUS CTL_CODE(FILE_DEVICE_BATTERY, 0x13, METHOD_BUFFERED, FILE_READ_ACCESS)
+#define BATTERY_DISCHARGING 0x00000002
+#define BATTERY_UNKNOWN_RATE 0x80000000
+struct BATTERY_WAIT_STATUS {
+  ULONG BatteryTag;
+  ULONG Timeout;
+  ULONG PowerState;
+  ULONG LowCapacity;
+  ULONG HighCapacity;
+};
+struct BATTERY_STATUS {
+  ULONG PowerState;
+  ULONG Capacity;
+  ULONG Voltage;
+  LONG Rate;
+};
+#endif
 
 #include <cmath>
 #include <cstring>
