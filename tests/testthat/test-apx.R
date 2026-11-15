@@ -993,7 +993,7 @@ test_that("factor effects, two-way nk factors each, the automatic NW lag", {
           ssc = "nk")
   expect_equal(ne$vcov, ge$vcov * 449 / 447, tolerance = 1e-10)
   nw <- a(fe = c("unit", "day"), se = "nw", time = "day", ssc = "none")
-  expect_true(nw$lag >= 0L)
+  expect_gte(nw$lag, 0L)
   expect_equal(
     a(fe = c("unit", "day"), se = "nw", time = "day", ssc = "none",
       lag = nw$lag)$coef$se,
@@ -1015,10 +1015,11 @@ test_that("the bootstrap: draws refitted with sep = none, failed draws", {
   expect_equal(b0$draws, b1$draws, tolerance = 1e-12)
   # a fit that fails on the first draw only; the sum of the weights of a
   # draw is 450 rows whatever is drawn (15 clusters of 30 rows)
-  i <- 0L
+  st <- new.env()
+  st$i <- 0L
   fit <- function(rows, w) {
-    i <<- i + 1L
-    if (i == 1L) stop("no fit")
+    st$i <- st$i + 1L
+    if (st$i == 1L) stop("no fit")
     as.numeric(sum(w))
   }
   expect_warning(
@@ -1041,12 +1042,13 @@ test_that("ppmlcf leaves out the draws of a single cluster", {
   d <- simpan()
   d <- d[d$unit <= 2L, ]
   quiet <- function(expr) {
-    w <- character()
+    st <- new.env()
+    st$w <- character()
     r <- withCallingHandlers(expr, warning = function(e) {
-      w <<- c(w, conditionMessage(e))
+      st$w <- c(st$w, conditionMessage(e))
       invokeRestart("muffleWarning")
     })
-    list(r = r, w = w)
+    list(r = r, w = st$w)
   }
   # with two clusters a draw of one of them twice has one unit, and the
   # day effects then absorb every column: that draw cannot be fitted
