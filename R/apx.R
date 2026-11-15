@@ -248,109 +248,41 @@ ppmlfe <- function(
   psd <- match.arg(psd)
   sep <- match.arg(sep)
   d <- .axdat(data, f)
-  .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, x, "x", f)
-  .axcols(d, fe, "fe", f)
-  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
-  if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
-  .axcols(d, clus, "clus", f, n = 1:2)
-  if (se == "cluster" && length(clus) == 2L) se <- "twoway"
-  if (se == "twoway" && length(clus) != 2L) {
-    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
-  }
-  level <- .axlevel(level, f)
-  tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
-  yv <- .axmat(d, y, f)[, 1L]
-  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
-  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
-  k <- if (sep != "none") .axsep(yv, d, fe, f) else rep(TRUE, length(yv))
-  d <- d[k, , drop = FALSE]
-  xdrop <- character()
-  if (sep == "sst") {
-    xdrop <- .axsst(d, yv[k], x, fe, tol, f)
-    if (length(xdrop) == length(x)) {
-      .ckstop(f, "every regressor is collinear on the rows with counts")
-    }
-    if (length(xdrop)) {
-      warning(f, ": regressor(s) dropped, collinear with the others on the ",
-              "rows with positive counts (Santos Silva and Tenreyro 2010): ",
-              toString(xdrop), ".", call. = FALSE)
-      x <- setdiff(x, xdrop)
-    }
-  }
-  .axmat(d, x, f)
-  if (!is.null(expo) && any(.axmat(d, expo, f)[, 1L] <= 0)) {
-    .ckstop(f, "column `%s` must be positive", expo)
-  }
+  a <- .axppck(d, y, x, fe, expo, clus, se, level, tol, maxit, f)
+  clus <- a$clus
+  se <- a$se
+  level <- a$level
+  tol <- a$tol
+  maxit <- a$maxit
+  rw <- .axpprows(d, y, x, fe, expo, sep, tol, f)
+  d <- rw$d
+  x <- rw$x
   r <- .axppfit(d, y, x, fe, expo, NULL, tol, maxit, f)
   if (r$st[2L] != 1) {
-    warning(
-      f,
-      ": the fit did not converge in ",
-      maxit,
-      " iterations.",
-      call. = FALSE
-    )
+    warning(f, ": the fit did not converge in ", maxit, " iterations.",
+            call. = FALSE)
   }
-  dr <- NULL
-  psi <- NA_real_
-  if (se == "boot") {
-    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
-    b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
-      ds <- d[rows, , drop = FALSE]
-      kk <- if (sep != "none") {
-        .axfesep(as.numeric(ds[[y]]), .axfe(ds, fe))
-      } else {
-        rep(TRUE, nrow(ds))
-      }
-      .axppfit(
-        ds[kk, , drop = FALSE],
-        y,
-        x,
-        fe,
-        expo,
-        as.numeric(w[kk]),
-        tol,
-        maxit,
-        f
-      )$beta
-    }, f)
-    v <- stats::cov(b$draws, use = "complete.obs")
-    sev <- b$se
-    g <- b$g
-    lg <- NA_integer_
-    dr <- b$draws
-    colnames(dr) <- x
-  } else {
-    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f, twc, psd)
-    v <- vv$v
-    sev <- sqrt(pmax(diag(v), 0))
-    g <- vv$g
-    lg <- vv$lag
-    psi <- if (se == "quasi") vv$psi else NA_real_
-  }
-  dimnames(v) <- list(x, x)
-  tab <- .axtab(x, r$beta, sev, level)
+  vv <- .axppv(r, d, y, x, fe, expo, clus, se, ssc, time, lag, nboot, seed,
+               sep, tol, maxit, twc, psd, f)
+  tab <- .axtab(x, r$beta, vv$sev, level)
   tab$rr <- exp(tab$est)
   structure(
     list(
       coef = tab,
-      vcov = v,
+      vcov = vv$v,
       n = nrow(d),
-      nsep = sum(!k),
-      xdrop = xdrop,
-      ncl = g,
+      nsep = sum(!rw$k),
+      xdrop = rw$xdrop,
+      ncl = vv$g,
       se = se,
       ssc = ssc,
-      lag = lg,
-      psi = psi,
+      lag = vv$lg,
+      psi = vv$psi,
       iter = r$st[1L],
       conv = r$st[2L] == 1,
       dev = r$st[3L],
       loglik = r$st[4L],
-      draws = dr,
+      draws = vv$dr,
       fe = fe,
       clus = clus,
       level = level
@@ -613,111 +545,34 @@ ivfe <- function(
   twc <- match.arg(twc)
   psd <- match.arg(psd)
   d <- .axdat(data, f)
-  .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, endo, "endo", f, null = TRUE)
-  .axcols(d, inst, "inst", f, null = TRUE)
-  .axcols(d, x, "x", f, null = TRUE)
-  .axcols(d, fe, "fe", f)
-  if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
-  .axcols(d, clus, "clus", f, n = 1:2)
-  if (se == "cluster" && length(clus) == 2L) se <- "twoway"
-  if (se == "twoway" && length(clus) != 2L) {
-    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
-  }
-  level <- .axlevel(level, f)
-  tol <- .cknum(tol, "tol", f, positive = TRUE)
-  if (length(inst) < length(endo)) {
-    .ckstop(
-      f,
-      "`inst` must give at least as many instruments as `endo` has columns"
-    )
-  }
-  if (!length(endo) && length(inst)) {
-    .ckstop(f, "`inst` needs `endo`: the columns it instruments")
-  }
-  if (!length(endo) && !length(x)) {
-    .ckstop(f, "give `endo` or `x`: there is nothing to estimate")
-  }
-  if (length(intersect(c(endo, x), inst))) {
-    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
-  }
-  .axmat(d, c(y, endo, x, inst), f)
+  a <- .axivck(d, y, endo, inst, x, fe, clus, se, level, tol, f)
+  clus <- a$clus
+  se <- a$se
+  level <- a$level
+  tol <- a$tol
   fc <- .axfc(d, se, clus, f)
   r <- .axivfit(d, y, endo, inst, x, fe, NULL, fc, tol, f)
   tm <- c(endo, x)
-  dr <- NULL
-  df <- NULL
-  if (se == "boot") {
-    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
-    b <- .axboot(d, clus[1L], nboot, seed, length(tm), function(rows, w) {
-      .axivfit(d[rows, , drop = FALSE], y, endo, inst, x, fe, as.numeric(w),
-               list(c1 = NULL, n1 = 0L, c2 = NULL, n2 = 0L), tol, f)$beta
-    }, f)
-    v <- stats::cov(b$draws, use = "complete.obs")
-    sev <- b$se
-    g <- b$g
-    lg <- NA_integer_
-    dr <- b$draws
-    colnames(dr) <- tm
-  } else {
-    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f, twc, psd)
-    v <- vv$v
-    sev <- sqrt(pmax(diag(v), 0))
-    g <- vv$g
-    lg <- vv$lag
-    if (se %in% c("cluster", "twoway")) df <- min(g) - 1
-  }
-  dimnames(v) <- list(tm, tm)
-  # the over-identification tests (Yamada 2026, section 7 and table 8,
-  # item 6): Sargan and the cluster-robust Hansen J of the two-step
-  # estimate
-  overid <- NULL
-  gmm <- NULL
-  if (length(inst) > length(endo) && length(endo)) {
-    fx <- .axfe(d, fe)
-    oi <- .Call(C_clab_r_ivoid, as.numeric(d[[y]]), .axmat(d, endo, f),
-                .axmat(d, x, f), .axmat(d, inst, f), fx$c1, fx$n1, fx$c2,
-                fx$n2, fx$cx, fx$nx, fc$c1, fc$n1, fc$c2, fc$n2, tol)
-    st <- oi$st
-    overid <- data.frame(
-      test = c("sargan", "hansen"),
-      stat = st[1:2],
-      df = st[3L],
-      p = stats::pchisq(st[1:2], st[3L], lower.tail = FALSE),
-      stringsAsFactors = FALSE
-    )
-    gmm <- stats::setNames(oi$beta, tm)
-  }
-  # the first stages in the exposure's units, per unit of each instrument
-  # and over the exposure's mean (Yamada 2026, table 8, item 5)
-  fstab <- NULL
-  if (length(endo)) {
-    fstab <- do.call(rbind, lapply(endo, function(e) {
-      s1 <- ivfe(d, e, x = c(inst, x), fe = fe, clus = clus,
-                 se = if (se == "boot") "cluster" else se, ssc = ssc,
-                 time = time, lag = lag, level = level, tol = tol,
-                 twc = twc, psd = psd)$coef
-      s1 <- s1[s1$term %in% inst, , drop = FALSE]
-      data.frame(endo = e, inst = s1$term, est = s1$est, se = s1$se,
-                 rel = s1$est / mean(d[[e]]))
-    }))
-  }
+  vv <- .axivv(r, d, y, endo, inst, x, fe, clus, se, ssc, time, lag, nboot,
+               seed, tol, twc, psd, tm, f)
+  oi <- .axivoid(d, y, endo, inst, x, fe, fc, tol, tm, f)
+  fstab <- .axivfst(d, endo, inst, x, fe, clus, se, ssc, time, lag, level,
+                    tol, twc, psd)
   structure(
     list(
-      coef = .axtab(tm, r$beta, sev, level, df = df),
+      coef = .axtab(tm, r$beta, vv$sev, level, df = vv$df),
       first = .axfirst(endo, r$fst, length(inst)),
       fstab = fstab,
-      overid = overid,
-      gmm = gmm,
-      vcov = v,
+      overid = oi$overid,
+      gmm = oi$gmm,
+      vcov = vv$v,
       n = nrow(d),
-      ncl = g,
+      ncl = vv$g,
       se = se,
       ssc = ssc,
-      lag = lg,
+      lag = vv$lg,
       rss = r$st[3L],
-      draws = dr,
+      draws = vv$dr,
       fe = fe,
       clus = clus,
       level = level
@@ -876,89 +731,28 @@ ppmlcf <- function(
   se <- match.arg(se)
   ssc <- match.arg(ssc)
   d <- .axdat(data, f)
-  .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, endo, "endo", f)
-  .axcols(d, inst, "inst", f)
-  .axcols(d, x, "x", f, null = TRUE)
-  .axcols(d, fe, "fe", f, n = 1:2)
-  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
-  if (is.null(clus)) clus <- fe[1L]
-  .axcols(d, clus, "clus", f, n = 1L)
-  level <- .axlevel(level, f)
-  tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
-  if (length(inst) < length(endo)) {
-    .ckstop(
-      f,
-      "`inst` must give at least as many instruments as `endo` has columns"
-    )
-  }
-  if (length(intersect(c(endo, x), inst))) {
-    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
-  }
-  yv <- .axmat(d, y, f)[, 1L]
-  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
-  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
-  k <- .axsep(yv, d, fe, f)
-  d <- d[k, , drop = FALSE]
-  yv <- yv[k]
-  off <- NULL
-  if (!is.null(expo)) {
-    e <- .axmat(d, expo, f)[, 1L]
-    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
-    off <- log(e)
-  }
+  a <- .axcfck(d, y, endo, inst, x, fe, expo, clus, level, tol, maxit, f)
+  clus <- a$clus
+  level <- a$level
+  tol <- a$tol
+  maxit <- a$maxit
+  rw <- .axcfrows(d, y, fe, expo, f)
+  d <- rw$d
+  k <- rw$k
+  yv <- rw$yv
   fx <- .axfe(d, fe)
   cl <- .axcl(d, clus, f)
   tm <- c(endo, x, if (how == "cf") paste0("vhat:", endo))
   if (se == "naive") {
-    r1 <- .axivfit(d, y, endo, inst, x, fe, NULL,
-                   list(c1 = cl$c1, n1 = cl$n1, c2 = NULL, n2 = 0L), tol, f)
-    fr <- r1$fres
-    e <- d
-    if (how == "cf") {
-      for (j in seq_along(endo)) e[[paste0("vhat:", endo[j])]] <- fr[, j]
-    } else {
-      for (j in seq_along(endo)) e[[endo[j]]] <- e[[endo[j]]] - fr[, j]
-    }
-    p <- ppmlfe(
-      e,
-      y,
-      tm,
-      fe,
-      expo = expo,
-      clus = clus,
-      ssc = ssc,
-      level = level,
-      tol = tol,
-      maxit = maxit,
-      sep = "none"
-    )
-    return(structure(
-      list(coef = p$coef, first = .axfirst(endo, r1$fst, length(inst)),
-           draws = NULL, nfail = 0L, n = length(yv), nsep = sum(!k),
-           ncl = cl$g, nboot = 0L, how = how, se = se, fe = fe, clus = clus,
-           level = level),
-      class = "ppmlcf"
-    ))
+    return(.axcfnv(d, y, endo, inst, x, fe, expo, clus, how, se, ssc, level,
+                   tol, maxit, cl, tm, k, yv, f))
   }
-  nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-  if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
-  bm <- .axdraw(cl$n1, nboot, seed)
-  storage.mode(bm) <- "integer"
-  r <- .Call(C_clab_r_ppmlcf, yv, .axmat(d, endo, f), .axmat(d, x, f),
-             .axmat(d, inst, f), off, fx$c1, fx$n1, fx$c2, fx$n2, cl$c1,
-             cl$n1, bm, if (how == "plug") 1L else 0L, tol, as.integer(maxit))
-  dr <- r$draw
-  colnames(dr) <- tm
-  nfail <- as.integer(r$st[3L])
-  if (nfail > 0L) {
-    warning(f, ": ", nfail, " of ", nboot, " bootstrap draws could not be ",
-            "fitted and are left out.", call. = FALSE)
-  }
-  if (nboot - nfail < 2L) {
-    .ckstop(f, "fewer than two bootstrap draws could be fitted")
-  }
+  b <- .axcfboot(d, yv, endo, inst, x, rw$off, fx, cl, nboot, seed, how, tol,
+                 maxit, tm, f)
+  r <- b$r
+  dr <- b$dr
+  nfail <- b$nfail
+  nboot <- b$nboot
   sev <- apply(dr, 2L, stats::sd, na.rm = TRUE)
   tab <- .axtab(tm, r$beta, sev, level)
   tab$rr <- exp(tab$est)
@@ -1155,96 +949,24 @@ expgmm <- function(
   se <- match.arg(se)
   ssc <- match.arg(ssc)
   d <- .axdat(data, f)
-  .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, endo, "endo", f)
-  .axcols(d, inst, "inst", f)
-  .axcols(d, x, "x", f, null = TRUE)
-  .axcols(d, fe, "fe", f, n = 1:2, null = TRUE)
-  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
-  if (se == "cluster") {
-    if (is.null(clus)) clus <- fe[1L]
-    if (is.null(clus)) {
-      .ckstop(f, "`se = \"cluster\"` needs `clus` (or `fe`, its first column)")
-    }
-    .axcols(d, clus, "clus", f, n = 1L)
-  } else {
-    clus <- NULL
-  }
-  level <- .axlevel(level, f)
-  tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
-  if (length(inst) < length(endo)) {
-    .ckstop(
-      f,
-      "`inst` must give at least as many instruments as `endo` has columns"
-    )
-  }
-  if (length(intersect(c(endo, x), inst))) {
-    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
-  }
-  yv <- .axmat(d, y, f)[, 1L]
-  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
-  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
-  k <- if (is.null(fe)) rep(TRUE, length(yv)) else .axsep(yv, d, fe, f)
-  d <- d[k, , drop = FALSE]
-  yv <- yv[k]
-  off <- NULL
-  if (!is.null(expo)) {
-    e <- .axmat(d, expo, f)[, 1L]
-    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
-    off <- log(e)
-  }
-  nl <- sum(vapply(fe, function(v) length(unique(d[[v]])), 1L))
-  if (nl > 200L) {
-    .ckstop(f, paste0("the fixed effects have %d levels; they enter as ",
-                      "indicator columns, at most 200 (use ppmlcf() for ",
-                      "many)"), nl)
-  }
-  dm <- .axdum(d, fe)
-  xm <- cbind(.axmat(d, c(endo, x), f), dm)
-  zm <- cbind(.axmat(d, c(inst, x), f), dm)
-  if (se == "cluster") {
-    cl <- .axcl(d, clus, f)
-    cc <- cl$c1
-    nc <- cl$n1
-  } else {
-    cc <- seq_len(nrow(d)) - 1L
-    nc <- nrow(d)
-  }
-  if (ncol(zm) > nc) {
-    .ckstop(f, paste0("%d moment conditions but %d clusters: the weight ",
-                      "matrix would be singular (fewer instruments, ",
-                      "controls or effects, or more clusters)"),
-            ncol(zm), nc)
-  }
-  # the start: each first-set effect (or the constant) at the log of its
-  # counts over its exposure
-  b0 <- numeric(ncol(xm))
-  ee <- if (is.null(off)) rep(1, length(yv)) else exp(off)
-  g1 <- if (is.null(fe)) rep(1L, length(yv)) else .axcode(d[[fe[1L]]])$c + 1L
-  st0 <- log(rowsum(yv, g1)[, 1L] / rowsum(ee, g1)[, 1L])
-  b0[length(c(endo, x)) + seq_along(st0)] <- st0
-  r <- .Call(C_clab_r_expgmm, as.numeric(yv), xm, zm, off, b0,
-             as.integer(cc), as.integer(nc), if (err == "mult") 0L else 1L,
-             match(step, c("one", "two", "iter")), as.integer(maxit), tol)
-  if (r$st[4L] != 1) {
-    warning(f, ": the fit did not converge in ", maxit, " iterations.",
-            call. = FALSE)
-  }
+  a <- .axgmck(d, y, endo, inst, x, fe, expo, clus, se, level, tol, maxit, f)
+  clus <- a$clus
+  level <- a$level
+  tol <- a$tol
+  maxit <- a$maxit
+  rw <- .axgmrows(d, y, fe, expo, f)
+  d <- rw$d
+  k <- rw$k
+  yv <- rw$yv
+  m <- .axgmdes(d, endo, inst, x, fe, clus, se, f)
+  nc <- m$nc
+  r <- .axgmfit(d, yv, rw$off, m$xm, m$zm, m$cc, nc, fe, endo, x, err, step,
+                maxit, tol, f)
   tm <- c(endo, x)
-  p <- length(tm)
-  fac <- if (ssc == "G") nc / (nc - 1) else 1
-  v <- r$vc[seq_len(p), seq_len(p), drop = FALSE] * fac
-  dimnames(v) <- list(tm, tm)
-  tab <- .axtab(tm, r$beta[seq_len(p)], sqrt(pmax(diag(v), 0)), level)
-  tab$rr <- exp(tab$est)
-  jd <- r$st[2L]
-  jt <- data.frame(
-    stat = r$st[1L],
-    df = jd,
-    p = if (is.na(r$st[1L])) NA_real_ else
-      stats::pchisq(r$st[1L], jd, lower.tail = FALSE)
-  )
+  o <- .axgmtab(r, tm, nc, ssc, level)
+  v <- o$v
+  tab <- o$tab
+  jt <- o$jt
   structure(
     list(
       coef = tab,
@@ -1410,136 +1132,22 @@ windiv <- function(
   f <- "windiv"
   edges <- match.arg(edges)
   avg <- match.arg(avg)
-  if (!is.numeric(dir) || !length(dir)) {
-    .ckstop(f, "`dir` must be numeric directions in degrees")
-  }
-  dir <- as.numeric(dir)
-  if (!is.logical(share) || length(share) != 1L || is.na(share)) {
-    .ckstop(f, "`share` must be TRUE or FALSE")
-  }
-  if (!is.null(spd) && (!is.numeric(spd) || length(spd) != length(dir) ||
-                          any(spd < 0, na.rm = TRUE))) {
-    .ckstop(f, "`spd` must give one speed from 0 per direction")
-  }
-  if (!is.null(area) && (length(area) != length(dir) || anyNA(area))) {
-    .ckstop(f, "`area` must give one label per direction, none missing")
-  }
-  if (is.null(sect)) {
-    width <- .cknum(width, "width", f, positive = TRUE)
-    start <- .cknum(start, "start", f)
-    nb <- round(360 / width)
-    if (width >= 360 || abs(360 / width - nb) > 1e-9) {
-      .ckstop(f, "`width` must divide 360 into two or more sectors")
-    }
-    base <- .cknum(base, "base", f, min = 1, max = nb, whole = TRUE)
-  } else if (!is.numeric(sect) || length(sect) != 2L || !all(is.finite(sect)) ||
-               sect[1L] %% 360 == sect[2L] %% 360) {
-    .ckstop(f, "`sect` must be two different finite directions in degrees")
-  }
+  a <- .axwdck(dir, width, start, area, base, sect, share, spd, f)
+  dir <- a$dir
+  width <- a$width
+  start <- a$start
+  base <- a$base
+  nb <- a$nb
   gl <- NULL
   if (!is.null(by)) {
-    if (length(by) != length(dir) || anyNA(by)) {
-      .ckstop(f, "`by` must give one group per direction, none missing")
-    }
-    gk <- .axcode(by)
-    gl <- unique(as.character(by))
-    rd <- dir * pi / 180
-    wv <- if (is.null(spd)) rep(1, length(dir)) else as.numeric(spd)
-    ok <- is.finite(dir) & is.finite(wv)
-    vs <- function(fun) {
-      as.numeric(tapply(ifelse(ok, fun(rd) * wv, NA), gk$c, mean, na.rm = TRUE))
-    }
-    vdir <- (atan2(vs(sin), vs(cos)) * 180 / pi) %% 360
-    if (!is.null(area)) {
-      nar <- tapply(as.character(area), gk$c, function(v) length(unique(v)))
-      if (any(nar > 1L)) {
-        .ckstop(f, "`area` must be constant within each `by` group")
-      }
-      area <- as.character(area)[!duplicated(gk$c)]
-    }
-    if (share) {
-      if (!is.null(sect)) {
-        .ckstop(f, "`share` needs sectors by `width`, not `sect`")
-      }
-      full <- windiv(
-        ifelse(ok, dir, NA),
-        width,
-        start,
-        NULL,
-        base = base,
-        edges = edges
-      )
-      lev <- if (is.null(area)) NULL else sort(unique(area))
-      m <- rowsum(ifelse(is.na(full), 0, full), gk$c, reorder = TRUE) /
-        as.numeric(tabulate(gk$c[ok] + 1L, gk$n))
-      if (!is.null(lev)) {
-        ai <- match(area, lev)
-        mm <- matrix(0, nrow(m), ncol(m) * length(lev))
-        for (r in seq_len(nrow(m))) {
-          mm[r, (ai[r] - 1L) * ncol(m) + seq_len(ncol(m))] <- m[r, ]
-        }
-        colnames(mm) <- paste0(rep(colnames(full), length(lev)), ":",
-                               rep(lev, each = ncol(m)))
-        m <- mm
-      }
-      rownames(m) <- gl
-      attr(m, "dir") <- vdir
-      return(m)
-    }
-    dir <- switch(avg,
-      vector = vdir,
-      mean = as.numeric(tapply(ifelse(ok, dir, NA), gk$c, mean, na.rm = TRUE)),
-      mode = {
-        if (!is.null(sect)) {
-          .ckstop(f, "`avg = \"mode\"` needs sectors by `width`, not `sect`")
-        }
-        sc <- .axsec(dir, width, start, edges)
-        md <- as.numeric(tapply(ifelse(ok, sc, NA), gk$c, function(v) {
-          v <- v[!is.na(v)]
-          if (!length(v)) return(NA)
-          tb <- table(factor(v, levels = seq_len(nb)))
-          as.numeric(names(which.max(tb)))
-        }))
-        # the middle of the sector, which falls in it under either edges
-        (start + (md - 0.5) * width) %% 360
-      })
+    g <- .axwdby(dir, by, spd, area, share, sect, width, start, base, edges,
+                 avg, nb, f)
+    if (share) return(g$m)
+    dir <- g$dir
+    area <- g$area
+    gl <- g$gl
   }
-  if (!is.null(sect)) {
-    inside <- (dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360
-    m <- matrix(as.numeric(inside))
-    colnames(m) <- paste0("w", format(sect[1L]), "_", format(sect[2L]))
-  } else {
-    ac <- NULL
-    na <- 1L
-    lev <- NULL
-    if (!is.null(area)) {
-      lev <- if (is.factor(area)) {
-        levels(droplevels(area))
-      } else {
-        sort(unique(as.character(area)))
-      }
-      ac <- match(as.character(area), lev) - 1L
-      na <- length(lev)
-    }
-    m <- .Call(
-      C_clab_r_windbin,
-      dir,
-      width,
-      start,
-      ac,
-      na,
-      as.integer(base - 1),
-      if (edges == "paper") 1L else 0L
-    )
-    lo <- (start + (seq_len(nb) - 1) * width) %% 360
-    nm <- paste0("w", format(lo, trim = TRUE), "_",
-                 format((lo + width) %% 360, trim = TRUE))[-base]
-    colnames(m) <- if (is.null(lev)) {
-      nm
-    } else {
-      paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
-    }
-  }
+  m <- .axwdbin(dir, sect, width, start, area, base, edges, nb)
   if (!is.null(gl)) {
     rownames(m) <- gl
     attr(m, "dir") <- dir
@@ -1960,273 +1568,34 @@ updwn <- function(
   se <- match.arg(se)
   ssc <- match.arg(ssc)
   d <- .axdat(data, f)
-  .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, c(ax, ay), "ax, ay", f, n = 2L)
-  .axcols(d, day, "day", f, n = 1L)
-  .axcols(d, wind, "wind", f, n = 1L)
-  .axcols(d, area, "area", f, n = 1L, null = TRUE)
-  .axcols(d, clus, "clus", f, n = 1:2, null = TRUE)
-  .axcols(d, wx, "wx", f, null = TRUE)
-  s <- .axdat(src, f, "src")
-  if (!all(c("x0", "y0") %in% names(s))) {
-    .ckstop(f, "`src` must have columns x0 and y0")
-  }
-  for (k in c("x1", "y1")) if (is.null(s[[k]])) s[[k]] <- NA_real_
-  for (k in c("x0", "y0", "x1", "y1")) {
-    if (!is.numeric(s[[k]]) && !all(is.na(s[[k]]))) {
-      .ckstop(f, "`src` column %s must be numeric", k)
-    }
-  }
-  s0 <- as.numeric(s$x0)
-  t0 <- as.numeric(s$y0)
-  s1 <- as.numeric(s$x1)
-  t1 <- as.numeric(s$y1)
-  if (!all(is.finite(s0) & is.finite(t0))) {
-    .ckstop(f, "`src` x0 and y0 must be finite")
-  }
-  line <- is.finite(s1) & is.finite(t1)
-  tol <- .cknum(tol, "tol", f, positive = TRUE, min = 0, max = 90)
-  if (!identical(band, Inf)) band <- .cknum(band, "band", f, positive = TRUE)
-  if (!is.null(dist)) {
-    if (!is.numeric(dist) || length(dist) < 2L || anyNA(dist) || dist[1L] < 0 ||
-          is.unsorted(dist, strictly = TRUE)) {
-      .ckstop(f, "`dist` must be two or more increasing distances from 0")
-    }
-  }
-  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) {
-    .ckstop(f, "`agg` must be TRUE or FALSE")
-  }
-  if (is.null(area) && (!agg || !all(line))) {
-    .ckstop(f, "`area` is needed for point sources and for agg = FALSE")
-  }
-  if (!is.null(offs)) {
-    if (!all(line)) {
-      .ckstop(f, "`offs` moves segments: every source must be a segment")
-    }
-    if (!is.numeric(offs) || !length(offs) || !all(is.finite(offs))) {
-      .ckstop(f, "`offs` must be finite numbers")
-    }
-  }
-  if (se == "twoway" && length(clus) != 2L) {
-    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
-  }
-  level <- .axlevel(level, f)
-  yv <- .axmat(d, y, f)[, 1L]
-  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
-  xy <- .axmat(d, c(ax, ay), f)
-  wd <- .axmat(d, wind, f)[, 1L]
-  if (length(wx)) .axmat(d, wx, f)
-  dv <- as.character(d[[day]])
-  tnum <- NULL
-  if (is.numeric(d[[day]]) || inherits(d[[day]], "Date")) {
-    tnum <- as.numeric(d[[day]])
-  }
-  if (se == "nw" && is.null(tnum)) {
-    .ckstop(f, "`se = \"nw\"` needs a day column of numbers or dates")
-  }
-  av <- if (!is.null(area)) as.character(d[[area]])
-  if (!is.null(area) && anyDuplicated(paste(av, dv, sep = "\r"))) {
-    .ckstop(f, "an area has two rows on one day")
-  }
-  labs <- c(`1` = "downwind", `0` = "upwind", `-1` = "along", `-2` = "nosource",
-            `-3` = "twosources", `-4` = "onsource", `-5` = "missing")
-  same <- function(v, cell) {
-    any(tapply(v, cell, function(u) length(unique(u))) > 1L)
-  }
+  sc <- .axudsrc(d, y, ax, ay, day, wind, area, clus, wx, src, f)
+  s0 <- sc$s0
+  t0 <- sc$t0
+  s1 <- sc$s1
+  t1 <- sc$t1
+  line <- sc$line
+  a <- .axudck(tol, band, dist, agg, area, line, offs, se, clus, level, f)
+  tol <- a$tol
+  band <- a$band
+  level <- a$level
+  p <- .axudprep(d, y, ax, ay, day, wind, wx, area, se, f)
   run <- function(a0, b0, a1, b1) {
-    if (twin == "keep") {
-      parts <- lapply(seq_along(a0), function(j) {
-        k <- .Call(
-          C_clab_r_updwn,
-          xy[, 1L],
-          xy[, 2L],
-          wd,
-          a0[j],
-          b0[j],
-          a1[j],
-          b1[j],
-          band,
-          tol,
-          0L
-        )
-        k$src[!is.na(k$src)] <- j
-        k$row <- seq_len(nrow(xy))
-        k
-      })
-      k <- list(
-        src = unlist(lapply(parts, `[[`, "src")),
-        side = unlist(lapply(parts, `[[`, "side")),
-        dn = unlist(lapply(parts, `[[`, "dn")),
-        dst = unlist(lapply(parts, `[[`, "dst")),
-        row = unlist(lapply(parts, `[[`, "row"))
-      )
-      # an area near no source counts once in the table
-      hit <- k$dn != -2L
-      none <- setdiff(seq_len(nrow(xy)), k$row[hit])
-      lab <- labs[as.character(c(k$dn[hit], rep(-2L, length(none))))]
-      tb <- table(factor(lab, levels = labs))
-    } else {
-      k <- .Call(
-        C_clab_r_updwn,
-        xy[, 1L],
-        xy[, 2L],
-        wd,
-        a0,
-        b0,
-        a1,
-        b1,
-        band,
-        tol,
-        if (twin == "near") 1L else 0L
-      )
-      k$row <- seq_len(nrow(xy))
-      tb <- table(factor(labs[as.character(k$dn)], levels = labs))
-    }
-    use <- k$dn >= 0L
-    if (sum(use) < 2L) {
-      .ckstop(f, "fewer than two rows are upwind or downwind of a source")
-    }
-    rw <- k$row[use]
-    ring <- if (is.null(dist)) {
-      rep("", sum(use))
-    } else {
-      as.character(cut(k$dst[use], dist, include.lowest = TRUE))
-    }
-    keep <- !is.na(ring)
-    rw <- rw[keep]
-    ring <- ring[keep]
-    sr <- k$src[use][keep]
-    sd0 <- k$side[use][keep]
-    dn <- k$dn[use][keep]
-    if (!length(rw)) .ckstop(f, "no row falls in the rings of `dist`")
-    ln <- line[sr]
-    g <- ifelse(
-      ln & agg,
-      paste("s", sr, sd0, ring, sep = "\r"),
-      paste("a", if (is.null(area)) "" else av[rw], sr, ring, sep = "\r")
-    )
-    cell <- paste(g, dv[rw], sep = "\r")
-    sdy <- paste(sr, dv[rw], sep = "\r")
-    if (same(dn, cell)) {
-      .ckstop(
-        f,
-        paste0(
-          "the wind differs between areas of one side and day: give one ",
-          "direction per day, or agg = FALSE"
-        )
-      )
-    }
-    for (cc in c(clus, wx)) {
-      if (same(as.character(d[[cc]])[rw], cell)) {
-        .ckstop(
-          f,
-          "column `%s` must be constant within each side (area) and day",
-          cc
-        )
-      }
-    }
-    o <- !duplicated(cell)
-    e <- data.frame(
-      y = as.numeric(rowsum(yv[rw], cell, reorder = FALSE)),
-      g = g[o],
-      sd = sdy[o],
-      down = as.numeric(dn[o]),
-      row = seq_len(sum(o))
-    )
-    if (!is.null(tnum)) e$t <- tnum[rw][o]
-    for (cc in clus) e[[cc]] <- d[[cc]][rw][o]
-    xs <- "down"
-    if (!is.null(dist)) {
-      rl <- ring[o]
-      lv <- levels(cut(dist[-1L], dist, include.lowest = TRUE))
-      xs <- character()
-      for (l in lv[lv %in% rl]) {
-        nm <- paste0("down:", l)
-        e[[nm]] <- e$down * (rl == l)
-        xs <- c(xs, nm)
-      }
-    }
-    if (length(wx)) {
-      # each side's own response to the weather, less one side per source
-      # (the route-date effects absorb the weather of each route)
-      gl <- unique(e$g)
-      gs <- sr[o][match(gl, e$g)]
-      for (w in wx) {
-        wv <- as.numeric(d[[w]][rw][o])
-        for (l in gl[duplicated(gs)]) {
-          nm <- paste0(w, ":side", match(l, gl))
-          e[[nm]] <- wv * (e$g == l)
-        }
-      }
-    }
-    xa <- setdiff(names(e), c("y", "g", "sd", "down", "row", "t", clus))
-    xa <- c(xs, setdiff(xa, xs))
-    cl <- if (se == "hc1") "row" else if (is.null(clus)) "g" else clus
-    tcol <- if (se == "nw") "t" else NULL
-    if (norm == "pois") {
-      r <- ppmlfe(
-        e,
-        "y",
-        xa,
-        fe = c("g", "sd"),
-        clus = cl,
-        se = se,
-        ssc = ssc,
-        time = tcol,
-        lag = lag,
-        nboot = nboot,
-        seed = seed,
-        level = level
-      )
-    } else {
-      e$y <- switch(norm, mean = {
-        m <- mean(e$y)
-        if (m <= 0) .ckstop(f, "the counts are all 0")
-        e$y / m
-      }, none = e$y, log = log1p(e$y))
-      r <- ivfe(
-        e,
-        "y",
-        x = xa,
-        fe = c("g", "sd"),
-        clus = cl,
-        se = se,
-        ssc = ssc,
-        time = tcol,
-        lag = lag,
-        nboot = nboot,
-        seed = seed,
-        level = level
-      )
-    }
+    kc <- .axudcls(p$xy, p$wd, a0, b0, a1, b1, band, tol, twin)
+    ce <- .axudcell(kc$k, dist, line, agg, area, p$av, p$dv, d, clus, wx, f)
+    ed <- .axuddat(p$yv, ce$rw, ce$ring, ce$sr, ce$dn, ce$g, ce$cell,
+                   ce$sdy, p$tnum, d, dist, clus, wx)
+    r <- .axudfit(ed$e, ed$xs, se, ssc, clus, norm, lag, nboot, seed, level,
+                  f)
     list(
       fit = r,
-      tab = tb,
-      n = nrow(e),
-      coef = r$coef[r$coef$term %in% xs, , drop = FALSE]
+      tab = kc$tb,
+      n = nrow(ed$e),
+      coef = r$coef[r$coef$term %in% ed$xs, , drop = FALSE]
     )
   }
   r0 <- run(s0, t0, s1, t1)
   pl <- NULL
-  if (!is.null(offs)) {
-    len <- sqrt((s1 - s0)^2 + (t1 - t0)^2)
-    nx <- -(t1 - t0) / len
-    ny <- (s1 - s0) / len
-    pl <- do.call(rbind, lapply(offs, function(o) {
-      # a moved segment with areas on one side only has nothing to compare
-      ro <- tryCatch(run(s0 + o * nx, t0 + o * ny, s1 + o * nx, t1 + o * ny),
-                     error = function(e) NULL)
-      if (is.null(ro)) {
-        warning(f, ": no estimate for the segments moved by ", format(o),
-                ": too few areas upwind and downwind of them.", call. = FALSE)
-        return(data.frame(off = o, est = NA_real_, se = NA_real_, lo = NA_real_,
-                          hi = NA_real_, p = NA_real_, n = 0L))
-      }
-      c0 <- ro$coef[1L, ]
-      data.frame(off = o, est = c0$est, se = c0$se, lo = c0$lo, hi = c0$hi,
-                 p = c0$p, n = ro$n)
-    }))
-  }
+  if (!is.null(offs)) pl <- .axudplc(offs, s0, t0, s1, t1, run, f)
   structure(
     list(coef = r0$coef, class = r0$tab, n = r0$n, fit = r0$fit, placebo = pl,
          norm = norm, tol = tol, band = band),
@@ -2318,29 +1687,7 @@ expjn <- function(expo, outc, by = c("area", "day")) {
   if (!is.character(by) || !length(by) || anyNA(by) || anyDuplicated(by)) {
     .ckstop(f, "`by` must name the key columns")
   }
-  for (nm in c("expo", "outc")) {
-    t <- if (nm == "expo") e else o
-    miss <- setdiff(by, names(t))
-    if (length(miss)) {
-      .ckstop(
-        f,
-        "`%s` lacks the key columns: %s",
-        nm,
-        toString(miss)
-      )
-    }
-    if (anyNA(t[by])) .ckstop(f, "`%s` has missing keys", nm)
-  }
-  val <- setdiff(names(e), by)
-  if (!length(val)) .ckstop(f, "`expo` has no columns besides the keys")
-  clash <- intersect(val, names(o))
-  if (length(clash)) {
-    .ckstop(
-      f,
-      "columns in both tables besides the keys: %s",
-      toString(clash)
-    )
-  }
+  val <- .axjnck(e, o, by, f)
   key <- function(t) do.call(paste, c(lapply(t[by], as.character), sep = "\r"))
   ke <- key(e)
   ko <- key(o)
@@ -2579,47 +1926,16 @@ summary.expjn <- function(object, ...) {
                    psd = "none") {
   n <- nrow(r$sco)
   p <- ncol(r$sco)
-  kk <- function(cls) {
-    k <- p + 1
-    for (f in fe) {
-      if (!any(vapply(cls, function(cc) .axnest(d[[f]], d[[cc]]), NA))) {
-        k <- k + length(unique(d[[f]])) - 1
-      }
-    }
-    k
-  }
-  c1 <- c2 <- tv <- NULL
-  n1 <- n2 <- 0L
-  lg <- 0L
   if (se == "quasi") {
     # the model-based (X~'WX~)^-1 times the Pearson dispersion
-    k <- kk(character())
+    k <- .axvark(character(), p, fe, d)
     psi <- r$st[7L] / (n - k)
     v <- r$brd * psi
     return(list(v = v, g = n, lag = NA_integer_, k = k, psi = psi))
   }
-  if (se %in% c("cluster", "twoway")) {
-    cl <- .axcl(d, clus, fn)
-    c1 <- cl$c1
-    n1 <- cl$n1
-    c2 <- cl$c2
-    n2 <- cl$n2
-    g <- cl$g
-    kind <- if (se == "twoway") 1L else 0L
-    k <- kk(clus)
-  } else {
-    g <- n
-    kind <- if (se == "hc1") 2L else 3L
-    k <- kk(character())
-    if (se == "nw") {
-      u <- .axcode(d[[clus[1L]]])
-      c1 <- u$c
-      n1 <- u$n
-      tv <- .axtime(d, time, fn)
-      if (is.null(lag)) lag <- .axnwlag(r$sco, u$c, tv)
-      lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
-    }
-  }
+  cl <- .axvarcl(r, d, se, clus, time, lag, fe, fn, p)
+  g <- cl$g
+  k <- cl$k
   gm <- min(g)
   fac <- switch(
     ssc,
@@ -2627,41 +1943,14 @@ summary.expjn <- function(object, ...) {
     nk = gm / (gm - 1) * (n - 1) / (n - k),
     none = 1
   )
-  if (se == "twoway" && twc == "each") {
-    # Cameron, Gelbach and Miller (2011, p. 241): each of the three
-    # components with its own factor, G, H and I (the intersections)
-    c12 <- .axcode(paste(c1, c2))
-    f1 <- function(gg) {
-      switch(ssc, G = gg / (gg - 1),
-             nk = gg / (gg - 1) * (n - 1) / (n - k), none = 1)
-    }
-    one <- function(cc, nc) {
-      .Call(C_clab_r_vcx, r$sco, r$brd, 0L, cc, nc, NULL, 0L, NULL, 0L,
-            f1(nc))
-    }
-    v <- one(c1, n1) + one(c2, n2) - one(c12$c, c12$n)
-  } else {
-    v <- .Call(
-      C_clab_r_vcx,
-      r$sco,
-      r$brd,
-      kind,
-      c1,
-      n1,
-      c2,
-      n2,
-      tv,
-      as.integer(lg),
-      fac
-    )
-  }
+  v <- .axvarvc(r, se, twc, ssc, cl, fac, n, k)
   if (se == "twoway" && psd == "eig") {
     # the eigenvalues below 0 set to 0 (Cameron, Gelbach and Miller 2011,
     # p. 241-242, after Politis 2007)
     e <- eigen(v, symmetric = TRUE)
     v <- e$vectors %*% (pmax(e$values, 0) * t(e$vectors))
   }
-  list(v = v, g = g, lag = if (se == "nw") lg else NA_integer_, k = k)
+  list(v = v, g = g, lag = if (se == "nw") cl$lg else NA_integer_, k = k)
 }
 
 # The Newey-West (1994) bandwidth for the Bartlett kernel, without
@@ -2872,4 +2161,1039 @@ summary.expjn <- function(object, ...) {
     floor(a / width)
   }
   pmin(b, round(360 / width) - 1) + 1
+}
+
+# The checks of ppmlfe()'s columns and numbers, in their order: the
+# cluster columns (the first fixed effect, or both for two-way, by
+# default; two columns make the errors two-way), the level, tol and maxit.
+.axppck <- function(d, y, x, fe, expo, clus, se, level, tol, maxit, f) {
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, x, "x", f)
+  .axcols(d, fe, "fe", f)
+  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
+  if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
+  .axcols(d, clus, "clus", f, n = 1:2)
+  if (se == "cluster" && length(clus) == 2L) se <- "twoway"
+  if (se == "twoway" && length(clus) != 2L) {
+    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  }
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  list(clus = clus, se = se, level = level, tol = tol, maxit = maxit)
+}
+
+# The rows and regressors ppmlfe() fits: the counts checked, the rows
+# separated by the effects (sep) left out, the regressors collinear on the
+# rows with counts dropped with a warning (sep = "sst"), the exposure
+# checked: list(d, k the rows kept, x, xdrop).
+.axpprows <- function(d, y, x, fe, expo, sep, tol, f) {
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
+  k <- if (sep != "none") .axsep(yv, d, fe, f) else rep(TRUE, length(yv))
+  d <- d[k, , drop = FALSE]
+  xdrop <- character()
+  if (sep == "sst") {
+    xdrop <- .axsst(d, yv[k], x, fe, tol, f)
+    if (length(xdrop) == length(x)) {
+      .ckstop(f, "every regressor is collinear on the rows with counts")
+    }
+    if (length(xdrop)) {
+      warning(f, ": regressor(s) dropped, collinear with the others on the ",
+              "rows with positive counts (Santos Silva and Tenreyro 2010): ",
+              toString(xdrop), ".", call. = FALSE)
+      x <- setdiff(x, xdrop)
+    }
+  }
+  .axmat(d, x, f)
+  if (!is.null(expo) && any(.axmat(d, expo, f)[, 1L] <= 0)) {
+    .ckstop(f, "column `%s` must be positive", expo)
+  }
+  list(d = d, k = k, x = x, xdrop = xdrop)
+}
+
+# The covariance of a ppmlfe() fit r: by the cluster bootstrap (each draw
+# refitted, its separated rows left out as in the fit) or by .axvar():
+# list(v named by x, sev, g, lg, psi, dr the draws or NULL).
+.axppv <- function(r, d, y, x, fe, expo, clus, se, ssc, time, lag, nboot,
+                   seed, sep, tol, maxit, twc, psd, f) {
+  dr <- NULL
+  psi <- NA_real_
+  if (se == "boot") {
+    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+    b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
+      ds <- d[rows, , drop = FALSE]
+      kk <- if (sep != "none") {
+        .axfesep(as.numeric(ds[[y]]), .axfe(ds, fe))
+      } else {
+        rep(TRUE, nrow(ds))
+      }
+      .axppfit(
+        ds[kk, , drop = FALSE],
+        y,
+        x,
+        fe,
+        expo,
+        as.numeric(w[kk]),
+        tol,
+        maxit,
+        f
+      )$beta
+    }, f)
+    v <- stats::cov(b$draws, use = "complete.obs")
+    sev <- b$se
+    g <- b$g
+    lg <- NA_integer_
+    dr <- b$draws
+    colnames(dr) <- x
+  } else {
+    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f, twc, psd)
+    v <- vv$v
+    sev <- sqrt(pmax(diag(v), 0))
+    g <- vv$g
+    lg <- vv$lag
+    psi <- if (se == "quasi") vv$psi else NA_real_
+  }
+  dimnames(v) <- list(x, x)
+  list(v = v, sev = sev, g = g, lg = lg, psi = psi, dr = dr)
+}
+
+# The checks of ivfe()'s columns and numbers, in their order: the cluster
+# columns as in .axppck(), the level and tol, then that the instruments,
+# the endogenous columns and the controls make a model.
+.axivck <- function(d, y, endo, inst, x, fe, clus, se, level, tol, f) {
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, endo, "endo", f, null = TRUE)
+  .axcols(d, inst, "inst", f, null = TRUE)
+  .axcols(d, x, "x", f, null = TRUE)
+  .axcols(d, fe, "fe", f)
+  if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
+  .axcols(d, clus, "clus", f, n = 1:2)
+  if (se == "cluster" && length(clus) == 2L) se <- "twoway"
+  if (se == "twoway" && length(clus) != 2L) {
+    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  }
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  if (length(inst) < length(endo)) {
+    .ckstop(
+      f,
+      "`inst` must give at least as many instruments as `endo` has columns"
+    )
+  }
+  if (!length(endo) && length(inst)) {
+    .ckstop(f, "`inst` needs `endo`: the columns it instruments")
+  }
+  if (!length(endo) && !length(x)) {
+    .ckstop(f, "give `endo` or `x`: there is nothing to estimate")
+  }
+  if (length(intersect(c(endo, x), inst))) {
+    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
+  }
+  .axmat(d, c(y, endo, x, inst), f)
+  list(clus = clus, se = se, level = level, tol = tol)
+}
+
+# The covariance of an ivfe() fit r over the terms tm: by the cluster
+# bootstrap or by .axvar(); df, the degrees of freedom of the t
+# intervals, is that of the clusters for clustered errors:
+# list(v named by tm, sev, g, lg, dr the draws or NULL, df).
+.axivv <- function(r, d, y, endo, inst, x, fe, clus, se, ssc, time, lag,
+                   nboot, seed, tol, twc, psd, tm, f) {
+  dr <- NULL
+  df <- NULL
+  if (se == "boot") {
+    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+    b <- .axboot(d, clus[1L], nboot, seed, length(tm), function(rows, w) {
+      .axivfit(d[rows, , drop = FALSE], y, endo, inst, x, fe, as.numeric(w),
+               list(c1 = NULL, n1 = 0L, c2 = NULL, n2 = 0L), tol, f)$beta
+    }, f)
+    v <- stats::cov(b$draws, use = "complete.obs")
+    sev <- b$se
+    g <- b$g
+    lg <- NA_integer_
+    dr <- b$draws
+    colnames(dr) <- tm
+  } else {
+    vv <- .axvar(r, d, se, clus, time, lag, ssc, fe, f, twc, psd)
+    v <- vv$v
+    sev <- sqrt(pmax(diag(v), 0))
+    g <- vv$g
+    lg <- vv$lag
+    if (se %in% c("cluster", "twoway")) df <- min(g) - 1
+  }
+  dimnames(v) <- list(tm, tm)
+  list(v = v, sev = sev, g = g, lg = lg, dr = dr, df = df)
+}
+
+# The over-identification tests of ivfe() (Yamada 2026, section 7 and
+# table 8, item 6): Sargan and the cluster-robust Hansen J of the two-step
+# estimate: list(overid, gmm), both NULL when exactly identified or
+# without endogenous columns.
+.axivoid <- function(d, y, endo, inst, x, fe, fc, tol, tm, f) {
+  overid <- NULL
+  gmm <- NULL
+  if (length(inst) > length(endo) && length(endo)) {
+    fx <- .axfe(d, fe)
+    oi <- .Call(C_clab_r_ivoid, as.numeric(d[[y]]), .axmat(d, endo, f),
+                .axmat(d, x, f), .axmat(d, inst, f), fx$c1, fx$n1, fx$c2,
+                fx$n2, fx$cx, fx$nx, fc$c1, fc$n1, fc$c2, fc$n2, tol)
+    st <- oi$st
+    overid <- data.frame(
+      test = c("sargan", "hansen"),
+      stat = st[1:2],
+      df = st[3L],
+      p = stats::pchisq(st[1:2], st[3L], lower.tail = FALSE),
+      stringsAsFactors = FALSE
+    )
+    gmm <- stats::setNames(oi$beta, tm)
+  }
+  list(overid = overid, gmm = gmm)
+}
+
+# The first stages of ivfe() in the exposure's units, per unit of each
+# instrument and over the exposure's mean (Yamada 2026, table 8, item 5):
+# one row per endogenous column and instrument, NULL without endogenous
+# columns.
+.axivfst <- function(d, endo, inst, x, fe, clus, se, ssc, time, lag, level,
+                     tol, twc, psd) {
+  fstab <- NULL
+  if (length(endo)) {
+    fstab <- do.call(rbind, lapply(endo, function(e) {
+      s1 <- ivfe(d, e, x = c(inst, x), fe = fe, clus = clus,
+                 se = if (se == "boot") "cluster" else se, ssc = ssc,
+                 time = time, lag = lag, level = level, tol = tol,
+                 twc = twc, psd = psd)$coef
+      s1 <- s1[s1$term %in% inst, , drop = FALSE]
+      data.frame(endo = e, inst = s1$term, est = s1$est, se = s1$se,
+                 rel = s1$est / mean(d[[e]]))
+    }))
+  }
+  fstab
+}
+
+# The checks of ppmlcf()'s columns and numbers, in their order: the
+# cluster column (the first fixed effect by default), the level, tol and
+# maxit, and that the instruments are enough and apart from the
+# regressors.
+.axcfck <- function(d, y, endo, inst, x, fe, expo, clus, level, tol, maxit,
+                    f) {
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, endo, "endo", f)
+  .axcols(d, inst, "inst", f)
+  .axcols(d, x, "x", f, null = TRUE)
+  .axcols(d, fe, "fe", f, n = 1:2)
+  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
+  if (is.null(clus)) clus <- fe[1L]
+  .axcols(d, clus, "clus", f, n = 1L)
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  if (length(inst) < length(endo)) {
+    .ckstop(
+      f,
+      "`inst` must give at least as many instruments as `endo` has columns"
+    )
+  }
+  if (length(intersect(c(endo, x), inst))) {
+    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
+  }
+  list(clus = clus, level = level, tol = tol, maxit = maxit)
+}
+
+# The rows ppmlcf() fits: the counts checked, the rows separated by the
+# effects left out, the log exposure as the offset:
+# list(d, k the rows kept, yv the counts kept, off).
+.axcfrows <- function(d, y, fe, expo, f) {
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
+  k <- .axsep(yv, d, fe, f)
+  d <- d[k, , drop = FALSE]
+  yv <- yv[k]
+  off <- NULL
+  if (!is.null(expo)) {
+    e <- .axmat(d, expo, f)[, 1L]
+    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
+    off <- log(e)
+  }
+  list(d = d, k = k, yv = yv, off = off)
+}
+
+# ppmlcf() with se = "naive": the first stage by .axivfit(), its
+# residuals added (cf) or taken from the endogenous columns (plug), and
+# the Poisson fit of ppmlfe() with its errors, which ignore the first
+# stage.
+.axcfnv <- function(d, y, endo, inst, x, fe, expo, clus, how, se, ssc, level,
+                    tol, maxit, cl, tm, k, yv, f) {
+  r1 <- .axivfit(d, y, endo, inst, x, fe, NULL,
+                 list(c1 = cl$c1, n1 = cl$n1, c2 = NULL, n2 = 0L), tol, f)
+  fr <- r1$fres
+  e <- d
+  if (how == "cf") {
+    for (j in seq_along(endo)) e[[paste0("vhat:", endo[j])]] <- fr[, j]
+  } else {
+    for (j in seq_along(endo)) e[[endo[j]]] <- e[[endo[j]]] - fr[, j]
+  }
+  p <- ppmlfe(
+    e,
+    y,
+    tm,
+    fe,
+    expo = expo,
+    clus = clus,
+    ssc = ssc,
+    level = level,
+    tol = tol,
+    maxit = maxit,
+    sep = "none"
+  )
+  structure(
+    list(coef = p$coef, first = .axfirst(endo, r1$fst, length(inst)),
+         draws = NULL, nfail = 0L, n = length(yv), nsep = sum(!k),
+         ncl = cl$g, nboot = 0L, how = how, se = se, fe = fe, clus = clus,
+         level = level),
+    class = "ppmlcf"
+  )
+}
+
+# The bootstrap of ppmlcf(): the cluster draws of .axdraw(), every draw
+# refitted in src/apx.cpp; the draws that fail are left out with a
+# warning: list(r, dr the draws, nfail, nboot).
+.axcfboot <- function(d, yv, endo, inst, x, off, fx, cl, nboot, seed, how,
+                      tol, maxit, tm, f) {
+  nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+  if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+  bm <- .axdraw(cl$n1, nboot, seed)
+  storage.mode(bm) <- "integer"
+  r <- .Call(C_clab_r_ppmlcf, yv, .axmat(d, endo, f), .axmat(d, x, f),
+             .axmat(d, inst, f), off, fx$c1, fx$n1, fx$c2, fx$n2, cl$c1,
+             cl$n1, bm, if (how == "plug") 1L else 0L, tol, as.integer(maxit))
+  dr <- r$draw
+  colnames(dr) <- tm
+  nfail <- as.integer(r$st[3L])
+  if (nfail > 0L) {
+    warning(f, ": ", nfail, " of ", nboot, " bootstrap draws could not be ",
+            "fitted and are left out.", call. = FALSE)
+  }
+  if (nboot - nfail < 2L) {
+    .ckstop(f, "fewer than two bootstrap draws could be fitted")
+  }
+  list(r = r, dr = dr, nfail = nfail, nboot = nboot)
+}
+
+# The checks of expgmm()'s columns and numbers, in their order: the
+# cluster column for se = "cluster" (the first fixed effect by default),
+# the level, tol and maxit, and that the instruments are enough and apart
+# from the regressors.
+.axgmck <- function(d, y, endo, inst, x, fe, expo, clus, se, level, tol,
+                    maxit, f) {
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, endo, "endo", f)
+  .axcols(d, inst, "inst", f)
+  .axcols(d, x, "x", f, null = TRUE)
+  .axcols(d, fe, "fe", f, n = 1:2, null = TRUE)
+  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
+  if (se == "cluster") {
+    if (is.null(clus)) clus <- fe[1L]
+    if (is.null(clus)) {
+      .ckstop(f, "`se = \"cluster\"` needs `clus` (or `fe`, its first column)")
+    }
+    .axcols(d, clus, "clus", f, n = 1L)
+  } else {
+    clus <- NULL
+  }
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  if (length(inst) < length(endo)) {
+    .ckstop(
+      f,
+      "`inst` must give at least as many instruments as `endo` has columns"
+    )
+  }
+  if (length(intersect(c(endo, x), inst))) {
+    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
+  }
+  list(clus = clus, level = level, tol = tol, maxit = maxit)
+}
+
+# The rows expgmm() fits: the counts checked, with effects the rows they
+# separate left out, the log exposure as the offset:
+# list(d, k the rows kept, yv the counts kept, off).
+.axgmrows <- function(d, y, fe, expo, f) {
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
+  k <- if (is.null(fe)) rep(TRUE, length(yv)) else .axsep(yv, d, fe, f)
+  d <- d[k, , drop = FALSE]
+  yv <- yv[k]
+  off <- NULL
+  if (!is.null(expo)) {
+    e <- .axmat(d, expo, f)[, 1L]
+    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
+    off <- log(e)
+  }
+  list(d = d, k = k, yv = yv, off = off)
+}
+
+# The design of expgmm(): the effects as indicator columns (200 levels at
+# most), the regressors xm and instruments zm, and the cluster of each row
+# (each row its own for hc1), no fewer clusters than moment conditions:
+# list(xm, zm, cc, nc).
+.axgmdes <- function(d, endo, inst, x, fe, clus, se, f) {
+  nl <- sum(vapply(fe, function(v) length(unique(d[[v]])), 1L))
+  if (nl > 200L) {
+    .ckstop(f, paste0("the fixed effects have %d levels; they enter as ",
+                      "indicator columns, at most 200 (use ppmlcf() for ",
+                      "many)"), nl)
+  }
+  dm <- .axdum(d, fe)
+  xm <- cbind(.axmat(d, c(endo, x), f), dm)
+  zm <- cbind(.axmat(d, c(inst, x), f), dm)
+  if (se == "cluster") {
+    cl <- .axcl(d, clus, f)
+    cc <- cl$c1
+    nc <- cl$n1
+  } else {
+    cc <- seq_len(nrow(d)) - 1L
+    nc <- nrow(d)
+  }
+  if (ncol(zm) > nc) {
+    .ckstop(f, paste0("%d moment conditions but %d clusters: the weight ",
+                      "matrix would be singular (fewer instruments, ",
+                      "controls or effects, or more clusters)"),
+            ncol(zm), nc)
+  }
+  list(xm = xm, zm = zm, cc = cc, nc = nc)
+}
+
+# The GMM fit of expgmm() in src/apx.cpp, from the start of each
+# first-set effect (or the constant) at the log of its counts over its
+# exposure; a warning when it does not converge.
+.axgmfit <- function(d, yv, off, xm, zm, cc, nc, fe, endo, x, err, step,
+                     maxit, tol, f) {
+  b0 <- numeric(ncol(xm))
+  ee <- if (is.null(off)) rep(1, length(yv)) else exp(off)
+  g1 <- if (is.null(fe)) rep(1L, length(yv)) else .axcode(d[[fe[1L]]])$c + 1L
+  st0 <- log(rowsum(yv, g1)[, 1L] / rowsum(ee, g1)[, 1L])
+  b0[length(c(endo, x)) + seq_along(st0)] <- st0
+  r <- .Call(C_clab_r_expgmm, as.numeric(yv), xm, zm, off, b0,
+             as.integer(cc), as.integer(nc), if (err == "mult") 0L else 1L,
+             match(step, c("one", "two", "iter")), as.integer(maxit), tol)
+  if (r$st[4L] != 1) {
+    warning(f, ": the fit did not converge in ", maxit, " iterations.",
+            call. = FALSE)
+  }
+  r
+}
+
+# The coefficients of an expgmm() fit r over the terms tm, their
+# covariance with the small-sample factor, and Hansen's J test:
+# list(v, tab, jt).
+.axgmtab <- function(r, tm, nc, ssc, level) {
+  p <- length(tm)
+  fac <- if (ssc == "G") nc / (nc - 1) else 1
+  v <- r$vc[seq_len(p), seq_len(p), drop = FALSE] * fac
+  dimnames(v) <- list(tm, tm)
+  tab <- .axtab(tm, r$beta[seq_len(p)], sqrt(pmax(diag(v), 0)), level)
+  tab$rr <- exp(tab$est)
+  jd <- r$st[2L]
+  jt <- data.frame(
+    stat = r$st[1L],
+    df = jd,
+    p = if (is.na(r$st[1L])) NA_real_ else
+      stats::pchisq(r$st[1L], jd, lower.tail = FALSE)
+  )
+  list(v = v, tab = tab, jt = jt)
+}
+
+# The checks of windiv()'s arguments, in their order; the sectors by
+# width: two or more, nb of them, and the base sector among them:
+# list(dir, width, start, base, nb NULL with sect).
+.axwdck <- function(dir, width, start, area, base, sect, share, spd, f) {
+  nb <- NULL
+  if (!is.numeric(dir) || !length(dir)) {
+    .ckstop(f, "`dir` must be numeric directions in degrees")
+  }
+  dir <- as.numeric(dir)
+  if (!is.logical(share) || length(share) != 1L || is.na(share)) {
+    .ckstop(f, "`share` must be TRUE or FALSE")
+  }
+  if (!is.null(spd) && (!is.numeric(spd) || length(spd) != length(dir) ||
+                          any(spd < 0, na.rm = TRUE))) {
+    .ckstop(f, "`spd` must give one speed from 0 per direction")
+  }
+  if (!is.null(area) && (length(area) != length(dir) || anyNA(area))) {
+    .ckstop(f, "`area` must give one label per direction, none missing")
+  }
+  if (is.null(sect)) {
+    width <- .cknum(width, "width", f, positive = TRUE)
+    start <- .cknum(start, "start", f)
+    nb <- round(360 / width)
+    if (width >= 360 || abs(360 / width - nb) > 1e-9) {
+      .ckstop(f, "`width` must divide 360 into two or more sectors")
+    }
+    base <- .cknum(base, "base", f, min = 1, max = nb, whole = TRUE)
+  } else if (!is.numeric(sect) || length(sect) != 2L || !all(is.finite(sect)) ||
+               sect[1L] %% 360 == sect[2L] %% 360) {
+    .ckstop(f, "`sect` must be two different finite directions in degrees")
+  }
+  list(dir = dir, width = width, start = start, base = base, nb = nb)
+}
+
+# windiv() by groups: the mean direction of each group's vector (weighted
+# by the speeds), the area of each group, and either the shares of its
+# hours in the sectors (share; list(m)) or the group's direction by avg:
+# list(dir, area, gl the groups).
+.axwdby <- function(dir, by, spd, area, share, sect, width, start, base,
+                    edges, avg, nb, f) {
+  if (length(by) != length(dir) || anyNA(by)) {
+    .ckstop(f, "`by` must give one group per direction, none missing")
+  }
+  gk <- .axcode(by)
+  gl <- unique(as.character(by))
+  rd <- dir * pi / 180
+  wv <- if (is.null(spd)) rep(1, length(dir)) else as.numeric(spd)
+  ok <- is.finite(dir) & is.finite(wv)
+  vs <- function(fun) {
+    as.numeric(tapply(ifelse(ok, fun(rd) * wv, NA), gk$c, mean, na.rm = TRUE))
+  }
+  vdir <- (atan2(vs(sin), vs(cos)) * 180 / pi) %% 360
+  if (!is.null(area)) {
+    nar <- tapply(as.character(area), gk$c, function(v) length(unique(v)))
+    if (any(nar > 1L)) {
+      .ckstop(f, "`area` must be constant within each `by` group")
+    }
+    area <- as.character(area)[!duplicated(gk$c)]
+  }
+  if (share) {
+    return(list(m = .axwdshr(dir, ok, gk, gl, area, vdir, width, start, base,
+                             edges, sect, f)))
+  }
+  dir <- switch(avg,
+    vector = vdir,
+    mean = as.numeric(tapply(ifelse(ok, dir, NA), gk$c, mean, na.rm = TRUE)),
+    mode = {
+      if (!is.null(sect)) {
+        .ckstop(f, "`avg = \"mode\"` needs sectors by `width`, not `sect`")
+      }
+      sc <- .axsec(dir, width, start, edges)
+      md <- as.numeric(tapply(ifelse(ok, sc, NA), gk$c, function(v) {
+        v <- v[!is.na(v)]
+        if (!length(v)) return(NA)
+        tb <- table(factor(v, levels = seq_len(nb)))
+        as.numeric(names(which.max(tb)))
+      }))
+      # the middle of the sector, which falls in it under either edges
+      (start + (md - 0.5) * width) %% 360
+    })
+  list(dir = dir, area = area, gl = gl)
+}
+
+# The shares of each group's hours in the sectors (by area, with areas),
+# the rows named by group and the mean direction as attribute "dir".
+.axwdshr <- function(dir, ok, gk, gl, area, vdir, width, start, base, edges,
+                     sect, f) {
+  if (!is.null(sect)) {
+    .ckstop(f, "`share` needs sectors by `width`, not `sect`")
+  }
+  full <- windiv(
+    ifelse(ok, dir, NA),
+    width,
+    start,
+    NULL,
+    base = base,
+    edges = edges
+  )
+  lev <- if (is.null(area)) NULL else sort(unique(area))
+  m <- rowsum(ifelse(is.na(full), 0, full), gk$c, reorder = TRUE) /
+    as.numeric(tabulate(gk$c[ok] + 1L, gk$n))
+  if (!is.null(lev)) {
+    ai <- match(area, lev)
+    mm <- matrix(0, nrow(m), ncol(m) * length(lev))
+    for (r in seq_len(nrow(m))) {
+      mm[r, (ai[r] - 1L) * ncol(m) + seq_len(ncol(m))] <- m[r, ]
+    }
+    colnames(mm) <- paste0(rep(colnames(full), length(lev)), ":",
+                           rep(lev, each = ncol(m)))
+    m <- mm
+  }
+  rownames(m) <- gl
+  attr(m, "dir") <- vdir
+  m
+}
+
+# The indicator columns of windiv(): one for the sector sect, or one per
+# sector by width but the base, by area with areas.
+.axwdbin <- function(dir, sect, width, start, area, base, edges, nb) {
+  if (!is.null(sect)) {
+    inside <- (dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360
+    m <- matrix(as.numeric(inside))
+    colnames(m) <- paste0("w", format(sect[1L]), "_", format(sect[2L]))
+  } else {
+    ac <- NULL
+    na <- 1L
+    lev <- NULL
+    if (!is.null(area)) {
+      lev <- if (is.factor(area)) {
+        levels(droplevels(area))
+      } else {
+        sort(unique(as.character(area)))
+      }
+      ac <- match(as.character(area), lev) - 1L
+      na <- length(lev)
+    }
+    m <- .Call(
+      C_clab_r_windbin,
+      dir,
+      width,
+      start,
+      ac,
+      na,
+      as.integer(base - 1),
+      if (edges == "paper") 1L else 0L
+    )
+    lo <- (start + (seq_len(nb) - 1) * width) %% 360
+    nm <- paste0("w", format(lo, trim = TRUE), "_",
+                 format((lo + width) %% 360, trim = TRUE))[-base]
+    colnames(m) <- if (is.null(lev)) {
+      nm
+    } else {
+      paste0(rep(nm, na), ":", rep(lev, each = nb - 1L))
+    }
+  }
+  m
+}
+
+# The column checks of updwn() and its sources: list(s0, t0, s1, t1, line
+# the sources that are segments).
+.axudsrc <- function(d, y, ax, ay, day, wind, area, clus, wx, src, f) {
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, c(ax, ay), "ax, ay", f, n = 2L)
+  .axcols(d, day, "day", f, n = 1L)
+  .axcols(d, wind, "wind", f, n = 1L)
+  .axcols(d, area, "area", f, n = 1L, null = TRUE)
+  .axcols(d, clus, "clus", f, n = 1:2, null = TRUE)
+  .axcols(d, wx, "wx", f, null = TRUE)
+  s <- .axdat(src, f, "src")
+  if (!all(c("x0", "y0") %in% names(s))) {
+    .ckstop(f, "`src` must have columns x0 and y0")
+  }
+  for (k in c("x1", "y1")) if (is.null(s[[k]])) s[[k]] <- NA_real_
+  for (k in c("x0", "y0", "x1", "y1")) {
+    if (!is.numeric(s[[k]]) && !all(is.na(s[[k]]))) {
+      .ckstop(f, "`src` column %s must be numeric", k)
+    }
+  }
+  s0 <- as.numeric(s$x0)
+  t0 <- as.numeric(s$y0)
+  s1 <- as.numeric(s$x1)
+  t1 <- as.numeric(s$y1)
+  if (!all(is.finite(s0) & is.finite(t0))) {
+    .ckstop(f, "`src` x0 and y0 must be finite")
+  }
+  line <- is.finite(s1) & is.finite(t1)
+  list(s0 = s0, t0 = t0, s1 = s1, t1 = t1, line = line)
+}
+
+# The checks of updwn()'s other arguments, in their order:
+# list(tol, band, level).
+.axudck <- function(tol, band, dist, agg, area, line, offs, se, clus, level,
+                    f) {
+  tol <- .cknum(tol, "tol", f, positive = TRUE, min = 0, max = 90)
+  if (!identical(band, Inf)) band <- .cknum(band, "band", f, positive = TRUE)
+  if (!is.null(dist)) {
+    if (!is.numeric(dist) || length(dist) < 2L || anyNA(dist) || dist[1L] < 0 ||
+          is.unsorted(dist, strictly = TRUE)) {
+      .ckstop(f, "`dist` must be two or more increasing distances from 0")
+    }
+  }
+  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) {
+    .ckstop(f, "`agg` must be TRUE or FALSE")
+  }
+  if (is.null(area) && (!agg || !all(line))) {
+    .ckstop(f, "`area` is needed for point sources and for agg = FALSE")
+  }
+  if (!is.null(offs)) {
+    if (!all(line)) {
+      .ckstop(f, "`offs` moves segments: every source must be a segment")
+    }
+    if (!is.numeric(offs) || !length(offs) || !all(is.finite(offs))) {
+      .ckstop(f, "`offs` must be finite numbers")
+    }
+  }
+  if (se == "twoway" && length(clus) != 2L) {
+    .ckstop(f, "`se = \"twoway\"` needs two `clus` columns")
+  }
+  level <- .axlevel(level, f)
+  list(tol = tol, band = band, level = level)
+}
+
+# The columns updwn() reads: the counts, the coordinates, the wind, the
+# day (as labels, and as numbers for se = "nw"), the area of each row:
+# list(yv, xy, wd, dv, tnum, av).
+.axudprep <- function(d, y, ax, ay, day, wind, wx, area, se, f) {
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  xy <- .axmat(d, c(ax, ay), f)
+  wd <- .axmat(d, wind, f)[, 1L]
+  if (length(wx)) .axmat(d, wx, f)
+  dv <- as.character(d[[day]])
+  tnum <- NULL
+  if (is.numeric(d[[day]]) || inherits(d[[day]], "Date")) {
+    tnum <- as.numeric(d[[day]])
+  }
+  if (se == "nw" && is.null(tnum)) {
+    .ckstop(f, "`se = \"nw\"` needs a day column of numbers or dates")
+  }
+  av <- if (!is.null(area)) as.character(d[[area]])
+  if (!is.null(area) && anyDuplicated(paste(av, dv, sep = "\r"))) {
+    .ckstop(f, "an area has two rows on one day")
+  }
+  list(yv = yv, xy = xy, wd = wd, dv = dv, tnum = tnum, av = av)
+}
+
+# The side of each area against the sources a0, b0, a1, b1 (src/apx.cpp),
+# each source on its own for twin = "keep", and the table of the rows by
+# side: list(k, tb).
+.axudcls <- function(xy, wd, a0, b0, a1, b1, band, tol, twin) {
+  labs <- c(`1` = "downwind", `0` = "upwind", `-1` = "along", `-2` = "nosource",
+            `-3` = "twosources", `-4` = "onsource", `-5` = "missing")
+  if (twin == "keep") {
+    k <- .axudkeep(xy, wd, a0, b0, a1, b1, band, tol)
+    # an area near no source counts once in the table
+    hit <- k$dn != -2L
+    none <- setdiff(seq_len(nrow(xy)), k$row[hit])
+    lab <- labs[as.character(c(k$dn[hit], rep(-2L, length(none))))]
+    tb <- table(factor(lab, levels = labs))
+  } else {
+    k <- .Call(
+      C_clab_r_updwn,
+      xy[, 1L],
+      xy[, 2L],
+      wd,
+      a0,
+      b0,
+      a1,
+      b1,
+      band,
+      tol,
+      if (twin == "near") 1L else 0L
+    )
+    k$row <- seq_len(nrow(xy))
+    tb <- table(factor(labs[as.character(k$dn)], levels = labs))
+  }
+  list(k = k, tb = tb)
+}
+
+# The rows upwind and downwind of a source, their rings, and the cells of
+# the design (a side, or an area, of a source on a day), with the checks
+# that the wind, the clusters and the weather are constant within a cell:
+# list(rw, ring, sr, sd0, dn, g, cell, sdy).
+.axudcell <- function(k, dist, line, agg, area, av, dv, d, clus, wx, f) {
+  same <- function(v, cell) {
+    any(tapply(v, cell, function(u) length(unique(u))) > 1L)
+  }
+  use <- k$dn >= 0L
+  if (sum(use) < 2L) {
+    .ckstop(f, "fewer than two rows are upwind or downwind of a source")
+  }
+  rw <- k$row[use]
+  ring <- if (is.null(dist)) {
+    rep("", sum(use))
+  } else {
+    as.character(cut(k$dst[use], dist, include.lowest = TRUE))
+  }
+  keep <- !is.na(ring)
+  rw <- rw[keep]
+  ring <- ring[keep]
+  sr <- k$src[use][keep]
+  sd0 <- k$side[use][keep]
+  dn <- k$dn[use][keep]
+  if (!length(rw)) .ckstop(f, "no row falls in the rings of `dist`")
+  ln <- line[sr]
+  g <- ifelse(
+    ln & agg,
+    paste("s", sr, sd0, ring, sep = "\r"),
+    paste("a", if (is.null(area)) "" else av[rw], sr, ring, sep = "\r")
+  )
+  cell <- paste(g, dv[rw], sep = "\r")
+  sdy <- paste(sr, dv[rw], sep = "\r")
+  if (same(dn, cell)) {
+    .ckstop(
+      f,
+      paste0(
+        "the wind differs between areas of one side and day: give one ",
+        "direction per day, or agg = FALSE"
+      )
+    )
+  }
+  for (cc in c(clus, wx)) {
+    if (same(as.character(d[[cc]])[rw], cell)) {
+      .ckstop(
+        f,
+        "column `%s` must be constant within each side (area) and day",
+        cc
+      )
+    }
+  }
+  list(rw = rw, ring = ring, sr = sr, sd0 = sd0, dn = dn, g = g,
+       cell = cell, sdy = sdy)
+}
+
+# The table updwn() fits: the counts summed by cell, the downwind
+# indicator (by ring, with rings), each side's own weather terms:
+# list(e, xs the downwind terms).
+.axuddat <- function(yv, rw, ring, sr, dn, g, cell, sdy, tnum, d, dist, clus,
+                     wx) {
+  o <- !duplicated(cell)
+  e <- data.frame(
+    y = as.numeric(rowsum(yv[rw], cell, reorder = FALSE)),
+    g = g[o],
+    sd = sdy[o],
+    down = as.numeric(dn[o]),
+    row = seq_len(sum(o))
+  )
+  if (!is.null(tnum)) e$t <- tnum[rw][o]
+  for (cc in clus) e[[cc]] <- d[[cc]][rw][o]
+  xs <- "down"
+  if (!is.null(dist)) {
+    rl <- ring[o]
+    lv <- levels(cut(dist[-1L], dist, include.lowest = TRUE))
+    xs <- character()
+    for (l in lv[lv %in% rl]) {
+      nm <- paste0("down:", l)
+      e[[nm]] <- e$down * (rl == l)
+      xs <- c(xs, nm)
+    }
+  }
+  if (length(wx)) {
+    # each side's own response to the weather, less one side per source
+    # (the route-date effects absorb the weather of each route)
+    gl <- unique(e$g)
+    gs <- sr[o][match(gl, e$g)]
+    for (w in wx) {
+      wv <- as.numeric(d[[w]][rw][o])
+      for (l in gl[duplicated(gs)]) {
+        nm <- paste0(w, ":side", match(l, gl))
+        e[[nm]] <- wv * (e$g == l)
+      }
+    }
+  }
+  list(e = e, xs = xs)
+}
+
+# The fit of the updwn() table e: ppmlfe() for norm = "pois", ivfe() on the
+# normalised counts otherwise, with the side and source-day effects.
+.axudfit <- function(e, xs, se, ssc, clus, norm, lag, nboot, seed, level,
+                     f) {
+  xa <- setdiff(names(e), c("y", "g", "sd", "down", "row", "t", clus))
+  xa <- c(xs, setdiff(xa, xs))
+  cl <- if (se == "hc1") "row" else if (is.null(clus)) "g" else clus
+  tcol <- if (se == "nw") "t" else NULL
+  if (norm == "pois") {
+    r <- ppmlfe(
+      e,
+      "y",
+      xa,
+      fe = c("g", "sd"),
+      clus = cl,
+      se = se,
+      ssc = ssc,
+      time = tcol,
+      lag = lag,
+      nboot = nboot,
+      seed = seed,
+      level = level
+    )
+  } else {
+    e$y <- switch(norm, mean = {
+      m <- mean(e$y)
+      if (m <= 0) .ckstop(f, "the counts are all 0")
+      e$y / m
+    }, none = e$y, log = log1p(e$y))
+    r <- ivfe(
+      e,
+      "y",
+      x = xa,
+      fe = c("g", "sd"),
+      clus = cl,
+      se = se,
+      ssc = ssc,
+      time = tcol,
+      lag = lag,
+      nboot = nboot,
+      seed = seed,
+      level = level
+    )
+  }
+  r
+}
+
+# The placebo estimates of updwn(): run() on the segments moved by each
+# offset, NA with a warning where a moved segment has too few areas.
+.axudplc <- function(offs, s0, t0, s1, t1, run, f) {
+  len <- sqrt((s1 - s0)^2 + (t1 - t0)^2)
+  nx <- -(t1 - t0) / len
+  ny <- (s1 - s0) / len
+  do.call(rbind, lapply(offs, function(o) {
+    # a moved segment with areas on one side only has nothing to compare
+    ro <- tryCatch(run(s0 + o * nx, t0 + o * ny, s1 + o * nx, t1 + o * ny),
+                   error = function(e) NULL)
+    if (is.null(ro)) {
+      warning(f, ": no estimate for the segments moved by ", format(o),
+              ": too few areas upwind and downwind of them.", call. = FALSE)
+      return(data.frame(off = o, est = NA_real_, se = NA_real_, lo = NA_real_,
+                        hi = NA_real_, p = NA_real_, n = 0L))
+    }
+    c0 <- ro$coef[1L, ]
+    data.frame(off = o, est = c0$est, se = c0$se, lo = c0$lo, hi = c0$hi,
+               p = c0$p, n = ro$n)
+  }))
+}
+
+# The sides of the areas against each source on its own (twin = "keep"):
+# the results of the sources one after another, each row with its source
+# and its row of the data.
+.axudkeep <- function(xy, wd, a0, b0, a1, b1, band, tol) {
+  parts <- lapply(seq_along(a0), function(j) {
+    k <- .Call(
+      C_clab_r_updwn,
+      xy[, 1L],
+      xy[, 2L],
+      wd,
+      a0[j],
+      b0[j],
+      a1[j],
+      b1[j],
+      band,
+      tol,
+      0L
+    )
+    k$src[!is.na(k$src)] <- j
+    k$row <- seq_len(nrow(xy))
+    k
+  })
+  list(
+    src = unlist(lapply(parts, `[[`, "src")),
+    side = unlist(lapply(parts, `[[`, "side")),
+    dn = unlist(lapply(parts, `[[`, "dn")),
+    dst = unlist(lapply(parts, `[[`, "dst")),
+    row = unlist(lapply(parts, `[[`, "row"))
+  )
+}
+
+# The keys of expjn()'s two tables: present and not missing in both, and
+# no value column of the exposure table in the outcome table: the names
+# of the exposure table's value columns.
+.axjnck <- function(e, o, by, f) {
+  for (nm in c("expo", "outc")) {
+    t <- if (nm == "expo") e else o
+    miss <- setdiff(by, names(t))
+    if (length(miss)) {
+      .ckstop(
+        f,
+        "`%s` lacks the key columns: %s",
+        nm,
+        toString(miss)
+      )
+    }
+    if (anyNA(t[by])) .ckstop(f, "`%s` has missing keys", nm)
+  }
+  val <- setdiff(names(e), by)
+  if (!length(val)) .ckstop(f, "`expo` has no columns besides the keys")
+  clash <- intersect(val, names(o))
+  if (length(clash)) {
+    .ckstop(
+      f,
+      "columns in both tables besides the keys: %s",
+      toString(clash)
+    )
+  }
+  val
+}
+
+# The degrees of freedom of the fit for the small-sample factor "nk": the
+# p coefficients, the constant, and the levels of every fixed effect not
+# nested in a cluster column of cls.
+.axvark <- function(cls, p, fe, d) {
+  k <- p + 1
+  for (f in fe) {
+    if (!any(vapply(cls, function(cc) .axnest(d[[f]], d[[cc]]), NA))) {
+      k <- k + length(unique(d[[f]])) - 1
+    }
+  }
+  k
+}
+
+# The clusters of .axvar(): their codes for se = "cluster" or "twoway",
+# the unit codes, days and lag for se = "nw", and the kind of the
+# sandwich in src/apx.cpp: list(c1, n1, c2, n2, g, kind, k, tv, lg).
+.axvarcl <- function(r, d, se, clus, time, lag, fe, fn, p) {
+  n <- nrow(r$sco)
+  c1 <- c2 <- tv <- NULL
+  n1 <- n2 <- 0L
+  lg <- 0L
+  if (se %in% c("cluster", "twoway")) {
+    cl <- .axcl(d, clus, fn)
+    c1 <- cl$c1
+    n1 <- cl$n1
+    c2 <- cl$c2
+    n2 <- cl$n2
+    g <- cl$g
+    kind <- if (se == "twoway") 1L else 0L
+    k <- .axvark(clus, p, fe, d)
+  } else {
+    g <- n
+    kind <- if (se == "hc1") 2L else 3L
+    k <- .axvark(character(), p, fe, d)
+    if (se == "nw") {
+      u <- .axcode(d[[clus[1L]]])
+      c1 <- u$c
+      n1 <- u$n
+      tv <- .axtime(d, time, fn)
+      if (is.null(lag)) lag <- .axnwlag(r$sco, u$c, tv)
+      lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
+    }
+  }
+  list(c1 = c1, n1 = n1, c2 = c2, n2 = n2, g = g, kind = kind, k = k,
+       tv = tv, lg = lg)
+}
+
+# The sandwich of .axvar() with the clusters cl: each two-way component
+# with its own factor (twc = "each"), or all with fac.
+.axvarvc <- function(r, se, twc, ssc, cl, fac, n, k) {
+  if (se == "twoway" && twc == "each") {
+    # Cameron, Gelbach and Miller (2011, p. 241): each of the three
+    # components with its own factor, G, H and I (the intersections)
+    c12 <- .axcode(paste(cl$c1, cl$c2))
+    f1 <- function(gg) {
+      switch(ssc, G = gg / (gg - 1),
+             nk = gg / (gg - 1) * (n - 1) / (n - k), none = 1)
+    }
+    one <- function(cc, nc) {
+      .Call(C_clab_r_vcx, r$sco, r$brd, 0L, cc, nc, NULL, 0L, NULL, 0L,
+            f1(nc))
+    }
+    v <- one(cl$c1, cl$n1) + one(cl$c2, cl$n2) - one(c12$c, c12$n)
+  } else {
+    v <- .Call(
+      C_clab_r_vcx,
+      r$sco,
+      r$brd,
+      cl$kind,
+      cl$c1,
+      cl$n1,
+      cl$c2,
+      cl$n2,
+      cl$tv,
+      as.integer(cl$lg),
+      fac
+    )
+  }
+  v
 }
