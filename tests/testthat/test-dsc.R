@@ -608,3 +608,8 @@ test_that("mcartst() takes a numeric matrix as its data frame", {
   expect_equal(a$statistic, b$statistic, tolerance = 1e-12)
   expect_identical(a$df, b$df)
 })
+
+test_that("inlhist() refuses more bins than it can draw", {
+  expect_error(inlhist(1:5, bins = 1e9),
+               "inlhist: `bins` must be at most 67108864.", fixed = TRUE)
+})

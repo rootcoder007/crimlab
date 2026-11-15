@@ -1661,6 +1661,7 @@ ok("profcols", data = data.frame(v = c(1.5, 2, 2, 8, NA, -3, 0), g = c("a", "b",
 dsown <- data.frame(group = c("Aboriginal", "Torres Strait Islander", "Both"), est = c(24.0, 31.0, 24.6), lo = c(22.1, 26.2, 22.8), hi = c(25.9, 35.8, 26.4))
 ok("dstntst", data = dsown, grp = "group", est = "est", lower = "lo", upper = "hi", pooled = "Both")
 bad("inlhist", x = c("a", "b"))
+bad("inlhist", x = c(1, 2, 3), bins = 1e9)
 bad("freqtbl", data = data.frame(g = c("a", "b")))
 bad("cortbl", data = data.frame(a = 1:5, b = letters[1:5]))
 bad("topcors", data = dsdc, minabs = 2)

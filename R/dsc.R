@@ -27,7 +27,7 @@
 #'
 #' @param x Numeric vector drawn as an inline histogram.
 #' @param bins Number of bins, and so of characters, one positive whole
-#'   number (default 10).
+#'   number (default 10), at most 67108864 (2^26).
 #' @return A length-1 character vector of \code{bins} characters.
 #' @seealso \code{\link{profcols}}, which includes one per numeric column.
 #' @examples
@@ -59,6 +59,7 @@ inlhist <- function(x, bins = 10L) {
     .ckstop(f, "`x` must be numeric, got %s", class(x)[1L])
   }
   bins <- .ckpos(bins, "bins", f)
+  if (bins > 2^26) .ckstop(f, "`bins` must be at most 67108864")
   .spark(as.numeric(x), bins)
 }
 
