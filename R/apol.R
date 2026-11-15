@@ -31,8 +31,9 @@
 #' environmental justice measures (\code{\link{polbrdn}},
 #' \code{\link{polbrdarea}}, \code{\link{expconcidx}}). In the second, the
 #' environment is a driver of offending and victimisation: studies relating
-#' air pollution and heat to violent crime join an exposure series to crime
-#' counts by place and day, and these models supply the exposure where no
+#' air pollution to crime join an exposure series to crime counts by place
+#' and day (Bondy, Roth and Sager 2020, on London wards; Herrnstadt et al.
+#' 2019, on Los Angeles), and these models supply the exposure where no
 #' monitor stands.
 #'
 #' @details
@@ -148,7 +149,13 @@
 #'   with a grid, \code{concentration} (an \code{nx} by \code{ny} matrix of
 #'   particle density per unit area, summing to the share of particles
 #'   inside the grid divided by the cell area).
-#' @references Briggs, G. A. (1973). Diffusion estimation for small
+#' @references Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the
+#'   air: the contemporaneous relationship between air pollution and crime.
+#'   Journal of the Association of Environmental and Resource Economists
+#'   7(3), 555-585. \doi{10.1086/707127}. Herrnstadt, E., Heyes, A.,
+#'   Muehlegger, E. and Saberian, S. (2019). Air pollution as a cause of
+#'   violent crime. Working paper. Briggs, G. A. (1973). Diffusion
+#'   estimation for small
 #'   emissions. ATDL Contribution 79. Briggs, G. A. (1975). Plume rise
 #'   predictions. American Meteorological Society. Turner, D. B. (1970).
 #'   Workbook of Atmospheric Dispersion Estimates. EPA AP-26. Seinfeld, J.

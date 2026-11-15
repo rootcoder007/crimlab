@@ -12,8 +12,8 @@
 #' it falls, is the measure of the harm; and the study of the environment
 #' as a driver of offending and victimisation, where exposure series are
 #' joined to crime counts by place and day, as in work relating air
-#' pollution and heat to violent crime. The second example below is of
-#' that kind.
+#' pollution to crime (Bondy, Roth and Sager 2020; Herrnstadt et al.
+#' 2019). The second example below is of that kind.
 #'
 #' @details
 #' \code{crfpm25()} is log-linear for all-cause mortality with the pooled
@@ -74,7 +74,13 @@
 #'   \code{alpha}, \code{gamma}, \code{delta} for the IER), \code{form}
 #'   (PM2.5 only), \code{outcome}, and \code{rrperunit}, the RR at each
 #'   exposure (\code{NULL} for one exposure).
-#' @references Chen, J. and Hoek, G. (2020). Long-term exposure to PM and
+#' @references Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the
+#'   air: the contemporaneous relationship between air pollution and crime.
+#'   Journal of the Association of Environmental and Resource Economists
+#'   7(3), 555-585. \doi{10.1086/707127}. Herrnstadt, E., Heyes, A.,
+#'   Muehlegger, E. and Saberian, S. (2019). Air pollution as a cause of
+#'   violent crime. Working paper. Chen, J. and Hoek, G. (2020). Long-term
+#'   exposure to PM and
 #'   all-cause and cause-specific mortality: a systematic review and
 #'   meta-analysis. Environment International 143, 105974. Huangfu, P. and
 #'   Atkinson, R. (2020). Long-term exposure to NO2 and O3 and all-cause and
