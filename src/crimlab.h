@@ -10,6 +10,8 @@
 #ifndef CLAB_H
 #define CLAB_H
 
+#include <stddef.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -3345,6 +3347,26 @@ double clab_hif(double dx, double pop, double rate, double beta);
 /* The concentration index of h by income inc (n >= 2): out = index,
  * covariance, mean exposure; the concentration curve cpop, cexp (n). */
 int clab_concidx(const double *h, const double *inc, int n, double *out, double *cpop, double *cexp);
+
+/* ------------------------------------------------------------------------
+ * One-pass summaries (skch.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* SHA-256 (FIPS 180-4) of n bytes into out (32 bytes). */
+void clab_sha256(const unsigned char *d, size_t n, unsigned char *out);
+/* The moment state (n, mean, M2, M3, M4) of n values x, two passes. */
+int clab_momacc(const double *x, double n, double *out);
+/* Two moment states combined exactly (Chan, Golub and LeVeque; Terriberry). */
+int clab_mommrg(const double *a, const double *b, double *out);
+/* From a state: n, mean, variance, sd, skewness, excess kurtosis. */
+void clab_momstat(const double *s, double *o);
+/* Vitter's Algorithm R: min(k, n) sorted positions (from 1) of a stream of
+ * n, std::mt19937_64 seeded with seed and Lemire's bounded draw. */
+int clab_rsv(double n, double k, double seed, double *out);
+/* HyperLogLog: the value s (len bytes) into the 2^p registers reg. */
+int clab_hlladd(const char *s, size_t len, int p, int *reg);
+/* The HyperLogLog estimate from m registers. */
+double clab_hllcnt(const int *r, size_t m);
 
 /* The standard normal quantile at p (lower tail; NaN outside [0, 1],
  * -Inf and Inf at 0 and 1) and the distribution function at x. */

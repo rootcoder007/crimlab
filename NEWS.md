@@ -10,6 +10,11 @@
   population and of areas (`polbrdn()`, `polbrdarea()`) and the
   concentration index of exposure by income (`expconcidx()`).
 
+* One-pass summaries of data larger than memory: moment accumulators
+  (`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`), reservoir sampling
+  (`rsvidx()`, `rsvsmp()`) and the HyperLogLog distinct count
+  (`dstnskch()`, `dstncnt()`, `skchmrg()`).
+
 * Search theory for search and rescue planning: lateral range curves
   (`ltrlrng()`) and sweep width (`swpwdth()`), the probability of detection
   from coverage (`srchpod()`) and of a parallel sweep with navigation error

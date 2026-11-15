@@ -661,6 +661,33 @@ func Polbrdarea(args string) (string, error) { return Jrun("polbrdarea", args) }
 // Expconcidx runs expconcidx() of the R package (arguments: data expo income; ? marks an optional one).
 func Expconcidx(args string) (string, error) { return Jrun("expconcidx", args) }
 
+// Onlsmry runs onlsmry() of the R package (arguments: x?; ? marks an optional one).
+func Onlsmry(args string) (string, error) { return Jrun("onlsmry", args) }
+
+// Smryupd runs smryupd() of the R package (arguments: acc x; ? marks an optional one).
+func Smryupd(args string) (string, error) { return Jrun("smryupd", args) }
+
+// Smrymrg runs smrymrg() of the R package (arguments: a b; ? marks an optional one).
+func Smrymrg(args string) (string, error) { return Jrun("smrymrg", args) }
+
+// Smrystat runs smrystat() of the R package (arguments: acc; ? marks an optional one).
+func Smrystat(args string) (string, error) { return Jrun("smrystat", args) }
+
+// Rsvidx runs rsvidx() of the R package (arguments: n k seed?; ? marks an optional one).
+func Rsvidx(args string) (string, error) { return Jrun("rsvidx", args) }
+
+// Rsvsmp runs rsvsmp() of the R package (arguments: x k seed?; ? marks an optional one).
+func Rsvsmp(args string) (string, error) { return Jrun("rsvsmp", args) }
+
+// Dstnskch runs dstnskch() of the R package (arguments: x p? regstr?; ? marks an optional one).
+func Dstnskch(args string) (string, error) { return Jrun("dstnskch", args) }
+
+// Dstncnt runs dstncnt() of the R package (arguments: regstr; ? marks an optional one).
+func Dstncnt(args string) (string, error) { return Jrun("dstncnt", args) }
+
+// Skchmrg runs skchmrg() of the R package (arguments: a b; ? marks an optional one).
+func Skchmrg(args string) (string, error) { return Jrun("skchmrg", args) }
+
 // Ibench runs ibench() of the R package (arguments: y off x? minn? fdr?; ? marks an optional one).
 func Ibench(args string) (string, error) { return Jrun("ibench", args) }
 

@@ -14,7 +14,7 @@ import crimlab
 from crimlab import _j
 
 # the functions of crimlab/_j.py
-NJ = 206
+NJ = 215
 
 TSV = Path(__file__).resolve().parents[2] / "cli" / "test.tsv"
 # cli/tol.tsv: the functions with bounds other than 1e-12 relative

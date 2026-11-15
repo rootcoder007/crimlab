@@ -190,6 +190,7 @@ void t_ibn(tk &t, int big);
 void t_thr(tk &t, int big);
 void t_sar(tk &t, int big);
 void t_apol(tk &t, int big);
+void t_skch(tk &t, int big);
 void t_ped(tk &t, int big);
 void t_gmx(tk &t, int big);
 void t_cmps(tk &t, int big);

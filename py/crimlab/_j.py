@@ -3931,3 +3931,129 @@ def expconcidx(data: Any, expo: Any, income: Any) -> Any:
     -0.2
     """
     return jcall("expconcidx", data=data, expo=expo, income=income)
+
+
+def onlsmry(x: Any = None) -> Any:
+    """Start a moment accumulator, optionally with a first block.
+
+    The arguments and the result are those of R's ``onlsmry()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> onlsmry(x=[1, 2, 3])['state'][:2]
+    [3.0, 2.0]
+    """
+    return jcall("onlsmry", x=x)
+
+
+def smryupd(acc: Any, x: Any) -> Any:
+    """Add a block to a moment accumulator.
+
+    The arguments and the result are those of R's ``smryupd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> smryupd(acc=onlsmry(), x=[4, 6])['state'][1]
+    5.0
+    """
+    return jcall("smryupd", acc=acc, x=x)
+
+
+def smrymrg(a: Any, b: Any) -> Any:
+    """Merge two moment accumulators exactly.
+
+    The arguments and the result are those of R's ``smrymrg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> smrymrg(a=onlsmry(x=[1]), b=onlsmry(x=[3]))['state'][1]
+    2.0
+    """
+    return jcall("smrymrg", a=a, b=b)
+
+
+def smrystat(acc: Any) -> Any:
+    """The statistics of a moment accumulator.
+
+    The arguments and the result are those of R's ``smrystat()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> smrystat(acc=onlsmry(x=[1, 2, 3]))['variance']
+    1.0
+    """
+    return jcall("smrystat", acc=acc)
+
+
+def rsvidx(n: Any, k: Any, seed: Any = 42) -> Any:
+    """Positions of a uniform reservoir sample of a stream.
+
+    The arguments and the result are those of R's ``rsvidx()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> rsvidx(n=3, k=10)
+    [1.0, 2.0, 3.0]
+    """
+    return jcall("rsvidx", n=n, k=k, seed=seed)
+
+
+def rsvsmp(x: Any, k: Any, seed: Any = 42) -> Any:
+    """A uniform reservoir sample of a vector.
+
+    The arguments and the result are those of R's ``rsvsmp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> rsvsmp(x=['a', 'b'], k=5)
+    ['a', 'b']
+    """
+    return jcall("rsvsmp", x=x, k=k, seed=seed)
+
+
+def dstnskch(x: Any, p: Any = 14, regstr: Any = None) -> Any:
+    """HyperLogLog registers of a vector.
+
+    The arguments and the result are those of R's ``dstnskch()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> len(dstnskch(x=['a', 'b'], p=4))
+    16
+    """
+    return jcall("dstnskch", x=x, p=p, regstr=regstr)
+
+
+def dstncnt(regstr: Any) -> Any:
+    """Estimated distinct values from HyperLogLog registers.
+
+    The arguments and the result are those of R's ``dstncnt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> dstncnt(regstr=[0] * 16)
+    0.0
+    """
+    return jcall("dstncnt", regstr=regstr)
+
+
+def skchmrg(a: Any, b: Any) -> Any:
+    """Merge two HyperLogLog sketches.
+
+    The arguments and the result are those of R's ``skchmrg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> skchmrg(a=[1, 0], b=[0, 2])
+    [1.0, 2.0]
+    """
+    return jcall("skchmrg", a=a, b=b)

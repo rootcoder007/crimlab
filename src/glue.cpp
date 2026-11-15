@@ -563,6 +563,13 @@ SEXP C_clab_r_crf(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_levin(SEXP, SEXP);
 SEXP C_clab_r_hif(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_concidx(SEXP, SEXP);
+// One-pass summaries (bskch.cpp).
+SEXP C_clab_r_momupd(SEXP, SEXP);
+SEXP C_clab_r_mommrg(SEXP, SEXP);
+SEXP C_clab_r_momstat(SEXP);
+SEXP C_clab_r_rsv(SEXP, SEXP, SEXP);
+SEXP C_clab_r_hlladd(SEXP, SEXP, SEXP);
+SEXP C_clab_r_hllcnt(SEXP);
 // Survey estimates (bsvy.cpp).
 SEXP C_clab_r_svymx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The custody, court and published-table families (bsev.cpp and siblings).
@@ -845,6 +852,12 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_levin", fn<&C_clab_r_levin>(), 2},
     {"C_clab_r_hif", fn<&C_clab_r_hif>(), 4},
     {"C_clab_r_concidx", fn<&C_clab_r_concidx>(), 2},
+    {"C_clab_r_momupd", fn<&C_clab_r_momupd>(), 2},
+    {"C_clab_r_mommrg", fn<&C_clab_r_mommrg>(), 2},
+    {"C_clab_r_momstat", fn<&C_clab_r_momstat>(), 1},
+    {"C_clab_r_rsv", fn<&C_clab_r_rsv>(), 3},
+    {"C_clab_r_hlladd", fn<&C_clab_r_hlladd>(), 3},
+    {"C_clab_r_hllcnt", fn<&C_clab_r_hllcnt>(), 1},
     {"C_clab_r_svymx", fn<&C_clab_r_svymx>(), 10},
     {"C_clab_r_crsev", fn<&C_clab_r_crsev>(), 9},
     {"C_clab_r_zcomp", fn<&C_clab_r_zcomp>(), 4},

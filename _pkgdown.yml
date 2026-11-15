@@ -389,3 +389,12 @@ reference:
       - polbrdn
       - polbrdarea
       - expconcidx
+  - title: Data larger than memory
+    desc: One-pass summaries for data that arrive in pieces or do not fit
+      in memory - moments accumulated and merged exactly, a uniform
+      reservoir sample of a stream, and the HyperLogLog count of distinct
+      values in fixed memory.
+    contents:
+      - onlsmry
+      - rsvidx
+      - dstnskch

@@ -162,6 +162,9 @@ The functions work on summary data, not on raw records:
   `briggs()`, `gplume()`, `gspuff()`, `plmfld()`, `advdif2d()`,
   `lagrprt()`, `crfpm25()`, `crfno2()`, `attrfrac()`, `mortdisp()`,
   `polbrdn()`, `polbrdarea()`, `expconcidx()`).
+* Data larger than memory: moments, samples and distinct counts in one
+  pass (`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`, `rsvidx()`,
+  `rsvsmp()`, `dstnskch()`, `dstncnt()`, `skchmrg()`).
 * Officers: whether an officer's stops differ from those other officers
   make in the same circumstances, with a false discovery rate over the
   officers (`ibench()`).
@@ -557,7 +560,7 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package (235 of 235); `crimlab -l` lists them and
+of the R package (244 of 244); `crimlab -l` lists them and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of

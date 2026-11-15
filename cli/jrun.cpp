@@ -1563,6 +1563,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jthr.inc"
 #include "jsar.inc"
 #include "japol.inc"
+#include "jskch.inc"
 #include "jibn.inc"
 #include "jlnr.inc"
 #include "jrpv.inc"
@@ -1802,6 +1803,15 @@ const Ent ents[] = {
     {"polbrdn", "expomean expoprev brate pop poll? y? refconc? rare? hirate?", polbrdn},
     {"polbrdarea", "areatab areacol? expcol? popcol? basratecol? poll? y? rare? hirate?", polbrdarea},
     {"expconcidx", "data expo income", expconcidx},
+    {"onlsmry", "x?", onlsmry},
+    {"smryupd", "acc x", smryupd},
+    {"smrymrg", "a b", smrymrg},
+    {"smrystat", "acc", smrystat},
+    {"rsvidx", "n k seed?", rsvidx},
+    {"rsvsmp", "x k seed?", rsvsmp},
+    {"dstnskch", "x p? regstr?", dstnskch},
+    {"dstncnt", "regstr", dstncnt},
+    {"skchmrg", "a b", skchmrg},
     {"ibench", "y off x? minn? fdr?", ibench},
     {"lnroc", "tp pick conf proc? size? far? nboot? seed? level?", lnroc},
     {"lnsize", "choice k? susp? level?", lnsize},

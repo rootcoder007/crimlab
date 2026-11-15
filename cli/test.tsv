@@ -775,3 +775,22 @@ polbrdarea	{"areatab":{"fsa":["A","B","C"],"exposure":[18,28,9],"population":[60
 polbrdarea	{"areatab":{"fsa":["A"],"exposure":[20],"population":[1],"brate":[800]}}	!polbrdarea: `basratecol` is a rate per person-year, between 0 and 1 (0.008 is 800 per 100,000); 800 looks like a rate per 100,000.
 expconcidx	{"data":{"h":[30,25,25,15,10,12],"i":[1,2,2,3,5,4]},"expo":"h","income":"i"}	{"concidx":-0.21225071225071224,"interpretation":"CI = -0.2123. Pro-poor exposure burden: lower-income individuals bear disproportionately higher pollution.","expomean":19.5,"citation":"Wagstaff, Paci & van Doorslaer (1991) Soc Sci Med 33(5):545-557","extra":{"n":6,"cov_h_R":-2.0694444444444442,"curve":{"population":[0.16666666666666666,0.33333333333333331,0.5,0.66666666666666663,0.83333333333333337,1],"exposure":[0.25641025641025639,0.47008547008547008,0.68376068376068377,0.81196581196581197,0.9145299145299145,1]}}}
 expconcidx	{"data":{"e":[1,2],"i":[1,1]},"expo":"e","income":"i"}	!expconcidx: `i` must take at least two values: with one income level there is no income gradient and the index is undefined.
+onlsmry	{"x":[3.5,-1,2.25,8]}	{"state":[4,3.1875,41.671875,37.236328125,844.65655517578125]}
+onlsmry	{}	{"state":[0,0,0,0,0]}
+onlsmry	{"x":["a","b"]}	!onlsmry: `x` must be numeric, not text such as "a".
+smryupd	{"acc":{"state":[4,3.1875,41.671875,37.236328125,844.65655517578125]},"x":[100000000.5,99999999.75,null]}	{"state":[6,33333335.5,13333332516666722,4.4444440361110829e+23,4.4444439000000542e+31]}
+smryupd	{"acc":[],"x":1}	!smryupd: `acc` must come from onlsmry().
+smrymrg	{"a":{"state":[6,33333335.5,13333332516666722,4.4444440361110829e+23,4.4444439000000542e+31]},"b":{"state":[3,3.7083333333333335,23.760416666666664,-10.320746527777786,282.27870008680554]}}	{"state":[9,22222224.902777776,15555554533333416,8.6419744567901082e+23,7.4897109497943084e+31]}
+smrystat	{"acc":{"state":[9,22222224.902777776,15555554533333416,8.6419744567901082e+23,7.4897109497943084e+31]}}	{"n":9,"mean":22222224.902777776,"variance":1944444316666677,"sd":44095853.735546127,"skewness":1.3363062095621068,"kurtosis":-0.21428571428572996}
+smrystat	{"acc":{"state":[2,1.5,0.5,0,0.125]}}	{"n":2,"mean":1.5,"variance":0.5,"sd":0.70710678118654757,"skewness":"NaN","kurtosis":"NaN"}
+rsvidx	{"n":1000,"k":7,"seed":1}	[35,69,306,632,640,786,798]
+rsvidx	{"n":50,"k":5,"seed":123456789}	[12,16,22,32,37]
+rsvidx	{"n":10,"k":-1}	!rsvidx: `k` must be a single non-negative whole number.
+rsvsmp	{"x":["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z"],"k":4,"seed":2}	["m","r","s","z"]
+dstnskch	{"x":["a","b","c","a","1","1","2.5",null],"p":4}	[0,0,1,1,0,0,1,0,0,0,0,1,1,0,0,0]
+dstnskch	{"x":["d","e"],"p":4,"regstr":[0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0]}	[0,1,0,1,0,0,0,0,0,0,0,0,1,0,0,0]
+dstnskch	{"x":1,"p":3}	!dstnskch: `p` must be a single integer between 4 and 20.
+dstncnt	{"regstr":[9,7,5,7,7,8,6,11,7,5,7,7,5,8,7,6,7,7,7,6,6,12,8,8,7,5,7,7,7,7,5,6,6,6,6,12,5,11,10,8,7,6,12,6,6,6,8,6,7,9,6,7,5,8,7,4,10,10,9,6,7,7,8,12]}	4024.0345548037885
+dstncnt	{"regstr":[1,99]}	!dstncnt: `regstr` must be non-negative integer registers.
+skchmrg	{"a":[0,0,0,0,1,0,1,0,0,0,0,0,0,2,1,0],"b":[0,1,1,0,0,0,0,1,0,0,0,0,0,0,2,0]}	[0,1,1,0,1,0,1,1,0,0,0,0,0,2,2,0]
+skchmrg	{"a":[0,1,1,0,1,0,1,1,0,0,0,0,0,2,2,0],"b":[0,0,0,3,0,1,0,0,0,2,0,0,0,2,0,3,0,0,0,0,0,0,0,0,0,0,1,0,1,1,0,0]}	!skchmrg: both sketches must have the same number of registers.
