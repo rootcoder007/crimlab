@@ -61,7 +61,7 @@ test_that("ROC points, diagnosticity and the partial area follow the counts", {
       tolerance = 1e-14
     )
   }
-  expect_equal(
+  expect_identical(
     r$far,
     min(tapply(seq_len(nrow(r$roc)), r$roc$proc, function(i) max(r$roc$far[i])))
   )
@@ -82,7 +82,9 @@ test_that("the bootstrap compares procedures; size counts absent picks", {
   )
   expect_identical(r$far, 0.1)
   expect_true(all(r$pauc$se > 0))
-  expect_true(is.na(r$pauc$p[1]) && r$pauc$p[2] >= 0 && r$pauc$p[2] <= 1)
+  expect_true(is.na(r$pauc$p[1]))
+  expect_gte(r$pauc$p[2], 0)
+  expect_lte(r$pauc$p[2], 1)
   expect_identical(
     lnroc(d$tp, d$pick, d$conf, proc = d$proc, nboot = 50, seed = 2),
     lnroc(d$tp, d$pick, d$conf, proc = d$proc, nboot = 50, seed = 2)
@@ -103,7 +105,7 @@ test_that("lineup fairness by hand and against the binomial", {
   r <- lnsize(ch, k = 6, susp = 3)
   expect_s3_class(r, "lnsize")
   p <- as.numeric(table(factor(ch, 1:6))) / 40
-  expect_equal(r$count, as.numeric(table(factor(ch, 1:6))))
+  expect_identical(r$count, as.numeric(table(factor(ch, 1:6))))
   expect_equal(r$stat[["etr"]], 1 / sum(p^2), tolerance = 1e-14)
   expect_equal(
     r$stat[["esize"]],
@@ -115,7 +117,7 @@ test_that("lineup fairness by hand and against the binomial", {
     pbinom(14, 40, 1 / 6, lower.tail = FALSE),
     tolerance = 1e-12
   )
-  expect_equal(r$stat[["fsize"]], 40 / 15)
+  expect_identical(r$stat[["fsize"]], 40 / 15)
   se <- sqrt(4 * (sum(p^3) - sum(p^2)^2) / 40) / sum(p^2)^2
   expect_equal(
     r$stat[["etrhi"]] - r$stat[["etr"]],

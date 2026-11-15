@@ -14,10 +14,11 @@ test_that("PAI, PEI and RRI follow the hot cells", {
     hot <- order(-pr)[1:m]
     n <- sum(after[hot])
     expect_identical(r$cells[k], m)
-    expect_equal(r$hit[k], n / sum(after))
+    expect_equal(r$hit[k], n / sum(after), tolerance = 1e-15)
     expect_equal(r$pai[k], (n / sum(after)) / (m / 400), tolerance = 1e-14)
-    expect_equal(r$nmax[k], sum(sort(after, decreasing = TRUE)[1:m]))
-    expect_equal(r$pei[k], n / r$nmax[k])
+    top <- sum(sort(after, decreasing = TRUE)[1:m])
+    expect_identical(r$nmax[k], as.numeric(top))
+    expect_equal(r$pei[k], n / r$nmax[k], tolerance = 1e-15)
     expect_equal(
       r$rri[k],
       (n / sum(before[hot])) / (sum(after) / sum(before)),
@@ -26,7 +27,7 @@ test_that("PAI, PEI and RRI follow the hot cells", {
   }
   h <- hsacc(seq_len(400) %in% order(-pr)[1:20], after)
   expect_identical(h$cells, 20)
-  expect_equal(h$pai, r$pai[1])
+  expect_equal(h$pai, r$pai[1], tolerance = 1e-15)
   expect_true(is.na(h$rri))
 })
 
@@ -34,7 +35,7 @@ test_that("unequal areas: cells are taken until their area reaches the share", {
   r <- hsacc(c(3, 2, 1, 0), c(1, 1, 1, 1), area = c(1, 3, 2, 4), top = 0.3)
   expect_identical(r$cells, 2)
   expect_identical(r$area, 4)
-  expect_equal(r$pai, (2 / 4) / (4 / 10))
+  expect_equal(r$pai, (2 / 4) / (4 / 10), tolerance = 1e-15)
 })
 
 test_that("hsacc() refuses bad input in words", {

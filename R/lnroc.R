@@ -46,8 +46,7 @@
 #' @param nboot The bootstrap samples: one whole number from 0 (none).
 #' @param seed The seed of the bootstrap: `NULL` to draw it from R's
 #'   generator, or one whole number from 0.
-#' @param level The confidence level of the intervals: one number strictly
-#'   between 0 and 1.
+#' @inheritParams cntreg
 #' @return An object of class `lnroc`, a list: `roc`, one row per
 #'   procedure (`proc`, when given) and cut (`conf`, `hr`, `far`, `dr`);
 #'   `cac`, one row per procedure and confidence level (`conf`, `hr`,

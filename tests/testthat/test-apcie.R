@@ -62,7 +62,7 @@ test_that("the estimates are the glm() solution off the null vector", {
   expect_equal(r$fit[["deviance"]], deviance(g), tolerance = 1e-8)
   expect_identical(r$fit[["df"]], A * P - (ncol(X) - 1))
   expect_identical(r$coef$term[1:3], c("(Intercept)", "age", "age"))
-  expect_equal(sum(r$coef$term == "cohort"), A + P - 1)
+  expect_identical(sum(r$coef$term == "cohort"), as.integer(A + P - 1))
   expect_output(print(r), "5 ages, 4 periods, 8 cohorts")
 })
 

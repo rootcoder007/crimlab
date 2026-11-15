@@ -9,26 +9,26 @@ test_that("measures follow the counts by target", {
   expect_s3_class(r, "rptvic")
   k <- table(hh)
   v <- table(factor(k, 1:max(k)))
-  expect_equal(r$tab$victims, c(1000 - length(k), as.numeric(v)))
-  expect_equal(r$tab$incidents, r$tab$k * r$tab$victims)
+  expect_identical(r$tab$victims, c(1000 - length(k), as.numeric(v)))
+  expect_identical(r$tab$incidents, r$tab$k * r$tab$victims)
   expect_equal(
     r$tab$expected,
     1000 * dpois(0:max(k), 300 / 1000),
     tolerance = 1e-13
   )
   s <- r$stat
-  expect_equal(s[["victims"]], length(k))
-  expect_equal(s[["conc"]], 300 / length(k))
-  expect_equal(s[["rvict"]], sum(k >= 2))
+  expect_identical(s[["victims"]], as.numeric(length(k)))
+  expect_equal(s[["conc"]], 300 / length(k), tolerance = 1e-15)
+  expect_identical(s[["rvict"]], as.numeric(sum(k >= 2)))
   expect_equal(s[["erep"]], 1000 * (1 - ppois(1, 0.3)), tolerance = 1e-12)
   g <- unlist(lapply(split(day, hh), function(x) diff(sort(x))))
-  expect_equal(r$gap[["median"]], median(g))
+  expect_equal(r$gap[["median"]], median(g), tolerance = 1e-15)
   expect_equal(r$gap[["mean"]], mean(g), tolerance = 1e-14)
-  expect_equal(
+  expect_identical(
     r$lag$n,
     as.numeric(table(cut(g, c(0, 7, 30, 90, 366), right = FALSE)))
   )
-  expect_equal(r$lag$cum[4], 1)
+  expect_equal(r$lag$cum[4], 1, tolerance = 1e-15)
   expect_output(print(r), "300 incidents")
 })
 

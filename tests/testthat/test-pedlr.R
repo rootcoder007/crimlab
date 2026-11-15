@@ -198,7 +198,7 @@ test_that("pedlr() takes sex-specific rates and lumps the alleles not listed", {
   want <- (0.02 / 3) * ((1 - 0.004) + 0.004 / 3) / (2 * 0.3 * 0.4)
   expect_equal(r$locus$lr, want, tolerance = 1e-13)
   # without mutation the rest changes nothing
-  expect_equal(pedlr(ped, geno[c(1, 3), ], fr)$lr, 0)
+  expect_identical(pedlr(ped, geno[c(1, 3), ], fr)$lr, 0)
 })
 
 test_that("pedlr() prints and refuses bad input", {

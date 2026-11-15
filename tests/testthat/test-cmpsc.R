@@ -19,7 +19,7 @@ test_that("cmpsc() reproduces cmpsR exactly", {
     expect_identical(r$pos, as.numeric(x$pos), info = k)
     # each segment's candidate nearest the congruent lag
     near <- vapply(x$ccp, function(z) {
-      if (!length(z)) NA_real_ else z[which.min(abs(z - x$pos))]
+      if (length(z)) z[which.min(abs(z - x$pos))] else NA_real_
     }, 0)
     expect_identical(r$segs$ccp, near, info = k)
   }
@@ -112,7 +112,7 @@ test_that("a shifted copy is found at its lag", {
   expect_identical(r$pos, -30)
   expect_identical(r$nseg, 12L)
   expect_identical(r$score, 11L)
-  expect_equal(r$scaled, 11 / 12)
+  expect_identical(r$scaled, 11 / 12)
   # with full overlap the first segment cannot start before b
   f <- cmpsc(a, b, full = TRUE)
   expect_false(f$segs$cmps[1])

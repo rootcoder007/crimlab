@@ -25,7 +25,8 @@ test_that("pair measures, the logistic model and the areas follow base R", {
   jac <- function(a, b) if (any(a | b)) sum(a & b) / sum(a | b) else 0
   expect_equal(
     p$jac,
-    mapply(function(i, j) jac(d$mo[i, ] == 1, d$mo[j, ] == 1), p$i, p$j)
+    mapply(function(i, j) jac(d$mo[i, ] == 1, d$mo[j, ] == 1), p$i, p$j),
+    tolerance = 1e-15
   )
   expect_identical(
     p$linked,

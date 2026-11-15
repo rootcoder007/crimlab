@@ -28,7 +28,7 @@ test_that("the bounds follow the formulas for every assumption", {
   }
   for (as in c("none", "mtr", "mts", "both")) {
     r <- mtrbnd(y, z, assume = as)
-    b <- sapply(1:3, bd, as = as)
+    b <- vapply(1:3, bd, numeric(2), as = as)
     expect_equal(r$bnd$lower, b[1, ], tolerance = 1e-14)
     expect_equal(r$bnd$upper, b[2, ], tolerance = 1e-14)
     lo <- b[1, ] - b[2, 1]
@@ -55,9 +55,9 @@ test_that("weights and other ranges", {
     w = c(1, 3, 1, 1),
     assume = "none"
   )
-  expect_equal(r$bnd$mean, c((2 + 15) / 4, 6))
-  expect_equal(r$bnd$share, c(4, 2) / 6)
-  expect_equal(r$bnd$lower[1], (17 / 4) * (4 / 6))
+  expect_equal(r$bnd$mean, c((2 + 15) / 4, 6), tolerance = 1e-15)
+  expect_equal(r$bnd$share, c(4, 2) / 6, tolerance = 1e-15)
+  expect_equal(r$bnd$lower[1], (17 / 4) * (4 / 6), tolerance = 1e-15)
 })
 
 test_that("mtrbnd() refuses bad input in words", {

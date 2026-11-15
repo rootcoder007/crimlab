@@ -35,7 +35,8 @@ groups at least.}
 \item{ref}{The reference group: a label or a position; the first group
 by default.}
 
-\item{level}{The confidence level: one number strictly between 0 and 1.}
+\item{level}{The confidence level of the intervals: one number strictly
+between 0 and 1.}
 
 \item{maxit}{The quasi-Newton steps of each of the three starts of each
 fit: one whole number from 1.}

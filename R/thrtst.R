@@ -55,11 +55,10 @@
 #'   labels.
 #' @param off `NULL` or the group of the officers of each row: labels, two
 #'   groups at least.
-#' @param ref The reference group: a label or a position; the first group
-#'   by default.
-#' @param level The confidence level: one number strictly between 0 and 1.
 #' @param maxit The quasi-Newton steps of each of the three starts of each
 #'   fit: one whole number from 1.
+#' @inheritParams cntreg
+#' @inheritParams kmrec
 #' @return An object of class `thrtst`, a list: `hit`, one row per group
 #'   (`group`, `stops`, `srch`, `hits`, `srate` and `hrate`, the search and
 #'   hit rates, and `diff`, `se`, `z`, `p` of the hit rate against the

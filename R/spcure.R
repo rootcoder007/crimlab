@@ -30,9 +30,8 @@
 #'   data frame or list of numeric columns, or one numeric vector, one row
 #'   per person.
 #' @param dist The time to failure: `"weibull"`, `"exp"` or `"lognormal"`.
-#' @param level The confidence level of the Wald intervals: one number
-#'   strictly between 0 and 1.
 #' @param maxit The quasi-Newton steps: one whole number from 1.
+#' @inheritParams apcie
 #' @return An object of class `spcure`, a list: `coef`, one row per
 #'   parameter (`part`: `"fail"`, `"time"` or `"shape"`; `term`, `est`,
 #'   `se`, `lo`, `hi`, `z`, `p`); `fit`, a named vector (`loglik`, `aic`,

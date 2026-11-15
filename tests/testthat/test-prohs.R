@@ -18,8 +18,8 @@ test_that("the risk surface and its evaluation follow the formula", {
     top = 0.2
   )
   expect_s3_class(r, "prohs")
-  expect_equal(r$x, seq(50, 950, 100))
-  expect_equal(r$y, seq(50, 750, 100))
+  expect_identical(r$x, seq(50, 950, 100))
+  expect_identical(r$y, seq(50, 750, 100))
   use <- day < 100 & day >= 70
   z <- outer(
     r$x,
@@ -32,13 +32,13 @@ test_that("the risk surface and its evaluation follow the formula", {
   expect_equal(r$z, z, tolerance = 1e-13)
   k <- ceiling(0.2 * length(z))
   expect_identical(sum(r$hot), as.integer(k))
-  expect_true(min(r$z[r$hot]) >= max(r$z[!r$hot]))
+  expect_gte(min(r$z[r$hot]), max(r$z[!r$hot]))
   fut <- day >= 100 & day < 114
   ci <- floor(p[fut, 1] / 100) + 1
   cj <- floor(p[fut, 2] / 100) + 1
   h <- r$hot[cbind(ci, cj)]
-  expect_equal(r$eval[["n"]], sum(fut))
-  expect_equal(r$eval[["hits"]], sum(h))
+  expect_identical(r$eval[["n"]], as.numeric(sum(fut)))
+  expect_identical(r$eval[["hits"]], as.numeric(sum(h)))
   expect_equal(r$eval[["pai"]], mean(h) / (k / length(z)), tolerance = 1e-14)
   expect_identical(r$par[["bw"]], 300)
   expect_output(print(r), "10 x 8 grid")
