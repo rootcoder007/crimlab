@@ -41,6 +41,7 @@
 #include "pevc.h"
 #include "pevs.h"
 #include "pevw.h"
+#include "ynum.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1578,6 +1579,13 @@ bool proof(Ctx &c, Val &out) {
 #include "jhsa.inc"
 #include "jigh.inc"
 #include "jmtr.inc"
+#include "jyoy.inc"
+#include "jdrf.inc"
+#include "jgeo.inc"
+#include "jcat.inc"
+#include "jshrs.inc"
+#include "jtxt.inc"
+#include "jprim.inc"
 #include "jprep.inc"
 #include "jfrx.inc"
 
@@ -1878,6 +1886,57 @@ const Ent ents[] = {
     {"trchlthgap", "health? lifeexp? infmort? suiide? ref? agetot?", trchlthgap},
     {"polex", "seed?", polex},
     {"mtrbnd", "y z ylo? yhi? assume? w?", mtrbnd},
+    {"yoywr", "x file format? digits? na? meta? comment? pretty? align?", yoywr},
+    {"yoymd", "x file? digits? align? meta?", yoymd},
+    {"yoyjs", "x file? digits? pretty? meta?", yoyjs},
+    {"yoytsv", "x file? digits? na? meta? comment?", yoytsv},
+    {"yoycsv", "x file? digits? na? meta? comment?", yoycsv},
+    {"yoysmry", "x lag?", yoysmry},
+    {"yoylbl", "x labels", yoylbl},
+    {"fylbl", "endyear sep? short?", fylbl},
+    {"drfthomog", "x y seed?", drfthomog},
+    {"drftchisq", "obs expd", drftchisq},
+    {"drftpsi", "x y bins? eps?", drftpsi},
+    {"drftks", "x y", drftks},
+    {"rgnmapalt", "map unit reg route known?", rgnmapalt},
+    {"rgnmapcmp", "pub obs unit cols?", rgnmapcmp},
+    {"rgnmapintg", "map unit reg regs?", rgnmapintg},
+    {"xfrvrf", "imported soucnts codebook? tol? strict?", xfrvrf},
+    {"vrfmrg", "x pub tol? strict?", vrfmrg},
+    {"vrfrcd", "orig recd decl", vrfrcd},
+    {"grdbin", "x col", grdbin},
+    {"declbld", "x vlabs?", declbld},
+    {"grdlvls", "x lvls ref?", grdlvls},
+    {"relbl", "x map keep?", relbl},
+    {"grdrcd", "x map keep?", grdrcd},
+    {"deccodes", "x vlabs keepna?", deccodes},
+    {"shrs", "x count? by? total? conflvl?", shrs},
+    {"wrtxtfb", "text path", wrtxtfb},
+    {"asciifb", "x force?", asciifb},
+    {"toascii", "x", toascii},
+    {"cunif", "n seed", cunif},
+    {"cgamcdf", "shape x", cgamcdf},
+    {"cipw", "treat ps trimlo? trimhi?", cipw},
+    {"cbootmean", "x B? seed?", cbootmean},
+    {"ccovm", "x", ccovm},
+    {"cmidrk", "x", cmidrk},
+    {"cspr", "x y", cspr},
+    {"cwtd", "x w", cwtd},
+    {"cwinsmean", "x trim?", cwinsmean},
+    {"ctrmmean", "x trim?", ctrmmean},
+    {"ctkyfnc", "x k?", ctkyfnc},
+    {"ciqr", "x", ciqr},
+    {"cmad", "x const?", cmad},
+    {"cmed", "x", cmed},
+    {"cqnt", "x probs?", cqnt},
+    {"cmom", "x", cmom},
+    {"cnormlpdf", "x mean? sd?", cnormlpdf},
+    {"cnormpdf", "x mean? sd?", cnormpdf},
+    {"cdistm", "a b", cdistm},
+    {"csdev", "x ddof?", csdev},
+    {"ccorr", "x y", ccorr},
+    {"cvari", "x", cvari},
+    {"cmn", "x", cmn},
     {"clprep", "data? preset?", clprep},
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},

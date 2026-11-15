@@ -4879,3 +4879,750 @@ def evfilt(v: Any, w: Any, x: Any = None, method: Any = "moran", cand: Any = "po
     ['sel', 'coef', 'imoran', 'aic', 'r2', 'fr2', 'resid', 'mi']
     """
     return jcall("evfilt", v=v, w=w, x=x, method=method, cand=cand, tol=tol, maxv=maxv)
+
+
+def cmn(x: Any) -> Any:
+    """Mean (C backend).
+
+    The arguments and the result are those of R's ``cmn()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cmn(x=[1, 2, 3])
+    2.0
+    """
+    return jcall("cmn", x=x)
+
+
+def cvari(x: Any) -> Any:
+    """Sample variance (C backend).
+
+    The arguments and the result are those of R's ``cvari()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cvari(x=[1, 2, 3])
+    1.0
+    """
+    return jcall("cvari", x=x)
+
+
+def ccorr(x: Any, y: Any) -> Any:
+    """Pearson correlation (C backend).
+
+    The arguments and the result are those of R's ``ccorr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> ccorr(x=[1, 2, 3], y=[2, 4, 6])
+    1.0
+    """
+    return jcall("ccorr", x=x, y=y)
+
+
+def csdev(x: Any, ddof: Any = 1) -> Any:
+    """Standard deviation (C backend).
+
+    The arguments and the result are those of R's ``csdev()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> csdev(x=[1, 2, 3])
+    1.0
+    """
+    return jcall("csdev", x=x, ddof=ddof)
+
+
+def cdistm(a: Any, b: Any) -> Any:
+    """Euclidean distance (C backend).
+
+    The arguments and the result are those of R's ``cdistm()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cdistm(a=[0, 0], b=[3, 4])
+    5.0
+    """
+    return jcall("cdistm", a=a, b=b)
+
+
+def cnormpdf(x: Any, mean: Any = 0, sd: Any = 1) -> Any:
+    """Normal density (C backend).
+
+    The arguments and the result are those of R's ``cnormpdf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cnormpdf(x=[0, 1])
+    >>> len(r)
+    2
+    """
+    return jcall("cnormpdf", x=x, mean=mean, sd=sd)
+
+
+def cnormlpdf(x: Any, mean: Any = 0, sd: Any = 1) -> Any:
+    """Normal log-density (C backend).
+
+    The arguments and the result are those of R's ``cnormlpdf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cnormlpdf(x=[0, 1])
+    >>> len(r)
+    2
+    """
+    return jcall("cnormlpdf", x=x, mean=mean, sd=sd)
+
+
+def cmom(x: Any) -> Any:
+    """Mean, variance, skewness and kurtosis (C backend).
+
+    The arguments and the result are those of R's ``cmom()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cmom(x=[2, 4, 4, 5, 9])
+    >>> list(r)
+    ['mean', 'variance', 'skewness', 'kurtosis']
+    """
+    return jcall("cmom", x=x)
+
+
+def cqnt(x: Any, probs: Any = None) -> Any:
+    """Type-7 quantiles (C backend).
+
+    The arguments and the result are those of R's ``cqnt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cqnt(x=[1, 2, 3, 4], probs=[0.25, 0.5])
+    >>> list(r)
+    ['25%', '50%']
+    """
+    return jcall("cqnt", x=x, probs=probs)
+
+
+def cmed(x: Any) -> Any:
+    """Median (C backend).
+
+    The arguments and the result are those of R's ``cmed()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cmed(x=[1, 2, 3, 4])
+    2.5
+    """
+    return jcall("cmed", x=x)
+
+
+def cmad(x: Any, const: Any = 1.4826) -> Any:
+    """Median absolute deviation (C backend).
+
+    The arguments and the result are those of R's ``cmad()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cmad(x=[1, 2, 3, 4], const=1)
+    1.0
+    """
+    return jcall("cmad", x=x, const=const)
+
+
+def ciqr(x: Any) -> Any:
+    """Interquartile range (C backend).
+
+    The arguments and the result are those of R's ``ciqr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> ciqr(x=[1, 2, 3, 4])
+    1.5
+    """
+    return jcall("ciqr", x=x)
+
+
+def ctkyfnc(x: Any, k: Any = 1.5) -> Any:
+    """Tukey's outlier fences (C backend).
+
+    The arguments and the result are those of R's ``ctkyfnc()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ctkyfnc(x=[1, 2, 3, 4])
+    >>> list(r)
+    ['lower', 'upper']
+    """
+    return jcall("ctkyfnc", x=x, k=k)
+
+
+def ctrmmean(x: Any, trim: Any = 0.1) -> Any:
+    """Trimmed mean (C backend).
+
+    The arguments and the result are those of R's ``ctrmmean()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> ctrmmean(x=[1, 2, 3, 100], trim=0.25)
+    2.5
+    """
+    return jcall("ctrmmean", x=x, trim=trim)
+
+
+def cwinsmean(x: Any, trim: Any = 0.1) -> Any:
+    """Winsorized mean (C backend).
+
+    The arguments and the result are those of R's ``cwinsmean()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cwinsmean(x=[1, 2, 3, 100], trim=0.25)
+    2.5
+    """
+    return jcall("cwinsmean", x=x, trim=trim)
+
+
+def cwtd(x: Any, w: Any) -> Any:
+    """Weighted mean and variance (C backend).
+
+    The arguments and the result are those of R's ``cwtd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cwtd(x=[10, 20, 30], w=[1, 1, 2])
+    >>> list(r)
+    ['mean', 'variance']
+    """
+    return jcall("cwtd", x=x, w=w)
+
+
+def cspr(x: Any, y: Any) -> Any:
+    """Spearman's rank correlation (C backend).
+
+    The arguments and the result are those of R's ``cspr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cspr(x=[1, 2, 3], y=[1, 4, 9])
+    1.0
+    """
+    return jcall("cspr", x=x, y=y)
+
+
+def cmidrk(x: Any) -> Any:
+    """Midranks (C backend).
+
+    The arguments and the result are those of R's ``cmidrk()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cmidrk(x=[3, 1, 2])
+    [3.0, 1.0, 2.0]
+    """
+    return jcall("cmidrk", x=x)
+
+
+def ccovm(x: Any) -> Any:
+    """Covariance matrix (C backend).
+
+    The arguments and the result are those of R's ``ccovm()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> ccovm(x=[[1, 2], [2, 4], [3, 6]])
+    [[1.0, 2.0], [2.0, 4.0]]
+    """
+    return jcall("ccovm", x=x)
+
+
+def cbootmean(x: Any, B: Any = 1000, seed: Any = 42) -> Any:
+    """Bootstrap replicate means (C backend).
+
+    The arguments and the result are those of R's ``cbootmean()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cbootmean(x=[1, 2, 3], B=5, seed=1)
+    >>> len(r)
+    5
+    """
+    return jcall("cbootmean", x=x, B=B, seed=seed)
+
+
+def cipw(treat: Any, ps: Any, trimlo: Any = 0.01, trimhi: Any = 0.99) -> Any:
+    """Trimmed inverse-probability weights (C backend).
+
+    The arguments and the result are those of R's ``cipw()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cipw(treat=[1, 0], ps=[0.5, 0.5])
+    [2.0, 2.0]
+    """
+    return jcall("cipw", treat=treat, ps=ps, trimlo=trimlo, trimhi=trimhi)
+
+
+def cgamcdf(shape: Any, x: Any) -> Any:
+    """Regularized incomplete gamma function (C backend).
+
+    The arguments and the result are those of R's ``cgamcdf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> cgamcdf(shape=1, x=[0])
+    0.0
+    """
+    return jcall("cgamcdf", shape=shape, x=x)
+
+
+def cunif(n: Any, seed: Any) -> Any:
+    """Reproducible uniforms (splitmix64).
+
+    The arguments and the result are those of R's ``cunif()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = cunif(n=3, seed=42)
+    >>> len(r)
+    3
+    """
+    return jcall("cunif", n=n, seed=seed)
+
+
+def toascii(x: Any) -> Any:
+    """Transliterate text to plain ASCII.
+
+    The arguments and the result are those of R's ``toascii()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> toascii(x="Stra\u00dfe")
+    'Strasse'
+    """
+    return jcall("toascii", x=x)
+
+
+def asciifb(x: Any, force: Any = False) -> Any:
+    """Text as it is, or its ASCII transliteration.
+
+    The arguments and the result are those of R's ``asciifb()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> asciifb(x="\u00c1ngela", force=True)
+    'Angela'
+    """
+    return jcall("asciifb", x=x, force=force)
+
+
+def wrtxtfb(text: Any, path: Any) -> Any:
+    """Write text as UTF-8.
+
+    The arguments and the result are those of R's ``wrtxtfb()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> import os, tempfile
+    >>> p = os.path.join(tempfile.mkdtemp(), "a.txt")
+    >>> wrtxtfb(text=["one", "two"], path=p) == p
+    True
+    >>> open(p, "rb").read()
+    b'one\\ntwo\\n'
+    """
+    return jcall("wrtxtfb", text=text, path=path)
+
+
+def shrs(x: Any, count: Any = None, by: Any = None, total: Any = None, conflvl: Any = 0.95) -> Any:
+    """Share of a total, in percent.
+
+    The arguments and the result are those of R's ``shrs()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = shrs(x=[3, 7])
+    >>> list(r)
+    ['count', 'total', 'share', 'lower', 'upper']
+    """
+    return jcall("shrs", x=x, count=count, by=by, total=total, conflvl=conflvl)
+
+
+def deccodes(x: Any, vlabs: Any, keepna: Any = True) -> Any:
+    """Decode numeric category codes by a code-to-label dictionary.
+
+    The arguments and the result are those of R's ``deccodes()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> deccodes(x=[2, 1], vlabs={"1": "a", "2": "b"})
+    ['b', 'a']
+    """
+    return jcall("deccodes", x=x, vlabs=vlabs, keepna=keepna)
+
+
+def grdrcd(x: Any, map: Any, keep: Any = None) -> Any:
+    """Recode a categorical column by name.
+
+    The arguments and the result are those of R's ``grdrcd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> grdrcd(x=["M", "F"], map={"M": "Male", "F": "Female"})
+    ['Male', 'Female']
+    """
+    return jcall("grdrcd", x=x, map=map, keep=keep)
+
+
+def relbl(x: Any, map: Any, keep: Any = None) -> Any:
+    """Relabel a categorical variable by name, never by position.
+
+    The arguments and the result are those of R's ``relbl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> relbl(x=["a", "b"], map={"a": "A", "b": "B"})
+    ['A', 'B']
+    """
+    return jcall("relbl", x=x, map=map, keep=keep)
+
+
+def grdlvls(x: Any, lvls: Any, ref: Any = None) -> Any:
+    """A factor with declared, verified levels.
+
+    The arguments and the result are those of R's ``grdlvls()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> grdlvls(x=["b", "a"], lvls=["b", "a"])
+    ['b', 'a']
+    """
+    return jcall("grdlvls", x=x, lvls=lvls, ref=ref)
+
+
+def declbld(x: Any, vlabs: Any = None) -> Any:
+    """Decode codes by their value labels.
+
+    The arguments and the result are those of R's ``declbld()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> declbld(x=[2, 1], vlabs={"1": "No", "2": "Yes"})
+    ['Yes', 'No']
+    """
+    return jcall("declbld", x=x, vlabs=vlabs)
+
+
+def grdbin(x: Any, col: Any) -> Any:
+    """Refuse a categorical column where a 0/1 indicator is required.
+
+    The arguments and the result are those of R's ``grdbin()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> grdbin(x=[0, 1], col="d")
+    True
+    """
+    return jcall("grdbin", x=x, col=col)
+
+
+def vrfrcd(orig: Any, recd: Any, decl: Any) -> Any:
+    """Prove a recode with a before/after cross-tabulation.
+
+    The arguments and the result are those of R's ``vrfrcd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = vrfrcd(orig=["M"], recd=["Male"], decl={"M": "Male"})
+    >>> list(r)
+    ['original', 'recoded', 'Freq']
+    """
+    return jcall("vrfrcd", orig=orig, recd=recd, decl=decl)
+
+
+def vrfmrg(x: Any, pub: Any, tol: Any = 0, strict: Any = True) -> Any:
+    """Verify recoded counts against published counts.
+
+    The arguments and the result are those of R's ``vrfmrg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = vrfmrg(x=["a", "b"], pub={"a": 1, "b": 1})
+    >>> r["ok"]
+    True
+    """
+    return jcall("vrfmrg", x=x, pub=pub, tol=tol, strict=strict)
+
+
+def xfrvrf(imported: Any, soucnts: Any,
+           codebook: Any = None, tol: Any = 0, strict: Any = True) -> Any:
+    """Verify a categorical variable that crossed between programs.
+
+    The arguments and the result are those of R's ``xfrvrf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = xfrvrf(imported=[1, 2], soucnts={"No": 1, "Yes": 1}, codebook={"1": "No", "2": "Yes"})
+    >>> r["ok"]
+    True
+    """
+    return jcall("xfrvrf", imported=imported, soucnts=soucnts, codebook=codebook, tol=tol, strict=strict)
+
+
+def rgnmapintg(map: Any, unit: Any, reg: Any, regs: Any = None) -> Any:
+    """Internal soundness of a region map.
+
+    The arguments and the result are those of R's ``rgnmapintg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = rgnmapintg(map={"u": ["a", "a"], "r": ["1", ""]}, unit="u", reg="r")
+    >>> r["observed"]
+    [1.0, 1.0]
+    """
+    return jcall("rgnmapintg", map=map, unit=unit, reg=reg, regs=regs)
+
+
+def rgnmapcmp(pub: Any, obs: Any, unit: Any, cols: Any = None) -> Any:
+    """Compare a recomputed region map against a published one.
+
+    The arguments and the result are those of R's ``rgnmapcmp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = rgnmapcmp(pub={"u": ["a"], "r": ["1"]}, obs={"u": ["a"], "r": ["2"]}, unit="u")
+    >>> r["mismatched"]
+    [0.0, 1.0]
+    """
+    return jcall("rgnmapcmp", pub=pub, obs=obs, unit=unit, cols=cols)
+
+
+def rgnmapalt(map: Any, unit: Any, reg: Any, route: Any, known: Any = None) -> Any:
+    """Check a region map against an independently derived assignment.
+
+    The arguments and the result are those of R's ``rgnmapalt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = rgnmapalt(map={"u": ["a"], "r": ["1"]}, unit="u", reg="r", route={"a": "2"})
+    >>> r["second"]
+    ['2']
+    """
+    return jcall("rgnmapalt", map=map, unit=unit, reg=reg, route=route, known=known)
+
+
+def drftks(x: Any, y: Any) -> Any:
+    """Two-sample Kolmogorov-Smirnov test.
+
+    The arguments and the result are those of R's ``drftks()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = drftks(x=[1, 2, 3], y=[2, 3, 4])
+    >>> list(r)
+    ['statistic', 'p_value', 'neff']
+    """
+    return jcall("drftks", x=x, y=y)
+
+
+def drftpsi(x: Any, y: Any, bins: Any = 10, eps: Any = 1e-06) -> Any:
+    """Population stability index and Jensen-Shannon divergence.
+
+    The arguments and the result are those of R's ``drftpsi()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = drftpsi(x=[1, 2, 3, 4], y=[1, 2, 3, 4])
+    >>> r["psi"]
+    0.0
+    """
+    return jcall("drftpsi", x=x, y=y, bins=bins, eps=eps)
+
+
+def drftchisq(obs: Any, expd: Any) -> Any:
+    """Chi-square test of a categorical column against a known distribution.
+
+    The arguments and the result are those of R's ``drftchisq()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = drftchisq(obs={"a": 5, "b": 5}, expd={"a": 1, "b": 1})
+    >>> r["statistic"]
+    0.0
+    """
+    return jcall("drftchisq", obs=obs, expd=expd)
+
+
+def drfthomog(x: Any, y: Any, seed: Any = 1) -> Any:
+    """Chi-square test of homogeneity of two categorical samples.
+
+    The arguments and the result are those of R's ``drfthomog()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = drfthomog(x={"a": 30, "b": 20}, y={"a": 30, "b": 20})
+    >>> r["statistic"]
+    0.0
+    """
+    return jcall("drfthomog", x=x, y=y, seed=seed)
+
+
+def fylbl(endyear: Any, sep: Any = "/", short: Any = True) -> Any:
+    """Name a fiscal year by the years it spans.
+
+    The arguments and the result are those of R's ``fylbl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> fylbl(endyear=[2023, 2024])
+    ['2022/23', '2023/24']
+    """
+    return jcall("fylbl", endyear=endyear, sep=sep, short=short)
+
+
+def yoylbl(x: Any, labels: Any) -> Any:
+    """Label the periods of a change table.
+
+    The arguments and the result are those of R's ``yoylbl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> t = {"prd": [2021, 2022], "value": [10, 12], "prev": [None, 10], "change": [None, 2], "pctchg": [None, 20]}
+    >>> yoylbl(x=t, labels=["a", "b"])["perlbl"]
+    ['a', 'b']
+    """
+    return jcall("yoylbl", x=x, labels=labels)
+
+
+def yoysmry(x: Any, lag: Any = 1) -> Any:
+    """Summarise a change table.
+
+    The arguments and the result are those of R's ``yoysmry()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> t = {"prd": [2021, 2022], "value": [10, 12], "prev": [None, 10], "change": [None, 2], "pctchg": [None, 20]}
+    >>> yoysmry(x=t)["totalpct"]
+    [20.0]
+    """
+    return jcall("yoysmry", x=x, lag=lag)
+
+
+def yoycsv(x: Any, file: Any = None,
+           digits: Any = None, na: Any = "", meta: Any = None, comment: Any = "#") -> Any:
+    """Write a change table as CSV.
+
+    The arguments and the result are those of R's ``yoycsv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> yoycsv(x={"code": ["046"], "n": [0.5]})
+    'code,n\\n046,0.5\\n'
+    """
+    return jcall("yoycsv", x=x, file=file, digits=digits, na=na, meta=meta, comment=comment)
+
+
+def yoytsv(x: Any, file: Any = None,
+           digits: Any = None, na: Any = "", meta: Any = None, comment: Any = "#") -> Any:
+    """Write a change table as TSV.
+
+    The arguments and the result are those of R's ``yoytsv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> yoytsv(x={"code": ["046"], "n": [0.5]})
+    'code\\tn\\n046\\t0.5\\n'
+    """
+    return jcall("yoytsv", x=x, file=file, digits=digits, na=na, meta=meta, comment=comment)
+
+
+def yoyjs(x: Any, file: Any = None,
+          digits: Any = None, pretty: Any = True, meta: Any = None) -> Any:
+    """Write a change table as JSON.
+
+    The arguments and the result are those of R's ``yoyjs()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> yoyjs(x={"n": [0.5]}, pretty=False)
+    '{"rows":[{"n":0.5}]}\\n'
+    """
+    return jcall("yoyjs", x=x, file=file, digits=digits, pretty=pretty, meta=meta)
+
+
+def yoymd(x: Any, file: Any = None, digits: Any = 1, align: Any = True, meta: Any = None) -> Any:
+    """Write a change table as Markdown.
+
+    The arguments and the result are those of R's ``yoymd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> t = {"prd": [2021, 2022], "value": [10, 12], "prev": [None, 10], "change": [None, 2], "pctchg": [None, 20]}
+    >>> yoymd(x=t).splitlines()[0]
+    '| prd  | value | previous | change | change % | note |'
+    """
+    return jcall("yoymd", x=x, file=file, digits=digits, align=align, meta=meta)
+
+
+def yoywr(x: Any, file: Any,
+          format: Any = "auto", digits: Any = None, na: Any = None, meta: Any = None, comment: Any = None, pretty: Any = None, align: Any = None) -> Any:
+    """Write a change table in the format its file name says.
+
+    The arguments and the result are those of R's ``yoywr()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> import os, tempfile
+    >>> p = os.path.join(tempfile.mkdtemp(), "t.csv")
+    >>> yoywr(x={"n": [1]}, file=p) == p
+    True
+    """
+    return jcall("yoywr", x=x, file=file, format=format, digits=digits, na=na, meta=meta, comment=comment, pretty=pretty, align=align)

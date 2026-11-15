@@ -178,6 +178,8 @@ void t_tox(tk &t, int big);
 void t_rtm(tk &t, int big);
 void t_dst(tk &t, int big);
 void t_mtr(tk &t, int big);
+void t_drf(tk &t, int big);
+void t_prim(tk &t, int big);
 void t_hsa(tk &t, int big);
 void t_igh(tk &t, int big);
 void t_apc(tk &t, int big);

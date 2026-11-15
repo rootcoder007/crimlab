@@ -244,6 +244,8 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_rtm(t, 0);
   t_dst(t, 0);
   t_mtr(t, 0);
+  t_drf(t, 0);
+  t_prim(t, 0);
   t_hsa(t, 0);
   t_igh(t, 0);
   t_apc(t, 0);
@@ -514,6 +516,8 @@ int main(int argc, char **argv) {
     t_rtm(t, 1);
     t_dst(t, 1);
     t_mtr(t, 1);
+    t_drf(t, 1);
+    t_prim(t, 1);
     t_hsa(t, 1);
     t_igh(t, 1);
     t_apc(t, 1);

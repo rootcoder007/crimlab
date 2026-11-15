@@ -874,6 +874,159 @@ func Polex(args string) (string, error) { return Jrun("polex", args) }
 // Mtrbnd runs mtrbnd() of the R package (arguments: y z ylo? yhi? assume? w?; ? marks an optional one).
 func Mtrbnd(args string) (string, error) { return Jrun("mtrbnd", args) }
 
+// Yoywr runs yoywr() of the R package (arguments: x file format? digits? na? meta? comment? pretty? align?; ? marks an optional one).
+func Yoywr(args string) (string, error) { return Jrun("yoywr", args) }
+
+// Yoymd runs yoymd() of the R package (arguments: x file? digits? align? meta?; ? marks an optional one).
+func Yoymd(args string) (string, error) { return Jrun("yoymd", args) }
+
+// Yoyjs runs yoyjs() of the R package (arguments: x file? digits? pretty? meta?; ? marks an optional one).
+func Yoyjs(args string) (string, error) { return Jrun("yoyjs", args) }
+
+// Yoytsv runs yoytsv() of the R package (arguments: x file? digits? na? meta? comment?; ? marks an optional one).
+func Yoytsv(args string) (string, error) { return Jrun("yoytsv", args) }
+
+// Yoycsv runs yoycsv() of the R package (arguments: x file? digits? na? meta? comment?; ? marks an optional one).
+func Yoycsv(args string) (string, error) { return Jrun("yoycsv", args) }
+
+// Yoysmry runs yoysmry() of the R package (arguments: x lag?; ? marks an optional one).
+func Yoysmry(args string) (string, error) { return Jrun("yoysmry", args) }
+
+// Yoylbl runs yoylbl() of the R package (arguments: x labels; ? marks an optional one).
+func Yoylbl(args string) (string, error) { return Jrun("yoylbl", args) }
+
+// Fylbl runs fylbl() of the R package (arguments: endyear sep? short?; ? marks an optional one).
+func Fylbl(args string) (string, error) { return Jrun("fylbl", args) }
+
+// Drfthomog runs drfthomog() of the R package (arguments: x y seed?; ? marks an optional one).
+func Drfthomog(args string) (string, error) { return Jrun("drfthomog", args) }
+
+// Drftchisq runs drftchisq() of the R package (arguments: obs expd; ? marks an optional one).
+func Drftchisq(args string) (string, error) { return Jrun("drftchisq", args) }
+
+// Drftpsi runs drftpsi() of the R package (arguments: x y bins? eps?; ? marks an optional one).
+func Drftpsi(args string) (string, error) { return Jrun("drftpsi", args) }
+
+// Drftks runs drftks() of the R package (arguments: x y; ? marks an optional one).
+func Drftks(args string) (string, error) { return Jrun("drftks", args) }
+
+// Rgnmapalt runs rgnmapalt() of the R package (arguments: map unit reg route known?; ? marks an optional one).
+func Rgnmapalt(args string) (string, error) { return Jrun("rgnmapalt", args) }
+
+// Rgnmapcmp runs rgnmapcmp() of the R package (arguments: pub obs unit cols?; ? marks an optional one).
+func Rgnmapcmp(args string) (string, error) { return Jrun("rgnmapcmp", args) }
+
+// Rgnmapintg runs rgnmapintg() of the R package (arguments: map unit reg regs?; ? marks an optional one).
+func Rgnmapintg(args string) (string, error) { return Jrun("rgnmapintg", args) }
+
+// Xfrvrf runs xfrvrf() of the R package (arguments: imported soucnts codebook? tol? strict?; ? marks an optional one).
+func Xfrvrf(args string) (string, error) { return Jrun("xfrvrf", args) }
+
+// Vrfmrg runs vrfmrg() of the R package (arguments: x pub tol? strict?; ? marks an optional one).
+func Vrfmrg(args string) (string, error) { return Jrun("vrfmrg", args) }
+
+// Vrfrcd runs vrfrcd() of the R package (arguments: orig recd decl; ? marks an optional one).
+func Vrfrcd(args string) (string, error) { return Jrun("vrfrcd", args) }
+
+// Grdbin runs grdbin() of the R package (arguments: x col; ? marks an optional one).
+func Grdbin(args string) (string, error) { return Jrun("grdbin", args) }
+
+// Declbld runs declbld() of the R package (arguments: x vlabs?; ? marks an optional one).
+func Declbld(args string) (string, error) { return Jrun("declbld", args) }
+
+// Grdlvls runs grdlvls() of the R package (arguments: x lvls ref?; ? marks an optional one).
+func Grdlvls(args string) (string, error) { return Jrun("grdlvls", args) }
+
+// Relbl runs relbl() of the R package (arguments: x map keep?; ? marks an optional one).
+func Relbl(args string) (string, error) { return Jrun("relbl", args) }
+
+// Grdrcd runs grdrcd() of the R package (arguments: x map keep?; ? marks an optional one).
+func Grdrcd(args string) (string, error) { return Jrun("grdrcd", args) }
+
+// Deccodes runs deccodes() of the R package (arguments: x vlabs keepna?; ? marks an optional one).
+func Deccodes(args string) (string, error) { return Jrun("deccodes", args) }
+
+// Shrs runs shrs() of the R package (arguments: x count? by? total? conflvl?; ? marks an optional one).
+func Shrs(args string) (string, error) { return Jrun("shrs", args) }
+
+// Wrtxtfb runs wrtxtfb() of the R package (arguments: text path; ? marks an optional one).
+func Wrtxtfb(args string) (string, error) { return Jrun("wrtxtfb", args) }
+
+// Asciifb runs asciifb() of the R package (arguments: x force?; ? marks an optional one).
+func Asciifb(args string) (string, error) { return Jrun("asciifb", args) }
+
+// Toascii runs toascii() of the R package (arguments: x; ? marks an optional one).
+func Toascii(args string) (string, error) { return Jrun("toascii", args) }
+
+// Cunif runs cunif() of the R package (arguments: n seed; ? marks an optional one).
+func Cunif(args string) (string, error) { return Jrun("cunif", args) }
+
+// Cgamcdf runs cgamcdf() of the R package (arguments: shape x; ? marks an optional one).
+func Cgamcdf(args string) (string, error) { return Jrun("cgamcdf", args) }
+
+// Cipw runs cipw() of the R package (arguments: treat ps trimlo? trimhi?; ? marks an optional one).
+func Cipw(args string) (string, error) { return Jrun("cipw", args) }
+
+// Cbootmean runs cbootmean() of the R package (arguments: x B? seed?; ? marks an optional one).
+func Cbootmean(args string) (string, error) { return Jrun("cbootmean", args) }
+
+// Ccovm runs ccovm() of the R package (arguments: x; ? marks an optional one).
+func Ccovm(args string) (string, error) { return Jrun("ccovm", args) }
+
+// Cmidrk runs cmidrk() of the R package (arguments: x; ? marks an optional one).
+func Cmidrk(args string) (string, error) { return Jrun("cmidrk", args) }
+
+// Cspr runs cspr() of the R package (arguments: x y; ? marks an optional one).
+func Cspr(args string) (string, error) { return Jrun("cspr", args) }
+
+// Cwtd runs cwtd() of the R package (arguments: x w; ? marks an optional one).
+func Cwtd(args string) (string, error) { return Jrun("cwtd", args) }
+
+// Cwinsmean runs cwinsmean() of the R package (arguments: x trim?; ? marks an optional one).
+func Cwinsmean(args string) (string, error) { return Jrun("cwinsmean", args) }
+
+// Ctrmmean runs ctrmmean() of the R package (arguments: x trim?; ? marks an optional one).
+func Ctrmmean(args string) (string, error) { return Jrun("ctrmmean", args) }
+
+// Ctkyfnc runs ctkyfnc() of the R package (arguments: x k?; ? marks an optional one).
+func Ctkyfnc(args string) (string, error) { return Jrun("ctkyfnc", args) }
+
+// Ciqr runs ciqr() of the R package (arguments: x; ? marks an optional one).
+func Ciqr(args string) (string, error) { return Jrun("ciqr", args) }
+
+// Cmad runs cmad() of the R package (arguments: x const?; ? marks an optional one).
+func Cmad(args string) (string, error) { return Jrun("cmad", args) }
+
+// Cmed runs cmed() of the R package (arguments: x; ? marks an optional one).
+func Cmed(args string) (string, error) { return Jrun("cmed", args) }
+
+// Cqnt runs cqnt() of the R package (arguments: x probs?; ? marks an optional one).
+func Cqnt(args string) (string, error) { return Jrun("cqnt", args) }
+
+// Cmom runs cmom() of the R package (arguments: x; ? marks an optional one).
+func Cmom(args string) (string, error) { return Jrun("cmom", args) }
+
+// Cnormlpdf runs cnormlpdf() of the R package (arguments: x mean? sd?; ? marks an optional one).
+func Cnormlpdf(args string) (string, error) { return Jrun("cnormlpdf", args) }
+
+// Cnormpdf runs cnormpdf() of the R package (arguments: x mean? sd?; ? marks an optional one).
+func Cnormpdf(args string) (string, error) { return Jrun("cnormpdf", args) }
+
+// Cdistm runs cdistm() of the R package (arguments: a b; ? marks an optional one).
+func Cdistm(args string) (string, error) { return Jrun("cdistm", args) }
+
+// Csdev runs csdev() of the R package (arguments: x ddof?; ? marks an optional one).
+func Csdev(args string) (string, error) { return Jrun("csdev", args) }
+
+// Ccorr runs ccorr() of the R package (arguments: x y; ? marks an optional one).
+func Ccorr(args string) (string, error) { return Jrun("ccorr", args) }
+
+// Cvari runs cvari() of the R package (arguments: x; ? marks an optional one).
+func Cvari(args string) (string, error) { return Jrun("cvari", args) }
+
+// Cmn runs cmn() of the R package (arguments: x; ? marks an optional one).
+func Cmn(args string) (string, error) { return Jrun("cmn", args) }
+
 // Clprep runs clprep() of the R package (arguments: data? preset?; ? marks an optional one).
 func Clprep(args string) (string, error) { return Jrun("clprep", args) }
 
