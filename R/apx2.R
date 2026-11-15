@@ -128,30 +128,16 @@ smkiv <- function(
   adj <- match.arg(adj)
   cf <- match.arg(cf)
   d <- .axdat(data, f)
-  .axcols(d, c(plume, unit, day), "plume, unit, day", f, n = 3L)
-  .axcols(d, pm, "pm", f, n = 1L, null = TRUE)
-  .axcols(d, seas, "seas", f, n = 1L, null = TRUE)
-  .axcols(d, by, "by", f, n = 1L, null = TRUE)
-  if (!is.null(dens)) {
-    if (!is.character(dens) || length(dens) != 1L || !dens %in% names(d)) {
-      .ckstop(f, "`dens` must name a column of `data`")
-    }
-  }
-  pl <- .axmat(d, plume, f)[, 1L]
-  if (!all(pl %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", plume)
-  z <- .cknum(z, "z", f, min = 0)
-  if (adj != "raw" && is.null(pm)) .ckstop(f, "`adj = \"%s\"` needs `pm`", adj)
+  ck <- .axsmck(d, plume, unit, day, pm, seas, by, dens, adj, z, f)
+  pl <- ck$pl
+  z <- ck$z
   sv <- .axsmsea(d, day, seas, pm, f)
   key <- paste(as.character(d[[unit]]), sv, sep = "\r")
   out <- data.frame(smoke = pl)
   if (!is.null(pm)) {
     out <- .axsmpm(d, out, pl, key, pm, adj, nbr, z, cf, unit, day, f)
   }
-  if (!is.null(dens)) {
-    dv <- as.character(d[[dens]])
-    lv <- sort(unique(dv[!is.na(dv) & dv != ""]))
-    for (l in lv) out[[paste0("dens:", l)]] <- as.numeric(!is.na(dv) & dv == l)
-  }
+  out <- .axsmdn(out, d, dens)
   if (!is.null(by)) return(.axsmby(out, d, by))
   out
 }
@@ -1224,4 +1210,34 @@ print.typefx <- function(x, ...) {
     tst <- rbind(tst, tl)
   }
   tst
+}
+
+# The checks of smkiv()'s columns and numbers, in their order: list(pl
+# the plume indicator, z).
+.axsmck <- function(d, plume, unit, day, pm, seas, by, dens, adj, z, f) {
+  .axcols(d, c(plume, unit, day), "plume, unit, day", f, n = 3L)
+  .axcols(d, pm, "pm", f, n = 1L, null = TRUE)
+  .axcols(d, seas, "seas", f, n = 1L, null = TRUE)
+  .axcols(d, by, "by", f, n = 1L, null = TRUE)
+  if (!is.null(dens)) {
+    if (!is.character(dens) || length(dens) != 1L || !dens %in% names(d)) {
+      .ckstop(f, "`dens` must name a column of `data`")
+    }
+  }
+  pl <- .axmat(d, plume, f)[, 1L]
+  if (!all(pl %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", plume)
+  z <- .cknum(z, "z", f, min = 0)
+  if (adj != "raw" && is.null(pm)) .ckstop(f, "`adj = \"%s\"` needs `pm`", adj)
+  list(pl = pl, z = z)
+}
+
+# smkiv()'s indicators of the levels of the density column dens, added
+# to out (out unchanged without dens).
+.axsmdn <- function(out, d, dens) {
+  if (!is.null(dens)) {
+    dv <- as.character(d[[dens]])
+    lv <- sort(unique(dv[!is.na(dv) & dv != ""]))
+    for (l in lv) out[[paste0("dens:", l)]] <- as.numeric(!is.na(dv) & dv == l)
+  }
+  out
 }
