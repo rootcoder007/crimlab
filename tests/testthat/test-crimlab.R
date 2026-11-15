@@ -146,7 +146,7 @@ test_that("every exported function answers one valid call in its shape", {
                      win = c(0, 2, 0, 1), cell = 1)),
          c("x", "y", "z", "hot", "eval", "par")),
     list(quote(wdqx(c(10, 5), c(4, 4), c(20, 20))),
-         c("sm", "bdm", "wdq", "ea", "eb", "net")),
+         c("sm", "bdm", "wdq", "ge", "ne", "ea", "eb", "tne")),
     list(quote(rptvic(c("a", "b", "a"))), c("tab", "stat", "gap", "lag")),
     list(quote(lnroc(c(1, 1, 0, 0), c("suspect", "none", "suspect", "none"),
                      c(2, NA, 1, NA))),

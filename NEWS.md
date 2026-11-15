@@ -42,6 +42,11 @@
 * `polex()` makes the simulated policy panel the examples of the policy
   functions use: twenty districts, 36 months and a staged reform with a
   known effect. The same seed gives the same panel in every front end.
+* `wdqx()` now names the crimes prevented in the treated area and the
+  buffer `tne`, the total net effect of Guerette (2009, Appendix B,
+  equation 4), in place of `net` (same value), and adds the gross effect
+  `ge` and the net effect `ne` of the same appendix. Its help page gives
+  the formulas and Guerette's worked example; the tests reproduce it.
 
 * `mtrbnd()` bounds the mean outcome under each of ordered sentences and
   the effect of each against the mildest, under the monotone treatment

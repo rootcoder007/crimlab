@@ -3467,7 +3467,7 @@ def wdqx(a: Any, b: Any, c: Any) -> Any:
     --------
     >>> r = wdqx(a=[100, 60], b=[50, 40], c=[200, 180])
     >>> list(r)
-    ['sm', 'bdm', 'wdq', 'ea', 'eb', 'net']
+    ['sm', 'bdm', 'wdq', 'ge', 'ne', 'ea', 'eb', 'tne']
     """
     return jcall("wdqx", a=a, b=b, c=c)
 

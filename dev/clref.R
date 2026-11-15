@@ -1039,6 +1039,7 @@ bad("rptvic", id = c("a", "b"), pop = 1)
 # The weighted displacement quotient
 ok("wdqx", a = c(100, 60), b = c(50, 40), c = c(200, 180))
 ok("wdqx", a = c(10, 10), b = c(5, 9), c = c(10, 10))
+ok("wdqx", a = c(207, 110), b = c(178, 157), c = c(308, 318))
 bad("wdqx", a = c(1, 2), b = c(1, 2), c = c(0, 2))
 
 # Prospective hot-spotting

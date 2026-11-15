@@ -3142,9 +3142,10 @@ int clab_rptvic(const int *id, const double *t, int n, int nid, double pop, cons
 /* The weighted displacement quotient (wdq.cpp; Bowers and Johnson 2003,
  * doi:10.1023/A:1024909009240). a, b, c: the counts before and after
  * (from 0; c's positive) of the treated area, the buffer and the control.
- * Out (6): sm = a1 / c1 - a0 / c0, bdm = b1 / c1 - b0 / c0, bdm / sm (NaN
- * when sm is 0), the counts a0 c1 / c0 and b0 c1 / c0 expected after, and
- * the crimes prevented in both, (ea - a1) + (eb - b1). */
+ * Out (8): sm = a1 / c1 - a0 / c0, bdm = b1 / c1 - b0 / c0, bdm / sm (NaN
+ * when sm is 0), the gross effect a0 - a1, the net effect a0 / c0 - a1 /
+ * c1, the counts a0 c1 / c0 and b0 c1 / c0 expected after, and the total
+ * net effect (ea - a1) + (eb - b1) (Guerette 2009, Appendix B). */
 int clab_wdqx(const double *a, const double *b, const double *c, double *out);
 /* Prospective hot-spotting (prh.cpp; Bowers, Johnson and Pease 2004,
  * doi:10.1093/bjc/azh036). n incidents (px, py, t); the grid of nx by ny
