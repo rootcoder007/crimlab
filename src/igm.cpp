@@ -52,7 +52,8 @@ std::vector<std::size_t> rowsof(const Lab &il, const std::vector<std::string> &g
 // a column argument checked in the words of the R package
 std::string ccol(const V &data, const V &v, const char *what) {
   const std::string s = str1(v, what);
-  if (!col(data, s)) stop("column `%s` not found in `data`", s.c_str());
+  if (bad()) return {};
+  if (!col(data, s)) return stop("column `%s` not found in `data`", s.c_str());
   return s;
 }
 
@@ -102,11 +103,13 @@ bool hasstatwords(const V &v) {
 V f_scests(const Cx &c) {
   V x = c["x"];
   nofn(x, "x");
+  if (bad()) return {};
   if (!inh(x, "sctidy")) {
     std::vector<std::string> an{"x"};
     std::vector<V> av{x};
     Cx c2{&an, &av, c.warn};
     x = f_sctidy(c2);
+    if (bad()) return {};
   }
   static const std::set<std::string> meta = {"UOM",    "UOM_ID", "SCALAR_FACTOR", "SCALAR_ID", "VECTOR",   "COORDINATE",
                                              "Coordinate", "VALUE", "STATUS",     "SYMBOL",    "TERMINATED", "DECIMALS",
@@ -219,7 +222,11 @@ V f_scests(const Cx &c) {
       if (std::regex_search(low[r], m, re)) lv.push_back(m[0].str());
     }
     lv = uniq(lv);
-    if (lv.size() == 1) conf = num(sv1(lv[0]), "conf")[0] / 100;
+    if (lv.size() == 1) {
+      const std::vector<double> cv = num(sv1(lv[0]), "conf");
+      if (bad()) return {};
+      conf = cv[0] / 100;
+    }
   }
   std::vector<std::string> dims;
   for (const std::string &cn : cols) {
@@ -240,7 +247,7 @@ V f_scests(const Cx &c) {
   for (std::size_t r = 0; r < n; ++r) {
     if (role[r] != "estimate") continue;
     const std::string k = key[r] + "\r" + lb[r];
-    if (ekey.count(k)) stop("`x` has two estimates for one cell and measure of the table");
+    if (ekey.count(k)) return stop("`x` has two estimates for one cell and measure of the table");
     ekey[k] = e.size();
     e.push_back(r);
   }
@@ -407,7 +414,7 @@ V f_scests(const Cx &c) {
 
 V f_ordcmp(const Cx &c) {
   const V &data = c["data"];
-  if (!isdf(data)) stop("`data` must be a data frame");
+  if (!isdf(data)) return stop("`data` must be a data frame");
   std::string cn[5];
   static const char *const an[] = {"grp", "cat", "est", "lower", "upper"};
   for (int k = 0; k < 5; ++k) cn[k] = ccol(data, c[an[k]], an[k]);
@@ -415,26 +422,30 @@ V f_ordcmp(const Cx &c) {
   if (c.has("qual")) qn1 = ccol(data, c["qual"], "qual");
   const V &lv0 = c["lvls"];
   nofn(lv0, "lvls");
+  if (bad()) return {};
   if (!isstr(lv0) || lv0.s.size() < 2 || uniq(lv0.s).size() != lv0.s.size()) {
-    stop("`lvls` must be two or more distinct categories, from the lowest to the highest");
+    return stop("`lvls` must be two or more distinct categories, from the lowest to the highest");
   }
   const std::string ref = str1(c["ref"], "ref");
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const double z = qn(cl);
   const std::vector<std::string> g = tl(*col(data, cn[0]));
   const V &pooled = c["pooled"];
   pooledcheck(pooled, g);
+  if (bad()) return {};
   const std::vector<std::string> cat = tl(*col(data, cn[1]));
   std::vector<std::string> lvls;
   for (const std::string &s : lv0.s) lvls.push_back(trim(s));
   const std::vector<double> est = num(*col(data, cn[2]), "est");
   const std::vector<double> lo = num(*col(data, cn[3]), "lower");
   const std::vector<double> hi = num(*col(data, cn[4]), "upper");
+  if (bad()) return {};
   const std::vector<std::string> q = quality(c, data, qn1, g.size());
-  if (!in(ref, g)) stop("\"%s\" is not a group of `data`", ref.c_str());
+  if (!in(ref, g)) return stop("\"%s\" is not a group of `data`", ref.c_str());
   bool anyc = false;
   for (const std::string &s : cat) anyc = anyc || in(s, lvls);
-  if (!anyc) stop("no row of `data` has a category in `lvls`");
+  if (!anyc) return stop("no row of `data` has a category in `lvls`");
   const std::vector<std::string> groups = uniq(g);
   const std::size_t k = lvls.size(), ng = groups.size();
   const double NA = na();
@@ -445,7 +456,7 @@ V f_ordcmp(const Cx &c) {
     std::set<std::string> seen;
     for (std::size_t j = 0; j < g.size(); ++j) {
       if (g[j] == groups[gi] && in(cat[j], lvls)) {
-        if (!seen.insert(cat[j]).second) stop("group \"%s\" has a category twice", groups[gi].c_str());
+        if (!seen.insert(cat[j]).second) return stop("group \"%s\" has a category twice", groups[gi].c_str());
         i.push_back(j);
       }
     }
@@ -488,7 +499,7 @@ V f_ordcmp(const Cx &c) {
   const std::size_t ri = static_cast<std::size_t>(std::find(groups.begin(), groups.end(), ref) - groups.begin());
   for (std::size_t m = 0; m < k; ++m) {
     if (std::isnan(sh[ri * k + m])) {
-      stop("the reference group's distribution is suppressed or incomplete: there is nothing to compare with");
+      return stop("the reference group's distribution is suppressed or incomplete: there is nothing to compare with");
     }
   }
   std::vector<double> q0(k), g0(k);
@@ -554,6 +565,7 @@ V f_ordcmp(const Cx &c) {
     ou.push_back(plogis(qlogis(ad) + z * sl));
   }
   const std::vector<int> pg = pooledrows(og, pooled);
+  if (bad()) return {};
   V out = frame({"group", "reference", "probbet", "lower", "upper", "delta", "neff", "neffref", "usewithcau", "poogrp"},
                 {sv(og), sv(std::vector<std::string>(og.size(), ref)), dv(op), dv(ol), dv(ou), dv(od), dv(on),
                  dv(std::vector<double>(og.size(), n0)), lv(oc), lv(pg)});
@@ -583,6 +595,7 @@ V f_stdprev(const Cx &c) {
                      (s.t == V::STR && s.s.size() == 1 && s.s[0] == "Inf");
     scale = inf ? HUGE_VAL : scalar(s, "scale", 0, HUGE_VAL, false, 100);
   }
+  if (bad()) return {};
   const std::size_t k = std.size();
   bool bad = k == 0;
   long double ss = 0;
@@ -590,16 +603,17 @@ V f_stdprev(const Cx &c) {
     bad = bad || std::isnan(x) || x < 0;
     ss += x;
   }
-  if (bad || ss <= 0) stop("`std` must be non-negative counts, one per age group, not all zero");
-  if (lo.size() != est.size() || hi.size() != est.size()) stop("`est`, `lower` and `upper` must be the same length");
+  if (bad || ss <= 0) return stop("`std` must be non-negative counts, one per age group, not all zero");
+  if (lo.size() != est.size() || hi.size() != est.size()) return stop("`est`, `lower` and `upper` must be the same length");
   const std::size_t n = est.size();
   const V &gv = c["grp"], &qv = c["qual"];
   nofn(gv, "grp");
   nofn(qv, "qual");
+  if (igh::bad()) return {};
   std::vector<std::string> grp(n, "all");
   if (gv.t != V::NUL) {
     const Lab l = lab(gv);
-    if (l.n() != n) stop("`grp` must have one label per row");
+    if (l.n() != n) return stop("`grp` must have one label per row");
     for (std::size_t j = 0; j < n; ++j) grp[j] = l.na[j] ? "NA" : l.s[j];
   }
   Lab ql;
@@ -609,7 +623,7 @@ V f_stdprev(const Cx &c) {
   } else {
     ql = lab(qv);
   }
-  if (ql.n() != n) stop("`qual` must have one flag per row");
+  if (ql.n() != n) return stop("`qual` must have one flag per row");
   const std::vector<std::string> q = qflags(c, ql);
   int nb = 0;
   for (std::size_t j = 0; j < n; ++j) {
@@ -632,7 +646,7 @@ V f_stdprev(const Cx &c) {
       if (grp[j] == gi) i.push_back(j);
     }
     if (i.size() != k) {
-      stop("group \"%s\" has %d age groups; `std` has %d", gi.c_str(), static_cast<int>(i.size()), static_cast<int>(k));
+      return stop("group \"%s\" has %d age groups; `std` has %d", gi.c_str(), static_cast<int>(i.size()), static_cast<int>(k));
     }
     og.push_back(gi);
     bool gn = false, ce = false;
@@ -671,7 +685,7 @@ V f_stdprev(const Cx &c) {
 
 V f_welprof(const Cx &c) {
   const V &data = c["data"];
-  if (!isdf(data)) stop("`data` must be a data frame");
+  if (!isdf(data)) return stop("`data` must be a data frame");
   std::string cn[5];
   static const char *const an[] = {"grp", "ind", "est", "lower", "upper"};
   for (int k = 0; k < 5; ++k) cn[k] = ccol(data, c[an[k]], an[k]);
@@ -681,21 +695,22 @@ V f_welprof(const Cx &c) {
   nofn(wv, "well");
   nofn(dv0, "distress");
   nofn(dom, "domain");
+  if (bad()) return {};
   const std::vector<std::string> ind = tl(*col(data, cn[1]));
-  if (!isstr(wv)) stop("`well` must name indicators of `data`");
-  if (!isstr(dv0)) stop("`distress` must name indicators of `data`");
+  if (!isstr(wv)) return stop("`well` must name indicators of `data`");
+  if (!isstr(dv0)) return stop("`distress` must name indicators of `data`");
   std::vector<std::string> well, dis;
   for (const std::string &s : wv.s) well.push_back(trim(s));
   for (const std::string &s : dv0.s) dis.push_back(trim(s));
   for (const std::string &s : well) {
-    if (in(s, dis)) stop("an indicator cannot be both one of wellness and one of distress");
+    if (in(s, dis)) return stop("an indicator cannot be both one of wellness and one of distress");
   }
   std::vector<std::string> both = well, miss;
   both.insert(both.end(), dis.begin(), dis.end());
   for (const std::string &s : uniq(both)) {
     if (!in(s, ind)) miss.push_back(s);
   }
-  if (!miss.empty()) stop("not an indicator of `data`: %s", tostr(miss).c_str());
+  if (!miss.empty()) return stop("not an indicator of `data`: %s", tostr(miss).c_str());
   V dm = dom;
   if (dm.t == V::LIST && dm.js) {
     V d;
@@ -714,9 +729,10 @@ V f_welprof(const Cx &c) {
     }
   }
   if (dm.t != V::NUL && (dm.t != V::STR || dm.nm.empty())) {
-    stop("`domain` must be a named character vector: indicator = domain");
+    return stop("`domain` must be a named character vector: indicator = domain");
   }
   std::vector<double> est = num(*col(data, cn[2]), "est");
+  if (bad()) return {};
   const std::vector<std::string> q = quality(c, data, qn1, ind.size());
   const std::size_t n = ind.size();
   std::vector<std::string> domv(n);
@@ -733,6 +749,7 @@ V f_welprof(const Cx &c) {
     }
   }
   const std::vector<double> lr = num(*col(data, cn[3]), "lower"), hr = num(*col(data, cn[4]), "upper");
+  if (bad()) return {};
   std::vector<double> lo(n), hi(n);
   std::vector<char> keep(n);
   const std::vector<std::string> g = tl(*col(data, cn[0]));
@@ -784,7 +801,7 @@ V f_welprof(const Cx &c) {
 
 V f_holbal(const Cx &c) {
   const V &data = c["data"];
-  if (!isdf(data)) stop("`data` must be a data frame");
+  if (!isdf(data)) return stop("`data` must be a data frame");
   const std::string gc = ccol(data, c["grp"], "grp"), dc = ccol(data, c["domain"], "domain"),
                     ec = ccol(data, c["est"], "est"), lc = ccol(data, c["lower"], "lower"),
                     uc = ccol(data, c["upper"], "upper");
@@ -792,11 +809,13 @@ V f_holbal(const Cx &c) {
   if (c.has("qual")) qn1 = ccol(data, c["qual"], "qual");
   const int reps = static_cast<int>(scalar(c["reps"], "reps", 100, 1e6, true, 10000));
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const double z = qn(cl);
   const std::vector<std::string> g = tl(*col(data, gc));
   const Lab dml = tlab(*col(data, dc));
   std::vector<double> raw = num(*col(data, ec), "est");
   const std::vector<double> lr = num(*col(data, lc), "lower"), hr = num(*col(data, uc), "upper");
+  if (bad()) return {};
   {
     bool anyf = false, all1 = true;
     for (double x : raw) {
@@ -805,7 +824,7 @@ V f_holbal(const Cx &c) {
         all1 = all1 && x <= 1;
       }
     }
-    if (anyf && all1) stop("the estimates are all at or below 1: are they proportions? give percentages (0 to 100)");
+    if (anyf && all1) return stop("the estimates are all at or below 1: are they proportions? give percentages (0 to 100)");
   }
   const std::size_t n = g.size();
   const std::vector<std::string> q = quality(c, data, qn1, n);
@@ -829,11 +848,12 @@ V f_holbal(const Cx &c) {
   }
   doms = uniq(doms);
   const std::size_t k = doms.size();
-  if (k < 2) stop("balance needs two domains at least");
+  if (k < 2) return stop("balance needs two domains at least");
   V wv = c["w"];
   std::vector<double> w(k, 1);
   if (wv.t != V::NUL) {
     nofn(wv, "w");
+    if (bad()) return {};
     if (wv.t == V::LIST && wv.js) {
       V d;
       d.t = V::DBL;
@@ -849,6 +869,7 @@ V f_holbal(const Cx &c) {
     std::vector<double> x;
     if (!bad) {
       x = num(wv, "w");
+      if (igh::bad()) return {};
       std::set<std::string> a(wv.nm.begin(), wv.nm.end()), b(doms.begin(), doms.end());
       bad = a != b;
       double s = 0;
@@ -858,7 +879,7 @@ V f_holbal(const Cx &c) {
       }
       bad = bad || !(s > 0);
     }
-    if (bad) stop("`w` must be non-negative numbers named by the domains (%s), not all zero", tostr(doms).c_str());
+    if (bad) return stop("`w` must be non-negative numbers named by the domains (%s), not all zero", tostr(doms).c_str());
     for (std::size_t m = 0; m < k; ++m) {
       for (std::size_t j = 0; j < wv.nm.size(); ++j) {
         if (wv.nm[j] == doms[m]) {
@@ -898,10 +919,11 @@ V f_holbal(const Cx &c) {
     }
   }
   for (double v : lev) {
-    if (!std::isnan(v) && (v <= 0 || v >= 1)) stop("domain levels must be percentages strictly between 0 and 100");
+    if (!std::isnan(v) && (v <= 0 || v >= 1)) return stop("domain levels must be percentages strictly between 0 and 100");
   }
   std::uint32_t sd = 1;
   if (!seedarg(c["seed"], sd)) sd = 1;
+  if (bad()) return {};
   Rng rg(sd);
   const double a = (1 - cl) / 2;
   std::vector<double> ol(ng), oll(ng), olu(ng), ob(ng), obl(ng), obu(ng);
@@ -979,8 +1001,9 @@ V f_dualcont(const Cx &c) {
     from = true;
     for (const char *n : need) from = from && col(x, n);
   }
-  if (!from) stop("`x` must come from welprof()");
+  if (!from) return stop("`x` must come from welprof()");
   const std::string well = str1(c["well"], "well"), dis = str1(c["distress"], "distress");
+  if (bad()) return {};
   const Lab gl = lab(*col(x, "group")), il = lab(*col(x, "indicator")), sl = lab(*col(x, "side"));
   const std::size_t n = gl.n();
   bool hw = false, hd = false;
@@ -988,15 +1011,17 @@ V f_dualcont(const Cx &c) {
     hw = hw || (!il.na[j] && !sl.na[j] && il.s[j] == well && sl.s[j] == "wellness");
     hd = hd || (!il.na[j] && !sl.na[j] && il.s[j] == dis && sl.s[j] == "distress");
   }
-  if (!hw) stop("\"%s\" is not a wellness indicator of `x`", well.c_str());
-  if (!hd) stop("\"%s\" is not a distress indicator of `x`", dis.c_str());
+  if (!hw) return stop("\"%s\" is not a wellness indicator of `x`", well.c_str());
+  if (!hd) return stop("\"%s\" is not a distress indicator of `x`", dis.c_str());
   const double cl = conf(c["conflvl"], "conflvl", 0.95);
+  if (bad()) return {};
   const double z = qn(cl);
   std::vector<std::string> gs(n);
   for (std::size_t j = 0; j < n; ++j) gs[j] = gl.na[j] ? "\x01NA" : gl.s[j];
   const std::vector<std::string> groups = uniq(gs);
   const std::vector<double> est = num(*col(x, "estimate"), "estimate"), lo = num(*col(x, "lower"), "lower"),
                             hi = num(*col(x, "upper"), "upper");
+  if (bad()) return {};
   const V &ucv = *col(x, "usewithcau");
   const double NA = na();
   // the row of indicator ind for each group, or none
