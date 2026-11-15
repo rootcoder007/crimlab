@@ -199,3 +199,93 @@ test_that("lvfit() follows its formulas", {
   expect_output(print(f), "lvfit:")
   expect_s3_class(summary(f), "summary.svfit")
 })
+
+# The fits below are compared with stats::arima() on the training values
+# (the default method, CSS for the start, then exact maximum likelihood,
+# with the same BFGS steps) and predict() for the forecasts.
+ts_y <- c(52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49,
+  52, 71, 74, 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58,
+  60, 57, 70, 64)
+ts_cmp <- function(y, order, seasonal, tol, h = 4L) {
+  r <- sarfc(y, h, order = order, seasonal = seasonal)
+  f <- stats::arima(y[seq_len(length(y) - h)], order = order,
+                    seasonal = list(order = seasonal[1:3],
+                                    period = seasonal[4]))
+  expect_equal(unname(r$coef), unname(stats::coef(f)), tolerance = tol)
+  expect_equal(unname(r$fc), as.numeric(stats::predict(f, h)$pred),
+               tolerance = tol)
+  expect_equal(r$aic, f$aic, tolerance = tol)
+  r
+}
+
+test_that("sarfc() with two AR terms and a seasonal AR term is arima()", {
+  # the coefficients agree to 2e-13, the forecasts to 3e-12
+  ts_cmp(ts_y, c(2, 1, 0), c(1, 0, 0, 4), 1e-10)
+  ts_cmp(ts_y, c(2, 1, 0), c(1, 0, 0, 3), 1e-10)
+  # three AR terms and an MA term: 1e-10 in the coefficients, 2e-9 in the
+  # forecasts, so 1e-8
+  ts_cmp(ts_y, c(3, 1, 1), c(0, 0, 0, 4), 1e-8)
+})
+
+test_that("sarfc() fits a random walk and an AR(1) without CSS steps", {
+  # no ARMA term: the forecast is the last training value
+  r <- ts_cmp(ts_y, c(0, 1, 0), c(0, 0, 0, 12), 1e-12)
+  expect_identical(r$fc, rep(58, 4))
+  expect_length(r$coef, 0L)
+  # one AR term, a state of one: the variance 1 / (1 - phi^2)
+  ts_cmp(ts_y, c(1, 1, 0), c(0, 0, 0, 12), 1e-12)
+})
+
+test_that("an MA start with a root inside the unit circle is inverted", {
+  set.seed(29)
+  w <- round(rnorm(40, 50, 5))
+  # the CSS start of the twice-differenced series has a root of modulus
+  # 0.989 (stats::arima(method = "CSS")): it is moved outside first
+  css <- stats::coef(stats::arima(w[1:36], c(0, 2, 2), method = "CSS"))
+  expect_lt(min(Mod(polyroot(c(1, css)))), 1)
+  # 6e-9 from arima() in the coefficients and the forecasts, near the
+  # boundary of invertibility (an MA root of modulus 1.000002)
+  ts_cmp(w, c(0, 2, 2), c(0, 0, 0, 12), 1e-7)
+})
+
+test_that("sarfc() refuses as arima() does", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  # a constant series: the CSS objective at the start is log(0)
+  ef(sarfc(rep(5, 40), order = c(1, 1, 0), seasonal = c(0, 0, 0, 12)),
+     "sarfc: initial value in 'vmmin' is not finite")
+  # differences that grow by 10% a step: an AR coefficient of 1.1
+  g <- cumsum(1.1^(1:40))
+  ef(sarfc(g, order = c(1, 1, 0), seasonal = c(0, 0, 0, 12)),
+     "sarfc: non-stationary AR part from CSS")
+  ef(sarfc(ts_y, 4, order = c(2, 1, 0), seasonal = c(1, 0, 0, 12)),
+     "sarfc: non-stationary seasonal AR part from CSS")
+  # differences of 1e154: the sum of squares is finite at the start and
+  # overflows a step of 1e-3 away
+  d <- sqrt(0.999 * .Machine$double.xmax / 34)
+  ef(sarfc(cumsum(rep(d, 40)), 4, order = c(1, 1, 0),
+           seasonal = c(0, 0, 0, 12)),
+     "sarfc: non-finite finite-difference value [1]")
+  ef(sarfc(1:40, order = c(1, 1)),
+     "sarfc: `order` must have 3 whole numbers from 0.")
+  ef(sarfc(1:40, order = c(1, 1.5, 0)),
+     "sarfc: `order` must have 3 whole numbers from 0.")
+  ef(sarfc(1:40, seasonal = c(0, 1, 1, 0)),
+     "sarfc: the period, the fourth value of `seasonal`, must be at least 1.")
+  ef(catcor(list(a = "x", b = "x")),
+     "catcor: `units` must name two units at least.")
+  ef(ousim(1:10, npath = 1e4, days = 1e5),
+     "ousim: `npath` times the steps must be at most 1e8.")
+  ef(lvfit(c(1, 2, -1, 3, 4)), "lvfit: `y` must hold counts from 0.")
+})
+
+test_that("BUG: an AR(1) fit at the unit root is refused", {
+  # constant differences of 1e154: the likelihood drives the AR
+  # coefficient to 1, where arima() stops ("system is exactly singular")
+  # and a state of more than one gives "not stationary"
+  d <- sqrt(0.999 * .Machine$double.xmax / 38)
+  expect_error(
+    sarfc(cumsum(rep(d, 40)), 4, order = c(1, 1, 0),
+          seasonal = c(0, 0, 0, 12)),
+    "sarfc: the fitted ARMA part is not stationary.", fixed = TRUE
+  )
+})
