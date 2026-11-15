@@ -754,8 +754,9 @@ bool gap1(const Cx &c, const V &d0, const std::vector<std::size_t> &r0, const st
     hi[j] = low ? ru[j] : 1 / rl[j];
   }
   V per = period;
-  if (per.t == V::INT) per.i.assign(n, per.i[0]);
-  else if (per.t == V::DBL) per.d.assign(n, per.d[0]);
+  // assign(n, x[0]) reads x[0] after freeing it (libc++): a copy first
+  if (per.t == V::INT) per.i = std::vector<int>(n, per.i[0]);
+  else if (per.t == V::DBL) per.d = std::vector<double>(n, per.d[0]);
   else per = sv(std::vector<std::string>(n, pn));
   per.nm.clear();
   rows1.push_back(frame({"indicator", "measure", "period", "group", "estimate", "refest", "difference", "disratio",

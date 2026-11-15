@@ -1349,6 +1349,8 @@ ilt <- data.frame(period = "2017/2019", group = c("First Nations", "Inuit", "Non
                   estimate = c(74.2, 70.9, 81.8), lower = c(73.6, 69.1, 81.6), upper = c(74.8, 72.7, 82.0),
                   quality = "ok")
 ok("trchlthgap", lifeexp = ilt)
+# a numeric period: copied to every row of the result
+ok("trchlthgap", lifeexp = transform(ilt, period = 2019))
 bad("trchlthgap")
 ok("polex", seed = 3)
 bad("polex", seed = 1.5)

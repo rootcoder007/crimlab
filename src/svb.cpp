@@ -1007,7 +1007,8 @@ bool k_anomin(const Node &a, Node &out, std::string &err) {
       return false;
     }
   }
-  if (pv.size() == 1) pv.assign(z(nd), pv[0]);
+  // a copy first: assign(n, pv[0]) reads pv[0] after freeing it (libc++)
+  if (pv.size() == 1) pv = std::vector<double>(z(nd), pv[0]);
   if (static_cast<int>(pv.size()) != nd) {
     err = msg("`polarity` must give one legislator per dimension, %d.", nd);
     return false;
