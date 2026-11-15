@@ -122,3 +122,68 @@ test_that("thrtst() refuses bad input in words", {
     )
   )
 })
+
+# Counts made exactly from the model of Anwar and Fang (2006, Section 2):
+# among people of group r, a share pi carry contraband; an officer of
+# group o sees a signal N(1, 1) from the guilty and N(0, 1) from the rest
+# and searches when the chance of guilt passes t[r, o].
+afsim <- function(t, n = 1e5) {
+  pi <- c(0.2, 0.3)
+  d <- expand.grid(off = seq_len(ncol(t)), grp = seq_len(nrow(t)))
+  ph <- pi[d$grp]
+  tt <- t[cbind(d$grp, d$off)]
+  x <- (qlogis(tt) - qlogis(ph)) + 0.5
+  A <- ph * pnorm(x - 1, lower.tail = FALSE)
+  B <- (1 - ph) * pnorm(x, lower.tail = FALSE)
+  data.frame(d, stops = n, srch = n * (A + B), hits = n * A)
+}
+
+test_that("the joint rank-order test holds without prejudice only", {
+  # thresholds that depend on the officer group only: no prejudice
+  t0 <- rbind(c(0.2, 0.3), c(0.2, 0.3))
+  d <- afsim(t0)
+  r <- thrtst(d$stops, d$srch, d$hits, d$grp, off = d$off, rank = "joint")
+  expect_false(any(r$rank$rej))
+  # officers of group 1 search more often and find less, in both groups
+  expect_identical(r$rank$rank, c(1, 2, 2, 1))
+  expect_named(r$rank, c("meas", "off", "rank", "rej"))
+  # officer group 2 is the stricter with people of group 1 and the more
+  # lenient with people of group 2: prejudice, the rankings flip
+  t1 <- rbind(c(0.2, 0.3), c(0.3, 0.2))
+  d1 <- afsim(t1)
+  r1 <- thrtst(d1$stops, d1$srch, d1$hits, d1$grp, off = d1$off, rank = "joint")
+  expect_true(all(r1$rank$rej))
+  expect_true(all(is.na(r1$rank$rank)))
+  # the pairwise form agrees here
+  p1 <- thrtst(d1$stops, d1$srch, d1$hits, d1$grp, off = d1$off)
+  expect_true(all(p1$rank$rej))
+  # the test of monolithic behaviour: Pearson's chi-square by group
+  m <- r1$mono
+  k <- m$grp == "1" & m$meas == "search"
+  ct <- suppressWarnings(chisq.test(
+    cbind(d1$srch[d1$grp == 1], (d1$stops - d1$srch)[d1$grp == 1]),
+    correct = FALSE
+  ))
+  expect_equal(m$chisq[k], unname(ct$statistic), tolerance = 1e-12)
+  expect_identical(m$df[k], 1)
+  expect_null(thrtst(d$stops, d$srch, d$hits, d$grp)$mono)
+})
+
+test_that("the joint test finds a cycle that no pair shows", {
+  # search rates of officer groups a, b, c among people of groups 1, 2, 3:
+  # a > b in group 1, b > c in group 2, c > a in group 3, the rest within
+  # chance
+  sr <- c(72, 48, 60, 60, 72, 48, 48, 60, 72)
+  g <- rep(1:3, each = 3)
+  o <- rep(c("a", "b", "c"), 3)
+  r <- thrtst(rep(600, 9), sr, sr / 2, g, off = o, rank = "joint")
+  expect_true(all(r$rank$rej[r$rank$meas == "search"]))
+  expect_false(any(r$rank$rej[r$rank$meas == "hit"]))
+  # the one-sided z of equation 7 for a against b in group 1
+  pa <- 72 / 600
+  pb <- 48 / 600
+  z <- (pa - pb) / sqrt(pa * (1 - pa) / 599 + pb * (1 - pb) / 599)
+  expect_gt(z, qnorm(0.95))
+  p <- thrtst(rep(600, 9), sr, sr / 2, g, off = o)
+  expect_false(any(p$rank$rej))
+})

@@ -211,7 +211,7 @@ test_that("every exported function answers one valid call in its shape", {
            "coverage", "pod", "pos", "cumpos")),
     list(quote(srchfig()), c("fig", "caption", "how", "yours")),
     list(quote(thrtst(c(10, 10), c(2, 3), c(1, 1), c(1, 2))),
-         c("hit", "kpt", "thr", "lrt", "fit", "cells", "rank", "ref")),
+         c("hit", "kpt", "thr", "lrt", "fit", "cells", "rank", "ref", "mono")),
     list(quote(vodtst(c(w = 6, b = 4), c(5, 5), shift = c(1, 2))),
                   c("group", "ref", "shday", "shnight", "ratio",
                     "sign", "adj")),

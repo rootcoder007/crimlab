@@ -1002,6 +1002,8 @@ ok("thrtst", stops = c(100, 100, 80), srch = c(20, 40, 16), hits = c(8, 10, 4), 
 ok("thrtst", stops = tsd$stops, srch = tsd$srch, hits = tsd$hits, grp = tsd$grp, area = tsd$area, maxit = 1)
 ok("thrtst", stops = c(100, 100, 100, 100), srch = c(10, 20, 30, 10), hits = c(5, 5, 5, 5), grp = c(1, 1, 2, 2),
    off = c("x", "y", "x", "y"), level = 0.9)
+ok("thrtst", stops = rep(600, 9), srch = c(72, 48, 60, 60, 72, 48, 48, 60, 72), hits = rep(c(36, 24, 30), 3),
+   grp = rep(1:3, each = 3), off = rep(c("a", "b", "c"), 3), rank = "joint")
 bad("thrtst", stops = c(10, 10), srch = c(11, 1), hits = c(1, 1), grp = c(1, 2))
 
 # Internal benchmarking of officers

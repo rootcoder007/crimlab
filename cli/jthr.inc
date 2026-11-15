@@ -38,6 +38,9 @@ bool thrtst(Ctx &c, Val &out) {
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   int mi = 0;
   CK(wholed(c, "maxit", 2000, 1, mi));
+  static const char *const rko[] = {"pair", "joint"};
+  int rk = 0;
+  if (c.has("rank")) CK(pick(c, c["rank"], "rank", rko, 2, rk));
   const int ng = g.g, in = static_cast<int>(n);
   std::vector<double> tk(zz(ng), 0.0);
   for (std::size_t i = 0; i < n; ++i) tk[zz(g.code[i])] += kv[i];
@@ -130,14 +133,46 @@ bool thrtst(Ctx &c, Val &out) {
     put(out, "fit", Val());
     put(out, "cells", Val());
   }
+  Val monov;
   if (c.has("off")) {
     Lab o;
     CK(codes(c, c["off"], "off", n, o));
     if (o.g < 2) return c.fail("`off` must hold at least two officer groups.");
     const int no = o.g, npair = no * (no - 1);
-    std::vector<double> rate(5 * zz(no) * zz(ng)), res(3 * zz(npair));
-    CK(kchk(c, clab_thrrk(sv.p(), kv.p(), hv.p(), o.code.data(), g.code.data(), in, no, ng, z, rate.data(),
-                          res.data())));
+    std::vector<double> rate(5 * zz(no) * zz(ng)), res(3 * zz(npair)), mono(6 * zz(ng)), jt(2 * (1 + zz(no)));
+    CK(kchk(c, clab_thrrk(sv.p(), kv.p(), hv.p(), o.code.data(), g.code.data(), in, no, ng, z, qnorm(lv),
+                          rate.data(), res.data(), mono.data(), jt.data())));
+    Frame mo;
+    std::vector<int> mg;
+    std::vector<std::string> mm;
+    for (int j = 0; j < ng; ++j) {
+      mg.insert(mg.end(), {j, j});
+      mm.insert(mm.end(), {"search", "hit"});
+    }
+    mo.add("grp", vstrs(g.lev, mg));
+    mo.str("meas", mm);
+    static const char *const mn2[] = {"chisq", "df", "p"};
+    for (int q = 0; q < 3; ++q) mo.num(mn2[q], nav(&mono[zz(q) * 2 * zz(ng)], 2 * zz(ng)));
+    monov = mo.o;
+    if (rk == 1) {
+      Frame r;
+      std::vector<int> jo, rj;
+      std::vector<std::string> jm;
+      std::vector<double> rr;
+      for (int ms = 0; ms < 2; ++ms) {
+        for (int x = 0; x < no; ++x) {
+          jo.push_back(x);
+          jm.push_back(ms ? "hit" : "search");
+          rr.push_back(na(jt[2 * (1 + zz(x)) + zz(ms)]));
+          rj.push_back(jt[zz(ms)] > 0);
+        }
+      }
+      r.str("meas", jm);
+      r.add("off", vstrs(o.lev, jo));
+      r.num("rank", rr);
+      r.lgl("rej", rj.data(), rj.size());
+      put(out, "rank", r.o);
+    } else {
     std::vector<int> a1, a2, rj;
     std::vector<std::string> me;
     for (int x = 0; x < no; ++x) {
@@ -158,9 +193,11 @@ bool thrtst(Ctx &c, Val &out) {
     r.num("zmax", nav(&res[zz(npair)], zz(npair)));
     r.lgl("rej", rj.data(), zz(npair));
     put(out, "rank", r.o);
+    }
   } else {
     put(out, "rank", Val());
   }
   put(out, "ref", vstr(g.lev[zz(rf - 1)]));
+  put(out, "mono", monov);
   return true;
 }

@@ -29,7 +29,7 @@ SEXP labsel(SEXP lev, const std::vector<int> &code) {
 extern "C" {
 
 SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP off, SEXP ref,
-                     SEXP level, SEXP maxit) {
+                     SEXP level, SEXP maxit, SEXP rank) {
   clab::who = "thrtst";
   int np = 0;
   SEXP sv = PROTECT(bj::nums(stops, "stops", -1, 0.0));
@@ -62,6 +62,8 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
   const int rf = Rf_isNull(ref) ? 1 : clab::ref(ref, g.lev, g.g);
   const double lv = clab::one(level, "level", 0.0, 1.0);
   const int mi = clab::whole(maxit, "maxit", 1);
+  static const char *const rko[] = {"pair", "joint"};
+  const int rk = csp::pick(rank, "rank", rko, 2);
   const int ng = g.g;
   std::vector<double> tk(static_cast<std::size_t>(ng), 0.0);
   for (int i = 0; i < n; ++i) tk[static_cast<std::size_t>(INTEGER(g.code)[i])] += REAL(kv)[i];
@@ -103,7 +105,7 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
     double *c = h.dbl(zn[q]);
     for (int j = 0; j < ng; ++j) c[j] = bj::na(hz[static_cast<std::size_t>(q) * un + j]);
   }
-  SEXP out = PROTECT(Rf_allocVector(VECSXP, 8));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 9));
   ++np;
   SET_VECTOR_ELT(out, 0, h.done());
   static const char *const kn[] = {"chisq", "df", "p"};
@@ -167,10 +169,49 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
     if (o.g < 2) fail("`off` must hold at least two officer groups.");
     const int no = o.g, npair = no * (no - 1);
     std::vector<double> rate(5 * static_cast<std::size_t>(no) * ng), res(3 * static_cast<std::size_t>(npair));
+    std::vector<double> mono(6 * static_cast<std::size_t>(ng)), jt(2 * (1 + static_cast<std::size_t>(no)));
     const int r2 = clab_thrrk(REAL(sv), REAL(kv), REAL(hv), INTEGER(o.code), INTEGER(g.code), n, no, ng, z,
-                              rate.data(), res.data());
+                              Rf_qnorm5(lv, 0.0, 1.0, 1, 0), rate.data(), res.data(), mono.data(), jt.data());
     clab::ichk(r2);
     bj::kc(r2, "the kernel refused the input.");
+    // the test of monolithic behaviour: one row per suspect group and
+    // measure
+    std::vector<int> mg;
+    for (int j = 0; j < ng; ++j) mg.insert(mg.end(), {j, j});
+    bj::cols mo(5, 2 * ng);
+    mo.put("grp", labsel(g.lev, mg));
+    SEXP mm = PROTECT(Rf_allocVector(STRSXP, 2 * ng));
+    ++np;
+    for (int k = 0; k < 2 * ng; ++k) SET_STRING_ELT(mm, k, Rf_mkChar(k % 2 ? "hit" : "search"));
+    mo.put("meas", mm);
+    static const char *const mn2[] = {"chisq", "df", "p"};
+    for (int q = 0; q < 3; ++q) {
+      double *c = mo.dbl(mn2[q]);
+      for (int k = 0; k < 2 * ng; ++k) c[k] = bj::na(mono[static_cast<std::size_t>(q) * 2 * ng + k]);
+    }
+    SET_VECTOR_ELT(out, 8, mo.done());
+    ++np;
+    if (rk == 1) {
+      // the joint test: one row per measure and officer group
+      std::vector<int> jo;
+      for (int ms = 0; ms < 2; ++ms) {
+        for (int x = 0; x < no; ++x) jo.push_back(x);
+      }
+      bj::cols r(4, 2 * no);
+      SEXP jm = PROTECT(Rf_allocVector(STRSXP, 2 * no));
+      ++np;
+      for (int k = 0; k < 2 * no; ++k) SET_STRING_ELT(jm, k, Rf_mkChar(k < no ? "search" : "hit"));
+      r.put("meas", jm);
+      r.put("off", labsel(o.lev, jo));
+      double *rr = r.dbl("rank");
+      int *rj = r.lgl("rej");
+      for (int k = 0; k < 2 * no; ++k) {
+        const int ms = k < no ? 0 : 1, x = k % no;
+        rr[k] = bj::na(jt[2 * (1 + static_cast<std::size_t>(x)) + ms]);
+        rj[k] = jt[static_cast<std::size_t>(ms)] > 0;
+      }
+      SET_VECTOR_ELT(out, 6, r.done());
+    } else {
     std::vector<int> a1, a2;
     for (int x = 0; x < no; ++x) {
       for (int y = x + 1; y < no; ++y) {
@@ -195,12 +236,13 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
       rj[k] = res[static_cast<std::size_t>(2 * npair + k)] > 0;
     }
     SET_VECTOR_ELT(out, 6, r.done());
+    }
   }
   SEXP rl = PROTECT(Rf_allocVector(STRSXP, 1));
   ++np;
   SET_STRING_ELT(rl, 0, STRING_ELT(g.lev, rf - 1));
   SET_VECTOR_ELT(out, 7, rl);
-  static const char *const on[] = {"hit", "kpt", "thr", "lrt", "fit", "cells", "rank", "ref"};
+  static const char *const on[] = {"hit", "kpt", "thr", "lrt", "fit", "cells", "rank", "ref", "mono"};
   bj::named(out, on);
   Rf_classgets(out, PROTECT(Rf_mkString("thrtst")));
   ++np;

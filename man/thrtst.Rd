@@ -13,7 +13,8 @@ thrtst(
   off = NULL,
   ref = NULL,
   level = 0.95,
-  maxit = 2000
+  maxit = 2000,
+  rank = "pair"
 )
 }
 \arguments{
@@ -40,6 +41,9 @@ between 0 and 1.}
 
 \item{maxit}{The quasi-Newton steps of each of the three starts of each
 fit: one whole number from 1.}
+
+\item{rank}{\code{"pair"} or \code{"joint"}: the rank-order test by pairs of officer
+groups or for all of them at once.}
 }
 \value{
 An object of class \code{thrtst}, a list: \code{hit}, one row per group
@@ -53,8 +57,12 @@ thresholds (\code{stat}, \code{df}, \code{p}, the log-likelihoods \code{llfull} 
 \code{llsame}, and the number of \code{cells}); \code{fit}, one row per model
 (\code{model}, \code{conv}, \code{iter}); \code{cells}, the fitted \code{phi}, \code{delta}, \code{thr},
 \code{srate} and \code{hrate} of each group and area with stops; \code{rank}, \code{NULL}
-without \code{off}, otherwise one row per pair of officer groups and
-measure (\code{off1}, \code{off2}, \code{meas}, \code{zmin}, \code{zmax}, \code{rej}); and \code{ref}.
+without \code{off}, otherwise with \code{rank = "pair"} one row per pair of
+officer groups and measure (\code{off1}, \code{off2}, \code{meas}, \code{zmin}, \code{zmax},
+\code{rej}) and with \code{rank = "joint"} one row per measure and officer group
+(\code{meas}, \code{off}, \code{rank}, \code{rej}); \code{ref}; and \code{mono}, \code{NULL} without
+\code{off}, otherwise one row per group of the people stopped and measure
+(\code{grp}, \code{meas}, \code{chisq}, \code{df}, \code{p}).
 }
 \description{
 Asks whether the police search people of one group on less evidence
@@ -91,16 +99,35 @@ delta-method standard error; the likelihood-ratio test compares the
 fit with one threshold for every group. The model is fitted only when
 it has more rates (two per group and area with stops) than parameters
 (\code{3 (groups + areas - 1)}): with \code{area} \code{NULL} it is not.
-\item The rank-order test of Anwar and Fang (2006), when \code{off} gives the
-officer's group: if officers of no group are prejudiced relative to
-the others, officers of one group search people of every group more
-often than officers of another (or less often, in every group), and
-likewise for hit rates. For each pair of officer groups and each
-measure the z statistics of the difference across the suspects'
-groups are given; \code{rej} is \code{TRUE} when one is significantly positive
-and another significantly negative at \code{level}, a ranking that changes
-with the suspect's group. This is a pairwise simplification of their
-test, not its joint form.
+\item The tests of Anwar and Fang (2006), when \code{off} gives the officer's
+group. If officers of no group are prejudiced relative to the others,
+the ranking of the officer groups by search rate is the same for
+people of every group, and likewise the ranking by hit rate
+(Proposition 3; Section 2.1.2). \code{mono} is their test of monolithic
+behaviour (Proposition 2, equations 3 and 4; Section 3.2.3): for each
+group of the people stopped and each measure, Pearson's chi-square of
+equal rates across the officer groups, on (officer groups - 1) df.
+With \code{rank = "pair"} (the default) each pair of officer groups is
+taken alone: for each measure the z statistics of the difference
+across the suspects' groups are given, and \code{rej} is \code{TRUE} when one
+is significantly positive and another significantly negative at
+\code{level} (two-sided), a ranking that changes with the suspect's group.
+With \code{rank = "joint"} the ranking of all officer groups is tested at
+once, as the paper states it: each one-sided z of their equation 7
+(the difference of two rates over the root of the sum of the sample
+variances of the 0/1 outcomes over the counts) beyond the normal
+quantile at \code{level} orders two officer groups among the people of one
+group; the null of no prejudice holds when one ranking agrees with
+every such order in every group, and is rejected (\code{rej}) when the
+orders form a cycle (a above b in one group, b above c in another, c
+above a in a third, or a reversed pair). The common \code{rank} (1 the
+highest rate, ties broken by the pooled rate) is given when it is not
+rejected. As the paper notes, the test has power below one: a group
+of officers prejudiced against every group alike is not detected. The
+paper's p-values come from the normal and chi-square distributions,
+as here; its resampling (Section 2.2) that balances the officers'
+assignment across stations needs data on single officers and is not
+done.
 }
 
 Rows are cells of a table (or single stops, with counts of 0 and 1):
@@ -118,6 +145,10 @@ thrtst(d$stops, d$srch, d$hits, d$grp, area = d$area)
 # the rank-order test needs the officers' groups
 thrtst(c(100, 100, 100, 100), c(10, 20, 30, 10), c(5, 5, 5, 5),
        grp = c(1, 1, 2, 2), off = c("x", "y", "x", "y"))$rank
+# the joint test of three officer groups
+thrtst(rep(600, 9), c(72, 48, 60, 60, 72, 48, 48, 60, 72),
+       rep(c(36, 24, 30), 3), grp = rep(1:3, each = 3),
+       off = rep(c("a", "b", "c"), 3), rank = "joint")$rank
 }
 \references{
 Knowles, J., Persico, N. and Todd, P. (2001). Racial bias in motor

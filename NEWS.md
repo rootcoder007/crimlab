@@ -42,6 +42,15 @@
 * `polex()` makes the simulated policy panel the examples of the policy
   functions use: twenty districts, 36 months and a staged reform with a
   known effect. The same seed gives the same panel in every front end.
+* `thrtst()` gains `rank = "joint"`, the rank-order test of Anwar and
+  Fang (2006) as the paper states it: the ranking of all officer groups
+  is tested at once by their one-sided z statistics, and the null of no
+  relative prejudice is rejected when the significant orders form a
+  cycle; the common ranking is given otherwise. The pairwise form stays
+  the default. With `off`, the new element `mono` holds their test of
+  monolithic behaviour (Pearson's chi-square of equal rates across
+  officer groups, by group of the people stopped and measure).
+
 * `ibench()` gains the two methods of Ridgeway and MacDonald (2009) it
   left out: `dr = TRUE` gives the doubly robust benchmark (the
   propensity-weighted logistic regression of the outcome on the officer's

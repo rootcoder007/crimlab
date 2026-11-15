@@ -51,15 +51,45 @@ void hand(tk &T) {
   // rank order: z of -2 and 3.65 for the search rates of two officer groups
   const vd s4 = {100, 100, 100, 100}, k4 = {10, 20, 30, 10}, h4 = {5, 5, 5, 5};
   const vi o4 = {0, 1, 0, 1}, g4 = {0, 0, 1, 1};
-  vd rate(20), res(6);
+  vd rate(20), res(6), mono(12), jt(6);
   tk_ieq(T, "rk.ok",
          clab_thrrk(s4.data(), k4.data(), h4.data(), o4.data(), g4.data(), 4, 2, 2, 1.959963984540054,
-                    rate.data(), res.data()),
+                    1.6448536269514722, rate.data(), res.data(), mono.data(), jt.data()),
          CLAB_OK);
   tk_eq(T, "rk.zmin", res[0], -2.0, 1e-14);
   tk_eq(T, "rk.zmax", res[2], 0.2 / std::sqrt(0.003), 1e-14);
   tk_eq(T, "rk.rej", res[4], 1, 0);
   tk_eq(T, "rk.hit", res[5], 0, 0);
+  // the reversal also rejects the joint test of the search rates
+  tk_eq(T, "rk.jt", jt[0], 1, 0);
+  tk_nan(T, "rk.jtr", jt[2]);
+  // the chi-square of suspect group 0's search rates: 10 / 100 against
+  // 20 / 100, pooled 0.15
+  const double e1 = 15, e0 = 85;
+  tk_eq(T, "rk.mono", mono[0], 2 * (25 / e1 + 25 / e0), 1e-12);
+  tk_eq(T, "rk.mdf", mono[4], 1, 0);
+  // three officer groups whose orders form a cycle a > b, b > c, c > a,
+  // no pair reversed: rejected jointly, not pairwise
+  vd s9, k9, h9;
+  vi o9, g9;
+  const double s9r[3][3] = {{72, 48, 60}, {60, 72, 48}, {48, 60, 72}};
+  for (int j = 0; j < 3; ++j) {
+    for (int x = 0; x < 3; ++x) {
+      s9.push_back(600);
+      k9.push_back(s9r[j][x]);
+      h9.push_back(s9r[j][x] / 2);
+      o9.push_back(x);
+      g9.push_back(j);
+    }
+  }
+  vd r9(45), q9(18), m9(18), j9(8);
+  tk_ieq(T, "rk.cyc",
+         clab_thrrk(s9.data(), k9.data(), h9.data(), o9.data(), g9.data(), 9, 3, 3, 1.959963984540054,
+                    1.6448536269514722, r9.data(), q9.data(), m9.data(), j9.data()),
+         CLAB_OK);
+  tk_eq(T, "rk.cpair", q9[12] + q9[14] + q9[16], 0, 0);
+  tk_eq(T, "rk.cjt", j9[0], 1, 0);
+  tk_eq(T, "rk.chit", j9[1], 0, 0);
 }
 
 // counts made from the model's own search and hit rates: the fit gives

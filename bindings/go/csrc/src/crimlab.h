@@ -3074,9 +3074,17 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
  * ng x 5, cell o + no g: stops, searches, hits, search and hit rate); res
  * (no (no - 1) rows x 3, for each pair a < b and measure, search then
  * hit: the least and the greatest z over the suspect groups of a's rate
- * less b's, and 1 when one is below -zc and another above zc). */
+ * less b's, and 1 when one is below -zc and another above zc); mono (2 ng
+ * rows, suspect group j and measure ms in row 2 j + ms, x 3): Pearson's
+ * chi-square of equal rates across the officer groups, its df and p (the
+ * test of monolithic behaviour); jt (2 rows, the measures, x (1 + no)):
+ * the joint test, 1 when no ranking of the officer groups agrees with
+ * every order a one-sided z (sample variances, eq. 7) beyond zj sets in
+ * some suspect group, then each group's rank in the common ranking (1 the
+ * highest rate; NaN when rejected). */
 int clab_thrrk(const double *stops, const double *srch, const double *hits, const int *o,
-               const int *g, int n, int no, int ng, double zc, double *rate, double *res);
+               const int *g, int n, int no, int ng, double zc, double zj, double *rate, double *res,
+               double *mono, double *jt);
 /* Internal benchmarking of officers (ibn.cpp; Ridgeway and MacDonald
  * 2009, doi:10.1198/jasa.2009.0034). y: n outcomes 0 or 1; off: the
  * officer of each, in [0, no), no >= 2; x: n by p circumstances

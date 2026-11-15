@@ -1780,7 +1780,7 @@ const Ent ents[] = {
     {"pinpl", "x y? poly pop?", pinpl},
     {"arwt", "x from to area? id? top?", arwt},
     {"bufas", "x y? site comp r buf? lonlat?", bufas},
-    {"thrtst", "stops srch hits grp area? off? ref? level? maxit?", thrtst},
+    {"thrtst", "stops srch hits grp area? off? ref? level? maxit? rank?", thrtst},
     {"ltrlrng", "x W model? m? navsd?", ltrlrng},
     {"swpwdth", "x p", swpwdth},
     {"srchpod", "coverage? model? m? W? effort? area?", srchpod},

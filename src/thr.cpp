@@ -4,7 +4,7 @@
 // test of Knowles, Persico and Todd (2001), the threshold test with the
 // discriminant distributions of Pierson, Corbett-Davies and Goel (2018)
 // fitted by maximum likelihood, and the rank-order test of Anwar and Fang
-// (2006).
+// (2006), pairwise and joint.
 #include <cmath>
 #include <vector>
 
@@ -320,8 +320,9 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
 }
 
 int clab_thrrk(const double *stops, const double *srch, const double *hits, const int *o,
-               const int *g, int n, int no, int ng, double zc, double *rate, double *res) {
-  if (n < 1 || no < 2 || ng < 2 || !(zc > 0)) return CLAB_EARG;
+               const int *g, int n, int no, int ng, double zc, double zj, double *rate, double *res,
+               double *mono, double *jt) {
+  if (n < 1 || no < 2 || ng < 2 || !(zc > 0) || !(zj > 0)) return CLAB_EARG;
   if (static_cast<long long>(no) * ng > 50000000LL) return CLAB_EARG;
   const std::size_t nc = static_cast<std::size_t>(no) * ng;
   // rate: nc x 5 (cell o + no g): stops, searches, hits, search and hit rate
@@ -369,6 +370,97 @@ int clab_thrrk(const double *stops, const double *srch, const double *hits, cons
         ++row;
       }
     }
+  }
+  // mono: ng x 2 rows (suspect group j, measure ms: row 2 j + ms) x 3:
+  // Pearson's chi-square of equal rates across the officer groups (Anwar
+  // and Fang 2006, Section 3.2.3), its df and p
+  const int nm = 2 * ng;
+  for (int j = 0; j < ng; ++j) {
+    for (int ms = 0; ms < 2; ++ms) {
+      double N = 0, K = 0;
+      int used = 0;
+      for (int x = 0; x < no; ++x) {
+        const std::size_t c = static_cast<std::size_t>(x) + static_cast<std::size_t>(no) * j;
+        const double d = rate[(ms ? nc : 0) + c];
+        if (!(d > 0)) continue;
+        N += d;
+        K += rate[(ms ? 2 * nc : nc) + c];
+        ++used;
+      }
+      const int row = 2 * j + ms;
+      const double pp = N > 0 ? K / N : kutil::nan();
+      if (used < 2 || !(pp > 0 && pp < 1)) {
+        mono[row] = mono[nm + row] = mono[2 * nm + row] = kutil::nan();
+        continue;
+      }
+      double x2 = 0;
+      for (int x = 0; x < no; ++x) {
+        const std::size_t c = static_cast<std::size_t>(x) + static_cast<std::size_t>(no) * j;
+        const double d = rate[(ms ? nc : 0) + c];
+        if (!(d > 0)) continue;
+        const double o1 = rate[(ms ? 2 * nc : nc) + c], e1 = d * pp, o0 = d - o1, e0 = d - e1;
+        x2 += (o1 - e1) * (o1 - e1) / e1 + (o0 - e0) * (o0 - e0) / e0;
+      }
+      mono[row] = x2;
+      mono[nm + row] = used - 1;
+      mono[2 * nm + row] = clab_pchisq(x2, used - 1, 0);
+    }
+  }
+  // jt: 2 rows (measure) x (1 + no): the joint verdict and, when there is
+  // one, the common rank of each officer group (1 the highest rate). Each
+  // one-sided z of eq. 7 (sample variances of the 0/1 outcomes) beyond zj
+  // in a suspect group orders that pair; the null of no prejudice holds
+  // when one ranking of the officer groups agrees with every such order
+  // in every suspect group (Section 2.1.2), so it is rejected when the
+  // orders form a cycle.
+  for (int ms = 0; ms < 2; ++ms) {
+    std::vector<char> ab(static_cast<std::size_t>(no) * no, 0);  // ab[x no + y]: x above y
+    for (int j = 0; j < ng; ++j) {
+      for (int x = 0; x < no; ++x) {
+        for (int y = 0; y < no; ++y) {
+          if (x == y) continue;
+          const std::size_t cx = static_cast<std::size_t>(x) + static_cast<std::size_t>(no) * j;
+          const std::size_t cy = static_cast<std::size_t>(y) + static_cast<std::size_t>(no) * j;
+          const double nx = rate[(ms ? nc : 0) + cx], ny = rate[(ms ? nc : 0) + cy];
+          if (!(nx > 1) || !(ny > 1)) continue;
+          const double px = rate[(3 + ms) * nc + cx], py = rate[(3 + ms) * nc + cy];
+          const double se = std::sqrt(px * (1 - px) / (nx - 1) + py * (1 - py) / (ny - 1));
+          if (se > 0 && (px - py) / se > zj) ab[static_cast<std::size_t>(x) * no + y] = 1;
+        }
+      }
+    }
+    // Kahn's order: take the groups with nobody required above them, the
+    // highest pooled rate first; a cycle leaves groups untaken
+    std::vector<double> pr(static_cast<std::size_t>(no), 0.0);
+    for (int x = 0; x < no; ++x) {
+      double d = 0, k = 0;
+      for (int j = 0; j < ng; ++j) {
+        const std::size_t c = static_cast<std::size_t>(x) + static_cast<std::size_t>(no) * j;
+        d += rate[(ms ? nc : 0) + c];
+        k += rate[(ms ? 2 * nc : nc) + c];
+      }
+      pr[static_cast<std::size_t>(x)] = d > 0 ? k / d : -1.0;
+    }
+    std::vector<char> done(static_cast<std::size_t>(no), 0);
+    std::vector<int> rk(static_cast<std::size_t>(no), 0);
+    int taken = 0;
+    for (; taken < no; ++taken) {
+      int best = -1;
+      for (int x = 0; x < no; ++x) {
+        if (done[static_cast<std::size_t>(x)]) continue;
+        bool free = true;
+        for (int y = 0; y < no && free; ++y) {
+          if (!done[static_cast<std::size_t>(y)] && ab[static_cast<std::size_t>(y) * no + x]) free = false;
+        }
+        if (free && (best < 0 || pr[static_cast<std::size_t>(x)] > pr[static_cast<std::size_t>(best)])) best = x;
+      }
+      if (best < 0) break;
+      done[static_cast<std::size_t>(best)] = 1;
+      rk[static_cast<std::size_t>(best)] = taken + 1;
+    }
+    const bool rej = taken < no;
+    jt[ms] = rej ? 1.0 : 0.0;
+    for (int x = 0; x < no; ++x) jt[2 * (1 + x) + ms] = rej ? kutil::nan() : rk[static_cast<std::size_t>(x)];
   }
   return CLAB_OK;
 }
