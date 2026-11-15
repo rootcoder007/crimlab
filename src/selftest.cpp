@@ -263,6 +263,7 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_thr(t, 0);
   t_sar(t, 0);
   t_apol(t, 0);
+  t_apx(t, 0);
   t_skch(t, 0);
   t_fp(t, 0);
   t_plr(t, 0);
@@ -541,6 +542,7 @@ int main(int argc, char **argv) {
     t_thr(t, 1);
     t_sar(t, 1);
     t_apol(t, 1);
+    t_apx(t, 1);
     t_skch(t, 1);
     t_fp(t, 1);
     t_plr(t, 1);

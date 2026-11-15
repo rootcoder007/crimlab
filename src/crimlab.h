@@ -1899,6 +1899,47 @@ int clab_geeex(const double *y, const double *x, int n, int p, const double *off
                const int *cl, int ncl, const int *alias, int maxit, double eps,
                double *beta, double *vc, double *st, double *work, int *iwork);
 
+/* Separation by the fixed effects (ppmlfe): a row whose group in f1 (n1
+ * codes) or in f2 (NULL, or n2 codes) has no counts at all is dropped, as
+ * fixest's fepois and Stata's ppmlhdfe drop them: its effect would run
+ * off to minus infinity and it carries nothing for the other
+ * coefficients. Separation by the regressors is not detected. Out:
+ * keep (n), 1 to keep and 0 to drop. Returns the rows dropped, or -1 for a
+ * code out of range. work: n1 + n2 doubles. O(n). */
+int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int n2,
+               int *keep, double *work);
+
+/* Poisson pseudo-maximum likelihood (Santos Silva and Tenreyro 2006,
+ * doi:10.1162/rest.88.4.641) of y (n counts, at least 0, not all 0) on the
+ * p columns of x (n x p, column-major) with the effects f1 (n1 codes) and
+ * f2 (NULL or n2 codes) absorbed, not estimated as columns: each step of
+ * the iteratively reweighted least squares demeans the working response
+ * and x by the effects with weights mu (pev::within, alternating
+ * projections until the means left are below tol of each column's largest
+ * value) and solves weighted least squares, the method of Stata's
+ * ppmlhdfe (Correia, Guimaraes and Zylkin 2020), from mu = (y +
+ * mean y) / 2, until the relative change of the deviance is below eps, at
+ * most maxit steps. off: NULL or n offsets (log exposure); w: NULL or n
+ * positive frequency weights. Run clab_fesep first: a group of zeros
+ * leaves the fit converging slowly towards a boundary. cl: NULL (no
+ * variance; vc not written) or n cluster codes (ncl >= 2); cl2: NULL or a
+ * second set (two-way, Cameron, Gelbach and Miller 2011,
+ * doi:10.1198/jbes.2010.07136): vc (p x p) is (X~'WX~)^-1 (sum_g s_g
+ * s_g') (X~'WX~)^-1 at the final mu, s_g the clusters' sums of w (y - mu)
+ * x~, x~ the demeaned columns, V1 + V2 - V12 for two-way, every term times
+ * G / (G - 1) of G the smaller number of clusters (fixest's ssc(K.adj =
+ * FALSE, G.df = "min")). Out: beta (p); st (6): steps, converged (1 or
+ * 0), deviance, the pseudo log-likelihood, G, the most sweeps of the
+ * within transformation. CLAB_EDOM when a column of x is absorbed by the
+ * effects or the columns are collinear, or the transformation does not
+ * converge in 10000 sweeps. work: n (2 p + 8) + 3 p p + p + 4 (n1 + n2)
+ * doubles; iwork: n + ncl ncl2 ints (two-way only). */
+int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *off,
+                const double *w, const int *f1, int n1, const int *f2, int n2,
+                const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
+                double tol, double *beta, double *vc, double *st, double *work, int *iwork);
+
+
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect
  * standardisation.
