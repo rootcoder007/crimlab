@@ -167,7 +167,7 @@
 #' @param tol Positive number: the bisection tolerance on log lambda.
 #' @param wts For \code{datum = "general"}: a non-negative matrix of cell
 #'   weights, one row per \code{y} cell and one column per \code{x} cell.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return \code{ltrlrng()}: a numeric vector of class \code{ltrlrng} (the
 #'   detection probabilities, with the inputs as attributes;
 #'   \code{as.numeric()} drops them). \code{srchpod()}: a numeric vector of
@@ -289,8 +289,6 @@ ltrlrng <- function(
   )
 }
 
-.sarlm <- function(model) match(model, c("invcube", "definite", "mbeta")) - 1L
-
 #' @rdname ltrlrng
 #' @export
 swpwdth <- function(x, p = NULL) {
@@ -310,33 +308,6 @@ swpwdth <- function(x, p = NULL) {
     )
   }
   .Call(C_clab_r_sarsw, x, as.vector(p))
-}
-
-# Grid edges or abscissae: at least two, strictly increasing.
-.sarincr <- function(x, what, fn) {
-  if (!is.null(dim(x))) {
-    .ckstop(fn, "`%s` must be a vector of edges, not a matrix", what)
-  }
-  v <- .cknum(x, what, fn, scalar = FALSE)
-  if (length(v) < 2L || is.unsorted(v, strictly = TRUE)) {
-    .ckstop(fn, "`%s` must hold at least two strictly increasing values", what)
-  }
-  v
-}
-
-# Containment probabilities: each in [0, 1], one positive, sum at most 1.
-.sarpoc <- function(poc, fn) {
-  poc <- .cknum(poc, "poc", fn, scalar = FALSE, min = 0, max = 1)
-  if (sum(poc) > 1 + 1e-9) {
-    .ckstop(fn, "`poc` must sum to at most 1, got %s", format(sum(poc)))
-  }
-  if (!any(poc > 0)) {
-    .ckstop(
-      fn,
-      "`poc` must have at least one cell with a positive probability"
-    )
-  }
-  poc
 }
 
 #' @rdname ltrlrng
@@ -485,51 +456,10 @@ datumpmap <- function(
     .ckstop(f, "`center` must be two numbers, x and y")
   }
   sigma <- .cknum(sigma, "sigma", f, positive = TRUE)
-  if (datum %in% c("line", "area", "corridor")) {
-    if (is.null(end)) {
-      .ckstop(f, "a %s datum needs `end`, two numbers", datum)
-    }
-    end <- .cknum(end, "end", f, scalar = FALSE)
-    if (length(end) != 2L) .ckstop(f, "`end` must be two numbers, x and y")
-  }
+  end <- .dmend(datum, end, f)
   nodes <- .cknum(nodes, "nodes", f, min = 2, max = 1000, whole = TRUE)
-  nx <- length(xedg) - 1L
-  ny <- length(yedg) - 1L
-  if (datum == "corridor") {
-    if (center[2L] != end[2L] && center[1L] != end[1L]) {
-      .ckstop(f, "a corridor datum must run along x or along y")
-    }
-    if (identical(center, end)) {
-      .ckstop(f, "a corridor datum needs `center` and `end` to differ")
-    }
-  }
-  if (datum == "area" && (center[1L] == end[1L] || center[2L] == end[2L])) {
-    .ckstop(
-      f,
-      "an area datum needs `center` and `end` to differ in x and in y"
-    )
-  }
-  w <- NULL
-  if (datum == "general") {
-    if (is.null(wts)) {
-      .ckstop(f, "a general datum needs `wts`, a matrix of cell weights")
-    }
-    w <- .cknum(wts, "wts", f, scalar = FALSE, min = 0)
-    if (!identical(dim(w), c(ny, nx))) {
-      .ckstop(
-        f,
-        paste0(
-          "`wts` must be a matrix with one row per y cell (%d) and one ",
-          "column per x cell (%d)"
-        ),
-        ny,
-        nx
-      )
-    }
-    if (!any(w > 0)) {
-      .ckstop(f, "`wts` must have at least one positive weight")
-    }
-  }
+  .dmshape(datum, center, end, f)
+  w <- if (datum == "general") .dmwts(wts, xedg, yedg, f)
   grid <- .Call(
     C_clab_r_sarmap, xedg, yedg, match(datum, ch) - 1L, center, sigma,
     if (is.null(end)) c(0, 0) else end, as.integer(nodes), w
@@ -583,18 +513,7 @@ opteffort <- function(poc, area = NULL, W, effort, tol = 1e-14) {
     poc <- poc$poc
   }
   poc <- .sarpoc(poc, f)
-  if (is.null(area)) {
-    .ckstop(f, "`area` must be given, one positive number per cell")
-  }
-  area <- .cknum(area, "area", f, scalar = FALSE, positive = TRUE)
-  if (length(area) != length(poc)) {
-    .ckstop(
-      f,
-      "`area` must have one value per cell of `poc` (%d), got %d",
-      length(poc),
-      length(area)
-    )
-  }
+  area <- .oparea(area, poc, f)
   W <- .cknum(W, "W", f, positive = TRUE)
   effort <- .cknum(effort, "effort", f, min = 0)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
@@ -622,20 +541,6 @@ opteffort <- function(poc, area = NULL, W, effort, tol = 1e-14) {
     ),
     class = "opteffort"
   )
-}
-
-.sarname <- function(model) {
-  c(
-    invcube = "inverse cube",
-    definite = "definite range",
-    mbeta = "M-Beta",
-    random = "random search",
-    corridor = "corridor",
-    general = "generalized",
-    point = "point",
-    line = "line",
-    area = "area"
-  )[[model]]
 }
 
 #' @rdname ltrlrng
@@ -797,7 +702,7 @@ print.opteffort <- function(x, ...) {
 #' @param E Positive number: the total probable error of position. Default
 #'   1.
 #' @param x An \code{optsqr} result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{optsqr} with one row per search:
 #'   \code{search}, \code{effort}, \code{releff} (effort over \code{E^2}),
 #'   \code{cumeff} (cumulative relative effort), \code{factor}, \code{side}
@@ -950,4 +855,119 @@ srchfig <- function(fig = NULL, num = NULL) {
   tab <- tab[tab$fig == fig, , drop = FALSE]
   rownames(tab) <- NULL
   tab
+}
+
+.sarlm <- function(model) match(model, c("invcube", "definite", "mbeta")) - 1L
+
+# Grid edges or abscissae: at least two, strictly increasing.
+.sarincr <- function(x, what, fn) {
+  if (!is.null(dim(x))) {
+    .ckstop(fn, "`%s` must be a vector of edges, not a matrix", what)
+  }
+  v <- .cknum(x, what, fn, scalar = FALSE)
+  if (length(v) < 2L || is.unsorted(v, strictly = TRUE)) {
+    .ckstop(fn, "`%s` must hold at least two strictly increasing values", what)
+  }
+  v
+}
+
+# Containment probabilities: each in [0, 1], one positive, sum at most 1.
+.sarpoc <- function(poc, fn) {
+  poc <- .cknum(poc, "poc", fn, scalar = FALSE, min = 0, max = 1)
+  if (sum(poc) > 1 + 1e-9) {
+    .ckstop(fn, "`poc` must sum to at most 1, got %s", format(sum(poc)))
+  }
+  if (!any(poc > 0)) {
+    .ckstop(
+      fn,
+      "`poc` must have at least one cell with a positive probability"
+    )
+  }
+  poc
+}
+
+.sarname <- function(model) {
+  c(
+    invcube = "inverse cube",
+    definite = "definite range",
+    mbeta = "M-Beta",
+    random = "random search",
+    corridor = "corridor",
+    general = "generalized",
+    point = "point",
+    line = "line",
+    area = "area"
+  )[[model]]
+}
+
+# datumpmap(): `end`, two numbers, for a line, area or corridor datum
+.dmend <- function(datum, end, f) {
+  if (datum %in% c("line", "area", "corridor")) {
+    if (is.null(end)) {
+      .ckstop(f, "a %s datum needs `end`, two numbers", datum)
+    }
+    end <- .cknum(end, "end", f, scalar = FALSE)
+    if (length(end) != 2L) .ckstop(f, "`end` must be two numbers, x and y")
+  }
+  end
+}
+
+# datumpmap(): a corridor runs along an axis, an area spans both
+.dmshape <- function(datum, center, end, f) {
+  if (datum == "corridor") {
+    if (center[2L] != end[2L] && center[1L] != end[1L]) {
+      .ckstop(f, "a corridor datum must run along x or along y")
+    }
+    if (identical(center, end)) {
+      .ckstop(f, "a corridor datum needs `center` and `end` to differ")
+    }
+  }
+  if (datum == "area" && (center[1L] == end[1L] || center[2L] == end[2L])) {
+    .ckstop(
+      f,
+      "an area datum needs `center` and `end` to differ in x and in y"
+    )
+  }
+}
+
+# datumpmap(): the cell weights of a general datum, a y-by-x matrix
+.dmwts <- function(wts, xedg, yedg, f) {
+  nx <- length(xedg) - 1L
+  ny <- length(yedg) - 1L
+  if (is.null(wts)) {
+    .ckstop(f, "a general datum needs `wts`, a matrix of cell weights")
+  }
+  w <- .cknum(wts, "wts", f, scalar = FALSE, min = 0)
+  if (!identical(dim(w), c(ny, nx))) {
+    .ckstop(
+      f,
+      paste0(
+        "`wts` must be a matrix with one row per y cell (%d) and one ",
+        "column per x cell (%d)"
+      ),
+      ny,
+      nx
+    )
+  }
+  if (!any(w > 0)) {
+    .ckstop(f, "`wts` must have at least one positive weight")
+  }
+  w
+}
+
+# opteffort(): the cells' areas, one positive number per cell of `poc`
+.oparea <- function(area, poc, f) {
+  if (is.null(area)) {
+    .ckstop(f, "`area` must be given, one positive number per cell")
+  }
+  area <- .cknum(area, "area", f, scalar = FALSE, positive = TRUE)
+  if (length(area) != length(poc)) {
+    .ckstop(
+      f,
+      "`area` must have one value per cell of `poc` (%d), got %d",
+      length(poc),
+      length(area)
+    )
+  }
+  area
 }
