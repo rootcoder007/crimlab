@@ -33,7 +33,7 @@ check can sit in front of the call: \code{clprep(prechk(d, p), p)}.
 \details{
 The codes of the shipped presets are rows of \code{codes.tsv} (in the
 installed package's \code{presets} folder): \code{agency}, \code{column}, \code{value} and
-\code{source}, one row per label. A preset named \verb{otis-...} is checked against
+\code{source}, one row per label. A preset named \code{otis-...} is checked against
 the rows of agency \code{otis}: the labels of the data dictionary of the
 Ontario Ministry of the Solicitor General for its segregation,
 restrictive confinement and deaths in custody tables, one list per column

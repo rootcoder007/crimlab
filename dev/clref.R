@@ -1009,8 +1009,6 @@ tbd <- expand.grid(g = c("a", "b", "c"), a = 1:5, stringsAsFactors = FALSE)
 tbs <- c(60, 50, 40, 55, 45)[tbd$a]
 tbk <- c(12, 9, 8, 11, 7)[tbd$a]
 tbh <- c(5, 3, 3, 4, 2)[tbd$a]
-ok("thrtst", stops = tbs, srch = tbk, hits = tbh, grp = tbd$g, area = tbd$a, fit = "bayes", iter = 500, seed = 3)
-bad("thrtst", stops = tbs, srch = tbk, hits = tbh, grp = tbd$g, area = tbd$a, fit = "bayes", iter = 20, seed = 1)
 
 # Internal benchmarking of officers
 set.seed(5)

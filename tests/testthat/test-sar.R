@@ -363,22 +363,24 @@ test_that("every function equals the reference implementation", {
     c(a$effort, a$coverage, a$pod, a$pos, a$lambda), ref$opt3,
     tolerance = tol
   )
-  # optsqr() refines its factor by Brent's method to 1e-10
+  # optsqr() finds its factor by minimising, and the place of a minimum is
+  # known only to about the square root of the machine precision, so the
+  # last digits differ between platforms
   q <- optsqr(c(4, 4, 8), E = 2)
   expect_equal(
     unname(unlist(q[c(
       "cumeff", "factor", "side", "poc", "coverage", "pod", "pos", "cumpos"
     )])),
     ref$sq1,
-    tolerance = 1e-8
+    tolerance = 1e-6
   )
   q <- optsqr(c(2, 3), "mbeta", m = 0.5)
   expect_equal(
     unname(unlist(q[c("factor", "poc", "pos", "cumpos")])), ref$sq2,
-    tolerance = 1e-8
+    tolerance = 1e-6
   )
   q <- optsqr(4, "random")
-  expect_equal(unname(unlist(q[c("factor", "pos")])), ref$sq3, tolerance = 1e-8)
+  expect_equal(unname(unlist(q[c("factor", "pos")])), ref$sq3, tolerance = 1e-6)
 })
 
 test_that("closed forms and hand-checked values", {

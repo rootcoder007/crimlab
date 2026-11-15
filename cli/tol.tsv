@@ -22,3 +22,4 @@ smixm	1e-8	0	fitted by Nelder-Mead to a relative tolerance of 1e-6 on the restri
 ecolrg	1e-9	0	theta and the zero-inflated fit are iterated to a tolerance, and their last digits follow the rounding of the scores
 sfrail	1e-8	0	Newton-Raphson to a step of 1e-10 with a numerical Hessian: the standard errors carry its rounding, about 1e-10 relative
 sfcure	1e-8	0	Newton-Raphson to a step of 1e-10 with a numerical Hessian: the standard errors carry its rounding, about 1e-10 relative
+optsqr	1e-6	0	the factor is the place of a minimum found by Brent's method, known only to about the square root of the machine precision

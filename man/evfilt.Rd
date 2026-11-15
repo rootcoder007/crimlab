@@ -32,7 +32,8 @@ row per area. An intercept is added.}
 }
 \value{
 A list of class \code{evfilt}: \code{sel} (the selected eigenvectors in
-the order they were added, numbered by decreasing eigenvalue), \code{coef} (the intercept, \code{x}, then the vectors), \code{imoran}
+the order they were added, numbered by decreasing eigenvalue), \code{coef}
+(the intercept, \code{x}, then the vectors), \code{imoran}
 (the residual Moran's I), \code{aic}, \code{r2}, \code{fr2} (the gain in R-squared
 from the filter), \code{resid} and \code{mi} (the Moran's I of every
 eigenvector).
