@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <utility>
 
 #include "rchk.h"
 #include "spin.h"
@@ -122,6 +123,34 @@ void adjcols(SEXP adj, int n, std::vector<term> &out) {
   }
 }
 
+// The columns of a numeric matrix (or one vector) of n rows, finite and
+// at least lo, with their names (pre1, pre2, ... where unnamed).
+mat readm(SEXP x, const char *an, const char *pre, int n, double lo) {
+  mat m;
+  if (!clab::isnum(x)) fail("`%s` must be a numeric matrix or vector, one row per row of `y`.", an);
+  const bool ism = Rf_isMatrix(x);
+  const int nr = ism ? Rf_nrows(x) : static_cast<int>(XLENGTH(x));
+  m.p = ism ? Rf_ncols(x) : 1;
+  if (nr != n || m.p < 1) fail("`%s` must have one row per row of `y`, %d.", an, n);
+  // num() takes a vector and refuses a matrix: it is given the values
+  // alone, after the check for value labels that it would make on x
+  clab::unlab(x, an);
+  SEXP xd = PROTECT(clab::dbl(x));
+  SEXP xv = PROTECT(clab::dcopy(xd));
+  SEXP v = PROTECT(clab::num(xv, an, static_cast<R_xlen_t>(n) * m.p, lo));
+  m.v.assign(REAL(v), REAL(v) + z(n) * z(m.p));
+  SEXP dn = ism ? Rf_getAttrib(x, R_DimNamesSymbol) : R_NilValue;
+  SEXP cn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 1);
+  for (int j = 0; j < m.p; ++j) {
+    const bool named = !Rf_isNull(cn) && STRING_ELT(cn, j) != NA_STRING &&
+                       CHAR(STRING_ELT(cn, j))[0] != '\0';
+    m.nm.push_back(named ? std::string(Rf_translateCharUTF8(STRING_ELT(cn, j)))
+                         : pre + std::to_string(j + 1));
+  }
+  UNPROTECT(3);
+  return m;
+}
+
 pan panel(SEXP y, SEXP unit, SEXP time, double lo, int *np) {
   pan p;
   clab::vec(y, "y");
@@ -148,11 +177,13 @@ pan panel(SEXP y, SEXP unit, SEXP time, double lo, int *np) {
     p.t[z(i)] = static_cast<int>(std::lower_bound(p.tv.begin(), p.tv.end(), tt[i]) - p.tv.begin());
   }
   if (p.nu < 2 || p.nt < 2) fail("the panel needs two units and two periods at least.");
-  std::vector<char> seen(z(p.nu) * z(p.nt), 0);
-  for (int i = 0; i < p.n; ++i) {
-    char &s = seen[z(p.u[z(i)]) * z(p.nt) + z(p.t[z(i)])];
-    if (s) fail("`unit` and `time` repeat a pair: one row per unit and period.");
-    s = 1;
+  // a repeated pair found by sorting, in memory of the rows (a grid of
+  // units by periods could be far larger)
+  std::vector<std::pair<int, int>> pr(z(p.n));
+  for (int i = 0; i < p.n; ++i) pr[z(i)] = {p.u[z(i)], p.t[z(i)]};
+  std::sort(pr.begin(), pr.end());
+  if (std::adjacent_find(pr.begin(), pr.end()) != pr.end()) {
+    fail("`unit` and `time` repeat a pair: one row per unit and period.");
   }
   return p;
 }
