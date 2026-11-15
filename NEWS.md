@@ -76,6 +76,11 @@
   the simplified test of Montiel Olea and Pflueger (2013); the effective
   F itself was checked against their equation 3 and is unchanged.
 
+* `ivfe()` reports the Sargan statistic and the cluster-robust Hansen J
+  of the two-step GMM estimate when there are more instruments than
+  endogenous columns (`overid`, `gmm`), the cross-definition
+  over-identification test the review of Yamada (2026) recommends.
+
 * `ppmlfe(sep = "sst")`: the check of Santos Silva and Tenreyro (2010)
   for Poisson estimates that do not exist, dropping the regressors that
   are collinear on the rows with positive counts. The iterative

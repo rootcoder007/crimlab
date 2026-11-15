@@ -826,6 +826,22 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' `se` (each row for `"hc1"`, the first `clus` column for `"nw"` and
 #' `"boot"`).
 #'
+#' Over-identification. With more instruments than endogenous columns,
+#' `overid` gives the two statistics the review of Yamada (2026, section
+#' 4.3, section 7 and table 8, item 6) asks for, across instrument definitions:
+#' the Sargan statistic `n u'Z(Z'Z)^-1 Z'u / u'u` at the two-stage least
+#' squares residuals `u`, and the cluster-robust Hansen J, `u2'Z S^-1
+#' Z'u2`, with `S` the sum over the clusters of `(Z_g'u_g)(Z_g'u_g)'` at
+#' `u` (two-way: `S1 + S2 - S12`) and `u2` the residuals of the two-step
+#' GMM estimate `(X'Z S^-1 Z'X)^-1 X'Z S^-1 Z'y` (returned as `gmm`), all
+#' after the fixed effects, `Z` the excluded instruments and the
+#' controls. Both are chi-squared on the number of instruments less the
+#' number of endogenous columns when all the instruments are valid (the J
+#' statistic of Hansen as Mullahy 1997, p. 590, states it for GMM). The
+#' clusters are those of the first stage (below). Instruments from two
+#' families (pressure-level and surface inversions, say) put together in
+#' `inst` give the review's cross-family test.
+#'
 #' Standard errors (`se`, `ssc`, `time`, `lag`, `nboot`, `seed`) are as in
 #' [ppmlfe()], on the second-stage design with the structural residuals
 #' (the outcome less the actual, not the fitted, endogenous columns times
@@ -848,7 +864,10 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' @param ... Not used.
 #' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
 #'   without `rr`); `first`, one row per endogenous column (`endo`, `wald`,
-#'   `kp`, `eff`, `keff`, `cv`, `ninst`); `fstab`, the first-stage coefficient
+#'   `kp`, `eff`, `keff`, `cv`, `ninst`); `overid`, with more instruments
+#'   than endogenous columns, two rows (`test` `"sargan"` and `"hansen"`,
+#'   `stat`, `df`, `p`; else `NULL`); `gmm`, the two-step GMM estimates
+#'   behind the J test (else `NULL`); `fstab`, the first-stage coefficient
 #'   of each
 #'   excluded instrument (`endo`, `inst`, `est`, `se`, and `rel`, `est`
 #'   over the mean of the endogenous column; `NULL` without `endo`);
@@ -881,6 +900,10 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   Montiel Olea, J. L. and Pflueger, C. (2013). A robust test for weak
 #'   instruments. *Journal of Business and Economic Statistics*, 31(3),
 #'   358-369. \doi{10.1080/00401706.2013.806694}
+#'
+#'   Yamada, H. (2026). When the air doesn't move the data: the thermal
+#'   inversion instrument in developing countries. Keio-IES Discussion
+#'   Paper DP2026-018, Keio University.
 #' @seealso [ppmlcf()] for counts, [windiv()], [invsn()], [plcday()]
 #' @examples
 #' # simulated: an unmeasured daily shock u raises both the exposure and
@@ -1027,6 +1050,25 @@ ivfe <- function(
     if (se %in% c("cluster", "twoway")) df <- min(g) - 1
   }
   dimnames(v) <- list(tm, tm)
+  # the over-identification tests (Yamada 2026, section 7 and table 8,
+  # item 6): Sargan and the cluster-robust Hansen J of the two-step
+  # estimate
+  overid <- NULL
+  gmm <- NULL
+  if (length(inst) > length(endo) && length(endo)) {
+    fx <- .axfe(d, fe)
+    oi <- .Call(C_clab_r_ivoid, as.numeric(d[[y]]), .axmat(d, endo, f),
+                .axmat(d, x, f), .axmat(d, inst, f), fx$c1, fx$n1, fx$c2,
+                fx$n2, fc$c1, fc$n1, fc$c2, fc$n2, tol)
+    st <- oi$st
+    overid <- data.frame(
+      test = c("sargan", "hansen"),
+      stat = st[1:2],
+      df = st[3L],
+      p = stats::pchisq(st[1:2], st[3L], lower.tail = FALSE)
+    )
+    gmm <- stats::setNames(oi$beta, tm)
+  }
   # the first stages in the exposure's units, per unit of each instrument
   # and over the exposure's mean (Yamada 2026, table 8, item 5)
   fstab <- NULL
@@ -1046,6 +1088,8 @@ ivfe <- function(
       coef = .axtab(tm, r$beta, sev, level, df = df),
       first = .axfirst(endo, r$fst, length(inst)),
       fstab = fstab,
+      overid = overid,
+      gmm = gmm,
       vcov = v,
       n = nrow(d),
       ncl = g,
@@ -1087,6 +1131,11 @@ print.ivfe <- function(x, ...) {
     cat("first stage: robust Wald F, Kleibergen-Paap rk Wald F, effective F,",
         "its keff and 5% critical value (tau 10%):\n")
     print(x[["first"]], row.names = FALSE, digits = 4)
+  }
+  if (!is.null(x[["overid"]])) {
+    cat("over-identification: Sargan, and Hansen J clustered as the first ",
+        "stage:\n", sep = "")
+    print(x[["overid"]], row.names = FALSE, digits = 4)
   }
   invisible(x)
 }

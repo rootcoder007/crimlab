@@ -54,7 +54,10 @@ an object of class \code{ivfe}.}
 \value{
 An object of class \code{ivfe}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
 without \code{rr}); \code{first}, one row per endogenous column (\code{endo}, \code{wald},
-\code{kp}, \code{eff}, \code{keff}, \code{cv}, \code{ninst}); \code{fstab}, the first-stage coefficient
+\code{kp}, \code{eff}, \code{keff}, \code{cv}, \code{ninst}); \code{overid}, with more instruments
+than endogenous columns, two rows (\code{test} \code{"sargan"} and \code{"hansen"},
+\code{stat}, \code{df}, \code{p}; else \code{NULL}); \code{gmm}, the two-step GMM estimates
+behind the J test (else \code{NULL}); \code{fstab}, the first-stage coefficient
 of each
 excluded instrument (\code{endo}, \code{inst}, \code{est}, \code{se}, and \code{rel}, \code{est}
 over the mean of the endogenous column; \code{NULL} without \code{endo});
@@ -118,6 +121,22 @@ The generalised test, which needs their function \code{B_e}, is not built. The
 first-stage statistics use the clusters of
 \code{se} (each row for \code{"hc1"}, the first \code{clus} column for \code{"nw"} and
 \code{"boot"}).
+
+Over-identification. With more instruments than endogenous columns,
+\code{overid} gives the two statistics the review of Yamada (2026, section
+4.3, section 7 and table 8, item 6) asks for, across instrument definitions:
+the Sargan statistic \code{n u'Z(Z'Z)^-1 Z'u / u'u} at the two-stage least
+squares residuals \code{u}, and the cluster-robust Hansen J, \code{u2'Z S^-1
+Z'u2}, with \code{S} the sum over the clusters of \code{(Z_g'u_g)(Z_g'u_g)'} at
+\code{u} (two-way: \code{S1 + S2 - S12}) and \code{u2} the residuals of the two-step
+GMM estimate \code{(X'Z S^-1 Z'X)^-1 X'Z S^-1 Z'y} (returned as \code{gmm}), all
+after the fixed effects, \code{Z} the excluded instruments and the
+controls. Both are chi-squared on the number of instruments less the
+number of endogenous columns when all the instruments are valid (the J
+statistic of Hansen as Mullahy 1997, p. 590, states it for GMM). The
+clusters are those of the first stage (below). Instruments from two
+families (pressure-level and surface inversions, say) put together in
+\code{inst} give the review's cross-family test.
 
 Standard errors (\code{se}, \code{ssc}, \code{time}, \code{lag}, \code{nboot}, \code{seed}) are as in
 \code{\link[=ppmlfe]{ppmlfe()}}, on the second-stage design with the structural residuals
@@ -217,6 +236,10 @@ activity. \emph{Journal of Public Economics}, 164, 50-69.
 Montiel Olea, J. L. and Pflueger, C. (2013). A robust test for weak
 instruments. \emph{Journal of Business and Economic Statistics}, 31(3),
 358-369. \doi{10.1080/00401706.2013.806694}
+
+Yamada, H. (2026). When the air doesn't move the data: the thermal
+inversion instrument in developing countries. Keio-IES Discussion
+Paper DP2026-018, Keio University.
 }
 \seealso{
 \code{\link[=ppmlcf]{ppmlcf()}} for counts, \code{\link[=windiv]{windiv()}}, \code{\link[=invsn]{invsn()}}, \code{\link[=plcday]{plcday()}}

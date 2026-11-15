@@ -699,3 +699,21 @@ test_that("sep = sst drops a regressor collinear on the positive counts", {
   expect_equal(f$coef, g$coef, tolerance = 1e-12)
   expect_identical(g$xdrop, character())
 })
+
+test_that("ivfe gives Sargan and the clustered Hansen J (Yamada 2026)", {
+  # the reference, base R matrix algebra: every column less its unit and
+  # day means by lm() on the dummies, Z = (z1, z2, w), X = (x, w), 2SLS,
+  # then S = crossprod(rowsum(Z * u, unit)) at its residuals, the two-step
+  # estimate and J = u2'Z S^-1 Z'u2; Sargan n u'Pz u / u'u
+  d <- simpan()
+  f <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w",
+            fe = c("unit", "day"))
+  expect_equal(f$overid$stat, c(4.94072255039924, 5.30458827826541),
+               tolerance = 1e-8)
+  expect_identical(f$overid$df, c(1, 1))
+  expect_equal(unname(f$gmm), c(0.563607320395195, 0.213473897850748),
+               tolerance = 1e-8)
+  expect_output(print(f), "Hansen J")
+  f1 <- ivfe(d, "yl", endo = "x", inst = "z1", x = "w", fe = c("unit", "day"))
+  expect_null(f1$overid)
+})
