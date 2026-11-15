@@ -149,6 +149,22 @@
   `plotbump()`) and event studies in a grid (`plotevgrid()`).
   `plot()` of an `hwkres` result now returns the quantiles it drew.
 
+* `prechk()` checks a table against a preset before `clprep()` reads it,
+  and names in one error every column the preset reads (directly, in a
+  filter or in a recipe) that the table lacks, every label outside the
+  codes the publisher lists for its column, and every label a mapping
+  recode without a default does not cover. The codes of the Ontario
+  segregation, restrictive confinement and deaths-in-custody tables are
+  `inst/presets/codes.tsv`, from the ministry's data dictionary; a preset
+  of one's own takes its codes as a data frame. The presets describe the
+  layouts of published tables, and crimlab ships none of the tables.
+
+* The OTIS treatment-outcome presets of `cbatt()` (`otis-a01-cbatt`,
+  `otis-a01n-cbatt`, `otis-pa-cbatt`, `otis-pb-cbatt`, `otis-pc-cbatt`)
+  are tested against rmorie's pair builders on a simulated placement
+  table, with the values stored in `tests/testthat/ref/preset.txt` by
+  `dev/ref/preset.R`.
+
 * `mtrbnd()` bounds the mean outcome under each of ordered sentences and
   the effect of each against the mildest, under the monotone treatment
   response and selection assumptions of Manski and Pepper. It is in

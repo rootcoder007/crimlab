@@ -425,6 +425,52 @@ for one change. What this does not license: a plot shows the estimate and
 its interval as computed; a narrow interval drawn on a clean axis is no
 more credible than the assumptions of the method that produced it.
 
+## Published correctional tables: presets
+
+Corrections and police services publish their data as tables of counts
+and as de-identified records, each in a layout of its own. A preset
+describes one such layout: which column is the count, which the group
+compared and which the adjustments, how a label becomes a number, which
+rows a filter keeps. The presets read the published tables; crimlab ships
+none of them, and the tables below are simulated.
+
+The Ontario Ministry of the Solicitor General publishes its segregation,
+restrictive confinement and deaths-in-custody tables (OTIS, the Offender
+Tracking Information System) as series a, b, c and d; `clprep()` lists a
+preset for each analysis of them. `prechk()` checks a table against a
+preset first: the columns it reads, and the labels against the codes the
+ministry's data dictionary lists. A table that fits is returned as it is.
+
+```{r}
+c01 <- data.frame(EndFiscalYear = rep(2020:2022, each = 2),
+                  Gender = rep(c("Female", "Male"), 3),
+                  NumberIndividuals_RestrictiveConfinement =
+                    c(40, 310, 52, 335, 47, 360))
+cntreg(clprep(prechk(c01, "otis-c01-cnt"), "otis-c01-cnt"))
+bad <- c01[-3]
+bad$Gender[2] <- "Unknown"
+try(prechk(bad, "otis-c01-cnt"))
+```
+
+Another agency's table needs a preset of its own: a few rows, one per
+argument, and, for the check, the labels its columns may hold. For a
+made-up service publishing admissions by sex, unit and year (the numbers
+simulated):
+
+```{r}
+adm <- data.frame(year = rep(2022:2023, each = 4),
+                  sex = rep(c("F", "M"), 4),
+                  unit = rep(c("North", "North", "South", "South"), 2),
+                  admissions = c(12, 140, 9, 122, 15, 151, 11, 118))
+own <- data.frame(preset = "ns-cnt", generic = "cntreg",
+                  arg = c("y", "grp", "adj", "adj"),
+                  column = c("admissions", "sex", "unit", "year"),
+                  recode = c("", "f=1;m=0", "fac", "fac"),
+                  units = c("admissions", "", "", ""))
+codes <- data.frame(column = "unit", value = c("North", "South"))
+cntreg(clprep(prechk(adm, own, codes), own))
+```
+
 ## Proofs
 
 `proof()` lists the theorems behind a function:

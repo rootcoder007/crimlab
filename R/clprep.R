@@ -234,16 +234,19 @@ print.clpre <- function(x, ...) {
   out
 }
 
-# The preset table, read with base R from the installed presets.tsv.
-.presets <- function() {
+# The preset table, read with base R from the installed presets.tsv, or
+# another table of the presets folder (codes.tsv), as many columns as its
+# header names.
+.presets <- function(f = "presets.tsv") {
   l <- readLines(
-    system.file("presets", "presets.tsv", package = "crimlab"),
+    system.file("presets", f, package = "crimlab"),
     encoding = "UTF-8"
   )
+  k <- length(strsplit(l[1L], "\t", fixed = TRUE)[[1L]])
   m <- do.call(
     rbind,
     lapply(strsplit(l, "\t", fixed = TRUE), function(x) {
-      length(x) <- 9L
+      length(x) <- k
       x[is.na(x)] <- ""
       x
     })
