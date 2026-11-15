@@ -665,6 +665,8 @@
   file that "could not be read cleanly"; it used to call the file empty.
   A file without a newline at its end no longer lets a warning escape
   from the reading of its header.
+* `vrfpol()` ends its refusal of negative exposure values with the word
+  it was missing: "a concentration cannot be negative".
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.

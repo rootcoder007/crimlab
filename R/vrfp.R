@@ -776,7 +776,7 @@ print.vrfpol <- function(x, ...) {
   }
   if (any(df$exposure < 0, na.rm = TRUE)) {
     return(sprintf(
-      "%d exposure value(s) are negative: a concentration cannot be",
+      "%d exposure value(s) are negative: a concentration cannot be negative",
       sum(df$exposure < 0, na.rm = TRUE)
     ))
   }
