@@ -92,6 +92,26 @@ plotopt <- function(...) {
   invisible(cur)
 }
 
+#' @rdname blpal
+#' @details `yoypals()` lists the palettes of the year-over-year change
+#'   tables: `"diverging"` (orange-red for a rise judged bad, teal for one
+#'   judged good), `"safe"` (orange and blue, safe for red-green colour
+#'   blindness) and `"mono"` (black and grey).
+#' @return `yoypals()`: the names of the change-table palettes.
+#' @export
+yoypals <- function() names(.YOY_PALETTES)
+
+# the colours of each change-table palette: text for a bad, good and flat
+# change, and the backgrounds of bad and good rows
+.YOY_PALETTES <- list(
+  diverging = list(bad = "#c2492f", good = "#1b7f6b", flat = "#6b6b6b",
+                   badbg = "#fbeae6", goodbg = "#e6f4f1"),
+  safe = list(bad = "#b8621b", good = "#18567d", flat = "#6b6b6b",
+              badbg = "#fdf0e4", goodbg = "#e7eff6"),
+  mono = list(bad = "#1a1a1a", good = "#1a1a1a", flat = "#6b6b6b",
+              badbg = "#f0f0f0", goodbg = "#f7f7f7")
+)
+
 .pals <- list(
   okabe = c("#0072B2", "#D55E00", "#009E73", "#E69F00", "#CC79A7",
             "#56B4E9", "#F0E442", "#000000"),

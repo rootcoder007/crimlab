@@ -3,11 +3,14 @@
 \name{blpal}
 \alias{blpal}
 \alias{plotopt}
+\alias{yoypals}
 \title{Plot styling: palettes and session options}
 \usage{
 blpal(name = "okabe", n = NULL)
 
 plotopt(...)
+
+yoypals()
 }
 \arguments{
 \item{name}{The palette: one of \code{"okabe"} (the default), \code{"diverging"},
@@ -22,6 +25,8 @@ none, the options in force are returned.}
 \value{
 \code{blpal()}: a character vector of colours. \code{plotopt()}: the named
 list of the six options in force, invisibly when setting.
+
+\code{yoypals()}: the names of the change-table palettes.
 }
 \description{
 Every plot in the package draws with base graphics and one small set of
@@ -52,6 +57,11 @@ are \code{palette = "okabe"}, \code{grid = TRUE}, \code{cex = 1}, \code{las = 1}
 behind white grid lines; \code{NA} for none). Setting some options keeps the
 others; an unusable value set by hand with \code{options()} falls back to its
 default.
+
+\code{yoypals()} lists the palettes of the year-over-year change
+tables: \code{"diverging"} (orange-red for a rise judged bad, teal for one
+judged good), \code{"safe"} (orange and blue, safe for red-green colour
+blindness) and \code{"mono"} (black and grey).
 }
 \examples{
 blpal("okabe", 3)

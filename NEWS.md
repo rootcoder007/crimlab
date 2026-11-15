@@ -120,7 +120,8 @@
   time since adoption, paths, survival and ROC curves, Lorenz curves, bars,
   matrices with their numbers in the cells, and surfaces. Each returns,
   invisibly, the data it drew. `blpal()` gives the colour-blind-safe
-  palettes they share and `plotopt()` their session look; series differ in
+  palettes they share, `plotopt()` their session look and `yoypals()`
+  the palettes of change tables; series differ in
   line type or point shape as well as colour. The general plots come with
   them: Lorenz and funnel plots (`plotlrnz()`, `plotfnl()`), distributions
   by group (`plotrdg()`, `plotcdfs()`, `plotvln()`, `plothex()`,

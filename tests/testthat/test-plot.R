@@ -24,6 +24,12 @@ test_that("palettes and session options", {
   expect_identical(blpal("diverging", 1), "#2166AC")
   expect_error(blpal("okabe", 0), "^blpal: `n` must be one positive")
   expect_error(blpal("neon"), "^blpal: the palette must be one of")
+  expect_identical(yoypals(), c("diverging", "safe", "mono"))
+  for (k in yoypals()) {
+    expect_named(.YOY_PALETTES[[k]], c("bad", "good", "flat", "badbg",
+                                        "goodbg"))
+    expect_true(all(vapply(.YOY_PALETTES[[k]], .iscol, NA)))
+  }
   old <- options(crimlab.plot = NULL)
   on.exit(options(old), add = TRUE)
   expect_identical(plotopt()$palette, "okabe")

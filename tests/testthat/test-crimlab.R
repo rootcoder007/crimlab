@@ -471,6 +471,7 @@ test_that("every exported function answers one valid call in its shape", {
                       c(1, 3, 2, 5, 4, 6, 8, 7), lrns = "glm", nfold = 2)),
          c("wt", "risk", "fold", "oof", "pred")),
     list(quote(blpal("grey", 2)), NULL),
+    list(quote(yoypals()), NULL),
     list(quote(plotopt()), c("palette", "grid", "cex", "las", "bg", "panel")),
     list(quote(plotlrnz(c(1, 2))), c("pop", "share")),
     list(quote(plotfnl(2, 1)),
