@@ -276,23 +276,25 @@ vrfrcd <- function(orig, recd, decl) {
          "): rows were lost or duplicated during the recode.", call. = FALSE)
   }
   if (!identical(is.na(orig), is.na(recd))) {
-    stop("vrfrcd: missingness changed during the recode (values became NA, ",
-         "or NAs were filled).", call. = FALSE)
+    stop("vrfrcd: missingness changed during the recode (values silently ",
+         "became NA, or NAs were filled).", call. = FALSE)
   }
   ok <- !is.na(orig)
   tab <- table(original = as.character(orig[ok]),
                recoded = as.character(recd[ok]))
   fan <- rowSums(tab > 0)
   if (any(fan > 1L)) {
-    stop("vrfrcd: an original category was mapped to more than one new ",
-         "category: ", toString(.cq(names(fan)[fan > 1L])), ".", call. = FALSE)
+    stop("vrfrcd: original category mapped to MULTIPLE new categories: ",
+         toString(.cq(names(fan)[fan > 1L])), ". The recode is not a ",
+         "function of the category label.", call. = FALSE)
   }
   for (old in rownames(tab)) {
     got <- colnames(tab)[tab[old, ] > 0]
     want <- if (old %in% names(decl)) unname(decl[old]) else old
     if (!identical(got, as.character(want))) {
       stop("vrfrcd: ", .cq(old), " was mapped to ", .cq(got), " but the ",
-           "declared mapping says ", .cq(want), ".", call. = FALSE)
+           "declared mapping says ", .cq(want), ". THIS is how groups get ",
+           "swapped; fix the recode before any model runs.", call. = FALSE)
     }
   }
   invisible(as.data.frame(tab))

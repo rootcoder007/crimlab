@@ -259,7 +259,7 @@ bool vrfrcd(Ctx &c, Val &out) {
     return c.fail("length mismatch (%d vs %d): rows were lost or duplicated during the recode.",
                   static_cast<int>(o.size()), static_cast<int>(r.size()));
   }
-  if (o.na != r.na) return c.fail("missingness changed during the recode (values became NA, or NAs were filled).");
+  if (o.na != r.na) return c.fail("missingness changed during the recode (values silently became NA, or NAs were filled).");
   Map d;
   if (c["decl"].t == Val::OBJ) catmap(c, "decl", d, false);
   c.err.clear();
@@ -286,7 +286,8 @@ bool vrfrcd(Ctx &c, Val &out) {
     if (k > 1) fan.push_back(ro[a]);
   }
   if (!fan.empty()) {
-    return c.fail("an original category was mapped to more than one new category: %s.", cqs(fan).c_str());
+    return c.fail("original category mapped to MULTIPLE new categories: %s. "
+                  "The recode is not a function of the category label.", cqs(fan).c_str());
   }
   for (std::size_t a = 0; a < ro.size(); ++a) {
     std::string got;
@@ -296,7 +297,8 @@ bool vrfrcd(Ctx &c, Val &out) {
     const std::string *w = d.get(ro[a]);
     const std::string want = w ? *w : ro[a];
     if (got != want) {
-      return c.fail("%s was mapped to %s but the declared mapping says %s.", cq(ro[a]).c_str(), cq(got).c_str(),
+      return c.fail("%s was mapped to %s but the declared mapping says %s. "
+                  "THIS is how groups get swapped; fix the recode before any model runs.", cq(ro[a]).c_str(), cq(got).c_str(),
                     cq(want).c_str());
     }
   }
