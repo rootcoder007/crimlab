@@ -373,6 +373,7 @@ reference:
   - title: Package
     contents:
       - crimlab-package
+      - hwpwr
   - title: Spatial crime analysis
     desc: Near repeats, kernel surfaces, DBSCAN and hot-spot persistence,
       the space-time scan, global and bivariate Moran, spatial regression

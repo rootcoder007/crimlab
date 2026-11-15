@@ -274,6 +274,14 @@
   table, with the values stored in `tests/testthat/ref/preset.txt` by
   `dev/ref/preset.R`.
 
+* `hwpwr()` reads the power and energy of the machine's devices over an
+  interval from the operating system's own counters: RAPL on Linux, the
+  NVIDIA management library, the amdgpu and Intel GPU hwmon files, the
+  IOReport energy counters of Apple silicon, the Energy Meter Interface
+  on Windows, and the battery while it discharges. Each figure says how
+  it was obtained; an estimate carries its range, and a device that
+  cannot be measured is listed with the reason.
+
 * `mtrbnd()` bounds the mean outcome under each of ordered sentences and
   the effect of each against the mildest, under the monotone treatment
   response and selection assumptions of Manski and Pepper. It is in

@@ -526,6 +526,10 @@ SEXP C_clab_r_fmt(SEXP, SEXP, SEXP);
 SEXP C_clab_r_mtrbnd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The Indigenous health, published-table and census functions (bigh.cpp).
 SEXP C_clab_r_igh(SEXP, SEXP);
+// The power and energy readers (bpwr.cpp).
+SEXP C_clab_r_pwrs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pwrd(SEXP, SEXP);
+SEXP C_clab_r_pwrp(SEXP, SEXP, SEXP);
 // The accuracy of a hot-spot map (bhsa.cpp).
 SEXP C_clab_r_hsacc(SEXP, SEXP, SEXP, SEXP, SEXP);
 // Scaling, ideal points and counts over time (bsvt.cpp).
@@ -887,6 +891,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_prim", fn<&C_clab_r_prim>(), 4},
     {"C_clab_r_hsacc", fn<&C_clab_r_hsacc>(), 5},
     {"C_clab_r_svk", fn<&C_clab_r_svk>(), 2},
+    {"C_clab_r_pwrs", fn<&C_clab_r_pwrs>(), 6},
+    {"C_clab_r_pwrd", fn<&C_clab_r_pwrd>(), 2},
+    {"C_clab_r_pwrp", fn<&C_clab_r_pwrp>(), 3},
     {"C_clab_r_apcie", fn<&C_clab_r_apcie>(), 4},
     {"C_clab_r_spcure", fn<&C_clab_r_spcure>(), 6},
     {"C_clab_r_lnkpr", fn<&C_clab_r_lnkpr>(), 5},
