@@ -1,0 +1,97 @@
+# Written by dev/ref/krg.R with rmorie 1.5.0, gstat 2.1.6, sp 2.2.1, geoR 1.9.6, sf 1.1.1.
+# On R version 4.6.1 (2026-06-24), x86_64-redhat-linux-gnu, Fedora Linux 44 (KDE Plasma Desktop Edition).
+# Do not edit: run the generator again.
+list(rm = list(inp = c(0x1.0de549bb58p+5, 0x1.dab3bdd9084b9p+4
+), vg = list(dist = c(0x1.3ad6be4d16251p-6, 0x1.d8421d73a137ap-5, 
+0x1.898c6de05bae6p-4, 0x1.137be68373607p-3, 0x1.62319616b8e9bp-3, 
+0x1.b0e745a9fe73p-3, 0x1.ff9cf53d43fc4p-3, 0x1.2729526844c2cp-2, 
+0x1.4e842a31e7876p-2, 0x1.75df01fb8a4cp-2), gamma = c(0x1.fe647397cdfadp-6, 
+0x1.f609b653d4248p-7, 0x1.b0a85a1fa25bp-6, 0x1.cebfdf6b7b65cp-5, 
+0x1.abebf238eb55dp-5, 0x1.3a0fb97937e5ap-4, 0x1.a7d7a25cdc7fep-4, 
+0x1.27566150b57adp-3, 0x1.83b8090652c31p-3, 0x1.044a9fff3d48p-3
+), np = c(1L, 6L, 8L, 14L, 16L, 17L, 22L, 9L, 15L, 20L)), fit = list(
+    list(nugget = 0x1.16084c989de63p-1, psill = 0x1.d8d141529ceaap-2, 
+        range = 0x1.c91f43f36a85p-4, loglik = -0x1.1aadb54af67edp+3), 
+    list(nugget = 0x1.3c227750c96dbp-1, psill = 0x1.83b20e456f9c9p-2, 
+        range = 0x1.5e4b4830e5a2ep-2, loglik = -0x1.1009b64469e8fp+3), 
+    list(nugget = 0x1.5a37065a2014ep-1, psill = 0x1.4bf3de16b7ea6p-2, 
+        range = 0x1.5ec1685cb53f6p-3, loglik = -0x1.11b42b7df0bfbp+3)), 
+    kr = list(pred = c(0x1.829c657fd5f6p+0, 0x1.5a1b863cad9b9p+0, 
+    0x1.a3b797eae6c43p+0), var = c(0x1.b0e55cb6a898bp-2, 0x1.334076ade9215p-1, 
+    0x1.7bdbb9b22e549p-2)), kw = list(pred = c(0x1.8299133a4eb88p+0, 
+    0x1.6f7393dc4588cp+0, 0x1.ab3b24ebdbe9p+0), var = c(0x1.710d207fa0542p-5, 
+    0x1.21c49dc804159p-4, 0x1.2d7ec1847416p-5)), bk = list(estimate = c(0x1.7546c16475744p+0, 
+    0x1.6d3d7c4f5d19bp+0), se = c(0x1.c43c4793c0156p-3, 0x1.da7a158548fe7p-3
+    )), cv = list(MSPE = 0x1.d88ee2ae99947p-6, RMSPE = 0x1.5bd07f3731ad5p-3, 
+        MAE = 0x1.26efcfe0cbdf2p-3, residuals = c(-0x1.e09f7f93c26cp-5, 
+        -0x1.b57c518697044p-3, 0x1.d9563337cd86p-3, -0x1.4fca76c817048p-4, 
+        -0x1.4ae0e08303d7p-3, -0x1.cb3ed88d5002ep-3, 0x1.6eb1496a1a1ecp-3, 
+        0x1.066582bd2cff4p-2, -0x1.3eceffd7a6d82p-3, -0x1.a127285900338p-4, 
+        0x1.1e6b4795b4dep-5, 0x1.291a07a93a4b4p-4, -0x1.92fb639cfc6c8p-5, 
+        0x1.19fd4309d709p-2, -0x1.0ee883e7237bp-4, 0x1.ce14676f7d6cp-6, 
+        0x1.6c3bed8b5288p-7, -0x1.4fb3d0bcb2132p-3, -0x1.43df697674b62p-3, 
+        -0x1.485cdf3b88d6p-5, -0x1.2e64a2e1c4fbep-3, 0x1.61ea24e101a88p-4, 
+        -0x1.dc3bf1576ec8p-7, 0x1.a9d6851ceecd8p-4, 0x1.3d85e60497e6p-2, 
+        -0x1.9a3a07c06bd5p-3, -0x1.4a3a743820d9p-3, 0x1.7728343e544ep-3, 
+        0x1.773c31b4df488p-2, 0x1.768c554659fcp-3)), tr = list(
+        estimate = c(0x1.22fc6c6f2a1ebp+0, 0x1.eea5621192757p+1, 
+        -0x1.be85ef4c6761fp-1, -0x1.e86b0faebb115p+1, -0x1.81f32dc309d41p-1, 
+        0x1.42609a2a5dbbbp-4), se = c(0x1.aa3308184685bp-4, 0x1.32c8faa969075p-2, 
+        0x1.160bcf7356494p-2, 0x1.00d484ce69e1bp-2, 0x1.d9742f65cff86p-3, 
+        0x1.9e44fc0f5623fp-3), r2 = 0x1.f7c2cbdb28ab6p-1), sg = list(
+        estimate = c(0x1.9e434ed6784d6p+0, 0x1.c1d0da8c8c299p-1
+        ), se = c(0x1.c1c982cec2154p-2, 0x1.7f2c849d32f7ap-1), 
+        sigma2 = 0x1.e3ab5f7fe047ep-1, phi = 0x1.9fa6d38d445a1p-4), 
+    sm = list(estimate = c(0x1.18189c74e2898p-1, 0x1.72bffba9b7e69p+1
+    ), se = c(0x1.c3fa47cf286cbp-2, 0x1.676edcb35f20cp-1), sigma2 = 0x1.f36a3a69edcc3p-2, 
+        tau2 = 0x1.251beaa9d62e7p-3, phi = 0x1.9f428887f1096p-3)), 
+    obj = list(coords = structure(c(-0x1.3d9999999999ap+6, -0x1.3d33333333333p+6, 
+    -0x1.3ep+6, -0x1.3d66666666666p+6, 0x1.5cccccccccccdp+5, 
+    0x1.5d9999999999ap+5, 0x1.5d33333333333p+5, 0x1.5e66666666666p+5
+    ), dim = c(4L, 2L)), crs = list(epsg = 0x1.0e6p+12, wkt = "GEOGCRS[\"WGS 84\", EPSG:4326]"), 
+        crsw = list(epsg = 0x1.e22p+11, wkt = "PROJCRS[\"WGS 84 / Pseudo-Mercator\", EPSG:3857]"), 
+        merc = structure(c(-0x1.0dbcdf23521f7p+23, -0x1.0d65e73d6465ap+23, 
+        -0x1.0e13d7093fd92p+23, -0x1.0d9163305b429p+23, 0x1.49d191f753712p+22, 
+        0x1.4ac1f50996436p+22, 0x1.4a49b6b1badd7p+22, 0x1.4bb2bed57bcbcp+22
+        ), dim = c(4L, 2L)), lf = list(center = c(-0x1.3d8cccccccccdp+6, 
+        0x1.5d80000000001p+5), points = structure(c(-0x1.3d9999999999bp+6, 
+        -0x1.3d33333333333p+6, -0x1.3dfffffffffffp+6, -0x1.3d66666666668p+6, 
+        0x1.5cccccccccccep+5, 0x1.5d9999999999bp+5, 0x1.5d33333333335p+5, 
+        0x1.5e66666666666p+5), dim = c(4L, 2L))), prob = c(0x1.0d35761ec8affp-2, 
+        0x1.15086766d4b89p-2, 0x1.0079c4fbfd6b3p-2, 0x1.ba90bafcca588p-3
+        ), probm = c(0x1.0d53f2a17fc33p-2, 0x1.1504dd4b34adep-2, 
+        0x1.00845c354b7d7p-2, 0x1.ba45a7bc0023p-3)), gst = list(
+        pred = c(0x1.829c657fd5f65p+0, 0x1.5a1b863cad9adp+0, 
+        0x1.a3b797eae6c3bp+0), var = c(0x1.b0e55cb6a8981p-2, 
+        0x1.334076ade921dp-1, 0x1.7bdbb9b22e532p-2), gamma = c(0x1.fe647397cdfa5p-6, 
+        0x1.f609b653d4249p-7, 0x1.b0a85a1fa25b1p-6, 0x1.cebfdf6b7b65ep-5, 
+        0x1.abebf238eb55cp-5, 0x1.3a0fb97937e58p-4, 0x1.a7d7a25cdc8p-4, 
+        0x1.27566150b57adp-3, 0x1.83b8090652c31p-3, 0x1.044a9fff3d481p-3
+        ), np = c(0x1p+0, 0x1.8p+2, 0x1p+3, 0x1.cp+3, 0x1p+4, 
+        0x1.1p+4, 0x1.6p+4, 0x1.2p+3, 0x1.ep+3, 0x1.4p+4), bk = list(
+            c(0x1.7546c16475748p+0, 0x1.8f7275945a7p-5), c(0x1.6d3d7c4f5d196p+0, 
+            0x1.b7b429356c96ep-5)), cv = c(-0x1.e09f7f93c26cp-5, 
+        -0x1.b57c51869704p-3, 0x1.d9563337cd868p-3, -0x1.4fca76c81706ep-4, 
+        -0x1.4ae0e08303d7p-3, -0x1.cb3ed88d5001cp-3, 0x1.6eb1496a1a1f4p-3, 
+        0x1.066582bd2cff4p-2, -0x1.3eceffd7a6d7cp-3, -0x1.a12728590034p-4, 
+        0x1.1e6b4795b4ep-5, 0x1.291a07a93a4bp-4, -0x1.92fb639cfc6b8p-5, 
+        0x1.19fd4309d709p-2, -0x1.0ee883e7237bp-4, 0x1.ce14676f7d6cp-6, 
+        0x1.6c3bed8b528p-7, -0x1.4fb3d0bcb213p-3, -0x1.43df697674b62p-3, 
+        -0x1.485cdf3b88d5p-5, -0x1.2e64a2e1c4fc1p-3, 0x1.61ea24e101a8p-4, 
+        -0x1.dc3bf1576edp-7, 0x1.a9d6851ceecdp-4, 0x1.3d85e60497e5cp-2, 
+        -0x1.9a3a07c06bd4p-3, -0x1.4a3a743820d98p-3, 0x1.7728343e544ep-3, 
+        0x1.773c31b4df48cp-2, 0x1.768c554659fbp-3)), oth = list(
+        lm = c(0x1.22fc6c6f2a2b2p+0, 0x1.eea5621192611p+1, -0x1.be85ef4c67764p-1, 
+        -0x1.e86b0faebb041p+1, -0x1.81f32dc309d8ep-1, 0x1.42609a2a5efdcp-4
+        ), lmse = c(0x1.aa330818467a9p-4, 0x1.32c8faa968ff3p-2, 
+        0x1.160bcf735643bp-2, 0x1.00d484ce69dc8p-2, 0x1.d9742f65cff0ep-3, 
+        0x1.9e44fc0f56228p-3), ml = c(0x1.04ad1c048190cp-3, 0x1.c378e599a5411p-2, 
+        0x1.29b3dcd1694dcp-3, -0x1.f01777e99a8e8p+1), glm = c(0x1.9e42c67cdfaecp+0, 
+        0x1.c1d36d1559737p-1, 0x1.9f983df05b9f4p-4, 0x1.cb7642813a4bp-1
+        ), reml = c(0x1.183320c36612bp-1, 0x1.72b92c45dee0ap+1, 
+        0x1.9f174a186cc91p-3, 0x1.2dcb1a0c03f2bp-2), sf = structure(c(-0x1.3d99999999999p+6, 
+        -0x1.3d33333333333p+6, -0x1.3dfffffffffffp+6, -0x1.3d66666666666p+6, 
+        0x1.5ccccccccccccp+5, 0x1.5d99999999998p+5, 0x1.5d33333333334p+5, 
+        0x1.5e66666666664p+5), dim = c(4L, 2L))), pkgs = c(rmorie = "1.5.0", 
+    gstat = "2.1.6", sp = "2.2.1", geoR = "1.9.6", sf = "1.1.1"
+    ))

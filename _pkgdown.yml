@@ -443,3 +443,21 @@ reference:
       - onlsmry
       - rsvidx
       - dstnskch
+  - title: Geostatistics
+    desc: Semivariograms and their models, point and block kriging with
+      cross-validation, trend surfaces, spatial linear and mixed models,
+      and a spatial data object.
+    contents:
+      - vgemp
+      - vgfit
+      - okrge
+      - bkrig
+      - krigcv
+      - trsurf
+      - sglmx
+      - smixm
+      - spobj
+      - spxy
+      - crsof
+      - lfspec
+      - spsamp

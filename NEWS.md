@@ -1,5 +1,15 @@
 # crimlab 0.0.0.9000
 
+* Geostatistics on planar coordinates: the empirical semivariogram
+  (`vgemp()`), variogram models fitted by maximum likelihood (`vgfit()`),
+  ordinary kriging (`okrge()`), block kriging (`bkrig()`) and its
+  leave-one-out cross-validation (`krigcv()`), polynomial trend surfaces
+  (`trsurf()`), the spatial linear model by profile likelihood (`sglmx()`)
+  and the spatial linear mixed model by REML (`smixm()`), with a spatial
+  data object (`spobj()`, `spxy()`, `crsof()`), the specification of a web
+  map (`lfspec()`) and density-weighted sampling of points (`spsamp()`).
+  They are in `clab_jrun()`, the command line and Python.
+
 * Air pollution, for environmental criminology: Pasquill-Gifford
   dispersion coefficients (`pgsig()`), Briggs plume rise (`briggs()`), the
   Gaussian plume and puff (`gplume()`, `gspuff()`, the field

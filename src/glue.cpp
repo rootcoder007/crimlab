@@ -532,6 +532,17 @@ SEXP C_clab_r_lnkpr(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_prohs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The weighted displacement quotient (bwdq.cpp).
 SEXP C_clab_r_wdqx(SEXP, SEXP, SEXP);
+// Geostatistics (bkrg.cpp).
+SEXP C_clab_r_vgemp(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_vgfit(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_okrge(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_bkrig(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_krigcv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_trsurf(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_sglmx(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_smixm(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_lfspec(SEXP);
+SEXP C_clab_r_spsamp(SEXP, SEXP, SEXP, SEXP);
 // Repeat victimisation (brpv.cpp).
 SEXP C_clab_r_rptvic(SEXP, SEXP, SEXP, SEXP);
 // Eyewitness lineups (blnr.cpp).
@@ -828,6 +839,16 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_lnkpr", fn<&C_clab_r_lnkpr>(), 5},
     {"C_clab_r_prohs", fn<&C_clab_r_prohs>(), 11},
     {"C_clab_r_wdqx", fn<&C_clab_r_wdqx>(), 3},
+    {"C_clab_r_vgemp", fn<&C_clab_r_vgemp>(), 5},
+    {"C_clab_r_vgfit", fn<&C_clab_r_vgfit>(), 4},
+    {"C_clab_r_okrge", fn<&C_clab_r_okrge>(), 5},
+    {"C_clab_r_bkrig", fn<&C_clab_r_bkrig>(), 8},
+    {"C_clab_r_krigcv", fn<&C_clab_r_krigcv>(), 6},
+    {"C_clab_r_trsurf", fn<&C_clab_r_trsurf>(), 4},
+    {"C_clab_r_sglmx", fn<&C_clab_r_sglmx>(), 4},
+    {"C_clab_r_smixm", fn<&C_clab_r_smixm>(), 4},
+    {"C_clab_r_lfspec", fn<&C_clab_r_lfspec>(), 1},
+    {"C_clab_r_spsamp", fn<&C_clab_r_spsamp>(), 4},
     {"C_clab_r_rptvic", fn<&C_clab_r_rptvic>(), 4},
     {"C_clab_r_lnroc", fn<&C_clab_r_lnroc>(), 9},
     {"C_clab_r_lnsize", fn<&C_clab_r_lnsize>(), 4},

@@ -3447,6 +3447,92 @@ double clab_qpois(double p, double lambda, int lower);
 double clab_dbinom(double x, double n, double p);
 double clab_pbinom(double x, double n, double p, int lower);
 
+/* ------------------------------------------------------------------------
+ * Geostatistics (src/krg.cpp). Points are planar (x, y), n of them; a
+ * variogram model is 0 spherical, 1 exponential, 2 gaussian, with
+ * semivariance nug + ps s(h / rg) (s = 1.5 u - 0.5 u^3 below 1 and 1 above,
+ * 1 - exp(-u), 1 - exp(-u^2)), 0 at h = 0. The block methods use the
+ * exponential covariance (sill - nug) exp(-h / rg), plus nug at h = 0.
+ * Matrices are column-major. CLAB_EARG for sizes or options out of range,
+ * CLAB_EDOM for values outside the method's domain or a singular system.
+ * ------------------------------------------------------------------------ */
+
+/* The empirical semivariogram (Matheron 1963): half the mean squared
+ * difference of v over the pairs at distance in each of nb equal bins of
+ * (0, cut], the first closed at 0; cut NaN: a third of the largest
+ * distance. Out: the nk <= nb bins holding pairs, in order: dist (the
+ * bin's centre), gam, np (pairs). O(n^2). */
+int clab_vgemp(const double *x, const double *y, int n, const double *v, int nb, double cut, double *dist,
+               double *gam, double *np, int *nk);
+/* A variogram model fitted by Gaussian maximum likelihood with a constant
+ * mean: Nelder-Mead (R's optim(), 800 evaluations, relative tolerance
+ * 1.49e-8) on the logs of nugget, partial sill and range from 0.1 and 0.9
+ * of the variance and a quarter of the largest distance; the covariance
+ * gets 1e-8 of the variance on its diagonal. Out, 6: nugget, psill, range,
+ * the log-likelihood less n/2 log(2 pi), 1 if converged, evaluations.
+ * O(n^3) per evaluation. */
+int clab_vgfit(const double *x, const double *y, int n, const double *v, int model, double *out);
+/* The same model by weighted least squares on the 15-bin empirical
+ * semivariogram, weights np / h^2 (Cressie 1985), Nelder-Mead (500
+ * evaluations). Out, 3: nugget, psill, range. */
+int clab_vgwls(const double *x, const double *y, int n, const double *v, int model, double *out);
+/* Ordinary kriging at the m points (ax, ay) from the variogram model:
+ * pred and the kriging variance var (at least 0). The (n + 1) system is
+ * solved by LU; CLAB_EDOM when it is singular (repeated points without a
+ * nugget). O(n^3 + n^2 m). */
+int clab_okrge(const double *x, const double *y, int n, const double *v, const double *ax, const double *ay,
+               int m, int model, double nug, double ps, double rg, double *pred, double *var);
+/* The k x k quadrature points of the box lo, hi (2 each: x, y), k =
+ * round(sqrt(nq)), equally spaced from edge to edge, x fastest: px, py,
+ * k^2 each. */
+int clab_bkpts(const double *lo, const double *hi, int nq, double *px, double *py);
+/* Ordinary block kriging (Schabenberger and Gotway 2005, ch. 4) of nblk
+ * blocks, block b given by its quadrature points (bx, by)[off[b] ..
+ * off[b + 1]): est, the kriged block mean, and se, the square root of the
+ * block kriging variance C(B, B) - lambda' C(s, B) - mu (at least 0), the
+ * point-to-block covariances averaged over the points. */
+int clab_bkrig(const double *x, const double *y, int n, const double *v, const double *bx, const double *by,
+               const int *off, int nblk, double nug, double sill, double rg, double *est, double *se);
+/* Leave-one-out cross-validation of ordinary kriging with the exponential
+ * covariance: res, n residuals v_i less the prediction from the others.
+ * O(n^4). */
+int clab_krigcv(const double *x, const double *y, int n, const double *v, double nug, double sill, double rg,
+                double *res);
+/* A polynomial trend surface of order 0 to 3 by least squares: the
+ * monomials 1, x, y, x^2, y^2, xy, x^3, y^3, x^2 y, x y^2 up to the order
+ * (1, 3, 6 or 10 of them, p <= n). Out: coef and se (p each; the variance
+ * from rss / max(n - p, 1)) and r2 (1 when v is constant). */
+int clab_trsurf(const double *x, const double *y, int n, const double *v, int order, double *coef, double *se,
+                double *r2);
+/* The spatial linear model v = Z b + e, e ~ N(0, s2 R), R = exp(-D / phi)
+ * (+ 1e-8 on the diagonal), by profile maximum likelihood over log phi
+ * (Brent's method as R's optimize(), on [log(max(h / 100, 1e-3)),
+ * log(max(3 h, 1))], h the largest distance), b by generalised least
+ * squares. z: n x p (p < n). Out: coef, se (p each; s2 = rss / (n - p)),
+ * out (3): s2, phi, the nugget 0. */
+int clab_sglmx(const double *z, int n, int p, const double *v, const double *x, const double *y, double *coef,
+               double *se, double *out);
+/* The spatial linear mixed model v = Z b + d + e, d ~ N(0, s2 R_phi), e ~
+ * N(0, nu s2 I), by REML: Nelder-Mead (400 evaluations, relative tolerance
+ * 1e-6) on (log phi, log nu) from (log(h / 3), log 0.1), h = max(the
+ * largest distance, 1). Out: coef, se (p each), out (4): s2, the nugget
+ * nu s2, phi, 1 if converged. */
+int clab_smixm(const double *z, int n, int p, const double *v, const double *x, const double *y, double *coef,
+               double *se, double *out);
+/* The spherical Web Mercator projection (EPSG:3857, radius 6378137 m) of
+ * n longitudes and latitudes (inv 0; |lat| < 90) or its inverse (inv 1),
+ * into ox, oy. */
+int clab_wmerc(const double *x, const double *y, int n, int inv, double *ox, double *oy);
+/* Local density of n points: sum_j exp(-(d_ij / bw)^2), bw the median of
+ * the positive distances (great-circle when ll, the points then longitude
+ * and latitude), normalised to sum to 1: prob, n. */
+int clab_spdens(const double *x, const double *y, int n, int ll, double *prob);
+/* size of n units drawn without replacement, each draw in proportion to
+ * prob (NULL: equally) among the units left, from seed: idx, size unit
+ * numbers from 1. */
+int clab_spsamp(const double *prob, int n, int size, unsigned int seed, int *idx);
+
+
 #ifdef __cplusplus
 }
 #endif
