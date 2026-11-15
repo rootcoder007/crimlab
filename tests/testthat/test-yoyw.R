@@ -215,7 +215,7 @@ test_that("a group without values, and values of many decimals", {
 test_that("HTML keeps a tab and shows other control characters", {
   d <- data.frame(prd = c(1, 2), value = c(3, 4), prev = c(NA, 3),
                   change = c(NA, 1), pctchg = c(NA, 100 / 3),
-                  group = "x\ty\001\u200e")
+                  group = "x\ty\u0001\u200e")
   f <- tempfile(fileext = ".html")
   on.exit(unlink(f), add = TRUE)
   yoyhtml(d, f)
