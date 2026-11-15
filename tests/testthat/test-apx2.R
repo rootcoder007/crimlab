@@ -356,10 +356,9 @@ test_that("jntx and dosebin refuse exposures that give no bins", {
 })
 
 test_that("dosebin refuses a constant exposure: fewer than two bins", {
-  # A known fault, expected to fail until it is fixed: with one distinct
-  # value the quantile breaks are a single number, which cut() reads as
-  # a number of intervals (7 here), so the refusal of fewer than two bins
-  # is never reached and the fit fails on empty bins instead.
+  # With one distinct value the quantile breaks are a single number,
+  # which cut() would read as a number of intervals (7 here): the
+  # refusal has to come before cut().
   set.seed(19)
   d <- expand.grid(day = 1:30, area = 1:4)
   d$k <- 7
