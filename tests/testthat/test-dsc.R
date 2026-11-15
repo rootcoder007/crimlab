@@ -374,7 +374,7 @@ test_that("empty and one-row tables keep their shape", {
   )
   expect_identical(capture.output(r <- missgrid(one)), c(r, ""))
   expect_identical(r[3L], if (.uniok()) {
-    "       1 █ "
+    "       1 \u2588 "
   } else {
     "       1 # "
   })
