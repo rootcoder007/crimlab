@@ -135,7 +135,7 @@
 #' @param normals \code{NULL} (the default stream above), or a function
 #'   \code{(n, seed, stream)} returning \code{n} standard normals; step
 #'   \code{k} (from 0) draws streams \code{2k} for x and \code{2k + 1} for y.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return \code{pgsig()}: a list with \code{sigmay} and \code{sigmaz}.
 #'   \code{briggs()}: a list with \code{flux}, \code{finalrise},
 #'   \code{xfinal} and \code{rise} (at each \code{x}). \code{gplume()} and
@@ -211,6 +211,356 @@ pgsig <- function(x, stab = "D", set = "rural") {
   x <- .adnum(x, "x", f, min = 0, scalar = FALSE)
   r <- .Call(C_clab_r_pgsig, x, cls, urb)
   list(sigmay = r[[1L]], sigmaz = r[[2L]])
+}
+
+#' @rdname pgsig
+#' @export
+briggs <- function(
+  x,
+  u,
+  diam,
+  exitvel,
+  stktmp,
+  ambtmp,
+  stab = "D",
+  dthdz = NULL,
+  g = 9.80616
+) {
+  f <- "briggs"
+  cls <- .adcls(stab, f)
+  .adu(u, f)
+  x <- .adnum(x, "x", f, min = 0, scalar = FALSE)
+  diam <- .adnum(diam, "diam", f, positive = TRUE)
+  exitvel <- .adnum(exitvel, "exitvel", f, positive = TRUE)
+  stktmp <- .adnum(stktmp, "stktmp", f, positive = TRUE)
+  ambtmp <- .adnum(ambtmp, "ambtmp", f, positive = TRUE)
+  if (stktmp < 150 || ambtmp < 150) {
+    .ckstop(
+      f,
+      paste(
+        "temperatures are in kelvin: stktmp %s and ambtmp %s look like",
+        "degrees Celsius (ambient air is about 290 K)"
+      ),
+      format(stktmp),
+      format(ambtmp)
+    )
+  }
+  g <- .adnum(g, "g", f, positive = TRUE)
+  if (stktmp < ambtmp - 0.5) {
+    .ckstop(
+      f,
+      paste(
+        "`stktmp` is below `ambtmp`: Briggs' formulas describe a buoyant",
+        "plume, so the stack must be as hot as the air or hotter (equal",
+        "gives no rise)"
+      )
+    )
+  }
+  # within half a kelvin of the air there is no buoyancy to speak of
+  stktmp <- max(stktmp, ambtmp)
+  dz <- if (is.null(dthdz)) {
+    NA_real_
+  } else {
+    .adnum(dthdz, "dthdz", f, positive = TRUE)
+  }
+  r <- .Call(C_clab_r_briggs, x, u, diam, exitvel, stktmp, ambtmp, cls, dz, g)
+  list(
+    flux = r[[1L]][1L], finalrise = r[[1L]][2L], xfinal = r[[1L]][3L],
+    rise = r[[2L]]
+  )
+}
+
+#' @rdname pgsig
+#' @export
+gplume <- function(
+  q,
+  u,
+  h,
+  rcpt,
+  stab = "D",
+  set = "rural",
+  mixh = NULL,
+  nimg = 3
+) {
+  f <- "gplume"
+  q <- .adnum(q, "q", f, min = 0)
+  u <- .adnum(u, "u", f, positive = TRUE)
+  h <- .adnum(h, "h", f, min = 0)
+  nimg <- .adimg(nimg, f)
+  lid <- .adlid(mixh, h, f)
+  R <- .adrec(rcpt, f)
+  .adhts(R, lid, f)
+  cls <- .adcls(stab, f)
+  urb <- .adset(set, f)
+  .Call(C_clab_r_gplume, q, u, h, R, cls, urb, lid, nimg)
+}
+
+#' @rdname pgsig
+#' @export
+gspuff <- function(
+  mass,
+  u,
+  h,
+  rcpt,
+  t,
+  stab = "D",
+  set = "rural",
+  mixh = NULL,
+  nimg = 3
+) {
+  f <- "gspuff"
+  mass <- .adnum(mass, "mass", f, min = 0)
+  u <- .adnum(u, "u", f, positive = TRUE)
+  h <- .adnum(h, "h", f, min = 0)
+  t <- .adnum(t, "t", f, positive = TRUE)
+  nimg <- .adimg(nimg, f)
+  lid <- .adlid(mixh, h, f)
+  R <- .adrec(rcpt, f)
+  .adhts(R, lid, f)
+  cls <- .adcls(stab, f)
+  urb <- .adset(set, f)
+  .Call(C_clab_r_gspuff, mass, u, h, R, t, cls, urb, lid, nimg)
+}
+
+#' @rdname pgsig
+#' @section Boundary: the outermost ring of cells is held at zero (an open
+#'   boundary): mass that reaches it leaves the domain and \code{mass} falls
+#'   accordingly. Pad \code{c0} with empty cells so the plume of interest
+#'   stays inside the ring.
+#' @export
+advdif2d <- function(
+  c0,
+  u,
+  v,
+  kx,
+  ky,
+  dx,
+  dy,
+  dt,
+  nsteps,
+  source = NULL,
+  maxwork = 1e8
+) {
+  f <- "advdif2d"
+  cm <- .adc0(c0, f)
+  source <- .adsrc(source, cm, f)
+  nx <- nrow(cm)
+  ny <- ncol(cm)
+  u <- .adnum(u, "u", f)
+  v <- .adnum(v, "v", f)
+  kx <- .adnum(kx, "kx", f, min = 0)
+  ky <- .adnum(ky, "ky", f, min = 0)
+  dx <- .adnum(dx, "dx", f, positive = TRUE)
+  dy <- .adnum(dy, "dy", f, positive = TRUE)
+  dt <- .adnum(dt, "dt", f, positive = TRUE)
+  nsteps <- .adnum(nsteps, "nsteps", f, min = 0, whole = TRUE)
+  nb <- .adnb(u, v, kx, ky, dx, dy, dt)
+  stab <- nb[[5L]]
+  sub <- .adwork(nx, ny, nsteps, stab, maxwork, f)
+  if (stab > 1) {
+    warning(sprintf(
+      paste(
+        "advdif2d: explicit scheme outside its stability bound",
+        "(|u dt/dx| + |v dt/dy| + 2 (kx dt/dx^2 + ky dt/dy^2) = %.3f > 1):",
+        "each step is taken as %d sub-steps of dt/%d; pass a smaller dt to",
+        "silence this."
+      ),
+      stab, sub, sub
+    ), call. = FALSE)
+    dt <- dt / sub
+    nb <- .adnb(u, v, kx, ky, dx, dy, dt)
+    stab <- nb[[5L]]
+    nsteps <- nsteps * sub
+  }
+  cm <- .Call(C_clab_r_advdif, cm, u, v, kx, ky, dx, dy, dt, nsteps, source)
+  .adres(cm, nb, list(nx, ny, nsteps, sub), dt, dx, dy)
+}
+
+#' @rdname pgsig
+#' @export
+lagrprt <- function(
+  n,
+  x0,
+  y0,
+  u,
+  v,
+  kx,
+  ky,
+  dt,
+  nsteps,
+  seed = 0,
+  grid = NULL,
+  normals = NULL,
+  maxwork = 1e8
+) {
+  f <- "lagrprt"
+  .lgseed(seed, f)
+  n <- .adnum(n, "n", f, positive = TRUE, whole = TRUE)
+  if (n > 1e8) .ckstop(f, "`n` must be at most 100 million particles")
+  n <- as.integer(n)
+  x0 <- .adnum(x0, "x0", f)
+  y0 <- .adnum(y0, "y0", f)
+  u <- .adnum(u, "u", f)
+  v <- .adnum(v, "v", f)
+  kx <- .adnum(kx, "kx", f, min = 0)
+  ky <- .adnum(ky, "ky", f, min = 0)
+  dt <- .adnum(dt, "dt", f, positive = TRUE)
+  nsteps <- .adnum(nsteps, "nsteps", f, min = 0, whole = TRUE)
+  .lgwork(n, nsteps, maxwork, f)
+  if (!is.null(normals) && !is.function(normals)) {
+    .ckstop(f, "`normals` must be a function (n, seed, stream) or NULL")
+  }
+  g <- if (!is.null(grid)) .lggrid(grid, maxwork, f)
+  p <- if (is.null(normals)) {
+    .Call(C_clab_r_lagr, n, x0, y0, u, v, kx, ky, dt, nsteps, seed, g)
+  } else {
+    .lgnorm(n, c(x0, y0, u, v, kx, ky, dt), nsteps, seed, g, normals, f)
+  }
+  out <- list(
+    x = p[[1L]], y = p[[2L]], mean_x = p[[3L]][1L], meany = p[[3L]][2L],
+    grid = grid
+  )
+  if (!is.null(grid)) out$concentration <- p[[4L]]
+  structure(out, class = c("lagrprt", "list"))
+}
+
+#' A Gaussian-plume concentration field on a grid
+#'
+#' Evaluates \code{\link{gplume}} at every point of an \code{x} by \code{y}
+#' ground-level grid (or at height \code{z}) and returns the field as a
+#' matrix with the axes. It maps where the plume from a single stack touches
+#' the ground, how far downwind the highest concentration lies, and how
+#' wide the affected area is.
+#'
+#' @details
+#' Every grid point \eqn{(x_i, y_j, z)} is passed to \code{\link{gplume}}
+#' in one call, with the source at the origin and the wind along \eqn{+x};
+#' the field is therefore zero (or vanishingly small) upwind and at
+#' \eqn{x \le 0}. The concentration is in the mass unit of \code{q} per
+#' cubic metre (grams per cubic metre for \code{q} in grams per second).
+#' \code{dx} and \code{dy} are the median grid spacings. The cost is one
+#' plume evaluation per grid point.
+#'
+#' Errors: \code{x} or \code{y} not numeric or not strictly increasing;
+#' \code{z} negative; and every check of \code{\link{gplume}}.
+#'
+#' @param q,u,h,stab,set,mixh,nimg As in \code{\link{gplume}}.
+#' @param x,y Numeric vectors, strictly increasing: the downwind and
+#'   crosswind coordinates of the grid, in metres from the source.
+#' @param z Numeric scalar, the receptor height in metres; default \code{0}
+#'   (ground level).
+#' @inheritParams freqtbl
+#' @return A list of class \code{plmfld}: \code{field} (a numeric matrix of
+#'   concentrations, rows along \code{x}, columns along \code{y}), \code{x},
+#'   \code{y}, \code{dx} and \code{dy} (median spacings, \code{NA} for a
+#'   single coordinate), \code{units} (\code{"concentration"}) and
+#'   \code{title}.
+#' @seealso \code{\link{gplume}}.
+#' @examples
+#' f <- plmfld(100, 5, 50, x = seq(100, 3000, by = 100),
+#'             y = seq(-500, 500, by = 50))
+#' dim(f$field)
+#' # where the ground-level maximum lies, downwind
+#' f$x[which.max(apply(f$field, 1, max))]
+#' # the coordinates must increase
+#' try(plmfld(100, 5, 50, x = c(300, 100), y = c(-50, 0, 50)))
+#' @export
+plmfld <- function(
+  q,
+  u,
+  h,
+  x,
+  y,
+  z = 0,
+  stab = "D",
+  set = "rural",
+  mixh = NULL,
+  nimg = 3
+) {
+  f <- "plmfld"
+  x <- .adnum(x, "x", f, scalar = FALSE)
+  y <- .adnum(y, "y", f, scalar = FALSE)
+  if (is.unsorted(x, strictly = TRUE) || is.unsorted(y, strictly = TRUE)) {
+    .ckstop(f, "`x` and `y` must be strictly increasing receptor coordinates")
+  }
+  z <- .adnum(z, "z", f, min = 0)
+  rc <- cbind(rep(x, length(y)), rep(y, each = length(x)), z)
+  v <- gplume(q, u, h, rc, stab = stab, set = set, mixh = mixh, nimg = nimg)
+  structure(
+    list(
+      field = matrix(v, nrow = length(x), ncol = length(y)),
+      x = x,
+      y = y,
+      dx = if (length(x) > 1L) stats::median(diff(x)) else NA_real_,
+      dy = if (length(y) > 1L) stats::median(diff(y)) else NA_real_,
+      units = "concentration",
+      title = sprintf("Gaussian plume, class %s, h = %s m", stab, format(h))
+    ),
+    class = "plmfld"
+  )
+}
+
+#' @rdname pgsig
+#' @export
+print.advdif2d <- function(x, ...) {
+  fl <- x$field
+  pk <- which(fl == max(fl), arr.ind = TRUE)[1L, ]
+  cat(
+    x$title, "\n",
+    sprintf("%d x %d cells of %s by %s", nrow(fl), ncol(fl), format(x$dx),
+            format(x$dy)),
+    if (isTRUE(x$substeps > 1L)) {
+      sprintf(", each step taken as %d sub-steps", x$substeps)
+    },
+    "\n",
+    sprintf(
+      "total mass %s; peak %s at x = %s, y = %s\n", format(x$mass),
+      format(max(fl)), format(x$x[pk[[1L]]]), format(x$y[pk[[2L]]])
+    ),
+    sprintf(
+      "Courant %.3g, diffusion %.3g, stability %.3f (%s)\n", x$cfl, x$difn,
+      x$stabn, if (isTRUE(x$stable)) "within the bound of 1" else "above 1"
+    ),
+    sep = ""
+  )
+  invisible(x)
+}
+
+#' @rdname plmfld
+#' @export
+print.plmfld <- function(x, ...) {
+  fl <- x$field
+  pk <- which(fl == max(fl), arr.ind = TRUE)[1L, ]
+  cat(
+    x$title, "\n",
+    sprintf(
+      "%d x %d receptors; peak %s at x = %s, y = %s\n", nrow(fl), ncol(fl),
+      format(max(fl)), format(x$x[pk[[1L]]]), format(x$y[pk[[2L]]])
+    ),
+    sep = ""
+  )
+  invisible(x)
+}
+
+#' @rdname pgsig
+#' @export
+print.lagrprt <- function(x, ...) {
+  cat(sprintf(
+    "Lagrangian particles: %d, mean position x = %s, y = %s\n",
+    length(x$x), format(x$mean_x), format(x$meany)
+  ))
+  cat(sprintf(
+    "x from %s to %s, y from %s to %s\n", format(min(x$x)), format(max(x$x)),
+    format(min(x$y)), format(max(x$y))
+  ))
+  if (is.matrix(x$concentration)) {
+    cat(sprintf(
+      "grid %d x %d, peak density %s per unit area\n",
+      nrow(x$concentration), ncol(x$concentration),
+      format(max(x$concentration))
+    ))
+  }
+  invisible(x)
 }
 
 # The checks of the dispersion inputs, in their words.
@@ -331,137 +681,23 @@ pgsig <- function(x, stab = "D", set = "rural") {
   }
 }
 
-#' @rdname pgsig
-#' @export
-briggs <- function(
-  x,
-  u,
-  diam,
-  exitvel,
-  stktmp,
-  ambtmp,
-  stab = "D",
-  dthdz = NULL,
-  g = 9.80616
-) {
-  f <- "briggs"
-  cls <- .adcls(stab, f)
+# The advection and diffusion numbers and their stability number.
+.adnb <- function(u, v, kx, ky, dx, dy, dt) {
+  ax <- u * dt / dx
+  ay <- v * dt / dy
+  dxn <- kx * dt / (dx * dx)
+  dyn <- ky * dt / (dy * dy)
+  c(ax, ay, dxn, dyn, abs(ax) + abs(ay) + 2 * (dxn + dyn))
+}
+
+.adu <- function(u, f) {
   if (!is.numeric(u) || length(u) != 1L || !is.finite(u) || u <= 0) {
     .ckstop(f, "`u` must be a single positive wind speed")
   }
-  x <- .adnum(x, "x", f, min = 0, scalar = FALSE)
-  diam <- .adnum(diam, "diam", f, positive = TRUE)
-  exitvel <- .adnum(exitvel, "exitvel", f, positive = TRUE)
-  stktmp <- .adnum(stktmp, "stktmp", f, positive = TRUE)
-  ambtmp <- .adnum(ambtmp, "ambtmp", f, positive = TRUE)
-  if (stktmp < 150 || ambtmp < 150) {
-    .ckstop(
-      f,
-      paste(
-        "temperatures are in kelvin: stktmp %s and ambtmp %s look like",
-        "degrees Celsius (ambient air is about 290 K)"
-      ),
-      format(stktmp),
-      format(ambtmp)
-    )
-  }
-  g <- .adnum(g, "g", f, positive = TRUE)
-  if (stktmp < ambtmp - 0.5) {
-    .ckstop(
-      f,
-      paste(
-        "`stktmp` is below `ambtmp`: Briggs' formulas describe a buoyant",
-        "plume, so the stack must be as hot as the air or hotter (equal",
-        "gives no rise)"
-      )
-    )
-  }
-  # within half a kelvin of the air there is no buoyancy to speak of
-  stktmp <- max(stktmp, ambtmp)
-  dz <- if (is.null(dthdz)) {
-    NA_real_
-  } else {
-    .adnum(dthdz, "dthdz", f, positive = TRUE)
-  }
-  r <- .Call(C_clab_r_briggs, x, u, diam, exitvel, stktmp, ambtmp, cls, dz, g)
-  list(
-    flux = r[[1L]][1L], finalrise = r[[1L]][2L], xfinal = r[[1L]][3L],
-    rise = r[[2L]]
-  )
 }
 
-#' @rdname pgsig
-#' @export
-gplume <- function(
-  q,
-  u,
-  h,
-  rcpt,
-  stab = "D",
-  set = "rural",
-  mixh = NULL,
-  nimg = 3
-) {
-  f <- "gplume"
-  q <- .adnum(q, "q", f, min = 0)
-  u <- .adnum(u, "u", f, positive = TRUE)
-  h <- .adnum(h, "h", f, min = 0)
-  nimg <- .adimg(nimg, f)
-  lid <- .adlid(mixh, h, f)
-  R <- .adrec(rcpt, f)
-  .adhts(R, lid, f)
-  cls <- .adcls(stab, f)
-  urb <- .adset(set, f)
-  .Call(C_clab_r_gplume, q, u, h, R, cls, urb, lid, nimg)
-}
-
-#' @rdname pgsig
-#' @export
-gspuff <- function(
-  mass,
-  u,
-  h,
-  rcpt,
-  t,
-  stab = "D",
-  set = "rural",
-  mixh = NULL,
-  nimg = 3
-) {
-  f <- "gspuff"
-  mass <- .adnum(mass, "mass", f, min = 0)
-  u <- .adnum(u, "u", f, positive = TRUE)
-  h <- .adnum(h, "h", f, min = 0)
-  t <- .adnum(t, "t", f, positive = TRUE)
-  nimg <- .adimg(nimg, f)
-  lid <- .adlid(mixh, h, f)
-  R <- .adrec(rcpt, f)
-  .adhts(R, lid, f)
-  cls <- .adcls(stab, f)
-  urb <- .adset(set, f)
-  .Call(C_clab_r_gspuff, mass, u, h, R, t, cls, urb, lid, nimg)
-}
-
-#' @rdname pgsig
-#' @section Boundary: the outermost ring of cells is held at zero (an open
-#'   boundary): mass that reaches it leaves the domain and \code{mass} falls
-#'   accordingly. Pad \code{c0} with empty cells so the plume of interest
-#'   stays inside the ring.
-#' @export
-advdif2d <- function(
-  c0,
-  u,
-  v,
-  kx,
-  ky,
-  dx,
-  dy,
-  dt,
-  nsteps,
-  source = NULL,
-  maxwork = 1e8
-) {
-  f <- "advdif2d"
+# advdif2d(): the starting field, a finite non-negative numeric matrix
+.adc0 <- function(c0, f) {
   if (!is.matrix(c0) || !is.numeric(c0)) {
     .ckstop(
       f,
@@ -478,33 +714,39 @@ advdif2d <- function(
   if (any(cm < 0)) {
     .ckstop(f, "`c0` must be non-negative: it is a concentration field")
   }
-  if (!is.null(source)) {
-    if (!identical(dim(as.matrix(source)), dim(cm))) {
-      .ckstop(f, "`source` must have the dimensions of `c0`")
-    }
-    if (!is.numeric(source) || anyNA(source) || !all(is.finite(source))) {
-      .ckstop(f, "`source` must be a finite numeric matrix")
-    }
-    if (any(source < 0)) {
-      .ckstop(
-        f,
-        "`source` must be non-negative: it is an emission rate, like `c0`"
-      )
-    }
-    source <- unname(as.matrix(source)) * 1
+  cm
+}
+
+# advdif2d(): the emission field, NULL or a matrix shaped like `c0`
+.adsrc <- function(source, cm, f) {
+  if (is.null(source)) {
+    return(NULL)
   }
-  nx <- nrow(cm)
-  ny <- ncol(cm)
-  u <- .adnum(u, "u", f)
-  v <- .adnum(v, "v", f)
-  kx <- .adnum(kx, "kx", f, min = 0)
-  ky <- .adnum(ky, "ky", f, min = 0)
-  dx <- .adnum(dx, "dx", f, positive = TRUE)
-  dy <- .adnum(dy, "dy", f, positive = TRUE)
-  dt <- .adnum(dt, "dt", f, positive = TRUE)
-  nsteps <- .adnum(nsteps, "nsteps", f, min = 0, whole = TRUE)
-  nb <- .adnb(u, v, kx, ky, dx, dy, dt)
-  stab <- nb[[5L]]
+  if (!identical(dim(as.matrix(source)), dim(cm))) {
+    .ckstop(f, "`source` must have the dimensions of `c0`")
+  }
+  if (!is.numeric(source) || anyNA(source) || !all(is.finite(source))) {
+    .ckstop(f, "`source` must be a finite numeric matrix")
+  }
+  if (any(source < 0)) {
+    .ckstop(
+      f,
+      "`source` must be non-negative: it is an emission rate, like `c0`"
+    )
+  }
+  unname(as.matrix(source)) * 1
+}
+
+.admax <- function(maxwork, f) {
+  if (!is.numeric(maxwork) || length(maxwork) != 1L || is.na(maxwork) ||
+        maxwork <= 0) {
+    .ckstop(f, "`maxwork` must be a single positive number (Inf lifts the cap)")
+  }
+}
+
+# advdif2d(): the sub-steps per step the stability number needs, the
+# whole run held under `maxwork` cell updates
+.adwork <- function(nx, ny, nsteps, stab, maxwork, f) {
   if (!is.finite(stab)) {
     .ckstop(
       f,
@@ -516,10 +758,7 @@ advdif2d <- function(
   if (!is.finite(work)) {
     .ckstop(f, "the amount of work is not finite: check nsteps and the grid")
   }
-  if (!is.numeric(maxwork) || length(maxwork) != 1L || is.na(maxwork) ||
-        maxwork <= 0) {
-    .ckstop(f, "`maxwork` must be a single positive number (Inf lifts the cap)")
-  }
+  .admax(maxwork, f)
   if (work > maxwork) {
     .ckstop(
       f,
@@ -543,75 +782,10 @@ advdif2d <- function(
   if (nsteps > .Machine$integer.max) {
     .ckstop(f, "`nsteps` must be at most 2^31 - 1")
   }
-  sub <- as.integer(sub)
-  if (stab > 1) {
-    warning(sprintf(
-      paste(
-        "advdif2d: explicit scheme outside its stability bound",
-        "(|u dt/dx| + |v dt/dy| + 2 (kx dt/dx^2 + ky dt/dy^2) = %.3f > 1):",
-        "each step is taken as %d sub-steps of dt/%d; pass a smaller dt to",
-        "silence this."
-      ),
-      stab, sub, sub
-    ), call. = FALSE)
-    dt <- dt / sub
-    nb <- .adnb(u, v, kx, ky, dx, dy, dt)
-    stab <- nb[[5L]]
-    nsteps <- nsteps * sub
-  }
-  cm <- .Call(C_clab_r_advdif, cm, u, v, kx, ky, dx, dy, dt, nsteps, source)
-  structure(
-    list(
-      field = cm,
-      mass = sum(cm) * dx * dy,
-      cfl = abs(nb[[1L]]) + abs(nb[[2L]]),
-      difn = 2 * (nb[[3L]] + nb[[4L]]),
-      stabn = stab,
-      stable = stab <= 1,
-      dt = dt,
-      substeps = sub,
-      x = seq_len(nx) * dx,
-      y = seq_len(ny) * dy,
-      dx = dx,
-      dy = dy,
-      units = "concentration",
-      title = sprintf(
-        "Advection-diffusion after %s steps of dt = %s",
-        format(nsteps, big.mark = ",", scientific = FALSE),
-        format(dt)
-      )
-    ),
-    class = "advdif2d"
-  )
+  as.integer(sub)
 }
 
-# The advection and diffusion numbers and their stability number.
-.adnb <- function(u, v, kx, ky, dx, dy, dt) {
-  ax <- u * dt / dx
-  ay <- v * dt / dy
-  dxn <- kx * dt / (dx * dx)
-  dyn <- ky * dt / (dy * dy)
-  c(ax, ay, dxn, dyn, abs(ax) + abs(ay) + 2 * (dxn + dyn))
-}
-
-#' @rdname pgsig
-#' @export
-lagrprt <- function(
-  n,
-  x0,
-  y0,
-  u,
-  v,
-  kx,
-  ky,
-  dt,
-  nsteps,
-  seed = 0,
-  grid = NULL,
-  normals = NULL,
-  maxwork = 1e8
-) {
-  f <- "lagrprt"
+.lgseed <- function(seed, f) {
   if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed) ||
         seed != round(seed) || seed < -.Machine$integer.max || seed >= 2^53) {
     .ckstop(
@@ -619,21 +793,11 @@ lagrprt <- function(
       "`seed` must be a single whole number from -2147483647 to 2^53 - 1"
     )
   }
-  n <- .adnum(n, "n", f, positive = TRUE, whole = TRUE)
-  if (n > 1e8) .ckstop(f, "`n` must be at most 100 million particles")
-  n <- as.integer(n)
-  x0 <- .adnum(x0, "x0", f)
-  y0 <- .adnum(y0, "y0", f)
-  u <- .adnum(u, "u", f)
-  v <- .adnum(v, "v", f)
-  kx <- .adnum(kx, "kx", f, min = 0)
-  ky <- .adnum(ky, "ky", f, min = 0)
-  dt <- .adnum(dt, "dt", f, positive = TRUE)
-  nsteps <- .adnum(nsteps, "nsteps", f, min = 0, whole = TRUE)
-  if (!is.numeric(maxwork) || length(maxwork) != 1L || is.na(maxwork) ||
-        maxwork <= 0) {
-    .ckstop(f, "`maxwork` must be a single positive number (Inf lifts the cap)")
-  }
+}
+
+# lagrprt(): particles x steps held under `maxwork`
+.lgwork <- function(n, nsteps, maxwork, f) {
+  .admax(maxwork, f)
   if (n * nsteps > maxwork) {
     .ckstop(
       f,
@@ -649,217 +813,107 @@ lagrprt <- function(
   if (nsteps > .Machine$integer.max) {
     .ckstop(f, "`nsteps` must be at most 2^31 - 1")
   }
-  if (!is.null(normals) && !is.function(normals)) {
-    .ckstop(f, "`normals` must be a function (n, seed, stream) or NULL")
-  }
-  g <- NULL
-  if (!is.null(grid)) {
-    if (length(grid) != 6L) {
-      .ckstop(f, "`grid` must be c(xmin, xmax, ymin, ymax, nx, ny)")
-    }
-    g <- .adnum(grid, "grid", f, scalar = FALSE)
-    if (g[2L] <= g[1L] || g[4L] <= g[3L] || g[5L] < 1 || g[6L] < 1 ||
-          g[5L] != round(g[5L]) || g[6L] != round(g[6L])) {
-      .ckstop(
-        f,
-        "`grid` needs xmin < xmax, ymin < ymax and whole positive nx, ny"
-      )
-    }
-    if (g[5L] * g[6L] > maxwork) {
-      .ckstop(
-        f,
-        paste(
-          "a %s x %s grid has %s cells, above maxwork = %s; pass maxwork =",
-          "Inf to allocate it anyway"
-        ),
-        format(g[5L], big.mark = ","), format(g[6L], big.mark = ","),
-        format(g[5L] * g[6L], big.mark = ",", scientific = FALSE),
-        format(maxwork, big.mark = ",", scientific = FALSE)
-      )
-    }
-  }
-  if (is.null(normals)) {
-    p <- .Call(C_clab_r_lagr, n, x0, y0, u, v, kx, ky, dt, nsteps, seed, g)
-  } else {
-    xs <- rep(x0, n)
-    ys <- rep(y0, n)
-    fx <- sqrt(2 * kx * dt)
-    fy <- sqrt(2 * ky * dt)
-    draw <- function(s) {
-      z <- tryCatch(normals(n, seed, s), error = function(e) {
-        .ckstop(
-          f,
-          "`normals` failed when called as normals(n, seed, stream): %s",
-          conditionMessage(e)
-        )
-      })
-      if (!is.numeric(z) || length(z) != n || !all(is.finite(z))) {
-        .ckstop(
-          f,
-          "`normals` must return %d finite numbers; it returned %s",
-          n,
-          if (is.numeric(z)) {
-            sprintf("%d, %d of them finite", length(z), sum(is.finite(z)))
-          } else {
-            paste("a", class(z)[[1L]])
-          }
-        )
-      }
-      as.numeric(z)
-    }
-    for (k in seq_len(nsteps) - 1) {
-      xy <- .Call(
-        C_clab_r_lagstep, xs, ys, u, v, fx, fy, dt, draw(2 * k),
-        draw(2 * k + 1)
-      )
-      xs <- xy[[1L]]
-      ys <- xy[[2L]]
-    }
-    p <- c(list(xs, ys), .Call(C_clab_r_laggrid, xs, ys, g))
-  }
-  out <- list(
-    x = p[[1L]], y = p[[2L]], mean_x = p[[3L]][1L], meany = p[[3L]][2L],
-    grid = grid
-  )
-  if (!is.null(grid)) out$concentration <- p[[4L]]
-  structure(out, class = c("lagrprt", "list"))
 }
 
-#' A Gaussian-plume concentration field on a grid
-#'
-#' Evaluates \code{\link{gplume}} at every point of an \code{x} by \code{y}
-#' ground-level grid (or at height \code{z}) and returns the field as a
-#' matrix with the axes. It maps where the plume from a single stack touches
-#' the ground, how far downwind the highest concentration lies, and how
-#' wide the affected area is.
-#'
-#' @details
-#' Every grid point \eqn{(x_i, y_j, z)} is passed to \code{\link{gplume}}
-#' in one call, with the source at the origin and the wind along \eqn{+x};
-#' the field is therefore zero (or vanishingly small) upwind and at
-#' \eqn{x \le 0}. The concentration is in the mass unit of \code{q} per
-#' cubic metre (grams per cubic metre for \code{q} in grams per second).
-#' \code{dx} and \code{dy} are the median grid spacings. The cost is one
-#' plume evaluation per grid point.
-#'
-#' Errors: \code{x} or \code{y} not numeric or not strictly increasing;
-#' \code{z} negative; and every check of \code{\link{gplume}}.
-#'
-#' @param q,u,h,stab,set,mixh,nimg As in \code{\link{gplume}}.
-#' @param x,y Numeric vectors, strictly increasing: the downwind and
-#'   crosswind coordinates of the grid, in metres from the source.
-#' @param z Numeric scalar, the receptor height in metres; default \code{0}
-#'   (ground level).
-#' @param ... Not used.
-#' @return A list of class \code{plmfld}: \code{field} (a numeric matrix of
-#'   concentrations, rows along \code{x}, columns along \code{y}), \code{x},
-#'   \code{y}, \code{dx} and \code{dy} (median spacings, \code{NA} for a
-#'   single coordinate), \code{units} (\code{"concentration"}) and
-#'   \code{title}.
-#' @seealso \code{\link{gplume}}.
-#' @examples
-#' f <- plmfld(100, 5, 50, x = seq(100, 3000, by = 100),
-#'             y = seq(-500, 500, by = 50))
-#' dim(f$field)
-#' # where the ground-level maximum lies, downwind
-#' f$x[which.max(apply(f$field, 1, max))]
-#' # the coordinates must increase
-#' try(plmfld(100, 5, 50, x = c(300, 100), y = c(-50, 0, 50)))
-#' @export
-plmfld <- function(
-  q,
-  u,
-  h,
-  x,
-  y,
-  z = 0,
-  stab = "D",
-  set = "rural",
-  mixh = NULL,
-  nimg = 3
-) {
-  f <- "plmfld"
-  x <- .adnum(x, "x", f, scalar = FALSE)
-  y <- .adnum(y, "y", f, scalar = FALSE)
-  if (is.unsorted(x, strictly = TRUE) || is.unsorted(y, strictly = TRUE)) {
-    .ckstop(f, "`x` and `y` must be strictly increasing receptor coordinates")
+# lagrprt(): the counting grid c(xmin, xmax, ymin, ymax, nx, ny)
+.lggrid <- function(grid, maxwork, f) {
+  if (length(grid) != 6L) {
+    .ckstop(f, "`grid` must be c(xmin, xmax, ymin, ymax, nx, ny)")
   }
-  z <- .adnum(z, "z", f, min = 0)
-  rc <- cbind(rep(x, length(y)), rep(y, each = length(x)), z)
-  v <- gplume(q, u, h, rc, stab = stab, set = set, mixh = mixh, nimg = nimg)
+  g <- .adnum(grid, "grid", f, scalar = FALSE)
+  if (g[2L] <= g[1L] || g[4L] <= g[3L] || g[5L] < 1 || g[6L] < 1 ||
+        g[5L] != round(g[5L]) || g[6L] != round(g[6L])) {
+    .ckstop(
+      f,
+      "`grid` needs xmin < xmax, ymin < ymax and whole positive nx, ny"
+    )
+  }
+  if (g[5L] * g[6L] > maxwork) {
+    .ckstop(
+      f,
+      paste(
+        "a %s x %s grid has %s cells, above maxwork = %s; pass maxwork =",
+        "Inf to allocate it anyway"
+      ),
+      format(g[5L], big.mark = ","), format(g[6L], big.mark = ","),
+      format(g[5L] * g[6L], big.mark = ",", scientific = FALSE),
+      format(maxwork, big.mark = ",", scientific = FALSE)
+    )
+  }
+  g
+}
+
+# lagrprt(): the walk with the caller's normal draws; `pr` holds x0, y0,
+# u, v, kx, ky and dt
+.lgnorm <- function(n, pr, nsteps, seed, g, normals, f) {
+  xs <- rep(pr[1L], n)
+  ys <- rep(pr[2L], n)
+  fx <- sqrt(2 * pr[5L] * pr[7L])
+  fy <- sqrt(2 * pr[6L] * pr[7L])
+  for (k in seq_len(nsteps) - 1) {
+    xy <- .Call(
+      C_clab_r_lagstep, xs, ys, pr[3L], pr[4L], fx, fy, pr[7L],
+      .lgdraw(normals, n, seed, 2 * k, f),
+      .lgdraw(normals, n, seed, 2 * k + 1, f)
+    )
+    xs <- xy[[1L]]
+    ys <- xy[[2L]]
+  }
+  c(list(xs, ys), .Call(C_clab_r_laggrid, xs, ys, g))
+}
+
+# lagrprt(): n normal draws of stream s from the caller's `normals`
+.lgdraw <- function(normals, n, seed, s, f) {
+  z <- tryCatch(normals(n, seed, s), error = function(e) {
+    .ckstop(
+      f,
+      "`normals` failed when called as normals(n, seed, stream): %s",
+      conditionMessage(e)
+    )
+  })
+  if (!is.numeric(z) || length(z) != n || !all(is.finite(z))) {
+    .ckstop(
+      f,
+      "`normals` must return %d finite numbers; it returned %s",
+      n,
+      if (is.numeric(z)) {
+        sprintf("%d, %d of them finite", length(z), sum(is.finite(z)))
+      } else {
+        paste("a", class(z)[[1L]])
+      }
+    )
+  }
+  as.numeric(z)
+}
+
+# advdif2d(): the result; `sz` is a list of nx, ny, the steps and the
+# sub-steps
+.adres <- function(cm, nb, sz, dt, dx, dy) {
+  stab <- nb[[5L]]
+  nx <- sz[[1L]]
+  ny <- sz[[2L]]
+  nsteps <- sz[[3L]]
   structure(
     list(
-      field = matrix(v, nrow = length(x), ncol = length(y)),
-      x = x,
-      y = y,
-      dx = if (length(x) > 1L) stats::median(diff(x)) else NA_real_,
-      dy = if (length(y) > 1L) stats::median(diff(y)) else NA_real_,
+      field = cm,
+      mass = sum(cm) * dx * dy,
+      cfl = abs(nb[[1L]]) + abs(nb[[2L]]),
+      difn = 2 * (nb[[3L]] + nb[[4L]]),
+      stabn = stab,
+      stable = stab <= 1,
+      dt = dt,
+      substeps = sz[[4L]],
+      x = seq_len(nx) * dx,
+      y = seq_len(ny) * dy,
+      dx = dx,
+      dy = dy,
       units = "concentration",
-      title = sprintf("Gaussian plume, class %s, h = %s m", stab, format(h))
+      title = sprintf(
+        "Advection-diffusion after %s steps of dt = %s",
+        format(nsteps, big.mark = ",", scientific = FALSE),
+        format(dt)
+      )
     ),
-    class = "plmfld"
+    class = "advdif2d"
   )
-}
-
-#' @rdname pgsig
-#' @export
-print.advdif2d <- function(x, ...) {
-  fl <- x$field
-  pk <- which(fl == max(fl), arr.ind = TRUE)[1L, ]
-  cat(
-    x$title, "\n",
-    sprintf("%d x %d cells of %s by %s", nrow(fl), ncol(fl), format(x$dx),
-            format(x$dy)),
-    if (isTRUE(x$substeps > 1L)) {
-      sprintf(", each step taken as %d sub-steps", x$substeps)
-    },
-    "\n",
-    sprintf(
-      "total mass %s; peak %s at x = %s, y = %s\n", format(x$mass),
-      format(max(fl)), format(x$x[pk[[1L]]]), format(x$y[pk[[2L]]])
-    ),
-    sprintf(
-      "Courant %.3g, diffusion %.3g, stability %.3f (%s)\n", x$cfl, x$difn,
-      x$stabn, if (isTRUE(x$stable)) "within the bound of 1" else "above 1"
-    ),
-    sep = ""
-  )
-  invisible(x)
-}
-
-#' @rdname plmfld
-#' @export
-print.plmfld <- function(x, ...) {
-  fl <- x$field
-  pk <- which(fl == max(fl), arr.ind = TRUE)[1L, ]
-  cat(
-    x$title, "\n",
-    sprintf(
-      "%d x %d receptors; peak %s at x = %s, y = %s\n", nrow(fl), ncol(fl),
-      format(max(fl)), format(x$x[pk[[1L]]]), format(x$y[pk[[2L]]])
-    ),
-    sep = ""
-  )
-  invisible(x)
-}
-
-#' @rdname pgsig
-#' @export
-print.lagrprt <- function(x, ...) {
-  cat(sprintf(
-    "Lagrangian particles: %d, mean position x = %s, y = %s\n",
-    length(x$x), format(x$mean_x), format(x$meany)
-  ))
-  cat(sprintf(
-    "x from %s to %s, y from %s to %s\n", format(min(x$x)), format(max(x$x)),
-    format(min(x$y)), format(max(x$y))
-  ))
-  if (is.matrix(x$concentration)) {
-    cat(sprintf(
-      "grid %d x %d, peak density %s per unit area\n",
-      nrow(x$concentration), ncol(x$concentration),
-      format(max(x$concentration))
-    ))
-  }
-  invisible(x)
 }
