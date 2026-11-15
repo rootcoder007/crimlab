@@ -6768,7 +6768,8 @@ def lvfit(y: Any, year: Any = None) -> Any:
 
 def ppmlfe(data: Any, y: Any, x: Any, fe: Any, expo: Any = None, clus: Any = None, se: Any = "cluster",
            ssc: Any = "G", time: Any = None, lag: Any = None, nboot: Any = 199, seed: Any = None,
-           sep: Any = "fe", level: Any = 0.95, tol: Any = 1e-12, maxit: Any = 100) -> Any:
+           sep: Any = "fe", level: Any = 0.95, tol: Any = 1e-12, maxit: Any = 100, twc: Any = "min",
+           psd: Any = "none") -> Any:
     """Poisson pseudo-maximum likelihood with absorbed fixed effects.
 
     The arguments and the result are those of R's ``ppmlfe()``: see its help
@@ -6782,12 +6783,12 @@ def ppmlfe(data: Any, y: Any, x: Any, fe: Any, expo: Any = None, clus: Any = Non
     ['coef', 'vcov', 'n', 'nsep', 'ncl']
     """
     return jcall("ppmlfe", data=data, y=y, x=x, fe=fe, expo=expo, clus=clus, se=se, ssc=ssc, time=time, lag=lag,
-                 nboot=nboot, seed=seed, sep=sep, level=level, tol=tol, maxit=maxit)
+                 nboot=nboot, seed=seed, sep=sep, level=level, tol=tol, maxit=maxit, twc=twc, psd=psd)
 
 
 def ivfe(data: Any, y: Any, endo: Any = None, inst: Any = None, x: Any = None, fe: Any = None, clus: Any = None,
          se: Any = "cluster", ssc: Any = "G", time: Any = None, lag: Any = None, nboot: Any = 199,
-         seed: Any = None, level: Any = 0.95, tol: Any = 1e-12) -> Any:
+         seed: Any = None, level: Any = 0.95, tol: Any = 1e-12, twc: Any = "min", psd: Any = "none") -> Any:
     """Two-stage least squares with absorbed fixed effects.
 
     The arguments and the result are those of R's ``ivfe()``: see its help
@@ -6801,7 +6802,7 @@ def ivfe(data: Any, y: Any, endo: Any = None, inst: Any = None, x: Any = None, f
     ['coef', 'first', 'fstab', 'vcov', 'n']
     """
     return jcall("ivfe", data=data, y=y, endo=endo, inst=inst, x=x, fe=fe, clus=clus, se=se, ssc=ssc, time=time,
-                 lag=lag, nboot=nboot, seed=seed, level=level, tol=tol)
+                 lag=lag, nboot=nboot, seed=seed, level=level, tol=tol, twc=twc, psd=psd)
 
 
 def ppmlcf(data: Any, y: Any, endo: Any, inst: Any, x: Any = None, fe: Any = None, expo: Any = None,
