@@ -48,6 +48,7 @@ bool ibench(Ctx &c, Val &out) {
   std::vector<double> xv;
   int p = 0;
   CK(ibx(c, c["x"], n, xv, p));
+  if (p > 8190) return c.fail("`x` must have at most 8190 columns.");
   int mn = 0;
   CK(wholed(c, "minn", 20, 1, mn));
   double fd = 0.0;

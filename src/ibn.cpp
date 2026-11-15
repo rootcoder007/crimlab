@@ -345,6 +345,9 @@ int clab_ibench(const double *y, const int *off, const double *x, int n, int p, 
                 int local, double *res, int *ok, double *nul) {
   if (n < 2 || p < 0 || no < 2 || minn < 1) return CLAB_EARG;
   if (static_cast<long long>(n) * (p > 0 ? p : 1) > 2000000000LL) return CLAB_EARG;
+  // the regressions' (p + 2) x (p + 2) work arrays, bounded as the
+  // binding says (at most 8190 columns)
+  if (p > 8190) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (off[i] < 0 || off[i] >= no || !(y[i] == 0 || y[i] == 1)) return CLAB_EDOM;
   }

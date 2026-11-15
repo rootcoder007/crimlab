@@ -152,3 +152,11 @@ test_that("covariates as a matrix or one vector fit as the data frame", {
                "ibench: `x` must hold finite numbers with no missing values.",
                fixed = TRUE)
 })
+
+test_that("more columns of x than the work arrays allow are refused", {
+  # (p + 2)^2 cells for each regression: past 8190 columns refused before
+  # any of them is made; the input itself is 8 x 8191 zeros
+  x <- matrix(0, 8, 8191)
+  expect_error(ibench(rep(0:1, 4), rep(c("a", "b"), each = 4), x),
+               "ibench: `x` must have at most 8190 columns.", fixed = TRUE)
+})

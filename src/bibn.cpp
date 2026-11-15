@@ -58,6 +58,7 @@ SEXP C_clab_r_ibench(SEXP y, SEXP off, SEXP x, SEXP minn, SEXP fdr, SEXP dr, SEX
   if (o.g < 2) fail("`off` must hold at least two officers.");
   std::vector<double> xv;
   const int p = xcols(x, n, xv);
+  if (p > 8190) fail("`x` must have at most 8190 columns.");
   const int mn = clab::whole(minn, "minn", 1);
   const double fd = clab::one(fdr, "fdr", 0.0, 1.0);
   const bool udr = csp::flag(dr, "dr"), ulf = csp::flag(local, "local");

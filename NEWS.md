@@ -684,6 +684,14 @@
   missing." (`rho` of `dtrid()`, `a` of `inspg()`, `cap` and `floor` of
   `bandx()`); the messages used to name a bound of "-inf" or "-Inf" that
   does not exist. The command line gives the same messages.
+* `pedlr()` refuses a pedigree whose tables would pass its size bound
+  before it builds them: an untyped child of untyped parents at a locus of
+  2000 alleles used to try to allocate 8e9 cells and abort R. The mutation
+  matrices are made only with a mutation model, and refused past the same
+  bound (more than 8192 alleles); they were made even with `mut = "none"`.
+  `gmixlr()` no longer lists the genotypes of unknown contributors when
+  there are none, and `ibench()` refuses more than 8190 columns of `x`,
+  whose work arrays grow with the square of their number.
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.

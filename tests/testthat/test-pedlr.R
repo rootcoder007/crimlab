@@ -385,6 +385,26 @@ test_that("a pedigree whose tables exceed the bound is refused", {
   )
 })
 
+test_that("a table too large to build is refused before it is built", {
+  # an untyped child of untyped parents at 2000 alleles: its table over
+  # its allele and its parents' would hold 8e9 cells, past 2^26; the
+  # bound is checked before the table (and with mut = "none" no mutation
+  # matrix of 2000^2) is made, so this allocates nothing large
+  p3 <- data.frame(id = c("f", "m", "c", "u"), fid = c(NA, NA, "f", NA),
+                   mid = c(NA, NA, "m", NA))
+  g <- data.frame(id = "u", locus = "W", a1 = 1, a2 = 2)
+  w <- data.frame(locus = "W", allele = 1:2000, freq = 1 / 2000)
+  msg <- "pedlr: the pedigrees are too large for exact computation at locus W."
+  expect_error(pedlr(p3, g, w), msg, fixed = TRUE)
+  # a typed trio needs small tables, but a mutation matrix at 9000
+  # alleles would hold 8.1e7 cells: refused before it is made
+  w9 <- data.frame(locus = "W", allele = 1:9000, freq = 1 / 9000)
+  t3 <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
+                   mid = c(NA, NA, "m"))
+  g3 <- data.frame(id = c("f", "m", "c"), locus = "W", a1 = 1, a2 = 2)
+  expect_error(pedlr(t3, g3, w9, mut = "equal"), msg, fixed = TRUE)
+})
+
 test_that("the pedigree binding refuses columns, alt and mut it cannot use", {
   ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
                    mid = c(NA, NA, "m"))
