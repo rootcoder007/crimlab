@@ -1234,6 +1234,33 @@ func Gmixlr(args string) (string, error) { return Jrun("gmixlr", args) }
 // Cmpsc runs cmpsc() of the R package (arguments: a b len? npeaks? tx? full?; ? marks an optional one).
 func Cmpsc(args string) (string, error) { return Jrun("cmpsc", args) }
 
+// Ppmlfe runs ppmlfe() of the R package (arguments: data y x fe expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit?; ? marks an optional one).
+func Ppmlfe(args string) (string, error) { return Jrun("ppmlfe", args) }
+
+// Ivfe runs ivfe() of the R package (arguments: data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol?; ? marks an optional one).
+func Ivfe(args string) (string, error) { return Jrun("ivfe", args) }
+
+// Ppmlcf runs ppmlcf() of the R package (arguments: data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit?; ? marks an optional one).
+func Ppmlcf(args string) (string, error) { return Jrun("ppmlcf", args) }
+
+// Windiv runs windiv() of the R package (arguments: dir width? start? area? base? sect? edges? by? avg? share? spd?; ? marks an optional one).
+func Windiv(args string) (string, error) { return Jrun("windiv", args) }
+
+// Invsn runs invsn() of the R package (arguments: tlow tup sign? brk?; ? marks an optional one).
+func Invsn(args string) (string, error) { return Jrun("invsn", args) }
+
+// Updwn runs updwn() of the R package (arguments: data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?; ? marks an optional one).
+func Updwn(args string) (string, error) { return Jrun("updwn", args) }
+
+// Expjn runs expjn() of the R package (arguments: expo outc by?; ? marks an optional one).
+func Expjn(args string) (string, error) { return Jrun("expjn", args) }
+
+// Smkiv runs smkiv() of the R package (arguments: data plume unit day pm? adj? nbr? z? seas? dens? cf? by?; ? marks an optional one).
+func Smkiv(args string) (string, error) { return Jrun("smkiv", args) }
+
+// Exprun runs exprun() of the R package (arguments: data var unit day thr? cap? step?; ? marks an optional one).
+func Exprun(args string) (string, error) { return Jrun("exprun", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 
