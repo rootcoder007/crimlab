@@ -123,3 +123,58 @@ test_that("rddens is McCrary's two steps", {
   expect_error(rddens(c(1, NA)), "rddens: ")
   expect_output(print(m), "McCrary")
 })
+
+test_that("rdloc: other kernels, clusters, the placebo print; rddens", {
+  d <- simrd()
+  # the kernels' moments on [0, 1] by numerical integration, and C_K of
+  # Imbens and Kalyanaraman (2012, Lemma 3.1)
+  ck <- function(k) {
+    nu <- vapply(0:3, function(j) {
+      stats::integrate(function(u) u^j * k(u), 0, 1, rel.tol = 1e-12)$value
+    }, 0)
+    pp <- vapply(0:2, function(j) {
+      stats::integrate(function(u) u^j * k(u)^2, 0, 1, rel.tol = 1e-12)$value
+    }, 0)
+    dd <- nu[3] * nu[1] - nu[2]^2
+    c1 <- ((nu[3]^2 - nu[2] * nu[4]) / dd)^2 / 4
+    c2 <- (nu[3]^2 * pp[1] - 2 * nu[2] * nu[3] * pp[2] + nu[2]^2 * pp[3]) /
+      dd^2
+    (c2 / (4 * c1))^(1 / 5)
+  }
+  ce <- ck(function(u) 1 - u^2)
+  expect_equal(.Call(C_clab_r_rdck, 2L), ce, tolerance = 1e-8)
+  expect_equal(.Call(C_clab_r_rdck, 0L), 480^(1 / 5), tolerance = 1e-12)
+  e <- rdloc(d, "y", "r", kern = "epa")
+  expect_equal(e$h, ikref(d$y, d$r, 0, ce), tolerance = 1e-8)
+  # the uniform kernel: weight 1/2 within the bandwidth, by hand
+  u <- rdloc(d, "y", "r", bw = "user", h = 0.3, kern = "uni",
+             ci = "conventional")
+  k <- abs(d$r) <= 0.3
+  dd <- as.numeric(d$r >= 0)
+  x <- cbind(1, dd, d$r, dd * d$r)[k, ]
+  b <- solve(crossprod(x), crossprod(x, d$y[k]))
+  expect_equal(u$coef$est[1L], b[2], tolerance = 1e-8)
+  d$g1 <- 1
+  errs("rdloc", list(
+    list("`se = \"cluster\"` needs `clus`", data = d, y = "y", run = "r",
+         bw = "user", h = 0.3, se = "cluster"),
+    list("one cluster within the bandwidth", data = d, y = "y", run = "r",
+         bw = "user", h = 0.3, se = "cluster", clus = "g1")
+  ))
+  p <- rdloc(d, "y", "r", bw = "user", h = 0.3, plac = -0.5)
+  expect_output(print(p), "placebo cutoffs:")
+  m <- rddens(d$r, b = 0.05, h = 0.5)
+  expect_identical(summary(m), m$tab)
+  expect_error(rddens(d$r, cut = 5),
+               "the density cannot be estimated: the cutoff is outside")
+})
+
+test_that("rdloc refuses data where the IK bandwidth cannot be computed", {
+  # two values only on the right of the cutoff: its local quadratic is
+  # collinear
+  set.seed(3)
+  r <- c(runif(200, -1, 0), rep(c(0.01, 0.02), 100))
+  d <- data.frame(r = r, y = r + 0.5 * (r >= 0) + rnorm(400, 0, 0.1))
+  expect_error(rdloc(d, "y", "r"),
+               "the bandwidth of Imbens and Kalyanaraman cannot be computed")
+})
