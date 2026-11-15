@@ -245,7 +245,7 @@ format.ordcmp <- function(x, ...) {
       "delta (Cliff's) = share rating higher less share rating lower.",
       "neff: the effective sample size the published limits imply (it",
       "carries the survey's design effect).",
-      if (any(x$poogrp %in% TRUE)) {
+      if (any(.igyes(x$poogrp))) {
         paste(
           "(pooled): a pan-Indigenous total, shown beside, not a",
           "distinct group (poogrp)."
@@ -254,12 +254,6 @@ format.ordcmp <- function(x, ...) {
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.ordcmp <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Age-standardise survey percentages
@@ -375,12 +369,6 @@ format.stdprev <- function(x, ...) {
   )
 }
 
-#' @export
-print.stdprev <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
-}
-
 #' Wellness beside distress: a strengths-first profile of published indicators
 #'
 #' Puts a group's wellness indicators (life satisfaction, perceived mental
@@ -494,29 +482,6 @@ format.welprof <- function(x, ...) {
     return(fb)
   }
   ind <- unique(x$indicator)
-  tabs <- lapply(ind, function(k) {
-    r <- x[x$indicator == k, , drop = FALSE]
-    out <- data.frame(
-      group = .igstar(r$group, r$usewithcau),
-      estimate = r$estimate,
-      interval = .igci(r$lower, r$upper)
-    )
-    if (!all(is.na(r$domain))) {
-      out$domain <- ifelse(is.na(r$domain), "", as.character(r$domain))
-    }
-    out
-  })
-  side <- x$side[match(ind, x$indicator)]
-  names(tabs) <- sprintf("%s (%s)", ind, side)
-  apart <- vapply(
-    ind,
-    function(k) {
-      g <- x[x$indicator == k & is.finite(x$estimate), , drop = FALSE]
-      nrow(g) > 1L &&
-        isTRUE(g$lower[which.max(g$estimate)] > g$upper[which.min(g$estimate)])
-    },
-    NA
-  )
   .igb(
     "Wellness profile",
     facts = list(
@@ -524,33 +489,14 @@ format.welprof <- function(x, ...) {
       `Wellness indicators` = length(unique(x$indicator[x$side == "wellness"])),
       `Distress indicators` = length(unique(x$indicator[x$side == "distress"]))
     ),
-    tables = tabs,
-    reading = if (!any(apart)) {
-      sprintf(
-        "On none of the %d indicators do the groups' intervals part: %s",
-        length(ind),
-        "the data cannot rank the groups on any of them."
-      )
-    } else {
-      sprintf(
-        "The groups' intervals part on %d of %d indicators: %s.",
-        sum(apart),
-        length(ind),
-        paste(ind[apart], collapse = "; ")
-      )
-    },
+    tables = .wptabs(x, ind),
+    reading = .wpread(x, ind),
     notes = c(
       "Wellness indicators come first, so each group's strengths are read",
       "before its distress (Stewart 2008).",
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.welprof <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Holistic balance: how evenly wellness is held across the domains of a whole
@@ -687,39 +633,16 @@ format.holbal <- function(x, ...) {
     return(fb)
   }
   lab <- .igstar(x$group, x$usewithcau)
-  show <- data.frame(
-    group = lab,
-    level = x$level,
-    lci = .igci(x$lvllo, x$lvlup),
-    balance = x$balance,
-    bci = .igci(x$ballo, x$balup),
-    weakest = x$weadom
-  )
-  names(show)[c(3L, 5L)] <- c("level CI", "balance CI")
-  tabs <- list(show)
-  m <- attr(x, "domains")
-  if (is.matrix(m) && nrow(m) == nrow(x)) {
-    tabs[["Domain levels (percent)"]] <- cbind(
-      data.frame(group = x$group),
-      as.data.frame(unclass(m), row.names = NULL, optional = TRUE)
-    )
-  }
   w <- attr(x, "weights")
   tb <- sort(table(x$weadom), decreasing = TRUE)
   .igb(
     "Holistic balance across the domains",
     facts = list(
       Groups = nrow(x),
-      Weights = if (length(w)) {
-        if (length(unique(w)) == 1L) {
-          sprintf("equal, over %d domains", length(w))
-        } else {
-          toString(sprintf("%s %s", names(w), format(signif(w, 3))))
-        }
-      },
+      Weights = .hbwts(w),
       Balance = "weighted geometric over arithmetic mean of the domain levels"
     ),
-    tables = tabs,
+    tables = .hbtabs(x, lab),
     reading = c(
       .igrange(lab, x$balance, "balance", x$ballo, x$balup),
       if (length(tb)) {
@@ -740,12 +663,6 @@ format.holbal <- function(x, ...) {
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.holbal <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Wellness and distress as two continua
@@ -854,8 +771,81 @@ format.dualcont <- function(x, ...) {
   )
 }
 
-#' @export
-print.dualcont <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
+# format.welprof(): one table per indicator, named with its side
+.wptabs <- function(x, ind) {
+  tabs <- lapply(ind, function(k) {
+    r <- x[x$indicator == k, , drop = FALSE]
+    out <- data.frame(
+      group = .igstar(r$group, r$usewithcau),
+      estimate = r$estimate,
+      interval = .igci(r$lower, r$upper)
+    )
+    if (!all(is.na(r$domain))) {
+      out$domain <- ifelse(is.na(r$domain), "", as.character(r$domain))
+    }
+    out
+  })
+  side <- x$side[match(ind, x$indicator)]
+  names(tabs) <- sprintf("%s (%s)", ind, side)
+  tabs
+}
+
+# format.welprof(): on which indicators the groups' intervals part
+.wpread <- function(x, ind) {
+  apart <- vapply(
+    ind,
+    function(k) {
+      g <- x[x$indicator == k & is.finite(x$estimate), , drop = FALSE]
+      nrow(g) > 1L &&
+        isTRUE(g$lower[which.max(g$estimate)] > g$upper[which.min(g$estimate)])
+    },
+    NA
+  )
+  if (any(apart)) {
+    sprintf(
+      "The groups' intervals part on %d of %d indicators: %s.",
+      sum(apart),
+      length(ind),
+      paste(ind[apart], collapse = "; ")
+    )
+  } else {
+    sprintf(
+      "On none of the %d indicators do the groups' intervals part: %s",
+      length(ind),
+      "the data cannot rank the groups on any of them."
+    )
+  }
+}
+
+# format.holbal(): the balance table, with the domain levels when kept
+.hbtabs <- function(x, lab) {
+  show <- data.frame(
+    group = lab,
+    level = x$level,
+    lci = .igci(x$lvllo, x$lvlup),
+    balance = x$balance,
+    bci = .igci(x$ballo, x$balup),
+    weakest = x$weadom
+  )
+  names(show)[c(3L, 5L)] <- c("level CI", "balance CI")
+  tabs <- list(show)
+  m <- attr(x, "domains")
+  if (is.matrix(m) && nrow(m) == nrow(x)) {
+    tabs[["Domain levels (percent)"]] <- cbind(
+      data.frame(group = x$group),
+      as.data.frame(unclass(m), row.names = NULL, optional = TRUE)
+    )
+  }
+  tabs
+}
+
+# format.holbal(): the weights, "equal" when they are
+.hbwts <- function(w) {
+  if (length(w)) {
+    if (length(unique(w)) == 1L) {
+      sprintf("equal, over %d domains", length(w))
+    } else {
+      toString(sprintf("%s %s", names(w), format(signif(w, 3))))
+    }
+  }
 }

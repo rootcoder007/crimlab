@@ -112,18 +112,6 @@ format.mhcont <- function(x, ...) {
   if (!is.null(fb)) {
     return(fb)
   }
-  tabs <- lapply(unique(x$group), function(g) {
-    r <- x[x$group == g, , drop = FALSE]
-    proxy <- ifelse(r$shared %in% TRUE, "yes (shared)", "yes")
-    proxy[is.na(r$estimate)] <- "none published"
-    data.frame(
-      direction = .igstar(r$indicator, r$usewithcau),
-      estimate = r$estimate,
-      interval = ifelse(is.na(r$estimate), "", .igci(r$lower, r$upper)),
-      proxy = proxy
-    )
-  })
-  names(tabs) <- unique(x$group)
   miss <- unique(x$indicator[is.na(x$estimate)])
   ok <- !is.na(x$estimate) & !duplicated(x$indicator)
   .igb(
@@ -133,31 +121,25 @@ format.mhcont <- function(x, ...) {
       Directions = "hope, belonging, meaning, purpose",
       Estimates = "percent, from the published tables"
     ),
-    tables = tabs,
-    reading = if (!length(miss)) {
-      "Every direction has a published proxy for every group."
-    } else {
+    tables = .mhtabs(x),
+    reading = if (length(miss)) {
       c(
         paste("No published proxy:", toString(miss)),
         "-- reported as missing, never filled from another direction."
       )
+    } else {
+      "Every direction has a published proxy for every group."
     },
     notes = c(
       if (any(ok)) paste0("Proxy for ", x$indicator[ok], ": ", x$domain[ok]),
       "Every level is a proxy: no survey table measures the directions as",
       "the Framework defines them (Health Canada and AFN 2015).",
-      if (any(x$shared %in% TRUE)) {
+      if (any(.igyes(x$shared))) {
         "yes (shared): one indicator serves two directions, counted for each."
       },
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.mhcont <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' The Community Well-Being index of a community
@@ -265,12 +247,6 @@ format.cwbscr <- function(x, digits = 4L, ...) {
     ),
     digits = digits
   )
-}
-
-#' @export
-print.cwbscr <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Connection across places: does one indicator rise where another does?
@@ -422,12 +398,6 @@ format.connassoc <- function(x, ...) {
   )
 }
 
-#' @export
-print.connassoc <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
-}
-
 #' Healing as a process: change in published indicators between two periods
 #'
 #' For each group and indicator, the change between two survey periods with its
@@ -518,18 +488,6 @@ format.healchg <- function(x, ...) {
     return(fb)
   }
   ind <- unique(x$indicator)
-  tabs <- lapply(ind, function(k) {
-    r <- x[x$indicator == k, , drop = FALSE]
-    data.frame(
-      group = .igstar(r$group, r$usewithcau),
-      from = r$from,
-      to = r$to,
-      change = r$change,
-      interval = .igci(r$lower, r$upper)
-    )
-  })
-  side <- x$side[match(ind, x$indicator)]
-  names(tabs) <- ifelse(is.na(side), ind, sprintf("%s (%s)", ind, side))
   pr <- attr(x, "periods")
   up <- x$lower > 0
   dn <- x$upper < 0
@@ -542,14 +500,14 @@ format.healchg <- function(x, ...) {
       Indicators = length(ind),
       Units = "the estimate's own (percentage points for percentages)"
     ),
-    tables = tabs,
+    tables = .hctabs(x, ind),
     reading = c(
       sprintf(
         "%d of %d changes have an interval clear of zero.",
         sum(up | dn, na.rm = TRUE),
         sum(!is.na(x$change))
       ),
-      if (any(!is.na(x$side))) {
+      if (!all(is.na(x$side))) {
         sprintf(
           paste(
             "Wellness: %d rose and %d fell by more than chance; distress:",
@@ -569,12 +527,6 @@ format.healchg <- function(x, ...) {
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.healchg <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' A community-weighted index of protective and risk factors
@@ -689,12 +641,6 @@ format.commidx <- function(x, ...) {
   )
 }
 
-#' @export
-print.commidx <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
-}
-
 #' How deficit-framed is a set of results?
 #'
 #' Counts how many of the indicators in a report measure distress, deficit or
@@ -772,8 +718,36 @@ format.frmaud <- function(x, ...) {
   )
 }
 
-#' @export
-print.frmaud <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
+# format.mhcont(): one table per group, a direction to a row
+.mhtabs <- function(x) {
+  tabs <- lapply(unique(x$group), function(g) {
+    r <- x[x$group == g, , drop = FALSE]
+    proxy <- ifelse(.igyes(r$shared), "yes (shared)", "yes")
+    proxy[is.na(r$estimate)] <- "none published"
+    data.frame(
+      direction = .igstar(r$indicator, r$usewithcau),
+      estimate = r$estimate,
+      interval = ifelse(is.na(r$estimate), "", .igci(r$lower, r$upper)),
+      proxy = proxy
+    )
+  })
+  names(tabs) <- unique(x$group)
+  tabs
+}
+
+# format.healchg(): one table per indicator, named with its side
+.hctabs <- function(x, ind) {
+  tabs <- lapply(ind, function(k) {
+    r <- x[x$indicator == k, , drop = FALSE]
+    data.frame(
+      group = .igstar(r$group, r$usewithcau),
+      from = r$from,
+      to = r$to,
+      change = r$change,
+      interval = .igci(r$lower, r$upper)
+    )
+  })
+  side <- x$side[match(ind, x$indicator)]
+  names(tabs) <- ifelse(is.na(side), ind, sprintf("%s (%s)", ind, side))
+  tabs
 }

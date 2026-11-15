@@ -6,186 +6,6 @@
 # and the CARE Principles (Carroll et al. 2020) say whose data these are.
 # The computation is in C++ (src/igh.cpp and the files beside it).
 
-# Runs one of these functions in the compiled core.
-.igc <- function(fn, ...) .Call(C_clab_r_igh, fn, list(...))
-
-# The printed block of a result: a title, facts, tables, a reading, notes.
-.igb <- function(
-  title,
-  facts = list(),
-  tables = list(),
-  reading = NULL,
-  notes = NULL,
-  digits = 4L
-) {
-  facts <- facts[!vapply(facts, is.null, NA)]
-  out <- c(title, strrep("-", nchar(title, type = "width")))
-  if (length(facts)) {
-    k <- paste0(names(facts), ":")
-    v <- vapply(
-      facts,
-      function(f) {
-        paste(format(f, digits = digits), collapse = " ")
-      },
-      ""
-    )
-    out <- c(out, paste(formatC(k, width = -max(nchar(k, type = "width"))), v))
-  }
-  for (i in seq_along(tables)) {
-    nm <- names(tables)[i]
-    out <- c(
-      out,
-      "",
-      if (!is.null(nm) && nzchar(nm)) nm,
-      .igt(tables[[i]], digits)
-    )
-  }
-  if (length(reading)) {
-    out <- c(out, "", reading)
-  }
-  if (length(notes)) {
-    out <- c(out, "", notes)
-  }
-  out
-}
-
-# A data frame as lines of text.
-.igt <- function(d, digits = 4L) {
-  n <- nrow(d)
-  d <- structure(
-    as.list(d),
-    names = names(d),
-    row.names = seq_len(n),
-    class = "data.frame"
-  )
-  if (!n) {
-    return("(no rows)")
-  }
-  f <- format(d, digits = digits)
-  m <- rbind(names(f), as.matrix(f))
-  m[is.na(m)] <- "NA"
-  for (j in seq_len(ncol(m))) {
-    m[, j] <- formatC(m[, j], width = max(nchar(m[, j], type = "width")))
-  }
-  apply(m, 1L, paste, collapse = "  ")
-}
-
-# A table with only the columns that are there (a subset of a result).
-.igplain <- function(x, need, title) {
-  if (all(need %in% names(x)) && nrow(x)) {
-    return(NULL)
-  }
-  c(title, "", .igt(x))
-}
-
-.igci <- function(lo, hi, d = 3L) {
-  ok <- is.finite(lo) & is.finite(hi)
-  f <- function(v) trimws(formatC(v, digits = d, format = "g"))
-  ifelse(ok, paste0("[", f(lo), ", ", f(hi), "]"), "")
-}
-
-# "A", "A and B", "A, B and C"
-.iglist <- function(lab) {
-  n <- length(lab)
-  if (n < 2L) {
-    return(paste(lab))
-  }
-  paste(toString(lab[-n]), "and", lab[n])
-}
-
-.igstar <- function(lab, flag) paste0(lab, ifelse(flag %in% TRUE, " *", ""))
-
-.igpool <- function(lab, flag) {
-  paste0(lab, ifelse(flag %in% TRUE, " (pooled)", ""))
-}
-
-.igcau <- function(flag) {
-  if (!any(flag %in% TRUE)) {
-    return(NULL)
-  }
-  paste(
-    "* use with caution: the source flags the estimate (E, high",
-    "sampling variability)."
-  )
-}
-
-.iglvl <- function(l) if (is.numeric(l)) paste0(format(100 * l), "%")
-
-# Which rows have an interval above, below or across the null value.
-.ignull <- function(lab, lo, hi, null, up, down) {
-  known <- is.finite(lo) & is.finite(hi)
-  above <- known & lo > null
-  below <- known & hi < null
-  mid <- known & !above & !below
-  nv <- format(null)
-  c(
-    if (any(above)) {
-      sprintf("%s (interval above %s): %s.", up, nv, .iglist(lab[above]))
-    },
-    if (any(below)) {
-      sprintf("%s (interval below %s): %s.", down, nv, .iglist(lab[below]))
-    },
-    if (any(mid)) {
-      sprintf(
-        "Not distinguishable from %s (interval includes it): %s.",
-        nv,
-        .iglist(lab[mid])
-      )
-    },
-    if (!any(known)) "No row has an interval to judge it by."
-  )
-}
-
-# The highest and the lowest of the groups, and whether their intervals
-# part.
-.igrange <- function(lab, est, what = "estimate", lo = NULL, hi = NULL) {
-  ok <- which(is.finite(est))
-  if (!length(ok)) {
-    return(sprintf("No group has a %s to compare.", what))
-  }
-  if (length(ok) == 1L) {
-    return(sprintf("%s: %s %s.", lab[ok], what, format(signif(est[ok], 4))))
-  }
-  i <- ok[which.max(est[ok])]
-  j <- ok[which.min(est[ok])]
-  if (est[i] == est[j]) {
-    return(sprintf(
-      "Every group has the same %s, %s.",
-      what,
-      format(signif(est[i], 4))
-    ))
-  }
-  top <- sprintf(
-    "Highest %s: %s (%s); lowest: %s (%s).",
-    what,
-    lab[i],
-    format(signif(est[i], 4)),
-    lab[j],
-    format(signif(est[j], 4))
-  )
-  if (is.null(lo) || !is.finite(lo[i]) || !is.finite(hi[j])) {
-    return(top)
-  }
-  c(
-    top,
-    if (lo[i] > hi[j]) {
-      "Their intervals do not overlap: the gap is more than sampling error."
-    } else {
-      paste(
-        "Their intervals overlap, which alone does not mean they are the",
-        "same: the difference has its own, narrower interval."
-      )
-    }
-  )
-}
-
-.igp <- function(p) {
-  if (!length(p) || is.na(p)) {
-    return("not available")
-  }
-  if (p < 0.001) "< 0.001" else format(signif(p, 3))
-}
-
 #' Read a Statistics Canada table as published
 #'
 #' Tidies a Statistics Canada full-table download (the \dQuote{CSV for database
@@ -248,10 +68,7 @@ format.sctidy <- function(x, ...) {
     facts = list(
       Rows = nrow(d),
       Columns = ncol(d),
-      Quality = paste(
-        sprintf("%s %d", names(q), as.integer(q)),
-        collapse = ", "
-      )
+      Quality = toString(sprintf("%s %d", names(q), as.integer(q)))
     ),
     tables = list(show[seq_len(min(10L, nrow(d))), , drop = FALSE]),
     reading = c(
@@ -264,12 +81,6 @@ format.sctidy <- function(x, ...) {
       "x suppressed (confidentiality); .. not available; ... not applicable."
     )
   )
-}
-
-#' @export
-print.sctidy <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Recode another agency's quality flags to the package's
@@ -371,12 +182,6 @@ format.limfrom <- function(x, digits = 4L, ...) {
     ),
     digits = digits
   )
-}
-
-#' @export
-print.limfrom <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Compare published group estimates with a reference group
@@ -549,7 +354,7 @@ format.indgap <- function(x, ...) {
     notes = c(
       "ratio: the group's estimate over the reference's; difference: the",
       "group's less the reference's, in the estimate's own units.",
-      if (any(x$poogrp %in% TRUE)) {
+      if (any(.igyes(x$poogrp))) {
         paste(
           "(pooled): a pan-Indigenous total, shown beside, not a",
           "distinct group (poogrp)."
@@ -559,12 +364,6 @@ format.indgap <- function(x, ...) {
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.indgap <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Generations of residential school attendance in a family
@@ -678,29 +477,7 @@ format.exptrnd <- function(x, ...) {
       }
     ),
     tables = list(show),
-    reading = c(
-      if (is.finite(x$orratio[k])) {
-        sprintf(
-          paste(
-            "At the highest level (%s) the odds of a case are %s times those",
-            "at the lowest (%s)."
-          ),
-          format(x$dose[k]),
-          format(signif(x$orratio[k], 3)),
-          format(x$dose[1L])
-        )
-      },
-      if (inherits(tr, "htest")) {
-        if (tr$p.value < 0.05) {
-          sprintf(
-            "The odds %s with exposure: the trend test rejects a flat trend.",
-            if (isTRUE(x$orratio[k] < 1)) "fall" else "rise"
-          )
-        } else {
-          "The trend test finds no steady change in the odds with exposure."
-        }
-      }
-    ),
+    reading = .etread(x, tr),
     notes = c(
       "orratio: the odds of a case at each level over the odds at the lowest",
       "(Woolf's interval); the trend test asks whether they rise with level.",
@@ -709,12 +486,6 @@ format.exptrnd <- function(x, ...) {
       }
     )
   )
-}
-
-#' @export
-print.exptrnd <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' Calls to Action completed, year by year
@@ -840,8 +611,213 @@ format.trcprog <- function(x, ...) {
   )
 }
 
-#' @export
-print.trcprog <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
+# Runs one of these functions in the compiled core.
+.igc <- function(fn, ...) .Call(C_clab_r_igh, fn, list(...))
+
+# The printed block of a result: a title, facts, tables, a reading, notes.
+.igb <- function(
+  title,
+  facts = list(),
+  tables = list(),
+  reading = NULL,
+  notes = NULL,
+  digits = 4L
+) {
+  facts <- facts[!vapply(facts, is.null, NA)]
+  out <- c(title, strrep("-", nchar(title, type = "width")))
+  if (length(facts)) {
+    k <- paste0(names(facts), ":")
+    v <- vapply(
+      facts,
+      function(f) {
+        paste(format(f, digits = digits), collapse = " ")
+      },
+      ""
+    )
+    out <- c(out, paste(formatC(k, width = -max(nchar(k, type = "width"))), v))
+  }
+  for (i in seq_along(tables)) {
+    nm <- names(tables)[i]
+    out <- c(
+      out,
+      "",
+      if (!is.null(nm) && nzchar(nm)) nm,
+      .igt(tables[[i]], digits)
+    )
+  }
+  if (length(reading)) {
+    out <- c(out, "", reading)
+  }
+  if (length(notes)) {
+    out <- c(out, "", notes)
+  }
+  out
+}
+
+# A data frame as lines of text.
+.igt <- function(d, digits = 4L) {
+  n <- nrow(d)
+  d <- structure(
+    as.list(d),
+    names = names(d),
+    row.names = seq_len(n),
+    class = "data.frame"
+  )
+  if (!n) {
+    return("(no rows)")
+  }
+  f <- format(d, digits = digits)
+  m <- rbind(names(f), as.matrix(f))
+  m[is.na(m)] <- "NA"
+  for (j in seq_len(ncol(m))) {
+    m[, j] <- formatC(m[, j], width = max(nchar(m[, j], type = "width")))
+  }
+  apply(m, 1L, paste, collapse = "  ")
+}
+
+# A table with only the columns that are there (a subset of a result).
+.igplain <- function(x, need, title) {
+  if (all(need %in% names(x)) && nrow(x)) {
+    return(NULL)
+  }
+  c(title, "", .igt(x))
+}
+
+.igci <- function(lo, hi, d = 3L) {
+  ok <- is.finite(lo) & is.finite(hi)
+  f <- function(v) trimws(formatC(v, digits = d, format = "g"))
+  ifelse(ok, paste0("[", f(lo), ", ", f(hi), "]"), "")
+}
+
+# "A", "A and B", "A, B and C"
+.iglist <- function(lab) {
+  n <- length(lab)
+  if (n < 2L) {
+    return(paste(lab))
+  }
+  paste(toString(lab[-n]), "and", lab[n])
+}
+
+# TRUE where a logical flag is TRUE, FALSE where it is FALSE or missing
+.igyes <- function(v) !is.na(v) & v
+
+.igstar <- function(lab, flag) paste0(lab, ifelse(.igyes(flag), " *", ""))
+
+.igpool <- function(lab, flag) {
+  paste0(lab, ifelse(.igyes(flag), " (pooled)", ""))
+}
+
+.igcau <- function(flag) {
+  if (!any(.igyes(flag))) {
+    return(NULL)
+  }
+  paste(
+    "* use with caution: the source flags the estimate (E, high",
+    "sampling variability)."
+  )
+}
+
+.iglvl <- function(l) if (is.numeric(l)) paste0(format(100 * l), "%")
+
+# Which rows have an interval above, below or across the null value.
+.ignull <- function(lab, lo, hi, null, up, down) {
+  known <- is.finite(lo) & is.finite(hi)
+  above <- known & lo > null
+  below <- known & hi < null
+  mid <- known & !above & !below
+  nv <- format(null)
+  c(
+    if (any(above)) {
+      sprintf("%s (interval above %s): %s.", up, nv, .iglist(lab[above]))
+    },
+    if (any(below)) {
+      sprintf("%s (interval below %s): %s.", down, nv, .iglist(lab[below]))
+    },
+    if (any(mid)) {
+      sprintf(
+        "Not distinguishable from %s (interval includes it): %s.",
+        nv,
+        .iglist(lab[mid])
+      )
+    },
+    if (!any(known)) "No row has an interval to judge it by."
+  )
+}
+
+# The highest and the lowest of the groups, and whether their intervals
+# part.
+.igrange <- function(lab, est, what = "estimate", lo = NULL, hi = NULL) {
+  ok <- which(is.finite(est))
+  if (!length(ok)) {
+    return(sprintf("No group has a %s to compare.", what))
+  }
+  if (length(ok) == 1L) {
+    return(sprintf("%s: %s %s.", lab[ok], what, format(signif(est[ok], 4))))
+  }
+  i <- ok[which.max(est[ok])]
+  j <- ok[which.min(est[ok])]
+  if (est[i] == est[j]) {
+    return(sprintf(
+      "Every group has the same %s, %s.",
+      what,
+      format(signif(est[i], 4))
+    ))
+  }
+  top <- sprintf(
+    "Highest %s: %s (%s); lowest: %s (%s).",
+    what,
+    lab[i],
+    format(signif(est[i], 4)),
+    lab[j],
+    format(signif(est[j], 4))
+  )
+  if (is.null(lo) || !is.finite(lo[i]) || !is.finite(hi[j])) {
+    return(top)
+  }
+  c(
+    top,
+    if (lo[i] > hi[j]) {
+      "Their intervals do not overlap: the gap is more than sampling error."
+    } else {
+      paste(
+        "Their intervals overlap, which alone does not mean they are the",
+        "same: the difference has its own, narrower interval."
+      )
+    }
+  )
+}
+
+.igp <- function(p) {
+  if (!length(p) || is.na(p)) {
+    return("not available")
+  }
+  if (p < 0.001) "< 0.001" else format(signif(p, 3))
+}
+
+# format.exptrnd(): the odds at the highest level and the trend's verdict
+.etread <- function(x, tr) {
+  k <- nrow(x)
+  c(
+    if (is.finite(x$orratio[k])) {
+      sprintf(
+        paste(
+          "At the highest level (%s) the odds of a case are %s times those",
+          "at the lowest (%s)."
+        ),
+        format(x$dose[k]),
+        format(signif(x$orratio[k], 3)),
+        format(x$dose[1L])
+      )
+    },
+    if (inherits(tr, "htest")) {
+      if (tr$p.value < 0.05) {
+        sprintf(
+          "The odds %s with exposure: the trend test rejects a flat trend.",
+          if (isTRUE(x$orratio[k] < 1)) "fall" else "rise"
+        )
+      } else {
+        "The trend test finds no steady change in the odds with exposure."
+      }
+    }
+  )
 }

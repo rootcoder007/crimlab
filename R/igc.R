@@ -87,16 +87,6 @@ format.cnsprof <- function(x, ...) {
   if (!is.null(fb)) {
     return(fb)
   }
-  q <- as.character(x$quality)
-  bad <- !is.na(q) & q != "ok"
-  vals <- function(v) {
-    u <- unique(as.character(v[!is.na(v)]))
-    if (length(u) <= 4L) {
-      paste(u, collapse = "; ")
-    } else {
-      sprintf("%d, from %s to %s", length(u), u[1L], u[length(u)])
-    }
-  }
   keep <- c(
     "geo",
     "dguid",
@@ -121,31 +111,13 @@ format.cnsprof <- function(x, ...) {
     "Indigenous Population Profile, tidied",
     facts = list(
       Rows = nrow(x),
-      Geographies = vals(x$geo),
-      Groups = vals(x$group),
+      Geographies = .igvals(x$geo),
+      Groups = .igvals(x$group),
       Characteristics = length(unique(x$chaid)),
-      Samples = vals(x$sample)
+      Samples = .igvals(x$sample)
     ),
     tables = list(x[seq_len(n), intersect(keep, names(x)), drop = FALSE]),
-    reading = c(
-      sprintf(
-        "%d values of %d characteristics in %d geographies.",
-        nrow(x),
-        length(unique(x$chaid)),
-        length(unique(x$geo))
-      ),
-      if (any(bad)) {
-        tb <- table(q[bad])
-        sprintf(
-          "%d %s a quality flag (%s): read those with caution.",
-          sum(bad),
-          if (sum(bad) == 1L) "carries" else "carry",
-          paste(names(tb), as.integer(tb), collapse = ", ")
-        )
-      } else {
-        "None carries a quality flag."
-      }
-    ),
+    reading = .cpread(x),
     notes = c(
       if (nrow(x) > n) sprintf("(%d more rows)", nrow(x) - n),
       "One row per geography, group and characteristic: the value with its",
@@ -155,12 +127,6 @@ format.cnsprof <- function(x, ...) {
       "is 50% or more; a high rate means a larger error than the sample."
     )
   )
-}
-
-#' @export
-print.cnsprof <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' The share of a population with a characteristic, from the census profile
@@ -271,17 +237,6 @@ profshr <- function(
   )
 }
 
-# a row's label: its place, residence, age and group, totals left out
-.iglab <- function(x) {
-  parts <- lapply(c("geo", "residence", "age", "gender", "group"), function(k) {
-    v <- as.character(x[[k]])
-    ifelse(is.na(v) | grepl("^Total", v), NA, v)
-  })
-  apply(do.call(cbind, parts), 1L, function(r) {
-    paste(r[!is.na(r)], collapse = ", ")
-  })
-}
-
 #' @export
 format.profshr <- function(x, ...) {
   need <- c("geo", "group", "numerator", "denominator", "estimate", "lower")
@@ -321,12 +276,6 @@ format.profshr <- function(x, ...) {
       "not non-response: read it as a lower bound on the uncertainty."
     )
   )
-}
-
-#' @export
-print.profshr <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' An Indigenous standard population from the census
@@ -529,12 +478,6 @@ format.cnscwb <- function(x, ...) {
   )
 }
 
-#' @export
-print.cnscwb <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
-}
-
 #' The indicators of Calls to Action 19 and 55, and the tables that measure them
 #'
 #' Call to Action 19 asks the federal government to \dQuote{establish measurable
@@ -683,19 +626,6 @@ format.trchlthgap <- function(x, ...) {
   if (!is.null(fb)) {
     return(fb)
   }
-  key <- sprintf("%s: %s (%s)", x$indicator, x$measure, x$period)
-  tabs <- lapply(unique(key), function(k) {
-    g <- x[key == k, , drop = FALSE]
-    data.frame(
-      group = .igstar(g$group, g$usewithcau),
-      estimate = g$estimate,
-      refest = g$refest,
-      disratio = g$disratio,
-      interval = .igci(g$lower, g$upper),
-      worse = ifelse(g$worse %in% TRUE, "yes", "")
-    )
-  })
-  names(tabs) <- unique(key)
   .igb(
     "Truth and Reconciliation Call 19: health gaps",
     facts = list(
@@ -703,11 +633,11 @@ format.trchlthgap <- function(x, ...) {
       Groups = paste(unique(x$group), collapse = "; "),
       `Clearly worse` = sprintf(
         "%d of %d gaps (interval above 1)",
-        sum(x$worse %in% TRUE),
+        sum(.igyes(x$worse)),
         nrow(x)
       )
     ),
-    tables = tabs,
+    tables = .thtabs(x),
     reading = c(
       "disratio is the disparity ratio, turned so that above 1 is worse for",
       "the group than for the reference (refest)."
@@ -718,12 +648,6 @@ format.trchlthgap <- function(x, ...) {
       .igcau(x$usewithcau)
     )
   )
-}
-
-#' @export
-print.trchlthgap <- function(x, ...) {
-  cat(format(x, ...), sep = "\n")
-  invisible(x)
 }
 
 #' A simulated policy panel for the examples
@@ -753,3 +677,68 @@ print.trchlthgap <- function(x, ...) {
 #' identical(polex(7), polex(7))
 #' @export
 polex <- function(seed = 20240101) .igc("polex", seed = seed)
+
+# format.cnsprof(): the distinct values of a column, or their count and
+# range when there are more than four
+.igvals <- function(v) {
+  u <- unique(as.character(v[!is.na(v)]))
+  if (length(u) <= 4L) {
+    paste(u, collapse = "; ")
+  } else {
+    sprintf("%d, from %s to %s", length(u), u[1L], u[length(u)])
+  }
+}
+
+# format.cnsprof(): what the profile holds and how much of it is flagged
+.cpread <- function(x) {
+  q <- as.character(x$quality)
+  bad <- !is.na(q) & q != "ok"
+  c(
+    sprintf(
+      "%d values of %d characteristics in %d geographies.",
+      nrow(x),
+      length(unique(x$chaid)),
+      length(unique(x$geo))
+    ),
+    if (any(bad)) {
+      tb <- table(q[bad])
+      sprintf(
+        "%d %s a quality flag (%s): read those with caution.",
+        sum(bad),
+        if (sum(bad) == 1L) "carries" else "carry",
+        paste(names(tb), as.integer(tb), collapse = ", ")
+      )
+    } else {
+      "None carries a quality flag."
+    }
+  )
+}
+
+# a row's label: its place, residence, age and group, totals left out
+.iglab <- function(x) {
+  parts <- lapply(c("geo", "residence", "age", "gender", "group"), function(k) {
+    v <- as.character(x[[k]])
+    ifelse(is.na(v) | grepl("^Total", v), NA, v)
+  })
+  apply(do.call(cbind, parts), 1L, function(r) {
+    toString(r[!is.na(r)])
+  })
+}
+
+# format.trchlthgap(): one table per indicator, measure and period
+.thtabs <- function(x) {
+  key <- sprintf("%s: %s (%s)", x$indicator, x$measure, x$period)
+  tabs <- lapply(unique(key), function(k) {
+    g <- x[key == k, , drop = FALSE]
+    data.frame(
+      group = .igstar(g$group, g$usewithcau),
+      estimate = g$estimate,
+      refest = g$refest,
+      disratio = g$disratio,
+      interval = .igci(g$lower, g$upper),
+      worse = ifelse(.igyes(g$worse), "yes", "")
+    )
+  })
+  names(tabs) <- unique(key)
+  tabs
+}
