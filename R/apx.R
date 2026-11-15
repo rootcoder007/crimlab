@@ -452,12 +452,15 @@
 #' each unit of the first `clus` column over the days of `time`, Bartlett
 #' weights `1 - d / (lag + 1)` for days `d` apart up to `lag`; by default
 #' the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
-#' and p. 635) for the Bartlett kernel without their prewhitening: `lag =
-#' [gamma T^(1/3)]`, `gamma = 1.1447 ((s1 / s0)^2)^(1/3)`, `s1 = 2 sum_j j
-#' sigma_j`, `s0 = sigma_0 + 2 sum_j sigma_j` over `j = 1..n`, `n = [4 (T /
-#' 100)^(2/9)]`, `T` the most days of a unit and `sigma_j` the sum of the
+#' and p. 635) for the Bartlett kernel without their prewhitening:
+#' `lag = floor(gamma T^(1/3))`,
+#' `gamma = 1.1447 ((s1 / s0)^2)^(1/3)`,
+#' `s1 = 2 sum_j j sigma_j`,
+#' `s0 = sigma_0 + 2 sum_j sigma_j` over `j = 1..n`,
+#' `n = floor(4 (T / 100)^(2/9))`,
+#' `T` the most days of a unit and `sigma_j` the sum of the
 #' products of the rows' scores (summed over the coefficients) of one unit
-#' `j` days apart (the earlier default here, `[4 (T / 100)^(2/9)]`, is
+#' `j` days apart (the earlier default here, `floor(4 (T / 100)^(2/9))`, is
 #' their lag-selection parameter `n`, not the lag); the appendix of
 #' Herrnstadt and others 2021); `"boot"` (a cluster bootstrap
 #' over the first `clus` column, `nboot` draws from R's generator, each
