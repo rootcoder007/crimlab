@@ -9,11 +9,6 @@
 # attribute "lakner" (after the author of the method, as in
 # rmoriebricklayer), printed with them, and plain numbers under `[`.
 
-.drm <- function(v, name, inputs, method = NULL) {
-  structure(v, lakner = inputs, method = method,
-            class = c(name, "drftm", "numeric"))
-}
-
 #' @export
 print.drftm <- function(x, ...) {
   cat(class(x)[1L], ": ", sep = "")
@@ -28,23 +23,10 @@ print.drftm <- function(x, ...) {
 }
 
 #' @export
-`[.drftm` <- function(x, ...) {
+"[.drftm" <- function(x, ...) {
   v <- unclass(x)
   attributes(v) <- list(names = names(x))
   v[...]
-}
-
-.drfin <- function(x, nm, fn) {
-  x <- .pnum(x, nm, fn)
-  x <- x[!is.na(x)]
-  if (any(is.infinite(x))) {
-    stop(fn, ": `", nm, "` must be finite (no Inf).", call. = FALSE)
-  }
-  if (!length(x)) {
-    stop(fn, ": `", nm, "` needs at least one non-missing value, got 0.",
-         call. = FALSE)
-  }
-  x
 }
 
 #' Two-sample Kolmogorov-Smirnov test (C backend)
@@ -146,43 +128,11 @@ drftks <- function(x, y) {
 drftpsi <- function(x, y, bins = 10L, eps = 1e-6) {
   x <- .drfin(x, "x", "drftpsi")
   y <- .drfin(y, "y", "drftpsi")
-  if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 2 ||
-        bins != floor(bins)) {
-    stop("drftpsi: `bins` must be one whole number of at least 2.",
-         call. = FALSE)
-  }
-  if (bins > 1e6) {
-    stop("drftpsi: `bins` must be at most 1,000,000.", call. = FALSE)
-  }
-  if (!is.numeric(eps) || length(eps) != 1L || is.na(eps) || eps <= 0 ||
-        eps >= 1) {
-    stop("drftpsi: `eps` must be a positive floor below one (0 < eps < 1).",
-         call. = FALSE)
-  }
+  .psargs(bins, eps)
   out <- .pcall(20L, x, y, c(bins, eps))
   names(out) <- c("psi", "jsdiv")
   .drm(out, "drftpsi", list(nx = length(x), ny = length(y), bins = bins))
 }
-
-# counts by label: a factor or text is tabulated, a numeric vector must be
-# named counts
-.drtab <- function(v, nm, fn) {
-  if (is.factor(v) || is.character(v)) {
-    t <- table(as.character(v))
-    out <- stats::setNames(as.numeric(t), names(t))
-  } else {
-    if (is.null(names(v)) || !is.numeric(v)) {
-      stop(fn, ": a numeric `", nm, "` must be named.", call. = FALSE)
-    }
-    out <- stats::setNames(as.numeric(v), names(v))
-  }
-  if (!all(is.finite(out)) || any(out < 0)) {
-    stop(fn, ": `", nm, "` must be finite, non-negative counts.", call. = FALSE)
-  }
-  out
-}
-
-.dralign <- function(o, lv) stats::setNames(ifelse(is.na(o[lv]), 0, o[lv]), lv)
 
 #' Chi-square test of a categorical column against a known distribution
 #'
@@ -329,6 +279,60 @@ drfthomog <- function(x, y, seed = 1L) {
   .drm(out, "drfthomog", inp, m)
 }
 
+.drm <- function(v, name, inputs, method = NULL) {
+  structure(v, lakner = inputs, method = method,
+            class = c(name, "drftm", "numeric"))
+}
+
+.drfin <- function(x, nm, fn) {
+  x <- .pnum(x, nm, fn)
+  x <- x[!is.na(x)]
+  if (any(is.infinite(x))) {
+    stop(fn, ": `", nm, "` must be finite (no Inf).", call. = FALSE)
+  }
+  if (!length(x)) {
+    stop(fn, ": `", nm, "` needs at least one non-missing value, got 0.",
+         call. = FALSE)
+  }
+  x
+}
+
+.psargs <- function(bins, eps) {
+  if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 2 ||
+        bins != floor(bins)) {
+    stop("drftpsi: `bins` must be one whole number of at least 2.",
+         call. = FALSE)
+  }
+  if (bins > 1e6) {
+    stop("drftpsi: `bins` must be at most 1,000,000.", call. = FALSE)
+  }
+  if (!is.numeric(eps) || length(eps) != 1L || is.na(eps) || eps <= 0 ||
+        eps >= 1) {
+    stop("drftpsi: `eps` must be a positive floor below one (0 < eps < 1).",
+         call. = FALSE)
+  }
+}
+
+# counts by label: a factor or text is tabulated, a numeric vector must be
+# named counts
+.drtab <- function(v, nm, fn) {
+  if (is.factor(v) || is.character(v)) {
+    t <- table(as.character(v))
+    out <- stats::setNames(as.numeric(t), names(t))
+  } else {
+    if (is.null(names(v)) || !is.numeric(v)) {
+      stop(fn, ": a numeric `", nm, "` must be named.", call. = FALSE)
+    }
+    out <- stats::setNames(as.numeric(v), names(v))
+  }
+  if (!all(is.finite(out)) || any(out < 0)) {
+    stop(fn, ": `", nm, "` must be finite, non-negative counts.", call. = FALSE)
+  }
+  out
+}
+
+.dralign <- function(o, lv) stats::setNames(ifelse(is.na(o[lv]), 0, o[lv]), lv)
+
 # expr evaluated under set.seed(seed), the caller's stream restored
 .drseed <- function(seed, expr) {
   if (!is.numeric(seed) || length(seed) != 1L || is.na(seed) ||
@@ -343,7 +347,7 @@ drfthomog <- function(x, y, seed = 1L) {
     assign(".Random.seed", old, envir = e)
   } else if (exists(".Random.seed", envir = e, inherits = FALSE)) {
     rm(".Random.seed", envir = e)
-  })
+  }, add = TRUE)
   set.seed(as.integer(seed))
   expr
 }
