@@ -57,10 +57,10 @@ bool ibench(Ctx &c, Val &out) {
   CK(flagd(c, "local", false, ulf));
   std::vector<double> yd(yb.begin(), yb.end());
   const int no = o.g;
-  std::vector<double> res(8 * zz(no)), nul(3);
+  std::vector<double> res(8 * zz(no)), nl3(3);
   std::vector<int> ok(zz(no));
   const int rc = clab_ibench(yd.data(), o.code.data(), p ? xv.data() : nullptr, static_cast<int>(n), p, no, mn, udr,
-                             ulf, res.data(), ok.data(), nul.data());
+                             ulf, res.data(), ok.data(), nl3.data());
   if (rc == CLAB_EDOM && ulf) {
     return c.fail("the local false discovery rate could not be estimated: the null could not be fitted to the "
                   "middle of the officers' z statistics.");
@@ -83,6 +83,6 @@ bool ibench(Ctx &c, Val &out) {
   put(out, "nx", vnum(p));
   put(out, "dr", vbool(udr));
   static const char *const nn[] = {"delta", "sigma", "p0"};
-  put(out, "null", ulf ? nvec(3, nn, nul.data()) : Val());
+  put(out, "null", ulf ? nvec(3, nn, nl3.data()) : Val());
   return true;
 }

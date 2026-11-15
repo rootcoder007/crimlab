@@ -164,7 +164,7 @@ bool thrtst(Ctx &c, Val &out) {
     for (int j = 0; j < ng; ++j) pn.push_back("diff[" + g.lev[zz(j)] + "]");
     for (int j = 0; j < ng; ++j) pn.push_back("phi[" + g.lev[zz(j)] + "]");
     for (int j = 0; j < ng; ++j) pn.push_back("delta[" + g.lev[zz(j)] + "]");
-    for (const char *h : {"muphi", "sigphi", "mudelta", "sigdelta"}) pn.push_back(h);
+    for (const char *hp : {"muphi", "sigphi", "mudelta", "sigdelta"}) pn.push_back(hp);
     const int pin = static_cast<int>(info[3]);
     for (int q = 0; q < nar; ++q) {
       if (q != pin) pn.push_back("phi[" + al(q) + "]");

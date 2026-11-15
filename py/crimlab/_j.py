@@ -5545,7 +5545,7 @@ def yoysmry(x: Any, lag: Any = 1) -> Any:
     Examples
     --------
     >>> t = {"prd": [2021, 2022], "value": [10, 12], "prev": [None, 10], "change": [None, 2], "pctchg": [None, 20]}
-    >>> yoysmry(x=t)["totalpct"]
+    >>> [round(v, 9) for v in yoysmry(x=t)["totalpct"]]
     [20.0]
     """
     return jcall("yoysmry", x=x, lag=lag)
@@ -5972,7 +5972,7 @@ def amscal(Z: Any) -> Any:
     >>> r = amscal(Z=[[1, 3, 5, 6], [2, 3, 4, 7], [1, 2, 6, 6], [3, 4, 5, 7], [2, 4, 4, 6], [1, 3,
     ... 6, 7]])
     >>> list(r)
-    []
+    ['zhat', 'alpha', 'beta', 'weights']
     """
     return jcall("amscal", Z=Z)
 
@@ -5988,7 +5988,7 @@ def bbscal(X: Any, ndim: Any = 2, minscale: Any = 8) -> Any:
     >>> r = bbscal(X=[[1, 3, 5, 6, 3.5, 1.5], [2, 3, 4, 7, 2.5, 1.5], [1, 2, 6, 6, 2.5, 1.5], [3, 4,
     ... 5, 7, 3.5, 2.5], [2, 4, 4, 6, 4.5, 2.5], [1, 3, 6, 7, 2.5, 0.5]], ndim=1, minscale=4)
     >>> list(r)
-    []
+    ['ideal', 'weights', 'eigen', 'singular', 'fit', 'cmeans', 'ndim']
     """
     return jcall("bbscal", X=X, ndim=ndim, minscale=minscale)
 

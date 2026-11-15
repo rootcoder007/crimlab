@@ -27,3 +27,8 @@ exprspplr	1e-10	1e-14	least squares fits whose sums the R package runs through t
 mahaoutl	1e-10	1e-14	eigenvalues and the inverse by other routines than LAPACK
 mcartst	1e-7	1e-12	EM iterated to a tolerance of 1e-7
 dstfit	1e-6	1e-12	fits by the Nelder-Mead and BFGS minimisers, stopped at their tolerances
+advdif2d	1e-12	1e-15	cells that are zero up to rounding (about 1e-19): their digits differ between machines
+dblctr	1e-12	1e-12	entries of the centred matrix that cancel to rounding, about 1e-16
+cmdsf	1e-10	1e-12	coordinates and stress that are zero up to rounding, and eigenvalues from an iteration
+arimfc	1e-8	0	fitted by a quasi-Newton search with a numerical gradient: the last digits follow the rounding of the likelihood
+sarfc	1e-6	0	fitted by a quasi-Newton search with a numerical gradient, a conditional stage then the exact likelihood
