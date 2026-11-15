@@ -401,7 +401,8 @@
 #' demeans the working response and the regressors by the fixed effects
 #' (alternating projections, until the group means left are below `tol` of
 #' each column's largest value; with three or more sets each sweep takes
-#' every set in turn, and one or two sets are done exactly as before), starting from `mu = (y + mean(y)) / 2`,
+#' every set in turn, and one or two sets are done exactly as before), starting
+#' from `mu = (y + mean(y)) / 2`,
 #' until the relative change of the deviance is below 1e-10. A regressor
 #' that does not vary within the fixed effects is refused.
 #'
