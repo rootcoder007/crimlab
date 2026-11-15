@@ -144,4 +144,21 @@ SEXP C_clab_r_dshift(SEXP u, SEXP t, SEXP k) {
   return r;
 }
 
+SEXP C_clab_r_updwn(SEXP ax, SEXP ay, SEXP wd, SEXP sx0, SEXP sy0, SEXP sx1, SEXP sy1, SEXP band,
+                    SEXP tol) {
+  clab::who = "updwn";
+  const int n = n32(ax), ns = n32(sx0);
+  SEXP r = PROTECT(Rf_allocVector(VECSXP, 3));
+  for (int j = 0; j < 3; ++j) SET_VECTOR_ELT(r, j, Rf_allocVector(INTSXP, n));
+  int *src = INTEGER(VECTOR_ELT(r, 0));
+  kc(clab_updwn(REAL(ax), REAL(ay), REAL(wd), n, REAL(sx0), REAL(sy0), REAL(sx1), REAL(sy1), ns,
+                Rf_asReal(band), Rf_asReal(tol), src, INTEGER(VECTOR_ELT(r, 1)),
+                INTEGER(VECTOR_ELT(r, 2))));
+  for (int i = 0; i < n; ++i) src[i] = src[i] < 0 ? NA_INTEGER : src[i] + 1;
+  static const char *const nm[] = {"src", "side", "dn"};
+  named(r, nm, 3);
+  UNPROTECT(1);
+  return r;
+}
+
 }  // extern "C"

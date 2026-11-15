@@ -130,4 +130,19 @@ void t_apx(tk &T, int) {
     const double td[4] = {1, 1, 1, 3};
     tk_ieq(T, "apx.shd", clab_dshift(u, td, 4, 1, idx, ord), CLAB_EDOM);
   }
+  // a road running east: north of it is its left; a south wind blows north
+  {
+    const double ax[3] = {5, 5, 5}, ay[3] = {1, 1, -1}, wd[3] = {180, 90, 180};
+    const double x0 = 0, y0 = 0, x1 = 10, y1 = 0;
+    int s[3], sd[3], dn[3];
+    tk_ieq(T, "apx.ud", clab_updwn(ax, ay, wd, 3, &x0, &y0, &x1, &y1, 1, 2, 60, s, sd, dn), CLAB_OK);
+    tk_ieq(T, "apx.udd", dn[0], 1);
+    tk_ieq(T, "apx.uds", sd[0], 1);
+    tk_ieq(T, "apx.uda", dn[1], -1);
+    tk_ieq(T, "apx.udu", dn[2], 0);
+    const double far[1] = {50};
+    tk_ieq(T, "apx.udf", clab_updwn(ax, far, wd, 1, &x0, &y0, &x1, &y1, 1, 2, 60, s, sd, dn), CLAB_OK);
+    tk_ieq(T, "apx.udn", dn[0], -2);
+    tk_ieq(T, "apx.udt", clab_updwn(ax, ay, wd, 3, &x0, &y0, &x1, &y1, 1, 2, 95, s, sd, dn), CLAB_EARG);
+  }
 }

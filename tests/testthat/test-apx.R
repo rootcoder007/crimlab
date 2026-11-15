@@ -156,3 +156,35 @@ test_that("plcday refits on shifted days and the same day equals the plain fit",
   expect_error(plcday(d2, "x", "unit", "day", y = "y", x = "x", fe = "unit"),
                "two rows on one day")
 })
+
+test_that("updwn classifies sides and estimates the downwind difference", {
+  set.seed(5)
+  a <- data.frame(area = 1:20, ax = runif(20, 0, 5000), ay = rep(c(-800, 800), 10))
+  d <- merge(a, data.frame(day = 1:150))
+  wnd <- runif(150, 0, 360)
+  d$wind <- wnd[d$day]
+  blown <- cos((d$wind + 180) * pi / 180)
+  dn <- (d$ay > 0 & blown > 0.5) | (d$ay < 0 & blown < -0.5)
+  d$crimes <- rpois(nrow(d), 3 * (1 + 0.2 * dn))
+  road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
+  r <- updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600)
+  # 60 degrees of the north-south line: the days with |cos| >= 0.5
+  ndays <- sum(abs(cos(wnd * pi / 180)) >= 0.5)
+  expect_identical(r$n, 2L * ndays)
+  expect_identical(unname(r$class[["along"]]), 20L * (150L - ndays))
+  # by hand: the sides' daily sums, side and day effects, least squares
+  k <- abs(cos(d$wind * pi / 180)) >= 0.5
+  s <- aggregate(crimes ~ day + north, data.frame(d[k, ], north = d$ay[k] > 0), sum)
+  s$down <- as.numeric((s$north & cos((wnd[s$day] + 180) * pi / 180) > 0) |
+                         (!s$north & cos((wnd[s$day] + 180) * pi / 180) < 0))
+  s$crimes <- s$crimes / mean(s$crimes)
+  s$cl <- seq_len(nrow(s))
+  h <- ivfe(s, "crimes", x = "down", fe = c("north", "day"), clus = "cl")
+  expect_equal(r$coef$est, h$coef$est, tolerance = 1e-10)
+  rp <- updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
+              offs = c(-1600, 0, 1600))
+  expect_identical(rp$placebo$off, c(-1600, 0, 1600))
+  expect_equal(rp$placebo$est[2L], r$coef$est)
+  expect_error(updwn(d, "crimes", "ax", "ay", "day", "wind", road, tol = 100),
+               "between 0 and 90")
+})

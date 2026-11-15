@@ -2007,6 +2007,26 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
  * scratch. O(n log n). */
 int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *ord);
 
+/* Upwind and downwind (updwn): n areas at planar points (ax, ay) with the
+ * day's wind direction wd (blowing from, degrees clockwise from north, y
+ * pointing north); ns sources, segments from (sx0, sy0) to (sx1, sy1) (a
+ * road) or points (sx1 or sy1 NaN). An area is assigned to the one source
+ * within distance band of it (closed; to a segment, the nearest point on
+ * it); dn -2 when none is, -3 when more than one is (both as Herrnstadt et
+ * al. 2021 drop areas near two interstates). For a segment, side is 1 on
+ * its left (looking from the first end to the second) and 0 on its right,
+ * and the area is downwind (dn 1) when the direction the wind blows to is
+ * within tol degrees of the normal of the segment pointing to the area's
+ * side, upwind (0) when within tol of the opposite normal, and -1
+ * otherwise (wind along the road). For a point, side is -1 and the same
+ * rule uses the direction from the source to the area: within tol of
+ * where the wind blows to is downwind, within tol of where it comes from
+ * upwind, otherwise crosswind (-1). dn -4 for an area on the line or at
+ * the point, -5 for a non-finite position or direction. 0 < tol <= 90.
+ * Out: src (n; -1 when none), side, dn. O(n ns). */
+int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
+               const double *sy0, const double *sx1, const double *sy1, int ns, double band,
+               double tol, int *src, int *side, int *dn);
 
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect

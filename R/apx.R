@@ -871,3 +871,262 @@ print.plcday <- function(x, ...) {
 #' @rdname plcday
 #' @export
 summary.plcday <- function(object, ...) object[["tab"]]
+
+#' The upwind and downwind design around a road or a point source
+#'
+#' Compares counts on the downwind side of a pollution source with counts
+#' on its upwind side on the same day, the design of Herrnstadt, Heyes,
+#' Muehlegger and Saberian (2021) for the interstates of Chicago (first as
+#' Herrnstadt and Muehlegger 2015). The upwind side shares the day's
+#' weather and everything else about the day near that road, so it is the
+#' control for the downwind side; the side fixed effects take out what
+#' differs between the two sides on every day.
+#'
+#' What a user must supply, for any city and any source: planar
+#' coordinates (projected, in one unit such as metres) of each area and of
+#' each source; the daily wind direction at each row (where the wind blows
+#' from, degrees clockwise from north, the direction of the day's mean
+#' wind vector: see [windiv()]); and the count of each area and day. A
+#' source is a straight segment (`x1`, `y1` given; split a bending road
+#' into straight segments, as the paper splits I-90) or a point (`x1`,
+#' `y1` `NA`: a stack, a port, an airport).
+#'
+#' The classification (crimlab's kernel, following the paper's rules). An
+#' area belongs to the one source within `band` of it; areas within `band`
+#' of two sources are dropped, as the paper drops crimes within a mile of
+#' two interstates. For a segment, the side of the area is set by which
+#' side of the line it lies on; the area is downwind on a day when the
+#' direction the wind blows to is within `tol` degrees of the line
+#' orthogonal to the road pointing to its side, upwind when within `tol`
+#' of the opposite direction, and the day is dropped for that road
+#' otherwise (wind along the road). The paper's main rule is a band of one
+#' mile and 60 degrees; its robustness checks use 30 to 90 degrees and a
+#' quarter mile to one mile. For a point source the same rule applies to
+#' the direction from the source to the area (downwind within `tol` of
+#' where the wind blows to): this extends the design and is not in the
+#' papers.
+#'
+#' The estimate is the paper's equation (3): `y_ist = a_is + g_it + b
+#' downwind_ist + e_ist`, with route-side fixed effects `a_is` and
+#' route-date fixed effects `g_it`; with `agg = TRUE` the counts of the
+#' areas on one side of one segment are summed by day first, as the paper
+#' counts crimes by interstate side and day. Without aggregation (and for
+#' point sources) the first effect is the area. With `norm = TRUE` the
+#' outcome is divided by its mean over the rows used, so that `b` is a
+#' share of the mean count, as in the paper; `fam = "ppml"` fits the count
+#' model of [ppmlfe()] instead (the paper's appendix table A.1). The paper
+#' reports heteroskedasticity-robust errors (here `clus = NULL`: each row
+#' its own cluster, with the factor `n / (n - 1)`, not Stata's), and
+#' clustered by side and month or year in its appendix (give such a
+#' column, constant within a side and day, as `clus`).
+#'
+#' Placebos. Run the design on an outcome the exposure should not affect
+#' (the paper uses property crime); and, with `offs`, move every segment
+#' sideways by each offset and re-estimate, the paper's placebo
+#' interstates drawn parallel to I-290 a mile apart: the effect should
+#' peak at offset 0.
+#'
+#' @param data A data frame, one row per area and day.
+#' @param y The name of the count column.
+#' @param ax,ay The names of the columns of the areas' planar coordinates.
+#' @param day The name of the day column.
+#' @param wind The name of the wind-direction column (degrees, blowing
+#'   from).
+#' @param src A data frame of sources: columns `x0`, `y0`, and `x1`, `y1`
+#'   (`NA` for a point source; the columns may be left out when every
+#'   source is a point).
+#' @param area `NULL` or the name of the area column (needed for point
+#'   sources and for `agg = FALSE`).
+#' @param tol The angle in degrees, above 0 and at most 90.
+#' @param band The largest distance of an area from its source, in the
+#'   coordinates' unit.
+#' @param agg `TRUE` to sum the areas on each side of each segment by day.
+#' @param fam `"ols"` (least squares, the paper's main model) or `"ppml"`.
+#' @param norm `TRUE` to divide the outcome by its mean (least squares
+#'   only).
+#' @param clus `NULL` (robust by row) or the name of a cluster column,
+#'   constant within each side (area) and day.
+#' @param offs `NULL` or offsets (in the coordinates' unit, positive to the
+#'   left of each segment) for the placebo segments; segments only.
+#' @param level The confidence level.
+#' @param object,x An object of class `updwn` (for the methods).
+#' @param ... Not used.
+#' @return An object of class `updwn`, a list: `coef`, the row of the
+#'   downwind indicator (as in [ivfe()] or [ppmlfe()]); `class`, the rows
+#'   by outcome of the classification (`downwind`, `upwind`, `along`
+#'   (wind along the road or crosswind), `nosource`, `twosources`,
+#'   `onsource`, `missing`); `n`, the rows of the fit; `fit`, the fit;
+#'   `placebo`, `NULL` or one row per offset (`off`, `est`, `se`, `lo`,
+#'   `hi`, `p`, `n`). `summary()` returns `coef`, with the placebo rows
+#'   when there are any.
+#' @references
+#'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2021). Air
+#'   pollution and criminal activity: microgeographic evidence from
+#'   Chicago. *American Economic Journal: Applied Economics*, 13(4),
+#'   70-100. \doi{10.1257/app.20190091}
+#'
+#'   Herrnstadt, E. and Muehlegger, E. (2015). Air pollution and criminal
+#'   activity: evidence from Chicago microdata. NBER Working Paper 21787.
+#'   \doi{10.3386/w21787}
+#' @seealso [ppmlfe()], [ivfe()], [gplume()] for the concentration
+#'   downwind of a stack
+#' @examples
+#' # simulated: a road along the x axis, areas on both sides, crime up 10%
+#' # on the downwind side
+#' set.seed(5)
+#' a <- data.frame(area = 1:20, ax = runif(20, 0, 5000),
+#'                 ay = rep(c(-800, 800), 10))
+#' d <- merge(a, data.frame(day = 1:120))
+#' d$wind <- rep(runif(120, 0, 360), each = 1)[d$day]
+#' blowsn <- cos((d$wind + 180) * pi / 180)  # +1 when the wind blows north
+#' dn <- (d$ay > 0 & blowsn > 0.5) | (d$ay < 0 & blowsn < -0.5)
+#' d$crimes <- rpois(nrow(d), 3 * (1 + 0.1 * dn))
+#' road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
+#' updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600,
+#'       offs = c(-1600, 0, 1600))
+#' @export
+updwn <- function(
+  data,
+  y,
+  ax,
+  ay,
+  day,
+  wind,
+  src,
+  area = NULL,
+  tol = 60,
+  band = Inf,
+  agg = TRUE,
+  fam = "ols",
+  norm = TRUE,
+  clus = NULL,
+  offs = NULL,
+  level = 0.95
+) {
+  f <- "updwn"
+  d <- .axdat(data, f)
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, c(ax, ay), "ax, ay", f, n = 2L)
+  .axcols(d, day, "day", f, n = 1L)
+  .axcols(d, wind, "wind", f, n = 1L)
+  .axcols(d, area, "area", f, n = 1L, null = TRUE)
+  .axcols(d, clus, "clus", f, n = 1L, null = TRUE)
+  s <- .axdat(src, f, "src")
+  if (!all(c("x0", "y0") %in% names(s))) .ckstop(f, "`src` must have columns x0 and y0")
+  for (k in c("x1", "y1")) if (is.null(s[[k]])) s[[k]] <- NA_real_
+  for (k in c("x0", "y0", "x1", "y1")) {
+    if (!is.numeric(s[[k]]) && !all(is.na(s[[k]]))) .ckstop(f, "`src` column %s must be numeric", k)
+  }
+  s0 <- as.numeric(s$x0)
+  t0 <- as.numeric(s$y0)
+  s1 <- as.numeric(s$x1)
+  t1 <- as.numeric(s$y1)
+  if (!all(is.finite(s0) & is.finite(t0))) .ckstop(f, "`src` x0 and y0 must be finite")
+  line <- is.finite(s1) & is.finite(t1)
+  tol <- .cknum(tol, "tol", f, positive = TRUE, min = 0, max = 90)
+  if (!identical(band, Inf)) band <- .cknum(band, "band", f, positive = TRUE)
+  if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) .ckstop(f, "`agg` must be TRUE or FALSE")
+  if (!is.logical(norm) || length(norm) != 1L || is.na(norm)) .ckstop(f, "`norm` must be TRUE or FALSE")
+  if (!is.character(fam) || length(fam) != 1L || !fam %in% c("ols", "ppml")) {
+    .ckstop(f, "`fam` must be \"ols\" or \"ppml\"")
+  }
+  if (is.null(area) && (!agg || any(!line))) {
+    .ckstop(f, "`area` is needed for point sources and for agg = FALSE")
+  }
+  if (!is.null(offs)) {
+    if (any(!line)) .ckstop(f, "`offs` moves segments: every source must be a segment")
+    if (!is.numeric(offs) || !length(offs) || !all(is.finite(offs))) {
+      .ckstop(f, "`offs` must be finite numbers")
+    }
+  }
+  level <- .axlevel(level, f)
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  xy <- .axmat(d, c(ax, ay), f)
+  wd <- .axmat(d, wind, f)[, 1L]
+  dv <- as.character(d[[day]])
+  av <- if (!is.null(area)) as.character(d[[area]])
+  if (!is.null(area) && anyDuplicated(paste(av, dv, sep = "\r"))) {
+    .ckstop(f, "an area has two rows on one day")
+  }
+  labs <- c(`1` = "downwind", `0` = "upwind", `-1` = "along", `-2` = "nosource",
+            `-3` = "twosources", `-4` = "onsource", `-5` = "missing")
+  run <- function(a0, b0, a1, b1) {
+    k <- .Call(C_clab_r_updwn, xy[, 1L], xy[, 2L], wd, a0, b0, a1, b1, band, tol)
+    tb <- table(factor(labs[as.character(k$dn)], levels = labs))
+    use <- k$dn >= 0L
+    if (sum(use) < 2L) .ckstop(f, "fewer than two rows are upwind or downwind of a source")
+    ln <- line[k$src[use]]
+    g <- ifelse(ln & agg, paste("s", k$src[use], k$side[use], sep = "\r"),
+                paste("a", if (is.null(area)) "" else av[use], sep = "\r"))
+    cell <- paste(g, dv[use], sep = "\r")
+    sd <- paste(k$src[use], dv[use], sep = "\r")
+    dn <- k$dn[use]
+    if (any(tapply(dn, cell, function(v) length(unique(v))) > 1L)) {
+      .ckstop(f, "the wind differs between areas of one side and day: give one direction per day, or agg = FALSE")
+    }
+    cv <- if (!is.null(clus)) as.character(d[[clus]])[use]
+    if (!is.null(clus) && any(tapply(cv, cell, function(v) length(unique(v))) > 1L)) {
+      .ckstop(f, "column `%s` must be constant within each side (area) and day", clus)
+    }
+    o <- !duplicated(cell)
+    e <- data.frame(y = as.numeric(rowsum(yv[use], cell, reorder = FALSE)),
+                    g = g[o], sd = sd[o], down = as.numeric(dn[o]),
+                    cl = if (is.null(clus)) seq_len(sum(o)) else cv[o])
+    if (fam == "ols") {
+      if (norm) {
+        m <- mean(e$y)
+        if (!(m > 0)) .ckstop(f, "the counts are all 0")
+        e$y <- e$y / m
+      }
+      r <- ivfe(e, "y", x = "down", fe = c("g", "sd"), clus = "cl", level = level)
+    } else {
+      r <- ppmlfe(e, "y", "down", fe = c("g", "sd"), clus = "cl", level = level)
+    }
+    list(fit = r, tab = tb, n = nrow(e))
+  }
+  r0 <- run(s0, t0, s1, t1)
+  pl <- NULL
+  if (!is.null(offs)) {
+    len <- sqrt((s1 - s0)^2 + (t1 - t0)^2)
+    nx <- -(t1 - t0) / len
+    ny <- (s1 - s0) / len
+    pl <- do.call(rbind, lapply(offs, function(o) {
+      ro <- run(s0 + o * nx, t0 + o * ny, s1 + o * nx, t1 + o * ny)
+      c0 <- ro$fit$coef
+      data.frame(off = o, est = c0$est, se = c0$se, lo = c0$lo, hi = c0$hi,
+                 p = c0$p, n = ro$n)
+    }))
+  }
+  structure(
+    list(coef = r0$fit$coef, class = r0$tab, n = r0$n, fit = r0$fit,
+         placebo = pl, fam = fam, tol = tol, band = band),
+    class = "updwn"
+  )
+}
+
+#' @rdname updwn
+#' @export
+print.updwn <- function(x, ...) {
+  cat("updwn: downwind against upwind, ", x[["n"]], " side (area) days, ",
+      if (x[["fam"]] == "ols") "least squares" else "Poisson pseudo-likelihood",
+      ", tolerance ", format(x[["tol"]]), " degrees\n", sep = "")
+  print(x[["coef"]], row.names = FALSE, digits = 4)
+  cat("rows by classification:\n")
+  print(x[["class"]])
+  if (!is.null(x[["placebo"]])) {
+    cat("placebo segments moved sideways:\n")
+    print(x[["placebo"]], row.names = FALSE, digits = 4)
+  }
+  invisible(x)
+}
+
+#' @rdname updwn
+#' @export
+summary.updwn <- function(object, ...) {
+  cf <- object[["coef"]]
+  if (is.null(object[["placebo"]])) return(cf)
+  cbind(off = c(NA, object[["placebo"]][["off"]]),
+        rbind(cf[c("est", "se", "lo", "hi", "p")],
+              object[["placebo"]][c("est", "se", "lo", "hi", "p")]))
+}

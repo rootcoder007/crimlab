@@ -609,6 +609,7 @@ SEXP C_clab_r_ppmlcf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_windbin(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dshift(SEXP, SEXP, SEXP);
+SEXP C_clab_r_updwn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // One-pass summaries (bskch.cpp).
 SEXP C_clab_r_crc32(SEXP, SEXP);
 SEXP C_clab_r_momupd(SEXP, SEXP);
@@ -964,6 +965,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_ppmlcf", fn<&C_clab_r_ppmlcf>(), 14},
     {"C_clab_r_windbin", fn<&C_clab_r_windbin>(), 6},
     {"C_clab_r_dshift", fn<&C_clab_r_dshift>(), 3},
+    {"C_clab_r_updwn", fn<&C_clab_r_updwn>(), 9},
     {"C_clab_r_momupd", fn<&C_clab_r_momupd>(), 2},
     {"C_clab_r_mommrg", fn<&C_clab_r_mommrg>(), 2},
     {"C_clab_r_momstat", fn<&C_clab_r_momstat>(), 1},

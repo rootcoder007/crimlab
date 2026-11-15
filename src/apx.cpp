@@ -295,4 +295,74 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
   return CLAB_OK;
 }
 
+int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
+               const double *sy0, const double *sx1, const double *sy1, int ns, double band,
+               double tol, int *src, int *side, int *dn) {
+  if (n < 1 || ns < 1 || !(band > 0) || !(tol > 0) || tol > 90) return CLAB_EARG;
+  for (int s = 0; s < ns; ++s) {
+    if (!std::isfinite(sx0[s]) || !std::isfinite(sy0[s])) return CLAB_EDOM;
+    const bool line = std::isfinite(sx1[s]) && std::isfinite(sy1[s]);
+    if (line && sx1[s] == sx0[s] && sy1[s] == sy0[s]) return CLAB_EDOM;
+  }
+  for (int i = 0; i < n; ++i) {
+    src[i] = -1;
+    side[i] = -1;
+    dn[i] = -2;
+    if (!std::isfinite(ax[i]) || !std::isfinite(ay[i]) || !std::isfinite(wd[i])) {
+      dn[i] = -5;
+      continue;
+    }
+    // the sources within band: exactly one is needed
+    int hit = -1, nh = 0;
+    for (int s = 0; s < ns; ++s) {
+      double d;
+      if (std::isfinite(sx1[s]) && std::isfinite(sy1[s])) {
+        const double dx = sx1[s] - sx0[s], dy = sy1[s] - sy0[s];
+        double t = ((ax[i] - sx0[s]) * dx + (ay[i] - sy0[s]) * dy) / (dx * dx + dy * dy);
+        t = t < 0 ? 0 : (t > 1 ? 1 : t);
+        d = std::hypot(ax[i] - sx0[s] - t * dx, ay[i] - sy0[s] - t * dy);
+      } else {
+        d = std::hypot(ax[i] - sx0[s], ay[i] - sy0[s]);
+      }
+      if (d <= band) {
+        hit = s;
+        ++nh;
+      }
+    }
+    if (nh == 0) continue;
+    if (nh > 1) {
+      dn[i] = -3;
+      continue;
+    }
+    src[i] = hit;
+    // where the wind blows to: from direction theta, clockwise from north,
+    // x east and y north
+    const double th = wd[i] * pi / 180;
+    const double tx = -std::sin(th), ty = -std::cos(th);
+    double nx, ny;
+    if (std::isfinite(sx1[hit]) && std::isfinite(sy1[hit])) {
+      const double dx = sx1[hit] - sx0[hit], dy = sy1[hit] - sy0[hit];
+      const double cr = dx * (ay[i] - sy0[hit]) - dy * (ax[i] - sx0[hit]);
+      if (cr == 0) {
+        dn[i] = -4;
+        continue;
+      }
+      // the normal of the line towards the area's side: left is (-dy, dx)
+      side[i] = cr > 0 ? 1 : 0;
+      nx = cr > 0 ? -dy : dy;
+      ny = cr > 0 ? dx : -dx;
+    } else {
+      nx = ax[i] - sx0[hit];
+      ny = ay[i] - sy0[hit];
+      if (nx == 0 && ny == 0) {
+        dn[i] = -4;
+        continue;
+      }
+    }
+    const double a = ang(tx, ty, nx, ny);
+    dn[i] = a <= tol ? 1 : (a >= 180 - tol ? 0 : -1);
+  }
+  return CLAB_OK;
+}
+
 }  // extern "C"
