@@ -914,8 +914,10 @@ missgrid <- function(data, height = 20L, width = 12L) {
   if (is.null(dim(na))) na <- matrix(na, nrow = n)
   g <- .Call(C_clab_r_mgrid, na, min(height, n))
   head <- vapply(seq_len(max(nchar(nm))), function(k) {
-    paste0("  ", strrep(" ", 6L), " ",
-           paste(substring(nm, k, k), collapse = ""))
+    # a name shorter than k keeps its column with a blank
+    l <- substring(nm, k, k)
+    l[l == ""] <- " "
+    paste0("  ", strrep(" ", 6L), " ", paste(l, collapse = ""))
   }, character(1))
   rows <- vapply(seq_along(g[[1L]]), function(i) {
     sprintf("  %6s %s", paste0(g[[1L]][i], ""),

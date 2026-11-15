@@ -735,7 +735,7 @@ bool missgrid(Ctx &c, Val &out) {
   }
   for (std::size_t r = 0; r < mx; ++r) {
     std::string l = "         ";
-    for (const auto &cc : ch) l += r < cc.size() ? cc[r] : "";
+    for (const auto &cc : ch) l += r < cc.size() ? cc[r] : " ";
     lines.push_back(l);
   }
   static const char *const su[] = {" ", "░", "▒", "▓", "█"};

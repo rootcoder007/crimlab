@@ -1640,6 +1640,7 @@ ok("mahaoutl", data = dsmh, robust = FALSE, alpha = 0.05)
 dsmr <- data.frame(outage = c(1, 2, NA, NA, NA, NA, 7, 8), scattered = c(1, NA, 3, 4, NA, 6, NA, NA))
 ok("missruns", data = dsmr)
 ok("missgrid", data = dsmr, height = 4, width = 3)
+ok("missgrid", data = data.frame(a = c(1, NA), bb = c(NA, 2)))
 dsmc <- data.frame(x = c(0.5, -1.2, 0.3, 1.8, -0.4, 0.9, -2.1, 0.0, 1.1, -0.7, 0.2, 1.4),
                  y = c(1.1, -0.8, NA, 2.2, 0.1, NA, -1.9, 0.4, NA, -0.2, 0.6, 1.9),
                  z = c(0.3, 0.7, -0.5, NA, 1.2, -1.1, 0.4, -0.3, 0.8, NA, -0.6, 0.1))

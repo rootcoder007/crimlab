@@ -671,6 +671,10 @@
   or damaged"; it used to read the part before the cut without a word,
   so the report rested on some of the rows only. The data read are now
   checked against the length and CRC-32 at the end of the file.
+* `missgrid()` keeps each letter of the header under its own column when
+  the names have different lengths; the letters of a longer name used to
+  slide left under the column of a shorter one. The command line had the
+  same fault and is fixed with it.
 * A vector longer than the largest integer is refused with an error, by the
   exported functions and by the compiled entry points alike; the compiled
   code used to truncate its length.
