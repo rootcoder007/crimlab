@@ -468,12 +468,70 @@ inline bool alevel(Ctx &c, double &lv) {
 }
 
 // The Poisson fit (.axppfit): the numbers of all the rows of a frame.
+// .axfe(): the effects as codes, the sets after the second in fx.
+struct Fe {
+  bool two = false;
+  Code f1, f2;
+  std::vector<Code> fx;
+};
+inline Fe afe(const Val &d, const Cols &fe) {
+  Fe a;
+  a.f1 = acode(*fc(d, fe[0]));
+  a.two = fe.size() >= 2;
+  if (a.two) a.f2 = acode(*fc(d, fe[1]));
+  for (std::size_t j = 2; j < fe.size(); ++j) a.fx.push_back(acode(*fc(d, fe[j])));
+  return a;
+}
+// The effects of the rows r, coded from 0 over them as .axfe() of those
+// rows codes them: f1 and f2, and the further sets as an n x mx matrix cx
+// (column-major) with their counts nx.
+struct Fr {
+  std::vector<int> c1, c2, cx, nx;
+  int n1 = 0, n2 = 0;
+  const int *p2() const { return c2.empty() ? nullptr : c2.data(); }
+  const int *px() const { return cx.empty() ? nullptr : cx.data(); }
+  const int *pn() const { return nx.empty() ? nullptr : nx.data(); }
+  int mx() const { return static_cast<int>(nx.size()); }
+  // the doubles of scratch the kernels ask for each level of every set
+  std::size_t ng() const {
+    std::size_t g = zz(n1 + n2);
+    for (int v : nx) g += zz(v);
+    return g;
+  }
+};
+inline Fr frows(const Fe &a, const Ix &r) {
+  Fr f;
+  f.c1 = recode(a.f1.c, a.f1.n, r, f.n1);
+  if (a.two) f.c2 = recode(a.f2.c, a.f2.n, r, f.n2);
+  for (const Code &x : a.fx) {
+    int g = 0;
+    const std::vector<int> v = recode(x.c, x.n, r, g);
+    f.cx.insert(f.cx.end(), v.begin(), v.end());
+    f.nx.push_back(g);
+  }
+  return f;
+}
+// .axfesep(): clab_fesep on the first two sets, then on each further set
+// alone; keep, one per row of r. Negative for a code out of range.
+inline int fesep(const std::vector<double> &y, const Fr &f, std::vector<int> &keep) {
+  const std::size_t n = y.size();
+  keep.assign(n, 0);
+  std::vector<double> wk(f.ng() + 1);
+  int rc = clab_fesep(pd(y), static_cast<int>(n), f.c1.data(), f.n1, f.p2(), f.n2, keep.data(), wk.data());
+  std::vector<int> k2(n);
+  for (std::size_t j = 0; rc >= 0 && j < f.nx.size(); ++j) {
+    rc = clab_fesep(pd(y), static_cast<int>(n), &f.cx[j * n], f.nx[j], nullptr, 0, k2.data(), wk.data());
+    for (std::size_t i = 0; i < n; ++i) keep[i] = keep[i] && k2[i];
+  }
+  return rc;
+}
+
 struct Pd {
   std::size_t n = 0;
   int p = 0;
   std::vector<double> y, x, off;
-  bool hoff = false, two = false;
-  Code f1, f2;
+  bool hoff = false;
+  Fe fe;
 };
 inline Pd pdat(const Val &d, const std::string &y, const Cols &x, const Cols &fe, const Cols &expo) {
   Pd a;
@@ -485,9 +543,7 @@ inline Pd pdat(const Val &d, const std::string &y, const Cols &x, const Cols &fe
     a.hoff = true;
     for (double v : colv(*fc(d, expo[0]))) a.off.push_back(std::log(v));
   }
-  a.f1 = acode(*fc(d, fe[0]));
-  a.two = fe.size() == 2;
-  if (a.two) a.f2 = acode(*fc(d, fe[1]));
+  a.fe = afe(d, fe);
   return a;
 }
 struct Pf {
@@ -504,44 +560,30 @@ inline int ppfit(const Pd &a, const Ix &r, const double *w, double tol, int maxi
     for (std::size_t j = 0; j < sp; ++j) x[j * n + i] = a.x[j * a.n + r[i]];
     if (a.hoff) off[i] = a.off[r[i]];
   }
-  int n1 = 0, n2 = 0;
-  const std::vector<int> c1 = recode(a.f1.c, a.f1.n, r, n1);
-  std::vector<int> c2;
-  if (a.two) c2 = recode(a.f2.c, a.f2.n, r, n2);
+  const Fr e = frows(a.fe, r);
+  // st is 7 long, as src/bapx.cpp gives it: the kernel writes Pearson's
+  // sum last
   f.beta.assign(sp, 0.0);
-  f.st.assign(6, 0.0);
+  f.st.assign(7, 0.0);
   f.sco.assign(n * sp, 0.0);
   f.brd.assign(sp * sp, 0.0);
   std::vector<double> vc(sp * sp, NA);
-  std::vector<double> wk(n * (2 * sp + 8) + 3 * sp * sp + sp + 4 * zz(n1 + n2) + 1);
+  std::vector<double> wk(n * (2 * sp + 8) + 3 * sp * sp + sp + 4 * e.ng() + 1);
   std::vector<int> iw(n + 1);
-  return clab_ppmlfe(pd(y), pd(x), static_cast<int>(n), a.p, a.hoff ? off.data() : nullptr, w, c1.data(), n1,
-                     a.two ? c2.data() : nullptr, n2, nullptr, 0, nullptr, 0, maxit, 1e-10, tol, f.beta.data(),
-                     vc.data(), f.sco.data(), f.brd.data(), f.st.data(), wk.data(), iw.data());
+  return clab_ppmlfek(pd(y), pd(x), static_cast<int>(n), a.p, a.hoff ? off.data() : nullptr, w, e.c1.data(), e.n1,
+                      e.p2(), e.n2, e.px(), e.pn(), e.mx(), nullptr, 0, nullptr, 0, maxit, 1e-10, tol,
+                      f.beta.data(), vc.data(), f.sco.data(), f.brd.data(), f.st.data(), wk.data(), iw.data());
 }
-// clab_fesep on the rows r: keep, one per row of r.
+// .axfesep() on the rows r: keep, one per row of r.
 inline int psep(const Pd &a, const Ix &r, std::vector<int> &keep) {
   const std::size_t n = r.size();
   std::vector<double> y(n);
   for (std::size_t i = 0; i < n; ++i) y[i] = a.y[r[i]];
-  int n1 = 0, n2 = 0;
-  const std::vector<int> c1 = recode(a.f1.c, a.f1.n, r, n1);
-  std::vector<int> c2;
-  if (a.two) c2 = recode(a.f2.c, a.f2.n, r, n2);
-  keep.assign(n, 0);
-  std::vector<double> wk(zz(n1 + n2) + 1);
-  return clab_fesep(pd(y), static_cast<int>(n), c1.data(), n1, a.two ? c2.data() : nullptr, n2, keep.data(),
-                    wk.data());
+  return fesep(y, frows(a.fe, r), keep);
 }
 // .axsep(): the rows kept after separation by the effects.
 inline bool asep(Ctx &c, const std::vector<double> &y, const Val &d, const Cols &fe, std::vector<int> &k) {
-  const Code a = acode(*fc(d, fe[0]));
-  Code b;
-  if (fe.size() == 2) b = acode(*fc(d, fe[1]));
-  k.assign(y.size(), 0);
-  std::vector<double> wk(zz(a.n + b.n) + 1);
-  if (clab_fesep(pd(y), static_cast<int>(y.size()), a.c.data(), a.n, fe.size() == 2 ? b.c.data() : nullptr, b.n,
-                 k.data(), wk.data()) < 0) {
+  if (fesep(y, frows(afe(d, fe), all(y.size())), k) < 0) {
     c.err = std::string("ppmlfe: ") + clab_strerror(CLAB_EARG);
     return false;
   }
@@ -602,15 +644,56 @@ inline bool atime(Ctx &c, const Val &d, std::vector<double> &tv) {
   tv = colv(a);
   return true;
 }
+// .axnwlag(): the bandwidth of Newey and West (1994) for the Bartlett
+// kernel from the rows' scores sco (n x p), the units u (codes, ng of
+// them) and the days tv.
+inline double nwlag(const std::vector<double> &sco, std::size_t n, int p, const std::vector<int> &u, int ng,
+                    const std::vector<double> &tv) {
+  // rowSums() and sum() add in long double
+  std::vector<double> h(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    long double s = 0.0;
+    for (std::size_t j = 0; j < zz(p); ++j) s += sco[j * n + i];
+    h[i] = static_cast<double>(s);
+  }
+  std::vector<int> tab(zz(ng), 0);
+  for (int v : u) ++tab[zz(v)];
+  const double tt = *std::max_element(tab.begin(), tab.end());
+  const int nn = static_cast<int>(std::floor(4 * std::pow(tt / 100, 2.0 / 9)));
+  // match(paste(u, tv - j), paste(u, tv)): the first row of a unit and day
+  std::map<std::pair<int, double>, std::size_t> key;
+  for (std::size_t i = 0; i < n; ++i) key.emplace(std::make_pair(u[i], tv[i]), i);
+  std::vector<double> sg;
+  for (int j = 0; j <= nn; ++j) {
+    long double s = 0.0;
+    for (std::size_t i = 0; i < n; ++i) {
+      const auto it = key.find(std::make_pair(u[i], tv[i] - j));
+      if (it != key.end()) s += h[i] * h[it->second];
+    }
+    sg.push_back(static_cast<double>(s));
+  }
+  long double a = 0.0, b = 0.0;
+  for (int j = 1; j <= nn; ++j) {
+    a += j * sg[zz(j)];
+    b += sg[zz(j)];
+  }
+  const double s1 = 2 * static_cast<double>(a), s0 = sg[0] + 2 * static_cast<double>(b);
+  if (!std::isfinite(s1 / s0)) return 0;
+  return std::floor(1.1447 * std::pow(rpow(s1 / s0, 2), 1.0 / 3) * std::pow(tt, 1.0 / 3));
+}
+
 // .axvar(): the variance from the rows' scores as se asks (0 cluster, 1
-// twoway, 2 hc1, 3 nw), the small-sample factor by ssc (0 G, 1 nk, 2
-// none); the clusters counted and the lag. time and lag are the caller's.
+// twoway, 2 hc1, 3 nw, 5 quasi), the small-sample factor by ssc (0 G, 1
+// nk, 2 none), the two-way factors by twc (0 min, 1 each) and psd (1 eig:
+// the negative eigenvalues of a two-way variance set to 0); the clusters
+// counted, the lag and, for quasi, the dispersion psi from Pearson's sum
+// pr. time and lag are the caller's.
 struct Vr {
   std::vector<double> v, g;
-  double lag = NA;
+  double lag = NA, psi = NA;
 };
 inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, const std::vector<double> &brd, int se,
-                 const Cols &clus, const Cols &fe, int ssc, Vr &r) {
+                 const Cols &clus, const Cols &fe, int ssc, int twc, int psd, double pr, Vr &r) {
   const std::size_t n = nr(d);
   auto kk = [&](const Cols &cls) {
     double k = p + 1;
@@ -625,6 +708,16 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
   int n1 = 0, n2 = 0, kind = 0, lg = 0;
   std::vector<double> tv;
   double k = 0;
+  if (se == 5) {
+    // the model-based (X~'WX~)^-1 times the Pearson dispersion
+    k = kk(Cols());
+    r.psi = pr / (static_cast<double>(n) - k);
+    r.v.resize(brd.size());
+    for (std::size_t a = 0; a < brd.size(); ++a) r.v[a] = brd[a] * r.psi;
+    r.g = {static_cast<double>(n)};
+    r.lag = NA;
+    return true;
+  }
   if (se <= 1) {
     Cl cl;
     CK(acl(c, d, clus, cl));
@@ -646,31 +739,65 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
       c1 = u.c;
       n1 = u.n;
       CK(atime(c, d, tv));
-      Val lv = c["lag"];
-      if (!c.has("lag")) {
-        std::vector<int> tab(zz(u.n), 0);
-        for (int v : u.c) ++tab[zz(v)];
-        const double tt = *std::max_element(tab.begin(), tab.end());
-        lv = vnum(std::floor(4 * std::pow(tt / 100, 2.0 / 9)));
-      }
+      const Val lv = c.has("lag") ? c["lag"] : vnum(nwlag(sco, n, p, u.c, u.n, tv));
       Nv q;
       CK(cknum(c, lv, "lag", q, true, 0, Inf, false, true));
       lg = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
     }
   }
-  const double gm = *std::min_element(r.g.begin(), r.g.end()), dn = static_cast<double>(n);
-  const double fac = ssc == 0 ? gm / (gm - 1) : ssc == 1 ? gm / (gm - 1) * (dn - 1) / (dn - k) : 1.0;
-  r.v.assign(zz(p) * zz(p), 0.0);
-  const int rc = clab_vcx(pd(sco), static_cast<int>(n), p, pd(brd), kind, c1.empty() ? nullptr : c1.data(), n1,
-                          c2.empty() ? nullptr : c2.data(), n2, tv.empty() ? nullptr : tv.data(), lg, fac,
-                          r.v.data());
-  if (rc == CLAB_EDOM) {
-    c.err = "vcx: the time column has a value that is not finite.";
-    return false;
+  const double dn = static_cast<double>(n);
+  auto ff = [&](double gg) { return ssc == 0 ? gg / (gg - 1) : ssc == 1 ? gg / (gg - 1) * (dn - 1) / (dn - k) : 1.0; };
+  const double gm = *std::min_element(r.g.begin(), r.g.end());
+  auto vcx = [&](int kd, const std::vector<int> &a1, int m1, const std::vector<int> &a2, int m2, double fac,
+                 std::vector<double> &v) {
+    v.assign(zz(p) * zz(p), 0.0);
+    const int rc = clab_vcx(pd(sco), static_cast<int>(n), p, pd(brd), kd, a1.empty() ? nullptr : a1.data(), m1,
+                            a2.empty() ? nullptr : a2.data(), m2, tv.empty() ? nullptr : tv.data(), lg, fac,
+                            v.data());
+    if (rc == CLAB_EDOM) {
+      c.err = "vcx: the time column has a value that is not finite.";
+      return false;
+    }
+    if (rc != CLAB_OK) {
+      c.err = std::string("vcx: ") + clab_strerror(rc);
+      return false;
+    }
+    return true;
+  };
+  if (se == 1 && twc == 1) {
+    // Cameron, Gelbach and Miller (2011, p. 241): each of the three
+    // components with its own factor, G, H and I (the intersections,
+    // coded as .axcode(paste(c1, c2)) codes them)
+    std::map<std::pair<int, int>, int> h;
+    std::vector<int> c12(n);
+    for (std::size_t i = 0; i < n; ++i) {
+      c12[i] = h.emplace(std::make_pair(c1[i], c2[i]), static_cast<int>(h.size())).first->second;
+    }
+    const int n12 = static_cast<int>(h.size());
+    std::vector<double> v1, v2, v3;
+    const std::vector<int> none;
+    CK(vcx(0, c1, n1, none, 0, ff(n1), v1));
+    CK(vcx(0, c2, n2, none, 0, ff(n2), v2));
+    CK(vcx(0, c12, n12, none, 0, ff(n12), v3));
+    r.v.resize(v1.size());
+    for (std::size_t a = 0; a < v1.size(); ++a) r.v[a] = v1[a] + v2[a] - v3[a];
+  } else {
+    CK(vcx(kind, c1, n1, c2, n2, ff(gm), r.v));
   }
-  if (rc != CLAB_OK) {
-    c.err = std::string("vcx: ") + clab_strerror(rc);
-    return false;
+  if (se == 1 && psd == 1) {
+    // the eigenvalues below 0 set to 0 (Cameron, Gelbach and Miller 2011,
+    // p. 241-242, after Politis 2007)
+    svk::Mat m(p, p), e;
+    m.v = r.v;
+    std::vector<double> ev;
+    svk::eigsym(m, ev, e);
+    for (int a = 0; a < p; ++a) {
+      for (int b = 0; b < p; ++b) {
+        double s = 0.0;
+        for (int l = 0; l < p; ++l) s += e(a, l) * std::max(ev[zz(l)], 0.0) * e(b, l);
+        r.v[zz(b) * zz(p) + zz(a)] = s;
+      }
+    }
   }
   r.lag = se == 3 ? lg : NA;
   return true;
@@ -803,8 +930,7 @@ struct Id {
   std::size_t n = 0;
   int pe = 0, px = 0, q = 0;
   std::vector<double> y, xe, xx, zi;
-  bool two = false;
-  Code f1, f2;
+  Fe fe;
 };
 inline Id idat(const Val &d, const std::string &y, const Cols &endo, const Cols &x, const Cols &inst, const Cols &fe) {
   Id a;
@@ -816,9 +942,7 @@ inline Id idat(const Val &d, const std::string &y, const Cols &endo, const Cols 
   a.xe = matv(d, endo);
   a.xx = matv(d, x);
   a.zi = matv(d, inst);
-  a.f1 = acode(*fc(d, fe[0]));
-  a.two = fe.size() == 2;
-  if (a.two) a.f2 = acode(*fc(d, fe[1]));
+  a.fe = afe(d, fe);
   return a;
 }
 struct If {
@@ -839,13 +963,12 @@ inline int ivfit(const Id &a, const Ix &r, const double *w, const int *c1, int n
   if (n > static_cast<std::size_t>(INT_MAX)) return CLAB_EARG;
   const std::vector<double> y = sub(a.y, a.n, 1, r), xe = sub(a.xe, a.n, a.pe, r), xx = sub(a.xx, a.n, a.px, r),
                             zi = sub(a.zi, a.n, a.q, r);
-  int g1 = 0, g2 = 0;
-  const std::vector<int> f1 = recode(a.f1.c, a.f1.n, r, g1);
-  std::vector<int> f2;
-  if (a.two) f2 = recode(a.f2.c, a.f2.n, r, g2);
+  const Fr e = frows(a.fe, r);
+  // fst is pe x 4, as src/bapx.cpp gives it: the Wald statistic, the rk
+  // statistic, the effective F and its degrees of freedom
   f.beta.assign(p, 0.0);
   f.vc.assign(p * p, NA);
-  f.fst.assign(pe * 3, NA);
+  f.fst.assign(pe * 4, NA);
   f.st.assign(3, 0.0);
   f.res.assign(n, 0.0);
   f.fres.assign(n * pe, 0.0);
@@ -853,24 +976,58 @@ inline int ivfit(const Id &a, const Ix &r, const double *w, const int *c1, int n
   f.brd.assign(p * p, 0.0);
   double z[3];
   auto po = [&](std::vector<double> &v) { return v.empty() ? z : v.data(); };
-  return clab_ivfe(pd(y), pd(xe), a.pe, pd(xx), a.px, pd(zi), a.q, static_cast<int>(n), w, f1.data(), g1,
-                   a.two ? f2.data() : nullptr, g2, c1, n1, c2, n2, tol, po(f.beta), po(f.vc), po(f.fst), po(f.fres),
-                   po(f.res), po(f.sco), po(f.brd), po(f.st));
+  return clab_ivfek(pd(y), pd(xe), a.pe, pd(xx), a.px, pd(zi), a.q, static_cast<int>(n), w, e.c1.data(), e.n1,
+                    e.p2(), e.n2, e.px(), e.pn(), e.mx(), c1, n1, c2, n2, tol, po(f.beta), po(f.vc), po(f.fst),
+                    po(f.fres), po(f.res), po(f.sco), po(f.brd), po(f.st));
+}
+// qchisq(p, df, ncp) of the lower tail, as R's qnchisq() finds it: from
+// Pearson's approximation, bounds by doubling and halving, then bisection
+// to a relative width of 1e-13.
+inline double qnchisq(double p, double df, double ncp) {
+  const double eps = 1e-11, accu = 1e-13, big = std::numeric_limits<double>::max(),
+               dmin = std::numeric_limits<double>::min(), deps = std::numeric_limits<double>::epsilon();
+  const double b = ncp * ncp / (df + 3 * ncp), cc = (df + 3 * ncp) / (df + 2 * ncp), ff = (df + 2 * ncp) / (cc * cc);
+  double ux = b + cc * clab_qchisq(p, ff, 1);
+  if (ux < 0) ux = 1;
+  const double ux0 = ux;
+  double pp = std::fmin(1 - deps, p * (1 + eps));
+  for (; ux < big && clab_pnchisq(ux, df, ncp, 1) < pp; ux *= 2) {
+  }
+  pp = p * (1 - eps);
+  double lx = std::fmin(ux0, big);
+  for (; lx > dmin && clab_pnchisq(lx, df, ncp, 1) > pp; lx *= 0.5) {
+  }
+  double nx = 0;
+  do {
+    nx = 0.5 * (lx + ux);
+    if (clab_pnchisq(nx, df, ncp, 1) > p) ux = nx;
+    else lx = nx;
+  } while ((ux - lx) / nx > accu);
+  return 0.5 * (ux + lx);
 }
 // .axfirst()
 inline Val afirst(const Cols &endo, const std::vector<double> &fst, int q) {
   const std::size_t pe = endo.size();
-  std::vector<double> wd, kp, ef, ni(pe, q);
+  std::vector<double> wd, kp, ef, ke, cv, ni(pe, q);
   for (std::size_t j = 0; j < pe; ++j) {
     wd.push_back(fst[j]);
     kp.push_back(fst[pe + j]);
     ef.push_back(fst[2 * pe + j]);
+    // the simplified test of Montiel Olea and Pflueger (2013, section
+    // 2.2.2 and table 1): the upper 5% quantile of a noncentral
+    // chi-squared on keff degrees of freedom with noncentrality x keff,
+    // over keff, x = 1 / tau = 10
+    const double k = fst[3 * pe + j];
+    ke.push_back(k);
+    cv.push_back(std::isfinite(k) && k > 0 ? qnchisq(0.95, k, 10 * k) / k : NA);
   }
   Frame f;
   f.str("endo", endo);
   f.num("wald", wd);
   f.num("kp", kp);
   f.num("eff", ef);
+  f.num("keff", ke);
+  f.num("cv", cv);
   f.num("ninst", ni);
   return f.o;
 }
@@ -885,20 +1042,112 @@ inline Val terms(const Val &tab, const Cols &tm) {
   return rows(tab, r);
 }
 
-const std::vector<const char *> sscs = {"G", "nk", "none"};
+const std::vector<const char *> sscs = {"G", "nk", "none"}, twcs = {"min", "each"}, psds = {"none", "eig"};
+
+// The rank and the pivot of qr(x) (n x p, column-major, overwritten) with
+// its default tolerance: LINPACK's dqrdc2 as R changes it, Householder
+// reflections with limited pivoting, a column whose norm falls below tol
+// of its first norm moved to the end.
+inline int qrank(std::vector<double> &x, int n, int p, double tol, std::vector<int> &piv) {
+  auto at = [&](int i, int j) -> double & { return x[zz(j) * zz(n) + zz(i)]; };
+  auto nrm = [&](int i0, int j) {
+    double s = 0.0;
+    for (int i = i0; i < n; ++i) s += at(i, j) * at(i, j);
+    return std::sqrt(s);
+  };
+  std::vector<double> qa(zz(p)), w1(zz(p)), w2(zz(p));
+  piv.resize(zz(p));
+  for (int j = 0; j < p; ++j) {
+    piv[zz(j)] = j;
+    qa[zz(j)] = w1[zz(j)] = nrm(0, j);
+    w2[zz(j)] = qa[zz(j)] == 0 ? 1.0 : qa[zz(j)];
+  }
+  // l and k from 1 as in the Fortran
+  int k = p + 1;
+  for (int l = 1; l <= std::min(n, p); ++l) {
+    const int c = l - 1;
+    while (l < k && qa[zz(c)] < w2[zz(c)] * tol) {
+      for (int i = 0; i < n; ++i) {
+        const double t = at(i, c);
+        for (int j = c + 1; j < p; ++j) at(i, j - 1) = at(i, j);
+        at(i, p - 1) = t;
+      }
+      std::rotate(piv.begin() + c, piv.begin() + c + 1, piv.end());
+      std::rotate(qa.begin() + c, qa.begin() + c + 1, qa.end());
+      std::rotate(w1.begin() + c, w1.begin() + c + 1, w1.end());
+      std::rotate(w2.begin() + c, w2.begin() + c + 1, w2.end());
+      --k;
+    }
+    if (l == n) continue;
+    double nx = nrm(c, c);
+    if (nx == 0) continue;
+    if (at(c, c) != 0) nx = std::copysign(nx, at(c, c));
+    const double sc = 1.0 / nx;
+    for (int i = c; i < n; ++i) at(i, c) *= sc;
+    at(c, c) += 1.0;
+    for (int j = c + 1; j < p; ++j) {
+      double t = 0.0;
+      for (int i = c; i < n; ++i) t += at(i, c) * at(i, j);
+      t = -t / at(c, c);
+      for (int i = c; i < n; ++i) at(i, j) += t * at(i, c);
+      if (qa[zz(j)] == 0) continue;
+      const double tt = std::max(1.0 - rpow(std::fabs(at(c, j)) / qa[zz(j)], 2), 0.0);
+      if (std::fabs(tt) < 1e-6) {
+        qa[zz(j)] = w1[zz(j)] = nrm(l, j);
+      } else {
+        qa[zz(j)] *= std::sqrt(tt);
+      }
+    }
+    qa[zz(c)] = at(c, c);
+    at(c, c) = -nx;
+  }
+  return std::min(k - 1, n);
+}
+// .axsst(): the regressors to drop by the check of Santos Silva and
+// Tenreyro (2010, p. 311, steps 1 and 2), those qr() finds aliased among
+// the regressors demeaned by the effects on the rows with positive counts
+// (yv, one per row of d), in their order.
+inline bool asst(Ctx &c, const Val &d, const std::vector<double> &yv, const Cols &x, const Cols &fe, double tol,
+                 Cols &drop) {
+  drop.clear();
+  Ix pos;
+  for (std::size_t i = 0; i < yv.size(); ++i) {
+    if (yv[i] > 0) pos.push_back(i);
+  }
+  const Val dp = rows(d, pos);
+  std::vector<double> m;
+  CK(amat(c, dp, x, m));
+  const Fr e = frows(afe(dp, fe), all(pos.size()));
+  const int n = static_cast<int>(pos.size()), p = static_cast<int>(x.size());
+  std::vector<double> wk(4 * e.ng() + 1);
+  const int rc = clab_demean(m.data(), n, p, e.c1.data(), e.n1, e.p2(), e.n2, e.px(), e.pn(), e.mx(), tol,
+                             wk.data());
+  if (rc != CLAB_OK) {
+    c.err = std::string("ppmlfe: ") + clab_strerror(rc);
+    return false;
+  }
+  std::vector<int> piv;
+  const int rk = qrank(m, n, p, 1e-7, piv);
+  std::vector<int> dr(piv.begin() + rk, piv.end());
+  std::sort(dr.begin(), dr.end());
+  for (int j : dr) drop.push_back(x[zz(j)]);
+  return true;
+}
 
 bool ppmlfe(Ctx &c, Val &out) {
-  static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot"};
-  int se = 0, ssc = 0, sep = 0;
+  static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot", "quasi"};
+  int se = 0, ssc = 0, twc = 0, psd = 0, sep = 0;
   CK(marg(c, "se", ses, se));
   CK(marg(c, "ssc", sscs, ssc));
-  CK(marg(c, "sep", {"fe", "none"}, sep));
+  CK(marg(c, "twc", twcs, twc));
+  CK(marg(c, "psd", psds, psd));
+  CK(marg(c, "sep", {"fe", "sst", "none"}, sep));
   Val d;
   CK(dat(c, c["data"], "data", d));
   Cols y, x, fe, expo, clus;
   CK(acol(c, d, "y", {1}, false, y));
   CK(acol(c, d, "x", {}, false, x));
-  CK(acol(c, d, "fe", {1, 2}, false, fe));
+  CK(acol(c, d, "fe", {}, false, fe));
   CK(acol(c, d, "expo", {1}, true, expo));
   Nm cn = nms(c, {"clus"});
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
@@ -921,9 +1170,26 @@ bool ppmlfe(Ctx &c, Val &out) {
   }
   if (!any) return ckstop(c, "column `%s` is all 0", y[0].c_str());
   std::vector<int> k(yv.size(), 1);
-  if (sep == 0) CK(asep(c, yv, d, fe, k));
-  const Val ds = rows(d, which(k));
+  if (sep != 2) CK(asep(c, yv, d, fe, k));
+  const Ix kr = which(k);
+  const Val ds = rows(d, kr);
   const std::size_t n = nr(ds);
+  Cols xdrop;
+  if (sep == 1) {
+    std::vector<double> yk;
+    for (std::size_t i : kr) yk.push_back(yv[i]);
+    CK(asst(c, ds, yk, x, fe, tol, xdrop));
+    if (xdrop.size() == x.size()) return ckstop(c, "every regressor is collinear on the rows with counts");
+    if (!xdrop.empty()) {
+      wrn(c, "regressor(s) dropped, collinear with the others on the rows with positive counts (Santos Silva and "
+             "Tenreyro 2010): " + join(xdrop, ", ") + ".");
+      Cols kx;
+      for (const std::string &s : x) {
+        if (!has(xdrop, s)) kx.push_back(s);
+      }
+      x = kx;
+    }
+  }
   CK(amat(c, ds, x, t));
   if (!expo.empty()) {
     CK(amat(c, ds, expo, t));
@@ -938,7 +1204,7 @@ bool ppmlfe(Ctx &c, Val &out) {
   if (r.st[1] != 1) wrn(c, "the fit did not converge in " + rfmt(mx[0]) + " iterations.");
   const int p = static_cast<int>(x.size());
   std::vector<double> v, sev, g;
-  double lg = NA;
+  double lg = NA, psi = NA;
   Val draws;
   if (se == 4) {
     int nb = 0;
@@ -948,7 +1214,7 @@ bool ppmlfe(Ctx &c, Val &out) {
     auto fit = [&](const Ix &rw, const std::vector<double> &w, std::vector<double> &beta) {
       Ix r2 = rw;
       std::vector<double> w2 = w;
-      if (sep == 0) {
+      if (sep != 2) {
         std::vector<int> kk;
         if (psep(a, rw, kk) < 0) return false;
         r2.clear();
@@ -973,21 +1239,24 @@ bool ppmlfe(Ctx &c, Val &out) {
     draws = vmat(b.dr, nb, p);
   } else {
     Vr vr;
-    CK(avar(c, ds, p, r.sco, r.brd, se, clus, fe, ssc, vr));
+    CK(avar(c, ds, p, r.sco, r.brd, se, clus, fe, ssc, twc, psd, r.st[6], vr));
     v = vr.v;
     sev = sdiag(v, p);
     g = vr.g;
     lg = vr.lag;
+    psi = vr.psi;
   }
   out = vobj();
   put(out, "coef", atab(x, r.beta, sev, lv, NaN, true));
   put(out, "vcov", vmat(v, p, p));
   put(out, "n", vnum(static_cast<double>(n)));
   put(out, "nsep", vnum(static_cast<double>(yv.size() - n)));
+  put(out, "xdrop", vs(xdrop));
   put(out, "ncl", vauto(g));
   put(out, "se", vstr(ses[zz(se)]));
   put(out, "ssc", vstr(sscs[zz(ssc)]));
   put(out, "lag", vnum(lg));
+  put(out, "psi", vnum(psi));
   put(out, "iter", vnum(r.st[0]));
   put(out, "conv", vbool(r.st[1] == 1));
   put(out, "dev", vnum(r.st[2]));
@@ -1001,9 +1270,11 @@ bool ppmlfe(Ctx &c, Val &out) {
 
 bool ivfe(Ctx &c, Val &out) {
   static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot"};
-  int se = 0, ssc = 0;
+  int se = 0, ssc = 0, twc = 0, psd = 0;
   CK(marg(c, "se", ses, se));
   CK(marg(c, "ssc", sscs, ssc));
+  CK(marg(c, "twc", twcs, twc));
+  CK(marg(c, "psd", psds, psd));
   Val d;
   CK(dat(c, c["data"], "data", d));
   Cols y, endo, inst, x, fe, clus;
@@ -1011,7 +1282,7 @@ bool ivfe(Ctx &c, Val &out) {
   CK(acol(c, d, "endo", {}, true, endo));
   CK(acol(c, d, "inst", {}, true, inst));
   CK(acol(c, d, "x", {}, true, x));
-  CK(acol(c, d, "fe", {1, 2}, false, fe));
+  CK(acol(c, d, "fe", {}, false, fe));
   Nm cn = nms(c, {"clus"});
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
@@ -1087,12 +1358,32 @@ bool ivfe(Ctx &c, Val &out) {
     draws = vmat(b.dr, nb, p);
   } else {
     Vr vr;
-    CK(avar(c, d, p, r.sco, r.brd, se, clus, fe, ssc, vr));
+    CK(avar(c, d, p, r.sco, r.brd, se, clus, fe, ssc, twc, psd, NaN, vr));
     v = vr.v;
     sev = sdiag(v, p);
     g = vr.g;
     lg = vr.lag;
     if (se <= 1) df = *std::min_element(g.begin(), g.end()) - 1;
+  }
+  // the over-identification tests (Yamada 2026, section 7 and table 8,
+  // item 6): Sargan and the cluster-robust Hansen J of the two-step
+  // estimate, on the clusters of the first stages
+  Val overid, gmm;
+  if (inst.size() > endo.size() && !endo.empty()) {
+    const Fr e = frows(a.fe, all(n));
+    std::vector<double> ob(zz(p)), os(3);
+    const int ro = clab_ivoid(pd(a.y), pd(a.xe), a.pe, pd(a.xx), a.px, pd(a.zi), a.q, static_cast<int>(n),
+                              e.c1.data(), e.n1, e.p2(), e.n2, e.px(), e.pn(), e.mx(), c1.data(), n1,
+                              se == 1 ? c2.data() : nullptr, n2, tol, ob.data(), os.data());
+    if (ro != CLAB_OK) return kerr(c, "ivfe", ro);
+    Frame f;
+    f.str("test", {"sargan", "hansen"});
+    f.num("stat", {os[0], os[1]});
+    f.num("df", {os[2], os[2]});
+    f.num("p", {clab_pchisq(os[0], os[2], 0), clab_pchisq(os[1], os[2], 0)});
+    overid = f.o;
+    gmm = vobj();
+    for (std::size_t j = 0; j < tm.size(); ++j) put(gmm, tm[j].c_str(), vnum(ob[j]));
   }
   // the first stages in the exposure's units, per unit of each
   // instrument and over the exposure's mean
@@ -1115,6 +1406,8 @@ bool ivfe(Ctx &c, Val &out) {
       if (c.has("lag")) put(ar, "lag", c["lag"]);
       put(ar, "level", vnum(lv));
       put(ar, "tol", vnum(tol));
+      put(ar, "twc", vstr(twcs[zz(twc)]));
+      put(ar, "psd", vstr(psds[zz(psd)]));
       CK(call(c, "ivfe", ivfe, ar, s1));
       const Val tb = terms(col(s1, "coef"), inst);
       const double mu = lmean(colv(*fc(d, e)));
@@ -1138,6 +1431,8 @@ bool ivfe(Ctx &c, Val &out) {
   put(out, "coef", atab(tm, r.beta, sev, lv, df, false));
   put(out, "first", afirst(endo, r.fst, a.q));
   put(out, "fstab", fstab);
+  put(out, "overid", overid);
+  put(out, "gmm", gmm);
   put(out, "vcov", vmat(v, p, p));
   put(out, "n", vnum(static_cast<double>(n)));
   put(out, "ncl", vauto(g));
@@ -1263,7 +1558,8 @@ bool ppmlcf(Ctx &c, Val &out) {
     CK(amat(c, ds, x, mxx));
     CK(amat(c, ds, inst, mz));
     const std::size_t kp = tm.size();
-    std::vector<double> beta(kp), fst(zz(pe) * 3), draw(zz(nb) * kp), st(3);
+    // fst is pe x 4, as src/bapx.cpp gives it
+    std::vector<double> beta(kp), fst(zz(pe) * 4, NA), draw(zz(nb) * kp), st(3);
     const std::vector<double> ys = colv(*fc(ds, y[0]));
     const int rc = clab_ppmlcf(pd(ys), pd(me), pe, pd(mxx), static_cast<int>(x.size()), pd(mz), q,
                                static_cast<int>(n), off.empty() ? nullptr : off.data(), f1.c.data(), f1.n,

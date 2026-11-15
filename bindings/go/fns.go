@@ -1234,10 +1234,10 @@ func Gmixlr(args string) (string, error) { return Jrun("gmixlr", args) }
 // Cmpsc runs cmpsc() of the R package (arguments: a b len? npeaks? tx? full?; ? marks an optional one).
 func Cmpsc(args string) (string, error) { return Jrun("cmpsc", args) }
 
-// Ppmlfe runs ppmlfe() of the R package (arguments: data y x fe expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit?; ? marks an optional one).
+// Ppmlfe runs ppmlfe() of the R package (arguments: data y x fe expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd?; ? marks an optional one).
 func Ppmlfe(args string) (string, error) { return Jrun("ppmlfe", args) }
 
-// Ivfe runs ivfe() of the R package (arguments: data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol?; ? marks an optional one).
+// Ivfe runs ivfe() of the R package (arguments: data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol? twc? psd?; ? marks an optional one).
 func Ivfe(args string) (string, error) { return Jrun("ivfe", args) }
 
 // Ppmlcf runs ppmlcf() of the R package (arguments: data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit?; ? marks an optional one).

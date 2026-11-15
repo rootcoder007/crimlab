@@ -33,6 +33,7 @@
 #include <fstream>
 #include <initializer_list>
 #include <limits>
+#include <map>
 #include <regex>
 #include <string>
 #include <unordered_map>
@@ -2027,8 +2028,8 @@ const Ent ents[] = {
     {"pedlr", "ped geno freq alt? mut? rate? range?", pedlr},
     {"gmixlr", "peaks freq ref? hp? nc hd? at? pc? lambda? theta? stut? deg? par?", gmixlr},
     {"cmpsc", "a b len? npeaks? tx? full?", cmpsc},
-    {"ppmlfe", "data y x fe expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit?", ax::ppmlfe},
-    {"ivfe", "data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol?", ax::ivfe},
+    {"ppmlfe", "data y x fe expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd?", ax::ppmlfe},
+    {"ivfe", "data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol? twc? psd?", ax::ivfe},
     {"ppmlcf", "data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit?", ax::ppmlcf},
     {"windiv", "dir width? start? area? base? sect? edges? by? avg? share? spd?", ax::windiv},
     {"invsn", "tlow tup sign? brk?", ax::invsn},
