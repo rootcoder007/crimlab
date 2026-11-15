@@ -51,7 +51,10 @@ hwpwr(
 - skip:
 
   Sources not to use: any of `"rapl"`, `"gpu"`, `"battery"`, `"proc"`,
-  `"nvml"`, `"smi"`, `"ioreport"`, `"ioreg"`, `"emi"`.
+  `"nvml"`, `"smi"`, `"ioreport"`, `"ioreg"`, `"emi"`. `"gpu"` leaves
+  out every graphics processor on Linux and Windows (the kernel's cards
+  and both NVIDIA readers); `"nvml"` and `"smi"` leave out one NVIDIA
+  reader each.
 
 - paths:
 

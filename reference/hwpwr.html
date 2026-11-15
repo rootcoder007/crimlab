@@ -98,7 +98,10 @@ device gives a utilisation but no power.</p></dd>
 
 <dt id="arg-skip">skip<a class="anchor" aria-label="anchor" href="#arg-skip"></a></dt>
 <dd><p>Sources not to use: any of <code>"rapl"</code>, <code>"gpu"</code>, <code>"battery"</code>,
-<code>"proc"</code>, <code>"nvml"</code>, <code>"smi"</code>, <code>"ioreport"</code>, <code>"ioreg"</code>, <code>"emi"</code>.</p></dd>
+<code>"proc"</code>, <code>"nvml"</code>, <code>"smi"</code>, <code>"ioreport"</code>, <code>"ioreg"</code>, <code>"emi"</code>. <code>"gpu"</code>
+leaves out every graphics processor on Linux and Windows (the kernel's
+cards and both NVIDIA readers); <code>"nvml"</code> and <code>"smi"</code> leave out one
+NVIDIA reader each.</p></dd>
 
 
 <dt id="arg-paths">paths<a class="anchor" aria-label="anchor" href="#arg-paths"></a></dt>
