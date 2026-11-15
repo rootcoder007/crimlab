@@ -2054,6 +2054,16 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
  * CLAB_EDOM for a non-finite time. */
 int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
              const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc);
+
+/* Runs of exposed days (exprun): for row i of unit u[i] on day t[i] with
+ * exposure e[i] (exposed when above 0), run[i] is 0 when not exposed, -1
+ * when e[i] is not finite, and otherwise 1 plus the run of the row of the
+ * same unit exactly step earlier when that row exists and is exposed, else
+ * 1 (Lee and Lee 2026, equation 3: the first, second, third smoke day in a
+ * row). CLAB_EDOM for a non-finite day or two rows of one unit on one day.
+ * ord: n ints of scratch. O(n log n). */
+int clab_runlen(const int *u, const double *t, const double *e, int n, double step, int *run,
+                int *ord);
 int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
                const double *sy0, const double *sx1, const double *sy1, int ns, double band,
                double tol, int twin, int *src, int *side, int *dn, double *dst);

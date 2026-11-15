@@ -64,6 +64,18 @@
   (`lvfit()`) and the correlation of counts per unit between categories
   (`catcor()`). They are in `clab_jrun()`, the command line and Python.
 
+* Exposure and crime, the designs of 2019-2026: smoke instruments from
+  plume data, raw or adjusted to the plumes that reached the ground
+  (`smkiv()`); runs of exposed days and the effect by day in the run
+  (`exprun()`, `runfx()`); effects by a moderator with the test of
+  equality (`hetfx()`); the time-stratified case-crossover design
+  (`ccross()`); two exposures together as a surface (`jntx()`); exposure
+  in bins with tests of non-linearity (`dosebin()`); and effects by
+  offence type with a multiple-testing correction (`typefx()`). Every
+  choice the papers leave open is an option of the estimators, with the
+  standard errors of each kind, the three first-stage statistics and the
+  plug-in of the count instrument.
+
 * Exposure and crime, for counts by place and day against a daily
   exposure: Poisson pseudo-maximum likelihood with one or two sets of
   absorbed fixed effects, an offset and one- or two-way clustered errors

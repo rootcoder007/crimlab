@@ -190,4 +190,20 @@ SEXP C_clab_r_vcx(SEXP sco, SEXP brd, SEXP kind, SEXP cl, SEXP ncl, SEXP cl2, SE
   return v;
 }
 
+SEXP C_clab_r_runlen(SEXP u, SEXP t, SEXP e, SEXP step) {
+  clab::who = "exprun";
+  const int n = n32(t);
+  SEXP r = PROTECT(Rf_allocVector(INTSXP, n));
+  int *ord = reinterpret_cast<int *>(R_alloc(static_cast<size_t>(n), sizeof(int)));
+  const int rc = clab_runlen(INTEGER(u), REAL(t), REAL(e), n, Rf_asReal(step), INTEGER(r), ord);
+  clab::ichk(rc);
+  if (rc == CLAB_EDOM) clab::fail("a unit has two rows on one day: give one row per unit and day.");
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  for (int i = 0; i < n; ++i) {
+    if (INTEGER(r)[i] < 0) INTEGER(r)[i] = NA_INTEGER;
+  }
+  UNPROTECT(1);
+  return r;
+}
+
 }  // extern "C"

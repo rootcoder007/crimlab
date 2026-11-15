@@ -534,4 +534,32 @@ int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const
   return CLAB_OK;
 }
 
+int clab_runlen(const int *u, const double *t, const double *e, int n, double step, int *run,
+                int *ord) {
+  if (n < 1 || !(step > 0)) return CLAB_EARG;
+  for (int i = 0; i < n; ++i) {
+    if (!std::isfinite(t[i])) return CLAB_EDOM;
+    ord[i] = i;
+  }
+  auto less = [&](int a, int b) { return u[a] < u[b] || (u[a] == u[b] && t[a] < t[b]); };
+  kutil::hsort(ord, n, less);
+  for (int q = 0; q < n; ++q) {
+    const int i = ord[q];
+    if (q > 0 && u[ord[q - 1]] == u[i] && t[ord[q - 1]] == t[i]) return CLAB_EDOM;
+    if (!std::isfinite(e[i])) {
+      run[i] = -1;
+      continue;
+    }
+    if (!(e[i] > 0)) {
+      run[i] = 0;
+      continue;
+    }
+    // the run goes on from the row of the same unit one step earlier
+    const int j = q > 0 ? ord[q - 1] : -1;
+    const bool on = j >= 0 && u[j] == u[i] && t[i] - t[j] == step && run[j] > 0;
+    run[i] = on ? run[j] + 1 : 1;
+  }
+  return CLAB_OK;
+}
+
 }  // extern "C"

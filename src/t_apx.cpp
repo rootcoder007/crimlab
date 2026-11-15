@@ -127,6 +127,19 @@ void t_apx(tk &T, int) {
     tk_ieq(T, "apx.ivq", clab_ivfe(y, x, 1, nullptr, 0, z, 0, 5, nullptr, g, 1, nullptr, 0, c, 2,
                                    nullptr, 0, 1e-13, &b, &vc, f, nullptr, nullptr, nullptr, nullptr, st), CLAB_EARG);
   }
+  // runs: days 1, 2, 3 of a run, a gap breaks it, a new unit starts afresh
+  {
+    const int u[6] = {0, 0, 0, 0, 1, 1};
+    const double t[6] = {1, 2, 3, 5, 3, 4}, e[6] = {1, 1, 1, 1, 0, 1};
+    int run[6], ord[6];
+    tk_ieq(T, "apx.rl", clab_runlen(u, t, e, 6, 1, run, ord), CLAB_OK);
+    tk_ieq(T, "apx.rl3", run[2], 3);
+    tk_ieq(T, "apx.rlg", run[3], 1);
+    tk_ieq(T, "apx.rl0", run[4], 0);
+    tk_ieq(T, "apx.rlu", run[5], 1);
+    const double td[6] = {1, 1, 3, 5, 3, 4};
+    tk_ieq(T, "apx.rld", clab_runlen(u, td, e, 6, 1, run, ord), CLAB_EDOM);
+  }
   // quadrants from 0, the first left out; 360 is 0; by area
   {
     const double d[4] = {45, 135, 359.5, 360};
