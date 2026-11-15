@@ -114,7 +114,7 @@ test_that("rddens is McCrary's two steps", {
   m <- rddens(d$r, b = 0.05, h = 0.5)
   expect_equal(c(m$tab$theta, m$tab$se),
                c(-0.0474225013558036, 0.161390621033137), tolerance = 1e-8)
-  expect_equal(c(m$tab$theta, m$tab$se), mcref(d$r, 0, 0.05, 0.5),
+  expect_equal(c(m$tab$theta, m$tab$se), unname(mcref(d$r, 0, 0.05, 0.5)),
                tolerance = 1e-8)
   a <- rddens(d$r)
   expect_equal(a$b, 2 * stats::sd(d$r) / sqrt(nrow(d)), tolerance = 1e-12)

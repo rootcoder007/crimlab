@@ -310,11 +310,13 @@
     .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
   }
   bm <- .axdraw(cc$n, nboot, seed)
-  dr <- t(vapply(seq_len(nboot), function(b) {
+  # one row per draw: with one coefficient vapply() gives a vector, and
+  # t() of it would be one row of nboot columns
+  dr <- matrix(vapply(seq_len(nboot), function(b) {
     m <- bm[cc$c + 1L, b]
     k <- m > 0
     tryCatch(fit(which(k), m[k]), error = function(e) rep(NA_real_, p))
-  }, numeric(p)))
+  }, numeric(p)), nboot, p, byrow = TRUE)
   nf <- sum(!stats::complete.cases(dr))
   if (nf > 0L) {
     warning(
@@ -2551,9 +2553,10 @@ updwn <- function(
       .ckstop(f, "fewer than two rows are upwind or downwind of a source")
     }
     rw <- k$row[use]
-    ring <- if (is.null(dist)) rep("", sum(use)) else {
-      rg <- cut(k$dst[use], dist, include.lowest = TRUE)
-      as.character(rg)
+    ring <- if (is.null(dist)) {
+      rep("", sum(use))
+    } else {
+      as.character(cut(k$dst[use], dist, include.lowest = TRUE))
     }
     keep <- !is.na(ring)
     rw <- rw[keep]

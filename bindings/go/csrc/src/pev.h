@@ -22,6 +22,16 @@ namespace pev {
 int within(double *v, int n, int k, const int *u, int nu, const int *t, int nt, int two,
            const double *w, double tol, int maxit, double *work);
 
+// The within transformation by any number of sets of effects: f1 (n1
+// codes), f2 (NULL or n2 codes) and mx more sets fx (n x mx, column-major,
+// counts nx; mx > 0 needs f2). With mx = 0 it is within() (one or two
+// sets), bit for bit; otherwise each sweep subtracts the weighted means of
+// every set in turn, until the largest mean subtracted in a sweep is below
+// tol times the column's largest absolute value. work: 4 (n1 + n2 + sum
+// nx) doubles. Returns the sweeps of the slowest column, or -1.
+int withink(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2, const int *fx,
+            const int *nx, int mx, const double *w, double tol, int maxit, double *work);
+
 // In place: the lower Cholesky factor of the p x p matrix a. false when a
 // pivot is not above 1e-12 times the largest diagonal element (a is then
 // singular to working precision).

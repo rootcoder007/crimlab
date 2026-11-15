@@ -1928,9 +1928,9 @@ int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int
  * s_g') (X~'WX~)^-1 at the final mu, s_g the clusters' sums of w (y - mu)
  * x~, x~ the demeaned columns, V1 + V2 - V12 for two-way, every term times
  * G / (G - 1) of G the smaller number of clusters (fixest's ssc(K.adj =
- * FALSE, G.df = "min")). Out: beta (p); st (6): steps, converged (1 or
+ * FALSE, G.df = "min")). Out: beta (p); st (7): steps, converged (1 or
  * 0), deviance, the pseudo log-likelihood, G, the most sweeps of the
- * within transformation; sco: NULL or n x p, each row's score w (y - mu)
+ * within transformation, Pearson's chi-squared sum w (y - mu)^2 / mu; sco: NULL or n x p, each row's score w (y - mu)
  * x~ at the final mu, and brd: NULL or p x p, (X~'WX~)^-1, for the other
  * variances of clab_vcx. CLAB_EDOM when a column of x is absorbed by the
  * effects or the columns are collinear, or the transformation does not
@@ -1941,6 +1941,16 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
                 const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
                 double tol, double *beta, double *vc, double *sco, double *brd, double *st,
                 double *work, int *iwork);
+
+/* clab_ppmlfe with mx more sets of effects absorbed, fx (n x mx codes,
+ * column-major, counts nx; they need f2), swept in turn with the others
+ * by alternating projections; mx = 0 is clab_ppmlfe, bit for bit. work:
+ * as clab_ppmlfe with 4 (n1 + n2 + sum nx) in place of 4 (n1 + n2). */
+int clab_ppmlfek(const double *y, const double *x, int n, int p, const double *off,
+                 const double *w, const int *f1, int n1, const int *f2, int n2, const int *fx,
+                 const int *nx, int mx, const int *cl, int ncl, const int *cl2, int ncl2,
+                 int maxit, double eps, double tol, double *beta, double *vc, double *sco,
+                 double *brd, double *st, double *work, int *iwork);
 
 /* ------------------------------------------------------------------------
  * Exposure and crime (src/apx.cpp): estimators of the effect of a daily
@@ -1960,11 +1970,16 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
  * residuals y - xe b - xx c, two-way V1 + V2 - V12, each times G / (G - 1)
  * of G the smaller number of clusters; fst (pe): each first stage's
  * cluster-robust Wald statistic of its q excluded instruments, divided by
- * q (NaN when its covariance is singular); fst is pe x 3: that statistic,
- * the Kleibergen-Paap rk Wald F (equal to it for one endogenous column,
- * NaN for more) and the effective F of Montiel Olea and Pflueger (2013),
- * bz' Q bz / tr(Vzz Q) with Q the instruments' weighted cross products
- * after xx and the effects (one endogenous column; NaN for more). Out: beta (pe + px; the
+ * q (NaN when its covariance is singular); fst is pe x 4: that statistic,
+ * the Kleibergen-Paap rk Wald statistic divided by q (equal to the Wald
+ * statistic for one endogenous column; for more, the rk statistic of
+ * rank pe - 1 of the instruments' first-stage coefficients, Kleibergen and
+ * Paap 2006, equation 22, the same in every row), the effective F of
+ * Montiel Olea and Pflueger (2013, equation 3), bz' Q bz / tr(Vzz Q) with
+ * Q the instruments' weighted cross products after xx and the effects,
+ * and its effective degrees of freedom for the simplified test with tau
+ * = 10% (their equation 4 with x = 10; both for one endogenous column,
+ * NaN for more). Out: beta (pe + px; the
  * endogenous first); fres: NULL or n x pe, the first stages' residuals
  * (demeaned); res: NULL or n, the structural residuals (demeaned); sco:
  * NULL or n x (pe + px), each row's second-stage score w u h, and brd:
@@ -1979,6 +1994,17 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
               double tol, double *beta, double *vc, double *fst, double *fres, double *res,
               double *sco, double *brd, double *st);
 
+/* clab_ivfe with mx more sets of effects absorbed: fx (n x mx codes,
+ * column-major; set j has nx[j] levels), which need f2 (mx = 0 is
+ * clab_ivfe, bit for bit). The sets are swept in turn by alternating
+ * projections until the largest group mean left is below tol of each
+ * column's largest value. */
+int clab_ivfek(const double *y, const double *xe, int pe, const double *xx, int px,
+               const double *zi, int q, int n, const double *w, const int *f1, int n1,
+               const int *f2, int n2, const int *fx, const int *nx, int mx, const int *cl,
+               int ncl, const int *cl2, int ncl2, double tol, double *beta, double *vc,
+               double *fst, double *fres, double *res, double *sco, double *brd, double *st);
+
 /* The control function for a count (ppmlcf): the first stages of
  * clab_ivfe (each endogenous column on zi and xx with the effects), then
  * clab_ppmlfe of y on (xe, xx, the first-stage residuals) with the same
@@ -1992,7 +2018,7 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
  * reproduces it); each draw refits both stages on the drawn clusters
  * weighted by those counts (equal to stacking the copies, each copy with
  * its own effects when the effect is nested in the cluster), after
- * clab_fesep on the draw. fst: 3 pe, as in clab_ivfe. Out: beta (2 pe +
+ * clab_fesep on the draw. fst: 4 pe, as in clab_ivfe. Out: beta (2 pe +
  * px, or pe + px for how 1); draw (nb x the same,
  * column-major by coefficient; NaN for a draw that could not be fitted);
  * st (3): the full fit's steps and convergence, the draws that failed.
@@ -2002,6 +2028,54 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
                 const int *f2, int n2, const int *cl, int ncl, const int *bm, int nb,
                 int how, int maxit, double eps, double tol, double *beta, double *fst,
                 double *draw, double *st);
+
+/* The columns of v (n x k), in place, less their means by the effects f1
+ * (n1 codes) and f2 (NULL or n2 codes), as clab_ivfe demeans (ppmlfe's
+ * separation check), and mx more sets fx (n x mx, counts nx) as in
+ * clab_ivfek. work: 4 (n1 + n2 + sum nx) doubles. CLAB_EDOM when the
+ * alternating projections do not converge. */
+int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2,
+                const int *fx, const int *nx, int mx, double tol, double *work);
+
+/* The exponential-mean generalised method of moments (expgmm): y (n,
+ * at least 0) with mean exp(x b + off), x (n x k; the endogenous columns,
+ * the controls and any indicator columns of fixed effects, with a constant
+ * among them), z (n x s, s >= k; the excluded instruments and the
+ * exogenous columns of x), off NULL or n. err 0, the multiplicative
+ * residual u = y exp(-x b - off) - 1 (Mullahy 1997); err 1, the additive
+ * u = y - exp(x b + off) (Windmeijer and Santos Silva 1997). The moments
+ * are g = sum_i z_i u_i; each step minimises g'Wg by Gauss-Newton from b0
+ * (k), halving a step that does not lower it, until the largest change
+ * relative to 1 + |b| is below tol (maxit iterations). step 1: W =
+ * (Z'Z)^-1, the nonlinear instrumental-variables estimator; step 2: then
+ * W = S^-1, S = sum over the clusters cl (ncl codes; the rows themselves
+ * for heteroskedasticity-robust errors) of (Z_g'u_g)(Z_g'u_g)' at the
+ * first estimate; step 3: W updated so until the estimate changes by
+ * less than tol. Out: beta (k); vc (k x k), (G'WG)^-1 for steps 2 and 3,
+ * the sandwich (G'WG)^-1 G'W S W G (G'WG)^-1 with S at the estimate for
+ * step 1 (G = sum_i z_i du_i/db', no small-sample factor); st (6):
+ * Hansen's J, g'Wg at the last estimate (NaN for step 1 or s = k), its
+ * degrees of freedom s - k, the Gauss-Newton iterations of the last
+ * step, convergence (1 or 0), the weights used, g'Wg. CLAB_EDOM when Z'Z,
+ * S or G'WG is singular or the start overflows. The kernel allocates its
+ * arrays. */
+int clab_expgmm(const double *y, const double *x, int k, const double *z, int s, int n,
+                const double *off, const double *b0, const int *cl, int ncl, int err, int step,
+                int maxit, double tol, double *beta, double *vc, double *st);
+
+/* The over-identification tests of clab_ivfe (ivfe): the same data,
+ * effects (with the mx more sets fx of clab_ivfek) and demeaning; X = (xe, xx), Z = (zi, xx), q >= pe. st (3): the
+ * Sargan statistic n u'Z(Z'Z)^-1 Z'u / u'u at the two-stage least squares
+ * residuals u; Hansen's J, u2'Z S^-1 Z'u2 with S the cluster sum of
+ * (Z_g'u_g)(Z_g'u_g)' at u (cl, and for two-way cl2: S1 + S2 - S12) and
+ * u2 the residuals of the two-step estimate (X'Z S^-1 Z'X)^-1 X'Z S^-1
+ * Z'y, into beta (pe + px; NaN, with J, when S is singular; J is NaN too
+ * when q = pe); and the degrees of freedom q - pe. The kernel allocates
+ * its arrays. */
+int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int px,
+               const double *zi, int q, int n, const int *f1, int n1, const int *f2, int n2,
+               const int *fx, const int *nx, int mx, const int *cl, int ncl, const int *cl2,
+               int ncl2, double tol, double *beta, double *st);
 
 /* Wind-direction instruments (windiv): dir, n directions the wind blows
  * from, degrees clockwise from north; the circle is cut into nb = 360 /
@@ -4036,6 +4110,71 @@ int clab_sfcure(const double *t, const double *d, int n, const double *x, int p,
 int clab_evfilt(const double *y, int n, const double *x, int p, const int *rp, const int *ci, const double *w,
                 int crit, int cand, double tol, int maxv, int *sel, int *nsel, double *coef, double *st,
                 double *res, double *mi);
+
+/* ------------------------------------------------------------------------
+ * Regression discontinuity (src/rdd.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The constant C_K of the optimal bandwidth of a local-linear fit at a
+ * boundary for the kernel kern (0 triangular, 1 uniform, 2 Epanechnikov,
+ * each on [-1, 1]): (C2 / (4 C1))^(1/5) with C1 and C2 from the kernel's
+ * moments (Imbens and Kalyanaraman 2012, Lemma 3.1); 3.4375 for the
+ * triangle. NaN for another kern. */
+double clab_rdck(int kern);
+
+/* The bandwidth of Imbens and Kalyanaraman (2012, section 4.2, steps 1-3)
+ * for the sharp design: y (n) against the running variable x (n) at the
+ * cutoff c, treated from c on; kern as clab_rdck. Out: h; st (10): the
+ * pilot h1, the density at c, the variances left and right, the third
+ * derivative, the pilot bandwidths h2 left and right, the second
+ * derivatives left and right, C_K. CLAB_EDOM when a step has too few rows
+ * or the third derivative is 0. */
+int clab_ikbw(const double *y, const double *x, int n, double c, int kern, double *h, double *st);
+
+/* The density test of McCrary (2008): r (n) the running variable, c the
+ * cutoff, b the binsize (0: 2 s n^(-1/2)), h the bandwidth (0: the
+ * automatic rule of p. 705). Out: st (7): theta = ln f+ - ln f-, its
+ * standard error (equation 5), f- and f+, b, h, the number of bins.
+ * CLAB_EDOM when c is not inside the data or a side cannot be fitted. */
+int clab_mccr(const double *r, int n, double c, double b, double h, double *st);
+
+/* ------------------------------------------------------------------------
+ * Environmental crime (src/env.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The additive log-mean Divisia index (LMDI) decomposition of y1 - y0 over
+ * k factors whose product is y (the additive LMDI of Duan et al. 2026,
+ * eqs 2-5, after Ang 2005): for
+ * row i and factor j, out[j n + i] = L(y1_i, y0_i) ln(f1_ij / f0_ij), L
+ * the logarithmic mean (a - b) / (ln a - ln b) (a when a = b). f0 and f1
+ * are n x k, column-major. The contributions add up to y1 - y0 exactly
+ * when each y is the product of its factors. CLAB_EDOM for a value that
+ * is not finite and positive. O(n k). */
+int clab_lmdi(const double *y0, const double *y1, const double *f0, const double *f1, int n,
+              int k, double *out);
+/* Variance inflation factors of the p columns of x (n x p, column-major):
+ * out[j] = 1 / (1 - R2_j), R2_j of the least-squares regression of column
+ * j on a constant and the other columns; 1 when p = 1, NaN for a constant
+ * column, Inf when the column is an exact combination of the others or
+ * they are collinear. n >= p + 2. work: n (p + 1) + 2 p (p + 1) doubles. */
+int clab_vif(const double *x, int n, int p, double *out, double *work);
+/* The Jarque-Bera test of n >= 4 values r: with
+ * moments about the mean divided by n, out (4): the skewness S, the
+ * kurtosis K, JB = n / 6 (S^2 + (K - 3)^2 / 4) and its p-value exp(-JB /
+ * 2), the upper tail of chi-squared on 2 degrees of freedom. CLAB_EDOM
+ * when r is constant. */
+int clab_jb(const double *r, int n, double *out);
+/* Pesaran's CD test of cross-sectional dependence of nu units over nt
+ * periods: e (nu x nt, unit a's series at e[a nt + s], NaN where missing).
+ * For each pair of units the correlation rho_ab of their values over the
+ * T_ab periods both have, about the means over those periods; pairs with
+ * T_ab < 2 or no variation are left out. CD = sum sqrt(T_ab) rho_ab /
+ * sqrt(m) over the m pairs kept, which for a balanced panel is sqrt(2 T /
+ * (N (N - 1))) sum rho_ab: the statistic as plm::pcdtest() computes it.
+ * Out (5): CD, its two-sided
+ * normal p-value, the mean of rho_ab, the mean of |rho_ab|, m. CLAB_EDOM
+ * when no pair is kept. O(nu^2 nt). */
+int clab_pcd(const double *e, int nu, int nt, double *out);
 
 #ifdef __cplusplus
 }

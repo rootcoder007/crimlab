@@ -58,9 +58,9 @@ rdloc(
 
 \item{x}{An object of class \code{rdloc}.}
 
-\item{object}{An object of class \code{rdloc}.}
-
 \item{...}{Not used.}
+
+\item{object}{An object of class \code{rdloc}.}
 }
 \value{
 An object of class \code{rdloc}, a list: \code{coef}, two rows (\code{method},
@@ -83,26 +83,24 @@ restriction border, a line on each side, within a window.
 }
 \details{
 The fit. With \code{r} the running variable less \code{cut} and \code{D = 1(r >= 0)},
-weighted least squares of \code{y} on \code{1, D, r, D r} with weights \code{K(r /
-h)}; the coefficient of \code{D} is the jump, the difference of the two
+weighted least squares of \code{y} on \verb{1, D, r, D r} with weights \code{K(r / h)}; the coefficient of \code{D} is the jump, the difference of the two
 local-linear intercepts. Fuzzy (\code{trt} given): two-stage least squares
-of \code{y} on the treatment, instrumented by \code{D}, with \code{1, r, D r} and the
+of \code{y} on the treatment, instrumented by \code{D}, with \verb{1, r, D r} and the
 same weights, which is the ratio of the jumps in \code{y} and in the
-treatment. Kernels (\code{kern}, each on \code{[-1, 1]}): \code{"tri"} (the default,
-\code{1 - |u|}, the edge kernel Imbens and Kalyanaraman recommend, p. 941),
+treatment. Kernels (\code{kern}, each on \verb{[-1, 1]}): \code{"tri"} (the default,
+\verb{1 - |u|}, the edge kernel Imbens and Kalyanaraman recommend, p. 941),
 \code{"uni"} (a constant: a plain window, as Carrillo et al.), \code{"epa"}
 (\code{3/4 (1 - u^2)}).
 
 The bandwidth (\code{bw}): \code{"ik"} (the default), the algorithm of Imbens and
 Kalyanaraman (2012, section 4.2, steps 1-3, equations 11-17, p.
-941-943) for the outcome: a pilot \code{h1 = 1.84 S_X N^(-1/5)} for the
+941-943) for the outcome: a pilot \verb{h1 = 1.84 S_X N^(-1/5)} for the
 density and the variances at the cutoff, a cubic with a jump for the
 third derivative, local quadratics within \code{h2} for the second
-derivatives, the regularisation terms \code{2160 sigma^2 / (N2 h2^4)}, and \code{h
-= C_K ((sigma-^2 + sigma+^2) / (f (dm^2 + r+ + r-)))^(1/5) N^(-1/5)}
-with \code{C_K = (C2 / (4 C1))^(1/5)} from the kernel's moments (their Lemma
-3.1; 3.4375 for the triangle, 2.70 for the uniform on \code{[-1, 1]}, which
-is their 5.40 for the uniform on \code{[-1/2, 1/2]}). For a fuzzy design it
+derivatives, the regularisation terms \verb{2160 sigma^2 / (N2 h2^4)}, and \verb{h = C_K ((sigma-^2 + sigma+^2) / (f (dm^2 + r+ + r-)))^(1/5) N^(-1/5)}
+with \verb{C_K = (C2 / (4 C1))^(1/5)} from the kernel's moments (their Lemma
+3.1; 3.4375 for the triangle, 2.70 for the uniform on \verb{[-1, 1]}, which
+is their 5.40 for the uniform on \verb{[-1/2, 1/2]}). For a fuzzy design it
 is the outcome's bandwidth, the simplification the paper offers (p.
 946); its fuzzy formula (equation 24) is not built, as the paper does
 not say at which bandwidth its preliminary \code{tau} is estimated. \code{"user"}:

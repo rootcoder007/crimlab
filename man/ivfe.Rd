@@ -44,12 +44,12 @@ many as \code{endo} (from \code{\link[=windiv]{windiv()}} or \code{\link[=invsn]
 \item{x}{\code{NULL} or the names of the exogenous controls. For \code{print()},
 an object of class \code{ivfe}.}
 
-\item{fe,clus,se,ssc,time,lag,nboot,seed,level,tol,twc,psd}{As in
+\item{fe, clus, se, ssc, time, lag, nboot, seed, level, tol, twc, psd}{As in
 \code{\link[=ppmlfe]{ppmlfe()}}.}
 
-\item{object}{An object of class \code{ivfe}.}
-
 \item{...}{Not used.}
+
+\item{object}{An object of class \code{ivfe}.}
 }
 \value{
 An object of class \code{ivfe}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
@@ -108,12 +108,12 @@ convention of the "F" form, not the paper's. \code{eff}, the effective F of
 Montiel Olea and Pflueger (2013, equation 3, p. 360), \verb{b'Qb / tr(V Q)}
 with \code{b} the instruments' first-stage coefficients, \code{V} their robust
 covariance and \code{Q} their cross products after the controls and the
-fixed effects: the paper's \code{Y'ZZ'Y / (S tr(W2))} once the instruments
+fixed effects: the paper's \verb{Y'ZZ'Y / (S tr(W2))} once the instruments
 are made orthonormal (their step 1), checked to be the same; \code{keff},
 its effective degrees of freedom for their simplified test (equation 4
-with \code{x = 1 / tau}, \code{tau = 10\%}), and \code{cv}, the simplified test's 5\%
+with \code{x = 1 / tau}, \verb{tau = 10\%}), and \code{cv}, the simplified test's 5\%
 critical value, the upper 5\% point of a noncentral chi-squared on
-\code{keff} degrees of freedom with noncentrality \code{10 keff}, over \code{keff}
+\code{keff} degrees of freedom with noncentrality \verb{10 keff}, over \code{keff}
 (section 2.2.2 and table 1; 23.1 for one instrument): the Nagar bias of
 two-stage least squares is less than 10\% of the benchmark when \code{eff}
 exceeds \code{cv}. \code{eff}, \code{keff} and \code{cv} are for one endogenous column only.
@@ -125,11 +125,10 @@ first-stage statistics use the clusters of
 Over-identification. With more instruments than endogenous columns,
 \code{overid} gives the two statistics the review of Yamada (2026, section
 4.3, section 7 and table 8, item 6) asks for, across instrument definitions:
-the Sargan statistic \code{n u'Z(Z'Z)^-1 Z'u / u'u} at the two-stage least
-squares residuals \code{u}, and the cluster-robust Hansen J, \code{u2'Z S^-1
-Z'u2}, with \code{S} the sum over the clusters of \verb{(Z_g'u_g)(Z_g'u_g)'} at
+the Sargan statistic \verb{n u'Z(Z'Z)^-1 Z'u / u'u} at the two-stage least
+squares residuals \code{u}, and the cluster-robust Hansen J, \verb{u2'Z S^-1 Z'u2}, with \code{S} the sum over the clusters of \verb{(Z_g'u_g)(Z_g'u_g)'} at
 \code{u} (two-way: \code{S1 + S2 - S12}) and \code{u2} the residuals of the two-step
-GMM estimate \code{(X'Z S^-1 Z'X)^-1 X'Z S^-1 Z'y} (returned as \code{gmm}), all
+GMM estimate \verb{(X'Z S^-1 Z'X)^-1 X'Z S^-1 Z'y} (returned as \code{gmm}), all
 after the fixed effects, \code{Z} the excluded instruments and the
 controls. Both are chi-squared on the number of instruments less the
 number of endogenous columns when all the instruments are valid (the J

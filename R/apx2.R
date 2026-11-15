@@ -7,7 +7,19 @@
 # chi-square p-value.
 .axwald <- function(b, v, r) {
   rb <- r %*% b
-  w <- as.numeric(t(rb) %*% solve(r %*% v %*% t(r), rb))
+  m <- r %*% v %*% t(r)
+  # a cluster-robust covariance has rank below the number of clusters, so
+  # it cannot test more restrictions than that: no statistic, not a wrong
+  # one from a matrix that is singular up to rounding
+  if (qr(m)$rank < nrow(r)) {
+    warning(
+      "the joint test of ", nrow(r), " restrictions is not computed: the ",
+      "covariance has rank ", qr(m)$rank, " (too few clusters for it).",
+      call. = FALSE
+    )
+    return(data.frame(stat = NA_real_, df = nrow(r), p = NA_real_))
+  }
+  w <- as.numeric(t(rb) %*% solve(m, rb))
   data.frame(
     stat = w,
     df = nrow(r),
@@ -180,7 +192,9 @@ smkiv <- function(
   if (!all(pl %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", plume)
   z <- .cknum(z, "z", f, min = 0)
   if (adj != "raw" && is.null(pm)) .ckstop(f, "`adj = \"%s\"` needs `pm`", adj)
-  sv <- if (!is.null(seas)) as.character(d[[seas]]) else {
+  sv <- if (!is.null(seas)) {
+    as.character(d[[seas]])
+  } else {
     if (!inherits(d[[day]], "Date") && !is.null(pm)) {
       .ckstop(
         f,

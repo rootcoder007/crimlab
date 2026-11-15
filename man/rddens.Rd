@@ -25,9 +25,9 @@ rddens(r, cut = 0, b = NULL, h = NULL, level = 0.95)
 
 \item{x}{An object of class \code{rddens}.}
 
-\item{object}{An object of class \code{rddens}.}
-
 \item{...}{Not used.}
+
+\item{object}{An object of class \code{rddens}.}
 }
 \value{
 An object of class \code{rddens}, a list: \code{tab}, one row (\code{theta},
@@ -43,19 +43,17 @@ local-linear smoothing of the bin heights on each side with the
 triangle kernel.
 }
 \details{
-The steps, as the paper states them. The bins: \code{g(R) = floor((R - c) /
-b) b + b / 2 + c} (equation 2, p. 702), so no bin straddles the cutoff,
+The steps, as the paper states them. The bins: \verb{g(R) = floor((R - c) / b) b + b / 2 + c} (equation 2, p. 702), so no bin straddles the cutoff,
 on a grid of width \code{b} over the support, each height the share of the
-rows in the bin over \code{b}; the binsize \code{b} by default \code{2 s n^(-1/2)}
+rows in the bin over \code{b}; the binsize \code{b} by default \verb{2 s n^(-1/2)}
 with \code{s} the standard deviation of the running variable (p. 705, step
 1). The bandwidth \code{h} by default: a quartic in the bin midpoints on
-each side, \code{3.348 (s2 (b - a) / sum f''(X_j)^2)^(1/5)} with \code{s2} the
+each side, \verb{3.348 (s2 (b - a) / sum f''(X_j)^2)^(1/5)} with \code{s2} the
 quartic's mean squared error and \code{b - a} the side's length, averaged
 over the two sides (p. 705, step 2; the paper calls it a guide for
 subjective choice and halves it to undersmooth in its simulations, p.
-702-703). The estimate: \code{theta = ln f+ - ln f-} from the two local-linear
-intercepts, with the standard error \code{sqrt((1 / (n h)) (24 / 5) (1 / f+ +
-1 / f-))} (equation 5); the test uses the normal.
+702-703). The estimate: \verb{theta = ln f+ - ln f-} from the two local-linear
+intercepts, with the standard error \verb{sqrt((1 / (n h)) (24 / 5) (1 / f+ + 1 / f-))} (equation 5); the test uses the normal.
 }
 \examples{
 set.seed(6)

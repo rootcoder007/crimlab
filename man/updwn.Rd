@@ -41,7 +41,7 @@ updwn(
 
 \item{y}{The name of the count column.}
 
-\item{ax,ay}{The names of the columns of the areas' planar coordinates.}
+\item{ax, ay}{The names of the columns of the areas' planar coordinates.}
 
 \item{day}{The name of the day column.}
 
@@ -71,7 +71,7 @@ coordinates' unit.}
 \item{wx}{\code{NULL} or the names of weather columns, constant within a side
 and day.}
 
-\item{se,ssc,lag,nboot,seed}{As in \code{\link[=ppmlfe]{ppmlfe()}}; the units of \code{"nw"} are
+\item{se, ssc, lag, nboot, seed}{As in \code{\link[=ppmlfe]{ppmlfe()}}; the units of \code{"nw"} are
 the sides (areas) and the time is \code{day}.}
 
 \item{clus}{\code{NULL} (for \code{"cluster"}, the sides) or the names of cluster
@@ -82,9 +82,9 @@ left of each segment) for the placebo segments; segments only.}
 
 \item{level}{The confidence level.}
 
-\item{object,x}{An object of class \code{updwn} (for the methods).}
-
 \item{...}{Not used.}
+
+\item{object, x}{An object of class \code{updwn} (for the methods).}
 }
 \value{
 An object of class \code{updwn}, a list: \code{coef}, the rows of the
@@ -126,7 +126,6 @@ rule applies to the direction from the source to the area: this extends
 the design and is not in the papers.
 
 The choices, with the paper's own first:
-
 \itemize{
 \item \code{tol}: 60 degrees in the paper's main results (p. 12); 30 to 90 in its
 robustness table (pp. 15-16).
@@ -153,8 +152,7 @@ over days, its appendix too) or \code{"boot"}, as in \code{\link[=ppmlfe]{ppmlfe
 robust errors use \code{n / (n - K)}; here that is \code{ssc = "nk"}.
 }
 
-The estimate is the paper's equation (3), p. 12: \code{y_ist = a_is + g_it +
-b downwind_ist + e_ist}, with route-side fixed effects \code{a_is} and
+The estimate is the paper's equation (3), p. 12: \verb{y_ist = a_is + g_it + b downwind_ist + e_ist}, with route-side fixed effects \code{a_is} and
 route-date fixed effects \code{g_it}; with \code{agg = TRUE} the counts of the
 areas on one side of one segment are summed by day first, as the paper
 counts crimes by interstate side and day. Without aggregation (and for

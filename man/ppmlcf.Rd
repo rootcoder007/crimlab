@@ -30,7 +30,7 @@ ppmlcf(
 \method{summary}{ppmlcf}(object, ...)
 }
 \arguments{
-\item{data,y,fe,expo,level,tol,maxit}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
+\item{data, y, fe, expo, level, tol, maxit}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
 
 \item{endo}{The names of the endogenous columns.}
 
@@ -53,9 +53,9 @@ column: the unit the bootstrap draws and the naive errors cluster by.}
 
 \item{seed}{\code{NULL} (the generator's current state) or one whole number.}
 
-\item{object}{An object of class \code{ppmlcf}.}
-
 \item{...}{Not used.}
+
+\item{object}{An object of class \code{ppmlcf}.}
 }
 \value{
 An object of class \code{ppmlcf}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},

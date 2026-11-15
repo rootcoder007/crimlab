@@ -20,9 +20,9 @@ one or more value columns.}
 
 \item{by}{The names of the key columns, in both tables.}
 
-\item{object,x}{An object of class \code{expjn}.}
-
 \item{...}{Not used.}
+
+\item{object, x}{An object of class \code{expjn}.}
 }
 \value{
 An object of class \code{expjn}, a list: \code{data}, the joined table

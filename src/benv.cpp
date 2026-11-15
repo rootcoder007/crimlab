@@ -45,7 +45,12 @@ mat readm(SEXP x, const char *an, const char *pre, int n, double lo) {
   const int nr = ism ? Rf_nrows(x) : static_cast<int>(XLENGTH(x));
   m.p = ism ? Rf_ncols(x) : 1;
   if (nr != n || m.p < 1) fail("`%s` must have one row per row of `y`, %d.", an, n);
-  SEXP v = PROTECT(clab::num(x, an, static_cast<R_xlen_t>(n) * m.p, lo));
+  // num() takes a vector and refuses a matrix: it is given the values
+  // alone, after the check for value labels that it would make on x
+  clab::unlab(x, an);
+  SEXP xd = PROTECT(clab::dbl(x));
+  SEXP xv = PROTECT(clab::dcopy(xd));
+  SEXP v = PROTECT(clab::num(xv, an, static_cast<R_xlen_t>(n) * m.p, lo));
   m.v.assign(REAL(v), REAL(v) + z(n) * z(m.p));
   SEXP dn = ism ? Rf_getAttrib(x, R_DimNamesSymbol) : R_NilValue;
   SEXP cn = Rf_isNull(dn) ? R_NilValue : VECTOR_ELT(dn, 1);
@@ -55,7 +60,7 @@ mat readm(SEXP x, const char *an, const char *pre, int n, double lo) {
     m.nm.push_back(named ? std::string(Rf_translateCharUTF8(STRING_ELT(cn, j)))
                          : pre + std::to_string(j + 1));
   }
-  UNPROTECT(1);
+  UNPROTECT(3);
   return m;
 }
 

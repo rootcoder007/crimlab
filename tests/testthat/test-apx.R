@@ -479,8 +479,10 @@ test_that("ivfe's other errors agree with ppmlfe's machinery", {
 
 test_that("ppmlcf: the plug-in of the paper, naive and bootstrap errors", {
   d <- simpan()
-  a <- function(...) ppmlcf(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
-                            fe = c("unit", "day"), expo = "pop", ...)
+  a <- function(...) {
+    ppmlcf(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+           fe = c("unit", "day"), expo = "pop", ...)
+  }
   p <- a(how = "plug", nboot = 30, seed = 7)
   expect_equal(
     p$coef$est,
@@ -655,9 +657,10 @@ test_that("two-way factors each and the eigenvalue fix (CGM 2011)", {
 })
 
 test_that("the Newey-West (1994) automatic lag, by hand", {
-  # one unit, 5 days, scores 1, -1, 2, 0, 1: n = [4 (5 / 100)^(2/9)] = 2,
-  # sigma_0 = 7, sigma_1 = -3, sigma_2 = 4, s1 = 2 (-3 + 8) = 10, s0 = 7 +
-  # 2 (1) = 9
+  # One unit, 5 days, scores 1, -1, 2, 0, 1. The selection parameter is
+  # the whole part of 4 (5 / 100)^(2/9), which is 2. The autocovariances
+  # at lags 0, 1 and 2 are 7, -3 and 4, so s1 is twice (-3 + 8), which is
+  # 10, and s0 is 7 plus twice 1, which is 9.
   g <- crimlab:::.axnwlag(matrix(c(1, -1, 2, 0, 1)), rep(0L, 5), 1:5)
   expect_identical(g, floor(1.1447 * ((10 / 9)^2)^(1 / 3) * 5^(1 / 3)))
 })

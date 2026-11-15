@@ -59,11 +59,8 @@ set: each is absorbed (see the alternating projections above).}
 
 \item{lag}{\code{NULL} (the rule above) or the Newey-West lag in days.}
 
-\item{nboot,seed}{The bootstrap draws (at least 2) and \code{NULL} or a whole
+\item{nboot, seed}{The bootstrap draws (at least 2) and \code{NULL} or a whole
 number for R's generator, for \code{se = "boot"}.}
-
-\item{twc,psd}{The two-way factors, \code{"min"} or \code{"each"}, and \code{"none"}
-or \code{"eig"}: see Two-way clustering.}
 
 \item{sep}{\code{"fe"}, \code{"sst"} or \code{"none"}: see Separation.}
 
@@ -73,9 +70,12 @@ or \code{"eig"}: see Two-way clustering.}
 
 \item{maxit}{The most iterations of the fit.}
 
-\item{object}{An object of class \code{ppmlfe}.}
+\item{twc, psd}{The two-way factors, \code{"min"} or \code{"each"}, and \code{"none"}
+or \code{"eig"}: see Two-way clustering.}
 
 \item{...}{Not used.}
+
+\item{object}{An object of class \code{ppmlfe}.}
 }
 \value{
 An object of class \code{ppmlfe}, a list: \code{coef}, a data frame with
@@ -156,37 +156,14 @@ are cited as their mechanism literature and its critique.
 Standard errors (\code{se}), all from the rows' scores \code{s_i} at the final fit
 and the bread \verb{(X'WX)^-1} of the demeaned regressors \code{X}:
 \code{"cluster"} (the default; \verb{sum_g s_g s_g'} over the clusters of the
-first \code{clus} column); \code{"twoway"} (Cameron, Gelbach and Miller 2011, \code{V1
-+ V2 - V12}; Bondy, Roth and Sager cluster by ward and year-month, table
-2; Herrnstadt and others 2019 by monitor and date; given two \code{clus}
-columns, \code{"cluster"} means this too); \code{"hc1"} (each row alone, the
-robust errors of Herrnstadt and others 2021); \code{"nw"} (Newey-West within
-each unit of the first \code{clus} column over the days of \code{time}, Bartlett
-weights \code{1 - d / (lag + 1)} for days \code{d} apart up to \code{lag}; by default
-the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
-and p. 635) for the Bartlett kernel without their prewhitening: \code{lag =
-[gamma T^(1/3)]}, \code{gamma = 1.1447 ((s1 / s0)^2)^(1/3)}, \code{s1 = 2 sum_j j
-sigma_j}, \code{s0 = sigma_0 + 2 sum_j sigma_j} over \code{j = 1..n}, \code{n = [4 (T /
-100)^(2/9)]}, \code{T} the most days of a unit and \code{sigma_j} the sum of the
-products of the rows' scores (summed over the coefficients) of one unit
-\code{j} days apart (the earlier default here, \code{[4 (T / 100)^(2/9)]}, is
-their lag-selection parameter \code{n}, not the lag); the appendix of
-Herrnstadt and others 2021); \code{"boot"} (a cluster bootstrap
-over the first \code{clus} column, \code{nboot} draws from R's generator, each
-refitting the model); \code{"quasi"} (the quasi-Poisson variance, the
-model-based \verb{(X'WX)^-1} times the dispersion \code{psi}, Pearson's
-chi-squared over the residual degrees of freedom \code{n - K} with \code{K} the
-coefficients and the effects' levels less one each and the
-intercept, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate
-the overdispersion of a case-crossover count, returned as \code{psi}; not
-robust to correlation, and \code{ssc} does not apply). The small-sample
-factor \code{ssc}: \code{"G"} (the default)
-\code{G / (G - 1)} with \code{G} the (smaller) number of clusters, or \code{n / (n - 1)}
-for \code{"hc1"} and \code{"nw"}; \code{"nk"} that times \code{(n - 1) / (n - K)}, \code{K} the
-coefficients, an intercept and the levels less one of each fixed effect
-not nested in a cluster (fixest's default for clustered errors); \code{"none"}
-no factor. \code{"cluster"} with \code{"G"} equals \code{fixest::fepois()} with
-\code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}.
+first \code{clus} column); \code{"twoway"} (Cameron, Gelbach and Miller 2011, `V1
+\itemize{
+\item V2 - V12\verb{; Bondy, Roth and Sager cluster by ward and year-month, table 2; Herrnstadt and others 2019 by monitor and date; given two }clus\verb{columns,}"cluster"\verb{means this too);}"hc1"\verb{(each row alone, the robust errors of Herrnstadt and others 2021);}"nw"\verb{(Newey-West within each unit of the first}clus\verb{column over the days of}time\verb{, Bartlett weights }1 - d / (lag + 1)\verb{for days}d\verb{apart up to}lag\verb{; by default the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634, and p. 635) for the Bartlett kernel without their prewhitening: }lag =
+\link{gamma T^(1/3)}\verb{, }gamma = 1.1447 ((s1 / s0)^2)^(1/3)\verb{, }s1 = 2 sum_j j
+sigma_j\verb{, }s0 = sigma_0 + 2 sum_j sigma_j\code{over}j = 1..n\verb{, }n = \link[=4 (T /
+100)^(2/9)]{4 (T / 100)^(2/9)}\verb{, }T\verb{the most days of a unit and}sigma_j\verb{the sum of the products of the rows' scores (summed over the coefficients) of one unit}j\verb{days apart (the earlier default here,}\link[=4 (T /
+100)^(2/9)]{4 (T / 100)^(2/9)}\verb{, is their lag-selection parameter }n\verb{, not the lag); the appendix of Herrnstadt and others 2021); }"boot"\verb{(a cluster bootstrap over the first}clus\verb{column,}nboot\verb{draws from R's generator, each refitting the model);}"quasi"\verb{(the quasi-Poisson variance, the model-based}(X'WX)^-1\verb{times the dispersion}psi\verb{, Pearson's chi-squared over the residual degrees of freedom }n - K\code{with}K\verb{the coefficients and the effects' levels less one each and the intercept, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate the overdispersion of a case-crossover count, returned as}psi\verb{; not robust to correlation, and }ssc\verb{does not apply). The small-sample factor}ssc\verb{: }"G"\verb{(the default)}G / (G - 1)\code{with}G\verb{the (smaller) number of clusters, or}n / (n - 1)\code{for}"hc1"\code{and}"nw"\verb{; }"nk"\verb{that times}(n - 1) / (n - K)\verb{, }K\verb{the coefficients, an intercept and the levels less one of each fixed effect not nested in a cluster (fixest's default for clustered errors);}"none"\verb{no factor.}"cluster"\code{with}"G"\code{equals}fixest::fepois()\code{with}ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
+}
 
 Two-way clustering (\code{twc}, \code{psd}), as Cameron, Gelbach and Miller (2011,
 p. 241) give it: \code{twc = "min"} (the default, their second method and

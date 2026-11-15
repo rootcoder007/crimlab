@@ -65,7 +65,7 @@ factors, the simple slopes of one driver at values of the other (p.
 23), and the Jarque-Bera test of the residuals (p. 25).
 }
 \details{
-The model is \code{y_it = sum_j b_j x_itj + a_i + m_t + e_it}, fitted by least
+The model is \verb{y_it = sum_j b_j x_itj + a_i + m_t + e_it}, fitted by least
 squares after the within transformation (the kernel of \code{\link[=didfe]{didfe()}}, so an
 unbalanced panel is fine); with \code{int = c("a", "b")} the column \code{a:b},
 the product of \code{a} and \code{b}, is added to \code{x}. The variance is CR1 by
@@ -75,15 +75,15 @@ model with the 'linearmodels' PanelOLS estimator clustered by province
 and do not state its small-sample factor. Tests and intervals use
 Student's t on \code{G - 1} degrees of freedom.
 
-\code{beta} is the standardised coefficient \code{b SD_x / SD_y} of Duan et al.'s
+\code{beta} is the standardised coefficient \verb{b SD_x / SD_y} of Duan et al.'s
 step 4 (p. 11), with the standard deviations of the columns as given
 (the interaction column for its term). \code{vif} is the variance
 inflation factor \code{1 / (1 - R2_j)} of each column of \code{x} (with the
 interaction) regressed on a constant and the others over the rows used;
 Duan et al. drop drivers with a VIF above 10 before the fit (p. 10) and
 do not say whether their VIFs were pooled, as here, or within. The
-simple slope of \code{int[1]} at a value \code{m} of \code{int[2]} is \code{b_a + b_ab m}
-with variance \code{V_aa + m^2 V_ab,ab + 2 m V_a,ab}; by default at the mean
+simple slope of \code{int[1]} at a value \code{m} of \code{int[2]} is \verb{b_a + b_ab m}
+with variance \verb{V_aa + m^2 V_ab,ab + 2 m V_a,ab}; by default at the mean
 and the mean plus and minus one standard deviation of \code{int[2]}, Duan et
 al.'s points. \code{r2} is \code{1 - RSS / TSS} of the full model (unit and period
 effects counted as fitted), \code{r2w} the within R-squared. The Jarque-Bera
@@ -99,18 +99,6 @@ The plot draws the coefficients with their intervals and, with
 an interaction, the simple slopes at each value of the moderator; it
 returns what it drew.
 }
-\references{
-Duan, H., Nie, C., He, B., Chen, X., Duan, Z., Chen, S., Song, J. and
-Gao, Z. (2026). A multi-method framework for decoding the
-spatiotemporal patterns and driving factors of environmental
-pollution crimes in China. \emph{Humanities and Social Sciences
-Communications}. \doi{10.1057/s41599-026-08766-9}
-
-Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
-Digging into waste: an analysis of waste crime in the Italian
-provinces. \emph{Regional Studies}, 57(7), 1367-1379.
-\doi{10.1080/00343404.2022.2135697}
-}
 \examples{
 # 30 provinces over 8 years: cases on the case rate, the unemployment
 # rate and their product, simulated
@@ -125,4 +113,16 @@ r <- fepnl(d$cases, d[c("cper", "eipa", "ur")], d$prov, d$year,
            int = c("cper", "ur"))
 r
 r$slopes
+}
+\references{
+Duan, H., Nie, C., He, B., Chen, X., Duan, Z., Chen, S., Song, J. and
+Gao, Z. (2026). A multi-method framework for decoding the
+spatiotemporal patterns and driving factors of environmental
+pollution crimes in China. \emph{Humanities and Social Sciences
+Communications}. \doi{10.1057/s41599-026-08766-9}
+
+Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
+Digging into waste: an analysis of waste crime in the Italian
+provinces. \emph{Regional Studies}, 57(7), 1367-1379.
+\doi{10.1080/00343404.2022.2135697}
 }

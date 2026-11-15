@@ -26,20 +26,14 @@ together across units, the test Andreatta et al. (2023, p. 1376) run on
 the residuals of their waste-crime models before deciding a spatial
 model is not needed. For each pair of units the correlation \code{rho_ab} of
 their values over the \code{T_ab} periods they share, about the means over
-those periods; \code{CD = sum sqrt(T_ab) rho_ab / sqrt(m)} over the \code{m}
+those periods; \verb{CD = sum sqrt(T_ab) rho_ab / sqrt(m)} over the \code{m}
 pairs, which for a balanced panel of \code{N} units and \code{T} periods is
-\code{sqrt(2 T / (N (N - 1))) sum rho_ab}, standard normal under no
+\verb{sqrt(2 T / (N (N - 1))) sum rho_ab}, standard normal under no
 dependence. Pairs that share fewer than two periods, or along which a
 unit does not vary, are left out. This is the statistic of
 \code{plm::pcdtest(test = "cd")}. For dependence between neighbours rather
 than across all pairs, use \code{\link[=gmoran]{gmoran()}} on each period's residuals, as
 Andreatta et al. also do.
-}
-\references{
-Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
-Digging into waste: an analysis of waste crime in the Italian
-provinces. \emph{Regional Studies}, 57(7), 1367-1379.
-\doi{10.1080/00343404.2022.2135697}
 }
 \examples{
 set.seed(3)
@@ -51,4 +45,10 @@ pcdtst(d$e, d$prov, d$year)
 d$x <- rnorm(180)
 d$y <- d$x + d$e
 pcdtst(fepnl(d$y, d$x, d$prov, d$year)$resid, d$prov, d$year)
+}
+\references{
+Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
+Digging into waste: an analysis of waste crime in the Italian
+provinces. \emph{Regional Studies}, 57(7), 1367-1379.
+\doi{10.1080/00343404.2022.2135697}
 }

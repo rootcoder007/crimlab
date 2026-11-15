@@ -44,7 +44,7 @@ outcomes tested.
 Bondy, Roth and Sager (2020, figures 6 and 7) and Chin, Lurbe and
 Shakya (2026) estimate the effect for each crime type separately and
 report unadjusted tests; with many types, some will look significant by
-chance. \code{adj} chooses the correction, through [stats::p.adjust()]:
+chance. \code{adj} chooses the correction, through \code{\link[stats:p.adjust]{stats::p.adjust()}}:
 \code{"holm"} (the default; it controls the chance of any false rejection
 and is uniformly more powerful than Bonferroni), \code{"bonferroni"},
 \code{"BH"} (Benjamini-Hochberg, the false discovery rate) or \code{"none"}.

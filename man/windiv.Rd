@@ -68,7 +68,7 @@ Sectors (\code{width}, \code{start}, \code{edges}). Bondy, Roth and Sager (2020,
 footnote 18) use quadrants "0-90, 91-180, 181-270" degrees with the
 fourth left out, whole degrees closed at the top: \code{edges = "paper"}.
 The default \code{"halfopen"} puts a boundary direction in the sector it
-opens, \code{[lo, hi)}, which is the same for directions that are not whole
+opens, \verb{[lo, hi)}, which is the same for directions that are not whole
 numbers. Bondy, Roth and Sager let each of five regions of London have
 its own set (\code{area}), 15 instruments; their appendix also ranks four or
 eight directions by each ward's long-run pollution (table A3), which is
@@ -81,15 +81,13 @@ saying where the wider sectors start, so give \code{sect} as you choose it
 (for example \code{c(217.5, 292.5)} for 75 degrees about the same centre).
 
 From hours to days (\code{by}, \code{avg}, \code{share}). With \code{by}, \code{dir} holds
-several directions per day (hours) and each group gives one row. \code{avg =
-"vector"} (the default) takes the direction of the mean wind vector,
+several directions per day (hours) and each group gives one row. \code{avg = "vector"} (the default) takes the direction of the mean wind vector,
 \code{atan2(mean(sin), mean(cos))}, weighted by \code{spd} when given: Herrnstadt
 and Muehlegger (2015, footnote 7) point out that 1 and 359 degrees
 average to north, not south. \code{avg = "mode"} takes the sector most hours
 fall in (ties: the first), the "predominant wind direction" of Bondy,
 Roth and Sager's figure A1. \code{avg = "mean"} is the plain mean of the
-angles, wrong across north and given only for comparison. \code{share =
-TRUE} instead gives the share of each group's hours in each sector,
+angles, wrong across north and given only for comparison. \code{share = TRUE} instead gives the share of each group's hours in each sector,
 Bondy, Roth and Sager's instrument ("the share of hours in the 24 hours
 of each day", footnote 18); \code{avg} is then not used.
 

@@ -58,8 +58,7 @@ other days of its stratum, the case-crossover design for counts: a
 Poisson model with one fixed effect per stratum, which gives the same
 coefficients as the conditional Poisson model. Ju et al. (2026,
 equations 1 and 2, p. 7) use the space-time stratum "one region nested
-in the same weekday of same month from the same year" (\code{strat =
-"ymw"}, the default), a control function for wildfire PM2.5 driven by
+in the same weekday of same month from the same year" (\code{strat = "ymw"}, the default), a control function for wildfire PM2.5 driven by
 wind speed, the 2-day moving average of exposure (\code{ma}), and errors
 clustered by calendar year-month (the default \code{clus} here).
 }
@@ -88,7 +87,7 @@ curves by a natural spline of the pollutant with 3 degrees of freedom
 modification by stratified fits compared by two-sample z-tests (fit
 each subset, or \code{\link[=hetfx]{hetfx()}} with \code{how = "split"}), and two-pollutant
 models (two exposures in \code{x}), reporting percent changes per
-interquartile range, \code{100 (exp(b IQR) - 1)}. Their weighted quantile sum
+interquartile range, \verb{100 (exp(b IQR) - 1)}. Their weighted quantile sum
 regression and air quality score are not built.
 
 The choices: \code{strat = "ymw"} (place, year, month and weekday) or \code{"ym"}

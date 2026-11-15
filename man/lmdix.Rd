@@ -74,20 +74,19 @@ pp. 8-9) apply it to crimes of polluting the environment in 30 Chinese
 provinces, 2016-2023.
 }
 \details{
-The identity is built as a chain from the quantities \code{q_1, ..., q_m}
-(the columns of \code{q}, in order): \code{y = (y / q_1) (q_1 / q_2) ... (q_{m-1}
-/ q_m) q_m}, \code{m + 1} factors that multiply to \code{y} whatever the
+The identity is built as a chain from the quantities \verb{q_1, ..., q_m}
+(the columns of \code{q}, in order): \verb{y = (y / q_1) (q_1 / q_2) ... (q_\{m-1\} / q_m) q_m}, \code{m + 1} factors that multiply to \code{y} whatever the
 quantities. Duan et al.'s eq 1 is the chain of population \code{P}, area
 \code{S}, emissions \code{W}, GDP, population again and the unemployed \code{UN}:
-\code{CPEs = CPER x PD x EIPA^-1 x PEI x EDL x UR^-1 x UN}, the case rate
+\verb{CPEs = CPER x PD x EIPA^-1 x PEI x EDL x UR^-1 x UN}, the case rate
 per head, population density, area per unit of emission, emission per
 unit of GDP, GDP per head, people per unemployed person and the
 unemployed (see the example). The factor values themselves, the rates
 of the identity, are returned in \code{fac}.
 
 With \code{type = "time"} the change of each unit between consecutive
-periods of \code{at} is \code{y_T - y_O = sum_j L(y_T, y_O) ln(f_jT / f_jO)} (eqs
-2-3), \code{L(a, b) = (a - b) / (ln a - ln b)} the logarithmic mean; a unit
+periods of \code{at} is \verb{y_T - y_O = sum_j L(y_T, y_O) ln(f_jT / f_jO)} (eqs
+2-3), \verb{L(a, b) = (a - b) / (ln a - ln b)} the logarithmic mean; a unit
 missing either period is left out. With \code{type = "space"} each unit of
 each period in \code{at} is set against a reference region of the same
 period (eqs 4-5): with \code{ref = "mean"}, the region whose count and
@@ -110,8 +109,7 @@ The plot draws the contribution of each factor summed over the
 rows (of \code{units}), as horizontal bars, and returns those sums.
 }
 \section{Environmental crime}{
-
-The family treats offences against the
+ The family treats offences against the
 environment as the outcome: where, when and why pollution offences,
 illegal waste disposal and trafficking, and safety crimes in
 extractive industries are recorded, and how enforcement behaves. Its
@@ -136,22 +134,6 @@ understate them. None of the three sources specifies a model of
 recorded against true offences, and the family has none.
 }
 
-\references{
-Duan, H., Nie, C., He, B., Chen, X., Duan, Z., Chen, S., Song, J. and
-Gao, Z. (2026). A multi-method framework for decoding the
-spatiotemporal patterns and driving factors of environmental
-pollution crimes in China. \emph{Humanities and Social Sciences
-Communications}. \doi{10.1057/s41599-026-08766-9}
-
-Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
-Digging into waste: an analysis of waste crime in the Italian
-provinces. \emph{Regional Studies}, 57(7), 1367-1379.
-\doi{10.1080/00343404.2022.2135697}
-
-Pitoulis, T. T. (2014). \emph{Bloody Oil: A Critical Discourse Analysis of
-Safety Crimes in the Alberta Oil and Gas Industry}. MA thesis in
-criminology, University of Ottawa.
-}
 \examples{
 # six provinces over four years: cases, population (millions), area
 # (1000 km2), emissions (1000 t), GDP (billions) and the unemployed
@@ -172,4 +154,20 @@ r <- lmdix(d$cases, q, d$prov, d$year, at = c(2016, 2018, 2020, 2023),
 r
 # the gap of each province to the average province, by year
 lmdix(d$cases, q, d$prov, d$year, type = "space", fnm = f)$dec
+}
+\references{
+Duan, H., Nie, C., He, B., Chen, X., Duan, Z., Chen, S., Song, J. and
+Gao, Z. (2026). A multi-method framework for decoding the
+spatiotemporal patterns and driving factors of environmental
+pollution crimes in China. \emph{Humanities and Social Sciences
+Communications}. \doi{10.1057/s41599-026-08766-9}
+
+Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
+Digging into waste: an analysis of waste crime in the Italian
+provinces. \emph{Regional Studies}, 57(7), 1367-1379.
+\doi{10.1080/00343404.2022.2135697}
+
+Pitoulis, T. T. (2014). \emph{Bloody Oil: A Critical Discourse Analysis of
+Safety Crimes in the Alberta Oil and Gas Industry}. MA thesis in
+criminology, University of Ottawa.
 }

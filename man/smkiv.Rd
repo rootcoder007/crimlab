@@ -24,7 +24,7 @@ smkiv(
 
 \item{plume}{The name of the plume column (0 or 1).}
 
-\item{unit,day}{The names of the place and day columns.}
+\item{unit, day}{The names of the place and day columns.}
 
 \item{pm}{\code{NULL} or the name of the PM2.5 column (needed for \code{"own"},
 \code{"nbr"} and \code{spm}).}
@@ -51,7 +51,7 @@ aggregate to.}
 A data frame, one row per row of \code{data} (or per \code{by} group):
 \code{smoke} (0 or 1, or the count of smoke days per group), \code{bg} (the
 background, with \code{pm}), \code{spm} (with \code{pm}), and one indicator (or count)
-per density class, \code{dens:<class>}.
+per density class, \verb{dens:<class>}.
 }
 \description{
 Builds the wildfire-smoke instruments of the recent papers from a daily
@@ -61,7 +61,6 @@ smoke-attributable fine particles; and counts by month.
 }
 \details{
 The choices and their sources:
-
 \itemize{
 \item \code{adj = "raw"}: the plume indicator as given. Kircheis (2026, p. 4)
 instruments daily PM2.5 by "a daily binary indicator of predicted

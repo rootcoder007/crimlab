@@ -27,7 +27,7 @@ plcday(
 
 \item{var}{The name of the exposure column.}
 
-\item{unit,day}{The names of the place and day columns; days are
+\item{unit, day}{The names of the place and day columns; days are
 numbers or dates (one per unit at most).}
 
 \item{shifts}{The leads and lags in days, whole numbers other than 0;
@@ -44,7 +44,7 @@ instruments).}
 
 \item{...}{The other arguments of \code{est} (\code{y}, \code{x}, \code{fe}, ...).}
 
-\item{object,x}{An object of class \code{plcday} (for the methods).}
+\item{object, x}{An object of class \code{plcday} (for the methods).}
 }
 \value{
 An object of class \code{plcday}, a list: \code{tab}, a data frame with
@@ -71,8 +71,8 @@ is necessary for, not proof of, a causal reading. Shifted exposure is
 correlated with same-day exposure when pollution persists, so a small
 placebo coefficient is expected even then.
 
-The shift is by the day's value: row \code{(place, day)} gets the value of
-\code{(place, day + shift)} and is dropped when that row does not exist;
+The shift is by the day's value: row \verb{(place, day)} gets the value of
+\verb{(place, day + shift)} and is dropped when that row does not exist;
 \code{n} reports the rows left. For the instrumental-variable estimators the
 papers do not say what is moved: \code{shift = "both"} (the default) moves
 the exposure \code{var} and the columns in \code{with} (the instruments) together,

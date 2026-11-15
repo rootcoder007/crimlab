@@ -29,7 +29,7 @@ expgmm(
 \method{summary}{expgmm}(object, ...)
 }
 \arguments{
-\item{data,y,expo,level}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
+\item{data, y, expo, level}{As in \code{\link[=ppmlfe]{ppmlfe()}}.}
 
 \item{endo}{The names of the endogenous columns.}
 
@@ -58,9 +58,9 @@ coefficient relative to 1 plus its size.}
 \item{maxit}{The most Gauss-Newton iterations of a step (and the most
 weights for \code{"iter"}).}
 
-\item{object}{An object of class \code{expgmm}.}
-
 \item{...}{Not used.}
+
+\item{object}{An object of class \code{expgmm}.}
 }
 \value{
 An object of class \code{expgmm}, a list: \code{coef} (as in \code{\link[=ppmlfe]{ppmlfe()}},
@@ -75,15 +75,14 @@ it converged and the weights used; \code{fe}, \code{clus} and \code{level}.
 Estimates \verb{E(y | x) = exp(x'b + log(expo))} with some regressors
 endogenous, by the generalised method of moments on the first-order
 moment conditions alone, as Mullahy (1997) and Windmeijer and Santos
-Silva (1997) set it out: \code{sum_i z_i u_i(b) = 0} with \code{z} the excluded
+Silva (1997) set it out: \verb{sum_i z_i u_i(b) = 0} with \code{z} the excluded
 instruments and the exogenous regressors. The residual (\code{err}):
 }
 \details{
 \code{"mult"} (the default), \verb{u = y exp(-x'b) - 1}, the transformed residual
 "IV-T" of Mullahy (1997, equations 4-5, p. 589) and the multiplicative
 model of Windmeijer and Santos Silva (1997, equation 3, p. 284). It is
-consistent when the unmeasured causes multiply the mean, \verb{y =
-exp(x'b) h + e} with \code{E(h | z) = 1}: the omitted-variable model in which
+consistent when the unmeasured causes multiply the mean, \verb{y = exp(x'b) h + e} with \code{E(h | z) = 1}: the omitted-variable model in which
 observed and unobserved causes enter alike, which Mullahy argues is the
 natural one, and the default for that reason.
 
@@ -107,14 +106,11 @@ Windmeijer and Santos Silva, table 2 notes). Each step minimises
 \verb{g'Wg} by Gauss-Newton from the Poisson start below, halving any step
 that does not lower it.
 
-Variance. \code{S} is the sum over the clusters of \code{clus} of \verb{(Z_g'u_g)
-(Z_g'u_g)'} (\code{se = "cluster"}), or over the rows (\code{"hc1"}, the
+Variance. \code{S} is the sum over the clusters of \code{clus} of \verb{(Z_g'u_g) (Z_g'u_g)'} (\code{se = "cluster"}), or over the rows (\code{"hc1"}, the
 \verb{sum_i (y_i - mu_i)^2 z_i z_i'} of Windmeijer and Santos Silva, p. 283).
 Two-step and iterated: \verb{(G'S^-1 G)^-1}, \verb{G = sum_i z_i du_i / db'}
 (Mullahy, p. 589; Windmeijer and Santos Silva, p. 284), with \code{S} from
-the previous estimate; one step: the sandwich \verb{(G'WG)^-1 G'W S W G
-(G'WG)^-1} with \code{S} at the estimate. \code{ssc = "G"} multiplies it by \code{G /
-(G - 1)}, \code{G} the clusters (rows for \code{"hc1"}); \code{"none"} does not.
+the previous estimate; one step: the sandwich \verb{(G'WG)^-1 G'W S W G (G'WG)^-1} with \code{S} at the estimate. \code{ssc = "G"} multiplies it by \code{G / (G - 1)}, \code{G} the clusters (rows for \code{"hc1"}); \code{"none"} does not.
 Tests use the normal.
 
 Hansen's J. The criterion \verb{g'S^-1 g} at the two-step (or iterated)

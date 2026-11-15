@@ -13,7 +13,7 @@ jntx(
   form = c("spline", "linear"),
   k1 = 5,
   k2 = 4,
-  p1 = c(0.1, 0.9 ),
+  p1 = c(0.1, 0.9),
   p2 = c(0.05, 0.5, 0.95),
   ref = NULL,
   ngrid = 15,
@@ -29,11 +29,11 @@ jntx(
 
 \item{y}{The name of the count column.}
 
-\item{x1,x2}{The names of the two exposures.}
+\item{x1, x2}{The names of the two exposures.}
 
 \item{form}{\code{"spline"} or \code{"linear"}.}
 
-\item{k1,k2}{The knots of the spline bases (3 to 7).}
+\item{k1, k2}{The knots of the spline bases (3 to 7).}
 
 \item{p1}{The two quantiles of \code{x1} compared (\code{cond}).}
 
@@ -74,7 +74,7 @@ percentiles), pooled over cities by a meta-analysis. The choices here:
 restricted cubic spline bases (Harrell), \code{k1} and \code{k2} knots at fixed
 quantiles (5 and 4 give the paper's dimensions four and three), without
 the penalty of the paper's smooth, so the fit is that of a fixed basis,
-not of 'mgcv'; \code{form = "linear"} uses \code{x1}, \code{x2} and \code{x1 x2}, the
+not of 'mgcv'; \code{form = "linear"} uses \code{x1}, \code{x2} and \verb{x1 x2}, the
 common product-term model. The meta-analysis across cities is not
 done here: fit each city and pool the \code{cond} rows. Use \code{\link[=ccross]{ccross()}}'s
 \code{ma} for the lag01 averages, and the fixed effects of \code{\link[=ppmlfe]{ppmlfe()}} for
