@@ -156,14 +156,17 @@ SEXP C_clab_r_lnroc(SEXP tp, SEXP pick, SEXP conf, SEXP proc, SEXP size, SEXP fa
 
 SEXP C_clab_r_lnsize(SEXP choice, SEXP k, SEXP susp, SEXP level) {
   clab::who = "lnsize";
-  SEXP cv = PROTECT(bj::nums(choice, "choice", -1, 1.0));
+  SEXP cv = PROTECT(bj::nums(choice, "choice", -1, 0.0));
   const int n = bj::len(cv, "choice");
   int mx = 0;
   for (int i = 0; i < n; ++i) {
     const double v = REAL(cv)[i];
-    if (v != std::floor(v) || v > INT_MAX) fail("`choice` must be whole numbers from 1: lineup positions.");
+    if (v != std::floor(v) || v > INT_MAX) {
+      fail("`choice` must be whole numbers from 0: lineup positions, 0 for no choice.");
+    }
     mx = std::max(mx, static_cast<int>(v));
   }
+  if (mx == 0) fail("`choice` must name a lineup member at least once.");
   const int kk = Rf_isNull(k) ? std::max(mx, 2) : clab::whole(k, "k", 2);
   if (mx > kk) fail("`choice` names position %d of a lineup of %d.", mx, kk);
   const int sp = clab::whole(susp, "susp", 1);
@@ -172,13 +175,14 @@ SEXP C_clab_r_lnsize(SEXP choice, SEXP k, SEXP susp, SEXP level) {
   std::vector<int> ch(static_cast<std::size_t>(n));
   for (int i = 0; i < n; ++i) ch[static_cast<std::size_t>(i)] = static_cast<int>(REAL(cv)[i]) - 1;
   SEXP cnt = PROTECT(Rf_allocVector(REALSXP, kk));
-  double o[9];
+  double o[11];
   bj::kc(clab_lnsize(ch.data(), n, kk, sp - 1, Rf_qnorm5(0.5 + 0.5 * lv, 0.0, 1.0, 1, 0), REAL(cnt), o),
          "the kernel refused the input.");
-  static const char *const sn[] = {"n", "k", "psusp", "pbin", "fsize", "esize", "etr", "etrlo", "etrhi"};
+  static const char *const sn[] = {"n",      "k",   "nm",    "psusp", "pbin", "fsize",
+                                   "esize", "esizeb", "etr", "etrlo", "etrhi"};
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
   SET_VECTOR_ELT(out, 0, cnt);
-  SET_VECTOR_ELT(out, 1, clab::nvec(9, sn, o));
+  SET_VECTOR_ELT(out, 1, clab::nvec(11, sn, o));
   SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(sp));
   static const char *const on[] = {"count", "stat", "susp"};
   bj::named(out, on);

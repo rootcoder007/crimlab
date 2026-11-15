@@ -3117,12 +3117,15 @@ int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, in
                double *pauc, double *bse, double *fused);
 
 /* The fairness of a lineup of k (>= 2) from the n positions ch (in [0,
- * k)) mock witnesses chose; susp the suspect's. Out: cnt (k); out (9): n,
- * k, the suspect's share, P(X >= its count) for X ~ Binomial(n, 1 / k),
- * functional size n / count, Malpass's effective size k - sum |o - e| /
- * (2 e), e = n / k (doi:10.1007/BF01044945), Tredoux's E' = 1 / sum p^2
- * (doi:10.1023/A:1025746220886) and E' -+ z se, se from the delta method
- * on the multinomial variance 4 (sum p^3 - (sum p^2)^2) / n. */
+ * k), or -1 for no choice) mock witnesses chose; susp the suspect's; m
+ * of them chose a member (>= 1). Out: cnt (k); out (11): n, k, m, the
+ * suspect's share of the n, P(X >= its count) for X ~ Binomial(m, 1 /
+ * k), functional size n / count (Wells, Leippe and Ostrom 1979), Malpass's
+ * effective size ka - sum |o - ea| / (2 ea) over the ka members chosen at
+ * least once, ea = m / ka (doi:10.1007/BF01044945), the same with ka = k
+ * (no adjustment for null foils), Tredoux's E' = 1 / sum p^2
+ * (doi:10.1023/A:1025746220886) and its interval, the ends of I = 1 - sum
+ * p^2 -+ z sqrt(4 (sum p^3 - (sum p^2)^2) / m) taken to 1 / (1 - I). */
 int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out);
 /* Repeat victimisation (rpv.cpp). n incidents of nid targets (id in [0,
  * nid), each target with one at least); t NULL or their finite times; pop

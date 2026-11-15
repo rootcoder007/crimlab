@@ -60,15 +60,35 @@ void roc(tk &T) {
 
 void size(tk &T) {
   const vi ch = {0, 0, 0, 1, 2, 2};
-  vd cnt(3), o(9);
+  vd cnt(3), o(11);
   tk_ieq(T, "ls.ok", clab_lnsize(ch.data(), 6, 3, 0, 1.96, cnt.data(), o.data()), CLAB_OK);
   tk_eq(T, "ls.cnt", cnt[2], 2, 0);
-  tk_eq(T, "ls.ps", o[2], 0.5, 1e-15);
-  tk_eq(T, "ls.pbin", o[3], 233.0 / 729.0, 1e-13);
-  tk_eq(T, "ls.fs", o[4], 2, 1e-15);
-  tk_eq(T, "ls.mal", o[5], 2.5, 1e-15);
-  tk_eq(T, "ls.etr", o[6], 36.0 / 14.0, 1e-14);
-  tk_lt(T, "ls.lo", o[7], o[6]);
+  tk_eq(T, "ls.ps", o[3], 0.5, 1e-15);
+  tk_eq(T, "ls.pbin", o[4], 233.0 / 729.0, 1e-13);
+  tk_eq(T, "ls.fs", o[5], 2, 1e-15);
+  tk_eq(T, "ls.mal", o[6], 2.5, 1e-15);
+  tk_eq(T, "ls.malb", o[7], 2.5, 1e-15);
+  tk_eq(T, "ls.etr", o[8], 36.0 / 14.0, 1e-14);
+  tk_lt(T, "ls.lo", o[9], o[8]);
+  // Tredoux (1996), Table 4.2, lineup g: 0 25 5 25 3 2, adjusted 2.83,
+  // unadjusted 3.00
+  vi g;
+  const int gc[6] = {0, 25, 5, 25, 3, 2};
+  for (int j = 0; j < 6; ++j) {
+    for (int r = 0; r < gc[j]; ++r) g.push_back(j);
+  }
+  vd c6(6), o6(11);
+  tk_ieq(T, "ls.gok", clab_lnsize(g.data(), 60, 6, 3, 1.96, c6.data(), o6.data()), CLAB_OK);
+  tk_eq(T, "ls.ga", o6[6], 5 - 52.0 / 24, 1e-14);
+  tk_eq(T, "ls.gb", o6[7], 3, 1e-14);
+  // no choice (-1) counts for the share, not for the spread
+  const vi nc = {0, 0, -1, 1};
+  tk_ieq(T, "ls.nok", clab_lnsize(nc.data(), 4, 2, 0, 1.96, cnt.data(), o.data()), CLAB_OK);
+  tk_eq(T, "ls.nps", o[3], 0.5, 1e-15);
+  tk_eq(T, "ls.nm", o[2], 3, 0);
+  tk_eq(T, "ls.nfs", o[5], 2, 1e-15);
+  const vi none = {-1, -1};
+  tk_ieq(T, "ls.nnone", clab_lnsize(none.data(), 2, 2, 0, 1.96, cnt.data(), o.data()), CLAB_EDOM);
   const vi bad = {0, 3};
   tk_ieq(T, "ls.dom", clab_lnsize(bad.data(), 2, 3, 0, 1.96, cnt.data(), o.data()), CLAB_EDOM);
 }

@@ -42,6 +42,27 @@
 * `polex()` makes the simulated policy panel the examples of the policy
   functions use: twenty districts, 36 months and a staged reform with a
   known effect. The same seed gives the same panel in every front end.
+* `lnsize()` follows Malpass (1981) for `esize`: members nobody chose
+  (null foils) leave the nominal size and the chance expectation, as
+  Tredoux (1996, Table 4.2) shows. Before, `esize` did not adjust; that
+  value is now `esizeb`. The two differ only when a member was never
+  chosen. The interval of Tredoux's `E'` (`etrlo`, `etrhi`) now takes the
+  ends of the interval of `I = 1 - sum p^2` to `1 / (1 - I)`, as Tredoux
+  does, in place of a symmetric delta-method interval around `E'`; the
+  ends move for every lineup (for 40 mock witnesses choosing 15, 5, 6, 4,
+  7 and 3 of six, E' 4.44: from 2.98 to 5.90 before, 3.35 to 6.62 now). A choice
+  of 0 records a mock witness who chose no one: it counts for `psusp` and
+  `fsize` (as in Wells, Leippe and Ostrom 1979) and not for the spread of
+  choices; `nm` is the number who chose a member. The tests reproduce the
+  worked examples of Tredoux (1996, 1999).
+
+* `lnroc()` continues a curve that ends before `far` by the straight line
+  to the point where every lineup counts as an identification, as pROC
+  does, in place of a flat line; this changes `pauc` only when `far` is
+  given above a procedure's largest false alarm rate (the default never
+  is). The tests reproduce Table 3 and the partial areas of Mickes, Flowe
+  and Wixted (2012).
+
 * `wdqx()` now names the crimes prevented in the treated area and the
   buffer `tne`, the total net effect of Guerette (2009, Appendix B,
   equation 4), in place of `net` (same value), and adds the gross effect

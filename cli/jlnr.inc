@@ -112,12 +112,15 @@ bool lnroc(Ctx &c, Val &out) {
 
 bool lnsize(Ctx &c, Val &out) {
   Dv cv;
-  CK(num(c, c["choice"], "choice", cv, -1, 1.0));
+  CK(num(c, c["choice"], "choice", cv, -1, 0.0));
   int mx = 0;
   for (double v : cv.v) {
-    if (v != std::floor(v) || v > INT_MAX) return c.fail("`choice` must be whole numbers from 1: lineup positions.");
+    if (v != std::floor(v) || v > INT_MAX) {
+      return c.fail("`choice` must be whole numbers from 0: lineup positions, 0 for no choice.");
+    }
     mx = std::max(mx, static_cast<int>(v));
   }
+  if (mx == 0) return c.fail("`choice` must name a lineup member at least once.");
   int kk = std::max(mx, 2);
   if (c.has("k")) CK(whole(c, c["k"], "k", 2, kk));
   if (mx > kk) return c.fail("`choice` names position %d of a lineup of %d.", mx, kk);
@@ -129,14 +132,15 @@ bool lnsize(Ctx &c, Val &out) {
   std::vector<int> ch;
   for (double v : cv.v) ch.push_back(static_cast<int>(v) - 1);
   std::vector<double> cnt(zz(kk));
-  double o[9];
+  double o[11];
   if (clab_lnsize(ch.data(), static_cast<int>(ch.size()), kk, sp - 1, qnorm(0.5 + 0.5 * lv), cnt.data(), o) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
-  static const char *const sn[] = {"n", "k", "psusp", "pbin", "fsize", "esize", "etr", "etrlo", "etrhi"};
+  static const char *const sn[] = {"n",      "k",   "nm",    "psusp", "pbin", "fsize",
+                                   "esize", "esizeb", "etr", "etrlo", "etrhi"};
   out = vobj();
   put(out, "count", vnums(cnt));
-  put(out, "stat", nvec(9, sn, o));
+  put(out, "stat", nvec(11, sn, o));
   put(out, "susp", vnum(sp));
   return true;
 }

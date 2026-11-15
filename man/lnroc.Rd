@@ -76,16 +76,28 @@ ratio \code{dr = hr / far} at each cut.
 \item \code{pauc}: the partial area under the curve from a false alarm rate of 0
 to \code{far} (by default the smallest of the procedures' largest false
 alarm rates, so all are compared over the same range), by the
-trapezoid rule; a curve that ends before \code{far} is taken flat from its
-last point. With \code{nboot} the standard errors come from resampling the
-target-present and target-absent witnesses of each procedure, and
-each procedure is compared with the first by \code{z = diff / dse}, as
+trapezoid rule. A curve that ends before \code{far} is continued by the
+straight line from its last point to the point where every lineup
+counts as an identification (false alarm rate 1, or \code{1 / size} with
+\code{size}, and hit rate 1), as the package pROC that Mickes, Flowe and
+Wixted (2012) used joins a curve to (1, 1). With \code{nboot} the standard
+errors come from resampling the target-present and target-absent
+witnesses of each procedure, and each procedure is compared with the
+first by \code{z = diff / dse}, their \code{D} statistic, as
 \code{pROC::roc.test(method = "bootstrap")} compares partial areas.
+Their partial areas (0.13 and 0.09 in Experiment 1a, p. 371) are on
+the scale of all identifications in target-absent lineups, not
+divided by the lineup's size as the false alarm rates of their Table
+3 are: with \code{size}, \code{size * pauc} is on their scale.
 \item \code{cac}: the confidence-accuracy characteristic (Mickes 2015): at each
 confidence level alone, the share of suspect identifications that are
 correct, \code{hr / (hr + far)} of that level, which assumes guilty and
 innocent suspects equally common.
 }
+
+The ROC points and the partial areas reproduce the rates of Table 3 of
+Mickes, Flowe and Wixted (2012) and, on their scale, its partial areas
+(see the tests).
 }
 \examples{
 set.seed(3)

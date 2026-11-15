@@ -8,7 +8,8 @@ lnsize(choice, k = NULL, susp = 1, level = 0.95)
 }
 \arguments{
 \item{choice}{The lineup position each mock witness picked: whole
-numbers from 1.}
+numbers from 0, 0 for a mock witness who chose no one; one member at
+least must be chosen.}
 
 \item{k}{\code{NULL} for the largest position picked, or the lineup's size:
 one whole number from 2.}
@@ -20,30 +21,45 @@ between 0 and 1.}
 }
 \value{
 An object of class \code{lnsize}, a list: \code{count}, the choices of each
-position; \code{stat}, a named vector (\code{n}, \code{k}, \code{psusp}, \code{pbin}, \code{fsize},
-\code{esize}, \code{etr}, \code{etrlo}, \code{etrhi}); and \code{susp}.
+position; \code{stat}, a named vector (\code{n}, \code{k}, \code{nm} (the mock witnesses
+who chose a member), \code{psusp}, \code{pbin}, \code{fsize}, \code{esize}, \code{esizeb},
+\code{etr}, \code{etrlo}, \code{etrhi}); and \code{susp}.
 }
 \description{
 Asks whether a lineup singles out its suspect. People who never saw the
 crime (mock witnesses) read the witness's description and pick the
 lineup member who fits it best; in a fair lineup of \code{k} they pick each
-member about equally often. From their choices:
+member about equally often. A choice of 0 records a mock witness who
+chose no one. With \code{n} mock witnesses, \code{m} of whom chose a member, and
+\code{o_i} the choices of member \code{i}:
 }
 \details{
 \itemize{
-\item \code{psusp}, the share who picked the suspect, and \code{pbin}, the binomial
-chance of that many or more if each member were picked with chance
-\code{1 / k} (a small \code{pbin} is bias against the suspect);
-\item \code{fsize}, the functional size, the number of mock witnesses over those
-who picked the suspect (Wells, Leippe and Ostrom 1979; \code{k} for a fair
-lineup);
-\item \code{esize}, Malpass's (1981) effective size, \verb{k - sum |o_i - e| / (2 e)}
-with \code{o_i} the choices of member \code{i} and \code{e = n / k}: how many members
-are plausible;
-\item \code{etr}, Tredoux's (1998) effective size \verb{1 / sum p_i^2}, \code{p_i} the share
-choosing member \code{i}, with a delta-method interval from the multinomial
-variance of \verb{sum p_i^2}, \verb{4 (sum p^3 - (sum p^2)^2) / n}.
+\item \code{psusp}, the share of the \code{n} who picked the suspect, and \code{pbin}, the
+binomial chance of that many or more among the \code{m} if each member were
+picked with chance \code{1 / k} (a small \code{pbin} is bias against the
+suspect);
+\item \code{fsize}, the functional size of Wells, Leippe and Ostrom (1979), \code{n}
+over the number who picked the suspect (\code{k} for a fair lineup);
+\item \code{esize}, the effective size of Malpass (1981), \verb{ka - sum |o_i - ea| / (2 ea)}: the members nobody chose (null foils) are left out, \code{ka} is
+the number of members chosen at least once, \code{ea = m / ka}, and the sum
+runs over those \code{ka} members; it reduces the size by how far members
+are chosen below chance. \code{esizeb} is the same without the adjustment
+(\code{k} and \code{e = m / k}, the sum over all members), the form Tredoux
+(1996, Chapter 6, equation 5; 1999, p. S13) prefers because a member
+can go unchosen by chance;
+\item \code{etr}, the effective size \verb{E' = 1 / (1 - I) = 1 / sum p_i^2} of
+Tredoux (1998), \code{p_i = o_i / m}, with its interval: the large-sample
+interval of \verb{I = 1 - sum p_i^2}, whose variance is \verb{4 (sum p^3 - (sum p^2)^2) / m} (Agresti and Agresti 1978), with both ends taken to \code{1 / (1 - I)} (Tredoux 1996, Chapter 6, equations 8, 9 and 11). \code{etrhi} is
+\code{Inf} when the upper end of \code{I} reaches 1.
 }
+
+The tests reproduce Tables 4.1 (p. 67), 4.2 (p. 70) and 6.6 (p. 144) of
+Tredoux (1996) and Table 1 (p. S10) of Tredoux (1999). Two printed
+values there do not follow from their own counts and formulas: lineup i
+of Table 4.2 (1, 0, 12, 12, 0, 11) has an adjusted effective size of
+3.11, printed 3.17 (the unadjusted value), and the lower end of \verb{E'} in
+Table 6.6 is 1 / (1 - 0.7015) = 3.350, printed 3.503.
 }
 \examples{
 # 40 mock witnesses, a lineup of six, the suspect in position 3
@@ -55,9 +71,22 @@ Malpass, R. S. (1981). Effective size and defendant bias in eyewitness
 identification lineups. \emph{Law and Human Behavior}, 5(4), 299-309.
 \doi{10.1007/BF01044945}
 
+Tredoux, C. G. (1996). \emph{Evaluating the Fairness of Identification
+Parades with Measures of Facial Similarity}. PhD thesis, University of
+Cape Town.
+
 Tredoux, C. G. (1998). Statistical inference on measures of lineup
 fairness. \emph{Law and Human Behavior}, 22(2), 217-237.
 \doi{10.1023/A:1025746220886}
+
+Tredoux, C. (1999). Statistical considerations when determining
+measures of lineup size and lineup bias. \emph{Applied Cognitive
+Psychology}, 13(S1), S9-S26.
+\doi{10.1002/(SICI)1099-0720(199911)13:1+<S9::AID-ACP634>3.0.CO;2-1}
+
+Agresti, A. and Agresti, B. F. (1978). Statistical analysis of
+qualitative variation. \emph{Sociological Methodology}, 9, 204-237.
+\doi{10.2307/270810}
 
 Wells, G. L., Leippe, M. R. and Ostrom, T. M. (1979). Guidelines for
 empirically assessing the fairness of a lineup. \emph{Law and Human
