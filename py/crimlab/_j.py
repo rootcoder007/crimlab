@@ -6764,3 +6764,163 @@ def lvfit(y: Any, year: Any = None) -> Any:
     ['alpha', 'beta', 'gamma', 'delta', 'period', 'year', 'prey', 'pred']
     """
     return jcall("lvfit", y=y, year=year)
+
+
+def ppmlfe(data: Any, y: Any, x: Any, fe: Any, expo: Any = None, clus: Any = None, se: Any = "cluster",
+           ssc: Any = "G", time: Any = None, lag: Any = None, nboot: Any = 199, seed: Any = None,
+           sep: Any = "fe", level: Any = 0.95, tol: Any = 1e-12, maxit: Any = 100) -> Any:
+    """Poisson pseudo-maximum likelihood with absorbed fixed effects.
+
+    The arguments and the result are those of R's ``ppmlfe()``: see its help
+    page. ``se="boot"`` needs ``seed`` outside R.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = ppmlfe(data=d, y="y", x="x", fe="a", se="hc1")
+    >>> list(r)[:5]
+    ['coef', 'vcov', 'n', 'nsep', 'ncl']
+    """
+    return jcall("ppmlfe", data=data, y=y, x=x, fe=fe, expo=expo, clus=clus, se=se, ssc=ssc, time=time, lag=lag,
+                 nboot=nboot, seed=seed, sep=sep, level=level, tol=tol, maxit=maxit)
+
+
+def ivfe(data: Any, y: Any, endo: Any = None, inst: Any = None, x: Any = None, fe: Any = None, clus: Any = None,
+         se: Any = "cluster", ssc: Any = "G", time: Any = None, lag: Any = None, nboot: Any = 199,
+         seed: Any = None, level: Any = 0.95, tol: Any = 1e-12) -> Any:
+    """Two-stage least squares with absorbed fixed effects.
+
+    The arguments and the result are those of R's ``ivfe()``: see its help
+    page (``fe`` is needed). ``se="boot"`` needs ``seed`` outside R.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = ivfe(data=d, y="y", x="x", fe="a", se="hc1")
+    >>> list(r)[:5]
+    ['coef', 'first', 'fstab', 'vcov', 'n']
+    """
+    return jcall("ivfe", data=data, y=y, endo=endo, inst=inst, x=x, fe=fe, clus=clus, se=se, ssc=ssc, time=time,
+                 lag=lag, nboot=nboot, seed=seed, level=level, tol=tol)
+
+
+def ppmlcf(data: Any, y: Any, endo: Any, inst: Any, x: Any = None, fe: Any = None, expo: Any = None,
+           clus: Any = None, how: Any = "cf", se: Any = "boot", ssc: Any = "G", nboot: Any = 199,
+           seed: Any = None, level: Any = 0.95, tol: Any = 1e-12, maxit: Any = 100) -> Any:
+    """Instrumental variables for a count outcome with fixed effects.
+
+    The arguments and the result are those of R's ``ppmlcf()``: see its help
+    page (``fe`` is needed). The bootstrap, the default, needs ``seed``
+    outside R.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "z": [0, 1, 1, 3, 1, 0, 2, 3],
+    ...      "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = ppmlcf(data=d, y="y", endo="x", inst="z", fe="a", se="naive")
+    >>> r["coef"]["term"]
+    ['x', 'vhat:x']
+    """
+    return jcall("ppmlcf", data=data, y=y, endo=endo, inst=inst, x=x, fe=fe, expo=expo, clus=clus, how=how, se=se,
+                 ssc=ssc, nboot=nboot, seed=seed, level=level, tol=tol, maxit=maxit)
+
+
+def windiv(dir: Any, width: Any = 90, start: Any = 0, area: Any = None, base: Any = 1, sect: Any = None,
+           edges: Any = "halfopen", by: Any = None, avg: Any = "vector", share: Any = False,
+           spd: Any = None) -> Any:
+    """Wind-direction instruments.
+
+    The arguments and the result are those of R's ``windiv()``: see its help
+    page. The result is a matrix, a list of its rows, without names.
+
+    Examples
+    --------
+    >>> windiv(dir=[10, 100, 200, 300])[1]
+    [1.0, 0.0, 0.0]
+    """
+    return jcall("windiv", dir=dir, width=width, start=start, area=area, base=base, sect=sect, edges=edges, by=by,
+                 avg=avg, share=share, spd=spd)
+
+
+def invsn(tlow: Any, tup: Any, sign: Any = "upper", brk: Any = None) -> Any:
+    """Temperature inversions.
+
+    The arguments and the result are those of R's ``invsn()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> list(invsn(tlow=[1, 2], tup=[3, 1]))
+    ['diff', 'inv']
+    """
+    return jcall("invsn", tlow=tlow, tup=tup, sign=sign, brk=brk)
+
+
+def updwn(data: Any, y: Any, ax: Any, ay: Any, day: Any, wind: Any, src: Any, area: Any = None, tol: Any = 60,
+          band: Any = None, dist: Any = None, twin: Any = "drop", agg: Any = True, norm: Any = "mean",
+          wx: Any = None, se: Any = "hc1", ssc: Any = "G", clus: Any = None, lag: Any = None, nboot: Any = 199,
+          seed: Any = None, offs: Any = None, level: Any = 0.95) -> Any:
+    """The upwind and downwind design around a road or a point source.
+
+    The arguments and the result are those of R's ``updwn()``: see its help
+    page (``band`` left out is R's ``Inf``).
+
+    Examples
+    --------
+    >>> d = {"y": [3, 5, 4, 6, 6, 3, 7, 4], "ax": [-1] * 4 + [1] * 4, "ay": [0] * 8, "day": [1, 2, 3, 4] * 2,
+    ...      "wind": [270, 90, 270, 90] * 2}
+    >>> r = updwn(data=d, y="y", ax="ax", ay="ay", day="day", wind="wind",
+    ...           src={"x0": [0], "y0": [-10], "x1": [0], "y1": [10]})
+    >>> list(r)
+    ['coef', 'class', 'n', 'fit', 'placebo', 'norm', 'tol', 'band']
+    """
+    return jcall("updwn", data=data, y=y, ax=ax, ay=ay, day=day, wind=wind, src=src, area=area, tol=tol, band=band,
+                 dist=dist, twin=twin, agg=agg, norm=norm, wx=wx, se=se, ssc=ssc, clus=clus, lag=lag, nboot=nboot,
+                 seed=seed, offs=offs, level=level)
+
+
+def expjn(expo: Any, outc: Any, by: Any = ("area", "day")) -> Any:
+    """Join an exposure table to counts by place and day.
+
+    The arguments and the result are those of R's ``expjn()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = expjn(expo={"area": [1, 1], "day": [1, 2], "pm": [5, 7]},
+    ...           outc={"area": [1, 1], "day": [1, 3], "n": [2, 4]})
+    >>> r["data"]["pm"], r["nout"]
+    ([5.0], 1.0)
+    """
+    return jcall("expjn", expo=expo, outc=outc, by=by)
+
+
+def smkiv(data: Any, plume: Any, unit: Any, day: Any, pm: Any = None, adj: Any = "raw", nbr: Any = None,
+          z: Any = 1.64, seas: Any = None, dens: Any = None, cf: Any = "mean", by: Any = None) -> Any:
+    """Smoke instruments from plume data.
+
+    The arguments and the result are those of R's ``smkiv()``: see its help
+    page. Outside R a day column is numbers, not dates, so ``pm`` needs
+    ``seas``.
+
+    Examples
+    --------
+    >>> smkiv(data={"pl": [0, 1, 0], "u": ["a", "a", "a"], "d": [1, 2, 3]}, plume="pl", unit="u", day="d")["smoke"]
+    [0.0, 1.0, 0.0]
+    """
+    return jcall("smkiv", data=data, plume=plume, unit=unit, day=day, pm=pm, adj=adj, nbr=nbr, z=z, seas=seas,
+                 dens=dens, cf=cf, by=by)
+
+
+def exprun(data: Any, var: Any, unit: Any, day: Any, thr: Any = 0, cap: Any = 3, step: Any = 1) -> Any:
+    """Runs of exposed days.
+
+    The arguments and the result are those of R's ``exprun()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> list(exprun(data={"s": [0, 1, 1, 0], "a": [1, 1, 1, 1], "d": [1, 2, 3, 4]}, var="s", unit="a", day="d"))
+    ['run', 'run1', 'run2', 'run3p']
+    """
+    return jcall("exprun", data=data, var=var, unit=unit, day=day, thr=thr, cap=cap, step=step)
