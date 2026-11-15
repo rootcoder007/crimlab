@@ -787,3 +787,521 @@ test_that("sep = \"sst\" drops a regressor the effects absorb where y > 0", {
   expect_identical(r3$xdrop, character())
   expect_equal(r2$coef$est, r3$coef$est, tolerance = 1e-10)
 })
+
+# Third round: the refusals, the printed summaries and the edge cases of
+# the helpers, each reached through the public functions where it can be.
+
+test_that("the refusals of the column and data checks", {
+  d <- simpan()
+  d$s <- "a"
+  d$one <- 1
+  d$dc <- as.character(d$day)
+  dn <- d
+  dn$x[3] <- NA
+  di <- d
+  di$x[1] <- Inf
+  d0 <- d
+  d0$y <- 0
+  dp <- d
+  dp$pop[1] <- 0
+  errs(
+    "ppmlfe",
+    list(
+      list("`data` must be a data frame, got list", data = list(a = 1),
+           y = "y", x = "x", fe = "unit"),
+      list("`data` has no rows", data = d[0, ], y = "y", x = "x",
+           fe = "unit"),
+      list("`y` must name columns of `data`, got NULL", data = d, y = NULL,
+           x = "x", fe = "unit"),
+      list("`y` must name 1 column\\(s\\)", data = d, y = c("y", "yl"),
+           x = "x", fe = "unit"),
+      list("`x` names a column twice", data = d, y = "y", x = c("x", "x"),
+           fe = "unit"),
+      list("column `x` has missing values", data = dn, y = "y", x = "x",
+           fe = "unit"),
+      list("column `s` must be numeric, got character", data = d, y = "y",
+           x = "s", fe = "unit"),
+      list("column `x` must be finite", data = di, y = "y", x = "x",
+           fe = "unit"),
+      list("`level` must be one number strictly between 0 and 1", data = d,
+           y = "y", x = "x", fe = "unit", level = 1),
+      list("column `dc` must hold numbers or dates", data = d, y = "y",
+           x = "x", fe = "unit", se = "nw", time = "dc"),
+      list("the bootstrap needs two or more clusters in `one`", data = d,
+           y = "y", x = "x", fe = "unit", se = "boot", clus = "one",
+           nboot = 2),
+      list("column `y` is all 0", data = d0, y = "y", x = "x", fe = "unit"),
+      list("column `pop` must be positive", data = dp, y = "y", x = "x",
+           fe = "unit", expo = "pop")
+    )
+  )
+  # a regressor that is 0 wherever the count is positive is all there is
+  d$bad <- as.numeric(d$y == 0)
+  expect_error(
+    ppmlfe(d, "y", "bad", fe = c("unit", "day"), sep = "sst"),
+    "every regressor is collinear on the rows with counts"
+  )
+})
+
+test_that("ivfe, ppmlcf and expgmm refuse a model they cannot fit", {
+  d <- simpan()
+  d$one <- 1
+  d$y0 <- 0
+  d$yn <- d$y
+  d$yn[1] <- -1
+  d$p0 <- d$pop
+  d$p0[1] <- 0
+  errs(
+    "ivfe",
+    list(
+      list("`se = \"twoway\"` needs two `clus` columns", data = d, y = "yl",
+           endo = "x", inst = "z1", fe = "unit", se = "twoway",
+           clus = "unit"),
+      list("`inst` needs `endo`: the columns it instruments", data = d,
+           y = "yl", inst = "z1", x = "w", fe = "unit"),
+      list("give `endo` or `x`: there is nothing to estimate", data = d,
+           y = "yl", fe = "unit"),
+      list("a column cannot be both a regressor and an excluded instrument",
+           data = d, y = "yl", endo = "x", inst = c("z1", "w"), x = "w",
+           fe = "unit"),
+      list("`clus` has one cluster: a cluster-robust variance needs two",
+           data = d, y = "yl", endo = "x", inst = "z1", fe = "unit",
+           clus = "one")
+    )
+  )
+  errs(
+    "ppmlcf",
+    list(
+      list("at least as many instruments as `endo` has columns", data = d,
+           y = "y", endo = c("x", "w"), inst = "z1", fe = "unit"),
+      list("a column cannot be both a regressor and an excluded instrument",
+           data = d, y = "y", endo = "x", inst = "z1", x = "z1",
+           fe = "unit"),
+      list("column `yn` must hold counts, at least 0", data = d, y = "yn",
+           endo = "x", inst = "z1", fe = "unit"),
+      list("column `y0` is all 0", data = d, y = "y0", endo = "x",
+           inst = "z1", fe = "unit"),
+      list("column `p0` must be positive", data = d, y = "y", endo = "x",
+           inst = "z1", fe = "unit", expo = "p0")
+    )
+  )
+  d$yp <- d$y + 1
+  d$id <- seq_len(nrow(d))
+  errs(
+    "expgmm",
+    list(
+      list("at least as many instruments as `endo` has columns", data = d,
+           y = "y", endo = c("x", "w"), inst = "z1", clus = "unit"),
+      list("column `yn` must hold counts, at least 0", data = d, y = "yn",
+           endo = "x", inst = "z1", clus = "unit"),
+      list("column `y0` is all 0", data = d, y = "y0", endo = "x",
+           inst = "z1", clus = "unit"),
+      list("column `p0` must be positive", data = d, y = "y", endo = "x",
+           inst = "z1", clus = "unit", expo = "p0"),
+      # every count positive: no row is separated, all 450 levels enter
+      list("the fixed effects have 450 levels; they enter as indicator",
+           data = d, y = "yp", endo = "x", inst = "z1", fe = "id",
+           se = "hc1")
+    )
+  )
+})
+
+test_that("the printed summaries and summary() of the estimators", {
+  d <- simpan()
+  iv <- ivfe(d, "yl", endo = "x", inst = "z1", fe = c("unit", "day"))
+  expect_identical(summary(iv), iv$coef)
+  cf <- ppmlcf(d, "y", endo = "x", inst = "z1", fe = c("unit", "day"),
+               nboot = 3, seed = 1)
+  expect_identical(summary(cf), cf$coef)
+  expect_output(
+    print(cf),
+    paste0("ppmlcf: Poisson control function, 450 rows, fixed effects ",
+           "unit and day; 3 bootstrap draws of 15 clusters \\(unit\\)")
+  )
+  expect_output(print(cf), "first stage: robust Wald F")
+  pn <- ppmlcf(d, "y", endo = "x", inst = "z1", fe = c("unit", "day"),
+               how = "plug", se = "naive")
+  expect_output(
+    print(pn),
+    "Poisson plug-in, .*naive second-stage errors \\(they ignore"
+  )
+  # a unit of zeros, dropped and reported
+  z <- data.frame(unit = 16L, day = 1:30, z1 = 0, z2 = 0, w = 0, x = 0,
+                  pop = 1000, y = 0, yl = 0)
+  expect_warning(
+    f <- ppmlfe(rbind(d, z), "y", "x", fe = c("unit", "day")),
+    "30 row\\(s\\) dropped"
+  )
+  expect_output(print(f), "30 row\\(s\\) dropped for groups with no counts")
+})
+
+test_that("ppmlfe and expgmm warn when the fit does not converge", {
+  d <- simpan()
+  expect_warning(
+    ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day"), maxit = 1),
+    "the fit did not converge in 1 iterations"
+  )
+  # iterated GMM: the second weight is already past maxit = 1
+  expect_warning(
+    g <- expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+                fe = "day", clus = "unit", step = "iter", maxit = 1),
+    "the fit did not converge in 1 iterations"
+  )
+  expect_false(g$conv)
+})
+
+test_that("expgmm: robust errors, an offset of 0, a dropped day", {
+  d <- simpan()
+  d$one <- 1
+  f0 <- expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+               fe = "day", se = "hc1")
+  f1 <- expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+               fe = "day", se = "hc1", expo = "one")
+  # an exposure of 1 is an offset of 0: the same fit
+  expect_equal(f1$coef$est, f0$coef$est, tolerance = 1e-10)
+  expect_output(print(f0), "heteroskedasticity-robust errors")
+  d$y[d$day == 1] <- 0
+  expect_warning(
+    g <- expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+                fe = "day", se = "hc1", expo = "pop"),
+    "15 row\\(s\\) dropped"
+  )
+  expect_identical(g$nsep, 15L)
+  expect_output(print(g), "15 row\\(s\\) dropped for groups with no counts")
+  # the regressors collinear: the kernel's refusal
+  d <- simpan()
+  d$x2 <- d$x
+  expect_error(
+    expgmm(d, "y", endo = "x", inst = c("z1", "z2"), x = "x2", fe = "day",
+           se = "hc1"),
+    "the fit failed: the instruments or the regressors are collinear"
+  )
+})
+
+test_that("factor effects, two-way nk factors each, the automatic NW lag", {
+  d <- simpan()
+  a <- function(...) {
+    ppmlfe(d, "y", c("x", "w"), expo = "pop", ...)
+  }
+  d$uf <- factor(d$unit)
+  expect_equal(a(fe = c("uf", "day"))$coef$est,
+               a(fe = c("unit", "day"))$coef$est, tolerance = 1e-12)
+  # both effects are nested in a cluster column, so k = 2 + 1 and each of
+  # the three components takes (n - 1) / (n - k) = 449 / 447 more
+  ge <- a(fe = c("unit", "day"), clus = c("unit", "day"), twc = "each")
+  ne <- a(fe = c("unit", "day"), clus = c("unit", "day"), twc = "each",
+          ssc = "nk")
+  expect_equal(ne$vcov, ge$vcov * 449 / 447, tolerance = 1e-10)
+  nw <- a(fe = c("unit", "day"), se = "nw", time = "day", ssc = "none")
+  expect_true(nw$lag >= 0L)
+  expect_equal(
+    a(fe = c("unit", "day"), se = "nw", time = "day", ssc = "none",
+      lag = nw$lag)$coef$se,
+    nw$coef$se,
+    tolerance = 1e-12
+  )
+  # scores of zero leave no ratio: the lag is 0
+  expect_identical(.axnwlag(matrix(0, 5L, 1L), rep(0L, 5), 1:5), 0)
+})
+
+test_that("the bootstrap: draws refitted with sep = none, failed draws", {
+  d <- simpan()
+  # every count positive: no group is separated in any draw
+  d$y <- d$y + 1
+  b1 <- ppmlfe(d, "y", "x", fe = c("unit", "day"), se = "boot", nboot = 3,
+               seed = 2)
+  b0 <- ppmlfe(d, "y", "x", fe = c("unit", "day"), se = "boot", nboot = 3,
+               seed = 2, sep = "none")
+  expect_equal(b0$draws, b1$draws, tolerance = 1e-12)
+  # a fit that fails on the first draw only; the sum of the weights of a
+  # draw is 450 rows whatever is drawn (15 clusters of 30 rows)
+  i <- 0L
+  fit <- function(rows, w) {
+    i <<- i + 1L
+    if (i == 1L) stop("no fit")
+    as.numeric(sum(w))
+  }
+  expect_warning(
+    b <- .axboot(d, "unit", 4L, 1, 1L, fit, "ppmlfe"),
+    "ppmlfe: 1 of 4 bootstrap draws could not be fitted and are left out"
+  )
+  expect_identical(b$nfail, 1L)
+  expect_true(is.na(b$draws[1L, 1L]))
+  expect_equal(b$draws[-1L, 1L], rep(450, 3), tolerance = 1e-12)
+  expect_equal(b$se, 0, tolerance = 1e-12)
+  expect_error(
+    suppressWarnings(
+      .axboot(d, "unit", 3L, 1, 1L, function(rows, w) stop("no"), "ppmlfe")
+    ),
+    "fewer than two bootstrap draws could be fitted"
+  )
+})
+
+test_that("ppmlcf leaves out the draws of a single cluster", {
+  d <- simpan()
+  d <- d[d$unit <= 2L, ]
+  quiet <- function(expr) {
+    w <- character()
+    r <- withCallingHandlers(expr, warning = function(e) {
+      w <<- c(w, conditionMessage(e))
+      invokeRestart("muffleWarning")
+    })
+    list(r = r, w = w)
+  }
+  # with two clusters a draw of one of them twice has one unit, and the
+  # day effects then absorb every column: that draw cannot be fitted
+  bm <- .axdraw(2L, 20L, 1)
+  nf <- sum(colSums(bm > 0L) == 1L)
+  o <- quiet(ppmlcf(d, "y", endo = "x", inst = "z1",
+                    fe = c("unit", "day"), nboot = 20, seed = 1))
+  expect_identical(o$r$nfail, as.integer(nf))
+  expect_true(any(grepl(
+    paste(nf, "of 20 bootstrap draws could not be fitted"), o$w,
+    fixed = TRUE
+  )))
+  # a seed whose two draws both take one cluster only
+  s <- Find(function(k) all(colSums(.axdraw(2L, 2L, k) > 0L) == 1L), 1:200)
+  expect_error(
+    quiet(ppmlcf(d, "y", endo = "x", inst = "z1", fe = c("unit", "day"),
+                 nboot = 2, seed = s)),
+    "fewer than two bootstrap draws could be fitted"
+  )
+})
+
+test_that("the seed of a draw leaves no generator where there was none", {
+  env <- globalenv()
+  had <- exists(".Random.seed", envir = env, inherits = FALSE)
+  old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
+  on.exit(if (had) assign(".Random.seed", old, envir = env), add = TRUE)
+  if (had) rm(".Random.seed", envir = env)
+  m <- .axdraw(3L, 2L, 1)
+  expect_false(exists(".Random.seed", envir = env, inherits = FALSE))
+  expect_identical(colSums(m), c(3, 3))
+})
+
+test_that("the indicator columns of the effects", {
+  d <- data.frame(a = c(1, 2, 1), b = c("x", "y", "y"),
+                  stringsAsFactors = FALSE)
+  m <- .axdum(d, c("a", "b"))
+  # every level of the first set, all but the first of the second
+  expect_identical(colnames(m), c("a:1", "a:2", "b:2"))
+  expect_identical(unname(m[, 3L]), c(0, 1, 1))
+  expect_identical(unname(.axdum(d, NULL)[, 1L]), c(1, 1, 1))
+})
+
+test_that("the Kleibergen-Paap rk statistic with two-way clusters", {
+  # with the rows as the second clustering the two-way meat is that of
+  # the first: V(unit) + V(row) - V(unit and row), the last two the same
+  # partition, and the factor is that of the 15 units either way
+  d <- simpan()
+  set.seed(7)
+  d$z3 <- rnorm(nrow(d))
+  d$x2 <- 0.4 * d$z2 + 0.5 * d$z3 + 0.2 * d$z1 + rnorm(nrow(d))
+  d$id <- seq_len(nrow(d))
+  a <- function(cl) {
+    ivfe(d, "yl", endo = c("x", "x2"), inst = c("z1", "z2", "z3"),
+         x = "w", fe = c("unit", "day"), clus = cl)$first$kp
+  }
+  expect_equal(a(c("unit", "id")), a("unit"), tolerance = 1e-8)
+})
+
+test_that("invsn and plcday: the refusals, print and summary", {
+  expect_error(invsn("a", 1), "must be numeric vectors of one length")
+  d <- simpan()
+  d$dc <- as.character(d$day)
+  # an estimator by hand: the mean of the exposure on the rows it gets
+  mx <- function(data, ...) {
+    list(coef = data.frame(term = "x", est = mean(data$x), se = 1, lo = 0,
+                           hi = 1, p = 0.5))
+  }
+  p <- plcday(d, "x", "unit", "day", shifts = 7, est = mx)
+  expect_equal(p$tab$est[2L], mean(d$x[d$day > 7]), tolerance = 1e-12)
+  expect_identical(summary(p), p$tab)
+  expect_output(print(p), "plcday: the coefficient of x with values of other")
+  nox <- function(data, ...) list(coef = data.frame(term = "w"))
+  errs(
+    "plcday",
+    list(
+      list("`est` must be an estimator function", data = d, var = "x",
+           unit = "unit", day = "day", est = "ppmlfe"),
+      list("`shifts` must be distinct whole numbers of days other than 0",
+           data = d, var = "x", unit = "unit", day = "day", shifts = 0,
+           est = mx),
+      list("`shifts` must be distinct whole numbers of days other than 0",
+           data = d, var = "x", unit = "unit", day = "day", shifts = 1.5,
+           est = mx),
+      list("column `dc` must hold numbers or dates", data = d, var = "x",
+           unit = "unit", day = "dc", est = mx),
+      list("a shift of 100 days leaves fewer than two rows", data = d,
+           var = "x", unit = "unit", day = "day", shifts = 100, est = mx),
+      list("`est` returned no coefficient for `x`", data = d, var = "x",
+           unit = "unit", day = "day", shifts = 7, est = nox)
+    )
+  )
+})
+
+test_that("updwn: print, summary, the placebo without areas, clusters", {
+  u <- simud()
+  d <- u$d
+  road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
+  f <- function(...) {
+    updwn(d, "crimes", "ax", "ay", "day", "wind", road, band = 1600, ...)
+  }
+  r <- f()
+  expect_identical(summary(r), r$coef)
+  expect_output(print(r), "updwn: downwind against upwind, .* over its mean")
+  # a road moved 50 km has no area near it: no estimate, a warning
+  expect_warning(rp <- f(offs = c(0, 50000)),
+                 "no estimate for the segments moved by 50000")
+  expect_true(is.na(rp$placebo$est[2L]))
+  expect_identical(rp$placebo$n[2L], 0L)
+  expect_output(print(rp), "placebo segments moved sideways")
+  s <- summary(rp)
+  expect_identical(s$off, c(NA, 0, 50000))
+  expect_equal(s$est[1:2], c(r$coef$est, r$coef$est), tolerance = 1e-12)
+  # the day as the cluster: one per day with the wind across the road
+  rc <- f(se = "cluster", clus = "day")
+  expect_identical(rc$fit$ncl, sum(abs(cos(u$wnd * pi / 180)) >= 0.5))
+  expect_equal(rc$coef$est, r$coef$est, tolerance = 1e-12)
+})
+
+test_that("updwn refuses what it cannot classify or fit", {
+  u <- simud()
+  d <- u$d
+  road <- data.frame(x0 = 0, y0 = 0, x1 = 5000, y1 = 0)
+  pt <- data.frame(x0 = 2500, y0 = 0)
+  dn <- d
+  dn$crimes[1] <- -1
+  dc <- d
+  dc$dc <- as.character(dc$day)
+  d0 <- d
+  d0$crimes <- 0
+  # half the areas of each side with the wind turned round
+  dw <- d
+  dw$wind <- dw$wind + 180 * (dw$area %% 4 < 2)
+  a <- function(...) {
+    c(list(y = "crimes", ax = "ax", ay = "ay", day = "day", wind = "wind"),
+      list(...))
+  }
+  errs(
+    "updwn",
+    list(
+      c("`src` must have columns x0 and y0", a(data = d, src = road[1])),
+      c("`src` column x0 must be numeric",
+        a(data = d, src = data.frame(x0 = "a", y0 = 0,
+                                     stringsAsFactors = FALSE))),
+      c("`src` x0 and y0 must be finite",
+        a(data = d, src = data.frame(x0 = NA_real_, y0 = 0))),
+      c("`dist` must be two or more increasing distances from 0",
+        a(data = d, src = road, dist = 5)),
+      c("`agg` must be TRUE or FALSE", a(data = d, src = road, agg = NA)),
+      c("`area` is needed for point sources and for agg = FALSE",
+        a(data = d, src = pt)),
+      c("`offs` moves segments: every source must be a segment",
+        a(data = d, src = pt, area = "area", offs = 1)),
+      c("`offs` must be finite numbers", a(data = d, src = road, offs = Inf)),
+      c("`se = \"twoway\"` needs two `clus` columns",
+        a(data = d, src = road, se = "twoway")),
+      c("column `crimes` must hold counts, at least 0", a(data = dn,
+                                                          src = road)),
+      c("`se = \"nw\"` needs a day column of numbers or dates",
+        a(data = dc, src = road, se = "nw", day = "dc")),
+      c("an area has two rows on one day",
+        a(data = rbind(d, d[1, ]), src = road, area = "area")),
+      c("fewer than two rows are upwind or downwind of a source",
+        a(data = d, src = road, band = 1)),
+      c("no row falls in the rings of `dist`",
+        a(data = d, src = road, band = 1600, dist = c(0, 1e-3))),
+      c("the wind differs between areas of one side and day",
+        a(data = dw, src = road, band = 1600)),
+      c("column `area` must be constant within each side \\(area\\) and day",
+        a(data = d, src = road, band = 1600, clus = "area")),
+      c("the counts are all 0", a(data = d0, src = road, band = 1600))
+    )
+  )
+})
+
+test_that("the kernel of updwn: missing values, on the source", {
+  # an area on the road and one with no wind; then a point source and an
+  # area on it, and one beside it with the wind along the line between
+  k <- .Call(C_clab_r_updwn, c(2500, 100), c(0, 800), c(0, NA_real_), 0, 0,
+             5000, 0, Inf, 60, 0L)
+  expect_identical(k$dn, c(-4L, -5L))
+  k <- .Call(C_clab_r_updwn, c(0, 100), c(0, 0), c(0, 0), 0, 0, NA_real_,
+             NA_real_, Inf, 60, 0L)
+  expect_identical(k$dn, c(-4L, -1L))
+})
+
+test_that("windiv: the refusals, modes, missing groups and factor areas", {
+  errs(
+    "windiv",
+    list(
+      list("`dir` must be numeric directions in degrees", dir = "a"),
+      list("`share` must be TRUE or FALSE", dir = 1, share = NA),
+      list("`spd` must give one speed from 0 per direction", dir = 1,
+           spd = -1),
+      list("`area` must give one label per direction, none missing",
+           dir = c(1, 2), area = "a"),
+      list("`sect` must be two different finite directions in degrees",
+           dir = 1, sect = c(10, 370)),
+      list("`by` must give one group per direction, none missing",
+           dir = c(1, 2), by = 1),
+      list("`area` must be constant within each `by` group", dir = c(1, 2),
+           by = c(1, 1), area = c("a", "b")),
+      list("`avg = \"mode\"` needs sectors by `width`, not `sect`",
+           dir = c(1, 2), by = c(1, 1), avg = "mode", sect = c(0, 90)),
+      list("`share` needs sectors by `width`, not `sect`", dir = c(1, 2),
+           by = c(1, 1), share = TRUE, sect = c(0, 90))
+    )
+  )
+  # the mode under the paper's edges: 90 is in the first sector, (0, 90]
+  o <- windiv(c(90, 90, 200), by = c(1, 1, 1), avg = "mode", edges = "paper")
+  expect_identical(unname(o[1, ]), c(0, 0, 0))
+  h <- windiv(c(90, 90, 200), by = c(1, 1, 1), avg = "mode")
+  expect_identical(unname(h[1, ]), c(1, 0, 0))
+  # a group without a direction has no mode
+  m <- windiv(c(NA, 100), by = c(1, 2), avg = "mode")
+  expect_true(all(is.na(m[1, ])))
+  expect_identical(unname(m[2, ]), c(1, 0, 0))
+  # a factor's levels keep their order, unused ones dropped
+  fa <- factor(c("b", "a"), levels = c("c", "b", "a"))
+  f <- windiv(c(10, 100), area = fa)
+  expect_identical(colnames(f)[c(1, 4)], c("w90_180:b", "w90_180:a"))
+  expect_identical(unname(f[2, 4]), 1)
+})
+
+test_that("expjn: the refusals of the keys and summary()", {
+  ex <- data.frame(area = c("a", "a", "b"), day = c(1, 2, 1),
+                   pm = c(10, 12, 8), stringsAsFactors = FALSE)
+  oc <- data.frame(area = c("a", "a", "b", "b"), day = c(1, 2, 1, 2),
+                   crimes = c(3, 1, 0, 2), stringsAsFactors = FALSE)
+  j <- expjn(ex, oc)
+  expect_identical(summary(j),
+                   data.frame(joined = 3L, nout = 1L, nexp = 0L))
+  en <- ex
+  en$day[1] <- NA
+  oo <- oc
+  oo$pm <- 1
+  errs(
+    "expjn",
+    list(
+      list("`by` must name the key columns", expo = ex, outc = oc,
+           by = character()),
+      list("`expo` lacks the key columns: day", expo = ex[c("area", "pm")],
+           outc = oc),
+      list("`expo` has missing keys", expo = en, outc = oc),
+      list("`expo` has no columns besides the keys",
+           expo = ex[c("area", "day")], outc = oc),
+      list("columns in both tables besides the keys: pm", expo = ex,
+           outc = oo),
+      list("no outcome row has an exposure: check that the keys agree",
+           expo = transform(ex, day = day + 10), outc = oc)
+    )
+  )
+})
+
+test_that("the kernel of exprun: a missing exposure ends a run", {
+  # exprun() refuses missing values before it; the kernel marks the row
+  r <- .Call(C_clab_r_runlen, rep(0L, 4), c(1, 2, 3, 4), c(1, NA, 1, 1), 1)
+  expect_identical(r, c(1L, NA, 1L, 2L))
+})
