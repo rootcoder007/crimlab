@@ -1162,6 +1162,12 @@ print.typefx <- function(x, ...) {
     nq <- .cknum(nq, "nq", f, min = 2, whole = TRUE)
     qs <- seq(0, 1, length.out = nq + 1L)
     brk <- unique(as.numeric(stats::quantile(xv, qs, names = FALSE)))
+    # cut() reads one number as a count of intervals, not as a break: an
+    # exposure with one value (or whose quantiles all fall on one) has no
+    # bins to compare
+    if (length(brk) < 3L) {
+      .ckstop(f, "`%s` gives fewer than two bins", var)
+    }
   } else if (!is.numeric(brk) || length(brk) < 3L || anyNA(brk) ||
                is.unsorted(brk, strictly = TRUE)) {
     .ckstop(f, "`brk` must be three or more increasing numbers")
