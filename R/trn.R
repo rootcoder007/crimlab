@@ -156,7 +156,7 @@ print.stpcp <- function(x, ...) {
 #' (`"anscombe"`) or the count itself (`"none"`, for `k` and `h` on the
 #' count scale). With `reset` the sum starts again from 0 after an alarm.
 #'
-#' @param y The counts: numbers from 0.
+#' @inheritParams ecolrg
 #' @param expd `NULL`, or the expected count of each period: positive
 #'   numbers.
 #' @param start Without `expd`, the first period watched: one whole number

@@ -7,137 +7,6 @@
 # value read back is the value written; the display writers round only
 # what they show.
 
-.yfmt <- function(x, mode, d = 0L) {
-  .Call(C_clab_r_fmt, as.numeric(x), as.integer(mode), as.integer(d))
-}
-
-.ytab <- function(x, fn) {
-  need <- c("prd", "value", "prev", "change")
-  if (!is.data.frame(x) || !all(need %in% names(x)) ||
-        !any(c("pctchg", "ppchg") %in% names(x))) {
-    stop(fn, ": `x` must be a change table: a data frame with the columns ",
-         "prd, value, prev, change and pctchg or ppchg, as yoypx() gives.",
-         call. = FALSE)
-  }
-  as.data.frame(unclass(x))
-}
-
-.ychg <- function(d) if ("ppchg" %in% names(d)) "ppchg" else "pctchg"
-
-.ydig <- function(d, fn, nm = "digits", null = FALSE) {
-  if (null && is.null(d)) {
-    return(NULL)
-  }
-  if (!is.numeric(d) || length(d) != 1L || is.na(d) || d < 0 || d > 15 ||
-        d != floor(d)) {
-    stop(fn, ": `", nm, "` must be one whole number from 0 to 15.",
-         call. = FALSE)
-  }
-  as.integer(d)
-}
-
-.yflag <- function(x, nm, fn) {
-  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
-    stop(fn, ": `", nm, "` must be TRUE or FALSE.", call. = FALSE)
-  }
-  x
-}
-
-.ytxt1 <- function(x, nm, fn) {
-  if (!is.character(x) || length(x) != 1L || is.na(x)) {
-    stop(fn, ": `", nm, "` must be one string.", call. = FALSE)
-  }
-  x
-}
-
-.yfile <- function(file, fn) {
-  if (!is.null(file) && (!is.character(file) || length(file) != 1L ||
-                           is.na(file) || !nzchar(file))) {
-    stop(fn, ": `file` must be NULL or one file path.", call. = FALSE)
-  }
-  file
-}
-
-.yout <- function(txt, file) {
-  if (is.null(file)) {
-    return(txt)
-  }
-  writeBin(charToRaw(enc2utf8(txt)), file)
-  invisible(file)
-}
-
-.ymeta <- function(meta, fn) {
-  if (!is.null(meta) && (!is.character(meta) || anyNA(meta))) {
-    stop(fn, ": `meta` must be NULL or text.", call. = FALSE)
-  }
-  if (length(meta)) gsub("[\r\n]+", " ", paste(meta, collapse = "; "))
-}
-
-# the period as shown: its label (yoylbl()) when there is one
-.yper <- function(d) {
-  as.character(if ("perlbl" %in% names(d)) d$perlbl else d$prd)
-}
-
-# decimals of the values shown: none for counts (a table with an exact
-# interval), else the fewest that show every value to six places
-.yvd <- function(d) {
-  if ("pctlo" %in% names(d)) {
-    return(0L)
-  }
-  v <- d$value[is.finite(d$value)]
-  if (!length(v)) {
-    return(0L)
-  }
-  min(6L, max(vapply(v, function(z) {
-    for (k in 0:6) if (abs(z - round(z, k)) < 1e-9) return(k)
-    6L
-  }, 0L)))
-}
-
-.ynum <- function(v, dg) {
-  out <- .yfmt(v, 1L, dg)
-  out[is.na(v)] <- "\u2014"
-  out
-}
-
-.ypct <- function(v, dg, pp) {
-  out <- .yfmt(v, if (pp) 3L else 2L, dg)
-  out[is.na(v) | is.nan(v)] <- "\u2014"
-  out
-}
-
-# control characters shown escaped, never written; ws keeps tabs and line
-# breaks
-.yctl <- function(s, ws = FALSE) {
-  s <- as.character(s)
-  u <- function(k) intToUtf8(k)
-  re <- paste0("[\001-\037\177", u(0x80), "-", u(0x9f), u(0x200e),
-               u(0x200f), u(0x202a), "-", u(0x202e), u(0x2066), "-",
-               u(0x2069), "]")
-  hit <- which(!is.na(s) & grepl(re, s, perl = TRUE))
-  nm <- c(`7` = "\\a", `8` = "\\b", `9` = "\\t", `10` = "\\n", `12` = "\\f",
-          `13` = "\\r", `27` = "\\033")
-  for (i in hit) {
-    cp <- utf8ToInt(enc2utf8(s[i]))
-    if (anyNA(cp)) next
-    s[i] <- paste(vapply(cp, function(k) {
-      if (ws && k %in% c(9L, 10L)) {
-        intToUtf8(k)
-      } else if (as.character(k) %in% names(nm)) {
-        nm[[as.character(k)]]
-      } else if (k < 32L || k == 127L) {
-        sprintf("\\%03o", k)
-      } else if (k >= 0x80 && k <= 0x9f || k %in% c(0x200e, 0x200f) ||
-                   k >= 0x202a && k <= 0x202e || k >= 0x2066 && k <= 0x2069) {
-        sprintf("<U+%04X>", k)
-      } else {
-        intToUtf8(k)
-      }
-    }, ""), collapse = "")
-  }
-  s
-}
-
 #' Label the periods of a change table without changing them
 #'
 #' A period's value and its name are not the same thing: a fiscal year
@@ -339,6 +208,207 @@ yoytsv <- function(x, file = NULL, digits = NULL, na = "", meta = NULL,
   .ydelim(x, file, "\t", digits, na, meta, comment, "yoytsv")
 }
 
+#' @rdname yoycsv
+#' @export
+yoyjs <- function(x, file = NULL, digits = NULL, pretty = TRUE, meta = NULL) {
+  file <- .yfile(file, "yoyjs")
+  pretty <- .yflag(pretty, "pretty", "yoyjs")
+  d <- .yexp(x, digits, "yoyjs")
+  m <- .ymeta(meta, "yoyjs")
+  ok <- all(c("prd", "value", "prev", "change") %in% names(d)) &&
+    any(c("pctchg", "ppchg") %in% names(d))
+  sm <- if (ok) as.data.frame(unclass(yoysmry(d)))
+  ind <- if (pretty) 2L else NULL
+  parts <- c(
+    if (length(m)) c("meta", .yjs1(m)),
+    if (ok) c("summary", .yjsrows(sm, ind)),
+    "rows", .yjsrows(d, ind)
+  )
+  k <- parts[c(TRUE, FALSE)]
+  v <- parts[c(FALSE, TRUE)]
+  txt <- if (pretty) {
+    paste0("{\n", paste0("  ", vapply(k, .yjs1, ""), ": ", v,
+                         collapse = ",\n"), "\n}")
+  } else {
+    paste0("{", paste0(vapply(k, .yjs1, ""), ":", v, collapse = ","), "}")
+  }
+  .yout(paste0(txt, "\n"), file)
+}
+
+#' @rdname yoycsv
+#' @export
+yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
+  file <- .yfile(file, "yoymd")
+  d <- .ytab(x, "yoymd")
+  digits <- .ydig(digits, "yoymd")
+  align <- .yflag(align, "align", "yoymd")
+  m <- .ymeta(meta, "yoymd")
+  s <- .yshow(d, digits)
+  cols <- s$cols
+  cols$note <- ifelse(is.na(s$flag), "", s$flag)
+  cols <- lapply(cols, .ymdesc)
+  nms <- .ymdesc(names(cols))
+  w <- if (align) {
+    vapply(seq_along(cols), function(i) {
+      max(3L, nchar(c(nms[i], cols[[i]]), type = "width"))
+    }, 0L)
+  } else {
+    rep(0L, length(cols))
+  }
+  nby <- as.integer("group" %in% names(d))
+  right <- seq_along(cols) > nby + 1L & names(cols) != "note"
+  pad <- function(s, k) {
+    gap <- strrep(" ", pmax(0L, w[k] - nchar(s, type = "width")))
+    if (right[k]) paste0(gap, s) else paste0(s, gap)
+  }
+  row <- function(vals) {
+    paste0("| ", paste(vapply(seq_along(vals), function(k) pad(vals[k], k), ""),
+                       collapse = " | "), " |")
+  }
+  rule <- paste0("| ", paste(vapply(seq_along(w), function(k) {
+    n <- max(3L, w[k])
+    if (right[k]) paste0(strrep("-", n - 1L), ":") else strrep("-", n)
+  }, ""), collapse = " | "), " |")
+  lines <- c(row(nms), rule, vapply(seq_len(nrow(d)), function(r) {
+    row(vapply(cols, function(v) v[r], ""))
+  }, ""))
+  if (length(m)) {
+    lines <- c(lines, "", paste0("_", .ymdesc(m), "_"))
+  }
+  .yout(paste0(paste(lines, collapse = "\n"), "\n"), file)
+}
+
+.yfmt <- function(x, mode, d = 0L) {
+  .Call(C_clab_r_fmt, as.numeric(x), as.integer(mode), as.integer(d))
+}
+
+.ytab <- function(x, fn) {
+  need <- c("prd", "value", "prev", "change")
+  if (!is.data.frame(x) || !all(need %in% names(x)) ||
+        !any(c("pctchg", "ppchg") %in% names(x))) {
+    stop(fn, ": `x` must be a change table: a data frame with the columns ",
+         "prd, value, prev, change and pctchg or ppchg, as yoypx() gives.",
+         call. = FALSE)
+  }
+  as.data.frame(unclass(x))
+}
+
+.ychg <- function(d) if ("ppchg" %in% names(d)) "ppchg" else "pctchg"
+
+.ydig <- function(d, fn, nm = "digits", null = FALSE) {
+  if (null && is.null(d)) {
+    return(NULL)
+  }
+  if (!is.numeric(d) || length(d) != 1L || is.na(d) || d < 0 || d > 15 ||
+        d != floor(d)) {
+    stop(fn, ": `", nm, "` must be one whole number from 0 to 15.",
+         call. = FALSE)
+  }
+  as.integer(d)
+}
+
+.yflag <- function(x, nm, fn) {
+  if (!is.logical(x) || length(x) != 1L || is.na(x)) {
+    stop(fn, ": `", nm, "` must be TRUE or FALSE.", call. = FALSE)
+  }
+  x
+}
+
+.ytxt1 <- function(x, nm, fn) {
+  if (!is.character(x) || length(x) != 1L || is.na(x)) {
+    stop(fn, ": `", nm, "` must be one string.", call. = FALSE)
+  }
+  x
+}
+
+.yfile <- function(file, fn) {
+  if (!is.null(file) && (!is.character(file) || length(file) != 1L ||
+                           is.na(file) || !nzchar(file))) {
+    stop(fn, ": `file` must be NULL or one file path.", call. = FALSE)
+  }
+  file
+}
+
+.yout <- function(txt, file) {
+  if (is.null(file)) {
+    return(txt)
+  }
+  writeBin(charToRaw(enc2utf8(txt)), file)
+  invisible(file)
+}
+
+.ymeta <- function(meta, fn) {
+  if (!is.null(meta) && (!is.character(meta) || anyNA(meta))) {
+    stop(fn, ": `meta` must be NULL or text.", call. = FALSE)
+  }
+  if (length(meta)) gsub("[\r\n]+", " ", paste(meta, collapse = "; "))
+}
+
+# the period as shown: its label (yoylbl()) when there is one
+.yper <- function(d) {
+  as.character(if ("perlbl" %in% names(d)) d$perlbl else d$prd)
+}
+
+# decimals of the values shown: none for counts (a table with an exact
+# interval), else the fewest that show every value to six places
+.yvd <- function(d) {
+  if ("pctlo" %in% names(d)) {
+    return(0L)
+  }
+  v <- d$value[is.finite(d$value)]
+  if (!length(v)) {
+    return(0L)
+  }
+  min(6L, max(vapply(v, function(z) {
+    for (k in 0:6) if (abs(z - round(z, k)) < 1e-9) return(k)
+    6L
+  }, 0L)))
+}
+
+.ynum <- function(v, dg) {
+  out <- .yfmt(v, 1L, dg)
+  out[is.na(v)] <- "\u2014"
+  out
+}
+
+.ypct <- function(v, dg, pp) {
+  out <- .yfmt(v, if (pp) 3L else 2L, dg)
+  out[is.na(v) | is.nan(v)] <- "\u2014"
+  out
+}
+
+# control characters shown escaped, never written; ws keeps tabs and line
+# breaks
+.yctl <- function(s, ws = FALSE) {
+  s <- as.character(s)
+  u <- function(k) intToUtf8(k)
+  re <- paste0("[\001-\037\177", u(0x80), "-", u(0x9f), u(0x200e),
+               u(0x200f), u(0x202a), "-", u(0x202e), u(0x2066), "-",
+               u(0x2069), "]")
+  hit <- which(!is.na(s) & grepl(re, s, perl = TRUE))
+  nm <- c(`7` = "\\a", `8` = "\\b", `9` = "\\t", `10` = "\\n", `12` = "\\f",
+          `13` = "\\r", `27` = "\\033")
+  for (i in hit) {
+    cp <- utf8ToInt(enc2utf8(s[i]))
+    if (anyNA(cp)) next
+    s[i] <- paste(vapply(cp, function(k) {
+      if (ws && k %in% c(9L, 10L)) {
+        intToUtf8(k)
+      } else if (as.character(k) %in% names(nm)) {
+        nm[[as.character(k)]]
+      } else if (k < 32L || k == 127L) {
+        sprintf("\\%03o", k)
+      } else if (k >= 0x80 && k <= 0x9f || k %in% c(0x200e, 0x200f) ||
+                   k >= 0x202a && k <= 0x202e || k >= 0x2066 && k <= 0x2069) {
+        sprintf("<U+%04X>", k)
+      } else {
+        intToUtf8(k)
+      }
+    }, ""), collapse = "")
+  }
+  s
+}
+
 # a data frame with the percentage columns rounded when digits is given
 .yexp <- function(x, digits, fn) {
   if (!is.data.frame(x)) {
@@ -439,33 +509,6 @@ yoytsv <- function(x, file = NULL, digits = NULL, na = "", meta = NULL,
   }
 }
 
-#' @rdname yoycsv
-#' @export
-yoyjs <- function(x, file = NULL, digits = NULL, pretty = TRUE, meta = NULL) {
-  file <- .yfile(file, "yoyjs")
-  pretty <- .yflag(pretty, "pretty", "yoyjs")
-  d <- .yexp(x, digits, "yoyjs")
-  m <- .ymeta(meta, "yoyjs")
-  ok <- all(c("prd", "value", "prev", "change") %in% names(d)) &&
-    any(c("pctchg", "ppchg") %in% names(d))
-  sm <- if (ok) as.data.frame(unclass(yoysmry(d)))
-  ind <- if (pretty) 2L else NULL
-  parts <- c(
-    if (length(m)) c("meta", .yjs1(m)),
-    if (ok) c("summary", .yjsrows(sm, ind)),
-    "rows", .yjsrows(d, ind)
-  )
-  k <- parts[c(TRUE, FALSE)]
-  v <- parts[c(FALSE, TRUE)]
-  txt <- if (pretty) {
-    paste0("{\n", paste0("  ", vapply(k, .yjs1, ""), ": ", v,
-                         collapse = ",\n"), "\n}")
-  } else {
-    paste0("{", paste0(vapply(k, .yjs1, ""), ":", v, collapse = ","), "}")
-  }
-  .yout(paste0(txt, "\n"), file)
-}
-
 .ymdesc <- function(v) {
   v <- .yctl(gsub("([\\\\`*])", "\\\\\\1", gsub("[\r\n]+", " ", v)))
   v <- gsub("&", "&amp;", v, fixed = TRUE)
@@ -493,47 +536,4 @@ yoyjs <- function(x, file = NULL, digits = NULL, pretty = TRUE, meta = NULL) {
   }
   fl <- if ("flag" %in% names(d)) d$flag else rep(NA_character_, nrow(d))
   list(cols = cols, flag = fl, pp = pp)
-}
-
-#' @rdname yoycsv
-#' @export
-yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
-  file <- .yfile(file, "yoymd")
-  d <- .ytab(x, "yoymd")
-  digits <- .ydig(digits, "yoymd")
-  align <- .yflag(align, "align", "yoymd")
-  m <- .ymeta(meta, "yoymd")
-  s <- .yshow(d, digits)
-  cols <- s$cols
-  cols$note <- ifelse(is.na(s$flag), "", s$flag)
-  cols <- lapply(cols, .ymdesc)
-  nms <- .ymdesc(names(cols))
-  w <- if (align) {
-    vapply(seq_along(cols), function(i) {
-      max(3L, nchar(c(nms[i], cols[[i]]), type = "width"))
-    }, 0L)
-  } else {
-    rep(0L, length(cols))
-  }
-  nby <- as.integer("group" %in% names(d))
-  right <- seq_along(cols) > nby + 1L & names(cols) != "note"
-  pad <- function(s, k) {
-    gap <- strrep(" ", pmax(0L, w[k] - nchar(s, type = "width")))
-    if (right[k]) paste0(gap, s) else paste0(s, gap)
-  }
-  row <- function(vals) {
-    paste0("| ", paste(vapply(seq_along(vals), function(k) pad(vals[k], k), ""),
-                       collapse = " | "), " |")
-  }
-  rule <- paste0("| ", paste(vapply(seq_along(w), function(k) {
-    n <- max(3L, w[k])
-    if (right[k]) paste0(strrep("-", n - 1L), ":") else strrep("-", n)
-  }, ""), collapse = " | "), " |")
-  lines <- c(row(nms), rule, vapply(seq_len(nrow(d)), function(r) {
-    row(vapply(cols, function(v) v[r], ""))
-  }, ""))
-  if (length(m)) {
-    lines <- c(lines, "", paste0("_", .ymdesc(m), "_"))
-  }
-  .yout(paste0(paste(lines, collapse = "\n"), "\n"), file)
 }

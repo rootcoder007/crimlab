@@ -378,14 +378,6 @@ sfcure <- function(time, event, x = NULL, reg, w, tau = 1, tol = 1e-10) {
   .Call(C_clab_r_sfcure, time, event, x, reg, w, tau, tol)
 }
 
-.sfnames <- function(x, a, b) {
-  c(
-    a,
-    if (length(x[["coef"]])) paste0("x", seq_along(x[["coef"]])),
-    paste0(b, seq_along(x[[b]]))
-  )
-}
-
 #' @export
 print.sfrail <- function(x, ...) {
   cat(
@@ -511,4 +503,12 @@ print.evfilt <- function(x, ...) {
     sep = ""
   )
   invisible(x)
+}
+
+.sfnames <- function(x, a, b) {
+  c(
+    a,
+    if (length(x[["coef"]])) paste0("x", seq_along(x[["coef"]])),
+    paste0(b, seq_along(x[[b]]))
+  )
 }

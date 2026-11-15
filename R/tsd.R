@@ -116,7 +116,7 @@ catcor <- function(units) {
 #' @param npath The paths.
 #' @param days The horizon, in the time unit of `y`.
 #' @param dt The step.
-#' @param seed The seed.
+#' @inheritParams bamscl
 #' @return A list of class `ousim`: `theta`, `mu`, `sigma`, `halflife`
 #'   (\eqn{\log 2 / \theta}), `q` (the 5%, 50% and 95% points of the last
 #'   step), `paths` (paths by steps) and `n`.

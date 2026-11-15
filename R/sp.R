@@ -750,7 +750,7 @@ jtsurf <- function(x, y = NULL, win, nx, ny, type, par, tab = NULL,
 #'
 #' @param d Trip lengths: numbers from 0.
 #' @param t The distances to evaluate at (from 0 when `refl = TRUE`).
-#' @param h The bandwidth: one positive number.
+#' @inheritParams kerexp
 #' @param w `NULL` for equal weights, or one weight from 0 per trip, with a
 #'   positive sum.
 #' @param kern The kernel: `"normal"`, `"quartic"`, `"triangular"`,

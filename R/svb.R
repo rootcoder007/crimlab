@@ -63,7 +63,7 @@ bamscl <- function(Z, nsamp = 1000, burn = 200, polarity = 1, seed = 42) {
 #' come from `seed`, as [set.seed()] takes it.
 #'
 #' @param D A square matrix of dissimilarities.
-#' @param ndim The number of dimensions.
+#' @inheritParams optcls
 #' @param nsamp The draws kept.
 #' @param burn The sweeps discarded first.
 #' @param sigma The starting \eqn{\sigma = \tau^{-1/2}}.
@@ -102,7 +102,7 @@ bmdsf <- function(D, ndim = 2, nsamp = 1000, burn = 200, sigma = 1,
 #' the stimuli. The chain starts from the singular value decomposition of
 #' the centred matrix. Draws come from `seed`, as [set.seed()] takes it.
 #'
-#' @param D A respondent-by-stimulus matrix of dissimilarities.
+#' @inheritParams mlsmu
 #' @inheritParams bmdsf
 #' @return A list of class `bunfld`: `stim` (aligned posterior means),
 #'   `sd`, `ideal`, `dist` (posterior mean respondent-stimulus distances),
@@ -138,8 +138,7 @@ bunfld <- function(D, ndim = 2, nsamp = 1000, burn = 200, seed = 42) {
 #' \eqn{t} on stream \eqn{t} of key `seed`, so a chain is the same on
 #' every platform. The default start is the posterior mode of [irtem()].
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions.
+#' @inheritParams optcls
 #' @param nsamp The draws kept.
 #' @param burn The sweeps discarded first.
 #' @param bvar The prior variance \eqn{v} of the vote parameters.
@@ -195,8 +194,7 @@ cjrirt <- function(votes, ndim = 1, nsamp = 1000, burn = 200, bvar = 25,
 #' fewer than `minvotes` votes are dropped first. Draws come from `seed`,
 #' as [set.seed()] takes it.
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions.
+#' @inheritParams optcls
 #' @param nsamp The draws kept.
 #' @param burn The sweeps discarded first.
 #' @param seed The seed.
@@ -258,7 +256,7 @@ anomin <- function(votes, ndim = 1, nsamp = 500, burn = 100, seed = 42,
 #'
 #' @param Y A respondent-by-item matrix of ordinal responses (any ordered
 #'   numeric coding), `NA` for missing.
-#' @param ndim The number of dimensions.
+#' @inheritParams optcls
 #' @param nsamp The draws kept.
 #' @param burn The sweeps discarded first.
 #' @param seed The seed.

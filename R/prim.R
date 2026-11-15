@@ -1,51 +1,6 @@
 # Summary statistics computed by the compiled core (src/prim.cpp). The R
 # functions check their arguments; .pcall() runs the kernel.
 
-.pcall <- function(op, x, y = NULL, a = NULL) {
-  .Call(C_clab_r_prim, op, x, y, if (!is.null(a)) as.numeric(a))
-}
-
-# numbers or TRUE and FALSE, as doubles; NULL is no values
-.pnum <- function(x, nm, fn) {
-  if (is.null(x)) {
-    return(numeric())
-  }
-  if (!is.atomic(x) || !(is.numeric(x) || is.logical(x)) || is.factor(x)) {
-    stop(fn, ": `", nm, "` must be numbers (or TRUE and FALSE).",
-         call. = FALSE)
-  }
-  as.numeric(x)
-}
-
-# one number from lo (to hi), finite
-.pone <- function(x, nm, fn, lo = 0, hi = Inf, whole = FALSE) {
-  ok <- is.numeric(x) && length(x) == 1L && is.finite(x) && x >= lo &&
-    x <= hi && (!whole || x == floor(x))
-  if (!ok) {
-    what <- if (whole) "one whole number" else "one number"
-    to <- if (is.finite(hi) && !whole) paste0(" to ", format(hi)) else ""
-    stop(fn, ": `", nm, "` must be ", what, " from ", format(lo), to, ".",
-         call. = FALSE)
-  }
-  as.numeric(x)
-}
-
-.psame <- function(x, y, a, b, fn) {
-  if (length(x) != length(y)) {
-    stop(fn, ": `", a, "` and `", b, "` must have the same length.",
-         call. = FALSE)
-  }
-}
-
-.pseed <- function(seed, fn) {
-  if (!is.numeric(seed) || length(seed) != 1L || is.na(seed) || seed < 0 ||
-        seed != floor(seed) || seed >= 2^53) {
-    stop(fn, ": `seed` must be one whole number from 0, below 2^53.",
-         call. = FALSE)
-  }
-  as.numeric(seed)
-}
-
 #' Mean, variance and correlation (C backend)
 #'
 #' `cmn()`, `cvari()` and `ccorr()` compute the mean, the sample variance
@@ -151,17 +106,6 @@ cdistm <- function(a, b) {
   b <- .pnum(b, "b", "cdistm")
   .psame(a, b, "a", "b", "cdistm")
   .pcall(3L, a, b)
-}
-
-.pnorm <- function(x, mean, sd, lg, fn) {
-  x <- .pnum(x, "x", fn)
-  if (!is.numeric(mean) || length(mean) != 1L || !is.finite(mean)) {
-    stop(fn, ": `mean` must be one finite number.", call. = FALSE)
-  }
-  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0) {
-    stop(fn, ": `sd` must be one positive finite number.", call. = FALSE)
-  }
-  .pcall(4L, x, a = c(mean, sd, lg))
 }
 
 #' Normal density and log-density (C backend)
@@ -688,4 +632,60 @@ cgamcdf <- function(shape, x) {
 cunif <- function(n, seed) {
   n <- .pone(n, "n", "cunif", 0, .Machine$integer.max, TRUE)
   .pcall(16L, numeric(), a = c(n, .pseed(seed, "cunif")))
+}
+
+.pcall <- function(op, x, y = NULL, a = NULL) {
+  .Call(C_clab_r_prim, op, x, y, if (!is.null(a)) as.numeric(a))
+}
+
+# numbers or TRUE and FALSE, as doubles; NULL is no values
+.pnum <- function(x, nm, fn) {
+  if (is.null(x)) {
+    return(numeric())
+  }
+  if (!is.atomic(x) || !(is.numeric(x) || is.logical(x)) || is.factor(x)) {
+    stop(fn, ": `", nm, "` must be numbers (or TRUE and FALSE).",
+         call. = FALSE)
+  }
+  as.numeric(x)
+}
+
+# one number from lo (to hi), finite
+.pone <- function(x, nm, fn, lo = 0, hi = Inf, whole = FALSE) {
+  ok <- is.numeric(x) && length(x) == 1L && is.finite(x) && x >= lo &&
+    x <= hi && (!whole || x == floor(x))
+  if (!ok) {
+    what <- if (whole) "one whole number" else "one number"
+    to <- if (is.finite(hi) && !whole) paste0(" to ", format(hi)) else ""
+    stop(fn, ": `", nm, "` must be ", what, " from ", format(lo), to, ".",
+         call. = FALSE)
+  }
+  as.numeric(x)
+}
+
+.psame <- function(x, y, a, b, fn) {
+  if (length(x) != length(y)) {
+    stop(fn, ": `", a, "` and `", b, "` must have the same length.",
+         call. = FALSE)
+  }
+}
+
+.pseed <- function(seed, fn) {
+  if (!is.numeric(seed) || length(seed) != 1L || is.na(seed) || seed < 0 ||
+        seed != floor(seed) || seed >= 2^53) {
+    stop(fn, ": `seed` must be one whole number from 0, below 2^53.",
+         call. = FALSE)
+  }
+  as.numeric(seed)
+}
+
+.pnorm <- function(x, mean, sd, lg, fn) {
+  x <- .pnum(x, "x", fn)
+  if (!is.numeric(mean) || length(mean) != 1L || !is.finite(mean)) {
+    stop(fn, ": `mean` must be one finite number.", call. = FALSE)
+  }
+  if (!is.numeric(sd) || length(sd) != 1L || !is.finite(sd) || sd <= 0) {
+    stop(fn, ": `sd` must be one positive finite number.", call. = FALSE)
+  }
+  .pcall(4L, x, a = c(mean, sd, lg))
 }

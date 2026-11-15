@@ -2,13 +2,6 @@
 # (src/svk.h). Each passes its arguments to the kernel table in
 # src/svla.cpp, whose defaults the wrappers repeat, and classes the result.
 
-.sv <- function(fn, args, cls = "svfit") {
-  args <- lapply(args, function(a) if (is.data.frame(a)) as.matrix(a) else a)
-  r <- .Call(C_clab_r_svk, fn, args)
-  class(r) <- c(fn, cls)
-  r
-}
-
 #' Vote agreement between legislators
 #'
 #' The share of the roll calls on which each pair of legislators (judges,
@@ -712,7 +705,7 @@ dwnom <- function(votes, ndim = 2, maxit = 100) {
 #' @param normals Fitted normal vectors (votes by dimensions).
 #' @param cuts Fitted cutpoints, one per vote.
 #' @param nboot The bootstrap replicates.
-#' @param seed The seed.
+#' @inheritParams bamscl
 #' @return A list of class `nombt`: `se` and `mean` (legislators by
 #'   dimensions) and `nboot`.
 #' @references Lewis, J. B. and Poole, K. T. (2004). Measuring bias and
@@ -791,7 +784,7 @@ irtem <- function(votes, ndim = 1, maxit = 500, tol = 1e-6,
 #' @param Z A respondent-by-stimulus (or issue) matrix, `NA` for missing.
 #' @param method `"am"`, `"blackbox"` or `"blackbox_t"`.
 #' @param nboot The replicates.
-#' @param seed The seed.
+#' @inheritParams bamscl
 #' @return A list of class `scboot`: `se`, `mean`, `lo`, `hi` (2.5% and
 #'   97.5%) and `nboot`.
 #' @references Efron, B. and Tibshirani, R. J. (1993). *An Introduction to
@@ -834,4 +827,11 @@ scboot <- function(Z, method = "am", nboot = 200, seed = 42) {
 #' @export
 wrdfsh <- function(dtm, maxit = 100, tol = 1e-6) {
   .sv("wrdfsh", list(dtm = dtm, maxit = maxit, tol = tol))
+}
+
+.sv <- function(fn, args, cls = "svfit") {
+  args <- lapply(args, function(a) if (is.data.frame(a)) as.matrix(a) else a)
+  r <- .Call(C_clab_r_svk, fn, args)
+  class(r) <- c(fn, cls)
+  r
 }
