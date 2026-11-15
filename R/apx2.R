@@ -471,25 +471,8 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   f <- "ccross"
   strat <- match.arg(strat)
   d <- .axdat(data, f)
-  .axcols(d, c(y, unit, day), "y, unit, day", f, n = 3L)
-  .axcols(d, ma, "ma", f, null = TRUE)
-  if (!inherits(d[[day]], "Date")) {
-    .ckstop(f, "column `%s` must hold dates", day)
-  }
-  if (!is.function(est)) {
-    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
-  }
-  k <- .cknum(k, "k", f, min = 1, whole = TRUE)
-  .axcols(d, lagv, "lagv", f, null = TRUE)
-  lag <- .cknum(lag, "lag", f, min = 0, whole = TRUE)
-  if (!is.null(ns)) {
-    if (!is.numeric(ns) || is.null(names(ns)) || anyNA(ns) ||
-          any(ns < 1 | ns != round(ns))) {
-      .ckstop(f, "`ns` must be whole degrees of freedom named by column")
-    }
-    .axcols(d, names(ns), "names(ns)", f)
-  }
-  d <- .axccma(d, unit, day, ma, k, lagv, lag)
+  ck <- .axccck(d, y, unit, day, ma, est, k, lagv, lag, ns, f)
+  d <- .axccma(d, unit, day, ma, ck$k, lagv, ck$lag)
   ym <- format(d[[day]], "%Y-%m")
   d$.strat <- paste(
     as.character(d[[unit]]),
@@ -1240,4 +1223,28 @@ print.typefx <- function(x, ...) {
     for (l in lv) out[[paste0("dens:", l)]] <- as.numeric(!is.na(dv) & dv == l)
   }
   out
+}
+
+# The checks of ccross()'s columns, estimator and numbers, in their
+# order: list(k, lag).
+.axccck <- function(d, y, unit, day, ma, est, k, lagv, lag, ns, f) {
+  .axcols(d, c(y, unit, day), "y, unit, day", f, n = 3L)
+  .axcols(d, ma, "ma", f, null = TRUE)
+  if (!inherits(d[[day]], "Date")) {
+    .ckstop(f, "column `%s` must hold dates", day)
+  }
+  if (!is.function(est)) {
+    .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
+  }
+  k <- .cknum(k, "k", f, min = 1, whole = TRUE)
+  .axcols(d, lagv, "lagv", f, null = TRUE)
+  lag <- .cknum(lag, "lag", f, min = 0, whole = TRUE)
+  if (!is.null(ns)) {
+    if (!is.numeric(ns) || is.null(names(ns)) || anyNA(ns) ||
+          any(ns < 1 | ns != round(ns))) {
+      .ckstop(f, "`ns` must be whole degrees of freedom named by column")
+    }
+    .axcols(d, names(ns), "names(ns)", f)
+  }
+  list(k = k, lag = lag)
 }
