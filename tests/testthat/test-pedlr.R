@@ -384,3 +384,18 @@ test_that("a pedigree whose tables exceed the bound is refused", {
     fixed = TRUE
   )
 })
+
+test_that("the pedigree binding refuses columns, alt and mut it cannot use", {
+  ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
+                   mid = c(NA, NA, "m"))
+  geno <- data.frame(id = c("f", "c"), locus = "L", a1 = c(1, 1),
+                     a2 = c(2, 3))
+  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5))
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(pedlr(ok, transform(geno, locus = as.Date("2024-01-01")), fr),
+     "pedlr: `geno` must hold labels: text or numbers.")
+  ef(pedlr(ok, geno, fr, alt = 1),
+     "pedlr: `alt` must be NULL or a data frame with columns id, fid and mid.")
+  ef(pedlr(ok, geno, fr, mut = NA_character_),
+     "pedlr: `mut` must be one of none, equal, step.")
+})

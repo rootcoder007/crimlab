@@ -364,3 +364,28 @@ test_that("gmixlr() equals EuroForMix's likelihood and its maximum", {
     }
   }
 })
+
+test_that("gmixlr() refuses duplicates and unknowns in its tables", {
+  pk <- data.frame(locus = "L", allele = c(1, 3), height = c(800, 900))
+  ref <- data.frame(id = "S", locus = "L", a1 = 1, a2 = 3)
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  g <- function(peaks = pk, freq = fr, r = ref, ...) {
+    gmixlr(peaks, freq, r, hp = "S", nc = 1, pc = 0, ...)
+  }
+  ef(g(freq = rbind(fr, fr[1, ])),
+     "gmixlr: `freq` lists the allele 1 twice at locus L.")
+  ef(g(peaks = rbind(pk, pk[1, ])),
+     "gmixlr: `peaks` gives the allele 1 twice at locus L.")
+  ef(g(r = transform(ref, a1 = NA)),
+     "gmixlr: `ref` has a missing id, locus or allele.")
+  ef(g(r = transform(ref, a1 = 9)),
+     "gmixlr: `ref` has an allele of S at locus L that `freq` does not list.")
+  ef(g(r = rbind(ref, ref)), "gmixlr: `ref` gives S twice at locus L.")
+  ef(gmixlr(pk, fr, ref, hp = c("S", "S"), nc = 2, pc = 0),
+     "gmixlr: `hp` names S twice.")
+  # one contributor, homozygous 2/2, no drop-in: peaks at 1 and 3 have
+  # no source under hp
+  ef(g(r = transform(ref, a1 = 2, a2 = 2)),
+     paste("gmixlr: the likelihood under hp is 0 at every start: the",
+           "account cannot explain the peaks."))
+})

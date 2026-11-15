@@ -78,3 +78,19 @@ test_that("spcure() refuses bad input in words", {
     )
   )
 })
+
+test_that("a covariate matrix is the data frame of its columns", {
+  set.seed(1)
+  n <- 200
+  x <- rnorm(n)
+  t <- rexp(n)
+  ev <- rbinom(n, 1, 0.6)
+  a <- spcure(t, ev, data.frame(prior = x))
+  expect_identical(spcure(t, ev, cbind(prior = x))$coef, a$coef)
+  # an unnamed column is named by its position
+  expect_identical(spcure(t, ev, matrix(x))$coef$term,
+                   c("(Intercept)", "x1", "(Intercept)", "x1", "log(shape)"))
+  expect_error(spcure(t, ev, matrix(c(x[-1], Inf))),
+               "spcure: `x` must hold finite numbers with no missing values.",
+               fixed = TRUE)
+})

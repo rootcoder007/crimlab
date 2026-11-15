@@ -132,3 +132,10 @@ test_that("cmpsc() refuses bad input", {
     list("shorter than a widened segment", a = a, b = a[1:150])
   ))
 })
+
+test_that("cmpsc() takes at most eight peak counts", {
+  set.seed(1)
+  expect_error(cmpsc(rnorm(100), rnorm(100), npeaks = 1:9),
+               "cmpsc: `npeaks` must be one to eight whole numbers from 1.",
+               fixed = TRUE)
+})
