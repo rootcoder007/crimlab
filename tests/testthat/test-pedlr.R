@@ -326,3 +326,61 @@ test_that("pedlr() prints and refuses bad input", {
     )
   )
 })
+
+test_that("pedlr() refuses each malformed table in its own words", {
+  ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
+                   mid = c(NA, NA, "m"))
+  geno <- data.frame(id = c("f", "c"), locus = "L", a1 = c(1, 1),
+                     a2 = c(2, 3))
+  fr <- data.frame(locus = "L", allele = 1:3, freq = c(0.2, 0.3, 0.5))
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(pedlr(transform(ok, id = c("f", NA, "c")), geno, fr),
+     "pedlr: `ped` has an id that is missing.")
+  ef(pedlr(transform(ok, mid = c(NA, NA, "f")), geno, fr),
+     "pedlr: `ped`: c has one person as father and mother.")
+  ef(pedlr(ok, transform(geno, id = c(NA, "c")), fr),
+     "pedlr: `geno` has a missing id or locus.")
+  ef(pedlr(ok, rbind(geno, geno[1, ]), fr),
+     "pedlr: `geno` gives f twice at locus L.")
+  ef(pedlr(ok, geno, fr, alt = data.frame(id = c("f", "x"), fid = NA,
+                                          mid = NA)),
+     "pedlr: `geno`: the id c is not in `alt`.")
+  ef(pedlr(ok, geno, transform(fr, locus = c("L", NA, "L"))),
+     "pedlr: `freq` has a missing locus or allele.")
+  ef(pedlr(ok, geno, transform(fr, freq = c(0, 0.3, 0.5))),
+     "pedlr: `freq` must hold frequencies above 0 and at most 1.")
+  ef(pedlr(ok, geno, rbind(fr, fr[1, ])),
+     "pedlr: `freq` lists the allele 1 twice at locus L.")
+  ef(pedlr(ok, transform(geno, locus = c("L", "Q")), fr),
+     "pedlr: `geno` has the locus Q, which `freq` does not list.")
+  # nobody typed at any locus, with both pedigrees given
+  ef(pedlr(ok, transform(geno, a1 = NA, a2 = NA), fr,
+           alt = data.frame(id = c("f", "c"), fid = NA, mid = NA)),
+     "pedlr: `geno` must type someone.")
+})
+
+test_that("a locus of one allele cannot mutate", {
+  ok <- data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),
+                   mid = c(NA, NA, "m"))
+  # every allele is that one: the mutation matrix is the identity, and
+  # both pedigrees have likelihood 1
+  r <- pedlr(ok, data.frame(id = c("f", "c"), locus = "S", a1 = 5, a2 = 5),
+             data.frame(locus = "S", allele = 5, freq = 1), mut = "equal")
+  expect_identical(unlist(r$locus[1, c("l1", "l2", "lr")]),
+                   c(l1 = 0, l2 = 0, lr = 1))
+})
+
+test_that("a pedigree whose tables exceed the bound is refused", {
+  # a loop (a child of half siblings) untyped at 100 alleles: summing out
+  # an allele needs a table of four alleles, 1e8 cells, past 2^26
+  lp <- data.frame(id = letters[1:8],
+                   fid = c(NA, NA, NA, "a", "a", NA, "d", "d"),
+                   mid = c(NA, NA, NA, "b", "c", NA, "e", "f"))
+  big <- data.frame(locus = "B", allele = 1:100, freq = 0.01)
+  gb <- data.frame(id = c("g", "h"), locus = "B", a1 = c(1, 2), a2 = c(2, 3))
+  expect_error(
+    pedlr(lp, gb, big),
+    "pedlr: the pedigrees are too large for exact computation at locus B.",
+    fixed = TRUE
+  )
+})
