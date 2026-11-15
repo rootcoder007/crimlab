@@ -55,7 +55,8 @@
 #'   suspect, or the number of people in a lineup: one whole number from 2.
 #' @param far `NULL` or the false alarm rate up to which the partial area
 #'   runs: one number above 0, at most 1.
-#' @param nboot The bootstrap samples: one whole number from 0 (none).
+#' @param nboot The bootstrap samples: one whole number from 0 (none);
+#'   `nboot` times the procedures must be at most 67108864 (2^26).
 #' @param seed The seed of the bootstrap: `NULL` to draw it from R's
 #'   generator, or one whole number from 0.
 #' @inheritParams cntreg

@@ -74,6 +74,7 @@ int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, in
                double *pauc, double *bse, double *fused) {
   if (n < 2 || np < 1 || size < 0) return CLAB_EARG;
   if (nboot < 0 || static_cast<double>(nboot) * n > 4e12) return CLAB_EARG;
+  if (static_cast<double>(nboot) * np > kutil::maxcell) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (pr[i] < 0 || pr[i] >= np || pk[i] < 0 || pk[i] > 2 || (tp[i] != 0 && tp[i] != 1)) return CLAB_EARG;
     if (pk[i] != 0 && !std::isfinite(cf[i])) return CLAB_EDOM;

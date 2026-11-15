@@ -1042,6 +1042,7 @@ lpk <- ifelse(ltp == 1, sample(c("suspect", "filler", "none"), 40, TRUE, c(0.5, 
               sample(c("suspect", "filler", "none"), 40, TRUE, c(0.15, 0.3, 0.55)))
 lcf <- ifelse(lpk == "none", NA, sample(1:5, 40, TRUE))
 ok("lnroc", tp = ltp, pick = lpk, conf = lcf, proc = lpr)
+bad("lnroc", tp = ltp, pick = lpk, conf = lcf, proc = lpr, nboot = 1e9, seed = 1)
 ok("lnroc", tp = ltp, pick = lpk, conf = lcf, proc = lpr, far = 0.1, nboot = 20, seed = 1, level = 0.9)
 ok("lnroc", tp = c(1, 1, 1, 1, 0, 0, 0, 0), pick = c("suspect", "suspect", "filler", "none", "suspect", "filler",
    "none", "none"), conf = c(3, 1, 2, NA, 2, 3, NA, NA), size = 3)

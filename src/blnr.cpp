@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "bcol.h"
+#include "kutil.h"
 #include "rchk.h"
 
 extern "C" double Rf_pnorm5(double, double, double, int, int);
@@ -85,6 +86,8 @@ SEXP C_clab_r_lnroc(SEXP tp, SEXP pick, SEXP conf, SEXP proc, SEXP size, SEXP fa
   const double fm = Rf_isNull(far) ? 0.0 : bj::inr(far, "far", 0.0, 1.0);
   if (!Rf_isNull(far) && !(fm > 0)) fail("`far` must be one number above 0, at most 1.");
   const int nb = clab::whole(nboot, "nboot", 0);
+  // the bootstrap areas are kept, one per replicate and procedure
+  if (static_cast<double>(nb) * np > kutil::maxcell) fail("`nboot` times the procedures must be at most %.0f.", kutil::maxcell);
   const unsigned int sd = nb > 0 ? csp::seed(seed) : 0u;
   const double lv = clab::one(level, "level", 0.0, 1.0);
   std::vector<int> ti(static_cast<std::size_t>(n));

@@ -807,6 +807,9 @@
   `kscan()` compares each simulated maximum as it is drawn instead of
   keeping all `nsim` of them, so a large `nsim` is only long, and can be
   interrupted. The command line gives the same messages.
+* `lnroc()` refuses an `nboot` whose kept replicates, one per procedure,
+  would pass 2^26, before it starts (it used to abort R). The command
+  line gives the same message.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

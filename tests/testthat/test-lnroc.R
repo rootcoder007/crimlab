@@ -274,3 +274,10 @@ test_that("lnroc() and lnsize() refuse bad input in words", {
     )
   )
 })
+
+test_that("bootstrap replicates past their bound are refused at once", {
+  d <- lnsim()
+  expect_error(lnroc(d$tp, d$pick, d$conf, proc = d$proc, nboot = 1e9),
+               "lnroc: `nboot` times the procedures must be at most 67108864.",
+               fixed = TRUE)
+})

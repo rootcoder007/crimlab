@@ -43,6 +43,7 @@ bool lnroc(Ctx &c, Val &out) {
   }
   int nb = 0;
   CK(wholed(c, "nboot", 0, 0, nb));
+  if (static_cast<double>(nb) * np > kutil::maxcell) return c.fail("`nboot` times the procedures must be at most %.0f.", kutil::maxcell);
   unsigned int sd = 0;
   if (nb > 0) CK(seed(c, sd));
   double lv = 0.0;
