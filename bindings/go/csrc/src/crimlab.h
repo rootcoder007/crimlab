@@ -3068,6 +3068,37 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
                 const int *a, int n, int ng, int na, int ref, int maxit, double *gs, double *hz,
                 double *chi, double *thr, double *tse, double *cfit, double *lrt, int *conv);
 
+/* The threshold test fitted by Bayesian inference: the discriminant
+ * distributions of clab_thrtst (phi = logistic(phi_r + phi_d), delta =
+ * exp(delta_r + delta_d), the area with the most stops pinned at 0) with
+ * the hierarchical priors of Simoiu, Corbett-Davies and Goel (2017,
+ * doi:10.1214/17-AOAS1058, Section 2): phi_r, delta_r ~ N(0, 2); phi_d ~
+ * N(mu_phi, sigma_phi), delta_d ~ N(mu_delta, sigma_delta), mu ~ N(0, 2),
+ * sigma ~ N+(0, 2); each cell's threshold t_rd ~ logistic(N(mu_t,r,
+ * sigma_t,r)), mu_t ~ N(0, 2), sigma_t ~ N+(0, 2). Hamiltonian Monte
+ * Carlo by the No-U-Turn sampler (Hoffman and Gelman 2014, Algorithm 6;
+ * at most 2^10 leapfrog steps a draw) with a diagonal mass matrix, the
+ * step size tuned to an acceptance of 0.8 by dual averaging over the
+ * first half of the iter steps of each of chains (>= 2) chains (warm-up,
+ * dropped); seed fixes the draws. Out: post (nq x 6, nq = 6 ng + 4 + 2 (na -
+ * 1) + C, C the cells with stops; columns mean, sd, the quantiles (1 -
+ * level) / 2 and (1 + level) / 2, the effective sample size and the split
+ * R-hat of Gelman et al. 2013; rows: each group's threshold, the stops of
+ * its areas averaged, and its difference from ref's (NaN diagnostics at
+ * ref), phi_r, delta_r, mu_phi, sigma_phi, mu_delta, sigma_delta, phi_d
+ * and delta_d of the areas but the pinned one in order, mu_t, sigma_t,
+ * the cells' thresholds, area-major); init: NULL for starts drawn in (-2,
+ * 2), or the logit phi, log delta and logit t of each cell (ng na x 3,
+ * cell j + ng q, as from clab_thrtst's cfit), the start of every chain
+ * moved by up to 0.25 at random in each parameter; cfit (ng na x 5 as clab_thrtst's,
+ * posterior means); info (4: divergent transitions, mean acceptance, step
+ * size, the pinned area). CLAB_EDOM for counts out of order, a group
+ * without searches or C <= 2 (ng + na - 1) (the data do not identify the
+ * model). O(chains iter 1024 C) at most. */
+int clab_thrbay(const double *stops, const double *srch, const double *hits, const int *g, const int *a, int n,
+                int ng, int na, int ref, int chains, int iter, unsigned int seed, double level, const double *init,
+                double *post, double *cfit, double *info);
+
 /* The rank-order test of Anwar and Fang (2006,
  * doi:10.1257/000282806776157579), pairwise: n rows of counts by officer
  * group o[i] of no and suspect group g[i] of ng (both >= 2). Out: rate (no

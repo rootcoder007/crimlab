@@ -187,3 +187,104 @@ test_that("the joint test finds a cycle that no pair shows", {
   p <- thrtst(rep(600, 9), sr, sr / 2, g, off = o)
   expect_false(any(p$rank$rej))
 })
+
+# Three groups with the same counts in five areas: the posterior is the
+# same for every group, so the differences of their thresholds are 0 but
+# for the Monte Carlo error.
+bsym <- function() {
+  d <- expand.grid(g = c("a", "b", "c"), a = 1:5, stringsAsFactors = FALSE)
+  d$stops <- c(60, 50, 40, 55, 45)[d$a]
+  d$srch <- c(12, 9, 8, 11, 7)[d$a]
+  d$hits <- c(5, 3, 3, 4, 2)[d$a]
+  d
+}
+
+test_that("the Bayesian fit is symmetric, reproducible and reports its draws", {
+  d <- bsym()
+  b <- thrtst(d$stops, d$srch, d$hits, d$g, area = d$a, fit = "bayes",
+              iter = 500, chains = 2, seed = 3)
+  expect_named(
+    b$thr,
+    c("group", "thr", "se", "lo", "hi", "diff", "dse", "dlo", "dhi")
+  )
+  expect_null(b$lrt)
+  expect_identical(b$fit$model, "bayes")
+  expect_identical(b$fit$chains, 2L)
+  k <- b$post$param %in% c("diff[b]", "diff[c]")
+  mc <- b$post$sd[k] / sqrt(b$post$ess[k])
+  expect_true(all(abs(b$post$mean[k]) < 4 * mc))
+  expect_lt(max(b$post$rhat, na.rm = TRUE), 1.05)
+  expect_gte(min(b$post$ess[1:6], na.rm = TRUE), 100)
+  expect_true(all(b$thr$lo < b$thr$thr))
+  expect_true(all(b$thr$thr < b$thr$hi))
+  expect_equal(b$thr$thr, b$post$mean[1:3], tolerance = 1e-15)
+  # 3 groups, 4 hyperparameters, 4 areas but the pinned one, 15 cells
+  expect_identical(nrow(b$post), 6L * 3L + 4L + 2L * 4L + 15L)
+  expect_identical(nrow(b$cells), 15L)
+  expect_identical(
+    b,
+    thrtst(d$stops, d$srch, d$hits, d$g, area = d$a, fit = "bayes",
+           iter = 500, chains = 2, seed = 3)
+  )
+})
+
+test_that("the Bayesian fit sees a lower threshold", {
+  d <- bsym()
+  # group c searched twice as often, with as many hits
+  sr <- ifelse(d$g == "c", 2 * d$srch, d$srch)
+  b <- thrtst(d$stops, sr, d$hits, d$g, area = d$a, fit = "bayes",
+              iter = 500, seed = 3)
+  dc <- b$thr$diff[3]
+  expect_lt(dc, 0)
+  expect_lt(dc, b$thr$diff[2])
+})
+
+test_that("the Bayesian fit refuses unidentified data and unmixed chains", {
+  d <- bsym()
+  errs(
+    "thrtst",
+    list(
+      list(
+        "needs more cells with stops than 2",
+        d$stops[d$g != "c"], d$srch[d$g != "c"], d$hits[d$g != "c"],
+        d$g[d$g != "c"], area = d$a[d$g != "c"], fit = "bayes", seed = 1
+      ),
+      list(
+        "the chains have not mixed",
+        d$stops, d$srch, d$hits, d$g, area = d$a, fit = "bayes",
+        iter = 20, seed = 1
+      ),
+      list("`fit` must be one of", c(10, 10), c(2, 3), c(1, 1), c(1, 2),
+           fit = "mcmc"),
+      list("`chains`", c(10, 10), c(2, 3), c(1, 1), c(1, 2), chains = 1),
+      list("`iter`", c(10, 10), c(2, 3), c(1, 1), c(1, 2), iter = 10)
+    )
+  )
+})
+
+test_that("on data with one threshold per group the Bayesian fit sits below", {
+  # the behaviour the help page warns of: counts made with one threshold
+  # per group and area offsets (three groups, six areas); the model with a
+  # threshold for every cell puts every group's threshold below the
+  # maximum-likelihood one
+  d <- expand.grid(g = 1:3, a = 1:6)
+  ag <- c(-1.2, -0.6, -0.9)
+  bg <- c(0.4, 0.2, 0.3)
+  cg <- c(-1, -1.4, -0.8)
+  aa <- c(0, 0.3, -0.4, 0.2, -0.1, 0.25)
+  ba <- c(0, 0.15, -0.1, 0.05, 0.1, -0.05)
+  ca <- c(0, 0.2, -0.3, 0.1, -0.15, 0.05)
+  ph <- plogis(ag[d$g] + aa[d$a])
+  dl <- exp(bg[d$g] + ba[d$a])
+  gg <- cg[d$g] + ca[d$a]
+  x <- (gg - qlogis(ph)) / dl + dl / 2
+  A <- ph * pnorm(x - dl, lower.tail = FALSE)
+  B <- (1 - ph) * pnorm(x, lower.tail = FALSE)
+  st <- ifelse(d$a == 1, 1000, 500)
+  sr <- round(st * (A + B))
+  ht <- round(st * A)
+  m <- thrtst(st, sr, ht, d$g, area = d$a)
+  b <- thrtst(st, sr, ht, d$g, area = d$a, fit = "bayes", iter = 500,
+              chains = 2, seed = 1)
+  expect_true(all(b$thr$thr < m$thr$thr))
+})

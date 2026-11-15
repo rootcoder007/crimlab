@@ -14,7 +14,11 @@ thrtst(
   ref = NULL,
   level = 0.95,
   maxit = 2000,
-  rank = "pair"
+  rank = "pair",
+  fit = "ml",
+  chains = 4,
+  iter = 1000,
+  seed = NULL
 )
 }
 \arguments{
@@ -44,6 +48,17 @@ fit: one whole number from 1.}
 
 \item{rank}{\code{"pair"} or \code{"joint"}: the rank-order test by pairs of officer
 groups or for all of them at once.}
+
+\item{fit}{\code{"ml"} or \code{"bayes"}: the threshold model by maximum likelihood
+or by Bayesian inference.}
+
+\item{chains}{The chains of the Bayesian fit: one whole number from 2.}
+
+\item{iter}{The steps of each chain, half of them warm-up: one whole
+number from 20.}
+
+\item{seed}{The seed of the Bayesian fit: \code{NULL} to draw it from R's
+generator, or one whole number from 0.}
 }
 \value{
 An object of class \code{thrtst}, a list: \code{hit}, one row per group
@@ -55,14 +70,19 @@ reference); \code{kpt}, the chi-square of equal hit rates (\code{chisq}, \code{d
 is not identified; \code{lrt}, the likelihood-ratio test of equal
 thresholds (\code{stat}, \code{df}, \code{p}, the log-likelihoods \code{llfull} and
 \code{llsame}, and the number of \code{cells}); \code{fit}, one row per model
-(\code{model}, \code{conv}, \code{iter}); \code{cells}, the fitted \code{phi}, \code{delta}, \code{thr},
+(\code{model}, \code{conv}, \code{iter}; with \code{fit = "bayes"} one row with \code{chains},
+the divergent transitions \code{div}, the mean acceptance \code{acc} and the
+step size \code{eps} as well); \code{cells}, the fitted \code{phi}, \code{delta}, \code{thr},
 \code{srate} and \code{hrate} of each group and area with stops; \code{rank}, \code{NULL}
 without \code{off}, otherwise with \code{rank = "pair"} one row per pair of
 officer groups and measure (\code{off1}, \code{off2}, \code{meas}, \code{zmin}, \code{zmax},
 \code{rej}) and with \code{rank = "joint"} one row per measure and officer group
 (\code{meas}, \code{off}, \code{rank}, \code{rej}); \code{ref}; and \code{mono}, \code{NULL} without
 \code{off}, otherwise one row per group of the people stopped and measure
-(\code{grp}, \code{meas}, \code{chisq}, \code{df}, \code{p}).
+(\code{grp}, \code{meas}, \code{chisq}, \code{df}, \code{p}); \code{post}, \code{NULL} unless \code{fit = "bayes"}, otherwise one row per quantity (\code{param}, \code{mean}, \code{sd}, \code{lo},
+\code{hi}, \code{ess}, \code{rhat}). With \code{fit = "bayes"} \code{thr} has the columns
+\code{group}, \code{thr}, \code{se}, \code{lo}, \code{hi}, \code{diff}, \code{dse}, \code{dlo} and \code{dhi}, and
+\code{lrt} is \code{NULL}.
 }
 \description{
 Asks whether the police search people of one group on less evidence
@@ -90,9 +110,9 @@ chance exceeds the threshold \code{t}. In each group and area \code{phi},
 \code{delta} and \code{t} are the logistic (\code{phi}, \code{t}) or exponential (\code{delta})
 of a group term plus an area term, so a group's threshold may differ
 from another's by the same amount on the logit scale in every area.
-The model is fitted by maximum likelihood to the binomial counts of
-searches among stops and hits among searches (where the published
-method uses Bayesian inference). A lower threshold for a group is
+With \code{fit = "ml"} (the default) the model is fitted by maximum
+likelihood to the binomial counts of searches among stops and hits
+among searches. A lower threshold for a group is
 evidence of discrimination against it. \code{thr} is each group's threshold
 averaged over the areas, weighted by the areas' stops, with a
 delta-method standard error; the likelihood-ratio test compares the
@@ -130,6 +150,53 @@ assignment across stations needs data on single officers and is not
 done.
 }
 
+With \code{fit = "bayes"} the threshold test is fitted as the papers fit it,
+by Bayesian inference. The signal distributions are those above, with
+the area with the most stops as the reference (its terms 0), and each
+group and area has its own threshold. The priors are those of Simoiu,
+Corbett-Davies and Goel (2017, Section 2): normal priors with standard
+deviation 2 on the groups' terms \code{phi_r} and \code{delta_r}; the areas'
+terms drawn from \code{N(mu, sigma)}, with \code{mu ~ N(0, 2)} and \code{sigma} half
+normal with scale 2, for each of \code{phi} and \code{delta}; and each threshold
+on the logit scale drawn from \code{N(mu_t, sigma_t)} of its group, again
+with \code{mu_t ~ N(0, 2)} and half-normal \code{sigma_t}. Pierson,
+Corbett-Davies and Goel (2017) keep this model and put the
+discriminant distributions in place of the beta distributions of
+Simoiu et al. The posterior is sampled by Hamiltonian Monte Carlo, as
+both papers do with Stan, here with the No-U-Turn sampler of Hoffman
+and Gelman (2014) and a diagonal mass matrix: \code{chains} chains of \code{iter}
+steps, the first half of each tuning the step size (to an acceptance
+of 0.8) and the scale of each parameter and then dropped, at most 2^10
+leapfrog steps a draw; \code{seed} fixes the draws. Each chain starts at the
+maximum-likelihood fit with every parameter moved at random by up to
+0.25, because random starts can leave a chain in a far worse mode.
+\code{thr} then holds each group's threshold averaged over its areas by
+their stops (posterior mean \code{thr}, standard deviation \code{se} and the
+interval \code{lo}, \code{hi} of probability \code{level}) and its difference from
+the reference group's (\code{diff}, \code{dse}, \code{dlo}, \code{dhi}); \code{post} gives the
+same summaries with the
+effective sample size and the split R-hat of Gelman et al. (2013) for
+every parameter. The function refuses to report chains that have not
+mixed: an R-hat of 1.05 or more for any parameter (the rule of Simoiu
+et al., Section 3.1), or fewer than 100 effective draws of a threshold
+or a difference; more iterations then help. The data identify the
+model only when there are more cells with stops than \code{2 (groups + areas - 1)}, three groups and five areas at least (Simoiu et al.,
+Section 2); with fewer the function refuses. The authors' published
+code for the faster model sets other priors (a threshold scale shared
+by the groups, tighter priors on the areas); the priors here are those
+the paper states.
+
+The two fits answer under different models and should be reported as
+such, not as checks of one another. The Bayesian model gives each
+group and area its own threshold under a hierarchical prior; on data
+made with one threshold per group (and area offsets) it can report
+thresholds far from the maximum-likelihood ones and from the values
+that made the data. For three groups in ten areas with 20,000 stops a
+cell its posterior means were about 0.13, 0.07 and 0.14, against 0.27,
+0.20 and 0.31 from maximum likelihood and from the generating model.
+Stan's sampler gives the same posterior on the same model, so this is
+a property of the model, not of the sampler.
+
 Rows are cells of a table (or single stops, with counts of 0 and 1):
 rows of the same group and area (and officer group) add up.
 }
@@ -166,4 +233,12 @@ Applied Statistics}, 11(3), 1193-1216. \doi{10.1214/17-AOAS1058}
 Pierson, E., Corbett-Davies, S. and Goel, S. (2017). Fast threshold
 tests for detecting discrimination. arXiv:1702.08536.
 \doi{10.48550/arXiv.1702.08536}
+
+Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A.
+and Rubin, D. B. (2013). \emph{Bayesian Data Analysis}, 3rd ed. Chapman and
+Hall/CRC. \doi{10.1201/b16018}
+
+Hoffman, M. D. and Gelman, A. (2014). The No-U-Turn sampler:
+adaptively setting path lengths in Hamiltonian Monte Carlo. \emph{Journal
+of Machine Learning Research}, 15, 1593-1623.
 }

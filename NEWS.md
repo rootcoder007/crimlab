@@ -42,6 +42,26 @@
 * `polex()` makes the simulated policy panel the examples of the policy
   functions use: twenty districts, 36 months and a staged reform with a
   known effect. The same seed gives the same panel in every front end.
+* `thrtst()` gains `fit = "bayes"`: the threshold test fitted by Bayesian
+  inference, as Simoiu, Corbett-Davies and Goel (2017) and Pierson,
+  Corbett-Davies and Goel (2017) fit it, with a threshold for every group
+  and area and the hierarchical priors that Simoiu et al. state, on the
+  discriminant distributions. The posterior is sampled in C++ by the
+  No-U-Turn sampler (`chains`, `iter`, `seed`), starting near the
+  maximum-likelihood fit. `thr` gives the posterior means and intervals
+  of the thresholds and of their differences from the reference group,
+  and `post` the summaries, effective sample size and R-hat of every
+  parameter. Chains with an R-hat of 1.05 or more, or fewer than 100
+  effective draws of a threshold, are refused. The fit agrees with Stan's
+  sampler on the same model. `fit = "ml"` stays the default. The two fits
+  answer under different models and should be reported as such, not as
+  checks of one another: with a threshold for every group and area under
+  a hierarchical prior, on data made with one threshold per group the
+  Bayesian fit can report thresholds far from the maximum-likelihood ones
+  and from the generating values (three groups in ten areas, 20,000 stops
+  a cell: about 0.13, 0.07 and 0.14 against 0.27, 0.20 and 0.31), which
+  Stan reproduces on the same model.
+
 * `thrtst()` gains `rank = "joint"`, the rank-order test of Anwar and
   Fang (2006) as the paper states it: the ranking of all officer groups
   is tested at once by their one-sided z statistics, and the null of no

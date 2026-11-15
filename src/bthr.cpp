@@ -4,6 +4,7 @@
 // src/thr.cpp): it checks the arguments, calls the kernels and builds the
 // R result. Nothing calls back into the R evaluator.
 #include <cmath>
+#include <string>
 #include <vector>
 
 #include "bcol.h"
@@ -29,7 +30,7 @@ SEXP labsel(SEXP lev, const std::vector<int> &code) {
 extern "C" {
 
 SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP off, SEXP ref,
-                     SEXP level, SEXP maxit, SEXP rank) {
+                     SEXP level, SEXP maxit, SEXP rank, SEXP fitm, SEXP chains, SEXP iter, SEXP seed) {
   clab::who = "thrtst";
   int np = 0;
   SEXP sv = PROTECT(bj::nums(stops, "stops", -1, 0.0));
@@ -64,6 +65,10 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
   const int mi = clab::whole(maxit, "maxit", 1);
   static const char *const rko[] = {"pair", "joint"};
   const int rk = csp::pick(rank, "rank", rko, 2);
+  static const char *const fto[] = {"ml", "bayes"};
+  const int fm = csp::pick(fitm, "fit", fto, 2);
+  const int nch = clab::whole(chains, "chains", 2);
+  const int nit = clab::whole(iter, "iter", 20);
   const int ng = g.g;
   std::vector<double> tk(static_cast<std::size_t>(ng), 0.0);
   for (int i = 0; i < n; ++i) tk[static_cast<std::size_t>(INTEGER(g.code)[i])] += REAL(kv)[i];
@@ -83,7 +88,12 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
       ++nc;
     }
   }
-  const bool fit = 2 * nc > 3 * (ng + na - 1);
+  const bool fit = fm == 0 && 2 * nc > 3 * (ng + na - 1);
+  const bool bay = fm == 1;
+  if (bay && !(nc > 2 * (ng + na - 1))) {
+    fail("the Bayesian threshold model needs more cells with stops than 2 (groups + areas - 1), %d: there are %d.",
+         2 * (ng + na - 1), nc);
+  }
   const std::size_t un = static_cast<std::size_t>(ng), cn = static_cast<std::size_t>(ng) * na;
   std::vector<double> gs(6 * un), hz(4 * un), chi(3), thr(un), tse(3 * un), cfit(5 * cn), lrt(6);
   std::vector<int> conv(4, 0);
@@ -105,7 +115,7 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
     double *c = h.dbl(zn[q]);
     for (int j = 0; j < ng; ++j) c[j] = bj::na(hz[static_cast<std::size_t>(q) * un + j]);
   }
-  SEXP out = PROTECT(Rf_allocVector(VECSXP, 9));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 10));
   ++np;
   SET_VECTOR_ELT(out, 0, h.done());
   static const char *const kn[] = {"chisq", "df", "p"};
@@ -162,6 +172,124 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
       }
     }
     SET_VECTOR_ELT(out, 5, e.done());
+  }
+  if (bay) {
+    const unsigned int sd = csp::seed(seed);
+    const int D1 = na - 1, nq = 6 * ng + 4 + 2 * D1 + nc;
+    std::vector<double> post(6 * static_cast<std::size_t>(nq)), info(4), st(3 * cn);
+    // the chains start near the maximum-likelihood fit
+    const int rm = clab_thrtst(REAL(sv), REAL(kv), REAL(hv), INTEGER(g.code), ac, n, ng, na, rf - 1, mi, gs.data(),
+                               hz.data(), chi.data(), thr.data(), tse.data(), cfit.data(), lrt.data(), conv.data());
+    clab::ichk(rm);
+    for (std::size_t c = 0; c < cn; ++c) {
+      st[c] = std::log(cfit[c] / (1 - cfit[c]));
+      st[cn + c] = std::log(cfit[cn + c]);
+      st[2 * cn + c] = std::log(cfit[2 * cn + c] / (1 - cfit[2 * cn + c]));
+    }
+    const int rb = clab_thrbay(REAL(sv), REAL(kv), REAL(hv), INTEGER(g.code), ac, n, ng, na, rf - 1, nch, nit, sd, lv,
+                               rm == CLAB_OK ? st.data() : nullptr, post.data(), cfit.data(), info.data());
+    clab::ichk(rb);
+    bj::kc(rb, "the threshold model could not be fitted to these counts.");
+    // the names of the reported quantities
+    std::vector<std::string> pn;
+    auto gl = [&](int j) { return std::string(bj::str(g.lev, j)); };
+    auto al = [&](int q) { return Rf_isNull(alev) ? std::to_string(q + 1) : std::string(bj::str(alev, q)); };
+    for (int j = 0; j < ng; ++j) pn.push_back("thr[" + gl(j) + "]");
+    for (int j = 0; j < ng; ++j) pn.push_back("diff[" + gl(j) + "]");
+    for (int j = 0; j < ng; ++j) pn.push_back("phi[" + gl(j) + "]");
+    for (int j = 0; j < ng; ++j) pn.push_back("delta[" + gl(j) + "]");
+    for (const char *h : {"muphi", "sigphi", "mudelta", "sigdelta"}) pn.push_back(h);
+    const int pin = static_cast<int>(info[3]);
+    for (int q = 0; q < na; ++q) {
+      if (q != pin) pn.push_back("phi[" + al(q) + "]");
+    }
+    for (int q = 0; q < na; ++q) {
+      if (q != pin) pn.push_back("delta[" + al(q) + "]");
+    }
+    for (int j = 0; j < ng; ++j) pn.push_back("mut[" + gl(j) + "]");
+    for (int j = 0; j < ng; ++j) pn.push_back("sigt[" + gl(j) + "]");
+    for (int q = 0; q < na; ++q) {
+      for (int j = 0; j < ng; ++j) {
+        if (seen[static_cast<std::size_t>(q) * ng + j]) pn.push_back("t[" + gl(j) + "," + al(q) + "]");
+      }
+    }
+    // chains that have not mixed are not reported: an R-hat of 1.05 or
+    // more for any quantity (Simoiu et al. 2017, Section 3.1), or fewer
+    // than 100 effective draws of a threshold or a difference
+    const std::size_t uq = static_cast<std::size_t>(nq);
+    for (int r = 0; r < nq; ++r) {
+      const double rh = post[5 * uq + r];
+      if (!std::isnan(rh) && rh >= 1.05) {
+        fail("the chains have not mixed: the R-hat of %s is %.3f, at least 1.05; give more iterations (`iter`).",
+             pn[static_cast<std::size_t>(r)].c_str(), rh);
+      }
+    }
+    for (int r = 0; r < 2 * ng; ++r) {
+      const double es = post[4 * uq + r];
+      if (!std::isnan(es) && es < 100) {
+        fail("the chains have not mixed: the effective sample size of %s is %.0f, below 100; give more iterations "
+             "(`iter`).",
+             pn[static_cast<std::size_t>(r)].c_str(), es);
+      }
+    }
+    bj::cols t(9, ng);
+    t.put("group", g.lev);
+    static const char *const tn[] = {"thr", "se", "lo", "hi"};
+    for (int q = 0; q < 4; ++q) {
+      double *c = t.dbl(tn[q]);
+      for (int j = 0; j < ng; ++j) c[j] = post[static_cast<std::size_t>(q) * uq + j];
+    }
+    static const char *const dn2[] = {"diff", "dse", "dlo", "dhi"};
+    for (int q = 0; q < 4; ++q) {
+      double *c = t.dbl(dn2[q]);
+      for (int j = 0; j < ng; ++j) c[j] = q > 0 && j == rf - 1 ? NA_REAL : post[static_cast<std::size_t>(q) * uq + ng + j];
+    }
+    SET_VECTOR_ELT(out, 2, t.done());
+    bj::cols f(7, 1);
+    f.put("model", PROTECT(Rf_mkString("bayes")));
+    ++np;
+    f.lgl("conv")[0] = 1;
+    f.itg("iter")[0] = nit;
+    f.itg("chains")[0] = nch;
+    f.dbl("div")[0] = info[0];
+    f.dbl("acc")[0] = info[1];
+    f.dbl("eps")[0] = info[2];
+    SET_VECTOR_ELT(out, 4, f.done());
+    std::vector<int> cg, ca;
+    for (int q = 0; q < na; ++q) {
+      for (int j = 0; j < ng; ++j) {
+        if (seen[static_cast<std::size_t>(q) * ng + j]) {
+          cg.push_back(j);
+          ca.push_back(q);
+        }
+      }
+    }
+    const int m = static_cast<int>(cg.size());
+    bj::cols e(7, m);
+    e.put("group", labsel(g.lev, cg));
+    if (!Rf_isNull(alev)) e.put("area", labsel(alev, ca));
+    static const char *const en[] = {"phi", "delta", "thr", "srate", "hrate"};
+    for (int q = 0; q < 5; ++q) {
+      double *c = e.dbl(en[q]);
+      for (int k = 0; k < m; ++k) {
+        c[k] = bj::na(cfit[static_cast<std::size_t>(q) * cn + static_cast<std::size_t>(ca[k]) * ng + cg[k]]);
+      }
+    }
+    SET_VECTOR_ELT(out, 5, e.done());
+    bj::cols ps(7, nq);
+    SEXP nmv = PROTECT(Rf_allocVector(STRSXP, nq));
+    ++np;
+    for (int r = 0; r < nq; ++r) SET_STRING_ELT(nmv, r, Rf_mkChar(pn[static_cast<std::size_t>(r)].c_str()));
+    ps.put("param", nmv);
+    static const char *const qn2[] = {"mean", "sd", "lo", "hi", "ess", "rhat"};
+    for (int q = 0; q < 6; ++q) {
+      double *c = ps.dbl(qn2[q]);
+      for (int r = 0; r < nq; ++r) {
+        const bool r0 = q > 0 && r == ng + rf - 1;
+        c[r] = r0 ? NA_REAL : bj::na(post[static_cast<std::size_t>(q) * uq + r]);
+      }
+    }
+    SET_VECTOR_ELT(out, 9, ps.done());
   }
   if (!Rf_isNull(off)) {
     csp::lab o = bj::labs(off, "off", n);
@@ -242,11 +370,11 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
   ++np;
   SET_STRING_ELT(rl, 0, STRING_ELT(g.lev, rf - 1));
   SET_VECTOR_ELT(out, 7, rl);
-  static const char *const on[] = {"hit", "kpt", "thr", "lrt", "fit", "cells", "rank", "ref", "mono"};
+  static const char *const on[] = {"hit", "kpt", "thr", "lrt", "fit", "cells", "rank", "ref", "mono", "post"};
   bj::named(out, on);
   Rf_classgets(out, PROTECT(Rf_mkString("thrtst")));
   ++np;
-  const int ncol = 1 + (fit ? 3 : 0) + (Rf_isNull(off) ? 0 : 1);
+  const int ncol = 1 + (fit ? 3 : 0) + (bay ? 4 : 0) + (Rf_isNull(off) ? 0 : 1);
   UNPROTECT(np + ncol);
   return out;
 }

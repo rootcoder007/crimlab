@@ -1005,6 +1005,12 @@ ok("thrtst", stops = c(100, 100, 100, 100), srch = c(10, 20, 30, 10), hits = c(5
 ok("thrtst", stops = rep(600, 9), srch = c(72, 48, 60, 60, 72, 48, 48, 60, 72), hits = rep(c(36, 24, 30), 3),
    grp = rep(1:3, each = 3), off = rep(c("a", "b", "c"), 3), rank = "joint")
 bad("thrtst", stops = c(10, 10), srch = c(11, 1), hits = c(1, 1), grp = c(1, 2))
+tbd <- expand.grid(g = c("a", "b", "c"), a = 1:5, stringsAsFactors = FALSE)
+tbs <- c(60, 50, 40, 55, 45)[tbd$a]
+tbk <- c(12, 9, 8, 11, 7)[tbd$a]
+tbh <- c(5, 3, 3, 4, 2)[tbd$a]
+ok("thrtst", stops = tbs, srch = tbk, hits = tbh, grp = tbd$g, area = tbd$a, fit = "bayes", iter = 500, seed = 3)
+bad("thrtst", stops = tbs, srch = tbk, hits = tbh, grp = tbd$g, area = tbd$a, fit = "bayes", iter = 20, seed = 1)
 
 # Internal benchmarking of officers
 set.seed(5)

@@ -3376,7 +3376,8 @@ def cmpsc(a: Any, b: Any, len: Any = 50, npeaks: Any = (5, 3, 1), tx: Any = 25,
 
 
 def thrtst(stops: Any, srch: Any, hits: Any, grp: Any, area: Any = None, off: Any = None, ref: Any = None,
-           level: Any = 0.95, maxit: Any = 2000, rank: Any = "pair") -> Any:
+           level: Any = 0.95, maxit: Any = 2000, rank: Any = "pair", fit: Any = "ml", chains: Any = 4,
+           iter: Any = 1000, seed: Any = None) -> Any:
     """Tests of discrimination in searches: hit rates, thresholds, rank order.
 
     The arguments and the result are those of R's ``thrtst()``: see its help
@@ -3387,10 +3388,10 @@ def thrtst(stops: Any, srch: Any, hits: Any, grp: Any, area: Any = None, off: An
     >>> r = thrtst(stops=[100, 100, 100, 100], srch=[10, 20, 30, 10], hits=[5, 5, 5, 5],
     ... grp=[1, 1, 2, 2], off=["x", "y", "x", "y"])
     >>> list(r)
-    ['hit', 'kpt', 'thr', 'lrt', 'fit', 'cells', 'rank', 'ref', 'mono']
+    ['hit', 'kpt', 'thr', 'lrt', 'fit', 'cells', 'rank', 'ref', 'mono', 'post']
     """
     return jcall("thrtst", stops=stops, srch=srch, hits=hits, grp=grp, area=area, off=off, ref=ref,
-                 level=level, maxit=maxit, rank=rank)
+                 level=level, maxit=maxit, rank=rank, fit=fit, chains=chains, iter=iter, seed=seed)
 
 
 def ibench(y: Any, off: Any, x: Any = None, minn: Any = 20, fdr: Any = 0.05, dr: Any = False,
