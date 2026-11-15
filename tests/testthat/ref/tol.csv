@@ -177,3 +177,5 @@ sep,oth/zip,equal,1e-5,test-sep.R
 sep,oth/weib,equal,1e-7,test-sep.R
 sep,oth/fr1,equal,1e-9,test-sep.R
 sep,oth/near,equal,1e-9,test-sep.R
+preset,pc/y,equal,1e-12,test-clprep.R
+preset,*,exact,0,test-clprep.R

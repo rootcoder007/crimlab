@@ -636,3 +636,38 @@ test_that("the Toronto neighbourhood crosswalks", {
   expect_equal(dn$tab$value, c(5, 7, 4, 6), tolerance = 1e-15)
   expect_identical(dn$map$to, c("001", "161", "003"))
 })
+
+test_that("the OTIS pair presets reproduce rmorie's pair builders", {
+  # ref/preset.txt: rmorie's morie_otis_make_pair_*() run once on the
+  # simulated table opre (helper-pre.R) by dev/ref/preset.R, stored as
+  # exact values: each pair's treatment t, outcome y and covariates
+  ref <- refget("preset")
+  dum <- function(...) {
+    do.call(cbind, lapply(list(...), function(x) {
+      f <- factor(x)
+      vapply(levels(f)[-1L], function(l) as.numeric(f == l),
+             numeric(length(f)))
+    }))
+  }
+  flag <- function(s) as.numeric(tolower(s) %in% c("yes", "y"))
+  same <- function(p, r, x) {
+    expect_identical(p$y, r$y)
+    expect_identical(p$d, r$t)
+    expect_identical(unname(as.matrix(p$x)), unname(x))
+  }
+  r <- ref$ruhela
+  same(clprep(opre, "otis-a01-cbatt"), r,
+       dum(r$Gender, r$Age_Category, r$EndFiscalYear))
+  r <- ref$naive
+  same(clprep(opre, "otis-a01n-cbatt"), r,
+       dum(r$Gender, r$Age_Category, r$EndFiscalYear))
+  for (k in c("pa", "pb")) {
+    r <- ref[[k]]
+    same(clprep(opre, paste0("otis-", k, "-cbatt")), r,
+         dum(r$Gender, r$Age_Category, r$Region_AtTimeOfPlacement,
+             r$Region_MostRecentPlacement))
+  }
+  r <- ref$pc
+  same(clprep(opre, "otis-pc-cbatt"), r,
+       cbind(dum(r$Gender, r$Age_Category), flag(r$MentalHealth_Alert)))
+})
