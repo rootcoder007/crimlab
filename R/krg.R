@@ -127,6 +127,8 @@ okrge <- function(x, y = NULL, v, at, vgm = NULL) {
 #' @param blocks A list of blocks: each a 2 x 2 matrix (rows: lower and
 #'   upper corner, columns: x and y), or a matrix of two columns of points.
 #' @param nq The number of grid points of a box: one whole number from 1.
+#'   The points of all the blocks (`nq`, rounded to a square, for each box)
+#'   must be at most 67108864 (2^26).
 #' @param nugget,sill,range The covariance: `nugget` from 0, `sill` at least
 #'   `nugget`, `range` positive.
 #' @return A data frame with one row per block: `est` (the kriged mean) and

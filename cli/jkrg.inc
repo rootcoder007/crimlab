@@ -146,6 +146,7 @@ bool bkrig(Ctx &c, Val &out) {
   std::vector<int> off(zz(nb) + 1, 0);
   std::vector<std::vector<double>> m(zz(nb));
   std::vector<int> nr(zz(nb));
+  double tot = 0;  // the points of all blocks, counted before any is made
   for (int b = 0; b < nb; ++b) {
     const Val &e = bl.a[zz(b)];
     int dim[2] = {-1, -1};
@@ -157,6 +158,10 @@ bool bkrig(Ctx &c, Val &out) {
     m[zz(b)].assign(zz(dim[0]) * 2, 0.0);
     bool bad = false;
     fill(e, 2, dim, 0, 0, 1, m[zz(b)], bad, true);
+    tot += dim[0] == 2 ? static_cast<double>(k) * k : dim[0];
+    if (tot > kutil::maxcell) {
+      return c.fail("the points of `blocks`, `nq` for each box, must be at most %.0f.", kutil::maxcell);
+    }
     off[zz(b) + 1] = off[zz(b)] + (dim[0] == 2 ? k * k : dim[0]);
   }
   std::vector<double> bx(zz(off[zz(nb)])), by(bx);

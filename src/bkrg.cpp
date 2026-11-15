@@ -10,6 +10,7 @@
 
 #include "bkh.h"
 #include "crimlab.h"
+#include "kutil.h"
 #include "rchk.h"
 #include "spin.h"
 
@@ -188,12 +189,15 @@ SEXP C_clab_r_bkrig(SEXP x, SEXP y, SEXP v, SEXP blocks, SEXP nq, SEXP nugget, S
   int *off = ial(nb + 1);
   off[0] = 0;
   const int k = static_cast<int>(std::nearbyint(std::sqrt(static_cast<double>(q))));
+  double tot = 0;  // the points of all blocks, counted before any is made
   for (int b = 0; b < nb; ++b) {
     SEXP e = VECTOR_ELT(blocks, b);
     if (!clab::isnum(e) || !Rf_isMatrix(e) || Rf_ncols(e) != 2) {
       fail("`blocks[[%d]]` must be a numeric matrix of two columns.", b + 1);
     }
     const int r = Rf_nrows(e);
+    tot += r == 2 ? static_cast<double>(k) * k : r;
+    if (tot > kutil::maxcell) fail("the points of `blocks`, `nq` for each box, must be at most %.0f.", kutil::maxcell);
     off[b + 1] = off[b] + (r == 2 ? k * k : r);
   }
   double *bx = dal(off[nb]), *by = dal(off[nb]);

@@ -481,3 +481,17 @@ test_that("smixm() reads a data frame of regressors as a matrix", {
   # optimiser-based fit
   expect_equal(unname(a$coef), unname(b$coef), tolerance = 1e-6)
 })
+
+test_that("block points past their bound are refused before they are made", {
+  # nq = .Machine$integer.max is a 46341 x 46341 grid on the box: over 2^31
+  # points, refused before any is laid out (it used to overflow the count
+  # and crash R)
+  p <- cbind(x = c(0.1, 0.4, 0.8), y = c(0.2, 0.9, 0.5))
+  box <- list(rbind(c(0, 0), c(1, 1)))
+  msg <- paste("bkrig: the points of `blocks`, `nq` for each box, must be at",
+               "most 67108864.")
+  expect_error(bkrig(p, v = 1:3, blocks = box, nq = .Machine$integer.max),
+               msg, fixed = TRUE)
+  expect_error(bkrig(p, v = 1:3, blocks = rep(box, 3), nq = 3e7), msg,
+               fixed = TRUE)
+})

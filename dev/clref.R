@@ -1374,6 +1374,7 @@ bad("okrge", x = gp, v = gv, at = rbind(c(0.5, 0.5)),
 ok("bkrig", x = gp, v = gv, blocks = list(rbind(c(0, 0), c(1, 1)), rbind(c(1.2, 0.2), c(1.4, 0.3), c(1.6, 0.1))),
    nq = 9, range = 0.8)
 bad("bkrig", x = gp, v = gv, blocks = list(1:3))
+bad("bkrig", x = gp, v = gv, blocks = list(rbind(c(0, 0), c(1, 1))), nq = 2147483647)
 ok("krigcv", x = gp, v = gv, nugget = 0.1, sill = 1.2, range = 0.7)
 bad("krigcv", x = gp, v = gv, nugget = 2, sill = 1)
 ok("trsurf", x = gp, v = gv)

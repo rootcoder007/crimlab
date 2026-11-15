@@ -793,6 +793,10 @@
   2^26 points before making them (both used to abort R); the forecast
   and the steps of `fpdens()` can now be interrupted. The command line
   gives the same messages.
+* `bkrig()` counts the points of its blocks before it lays them out and
+  refuses more than 2^26: `nq = .Machine$integer.max` overflowed the count
+  and crashed R. The block integrals can now be interrupted within a block.
+  The command line gives the same message.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as
