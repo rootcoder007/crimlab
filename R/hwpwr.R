@@ -90,7 +90,10 @@
 #'   device gives a utilisation but no power.
 #' @param pid The process whose share is reported: a process id.
 #' @param skip Sources not to use: any of `"rapl"`, `"gpu"`, `"battery"`,
-#'   `"proc"`, `"nvml"`, `"smi"`, `"ioreport"`, `"ioreg"`, `"emi"`.
+#'   `"proc"`, `"nvml"`, `"smi"`, `"ioreport"`, `"ioreg"`, `"emi"`. `"gpu"`
+#'   leaves out every graphics processor on Linux and Windows (the kernel's
+#'   cards and both NVIDIA readers); `"nvml"` and `"smi"` leave out one
+#'   NVIDIA reader each.
 #' @param paths Locations to read instead of the system's, by name: `root`
 #'   (a folder holding a copy of `sys` and `proc`), `nvml` (the NVIDIA
 #'   library), `smi` (the `nvidia-smi` program), `ioreg` (the `ioreg`

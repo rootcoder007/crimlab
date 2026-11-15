@@ -816,7 +816,10 @@ Snap snap(const Cfg &c) {
     if (c.on("battery")) bat(c, s);
     if (c.on("proc")) proc(c, s);
   }
-  nv(c, s);
+  // "gpu" turns off every reader of graphics processors: the DRM cards
+  // above and NVIDIA's library and program here ("nvml" and "smi" turn
+  // off one each)
+  if (c.on("gpu")) nv(c, s);
   mac(c, s);
   win(c, s);
   // a DRM card of NVIDIA's stays only when no NVIDIA reader answered

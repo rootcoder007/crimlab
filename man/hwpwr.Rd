@@ -30,7 +30,10 @@ device gives a utilisation but no power.}
 \item{pid}{The process whose share is reported: a process id.}
 
 \item{skip}{Sources not to use: any of \code{"rapl"}, \code{"gpu"}, \code{"battery"},
-\code{"proc"}, \code{"nvml"}, \code{"smi"}, \code{"ioreport"}, \code{"ioreg"}, \code{"emi"}.}
+\code{"proc"}, \code{"nvml"}, \code{"smi"}, \code{"ioreport"}, \code{"ioreg"}, \code{"emi"}. \code{"gpu"}
+leaves out every graphics processor on Linux and Windows (the kernel's
+cards and both NVIDIA readers); \code{"nvml"} and \code{"smi"} leave out one
+NVIDIA reader each.}
 
 \item{paths}{Locations to read instead of the system's, by name: \code{root}
 (a folder holding a copy of \code{sys} and \code{proc}), \code{nvml} (the NVIDIA

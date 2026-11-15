@@ -194,6 +194,9 @@ test_that("nvidia-smi: output, a failing program, an absent one", {
   r <- rows(snap(d, skip = sk, nvml = lib, smi = ok))
   expect_identical(r$name[r$kind == "gpu"], c("NVIDIA A40", "Tesla K80"))
   expect_equal(r$watts[r$name == "NVIDIA A40"], 41.2)
+  # "gpu" leaves out NVIDIA's readers too, not only the kernel's cards
+  r <- rows(snap(d, skip = c(sk, "gpu"), nvml = lib, smi = ok))
+  expect_identical(sum(r$kind == "gpu"), 0L)
   r <- rows(snap(d, skip = sk, nvml = lib, smi = prog("exit 3")))
   expect_match(r$why[r$kind == "gpu"], "exit status 3")
   r <- rows(snap(d, skip = sk, nvml = lib, smi = file.path(d, "none")))
