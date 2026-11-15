@@ -188,3 +188,16 @@ test_that("updwn classifies sides and estimates the downwind difference", {
   expect_error(updwn(d, "crimes", "ax", "ay", "day", "wind", road, tol = 100),
                "between 0 and 90")
 })
+
+test_that("expjn joins, counts what does not match and refuses duplicate keys", {
+  ex <- data.frame(area = c("a", "a", "b"), day = c(1, 2, 1), pm = c(10, 12, 8))
+  oc <- data.frame(area = c("a", "a", "b", "b"), day = c(1, 2, 1, 2), crimes = c(3, 1, 0, 2))
+  j <- expjn(ex, oc)
+  expect_identical(j$data$pm, c(10, 12, 8))
+  expect_identical(j$nout, 1L)
+  expect_identical(j$nexp, 0L)
+  expect_identical(j$unout$area, "b")
+  expect_error(expjn(rbind(ex, ex[1, ]), oc), "`expo` has 1 duplicate key")
+  expect_error(expjn(ex, rbind(oc, oc[2, ])), "`outc` has 1 duplicate key")
+  expect_output(print(j), "1 outcome row\\(s\\) without an exposure")
+})

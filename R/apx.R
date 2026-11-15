@@ -1130,3 +1130,89 @@ summary.updwn <- function(object, ...) {
         rbind(cf[c("est", "se", "lo", "hi", "p")],
               object[["placebo"]][c("est", "se", "lo", "hi", "p")]))
 }
+
+#' Join an exposure table to counts by place and day
+#'
+#' Makes the analysis table of the estimators of this family: the rows of
+#' the outcome table (place, day, count, ...) with the exposure of the same
+#' place and day joined on. Exposure may come from monitors (assigned to
+#' areas beforehand, for example by inverse squared distance from the three
+#' nearest, as Bondy, Roth and Sager do) or from crimlab's dispersion
+#' functions ([gplume()], [plmfld()]).
+#'
+#' Duplicate keys in either table are refused: a place with two exposures
+#' on one day has no single value to join. Outcome rows without an
+#' exposure are left out of `data` and counted in `nout` (their keys in
+#' `unout`); exposure rows without an outcome are counted in `nexp`. Keys
+#' are compared as text, so a day given as a date in one table must be a
+#' date in the other.
+#'
+#' @param expo The exposure table: a data frame with the key columns and
+#'   one or more value columns.
+#' @param outc The outcome table: a data frame with the key columns.
+#' @param by The names of the key columns, in both tables.
+#' @param object,x An object of class `expjn`.
+#' @param ... Not used.
+#' @return An object of class `expjn`, a list: `data`, the joined table
+#'   (the outcome table's columns, then the exposure's other columns);
+#'   `nout`, `nexp`; `unout`, the keys of the outcome rows left out.
+#'   `summary()` returns the counts as a data frame.
+#' @seealso [ppmlfe()], [plmfld()]
+#' @examples
+#' ex <- data.frame(area = c("a", "a", "b"), day = c(1, 2, 1), pm = c(10, 12, 8))
+#' oc <- data.frame(area = c("a", "a", "b", "b"), day = c(1, 2, 1, 2),
+#'                  crimes = c(3, 1, 0, 2))
+#' j <- expjn(ex, oc)
+#' j
+#' j$data
+#' @export
+expjn <- function(expo, outc, by = c("area", "day")) {
+  f <- "expjn"
+  e <- .axdat(expo, f, "expo")
+  o <- .axdat(outc, f, "outc")
+  if (!is.character(by) || !length(by) || anyNA(by) || anyDuplicated(by)) {
+    .ckstop(f, "`by` must name the key columns")
+  }
+  for (nm in c("expo", "outc")) {
+    t <- if (nm == "expo") e else o
+    miss <- setdiff(by, names(t))
+    if (length(miss)) .ckstop(f, "`%s` lacks the key columns: %s", nm, paste(miss, collapse = ", "))
+    if (anyNA(t[by])) .ckstop(f, "`%s` has missing keys", nm)
+  }
+  val <- setdiff(names(e), by)
+  if (!length(val)) .ckstop(f, "`expo` has no columns besides the keys")
+  clash <- intersect(val, names(o))
+  if (length(clash)) {
+    .ckstop(f, "columns in both tables besides the keys: %s", paste(clash, collapse = ", "))
+  }
+  key <- function(t) do.call(paste, c(lapply(t[by], as.character), sep = "\r"))
+  ke <- key(e)
+  ko <- key(o)
+  if (anyDuplicated(ke)) .ckstop(f, "`expo` has %d duplicate key(s)", sum(duplicated(ke)))
+  if (anyDuplicated(ko)) .ckstop(f, "`outc` has %d duplicate key(s)", sum(duplicated(ko)))
+  m <- match(ko, ke)
+  hit <- !is.na(m)
+  if (!any(hit)) .ckstop(f, "no outcome row has an exposure: check that the keys agree")
+  dd <- cbind(o[hit, , drop = FALSE], e[m[hit], val, drop = FALSE])
+  rownames(dd) <- NULL
+  un <- o[!hit, by, drop = FALSE]
+  rownames(un) <- NULL
+  structure(list(data = dd, nout = sum(!hit), nexp = sum(!ke %in% ko), unout = un),
+            class = "expjn")
+}
+
+#' @rdname expjn
+#' @export
+print.expjn <- function(x, ...) {
+  cat("expjn: ", nrow(x[["data"]]), " rows joined; ", x[["nout"]],
+      " outcome row(s) without an exposure left out; ", x[["nexp"]],
+      " exposure row(s) without an outcome\n", sep = "")
+  invisible(x)
+}
+
+#' @rdname expjn
+#' @export
+summary.expjn <- function(object, ...) {
+  data.frame(joined = nrow(object[["data"]]), nout = object[["nout"]],
+             nexp = object[["nexp"]])
+}
