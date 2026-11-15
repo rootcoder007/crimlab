@@ -452,7 +452,8 @@ test_that("GPUs and a battery that give no number", {
 
 test_that("the NVIDIA library: one without the NVML functions", {
   # the package's own library loads but exports no nvml symbol
-  lib <- getLoadedDLLs()[["crimlab"]][["path"]]
+  lib <- normalizePath(getLoadedDLLs()[["crimlab"]][["path"]],
+                       winslash = "\\", mustWork = FALSE)
   sk <- setdiff(off, "nvml")
   r <- rows(snap(tree(), skip = sk, nvml = lib))
   expect_match(r$why[r$kind == "gpu"],
