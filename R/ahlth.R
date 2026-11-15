@@ -62,7 +62,7 @@
 #'   metre (a single finite number, e.g. \code{log(1.04)}) overriding the NO2
 #'   outcome table; \code{NULL} (the default) uses the table.
 #' @param x A result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{crf} with: \code{rr} and \code{logrr}, the
 #'   relative risk and its logarithm at the exposure (their means over a
 #'   vector of exposures); \code{rrlo} and \code{rrup}, the RR at the
@@ -183,86 +183,6 @@ crfno2 <- function(expo, y = "allcause", refconc = 10, betaper10 = NULL) {
   )
 }
 
-.crfout <- function(y, avail, fn, tail) {
-  if (!is.character(y) || length(y) != 1L || !y %in% avail) {
-    .ckstop(
-      fn, "Unknown outcome '%s'. Available: %s%s", paste(y, collapse = ","),
-      toString(avail), tail
-    )
-  }
-}
-
-# The curve at the exposures, its limits through the published interval.
-.crfobj <- function(z, refconc, form, par, ci, pol, cite, extra) {
-  r <- .Call(C_clab_r_crf, z, refconc, form, par)
-  lo <- up <- rep(NA_real_, length(z))
-  if (!is.null(ci)) {
-    lo <- .Call(C_clab_r_crf, z, refconc, 0L, ci[1L])[[1L]]
-    up <- .Call(C_clab_r_crf, z, refconc, 0L, ci[2L])[[1L]]
-  }
-  one <- length(z) == 1L
-  m <- function(v) if (one) v[[1L]] else mean(v)
-  structure(
-    list(
-      rr = m(r[[1L]]),
-      logrr = m(r[[2L]]),
-      rrlo = m(lo),
-      rrup = m(up),
-      refconc = refconc,
-      expconc = m(z),
-      pollutant = pol,
-      citation = cite,
-      extra = c(extra, list(rrperunit = if (one) NULL else r[[1L]]))
-    ),
-    class = "crf"
-  )
-}
-
-# One finite number, optionally non-negative or positive.
-.polsc <- function(x, what, fn, nonneg = TRUE, positive = FALSE) {
-  if (is.logical(x) && !all(is.na(x))) {
-    .ckstop(fn, "`%s` must be numeric, not logical", what)
-  }
-  if (is.factor(x)) {
-    .ckstop(
-      fn,
-      "`%s` must be numeric, not a factor (its level codes are not values)",
-      what
-    )
-  }
-  if (is.null(x)) .ckstop(fn, "`%s` must be numeric, got NULL", what)
-  if (is.list(x) || !(is.numeric(x) || is.logical(x))) {
-    .ckstop(fn, "`%s` must be numeric, got %s", what, class(x)[1L])
-  }
-  v <- as.numeric(x)
-  if (length(v) != 1L || is.na(v) || !is.finite(v)) {
-    .ckstop(fn, "`%s` must be a single finite number", what)
-  }
-  if (positive && v <= 0) .ckstop(fn, "`%s` must be positive", what)
-  if (nonneg && v < 0) .ckstop(fn, "`%s` must be non-negative", what)
-  v
-}
-
-.polexp <- function(expo, fn) {
-  if (is.logical(expo)) .ckstop(fn, "`expo` must be numeric, not logical")
-  if (is.null(expo)) .ckstop(fn, "`expo` must be numeric, got NULL")
-  if (is.factor(expo) || is.list(expo) || !is.numeric(expo)) {
-    .ckstop(fn, "`expo` must be numeric, got %s", class(expo)[1L])
-  }
-  z <- as.numeric(expo)
-  if (!length(z) || anyNA(z) || !all(is.finite(z))) {
-    .ckstop(
-      fn,
-      paste(
-        "`expo` must be one or more finite concentrations, with no missing",
-        "values"
-      )
-    )
-  }
-  if (any(z < 0)) .ckstop(fn, "`expo` must be non-negative")
-  z
-}
-
 #' Population attributable fraction
 #'
 #' The share of all cases in a population that is due to an exposure: the
@@ -293,7 +213,7 @@ crfno2 <- function(expo, y = "allcause", refconc = 10, betaper10 = NULL) {
 #' @param rrlo,rrup Optional confidence limits of \code{rr}, both or
 #'   neither.
 #' @param x An \code{attrfrac} result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A single number of class \code{attrfrac}, the attributable
 #'   fraction: in \code{[0, 1)} for \code{rr >= 1}, negative for a
 #'   protective exposure; when the limits were given it carries an attribute
@@ -413,63 +333,6 @@ mortdisp <- function(
   .Call(C_clab_r_hif, expdel, pop, brate, betaperunit)
 }
 
-# A baseline rate per person-year, checked against the band.
-.polrate <- function(rate, rare, hirate, fn) {
-  for (a in list(list("rare", rare), list("hirate", hirate))) {
-    if (!is.logical(a[[2L]]) || length(a[[2L]]) != 1L || is.na(a[[2L]])) {
-      .ckstop(fn, "`%s` must be TRUE or FALSE", a[[1L]])
-    }
-  }
-  if (rate > 1) {
-    .ckstop(
-      fn,
-      paste(
-        "`brate` is a rate per person-year, between 0 and 1 (0.008 is 800",
-        "per 100,000); %s looks like a rate per 100,000"
-      ),
-      format(rate)
-    )
-  }
-  if (rate == 0) return(rate)
-  if (rate < 1e-11) {
-    .ckstop(
-      fn,
-      paste(
-        "`brate` %s per person-year is below one case per 100 billion",
-        "person-years: not a usable rate"
-      ),
-      format(rate)
-    )
-  }
-  if (rate < 1e-5 && !rare) {
-    .ckstop(
-      fn,
-      paste(
-        "`brate` %s per person-year is below one case per 100,000 a year. A",
-        "rate per 100,000 divided by 100,000 is the rate here (800 per",
-        "100,000 is 0.008); if the outcome really is this rare, say so with",
-        "rare = TRUE"
-      ),
-      format(rate)
-    )
-  }
-  if (rate > 0.1 && !hirate) {
-    .ckstop(
-      fn,
-      paste(
-        "`brate` %s per person-year is %s per 100,000 a year, above a whole",
-        "population's all-cause death rate (an age-specific rate for the",
-        "oldest ages can be this high). If it is a rate per 100,000, divide",
-        "it by 100,000; if the outcome really is this common, say so with",
-        "hirate = TRUE"
-      ),
-      format(rate),
-      format(rate * 1e5, big.mark = ",", scientific = FALSE)
-    )
-  }
-  rate
-}
-
 #' End-to-end pollution burden
 #'
 #' Chains the concentration-response function, the attributable fraction
@@ -506,7 +369,7 @@ mortdisp <- function(
 #'   pollutant's default (PM2.5 5.8, NO2 10).
 #' @param rare,hirate As in \code{\link{mortdisp}}.
 #' @param x A result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{polbrdn} with: \code{paf},
 #'   \code{attrcases} and \code{basecases} (per year), \code{population},
 #'   \code{brate} (per person-year), \code{expomean}, \code{refconc} (the one
@@ -583,28 +446,6 @@ polbrdn <- function(
   )
 }
 
-.polkey <- function(poll) {
-  if (!is.character(poll) || length(poll) != 1L || is.na(poll)) {
-    return(NA_character_)
-  }
-  k <- gsub("[^a-z0-9]", "", tolower(poll))
-  if (k == "pm25") return("PM2.5")
-  if (k == "no2") return("NO2")
-  NA_character_
-}
-
-.colnm <- function(x, what, fn, several = FALSE) {
-  ok <- is.character(x) && length(x) >= 1L && !anyNA(x) && all(nzchar(x)) &&
-    (several || length(x) == 1L)
-  if (!ok) {
-    .ckstop(
-      fn, "`%s` must name %s of `data`", what,
-      if (several) "one or more columns" else "one column"
-    )
-  }
-  x
-}
-
 #' Per-area pollution burden
 #'
 #' Applies \code{\link{polbrdn}} to every row of a table with one row per
@@ -629,7 +470,7 @@ polbrdn <- function(
 #'   \code{"exposure"}, \code{"population"} and \code{"brate"}.
 #' @param poll,y,rare,hirate Passed to \code{\link{polbrdn}} for every area.
 #' @param x A result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A data frame of class \code{polbrdarea} with one row per area,
 #'   sorted by \code{attrcases}, largest first: the four input columns plus
 #'   \code{rr}, \code{paf}, \code{attrcases} and \code{basecases}.
@@ -658,55 +499,10 @@ polbrdarea <- function(
     .colnm(get(a), a, f)
   }
   need <- c(areacol, expcol, popcol, basratecol)
-  miss <- setdiff(need, names(areatab))
-  if (length(miss)) .ckstop(f, "areatab missing columns: %s", toString(miss))
-  if (!nrow(areatab)) .ckstop(f, "areatab has no rows")
-  for (cl in c(expcol, popcol, basratecol)) {
-    if (!is.numeric(areatab[[cl]])) {
-      .ckstop(
-        f,
-        paste0(
-          "column `%s` must be numeric (a factor or character column is ",
-          "not a count)"
-        ),
-        cl
-      )
-    }
-  }
-  rows <- lapply(seq_len(nrow(areatab)), function(i) {
-    r <- tryCatch(
-      polbrdn(
-        expomean = as.numeric(areatab[[expcol]][i]),
-        expoprev = 1,
-        brate = as.numeric(areatab[[basratecol]][i]),
-        pop = as.numeric(areatab[[popcol]][i]),
-        poll = poll, y = y, rare = rare, hirate = hirate
-      ),
-      error = function(e) {
-        m <- sub("^(polbrdn|crfpm25|crfno2): ", "", conditionMessage(e))
-        m <- sub("\\.$", "", m)
-        mp <- c(expomean = "expcol", expo = "expcol", pop = "popcol",
-                brate = "basratecol")
-        for (k in names(mp)) {
-          m <- gsub(
-            sprintf("`%s`", k), sprintf("`%s`", mp[[k]]), m,
-            fixed = TRUE
-          )
-        }
-        .ckstop(f, "%s", m)
-      }
-    )
-    out <- data.frame(a = areatab[[areacol]][i], stringsAsFactors = FALSE)
-    names(out) <- areacol
-    out[[expcol]] <- as.numeric(areatab[[expcol]][i])
-    out[[popcol]] <- as.numeric(areatab[[popcol]][i])
-    out[[basratecol]] <- as.numeric(areatab[[basratecol]][i])
-    out$rr <- r$extra$rr
-    out$paf <- r$paf
-    out$attrcases <- r$attrcases
-    out$basecases <- r$basecases
-    out
-  })
+  .pbachk(areatab, need, f)
+  rows <- lapply(seq_len(nrow(areatab)), .pbarow, areatab = areatab,
+                 cols = need, poll = poll, y = y, rare = rare,
+                 hirate = hirate, f = f)
   res <- do.call(rbind, rows)
   res <- res[order(-res$attrcases), , drop = FALSE]
   rownames(res) <- NULL
@@ -742,7 +538,7 @@ polbrdarea <- function(
 #' @param expo,income Column names (single strings): the exposure (a
 #'   non-negative concentration) and the income measure (numeric).
 #' @param x A result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @return A list of class \code{expconcidx} with \code{concidx} (a number
 #'   in \eqn{[-1, 1]}), \code{interpretation} (a sentence), \code{expomean},
 #'   \code{citation} and \code{extra}, a list with \code{n} (rows used),
@@ -812,31 +608,6 @@ expconcidx <- function(data, expo, income) {
   )
 }
 
-.concread <- function(ci) {
-  if (ci < -0.01) {
-    sprintf(
-      paste0(
-        "CI = %.4f. Pro-poor exposure burden: lower-income individuals ",
-        "bear disproportionately higher pollution."
-      ),
-      ci
-    )
-  } else if (ci > 0.01) {
-    sprintf(
-      paste0(
-        "CI = %.4f. Pro-rich exposure burden: higher-income individuals ",
-        "bear disproportionately higher pollution."
-      ),
-      ci
-    )
-  } else {
-    sprintf(
-      "CI = %.4f. Exposure distributed approximately evenly across income.",
-      ci
-    )
-  }
-}
-
 #' @rdname crfpm25
 #' @export
 print.crf <- function(x, ...) {
@@ -895,4 +666,255 @@ print.expconcidx <- function(x, ...) {
   ))
   cat(strwrap(x$interpretation, width = 70L), sep = "\n")
   invisible(x)
+}
+
+.crfout <- function(y, avail, fn, tail) {
+  if (!is.character(y) || length(y) != 1L || !y %in% avail) {
+    .ckstop(
+      fn, "Unknown outcome '%s'. Available: %s%s", paste(y, collapse = ","),
+      toString(avail), tail
+    )
+  }
+}
+
+# The curve at the exposures, its limits through the published interval.
+.crfobj <- function(z, refconc, form, par, ci, pol, cite, extra) {
+  r <- .Call(C_clab_r_crf, z, refconc, form, par)
+  lo <- up <- rep(NA_real_, length(z))
+  if (!is.null(ci)) {
+    lo <- .Call(C_clab_r_crf, z, refconc, 0L, ci[1L])[[1L]]
+    up <- .Call(C_clab_r_crf, z, refconc, 0L, ci[2L])[[1L]]
+  }
+  one <- length(z) == 1L
+  m <- function(v) if (one) v[[1L]] else mean(v)
+  structure(
+    list(
+      rr = m(r[[1L]]),
+      logrr = m(r[[2L]]),
+      rrlo = m(lo),
+      rrup = m(up),
+      refconc = refconc,
+      expconc = m(z),
+      pollutant = pol,
+      citation = cite,
+      extra = c(extra, list(rrperunit = if (one) NULL else r[[1L]]))
+    ),
+    class = "crf"
+  )
+}
+
+# One finite number, optionally non-negative or positive.
+.polsc <- function(x, what, fn, nonneg = TRUE, positive = FALSE) {
+  if (is.logical(x) && !all(is.na(x))) {
+    .ckstop(fn, "`%s` must be numeric, not logical", what)
+  }
+  if (is.factor(x)) {
+    .ckstop(
+      fn,
+      "`%s` must be numeric, not a factor (its level codes are not values)",
+      what
+    )
+  }
+  if (is.null(x)) .ckstop(fn, "`%s` must be numeric, got NULL", what)
+  if (is.list(x) || !(is.numeric(x) || is.logical(x))) {
+    .ckstop(fn, "`%s` must be numeric, got %s", what, class(x)[1L])
+  }
+  v <- as.numeric(x)
+  if (length(v) != 1L || is.na(v) || !is.finite(v)) {
+    .ckstop(fn, "`%s` must be a single finite number", what)
+  }
+  if (positive && v <= 0) .ckstop(fn, "`%s` must be positive", what)
+  if (nonneg && v < 0) .ckstop(fn, "`%s` must be non-negative", what)
+  v
+}
+
+.polexp <- function(expo, fn) {
+  if (is.logical(expo)) .ckstop(fn, "`expo` must be numeric, not logical")
+  if (is.null(expo)) .ckstop(fn, "`expo` must be numeric, got NULL")
+  if (is.factor(expo) || is.list(expo) || !is.numeric(expo)) {
+    .ckstop(fn, "`expo` must be numeric, got %s", class(expo)[1L])
+  }
+  z <- as.numeric(expo)
+  if (!length(z) || anyNA(z) || !all(is.finite(z))) {
+    .ckstop(
+      fn,
+      paste(
+        "`expo` must be one or more finite concentrations, with no missing",
+        "values"
+      )
+    )
+  }
+  if (any(z < 0)) .ckstop(fn, "`expo` must be non-negative")
+  z
+}
+
+# A baseline rate per person-year, checked against the band.
+.polrate <- function(rate, rare, hirate, fn) {
+  for (a in list(list("rare", rare), list("hirate", hirate))) {
+    if (!is.logical(a[[2L]]) || length(a[[2L]]) != 1L || is.na(a[[2L]])) {
+      .ckstop(fn, "`%s` must be TRUE or FALSE", a[[1L]])
+    }
+  }
+  if (rate > 1) {
+    .ckstop(
+      fn,
+      paste(
+        "`brate` is a rate per person-year, between 0 and 1 (0.008 is 800",
+        "per 100,000); %s looks like a rate per 100,000"
+      ),
+      format(rate)
+    )
+  }
+  if (rate == 0) return(rate)
+  .polrlo(rate, rare, hirate, fn)
+  rate
+}
+
+# .polrate(): a rate too small or too large to be a rate per person-year,
+# unless `rare` or `hirate` says it is
+.polrlo <- function(rate, rare, hirate, fn) {
+  if (rate < 1e-11) {
+    .ckstop(
+      fn,
+      paste(
+        "`brate` %s per person-year is below one case per 100 billion",
+        "person-years: not a usable rate"
+      ),
+      format(rate)
+    )
+  }
+  if (rate < 1e-5 && !rare) {
+    .ckstop(
+      fn,
+      paste(
+        "`brate` %s per person-year is below one case per 100,000 a year. A",
+        "rate per 100,000 divided by 100,000 is the rate here (800 per",
+        "100,000 is 0.008); if the outcome really is this rare, say so with",
+        "rare = TRUE"
+      ),
+      format(rate)
+    )
+  }
+  if (rate > 0.1 && !hirate) {
+    .ckstop(
+      fn,
+      paste(
+        "`brate` %s per person-year is %s per 100,000 a year, above a whole",
+        "population's all-cause death rate (an age-specific rate for the",
+        "oldest ages can be this high). If it is a rate per 100,000, divide",
+        "it by 100,000; if the outcome really is this common, say so with",
+        "hirate = TRUE"
+      ),
+      format(rate),
+      format(rate * 1e5, big.mark = ",", scientific = FALSE)
+    )
+  }
+  invisible(rate)
+}
+
+.polkey <- function(poll) {
+  if (!is.character(poll) || length(poll) != 1L || is.na(poll)) {
+    return(NA_character_)
+  }
+  k <- gsub("[^a-z0-9]", "", tolower(poll))
+  if (k == "pm25") return("PM2.5")
+  if (k == "no2") return("NO2")
+  NA_character_
+}
+
+.colnm <- function(x, what, fn, several = FALSE) {
+  ok <- is.character(x) && length(x) >= 1L && !anyNA(x) && all(nzchar(x)) &&
+    (several || length(x) == 1L)
+  if (!ok) {
+    .ckstop(
+      fn, "`%s` must name %s of `data`", what,
+      if (several) "one or more columns" else "one column"
+    )
+  }
+  x
+}
+
+# polbrdarea(): the table has the columns, rows, and numbers it needs
+.pbachk <- function(areatab, need, f) {
+  miss <- setdiff(need, names(areatab))
+  if (length(miss)) .ckstop(f, "areatab missing columns: %s", toString(miss))
+  if (!nrow(areatab)) .ckstop(f, "areatab has no rows")
+  for (cl in need[-1L]) {
+    if (!is.numeric(areatab[[cl]])) {
+      .ckstop(
+        f,
+        paste0(
+          "column `%s` must be numeric (a factor or character column is ",
+          "not a count)"
+        ),
+        cl
+      )
+    }
+  }
+}
+
+# polbrdarea(): the burden of area i, one row; `cols` are the area,
+# exposure, population and baseline-rate columns
+.pbarow <- function(i, areatab, cols, poll, y, rare, hirate, f) {
+  areacol <- cols[1L]
+  expcol <- cols[2L]
+  popcol <- cols[3L]
+  basratecol <- cols[4L]
+  r <- tryCatch(
+    polbrdn(
+      expomean = as.numeric(areatab[[expcol]][i]),
+      expoprev = 1,
+      brate = as.numeric(areatab[[basratecol]][i]),
+      pop = as.numeric(areatab[[popcol]][i]),
+      poll = poll, y = y, rare = rare, hirate = hirate
+    ),
+    error = function(e) {
+      m <- sub("^(polbrdn|crfpm25|crfno2): ", "", conditionMessage(e))
+      m <- sub("\\.$", "", m)
+      mp <- c(expomean = "expcol", expo = "expcol", pop = "popcol",
+              brate = "basratecol")
+      for (k in names(mp)) {
+        m <- gsub(
+          sprintf("`%s`", k), sprintf("`%s`", mp[[k]]), m,
+          fixed = TRUE
+        )
+      }
+      .ckstop(f, "%s", m)
+    }
+  )
+  out <- data.frame(a = areatab[[areacol]][i], stringsAsFactors = FALSE)
+  names(out) <- areacol
+  out[[expcol]] <- as.numeric(areatab[[expcol]][i])
+  out[[popcol]] <- as.numeric(areatab[[popcol]][i])
+  out[[basratecol]] <- as.numeric(areatab[[basratecol]][i])
+  out$rr <- r$extra$rr
+  out$paf <- r$paf
+  out$attrcases <- r$attrcases
+  out$basecases <- r$basecases
+  out
+}
+
+.concread <- function(ci) {
+  if (ci < -0.01) {
+    sprintf(
+      paste0(
+        "CI = %.4f. Pro-poor exposure burden: lower-income individuals ",
+        "bear disproportionately higher pollution."
+      ),
+      ci
+    )
+  } else if (ci > 0.01) {
+    sprintf(
+      paste0(
+        "CI = %.4f. Pro-rich exposure burden: higher-income individuals ",
+        "bear disproportionately higher pollution."
+      ),
+      ci
+    )
+  } else {
+    sprintf(
+      "CI = %.4f. Exposure distributed approximately evenly across income.",
+      ci
+    )
+  }
 }
