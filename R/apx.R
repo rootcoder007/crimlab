@@ -33,7 +33,7 @@
   miss <- setdiff(cols, names(d))
   if (length(miss)) {
     .ckstop(fn, "`%s` names columns not in `data`: %s", what,
-            paste(miss, collapse = ", "))
+            toString(miss))
   }
   if (anyDuplicated(cols)) .ckstop(fn, "`%s` names a column twice", what)
   for (k in cols) {
@@ -659,7 +659,7 @@ ppmlfe <- function(
     if (length(xdrop)) {
       warning(f, ": regressor(s) dropped, collinear with the others on the ",
               "rows with positive counts (Santos Silva and Tenreyro 2010): ",
-              paste(xdrop, collapse = ", "), ".", call. = FALSE)
+              toString(xdrop), ".", call. = FALSE)
       x <- setdiff(x, xdrop)
     }
   }
@@ -754,7 +754,7 @@ print.ppmlfe <- function(x, ...) {
     "; ",
     .axsen(x[["se"]]),
     " errors (",
-    paste0(x[["clus"]], collapse = ", "),
+    toString(x[["clus"]]),
     "; ",
     paste(x[["ncl"]], collapse = " and "),
     ")\n",
@@ -1188,7 +1188,7 @@ print.ivfe <- function(x, ...) {
     "; ",
     .axsen(x[["se"]]),
     " errors (",
-    paste0(x[["clus"]], collapse = ", "),
+    toString(x[["clus"]]),
     "; ",
     paste(x[["ncl"]], collapse = " and "),
     ")\n",
@@ -1224,7 +1224,7 @@ summary.ivfe <- function(object, ...) object[["coef"]]
       assign(".Random.seed", old, envir = env)
     } else {
       rm(".Random.seed", envir = env)
-    })
+    }, add = TRUE)
     set.seed(seed)
   }
   vapply(seq_len(b), function(i) {
@@ -2494,11 +2494,11 @@ updwn <- function(
   if (!is.logical(agg) || length(agg) != 1L || is.na(agg)) {
     .ckstop(f, "`agg` must be TRUE or FALSE")
   }
-  if (is.null(area) && (!agg || any(!line))) {
+  if (is.null(area) && (!agg || !all(line))) {
     .ckstop(f, "`area` is needed for point sources and for agg = FALSE")
   }
   if (!is.null(offs)) {
-    if (any(!line)) {
+    if (!all(line)) {
       .ckstop(f, "`offs` moves segments: every source must be a segment")
     }
     if (!is.numeric(offs) || !length(offs) || !all(is.finite(offs))) {
@@ -2679,7 +2679,7 @@ updwn <- function(
     } else {
       e$y <- switch(norm, mean = {
         m <- mean(e$y)
-        if (!(m > 0)) .ckstop(f, "the counts are all 0")
+        if (m <= 0) .ckstop(f, "the counts are all 0")
         e$y / m
       }, none = e$y, log = log1p(e$y))
       r <- ivfe(
@@ -2824,7 +2824,7 @@ expjn <- function(expo, outc, by = c("area", "day")) {
         f,
         "`%s` lacks the key columns: %s",
         nm,
-        paste(miss, collapse = ", ")
+        toString(miss)
       )
     }
     if (anyNA(t[by])) .ckstop(f, "`%s` has missing keys", nm)
@@ -2836,7 +2836,7 @@ expjn <- function(expo, outc, by = c("area", "day")) {
     .ckstop(
       f,
       "columns in both tables besides the keys: %s",
-      paste(clash, collapse = ", ")
+      toString(clash)
     )
   }
   key <- function(t) do.call(paste, c(lapply(t[by], as.character), sep = "\r"))

@@ -245,7 +245,8 @@ smkiv <- function(
       out$spm <- ifelse(pl == 1, pmax(pv - out$bg, 0), 0)
     } else {
       out$bg <- if (cf == "mean") bmu else as.numeric(md[key])
-      out$spm <- ifelse(out$smoke %in% 1, pmax(pv - out$bg, 0), 0)
+      out$spm <- ifelse(!is.na(out$smoke) & out$smoke == 1,
+                        pmax(pv - out$bg, 0), 0)
     }
   }
   if (!is.null(dens)) {

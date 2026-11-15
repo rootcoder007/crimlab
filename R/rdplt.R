@@ -13,7 +13,7 @@
   t0 <- sum(w * y)
   t1 <- sum(w * u * y)
   dn <- s0 * s2 - s1^2
-  if (!(dn > 1e-12 * s0 * s2)) {
+  if (dn <= 1e-12 * s0 * s2) {
     return(c(NA_real_, NA_real_))
   }
   c((s2 * t0 - s1 * t1) / dn, (s0 * t1 - s1 * t0) / dn)
@@ -23,7 +23,7 @@
 # so no bin straddles it): the bins' midpoints x, means y and rows n; the
 # empty bins left out
 .rdbin <- function(u, y, lim, nb, side) {
-  if (!(lim[2L] > lim[1L])) {
+  if (lim[2L] <= lim[1L]) {
     return(data.frame(x = lim[1L], y = mean(y), n = length(y), side = side))
   }
   e <- seq(lim[1L], lim[2L], length.out = nb + 1L)

@@ -889,10 +889,8 @@ print.vrfpol <- function(x, ...) {
         .Call(C_clab_r_crc32, out, length(out) - len) !=
           sum(tl[1:4] * 256^(0:3))) {
     stop(
-      paste(
-        "is truncated or damaged: its data do not match the length and",
-        "CRC-32 at its end"
-      ),
+      "is truncated or damaged: its data do not match the length and ",
+      "CRC-32 at its end",
       call. = FALSE
     )
   }

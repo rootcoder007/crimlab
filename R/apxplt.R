@@ -207,8 +207,8 @@ plot.plcday <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "plcday", "tab")
   t <- x$tab[order(x$tab$shift), , drop = FALSE]
   s <- t$shift
-  lab <- ifelse(s == 0, "same day",
-                ifelse(s < 0, paste(-s, "days before"), paste(s, "days after")))
+  lab <- paste(abs(s), ifelse(s < 0, "days before", "days after"))
+  lab[s == 0] <- "same day"
   invisible(.pdots(lab, t$est, t$lo, t$hi,
                    .pmain(main, "Placebo: the exposure of other days"),
                    paste("Coefficient of", x$var), col, pal, ref = 0,

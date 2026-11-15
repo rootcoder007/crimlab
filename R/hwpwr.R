@@ -127,7 +127,7 @@ hwpwr <- function(
   skip = character(),
   paths = character()
 ) {
-  bad <- function(...) stop(paste0("hwpwr: ", ...), call. = FALSE)
+  bad <- function(...) stop("hwpwr: ", ..., call. = FALSE)
   one <- function(x) is.numeric(x) && length(x) == 1L && is.finite(x)
   if (!one(dt) || dt < 0) {
     bad("`dt` must be one number from 0.")
@@ -150,7 +150,7 @@ hwpwr <- function(
     "emi"
   )
   if (!is.character(skip) || anyNA(skip) || !all(skip %in% src)) {
-    bad("`skip` must name sources among ", paste(src, collapse = ", "), ".")
+    bad("`skip` must name sources among ", toString(src), ".")
   }
   lnx <- identical(Sys.info()[["sysname"]], "Linux")
   pth <- c(
@@ -180,7 +180,7 @@ hwpwr <- function(
         is.null(nm) ||
         !all(nm %in% names(rt)) ||
         anyDuplicated(nm) ||
-        any(!is.finite(rated)) ||
+        !all(is.finite(rated)) ||
         any(rated < 0)
     ) {
       bad("`rated` must be watts from 0 named cpu or gpu.")
