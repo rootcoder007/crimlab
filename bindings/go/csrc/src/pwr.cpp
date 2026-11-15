@@ -304,10 +304,10 @@ void drm(const Cfg &c, Snap &s) {
     d.name = cd + " (" + pci + ")";
     // the hwmon folder of the device, and its name
     std::string hw, hwn;
-    for (const std::string &h : ls(dev + "/hwmon")) {
-      hw = dev + "/hwmon/" + h;
+    const std::vector<std::string> hws = ls(dev + "/hwmon");
+    if (!hws.empty()) {
+      hw = dev + "/hwmon/" + hws[0];
       hwn = line1(hw + "/name");
-      break;
     }
     double v = 0;
     std::string err;
