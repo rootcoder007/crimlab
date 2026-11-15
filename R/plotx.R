@@ -24,7 +24,7 @@
 #' @param lvls The levels of the control limits: probabilities strictly
 #'   between 0 and 1.
 #' @param target The ratio expected under no excess: one positive number.
-#' @param ... Passed to [graphics::plot()].
+#' @param ... Passed to the base-graphics call that draws the frame.
 #' @param main `NULL` (a default title) or one string.
 #' @param col `NULL` (the palette) or colours.
 #' @param pal `NULL` (the session palette, see [plotopt()]) or a palette
@@ -53,7 +53,7 @@ plotlrnz <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   }
   cl <- .pcols(1L, col, pal, "plotlrnz")
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(c(0, 1), c(0, 1), .pmain(main, if (is.na(g)) "Lorenz curve" else
     sprintf("Lorenz curve (Gini %.3f)", g), "plotlrnz"),
     "Cumulative share of units, smallest first",
@@ -68,39 +68,11 @@ plotlrnz <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 #' @export
 plotfnl <- function(obs, expd, area = NULL, lvls = c(0.95, 0.998),
                     target = 1, ..., main = NULL, col = NULL, pal = NULL) {
-  num <- function(v, nm) {
-    if (!is.numeric(v)) {
-      stop("plotfnl: `", nm, "` must be numbers.", call. = FALSE)
-    }
-    as.numeric(v)
-  }
-  obs <- num(obs, "obs")
-  expd <- num(expd, "expd")
-  if (length(obs) != length(expd) || !length(obs)) {
-    stop("plotfnl: `obs` and `expd` must be the same length, from 1.",
-         call. = FALSE)
-  }
-  if (!is.null(area) && length(area) != length(obs)) {
-    stop("plotfnl: `area` must have one label per area.", call. = FALSE)
-  }
-  keep <- !is.na(obs) & !is.na(expd)
-  obs <- obs[keep]
-  expd <- expd[keep]
-  if (!length(obs) || any(!is.finite(c(obs, expd))) || any(obs < 0) ||
-        any(expd <= 0)) {
-    stop("plotfnl: the counts must be finite, `obs` from 0 and `expd` ",
-         "positive.", call. = FALSE)
-  }
-  lv <- num(lvls, "lvls")
-  if (!length(lv) || anyNA(lv) || any(lv <= 0 | lv >= 1)) {
-    stop("plotfnl: `lvls` must be probabilities strictly between 0 and 1.",
-         call. = FALSE)
-  }
-  if (!is.numeric(target) || length(target) != 1L || !is.finite(target) ||
-        target <= 0) {
-    stop("plotfnl: `target` must be one positive number.", call. = FALSE)
-  }
-  lv <- sort(lv)
+  k <- .pfchk(obs, expd, area, lvls, target)
+  obs <- k$obs
+  expd <- k$expd
+  keep <- k$keep
+  lv <- k$lv
   # the limits are drawn through the areas' own expected counts
   e <- sort(unique(expd))
   lim <- function(p, at) {
@@ -115,7 +87,7 @@ plotfnl <- function(obs, expd, area = NULL, lvls = c(0.95, 0.998),
     pal, "plotfnl")
   cl <- c(cl[1L], cl[length(cl)])
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   bands <- lapply(lv, lim, at = e)
   .pfrm(.prange(e), .prange(ratio, unlist(bands), target),
           .pmain(main, "Funnel plot", "plotfnl"), "Expected count",
@@ -192,7 +164,7 @@ plotrdg <- function(x, grp = NULL, bw = "nrd0", ..., main = NULL,
   }
   cl <- .pcols(length(lv), col, pal, "plotrdg")
   op <- .ppar(mar = c(4.2, .plmar(lv), 3, 1))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   top <- max(out$y)
   step <- 0.7 * top
   .pfrm(range(out$x), c(0, step * (length(lv) - 1L) + top),
@@ -219,7 +191,7 @@ plotcdfs <- function(x, grp = NULL, ..., main = NULL, col = NULL,
   lv <- levels(d$grp)
   cl <- .pcols(length(lv), col, pal, "plotcdfs")
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(range(d$x), c(0, 1),
           .pmain(main, "Empirical distribution functions", "plotcdfs"),
           "Value", "Share at or below", ...)
@@ -243,7 +215,7 @@ plotvln <- function(x, grp = NULL, bw = "nrd0", ..., main = NULL,
   lv <- levels(d$grp)
   cl <- .pcols(length(lv), col, pal, "plotvln")
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(c(0.5, length(lv) + 0.5), range(d$x),
           .pmain(main, "Violins: density, median and quartiles", "plotvln"),
           "", "Value", xaxt = "n", ...)
@@ -288,8 +260,7 @@ plothex <- function(x, y, bins = 30L, ..., main = NULL, col = NULL,
     stop("plothex: needs at least two points with both values.",
          call. = FALSE)
   }
-  if (!is.numeric(bins) || length(bins) != 1L || !is.finite(bins) ||
-        bins < 2 || bins > 500 || bins != round(bins)) {
+  if (!.pnum1(bins, 2, 500, TRUE)) {
     stop("plothex: `bins` must be one whole number from 2 to 500.",
          call. = FALSE)
   }
@@ -304,7 +275,7 @@ plothex <- function(x, y, bins = 30L, ..., main = NULL, col = NULL,
   lvl <- pmin(9L, 1L + floor(8 * (out$count - 1) /
                                max(1, max(out$count) - 1)))
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(rx, ry, .pmain(main, sprintf("Counts in hexagons (most: %d)",
                                        max(out$count)), "plothex"),
           "x", "y", ...)
@@ -332,7 +303,7 @@ plotgain <- function(x, grp = NULL, ..., main = NULL, col = NULL,
   gini <- stats::setNames(vapply(cs, function(r) r$stat[["gini"]], 1), lv)
   cl <- .pcols(length(lv), col, pal, "plotgain")
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(c(0, 1), c(0, 1), .pmain(main, "Concentration curves",
                                    "plotgain"),
           "Cumulative share of units, smallest first",
@@ -406,7 +377,7 @@ plotcal <- function(x, y, ..., main = NULL, col = NULL, pal = NULL) {
   r <- .prange(d$y)
   lvl <- 1L + pmin(8L, floor(8 * (d$y - r[1L]) / diff(r)))
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   graphics::plot(c(0, 54), c(0, 8 * length(yrs)), type = "n", axes = FALSE,
                  xlab = "", ylab = "", main = "", ...)
   for (i in seq_along(yrs)) {
@@ -432,8 +403,7 @@ plotcal <- function(x, y, ..., main = NULL, col = NULL, pal = NULL) {
 plothrz <- function(y, prd, grp = NULL, bands = 3L, ..., main = NULL,
                     col = NULL, pal = NULL) {
   d <- .pser(y, prd, grp, "plothrz")
-  if (!is.numeric(bands) || length(bands) != 1L || !is.finite(bands) ||
-        bands < 1 || bands > 6 || bands != round(bands)) {
+  if (!.pnum1(bands, 1, 6, TRUE)) {
     stop("plothrz: `bands` must be one whole number from 1 to 6.",
          call. = FALSE)
   }
@@ -447,7 +417,7 @@ plothrz <- function(y, prd, grp = NULL, bands = 3L, ..., main = NULL,
   up <- blpal("sequential", bands + 1L)[-1L]
   dn <- grDevices::colorRampPalette(c("#FBD5CC", "#B2182B"))(bands)
   op <- .ppar(mar = c(4.2, .plmar(lv), 3, 1))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   graphics::plot(range(d$pos), c(0, length(lv)), type = "n", yaxt = "n",
                  xlab = "Period", ylab = "", main = "", ...)
   for (i in seq_along(lv)) {
@@ -481,7 +451,7 @@ plotmult <- function(y, prd, grp = NULL, ..., main = NULL, col = NULL,
   cl <- .pcols(length(lv), col, pal, "plotmult")
   main <- .pmain(main, "", "plotmult")
   op <- .ppanels(length(lv))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   yl <- .prange(d$y)
   for (i in seq_along(lv)) {
     s <- d[d$grp == lv[i], ]
@@ -506,7 +476,7 @@ plotbump <- function(y, prd, grp, desc = TRUE, ..., main = NULL, col = NULL,
   lv <- levels(d$grp)
   cl <- .pcols(length(lv), col, pal, "plotbump")
   op <- .ppar(mar = c(4.2, 4.6, 3, 6))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   nr <- max(d$rank, na.rm = TRUE)
   .pfrm(range(d$pos), c(nr + 0.5, 0.5),
           .pmain(main, "Ranks over time", "plotbump"), "Period", "Rank",
@@ -530,7 +500,7 @@ plotbump <- function(y, prd, grp, desc = TRUE, ..., main = NULL, col = NULL,
 #' intervals, before adoption in open circles and after in filled ones.
 #'
 #' @param x A named list of results of [evtst()] or [stgdid()].
-#' @param ... Passed to [graphics::plot()].
+#' @param ... Passed to the base-graphics call that draws each panel.
 #' @param main `NULL` or one string, an overall title.
 #' @param col,pal As for [plotlrnz()].
 #' @return Invisibly, a data frame of the points drawn: `panel`, `t`, `est`,
@@ -549,17 +519,14 @@ plotbump <- function(y, prd, grp, desc = TRUE, ..., main = NULL, col = NULL,
 #' ))
 #' @export
 plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
-  ok <- is.list(x) && !is.object(x) && length(x) &&
-    !is.null(names(x)) && all(nzchar(names(x))) &&
-    all(vapply(x, inherits, NA, c("evtst", "stgdid")))
-  if (!ok) {
+  if (!.pevok(x)) {
     stop("plotevgrid: `x` must be a named list of evtst or stgdid results.",
          call. = FALSE)
   }
   main <- .pmain(main, "", "plotevgrid")
   .pcols(2L, col, pal, "plotevgrid")
   op <- .ppanels(length(x))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   out <- do.call(rbind, lapply(names(x), function(k) {
     e <- .pev(x[[k]])
     r <- .ppath(e$evtm, e$est, e$lo, e$hi, k, "Periods since adoption",
@@ -606,8 +573,8 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 
 # the Lorenz curve and Gini of non-negative values, from the compiled core
 .pcc <- function(x, fn) {
-  if (!is.numeric(x) || is.object(x) || length(x) < 1L ||
-        any(!is.finite(x)) || any(x < 0) || sum(x) <= 0) {
+  ok <- is.numeric(x) && !is.object(x)
+  if (!ok || !length(x) || any(!is.finite(x) | x < 0) || sum(x) <= 0) {
     stop(fn, ": `x` must be finite values from 0 with a positive total.",
          call. = FALSE)
   }
@@ -615,7 +582,7 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 .plz <- function(d) {
-  if (!all(c("pop", "share") %in% names(d))) {
+  if (any(!c("pop", "share") %in% names(d))) {
     stop("plotlrnz: a frame `x` needs the columns pop and share.",
          call. = FALSE)
   }
@@ -677,4 +644,43 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
     match(d$prd, unique(d$prd))
   }
   d[order(d$grp, d$pos), , drop = FALSE]
+}
+
+# the checked inputs of plotfnl(): areas missing either count dropped
+.pfchk <- function(obs, expd, area, lvls, target) {
+  for (a in list(list(obs, "obs"), list(expd, "expd"), list(lvls, "lvls"))) {
+    if (!is.numeric(a[[1L]])) {
+      stop("plotfnl: `", a[[2L]], "` must be numbers.", call. = FALSE)
+    }
+  }
+  n <- length(obs)
+  if (n != length(expd) || !n) {
+    stop("plotfnl: `obs` and `expd` must be the same length, from 1.",
+         call. = FALSE)
+  }
+  if (!is.null(area) && length(area) != n) {
+    stop("plotfnl: `area` must have one label per area.", call. = FALSE)
+  }
+  keep <- !is.na(obs) & !is.na(expd)
+  obs <- as.numeric(obs[keep])
+  expd <- as.numeric(expd[keep])
+  if (any(c(!length(obs), !is.finite(c(obs, expd)), obs < 0, expd <= 0))) {
+    stop("plotfnl: the counts must be finite, `obs` from 0 and `expd` ",
+         "positive.", call. = FALSE)
+  }
+  if (any(c(!length(lvls), is.na(lvls), lvls <= 0, lvls >= 1))) {
+    stop("plotfnl: `lvls` must be probabilities strictly between 0 and 1.",
+         call. = FALSE)
+  }
+  if (!.pnum1(target, .Machine$double.xmin)) {
+    stop("plotfnl: `target` must be one positive number.", call. = FALSE)
+  }
+  list(obs = obs, expd = expd, keep = keep, lv = sort(as.numeric(lvls)))
+}
+
+# a named list of event studies
+.pevok <- function(x) {
+  ok <- c(is.list(x), !is.object(x), length(x) > 0L, !is.null(names(x)))
+  all(ok) && all(nzchar(names(x)), vapply(x, inherits, NA,
+                                          c("evtst", "stgdid")))
 }

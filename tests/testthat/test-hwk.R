@@ -108,7 +108,7 @@ test_that("the residuals' test is ks.test()'s", {
   on.exit(grDevices::dev.off())
   p <- plot(r)
   expect_identical(p$u, sort(r$u))
-  expect_equal(p$hi - p$q, rep(1.36 / sqrt(r$n), r$n))
+  expect_equal(p$hi - p$q, rep(1.36 / sqrt(r$n), r$n), tolerance = 1e-12)
 })
 
 test_that("simulation is seeded, in time and in space", {

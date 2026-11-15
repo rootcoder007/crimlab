@@ -55,8 +55,7 @@ blpal <- function(name = "okabe", n = NULL) {
   if (is.null(n)) {
     return(base)
   }
-  if (!is.numeric(n) || length(n) != 1L || !is.finite(n) || n < 1 ||
-        n != round(n)) {
+  if (!.pnum1(n, 1, Inf, TRUE)) {
     stop("blpal: `n` must be one positive whole number.", call. = FALSE)
   }
   if (name %in% c("okabe", "grey")) {
@@ -77,7 +76,7 @@ plotopt <- function(...) {
     return(cur)
   }
   nm <- names(new)
-  if (is.null(nm) || !all(nm %in% names(cur))) {
+  if (is.null(nm) || any(!nm %in% names(cur))) {
     stop("plotopt: the options are ", toString(names(cur)), ".",
          call. = FALSE)
   }
@@ -143,11 +142,17 @@ yoypals <- function() names(.YOY_PALETTES)
     k,
     palette = is.character(v) && length(v) == 1L && v %in% names(.pals),
     grid = isTRUE(v) || isFALSE(v),
-    cex = is.numeric(v) && length(v) == 1L && is.finite(v) && v > 0,
-    las = is.numeric(v) && length(v) == 1L && v %in% 0:3,
+    cex = .pnum1(v, .Machine$double.xmin),
+    las = .pnum1(v, 0, 3, TRUE),
     bg = .iscol(v),
     panel = (length(v) == 1L && is.na(v)) || .iscol(v)
   )
+}
+
+# one finite number in [lo, hi], a whole number when `int`
+.pnum1 <- function(v, lo = -Inf, hi = Inf, int = FALSE) {
+  is.numeric(v) && length(v) == 1L &&
+    all(c(is.finite(v), v >= lo, v <= hi, !int | v == round(v)))
 }
 
 # the options in force: the defaults, overridden by usable set values
@@ -166,7 +171,7 @@ yoypals <- function() names(.YOY_PALETTES)
 # n colours: `col` as given (recycled) or the palette's
 .pcols <- function(n, col = NULL, pal = NULL, fn = "plot") {
   if (!is.null(col)) {
-    if (!length(col) || !all(vapply(col, .iscol, NA))) {
+    if (!length(col) || any(!vapply(col, .iscol, NA))) {
       stop(fn, ": `col` must be colours.", call. = FALSE)
     }
     return(rep_len(col, n))
@@ -221,7 +226,7 @@ yoypals <- function() names(.YOY_PALETTES)
 
 .prange <- function(...) {
   r <- suppressWarnings(range(c(...), finite = TRUE))
-  if (!all(is.finite(r))) r <- c(0, 1)
+  if (any(!is.finite(r))) r <- c(0, 1)
   if (diff(r) == 0) r <- r + c(-0.5, 0.5)
   r
 }
@@ -240,8 +245,8 @@ yoypals <- function() names(.YOY_PALETTES)
 # a legend that pairs every colour with a line type or point shape
 .pkey <- function(where, lab, col, lty = NA, pch = NA, ...) {
   a <- list(where, legend = lab, col = col, bty = "n", cex = 0.85, ...)
-  if (!all(is.na(lty))) a$lty <- lty
-  if (!all(is.na(pch))) a$pch <- pch
+  if (any(!is.na(lty))) a$lty <- lty
+  if (any(!is.na(pch))) a$pch <- pch
   do.call(graphics::legend, a)
 }
 
@@ -264,7 +269,7 @@ yoypals <- function() names(.YOY_PALETTES)
   k <- length(u)
   y <- k + 1L - match(lab, u)
   op <- .ppar(mar = c(4.2, .plmar(u), 3, 1))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   v <- c(est, lo, hi, ref)
   if (log == "x") v <- v[v > 0]
   .pfrm(.prange(v), c(0.5, k + 0.5), main, xlab, "", yaxt = "n",
@@ -290,7 +295,7 @@ yoypals <- function() names(.YOY_PALETTES)
                    ref = 0, at = -0.5, ...) {
   cl <- .pcols(2L, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(t), .prange(est, lo, hi, ref), main, xlab, ylab, ...)
   graphics::abline(h = ref, lty = 2, col = "#636363")
   graphics::abline(v = at, lty = 3, col = "#636363")
@@ -314,7 +319,7 @@ yoypals <- function() names(.YOY_PALETTES)
   k <- nlevels(g)
   cl <- .pcols(k, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(x), .prange(y, lo, hi, ref), main, xlab, ylab, ...)
   if (!is.null(ref)) graphics::abline(h = ref, lty = 2, col = "#636363")
   st <- type == "s"
@@ -361,14 +366,14 @@ yoypals <- function() names(.YOY_PALETTES)
                    ...) {
   cl <- .pcols(1L, col, pal)
   op <- .ppar(mar = c(4.2, .plmar(lab), 3, 1))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   k <- length(v)
   y <- rev(seq_len(k))
   .pfrm(.prange(0, v, ref), c(0.4, k + 0.6), main, xlab, yaxt = "n", ...)
   graphics::axis(2, at = y, labels = lab, tick = FALSE, las = 1)
   w <- is.finite(v)
   graphics::rect(0, y[w] - 0.35, v[w], y[w] + 0.35, col = cl, border = NA)
-  if (!all(w)) graphics::text(0, y[!w], "no finite value", pos = 4, cex = 0.75)
+  if (any(!w)) graphics::text(0, y[!w], "no finite value", pos = 4, cex = 0.75)
   if (!is.null(ref)) graphics::abline(v = ref, lty = 2, col = "#636363")
   invisible(data.frame(label = lab, value = v, stringsAsFactors = FALSE))
 }
@@ -378,14 +383,14 @@ yoypals <- function() names(.YOY_PALETTES)
 .pmat <- function(m, main, xlab = "", ylab = "", div = FALSE, mid = 0,
                   lab = m, pal = NULL, ...) {
   m <- as.matrix(m)
-  rl <- rownames(m) %||% seq_len(nrow(m))
-  cn <- colnames(m) %||% seq_len(ncol(m))
+  rl <- if (is.null(rownames(m))) seq_len(nrow(m)) else rownames(m)
+  cn <- if (is.null(colnames(m))) seq_len(ncol(m)) else colnames(m)
   pn <- if (!is.null(pal)) pal else if (div) "diverging" else "sequential"
   sh <- blpal(.palnm(pn, "plot"), 9L)
   r <- .prange(m)
   if (div) r <- mid + c(-1, 1) * max(abs(r - mid))
   op <- .ppar(mar = c(4.2, .plmar(rl), 3, 1))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   # image() draws the first row at the bottom: flip so it reads as printed
   rv <- rev(seq_len(nrow(m)))
   f <- t(m[rv, , drop = FALSE])
@@ -408,7 +413,7 @@ yoypals <- function() names(.YOY_PALETTES)
 # a surface on a grid, shaded and with contour lines
 .psurf <- function(x, y, z, main, xlab = "x", ylab = "y", pal = NULL, ...) {
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   sh <- blpal(.palnm(if (is.null(pal)) "sequential" else pal, "plot"), 9L)
   graphics::image(x, y, z, col = sh, main = "", xlab = xlab, ylab = ylab,
                   asp = 1, ...)
@@ -428,5 +433,3 @@ yoypals <- function() names(.YOY_PALETTES)
   }
   invisible(x)
 }
-
-`%||%` <- function(a, b) if (is.null(a)) b else a

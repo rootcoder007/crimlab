@@ -9,7 +9,7 @@ plotevgrid(x, ..., main = NULL, col = NULL, pal = NULL)
 \arguments{
 \item{x}{A named list of results of \code{\link[=evtst]{evtst()}} or \code{\link[=stgdid]{stgdid()}}.}
 
-\item{...}{Passed to \code{\link[graphics:plot]{graphics::plot()}}.}
+\item{...}{Passed to the base-graphics call that draws each panel.}
 
 \item{main}{\code{NULL} or one string, an overall title.}
 

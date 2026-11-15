@@ -43,11 +43,7 @@
 #'   benchmark) and `kscan` (clusters as circles).
 #'
 #' @param x A result of the package.
-#' @param ... Passed to the base-graphics call that draws the frame.
-#' @param main `NULL` (a default title) or one string.
-#' @param col `NULL` (the palette) or colours.
-#' @param pal `NULL` (the session palette, see [plotopt()]) or a palette
-#'   name for [blpal()].
+#' @inheritParams plotlrnz
 #' @return Invisibly, the data drawn: a data frame, or for a method of
 #'   several panels a list of data frames. A result missing a part the plot
 #'   needs is refused.
@@ -116,7 +112,7 @@ plot.sirex <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pdots(r$group, r$sir, r$lo, r$hi,
          .pmain(main, "Standardised ratios with their intervals"),
          "Observed / expected", col, pal, ref = 1,
-         grp = ifelse(r$out %in% TRUE, "outside the funnel limits",
+         grp = ifelse(r$out & !is.na(r$out), "outside the funnel limits",
                       "inside the funnel limits"), ...)
 }
 
@@ -252,7 +248,7 @@ plot.didfe <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "didfe", "coef")
   n <- 1L + sum(!vapply(x[c("bacon", "loo")], is.null, NA))
   op <- .ppanels(n)
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   r <- x$coef
   out <- list(coef = .pdots(r$term, r$est, r$lo, r$hi,
                             .pmain(main, "Two-way fixed-effects estimate"),
@@ -302,11 +298,6 @@ plot.stgdid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          ...)
 }
 
-.pev <- function(x) {
-  d <- if (inherits(x, "stgdid")) x$dynamic else x$est
-  d[, c("evtm", "est", "lo", "hi")]
-}
-
 # ---- paths over time --------------------------------------------------------
 
 #' @rdname plotm
@@ -315,7 +306,7 @@ plot.synthc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "synthc", "path")
   p <- x$path
   op <- .ppanels(2L)
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .plines(p$time, list(treated = p$treated, synthetic = p$synth),
           .pmain(main, paste("Synthetic control:", x$unit)), "Period",
           "Outcome", col, pal, where = "topleft", ...)
@@ -356,7 +347,7 @@ plot.stkflw <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          adp = "Average daily population", alos = "Average length of stay")
   main <- .pmain(main, "")
   op <- .ppanels(4L)
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   cl <- .pcols(4L, col, pal)
   for (i in seq_along(k)) {
     .plines(f$period, stats::setNames(list(f[[names(k)[i]]]), names(k)[i]),
@@ -372,7 +363,7 @@ plot.dktflw <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "dktflw", "flow")
   f <- x$flow
   op <- .ppanels(2L)
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   cl <- .pcols(2L, col, pal)
   .plines(f$period, list(clearance = f$clear),
           .pmain(main, "Clearance rate (disposed / received)"), "Period",
@@ -418,7 +409,7 @@ plot.yoypx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   cl <- .pcols(k, col, pal)
   at <- d$prd + (as.integer(g) - (k + 1) / 2) * 0.6 / max(k, 1)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(at), .prange(d$pct, d$lo, d$hi, 0),
           .pmain(main, "Percent change from the period before"), "Period",
           "Percent change", ...)
@@ -459,7 +450,7 @@ plot.apcie <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   tm <- unique(d$term)
   main <- .pmain(main, "")
   op <- .ppanels(length(tm))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   for (k in tm) {
     s <- d[d$term == k, ]
     p <- suppressWarnings(as.numeric(s$level))
@@ -597,7 +588,7 @@ plot.xcser <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   b <- stats::qnorm(1 - (1 - x$level) / 2) / sqrt(x$cor$n[1L])
   cl <- .pcols(1L, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(c0$lag), .prange(c0$r, b, -b),
           .pmain(main, "Cross-correlation at lags"), "Lag", "Correlation",
           ...)
@@ -618,7 +609,7 @@ plot.hwkres <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   d <- data.frame(q = q, u = sort(x$u), lo = q - b, hi = q + b)
   cl <- .pcols(1L, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(c(0, 1), c(0, 1),
           .pmain(main, "Time-rescaling residuals (95% Kolmogorov band)"),
           "uniform quantile", "rescaled time quantile", ...)
@@ -720,7 +711,7 @@ plot.mmshr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
                   above = x$above, stringsAsFactors = FALSE)
   cl <- .pcols(3L, col, pal)
   op <- .ppar(mar = c(6, .plmar(d$group), 3, 1))
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   m <- t(as.matrix(d[, -1L]))
   dn <- c(-1, 25, 12)
   graphics::barplot(m[, rev(seq_len(ncol(m))), drop = FALSE], horiz = TRUE,
@@ -842,7 +833,7 @@ plot.bufas <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   g <- factor(p$grp, levels = unique(p$grp))
   cl <- .pcols(nlevels(g), col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(p$dsite), .prange(p$dcomp),
           .pmain(main, "Places by distance to sites and comparison sites"),
           "Distance to the nearest site",
@@ -859,9 +850,9 @@ plot.cmpsc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "cmpsc", "segs")
   s <- x$segs
   cl <- .pcols(2L, col, pal)
-  k <- s$cmps %in% TRUE
+  k <- s$cmps & !is.na(s$cmps)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(s$seg), .prange(s$ccp, x$pos),
           .pmain(main, sprintf("Segments congruent at the best shift: %d of %d",
                                x$score, x$nseg)),
@@ -880,7 +871,7 @@ plot.ebshr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   e <- x$est
   cl <- .pcols(2L, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(c(0.8, 2.2), .prange(e$y, e$shrunk),
           .pmain(main, "Counts and their empirical-Bayes shrinkage"), "",
           "Value", xaxt = "n", ...)
@@ -898,10 +889,10 @@ plot.ebshr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 plot.ibench <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "ibench", "tab")
   t <- x$tab
-  f <- t$flag %in% TRUE
+  f <- t$flag & !is.na(t$flag)
   cl <- .pcols(2L, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   r <- .prange(t$bench, t$rate)
   .pfrm(r, r, .pmain(main, "Officer rate against benchmark"),
           "Benchmark", "Rate", ...)
@@ -922,7 +913,7 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   k <- x$cl
   cl <- .pcols(1L, col, pal)
   op <- .ppar()
-  on.exit(graphics::par(op))
+  on.exit(graphics::par(op), add = TRUE)
   .pfrm(.prange(k$x - k$r, k$x + k$r), .prange(k$y - k$r, k$y + k$r),
           .pmain(main, "Space-time clusters (numbered by rank)"), "x", "y",
           asp = 1, ...)
@@ -930,4 +921,10 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
                     fg = cl, lwd = 2)
   graphics::text(k$x, k$y, seq_len(nrow(k)), cex = 0.9)
   invisible(k)
+}
+
+# the event-time estimates of an event study or a staggered design
+.pev <- function(x) {
+  d <- if (inherits(x, "stgdid")) x$dynamic else x$est
+  d[, c("evtm", "est", "lo", "hi")]
 }

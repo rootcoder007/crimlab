@@ -30,7 +30,7 @@ value of \code{y}.}
 
 \item{y}{Numbers.}
 
-\item{...}{Passed to \code{\link[graphics:plot]{graphics::plot()}}.}
+\item{...}{Passed to the base-graphics call that draws the frame.}
 
 \item{main}{\code{NULL} (a default title) or one string.}
 

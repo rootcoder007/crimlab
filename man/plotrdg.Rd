@@ -28,7 +28,7 @@ plotgain(x, grp = NULL, ..., main = NULL, col = NULL, pal = NULL)
 \code{\link[stats:density]{stats::density()}} (\code{"nrd0"}, \code{"nrd"}, \code{"ucv"}, \code{"bcv"}, \code{"sj"},
 \code{"sj-ste"}, \code{"sj-dpi"}).}
 
-\item{...}{Passed to \code{\link[graphics:plot]{graphics::plot()}}.}
+\item{...}{Passed to the base-graphics call that draws the frame.}
 
 \item{main}{\code{NULL} (a default title) or one string.}
 
