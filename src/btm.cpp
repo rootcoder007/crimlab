@@ -257,7 +257,7 @@ SEXP C_clab_r_hwkfit(SEXP times, SEXP hor, SEXP kernel, SEXP base, SEXP per, SEX
   SEXP sev = dvec(p, se.data(), np);
   setnames(p, sev, pn);
   SEXP cov = p(Rf_allocMatrix(REALSXP, np, np));
-  for (int j = 0; j < np * np; ++j) REAL(cov)[j] = std::isnan(bcov[static_cast<std::size_t>(j)]) ? NA_REAL : bcov[static_cast<std::size_t>(j)];
+  for (std::size_t j = 0; j < static_cast<std::size_t>(np) * static_cast<std::size_t>(np); ++j) REAL(cov)[j] = std::isnan(bcov[static_cast<std::size_t>(j)]) ? NA_REAL : bcov[static_cast<std::size_t>(j)];
   SEXP dn = p(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(dn, 0, strs(p, pn));
   SET_VECTOR_ELT(dn, 1, strs(p, pn));
@@ -656,14 +656,14 @@ SEXP C_clab_r_xcser(SEXP x, SEXP y, SEXP lagmax, SEXP dif, SEXP level) {
   const int lag = Rf_isNull(lagmax) ? std::max(0, std::min(n - 1, static_cast<int>(std::floor(10 * std::log10(n / 2.0)))))
                                     : clab::whole(lagmax, "lagmax", 0);
   if (lag >= n) fail("`lagmax` must be below the number of periods, %d.", n);
-  std::vector<double> r(static_cast<std::size_t>(2 * lag + 1));
+  std::vector<double> r(2 * static_cast<std::size_t>(lag) + 1);
   if (clab_xcser(a.data(), b.data(), n, lag, r.data()) != CLAB_OK) fail("a series is constant: no correlation.");
   const double r0 = r[static_cast<std::size_t>(lag)];
   const double fz = std::atanh(r0), sz = n > 3 ? 1 / std::sqrt(n - 3.0) : NA_REAL;
   const double tt = r0 * std::sqrt((n - 2) / (1 - r0 * r0));
   const double c[4] = {r0, n > 3 ? std::tanh(fz - z * sz) : NA_REAL, n > 3 ? std::tanh(fz + z * sz) : NA_REAL,
                        std::fabs(r0) < 1 ? 2 * Rf_pt(-std::fabs(tt), n - 2, 1, 0) : 0.0};
-  SEXP lg = p(Rf_allocVector(INTSXP, 2 * lag + 1));
+  SEXP lg = p(Rf_allocVector(INTSXP, 2 * static_cast<R_xlen_t>(lag) + 1));
   for (int k = -lag; k <= lag; ++k) INTEGER(lg)[lag + k] = k;
   SEXP cor = frame(p, {{"r", dvec(p, c, 1)},
                        {"lo", dvec(p, c + 1, 1)},
@@ -821,7 +821,7 @@ SEXP C_clab_r_hypq(SEXP lam, SEXP pref, SEXP mu, SEXP queue, SEXP tt) {
     n = Rf_ncols(pref);
     SEXP d = p(numat(pref, "pref", R_NegInf));
     pr.resize(static_cast<std::size_t>(m * n));
-    for (int i = 0; i < m * n; ++i) pr[static_cast<std::size_t>(i)] = static_cast<int>(REAL(d)[i]) - 1;
+    for (std::size_t i = 0; i < static_cast<std::size_t>(m) * static_cast<std::size_t>(n); ++i) pr[static_cast<std::size_t>(i)] = static_cast<int>(REAL(d)[i]) - 1;
   }
   for (std::size_t i = 0; i < pr.size(); ++i) {
     if (pr[i] < 0 || pr[i] >= n) fail("`pref` must hold unit numbers from 1 to %d.", n);
@@ -1017,7 +1017,7 @@ void pse(prot &p, const std::vector<std::string> &nm, const double *th, const do
   *se = dvec(p, s.data(), np);
   setnames(p, *se, nm);
   *cv = p(Rf_allocMatrix(REALSXP, np, np));
-  for (int j = 0; j < np * np; ++j) REAL(*cv)[j] = std::isnan(cov[j]) ? NA_REAL : cov[j];
+  for (std::size_t j = 0; j < static_cast<std::size_t>(np) * static_cast<std::size_t>(np); ++j) REAL(*cv)[j] = std::isnan(cov[j]) ? NA_REAL : cov[j];
   SEXP dn = p(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(dn, 0, strs(p, nm));
   SET_VECTOR_ELT(dn, 1, strs(p, nm));

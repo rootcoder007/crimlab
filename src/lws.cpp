@@ -103,6 +103,7 @@ int clab_lwss(const double *x, const double *y, int n, double f, int iter,
   if (ns > n) ns = n;
   if (ns < 2) ns = 2;
   for (int it = 0; it <= iter; ++it) {
+    if (kutil::stop(static_cast<double>(n) * ns)) return CLAB_EINTR;
     int nl = 0, nr = ns - 1, last = -1, i = 0;
     for (;;) {
       // slide the neighbourhood while its right end is closer to x[i]

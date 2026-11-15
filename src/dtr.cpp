@@ -171,6 +171,7 @@ int clab_insphs(const double *T, int nt, const double *g, int ng, int steps, dou
       const double A[9] = {1, 0, 1, t, 0, t - 1, c, c, c};
       double x[3] = {x0[0] / s0, x0[1] / s0, x0[2] / s0};
       for (int k = 0; k < steps; ++k) {
+        if ((k & 4095) == 0 && kutil::stop(4096.0 * 20)) return CLAB_EINTR;
         double f[3], phi = 0, sum = 0;
         for (int r = 0; r < 3; ++r) {
           f[r] = A[3 * r] * x[0] + A[3 * r + 1] * x[1] + A[3 * r + 2] * x[2];

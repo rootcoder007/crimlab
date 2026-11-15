@@ -175,7 +175,7 @@ SEXP C_clab_r_insphs(SEXP temp, SEXP cost, SEXP steps, SEXP rate, SEXP x0) {
   if (!(REAL(xv)[0] + REAL(xv)[1] + REAL(xv)[2] > 0)) fail("`x0` must have a positive sum.");
   const R_xlen_t cells = static_cast<R_xlen_t>(nt) * ng;
   std::vector<double> o(3 * static_cast<std::size_t>(cells));
-  clab_insphs(REAL(tv), nt, REAL(gv), ng, ns, r, REAL(xv), o.data());
+  clab::ichk(clab_insphs(REAL(tv), nt, REAL(gv), ng, ns, r, REAL(xv), o.data()));
   SEXP rn = PROTECT(vlab(REAL(tv), nt)), cn = PROTECT(vlab(REAL(gv), ng));
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 5));
   // the kernel's order is C, P, O; the result's crime (P), coop (C), insp (O)

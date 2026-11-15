@@ -302,7 +302,7 @@ int clab_nnhclu(const double *x, const double *y, int n, double area,
     ux[i] = x[i];
     uy[i] = y[i];
   }
-  for (int t = 0; t < n * maxord; ++t) cl[t] = -1;
+  for (std::size_t t = 0; t < static_cast<std::size_t>(n) * static_cast<std::size_t>(maxord); ++t) cl[t] = -1;
   int m = n, nc = 0, prevbase = 0;
   for (int o = 0; o < maxord; ++o) {
     if (o > 0 && m < 4) break;  // too few units to cluster further

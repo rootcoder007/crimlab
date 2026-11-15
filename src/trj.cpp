@@ -273,7 +273,7 @@ int clab_zgll(const double *y, int n, int nt, const double *off,
     s += prob[k];
   }
   if (std::fabs(s - 1.0) > 1e-9) return CLAB_EDOM;
-  for (int j = 0; j < ng * (p + q); ++j)
+  for (std::size_t j = 0; j < static_cast<std::size_t>(ng) * static_cast<std::size_t>((p + q)); ++j)
     if (!std::isfinite(par[j])) return CLAB_EDOM;
   *ll = estep(D, par, prob, ng, w, work);
   return CLAB_OK;

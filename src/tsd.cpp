@@ -391,7 +391,7 @@ void like(const std::vector<double> &y, Model &m, double *out) {
       }
     } else {
       for (int i = 0; i < rd; ++i) a[i] = anew[z(i)];
-      for (int i = 0; i < rd * rd; ++i) P[i] = Pnew[i];
+      for (std::size_t i = 0; i < static_cast<std::size_t>(rd) * static_cast<std::size_t>(rd); ++i) P[i] = Pnew[i];
     }
   }
   out[0] = ssq;

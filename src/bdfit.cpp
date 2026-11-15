@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "bcol.h"
+#include "kutil.h"
 #include "rchk.h"
 
 extern "C" {
@@ -38,6 +39,7 @@ SEXP C_clab_r_dfboot(SEXP fam, SEXP x, SEXP idx, SEXP a) {
   std::vector<std::vector<double>> est(static_cast<size_t>(k));
   std::vector<double> xb(static_cast<size_t>(n)), p(static_cast<size_t>(k));
   for (int b = 0; b < B; ++b) {
+    if (kutil::stop(50.0 * n)) clab::ichk(CLAB_EINTR);
     for (int i = 0; i < n; ++i) xb[static_cast<size_t>(i)] = REAL(x)[INTEGER(idx)[static_cast<R_xlen_t>(b) * n + i] - 1];
     if (clab_dfit(f, xb.data(), n, p.data()) != CLAB_OK) continue;
     for (int j = 0; j < k; ++j) est[static_cast<size_t>(j)].push_back(p[static_cast<size_t>(j)]);

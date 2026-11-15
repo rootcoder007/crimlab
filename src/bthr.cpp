@@ -198,7 +198,7 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
     for (int j = 0; j < ng; ++j) pn.push_back("diff[" + gl(j) + "]");
     for (int j = 0; j < ng; ++j) pn.push_back("phi[" + gl(j) + "]");
     for (int j = 0; j < ng; ++j) pn.push_back("delta[" + gl(j) + "]");
-    for (const char *h : {"muphi", "sigphi", "mudelta", "sigdelta"}) pn.push_back(h);
+    for (const char *qn : {"muphi", "sigphi", "mudelta", "sigdelta"}) pn.push_back(qn);
     const int pin = static_cast<int>(info[3]);
     for (int q = 0; q < na; ++q) {
       if (q != pin) pn.push_back("phi[" + al(q) + "]");
@@ -308,7 +308,7 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
     for (int j = 0; j < ng; ++j) mg.insert(mg.end(), {j, j});
     bj::cols mo(5, 2 * ng);
     mo.put("grp", labsel(g.lev, mg));
-    SEXP mm = PROTECT(Rf_allocVector(STRSXP, 2 * ng));
+    SEXP mm = PROTECT(Rf_allocVector(STRSXP, 2 * static_cast<R_xlen_t>(ng)));
     ++np;
     for (int k = 0; k < 2 * ng; ++k) SET_STRING_ELT(mm, k, Rf_mkChar(k % 2 ? "hit" : "search"));
     mo.put("meas", mm);
@@ -326,7 +326,7 @@ SEXP C_clab_r_thrtst(SEXP stops, SEXP srch, SEXP hits, SEXP grp, SEXP area, SEXP
         for (int x = 0; x < no; ++x) jo.push_back(x);
       }
       bj::cols r(4, 2 * no);
-      SEXP jm = PROTECT(Rf_allocVector(STRSXP, 2 * no));
+      SEXP jm = PROTECT(Rf_allocVector(STRSXP, 2 * static_cast<R_xlen_t>(no)));
       ++np;
       for (int k = 0; k < 2 * no; ++k) SET_STRING_ELT(jm, k, Rf_mkChar(k < no ? "search" : "hit"));
       r.put("meas", jm);

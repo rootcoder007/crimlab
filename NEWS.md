@@ -844,6 +844,10 @@
   sectors, or into more columns (areas times sectors) than an integer
   counts; a tiny `width` used to overflow the count of columns. The
   command line gives the same messages.
+* The robustness iterations of `lwss()`, the replicator steps of
+  `insphs()`, the cells of `jtsurf()`, the EM steps of `mcartst()` and
+  the bootstrap refits of `dstfit()` can now be interrupted. Loops and sizes that multiplied two integer counts are
+  counted in a wide type.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

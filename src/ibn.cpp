@@ -61,7 +61,7 @@ bool wlogit(const double *z, const double *y, const double *w, int n, int k, dou
   std::vector<double> g(static_cast<std::size_t>(k)), eta(static_cast<std::size_t>(n));
   for (int j = 0; j < k; ++j) coef[j] = 0.0;
   for (int it = 0; it < 100; ++it) {
-    for (int c = 0; c < k * k; ++c) L[c] = 0.0;
+    for (std::size_t c = 0; c < static_cast<std::size_t>(k) * static_cast<std::size_t>(k); ++c) L[c] = 0.0;
     for (int j = 0; j < k; ++j) g[static_cast<std::size_t>(j)] = 0.0;
     for (int i = 0; i < n; ++i) {
       double e = 0;
@@ -84,7 +84,7 @@ bool wlogit(const double *z, const double *y, const double *w, int n, int k, dou
     }
     if (mx < 1e-10) {
       // the information at the solution
-      for (int c = 0; c < k * k; ++c) L[c] = 0.0;
+      for (std::size_t c = 0; c < static_cast<std::size_t>(k) * static_cast<std::size_t>(k); ++c) L[c] = 0.0;
       for (int i = 0; i < n; ++i) {
         double e = 0;
         for (int j = 0; j < k; ++j) e += z[static_cast<std::size_t>(j) * n + i] * coef[j];

@@ -157,6 +157,7 @@ SEXP C_clab_r_mcar(SEXP x, SEXP maxit, SEXP tol) {
   double *o = REAL(VECTOR_ELT(r, 0));
   const int rc = clab_mcar(REAL(x), n, p, Rf_asInteger(maxit), Rf_asReal(tol), o, REAL(VECTOR_ELT(r, 1)),
                            REAL(VECTOR_ELT(r, 2)));
+  clab::ichk(rc);
   if (rc != CLAB_OK) {
     if (o[0] == 1) {
       UNPROTECT(1);
@@ -171,7 +172,7 @@ SEXP C_clab_r_mcar(SEXP x, SEXP maxit, SEXP tol) {
 
 SEXP C_clab_r_mgrid(SEXP na, SEXP bins) {
   const int n = nr(na), p = nc(na), b = Rf_asInteger(bins);
-  std::vector<int> st(static_cast<size_t>(b) + 1), sh(static_cast<size_t>(b + 1) * p);
+  std::vector<int> st(static_cast<size_t>(b) + 1), sh((static_cast<size_t>(b) + 1) * static_cast<size_t>(p));
   const int k = clab_mgrid(LOGICAL(na), n, p, b, st.data(), sh.data());
   SEXP s = PROTECT(Rf_allocVector(INTSXP, k));
   SEXP m = PROTECT(Rf_allocMatrix(INTSXP, k, p));

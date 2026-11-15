@@ -81,7 +81,7 @@ int clab_kmrec(const double *time, const int *event, const int *grp, int n, int 
   double *atr = work, *dg = atr + g, *oe = dg + g, *v = oe + g;
   const int q = g - 1;
   for (int j = 0; j < g; ++j) atr[j] = oe[j] = 0;
-  for (int j = 0; j < q * q; ++j) v[j] = 0;
+  for (std::size_t j = 0; j < static_cast<std::size_t>(q) * static_cast<std::size_t>(q); ++j) v[j] = 0;
   for (int i = 0; i < n; ++i) atr[grp[i]] += 1;
   kutil::hsort(ix, n, [&](int a, int b) { return time[a] == time[b] ? a < b : time[a] < time[b]; });
   double tot = n;

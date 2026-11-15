@@ -622,6 +622,7 @@ int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out,
   int it = 0;
   vector<double> t1(P), t2(P * P), xi(P), ci(P * P);
   for (int k = 1; k <= maxit; ++k) {
+    if (kutil::stop(static_cast<double>(N) * P * P)) return CLAB_EINTR;
     it = k;
     std::fill(t1.begin(), t1.end(), 0.0);
     std::fill(t2.begin(), t2.end(), 0.0);

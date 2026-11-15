@@ -170,7 +170,7 @@ int clab_oaxbd(const double *y, const double *x, const int *grp, int n, int p,
   };
   // the sums of the two groups' covariances, in ri (no longer needed)
   double *sx = ri, *sb = a;
-  for (int k = 0; k < q * q; ++k) {
+  for (std::size_t k = 0; k < static_cast<std::size_t>(q) * static_cast<std::size_t>(q); ++k) {
     sx[k] = vx[0][k] + vx[1][k];
     sb[k] = vb[0][k] + vb[1][k];
   }

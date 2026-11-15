@@ -103,8 +103,8 @@ double estep(const mdat &D, const double *beta, const double *sig,
 bool mstep(const mdat &D, const double *wk, double *b, double *s, double *work) {
   const int p = D.p, r = D.r, nt = D.nt;
   double *a = work, *bn = a + p * p, *sc = bn + p * r;
-  for (int j = 0; j < p * p; ++j) a[j] = 0.0;
-  for (int j = 0; j < p * r; ++j) bn[j] = 0.0;
+  for (std::size_t j = 0; j < static_cast<std::size_t>(p) * static_cast<std::size_t>(p); ++j) a[j] = 0.0;
+  for (std::size_t j = 0; j < static_cast<std::size_t>(p) * static_cast<std::size_t>(r); ++j) bn[j] = 0.0;
   for (int t = 0; t < nt; ++t) {
     double wt = 0.0;
     for (int j = 0; j < r; ++j) sc[j] = 0.0;  // sum_i w y_itj
@@ -147,7 +147,7 @@ bool mstep(const mdat &D, const double *wk, double *b, double *s, double *work) 
   }
   // residual covariance, weighted by w_ik over the used periods
   double *m2 = sc + r * r;  // r: weighted mean squares of the indicators
-  for (int j = 0; j < r * r; ++j) sc[j] = 0.0;
+  for (std::size_t j = 0; j < static_cast<std::size_t>(r) * static_cast<std::size_t>(r); ++j) sc[j] = 0.0;
   for (int j = 0; j < r; ++j) m2[j] = 0.0;
   double tw = 0.0;
   for (int i = 0; i < D.n; ++i) {
