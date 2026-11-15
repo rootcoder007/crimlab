@@ -128,43 +128,10 @@ hwpwr <- function(
   paths = character()
 ) {
   bad <- function(...) stop("hwpwr: ", ..., call. = FALSE)
-  one <- function(x) is.numeric(x) && length(x) == 1L && is.finite(x)
-  if (!one(dt) || dt < 0) {
-    bad("`dt` must be one number from 0.")
-  }
-  if (!one(step) || step <= 0) {
-    bad("`step` must be one number above 0.")
-  }
-  if (!one(pid) || pid != round(pid) || pid < 0) {
-    bad("`pid` must be a process id.")
-  }
-  src <- c(
-    "rapl",
-    "gpu",
-    "battery",
-    "proc",
-    "nvml",
-    "smi",
-    "ioreport",
-    "ioreg",
-    "emi"
-  )
-  if (!is.character(skip) || anyNA(skip) || !all(skip %in% src)) {
-    bad("`skip` must name sources among ", toString(src), ".")
-  }
+  .hwck(dt, step, pid, skip, bad)
   pth <- .hwpth(paths, bad)
   rt <- .hwrt(rated, bad)
-  if (!is.null(since)) {
-    sn <- attr(since, "snap")
-    if (
-      !is.data.frame(since) ||
-        !is.character(sn) ||
-        length(sn) != 1L ||
-        is.na(sn)
-    ) {
-      bad("`since` must be an earlier result of hwpwr().")
-    }
-  }
+  .hwsin(since, bad)
   s <- .hwsnap(pth, skip, pid, since, dt, step)
   r <- .Call(C_clab_r_pwrd, s, unname(rt))
   attr(r, "snap") <- s[length(s)]
@@ -248,4 +215,58 @@ hwpwr <- function(
     s <- c(attr(since, "snap"), rd())
   }
   s
+}
+
+# The checks of hwpwr()'s interval, step, process id and skipped
+# sources (.hwskp()), in their order; bad() is hwpwr()'s error.
+.hwck <- function(dt, step, pid, skip, bad) {
+  if (!.hwone(dt) || dt < 0) {
+    bad("`dt` must be one number from 0.")
+  }
+  if (!.hwone(step) || step <= 0) {
+    bad("`step` must be one number above 0.")
+  }
+  if (!.hwone(pid) || pid != round(pid) || pid < 0) {
+    bad("`pid` must be a process id.")
+  }
+  .hwskp(skip, bad)
+}
+
+# One finite number.
+.hwone <- function(x) is.numeric(x) && length(x) == 1L && is.finite(x)
+
+# The check of hwpwr()'s skipped sources.
+.hwskp <- function(skip, bad) {
+  src <- c(
+    "rapl",
+    "gpu",
+    "battery",
+    "proc",
+    "nvml",
+    "smi",
+    "ioreport",
+    "ioreg",
+    "emi"
+  )
+  if (!is.character(skip) || anyNA(skip) || !all(skip %in% src)) {
+    bad("`skip` must name sources among ", toString(src), ".")
+  }
+  invisible(NULL)
+}
+
+# The check of hwpwr()'s since: NULL or an earlier result, with its last
+# snapshot.
+.hwsin <- function(since, bad) {
+  if (!is.null(since)) {
+    sn <- attr(since, "snap")
+    if (
+      !is.data.frame(since) ||
+        !is.character(sn) ||
+        length(sn) != 1L ||
+        is.na(sn)
+    ) {
+      bad("`since` must be an earlier result of hwpwr().")
+    }
+  }
+  invisible(NULL)
 }
