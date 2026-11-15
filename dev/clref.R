@@ -141,6 +141,7 @@ bad("rnkres", est = 1, hw = 1)
 ok("nordet", x = rbind(c(0, 0), c(1, 1), c(3, 3)), off = data.frame(x = c(0, 2.5), y = c(0.5, 3)), radius = 1)
 ok("nordet", x = rbind(c(0, 0), c(1, 1), c(3, 3)), off = rbind(c(0, 0.5)), radius = 2, p = 0.5, draw = TRUE, seed = 1)
 ok("fairsim", n = 20, nareas = 4, seed = 1)
+bad("fairsim", n = 1e9, seed = 1)
 ok("fairsim", n = 15, groups = c("x", "y", "z"), props = c(1, 2, 1), nareas = 5, base = 0.4, bias = -0.2, seed = 2)
 bad("fairsim", n = 10, groups = "A", seed = 1)
 set.seed(3)
@@ -164,6 +165,7 @@ bad("tlvlr", xa = 1, xb = 1, na = 3, nb = 3, bg = list(1))
 
 # Aoristic weights, Benford, Scott-Knott, reporting panels
 ok("aorwt", from = c(79200, 120600), to = c(93600, 124200), bw = 3600, nb = 24, origin = 0)
+bad("aorwt", from = c(79200, 120600), to = c(93600, 124200), bw = 3600, nb = 1e9, origin = 0)
 ok("aorwt", from = c(0, 3600, 7200, NA), to = c(1800, 10800, 7200, 9000), bw = 3600, nb = 4, origin = 0,
    each = TRUE)
 bad("aorwt", from = c(0, 1), to = 1)
@@ -206,6 +208,7 @@ bad("sptst", a = c(1, 2), b = 1, seed = 1)
 tpar <- c(80, 50, 0.5, 0.05, 0.8, 0.9, 0.1, 0.2, 0.4, 0.6, 0.05, 0.1, 0.5, 0.7, 1, 1, 0.5)
 ok("tfrp", par = tpar, ymax = 10, nsim = 100, seed = 1)
 bad("tfrp", par = 1:3, seed = 1)
+bad("tfrp", par = tpar, ymax = 1e9, nsim = 1, seed = 1)
 
 # Trajectory models
 set.seed(1)

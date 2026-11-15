@@ -417,3 +417,14 @@ test_that("named per-case and per-unit arguments are matched by name", {
                                                 d = 1i), g)
   ))
 })
+
+test_that("tfrp() and aorwt() refuse sizes past their bounds at once", {
+  par <- c(10, 5, 0.5, 0.05, 0.8, 0.9, 0.1, 0.2, 0.4, 0.6, 0.05, 0.1,
+           0.5, 0.7, 1, 1, 0.5)
+  expect_error(tfrp(par, ymax = 1e9, nsim = 1, seed = 1),
+               "tfrp: `ymax` must be below 67108864.", fixed = TRUE)
+  f <- as.POSIXct("2024-03-04 22:00", tz = "UTC")
+  t <- as.POSIXct("2024-03-05 02:00", tz = "UTC")
+  expect_error(aorwt(f, t, nb = 1e9, origin = 0),
+               "aorwt: `nb` must be at most 67108864.", fixed = TRUE)
+})

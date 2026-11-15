@@ -412,6 +412,7 @@ bool nordet(Ctx &c, Val &out) {
 bool fairsim(Ctx &c, Val &out) {
   int N = 0;
   CK(wholed(c, "n", 2000, 1, N));
+  if (N > kutil::maxcell) return c.fail("`n` must be at most %.0f.", kutil::maxcell);
   std::vector<std::string> gl = {"A", "B"};
   if (c.has("groups")) {
     if (!alabs(c["groups"], gl) || gl.size() < 2) {

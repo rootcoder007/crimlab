@@ -17,6 +17,7 @@
 #include <Rmath.h>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "rchk.h"
 #include "spin.h"
 
@@ -868,6 +869,7 @@ SEXP C_clab_r_fairsim(SEXP n, SEXP groups, SEXP props, SEXP nareas, SEXP base,
                       SEXP bias, SEXP seed) {
   clab::who = "fairsim";
   const int N = clab::whole(n, "n", 1);
+  if (N > kutil::maxcell) fail("`n` must be at most %.0f.", kutil::maxcell);
   clab::unlab(groups, "groups");
   SEXP gl = PROTECT(clab::labs(groups));
   if (Rf_isNull(gl) || TYPEOF(groups) == VECSXP || clab::anyna(gl) || XLENGTH(gl) < 2) {
@@ -1134,6 +1136,7 @@ SEXP C_clab_r_aorwt(SEXP from, SEXP to, SEXP bw, SEXP nb, SEXP origin,
   if (XLENGTH(t) != n) fail("`to` must have the length of `from`.");
   const double w = clab::one(bw, "bw", 0.0, std::numeric_limits<double>::infinity());
   const int k = clab::whole(nb, "nb", 1);
+  if (k > kutil::maxcell) fail("`nb` must be at most %.0f.", kutil::maxcell);
   SEXP org = PROTECT(inst(origin, "origin"));
   if (XLENGTH(org) != 1 || std::isnan(REAL(org)[0])) fail("`origin` must be one instant.");
   SEXP o0 = PROTECT(num(off, "off", 1));
@@ -1496,6 +1499,8 @@ SEXP C_clab_r_tfrp(SEXP par, SEXP deffect, SEXP tdist, SEXP ymax, SEXP nsim,
   static const char *const to[] = {"nb", "nbtrunc", "unif"};
   const int td = csp::pick(tdist, "tdist", to, 3);
   const int ym = clab::whole(ymax, "ymax", 0);
+  // the probabilities and errors of 0 to ymax are made at once
+  if (ym >= kutil::maxcell) fail("`ymax` must be below %.0f.", kutil::maxcell);
   const int ns = clab::whole(nsim, "nsim", 1);
   const unsigned int s = sd(seed);
   const double h = clab::val1(hl);

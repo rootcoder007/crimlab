@@ -141,6 +141,7 @@ bool tfrp(Ctx &c, Val &out) {
   int td = 0, ym = 0, ns = 0, q = 0;
   CK(pickd(c, "tdist", to, 3, 0, td));
   CK(wholed(c, "ymax", 20, 0, ym));
+  if (ym >= kutil::maxcell) return c.fail("`ymax` must be below %.0f.", kutil::maxcell);
   CK(wholed(c, "nsim", 1000, 1, ns));
   unsigned int s = 0;
   CK(seed(c, s));

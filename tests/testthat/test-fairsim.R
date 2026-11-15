@@ -128,3 +128,8 @@ test_that("fairsim() and nordet() refuse what they cannot use", {
     list("TRUE or FALSE", cbind(0, 0), NULL, 1, draw = NA)
   ))
 })
+
+test_that("fairsim() refuses more records than its bound before making any", {
+  expect_error(fairsim(1e9, seed = 1),
+               "fairsim: `n` must be at most 67108864.", fixed = TRUE)
+})

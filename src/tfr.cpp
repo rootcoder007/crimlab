@@ -97,7 +97,7 @@ int hours(const double *p, int tdist, double *ph, double *cut) {
 int check(const double *p, int deffect, int tdist, int ymax) {
   for (int k = 0; k < NPAR; ++k)
     if (!std::isfinite(p[k])) return CLAB_EDOM;
-  if (ymax < 0 || tdist < 0 || tdist > 2 || deffect < 0 || deffect > 1) return CLAB_EARG;
+  if (ymax < 0 || ymax >= kutil::maxcell || tdist < 0 || tdist > 2 || deffect < 0 || deffect > 1) return CLAB_EARG;
   if (!(p[LAM] >= 0.0) || !(p[LSD] >= 0.0)) return CLAB_EDOM;
   if (deffect && !(p[DIS] > 0.0)) return CLAB_EDOM;
   if (!(p[Q] >= 0.0 && p[Q] <= 1.0)) return CLAB_EDOM;

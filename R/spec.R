@@ -107,7 +107,8 @@ tlvlr <- function(xa, xb, na, nb, bg) {
 #'   (POSIXct) or seconds since 1970-01-01 UTC; `NA` allowed as above, not
 #'   infinite values.
 #' @param bw The bin width in seconds, positive.
-#' @param nb The number of bins in a period: one whole number from 1.
+#' @param nb The number of bins in a period: one whole number from 1 to
+#'   67108864 (2^26).
 #' @param origin The local clock time at which bin 1 starts, in the same
 #'   units (the default is Sunday 1970-01-04 00:00).
 #' @param off The offset of the local clock from UTC in seconds, before
@@ -417,7 +418,8 @@ mvtem <- function(y, x, beta, sig, prob, maxit = 500, tol = 1e-8) {
 #'   binomial with size `(lt + ut) / 2` and probability `r`), `"nbtrunc"`
 #'   (that law on `floor(lt)` to `ceiling(ut)`) or `"unif"` (uniform on those
 #'   hours).
-#' @param ymax The largest count reported: a whole number from 0.
+#' @param ymax The largest count reported: a whole number from 0, below
+#'   67108864 (2^26).
 #' @param nsim The Monte Carlo draws of the rates: a whole number from 1.
 #' @inheritParams nnidx
 #' @param hl,nq The quadrature's grid step (1e-4 to 1) and panels (1 to
