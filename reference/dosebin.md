@@ -74,10 +74,20 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
   An object of class `dosebin`.
 
-- main, col, pal:
+- main:
 
-  The title, colour and palette, as in
-  [plotm](https://rootcoder007.github.io/crimlab/reference/plotm.md).
+  `NULL` (a default title) or one string.
+
+- col:
+
+  `NULL` (the palette) or colours.
+
+- pal:
+
+  `NULL` (the session palette, see
+  [`plotopt()`](https://rootcoder007.github.io/crimlab/reference/blpal.md))
+  or a palette name for
+  [`blpal()`](https://rootcoder007.github.io/crimlab/reference/blpal.md).
 
 ## Value
 
