@@ -52,8 +52,20 @@ SEXP C_clab_r_fesep(SEXP y, SEXP f1, SEXP n1, SEXP f2, SEXP n2) {
   return k;
 }
 
+// The effects after the second: NULL or an n x mx integer matrix of codes
+// and their counts.
+int nxs(SEXP fx) { return Rf_isNull(fx) ? 0 : Rf_ncols(fx); }
+int nsum(SEXP nx) {
+  int g = 0;
+  if (!Rf_isNull(nx)) {
+    for (R_xlen_t j = 0; j < XLENGTH(nx); ++j) g += INTEGER(nx)[j];
+  }
+  return g;
+}
+
 SEXP C_clab_r_ppmlfe(SEXP y, SEXP x, SEXP off, SEXP w, SEXP f1, SEXP n1, SEXP f2, SEXP n2,
-                     SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol, SEXP maxit) {
+                     SEXP fx, SEXP nx, SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol,
+                     SEXP maxit) {
   clab::who = "ppmlfe";
   const int n = n32(y), p = Rf_ncols(x), a = Rf_asInteger(n1);
   const int b = Rf_isNull(f2) ? 0 : Rf_asInteger(n2);
@@ -67,11 +79,12 @@ SEXP C_clab_r_ppmlfe(SEXP y, SEXP x, SEXP off, SEXP w, SEXP f1, SEXP n1, SEXP f2
   for (int q = 0; q < p * p; ++q) REAL(VECTOR_ELT(r, 1))[q] = NA_REAL;
   const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
   double *wk = reinterpret_cast<double *>(
-      R_alloc(sn * (2 * sp + 8) + 3 * sp * sp + sp + 4 * static_cast<size_t>(a + b), sizeof(double)));
+      R_alloc(sn * (2 * sp + 8) + 3 * sp * sp + sp + 4 * static_cast<size_t>(a + b + nsum(nx)),
+              sizeof(double)));
   int *iw = reinterpret_cast<int *>(
       R_alloc(sn + static_cast<size_t>(g1) * static_cast<size_t>(g2) + 1, sizeof(int)));
-  kc(clab_ppmlfe(REAL(y), REAL(x), n, p, dnul(off), dnul(w), INTEGER(f1), a, icodes(f2), b,
-                 icodes(cl), g1, icodes(cl2), g2, Rf_asInteger(maxit), 1e-10, Rf_asReal(tol),
+  kc(clab_ppmlfek(REAL(y), REAL(x), n, p, dnul(off), dnul(w), INTEGER(f1), a, icodes(f2), b,
+                 icodes(fx), icodes(nx), nxs(fx), icodes(cl), g1, icodes(cl2), g2, Rf_asInteger(maxit), 1e-10, Rf_asReal(tol),
                  REAL(VECTOR_ELT(r, 0)), REAL(VECTOR_ELT(r, 1)), REAL(VECTOR_ELT(r, 3)),
                  REAL(VECTOR_ELT(r, 4)), REAL(VECTOR_ELT(r, 2)), wk, iw));
   static const char *const nm[] = {"beta", "vc", "st", "sco", "brd"};
@@ -81,7 +94,7 @@ SEXP C_clab_r_ppmlfe(SEXP y, SEXP x, SEXP off, SEXP w, SEXP f1, SEXP n1, SEXP f2
 }
 
 SEXP C_clab_r_ivfe(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP w, SEXP f1, SEXP n1, SEXP f2, SEXP n2,
-                   SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol) {
+                   SEXP fx, SEXP nx, SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol) {
   clab::who = "ivfe";
   const int n = n32(y), pe = Rf_ncols(xe), px = Rf_ncols(xx), q = Rf_ncols(zi), p = pe + px;
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 8));
@@ -95,8 +108,9 @@ SEXP C_clab_r_ivfe(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP w, SEXP f1, SEXP n1, 
   SET_VECTOR_ELT(r, 7, Rf_allocMatrix(REALSXP, p, p));
   for (int a = 0; a < p * p; ++a) REAL(VECTOR_ELT(r, 1))[a] = NA_REAL;
   for (int a = 0; a < 4 * pe; ++a) REAL(VECTOR_ELT(r, 2))[a] = NA_REAL;
-  kc(clab_ivfe(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, dnul(w), INTEGER(f1),
-               Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), icodes(cl),
+  kc(clab_ivfek(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, dnul(w), INTEGER(f1),
+               Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), icodes(fx),
+               icodes(nx), nxs(fx), icodes(cl),
                Rf_isNull(cl) ? 0 : Rf_asInteger(ncl), icodes(cl2),
                Rf_isNull(cl2) ? 0 : Rf_asInteger(ncl2), Rf_asReal(tol), REAL(VECTOR_ELT(r, 0)),
                REAL(VECTOR_ELT(r, 1)), REAL(VECTOR_ELT(r, 2)), REAL(VECTOR_ELT(r, 5)),
@@ -130,13 +144,15 @@ SEXP C_clab_r_ppmlcf(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP off, SEXP f1, SEXP 
   return r;
 }
 
-SEXP C_clab_r_demean(SEXP v, SEXP f1, SEXP n1, SEXP f2, SEXP n2, SEXP tol) {
+SEXP C_clab_r_demean(SEXP v, SEXP f1, SEXP n1, SEXP f2, SEXP n2, SEXP fx, SEXP nx, SEXP tol) {
   clab::who = "ppmlfe";
   const int n = Rf_nrows(v), k = Rf_ncols(v), a = Rf_asInteger(n1);
   const int b = Rf_isNull(f2) ? 0 : Rf_asInteger(n2);
   SEXP r = PROTECT(Rf_duplicate(v));
-  double *w = reinterpret_cast<double *>(R_alloc(4 * static_cast<size_t>(a + b) + 1, sizeof(double)));
-  const int rc = clab_demean(REAL(r), n, k, INTEGER(f1), a, icodes(f2), b, Rf_asReal(tol), w);
+  double *w = reinterpret_cast<double *>(
+      R_alloc(4 * static_cast<size_t>(a + b + nsum(nx)) + 1, sizeof(double)));
+  const int rc = clab_demean(REAL(r), n, k, INTEGER(f1), a, icodes(f2), b, icodes(fx), icodes(nx),
+                             nxs(fx), Rf_asReal(tol), w);
   clab::ichk(rc);
   if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
   UNPROTECT(1);
@@ -169,15 +185,15 @@ SEXP C_clab_r_expgmm(SEXP y, SEXP x, SEXP z, SEXP off, SEXP b0, SEXP cl, SEXP nc
 }
 
 SEXP C_clab_r_ivoid(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP f1, SEXP n1, SEXP f2, SEXP n2,
-                    SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol) {
+                    SEXP fx, SEXP nx, SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol) {
   clab::who = "ivfe";
   const int n = n32(y), pe = Rf_ncols(xe), px = Rf_ncols(xx), q = Rf_ncols(zi);
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, pe + px));
   SET_VECTOR_ELT(r, 1, Rf_allocVector(REALSXP, 3));
   kc(clab_ivoid(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, INTEGER(f1),
-                Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), INTEGER(cl),
-                Rf_asInteger(ncl), icodes(cl2), Rf_isNull(cl2) ? 0 : Rf_asInteger(ncl2),
+                Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), icodes(fx),
+                icodes(nx), nxs(fx), INTEGER(cl), Rf_asInteger(ncl), icodes(cl2), Rf_isNull(cl2) ? 0 : Rf_asInteger(ncl2),
                 Rf_asReal(tol), REAL(VECTOR_ELT(r, 0)), REAL(VECTOR_ELT(r, 1))));
   static const char *const nm[] = {"beta", "st"};
   named(r, nm, 2);

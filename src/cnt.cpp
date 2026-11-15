@@ -584,9 +584,25 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
                 const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
                 double tol, double *beta, double *vc, double *sco, double *brd, double *st,
                 double *work, int *iwork) {
+  return clab_ppmlfek(y, x, n, p, off, w, f1, n1, f2, n2, nullptr, nullptr, 0, cl, ncl, cl2, ncl2,
+                      maxit, eps, tol, beta, vc, sco, brd, st, work, iwork);
+}
+
+int clab_ppmlfek(const double *y, const double *x, int n, int p, const double *off,
+                 const double *w, const int *f1, int n1, const int *f2, int n2, const int *fx,
+                 const int *nx, int mx, const int *cl, int ncl, const int *cl2, int ncl2,
+                 int maxit, double eps, double tol, double *beta, double *vc, double *sco,
+                 double *brd, double *st, double *work, int *iwork) {
   if (maxit < 1 || !(eps > 0) || !(tol > 0) || n1 < 1 || (f2 && n2 < 1) ||
-      (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2))) {
+      (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2)) || mx < 0 || (mx > 0 && (!f2 || !fx || !nx))) {
     return CLAB_EARG;
+  }
+  for (int j = 0; j < mx; ++j) {
+    if (nx[j] < 1) return CLAB_EARG;
+    for (int i = 0; i < n; ++i) {
+      const int c = fx[static_cast<size_t>(j) * static_cast<size_t>(n) + static_cast<size_t>(i)];
+      if (c < 0 || c >= nx[j]) return CLAB_EARG;
+    }
   }
   if (!chkin(y, x, n, p, off, cl, ncl)) return CLAB_EDOM;
   double ysum = 0.0, wsum = 0.0;
@@ -629,7 +645,8 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
       v[i] = z[i];
     }
     for (size_t q = 0; q < sn * sp; ++q) v[sn + q] = x[q];
-    const int sw = pev::within(v, n, p + 1, u1, nu1, t1, nt1, two, wt, tol, 10000, sc);
+    const int sw = mx > 0 ? pev::withink(v, n, p + 1, f1, n1, f2, n2, fx, nx, mx, wt, tol, 10000, sc)
+                          : pev::within(v, n, p + 1, u1, nu1, t1, nt1, two, wt, tol, 10000, sc);
     if (sw < 0) return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
     if (sw > most) most = sw;
     if (it == 1) {
@@ -682,7 +699,8 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
       r[i] = (y[i] - mu[i]) / mu[i];
     }
     for (size_t q = 0; q < sn * sp; ++q) v[sn + q] = x[q];
-    if (pev::within(v + sn, n, p, u1, nu1, t1, nt1, two, wt, tol, 10000, sc) < 0) {
+    if ((mx > 0 ? pev::withink(v + sn, n, p, f1, n1, f2, n2, fx, nx, mx, wt, tol, 10000, sc)
+                : pev::within(v + sn, n, p, u1, nu1, t1, nt1, two, wt, tol, 10000, sc)) < 0) {
       return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
     }
     // (X~'WX~)^-1 by ols() on any response: eo takes the throwaway fit

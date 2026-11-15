@@ -730,3 +730,22 @@ test_that("se = quasi is glm()'s quasi-Poisson with dummy columns", {
                tolerance = 1e-6)
   expect_equal(f$psi, 1.20631966625669, tolerance = 1e-7)
 })
+
+test_that("a third set of effects equals its indicator columns", {
+  # the references: glm(poisson) and lm() with all three sets as factor
+  # columns (epsilon = 1e-14); absorbing changes only the arithmetic
+  d <- simpan()
+  set.seed(11)
+  d$h <- sample(1:4, nrow(d), TRUE)
+  f <- ppmlfe(d, "y", c("x", "w"), fe = c("unit", "day", "h"), expo = "pop")
+  expect_equal(f$coef$est, c(0.296241030216946, 0.0679892442511943),
+               tolerance = 1e-8)
+  g <- ivfe(d, "yl", x = c("x", "w"), fe = c("unit", "day", "h"))
+  expect_equal(g$coef$est, c(0.809239042169907, 0.144096303385526),
+               tolerance = 1e-8)
+  # a group of the third set without counts is dropped
+  d$y[d$h == 4] <- 0
+  expect_warning(f4 <- ppmlfe(d, "y", "x", fe = c("unit", "day", "h")),
+                 "dropped")
+  expect_identical(f4$nsep, sum(d$h == 4))
+})

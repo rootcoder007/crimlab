@@ -39,9 +39,9 @@ ppmlfe(
 \item{x}{The names of the regressors: the exposure and any controls
 (numeric columns). For \code{print()}, an object of class \code{ppmlfe}.}
 
-\item{fe}{The names of one or two fixed-effect columns (labels), for
-example \code{c("area", "day")}. For several time effects at once (day of
-week and year-month), give their combination as one column.}
+\item{fe}{The names of one or more fixed-effect columns (labels), for
+example \code{c("area", "day")}, or \code{c("area", "day", "hour")} for a third
+set: each is absorbed (see the alternating projections above).}
 
 \item{expo}{\code{NULL} or the name of a column of positive exposures
 (population): its logarithm is the offset.}
@@ -114,7 +114,8 @@ what the instruments of \code{\link[=ivfe]{ivfe()}} and \code{\link[=ppmlcf]{ppm
 The fit is iteratively reweighted least squares in which each step
 demeans the working response and the regressors by the fixed effects
 (alternating projections, until the group means left are below \code{tol} of
-each column's largest value), starting from \code{mu = (y + mean(y)) / 2},
+each column's largest value; with three or more sets each sweep takes
+every set in turn, and one or two sets are done exactly as before), starting from \code{mu = (y + mean(y)) / 2},
 until the relative change of the deviance is below 1e-10. A regressor
 that does not vary within the fixed effects is refused.
 

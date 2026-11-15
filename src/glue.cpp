@@ -603,15 +603,15 @@ SEXP C_clab_r_concidx(SEXP, SEXP);
 // Exposure and crime (bapx.cpp).
 SEXP C_clab_r_fesep(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ppmlfe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                     SEXP, SEXP);
+                     SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ivfe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                   SEXP);
+                   SEXP, SEXP, SEXP);
 SEXP C_clab_r_ppmlcf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP, SEXP);
-SEXP C_clab_r_demean(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_demean(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_expgmm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ivoid(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                    SEXP);
+                    SEXP, SEXP, SEXP);
 SEXP C_clab_r_windbin(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dshift(SEXP, SEXP, SEXP);
 SEXP C_clab_r_updwn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -967,12 +967,12 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_concidx", fn<&C_clab_r_concidx>(), 2},
     {"C_clab_r_crc32", fn<&C_clab_r_crc32>(), 2},
     {"C_clab_r_fesep", fn<&C_clab_r_fesep>(), 5},
-    {"C_clab_r_ppmlfe", fn<&C_clab_r_ppmlfe>(), 14},
-    {"C_clab_r_ivfe", fn<&C_clab_r_ivfe>(), 14},
+    {"C_clab_r_ppmlfe", fn<&C_clab_r_ppmlfe>(), 16},
+    {"C_clab_r_ivfe", fn<&C_clab_r_ivfe>(), 16},
     {"C_clab_r_ppmlcf", fn<&C_clab_r_ppmlcf>(), 15},
-    {"C_clab_r_demean", fn<&C_clab_r_demean>(), 6},
+    {"C_clab_r_demean", fn<&C_clab_r_demean>(), 8},
     {"C_clab_r_expgmm", fn<&C_clab_r_expgmm>(), 11},
-    {"C_clab_r_ivoid", fn<&C_clab_r_ivoid>(), 13},
+    {"C_clab_r_ivoid", fn<&C_clab_r_ivoid>(), 15},
     {"C_clab_r_windbin", fn<&C_clab_r_windbin>(), 7},
     {"C_clab_r_dshift", fn<&C_clab_r_dshift>(), 3},
     {"C_clab_r_updwn", fn<&C_clab_r_updwn>(), 10},

@@ -210,7 +210,7 @@ void t_apx(tk &T, int) {
     double b = 0, b2 = 0, st[3], s3[3], f[4];
     std::vector<double> res(n);
     tk_ieq(T, "apx.oi", clab_ivoid(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 2, n, g.data(), 5,
-                                   nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
+                                   nullptr, 0, nullptr, nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
     clab_ivfe(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 2, n, nullptr, g.data(), 5, nullptr, 0,
               nullptr, 0, nullptr, 0, 1e-13, &b, nullptr, f, nullptr, res.data(), nullptr, nullptr,
               s3);
@@ -224,7 +224,7 @@ void t_apx(tk &T, int) {
     tk_ge(T, "apx.oij", st[1], 0);
     tk_eq(T, "apx.oidf", st[2], 1, 0);
     tk_ieq(T, "apx.oi1", clab_ivoid(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 1, n, g.data(), 5,
-                                    nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
+                                    nullptr, 0, nullptr, nullptr, 0, c.data(), 10, nullptr, 0, 1e-13, &b2, st), CLAB_OK);
     clab_ivfe(y.data(), xe.data(), 1, nullptr, 0, zi.data(), 1, n, nullptr, g.data(), 5, nullptr, 0,
               nullptr, 0, nullptr, 0, 1e-13, &b, nullptr, f, nullptr, nullptr, nullptr, nullptr, s3);
     tk_eq(T, "apx.oi1b", b2, b, 1e-10);
@@ -265,9 +265,55 @@ void t_apx(tk &T, int) {
     double v[4] = {1, 3, 2, 6};
     const int g[4] = {0, 0, 1, 1};
     double wk[8];
-    tk_ieq(T, "apx.dm", clab_demean(v, 4, 1, g, 2, nullptr, 0, 1e-12, wk), CLAB_OK);
+    tk_ieq(T, "apx.dm", clab_demean(v, 4, 1, g, 2, nullptr, 0, nullptr, nullptr, 0, 1e-12, wk), CLAB_OK);
     tk_eq(T, "apx.dm0", v[0], -1, 1e-15);
     tk_eq(T, "apx.dm3", v[3], 2, 1e-15);
+  }
+  // a third set of effects absorbed equals the same set as indicator
+  // columns (all but its first level) with the other two absorbed (the
+  // Frisch-Waugh-Lovell theorem), for least squares and for the Poisson
+  // fit
+  {
+    const int nu = 5, nt = 6, n = nu * nt, nh = 3;
+    rng r{20261119};
+    std::vector<double> y(n), yc(n), x(n), xd(3 * n);
+    std::vector<int> u(n), t(n), h(n);
+    for (int i = 0; i < n; ++i) {
+      u[i] = i / nt;
+      t[i] = i % nt;
+      h[i] = (i * 7 + i / 4) % nh;
+      x[i] = runi(r, -1, 1) + 0.3 * h[i];
+      y[i] = 0.5 * x[i] + 0.2 * u[i] - 0.1 * t[i] + 0.4 * h[i] + runi(r, -1, 1);
+      yc[i] = rpois(r, std::exp(0.3 + 0.5 * x[i] + 0.1 * u[i] + 0.2 * h[i]));
+      xd[i] = x[i];
+      xd[n + i] = h[i] == 1;
+      xd[2 * n + i] = h[i] == 2;
+    }
+    const int nxa[1] = {nh};
+    double b3 = 0, bd[3], st[3], st7[7];
+    tk_ieq(T, "apx.k3", clab_ivfek(y.data(), nullptr, 0, x.data(), 1, nullptr, 0, n, nullptr, u.data(),
+                                   nu, t.data(), nt, h.data(), nxa, 1, nullptr, 0, nullptr, 0, 1e-14,
+                                   &b3, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, st),
+           CLAB_OK);
+    clab_ivfe(y.data(), nullptr, 0, xd.data(), 3, nullptr, 0, n, nullptr, u.data(), nu, t.data(), nt,
+              nullptr, 0, nullptr, 0, 1e-14, bd, nullptr, nullptr, nullptr, nullptr, nullptr,
+              nullptr, st);
+    tk_eq(T, "apx.k3b", b3, bd[0], 1e-9);
+    std::vector<double> w(static_cast<std::size_t>(n) * 14 + 3 * 9 + 3 + 4 * (nu + nt + nh));
+    std::vector<int> iw(static_cast<std::size_t>(n) + 1);
+    double p3 = 0, pd[3];
+    tk_ieq(T, "apx.k3p", clab_ppmlfek(yc.data(), x.data(), n, 1, nullptr, nullptr, u.data(), nu,
+                                      t.data(), nt, h.data(), nxa, 1, nullptr, 0, nullptr, 0, 100,
+                                      1e-12, 1e-13, &p3, nullptr, nullptr, nullptr, st7, w.data(),
+                                      iw.data()), CLAB_OK);
+    clab_ppmlfe(yc.data(), xd.data(), n, 3, nullptr, nullptr, u.data(), nu, t.data(), nt, nullptr, 0,
+                nullptr, 0, 100, 1e-12, 1e-13, pd, nullptr, nullptr, nullptr, st7, w.data(), iw.data());
+    tk_eq(T, "apx.k3pb", p3, pd[0], 1e-8);
+    // the third set needs the second
+    tk_ieq(T, "apx.k3n", clab_ivfek(y.data(), nullptr, 0, x.data(), 1, nullptr, 0, n, nullptr, u.data(),
+                                    nu, nullptr, 0, h.data(), nxa, 1, nullptr, 0, nullptr, 0, 1e-14,
+                                    &b3, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, st),
+           CLAB_EARG);
   }
   // runs: days 1, 2, 3 of a run, a gap breaks it, a new unit starts afresh
   {

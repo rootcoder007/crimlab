@@ -76,6 +76,10 @@
   the simplified test of Montiel Olea and Pflueger (2013); the effective
   F itself was checked against their equation 3 and is unchanged.
 
+* `ppmlfe()` and `ivfe()` absorb any number of sets of fixed effects
+  (a third set such as hour or region-by-year, which several of the
+  papers use); one or two sets are computed exactly as before.
+
 * `smkiv(cf = "childs")`: smoke PM2.5 as Childs et al. (2022) define it,
   PM2.5 above the three-year median of the same place and month on
   smoke-free days, on smoke days.

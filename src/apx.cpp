@@ -27,8 +27,30 @@ constexpr double pi = 3.14159265358979323846;
 
 // The one-effect form of pev::within: its period pass alone.
 int demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2,
-           const double *w, double tol, double *sc) {
-  return pev::within(v, n, k, f1, n1, f2 ? f2 : f1, f2 ? n2 : n1, f2 ? 1 : 0, w, tol, 10000, sc);
+           const double *w, double tol, double *sc, const int *fx = nullptr,
+           const int *nx = nullptr, int mx = 0) {
+  return pev::withink(v, n, k, f1, n1, f2, n2, fx, nx, mx, w, tol, 10000, sc);
+}
+
+// The effects' codes are in range: f1, f2 (or NULL) and the mx sets fx.
+bool fecodes(int n, const int *f1, int n1, const int *f2, int n2, const int *fx, const int *nx,
+             int mx) {
+  if (n1 < 1 || (f2 && n2 < 1) || mx < 0 || (mx > 0 && (!f2 || !fx || !nx))) return false;
+  for (int i = 0; i < n; ++i) {
+    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return false;
+    for (int j = 0; j < mx; ++j) {
+      const int c = fx[sz(n, j) + static_cast<size_t>(i)];
+      if (nx[j] < 1 || c < 0 || c >= nx[j]) return false;
+    }
+  }
+  return true;
+}
+
+// n1 + n2 + the sum of nx
+int ngrp(int n1, int n2, const int *nx, int mx) {
+  int g = n1 + n2;
+  for (int j = 0; j < mx; ++j) g += nx[j];
+  return g;
 }
 
 // The scratch of clab_ivfe for n rows, k columns in all, the largest
@@ -285,13 +307,22 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
               const int *f2, int n2, const int *cl, int ncl, const int *cl2, int ncl2,
               double tol, double *beta, double *vc, double *fst, double *fres, double *res,
               double *sco, double *brd, double *st) {
+  return clab_ivfek(y, xe, pe, xx, px, zi, q, n, w, f1, n1, f2, n2, nullptr, nullptr, 0, cl, ncl,
+                    cl2, ncl2, tol, beta, vc, fst, fres, res, sco, brd, st);
+}
+
+int clab_ivfek(const double *y, const double *xe, int pe, const double *xx, int px,
+               const double *zi, int q, int n, const double *w, const int *f1, int n1,
+               const int *f2, int n2, const int *fx, const int *nx, int mx, const int *cl,
+               int ncl, const int *cl2, int ncl2, double tol, double *beta, double *vc,
+               double *fst, double *fres, double *res, double *sco, double *brd, double *st) {
   const int p = pe + px, k = 1 + pe + px + q;
   if (n < 2 || pe < 0 || px < 0 || q < pe || p < 1 || n1 < 1 || (f2 && n2 < 1) ||
-      !(tol > 0) || (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2))) {
+      !(tol > 0) || (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2)) ||
+      !fecodes(n, f1, n1, f2, n2, fx, nx, mx)) {
     return CLAB_EARG;
   }
   for (int i = 0; i < n; ++i) {
-    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
     if ((cl && (cl[i] < 0 || cl[i] >= ncl)) || (cl2 && (cl2[i] < 0 || cl2[i] >= ncl2))) {
       return CLAB_EARG;
     }
@@ -299,7 +330,7 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
   }
   const size_t sn = static_cast<size_t>(n);
   const int m = q + px > p ? q + px : p;
-  std::vector<double> work(ivwork(n, k, m, n1, n2));
+  std::vector<double> work(ivwork(n, k, m, ngrp(n1, n2, nx, mx), 0));
   // v: y, xe, xx, zi, each demeaned
   double *v = work.data(), *r = v + sz(n, k), *u = r + sn;
   double *xi = u + sn, *xi2 = xi + sz(m, m), *b = xi2 + sz(m, m);
@@ -308,7 +339,7 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
   for (size_t a = 0; a < sz(n, pe); ++a) v[sn + a] = xe[a];
   for (size_t a = 0; a < sz(n, px); ++a) v[sn * (1 + pe) + a] = xx[a];
   for (size_t a = 0; a < sz(n, q); ++a) v[sn * (1 + pe + px) + a] = zi[a];
-  const int sw = demean(v, n, k, f1, n1, f2, n2, w, tol, sc);
+  const int sw = demean(v, n, k, f1, n1, f2, n2, w, tol, sc, fx, nx, mx);
   if (sw < 0) return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
   // a column the effects absorb keeps only rounding after the demeaning
   for (int j = 1; j < k; ++j) {
@@ -807,15 +838,14 @@ int clab_expgmm(const double *y, const double *x, int k, const double *z, int s,
 
 int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int px,
                const double *zi, int q, int n, const int *f1, int n1, const int *f2, int n2,
-               const int *cl, int ncl, const int *cl2, int ncl2, double tol, double *beta,
-               double *st) {
+               const int *fx, const int *nx, int mx, const int *cl, int ncl, const int *cl2,
+               int ncl2, double tol, double *beta, double *st) {
   const int p = pe + px, m = q + px, k = 1 + pe + px + q;
-  if (n < 2 || pe < 1 || px < 0 || q < pe || n1 < 1 || (f2 && n2 < 1) || !(tol > 0) || !cl ||
-      ncl < 2 || (cl2 && ncl2 < 2)) {
+  if (n < 2 || pe < 1 || px < 0 || q < pe || !(tol > 0) || !cl || ncl < 2 ||
+      (cl2 && ncl2 < 2) || !fecodes(n, f1, n1, f2, n2, fx, nx, mx)) {
     return CLAB_EARG;
   }
   for (int i = 0; i < n; ++i) {
-    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
     if (cl[i] < 0 || cl[i] >= ncl || (cl2 && (cl2[i] < 0 || cl2[i] >= ncl2))) return CLAB_EARG;
   }
   const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
@@ -826,8 +856,8 @@ int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int 
   for (size_t a = 0; a < sz(n, pe); ++a) v[sn + a] = xe[a];
   for (size_t a = 0; a < sz(n, px); ++a) v[sn * (1 + pe) + a] = xx[a];
   for (size_t a = 0; a < sz(n, q); ++a) v[sn * (1 + pe + px) + a] = zi[a];
-  std::vector<double> wk(4 * (static_cast<size_t>(n1) + static_cast<size_t>(n2)));
-  if (demean(v.data(), n, k, f1, n1, f2, n2, nullptr, tol, wk.data()) < 0) {
+  std::vector<double> wk(4 * static_cast<size_t>(ngrp(n1, n2, nx, mx)));
+  if (demean(v.data(), n, k, f1, n1, f2, n2, nullptr, tol, wk.data(), fx, nx, mx) < 0) {
     return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
   }
   // X = (xe, xx) and Z = (zi, xx), demeaned
@@ -929,13 +959,10 @@ int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int 
   return CLAB_OK;
 }
 
-int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2, double tol,
-                double *work) {
-  if (n < 1 || k < 0 || n1 < 1 || (f2 && n2 < 1) || !(tol > 0)) return CLAB_EARG;
-  for (int i = 0; i < n; ++i) {
-    if (f1[i] < 0 || f1[i] >= n1 || (f2 && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
-  }
-  if (demean(v, n, k, f1, n1, f2, n2, nullptr, tol, work) < 0) {
+int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2,
+                const int *fx, const int *nx, int mx, double tol, double *work) {
+  if (n < 1 || k < 0 || !(tol > 0) || !fecodes(n, f1, n1, f2, n2, fx, nx, mx)) return CLAB_EARG;
+  if (demean(v, n, k, f1, n1, f2, n2, nullptr, tol, work, fx, nx, mx) < 0) {
     return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
   }
   return CLAB_OK;

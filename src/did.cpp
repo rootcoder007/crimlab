@@ -68,6 +68,52 @@ int within(double *v, int n, int k, const int *u, int nu, const int *t, int nt, 
   return most;
 }
 
+int withink(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2, const int *fx,
+            const int *nx, int mx, const double *w, double tol, int maxit, double *work) {
+  if (mx <= 0) {
+    return within(v, n, k, f1, n1, f2 ? f2 : f1, f2 ? n2 : n1, f2 ? 1 : 0, w, tol, maxit, work);
+  }
+  const int m = 2 + mx;
+  std::size_t tot = z(n1) + z(n2);
+  for (int j = 0; j < mx; ++j) tot += z(nx[j]);
+  double *sw = work, *mn = work + tot;
+  auto codes = [&](int j) { return j == 0 ? f1 : j == 1 ? f2 : fx + z(j - 2) * z(n); };
+  auto cnt = [&](int j) { return j == 0 ? n1 : j == 1 ? n2 : nx[j - 2]; };
+  for (std::size_t a = 0; a < tot; ++a) sw[a] = 0.0;
+  std::size_t o = 0;
+  for (int j = 0; j < m; ++j) {
+    const int *g = codes(j);
+    for (int i = 0; i < n; ++i) sw[o + z(g[i])] += w ? w[i] : 1.0;
+    o += z(cnt(j));
+  }
+  int most = 0;
+  for (int c = 0; c < k; ++c) {
+    double *col = v + z(c) * z(n);
+    double big = 0.0;
+    for (int i = 0; i < n; ++i) big = std::fmax(big, std::fabs(col[i]));
+    const double lim = tol * (big > 0.0 ? big : 1.0);
+    int s = 0;
+    for (;;) {
+      if (kutil::stop(2.0 * m * n)) return -1;
+      double left = 0.0;
+      o = 0;
+      for (int j = 0; j < m; ++j) {
+        const int *g = codes(j);
+        const int ng = cnt(j);
+        gmean(col, w, g, n, ng, sw + o, mn + o);
+        for (int a = 0; a < ng; ++a) left = std::fmax(left, std::fabs(mn[o + z(a)]));
+        for (int i = 0; i < n; ++i) col[i] -= mn[o + z(g[i])];
+        o += z(ng);
+      }
+      ++s;
+      if (left <= lim) break;
+      if (s == maxit) return -1;
+    }
+    if (s > most) most = s;
+  }
+  return most;
+}
+
 bool chol(double *a, int p) {
   double big = 0.0;
   for (int j = 0; j < p; ++j) big = std::fmax(big, a[z(j) * z(p) + z(j)]);

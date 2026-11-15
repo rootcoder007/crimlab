@@ -1942,6 +1942,16 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
                 double tol, double *beta, double *vc, double *sco, double *brd, double *st,
                 double *work, int *iwork);
 
+/* clab_ppmlfe with mx more sets of effects absorbed, fx (n x mx codes,
+ * column-major, counts nx; they need f2), swept in turn with the others
+ * by alternating projections; mx = 0 is clab_ppmlfe, bit for bit. work:
+ * as clab_ppmlfe with 4 (n1 + n2 + sum nx) in place of 4 (n1 + n2). */
+int clab_ppmlfek(const double *y, const double *x, int n, int p, const double *off,
+                 const double *w, const int *f1, int n1, const int *f2, int n2, const int *fx,
+                 const int *nx, int mx, const int *cl, int ncl, const int *cl2, int ncl2,
+                 int maxit, double eps, double tol, double *beta, double *vc, double *sco,
+                 double *brd, double *st, double *work, int *iwork);
+
 /* ------------------------------------------------------------------------
  * Exposure and crime (src/apx.cpp): estimators of the effect of a daily
  * exposure (air pollution, heat, noise) on counts by place and day.
@@ -1984,6 +1994,17 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
               double tol, double *beta, double *vc, double *fst, double *fres, double *res,
               double *sco, double *brd, double *st);
 
+/* clab_ivfe with mx more sets of effects absorbed: fx (n x mx codes,
+ * column-major; set j has nx[j] levels), which need f2 (mx = 0 is
+ * clab_ivfe, bit for bit). The sets are swept in turn by alternating
+ * projections until the largest group mean left is below tol of each
+ * column's largest value. */
+int clab_ivfek(const double *y, const double *xe, int pe, const double *xx, int px,
+               const double *zi, int q, int n, const double *w, const int *f1, int n1,
+               const int *f2, int n2, const int *fx, const int *nx, int mx, const int *cl,
+               int ncl, const int *cl2, int ncl2, double tol, double *beta, double *vc,
+               double *fst, double *fres, double *res, double *sco, double *brd, double *st);
+
 /* The control function for a count (ppmlcf): the first stages of
  * clab_ivfe (each endogenous column on zi and xx with the effects), then
  * clab_ppmlfe of y on (xe, xx, the first-stage residuals) with the same
@@ -2010,10 +2031,11 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
 
 /* The columns of v (n x k), in place, less their means by the effects f1
  * (n1 codes) and f2 (NULL or n2 codes), as clab_ivfe demeans (ppmlfe's
- * separation check). work: 4 (n1 + n2) doubles. CLAB_EDOM when the
+ * separation check), and mx more sets fx (n x mx, counts nx) as in
+ * clab_ivfek. work: 4 (n1 + n2 + sum nx) doubles. CLAB_EDOM when the
  * alternating projections do not converge. */
-int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2, double tol,
-                double *work);
+int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2,
+                const int *fx, const int *nx, int mx, double tol, double *work);
 
 /* The exponential-mean generalised method of moments (expgmm): y (n,
  * at least 0) with mean exp(x b + off), x (n x k; the endogenous columns,
@@ -2042,7 +2064,7 @@ int clab_expgmm(const double *y, const double *x, int k, const double *z, int s,
                 int maxit, double tol, double *beta, double *vc, double *st);
 
 /* The over-identification tests of clab_ivfe (ivfe): the same data,
- * effects and demeaning; X = (xe, xx), Z = (zi, xx), q >= pe. st (3): the
+ * effects (with the mx more sets fx of clab_ivfek) and demeaning; X = (xe, xx), Z = (zi, xx), q >= pe. st (3): the
  * Sargan statistic n u'Z(Z'Z)^-1 Z'u / u'u at the two-stage least squares
  * residuals u; Hansen's J, u2'Z S^-1 Z'u2 with S the cluster sum of
  * (Z_g'u_g)(Z_g'u_g)' at u (cl, and for two-way cl2: S1 + S2 - S12) and
@@ -2052,8 +2074,8 @@ int clab_expgmm(const double *y, const double *x, int k, const double *z, int s,
  * its arrays. */
 int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int px,
                const double *zi, int q, int n, const int *f1, int n1, const int *f2, int n2,
-               const int *cl, int ncl, const int *cl2, int ncl2, double tol, double *beta,
-               double *st);
+               const int *fx, const int *nx, int mx, const int *cl, int ncl, const int *cl2,
+               int ncl2, double tol, double *beta, double *st);
 
 /* Wind-direction instruments (windiv): dir, n directions the wind blows
  * from, degrees clockwise from north; the circle is cut into nb = 360 /

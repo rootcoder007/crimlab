@@ -64,11 +64,29 @@
   list(c = match(v, u) - 1L, n = length(u))
 }
 
-# The effects (one or two columns) as codes.
+# The effects as codes: the first two columns, and any more as an n x m
+# integer matrix cx with their counts nx (NULL for none).
 .axfe <- function(d, fe) {
   a <- .axcode(d[[fe[1L]]])
-  b <- if (length(fe) == 2L) .axcode(d[[fe[2L]]]) else list(c = NULL, n = 0L)
-  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n)
+  b <- if (length(fe) >= 2L) .axcode(d[[fe[2L]]]) else list(c = NULL, n = 0L)
+  cx <- nx <- NULL
+  if (length(fe) > 2L) {
+    m <- lapply(fe[-(1:2)], function(v) .axcode(d[[v]]))
+    cx <- matrix(as.integer(unlist(lapply(m, `[[`, "c"))), nrow(d))
+    nx <- vapply(m, `[[`, 1L, "n")
+  }
+  list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, cx = cx, nx = nx)
+}
+
+# The rows kept by the separation of the effects: a group of any set
+# without counts goes (clab_fesep on the first two sets, then on each
+# further set alone; dropping zeros changes no other group's total).
+.axfesep <- function(y, f) {
+  k <- .Call(C_clab_r_fesep, y, f$c1, f$n1, f$c2, f$n2)
+  for (j in seq_along(f$nx)) {
+    k <- k & .Call(C_clab_r_fesep, y, f$cx[, j], f$nx[j], NULL, 0L)
+  }
+  k
 }
 
 # The clusters (one or two columns) as codes; refuses one cluster, warns
@@ -119,8 +137,7 @@
 # The rows kept after separation by the effects, with a warning naming
 # how many rows and groups went.
 .axsep <- function(y, d, fe, fn) {
-  f <- .axfe(d, fe)
-  k <- .Call(C_clab_r_fesep, y, f$c1, f$n1, f$c2, f$n2)
+  k <- .axfesep(y, .axfe(d, fe))
   if (!any(k)) .ckstop(fn, "every group of the fixed effects has no counts")
   if (!all(k)) {
     warning(fn, ": ", sum(!k), " row(s) dropped: a group of `",
@@ -141,7 +158,7 @@
   dp <- d[pos, , drop = FALSE]
   fx <- .axfe(dp, fe)
   m <- .Call(C_clab_r_demean, .axmat(dp, x, fn), fx$c1, fx$n1, fx$c2,
-             fx$n2, tol)
+             fx$n2, fx$cx, fx$nx, tol)
   q <- qr(m)
   if (q$rank == length(x)) return(character())
   x[sort(q$pivot[-seq_len(q$rank)])]
@@ -336,6 +353,8 @@
     fx$n1,
     fx$c2,
     fx$n2,
+    fx$cx,
+    fx$nx,
     NULL,
     0L,
     NULL,
@@ -381,7 +400,8 @@
 #' The fit is iteratively reweighted least squares in which each step
 #' demeans the working response and the regressors by the fixed effects
 #' (alternating projections, until the group means left are below `tol` of
-#' each column's largest value), starting from `mu = (y + mean(y)) / 2`,
+#' each column's largest value; with three or more sets each sweep takes
+#' every set in turn, and one or two sets are done exactly as before), starting from `mu = (y + mean(y)) / 2`,
 #' until the relative change of the deviance is below 1e-10. A regressor
 #' that does not vary within the fixed effects is refused.
 #'
@@ -466,9 +486,9 @@
 #' @param y The name of the count column: numbers from 0, not all 0.
 #' @param x The names of the regressors: the exposure and any controls
 #'   (numeric columns). For `print()`, an object of class `ppmlfe`.
-#' @param fe The names of one or two fixed-effect columns (labels), for
-#'   example `c("area", "day")`. For several time effects at once (day of
-#'   week and year-month), give their combination as one column.
+#' @param fe The names of one or more fixed-effect columns (labels), for
+#'   example `c("area", "day")`, or `c("area", "day", "hour")` for a third
+#'   set: each is absorbed (see the alternating projections above).
 #' @param expo `NULL` or the name of a column of positive exposures
 #'   (population): its logarithm is the offset.
 #' @param clus `NULL` (the fixed effects: the first, or both for
@@ -594,7 +614,7 @@ ppmlfe <- function(
   d <- .axdat(data, f)
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, x, "x", f)
-  .axcols(d, fe, "fe", f, n = 1:2)
+  .axcols(d, fe, "fe", f)
   .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
   if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
@@ -645,8 +665,7 @@ ppmlfe <- function(
     b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
       ds <- d[rows, , drop = FALSE]
       kk <- if (sep != "none") {
-        fx <- .axfe(ds, fe)
-        .Call(C_clab_r_fesep, as.numeric(ds[[y]]), fx$c1, fx$n1, fx$c2, fx$n2)
+        .axfesep(as.numeric(ds[[y]]), .axfe(ds, fe))
       } else {
         rep(TRUE, nrow(ds))
       }
@@ -747,6 +766,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
     fx$n1,
     fx$c2,
     fx$n2,
+    fx$cx,
+    fx$nx,
     fc$c1,
     fc$n1,
     fc$c2,
@@ -1021,7 +1042,7 @@ ivfe <- function(
   .axcols(d, endo, "endo", f, null = TRUE)
   .axcols(d, inst, "inst", f, null = TRUE)
   .axcols(d, x, "x", f, null = TRUE)
-  .axcols(d, fe, "fe", f, n = 1:2)
+  .axcols(d, fe, "fe", f)
   if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
   if (se == "cluster" && length(clus) == 2L) se <- "twoway"
@@ -1082,7 +1103,7 @@ ivfe <- function(
     fx <- .axfe(d, fe)
     oi <- .Call(C_clab_r_ivoid, as.numeric(d[[y]]), .axmat(d, endo, f),
                 .axmat(d, x, f), .axmat(d, inst, f), fx$c1, fx$n1, fx$c2,
-                fx$n2, fc$c1, fc$n1, fc$c2, fc$n2, tol)
+                fx$n2, fx$cx, fx$nx, fc$c1, fc$n1, fc$c2, fc$n2, tol)
     st <- oi$st
     overid <- data.frame(
       test = c("sargan", "hansen"),
