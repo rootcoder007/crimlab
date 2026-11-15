@@ -207,4 +207,5 @@ void t_ped(tk &t, int big);
 void t_gmx(tk &t, int big);
 void t_cmps(tk &t, int big);
 void t_env(tk &t, int big);
+void t_dpn(tk &t, int big);
 #endif

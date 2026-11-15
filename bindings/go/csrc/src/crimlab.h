@@ -4176,6 +4176,71 @@ int clab_jb(const double *r, int n, double *out);
  * when no pair is kept. O(nu^2 nt). */
 int clab_pcd(const double *e, int nu, int nt, double *out);
 
+/* ------------------------------------------------------------------------
+ * Dynamic and heterogeneous panels (src/dpn.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Linear GMM on a stacked panel: the difference and system estimators of
+ * Arellano and Bond (1991, doi:10.2307/2297968), Arellano and Bover (1995,
+ * doi:10.1016/0304-4076(94)01642-D) and Blundell and Bond (1998,
+ * doi:10.1016/S0304-4076(98)00009-8), as Roodman (2009,
+ * doi:10.1177/1536867X0900900106) sets them out. The n stacked equations
+ * of ng groups: rows go[a]..go[a+1]-1 belong to group a (go: ng + 1
+ * offsets from 0 to n); y (n), x (n x k) and the instruments z (n x m),
+ * column-major; h, the blocks H_a of the groups (n_a x n_a each, one after
+ * another), the first-step weight being (sum Z_a' H_a Z_a)^-1; eq (n): 1
+ * for the rows of the transformed equation (Sargan's variance sigma^2 is
+ * the sum of their squared one-step residuals over the sum of their
+ * diagonal elements of H). The rows of the Arellano-Bond tests, the
+ * differenced equations of each group in increasing period: dgo (ng + 1
+ * offsets from 0 to nd), dt (nd) their period codes, yd (nd), xd (nd x k).
+ * sub: NULL or m flags, 1 for the instruments the difference-in-Hansen
+ * test leaves out. The inverses are Cholesky's, or the Moore-Penrose
+ * inverse when a matrix is singular. Out: b (k) and v (k x k), of the
+ * one-step estimate with its robust variance (steps 1) or of the two-step
+ * estimate with its variance, corrected as Windmeijer (2005,
+ * doi:10.1016/j.jeconom.2004.02.005) when wc is 1 (steps 2); st (5): the
+ * Sargan statistic of the one-step residuals, Hansen's J of the two-step
+ * estimate, J without the flagged instruments (weighted by the submatrix
+ * of the full two-step moment variance; NaN without sub or when the rest
+ * do not identify b), sigma^2, and 1 when a generalized inverse was used;
+ * ar (nar): the Arellano-Bond z statistics of orders 1..nar (NaN when no
+ * pair of rows is that far apart). CLAB_EDOM when a weight matrix is zero
+ * or the instruments do not identify b; CLAB_EARG for sizes out of range
+ * or when memory runs out. */
+int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const double *y, const double *x,
+                const double *z, const double *h, const int *eq, int nd, const int *dgo,
+                const int *dt, const double *yd, const double *xd, const int *sub, int steps,
+                int wc, int nar, double *b, double *v, double *st, double *ar);
+/* Wooldridge's test of first-order serial correlation in a panel (Drukker
+ * 2003, doi:10.1177/1536867X0300300206): n rows with unit codes u and
+ * period codes t (one row per unit and period), y (n), x (n x p, p >= 0).
+ * The first differences (rows whose unit has the period before) of y are
+ * regressed on those of x without a constant, by least squares with the
+ * variance clustered by unit (b, vb: p and p x p); the residuals of
+ * consecutive differences are regressed on their lag (with a constant
+ * when cons is 1), the variance clustered by unit. Both variances carry
+ * the factor G / (G - 1) (n - 1) / (n - K) unless raw is 1. Out (6): the
+ * coefficient of the lag, its standard error, F = ((coef + 0.5) / se)^2,
+ * the clusters G of the second regression (F has 1 and G - 1 degrees of
+ * freedom), its rows and the differences. CLAB_EDOM with too few rows or
+ * clusters, or collinear differences. */
+int clab_wsctst(int n, int p, const double *y, const double *x, const int *u, const int *t,
+                int cons, int raw, double *b, double *vb, double *out);
+/* Common correlated effects (Pesaran 2006, doi:10.1111/j.1468-0262.2006.00692.x)
+ * on a balanced panel of nu units over nt periods: y (nt x nu, unit i at
+ * y[i nt + t]), x (nt x nu x k, x[(j nu + i) nt + t]), the aggregation
+ * weights w (nu, positive, summing to 1) and the observed common factors d
+ * (nt x q, q >= 0). With H = (d, ybar_w, xbar_w) and M = I - H (H'H)^- H'
+ * (eq 15), out: bi (k x nu) the unit estimates (X_i'M X_i)^-1 X_i'M y_i,
+ * bmg (k) their mean (eq 53) and vmg (k x k) its variance, the variance of
+ * eq 58 over nu; bp (k) the pooled estimate with theta_i = w_i (eq 65) and
+ * vp (k x k) its variance (eqs 67-69). CLAB_EDOM when some X_i'M X_i, or
+ * the pooled matrix, is singular, or a value is not finite. */
+int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x, const double *w,
+                const double *d, int q, double *bi, double *bmg, double *vmg, double *bp,
+                double *vp);
+
 #ifdef __cplusplus
 }
 #endif
