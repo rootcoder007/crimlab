@@ -1664,7 +1664,10 @@ inline bool anyna(const std::vector<double> &x) {
 // clab_windbin: n x na (nb - 1), column-major.
 inline int wbin(Ctx &c, const std::vector<double> &dir, double width, double start, const std::vector<int> *ac, int na,
                 int base, int edge, std::vector<double> &m, int &nc) {
-  const int nb = static_cast<int>(std::nearbyint(360 / width));
+  const double nbd = std::nearbyint(360 / width);
+  if (nbd > kutil::maxcell) return (c.fail("`width` must divide 360 into at most %.0f sectors.", kutil::maxcell), CLAB_EARG);
+  if (static_cast<double>(na) * (nbd - 1) > 2147483647.0) return (c.fail("the areas times the sectors of `width` must be at most 2147483647 columns."), CLAB_EARG);
+  const int nb = static_cast<int>(nbd);
   nc = na * (nb - 1);
   m.assign(dir.size() * zz(nc), 0.0);
   const int rc = clab_windbin(pd(dir), static_cast<int>(dir.size()), width, start, ac ? ac->data() : nullptr, na,

@@ -1838,6 +1838,7 @@ ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x =
    expo = "pop", how = "plug", se = "naive")
 bad("ppmlcf", data = axd, y = "crimes", endo = c("pm", "temp"), inst = "w90", fe = "area")
 ok("windiv", dir = c(10, 100, 200, 300, NA, 90))
+bad("windiv", dir = c(10, 100), width = 360 / 2^27)
 ok("windiv", dir = c(10, 100, 200, 300), width = 120, start = 30, area = c("x", "y", "x", "y"), base = 2,
    edges = "paper")
 ok("windiv", dir = c(10, 350, 200, 300), sect = c(225, 285))

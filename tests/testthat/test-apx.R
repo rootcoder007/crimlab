@@ -1308,3 +1308,10 @@ test_that("the kernel of exprun: a missing exposure ends a run", {
   r <- .Call(C_clab_r_runlen, rep(0L, 4), c(1, 2, 3, 4), c(1, NA, 1, 1), 1)
   expect_identical(r, c(1L, NA, 1L, 2L))
 })
+
+test_that("windiv() refuses more sectors than its bound", {
+  # 360 / 2^27 divides 360 exactly, into 2^27 sectors
+  expect_error(windiv(c(10, 100), width = 360 / 2^27),
+               "windiv: `width` must divide 360 into at most 67108864 sectors.",
+               fixed = TRUE)
+})

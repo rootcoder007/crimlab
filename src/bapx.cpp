@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "bcol.h"
+#include "kutil.h"
 #include "rchk.h"
 
 namespace {
@@ -76,7 +77,7 @@ SEXP C_clab_r_ppmlfe(SEXP y, SEXP x, SEXP off, SEXP w, SEXP f1, SEXP n1, SEXP f2
   SET_VECTOR_ELT(r, 2, Rf_allocVector(REALSXP, 7));
   SET_VECTOR_ELT(r, 3, Rf_allocMatrix(REALSXP, n, p));
   SET_VECTOR_ELT(r, 4, Rf_allocMatrix(REALSXP, p, p));
-  for (int q = 0; q < p * p; ++q) REAL(VECTOR_ELT(r, 1))[q] = NA_REAL;
+  for (std::size_t q = 0; q < static_cast<std::size_t>(p) * static_cast<std::size_t>(p); ++q) REAL(VECTOR_ELT(r, 1))[q] = NA_REAL;
   const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
   double *wk = reinterpret_cast<double *>(
       R_alloc(sn * (2 * sp + 8) + 3 * sp * sp + sp + 4 * static_cast<size_t>(a + b + nsum(nx)),
@@ -106,7 +107,7 @@ SEXP C_clab_r_ivfe(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP w, SEXP f1, SEXP n1, 
   SET_VECTOR_ELT(r, 5, Rf_allocMatrix(REALSXP, n, pe));
   SET_VECTOR_ELT(r, 6, Rf_allocMatrix(REALSXP, n, p));
   SET_VECTOR_ELT(r, 7, Rf_allocMatrix(REALSXP, p, p));
-  for (int a = 0; a < p * p; ++a) REAL(VECTOR_ELT(r, 1))[a] = NA_REAL;
+  for (std::size_t a = 0; a < static_cast<std::size_t>(p) * static_cast<std::size_t>(p); ++a) REAL(VECTOR_ELT(r, 1))[a] = NA_REAL;
   for (int a = 0; a < 4 * pe; ++a) REAL(VECTOR_ELT(r, 2))[a] = NA_REAL;
   kc(clab_ivfek(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, dnul(w), INTEGER(f1),
                Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), icodes(fx),
@@ -243,7 +244,10 @@ SEXP C_clab_r_windbin(SEXP dir, SEXP width, SEXP start, SEXP area, SEXP na, SEXP
                       SEXP edge) {
   clab::who = "windiv";
   const int n = n32(dir), a = Rf_asInteger(na);
-  const int nb = static_cast<int>(std::nearbyint(360 / Rf_asReal(width)));
+  const double nbd = std::nearbyint(360 / Rf_asReal(width));
+  if (nbd > kutil::maxcell) clab::fail("`width` must divide 360 into at most %.0f sectors.", kutil::maxcell);
+  if (static_cast<double>(a) * (nbd - 1) > 2147483647.0) clab::fail("the areas times the sectors of `width` must be at most 2147483647 columns.");
+  const int nb = static_cast<int>(nbd);
   SEXP r = PROTECT(Rf_allocMatrix(REALSXP, n, a * (nb - 1)));
   kc(clab_windbin(REAL(dir), n, Rf_asReal(width), Rf_asReal(start), icodes(area), a,
                   Rf_asInteger(base), Rf_asInteger(edge), REAL(r)));

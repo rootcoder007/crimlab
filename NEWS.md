@@ -840,6 +840,10 @@
   permutation and power replicates of `wcbx()` can now be interrupted.
 * `enpath()`, `dmlx()` and `suplrn()` refuse an `nlam` past 2^26, in R
   and in the command line.
+* `windiv()` refuses a `width` that divides 360 into more than 2^26
+  sectors, or into more columns (areas times sectors) than an integer
+  counts; a tiny `width` used to overflow the count of columns. The
+  command line gives the same messages.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

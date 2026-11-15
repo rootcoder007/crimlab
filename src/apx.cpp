@@ -345,12 +345,12 @@ int clab_ivfek(const double *y, const double *xe, int pe, const double *xx, int 
   for (int j = 1; j < k; ++j) {
     const double *src = j < 1 + pe ? xe + sz(n, j - 1)
                         : j < 1 + pe + px ? xx + sz(n, j - 1 - pe) : zi + sz(n, j - 1 - pe - px);
-    double a = 0.0, b = 0.0;
+    double a = 0.0, bv = 0.0;
     for (size_t i = 0; i < sn; ++i) {
       a += src[i] * src[i];
-      b += v[sz(n, j) + i] * v[sz(n, j) + i];
+      bv += v[sz(n, j) + i] * v[sz(n, j) + i];
     }
-    if (!(b > 1e-16 * a)) return CLAB_EDOM;
+    if (!(bv > 1e-16 * a)) return CLAB_EDOM;
   }
   double *ye = v, *ee = v + sn, *ex = v + sn * (1 + pe);
   std::vector<int> c12, pw;
@@ -975,6 +975,8 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
     return CLAB_EARG;
   }
   const double nbd = 360 / width;
+  // the sectors, and the columns (areas times sectors) counted in int
+  if (nbd > kutil::maxcell || static_cast<double>(na) * (std::nearbyint(nbd) - 1) > 2147483647.0) return CLAB_EARG;
   const int nb = static_cast<int>(std::nearbyint(nbd));
   if (std::fabs(nbd - nb) > 1e-9 || nb < 2 || base < 0 || base >= nb) return CLAB_EARG;
   const int k = nb - 1;
@@ -983,7 +985,7 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
     const int ar = area ? area[i] : 0;
     if (ar < 0 || ar >= na) return CLAB_EARG;
     if (!std::isfinite(dir[i])) {
-      for (int c = 0; c < na * k; ++c) out[sz(c, n) + static_cast<size_t>(i)] = kutil::nan();
+      for (std::size_t c = 0; c < static_cast<std::size_t>(na) * static_cast<std::size_t>(k); ++c) out[sz(c, n) + static_cast<size_t>(i)] = kutil::nan();
       continue;
     }
     double a = std::fmod(dir[i] - start, 360.0);

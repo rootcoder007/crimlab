@@ -1070,7 +1070,8 @@ summary.expgmm <- function(object, ...) object[["coef"]]
 #'
 #' @param dir Wind directions in degrees (numbers; `NA` gives a row of
 #'   `NA`, and is left out of a group's average).
-#' @param width The width of a sector in degrees; it must divide 360.
+#' @param width The width of a sector in degrees; it must divide 360 into
+#'   at most 67108864 (2^26) sectors.
 #' @param start Where the first sector begins, in degrees.
 #' @param area `NULL` or the area of each direction (labels; constant
 #'   within a `by` group): one set of indicators per area, in sorted order
@@ -2595,6 +2596,9 @@ summary.expjn <- function(object, ...) {
     nb <- round(360 / width)
     if (width >= 360 || abs(360 / width - nb) > 1e-9) {
       .ckstop(f, "`width` must divide 360 into two or more sectors")
+    }
+    if (nb > 2^26) {
+      .ckstop(f, "`width` must divide 360 into at most 67108864 sectors")
     }
     base <- .cknum(base, "base", f, min = 1, max = nb, whole = TRUE)
   } else if (!is.numeric(sect) || length(sect) != 2L || !all(is.finite(sect)) ||
