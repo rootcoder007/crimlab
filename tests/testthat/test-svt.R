@@ -1003,3 +1003,129 @@ test_that("the refusals name the argument", {
   expect_error(irtpst(array(1, c(2, 2, 1)), std = NA), "TRUE or FALSE")
   expect_error(mlsmu(matrix(1, 2, 2), tol = -1), "at least 0")
 })
+
+test_that("amscal() leaves a one-placement respondent unscaled", {
+  set.seed(2)
+  tr <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
+  Z <- t(sapply(1:12, function(i) {
+    4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * tr + rnorm(5, 0, 0.3)
+  }))
+  # one placement cannot give an intercept and a slope: 0 and 1
+  z1 <- Z
+  z1[3, -2] <- NA
+  a <- amscal(z1)
+  expect_identical(c(a$alpha[3], a$beta[3]), c(0, 1))
+  # two stimuli placed alike by everyone get one position, and a
+  # respondent who placed only those two has nothing to regress on
+  z2 <- cbind(Z, Z[, 5])
+  z2[4, ] <- NA
+  z2[4, 5:6] <- c(3, 4)
+  expect_error(
+    amscal(z2),
+    paste("amscal: a respondent's placements could not be regressed on the",
+          "stimulus positions."),
+    fixed = TRUE
+  )
+})
+
+test_that("each scaling kernel refuses arguments it cannot use", {
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  set.seed(7)
+  D <- as.matrix(dist(matrix(rnorm(12), 6)))
+  # issue 10 is answered only by respondents with too few answers
+  X <- matrix(sample(1:7, 200, TRUE), 20)
+  X[1:3, 10] <- 5
+  X[4:20, 10] <- NA
+  X[1:3, 1:5] <- NA
+  ef(bbscal(X, minscale = 8),
+     paste("bbscal: Every issue needs at least one response among the",
+           "scaled respondents."))
+  ef(smacf(D, w = "a"), "smacf: `w` must be a numeric matrix.")
+  ef(nmdsf(D, maxit = 0),
+     "nmdsf: `maxit` must be one whole number of at least 1.")
+  ef(unfstr(matrix(1:4, 2), matrix(1:4, 2), matrix(1, 2, 2), w = "a"),
+     "unfstr: `w` must be a numeric matrix.")
+  # a respondent with no dissimilarity at all: every start is NaN
+  dm <- matrix(runif(12), 3)
+  dm[2, ] <- NA
+  ef(mlsmu(dm, ndim = 1), "mlsmu: no start reached a finite stress.")
+  ef(smunf(D, maxit = 0),
+     "smunf: `maxit` must be one whole number of at least 1.")
+  x <- matrix(rnorm(6), 3, 2)
+  zy <- matrix(rnorm(4), 2)
+  zn <- matrix(rnorm(4), 2)
+  ef(nomutl(x, zy, zn[1, , drop = FALSE]),
+     "nomutl: `zy` and `zn` must have the same rows, and the columns of `x`.")
+  ef(nomll(matrix(1, 2, 2), x, zy, zn),
+     paste("nomll: `votes` must have a row per row of `x` and a column per",
+           "row of `zy`."))
+  ef(irtlik(matrix(1, 2, 2), "a", 1, 1),
+     "irtlik: `x` must be a numeric matrix.")
+  ef(irtlik(matrix(1, 2, 2), matrix(0, 3, 1), 1:2, matrix(0, 2, 1)),
+     paste("irtlik: `x` must have a row per legislator, `alpha` and `beta`",
+           "one entry (row) per vote, and `beta` the columns of `x`."))
+  ef(irtpst(array(c(1, NA, 3, 4), c(2, 2))),
+     "irtpst: `chain` must hold finite numbers.")
+  ef(indscl(list(D, D), maxit = 0),
+     "indscl: `maxit` must be one whole number of at least 1.")
+  dn <- D
+  dn[1, 2] <- NA
+  ef(indscl(list(D, dn)),
+     "indscl: `D` must hold finite numbers with no missing values.")
+  ef(indscl(list(D, D), ndim = 7),
+     "indscl: `ndim` must be at most the number of stimuli, 6.")
+  ef(nrmvec(x, 1:2), "nrmvec: `y` must have one value per row of `x`, 3.")
+  ef(nrmvec(matrix(1, 3, 1), c(1, 2, NA)),
+     paste("nrmvec: `x` with a constant is rank deficient on the rows where",
+           "`y` is known."))
+  ef(nombt(matrix(1, 2, 2), "a", matrix(0, 2, 1), 1:2),
+     "nombt: `x` must be a numeric matrix.")
+  ef(nombt(matrix(1, 2, 2), matrix(0, 3, 1), matrix(0, 2, 1), 1:2),
+     paste("nombt: `x` must have a row per legislator, `normals` and `cuts`",
+           "a row (value) per vote, and `normals` the columns of `x`."))
+  set.seed(2)
+  ef(scboot(matrix(rnorm(20), 4), nboot = 0),
+     "scboot: `nboot` must be one whole number of at least 1.")
+  ef(wrdfsh(matrix(1:3, 1)), "wrdfsh: `dtm` must have two documents at least.")
+})
+
+test_that("BUG: an unbounded number is not refused as 'at least -inf'", {
+  x <- matrix(rnorm(6), 3, 2)
+  zy <- matrix(rnorm(4), 2)
+  zn <- matrix(rnorm(4), 2)
+  e <- expect_error(nomutl(x, zy, zn, beta = "a"), "`beta` must be one number",
+                    fixed = TRUE)
+  expect_false(grepl("-inf", conditionMessage(e), fixed = TRUE))
+  e <- expect_error(nompr(1:2, 1:2, 1:2, beta = "a"))
+  expect_false(grepl("-inf", conditionMessage(e), fixed = TRUE))
+})
+
+test_that("indscl() takes an array of matrices as a list of them", {
+  set.seed(7)
+  D <- as.matrix(dist(matrix(rnorm(12), 6)))
+  a <- array(0, c(2, 6, 6))
+  a[1, , ] <- D
+  a[2, , ] <- D * 1.1
+  expect_identical(unclass(indscl(a, ndim = 2)),
+                   unclass(indscl(list(D, D * 1.1), ndim = 2)))
+})
+
+test_that("irtem() refuses its start, its convergence and singular steps", {
+  set.seed(4)
+  v <- matrix(rbinom(80, 1, 0.5), 8)
+  ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
+  ef(irtem(v, start = list(1, 2, 3)),
+     paste("irtem: `start` must hold 10 intercepts, 10 by 1 slopes and 8 by",
+           "1 ideal points."))
+  ef(irtem(v, maxit = 0),
+     "irtem: `maxit` must be one whole number of at least 1.")
+  ef(irtem(v, conv = "x"), "irtem: `conv` must be \"cor\" or \"abs\".")
+  # identical ideal points and a prior of variance 1e300: intercept and
+  # slope cannot be told apart
+  ef(irtem(v, bprior = c(0, 1e300),
+           start = list(rep(0, 10), rep(0, 10), rep(0, 8))),
+     "irtem: the M-step of the roll-call parameters is singular.")
+  # two dimensions from one roll call with a prior of variance 1e300
+  ef(irtem(v[, 1, drop = FALSE], ndim = 2, xprior = c(0, 1e300)),
+     "irtem: the M-step of the ideal points is singular.")
+})
