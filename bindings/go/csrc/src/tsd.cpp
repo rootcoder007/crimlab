@@ -541,7 +541,7 @@ bool bfgs(const Fn &fn, std::vector<double> &b, double &fmin, int maxit, bool &c
           D2 = 1.0 + D2 / D1;
           for (int i = 0; i < n; ++i) {
             for (int j = 0; j <= i; ++j) {
-              B[z(i)][z(j)] += (D2 * t[z(i)] * t[z(j)] - X[z(i)] * c[z(j)] - t[z(i)] * X[z(j)]) / D1;
+              B[z(i)][z(j)] += (D2 * t[z(i)] * t[z(j)] - X[z(i)] * t[z(j)] - t[z(i)] * X[z(j)]) / D1;
             }
           }
         } else {
