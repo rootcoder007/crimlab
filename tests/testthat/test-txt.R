@@ -18,7 +18,9 @@ test_that("toascii() folds as rmoriebricklayer's table does", {
   expect_true(all(unlist(lapply(toascii(x), function(s) {
     as.integer(charToRaw(s)) %in% 32:126
   }))))
-  expect_identical(toascii(c(1.5, TRUE)), c("1.5", "TRUE"))
+  # c(1.5, TRUE) is the double vector c(1.5, 1): its digits, as.character()
+  expect_identical(toascii(c(1.5, TRUE)), c("1.5", "1"))
+  expect_identical(toascii(c(TRUE, NA)), c("TRUE", ""))
   expect_identical(toascii(character()), character())
   expect_error(toascii(list("a")), "toascii: `x` must be text")
 })
