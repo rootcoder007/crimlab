@@ -4507,3 +4507,200 @@ def polex(seed: Any = 20240101) -> Any:
     720
     """
     return jcall("polex", seed=seed)
+
+
+def vgemp(x: Any, y: Any = None, v: Any = None, nbins: Any = 15, cutoff: Any = None) -> Any:
+    """Empirical semivariogram.
+
+    The arguments and the result are those of R's ``vgemp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = vgemp(x=[[0, 0], [1, 0], [0, 1], [1, 1], [2, 2]], v=[1, 2, 3, 5, 4])
+    >>> list(r)
+    ['dist', 'gamma', 'np']
+    """
+    return jcall("vgemp", x=x, y=y, v=v, nbins=nbins, cutoff=cutoff)
+
+
+def vgfit(x: Any, y: Any = None, v: Any = None, model: Any = "exponential") -> Any:
+    """Fit a variogram model by Gaussian maximum likelihood.
+
+    The arguments and the result are those of R's ``vgfit()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = vgfit(x=[[0, 0], [1, 0], [0, 1], [1, 1], [2, 2]], v=[1, 2, 3, 5, 4])
+    >>> list(r)
+    ['model', 'nugget', 'psill', 'range', 'loglik', 'conv', 'nfn']
+    """
+    return jcall("vgfit", x=x, y=y, v=v, model=model)
+
+
+def okrge(x: Any, y: Any = None, v: Any = None, at: Any = None, vgm: Any = None) -> Any:
+    """Ordinary kriging.
+
+    The arguments and the result are those of R's ``okrge()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = okrge(x=[[0, 0], [1, 0], [0, 1], [1, 1]], v=[1, 2, 3, 5], at=[[0.5, 0.5]],
+    ... vgm={"model": "exponential", "nugget": 0, "psill": 1, "range": 1})
+    >>> list(r)
+    ['pred', 'var']
+    """
+    return jcall("okrge", x=x, y=y, v=v, at=at, vgm=vgm)
+
+
+def bkrig(x: Any, y: Any = None, v: Any = None, blocks: Any = None, nq: Any = 25, nugget: Any = 0,
+          sill: Any = 1, range: Any = 1) -> Any:
+    """Ordinary block kriging.
+
+    The arguments and the result are those of R's ``bkrig()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = bkrig(x=[[0, 0], [1, 0], [0, 1], [1, 1]], v=[1, 2, 3, 5], blocks=[[[0, 0], [1, 1]]])
+    >>> list(r)
+    ['est', 'se']
+    """
+    return jcall("bkrig", x=x, y=y, v=v, blocks=blocks, nq=nq, nugget=nugget, sill=sill, range=range)
+
+
+def krigcv(x: Any, y: Any = None, v: Any = None, nugget: Any = 0, sill: Any = 1, range: Any = 1) -> Any:
+    """Leave-one-out cross-validation of ordinary kriging.
+
+    The arguments and the result are those of R's ``krigcv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = krigcv(x=[[0, 0], [1, 0], [0, 1], [1, 1]], v=[1, 2, 3, 5])
+    >>> list(r)
+    ['mspe', 'rmspe', 'mae', 'resid']
+    """
+    return jcall("krigcv", x=x, y=y, v=v, nugget=nugget, sill=sill, range=range)
+
+
+def trsurf(x: Any, y: Any = None, v: Any = None, order: Any = 2) -> Any:
+    """Polynomial trend surface.
+
+    The arguments and the result are those of R's ``trsurf()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = trsurf(x=[[0, 0], [1, 0], [0, 1], [1, 1]], v=[1, 3, 0, 2], order=1)
+    >>> list(r)
+    ['coef', 'se', 'r2', 'order', 'n']
+    """
+    return jcall("trsurf", x=x, y=y, v=v, order=order)
+
+
+def sglmx(v: Any, z: Any = None, x: Any = None, y: Any = None) -> Any:
+    """Spatial linear model by profile maximum likelihood.
+
+    The arguments and the result are those of R's ``sglmx()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = sglmx(v=[1, 2, 3, 5, 4], x=[[0, 0], [1, 0], [0, 1], [1, 1], [2, 2]])
+    >>> list(r)
+    ['coef', 'se', 'sigma2', 'phi', 'tau2', 'n']
+    """
+    return jcall("sglmx", v=v, z=z, x=x, y=y)
+
+
+def smixm(v: Any, z: Any = None, x: Any = None, y: Any = None) -> Any:
+    """Spatial linear mixed model by REML.
+
+    The arguments and the result are those of R's ``smixm()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = smixm(v=[1, 2, 3, 5, 4], x=[[0, 0], [1, 0], [0, 1], [1, 1], [2, 2]])
+    >>> list(r)
+    ['coef', 'se', 'sigma2', 'tau2', 'phi', 'conv', 'n']
+    """
+    return jcall("smixm", v=v, z=z, x=x, y=y)
+
+
+def spobj(data: Any, coords: Any = None, crs: Any = 4326) -> Any:
+    """A spatial data object.
+
+    The arguments and the result are those of R's ``spobj()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = spobj(data={"lon": [-79.4, -79.3], "lat": [43.6, 43.7], "v": [1, 2]})
+    >>> list(r)
+    ['coords', 'data', 'cnames', 'crs', 'units', 'n']
+    """
+    return jcall("spobj", data=data, coords=coords, crs=crs)
+
+
+def spxy(x: Any) -> Any:
+    """The coordinates of a spatial data object.
+
+    The arguments and the result are those of R's ``spxy()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = spxy(x=spobj(data={"lon": [1, 2], "lat": [3, 4]}))
+    >>> isinstance(r, list)
+    True
+    """
+    return jcall("spxy", x=x)
+
+
+def crsof(x: Any) -> Any:
+    """The coordinate reference system of a spatial data object.
+
+    The arguments and the result are those of R's ``crsof()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = crsof(x=spobj(data={"lon": [1, 2], "lat": [3, 4]}))
+    >>> list(r)
+    ['epsg', 'wkt']
+    """
+    return jcall("crsof", x=x)
+
+
+def lfspec(x: Any) -> Any:
+    """The specification of a web map.
+
+    The arguments and the result are those of R's ``lfspec()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = lfspec(x=spobj(data={"lon": [1, 2], "lat": [3, 4]}))
+    >>> list(r)
+    ['provider', 'interactive', 'center', 'zoom', 'points']
+    """
+    return jcall("lfspec", x=x)
+
+
+def spsamp(x: Any, size: Any = None, dens: Any = True, seed: Any = None) -> Any:
+    """Sample points, by local density or uniformly.
+
+    The arguments and the result are those of R's ``spsamp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = spsamp(x=spobj(data={"lon": [1, 2, 3], "lat": [3, 4, 6]}), size=2, seed=1)
+    >>> isinstance(r, list)
+    True
+    """
+    return jcall("spsamp", x=x, size=size, dens=dens, seed=seed)

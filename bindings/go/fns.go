@@ -703,6 +703,45 @@ func Rptvic(args string) (string, error) { return Jrun("rptvic", args) }
 // Wdqx runs wdqx() of the R package (arguments: a b c; ? marks an optional one).
 func Wdqx(args string) (string, error) { return Jrun("wdqx", args) }
 
+// Vgemp runs vgemp() of the R package (arguments: x y? v nbins? cutoff?; ? marks an optional one).
+func Vgemp(args string) (string, error) { return Jrun("vgemp", args) }
+
+// Vgfit runs vgfit() of the R package (arguments: x y? v model?; ? marks an optional one).
+func Vgfit(args string) (string, error) { return Jrun("vgfit", args) }
+
+// Okrge runs okrge() of the R package (arguments: x y? v at vgm?; ? marks an optional one).
+func Okrge(args string) (string, error) { return Jrun("okrge", args) }
+
+// Bkrig runs bkrig() of the R package (arguments: x y? v blocks nq? nugget? sill? range?; ? marks an optional one).
+func Bkrig(args string) (string, error) { return Jrun("bkrig", args) }
+
+// Krigcv runs krigcv() of the R package (arguments: x y? v nugget? sill? range?; ? marks an optional one).
+func Krigcv(args string) (string, error) { return Jrun("krigcv", args) }
+
+// Trsurf runs trsurf() of the R package (arguments: x y? v order?; ? marks an optional one).
+func Trsurf(args string) (string, error) { return Jrun("trsurf", args) }
+
+// Sglmx runs sglmx() of the R package (arguments: v z? x y?; ? marks an optional one).
+func Sglmx(args string) (string, error) { return Jrun("sglmx", args) }
+
+// Smixm runs smixm() of the R package (arguments: v z? x y?; ? marks an optional one).
+func Smixm(args string) (string, error) { return Jrun("smixm", args) }
+
+// Spobj runs spobj() of the R package (arguments: data coords? crs?; ? marks an optional one).
+func Spobj(args string) (string, error) { return Jrun("spobj", args) }
+
+// Spxy runs spxy() of the R package (arguments: x; ? marks an optional one).
+func Spxy(args string) (string, error) { return Jrun("spxy", args) }
+
+// Crsof runs crsof() of the R package (arguments: x; ? marks an optional one).
+func Crsof(args string) (string, error) { return Jrun("crsof", args) }
+
+// Lfspec runs lfspec() of the R package (arguments: x; ? marks an optional one).
+func Lfspec(args string) (string, error) { return Jrun("lfspec", args) }
+
+// Spsamp runs spsamp() of the R package (arguments: x size dens? seed?; ? marks an optional one).
+func Spsamp(args string) (string, error) { return Jrun("spsamp", args) }
+
 // Prohs runs prohs() of the R package (arguments: x y? t at win cell bw? tw? tunit? top? ahead?; ? marks an optional one).
 func Prohs(args string) (string, error) { return Jrun("prohs", args) }
 
