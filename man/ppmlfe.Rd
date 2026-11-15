@@ -162,12 +162,12 @@ robust errors of Herrnstadt and others 2021); \code{"nw"} (Newey-West within
 each unit of the first \code{clus} column over the days of \code{time}, Bartlett
 weights \code{1 - d / (lag + 1)} for days \code{d} apart up to \code{lag}; by default
 the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
-and p. 635) for the Bartlett kernel without their prewhitening: \verb{lag =
-[gamma T^(1/3)]}, \code{gamma = 1.1447 ((s1 / s0)^2)^(1/3)}, \verb{s1 = 2 sum_j j
-sigma_j}, \verb{s0 = sigma_0 + 2 sum_j sigma_j} over \verb{j = 1..n}, \verb{n = [4 (T /
+and p. 635) for the Bartlett kernel without their prewhitening: \code{lag =
+[gamma T^(1/3)]}, \code{gamma = 1.1447 ((s1 / s0)^2)^(1/3)}, \code{s1 = 2 sum_j j
+sigma_j}, \code{s0 = sigma_0 + 2 sum_j sigma_j} over \code{j = 1..n}, \code{n = [4 (T /
 100)^(2/9)]}, \code{T} the most days of a unit and \code{sigma_j} the sum of the
 products of the rows' scores (summed over the coefficients) of one unit
-\code{j} days apart (the earlier default here, \verb{[4 (T / 100)^(2/9)]}, is
+\code{j} days apart (the earlier default here, \code{[4 (T / 100)^(2/9)]}, is
 their lag-selection parameter \code{n}, not the lag); the appendix of
 Herrnstadt and others 2021); \code{"boot"} (a cluster bootstrap
 over the first \code{clus} column, \code{nboot} draws from R's generator, each

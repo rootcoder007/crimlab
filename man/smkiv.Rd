@@ -15,7 +15,7 @@ smkiv(
   z = 1.64,
   seas = NULL,
   dens = NULL,
-  cf = c("mean", "median"),
+  cf = c("mean", "median", "childs"),
   by = NULL
 )
 }
@@ -42,7 +42,7 @@ of a season column.}
 \item{dens}{\code{NULL} or the name of a density-class column (\code{NA} or \code{""}
 for no plume).}
 
-\item{cf}{\code{"mean"} or \code{"median"}: the background of \code{spm}.}
+\item{cf}{\code{"mean"}, \code{"median"} or \code{"childs"}: the background of \code{spm}.}
 
 \item{by}{\code{NULL} or the name of a grouping column (place-month) to
 aggregate to.}
@@ -88,8 +88,16 @@ before 2018 has large measurement error, and use presence only.
 background (\code{cf = "mean"}, Burkhardt et al.'s background, or
 \code{"median"}), on adjusted smoke days and at least 0; 0 on other days.
 This counterfactual is crimlab's construction from Burkhardt et al.'s
-background; the smoke PM2.5 products the papers cite are made
-otherwise.
+background. \code{cf = "childs"} is instead the definition of Childs et
+al. (2022, equations 1-3, p. 13609): the background is the median
+PM2.5 of the same place and calendar month over the year and the
+years either side (three years) on days without smoke (\code{plume} 0),
+and smoke PM2.5 is PM2.5 above it on smoke days (\code{plume} 1), at least
+0, and 0 on other days; a place-month-year with no smoke-free days in
+its window gets \code{NA}, with a warning. It needs \code{day} as dates and
+ignores \code{seas} and \code{adj} (their smoke days are the plume column as
+given). Their machine-learned gridded smoke PM2.5 is a data product
+to be supplied as a column, not rebuilt here.
 \item \code{by}: with a group (place and month), the counts of smoke days and
 the means of the rest per group, Burkhardt et al.'s county-month
 instrument, "the number of days a county is affected by a fire smoke
@@ -114,6 +122,12 @@ table(raw = d$plume, adjusted = s$smoke)
 head(smkiv(d, "plume", "place", "day", pm = "pm", adj = "nbr", nbr = "near"))
 }
 \references{
+Childs, M. L., Li, J., Wen, J., Heft-Neal, S., Driscoll, A., Wang, S.,
+Gould, C. F., Qiu, M., Burney, J. and Burke, M. (2022). Daily
+local-level estimates of ambient wildfire smoke PM2.5 for the
+contiguous US. \emph{Environmental Science and Technology}, 56(19),
+13607-13621. \doi{10.1021/acs.est.2c02934}
+
 Burkhardt, J., Bayham, J., Wilson, A., Berman, J. D., O'Dell, K.,
 Ford, B., Fischer, E. V. and Pierce, J. R. (2019). The relationship
 between monthly air pollution and violent crime across the United

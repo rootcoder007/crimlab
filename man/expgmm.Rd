@@ -75,7 +75,7 @@ it converged and the weights used; \code{fe}, \code{clus} and \code{level}.
 Estimates \verb{E(y | x) = exp(x'b + log(expo))} with some regressors
 endogenous, by the generalised method of moments on the first-order
 moment conditions alone, as Mullahy (1997) and Windmeijer and Santos
-Silva (1997) set it out: \verb{sum_i z_i u_i(b) = 0} with \code{z} the excluded
+Silva (1997) set it out: \code{sum_i z_i u_i(b) = 0} with \code{z} the excluded
 instruments and the exogenous regressors. The residual (\code{err}):
 }
 \details{

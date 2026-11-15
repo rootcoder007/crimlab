@@ -76,8 +76,16 @@
 #'   background (`cf = "mean"`, Burkhardt et al.'s background, or
 #'   `"median"`), on adjusted smoke days and at least 0; 0 on other days.
 #'   This counterfactual is crimlab's construction from Burkhardt et al.'s
-#'   background; the smoke PM2.5 products the papers cite are made
-#'   otherwise.
+#'   background. `cf = "childs"` is instead the definition of Childs et
+#'   al. (2022, equations 1-3, p. 13609): the background is the median
+#'   PM2.5 of the same place and calendar month over the year and the
+#'   years either side (three years) on days without smoke (`plume` 0),
+#'   and smoke PM2.5 is PM2.5 above it on smoke days (`plume` 1), at least
+#'   0, and 0 on other days; a place-month-year with no smoke-free days in
+#'   its window gets `NA`, with a warning. It needs `day` as dates and
+#'   ignores `seas` and `adj` (their smoke days are the plume column as
+#'   given). Their machine-learned gridded smoke PM2.5 is a data product
+#'   to be supplied as a column, not rebuilt here.
 #' * `by`: with a group (place and month), the counts of smoke days and
 #'   the means of the rest per group, Burkhardt et al.'s county-month
 #'   instrument, "the number of days a county is affected by a fire smoke
@@ -101,7 +109,7 @@
 #'   of a season column.
 #' @param dens `NULL` or the name of a density-class column (`NA` or `""`
 #'   for no plume).
-#' @param cf `"mean"` or `"median"`: the background of `spm`.
+#' @param cf `"mean"`, `"median"` or `"childs"`: the background of `spm`.
 #' @param by `NULL` or the name of a grouping column (place-month) to
 #'   aggregate to.
 #' @return A data frame, one row per row of `data` (or per `by` group):
@@ -109,6 +117,12 @@
 #'   background, with `pm`), `spm` (with `pm`), and one indicator (or count)
 #'   per density class, `dens:<class>`.
 #' @references
+#'   Childs, M. L., Li, J., Wen, J., Heft-Neal, S., Driscoll, A., Wang, S.,
+#'   Gould, C. F., Qiu, M., Burney, J. and Burke, M. (2022). Daily
+#'   local-level estimates of ambient wildfire smoke PM2.5 for the
+#'   contiguous US. *Environmental Science and Technology*, 56(19),
+#'   13607-13621. \doi{10.1021/acs.est.2c02934}
+#'
 #'   Burkhardt, J., Bayham, J., Wilson, A., Berman, J. D., O'Dell, K.,
 #'   Ford, B., Fischer, E. V. and Pierce, J. R. (2019). The relationship
 #'   between monthly air pollution and violent crime across the United
@@ -146,7 +160,7 @@ smkiv <- function(
   z = 1.64,
   seas = NULL,
   dens = NULL,
-  cf = c("mean", "median"),
+  cf = c("mean", "median", "childs"),
   by = NULL
 ) {
   f <- "smkiv"
@@ -212,8 +226,13 @@ smkiv <- function(
       )
       out$smoke <- as.numeric(hi[j])
     }
-    out$bg <- if (cf == "mean") bmu else as.numeric(md[key])
-    out$spm <- ifelse(out$smoke %in% 1, pmax(pv - out$bg, 0), 0)
+    if (cf == "childs") {
+      out$bg <- .axchilds(d, unit, day, pv, pl, f)
+      out$spm <- ifelse(pl == 1, pmax(pv - out$bg, 0), 0)
+    } else {
+      out$bg <- if (cf == "mean") bmu else as.numeric(md[key])
+      out$spm <- ifelse(out$smoke %in% 1, pmax(pv - out$bg, 0), 0)
+    }
   }
   if (!is.null(dens)) {
     dv <- as.character(d[[dens]])
@@ -982,4 +1001,28 @@ print.typefx <- function(x, ...) {
   )
   print(x[["tab"]], row.names = FALSE, digits = 4)
   invisible(x)
+}
+
+# The background of Childs et al. (2022, equation 2): for each row, the
+# median PM2.5 of its place and calendar month over the years y - 1 to y +
+# 1 on days without smoke; NA (with a warning) when there are none.
+.axchilds <- function(d, unit, day, pv, pl, fn) {
+  if (!inherits(d[[day]], "Date")) {
+    .ckstop(fn, "`cf = \"childs\"` needs `day` as dates")
+  }
+  yr <- as.integer(format(d[[day]], "%Y"))
+  um <- paste(as.character(d[[unit]]), format(d[[day]], "%m"), sep = "\r")
+  bg <- rep(NA_real_, length(pv))
+  for (g in split(seq_along(pv), um)) {
+    for (y in unique(yr[g])) {
+      w <- g[abs(yr[g] - y) <= 1L & pl[g] == 0]
+      if (length(w)) bg[g[yr[g] == y]] <- stats::median(pv[w])
+    }
+  }
+  if (anyNA(bg)) {
+    warning(fn, ": ", sum(is.na(bg)), " row(s) have no smoke-free days ",
+            "in their place, month and three years; their background is NA.",
+            call. = FALSE)
+  }
+  bg
 }

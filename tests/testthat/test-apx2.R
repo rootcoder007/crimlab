@@ -132,3 +132,24 @@ test_that("typefx: one fit per outcome and the Holm correction", {
   expect_equal(t$tab$padj, stats::p.adjust(t$tab$p, "holm"))
   expect_error(typefx(d, "assault", "pm", adj = "romano"), "should be one of")
 })
+
+test_that("smkiv cf = childs is the three-year month median (Childs 2022)", {
+  # one place, three January days in each of 2019-2021; the background
+  # of a year is the median of the smoke-free days of that year and the
+  # years either side (Childs et al. 2022, equation 2), by hand:
+  # 2019: 10, 12, 20, 22 -> 16; 2020: 10, 12, 20, 22, 30 -> 20;
+  # 2021: 20, 22, 30 -> 22
+  d <- data.frame(
+    area = 1,
+    day = as.Date(c("2019-01-01", "2019-01-02", "2019-01-03",
+                    "2020-01-01", "2020-01-02", "2020-01-03",
+                    "2021-01-01", "2021-01-02", "2021-01-03")),
+    pm = c(10, 12, 40, 20, 22, 50, 30, 60, 15),
+    plume = c(0, 0, 1, 0, 0, 1, 0, 1, 1)
+  )
+  r <- smkiv(d, "plume", "area", "day", pm = "pm", cf = "childs")
+  expect_equal(r$bg, rep(c(16, 20, 22), each = 3))
+  expect_equal(r$spm, c(0, 0, 24, 0, 0, 30, 0, 38, 0))
+  expect_error(smkiv(transform(d, day = 1:9), "plume", "area", "day",
+                     pm = "pm", cf = "childs", seas = "area"), "as dates")
+})

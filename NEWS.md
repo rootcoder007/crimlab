@@ -76,6 +76,10 @@
   the simplified test of Montiel Olea and Pflueger (2013); the effective
   F itself was checked against their equation 3 and is unchanged.
 
+* `smkiv(cf = "childs")`: smoke PM2.5 as Childs et al. (2022) define it,
+  PM2.5 above the three-year median of the same place and month on
+  smoke-free days, on smoke days.
+
 * `ppmlfe(se = "quasi")`, the quasi-Poisson variance with the Pearson
   dispersion, the overdispersion adjustment Armstrong, Gasparrini and
   Tobias (2014) give for the case-crossover design of `ccross()`.
