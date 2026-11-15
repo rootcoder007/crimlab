@@ -235,20 +235,20 @@ Quantifying the carbon emissions of machine learning. arXiv:1910.09700.
 ``` r
 fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
-#> [1] 5.368273e-08
+#> [1] 4.017646e-08
 fp$co2eg
-#> [1] 4.883518e-06
+#> [1] 3.654853e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions
 #> [1] "CPU power unknown: 85 W x 50% (codecarbon fallback)"
-#> [2] "memory charged: the machine's total 15.6 GB"        
+#> [2] "memory charged: the machine's total 15.3 GB"        
 print(fp)
 #> Computation footprint (modelled)
-#>   Time: 0.004 s wall, 0.004 s CPU; utilisation 0.25 (process) on 4 cores
-#>   Energy: 5.37e-08 kWh (cpu 4.72e-08, memory 6.46e-09)
-#>   CO2e: 4.88e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
-#>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.6 GB
+#>   Time: 0.003 s wall, 0.003 s CPU; utilisation 0.25 (process) on 4 cores
+#>   Energy: 4.02e-08 kWh (cpu 3.54e-08, memory 4.76e-09)
+#>   CO2e: 3.65e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
+#>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.3 GB
 # wherever you are, offline: the location is detected and recorded
 co2fp(1 + 1, cpupwrw = 45, memgb = 8)$assumptions
 #> [1] "location WORLD via fallback, no location found in environment, time zone or locale"
@@ -298,7 +298,7 @@ fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
              memgb = 16, meth = "model", devices = dev)
 fp3$devices
 #>   kind  vendor      name               how          kwh counted
-#> 1  gpu example    card 0 simulated reading 1.333333e-07    TRUE
+#> 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE
 #> 2  cpu example package 0 simulated reading          NaN   FALSE
 #>                                      note
 #> 1              average power over the run
