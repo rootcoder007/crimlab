@@ -79,4 +79,29 @@ void t_apx(tk &T, int) {
     tk_ieq(T, "apx.cl1", ppml(y.data(), x.data(), n, 1, u.data(), nu, nullptr, 0, u.data(), 1, &b,
                               &vc, st), CLAB_EARG);
   }
+  // just identified with one group (an intercept): cov(z, y) / cov(z, x)
+  {
+    const double y[5] = {1, 3, 2, 6, 5}, x[5] = {0, 2, 1, 4, 2}, z[5] = {0, 1, 1, 2, 3};
+    const int g[5] = {0, 0, 0, 0, 0}, c[5] = {0, 0, 1, 1, 1};
+    double my = 0, mx = 0, mz = 0;
+    for (int i = 0; i < 5; ++i) {
+      my += y[i] / 5;
+      mx += x[i] / 5;
+      mz += z[i] / 5;
+    }
+    double szy = 0, szx = 0;
+    for (int i = 0; i < 5; ++i) {
+      szy += (z[i] - mz) * (y[i] - my);
+      szx += (z[i] - mz) * (x[i] - mx);
+    }
+    double b = 0, vc = 0, f = 0, st[3];
+    tk_ieq(T, "apx.iv", clab_ivfe(y, x, 1, nullptr, 0, z, 1, 5, nullptr, g, 1, nullptr, 0, c, 2,
+                                  nullptr, 0, 1e-13, &b, &vc, &f, nullptr, nullptr, st), CLAB_OK);
+    tk_eq(T, "apx.ivb", b, szy / szx, 1e-12);
+    const double zc[5] = {1, 1, 1, 1, 1};
+    tk_ieq(T, "apx.ivz", clab_ivfe(y, x, 1, nullptr, 0, zc, 1, 5, nullptr, g, 1, nullptr, 0, c, 2,
+                                   nullptr, 0, 1e-13, &b, &vc, &f, nullptr, nullptr, st), CLAB_EDOM);
+    tk_ieq(T, "apx.ivq", clab_ivfe(y, x, 1, nullptr, 0, z, 0, 5, nullptr, g, 1, nullptr, 0, c, 2,
+                                   nullptr, 0, 1e-13, &b, &vc, &f, nullptr, nullptr, st), CLAB_EARG);
+  }
 }

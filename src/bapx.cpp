@@ -76,4 +76,47 @@ SEXP C_clab_r_ppmlfe(SEXP y, SEXP x, SEXP off, SEXP f1, SEXP n1, SEXP f2, SEXP n
   return r;
 }
 
+SEXP C_clab_r_ivfe(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP f1, SEXP n1, SEXP f2, SEXP n2,
+                   SEXP cl, SEXP ncl, SEXP cl2, SEXP ncl2, SEXP tol) {
+  clab::who = "ivfe";
+  const int n = n32(y), pe = Rf_ncols(xe), px = Rf_ncols(xx), q = Rf_ncols(zi), p = pe + px;
+  SEXP r = PROTECT(Rf_allocVector(VECSXP, 5));
+  SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, p));
+  SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, p, p));
+  SET_VECTOR_ELT(r, 2, Rf_allocVector(REALSXP, pe));
+  SET_VECTOR_ELT(r, 3, Rf_allocVector(REALSXP, 3));
+  SET_VECTOR_ELT(r, 4, Rf_allocVector(REALSXP, n));
+  kc(clab_ivfe(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, nullptr, INTEGER(f1),
+               Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), icodes(cl),
+               Rf_isNull(cl) ? 0 : Rf_asInteger(ncl), icodes(cl2),
+               Rf_isNull(cl2) ? 0 : Rf_asInteger(ncl2), Rf_asReal(tol), REAL(VECTOR_ELT(r, 0)),
+               REAL(VECTOR_ELT(r, 1)), REAL(VECTOR_ELT(r, 2)), nullptr, REAL(VECTOR_ELT(r, 4)),
+               REAL(VECTOR_ELT(r, 3))));
+  static const char *const nm[] = {"beta", "vc", "fst", "st", "res"};
+  named(r, nm, 5);
+  UNPROTECT(1);
+  return r;
+}
+
+SEXP C_clab_r_ppmlcf(SEXP y, SEXP xe, SEXP xx, SEXP zi, SEXP off, SEXP f1, SEXP n1, SEXP f2,
+                     SEXP n2, SEXP cl, SEXP ncl, SEXP bm, SEXP tol, SEXP maxit) {
+  clab::who = "ppmlcf";
+  const int n = n32(y), pe = Rf_ncols(xe), px = Rf_ncols(xx), q = Rf_ncols(zi);
+  const int k = 2 * pe + px, nb = Rf_ncols(bm);
+  SEXP r = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, k));
+  SET_VECTOR_ELT(r, 1, Rf_allocVector(REALSXP, pe));
+  SET_VECTOR_ELT(r, 2, Rf_allocMatrix(REALSXP, nb, k));
+  SET_VECTOR_ELT(r, 3, Rf_allocVector(REALSXP, 3));
+  kc(clab_ppmlcf(REAL(y), REAL(xe), pe, REAL(xx), px, REAL(zi), q, n, dnul(off), INTEGER(f1),
+                 Rf_asInteger(n1), icodes(f2), Rf_isNull(f2) ? 0 : Rf_asInteger(n2), INTEGER(cl),
+                 Rf_asInteger(ncl), INTEGER(bm), nb, Rf_asInteger(maxit), 1e-10, Rf_asReal(tol),
+                 REAL(VECTOR_ELT(r, 0)), REAL(VECTOR_ELT(r, 1)), REAL(VECTOR_ELT(r, 2)),
+                 REAL(VECTOR_ELT(r, 3))));
+  static const char *const nm[] = {"beta", "fst", "draw", "st"};
+  named(r, nm, 4);
+  UNPROTECT(1);
+  return r;
+}
+
 }  // extern "C"

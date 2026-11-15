@@ -290,3 +290,336 @@ print.ppmlfe <- function(x, ...) {
 #' @rdname ppmlfe
 #' @export
 summary.ppmlfe <- function(object, ...) object[["coef"]]
+
+#' Two-stage least squares with absorbed fixed effects
+#'
+#' Estimates the effect of an exposure that is measured with error or
+#' shares unmeasured causes with the outcome, by instrumental variables:
+#' each endogenous column is first regressed on the excluded instruments
+#' and the controls (the first stage), and the outcome on the fitted values
+#' and the controls (the second stage), with one or two sets of fixed
+#' effects absorbed throughout. This is the linear estimator of
+#' Herrnstadt, Heyes, Muehlegger and Saberian (2019): the log of daily
+#' assaults near each monitor on ozone, instrumented by a westerly wind,
+#' with monitor and time fixed effects and errors clustered by monitor and
+#' by date. Without `endo` and `inst` it is least squares with the fixed
+#' effects.
+#'
+#' What an instrument must satisfy, in plain words. Relevance: it moves the
+#' exposure, after the fixed effects and controls; the first-stage
+#' statistic `fstat` measures this (a common rule of thumb asks for more
+#' than 10; Bondy, Roth and Sager report 13 to 25, Herrnstadt and others
+#' 94 to 100). Exclusion: it changes the outcome only through the
+#' exposure. Wind direction moves pollution, but if it also moves where
+#' people are (a wind off a lake on a warm day) the exclusion fails; no
+#' statistic can show that it holds. With effects that differ between
+#' places, two-stage least squares estimates a weighted average of them
+#' over the places and days the instrument moves, and only if the
+#' instrument pushes the exposure the same way everywhere (monotonicity;
+#' Bondy, Roth and Sager let wind act differently by region for that
+#' reason: see [windiv()]).
+#'
+#' Standard errors are cluster-robust on the second-stage design with the
+#' structural residuals (the outcome less the actual, not the fitted,
+#' endogenous columns times their coefficients), times `G / (G - 1)`;
+#' two-way as in [ppmlfe()]. `fstat` is the cluster-robust Wald statistic
+#' of the excluded instruments in each first stage divided by their
+#' number, with the same clusters. These equal `fixest::feols()` with
+#' `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")` and its `fitstat`
+#' `"ivwald1"`. Tests use the t distribution on `G - 1` degrees of
+#' freedom.
+#'
+#' @param data A data frame, one row per place and period.
+#' @param y The name of the outcome column (numeric).
+#' @param endo `NULL` or the names of the endogenous columns (the
+#'   exposure).
+#' @param inst `NULL` or the names of the excluded instruments, at least as
+#'   many as `endo` (from [windiv()] or [invsn()], say).
+#' @param x `NULL` or the names of the exogenous controls. For `print()`,
+#'   an object of class `ivfe`.
+#' @param fe,clus,level,tol As in [ppmlfe()].
+#' @param object An object of class `ivfe`.
+#' @param ... Not used.
+#' @return An object of class `ivfe`, a list: `coef` (as in [ppmlfe()],
+#'   without `rr`); `first`, one row per endogenous column (`endo`,
+#'   `fstat`, `ninst`); `vcov`; `n`; `ncl`; `rss`; `fe`, `clus` and
+#'   `level`. `summary()` returns `coef`.
+#' @references
+#'   Herrnstadt, E., Heyes, A., Muehlegger, E. and Saberian, S. (2019). Air
+#'   pollution as a cause of violent crime. Working paper.
+#'
+#'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+#'   contemporaneous relationship between air pollution and crime.
+#'   *Journal of the Association of Environmental and Resource Economists*,
+#'   7(3), 555-585. \doi{10.1086/707127}
+#' @seealso [ppmlcf()] for counts, [windiv()], [invsn()], [plcday()]
+#' @examples
+#' # simulated: an unmeasured daily shock u raises both the exposure and
+#' # the outcome; the wind moves the exposure only
+#' set.seed(2)
+#' d <- expand.grid(day = 1:60, area = 1:12)
+#' d$wind <- runif(nrow(d), 0, 360)
+#' w <- windiv(d$wind, width = 90)
+#' d <- cbind(d, w)
+#' u <- rnorm(nrow(d))
+#' d$oz <- 3 * w[, 1] - 2 * w[, 2] + u + rnorm(nrow(d))
+#' d$out <- 0.5 * d$oz + u + rnorm(nrow(d))
+#' ivfe(d, "out", endo = "oz", inst = colnames(w), fe = c("area", "day"),
+#'      clus = c("area", "day"))
+#' @export
+ivfe <- function(
+  data,
+  y,
+  endo = NULL,
+  inst = NULL,
+  x = NULL,
+  fe,
+  clus = NULL,
+  level = 0.95,
+  tol = 1e-12
+) {
+  f <- "ivfe"
+  d <- .axdat(data, f)
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, endo, "endo", f, null = TRUE)
+  .axcols(d, inst, "inst", f, null = TRUE)
+  .axcols(d, x, "x", f, null = TRUE)
+  .axcols(d, fe, "fe", f, n = 1:2)
+  if (is.null(clus)) clus <- fe[1L]
+  .axcols(d, clus, "clus", f, n = 1:2)
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  if (length(inst) < length(endo)) {
+    .ckstop(f, "`inst` must give at least as many instruments as `endo` has columns")
+  }
+  if (!length(endo) && length(inst)) {
+    .ckstop(f, "`inst` needs `endo`: the columns it instruments")
+  }
+  if (!length(endo) && !length(x)) .ckstop(f, "give `endo` or `x`: there is nothing to estimate")
+  if (length(intersect(c(endo, x), inst))) {
+    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
+  }
+  yv <- .axmat(d, y, f)[, 1L]
+  fx <- .axfe(d, fe)
+  cl <- .axcl(d, clus, f)
+  r <- .Call(C_clab_r_ivfe, yv, .axmat(d, endo, f), .axmat(d, x, f),
+             .axmat(d, inst, f), fx$c1, fx$n1, fx$c2, fx$n2, cl$c1, cl$n1,
+             cl$c2, cl$n2, tol)
+  tm <- c(endo, x)
+  v <- r$vc
+  dimnames(v) <- list(tm, tm)
+  g <- min(cl$g)
+  structure(
+    list(coef = .axtab(tm, r$beta, sqrt(pmax(diag(v), 0)), level, df = g - 1),
+         first = data.frame(endo = as.character(endo), fstat = r$fst,
+                            ninst = rep(length(inst), length(endo))),
+         vcov = v, n = length(yv), ncl = cl$g, rss = r$st[3L], fe = fe,
+         clus = clus, level = level),
+    class = "ivfe"
+  )
+}
+
+#' @rdname ivfe
+#' @export
+print.ivfe <- function(x, ...) {
+  iv <- nrow(x[["first"]]) > 0L
+  cat("ivfe: ", if (iv) "two-stage least squares" else "least squares", ", ",
+      x[["n"]], " rows, fixed effects ", paste(x[["fe"]], collapse = " and "),
+      "; clusters ", paste0(x[["clus"]], " (", x[["ncl"]], ")", collapse = " and "),
+      "\n", sep = "")
+  print(x[["coef"]], row.names = FALSE, digits = 4)
+  if (iv) {
+    cat("first stage, cluster-robust Wald F of the excluded instruments:\n")
+    print(x[["first"]], row.names = FALSE, digits = 4)
+  }
+  invisible(x)
+}
+
+#' @rdname ivfe
+#' @export
+summary.ivfe <- function(object, ...) object[["coef"]]
+
+# The bootstrap draws: how often each of g clusters is drawn, b draws
+# (g x b), from R's generator; seed, when given, is used and the
+# generator's state put back.
+.axdraw <- function(g, b, seed) {
+  if (!is.null(seed)) {
+    env <- globalenv()
+    had <- exists(".Random.seed", envir = env, inherits = FALSE)
+    old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
+    on.exit(if (had) {
+      assign(".Random.seed", old, envir = env)
+    } else {
+      rm(".Random.seed", envir = env)
+    })
+    set.seed(seed)
+  }
+  vapply(seq_len(b), function(i) {
+    tabulate(sample.int(g, g, replace = TRUE), g)
+  }, integer(g))
+}
+
+#' The control function for a count outcome with fixed effects
+#'
+#' Instruments an exposure in the count model of [ppmlfe()]: the first
+#' stages regress each endogenous column on the excluded instruments and
+#' the controls with the fixed effects (as in [ivfe()]), and their
+#' residuals are added to the Poisson pseudo-likelihood fit with the same
+#' fixed effects and offset. The residual takes up the part of the
+#' exposure that moves with unmeasured causes of the outcome, so the
+#' coefficient on the exposure is that of its part the instruments move.
+#' Its own coefficient tests whether the exposure was endogenous at all.
+#'
+#' Bondy, Roth and Sager (2020) instrument pollution in their Poisson
+#' model by wind direction and by inversions (their equations 2 and 3);
+#' their text writes the second stage with the fitted pollution in place
+#' of pollution, and does not say how its standard errors account for the
+#' first stage. With a log link, putting the fitted values in place is not
+#' consistent in general; the control function is, when the first-stage
+#' residual enters the mean as a linear index (Wooldridge 2014). That is
+#' the method here, and it is a choice made for crimlab, not a
+#' reproduction of the papers' computations.
+#'
+#' Standard errors come from a cluster bootstrap that refits both stages:
+#' `nboot` draws of the clusters with replacement (the first `clus`
+#' column), made on the R side with R's generator (so `set.seed()` or
+#' `seed` reproduce them), each draw weighting a cluster by how often it
+#' was drawn. The interval is the estimate plus or minus the normal
+#' quantile times the bootstrap standard error. Separation is handled as
+#' in [ppmlfe()], in the full sample and in each draw; a draw that cannot
+#' be fitted (an instrument without variation in it, say) is left out and
+#' counted in `nfail`. The first-stage statistic is that of [ivfe()],
+#' clustered by `clus`.
+#'
+#' @param data,y,fe,expo,level,tol,maxit As in [ppmlfe()].
+#' @param endo The names of the endogenous columns.
+#' @param inst The names of the excluded instruments, at least as many.
+#' @param x `NULL` or the names of the exogenous controls. For `print()`,
+#'   an object of class `ppmlcf`.
+#' @param clus `NULL` (the first fixed effect) or the name of one cluster
+#'   column: the unit the bootstrap draws.
+#' @param nboot The number of bootstrap draws, at least 2.
+#' @param seed `NULL` (the generator's current state) or one whole number.
+#' @param object An object of class `ppmlcf`.
+#' @param ... Not used.
+#' @return An object of class `ppmlcf`, a list: `coef` (as in [ppmlfe()],
+#'   the endogenous columns, the controls, then the residual terms
+#'   `"vhat:<endo>"`); `first` (as in [ivfe()]); `draws`, the bootstrap
+#'   estimates (one row per draw); `nfail`; `n`; `nsep`; `ncl`; `nboot`;
+#'   `fe`, `clus` and `level`. `summary()` returns `coef`.
+#' @references
+#'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
+#'   contemporaneous relationship between air pollution and crime.
+#'   *Journal of the Association of Environmental and Resource Economists*,
+#'   7(3), 555-585. \doi{10.1086/707127}
+#'
+#'   Wooldridge, J. M. (2014). Quasi-maximum likelihood estimation and
+#'   testing for nonlinear models with endogenous explanatory variables.
+#'   *Journal of Econometrics*, 182(1), 226-234.
+#' @seealso [ppmlfe()], [ivfe()], [windiv()], [invsn()]
+#' @examples
+#' # simulated counts; the shock u raises pollution and crime together
+#' set.seed(3)
+#' d <- expand.grid(day = 1:50, area = 1:15)
+#' d$wind <- runif(nrow(d), 0, 360)
+#' w <- windiv(d$wind, width = 90)
+#' d <- cbind(d, w)
+#' u <- rnorm(nrow(d), 0, 0.5)
+#' d$pm <- 2 * w[, 1] - w[, 3] + u + rnorm(nrow(d))
+#' d$crimes <- rpois(nrow(d), exp(1 + 0.1 * d$pm + 0.5 * u))
+#' ppmlcf(d, "crimes", endo = "pm", inst = colnames(w), fe = c("area", "day"),
+#'        nboot = 49, seed = 1)
+#' @export
+ppmlcf <- function(
+  data,
+  y,
+  endo,
+  inst,
+  x = NULL,
+  fe,
+  expo = NULL,
+  clus = NULL,
+  nboot = 199,
+  seed = NULL,
+  level = 0.95,
+  tol = 1e-12,
+  maxit = 100
+) {
+  f <- "ppmlcf"
+  d <- .axdat(data, f)
+  .axcols(d, y, "y", f, n = 1L)
+  .axcols(d, endo, "endo", f)
+  .axcols(d, inst, "inst", f)
+  .axcols(d, x, "x", f, null = TRUE)
+  .axcols(d, fe, "fe", f, n = 1:2)
+  .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
+  if (is.null(clus)) clus <- fe[1L]
+  .axcols(d, clus, "clus", f, n = 1L)
+  level <- .axlevel(level, f)
+  tol <- .cknum(tol, "tol", f, positive = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+  if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+  if (length(inst) < length(endo)) {
+    .ckstop(f, "`inst` must give at least as many instruments as `endo` has columns")
+  }
+  if (length(intersect(c(endo, x), inst))) {
+    .ckstop(f, "a column cannot be both a regressor and an excluded instrument")
+  }
+  yv <- .axmat(d, y, f)[, 1L]
+  if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
+  if (!any(yv > 0)) .ckstop(f, "column `%s` is all 0", y)
+  k <- .axsep(yv, d, fe, f)
+  d <- d[k, , drop = FALSE]
+  yv <- yv[k]
+  off <- NULL
+  if (!is.null(expo)) {
+    e <- .axmat(d, expo, f)[, 1L]
+    if (any(e <= 0)) .ckstop(f, "column `%s` must be positive", expo)
+    off <- log(e)
+  }
+  fx <- .axfe(d, fe)
+  cl <- .axcl(d, clus, f)
+  bm <- .axdraw(cl$n1, nboot, seed)
+  storage.mode(bm) <- "integer"
+  r <- .Call(C_clab_r_ppmlcf, yv, .axmat(d, endo, f), .axmat(d, x, f),
+             .axmat(d, inst, f), off, fx$c1, fx$n1, fx$c2, fx$n2, cl$c1,
+             cl$n1, bm, tol, as.integer(maxit))
+  tm <- c(endo, x, paste0("vhat:", endo))
+  dr <- r$draw
+  colnames(dr) <- tm
+  nfail <- as.integer(r$st[3L])
+  if (nfail > 0L) {
+    warning(f, ": ", nfail, " of ", nboot, " bootstrap draws could not be ",
+            "fitted and are left out.", call. = FALSE)
+  }
+  if (nboot - nfail < 2L) .ckstop(f, "fewer than two bootstrap draws could be fitted")
+  se <- apply(dr, 2L, stats::sd, na.rm = TRUE)
+  tab <- .axtab(tm, r$beta, se, level)
+  tab$rr <- exp(tab$est)
+  structure(
+    list(coef = tab,
+         first = data.frame(endo = endo, fstat = r$fst,
+                            ninst = rep(length(inst), length(endo))),
+         draws = dr, nfail = nfail, n = length(yv), nsep = sum(!k),
+         ncl = cl$g, nboot = nboot, fe = fe, clus = clus, level = level),
+    class = "ppmlcf"
+  )
+}
+
+#' @rdname ppmlcf
+#' @export
+print.ppmlcf <- function(x, ...) {
+  cat("ppmlcf: Poisson control function, ", x[["n"]], " rows, fixed effects ",
+      paste(x[["fe"]], collapse = " and "), "; ", x[["nboot"]],
+      " bootstrap draws of ", x[["ncl"]], " clusters (", x[["clus"]], ")\n",
+      sep = "")
+  print(x[["coef"]], row.names = FALSE, digits = 4)
+  cat("first stage, cluster-robust Wald F of the excluded instruments:\n")
+  print(x[["first"]], row.names = FALSE, digits = 4)
+  invisible(x)
+}
+
+#' @rdname ppmlcf
+#' @export
+summary.ppmlcf <- function(object, ...) object[["coef"]]

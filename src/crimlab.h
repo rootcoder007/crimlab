@@ -1939,6 +1939,57 @@ int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *of
                 const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
                 double tol, double *beta, double *vc, double *st, double *work, int *iwork);
 
+/* ------------------------------------------------------------------------
+ * Exposure and crime (src/apx.cpp): estimators of the effect of a daily
+ * exposure (air pollution, heat, noise) on counts by place and day.
+ * ------------------------------------------------------------------------ */
+
+/* Two-stage least squares with the effects f1 (n1 codes) and f2 (NULL or
+ * n2 codes) absorbed: y (n) on the pe endogenous columns xe (n x pe) and
+ * the px exogenous columns xx (n x px), with the q >= pe excluded
+ * instruments zi (n x q); pe = q = 0 is least squares with the effects.
+ * Every column is demeaned by the effects (pev::within, tol), each
+ * endogenous column is regressed on (zi, xx) (the first stages), and y on
+ * the fitted endogenous columns and xx (the second stage). w: NULL or n
+ * positive weights. cl: NULL (no variance: vc and fst not written) or n
+ * cluster codes (vc may then be NULL for fst alone), cl2 NULL or a second set: vc ((pe + px)^2) is the
+ * cluster sandwich on the second-stage design with the structural
+ * residuals y - xe b - xx c, two-way V1 + V2 - V12, each times G / (G - 1)
+ * of G the smaller number of clusters; fst (pe): each first stage's
+ * cluster-robust Wald statistic of its q excluded instruments, divided by
+ * q (NaN when its covariance is singular). Out: beta (pe + px; the
+ * endogenous first); fres: NULL or n x pe, the first stages' residuals
+ * (demeaned); res: NULL or n, the structural residuals (demeaned); st
+ * (3): G (0 without cl), the sweeps of the transformation, the weighted
+ * residual sum of squares. CLAB_EDOM when a column is absorbed by the
+ * effects or the columns of a stage are collinear (an instrument without
+ * variation within the effects, say). */
+int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int px,
+              const double *zi, int q, int n, const double *w, const int *f1, int n1,
+              const int *f2, int n2, const int *cl, int ncl, const int *cl2, int ncl2,
+              double tol, double *beta, double *vc, double *fst, double *fres, double *res,
+              double *st);
+
+/* The control function for a count (ppmlcf): the first stages of
+ * clab_ivfe (each endogenous column on zi and xx with the effects), then
+ * clab_ppmlfe of y on (xe, xx, the first-stage residuals) with the same
+ * effects and offset off (NULL or n). cl: n cluster codes (ncl >= 2), the
+ * units of the bootstrap and of the first-stage statistics fst (pe). bm:
+ * nb x ncl, column-major by draw (draw d at bm[d ncl ..]): how often each
+ * cluster was drawn, made by the caller (R's generator, so set.seed()
+ * reproduces it); each draw refits both stages on the drawn clusters
+ * weighted by those counts (equal to stacking the copies, each copy with
+ * its own effects when the effect is nested in the cluster), after
+ * clab_fesep on the draw. Out: beta (2 pe + px); draw (nb x (2 pe + px),
+ * column-major by coefficient; NaN for a draw that could not be fitted);
+ * st (3): the full fit's steps and convergence, the draws that failed.
+ * The kernel allocates its arrays. */
+int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int px,
+                const double *zi, int q, int n, const double *off, const int *f1, int n1,
+                const int *f2, int n2, const int *cl, int ncl, const int *bm, int nb,
+                int maxit, double eps, double tol, double *beta, double *fst, double *draw,
+                double *st);
+
 
 /* ------------------------------------------------------------------------
  * Rates by group: ratios and differences, direct and indirect

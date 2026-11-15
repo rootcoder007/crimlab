@@ -56,3 +56,65 @@ test_that("ppmlfe drops a unit of zeros, as fepois does, and nothing else change
   expect_identical(f$nsep, 30L)
   expect_identical(f$n, 450L)
 })
+
+test_that("ivfe equals feols IV: coefficients, clustered errors, first-stage Wald F", {
+  d <- simpan()
+  f <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"))
+  expect_equal(f$coef$est, c(0.53281354358983513, 0.21211428905136548), tolerance = 1e-8)
+  expect_equal(f$coef$se, c(0.04844890651382984, 0.043953255267726352), tolerance = 1e-6)
+  expect_equal(f$first$fstat, 420.99264832346375, tolerance = 1e-6)
+  f2 <- ivfe(d, "yl", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"),
+             clus = c("unit", "day"))
+  expect_equal(f2$coef$se, c(0.070034681564906318, 0.062053418838878639), tolerance = 1e-6)
+  fj <- ivfe(d, "yl", endo = "x", inst = "z1", x = "w", fe = c("unit", "day"))
+  expect_equal(fj$coef$est, c(0.42225638810732974, 0.2386127220186717), tolerance = 1e-8)
+  expect_equal(fj$coef$se, c(0.072590551828609379, 0.044684989103406354), tolerance = 1e-6)
+  expect_output(print(f), "two-stage least squares")
+})
+
+test_that("ivfe without instruments is least squares with the effects (didfe's fit)", {
+  d <- simpan()
+  d$trt <- as.integer(d$unit <= 7 & d$day > 15)
+  a <- ivfe(d, "yl", x = "trt", fe = c("unit", "day"))
+  b <- didfe(d$yl, d$unit, d$day, d$trt)
+  expect_equal(a$coef$est, b$coef$est[1L], tolerance = 1e-10)
+})
+
+test_that("ppmlcf equals the two fixest fits and their cluster bootstrap", {
+  d <- simpan()
+  f <- ppmlcf(d, "y", endo = "x", inst = c("z1", "z2"), x = "w", fe = c("unit", "day"),
+              expo = "pop", nboot = 30, seed = 7)
+  expect_equal(f$coef$est, c(0.21298786456069305, 0.09126882860013609, 0.26288312058292385),
+               tolerance = 1e-8)
+  expect_equal(unname(f$draws[1L, ]),
+               c(0.23993633897694167, 0.08229024562148296, 0.2806087297677553), tolerance = 1e-8)
+  expect_equal(f$coef$se, c(0.03202807019148101, 0.031920108481147909, 0.051975977465311039),
+               tolerance = 1e-6)
+  expect_identical(f$coef$term, c("x", "w", "vhat:x"))
+  expect_identical(f$nfail, 0L)
+  # the seed leaves the generator as it was
+  set.seed(1)
+  u1 <- runif(1)
+  set.seed(1)
+  ppmlcf(d, "y", endo = "x", inst = "z1", fe = c("unit", "day"), nboot = 2, seed = 3)
+  expect_identical(runif(1), u1)
+})
+
+test_that("the refusals: no variation, too few clusters, bad columns", {
+  d <- simpan()
+  d$zc <- 1
+  expect_error(ivfe(d, "yl", endo = "x", inst = "zc", fe = c("unit", "day")),
+               "does not vary within the fixed effects")
+  d$uz <- d$unit
+  expect_error(ppmlfe(d, "y", "uz", fe = c("unit", "day")),
+               "does not vary within the fixed effects")
+  d$one <- 1
+  expect_error(ppmlfe(d, "y", "x", fe = c("unit", "day"), clus = "one"), "one cluster")
+  expect_warning(ppmlfe(d[d$unit <= 5, ], "y", "x", fe = c("unit", "day")),
+                 "fewer than ten clusters")
+  expect_error(ppmlfe(d, "y", "nope", fe = "unit"), "not in `data`")
+  expect_error(ivfe(d, "yl", endo = c("x", "w"), inst = "z1", fe = "unit"),
+               "at least as many instruments")
+  d$y[1] <- -1
+  expect_error(ppmlfe(d, "y", "x", fe = "unit"), "at least 0")
+})
