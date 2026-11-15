@@ -182,6 +182,7 @@ void t_drf(tk &t, int big);
 void t_prim(tk &t, int big);
 void t_hsa(tk &t, int big);
 void t_igh(tk &t, int big);
+void t_svt(tk &t, int big);
 void t_apc(tk &t, int big);
 void t_spc(tk &t, int big);
 void t_lnk(tk &t, int big);
