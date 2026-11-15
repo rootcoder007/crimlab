@@ -161,3 +161,8 @@ test_that("a near-critical fit is warned about", {
   expect_warning(f <- hwkfit(t, 200), "near 1")
   expect_gt(f$branch[["eta"]], 0.99)
 })
+
+test_that("an nmax past its bound is refused before its arrays are made", {
+  expect_error(hwksim(c(log(1), 0.6, 2), 5, nmax = 1e9),
+               "hwksim: `nmax` must be at most 67108864.", fixed = TRUE)
+})

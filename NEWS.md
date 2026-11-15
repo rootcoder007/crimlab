@@ -802,6 +802,11 @@
   indicators; a large window used to abort R. `didfe()` with an `mtch`
   larger than the number of comparison units matches as that many does,
   instead of sizing its tables by `mtch`. The command line does the same.
+* `hwksim()` refuses an `nmax` past 2^26 and `sdbsim()` more than 2^26
+  `steps`, before the arrays they size are made (both used to abort R).
+  `kscan()` compares each simulated maximum as it is drawn instead of
+  keeping all `nsim` of them, so a large `nsim` is only long, and can be
+  interrupted. The command line gives the same messages.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

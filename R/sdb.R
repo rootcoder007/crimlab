@@ -25,7 +25,8 @@
 #' that.
 #'
 #' @param n The side of the grid: one whole number from 3 (at most 2000).
-#' @param steps The number of steps: one whole number from 0.
+#' @param steps The number of steps: one whole number from 0 to 67108864
+#'   (2^26).
 #' @param mode `"agent"` or `"pde"`.
 #' @param a0 The static attractiveness: one positive number.
 #' @param omega The decay rate of `b`: one number from 0 (`omega dt` at

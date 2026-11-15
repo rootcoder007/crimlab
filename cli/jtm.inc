@@ -729,6 +729,7 @@ bool sdbsim(Ctx &c, Val &out) {
   CK(whole(c, c["steps"], "steps", 0, ns));
   CK(pickd(c, "mode", md, 2, 0, mo));
   if (nn > 2000) return c.fail("`n` must be at most 2000.");
+  if (ns > kutil::maxcell) return c.fail("`steps` must be at most %.0f.", kutil::maxcell);
   double par[10] = {0};
   CK(pos1(c, "a0", 1.0 / 30, par[0]));
   CK(num1(c, "omega", 1.0 / 15, 0.0, par[1]));

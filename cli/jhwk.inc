@@ -78,6 +78,7 @@ bool hwksim(Ctx &c, Val &out) {
   CK(parv(c, "par", kd, bd, th));
   int cap = 0;
   CK(wholed(c, "nmax", 1e5, 1, cap));
+  if (cap > kutil::maxcell) return c.fail("`nmax` must be at most %.0f.", kutil::maxcell);
   double w[4], sg = 0;
   const bool sp = c.has("win");
   if (sp) {

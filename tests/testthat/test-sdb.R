@@ -105,3 +105,8 @@ test_that("bad input is refused", {
     list("`k`", 1, 1, 1, 1, 1, 1, k = -1)
   ))
 })
+
+test_that("steps past their bound are refused before the series are made", {
+  expect_error(sdbsim(10, 1e9), "sdbsim: `steps` must be at most 67108864.",
+               fixed = TRUE)
+})

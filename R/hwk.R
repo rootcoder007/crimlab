@@ -190,8 +190,8 @@ print.hwkres <- function(x, ...) {
 #'   number.
 #' @param seed `NULL` to draw the seed from R's generator, or one whole
 #'   number from 0.
-#' @param nmax The most events simulated: one whole number from 1 (more is
-#'   an error).
+#' @param nmax The most events simulated: one whole number from 1 to
+#'   67108864 (2^26; more events than `nmax` are an error).
 #' @return A data frame in time order: `t`, with `x` and `y` in space, and
 #'   `gen`, the generation (0 for a background event).
 #' @references

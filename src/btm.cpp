@@ -332,6 +332,8 @@ SEXP C_clab_r_hwksim(SEXP par, SEXP hor, SEXP kernel, SEXP base, SEXP per, SEXP 
   const int kd = csp::pick(kernel, "kernel", kinds, 3), bd = csp::pick(base, "base", bases, 2);
   std::vector<double> th = parv(par, "par", kd, bd);
   const int cap = clab::whole(nmax, "nmax", 1);
+  // the arrays of nmax values are made before the simulation
+  if (cap > kutil::maxcell) fail("`nmax` must be at most %.0f.", kutil::maxcell);
   double w[4], sg = 0;
   const bool sp = !Rf_isNull(win);
   if (sp) {
@@ -907,6 +909,8 @@ SEXP C_clab_r_sdbsim(SEXP n, SEXP steps, SEXP mode, SEXP a0, SEXP omega, SEXP et
   const int nn = clab::whole(n, "n", 3), ns = clab::whole(steps, "steps", 0);
   const int mo = csp::pick(mode, "mode", md, 2);
   if (nn > 2000) fail("`n` must be at most 2000.");
+  // the burglaries and mean attractiveness of every step are kept
+  if (ns > kutil::maxcell) fail("`steps` must be at most %.0f.", kutil::maxcell);
   const double par[10] = {pos1(a0, "a0"),
                           REAL(clab::num(omega, "omega", 1, 0.0))[0],
                           clab::p01(eta, "eta"),
@@ -1019,8 +1023,6 @@ void pse(prot &p, const std::vector<std::string> &nm, const double *th, const do
   SET_VECTOR_ELT(dn, 1, strs(p, nm));
   Rf_setAttrib(*cv, R_DimNamesSymbol, dn);
 }
-
-const char *const nofit = "the fit failed: the likelihood is not finite at the start.";
 
 }  // namespace
 
