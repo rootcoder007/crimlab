@@ -102,3 +102,11 @@ test_that("a Monte Carlo test leaves no seed where there was none", {
   drfthomog(c(a = 3, b = 1, c = 2), c(a = 1, b = 4, c = 1))
   expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
 })
+
+test_that("drftpsi() rounds to 12 digits at any scale", {
+  # the bins depend on the order of the values only, and the rounding to
+  # 12 significant digits keeps it far above 1 and far below it
+  expect_equal(v(drftpsi(x * 1e12, y * 1e12)), v(drftpsi(x, y)), tolerance = t)
+  expect_equal(v(drftpsi(x * 1e-300, y * 1e-300)), v(drftpsi(x, y)),
+               tolerance = t)
+})
