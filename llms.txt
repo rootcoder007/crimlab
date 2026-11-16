@@ -986,6 +986,8 @@ model and log-ratio transforms of element shares.
   : Bayesian preservation model
 - [`clrilr()`](https://rootcoder007.github.io/crimlab/reference/clrilr.md)
   : Log-ratio transforms of compositions
+- [`dirsim()`](https://rootcoder007.github.io/crimlab/reference/dirsim.md)
+  : Simulated compositions from a Dirichlet distribution
 
 ## Policing
 

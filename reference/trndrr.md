@@ -16,7 +16,10 @@ the observed values up to 8 periods (ties kept) and normal with the tie
 and continuity corrections beyond. Negating the series negates S, so
 rises and falls are treated alike (`proof("trndrr")`). `yoy` holds the
 change on the period before, and with `seas` the totals by season are
-tested for equality (chi-square).
+tested for equality (chi-square). Given the counts of one cycle with
+each season once (incidents by month of the year, by day of the week or
+by hour of the day), that test is the one that the counts are spread
+evenly over the cycle, as `chisq.test(y)`.
 
 ## Usage
 

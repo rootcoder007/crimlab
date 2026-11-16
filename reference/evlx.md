@@ -8,7 +8,15 @@ estimate; and that of the confidence limit nearer the null.
 ## Usage
 
 ``` r
-evlx(est, lo = NULL, hi = NULL, type = "rr", rare = FALSE, sd = NULL)
+evlx(
+  est,
+  lo = NULL,
+  hi = NULL,
+  type = "rr",
+  rare = FALSE,
+  sd = NULL,
+  true = NULL
+)
 ```
 
 ## Arguments
@@ -34,6 +42,12 @@ evlx(est, lo = NULL, hi = NULL, type = "rr", rare = FALSE, sd = NULL)
 
   `NULL` or the standard error of a standardised difference.
 
+- true:
+
+  `NULL` for the null (a ratio of 1, a difference of 0), or the true
+  value to set the estimate against: one positive ratio, or one
+  standardised difference.
+
 ## Value
 
 A named numeric vector: `rr` (the estimate as a risk ratio), `evalue`
@@ -50,6 +64,11 @@ difference `d` is taken to `exp(0.91 d)`, its limits to
 `exp(0.91 d -+ 1.78 sd)` from its standard error `sd`. The limit's
 E-value is 1 when the interval holds the null. These are the conversions
 of the 'EValue' package.
+
+Against a true value other than the null (`true`, on the scale of `est`
+and converted as it is), the estimate and its limits are divided by it
+first: the strength a confounder would need to move the estimate to
+`true`, as the `true` argument of the 'EValue' package.
 
 ## References
 
@@ -70,4 +89,8 @@ evlx(0.8, 0.71, 0.91, type = "hr")
 evlx(0.5, type = "smd", sd = 0.1)
 #>       rr   evalue    evlim 
 #> 1.576173 2.529142 1.968037 
+# how strong a confounder must be to move a ratio of 3.9 down to 2
+evlx(3.9, 1.8, 8.7, true = 2)
+#>       rr   evalue    evlim 
+#> 3.900000 3.311066 1.000000 
 ```

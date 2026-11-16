@@ -51,6 +51,14 @@ prior in it, `flo`, `fhi` the funnel limits, `out` `TRUE` outside them);
 `prior`, the prior's mean and variance (a variance of 0 when the ratios
 vary no more than chance, and then every `eb` is the mean); and `level`.
 
+## Details
+
+Expected counts found elsewhere (from another standard or an earlier
+period) are taken as they are with one stratum and a rate of 1:
+`sirex(obs, expd, rep(1, length(obs)), area, rates = 1)` gives each
+area's ratio, its exact interval, the funnel limits at its expected
+count and the shrunk ratio.
+
 ## References
 
 Marshall, R. J. (1991). Mapping disease and mortality rates using

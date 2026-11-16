@@ -87,6 +87,11 @@ the log-normal intervals are `NA`: no continuity correction is made.
 events, as in a comparison of who is placed in segregation with who is
 in custody.
 
+The change in a rate from one period to the next is a comparison of two
+groups: give the periods as `grp` and the earlier one as `ref`, and
+`ratio` is the later rate over the earlier, `100 (ratio - 1)` the
+percent change, with the exact interval conditional on the two counts.
+
 ## References
 
 Katz, D., Baptista, J., Azen, S. P. and Pike, M. C. (1978). Obtaining

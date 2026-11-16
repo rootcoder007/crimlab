@@ -15,7 +15,10 @@ periods (ties kept) and normal with the tie and continuity corrections
 beyond. Negating the series negates S, so rises and falls are treated
 alike (proof(&quot;trndrr&quot;)). yoy holds the change on the period before,
 and with seas the
-totals by season are tested for equality (chi-square)."><meta property="og:description" content="Measures the trend in a short series of counts (admissions, incidents
+totals by season are tested for equality (chi-square). Given the counts
+of one cycle with each season once (incidents by month of the year, by
+day of the week or by hour of the day), that test is the one that the
+counts are spread evenly over the cycle, as chisq.test(y)."><meta property="og:description" content="Measures the trend in a short series of counts (admissions, incidents
 or placements per year) three ways. The Poisson log-linear model
 \(\log \mu_t = b_0 + b_1 (x_t - \bar x) + \log e_t\) gives the rate
 ratio per unit of x, exp(b1) (0.85: a fall of 15% a period), with
@@ -31,7 +34,10 @@ periods (ties kept) and normal with the tie and continuity corrections
 beyond. Negating the series negates S, so rises and falls are treated
 alike (proof(&quot;trndrr&quot;)). yoy holds the change on the period before,
 and with seas the
-totals by season are tested for equality (chi-square)."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
+totals by season are tested for equality (chi-square). Given the counts
+of one cycle with each season once (incidents by month of the year, by
+day of the week or by hour of the day), that test is the one that the
+counts are spread evenly over the cycle, as chisq.test(y)."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -82,7 +88,10 @@ periods (ties kept) and normal with the tie and continuity corrections
 beyond. Negating the series negates S, so rises and falls are treated
 alike (<code>proof("trndrr")</code>). <code>yoy</code> holds the change on the period before,
 and with <code>seas</code> the
-totals by season are tested for equality (chi-square).</p>
+totals by season are tested for equality (chi-square). Given the counts
+of one cycle with each season once (incidents by month of the year, by
+day of the week or by hour of the day), that test is the one that the
+counts are spread evenly over the cycle, as <code>chisq.test(y)</code>.</p>
     </div>
 
     <div class="section level2">

@@ -32,6 +32,21 @@
   2026. and Rahman et al. (2023), with the arguments that reproduce
         each.
 
+- New:
+  [`dirsim()`](https://rootcoder007.github.io/crimlab/reference/dirsim.md)
+  draws compositions from a Dirichlet distribution (a gamma variate per
+  part over its row sum), from R’s generator, so that
+  [`set.seed()`](https://rdrr.io/r/base/Random.html) and
+  [`rgamma()`](https://rdrr.io/r/stats/GammaDist.html) give the same
+  draws; for testing a compositional analysis such as
+  [`clrilr()`](https://rootcoder007.github.io/crimlab/reference/clrilr.md)
+  before real measurements exist.
+
+- New:
+  [`evlx()`](https://rootcoder007.github.io/crimlab/reference/evlx.md)
+  takes `true`, a true value other than the null to set the estimate
+  against, as the argument of that name in the ‘EValue’ package.
+
 - Fixed: the second sweep found 25 more functions
   ([`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md),
   [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md),

@@ -98,6 +98,14 @@ variance of 0 when the ratios vary no more than chance, and then every
 <code>eb</code> is the mean); and <code>level</code>.</p>
     </div>
     <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Expected counts found elsewhere (from another standard or an earlier
+period) are taken as they are with one stratum and a rate of 1:
+<code>sirex(obs, expd, rep(1, length(obs)), area, rates = 1)</code> gives each
+area's ratio, its exact interval, the funnel limits at its expected count
+and the shrunk ratio.</p>
+    </div>
+    <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Marshall, R. J. (1991). Mapping disease and mortality rates using
 empirical Bayes estimators. <em>Journal of the Royal Statistical Society,

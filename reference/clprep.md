@@ -6,7 +6,11 @@ use-of-force file) feed the arguments of one of crimlab's generic
 functions, so that `generic(clprep(data, preset))` gives the published
 analysis while the same generic runs on anyone's data given as plain
 vectors. A preset describes a layout and ships no data: the user
-supplies the table.
+supplies the table. The columns a preset reads, as `clprep()` lists
+them, are the layout a table needs (what a zero-row template would
+hold);
+[`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
+checks a table against them.
 
 ## Usage
 
