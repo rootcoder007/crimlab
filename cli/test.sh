@@ -55,7 +55,9 @@ while IFS="$tab" read -r f j w; do
   esac
   case $w in
   '!'*) # a refusal: the message R gives, on standard error
-    got=$(printf '%s' "$j" | "$c" "$f" -j -f - 2>&1 >/dev/null)
+    # a refusal of several lines: its line breaks are \n in the case
+    got=$(printf '%s' "$j" | "$c" "$f" -j -f - 2>&1 >/dev/null |
+      awk 'NR > 1 { printf "\\n" } { printf "%s", $0 }')
     eq "$f $j" "$got" "${w#!}"
     ;;
   *) ck "$f $j" "$(printf '%s' "$j" | "$c" "$f" -j -f -)" "$w" "$f" ;;

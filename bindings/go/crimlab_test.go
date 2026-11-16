@@ -77,8 +77,10 @@ func TestTable(t *testing.T) {
 		}
 		got, err := Jrun(p[0], p[1])
 		if strings.HasPrefix(p[2], "!") {
-			if err == nil || err.Error() != p[2][1:] {
-				t.Errorf("%s %s: want the refusal %q, got %v", p[0], p[1], p[2][1:], err)
+			// a refusal of several lines has its line breaks as \n in the case
+			w := strings.ReplaceAll(p[2][1:], `\n`, "\n")
+			if err == nil || err.Error() != w {
+				t.Errorf("%s %s: want the refusal %q, got %v", p[0], p[1], w, err)
 			}
 		} else if err != nil {
 			t.Errorf("%s %s: %v", p[0], p[1], err)

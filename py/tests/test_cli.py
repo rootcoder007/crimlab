@@ -80,7 +80,8 @@ def test_result_matches_r(f, a, w):
 def test_error_matches_r(f, a, w):
     with pytest.raises((ValueError, TypeError)) as e:
         getattr(crimlab, f)(**kw(a))
-    assert str(e.value) == w[1:]
+    # a refusal of several lines has its line breaks as \\n in the case
+    assert str(e.value) == w[1:].replace("\\n", "\n")
 
 
 def test_every_function_of_the_package_has_cases():

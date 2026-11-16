@@ -119,7 +119,10 @@ bad <- function(.f, ...) {
     NULL
   }, error = conditionMessage)
   if (is.null(m)) stop("no error from ", .f, call. = FALSE)
-  add(.f, args, paste0("!", m))
+  # a message of several lines stays on the one line of its case: each
+  # line break is written as the two characters \n, which the tests turn
+  # back
+  add(.f, args, paste0("!", gsub("\n", "\\n", m, fixed = TRUE)))
 }
 
 # Fairness and the audits of risk tools

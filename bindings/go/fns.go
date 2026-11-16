@@ -1375,7 +1375,7 @@ func Plotvln(args string) (string, error) { return Jrun("plotvln", args) }
 // Hwpwr runs hwpwr() of the R package (arguments: dt? since? step? rated? pid? skip? paths?; ? marks an optional one).
 func Hwpwr(args string) (string, error) { return Jrun("hwpwr", args) }
 
-// Co2fp runs co2fp() of the R package (arguments: durs cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?; ? marks an optional one).
+// Co2fp runs co2fp() of the R package (arguments: durs? cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?; ? marks an optional one).
 func Co2fp(args string) (string, error) { return Jrun("co2fp", args) }
 
 // Plothex runs plothex() of the R package (arguments: x y bins?; ? marks an optional one).

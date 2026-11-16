@@ -23,7 +23,9 @@ test('every case of cli/test.tsv, as the R package gives it', () => {
     const [f, a, want] = r.split('\t');
     const [rel, abs] = tol[f] ?? [1e-12, 0];
     if (want.startsWith('!')) {
-      assert.throws(() => jrun(f, a), { message: want.slice(1) }, `${f} ${a}`);
+      // a refusal of several lines has its line breaks as \\n in the case
+      const msg = want.slice(1).replaceAll('\\n', '\n');
+      assert.throws(() => jrun(f, a), { message: msg }, `${f} ${a}`);
       continue;
     }
     const got = jrun(f, a);

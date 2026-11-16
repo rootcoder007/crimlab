@@ -2104,7 +2104,7 @@ const Ent ents[] = {
     {"plotrdg", "x grp? bw?", plotrdg},
     {"plotvln", "x grp? bw?", plotvln},
     {"hwpwr", "dt? since? step? rated? pid? skip? paths?", hwpwr},
-    {"co2fp", "durs cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?", co2fp},
+    {"co2fp", "durs? cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?", co2fp},
     {"plothex", "x y bins?", plothex},
     {"plotevgrid", "x", plotevgrid},
     {"plotopt", "palette? grid? cex? las? bg? panel?", plotopt},
