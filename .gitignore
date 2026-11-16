@@ -4,3 +4,4 @@ src/*.so
 *.Rcheck
 inst/lean/.lake
 inst/lean/build.log
+Rplots.pdf

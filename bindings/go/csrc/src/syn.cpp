@@ -28,8 +28,17 @@ bool affine(const std::vector<double> &g, int k, const std::vector<int> &s, std:
   const int n = static_cast<int>(s.size()) + 1;
   std::vector<double> m(z(n) * z(n + 1), 0.0);
   auto at = [&](int r, int c) -> double & { return m[z(r) * z(n + 1) + z(c)]; };
+  // the Gram block scaled by a power of 2 (exactly) to a largest entry
+  // near 1, next to the border of ones: the pivots are then judged in the
+  // same way whatever the units of the outcome; the minimiser does not
+  // change with that scale
+  double gb = 0.0;
   for (int r = 0; r < n - 1; ++r) {
-    for (int c = 0; c < n - 1; ++c) at(r, c) = g[z(s[z(r)]) * z(k) + z(s[z(c)])];
+    for (int c = 0; c < n - 1; ++c) gb = std::fmax(gb, std::fabs(g[z(s[z(r)]) * z(k) + z(s[z(c)])]));
+  }
+  const int ge = gb > 0 && std::isfinite(gb) ? -std::ilogb(gb) : 0;
+  for (int r = 0; r < n - 1; ++r) {
+    for (int c = 0; c < n - 1; ++c) at(r, c) = std::ldexp(g[z(s[z(r)]) * z(k) + z(s[z(c)])], ge);
     at(r, n - 1) = 1.0;
     at(n - 1, r) = 1.0;
   }

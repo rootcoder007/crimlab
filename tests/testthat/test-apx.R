@@ -1463,6 +1463,8 @@ test_that("ppmlcf(family = \"nb\") is the negative binomial control function", {
   expect_error(ppmlcf(d, "hom", "lead", "dist", fe = "yr", family = "nb",
                       how = "plug"),
                "ppmlcf: `family = \"nb\"` needs `how = \"cf\"`.", fixed = TRUE)
+})
+
 test_that("columns of very different scale are not taken for collinear", {
   # a share next to money: the rank check judges each column against its
   # own size; glm() and lm() with the indicators are the reference

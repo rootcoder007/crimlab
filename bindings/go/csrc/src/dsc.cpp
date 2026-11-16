@@ -215,6 +215,36 @@ void makepd(vector<double> &s, int p, double ridge) {
   }
 }
 
+// makepd() on the scale of a correlation: the floor is judged and applied
+// there, so that a column in small units is not floored for being small
+// next to one in large units. s is symmetrised as makepd() does.
+void makepdc(vector<double> &s, int p, double ridge) {
+  const size_t P = static_cast<size_t>(p);
+  vector<double> d(P);
+  for (size_t i = 0; i < P; ++i) d[i] = std::sqrt(s[i * P + i]);
+  for (size_t i = 0; i < P; ++i) {
+    if (!(d[i] > 0) || !std::isfinite(d[i])) {
+      makepd(s, p, ridge);
+      return;
+    }
+  }
+  for (size_t i = 0; i < P; ++i) {
+    for (size_t j = i + 1; j < P; ++j) s[j * P + i] = s[i * P + j] = (s[j * P + i] + s[i * P + j]) / 2;
+  }
+  vector<double> c(P * P), v, e;
+  for (size_t j = 0; j < P; ++j) {
+    for (size_t i = 0; i < P; ++i) c[j * P + i] = s[j * P + i] / (d[i] * d[j]);
+  }
+  jacobi(c, p, v, e);
+  double mx = 0;
+  for (double x : v) mx = std::max(mx, std::fabs(x));
+  if (v.back() >= ridge * std::max(1.0, mx)) return;
+  makepd(c, p, ridge);
+  for (size_t j = 0; j < P; ++j) {
+    for (size_t i = 0; i < P; ++i) s[j * P + i] = c[j * P + i] * d[i] * d[j];
+  }
+}
+
 // solve(a): the inverse by LU with partial pivoting; false when singular
 // (a zero pivot, or a reciprocal condition below the machine epsilon).
 bool inv(const vector<double> &a0, int p, vector<double> &av) {
@@ -349,13 +379,16 @@ int clab_hbin(const double *x, int n, int bins, int *cnt) CLAB_TRY {
     hi = std::max(hi, x[i]);
   }
   if (n == 0 || !(lo < hi)) return CLAB_EDOM;
-  // seq(lo, hi, length.out = bins + 1) as seq.default() builds it
+  // seq(lo, hi, length.out = bins + 1) as seq.default() builds it; where
+  // hi - lo overflows (finite values more than the largest double apart),
+  // the breaks are built from halves, which stay finite
   const int nb = bins + 1;
+  const bool big = !std::isfinite(hi - lo);
   vector<double> br(static_cast<size_t>(nb));
   br[0] = lo;
   br[static_cast<size_t>(bins)] = hi;
-  const double by = (hi - lo) / bins;
-  for (int i = 1; i < bins; ++i) br[static_cast<size_t>(i)] = lo + i * by;
+  const double by = (hi - lo) / bins, hb = hi / (2.0 * bins) - lo / (2.0 * bins);
+  for (int i = 1; i < bins; ++i) br[static_cast<size_t>(i)] = big ? 2 * (lo / 2 + i * hb) : lo + i * by;
   // hist(): the breaks moved by 1e-7 of the median width (of the range
   // when there are three breaks or fewer, of the smallest positive width
   // when four or five), the first one down
@@ -375,7 +408,8 @@ int clab_hbin(const double *x, int n, int bins, int *cnt) CLAB_TRY {
       if (v > 0) dd = std::min(dd, v);
     }
   }
-  const double di = 1e-7 * dd;
+  // (the range itself overflows: 1e-7 of it from its half)
+  const double di = big && nb <= 3 ? 2e-7 * (hi / 2 - lo / 2) : 1e-7 * dd;
   vector<double> fb(br);
   fb[0] -= di;
   for (int i = 1; i < nb; ++i) fb[static_cast<size_t>(i)] += di;
@@ -599,6 +633,23 @@ int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out,
     if (!std::isfinite(v)) v = 0;
   }
   out[0] = 1;
+  // the rank check on the scale of a correlation, so that it does not
+  // depend on the units; a column whose variance is only the rounding of
+  // its values (sd at most 1e-12 of its largest size) is constant
+  {
+    vector<double> d(P);
+    for (size_t j = 0; j < P; ++j) {
+      double big = 0;
+      for (size_t i = 0; i < N; ++i) {
+        if (!std::isnan(X(i, j))) big = std::max(big, std::fabs(X(i, j)));
+      }
+      d[j] = std::sqrt(s0[j * P + j]);
+      if (!(d[j] > 1e-12 * big)) return CLAB_EDOM;
+    }
+    for (size_t j = 0; j < P; ++j) {
+      for (size_t i = 0; i < P; ++i) s0[j * P + i] /= d[i] * d[j];
+    }
+  }
   if (lowrank(s0, p)) return CLAB_EDOM;
   out[0] = 2;
   // EM: start at the pairwise moments
@@ -619,7 +670,7 @@ int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out,
     if (!(std::isfinite(d) && d > 0)) d = 1;
   }
   const double ridge = 1e-8;
-  makepd(s, p, ridge);
+  makepdc(s, p, ridge);
   int it = 0;
   vector<double> t1(P), t2(P * P), xi(P), ci(P * P);
   for (int k = 1; k <= maxit; ++k) {
@@ -684,7 +735,7 @@ int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out,
     for (size_t a = 0; a < P; ++a) {
       for (size_t b = 0; b < P; ++b) sn[b * P + a] = t2[b * P + a] / n - mn[a] * mn[b];
     }
-    makepd(sn, p, ridge);
+    makepdc(sn, p, ridge);
     double del = 0;
     for (size_t a = 0; a < P; ++a) del = std::max(del, std::fabs(mn[a] - m[a]));
     for (size_t a = 0; a < P * P; ++a) del = std::max(del, std::fabs(sn[a] - s[a]));

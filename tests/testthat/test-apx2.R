@@ -86,7 +86,9 @@ test_that("ccross is Poisson with place-year-month-weekday strata", {
   expect_equal(r$coef$se, h$coef$se, tolerance = 1e-10)
   m <- ccross(d, "crimes", "area", "day", ma = "pm", x = "pm")
   expect_identical(m$n, nrow(d) - 4L)
-  expect_error(ccross(transform(d, day = 1), "crimes", "area", "day"),
+  # numbers are days since 1970-01-01; text that is no ISO date is refused
+  expect_error(ccross(transform(d, day = "soon"), "crimes", "area", "day",
+                      x = "pm"),
                "must hold dates")
 })
 

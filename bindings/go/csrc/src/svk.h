@@ -121,6 +121,8 @@ bool run(const char *name, const Node &a, Node &out, std::string &err);
 
 // Argument readers: false with err set ("`nm` must be ...").
 bool getm(const Node &a, const char *nm, Mat &m, std::string &err, bool na = false, bool opt = false);
+// A matrix of votes: 1 (yea), 0 (nay) or NA, with at least one vote.
+bool getvt(const Node &a, const char *nm, Mat &m, std::string &err);
 bool getv(const Node &a, const char *nm, std::vector<double> &v, std::string &err, bool na = false,
           bool opt = false);
 bool getd(const Node &a, const char *nm, double &x, std::string &err, double lo, double hi);

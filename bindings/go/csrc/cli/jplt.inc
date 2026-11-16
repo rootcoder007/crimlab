@@ -115,7 +115,7 @@ inline double med(const std::vector<double> &x) {
   for (double e : x) {
     if (!std::isnan(e)) v.push_back(e);
   }
-  return v.empty() ? NA : clab_med(v.data(), static_cast<int>(v.size()));
+  return ax::amed(v);
 }
 // .pcc(): cconc(x, nsim = 0) of a share of a total.
 inline bool pcc(Ctx &c, const Val &x, Val &r) {

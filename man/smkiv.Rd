@@ -38,8 +38,7 @@ neighbouring place (a value of \code{unit}).}
 
 \item{seas}{\code{NULL} (meteorological seasons of a date \code{day}: dates, or
 ISO date text such as \code{"2024-06-01"}; a \code{day} of numbers has no
-seasons) or the name
-of a season column.}
+seasons) or the name of a season column.}
 
 \item{dens}{\code{NULL} or the name of a density-class column (\code{NA} or \code{""}
 for no plume).}

@@ -320,13 +320,16 @@ bool lsq(const Mat &x0, const std::vector<double> &y0, std::vector<double> &b) {
   if (m < n) return false;
   Mat a = x0;
   std::vector<double> y = y0;
-  double big = 0;
-  for (double e : a.v) big = std::max(big, std::fabs(e));
+  // what is left of a column after those before it, against its own norm
+  std::vector<double> on(static_cast<std::size_t>(n), 0.0);
+  for (int k = 0; k < n; ++k) {
+    for (int i = 0; i < m; ++i) on[static_cast<std::size_t>(k)] += a(i, k) * a(i, k);
+  }
   for (int k = 0; k < n; ++k) {
     double nr = 0;
     for (int i = k; i < m; ++i) nr += a(i, k) * a(i, k);
     nr = std::sqrt(nr);
-    if (!(nr > 1e-7 * big)) return false;
+    if (!(nr > 1e-7 * std::sqrt(on[static_cast<std::size_t>(k)]))) return false;
     const double al = a(k, k) > 0 ? -nr : nr;
     std::vector<double> v(static_cast<std::size_t>(m - k));
     for (int i = k; i < m; ++i) v[static_cast<std::size_t>(i - k)] = a(i, k);
@@ -702,6 +705,24 @@ bool getm(const Node &a, const char *nm, Mat &m, std::string &err, bool na, bool
                : msg("`%s` must hold finite numbers with no missing values.", nm);
       return false;
     }
+  }
+  return true;
+}
+
+bool getvt(const Node &a, const char *nm, Mat &m, std::string &err) {
+  if (!getm(a, nm, m, err, true)) return false;
+  bool any = false;
+  for (double x : m.v) {
+    if (std::isnan(x)) continue;
+    if (x != 0 && x != 1) {
+      err = msg("`%s` must hold 1 (yea), 0 (nay) or NA (missing).", nm);
+      return false;
+    }
+    any = true;
+  }
+  if (!any) {
+    err = msg("`%s` must hold at least one vote, 1 (yea) or 0 (nay), not only NA (missing).", nm);
+    return false;
   }
   return true;
 }

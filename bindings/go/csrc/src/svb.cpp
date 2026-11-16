@@ -848,7 +848,7 @@ bool k_cjrirt(const Node &a, Node &out, std::string &err) {
   int D, S, B;
   double bv, seed;
   bool kc;
-  if (!getm(a, "votes", Y, err, true) || !geti(a, "ndim", D, err, 1) || !geti(a, "nsamp", S, err, 1) ||
+  if (!getvt(a, "votes", Y, err) || !geti(a, "ndim", D, err, 1) || !geti(a, "nsamp", S, err, 1) ||
       !geti(a, "burn", B, err, 0) || !getd(a, "bvar", bv, err, 1e-300, HUGE_VAL) ||
       !getd(a, "seed", seed, err, 0, 9007199254740992.0) || !getb(a, "chains", kc, err)) {
     return false;

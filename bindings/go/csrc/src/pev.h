@@ -33,9 +33,16 @@ int withink(double *v, int n, int k, const int *f1, int n1, const int *f2, int n
             const int *nx, int mx, const double *w, double tol, int maxit, double *work);
 
 // In place: the lower Cholesky factor of the p x p matrix a. false when a
-// pivot is not above 1e-12 times the largest diagonal element (a is then
-// singular to working precision).
+// pivot is not above 1e-12 times its own diagonal element (a column is
+// then a combination of those before it to working precision, whatever
+// the units of the columns).
 bool chol(double *a, int p);
+
+// false when a column of v (n x k, the columns of x after the within
+// transformation) keeps only rounding: its sum of squares at most 1e-16
+// times that of the column of x. The effects absorb such a column, which
+// chol() cannot see, as it judges each column against its own size.
+bool kept(const double *x, const double *v, int n, int k);
 
 // From the factor l (chol()): the inverse of l l' into ai (p x p).
 void cinv(const double *l, int p, double *ai);

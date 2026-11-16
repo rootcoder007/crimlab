@@ -138,8 +138,18 @@ bool jacobi(double *a, int p, double *ev, double *vec) {
 // definite p x p matrix s into o; false when it is not positive definite.
 bool spow(const double *s, int p, double e, double *o) {
   const size_t sp = static_cast<size_t>(p);
-  std::vector<double> a(s, s + sp * sp), ev(sp), vec(sp * sp);
+  // positive definite on the scale of a correlation, so that columns in
+  // different units are not taken for collinear ones
+  std::vector<double> a(sp * sp), ev(sp), vec(sp * sp);
+  for (size_t j = 0; j < sp; ++j) {
+    if (!(s[j * sp + j] > 0)) return false;
+  }
+  for (size_t j = 0; j < sp; ++j) {
+    for (size_t i = 0; i < sp; ++i) a[j * sp + i] = s[j * sp + i] / std::sqrt(s[i * sp + i] * s[j * sp + j]);
+  }
   if (!jacobi(a.data(), p, ev.data(), vec.data()) || !(ev[0] > 1e-12 * ev[sp - 1])) return false;
+  a.assign(s, s + sp * sp);
+  if (!jacobi(a.data(), p, ev.data(), vec.data()) || !(ev[0] > 0)) return false;
   for (size_t j = 0; j < sp; ++j) {
     for (size_t i = 0; i < sp; ++i) {
       double t = 0.0;
@@ -859,6 +869,11 @@ int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int 
   std::vector<double> wk(4 * static_cast<size_t>(ngrp(n1, n2, nx, mx)));
   if (demean(v.data(), n, k, f1, n1, f2, n2, nullptr, tol, wk.data(), fx, nx, mx) < 0) {
     return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
+  }
+  // a column the effects absorb keeps only rounding
+  if (!pev::kept(xe, v.data() + sn, n, pe) || !pev::kept(xx, v.data() + sn * (1 + pe), n, px) ||
+      !pev::kept(zi, v.data() + sn * (1 + pe + px), n, q)) {
+    return CLAB_EDOM;
   }
   // X = (xe, xx) and Z = (zi, xx), demeaned
   std::vector<double> xm(sz(n, p)), zm(sz(n, m));

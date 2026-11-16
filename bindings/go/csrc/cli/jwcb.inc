@@ -103,6 +103,7 @@ bool wcbx(Ctx &c, Val &out) {
       std::vector<double> wk(2 * zz(pn.nu + pn.nt));
       pev::within(w.x.data(), n, p, pn.u.data(), pn.nu, pn.t.data(), pn.nt, 1, nullptr, 1e-12, 10000, wk.data());
       pev::within(w.y.data(), n, 1, pn.u.data(), pn.nu, pn.t.data(), pn.nt, 1, nullptr, 1e-12, 10000, wk.data());
+      if (!pev::kept(xa.data(), w.x.data(), n, p)) return c.fail("%s", absorbed);
       auto nested = [&](const std::vector<int> &f, int nf) {
         std::vector<int> seen(zz(nf), -1);
         for (std::size_t i = 0; i < zz(n); ++i) {

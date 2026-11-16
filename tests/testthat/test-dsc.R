@@ -521,10 +521,14 @@ test_that("Little's test without complete rows matches the reference", {
                   z = c(rep(NA, 10), v, -w, rnorm(6)))
   expect_lt(min(eigen(stats::cov(q, use = "pairwise"))$values), 0)
   r <- mcartst(q)
-  expect_equal(unname(unlist(r[1:8])),
+  # the start is floored on the scale of the correlations, the reference's
+  # on that of the covariances: one optimum, reached to the tolerance of
+  # the EM steps, in a step more or less (the reference took 96)
+  expect_equal(unname(unlist(r[1:7])),
                c(3.64923455237147, 6, -0.322935774282878, 0.724020353601097,
-                 4, 36, 3, 96),
-               tolerance = 1e-10)
+                 4, 36, 3),
+               tolerance = 1e-7)
+  expect_lte(abs(r[[8]] - 96), 3)
 })
 
 test_that("near-collinear distances use the floored covariance", {

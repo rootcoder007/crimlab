@@ -50,6 +50,32 @@ inline const char *ccls(const Val &a) {
   return num ? "numeric" : "logical";
 }
 inline bool isnumc(const Val &a) { return std::strcmp(ccls(a), "numeric") == 0; }
+// The days from 1970-01-01 of ISO dates (YYYY-MM-DD, every value), as
+// as.Date() reads them; false when a value is not one.
+inline bool isoday(const Val &a, std::vector<double> &t) {
+  t.clear();
+  for (const Val &e : a.a) {
+    const std::string &s = e.s;
+    if (e.t != Val::STR || s.size() != 10 || s[4] != '-' || s[7] != '-') return false;
+    long f[3] = {0, 0, 0};
+    const int at[3] = {0, 5, 8}, len[3] = {4, 2, 2};
+    for (int p = 0; p < 3; ++p) {
+      for (int q = at[p]; q < at[p] + len[p]; ++q) {
+        if (s[zz(q)] < '0' || s[zz(q)] > '9') return false;
+        f[p] = f[p] * 10 + (s[zz(q)] - '0');
+      }
+    }
+    const long y = f[0], m = f[1], dd = f[2];
+    const bool leap = y % 4 == 0 && (y % 100 != 0 || y % 400 == 0);
+    static const int dm[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (m < 1 || m > 12 || dd < 1 || dd > dm[m - 1] + (m == 2 && leap ? 1 : 0)) return false;
+    // H. Hinnant's days_from_civil
+    const long yy = m <= 2 ? y - 1 : y, era = (yy >= 0 ? yy : yy - 399) / 400, yoe = yy - era * 400;
+    const long doy = (153 * (m > 2 ? m - 3 : m + 9) + 2) / 5 + dd - 1;
+    t.push_back(static_cast<double>(era * 146097 + yoe * 365 + yoe / 4 - yoe / 100 + doy - 719468));
+  }
+  return !a.a.empty();
+}
 // is.numeric() of an argument: numbers and nulls, not all null.
 inline bool numv(const Val &o) {
   if (!isnum(o)) return false;
@@ -223,6 +249,19 @@ inline void setc(Val &d, const std::string &nm, Val v) {
     }
   }
   put(d, nm.c_str(), std::move(v));
+}
+// .axdate(): a day column of ISO dates becomes day numbers (date set);
+// one of numbers stays as it is (date unset); text that is not ISO dates
+// is refused.
+inline bool aday(Ctx &c, Val &d, const std::string &nm, bool &date) {
+  date = false;
+  const Val *a = fc(d, nm);
+  if (a == nullptr || std::strcmp(ccls(*a), "character") != 0) return true;
+  std::vector<double> t;
+  if (!isoday(*a, t)) return ckstop(c, "column `%s` must hold dates: ISO text YYYY-MM-DD", nm.c_str());
+  setc(d, nm, vnums(t));
+  date = true;
+  return true;
 }
 // d[r, , drop = FALSE]
 inline Val rows(const Val &d, const Ix &r) {
@@ -1162,6 +1201,10 @@ bool ppmlfe(Ctx &c, Val &out) {
   CK(acol(c, d, "fe", {}, false, fe));
   CK(acol(c, d, "expo", {1}, true, expo));
   Nm cn = nms(c, {"clus"});
+  if (cn.null && se == 1 && fe.size() != 2) {
+    return ckstop(c, "`se = \"twoway\"` without `clus` clusters by the two fixed effects, and `fe` has %d: give two "
+                  "`clus` columns", static_cast<int>(fe.size()));
+  }
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
   if (se == 0 && clus.size() == 2) se = 1;
@@ -1296,6 +1339,10 @@ bool ivfe(Ctx &c, Val &out) {
   CK(acol(c, d, "x", {}, true, x));
   CK(acol(c, d, "fe", {}, false, fe));
   Nm cn = nms(c, {"clus"});
+  if (cn.null && se == 1 && fe.size() != 2) {
+    return ckstop(c, "`se = \"twoway\"` without `clus` clusters by the two fixed effects, and `fe` has %d: give two "
+                  "`clus` columns", static_cast<int>(fe.size()));
+  }
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
   if (se == 0 && clus.size() == 2) se = 1;
@@ -1916,9 +1963,15 @@ bool windiv(Ctx &c, Val &out) {
       sn[i] = std::sin(rd) * wv;
       cs[i] = std::cos(rd) * wv;
     }
-    const std::vector<double> ms = gmean(sn), mc = gmean(cs);
+    std::vector<double> sw(n);
+    for (std::size_t i = 0; i < n; ++i) sw[i] = spd.empty() ? 1.0 : spd[i];
+    const std::vector<double> ms = gmean(sn), mc = gmean(cs), mw = gmean(sw);
     std::vector<double> vdir(ng);
-    for (std::size_t g = 0; g < ng; ++g) vdir[g] = rmod(std::atan2(ms[g], mc[g]) * 180 / pi, 360);
+    for (std::size_t g = 0; g < ng; ++g) {
+      // winds that cancel, or calm, have no direction
+      const bool none = !(std::sqrt(ms[g] * ms[g] + mc[g] * mc[g]) > 1e-9 * mw[g]);
+      vdir[g] = none ? NA : rmod(std::atan2(ms[g], mc[g]) * 180 / pi, 360);
+    }
     if (!area.empty()) {
       Cols ga(ng);
       std::vector<char> seen(ng, 0);
@@ -2245,11 +2298,24 @@ bool smkiv(Ctx &c, Val &out) {
   CK(cknumd(c, "z", 1.64, zq, 0));
   const double z = zq[0];
   if (adj != 0 && pm.empty()) return ckstop(c, "`adj = \"%s\"` needs `pm`", adjs[zz(adj)]);
+  // a day column of numbers has no calendar; ISO date text is dates
+  bool dt = false;
+  CK(aday(c, d, pud[2], dt));
   Cols sv;
   if (!seas.empty()) {
     sv = coll(*fc(d, seas[0]));
+  } else if (dt) {
+    // the meteorological season of each date: civil month of a day number
+    static const char *const sn[] = {"DJF", "MAM", "JJA", "SON"};
+    for (double t : colv(*fc(d, pud[2]))) {
+      const std::int64_t zd = static_cast<std::int64_t>(std::floor(t)) + 719468;
+      const std::int64_t era = (zd >= 0 ? zd : zd - 146096) / 146097, doe = zd - era * 146097;
+      const std::int64_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+      const std::int64_t mp = (5 * (doe - (365 * yoe + yoe / 4 - yoe / 100)) + 2) / 153;
+      const std::int64_t mo = mp < 10 ? mp + 3 : mp - 9;
+      sv.push_back(sn[(mo / 3) % 4]);
+    }
   } else {
-    // a day column outside R is numbers, never dates
     if (!pm.empty()) return ckstop(c, "give `seas`, or `day` as dates for the meteorological seasons");
     sv.assign(n, "all");
   }
