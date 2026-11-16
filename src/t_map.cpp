@@ -99,8 +99,8 @@ void eof(tk &tt) {
   // and (2, 4, 4) centre to -/+ (1, 2, 2); d^2 = 2 * 9 = 18 and the EOF
   // (1, 2, 2) / 3, its largest loading the first of the two 2/3s
   const double w[6] = {0, 2, 0, 4, 0, 4};
-  double ew[6], pw[4];
-  tk_ieq(tt, "map.eof.wrc", clab_eofst(w, 2, 3, 0, ctr, ew, pw, d2, &tot, &nk), CLAB_OK);
+  double cw[3], ew[6], pw[4];
+  tk_ieq(tt, "map.eof.wrc", clab_eofst(w, 2, 3, 0, cw, ew, pw, d2, &tot, &nk), CLAB_OK);
   tk_near(tt, "map.eof.wd2", d2[0], 18, 1e-13);
   tk_near(tt, "map.eof.wv", ew[1], 2.0 / 3, 1e-14);
   tk_near(tt, "map.eof.wpc", pw[1], 3, 1e-13);

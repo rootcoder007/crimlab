@@ -64,7 +64,7 @@ extern "C" int clab_mapbrk(const double *v, int n, int k, int meth, double *br, 
     if (meth == 0) {
       // seq(lo, hi, length.out = k + 1)
       br[0] = lo;
-      for (int j = 1; j < k; ++j) br[j] = lo + j * ((hi - lo) / k);
+      for (int j = 1; j < k; ++j) br[j] = lo + kutil::rd(j * ((hi - lo) / k));
       br[k] = hi;
     } else {
       // quantile(v, seq(0, 1, length.out = k + 1), type = 7)

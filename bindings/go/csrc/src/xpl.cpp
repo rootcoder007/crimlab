@@ -125,15 +125,15 @@ int clab_xpgrid(const double *v, int n, int ng, int type, double *g, int *m) CLA
   const double lo = s.front(), hi = s.back();
   for (int k = 0; k < ng; ++k) {
     if (type == 0) {
-      g[k] = k == 0 ? lo : (k == ng - 1 ? hi : lo + k * ((hi - lo) / (ng - 1)));
+      g[k] = k == 0 ? lo : (k == ng - 1 ? hi : lo + kutil::rd(k * ((hi - lo) / (ng - 1))));
       continue;
     }
     // index 1 + (n - 1) p from 1, as quantile() forms it
     const double pk = k == ng - 1 ? 1.0 : k * (1.0 / (ng - 1));
-    const double ix = 1 + (n - 1) * pk, a = std::floor(ix);
+    const double ix = 1 + kutil::rd((n - 1) * pk), a = std::floor(ix);
     const std::size_t la = static_cast<std::size_t>(a) - 1, hb = static_cast<std::size_t>(std::ceil(ix)) - 1;
     const double h = ix - a;
-    g[k] = ix > a && s[hb] != s[la] ? (1 - h) * s[la] + h * s[hb] : s[la];
+    g[k] = ix > a && s[hb] != s[la] ? kutil::rd((1 - h) * s[la]) + kutil::rd(h * s[hb]) : s[la];
   }
   int u = 1;
   for (int k = 1; k < ng; ++k) {
@@ -197,7 +197,7 @@ int clab_xpaled(const double *x, int n, int p, int j, int K, double *zz, int *nz
   // j = floor(n p + 4 eps)
   const double a = 1.0 / K, fz = 4 * DBL_EPSILON;
   for (int k = 1; k <= K; ++k) {
-    const double pk = k == K ? 1.0 : (k == 1 ? a : a + (k - 1) * ((1.0 - a) / (K - 1)));
+    const double pk = k == K ? 1.0 : (k == 1 ? a : a + kutil::rd((k - 1) * ((1.0 - a) / (K - 1))));
     const double np = n * pk, jj = std::floor(np + fz);
     const int o = std::min(std::max(static_cast<int>(jj) + (np > jj ? 1 : 0), 1), n);
     zz[k] = s[static_cast<std::size_t>(o - 1)];

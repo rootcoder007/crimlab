@@ -52,6 +52,13 @@ static_assert(sizeof(int) == 4 && sizeof(std::int64_t) == 8, "int is 32 bits, st
 // points per block times blocks, ...) are refused before anything is made.
 constexpr double maxcell = 67108864.0;
 
+// x, rounded to a double by a volatile store: a product passed through it
+// is never fused into the sum that follows (arm64 and other targets with a
+// fused multiply-add), so from + i * by is the double R's seq() gives.
+inline double rd(double x) noexcept {
+  volatile double v = x;
+  return v;
+}
 inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
 // Every value of v[0..n) the same: a variance computed from such data is

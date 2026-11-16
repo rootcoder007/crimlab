@@ -396,7 +396,7 @@ bool finddate(const string &s, size_t a, size_t e, string &iso) {
       continue;
     }
     if (!realday(y, m, d)) continue;
-    char b[16];
+    char b[40];
     std::snprintf(b, sizeof b, "%04d-%02d-%02d", y, m, d);
     iso = b;
     return true;
