@@ -7644,7 +7644,8 @@ def plotevgrid(x: Any) -> Any:
     Nothing is drawn outside R. ``x`` maps each panel's name to a result of
     ``evtst()`` or ``stgdid()`` (its ``est`` or ``dynamic`` rows are taken,
     as R takes them) or to those rows themselves: ``evtm``, ``est``,
-    ``lo`` and ``hi``.
+    ``lo`` and ``hi``. Bounds that are missing (a ``stgdid()`` with
+    ``reps=0``) come back as None.
 
     Examples
     --------
