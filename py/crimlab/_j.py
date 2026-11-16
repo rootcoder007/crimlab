@@ -7578,3 +7578,44 @@ def hwpwr(
     if isinstance(since, dict):
         since = since.get("snap")
     return jcall("hwpwr", dt=dt, since=since, step=step, rated=rated, pid=pid, skip=skip, paths=paths)
+
+
+def co2fp(
+    durs: Any,
+    cputms: Any = 0,
+    loc: Any = None,
+    meth: Any = "auto",
+    cpupwrw: Any = None,
+    usage: Any = "process",
+    loadcur: Any = "linear",
+    cores: Any = None,
+    memgb: Any = None,
+    mempwrwpergb: Any = 0.3725,
+    pue: Any = 1,
+    devices: Any = None,
+    rapl: Any = None,
+    stat: Any = None,
+) -> Any:
+    """The energy and carbon footprint of a computation, as R's ``co2fp()``.
+
+    R times an expression; here the caller gives what R measures around
+    it: ``durs`` (wall seconds) and ``cputms`` (CPU seconds); for
+    ``usage="machine"`` the machine's CPU accounting before and after
+    (``stat={"before": [idle, total], "after": [idle, total]}``); for RAPL
+    the package counters (``rapl={"before": [...], "after": [...], "max":
+    [...]}``, microjoules). The result is R's but ``value``.
+
+    Examples
+    --------
+    >>> r = co2fp(10, 10, loc=30, usage=0.5, cpupwrw=65, cores=4, memgb=16,
+    ...           pue=1.67, meth="model")
+    >>> round(r["co2eg"], 6)  # worked out by hand: 10 s x 38.46 W x 1.67 x 30 g/kWh
+    0.005352
+    >>> r["usagemode"], r["method"]
+    ('fixed', 'model')
+    """
+    return jcall(
+        "co2fp", durs=durs, cputms=cputms, loc=loc, meth=meth, cpupwrw=cpupwrw, usage=usage,
+        loadcur=loadcur, cores=cores, memgb=memgb, mempwrwpergb=mempwrwpergb, pue=pue,
+        devices=devices, rapl=rapl, stat=stat,
+    )

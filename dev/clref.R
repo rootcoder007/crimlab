@@ -2261,6 +2261,19 @@ bad("hwpwr", skip = c("rapl", "x"))
 bad("hwpwr", paths = c(x = "a"))
 bad("hwpwr", rated = c(cpu = -1))
 bad("hwpwr", since = data.frame())
+# co2fp(): R times an expression, so only the refusals made before it runs
+bad("co2fp", loc = "CA-ON", pue = 0.9)
+bad("co2fp", loc = "CA-ON", meth = "x")
+bad("co2fp", loc = "XX-NOWHERE")
+bad("co2fp", loc = "CA-ON", cores = 1.5)
+bad("co2fp", loc = "CA-ON", usage = 2)
+bad("co2fp", loc = "CA-ON", usage = c("process", "machine"))
+bad("co2fp", loc = "CA-ON", devices = data.frame(kind = "gpu"))
+bad("co2fp", loc = "CA-ON", devices = data.frame(kind = "gpu", vendor = "v",
+                                                  name = "n", how = "h"))
+bad("co2fp", loc = "CA-ON", devices = data.frame(kind = "gpu", vendor = "v",
+                                                  name = "n", how = "h",
+                                                  watts = -1))
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

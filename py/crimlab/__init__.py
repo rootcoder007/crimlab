@@ -449,6 +449,7 @@ from ._j import (
     plotrdg,
     plotvln,
     hwpwr,
+    co2fp,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -922,6 +923,7 @@ __all__ = [
     "plotrdg",
     "plotvln",
     "hwpwr",
+    "co2fp",
 ]
 
 

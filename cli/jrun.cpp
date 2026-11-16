@@ -1634,6 +1634,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jspi.inc"
 #include "jplt2.inc"
 #include "jhw.inc"
+#include "jfp2.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2099,6 +2100,7 @@ const Ent ents[] = {
     {"plotrdg", "x grp? bw?", plotrdg},
     {"plotvln", "x grp? bw?", plotvln},
     {"hwpwr", "dt? since? step? rated? pid? skip? paths?", hwpwr},
+    {"co2fp", "durs cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?", co2fp},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
