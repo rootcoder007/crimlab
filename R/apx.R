@@ -2081,24 +2081,6 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The bootstrap draws: how often each of g clusters is drawn, b draws
-# (g x b), from R's generator; seed, when given, is used and the
-# generator's state put back.
-.axdraw <- function(g, b, seed) {
-  if (!is.null(seed)) {
-    env <- globalenv()
-    had <- exists(".Random.seed", envir = env, inherits = FALSE)
-    old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
-    on.exit(if (had) {
-      assign(".Random.seed", old, envir = env)
-    } else {
-      rm(".Random.seed", envir = env)
-    }, add = TRUE)
-    set.seed(seed)
-  }
-  .axdraw1(g, b)
-}
-
 # b draws of the clusters from R's generator as it stands: g x b counts.
 .axdraw1 <- function(g, b) {
   vapply(seq_len(b), function(i) {
@@ -2106,9 +2088,11 @@ summary.expjn <- function(object, ...) {
   }, integer(g))
 }
 
-# The draws of .axdraw(), made a block at a time instead of all at once:
+# The bootstrap draws, how often each of g clusters is drawn in each of b
+# draws from R's generator (seed, when given, is used and the generator's
+# state put back), made a block at a time instead of all at once:
 # each(bm, i) is called with the g x k counts of draws i + 1 to i + k, in
-# order, so the draws are those of .axdraw(g, b, seed) without a g x b
+# order, so the draws are those of one g x b draw without a g x b
 # matrix being held. The blocks are of about 2^22 counts (the option
 # crimlab.drawblock, a number of draws, sets them for the tests).
 .axdraws <- function(g, b, seed, each) {
@@ -2456,7 +2440,7 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The bootstrap of ppmlcf(): the cluster draws of .axdraw(), every draw
+# The bootstrap of ppmlcf(): the cluster draws of .axdraws(), every draw
 # refitted in src/apx.cpp a block at a time (.axdraws()); the draws that
 # fail are left out with a warning: list(r, dr the draws, nfail, nboot).
 .axcfboot <- function(d, yv, endo, inst, x, off, fx, cl, nboot, seed, how,

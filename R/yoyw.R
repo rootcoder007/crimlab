@@ -86,7 +86,16 @@ fylbl <- function(endyear, sep = "/", short = TRUE) {
   if (is.numeric(endyear) && any(endyear != round(endyear), na.rm = TRUE)) {
     stop("fylbl: `endyear` must be whole years.", call. = FALSE)
   }
-  y <- suppressWarnings(as.integer(as.character(endyear)))
+  # a year is converted only when it is finite and an integer holds it:
+  # what as.integer() gives for NaN or a huge value differs by platform
+  num <- if (is.numeric(endyear)) {
+    endyear
+  } else {
+    suppressWarnings(as.numeric(as.character(endyear)))
+  }
+  fits <- is.finite(num) & abs(num) <= .Machine$integer.max
+  y <- rep(NA_integer_, length(num))
+  y[fits] <- as.integer(trunc(num[fits]))
   out <- rep(NA_character_, length(y))
   ok <- !is.na(y)
   tail <- if (short) sprintf("%02d", y[ok] %% 100L) else as.character(y[ok])

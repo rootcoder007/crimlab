@@ -151,8 +151,6 @@ export async function load(stdin = () => new Uint8Array(0)) {
         dead = true;
         return [4, `${name}: not enough memory for this size.`];
       }
-      const a = cstr(args);
-      const need = x.malloc(4);
       let cap = 1 << 16;
       try {
         for (;;) {

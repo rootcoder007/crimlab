@@ -57,7 +57,7 @@ refrow <- function(pat, paths) {
 # out in an order of their own, rows in the order given).
 pinv <- function(f, args, rows) {
   key <- function(r) {
-    v <- unname(rapply(list(r), function(z) as.numeric(z),
+    v <- unname(rapply(list(r), as.numeric,
                        classes = c("numeric", "integer"), how = "unlist"))
     sort(signif(v[is.finite(v)], 10))
   }
@@ -74,3 +74,20 @@ pinv <- function(f, args, rows) {
                  info = if (is.character(f)) f else "")
   }
 }
+
+# The cluster bootstrap's draws made all at once, g clusters by b draws
+# from R's generator after set.seed(seed): what the package's block-wise
+# .axdraws() must reproduce. The generator's state is put back.
+.axdraw <- function(g, b, seed) {
+  env <- globalenv()
+  had <- exists(".Random.seed", envir = env, inherits = FALSE)
+  old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
+  on.exit(if (had) {
+    assign(".Random.seed", old, envir = env)
+  } else {
+    rm(".Random.seed", envir = env)
+  }, add = TRUE)
+  set.seed(seed)
+  .axdraw1(g, b)
+}
+
