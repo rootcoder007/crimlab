@@ -2685,9 +2685,10 @@ summary.expjn <- function(object, ...) {
   list(d = d, k = k, yv = yv, off = off)
 }
 
-# The design of expgmm(): the effects as indicator columns (200 levels at
-# most), the regressors xm and instruments zm, and the cluster of each row
-# (each row its own for hc1), no fewer clusters than moment conditions:
+# The design of expgmm(): no more than 200 levels of the effects (they
+# enter as indicator columns in src/apx.cpp, clab_expgmmd), the
+# regressors xm and instruments zm, and the cluster of each row (each row
+# its own for hc1), no fewer clusters than moment conditions:
 # list(xm, zm, cc, nc).
 .axgmdes <- function(d, endo, inst, x, fe, clus, se, f) {
   nl <- sum(vapply(fe, function(v) length(unique(d[[v]])), 1L))
@@ -2696,9 +2697,8 @@ summary.expjn <- function(object, ...) {
                       "indicator columns, at most 200 (use ppmlcf() for ",
                       "many)"), nl)
   }
-  dm <- .axdum(d, fe)
-  xm <- cbind(.axmat(d, c(endo, x), f), dm)
-  zm <- cbind(.axmat(d, c(inst, x), f), dm)
+  xm <- .axmat(d, c(endo, x), f)
+  zm <- .axmat(d, c(inst, x), f)
   if (se == "cluster") {
     cl <- .axcl(d, clus, f)
     cc <- cl$c1
@@ -2707,27 +2707,24 @@ summary.expjn <- function(object, ...) {
     cc <- seq_len(nrow(d)) - 1L
     nc <- nrow(d)
   }
-  if (ncol(zm) > nc) {
+  nz <- ncol(zm) + if (is.null(fe)) 1L else nl - length(fe) + 1L
+  if (nz > nc) {
     .ckstop(f, paste0("%d moment conditions but %d clusters: the weight ",
                       "matrix would be singular (fewer instruments, ",
                       "controls or effects, or more clusters)"),
-            ncol(zm), nc)
+            nz, nc)
   }
   list(xm = xm, zm = zm, cc = cc, nc = nc)
 }
 
-# The GMM fit of expgmm() in src/apx.cpp, from the start of each
-# first-set effect (or the constant) at the log of its counts over its
-# exposure; a warning when it does not converge.
+# The GMM fit of expgmm(), clab_expgmmd in src/apx.cpp; a warning when it
+# does not converge.
 .axgmfit <- function(d, yv, off, xm, zm, cc, nc, fe, endo, x, err, step,
                      maxit, tol, f) {
-  b0 <- numeric(ncol(xm))
-  ee <- if (is.null(off)) rep(1, length(yv)) else exp(off)
-  g1 <- if (is.null(fe)) rep(1L, length(yv)) else .axcode(d[[fe[1L]]])$c + 1L
-  st0 <- log(rowsum(yv, g1)[, 1L] / rowsum(ee, g1)[, 1L])
-  b0[length(c(endo, x)) + seq_along(st0)] <- st0
-  r <- .Call(C_clab_r_expgmm, as.numeric(yv), xm, zm, off, b0,
-             as.integer(cc), as.integer(nc), if (err == "mult") 0L else 1L,
+  a <- if (is.null(fe)) list() else .axcode(d[[fe[1L]]])
+  b <- if (length(fe) < 2L) list() else .axcode(d[[fe[2L]]])
+  r <- .Call(C_clab_r_expgmm, as.numeric(yv), xm, zm, off, a$c, a$n, b$c,
+             b$n, as.integer(cc), as.integer(nc), if (err == "mult") 0L else 1L,
              match(step, c("one", "two", "iter")), as.integer(maxit), tol)
   if (r$st[4L] != 1) {
     warning(f, ": the fit did not converge in ", maxit, " iterations.",

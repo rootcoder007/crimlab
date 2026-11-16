@@ -2064,6 +2064,20 @@ int clab_expgmm(const double *y, const double *x, int k, const double *z, int s,
                 const double *off, const double *b0, const int *cl, int ncl, int err, int step,
                 int maxit, double tol, double *beta, double *vc, double *st);
 
+/* expgmm() from its columns: clab_expgmm with the effects as indicator
+ * columns of x and z after xr (n x px; the endogenous columns and the
+ * controls) and zr (n x pz; the excluded instruments and the controls):
+ * every level of f1 (n codes, n1 levels), the levels of f2 (NULL or n
+ * codes, n2 levels) but its first, or a constant when f1 is NULL; the
+ * start values those of each f1 effect (or the constant) at the log of
+ * its counts over its exposure exp(off), the others 0. beta and vc have
+ * px + nd entries per side, nd the indicator columns. The other arguments
+ * and the results are those of clab_expgmm. */
+int clab_expgmmd(const double *y, const double *xr, int px, const double *zr, int pz, int n,
+                 const int *f1, int n1, const int *f2, int n2, const double *off, const int *cl,
+                 int ncl, int err, int step, int maxit, double tol, double *beta, double *vc,
+                 double *st);
+
 /* The over-identification tests of clab_ivfe (ivfe): the same data,
  * effects (with the mx more sets fx of clab_ivfek) and demeaning; X = (xe, xx), Z = (zi, xx), q >= pe. st (3): the
  * Sargan statistic n u'Z(Z'Z)^-1 Z'u / u'u at the two-stage least squares
@@ -4222,6 +4236,21 @@ int clab_ikbw(const double *y, const double *x, int n, double c, int kern, doubl
  * standard error (equation 5), f- and f+, b, h, the number of bins.
  * CLAB_EDOM when c is not inside the data or a side cannot be fitted. */
 int clab_mccr(const double *r, int n, double c, double b, double h, double *st);
+
+/* One local polynomial fit of rdloc(): y (n) against r (n), the running
+ * variable minus the cutoff, with the weights of kern (as clab_rdck) at
+ * r / h, of order p (1 or 2) on each side, the rows within the bandwidth
+ * alone. Sharp (t NULL): the jump of y at 0; fuzzy: its ratio to the jump
+ * of t (n), the treatment instrumented by the side (r >= 0), by
+ * clab_ivfe. Its variance from the rows' scores (clab_vcx),
+ * heteroskedasticity-robust (cl NULL) or clustered by cl (n codes from 0,
+ * renumbered among the rows kept), times G / (G - 1) with ssc 1 (G the
+ * rows or the clusters). Out: st (7): the estimate, its standard error,
+ * the rows kept, those left and right of 0, G, and a status: 0, or 1
+ * when a side has fewer than p + 2 rows within h, or 2 when the rows kept
+ * fall in one cluster (the others NaN then). */
+int clab_rdfit(const double *y, const double *r, const double *t, int n, double h, int kern,
+               int p, const int *cl, int ssc, double *st);
 
 /* ------------------------------------------------------------------------
  * Environmental crime (src/env.cpp).

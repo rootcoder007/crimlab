@@ -3,8 +3,8 @@
 // libcrimlab, regression discontinuity: the kernel constant and the
 // bandwidth of Imbens and Kalyanaraman (2012) for a local-linear fit at a
 // cutoff (clab_rdck, clab_ikbw), and the density test of McCrary (2008)
-// (clab_mccr). The local fits themselves are clab_ivfe with kernel weights
-// (src/apx.cpp). Least squares is that of the policy-evaluation families
+// (clab_mccr), and the local fits of rdloc() (clab_rdfit: clab_ivfe of
+// src/apx.cpp with kernel weights, and clab_vcx). Least squares is that of the policy-evaluation families
 // (pev.h).
 #include <cstdint>
 #include <cmath>
@@ -267,6 +267,104 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   st[4] = b;
   st[5] = h;
   st[6] = static_cast<double>(nb);
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)
+
+int clab_rdfit(const double *y, const double *r, const double *t, int n, double h, int kern,
+               int p, const int *cl, int ssc, double *st) CLAB_TRY {
+  if (n < 1 || p < 1 || p > 2 || kern < 0 || kern > 2 || !(h > 0)) return CLAB_EARG;
+  for (int j = 0; j < 7; ++j) st[j] = kutil::nan();
+  // the kernel weights of r / h, 0 outside (-1, 1), and the rows they keep
+  std::vector<double> w;
+  std::vector<size_t> k;
+  int nl = 0, nr = 0;
+  for (int i = 0; i < n; ++i) {
+    const double u = r[i] / h;
+    double v = 0.0;
+    if (kern == 0) {
+      v = std::fmax(1 - std::fabs(u), 0.0);
+    } else if (kern == 1) {
+      v = std::fabs(u) <= 1 ? 0.5 : 0.0;
+    } else {
+      v = std::fmax(0.75 * (1 - u * u), 0.0);
+    }
+    if (v > 0) {
+      w.push_back(v);
+      k.push_back(static_cast<size_t>(i));
+      if (r[i] >= 0) {
+        ++nr;
+      } else {
+        ++nl;
+      }
+    }
+  }
+  if (nr < p + 2 || nl < p + 2) {
+    st[6] = 1;
+    return CLAB_OK;
+  }
+  const size_t m = k.size();
+  const int mi = static_cast<int>(m);
+  // sharp: the jump d and, per power j = 1..p, r^j and d r^j; fuzzy: the
+  // treatment instrumented by d, the same powers exogenous
+  const int pe = t == nullptr ? 0 : 1, px = 2 * p + (t == nullptr ? 1 : 0);
+  std::vector<double> yk(m), xe(m * static_cast<size_t>(pe) + 1), xx(m * static_cast<size_t>(px)),
+      zi(m * static_cast<size_t>(pe) + 1);
+  for (size_t i = 0; i < m; ++i) {
+    const double ri = r[k[i]], d = ri >= 0 ? 1.0 : 0.0;
+    yk[i] = y[k[i]];
+    size_t c = 0;
+    if (t == nullptr) xx[c++ * m + i] = d;
+    for (int j = 1; j <= p; ++j) {
+      const double rj = j == 1 ? ri : ri * ri;
+      xx[c++ * m + i] = rj;
+      xx[c++ * m + i] = d * rj;
+    }
+    if (t != nullptr) {
+      xe[i] = t[k[i]];
+      zi[i] = d;
+    }
+  }
+  const int q = pe + px;
+  const size_t qq = static_cast<size_t>(q);
+  std::vector<int> f0(m, 0);
+  std::vector<double> beta(qq), vc(qq * qq), fst(4 * static_cast<size_t>(pe) + 1),
+      fres(m * static_cast<size_t>(pe) + 1), res(m), sco(m * qq), brd(qq * qq), s3(3);
+  int rc = clab_ivfek(yk.data(), xe.data(), pe, xx.data(), px, zi.data(), pe, mi, w.data(),
+                      f0.data(), 1, nullptr, 0, nullptr, nullptr, 0, nullptr, 0, nullptr, 0,
+                      1e-12, beta.data(), vc.data(), fst.data(), fres.data(), res.data(),
+                      sco.data(), brd.data(), s3.data());
+  if (rc != CLAB_OK) return rc;
+  // the clusters of the rows kept, numbered in order of first appearance
+  int g = mi;
+  std::vector<int> cc;
+  if (cl != nullptr) {
+    std::vector<int> map;
+    g = 0;
+    for (size_t i = 0; i < m; ++i) {
+      const int a = cl[k[i]];
+      if (a < 0) return CLAB_EARG;
+      const size_t ua = static_cast<size_t>(a);
+      if (ua >= map.size()) map.resize(ua + 1, -1);
+      if (map[ua] < 0) map[ua] = g++;
+      cc.push_back(map[ua]);
+    }
+    if (g < 2) {
+      st[6] = 2;
+      return CLAB_OK;
+    }
+  }
+  const double fac = ssc ? static_cast<double>(g) / (g - 1) : 1.0;
+  rc = clab_vcx(sco.data(), mi, q, brd.data(), cl == nullptr ? 2 : 0,
+                cl == nullptr ? nullptr : cc.data(), cl == nullptr ? 0 : g, nullptr, 0, nullptr, 0,
+                fac, vc.data());
+  if (rc != CLAB_OK) return rc;
+  st[0] = beta[0];
+  st[1] = std::sqrt(vc[0] < 0 ? 0.0 : vc[0]);  // NaN stays NaN, as in R
+  st[2] = static_cast<double>(m);
+  st[3] = nl;
+  st[4] = nr;
+  st[5] = g;
+  st[6] = 0;
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 

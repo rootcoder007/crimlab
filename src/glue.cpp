@@ -642,7 +642,8 @@ SEXP C_clab_r_ivfe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, S
 SEXP C_clab_r_ppmlcf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP, SEXP);
 SEXP C_clab_r_demean(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_expgmm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_expgmm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP, SEXP);
 SEXP C_clab_r_ivoid(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                     SEXP, SEXP, SEXP);
 SEXP C_clab_r_rdck(SEXP);
@@ -774,6 +775,7 @@ SEXP C_clab_r_mcar2(SEXP, SEXP, SEXP);
 SEXP C_clab_r_bz2end(SEXP);
 SEXP C_clab_r_gzend(SEXP, SEXP);
 SEXP C_clab_r_txtenc(SEXP);
+SEXP C_clab_r_rdfit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 // For the tests: on TRUE every poll of a kernel reads as an interrupt
 // (the stop paths run on small inputs, in this process); on FALSE R's
@@ -1042,7 +1044,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_ivfe", fn<&C_clab_r_ivfe>(), 16},
     {"C_clab_r_ppmlcf", fn<&C_clab_r_ppmlcf>(), 15},
     {"C_clab_r_demean", fn<&C_clab_r_demean>(), 8},
-    {"C_clab_r_expgmm", fn<&C_clab_r_expgmm>(), 11},
+    {"C_clab_r_expgmm", fn<&C_clab_r_expgmm>(), 14},
     {"C_clab_r_ivoid", fn<&C_clab_r_ivoid>(), 15},
     {"C_clab_r_rdck", fn<&C_clab_r_rdck>(), 1},
     {"C_clab_r_ikbw", fn<&C_clab_r_ikbw>(), 4},
@@ -1153,6 +1155,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_bz2end", fn<&C_clab_r_bz2end>(), 1},
     {"C_clab_r_gzend", fn<&C_clab_r_gzend>(), 2},
     {"C_clab_r_txtenc", fn<&C_clab_r_txtenc>(), 1},
+    {"C_clab_r_rdfit", fn<&C_clab_r_rdfit>(), 8},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

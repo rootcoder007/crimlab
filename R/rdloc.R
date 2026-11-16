@@ -292,48 +292,20 @@ summary.rddens <- function(object, ...) object[["tab"]]
 # variable rv with bandwidth h: the jump in y (sharp) or its ratio to the
 # jump in tv (fuzzy, the treatment instrumented by the side), and its
 # variance from the rows' scores, heteroskedasticity-robust or clustered
-# by cl (codes of all rows, or NULL).
+# by cl (the labels of all rows, or NULL); src/rdd.cpp, clab_rdfit.
 .rdfit <- function(yv, rv, tv, h, kern, p, cl, ssc, fn) {
-  w <- .rdkw(rv / h, kern)
-  k <- w > 0
-  side <- rv >= 0
-  if (sum(k & side) < p + 2L || sum(k & !side) < p + 2L) {
+  cc <- if (is.null(cl)) NULL else .axcode(cl)$c
+  s <- .Call(C_clab_r_rdfit, as.numeric(yv), as.numeric(rv),
+             if (is.null(tv)) NULL else as.numeric(tv), h,
+             match(kern, c("tri", "uni", "epa")) - 1L, as.integer(p), cc,
+             as.integer(ssc == "G"))
+  if (s[7L] == 1) {
     .ckstop(fn, paste0("fewer than %d rows on a side within the bandwidth ",
                        "%g: widen it"), p + 2L, h)
   }
-  r <- rv[k]
-  dd <- as.numeric(side[k])
-  pm <- do.call(cbind, lapply(seq_len(p), function(j) {
-    cbind(r^j, dd * r^j)
-  }))
-  n <- sum(k)
-  if (is.null(tv)) {
-    xe <- matrix(numeric(0), n, 0L)
-    xx <- cbind(dd, pm)
-    zi <- matrix(numeric(0), n, 0L)
-  } else {
-    xe <- matrix(tv[k], n, 1L)
-    xx <- pm
-    zi <- matrix(dd, n, 1L)
-  }
-  f0 <- integer(n)
-  fit <- .Call(C_clab_r_ivfe, as.numeric(yv[k]), xe, xx, zi, as.numeric(w[k]),
-               f0, 1L, NULL, 0L, NULL, NULL, NULL, 0L, NULL, 0L, 1e-12)
-  if (is.null(cl)) {
-    fac <- if (ssc == "G") n / (n - 1) else 1
-    v <- .Call(C_clab_r_vcx, fit$sco, fit$brd, 2L, NULL, 0L, NULL, 0L, NULL,
-               0L, fac)
-    g <- n
-  } else {
-    cc <- .axcode(cl[k])
-    if (cc$n < 2L) .ckstop(fn, "one cluster within the bandwidth")
-    fac <- if (ssc == "G") cc$n / (cc$n - 1) else 1
-    v <- .Call(C_clab_r_vcx, fit$sco, fit$brd, 0L, cc$c, cc$n, NULL, 0L,
-               NULL, 0L, fac)
-    g <- cc$n
-  }
-  list(est = fit$beta[1L], se = sqrt(max(v[1L, 1L], 0)), n = n,
-       nl = sum(!side[k]), nr = sum(side[k]), g = g)
+  if (s[7L] == 2) .ckstop(fn, "one cluster within the bandwidth")
+  m <- as.integer(s[3:6])
+  list(est = s[1L], se = s[2L], n = m[1L], nl = m[2L], nr = m[3L], g = m[4L])
 }
 
 # The bandwidth of rdloc(): h as given (bw = "user") or that of Imbens and

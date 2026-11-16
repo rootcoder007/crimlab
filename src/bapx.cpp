@@ -160,18 +160,21 @@ SEXP C_clab_r_demean(SEXP v, SEXP f1, SEXP n1, SEXP f2, SEXP n2, SEXP fx, SEXP n
   return r;
 }
 
-SEXP C_clab_r_expgmm(SEXP y, SEXP x, SEXP z, SEXP off, SEXP b0, SEXP cl, SEXP ncl, SEXP err,
-                     SEXP step, SEXP maxit, SEXP tol) {
+SEXP C_clab_r_expgmm(SEXP y, SEXP x, SEXP z, SEXP off, SEXP f1, SEXP n1, SEXP f2, SEXP n2,
+                     SEXP cl, SEXP ncl, SEXP err, SEXP step, SEXP maxit, SEXP tol) {
   clab::who = "expgmm";
-  const int n = n32(y), k = Rf_ncols(x), s = Rf_ncols(z);
+  const int n = n32(y), px = Rf_ncols(x), pz = Rf_ncols(z);
+  const int a = Rf_isNull(f1) ? 0 : Rf_asInteger(n1), c = Rf_isNull(f2) ? 0 : Rf_asInteger(n2);
+  const int k = px + (Rf_isNull(f1) ? 1 : a + (Rf_isNull(f2) ? 0 : c - 1));
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 3));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, k));
   SET_VECTOR_ELT(r, 1, Rf_allocMatrix(REALSXP, k, k));
   SET_VECTOR_ELT(r, 2, Rf_allocVector(REALSXP, 6));
-  const int rc = clab_expgmm(REAL(y), REAL(x), k, REAL(z), s, n, dnul(off), REAL(b0), INTEGER(cl),
-                             Rf_asInteger(ncl), Rf_asInteger(err), Rf_asInteger(step),
-                             Rf_asInteger(maxit), Rf_asReal(tol), REAL(VECTOR_ELT(r, 0)),
-                             REAL(VECTOR_ELT(r, 1)), REAL(VECTOR_ELT(r, 2)));
+  const int rc = clab_expgmmd(REAL(y), REAL(x), px, REAL(z), pz, n, icodes(f1), a, icodes(f2), c,
+                              dnul(off), INTEGER(cl), Rf_asInteger(ncl), Rf_asInteger(err),
+                              Rf_asInteger(step), Rf_asInteger(maxit), Rf_asReal(tol),
+                              REAL(VECTOR_ELT(r, 0)), REAL(VECTOR_ELT(r, 1)),
+                              REAL(VECTOR_ELT(r, 2)));
   clab::ichk(rc);
   if (rc == CLAB_EDOM) {
     clab::fail("the fit failed: the instruments or the regressors are collinear, there are no "
@@ -236,6 +239,15 @@ SEXP C_clab_r_mccr(SEXP r, SEXP c, SEXP b, SEXP h) {
                "too few bins (give `b` or `h`).");
   }
   if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
+  UNPROTECT(1);
+  return s;
+}
+
+SEXP C_clab_r_rdfit(SEXP y, SEXP r, SEXP t, SEXP h, SEXP kern, SEXP p, SEXP cl, SEXP ssc) {
+  clab::who = "rdloc";
+  SEXP s = PROTECT(Rf_allocVector(REALSXP, 7));
+  kc(clab_rdfit(REAL(y), REAL(r), dnul(t), n32(y), Rf_asReal(h), Rf_asInteger(kern),
+                Rf_asInteger(p), icodes(cl), Rf_asInteger(ssc), REAL(s)));
   UNPROTECT(1);
   return s;
 }

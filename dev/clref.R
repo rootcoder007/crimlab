@@ -2014,6 +2014,26 @@ bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1, pool = 
 bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, bias = "jack", pool = TRUE)
 bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1, lags = 23)
 bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, pvar = "bsw", w = (seq_along(dd$y) - 1) %/% 24 + 1)
+# Regression discontinuity
+set.seed(20261120)
+rdd <- data.frame(r = round(runif(300, -1, 1), 4))
+rdd$y <- round(1 + 0.8 * rdd$r + 2 * rdd$r^2 * (rdd$r >= 0) +
+                 0.5 * (rdd$r >= 0) + rnorm(300, 0, 0.3), 4)
+rdd$t <- as.numeric(runif(300) < 0.2 + 0.6 * (rdd$r >= 0))
+rdd$g <- sample(1:30, 300, TRUE)
+ok("rdloc", data = rdd, y = "y", run = "r")
+ok("rdloc", data = rdd, y = "y", run = "r", trt = "t", bw = "user", h = 0.6,
+   kern = "epa", ci = "conventional")
+ok("rdloc", data = rdd, y = "y", run = "r", bw = "user", h = 0.5,
+   kern = "uni", se = "cluster", clus = "g", ssc = "none",
+   plac = c(-0.5, 0.5), level = 0.9)
+bad("rdloc", data = rdd, y = "y", run = "r", bw = "user")
+bad("rdloc", data = rdd, y = "y", run = "r", bw = "user", h = 0.001)
+bad("rdloc", data = rdd, y = "y", run = "r", plac = 0)
+bad("rdloc", data = rdd, y = "y", run = "r", cut = 5)
+ok("rddens", r = rdd$r, b = 0.05, h = 0.5)
+ok("rddens", r = rdd$r, cut = 0.1, level = 0.9)
+bad("rddens", r = c(1, NA))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

@@ -7085,3 +7085,38 @@ def ccepnl(y: Any, x: Any, unit: Any, time: Any, fac: Any = None, cons: Any = Tr
     """
     return jcall("ccepnl", y=y, x=x, unit=unit, time=time, fac=fac, cons=cons, w=w, avg=avg, ylag=ylag, lags=lags,
                  bias=bias, pool=pool, pvar=pvar, level=level)
+
+
+def rdloc(data: Any, y: Any, run: Any, cut: Any = 0, trt: Any = None, bw: Any = "ik", h: Any = None,
+          kern: Any = "tri", ci: Any = "robust", se: Any = "hc1", clus: Any = None, ssc: Any = "G",
+          plac: Any = None, level: Any = 0.95) -> Any:
+    """Regression discontinuity by local polynomials.
+
+    The arguments and the result are those of R's ``rdloc()``: see its help
+    page. The data R keeps for its plot are not part of the result.
+
+    Examples
+    --------
+    >>> r = [i / 10 - 2 for i in range(41)]
+    >>> d = {"r": r, "y": [v + (1 if v >= 0 else 0) + (i % 3) / 10 for i, v in enumerate(r)]}
+    >>> f = rdloc(data=d, y="y", run="r", bw="user", h=1)
+    >>> f["coef"]["method"], f["n"]
+    (['robust', 'conventional'], 19.0)
+    """
+    return jcall("rdloc", data=data, y=y, run=run, cut=cut, trt=trt, bw=bw, h=h, kern=kern, ci=ci, se=se,
+                 clus=clus, ssc=ssc, plac=plac, level=level)
+
+
+def rddens(r: Any, cut: Any = 0, b: Any = None, h: Any = None, level: Any = 0.95) -> Any:
+    """The density test of McCrary at a cutoff.
+
+    The arguments and the result are those of R's ``rddens()``: see its help
+    page. The data R keeps for its plot are not part of the result.
+
+    Examples
+    --------
+    >>> m = rddens(r=[i / 50 - 1 for i in range(101)], b=0.05, h=0.5)
+    >>> list(m["tab"])
+    ['theta', 'se', 'stat', 'p', 'lo', 'hi', 'fl', 'fr']
+    """
+    return jcall("rddens", r=r, cut=cut, b=b, h=h, level=level)
