@@ -98,7 +98,52 @@
 #' program's own statistic takes `b' V^-1 b` over every coefficient,
 #' the constant's included, while counting `q` without it; this function
 #' leaves the constant out of the statistic too, so that the two agree
-#' when no constant is estimated.
+#' when no constant is estimated. `xwald` is the program's statistic, `b'
+#' V^-1 b` over every coefficient on the same `q` (and `F = W / q` with
+#' `small`), so that its printed line can be reproduced; `print()` shows
+#' it on a second line when it differs from `wald`.
+#'
+#' Two values differ from the program's by design. `sigma2` is that of
+#' the one-step residuals, which Sargan's statistic uses, also with
+#' `steps = 2`, where xtabond2 reports the two-step residuals' value. With
+#' the conventional one-step variance the Arellano-Bond statistics take
+#' the error variance as `s2` times the covariances of independent errors
+#' through the differences whatever `hmat` (Roodman 2009, n. 19), where
+#' with `hmat = "id"` in system GMM the program takes `sigma2` from the
+#' levels and `H = I` there; the identity is the weight of Blundell and
+#' Bond's first step, not the covariance of differenced errors.
+#'
+#' `resid` holds `y - x b` in levels for every row of the level equation
+#' (`NA` for rows without the `ylag` periods before), the unit effects
+#' included; Andreatta et al. (2023, p. 1376) pass such residuals of the
+#' dynamic model to Pesaran's test of cross-sectional dependence
+#' ([pcdtst()]) and to Moran's I for each year ([gmoran()]).
+#'
+#' **Andreatta et al. (2023), step by step.** Their table 3 is one-step
+#' system GMM with robust errors "with small-sample adjustments" (note):
+#' `type = "system"`, `steps = 1`, `robust = TRUE`, `small = TRUE`; time
+#' effects, `tdum = TRUE`; the lagged rate, `ylag = 1`, and the four
+#' enforcement and organised-crime variables in `gmm`, instrumented by
+#' "their second and third lags" (p. 1373), `lagmin = 2, lagmax = 3`, or
+#' by "Lag 2 and earlier lags" (table note), `lagmax = Inf`, the other
+#' drivers IV-style (`iv`); the difference of lag 1 in the level equation
+#' is what `lagmin = 2` gives there. Their tests are the rows of `tests`:
+#' AR(1) and AR(2), Hansen, "Hansen-level", the Hansen test of the
+#' first-differenced model ("Hansen without level GMM"), and "Hansen-diff"
+#' ("Difference-in-Hansen"); "No. of instruments" is `fit$inst`, kept
+#' below the 102 provinces (`note` warns otherwise). The supplementary
+#' "standard" model with first lags as instruments is `lagmin = 1` for
+#' the variables taken as predetermined. Before choosing a dynamic model
+#' they ran Wooldridge's test on the static model's residuals ([wsctst()],
+#' n. 9, F(1, 101)), and they compare the coefficient of the lagged rate
+#' with pooled least squares (`lm()`) and fixed effects ([fepnl()] with the
+#' lag among the regressors). Their checks of spatial dependence are
+#' [gmoran()] and [gearc()] on the rate with several weight matrices,
+#' [pcdtst()] on the residuals of the static and dynamic models and
+#' [gmoran()] on each year's residuals (p. 1376); their structural breaks
+#' (2013, 2014, 2015) are step dummies among the IV-style columns of `x`,
+#' and their principal components of the enforcement rates are
+#' `stats::prcomp()`.
 #'
 #' The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are
 #' those of serial correlation of orders 1 to `ar` in the differenced
@@ -133,7 +178,7 @@
 #' `lagmax` take either reading.
 #'
 #' @inheritParams lmdix
-#' @param y The outcome of each row: finite numbers.
+#' @inheritParams fepnl
 #' @param x `NULL` or the regressors: a numeric matrix or data frame, one
 #'   row per row of `y`; the column names name them. For `plot()`, a
 #'   `gmmpnl` result.
@@ -177,14 +222,15 @@
 #'   3.3) advises so that the errors are not correlated across units.
 #' @param ar The highest order of the Arellano-Bond tests: a whole number
 #'   from 0 (default 2, as xtabond2).
-#' @param level The confidence level of the intervals.
 #' @return An object of class `gmmpnl`, a list: `coef` (`term`, `est`, `se`,
 #'   `z` (`t` with `small`), `p`, `lo`, `hi`); `tests` (`test`, `stat`,
 #'   `df`, `p`: AR(1) to AR(`ar`), Sargan, Hansen and, for system GMM, the
 #'   Hansen test without the level GMM-style instruments and the
 #'   difference-in-Hansen test, or their Sargan counterparts with the
 #'   conventional one-step variance); `wald`, one row (`test`, `"Wald"` or
-#'   `"F"`, `stat`, `df1`, `df2`, `p`);
+#'   `"F"`, `stat`, `df1`, `df2`, `p`); `xwald`, the same as xtabond2
+#'   prints it (over every coefficient); `resid`, `y - x b` in levels, one
+#'   per row of `y`;
 #'   `fit`, one row: `n` (the rows of the transformed equation for
 #'   difference GMM, of the levels for system GMM, as xtabond2 counts),
 #'   `groups`, `inst`, `omin`, `oavg`, `omax` (rows per group), `steps`,
@@ -232,6 +278,35 @@
 #'             collapse = TRUE)
 #' r
 #' r$tests
+#'
+#' # the specification of Andreatta et al. (2023, table 3) on simulated
+#' # data: the lagged rate and four drivers GMM-style by their second and
+#' # third lags, collapsed so that the instruments stay below the
+#' # provinces, two exogenous drivers, time effects, one-step robust
+#' # errors with small-sample adjustments
+#' set.seed(23)
+#' np <- 102
+#' d <- expand.grid(year = 2010:2019, prov = paste0("p", 1:np))
+#' u <- rnorm(np)[as.integer(substring(d$prov, 2))]
+#' n <- nrow(d)
+#' for (v in c("clear", "conv", "mafia", "assoc")) d[[v]] <- u + rnorm(n)
+#' d$gdp <- rnorm(n)
+#' d$recyc <- rnorm(n)
+#' d$wcrim <- 0
+#' for (i in which(d$year > 2010)) {
+#'   d$wcrim[i] <- 0.4 * d$wcrim[i - 1] - 0.1 * d$clear[i] +
+#'     0.2 * d$mafia[i] + 0.1 * d$gdp[i] + u[i] + rnorm(1)
+#' }
+#' en <- c("clear", "conv", "mafia", "assoc")
+#' a <- gmmpnl(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year, gmm = en,
+#'             lagmin = 2, lagmax = 3, collapse = TRUE, small = TRUE)
+#' a$tests
+#' a$fit$inst < a$fit$groups
+#' # the static model's serial correlation and the dynamic residuals'
+#' # cross-sectional dependence
+#' wsctst(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year)
+#' k <- !is.na(a$resid)
+#' pcdtst(a$resid[k], d$prov[k], d$year[k])
 #' @export
 gmmpnl <- function(y, x = NULL, unit, time, ylag = 1, gmm = NULL, iv = NULL,
                    z = NULL, lagmin = 2, lagmax = Inf, collapse = FALSE,
@@ -257,13 +332,10 @@ print.gmmpnl <- function(x, ...) {
       sep = "")
   print(x[["coef"]], row.names = FALSE)
   w <- x[["wald"]]
-  if (!is.null(w)) {
-    cat(if (w$test == "F") {
-      paste0("F(", w$df1, ", ", w$df2, ")")
-    } else {
-      paste0("Wald chi2(", w$df1, ")")
-    }, " = ", format(w$stat, digits = 5), ", p ", format(w$p, digits = 4),
-    "\n", sep = "")
+  if (!is.null(w)) cat(.gwline(w, ""))
+  xw <- x[["xwald"]]
+  if (!is.null(xw) && !identical(xw$stat, w$stat)) {
+    cat(.gwline(xw, " (every coefficient, as xtabond2 prints it)"))
   }
   print(x[["tests"]], row.names = FALSE)
   for (s in x[["note"]]) cat("note: ", s, "\n", sep = "")
@@ -271,7 +343,6 @@ print.gmmpnl <- function(x, ...) {
 }
 
 #' @rdname gmmpnl
-#' @param ... Passed to the base-graphics call.
 #' @inheritParams plotlrnz
 #' @details The plot draws the coefficients other than the constant and
 #'   the time dummies, with their intervals, and returns what it drew.
@@ -382,22 +453,109 @@ print.wsctst <- function(x, ...) {
 #' CCEP is `(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i`, and in its
 #' variance each `X_i'M_i X_i` is divided by the unit's own number of
 #' periods, which is this function's reading of `T` there. On a balanced
-#' panel all of this is Pesaran's estimator. Su, Wang and Wang (2026, p.
-#' 2) caution that when whether a unit is observed is related to the
-#' regressors, the factors or the loadings, the averages no longer proxy
-#' the factors well. A period observed for one unit only, or a unit with
-#' fewer periods than its regression needs (twice the regressors, the
-#' averages kept and the observed factors), is refused by name.
+#' panel all of this is Pesaran's estimator.
+#' Su, Wang and Wang (2026, sec. 6.3, p. 20) compute CCE on unbalanced
+#' panels in the same way, after Zhou and Zhang (2016, eq 12), and caution
+#' (p. 2 and n. 7, p. 4) that when whether a unit is observed is related
+#' to its loadings and varies over time, the averages no longer proxy the
+#' factors well; the estimators for unbalanced panels with interactive
+#' effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1, p.
+#' 1309) likewise assume that the data are missing at random, which
+#' excludes selection related to the idiosyncratic errors. Neither paper
+#' gives a diagnostic or correction for CCE estimators, and this function
+#' makes none. A period observed for one unit only, or a unit with fewer
+#' periods than its regression needs (twice the regressors and lags of
+#' `y`, the averages kept with their lags and the observed factors), is
+#' refused by name.
 #'
-#' Juodis and Reese (2026, sec. 1) draw two lessons this function leaves to
-#' the user: the averages used can bias the estimates and their variance,
-#' so results should be checked against the number and kind of averages
-#' (`avg` keeps a subset; lesson 1), and under Pesaran's assumptions a
-#' two-way fixed-effects estimator ([fepnl()]) may still be consistent and
-#' is worth comparing (lesson 2). With slopes common to all units and `T`
-#' not small against `N`, the intervals of CCEP are not centred without a
-#' bias correction, which this function does not make (lesson 1, sec.
-#' 3.1). For cross-sectional dependence in the residuals see [pcdtst()].
+#' **Dynamic panels.** With `ylag > 0` the lags `1..ylag` of `y` join the
+#' regressors (as `L1.y`, ...), and with `lags = p` the averages kept enter
+#' `H` with their lags `1..p` as well: the cross-sectionally augmented
+#' regression of Chudik and Pesaran (2015, eq 24) for heterogeneous panels
+#' with a lagged dependent variable and weakly exogenous regressors (lags
+#' of `x`, as their eq 1 has, are columns of `x`). A unit's regression runs
+#' over the periods in which it is observed together with its `ylag`
+#' periods before, from the `p + 1`-th period on (eqs 25-26); the averages
+#' are those of every observed unit-period, as above. `lags = NULL` takes
+#' `p = 0` for the static model and, with `ylag > 0`, the integer part of
+#' `T^(1/3)`, `T` the periods, as Chudik and Pesaran recommend (sec. 5.2,
+#' eq 40, and p. 404: "we recommend setting `pT = [T^1/3]`"). The mean group
+#' estimator is the mean of the unit estimates (eq 27) with the
+#' nonparametric variance of eq 32 over `N`. Pooled dynamic CCE is not
+#' supported: Chudik and Pesaran (2015, n. 5) recall that with
+#' heterogeneous slopes "pooled estimators are inconsistent in the case
+#' of panel data models with lagged dependent variables" (Pesaran and
+#' Smith 1995), and their
+#' theory is that of the mean group estimator; `pool = NULL` (default)
+#' makes CCEP only for the static model, and `pool = TRUE` with `ylag > 0`
+#' or with `bias` is refused.
+#'
+#' `bias` corrects the mean group estimate for the small-T time-series
+#' bias as Chudik and Pesaran (2015, sec. 4.1) define the corrections.
+#' `"jack"` is the half-panel jackknife (sec. 4.1.1, the unnumbered
+#' equation after eq 32), `2 b_MG - (b_MG^a + b_MG^b) / 2`, `a` and `b` the
+#' estimates over periods `1..[T/2]` and `[T/2]+1..T`; each half is taken
+#' as a panel of its own, so that the lags of `y` and of the averages of
+#' its first rows come from inside the half, as "computed from the first
+#' half of the available time period" reads, with the same `p`. `"rma"` is
+#' recursive mean adjustment (sec. 4.1.2 and n. 13): `y` and each column
+#' of `x` less the mean of the unit's values in the periods before,
+#' `y_it - (t - 1)^-1 sum_{s<t} y_is`, a unit's first period dropped, and the
+#' estimator applied to these series, so that the lags of `y` are lags of
+#' the adjusted `y` and the averages are those of the adjusted values;
+#' observed factors are not adjusted (Ditzen 2018, p. 589, leaves the
+#' constant out). The paper states no variance for the corrected
+#' estimators: `vmg` is the nonparametric mean group variance (eq 32)
+#' applied to the corrected unit estimates (`bi`: `2 b_i - (b_i^a +
+#' b_i^b) / 2` for the jackknife, the estimates on the adjusted series for
+#' `"rma"`), and the uncorrected estimate and its variance are returned in
+#' `mg0` and `vmg0` for comparison.
+#'
+#' **Five lessons.** Juodis and Reese (2026) draw five lessons for applied
+#' work. (1) The averages are factor estimates measured with error, which
+#' can bias the estimates and change their variance: results should be
+#' checked against the number and kind of averages (`avg` keeps a subset),
+#' and with slopes common to all units and `T` not small against `N` the
+#' intervals of CCEP are not centred without a bias correction, which this
+#' function does not make (sec. 3.1). `nfac` reports the number of factors
+#' that the averages kept identify, by the two regularized procedures of
+#' their appendix A.1 on a balanced panel: `er`, the eigenvalue ratio of
+#' Ahn and Horenstein (2013) on the averages normalised by `Sigma^-1/2`,
+#' `Sigma = sum_i (Z_i - Zbar)'(Z_i - Zbar) / (N T)` (Juodis 2022; steps
+#' 1-3, `r_max` the averages less one); `thr`, the number of eigenvalues
+#' of `Zbar'Zbar / T` at least 0.01 times the largest (Vogt et al. 2025;
+#' steps 1-2); and `avg`, the averages kept; `NA` where undefined. More
+#' averages than factors is the case in which the paper warns of extra
+#' bias; the regularized estimators themselves are not made. (2) A two-way
+#' fixed-effects estimator ([fepnl()]) may still be consistent and should
+#' be compared and tested. `hb` is their test of heterogeneity bias in
+#' CCEP (sec. 3.2, case study 2): `delta_i = (X_i'M_i X_i - N^-1 sum_j
+#' X_j'M_j X_j) (b_i - b_MG)`, `HB = delta' V^-1 delta` with `delta` their
+#' mean and `V = N^-2 sum delta_i delta_i'`, chi-squared on `k` degrees of
+#' freedom (`stat`, `df`, `p`); a rejection says that CCEP is biased by
+#' slopes that vary with the regressors. (3) Dynamic models need the
+#' dynamics of every observed variable specified, and a bias correction is
+#' recommended in short panels (sec. 3.3; `ylag`, `lags`, `bias` above).
+#' (4) The CIPS panel unit-root test does not test what CCE estimation
+#' needs; they recommend the CSB test of Pesaran et al. (2013) (sec. 3.4),
+#' which this package does not provide. (5) There is no general recipe for
+#' nonlinear models, where the average of `y` should not be among the
+#' proxies (sec. 3.5); this function is linear. For cross-sectional
+#' dependence in the residuals see [pcdtst()].
+#'
+#' **Fixed-T variance.** Brown, Schmidt and Wooldridge (2026, eqs 12-14
+#' and Theorem 1) show that CCEP is the pooled least-squares estimate of
+#' `y` on the regressors with the columns of `H` partialled out unit by
+#' unit, and that time-varying regressors `d_t` added to it get
+#' coefficients of exactly 0. Their fixed-T variance of CCEP, which counts
+#' the sampling error of the averages (sec. 5.4, eqs 36-40, with `Psi = H`
+#' and `q_i = vec(Z_i - Zbar)`, 0 in the columns of the observed factors),
+#' is `pvar = "bsw"`: `A^-1 B A^-1 / N`, `A = N^-1 sum X_i'M X_i`, `B =
+#' N^-1 sum s_i s_i'`, `s_i = X_i'M u_i - G'(I + K)[Psi (Psi'Psi)^-1 (x)
+#' M] q_i`, `u_i = y_i - X_i b`, `G = N^-1 sum u_i (x) (X_i - Xbar)` and
+#' `K` the commutation matrix (eq 33); it is for the static pooled
+#' estimator with equal weights on a balanced panel, and refused
+#' otherwise.
 #'
 #' @inheritParams gmmpnl
 #' @param x The regressors: a numeric matrix or data frame, one row per row
@@ -412,11 +570,29 @@ print.wsctst <- function(x, ...) {
 #' @param avg `NULL` (default: the averages of `y` and of every column of
 #'   `x`, Pesaran's choice) or the averages kept among the columns of `H`:
 #'   `"y"` and names of columns of `x`.
+#' @param ylag The lags of `y` among the regressors: a whole number from 0
+#'   (default 0, the static model of Pesaran 2006).
+#' @param lags `NULL` (default: 0 for the static model, the integer part of
+#'   `T^(1/3)` with `ylag > 0`) or the lags of the averages: a whole number
+#'   from 0.
+#' @param bias `"none"` (default), `"jack"` (half-panel jackknife) or
+#'   `"rma"` (recursive mean adjustment): the correction of the mean group
+#'   estimate, as above.
+#' @param pool `NULL` (default: CCEP for the static model only), `TRUE` or
+#'   `FALSE`: whether to make CCEP; `TRUE` is refused with `ylag > 0` or
+#'   `bias`.
+#' @param pvar `"pesaran"` (default, eqs 67-69 of Pesaran 2006) or `"bsw"`
+#'   (Brown, Schmidt and Wooldridge 2026): the variance of CCEP.
 #' @return An object of class `ccepnl`, a list: `mg` and `pooled`, the
-#'   CCEMG and CCEP estimates (`term`, `est`, `se`, `z`, `p`, `lo`, `hi`);
-#'   `bi`, the unit estimates (units by regressors); `vmg` and `vp`, the
-#'   variances; `fit`, one row (`units`, `periods`, `k`, `h` the columns of
-#'   `H`, `n` the rows); `w`, the weights by unit; and `level`.
+#'   CCEMG and CCEP estimates (`term`, `est`, `se`, `z`, `p`, `lo`, `hi`;
+#'   `pooled` `NULL` when not made); `mg0`, the uncorrected mean group
+#'   estimate with `bias` (`NULL` otherwise); `bi`, the unit estimates
+#'   (units by regressors, corrected with `bias`); `vmg`, `vp` and `vmg0`,
+#'   the variances; `hb`, the heterogeneity-bias test of CCEP (`NULL`
+#'   without CCEP); `nfac`, the number of factors (`er`, `thr`, `avg`);
+#'   `fit`, one row (`units`, `periods`, `k`, `h` the columns of `H`, `n`
+#'   the rows of the regressions, `lags`, `ylag`); `w`, the weights by unit;
+#'   `bias`; `pvar`; and `level`.
 #' @references
 #'   Pesaran, M. H. (2006). Estimation and inference in large heterogeneous
 #'   panels with a multifactor error structure. *Econometrica*, 74(4),
@@ -433,6 +609,19 @@ print.wsctst <- function(x, ...) {
 #'   Juodis, A. and Reese, S. (2026). Five lessons for applied researchers
 #'   from twenty years of common correlated effects estimation. *Journal of
 #'   Econometrics*, 253, 106120. \doi{10.1016/j.jeconom.2025.106120}
+#'
+#'   Chudik, A. and Pesaran, M. H. (2015). Common correlated effects
+#'   estimation of heterogeneous dynamic panel data models with weakly
+#'   exogenous regressors. *Journal of Econometrics*, 188(2), 393-420.
+#'   \doi{10.1016/j.jeconom.2015.03.007}
+#'
+#'   Brown, N. L., Schmidt, P. and Wooldridge, J. M. (2026). A simple
+#'   reformulation of the common correlated effects model. *Econometric
+#'   Reviews*, 45(5), 760-772. \doi{10.1080/07474938.2026.2615434}
+#'
+#'   Czarnowske, D. and Stammann, A. (2026). Inference in unbalanced panel
+#'   data models with interactive fixed effects. *Econometric Reviews*,
+#'   45(9), 1306-1337. \doi{10.1080/07474938.2026.2681519}
 #' @examples
 #' # 30 provinces over 12 years, one unobserved factor in y and x
 #' set.seed(9)
@@ -443,36 +632,74 @@ print.wsctst <- function(x, ...) {
 #' d$y <- 1 + 0.7 * d$x + g * f + rnorm(360)
 #' r <- ccepnl(d$y, d["x"], d$prov, d$year)
 #' r
+#' r$nfac
+#' # a dynamic panel: y depends on its lag; jackknife-corrected mean group
+#' set.seed(10)
+#' tt <- 30
+#' d <- expand.grid(year = 1:tt, prov = paste0("p", 1:40))
+#' f <- rnorm(tt)[d$year]
+#' g <- rnorm(40, 1)[as.integer(substring(d$prov, 2))]
+#' d$x <- g * f + rnorm(nrow(d))
+#' d$y <- 0
+#' for (i in which(d$year > 1)) {
+#'   d$y[i] <- 0.5 * d$y[i - 1] + 0.7 * d$x[i] + g[i] * f[i] + rnorm(1)
+#' }
+#' ccepnl(d$y, d["x"], d$prov, d$year, ylag = 1, bias = "jack")
 #' @export
 ccepnl <- function(y, x, unit, time, fac = NULL, cons = TRUE, w = NULL,
-                   avg = NULL, level = 0.95) {
+                   avg = NULL, ylag = 0, lags = NULL, bias = "none",
+                   pool = NULL, pvar = "pesaran", level = 0.95) {
   if (is.data.frame(x)) x <- as.matrix(x)
   if (is.data.frame(fac)) fac <- as.matrix(fac)
-  .Call(C_clab_r_ccepnl, y, x, unit, time, fac, cons, w, avg, level)
+  .Call(C_clab_r_ccepnl, y, x, unit, time, fac, cons, w, avg, ylag, lags,
+        bias, pool, pvar, level)
 }
 
 #' @export
 print.ccepnl <- function(x, ...) {
   f <- x[["fit"]]
+  b <- x[["bias"]]
   cat("ccepnl: common correlated effects, ", f[["units"]], " units, ",
-      f[["periods"]], " periods\nmean group (CCEMG):\n", sep = "")
+      f[["periods"]], " periods",
+      if (f[["ylag"]] > 0 || f[["lags"]] > 0) {
+        paste0(", ", f[["ylag"]], " lags of y, ", f[["lags"]],
+               " of the averages")
+      },
+      "\nmean group (CCEMG", if (!identical(b, "none")) paste0(", ", b),
+      "):\n", sep = "")
   print(x[["mg"]], row.names = FALSE)
-  cat("pooled (CCEP):\n")
-  print(x[["pooled"]], row.names = FALSE)
+  if (!is.null(x[["pooled"]])) {
+    cat("pooled (CCEP):\n")
+    print(x[["pooled"]], row.names = FALSE)
+    h <- x[["hb"]]
+    cat("heterogeneity bias of CCEP: chi2(", h[["df"]], ") = ",
+        format(h[["stat"]], digits = 4), ", p ", format(h[["p"]], digits = 3),
+        "\n", sep = "")
+  }
   invisible(x)
 }
 
 #' @rdname ccepnl
-#' @param ... Passed to the base-graphics call.
 #' @inheritParams plotlrnz
-#' @details The plot draws the CCEMG and CCEP estimates of each regressor
-#'   with their intervals and returns what it drew.
+#' @details The plot draws the CCEMG and, when made, CCEP estimates of each
+#'   regressor with their intervals and returns what it drew.
 #' @export
 plot.ccepnl <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
-  .pck(x, "ccepnl", c("mg", "pooled"))
+  .pck(x, "ccepnl", "mg")
   a <- x$mg
   b <- x$pooled
+  if (is.null(b)) b <- a[0, , drop = FALSE]
   .pdots(c(a$term, b$term), c(a$est, b$est), c(a$lo, b$lo), c(a$hi, b$hi),
          .pmain(main, "Common correlated effects"), "Coefficient", col, pal,
          ref = 0, grp = rep(c("CCEMG", "CCEP"), c(nrow(a), nrow(b))), ...)
+}
+
+# One line of a joint test of gmmpnl(): F or Wald chi-squared, with a tail.
+.gwline <- function(w, tail) {
+  paste0(if (w$test == "F") {
+    paste0("F(", w$df1, ", ", w$df2, ")")
+  } else {
+    paste0("Wald chi2(", w$df1, ")")
+  }, " = ", format(w$stat, digits = 5), ", p ", format(w$p, digits = 4),
+  tail, "\n")
 }

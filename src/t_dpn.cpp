@@ -178,6 +178,32 @@ void cce(tk &tt) {
   tk_near(tt, "dpn.cce.avx", bmg[0], 2, 1e-12);
   tk_ieq(tt, "dpn.cce.n", clab_ccepnl(1, nt, 1, y, x, w, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
          CLAB_EARG);
+  // the dynamic entry with the average of x and its lag, rows from period 1:
+  // y = 2 x stays exact, every unit estimate 2
+  int rm[18] = {0};
+  for (int i = 0; i < 18; ++i) rm[i] = i % 6 >= 1;
+  double hb[2] = {0, 0};
+  tk_ieq(tt, "dpn.dyn.rc",
+         clab_ccedyn(nu, nt, 1, y, x, w, d, 1, ax, 1, rm, 1, bi, bmg, vmg, bp, vp, hb, &bad),
+         CLAB_OK);
+  tk_near(tt, "dpn.dyn.bi", bi[1], 2, 1e-12);
+  tk_near(tt, "dpn.dyn.bp", bp[0], 2, 1e-12);
+  tk_near(tt, "dpn.dyn.hbdf", hb[1], 1, 1e-15);
+  // without the pooled estimate: NaN there and in the heterogeneity bias
+  clab_ccedyn(nu, nt, 1, y, x, w, d, 1, ax, 1, rm, 0, bi, bmg, vmg, bp, vp, hb, &bad);
+  tk_ieq(tt, "dpn.dyn.nopool", std::isnan(bp[0]) ? 1 : 0, 1);
+  tk_ieq(tt, "dpn.dyn.hbnan", std::isnan(hb[0]) ? 1 : 0, 1);
+  // a row before the lags of the averages, a missing mask, p past T
+  rm[6] = 1;
+  tk_ieq(tt, "dpn.dyn.early",
+         clab_ccedyn(nu, nt, 1, y, x, w, d, 1, ax, 1, rm, 1, bi, bmg, vmg, bp, vp, hb, &bad),
+         CLAB_EARG);
+  tk_ieq(tt, "dpn.dyn.null",
+         clab_ccedyn(nu, nt, 1, y, x, w, d, 1, ax, 1, nullptr, 1, bi, bmg, vmg, bp, vp, hb, &bad),
+         CLAB_EARG);
+  tk_ieq(tt, "dpn.dyn.p",
+         clab_ccedyn(nu, nt, 1, y, x, w, d, 1, ax, 6, rm, 1, bi, bmg, vmg, bp, vp, hb, &bad),
+         CLAB_EARG);
 }
 
 }  // namespace

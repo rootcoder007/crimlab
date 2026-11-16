@@ -109,7 +109,7 @@ gref <- function(d, sys = FALSE, a = 2, b = Inf, coll = FALSE, hm = "ab",
   }
   zs <- lapply(rs, zm)
   xs <- lapply(rs, function(r) do.call(rbind, lapply(r, `[[`, "x")))
-  ys <- lapply(rs, function(r) vapply(r, `[[`, 0, "y"))
+  ys <- lapply(rs, vapply, `[[`, 0, "y")
   hs <- lapply(rs, hblock, hm = hm)
   zhz <- Reduce(`+`, Map(function(z, h) t(z) %*% h %*% z, zs, hs))
   zx <- Reduce(`+`, Map(function(z, x) t(z) %*% x, zs, xs))
@@ -231,7 +231,7 @@ test_that("difference GMM is the estimator written out, both steps", {
   g <- gref(d)
   r1 <- gmmpnl(d$y, unit = d$u, time = d$t, type = "diff", tdum = FALSE)
   expect_identical(r1$coef$term, "L1.y")
-  expect_equal(r1$fit$inst, g$m)
+  expect_identical(r1$fit$inst, as.numeric(g$m))
   expect_equal(r1$coef$est, g$b1, tolerance = 1e-9)
   expect_equal(r1$coef$se, sqrt(diag(g$v1)), tolerance = 1e-8)
   expect_equal(tst(r1, "Sargan"), g$sargan, tolerance = 1e-8)
@@ -261,7 +261,7 @@ test_that("system GMM with a gap, collapsed and limited lags, every H", {
     r <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
                 collapse = TRUE, hmat = hm, steps = 2)
     expect_identical(r$coef$term, c("L1.y", "(const)"))
-    expect_equal(r$fit$inst, g$m)
+    expect_identical(r$fit$inst, as.numeric(g$m))
     expect_equal(r$coef$est, g$b2, tolerance = 1e-9, info = hm)
     expect_equal(unname(r$vcov), unname(g$vc), tolerance = 1e-7, info = hm)
     expect_equal(tst(r, "Sargan"), g$sargan, tolerance = 1e-8, info = hm)
@@ -286,7 +286,7 @@ test_that("uncollapsed system GMM is the estimator written out", {
   d <- dsim(seed = 13)
   g <- gref(d, sys = TRUE)
   r <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE)
-  expect_equal(r$fit$inst, g$m)
+  expect_identical(r$fit$inst, as.numeric(g$m))
   expect_equal(r$coef$est, g$b1, tolerance = 1e-9)
   expect_equal(r$tests$stat[1:2], g$ar(1), tolerance = 1e-7)
 })
@@ -403,7 +403,8 @@ test_that("the model degrees of freedom of the joint test", {
   expect_equal(r$wald$stat, wv, tolerance = 1e-10)
   r0 <- gmmpnl(d$y, tr, d$u, d$t, type = "diff", tdum = FALSE)
   expect_identical(r0$wald$df1, 1)
-  expect_equal(r0$wald$p, pchisq(r0$wald$stat, 1, lower.tail = FALSE))
+  expect_equal(r0$wald$p, pchisq(r0$wald$stat, 1, lower.tail = FALSE),
+               tolerance = 1e-12)
   # system GMM without a constant but with every period's dummy: their
   # sum is 1 in the levels and its difference 0 in the transformed rows,
   # so i'X_p (X'X)^-1 X_p'i, X the whole stack, equals the rows in levels
@@ -672,9 +673,9 @@ test_that("wsctst() is Drukker's two regressions", {
   expect_equal(s[["F"]], fs, tolerance = 1e-10)
   expect_equal(s[["p"]], pf(fs, 1, g - 1, lower.tail = FALSE),
                tolerance = 1e-10)
-  expect_equal(s[["df2"]], g - 1)
-  expect_equal(s[["pairs"]], sum(j))
-  expect_equal(s[["ndiff"]], nrow(f))
+  expect_identical(s[["df2"]], as.numeric(g - 1))
+  expect_identical(s[["pairs"]], as.numeric(sum(j)))
+  expect_identical(s[["ndiff"]], as.numeric(nrow(f)))
   # with a constant, and without the small-sample factor
   m3 <- lm(e1 ~ e0)
   c3 <- wsctst(d$y, d["x"], d$u, d$t, cons = TRUE)
@@ -915,4 +916,298 @@ test_that("ccepnl() refusals, print and plot", {
   expect_identical(p$group, c("CCEMG", "CCEP"))
   expect_identical(p$est, c(r$mg$est, r$pooled$est))
   expect_error(plot(structure(list(), class = "ccepnl")), "not a complete")
+})
+
+# a dynamic heterogeneous panel with one factor in y and x (Chudik and
+# Pesaran 2015, eqs 1-3, with a lag of y and one regressor)
+dsimc <- function(seed = 41, n = 15, tt = 20) {
+  set.seed(seed)
+  d <- expand.grid(t = seq_len(tt), u = seq_len(n))
+  f <- rnorm(tt)[d$t]
+  g <- rnorm(n, 1)[d$u]
+  a <- runif(n, 0.2, 0.6)[d$u]
+  d$x <- g * f + rnorm(n * tt)
+  d$y <- 0
+  for (r in which(d$t > 1)) {
+    d$y[r] <- a[r] * d$y[r - 1] + 0.7 * d$x[r] + g[r] * f[r] + rnorm(1)
+  }
+  d
+}
+
+# the unit regressions of eq 24 by lm(): y on its lag, x, a constant and
+# the averages of y and x with lags 0..p, over periods t0..t1 taken as a
+# panel of their own; the coefficients of L1.y and x, unit by unit
+dref <- function(d, p, t0, t1) {
+  ya <- ave(d$y, d$t)
+  xa <- ave(d$x, d$t)
+  lagv <- function(v, l) {
+    o <- v[match(paste(d$u, d$t - l), paste(d$u, d$t))]
+    o[d$t - l < t0] <- NA
+    o
+  }
+  e <- data.frame(y = d$y, ly = lagv(d$y, 1), x = d$x)
+  for (l in 0:p) {
+    e[[paste0("ya", l)]] <- ave(lagv(ya, l), d$t)
+    e[[paste0("xa", l)]] <- ave(lagv(xa, l), d$t)
+  }
+  k <- d$t >= t0 + max(p, 1) & d$t <= t1
+  t(vapply(sort(unique(d$u)), function(i) {
+    coef(lm(y ~ ., e[k & d$u == i, ]))[c("ly", "x")]
+  }, numeric(2)))
+}
+
+test_that("dynamic CCE is eq 24 unit by unit, and the mean group", {
+  d <- dsimc()
+  r <- ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, lags = 2)
+  b <- dref(d, 2, 1, 20)
+  expect_identical(colnames(r$bi), c("L1.y", "x"))
+  o <- order(as.character(seq_len(15)))
+  expect_equal(unname(r$bi), unname(b[o, ]), tolerance = 1e-9)
+  expect_equal(r$mg$est, unname(colMeans(b)), tolerance = 1e-10)
+  expect_equal(r$mg$se, unname(apply(b, 2, sd)) / sqrt(15),
+               tolerance = 1e-9)
+  expect_identical(r$fit$lags, 2)
+  expect_identical(r$fit$ylag, 1)
+  expect_identical(r$fit$n, 15 * 18)
+  expect_identical(r$fit$h, 1 + 2 * 3)
+  expect_null(r$pooled)
+  expect_null(r$vp)
+  expect_null(r$hb)
+  expect_null(r$mg0)
+  expect_output(print(r), "1 lags of y, 2 of the averages")
+  # the default lags: the integer part of T^(1/3), 2 for 20 periods and 3
+  # for 27 (a cube, where a floating cube root could fall below 3)
+  expect_identical(ccepnl(d$y, d["x"], d$u, d$t, ylag = 1)$fit$lags, 2)
+  e <- dsimc(seed = 42, n = 12, tt = 27)
+  expect_identical(ccepnl(e$y, e["x"], e$u, e$t, ylag = 1)$fit$lags, 3)
+  # the static call is unchanged: no lags, CCEP made
+  s <- ccepnl(d$y, d["x"], d$u, d$t)
+  expect_identical(s$fit$lags, 0)
+  expect_false(is.null(s$pooled))
+})
+
+test_that("the half-panel jackknife is 2 b - (b_a + b_b) / 2", {
+  # Chudik and Pesaran (2015, sec. 4.1.1), each half a panel of its own;
+  # the variance is eq 32 over N on the corrected unit estimates
+  d <- dsimc(seed = 43, n = 15, tt = 20)
+  r <- ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, lags = 1, bias = "jack")
+  bf <- dref(d, 1, 1, 20)
+  bc <- 2 * bf - (dref(d, 1, 1, 10) + dref(d, 1, 11, 20)) / 2
+  o <- order(as.character(seq_len(15)))
+  expect_equal(unname(r$bi), unname(bc[o, ]), tolerance = 1e-9)
+  expect_equal(r$mg$est, unname(colMeans(bc)), tolerance = 1e-9)
+  expect_equal(r$mg$se, unname(apply(bc, 2, sd)) / sqrt(15),
+               tolerance = 1e-9)
+  expect_equal(r$mg0$est, unname(colMeans(bf)), tolerance = 1e-10)
+  expect_equal(sqrt(diag(r$vmg0)), unname(apply(bf, 2, sd)) / sqrt(15),
+               tolerance = 1e-9)
+  expect_identical(r$bias, "jack")
+  expect_output(print(r), "CCEMG, jack")
+})
+
+test_that("recursive mean adjustment is the estimator on adjusted series", {
+  # Chudik and Pesaran (2015, sec. 4.1.2 and n. 13): each value less the
+  # mean of the unit's earlier values, the first period dropped
+  d <- dsimc(seed = 44, n = 15, tt = 20)
+  r <- ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, lags = 1, bias = "rma")
+  pm <- function(v) {
+    ave(v, d$u, FUN = function(z) z - c(NA, cumsum(z)[-length(z)]) /
+          c(NA, seq_along(z)[-length(z)]))
+  }
+  e <- data.frame(u = d$u, t = d$t, y = pm(d$y), x = pm(d$x))
+  e <- e[e$t > 1, ]
+  b <- dref(e, 1, 2, 20)
+  o <- order(as.character(seq_len(15)))
+  expect_equal(unname(r$bi), unname(b[o, ]), tolerance = 1e-9)
+  expect_equal(r$mg$est, unname(colMeans(b)), tolerance = 1e-9)
+  expect_equal(r$mg0$est, unname(colMeans(dref(d, 1, 1, 20))),
+               tolerance = 1e-9)
+  expect_identical(r$fit$n, 15 * 18)
+})
+
+test_that("dynamic CCE recovers the mean persistence of a simulated panel", {
+  # the unit persistences are uniform on (0.2, 0.6), mean 0.4, and the
+  # slope of x 0.7: with 40 units over 40 periods the jackknifed mean group
+  # estimate lies within four of its standard errors of both
+  d <- dsimc(seed = 45, n = 40, tt = 40)
+  r <- ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, bias = "jack")
+  expect_lt(abs(r$mg$est[1] - 0.4), 4 * r$mg$se[1])
+  expect_lt(abs(r$mg$est[2] - 0.7), 4 * r$mg$se[2])
+})
+
+test_that("dynamic CCE refusals", {
+  d <- dsimc(seed = 46, n = 6, tt = 12)
+  m <- paste("ccepnl: `pool = TRUE` with `ylag` above 0: with a lagged",
+             "dependent variable and heterogeneous slopes pooled estimators",
+             "are inconsistent (Chudik and Pesaran 2015, n. 5, after",
+             "Pesaran and Smith 1995), and the theory of dynamic common",
+             "correlated effects is that of the mean group estimator.")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, pool = TRUE), m,
+               fixed = TRUE)
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, bias = "jack", pool = TRUE),
+               paste("`pool = TRUE` with `bias`: the corrections of Chudik",
+                     "and Pesaran (2015, sec. 4.1) are of the mean group",
+                     "estimator."), fixed = TRUE)
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, lags = 11),
+               "`lags` must be below the periods less one (11).",
+               fixed = TRUE)
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, lags = 1,
+                      bias = "jack"),
+               paste("unit 1 has 5 usable periods in the first half of the",
+                     "periods: its regression on the regressors, the lags of",
+                     "y, the averages with their lags and the observed",
+                     "factors needs at least 9."), fixed = TRUE)
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, ylag = -1), "`ylag`")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, lags = 1.5), "`lags`")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, bias = "boot"), "`bias`")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, pool = NA), "`pool`")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, pvar = "bsw"),
+               "`pvar = \"bsw\"` is the variance of Brown", fixed = TRUE)
+  # pool = FALSE on the static model leaves CCEP out
+  s <- ccepnl(d$y, d["x"], d$u, d$t, pool = FALSE)
+  expect_null(s$pooled)
+  expect_output(print(s), "mean group")
+  grDevices::pdf(NULL)
+  on.exit(grDevices::dev.off(), add = TRUE)
+  expect_identical(plot(s)$group, "CCEMG")
+})
+
+test_that("the heterogeneity-bias test of Juodis and Reese, written out", {
+  # case study 2: delta_i = (A_i - mean A)(b_i - b_MG), A_i = X_i'M_i X_i,
+  # HB = delta' V^-1 delta, V = sum delta_i delta_i' / N^2, chi-squared(k)
+  d <- csim(seed = 47)
+  r <- ccepnl(d$y, d["x"], d$u, d$t)
+  d$ybar <- ave(d$y, d$t)
+  d$xbar <- ave(d$x, d$t)
+  a <- vapply(1:20, function(i) {
+    sum(residuals(lm(x ~ ybar + xbar, d[d$u == i, ]))^2)
+  }, 0)
+  bi <- vapply(1:20, function(i) {
+    coef(lm(y ~ x + ybar + xbar, d[d$u == i, ]))[["x"]]
+  }, 0)
+  dl <- (a - mean(a)) * (bi - mean(bi))
+  hb <- mean(dl)^2 / (sum(dl^2) / 400)
+  expect_equal(r$hb[["stat"]], hb, tolerance = 1e-9)
+  expect_identical(r$hb[["df"]], 1)
+  expect_equal(r$hb[["p"]], pchisq(hb, 1, lower.tail = FALSE),
+               tolerance = 1e-9)
+  expect_output(print(r), "heterogeneity bias of CCEP: chi2\\(1\\)")
+})
+
+test_that("the number of factors by the procedures of Juodis and Reese", {
+  # appendix A.1: the eigenvalue ratio on Zbar Sigma^-1/2 and the
+  # threshold count on Zbar'Zbar / T, written out with eigen(); one strong
+  # factor in y and two regressors, which both should find
+  set.seed(48)
+  n <- 40
+  tt <- 12
+  d <- expand.grid(t = seq_len(tt), u = seq_len(n))
+  f <- 3 * rnorm(tt)[d$t]
+  d$x1 <- rnorm(n, 1)[d$u] * f + rnorm(n * tt)
+  d$x2 <- rnorm(n, 1)[d$u] * f + rnorm(n * tt)
+  d$y <- d$x1 + d$x2 + rnorm(n, 1)[d$u] * f + rnorm(n * tt)
+  r <- ccepnl(d$y, d[c("x1", "x2")], d$u, d$t)
+  z <- as.matrix(d[c("y", "x1", "x2")])
+  zb <- apply(z, 2, ave, d$t)
+  sg <- crossprod(z - zb) / (n * tt)
+  e <- eigen(sg, symmetric = TRUE)
+  si <- e$vectors %*% diag(1 / sqrt(e$values)) %*% t(e$vectors)
+  zt <- zb[d$u == 1, ]
+  ev <- eigen(si %*% crossprod(zt) %*% si / tt, symmetric = TRUE)$values
+  m2 <- eigen(crossprod(zt) / tt, symmetric = TRUE)$values
+  expect_identical(r$nfac[["er"]], as.numeric(which.max(ev[1:2] / ev[2:3])))
+  expect_identical(r$nfac[["thr"]], as.numeric(sum(m2 >= 0.01 * m2[1])))
+  expect_identical(r$nfac[["avg"]], 3)
+  expect_identical(r$nfac[["er"]], 1)
+  # unbalanced: not computed
+  k <- !(d$u == 3 & d$t == 5)
+  q <- ccepnl(d$y[k], d[k, c("x1", "x2")], d$u[k], d$t[k])
+  expect_true(is.na(q$nfac[["er"]]))
+})
+
+test_that("CCEP is pooled least squares on partialled regressors", {
+  # Brown, Schmidt and Wooldridge (2026, eqs 12-14 and Theorem 1): x
+  # partialled on (1, ybar, xbar) unit by unit, then pooled least squares
+  # of y (not partialled) on it; a trend partialled the same way and added
+  # gets a coefficient of exactly 0, with ybar among the averages
+  d <- csim(seed = 49)
+  r <- ccepnl(d$y, d["x"], d$u, d$t)
+  d$ybar <- ave(d$y, d$t)
+  d$xbar <- ave(d$x, d$t)
+  part <- function(v) {
+    unlist(lapply(split(seq_len(nrow(d)), d$u), function(j) {
+      residuals(lm(v[j] ~ d$ybar[j] + d$xbar[j]))
+    }))
+  }
+  o <- order(d$u, d$t)
+  xr <- part(d$x)
+  expect_equal(r$pooled$est, unname(coef(lm(d$y[o] ~ 0 + xr))),
+               tolerance = 1e-10)
+  b <- coef(lm(part(d$y) ~ 0 + part(as.numeric(d$t)) + xr))
+  expect_lt(abs(b[[1]]), 1e-10)
+  expect_equal(r$pooled$est, b[[2]], tolerance = 1e-10)
+})
+
+test_that("pvar = \"bsw\" is the fixed-T variance of eqs 36-40", {
+  # written out with kronecker() and the commutation matrix, Psi = (1,
+  # ybar, xbar), q_i = vec(Z_i - Zbar) with 0 for the constant
+  d <- csim(seed = 50, n = 25, tt = 6)
+  r <- ccepnl(d$y, d["x"], d$u, d$t, pvar = "bsw")
+  p0 <- ccepnl(d$y, d["x"], d$u, d$t)
+  expect_equal(r$pooled$est, p0$pooled$est, tolerance = 1e-14)
+  tt <- 6
+  n <- 25
+  ys <- split(d$y, d$u)
+  xs <- split(d$x, d$u)
+  yb <- Reduce(`+`, ys) / n
+  xb <- Reduce(`+`, xs) / n
+  ps <- cbind(1, yb, xb)
+  m <- diag(tt) - ps %*% solve(crossprod(ps), t(ps))
+  b <- r$pooled$est
+  u <- lapply(seq_len(n), function(i) ys[[i]] - xs[[i]] * b)
+  g <- Reduce(`+`, Map(function(e, x) kronecker(e, x - xb), u, xs)) / n
+  km <- matrix(0, tt^2, tt^2)
+  for (i in seq_len(tt)) {
+    for (j in seq_len(tt)) km[(j - 1) * tt + i, (i - 1) * tt + j] <- 1
+  }
+  kr <- kronecker(ps %*% solve(crossprod(ps)), m)
+  s <- vapply(seq_len(n), function(i) {
+    q <- c(rep(0, tt), ys[[i]] - yb, xs[[i]] - xb)
+    drop(t(xs[[i]]) %*% m %*% u[[i]] - t(g) %*% (diag(tt^2) + km) %*% kr %*%
+           q)
+  }, 0)
+  a <- mean(vapply(xs, function(x) drop(t(x) %*% m %*% x), 0))
+  expect_equal(r$pooled$se, sqrt(mean(s^2) / a^2 / n), tolerance = 1e-9)
+  expect_identical(r$pvar, "bsw")
+  # refusals: weights, and an unbalanced panel
+  m1 <- "`pvar = \"bsw\"` is the variance of Brown, Schmidt and Wooldridge"
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, pvar = "bsw", w = d$u),
+               m1, fixed = TRUE)
+  expect_error(ccepnl(d$y[-3], d["x"][-3, , drop = FALSE], d$u[-3], d$t[-3],
+                      pvar = "bsw"), m1, fixed = TRUE)
+})
+
+test_that("gmmpnl(): xtabond2's joint statistic and the level residuals", {
+  d <- dsim(seed = 51)
+  r <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
+              collapse = TRUE, small = TRUE)
+  b <- r$coef$est
+  w <- drop(t(b) %*% solve(r$vcov) %*% b)
+  expect_equal(r$xwald$stat, w / r$wald$df1, tolerance = 1e-10)
+  expect_identical(r$xwald$df1, r$wald$df1)
+  expect_identical(r$xwald$df2, r$wald$df2)
+  expect_output(print(r), "every coefficient, as xtabond2 prints it")
+  # without a constant the two agree and print() shows one line
+  q <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, type = "diff")
+  expect_identical(q$xwald$stat, q$wald$stat)
+  expect_false(any(grepl("xtabond2 prints", capture.output(print(q)))))
+  # y - b1 y_{t-1} - c in levels, NA in each unit's first period
+  ly <- ave(d$y, d$u, FUN = function(v) c(NA, v[-length(v)]))
+  expect_equal(r$resid, d$y - b[1] * ly - b[2], tolerance = 1e-12)
+  expect_identical(sum(is.na(r$resid)), 30L)
+  # well away from the boundary of the ones-in-the-columns rule: the
+  # lagged outcome alone in system GMM without a constant counts once
+  s <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, cons = FALSE,
+              lagmax = 3, collapse = TRUE)
+  expect_identical(s$wald$df1, 1)
 })

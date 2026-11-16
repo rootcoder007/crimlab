@@ -214,6 +214,15 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   dcol(wc5, "df2", o.wald.df2);
   dcol(wc5, "p", o.wald.p);
   SEXP wd = PROTECT(wc5.frame());
+  cols xw5(5);
+  scol(xw5, "test", o.xwald.name);
+  dcol(xw5, "stat", o.xwald.stat);
+  dcol(xw5, "df1", o.xwald.df);
+  dcol(xw5, "df2", o.xwald.df2);
+  dcol(xw5, "p", o.xwald.p);
+  SEXP xwd = PROTECT(xw5.frame());
+  SEXP rs = PROTECT(Rf_allocVector(REALSXP, pn.n));
+  for (int i = 0; i < pn.n; ++i) REAL(rs)[i] = pevr::na(o.resid[z(i)]);
   cols fs(9);
   dcol(fs, "n", {o.n});
   dcol(fs, "groups", {o.groups});
@@ -235,11 +244,11 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   SEXP ty = PROTECT(Rf_mkString(o.type.c_str())), tr = PROTECT(Rf_mkString(o.trans.c_str()));
   SEXP lvs = PROTECT(Rf_ScalarReal(sp.level));
   SEXP rb = PROTECT(Rf_ScalarLogical(sp.rob)), sm = PROTECT(Rf_ScalarLogical(sp.small));
-  np += 15;
-  SEXP out = PROTECT(nlist({{"coef", coef}, {"tests", te}, {"wald", wd}, {"fit", fit},
-                            {"vcov", vm}, {"inst", in}, {"dropped", dr}, {"dummies", du},
-                            {"note", nt}, {"type", ty}, {"trans", tr}, {"robust", rb},
-                            {"small", sm}, {"level", lvs}}));
+  np += 17;
+  SEXP out = PROTECT(nlist({{"coef", coef}, {"tests", te}, {"wald", wd}, {"xwald", xwd},
+                            {"fit", fit}, {"vcov", vm}, {"resid", rs}, {"inst", in},
+                            {"dropped", dr}, {"dummies", du}, {"note", nt}, {"type", ty},
+                            {"trans", tr}, {"robust", rb}, {"small", sm}, {"level", lvs}}));
   Rf_classgets(out, PROTECT(Rf_mkString("gmmpnl")));
   UNPROTECT(np + 2);
   return out;
@@ -278,8 +287,11 @@ SEXP C_clab_r_wsctst(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP cons, SEXP ssc) 
 }
 
 SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, SEXP w,
-                     SEXP avg, SEXP level) {
+                     SEXP avg, SEXP ylag, SEXP lags, SEXP bias, SEXP pool, SEXP pvar,
+                     SEXP level) {
   clab::who = "ccepnl";
+  static const char *const bso[] = {"none", "jack", "rma"};
+  static const char *const pvo[] = {"pesaran", "bsw"};
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
   const int n = pn.n;
@@ -294,6 +306,16 @@ SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, 
       an.emplace_back(Rf_translateCharUTF8(STRING_ELT(avg, i)));
     }
   }
+  dpnd::copt co;
+  co.ylag = clab::whole(ylag, "ylag", 0);
+  if (co.ylag > 100) fail("`ylag` must be at most 100.");
+  if (!Rf_isNull(lags)) {
+    co.lags = clab::whole(lags, "lags", 0);
+    if (co.lags > 1000) fail("`lags` must be at most 1000.");
+  }
+  co.bias = csp::pick(bias, "bias", bso, 3);
+  co.pool = Rf_isNull(pool) ? -1 : csp::flag(pool, "pool");
+  co.pvar = csp::pick(pvar, "pvar", pvo, 2);
   const double lv = clab::one(level, "level", 0.0, 1.0);
   std::vector<double> wv;
   if (!Rf_isNull(w)) {
@@ -305,31 +327,47 @@ SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, 
   dpnd::cres o;
   int code = CLAB_OK;
   const std::string msg =
-      dpnd::cfit(plain(pn), xm, fm, cn, wv, Rf_isNull(avg), an, lv, o, code);
+      dpnd::cfit(plain(pn), xm, fm, cn, wv, Rf_isNull(avg), an, co, lv, o, code);
   done(msg, code);
-  const int k = xm.p, nu = pn.nu;
+  const int k = static_cast<int>(o.k), nu = pn.nu;
   SEXP mg = PROTECT(ctab(o.mg, false));
-  SEXP pl = PROTECT(ctab(o.pooled, false));
+  SEXP pl = PROTECT(o.pool ? ctab(o.pooled, false) : R_NilValue);
+  SEXP m0 = PROTECT(o.bias ? ctab(o.mg0, false) : R_NilValue);
   SEXP bm = PROTECT(rmat(o.bi, nu, k));
   SEXP dn = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(dn, 0, pn.ulev);
-  SET_VECTOR_ELT(dn, 1, strs(xm.nm));
+  SET_VECTOR_ELT(dn, 1, strs(o.nm));
   Rf_setAttrib(bm, R_DimNamesSymbol, dn);
-  SEXP vm1 = PROTECT(rmat(o.vmg, k, k)), vm2 = PROTECT(rmat(o.vp, k, k));
-  cols fs(5);
+  SEXP vm1 = PROTECT(rmat(o.vmg, k, k));
+  SEXP vm2 = PROTECT(o.pool ? rmat(o.vp, k, k) : R_NilValue);
+  SEXP vm0 = PROTECT(o.bias ? rmat(o.vmg0, k, k) : R_NilValue);
+  static const char *const hn[] = {"stat", "df", "p"};
+  static const char *const fn[] = {"er", "thr", "avg"};
+  double hv[3], fv[3];
+  for (int j = 0; j < 3; ++j) {
+    hv[j] = pevr::na(o.hb[j]);
+    fv[j] = pevr::na(o.nf[j]);
+  }
+  SEXP hb = PROTECT(o.pool ? clab::nvec(3, hn, hv) : R_NilValue);
+  SEXP nf = PROTECT(clab::nvec(3, fn, fv));
+  cols fs(7);
   dcol(fs, "units", {o.units});
   dcol(fs, "periods", {o.periods});
   dcol(fs, "k", {o.k});
   dcol(fs, "h", {o.h});
   dcol(fs, "n", {o.n});
+  dcol(fs, "lags", {o.lags});
+  dcol(fs, "ylag", {o.ylag});
   SEXP fit = PROTECT(fs.frame());
   SEXP wr = PROTECT(Rf_allocVector(REALSXP, nu));
   std::copy(o.w.begin(), o.w.end(), REAL(wr));
   Rf_setAttrib(wr, R_NamesSymbol, pn.ulev);
   SEXP lvs = PROTECT(Rf_ScalarReal(lv));
-  np += 9;
-  SEXP out = PROTECT(nlist({{"mg", mg}, {"pooled", pl}, {"bi", bm}, {"vmg", vm1}, {"vp", vm2},
-                            {"fit", fit}, {"w", wr}, {"level", lvs}}));
+  SEXP bs = PROTECT(Rf_mkString(bso[co.bias])), pvs = PROTECT(Rf_mkString(pvo[co.pvar]));
+  np += 15;
+  SEXP out = PROTECT(nlist({{"mg", mg}, {"pooled", pl}, {"mg0", m0}, {"bi", bm}, {"vmg", vm1},
+                            {"vp", vm2}, {"vmg0", vm0}, {"hb", hb}, {"nfac", nf}, {"fit", fit},
+                            {"w", wr}, {"bias", bs}, {"pvar", pvs}, {"level", lvs}}));
   Rf_classgets(out, PROTECT(Rf_mkString("ccepnl")));
   UNPROTECT(np + 2);
   return out;

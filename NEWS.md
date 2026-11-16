@@ -63,6 +63,29 @@
   vector"), in 31 functions (`calaud()`, `fairdf()`, `tmpaud()`,
   `lodimp()`, `trnmat()`, `fairsim()`, ...); it is now refused in the
   package's ("`area` must be a vector, got NULL.").
+* New: `ccepnl()` estimates dynamic heterogeneous panels as Chudik and
+  Pesaran (2015) set out: `ylag` lags of the outcome among the
+  regressors, `lags` lags of the cross-section averages (by default the
+  integer part of `T^(1/3)` when `ylag > 0`), the mean group estimator
+  and its variance, and the half-panel jackknife (`bias = "jack"`) or
+  recursive mean adjustment (`bias = "rma"`), with the uncorrected
+  estimate alongside in `mg0`. The pooled estimator is not made for
+  dynamic models (`pool`), as their theory is that of the mean group
+  estimator. Calls without the new arguments give the results they gave.
+
+* New: `ccepnl()` reports the heterogeneity-bias test of the pooled
+  estimator of Juodis and Reese (2026, `hb`) and the number of factors
+  the averages identify by their two regularized procedures (`nfac`),
+  and offers the fixed-T variance of the pooled estimator of Brown,
+  Schmidt and Wooldridge (2026, `pvar = "bsw"`). The help page sets out
+  the five lessons of Juodis and Reese and what each asks of a user.
+
+* New: `gmmpnl()` returns the residuals in levels (`resid`), for
+  Pesaran's test of cross-sectional dependence and Moran's I on each
+  year, and the joint test as xtabond2 prints it (`xwald`); its help page
+  maps each estimate and test of Andreatta et al. (2023) to a call and has
+  an example of their specification on simulated data.
+
 * Changed: `gmmpnl(small = TRUE)` now makes the small-sample corrections
   as xtabond2 3.7.2 computes them (Roodman 2009): the conventional
   one-step variance and `sigma2` times `w / (w - k)`, the robust and

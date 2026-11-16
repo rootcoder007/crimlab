@@ -4263,6 +4263,22 @@ int clab_wsctst(int n, int p, const double *y, const double *x, const int *u, co
 int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x, const double *w,
                 const double *d, int q, const int *av, double *bi, double *bmg, double *vmg,
                 double *bp, double *vp, int *bad);
+/* clab_ccepnl() with the additions of dynamic common correlated effects
+ * (Chudik and Pesaran 2015, doi:10.1016/j.jeconom.2015.03.007, eq 24):
+ * the averages kept enter H with their lags 1..p as well (p < nt), and
+ * unit i's regression is over the periods t flagged in rm (nu x nt, rm[i
+ * nt + t] non-zero; each flagged row observed in y and at least p). The
+ * columns of x whose averages are not kept (av 0) are read only on the
+ * flagged rows, so lags of y may stand among them. With pool 0 the pooled
+ * estimate is not made (bp and vp are NaN). hb (2): the heterogeneity-bias
+ * statistic of Juodis and Reese (2026, doi:10.1016/j.jeconom.2025.106120,
+ * case study 2) of the pooled estimate, NaN without it or when its
+ * variance is singular, and its degrees of freedom k. CLAB_EARG for sizes
+ * or rows out of range; otherwise as clab_ccepnl(). */
+int clab_ccedyn(int nu, int nt, int k, const double *y, const double *x, const double *w,
+                const double *d, int q, const int *av, int p, const int *rm, int pool,
+                double *bi, double *bmg, double *vmg, double *bp, double *vp, double *hb,
+                int *bad);
 
 #ifdef __cplusplus
 }
