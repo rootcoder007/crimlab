@@ -17,7 +17,7 @@ result draws it through `ptmap()`, given the points it was found in.
 ptmap(x, y = NULL, cl = NULL, ..., main = NULL, col = NULL, pal = NULL)
 
 # S3 method for class 'dbscn'
-plot(x, y, ..., main = NULL, col = NULL, pal = NULL)
+plot(x, y = NULL, ..., main = NULL, col = NULL, pal = NULL)
 ```
 
 ## Arguments
