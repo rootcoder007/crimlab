@@ -51,3 +51,25 @@ SEXP C_clab_r_ovrtxt(SEXP x, SEXP html) {
 }
 
 }  // extern "C"
+
+extern "C" {
+
+// ovrdte(): the first date in each text as YYYY-MM-DD, NA for none.
+SEXP C_clab_r_ovrdte(SEXP x) {
+  clab::who = "ovrdte";
+  const R_xlen_t n = XLENGTH(x);
+  SEXP out = PROTECT(Rf_allocVector(STRSXP, n));
+  char b[16];
+  for (R_xlen_t i = 0; i < n; ++i) {
+    SET_STRING_ELT(out, i, NA_STRING);
+    if (STRING_ELT(x, i) == NA_STRING) continue;
+    int64_t m = 0;
+    const char *s = u8(x, i, &m);
+    kc(clab_ovrdte(s, m, b));
+    if (b[0]) SET_STRING_ELT(out, i, Rf_mkChar(b));
+  }
+  UNPROTECT(1);
+  return out;
+}
+
+}  // extern "C"

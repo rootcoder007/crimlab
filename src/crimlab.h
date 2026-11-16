@@ -4604,6 +4604,12 @@ int clab_synfix(const double *dn, int k, int64_t n, uint32_t seed, int *code);
  * least n + 1 bytes) and its length *len. */
 int clab_ovrtxt(const char *s, int64_t n, int html, char *out, int64_t *len);
 
+/* The first date written in s (n bytes, UTF-8; ovrdte), in English or
+ * French ("January 5, 2023", "5 janvier 2023", "2023-01-05"), a day that
+ * does not exist passed over: out (11 bytes) YYYY-MM-DD and its NUL, or
+ * "" when there is none. */
+int clab_ovrdte(const char *s, int64_t n, char *out);
+
 #ifdef __cplusplus
 }
 #endif

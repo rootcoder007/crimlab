@@ -584,6 +584,7 @@ reference:
       every run.
     contents:
       - ovrtxt
+      - ovrdte
   - title: Shares
     desc: Each count as a share of its total, with Wilson intervals that stay inside 0 to 100.
     contents:

@@ -4,7 +4,7 @@
 // and a half days a day by hand, the sentence left; draws of synfix()
 // against R's (set.seed(1); sample.int(3, 4, TRUE); sample.int(1, 4,
 // TRUE); sample.int(7, 4, TRUE), less one: 0 2 0 1, 0 0 0 0, 1 2 2 0);
-// the presets; the text of a page; and the failure paths. Part of the self-test (selftest.cpp).
+// the presets; the text of a page; dates; and the failure paths. Part of the self-test (selftest.cpp).
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -64,6 +64,16 @@ void txt(tk &tt) {
   tk_ieq(tt, "ovr.txt.plain", static_cast<int>(len), static_cast<int>(std::strlen(h)));
 }
 
+void dte(tk &tt) {
+  // the impossible day passed over, the next date read
+  const char *a = "on February 30, 2023 or 5th of March, 2023";
+  char o[16];
+  tk_ieq(tt, "ovr.dte.rc", clab_ovrdte(a, static_cast<int64_t>(std::strlen(a)), o), CLAB_OK);
+  tk_true(tt, "ovr.dte", std::strcmp(o, "2023-03-05") == 0);
+  clab_ovrdte("May 2023", 8, o);
+  tk_ieq(tt, "ovr.dte.none", o[0], 0);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
@@ -71,4 +81,5 @@ void t_ovr(tk &t, int big) {
   psc(t);
   sfx(t);
   txt(t);
+  dte(t);
 }

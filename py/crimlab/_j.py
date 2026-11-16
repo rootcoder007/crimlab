@@ -7821,3 +7821,17 @@ def ovrtxt(x: Any, html: Any = None) -> Any:
     'WO #1\\n\\nWO #2'
     """
     return jcall("ovrtxt", x=x, html=html)
+
+
+def ovrdte(x: Any) -> Any:
+    """Dates written out in reports, as ISO dates.
+
+    The arguments and the result are those of R's ``ovrdte()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> ovrdte(x=["January 5, 2023", "5 janvier 2023", "no date"])
+    ['2023-01-05', '2023-01-05', None]
+    """
+    return jcall("ovrdte", x=x)

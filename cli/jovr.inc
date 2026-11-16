@@ -248,4 +248,18 @@ bool ovrtxt(Ctx &c, Val &out) {
   return true;
 }
 
+bool ovrdte(Ctx &c, Val &out) {
+  std::vector<std::string> s;
+  std::vector<char> m;
+  CK(otxt(c, "x", s, m));
+  Val v = varr();
+  for (std::size_t i = 0; i < s.size(); ++i) {
+    char b[16];
+    if (!m[i]) clab_ovrdte(s[i].data(), static_cast<int64_t>(s[i].size()), b);
+    v.a.push_back(m[i] || !b[0] ? Val() : vstr(b));
+  }
+  out = unbox(v);
+  return true;
+}
+
 }  // namespace ovr

@@ -1,5 +1,8 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrdte()` reads the first date written out in a text, in English
+  or French, as `YYYY-MM-DD`.
+
 * New: `ovrtxt()`, the plain text of a police oversight report's page,
   with each block on a line of its own so that section headings stand
   alone; the first of the tools that code oversight reports.

@@ -42,3 +42,25 @@ test_that("ovrtxt() refuses what is not text", {
   expect_error(ovrtxt("a", html = c(TRUE, FALSE)),
                "ovrtxt: `html` must be NA, TRUE or FALSE.", fixed = TRUE)
 })
+
+test_that("ovrdte() reads dates written out in English and French", {
+  x <- c("January 5, 2023", "Jan. 5th 2023", "5 January 2023",
+         "5th of January, 2023", "5 janvier 2023", "2023-01-05",
+         "le 1er février 2021", "3 AOÛT 2017", "SEPT. 9, 2019")
+  expect_identical(ovrdte(x),
+                   c(rep("2023-01-05", 6), "2021-02-01", "2017-08-03",
+                     "2019-09-09"))
+  # a day that does not exist is passed over; the next date is read
+  expect_identical(ovrdte("February 30, 2023, then March 2, 2023"),
+                   "2023-03-02")
+  expect_identical(ovrdte("February 29, 2024"), "2024-02-29")
+  expect_identical(ovrdte(c("May 2023", "no date", NA, "2023-13-01")),
+                   rep(NA_character_, 4))
+  expect_identical(ovrdte(character(0)), character(0))
+})
+
+test_that("ovrdte() refuses what is not text", {
+  expect_error(ovrdte(20230105),
+               "ovrdte: `x` must be text (a character vector), not numeric.",
+               fixed = TRUE)
+})

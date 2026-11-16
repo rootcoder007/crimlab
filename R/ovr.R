@@ -54,3 +54,30 @@ ovrtxt <- function(x, html = NA) {
   }
   html
 }
+
+#' Dates written out in reports, as ISO dates
+#'
+#' Finds the first date written in each text, in English or French, and
+#' gives it as `YYYY-MM-DD`, the form that sorts and that [as.Date()]
+#' reads. `"January 5, 2023"`, `"Jan. 5th 2023"`, `"5 January 2023"`,
+#' `"5th of January, 2023"`, `"5 janvier 2023"` and `"2023-01-05"` all
+#' give `"2023-01-05"`.
+#'
+#' Month names are English or French, whole or abbreviated (with or
+#' without a full stop), in any case, French accents optional; the day
+#' may carry an ordinal (`"1st"`, `"1er"`). A day that does not exist
+#' (`"February 30, 2023"`) is passed over, and the search goes on to the
+#' next date in the text. The reading never depends on the session's
+#' locale.
+#'
+#' @param x The texts: a character vector.
+#' @return A character vector the length of `x`: the first date of each
+#'   as `YYYY-MM-DD`, `NA` where there is none (or `x` is `NA`).
+#' @examples
+#' ovrdte(c("January 5, 2023", "le 1er février 2021", "no date"))
+#' ovrdte("On February 30, 2023 or rather March 2, 2023, the SIU ...")
+#' as.Date(ovrdte("Date: April 28, 2023"))
+#' @export
+ovrdte <- function(x) {
+  .Call(C_clab_r_ovrdte, .ovrin(x, "x", "ovrdte"))
+}
