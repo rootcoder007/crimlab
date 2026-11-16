@@ -2217,7 +2217,7 @@ extern "C" int clab_oomed(void) {
 
 extern "C" int clab_jrun(const char *fn, const char *in, char *out, int cap, int *need) {
   std::string res;
-  int rc;
+  int rc = CLAB_OK;
   kutil::oomtake();
 #if defined(__cpp_exceptions) || defined(_CPPUNWIND)
   // no exception crosses the C interface: a failed allocation here, or one
