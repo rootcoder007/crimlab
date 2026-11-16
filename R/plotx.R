@@ -133,9 +133,9 @@ plotfnl <- function(obs, expd, area = NULL, lvls = c(0.95, 0.998),
 #' @return Invisibly, a data frame of what was drawn: `grp`, `x` and `y`
 #'   (the density, or the share at or below), for `plotvln()` with the
 #'   quartiles as attribute `summary`; for `plothex()` the hexagon centres
-#'   `x`, `y` and `count`; for `plotgain()` `grp`, `pop` and `share`, with
-#'   the Gini per group as attribute `gini`. Values that are not finite are
-#'   left out.
+#'   `x`, `y` and `count`, by row of hexagons and then column; for
+#'   `plotgain()` `grp`, `pop` and `share`, with the Gini per group as
+#'   attribute `gini`. Values that are not finite are left out.
 #' @examples
 #' set.seed(1)
 #' x <- c(rnorm(100), rnorm(100, 2))
@@ -612,12 +612,13 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   d2 <- (sx - c2 - (r2 %% 2) / 2)^2 + (sy - r2 * h)^2
   rr <- ifelse(d1 <= d2, r1, r2)
   cc <- ifelse(d1 <= d2, c1, c2)
+  # the hexagons in order of row, then column, the same in every locale
   key <- paste(rr, cc)
-  tab <- table(key)
-  f <- match(names(tab), key)
+  f <- which(!duplicated(key))
+  f <- f[order(rr[f], cc[f])]
   data.frame(x = rx[1L] + (cc[f] + (rr[f] %% 2) / 2) / bins * diff(rx),
              y = ry[1L] + rr[f] * h / bins * diff(ry),
-             count = as.integer(tab))
+             count = tabulate(match(key, key[f]), length(f)))
 }
 
 .pser <- function(y, prd, grp, fn) {

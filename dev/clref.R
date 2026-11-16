@@ -2274,6 +2274,14 @@ bad("co2fp", loc = "CA-ON", devices = data.frame(kind = "gpu", vendor = "v",
 bad("co2fp", loc = "CA-ON", devices = data.frame(kind = "gpu", vendor = "v",
                                                   name = "n", how = "h",
                                                   watts = -1))
+ok("plothex", x = c(1, 2), y = c(2, 1))
+ok("plothex", x = c(dx, NA), y = c(rev(dx), 1), bins = 5)
+ok("plothex", x = c(1, 1, 1), y = c(2, 2, 2))
+ok("plothex", x = sin(1:300) * 10, y = cos((1:300) / 3) - 4, bins = 12)
+bad("plothex", x = 1:3, y = "a")
+bad("plothex", x = c(1, NA, 3), y = c(NA, 2, 4))
+bad("plothex", x = 1:3, y = 1:3, bins = 1)
+bad("plothex", x = 1, y = 1)
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

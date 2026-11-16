@@ -7619,3 +7619,19 @@ def co2fp(
         loadcur=loadcur, cores=cores, memgb=memgb, mempwrwpergb=mempwrwpergb, pue=pue,
         devices=devices, rapl=rapl, stat=stat,
     )
+
+
+def plothex(x: Any, y: Any, bins: Any = 30) -> Any:
+    """The rows of R's ``plothex()``, counts in hexagonal bins.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plothex()`` but its drawing arguments. The hexagons come in order
+    of row, then column, as in R.
+
+    Examples
+    --------
+    >>> r = plothex([1, 2], [2, 1])  # worked out by hand: rows 0 and 34
+    >>> r["x"], r["count"]
+    ([2.0, 1.0], [1.0, 1.0])
+    """
+    return jcall("plothex", x=x, y=y, bins=bins)

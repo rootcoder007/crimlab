@@ -85,6 +85,11 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `plothex()` returns its hexagons in order of row, then column, in every
+  locale (it ordered them by `table()` of text keys, which sorts in the
+  session's collation), and is in `clab_jrun()`, the command line and
+  Python with the same order.
+
 * `co2fp()` is in `clab_jrun()`, the command line and Python as the
   conversion it makes: the caller gives the wall and CPU seconds (and,
   where measured, the machine's CPU accounting and the RAPL counters
