@@ -4550,6 +4550,27 @@ int clab_gzend(const unsigned char *d, int64_t n, const unsigned char *t, int64_
  * from 1 are NUL and fewer than 10% of the others, -1 otherwise. */
 int clab_txtenc(const unsigned char *r, int64_t n, int *bom);
 
+/* ------------------------------------------------------------------------
+ * Kernel density (dens.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* stats::density(x, bw, adjust, kernel, weights, n = nout, from, to, cut)
+ * of R 4.4 and later: the bandwidth bw, or rule 1 nrd0, 2 nrd, 3 ucv, 4
+ * bcv, 5 SJ-ste, 6 SJ-dpi (rule 0: bw as given); kern 0 gaussian, 1
+ * epanechnikov, 2 rectangular, 3 triangular, 4 biweight, 5 cosine, 6
+ * optcosine; w NULL or nx weights (finite, from 0); from and to used when
+ * hasfrom and hasto. Values that are not finite are dropped. xo, yo: nout
+ * points and densities; st[0] the bandwidth (times adjust), st[1] the
+ * points of the FFT grid. CLAB_EARG for bad sizes, codes or weights, or no
+ * finite value; CLAB_EDOM with why 1 fewer than 2 values for a rule, 2
+ * constant data, 3 too sparse to find TD, 4 too sparse to find alph2, 5
+ * no solution in the range of bandwidths (SJ), 6 a bandwidth that is not
+ * finite, 7 one that is not positive, 8 from or to not finite. Agrees with
+ * R to rounding (its own radix-2 FFT). O(nx + n log n), O(nx^2) for the
+ * rules 3 to 6 with nx <= 500. */
+int clab_dens(const double *x, const double *w, int64_t nx, int rule, double bw, double adjust, int kern, int64_t nout,
+              double cut, int hasfrom, double from, int hasto, double to, double *xo, double *yo, double *st, int *why);
+
 #ifdef __cplusplus
 }
 #endif
