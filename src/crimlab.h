@@ -4194,24 +4194,31 @@ int clab_pcd(const double *e, int nu, int nt, double *out);
  * diagonal elements of H). The rows of the Arellano-Bond tests, the
  * differenced equations of each group in increasing period: dgo (ng + 1
  * offsets from 0 to nd), dt (nd) their period codes, yd (nd), xd (nd x k).
- * sub: NULL or m flags, 1 for the instruments the difference-in-Hansen
- * test leaves out. The inverses are Cholesky's, or the Moore-Penrose
- * inverse when a matrix is singular. Out: b (k) and v (k x k), of the
- * one-step estimate with its robust variance (steps 1) or of the two-step
- * estimate with its variance, corrected as Windmeijer (2005,
- * doi:10.1016/j.jeconom.2004.02.005) when wc is 1 (steps 2); st (5): the
- * Sargan statistic of the one-step residuals, Hansen's J of the two-step
- * estimate, J without the flagged instruments (weighted by the submatrix
- * of the full two-step moment variance; NaN without sub or when the rest
- * do not identify b), sigma^2, and 1 when a generalized inverse was used;
- * ar (nar): the Arellano-Bond z statistics of orders 1..nar (NaN when no
- * pair of rows is that far apart). CLAB_EDOM when a weight matrix is zero
- * or the instruments do not identify b; CLAB_EARG for sizes out of range
- * or when memory runs out. */
+ * sub: NULL or m flags, 1 for the instruments the difference tests leave
+ * out. The inverses are Cholesky's, or the Moore-Penrose inverse when a
+ * matrix is singular. Out: b (k) and v (k x k): with steps 1 the one-step
+ * estimate and its robust variance (rob 1) or sigma^2 (X'Z A Z'X)^-1 (rob
+ * 0); with steps 2 the two-step estimate and its variance, corrected as
+ * Windmeijer (2005, doi:10.1016/j.jeconom.2004.02.005) when rob is 1;
+ * st (6): the Sargan statistic of the one-step residuals, Hansen's J of
+ * the two-step estimate, J without the flagged instruments (weighted by
+ * the submatrix of the full two-step moment variance), sigma^2, 1 when a
+ * generalized inverse was used, and the Sargan statistic without the
+ * flagged instruments (weighted by the submatrix of Z'HZ); the two without
+ * are NaN without sub or when the rest do not identify b. ar (nar): the
+ * Arellano-Bond z statistics of orders 1..nar (NaN when no pair of rows
+ * is that far apart), with the error variance taken as sigma^2 H when
+ * steps is 1 and rob 0 (Roodman 2009, n. 19): then hdd holds, group by
+ * group, the nd_a x nd_a blocks of H between the differenced rows and hc
+ * the n_a x nd_a blocks between the stacked rows and them; otherwise hc
+ * and hdd may be NULL. CLAB_EDOM when a weight matrix is zero or the
+ * instruments do not identify b; CLAB_EARG for sizes out of range or
+ * when memory runs out. */
 int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const double *y, const double *x,
                 const double *z, const double *h, const int *eq, int nd, const int *dgo,
-                const int *dt, const double *yd, const double *xd, const int *sub, int steps,
-                int wc, int nar, double *b, double *v, double *st, double *ar);
+                const int *dt, const double *yd, const double *xd, const double *hc,
+                const double *hdd, const int *sub, int steps, int rob, int nar, double *b,
+                double *v, double *st, double *ar);
 /* Wooldridge's test of first-order serial correlation in a panel (Drukker
  * 2003, doi:10.1177/1536867X0300300206): n rows with unit codes u and
  * period codes t (one row per unit and period), y (n), x (n x p, p >= 0).
@@ -4228,18 +4235,28 @@ int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const double *y, con
 int clab_wsctst(int n, int p, const double *y, const double *x, const int *u, const int *t,
                 int cons, int raw, double *b, double *vb, double *out);
 /* Common correlated effects (Pesaran 2006, doi:10.1111/j.1468-0262.2006.00692.x)
- * on a balanced panel of nu units over nt periods: y (nt x nu, unit i at
- * y[i nt + t]), x (nt x nu x k, x[(j nu + i) nt + t]), the aggregation
+ * on a panel of nu units over nt periods: y (nt x nu, unit i at y[i nt +
+ * t], NaN where unit i is not observed in period t), x (nt x nu x k,
+ * x[(j nu + i) nt + t], read only where y is observed), the aggregation
  * weights w (nu, positive, summing to 1) and the observed common factors d
- * (nt x q, q >= 0). With H = (d, ybar_w, xbar_w) and M = I - H (H'H)^- H'
- * (eq 15), out: bi (k x nu) the unit estimates (X_i'M X_i)^-1 X_i'M y_i,
- * bmg (k) their mean (eq 53) and vmg (k x k) its variance, the variance of
- * eq 58 over nu; bp (k) the pooled estimate with theta_i = w_i (eq 65) and
- * vp (k x k) its variance (eqs 67-69). CLAB_EDOM when some X_i'M X_i, or
- * the pooled matrix, is singular, or a value is not finite. */
+ * (nt x q, q >= 0); av (k + 1): 1 to keep the average of y, then of each
+ * column of x, among the columns of H (all 1 for Pesaran's estimator;
+ * CLAB_EARG when q is 0 and none is kept). The averages of period t are
+ * over the units observed
+ * in it, their weights scaled to sum to 1 over them; with H = (d, ybar_w,
+ * xbar_w) and, for unit i, H_i its rows of H and M_i = I - H_i (H_i'H_i)^-
+ * H_i' (eq 15) over its own periods, out: bi (k x nu) the unit estimates
+ * (X_i'M_i X_i)^-1 X_i'M_i y_i, bmg (k) their mean (eq 53) and vmg (k x
+ * k) its variance, the variance of eq 58 over nu; bp (k) the pooled
+ * estimate (sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i (eq 65, theta_i =
+ * w_i) and vp (k x k) its variance (eqs 67-69, X_i'M_i X_i over unit i's
+ * number of periods). On a balanced panel these are Pesaran's. CLAB_EDOM
+ * when a period has fewer than two units (bad = -2 - the period), some
+ * X_i'M_i X_i is singular (bad = the unit), the pooled matrix is singular
+ * (bad = -1) or a value is not finite. */
 int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x, const double *w,
-                const double *d, int q, double *bi, double *bmg, double *vmg, double *bp,
-                double *vp);
+                const double *d, int q, const int *av, double *bi, double *bmg, double *vmg,
+                double *bp, double *vp, int *bad);
 
 #ifdef __cplusplus
 }

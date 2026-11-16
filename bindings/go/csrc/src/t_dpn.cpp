@@ -14,38 +14,45 @@
 
 namespace {
 
+// clab_gmmpnl without differenced rows (no Arellano-Bond tests)
+int g0(int n, int k, int m, int ng, const int *go, const double *y, const double *x,
+       const double *z, const double *h, const int *eq, const int *dgo, const int *sub, int s,
+       int rob, double *b, double *v, double *st) {
+  double ar[1];
+  return clab_gmmpnl(n, k, m, ng, go, y, x, z, h, eq, 0, dgo, nullptr, nullptr, nullptr, nullptr,
+                     nullptr, sub, s, rob, 0, b, v, st, ar);
+}
+
 void gmmjust(tk &tt) {
   // one row per group, H = 1: b = z'y / z'x = 5 / 3, e = (-2, 1, 2) / 3,
   // the scores z e = (-2, 0, 2) / 3, V = (8 / 9) / 3^2 at both steps and no
-  // correction, since Z'e = 0
+  // correction, since Z'e = 0; the conventional one-step variance is
+  // sigma^2 (z'x (z'z)^-1 z'x)^-1 = (1 / 3) / (9 / 2), sigma^2 = e'e / 3
   const int go[4] = {0, 1, 2, 3}, eq[3] = {1, 1, 1}, dgo[4] = {0, 0, 0, 0};
   const double y[3] = {1, 2, 4}, x[3] = {1, 1, 2}, z[3] = {1, 0, 1}, h[3] = {1, 1, 1};
-  double b[1], v[1], st[5], ar[1];
+  double b[1], v[1], st[6];
   for (int s = 1; s <= 2; ++s) {
-    tk_ieq(tt, "dpn.just.rc", clab_gmmpnl(3, 1, 1, 3, go, y, x, z, h, eq, 0, dgo, nullptr,
-                                          nullptr, nullptr, nullptr, s, 1, 0, b, v, st, ar),
+    tk_ieq(tt, "dpn.just.rc", g0(3, 1, 1, 3, go, y, x, z, h, eq, dgo, nullptr, s, 1, b, v, st),
            CLAB_OK);
     tk_near(tt, "dpn.just.b", b[0], 5.0 / 3, 1e-14);
     tk_near(tt, "dpn.just.v", v[0], 8.0 / 81, 1e-14);
     tk_near(tt, "dpn.just.j", st[1], 0, 1e-13);
     tk_near(tt, "dpn.just.s", st[0], 0, 1e-13);
+    g0(3, 1, 1, 3, go, y, x, z, h, eq, dgo, nullptr, s, 0, b, v, st);
+    tk_near(tt, "dpn.just.vn", v[0], s == 1 ? 2.0 / 27 : 8.0 / 81, 1e-14);
+    tk_near(tt, "dpn.just.sig", st[3], 1.0 / 3, 1e-14);
   }
-  tk_ieq(tt, "dpn.just.k", clab_gmmpnl(3, 2, 1, 3, go, y, x, z, h, eq, 0, dgo, nullptr, nullptr,
-                                       nullptr, nullptr, 1, 1, 0, b, v, st, ar),
+  tk_ieq(tt, "dpn.just.k", g0(3, 2, 1, 3, go, y, x, z, h, eq, dgo, nullptr, 1, 1, b, v, st),
          CLAB_EARG);
-  tk_ieq(tt, "dpn.just.steps", clab_gmmpnl(3, 1, 1, 3, go, y, x, z, h, eq, 0, dgo, nullptr,
-                                           nullptr, nullptr, nullptr, 3, 1, 0, b, v, st, ar),
+  tk_ieq(tt, "dpn.just.steps", g0(3, 1, 1, 3, go, y, x, z, h, eq, dgo, nullptr, 3, 1, b, v, st),
          CLAB_EARG);
   const int bad[4] = {0, 2, 1, 3};
-  tk_ieq(tt, "dpn.just.go", clab_gmmpnl(3, 1, 1, 3, bad, y, x, z, h, eq, 0, dgo, nullptr,
-                                        nullptr, nullptr, nullptr, 1, 1, 0, b, v, st, ar),
+  tk_ieq(tt, "dpn.just.go", g0(3, 1, 1, 3, bad, y, x, z, h, eq, dgo, nullptr, 1, 1, b, v, st),
          CLAB_EARG);
   const double z0[3] = {0, 0, 0}, xn[3] = {1, NAN, 2};
-  tk_ieq(tt, "dpn.just.zero", clab_gmmpnl(3, 1, 1, 3, go, y, x, z0, h, eq, 0, dgo, nullptr,
-                                          nullptr, nullptr, nullptr, 1, 1, 0, b, v, st, ar),
+  tk_ieq(tt, "dpn.just.zero", g0(3, 1, 1, 3, go, y, x, z0, h, eq, dgo, nullptr, 1, 1, b, v, st),
          CLAB_EDOM);
-  tk_ieq(tt, "dpn.just.nan", clab_gmmpnl(3, 1, 1, 3, go, y, xn, z, h, eq, 0, dgo, nullptr,
-                                         nullptr, nullptr, nullptr, 1, 1, 0, b, v, st, ar),
+  tk_ieq(tt, "dpn.just.nan", g0(3, 1, 1, 3, go, y, xn, z, h, eq, dgo, nullptr, 1, 1, b, v, st),
          CLAB_EDOM);
 }
 
@@ -55,9 +62,8 @@ void gmmover(tk &tt) {
   const int go[5] = {0, 1, 2, 3, 4}, eq[4] = {1, 1, 1, 1}, dgo[5] = {0, 0, 0, 0, 0};
   const double y[4] = {2, 3, 7, 1}, x[4] = {1, 2, 3, 1}, z[8] = {1, 0, 1, 0, 0, 1, 0, 1},
                h[4] = {1, 1, 1, 1};
-  double b[1], v[1], st[5], ar[1];
-  tk_ieq(tt, "dpn.over.rc1", clab_gmmpnl(4, 1, 2, 4, go, y, x, z, h, eq, 0, dgo, nullptr,
-                                         nullptr, nullptr, nullptr, 1, 1, 0, b, v, st, ar),
+  double b[1], v[1], st[6];
+  tk_ieq(tt, "dpn.over.rc1", g0(4, 1, 2, 4, go, y, x, z, h, eq, dgo, nullptr, 1, 1, b, v, st),
          CLAB_OK);
   const double b1 = (4.0 * 9 / 2 + 3.0 * 4 / 2) / (16.0 / 2 + 9.0 / 2);
   tk_near(tt, "dpn.over.b1", b[0], b1, 1e-14);
@@ -78,21 +84,22 @@ void gmmover(tk &tt) {
   const double j = (9 - 4 * b2) * (9 - 4 * b2) / s1 + (4 - 3 * b2) * (4 - 3 * b2) / s2;
   tk_near(tt, "dpn.over.hansen", st[1], j, 1e-12);
   tk_near(tt, "dpn.over.sigma", st[3], ss / 4, 1e-14);
-  clab_gmmpnl(4, 1, 2, 4, go, y, x, z, h, eq, 0, dgo, nullptr, nullptr, nullptr, nullptr, 2, 0, 0,
-              b, v, st, ar);
+  g0(4, 1, 2, 4, go, y, x, z, h, eq, dgo, nullptr, 1, 0, b, v, st);
+  tk_near(tt, "dpn.over.v1n", v[0], ss / 4 / m1, 1e-14);
+  g0(4, 1, 2, 4, go, y, x, z, h, eq, dgo, nullptr, 2, 0, b, v, st);
   tk_near(tt, "dpn.over.b2", b[0], b2, 1e-13);
   tk_near(tt, "dpn.over.v2", v[0], 1 / (16.0 / s1 + 9.0 / s2), 1e-13);
   tk_true(tt, "dpn.over.gen", st[4] == 0);
   // the corrected variance differs from the uncorrected one here
   double vc[1];
-  clab_gmmpnl(4, 1, 2, 4, go, y, x, z, h, eq, 0, dgo, nullptr, nullptr, nullptr, nullptr, 2, 1, 0,
-              b, vc, st, ar);
+  g0(4, 1, 2, 4, go, y, x, z, h, eq, dgo, nullptr, 2, 1, b, vc, st);
   tk_true(tt, "dpn.over.wc", std::fabs(vc[0] - v[0]) > 1e-8);
-  // leaving the second instrument out leaves one: J without it is 0
+  // leaving the second instrument out leaves one: both statistics without
+  // it are 0
   const int sub[2] = {0, 1};
-  clab_gmmpnl(4, 1, 2, 4, go, y, x, z, h, eq, 0, dgo, nullptr, nullptr, nullptr, sub, 2, 1, 0, b,
-              vc, st, ar);
+  g0(4, 1, 2, 4, go, y, x, z, h, eq, dgo, sub, 2, 1, b, vc, st);
   tk_near(tt, "dpn.over.hx", st[2], 0, 1e-12);
+  tk_near(tt, "dpn.over.sx", st[5], 0, 1e-12);
 }
 
 void wsct(tk &tt) {
@@ -131,7 +138,10 @@ void cce(tk &tt) {
     y[i] = 2 * x[i];
   }
   double bi[3], bmg[1], vmg[1], bp[1], vp[1];
-  tk_ieq(tt, "dpn.cce.rc", clab_ccepnl(nu, nt, 1, y, x, w, d, 1, bi, bmg, vmg, bp, vp), CLAB_OK);
+  int bad = 0;
+  const int av[2] = {1, 1}, nav[2] = {0, 0};
+  tk_ieq(tt, "dpn.cce.rc", clab_ccepnl(nu, nt, 1, y, x, w, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
+         CLAB_OK);
   tk_near(tt, "dpn.cce.bi", bi[2], 2, 1e-12);
   tk_near(tt, "dpn.cce.bmg", bmg[0], 2, 1e-12);
   tk_near(tt, "dpn.cce.bp", bp[0], 2, 1e-12);
@@ -140,11 +150,34 @@ void cce(tk &tt) {
   // x the same in every unit is x's average: nothing is left of it
   double xs[18];
   for (int i = 0; i < 18; ++i) xs[i] = x[i % 6];
-  tk_ieq(tt, "dpn.cce.flat", clab_ccepnl(nu, nt, 1, y, xs, w, d, 1, bi, bmg, vmg, bp, vp),
+  tk_ieq(tt, "dpn.cce.flat", clab_ccepnl(nu, nt, 1, y, xs, w, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
          CLAB_EDOM);
+  tk_ieq(tt, "dpn.cce.badu", bad, 0);
+  // unit 2 not seen in periods 0 and 5: still y = 2 x on its four periods;
+  // period 0 then has two units, and without unit 1 there it has one
+  double yu[18];
+  for (int i = 0; i < 18; ++i) yu[i] = y[i];
+  yu[12] = yu[17] = NAN;
+  tk_ieq(tt, "dpn.cce.unb", clab_ccepnl(nu, nt, 1, yu, x, w, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
+         CLAB_OK);
+  tk_near(tt, "dpn.cce.unb2", bi[2], 2, 1e-12);
+  tk_near(tt, "dpn.cce.unbp", bp[0], 2, 1e-12);
+  yu[6] = NAN;
+  tk_ieq(tt, "dpn.cce.per", clab_ccepnl(nu, nt, 1, yu, x, w, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
+         CLAB_EDOM);
+  tk_ieq(tt, "dpn.cce.badp", bad, -2);
   const double w2[3] = {0.5, 0.5, 0.5};
-  tk_ieq(tt, "dpn.cce.w", clab_ccepnl(nu, nt, 1, y, x, w2, d, 1, bi, bmg, vmg, bp, vp), CLAB_EDOM);
-  tk_ieq(tt, "dpn.cce.n", clab_ccepnl(1, nt, 1, y, x, w, d, 1, bi, bmg, vmg, bp, vp), CLAB_EARG);
+  tk_ieq(tt, "dpn.cce.w", clab_ccepnl(nu, nt, 1, y, x, w2, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
+         CLAB_EDOM);
+  // no average and no factor: nothing to take out
+  tk_ieq(tt, "dpn.cce.none", clab_ccepnl(nu, nt, 1, y, x, w, d, 0, nav, bi, bmg, vmg, bp, vp, &bad),
+         CLAB_EARG);
+  // the average of x alone still leaves y = 2 x exact
+  const int ax[2] = {0, 1};
+  clab_ccepnl(nu, nt, 1, y, x, w, d, 1, ax, bi, bmg, vmg, bp, vp, &bad);
+  tk_near(tt, "dpn.cce.avx", bmg[0], 2, 1e-12);
+  tk_ieq(tt, "dpn.cce.n", clab_ccepnl(1, nt, 1, y, x, w, d, 1, av, bi, bmg, vmg, bp, vp, &bad),
+         CLAB_EARG);
 }
 
 }  // namespace

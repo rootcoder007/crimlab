@@ -15,12 +15,13 @@
   Bond 1991, Arellano and Bover 1995, Blundell and Bond 1998, with the
   instruments of Roodman 2009), one-step and two-step, first differences
   or forward orthogonal deviations, GMM-style instruments with lag limits
-  and collapsing, IV-style instruments, the robust one-step variance and
-  Windmeijer's corrected two-step variance, the Arellano-Bond tests, the
+  and collapsing, IV-style instruments, the robust or conventional
+  one-step variance and Windmeijer's corrected or the uncorrected two-step
+  variance, small-sample t and F statistics, a joint Wald or F test, the Arellano-Bond tests, the
   Sargan, Hansen and difference-in-Hansen tests and the instrument count;
   Wooldridge's test of serial correlation (`wsctst()`, Drukker 2003); and
   the common correlated effects mean group and pooled estimators
-  (`ccepnl()`, Pesaran 2006). They are not yet in `clab_jrun()`, the
+  (`ccepnl()`, Pesaran 2006), on balanced and unbalanced panels. They are not yet in `clab_jrun()`, the
   command line or Python.
 * Panels with a repeated unit and period are found by sorting the rows,
   not with a grid of units by periods, which for many units and periods

@@ -19,6 +19,7 @@
 
 #include "crimlab.h"
 #include "kutil.h"
+#include "pev.h"
 #include "pevr.h"
 #include "rchk.h"
 #include "spin.h"
@@ -26,6 +27,8 @@
 extern "C" double Rf_pnorm5(double, double, double, int, int);
 extern "C" double Rf_pchisq(double, double, int, int);
 extern "C" double Rf_pf(double, double, double, int, int);
+extern "C" double Rf_pt(double, double, int, int);
+extern "C" double Rf_qt(double, double, int, int);
 
 using clab::fail;
 using pevr::cols;
@@ -75,6 +78,7 @@ struct idx {
 // What gmmpnl() was asked for.
 struct spec {
   int ylag = 1, sys = 1, fod = 0, coll = 0, cons = 1, tdum = 1, hm = 0;
+  int sig = 0;  // the sigma^2 H blocks of the Arellano-Bond tests are needed
   std::vector<int> gv, lo, hi;  // the GMM-style variables (-1: y) and lags
   std::vector<int> iv;          // the columns of x that are IV-style
 };
@@ -83,7 +87,7 @@ struct spec {
 struct dsg {
   int n = 0, k = 0, m = 0, ng = 0, nd = 0, nobs = 0, omin = 0, omax = 0;
   std::vector<int> go, eq, dgo, dt, sub, grp;
-  std::vector<double> y, x, z, h, yd, xd;
+  std::vector<double> y, x, z, h, yd, xd, hc, hdd;
   std::vector<std::string> xn, zn, drop, dum;
   std::string bad;
   double big = 0;
@@ -431,6 +435,30 @@ int build(const pevr::pan &pn, const pevr::mat &xm, const pevr::mat &zx, const s
     }
     d.h.insert(d.h.end(), hb.begin(), hb.end());
     for (int r = 0; r < ni; ++r) d.eq.push_back(r < nta);
+    if (sp.sig) {
+      // the covariances, over sigma^2, of the stacked rows and the
+      // differenced rows with independent homoskedastic errors (Roodman
+      // 2009, n. 19): the transformed rows weigh the level rows by wm, a
+      // level row is itself, a difference is +1 and -1 on two of them
+      std::vector<int> jd;
+      for (int j = 1; j < nla; ++j) {
+        if (w.ls[z(l0 + j)] == w.ls[z(l0 + j - 1)] + 1) jd.push_back(j);
+      }
+      const int ndg = static_cast<int>(jd.size());
+      for (int s = 0; s < ndg; ++s) {
+        const int j = jd[z(s)];
+        for (int r = 0; r < nta; ++r) {
+          d.hc.push_back(wm[z(j) * z(nta) + z(r)] - wm[z(j - 1) * z(nta) + z(r)]);
+        }
+        for (int r = 0; r < ni - nta; ++r) d.hc.push_back(r == j ? 1.0 : r == j - 1 ? -1.0 : 0.0);
+      }
+      for (int s = 0; s < ndg; ++s) {
+        for (int e = 0; e < ndg; ++e) {
+          const int dj = jd[z(s)] - jd[z(e)];
+          d.hdd.push_back(dj == 0 ? 2.0 : dj == 1 || dj == -1 ? -1.0 : 0.0);
+        }
+      }
+    }
     // the differenced rows of the Arellano-Bond tests
     d.dgo.push_back(static_cast<int>(d.dt.size()));
     for (int j = l0 + 1; j < l0 + nla; ++j) {
@@ -508,22 +536,57 @@ std::vector<int> lags(SEXP s, const char *an, int nv, int lo, bool inf) {
 
 // A coefficient table with normal intervals.
 SEXP cframe(const std::vector<std::string> &nm, const double *b, const double *v, int k,
-            double lv) {
-  const double q = Rf_qnorm5(1 - (1 - lv) / 2, 0.0, 1.0, 1, 0);
+            double lv, double df = 0) {
+  const double q = df > 0 ? Rf_qt(1 - (1 - lv) / 2, df, 1, 0)
+                          : Rf_qnorm5(1 - (1 - lv) / 2, 0.0, 1.0, 1, 0);
   cols co(7);
   SEXP ct = co.str("term", k);
-  double *ce = co.dbl("est", k), *cs = co.dbl("se", k), *cz = co.dbl("z", k),
+  double *ce = co.dbl("est", k), *cs = co.dbl("se", k), *cz = co.dbl(df > 0 ? "t" : "z", k),
          *cp = co.dbl("p", k), *cl = co.dbl("lo", k), *ch = co.dbl("hi", k);
   for (int j = 0; j < k; ++j) {
     SET_STRING_ELT(ct, j, Rf_mkCharCE(nm[z(j)].c_str(), CE_UTF8));
     ce[j] = b[j];
     cs[j] = std::sqrt(v[z(j) * z(k) + z(j)]);
     cz[j] = ce[j] / cs[j];
-    cp[j] = pevr::na(2 * Rf_pnorm5(-std::fabs(cz[j]), 0.0, 1.0, 1, 0));
+    cp[j] = pevr::na(df > 0 ? 2 * Rf_pt(-std::fabs(cz[j]), df, 1, 0)
+                            : 2 * Rf_pnorm5(-std::fabs(cz[j]), 0.0, 1.0, 1, 0));
     cl[j] = ce[j] - q * cs[j];
     ch[j] = ce[j] + q * cs[j];
   }
   return co.frame();
+}
+
+// The joint Wald test of the coefficients other than the constant:
+// chi-squared on q degrees of freedom, or with df2 > 0 F = W / q on q and
+// df2.
+SEXP wald(const std::vector<std::string> &nm, const std::vector<double> &b,
+          const std::vector<double> &v, int k, double df2) {
+  std::vector<int> j;
+  for (int i = 0; i < k; ++i) {
+    if (nm[z(i)] != "(const)") j.push_back(i);
+  }
+  const int q = static_cast<int>(j.size());
+  std::vector<double> a(z(q) * z(q)), ai(z(q) * z(q));
+  for (int r = 0; r < q; ++r) {
+    for (int c = 0; c < q; ++c) a[z(c) * z(q) + z(r)] = v[z(j[z(c)]) * z(k) + z(j[z(r)])];
+  }
+  double w = NAN;
+  if (q > 0 && pev::chol(a.data(), q)) {
+    pev::cinv(a.data(), q, ai.data());
+    w = 0.0;
+    for (int r = 0; r < q; ++r) {
+      for (int c = 0; c < q; ++c) w += b[z(j[z(r)])] * ai[z(c) * z(q) + z(r)] * b[z(j[z(c)])];
+    }
+  }
+  cols o(5);
+  SEXP tn = o.str("test", 1);
+  double *os = o.dbl("stat", 1), *o1 = o.dbl("df1", 1), *o2 = o.dbl("df2", 1), *op = o.dbl("p", 1);
+  SET_STRING_ELT(tn, 0, Rf_mkChar(df2 > 0 ? "F" : "Wald"));
+  os[0] = pevr::na(df2 > 0 ? w / q : w);
+  o1[0] = q;
+  o2[0] = df2 > 0 ? df2 : NA_REAL;
+  op[0] = std::isnan(w) ? NA_REAL : df2 > 0 ? Rf_pf(w / q, q, df2, 0, 0) : Rf_pchisq(w, q, 0, 0);
+  return o.frame();
 }
 
 SEXP strs(const std::vector<std::string> &v) {
@@ -583,7 +646,8 @@ void gopts(spec &sp, const pevr::mat &xm, SEXP ylag, SEXP gmm, SEXP iv, SEXP lmi
 }
 
 // The tests of a gmmpnl() result.
-SEXP gtests(const double *st, const double *ar, int nar, int m, int k, int msub, bool sys) {
+SEXP gtests(const double *st, const double *ar, int nar, int m, int k, int msub, bool sys,
+            bool sarg) {
   const int nr = nar + 2 + (sys ? 2 : 0);
   cols c(4);
   SEXP tn = c.str("test", nr);
@@ -594,8 +658,12 @@ SEXP gtests(const double *st, const double *ar, int nar, int m, int k, int msub,
     df[l] = NA_REAL;
     pp[l] = std::isnan(ar[l]) ? NA_REAL : 2 * Rf_pnorm5(-std::fabs(ar[l]), 0.0, 1.0, 1, 0);
   }
-  const double hx = st[2], dif = st[1] - st[2];
-  const char *nm[] = {"Sargan", "Hansen", "Hansen without level GMM", "Difference-in-Hansen"};
+  // the difference test of the reported overidentification statistic:
+  // Sargan's with the conventional one-step variance, Hansen's otherwise
+  const double hx = sarg ? st[5] : st[2], dif = (sarg ? st[0] : st[1]) - hx;
+  const char *nm[] = {"Sargan", "Hansen",
+                      sarg ? "Sargan without level GMM" : "Hansen without level GMM",
+                      sarg ? "Difference-in-Sargan" : "Difference-in-Hansen"};
   const double sv[] = {st[0], st[1], hx, dif};
   const double dv[] = {static_cast<double>(m - k), static_cast<double>(m - k),
                        static_cast<double>(m - msub - k), static_cast<double>(msub)};
@@ -619,7 +687,8 @@ extern "C" {
 //' @noRd
 SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, SEXP iv,
                      SEXP zz, SEXP lmin, SEXP lmax, SEXP coll, SEXP type, SEXP trans, SEXP steps,
-                     SEXP wc, SEXP hmat, SEXP cons, SEXP tdum, SEXP ar, SEXP level) {
+                     SEXP robust, SEXP wc, SEXP small, SEXP hmat, SEXP cons, SEXP tdum, SEXP ar,
+                     SEXP level) {
   clab::who = "gmmpnl";
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
@@ -629,7 +698,20 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   gopts(sp, xm, ylag, gmm, iv, lmin, lmax, coll, type, trans, hmat, cons, tdum);
   const int ns = clab::whole(steps, "steps", 1);
   if (ns > 2) fail("`steps` must be 1 or 2.");
-  const bool wcr = csp::flag(wc, "wc");
+  // the two-step variance is Windmeijer's with robust = TRUE and
+  // uncorrected with robust = FALSE; wc, when given, must say the same
+  const bool rob = csp::flag(robust, "robust");
+  if (!Rf_isNull(wc)) {
+    const bool wcr = csp::flag(wc, "wc");
+    if (ns == 1) fail("`wc` corrects the two-step variance: give it with `steps = 2`.");
+    if (wcr != rob) {
+      fail("`wc = %s` contradicts `robust = %s`: the two-step variance is Windmeijer's with "
+           "`robust = TRUE` and uncorrected with `robust = FALSE`.",
+           wcr ? "TRUE" : "FALSE", rob ? "TRUE" : "FALSE");
+    }
+  }
+  const bool sml = csp::flag(small, "small");
+  sp.sig = ns == 1 && !rob;
   const int nar = clab::whole(ar, "ar", 0);
   if (nar > 100) fail("`ar` must be at most 100.");
   const double lv = clab::one(level, "level", 0.0, 1.0);
@@ -659,11 +741,13 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   if (d.m < d.k) fail("the %d instruments are fewer than the %d coefficients.", d.m, d.k);
   int msub = 0;
   for (int f : d.sub) msub += f;
-  std::vector<double> b(z(d.k)), v(z(d.k) * z(d.k)), st(5), av(z(nar));
+  std::vector<double> b(z(d.k)), v(z(d.k) * z(d.k)), st(6), av(z(nar));
   const int rc = clab_gmmpnl(d.n, d.k, d.m, d.ng, d.go.data(), d.y.data(), d.x.data(), d.z.data(),
                              d.h.data(), d.eq.data(), d.nd, d.dgo.data(), d.dt.data(),
-                             d.yd.data(), d.xd.data(), sp.sys && msub ? d.sub.data() : nullptr,
-                             ns, wcr ? 1 : 0, nar, b.data(), v.data(), st.data(), av.data());
+                             d.yd.data(), d.xd.data(), sp.sig ? d.hc.data() : nullptr,
+                             sp.sig ? d.hdd.data() : nullptr,
+                             sp.sys && msub ? d.sub.data() : nullptr, ns, rob ? 1 : 0, nar,
+                             b.data(), v.data(), st.data(), av.data());
   intr(rc);
   if (rc == CLAB_EDOM) {
     fail("the instruments do not identify the coefficients, or the moments of the residuals "
@@ -680,8 +764,26 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
     note.push_back("a weight matrix was singular: a generalized inverse was used, and the "
                    "difference-in-Hansen statistic may be negative.");
   }
-  SEXP coef = PROTECT(cframe(d.xn, b.data(), v.data(), d.k, lv));
-  SEXP te = PROTECT(gtests(st.data(), av.data(), nar, d.m, d.k, msub, sp.sys));
+  // small (Roodman 2009, p. 123: "small requests small-sample corrections
+  // to the covariance matrix estimate, resulting in t-test instead of
+  // z-test statistics for the coefficients and an F test instead of a
+  // Wald chi2 test for overall fit"): the degrees of freedom are the
+  // groups less one when a constant is estimated, as the paper's outputs
+  // print them (F(16, 140) for 140 groups without a constant, p. 113;
+  // F(12, 139) with one, p. 118); the paper gives no formula for the
+  // covariance's correction, and n / (n - k) of the rows reported is this
+  // function's choice
+  const bool hasc = std::find(d.xn.begin(), d.xn.end(), "(const)") != d.xn.end();
+  const double dfr = sml ? d.ng - (hasc ? 1.0 : 0.0) : 0.0;
+  if (sml) {
+    if (d.nobs <= d.k) {
+      fail("`small = TRUE` needs more rows (%d) than coefficients (%d).", d.nobs, d.k);
+    }
+    for (double &e : v) e *= static_cast<double>(d.nobs) / (d.nobs - d.k);
+  }
+  SEXP coef = PROTECT(cframe(d.xn, b.data(), v.data(), d.k, lv, dfr));
+  SEXP te = PROTECT(gtests(st.data(), av.data(), nar, d.m, d.k, msub, sp.sys, sp.sig));
+  SEXP wd = PROTECT(wald(d.xn, b, v, d.k, dfr));
   cols fs(9);
   double *fn = fs.dbl("n", 1), *fg = fs.dbl("groups", 1), *fi = fs.dbl("inst", 1),
          *f0 = fs.dbl("omin", 1), *fa = fs.dbl("oavg", 1), *f1 = fs.dbl("omax", 1),
@@ -707,10 +809,12 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   static const char *const tro[] = {"fd", "fod"};
   SEXP ty = PROTECT(Rf_mkString(tyo[sp.sys ? 0 : 1])), tr = PROTECT(Rf_mkString(tro[sp.fod]));
   SEXP lvs = PROTECT(Rf_ScalarReal(lv));
-  np += 12;
-  SEXP out = PROTECT(nlist({{"coef", coef}, {"tests", te}, {"fit", fit}, {"vcov", vm},
-                            {"inst", in}, {"dropped", dr}, {"dummies", du}, {"note", nt},
-                            {"type", ty}, {"trans", tr}, {"level", lvs}}));
+  SEXP rb = PROTECT(Rf_ScalarLogical(rob)), sm = PROTECT(Rf_ScalarLogical(sml));
+  np += 15;
+  SEXP out = PROTECT(nlist({{"coef", coef}, {"tests", te}, {"wald", wd}, {"fit", fit},
+                            {"vcov", vm}, {"inst", in}, {"dropped", dr}, {"dummies", du},
+                            {"note", nt}, {"type", ty}, {"trans", tr}, {"robust", rb},
+                            {"small", sm}, {"level", lvs}}));
   Rf_classgets(out, PROTECT(Rf_mkString("gmmpnl")));
   UNPROTECT(np + 2);
   return out;
@@ -761,27 +865,60 @@ SEXP C_clab_r_wsctst(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP cons, SEXP ssc) 
 }
 
 SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, SEXP w,
-                     SEXP level) {
+                     SEXP avg, SEXP level) {
   clab::who = "ccepnl";
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
   const int n = pn.n, nu = pn.nu, nt = pn.nt;
-  if (static_cast<double>(nu) * nt != n) {
-    fail("the panel must be balanced: every unit in every period (Pesaran 2006 sets the "
-         "estimators out for such a panel).");
-  }
   const pevr::mat xm = pevr::readm(x, "x", "x", n, clab::ninf);
   const int k = xm.p;
   if (k > mmax) fail("`x` must have at most %d columns.", mmax);
   const pevr::mat fm = Rf_isNull(fac) ? pevr::mat() : pevr::readm(fac, "fac", "f", n, clab::ninf);
   const int cn = csp::flag(cons, "cons"), q = cn + fm.p;
-  if (q + 1 + 2 * k > nt) {
-    fail("the %d periods must be at least the %d averages and observed factors and twice the "
-         "%d regressors together.",
-         nt, q + 1 + k, k);
+  // the averages kept: y, then the columns of x
+  std::vector<int> av(z(k) + 1, Rf_isNull(avg) ? 1 : 0);
+  if (!Rf_isNull(avg)) {
+    if (TYPEOF(avg) != STRSXP) fail("`avg` must be names: y or columns of `x`.");
+    for (R_xlen_t i = 0; i < XLENGTH(avg); ++i) {
+      if (STRING_ELT(avg, i) == NA_STRING) fail("`avg` must not hold NA.");
+      const std::string v = Rf_translateCharUTF8(STRING_ELT(avg, i));
+      const auto it = std::find(xm.nm.begin(), xm.nm.end(), v);
+      if (v != "y" && it == xm.nm.end()) {
+        fail("`avg` names %s, which is neither y nor a column of `x`.", v.c_str());
+      }
+      av[v == "y" ? 0 : z(static_cast<int>(it - xm.nm.begin()) + 1)] = 1;
+    }
   }
+  int na = 0;
+  for (int f : av) na += f;
+  if (q + na == 0) fail("nothing is taken out: keep an average in `avg`, or give `cons` or `fac`.");
   const double lv = clab::one(level, "level", 0.0, 1.0);
-  std::vector<double> wv(z(nu), 1.0 / nu), d(z(nt) * z(q), 1.0), yy(z(n)), xx(z(n) * z(k));
+  // the grid of units by periods, unobserved cells NaN
+  const double cells = static_cast<double>(nu) * nt;
+  if (cells * (k + 1) > cap) {
+    fail("the units by periods (%.0f cells) are too many for the averages.", cells);
+  }
+  std::vector<int> tu(z(nu), 0), ut(z(nt), 0);
+  for (int i = 0; i < n; ++i) {
+    ++tu[z(pn.u[z(i)])];
+    ++ut[z(pn.t[z(i)])];
+  }
+  for (int t = 0; t < nt; ++t) {
+    if (ut[z(t)] < 2) {
+      fail("period %s has one unit: its cross-section averages need two or more.",
+           pv(pn.tv[z(t)]).c_str());
+    }
+  }
+  const int need = q + na + 2 * k;
+  for (int a = 0; a < nu; ++a) {
+    if (tu[z(a)] < need) {
+      fail("unit %s has %d periods: its regression on the regressors, the averages and the "
+           "observed factors needs at least %d.",
+           Rf_translateCharUTF8(STRING_ELT(pn.ulev, a)), tu[z(a)], need);
+    }
+  }
+  std::vector<double> wv(z(nu), 1.0 / nu), d(z(nt) * z(q), 1.0), yy(z(nu) * z(nt), NAN),
+      xx(z(nu) * z(nt) * z(k), 0.0);
   std::vector<char> seen(z(nt), 0), useen(z(nu), 0);
   if (!Rf_isNull(w)) {
     clab::vec(w, "w");
@@ -815,13 +952,15 @@ SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, 
     seen[z(t)] = 1;
   }
   std::vector<double> bi(z(k) * z(nu)), bmg(z(k)), vmg(z(k) * z(k)), bp(z(k)), vp(z(k) * z(k));
-  const int rc = clab_ccepnl(nu, nt, k, yy.data(), xx.data(), wv.data(), d.data(), q, bi.data(),
-                             bmg.data(), vmg.data(), bp.data(), vp.data());
+  int bad = -1;
+  const int rc = clab_ccepnl(nu, nt, k, yy.data(), xx.data(), wv.data(), d.data(), q, av.data(),
+                             bi.data(), bmg.data(), vmg.data(), bp.data(), vp.data(), &bad);
   intr(rc);
-  if (rc == CLAB_EDOM) {
-    fail("a unit's regressors are collinear once the cross-section averages are taken out, "
-         "or the pooled matrix is singular.");
+  if (rc == CLAB_EDOM && bad >= 0) {
+    fail("unit %s: its regressors are collinear once the cross-section averages are taken out.",
+         Rf_translateCharUTF8(STRING_ELT(pn.ulev, bad)));
   }
+  if (rc == CLAB_EDOM) fail("the pooled matrix of the regressors is singular.");
   if (rc != CLAB_OK) fail("the estimation could not be run: out of memory.");
   SEXP mg = PROTECT(cframe(xm.nm, bmg.data(), vmg.data(), k, lv));
   SEXP pl = PROTECT(cframe(xm.nm, bp.data(), vp.data(), k, lv));
@@ -835,13 +974,14 @@ SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, 
   SET_VECTOR_ELT(dn, 1, strs(xm.nm));
   Rf_setAttrib(bm, R_DimNamesSymbol, dn);
   SEXP vm1 = PROTECT(rmat(vmg, k, k)), vm2 = PROTECT(rmat(vp, k, k));
-  cols fs(4);
+  cols fs(5);
   double *fu = fs.dbl("units", 1), *ft = fs.dbl("periods", 1), *fk = fs.dbl("k", 1),
-         *fh = fs.dbl("h", 1);
+         *fh = fs.dbl("h", 1), *fn = fs.dbl("n", 1);
+  fn[0] = n;
   fu[0] = nu;
   ft[0] = nt;
   fk[0] = k;
-  fh[0] = q + 1 + k;
+  fh[0] = q + na;
   SEXP fit = PROTECT(fs.frame());
   SEXP wr = PROTECT(Rf_allocVector(REALSXP, nu));
   std::copy(wv.begin(), wv.end(), REAL(wr));

@@ -176,10 +176,49 @@ gref <- function(d, sys = FALSE, a = 2, b = Inf, coll = FALSE, hm = "ab",
       drop(t(q) %*% v %*% q)
     num / sqrt(vv)
   }
+  # the conventional one-step variance, eq 14 with Var(z e) = sig Z'HZ,
+  # and the Arellano-Bond statistic with Var(e | Z) = sig H (Roodman 2009,
+  # n. 19), H the covariances of independent errors (eqs 23 and 26)
+  sx <- NA
+  if (sys && any(lvk)) {
+    k <- !lvk
+    au <- solve(zhz[k, k])
+    fu <- gfit(zx[k, , drop = FALSE], zy[k], au)
+    zu <- zy[k] - zx[k, , drop = FALSE] %*% fu$b
+    sx <- drop(t(zu) %*% au %*% zu) / sig
+  }
+  hab <- lapply(rs, hblock, hm = "ab")
+  arn <- function(l) {
+    num <- 0
+    t1 <- 0
+    q <- 0
+    zv <- 0
+    for (j in seq_along(rs)) {
+      r <- rs[[j]]
+      tt <- vapply(r, `[[`, 0, "t")
+      w <- vapply(seq_along(r), function(h) {
+        if (!dk[[j]][h]) return(0)
+        o <- which(dk[[j]] & tt == tt[h] - l)
+        if (length(o)) e1[[j]][o] else 0
+      }, 0)
+      num <- num + sum(w * e1[[j]] * dk[[j]])
+      t1 <- t1 + sig * drop(t(w) %*% hab[[j]] %*% w)
+      q <- q + colSums(w * dk[[j]] * xs[[j]])
+      zv <- zv + t(zs[[j]]) %*% (sig * hab[[j]] %*% w)
+    }
+    vv <- t1 - 2 * drop(t(q) %*% f1$mi %*% f1$p %*% zv) +
+      drop(t(q) %*% (sig * f1$mi) %*% q)
+    num / sqrt(vv)
+  }
   list(b1 = drop(f1$b), b2 = drop(f2$b), v1 = v1, v2 = v2, vc = vc,
-       sargan = drop(t(ze1) %*% a1 %*% ze1) / sig,
-       hansen = drop(t(ze2) %*% a2 %*% ze2), hx = hx, m = length(keys),
-       ar = function(st) vapply(seq_len(nar), function(l) arz(st, l), 0))
+       v1n = sig * f1$mi, sargan = drop(t(ze1) %*% a1 %*% ze1) / sig,
+       hansen = drop(t(ze2) %*% a2 %*% ze2), hx = hx, sx = sx,
+       m = length(keys), groups = length(rs),
+       n = sum(vapply(rs, function(r) {
+         sum(vapply(r, `[[`, "", "kind") == if (sys) "l" else "d")
+       }, 0)),
+       ar = function(st) vapply(seq_len(nar), function(l) arz(st, l), 0),
+       arn = function() vapply(seq_len(nar), arn, 0))
 }
 
 tst <- function(r, nm) r$tests$stat[r$tests$test == nm]
@@ -204,7 +243,7 @@ test_that("difference GMM is the estimator written out, both steps", {
   expect_equal(unname(r2$vcov), unname(g$vc), tolerance = 1e-8)
   expect_equal(r2$tests$stat[1:2], g$ar(2), tolerance = 1e-8)
   r3 <- gmmpnl(d$y, unit = d$u, time = d$t, type = "diff", tdum = FALSE,
-               steps = 2, wc = FALSE)
+               steps = 2, robust = FALSE)
   expect_equal(unname(r3$vcov), unname(g$v2), tolerance = 1e-8)
   expect_identical(r1$fit$n, 120)
   expect_identical(r1$fit$groups, 30)
@@ -247,6 +286,81 @@ test_that("uncollapsed system GMM is the estimator written out", {
   expect_equal(r$fit$inst, g$m)
   expect_equal(r$coef$est, g$b1, tolerance = 1e-9)
   expect_equal(r$tests$stat[1:2], g$ar(1), tolerance = 1e-7)
+})
+
+test_that("the conventional one-step variance and its tests", {
+  d <- dsim(seed = 32)
+  d <- d[-c(14, 77), ]
+  for (sys in c(FALSE, TRUE)) {
+    g <- gref(d, sys = sys, b = 4)
+    r <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 4,
+                type = if (sys) "system" else "diff", robust = FALSE)
+    expect_false(r$robust)
+    expect_equal(unname(r$vcov), unname(g$v1n), tolerance = 1e-8)
+    expect_equal(r$tests$stat[1:2], g$arn(), tolerance = 1e-7, info = sys)
+    expect_equal(tst(r, "Sargan"), g$sargan, tolerance = 1e-8)
+    if (sys) {
+      expect_equal(tst(r, "Sargan without level GMM"), g$sx,
+                   tolerance = 1e-8)
+      expect_equal(tst(r, "Difference-in-Sargan"), g$sargan - g$sx,
+                   tolerance = 1e-7)
+    }
+  }
+  expect_output(print(r), "conventional variance")
+})
+
+test_that("small-sample corrections: the scaled variance, t and F", {
+  d <- dsim(seed = 33)
+  g <- gref(d, sys = TRUE, b = 3, coll = TRUE)
+  r <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
+              collapse = TRUE, small = TRUE)
+  v <- g$v1 * g$n / (g$n - 2)
+  expect_equal(unname(r$vcov), unname(v), tolerance = 1e-8)
+  # the groups less one, for the constant
+  df <- g$groups - 1
+  se <- sqrt(diag(v))
+  expect_identical(names(r$coef)[4], "t")
+  expect_equal(r$coef$p, 2 * pt(-abs(g$b1 / se), df), tolerance = 1e-8)
+  expect_equal(r$coef$lo, g$b1 - qt(0.975, df) * se, tolerance = 1e-8)
+  w <- r$wald
+  expect_identical(w$test, "F")
+  expect_equal(w$stat, g$b1[1]^2 / v[1, 1], tolerance = 1e-8)
+  expect_identical(w$df2, df)
+  expect_equal(w$p, pf(w$stat, 1, df, lower.tail = FALSE), tolerance = 1e-8)
+  expect_output(print(r), "F\\(1, 29\\)")
+  # without small: Wald chi-squared and normal intervals
+  n <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
+              collapse = TRUE)
+  expect_identical(n$wald$test, "Wald")
+  expect_equal(n$wald$stat, g$b1[1]^2 / g$v1[1, 1], tolerance = 1e-8)
+  expect_true(is.na(n$wald$df2))
+  expect_output(print(n), "Wald chi2\\(1\\)")
+  # difference GMM has no constant: the groups themselves
+  q <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, type = "diff",
+              small = TRUE)
+  expect_identical(q$wald$df2, 30)
+  expect_identical(q$wald$df1, 1)
+})
+
+test_that("robust, wc and small refusals", {
+  d <- dsim(n = 6, tt = 4, seed = 34)
+  expect_error(gmmpnl(d$y, unit = d$u, time = d$t, wc = TRUE),
+               "gmmpnl: `wc` corrects the two-step variance")
+  expect_error(gmmpnl(d$y, unit = d$u, time = d$t, steps = 2, wc = TRUE,
+                      robust = FALSE), "`wc = TRUE` contradicts")
+  expect_error(gmmpnl(d$y, unit = d$u, time = d$t, steps = 2, wc = FALSE),
+               "`wc = FALSE` contradicts `robust = TRUE`")
+  expect_error(gmmpnl(d$y, unit = d$u, time = d$t, robust = NA), "`robust`")
+  expect_error(gmmpnl(d$y, unit = d$u, time = d$t, small = 2), "`small`")
+  # agreeing values are accepted
+  a <- gmmpnl(d$y, unit = d$u, time = d$t, steps = 2, wc = TRUE,
+              collapse = TRUE)
+  expect_true(a$robust)
+  # one differenced row in all (unit 2 lacks period 3), one coefficient
+  e <- data.frame(u = c(1, 1, 1, 2, 2), t = c(1, 2, 3, 1, 2),
+                  y = c(1, 2, 4, 2, 5))
+  expect_error(gmmpnl(e$y, unit = e$u, time = e$t, type = "diff",
+                      tdum = FALSE, small = TRUE), "needs more rows")
 })
 
 test_that("with T = 3 difference GMM is Anderson and Hsiao's estimator", {
@@ -594,18 +708,107 @@ test_that("CCE without factors comes near the mean slope", {
   expect_lt(abs(q$mg$est - 0.7), 4 * q$mg$se)
 })
 
+# CCE on an unbalanced panel written out: the averages of each period over
+# the units in it (weights w scaled to sum to 1 there), each unit's
+# regression on its own periods, CCEMG, and CCEP with each X_i'M_i X_i over
+# the unit's own periods in the variance
+cceu <- function(d, w = rep(1, length(unique(d$u)))) {
+  w <- w / sum(w)
+  d$wi <- w[d$u]
+  d$ybar <- ave(d$y * d$wi, d$t, FUN = sum) / ave(d$wi, d$t, FUN = sum)
+  d$xbar <- ave(d$x * d$wi, d$t, FUN = sum) / ave(d$wi, d$t, FUN = sum)
+  us <- sort(unique(d$u))
+  pu <- lapply(us, function(i) {
+    s <- d[d$u == i, ]
+    ex <- residuals(lm(x ~ ybar + xbar, s))
+    ey <- residuals(lm(y ~ ybar + xbar, s))
+    c(b = coef(lm(y ~ x + ybar + xbar, s))[["x"]], a = sum(ex^2),
+      c = sum(ex * ey), t = nrow(s))
+  })
+  pu <- do.call(rbind, pu)
+  bi <- pu[, "b"]
+  n <- length(us)
+  ps <- sum(w * pu[, "a"] / pu[, "t"])
+  wt <- w / sqrt(mean(w^2))
+  rr <- sum(wt^2 * (pu[, "a"] / pu[, "t"])^2 * (bi - mean(bi))^2) / (n - 1)
+  list(bi = unname(bi), mg = mean(bi), mgse = sd(bi) / sqrt(n),
+       bp = sum(w * pu[, "c"]) / sum(w * pu[, "a"]),
+       bpse = sqrt(sum(w^2) * rr / ps^2), d = d)
+}
+
+test_that("ccepnl() on an unbalanced panel is the estimator written out", {
+  d <- csim(seed = 30)
+  # one unit-period removed
+  e <- d[-17, ]
+  g <- cceu(e)
+  r <- ccepnl(e$y, e["x"], e$u, e$t)
+  expect_equal(unname(r$bi[, "x"]), g$bi, tolerance = 1e-10)
+  expect_equal(r$mg$est, g$mg, tolerance = 1e-12)
+  expect_equal(r$mg$se, g$mgse, tolerance = 1e-10)
+  expect_equal(r$pooled$est, g$bp, tolerance = 1e-10)
+  expect_equal(r$pooled$se, g$bpse, tolerance = 1e-10)
+  expect_identical(r$fit$n, 199)
+  # the pooled estimate is the regression with unit-specific coefficients
+  # on the averages
+  p <- lm(y ~ x + factor(u) + factor(u):ybar + factor(u):xbar, g$d)
+  expect_equal(r$pooled$est, coef(p)[["x"]], tolerance = 1e-10)
+  # more gaps, and unequal weights
+  f <- d[-c(3, 25, 26, 60, 141, 199), ]
+  w <- 1 + f$u %% 4
+  h <- cceu(f, (1 + (1:20) %% 4))
+  q <- ccepnl(f$y, f["x"], f$u, f$t, w = w)
+  expect_equal(unname(q$bi[, "x"]), h$bi, tolerance = 1e-10)
+  expect_equal(q$pooled$est, h$bp, tolerance = 1e-10)
+  expect_equal(q$pooled$se, h$bpse, tolerance = 1e-10)
+  expect_equal(q$mg$se, h$mgse, tolerance = 1e-10)
+})
+
+test_that("ccepnl() keeps the averages asked for", {
+  # Juodis and Reese (2026, lesson 1): the averages used are a choice
+  d <- csim(seed = 31)
+  d$xbar <- ave(d$x, d$t)
+  r <- ccepnl(d$y, d["x"], d$u, d$t, avg = "x")
+  bi <- vapply(1:20, function(i) {
+    coef(lm(y ~ x + xbar, d[d$u == i, ]))[["x"]]
+  }, 0)
+  expect_equal(unname(r$bi[, 1]), bi, tolerance = 1e-10)
+  expect_identical(r$fit$h, 2)
+  # no averages: unit intercepts only, the mean group of unit regressions
+  m <- ccepnl(d$y, d["x"], d$u, d$t, avg = character(0))
+  b0 <- vapply(1:20, function(i) coef(lm(y ~ x, d[d$u == i, ]))[["x"]], 0)
+  expect_equal(m$mg$est, mean(b0), tolerance = 1e-12)
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, avg = 1), "ccepnl: `avg` must be")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, avg = NA_character_), "NA")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, avg = "q"), "neither y")
+  expect_error(ccepnl(d$y, d["x"], d$u, d$t, avg = character(0),
+                      cons = FALSE), "nothing is taken out")
+})
+
 test_that("ccepnl() refusals, print and plot", {
   d <- csim(n = 5, tt = 6)
-  expect_error(ccepnl(d$y[-1], d["x"][-1, , drop = FALSE], d$u[-1], d$t[-1]),
-               "ccepnl: the panel must be balanced")
   expect_error(ccepnl(d$y, d["x"], d$u, d$t, fac = seq_len(30)),
-               "constant within each period")
+               "ccepnl: `fac` must be constant within each period")
   expect_error(ccepnl(d$y, d["x"], d$u, d$t, w = seq_len(30)),
                "constant within each unit")
   expect_error(ccepnl(d$y, d["x"], d$u, d$t, w = rep(0, 30)), "`w`")
-  expect_error(ccepnl(d$y, cbind(d$x, d$x^2, d$t), d$u, d$t), "periods must")
-  expect_error(ccepnl(d$y, ave(d$x, d$t), d$u, d$t), "collinear")
+  expect_error(ccepnl(d$y, cbind(d$x, d$x^2, d$t), d$u, d$t),
+               "unit 1 has 6 periods: .* at least 8")
+  expect_error(ccepnl(d$y, ave(d$x, d$t), d$u, d$t),
+               "unit 1: its regressors are collinear")
   expect_error(ccepnl(d$y, matrix(0, 30, 2001), d$u, d$t), "at most 2000")
+  # period 6 seen for unit 1 only
+  k <- d$t < 6 | d$u == 1
+  expect_error(ccepnl(d$y[k], d["x"][k, , drop = FALSE], d$u[k], d$t[k]),
+               "period 6 has one unit")
+  # unit 2 seen in three periods: its regression needs four
+  k <- d$u != 2 | d$t <= 3
+  expect_error(ccepnl(d$y[k], d["x"][k, , drop = FALSE], d$u[k], d$t[k]),
+               "unit 2 has 3 periods")
+  # 8200 units over 8200 periods, four each: the grid is refused
+  u <- rep(1:8200, each = 4)
+  t <- (u + rep(0:3, 8200)) %% 8200
+  expect_error(ccepnl(sin(seq_along(u)), cos(seq_along(u)), u, t),
+               "too many for the averages")
   grDevices::pdf(NULL)
   on.exit(grDevices::dev.off(), add = TRUE)
   r <- ccepnl(d$y, d["x"], d$u, d$t)

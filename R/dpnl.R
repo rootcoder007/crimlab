@@ -52,20 +52,40 @@
 #' equations, and `"id"` takes the identity throughout, as Blundell and
 #' Bond (1998) did. The two-step weight is the inverse of `sum_i Z_i' e_i
 #' e_i' Z_i` with the one-step residuals. A singular weight matrix is
-#' replaced by its Moore-Penrose inverse, and the result says so. The
-#' one-step variance is the robust sandwich (Roodman 2009, eq 15); the
-#' two-step variance is corrected as Windmeijer (2005) shows unless
-#' `wc = FALSE`.
+#' replaced by its Moore-Penrose inverse, and the result says so. With
+#' `robust = TRUE` (the default) the one-step variance is the robust
+#' sandwich (Roodman 2009, eq 15) and the two-step variance is corrected as
+#' Windmeijer (2005) shows (Roodman 2009, eq 18); with `robust = FALSE` the
+#' one-step variance is the conventional `s2 (X'Z A Z'X)^-1`, eq 14 with
+#' `Var(z e) = s2 Z'HZ`, `A = (Z'HZ)^-1` and `s2` as for Sargan's statistic
+#' below, and the two-step variance is the uncorrected `(X'Z A_2 Z'X)^-1`
+#' (Roodman 2009, p. 96). `wc` is the older name of the two-step choice:
+#' left `NULL` it follows `robust`, and a value that contradicts `robust`,
+#' or `wc` with one step, is refused. With `small = TRUE` the variance is
+#' multiplied by `n / (n - k)` (`n` the rows reported in `fit`, `k` the
+#' coefficients), and the coefficients have t statistics and the joint
+#' test is an F test, both on the groups less one (less nothing without a
+#' constant) degrees of freedom. Roodman (2009, p. 123) describes the
+#' option of xtabond2 only as "small-sample corrections to the covariance
+#' matrix estimate, resulting in t-test instead of z-test statistics for
+#' the coefficients and an F test instead of a Wald chi2 test for overall
+#' fit"; the degrees of freedom are those of his outputs (F(16, 140) for
+#' 140 groups without a constant, p. 113; F(12, 139) with one, p. 118),
+#' and the factor `n / (n - k)` is this function's reading, as the paper
+#' gives none.
 #'
 #' The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are
 #' those of serial correlation of orders 1 to `ar` in the differenced
 #' residuals of the estimate reported, also after deviations, with the
 #' variance's terms taken from that estimate's residuals, weight and
-#' variance (Roodman 2009, sec. 3.5); AR(2) is the one that tests the
-#' instruments. Hansen's statistic is that of the two-step estimate,
-#' whichever step is reported, as robust overidentification tests need
-#' (Roodman 2009, sec. 2.5); Sargan's is that of the one-step residuals,
-#' `e'Z (Z'HZ)^-1 Z'e / s2` with `s2` the sum of the squared one-step
+#' variance (Roodman 2009, sec. 3.5), and with the error variance taken as
+#' `s2 H` for the conventional one-step variance (Roodman 2009, n. 19, the
+#' covariances of independent homoskedastic errors through the
+#' transformation and the differences, whatever `hmat`); AR(2) is the one
+#' that tests the instruments. Hansen's statistic is that of the two-step
+#' estimate, whichever step is reported, as robust overidentification
+#' tests need (Roodman 2009, sec. 2.5); Sargan's is that of the one-step
+#' residuals, `e'Z (Z'HZ)^-1 Z'e / s2` with `s2` the sum of the squared one-step
 #' residuals of the transformed equation over the sum of their diagonal
 #' elements of `H` (this function's estimate of the variance; Arellano and
 #' Bond 1991, p. 282, write the statistic with an estimate of it). In
@@ -74,12 +94,17 @@
 #' corresponding block of the full two-step moment variance (Roodman 2009,
 #' n. 24), and the difference-in-Hansen statistic is the full statistic
 #' less that one, on as many degrees of freedom as there are instruments
-#' left out. Every test is on `m - k` degrees of freedom or fewer, `m`
-#' the instruments and `k` the coefficients. When the instruments outnumber
-#' the groups, `note` says so (Roodman 2009, sec. 2.6). Inference is
-#' normal. Andreatta et al. describe their instruments both as "their
-#' second and third lags" (p. 1373) and as "Lag 2 and earlier lags" (table
-#' 3, note); `lagmin` and `lagmax` take either reading.
+#' left out. With the conventional one-step variance Sargan's statistic is
+#' the one reported for the instruments, and the difference test is the
+#' difference-in-Sargan, the model re-estimated with the block of `Z'HZ`
+#' (Roodman 2009, n. 24). `wald` is the joint test of the coefficients
+#' other than the constant. Every test is on `m - k` degrees of freedom or
+#' fewer, `m` the instruments and `k` the coefficients. When the
+#' instruments outnumber the groups, `note` says so (Roodman 2009, sec.
+#' 2.6). Inference is normal unless `small = TRUE`. Andreatta et al.
+#' describe their instruments both as "their second and third lags" (p.
+#' 1373) and as "Lag 2 and earlier lags" (table 3, note); `lagmin` and
+#' `lagmax` take either reading.
 #'
 #' @inheritParams lmdix
 #' @param y The outcome of each row: finite numbers.
@@ -110,8 +135,14 @@
 #'   1995).
 #' @param steps 1 (default; Andreatta et al. 2023 and the default of
 #'   xtabond2) or 2 (the two-step estimator).
-#' @param wc `TRUE` (default) for Windmeijer's (2005) correction of the
-#'   two-step variance.
+#' @param robust `TRUE` (default) for the robust one-step variance and
+#'   Windmeijer's correction of the two-step variance; `FALSE` for the
+#'   conventional one-step variance and the uncorrected two-step variance.
+#' @param wc `NULL` (default: as `robust`) or `TRUE` or `FALSE` for
+#'   Windmeijer's (2005) correction of the two-step variance; it must agree
+#'   with `robust`.
+#' @param small `FALSE` (default) or `TRUE` for the small-sample variance,
+#'   t statistics and an F test, as above.
 #' @param hmat `"ab"` (default), `"dpd"` or `"id"`: `H` of the one-step
 #'   weight, as above (Roodman 2009, secs. 3.3-3.4).
 #' @param cons `TRUE` (default) for a constant in the level equation of
@@ -122,15 +153,18 @@
 #'   from 0 (default 2, as xtabond2).
 #' @param level The confidence level of the intervals.
 #' @return An object of class `gmmpnl`, a list: `coef` (`term`, `est`, `se`,
-#'   `z`, `p`, `lo`, `hi`); `tests` (`test`, `stat`, `df`, `p`: AR(1) to
-#'   AR(`ar`), Sargan, Hansen and, for system GMM, the Hansen test without
-#'   the level GMM-style instruments and the difference-in-Hansen test);
+#'   `z` (`t` with `small`), `p`, `lo`, `hi`); `tests` (`test`, `stat`,
+#'   `df`, `p`: AR(1) to AR(`ar`), Sargan, Hansen and, for system GMM, the
+#'   Hansen test without the level GMM-style instruments and the
+#'   difference-in-Hansen test, or their Sargan counterparts with the
+#'   conventional one-step variance); `wald`, one row (`test`, `"Wald"` or
+#'   `"F"`, `stat`, `df1`, `df2`, `p`);
 #'   `fit`, one row: `n` (the rows of the transformed equation for
 #'   difference GMM, of the levels for system GMM, as xtabond2 counts),
 #'   `groups`, `inst`, `omin`, `oavg`, `omax` (rows per group), `steps`,
 #'   `k` and `sigma2`; `vcov`; `inst`, the instruments' names; `dropped`,
 #'   the time dummies dropped; `dummies`, those kept; `note`; `type`;
-#'   `trans`; and `level`.
+#'   `trans`; `robust`; `small`; and `level`.
 #' @references
 #'   Arellano, M. and Bond, S. (1991). Some tests of specification for
 #'   panel data: Monte Carlo evidence and an application to employment
@@ -175,13 +209,14 @@
 #' @export
 gmmpnl <- function(y, x = NULL, unit, time, ylag = 1, gmm = NULL, iv = NULL,
                    z = NULL, lagmin = 2, lagmax = Inf, collapse = FALSE,
-                   type = "system", trans = "fd", steps = 1, wc = TRUE,
-                   hmat = "ab", cons = TRUE, tdum = TRUE, ar = 2,
-                   level = 0.95) {
+                   type = "system", trans = "fd", steps = 1, robust = TRUE,
+                   wc = NULL, small = FALSE, hmat = "ab", cons = TRUE,
+                   tdum = TRUE, ar = 2, level = 0.95) {
   if (is.data.frame(x)) x <- as.matrix(x)
   if (is.data.frame(z)) z <- as.matrix(z)
   .Call(C_clab_r_gmmpnl, y, x, unit, time, ylag, gmm, iv, z, lagmin, lagmax,
-        collapse, type, trans, steps, wc, hmat, cons, tdum, ar, level)
+        collapse, type, trans, steps, robust, wc, small, hmat, cons, tdum, ar,
+        level)
 }
 
 #' @export
@@ -191,7 +226,19 @@ print.gmmpnl <- function(x, ...) {
       " GMM (", x[["trans"]], "), step ", f[["steps"]], ", ", f[["n"]],
       " rows, ", f[["groups"]], " groups, ", f[["inst"]], " instruments\n",
       sep = "")
+  cat(if (isTRUE(x[["robust"]])) "robust" else "conventional",
+      " variance", if (isTRUE(x[["small"]])) ", small-sample" else "", "\n",
+      sep = "")
   print(x[["coef"]], row.names = FALSE)
+  w <- x[["wald"]]
+  if (!is.null(w)) {
+    cat(if (w$test == "F") {
+      paste0("F(", w$df1, ", ", w$df2, ")")
+    } else {
+      paste0("Wald chi2(", w$df1, ")")
+    }, " = ", format(w$stat, digits = 5), ", p ", format(w$p, digits = 4),
+    "\n", sep = "")
+  }
   print(x[["tests"]], row.names = FALSE)
   for (s in x[["note"]]) cat("note: ", s, "\n", sep = "")
   invisible(x)
@@ -295,11 +342,36 @@ print.wsctst <- function(x, ...) {
 #' Theorem 3 requires, with the variance of eqs 67-69, `sum w_i^2 Psi^-1 R
 #' Psi^-1`, `Psi = sum w_i X_i'M X_i / T` and `R = sum wt_i^2 (X_i'M X_i /
 #' T) (b_i - b_MG)(b_i - b_MG)' (X_i'M X_i / T) / (N - 1)`, `wt_i = w_i /
-#' sqrt(mean(w^2))`. Inference is normal. Pesaran sets the estimators out
-#' for a balanced panel and so does this function; the averages need `T`
-#' at least the number of columns of `H` plus `k`, and here twice `k`
-#' plus the factors and one. For cross-sectional dependence in the
-#' residuals see [pcdtst()].
+#' sqrt(mean(w^2))`. Inference is normal.
+#'
+#' Pesaran (2006) derives the estimators for a balanced panel. An
+#' unbalanced one is handled as standard implementations handle it (Ditzen
+#' 2018, p. 586, says only that xtdcce2 "supports unbalanced panels";
+#' Su, Wang and Wang 2026, p. 2, that "calculating cross-sectional
+#' averages of the dependent variable and covariates remains
+#' straightforward in unbalanced panels"): the averages of a period are
+#' taken over the units observed in that period, their weights scaled to
+#' sum to 1 over those units, and each unit's regression runs over its own
+#' periods, with its rows of `H`. CCEMG and its variance are then as above.
+#' CCEP is `(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i`, and in its
+#' variance each `X_i'M_i X_i` is divided by the unit's own number of
+#' periods, which is this function's reading of `T` there. On a balanced
+#' panel all of this is Pesaran's estimator. Su, Wang and Wang (2026, p.
+#' 2) caution that when whether a unit is observed is related to the
+#' regressors, the factors or the loadings, the averages no longer proxy
+#' the factors well. A period observed for one unit only, or a unit with
+#' fewer periods than its regression needs (twice the regressors, the
+#' averages kept and the observed factors), is refused by name.
+#'
+#' Juodis and Reese (2026, sec. 1) draw two lessons this function leaves to
+#' the user: the averages used can bias the estimates and their variance,
+#' so results should be checked against the number and kind of averages
+#' (`avg` keeps a subset; lesson 1), and under Pesaran's assumptions a
+#' two-way fixed-effects estimator ([fepnl()]) may still be consistent and
+#' is worth comparing (lesson 2). With slopes common to all units and `T`
+#' not small against `N`, the intervals of CCEP are not centred without a
+#' bias correction, which this function does not make (lesson 1, sec.
+#' 3.1). For cross-sectional dependence in the residuals see [pcdtst()].
 #'
 #' @inheritParams gmmpnl
 #' @param x The regressors: a numeric matrix or data frame, one row per row
@@ -311,15 +383,30 @@ print.wsctst <- function(x, ...) {
 #' @param w `NULL` (equal weights `1 / N`, as Pesaran 2006, sec. 5.2, says
 #'   is typical) or a positive weight of each row, constant within each
 #'   unit; they are scaled to sum to 1 over the units.
+#' @param avg `NULL` (default: the averages of `y` and of every column of
+#'   `x`, Pesaran's choice) or the averages kept among the columns of `H`:
+#'   `"y"` and names of columns of `x`.
 #' @return An object of class `ccepnl`, a list: `mg` and `pooled`, the
 #'   CCEMG and CCEP estimates (`term`, `est`, `se`, `z`, `p`, `lo`, `hi`);
 #'   `bi`, the unit estimates (units by regressors); `vmg` and `vp`, the
 #'   variances; `fit`, one row (`units`, `periods`, `k`, `h` the columns of
-#'   `H`); `w`, the weights by unit; and `level`.
+#'   `H`, `n` the rows); `w`, the weights by unit; and `level`.
 #' @references
 #'   Pesaran, M. H. (2006). Estimation and inference in large heterogeneous
 #'   panels with a multifactor error structure. *Econometrica*, 74(4),
 #'   967-1012. \doi{10.1111/j.1468-0262.2006.00692.x}
+#'
+#'   Ditzen, J. (2018). Estimating dynamic common-correlated effects in
+#'   Stata. *The Stata Journal*, 18(3), 585-617.
+#'   \doi{10.1177/1536867X1801800306}
+#'
+#'   Su, L., Wang, F. and Wang, Y. (2026). Estimation and inference for
+#'   unbalanced panel data models with interactive fixed effects. *Journal
+#'   of Econometrics*, 255, 106222. \doi{10.1016/j.jeconom.2026.106222}
+#'
+#'   Juodis, A. and Reese, S. (2026). Five lessons for applied researchers
+#'   from twenty years of common correlated effects estimation. *Journal of
+#'   Econometrics*, 253, 106120. \doi{10.1016/j.jeconom.2025.106120}
 #' @examples
 #' # 30 provinces over 12 years, one unobserved factor in y and x
 #' set.seed(9)
@@ -332,10 +419,10 @@ print.wsctst <- function(x, ...) {
 #' r
 #' @export
 ccepnl <- function(y, x, unit, time, fac = NULL, cons = TRUE, w = NULL,
-                   level = 0.95) {
+                   avg = NULL, level = 0.95) {
   if (is.data.frame(x)) x <- as.matrix(x)
   if (is.data.frame(fac)) fac <- as.matrix(fac)
-  .Call(C_clab_r_ccepnl, y, x, unit, time, fac, cons, w, level)
+  .Call(C_clab_r_ccepnl, y, x, unit, time, fac, cons, w, avg, level)
 }
 
 #' @export

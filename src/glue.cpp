@@ -494,9 +494,9 @@ SEXP C_clab_r_rnnhcl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP C_clab_r_lmdix(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_fepnl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gmmpnl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
-                     SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+                     SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_wsctst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_ccepnl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ccepnl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_pcdtst(SEXP, SEXP, SEXP);
 // The policy-evaluation families (bdid.cpp).
 SEXP C_clab_r_didfe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
@@ -897,9 +897,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_rnnhcl", fn<&C_clab_r_rnnhcl>(), 10},
     {"C_clab_r_lmdix", fn<&C_clab_r_lmdix>(), 9},
     {"C_clab_r_fepnl", fn<&C_clab_r_fepnl>(), 9},
-    {"C_clab_r_gmmpnl", fn<&C_clab_r_gmmpnl>(), 20},
+    {"C_clab_r_gmmpnl", fn<&C_clab_r_gmmpnl>(), 22},
     {"C_clab_r_wsctst", fn<&C_clab_r_wsctst>(), 6},
-    {"C_clab_r_ccepnl", fn<&C_clab_r_ccepnl>(), 8},
+    {"C_clab_r_ccepnl", fn<&C_clab_r_ccepnl>(), 9},
     {"C_clab_r_pcdtst", fn<&C_clab_r_pcdtst>(), 3},
     {"C_clab_r_didfe", fn<&C_clab_r_didfe>(), 16},
     {"C_clab_r_evtst", fn<&C_clab_r_evtst>(), 18},

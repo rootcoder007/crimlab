@@ -6,8 +6,9 @@
 // Arellano-Bond tests of serial correlation), Wooldridge's test of serial
 // correlation in the first-differenced regression, and Pesaran's common
 // correlated effects estimators. The work arrays are made here; a failed
-// allocation is caught and returned as CLAB_EARG, so no exception leaves
-// a kernel. Matrices are column-major.
+// allocation would end the program, so every work array is counted
+// first: a size past 2^26 elements is refused with CLAB_EARG before
+// anything is made. Matrices are column-major.
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -27,6 +28,9 @@ using std::size_t;
 using vec = std::vector<double>;
 
 inline size_t z(int i) { return static_cast<size_t>(i); }
+
+// the largest work array, in elements
+constexpr double cap = 67108864.0;
 
 // The inverse of the symmetric m x m matrix a into out: by Cholesky when
 // a is positive definite (1), else the Moore-Penrose inverse from the
@@ -137,7 +141,7 @@ void ztv(const double *zm, int n, int m, int r0, int r1, const double *v, double
 struct gin {
   int n, k, m, ng, nd;
   const int *go, *eq, *dgo, *dt, *sub;
-  const double *y, *x, *zm, *h, *yd, *xd;
+  const double *y, *x, *zm, *h, *yd, *xd, *hc, *hdd;
 };
 
 // The residuals y - x b over n rows.
@@ -151,26 +155,53 @@ vec resid(const double *y, const double *x, int n, int k, const vec &b) {
 
 // The Arellano-Bond statistic of order l (Arellano and Bond 1991, eqs
 // 8-9; Roodman 2009, sec. 3.5) from the differenced residuals d, the
-// estimation residuals' moments ue (m x ng) and the step (s, a, v).
-double abar(const gin &g, int l, const vec &d, const vec &ue, const step &s, const vec &v) {
+// estimation residuals' moments ue (m x ng) and the step (s, v). With sig
+// > 0 the error variance is sig H rather than the residuals' products
+// (Roodman 2009, n. 19): sig times the blocks hdd of the differenced rows
+// and hc between the estimation rows and them.
+double abar(const gin &g, int l, const vec &d, const vec &ue, const step &s, const vec &v,
+            double sig) {
   const int k = g.k, m = g.m;
   double num = 0.0, t1 = 0.0;
-  vec q(z(k), 0.0), zv(z(m), 0.0);
+  vec q(z(k), 0.0), zv(z(m), 0.0), w, hw;
+  size_t oc = 0, od = 0;
   for (int a = 0; a < g.ng; ++a) {
+    const int r0 = g.dgo[a], nda = g.dgo[a + 1] - r0, ni = g.go[a + 1] - g.go[a];
+    w.assign(z(nda), 0.0);
     double c = 0.0;
-    for (int r = g.dgo[a]; r < g.dgo[a + 1]; ++r) {
+    for (int r = r0; r < r0 + nda; ++r) {
       int p = r - 1;
-      while (p >= g.dgo[a] && g.dt[p] > g.dt[r] - l) --p;
-      if (p < g.dgo[a] || g.dt[p] != g.dt[r] - l) continue;
+      while (p >= r0 && g.dt[p] > g.dt[r] - l) --p;
+      if (p < r0 || g.dt[p] != g.dt[r] - l) continue;
+      w[z(r - r0)] = d[z(p)];
       c += d[z(p)] * d[z(r)];
       for (int j = 0; j < k; ++j) q[z(j)] += d[z(p)] * g.xd[z(j) * z(g.nd) + z(r)];
     }
     num += c;
-    t1 += c * c;
-    for (int i = 0; i < m; ++i) zv[z(i)] += ue[z(a) * z(m) + z(i)] * c;
+    if (sig > 0.0) {
+      const double *hd = g.hdd + od, *hx = g.hc + oc;
+      for (int e = 0; e < nda; ++e) {
+        for (int f = 0; f < nda; ++f) t1 += sig * w[z(e)] * hd[z(f) * z(nda) + z(e)] * w[z(f)];
+      }
+      hw.assign(z(ni), 0.0);
+      for (int f = 0; f < nda; ++f) {
+        for (int e = 0; e < ni; ++e) hw[z(e)] += sig * hx[z(f) * z(ni) + z(e)] * w[z(f)];
+      }
+      for (int i = 0; i < m; ++i) {
+        const double *zc = g.zm + z(i) * z(g.n) + z(g.go[a]);
+        double t = 0.0;
+        for (int e = 0; e < ni; ++e) t += zc[e] * hw[z(e)];
+        zv[z(i)] += t;
+      }
+      od += z(nda) * z(nda);
+      oc += z(ni) * z(nda);
+    } else {
+      t1 += c * c;
+      for (int i = 0; i < m; ++i) zv[z(i)] += ue[z(a) * z(m) + z(i)] * c;
+    }
   }
   // q' mi p zv and q' v q
-  vec pz(z(k), 0.0), mq(z(k), 0.0);
+  vec pz(z(k), 0.0);
   for (int r = 0; r < k; ++r) {
     for (int c = 0; c < m; ++c) pz[z(r)] += s.p[z(c) * z(k) + z(r)] * zv[z(c)];
   }
@@ -185,7 +216,34 @@ double abar(const gin &g, int l, const vec &d, const vec &ue, const step &s, con
   return var > 0.0 ? num / std::sqrt(var) : NAN;
 }
 
-int gmm(const gin &g, int steps, int wc, int nar, double *b, double *v, double *st, double *ar) {
+// The overidentification statistic without the instruments flagged in
+// sub, re-estimated with the submatrix of the moment variance sv (m x m)
+// as the weight's inverse (Roodman 2009, n. 24); NaN when the rest do not
+// identify the coefficients. *gen is set when the inverse is general.
+double subj(const vec &sv, const vec &zx, const vec &zy, const int *sub, int m, int k, int *gen) {
+  std::vector<int> keep;
+  for (int i = 0; i < m; ++i) {
+    if (!sub[i]) keep.push_back(i);
+  }
+  const int ms = static_cast<int>(keep.size());
+  if (ms < k || ms == m) return NAN;
+  vec ss(z(ms) * z(ms)), as(z(ms) * z(ms)), zxs(z(ms) * z(k)), zys(z(ms));
+  for (int j = 0; j < ms; ++j) {
+    for (int i = 0; i < ms; ++i) ss[z(j) * z(ms) + z(i)] = sv[z(keep[z(j)]) * z(m) + z(keep[z(i)])];
+    zys[z(j)] = zy[z(keep[z(j)])];
+    for (int h = 0; h < k; ++h) zxs[z(h) * z(ms) + z(j)] = zx[z(h) * z(m) + z(keep[z(j)])];
+  }
+  step su;
+  const int c = sinv(ss.data(), ms, as.data());
+  if (!c || !gstep(zxs, zys, as.data(), ms, k, su)) return NAN;
+  *gen |= c == 2;
+  for (int h = 0; h < k; ++h) {
+    for (int i = 0; i < ms; ++i) zys[z(i)] -= zxs[z(h) * z(ms) + z(i)] * su.b[z(h)];
+  }
+  return quad(zys, as.data(), ms);
+}
+
+int gmm(const gin &g, int steps, int rob, int nar, double *b, double *v, double *st, double *ar) {
   const int n = g.n, k = g.k, m = g.m;
   const size_t mm = z(m) * z(m);
   int gen = 0;
@@ -248,7 +306,7 @@ int gmm(const gin &g, int steps, int wc, int nar, double *b, double *v, double *
   const vec ps = mul(s1.p, s2, k, m, m), q1 = mul(ps, tr(s1.p, k, m), k, m, k);
   const vec v1 = mul(mul(s1.mi, q1, k, k, k), s1.mi, k, k, k);
   vec vv = s2s.mi;
-  if (steps == 2 && wc) {
+  if (steps == 2 && rob) {
     // Windmeijer (2005, eq 3.4; Roodman 2009, eq 18): D's column p is
     // mi p_2 sum_i (a_ip b_i' + b_i a_ip') g, a_ip = Z_i'x_p, b_i = Z_i'e1_i,
     // g = A_2 Z'e_2
@@ -281,10 +339,6 @@ int gmm(const gin &g, int steps, int wc, int nar, double *b, double *v, double *
     const vec cc = mul(mul(dd, v1, k, k, k), dt, k, k, k);
     for (size_t q = 0; q < z(k) * z(k); ++q) vv[q] += a[q] + bb[q] + cc[q];
   }
-  if (steps == 1) vv = v1;
-  const step &sc = steps == 1 ? s1 : s2s;
-  for (int j = 0; j < k; ++j) b[j] = sc.b[z(j)];
-  for (size_t q = 0; q < z(k) * z(k); ++q) v[q] = vv[q];
   // Sargan (Arellano and Bond 1991, p. 282) and Hansen (Roodman 2009, sec. 2.5)
   vec z1(zy), z2(zy);
   for (int j = 0; j < k; ++j) {
@@ -298,38 +352,26 @@ int gmm(const gin &g, int steps, int wc, int nar, double *b, double *v, double *
     if (g.eq[r]) se += e1[z(r)] * e1[z(r)];
   }
   const double sig = htr > 0.0 ? se / htr : NAN;
+  // the one-step variance: robust (Roodman 2009, eq 15), or sig (X'Z A Z'X)^-1,
+  // eq 14 with Var(z e) = sig Z'HZ
+  if (steps == 1) {
+    vv = v1;
+    if (!rob) {
+      for (size_t q = 0; q < z(k) * z(k); ++q) vv[q] = sig * s1.mi[q];
+    }
+  }
+  const step &sc = steps == 1 ? s1 : s2s;
+  for (int j = 0; j < k; ++j) b[j] = sc.b[z(j)];
+  for (size_t q = 0; q < z(k) * z(k); ++q) v[q] = vv[q];
   st[0] = sig > 0.0 ? quad(z1, a1.data(), m) / sig : NAN;
   st[1] = quad(z2, a2.data(), m);
-  st[2] = NAN;
+  st[2] = st[5] = NAN;
   st[3] = sig;
   if (g.sub) {
-    // the Hansen test without the instruments flagged, weighted by the
-    // submatrix of the full two-step moment variance (Roodman 2009, n. 24)
-    std::vector<int> keep;
-    for (int i = 0; i < m; ++i) {
-      if (!g.sub[i]) keep.push_back(i);
-    }
-    const int ms = static_cast<int>(keep.size());
-    if (ms >= k && ms < m) {
-      vec ss(z(ms) * z(ms)), as(z(ms) * z(ms)), zxs(z(ms) * z(k)), zys(z(ms));
-      for (int j = 0; j < ms; ++j) {
-        for (int i = 0; i < ms; ++i) {
-          ss[z(j) * z(ms) + z(i)] = s2[z(keep[z(j)]) * z(m) + z(keep[z(i)])];
-        }
-        zys[z(j)] = zy[z(keep[z(j)])];
-        for (int h = 0; h < k; ++h) zxs[z(h) * z(ms) + z(j)] = zx[z(h) * z(m) + z(keep[z(j)])];
-      }
-      step su;
-      c = sinv(ss.data(), ms, as.data());
-      if (kutil::stop(0)) return CLAB_EINTR;
-      if (c && gstep(zxs, zys, as.data(), ms, k, su)) {
-        gen |= c == 2;
-        for (int h = 0; h < k; ++h) {
-          for (int i = 0; i < ms; ++i) zys[z(i)] -= zxs[z(h) * z(ms) + z(i)] * su.b[z(h)];
-        }
-        st[2] = quad(zys, as.data(), ms);
-      }
-    }
+    st[2] = subj(s2, zx, zy, g.sub, m, k, &gen);
+    if (kutil::stop(0)) return CLAB_EINTR;
+    st[5] = subj(zhz, zx, zy, g.sub, m, k, &gen) / sig;
+    if (kutil::stop(0)) return CLAB_EINTR;
   }
   st[4] = gen;
   // the Arellano-Bond tests on the differenced residuals of the step used
@@ -343,7 +385,7 @@ int gmm(const gin &g, int steps, int wc, int nar, double *b, double *v, double *
     if (kutil::stop(static_cast<double>(g.nd) * (k + l) + static_cast<double>(m) * g.ng)) {
       return CLAB_EINTR;
     }
-    ar[l - 1] = abar(g, l, d, ue, sc, vv);
+    ar[l - 1] = abar(g, l, d, ue, sc, vv, steps == 1 && !rob ? sig : 0.0);
   }
   return CLAB_OK;
 }
@@ -353,8 +395,9 @@ int gmm(const gin &g, int steps, int wc, int nar, double *b, double *v, double *
 extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const double *y,
                            const double *x, const double *zm, const double *h, const int *eq,
                            int nd, const int *dgo, const int *dt, const double *yd,
-                           const double *xd, const int *sub, int steps, int wc, int nar, double *b,
-                           double *v, double *st, double *ar) {
+                           const double *xd, const double *hc, const double *hdd, const int *sub,
+                           int steps, int rob, int nar, double *b, double *v, double *st,
+                           double *ar) {
   if (n < 1 || k < 1 || m < k || ng < 1 || nd < 0 || nar < 0 || (steps != 1 && steps != 2)) {
     return CLAB_EARG;
   }
@@ -371,12 +414,17 @@ extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const dou
   for (size_t q = 0; q < z(n) * z(m); ++q) {
     if (!std::isfinite(zm[q])) return CLAB_EDOM;
   }
-  const gin g{n, k, m, ng, nd, go, eq, dgo, dt, sub, y, x, zm, h, yd, xd};
-  try {
-    return gmm(g, steps, wc, nar, b, v, st, ar);
-  } catch (...) {
+  // the work arrays: m x m weights, the groups' moments (m x ng), a
+  // group's H Z (n_g x m), Z'X (m x k)
+  int big = 0;
+  for (int a = 0; a < ng; ++a) big = std::max(big, go[a + 1] - go[a]);
+  const double dm = m;
+  if (dm * dm > cap || dm * ng > cap || dm * big > cap || dm * k > cap ||
+      static_cast<double>(k) * k > cap) {
     return CLAB_EARG;
   }
+  const gin g{n, k, m, ng, nd, go, eq, dgo, dt, sub, y, x, zm, h, yd, xd, hc, hdd};
+  return gmm(g, steps, rob, nar, b, v, st, ar);
 }
 
 namespace {
@@ -470,79 +518,134 @@ int wsct(int n, int p, const double *y, const double *x, const int *u, const int
   return CLAB_OK;
 }
 
-// Pesaran (2006): the unit estimates, CCEMG and CCEP with their variances.
+// Pesaran (2006): the unit estimates, CCEMG and CCEP with their
+// variances. A NaN in y marks a unit-period not observed: the averages of
+// a period are over the units observed in it, their weights scaled to sum
+// to 1 there, and each unit's regression is over its own periods.
 int cce(int nu, int nt, int k, const double *y, const double *x, const double *w, const double *d,
-        int q, double *bi, double *bmg, double *vmg, double *bp, double *vp) {
-  const int hc = q + 1 + k;
-  // H = (D, ybar_w, xbar_w), T x hc
-  vec hm(z(nt) * z(hc), 0.0);
+        int q, const int *av, double *bi, double *bmg, double *vmg, double *bp, double *vp,
+        int *bad) {
+  // H = (D, ybar_w, xbar_w), T x (q + 1 + k), the averages flagged in av kept
+  const int ha = q + 1 + k;
+  vec hm(z(nt) * z(ha), 0.0), sw(z(nt), 0.0);
+  std::vector<int> cnt(z(nt), 0);
   for (int c = 0; c < q; ++c) {
     for (int t = 0; t < nt; ++t) hm[z(c) * z(nt) + z(t)] = d[z(c) * z(nt) + z(t)];
   }
   for (int i = 0; i < nu; ++i) {
     for (int t = 0; t < nt; ++t) {
+      if (std::isnan(y[z(i) * z(nt) + z(t)])) continue;
+      sw[z(t)] += w[i];
+      ++cnt[z(t)];
       hm[z(q) * z(nt) + z(t)] += w[i] * y[z(i) * z(nt) + z(t)];
       for (int j = 0; j < k; ++j) {
         hm[z(q + 1 + j) * z(nt) + z(t)] += w[i] * x[(z(j) * z(nu) + z(i)) * z(nt) + z(t)];
       }
     }
   }
-  vec hh(z(hc) * z(hc)), hi(z(hc) * z(hc));
-  for (int a = 0; a < hc; ++a) {
-    for (int c = 0; c < hc; ++c) {
-      double s = 0.0;
-      for (int t = 0; t < nt; ++t) s += hm[z(a) * z(nt) + z(t)] * hm[z(c) * z(nt) + z(t)];
-      hh[z(c) * z(hc) + z(a)] = s;
+  for (int t = 0; t < nt; ++t) {
+    if (cnt[z(t)] < 2) {
+      *bad = -2 - t;
+      return CLAB_EDOM;
     }
+    // a period every unit has keeps the weights as they are
+    if (cnt[z(t)] == nu) continue;
+    for (int c = q; c < ha; ++c) hm[z(c) * z(nt) + z(t)] /= sw[z(t)];
   }
-  if (!sinv(hh.data(), hc, hi.data())) return CLAB_EDOM;
-  // M v = v - H (H'H)^- H' v
-  vec hv(z(hc)), gv(z(hc));
-  auto proj = [&](double *v) {
-    for (int a = 0; a < hc; ++a) {
-      double s = 0.0;
-      for (int t = 0; t < nt; ++t) s += hm[z(a) * z(nt) + z(t)] * v[t];
-      hv[z(a)] = s;
+  int hc = q;
+  for (int c = 0; c <= k; ++c) {
+    if (!av[c]) continue;
+    if (q + c != hc) {
+      std::copy(hm.begin() + static_cast<std::ptrdiff_t>(z(q + c) * z(nt)),
+                hm.begin() + static_cast<std::ptrdiff_t>(z(q + c + 1) * z(nt)),
+                hm.begin() + static_cast<std::ptrdiff_t>(z(hc) * z(nt)));
     }
-    for (int a = 0; a < hc; ++a) {
-      double s = 0.0;
-      for (int c = 0; c < hc; ++c) s += hi[z(c) * z(hc) + z(a)] * hv[z(c)];
-      gv[z(a)] = s;
-    }
-    for (int t = 0; t < nt; ++t) {
-      double s = 0.0;
-      for (int a = 0; a < hc; ++a) s += hm[z(a) * z(nt) + z(t)] * gv[z(a)];
-      v[t] -= s;
-    }
-  };
+    ++hc;
+  }
+  if (hc == 0) return CLAB_EARG;
   const size_t kk = z(k) * z(k);
-  vec ai(z(nu) * kk), ci(z(nu) * z(k)), mx(z(nt) * z(k)), my(z(nt)), l(kk), li(kk);
+  vec ai(z(nu) * kk), ci(z(nu) * z(k)), ti(z(nu)), l(kk), li(kk);
+  std::vector<int> per;
   for (int i = 0; i < nu; ++i) {
-    if (kutil::stop(static_cast<double>(nt) * (k + 1) * (hc + k))) return CLAB_EINTR;
-    for (int j = 0; j < k; ++j) {
-      std::copy(x + (z(j) * z(nu) + z(i)) * z(nt), x + (z(j) * z(nu) + z(i) + 1) * z(nt),
-                mx.begin() + static_cast<std::ptrdiff_t>(z(j) * z(nt)));
-      proj(mx.data() + z(j) * z(nt));
+    per.clear();
+    for (int t = 0; t < nt; ++t) {
+      if (!std::isnan(y[z(i) * z(nt) + z(t)])) per.push_back(t);
     }
-    std::copy(y + z(i) * z(nt), y + z(i + 1) * z(nt), my.begin());
+    const int ni = static_cast<int>(per.size());
+    ti[z(i)] = ni;
+    const double wk =
+        static_cast<double>(ni) * (k + 1) * (hc + k) + static_cast<double>(hc) * hc * hc;
+    if (kutil::stop(wk)) {
+      return CLAB_EINTR;
+    }
+    // the unit's rows of H, (H_i'H_i)^-, and M_i v = v - H_i (H_i'H_i)^- H_i'v
+    vec h(z(ni) * z(hc)), hh(z(hc) * z(hc)), hi(z(hc) * z(hc)), hv(z(hc)), gv(z(hc));
+    for (int a = 0; a < hc; ++a) {
+      for (int r = 0; r < ni; ++r) h[z(a) * z(ni) + z(r)] = hm[z(a) * z(nt) + z(per[z(r)])];
+    }
+    for (int a = 0; a < hc; ++a) {
+      for (int c = 0; c < hc; ++c) {
+        double s = 0.0;
+        for (int r = 0; r < ni; ++r) s += h[z(a) * z(ni) + z(r)] * h[z(c) * z(ni) + z(r)];
+        hh[z(c) * z(hc) + z(a)] = s;
+      }
+    }
+    if (!sinv(hh.data(), hc, hi.data())) {
+      *bad = i;
+      return CLAB_EDOM;
+    }
+    auto proj = [&](double *v) {
+      for (int a = 0; a < hc; ++a) {
+        double s = 0.0;
+        for (int r = 0; r < ni; ++r) s += h[z(a) * z(ni) + z(r)] * v[r];
+        hv[z(a)] = s;
+      }
+      for (int a = 0; a < hc; ++a) {
+        double s = 0.0;
+        for (int c = 0; c < hc; ++c) s += hi[z(c) * z(hc) + z(a)] * hv[z(c)];
+        gv[z(a)] = s;
+      }
+      for (int r = 0; r < ni; ++r) {
+        double s = 0.0;
+        for (int a = 0; a < hc; ++a) s += h[z(a) * z(ni) + z(r)] * gv[z(a)];
+        v[r] -= s;
+      }
+    };
+    vec mx(z(ni) * z(k)), my(z(ni)), rn(z(k), 0.0);
+    for (int j = 0; j < k; ++j) {
+      for (int r = 0; r < ni; ++r) {
+        const double e = x[(z(j) * z(nu) + z(i)) * z(nt) + z(per[z(r)])];
+        mx[z(j) * z(ni) + z(r)] = e;
+        rn[z(j)] += e * e;
+      }
+      proj(mx.data() + z(j) * z(ni));
+    }
+    for (int r = 0; r < ni; ++r) my[z(r)] = y[z(i) * z(nt) + z(per[z(r)])];
     proj(my.data());
     double *a = ai.data() + z(i) * kk, *c = ci.data() + z(i) * z(k);
     for (int j = 0; j < k; ++j) {
       double s = 0.0;
-      for (int t = 0; t < nt; ++t) s += mx[z(j) * z(nt) + z(t)] * my[z(t)];
+      for (int r = 0; r < ni; ++r) s += mx[z(j) * z(ni) + z(r)] * my[z(r)];
       c[j] = s;
-      for (int h = 0; h < k; ++h) {
-        double r = 0.0;
-        for (int t = 0; t < nt; ++t) r += mx[z(j) * z(nt) + z(t)] * mx[z(h) * z(nt) + z(t)];
-        a[z(h) * z(k) + z(j)] = r;
+      for (int g = 0; g < k; ++g) {
+        double e = 0.0;
+        for (int r = 0; r < ni; ++r) e += mx[z(j) * z(ni) + z(r)] * mx[z(g) * z(ni) + z(r)];
+        a[z(g) * z(k) + z(j)] = e;
       }
     }
+    // a regressor the averages take out (to 1e-7 of its norm) leaves only
+    // rounding: Cholesky's relative pivot cannot see that in one column
+    bool gone = false;
+    for (int j = 0; j < k; ++j) gone = gone || !(a[z(j) * z(k) + z(j)] > 1e-14 * rn[z(j)]);
     std::copy(a, a + kk, l.begin());
-    if (!pev::chol(l.data(), k)) return CLAB_EDOM;
+    if (gone || !pev::chol(l.data(), k)) {
+      *bad = i;
+      return CLAB_EDOM;
+    }
     pev::cinv(l.data(), k, li.data());
     for (int j = 0; j < k; ++j) {
       double s = 0.0;
-      for (int h = 0; h < k; ++h) s += li[z(h) * z(k) + z(j)] * c[h];
+      for (int g = 0; g < k; ++g) s += li[z(g) * z(k) + z(j)] * c[g];
       bi[z(i) * z(k) + z(j)] = s;
     }
   }
@@ -554,41 +657,54 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
   }
   for (int i = 0; i < nu; ++i) {
     for (int j = 0; j < k; ++j) {
-      for (int h = 0; h < k; ++h) {
-        vmg[z(h) * z(k) + z(j)] += (bi[z(i) * z(k) + z(j)] - bmg[j]) *
-                                    (bi[z(i) * z(k) + z(h)] - bmg[h]) / (nu * (nu - 1.0));
+      for (int g = 0; g < k; ++g) {
+        vmg[z(g) * z(k) + z(j)] += (bi[z(i) * z(k) + z(j)] - bmg[j]) *
+                                    (bi[z(i) * z(k) + z(g)] - bmg[g]) / (nu * (nu - 1.0));
       }
     }
   }
-  // CCEP (eqs 65 and 67-69), pooling weights theta_i = w_i
-  vec ps(kk, 0.0), pc(z(k), 0.0), rs(kk, 0.0), dv(z(k)), ad(z(k));
+  // CCEP (eq 65, theta_i = w_i) and its variance (eqs 67-69), each unit's
+  // X_i'M X_i over its own number of periods
+  vec pa(kk, 0.0), pc(z(k), 0.0), ps(kk, 0.0), rs(kk, 0.0), dv(z(k)), ad(z(k));
   double w2 = 0.0;
   for (int i = 0; i < nu; ++i) {
     w2 += w[i] * w[i];
-    for (size_t q2 = 0; q2 < kk; ++q2) ps[q2] += w[i] * ai[z(i) * kk + q2] / nt;
-    for (int j = 0; j < k; ++j) pc[z(j)] += w[i] * ci[z(i) * z(k) + z(j)] / nt;
+    for (size_t q2 = 0; q2 < kk; ++q2) {
+      pa[q2] += w[i] * ai[z(i) * kk + q2];
+      ps[q2] += w[i] * ai[z(i) * kk + q2] / ti[z(i)];
+    }
+    for (int j = 0; j < k; ++j) pc[z(j)] += w[i] * ci[z(i) * z(k) + z(j)];
   }
   for (int i = 0; i < nu; ++i) {
     const double wt2 = w[i] * w[i] / (w2 / nu);
     for (int j = 0; j < k; ++j) dv[z(j)] = bi[z(i) * z(k) + z(j)] - bmg[j];
     for (int j = 0; j < k; ++j) {
       double s = 0.0;
-      for (int h = 0; h < k; ++h) s += ai[z(i) * kk + z(h) * z(k) + z(j)] / nt * dv[z(h)];
+      for (int g = 0; g < k; ++g) s += ai[z(i) * kk + z(g) * z(k) + z(j)] / ti[z(i)] * dv[z(g)];
       ad[z(j)] = s;
     }
     for (int j = 0; j < k; ++j) {
-      for (int h = 0; h < k; ++h) rs[z(h) * z(k) + z(j)] += wt2 * ad[z(j)] * ad[z(h)] / (nu - 1.0);
+      for (int g = 0; g < k; ++g) rs[z(g) * z(k) + z(j)] += wt2 * ad[z(j)] * ad[z(g)] / (nu - 1.0);
     }
   }
-  vec pl(ps), pi(kk);
-  if (!pev::chol(pl.data(), k)) return CLAB_EDOM;
+  vec pl(pa), pi(kk);
+  if (!pev::chol(pl.data(), k)) {
+    *bad = -1;
+    return CLAB_EDOM;
+  }
   pev::cinv(pl.data(), k, pi.data());
   for (int j = 0; j < k; ++j) {
     double s = 0.0;
-    for (int h = 0; h < k; ++h) s += pi[z(h) * z(k) + z(j)] * pc[z(h)];
+    for (int g = 0; g < k; ++g) s += pi[z(g) * z(k) + z(j)] * pc[z(g)];
     bp[j] = s;
   }
-  const vec vr = mul(mul(pi, rs, k, k, k), pi, k, k, k);
+  vec ql(ps), qi(kk);
+  if (!pev::chol(ql.data(), k)) {
+    *bad = -1;
+    return CLAB_EDOM;
+  }
+  pev::cinv(ql.data(), k, qi.data());
+  const vec vr = mul(mul(qi, rs, k, k, k), qi, k, k, k);
   for (size_t q2 = 0; q2 < kk; ++q2) vp[q2] = w2 * vr[q2];
   return CLAB_OK;
 }
@@ -604,16 +720,15 @@ extern "C" int clab_wsctst(int n, int p, const double *y, const double *x, const
   for (size_t q = 0; q < z(n) * z(p); ++q) {
     if (!std::isfinite(x[q])) return CLAB_EDOM;
   }
-  try {
-    return wsct(n, p, y, x, u, t, cons, raw, b, vb, out);
-  } catch (...) {
-    return CLAB_EARG;
-  }
+  // the work arrays: the differences (n x p) and p x p matrices
+  if (static_cast<double>(p) * p > cap || static_cast<double>(n) * (p + 4) > cap) return CLAB_EARG;
+  return wsct(n, p, y, x, u, t, cons, raw, b, vb, out);
 }
 
 extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x,
-                           const double *w, const double *d, int q, double *bi, double *bmg,
-                           double *vmg, double *bp, double *vp) {
+                           const double *w, const double *d, int q, const int *av, double *bi,
+                           double *bmg, double *vmg, double *bp, double *vp, int *bad) {
+  *bad = -1;
   if (nu < 2 || nt < 2 || k < 1 || q < 0) return CLAB_EARG;
   double sw = 0.0;
   for (int i = 0; i < nu; ++i) {
@@ -623,17 +738,18 @@ extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double 
   if (std::fabs(sw - 1.0) > 1e-12) return CLAB_EDOM;
   const size_t ny = z(nu) * z(nt);
   for (size_t r = 0; r < ny; ++r) {
+    if (std::isnan(y[r])) continue;
     if (!std::isfinite(y[r])) return CLAB_EDOM;
-  }
-  for (size_t r = 0; r < ny * z(k); ++r) {
-    if (!std::isfinite(x[r])) return CLAB_EDOM;
+    for (int j = 0; j < k; ++j) {
+      if (!std::isfinite(x[z(j) * ny + r])) return CLAB_EDOM;
+    }
   }
   for (size_t r = 0; r < z(nt) * z(q); ++r) {
     if (!std::isfinite(d[r])) return CLAB_EDOM;
   }
-  try {
-    return cce(nu, nt, k, y, x, w, d, q, bi, bmg, vmg, bp, vp);
-  } catch (...) {
+  // the work arrays: the units' k x k matrices and the averages
+  if (static_cast<double>(nu) * k * k > cap || static_cast<double>(nt) * (q + k + 1) > cap) {
     return CLAB_EARG;
   }
+  return cce(nu, nt, k, y, x, w, d, q, av, bi, bmg, vmg, bp, vp, bad);
 }
