@@ -585,3 +585,12 @@ test_that("plmfld() refuses in its own name", {
   expect_error(plmfld(q = NULL, u = 5, h = 50, x = seq(100, 300, 100),
                       y = c(-50, 50)), "^plmfld: `q` must be numeric")
 })
+
+test_that("an outcome or a class that is not text is refused in words", {
+  expect_error(crfno2(20, y = sum), "^crfno2: Unknown outcome 'function'")
+  expect_error(gplume(1, 5, 50, rbind(c(100, 0, 0)), stab = sum),
+               "^gplume: `stab` must be one of the Pasquill classes")
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(gplume(1, 5, 50, rbind(c(100, 0, 0)), stab = bad),
+               "^gplume: `stab` holds text that is not valid")
+})

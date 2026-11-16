@@ -31,6 +31,12 @@
 #' b
 #' @export
 bufas <- function(x, y = NULL, site, comp, r, buf = 3 * r, lonlat = FALSE) {
+  # the default buf multiplies r: r is checked first, so that a factor or
+  # text there is refused rather than multiplied
+  if (!is.numeric(r) || is.object(r)) {
+    stop("bufas: `r` must be one number strictly between 0 and Inf.",
+         call. = FALSE)
+  }
   .Call(C_clab_r_bufas, x, y, site, comp, r, buf, lonlat)
 }
 

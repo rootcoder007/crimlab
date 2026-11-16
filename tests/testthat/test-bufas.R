@@ -42,3 +42,11 @@ test_that("bufas() refuses bad input in words", {
     list("`r`", p, site = p, comp = p, r = 0),
     list("`buf`", p, site = p, comp = p, r = 1, buf = -1)
   ))})
+
+test_that("a factor or text as r is refused before the buffer is made", {
+  p <- cbind(x = 0.5, y = 0.5)
+  m <- "^bufas: `r` must be one number strictly between 0 and Inf\\.$"
+  for (r in list(factor(1), "a", as.Date("2024-01-01"))) {
+    expect_error(expect_warning(bufas(p, site = p, comp = p, r = r), NA), m)
+  }
+})

@@ -263,3 +263,8 @@ test_that("cllrmin forms the calibration loss from the full cost", {
   expect_equal(a[["cal"]], full - a[["min"]], tolerance = 1e-12)
   expect_gt(a[["cal"]], 0)
 })
+
+test_that("gtmp() refuses a q that is not a vector without a warning", {
+  expect_error(expect_warning(gtmp(c(0.2, 0.3), q = sum), NA),
+               "^gtmp: `q` must be numbers, one per locus\\.$")
+})

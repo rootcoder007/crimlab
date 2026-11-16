@@ -784,7 +784,10 @@ extern "C" {
 SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
   clab::who = "gtmp";
   SEXP p0 = PROTECT(gvec(p, "p"));
-  // q may be all NA of any type; only a list (or data frame) is converted
+  // q may be all NA of any type; only a list (or data frame) is converted,
+  // and what is not a vector at all (a function) is refused before
+  // align() tests it for NA
+  if (!Rf_isNull(q) && !Rf_isVector(q)) fail("`q` must be numbers, one per locus.");
   SEXP q0 = PROTECT(TYPEOF(q) == VECSXP ? gvec(q, "q") : q);
   static const char *const an[] = {"p", "q", "hom"};
   SEXP a = PROTECT(align(args({p0, q0, hom}), an, true));

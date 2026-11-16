@@ -327,3 +327,10 @@ test_that("dates are counted as their text, and failures are printed", {
 test_that("xfrvrf() refuses in its own name", {
   expect_error(xfrvrf(NULL, c(a = 1)), "^xfrvrf: ")
 })
+
+test_that("labels to keep that are not a vector are refused in words", {
+  expect_error(relbl(c("a", "b"), c(a = "A"), keep = sum),
+               "^relbl: `keep` must be labels")
+  expect_error(grdrcd(c("a", "b"), c(a = "A"), keep = sum),
+               "^grdrcd: `keep` must be labels")
+})

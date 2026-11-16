@@ -1,5 +1,16 @@
 # crimlab 0.0.0.9000
 
+* Fixed, one function at a time: `bufas()` multiplied a factor or text
+  `r` for its default `buf` before checking it (a warning or "non-numeric
+  argument to binary operator"); `gtmp()` tested a function `q` for `NA`
+  with a warning; the `rgnmap*()` checks turned a function into text;
+  `ppmlfe()`, `ppmlcf()` and `expgmm()` converted a `maxit` past an
+  integer with a warning; `yoypdf()` did not check `lag`; `dstnskch()`,
+  `rsvsmp()`, `relbl()`, `grdrcd()` and `grdlvls()` took a function for
+  their values or labels; `crfno2()`, `crfpm25()` and `polbrdn()` failed
+  quoting a function as an outcome or pollutant. Each now refuses in its
+  own words.
+
 * Fixed: a colour index past the range of an integer (`col = 1e300`,
   `Inf`) used to pass the plots' colour check with a coercion warning, or
   fail in `col2rgb()` ("numerical color values must be >= 0"), in 12 plot

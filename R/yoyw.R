@@ -131,9 +131,7 @@ fylbl <- function(endyear, sep = "/", short = TRUE) {
 #' @export
 yoysmry <- function(x, lag = 1) {
   d <- .ytab(x, "yoysmry")
-  if (!is.numeric(lag) || length(lag) != 1L || !is.finite(lag) || lag <= 0) {
-    stop("yoysmry: `lag` must be one positive number.", call. = FALSE)
-  }
+  .ylag(lag, "yoysmry")
   chg <- d[[.ychg(d)]]
   g <- if ("group" %in% names(d)) as.character(d$group) else rep("", nrow(d))
   rows <- lapply(unique(g), function(k) {
@@ -322,6 +320,14 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
     stop(fn, ": `", nm, "` must be TRUE or FALSE.", call. = FALSE)
   }
   x
+}
+
+# The lag of a summary: one positive number.
+.ylag <- function(lag, fn) {
+  if (!is.numeric(lag) || length(lag) != 1L || !is.finite(lag) || lag <= 0) {
+    stop(fn, ": `lag` must be one positive number.", call. = FALSE)
+  }
+  lag
 }
 
 .ytxt1 <- function(x, nm, fn) {

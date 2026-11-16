@@ -48,6 +48,7 @@
 grdrcd <- function(x, map, keep = character()) {
   x <- .catx(x, "grdrcd")
   .catmap(map, "grdrcd")
+  .ctkeep(keep, "keep", "grdrcd")
   .crec(as.character(x), map, as.character(keep), "grdrcd")
 }
 
@@ -72,7 +73,7 @@ relbl <- function(x, map, keep = character()) {
   } else {
     as.character(sort(unique(x[!is.na(x)]), method = "radix"))
   }
-  keep <- as.character(keep)
+  keep <- as.character(.ctkeep(keep, "keep", "relbl"))
   un <- setdiff(old, c(names(map), keep))
   if (length(un)) {
     stop("relbl: levels with no mapping: ", toString(.cq(un)),
@@ -116,6 +117,7 @@ grdlvls <- function(x, lvls, ref = NULL) {
     stop("grdlvls: values outside the declared levels: ",
          toString(.cq(stray)), ".", call. = FALSE)
   }
+  .ctkeep(ref, "ref", "grdlvls")
   if (!is.null(ref) && !identical(as.character(ref), lvls[1L])) {
     stop("grdlvls: the declared reference ", .cq(ref), " is not the first ",
          "level (", .cq(lvls[1L]), "); put the reference first in `lvls`.",
@@ -479,6 +481,15 @@ print.xfrvrf <- function(x, ...) {
 }
 
 # relbl(): `x` a vector of labels, `map` named
+# Labels to keep or a reference label: NULL or a vector (not a function),
+# valid text.
+.ctkeep <- function(v, what, fn) {
+  if (!is.null(v) && !is.atomic(v) && !is.factor(v)) {
+    .ckstop(fn, "`%s` must be labels: a vector of text or codes", what)
+  }
+  .cktxt(v, what, fn)
+}
+
 .rlargs <- function(x, map) {
   if (is.null(x) || !is.atomic(x) || is.complex(x) || is.raw(x)) {
     stop("relbl: `x` must be a vector of labels (text, a factor or ",

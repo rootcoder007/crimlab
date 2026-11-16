@@ -1359,3 +1359,9 @@ test_that("every choice argument is refused in the package's words", {
     }
   }
 })
+
+test_that("an iteration count past an integer is refused without a warning", {
+  m <- "`maxit` must be between 1 and 2147483647"
+  expect_error(expect_warning(ppmlfe(simpan(), "y", "x", fe = "unit",
+                                     maxit = 1e300), NA), m)
+})

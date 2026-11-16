@@ -154,3 +154,20 @@ test_that("rgnmapcmp names a unit found only in the recomputed map", {
   expect_identical(r$first[r$column == "rows"], "recomputed only: South")
   expect_identical(r$mismatched[r$column == "rows"], 1L)
 })
+
+test_that("arguments that are not names are refused in words", {
+  m <- data.frame(inst = c("a", "b"), cd = c("1", "2"))
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(expect_warning(rgnmapalt(m, "inst", "cd", sum), NA),
+               "^rgnmapalt: `route` must be a vector of names or codes")
+  expect_error(rgnmapalt(m, "inst", "cd", c(a = "1"), known = sum),
+               "^rgnmapalt: `known` must be a vector of names or codes")
+  expect_error(rgnmapalt(m, sum, "cd", c(a = "1")),
+               "^rgnmapalt: `unit` must be one column name of `map`")
+  expect_error(rgnmapalt(m, "inst", "cd", c(a = bad)),
+               "^rgnmapalt: `route` holds text that is not valid")
+  expect_error(rgnmapintg(m, "inst", "cd", regs = new.env()),
+               "^rgnmapintg: `regs` must be a vector")
+  expect_error(rgnmapcmp(m, m, "inst", cols = sum),
+               "^rgnmapcmp: `cols` must be a vector")
+})

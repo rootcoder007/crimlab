@@ -177,6 +177,9 @@ rsvidx <- function(n, k, seed = 42L) {
 #' @rdname rsvidx
 #' @export
 rsvsmp <- function(x, k, seed = 42L) {
+  if (is.function(x) || is.environment(x)) {
+    .ckstop("rsvsmp", "`x` must be a vector to sample from")
+  }
   x[.clas("rsvsmp", rsvidx(length(x), k, seed))]
 }
 
@@ -238,6 +241,10 @@ rsvsmp <- function(x, k, seed = 42L) {
 #' @export
 dstnskch <- function(x, p = 14L, regstr = NULL) {
   f <- "dstnskch"
+  if (is.function(x) || is.environment(x)) {
+    .ckstop(f, "`x` must be a vector of values to count")
+  }
+  .cktxt(x, "x", f)
   p <- .dsp(.sknum(p, "p", f), f)
   if (!is.null(regstr)) regstr <- .dsreg(regstr, p, f)
   .Call(C_clab_r_hlladd, enc2utf8(as.character(x)), as.integer(p), regstr)

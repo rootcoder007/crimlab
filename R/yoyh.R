@@ -106,6 +106,7 @@ yoypdf <- function(x, file, title = "Year-over-year change", sub = "",
   d <- .ytab(x, "yoypdf")
   .y1file(file, "yoypdf")
   .yargs(title, sub, notes, "yoypdf")
+  .ylag(lag, "yoypdf")
   p <- .YOY_PALETTES[[.ypick(pal, names(.YOY_PALETTES), "pal", "yoypdf")]]
   better <- .ypick(better, c("neutral", "higher", "lower"), "better",
                    "yoypdf")
@@ -208,7 +209,7 @@ yoywr <- function(x, file, format = "auto", ...) {
   }
   sprintf(
     "Note: the first %s%s %s nothing to compare with, so %s no change.",
-    if (lag == 1L) "period" else sprintf("%d periods", lag),
+    if (lag == 1L) "period" else sprintf("%s periods", format(lag)),
     if ("group" %in% names(d)) " of each group" else "",
     if (lag == 1L) "has" else "have",
     if (lag == 1L) "it shows" else "they show"

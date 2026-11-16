@@ -49,6 +49,7 @@ rgnmapintg <- function(map, unit, reg, regs = NULL) {
   obs <- c(sum(duplicated(u[!blank(u)])), sum(blank(r)))
   chk <- c("units assigned more than one region", "units assigned no region")
   if (!is.null(regs)) {
+    .rmtxt(regs, "regs", "rgnmapintg")
     obs <- c(obs, sum(!blank(r) & !(trimws(r) %in% trimws(as.character(regs)))))
     chk <- c(chk, "region codes not in the reference geography")
   }
@@ -110,6 +111,7 @@ rgnmapcmp <- function(pub, obs, unit, cols = NULL) {
   pu <- trimws(as.character(.rmcol(pub, unit, "pub", "rgnmapcmp")))
   ou <- trimws(as.character(.rmcol(obs, unit, "obs", "rgnmapcmp")))
   both <- intersect(names(pub), names(obs))
+  .rmtxt(cols, "cols", "rgnmapcmp")
   cols <- if (is.null(cols)) setdiff(both, unit) else as.character(cols)
   miss <- setdiff(cols, both)
   if (length(miss)) {
@@ -208,6 +210,8 @@ rgnmapalt <- function(map, unit, reg, route, known = character()) {
       trimws(as.character(.rmcol(route, unit, "route", "rgnmapalt")))
     )
   }
+  .rmtxt(route, "route", "rgnmapalt")
+  .rmtxt(known, "known", "rgnmapalt")
   route <- route[!is.na(route) & nzchar(trimws(as.character(route)))]
   if (is.null(names(route))) {
     stop("rgnmapalt: `route` must be named by unit, or be a data frame.",
@@ -230,9 +234,22 @@ rgnmapalt <- function(map, unit, reg, route, known = character()) {
   if (!is.data.frame(d)) {
     stop(fn, ": `", arg, "` must be a data frame.", call. = FALSE)
   }
-  if (!is.character(nm) || length(nm) != 1L || !nm %in% names(d)) {
-    stop(fn, ": `", arg, "` has no column `", toString(nm), "`.",
-         call. = FALSE)
+  if (!is.character(nm) || length(nm) != 1L) {
+    .ckstop(fn, "`%s` must be one column name of `%s`",
+            deparse(substitute(nm)), arg)
   }
-  d[[nm]]
+  .cktxt(nm, deparse(substitute(nm)), fn)
+  if (!nm %in% names(d)) {
+    stop(fn, ": `", arg, "` has no column `", nm, "`.", call. = FALSE)
+  }
+  .cktxt(d[[nm]], arg, fn)
+}
+
+# A vector of names or codes (NULL allowed): text, numbers or a factor,
+# valid in its encoding; what is not a vector (a function) is refused.
+.rmtxt <- function(v, what, fn) {
+  if (!is.null(v) && !is.atomic(v) && !is.factor(v)) {
+    .ckstop(fn, "`%s` must be a vector of names or codes", what)
+  }
+  .cktxt(v, what, fn)
 }

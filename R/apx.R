@@ -2159,7 +2159,8 @@ summary.expjn <- function(object, ...) {
   }
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, max = .Machine$integer.max,
+                   whole = TRUE)
   list(clus = clus, se = se, level = level, tol = tol, maxit = maxit)
 }
 
@@ -2371,7 +2372,8 @@ summary.expjn <- function(object, ...) {
   .axcols(d, clus, "clus", f, n = 1L)
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, max = .Machine$integer.max,
+                   whole = TRUE)
   if (length(inst) < length(endo)) {
     .ckstop(
       f,
@@ -2502,7 +2504,8 @@ summary.expjn <- function(object, ...) {
   }
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, max = .Machine$integer.max,
+                   whole = TRUE)
   if (length(inst) < length(endo)) {
     .ckstop(
       f,

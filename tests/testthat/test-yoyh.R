@@ -48,3 +48,9 @@ test_that("the writer refuses a file or a format it cannot take", {
 test_that("yoywr() refuses in its own name", {
   expect_error(yoywr(NULL, tempfile(fileext = ".csv")), "^yoywr: ")
 })
+
+test_that("yoypdf() checks lag as yoysmry() does", {
+  y <- yoypx(c(10, 12), 1:2)
+  expect_error(yoypdf(y, tempfile(fileext = ".pdf"), lag = NULL),
+               "^yoypdf: `lag` must be one positive number\\.$")
+})

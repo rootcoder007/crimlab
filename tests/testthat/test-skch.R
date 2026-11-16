@@ -150,3 +150,10 @@ test_that("an accumulator prints", {
 test_that("rsvsmp() refuses in its own name", {
   expect_error(rsvsmp(1:5, k = NULL), "^rsvsmp: `k` must be numeric")
 })
+
+test_that("dstnskch() and rsvsmp() refuse what is not a vector", {
+  expect_error(dstnskch(sum), "^dstnskch: `x` must be a vector")
+  expect_error(rsvsmp(new.env(), 2), "^rsvsmp: `x` must be a vector")
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(rsvidx(10, bad), "^rsvidx: `k` holds text that is not valid")
+})

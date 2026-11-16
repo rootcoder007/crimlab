@@ -406,7 +406,7 @@ polbrdn <- function(
   if (is.na(pol)) {
     .ckstop(
       f, "Unknown pollutant '%s'. Use 'PM2.5' or 'NO2'",
-      paste(poll, collapse = ",")
+      if (is.atomic(poll)) paste(poll, collapse = ",") else class(poll)[1L]
     )
   }
   expomean <- .polsc(expomean, "expomean", f)
@@ -672,7 +672,8 @@ print.expconcidx <- function(x, ...) {
 .crfout <- function(y, avail, fn, tail) {
   if (!is.character(y) || length(y) != 1L || !y %in% avail) {
     .ckstop(
-      fn, "Unknown outcome '%s'. Available: %s%s", paste(y, collapse = ","),
+      fn, "Unknown outcome '%s'. Available: %s%s",
+      if (is.atomic(y)) paste(y, collapse = ",") else class(y)[1L],
       toString(avail), tail
     )
   }
