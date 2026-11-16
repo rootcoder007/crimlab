@@ -116,7 +116,7 @@ test_that("mndla() refuses bad input in words", {
   )
 })
 
-test_that("an alert, eligibility or exclusion that is not a vector is refused", {
+test_that("an alert, eligibility or exclusion that is no vector is refused", {
   d <- c(3, 20, 40)
   id <- c("a", "b", "c")
   for (a in c("elig", "excl")) {

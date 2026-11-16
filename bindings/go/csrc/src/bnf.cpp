@@ -120,7 +120,7 @@ double chistat(const double *obs, int k, std::int64_t lo, double m) {
 extern "C" {
 
 int clab_bdig(const double *x, int n, int nd, int dp, int sgn, int *dig,
-              int *cnt) {
+              int *cnt) CLAB_TRY {
   if (n < 0 || nd < 1 || nd > 9 || dp < -1 || dp > 22 || sgn < -1 || sgn > 1)
     return CLAB_EARG;
   for (int k = 0; k < 4; ++k) cnt[k] = 0;
@@ -166,10 +166,10 @@ int clab_bdig(const double *x, int n, int nd, int dp, int sgn, int *dig,
     dig[i] = static_cast<int>(lead(k, nd));
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
-              double *obs, double *work, double *out) {
+              double *obs, double *work, double *out) CLAB_TRY {
   if (n < 0 || nd < 1 || nd > 6 || nsim < 0) return CLAB_EARG;
   const std::int64_t lo = i10(nd - 1);
   const int k = static_cast<int>(9 * lo);
@@ -218,6 +218,6 @@ int clab_bnft(const int *dig, int n, int nd, int nsim, unsigned int seed,
   }
   out[4] = (1.0 + ge) / (nsim + 1.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

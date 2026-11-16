@@ -168,16 +168,16 @@ extern "C" {
 
 int clab_ripk(const double *x, const double *y, int n, const double *win,
               const double *r, int m, int corr, int *iwork, double *work,
-              double *k) {
+              double *k) CLAB_TRY {
   if (n < 2 || m < 1 || corr < 0 || corr > 3) return CLAB_EARG;
   if (!inwin(x, y, n, win) || !radii(r, m)) return CLAB_EDOM;
   kfun(x, y, n, win, r, m, corr, iwork, work, k);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ripkm(const double *x, const double *y, int n, const double *win,
                const double *r, int m, int corr, int metric, int *iwork,
-               double *work, double *k) {
+               double *work, double *k) CLAB_TRY {
   if (n < 2 || m < 1 || corr < 0 || corr > 3 || metric < 0 || metric > 1) return CLAB_EARG;
   // the isotropic weight is the share of a circle; a Manhattan ball is a
   // square turned 45 degrees and has no such correction here
@@ -185,11 +185,11 @@ int clab_ripkm(const double *x, const double *y, int n, const double *win,
   if (!inwin(x, y, n, win) || !radii(r, m)) return CLAB_EDOM;
   kfun(x, y, n, win, r, m, corr, iwork, work, k, metric);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ripenv(const double *x, const double *y, int n, const double *win,
                 const double *r, int m, int corr, int nsim, unsigned int seed,
-                int *iwork, double *work, double *out) {
+                int *iwork, double *work, double *out) CLAB_TRY {
   if (n < 2 || m < 1 || corr < 0 || corr > 3 || nsim < 1) return CLAB_EARG;
   if (!inwin(x, y, n, win) || !radii(r, m)) return CLAB_EDOM;
   double *kw = work, *ks = work + 4 * m, *sx = work + 5 * m, *sy = sx + n;
@@ -227,6 +227,6 @@ int clab_ripenv(const double *x, const double *y, int n, const double *win,
   out[4 * m] = tobs;
   out[4 * m + 1] = (1.0 + ge) / (nsim + 1.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

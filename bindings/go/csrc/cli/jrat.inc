@@ -684,6 +684,7 @@ bool ctabx(Ctx &c, Val &out) {
   const int r2 = static_cast<int>(kr.size()), c2 = static_cast<int>(kc.size());
   const std::size_t s2 = static_cast<std::size_t>(r2);
   const bool counts = ag == 0 || ag == 1 || ag == 5;
+  if (counts && r2 == 0) return c.fail("the table holds no counts: every cell is 0.");
   std::vector<double> u(s2 * static_cast<std::size_t>(c2)), e(u.size()), rs(u.size()), st(9, NaN);
   std::vector<int> dg(s2, -1);
   for (std::size_t j = 0; j < static_cast<std::size_t>(c2); ++j) {

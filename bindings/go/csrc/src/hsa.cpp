@@ -49,7 +49,7 @@ double take(const std::vector<int> &ord, const double *pred, const double *area,
 }  // namespace
 
 int clab_hsacc(const double *pred, const int *ishot, const double *obs, const double *area, const double *prev,
-               int n, const double *top, int nt, int ties, double *res) {
+               int n, const double *top, int nt, int ties, double *res) CLAB_TRY {
   if (n < 1 || nt < 1 || ties < 0 || ties > 2) return CLAB_EARG;
   double A = 0, N = 0, Np = 0;
   for (int i = 0; i < n; ++i) {
@@ -113,4 +113,4 @@ int clab_hsacc(const double *pred, const int *ishot, const double *obs, const do
     res[10 * nt + q] = prev && np > 0 && Np > 0 ? (nh / np) / (N / Np) : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

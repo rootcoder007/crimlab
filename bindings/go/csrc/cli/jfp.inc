@@ -221,6 +221,7 @@ bool raplok(Ctx &c, Val &out) {
     if (s->t != Val::STR) return ckstop(c, "`rapldir` must be a single directory path");
     dir = s->s;
   }
+  CK(ckpath(c, dir, "rapldir"));
   bool any = false, ok = true;
 #ifndef _WIN32
   DIR *d = opendir(dir.c_str());

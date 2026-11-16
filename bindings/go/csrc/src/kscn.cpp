@@ -187,11 +187,22 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
   // the null distribution of the largest ratio: times shuffled, each
   // largest ratio compared with the chosen clusters' as it is drawn, so
   // that nothing grows with nsim
+  // The times are shuffled over the incidents in the order of their
+  // coordinates and times (co), not of the rows, so that one seed gives
+  // one p-value whatever the order of the rows; incidents equal in all
+  // three are interchangeable.
+  std::vector<int> co(n);
+  for (int i = 0; i < n; ++i) co[i] = i;
+  std::sort(co.begin(), co.end(), [&](int a, int b) {
+    if (x[a] != x[b]) return x[a] < x[b];
+    if (y[a] != y[b]) return y[a] < y[b];
+    return tr[a] < tr[b] || (tr[a] == tr[b] && a < b);
+  });
   std::vector<double> ge(pick.size(), 0.0);
   kutil::rng g(seed);
   for (int k = 0; k < nsim; ++k) {
     if (kutil::stop(static_cast<double>(n) * nr * nw)) return CLAB_EINTR;
-    for (int i = n - 1; i > 0; --i) std::swap(tr[i], tr[g.below(i + 1)]);
+    for (int i = n - 1; i > 0; --i) std::swap(tr[co[i]], tr[co[g.below(i + 1)]]);
     const double mx = s.run(tr.data(), false, nullptr);
     for (std::size_t q = 0; q < pick.size(); ++q) ge[q] += mx >= pick[q].llr;
   }
