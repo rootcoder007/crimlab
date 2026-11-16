@@ -71,7 +71,7 @@ double tmax(const double *y, int n, int m, int *at) {
 extern "C" {
 
 int clab_trndrr(const double *x, const double *y, int n, int alt, double z, double *st,
-                double *work, int *iwork) {
+                double *work, int *iwork) CLAB_TRY {
   if (n < 3 || alt < 0 || alt > 2 || !(z > 0)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(x[i]) || !std::isfinite(y[i]) || (i > 0 && !(x[i] > x[i - 1]))) {
@@ -131,10 +131,10 @@ int clab_trndrr(const double *x, const double *y, int n, int alt, double z, doub
   st[8] = lr <= 1;
   st[9] = hr >= m;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_stpcp(const double *y, int n, int minseg, int nperm, unsigned int seed, double *st,
-               double *work, int *iwork) {
+               double *work, int *iwork) CLAB_TRY {
   if (minseg < 1 || n < 2 * minseg || nperm < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i])) return CLAB_EDOM;
@@ -203,10 +203,10 @@ int clab_stpcp(const double *y, int n, int minseg, int nperm, unsigned int seed,
   st[10] = a / pt;
   st[11] = (tot - a) / (n - pt);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_cusrv(const double *y, const double *m, int n, double k, double h, int trans,
-               int reset, double *z, double *s, int *alarm) {
+               int reset, double *z, double *s, int *alarm) CLAB_TRY {
   if (n < 1 || trans < 0 || trans > 3 || !std::isfinite(k) || !kutil::pos(h)) return CLAB_EARG;
   double c = 0;
   for (int i = 0; i < n; ++i) {
@@ -231,9 +231,9 @@ int clab_cusrv(const double *y, const double *m, int n, double k, double h, int 
     if (reset && alarm[i]) c = 0;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_xcser(const double *x, const double *y, int n, int lag, double *r) {
+int clab_xcser(const double *x, const double *y, int n, int lag, double *r) CLAB_TRY {
   if (n < 2 || lag < 0 || lag >= n) return CLAB_EARG;
   double mx = 0, my = 0;
   for (int i = 0; i < n; ++i) {
@@ -257,6 +257,6 @@ int clab_xcser(const double *x, const double *y, int n, int lag, double *r) {
     r[lag + k] = c / d;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

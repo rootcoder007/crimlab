@@ -23,7 +23,7 @@ double near2(double x, double y, const double *qx, const double *qy, int m) {
 
 int clab_bufas(const double *x, const double *y, int n, const double *sx, const double *sy, int ns,
                const double *cx, const double *cy, int nc, double r, double buf, int *grp,
-               double *ds, double *dc) {
+               double *ds, double *dc) CLAB_TRY {
   if (n < 1 || ns < 1 || nc < 1) return CLAB_EARG;
   if (!kutil::pos(r) || !kutil::nonneg(buf)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -35,4 +35,4 @@ int clab_bufas(const double *x, const double *y, int n, const double *sx, const 
     grp[i] = ds[i] <= r ? 0 : (dc[i] <= r && ds[i] > buf ? 1 : 2);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
