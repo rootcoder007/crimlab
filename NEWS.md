@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrpar()` codes police oversight reports into the fields of a
+  schema (`ovrsch()`), by rules that are deterministic and offline, one
+  row per report.
+
 * New: `ovrsch()`, the field schemas of oversight reports: each field
   read by a rule (text after a cue, a number, a date in the cue's
   sentence, numbered tags, a flag and others), with a preset for the

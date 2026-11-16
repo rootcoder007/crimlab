@@ -82,3 +82,110 @@ test_that("ovrsch() refuses a preset it does not have", {
                "ovrsch: `preset` must be one of \"siu\", not \"iio\".",
                fixed = TRUE)
 })
+
+# A director's report laid out as the unit publishes them (no real case):
+# headings on lines of their own, tags split over lines, a signature.
+ovr_rep <- paste0(
+  "<html><body><h1>SIU Director's Report - Case # 23-OFD-001</h1>",
+  "<h2>The Investigation</h2><h3>Notification of the SIU</h3>",
+  "<p>On January 6, 2023, at 9 a.m. the Barrie Police Service contacted ",
+  "the SIU with the\nfollowing information. On January 5, 2023, in the ",
+  "City of Barrie, a 34-year-old man was injured during an arrest.</p>",
+  "<h3>The Team</h3><p>Number of SIU Investigators assigned: 3</p>",
+  "<p>Number of SIU Forensic Investigators assigned: one</p>",
+  "<h3>Civilian Witnesses</h3><p>CW\n#1 Interviewed</p>",
+  "<p>CW #2 Interviewed</p><h3>Subject Officials</h3>",
+  "<p>SO #1 Declined interview</p><h3>Witness Officials</h3>",
+  "<p>WO #1 Interviewed</p><p>WO #2 Interviewed</p><p>WO #3 Interviewed",
+  "</p><h2>Incident Narrative</h2><p>On January 5, 2023, officers of the ",
+  "Barrie Police Service responded to a disturbance.</p>",
+  "<h2>Nature of Injuries / Treatment</h2><p>The man was taken to ",
+  "hospital. He had a fractured left arm. He was released.</p>",
+  "<h2>Relevant Legislation</h2>",
+  "<p>Section 25, Criminal Code - Protection of persons</p>",
+  "<p>Section 34, Criminal Code - Defence of person</p>",
+  "<p>Section 25, Criminal Code - Protection of persons</p>",
+  "<h2>Analysis and Director's Decision</h2><p>There are no reasonable ",
+  "grounds to believe that the subject official committed an offence.</p>",
+  "<p>Date: April 28, 2023</p><p>Joseph Martino</p><p>Director</p>",
+  "<p>Special Investigations Unit</p></body></html>"
+)
+
+test_that("ovrpar() reads every field of the preset from a report", {
+  p <- ovrpar(ovr_rep)
+  expect_identical(names(p), ovrsch()$name)
+  # written out from the report above
+  want <- list(
+    case_number = "23-OFD-001",
+    police_service = "Barrie Police Service",
+    date_of_incident_iso = "2023-01-05",
+    date_siu_notified_iso = "2023-01-06",
+    date_of_director_decision_iso = "2023-04-28",
+    siu_investigators = 3L,
+    siu_forensics_investigators = 1L,
+    number_of_witness_officials = 3L,
+    number_of_civilian_witnesses = 2L,
+    number_of_subject_officials = 1L,
+    age_affected = 34L,
+    sex_gender_affected = "man",
+    charges_recommended = FALSE,
+    directors_name = "Joseph Martino",
+    location_of_call = "Barrie",
+    specific_injuries = "He had a fractured left arm.",
+    relevant_legislation = paste(
+      "Section 25, Criminal Code - Protection of persons;",
+      "Section 34, Criminal Code - Defence of person"
+    )
+  )
+  expect_identical(as.list(p), want)
+})
+
+test_that("ovrpar() leaves unstated fields missing, one row per report", {
+  p <- ovrpar(c(ovr_rep, "<p>not a report</p>", NA))
+  expect_identical(nrow(p), 3L)
+  expect_identical(p$siu_investigators, c(3L, NA, NA))
+  expect_identical(p$charges_recommended, c(FALSE, NA, NA))
+  expect_identical(p$directors_name, c("Joseph Martino", NA, NA))
+  # a schema of one's own: another agency's wording
+  s <- data.frame(name = c("officers", "file", "opened", "found"),
+                  rule = c("tag", "after", "date", "flag"),
+                  cue = c("Officer", "File:", "opened", "substantiated"),
+                  alt = c("", "", "", "not substantiated"),
+                  sect = c("", "", "", "Findings"))
+  r <- paste("File: 2024-117", "Opened on 3 March 2024 after a complaint.",
+             "Officer #1 and Officer #2 were interviewed.", "Findings",
+             "The complaint was not substantiated.", sep = "\n")
+  expect_identical(
+    as.list(ovrpar(r, s)),
+    list(officers = 2L, file = "2024-117", opened = NA_character_,
+         found = FALSE)
+  )
+  s$cue[3] <- "Opened"
+  expect_identical(ovrpar(r, s)$opened, "2024-03-03")
+})
+
+test_that("ovrpar() refuses a schema it cannot read", {
+  s <- ovrsch()
+  expect_error(ovrpar("a", s[, 1:3]),
+               paste("ovrpar: `schema` must be a data frame with the columns",
+                     "name, rule, cue, alt, sect."), fixed = TRUE)
+  s2 <- s
+  s2$rule[1] <- "regex"
+  expect_error(ovrpar("a", s2),
+               paste("ovrpar: `schema` has a rule that is not one of after,",
+                     "num, date, tag, sent, prev, lines, name, flag, before,",
+                     "word: \"regex\"."), fixed = TRUE)
+  s3 <- s
+  s3$name[2] <- s3$name[1]
+  expect_error(ovrpar("a", s3),
+               "ovrpar: the names of `schema` must be given once each.",
+               fixed = TRUE)
+  s4 <- s
+  s4$cue[1] <- NA
+  expect_error(ovrpar("a", s4),
+               paste("ovrpar: the columns of `schema` must be text with no",
+                     "missing values."), fixed = TRUE)
+  expect_error(ovrpar(3),
+               "ovrpar: `x` must be text (a character vector), not numeric.",
+               fixed = TRUE)
+})

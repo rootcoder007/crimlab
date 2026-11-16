@@ -146,3 +146,86 @@ ovrsch <- function(preset = "siu") {
   preset <- .ckarg(preset, "siu", "preset", f)
   as.data.frame(.Call(C_clab_r_ovrsch, preset), stringsAsFactors = FALSE)
 }
+
+#' Code police oversight reports into fields
+#'
+#' Reads the fields of a schema from each report: the dates, the counts of
+#' officials and witnesses, the service, the outcome and whatever else
+#' the schema names, each by its rule (see [ovrsch()]). The rules are
+#' deterministic and offline, so the same report always gives the same
+#' row, and a folder of saved reports becomes a data set whose every
+#' value can be traced to the words that gave it.
+#'
+#' Each report is first made text as [ovrtxt()] makes it, then each field
+#' is read by its rule; a field the report does not state is `NA`. A
+#' field of the rules `num`, `tag` and `before` is a whole number, one of
+#' the rule `flag` `TRUE` or `FALSE`, one of the rule `date` a
+#' `YYYY-MM-DD` date (as text), and the others text. Nothing is fetched.
+#'
+#' @inheritParams ovrtxt
+#' @param x The reports: their pages (HTML) or texts, a character vector.
+#' @param schema The fields: a data frame with the character columns
+#'   `name`, `rule`, `cue`, `alt` and `sect`, as [ovrsch()] gives them.
+#' @return A data frame with one row per report and one column per field,
+#'   in the order of `schema`; a row of `NA` for a report that is `NA`.
+#' @examples
+#' r <- paste(
+#'   "<h1>Director's Report - Case # 23-OFD-001</h1>",
+#'   "<p>On January 6, 2023, the Barrie Police Service contacted the SIU.",
+#'   "In the night, a 34-year-old man was injured.</p>",
+#'   "<p>Number of SIU Investigators assigned: 3</p>",
+#'   "<p>WO #1 Interviewed</p><p>WO #2 Interviewed</p>",
+#'   "<p>Joseph Martino</p><p>Director</p>"
+#' )
+#' p <- ovrpar(r)
+#' p[, c("case_number", "police_service", "date_siu_notified_iso",
+#'       "siu_investigators", "number_of_witness_officials",
+#'       "age_affected", "directors_name")]
+#' @export
+ovrpar <- function(x, schema = ovrsch(), html = NA) {
+  f <- "ovrpar"
+  x <- .ovrin(x, "x", f)
+  html <- .ovrhtml(html, f)
+  s <- .ovrschk(schema, f)
+  r <- .Call(C_clab_r_ovrpar, x, html, match(s$rule, .ovrrules) - 1L,
+             s$cue, s$alt, s$sect)
+  r <- lapply(seq_along(r), function(j) {
+    switch(s$rule[j],
+           num = , tag = , before = as.integer(r[[j]]),
+           flag = as.logical(r[[j]]),
+           r[[j]])
+  })
+  as.data.frame(stats::setNames(r, s$name), stringsAsFactors = FALSE,
+                check.names = FALSE)
+}
+
+# The rules of a schema, in the order of their codes in src/ovr.cpp.
+.ovrrules <- c("after", "num", "date", "tag", "sent", "prev", "lines",
+               "name", "flag", "before", "word")
+
+# A schema: the columns name, rule, cue, alt and sect, text with no NA,
+# known rules and names given once.
+.ovrschk <- function(schema, f) {
+  cols <- c("name", "rule", "cue", "alt", "sect")
+  if (!is.data.frame(schema) || !all(cols %in% names(schema))) {
+    .ckstop(f, "`schema` must be a data frame with the columns %s",
+            paste(cols, collapse = ", "))
+  }
+  s <- lapply(schema[cols], function(v) {
+    if (is.factor(v)) as.character(v) else v
+  })
+  if (!all(vapply(s, is.character, NA)) || anyNA(unlist(s)) ||
+        !nrow(schema)) {
+    .ckstop(f, "the columns of `schema` must be text with no missing values")
+  }
+  bad <- setdiff(s$rule, .ovrrules)
+  if (length(bad)) {
+    .ckstop(f, "`schema` has a rule that is not one of %s: \"%s\"",
+            paste(.ovrrules, collapse = ", "), bad[1L])
+  }
+  if (!all(nzchar(s$name)) || anyDuplicated(s$name)) {
+    .ckstop(f, "the names of `schema` must be given once each")
+  }
+  s <- lapply(s, enc2utf8)
+  s
+}

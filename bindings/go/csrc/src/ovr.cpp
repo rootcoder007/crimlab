@@ -476,3 +476,390 @@ extern "C" int clab_ovrsch(const char *preset, int j, const char **name, const c
   *desc = f.desc;
   return CLAB_OK;
 }
+
+namespace {
+
+// s without its leading and trailing spaces
+string trim(const string &s) {
+  size_t a = 0, b = s.size();
+  while (a < b && isws(static_cast<unsigned char>(s[a]))) ++a;
+  while (b > a && isws(static_cast<unsigned char>(s[b - 1]))) --b;
+  return s.substr(a, b - a);
+}
+
+// The alternatives of a cue ("a|b"), empty ones left out.
+std::vector<string> alts(const char *cue) {
+  std::vector<string> v;
+  string w;
+  for (const char *p = cue;; ++p) {
+    if (*p == '|' || *p == '\0') {
+      if (!w.empty()) v.push_back(w);
+      w.clear();
+      if (*p == '\0') break;
+    } else {
+      w += *p;
+    }
+  }
+  return v;
+}
+
+// The length of the alternative of al that occurs at s[i] as whole words
+// at its ends and inside [i, e), 0 when none does.
+size_t at(const string &s, size_t i, size_t e, const std::vector<string> &al) {
+  for (const string &w : al) {
+    if (i + w.size() > e || s.compare(i, w.size(), w) != 0) continue;
+    if (iswrd(static_cast<unsigned char>(w[0])) && i > 0 && iswrd(static_cast<unsigned char>(s[i - 1]))) continue;
+    const size_t j = i + w.size();
+    if (iswrd(static_cast<unsigned char>(w.back())) && j < s.size() && iswrd(static_cast<unsigned char>(s[j]))) {
+      continue;
+    }
+    return w.size();
+  }
+  return 0;
+}
+
+// The line of s that holds position i: [*a, *b).
+void line(const string &s, size_t i, size_t *a, size_t *b) {
+  const size_t p = i == 0 ? string::npos : s.rfind('\n', i - 1);
+  *a = p == string::npos ? 0 : p + 1;
+  const size_t q = s.find('\n', i);
+  *b = q == string::npos ? s.size() : q;
+}
+
+// A line that looks like a heading: one to eight words, the first
+// starting with a capital, no digit, not ending in a stop or a comma.
+// ponytail: a heuristic; a section of a layout it misjudges is cut short
+// or runs on, and a schema can avoid sections for such fields.
+bool heading(const string &l) {
+  if (l.empty()) return false;
+  const unsigned char c0 = static_cast<unsigned char>(l[0]);
+  if (!(isup(c0) || c0 >= 0xC3)) return false;
+  int words = 1;
+  for (size_t i = 0; i < l.size(); ++i) {
+    const unsigned char c = static_cast<unsigned char>(l[i]);
+    if (isdig(c)) return false;
+    if (c == ' ') ++words;
+  }
+  const char z = l.back();
+  return words <= 8 && z != '.' && z != ',' && z != ';' && z != ':' && z != '!' && z != '?';
+}
+
+// The section under the last line that is one of the headings of sect, up
+// to the next line that looks like a heading: [*a, *e). The whole text
+// when sect is empty; false when no line is one of its headings.
+bool section(const string &s, const char *sect, size_t *a, size_t *e) {
+  const std::vector<string> hs = alts(sect);
+  *a = 0;
+  *e = s.size();
+  if (hs.empty()) return true;
+  bool hit = false;
+  for (size_t i = 0; i < s.size();) {
+    size_t la, lb;
+    line(s, i, &la, &lb);
+    const string l = trim(s.substr(la, lb - la));
+    for (const string &h : hs) {
+      if (l == h) {
+        hit = true;
+        *a = lb;
+      }
+    }
+    i = lb + 1;
+  }
+  if (!hit) return false;
+  for (size_t i = *a + 1; i < s.size();) {
+    size_t la, lb;
+    line(s, i, &la, &lb);
+    if (heading(trim(s.substr(la, lb - la)))) {
+      *e = la;
+      break;
+    }
+    i = lb + 1;
+  }
+  return true;
+}
+
+// The sentence of s[a, e) that holds position p: from the last line end
+// or sentence end (".", "!" or "?", a space and a capital or a digit)
+// before p to the next one.
+string sentence(const string &s, size_t p, size_t a, size_t e) {
+  auto end = [&](size_t k) {
+    return (s[k] == '.' || s[k] == '!' || s[k] == '?') && k + 2 < e && s[k + 1] == ' ' &&
+           (isup(static_cast<unsigned char>(s[k + 2])) || isdig(static_cast<unsigned char>(s[k + 2])));
+  };
+  size_t b = a;
+  for (size_t k = p; k > a; --k) {
+    if (s[k - 1] == '\n') {
+      b = k;
+      break;
+    }
+    if (k + 1 <= p && end(k - 1)) {
+      b = k + 1;
+      break;
+    }
+  }
+  size_t z = e;
+  for (size_t k = p; k < e; ++k) {
+    if (s[k] == '\n') {
+      z = k;
+      break;
+    }
+    if (end(k)) {
+      z = k + 1;
+      break;
+    }
+  }
+  return trim(s.substr(b, z - b));
+}
+
+// A number at s[i]: digits, or a number word in English or French up to
+// twenty; its value and end.
+bool readnum(const string &s, size_t i, size_t e, long *v, size_t *end) {
+  if (i >= e) return false;
+  if (isdig(static_cast<unsigned char>(s[i]))) {
+    size_t j = i;
+    long x = 0;
+    while (j < e && isdig(static_cast<unsigned char>(s[j])) && j - i < 9) x = x * 10 + (s[j++] - '0');
+    if (j < e && isdig(static_cast<unsigned char>(s[j]))) return false;
+    *v = x;
+    *end = j;
+    return true;
+  }
+  if (i > 0 && iswrd(static_cast<unsigned char>(s[i - 1]))) return false;
+  size_t j = i;
+  while (j < e && iswrd(static_cast<unsigned char>(s[j])) && !isdig(static_cast<unsigned char>(s[j]))) ++j;
+  if (j == i) return false;
+  string w = s.substr(i, j - i);
+  for (char &c : w) c = static_cast<char>(low(static_cast<unsigned char>(c)));
+  static const char *const en[] = {"zero",    "one",     "two",       "three",    "four",    "five",    "six",
+                                   "seven",   "eight",   "nine",      "ten",      "eleven",  "twelve",  "thirteen",
+                                   "fourteen", "fifteen", "sixteen",  "seventeen", "eighteen", "nineteen", "twenty"};
+  static const char *const fr[] = {"z\xc3\xa9ro", "un",    "deux",     "trois",  "quatre", "cinq",   "six",
+                                   "sept",        "huit",  "neuf",     "dix",    "onze",   "douze",  "treize",
+                                   "quatorze",    "quinze", "seize",   "dix-sept", "dix-huit", "dix-neuf", "vingt"};
+  for (int k = 0; k <= 20; ++k) {
+    if (w == en[k] || w == fr[k] || (k == 1 && w == "une")) {
+      *v = k;
+      *end = j;
+      return true;
+    }
+  }
+  return false;
+}
+
+// The first position from i in [i, e) where an alternative occurs, and
+// its length; npos when none.
+size_t next(const string &s, size_t i, size_t e, const std::vector<string> &al, size_t *len) {
+  for (; i < e; ++i) {
+    const size_t n = at(s, i, e, al);
+    if (n) {
+      *len = n;
+      return i;
+    }
+  }
+  return string::npos;
+}
+
+// A word of a name ending at s[k - 1]: its start, or npos when the word
+// does not start with a capital.
+size_t capword(const string &s, size_t lo, size_t k) {
+  size_t j = k;
+  while (j > lo) {
+    const unsigned char c = static_cast<unsigned char>(s[j - 1]);
+    if (!(iswrd(c) || c == '.' || c == '\'' || c == '-')) break;
+    --j;
+  }
+  if (j == k) return string::npos;
+  const unsigned char c = static_cast<unsigned char>(s[j]);
+  const bool cap = isup(c) || (c == 0xC3 && j + 1 < k && static_cast<unsigned char>(s[j + 1]) <= 0x9E);
+  return cap ? j : string::npos;
+}
+
+// Rules, in the order of their codes (R/ovr.R): after, num, date, tag,
+// sent, prev, lines, name, flag, before, word.
+bool field(const string &s, int rule, const char *cue, const char *alt, const char *sect, string &v) {
+  size_t a, e, len = 0;
+  if (!section(s, sect, &a, &e)) return false;
+  const std::vector<string> al = alts(cue), op = alts(alt);
+  switch (rule) {
+    case 0:
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        size_t q = p + len;
+        while (q < e && (s[q] == ' ' || s[q] == ':')) ++q;
+        size_t z = q;
+        while (z < e && s[z] != ',' && s[z] != ';' && s[z] != '\n' &&
+               !(s[z] == '.' && (z + 1 == e || s[z + 1] == ' ' || s[z + 1] == '\n'))) {
+          ++z;
+        }
+        v = trim(s.substr(q, z - q));
+        if (!v.empty()) return true;
+      }
+      return false;
+    case 1:
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        size_t la, lb;
+        line(s, p, &la, &lb);
+        const size_t z = std::min({lb, e, p + len + 40});
+        for (size_t k = p + len; k < z; ++k) {
+          long x;
+          size_t end;
+          if (readnum(s, k, std::min(lb, e), &x, &end)) {
+            v = std::to_string(x);
+            return true;
+          }
+        }
+      }
+      return false;
+    case 2:
+      if (al.empty()) return finddate(s, a, e, v);
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        const string t = sentence(s, p, a, e);
+        if (finddate(t, 0, t.size(), v)) return true;
+      }
+      return false;
+    case 3: {
+      long mx = 0;
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        size_t k = p + len;
+        while (k < e && isws(static_cast<unsigned char>(s[k]))) ++k;
+        if (k < e && s[k] == '#') {
+          ++k;
+        } else if (k + 1 < e && (s[k] == 'n' || s[k] == 'N') && s[k + 1] == 'o' &&
+                   (k + 2 >= e || !iswrd(static_cast<unsigned char>(s[k + 2])))) {
+          k += 2;
+          if (k < e && s[k] == '.') ++k;
+        } else if (k + 2 < e && s[k] == 'n' && static_cast<unsigned char>(s[k + 1]) == 0xC2 &&
+                   (static_cast<unsigned char>(s[k + 2]) == 0xB0 || static_cast<unsigned char>(s[k + 2]) == 0xBA)) {
+          k += 3;
+        }
+        while (k < e && isws(static_cast<unsigned char>(s[k]))) ++k;
+        long x;
+        size_t end;
+        if (k < e && isdig(static_cast<unsigned char>(s[k])) && readnum(s, k, e, &x, &end)) mx = std::max(mx, x);
+      }
+      if (mx < 1) return false;
+      v = std::to_string(mx);
+      return true;
+    }
+    case 4: {
+      const size_t p = next(s, a, e, al, &len);
+      if (p == string::npos) return false;
+      v = sentence(s, p, a, e);
+      return true;
+    }
+    case 5: {
+      size_t hit = string::npos;
+      for (size_t i = a; i < e;) {
+        size_t la, lb;
+        line(s, i, &la, &lb);
+        const string l = trim(s.substr(la, lb - la));
+        for (const string &w : al) {
+          if (l == w) hit = la;
+        }
+        i = lb + 1;
+      }
+      if (hit == string::npos) return false;
+      for (size_t i = hit; i > a;) {
+        size_t la, lb;
+        line(s, i - 1, &la, &lb);
+        const string l = trim(s.substr(la, lb - la));
+        if (!l.empty()) {
+          v = l;
+          return true;
+        }
+        i = la;
+      }
+      return false;
+    }
+    case 6: {
+      std::vector<string> got;
+      for (size_t i = a; i < e;) {
+        size_t la, lb;
+        line(s, i, &la, &lb);
+        const string l = trim(s.substr(la, std::min(lb, e) - la));
+        if (!l.empty() && at(l, 0, l.size(), al) && std::find(got.begin(), got.end(), l) == got.end()) {
+          got.push_back(l);
+        }
+        i = lb + 1;
+      }
+      if (got.empty()) return false;
+      v.clear();
+      for (size_t k = 0; k < got.size(); ++k) v += (k ? "; " : "") + got[k];
+      return true;
+    }
+    case 7:
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        // the capitalised words before the cue, nearest first
+        std::vector<size_t> ws;
+        size_t k = p;
+        for (int w = 0; w < 4 && k > a + 1 && s[k - 1] == ' '; ++w) {
+          const size_t j = capword(s, a, k - 1);
+          if (j == string::npos) break;
+          ws.push_back(j);
+          k = j;
+        }
+        // without a leading article
+        while (!ws.empty()) {
+          const size_t st = ws.back(), we = (ws.size() > 1 ? ws[ws.size() - 2] : p) - 1;
+          const string w = s.substr(st, we - st);
+          if (w != "The" && w != "A" && w != "An") break;
+          ws.pop_back();
+        }
+        if (ws.empty()) continue;
+        v = s.substr(ws.back(), p + len - ws.back());
+        return true;
+      }
+      return false;
+    case 8: {
+      size_t n2 = 0;
+      if (!op.empty() && next(s, a, e, op, &n2) != string::npos) {
+        v = "FALSE";
+        return true;
+      }
+      if (next(s, a, e, al, &len) == string::npos) return false;
+      v = "TRUE";
+      return true;
+    }
+    case 9:
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        size_t k = p;
+        while (k > a && (s[k - 1] == ' ' || s[k - 1] == '-')) --k;
+        size_t j = k;
+        while (j > a && iswrd(static_cast<unsigned char>(s[j - 1]))) --j;
+        long x;
+        size_t end;
+        if (j < k && readnum(s, j, k, &x, &end) && end == k) {
+          v = std::to_string(x);
+          return true;
+        }
+      }
+      return false;
+    case 10:
+      for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+        size_t q = p + len;
+        while (q < e && (s[q] == ' ' || s[q] == '-')) ++q;
+        size_t z = q;
+        while (z < e && iswrd(static_cast<unsigned char>(s[z])) && !isdig(static_cast<unsigned char>(s[z]))) ++z;
+        if (z > q) {
+          v = s.substr(q, z - q);
+          return true;
+        }
+      }
+      return false;
+    default:
+      return false;
+  }
+}
+
+}  // namespace
+
+extern "C" int clab_ovrfld(const char *t, int64_t n, int rule, const char *cue, const char *alt, const char *sect,
+                           char *out, int64_t *len) CLAB_TRY {
+  if (n < 0 || rule < 0 || rule > 10) return CLAB_EARG;
+  const string s(t, static_cast<size_t>(n));
+  string v;
+  *len = -1;
+  if (!field(s, rule, cue, alt, sect, v)) return CLAB_OK;
+  std::memcpy(out, v.data(), v.size());
+  *len = static_cast<int64_t>(v.size());
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)

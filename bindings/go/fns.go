@@ -1273,6 +1273,9 @@ func Lrcce(args string) (string, error) { return Jrun("lrcce", args) }
 // Cemtch runs cemtch() of the R package (arguments: data d x cut? lcut?; ? marks an optional one).
 func Cemtch(args string) (string, error) { return Jrun("cemtch", args) }
 
+// Ovrpar runs ovrpar() of the R package (arguments: x schema? html?; ? marks an optional one).
+func Ovrpar(args string) (string, error) { return Jrun("ovrpar", args) }
+
 // Ovrsch runs ovrsch() of the R package (arguments: preset?; ? marks an optional one).
 func Ovrsch(args string) (string, error) { return Jrun("ovrsch", args) }
 

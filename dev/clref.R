@@ -2412,6 +2412,14 @@ ok("ovrdte", x = c("January 5, 2023", "le 1er f\u00e9vrier 2021", "February 30, 
 bad("ovrdte", x = 20230105)
 ok("ovrsch")
 bad("ovrsch", preset = "iio")
+ovrrep <- paste0("<h1>Report - Case # 23-OFD-001</h1><p>On January 6, 2023, the Barrie Police Service ",
+                 "contacted the SIU. A 34-year-old man was injured.</p><p>Number of SIU Investigators assigned: 3</p>",
+                 "<p>WO\n#1</p><p>WO #2</p><h2>Analysis and Director's Decision</h2><p>There are no reasonable ",
+                 "grounds.</p><p>Date: April 28, 2023</p><p>Joseph Martino</p><p>Director</p>")
+ok("ovrpar", x = c(ovrrep, NA, "<p>not a report</p>"))
+ok("ovrpar", x = "File: 2024-117\nOfficer #1 and Officer #2", schema = data.frame(name = c("f", "o"),
+   rule = c("after", "tag"), cue = c("File:", "Officer"), alt = "", sect = ""))
+bad("ovrpar", x = "a", schema = data.frame(name = "f", rule = "regex", cue = "", alt = "", sect = ""))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

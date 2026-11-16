@@ -4617,6 +4617,17 @@ int clab_ovrdte(const char *s, int64_t n, char *out);
 int clab_ovrsch(const char *preset, int j, const char **name, const char **rule, const char **cue,
                 const char **alt, const char **sect, const char **desc);
 
+/* A field of an oversight report (ovrpar): t (n bytes) the text as
+ * clab_ovrtxt() makes it, read by rule (0 after, 1 num, 2 date, 3 tag, 4
+ * sent, 5 prev, 6 lines, 7 name, 8 flag, 9 before, 10 word; R/ovr.R
+ * describes them) with the cues cue, the opposite cues alt (rule 8) and
+ * the section under the heading sect ("" the whole text); alternatives
+ * are separated by '|'. Out: out (at least 2n + 64 bytes) and its length
+ * *len, -1 when the text does not state the field. CLAB_EARG for an
+ * unknown rule. */
+int clab_ovrfld(const char *t, int64_t n, int rule, const char *cue, const char *alt, const char *sect,
+                char *out, int64_t *len);
+
 #ifdef __cplusplus
 }
 #endif

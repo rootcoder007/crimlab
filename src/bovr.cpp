@@ -100,3 +100,34 @@ SEXP C_clab_r_ovrsch(SEXP preset) {
 }
 
 }  // extern "C"
+
+extern "C" {
+
+// ovrpar(): the fields of each text, a list of character columns (NA
+// where a field is not found or the text is NA); rule the codes of the
+// rules, cue, alt and sect their strings.
+SEXP C_clab_r_ovrpar(SEXP x, SEXP html, SEXP rule, SEXP cue, SEXP alt, SEXP sect) {
+  clab::who = "ovrpar";
+  const R_xlen_t n = XLENGTH(x), k = XLENGTH(rule);
+  const int h = Rf_asLogical(html) == NA_LOGICAL ? -1 : Rf_asLogical(html);
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, k));
+  for (R_xlen_t j = 0; j < k; ++j) SET_VECTOR_ELT(out, j, Rf_allocVector(STRSXP, n));
+  for (R_xlen_t i = 0; i < n; ++i) {
+    for (R_xlen_t j = 0; j < k; ++j) SET_STRING_ELT(VECTOR_ELT(out, j), i, NA_STRING);
+    if (STRING_ELT(x, i) == NA_STRING) continue;
+    int64_t m = 0, tl = 0, len = 0;
+    const char *s = u8(x, i, &m);
+    char *t = R_alloc(static_cast<std::size_t>(m) + 1, 1);
+    kc(clab_ovrtxt(s, m, h, t, &tl));
+    char *b = R_alloc(2 * static_cast<std::size_t>(tl) + 64, 1);
+    for (R_xlen_t j = 0; j < k; ++j) {
+      kc(clab_ovrfld(t, tl, INTEGER(rule)[j], Rf_translateCharUTF8(STRING_ELT(cue, j)),
+                     Rf_translateCharUTF8(STRING_ELT(alt, j)), Rf_translateCharUTF8(STRING_ELT(sect, j)), b, &len));
+      if (len >= 0) SET_STRING_ELT(VECTOR_ELT(out, j), i, Rf_mkCharLenCE(b, static_cast<int>(len), CE_UTF8));
+    }
+  }
+  UNPROTECT(1);
+  return out;
+}
+
+}  // extern "C"

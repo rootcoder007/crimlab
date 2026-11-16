@@ -82,6 +82,23 @@ void sch(tk &tt) {
   tk_ieq(tt, "ovr.sch.none", clab_ovrsch("x", 0, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]), CLAB_EARG);
 }
 
+void fld(tk &tt) {
+  // a count after its label, the highest numbered tag, a flag
+  const char *t = "Number of X assigned: 4\nWO #2 and WO\n#5\nno grounds";
+  const int64_t n = static_cast<int64_t>(std::strlen(t));
+  char o[256];
+  int64_t len = 0;
+  tk_ieq(tt, "ovr.fld.rc", clab_ovrfld(t, n, 1, "Number of X assigned", "", "", o, &len), CLAB_OK);
+  tk_true(tt, "ovr.fld.num", len == 1 && o[0] == '4');
+  clab_ovrfld(t, n, 3, "WO", "", "", o, &len);
+  tk_true(tt, "ovr.fld.tag", len == 1 && o[0] == '5');
+  clab_ovrfld(t, n, 8, "grounds to", "no grounds", "", o, &len);
+  tk_true(tt, "ovr.fld.flag", len == 5 && std::memcmp(o, "FALSE", 5) == 0);
+  clab_ovrfld(t, n, 3, "SO", "", "", o, &len);
+  tk_true(tt, "ovr.fld.none", len == -1);
+  tk_ieq(tt, "ovr.fld.rule", clab_ovrfld(t, n, 11, "", "", "", o, &len), CLAB_EARG);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
@@ -91,4 +108,5 @@ void t_ovr(tk &t, int big) {
   txt(t);
   dte(t);
   sch(t);
+  fld(t);
 }

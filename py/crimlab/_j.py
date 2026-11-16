@@ -7849,3 +7849,18 @@ def ovrsch(preset: Any = "siu") -> Any:
     ['name', 'rule', 'cue', 'alt', 'sect', 'desc']
     """
     return jcall("ovrsch", preset=preset)
+
+
+def ovrpar(x: Any, schema: Any = None, html: Any = None) -> Any:
+    """Code police oversight reports into fields.
+
+    The arguments and the result are those of R's ``ovrpar()``: see its help
+    page; ``schema`` None is R's default, the preset of ``ovrsch()``.
+
+    Examples
+    --------
+    >>> s = {"name": ["n"], "rule": ["num"], "cue": ["assigned:"], "alt": [""], "sect": [""]}
+    >>> ovrpar(x="<p>Investigators assigned: 3</p>", schema=s)["n"]
+    [3.0]
+    """
+    return jcall("ovrpar", x=x, schema=schema, html=html)

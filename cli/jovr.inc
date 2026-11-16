@@ -277,4 +277,96 @@ bool ovrsch(Ctx &c, Val &out) {
   return true;
 }
 
+const char *const kRules[] = {"after", "num", "date", "tag", "sent", "prev", "lines", "name", "flag", "before", "word"};
+
+// A schema (.ovrschk()): the columns name, rule, cue, alt and sect, text
+// with no missing value, known rules, names given once. Left out, the
+// preset "siu".
+struct Sch {
+  std::vector<std::string> col[5];
+  std::vector<int> rule;
+};
+inline bool osch(Ctx &c, Sch &s) {
+  static const char *const cols[] = {"name", "rule", "cue", "alt", "sect"};
+  if (!c.has("schema")) {
+    const char *v[6];
+    for (int i = 0; clab_ovrsch("siu", i, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) == CLAB_OK; ++i) {
+      for (int j = 0; j < 5; ++j) s.col[j].push_back(v[j]);
+    }
+  } else {
+    const Val &o = c["schema"];
+    bool ok = o.t == Val::OBJ;
+    for (int j = 0; ok && j < 5; ++j) ok = ax::fc(o, cols[j]) != nullptr;
+    if (!ok) return ckstop(c, "`schema` must be a data frame with the columns name, rule, cue, alt, sect");
+    bool txt = true;
+    for (int j = 0; j < 5; ++j) {
+      const Val &a = *ax::fc(o, cols[j]);
+      std::vector<const Val *> e;
+      if (a.t == Val::ARR) {
+        for (const Val &v : a.a) e.push_back(&v);
+      } else {
+        e.push_back(&a);
+      }
+      for (const Val *v : e) {
+        txt = txt && v->t == Val::STR;
+        s.col[j].push_back(v->t == Val::STR ? v->s : std::string());
+      }
+      txt = txt && s.col[j].size() == s.col[0].size() && !e.empty();
+    }
+    if (!txt) return ckstop(c, "the columns of `schema` must be text with no missing values");
+  }
+  for (const std::string &r : s.col[1]) {
+    int k = -1;
+    for (int q = 0; q < 11; ++q) {
+      if (r == kRules[q]) k = q;
+    }
+    if (k < 0) {
+      return ckstop(c, "`schema` has a rule that is not one of after, num, date, tag, sent, prev, lines, name, "
+                       "flag, before, word: \"%s\"", r.c_str());
+    }
+    s.rule.push_back(k);
+  }
+  for (std::size_t i = 0; i < s.col[0].size(); ++i) {
+    const std::string &nm = s.col[0][i];
+    if (nm.empty() || std::find(s.col[0].begin(), s.col[0].begin() + static_cast<std::ptrdiff_t>(i), nm) !=
+                          s.col[0].begin() + static_cast<std::ptrdiff_t>(i)) {
+      return ckstop(c, "the names of `schema` must be given once each");
+    }
+  }
+  return true;
+}
+
+// The field of rule k of the text t, null when not found, typed as R
+// types it.
+inline Val ofield(const std::string &t, const Sch &s, std::size_t j) {
+  std::string b(2 * t.size() + 64, '\0');
+  int64_t len = -1;
+  clab_ovrfld(t.data(), static_cast<int64_t>(t.size()), s.rule[j], s.col[2][j].c_str(), s.col[3][j].c_str(),
+              s.col[4][j].c_str(), &b[0], &len);
+  if (len < 0) return Val();
+  b.resize(static_cast<std::size_t>(len));
+  const int r = s.rule[j];
+  if (r == 1 || r == 3 || r == 9) return vnum(std::strtod(b.c_str(), nullptr));
+  if (r == 8) return vbool(b == "TRUE");
+  return vstr(b);
+}
+
+bool ovrpar(Ctx &c, Val &out) {
+  std::vector<std::string> x;
+  std::vector<char> m;
+  CK(otxt(c, "x", x, m));
+  int h = -1;
+  CK(ohtml(c, h));
+  Sch s;
+  CK(osch(c, s));
+  out = vobj();
+  std::vector<Val> col(s.rule.size(), varr());
+  for (std::size_t i = 0; i < x.size(); ++i) {
+    const std::string t = m[i] ? std::string() : otext(x[i], h);
+    for (std::size_t j = 0; j < s.rule.size(); ++j) col[j].a.push_back(m[i] ? Val() : ofield(t, s, j));
+  }
+  for (std::size_t j = 0; j < s.rule.size(); ++j) put(out, s.col[0][j].c_str(), std::move(col[j]));
+  return true;
+}
+
 }  // namespace ovr
