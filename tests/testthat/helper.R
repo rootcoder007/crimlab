@@ -51,3 +51,26 @@ refrow <- function(pat, paths) {
     i[which.max(lengths(q)[i])]
   }, 1L)
 }
+
+# The rows named by rows, permuted together three times, give the result
+# of f(args): its numbers compared as a sorted set (cells and clusters come
+# out in an order of their own, rows in the order given).
+pinv <- function(f, args, rows) {
+  key <- function(r) {
+    v <- unname(rapply(list(r), function(z) as.numeric(z),
+                       classes = c("numeric", "integer"), how = "unlist"))
+    sort(signif(v[is.finite(v)], 10))
+  }
+  k0 <- key(do.call(f, args))
+  n <- NROW(args[[rows[1L]]])
+  set.seed(7)
+  for (s in 1:3) {
+    o <- sample(n)
+    a <- args
+    for (p in rows) {
+      a[[p]] <- if (is.matrix(a[[p]])) a[[p]][o, , drop = FALSE] else a[[p]][o]
+    }
+    expect_equal(key(do.call(f, a)), k0, tolerance = 1e-10,
+                 info = if (is.character(f)) f else "")
+  }
+}

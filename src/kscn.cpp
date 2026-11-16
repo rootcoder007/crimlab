@@ -141,10 +141,11 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
   std::sort(o.begin(), o.end(), [&](int a, int b) {
     return x[a] == x[b] ? (y[a] == y[b] ? a < b : y[a] < y[b]) : x[a] < x[b];
   });
+  // in the order of their coordinates, not of the rows: a tie in the
+  // likelihood ratio goes to the same centre whatever the order of the rows
   for (int q = 0; q < n; ++q) {
     if (q == 0 || x[o[q]] != x[o[q - 1]] || y[o[q]] != y[o[q - 1]]) s.ctr.push_back(o[q]);
   }
-  std::sort(s.ctr.begin(), s.ctr.end());
   const double rmax2 = r[nr - 1] * r[nr - 1];
   s.memb.resize(s.ctr.size());
   s.cut.resize(s.ctr.size());

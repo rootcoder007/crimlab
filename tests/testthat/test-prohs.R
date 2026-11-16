@@ -78,3 +78,12 @@ test_that("prohs() refuses bad input in words", {
     )
   )
 })
+
+test_that("the order of the events does not change the forecast", {
+  set.seed(6)
+  p <- cbind(x = round(runif(120, 0, 1000), -2),
+             y = round(runif(120, 0, 1000), -2))
+  pinv("prohs", list(x = p, t = sample(1:60, 120, TRUE), at = 50,
+                     win = c(0, 1000, 0, 1000), cell = 100, bw = 300),
+       c("x", "t"))
+})

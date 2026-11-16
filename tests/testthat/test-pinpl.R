@@ -92,3 +92,11 @@ test_that("pinpl() and arwt() refuse bad input in words", {
   ))
 
 })
+
+test_that("the order of the overlaps does not change the weights", {
+  pinv("arwt", list(x = c(a = 120, b = 40, c = 60, d = 100),
+                    from = c("a", "b", "c", "d", "d"),
+                    to = c("N1", "N1", "N2", "N2", "N3"),
+                    area = c(1, 1, 1, 7, 3), top = 1),
+       c("from", "to", "area"))
+})

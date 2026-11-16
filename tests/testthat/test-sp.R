@@ -679,3 +679,11 @@ test_that("a top past the cells of the grid keeps them all, as many does", {
   b <- stacel(x, y, win = c(-2, 6, -2, 6), r = 0.75, top = 1e9, minpts = 5)
   expect_identical(b, a)
 })
+
+test_that("the order of the points does not change the clusters", {
+  set.seed(1)
+  x <- round(c(rnorm(30, 2, 0.2), runif(60, 0, 10)), 1)
+  y <- round(c(rnorm(30, 2, 0.2), runif(60, 0, 10)), 1)
+  pinv("stacel", list(x = x, y = y, win = c(0, 10, 0, 10), r = 0.75,
+                      top = 5, minpts = 5), c("x", "y"))
+})

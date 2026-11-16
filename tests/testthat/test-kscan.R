@@ -74,3 +74,14 @@ test_that("kscan() refuses bad input in words", {
     list("`minc`", p, t = 1:4, r = 1, tw = 1, minc = 0)
   ))
 })
+
+test_that("the order of the events does not change the clusters found", {
+  set.seed(1)
+  p <- cbind(x = round(c(runif(80, 0, 20), rnorm(15, 5, 0.3))),
+             y = round(c(runif(80, 0, 20), rnorm(15, 15, 0.3))))
+  t <- c(sample(0:60, 80, TRUE), sample(30:33, 15, TRUE))
+  k <- list(x = p, t = t, r = c(1, 3), tw = c(5, 20), top = 3, nsim = 0)
+  r <- do.call(kscan, k)
+  pinv(function(...) kscan(...)$cl, k, c("x", "t"))
+  expect_s3_class(r$cl, "data.frame")
+})

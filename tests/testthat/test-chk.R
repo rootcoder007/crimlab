@@ -29,3 +29,9 @@ test_that("the reference finds a group by name or by position", {
   expect_identical(vodtst(c(4, 5), c(1, 1))[["group"]], c("1", "2"))
   expect_identical(vodtst(c(a = 4, b = 5), c(1, 1))[["group"]], c("a", "b"))
 })
+
+test_that("the order of the places does not change rtmhs()", {
+  set.seed(2)
+  x1 <- rpois(100, 3)
+  pinv("rtmhs", list(x1 = x1, x2 = rpois(100, 3), cut = 4), c("x1", "x2"))
+})

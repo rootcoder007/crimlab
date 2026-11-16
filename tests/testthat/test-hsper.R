@@ -93,3 +93,10 @@ test_that("hsper() refuses bad input in words", {
     list("too many for the grid", p, prd = 1:3, cell = 1, org = c(-1e20, 0))
   ))
 })
+
+test_that("the order of the points does not change the hot cells", {
+  set.seed(1)
+  p <- cbind(x = round(runif(80, 0, 6)), y = round(runif(80, 0, 6)))
+  pinv("hsper", list(x = p, prd = rep(1:4, 20), cell = 1, top = 0.2),
+       c("x", "prd"))
+})

@@ -428,3 +428,11 @@ test_that("tfrp() and aorwt() refuse sizes past their bounds at once", {
   expect_error(aorwt(f, t, nb = 1e9, origin = 0),
                "aorwt: `nb` must be at most 67108864.", fixed = TRUE)
 })
+
+test_that("the order of the people does not change fair()", {
+  set.seed(3)
+  s <- round(runif(60), 1)
+  pinv("fair", list(score = s, y = rbinom(60, 1, s),
+                    grp = rep(c("a", "b"), 30), cut = 0.5),
+       c("score", "y", "grp"))
+})
