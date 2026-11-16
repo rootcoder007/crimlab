@@ -1,5 +1,8 @@
-# Test coverage of R/ and src/ with covr, computed here and nowhere else:
-# the job fails when it falls below the floor. Nothing is uploaded.
+# Test coverage of R/ and src/ with covr: the job fails when it falls
+# below the floor, and the line-by-line report goes to Codecov, which
+# shows it per file and per change. The upload is signed with the
+# workflow's own identity (OIDC), so the repository holds no token for
+# it; an upload that fails does not fail the job, the floor does.
 # Four lines of src/core.cpp cannot be reached from R: clab_strerror()
 # for CLAB_OK and for an unknown code (the binding asks for words only
 # when a kernel fails, and the kernels return no other code).
@@ -14,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # the Codecov upload's identity; nothing else uses it
 
 concurrency:
   group: coverage-${{ github.ref }}
@@ -44,6 +48,7 @@ jobs:
         run: |
           cov <- covr::package_coverage(quiet = FALSE)
           print(cov)
+          covr::to_cobertura(cov, filename = "cobertura.xml")
           # not covr::zero_coverage(): outside a terminal it wants rstudioapi
           z <- covr::tally_coverage(cov)
           z <- z[z[["value"]] == 0, c("filename", "line")]
@@ -55,3 +60,14 @@ jobs:
             cat("::error::coverage below the floor\n")
             quit(status = 1L)
           }
+      - name: Report to Codecov
+        if: always() && hashFiles('cobertura.xml') != ''
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7
+        with:
+          files: ./cobertura.xml
+          plugins: noop
+          disable_search: true
+          slug: rootcoder007/crimlab
+          use_oidc: true
+          fail_ci_if_error: false
+          verbose: true
