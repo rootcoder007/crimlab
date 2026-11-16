@@ -5,3 +5,4 @@ src/*.so
 inst/lean/.lake
 inst/lean/build.log
 Rplots.pdf
+tests/testthat/_problems/
