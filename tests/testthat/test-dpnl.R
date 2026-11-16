@@ -541,15 +541,15 @@ cr1 <- function(x, e, cl) {
   b %*% crossprod(s) %*% b * g / (g - 1) * (n - 1) / (n - ncol(x))
 }
 
-wsim <- function(seed = 23, r = 0) {
+wsim <- function(seed = 23, r = 0, n = 40) {
   set.seed(seed)
-  d <- expand.grid(t = 1:7, u = 1:40)
-  d$x <- rnorm(280)
+  d <- expand.grid(t = 1:7, u = seq_len(n))
+  d$x <- rnorm(7 * n)
   d$e <- 0
-  for (i in seq_len(280)) {
+  for (i in seq_len(7 * n)) {
     d$e[i] <- if (d$t[i] == 1) rnorm(1) else r * d$e[i - 1] + rnorm(1)
   }
-  d$y <- 2 * d$x + rnorm(40)[d$u] + d$e
+  d$y <- 2 * d$x + rnorm(n)[d$u] + d$e
   d[-c(10, 100), ]
 }
 
@@ -599,14 +599,17 @@ test_that("wsctst() is Drukker's two regressions", {
 test_that("wsctst() has the right size and power on simulated panels", {
   # with no correlation the lag coefficient lies within four standard
   # errors of -0.5 (a normal draw beyond that has chance 6e-5); with AR(1)
-  # errors of 0.6 the coefficient is near -0.2 and, with 40 units, the
-  # test rejects at 1% (seed fixed)
+  # errors of 0.6 the correlation of consecutive differences is -(1 - 0.6)
+  # / 2 = -0.2, 0.3 above -0.5; with 40 units the standard error is near
+  # 0.115 (z about 2.6, a p of 0.01 is the median, not a bound), with 400
+  # units near 0.115 sqrt(40 / 400) = 0.036, z about 8, so a p above 1e-6
+  # needs z below 4.9, more than three standard errors under its mean
   w0 <- wsim(24)
   r0 <- wsctst(w0$y, w0["x"], w0$u, w0$t)
   expect_lt(abs(r0$stat[["coef"]] + 0.5), 4 * r0$stat[["se"]])
-  d <- wsim(25, r = 0.6)
+  d <- wsim(25, r = 0.6, n = 400)
   r1 <- wsctst(d$y, d["x"], d$u, d$t)
-  expect_lt(r1$stat[["p"]], 0.01)
+  expect_lt(r1$stat[["p"]], 1e-6)
   expect_output(print(r1), "wsctst: Wooldridge test")
 })
 
@@ -618,6 +621,10 @@ test_that("wsctst() refusals name the function", {
   expect_error(wsctst(d$y, unit = d$u, time = d$t, cons = NA), "`cons`")
   expect_error(wsctst(d$y, matrix(0, 5, 2001), d$u, d$t), "at most 2000")
 })
+
+# the units 1, 2, ..., n in the order the package keeps them: their labels
+# sorted as text (1, 10, 11, ..., 2, 20, 3, ...)
+lab <- function(v) v[order(as.character(seq_along(v)))]
 
 csim <- function(seed = 26, n = 20, tt = 10, fac = TRUE) {
   set.seed(seed)
@@ -638,7 +645,7 @@ test_that("ccepnl() is lm() on the averages, unit by unit and pooled", {
   bi <- vapply(1:20, function(i) {
     coef(lm(y ~ x + ybar + xbar, d[d$u == i, ]))[["x"]]
   }, 0)
-  expect_equal(unname(r$bi[, "x"]), bi, tolerance = 1e-10)
+  expect_equal(unname(r$bi[, "x"]), lab(bi), tolerance = 1e-10)
   expect_equal(r$mg$est, mean(bi), tolerance = 1e-12)
   expect_equal(r$mg$se, sd(bi) / sqrt(20), tolerance = 1e-10)
   p <- lm(y ~ x + factor(u) + factor(u):ybar + factor(u):xbar, d)
@@ -669,8 +676,8 @@ test_that("ccepnl() weights and observed factors enter as Pesaran sets out", {
   bi <- vapply(1:20, function(i) {
     coef(lm(y ~ x + ybar + xbar, d[d$u == i, ]))[["x"]]
   }, 0)
-  expect_equal(unname(r$bi[, 1]), bi, tolerance = 1e-10)
-  expect_equal(unname(r$w), wu, tolerance = 1e-14)
+  expect_equal(unname(r$bi[, 1]), lab(bi), tolerance = 1e-10)
+  expect_equal(unname(r$w), lab(wu), tolerance = 1e-14)
   a <- vapply(1:20, function(i) {
     sum(residuals(lm(x ~ ybar + xbar, d[d$u == i, ]))^2) / 10
   }, 0)
@@ -692,7 +699,7 @@ test_that("ccepnl() weights and observed factors enter as Pesaran sets out", {
     s$xb <- ave(d$x, d$t)[d$u == i]
     coef(lm(y ~ x + tr + yb + xb - 1, s))[["x"]]
   }, 0)
-  expect_equal(unname(f$bi[, 1]), bt, tolerance = 1e-10)
+  expect_equal(unname(f$bi[, 1]), lab(bt), tolerance = 1e-10)
 })
 
 test_that("CCE without factors comes near the mean slope", {
@@ -742,7 +749,7 @@ test_that("ccepnl() on an unbalanced panel is the estimator written out", {
   e <- d[-17, ]
   g <- cceu(e)
   r <- ccepnl(e$y, e["x"], e$u, e$t)
-  expect_equal(unname(r$bi[, "x"]), g$bi, tolerance = 1e-10)
+  expect_equal(unname(r$bi[, "x"]), lab(g$bi), tolerance = 1e-10)
   expect_equal(r$mg$est, g$mg, tolerance = 1e-12)
   expect_equal(r$mg$se, g$mgse, tolerance = 1e-10)
   expect_equal(r$pooled$est, g$bp, tolerance = 1e-10)
@@ -757,7 +764,7 @@ test_that("ccepnl() on an unbalanced panel is the estimator written out", {
   w <- 1 + f$u %% 4
   h <- cceu(f, (1 + (1:20) %% 4))
   q <- ccepnl(f$y, f["x"], f$u, f$t, w = w)
-  expect_equal(unname(q$bi[, "x"]), h$bi, tolerance = 1e-10)
+  expect_equal(unname(q$bi[, "x"]), lab(h$bi), tolerance = 1e-10)
   expect_equal(q$pooled$est, h$bp, tolerance = 1e-10)
   expect_equal(q$pooled$se, h$bpse, tolerance = 1e-10)
   expect_equal(q$mg$se, h$mgse, tolerance = 1e-10)
@@ -771,7 +778,7 @@ test_that("ccepnl() keeps the averages asked for", {
   bi <- vapply(1:20, function(i) {
     coef(lm(y ~ x + xbar, d[d$u == i, ]))[["x"]]
   }, 0)
-  expect_equal(unname(r$bi[, 1]), bi, tolerance = 1e-10)
+  expect_equal(unname(r$bi[, 1]), lab(bi), tolerance = 1e-10)
   expect_identical(r$fit$h, 2)
   # no averages: unit intercepts only, the mean group of unit regressions
   m <- ccepnl(d$y, d["x"], d$u, d$t, avg = character(0))
@@ -792,7 +799,7 @@ test_that("ccepnl() refusals, print and plot", {
                "constant within each unit")
   expect_error(ccepnl(d$y, d["x"], d$u, d$t, w = rep(0, 30)), "`w`")
   expect_error(ccepnl(d$y, cbind(d$x, d$x^2, d$t), d$u, d$t),
-               "unit 1 has 6 periods: .* at least 8")
+               "unit 1 has 6 periods: .* at least 11")
   expect_error(ccepnl(d$y, ave(d$x, d$t), d$u, d$t),
                "unit 1: its regressors are collinear")
   expect_error(ccepnl(d$y, matrix(0, 30, 2001), d$u, d$t), "at most 2000")

@@ -740,6 +740,9 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   if (code == 5) fail("the regressors would number %.0f, more than %d.", d.big, mmax);
   if (code == 6) fail("the design could not be built: out of memory.");
   if (d.m < d.k) fail("the %d instruments are fewer than the %d coefficients.", d.m, d.k);
+  if (sml && d.nobs <= d.k) {
+    fail("`small = TRUE` needs more rows (%d) than coefficients (%d).", d.nobs, d.k);
+  }
   int msub = 0;
   for (int f : d.sub) msub += f;
   std::vector<double> b(z(d.k)), v(z(d.k) * z(d.k)), st(6), av(z(nar));
@@ -777,9 +780,6 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   const bool hasc = std::find(d.xn.begin(), d.xn.end(), "(const)") != d.xn.end();
   const double dfr = sml ? d.ng - (hasc ? 1.0 : 0.0) : 0.0;
   if (sml) {
-    if (d.nobs <= d.k) {
-      fail("`small = TRUE` needs more rows (%d) than coefficients (%d).", d.nobs, d.k);
-    }
     for (double &e : v) e *= static_cast<double>(d.nobs) / (d.nobs - d.k);
   }
   SEXP coef = PROTECT(cframe(d.xn, b.data(), v.data(), d.k, lv, dfr));
