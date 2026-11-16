@@ -1173,3 +1173,33 @@ test_that("dimensions and replicates past their bounds are refused at once", {
   ef(anchv(c(1, 2, 3, 2), Y, ncat = 1e9),
      "anchv: `ncat` times the ratings must be at most 67108864.")
 })
+
+test_that("the vote scalings refuse codes other than 1, 0 and NA", {
+  set.seed(1)
+  v <- matrix(rbinom(200, 1, 0.5), 20, 10)
+  v[3, 4] <- 7
+  na <- matrix(NA_real_, 6, 4)
+  cd <- "`votes` must hold 1 (yea), 0 (nay) or NA (missing)."
+  no <- paste("`votes` must hold at least one vote, 1 (yea) or 0 (nay),",
+              "not only NA (missing).")
+  for (f in c("irtem", "optcls", "dwnom", "anomin")) {
+    expect_error(do.call(f, list(votes = v, ndim = 1)), paste0(f, ": ", cd),
+                 fixed = TRUE)
+  }
+  v[3, 4] <- -1
+  expect_error(irtem(v), paste("irtem:", cd), fixed = TRUE)
+  for (f in c("irtem", "optcls", "dwnom", "cjrirt")) {
+    expect_error(do.call(f, list(votes = na)), paste0(f, ": ", no),
+                 fixed = TRUE)
+  }
+  expect_error(ordocl(na, ndim = 1),
+               "ordocl: `Y` must hold at least one response, not only NA",
+               fixed = TRUE)
+  # a vector is refused at once, not classified as one item of as many
+  # categories as values
+  t0 <- proc.time()[["elapsed"]]
+  expect_error(ordocl(rnorm(1e5)),
+               "ordocl: `Y` must be a numeric matrix, respondents by items.",
+               fixed = TRUE)
+  expect_lt(proc.time()[["elapsed"]] - t0, 5)
+})

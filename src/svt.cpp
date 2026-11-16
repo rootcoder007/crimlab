@@ -616,7 +616,7 @@ int ocerr(std::vector<std::pair<double, int>> &pv, int &te) {
 bool k_optcls(const Node &a, Node &out, std::string &err) {
   Mat V;
   int nd, mi, ns, seed;
-  if (!getm(a, "votes", V, err, true) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 1) ||
+  if (!getvt(a, "votes", V, err) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 1) ||
       !geti(a, "nstart", ns, err, 1) || !geti(a, "seed", seed, err, -2147483647)) {
     return false;
   }
@@ -1259,7 +1259,7 @@ bool k_nomll(const Node &a, Node &out, std::string &err) {
   Mat V, x, zy, zn, uy, un, p;
   double beta;
   std::vector<double> w;
-  if (!getm(a, "votes", V, err, true) || !nomargs(a, x, zy, zn, beta, w, err)) return false;
+  if (!getvt(a, "votes", V, err) || !nomargs(a, x, zy, zn, beta, w, err)) return false;
   if (V.r != x.r || V.c != zy.r) {
     err = "`votes` must have a row per row of `x` and a column per row of `zy`.";
     return false;
@@ -1335,7 +1335,7 @@ bool k_procrs(const Node &a, Node &out, std::string &err) {
 bool k_irtlik(const Node &a, Node &out, std::string &err) {
   Mat V, x, b;
   std::vector<double> al;
-  if (!getm(a, "votes", V, err, true) || !getm(a, "x", x, err) || !getv(a, "alpha", al, err) ||
+  if (!getvt(a, "votes", V, err) || !getm(a, "x", x, err) || !getv(a, "alpha", al, err) ||
       !getm(a, "beta", b, err)) {
     return false;
   }
@@ -1427,7 +1427,20 @@ bool k_irtpst(const Node &a, Node &out, std::string &err) {
 bool k_ordocl(const Node &a, Node &out, std::string &err) {
   Mat Y;
   int nd, mi;
+  // a vector is not a respondent-by-item matrix: refused before a column
+  // of as many categories as values is classified
+  const Node *yn = a.at("Y");
+  if (yn && !yn->d.empty() && yn->dim.size() != 2) {
+    err = "`Y` must be a numeric matrix, respondents by items.";
+    return false;
+  }
   if (!getm(a, "Y", Y, err, true) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 1)) return false;
+  bool any = false;
+  for (double x : Y.v) any = any || !std::isnan(x);
+  if (!any) {
+    err = "`Y` must hold at least one response, not only NA (missing).";
+    return false;
+  }
   const int n = Y.r, m = Y.c;
   if (!dims(static_cast<double>(n) + m, nd, err)) return false;
   rng g(42);
@@ -1799,7 +1812,7 @@ bool k_cutlns(const Node &a, Node &out, std::string &err) {
 bool k_dwnom(const Node &a, Node &out, std::string &err) {
   Mat V;
   int nd, mi;
-  if (!getm(a, "votes", V, err, true) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 0)) return false;
+  if (!getvt(a, "votes", V, err) || !geti(a, "ndim", nd, err, 1) || !geti(a, "maxit", mi, err, 0)) return false;
   const int n = V.r, m = V.c;
   if (!dims(n + 2.0 * m, nd, err)) return false;
   rng g(42);
@@ -1903,7 +1916,7 @@ bool k_nombt(const Node &a, Node &out, std::string &err) {
   Mat V, X, N;
   std::vector<double> cp;
   int nb, seed;
-  if (!getm(a, "votes", V, err, true) || !getm(a, "x", X, err) || !getm(a, "normals", N, err) ||
+  if (!getvt(a, "votes", V, err) || !getm(a, "x", X, err) || !getm(a, "normals", N, err) ||
       !getv(a, "cuts", cp, err) || !geti(a, "nboot", nb, err, 1) || !geti(a, "seed", seed, err, -2147483647)) {
     return false;
   }
@@ -2151,7 +2164,7 @@ bool k_irtem(const Node &a, Node &out, std::string &err) {
   int D, mi;
   double tol;
   std::vector<double> xp, bp;
-  if (!getm(a, "votes", Y, err, true) || !geti(a, "ndim", D, err, 1) || !geti(a, "maxit", mi, err, 1) ||
+  if (!getvt(a, "votes", Y, err) || !geti(a, "ndim", D, err, 1) || !geti(a, "maxit", mi, err, 1) ||
       !getd(a, "tol", tol, err, 0, HUGE_VAL) || !getv(a, "xprior", xp, err) || !getv(a, "bprior", bp, err)) {
     return false;
   }

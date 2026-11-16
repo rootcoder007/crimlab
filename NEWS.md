@@ -27,6 +27,11 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `irtem()`, `optcls()`, `dwnom()`, `cjrirt()`, `nomll()`,
+  `irtlik()` and `nombt()` accepted votes other than 1, 0 and `NA`, and a
+  matrix of no votes; they refuse them now in the words of `anomin()`.
+  `ordocl()` refuses a matrix of no responses, and a vector at once.
+
 * Fixed: `clncolnms()` could return repeated names (`c("x", "x", "x_2")`
   gave `"x_2"` twice); a number whose name is taken is now skipped. A tab
   inside a name is a word break, as the help says, and no longer deleted.

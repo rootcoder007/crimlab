@@ -709,6 +709,24 @@ bool getm(const Node &a, const char *nm, Mat &m, std::string &err, bool na, bool
   return true;
 }
 
+bool getvt(const Node &a, const char *nm, Mat &m, std::string &err) {
+  if (!getm(a, nm, m, err, true)) return false;
+  bool any = false;
+  for (double x : m.v) {
+    if (std::isnan(x)) continue;
+    if (x != 0 && x != 1) {
+      err = msg("`%s` must hold 1 (yea), 0 (nay) or NA (missing).", nm);
+      return false;
+    }
+    any = true;
+  }
+  if (!any) {
+    err = msg("`%s` must hold at least one vote, 1 (yea) or 0 (nay), not only NA (missing).", nm);
+    return false;
+  }
+  return true;
+}
+
 bool getv(const Node &a, const char *nm, std::vector<double> &v, std::string &err, bool na, bool opt) {
   const Node *n = a.at(nm);
   if (!n && opt) {
