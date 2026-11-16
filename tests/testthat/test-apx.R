@@ -545,6 +545,37 @@ test_that("windiv: the paper's edges, hours to days", {
   expect_equal(attr(sp, "dir"), atan2(3, 1) * 180 / pi, tolerance = 1e-12)
 })
 
+test_that("invsn by day: Batkeyev and DeRemer's every-reading rule", {
+  # three-hourly readings of three days: day 1 inverted at every reading,
+  # day 2 at two of three, day 3 at one reading with two missing; by hand
+  lo <- c(1, 2, 3, 1, 2, 3, 1, NA, NA)
+  hi <- c(4, 5, 6, 4, 1, 6, 2, 5, NA)
+  d <- rep(c("d1", "d2", "d3"), each = 3)
+  r <- invsn(lo, hi, by = d)
+  expect_identical(r$by, c("d1", "d2", "d3"))
+  expect_identical(r$n, c(3L, 3L, 1L))
+  expect_identical(r$inv, c(1L, 0L, 1L))
+  expect_equal(r$diff, c(3, (3 - 1 + 3) / 3, 1), tolerance = 1e-15)
+  expect_identical(invsn(lo, hi, by = d, rule = "any")$inv, c(1L, 1L, 1L))
+  expect_identical(invsn(lo, hi, by = d, rule = "mean")$inv, c(1L, 1L, 1L))
+  g <- invsn(lo, hi, sign = "ground", by = d, brk = c(-Inf, -2, Inf))
+  expect_equal(g$diff, -r$diff, tolerance = 1e-15)
+  expect_identical(as.character(g$bin),
+                   c("(-Inf,-2]", "(-2, Inf]", "(-2, Inf]"))
+  dg <- attr(r, "diag")
+  expect_identical(dg$n, 3L)
+  expect_equal(dg$zero, 1 / 3, tolerance = 1e-15)
+  # a day without a reading is NA
+  e <- invsn(c(1, NA), c(2, 3), by = c(1, 2))
+  expect_identical(e$inv, c(1L, NA))
+  expect_identical(e$n, c(1L, 0L))
+  expect_error(invsn(1, 2, by = c(1, 2)),
+               "invsn: `by` must give the group of each reading, with no NA.",
+               fixed = TRUE)
+  expect_error(invsn(1, 2, by = 1, rule = "some"), "invsn: `rule` must be",
+               fixed = TRUE)
+})
+
 test_that("invsn: the sign, the indicator and bins", {
   r <- invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, 0, Inf))
   expect_identical(r$diff, c(2, -1, 0))

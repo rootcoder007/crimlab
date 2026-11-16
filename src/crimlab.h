@@ -2092,6 +2092,40 @@ int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int 
 int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
                  int base, int edge, double *out);
 
+/* Downwind exposure (dwnexp): ns sources at (sx, sy) in periods sp
+ * (codes 0..np-1), each with sto, the direction the wind blows to there
+ * (degrees clockwise from north), and nr places. Rule 0 (sector, the
+ * centroid rule of Bao and Da 2026): out (nr x np, column-major) counts
+ * the sources of each period from which a place's point (rx, ry) lies
+ * within half degrees of sto and within the distance rad (Inf for none;
+ * a place at the source counts). Rule 1 (wedge, their transport
+ * corridor; planar only, ll 0): place r is the polygon of vertices ro[r]
+ * .. ro[r + 1] - 1 of (rx, ry) (ro: nr + 1 offsets from 0, three or more
+ * each), counted when it meets the sector of half-angle half and radius
+ * rad about sto from the source. Rule 2 (angle, Ayesh 2023): out is the
+ * angle between the bearing from the mean point of a period's sources
+ * to the place and the direction of their mean wind vector (in [0, 180]
+ * with wrap 1, the plain absolute difference with wrap 0), and out2 the
+ * mean distance from the place to the period's sources not at its own
+ * location; NaN for a period without sources. With ll 1, x and y are
+ * longitude and latitude in degrees, bearings are initial great-circle
+ * bearings and distances km (haversine); else planar. CLAB_EARG for
+ * sizes or codes out of range, CLAB_EDOM for a value that is not finite,
+ * CLAB_ENOMEM when memory runs out. */
+int clab_dwnexp(int rule, int ns, const double *sx, const double *sy, const int *sp,
+                const double *sto, int nr, const double *rx, const double *ry, const int *ro,
+                int np, double half, double rad, int ll, int wrap, double *out, double *out2);
+
+/* The tailwind component (tailwd): for wind from dir[i] (degrees
+ * clockwise from north) at speed spd[i], the part along the flight course
+ * (degrees), spd cos(dir + 180 - course), positive for a tailwind (Hener
+ * 2022). Without grp (NULL) out has n values; with grp (codes 0..ng-1)
+ * out has ng, each group's maximum (agg 0) or mean (agg 1) over its rows
+ * with a value, NaN for a group without one. CLAB_EARG for sizes or codes
+ * out of range. */
+int clab_tailwd(int n, const double *dir, const double *spd, double course, const int *grp,
+                int ng, int agg, double *out);
+
 /* The same unit on another day (plcday): for row i of unit u[i] on day
  * t[i], idx[i] is the row of unit u[i] on day t[i] + k, or -1. CLAB_EDOM
  * for a non-finite day or a unit with two rows on one day. ord: n ints of

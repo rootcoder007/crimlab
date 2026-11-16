@@ -400,6 +400,26 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' Tests use the t distribution on `G - 1` degrees of freedom for
 #' clustered errors and the normal otherwise.
 #'
+#' Other designs this estimator fits. Hener (2022, sec. 3) instruments the
+#' daily noise of the municipalities near Frankfurt Airport by the landing
+#' direction: with the tailwind component on the westbound approach
+#' ([tailwd()]) above 2.6 m/s the airport lands from the west, so the
+#' instrument is 1 when the tailwind exceeds 2.6 m/s for a municipality
+#' under the eastbound approach, 1 when it is at most 2.6 m/s for one
+#' under the westbound approach, and 0 otherwise; municipality, year,
+#' month and weekday effects, with the errors clustered by "treatment
+#' group-year-quarter". Sarmiento (2020, eqs 6-8) regresses the log count
+#' of crimes within two kilometres of a monitoring station on its hourly
+#' pollution, instrumented by the wind direction, with hour, weekday,
+#' month, year and station effects and errors clustered by station.
+#' Batkeyev and DeRemer (2023, sec. 4.4) instrument the log of PM2.5 by
+#' mountain winds and inversions ([windiv()], [invsn()]) with errors of
+#' Driscoll and Kraay, which this estimator does not compute (`"nw"`
+#' allows for serial correlation within clusters only), and report the
+#' Kleibergen-Paap first-stage statistic (`first$kp`). Ayesh (2023, eqs
+#' 1-3) and Bao and Da (2026, sec. 4) instrument district- and
+#' county-level pollution by downwind exposure ([dwnexp()]).
+#'
 #' @param y The name of the outcome column (numeric).
 #' @param endo `NULL` or the names of the endogenous columns (the
 #'   exposure).
@@ -440,6 +460,25 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   activities: evidence from the NOx Budget Trading Program. *Regional
 #'   Science and Urban Economics*, 83, 103528.
 #'   \doi{10.1016/j.regsciurbeco.2020.103528}
+#'
+#'   Hener, T. (2022). Noise pollution and violent crime. *Journal of
+#'   Public Economics*, 215, 104748. \doi{10.1016/j.jpubeco.2022.104748}
+#'
+#'   Sarmiento, L. (2020). I am innocent: hourly variations in air
+#'   pollution and crime behavior. DIW Berlin Discussion Paper.
+#'   \doi{10.2139/ssrn.3639084}
+#'
+#'   Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+#'   effects of abnormal air pollution on crime. *Journal of Economic
+#'   Behavior and Organization*, 210, 288-319.
+#'   \doi{10.1016/j.jebo.2023.04.009}
+#'
+#'   Ayesh, A. (2023). Burned agricultural biomass, air pollution and
+#'   crime. *Journal of Environmental Economics and Management*, 122,
+#'   102887. \doi{10.1016/j.jeem.2023.102887}
+#'
+#'   Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
+#'   California. Working paper, Renmin University of China.
 #'
 #'   Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018).
 #'   Pollution or crime: the effect of driving restrictions on criminal
@@ -651,6 +690,12 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' their second-stage errors account for the first stage. The exponential
 #' generalised method of moments of Mullahy (1997) and Windmeijer and
 #' Santos Silva (1997), which needs no first-stage model, is [expgmm()].
+#' Karamik and von Graevenitz (2022, eqs 2-3) use the control function
+#' with the wind sectors of [windiv()] as instruments (one set per region),
+#' area, weekday and month-year effects, the group's population as the
+#' offset (`expo`) and a bootstrap of both stages with the groups as
+#' clusters and 1,000 draws (`se = "boot"`, `nboot = 1000`); Batkeyev and
+#' DeRemer (2023, appendix) report the same design beside their linear one.
 #'
 #' Separation is handled as in [ppmlfe()] (groups of zeros dropped), in the
 #' full sample and in each draw; a draw that cannot be fitted (an
@@ -688,6 +733,15 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #'   testing for nonlinear models with endogenous explanatory variables.
 #'   *Journal of Econometrics*, 182(1), 226-234.
 #'   \doi{10.1016/j.jeconom.2014.04.020}
+#'
+#'   Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
+#'   effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
+#'   working paper. \doi{10.2139/ssrn.4130091}
+#'
+#'   Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+#'   effects of abnormal air pollution on crime. *Journal of Economic
+#'   Behavior and Organization*, 210, 288-319.
+#'   \doi{10.1016/j.jebo.2023.04.009}
 #' @seealso [ppmlfe()], [ivfe()], [expgmm()], [windiv()], [invsn()]
 #' @examples
 #' # simulated counts; the shock u raises pollution and crime together
@@ -1061,6 +1115,22 @@ summary.expgmm <- function(object, ...) object[["coef"]]
 #' Bondy, Roth and Sager's instrument ("the share of hours in the 24 hours
 #' of each day", footnote 18); `avg` is then not used.
 #'
+#' Other papers that use the indicators, and their choices. Karamik and
+#' von Graevenitz (2022, sec. 3.1) cut the circle into four 90-degree
+#' bins, "North-East is equivalent to [0 till 90)", with "the South-West
+#' ... the most common wind direction in Germany" left out (`width = 90,
+#' base = 3`), the direction averaged per region and day and allowed to act
+#' differently in each region (`area`; their robustness check narrows the
+#' bins to 60 degrees). Batkeyev and DeRemer (2023, sec. 4.3) use "the
+#' [0,1] share of weather observations within each time period for which
+#' winds are blowing from the southeast, south-by-southeast, or
+#' east-by-southeast", the three 22.5-degree points from 101.25 to 168.75
+#' degrees (`sect = c(101.25, 168.75)`, `by` the period, `share = TRUE`),
+#' for the city's five southern districts and 0 for the northern ones.
+#' Sarmiento (2020, eqs 7-8) enters "wind direction" in an hourly
+#' station-level first stage without saying in what form; the sectors here
+#' are one form, and the choice should be reported.
+#'
 #' Directions are where the wind blows from, in degrees clockwise from
 #' north; 360 is 0. The indicators are instruments only if the wind
 #' direction affects the outcome through the exposure alone (see
@@ -1102,7 +1172,20 @@ summary.expgmm <- function(object, ...) object[["coef"]]
 #'   Herrnstadt, E. and Muehlegger, E. (2015). Air pollution and criminal
 #'   activity: evidence from Chicago microdata. NBER Working Paper 21787.
 #'   \doi{10.3386/w21787}
-#' @seealso [ivfe()], [ppmlcf()], [invsn()]
+#'
+#'   Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
+#'   effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
+#'   working paper. \doi{10.2139/ssrn.4130091}
+#'
+#'   Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+#'   effects of abnormal air pollution on crime. *Journal of Economic
+#'   Behavior and Organization*, 210, 288-319.
+#'   \doi{10.1016/j.jebo.2023.04.009}
+#'
+#'   Sarmiento, L. (2020). I am innocent: hourly variations in air
+#'   pollution and crime behavior. DIW Berlin Discussion Paper.
+#'   \doi{10.2139/ssrn.3639084}
+#' @seealso [ivfe()], [ppmlcf()], [invsn()], [dwnexp()]
 #' @examples
 #' windiv(c(10, 100, 200, 300))
 #' # the paper's whole-degree quadrants: 90 is in the first
@@ -1173,6 +1256,22 @@ windiv <- function(
 #' chosen sign), for an instrument that lets weak and strong inversions act
 #' differently.
 #'
+#' From readings to days (`by`, `rule`). Batkeyev and DeRemer (2023, sec.
+#' 4.3, p. 297) compare a station at the city's elevation with one in its
+#' high southeast corner, read every three hours, and define "a dummy
+#' which equals 1 if within a day all low-elevation temperature readings
+#' are less than high-elevation temperature readings" (`by` the day, `rule
+#' = "all"`, the default), a demanding standard that still finds
+#' inversions on more than 35% of their days; where evening readings were
+#' missing they use the readings there are, as `"all"` does here.
+#' `"any"` and `"mean"` are weaker rules, and `diff` (the mean difference)
+#' is the continuous form of their appendix (sec. A3). Their other
+#' instrument, the share of a period's readings with the wind from the
+#' mountains (from the southeast, south-by-southeast or east-by-southeast,
+#' 101.25 to 168.75 degrees), set to 0 for the districts far from the
+#' mountains, is [windiv()] with `sect = c(101.25, 168.75)`, `by` the
+#' period and `share = TRUE`.
+#'
 #' Cautions. Inversions cover large areas (the paper's satellite readings
 #' are on a grid of about 110 by 70 km), so they vary little between places
 #' in a city; Bondy, Roth and Sager use them at the borough and city level
@@ -1188,6 +1287,11 @@ windiv <- function(
 #' @param sign `"upper"` or `"ground"`: which temperature comes first.
 #' @param brk `NULL` or the breaks of the bins of the difference (as in
 #'   [cut()], right-closed).
+#' @param by `NULL` or the group of each reading (a day, say): one row per
+#'   group, as below.
+#' @param rule With `by`, when a group is an inversion: `"all"` (every
+#'   reading with both temperatures inverted), `"any"` or `"mean"` (the
+#'   mean difference above 0).
 #' Cautions from a review of 81 studies that use the instrument (Yamada
 #' 2026, section 7 and table 8, pp. 24-25), whose nine checks the help
 #' here follows. The instrument's strong first stages, mostly from China,
@@ -1212,10 +1316,12 @@ windiv <- function(
 #'
 #' @return A data frame: `diff`, the difference by `sign`; `inv`, 1 when
 #'   `tup` is above `tlow` and 0 otherwise (`NA` where a temperature is
-#'   missing); and with `brk`, `bin`, a factor. The attribute `"diag"` is a
-#'   one-row data frame: `n`, the rows with both temperatures; `zero`, the
-#'   share of them without an inversion; `min`, `max`, the support of
-#'   `diff`.
+#'   missing); and with `brk`, `bin`, a factor. With `by`, one row per
+#'   group, sorted: `by`, `n` (the readings with both temperatures), `diff`
+#'   (their mean difference), `inv` (by `rule`; `NA` without a reading)
+#'   and `bin`. The attribute `"diag"` is a one-row data frame: `n`, the
+#'   rows (groups) with both temperatures; `zero`, the share of them
+#'   without an inversion; `min`, `max`, the support of `diff`.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -1225,18 +1331,28 @@ windiv <- function(
 #'   Yamada, H. (2026). When the air doesn't move the data: the thermal
 #'   inversion instrument in developing countries. Keio-IES Discussion
 #'   Paper DP2026-018, Keio University.
+#'
+#'   Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+#'   effects of abnormal air pollution on crime. *Journal of Economic
+#'   Behavior and Organization*, 210, 288-319.
+#'   \doi{10.1016/j.jebo.2023.04.009}
 #' @seealso [windiv()], [ivfe()], [ppmlcf()]
 #' @examples
 #' invsn(c(10, 5, 2), c(8, 6, 2))
+#' # three-hourly readings, one row per day: inverted when every reading is
+#' invsn(c(1, 2, 3, 1, 2, 3), c(4, 5, 6, 4, 1, 6), by = c(1, 1, 1, 2, 2, 2))
 #' invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
 #' # the share of days without an inversion and the support (check 3)
 #' attr(invsn(c(10, 5, 2), c(8, 6, 2)), "diag")
 #' @export
-invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
+invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL,
+                  by = NULL, rule = c("all", "any", "mean")) {
   f <- "invsn"
   sign <- .ckmarg("sign", f)
+  rule <- .ckmarg("rule", f)
   .axinck(tlow, tup, f)
   up <- as.numeric(tup) - as.numeric(tlow)
+  if (!is.null(by)) return(.axinby(up, by, sign, rule, brk, f))
   r <- data.frame(
     diff = if (sign == "upper") up else -up,
     inv = as.integer(up > 0)
@@ -3218,6 +3334,37 @@ summary.expjn <- function(object, ...) {
     .ckstop(f, "`brk` must be two or more increasing numbers")
   }
   invisible(NULL)
+}
+
+# invsn() by group (`by`): per group the readings with both
+# temperatures, the mean difference by `sign` and the inversion by `rule`
+# (every reading, any reading, or the mean difference above 0); NA for a
+# group without a reading. The "diag" attribute as for rows, over groups.
+.axinby <- function(up, by, sign, rule, brk, f) {
+  if (length(by) != length(up) || anyNA(by)) {
+    .ckstop(f, "`by` must give the group of each reading, with no NA")
+  }
+  if (!is.null(brk)) .axinbrk(brk, f)
+  g <- sort(unique(by))
+  k <- match(by, g)
+  ok <- is.finite(up)
+  s <- vapply(seq_along(g), function(j) {
+    u <- up[k == j & ok]
+    if (!length(u)) return(c(NA_real_, NA_real_))
+    c(mean(u), switch(rule, all = all(u > 0), any = any(u > 0),
+                      mean = mean(u) > 0))
+  }, numeric(2))
+  r <- data.frame(by = g, n = tabulate(k[ok], length(g)),
+                  diff = if (sign == "upper") s[1L, ] else -s[1L, ],
+                  inv = as.integer(s[2L, ]))
+  if (!is.null(brk)) r$bin <- cut(r$diff, brk)
+  h <- r$n > 0
+  attr(r, "diag") <- data.frame(
+    n = sum(h), zero = if (any(h)) mean(r$inv[h] == 0L) else NA_real_,
+    min = if (any(h)) min(r$diff[h]) else NA_real_,
+    max = if (any(h)) max(r$diff[h]) else NA_real_
+  )
+  r
 }
 
 # The "diag" attribute of invsn(): the rows with both temperatures, the

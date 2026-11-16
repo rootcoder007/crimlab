@@ -1620,6 +1620,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jsvt.inc"
 #include "japx.inc"
 #include "jenv.inc"
+#include "jdwn.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2042,7 +2043,9 @@ const Ent ents[] = {
     {"ivfe", "data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol? twc? psd?", ax::ivfe},
     {"ppmlcf", "data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit?", ax::ppmlcf},
     {"windiv", "dir width? start? area? base? sect? edges? by? avg? share? spd?", ax::windiv},
-    {"invsn", "tlow tup sign? brk?", ax::invsn},
+    {"invsn", "tlow tup sign? brk? by? rule?", ax::invsn},
+    {"dwnexp", "sx sy sper? sdir rx ry rid? rule? half? rad? from? lonlat? wrap? dwt?", dwnexp},
+    {"tailwd", "dir spd course? by? agg?", tailwd},
     {"updwn", "data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?", ax::updwn},
     {"expjn", "expo outc by?", ax::expjn},
     {"smkiv", "data plume unit day pm? adj? nbr? z? seas? dens? cf? by?", ax::smkiv},

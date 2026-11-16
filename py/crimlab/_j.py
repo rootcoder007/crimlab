@@ -6843,7 +6843,39 @@ def windiv(dir: Any, width: Any = 90, start: Any = 0, area: Any = None, base: An
                  avg=avg, share=share, spd=spd)
 
 
-def invsn(tlow: Any, tup: Any, sign: Any = "upper", brk: Any = None) -> Any:
+def dwnexp(sx: Any, sy: Any, sper: Any, sdir: Any, rx: Any, ry: Any, rid: Any = None, rule: Any = "sector",
+           half: Any = 30, rad: Any = None, from_: Any = True, lonlat: Any = False, wrap: Any = True,
+           dwt: Any = "mult") -> Any:
+    """Downwind exposure: places downwind of sources of pollution.
+
+    The arguments and the result are those of R's ``dwnexp()``: see its help
+    page (``rad=None`` is R's ``Inf``; ``from_`` is R's ``from``).
+
+    Examples
+    --------
+    >>> r = dwnexp(sx=[0], sy=[0], sper=None, sdir=[180], rx=[0, 60], ry=[100, 100])
+    >>> [int(v) for v in r["any"]]
+    [1, 0]
+    """
+    return jcall("dwnexp", sx=sx, sy=sy, sper=sper, sdir=sdir, rx=rx, ry=ry, rid=rid, rule=rule, half=half, rad=rad,
+                 from_=from_, lonlat=lonlat, wrap=wrap, dwt=dwt)
+
+
+def tailwd(dir: Any, spd: Any, course: Any = 250, by: Any = None, agg: Any = "max") -> Any:
+    """The tailwind component of the wind along a flight course.
+
+    The arguments and the result are those of R's ``tailwd()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> [round(v, 6) for v in tailwd(dir=[70, 250], spd=[4, 4])]
+    [4.0, -4.0]
+    """
+    return jcall("tailwd", dir=dir, spd=spd, course=course, by=by, agg=agg)
+
+
+def invsn(tlow: Any, tup: Any, sign: Any = "upper", brk: Any = None, by: Any = None, rule: Any = "all") -> Any:
     """Temperature inversions.
 
     The arguments and the result are those of R's ``invsn()``: see its help
@@ -6853,8 +6885,10 @@ def invsn(tlow: Any, tup: Any, sign: Any = "upper", brk: Any = None) -> Any:
     --------
     >>> list(invsn(tlow=[1, 2], tup=[3, 1]))
     ['diff', 'inv']
+    >>> [int(v) for v in invsn(tlow=[1, 2, 1, 2], tup=[3, 4, 3, 1], by=[1, 1, 2, 2])["inv"]]
+    [1, 0]
     """
-    return jcall("invsn", tlow=tlow, tup=tup, sign=sign, brk=brk)
+    return jcall("invsn", tlow=tlow, tup=tup, sign=sign, brk=brk, by=by, rule=rule)
 
 
 def updwn(data: Any, y: Any, ax: Any, ay: Any, day: Any, wind: Any, src: Any, area: Any = None, tol: Any = 60,

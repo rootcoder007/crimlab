@@ -1,5 +1,22 @@
 # crimlab 0.0.0.9000
 
+* New: `dwnexp()` builds downwind-exposure instruments from sources of
+  pollution and the wind: the sector and transport-wedge rules of Bao and
+  Da (2026) for smoke plumes that move from day to day, and the angle and
+  distance instrument of Ayesh (2023) for fixed sources. `tailwd()` gives
+  the tailwind component along a flight course, from which Hener (2022)
+  builds the instrument of the landing direction for aircraft noise.
+
+* New: `invsn()` takes `by` and `rule` to turn readings into one
+  inversion per day, as Batkeyev and DeRemer (2023) require every
+  three-hourly reading of a day to be inverted.
+
+* The help pages of `windiv()`, `ivfe()`, `ppmlcf()`, `smkiv()` and
+  `ccross()` cite the designs of Karamik and von Graevenitz (2022),
+  Sarmiento (2020), Batkeyev and DeRemer (2023), Hener (2022), Bao and Da
+  (2026) and Rahman et al. (2023), with the arguments that reproduce
+  each.
+
 * Fixed: the second sweep found 25 more functions (`lodimp()`, `lnroc()`,
   `ibench()`, `synexp()`, `bndxw()`, `rptvic()`, `etohlr()`, `mndla()`,
   `crchyp()`, `clrilr()`, ...) whose compiled readers asked for the length

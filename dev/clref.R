@@ -1864,6 +1864,29 @@ ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), shar
 bad("windiv", dir = c(10, 20), width = 70)
 ok("invsn", tlow = c(10, 12, 9, NA), tup = c(12, 11, 9, 8))
 ok("invsn", tlow = c(10, 12, 9), tup = c(12, 11, 9.5), sign = "ground", brk = c(-5, 0, 0.5, 5))
+ok("invsn", tlow = c(1, 2, 3, 1, 2, 3, 1, NA), tup = c(4, 5, 6, 4, 1, 6, 2, 5), by = c(1, 1, 1, 2, 2, 2, 3, 3))
+ok("invsn", tlow = c(1, 2, 3, 1, 2, 3), tup = c(4, 5, 6, 4, 1, 6), by = c("b", "b", "b", "a", "a", "a"),
+   rule = "mean", sign = "ground", brk = c(-10, -2, 0, 10))
+bad("invsn", tlow = 1, tup = 2, by = c(1, 2))
+dws <- data.frame(x = c(0, 50, 0, 20, -40), y = c(0, 0, 0, 10, 30), day = c(1, 1, 2, 2, 3),
+                  dir = c(180, 270, 0, 215.5, 95))
+dwp <- data.frame(x = c(0, 100, 0, -80, 35), y = c(100, 10, -60, 0, -20))
+ok("dwnexp", sx = dws$x, sy = dws$y, sper = dws$day, sdir = dws$dir, rx = dwp$x, ry = dwp$y)
+ok("dwnexp", sx = dws$x, sy = dws$y, sper = dws$day, sdir = dws$dir, rx = dwp$x, ry = dwp$y, half = 45, rad = 90,
+   from = FALSE, rid = c("a", "b", "c", "d", "e"))
+ok("dwnexp", sx = dws$x / 10, sy = dws$y / 10 + 30, sper = dws$day, sdir = dws$dir, rx = dwp$x / 10, ry = dwp$y / 10 + 30,
+   rule = "angle", lonlat = TRUE)
+ok("dwnexp", sx = dws$x, sy = dws$y, sper = dws$day, sdir = dws$dir, rx = dwp$x, ry = dwp$y, rule = "angle",
+   wrap = FALSE, dwt = "div")
+ok("dwnexp", sx = c(0, 20), sy = c(0, -10), sper = c(1, 2), sdir = c(200, 120),
+   rx = c(-10, 10, 10, -10, 50, 70, 70, 50, -80, 80, 80, -80), ry = c(40, 40, 60, 60, -5, -5, 5, 5, 95, 95, 99, 99),
+   rid = rep(1:3, each = 4), rule = "wedge", rad = 100)
+bad("dwnexp", sx = 0, sy = 0, sper = NULL, sdir = 0, rx = c(1, 2), ry = c(1, 2), rid = c(1, 1), rule = "wedge")
+bad("dwnexp", sx = 0, sy = 0, sper = NULL, sdir = 0, rx = 1, ry = 1, half = 200)
+bad("dwnexp", sx = 0, sy = 0, sper = NULL, sdir = 0, rx = 1, ry = 1, rad = 0)
+ok("tailwd", dir = c(70, 340, 250, NA, 100), spd = c(4, 4, 4, 2, 3))
+ok("tailwd", dir = c(70, 90, 250, 260, NA), spd = c(3, 2, 5, 1, 1), by = c(1, 1, 2, 2, 3), agg = "mean", course = 70)
+bad("tailwd", dir = 1, spd = c(1, 2))
 bad("invsn", tlow = c(1, 2, 3), tup = c(1, 2))
 upd <- data.frame(area = rep(c("w1", "w2", "w3", "e1", "e2", "e3"), 10),
                   ax = rep(c(-100, -300, -600, 150, 350, 700), 10),

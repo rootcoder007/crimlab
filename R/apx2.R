@@ -52,6 +52,12 @@
 #'   instrument, "the number of days a county is affected by a fire smoke
 #'   plume in a given month" (p. 10).
 #'
+#' Bao and Da (2026, sec. 3.3) keep only "Medium and Heavy plumes"
+#' because "including Light plumes badly overstates surface-smoke days"
+#' (give the density classes in `dens` and use their indicators), and
+#' instead of a plume overhead count the days a county lies downwind of a
+#' plume ([dwnexp()]).
+#'
 #' The instrument must move the exposure (a first stage, see [ivfe()]) and
 #' change the outcome only through it: smoke may also keep people indoors
 #' or darken the day (Lee and Lee 2026 discuss both), which the exclusion
@@ -97,7 +103,10 @@
 #'   Lee, G. and Lee, S. (2026). The impact of wildfire smoke exposure on
 #'   crime. *Environmental and Resource Economics*, 89, 5.
 #'   \doi{10.1007/s10640-025-01053-2}
-#' @seealso [ppmlcf()], [exprun()]
+#'
+#'   Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
+#'   California. Working paper, Renmin University of China.
+#' @seealso [ppmlcf()], [exprun()], [dwnexp()]
 #' @examples
 #' # simulated plumes and PM2.5 in two places over 120 days
 #' set.seed(6)
@@ -392,6 +401,20 @@ print.hetfx <- function(x, ...) {
 #' exposure taken as exogenous or [ppmlcf()] for the instrumented design of
 #' Ju et al. (give `endo` and `inst`).
 #'
+#' Deaths or offences one by one. Rahman et al. (2023, sec. 2) fit the
+#' individual case-crossover design by conditional logistic regression: for
+#' each death the day it happened against "the first, second, and fourth
+#' Tuesdays" of the month when it fell on the third, the exposure that of
+#' the decedent's census tract on each day, each lag from 0 to 7 in its own
+#' model, relative humidity as a natural spline of 3 degrees of freedom.
+#' When every decedent of a tract shares the tract's exposure, the
+#' conditional logistic likelihood of the individuals is the conditional
+#' Poisson likelihood of the tract's daily counts: the individuals of one
+#' tract, month and weekday share their referent days and exposures, so
+#' that design is this one with `unit` the tract, `strat = "ymw"`, `lagv`
+#' and `lag` for the lag and `ns = c(rh = 3)`, its coefficients the log
+#' odds ratios.
+#'
 #' @inheritParams smkiv
 #' @inheritParams jntx
 #' @param unit The name of the place column.
@@ -436,6 +459,14 @@ print.hetfx <- function(x, ...) {
 #'   (2026). Air pollution and criminal behavior: a nationwide
 #'   case-crossover analysis in China. *International Journal of
 #'   Epidemiology*, 55(5), dyag214. \doi{10.1093/ije/dyag214}
+#'
+#'   Rahman, M. M., Lorenzo, M., Ban-Weiss, G., Hasan, Z., Azzouz, M.,
+#'   Eckel, S. P., Conti, D. V., Lurmann, F., Schlaerth, H., Johnston, J.,
+#'   Ko, J., Palinkas, L., Hurlburt, M., Silva, S., Gauderman, W. J.,
+#'   McConnell, R. and Garcia, E. (2023). Ambient temperature and air
+#'   pollution associations with suicide and homicide mortality in
+#'   California: a statewide case-crossover study. *Science of the Total
+#'   Environment*, 874, 162462. \doi{10.1016/j.scitotenv.2023.162462}
 #' @seealso [ppmlfe()], [ppmlcf()], [jntx()]
 #' @examples
 #' set.seed(9)

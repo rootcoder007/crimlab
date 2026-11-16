@@ -649,6 +649,9 @@ SEXP C_clab_r_rdck(SEXP);
 SEXP C_clab_r_ikbw(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_mccr(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_windbin(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dwnexp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP);
+SEXP C_clab_r_tailwd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dshift(SEXP, SEXP, SEXP);
 SEXP C_clab_r_updwn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_vcx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1019,6 +1022,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_ikbw", fn<&C_clab_r_ikbw>(), 4},
     {"C_clab_r_mccr", fn<&C_clab_r_mccr>(), 4},
     {"C_clab_r_windbin", fn<&C_clab_r_windbin>(), 7},
+    {"C_clab_r_dwnexp", fn<&C_clab_r_dwnexp>(), 14},
+    {"C_clab_r_tailwd", fn<&C_clab_r_tailwd>(), 6},
     {"C_clab_r_dshift", fn<&C_clab_r_dshift>(), 3},
     {"C_clab_r_updwn", fn<&C_clab_r_updwn>(), 10},
     {"C_clab_r_vcx", fn<&C_clab_r_vcx>(), 10},
