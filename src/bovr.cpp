@@ -73,3 +73,30 @@ SEXP C_clab_r_ovrdte(SEXP x) {
 }
 
 }  // extern "C"
+
+extern "C" {
+
+// ovrsch(): the fields of a preset, a list of six character columns.
+SEXP C_clab_r_ovrsch(SEXP preset) {
+  clab::who = "ovrsch";
+  const char *p = Rf_translateCharUTF8(STRING_ELT(preset, 0));
+  const char *v[6];
+  int m = 0;
+  while (clab_ovrsch(p, m, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) == CLAB_OK) ++m;
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 6));
+  SEXP nm = PROTECT(Rf_allocVector(STRSXP, 6));
+  static const char *const nms[] = {"name", "rule", "cue", "alt", "sect", "desc"};
+  for (int k = 0; k < 6; ++k) {
+    SET_VECTOR_ELT(out, k, Rf_allocVector(STRSXP, m));
+    SET_STRING_ELT(nm, k, Rf_mkChar(nms[k]));
+  }
+  for (int i = 0; i < m; ++i) {
+    clab_ovrsch(p, i, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]);
+    for (int k = 0; k < 6; ++k) SET_STRING_ELT(VECTOR_ELT(out, k), i, Rf_mkCharCE(v[k], CE_UTF8));
+  }
+  Rf_setAttrib(out, R_NamesSymbol, nm);
+  UNPROTECT(2);
+  return out;
+}
+
+}  // extern "C"

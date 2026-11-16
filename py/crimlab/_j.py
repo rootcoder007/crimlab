@@ -7835,3 +7835,17 @@ def ovrdte(x: Any) -> Any:
     ['2023-01-05', '2023-01-05', None]
     """
     return jcall("ovrdte", x=x)
+
+
+def ovrsch(preset: Any = "siu") -> Any:
+    """Field schemas for coding police oversight reports.
+
+    The arguments and the result are those of R's ``ovrsch()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> list(ovrsch())
+    ['name', 'rule', 'cue', 'alt', 'sect', 'desc']
+    """
+    return jcall("ovrsch", preset=preset)

@@ -4,7 +4,7 @@
 // and a half days a day by hand, the sentence left; draws of synfix()
 // against R's (set.seed(1); sample.int(3, 4, TRUE); sample.int(1, 4,
 // TRUE); sample.int(7, 4, TRUE), less one: 0 2 0 1, 0 0 0 0, 1 2 2 0);
-// the presets; the text of a page; dates; and the failure paths. Part of the self-test (selftest.cpp).
+// the presets; the text of a page; dates; the schema preset; and the failure paths. Part of the self-test (selftest.cpp).
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -74,6 +74,14 @@ void dte(tk &tt) {
   tk_ieq(tt, "ovr.dte.none", o[0], 0);
 }
 
+void sch(tk &tt) {
+  const char *v[6];
+  tk_ieq(tt, "ovr.sch.rc", clab_ovrsch("siu", 0, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]), CLAB_OK);
+  tk_true(tt, "ovr.sch.rule", std::strcmp(v[1], "after") == 0);
+  tk_ieq(tt, "ovr.sch.end", clab_ovrsch("siu", 17, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]), CLAB_EARG);
+  tk_ieq(tt, "ovr.sch.none", clab_ovrsch("x", 0, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]), CLAB_EARG);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
@@ -82,4 +90,5 @@ void t_ovr(tk &t, int big) {
   sfx(t);
   txt(t);
   dte(t);
+  sch(t);
 }

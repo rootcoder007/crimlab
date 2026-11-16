@@ -2410,6 +2410,8 @@ bad("ovrtxt", x = 1)
 ok("ovrdte", x = c("January 5, 2023", "le 1er f\u00e9vrier 2021", "February 30, 2023, then March 2, 2023", NA,
                    "no date"))
 bad("ovrdte", x = 20230105)
+ok("ovrsch")
+bad("ovrsch", preset = "iio")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

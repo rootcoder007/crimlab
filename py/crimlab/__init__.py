@@ -461,6 +461,7 @@ from ._j import (
     synfix,
     ovrtxt,
     ovrdte,
+    ovrsch,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -946,6 +947,7 @@ __all__ = [
     "synfix",
     "ovrtxt",
     "ovrdte",
+    "ovrsch",
 ]
 
 

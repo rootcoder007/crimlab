@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrsch()`, the field schemas of oversight reports: each field
+  read by a rule (text after a cue, a number, a date in the cue's
+  sentence, numbered tags, a flag and others), with a preset for the
+  director's reports of Ontario's Special Investigations Unit.
+
 * New: `ovrdte()` reads the first date written out in a text, in English
   or French, as `YYYY-MM-DD`.
 

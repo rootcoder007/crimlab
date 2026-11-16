@@ -262,4 +262,19 @@ bool ovrdte(Ctx &c, Val &out) {
   return true;
 }
 
+bool ovrsch(Ctx &c, Val &out) {
+  int k = 0;
+  CK(ckarg(c, "preset", {"siu"}, k));
+  const char *v[6];
+  static const char *const nms[] = {"name", "rule", "cue", "alt", "sect", "desc"};
+  Val col[6];
+  for (Val &a : col) a = varr();
+  for (int i = 0; clab_ovrsch("siu", i, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) == CLAB_OK; ++i) {
+    for (int j = 0; j < 6; ++j) col[j].a.push_back(vstr(v[j]));
+  }
+  out = vobj();
+  for (int j = 0; j < 6; ++j) put(out, nms[j], std::move(col[j]));
+  return true;
+}
+
 }  // namespace ovr

@@ -660,6 +660,7 @@ SEXP C_clab_r_sfxtab();
 SEXP C_clab_r_synfix(SEXP, SEXP, SEXP);
 SEXP C_clab_r_ovrtxt(SEXP, SEXP);
 SEXP C_clab_r_ovrdte(SEXP);
+SEXP C_clab_r_ovrsch(SEXP);
 SEXP C_clab_r_cemtch(SEXP, SEXP, SEXP);
 SEXP C_clab_r_idwint(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gtwreg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1060,6 +1061,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_synfix", fn<&C_clab_r_synfix>(), 3},
     {"C_clab_r_ovrtxt", fn<&C_clab_r_ovrtxt>(), 2},
     {"C_clab_r_ovrdte", fn<&C_clab_r_ovrdte>(), 1},
+    {"C_clab_r_ovrsch", fn<&C_clab_r_ovrsch>(), 1},
     {"C_clab_r_cemtch", fn<&C_clab_r_cemtch>(), 3},
     {"C_clab_r_idwint", fn<&C_clab_r_idwint>(), 11},
     {"C_clab_r_gtwreg", fn<&C_clab_r_gtwreg>(), 8},

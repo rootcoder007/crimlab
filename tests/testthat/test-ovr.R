@@ -64,3 +64,21 @@ test_that("ovrdte() refuses what is not text", {
                "ovrdte: `x` must be text (a character vector), not numeric.",
                fixed = TRUE)
 })
+
+test_that("ovrsch() gives the fields of the preset and their rules", {
+  s <- ovrsch()
+  expect_identical(names(s), c("name", "rule", "cue", "alt", "sect", "desc"))
+  expect_identical(nrow(s), 17L)
+  expect_true(all(s$rule %in% c("after", "num", "date", "tag", "sent",
+                                "prev", "lines", "name", "flag", "before",
+                                "word")))
+  expect_identical(s$cue[s$name == "number_of_witness_officials"], "WO")
+  expect_identical(anyDuplicated(s$name), 0L)
+  expect_identical(ovrsch("siu"), s)
+})
+
+test_that("ovrsch() refuses a preset it does not have", {
+  expect_error(ovrsch("iio"),
+               "ovrsch: `preset` must be one of \"siu\", not \"iio\".",
+               fixed = TRUE)
+})

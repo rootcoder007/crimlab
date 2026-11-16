@@ -4610,6 +4610,13 @@ int clab_ovrtxt(const char *s, int64_t n, int html, char *out, int64_t *len);
  * "" when there is none. */
 int clab_ovrdte(const char *s, int64_t n, char *out);
 
+/* The fields of a preset schema of oversight reports (ovrsch): field j
+ * (from 0) of preset ("siu"), its name, rule, cues, opposite cues, section
+ * heading and description. Static storage. CLAB_EARG for an unknown preset
+ * or past the last field. */
+int clab_ovrsch(const char *preset, int j, const char **name, const char **rule, const char **cue,
+                const char **alt, const char **sect, const char **desc);
+
 #ifdef __cplusplus
 }
 #endif

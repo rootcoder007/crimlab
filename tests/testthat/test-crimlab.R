@@ -941,6 +941,7 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(synfix(list(a = 1:2), n = 2)), "a"),
     list(quote(ovrtxt("<p>a</p>")), NULL),
     list(quote(ovrdte("May 5, 2023")), NULL),
+    list(quote(ovrsch()), c("name", "rule", "cue", "alt", "sect", "desc")),
     list(quote(plotevgrid(list(a = evtst(c(1:10, 2:11 + (1:10 > 5)),
                                          rep(1:10, 2), rep(1:2, each = 10),
                                          rep(rep(c(NA, 2), each = 5), 2),

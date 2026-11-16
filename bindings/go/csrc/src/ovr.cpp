@@ -414,3 +414,65 @@ extern "C" int clab_ovrdte(const char *s, int64_t n, char *out) CLAB_TRY {
   if (finddate(in, 0, in.size(), iso)) std::memcpy(out, iso.c_str(), 11);
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
+
+namespace {
+
+// A field of a preset schema: its name, the rule that reads it, the cues
+// (alternatives separated by '|'), the cues of the opposite answer
+// (rule flag), the heading of the section it is read in ("" for the whole
+// report) and what it records.
+struct Fld {
+  const char *name, *rule, *cue, *alt, *sect, *desc;
+};
+
+// The director's reports of Ontario's Special Investigations Unit, as
+// published in English since 2020.
+const Fld kSiu[] = {
+    {"case_number", "after", "Case #", "", "", "the case number of the report"},
+    {"police_service", "name", "Police Service|Provincial Police|Police", "", "",
+     "the police service whose officials were investigated"},
+    {"date_of_incident_iso", "date", "", "", "Incident Narrative", "the date of the incident"},
+    {"date_siu_notified_iso", "date", "notified the SIU|contacted the SIU|SIU was notified|SIU was contacted", "",
+     "", "the date the unit was notified"},
+    {"date_of_director_decision_iso", "date", "Date:", "", "", "the date of the director's decision"},
+    {"siu_investigators", "num", "Number of SIU Investigators assigned", "", "",
+     "the number of investigators assigned"},
+    {"siu_forensics_investigators", "num", "Number of SIU Forensic Investigators assigned", "", "",
+     "the number of forensic investigators assigned"},
+    {"number_of_witness_officials", "tag", "WO", "", "", "the number of witness officials (WO #1, ...)"},
+    {"number_of_civilian_witnesses", "tag", "CW", "", "", "the number of civilian witnesses (CW #1, ...)"},
+    {"number_of_subject_officials", "tag", "SO", "", "", "the number of subject officials (SO #1, ...)"},
+    {"age_affected", "before", "year-old|year old", "", "", "the age of the affected person"},
+    {"sex_gender_affected", "word", "year-old|year old", "", "", "the sex or gender of the affected person"},
+    {"charges_recommended", "flag", "charged with|charges have been laid|criminal charges were laid",
+     "no reasonable grounds|No charges|no charges|not be laid|decline to lay",
+     "Analysis and Director's Decision|Analysis and Director\xe2\x80\x99s Decision",
+     "whether the director found grounds for charges"},
+    {"directors_name", "prev", "Director|Acting Director|Interim Director", "", "",
+     "the name of the director who decided"},
+    {"location_of_call", "after",
+     "in the City of|in the Town of|in the Township of|in the Municipality of|in the Region of", "", "",
+     "the municipality where the incident happened"},
+    {"specific_injuries", "sent",
+     "fracture|fractures|fractured|broken|laceration|lacerations|gunshot|stab|stabbed|burn|burns", "",
+     "Nature of Injuries / Treatment|Nature of Injuries/Treatment", "the injuries the affected person had"},
+    {"relevant_legislation", "lines", "Section", "", "Relevant Legislation",
+     "the provisions the director considered"},
+};
+
+}  // namespace
+
+extern "C" int clab_ovrsch(const char *preset, int j, const char **name, const char **rule, const char **cue,
+                           const char **alt, const char **sect, const char **desc) {
+  if (std::strcmp(preset, "siu") != 0 || j < 0 || j >= static_cast<int>(sizeof kSiu / sizeof kSiu[0])) {
+    return CLAB_EARG;
+  }
+  const Fld &f = kSiu[j];
+  *name = f.name;
+  *rule = f.rule;
+  *cue = f.cue;
+  *alt = f.alt;
+  *sect = f.sect;
+  *desc = f.desc;
+  return CLAB_OK;
+}
