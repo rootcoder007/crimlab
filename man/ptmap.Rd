@@ -7,7 +7,7 @@
 \usage{
 ptmap(x, y = NULL, cl = NULL, ..., main = NULL, col = NULL, pal = NULL)
 
-\method{plot}{dbscn}(x, y, ..., main = NULL, col = NULL, pal = NULL)
+\method{plot}{dbscn}(x, y = NULL, ..., main = NULL, col = NULL, pal = NULL)
 }
 \arguments{
 \item{x}{The points: a numeric matrix or data frame of two columns (x

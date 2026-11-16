@@ -193,9 +193,10 @@ ptmap <- function(x, y = NULL, cl = NULL, ..., main = NULL, col = NULL,
 
 #' @rdname ptmap
 #' @export
-plot.dbscn <- function(x, y, ..., main = NULL, col = NULL, pal = NULL) {
+plot.dbscn <- function(x, y = NULL, ..., main = NULL, col = NULL,
+                       pal = NULL) {
   .pck(x, "dbscn", "cl")
-  if (missing(y)) {
+  if (is.null(y)) {
     stop("plot: `y` must be the points the clusters were found in.",
          call. = FALSE)
   }
