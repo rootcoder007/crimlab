@@ -413,10 +413,21 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' pollution, instrumented by the wind direction, with hour, weekday,
 #' month, year and station effects and errors clustered by station.
 #' Batkeyev and DeRemer (2023, sec. 4.4) instrument the log of PM2.5 by
-#' mountain winds and inversions ([windiv()], [invsn()]) with errors of
-#' Driscoll and Kraay, which this estimator does not compute (`"nw"`
-#' allows for serial correlation within clusters only), and report the
-#' Kleibergen-Paap first-stage statistic (`first$kp`). Ayesh (2023, eqs
+#' mountain winds and inversions ([windiv()], [invsn()]) with the errors
+#' of Driscoll and Kraay (`se = "dk"`, below), and report the
+#' Kleibergen-Paap first-stage statistic (`first$kp`).
+#'
+#' `se = "dk"` (beyond those of [ppmlfe()]): the errors of Driscoll and
+#' Kraay, robust to correlation across units and over time. With `h_t`
+#' the sum of the rows' scores over the rows of time `t` (the `time`
+#' column), the middle of the sandwich is `sum_t h_t h_t'` plus, for each
+#' pair of times `d` apart with `0 < d <= lag`, `(1 - d / (lag + 1)) (h_a
+#' h_b' + h_b h_a')`, the Newey-West estimator of the series of the
+#' summed scores. Batkeyev and DeRemer (2023) do not give their lag; the
+#' default is the bandwidth of Newey and West (1994) of `"nw"` computed on
+#' that one series. The small-sample factor `"G"` is `T / (T - 1)` with
+#' `T` the times; the first-stage statistics cluster by the first `clus`
+#' column, as for `"nw"`. Ayesh (2023, eqs
 #' 1-3) and Bao and Da (2026, sec. 4) instrument district- and
 #' county-level pollution by downwind exposure ([dwnexp()]). Singh and
 #' Visaria (2021, eqs 2 and 4) regress the daily complaints of each police
@@ -496,6 +507,10 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'
 #'   Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
 #'   California. Working paper, Renmin University of China.
+#'
+#'   Driscoll, J. and Kraay, A. (1998). Consistent covariance matrix
+#'   estimation with spatially dependent panel data. *Review of Economics
+#'   and Statistics*, 80(4), 549-560.
 #'
 #'   Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018).
 #'   Pollution or crime: the effect of driving restrictions on criminal
@@ -583,7 +598,7 @@ ivfe <- function(
   x = NULL,
   fe,
   clus = NULL,
-  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  se = c("cluster", "twoway", "hc1", "nw", "boot", "dk"),
   ssc = c("G", "nk", "none"),
   time = NULL,
   lag = NULL,
@@ -2009,9 +2024,9 @@ summary.expjn <- function(object, ...) {
 }
 
 # A time column as numbers (numbers or dates).
-.axtime <- function(d, time, fn) {
+.axtime <- function(d, time, fn, se = "nw") {
   if (is.null(time)) {
-    .ckstop(fn, "`se = \"nw\"` needs `time`, the name of the day column")
+    .ckstop(fn, "`se = \"%s\"` needs `time`, the name of the day column", se)
   }
   .axcols(d, time, "time", fn, n = 1L)
   tv <- d[[time]]
@@ -2052,7 +2067,8 @@ summary.expjn <- function(object, ...) {
     e <- eigen(v, symmetric = TRUE)
     v <- e$vectors %*% (pmax(e$values, 0) * t(e$vectors))
   }
-  list(v = v, g = g, lag = if (se == "nw") cl$lg else NA_integer_, k = k)
+  list(v = v, g = g, lag = if (se %in% c("nw", "dk")) cl$lg else NA_integer_,
+       k = k)
 }
 
 # The Newey-West (1994) bandwidth for the Bartlett kernel, without
@@ -2078,6 +2094,15 @@ summary.expjn <- function(object, ...) {
   s0 <- sg[1L] + 2 * sum(sg[-1L])
   if (!is.finite(s1 / s0)) return(0)
   floor(1.1447 * ((s1 / s0)^2)^(1 / 3) * tt^(1 / 3))
+}
+
+# The default lag of Driscoll and Kraay's variance: the bandwidth of
+# .axnwlag() for the one series of the scores summed over the rows of
+# each time.
+.axdklag <- function(sco, tv) {
+  ut <- sort(unique(tv))
+  h <- rowsum(sco, match(tv, ut), reorder = TRUE)
+  .axnwlag(h, integer(length(ut)), ut)
 }
 
 # The cluster bootstrap: nboot draws of the clusters of column cl from R's
@@ -2161,6 +2186,7 @@ summary.expjn <- function(object, ...) {
     twoway = "two-way clustered",
     hc1 = "heteroskedasticity-robust",
     nw = "Newey-West",
+    dk = "Driscoll-Kraay",
     boot = "cluster bootstrap",
     quasi = "quasi-Poisson"
   )[[se]]
@@ -3279,14 +3305,19 @@ summary.expjn <- function(object, ...) {
     k <- .axvark(clus, p, fe, d)
   } else {
     g <- n
-    kind <- if (se == "hc1") 2L else 3L
+    kind <- match(se, c("hc1", "nw", "dk")) + 1L
     k <- .axvark(character(), p, fe, d)
     if (se == "nw") {
       u <- .axcode(d[[clus[1L]]])
       c1 <- u$c
       n1 <- u$n
-      tv <- .axtime(d, time, fn)
+      tv <- .axtime(d, time, fn, se)
       if (is.null(lag)) lag <- .axnwlag(r$sco, u$c, tv)
+      lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
+    } else if (se == "dk") {
+      tv <- .axtime(d, time, fn, se)
+      g <- length(unique(tv))
+      if (is.null(lag)) lag <- .axdklag(r$sco, tv)
       lg <- as.integer(.cknum(lag, "lag", fn, min = 0, whole = TRUE))
     }
   }

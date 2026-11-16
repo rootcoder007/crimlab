@@ -1850,6 +1850,10 @@ bad("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "twoway")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = c("area", "day"))
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "hc1")
 ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "nw", time = "day")
+ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "dk", time = "day")
+ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "dk", time = "day",
+   lag = 2, ssc = "nk")
+bad("ivfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "dk")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = "w90", fe = "area", se = "boot", nboot = 20, seed = 2)
 bad("ivfe", data = axd, y = "crimes", inst = "w90", x = "temp", fe = "area")
 ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = c("area", "day"), nboot = 20,

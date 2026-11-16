@@ -2211,7 +2211,10 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
  * each row alone (heteroskedasticity-robust); kind 3, Newey-West within
  * the units cl: each row alone plus, for the pairs of rows of one unit
  * whose times t differ by d in (0, lag], (1 - d / (lag + 1)) (s_i s_j' +
- * s_j s_i'). fac: the small-sample factor, chosen by the caller.
+ * s_j s_i'); kind 4, Driscoll and Kraay (1998): h_t the sum of the scores
+ * of the rows of each time t, M = sum_t h_t h_t' plus, for the pairs of
+ * times d in (0, lag] apart, (1 - d / (lag + 1)) (h_a h_b' + h_b h_a')
+ * (cl not used). fac: the small-sample factor, chosen by the caller.
  * CLAB_EDOM for a non-finite time. */
 int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
              const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc);

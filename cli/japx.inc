@@ -587,9 +587,9 @@ inline bool nest(const Val &d, const std::string &f, const std::string &cc) {
   return true;
 }
 // .axtime()
-inline bool atime(Ctx &c, const Val &d, std::vector<double> &tv) {
+inline bool atime(Ctx &c, const Val &d, std::vector<double> &tv, const char *se = "nw") {
   const Nm m = nms(c, {"time"});
-  if (m.null) return ckstop(c, "`se = \"nw\"` needs `time`, the name of the day column");
+  if (m.null) return ckstop(c, "`se = \"%s\"` needs `time`, the name of the day column", se);
   Cols t;
   CK(acols(c, d, m, "time", {1}, false, t));
   const Val &a = *fc(d, t[0]);
@@ -636,7 +636,7 @@ inline double nwlag(const std::vector<double> &sco, std::size_t n, int p, const 
 }
 
 // .axvar(): the variance from the rows' scores as se asks (0 cluster, 1
-// twoway, 2 hc1, 3 nw, 5 quasi), the small-sample factor by ssc (0 G, 1
+// twoway, 2 hc1, 3 nw, 5 quasi, 6 dk), the small-sample factor by ssc (0 G, 1
 // nk, 2 none), the two-way factors by twc (0 min, 1 each) and psd (1 eig:
 // the negative eigenvalues of a two-way variance set to 0); the clusters
 // counted, the lag and, for quasi, the dispersion psi from Pearson's sum
@@ -685,8 +685,31 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
     k = kk(clus);
   } else {
     r.g = {static_cast<double>(n)};
-    kind = se == 2 ? 2 : 3;
+    kind = se == 2 ? 2 : (se == 3 ? 3 : 4);
     k = kk(Cols());
+    if (se == 6) {
+      // .axdklag(): the bandwidth of .axnwlag() on the series of the scores
+      // summed over the rows of each time
+      CK(atime(c, d, tv, "dk"));
+      std::vector<double> ut = tv;
+      std::sort(ut.begin(), ut.end());
+      ut.erase(std::unique(ut.begin(), ut.end()), ut.end());
+      r.g = {static_cast<double>(ut.size())};
+      if (c.has("lag")) {
+        Nv q;
+        CK(cknum(c, c["lag"], "lag", q, true, 0, Inf, false, true));
+        lg = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+      } else {
+        const std::size_t nt = ut.size();
+        std::vector<double> h(nt * zz(p), 0.0);
+        for (std::size_t i = 0; i < n; ++i) {
+          const std::size_t t = static_cast<std::size_t>(std::lower_bound(ut.begin(), ut.end(), tv[i]) - ut.begin());
+          for (std::size_t j = 0; j < zz(p); ++j) h[j * nt + t] += sco[j * n + i];
+        }
+        const double l = nwlag(h, nt, p, std::vector<int>(nt, 0), 1, ut);
+        lg = l > INT_MAX ? INT_MAX : static_cast<int>(l);
+      }
+    }
     if (se == 3) {
       const Code u = acode(*fc(d, clus[0]));
       c1 = u.c;
@@ -752,7 +775,7 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
       }
     }
   }
-  r.lag = se == 3 ? lg : NA;
+  r.lag = se == 3 || se == 6 ? lg : NA;
   return true;
 }
 // sqrt(pmax(diag(v), 0))
@@ -1258,7 +1281,7 @@ bool ppmlfe(Ctx &c, Val &out) {
 }
 
 bool ivfe(Ctx &c, Val &out) {
-  static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot"};
+  static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot", "dk"};
   int se = 0, ssc = 0, twc = 0, psd = 0;
   CK(marg(c, "se", ses, se));
   CK(marg(c, "ssc", sscs, ssc));
@@ -1347,7 +1370,7 @@ bool ivfe(Ctx &c, Val &out) {
     draws = vmat(b.dr, nb, p);
   } else {
     Vr vr;
-    CK(avar(c, d, p, r.sco, r.brd, se, clus, fe, ssc, twc, psd, NaN, vr));
+    CK(avar(c, d, p, r.sco, r.brd, se == 5 ? 6 : se, clus, fe, ssc, twc, psd, NaN, vr));
     v = vr.v;
     sev = sdiag(v, p);
     g = vr.g;

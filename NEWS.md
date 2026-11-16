@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ivfe(se = "dk")`, the standard errors of Driscoll and Kraay
+  (1998), robust to correlation across units and over time, as Batkeyev
+  and DeRemer (2023) report them.
+
 * New: `idwint()` carries monitor readings to places by inverse-distance
   weighting of the nearest monitors and averages them by zone, as
   Rahman et al. (2023), Wongchanapai et al. (2025) and Wesselbaum (2022)

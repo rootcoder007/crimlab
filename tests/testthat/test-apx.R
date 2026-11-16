@@ -1394,3 +1394,30 @@ test_that("a bootstrap seed past an integer is refused in words", {
                       fe = c("unit", "day"), expo = "pop", se = "boot",
                       nboot = 9, seed = 1e300), m)
 })
+
+test_that("ivfe(se = \"dk\") is Driscoll and Kraay's variance written out", {
+  # least squares with unit and day effects: the demeaned regressor x~
+  # (residuals of x on the effects), the residuals e, the scores x~ e
+  # summed by day, h_t, and the Bartlett-weighted sum of their products
+  # up to lag days apart, over (x~'x~)^2
+  set.seed(61)
+  d <- expand.grid(u = 1:12, t = 1:15)
+  d$x <- rnorm(nrow(d)) + rnorm(15)[d$t]
+  d$y <- 0.5 * d$x + rnorm(15)[d$t] + rnorm(nrow(d))
+  r <- ivfe(d, "y", x = "x", fe = c("u", "t"), se = "dk", time = "t",
+            lag = 2, ssc = "none")
+  xt <- stats::residuals(stats::lm(x ~ factor(u) + factor(t), d))
+  e <- stats::residuals(stats::lm(y ~ x + factor(u) + factor(t), d))
+  h <- as.numeric(tapply(xt * e, d$t, sum))
+  m <- sum(h^2)
+  for (l in 1:2) m <- m + 2 * (1 - l / 3) * sum(h[-(1:l)] * h[1:(15 - l)])
+  expect_equal(r$coef$se, sqrt(m) / sum(xt^2), tolerance = 1e-9)
+  expect_identical(r$lag, 2L)
+  # the small-sample factor of the times, T / (T - 1)
+  g <- ivfe(d, "y", x = "x", fe = c("u", "t"), se = "dk", time = "t",
+            lag = 2)
+  expect_equal(g$coef$se, r$coef$se * sqrt(15 / 14), tolerance = 1e-12)
+  expect_error(ivfe(d, "y", x = "x", fe = c("u", "t"), se = "dk"),
+               "ivfe: `se = \"dk\"` needs `time`, the name of the day column.",
+               fixed = TRUE)
+})
