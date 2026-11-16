@@ -297,6 +297,9 @@ reference:
       - evlx
       - rswp
       - dagcol
+      - gensw
+      - trnsp
+      - rcttml
   - title: Indigenous health and wellbeing
     desc: First Nations, Metis and Inuit health, mental health and wellbeing
       from Statistics Canada's published tables, read as published and
@@ -330,6 +333,19 @@ reference:
       - trchlthgap
       - trccmpl
       - trcprog
+  - title: Experiments
+    desc: Randomisation lists, permutation tests within blocks, power by
+      formula and by simulation, falsification with negative-control
+      outcomes, the recovery of planted effects and the specification
+      curve.
+    contents:
+      - rndalc
+      - blkprm
+      - pwranv
+      - pwrsim
+      - falsctl
+      - plntfx
+      - specrv
   - title: Policy evaluation
     desc: Difference in differences with fixed effects, event studies,
       staggered adoption, synthetic controls and synthetic difference in
@@ -380,6 +396,7 @@ reference:
       domain from stratified, clustered and weighted samples.
     contents:
       - svymx
+      - rscchi
   - title: Proofs
     contents:
       - proof
@@ -667,6 +684,7 @@ reference:
       - misspat
       - misssmry
       - mcartst
+      - mipmm
       - duprows
       - dstfit
       - dstntst

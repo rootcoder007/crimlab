@@ -1348,6 +1348,42 @@ func Xppdp(args string) (string, error) { return Jrun("xppdp", args) }
 // Xpimp runs xpimp() of the R package (arguments: x f y nrep? loss? ratio? seed? lctl?; ? marks an optional one).
 func Xpimp(args string) (string, error) { return Jrun("xpimp", args) }
 
+// Rndalc runs rndalc() of the R package (arguments: n? arms? ratio? block? strata? seed? prefix?; ? marks an optional one).
+func Rndalc(args string) (string, error) { return Jrun("rndalc", args) }
+
+// Blkprm runs blkprm() of the R package (arguments: data y d block stat? alt? nperm? exact? seed?; ? marks an optional one).
+func Blkprm(args string) (string, error) { return Jrun("blkprm", args) }
+
+// Pwranv runs pwranv() of the R package (arguments: k n? f alpha? power?; ? marks an optional one).
+func Pwranv(args string) (string, error) { return Jrun("pwranv", args) }
+
+// Pwrsim runs pwrsim() of the R package (arguments: n eff fam? sd? p0? mu0? ratio? test? alt? alpha? nsim? nperm? level? seed?; ? marks an optional one).
+func Pwrsim(args string) (string, error) { return Jrun("pwrsim", args) }
+
+// Falsctl runs falsctl() of the R package (arguments: data y? d nc x? se? nperm? adj? alpha? level? seed?; ? marks an optional one).
+func Falsctl(args string) (string, error) { return Jrun("falsctl", args) }
+
+// Plntfx runs plntfx() of the R package (arguments: data y d x? eff nrep? se? level? tol? seed?; ? marks an optional one).
+func Plntfx(args string) (string, error) { return Jrun("plntfx", args) }
+
+// Specrv runs specrv() of the R package (arguments: data y d x? opt? se? level? null? nsim? seed?; ? marks an optional one).
+func Specrv(args string) (string, error) { return Jrun("specrv", args) }
+
+// Gensw runs gensw() of the R package (arguments: data s x target? trim? bins?; ? marks an optional one).
+func Gensw(args string) (string, error) { return Jrun("gensw", args) }
+
+// Trnsp runs trnsp() of the R package (arguments: data y d s x target? trim? nboot? level? seed?; ? marks an optional one).
+func Trnsp(args string) (string, error) { return Jrun("trnsp", args) }
+
+// Rcttml runs rcttml() of the R package (arguments: data y d x? fam? inter? g? gx? gbound? bounds? qbound? level?; ? marks an optional one).
+func Rcttml(args string) (string, error) { return Jrun("rcttml", args) }
+
+// Rscchi runs rscchi() of the R package (arguments: x y w? strata? psu? fpc?; ? marks an optional one).
+func Rscchi(args string) (string, error) { return Jrun("rscchi", args) }
+
+// Mipmm runs mipmm() of the R package (arguments: data y x? m? k? maxit? ridge? fy? fx? level? seed?; ? marks an optional one).
+func Mipmm(args string) (string, error) { return Jrun("mipmm", args) }
+
 // Ifesc runs ifesc() of the R package (arguments: data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?; ? marks an optional one).
 func Ifesc(args string) (string, error) { return Jrun("ifesc", args) }
 

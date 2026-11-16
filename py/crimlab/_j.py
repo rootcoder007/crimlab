@@ -8185,3 +8185,227 @@ def xpimp(x: Any, f: Any, y: Any, nrep: Any = 10, loss: Any = "se", ratio: Any =
     >>> r = xpimp(x=x, f="glm", y=[1.0, 0.2, 2.4, -0.9, 0.0, 1.1], nrep=2, lctl={"nfold": 2})
     """
     return jcall("xpimp", x=x, f=f, y=y, nrep=nrep, loss=loss, ratio=ratio, seed=seed, lctl=lctl)
+
+
+def rndalc(n: Any = None, arms: Any = None, ratio: Any = None, block: Any = None,
+           strata: Any = None, seed: Any = None, prefix: Any = "P") -> Any:
+    """Randomisation lists for a trial.
+
+    The arguments and the result are those of R's ``rndalc()``: see its help
+    page; ``strata`` is a dictionary from stratum to places, and ``seed`` is
+    needed outside R.
+
+    Examples
+    --------
+    >>> r = rndalc(n=8, block=[4], seed=1)
+    >>> list(r)
+    ['alloc', 'tab', 'seed']
+    >>> sorted(r["alloc"]["arm"])
+    ['A', 'A', 'A', 'A', 'B', 'B', 'B', 'B']
+    """
+    return jcall(
+        "rndalc", n=n, arms=arms, ratio=ratio, block=block, strata=strata, seed=seed, prefix=prefix,
+    )
+
+
+def blkprm(data: Any, y: Any, d: Any, block: Any, stat: Any = None, alt: Any = None,
+           nperm: Any = 2000, exact: Any = False, seed: Any = None) -> Any:
+    """Permutation test within blocks.
+
+    The arguments and the result are those of R's ``blkprm()``: see its help
+    page; ``seed`` is needed outside R unless ``exact``.
+
+    Examples
+    --------
+    >>> p = {"y": [1, 2, 3, 4], "t": [1, 0, 1, 0], "b": [1, 1, 2, 2]}
+    >>> r = blkprm(data=p, y="y", d="t", block="b", exact=True)
+    >>> r["nperm"], r["p"]
+    (4.0, 0.5)
+    """
+    return jcall("blkprm", data=data, y=y, d=d, block=block, stat=stat, alt=alt, nperm=nperm,
+                 exact=exact, seed=seed)
+
+
+def pwranv(k: Any, n: Any = None, f: Any = None, alpha: Any = 0.05, power: Any = None) -> Any:
+    """Power of the one-way analysis of variance.
+
+    The arguments and the result are those of R's ``pwranv()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = pwranv(k=3, n=[20, 40], f=0.25)
+    >>> list(r)
+    ['k', 'n', 'f', 'df1', 'df2', 'ncp', 'fcrit', 'power']
+    >>> r["n"], r["df2"]
+    ([20.0, 40.0], [57.0, 117.0])
+    """
+    return jcall("pwranv", k=k, n=n, f=f, alpha=alpha, power=power)
+
+
+def pwrsim(n: Any, eff: Any, fam: Any = None, sd: Any = 1, p0: Any = 0.5, mu0: Any = 1,
+           ratio: Any = 1, test: Any = None, alt: Any = None, alpha: Any = 0.05, nsim: Any = 1000,
+           nperm: Any = 199, level: Any = 0.95, seed: Any = None) -> Any:
+    """Power by simulation.
+
+    The arguments and the result are those of R's ``pwrsim()``: see its help
+    page; ``seed`` is needed outside R.
+
+    Examples
+    --------
+    >>> r = pwrsim(n=10, eff=1, fam="binary", p0=0, nsim=20, seed=1)
+    >>> r["tab"]["power"]
+    [1.0]
+    """
+    return jcall("pwrsim", n=n, eff=eff, fam=fam, sd=sd, p0=p0, mu0=mu0, ratio=ratio, test=test,
+                 alt=alt, alpha=alpha, nsim=nsim, nperm=nperm, level=level, seed=seed)
+
+
+def falsctl(data: Any, y: Any = None, d: Any = None, nc: Any = None, x: Any = None, se: Any = None,
+            nperm: Any = 0, adj: Any = None, alpha: Any = 0.05, level: Any = 0.95,
+            seed: Any = None) -> Any:
+    """Falsification with negative-control outcomes.
+
+    The arguments and the result are those of R's ``falsctl()``: see its help
+    page; ``seed`` is needed outside R when ``nperm`` is above 0.
+
+    Examples
+    --------
+    >>> p = {"t": [0, 1, 0, 1, 1, 0], "c": [1, 3, 2, 5, 4, 2]}
+    >>> r = falsctl(data=p, d="t", nc="c")
+    >>> r["tab"]["role"], r["ncontrol"]
+    (['control'], 1.0)
+    """
+    return jcall("falsctl", data=data, y=y, d=d, nc=nc, x=x, se=se, nperm=nperm, adj=adj,
+                 alpha=alpha, level=level, seed=seed)
+
+
+def plntfx(data: Any, y: Any, d: Any, x: Any = None, eff: Any = None, nrep: Any = 200,
+           se: Any = None, level: Any = 0.95, tol: Any = None, seed: Any = None) -> Any:
+    """Does the analysis recover a planted effect?
+
+    The arguments and the result are those of R's ``plntfx()``: see its help
+    page; ``seed`` is needed outside R.
+
+    Examples
+    --------
+    >>> p = {"t": [0, 1, 0, 1, 1, 0], "y": [2, 2, 2, 2, 2, 2]}
+    >>> r = plntfx(data=p, y="y", d="t", eff=[0, 1], nrep=5, seed=1)
+    >>> [round(v, 9) + 0 for v in r["tab"]["mean"]]
+    [0.0, 1.0]
+    """
+    return jcall("plntfx", data=data, y=y, d=d, x=x, eff=eff, nrep=nrep, se=se, level=level,
+                 tol=tol, seed=seed)
+
+
+def specrv(data: Any, y: Any, d: Any, x: Any = None, opt: Any = None, se: Any = None,
+           level: Any = 0.95, null: Any = None, nsim: Any = 500, seed: Any = None) -> Any:
+    """Specification curve.
+
+    The arguments and the result are those of R's ``specrv()``: see its help
+    page; ``seed`` is needed outside R.
+
+    Examples
+    --------
+    >>> p = {"t": [0, 1, 0, 1, 1, 0, 1, 0], "a": [1, 4, 2, 2, 5, 3, 1, 2],
+    ...      "y": [1, 3, 2, 5, 4, 2, 4, 1]}
+    >>> r = specrv(data=p, y="y", d="t", opt="a", nsim=5, seed=1)
+    >>> r["spec"]["ctrl"], r["test"]["stat"]
+    (['none', 'a'], ['median', 'nsig', 'z'])
+    """
+    return jcall("specrv", data=data, y=y, d=d, x=x, opt=opt, se=se, level=level, null=null,
+                 nsim=nsim, seed=seed)
+
+
+def gensw(data: Any, s: Any, x: Any, target: Any = None, trim: Any = 0, bins: Any = 10) -> Any:
+    """Generalisability weights for a trial.
+
+    The arguments and the result are those of R's ``gensw()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> p = {"s": [1, 0, 1, 0, 1, 0, 0, 1], "x": [1, 2, 2, 4, 3, 5, 1, 4]}
+    >>> r = gensw(data=p, s="s", x="x")
+    >>> list(r["diag"])
+    ['ntrial', 'ntarget', 'smd', 'dmean', 'gindex', 'ess']
+    >>> [w > 0 for w in r["w"]] == [v == 1 for v in p["s"]]
+    True
+    """
+    return jcall("gensw", data=data, s=s, x=x, target=target, trim=trim, bins=bins)
+
+
+def trnsp(data: Any, y: Any, d: Any, s: Any, x: Any, target: Any = None, trim: Any = 0,
+          nboot: Any = 200, level: Any = 0.95, seed: Any = None) -> Any:
+    """Transport a trial's effect to a target population.
+
+    The arguments and the result are those of R's ``trnsp()``: see its help
+    page; ``y`` and ``d`` may be null outside the trial, and ``seed`` is
+    needed outside R when ``nboot`` is above 0.
+
+    Examples
+    --------
+    >>> p = {"s": [1, 1, 1, 1, 1, 1, 0, 0, 0, 0], "x": [1, 2, 3, 1, 2, 3, 2, 3, 3, 1],
+    ...      "t": [1, 1, 1, 0, 0, 0, None, None, None, None],
+    ...      "y": [3, 4, 5, 1, 2, 3, None, None, None, None]}
+    >>> r = trnsp(data=p, y="y", d="t", s="s", x="x", nboot=0)
+    >>> round(r["tab"]["est"][0], 9)
+    2.0
+    """
+    return jcall("trnsp", data=data, y=y, d=d, s=s, x=x, target=target, trim=trim, nboot=nboot,
+                 level=level, seed=seed)
+
+
+def rcttml(data: Any, y: Any, d: Any, x: Any = None, fam: Any = None, inter: Any = False,
+           g: Any = None, gx: Any = False, gbound: Any = 0.01, bounds: Any = None,
+           qbound: Any = 0.005, level: Any = 0.95) -> Any:
+    """Targeted maximum likelihood for a randomised trial.
+
+    The arguments and the result are those of R's ``rcttml()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> p = {"t": [1, 1, 1, 0, 0, 0], "y": [5, 6, 7, 1, 2, 3]}
+    >>> r = rcttml(data=p, y="y", d="t")
+    >>> r["tab"]["method"], r["tab"]["est"][2]
+    (['tmle', 'gcomp', 'unadj'], 4.0)
+    """
+    return jcall("rcttml", data=data, y=y, d=d, x=x, fam=fam, inter=inter, g=g, gx=gx, gbound=gbound,
+                 bounds=bounds, qbound=qbound, level=level)
+
+
+def rscchi(x: Any, y: Any, w: Any = None, strata: Any = None, psu: Any = None,
+           fpc: Any = None) -> Any:
+    """Rao-Scott chi-square test for a survey table.
+
+    The arguments and the result are those of R's ``rscchi()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = rscchi(x=["a", "a", "b", "b", "a", "b"], y=[1, 2, 1, 2, 2, 1], w=[1, 2, 1, 1, 3, 2])
+    >>> r["test"]["test"], len(r["deff"])
+    (['pearson', 'rs1', 'rs2', 'f'], 1)
+    """
+    return jcall("rscchi", x=x, y=y, w=w, strata=strata, psu=psu, fpc=fpc)
+
+
+def mipmm(data: Any, y: Any, x: Any = None, m: Any = 5, k: Any = 5, maxit: Any = 5,
+          ridge: Any = 1e-5, fy: Any = None, fx: Any = None, level: Any = 0.95,
+          seed: Any = None) -> Any:
+    """Multiple imputation by predictive mean matching.
+
+    The arguments and the result are those of R's ``mipmm()``: see its help
+    page; a missing value is None, and ``seed`` is needed outside R.
+
+    Examples
+    --------
+    >>> p = {"x": [1, 2, 4, 7, 11, 16, 22, 29, 37, 46, 3.2, 20],
+    ...      "y": [2, 4, 8, 14, 22, 32, 44, 58, 74, 92, None, None]}
+    >>> r = mipmm(data=p, y="y", x="x", m=2, k=1, ridge=0, seed=1)
+    >>> r["imp"]["y"]
+    [[8.0, 8.0], [44.0, 44.0]]
+    """
+    return jcall("mipmm", data=data, y=y, x=x, m=m, k=k, maxit=maxit, ridge=ridge, fy=fy, fx=fx,
+                 level=level, seed=seed)

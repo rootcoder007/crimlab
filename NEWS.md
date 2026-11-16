@@ -109,6 +109,60 @@
   the learners of `suplrn()`, with the shuffles drawn in the compiled
   core and returned.
 
+* New: `mipmm()`, multiple imputation of numeric columns by predictive
+  mean matching in chained equations, with an analysis pooled by Rubin's
+  rules and the degrees of freedom of Barnard and Rubin, after
+  `mcartst()`.
+
+* New: `rscchi()`, the Rao-Scott test of independence in a two-way table
+  from a stratified, clustered and weighted survey, first and second
+  order and as an F, with the generalised design effects, beside
+  `svymx()` and `ctabx()`.
+
+* New: `rcttml()`, targeted maximum likelihood for a randomised trial with
+  covariate adjustment (Moore and van der Laan 2009), for continuous and
+  binary outcomes, beside the g-computation and the difference in means.
+
+* New: `trnsp()`, a trial's average effect transported to a target
+  population, or generalised to the population it came from, by the
+  outcome model and by inverse odds weighting, with bootstrap errors.
+
+* New: `gensw()`, the sampling score of a trial against its target
+  population and the weights that generalise or transport its units,
+  with the logit standardised difference, Tipton's generalisability
+  index, the effective size and the covariate balance.
+
+* New: `specrv()`, the specification curve of Simonsohn, Simmons and
+  Nelson (2020): the treatment's estimate for every outcome and every
+  subset of optional covariates, with the joint inference of the median,
+  the count significant and the summed t against permuted or
+  bootstrapped null curves.
+
+* New: `plntfx()`, the recovery of planted effects: the outcome shuffled,
+  an effect of known size added to the treated and the analysis run
+  again, reporting bias, spread, coverage and rejection.
+
+* New: `falsctl()`, falsification with negative-control outcomes: the
+  treatment's coefficient on outcomes it cannot affect, with classical or
+  HC1 errors, Kennedy's permutation p-values and an adjustment for the
+  number of controls.
+
+* New: `pwrsim()`, the power of a two-arm trial by simulation, for normal,
+  binary or count outcomes, unequal arms and Welch's or the permutation
+  test, with its Monte Carlo error.
+
+* New: `pwranv()`, the power of the one-way analysis of variance from the
+  noncentral F distribution, or the group size that reaches a given
+  power.
+
+* New: `blkprm()`, the permutation test of a treatment effect with the
+  assignment permuted within blocks, by enumeration or by draws, for the
+  difference in means or the block-weighted difference.
+
+* New: `rndalc()`, randomisation lists by simple, permuted-block or
+  stratified block randomisation from a seed, the same list in R and on
+  the command line.
+
 * `plotrdg()` and `plotvln()` take their densities from the compiled
   kernel that the command line and the other languages use, so the curve
   is the same everywhere and on every version of R. The kernel agrees

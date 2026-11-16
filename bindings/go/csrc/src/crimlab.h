@@ -4853,6 +4853,222 @@ int clab_ulcate(const double *x, int n, int p, const double *y, const double *d,
 int clab_gologt(const int *y, int n, int M, const double *x, int p, const int *par, int maxit, double *est,
                 double *cov, double *wd, double *st);
 
+/* ------------------------------------------------------------------------
+ * Experiments and trials: randomisation, permutation tests, power,
+ * falsification and robustness, transporting trial effects (rnd.cpp and
+ * the files after it).
+ * ------------------------------------------------------------------------ */
+
+/* A randomisation list (rndalc): ns strata with cnt[s] >= 0 places each
+ * (their total at most INT_MAX), k >= 2 arms in the ratio ratio (whole
+ * numbers from 1, summing to at most 1000000). nb = 0: simple
+ * randomisation, arm a with chance ratio[a] / sum(ratio); otherwise
+ * blocks one after another within each stratum, each of a size drawn
+ * from blk (nb sizes, each a multiple of sum(ratio)) holding the arms in
+ * the ratio in an order drawn by Fisher-Yates; the last block of a
+ * stratum stops at its places. One xorshift64* stream from seed. Out, one
+ * per place in stratum order: arm (0-based) and bno (the block's number
+ * within its stratum from 1; 0 for simple randomisation). */
+int clab_rndalc(int ns, const int *cnt, int k, const int *ratio, const int *blk, int nb,
+                unsigned int seed, int *arm, int *bno);
+
+/* The permutation test of a treatment effect within blocks (blkprm): y,
+ * d (0 or 1, both present) and blk (codes in [0, nb)) of n units. stat 0:
+ * the difference in means of the treated and the controls; 1: the mean
+ * over blocks of the blocks' differences, weighted by their sizes (every
+ * block needs both groups, else CLAB_EDOM). The assignment is permuted
+ * within blocks, keeping each block's treated count. alt: 0 two-sided
+ * (|T*| >= |T|), 1 greater (T* >= T), 2 less (T* <= T), values within
+ * 1e-9 (|T| + max |y|) of T counting as ties. exact != 0: every
+ * arrangement (CLAB_EARG when more than ndist), p the share at least as
+ * extreme; otherwise nperm >= 1 draws from seed (nperm <= ndist), p = (1
+ * + #) / (1 + nperm). Out: st (4): T, p, the arrangements used and the
+ * number at least as extreme; dist: the permuted values in the order
+ * made. */
+int clab_blkprm(const double *y, const int *d, const int *blk, int n, int nb, int stat, int alt,
+                int nperm, int exact, unsigned int seed, int ndist, double *st, double *dist);
+
+/* The power of the one-way analysis of variance (pwranv): k >= 2 groups;
+ * m cells, each an effect size f[i] >= 0 and a group size n[i] > 1, or,
+ * with n NULL, the smallest whole n from 2 to 10000000 whose power is at
+ * least power (alpha < power < 1; NaN when none). df1 = k - 1, df2 = k (n
+ * - 1), ncp = k n f^2, fcrit the upper alpha quantile of the central F,
+ * and the power the upper tail of the noncentral F at fcrit (the Poisson
+ * mixture of beta tails). Out: m x 6, column-major: n, df1, df2, ncp,
+ * fcrit, power (NaN from df2 on when n is NaN). */
+int clab_pwranv(int k, int m, const double *n, const double *f, double alpha, double power,
+                double *out);
+
+/* Power by simulation (pwrsim): m designs of a two-arm trial, n0[c]
+ * controls and n1[c] treated (each at least 2) and effect eff[c]. fam 0:
+ * normal, sd par, means 0 and eff; 1: binary, chances par and par + eff
+ * (both in [0, 1], else CLAB_EDOM); 2: Poisson, means par > 0 and par +
+ * eff >= 0 (else CLAB_EDOM); drawn by inversion. test 0: Welch's t (with
+ * no spread in either arm, p 0 when the means differ in the direction of
+ * alt, else 1); 1: the permutation test of the difference in means with
+ * nperm relabellings, p = (1 + k) / (1 + nperm), ties within 1e-9 (|T| +
+ * max |y|). alt 0 two-sided, 1 greater, 2 less. nsim trials per design,
+ * a design's stream from (seed << 32) | c. Out: m x 5, column-major: the
+ * power (the share with p <= alpha), its Monte Carlo standard error,
+ * Wilson's interval at level, and the trials rejected. */
+int clab_pwrsim(int fam, double par, int m, const int *n0, const int *n1, const double *eff,
+                int test, int alt, double alpha, int nsim, int nperm, double level,
+                unsigned int seed, double *out);
+
+/* Falsification with negative-control outcomes (falsctl): x (n x p, p >=
+ * 0, no intercept column), d (n), y (n x m outcomes); ctl[j] != 0 marks a
+ * negative control. For each outcome the coefficient of d in the least
+ * squares fit on [1, x, d] (Frisch-Waugh-Lovell), its classical (hc 0) or
+ * HC1 (hc 1) standard error, t on n - p - 2 degrees of freedom and the
+ * interval at level; with nperm > 0 Kennedy's permutation p-value (the
+ * residuals of each outcome on [1, x] permuted against those of d, one
+ * draw of the rows for all outcomes, from seed; |b*| >= |b| (1 - 1e-9)),
+ * (1 + k) / (1 + nperm). The controls' p-values (the permutation ones
+ * with nperm > 0) adjusted by clab_pbadj() method adj. Out: m x 8,
+ * column-major: est, se, stat, p, lo, hi, pperm, padj (NaN where not
+ * computed). CLAB_EDOM when [1, x] is rank deficient or d keeps less than
+ * 1e-10 of its centred sum of squares after x. */
+int clab_falsctl(const double *x, int n, int p, const double *d, const double *y, int m,
+                 const int *ctl, int hc, double level, int adj, int nperm, unsigned int seed,
+                 double *out);
+
+/* Planted effects (plntfx): x (n x p, p >= 0), y and d (n). nrep >= 2
+ * times the outcome is shuffled (Fisher-Yates, one stream from seed) and
+ * for each of the ne effects eff[e] the coefficient of d in the least
+ * squares fit of shuffled y + eff[e] d on [1, x, d] is taken, with its
+ * classical (hc 0) or HC1 (hc 1) error and the t interval at level. Out:
+ * ne x 5, column-major: the mean and standard deviation of the
+ * estimates, their root mean squared error about eff, the share of
+ * intervals holding eff and the share rejecting 0 at 1 - level. CLAB_EDOM
+ * when [1, x] is rank deficient or d keeps less than 1e-10 of its centred
+ * sum of squares after x. */
+int clab_plntfx(const double *x, int n, int p, const double *y, const double *d, const double *eff,
+                int ne, int nrep, int hc, double level, unsigned int seed, double *out);
+
+/* The specification curve (specrv): x (n x (nx + m)), the nx covariates
+ * of every specification then the m <= 10 optional ones; y (n x ny)
+ * outcomes; d (n). For each outcome j and each subset s of the optional
+ * covariates (bit i of s for the i-th), the coefficient of d in the least
+ * squares fit on [1, the fixed covariates, the subset, d], with its
+ * classical (hc 0) or HC1 (hc 1) error. The curve's summaries: the
+ * median estimate, the specifications with p < 1 - level whose sign is
+ * the median's (sg, 1 for a median of 0), and the sum of t over sqrt(K).
+ * nsim data sets under the null, from seed: null 0 permutes d; null 1
+ * draws rows with replacement (as weights) and takes each estimate less
+ * the observed one (the null imposed by y - b d); a draw whose fit is
+ * singular is left out. Out: spec (K x 6, K = ny 2^m, outcome slowest):
+ * est, se, stat, p and the t interval at level; st (8): the three
+ * summaries, their p-values (1 + #{at least as extreme in sg's
+ * direction, within 1e-9 of the observed}) / (1 + nok), sg and nok; dist
+ * (nsim x 3): the summaries of each data set (NaN when left out).
+ * CLAB_EARG when 2^m n (nx + m + 1) + K n passes 2^26; CLAB_EDOM when a
+ * specification is rank deficient or d keeps less than 1e-10 of its
+ * centred sum of squares after its covariates. */
+int clab_specrv(const double *x, int n, int nx, int m, const double *y, int ny, const double *d,
+                int hc, double level, int null, int nsim, unsigned int seed, double *spec, double *st,
+                double *dist);
+
+/* ------------------------------------------------------------------------
+ * Trials: generalising and transporting their effects (gsw.cpp, trs.cpp)
+ * and targeted estimation with covariate adjustment (rct.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Generalisability weights (gensw): x (n x p) the covariates, s (n) 1 in
+ * the trial and 0 outside it, both present (else CLAB_EDOM). The sampling
+ * score ps is the logistic regression of s on [1, x] (clab_lgtreg, tol
+ * 1e-10, 50 steps; its CLAB_EDOM when it fails), trimmed to [trim, 1 -
+ * trim]. target 0 (generalise: the target is every row) gives the trial
+ * rows the weight 1 / ps, target 1 (transport: the rows outside the
+ * trial) (1 - ps) / ps; other rows 0. Out: ps, w (n); coef (p + 1); st
+ * (6): the trial and target counts, the standardised difference of the
+ * mean logits of ps (trial less target, over the target's sd), the
+ * difference of the mean scores, Tipton's index over bins equal-width
+ * bins of the range of ps, and Kish's effective size of the weights; bal
+ * (p x 5): each covariate's target mean, trial mean, weighted trial mean
+ * and the two trial means' standardised differences from the target's. */
+int clab_gensw(const double *x, int n, int p, const int *s, int target, double trim, int bins,
+               double *ps, double *w, double *coef, double *st, double *bal);
+
+/* Transporting a trial's average effect (trnsp): x (n x p) the
+ * covariates; s (n) 1 in the trial, 0 outside it (both present, else
+ * CLAB_EDOM); y and d (0 or 1) read in the trial only. The target is the
+ * rows outside the trial (target 1) or all rows (target 0), as in
+ * clab_gensw(). est (2): the outcome model (least squares of y on [1, x]
+ * in each arm of the trial, the difference of the predictions averaged
+ * over the target) and inverse odds weighting (the arms' means weighted
+ * by the weights of clab_gensw() with this target and trim, normalised
+ * within each arm). nboot >= 0 bootstrap draws from seed, the rows drawn
+ * with replacement within the trial and within the rest: draws (nboot x
+ * 2; NaN for a draw whose fit fails), se (2; their standard deviations,
+ * NaN with fewer than two), nf the draws that failed. ps, w (n): the
+ * sampling scores and weights. CLAB_EDOM when a fit fails on the data. */
+int clab_trnsp(const double *x, int n, int p, const double *y, const int *d, const int *s, int target,
+               double trim, int nboot, unsigned int seed, double *est, double *se, double *draws,
+               double *ps, double *w, double *nf);
+
+/* Targeted maximum likelihood for a randomised trial (rcttml): x (n x
+ * p), y (n; 0 or 1 for fam 1), d (n; 0 or 1, each arm with two or more,
+ * else CLAB_EDOM). Q: least squares (fam 0) or logistic regression (fam
+ * 1) of y on [1, d, x] and with inter d x. g: the logistic regression of
+ * d on [1, x] (gx, p >= 1), else g0, or the share treated when g0 is NaN;
+ * bounded to [gbound, 1 - gbound]. With fam 0 y and Q are put on [0, 1]
+ * by (v - lo) / (hi - lo) (hi > lo); Q bounded to [qbound, 1 - qbound].
+ * The fluctuation eps: the logistic regression of the scaled y on H = d /
+ * g - (1 - d) / (1 - g) with offset logit(Q(d, x)), by Newton's method;
+ * the effect is the mean of Q*(1, x) - Q*(0, x) times (hi - lo), its
+ * standard error the sd of the influence curve over sqrt(n). Out (3 x 2,
+ * column-major): the estimates and standard errors of TMLE, the plug-in
+ * of Q (no standard error: NaN) and the difference in means (unpooled
+ * error); aux (3): eps, the least and largest g. CLAB_EDOM when a fit or
+ * the fluctuation fails. */
+int clab_rcttml(const double *x, int n, int p, const double *y, const int *d, int fam, int inter, int gx,
+                double g0, double gbound, double lo, double hi, double qbound, double *out,
+                double *aux);
+
+/* ------------------------------------------------------------------------
+ * Survey tests and imputation: the Rao-Scott test (rsc.cpp) and multiple
+ * imputation by predictive mean matching (mip.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* The Rao-Scott test of independence (rscchi): r, c (n codes in [0, nr),
+ * [0, nc), nr, nc >= 2), w (n positive weights), st (nst stratum codes),
+ * ps (nps first-stage unit codes, each within one stratum, every stratum
+ * with two or more, else CLAB_EDOM), fpc NULL or each stratum's
+ * population count of first-stage units. tab (nr x nc): the weighted cell
+ * proportions p. Pearson's X^2 = n sum (p - e)^2 / e, e the product of
+ * the margins; V the linearisation covariance of p over the first-stage
+ * units within strata; dlt (K = (nr - 1)(nc - 1)): the eigenvalues of
+ * (C' D^-1 C / n)^-1 C' D^-1 V D^-1 C, C the contrasts (e_i - 1 / nr) x
+ * (f_j - 1 / nc). test (4 x 4, column-major; rows Pearson, first order,
+ * second order, F): stat, df1, df2 (NaN but for F), the upper-tail p.
+ * aux (3): the mean design effect, the squared coefficient of variation
+ * of the design effects, and nu = nps - nst. CLAB_EDOM when the contrasts'
+ * matrix is not positive definite or the design effects are not. */
+int clab_rscchi(const int *r, const int *c, int nr, int nc, int n, const double *w, const int *st,
+                int nst, const int *ps, int nps, const double *fpc, double *tab, double *test,
+                double *dlt, double *aux);
+
+/* Multiple imputation by predictive mean matching (mipmm): x (n x q,
+ * column-major), NaN for the missing values of the nt target columns tg
+ * (the other columns complete). m >= 2 chains from seed, each started at
+ * draws from the observed values and run maxit rounds over the targets:
+ * the least squares fit of a target on [1, every other column] over its
+ * observed rows, the diagonal of the cross-products times 1 + ridge; a
+ * draw of the scale (rss over a chi-square on the residual degrees of
+ * freedom) and of the coefficients; for each missing row a donor drawn
+ * among the k observed rows nearest in fitted value (estimate against
+ * draw), whose value it takes. imp: for each target in turn, its missing
+ * rows by chain (nmis x m, column-major). pool (np x 8, column-major;
+ * est, se, df, lo, hi, p, riv, fmi): Rubin's rules over the completed data
+ * sets with Barnard and Rubin's degrees of freedom, for the least squares
+ * coefficients of column fy on [1, the nfx columns fx] (np = nfx + 1) or,
+ * with fy < 0, the mean of each target (np = nt), the intervals at level.
+ * CLAB_EDOM when a target has no more observed rows than the columns of
+ * its design, or a fit is singular. */
+int clab_mipmm(const double *x0, int n, int q, const int *tg, int nt, int m, int k, int maxit,
+               double ridge, unsigned int seed, int fy, const int *fx, int nfx, double level,
+               double *imp, double *pool);
+
 #ifdef __cplusplus
 }
 #endif

@@ -1643,6 +1643,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jmap.inc"
 #include "jxpl.inc"
 #include "jgol.inc"
+#include "jxpr.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2099,6 +2100,18 @@ const Ent ents[] = {
     {"xpcp", "x f v newx? y? grid? gtype? lctl?", xpcp},
     {"xppdp", "x f v y? grid? gtype? lctl?", xppdp},
     {"xpimp", "x f y nrep? loss? ratio? seed? lctl?", xpimp},
+    {"rndalc", "n? arms? ratio? block? strata? seed? prefix?", ax::rndalc},
+    {"blkprm", "data y d block stat? alt? nperm? exact? seed?", ax::blkprm},
+    {"pwranv", "k n? f alpha? power?", ax::pwranv},
+    {"pwrsim", "n eff fam? sd? p0? mu0? ratio? test? alt? alpha? nsim? nperm? level? seed?", ax::pwrsim},
+    {"falsctl", "data y? d nc x? se? nperm? adj? alpha? level? seed?", ax::falsctl},
+    {"plntfx", "data y d x? eff nrep? se? level? tol? seed?", ax::plntfx},
+    {"specrv", "data y d x? opt? se? level? null? nsim? seed?", ax::specrv},
+    {"gensw", "data s x target? trim? bins?", ax::gensw},
+    {"trnsp", "data y d s x target? trim? nboot? level? seed?", ax::trnsp},
+    {"rcttml", "data y d x? fam? inter? g? gx? gbound? bounds? qbound? level?", ax::rcttml},
+    {"rscchi", "x y w? strata? psu? fpc?", ax::rscchi},
+    {"mipmm", "data y x? m? k? maxit? ridge? fy? fx? level? seed?", ax::mipmm},
     {"ifesc", "data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?", ax::ifesc},
     {"updwn", "data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?", ax::updwn},
     {"expjn", "expo outc by?", ax::expjn},

@@ -687,6 +687,18 @@ SEXP C_clab_r_xpsh(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ulcate(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gologt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rndalc(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_blkprm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pwranv(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pwrsim(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_falsctl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_plntfx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_specrv(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gensw(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_trnsp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rcttml(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_rscchi(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mipmm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_idwint(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gtwreg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_asrule(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1112,6 +1124,18 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_xpsh", fn<&C_clab_r_xpsh>(), 4},
     {"C_clab_r_ulcate", fn<&C_clab_r_ulcate>(), 21},
     {"C_clab_r_gologt", fn<&C_clab_r_gologt>(), 6},
+    {"C_clab_r_rndalc", fn<&C_clab_r_rndalc>(), 4},
+    {"C_clab_r_blkprm", fn<&C_clab_r_blkprm>(), 9},
+    {"C_clab_r_pwranv", fn<&C_clab_r_pwranv>(), 5},
+    {"C_clab_r_pwrsim", fn<&C_clab_r_pwrsim>(), 12},
+    {"C_clab_r_falsctl", fn<&C_clab_r_falsctl>(), 9},
+    {"C_clab_r_plntfx", fn<&C_clab_r_plntfx>(), 8},
+    {"C_clab_r_specrv", fn<&C_clab_r_specrv>(), 10},
+    {"C_clab_r_gensw", fn<&C_clab_r_gensw>(), 5},
+    {"C_clab_r_trnsp", fn<&C_clab_r_trnsp>(), 8},
+    {"C_clab_r_rcttml", fn<&C_clab_r_rcttml>(), 10},
+    {"C_clab_r_rscchi", fn<&C_clab_r_rscchi>(), 6},
+    {"C_clab_r_mipmm", fn<&C_clab_r_mipmm>(), 10},
     {"C_clab_r_idwint", fn<&C_clab_r_idwint>(), 11},
     {"C_clab_r_gtwreg", fn<&C_clab_r_gtwreg>(), 8},
     {"C_clab_r_asrule", fn<&C_clab_r_asrule>(), 7},
