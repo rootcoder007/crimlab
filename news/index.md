@@ -2,6 +2,133 @@
 
 ## crimlab 0.0.0.9000
 
+- Fixed: the second sweep found 25 more functions
+  ([`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md),
+  [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md),
+  [`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md),
+  [`synexp()`](https://rootcoder007.github.io/crimlab/reference/synexp.md),
+  [`bndxw()`](https://rootcoder007.github.io/crimlab/reference/bndxw.md),
+  [`rptvic()`](https://rootcoder007.github.io/crimlab/reference/rptvic.md),
+  [`etohlr()`](https://rootcoder007.github.io/crimlab/reference/etohlr.md),
+  [`mndla()`](https://rootcoder007.github.io/crimlab/reference/mndla.md),
+  [`crchyp()`](https://rootcoder007.github.io/crimlab/reference/crchyp.md),
+  [`clrilr()`](https://rootcoder007.github.io/crimlab/reference/clrilr.md),
+  …) whose compiled readers asked for the length of `NULL`, a function
+  or an environment; they now refuse it in words.
+
+- Fixed, after a second sweep: a function given as `est` to the exposure
+  designs, `end` of a point
+  [`datumpmap()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md),
+  a list for the data of
+  [`expconcidx()`](https://rootcoder007.github.io/crimlab/reference/expconcidx.md),
+  [`exprspplr()`](https://rootcoder007.github.io/crimlab/reference/exprspplr.md)
+  and
+  [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md),
+  `ref` and a single `p2` of
+  [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md),
+  a bootstrap `seed` past an integer in the exposure estimators, an `x`
+  of
+  [`sarml()`](https://rootcoder007.github.io/crimlab/reference/sarml.md)
+  that is not numbers, an
+  [`onlsmry()`](https://rootcoder007.github.io/crimlab/reference/onlsmry.md)
+  accumulator without its state, an infinite `cnts` of
+  [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md),
+  a non-numeric `source` of
+  [`advdif2d()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  an object without a `crs` in
+  [`crsof()`](https://rootcoder007.github.io/crimlab/reference/crsof.md),
+  invalid text in
+  [`pbbnd()`](https://rootcoder007.github.io/crimlab/reference/pbbnd.md)
+  and a table of no rows in
+  [`yoysmry()`](https://rootcoder007.github.io/crimlab/reference/yoysmry.md)
+  used to fail in R’s words; each is now refused in the package’s, and
+  [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  names itself where it named
+  [`plcday()`](https://rootcoder007.github.io/crimlab/reference/plcday.md).
+
+- Fixed:
+  [`kscan()`](https://rootcoder007.github.io/crimlab/reference/kscan.md)’s
+  Monte Carlo p-values used to depend on the order of the rows for a
+  given seed (the times were shuffled over the rows as given); the
+  shuffles now run over the incidents in the order of their coordinates
+  and times. The p-values for a given seed change once; the clusters do
+  not.
+
+- Fixed:
+  [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md)
+  of a table of zeros used to print “n = NA” and give no statistics;
+  such a table has no total, and it is now refused (here and on the
+  command line).
+
+- Fixed, one function at a time:
+  [`bufas()`](https://rootcoder007.github.io/crimlab/reference/bufas.md)
+  multiplied a factor or text `r` for its default `buf` before checking
+  it (a warning or “non-numeric argument to binary operator”);
+  [`gtmp()`](https://rootcoder007.github.io/crimlab/reference/gtmp.md)
+  tested a function `q` for `NA` with a warning; the `rgnmap*()` checks
+  turned a function into text;
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
+  [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
+  and
+  [`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md)
+  converted a `maxit` past an integer with a warning;
+  [`yoypdf()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md)
+  did not check `lag`;
+  [`dstnskch()`](https://rootcoder007.github.io/crimlab/reference/dstnskch.md),
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`relbl()`](https://rootcoder007.github.io/crimlab/reference/grdrcd.md),
+  [`grdrcd()`](https://rootcoder007.github.io/crimlab/reference/grdrcd.md)
+  and
+  [`grdlvls()`](https://rootcoder007.github.io/crimlab/reference/grdlvls.md)
+  took a function for their values or labels;
+  [`crfno2()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`crfpm25()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md)
+  and
+  [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md)
+  failed quoting a function as an outcome or pollutant. Each now refuses
+  in its own words.
+
+- Fixed: a colour index past the range of an integer (`col = 1e300`,
+  `Inf`) used to pass the plots’ colour check with a coercion warning,
+  or fail in [`col2rgb()`](https://rdrr.io/r/grDevices/col2rgb.html)
+  (“numerical color values must be \>= 0”), in 12 plot functions; it is
+  now refused as any bad colour (“`col` must be colours.”). A 1 x 1
+  matrix for a number such as `bins` used to be accepted with a
+  recycling warning; it is now refused.
+
+- Fixed: a file path longer than a path can be (1e6 characters) used to
+  reach [`path.expand()`](https://rdrr.io/r/base/path.expand.html) and
+  its warning (“expanded path length … would be too long”) in
+  [`co2fp()`](https://rootcoder007.github.io/crimlab/reference/co2fp.md),
+  [`raplok()`](https://rootcoder007.github.io/crimlab/reference/raplok.md),
+  [`wrtxtfb()`](https://rootcoder007.github.io/crimlab/reference/wrtxtfb.md)
+  and the `yoy*()` writers; it is now refused, at most 4096 bytes.
+
+- Fixed: text that is not valid UTF-8 given for an argument used to stop
+  49 functions inside base R’s string functions (“invalid multibyte
+  string”, “input string 1 is invalid UTF-8”) or, in a title, at the
+  graphics device; the shared text check now refuses it first, naming
+  the argument
+  ([`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md),
+  [`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md),
+  [`gplume()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`fylbl()`](https://rootcoder007.github.io/crimlab/reference/yoylbl.md),
+  the `yoy*()` writers, the descriptive statistics, the plots’ `main`,
+  …), and a refusal that quotes such text shows its bytes.
+
+- Fixed: `NULL`, a function or an environment given for a vector
+  argument used to reach the compiled code and fail there in R’s words
+  (“LENGTH or similar applied to NULL object”, “cannot coerce type
+  ‘builtin’ to vector”), in 31 functions
+  ([`calaud()`](https://rootcoder007.github.io/crimlab/reference/calaud.md),
+  [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md),
+  [`tmpaud()`](https://rootcoder007.github.io/crimlab/reference/tmpaud.md),
+  [`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md),
+  [`trnmat()`](https://rootcoder007.github.io/crimlab/reference/trnmat.md),
+  [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md),
+  …); it is now refused in the package’s (“`area` must be a vector, got
+  NULL.”).
+
 - Fixed:
   [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
   used to report r = 0 with an interval, p = 1 and nonzero

@@ -41,9 +41,10 @@ bkrig(x, y = NULL, v, blocks, nq = 25, nugget = 0, sill = 1, range = 1)
 
 - nq:
 
-  The number of grid points of a box: one whole number from 1. The
-  points of all the blocks (`nq`, rounded to a square, for each box)
-  must be at most 67108864 (2^26).
+  The size of the grid of a box: one whole number from 1. A box is
+  averaged over `round(sqrt(nq))^2` points (`nq` rounded to a square: 10
+  gives 9). The points of all the blocks must be at most 67108864
+  (2^26).
 
 - nugget, sill, range:
 

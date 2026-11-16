@@ -14,7 +14,10 @@ ratio; secondary clusters follow in order of their ratio, each the best
 of its circle among those whose circles overlap none chosen before. Each
 p-value compares the cluster's ratio with the largest ratio of the whole
 scan with the times shuffled among the locations `nsim` times from
-`seed`, so a secondary cluster's p-value is conservative. That the ratio
+`seed`, so a secondary cluster's p-value is conservative. The shuffles
+run over the incidents in the order of their coordinates and times, so
+the clusters and the p-values do not depend on the order of the rows; a
+tie in the ratio goes to the centre first in that order. That the ratio
 is never negative is proved in Lean: see `proof("kscan")`. The work
 grows as the number of locations times `length(r)` times the distinct
 times times `length(tw)`, for the scan and for each permutation.
@@ -127,5 +130,5 @@ s
 #> kscan: 2 clusters of 170 incidents, 99 permutations
 #>         x        y r start end  n       exp ncirc nwin        rr       llr    p
 #>  4.959446 15.23629 1    40  45 20 3.4117647    20   29  6.510345 19.636580 0.01
-#>  9.544601 11.09801 3     4   9  4 0.3235294    11    5 12.637459  6.422689 0.12
+#>  9.544601 11.09801 3     4   9  4 0.3235294    11    5 12.637459  6.422689 0.08
 ```

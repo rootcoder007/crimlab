@@ -11,7 +11,10 @@ their ratio, each the best of its circle among those whose circles
 overlap none chosen before. Each p-value compares the cluster's ratio
 with the largest ratio of the whole scan with the times shuffled among
 the locations nsim times from seed, so a secondary cluster's p-value
-is conservative. That the ratio is never negative is proved in Lean:
+is conservative. The shuffles run over the incidents in the order of
+their coordinates and times, so the clusters and the p-values do not
+depend on the order of the rows; a tie in the ratio goes to the centre
+first in that order. That the ratio is never negative is proved in Lean:
 see proof(&quot;kscan&quot;). The work grows as the number of locations times
 length(r) times the distinct times times length(tw), for the scan
 and for each permutation."><meta property="og:description" content="Kulldorff's space-time permutation scan (Kulldorff, Heffernan, Hartman,
@@ -26,7 +29,10 @@ their ratio, each the best of its circle among those whose circles
 overlap none chosen before. Each p-value compares the cluster's ratio
 with the largest ratio of the whole scan with the times shuffled among
 the locations nsim times from seed, so a secondary cluster's p-value
-is conservative. That the ratio is never negative is proved in Lean:
+is conservative. The shuffles run over the incidents in the order of
+their coordinates and times, so the clusters and the p-values do not
+depend on the order of the rows; a tie in the ratio goes to the centre
+first in that order. That the ratio is never negative is proved in Lean:
 see proof(&quot;kscan&quot;). The work grows as the number of locations times
 length(r) times the distinct times times length(tw), for the scan
 and for each permutation."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
@@ -76,7 +82,10 @@ their ratio, each the best of its circle among those whose circles
 overlap none chosen before. Each p-value compares the cluster's ratio
 with the largest ratio of the whole scan with the times shuffled among
 the locations <code>nsim</code> times from <code>seed</code>, so a secondary cluster's p-value
-is conservative. That the ratio is never negative is proved in Lean:
+is conservative. The shuffles run over the incidents in the order of
+their coordinates and times, so the clusters and the p-values do not
+depend on the order of the rows; a tie in the ratio goes to the centre
+first in that order. That the ratio is never negative is proved in Lean:
 see <code>proof("kscan")</code>. The work grows as the number of locations times
 <code>length(r)</code> times the distinct times times <code>length(tw)</code>, for the scan
 and for each permutation.</p>
@@ -188,7 +197,7 @@ disease outbreak detection. <em>PLoS Medicine</em>, 2(3), e59.
 <span class="r-out co"><span class="r-pr">#&gt;</span> kscan: 2 clusters of 170 incidents, 99 permutations</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>         x        y r start end  n       exp ncirc nwin        rr       llr    p</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  4.959446 15.23629 1    40  45 20 3.4117647    20   29  6.510345 19.636580 0.01</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  9.544601 11.09801 3     4   9  4 0.3235294    11    5 12.637459  6.422689 0.12</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9.544601 11.09801 3     4   9  4 0.3235294    11    5 12.637459  6.422689 0.08</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
