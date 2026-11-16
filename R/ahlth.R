@@ -149,6 +149,8 @@ crfpm25 <- function(expo, y = "allcause", refconc = 5.8) {
   )
 }
 
+#' @rdname crfpm25
+#' @export
 crfno2 <- function(expo, y = "allcause", refconc = 10, betaper10 = NULL) {
   f <- "crfno2"
   ci <- c(NA_real_, NA_real_)
@@ -520,6 +522,53 @@ polbrdarea <- function(
   res
 }
 
+#' Concentration index of exposure by income
+#'
+#' Measures whether exposure to pollution is concentrated among lower-income
+#' or higher-income people. The index runs from -1 (all the exposure borne
+#' by the poorest) through 0 (exposure shared evenly across income) to +1
+#' (all of it borne by the richest); environmental-justice analyses report
+#' it next to the burden.
+#'
+#' @details
+#' Wagstaff, Paci and van Doorslaer (1991):
+#' \deqn{CI = (2 / \mu) \, \mathrm{cov}(h_i, R_i)}
+#' with \eqn{R_i = (rank_i - 0.5) / n} the fractional income rank (tied
+#' incomes share their average rank, so the index does not depend on row
+#' order) and the population covariance. Negative values mean lower-income
+#' units bear more exposure. Both columns must be numeric: a factor or
+#' character income is refused rather than ranked by its level codes, and
+#' exposures must be non-negative.
+#'
+#' Rows with a missing exposure or income are dropped. The interpretation
+#' calls an index below -0.01 a burden on the poor, above 0.01 a burden on
+#' the rich, and anything between an even distribution. Income only needs
+#' an order: an amount, a quintile number or a rank all give the same
+#' index.
+#'
+#' @param data A data frame with one row per person or area.
+#' @param expo,income Column names (single strings): the exposure (a
+#'   non-negative concentration) and the income measure (numeric).
+#' @param x A result.
+#' @inheritParams freqtbl
+#' @return A list of class \code{expconcidx} with \code{concidx} (a number
+#'   in \eqn{[-1, 1]}), \code{interpretation} (a sentence), \code{expomean},
+#'   \code{citation} and \code{extra}, a list with \code{n} (rows used),
+#'   \code{cov_h_R} (the covariance) and \code{curve}, a data frame of the
+#'   concentration curve: \code{population}, the cumulative population
+#'   share, poorest first, and \code{exposure}, the cumulative share of total
+#'   exposure.
+#' @references Wagstaff, A., Paci, P. and van Doorslaer, E. (1991). On the
+#'   measurement of inequalities in health. Social Science and Medicine
+#'   33(5), 545-557.
+#' @examples
+#' d <- data.frame(exposure = c(30, 25, 20, 15, 10), income = 1:5)
+#' ci <- expconcidx(d, "exposure", "income")
+#' ci$concidx
+#' ci$interpretation
+#' try(expconcidx(data.frame(exposure = 1:3, income = c("a", "b", "c")),
+#'                "exposure", "income"))
+#' @export
 expconcidx <- function(data, expo, income) {
   f <- "expconcidx"
   if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
