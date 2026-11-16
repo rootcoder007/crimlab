@@ -596,6 +596,15 @@ inline bool crfchk(Ctx &c, bool pm, const std::string &y, bool one) {
   return crfout(c, y, pm ? a : b, tail);
 }
 
+// The outcome's place in its pollutant's table (src/ahl.cpp), -1 if none.
+inline int crfcode(bool pm, const std::string &y) {
+  static const char *const a[] = {"allcause", "ihd", "stroke"}, *const b[] = {"allcause", "respiratory", "chiast"};
+  for (int i = 0; i < 3; ++i) {
+    if (y == (pm ? a : b)[i]) return i;
+  }
+  return -1;
+}
+
 inline double rmean(const std::vector<double> &v) { return nmean(v.data(), v.size()); }
 
 // crfpm25() and crfno2() as one: the CRF object, from z.
@@ -605,30 +614,11 @@ bool crfv(Ctx &c, bool pm, const Nv &z, const std::string &y, double refc, bool 
   int form = 0;
   Val ex = vobj();
   std::string cite;
-  if (pm && y == "allcause") {
-    par[0] = std::log(1.08);
-    ci[0] = std::log(1.06);
-    ci[1] = std::log(1.09);
-  } else if (pm) {
-    form = 1;
-    const bool ihd = y == "ihd";
-    par[0] = ihd ? 1.91 : 1.46;
-    par[1] = ihd ? 0.14 : 0.13;
-    par[2] = ihd ? 0.49 : 0.61;
-  } else if (hasb) {
+  if (hasb) {
     par[0] = bpar;
-  } else if (y == "allcause") {
-    par[0] = std::log(1.02);
-    ci[0] = std::log(1.01);
-    ci[1] = std::log(1.04);
-  } else if (y == "respiratory") {
-    par[0] = std::log(1.03);
-    ci[0] = std::log(1.00);
-    ci[1] = std::log(1.05);
   } else {
-    par[0] = std::log(1.05) * 10 / 4;
-    ci[0] = std::log(1.02) * 10 / 4;
-    ci[1] = std::log(1.07) * 10 / 4;
+    CK(kchk(c, clab_crfpar(pm ? 1 : 0, crfcode(pm, y), &form, par, ci)));
+    if (form == 1) ci[0] = ci[1] = NA;
   }
   const int n = static_cast<int>(z.n());
   CK(kchk(c, clab_crf(z.p(), n, refc, form, par, rr.data(), lr.data())));
@@ -901,8 +891,8 @@ bool polbrdarea(Ctx &c, Val &out) {
   std::string y;
   bool one = true;
   ykey(c, y, one);
-  std::vector<double> rr(n), pf(n), at(n), bs(n);
-  for (std::size_t i = 0; i < n; ++i) {
+  // the first row polbrdn() refuses, its message in the table's words
+  auto refuse = [&](std::size_t i) {
     Ctx r{"polbrdn", c.in, std::string(), {}};
     Val b;
     Val e = vnum(v[0][i]), p = vnum(v[1][i]), br = vnum(v[2][i]);
@@ -926,19 +916,25 @@ bool polbrdarea(Ctx &c, Val &out) {
       }
       return ckstop(c, "%s", m.c_str());
     }
-    rr[i] = col(col(b, "extra"), "rr").n;
-    pf[i] = col(b, "paf").n;
-    at[i] = col(b, "attrcases").n;
-    bs[i] = col(b, "basecases").n;
-  }
+    return ckstop(c, "row %d of `areatab` could not be read", static_cast<int>(i + 1));
+  };
+  const std::string pol = polkey(c["poll"]);
+  const int oc = one && !pol.empty() ? crfcode(pol == "PM2.5", y) : -1;
+  if (oc < 0) return refuse(0);
+  std::vector<double> rr(n), pf(n), at(n), bs(n);
+  std::vector<std::int64_t> ord(n);
+  std::int64_t bad = 0;
+  CK(kchk(c, clab_pbarea(n, v[0].data(), v[1].data(), v[2].data(), pol == "PM2.5" ? 1 : 0, oc, ra ? 1 : 0,
+                         hi ? 1 : 0, rr.data(), pf.data(), at.data(), bs.data(), ord.data(), &bad)));
+  if (bad > 0) return refuse(static_cast<std::size_t>(bad - 1));
   std::vector<std::size_t> o(n);
-  for (std::size_t i = 0; i < n; ++i) o[i] = i;
-  std::stable_sort(o.begin(), o.end(), [&](std::size_t a, std::size_t b) { return -at[a] < -at[b]; });
+  for (std::size_t i = 0; i < n; ++i) o[i] = static_cast<std::size_t>(ord[i] - 1);
   auto pick = [&](const std::vector<double> &x) {
     std::vector<double> r;
     for (std::size_t i : o) r.push_back(x[i]);
     return vnums(r);
   };
+  auto keep = [](const std::vector<double> &x) { return vnums(x); };
   Val lab = varr();
   const Val &al = col(t, ac.c_str());
   for (std::size_t i : o) lab.a.push_back(al.t == Val::ARR ? al.a[i] : al);
@@ -947,10 +943,10 @@ bool polbrdarea(Ctx &c, Val &out) {
   put(out, ec.c_str(), pick(v[0]));
   put(out, pc.c_str(), pick(v[1]));
   put(out, bc.c_str(), pick(v[2]));
-  put(out, "rr", pick(rr));
-  put(out, "paf", pick(pf));
-  put(out, "attrcases", pick(at));
-  put(out, "basecases", pick(bs));
+  put(out, "rr", keep(rr));
+  put(out, "paf", keep(pf));
+  put(out, "attrcases", keep(at));
+  put(out, "basecases", keep(bs));
   return true;
 }
 

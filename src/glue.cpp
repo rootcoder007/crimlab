@@ -748,6 +748,8 @@ SEXP C_clab_r_mtxrel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_crchyp(SEXP, SEXP, SEXP);
 SEXP C_clab_r_hitscr(SEXP, SEXP);
 SEXP C_clab_r_rtmfit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_crfpar(SEXP, SEXP);
+SEXP C_clab_r_pbarea(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 // For the tests: on TRUE every poll of a kernel reads as an interrupt
 // (the stop paths run on small inputs, in this process); on FALSE R's
@@ -1103,6 +1105,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_crchyp", fn<&C_clab_r_crchyp>(), 3},
     {"C_clab_r_hitscr", fn<&C_clab_r_hitscr>(), 2},
     {"C_clab_r_rtmfit", fn<&C_clab_r_rtmfit>(), 6},
+    {"C_clab_r_crfpar", fn<&C_clab_r_crfpar>(), 2},
+    {"C_clab_r_pbarea", fn<&C_clab_r_pbarea>(), 6},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

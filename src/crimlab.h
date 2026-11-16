@@ -4314,6 +4314,26 @@ int clab_ccedyn(int nu, int nt, int k, const double *y, const double *x, const d
                 double *bi, double *bmg, double *vmg, double *bp, double *vp, double *hb,
                 int *bad);
 
+/* The concentration-response function of crfpm25() (pm non-zero; out 0
+ * all-cause, 1 ischaemic heart disease, 2 stroke) or crfno2() (pm 0; out
+ * 0 all-cause, 1 respiratory, 2 asthma onset in children): form 0
+ * log-linear with par[0] the log RR per 10 and ci its 95% limits, form 1
+ * the IER with par = alpha, gamma, delta and ci NaN. par: 3 doubles, ci:
+ * 2. CLAB_EARG for an outcome out of range. */
+int clab_crfpar(int pm, int out, int *form, double *par, double *ci);
+/* polbrdn() over the n areas of a table at exposures e, populations pop
+ * and baseline rates br per person-year, everyone exposed, at the
+ * reference concentration of the pollutant's CRF (pm and out as
+ * clab_crfpar()): rr, paf, att (attributable cases) and base (baseline
+ * cases), worst first (att decreasing, ties in table order, NaN last),
+ * ord the one-based rows they come from. bad: 0, or the one-based first
+ * row a check of polbrdn() refuses (a negative or non-finite value, or a
+ * rate outside 0, 1e-5 to 0.1, widened to 1e-11 by rare and to 1 by
+ * hirate), the outputs then unset. O(n log n). */
+int clab_pbarea(size_t n, const double *e, const double *pop, const double *br, int pm, int out,
+                int rare, int hirate, double *rr, double *paf, double *att, double *base, int64_t *ord,
+                int64_t *bad);
+
 #ifdef __cplusplus
 }
 #endif

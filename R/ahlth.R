@@ -123,47 +123,41 @@
 #' @export
 crfpm25 <- function(expo, y = "allcause", refconc = 5.8) {
   f <- "crfpm25"
-  .crfout(y, c("allcause", "ihd", "stroke"), f, "")
+  av <- c("allcause", "ihd", "stroke")
+  .crfout(y, av, f, "")
   refconc <- .polsc(refconc, "refconc", f)
   z <- .polexp(expo, f)
-  if (y == "allcause") {
-    b <- log(1.08)
-    ci <- log(c(1.06, 1.09))
+  p <- .Call(C_clab_r_crfpar, 1L, match(y, av) - 1L)
+  q <- p[[2L]]
+  if (p[[1L]] == 0L) {
     return(.crfobj(
-      z, refconc, 0L, b, ci, "PM2.5",
+      z, refconc, 0L, q[1L], p[[3L]], "PM2.5",
       paste0(
         "Chen & Hoek (2020) Environ Int 143:105974; WHO (2021) Global AQ ",
         "Guidelines"
       ),
-      list(betaper10 = b, betaper10ci = ci, form = "log-linear", outcome = y)
+      list(
+        betaper10 = q[1L], betaper10ci = p[[3L]], form = "log-linear",
+        outcome = y
+      )
     ))
   }
-  p <- list(ihd = c(1.91, 0.14, 0.49), stroke = c(1.46, 0.13, 0.61))[[y]]
   .crfobj(
-    z, refconc, 1L, p, NULL, "PM2.5",
+    z, refconc, 1L, q, NULL, "PM2.5",
     "Burnett et al. (2014) EHP 122(4):397-403",
-    list(alpha = p[1L], gamma = p[2L], delta = p[3L], form = "IER", outcome = y)
+    list(alpha = q[1L], gamma = q[2L], delta = q[3L], form = "IER", outcome = y)
   )
 }
 
-#' @rdname crfpm25
-#' @export
 crfno2 <- function(expo, y = "allcause", refconc = 10, betaper10 = NULL) {
   f <- "crfno2"
   ci <- c(NA_real_, NA_real_)
   if (is.null(betaper10)) {
-    .crfout(
-      y, c("allcause", "respiratory", "chiast"), f,
-      " or pass betaper10 explicitly"
-    )
-    b <- list(
-      allcause = log(1.02), respiratory = log(1.03),
-      chiast = log(1.05) * 10 / 4
-    )[[y]]
-    ci <- list(
-      allcause = log(c(1.01, 1.04)), respiratory = log(c(1.00, 1.05)),
-      chiast = log(c(1.02, 1.07)) * 10 / 4
-    )[[y]]
+    av <- c("allcause", "respiratory", "chiast")
+    .crfout(y, av, f, " or pass betaper10 explicitly")
+    p <- .Call(C_clab_r_crfpar, 0L, match(y, av) - 1L)
+    b <- p[[2L]][1L]
+    ci <- p[[3L]]
   } else {
     b <- .polsc(betaper10, "betaper10", f, nonneg = FALSE)
   }
@@ -501,63 +495,31 @@ polbrdarea <- function(
   }
   need <- c(areacol, expcol, popcol, basratecol)
   .pbachk(areatab, need, f)
-  rows <- lapply(seq_len(nrow(areatab)), .pbarow, areatab = areatab,
-                 cols = need, poll = poll, y = y, rare = rare,
-                 hirate = hirate, f = f)
-  res <- do.call(rbind, rows)
-  res <- res[order(-res$attrcases), , drop = FALSE]
-  rownames(res) <- NULL
+  v <- lapply(need[-1L], function(k) as.numeric(areatab[[k]]))
+  key <- .pbakey(poll, y, rare, hirate)
+  r <- if (!is.null(key)) {
+    .Call(C_clab_r_pbarea, v[[1L]], v[[2L]], v[[3L]], key, rare, hirate)
+  }
+  if (is.null(r) || !is.na(r[[5L]])) {
+    # the first row refused, in polbrdn()'s words
+    i <- if (is.null(r)) 1L else r[[5L]]
+    .pbarow(i, areatab, need, poll, y, rare, hirate, f)
+    .ckstop(f, "row %d of `areatab` could not be read", i)
+  }
+  o <- r[[6L]]
+  res <- data.frame(a = areatab[[areacol]][o], stringsAsFactors = FALSE)
+  names(res) <- areacol
+  res[[expcol]] <- v[[1L]][o]
+  res[[popcol]] <- v[[2L]][o]
+  res[[basratecol]] <- v[[3L]][o]
+  res$rr <- r[[1L]]
+  res$paf <- r[[2L]]
+  res$attrcases <- r[[3L]]
+  res$basecases <- r[[4L]]
   class(res) <- c("polbrdarea", "data.frame")
   res
 }
 
-#' Concentration index of exposure by income
-#'
-#' Measures whether exposure to pollution is concentrated among lower-income
-#' or higher-income people. The index runs from -1 (all the exposure borne
-#' by the poorest) through 0 (exposure shared evenly across income) to +1
-#' (all of it borne by the richest); environmental-justice analyses report
-#' it next to the burden.
-#'
-#' @details
-#' Wagstaff, Paci and van Doorslaer (1991):
-#' \deqn{CI = (2 / \mu) \, \mathrm{cov}(h_i, R_i)}
-#' with \eqn{R_i = (rank_i - 0.5) / n} the fractional income rank (tied
-#' incomes share their average rank, so the index does not depend on row
-#' order) and the population covariance. Negative values mean lower-income
-#' units bear more exposure. Both columns must be numeric: a factor or
-#' character income is refused rather than ranked by its level codes, and
-#' exposures must be non-negative.
-#'
-#' Rows with a missing exposure or income are dropped. The interpretation
-#' calls an index below -0.01 a burden on the poor, above 0.01 a burden on
-#' the rich, and anything between an even distribution. Income only needs
-#' an order: an amount, a quintile number or a rank all give the same
-#' index.
-#'
-#' @param data A data frame with one row per person or area.
-#' @param expo,income Column names (single strings): the exposure (a
-#'   non-negative concentration) and the income measure (numeric).
-#' @param x A result.
-#' @inheritParams freqtbl
-#' @return A list of class \code{expconcidx} with \code{concidx} (a number
-#'   in \eqn{[-1, 1]}), \code{interpretation} (a sentence), \code{expomean},
-#'   \code{citation} and \code{extra}, a list with \code{n} (rows used),
-#'   \code{cov_h_R} (the covariance) and \code{curve}, a data frame of the
-#'   concentration curve: \code{population}, the cumulative population
-#'   share, poorest first, and \code{exposure}, the cumulative share of total
-#'   exposure.
-#' @references Wagstaff, A., Paci, P. and van Doorslaer, E. (1991). On the
-#'   measurement of inequalities in health. Social Science and Medicine
-#'   33(5), 545-557.
-#' @examples
-#' d <- data.frame(exposure = c(30, 25, 20, 15, 10), income = 1:5)
-#' ci <- expconcidx(d, "exposure", "income")
-#' ci$concidx
-#' ci$interpretation
-#' try(expconcidx(data.frame(exposure = 1:3, income = c("a", "b", "c")),
-#'                "exposure", "income"))
-#' @export
 expconcidx <- function(data, expo, income) {
   f <- "expconcidx"
   if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
@@ -841,10 +803,10 @@ print.expconcidx <- function(x, ...) {
   }
 }
 
-# polbrdarea(): the burden of area i, one row; `cols` are the area,
-# exposure, population and baseline-rate columns
+# polbrdarea(): polbrdn() on area i, its refusal put in the table's
+# words; `cols` are the area, exposure, population and baseline-rate
+# columns
 .pbarow <- function(i, areatab, cols, poll, y, rare, hirate, f) {
-  areacol <- cols[1L]
   expcol <- cols[2L]
   popcol <- cols[3L]
   basratecol <- cols[4L]
@@ -870,16 +832,22 @@ print.expconcidx <- function(x, ...) {
       .ckstop(f, "%s", m)
     }
   )
-  out <- data.frame(a = areatab[[areacol]][i], stringsAsFactors = FALSE)
-  names(out) <- areacol
-  out[[expcol]] <- as.numeric(areatab[[expcol]][i])
-  out[[popcol]] <- as.numeric(areatab[[popcol]][i])
-  out[[basratecol]] <- as.numeric(areatab[[basratecol]][i])
-  out$rr <- r$extra$rr
-  out$paf <- r$paf
-  out$attrcases <- r$attrcases
-  out$basecases <- r$basecases
-  out
+  invisible(r)
+}
+
+# polbrdarea(): the pollutant and outcome as src/ahl.cpp numbers them;
+# NULL when polbrdn() refuses them or the flags
+.pbakey <- function(poll, y, rare, hirate) {
+  pol <- .polkey(poll)
+  pm <- identical(pol, "PM2.5")
+  av <- if (pm) {
+    c("allcause", "ihd", "stroke")
+  } else {
+    c("allcause", "respiratory", "chiast")
+  }
+  ok <- !is.na(pol) && is.character(y) && length(y) == 1L && y %in% av &&
+    (isTRUE(rare) || isFALSE(rare)) && (isTRUE(hirate) || isFALSE(hirate))
+  if (ok) c(as.integer(pm), match(y, av) - 1L)
 }
 
 .concread <- function(ci) {
