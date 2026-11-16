@@ -856,46 +856,19 @@ ppmlcf <- function(
   maxit <- a$maxit
   rw <- .axcfrows(d, y, fe, expo, f)
   d <- rw$d
-  k <- rw$k
-  yv <- rw$yv
-  fx <- .axfe(d, fe)
   cl <- .axcl(d, clus, f)
   tm <- c(endo, x, if (how == "cf") paste0("vhat:", endo))
   if (family == "nb") {
-    return(.axcfnbr(d, y, yv, endo, inst, x, fe, rw$off, clus, cl, se, ssc,
-                    nboot, seed, level, tol, maxit, k, f))
+    return(.axcfnbr(d, y, rw$yv, endo, inst, x, fe, rw$off, clus, cl, se,
+                    ssc, nboot, seed, level, tol, maxit, rw$k, f))
   }
   if (se == "naive") {
     return(.axcfnv(d, y, endo, inst, x, fe, expo, clus, how, se, ssc, level,
-                   tol, maxit, cl, tm, k, yv, f))
+                   tol, maxit, cl, tm, rw$k, rw$yv, f))
   }
-  b <- .axcfboot(d, yv, endo, inst, x, rw$off, fx, cl, nboot, seed, how, tol,
-                 maxit, tm, f)
-  r <- b$r
-  dr <- b$dr
-  nfail <- b$nfail
-  nboot <- b$nboot
-  sev <- apply(dr, 2L, stats::sd, na.rm = TRUE)
-  tab <- .axtab(tm, r$beta, sev, level)
-  tab$rr <- exp(tab$est)
-  structure(
-    list(
-      coef = tab,
-      first = .axfirst(endo, r$fst, length(inst)),
-      draws = dr,
-      nfail = nfail,
-      n = length(yv),
-      nsep = sum(!k),
-      ncl = cl$g,
-      nboot = nboot,
-      how = how,
-      se = se,
-      fe = fe,
-      clus = clus,
-      level = level
-    ),
-    class = "ppmlcf"
-  )
+  b <- .axcfboot(d, rw$yv, endo, inst, x, rw$off, .axfe(d, fe), cl, nboot,
+                 seed, how, tol, maxit, tm, f)
+  .axcfbres(b, tm, endo, length(inst), rw, cl, how, se, fe, clus, level)
 }
 
 #' @rdname ppmlcf
@@ -2719,6 +2692,22 @@ summary.expjn <- function(object, ...) {
     .ckstop(f, "fewer than two bootstrap draws could be fitted")
   }
   list(r = r, dr = dr, nfail = nfail, nboot = nboot)
+}
+
+# The result of ppmlcf() with the bootstrap (.axcfboot()): the table of
+# the full-sample fit with the draws' standard errors and the rate ratios;
+# rw the rows of .axcfrows().
+.axcfbres <- function(b, tm, endo, q, rw, cl, how, se, fe, clus, level) {
+  sev <- apply(b$dr, 2L, stats::sd, na.rm = TRUE)
+  tab <- .axtab(tm, b$r$beta, sev, level)
+  tab$rr <- exp(tab$est)
+  structure(
+    list(coef = tab, first = .axfirst(endo, b$r$fst, q), draws = b$dr,
+         nfail = b$nfail, n = length(rw$yv), nsep = sum(!rw$k), ncl = cl$g,
+         nboot = b$nboot, how = how, se = se, fe = fe, clus = clus,
+         level = level),
+    class = "ppmlcf"
+  )
 }
 
 # The checks of expgmm()'s columns and numbers, in their order: the
