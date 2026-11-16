@@ -22,7 +22,8 @@
 #endif
 
 #ifndef CLAB_VER
-#define CLAB_VER "unknown"
+#include "ver.h"
+#define CLAB_VER CLAB_VERSION
 #endif
 
 using clabj::Val;

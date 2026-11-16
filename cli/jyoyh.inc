@@ -4,11 +4,12 @@
 // change table, line for line as R writes it (the table of .yshow(), the
 // cards of yoysmry(), the notes, the same styles), with R's checks in
 // their order and words. The version in the page's last line is the one
-// the build was given (CLAB_VER), "unknown" without it. R keeps its own
+// the build was given (CLAB_VER), that of src/ver.h without it. R keeps its own
 // writer. Without `file` (which R requires) the page is returned as text.
 
 #ifndef CLAB_VER
-#define CLAB_VER "unknown"
+#include "ver.h"
+#define CLAB_VER CLAB_VERSION
 #endif
 
 namespace yh {

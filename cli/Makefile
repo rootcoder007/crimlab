@@ -20,6 +20,10 @@ INCDIR ?= $(PREFIX)/include
 MANDIR ?= $(PREFIX)/share/man
 SOVER = 0
 VER := $(shell sed -n 's/^Version: *//p' ../DESCRIPTION)
+# src/ver.h carries the same version for the builds made without this file
+ifeq ($(shell grep -c '"$(VER)"' ../src/ver.h),0)
+$(error src/ver.h does not name version $(VER) of DESCRIPTION)
+endif
 B = build
 
 R = '\#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)'
