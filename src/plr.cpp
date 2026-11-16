@@ -277,7 +277,7 @@ int clab_plr(const double *y, const double *d, const double *x, int n, int p, co
   ld s2 = 0;
   for (int i = 0; i < m; ++i) {
     const double v = V[static_cast<size_t>(i)], e = U[static_cast<size_t>(i)] - th * v;
-    s2 += v * v * (e * e);
+    s2 += static_cast<ld>(v) * v * (static_cast<ld>(e) * e);
   }
   out[0] = th;
   out[1] = std::sqrt(static_cast<double>(s2)) / denom;

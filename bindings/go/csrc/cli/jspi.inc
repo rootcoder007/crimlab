@@ -576,7 +576,10 @@ bool lrcce(Ctx &c, Val &out) {
     long double s = 0.0, q = 0.0;
     for (std::size_t i = 0; i < n; ++i) s += u[j * n + i];
     mu[j] = static_cast<double>(s / static_cast<long double>(n));
-    for (std::size_t i = 0; i < n; ++i) q += (u[j * n + i] - mu[j]) * (u[j * n + i] - mu[j]);
+    for (std::size_t i = 0; i < n; ++i) {
+      const long double d = static_cast<long double>(u[j * n + i]) - mu[j];
+      q += d * d;
+    }
     se[j] = std::sqrt(static_cast<double>(q) / (static_cast<double>(n) * (static_cast<double>(n) - 1)));
   }
   const Val tb = atab(nm, mu, se, lv, NaN, false);
