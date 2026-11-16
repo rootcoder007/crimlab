@@ -4211,18 +4211,20 @@ int clab_pcd(const double *e, int nu, int nt, double *out);
  * flagged instruments (weighted by the submatrix of Z'HZ); the two without
  * are NaN without sub or when the rest do not identify b. ar (nar): the
  * Arellano-Bond z statistics of orders 1..nar (NaN when no pair of rows
- * is that far apart), with the error variance taken as sigma^2 H when
- * steps is 1 and rob 0 (Roodman 2009, n. 19): then hdd holds, group by
+ * is that far apart), with the error variance taken as arf sigma^2 H when
+ * steps is 1 and rob 0 (Roodman 2009, n. 19; arf > 0 is 1, or the
+ * small-sample factor of sigma^2 that xtabond2 3.7.2 applies there while
+ * leaving the coefficients' variance in the statistic unscaled): then hdd holds, group by
  * group, the nd_a x nd_a blocks of H between the differenced rows and hc
  * the n_a x nd_a blocks between the stacked rows and them; otherwise hc
  * and hdd may be NULL. CLAB_EDOM when a weight matrix is zero or the
- * instruments do not identify b; CLAB_EARG for sizes out of range or
- * when memory runs out. */
+ * instruments do not identify b; CLAB_EARG for sizes out of range;
+ * CLAB_ENOMEM when memory runs out. */
 int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const double *y, const double *x,
                 const double *z, const double *h, const int *eq, int nd, const int *dgo,
                 const int *dt, const double *yd, const double *xd, const double *hc,
-                const double *hdd, const int *sub, int steps, int rob, int nar, double *b,
-                double *v, double *st, double *ar);
+                const double *hdd, const int *sub, int steps, int rob, int nar, double arf,
+                double *b, double *v, double *st, double *ar);
 /* Wooldridge's test of first-order serial correlation in a panel (Drukker
  * 2003, doi:10.1177/1536867X0300300206): n rows with unit codes u and
  * period codes t (one row per unit and period), y (n), x (n x p, p >= 0).
@@ -4261,6 +4263,22 @@ int clab_wsctst(int n, int p, const double *y, const double *x, const int *u, co
 int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x, const double *w,
                 const double *d, int q, const int *av, double *bi, double *bmg, double *vmg,
                 double *bp, double *vp, int *bad);
+/* clab_ccepnl() with the additions of dynamic common correlated effects
+ * (Chudik and Pesaran 2015, doi:10.1016/j.jeconom.2015.03.007, eq 24):
+ * the averages kept enter H with their lags 1..p as well (p < nt), and
+ * unit i's regression is over the periods t flagged in rm (nu x nt, rm[i
+ * nt + t] non-zero; each flagged row observed in y and at least p). The
+ * columns of x whose averages are not kept (av 0) are read only on the
+ * flagged rows, so lags of y may stand among them. With pool 0 the pooled
+ * estimate is not made (bp and vp are NaN). hb (2): the heterogeneity-bias
+ * statistic of Juodis and Reese (2026, doi:10.1016/j.jeconom.2025.106120,
+ * case study 2) of the pooled estimate, NaN without it or when its
+ * variance is singular, and its degrees of freedom k. CLAB_EARG for sizes
+ * or rows out of range; otherwise as clab_ccepnl(). */
+int clab_ccedyn(int nu, int nt, int k, const double *y, const double *x, const double *w,
+                const double *d, int q, const int *av, int p, const int *rm, int pool,
+                double *bi, double *bmg, double *vmg, double *bp, double *vp, double *hb,
+                int *bad);
 
 #ifdef __cplusplus
 }

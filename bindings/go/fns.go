@@ -1276,7 +1276,7 @@ func Gmmpnl(args string) (string, error) { return Jrun("gmmpnl", args) }
 // Wsctst runs wsctst() of the R package (arguments: y x? unit time cons? ssc?; ? marks an optional one).
 func Wsctst(args string) (string, error) { return Jrun("wsctst", args) }
 
-// Ccepnl runs ccepnl() of the R package (arguments: y x unit time fac? cons? w? avg? level?; ? marks an optional one).
+// Ccepnl runs ccepnl() of the R package (arguments: y x unit time fac? cons? w? avg? ylag? lags? bias? pool? pvar? level?; ? marks an optional one).
 func Ccepnl(args string) (string, error) { return Jrun("ccepnl", args) }
 
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).

@@ -243,7 +243,8 @@ double subj(const vec &sv, const vec &zx, const vec &zy, const int *sub, int m, 
   return quad(zys, as.data(), ms);
 }
 
-int gmm(const gin &g, int steps, int rob, int nar, double *b, double *v, double *st, double *ar) {
+int gmm(const gin &g, int steps, int rob, int nar, double arf, double *b, double *v, double *st,
+        double *ar) {
   const int n = g.n, k = g.k, m = g.m;
   const size_t mm = z(m) * z(m);
   int gen = 0;
@@ -385,7 +386,7 @@ int gmm(const gin &g, int steps, int rob, int nar, double *b, double *v, double 
     if (kutil::stop(static_cast<double>(g.nd) * (k + l) + static_cast<double>(m) * g.ng)) {
       return CLAB_EINTR;
     }
-    ar[l - 1] = abar(g, l, d, ue, sc, vv, steps == 1 && !rob ? sig : 0.0);
+    ar[l - 1] = abar(g, l, d, ue, sc, vv, steps == 1 && !rob ? sig * arf : 0.0);
   }
   return CLAB_OK;
 }
@@ -396,9 +397,10 @@ extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const dou
                            const double *x, const double *zm, const double *h, const int *eq,
                            int nd, const int *dgo, const int *dt, const double *yd,
                            const double *xd, const double *hc, const double *hdd, const int *sub,
-                           int steps, int rob, int nar, double *b, double *v, double *st,
-                           double *ar) {
-  if (n < 1 || k < 1 || m < k || ng < 1 || nd < 0 || nar < 0 || (steps != 1 && steps != 2)) {
+                           int steps, int rob, int nar, double arf, double *b, double *v,
+                           double *st, double *ar) CLAB_TRY {
+  if (n < 1 || k < 1 || m < k || ng < 1 || nd < 0 || nar < 0 || (steps != 1 && steps != 2) ||
+      !(arf > 0.0) || !std::isfinite(arf)) {
     return CLAB_EARG;
   }
   if (go[0] != 0 || go[ng] != n || dgo[0] != 0 || dgo[ng] != nd) return CLAB_EARG;
@@ -424,8 +426,8 @@ extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const dou
     return CLAB_EARG;
   }
   const gin g{n, k, m, ng, nd, go, eq, dgo, dt, sub, y, x, zm, h, yd, xd, hc, hdd};
-  return gmm(g, steps, rob, nar, b, v, st, ar);
-}
+  return gmm(g, steps, rob, nar, arf, b, v, st, ar);
+} CLAB_CATCH(CLAB_ENOMEM)
 
 namespace {
 
@@ -518,13 +520,63 @@ int wsct(int n, int p, const double *y, const double *x, const int *u, const int
   return CLAB_OK;
 }
 
+// What the dynamic estimator adds to Pesaran's: p lags of the averages
+// kept, the rows of each unit's regression (rm: nu x nt flags, unit i at
+// rm[i nt + t]; NULL for every observed row), whether the pooled
+// estimator is made, and the heterogeneity-bias statistic (hb: 2).
+struct cex {
+  int p = 0;
+  const int *rm = nullptr;
+  int pool = 1;
+  double *hb = nullptr;
+};
+
+// The heterogeneity-bias statistic of Juodis and Reese (2026, case study
+// 2): delta_i = (A_i - mean_j A_j) (b_i - b_MG), A_i = X_i'M_i X_i, and
+// HB = delta' V^-1 delta with delta the mean of the delta_i and V = sum
+// delta_i delta_i' / N^2, chi-squared on k degrees of freedom; NaN when V
+// is singular.
+double hbias(int nu, int k, const vec &ai, const double *bi, const double *bmg) {
+  const size_t kk = z(k) * z(k);
+  vec am(kk, 0.0), dl(z(nu) * z(k)), dm(z(k), 0.0), vv(kk, 0.0), vi(kk);
+  for (int i = 0; i < nu; ++i) {
+    for (size_t q2 = 0; q2 < kk; ++q2) am[q2] += ai[z(i) * kk + q2] / nu;
+  }
+  for (int i = 0; i < nu; ++i) {
+    for (int j = 0; j < k; ++j) {
+      double s = 0.0;
+      for (int g = 0; g < k; ++g) {
+        s += (ai[z(i) * kk + z(g) * z(k) + z(j)] - am[z(g) * z(k) + z(j)]) *
+             (bi[z(i) * z(k) + z(g)] - bmg[g]);
+      }
+      dl[z(i) * z(k) + z(j)] = s;
+      dm[z(j)] += s / nu;
+    }
+  }
+  for (int i = 0; i < nu; ++i) {
+    for (int j = 0; j < k; ++j) {
+      for (int g = 0; g < k; ++g) {
+        vv[z(g) * z(k) + z(j)] +=
+            dl[z(i) * z(k) + z(j)] * dl[z(i) * z(k) + z(g)] / (static_cast<double>(nu) * nu);
+      }
+    }
+  }
+  if (!pev::chol(vv.data(), k)) return NAN;
+  pev::cinv(vv.data(), k, vi.data());
+  return quad(dm, vi.data(), k);
+}
+
 // Pesaran (2006): the unit estimates, CCEMG and CCEP with their
 // variances. A NaN in y marks a unit-period not observed: the averages of
 // a period are over the units observed in it, their weights scaled to sum
-// to 1 there, and each unit's regression is over its own periods.
+// to 1 there, and each unit's regression is over its own periods. With
+// ex.p > 0 the averages kept enter H with their lags 1..p too (Chudik and
+// Pesaran 2015, eq 24), and with ex.rm each unit's regression is over the
+// rows flagged; only the columns of x whose averages are kept enter the
+// averages.
 int cce(int nu, int nt, int k, const double *y, const double *x, const double *w, const double *d,
-        int q, const int *av, double *bi, double *bmg, double *vmg, double *bp, double *vp,
-        int *bad) {
+        int q, const int *av, const cex &ex, double *bi, double *bmg, double *vmg, double *bp,
+        double *vp, int *bad) {
   // H = (D, ybar_w, xbar_w), T x (q + 1 + k), the averages flagged in av kept
   const int ha = q + 1 + k;
   vec hm(z(nt) * z(ha), 0.0), sw(z(nt), 0.0);
@@ -539,6 +591,7 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
       ++cnt[z(t)];
       hm[z(q) * z(nt) + z(t)] += w[i] * y[z(i) * z(nt) + z(t)];
       for (int j = 0; j < k; ++j) {
+        if (!av[j + 1]) continue;
         hm[z(q + 1 + j) * z(nt) + z(t)] += w[i] * x[(z(j) * z(nu) + z(i)) * z(nt) + z(t)];
       }
     }
@@ -563,13 +616,29 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
     ++hc;
   }
   if (hc == 0) return CLAB_EARG;
+  // the lags 1..p of the averages kept, after them (NaN before period 0;
+  // the rows flagged start at period p)
+  if (ex.p > 0) {
+    const int na = hc - q, hl = hc + na * ex.p;
+    if (z(nt) * z(hl) > hm.size()) hm.resize(z(nt) * z(hl), NAN);
+    for (int l = 1; l <= ex.p; ++l) {
+      for (int c = 0; c < na; ++c) {
+        double *o = hm.data() + z(hc + (l - 1) * na + c) * z(nt);
+        const double *s = hm.data() + z(q + c) * z(nt);
+        for (int t = 0; t < l; ++t) o[t] = NAN;
+        for (int t = l; t < nt; ++t) o[t] = s[t - l];
+      }
+    }
+    hc = hl;
+  }
   const size_t kk = z(k) * z(k);
   vec ai(z(nu) * kk), ci(z(nu) * z(k)), ti(z(nu)), l(kk), li(kk);
   std::vector<int> per;
   for (int i = 0; i < nu; ++i) {
     per.clear();
     for (int t = 0; t < nt; ++t) {
-      if (!std::isnan(y[z(i) * z(nt) + z(t)])) per.push_back(t);
+      const bool on = ex.rm ? ex.rm[z(i) * z(nt) + z(t)] != 0 : !std::isnan(y[z(i) * z(nt) + z(t)]);
+      if (on) per.push_back(t);
     }
     const int ni = static_cast<int>(per.size());
     ti[z(i)] = ni;
@@ -663,6 +732,12 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
       }
     }
   }
+  if (ex.hb) {
+    ex.hb[0] = NAN;
+    ex.hb[1] = k;
+  }
+  if (!ex.pool) return CLAB_OK;
+  if (ex.hb) ex.hb[0] = hbias(nu, k, ai, bi, bmg);
   // CCEP (eq 65, theta_i = w_i) and its variance (eqs 67-69), each unit's
   // X_i'M X_i over its own number of periods
   vec pa(kk, 0.0), pc(z(k), 0.0), ps(kk, 0.0), rs(kk, 0.0), dv(z(k)), ad(z(k));
@@ -712,7 +787,8 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
 }  // namespace
 
 extern "C" int clab_wsctst(int n, int p, const double *y, const double *x, const int *u,
-                           const int *t, int cons, int raw, double *b, double *vb, double *out) {
+                           const int *t, int cons, int raw, double *b, double *vb,
+                           double *out) CLAB_TRY {
   if (n < 2 || p < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i])) return CLAB_EDOM;
@@ -723,11 +799,11 @@ extern "C" int clab_wsctst(int n, int p, const double *y, const double *x, const
   // the work arrays: the differences (n x p) and p x p matrices
   if (static_cast<double>(p) * p > cap || static_cast<double>(n) * (p + 4) > cap) return CLAB_EARG;
   return wsct(n, p, y, x, u, t, cons, raw, b, vb, out);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x,
                            const double *w, const double *d, int q, const int *av, double *bi,
-                           double *bmg, double *vmg, double *bp, double *vp, int *bad) {
+                           double *bmg, double *vmg, double *bp, double *vp, int *bad) CLAB_TRY {
   *bad = -1;
   if (nu < 2 || nt < 2 || k < 1 || q < 0) return CLAB_EARG;
   double sw = 0.0;
@@ -751,5 +827,48 @@ extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double 
   if (static_cast<double>(nu) * k * k > cap || static_cast<double>(nt) * (q + k + 1) > cap) {
     return CLAB_EARG;
   }
-  return cce(nu, nt, k, y, x, w, d, q, av, bi, bmg, vmg, bp, vp, bad);
-}
+  return cce(nu, nt, k, y, x, w, d, q, av, cex(), bi, bmg, vmg, bp, vp, bad);
+} CLAB_CATCH(CLAB_ENOMEM)
+
+extern "C" int clab_ccedyn(int nu, int nt, int k, const double *y, const double *x,
+                           const double *w, const double *d, int q, const int *av, int p,
+                           const int *rm, int pool, double *bi, double *bmg, double *vmg,
+                           double *bp, double *vp, double *hb, int *bad) CLAB_TRY {
+  *bad = -1;
+  if (nu < 2 || nt < 2 || k < 1 || q < 0 || p < 0 || p >= nt || !rm) return CLAB_EARG;
+  double sw = 0.0;
+  for (int i = 0; i < nu; ++i) {
+    if (!(w[i] > 0.0) || !std::isfinite(w[i])) return CLAB_EDOM;
+    sw += w[i];
+  }
+  if (std::fabs(sw - 1.0) > 1e-12) return CLAB_EDOM;
+  const size_t ny = z(nu) * z(nt);
+  for (size_t r = 0; r < ny; ++r) {
+    const bool in = rm[r] != 0;
+    if (in && (std::isnan(y[r]) || static_cast<int>(r % z(nt)) < p)) return CLAB_EARG;
+    if (std::isnan(y[r])) continue;
+    if (!std::isfinite(y[r])) return CLAB_EDOM;
+    for (int j = 0; j < k; ++j) {
+      if ((in || av[j + 1]) && !std::isfinite(x[z(j) * ny + r])) return CLAB_EDOM;
+    }
+  }
+  for (size_t r = 0; r < z(nt) * z(q); ++r) {
+    if (!std::isfinite(d[r])) return CLAB_EDOM;
+  }
+  // the work arrays: the units' k x k matrices and the averages with lags
+  const double hl = static_cast<double>(q) + (k + 1.0) * (p + 1.0);
+  const double cl = kutil::maxcell;
+  if (static_cast<double>(nu) * k * k > cl || static_cast<double>(nt) * hl > cl || hl * hl > cl) {
+    return CLAB_EARG;
+  }
+  cex ex;
+  ex.p = p;
+  ex.rm = rm;
+  ex.pool = pool != 0;
+  ex.hb = hb;
+  if (!ex.pool) {
+    std::fill(bp, bp + k, NAN);
+    std::fill(vp, vp + z(k) * z(k), NAN);
+  }
+  return cce(nu, nt, k, y, x, w, d, q, av, ex, bi, bmg, vmg, bp, vp, bad);
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -14,13 +14,18 @@ ccepnl(
   cons = TRUE,
   w = NULL,
   avg = NULL,
+  ylag = 0,
+  lags = NULL,
+  bias = "none",
+  pool = NULL,
+  pvar = "pesaran",
   level = 0.95
 )
 
 \method{plot}{ccepnl}(x, ..., main = NULL, col = NULL, pal = NULL)
 }
 \arguments{
-\item{y}{The outcome of each row: finite numbers.}
+\item{y}{The count of each row (a unit in a period): numbers from 0.}
 
 \item{x}{The regressors: a numeric matrix or data frame, one row per row
 of \code{y}. For \code{plot()}, a \code{ccepnl} result.}
@@ -44,6 +49,24 @@ unit; they are scaled to sum to 1 over the units.}
 \code{x}, Pesaran's choice) or the averages kept among the columns of \code{H}:
 \code{"y"} and names of columns of \code{x}.}
 
+\item{ylag}{The lags of \code{y} among the regressors: a whole number from 0
+(default 0, the static model of Pesaran 2006).}
+
+\item{lags}{\code{NULL} (default: 0 for the static model, the integer part of
+\code{T^(1/3)} with \code{ylag > 0}) or the lags of the averages: a whole number
+from 0.}
+
+\item{bias}{\code{"none"} (default), \code{"jack"} (half-panel jackknife) or
+\code{"rma"} (recursive mean adjustment): the correction of the mean group
+estimate, as above.}
+
+\item{pool}{\code{NULL} (default: CCEP for the static model only), \code{TRUE} or
+\code{FALSE}: whether to make CCEP; \code{TRUE} is refused with \code{ylag > 0} or
+\code{bias}.}
+
+\item{pvar}{\code{"pesaran"} (default, eqs 67-69 of Pesaran 2006) or \code{"bsw"}
+(Brown, Schmidt and Wooldridge 2026): the variance of CCEP.}
+
 \item{level}{The confidence level of the intervals.}
 
 \item{...}{Passed to the base-graphics call.}
@@ -57,10 +80,15 @@ name for \code{\link[=blpal]{blpal()}}.}
 }
 \value{
 An object of class \code{ccepnl}, a list: \code{mg} and \code{pooled}, the
-CCEMG and CCEP estimates (\code{term}, \code{est}, \code{se}, \code{z}, \code{p}, \code{lo}, \code{hi});
-\code{bi}, the unit estimates (units by regressors); \code{vmg} and \code{vp}, the
-variances; \code{fit}, one row (\code{units}, \code{periods}, \code{k}, \code{h} the columns of
-\code{H}, \code{n} the rows); \code{w}, the weights by unit; and \code{level}.
+CCEMG and CCEP estimates (\code{term}, \code{est}, \code{se}, \code{z}, \code{p}, \code{lo}, \code{hi};
+\code{pooled} \code{NULL} when not made); \code{mg0}, the uncorrected mean group
+estimate with \code{bias} (\code{NULL} otherwise); \code{bi}, the unit estimates
+(units by regressors, corrected with \code{bias}); \code{vmg}, \code{vp} and \code{vmg0},
+the variances; \code{hb}, the heterogeneity-bias test of CCEP (\code{NULL}
+without CCEP); \code{nfac}, the number of factors (\code{er}, \code{thr}, \code{avg});
+\code{fit}, one row (\code{units}, \code{periods}, \code{k}, \code{h} the columns of \code{H}, \code{n}
+the rows of the regressions, \code{lags}, \code{ylag}); \code{w}, the weights by unit;
+\code{bias}; \code{pvar}; and \code{level}.
 }
 \description{
 The common correlated effects estimators of Pesaran (2006) for a panel
@@ -87,25 +115,108 @@ periods, with its rows of \code{H}. CCEMG and its variance are then as above.
 CCEP is \verb{(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i}, and in its
 variance each \verb{X_i'M_i X_i} is divided by the unit's own number of
 periods, which is this function's reading of \code{T} there. On a balanced
-panel all of this is Pesaran's estimator. Su, Wang and Wang (2026, p.
-2) caution that when whether a unit is observed is related to the
-regressors, the factors or the loadings, the averages no longer proxy
-the factors well. A period observed for one unit only, or a unit with
-fewer periods than its regression needs (twice the regressors, the
-averages kept and the observed factors), is refused by name.
+panel all of this is Pesaran's estimator.
+Su, Wang and Wang (2026, sec. 6.3, p. 20) compute CCE on unbalanced
+panels in the same way, after Zhou and Zhang (2016, eq 12), and caution
+(p. 2 and n. 7, p. 4) that when whether a unit is observed is related
+to its loadings and varies over time, the averages no longer proxy the
+factors well; the estimators for unbalanced panels with interactive
+effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1, p.
+1309) likewise assume that the data are missing at random, which
+excludes selection related to the idiosyncratic errors. Neither paper
+gives a diagnostic or correction for CCE estimators, and this function
+makes none. A period observed for one unit only, or a unit with fewer
+periods than its regression needs (twice the regressors and lags of
+\code{y}, the averages kept with their lags and the observed factors), is
+refused by name.
 
-Juodis and Reese (2026, sec. 1) draw two lessons this function leaves to
-the user: the averages used can bias the estimates and their variance,
-so results should be checked against the number and kind of averages
-(\code{avg} keeps a subset; lesson 1), and under Pesaran's assumptions a
-two-way fixed-effects estimator (\code{\link[=fepnl]{fepnl()}}) may still be consistent and
-is worth comparing (lesson 2). With slopes common to all units and \code{T}
-not small against \code{N}, the intervals of CCEP are not centred without a
-bias correction, which this function does not make (lesson 1, sec.
-3.1). For cross-sectional dependence in the residuals see \code{\link[=pcdtst]{pcdtst()}}.
+\strong{Dynamic panels.} With \code{ylag > 0} the lags \verb{1..ylag} of \code{y} join the
+regressors (as \code{L1.y}, ...), and with \code{lags = p} the averages kept enter
+\code{H} with their lags \verb{1..p} as well: the cross-sectionally augmented
+regression of Chudik and Pesaran (2015, eq 24) for heterogeneous panels
+with a lagged dependent variable and weakly exogenous regressors (lags
+of \code{x}, as their eq 1 has, are columns of \code{x}). A unit's regression runs
+over the periods in which it is observed together with its \code{ylag}
+periods before, from the \code{p + 1}-th period on (eqs 25-26); the averages
+are those of every observed unit-period, as above. \code{lags = NULL} takes
+\code{p = 0} for the static model and, with \code{ylag > 0}, the integer part of
+\code{T^(1/3)}, \code{T} the periods, as Chudik and Pesaran recommend (sec. 5.2,
+eq 40, and p. 404: "we recommend setting \verb{pT = [T^1/3]}"). The mean group
+estimator is the mean of the unit estimates (eq 27) with the
+nonparametric variance of eq 32 over \code{N}. Pooled dynamic CCE is not
+supported: Chudik and Pesaran (2015, n. 5) recall that with
+heterogeneous slopes "pooled estimators are inconsistent in the case
+of panel data models with lagged dependent variables" (Pesaran and
+Smith 1995), and their
+theory is that of the mean group estimator; \code{pool = NULL} (default)
+makes CCEP only for the static model, and \code{pool = TRUE} with \code{ylag > 0}
+or with \code{bias} is refused.
 
-The plot draws the CCEMG and CCEP estimates of each regressor
-with their intervals and returns what it drew.
+\code{bias} corrects the mean group estimate for the small-T time-series
+bias as Chudik and Pesaran (2015, sec. 4.1) define the corrections.
+\code{"jack"} is the half-panel jackknife (sec. 4.1.1, the unnumbered
+equation after eq 32), \verb{2 b_MG - (b_MG^a + b_MG^b) / 2}, \code{a} and \code{b} the
+estimates over periods \verb{1..[T/2]} and \verb{[T/2]+1..T}; each half is taken
+as a panel of its own, so that the lags of \code{y} and of the averages of
+its first rows come from inside the half, as "computed from the first
+half of the available time period" reads, with the same \code{p}. \code{"rma"} is
+recursive mean adjustment (sec. 4.1.2 and n. 13): \code{y} and each column
+of \code{x} less the mean of the unit's values in the periods before,
+\verb{y_it - (t - 1)^-1 sum_\{s<t\} y_is}, a unit's first period dropped, and the
+estimator applied to these series, so that the lags of \code{y} are lags of
+the adjusted \code{y} and the averages are those of the adjusted values;
+observed factors are not adjusted (Ditzen 2018, p. 589, leaves the
+constant out). The paper states no variance for the corrected
+estimators: \code{vmg} is the nonparametric mean group variance (eq 32)
+applied to the corrected unit estimates (\code{bi}: \verb{2 b_i - (b_i^a + b_i^b) / 2} for the jackknife, the estimates on the adjusted series for
+\code{"rma"}), and the uncorrected estimate and its variance are returned in
+\code{mg0} and \code{vmg0} for comparison.
+
+\strong{Five lessons.} Juodis and Reese (2026) draw five lessons for applied
+work. (1) The averages are factor estimates measured with error, which
+can bias the estimates and change their variance: results should be
+checked against the number and kind of averages (\code{avg} keeps a subset),
+and with slopes common to all units and \code{T} not small against \code{N} the
+intervals of CCEP are not centred without a bias correction, which this
+function does not make (sec. 3.1). \code{nfac} reports the number of factors
+that the averages kept identify, by the two regularized procedures of
+their appendix A.1 on a balanced panel: \code{er}, the eigenvalue ratio of
+Ahn and Horenstein (2013) on the averages normalised by \code{Sigma^-1/2},
+\verb{Sigma = sum_i (Z_i - Zbar)'(Z_i - Zbar) / (N T)} (Juodis 2022; steps
+1-3, \code{r_max} the averages less one); \code{thr}, the number of eigenvalues
+of \verb{Zbar'Zbar / T} at least 0.01 times the largest (Vogt et al. 2025;
+steps 1-2); and \code{avg}, the averages kept; \code{NA} where undefined. More
+averages than factors is the case in which the paper warns of extra
+bias; the regularized estimators themselves are not made. (2) A two-way
+fixed-effects estimator (\code{\link[=fepnl]{fepnl()}}) may still be consistent and should
+be compared and tested. \code{hb} is their test of heterogeneity bias in
+CCEP (sec. 3.2, case study 2): \verb{delta_i = (X_i'M_i X_i - N^-1 sum_j X_j'M_j X_j) (b_i - b_MG)}, \verb{HB = delta' V^-1 delta} with \code{delta} their
+mean and \verb{V = N^-2 sum delta_i delta_i'}, chi-squared on \code{k} degrees of
+freedom (\code{stat}, \code{df}, \code{p}); a rejection says that CCEP is biased by
+slopes that vary with the regressors. (3) Dynamic models need the
+dynamics of every observed variable specified, and a bias correction is
+recommended in short panels (sec. 3.3; \code{ylag}, \code{lags}, \code{bias} above).
+(4) The CIPS panel unit-root test does not test what CCE estimation
+needs; they recommend the CSB test of Pesaran et al. (2013) (sec. 3.4),
+which this package does not provide. (5) There is no general recipe for
+nonlinear models, where the average of \code{y} should not be among the
+proxies (sec. 3.5); this function is linear. For cross-sectional
+dependence in the residuals see \code{\link[=pcdtst]{pcdtst()}}.
+
+\strong{Fixed-T variance.} Brown, Schmidt and Wooldridge (2026, eqs 12-14
+and Theorem 1) show that CCEP is the pooled least-squares estimate of
+\code{y} on the regressors with the columns of \code{H} partialled out unit by
+unit, and that time-varying regressors \code{d_t} added to it get
+coefficients of exactly 0. Their fixed-T variance of CCEP, which counts
+the sampling error of the averages (sec. 5.4, eqs 36-40, with \code{Psi = H}
+and \code{q_i = vec(Z_i - Zbar)}, 0 in the columns of the observed factors),
+is \code{pvar = "bsw"}: \verb{A^-1 B A^-1 / N}, \verb{A = N^-1 sum X_i'M X_i}, \verb{B = N^-1 sum s_i s_i'}, \verb{s_i = X_i'M u_i - G'(I + K)[Psi (Psi'Psi)^-1 (x) M] q_i}, \verb{u_i = y_i - X_i b}, \verb{G = N^-1 sum u_i (x) (X_i - Xbar)} and
+\code{K} the commutation matrix (eq 33); it is for the static pooled
+estimator with equal weights on a balanced panel, and refused
+otherwise.
+
+The plot draws the CCEMG and, when made, CCEP estimates of each
+regressor with their intervals and returns what it drew.
 }
 \examples{
 # 30 provinces over 12 years, one unobserved factor in y and x
@@ -117,6 +228,19 @@ d$x <- g * f + rnorm(360)
 d$y <- 1 + 0.7 * d$x + g * f + rnorm(360)
 r <- ccepnl(d$y, d["x"], d$prov, d$year)
 r
+r$nfac
+# a dynamic panel: y depends on its lag; jackknife-corrected mean group
+set.seed(10)
+tt <- 30
+d <- expand.grid(year = 1:tt, prov = paste0("p", 1:40))
+f <- rnorm(tt)[d$year]
+g <- rnorm(40, 1)[as.integer(substring(d$prov, 2))]
+d$x <- g * f + rnorm(nrow(d))
+d$y <- 0
+for (i in which(d$year > 1)) {
+  d$y[i] <- 0.5 * d$y[i - 1] + 0.7 * d$x[i] + g[i] * f[i] + rnorm(1)
+}
+ccepnl(d$y, d["x"], d$prov, d$year, ylag = 1, bias = "jack")
 }
 \references{
 Pesaran, M. H. (2006). Estimation and inference in large heterogeneous
@@ -134,4 +258,17 @@ of Econometrics}, 255, 106222. \doi{10.1016/j.jeconom.2026.106222}
 Juodis, A. and Reese, S. (2026). Five lessons for applied researchers
 from twenty years of common correlated effects estimation. \emph{Journal of
 Econometrics}, 253, 106120. \doi{10.1016/j.jeconom.2025.106120}
+
+Chudik, A. and Pesaran, M. H. (2015). Common correlated effects
+estimation of heterogeneous dynamic panel data models with weakly
+exogenous regressors. \emph{Journal of Econometrics}, 188(2), 393-420.
+\doi{10.1016/j.jeconom.2015.03.007}
+
+Brown, N. L., Schmidt, P. and Wooldridge, J. M. (2026). A simple
+reformulation of the common correlated effects model. \emph{Econometric
+Reviews}, 45(5), 760-772. \doi{10.1080/07474938.2026.2615434}
+
+Czarnowske, D. and Stammann, A. (2026). Inference in unbalanced panel
+data models with interactive fixed effects. \emph{Econometric Reviews},
+45(9), 1306-1337. \doi{10.1080/07474938.2026.2681519}
 }

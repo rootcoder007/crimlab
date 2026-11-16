@@ -51,10 +51,10 @@ struct tab {
 
 // A gmmpnl() result.
 struct gout {
-  tab coef, tests, wald;
+  tab coef, tests, wald, xwald;  // xwald: the joint test as xtabond2 prints it
   bool tstat = false;  // t (small) rather than z
   double n = 0, groups = 0, inst = 0, omin = 0, oavg = 0, omax = 0, steps = 0, k = 0, sigma2 = 0;
-  std::vector<double> vcov;
+  std::vector<double> vcov, resid;  // resid: y - x b in levels, NaN off them
   std::vector<std::string> inst_names, dropped, dummies, note;
   std::string type, trans;
 };
@@ -72,17 +72,30 @@ struct wout {
 };
 std::string wfit(const pnl &pn, const xm &x, int cons, int raw, wout &o, int &code);
 
+// The dynamic and other options of ccepnl(): ylag lags of y among the
+// regressors; lags of the averages (-1: the default of Chudik and Pesaran
+// 2015); bias 0 none, 1 the half-panel jackknife, 2 recursive mean
+// adjustment; pool -1 (the default), 0 or 1; pvar 0 Pesaran's pooled
+// variance, 1 that of Brown, Schmidt and Wooldridge (2026).
+struct copt {
+  int ylag = 0, lags = -1, bias = 0, pool = -1, pvar = 0;
+};
+
 // A ccepnl() result.
 struct cres {
-  tab mg, pooled;
-  std::vector<double> bi, vmg, vp, w;  // bi: units x k, column-major
-  double units = 0, periods = 0, k = 0, h = 0, n = 0;
+  tab mg, pooled, mg0;  // mg0: the uncorrected mean group estimate (bias)
+  std::vector<double> bi, vmg, vp, w, vmg0;  // bi: units x k, column-major
+  std::vector<std::string> nm;               // the terms: lags of y, then x
+  double units = 0, periods = 0, k = 0, h = 0, n = 0, lags = 0, ylag = 0;
+  bool pool = true, bias = false;
+  double hb[3] = {0, 0, 0};  // heterogeneity bias: stat, df, p (pool)
+  double nf[3] = {0, 0, 0};  // the number of factors: ER, threshold, averages
 };
 // w: empty or one positive weight per row; avg: all (when useall) or the
 // names among "y" and the columns of x.
 std::string cfit(const pnl &pn, const xm &x, const xm &fac, int cons, const std::vector<double> &w,
-                 bool useall, const std::vector<std::string> &avg, double level, cres &o,
-                 int &code);
+                 bool useall, const std::vector<std::string> &avg, const copt &co, double level,
+                 cres &o, int &code);
 
 }  // namespace dpnd
 

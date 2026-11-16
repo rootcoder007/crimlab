@@ -2052,7 +2052,7 @@ const Ent ents[] = {
     {"pcdtst", "x unit time", pcdtst},
     {"gmmpnl", "y x? unit time ylag? gmm? iv? z? lagmin? lagmax? collapse? type? trans? steps? robust? wc? small? hmat? cons? tdum? ar? level?", gmmpnl},
     {"wsctst", "y x? unit time cons? ssc?", wsctst},
-    {"ccepnl", "y x unit time fac? cons? w? avg? level?", ccepnl},
+    {"ccepnl", "y x unit time fac? cons? w? avg? ylag? lags? bias? pool? pvar? level?", ccepnl},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

@@ -7,7 +7,7 @@
 wsctst(y, x = NULL, unit, time, cons = FALSE, ssc = "cr1")
 }
 \arguments{
-\item{y}{The outcome of each row: finite numbers.}
+\item{y}{The count of each row (a unit in a period): numbers from 0.}
 
 \item{x}{\code{NULL} or the regressors: a numeric matrix or data frame, one
 row per row of \code{y}.}

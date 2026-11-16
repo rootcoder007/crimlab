@@ -239,6 +239,13 @@ bool gmmpnl(Ctx &c, Val &out) {
   wd.add("df2", env::nas(o.wald.df2));
   wd.add("p", env::nas(o.wald.p));
   put(out, "wald", wd.o);
+  Frame xw;
+  xw.str("test", o.xwald.name);
+  xw.add("stat", env::nas(o.xwald.stat));
+  xw.add("df1", env::nas(o.xwald.df));
+  xw.add("df2", env::nas(o.xwald.df2));
+  xw.add("p", env::nas(o.xwald.p));
+  put(out, "xwald", xw.o);
   Frame fs;
   col1(fs, "n", o.n);
   col1(fs, "groups", o.groups);
@@ -251,6 +258,7 @@ bool gmmpnl(Ctx &c, Val &out) {
   col1(fs, "sigma2", o.sigma2);
   put(out, "fit", fs.o);
   put(out, "vcov", vmat(o.vcov, k, k));
+  put(out, "resid", env::nas(o.resid));
   put(out, "inst", env::strs1(o.inst_names));
   put(out, "dropped", env::strs1(o.dropped));
   put(out, "dummies", env::strs1(o.dummies));
@@ -294,6 +302,8 @@ bool wsctst(Ctx &c, Val &out) {
 }
 
 bool ccepnl(Ctx &c, Val &out) {
+  static const char *const bso[] = {"none", "jack", "rma"};
+  static const char *const pvo[] = {"pesaran", "bsw"};
   Pan pn;
   CK(panel(c, -HUGE_VAL, pn));
   const int n = pn.n;
@@ -304,6 +314,20 @@ bool ccepnl(Ctx &c, Val &out) {
   CK(flagd(c, "cons", true, cn));
   std::vector<std::string> an;
   if (c.has("avg")) CK(env::names(c, c["avg"], "avg", "names: y or columns of `x`", an));
+  dpnd::copt co;
+  CK(wholed(c, "ylag", 0, 0, co.ylag));
+  if (co.ylag > 100) return c.fail("`ylag` must be at most 100.");
+  if (c.has("lags")) {
+    CK(wholed(c, "lags", 0, 0, co.lags));
+    if (co.lags > 1000) return c.fail("`lags` must be at most 1000.");
+  }
+  CK(pickd(c, "bias", bso, 3, 0, co.bias));
+  if (c.has("pool")) {
+    bool b = false;
+    CK(flag(c, c["pool"], "pool", b));
+    co.pool = b;
+  }
+  CK(pickd(c, "pvar", pvo, 2, 0, co.pvar));
   double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   std::vector<double> wv;
@@ -315,25 +339,42 @@ bool ccepnl(Ctx &c, Val &out) {
   }
   dpnd::cres o;
   int code = CLAB_OK;
-  const std::string msg = dpnd::cfit(env::plain(pn), xm, fm, cn, wv, !c.has("avg"), an, lv, o, code);
+  const std::string msg =
+      dpnd::cfit(env::plain(pn), xm, fm, cn, wv, !c.has("avg"), an, co, lv, o, code);
   CK(env::done(c, msg, code));
-  const int k = xm.p, nu = pn.nu;
+  const int k = static_cast<int>(o.k), nu = pn.nu;
   out = vobj();
   put(out, "mg", env::ctab(o.mg, false));
-  put(out, "pooled", env::ctab(o.pooled, false));
+  put(out, "pooled", o.pool ? env::ctab(o.pooled, false) : Val());
+  put(out, "mg0", o.bias ? env::ctab(o.mg0, false) : Val());
   put(out, "bi", vmat(o.bi, nu, k));
   put(out, "vmg", vmat(o.vmg, k, k));
-  put(out, "vp", vmat(o.vp, k, k));
+  put(out, "vp", o.pool ? vmat(o.vp, k, k) : Val());
+  put(out, "vmg0", o.bias ? vmat(o.vmg0, k, k) : Val());
+  static const char *const hn[] = {"stat", "df", "p"};
+  static const char *const fn[] = {"er", "thr", "avg"};
+  // NaN as R's NA (null), as the R binding gives them
+  auto nav = [](const char *const *nm, const double *v) {
+    Val r = vobj();
+    for (int j = 0; j < 3; ++j) put(r, nm[j], std::isnan(v[j]) ? Val() : vnum(v[j]));
+    return r;
+  };
+  put(out, "hb", o.pool ? nav(hn, o.hb) : Val());
+  put(out, "nfac", nav(fn, o.nf));
   Frame fs;
   col1(fs, "units", o.units);
   col1(fs, "periods", o.periods);
   col1(fs, "k", o.k);
   col1(fs, "h", o.h);
   col1(fs, "n", o.n);
+  col1(fs, "lags", o.lags);
+  col1(fs, "ylag", o.ylag);
   put(out, "fit", fs.o);
   Val w = vobj();
   for (int a = 0; a < nu; ++a) put(w, pn.ulev[zz(a)].c_str(), vnum(o.w[zz(a)]));
   put(out, "w", w);
+  put(out, "bias", vstr(bso[co.bias]));
+  put(out, "pvar", vstr(pvo[co.pvar]));
   put(out, "level", vnum(lv));
   return true;
 }

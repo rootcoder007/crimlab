@@ -33,7 +33,7 @@ gmmpnl(
 \method{plot}{gmmpnl}(x, ..., main = NULL, col = NULL, pal = NULL)
 }
 \arguments{
-\item{y}{The outcome of each row: finite numbers.}
+\item{y}{The count of each row (a unit in a period): numbers from 0.}
 
 \item{x}{\code{NULL} or the regressors: a numeric matrix or data frame, one
 row per row of \code{y}; the column names name them. For \code{plot()}, a
@@ -86,7 +86,7 @@ Windmeijer's (2005) correction of the two-step variance; it must agree
 with \code{robust}.}
 
 \item{small}{\code{FALSE} (default) or \code{TRUE} for the small-sample variance,
-t statistics and an F test, as above.}
+t statistics and an F test as xtabond2 3.7.2 computes them (above).}
 
 \item{hmat}{\code{"ab"} (default), \code{"dpd"} or \code{"id"}: \code{H} of the one-step
 weight, as above (Roodman 2009, secs. 3.3-3.4).}
@@ -118,7 +118,9 @@ An object of class \code{gmmpnl}, a list: \code{coef} (\code{term}, \code{est}, 
 Hansen test without the level GMM-style instruments and the
 difference-in-Hansen test, or their Sargan counterparts with the
 conventional one-step variance); \code{wald}, one row (\code{test}, \code{"Wald"} or
-\code{"F"}, \code{stat}, \code{df1}, \code{df2}, \code{p});
+\code{"F"}, \code{stat}, \code{df1}, \code{df2}, \code{p}); \code{xwald}, the same as xtabond2
+prints it (over every coefficient); \code{resid}, \verb{y - x b} in levels, one
+per row of \code{y};
 \code{fit}, one row: \code{n} (the rows of the transformed equation for
 difference GMM, of the levels for system GMM, as xtabond2 counts),
 \code{groups}, \code{inst}, \code{omin}, \code{oavg}, \code{omax} (rows per group), \code{steps},
@@ -183,18 +185,88 @@ one-step variance is the conventional \verb{s2 (X'Z A Z'X)^-1}, eq 14 with
 below, and the two-step variance is the uncorrected \verb{(X'Z A_2 Z'X)^-1}
 (Roodman 2009, p. 96). \code{wc} is the older name of the two-step choice:
 left \code{NULL} it follows \code{robust}, and a value that contradicts \code{robust},
-or \code{wc} with one step, is refused. With \code{small = TRUE} the variance is
-multiplied by \code{n / (n - k)} (\code{n} the rows reported in \code{fit}, \code{k} the
-coefficients), and the coefficients have t statistics and the joint
-test is an F test, both on the groups less one (less nothing without a
-constant) degrees of freedom. Roodman (2009, p. 123) describes the
-option of xtabond2 only as "small-sample corrections to the covariance
-matrix estimate, resulting in t-test instead of z-test statistics for
-the coefficients and an F test instead of a Wald chi2 test for overall
-fit"; the degrees of freedom are those of his outputs (F(16, 140) for
-140 groups without a constant, p. 113; F(12, 139) with one, p. 118),
-and the factor \code{n / (n - k)} is this function's reading, as the paper
-gives none.
+or \code{wc} with one step, is refused.
+
+Roodman (2009, p. 123) describes \code{small} of xtabond2 only as
+"small-sample corrections to the covariance matrix estimate, resulting
+in t-test instead of z-test statistics for the coefficients and an F
+test instead of a Wald chi2 test for overall fit"; \code{small = TRUE} makes
+the corrections as xtabond2 3.7.2 computes them. With \code{n} the rows of
+the equation reported (\code{fit$n}), \code{w} the rows of the transformed
+equation in system GMM with \code{hmat} other than \code{"id"} and \code{n} otherwise,
+\code{G} the groups, \code{k} the coefficients and \code{c} 1 for the constant of
+system GMM (0 otherwise): the conventional one-step variance is
+multiplied by \code{w / (w - k)}, and the robust one-step variance and both
+two-step variances by \code{(n - 1) / (n - k) * G / (G - 1)}; \code{sigma2} is
+multiplied by \code{w / (w - k)}. The coefficients have t statistics on
+\code{df_r} degrees of freedom and the joint test is \code{F = W / q} on \code{q} and
+\code{df_r}, with \code{df_r = n - q - c} for the conventional one-step variance
+and \code{G - c} otherwise. The Sargan and Hansen statistics are unchanged;
+so are the Arellano-Bond statistics, except after the conventional one-step
+variance, where the program scales \code{sigma2} in the errors' variance by
+\code{w / (w - k)} and leaves the coefficients' variance in the statistic
+unscaled, and so does this function. Roodman's program also lets the
+variance be clustered on other variables, which multiplies each
+cluster's terms of the moments' variance by \code{G / (G - 1)} and drops
+that factor from the variance; this function clusters by unit only.
+
+\code{wald} is the joint test that the coefficients other than the constant
+are 0, \verb{W = b' V^-1 b} over them, on \code{q} degrees of freedom counted as
+xtabond2 3.7.2 counts them, with or without \code{small}: the rank of the
+regressors in the levels (system GMM; the transformed equation is left
+out of the test) or in the transformed equation, less \code{c}; without a
+constant, one less again when the vector of ones \code{i} lies in their
+column space, which the program finds when \verb{i'X_p (X'X)^-1 X_p'i}, \code{X_p}
+those rows and \code{X} the whole stack, is within the machine epsilon times
+the groups times the periods of the rows of \code{X_p}, relatively. The
+program's own statistic takes \verb{b' V^-1 b} over every coefficient,
+the constant's included, while counting \code{q} without it; this function
+leaves the constant out of the statistic too, so that the two agree
+when no constant is estimated. \code{xwald} is the program's statistic, \verb{b' V^-1 b} over every coefficient on the same \code{q} (and \code{F = W / q} with
+\code{small}), so that its printed line can be reproduced; \code{print()} shows
+it on a second line when it differs from \code{wald}.
+
+Two values differ from the program's by design. \code{sigma2} is that of
+the one-step residuals, which Sargan's statistic uses, also with
+\code{steps = 2}, where xtabond2 reports the two-step residuals' value. With
+the conventional one-step variance the Arellano-Bond statistics take
+the error variance as \code{s2} times the covariances of independent errors
+through the differences whatever \code{hmat} (Roodman 2009, n. 19), where
+with \code{hmat = "id"} in system GMM the program takes \code{sigma2} from the
+levels and \code{H = I} there; the identity is the weight of Blundell and
+Bond's first step, not the covariance of differenced errors.
+
+\code{resid} holds \verb{y - x b} in levels for every row of the level equation
+(\code{NA} for rows without the \code{ylag} periods before), the unit effects
+included; Andreatta et al. (2023, p. 1376) pass such residuals of the
+dynamic model to Pesaran's test of cross-sectional dependence
+(\code{\link[=pcdtst]{pcdtst()}}) and to Moran's I for each year (\code{\link[=gmoran]{gmoran()}}).
+
+\strong{Andreatta et al. (2023), step by step.} Their table 3 is one-step
+system GMM with robust errors "with small-sample adjustments" (note):
+\code{type = "system"}, \code{steps = 1}, \code{robust = TRUE}, \code{small = TRUE}; time
+effects, \code{tdum = TRUE}; the lagged rate, \code{ylag = 1}, and the four
+enforcement and organised-crime variables in \code{gmm}, instrumented by
+"their second and third lags" (p. 1373), \verb{lagmin = 2, lagmax = 3}, or
+by "Lag 2 and earlier lags" (table note), \code{lagmax = Inf}, the other
+drivers IV-style (\code{iv}); the difference of lag 1 in the level equation
+is what \code{lagmin = 2} gives there. Their tests are the rows of \code{tests}:
+AR(1) and AR(2), Hansen, "Hansen-level", the Hansen test of the
+first-differenced model ("Hansen without level GMM"), and "Hansen-diff"
+("Difference-in-Hansen"); "No. of instruments" is \code{fit$inst}, kept
+below the 102 provinces (\code{note} warns otherwise). The supplementary
+"standard" model with first lags as instruments is \code{lagmin = 1} for
+the variables taken as predetermined. Before choosing a dynamic model
+they ran Wooldridge's test on the static model's residuals (\code{\link[=wsctst]{wsctst()}},
+n. 9, F(1, 101)), and they compare the coefficient of the lagged rate
+with pooled least squares (\code{lm()}) and fixed effects (\code{\link[=fepnl]{fepnl()}} with the
+lag among the regressors). Their checks of spatial dependence are
+\code{\link[=gmoran]{gmoran()}} and \code{\link[=gearc]{gearc()}} on the rate with several weight matrices,
+\code{\link[=pcdtst]{pcdtst()}} on the residuals of the static and dynamic models and
+\code{\link[=gmoran]{gmoran()}} on each year's residuals (p. 1376); their structural breaks
+(2013, 2014, 2015) are step dummies among the IV-style columns of \code{x},
+and their principal components of the enforcement rates are
+\code{stats::prcomp()}.
 
 The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are
 those of serial correlation of orders 1 to \code{ar} in the differenced
@@ -220,8 +292,8 @@ left out. With the conventional one-step variance Sargan's statistic is
 the one reported for the instruments, and the difference test is the
 difference-in-Sargan, the model re-estimated with the block of \verb{Z'HZ}
 (Roodman 2009, n. 24). \code{wald} is the joint test of the coefficients
-other than the constant. Every test is on \code{m - k} degrees of freedom or
-fewer, \code{m} the instruments and \code{k} the coefficients. When the
+other than the constant (above). Every test is on \code{m - k} degrees of
+freedom or fewer, \code{m} the instruments and \code{k} the coefficients. When the
 instruments outnumber the groups, \code{note} says so (Roodman 2009, sec.
 2.6). Inference is normal unless \code{small = TRUE}. Andreatta et al.
 describe their instruments both as "their second and third lags" (p.
@@ -246,6 +318,35 @@ r <- gmmpnl(d$y, d["enf"], d$prov, d$year, gmm = "enf", lagmax = 3,
             collapse = TRUE)
 r
 r$tests
+
+# the specification of Andreatta et al. (2023, table 3) on simulated
+# data: the lagged rate and four drivers GMM-style by their second and
+# third lags, collapsed so that the instruments stay below the
+# provinces, two exogenous drivers, time effects, one-step robust
+# errors with small-sample adjustments
+set.seed(23)
+np <- 102
+d <- expand.grid(year = 2010:2019, prov = paste0("p", 1:np))
+u <- rnorm(np)[as.integer(substring(d$prov, 2))]
+n <- nrow(d)
+for (v in c("clear", "conv", "mafia", "assoc")) d[[v]] <- u + rnorm(n)
+d$gdp <- rnorm(n)
+d$recyc <- rnorm(n)
+d$wcrim <- 0
+for (i in which(d$year > 2010)) {
+  d$wcrim[i] <- 0.4 * d$wcrim[i - 1] - 0.1 * d$clear[i] +
+    0.2 * d$mafia[i] + 0.1 * d$gdp[i] + u[i] + rnorm(1)
+}
+en <- c("clear", "conv", "mafia", "assoc")
+a <- gmmpnl(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year, gmm = en,
+            lagmin = 2, lagmax = 3, collapse = TRUE, small = TRUE)
+a$tests
+a$fit$inst < a$fit$groups
+# the static model's serial correlation and the dynamic residuals'
+# cross-sectional dependence
+wsctst(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year)
+k <- !is.na(a$resid)
+pcdtst(a$resid[k], d$prov[k], d$year[k])
 }
 \references{
 Arellano, M. and Bond, S. (1991). Some tests of specification for
