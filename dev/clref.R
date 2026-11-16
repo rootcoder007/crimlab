@@ -1892,6 +1892,24 @@ bad("dwnexp", sx = 0, sy = 0, sper = NULL, sdir = 0, rx = 1, ry = 1, rad = 0)
 ok("tailwd", dir = c(70, 340, 250, NA, 100), spd = c(4, 4, 4, 2, 3))
 ok("tailwd", dir = c(70, 90, 250, 260, NA), spd = c(3, 2, 5, 1, 1), by = c(1, 1, 2, 2, 3), agg = "mean", course = 70)
 bad("tailwd", dir = 1, spd = c(1, 2))
+iwm <- data.frame(x = c(0, 1, 3, 7, 4, 9), y = c(0, 5, 2, 8, 6, 1), v = c(6, 9, 12, NA, 8, 10))
+iwt <- data.frame(x = c(2, 1, 50, 5.5, 8, 3.3), y = c(1, 5, 50, 4, 7, 2.2))
+ok("idwint", mx = iwm$x, my = iwm$y, mv = iwm$v, tx = iwt$x, ty = iwt$y)
+ok("idwint", mx = iwm$x, my = iwm$y, mv = iwm$v, tx = iwt$x, ty = iwt$y, p = 1, k = 3, rad = 6,
+   zone = c("b", "a", "b", "a", "b", "a"))
+ok("idwint", mx = iwm$x / 10 - 118, my = iwm$y / 10 + 34, mv = iwm$v, tx = iwt$x / 10 - 118, ty = iwt$y / 10 + 34,
+   k = 4, rad = 50, lonlat = TRUE)
+bad("idwint", mx = 0, my = 0, mv = 1, tx = 0, ty = 0, rad = -1)
+gwd <- expand.grid(u = 1:4, v = 1:3, t = 1:2)
+gwd$x <- sin(seq_len(24) * 1.3)
+gwd$y <- 1 + (0.5 + 0.2 * gwd$u) * gwd$x + cos(seq_len(24)^2 * 0.7) / 3
+ok("gtwreg", y = gwd$y, x = gwd["x"], u = gwd$u, v = gwd$v, t = gwd$t, h = c(1.5, 3), tau = c(0, 0.5))
+ok("gtwreg", y = gwd$y, x = gwd["x"], u = gwd$u, v = gwd$v, h = c(2, 5), crit = "aicc")
+bad("gtwreg", y = gwd$y, x = gwd["x"], u = gwd$u, v = gwd$v, h = 0)
+ok("asrule", x = c("l", "h", "h", "m", "l", "h", "m", "h"), y = c("a", "b", "b", "a", "a", "b", "b", "b"))
+ok("asrule", x = c(1, 2, 2, 3, 1, 2, 3, 2), y = c("a", "b", "b", "a", "a", "b", "b", "b"), minsup = 0,
+   minconf = 0.5, empty = FALSE, nm = c("pm", "ipv"))
+bad("asrule", x = 1:2, y = 1)
 bad("invsn", tlow = c(1, 2, 3), tup = c(1, 2))
 upd <- data.frame(area = rep(c("w1", "w2", "w3", "e1", "e2", "e3"), 10),
                   ax = rep(c(-100, -300, -600, 150, 350, 700), 10),

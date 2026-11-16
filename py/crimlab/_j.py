@@ -6877,6 +6877,53 @@ def dwnexp(sx: Any, sy: Any, sper: Any, sdir: Any, rx: Any, ry: Any, rid: Any = 
                  from_=from_, lonlat=lonlat, wrap=wrap, dwt=dwt)
 
 
+def idwint(mx: Any, my: Any, mv: Any, tx: Any, ty: Any, p: Any = 2, k: Any = 0, rad: Any = None,
+           lonlat: Any = False, zone: Any = None) -> Any:
+    """Inverse-distance-weighted interpolation, and zonal means.
+
+    The arguments and the result are those of R's ``idwint()``: see its help
+    page (``rad=None`` is R's ``Inf``).
+
+    Examples
+    --------
+    >>> idwint(mx=[0, 1, 3], my=[0, 0, 0], mv=[6, 9, 12], tx=[2], ty=[0])["val"]
+    [10.0]
+    """
+    return jcall("idwint", mx=mx, my=my, mv=mv, tx=tx, ty=ty, p=p, k=k, rad=rad, lonlat=lonlat, zone=zone)
+
+
+def gtwreg(y: Any, x: Any, u: Any, v: Any, t: Any = None, h: Any = None, tau: Any = 0, crit: Any = "cv",
+           lonlat: Any = False, cons: Any = True) -> Any:
+    """Geographically and temporally weighted regression.
+
+    The arguments and the result are those of R's ``gtwreg()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = gtwreg(y=[1, 3, 5, 7, 9, 11], x={"x": [0, 1, 2, 3, 4, 5]}, u=[0, 1, 2, 0, 1, 2],
+    ...            v=[0, 0, 0, 1, 1, 1], h=[1.5])
+    >>> [round(b, 6) for b in r["coef"][0]]
+    [1.0, 2.0]
+    """
+    return jcall("gtwreg", y=y, x=x, u=u, v=v, t=t, h=h, tau=tau, crit=crit, lonlat=lonlat, cons=cons)
+
+
+def asrule(x: Any, y: Any, minsup: Any = 0.1, minconf: Any = 0.2, empty: Any = True, nm: Any = None) -> Any:
+    """Association rules between two categorical variables.
+
+    The arguments and the result are those of R's ``asrule()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = asrule(x=["a", "a", "b", "b"], y=["p", "q", "q", "q"], minsup=0.3, empty=False)
+    >>> list(zip(r["lhs"], r["rhs"]))
+    [('x=b', 'y=q'), ('y=q', 'x=b')]
+    """
+    return jcall("asrule", x=x, y=y, minsup=minsup, minconf=minconf, empty=empty, nm=nm)
+
+
 def tailwd(dir: Any, spd: Any, course: Any = 250, by: Any = None, agg: Any = "max") -> Any:
     """The tailwind component of the wind along a flight course.
 

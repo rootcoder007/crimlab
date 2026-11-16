@@ -2140,6 +2140,44 @@ int clab_dwnexp(int rule, int ns, const double *sx, const double *sy, const int 
 int clab_tailwd(int n, const double *dir, const double *spd, double course, const int *grp,
                 int ng, int agg, double *out);
 
+/* Inverse-distance-weighted interpolation (idwint): nm monitors at (mx,
+ * my) with values mv (NaN: left out) carried to nt targets (tx, ty): a
+ * target at monitors' locations takes their mean; else the k nearest
+ * monitors within rad (k 0: all within rad; ties by monitor order) weigh
+ * d^-p (p >= 0), NaN when none. used: the monitors used per target. With
+ * zone (nt codes 0..nz-1), zout (nz) is the mean of each zone's targets
+ * with a value and zn their number. ll 1: longitude and latitude in
+ * degrees, km on the sphere. CLAB_EARG for arguments out of range,
+ * CLAB_EDOM for a coordinate that is not finite. */
+int clab_idwint(int nm, const double *mx, const double *my, const double *mv, int nt,
+                const double *tx, const double *ty, double p, int k, double rad, int ll,
+                const int *zone, int nz, double *out, double *used, double *zout, double *zn);
+
+/* Geographically and temporally weighted regression (gtwreg; Kuo and
+ * Putra 2021, eqs 5-9): n observations, x (n x k, column-major, k < n), y,
+ * coordinates (u, v) and times t (NULL: none); at each observation the
+ * least-squares fit weighted by w_j = exp(-(ds^2 + tau dt^2) / h^2), ds
+ * planar or km on the sphere (ll 1). Out: beta and se (n x k), the fitted
+ * values, the hat diagonal S_ii, the leave-one-out residuals e_i / (1 -
+ * S_ii), and st (7): RSS, tr S, tr S'S, sigma^2 = RSS / (n - 2 tr S + tr
+ * S'S), the cross-validation score, AICc = n log(RSS / n) + n log(2 pi) +
+ * n (n + tr S) / (n - 2 - tr S), and n - 2 tr S + tr S'S. se: sigma times
+ * the root of the diagonal of A^-1 X'W^2X A^-1, A = X'WX. CLAB_EDOM when a
+ * local fit is singular or a value is not finite. */
+int clab_gtwreg(int n, int k, const double *x, const double *y, const double *u, const double *v,
+                const double *t, double h, double tau, int ll, double *beta, double *se,
+                double *fitv, double *hat, double *loo, double *st);
+
+/* Association rules of two categorical variables (asrule): codes xc
+ * (0..nx-1) and yc (0..ny-1) of n observations; items 0..nx-1 the levels
+ * of x, nx..nx+ny-1 those of y. The rules {} => {b} (with empty 1) and {a}
+ * => {b} across the two variables, in both directions, with support at
+ * least minsup and confidence at least minconf: lhs (-1 the empty set),
+ * rhs and out (5 per rule: support, confidence, coverage, lift, count),
+ * nr of them; room for nx + ny + 2 nx ny rules. */
+int clab_asrule(int n, const int *xc, int nx, const int *yc, int ny, double minsup,
+                double minconf, int empty, int *nr, int *lhs, int *rhs, double *out);
+
 /* The same unit on another day (plcday): for row i of unit u[i] on day
  * t[i], idx[i] is the row of unit u[i] on day t[i] + k, or -1. CLAB_EDOM
  * for a non-finite day or a unit with two rows on one day. ord: n ints of

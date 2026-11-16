@@ -1,5 +1,14 @@
 # crimlab 0.0.0.9000
 
+* New: `idwint()` carries monitor readings to places by inverse-distance
+  weighting of the nearest monitors and averages them by zone, as
+  Rahman et al. (2023), Wongchanapai et al. (2025) and Wesselbaum (2022)
+  assign exposure; `gtwreg()` is the geographically and temporally
+  weighted regression of Kuo and Putra (2021), its bandwidth and time
+  scale chosen by cross-validation or AICc; `asrule()` gives the
+  association rules between two binned variables that Wongchanapai et
+  al. (2025) mine with Apriori.
+
 * New: `dwnexp()` builds downwind-exposure instruments from sources of
   pollution and the wind: the sector and transport-wedge rules of Bao and
   Da (2026) for smoke plumes that move from day to day, and the angle and
