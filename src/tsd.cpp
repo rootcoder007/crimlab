@@ -597,6 +597,25 @@ bool arima(const std::vector<double> &x, const Arma &a, Fit &ft, std::string &er
     s[z(a.ns)] = -1;
     Dl = conv(Dl, s);
   }
+  // a series that is constant once differenced (a constant, a straight
+  // line, a pattern that repeats exactly each season) leaves sums of
+  // squares of 0, whose logarithm the optimiser cannot start from
+  {
+    bool any = false, var = false;
+    double w0 = 0;
+    for (std::size_t t = Dl.size() - 1; t < x.size() && !var; ++t) {
+      double w = 0;
+      for (std::size_t k = 0; k < Dl.size(); ++k) w += Dl[k] * x[t - k];
+      if (std::isnan(w)) continue;
+      if (!any) w0 = w;
+      var = any && w != w0;
+      any = true;
+    }
+    if (!var) {
+      err = "`y` does not vary once differenced: the model has nothing to fit.";
+      return false;
+    }
+  }
   std::vector<double> delta(Dl.begin() + 1, Dl.end());
   for (double &e : delta) e = -e;
   int nobs = 0;

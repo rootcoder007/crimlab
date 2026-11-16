@@ -47,6 +47,12 @@
   infinite start or search direction. Results for other inputs are
   unchanged.
 
+* Fixed: `arimfc()` and `sarfc()` used to refuse a series that does not
+  vary once differenced (a constant, a straight line) in the optimiser's
+  words ("initial value in 'vmmin' is not finite"); they now say
+  "`y` does not vary once differenced: the model has nothing to fit.",
+  as does the command line.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

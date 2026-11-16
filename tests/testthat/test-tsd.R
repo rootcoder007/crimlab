@@ -150,6 +150,11 @@ test_that("arimfc() and sarfc() forecast and refuse short series", {
   expect_equal(s$rmse, sqrt(mean((s$actual - s$fc)^2)),
                tolerance = testthat_tolerance())
   expect_error(arimfc(1:5), "24 values")
+  m <- "`y` does not vary once differenced: the model has nothing to fit."
+  expect_error(arimfc(rep(0.1, 30)), m, fixed = TRUE)
+  expect_error(arimfc(1:30), m, fixed = TRUE)
+  expect_error(sarfc(rep(c(1, 4, 2), 12), order = c(0, 0, 0),
+                     seasonal = c(0, 1, 0, 3)), m, fixed = TRUE)
   expect_error(sarfc(y, order = c(1, 0, 0), seasonal = c(0, 0, 0, 12)),
                "difference")
   expect_error(sarfc(y[1:30]), "36 values")
@@ -251,9 +256,9 @@ test_that("an MA start with a root inside the unit circle is inverted", {
 
 test_that("sarfc() refuses as arima() does", {
   ef <- function(call, msg) expect_error(call, msg, fixed = TRUE)
-  # a constant series: the CSS objective at the start is log(0)
+  # a constant series: refused before the CSS objective, log(0), is formed
   ef(sarfc(rep(5, 40), order = c(1, 1, 0), seasonal = c(0, 0, 0, 12)),
-     "sarfc: initial value in 'vmmin' is not finite")
+     "sarfc: `y` does not vary once differenced: the model has nothing to fit.")
   # differences that grow by 10% a step: an AR coefficient of 1.1
   g <- cumsum(1.1^(1:40))
   ef(sarfc(g, order = c(1, 1, 0), seasonal = c(0, 0, 0, 12)),

@@ -1807,6 +1807,7 @@ sv_y <- c(52, 48, 61, 55, 47, 50, 66, 70, 58, 49, 45, 53, 57, 51, 63, 60, 49, 52
 ok("arimfc", y = sv_y, h = 3)
 bad("arimfc", y = 1:5)
 bad("arimfc", y = sv_y, h = 1e9)
+bad("arimfc", y = rep(0.1, 30))
 ok("sarfc", y = sv_y, h = 3, order = c(0, 1, 1), seasonal = c(0, 0, 0, 12))
 bad("sarfc", y = sv_y, order = c(1, 0, 0), seasonal = c(0, 0, 0, 12))
 ok("catcor", units = list(theft = c("a", "b", "b", "c", "d"), fraud = c("b", "c", "c", "d"), arson = c("a", "a", "d")))
