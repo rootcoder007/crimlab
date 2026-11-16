@@ -29,8 +29,8 @@
 #'   (projected, `rad` in their unit). The polygon meets the wedge when a
 #'   vertex lies in it, the apex lies in the polygon, or an edge crosses a
 #'   side or the arc.
-#' * `"angle"`: per period, the angle between the bearing from the sources'
-#'   mean point to the place and the direction of the sources' mean wind
+#' * `"angle"`: per period, the angle between the bearing from the mean
+#'   point of the sources to the place and the direction of their mean wind
 #'   vector, and the mean distance from the place to the sources (those at
 #'   its own location left out): Ayesh's (2023, sec. 4) instrument, "the
 #'   absolute value of `lat_j - DirT_t`" with `DirT_t` the "average annual
