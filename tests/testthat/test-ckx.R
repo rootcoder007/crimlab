@@ -65,3 +65,11 @@ test_that(".clas() gives another function's refusal under the caller's name", {
                  "^runfx: w\\.$")
   expect_identical(.clas("runfx", 3), 3)
 })
+
+test_that(".clas() renames a message that quotes invalid text", {
+  m <- paste0("declbld: values with no mapping: '",
+              rawToChar(as.raw(c(0xff, 0x41))), "'.")
+  e <- tryCatch(.clas("xfrvrf", stop(m, call. = FALSE)),
+                error = conditionMessage)
+  expect_identical(rawToChar(charToRaw(e)[1:8]), "xfrvrf: ")
+})

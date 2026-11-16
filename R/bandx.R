@@ -351,10 +351,11 @@ print.yoypx <- function(x, ...) {
     !is.numeric(cnts) ||
       length(cnts) != nrow(b) ||
       anyNA(cnts) ||
+      !all(is.finite(cnts)) ||
       any(cnts < 0)
   ) {
     stop(
-      "bandx: `cnts` must be numbers from 0, one per band, ",
+      "bandx: `cnts` must be numbers from 0 (finite), one per band, ",
       nrow(b),
       ".",
       call. = FALSE
@@ -423,6 +424,7 @@ print.yoypx <- function(x, ...) {
   if (!n || !(is.numeric(x) || is.character(x) || is.factor(x))) {
     stop("pbbnd: `", nm, "` must be numbers or text cells.", call. = FALSE)
   }
+  .cktxt(if (is.factor(x)) levels(x) else x, nm, "pbbnd")
   lim <- rep(NA_real_, n)
   st <- rep(0L, n)
   if (is.numeric(x)) {

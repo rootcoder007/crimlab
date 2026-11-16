@@ -724,6 +724,9 @@ print.lagrprt <- function(x, ...) {
   if (is.null(source)) {
     return(NULL)
   }
+  if (!is.numeric(source)) {
+    .ckstop(f, "`source` must be a finite numeric matrix")
+  }
   if (!identical(dim(as.matrix(source)), dim(cm))) {
     .ckstop(f, "`source` must have the dimensions of `c0`")
   }

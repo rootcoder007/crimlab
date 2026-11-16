@@ -96,14 +96,16 @@
 # fn's name, the one the user called.
 .clas <- function(fn, expr) {
   ex <- getNamespaceExports("crimlab")
+  # by bytes: the message may quote text that is not valid in its encoding
   re <- function(m) {
-    k <- regexpr("^[a-z][a-z0-9]*: ", m)
-    p <- if (k > 0L) substr(m, 1L, attr(k, "match.length") - 2L) else ""
-    if (nzchar(p) && p != fn && p %in% ex) {
-      paste0(fn, substring(m, nchar(p) + 1L))
-    } else {
-      m
+    k <- regexpr("^[a-z][a-z0-9]*: ", m, useBytes = TRUE)
+    if (k < 0L) {
+      return(m)
     }
+    b <- charToRaw(m)
+    n <- attr(k, "match.length") - 2L
+    p <- rawToChar(b[seq_len(n)])
+    if (p != fn && p %in% ex) paste0(fn, rawToChar(b[-seq_len(n)])) else m
   }
   withCallingHandlers(
     expr,

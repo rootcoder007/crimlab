@@ -69,7 +69,7 @@ onlsmry <- function(x = NULL) {
 #' @rdname onlsmry
 #' @export
 smryupd <- function(acc, x) {
-  if (!inherits(acc, "onlsmry")) {
+  if (!.skacc(acc)) {
     .ckstop("smryupd", "`acc` must come from onlsmry()")
   }
   .skupd(acc, .sknum(x, "x", "smryupd"), "smryupd")
@@ -78,7 +78,7 @@ smryupd <- function(acc, x) {
 #' @rdname onlsmry
 #' @export
 smrymrg <- function(a, b) {
-  if (!inherits(a, "onlsmry") || !inherits(b, "onlsmry")) {
+  if (!.skacc(a) || !.skacc(b)) {
     .ckstop("smrymrg", "both arguments must come from onlsmry()")
   }
   a$state <- .Call(C_clab_r_mommrg, a$state, b$state)
@@ -88,7 +88,7 @@ smrymrg <- function(a, b) {
 #' @rdname onlsmry
 #' @export
 smrystat <- function(acc) {
-  if (!inherits(acc, "onlsmry")) {
+  if (!.skacc(acc)) {
     .ckstop("smrystat", "`acc` must come from onlsmry()")
   }
   stats::setNames(
@@ -271,6 +271,13 @@ skchmrg <- function(a, b) {
 }
 
 # .rmbl_num(): numbers, or text that reads as numbers; not flags.
+# An accumulator of onlsmry(): its class and a state of five numbers (a
+# list of that class without them, unnamed, would reach the compiled code).
+.skacc <- function(a) {
+  inherits(a, "onlsmry") && is.list(a) && is.numeric(a[["state"]]) &&
+    length(a[["state"]]) == 5L
+}
+
 .sknum <- function(x, what, fn) {
   if (is.factor(x) || is.list(x) ||
         !(is.numeric(x) || is.logical(x) || is.character(x))) {

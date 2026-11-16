@@ -258,3 +258,10 @@ test_that("the spatial functions refuse bad input in words", {
          0.4, 1)
   ))
 })
+
+test_that("sarml() refuses an x that is not numbers in words", {
+  m <- "^sarml: `x` must be a numeric matrix, data frame or vector\\.$"
+  for (x in list(NULL, sum, new.env(), "a")) {
+    expect_error(sarml(1:5, x, diag(5)), m)
+  }
+})

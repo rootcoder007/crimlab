@@ -267,3 +267,9 @@ test_that("a path longer than a path can be and invalid text are refused", {
   expect_error(yoycsv(y, meta = bad), "^yoycsv: `meta` holds text")
   expect_error(fylbl(bad), "^fylbl: `endyear` holds text")
 })
+
+test_that("a table of no rows has no summary, and no summary in JSON", {
+  y <- yoypx(c(10, 12), 1:2)[0, ]
+  expect_error(yoysmry(y), "^yoysmry: `x` has no rows")
+  expect_type(yoyjs(y), "character")
+})

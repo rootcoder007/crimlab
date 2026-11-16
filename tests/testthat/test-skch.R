@@ -157,3 +157,10 @@ test_that("dstnskch() and rsvsmp() refuse what is not a vector", {
   bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
   expect_error(rsvidx(10, bad), "^rsvidx: `k` holds text that is not valid")
 })
+
+test_that("an accumulator without its state is refused in words", {
+  a <- structure(list(1), class = c("onlsmry", "list"))
+  expect_error(smrystat(a), "^smrystat: `acc` must come from onlsmry")
+  expect_error(smryupd(a, 1), "^smryupd: `acc` must come from onlsmry")
+  expect_error(smrymrg(a, onlsmry()), "^smrymrg: both arguments")
+})

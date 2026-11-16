@@ -506,3 +506,8 @@ test_that("vgemp() refuses more distance bins than its bound", {
   expect_error(vgemp(p, v = 1:3, nbins = 1e9),
                "vgemp: `nbins` must be at most 67108864.", fixed = TRUE)
 })
+
+test_that("crsof() refuses an object whose crs is not one code", {
+  expect_error(crsof(structure(list(), class = "spobj")),
+               "^crsof: `x\\$crs` must be one EPSG code\\.$")
+})

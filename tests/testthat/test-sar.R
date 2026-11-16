@@ -733,3 +733,10 @@ test_that("the search results print", {
   expect_false(r$visible)
   expect_s3_class(r$value, "srchpod")
 })
+
+test_that("datumpmap() checks `end` whatever the datum", {
+  xe <- seq(-3, 3, 1)
+  for (e in list("a", sum, TRUE, list(1, 2))) {
+    expect_error(datumpmap(xe, xe, "point", end = e), "^datumpmap: `end`")
+  }
+})

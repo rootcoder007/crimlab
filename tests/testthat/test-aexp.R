@@ -125,3 +125,8 @@ test_that("exprspplr() reports an estimator that fails on the full sample", {
            "estr\\(data, y, expo, confs\\): no model\\.$")
   )
 })
+
+test_that("exprspplr() refuses a list for a data frame in words", {
+  expect_error(exprspplr(list(y = 1:3, e = 1:3), "y", "e", NULL),
+               "^exprspplr: `data` must be a data frame\\.$")
+})

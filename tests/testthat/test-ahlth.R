@@ -37,3 +37,10 @@ test_that("the burden of each area, worst first, with its columns' names", {
   expect_error(polbrdarea(t[c("fsa", "exposure")]),
                "areatab missing columns: population, brate", fixed = TRUE)
 })
+
+test_that("a list for a data frame is refused in words", {
+  expect_error(expconcidx(list(e = 1:3, i = 1:3), "e", "i"),
+               "^expconcidx: `data` must be a data frame\\.$")
+  expect_error(polbrdarea(list(fsa = "a")),
+               "^polbrdarea: `areatab` must be a data frame\\.$")
+})

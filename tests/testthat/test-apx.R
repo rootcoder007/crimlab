@@ -1365,3 +1365,11 @@ test_that("an iteration count past an integer is refused without a warning", {
   expect_error(expect_warning(ppmlfe(simpan(), "y", "x", fe = "unit",
                                      maxit = 1e300), NA), m)
 })
+
+test_that("a bootstrap seed past an integer is refused in words", {
+  d <- simpan()
+  m <- "`seed` must be between 0 and 2147483647"
+  expect_error(ppmlcf(d, "y", endo = "x", inst = c("z1", "z2"), x = "w",
+                      fe = c("unit", "day"), expo = "pop", se = "boot",
+                      nboot = 9, seed = 1e300), m)
+})

@@ -594,3 +594,12 @@ test_that("an outcome or a class that is not text is refused in words", {
   expect_error(gplume(1, 5, 50, rbind(c(100, 0, 0)), stab = bad),
                "^gplume: `stab` holds text that is not valid")
 })
+
+test_that("advdif2d() refuses a source that is not numbers", {
+  c0 <- matrix(0, 5, 5)
+  c0[3, 3] <- 1
+  for (s in list(sum, new.env())) {
+    expect_error(advdif2d(c0, 0.7, -0.4, 0.2, 0.1, 1, 1, 0.5, 6, source = s),
+                 "^advdif2d: `source` must be a finite numeric matrix\\.$")
+  }
+})

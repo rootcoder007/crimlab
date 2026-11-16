@@ -272,3 +272,10 @@ test_that("labels that are not valid UTF-8 are refused in words", {
   expect_error(bandx(c(bad, "6-15"), c(40, 25)),
                "^bandx: `x` holds text that is not valid")
 })
+
+test_that("counts that are not finite and invalid cells are refused", {
+  expect_error(bandx(c("0-5", "6-15"), c(40, Inf)),
+               "^bandx: `cnts` must be numbers from 0 \\(finite\\)")
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(pbbnd(c("5", bad)), "^pbbnd: `x` holds text that is not valid")
+})

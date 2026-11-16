@@ -399,3 +399,17 @@ test_that("a refusal from the estimator names the function called", {
   expect_error(runfx(NULL, "y", "pm", "unit", "day"),
                "^runfx: `data` must be a data frame")
 })
+
+test_that("an estimator that is not one, and bad jntx() quantiles", {
+  set.seed(4)
+  d <- expand.grid(day = 1:30, unit = 1:4)
+  d$pm <- rnorm(nrow(d), 10, 3)
+  d$no2 <- rnorm(nrow(d), 20, 5)
+  d$y <- rpois(nrow(d), 3)
+  m <- "`est` must be an estimator function, such as ppmlfe"
+  expect_error(runfx(d, "y", "pm", "unit", "day", est = sum),
+               paste0("^runfx: ", m))
+  expect_error(jntx(d, "y", "pm", "no2", est = sum), paste0("^jntx: ", m))
+  expect_error(jntx(d, "y", "pm", "no2", p2 = 0.5, fe = "unit"),
+               "^jntx: `p2` must be two or more quantiles\\.$")
+})

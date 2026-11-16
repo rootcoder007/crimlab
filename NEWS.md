@@ -1,5 +1,16 @@
 # crimlab 0.0.0.9000
 
+* Fixed, after a second sweep: a function given as `est` to the exposure
+  designs, `end` of a point `datumpmap()`, a list for the data of
+  `expconcidx()`, `exprspplr()` and `polbrdarea()`, `ref` and a single
+  `p2` of `jntx()`, a bootstrap `seed` past an integer in the exposure
+  estimators, an `x` of `sarml()` that is not numbers, an `onlsmry()`
+  accumulator without its state, an infinite `cnts` of `bandx()`, a
+  non-numeric `source` of `advdif2d()`, an object without a `crs` in
+  `crsof()`, invalid text in `pbbnd()` and a table of no rows in
+  `yoysmry()` used to fail in R's words; each is now refused in the
+  package's, and `ccross()` names itself where it named `plcday()`.
+
 * Fixed: `kscan()`'s Monte Carlo p-values used to depend on the order of
   the rows for a given seed (the times were shuffled over the rows as
   given); the shuffles now run over the incidents in the order of their

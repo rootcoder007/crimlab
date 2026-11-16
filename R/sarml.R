@@ -65,6 +65,10 @@
 sarml <- function(y, x, w, model = "lag", durbin = FALSE, method = "ml",
                   int = TRUE) {
   if (is.data.frame(x)) x <- as.matrix(x)
+  if (!is.numeric(x) && !is.logical(x)) {
+    stop("sarml: `x` must be a numeric matrix, data frame or vector.",
+         call. = FALSE)
+  }
   if (is.null(dim(x))) x <- matrix(x, dimnames = list(NULL, "x"))
   .Call(C_clab_r_sarml, y, x, w, model, durbin, method, int)
 }

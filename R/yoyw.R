@@ -132,6 +132,10 @@ fylbl <- function(endyear, sep = "/", short = TRUE) {
 yoysmry <- function(x, lag = 1) {
   d <- .ytab(x, "yoysmry")
   .ylag(lag, "yoysmry")
+  if (!nrow(d)) {
+    stop("yoysmry: `x` has no rows: there is nothing to summarise.",
+         call. = FALSE)
+  }
   chg <- d[[.ychg(d)]]
   g <- if ("group" %in% names(d)) as.character(d$group) else rep("", nrow(d))
   rows <- lapply(unique(g), function(k) {
@@ -225,7 +229,8 @@ yoyjs <- function(x, file = NULL, digits = NULL, pretty = TRUE, meta = NULL) {
   m <- .ymeta(meta, "yoyjs")
   ok <- all(c("prd", "value", "prev", "change") %in% names(d)) &&
     any(c("pctchg", "ppchg") %in% names(d))
-  sm <- if (ok) as.data.frame(unclass(yoysmry(d)))
+  # a table of no rows has no summary (yoysmry() refuses it)
+  sm <- if (ok && length(d[["prd"]])) as.data.frame(unclass(yoysmry(d)))
   ind <- if (pretty) 2L else NULL
   parts <- c(
     if (length(m)) c("meta", .yjs1(m)),

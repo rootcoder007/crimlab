@@ -905,10 +905,12 @@ srchfig <- function(fig = NULL, num = NULL) {
 
 # datumpmap(): `end`, two numbers, for a line, area or corridor datum
 .dmend <- function(datum, end, f) {
-  if (datum %in% c("line", "area", "corridor")) {
-    if (is.null(end)) {
-      .ckstop(f, "a %s datum needs `end`, two numbers", datum)
-    }
+  if (datum %in% c("line", "area", "corridor") && is.null(end)) {
+    .ckstop(f, "a %s datum needs `end`, two numbers", datum)
+  }
+  # checked whatever the datum: a point datum passes `end` on unread, but
+  # the compiled code still reads it as numbers
+  if (!is.null(end)) {
     end <- .cknum(end, "end", f, scalar = FALSE)
     if (length(end) != 2L) .ckstop(f, "`end` must be two numbers, x and y")
   }

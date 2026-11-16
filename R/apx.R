@@ -1941,6 +1941,12 @@ summary.expjn <- function(object, ...) {
 # The cluster bootstrap: nboot draws of the clusters of column cl from R's
 # generator; fit(rows, w) returns the coefficients of the rows drawn with
 # their weights, or an error for a draw that cannot be fitted (left out).
+# A bootstrap seed for set.seed(): a whole number from 0 that an integer
+# holds (set.seed() refuses more, in its own words).
+.axseed <- function(seed, f) {
+  .cknum(seed, "seed", f, min = 0, max = .Machine$integer.max, whole = TRUE)
+}
+
 .axboot <- function(d, cl, nboot, seed, p, fit, fn) {
   cc <- .axcode(d[[cl]])
   if (cc$n < 2L) {
@@ -2203,7 +2209,7 @@ summary.expjn <- function(object, ...) {
   psi <- NA_real_
   if (se == "boot") {
     nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+    if (!is.null(seed)) seed <- .axseed(seed, f)
     b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
       ds <- d[rows, , drop = FALSE]
       kk <- if (sep != "none") {
@@ -2287,7 +2293,7 @@ summary.expjn <- function(object, ...) {
   df <- NULL
   if (se == "boot") {
     nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-    if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+    if (!is.null(seed)) seed <- .axseed(seed, f)
     b <- .axboot(d, clus[1L], nboot, seed, length(tm), function(rows, w) {
       .axivfit(d[rows, , drop = FALSE], y, endo, inst, x, fe, as.numeric(w),
                list(c1 = NULL, n1 = 0L, c2 = NULL, n2 = 0L), tol, f)$beta
@@ -2448,7 +2454,7 @@ summary.expjn <- function(object, ...) {
 .axcfboot <- function(d, yv, endo, inst, x, off, fx, cl, nboot, seed, how,
                       tol, maxit, tm, f) {
   nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
-  if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
+  if (!is.null(seed)) seed <- .axseed(seed, f)
   me <- .axmat(d, endo, f)
   mx <- .axmat(d, x, f)
   mz <- .axmat(d, inst, f)
@@ -3238,7 +3244,7 @@ summary.expjn <- function(object, ...) {
   if (shift == "z" && !length(with)) {
     .ckstop(f, "`shift = \"z\"` needs the instruments in `with`")
   }
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   .axpdsh(shifts, f)

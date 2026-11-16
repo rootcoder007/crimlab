@@ -102,6 +102,7 @@ exprspplr <- function(
   estr = NULL
 ) {
   f <- "exprspplr"
+  if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
   .colnm(y, "y", f)
   .colnm(expo, "expo", f)
   .colnm(confs, "confs", f, several = TRUE)

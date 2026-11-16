@@ -223,7 +223,7 @@ exprun <- function(data, var, unit, day, thr = 0, cap = 3, step = 1) {
 runfx <- function(data, y, var, unit, day, thr = 0, cap = 3, step = 1,
                   ctrl = NULL, est = ppmlfe, ...) {
   f <- "runfx"
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   r <- .clas(f, exprun(data, var, unit, day, thr = thr, cap = cap,
@@ -307,7 +307,7 @@ hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
   how <- .ckmarg("how", f)
   d <- .axdat(data, f)
   .axcols(d, c(var, mod), "var, mod", f, n = 2L)
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   mv <- as.character(d[[mod]])
@@ -475,7 +475,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   strat <- .ckmarg("strat", f)
   d <- .axdat(data, f)
   ck <- .axccck(d, y, unit, day, ma, est, k, lagv, lag, ns, f)
-  d <- .axccma(d, unit, day, ma, ck$k, lagv, ck$lag)
+  d <- .clas(f, .axccma(d, unit, day, ma, ck$k, lagv, ck$lag))
   ym <- format(d[[day]], "%Y-%m")
   d$.strat <- paste(
     as.character(d[[unit]]),
@@ -572,6 +572,10 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
   p1 <- ck$p1
   p2 <- ck$p2
   ngrid <- ck$ngrid
+  if (!is.null(ref)) {
+    ref <- .cknum(ref, "ref", f, scalar = FALSE)
+    if (length(ref) != 2L) .ckstop(f, "`ref` must be two numbers, x1 and x2")
+  }
   a <- .axmat(d, c(x1, x2), f)
   t1 <- .axknots(a[, 1L], k1)
   t2 <- .axknots(a[, 2L], k2)
@@ -587,7 +591,9 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
   r <- .clas(f, est(data = d, y = y, x = c(nm, ctrl), ...))
   b <- r$coef$est[match(nm, r$coef$term)]
   v <- .axvcov(r)[nm, nm, drop = FALSE]
-  if (is.null(ref)) ref <- c(stats::median(a[, 1L]), stats::median(a[, 2L]))
+  if (is.null(ref)) {
+    ref <- c(stats::median(a[, 1L]), stats::median(a[, 2L]))
+  }
   rel <- function(u, w, u0, w0) {
     db <- basis(u, w) - basis(u0, w0)
     e <- as.numeric(db %*% b)
@@ -674,7 +680,7 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
   f <- "dosebin"
   d <- .axdat(data, f)
   .axcols(d, c(y, var), "y, var", f, n = 2L)
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   xv <- .axmat(d, var, f)[, 1L]
@@ -779,7 +785,7 @@ typefx <- function(data, ys, term, est = ppmlfe,
   if (!is.character(term) || length(term) != 1L) {
     .ckstop(f, "`term` must name one coefficient")
   }
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   rows <- lapply(ys, function(v) {
@@ -821,6 +827,12 @@ print.typefx <- function(x, ...) {
 
 # A Wald test of R b = 0: the statistic, its degrees of freedom and the
 # chi-square p-value.
+# An estimator: a function with a `data` argument, as ppmlfe() and ivfe()
+# have (sum(), say, would be called with the rows as its numbers).
+.axest <- function(est) {
+  is.function(est) && "data" %in% names(formals(args(est)))
+}
+
 .axwald <- function(b, v, r) {
   rb <- r %*% b
   m <- r %*% v %*% t(r)
@@ -1108,7 +1120,7 @@ print.typefx <- function(x, ...) {
 # list(k1, k2, p1, p2, ngrid).
 .axjxck <- function(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f) {
   .axcols(d, c(y, x1, x2), "y, x1, x2", f, n = 3L)
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   k1 <- .cknum(k1, "k1", f, min = 3, max = 7, whole = TRUE)
@@ -1116,6 +1128,7 @@ print.typefx <- function(x, ...) {
   p1 <- .cknum(p1, "p1", f, scalar = FALSE, min = 0, max = 1)
   p2 <- .cknum(p2, "p2", f, scalar = FALSE, min = 0, max = 1)
   if (length(p1) != 2L) .ckstop(f, "`p1` must be two quantiles")
+  if (length(p2) < 2L) .ckstop(f, "`p2` must be two or more quantiles")
   ngrid <- .cknum(ngrid, "ngrid", f, min = 2, whole = TRUE)
   if (ngrid > 2^13) {
     .ckstop(f, "`ngrid` times `ngrid` must be at most 67108864")
@@ -1248,7 +1261,7 @@ print.typefx <- function(x, ...) {
   if (!inherits(d[[day]], "Date")) {
     .ckstop(f, "column `%s` must hold dates", day)
   }
-  if (!is.function(est)) {
+  if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   k <- .cknum(k, "k", f, min = 1, whole = TRUE)

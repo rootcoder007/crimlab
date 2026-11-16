@@ -443,6 +443,9 @@ spxy <- function(x) {
 #' @export
 crsof <- function(x) {
   .isobj(x, "crsof")
+  if (!is.numeric(x[["crs"]]) || length(x[["crs"]]) != 1L) {
+    .ckstop("crsof", "`x$crs` must be one EPSG code")
+  }
   wkt <- switch(
     as.character(x[["crs"]]),
     "4326" = "GEOGCRS[\"WGS 84\", EPSG:4326]",

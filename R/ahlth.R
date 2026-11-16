@@ -560,6 +560,7 @@ polbrdarea <- function(
 #' @export
 expconcidx <- function(data, expo, income) {
   f <- "expconcidx"
+  if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
   .colnm(expo, "expo", f)
   .colnm(income, "income", f)
   miss <- setdiff(c(expo, income), names(data))
@@ -839,6 +840,7 @@ print.expconcidx <- function(x, ...) {
 
 # polbrdarea(): the table has the columns, rows, and numbers it needs
 .pbachk <- function(areatab, need, f) {
+  if (!is.data.frame(areatab)) .ckstop(f, "`areatab` must be a data frame")
   miss <- setdiff(need, names(areatab))
   if (length(miss)) .ckstop(f, "areatab missing columns: %s", toString(miss))
   if (!nrow(areatab)) .ckstop(f, "areatab has no rows")
