@@ -487,6 +487,8 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   const int nl = clab::whole(nlam, "nlam", 1);
   if (nl > kutil::maxcell) fail("`nlam` must be at most %.0f.", kutil::maxcell);
   const int ni = clab::whole(nfin, "nfin", 2);
+  // the inner folds split the rows: their work arrays grow with nfin
+  if (ni > n) fail("`nfin` must be at most the %d rows of `x`.", n);
   const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
   const unsigned int us = static_cast<unsigned int>(std::fmod(sd, 4294967296.0));
   const int nt = clab::whole(ntree, "ntree", 1);
@@ -610,6 +612,7 @@ SEXP C_clab_r_suplrn(SEXP x, SEXP y, SEXP fam, SEXP lrns, SEXP nfold, SEXP fold,
                    clab::whole(ntree, "ntree", 1),
                    Rf_isNull(mtry) ? 0 : clab::whole(mtry, "mtry", 1)};
   if (ls.nlam > kutil::maxcell) fail("`nlam` must be at most %.0f.", kutil::maxcell);
+  if (ls.nfin > n) fail("`nfin` must be at most the %d rows of `x`.", n);
   clab::lgl(disc, "disc", 1);
   clab_lrn sub[5];
   const int ns = subs(lrns, "lrns", ls, sub);

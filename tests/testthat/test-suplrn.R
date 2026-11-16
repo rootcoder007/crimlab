@@ -156,3 +156,11 @@ test_that("suplrn() refuses a path longer than its bound", {
   expect_error(suplrn(x, rnorm(20), nlam = 1e9),
                "suplrn: `nlam` must be at most 67108864.", fixed = TRUE)
 })
+
+test_that("suplrn() refuses more inner folds than rows", {
+  set.seed(1)
+  x <- matrix(rnorm(60), 20)
+  expect_error(suplrn(x, rnorm(20), nfin = 1e9),
+               "suplrn: `nfin` must be at most the 20 rows of `x`.",
+               fixed = TRUE)
+})

@@ -81,7 +81,7 @@
 #' @param nlam The number of penalties on each elastic net path, at most
 #'   67108864 (2^26).
 #' @param nfin The number of inner folds that choose the penalty, at
-#'   least 2.
+#'   least 2 and at most the rows of `x`.
 #' @param tol,scr The convergence threshold and the screening of the
 #'   elastic net learners, as in [enpath()].
 #' @param hon `TRUE` for honest forests, on half-samples without

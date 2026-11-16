@@ -37,7 +37,7 @@
 #' @param alpha,nlam The mixing parameter of `"enet"`, from 0 to 1, and
 #'   the number of penalties on each elastic net path, as in [dmlx()].
 #' @param nfin The number of inner folds that choose the penalty of the
-#'   elastic net, at least 2.
+#'   elastic net, at least 2 and at most the rows of `x`.
 #' @param ntree The number of trees of `"forest"`: a whole number, at least
 #'   1.
 #' @param mtry The columns tried at each split of `"forest"`: `NULL` for

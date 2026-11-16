@@ -855,6 +855,9 @@
   refuses `nboot` times the clusters past 2^26. These used to stop with
   R's own "cannot allocate vector" error. The command line gives the same
   messages where it has the function.
+* `dmlx()` and `suplrn()` refuse more inner folds (`nfin`) than rows of
+  `x`, before their work arrays are sized by it; the command line gives
+  the same message.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

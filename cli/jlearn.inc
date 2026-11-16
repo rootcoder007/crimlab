@@ -377,6 +377,7 @@ bool dmlx(Ctx &c, Val &out) {
   CK(wholed(c, "nlam", 100, 1, nl));
   if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
   CK(wholed(c, "nfin", 5, 2, ni));
+  if (ni > n) return c.fail("`nfin` must be at most the %d rows of `x`.", n);
   Dv sdv, tlv;
   Val d1, d2;
   CK(num(c, arg(c, "seed", d1, 1), "seed", sdv, 1, 0.0));
@@ -491,6 +492,7 @@ bool suplrn(Ctx &c, Val &out) {
   CK(wholed(c, "nlam", 100, 1, nl));
   if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
   CK(wholed(c, "nfin", 5, 2, ni));
+  if (ni > n) return c.fail("`nfin` must be at most the %d rows of `x`.", n);
   CK(wholed(c, "ntree", 500, 1, ntr));
   if (c.has("mtry")) CK(whole(c, c["mtry"], "mtry", 1, mt));
   const Lset ls = {al, nl, ni, 1e-7, 1, 0, us, ntr, mt};

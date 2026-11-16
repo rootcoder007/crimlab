@@ -171,3 +171,9 @@ test_that("dmlx() refuses a path longer than its bound", {
   expect_error(dmlx(ref$yc, ref$dc, x, "plr", ref$clu$fold, nlam = 1e9),
                "dmlx: `nlam` must be at most 67108864.", fixed = TRUE)
 })
+
+test_that("dmlx() refuses more inner folds than rows", {
+  expect_error(dmlx(ref$yc, ref$dc, x, "plr", ref$clu$fold, nfin = 1e9),
+               sprintf("dmlx: `nfin` must be at most the %d rows of `x`.",
+                       nrow(x)), fixed = TRUE)
+})
