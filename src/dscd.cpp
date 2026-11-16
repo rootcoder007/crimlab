@@ -82,7 +82,13 @@ bool alnum(char c) {
 }
 
 // one name of clncolnms() before the numbering of repeats
-std::string cname(const std::string &s, int cs, const std::string &sep) {
+std::string cname(const std::string &s0, int cs, const std::string &sep) {
+  // a control character (a tab, a line break) is a word break, which the
+  // transliteration would delete
+  std::string s(s0);
+  for (char &c : s) {
+    if (static_cast<unsigned char>(c) < 0x20 || c == '\x7f') c = ' ';
+  }
   std::vector<char> b(s.size() * 2 + 1, 0);
   const int m = s.size() > INT_MAX / 2 ? 0 : clab_ascii(s.data(), static_cast<int>(s.size()), b.data());
   std::string u;
@@ -141,8 +147,9 @@ namespace dscd {
 std::vector<std::string> cnames(const std::vector<std::string> &nm, int cs, const std::string &sep) {
   std::vector<std::string> out;
   for (const std::string &s : nm) out.push_back(cname(s, cs, sep));
-  // as .cndup() did: each repeated name, in the order of its first repeat,
-  // numbered over the names as they stand after the ones before it
+  // each repeated name, in the order of its first repeat, numbered from 2;
+  // a number whose name is taken (by a name given, or one numbered
+  // before) is skipped, so that the names are unique
   // ponytail: quadratic in the names, which are columns
   std::vector<std::string> rp;
   for (size_t i = 0; i < out.size(); ++i) {
@@ -150,12 +157,21 @@ std::vector<std::string> cnames(const std::vector<std::string> &nm, int cs, cons
                      out.begin() + static_cast<std::ptrdiff_t>(i);
     if (dup && std::find(rp.begin(), rp.end(), out[i]) == rp.end()) rp.push_back(out[i]);
   }
+  std::vector<std::string> tk(out);
   for (const std::string &r : rp) {
-    int k = 0;
+    bool first = true;
+    long k = 2;
     for (std::string &o : out) {
       if (o != r) continue;
-      if (k > 0) o = r + sep + std::to_string(k + 1);
+      if (first) {
+        first = false;
+        continue;
+      }
+      std::string c = r + sep + std::to_string(k);
+      while (std::find(tk.begin(), tk.end(), c) != tk.end()) c = r + sep + std::to_string(++k);
       ++k;
+      o = c;
+      tk.push_back(c);
     }
   }
   return out;

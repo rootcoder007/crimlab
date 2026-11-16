@@ -27,6 +27,10 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `clncolnms()` could return repeated names (`c("x", "x", "x_2")`
+  gave `"x_2"` twice); a number whose name is taken is now skipped. A tab
+  inside a name is a word break, as the help says, and no longer deleted.
+
 * Fixed: `mcartst()` refused columns in different units (income next to
   a rate) as collinear; the rank check and the EM step's eigenvalue floor
   are now on the scale of the correlations.

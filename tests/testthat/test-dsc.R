@@ -646,3 +646,18 @@ test_that("mcartst() takes columns in different units", {
   d$k <- 0.1
   expect_error(mcartst(d), "^mcartst: the columns are collinear")
 })
+
+test_that("clncolnms() numbers repeats past the names already taken", {
+  # x_2 is a name given: the repeat of x takes the next free number
+  expect_identical(clncolnms(c("x", "x", "x_2"), quiet = TRUE),
+                   c("x", "x_3", "x_2"))
+  nm <- c("a", "a", "a_2", "a", "a_3", "a_2")
+  out <- clncolnms(nm, quiet = TRUE)
+  expect_identical(anyDuplicated(out), 0L)
+  expect_identical(out, c("a", "a_4", "a_2", "a_5", "a_3", "a_2_2"))
+  df <- data.frame(a = 1, a = 2, a_2 = 3, check.names = FALSE)
+  expect_named(clncolnms(df, quiet = TRUE), c("a", "a_3", "a_2"))
+  # a tab or a line break is a word break, as a space is
+  expect_identical(clncolnms(c("a\tb", "c\nd", "e\001f"), quiet = TRUE),
+                   c("a_b", "c_d", "e_f"))
+})

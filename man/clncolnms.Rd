@@ -53,7 +53,8 @@ words; split camelCase at a lower-to-upper boundary; turn every run of
 other characters into one word break; an empty name becomes \code{x}; join
 the words in the chosen case; prefix \code{x} to a name starting with a
 digit; and give repeated names the suffixes \code{<sep>2}, \code{<sep>3},
-... in order of appearance (the first keeps its name).
+... in order of appearance (the first keeps its name), skipping a number
+whose name is already taken, so that every name is unique.
 
 Record the mapping with the data. Cleaning names changes what a
 downstream script must refer to, so an unrecorded cleaning is itself a
