@@ -4334,6 +4334,15 @@ int clab_pbarea(size_t n, const double *e, const double *pop, const double *br, 
                 int rare, int hirate, double *rr, double *paf, double *att, double *base, int64_t *ord,
                 int64_t *bad);
 
+/* The ROC curve of n pairs with probabilities prob (NaN for NA) and flags
+ * lk (1 linked, 0 not, anything else NA): from (0, 0), the share of
+ * unlinked (fpr) and of linked (tpr) pairs at or above each distinct
+ * probability, largest first, k points in all (fpr, tpr: n + 1 doubles),
+ * and auc the trapezoid area under it. na[g] is set when group g holds a
+ * missing value (its shares are then NA in R). O(n log n). */
+int clab_rocpts(size_t n, const double *prob, const int *lk, double *fpr, double *tpr, size_t *k,
+                double *auc, int *na);
+
 #ifdef __cplusplus
 }
 #endif

@@ -521,11 +521,9 @@ plot.lnkpr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
     stop("plot: an ROC curve needs both linked and unlinked pairs.",
          call. = FALSE)
   }
-  th <- sort(unique(p$prob), decreasing = TRUE)
-  d <- data.frame(fpr = c(0, vapply(th, function(v) mean(p$prob[!l] >= v),
-                                    1)),
-                  tpr = c(0, vapply(th, function(v) mean(p$prob[l] >= v), 1)))
-  auc <- sum(diff(d$fpr) * (d$tpr[-1L] + d$tpr[-nrow(d)]) / 2)
+  r <- .Call(C_clab_r_rocpts, as.double(p$prob), l)
+  d <- data.frame(fpr = r[[1L]], tpr = r[[2L]])
+  auc <- r[[3L]]
   .plines(d$fpr, list(model = d$tpr),
           .pmain(main, sprintf("Linkage ROC curve (area %.3f)", auc)),
           "Share of unlinked pairs above the threshold",
