@@ -234,3 +234,34 @@ test_that("ovrsoc() refuses words it cannot look for", {
                "ovrsoc: `x` must be text (a character vector), not numeric.",
                fixed = TRUE)
 })
+
+test_that("ovrkwd() marks the groups whose words a report holds", {
+  x <- c("The man had a history of schizophrenia; a crisis team came.",
+         "<p>An <b>Indigenous</b> woman, in a mental health crisis.</p>",
+         "Blackburn Road; the EDPs unit; nothing of either kind.",
+         NA)
+  k <- ovrkwd(x)
+  expect_identical(names(k), c("mental_health", "race", "terms"))
+  # written out: schizophren* starts a word of the first; the second has
+  # both groups; "Blackburn" and "EDPs" are not the words "Black", "EDP"
+  expect_identical(k$mental_health, c(TRUE, TRUE, FALSE, NA))
+  expect_identical(k$race, c(FALSE, TRUE, FALSE, NA))
+  expect_identical(k$terms, c("schizophren*", "mental health; Indigenous",
+                              "", NA))
+  w <- ovrkwd(c("A Taser and a baton.", "none"),
+              list(force = c("taser", "baton"), dog = "police dog"))
+  expect_identical(w$force, c(TRUE, FALSE))
+  expect_identical(w$dog, c(FALSE, FALSE))
+  expect_identical(w$terms, c("taser; baton", ""))
+  v <- ovrkwd("baton", c("taser", "baton"))
+  expect_identical(names(v), c("taser", "baton", "terms"))
+})
+
+test_that("ovrkwd() refuses keyword groups it cannot read", {
+  m <- paste("ovrkwd: `vocab` must be \"mhr\", a list of words named by",
+             "group, or words.")
+  expect_error(ovrkwd("a", 3), m, fixed = TRUE)
+  expect_error(ovrkwd("a", list("taser")), m, fixed = TRUE)
+  expect_error(ovrkwd("a", list(a = NA_character_)), m, fixed = TRUE)
+  expect_error(ovrkwd("a", ""), m, fixed = TRUE)
+})

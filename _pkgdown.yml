@@ -588,6 +588,7 @@ reference:
       - ovrsch
       - ovrpar
       - ovrsoc
+      - ovrkwd
   - title: Shares
     desc: Each count as a share of its total, with Wilson intervals that stay inside 0 to 100.
     contents:

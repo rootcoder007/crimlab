@@ -7879,3 +7879,18 @@ def ovrsoc(x: Any, tag: Any = "SO", term: Any = None, wtag: Any = "WO", head: An
     ['count', 'rule', 'reason']
     """
     return jcall("ovrsoc", x=x, tag=tag, term=term, wtag=wtag, head=head, html=html)
+
+
+def ovrkwd(x: Any, vocab: Any = "mhr", html: Any = None) -> Any:
+    """Keyword indicators in oversight reports.
+
+    The arguments and the result are those of R's ``ovrkwd()``: see its help
+    page; ``vocab`` is a preset's name, a dictionary of words by group, or
+    words.
+
+    Examples
+    --------
+    >>> list(ovrkwd(x=["A Taser was used."], vocab={"force": ["taser"]}))
+    ['force', 'terms']
+    """
+    return jcall("ovrkwd", x=x, vocab=vocab, html=html)

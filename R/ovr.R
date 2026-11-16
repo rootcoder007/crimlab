@@ -296,3 +296,84 @@ ovrsoc <- function(x, tag = "SO", term = c("subject official",
   }
   paste(enc2utf8(x), collapse = "|")
 }
+
+#' Keyword indicators in oversight reports
+#'
+#' Marks each report that mentions any word of each keyword group: the
+#' signals of mental health and of race that analyses of oversight
+#' reports tally, or any groups of one's own. A mention is a signal to
+#' read the report, not a finding: a report may name a condition only to
+#' rule it out.
+#'
+#' Words are matched whole and in any case (ASCII letters; others as
+#' written); a word ending in `*` matches any word it starts
+#' (`"schizophren*"` finds "schizophrenia"). The preset `"mhr"` has the
+#' groups `mental_health` (mental health or illness, psychiatric,
+#' schizophrenia, bipolar, depression, psychosis, suicidal, self-harm,
+#' delusions, crisis intervention, "EDP", "emotionally disturbed",
+#' "MCIT") and `race` (Black, African, Indigenous, First Nations, Metis,
+#' Inuit, racialized, racial, racism, anti-Black, ethnic, South Asian).
+#'
+#' @inheritParams ovrtxt
+#' @param x The reports: pages (HTML) or texts, a character vector.
+#' @param vocab The keyword groups: the name of a preset (`"mhr"`), a
+#'   named list of character vectors (one group each), or a character
+#'   vector (each word a group of its own).
+#' @return A data frame with one row per report: a logical column per
+#'   group (`TRUE` when the report holds a word of it; `NA` for a report
+#'   that is `NA`) and `terms`, the words found, in the order of `vocab`,
+#'   separated by `"; "`.
+#' @examples
+#' x <- c("The man had a history of schizophrenia; a crisis team came.",
+#'        "An Indigenous woman was arrested.",
+#'        "Nothing of either kind.")
+#' k <- ovrkwd(x)
+#' k
+#' colSums(k[c("mental_health", "race")])
+#' ovrkwd(x, list(force = c("taser", "conducted energy weapon", "baton")))
+#' @export
+ovrkwd <- function(x, vocab = "mhr", html = NA) {
+  f <- "ovrkwd"
+  x <- .ovrin(x, "x", f)
+  v <- .ovrvoc(vocab, f)
+  html <- .ovrhtml(html, f)
+  m <- .Call(C_clab_r_ovrkwd, x, html, v$term)
+  hit <- m > 0L
+  gs <- unique(v$group)
+  out <- lapply(gs, function(g) {
+    h <- hit[, v$group == g, drop = FALSE]
+    rowSums(h) > 0L
+  })
+  out <- as.data.frame(stats::setNames(out, gs), check.names = FALSE)
+  out$terms <- vapply(seq_along(x), function(i) {
+    if (is.na(x[i])) {
+      return(NA_character_)
+    }
+    paste(v$term[hit[i, ]], collapse = "; ")
+  }, "")
+  out
+}
+
+# The keyword groups: a preset, a named list of words, or words.
+.ovrvoc <- function(vocab, f) {
+  if (is.character(vocab) && length(vocab) == 1L && identical(vocab, "mhr")) {
+    return(.Call(C_clab_r_ovrvoc, vocab))
+  }
+  if (is.list(vocab) && !is.data.frame(vocab)) {
+    nm <- names(vocab)
+    ok <- length(vocab) && !is.null(nm) && !anyNA(nm) && all(nzchar(nm)) &&
+      !anyDuplicated(nm) && all(vapply(vocab, is.character, NA))
+    w <- unlist(vocab, use.names = FALSE)
+    if (!ok || !length(w) || anyNA(w) || !all(nzchar(w))) {
+      .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
+                       "group, or words"))
+    }
+    return(list(group = rep(nm, lengths(vocab)), term = enc2utf8(w)))
+  }
+  if (!is.character(vocab) || !length(vocab) || anyNA(vocab) ||
+        !all(nzchar(vocab))) {
+    .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
+                     "group, or words"))
+  }
+  list(group = vocab, term = enc2utf8(vocab))
+}

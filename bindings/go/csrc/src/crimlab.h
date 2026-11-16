@@ -4639,6 +4639,15 @@ int clab_ovrfld(const char *t, int64_t n, int rule, const char *cue, const char 
 int clab_ovrsoc(const char *t, int64_t n, const char *tag, const char *term, const char *wtag, const char *head,
                 int *count, int *rule, char *why, int cap);
 
+/* The keyword groups of a preset (ovrkwd): word j (from 0) of preset
+ * ("mhr") and its group. Static storage. CLAB_EARG for an unknown preset or
+ * past the last word. */
+int clab_ovrvoc(const char *preset, int j, const char **group, const char **term);
+
+/* The times term occurs as a word in t (n bytes; ovrkwd), in any case
+ * (ASCII); a term ending in '*' as the start of a word. */
+int clab_ovrkwd(const char *t, int64_t n, const char *term, int64_t *count);
+
 #ifdef __cplusplus
 }
 #endif

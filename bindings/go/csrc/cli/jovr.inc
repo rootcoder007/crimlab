@@ -425,4 +425,77 @@ bool ovrsoc(Ctx &c, Val &out) {
   return true;
 }
 
+bool ovrkwd(Ctx &c, Val &out) {
+  std::vector<std::string> x;
+  std::vector<char> m;
+  CK(otxt(c, "x", x, m));
+  // .ovrvoc()
+  std::vector<std::string> grp, trm;
+  const Val &v = c["vocab"];
+  const Val *v1 = v.t == Val::ARR && v.a.size() == 1 ? &v.a[0] : &v;
+  bool ok = true;
+  if (!c.has("vocab") || (v1->t == Val::STR && v1->s == "mhr")) {
+    const char *g, *t;
+    for (int i = 0; clab_ovrvoc("mhr", i, &g, &t) == CLAB_OK; ++i) {
+      grp.push_back(g);
+      trm.push_back(t);
+    }
+  } else if (v.t == Val::OBJ) {
+    ok = !v.k.empty();
+    for (std::size_t j = 0; ok && j < v.k.size(); ++j) {
+      ok = !v.k[j].empty() && std::find(v.k.begin(), v.k.begin() + static_cast<std::ptrdiff_t>(j), v.k[j]) ==
+                                  v.k.begin() + static_cast<std::ptrdiff_t>(j);
+      const std::vector<Val> e = v.a[j].t == Val::ARR ? v.a[j].a : std::vector<Val>{v.a[j]};
+      for (const Val &w : e) {
+        ok = ok && w.t == Val::STR && !w.s.empty();
+        if (ok) {
+          grp.push_back(v.k[j]);
+          trm.push_back(w.s);
+        }
+      }
+    }
+  } else {
+    const std::vector<Val> e = v.t == Val::ARR ? v.a : std::vector<Val>{v};
+    for (const Val &w : e) {
+      ok = ok && w.t == Val::STR && !w.s.empty();
+      if (ok) {
+        grp.push_back(w.s);
+        trm.push_back(w.s);
+      }
+    }
+  }
+  if (!ok || trm.empty()) return ckstop(c, "`vocab` must be \"mhr\", a list of words named by group, or words");
+  int h = -1;
+  CK(ohtml(c, h));
+  std::vector<std::string> gs;
+  for (const std::string &g : grp) {
+    if (std::find(gs.begin(), gs.end(), g) == gs.end()) gs.push_back(g);
+  }
+  std::vector<Val> col(gs.size(), varr());
+  Val terms = varr();
+  for (std::size_t i = 0; i < x.size(); ++i) {
+    if (m[i]) {
+      for (Val &cg : col) cg.a.emplace_back();
+      terms.a.emplace_back();
+      continue;
+    }
+    const std::string t = otext(x[i], h);
+    std::vector<char> any(gs.size(), 0);
+    std::string found;
+    for (std::size_t j = 0; j < trm.size(); ++j) {
+      int64_t k = 0;
+      clab_ovrkwd(t.data(), static_cast<int64_t>(t.size()), trm[j].c_str(), &k);
+      if (k <= 0) continue;
+      any[static_cast<std::size_t>(std::find(gs.begin(), gs.end(), grp[j]) - gs.begin())] = 1;
+      found += (found.empty() ? "" : "; ") + trm[j];
+    }
+    for (std::size_t g = 0; g < gs.size(); ++g) col[g].a.push_back(vbool(any[g] != 0));
+    terms.a.push_back(vstr(found));
+  }
+  out = vobj();
+  for (std::size_t g = 0; g < gs.size(); ++g) put(out, gs[g].c_str(), std::move(col[g]));
+  put(out, "terms", std::move(terms));
+  return true;
+}
+
 }  // namespace ovr

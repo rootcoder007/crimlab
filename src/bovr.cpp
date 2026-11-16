@@ -176,3 +176,57 @@ SEXP C_clab_r_ovrsoc(SEXP x, SEXP html, SEXP tag, SEXP term, SEXP wtag, SEXP hea
 }
 
 }  // extern "C"
+
+extern "C" {
+
+// The keyword groups of a preset: a list of group and term.
+SEXP C_clab_r_ovrvoc(SEXP preset) {
+  clab::who = "ovrkwd";
+  const char *p = Rf_translateCharUTF8(STRING_ELT(preset, 0)), *g, *t;
+  int m = 0;
+  while (clab_ovrvoc(p, m, &g, &t) == CLAB_OK) ++m;
+  SEXP gs = PROTECT(Rf_allocVector(STRSXP, m));
+  SEXP ts = PROTECT(Rf_allocVector(STRSXP, m));
+  for (int i = 0; i < m; ++i) {
+    clab_ovrvoc(p, i, &g, &t);
+    SET_STRING_ELT(gs, i, Rf_mkCharCE(g, CE_UTF8));
+    SET_STRING_ELT(ts, i, Rf_mkCharCE(t, CE_UTF8));
+  }
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
+  SEXP nm = PROTECT(Rf_allocVector(STRSXP, 2));
+  SET_VECTOR_ELT(out, 0, gs);
+  SET_VECTOR_ELT(out, 1, ts);
+  SET_STRING_ELT(nm, 0, Rf_mkChar("group"));
+  SET_STRING_ELT(nm, 1, Rf_mkChar("term"));
+  Rf_setAttrib(out, R_NamesSymbol, nm);
+  UNPROTECT(4);
+  return out;
+}
+
+// ovrkwd(): the times each term occurs in each text, an integer matrix
+// (texts by terms), NA for a text that is NA.
+SEXP C_clab_r_ovrkwd(SEXP x, SEXP html, SEXP terms) {
+  clab::who = "ovrkwd";
+  const R_xlen_t n = XLENGTH(x), k = XLENGTH(terms);
+  const int h = Rf_asLogical(html) == NA_LOGICAL ? -1 : Rf_asLogical(html);
+  SEXP out = PROTECT(Rf_allocMatrix(INTSXP, static_cast<int>(n), static_cast<int>(k)));
+  for (R_xlen_t i = 0; i < n; ++i) {
+    const bool na = STRING_ELT(x, i) == NA_STRING;
+    int64_t m = 0, tl = 0;
+    char *t = nullptr;
+    if (!na) {
+      const char *s = u8(x, i, &m);
+      t = R_alloc(static_cast<std::size_t>(m) + 1, 1);
+      kc(clab_ovrtxt(s, m, h, t, &tl));
+    }
+    for (R_xlen_t j = 0; j < k; ++j) {
+      int64_t c = 0;
+      if (!na) kc(clab_ovrkwd(t, tl, Rf_translateCharUTF8(STRING_ELT(terms, j)), &c));
+      INTEGER(out)[i + j * n] = na ? NA_INTEGER : static_cast<int>(c);
+    }
+  }
+  UNPROTECT(1);
+  return out;
+}
+
+}  // extern "C"

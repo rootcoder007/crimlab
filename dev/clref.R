@@ -2426,6 +2426,10 @@ ok("ovrsoc", x = c("Subject Officials\nSO #1 Interviewed\nSO #2 Declined", "SO #
 ok("ovrsoc", x = "Agents impliqu\u00e9s\nAI no 1\nAI no 2", tag = "AI", term = "agent impliqu\u00e9", wtag = "AT",
    head = "Agents impliqu\u00e9s")
 bad("ovrsoc", x = "a", tag = c("SO", "AI"))
+ok("ovrkwd", x = c("The man had a history of schizophrenia; a crisis team came.",
+                   "<p>An <b>Indigenous</b> woman, in a mental health crisis.</p>", "Blackburn Road; the EDPs unit", NA))
+ok("ovrkwd", x = c("A Taser and a baton.", "none"), vocab = list(force = c("taser", "baton"), dog = "police dog"))
+bad("ovrkwd", x = "a", vocab = 3)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

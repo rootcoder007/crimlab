@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrkwd()` marks the reports that mention the words of keyword
+  groups, whole words in any case, with a preset for mental health and
+  race and any groups of one's own.
+
 * New: `ovrsoc()` counts the subject officials of an oversight report by
   the first of six rules that applies (a roster, numbered tags, a plural,
   a singular mention, a statement of none) and says which rule and words

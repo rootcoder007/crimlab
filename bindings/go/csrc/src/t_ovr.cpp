@@ -113,6 +113,22 @@ void soc(tk &tt) {
   tk_ieq(tt, "ovr.soc.na", c * 10 + r, -10 + 6);
 }
 
+void kwd(tk &tt) {
+  // "Black" twice as a word, not in "Blackburn"; a stem with '*'
+  const char *t = "Black, black and Blackburn; schizophrenia";
+  const int64_t n = static_cast<int64_t>(std::strlen(t));
+  int64_t k = 0;
+  tk_ieq(tt, "ovr.kwd.rc", clab_ovrkwd(t, n, "Black", &k), CLAB_OK);
+  tk_ieq(tt, "ovr.kwd.word", static_cast<int>(k), 2);
+  clab_ovrkwd(t, n, "schizophren*", &k);
+  tk_ieq(tt, "ovr.kwd.stem", static_cast<int>(k), 1);
+  clab_ovrkwd(t, n, "schizophren", &k);
+  tk_ieq(tt, "ovr.kwd.whole", static_cast<int>(k), 0);
+  const char *g, *w;
+  tk_ieq(tt, "ovr.kwd.voc", clab_ovrvoc("mhr", 0, &g, &w), CLAB_OK);
+  tk_ieq(tt, "ovr.kwd.none", clab_ovrvoc("x", 0, &g, &w), CLAB_EARG);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
@@ -124,4 +140,5 @@ void t_ovr(tk &t, int big) {
   sch(t);
   fld(t);
   soc(t);
+  kwd(t);
 }

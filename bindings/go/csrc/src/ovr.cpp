@@ -990,3 +990,62 @@ extern "C" int clab_ovrsoc(const char *t, int64_t n, const char *tag, const char
   std::snprintf(why, static_cast<size_t>(cap), "%s", w.c_str());
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
+
+namespace {
+
+// The keyword groups of the preset "mhr": mental health and race in
+// narratives of police encounters. A final '*' takes any ending.
+const char *const kMhr[][2] = {
+    {"mental_health", "mental health"},  {"mental_health", "mental illness"},
+    {"mental_health", "psychiatric"},    {"mental_health", "schizophren*"},
+    {"mental_health", "bipolar"},        {"mental_health", "depression"},
+    {"mental_health", "psychosis"},      {"mental_health", "psychotic"},
+    {"mental_health", "suicidal"},       {"mental_health", "self-harm"},
+    {"mental_health", "delusion*"},      {"mental_health", "crisis intervention"},
+    {"mental_health", "EDP"},            {"mental_health", "emotionally disturbed"},
+    {"mental_health", "MCIT"},           {"race", "Black"},
+    {"race", "African"},                 {"race", "Indigenous"},
+    {"race", "First Nation*"},           {"race", "Metis"},
+    {"race", "M\xc3\xa9tis"},            {"race", "Inuit"},
+    {"race", "racialized"},              {"race", "racialised"},
+    {"race", "racial"},                  {"race", "racism"},
+    {"race", "anti-Black"},              {"race", "ethnic*"},
+    {"race", "South Asian"}};
+
+// The times term occurs in s as a word, in any case (ASCII); a term
+// ending in '*' as the start of a word.
+int64_t hits(const string &s, const string &term) {
+  string w = lower(term);
+  const bool pre = !w.empty() && w.back() == '*';
+  if (pre) w.pop_back();
+  if (w.empty()) return 0;
+  const string l = lower(s);
+  int64_t k = 0;
+  for (size_t p = l.find(w); p != string::npos; p = l.find(w, p + 1)) {
+    if (iswrd(static_cast<unsigned char>(w[0])) && p > 0 && iswrd(static_cast<unsigned char>(l[p - 1]))) continue;
+    const size_t e = p + w.size();
+    if (!pre && iswrd(static_cast<unsigned char>(w.back())) && e < l.size() &&
+        iswrd(static_cast<unsigned char>(l[e]))) {
+      continue;
+    }
+    ++k;
+  }
+  return k;
+}
+
+}  // namespace
+
+extern "C" int clab_ovrvoc(const char *preset, int j, const char **group, const char **term) {
+  if (std::strcmp(preset, "mhr") != 0 || j < 0 || j >= static_cast<int>(sizeof kMhr / sizeof kMhr[0])) {
+    return CLAB_EARG;
+  }
+  *group = kMhr[j][0];
+  *term = kMhr[j][1];
+  return CLAB_OK;
+}
+
+extern "C" int clab_ovrkwd(const char *t, int64_t n, const char *term, int64_t *count) CLAB_TRY {
+  if (n < 0) return CLAB_EARG;
+  *count = hits(string(t, static_cast<size_t>(n)), term);
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)
