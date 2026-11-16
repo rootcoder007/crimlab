@@ -490,4 +490,102 @@ bool ifesc(Ctx &c, Val &out) {
   return true;
 }
 
+// lrcce() (R/lrc.R): the object a data frame of unit estimates, one
+// column per term; x an array of terms or an object of named arrays.
+bool lrcce(Ctx &c, Val &out) {
+  const Val &o = c["object"];
+  bool okf = o.t == Val::OBJ && !o.k.empty();
+  std::size_t n = 0;
+  for (std::size_t j = 0; okf && j < o.a.size(); ++j) {
+    okf = o.a[j].t == Val::ARR && numv(o.a[j]) && (j == 0 || o.a[j].a.size() == n);
+    if (okf) n = o.a[j].a.size();
+  }
+  if (!okf) return ckstop(c, "`object` must be a ccepnl fit or a matrix of unit estimates with named columns");
+  if (n < 2) return ckstop(c, "`object` needs two or more units");
+  auto colof = [&](const std::string &k) -> const Val * {
+    for (std::size_t j = 0; j < o.k.size(); ++j) {
+      if (o.k[j] == k) return &o.a[j];
+    }
+    return nullptr;
+  };
+  auto strs = [](const Val &v, Cols &s) {
+    if (v.t == Val::STR) {
+      s = {v.s};
+      return true;
+    }
+    if (v.t != Val::ARR) return false;
+    for (const Val &e : v.a) {
+      if (e.t != Val::STR) return false;
+      s.push_back(e.s);
+    }
+    return true;
+  };
+  std::vector<Cols> xs;
+  Cols nm;
+  const Val &xv = c["x"];
+  bool ok = true;
+  if (xv.t == Val::OBJ) {
+    for (std::size_t j = 0; j < xv.k.size() && ok; ++j) {
+      Cols s;
+      ok = strs(xv.a[j], s);
+      xs.push_back(s);
+      nm.push_back(xv.k[j]);
+    }
+  } else {
+    Cols s;
+    ok = strs(xv, s) && !s.empty();
+    xs.push_back(s);
+    nm.push_back(ok ? s[0] : "");
+  }
+  Cols yl;
+  if (c.has("ylag") && c["ylag"].t != Val::NUL) {
+    ok = ok && strs(c["ylag"], yl);
+  } else {
+    for (const std::string &k : o.k) {
+      std::size_t q = 1;
+      const bool m = k.size() > 3 && k[0] == 'L' && k.compare(k.size() - 2, 2, ".y") == 0;
+      while (m && q < k.size() - 2 && std::isdigit(static_cast<unsigned char>(k[q]))) ++q;
+      if (m && q == k.size() - 2 && q > 1) yl.push_back(k);
+    }
+  }
+  std::vector<Cols> all = xs;
+  all.push_back(yl);
+  for (const Cols &s : all) {
+    for (const std::string &k : s) ok = ok && colof(k) != nullptr;
+  }
+  if (!ok) return ckstop(c, "`x` and `ylag` must name columns of the unit estimates");
+  if (yl.empty()) return ckstop(c, "the fit has no lags of `y`");
+  double lv = 0;
+  CK(alevel(c, lv));
+  auto rsum = [&](const Cols &s, std::size_t i) {
+    double v = 0.0;
+    for (const std::string &k : s) v += colof(k)->a[i].n;
+    return v;
+  };
+  const std::size_t m = xs.size() + 1;
+  std::vector<double> u(n * m);
+  for (std::size_t i = 0; i < n; ++i) {
+    const double phi = 1 - rsum(yl, i);
+    for (std::size_t j = 0; j < xs.size(); ++j) u[j * n + i] = rsum(xs[j], i) / phi;
+    u[xs.size() * n + i] = phi;
+  }
+  for (double v : u) {
+    if (!std::isfinite(v)) return ckstop(c, "a unit's lags of `y` sum to 1");
+  }
+  nm.push_back("phi");
+  std::vector<double> mu(m), se(m);
+  for (std::size_t j = 0; j < m; ++j) {
+    long double s = 0.0, q = 0.0;
+    for (std::size_t i = 0; i < n; ++i) s += u[j * n + i];
+    mu[j] = static_cast<double>(s / static_cast<long double>(n));
+    for (std::size_t i = 0; i < n; ++i) q += (u[j * n + i] - mu[j]) * (u[j * n + i] - mu[j]);
+    se[j] = std::sqrt(static_cast<double>(q) / (static_cast<double>(n) * (static_cast<double>(n) - 1)));
+  }
+  const Val tb = atab(nm, mu, se, lv, NaN, false);
+  out = vobj();
+  for (std::size_t j = 0; j < tb.k.size(); ++j) put(out, tb.k[j] == "stat" ? "z" : tb.k[j].c_str(), tb.a[j]);
+  put(out, "units", vmat(u.data(), static_cast<int>(n), static_cast<int>(m)));
+  return true;
+}
+
 }  // namespace ax

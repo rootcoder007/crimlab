@@ -1850,6 +1850,9 @@ bad("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "twoway")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = c("area", "day"))
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "hc1")
 ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "nw", time = "day")
+ok("lrcce", object = data.frame(L1.y = c(0.3, 0.4, 0.5), L2.y = c(0.1, 0, 0.1), x = c(0.5, 0.6, 0.4),
+                                xl = c(0.1, 0, 0.2), z = c(1, 2, 3)), x = list(x = c("x", "xl"), z = "z"))
+bad("lrcce", object = data.frame(L1.y = c(0.3, 0.4), x = c(1, 2)), x = "w")
 ifd <- local({
   set.seed(9)
   p <- expand.grid(id = 1:16, yr = 1:9)

@@ -1,5 +1,8 @@
 # crimlab 0.0.0.9000
 
+* New: `lrcce()`, the CS-ARDL long-run effects and adjustment speed
+  from the unit estimates of `ccepnl()`, as Ditzen (2021) sets them out.
+
 * New: `ifesc()`, the generalized synthetic control of Xu (2017) on the
   interactive fixed effects model of Bai (2009), with staggered adoption,
   the number of factors by cross-validation and a bootstrap of units.

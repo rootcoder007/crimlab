@@ -478,6 +478,8 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(asrule(c("a", "a", "b"), c("p", "q", "q"))),
          c("lhs", "rhs", "support", "confidence", "coverage", "lift",
            "count")),
+    list(quote(lrcce(cbind(L1.y = c(0.5, 0.4), x = c(1, 2)), "x")),
+         c("term", "est", "se", "z", "p", "lo", "hi")),
     list(quote(ifesc(data.frame(id = rep(1:3, each = 3), t = rep(1:3, 3),
                                 y = c(1, 2, 3, 3, 4, 5, 2, 3, 10),
                                 tr = c(0, 0, 0, 0, 0, 0, 0, 0, 1)),

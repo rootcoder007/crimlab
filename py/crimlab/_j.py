@@ -6925,6 +6925,21 @@ def asrule(x: Any, y: Any, minsup: Any = 0.1, minconf: Any = 0.2, empty: Any = T
     return jcall("asrule", x=x, y=y, minsup=minsup, minconf=minconf, empty=empty, nm=nm)
 
 
+def lrcce(object: Any, x: Any, ylag: Any = None, level: Any = 0.95) -> Any:
+    """Long-run effects from a common correlated effects fit.
+
+    The arguments and the result are those of R's ``lrcce()``: see its help
+    page. ``object`` is the unit estimates, one named column per term.
+
+    Examples
+    --------
+    >>> b = {"L1.y": [0.5, 0.5, 0.5, 0.5], "x": [1.0, 1.0, 2.0, 2.0]}
+    >>> lrcce(object=b, x="x")["est"]
+    [3.0, 0.5]
+    """
+    return jcall("lrcce", object=object, x=x, ylag=ylag, level=level)
+
+
 def ifesc(data: Any, y: Any, d: Any, unit: Any, time: Any, x: Any = None, r: Any = None, rmax: Any = 5,
           se: Any = "boot", nboot: Any = 200, seed: Any = None, level: Any = 0.95, tol: Any = 1e-8,
           maxit: Any = 1000) -> Any:
