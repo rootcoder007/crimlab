@@ -86,6 +86,13 @@ err "choice" 'sqrtlw: `metric` must be one of "euclid", "grid".' 1 "$c" sqrtlw -
 err "by name" 'impfpr: `ppv` must name the same units as `p`; `ppv` has no b.' 1 "$c" impfpr --p '{"a":0.3,"b":0.5}' --ppv '{"a":0.6,"c":0.7}' --fnr '{"a":0.1,"b":0.2}'
 err "no function" 'crimlab: no function nope (crimlab -l lists them).' 2 "$c" nope
 err "bad JSON" 'crimlab: --p: the value is not JSON: [1,' 2 "$c" cllr --p '[1,'
+# a NUL byte in a CSV cell, invalid UTF-8 in a text argument or a CSV cell
+nulcsv() { printf 'group,day,night\na,4\0000,50\nb,60,50\n' | "$c" vodtst -j 2>&1 >/dev/null; }
+eq "csv NUL" "$(nulcsv)" 'crimlab: CSV row 2, column 2 holds a NUL byte.'
+badu8() { printf '{"score":[0.1,0.9,0.4,1.2],"group":["x","x","\377","\377"]}' | "$c" scrdsp -j 2>&1 >/dev/null; }
+eq "invalid UTF-8" "$(badu8)" 'scrdsp: `group` holds text that is not valid UTF-8.'
+badu8csv() { printf 'group,day,night\n\376,40,50\nb,60,50\n' | "$c" vodtst -j 2>&1 >/dev/null; }
+eq "invalid UTF-8 in CSV" "$(badu8csv)" 'vodtst: `day` holds text that is not valid UTF-8.'
 "$c" -l | grep -q '^vodtst day night \[ref\] \[shift\]$' || { bad=$((bad + 1)); echo "FAIL -l"; }
 "$c" -V | grep -q '^crimlab ' || { bad=$((bad + 1)); echo "FAIL -V"; }
 # every function of the Python package has its entry in clab_jrun()

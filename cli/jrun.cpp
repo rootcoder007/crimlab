@@ -2064,6 +2064,55 @@ std::vector<std::string> words(const char *s) {
   }
 }
 
+// Text that is valid UTF-8 (RFC 3629: no overlong form, no surrogate,
+// nothing past U+10FFFF): JSON text must be, and the output repeats the
+// input's text.
+bool u8ok(const std::string &s) {
+  const unsigned char *p = reinterpret_cast<const unsigned char *>(s.data());
+  const std::size_t n = s.size();
+  for (std::size_t i = 0; i < n;) {
+    const unsigned c = p[i];
+    if (c < 0x80) {
+      ++i;
+      continue;
+    }
+    std::size_t k;
+    unsigned lo = 0x80, hi = 0xBF;
+    if (c >= 0xC2 && c <= 0xDF) {
+      k = 1;
+    } else if (c >= 0xE0 && c <= 0xEF) {
+      k = 2;
+      if (c == 0xE0) lo = 0xA0;
+      if (c == 0xED) hi = 0x9F;
+    } else if (c >= 0xF0 && c <= 0xF4) {
+      k = 3;
+      if (c == 0xF0) lo = 0x90;
+      if (c == 0xF4) hi = 0x8F;
+    } else {
+      return false;
+    }
+    for (std::size_t j = 1; j <= k; ++j) {
+      if (i + j >= n) return false;
+      const unsigned d = p[i + j];
+      if (d < (j == 1 ? lo : 0x80) || d > (j == 1 ? hi : 0xBF)) return false;
+    }
+    i += k + 1;
+  }
+  return true;
+}
+
+// Every string of v, keys included, valid UTF-8.
+bool u8val(const Val &v) {
+  if (v.t == Val::STR) return u8ok(v.s);
+  for (const std::string &k : v.k) {
+    if (!u8ok(k)) return false;
+  }
+  for (const Val &e : v.a) {
+    if (!u8val(e)) return false;
+  }
+  return true;
+}
+
 int run(const char *fn, const char *in, std::string &res) {
   const Ent *e = nullptr;
   for (const Ent &x : ents) {
@@ -2085,6 +2134,11 @@ int run(const char *fn, const char *in, std::string &res) {
   const std::vector<std::string> as = words(e->args);
   for (std::size_t i = 0; i < v.k.size(); ++i) {
     const std::string &k = v.k[i];
+    if (!u8ok(k)) {
+      c.fail("the name of an argument is not valid UTF-8.");
+      res = c.err;
+      return CLAB_EARG;
+    }
     bool ok = false;
     for (const std::string &a : as) ok = ok || a == k || a == k + "?";
     if (!ok) {
@@ -2094,6 +2148,12 @@ int run(const char *fn, const char *in, std::string &res) {
     }
     if (std::find(v.k.begin(), v.k.begin() + static_cast<std::ptrdiff_t>(i), k) != v.k.begin() + static_cast<std::ptrdiff_t>(i)) {
       c.fail("`%s` is given twice.", k.c_str());
+      res = c.err;
+      return CLAB_EARG;
+    }
+    // once here for every text argument (R's .cktxt())
+    if (!u8val(v.a[i])) {
+      c.fail("`%s` holds text that is not valid UTF-8.", k.c_str());
       res = c.err;
       return CLAB_EARG;
     }

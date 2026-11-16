@@ -127,8 +127,10 @@ bool optval(const std::string &s, Val &v) {
   }
 }
 
-// RFC 4180 CSV: rows of cells; a quoted cell is text.
-bool csv(const std::string &s, std::vector<std::vector<Val>> &rows) {
+// RFC 4180 CSV: rows of cells; a quoted cell is text. A NUL byte is
+// refused, naming its row and column: the reader of a number stops at it,
+// so "4<NUL>0" would be read as 4.
+bool csv(const std::string &s, std::vector<std::vector<Val>> &rows, std::string &err) {
   std::vector<Val> row;
   std::string f;
   bool quoted = false, any = false;
@@ -142,13 +144,20 @@ bool csv(const std::string &s, std::vector<std::vector<Val>> &rows) {
     f.clear();
     quoted = false;
   };
+  auto nul = [&]() {
+    err = "CSV row " + std::to_string(rows.size() + 1) + ", column " + std::to_string(row.size() + 1) +
+          " holds a NUL byte.";
+    return false;
+  };
   for (std::size_t i = 0; i < s.size(); ++i) {
     const char c = s[i];
+    if (c == '\0') return nul();
     if (c == '"' && f.empty() && !quoted) {
       quoted = true;
       std::size_t j = i + 1;
       for (;; ++j) {
         if (j >= s.size()) return false;
+        if (s[j] == '\0') return nul();
         if (s[j] == '"') {
           if (j + 1 < s.size() && s[j + 1] == '"') {
             f += '"';
@@ -191,8 +200,8 @@ bool csv(const std::string &s, std::vector<std::vector<Val>> &rows) {
 // names the rows, and the other columns become objects from group to value.
 bool table(const std::string &s, Val &o, std::string &err) {
   std::vector<std::vector<Val>> rows;
-  if (!csv(s, rows) || rows.empty()) {
-    err = "the CSV input cannot be read.";
+  if (!csv(s, rows, err) || rows.empty()) {
+    if (err.empty()) err = "the CSV input cannot be read.";
     return false;
   }
   const std::vector<Val> &h = rows[0];

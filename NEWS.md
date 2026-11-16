@@ -60,6 +60,13 @@
   `dt = 1e-9`), and the periodic baseline of the Hawkes functions its
   integration steps; both are now counted in double first.
 
+* Fixed: the command line and `clab_jrun()` used to copy text that is not
+  valid UTF-8 from an argument or a CSV cell into their output, which was
+  then not valid JSON; they now refuse it, naming the argument, in the
+  words of R ("`group` holds text that is not valid UTF-8."). A NUL byte
+  in a CSV cell used to end the cell's number silently (`4<NUL>0` was
+  read as 4); it is now refused with its row and column.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

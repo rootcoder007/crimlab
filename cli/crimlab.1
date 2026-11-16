@@ -43,7 +43,9 @@ or text. A JSON object given for a per-group argument names the groups;
 a CSV column named
 .B group
 does the same for the other columns. Trailing empty cells of a CSV column
-are dropped, and a column of one value is one value.
+are dropped, and a column of one value is one value. Text, in an argument
+or a CSV cell, must be valid UTF-8, and a CSV table must hold no NUL
+byte: either is refused, naming the argument or the row and column.
 .SH OPTIONS
 .TP
 .B \-j
