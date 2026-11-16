@@ -298,7 +298,8 @@ double zeroin(double a, double b, double fa, double fb, F f, double tol) {
   return b;
 }
 
-// bw.ucv() (ucv) and bw.bcv(); 1 for constant data.
+// bw.ucv() (ucv) and bw.bcv(); 1 for constant data, 9 when the minimum
+// is at one end of the range (R's warning).
 int bwcv(const Vec &x, bool ucv, double *h) {
   const double n = static_cast<double>(x.size());
   const double hmax = 1.144 * std::sqrt(rvar(x)) * npow(x.size(), -1.0 / 5.0);
@@ -306,7 +307,7 @@ int bwcv(const Vec &x, bool ucv, double *h) {
   if (!pairs(x, p)) return 1;
   const double lower = 0.1 * hmax, tol = 0.1 * lower;
   *h = fmin(lower, hmax, [&](double v) { return crit(ucv ? 0 : 1, n, p, v); }, tol);
-  return 0;
+  return *h < lower + tol || *h > hmax - tol ? 9 : 0;
 }
 
 // bw.SJ(): 1 constant data, 2 too sparse to find TD, 3 too sparse to find
@@ -463,11 +464,15 @@ double approx1(const Vec &xs, const Vec &ys, double t) {
   return ys[i] + (ys[j] - ys[i]) * ((t - xs[i]) / (xs[j] - xs[i]));
 }
 
-// The bandwidth of a rule (1 to 6), or 2 to 5 for R's refusals.
+// The bandwidth of a rule (1 to 6), or 2 to 5 for R's refusals, 9 for its
+// warning.
 int rulebw(const Vec &v, int rule, double *bw) {
   if (rule == 1) *bw = nrd0(v);
   if (rule == 2) *bw = nrd(v);
-  if (rule == 3 || rule == 4) return bwcv(v, rule == 3, bw) == 0 ? 0 : 2;
+  if (rule == 3 || rule == 4) {
+    const int rc = bwcv(v, rule == 3, bw);
+    return rc == 1 ? 2 : rc;
+  }
   if (rule == 5 || rule == 6) {
     const int rc = bwsj(v, rule == 6, bw);
     return rc == 0 ? 0 : rc + 1;
@@ -507,7 +512,7 @@ int clab_dens(const double *x, const double *w, int64_t nx, int rule, double bw,
       return CLAB_EDOM;
     }
     *why = rulebw(v, rule, &bw);
-    if (*why != 0) return CLAB_EDOM;
+    if (*why != 0 && *why != 9) return CLAB_EDOM;
   }
   if (!std::isfinite(bw)) {
     *why = 6;

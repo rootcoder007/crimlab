@@ -7522,7 +7522,8 @@ def plotrdg(x: Any, grp: Any = None, bw: Any = "nrd0") -> Any:
     Nothing is drawn outside R; the arguments and the result are those of
     R's ``plotrdg()`` but its drawing arguments. The densities are those of
     R's ``stats::density()`` (512 points, the same bandwidth rules), equal
-    to rounding.
+    to rounding. When the ``"ucv"`` or ``"bcv"`` bandwidth is at one end of
+    its search range, R's warning comes in ``"warnings"``, once per group.
 
     Examples
     --------

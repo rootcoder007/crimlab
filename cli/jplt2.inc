@@ -59,6 +59,7 @@ inline bool dens(Ctx &c, const std::vector<double> &v, int rule, double bw, std:
     c.err = m[why >= 0 && why <= 8 ? why : 0];
     return false;
   }
+  if (rc == CLAB_OK && why == 9) c.warn.push_back("minimum occurred at one end of the range");
   return kchk(c, rc);
 }
 
