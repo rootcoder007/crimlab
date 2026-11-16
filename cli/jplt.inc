@@ -180,7 +180,9 @@ inline Cols ramp(const std::vector<const char *> &col, int n) {
   std::vector<std::array<double, 3>> rgb;
   for (const char *h : col) {
     std::array<double, 3> v{};
-    for (std::size_t j = 0; j < 3; ++j) v[j] = static_cast<double>(std::strtol(std::string(h + 1 + 2 * j, 2).c_str(), nullptr, 16));
+    for (std::size_t j = 0; j < 3; ++j) {
+      v[j] = static_cast<double>(std::strtol(std::string(h + 1 + 2 * j, 2).c_str(), nullptr, 16));
+    }
     rgb.push_back(v);
   }
   const std::vector<double> t = ax::seqn(0, 1, n);
@@ -473,7 +475,9 @@ bool plotfnl(Ctx &c, Val &out) {
     const Val &t = c["target"];
     const Val &te = t.t == Val::ARR && t.a.size() == 1 ? t.a[0] : t;
     tg = te.t == Val::NUM ? te.n : NaN;
-    if (!(std::isfinite(tg) && tg >= std::numeric_limits<double>::min())) return c.fail("`target` must be one positive number.");
+    if (!(std::isfinite(tg) && tg >= std::numeric_limits<double>::min())) {
+      return c.fail("`target` must be one positive number.");
+    }
   }
   const double pm = *std::max_element(lv.begin(), lv.end()), al2 = (1 - pm) / 2;
   std::vector<double> r;

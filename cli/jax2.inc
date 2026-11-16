@@ -813,8 +813,8 @@ bool jntx(Ctx &c, Val &out) {
   cf.num("lo", clo);
   cf.num("hi", chi);
   cf.num("rr", crr);
-  const std::vector<double> g1 = seqn(*std::min_element(a1.begin(), a1.end()), *std::max_element(a1.begin(), a1.end()), ng),
-                            g2 = seqn(*std::min_element(a2.begin(), a2.end()), *std::max_element(a2.begin(), a2.end()), ng);
+  const auto mm1 = std::minmax_element(a1.begin(), a1.end()), mm2 = std::minmax_element(a2.begin(), a2.end());
+  const std::vector<double> g1 = seqn(*mm1.first, *mm1.second, ng), g2 = seqn(*mm2.first, *mm2.second, ng);
   std::vector<double> gx, gy;
   for (double y2 : g2) {
     for (double x1 : g1) {
