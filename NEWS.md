@@ -27,6 +27,11 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `ppmlfe()`, `ivfe()` and the other least-squares fits refused
+  columns about 1e7 apart in scale as collinear; a column is now judged
+  against its own size, and a column the fixed effects absorb is found by
+  an explicit check in `didfe()`, `wcbx()` and the tests of `ivfe()`.
+
 * Fixed: `plot.lnkpr()` returned an ROC curve of `NA` and an area of `NA`
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the

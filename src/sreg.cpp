@@ -168,14 +168,19 @@ bool inv(double *a, int p) {
 // has rank below p
 bool ls(const double *x, int n, int p, const double *y, int m, double *b) {
   vd a(x, x + static_cast<std::size_t>(n) * p), r(y, y + static_cast<std::size_t>(n) * m);
-  double big = 0;
-  for (std::size_t q = 0; q < a.size(); ++q) big = std::max(big, std::fabs(a[q]));
+  // each column's norm: what is left of a column after those before it is
+  // judged against its own size, so the units of the columns do not matter
+  vd on(static_cast<std::size_t>(p), 0.0);
+  for (int k = 0; k < p; ++k) {
+    const double *c = a.data() + static_cast<std::size_t>(k) * n;
+    for (int i = 0; i < n; ++i) on[static_cast<std::size_t>(k)] += c[i] * c[i];
+  }
   for (int k = 0; k < p; ++k) {
     double *c = a.data() + static_cast<std::size_t>(k) * n;
     double nr = 0;
     for (int i = k; i < n; ++i) nr += c[i] * c[i];
     nr = std::sqrt(nr);
-    if (!(nr > 1e-11 * big * std::sqrt(static_cast<double>(n)))) return false;
+    if (!(nr > 1e-11 * std::sqrt(on[static_cast<std::size_t>(k)] * n))) return false;
     const double al = c[k] > 0 ? -nr : nr;
     c[k] -= al;
     double vv = 0;

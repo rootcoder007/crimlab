@@ -144,6 +144,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
                   10000, wk.data());
       pev::within(c.y.data(), n, 1, pn.u.data(), pn.nu, pn.t.data(), pn.nt, 1, nullptr, 1e-12,
                   10000, wk.data());
+      if (!pev::kept(xa.data(), c.x.data(), n, p)) fail("%s", absorbed);
       auto nested = [&](const std::vector<int> &f, int nf) {
         std::vector<int> seen(z(nf), -1);
         for (int i = 0; i < n; ++i) {

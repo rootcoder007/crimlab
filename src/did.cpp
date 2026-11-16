@@ -115,12 +115,13 @@ int withink(double *v, int n, int k, const int *f1, int n1, const int *f2, int n
 }
 
 bool chol(double *a, int p) {
-  double big = 0.0;
-  for (int j = 0; j < p; ++j) big = std::fmax(big, a[z(j) * z(p) + z(j)]);
   for (int j = 0; j < p; ++j) {
-    double d = a[z(j) * z(p) + z(j)];
+    // the pivot over the column's own diagonal is 1 - R^2 of the column on
+    // those before it, the same in any units
+    const double ajj = a[z(j) * z(p) + z(j)];
+    double d = ajj;
     for (int k = 0; k < j; ++k) d -= a[z(k) * z(p) + z(j)] * a[z(k) * z(p) + z(j)];
-    if (!(d > 1e-12 * big)) return false;
+    if (!(d > 1e-12 * ajj)) return false;
     d = std::sqrt(d);
     a[z(j) * z(p) + z(j)] = d;
     for (int i = j + 1; i < p; ++i) {
@@ -128,6 +129,19 @@ bool chol(double *a, int p) {
       for (int k = 0; k < j; ++k) s -= a[z(k) * z(p) + z(i)] * a[z(k) * z(p) + z(j)];
       a[z(j) * z(p) + z(i)] = s / d;
     }
+  }
+  return true;
+}
+
+bool kept(const double *x, const double *v, int n, int k) {
+  for (int j = 0; j < k; ++j) {
+    double a = 0.0, b = 0.0;
+    for (int i = 0; i < n; ++i) {
+      const double xo = x[z(j) * z(n) + z(i)], xd = v[z(j) * z(n) + z(i)];
+      a += xo * xo;
+      b += xd * xd;
+    }
+    if (!(b > 1e-16 * a)) return false;
   }
   return true;
 }
@@ -449,7 +463,7 @@ extern "C" int clab_didfe(const double *y, const double *x, int n, int p, const 
   for (std::size_t i = 0; i < sn; ++i) v[i] = y[i];
   for (std::size_t q = 0; q < sn * sp; ++q) v[sn + q] = x[q];
   const int sw = pev::within(v, n, p + 1, u, nu, t, nt, fe, w, tol, maxit, sc);
-  if (sw < 0) return CLAB_EDOM;
+  if (sw < 0 || !pev::kept(x, v + sn, n, p)) return CLAB_EDOM;
   if (pev::ols(v + sn, v, n, p, w, beta, xi, r, sc) != CLAB_OK) return CLAB_EDOM;
   // fixest's "nested" count: an effect nested in a cluster costs nothing
   int *seen = iwork;

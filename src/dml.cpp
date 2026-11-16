@@ -94,24 +94,31 @@ void deal(int n, int k, kutil::rng &g, int *f, int *pm) {
 // 1e-12 of the largest diagonal element (learners that predict alike).
 // a: L (L + 1) doubles.
 bool psolve(const double *g, const double *b, int L, const int *pas, double *s, double *a) {
-  int idx[16], m = 0;
-  double big = 0.0;
+  int idx[16], rv[16], m = 0;
   for (int j = 0; j < L; ++j) {
     s[j] = 0.0;
-    big = std::fmax(big, g[j * L + j]);
     if (pas[j] == 1) idx[m++] = j;
   }
   const int c1 = m + 1;
   for (int r = 0; r < m; ++r) {
     for (int c = 0; c < m; ++c) a[r * c1 + c] = g[idx[c] * L + idx[r]];
     a[r * c1 + m] = b[idx[r]];
+    rv[r] = r;
+    if (!(g[idx[r] * L + idx[r]] > 0)) return false;
   }
+  // a pivot is judged against the diagonal elements of its row's and its
+  // column's learners, so the scale of a learner's predictions does not
+  // matter
+  auto dg = [&](int r) { return g[idx[r] * L + idx[r]]; };
   for (int c = 0; c < m; ++c) {
     int pr = c;
     for (int r = c + 1; r < m; ++r) {
       if (std::fabs(a[r * c1 + c]) > std::fabs(a[pr * c1 + c])) pr = r;
     }
-    if (!(std::fabs(a[pr * c1 + c]) > 1e-12 * big)) return false;
+    if (!(std::fabs(a[pr * c1 + c]) > 1e-12 * std::sqrt(dg(rv[pr]) * dg(c)))) return false;
+    const int tv = rv[c];
+    rv[c] = rv[pr];
+    rv[pr] = tv;
     for (int q = 0; q < c1; ++q) {
       const double t = a[c * c1 + q];
       a[c * c1 + q] = a[pr * c1 + q];

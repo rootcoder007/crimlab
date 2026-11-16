@@ -1463,4 +1463,29 @@ test_that("ppmlcf(family = \"nb\") is the negative binomial control function", {
   expect_error(ppmlcf(d, "hom", "lead", "dist", fe = "yr", family = "nb",
                       how = "plug"),
                "ppmlcf: `family = \"nb\"` needs `how = \"cf\"`.", fixed = TRUE)
+test_that("columns of very different scale are not taken for collinear", {
+  # a share next to money: the rank check judges each column against its
+  # own size; glm() and lm() with the indicators are the reference
+  set.seed(1)
+  d <- expand.grid(day = 1:20, area = 1:12)
+  d$rate <- rnorm(nrow(d), 0.05, 0.01)
+  d$gdp <- rnorm(nrow(d), 5e9, 1e9)
+  d$crimes <- rpois(nrow(d), exp(1 + 2 * d$rate))
+  g <- glm(crimes ~ rate + gdp + factor(area) + factor(day), poisson, d,
+           control = glm.control(epsilon = 1e-12, maxit = 100))
+  f <- ppmlfe(d, "crimes", c("rate", "gdp"), c("area", "day"), tol = 1e-12)
+  expect_equal(f$coef$est, unname(coef(g)[c("rate", "gdp")]),
+               tolerance = 1e-7)
+  d$y <- 0.3 * d$rate + rnorm(nrow(d))
+  h <- ivfe(d, "y", x = c("rate", "gdp"), fe = c("area", "day"))
+  l <- lm(y ~ rate + gdp + factor(area) + factor(day), d)
+  expect_equal(h$coef$est, unname(coef(l)[c("rate", "gdp")]),
+               tolerance = 1e-8)
+  # an instrument in other units: two-stage least squares does not change
+  d$z <- d$rate + rnorm(nrow(d), 0, 0.01)
+  d$zb <- d$z * 1e9
+  a <- ivfe(d, "y", endo = "rate", inst = "z", fe = c("area", "day"))
+  b <- ivfe(d, "y", endo = "rate", inst = "zb", fe = c("area", "day"))
+  expect_equal(b$coef$est, a$coef$est, tolerance = 1e-9)
+  expect_equal(b$coef$se, a$coef$se, tolerance = 1e-9)
 })
