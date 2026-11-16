@@ -79,35 +79,6 @@ idwint <- function(mx, my, mv, tx, ty, p = 2, k = 0, rad = Inf,
   data.frame(zone = g, val = r[[3L]], n = r[[4L]])
 }
 
-# The checks of idwint() in its order: the monitors, the targets, p, k,
-# rad and lonlat; list(p, k, lonlat) as checked.
-.idwchk <- function(mx, my, mv, tx, ty, p, k, rad, lonlat, f) {
-  .cknum(mx, "mx", f, scalar = FALSE)
-  .cknum(my, "my", f, scalar = FALSE)
-  if (!is.numeric(mv) || length(my) != length(mx) ||
-        length(mv) != length(mx)) {
-    .ckstop(f, "`mx`, `my` and `mv` must be numeric vectors of one length")
-  }
-  .cknum(tx, "tx", f, scalar = FALSE)
-  .cknum(ty, "ty", f, scalar = FALSE)
-  if (length(ty) != length(tx)) .ckstop(f, "`tx` and `ty` must have one length")
-  p <- .cknum(p, "p", f, min = 0)
-  k <- .cknum(k, "k", f, min = 0, max = 2147483647, whole = TRUE)
-  if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || rad <= 0) {
-    .ckstop(f, "`rad` must be a positive number or Inf")
-  }
-  list(p = p, k = k, lonlat = .ckflag(lonlat, "lonlat", f))
-}
-
-# The zones of idwint()'s targets, sorted (NULL without zone).
-.idwzn <- function(zone, tx, f) {
-  if (is.null(zone)) return(NULL)
-  if (length(zone) != length(tx) || anyNA(zone)) {
-    .ckstop(f, "`zone` must give the zone of each target, with no NA")
-  }
-  sort(unique(zone))
-}
-
 #' Geographically and temporally weighted regression
 #'
 #' The regression of Kuo and Putra (2021, eqs 4-9), after Huang, Wu and
@@ -269,6 +240,35 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
   data.frame(lhs = lh, rhs = it[r$rhs + 1L], support = r$out[, 1L],
              confidence = r$out[, 2L], coverage = r$out[, 3L],
              lift = r$out[, 4L], count = r$out[, 5L])
+}
+
+# The checks of idwint() in its order: the monitors, the targets, p, k,
+# rad and lonlat; list(p, k, lonlat) as checked.
+.idwchk <- function(mx, my, mv, tx, ty, p, k, rad, lonlat, f) {
+  .cknum(mx, "mx", f, scalar = FALSE)
+  .cknum(my, "my", f, scalar = FALSE)
+  if (!is.numeric(mv) || length(my) != length(mx) ||
+        length(mv) != length(mx)) {
+    .ckstop(f, "`mx`, `my` and `mv` must be numeric vectors of one length")
+  }
+  .cknum(tx, "tx", f, scalar = FALSE)
+  .cknum(ty, "ty", f, scalar = FALSE)
+  if (length(ty) != length(tx)) .ckstop(f, "`tx` and `ty` must have one length")
+  p <- .cknum(p, "p", f, min = 0)
+  k <- .cknum(k, "k", f, min = 0, max = 2147483647, whole = TRUE)
+  if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || rad <= 0) {
+    .ckstop(f, "`rad` must be a positive number or Inf")
+  }
+  list(p = p, k = k, lonlat = .ckflag(lonlat, "lonlat", f))
+}
+
+# The zones of idwint()'s targets, sorted (NULL without zone).
+.idwzn <- function(zone, tx, f) {
+  if (is.null(zone)) return(NULL)
+  if (length(zone) != length(tx) || anyNA(zone)) {
+    .ckstop(f, "`zone` must give the zone of each target, with no NA")
+  }
+  sort(unique(zone))
 }
 
 # The checks of asrule() in its order; list(minsup, minconf, empty).
