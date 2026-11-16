@@ -85,6 +85,11 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `hwpwr()` is in `clab_jrun()`, the command line and Python. The result
+  holds the rows R returns, the interval `dt` and the last reading as
+  text (`snap`), which a later call takes as `since`; R keeps the last
+  two as attributes.
+
 * `plotrdg()` and `plotvln()` are in `clab_jrun()`, the command line and
   Python, returning the rows R returns (without the quartiles `plotvln()`
   keeps as an attribute). Their densities come from a kernel that

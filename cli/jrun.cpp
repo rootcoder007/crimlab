@@ -40,6 +40,10 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <chrono>
+#ifndef __wasi__
+#include <thread>
+#endif
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -61,6 +65,7 @@
 #include "pevw.h"
 #include "ynum.h"
 #include "svk.h"
+#include "pwr.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1628,6 +1633,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jplt.inc"
 #include "jspi.inc"
 #include "jplt2.inc"
+#include "jhw.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2092,6 +2098,7 @@ const Ent ents[] = {
     {"plotcal", "x y", plotcal},
     {"plotrdg", "x grp? bw?", plotrdg},
     {"plotvln", "x grp? bw?", plotvln},
+    {"hwpwr", "dt? since? step? rated? pid? skip? paths?", hwpwr},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

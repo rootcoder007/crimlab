@@ -7547,3 +7547,34 @@ def plotvln(x: Any, grp: Any = None, bw: Any = "nrd0") -> Any:
     ['grp', 'x', 'y']
     """
     return jcall("plotvln", x=x, grp=grp, bw=bw)
+
+
+def hwpwr(
+    dt: Any = 1,
+    since: Any = None,
+    step: Any = 0.25,
+    rated: Any = None,
+    pid: Any = None,
+    skip: Any = None,
+    paths: Any = None,
+) -> Any:
+    """The power and energy of the machine's devices, as R's ``hwpwr()``.
+
+    The result is a dict: ``rows`` (the data frame R returns), ``dt`` (the
+    interval in seconds) and ``snap`` (the last reading as text). A result,
+    or its ``snap``, passed as ``since`` gives the energy since that
+    reading. ``pid`` left out is the calling process. In WebAssembly ``dt``
+    must be 0 (nothing can wait there).
+
+    Examples
+    --------
+    >>> src = ["rapl", "gpu", "battery", "proc", "nvml", "smi", "ioreport", "ioreg", "emi"]
+    >>> a = hwpwr(0, skip=src)
+    >>> sorted(a)
+    ['dt', 'rows', 'snap']
+    >>> sorted(hwpwr(since=a, skip=src)["rows"])[:3]
+    ['fhi', 'flo', 'how']
+    """
+    if isinstance(since, dict):
+        since = since.get("snap")
+    return jcall("hwpwr", dt=dt, since=since, step=step, rated=rated, pid=pid, skip=skip, paths=paths)
