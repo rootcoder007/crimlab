@@ -1,2 +1,4 @@
 # reference files compared byte for byte: no line-ending conversion
 tests/testthat/ref/** -text
+# the command line handlers are C++ included by cli/jrun.cpp
+cli/*.inc linguist-language=C++
