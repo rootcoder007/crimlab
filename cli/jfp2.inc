@@ -222,6 +222,8 @@ bool co2fp(Ctx &c, Val &out) {
   CK(fpargs(c, a));
   Dev dv;
   CK(fpdev(c, dv));
+  // R reaches `expr` only after every check above, so a missing `durs` is refused here
+  if (!c.has("durs")) return ckstop(c, "`durs` is missing");
   double durs = 0.0, cpu = 0.0;
   if (!hw::one(c["durs"], durs) || durs < 0) return ckstop(c, "`durs` must be a single non-negative number of seconds");
   if (c.has("cputms") && (!hw::one(c["cputms"], cpu) || cpu < 0)) {
