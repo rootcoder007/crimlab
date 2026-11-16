@@ -613,3 +613,9 @@ test_that("inlhist() refuses more bins than it can draw", {
   expect_error(inlhist(1:5, bins = 1e9),
                "inlhist: `bins` must be at most 67108864.", fixed = TRUE)
 })
+
+test_that("a number given as invalid text is refused, not read", {
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(missgrid(data.frame(a = c(1, NA)), height = bad),
+               "^missgrid: `height` holds text that is not valid")
+})

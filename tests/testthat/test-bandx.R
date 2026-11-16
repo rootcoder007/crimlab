@@ -266,3 +266,9 @@ test_that("yoypx() refuses bad input in words", {
     )
   )
 })
+
+test_that("labels that are not valid UTF-8 are refused in words", {
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(bandx(c(bad, "6-15"), c(40, 25)),
+               "^bandx: `x` holds text that is not valid")
+})

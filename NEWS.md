@@ -1,5 +1,13 @@
 # crimlab 0.0.0.9000
 
+* Fixed: text that is not valid UTF-8 given for an argument used to stop
+  49 functions inside base R's string functions ("invalid multibyte
+  string", "input string 1 is invalid UTF-8") or, in a title, at the
+  graphics device; the shared text check now refuses it first, naming the
+  argument (`bandx()`, `dstfit()`, `gplume()`, `fylbl()`, the `yoy*()`
+  writers, the descriptive statistics, the plots' `main`, ...), and a
+  refusal that quotes such text shows its bytes.
+
 * Fixed: `NULL`, a function or an environment given for a vector argument
   used to reach the compiled code and fail there in R's words ("LENGTH or
   similar applied to NULL object", "cannot coerce type 'builtin' to

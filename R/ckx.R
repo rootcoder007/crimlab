@@ -3,7 +3,15 @@
 # function, "fn: <message>.", as the command line gives it.
 
 .ckstop <- function(fn, fmt, ...) {
-  stop(fn, ": ", sprintf(fmt, ...), ".", call. = FALSE)
+  # a value quoted from the input may be text that is not valid UTF-8,
+  # on which sprintf() fails: its bytes are written as <xx> instead
+  a <- lapply(list(...), function(v) {
+    if (is.character(v) && !all(validEnc(v))) {
+      v <- iconv(v, "UTF-8", "UTF-8", sub = "byte")
+    }
+    v
+  })
+  stop(fn, ": ", do.call(sprintf, c(list(fmt), a)), ".", call. = FALSE)
 }
 
 # A numeric argument as a double vector (dimensions kept): numbers only,

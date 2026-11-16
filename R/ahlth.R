@@ -814,7 +814,8 @@ print.expconcidx <- function(x, ...) {
 }
 
 .polkey <- function(poll) {
-  if (!is.character(poll) || length(poll) != 1L || is.na(poll)) {
+  if (!is.character(poll) || length(poll) != 1L || is.na(poll) ||
+        !validEnc(poll)) {
     return(NA_character_)
   }
   k <- gsub("[^a-z0-9]", "", tolower(poll))

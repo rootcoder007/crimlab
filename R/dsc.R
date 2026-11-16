@@ -1640,6 +1640,7 @@ print.dstntst <- function(x, ...) {
     )
   }
   if (is.character(x)) {
+    .cktxt(x, what, fn)
     v <- suppressWarnings(as.numeric(x))
     bad <- !is.na(x) & is.na(v) & nzchar(trimws(x)) & x != "NA"
     if (any(bad)) {
@@ -1955,6 +1956,7 @@ print.dstntst <- function(x, ...) {
     return(invisible())
   }
   .cknofn(pooled, "pooled", f)
+  .cktxt(pooled, "pooled", f)
   if (!is.character(pooled) || anyNA(pooled)) {
     .ckstop(
       f,

@@ -484,6 +484,7 @@ print.xfrvrf <- function(x, ...) {
     stop("relbl: `x` must be a vector of labels (text, a factor or ",
          "numbers).", call. = FALSE)
   }
+  .cktxt(if (is.factor(x)) levels(x) else x, "x", "relbl")
   if (is.null(names(map)) || anyNA(names(map)) || !all(nzchar(names(map)))) {
     stop("relbl: `map` must be named (old label = new label); labels are ",
          "never assigned by position.", call. = FALSE)

@@ -270,6 +270,7 @@ skchmrg <- function(a, b) {
     .ckstop(fn, "`%s` must be numeric, got %s", what, class(x)[1L])
   }
   if (is.character(x)) {
+    .cktxt(x, what, fn)
     v <- suppressWarnings(as.numeric(x))
     bad <- !is.na(x) & is.na(v) & nzchar(trimws(x)) & x != "NA"
     if (any(bad)) {

@@ -289,6 +289,7 @@ yoywr <- function(x, file, format = "auto", ...) {
     stop(fn, ": `notes` must be text (a character vector), or NULL.",
          call. = FALSE)
   }
+  .cktxt(notes, "notes", fn)
 }
 
 # the PDF's text: dashes and arrows as ASCII, then toascii()

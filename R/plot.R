@@ -187,7 +187,7 @@ yoypals <- function() names(.YOY_PALETTES)
   if (!is.character(main) || length(main) != 1L || is.na(main)) {
     stop(fn, ": `main` must be one string or NULL.", call. = FALSE)
   }
-  main
+  .cktxt(main, "main", fn)
 }
 
 # sets the session look and the margins; returns the old values to restore

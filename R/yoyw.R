@@ -80,6 +80,7 @@ fylbl <- function(endyear, sep = "/", short = TRUE) {
     stop("fylbl: `endyear` must be numeric or character years.",
          call. = FALSE)
   }
+  .cktxt(endyear, "endyear", "fylbl")
   if (is.numeric(endyear) && any(endyear < 1, na.rm = TRUE)) {
     stop("fylbl: `endyear` must be positive years.", call. = FALSE)
   }
@@ -327,7 +328,7 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   if (!is.character(x) || length(x) != 1L || is.na(x)) {
     stop(fn, ": `", nm, "` must be one string.", call. = FALSE)
   }
-  x
+  .cktxt(x, nm, fn)
 }
 
 .yfile <- function(file, fn) {
@@ -350,6 +351,7 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   if (!is.null(meta) && (!is.character(meta) || anyNA(meta))) {
     stop(fn, ": `meta` must be NULL or text.", call. = FALSE)
   }
+  .cktxt(meta, "meta", fn)
   if (length(meta)) gsub("[\r\n]+", " ", paste(meta, collapse = "; "))
 }
 

@@ -598,7 +598,8 @@ print.lagrprt <- function(x, ...) {
 }
 
 .adcls <- function(stab, fn) {
-  cls <- toupper(as.character(stab))
+  .cktxt(stab, "stab", fn)
+  cls <- if (is.atomic(stab)) toupper(as.character(stab)) else NA
   if (length(cls) != 1L || is.na(cls) || !cls %in% LETTERS[1:6]) {
     .ckstop(fn, "`stab` must be one of the Pasquill classes \"A\" to \"F\"")
   }

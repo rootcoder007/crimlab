@@ -263,6 +263,7 @@ print.yoypx <- function(x, ...) {
   if (!(is.character(x) || is.factor(x)) || !length(x)) {
     stop("bandx: `x` must be band labels: text or a factor.", call. = FALSE)
   }
+  .cktxt(if (is.factor(x)) levels(x) else x, "x", "bandx")
   for (a in list(list(clsup, "clsup"), list(intsca, "intsca"))) {
     if (!is.logical(a[[1L]]) || length(a[[1L]]) != 1L || is.na(a[[1L]])) {
       stop("bandx: `", a[[2L]], "` must be TRUE or FALSE.", call. = FALSE)
