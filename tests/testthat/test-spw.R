@@ -188,12 +188,20 @@ test_that("weights and statistics refuse what they cannot use", {
   ))
   errs("lmorn", list(
     list("at least 3 values", 1:2, w),
-    list("local Moran is undefined", rep(2, 4), w)
+    list("local Moran is undefined", rep(2, 4), w),
+    list("local Moran is undefined", rep(0.1, 4), w)
   ))
+  errs("gearc", list(list("C is undefined", rep(1 / 3, 4), lw)))
   errs("locgi", list(
     list("at least 3 values", 1:2, w),
-    list("`star` must be TRUE or FALSE", 1:4, w, star = NA)
+    list("`star` must be TRUE or FALSE", 1:4, w, star = NA),
+    list("`x` is constant: Gi is undefined", rep(0.1, 4), w),
+    list("`x` is constant: Gi is undefined", rep(2, 4), w, star = FALSE)
   ))
+  # G_i of the one unit unlike the rest compares it with constant others
+  g <- locgi(c(0.1, 0.1, 0.7, 0.1), w, star = FALSE)
+  expect_true(is.nan(g[3]))
+  expect_true(all(is.finite(g[-3])))
   errs("dirmn", list(
     list("not both", c(1, 2), c(1, 2), angle = 1),
     list("not both"),

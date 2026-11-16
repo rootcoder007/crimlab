@@ -6,6 +6,22 @@
   undefined, and `xcser()` and the command line now refuse it, naming the
   series.
 
+* Fixed: the other statistics that divide by the spread of the data
+  used to return numbers for a constant input whose mean rounds
+  (`rep(0.1, n)`, `rep(1 / 3, n)`), where they refused a constant with an
+  exact mean: `gearc()`, `lmorn()`, `locgi()` and `bvmor()` (Geary's C,
+  local Moran, G and the bivariate Moran are undefined), `txcal()` (no
+  calibration line), `rdloc()` (no Imbens-Kalyanaraman bandwidth),
+  `pcdtst()` (a pair with a constant unit, now skipped) and the
+  Jarque-Bera test of `fepnl()`. They now refuse it, or skip it, as for
+  any constant. `locgi(star = FALSE)` gives `NaN` for the one unit whose
+  value differs from all the others (its reference values are constant).
+  `cmpsc()` gives no correlation to a stretch that does not vary, as
+  `cor()` does, instead of one made of the rounding of its running sums.
+  `ecolrg()` and `evfilt()` refuse a covariate column that does not vary
+  (it cannot be told from the intercept), naming it, and `evfilt()` an
+  outcome that does not vary.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

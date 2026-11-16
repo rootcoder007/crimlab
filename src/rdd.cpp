@@ -89,6 +89,9 @@ int clab_ikbw(const double *y, const double *x, int n, double c, int kern, doubl
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i]) || !std::isfinite(x[i])) return CLAB_EDOM;
   }
+  // a constant outcome has a third derivative of 0, which its cubic fit
+  // returns as rounding error
+  if (kutil::cnst(y, n)) return CLAB_EDOM;
   const size_t sn = static_cast<size_t>(n);
   // step 1: the pilot bandwidth h1 = 1.84 S_X N^(-1/5), the density and
   // the variances on either side (their equations 11-13, p. 941-942)

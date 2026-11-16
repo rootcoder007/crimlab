@@ -246,7 +246,7 @@ bool locgi(Ctx &c, Val &out) {
   CK(flagd(c, "star", true, st));
   std::vector<double> o(xv.n());
   CK(kc(c, clab_locgi(xv.p(), static_cast<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), st ? 1 : 0, o.data()),
-        "the kernel refused the input."));
+        "`x` is constant: Gi is undefined."));
   out = vauto(o);
   return true;
 }

@@ -440,6 +440,20 @@ test_that("spatial epidemiology refuses bad input in words", {
       ),
       list("singular", 1:6, rep(1, 6), cbind(1:6, 2 * (1:6))),
       list(
+        "column 2 of `x` is constant: it cannot be told from the intercept",
+        1:6,
+        rep(1, 6),
+        cbind(1:6, rep(1 / 3, 6))
+      ),
+      list(
+        "column 1 of `z` is constant",
+        c(0, 1, 0, 2, 0, 3),
+        rep(1, 6),
+        NULL,
+        "zip",
+        rep(0.1, 6)
+      ),
+      list(
         "`maxit` must be one whole number from 1",
         1:3,
         c(1, 1, 1),
@@ -517,6 +531,8 @@ test_that("spatial epidemiology refuses bad input in words", {
     list(
       list("`v` must have at least 3 values", 1:2, diag(2)),
       list("`method` must be one of", k$fv, k$P, NULL, "bic"),
+      list("column 1 of `x` is constant", k$fv, k$P, rep(0.1, length(k$fv))),
+      list("`v` is constant", rep(0.1, length(k$fv)), k$P),
       list("`cand` must be one of", k$fv, k$P, NULL, "moran", "some"),
       list("no links", k$fv, matrix(0, 12, 12)),
       list(

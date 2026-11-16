@@ -178,3 +178,9 @@ test_that("rdloc refuses data where the IK bandwidth cannot be computed", {
   expect_error(rdloc(d, "y", "r"),
                "the bandwidth of Imbens and Kalyanaraman cannot be computed")
 })
+
+test_that("a constant outcome has no IK bandwidth, whatever its value", {
+  d <- data.frame(r = seq(-1, 1, length.out = 200), y = 0.1)
+  expect_error(rdloc(d, "y", "r"),
+               "the bandwidth of Imbens and Kalyanaraman cannot be computed")
+})

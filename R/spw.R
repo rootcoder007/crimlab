@@ -148,7 +148,9 @@ lmorn <- function(x, w, nsim = 0, seed = NULL) {
 #' @inheritParams gearc
 #' @param star `TRUE` for G*, `FALSE` for G.
 #' @return A numeric vector of z values, one per unit; `NaN` for a unit
-#'   without neighbours.
+#'   without neighbours and, for G, for a unit whose value is the only one
+#'   unlike the rest (the others, its reference, then do not vary). A
+#'   constant `x` is refused: no z is defined.
 #' @references Ord, J. K. and Getis, A. (1995). Local spatial
 #'   autocorrelation statistics: distributional issues and an application.
 #'   *Geographical Analysis*, 27(4), 286-306.

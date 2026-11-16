@@ -11,6 +11,7 @@
 
 #include "bkh.h"
 #include "crimlab.h"
+#include "kutil.h"
 #include "rchk.h"
 #include "spin.h"
 
@@ -18,6 +19,16 @@ using namespace bkh;
 using clab::num;
 
 namespace {
+
+// A design column that does not vary cannot be told from the intercept:
+// the fit would be singular, or not, by the rounding of its sums.
+void varies(SEXP m, int n, int p, const char *nm) {
+  for (int j = 0; j < p && n > 1; ++j) {
+    if (kutil::cnst(REAL(m) + static_cast<R_xlen_t>(j) * n, n)) {
+      fail("column %d of `%s` is constant: it cannot be told from the intercept.", j + 1, nm);
+    }
+  }
+}
 
 // the region of each subject: whole numbers from 1 to nr
 int *regions(SEXP reg, int n, int nr) {
@@ -259,9 +270,11 @@ SEXP C_clab_r_ecolrg(SEXP y, SEXP e, SEXP x, SEXP family, SEXP z, SEXP tol, SEXP
   SEXP ev = PROTECT(num(e, "e", n, 0.0, true));
   int p = 0, q = 0;
   SEXP xm = zmat(x, "x", n, false, &p);
+  varies(xm, n, p, "x");
   static const char *const fo[] = {"poisson", "negbin", "zip"};
   const int fam = csp::pick(family, "family", fo, 3);
   SEXP zm = zmat(z, "z", n, false, &q);
+  varies(zm, n, q, "z");
   const double tl = clab::one(tol, "tol", 0.0, 1.0);
   const int mi = clab::whole(maxit, "maxit", 1);
   if (n <= p + 1) fail("`y` must have more values than the model has coefficients.");
@@ -389,9 +402,11 @@ SEXP C_clab_r_evfilt(SEXP v, SEXP w, SEXP x, SEXP method, SEXP cand, SEXP tol, S
   SEXP yv = PROTECT(num(v, "v"));
   const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "v");
   if (n < 3) fail("`v` must have at least 3 values.");
+  if (kutil::cnst(REAL(yv), n)) fail("`v` is constant: there is no autocorrelation to filter.");
   SEXP c = csp::wts(w, n);
   int p = 0;
   SEXP xm = zmat(x, "x", n, false, &p);
+  varies(xm, n, p, "x");
   static const char *const mo[] = {"moran", "aic", "press", "r2"};
   static const char *const co[] = {"positive", "negative", "all"};
   const int cr = csp::pick(method, "method", mo, 4), ca = csp::pick(cand, "cand", co, 3);

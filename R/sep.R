@@ -167,7 +167,8 @@ bym2sc <- function(w, tau = 1, phi = 0.5, tol = 1e-10) {
 #' @param y The counts: numbers from 0.
 #' @param e The expected counts: positive numbers, one per count.
 #' @param x `NULL`, or the covariates: a numeric matrix (or vector) with one
-#'   row per count. An intercept is added.
+#'   row per count. An intercept is added, so a column that does not vary
+#'   is refused.
 #' @param family `"poisson"`, `"negbin"` or `"zip"`.
 #' @param z For `"zip"`: `NULL`, or the covariates of the zero part, as `x`.
 #' @param tol The convergence tolerance of `theta` and of the zero-inflated
@@ -448,10 +449,11 @@ summary.sfcure <- function(object, ...) {
 #' error) while they fall; `"r2"` while R-squared rises by `tol` or more.
 #' At least two residual degrees of freedom are kept.
 #'
-#' @param v The outcome: finite numbers, one per area.
+#' @param v The outcome: finite numbers, one per area, not all the same.
 #' @param w The neighbours, as in [lerprc()], for as many areas as `v`.
 #' @param x `NULL`, or covariates: a numeric matrix (or vector) with one
-#'   row per area. An intercept is added.
+#'   row per area. An intercept is added, so a column that does not vary
+#'   is refused.
 #' @param method `"moran"`, `"aic"`, `"press"` or `"r2"`.
 #' @param cand `"positive"`, `"negative"` or `"all"`.
 #' @param tol The stopping tolerance: one positive number.

@@ -5,6 +5,16 @@
 // metapopulation SIR model, the frailty and cure models and eigenvector
 // filtering.
 
+// varies() (src/bsep.cpp): a design column that does not vary.
+bool varies(Ctx &c, const std::vector<double> &m, int n, int p, const char *nm) {
+  for (int j = 0; j < p && n > 1; ++j) {
+    if (kutil::cnst(m.data() + zz(j) * zz(n), n)) {
+      return c.fail("column %d of `%s` is constant: it cannot be told from the intercept.", j + 1, nm);
+    }
+  }
+  return true;
+}
+
 bool bayout(Ctx &c, Val &out) {
   const Val &xo = c["x"];
   Dv x;
@@ -170,10 +180,12 @@ bool ecolrg(Ctx &c, Val &out) {
   int p = 0, q = 0;
   std::vector<double> x, z;
   CK(zmat(c, "x", n, false, p, x));
+  CK(varies(c, x, n, p, "x"));
   static const char *const fo[] = {"poisson", "negbin", "zip"};
   int fam = 0;
   CK(pickd(c, "family", fo, 3, 0, fam));
   CK(zmat(c, "z", n, false, q, z));
+  CK(varies(c, z, n, q, "z"));
   double tl = 0;
   CK(oned(c, "tol", 1e-12, 0.0, 1.0, tl));
   int mi = 0;
@@ -329,11 +341,13 @@ bool evfilt(Ctx &c, Val &out) {
   CK(num(c, c["v"], "v", y));
   const int n = static_cast<int>(y.n());
   if (n < 3) return c.fail("`v` must have at least 3 values.");
+  if (kutil::cnst(y.p(), n)) return c.fail("`v` is constant: there is no autocorrelation to filter.");
   Wcsr w;
   CK(wreadx(c, c["w"], n, w));
   int p = 0;
   std::vector<double> x;
   CK(zmat(c, "x", n, false, p, x));
+  CK(varies(c, x, n, p, "x"));
   static const char *const mo[] = {"moran", "aic", "press", "r2"};
   static const char *const co[] = {"positive", "negative", "all"};
   int cr = 0, ca = 0;

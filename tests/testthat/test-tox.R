@@ -122,7 +122,8 @@ test_that("the toxicology functions refuse bad input", {
     list("`k` must have length 2", 1:3, 1:3, k = 3),
     list("`unk` must be numbers or NA", 1:3, 1:3, unk = "a"),
     list("`unk` must be numbers or NA", 1:3, 1:3, unk = Inf),
-    list("the calibrators give no line", 1:3, c(2, 2, 2))
+    list("the calibrators give no line", 1:3, c(2, 2, 2)),
+    list("the calibrators give no line", rep(0.1, 3), 1:3)
   ))
   errs("lodimp", list(
     list("`lod` must be one limit, or one per value, 3", 1:3, c(1, 2)),

@@ -28,7 +28,7 @@ int clab_txcal(const double *x, const double *y, const double *w, int n, const d
     sxy.add(w[i] * (x[i] - xm) * (y[i] - ym));
     syy.add(w[i] * (y[i] - ym) * (y[i] - ym));
   }
-  if (!(sxx.val() > 0)) return CLAB_EDOM;
+  if (kutil::cnst(x, n) || !(sxx.val() > 0)) return CLAB_EDOM;
   const double b = sxy.val() / sxx.val(), a = ym - b * xm;
   if (b == 0) return CLAB_EDOM;
   kutil::ksum rss;

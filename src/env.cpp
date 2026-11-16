@@ -10,6 +10,7 @@
 #include <cstddef>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "pev.h"
 #include "kutil.h"
 
@@ -100,7 +101,7 @@ extern "C" int clab_jb(const double *r, int n, double *out) CLAB_TRY {
   m2 /= n;
   m3 /= n;
   m4 /= n;
-  if (!(m2 > 0.0)) return CLAB_EDOM;
+  if (kutil::cnst(r, n) || !(m2 > 0.0)) return CLAB_EDOM;
   const double s = m3 / (m2 * std::sqrt(m2)), k = m4 / (m2 * m2);
   const double jb = n / 6.0 * (s * s + (k - 3.0) * (k - 3.0) / 4.0);
   out[0] = s;
@@ -137,7 +138,21 @@ extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) CLAB_TRY {
         saa += (ea[s] - ma) * (ea[s] - ma);
         sbb += (eb[s] - mb) * (eb[s] - mb);
       }
-      if (!(saa > 0.0) || !(sbb > 0.0)) continue;
+      // a unit constant over the shared periods has no correlation (its
+      // sum of squares about a rounded mean need not be 0)
+      double fa = 0.0, fb = 0.0;
+      bool va = false, vb = false, first = true;
+      for (std::size_t s = 0; s < st; ++s) {
+        if (std::isnan(ea[s]) || std::isnan(eb[s])) continue;
+        if (first) {
+          fa = ea[s];
+          fb = eb[s];
+          first = false;
+        }
+        va = va || ea[s] != fa;
+        vb = vb || eb[s] != fb;
+      }
+      if (!va || !vb || !(saa > 0.0) || !(sbb > 0.0)) continue;
       const double rho = sab / std::sqrt(saa * sbb);
       cd += std::sqrt(static_cast<double>(t)) * rho;
       sr += rho;

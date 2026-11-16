@@ -211,6 +211,9 @@ test_that("the family's refusals name the function", {
                        clus = rep(1:4, each = 24)), "ten clusters")
   expect_error(pcdtst(rep(1, 4), c(1, 1, 2, 2), c(1, 2, 1, 2)),
                "pcdtst: .*undefined")
+  # a constant whose mean rounds is constant still
+  expect_error(pcdtst(rep(0.1, 4), c(1, 1, 2, 2), c(1, 2, 1, 2)),
+               "pcdtst: .*undefined")
 })
 
 test_that("print and plot return their input and what they drew", {

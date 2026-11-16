@@ -233,7 +233,8 @@ test_that("the spatial functions refuse bad input in words", {
   ))
   errs("bvmor", list(
     list("at least 3 units", 1:2, 1:2, d$w),
-    list("constant", rep(1, 60), d$v, d$w)
+    list("constant", rep(1, 60), d$v, d$w),
+    list("constant", d$v, rep(0.1, 60), d$w)
   ))
   errs("sarml", list(
     list("at least 4 units", 1:3, 1:3, d$w),

@@ -139,3 +139,11 @@ test_that("cmpsc() takes at most eight peak counts", {
                "cmpsc: `npeaks` must be one to eight whole numbers from 1.",
                fixed = TRUE)
 })
+
+test_that("a constant stretch has no correlation, whatever its mean", {
+  a <- sin(1:200)
+  r5 <- cmpsc(a, rep(0.5, 200))
+  expect_identical(r5$score, 0L)
+  expect_identical(cmpsc(a, rep(0.1, 200)), r5)
+  expect_identical(cmpsc(a, rep(1 / 3, 200)), r5)
+})

@@ -466,7 +466,7 @@ int clab_bvmor(const double *x, const double *y, int n, const int *rp, const int
     sx += zx[i] * zx[i];
     sy += zy[i] * zy[i];
   }
-  if (!(s[0] > 0) || !(sx > 0) || !(sy > 0)) return CLAB_EDOM;
+  if (kutil::cnst(x, n) || kutil::cnst(y, n) || !(s[0] > 0) || !(sx > 0) || !(sy > 0)) return CLAB_EDOM;
   const double f = n / s[0] / std::sqrt(sx * sy);
   const double I = f * cross(n, rp, ci, w, zx.data(), zy.data());
   out[0] = I;

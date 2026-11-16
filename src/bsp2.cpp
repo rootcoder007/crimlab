@@ -329,7 +329,7 @@ SEXP C_clab_r_locgi(SEXP x, SEXP w, SEXP star) {
   const bool st = csp::flag(star, "star");
   SEXP out = PROTECT(real(n));
   kc(clab_locgi(REAL_RO(xv), n, c.rp, c.ci, c.w, st ? 1 : 0, REAL(out)),
-     "the kernel refused the input.");
+     "`x` is constant: Gi is undefined.");
   UNPROTECT(3);
   return out;
 }
