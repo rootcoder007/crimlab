@@ -572,24 +572,7 @@ expconcidx <- function(data, expo, income) {
   }
   h <- .cknum(df[[expo]], expo, f, scalar = FALSE)
   inc <- .cknum(df[[income]], income, f, scalar = FALSE)
-  if (any(h < 0)) {
-    .ckstop(
-      f, "`%s` must be non-negative: an exposure is a concentration", expo
-    )
-  }
-  if (length(unique(inc)) < 2L) {
-    .ckstop(
-      f,
-      paste0(
-        "`%s` must take at least two values: with one income level there ",
-        "is no income gradient and the index is undefined"
-      ),
-      income
-    )
-  }
-  if (mean(h) <= 0) {
-    .ckstop(f, "Mean exposure is zero; concentration index undefined")
-  }
+  .concck(h, inc, expo, income, f)
   r <- .Call(C_clab_r_concidx, h, inc)
   ci <- r[[1L]][1L]
   structure(
@@ -608,6 +591,30 @@ expconcidx <- function(data, expo, income) {
     ),
     class = "expconcidx"
   )
+}
+
+# What expconcidx() needs of its two columns: exposures that are not
+# negative and not all zero, and an income that varies.
+.concck <- function(h, inc, expo, income, f) {
+  if (any(h < 0)) {
+    .ckstop(
+      f, "`%s` must be non-negative: an exposure is a concentration", expo
+    )
+  }
+  if (length(unique(inc)) < 2L) {
+    .ckstop(
+      f,
+      paste0(
+        "`%s` must take at least two values: with one income level there ",
+        "is no income gradient and the index is undefined"
+      ),
+      income
+    )
+  }
+  if (mean(h) <= 0) {
+    .ckstop(f, "Mean exposure is zero; concentration index undefined")
+  }
+  invisible(NULL)
 }
 
 #' @rdname crfpm25
