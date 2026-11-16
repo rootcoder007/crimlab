@@ -161,16 +161,7 @@ dtctloc <- function(
     }
     .cktxt(v, nm, f)
   }
-  r <- .locenv(envloc, codloc, f)
-  if (is.null(r)) r <- .loctz(tz)
-  if (is.null(r)) r <- .locloc(locale)
-  if (is.null(r)) {
-    r <- list(
-      location = "WORLD",
-      method = "fallback, no location found in environment, time zone or locale"
-    )
-  }
-  r
+  .Call(C_clab_r_fploc, envloc, codloc, tz, locale)
 }
 
 #' Is CPU energy measurable here?
@@ -222,7 +213,7 @@ raplok <- function(rapldir = "/sys/class/powercap") {
     .ckstop("raplok", "`rapldir` must be a single directory path")
   }
   .ckpath(rapldir, "raplok", "rapldir")
-  !is.null(.raplrd(.rapldom(rapldir)))
+  !is.null(.Call(C_clab_r_raplrd, .Call(C_clab_r_rapldom, rapldir)))
 }
 
 #' Energy and carbon footprint of a computation
@@ -453,8 +444,8 @@ co2fp <- function(
   t0 <- proc.time()
   value <- expr
   t1 <- proc.time()
-  after <- if (!is.null(rp$before)) .raplrd(rp$domains) else NULL
-  st1 <- if (mode == "machine") .pstat(procstat) else NULL
+  after <- if (!is.null(rp$before)) .Call(C_clab_r_raplrd, rp$domains)
+  st1 <- if (mode == "machine") .Call(C_clab_r_cpuacc, procstat)
   parts <- c("user.self", "sys.self", "user.child", "sys.child")
   d <- unname(t1[parts]) - unname(t0[parts])
   cpu <- max(sum(d[is.finite(d)]), 0)
@@ -473,7 +464,8 @@ co2fp <- function(
   r <- .fpcall(inp, rp$before, after, dv)
   o <- r[[1L]]
   umode <- c("process", "machine", "fixed")[o[3L] + 1L]
-  asm <- c(.fpflags(as.integer(o[5L]), umode, cr$asm), mem$note)
+  fl <- .Call(C_clab_r_fpnote, as.integer(o[5L]), umode == "machine")
+  asm <- c(cr$asm, fl, mem$note)
   if (pue > 1) asm <- c(asm, sprintf("PUE %.2f applied", pue))
   out <- list(
     value = value, durs = o[1L], cputms = cpu, usage = o[2L],
@@ -598,8 +590,6 @@ print.fpeqv <- function(x, ...) {
   .fpcache$tab
 }
 
-.cimatch <- function(key) .Call(C_clab_r_cimatch, enc2utf8(key))
-
 .ciget <- function(loc, fn) {
   .cktxt(loc, "loc", fn)
   if (is.numeric(loc)) {
@@ -621,20 +611,8 @@ print.fpeqv <- function(x, ...) {
     )
   }
   tab <- .citab()
-  i <- .cimatch(loc)
-  if (is.na(i) && grepl("-", loc, fixed = TRUE)) {
-    i <- .cimatch(sub("-.*$", "", loc))
-    if (!is.na(i)) {
-      note <- c(
-        note,
-        sprintf(
-          "no row for zone %s; its country %s used",
-          toupper(loc),
-          tab$location[i]
-        )
-      )
-    }
-  }
+  z <- .Call(C_clab_r_cizone, enc2utf8(loc))
+  i <- z[1L]
   if (is.na(i)) {
     .ckstop(
       fn,
@@ -644,6 +622,10 @@ print.fpeqv <- function(x, ...) {
       ),
       loc
     )
+  }
+  if (z[2L]) {
+    note <- c(note, sprintf("no row for zone %s; its country %s used",
+                            toupper(loc), tab$location[i]))
   }
   .cirow(tab, i, note)
 }
@@ -686,184 +668,8 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
-.fpknown <- function(key) {
-  if (is.null(key) || length(key) != 1L || is.na(key) || !nzchar(key)) {
-    return(NA_character_)
-  }
-  i <- .cimatch(key)
-  if (is.na(i)) NA_character_ else .citab()$location[i]
-}
-
-.locign <- function(val, var, fn) {
-  if (length(val) == 1L && !is.na(val) && nzchar(val)) {
-    warning(
-      sprintf(
-        paste(
-          "%s: %s='%s' is not a location co2inttab() knows",
-          "(code, alpha-3 or name); it is ignored."
-        ),
-        fn,
-        var,
-        val
-      ),
-      call. = FALSE
-    )
-  }
-  invisible(NULL)
-}
-
-.locenv <- function(envloc, codloc, fn) {
-  loc <- .fpknown(envloc)
-  if (!is.na(loc)) {
-    return(list(
-      location = loc,
-      method = "CRIMLAB_LOCATION environment variable"
-    ))
-  }
-  .locign(envloc, "CRIMLAB_LOCATION", fn)
-  loc <- .fpknown(codloc)
-  if (!is.na(loc)) {
-    return(list(
-      location = loc,
-      method = "CODECARBON_COUNTRY_ISO_CODE environment variable"
-    ))
-  }
-  .locign(codloc, "CODECARBON_COUNTRY_ISO_CODE", fn)
-  NULL
-}
-
-.loctz <- function(tz) {
-  if (!(length(tz) == 1L && !is.na(tz) && nzchar(tz))) {
-    return(NULL)
-  }
-  terr <- .Call(C_clab_r_tzterr, enc2utf8(tz))
-  loc <- .fpknown(terr)
-  if (!is.na(loc)) {
-    return(list(location = loc, method = sprintf("system time zone %s", tz)))
-  }
-  if (is.na(terr)) {
-    return(NULL)
-  }
-  # a territory the carbon table has no row for (Monaco, Jersey, the
-  # Antarctic stations): its administering or neighbouring country's grid,
-  # or the world average, never the locale's country
-  proxy <- .Call(C_clab_r_proxy, terr)
-  loc <- if (nzchar(proxy)) .fpknown(proxy) else NA_character_
-  if (is.na(loc)) loc <- "WORLD"
-  list(
-    location = loc,
-    method = sprintf(
-      "system time zone %s (territory %s has no row of its own; %s)",
-      tz,
-      terr,
-      if (identical(loc, "WORLD")) "world average" else paste("grid of", loc)
-    )
-  )
-}
-
-.locloc <- function(locale) {
-  if (!(length(locale) == 1L && !is.na(locale))) {
-    return(NULL)
-  }
-  m <- regmatches(locale, regexpr("^[A-Za-z]{2,3}_[A-Z]{2}", locale))
-  if (length(m) != 1L) {
-    return(NULL)
-  }
-  loc <- .fpknown(sub("^.*_", "", m))
-  if (is.na(loc)) {
-    return(NULL)
-  }
-  list(location = loc, method = sprintf("locale %s", locale))
-}
-
-# The CPU-package domains under a powercap directory.
-.rapldom <- function(dir) {
-  if (!dir.exists(dir)) {
-    return(character(0))
-  }
-  d <- list.files(dir, pattern = "^intel-rapl:[0-9]+$", full.names = TRUE)
-  keep <- vapply(
-    d,
-    function(p) {
-      nm <- tryCatch(
-        suppressWarnings(
-          readLines(file.path(p, "name"), n = 1L, warn = FALSE)
-        ),
-        error = function(e) ""
-      )
-      file.exists(file.path(p, "energy_uj")) &&
-        length(nm) == 1L &&
-        startsWith(nm, "package")
-    },
-    logical(1)
-  )
-  d[keep]
-}
-
-# One number from the first line of a file, NA when there is none.
-.rd1 <- function(path) {
-  v <- tryCatch(
-    suppressWarnings(as.numeric(readLines(path, n = 1L, warn = FALSE))),
-    error = function(e) NA_real_
-  )
-  if (length(v) != 1L) NA_real_ else v
-}
-
-# The counters (microjoules) and their ranges; NULL when one is unreadable.
-.raplrd <- function(domains) {
-  if (!length(domains)) {
-    return(NULL)
-  }
-  vals <- vapply(file.path(domains, "energy_uj"), .rd1, numeric(1))
-  if (anyNA(vals)) {
-    return(NULL)
-  }
-  maxes <- vapply(file.path(domains, "max_energy_range_uj"), .rd1, numeric(1))
-  list(uj = unname(vals), max = unname(maxes))
-}
-
-# The machine's idle and total ticks from the kernel's CPU accounting.
-.pstat <- function(path) {
-  l <- tryCatch(
-    suppressWarnings(readLines(path, n = 1L, warn = FALSE)),
-    error = function(e) character(0)
-  )
-  if (length(l) != 1L || !startsWith(l, "cpu ")) {
-    return(NULL)
-  }
-  v <- suppressWarnings(as.numeric(strsplit(trimws(l), "\\s+")[[1L]][-1L]))
-  if (length(v) < 4L || anyNA(v)) {
-    return(NULL)
-  }
-  c(idle = v[4L] + if (length(v) >= 5L) v[5L] else 0, total = sum(v))
-}
-
 # The machine's total memory in GB, NA when it cannot be read.
-.memgb <- function() {
-  if (file.exists("/proc/meminfo")) {
-    l <- tryCatch(
-      readLines("/proc/meminfo", warn = FALSE),
-      error = function(e) character(0)
-    )
-    m <- grep("^MemTotal:", l, value = TRUE)
-    kb <- suppressWarnings(as.numeric(gsub("[^0-9]", "", m)))
-    if (length(kb) == 1L && is.finite(kb) && kb > 0) return(kb / 1024^2)
-  }
-  sysctl <- Sys.which("sysctl")
-  if (identical(Sys.info()[["sysname"]], "Darwin") && nzchar(sysctl)) {
-    b <- tryCatch(
-      suppressWarnings(as.numeric(system2(
-        sysctl,
-        c("-n", "hw.memsize"),
-        stdout = TRUE,
-        timeout = 10
-      ))),
-      error = function(e) NA_real_
-    )
-    if (length(b) == 1L && is.finite(b) && b > 0) return(b / 1024^3)
-  }
-  NA_real_
-}
+.memgb <- function() .Call(C_clab_r_memgb)
 
 # co2fp(): the energy by part, the devices' when there are devices
 .fpen <- function(o, devices) {
@@ -875,8 +681,8 @@ print.fpeqv <- function(x, ...) {
 # co2fp(): the RAPL domains and their counters before the run (NULL when
 # unreadable, an error when RAPL was asked for)
 .fprapl <- function(meth, rapldir, f) {
-  domains <- if (meth != "model") .rapldom(rapldir) else character(0)
-  before <- if (meth != "model") .raplrd(domains) else NULL
+  domains <- if (meth != "model") .Call(C_clab_r_rapldom, rapldir)
+  before <- if (meth != "model") .Call(C_clab_r_raplrd, domains)
   if (meth == "rapl" && is.null(before)) {
     .ckstop(
       f,
@@ -892,7 +698,7 @@ print.fpeqv <- function(x, ...) {
 # co2fp(): the utilisation mode and the machine's CPU accounting before the
 # run, process utilisation when /proc/stat cannot be read
 .fpmode <- function(mode, procstat, asm) {
-  st0 <- if (mode == "machine") .pstat(procstat) else NULL
+  st0 <- if (mode == "machine") .Call(C_clab_r_cpuacc, procstat)
   if (mode == "machine" && is.null(st0)) {
     mode <- "process"
     asm <- c(
@@ -948,40 +754,6 @@ print.fpeqv <- function(x, ...) {
     if (nr) as.numeric(before$max) else numeric(0),
     dv$watts, dv$energy, dv$kind
   )
-}
-
-# co2fp(): the assumptions the core's flags record
-.fpflags <- function(flags, umode, asm) {
-  if (bitwAnd(flags, 1L)) {
-    asm <- c(asm, paste(
-      "machine CPU accounting became unreadable; process utilisation used"
-    ))
-  }
-  if (bitwAnd(flags, 4L)) {
-    asm <- c(
-      asm,
-      "RAPL counters became unreadable during the run; modelled instead"
-    )
-  }
-  if (bitwAnd(flags, 2L)) {
-    asm <- c(
-      asm,
-      "a RAPL counter wrapped and its range was unknown; modelled instead"
-    )
-  }
-  if (bitwAnd(flags, 8L)) {
-    asm <- c(asm, "CPU power unknown: 85 W x 50% (codecarbon fallback)")
-  }
-  if (bitwAnd(flags, 16L)) {
-    asm <- c(
-      asm,
-      sprintf(
-        "codecarbon %s load curve applied to the CPU power",
-        if (umode == "machine") "machine" else "process"
-      )
-    )
-  }
-  asm
 }
 
 .fpnum <- function(x, what, fn, positive = FALSE) {

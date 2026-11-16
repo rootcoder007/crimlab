@@ -3842,6 +3842,42 @@ int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const
 /* Grams of CO2e as kilometres in a European passenger car (175 g/km) and
  * tree-months of uptake (917 g each). */
 void clab_fpeqv(double g, double *out);
+/* clab_cimatch() of key, else of its part before the first '-' (a zone
+ * of a country the table has no row of its own for), *zone then 1; -1
+ * when neither matches. */
+int clab_cizone(const char *key, int *zone);
+/* Where a run is, for its carbon intensity: the first of env and cod (each
+ * a location clab_cimatch() knows), the territory of the IANA time zone tz
+ * (or, for a territory without a row, the grid clab_terrproxy() gives, or
+ * WORLD), and the country of a locale lc that begins
+ * ^[A-Za-z]{2,3}_[A-Z]{2}; WORLD when none. "" stands for an absent value.
+ * *loc: the location code (static storage); how: the method in words, at
+ * most cap bytes with the terminating 0, its full length in *len (call
+ * again with a buffer of *len + 1 bytes when *len >= cap); *ign: 1 when env
+ * and 2 when cod was given but is not a known location (it was ignored). */
+int clab_fploc(const char *env, const char *cod, const char *tz, const char *lc, const char **loc,
+               char *how, size_t cap, size_t *len, int *ign);
+/* The CPU-package RAPL domains under a powercap directory dir: entries
+ * intel-rapl:<digits> holding energy_uj whose name file's first line
+ * starts with "package", sorted, as paths dir/<entry>, each followed by a
+ * 0 byte, into buf when their *len bytes fit in cap (call again with *len
+ * bytes otherwise); *n their number, 0 when dir cannot be listed. */
+int clab_rapldom(const char *dir, char *buf, size_t cap, size_t *len, int *n);
+/* A RAPL domain's counter (energy_uj, microjoules) and its range
+ * (max_energy_range_uj), each NaN when its file's first line is not one
+ * number. */
+void clab_raplrd(const char *dom, double *uj, double *mx);
+/* The idle (fourth plus fifth number) and total (sum) ticks of the first
+ * line of a CPU accounting file such as /proc/stat: "cpu " and at least
+ * four numbers, else CLAB_EDOM. */
+int clab_cpuacc(const char *path, double *out);
+/* The machine's memory in GB, from MemTotal in /proc/meminfo or hw.memsize
+ * on macOS; NaN when neither can be read. */
+double clab_memgb(void);
+/* The assumption the i-th flag of clab_fpe() (i 0 to 4: bits 1, 4, 2, 8,
+ * 16, the order a footprint lists them) records, NULL when that bit is not
+ * set in flags; machine non-zero for codecarbon's machine load curve. */
+const char *clab_fpnote(int i, int flags, int machine);
 
 /* ------------------------------------------------------------------------
  * The exposure-response estimate of exprspplr() (plr.cpp).

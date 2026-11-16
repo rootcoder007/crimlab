@@ -51,16 +51,14 @@ bool co2int(Ctx &c, Val &out) {
     loc = s->s;
   }
   std::vector<std::string> note;
-  int i = clab_cimatch(loc.c_str());
-  if (i < 0 && loc.find('-') != std::string::npos) {
-    i = clab_cimatch(loc.substr(0, loc.find('-')).c_str());
-    if (i >= 0) {
-      const char *cl, *iso3, *name, *src;
-      double g;
-      int yr;
-      clab_cirow(i, &cl, &iso3, &name, &g, &yr, &src);
-      note.push_back("no row for zone " + upr(loc) + "; its country " + cl + " used");
-    }
+  int zone = 0;
+  const int i = clab_cizone(loc.c_str(), &zone);
+  if (zone != 0) {
+    const char *cl, *iso3, *name, *src;
+    double g;
+    int yr;
+    clab_cirow(i, &cl, &iso3, &name, &g, &yr, &src);
+    note.push_back("no row for zone " + upr(loc) + "; its country " + cl + " used");
   }
   if (i < 0) {
     return ckstop(c,
@@ -93,18 +91,6 @@ bool co2inttab(Ctx &, Val &out) {
   out = vobj();
   for (int j = 0; j < 7; ++j) put(out, nm[j], cols[j]);
   return true;
-}
-
-// The table's location code for key, "" when none.
-inline std::string known(const std::string &key) {
-  if (key.empty()) return "";
-  const int i = clab_cimatch(key.c_str());
-  if (i < 0) return "";
-  const char *loc, *iso3, *name, *src;
-  double g;
-  int yr;
-  clab_cirow(i, &loc, &iso3, &name, &g, &yr, &src);
-  return loc;
 }
 
 inline std::string envs(const char *v) {
@@ -143,10 +129,8 @@ inline bool locarg(Ctx &c, const char *nm, std::string def, std::string &v) {
 }
 
 inline void locign(Ctx &c, const std::string &v, const char *var) {
-  if (!v.empty()) {
-    c.warn.push_back(std::string(c.fn) + ": " + var + "='" + v +
-                     "' is not a location co2inttab() knows (code, alpha-3 or name); it is ignored.");
-  }
+  c.warn.push_back(std::string(c.fn) + ": " + var + "='" + v +
+                   "' is not a location co2inttab() knows (code, alpha-3 or name); it is ignored.");
 }
 
 bool dtctloc(Ctx &c, Val &out) {
@@ -159,58 +143,22 @@ bool dtctloc(Ctx &c, Val &out) {
   if (dl.empty()) dl = envs("LANG");
   if (dl.empty()) dl = "C";
   CK(locarg(c, "locale", dl, lc));
-  std::string loc, how;
-  if (!(loc = known(env)).empty()) {
-    how = "CRIMLAB_LOCATION environment variable";
-  } else {
-    locign(c, env, "CRIMLAB_LOCATION");
-    if (!(loc = known(cod)).empty()) how = "CODECARBON_COUNTRY_ISO_CODE environment variable";
-    else locign(c, cod, "CODECARBON_COUNTRY_ISO_CODE");
+  const char *loc = nullptr;
+  std::size_t len = 0;
+  int ig = 0;
+  std::vector<char> how(256);
+  if (clab_fploc(env.c_str(), cod.c_str(), tz.c_str(), lc.c_str(), &loc, how.data(), how.size(), &len, &ig) ==
+          CLAB_OK &&
+      len >= how.size()) {
+    how.resize(len + 1);
+    clab_fploc(env.c_str(), cod.c_str(), tz.c_str(), lc.c_str(), &loc, how.data(), how.size(), &len, &ig);
   }
-  if (loc.empty() && !tz.empty()) {
-    const char *terr = clab_tzterr(tz.c_str());
-    if (terr != nullptr) {
-      loc = known(terr);
-      if (!loc.empty()) {
-        how = "system time zone " + tz;
-      } else {
-        const std::string p = clab_terrproxy(terr);
-        loc = p.empty() ? "" : known(p);
-        if (loc.empty()) loc = "WORLD";
-        how = "system time zone " + tz + " (territory " + terr + " has no row of its own; " +
-              (loc == "WORLD" ? std::string("world average") : "grid of " + loc) + ")";
-      }
-    }
-  }
-  if (loc.empty()) {
-    // "^[A-Za-z]{2,3}_[A-Z]{2}"
-    std::size_t k = 0;
-    while (k < lc.size() && k < 3 && std::isalpha(static_cast<unsigned char>(lc[k]))) ++k;
-    if (k >= 2 && k + 3 <= lc.size() && lc[k] == '_' && std::isupper(static_cast<unsigned char>(lc[k + 1])) &&
-        std::isupper(static_cast<unsigned char>(lc[k + 2])) && (lc[k + 1] & 0x80) == 0 && (lc[k + 2] & 0x80) == 0) {
-      loc = known(lc.substr(k + 1, 2));
-      if (!loc.empty()) how = "locale " + lc;
-    }
-  }
-  if (loc.empty()) {
-    loc = "WORLD";
-    how = "fallback, no location found in environment, time zone or locale";
-  }
+  if ((ig & 1) != 0) locign(c, env, "CRIMLAB_LOCATION");
+  if ((ig & 2) != 0) locign(c, cod, "CODECARBON_COUNTRY_ISO_CODE");
   out = vobj();
   put(out, "location", vstr(loc));
-  put(out, "method", vstr(how));
+  put(out, "method", vstr(how.data()));
   return true;
-}
-
-// The first line of a file as a number, NaN when there is none.
-inline double rd1(const std::string &p) {
-  std::ifstream f(p);
-  std::string s;
-  if (!f || !std::getline(f, s)) return NaN;
-  char *end = nullptr;
-  const double v = std::strtod(s.c_str(), &end);
-  while (end != nullptr && *end != 0 && std::isspace(static_cast<unsigned char>(*end))) ++end;
-  return end == s.c_str() || *end != 0 ? NaN : v;
 }
 
 bool raplok(Ctx &c, Val &out) {
@@ -222,28 +170,23 @@ bool raplok(Ctx &c, Val &out) {
     dir = s->s;
   }
   CK(ckpath(c, dir, "rapldir"));
-  bool any = false, ok = true;
-#ifndef _WIN32
-  DIR *d = opendir(dir.c_str());
-  if (d != nullptr) {
-    while (const dirent *e = readdir(d)) {
-      const std::string n = e->d_name;
-      if (n.compare(0, 11, "intel-rapl:") != 0 || n.size() == 11) continue;
-      bool digits = true;
-      for (std::size_t k = 11; k < n.size(); ++k) digits = digits && std::isdigit(static_cast<unsigned char>(n[k]));
-      if (!digits) continue;
-      const std::string p = dir + "/" + n;
-      std::ifstream nf(p + "/name");
-      std::string nm;
-      if (!nf || !std::getline(nf, nm) || nm.compare(0, 7, "package") != 0) continue;
-      if (access((p + "/energy_uj").c_str(), F_OK) != 0) continue;
-      any = true;
-      ok = ok && !std::isnan(rd1(p + "/energy_uj"));
-    }
-    closedir(d);
+  std::size_t len = 0;
+  int n = 0;
+  std::vector<char> b(4096);
+  int rc = clab_rapldom(dir.c_str(), b.data(), b.size(), &len, &n);
+  while (rc == CLAB_OK && len > b.size()) {
+    b.resize(len);
+    rc = clab_rapldom(dir.c_str(), b.data(), b.size(), &len, &n);
   }
-#endif
-  out = vbool(any && ok);
+  bool ok = rc == CLAB_OK && n > 0;
+  std::size_t at = 0;
+  for (int k = 0; ok && k < n; ++k) {
+    double uj = 0, mx = 0;
+    clab_raplrd(b.data() + at, &uj, &mx);
+    ok = ok && !std::isnan(uj);
+    at += std::strlen(b.data() + at) + 1;
+  }
+  out = vbool(ok);
   return true;
 }
 

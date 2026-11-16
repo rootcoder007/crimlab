@@ -671,6 +671,13 @@ SEXP C_clab_r_tzterr(SEXP);
 SEXP C_clab_r_proxy(SEXP);
 SEXP C_clab_r_fpe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_fpeqv(SEXP);
+SEXP C_clab_r_fploc(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_cizone(SEXP);
+SEXP C_clab_r_rapldom(SEXP);
+SEXP C_clab_r_raplrd(SEXP);
+SEXP C_clab_r_cpuacc(SEXP);
+SEXP C_clab_r_memgb(void);
+SEXP C_clab_r_fpnote(SEXP, SEXP);
 // The exposure-response estimate (bplr.cpp).
 SEXP C_clab_r_plr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_bootci(SEXP, SEXP);
@@ -1043,6 +1050,13 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_proxy", fn<&C_clab_r_proxy>(), 1},
     {"C_clab_r_fpe", fn<&C_clab_r_fpe>(), 7},
     {"C_clab_r_fpeqv", fn<&C_clab_r_fpeqv>(), 1},
+    {"C_clab_r_fploc", fn<&C_clab_r_fploc>(), 4},
+    {"C_clab_r_cizone", fn<&C_clab_r_cizone>(), 1},
+    {"C_clab_r_rapldom", fn<&C_clab_r_rapldom>(), 1},
+    {"C_clab_r_raplrd", fn<&C_clab_r_raplrd>(), 1},
+    {"C_clab_r_cpuacc", fn<&C_clab_r_cpuacc>(), 1},
+    {"C_clab_r_memgb", fn<&C_clab_r_memgb>(), 0},
+    {"C_clab_r_fpnote", fn<&C_clab_r_fpnote>(), 2},
     {"C_clab_r_plr", fn<&C_clab_r_plr>(), 6},
     {"C_clab_r_bootci", fn<&C_clab_r_bootci>(), 2},
     {"C_clab_r_hbin", fn<&C_clab_r_hbin>(), 2},
