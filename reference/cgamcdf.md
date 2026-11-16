@@ -19,7 +19,8 @@ cgamcdf(shape, x)
 
 - x:
 
-  Numeric vector of quantiles.
+  Numeric vector: the points at which the distribution function of the
+  gamma variable is taken.
 
 ## Value
 
