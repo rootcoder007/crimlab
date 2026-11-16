@@ -85,6 +85,10 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `plotopt()` is in `clab_jrun()`, the command line and Python, where no
+  session keeps options: it checks the options given as R does and
+  returns them with the defaults for the others.
+
 * `plotevgrid()` is in `clab_jrun()`, the command line and Python: its
   `x` maps each panel to a result of `evtst()` or `stgdid()`, or to the
   rows `evtm`, `est`, `lo` and `hi` themselves.

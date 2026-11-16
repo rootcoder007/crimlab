@@ -247,3 +247,166 @@ bool plotevgrid(Ctx &c, Val &out) {
   out = f.o;
   return true;
 }
+
+namespace plt {
+
+// The colour names of R's colors(), in one text (spaces between).
+const char *const rcols =
+    "white aliceblue antiquewhite antiquewhite1 antiquewhite2 antiquewhite3 antiquewhite4 aquamarine "
+    "aquamarine1 aquamarine2 aquamarine3 aquamarine4 azure azure1 azure2 azure3 azure4 beige bisque "
+    "bisque1 bisque2 bisque3 bisque4 black blanchedalmond blue blue1 blue2 blue3 blue4 blueviolet brown "
+    "brown1 brown2 brown3 brown4 burlywood burlywood1 burlywood2 burlywood3 burlywood4 cadetblue "
+    "cadetblue1 cadetblue2 cadetblue3 cadetblue4 chartreuse chartreuse1 chartreuse2 chartreuse3 "
+    "chartreuse4 chocolate chocolate1 chocolate2 chocolate3 chocolate4 coral coral1 coral2 coral3 coral4 "
+    "cornflowerblue cornsilk cornsilk1 cornsilk2 cornsilk3 cornsilk4 cyan cyan1 cyan2 cyan3 cyan4 "
+    "darkblue darkcyan darkgoldenrod darkgoldenrod1 darkgoldenrod2 darkgoldenrod3 darkgoldenrod4 "
+    "darkgray darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkolivegreen1 darkolivegreen2 "
+    "darkolivegreen3 darkolivegreen4 darkorange darkorange1 darkorange2 darkorange3 darkorange4 "
+    "darkorchid darkorchid1 darkorchid2 darkorchid3 darkorchid4 darkred darksalmon darkseagreen "
+    "darkseagreen1 darkseagreen2 darkseagreen3 darkseagreen4 darkslateblue darkslategray darkslategray1 "
+    "darkslategray2 darkslategray3 darkslategray4 darkslategrey darkturquoise darkviolet deeppink "
+    "deeppink1 deeppink2 deeppink3 deeppink4 deepskyblue deepskyblue1 deepskyblue2 deepskyblue3 "
+    "deepskyblue4 dimgray dimgrey dodgerblue dodgerblue1 dodgerblue2 dodgerblue3 dodgerblue4 firebrick "
+    "firebrick1 firebrick2 firebrick3 firebrick4 floralwhite forestgreen gainsboro ghostwhite gold gold1 "
+    "gold2 gold3 gold4 goldenrod goldenrod1 goldenrod2 goldenrod3 goldenrod4 gray gray0 gray1 gray2 "
+    "gray3 gray4 gray5 gray6 gray7 gray8 gray9 gray10 gray11 gray12 gray13 gray14 gray15 gray16 gray17 "
+    "gray18 gray19 gray20 gray21 gray22 gray23 gray24 gray25 gray26 gray27 gray28 gray29 gray30 gray31 "
+    "gray32 gray33 gray34 gray35 gray36 gray37 gray38 gray39 gray40 gray41 gray42 gray43 gray44 gray45 "
+    "gray46 gray47 gray48 gray49 gray50 gray51 gray52 gray53 gray54 gray55 gray56 gray57 gray58 gray59 "
+    "gray60 gray61 gray62 gray63 gray64 gray65 gray66 gray67 gray68 gray69 gray70 gray71 gray72 gray73 "
+    "gray74 gray75 gray76 gray77 gray78 gray79 gray80 gray81 gray82 gray83 gray84 gray85 gray86 gray87 "
+    "gray88 gray89 gray90 gray91 gray92 gray93 gray94 gray95 gray96 gray97 gray98 gray99 gray100 green "
+    "green1 green2 green3 green4 greenyellow grey grey0 grey1 grey2 grey3 grey4 grey5 grey6 grey7 grey8 "
+    "grey9 grey10 grey11 grey12 grey13 grey14 grey15 grey16 grey17 grey18 grey19 grey20 grey21 grey22 "
+    "grey23 grey24 grey25 grey26 grey27 grey28 grey29 grey30 grey31 grey32 grey33 grey34 grey35 grey36 "
+    "grey37 grey38 grey39 grey40 grey41 grey42 grey43 grey44 grey45 grey46 grey47 grey48 grey49 grey50 "
+    "grey51 grey52 grey53 grey54 grey55 grey56 grey57 grey58 grey59 grey60 grey61 grey62 grey63 grey64 "
+    "grey65 grey66 grey67 grey68 grey69 grey70 grey71 grey72 grey73 grey74 grey75 grey76 grey77 grey78 "
+    "grey79 grey80 grey81 grey82 grey83 grey84 grey85 grey86 grey87 grey88 grey89 grey90 grey91 grey92 "
+    "grey93 grey94 grey95 grey96 grey97 grey98 grey99 grey100 honeydew honeydew1 honeydew2 honeydew3 "
+    "honeydew4 hotpink hotpink1 hotpink2 hotpink3 hotpink4 indianred indianred1 indianred2 indianred3 "
+    "indianred4 ivory ivory1 ivory2 ivory3 ivory4 khaki khaki1 khaki2 khaki3 khaki4 lavender "
+    "lavenderblush lavenderblush1 lavenderblush2 lavenderblush3 lavenderblush4 lawngreen lemonchiffon "
+    "lemonchiffon1 lemonchiffon2 lemonchiffon3 lemonchiffon4 lightblue lightblue1 lightblue2 lightblue3 "
+    "lightblue4 lightcoral lightcyan lightcyan1 lightcyan2 lightcyan3 lightcyan4 lightgoldenrod "
+    "lightgoldenrod1 lightgoldenrod2 lightgoldenrod3 lightgoldenrod4 lightgoldenrodyellow lightgray "
+    "lightgreen lightgrey lightpink lightpink1 lightpink2 lightpink3 lightpink4 lightsalmon lightsalmon1 "
+    "lightsalmon2 lightsalmon3 lightsalmon4 lightseagreen lightskyblue lightskyblue1 lightskyblue2 "
+    "lightskyblue3 lightskyblue4 lightslateblue lightslategray lightslategrey lightsteelblue "
+    "lightsteelblue1 lightsteelblue2 lightsteelblue3 lightsteelblue4 lightyellow lightyellow1 "
+    "lightyellow2 lightyellow3 lightyellow4 limegreen linen magenta magenta1 magenta2 magenta3 magenta4 "
+    "maroon maroon1 maroon2 maroon3 maroon4 mediumaquamarine mediumblue mediumorchid mediumorchid1 "
+    "mediumorchid2 mediumorchid3 mediumorchid4 mediumpurple mediumpurple1 mediumpurple2 mediumpurple3 "
+    "mediumpurple4 mediumseagreen mediumslateblue mediumspringgreen mediumturquoise mediumvioletred "
+    "midnightblue mintcream mistyrose mistyrose1 mistyrose2 mistyrose3 mistyrose4 moccasin navajowhite "
+    "navajowhite1 navajowhite2 navajowhite3 navajowhite4 navy navyblue oldlace olivedrab olivedrab1 "
+    "olivedrab2 olivedrab3 olivedrab4 orange orange1 orange2 orange3 orange4 orangered orangered1 "
+    "orangered2 orangered3 orangered4 orchid orchid1 orchid2 orchid3 orchid4 palegoldenrod palegreen "
+    "palegreen1 palegreen2 palegreen3 palegreen4 paleturquoise paleturquoise1 paleturquoise2 "
+    "paleturquoise3 paleturquoise4 palevioletred palevioletred1 palevioletred2 palevioletred3 "
+    "palevioletred4 papayawhip peachpuff peachpuff1 peachpuff2 peachpuff3 peachpuff4 peru pink pink1 "
+    "pink2 pink3 pink4 plum plum1 plum2 plum3 plum4 powderblue purple purple1 purple2 purple3 purple4 "
+    "red red1 red2 red3 red4 rosybrown rosybrown1 rosybrown2 rosybrown3 rosybrown4 royalblue royalblue1 "
+    "royalblue2 royalblue3 royalblue4 saddlebrown salmon salmon1 salmon2 salmon3 salmon4 sandybrown "
+    "seagreen seagreen1 seagreen2 seagreen3 seagreen4 seashell seashell1 seashell2 seashell3 seashell4 "
+    "sienna sienna1 sienna2 sienna3 sienna4 skyblue skyblue1 skyblue2 skyblue3 skyblue4 slateblue "
+    "slateblue1 slateblue2 slateblue3 slateblue4 slategray slategray1 slategray2 slategray3 slategray4 "
+    "slategrey snow snow1 snow2 snow3 snow4 springgreen springgreen1 springgreen2 springgreen3 "
+    "springgreen4 steelblue steelblue1 steelblue2 steelblue3 steelblue4 tan tan1 tan2 tan3 tan4 thistle "
+    "thistle1 thistle2 thistle3 thistle4 tomato tomato1 tomato2 tomato3 tomato4 turquoise turquoise1 "
+    "turquoise2 turquoise3 turquoise4 violet violetred violetred1 violetred2 violetred3 violetred4 wheat "
+    "wheat1 wheat2 wheat3 wheat4 whitesmoke yellow yellow1 yellow2 yellow3 yellow4 yellowgreen ";
+
+// R's StrMatch(): equal ignoring case and blanks.
+inline bool strmatch(const char *s, const char *t, std::size_t ns) {
+  const char *const e = s + ns;
+  for (;;) {
+    if (s == e && *t == '\0') return true;
+    if (s != e && *s == ' ') {
+      ++s;
+      continue;
+    }
+    if (*t == ' ') {
+      ++t;
+      continue;
+    }
+    if (s == e || *t == '\0') return false;
+    if (std::tolower(static_cast<unsigned char>(*s++)) != std::tolower(static_cast<unsigned char>(*t++))) return false;
+  }
+}
+// .iscol(): what grDevices::col2rgb() takes, as R's str2col() reads it: #
+// and 3, 4, 6 or 8 hex digits; text that starts with a digit and is one
+// number; "NA", "transparent" or a name of colors(); a number from 0 to
+// 2147483647.
+inline bool iscol(const Val &o) {
+  const Val *v = o.t == Val::ARR && o.a.size() == 1 ? &o.a[0] : &o;
+  if (v->t == Val::NUM) return std::isfinite(v->n) && v->n >= 0 && v->n <= 2147483647.0;
+  if (v->t != Val::STR) return false;
+  const std::string &s = v->s;
+  if (!s.empty() && s[0] == '#') {
+    bool hex = s.size() == 4 || s.size() == 5 || s.size() == 7 || s.size() == 9;
+    for (std::size_t i = 1; hex && i < s.size(); ++i) hex = std::isxdigit(static_cast<unsigned char>(s[i])) != 0;
+    return hex;
+  }
+  if (!s.empty() && std::isdigit(static_cast<unsigned char>(s[0]))) {
+    char *end = nullptr;
+    std::strtod(s.c_str(), &end);
+    return end != nullptr && *end == '\0';
+  }
+  if (s == "NA" || s == "transparent") return true;
+  for (const char *p = rcols; *p != '\0';) {
+    const char *q = std::strchr(p, ' ');
+    const std::size_t n = q == nullptr ? std::strlen(p) : static_cast<std::size_t>(q - p);
+    if (strmatch(p, s.c_str(), n)) return true;
+    p += n + (q == nullptr ? 0 : 1);
+  }
+  return false;
+}
+// .pnum1(v, lo, hi, int)
+inline bool num1(const Val &o, double lo, double hi, bool whole) {
+  if (!ax::numv(o)) return false;
+  const std::vector<double> v = vals(o);
+  return v.size() == 1 && std::isfinite(v[0]) && v[0] >= lo && v[0] <= hi && (!whole || v[0] == std::round(v[0]));
+}
+
+}  // namespace plt
+
+// plotopt(): outside R there is no session to keep options in, so the
+// options given are checked as R checks them and returned with the
+// defaults for the others: the set a caller passes on. `panel` = NA
+// cannot be given (null is an argument left out).
+bool plotopt(Ctx &c, Val &out) {
+  static const char *const nm[] = {"palette", "grid", "cex", "las", "bg", "panel"};
+  static const char *const msg[] = {"", "TRUE or FALSE", "one positive number", "0, 1, 2 or 3", "one colour",
+                                    "one colour, or NA"};
+  out = vobj();
+  put(out, "palette", vstr("okabe"));
+  put(out, "grid", vbool(true));
+  put(out, "cex", vnum(1));
+  put(out, "las", vnum(1));
+  put(out, "bg", vstr("white"));
+  put(out, "panel", vstr("#EEF1F6"));
+  for (std::size_t i = 0; i < c.in->k.size(); ++i) {
+    const std::string &k = c.in->k[i];
+    const Val &v = c.in->a[i];
+    if (v.t == Val::NUL) continue;
+    std::size_t j = 0;
+    while (j < 6 && k != nm[j]) ++j;
+    if (j == 6) return c.fail("the options are palette, grid, cex, las, bg, panel.");
+    const Val *s = v.t == Val::ARR && v.a.size() == 1 ? &v.a[0] : &v;
+    bool ok = true;
+    if (j == 0) {
+      ok = s->t == Val::STR && (s->s == "okabe" || s->s == "diverging" || s->s == "sequential" || s->s == "grey");
+      if (!ok) return c.fail("the palette must be one of okabe, diverging, sequential, grey.");
+    }
+    if (j == 1) ok = s->t == Val::BOOL;
+    if (j == 2) ok = plt::num1(v, std::numeric_limits<double>::min(), HUGE_VAL, false);
+    if (j == 3) ok = plt::num1(v, 0, 3, true);
+    if (j >= 4) ok = plt::iscol(v);
+    if (!ok) return c.fail("`%s` must be %s.", nm[j], msg[j]);
+    for (std::size_t m = 0; m < out.k.size(); ++m) {
+      if (out.k[m] == k) out.a[m] = *s;
+    }
+  }
+  return true;
+}

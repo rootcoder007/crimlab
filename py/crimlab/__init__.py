@@ -452,6 +452,7 @@ from ._j import (
     co2fp,
     plothex,
     plotevgrid,
+    plotopt,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -928,6 +929,7 @@ __all__ = [
     "co2fp",
     "plothex",
     "plotevgrid",
+    "plotopt",
 ]
 
 

@@ -7652,3 +7652,27 @@ def plotevgrid(x: Any) -> Any:
     (['a', 'a'], [-1.0, 0.0])
     """
     return jcall("plotevgrid", x=x)
+
+
+def plotopt(
+    palette: Any = None,
+    grid: Any = None,
+    cex: Any = None,
+    las: Any = None,
+    bg: Any = None,
+    panel: Any = None,
+) -> Any:
+    """The plotting options of R's ``plotopt()``, checked and resolved.
+
+    Outside R there is no session to keep options in: the options given
+    are checked as R checks them and returned with the defaults for the
+    others, the set a caller passes on. ``panel=NA`` cannot be given (None
+    is an option left out).
+
+    Examples
+    --------
+    >>> o = plotopt(palette="grey", grid=False)
+    >>> o["palette"], o["grid"], o["panel"]
+    ('grey', False, '#EEF1F6')
+    """
+    return jcall("plotopt", palette=palette, grid=grid, cex=cex, las=las, bg=bg, panel=panel)
