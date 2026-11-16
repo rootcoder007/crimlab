@@ -121,8 +121,8 @@ panels in the same way, after Zhou and Zhang (2016, eq 12), and caution
 (p. 2 and n. 7, p. 4) that when whether a unit is observed is related
 to its loadings and varies over time, the averages no longer proxy the
 factors well; the estimators for unbalanced panels with interactive
-effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1, p.
-1309) likewise assume that the data are missing at random, which
+effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1,
+p. 1309) likewise assume that the data are missing at random, which
 excludes selection related to the idiosyncratic errors. Neither paper
 gives a diagnostic or correction for CCE estimators, and this function
 makes none. A period observed for one unit only, or a unit with fewer

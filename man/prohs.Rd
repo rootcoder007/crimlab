@@ -63,8 +63,8 @@ when crimes happened recently. Burglary risk is raised near a recent
 burglary for a few weeks (the near-repeat pattern), so Bowers, Johnson
 and Pease (2004) score each cell of a grid by the recent incidents near
 it, each weighted down with its distance and its age:
-\deqn{risk(u) = \sum_j \frac{1}{1 + d_j / cell} \cdot \frac{1}{1 + (at
-- t_j) / tunit}}{risk(u) = sum_j 1 / (1 + d_j / cell) * 1 / (1 + (at -
+\deqn{risk(u) = \sum_j \frac{1}{1 + d_j / cell} \cdot \frac{1}{1 +
+(at - t_j) / tunit}}{risk(u) = sum_j 1 / (1 + d_j / cell) * 1 / (1 + (at -
 t_j) / tunit)}
 over the incidents \code{j} of the \code{tw} time units before \code{at} whose distance
 \code{d_j} from the cell's centre is at most \code{bw} (in the paper, cells of 50

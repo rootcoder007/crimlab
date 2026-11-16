@@ -7,8 +7,8 @@
 #' other officers' stops weighted to look like this officer's: the
 #' propensity `e(x)` that a stop with circumstances `x` (place, hour, day,
 #' reason) is this officer's comes from a logistic regression on `x`
-#' (over all stops), and each other officer's stop gets the weight `e / (1
-#' - e)`, the weights of the effect on the treated (Ridgeway and MacDonald
+#' (over all stops), and each other officer's stop gets the weight `e /
+#' (1 - e)`, the weights of the effect on the treated (Ridgeway and MacDonald
 #' 2009). The benchmark is the weighted share of the outcome among those
 #' stops, and the z statistic compares the officer's share with it, with
 #' the variance of a proportion for the officer and, for the benchmark,

@@ -59,14 +59,15 @@ with the differences between domains; and a description of the design.
 \details{
 Each estimate is a smooth function of weighted totals; its variance is
 that of the total of its influence values \code{u_i} (for a mean \verb{w_i (y_i - m) / sum w}, a ratio \verb{w_i (y_i - R x_i) / sum w x}, a total \verb{w_i y_i})
-over the first-stage units within strata: `sum_h (1 - f_h) n_h / (n_h -
-\enumerate{
-\item sum_j (U_hj - Ubar_h)^2\verb{, with }f_h = n_h / N_h\code{from}fpc\verb{or 0 (first-stage units drawn with replacement). These are the estimators of the 'survey' package (Lumley 2004) with its default treatment of domains: a domain's influence values are 0 outside it and every first-stage unit stays in the variance, so the domain's own size is random, as it is.}"var"\verb{is the population variance, the mean of}(y -
-ybar)^2 n / (n - 1)\verb{ (}n\verb{the units of the domain), as}survey::svyvar()`
+over the first-stage units within strata: \verb{sum_h (1 - f_h) n_h / (n_h - 1) sum_j (U_hj - Ubar_h)^2}, with \code{f_h = n_h / N_h} from \code{fpc} or 0
+(first-stage units drawn with replacement). These are the estimators of
+the 'survey' package (Lumley 2004) with its default treatment of
+domains: a domain's influence values are 0 outside it and every
+first-stage unit stays in the variance, so the domain's own size is
+random, as it is. \code{"var"} is the population variance, the mean of \verb{(y - ybar)^2 n / (n - 1)} (\code{n} the units of the domain), as \code{survey::svyvar()}
 gives it. Intervals use Student's t on the design's degrees of freedom,
 first-stage units less strata. A first-stage unit label is read within
 its stratum.
-}
 
 Without \code{w}, \code{strata} and \code{psu} the sample is simple random: the
 variance is \code{s^2 / n} with \code{s^2} on \code{n - 1} (Bessel's correction, for a

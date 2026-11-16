@@ -27,8 +27,8 @@ where \code{endyear} is missing.
 }
 \description{
 A period's value and its name are not the same thing: a fiscal year
-keyed by the year it ends (2023 for the year that runs from 2022 into
-2023) printed as "2023" names a calendar year the row is not about.
+keyed by the year it ends (2023 for the year that runs from 2022
+into 2023) printed as "2023" names a calendar year the row is not about.
 \code{yoylbl()} adds a column \code{perlbl} that the writers show in place of the
 period; the comparison still runs on the value, so relabelling cannot
 change an answer. \code{fylbl()} names a fiscal year by the years it spans.

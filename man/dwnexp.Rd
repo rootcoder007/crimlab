@@ -152,8 +152,8 @@ Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
 California. Working paper, Renmin University of China.
 
 Ayesh, A. (2023). Burned agricultural biomass, air pollution and
-crime. \emph{Journal of Environmental Economics and Management}, 122,
-102887. \doi{10.1016/j.jeem.2023.102887}
+crime. \emph{Journal of Environmental Economics and Management},
+122, 102887. \doi{10.1016/j.jeem.2023.102887}
 }
 \seealso{
 \code{\link[=windiv]{windiv()}}, \code{\link[=smkiv]{smkiv()}}, \code{\link[=updwn]{updwn()}}, \code{\link[=ivfe]{ivfe()}}

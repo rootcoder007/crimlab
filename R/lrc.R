@@ -18,10 +18,10 @@
 #'
 #' The cross-sectionally augmented distributed lag (CS-DL) estimator of
 #' the same paper needs no function of its own: `ccepnl()` with `x` and
-#' its first differences `x_t - x_t-1`, ..., lagged up to `floor(T^(1/3))
-#' - 1`, as regressors and `ylag = 0` estimates `theta` as the coefficient
-#' of `x` (Ditzen 2021, sec. 3.3); see the examples. Ditzen (2021, sec.
-#' 3.3) also lags the averages of `x` up to `floor(T^(1/3))` and keeps the
+#' its first differences `x_t - x_t-1`, ..., lagged up to
+#' `floor(T^(1/3)) - 1`, as regressors and `ylag = 0` estimates `theta` as the
+#' coefficient of `x` (Ditzen 2021, sec. 3.3); see the examples. Ditzen (2021,
+#' sec. 3.3) also lags the averages of `x` up to `floor(T^(1/3))` and keeps the
 #' average of `y` unlagged, where `ccepnl(lags = )` lags both.
 #'
 #' The exponent of cross-sectional dependence of Bailey, Kapetanios and

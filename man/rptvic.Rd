@@ -41,11 +41,9 @@ risk, and incidents per victim; and the repeats, the incidents beyond
 each victim's first, with their share of all incidents;
 \item the victims by number of victimisations, against the numbers a Poisson
 count with the same mean over the \code{pop} targets at risk would give:
-more victims with two or more than the Poisson expects (\code{ratio} above
-\enumerate{
-\item is victimisation concentrated beyond chance, the classic finding
+more victims with two or more than the Poisson expects (\code{ratio}
+above 1) is victimisation concentrated beyond chance, the classic finding
 for burglary;
-}
 \item the time between a target's successive incidents: their number, mean
 and median, and with \code{brk} the share of repeats falling in each
 interval since the previous incident, which for burglary is highest

@@ -442,8 +442,8 @@ print.hetfx <- function(x, ...) {
 #'
 #'   Heo, S., Berman, J. D. and Bell, M. L. (2026). Multi-city study of the
 #'   joint effects of ozone and temperature exposure on violent crime during
-#'   warm months in the United States. *Environmental Research*, 310,
-#'   125969. \doi{10.1016/j.envres.2026.125969}
+#'   warm months in the United States. *Environmental Research*,
+#'   310, 125969. \doi{10.1016/j.envres.2026.125969}
 #'
 #'   Armstrong, B. G., Gasparrini, A. and Tobias, A. (2014). Conditional
 #'   Poisson models: a flexible alternative to conditional logistic case
@@ -452,8 +452,8 @@ print.hetfx <- function(x, ...) {
 #'   Burkhardt, J., Bayham, J., Wilson, A., Carter, E., Berman, J. D.,
 #'   O'Dell, K., Ford, B., Fischer, E. V. and Pierce, J. R. (2019). The
 #'   effect of pollution on crime: evidence from data on particulate matter
-#'   and ozone. *Journal of Environmental Economics and Management*, 98,
-#'   102267. \doi{10.1016/j.jeem.2019.102267}
+#'   and ozone. *Journal of Environmental Economics and Management*,
+#'   98, 102267. \doi{10.1016/j.jeem.2019.102267}
 #'
 #'   Han, D., Guo, Y., Jiang, Y., Niu, Y., Chen, R., Kan, H. and others
 #'   (2026). Air pollution and criminal behavior: a nationwide
@@ -567,8 +567,8 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' @references
 #'   Heo, S., Berman, J. D. and Bell, M. L. (2026). Multi-city study of the
 #'   joint effects of ozone and temperature exposure on violent crime during
-#'   warm months in the United States. *Environmental Research*, 310,
-#'   125969. \doi{10.1016/j.envres.2026.125969}
+#'   warm months in the United States. *Environmental Research*,
+#'   310, 125969. \doi{10.1016/j.envres.2026.125969}
 #'
 #'   Berman, J., Burkhardt, J., Bayham, J., Carter, E. and Wilson, A.
 #'   (2019). Acute air pollution exposure, temperature, and the risk of

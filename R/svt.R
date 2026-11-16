@@ -91,8 +91,8 @@ amscal <- function(Z) .sv("amscal", list(Z = Z))
 #'   (capped at the number of issues).
 #' @return A list of class `bbscal`: `ideal` (respondents by dimensions,
 #'   `NA` rows for those not scaled), `weights` (issues by dimensions),
-#'   `eigen` and `singular` (of the fitted \eqn{\Psi W'}), `fit` (\eqn{1
-#'   - SSE/SS}, SS about the grand mean of the observed cells), `cmeans`
+#'   `eigen` and `singular` (of the fitted \eqn{\Psi W'}), `fit`
+#'   (\eqn{1 - SSE/SS}, SS about the grand mean of the observed cells), `cmeans`
 #'   (the issue intercepts \eqn{c}) and `ndim`.
 #' @references Poole, K. T. (1998). Recovering a basic space from a set of
 #'   issue scales. *American Journal of Political Science*, 42(3),

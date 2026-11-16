@@ -10,8 +10,8 @@
 #' \eqn{1 - e^{-(a_0 + b) dt}} and leave, or else move to a neighbouring
 #' site chosen in proportion to its attractiveness; new offenders arrive
 #' at `gam` per site per unit time. In the `"pde"` model the densities
-#' follow the continuum limit, \eqn{b_t = (\eta D / z) \Delta b - \omega b
-#' + \epsilon D \rho A} and \eqn{\rho_t = (D / z)(\Delta \rho - 2 \nabla
+#' follow the continuum limit, \eqn{b_t = (\eta D / z) \Delta b - \omega
+#' b + \epsilon D \rho A} and \eqn{\rho_t = (D / z)(\Delta \rho - 2 \nabla
 #' \cdot (\rho \nabla A / A)) - \rho A + \gamma} with \eqn{A = a_0 + b},
 #' by explicit Euler steps on a grid of spacing `dx`; `sup` marks sites
 #' where policing suppresses crime (no burglaries there). The step must

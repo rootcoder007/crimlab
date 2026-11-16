@@ -95,8 +95,8 @@
 #'   California. Working paper, Renmin University of China.
 #'
 #'   Ayesh, A. (2023). Burned agricultural biomass, air pollution and
-#'   crime. *Journal of Environmental Economics and Management*, 122,
-#'   102887. \doi{10.1016/j.jeem.2023.102887}
+#'   crime. *Journal of Environmental Economics and Management*,
+#'   122, 102887. \doi{10.1016/j.jeem.2023.102887}
 #' @seealso [windiv()], [smkiv()], [updwn()], [ivfe()]
 #' @examples
 #' # two plumes on day 1, one on day 2; four county points (planar, km)

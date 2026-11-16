@@ -114,8 +114,8 @@ plot(j)
 \references{
 Heo, S., Berman, J. D. and Bell, M. L. (2026). Multi-city study of the
 joint effects of ozone and temperature exposure on violent crime during
-warm months in the United States. \emph{Environmental Research}, 310,
-125969. \doi{10.1016/j.envres.2026.125969}
+warm months in the United States. \emph{Environmental Research},
+310, 125969. \doi{10.1016/j.envres.2026.125969}
 
 Berman, J., Burkhardt, J., Bayham, J., Carter, E. and Wilson, A.
 (2019). Acute air pollution exposure, temperature, and the risk of

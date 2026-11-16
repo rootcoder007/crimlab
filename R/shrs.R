@@ -3,15 +3,15 @@
 #' Expresses each count as a percentage of a total (for example each
 #' division's share of all stops, or each offence's share of all
 #' admissions), with a Wilson confidence interval. A share's denominator is
-#' the total of the same events, so shares over a complete grouping sum to
-#' 100. Use a rate (such as [grprr()]) instead when the denominator is a
+#' the total of the same events, so shares over a complete grouping sum
+#' to 100. Use a rate (such as [grprr()]) instead when the denominator is a
 #' population; "40% of stops" and "40 stops per 1,000 residents" are
 #' different claims.
 #'
 #' For count \eqn{y} out of total \eqn{n}, the share is \eqn{100\,y/n} and
 #' the interval is Wilson's score interval for \eqn{\hat p = y/n},
-#' \deqn{\frac{\hat p + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat p(1-\hat p)}{n}
-#'   + \frac{z^2}{4n^2}}}{1 + z^2/n},}
+#' \deqn{\frac{\hat p + \frac{z^2}{2n} \pm z\sqrt{\frac{\hat p(1-\hat
+#'   p)}{n} + \frac{z^2}{4n^2}}}{1 + z^2/n},}
 #' with \eqn{z} the standard normal quantile for `conflvl`, in percent and
 #' clipped to \eqn{[0, 100]} (exactly 0 at a count of 0 and 100 at the
 #' whole total). The normal interval on a proportion is wrong in exactly

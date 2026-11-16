@@ -6,8 +6,8 @@
 #' assumes the lists are independent; when being on one list changes the
 #' odds of being on the other by at most a factor `kappa`, the truth lies
 #' within `[n1 n2 / (kappa m), kappa n1 n2 / m]` (`lower`, `upper`), and no
-#' data can narrow that box. Chapman's estimate `(n1 + 1)(n2 + 1) / (m + 1)
-#' - 1` is nearly unbiased, with Seber's standard error.
+#' data can narrow that box. Chapman's estimate `(n1 + 1)(n2 + 1) /
+#' (m + 1) - 1` is nearly unbiased, with Seber's standard error.
 #'
 #' With three lists the seven observed cells identify the never-listed cell
 #' only under an assumption on the three-way interaction of a log-linear

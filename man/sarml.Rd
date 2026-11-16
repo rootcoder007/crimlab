@@ -40,10 +40,17 @@ model \verb{y = X beta + u} with \verb{u = lambda W u + e}, or both at once (\co
 one weights matrix for both), with normal errors, by maximum likelihood
 (Ord 1975; Anselin 1988): the likelihood is concentrated in \code{rho} or
 \code{lambda} and maximised by Brent's method on \verb{(-1 / m, 1 / m)}, \code{m} the
-largest row sum of \code{W} (which bounds its spectral radius), with `log |I
-\itemize{
-\item rho W|\verb{from a dense LU factorisation, so the cost grows as}n^3\verb{per evaluation (at most 5000 units). The combined model is maximised over both parameters by Nelder and Mead's simplex. Standard errors come from the inverse of the expected information matrix (Anselin 1988, ch. 6); these are the estimates of}spatialreg::lagsarlm()\verb{, }errorsarlm()\code{and}sacsarlm()\code{. }durbin = TRUE\verb{adds the lags}W x\verb{of the varying columns (the spatial Durbin model, or the Durbin error model).}method = "2sls"\verb{fits the lag model by two-stage least squares with the instruments}W x\code{and}W^2 x\verb{(Kelejian and Prucha 1998), as}spatialreg::stsls()\verb{does, without a likelihood; its standard errors divide the residual sum of squares by}n` less the coefficients.
-}
+largest row sum of \code{W} (which bounds its spectral radius), with \verb{log |I - rho W|} from a dense LU factorisation, so the cost grows as \code{n^3} per
+evaluation (at most 5000 units). The combined model is maximised over
+both parameters by Nelder and Mead's simplex. Standard errors come from
+the inverse of the expected information matrix (Anselin 1988, ch. 6);
+these are the estimates of \code{spatialreg::lagsarlm()},
+\code{errorsarlm()} and \code{sacsarlm()}. \code{durbin = TRUE} adds the lags \verb{W x} of
+the varying columns (the spatial Durbin model, or the Durbin error
+model). \code{method = "2sls"} fits the lag model by two-stage least squares
+with the instruments \verb{W x} and \verb{W^2 x} (Kelejian and Prucha 1998), as
+\code{spatialreg::stsls()} does, without a likelihood; its standard errors
+divide the residual sum of squares by \code{n} less the coefficients.
 }
 \details{
 Next to each coefficient is ordinary least squares on the same columns

@@ -193,8 +193,8 @@ bnft <- function(dig, nd = 1, nsim = 0, seed = NULL) {
 
 #' Scott-Knott grouping of measurements
 #'
-#' Splits sorted measurements into groups that differ (Scott and Knott
-#' 1974) when the variance of one measurement is known, as in the forensic
+#' Splits sorted measurements into groups that differ (Scott and
+#' Knott 1974) when the variance of one measurement is known, as in the forensic
 #' glass version of Triggs, Curran, Buckleton and Walsh (1997): a segment is
 #' split at the cut with the largest between-groups sum of squares when that
 #' is significant at `alpha`, judged against `nsim` simulated samples of

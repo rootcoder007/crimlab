@@ -6,8 +6,8 @@
 #' counts by age group (rows) and period (columns), with equal widths, and
 #' the population at risk in each cell, the Poisson log-linear model
 #' \deqn{\log E(y_{ij}) = \log(expo_{ij}) + \mu + \alpha_i + \beta_j +
-#' \gamma_{j - i + A}}{log E(y_ij) = log(expo_ij) + mu + alpha_i + beta_j
-#' + gamma_(j - i + A)}
+#' \gamma_{j - i + A}}{log E(y_ij) = log(expo_ij) + mu + alpha_i +
+#' beta_j + gamma_(j - i + A)}
 #' has effects of age, period and cohort, each summing to 0. Because cohort
 #' = period - age, the three linear trends cannot be told apart: the
 #' design has one null direction, and the data fit equally well along it.

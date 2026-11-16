@@ -27,9 +27,9 @@ A data frame with one row per time: \code{t}, \code{ub} (the upper bound)
 and \code{alarm} (\code{NA} where the count is missing).
 }
 \description{
-The Bayes detector of \code{surveillance::algo.bayes()} (Riebler 2004; Hoehle
-2007) for a series of counts: at each time \code{t} the reference counts are
-the \code{w} before it (\code{acty = TRUE}) and, in each of the \code{b} years before,
+The Bayes detector of \code{surveillance::algo.bayes()} (Riebler 2004;
+Hoehle 2007) for a series of counts: at each time \code{t} the reference counts
+are the \code{w} before it (\code{acty = TRUE}) and, in each of the \code{b} years before,
 the \verb{2 w + 1} counts around the same time of year (\code{freq} counts per
 year); missing counts are left out. With \code{s} their sum and \code{n} their
 number, the posterior predictive distribution of the count at \code{t} under

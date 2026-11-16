@@ -24,8 +24,8 @@ An integer vector of group labels, one per measurement in input
 order, numbered from 1 in increasing order of the values.
 }
 \description{
-Splits sorted measurements into groups that differ (Scott and Knott
-1974) when the variance of one measurement is known, as in the forensic
+Splits sorted measurements into groups that differ (Scott and
+Knott 1974) when the variance of one measurement is known, as in the forensic
 glass version of Triggs, Curran, Buckleton and Walsh (1997): a segment is
 split at the cut with the largest between-groups sum of squares when that
 is significant at \code{alpha}, judged against \code{nsim} simulated samples of

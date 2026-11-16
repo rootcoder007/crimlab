@@ -54,8 +54,8 @@
 #'   Algorithms data v3.1.
 #'
 #'   Lannelongue, L., Grealey, J. and Inouye, M. (2021). Green Algorithms:
-#'   quantifying the carbon footprint of computation. Advanced Science 8(12),
-#'   2100707. \doi{10.1002/advs.202100707}
+#'   quantifying the carbon footprint of computation. Advanced Science
+#'   8(12), 2100707. \doi{10.1002/advs.202100707}
 #' @seealso \code{\link{co2fp}}, \code{\link{dtctloc}}.
 #' @examples
 #' co2int("CA-ON")

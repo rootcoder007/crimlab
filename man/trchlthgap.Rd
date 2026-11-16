@@ -47,10 +47,8 @@ interval above 1), \code{usewithcau}.
 For each health indicator of Call to Action 19 that the published tables
 measure, each group's estimate against non-Indigenous people's, with its
 interval, turned into one scale, the disadvantage ratio: the factor by which
-the group's outcome is worse (above
-\enumerate{
-\item or better (below 1).
-}
+the group's outcome is worse
+(above 1) or better (below 1).
 }
 \details{
 The gaps come from \code{\link{indgap}} on the latest period of each

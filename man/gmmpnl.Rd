@@ -70,8 +70,8 @@ Arellano and Bond.}
 \item{type}{\code{"system"} (default, Blundell and Bond 1998; the default of
 Roodman's xtabond2) or \code{"diff"} (Arellano and Bond 1991).}
 
-\item{trans}{\code{"fd"} (first differences, default, Arellano and Bond
-1991) or \code{"fod"} (forward orthogonal deviations, Arellano and Bover
+\item{trans}{\code{"fd"} (first differences, default, Arellano and
+Bond 1991) or \code{"fod"} (forward orthogonal deviations, Arellano and Bover
 1995).}
 
 \item{steps}{1 (default; Andreatta et al. 2023 and the default of
@@ -142,11 +142,15 @@ of the differenced equations alone and the difference-in-Hansen test of
 the level instruments, with no more instruments than provinces.
 }
 \details{
-The model is `y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i
-\itemize{
-\item v_it\code{with}L = ylag\verb{. Periods are the distinct values of }time\verb{in order: lags count positions in that order, and a unit without a row in a period has a gap there. A row enters the levels when the unit has the}ylag\verb{ periods before it; the transformed equation is the first difference of two such rows in consecutive periods (}trans = "fd"\verb{), or the forward orthogonal deviation of a row from the mean of the unit's later rows, scaled by }sqrt(T / (T + 1))\verb{ and dated one period later (}trans = "fod"`, Arellano and Bover 1995, sec. 3; Roodman 2009, eq 21),
+The model is \verb{y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i + v_it} with \code{L = ylag}. Periods are the distinct values of \code{time} in
+order: lags count positions in that order, and a unit without a row in
+a period has a gap there. A row enters the levels when the unit has the
+\code{ylag} periods before it; the transformed equation is the first
+difference of two such rows in consecutive periods (\code{trans = "fd"}), or
+the forward orthogonal deviation of a row from the mean of the unit's
+later rows, scaled by \code{sqrt(T / (T + 1))} and dated one period later
+(\code{trans = "fod"}, Arellano and Bover 1995, sec. 3; Roodman 2009, eq 21),
 which loses no more than the last row of a unit with gaps.
-}
 
 GMM-style instruments (Roodman 2009, sec. 3.2) are made for the lagged
 outcome (when \code{ylag > 0}, first) and for the columns of \code{x} named in
@@ -305,8 +309,8 @@ other than the constant (above). Every test is on \code{m - k} degrees of
 freedom or fewer, \code{m} the instruments and \code{k} the coefficients. When the
 instruments outnumber the groups, \code{note} says so (Roodman 2009, sec.
 2.6). Inference is normal unless \code{small = TRUE}. Andreatta et al.
-describe their instruments both as "their second and third lags" (p.
-1373) and as "Lag 2 and earlier lags" (table 3, note); \code{lagmin} and
+describe their instruments both as "their second and third lags"
+(p. 1373) and as "Lag 2 and earlier lags" (table 3, note); \code{lagmin} and
 \code{lagmax} take either reading.
 
 The plot draws the coefficients other than the constant and

@@ -1,8 +1,8 @@
 #' Bayes outbreak detection
 #'
-#' The Bayes detector of `surveillance::algo.bayes()` (Riebler 2004; Hoehle
-#' 2007) for a series of counts: at each time `t` the reference counts are
-#' the `w` before it (`acty = TRUE`) and, in each of the `b` years before,
+#' The Bayes detector of `surveillance::algo.bayes()` (Riebler 2004;
+#' Hoehle 2007) for a series of counts: at each time `t` the reference counts
+#' are the `w` before it (`acty = TRUE`) and, in each of the `b` years before,
 #' the `2 w + 1` counts around the same time of year (`freq` counts per
 #' year); missing counts are left out. With `s` their sum and `n` their
 #' number, the posterior predictive distribution of the count at `t` under

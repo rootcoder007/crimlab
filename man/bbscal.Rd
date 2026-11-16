@@ -18,8 +18,8 @@ issues and than the scaled respondents).}
 \value{
 A list of class \code{bbscal}: \code{ideal} (respondents by dimensions,
 \code{NA} rows for those not scaled), \code{weights} (issues by dimensions),
-\code{eigen} and \code{singular} (of the fitted \eqn{\Psi W'}), \code{fit} (\eqn{1
-  - SSE/SS}, SS about the grand mean of the observed cells), \code{cmeans}
+\code{eigen} and \code{singular} (of the fitted \eqn{\Psi W'}), \code{fit}
+(\eqn{1 - SSE/SS}, SS about the grand mean of the observed cells), \code{cmeans}
 (the issue intercepts \eqn{c}) and \code{ndim}.
 }
 \description{

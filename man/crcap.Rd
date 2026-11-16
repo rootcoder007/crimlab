@@ -33,10 +33,7 @@ survey). With two lists the Lincoln-Petersen estimate \verb{n1 n2 / m}
 assumes the lists are independent; when being on one list changes the
 odds of being on the other by at most a factor \code{kappa}, the truth lies
 within \verb{[n1 n2 / (kappa m), kappa n1 n2 / m]} (\code{lower}, \code{upper}), and no
-data can narrow that box. Chapman's estimate `(n1 + 1)(n2 + 1) / (m + 1)
-\itemize{
-\item 1` is nearly unbiased, with Seber's standard error.
-}
+data can narrow that box. Chapman's estimate \code{(n1 + 1)(n2 + 1) / (m + 1) - 1} is nearly unbiased, with Seber's standard error.
 }
 \details{
 With three lists the seven observed cells identify the never-listed cell

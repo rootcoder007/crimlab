@@ -12,8 +12,8 @@
 #' of the differenced equations alone and the difference-in-Hansen test of
 #' the level instruments, with no more instruments than provinces.
 #'
-#' The model is `y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i
-#' + v_it` with `L = ylag`. Periods are the distinct values of `time` in
+#' The model is `y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t +
+#' u_i + v_it` with `L = ylag`. Periods are the distinct values of `time` in
 #' order: lags count positions in that order, and a unit without a row in
 #' a period has a gap there. A row enters the levels when the unit has the
 #' `ylag` periods before it; the transformed equation is the first
@@ -182,8 +182,8 @@
 #' freedom or fewer, `m` the instruments and `k` the coefficients. When the
 #' instruments outnumber the groups, `note` says so (Roodman 2009, sec.
 #' 2.6). Inference is normal unless `small = TRUE`. Andreatta et al.
-#' describe their instruments both as "their second and third lags" (p.
-#' 1373) and as "Lag 2 and earlier lags" (table 3, note); `lagmin` and
+#' describe their instruments both as "their second and third lags"
+#' (p. 1373) and as "Lag 2 and earlier lags" (table 3, note); `lagmin` and
 #' `lagmax` take either reading.
 #'
 #' @inheritParams lmdix
@@ -210,8 +210,8 @@
 #'   Arellano and Bond.
 #' @param type `"system"` (default, Blundell and Bond 1998; the default of
 #'   Roodman's xtabond2) or `"diff"` (Arellano and Bond 1991).
-#' @param trans `"fd"` (first differences, default, Arellano and Bond
-#'   1991) or `"fod"` (forward orthogonal deviations, Arellano and Bover
+#' @param trans `"fd"` (first differences, default, Arellano and
+#'   Bond 1991) or `"fod"` (forward orthogonal deviations, Arellano and Bover
 #'   1995).
 #' @param steps 1 (default; Andreatta et al. 2023 and the default of
 #'   xtabond2) or 2 (the two-step estimator).
@@ -473,8 +473,8 @@ print.wsctst <- function(x, ...) {
 #' (p. 2 and n. 7, p. 4) that when whether a unit is observed is related
 #' to its loadings and varies over time, the averages no longer proxy the
 #' factors well; the estimators for unbalanced panels with interactive
-#' effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1, p.
-#' 1309) likewise assume that the data are missing at random, which
+#' effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1,
+#' p. 1309) likewise assume that the data are missing at random, which
 #' excludes selection related to the idiosyncratic errors. Neither paper
 #' gives a diagnostic or correction for CCE estimators, and this function
 #' makes none. A period observed for one unit only, or a unit with fewer

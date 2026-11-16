@@ -71,8 +71,8 @@
 #' Standard errors (`se`), all from the rows' scores `s_i` at the final fit
 #' and the bread `(X'WX)^-1` of the demeaned regressors `X`:
 #' `"cluster"` (the default; `sum_g s_g s_g'` over the clusters of the
-#' first `clus` column); `"twoway"` (Cameron, Gelbach and Miller 2011, `V1
-#' + V2 - V12`; Bondy, Roth and Sager cluster by ward and year-month, table
+#' first `clus` column); `"twoway"` (Cameron, Gelbach and Miller 2011,
+#' `V1 + V2 - V12`; Bondy, Roth and Sager cluster by ward and year-month, table
 #' 2; Herrnstadt and others 2019 by monitor and date; given two `clus`
 #' columns, `"cluster"` means this too); `"hc1"` (each row alone, the
 #' robust errors of Herrnstadt and others 2021); `"nw"` (Newey-West within
@@ -350,8 +350,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' Kleibergen-Paap rk Wald statistic divided by the number of instruments
 #' (the "rk Wald F" of Herrnstadt and others 2019, table 7): for one
 #' endogenous column it is the same robust Wald statistic over `q`; for
-#' more, the rk statistic of Kleibergen and Paap (2006, equation 22, p.
-#' 104) that the instruments' first-stage coefficients have rank one less
+#' more, the rk statistic of Kleibergen and Paap (2006, equation 22,
+#' p. 104) that the instruments' first-stage coefficients have rank one less
 #' than the endogenous columns, with their normalisation `Theta = G Pi F'`,
 #' `F F'` the instruments' cross products and `G'G` the inverse of the
 #' endogenous columns' (p. 103), all after the controls and the effects,
@@ -494,8 +494,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   \doi{10.1016/j.jebo.2023.04.009}
 #'
 #'   Ayesh, A. (2023). Burned agricultural biomass, air pollution and
-#'   crime. *Journal of Environmental Economics and Management*, 122,
-#'   102887. \doi{10.1016/j.jeem.2023.102887}
+#'   crime. *Journal of Environmental Economics and Management*,
+#'   122, 102887. \doi{10.1016/j.jeem.2023.102887}
 #'
 #'   Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
 #'   crime. Evidence from India. Working paper, Hong Kong University of

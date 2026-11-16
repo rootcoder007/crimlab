@@ -27,11 +27,12 @@ points per unit area).
 \description{
 Counts the points in an \code{nx} by \code{ny} grid of equal tiles of the
 rectangle \code{win} and tests complete spatial randomness by Pearson's
-chi-square, \code{X2 = sum (n_k - e)^2 / e} with \code{e} the mean count, on `nx ny
-\itemize{
-\item 1\verb{degrees of freedom: the upper tail against clustering and the two-sided p-value (twice the smaller tail,}quadrat.test()\verb{'s default), which also flags regular patterns. A point on an inner tile boundary goes to the tile above or to its right, one on the outer edge to the tile inside. These are the values of }spatstat.explore::quadrat.test()`.
+chi-square, \code{X2 = sum (n_k - e)^2 / e} with \code{e} the mean count, on \verb{nx ny - 1} degrees of freedom: the upper tail against clustering and the
+two-sided p-value (twice the smaller tail, \code{quadrat.test()}'s default),
+which also flags regular patterns. A point on an inner tile boundary
+goes to the tile above or to its right, one on the outer edge to the
+tile inside. These are the values of \code{spatstat.explore::quadrat.test()}.
 The counts feed \code{\link[=morsta]{morsta()}}.
-}
 }
 \examples{
 set.seed(1)

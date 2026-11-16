@@ -10,8 +10,8 @@
 #'   each victim's first, with their share of all incidents;
 #' * the victims by number of victimisations, against the numbers a Poisson
 #'   count with the same mean over the `pop` targets at risk would give:
-#'   more victims with two or more than the Poisson expects (`ratio` above
-#'   1) is victimisation concentrated beyond chance, the classic finding
+#'   more victims with two or more than the Poisson expects (`ratio`
+#'   above 1) is victimisation concentrated beyond chance, the classic finding
 #'   for burglary;
 #' * the time between a target's successive incidents: their number, mean
 #'   and median, and with `brk` the share of repeats falling in each

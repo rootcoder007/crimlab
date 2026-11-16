@@ -47,13 +47,11 @@ groups and the base group; otherwise it is reported and skipped. The
 base group is the same in every cell: by default the group with the
 largest share flagged over all the data. For each city, the means of the
 four values over its audited cells (finite values only), the smallest
-and largest ratio, their range, and how many periods have a ratio above
-\enumerate{
-\item A ratio that moves a lot from one period to the next says that one
+and largest ratio, their range, and how many periods have a ratio
+above 1. A ratio that moves a lot from one period to the next says that one
 audit at one time describes that time only; a spread between cities
 says the same tool can treat groups differently in different places.
 Neither says why. For intervals on one cell, call \code{\link[=fairdf]{fairdf()}} on it.
-}
 }
 \examples{
 set.seed(2)

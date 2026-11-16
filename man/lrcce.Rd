@@ -43,10 +43,11 @@ Smith 1995, as Chudik et al. 2016 apply it). The adjustment speed
 
 The cross-sectionally augmented distributed lag (CS-DL) estimator of
 the same paper needs no function of its own: \code{ccepnl()} with \code{x} and
-its first differences \code{x_t - x_t-1}, ..., lagged up to `floor(T^(1/3))
-\itemize{
-\item 1\verb{, as regressors and }ylag = 0\code{estimates}theta\verb{as the coefficient of}x\verb{(Ditzen 2021, sec. 3.3); see the examples. Ditzen (2021, sec. 3.3) also lags the averages of}x\verb{up to}floor(T^(1/3))\verb{and keeps the average of}y\verb{unlagged, where}ccepnl(lags = )` lags both.
-}
+its first differences \code{x_t - x_t-1}, ..., lagged up to
+\code{floor(T^(1/3)) - 1}, as regressors and \code{ylag = 0} estimates \code{theta} as the
+coefficient of \code{x} (Ditzen 2021, sec. 3.3); see the examples. Ditzen (2021,
+sec. 3.3) also lags the averages of \code{x} up to \code{floor(T^(1/3))} and keeps the
+average of \code{y} unlagged, where \code{ccepnl(lags = )} lags both.
 
 The exponent of cross-sectional dependence of Bailey, Kapetanios and
 Pesaran (2016), the other topic of Ditzen (2021), is not built here
