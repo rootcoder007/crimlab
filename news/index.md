@@ -157,6 +157,77 @@
   [`lnkpr()`](https://rootcoder007.github.io/crimlab/reference/lnkpr.md)
   leaves them out of its fit, and the area is the model’s AUC.
 
+- [`polrpttxt()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  is in `clab_jrun()`, the command line and Python: it writes the text
+  of a
+  [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  report given as JSON, its numbers as R’s
+  [`sprintf()`](https://rdrr.io/r/base/sprintf.html) and
+  [`format()`](https://rdrr.io/r/base/format.html) write them.
+  [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  itself runs in R only.
+
+- [`yoypdf()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md)
+  is in `clab_jrun()`, the command line and Python, writing the PDF R
+  writes; without `file` the PDF is returned as text, and
+  [`yoywr()`](https://rootcoder007.github.io/crimlab/reference/yoywr.md)
+  there writes PDF too.
+
+- [`yoyhtml()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md)
+  is in `clab_jrun()`, the command line and Python, writing the page R
+  writes; without `file` the page is returned as text, and
+  [`yoywr()`](https://rootcoder007.github.io/crimlab/reference/yoywr.md)
+  there writes HTML too.
+
+- [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
+  is in `clab_jrun()`, the command line and Python, with the publishers’
+  codes of `codes.tsv` built into the command line as the presets are
+  (`cli/codes.sh` writes `cli/codes.inc`, and CI checks it is up to
+  date).
+
+- [`plotopt()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  is in `clab_jrun()`, the command line and Python, where no session
+  keeps options: it checks the options given as R does and returns them
+  with the defaults for the others.
+
+- [`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)
+  is in `clab_jrun()`, the command line and Python: its `x` maps each
+  panel to a result of
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  or
+  [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md),
+  or to the rows `evtm`, `est`, `lo` and `hi` themselves.
+
+- [`plothex()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  returns its hexagons in order of row, then column, in every locale (it
+  ordered them by [`table()`](https://rdrr.io/r/base/table.html) of text
+  keys, which sorts in the session’s collation), and is in
+  `clab_jrun()`, the command line and Python with the same order.
+
+- [`co2fp()`](https://rootcoder007.github.io/crimlab/reference/co2fp.md)
+  is in `clab_jrun()`, the command line and Python as the conversion it
+  makes: the caller gives the wall and CPU seconds (and, where measured,
+  the machine’s CPU accounting and the RAPL counters before and after)
+  and gets R’s result without `value`. Timing an expression stays in R.
+
+- [`hwpwr()`](https://rootcoder007.github.io/crimlab/reference/hwpwr.md)
+  is in `clab_jrun()`, the command line and Python. The result holds the
+  rows R returns, the interval `dt` and the last reading as text
+  (`snap`), which a later call takes as `since`; R keeps the last two as
+  attributes.
+
+- [`plotrdg()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  and
+  [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  are in `clab_jrun()`, the command line and Python, returning the rows
+  R returns (without the quartiles
+  [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  keeps as an attribute). Their densities come from a kernel that
+  reproduces [`stats::density()`](https://rdrr.io/r/stats/density.html):
+  the bandwidth rules nrd0, nrd, ucv, bcv and SJ, the binning, the FFT
+  convolution and the interpolation, equal to R’s to rounding. In R both
+  still call [`stats::density()`](https://rdrr.io/r/stats/density.html).
+
 - New:
   [`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
   builds downwind-exposure instruments from sources of pollution and the

@@ -69,8 +69,9 @@ plotgain(x, grp = NULL, ..., main = NULL, col = NULL, pal = NULL)
 Invisibly, a data frame of what was drawn: `grp`, `x` and `y` (the
 density, or the share at or below), for `plotvln()` with the quartiles
 as attribute `summary`; for `plothex()` the hexagon centres `x`, `y` and
-`count`; for `plotgain()` `grp`, `pop` and `share`, with the Gini per
-group as attribute `gini`. Values that are not finite are left out.
+`count`, by row of hexagons and then column; for `plotgain()` `grp`,
+`pop` and `share`, with the Gini per group as attribute `gini`. Values
+that are not finite are left out.
 
 ## Examples
 
