@@ -282,6 +282,21 @@ known disparity.
   : Noisy-OR detection by patrols
 - [`fair()`](https://rootcoder007.github.io/crimlab/reference/fair.md) :
   Fairness metrics of a binary risk tool by group
+- [`xpshap()`](https://rootcoder007.github.io/crimlab/reference/xpshap.md)
+  [`print(`*`<xpshap>`*`)`](https://rootcoder007.github.io/crimlab/reference/xpshap.md)
+  : Sampling Shapley values of single predictions
+- [`xpale()`](https://rootcoder007.github.io/crimlab/reference/xpale.md)
+  [`print(`*`<xpale>`*`)`](https://rootcoder007.github.io/crimlab/reference/xpale.md)
+  : Accumulated local effects of one input
+- [`xpcp()`](https://rootcoder007.github.io/crimlab/reference/xpcp.md)
+  [`print(`*`<xpcp>`*`)`](https://rootcoder007.github.io/crimlab/reference/xpcp.md)
+  : Ceteris paribus profiles of single rows
+- [`xppdp()`](https://rootcoder007.github.io/crimlab/reference/xppdp.md)
+  [`print(`*`<xppdp>`*`)`](https://rootcoder007.github.io/crimlab/reference/xppdp.md)
+  : Partial dependence of a prediction function on one input
+- [`xpimp()`](https://rootcoder007.github.io/crimlab/reference/xpimp.md)
+  [`print(`*`<xpimp>`*`)`](https://rootcoder007.github.io/crimlab/reference/xpimp.md)
+  : Permutation importance of a prediction function
 
 ## Plots
 
@@ -454,6 +469,9 @@ period-over-period change with exact tests.
   : Bounds implied by rounding and suppression in a published table
 - [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
   : Year-over-year change in a published series
+- [`tabrpt()`](https://rootcoder007.github.io/crimlab/reference/tabrpt.md)
+  [`print(`*`<tabrpt>`*`)`](https://rootcoder007.github.io/crimlab/reference/tabrpt.md)
+  : One call on a published table: check, change, rates and trend
 
 ## Courts and sentencing
 
@@ -466,6 +484,13 @@ against a mandatory minimum.
   : Do judges' leniency rankings hold? Monotonicity checks
 - [`mmshr()`](https://rootcoder007.github.io/crimlab/reference/mmshr.md)
   : Sentences at, below and above a mandatory minimum
+- [`pscred()`](https://rootcoder007.github.io/crimlab/reference/pscred.md)
+  : Credit for pre-sentence custody
+- [`gologt()`](https://rootcoder007.github.io/crimlab/reference/gologt.md)
+  [`print(`*`<gologt>`*`)`](https://rootcoder007.github.io/crimlab/reference/gologt.md)
+  : The generalised ordered logit
+- [`gocoef()`](https://rootcoder007.github.io/crimlab/reference/gocoef.md)
+  : The slopes of a generalised ordered logit by threshold
 
 ## Life course and the justice pipeline
 
@@ -524,6 +549,8 @@ A published dataset’s columns onto a generic function’s arguments.
   arguments
 - [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
   : Check a table against a preset before use
+- [`synfix()`](https://rootcoder007.github.io/crimlab/reference/synfix.md)
+  : Synthetic example data in the shape of published tables
 
 ## Learning
 
@@ -549,6 +576,9 @@ matched comparison.
 
 - [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md) :
   Double machine learning by cross-fitting
+- [`ulcate()`](https://rootcoder007.github.io/crimlab/reference/ulcate.md)
+  [`print(`*`<ulcate>`*`)`](https://rootcoder007.github.io/crimlab/reference/ulcate.md)
+  : The U-learner of conditional average treatment effects
 - [`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md)
   : Design-based causal effects of a 0/1 treatment
 - [`smdbal()`](https://rootcoder007.github.io/crimlab/reference/smdbal.md)
@@ -558,6 +588,18 @@ matched comparison.
 - [`rswp()`](https://rootcoder007.github.io/crimlab/reference/rswp.md)
   [`rshl()`](https://rootcoder007.github.io/crimlab/reference/rswp.md) :
   Rosenbaum sensitivity bounds for matched pairs
+- [`dagcol()`](https://rootcoder007.github.io/crimlab/reference/dagcol.md)
+  [`print(`*`<dagcol>`*`)`](https://rootcoder007.github.io/crimlab/reference/dagcol.md)
+  : Colliders of a directed acyclic graph
+- [`gensw()`](https://rootcoder007.github.io/crimlab/reference/gensw.md)
+  [`print(`*`<gensw>`*`)`](https://rootcoder007.github.io/crimlab/reference/gensw.md)
+  : Generalisability weights for a trial
+- [`trnsp()`](https://rootcoder007.github.io/crimlab/reference/trnsp.md)
+  [`print(`*`<trnsp>`*`)`](https://rootcoder007.github.io/crimlab/reference/trnsp.md)
+  : Transport a trial's effect to a target population
+- [`rcttml()`](https://rootcoder007.github.io/crimlab/reference/rcttml.md)
+  [`print(`*`<rcttml>`*`)`](https://rootcoder007.github.io/crimlab/reference/rcttml.md)
+  : Targeted maximum likelihood for a randomised trial
 
 ## Indigenous health and wellbeing
 
@@ -629,6 +671,33 @@ Reconciliation Commission’s Calls to Action.
   : Calls to Action completed, year by year
 - [`trcprog()`](https://rootcoder007.github.io/crimlab/reference/trcprog.md)
   : How fast the Calls to Action are being completed
+
+## Experiments
+
+Randomisation lists, permutation tests within blocks, power by formula
+and by simulation, falsification with negative-control outcomes, the
+recovery of planted effects and the specification curve.
+
+- [`rndalc()`](https://rootcoder007.github.io/crimlab/reference/rndalc.md)
+  [`print(`*`<rndalc>`*`)`](https://rootcoder007.github.io/crimlab/reference/rndalc.md)
+  : Randomisation lists for a trial
+- [`blkprm()`](https://rootcoder007.github.io/crimlab/reference/blkprm.md)
+  [`print(`*`<blkprm>`*`)`](https://rootcoder007.github.io/crimlab/reference/blkprm.md)
+  : Permutation test within blocks
+- [`pwranv()`](https://rootcoder007.github.io/crimlab/reference/pwranv.md)
+  : Power of the one-way analysis of variance
+- [`pwrsim()`](https://rootcoder007.github.io/crimlab/reference/pwrsim.md)
+  [`print(`*`<pwrsim>`*`)`](https://rootcoder007.github.io/crimlab/reference/pwrsim.md)
+  : Power by simulation
+- [`falsctl()`](https://rootcoder007.github.io/crimlab/reference/falsctl.md)
+  [`print(`*`<falsctl>`*`)`](https://rootcoder007.github.io/crimlab/reference/falsctl.md)
+  : Falsification with negative-control outcomes
+- [`plntfx()`](https://rootcoder007.github.io/crimlab/reference/plntfx.md)
+  [`print(`*`<plntfx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plntfx.md)
+  : Does the analysis recover a planted effect?
+- [`specrv()`](https://rootcoder007.github.io/crimlab/reference/specrv.md)
+  [`print(`*`<specrv>`*`)`](https://rootcoder007.github.io/crimlab/reference/specrv.md)
+  : Specification curve
 
 ## Policy evaluation
 
@@ -717,6 +786,9 @@ from stratified, clustered and weighted samples.
 
 - [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md)
   : Design-based estimates from a complex survey
+- [`rscchi()`](https://rootcoder007.github.io/crimlab/reference/rscchi.md)
+  [`print(`*`<rscchi>`*`)`](https://rootcoder007.github.io/crimlab/reference/rscchi.md)
+  : Rao-Scott chi-square test for a survey table
 
 ## Proofs
 
@@ -787,6 +859,22 @@ and the risk terrain model.
   : Accuracy of a hot-spot map
 - [`rtmfit()`](https://rootcoder007.github.io/crimlab/reference/rtmfit.md)
   : Risk terrain model
+- [`chomap()`](https://rootcoder007.github.io/crimlab/reference/chomap.md)
+  : Choropleth maps in base graphics
+- [`smmap()`](https://rootcoder007.github.io/crimlab/reference/smmap.md)
+  : Small multiples of a choropleth map by period
+- [`ptmap()`](https://rootcoder007.github.io/crimlab/reference/ptmap.md)
+  [`plot(`*`<dbscn>`*`)`](https://rootcoder007.github.io/crimlab/reference/ptmap.md)
+  : Point maps, with clusters
+- [`prpmap()`](https://rootcoder007.github.io/crimlab/reference/prpmap.md)
+  : Proportional symbol maps
+- [`eofst()`](https://rootcoder007.github.io/crimlab/reference/eofst.md)
+  [`print(`*`<eofst>`*`)`](https://rootcoder007.github.io/crimlab/reference/eofst.md)
+  : Empirical orthogonal functions of a space-time matrix
+- [`tpsurf()`](https://rootcoder007.github.io/crimlab/reference/tpsurf.md)
+  [`print(`*`<tpsurf>`*`)`](https://rootcoder007.github.io/crimlab/reference/tpsurf.md)
+  [`plot(`*`<tpsurf>`*`)`](https://rootcoder007.github.io/crimlab/reference/tpsurf.md)
+  : Thin-plate spline surface
 
 ## Search and rescue
 
@@ -965,6 +1053,9 @@ American Economic Journal - Applied Economics 13(4),
 - [`cemtch()`](https://rootcoder007.github.io/crimlab/reference/cemtch.md)
   [`print(`*`<cemtch>`*`)`](https://rootcoder007.github.io/crimlab/reference/cemtch.md)
   : Coarsened exact matching
+- [`olsdx()`](https://rootcoder007.github.io/crimlab/reference/olsdx.md)
+  [`print(`*`<olsdx>`*`)`](https://rootcoder007.github.io/crimlab/reference/olsdx.md)
+  : Least squares with regression diagnostics and predictions
 
 ## Regression discontinuity
 
@@ -1146,6 +1237,26 @@ that never depends on the locale, and a UTF-8 writer.
 - [`wrtxtfb()`](https://rootcoder007.github.io/crimlab/reference/wrtxtfb.md)
   : Write text as UTF-8, falling back to ASCII where it is not UTF-8
 
+## Police oversight reports
+
+Reports of police oversight bodies coded into fields by rules that any
+agency’s layout can be written in, offline and the same on every run.
+
+- [`ovrtxt()`](https://rootcoder007.github.io/crimlab/reference/ovrtxt.md)
+  : Text of a police oversight report
+- [`ovrdte()`](https://rootcoder007.github.io/crimlab/reference/ovrdte.md)
+  : Dates written out in reports, as ISO dates
+- [`ovrsch()`](https://rootcoder007.github.io/crimlab/reference/ovrsch.md)
+  : Field schemas for coding police oversight reports
+- [`ovrpar()`](https://rootcoder007.github.io/crimlab/reference/ovrpar.md)
+  : Code police oversight reports into fields
+- [`ovrsoc()`](https://rootcoder007.github.io/crimlab/reference/ovrsoc.md)
+  : The number of subject officials in an oversight report
+- [`ovrkwd()`](https://rootcoder007.github.io/crimlab/reference/ovrkwd.md)
+  : Keyword indicators in oversight reports
+- [`ovrchk()`](https://rootcoder007.github.io/crimlab/reference/ovrchk.md)
+  : Check a coded table of oversight reports
+
 ## Shares
 
 Each count as a share of its total, with Wilson intervals that stay
@@ -1270,6 +1381,9 @@ which rows do not belong, and whether distinct groups differ.
 - [`mcartst()`](https://rootcoder007.github.io/crimlab/reference/mcartst.md)
   [`print(`*`<mcartst>`*`)`](https://rootcoder007.github.io/crimlab/reference/mcartst.md)
   : Little's test for data missing completely at random
+- [`mipmm()`](https://rootcoder007.github.io/crimlab/reference/mipmm.md)
+  [`print(`*`<mipmm>`*`)`](https://rootcoder007.github.io/crimlab/reference/mipmm.md)
+  : Multiple imputation by predictive mean matching
 - [`duprows()`](https://rootcoder007.github.io/crimlab/reference/duprows.md)
   : Duplicated rows, with their groups
 - [`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md)

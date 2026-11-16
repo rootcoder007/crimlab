@@ -2,6 +2,259 @@
 
 ## crimlab 0.0.0.9000
 
+- New:
+  [`tabrpt()`](https://rootcoder007.github.io/crimlab/reference/tabrpt.md),
+  one call on a published table:
+  [`catchk()`](https://rootcoder007.github.io/crimlab/reference/catchk.md)
+  on its groups,
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  on the change between periods,
+  [`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md)
+  on the rates and
+  [`trndrr()`](https://rootcoder007.github.io/crimlab/reference/trndrr.md)
+  on each group’s trend.
+
+- New:
+  [`ovrchk()`](https://rootcoder007.github.io/crimlab/reference/ovrchk.md)
+  flags the cells of a coded table of oversight reports that are not of
+  the form of their field (a real date, a count, a flag) or of a pattern
+  such as a case number.
+
+- New:
+  [`ovrkwd()`](https://rootcoder007.github.io/crimlab/reference/ovrkwd.md)
+  marks the reports that mention the words of keyword groups, whole
+  words in any case, with a preset for mental health and race and any
+  groups of one’s own.
+
+- New:
+  [`ovrsoc()`](https://rootcoder007.github.io/crimlab/reference/ovrsoc.md)
+  counts the subject officials of an oversight report by the first of
+  six rules that applies (a roster, numbered tags, a plural, a singular
+  mention, a statement of none) and says which rule and words gave the
+  count.
+
+- New:
+  [`ovrpar()`](https://rootcoder007.github.io/crimlab/reference/ovrpar.md)
+  codes police oversight reports into the fields of a schema
+  ([`ovrsch()`](https://rootcoder007.github.io/crimlab/reference/ovrsch.md)),
+  by rules that are deterministic and offline, one row per report.
+
+- New:
+  [`ovrsch()`](https://rootcoder007.github.io/crimlab/reference/ovrsch.md),
+  the field schemas of oversight reports: each field read by a rule
+  (text after a cue, a number, a date in the cue’s sentence, numbered
+  tags, a flag and others), with a preset for the director’s reports of
+  Ontario’s Special Investigations Unit.
+
+- New:
+  [`ovrdte()`](https://rootcoder007.github.io/crimlab/reference/ovrdte.md)
+  reads the first date written out in a text, in English or French, as
+  `YYYY-MM-DD`.
+
+- New:
+  [`ovrtxt()`](https://rootcoder007.github.io/crimlab/reference/ovrtxt.md),
+  the plain text of a police oversight report’s page, with each block on
+  a line of its own so that section headings stand alone; the first of
+  the tools that code oversight reports.
+
+- New:
+  [`synfix()`](https://rootcoder007.github.io/crimlab/reference/synfix.md)
+  draws example data in the shape of a published table: presets with the
+  columns of Ontario’s corrections tables (segregation, deaths in
+  custody, use of force), or any table given as the values of its
+  columns. The draws are R’s after
+  [`set.seed()`](https://rdrr.io/r/base/Random.html), in every language.
+
+- New:
+  [`pscred()`](https://rootcoder007.github.io/crimlab/reference/pscred.md),
+  the credit for custody before sentence under s. 719(3) and (3.1) of
+  the Criminal Code, at up to one and a half days a day, and the time
+  left to serve.
+
+- New:
+  [`olsdx()`](https://rootcoder007.github.io/crimlab/reference/olsdx.md),
+  least squares with the checks Algahtany, Kumar and Barclay (2022)
+  report for their weather and crime regressions (standardised
+  coefficients, tolerance and variance inflation, the Durbin-Watson
+  statistic, leverage, studentised residuals and Cook’s distance) and
+  the expected count, or a new month’s, at given weather.
+
+- Preset `laniyonu-gent-cnt`: the tract layout of Laniyonu (2018), stops
+  on the three-level gentrification factor (the `gent` recipe) with the
+  population as the offset and the crime and 311 controls, for
+  [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md).
+
+- New:
+  [`dagcol()`](https://rootcoder007.github.io/crimlab/reference/dagcol.md),
+  the colliders of a directed acyclic graph given by its edges, shielded
+  or not (v-structures), and whether a given triple is one.
+
+- New:
+  [`tpsurf()`](https://rootcoder007.github.io/crimlab/reference/tpsurf.md),
+  a thin-plate spline surface through values at points in the plane
+  (Duchon 1977), smoothed by `lam`, on a grid with
+  [`print()`](https://rdrr.io/r/base/print.html) and
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods.
+
+- New:
+  [`eofst()`](https://rootcoder007.github.io/crimlab/reference/eofst.md),
+  the empirical orthogonal functions of a matrix of periods by places:
+  spatial patterns, their series over time and the share of the variance
+  of each.
+
+- New:
+  [`prpmap()`](https://rootcoder007.github.io/crimlab/reference/prpmap.md),
+  a proportional symbol map: circles whose areas are proportional to the
+  values, drawn largest first.
+
+- New:
+  [`ptmap()`](https://rootcoder007.github.io/crimlab/reference/ptmap.md),
+  a point map in base graphics, with clusters from
+  [`dbscn()`](https://rootcoder007.github.io/crimlab/reference/dbscn.md)
+  or given, each in its own colour and shape with its number at its
+  centre;
+  [`dbscn()`](https://rootcoder007.github.io/crimlab/reference/dbscn.md)
+  results now have a
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) method that
+  draws them through it.
+
+- New:
+  [`smmap()`](https://rootcoder007.github.io/crimlab/reference/smmap.md),
+  small multiples of a choropleth map, one panel per period with the
+  breaks and colours shared by every period.
+
+- New:
+  [`chomap()`](https://rootcoder007.github.io/crimlab/reference/chomap.md),
+  a choropleth map in base graphics from polygon coordinates, with no
+  spatial package: quantile, equal or given class breaks computed in the
+  compiled kernel.
+
+- New:
+  [`gocoef()`](https://rootcoder007.github.io/crimlab/reference/gocoef.md),
+  the slopes of a
+  [`gologt()`](https://rootcoder007.github.io/crimlab/reference/gologt.md)
+  fit laid out by threshold, with their standard errors and Wald tests.
+
+- New:
+  [`gologt()`](https://rootcoder007.github.io/crimlab/reference/gologt.md),
+  the generalised ordered logit (Peterson and Harrell 1990; Williams
+  2006): an intercept and slopes for each threshold of an ordered
+  outcome, chosen covariates held parallel, with the Wald test of each
+  covariate’s slopes and the likelihood-ratio test against proportional
+  odds.
+
+- New:
+  [`ulcate()`](https://rootcoder007.github.io/crimlab/reference/ulcate.md),
+  the U-learner of conditional average treatment effects (Kunzel et
+  al. 2019) on the cross-fitted learners of
+  [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md),
+  with a final learner of its own and a clipped denominator.
+
+- New:
+  [`xpshap()`](https://rootcoder007.github.io/crimlab/reference/xpshap.md),
+  the sampling Shapley values of Strumbelj and Kononenko (2014) for
+  single predictions, with their standard errors.
+
+- New:
+  [`xpale()`](https://rootcoder007.github.io/crimlab/reference/xpale.md),
+  the accumulated local effects of one input (Apley and Zhu 2020), with
+  the binning and centring of their ‘ALEPlot’.
+
+- New:
+  [`xpcp()`](https://rootcoder007.github.io/crimlab/reference/xpcp.md),
+  ceteris paribus profiles: the prediction for single rows as one input
+  moves over a grid.
+
+- New:
+  [`xppdp()`](https://rootcoder007.github.io/crimlab/reference/xppdp.md),
+  the partial dependence of a prediction on one input (Friedman 2001)
+  over an even or a quantile grid.
+
+- New:
+  [`xpimp()`](https://rootcoder007.github.io/crimlab/reference/xpimp.md),
+  the permutation importance of a risk tool’s inputs (Breiman 2001;
+  Fisher, Rudin and Dominici 2019), for an R function or the learners of
+  [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md),
+  with the shuffles drawn in the compiled core and returned.
+
+- New:
+  [`mipmm()`](https://rootcoder007.github.io/crimlab/reference/mipmm.md),
+  multiple imputation of numeric columns by predictive mean matching in
+  chained equations, with an analysis pooled by Rubin’s rules and the
+  degrees of freedom of Barnard and Rubin, after
+  [`mcartst()`](https://rootcoder007.github.io/crimlab/reference/mcartst.md).
+
+- New:
+  [`rscchi()`](https://rootcoder007.github.io/crimlab/reference/rscchi.md),
+  the Rao-Scott test of independence in a two-way table from a
+  stratified, clustered and weighted survey, first and second order and
+  as an F, with the generalised design effects, beside
+  [`svymx()`](https://rootcoder007.github.io/crimlab/reference/svymx.md)
+  and
+  [`ctabx()`](https://rootcoder007.github.io/crimlab/reference/ctabx.md).
+
+- New:
+  [`rcttml()`](https://rootcoder007.github.io/crimlab/reference/rcttml.md),
+  targeted maximum likelihood for a randomised trial with covariate
+  adjustment (Moore and van der Laan 2009), for continuous and binary
+  outcomes, beside the g-computation and the difference in means.
+
+- New:
+  [`trnsp()`](https://rootcoder007.github.io/crimlab/reference/trnsp.md),
+  a trial’s average effect transported to a target population, or
+  generalised to the population it came from, by the outcome model and
+  by inverse odds weighting, with bootstrap errors.
+
+- New:
+  [`gensw()`](https://rootcoder007.github.io/crimlab/reference/gensw.md),
+  the sampling score of a trial against its target population and the
+  weights that generalise or transport its units, with the logit
+  standardised difference, Tipton’s generalisability index, the
+  effective size and the covariate balance.
+
+- New:
+  [`specrv()`](https://rootcoder007.github.io/crimlab/reference/specrv.md),
+  the specification curve of Simonsohn, Simmons and Nelson (2020): the
+  treatment’s estimate for every outcome and every subset of optional
+  covariates, with the joint inference of the median, the count
+  significant and the summed t against permuted or bootstrapped null
+  curves.
+
+- New:
+  [`plntfx()`](https://rootcoder007.github.io/crimlab/reference/plntfx.md),
+  the recovery of planted effects: the outcome shuffled, an effect of
+  known size added to the treated and the analysis run again, reporting
+  bias, spread, coverage and rejection.
+
+- New:
+  [`falsctl()`](https://rootcoder007.github.io/crimlab/reference/falsctl.md),
+  falsification with negative-control outcomes: the treatment’s
+  coefficient on outcomes it cannot affect, with classical or HC1
+  errors, Kennedy’s permutation p-values and an adjustment for the
+  number of controls.
+
+- New:
+  [`pwrsim()`](https://rootcoder007.github.io/crimlab/reference/pwrsim.md),
+  the power of a two-arm trial by simulation, for normal, binary or
+  count outcomes, unequal arms and Welch’s or the permutation test, with
+  its Monte Carlo error.
+
+- New:
+  [`pwranv()`](https://rootcoder007.github.io/crimlab/reference/pwranv.md),
+  the power of the one-way analysis of variance from the noncentral F
+  distribution, or the group size that reaches a given power.
+
+- New:
+  [`blkprm()`](https://rootcoder007.github.io/crimlab/reference/blkprm.md),
+  the permutation test of a treatment effect with the assignment
+  permuted within blocks, by enumeration or by draws, for the difference
+  in means or the block-weighted difference.
+
+- New:
+  [`rndalc()`](https://rootcoder007.github.io/crimlab/reference/rndalc.md),
+  randomisation lists by simple, permuted-block or stratified block
+  randomisation from a seed, the same list in R and on the command line.
+
 - [`plotrdg()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
   and
   [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)

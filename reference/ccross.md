@@ -155,7 +155,7 @@ Ju, K., Xu, R., Huang, W., Zhang, Y., Ye, T., Yu, W., Yang, Z., Chen,
 G., Liu, Y., Yu, P., Zhou, S., Wu, Y., Wen, B., Xu, Z., Saldiva, P. H.
 N., Coelho, M. S. Z. S., Song, J., Li, S. and Guo, Y. (2026). Causal
 effects of wildfire PM2.5 on hospital costs and length of stay in
-Brazil. *Nature Communications*.
+Brazil. *Nature Communications*, 17, 8375.
 [doi:10.1038/s41467-026-75157-8](https://doi.org/10.1038/s41467-026-75157-8)
 
 Heo, S., Berman, J. D. and Bell, M. L. (2026). Multi-city study of the

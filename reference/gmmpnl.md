@@ -415,7 +415,8 @@ Digging into waste: an analysis of waste crime in the Italian provinces.
 
 Demir, C. and Ozcan, S. E. (2023). Do air quality and green space reduce
 propensity to crime?: an empirical investigation of OECD countries.
-*Management of Environmental Quality*, 34(2), 351-367.
+*Management of Environmental Quality: An International Journal*, 34(2),
+351-367.
 [doi:10.1108/MEQ-08-2022-0235](https://doi.org/10.1108/MEQ-08-2022-0235)
 
 ## Examples
