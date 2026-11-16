@@ -7864,3 +7864,18 @@ def ovrpar(x: Any, schema: Any = None, html: Any = None) -> Any:
     [3.0]
     """
     return jcall("ovrpar", x=x, schema=schema, html=html)
+
+
+def ovrsoc(x: Any, tag: Any = "SO", term: Any = None, wtag: Any = "WO", head: Any = None,
+           html: Any = None) -> Any:
+    """The number of subject officials in an oversight report.
+
+    The arguments and the result are those of R's ``ovrsoc()``: see its help
+    page; ``term`` and ``head`` None are R's defaults.
+
+    Examples
+    --------
+    >>> list(ovrsoc(x=["Two subject officials were designated."]))
+    ['count', 'rule', 'reason']
+    """
+    return jcall("ovrsoc", x=x, tag=tag, term=term, wtag=wtag, head=head, html=html)

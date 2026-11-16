@@ -863,3 +863,130 @@ extern "C" int clab_ovrfld(const char *t, int64_t n, int rule, const char *cue, 
   *len = static_cast<int64_t>(v.size());
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
+
+namespace {
+
+// The numbers of the numbered tags of al in s[a, e) ("SO #2", "SO 2",
+// "AI no 2").
+std::vector<long> ords(const string &s, size_t a, size_t e, const std::vector<string> &al) {
+  std::vector<long> o;
+  size_t len = 0;
+  for (size_t p = next(s, a, e, al, &len); p != string::npos; p = next(s, p + 1, e, al, &len)) {
+    size_t k = p + len;
+    while (k < e && isws(static_cast<unsigned char>(s[k]))) ++k;
+    if (k < e && s[k] == '#') {
+      ++k;
+    } else if (k + 1 < e && (s[k] == 'n' || s[k] == 'N') && s[k + 1] == 'o' &&
+               (k + 2 >= e || !iswrd(static_cast<unsigned char>(s[k + 2])))) {
+      k += 2;
+      if (k < e && s[k] == '.') ++k;
+    }
+    while (k < e && isws(static_cast<unsigned char>(s[k]))) ++k;
+    long x;
+    size_t end;
+    if (k < e && isdig(static_cast<unsigned char>(s[k])) && readnum(s, k, e, &x, &end)) o.push_back(x);
+  }
+  return o;
+}
+
+string lower(string s) {
+  for (char &c : s) c = static_cast<char>(low(static_cast<unsigned char>(c)));
+  return s;
+}
+
+// The count of subject officials in the text s, by the first rule that
+// applies (1 to 6, *rule), with its evidence in why; -1 when unresolved.
+long soc(const string &s, const char *tag, const char *term, const char *wtag, const char *head, int *rule,
+         string &why) {
+  const std::vector<string> tg = alts(tag), wt = alts(wtag);
+  const string t1 = tg.empty() ? string() : tg[0];
+  // 1: the roster under the heading
+  size_t a, e;
+  if (section(s, head, &a, &e)) {
+    const std::vector<long> o = ords(s, a, e, tg);
+    if (!o.empty() && *std::max_element(o.begin(), o.end()) > 0) {
+      const long m = *std::max_element(o.begin(), o.end());
+      *rule = 1;
+      why = "the roster under the heading: highest " + t1 + " #" + std::to_string(m);
+      return m;
+    }
+  }
+  // 2: the highest numbered tag, with tag 1 present
+  const std::vector<long> o = ords(s, 0, s.size(), tg);
+  if (!o.empty() && std::find(o.begin(), o.end(), 1L) != o.end()) {
+    const long m = *std::max_element(o.begin(), o.end());
+    *rule = 2;
+    why = "the highest numbered tag: " + t1 + " #" + std::to_string(m) + ", with " + t1 + " #1";
+    return m;
+  }
+  // 3 to 5 on the text in lower case
+  const string l = lower(s);
+  std::vector<string> sg = alts(term), pl;
+  for (string &w : sg) w = lower(w);
+  for (const string &w : sg) pl.push_back(w + "s");
+  size_t len = 0;
+  for (size_t p = next(l, 0, l.size(), pl, &len); p != string::npos; p = next(l, p + 1, l.size(), pl, &len)) {
+    size_t k = p;
+    if (k == 0 || l[k - 1] != ' ') continue;
+    --k;
+    size_t j = k;
+    while (j > 0 && iswrd(static_cast<unsigned char>(l[j - 1]))) --j;
+    long x;
+    size_t end;
+    if (j < k && readnum(l, j, k, &x, &end) && end == k && x >= 2) {
+      *rule = 3;
+      why = "a plural: '" + s.substr(j, p + len - j) + "'";
+      return x;
+    }
+  }
+  // the length of "no ", "not a " or "not an " just before p, 0 for none
+  auto neg = [&](size_t p) -> size_t {
+    for (const char *w : {"no ", "not a ", "not an "}) {
+      const size_t k = std::strlen(w);
+      if (p >= k && l.compare(p - k, k, w) == 0) return k;
+    }
+    return 0;
+  };
+  string none;
+  for (size_t p = next(l, 0, l.size(), sg, &len); p != string::npos; p = next(l, p + 1, l.size(), sg, &len)) {
+    if (!neg(p)) {
+      *rule = 4;
+      why = "a single one named: '" + s.substr(p, len) + "'";
+      return 1;
+    }
+    if (none.empty()) none = s.substr(p - neg(p), len + neg(p));
+  }
+  for (size_t p = next(l, 0, l.size(), pl, &len); p != string::npos && none.empty();
+       p = next(l, p + 1, l.size(), pl, &len)) {
+    if (neg(p)) none = s.substr(p - neg(p), len + neg(p));
+  }
+  if (!none.empty()) {
+    *rule = 5;
+    why = "none: '" + none + "'";
+    return 0;
+  }
+  // 5: witness officials only
+  const std::vector<long> w = ords(s, 0, s.size(), wt);
+  if (!w.empty() && o.empty()) {
+    *rule = 5;
+    why = "witness officials only: " + (wt.empty() ? string() : wt[0]) + " #" +
+          std::to_string(*std::max_element(w.begin(), w.end()));
+    return 0;
+  }
+  *rule = 6;
+  why = "unresolved";
+  return -1;
+}
+
+}  // namespace
+
+extern "C" int clab_ovrsoc(const char *t, int64_t n, const char *tag, const char *term, const char *wtag,
+                           const char *head, int *count, int *rule, char *why, int cap) CLAB_TRY {
+  if (n < 0 || cap < 1) return CLAB_EARG;
+  const string s(t, static_cast<size_t>(n));
+  string w;
+  const long c = soc(s, tag, term, wtag, head, rule, w);
+  *count = c < 0 ? -1 : static_cast<int>(std::min(c, 2147483647L));
+  std::snprintf(why, static_cast<size_t>(cap), "%s", w.c_str());
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)

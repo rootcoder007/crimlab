@@ -131,3 +131,48 @@ SEXP C_clab_r_ovrpar(SEXP x, SEXP html, SEXP rule, SEXP cue, SEXP alt, SEXP sect
 }
 
 }  // extern "C"
+
+extern "C" {
+
+// ovrsoc(): the count, the rule and the reason of each text; tag, term,
+// wtag and head as '|'-joined strings.
+SEXP C_clab_r_ovrsoc(SEXP x, SEXP html, SEXP tag, SEXP term, SEXP wtag, SEXP head) {
+  clab::who = "ovrsoc";
+  const R_xlen_t n = XLENGTH(x);
+  const int h = Rf_asLogical(html) == NA_LOGICAL ? -1 : Rf_asLogical(html);
+  SEXP cnt = PROTECT(Rf_allocVector(INTSXP, n));
+  SEXP rul = PROTECT(Rf_allocVector(INTSXP, n));
+  SEXP why = PROTECT(Rf_allocVector(STRSXP, n));
+  const char *a[4];
+  SEXP in[4] = {tag, term, wtag, head};
+  for (int k = 0; k < 4; ++k) a[k] = Rf_translateCharUTF8(STRING_ELT(in[k], 0));
+  char w[1024];
+  for (R_xlen_t i = 0; i < n; ++i) {
+    INTEGER(cnt)[i] = NA_INTEGER;
+    INTEGER(rul)[i] = NA_INTEGER;
+    SET_STRING_ELT(why, i, NA_STRING);
+    if (STRING_ELT(x, i) == NA_STRING) continue;
+    int64_t m = 0, tl = 0;
+    const char *s = u8(x, i, &m);
+    char *t = R_alloc(static_cast<std::size_t>(m) + 1, 1);
+    kc(clab_ovrtxt(s, m, h, t, &tl));
+    int c = 0, r = 0;
+    kc(clab_ovrsoc(t, tl, a[0], a[1], a[2], a[3], &c, &r, w, sizeof w));
+    INTEGER(cnt)[i] = c < 0 ? NA_INTEGER : c;
+    INTEGER(rul)[i] = r;
+    SET_STRING_ELT(why, i, Rf_mkCharCE(w, CE_UTF8));
+  }
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
+  SEXP nm = PROTECT(Rf_allocVector(STRSXP, 3));
+  static const char *const nms[] = {"count", "rule", "reason"};
+  SEXP v[3] = {cnt, rul, why};
+  for (int k = 0; k < 3; ++k) {
+    SET_VECTOR_ELT(out, k, v[k]);
+    SET_STRING_ELT(nm, k, Rf_mkChar(nms[k]));
+  }
+  Rf_setAttrib(out, R_NamesSymbol, nm);
+  UNPROTECT(5);
+  return out;
+}
+
+}  // extern "C"

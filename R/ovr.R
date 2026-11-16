@@ -229,3 +229,70 @@ ovrpar <- function(x, schema = ovrsch(), html = NA) {
   s <- lapply(s, enc2utf8)
   s
 }
+
+#' The number of subject officials in an oversight report
+#'
+#' Counts the subject officials of each report, the officers whose
+#' conduct the oversight body investigated, and says which rule gave the
+#' count and on what words, so that the number can be checked against the
+#' report. Use it where a report has no roster [ovrpar()] can read, or to
+#' check a count coded by hand.
+#'
+#' The rules run in order and the first that applies gives the count:
+#' 1. the roster under a heading of `head`: the highest numbered tag
+#'    there (`"SO #2"`);
+#' 2. the highest numbered tag in the whole report, trusted only when the
+#'    tag numbered 1 is there too;
+#' 3. a number before a plural of `term` (`"two subject officials"`,
+#'    `"3 subject officers"`);
+#' 4. a mention of `term` in the singular, not after "no" or "not a": 1;
+#' 5. a statement that there was none (`"no subject official"`), or
+#'    numbered witness tags (`wtag`) with no subject tag at all: 0, a
+#'    real answer;
+#' 6. otherwise unresolved: `NA`.
+#'
+#' Tags and headings are matched as written; `term` in any case. The
+#' defaults are the words of Canadian oversight bodies; give a body's own
+#' (`tag = "AI"`, `term = "agent impliqué"` for a French report).
+#'
+#' @inheritParams ovrtxt
+#' @param x The reports: pages (HTML) or texts, a character vector.
+#' @param tag The tag of a subject official in the report: one text.
+#' @param term The words for a subject official, singular: text.
+#' @param wtag The tag of a witness official: one text.
+#' @param head The headings of the roster of subject officials: text.
+#' @return A data frame with one row per report: `count` (whole number,
+#'   `NA` when unresolved), `rule` (1 to 6, as above) and `reason` (the
+#'   rule and the words it read).
+#' @examples
+#' ovrsoc(c("Subject Officials\nSO #1 Interviewed\nSO #2 Declined",
+#'          "Two subject officials were designated.",
+#'          "Witness Officials\nWO #1\nWO #2",
+#'          "No officers are named here."))
+#' @export
+ovrsoc <- function(x, tag = "SO", term = c("subject official",
+                                           "subject officer"),
+                   wtag = "WO", head = c("Subject Officials",
+                                         "Subject Officers"),
+                   html = NA) {
+  f <- "ovrsoc"
+  x <- .ovrin(x, "x", f)
+  a <- list(tag = tag, term = term, wtag = wtag, head = head)
+  for (nm in names(a)) {
+    a[[nm]] <- .ovrwords(a[[nm]], nm, f, one = nm %in% c("tag", "wtag"))
+  }
+  html <- .ovrhtml(html, f)
+  r <- .Call(C_clab_r_ovrsoc, x, html, a$tag, a$term, a$wtag, a$head)
+  as.data.frame(r, stringsAsFactors = FALSE)
+}
+
+# Words to look for: text with no missing or empty value and no "|", one
+# of them when one; joined by "|" for the kernels.
+.ovrwords <- function(x, what, f, one = FALSE) {
+  if (!is.character(x) || !length(x) || anyNA(x) || !all(nzchar(x)) ||
+        any(grepl("|", x, fixed = TRUE)) || (one && length(x) != 1L)) {
+    .ckstop(f, "`%s` must be %s, not empty, with no \"|\"", what,
+            if (one) "one text" else "text")
+  }
+  paste(enc2utf8(x), collapse = "|")
+}

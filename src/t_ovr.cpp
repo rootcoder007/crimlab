@@ -99,6 +99,20 @@ void fld(tk &tt) {
   tk_ieq(tt, "ovr.fld.rule", clab_ovrfld(t, n, 11, "", "", "", o, &len), CLAB_EARG);
 }
 
+void soc(tk &tt) {
+  const char *t = "The unit designated two subject officials.";
+  int c = 0, r = 0;
+  char w[256];
+  tk_ieq(tt, "ovr.soc.rc",
+         clab_ovrsoc(t, static_cast<int64_t>(std::strlen(t)), "SO", "subject official", "WO", "Subject Officials", &c,
+                     &r, w, sizeof w),
+         CLAB_OK);
+  tk_ieq(tt, "ovr.soc.n", c * 10 + r, 23);
+  const char *u = "nothing here";
+  clab_ovrsoc(u, 12, "SO", "subject official", "WO", "Subject Officials", &c, &r, w, sizeof w);
+  tk_ieq(tt, "ovr.soc.na", c * 10 + r, -10 + 6);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
@@ -109,4 +123,5 @@ void t_ovr(tk &t, int big) {
   dte(t);
   sch(t);
   fld(t);
+  soc(t);
 }

@@ -369,4 +369,60 @@ bool ovrpar(Ctx &c, Val &out) {
   return true;
 }
 
+// .ovrwords(): text with no missing or empty value and no "|" (one when
+// one), joined by "|"; def when left out.
+inline bool owords(Ctx &c, const char *nm, bool one, const std::vector<std::string> &def, std::string &out) {
+  std::vector<std::string> w = def;
+  if (c.has(nm)) {
+    const Val &o = c[nm];
+    w.clear();
+    bool ok = true;
+    const std::vector<Val> e = o.t == Val::ARR ? o.a : std::vector<Val>{o};
+    for (const Val &v : e) {
+      ok = ok && v.t == Val::STR && !v.s.empty() && v.s.find('|') == std::string::npos;
+      if (ok) w.push_back(v.s);
+    }
+    if (!ok || w.empty() || (one && w.size() != 1)) {
+      return ckstop(c, "`%s` must be %s, not empty, with no \"|\"", nm, one ? "one text" : "text");
+    }
+  }
+  out = ax::join(w, "|");
+  return true;
+}
+
+bool ovrsoc(Ctx &c, Val &out) {
+  std::vector<std::string> x;
+  std::vector<char> m;
+  CK(otxt(c, "x", x, m));
+  std::string tg, tm, wt, hd;
+  CK(owords(c, "tag", true, {"SO"}, tg));
+  CK(owords(c, "term", false, {"subject official", "subject officer"}, tm));
+  CK(owords(c, "wtag", true, {"WO"}, wt));
+  CK(owords(c, "head", false, {"Subject Officials", "Subject Officers"}, hd));
+  int h = -1;
+  CK(ohtml(c, h));
+  Val cnt = varr(), rul = varr(), why = varr();
+  for (std::size_t i = 0; i < x.size(); ++i) {
+    if (m[i]) {
+      cnt.a.emplace_back();
+      rul.a.emplace_back();
+      why.a.emplace_back();
+      continue;
+    }
+    const std::string t = otext(x[i], h);
+    int k = 0, r = 0;
+    char w[1024];
+    clab_ovrsoc(t.data(), static_cast<int64_t>(t.size()), tg.c_str(), tm.c_str(), wt.c_str(), hd.c_str(), &k, &r, w,
+                sizeof w);
+    cnt.a.push_back(k < 0 ? Val() : vnum(k));
+    rul.a.push_back(vnum(r));
+    why.a.push_back(vstr(w));
+  }
+  out = vobj();
+  put(out, "count", std::move(cnt));
+  put(out, "rule", std::move(rul));
+  put(out, "reason", std::move(why));
+  return true;
+}
+
 }  // namespace ovr

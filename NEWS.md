@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrsoc()` counts the subject officials of an oversight report by
+  the first of six rules that applies (a roster, numbered tags, a plural,
+  a singular mention, a statement of none) and says which rule and words
+  gave the count.
+
 * New: `ovrpar()` codes police oversight reports into the fields of a
   schema (`ovrsch()`), by rules that are deterministic and offline, one
   row per report.

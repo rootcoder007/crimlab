@@ -2420,6 +2420,12 @@ ok("ovrpar", x = c(ovrrep, NA, "<p>not a report</p>"))
 ok("ovrpar", x = "File: 2024-117\nOfficer #1 and Officer #2", schema = data.frame(name = c("f", "o"),
    rule = c("after", "tag"), cue = c("File:", "Officer"), alt = "", sect = ""))
 bad("ovrpar", x = "a", schema = data.frame(name = "f", rule = "regex", cue = "", alt = "", sect = ""))
+ok("ovrsoc", x = c("Subject Officials\nSO #1 Interviewed\nSO #2 Declined", "SO #1 and SO #3 were designated.",
+                   "The SIU designated three subject officers.", "There was no subject official.",
+                   "Witness Officials\nWO #1\nWO #2", "No officers are named here.", NA))
+ok("ovrsoc", x = "Agents impliqu\u00e9s\nAI no 1\nAI no 2", tag = "AI", term = "agent impliqu\u00e9", wtag = "AT",
+   head = "Agents impliqu\u00e9s")
+bad("ovrsoc", x = "a", tag = c("SO", "AI"))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

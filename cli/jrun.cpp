@@ -2071,6 +2071,7 @@ const Ent ents[] = {
     {"asrule", "x y minsup? minconf? empty? nm?", asrule},
     {"lrcce", "object x ylag? level?", ax::lrcce},
     {"cemtch", "data d x cut? lcut?", ax::cemtch},
+    {"ovrsoc", "x tag? term? wtag? head? html?", ovr::ovrsoc},
     {"ovrpar", "x schema? html?", ovr::ovrpar},
     {"ovrsch", "preset?", ovr::ovrsch},
     {"ovrdte", "x", ovr::ovrdte},

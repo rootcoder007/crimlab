@@ -189,3 +189,48 @@ test_that("ovrpar() refuses a schema it cannot read", {
                "ovrpar: `x` must be text (a character vector), not numeric.",
                fixed = TRUE)
 })
+
+test_that("ovrsoc() counts subject officials by the first rule that applies", {
+  x <- c("Subject Officials\nSO #1 Interviewed\nSO #2 Declined interview",
+         "SO #1 and SO #3 were designated.",
+         "SO #3 was designated.",
+         "The SIU designated three subject officers.",
+         "The subject official declined an interview.",
+         "There was no subject official in this case.",
+         "Witness Officials\nWO #1 Interviewed\nWO #2 Interviewed",
+         "No officers are named here.", NA)
+  r <- ovrsoc(x)
+  expect_identical(names(r), c("count", "rule", "reason"))
+  # written out: the rule each text meets first, and its count
+  expect_identical(r$count, c(2L, 3L, NA, 3L, 1L, 0L, 0L, NA, NA))
+  expect_identical(r$rule, c(1L, 2L, 6L, 3L, 4L, 5L, 5L, 6L, NA))
+  expect_identical(r$reason[c(1, 4, 6, 7, 8)], c(
+    "the roster under the heading: highest SO #2",
+    "a plural: 'three subject officers'",
+    "none: 'no subject official'",
+    "witness officials only: WO #2",
+    "unresolved"
+  ))
+  # a body's own words
+  expect_identical(
+    ovrsoc("Agents impliqués\nAI no 1\nAI no 2", tag = "AI",
+           term = "agent impliqué", wtag = "AT",
+           head = "Agents impliqués")$count,
+    2L
+  )
+})
+
+test_that("ovrsoc() refuses words it cannot look for", {
+  expect_error(ovrsoc("a", tag = c("SO", "AI")),
+               "ovrsoc: `tag` must be one text, not empty, with no \"|\".",
+               fixed = TRUE)
+  expect_error(ovrsoc("a", term = "a|b"),
+               "ovrsoc: `term` must be text, not empty, with no \"|\".",
+               fixed = TRUE)
+  expect_error(ovrsoc("a", head = NA_character_),
+               "ovrsoc: `head` must be text, not empty, with no \"|\".",
+               fixed = TRUE)
+  expect_error(ovrsoc(1),
+               "ovrsoc: `x` must be text (a character vector), not numeric.",
+               fixed = TRUE)
+})

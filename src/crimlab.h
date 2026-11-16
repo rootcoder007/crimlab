@@ -4628,6 +4628,17 @@ int clab_ovrsch(const char *preset, int j, const char **name, const char **rule,
 int clab_ovrfld(const char *t, int64_t n, int rule, const char *cue, const char *alt, const char *sect,
                 char *out, int64_t *len);
 
+/* The number of subject officials in an oversight report (ovrsoc): t (n
+ * bytes) the text as clab_ovrtxt() makes it; tag, term, wtag and head
+ * '|'-separated alternatives of the subject tag, the words for one, the
+ * witness tag and the headings of the roster. Out: *count (-1 when
+ * unresolved), *rule (1 the roster, 2 the highest tag with tag 1, 3 a
+ * plural with a number, 4 a singular mention, 5 none stated or witnesses
+ * only, 6 unresolved) and why, the evidence (at most cap bytes with the
+ * NUL). */
+int clab_ovrsoc(const char *t, int64_t n, const char *tag, const char *term, const char *wtag, const char *head,
+                int *count, int *rule, char *why, int cap);
+
 #ifdef __cplusplus
 }
 #endif
