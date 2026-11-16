@@ -873,10 +873,12 @@
   sizes that multiplied two integer counts are counted in a wide type.
 * `exprun()` and `runfx()` refuse a `cap` past 2^26, `jntx()` an `ngrid`
   past 8192 (its grid has `ngrid` squared points) and `dosebin()` an `nq`
-  past 2^26; the cluster bootstrap of `ppmlfe()`, `ivfe()` and `ppmlcf()`
-  refuses `nboot` times the clusters past 2^26. These used to stop with
-  R's own "cannot allocate vector" error. The command line gives the same
-  messages where it has the function.
+  past 2^26. These used to stop with R's own "cannot allocate vector"
+  error. The command line gives the same messages where it has the
+  function. The cluster bootstrap of `ppmlfe()`, `ivfe()` and `ppmlcf()`
+  makes its draws a block at a time instead of holding the clusters by
+  `nboot` counts at once, with the same draws in the same order, so any
+  number of clusters and draws fits.
 * `dmlx()` and `suplrn()` refuse more inner folds (`nfin`) than rows of
   `x`, before their work arrays are sized by it; the command line gives
   the same message.

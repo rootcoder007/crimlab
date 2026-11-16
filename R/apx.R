@@ -133,9 +133,8 @@
 #' @param time The name of the day column (numbers or dates), for
 #'   `se = "nw"`.
 #' @param lag `NULL` (the rule above) or the Newey-West lag in days.
-#' @param nboot,seed The bootstrap draws (at least 2; `nboot` times the
-#'   clusters at most 67108864 (2^26)) and `NULL` or a whole number for R's
-#'   generator, for `se = "boot"`.
+#' @param nboot,seed The bootstrap draws (at least 2) and `NULL` or a whole
+#'   number for R's generator, for `se = "boot"`.
 #' @param twc,psd The two-way factors, `"min"` or `"each"`, and `"none"`
 #'   or `"eig"`: see Two-way clustering.
 #' @param sep `"fe"`, `"sst"` or `"none"`: see Separation.
@@ -670,8 +669,7 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' @param se `"boot"` or `"naive"`.
 #' @param ssc The small-sample factor of the naive errors, as in
 #'   [ppmlfe()].
-#' @param nboot The number of bootstrap draws, at least 2; `nboot` times
-#'   the clusters must be at most 67108864 (2^26).
+#' @param nboot The number of bootstrap draws, at least 2.
 #' @param seed `NULL` (the generator's current state) or one whole number.
 #' @param object An object of class `ppmlcf`.
 #' @inheritParams ppmlfe
@@ -1943,29 +1941,23 @@ summary.expjn <- function(object, ...) {
 # The cluster bootstrap: nboot draws of the clusters of column cl from R's
 # generator; fit(rows, w) returns the coefficients of the rows drawn with
 # their weights, or an error for a draw that cannot be fitted (left out).
-# The draws of the cluster bootstrap, g clusters by b draws, kept at once:
-# at most 2^26, the bound of the kernels.
-.axbmax <- function(g, b, fn) {
-  if (g * b > 2^26) {
-    .ckstop(fn, "`nboot` times the clusters must be at most 67108864")
-  }
-  invisible(TRUE)
-}
-
 .axboot <- function(d, cl, nboot, seed, p, fit, fn) {
   cc <- .axcode(d[[cl]])
   if (cc$n < 2L) {
     .ckstop(fn, "the bootstrap needs two or more clusters in `%s`", cl)
   }
-  .axbmax(cc$n, nboot, fn)
-  bm <- .axdraw(cc$n, nboot, seed)
-  # one row per draw: with one coefficient vapply() gives a vector, and
-  # t() of it would be one row of nboot columns
-  dr <- matrix(vapply(seq_len(nboot), function(b) {
-    m <- bm[cc$c + 1L, b]
-    k <- m > 0
-    tryCatch(fit(which(k), m[k]), error = function(e) rep(NA_real_, p))
-  }, numeric(p)), nboot, p, byrow = TRUE)
+  # one row per draw, the draws made a block at a time (.axdraws())
+  acc <- new.env(parent = emptyenv())
+  acc$dr <- matrix(NA_real_, nboot, p)
+  .axdraws(cc$n, nboot, seed, function(bm, i) {
+    for (j in seq_len(ncol(bm))) {
+      m <- bm[cc$c + 1L, j]
+      k <- m > 0
+      acc$dr[i + j, ] <- tryCatch(fit(which(k), m[k]),
+                                  error = function(e) rep(NA_real_, p))
+    }
+  })
+  dr <- acc$dr
   nf <- sum(!stats::complete.cases(dr))
   if (nf > 0L) {
     warning(
@@ -2104,9 +2096,41 @@ summary.expjn <- function(object, ...) {
     }, add = TRUE)
     set.seed(seed)
   }
+  .axdraw1(g, b)
+}
+
+# b draws of the clusters from R's generator as it stands: g x b counts.
+.axdraw1 <- function(g, b) {
   vapply(seq_len(b), function(i) {
     tabulate(sample.int(g, g, replace = TRUE), g)
   }, integer(g))
+}
+
+# The draws of .axdraw(), made a block at a time instead of all at once:
+# each(bm, i) is called with the g x k counts of draws i + 1 to i + k, in
+# order, so the draws are those of .axdraw(g, b, seed) without a g x b
+# matrix being held. The blocks are of about 2^22 counts (the option
+# crimlab.drawblock, a number of draws, sets them for the tests).
+.axdraws <- function(g, b, seed, each) {
+  if (!is.null(seed)) {
+    env <- globalenv()
+    had <- exists(".Random.seed", envir = env, inherits = FALSE)
+    old <- if (had) get(".Random.seed", envir = env, inherits = FALSE)
+    on.exit(if (had) {
+      assign(".Random.seed", old, envir = env)
+    } else {
+      rm(".Random.seed", envir = env)
+    }, add = TRUE)
+    set.seed(seed)
+  }
+  blk <- getOption("crimlab.drawblock", max(1, floor(2^22 / g)))
+  i <- 0
+  while (i < b) {
+    k <- min(blk, b - i)
+    each(.axdraw1(g, k), i)
+    i <- i + k
+  }
+  invisible(NULL)
 }
 
 # The fixed effects as indicator columns: every level of the first set (in
@@ -2433,18 +2457,31 @@ summary.expjn <- function(object, ...) {
 }
 
 # The bootstrap of ppmlcf(): the cluster draws of .axdraw(), every draw
-# refitted in src/apx.cpp; the draws that fail are left out with a
-# warning: list(r, dr the draws, nfail, nboot).
+# refitted in src/apx.cpp a block at a time (.axdraws()); the draws that
+# fail are left out with a warning: list(r, dr the draws, nfail, nboot).
 .axcfboot <- function(d, yv, endo, inst, x, off, fx, cl, nboot, seed, how,
                       tol, maxit, tm, f) {
   nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
   if (!is.null(seed)) seed <- .cknum(seed, "seed", f, min = 0, whole = TRUE)
-  .axbmax(cl$n1, nboot, f)
-  bm <- .axdraw(cl$n1, nboot, seed)
-  storage.mode(bm) <- "integer"
-  r <- .Call(C_clab_r_ppmlcf, yv, .axmat(d, endo, f), .axmat(d, x, f),
-             .axmat(d, inst, f), off, fx$c1, fx$n1, fx$c2, fx$n2, cl$c1,
-             cl$n1, bm, if (how == "plug") 1L else 0L, tol, as.integer(maxit))
+  me <- .axmat(d, endo, f)
+  mx <- .axmat(d, x, f)
+  mz <- .axmat(d, inst, f)
+  acc <- new.env(parent = emptyenv())
+  .axdraws(cl$n1, nboot, seed, function(bm, i) {
+    storage.mode(bm) <- "integer"
+    b <- .Call(C_clab_r_ppmlcf, yv, me, mx, mz, off, fx$c1, fx$n1, fx$c2,
+               fx$n2, cl$c1, cl$n1, bm, if (how == "plug") 1L else 0L, tol,
+               as.integer(maxit))
+    if (i == 0) {
+      # the full-sample fit is the same in every block: the first one's
+      acc$r <- b
+      acc$r$draw <- matrix(NA_real_, nboot, ncol(b$draw))
+      acc$r$st[3L] <- 0
+    }
+    acc$r$draw[i + seq_len(ncol(bm)), ] <- b$draw
+    acc$r$st[3L] <- acc$r$st[3L] + b$st[3L]
+  })
+  r <- acc$r
   dr <- r$draw
   colnames(dr) <- tm
   nfail <- as.integer(r$st[3L])

@@ -1822,8 +1822,6 @@ axd$pm <- round(20 + 4 * axd$w90 - 3 * axd$w270 + 2 * sin(seq_len(132)) + 0.3 * 
 axd$pop <- rep(seq(1000, 3000, length.out = 11), each = 12)
 axd$crimes <- (axd$day * 3 + seq_len(132)) %% 7 + rep(0:10 %% 3, each = 12) + round(axd$pm / 10)
 ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = c("area", "day"), expo = "pop")
-bad("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = c("area", "day"), expo = "pop", se = "boot",
-    nboot = 1e9, seed = 1)
 ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = c("area", "day"), se = "twoway", ssc = "nk")
 ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "nw", time = "day", lag = 2)
 ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "hc1", ssc = "none", level = 0.9)

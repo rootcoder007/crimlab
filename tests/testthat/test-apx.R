@@ -1316,11 +1316,25 @@ test_that("windiv() refuses more sectors than its bound", {
                fixed = TRUE)
 })
 
-test_that("bootstrap draws past their bound are refused before they are made", {
+test_that("the bootstrap made a draw at a time equals the stored draws", {
+  # one block of every draw is the clusters x nboot matrix the bootstrap
+  # used to hold; blocks of one draw are what a large one now makes
   d <- simpan()
   d$y <- d$y + 1
-  expect_error(ppmlfe(d, "y", "x", fe = c("unit", "day"), se = "boot",
-                      nboot = 1e9, seed = 2),
-               "ppmlfe: `nboot` times the clusters must be at most 67108864.",
-               fixed = TRUE)
+  boot <- function(blk) {
+    old <- options(crimlab.drawblock = blk)
+    on.exit(options(old))
+    ppmlfe(d, "y", "x", fe = c("unit", "day"), se = "boot", nboot = 7,
+           seed = 2)
+  }
+  expect_identical(boot(1), boot(1e9))
+  expect_identical(boot(3), boot(1e9))
+  cf <- function(blk) {
+    old <- options(crimlab.drawblock = blk)
+    on.exit(options(old))
+    suppressWarnings(ppmlcf(d, "y", endo = "x", inst = "z1",
+                            fe = c("unit", "day"), nboot = 7, seed = 1))
+  }
+  expect_identical(cf(1), cf(1e9))
+  expect_identical(cf(2), cf(1e9))
 })
