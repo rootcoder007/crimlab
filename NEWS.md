@@ -83,6 +83,17 @@
   ("'arg' should be one of ..."); they are now refused like every other
   choice ("ppmlfe: `se` must be one of ...").
 
+* Fixed: `hwpwr()` used to report as measured a RAPL counter that fell
+  by more than a wrap could explain (a reset read as 257 kJ) or read above
+  its range, and read counter text that is not a whole decimal number
+  ("0x10", "1.5e3", an embedded NUL, 26 digits); such rows are now not
+  measured, with the reason in `why`. A FIFO in place of a counter used to
+  block the call for ever; files are now read only when regular, opened
+  without blocking. A library that is not NVML, or an `nvidia-smi` that
+  fails, no longer adds a GPU row. `dt` is at most 604800 (a week) and
+  `pid` at most 2147483647 (`pid = 2^31` used to be accepted with a
+  warning).
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

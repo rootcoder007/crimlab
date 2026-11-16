@@ -27,7 +27,13 @@
 #'   `package` domains are counted for the CPU and the `dram` domain for
 #'   memory; `core`, `uncore` and `psys` are never added (they are parts of
 #'   a package or more than the CPU). A counter that passes its range
-#'   (`max_energy_range_uj`) is unwrapped, a package seen through both the
+#'   (`max_energy_range_uj`) is unwrapped; a fall that would mean more
+#'   than half the range, and more than 1 kW could use over the interval,
+#'   is a reset, and a reading above the
+#'   range is not a measurement (the row says why). A counter file must be
+#'   a regular file holding a whole decimal number; anything else is
+#'   "malformed" or "not a regular file", and is not waited on. A package
+#'   seen through both the
 #'   MSR and the MMIO interface is counted once, and per-die copies of one
 #'   counter (multi-die AMD parts) are counted once. Most distributions let
 #'   only the administrator read `energy_uj`; the row then says "not
@@ -43,7 +49,9 @@
 #'   (`libnvidia-ml.so.1`, `nvml.dll`), loaded at run time: the total energy
 #'   counter (millijoules), else the power (milliwatts) integrated; the GPU's
 #'   utilisation and the process's share of its compute samples. Without the
-#'   library, on Linux, `nvidia-smi` (power, utilisation, name).
+#'   library, on Linux, `nvidia-smi` (power, utilisation, name). A library
+#'   that is not NVML or does not start, and an `nvidia-smi` that fails,
+#'   add no GPU row.
 #' * macOS on Apple silicon: the energy counters of the IOReport "Energy
 #'   Model" group (CPU, GPU, neural engine and DRAM), read without
 #'   administrator rights. IOReport is not a documented public interface of
@@ -79,7 +87,8 @@
 #' every `step` seconds. Nothing is written, nothing runs in the background
 #' and no network is used.
 #'
-#' @param dt Seconds to measure over: one number from 0. With 0, one reading
+#' @param dt Seconds to measure over: one number from 0 to 604800 (a
+#'   week). With 0, one reading
 #'   (power where a device gives it, for a later `since`). Not used with
 #'   `since`.
 #' @param since `NULL`, or an earlier result of `hwpwr()` in this session:
@@ -88,7 +97,8 @@
 #' @param rated `NULL`, or rated powers in watts by kind, `c(cpu = , gpu =
 #'   )`: each CPU package's and each GPU's, used for an estimate where a
 #'   device gives a utilisation but no power.
-#' @param pid The process whose share is reported: a process id.
+#' @param pid The process whose share is reported: a process id, a whole
+#'   number from 0 to 2147483647.
 #' @param skip Sources not to use: any of `"rapl"`, `"gpu"`, `"battery"`,
 #'   `"proc"`, `"nvml"`, `"smi"`, `"ioreport"`, `"ioreg"`, `"emi"`. `"gpu"`
 #'   leaves out every graphics processor on Linux and Windows (the kernel's
@@ -223,14 +233,15 @@ hwpwr <- function(
 # The checks of hwpwr()'s interval, step, process id and skipped
 # sources (.hwskp()), in their order; bad() is hwpwr()'s error.
 .hwck <- function(dt, step, pid, skip, bad) {
-  if (!.hwone(dt) || dt < 0) {
-    bad("`dt` must be one number from 0.")
+  if (!.hwone(dt) || dt < 0 || dt > 604800) {
+    bad("`dt` must be one number from 0 to 604800 (a week, in seconds).")
   }
   if (!.hwone(step) || step <= 0) {
     bad("`step` must be one number above 0.")
   }
-  if (!.hwone(pid) || pid != round(pid) || pid < 0) {
-    bad("`pid` must be a process id.")
+  if (!.hwone(pid) || pid != round(pid) || pid < 0 ||
+        pid > .Machine$integer.max) {
+    bad("`pid` must be a process id: a whole number from 0 to 2147483647.")
   }
   .hwskp(skip, bad)
 }

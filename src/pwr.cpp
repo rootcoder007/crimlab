@@ -38,6 +38,9 @@
 #include <windows.h>
 #else
 #include <dirent.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
 // WebAssembly (WASI) has no processes and no shared libraries: there no
 // program is run and no library is loaded, and each reader that needs one
 // reports that it is not available
@@ -57,7 +60,25 @@ bool rd(const std::string &path, std::string &out, std::string &err) {
   out.clear();
   err.clear();
   errno = 0;
+#ifdef _WIN32
   std::FILE *f = std::fopen(path.c_str(), "rb");
+#else
+  // opened without blocking and read only when a regular file: a FIFO or
+  // a device put in place of a counter would block open() or read() for
+  // ever (sysfs and proc attributes are regular files)
+  std::FILE *f = nullptr;
+  const int fd = open(path.c_str(), O_RDONLY | O_NONBLOCK);
+  if (fd >= 0) {
+    struct stat st;
+    if (fstat(fd, &st) != 0 || !S_ISREG(st.st_mode)) {
+      close(fd);
+      err = "not a regular file";
+      return false;
+    }
+    f = fdopen(fd, "rb");
+    if (f == nullptr) close(fd);
+  }
+#endif
   if (f == nullptr) {
     err = errno == EACCES || errno == EPERM ? "denied" : errno == ENOENT ? "absent" : std::strerror(errno);
     return false;
@@ -148,18 +169,29 @@ std::string line1(const std::string &p) {
   return trim(s.substr(0, s.find('\n')));
 }
 
+bool isdig(const std::string &s) {
+  return !s.empty() && std::all_of(s.begin(), s.end(), [](char c) { return c >= '0' && c <= '9'; });
+}
+
+// A whole decimal number as the kernel writes an attribute: an optional
+// minus sign and 1 to 18 digits, nothing else (no "0x10", no "1.5e3", no
+// NUL byte, no more digits than a counter holds).
+bool inum(const std::string &s, double &v) {
+  const std::string t = trim(s);
+  const std::size_t a = !t.empty() && t[0] == '-' ? 1 : 0;
+  if (t.size() <= a || t.size() - a > 18 || !isdig(t.substr(a))) return false;
+  v = std::strtod(t.c_str(), nullptr);
+  return true;
+}
+
 bool fnum(const std::string &p, double &v, std::string &err) {
   std::string s;
   if (!rd(p, s, err)) return false;
-  if (!num(s, v)) {
+  if (!inum(s, v)) {
     err = "malformed";
     return false;
   }
   return true;
-}
-
-bool isdig(const std::string &s) {
-  return !s.empty() && std::all_of(s.begin(), s.end(), [](char c) { return c >= '0' && c <= '9'; });
 }
 
 // A program path quoted for the shell.
@@ -242,11 +274,17 @@ void rapl(const Cfg &c, Snap &s) {
     d.aon = 0;
     double v = 0, mx = 0;
     std::string err;
-    if (fnum(z.path + "/energy_uj", v, err) && v >= 0) {
+    std::string e2;
+    const bool hasmx = fnum(z.path + "/max_energy_range_uj", mx, e2) && mx > 0;
+    const bool rdok = fnum(z.path + "/energy_uj", v, err) && v >= 0;
+    if (rdok && hasmx && v > mx) {
+      // a counter past its stated range is not a reading of it
+      d.bad = 1;
+      d.why = "implausible energy counter: it reads above its range (max_energy_range_uj)";
+    } else if (rdok) {
       d.src = 1;
       d.ctr = v * 1e-6;
-      std::string e2;
-      if (fnum(z.path + "/max_energy_range_uj", mx, e2) && mx > 0) d.wrap = mx * 1e-6;
+      if (hasmx) d.wrap = mx * 1e-6;
     } else {
       d.bad = 1;
       d.why = err == "denied"   ? "not readable: needs read access to the powercap files"
@@ -666,34 +704,16 @@ void nv(const Cfg &c, Snap &s) {
       return;
     }
   }
-  if (!n.why.empty()) {
-    Dev d;
-    d.id = "nvml:lib";
-    d.kind = "gpu";
-    d.vendor = "nvidia";
-    d.name = "NVIDIA GPU";
-    d.bad = 1;
-    d.why = n.why;
-    s.d.push_back(d);
-    return;
-  }
+  // a library that is not NVML, or that does not start, shows no GPU: no
+  // row is made for one that may not exist
+  if (!n.why.empty()) return;
   // the last resort: nvidia-smi, when the library was not found
   if (!c.on("smi") || c.smi.empty()) return;
   std::string out;
   int st = 0;
   const bool ok = run(q(c.smi) + " --query-gpu=power.draw,utilization.gpu,name --format=csv,noheader,nounits", out, st);
-  if (ok) {
-    smi(out, s);
-  } else if (st > 0) {
-    Dev d;
-    d.id = "smi:fail";
-    d.kind = "gpu";
-    d.vendor = "nvidia";
-    d.name = "NVIDIA GPU";
-    d.bad = 1;
-    d.why = "nvidia-smi failed (exit status " + std::to_string(st) + ")";
-    s.d.push_back(d);
-  }
+  // a failing nvidia-smi is no evidence of a GPU either
+  if (ok) smi(out, s);
 }
 
 // ---- parsers of ioreg (macOS) and of the EMI metadata (Windows) ----------

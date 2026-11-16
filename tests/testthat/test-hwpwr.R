@@ -11,9 +11,14 @@ snap <- function(root, skip = off, pid = 0L, nvml = "", smi = "") {
 rows <- function(s, rated = c(NA_real_, NA_real_)) {
   .Call(C_clab_r_pwrd, s, rated)
 }
+# a whole number as the kernel writes it, in plain decimal ("1000000", never
+# "1e+06", which the readers refuse)
 put <- function(root, path, x) {
   f <- file.path(root, path)
   dir.create(dirname(f), recursive = TRUE, showWarnings = FALSE)
+  if (is.numeric(x) && all(x == round(x))) {
+    x <- format(x, scientific = FALSE, trim = TRUE)
+  }
   writeLines(as.character(x), f)
 }
 tree <- function() {
@@ -197,8 +202,9 @@ test_that("nvidia-smi: output, a failing program, an absent one", {
   # "gpu" leaves out NVIDIA's readers too, not only the kernel's cards
   r <- rows(snap(d, skip = c(sk, "gpu"), nvml = lib, smi = ok))
   expect_identical(sum(r$kind == "gpu"), 0L)
+  # a failing nvidia-smi is no evidence of a GPU
   r <- rows(snap(d, skip = sk, nvml = lib, smi = prog("exit 3")))
-  expect_match(r$why[r$kind == "gpu"], "exit status 3")
+  expect_identical(sum(r$kind == "gpu"), 0L)
   r <- rows(snap(d, skip = sk, nvml = lib, smi = file.path(d, "none")))
   expect_identical(sum(r$kind == "gpu"), 0L)
 })
@@ -459,8 +465,7 @@ test_that("the NVIDIA library: one without the NVML functions", {
                        winslash = "\\", mustWork = FALSE)
   sk <- setdiff(off, "nvml")
   r <- rows(snap(tree(), skip = sk, nvml = lib))
-  expect_match(r$why[r$kind == "gpu"],
-               "the NVIDIA driver library lacks the functions to enumerate")
+  expect_identical(sum(r$kind == "gpu"), 0L)
   # the default names: no library here, or the GPUs of a real one
   r0 <- rows(snap(tree(), skip = sk, nvml = ""))
   expect_true(all(r0$vendor[r0$kind == "gpu"] == "nvidia"))
@@ -515,4 +520,38 @@ test_that("snapshot rows: other kinds, process GPU shares, gaps", {
                sn(3, dv("g", "gpu", 2, w = 5))))
   expect_true(is.na(pw$joules[1]))
   expect_match(pw$why[1], "power was not read at every snapshot")
+})
+
+test_that("RAPL counters that are not plausible readings are not measured", {
+  skip_on_os("windows")
+  d <- tree()
+  f <- file.path(d, "sys/class/powercap/intel-rapl:0/energy_uj")
+  # a fall no wrap explains in the interval: a reset, not 257 kJ
+  rapl(d, "intel-rapl:0", "package-0", 5e9)
+  s1 <- snap(d)
+  rapl(d, "intel-rapl:0", "package-0", 10)
+  p <- row(rows(c(s1, snap(d))), "package-0")
+  expect_true(is.na(p$joules))
+  expect_match(p$why, "went back with no power read")
+  # a reading above the range
+  rapl(d, "intel-rapl:0", "package-0", 999999999999999)
+  p <- row(rows(snap(d)), "package-0")
+  expect_match(p$why, "reads above its range")
+  # text that is not a whole decimal number
+  for (v in c("0x10", "1.5e3", "99999999999999999999999999")) {
+    writeLines(v, f)
+    expect_match(row(rows(snap(d)), "package-0")$why, "malformed", info = v)
+  }
+  writeBin(as.raw(c(0x31, 0, 0x32, 10)), f)
+  expect_match(row(rows(snap(d)), "package-0")$why, "malformed")
+  # a FIFO in place of the counter is not waited on
+  unlink(f)
+  if (system2("mkfifo", f, stdout = FALSE, stderr = FALSE) == 0L) {
+    expect_match(row(rows(snap(d)), "package-0")$why, "not a regular file")
+  }
+})
+
+test_that("hwpwr() refuses an interval past a week and a pid past an int", {
+  expect_error(hwpwr(1e300), "from 0 to 604800")
+  expect_error(hwpwr(0, pid = 2^31), "from 0 to 2147483647")
 })
