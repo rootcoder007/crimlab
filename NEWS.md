@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `cemtch()`, coarsened exact matching (Iacus, King and Porro 2012)
+  with the weights for the effect on the treated and the L1 imbalance,
+  as Sampson and Winter (2018) match lead-exposed children.
+
 * New: `lrcce()`, the CS-ARDL long-run effects and adjustment speed
   from the unit estimates of `ccepnl()`, as Ditzen (2021) sets them out.
 

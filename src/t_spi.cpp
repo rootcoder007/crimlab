@@ -115,6 +115,23 @@ void ifx(tk &tt) {
          CLAB_EARG);
 }
 
+void cem(tk &tt) {
+  // one covariate, cells 0 0 0 1 1 2: cell 0 has treated 1, controls 2;
+  // cell 1 treated 1, no control (dropped); cell 2 a control alone
+  // (dropped). Kept: m_T 1, m_C 2; the controls' weight (1/2)(2/1) = 1
+  const int code[6] = {0, 0, 0, 1, 1, 2}, tr[6] = {1, 0, 0, 1, 1, 0};
+  int s[6];
+  double w[6], st[6];
+  tk_ieq(tt, "spi.cem.rc", clab_cemtch(code, 6, 1, tr, code, 1, s, w, st), CLAB_OK);
+  tk_ieq(tt, "spi.cem.s", s[0] * 100 + s[3] * 10 + s[5], 100);
+  tk_near(tt, "spi.cem.w", w[1], 1.0, 0);
+  // L1 before: treated shares 1/3 2/3 0, controls 2/3 0 1/3: (1/3 + 2/3
+  // + 1/3) / 2 = 2/3; after 0
+  tk_near(tt, "spi.cem.l1", st[0], 2.0 / 3, 1e-15);
+  tk_near(tt, "spi.cem.l1a", st[1], 0.0, 0);
+  tk_near(tt, "spi.cem.nk", st[2], 1.0, 0);
+}
+
 }  // namespace
 
 void t_spi(tk &t, int big) {
@@ -123,4 +140,5 @@ void t_spi(tk &t, int big) {
   gtw(t);
   arl(t);
   ifx(t);
+  cem(t);
 }

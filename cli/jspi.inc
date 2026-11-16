@@ -588,4 +588,148 @@ bool lrcce(Ctx &c, Val &out) {
   return true;
 }
 
+// cemtch() (src/cem.cpp): R/cem.R in C++. Numeric covariates cut into
+// equal-width bins as seq(min, max, length.out = k + 1) makes them, k from
+// cut or the rule (0 Sturges, 1 Scott); other columns matched on their
+// labels.
+inline bool cembr(Ctx &c, const std::vector<double> &z, const Val *k, int rule, const std::string &v,
+                  const char *what, std::vector<double> &br) {
+  const double lo = *std::min_element(z.begin(), z.end()), hi = *std::max_element(z.begin(), z.end());
+  const std::string nm = std::string(what) + "$" + v;
+  double nb = 0;
+  const bool one = !k || k->t == Val::NUM || (k->t == Val::ARR && k->a.size() == 1);
+  if (!k) {
+    const double n = static_cast<double>(z.size());
+    if (rule == 0) {
+      nb = std::ceil(std::log2(n) + 1);
+    } else {
+      long double m = 0, q = 0;
+      for (double x : z) m += x;
+      m /= n;
+      for (double x : z) q += (x - m) * (x - m);
+      const double h = 3.5 * std::sqrt(static_cast<double>(q / (n - 1))) * std::pow(n, -1.0 / 3);
+      nb = h > 0 ? std::max(1.0, std::ceil((hi - lo) / h)) : 1.0;
+    }
+  } else if (one) {
+    const Val &e = k->t == Val::ARR ? k->a[0] : *k;
+    nb = e.t == Val::NUM ? e.n : NaN;
+    if (!std::isfinite(nb) || nb < 1 || nb != std::round(nb)) {
+      return ckstop(c, "`%s` must be a whole number of bins from 1", nm.c_str());
+    }
+  }
+  br.clear();
+  if (one) {
+    if (lo == hi) {
+      br = {lo - 0.5, lo + 0.5};
+      return true;
+    }
+    const double n1 = nb, del = hi - lo;
+    br.push_back(lo);
+    for (int j = 1; j < static_cast<int>(nb); ++j) br.push_back(lo + j * (del / n1));
+    br.push_back(hi);
+    return true;
+  }
+  bool ok = k->t == Val::ARR;
+  for (std::size_t j = 0; ok && j < k->a.size(); ++j) {
+    ok = k->a[j].t == Val::NUM && !std::isnan(k->a[j].n) && (j == 0 || k->a[j].n > k->a[j - 1].n);
+    if (ok) br.push_back(k->a[j].n);
+  }
+  if (!ok || br.front() > lo || br.back() < hi) {
+    return ckstop(c, "`%s` must be increasing breaks covering the column", nm.c_str());
+  }
+  return true;
+}
+
+inline bool cemcode(Ctx &c, const Val &d, const Cols &x, const char *what, int rule, std::vector<int> &code,
+                    Val &cuts) {
+  const Val &cv = c.has(what) ? c[what] : nul;
+  if (cv.t != Val::NUL) {
+    bool ok = cv.t == Val::OBJ && !cv.k.empty();
+    for (const std::string &k : cv.k) ok = ok && has(x, k);
+    if (!ok) return ckstop(c, "`%s` must be a list named by columns of `x`", what);
+  }
+  const std::size_t n = nr(d);
+  code.assign(n * x.size(), 0);
+  cuts = vobj();
+  for (std::size_t j = 0; j < x.size(); ++j) {
+    const Val &col = *fc(d, x[j]);
+    if (!isnumc(col)) {
+      std::map<std::string, int> h;
+      for (std::size_t i = 0; i < n; ++i) {
+        code[j * n + i] = h.emplace(vlab(col.a[i]), static_cast<int>(h.size()) + 1).first->second;
+      }
+      continue;
+    }
+    const std::vector<double> z = colv(col);
+    for (double v : z) {
+      if (!std::isfinite(v)) return ckstop(c, "column `%s` must be finite", x[j].c_str());
+    }
+    const Val *k = nullptr;
+    for (std::size_t q = 0; q < cv.k.size(); ++q) {
+      if (cv.k[q] == x[j]) k = &cv.a[q];
+    }
+    std::vector<double> br;
+    CK(cembr(c, z, k, rule, x[j], what, br));
+    put(cuts, x[j].c_str(), vnums(br));
+    // findInterval(rightmost.closed, all.inside)
+    const int nb = static_cast<int>(br.size());
+    for (std::size_t i = 0; i < n; ++i) {
+      int b = static_cast<int>(std::upper_bound(br.begin(), br.end(), z[i]) - br.begin());
+      if (z[i] == br.back()) b = nb - 1;
+      code[j * n + i] = std::min(std::max(b, 1), nb - 1);
+    }
+  }
+  return true;
+}
+
+bool cemtch(Ctx &c, Val &out) {
+  Val d;
+  CK(dat(c, c["data"], "data", d));
+  Cols dc, x;
+  CK(acol(c, d, "d", {1}, false, dc));
+  CK(acol(c, d, "x", {}, false, x));
+  std::vector<double> tv;
+  CK(amat(c, d, dc, tv));
+  for (double v : tv) {
+    if (v != 0 && v != 1) return ckstop(c, "column `%s` must hold 0 or 1", dc[0].c_str());
+  }
+  std::vector<int> a, b;
+  Val cuts, lc;
+  CK(cemcode(c, d, x, "cut", 0, a, cuts));
+  CK(cemcode(c, d, x, "lcut", 1, b, lc));
+  const std::size_t n = nr(d);
+  std::vector<int> tr(n), s(n);
+  for (std::size_t i = 0; i < n; ++i) tr[i] = static_cast<int>(tv[i]);
+  std::vector<double> w(n), st(6);
+  const int k = static_cast<int>(x.size());
+  const int rc = clab_cemtch(a.data(), static_cast<int>(n), k, tr.data(), b.data(), k, s.data(), w.data(), st.data());
+  if (rc != CLAB_OK) return kerr(c, "cemtch", rc);
+  Val keep = varr(), sv = varr();
+  double tab[6] = {0, 0, 0, 0, 0, 0};
+  for (std::size_t i = 0; i < n; ++i) {
+    Val e;
+    e.t = Val::BOOL;
+    e.b = s[i] > 0;
+    keep.a.push_back(e);
+    sv.a.push_back(vnum(s[i] > 0 ? s[i] : NA));
+    const int g = tr[i];
+    tab[g * 3] += 1;
+    tab[g * 3 + (s[i] > 0 ? 1 : 2)] += 1;
+  }
+  Val l1 = vobj(), ns = vobj();
+  put(l1, "before", vnum(st[0]));
+  put(l1, "after", vnum(st[1]));
+  put(ns, "kept", vnum(st[2]));
+  put(ns, "all", vnum(st[5]));
+  out = vobj();
+  put(out, "keep", keep);
+  put(out, "strata", sv);
+  put(out, "w", vnums(w));
+  put(out, "tab", vmat(tab, 3, 2));
+  put(out, "l1", l1);
+  put(out, "nstrata", ns);
+  put(out, "cut", cuts);
+  return true;
+}
+
 }  // namespace ax

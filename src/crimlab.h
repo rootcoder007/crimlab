@@ -2168,6 +2168,17 @@ int clab_gtwreg(int n, int k, const double *x, const double *y, const double *u,
                 const double *t, double h, double tau, int ll, double *beta, double *se,
                 double *fitv, double *hat, double *loo, double *st);
 
+/* Coarsened exact matching (Iacus, King and Porro 2012; cemtch): code
+ * (n x k, column-major) the coarsened covariates, tr n 0/1 treatments,
+ * lcode (n x lk) the coarsening of the imbalance. Out: strat (the kept
+ * stratum of each row from 1 in order of first appearance, 0 when its
+ * stratum lacks treated or control rows), w (1 for kept treated rows,
+ * (m_T^s / m_C^s)(m_C / m_T) for kept controls, 0 otherwise) and st (6):
+ * L1 before and after (weighted; NaN when a group is empty), the strata
+ * kept, the treated and control rows kept, and the strata in all. */
+int clab_cemtch(const int *code, int n, int k, const int *tr, const int *lcode, int lk, int *strat,
+                double *w, double *st);
+
 /* The generalized synthetic control (Xu 2017) on Bai's (2009) interactive
  * fixed effects model (ifesc): y (nt x n, a column per unit) and x (nt x
  * n x p) of a balanced panel; a[u] the adoption period of unit u (0-based,

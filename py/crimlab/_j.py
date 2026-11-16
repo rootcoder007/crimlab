@@ -6925,6 +6925,22 @@ def asrule(x: Any, y: Any, minsup: Any = 0.1, minconf: Any = 0.2, empty: Any = T
     return jcall("asrule", x=x, y=y, minsup=minsup, minconf=minconf, empty=empty, nm=nm)
 
 
+def cemtch(data: Any, d: Any, x: Any, cut: Any = None, lcut: Any = None) -> Any:
+    """Coarsened exact matching.
+
+    The arguments and the result are those of R's ``cemtch()``: see its help
+    page; ``cut`` and ``lcut`` are dictionaries keyed by covariate.
+
+    Examples
+    --------
+    >>> p = {"t": [1, 0, 0, 1, 1, 0], "g": ["a", "a", "a", "b", "b", "c"]}
+    >>> r = cemtch(data=p, d="t", x="g")
+    >>> r["keep"]
+    [True, True, True, False, False, False]
+    """
+    return jcall("cemtch", data=data, d=d, x=x, cut=cut, lcut=lcut)
+
+
 def lrcce(object: Any, x: Any, ylag: Any = None, level: Any = 0.95) -> Any:
     """Long-run effects from a common correlated effects fit.
 

@@ -401,6 +401,7 @@ from ._j import (
     dwnexp,
     tailwd,
     idwint,
+    cemtch,
     ifesc,
     lrcce,
     gtwreg,
@@ -914,6 +915,7 @@ __all__ = [
     "plotbump",
     "plotfnl",
     "plotcal",
+    "cemtch",
 ]
 
 

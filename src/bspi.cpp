@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The R entry points of idwint(), gtwreg(), asrule() and ifesc()
-// (src/idw.cpp, src/gtw.cpp, src/arl.cpp, src/ifx.cpp). The R wrappers (R/spi.R) check the
+// The R entry points of idwint(), gtwreg(), asrule(), ifesc() and
+// cemtch() (src/idw.cpp, src/gtw.cpp, src/arl.cpp, src/ifx.cpp,
+// src/cem.cpp). The R wrappers (R/spi.R) check the
 // arguments and pass doubles, codes from 0 and NULL for what is left out;
 // these call the kernels and return their arrays. Nothing calls back
 // into the R evaluator.
@@ -143,6 +144,20 @@ SEXP C_clab_r_ifesc(SEXP y, SEXP x, SEXP a, SEXP r, SEXP rmax, SEXP maxit, SEXP 
   static const char *const nms[] = {"beta", "y0", "fac", "cv", "ef", "bef", "st"};
   SEXP out = lst(7, nms, v);
   UNPROTECT(10);
+  return out;
+}
+
+SEXP C_clab_r_cemtch(SEXP code, SEXP tr, SEXP lcode) {
+  clab::who = "cemtch";
+  const int n = Rf_nrows(code), k = Rf_ncols(code), lk = Rf_ncols(lcode);
+  SEXP v[3];
+  v[0] = PROTECT(Rf_allocVector(INTSXP, n));
+  v[1] = PROTECT(Rf_allocVector(REALSXP, n));
+  v[2] = PROTECT(Rf_allocVector(REALSXP, 6));
+  kc(clab_cemtch(INTEGER(code), n, k, INTEGER(tr), INTEGER(lcode), lk, INTEGER(v[0]), REAL(v[1]), REAL(v[2])));
+  static const char *const nms[] = {"strata", "w", "st"};
+  SEXP out = lst(3, nms, v);
+  UNPROTECT(3);
   return out;
 }
 

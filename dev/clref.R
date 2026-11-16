@@ -1850,6 +1850,13 @@ bad("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "twoway")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = c("area", "day"))
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "hc1")
 ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "nw", time = "day")
+cmd <- local({
+  set.seed(8)
+  data.frame(t = rbinom(80, 1, 0.4), age = round(runif(80, 14, 18), 2), pov = sample(c("lo", "hi"), 80, TRUE))
+})
+ok("cemtch", data = cmd, d = "t", x = c("age", "pov"))
+ok("cemtch", data = cmd, d = "t", x = c("age", "pov"), cut = list(age = 3), lcut = list(age = c(14, 15, 16, 17, 18)))
+bad("cemtch", data = cmd, d = "t", x = "age", cut = list(age = c(15, 16)))
 ok("lrcce", object = data.frame(L1.y = c(0.3, 0.4, 0.5), L2.y = c(0.1, 0, 0.1), x = c(0.5, 0.6, 0.4),
                                 xl = c(0.1, 0, 0.2), z = c(1, 2, 3)), x = list(x = c("x", "xl"), z = "z"))
 bad("lrcce", object = data.frame(L1.y = c(0.3, 0.4), x = c(1, 2)), x = "w")
