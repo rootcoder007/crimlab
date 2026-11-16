@@ -42,7 +42,8 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 - nq:
 
-  The number of quantile bins (when `brk` is `NULL`).
+  The number of quantile bins (when `brk` is `NULL`), at most 67108864
+  (2^26).
 
 - brk:
 

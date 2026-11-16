@@ -27,11 +27,13 @@ bamscl(Z, nsamp = 1000, burn = 200, polarity = 1, seed = 42)
 
 - nsamp:
 
-  The draws kept.
+  The draws kept; `nsamp` times the values kept per draw must be at most
+  67108864 (2^26).
 
 - burn:
 
-  The sweeps discarded first.
+  The sweeps discarded first; `burn` plus `nsamp` must be at most
+  2147483647.
 
 - polarity:
 

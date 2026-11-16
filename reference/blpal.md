@@ -30,7 +30,7 @@ yoypals()
 - n:
 
   `NULL` (the palette's own colours) or the number of colours wanted:
-  one whole number from 1.
+  one whole number from 1 to 67108864 (2^26).
 
 - ...:
 

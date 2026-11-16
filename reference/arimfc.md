@@ -22,7 +22,7 @@ arimfc(y, h = 12)
 
 - h:
 
-  The periods to forecast.
+  The periods to forecast, at most 67108864 (2^26).
 
 ## Value
 

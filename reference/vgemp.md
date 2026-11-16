@@ -34,7 +34,8 @@ vgemp(x, y = NULL, v, nbins = 15, cutoff = NULL)
 
 - nbins:
 
-  The number of distance bins: one whole number from 1.
+  The number of distance bins: one whole number from 1 to 67108864
+  (2^26).
 
 - cutoff:
 

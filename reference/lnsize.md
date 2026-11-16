@@ -24,7 +24,7 @@ lnsize(choice, k = NULL, susp = 1, level = 0.95)
 - k:
 
   `NULL` for the largest position picked, or the lineup's size: one
-  whole number from 2.
+  whole number from 2 to 67108864 (2^26).
 
 - susp:
 

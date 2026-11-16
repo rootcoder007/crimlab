@@ -23,7 +23,8 @@ ordocl(Y, ndim = 2, maxit = 500)
 
 - ndim:
 
-  The number of dimensions.
+  The number of dimensions; `ndim` times the points scaled must be at
+  most 67108864 (2^26).
 
 - maxit:
 

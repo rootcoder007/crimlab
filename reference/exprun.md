@@ -55,7 +55,8 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 - cap:
 
-  The day of a run from which one indicator takes all.
+  The day of a run from which one indicator takes all, at most 67108864
+  (2^26).
 
 - step:
 

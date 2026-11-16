@@ -26,7 +26,8 @@ anchv(y, V, ncat = 5)
 
 - ncat:
 
-  The number of ordered categories.
+  The number of ordered categories; `ncat` times the ratings must be at
+  most 67108864 (2^26).
 
 ## Value
 

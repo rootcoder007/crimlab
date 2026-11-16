@@ -89,7 +89,7 @@ suplrn(
 - nfin:
 
   The number of inner folds that choose the penalty of the elastic net,
-  at least 2.
+  at least 2 and at most the rows of `x`.
 
 - ntree:
 

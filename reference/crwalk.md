@@ -42,7 +42,8 @@ crwalk(x, y = NULL, h = 1, nsim = 999, seed = NULL, lonlat = FALSE)
 
 - nsim:
 
-  The number of simulated continuations: a whole number from 1.
+  The number of simulated continuations: a whole number from 1; `h`
+  times `nsim` must be at most 67108864 (2^26).
 
 - seed:
 

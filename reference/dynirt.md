@@ -50,11 +50,13 @@ dynirt(
 
 - nsamp:
 
-  The draws kept.
+  The draws kept; `nsamp` times the values kept per draw must be at most
+  67108864 (2^26).
 
 - burn:
 
-  The sweeps discarded first.
+  The sweeps discarded first; `burn` plus `nsamp` times `thin` must be
+  at most 2147483647.
 
 - seed:
 

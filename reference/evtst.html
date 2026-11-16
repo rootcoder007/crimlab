@@ -99,7 +99,8 @@ Treatment is taken to stay on.</p></dd>
 
 <dt id="arg-leads-lags">leads, lags<a class="anchor" aria-label="anchor" href="#arg-leads-lags"></a></dt>
 <dd><p>The periods before and after adoption estimated: whole
-numbers, <code>leads</code> at least 1 and <code>lags</code> at least 0.</p></dd>
+numbers, <code>leads</code> at least 1 and <code>lags</code> at least 0, with <code>leads</code> plus
+<code>lags</code> at most the number of rows.</p></dd>
 
 
 <dt id="arg-ref">ref<a class="anchor" aria-label="anchor" href="#arg-ref"></a></dt>
@@ -151,7 +152,7 @@ time from 0.</p></dd>
 
 <dt id="arg-draws">draws<a class="anchor" aria-label="anchor" href="#arg-draws"></a></dt>
 <dd><p>The normal draws of the sensitivity interval: a whole
-number from 100.</p></dd>
+number from 100 to 67108864 (2^26).</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

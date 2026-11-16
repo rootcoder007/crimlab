@@ -47,7 +47,8 @@ tfrp(
 
 - ymax:
 
-  The largest count reported: a whole number from 0.
+  The largest count reported: a whole number from 0, below 67108864
+  (2^26).
 
 - nsim:
 

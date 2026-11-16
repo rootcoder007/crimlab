@@ -23,7 +23,7 @@ cbootmean(x, B = 1000L, seed = 42L)
 
 - B:
 
-  The number of replicates, one whole number from 1.
+  The number of replicates, one whole number from 1 to 67108864 (2^26).
 
 - seed:
 

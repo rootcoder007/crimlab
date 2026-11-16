@@ -16,7 +16,7 @@ cunif(n, seed)
 
 - n:
 
-  The number of uniforms, one whole number from 0.
+  The number of uniforms, one whole number from 0 to 67108864 (2^26).
 
 - seed:
 

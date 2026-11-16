@@ -60,7 +60,7 @@ enpath(
 - nlam:
 
   When `lambda` is `NULL`, the number of penalties on the path: one
-  whole number, at least 1.
+  whole number from 1 to 67108864 (2^26).
 
 - lmr:
 

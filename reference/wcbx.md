@@ -72,6 +72,8 @@ wcbx(
 - reps:
 
   The draws: a whole number from 9; `NULL` for 9999 (200 for `"power"`).
+  `reps` times the clusters and outcomes must be at most 67108864
+  (2^26).
 
 - wtype:
 

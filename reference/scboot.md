@@ -29,7 +29,8 @@ scboot(Z, method = "am", nboot = 200, seed = 42)
 
 - nboot:
 
-  The replicates.
+  The replicates; `nboot` times the positions (rows and columns of `Z`)
+  must be at most 67108864 (2^26).
 
 - seed:
 

@@ -23,7 +23,7 @@ inlhist(x, bins = 10L)
 - bins:
 
   Number of bins, and so of characters, one positive whole number
-  (default 10).
+  (default 10), at most 67108864 (2^26).
 
 ## Value
 

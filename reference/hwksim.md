@@ -64,7 +64,8 @@ hwksim(
 
 - nmax:
 
-  The most events simulated: one whole number from 1 (more is an error).
+  The most events simulated: one whole number from 1 to 67108864 (2^26;
+  more events than `nmax` are an error).
 
 ## Value
 

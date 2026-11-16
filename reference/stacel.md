@@ -54,7 +54,8 @@ stacel(
 
 - top:
 
-  The number of busiest circles kept: one whole number from 1.
+  The number of busiest circles kept: one whole number from 1 (more than
+  the cells of the grid keeps them all).
 
 - minpts:
 

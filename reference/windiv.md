@@ -32,7 +32,8 @@ windiv(
 
 - width:
 
-  The width of a sector in degrees; it must divide 360.
+  The width of a sector in degrees; it must divide 360 into at most
+  67108864 (2^26) sectors.
 
 - start:
 

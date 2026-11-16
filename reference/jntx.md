@@ -67,7 +67,8 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 - ngrid:
 
-  The points of the surface along each exposure.
+  The points of the surface along each exposure, at most 8192 (`ngrid`
+  times `ngrid` at most 2^26).
 
 - ctrl:
 

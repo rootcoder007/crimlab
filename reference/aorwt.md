@@ -43,7 +43,8 @@ aorwt(
 
 - nb:
 
-  The number of bins in a period: one whole number from 1.
+  The number of bins in a period: one whole number from 1 to 67108864
+  (2^26).
 
 - origin:
 

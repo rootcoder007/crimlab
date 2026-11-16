@@ -29,15 +29,18 @@ ordirt(Y, ndim = 1, nsamp = 500, burn = 100, seed = 42, lprec = 0)
 
 - ndim:
 
-  The number of dimensions.
+  The number of dimensions; `ndim` times the points scaled must be at
+  most 67108864 (2^26).
 
 - nsamp:
 
-  The draws kept.
+  The draws kept; `nsamp` times the values kept per draw must be at most
+  67108864 (2^26).
 
 - burn:
 
-  The sweeps discarded first.
+  The sweeps discarded first; `burn` plus `nsamp` must be at most
+  2147483647.
 
 - seed:
 

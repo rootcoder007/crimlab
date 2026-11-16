@@ -1390,6 +1390,203 @@
   refuses more than 8190 columns of `x`, whose work arrays grow with the
   square of their number.
 
+- The Bayesian samplers
+  [`bamscl()`](https://rootcoder007.github.io/crimlab/reference/bamscl.md),
+  [`bmdsf()`](https://rootcoder007.github.io/crimlab/reference/bmdsf.md),
+  [`bunfld()`](https://rootcoder007.github.io/crimlab/reference/bunfld.md),
+  [`cjrirt()`](https://rootcoder007.github.io/crimlab/reference/cjrirt.md),
+  [`anomin()`](https://rootcoder007.github.io/crimlab/reference/anomin.md)
+  and
+  [`ordirt()`](https://rootcoder007.github.io/crimlab/reference/ordirt.md)
+  refuse an `nsamp` whose draws would pass 2^26 values before any is
+  kept, and all seven, with
+  [`dynirt()`](https://rootcoder007.github.io/crimlab/reference/dynirt.md),
+  refuse a `burn` plus `nsamp` (times `thin`) past the largest integer;
+  a large `nsamp` used to abort R, and the sweep count overflowed.
+  [`optcls()`](https://rootcoder007.github.io/crimlab/reference/optcls.md),
+  [`smacf()`](https://rootcoder007.github.io/crimlab/reference/smacf.md),
+  [`nmdsf()`](https://rootcoder007.github.io/crimlab/reference/nmdsf.md),
+  [`mlsmu()`](https://rootcoder007.github.io/crimlab/reference/mlsmu.md),
+  [`smunf()`](https://rootcoder007.github.io/crimlab/reference/smunf.md),
+  [`ordocl()`](https://rootcoder007.github.io/crimlab/reference/ordocl.md),
+  [`indscl()`](https://rootcoder007.github.io/crimlab/reference/indscl.md),
+  [`dwnom()`](https://rootcoder007.github.io/crimlab/reference/dwnom.md)
+  and
+  [`irtem()`](https://rootcoder007.github.io/crimlab/reference/irtem.md)
+  refuse an `ndim` whose configurations would pass 2^26 values,
+  [`anomin()`](https://rootcoder007.github.io/crimlab/reference/anomin.md)
+  more dimensions than legislators,
+  [`nombt()`](https://rootcoder007.github.io/crimlab/reference/nombt.md)
+  and
+  [`scboot()`](https://rootcoder007.github.io/crimlab/reference/scboot.md)
+  too many replicates and
+  [`anchv()`](https://rootcoder007.github.io/crimlab/reference/anchv.md)
+  too many categories, all before allocating;
+  [`smacf()`](https://rootcoder007.github.io/crimlab/reference/smacf.md)
+  can now be interrupted. The command line gives the same messages.
+
+- [`arimfc()`](https://rootcoder007.github.io/crimlab/reference/arimfc.md)
+  refuses a horizon `h` past 2^26 and
+  [`fpdens()`](https://rootcoder007.github.io/crimlab/reference/fpdens.md)
+  a grid past 2^26 points before making them (both used to abort R); the
+  forecast and the steps of
+  [`fpdens()`](https://rootcoder007.github.io/crimlab/reference/fpdens.md)
+  can now be interrupted. The command line gives the same messages.
+
+- [`bkrig()`](https://rootcoder007.github.io/crimlab/reference/bkrig.md)
+  counts the points of its blocks before it lays them out and refuses
+  more than 2^26: `nq = .Machine$integer.max` overflowed the count and
+  crashed R. The block integrals can now be interrupted within a block.
+  The command line gives the same message.
+
+- [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  refuses `leads` plus `lags` past the number of rows, which cannot be
+  estimated (each event time needs a row), before it builds the
+  indicators; a large window used to abort R.
+  [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md)
+  with an `mtch` larger than the number of comparison units matches as
+  that many does, instead of sizing its tables by `mtch`. The command
+  line does the same.
+
+- [`hwksim()`](https://rootcoder007.github.io/crimlab/reference/hwksim.md)
+  refuses an `nmax` past 2^26 and
+  [`sdbsim()`](https://rootcoder007.github.io/crimlab/reference/sdbsim.md)
+  more than 2^26 `steps`, before the arrays they size are made (both
+  used to abort R).
+  [`kscan()`](https://rootcoder007.github.io/crimlab/reference/kscan.md)
+  compares each simulated maximum as it is drawn instead of keeping all
+  `nsim` of them, so a large `nsim` is only long, and can be
+  interrupted. The command line gives the same messages.
+
+- [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md)
+  refuses an `nboot` whose kept replicates, one per procedure, would
+  pass 2^26, before it starts (it used to abort R). The command line
+  gives the same message.
+
+- [`inlhist()`](https://rootcoder007.github.io/crimlab/reference/inlhist.md)
+  refuses more than 2^26 `bins`; the command line gives the same
+  message.
+
+- [`bayout()`](https://rootcoder007.github.io/crimlab/reference/bayout.md)
+  gives the negative binomial bound for large counts (more than about
+  750 a period in the reference window): the search started where the
+  probability underflows to 0 and never ended. Counts so large that no
+  bound can be found are refused.
+  [`evfilt()`](https://rootcoder007.github.io/crimlab/reference/evfilt.md)
+  stops selecting when no eigenvector has a finite criterion (values
+  whose sums overflow); it used to add one that does not exist and abort
+  R.
+
+- [`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md),
+  [`frmaud()`](https://rootcoder007.github.io/crimlab/reference/frmaud.md)
+  and the readers of
+  [`cnsprof()`](https://rootcoder007.github.io/crimlab/reference/cnsprof.md)
+  results check the columns they read even when the class says where the
+  object came from, once their other arguments are checked; an object of
+  that class with a column missing crashed R.
+
+- [`tpdmc()`](https://rootcoder007.github.io/crimlab/reference/tpdmc.md)
+  refuses more than 2^26 `steps` before it makes the path; the command
+  line gives the same message.
+
+- [`sirex()`](https://rootcoder007.github.io/crimlab/reference/sirex.md)
+  checks `level` before it reads it; an empty `level` was read past its
+  end and crashed R.
+
+- [`tfrp()`](https://rootcoder007.github.io/crimlab/reference/tfrp.md)
+  refuses a `ymax` of 2^26 or more,
+  [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
+  more than 2^26 records and
+  [`aorwt()`](https://rootcoder007.github.io/crimlab/reference/aorwt.md)
+  more than 2^26 bins, before anything is made; the command line gives
+  the same messages.
+
+- [`crwalk()`](https://rootcoder007.github.io/crimlab/reference/crwalk.md)
+  refuses `h` times `nsim` past 2^26, the simulated steps it keeps, and
+  [`vgemp()`](https://rootcoder007.github.io/crimlab/reference/vgemp.md)
+  more than 2^26 distance bins, in R and in the command line.
+
+- [`lnsize()`](https://rootcoder007.github.io/crimlab/reference/lnsize.md)
+  refuses a lineup size `k` past 2^26; the command line gives the same
+  message.
+
+- [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md)
+  refuses more than 2^26 `draws` for the sensitivity interval, and
+  [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md) a
+  `reps` whose draws (one value per cluster and outcome) would pass
+  2^26, in R and in the command line. The draws of
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md),
+  the bootstrap of
+  [`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md),
+  the placebo replicates of
+  [`sdidx()`](https://rootcoder007.github.io/crimlab/reference/sdidx.md)
+  and the permutation and power replicates of
+  [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md)
+  can now be interrupted.
+
+- [`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md),
+  [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md)
+  and
+  [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
+  refuse an `nlam` past 2^26, in R and in the command line.
+
+- [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
+  refuses a `width` that divides 360 into more than 2^26 sectors, or
+  into more columns (areas times sectors) than an integer counts; a tiny
+  `width` used to overflow the count of columns. The command line gives
+  the same messages.
+
+- The robustness iterations of
+  [`lwss()`](https://rootcoder007.github.io/crimlab/reference/lwss.md),
+  the replicator steps of
+  [`insphs()`](https://rootcoder007.github.io/crimlab/reference/insphs.md),
+  the cells of
+  [`jtsurf()`](https://rootcoder007.github.io/crimlab/reference/jtsurf.md),
+  the EM steps of
+  [`mcartst()`](https://rootcoder007.github.io/crimlab/reference/mcartst.md)
+  and the bootstrap refits of
+  [`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md)
+  can now be interrupted. Loops and sizes that multiplied two integer
+  counts are counted in a wide type.
+
+- [`exprun()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  and
+  [`runfx()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  refuse a `cap` past 2^26,
+  [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md)
+  an `ngrid` past 8192 (its grid has `ngrid` squared points) and
+  [`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
+  an `nq` past 2^26; the cluster bootstrap of
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  and
+  [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
+  refuses `nboot` times the clusters past 2^26. These used to stop with
+  R’s own “cannot allocate vector” error. The command line gives the
+  same messages where it has the function.
+
+- [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md)
+  and
+  [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md)
+  refuse more inner folds (`nfin`) than rows of `x`, before their work
+  arrays are sized by it; the command line gives the same message.
+
+- [`cconc()`](https://rootcoder007.github.io/crimlab/reference/cconc.md)
+  refuses an `nsim` past 2^26,
+  [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
+  an `nboot` past 2^25,
+  [`cbootmean()`](https://rootcoder007.github.io/crimlab/reference/cbootmean.md)
+  a `B` and
+  [`cunif()`](https://rootcoder007.github.io/crimlab/reference/cunif.md)
+  an `n` past 2^26 and
+  [`blpal()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
+  more than 2^26 colours, instead of R’s “cannot allocate vector” error;
+  the command line gives the same messages.
+
+- [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
+  with a `top` above the cells of its grid keeps them all, as that many
+  does, instead of sizing its work arrays by `top`.
+
 - The quantile functions of the command line, the JSON entry and Python
   give R’s answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail

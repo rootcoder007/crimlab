@@ -65,7 +65,8 @@ lnroc(
 
 - nboot:
 
-  The bootstrap samples: one whole number from 0 (none).
+  The bootstrap samples: one whole number from 0 (none); `nboot` times
+  the procedures must be at most 67108864 (2^26).
 
 - seed:
 

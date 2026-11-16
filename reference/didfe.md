@@ -93,7 +93,8 @@ didfe(
 - mtch:
 
   `0`, or the number of comparison units matched to each treated unit
-  before the fit.
+  before the fit (more than there are comparison units matches them
+  all).
 
 - exact:
 

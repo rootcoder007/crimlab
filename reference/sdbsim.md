@@ -49,7 +49,7 @@ sdbsim(
 
 - steps:
 
-  The number of steps: one whole number from 0.
+  The number of steps: one whole number from 0 to 67108864 (2^26).
 
 - mode:
 

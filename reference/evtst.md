@@ -56,7 +56,8 @@ evtst(
 - leads, lags:
 
   The periods before and after adoption estimated: whole numbers,
-  `leads` at least 1 and `lags` at least 0.
+  `leads` at least 1 and `lags` at least 0, with `leads` plus `lags` at
+  most the number of rows.
 
 - ref:
 
@@ -104,7 +105,8 @@ evtst(
 
 - draws:
 
-  The normal draws of the sensitivity interval: a whole number from 100.
+  The normal draws of the sensitivity interval: a whole number from 100
+  to 67108864 (2^26).
 
 - seed:
 

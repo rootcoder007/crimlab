@@ -50,7 +50,8 @@ fairdf(
 - nboot:
 
   The bootstrap replicates for the intervals of the Gini coefficient and
-  the score: a whole number from 0 (none).
+  the score: a whole number from 0 (none) to 33554432 (2^25; two values
+  are kept for each).
 
 - seed:
 

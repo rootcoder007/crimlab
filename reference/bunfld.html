@@ -75,15 +75,18 @@ the centred matrix. Draws come from <code>seed</code>, as <code><a href="https:/
 
 
 <dt id="arg-ndim">ndim<a class="anchor" aria-label="anchor" href="#arg-ndim"></a></dt>
-<dd><p>The number of dimensions.</p></dd>
+<dd><p>The number of dimensions; <code>ndim</code> times the points scaled
+must be at most 67108864 (2^26).</p></dd>
 
 
 <dt id="arg-nsamp">nsamp<a class="anchor" aria-label="anchor" href="#arg-nsamp"></a></dt>
-<dd><p>The draws kept.</p></dd>
+<dd><p>The draws kept; <code>nsamp</code> times the values kept per draw
+must be at most 67108864 (2^26).</p></dd>
 
 
 <dt id="arg-burn">burn<a class="anchor" aria-label="anchor" href="#arg-burn"></a></dt>
-<dd><p>The sweeps discarded first.</p></dd>
+<dd><p>The sweeps discarded first; <code>burn</code> plus <code>nsamp</code> must be at
+most 2147483647.</p></dd>
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>

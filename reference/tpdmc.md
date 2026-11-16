@@ -52,7 +52,7 @@ tpdmc(
 - steps:
 
   The longest path drawn (it stops when absorbed): one whole number from
-  0, 0 for none.
+  0 to 67108864 (2^26), 0 for none.
 
 - seed:
 

@@ -54,8 +54,8 @@ cconc(
 - nsim:
 
   The number of Poisson samples at the observed mean for the null
-  distribution of the Gini (0 for none): a whole number. It needs a
-  whole number of units.
+  distribution of the Gini (0 for none): a whole number, at most
+  67108864 (2^26). It needs a whole number of units.
 
 - seed:
 

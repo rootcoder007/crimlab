@@ -115,11 +115,13 @@ dmlx(
 
 - nlam:
 
-  The number of penalties on each elastic net path.
+  The number of penalties on each elastic net path, at most 67108864
+  (2^26).
 
 - nfin:
 
-  The number of inner folds that choose the penalty, at least 2.
+  The number of inner folds that choose the penalty, at least 2 and at
+  most the rows of `x`.
 
 - tol, scr:
 

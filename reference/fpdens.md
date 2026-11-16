@@ -25,7 +25,7 @@ fpdens(y, ngrid = 64, nstep = 200)
 
 - ngrid:
 
-  The grid points.
+  The grid points, at most 67108864 (2^26).
 
 - nstep:
 
