@@ -322,8 +322,8 @@ SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx, SEXP full) {
     const char *an = x == a ? "a" : "b";
     clab::unlab(x, an);
     bool lna = TYPEOF(x) == LGLSXP;
-    for (R_xlen_t i = 0; lna && i < XLENGTH(x); ++i) lna = LOGICAL(x)[i] == NA_LOGICAL;
-    if (!(clab::isnum(x) || lna) || XLENGTH(x) < 1) {
+    for (R_xlen_t i = 0; lna && i < clab::xlen(x, an); ++i) lna = LOGICAL(x)[i] == NA_LOGICAL;
+    if (!(clab::isnum(x) || lna) || clab::xlen(x, an) < 1) {
       clab::fail("`%s` must be numbers (NA for a missing point), not infinite.", an);
     }
     clab::vec(x, an);

@@ -115,3 +115,15 @@ test_that("mndla() refuses bad input in words", {
     )
   )
 })
+
+test_that("an alert, eligibility or exclusion that is not a vector is refused", {
+  d <- c(3, 20, 40)
+  id <- c("a", "b", "c")
+  for (a in c("elig", "excl")) {
+    args <- stats::setNames(list(d, id, sum), c("days", "id", a))
+    expect_error(do.call(mndla, args),
+                 paste0("^mndla: `", a, "` must be a vector, got a function"))
+  }
+  expect_error(mndla(d, id, alert = list(NULL)),
+               "^mndla: `alert` must be a vector, got NULL")
+})

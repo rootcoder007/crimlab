@@ -65,7 +65,7 @@ inline SEXP zmat(SEXP z, const char *nm, int n, bool one, int *p) {
   }
   clab::unlab(z, nm);
   if (!clab::isnum(z)) fail("`%s` must be a numeric matrix or vector.", nm);
-  if (Rf_isMatrix(z) ? Rf_nrows(z) != n : XLENGTH(z) != n) fail("`%s` must have %d rows.", nm, n);
+  if (Rf_isMatrix(z) ? Rf_nrows(z) != n : clab::xlen(z, nm) != n) fail("`%s` must have %d rows.", nm, n);
   *p = Rf_isMatrix(z) ? Rf_ncols(z) : 1;
   SEXP o = PROTECT(clab::dbl(z));
   for (R_xlen_t q = 0; q < XLENGTH(o); ++q) {

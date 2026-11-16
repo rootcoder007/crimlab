@@ -32,7 +32,7 @@ int word(const char *s) {
 // TRUE/FALSE, 0/1 or "yes"/"no" (any case) per row, as 0 or 1 into out.
 void yes(SEXP x, const char *nm, int n, int *out) {
   clab::unlab(x, nm);
-  if (XLENGTH(x) != n) fail("`%s` must have one value per stay, %d.", nm, n);
+  if (clab::xlen(x, nm) != n) fail("`%s` must have one value per stay, %d.", nm, n);
   for (int i = 0; i < n; ++i) {
     int v = NA_INTEGER;
     if (TYPEOF(x) == LGLSXP) {

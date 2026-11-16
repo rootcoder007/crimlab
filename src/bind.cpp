@@ -388,8 +388,8 @@ SEXP gvec(SEXP x, const char *nm) {
     for (R_xlen_t i = 0; i < n; ++i) {
       SEXP e = VECTOR_ELT(x, i);
       clab::unlab(e, nm);
-      const bool na = TYPEOF(e) == LGLSXP && XLENGTH(e) == 1 && LOGICAL_RO(e)[0] == NA_LOGICAL;
-      if (!na && (!clab::isnum(e) || XLENGTH(e) != 1)) {
+      const bool na = TYPEOF(e) == LGLSXP && clab::xlen(e, nm) == 1 && LOGICAL_RO(e)[0] == NA_LOGICAL;
+      if (!na && (!clab::isnum(e) || clab::xlen(e, nm) != 1)) {
         fail("`%s` must be finite numbers, one per group: %s.", nm, forms);
       }
       REAL(v)[i] = clab::val1(e);
@@ -2834,7 +2834,7 @@ SEXP ctab(SEXP x, int *r, int *c) {
     for (R_xlen_t j = 0; j < nc; ++j) {
       SEXP e = VECTOR_ELT(x, j);
       clab::unlab(e, "x");
-      if (!clab::isnum(e) || Rf_isMatrix(e) || (j > 0 && XLENGTH(e) != nr)) {
+      if (!clab::isnum(e) || Rf_isMatrix(e) || (j > 0 && clab::xlen(e, "x") != nr)) {
         fail("`x` must be counts: %s.", tforms);
       }
       if (j == 0) nr = XLENGTH(e);
