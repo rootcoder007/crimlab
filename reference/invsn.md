@@ -158,7 +158,7 @@ invsn(c(1, 2, 3, 1, 2, 3), c(4, 5, 6, 4, 1, 6), by = c(1, 1, 1, 2, 2, 2))
 #> 2  2 3 1.666667   0
 invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
 #>   diff inv       bin
-#> 1    2   0  (0, Inf]
+#> 1    2   0   (0,Inf]
 #> 2   -1   1 (-Inf,-1]
 #> 3    0   0    (-1,0]
 # the share of days without an inversion and the support (check 3)

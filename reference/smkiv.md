@@ -58,8 +58,9 @@ smkiv(
 
 - seas:
 
-  `NULL` (meteorological seasons of a date `day`) or the name of a
-  season column.
+  `NULL` (meteorological seasons of a date `day`: dates, or ISO date
+  text such as `"2024-06-01"`; a `day` of numbers has no seasons) or the
+  name of a season column.
 
 - dens:
 

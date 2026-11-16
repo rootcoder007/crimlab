@@ -19,7 +19,7 @@ print(x, ...)
 
 - data:
 
-  A data frame.
+  A data frame, one row per unit.
 
 - d:
 
@@ -40,7 +40,7 @@ print(x, ...)
 
 - ...:
 
-  Not used.
+  Not used by [`print()`](https://rdrr.io/r/base/print.html).
 
 ## Value
 

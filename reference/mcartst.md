@@ -87,9 +87,11 @@ iterations the last estimates are used; `iterations` then equals
 
 Errors: `data` neither a data frame nor a matrix; fewer than two numeric
 columns, or fewer than two usable rows or columns after the drops;
-collinear or constant columns (smallest covariance eigenvalue at most
-\\10^{-8}\\ times the largest); EM estimates that cannot be inverted.
-Non-numeric columns are dropped with a warning.
+collinear or constant columns (smallest eigenvalue of the correlation
+matrix at most \\10^{-8}\\ times the largest, or a standard deviation at
+most \\10^{-12}\\ times the column's largest absolute value); EM
+estimates that cannot be inverted. Non-numeric columns are dropped with
+a warning.
 
 ## References
 

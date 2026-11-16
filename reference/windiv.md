@@ -80,7 +80,8 @@ windiv(
 A numeric matrix, one row per direction (or per `by` group, named by
 it), columns named `"w<from>_<to>"`, with `":<area>"` added when `area`
 is given. With `by`, the attribute `"dir"` holds the group's direction
-(for `share`, its vector average).
+(for `share`, its vector average); a group whose winds cancel, or are
+calm, has no direction (`NA`) and no sector.
 
 ## Details
 

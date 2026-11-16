@@ -45,7 +45,9 @@ ccross(
 
 - day:
 
-  The name of the day column (dates).
+  The name of the day column: dates, ISO date text such as
+  `"2024-06-01"`, or numbers of days since 1970-01-01 (as the command
+  line gives dates).
 
 - strat:
 

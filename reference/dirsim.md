@@ -23,7 +23,7 @@ dirsim(n, alpha, total = 1, seed = NULL)
 
 - n:
 
-  The number of compositions: a whole number from 1.
+  The number of compositions: a whole number from 1 to 2147483647.
 
 - alpha:
 

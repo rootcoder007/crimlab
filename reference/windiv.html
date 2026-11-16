@@ -125,7 +125,8 @@ sector.</p></dd>
     <p>A numeric matrix, one row per direction (or per <code>by</code> group,
 named by it), columns named <code>"w&lt;from&gt;_&lt;to&gt;"</code>, with <code>":&lt;area&gt;"</code> added
 when <code>area</code> is given. With <code>by</code>, the attribute <code>"dir"</code> holds the
-group's direction (for <code>share</code>, its vector average).</p>
+group's direction (for <code>share</code>, its vector average); a group whose
+winds cancel, or are calm, has no direction (<code>NA</code>) and no sector.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

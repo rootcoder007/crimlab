@@ -43,6 +43,120 @@
   gives the association rules between two binned variables that
   Wongchanapai et al. (2025) mine with Apriori.
 
+- The command line computes the quantiles and medians of
+  [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md),
+  `ccross(ns =)` and
+  [`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
+  as R’s [`quantile()`](https://rdrr.io/r/stats/quantile.html) and
+  [`median()`](https://rdrr.io/r/stats/median.html) do, and the
+  restricted cubic spline’s cube as a product in both, so that a spline
+  surface of
+  [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md)
+  is the same fit in R and outside it (it differed by about 1e-8).
+
+- Fixed, after a review of the checks:
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
+  and
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  with `se = "twoway"` and other than two fixed effects,
+  [`rddens()`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  and
+  [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  with fewer than 10 rows,
+  [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  with a constant treatment, a refused row of
+  [`polbrdarea()`](https://rootcoder007.github.io/crimlab/reference/polbrdarea.md)
+  and an outcome
+  [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md)
+  lacks for PM2.5 are refused in words that name what is wrong;
+  [`tailwd()`](https://rootcoder007.github.io/crimlab/reference/tailwd.md)
+  refuses a negative speed and `dwnexp(lonlat = TRUE)` a latitude past
+  90;
+  [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
+  gives winds that cancel, and calm, no direction (`NA`); a whole number
+  past 2147483647 is refused naming that limit; and the bin labels of
+  [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md),
+  [`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
+  and
+  [`updwn()`](https://rootcoder007.github.io/crimlab/reference/updwn.md)
+  write `Inf` without a space, as the command line does.
+
+- Fixed: Python
+  [`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md)
+  refused `or_`, although an argument named as a Python keyword takes a
+  final underscore elsewhere (`from_`, `lambda_`).
+
+- Fixed:
+  [`inlhist()`](https://rootcoder007.github.io/crimlab/reference/inlhist.md)
+  lost a value when the range of the values overflowed
+  (`c(-1e308, 1e308)`); the breaks are now built from halves there.
+
+- [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
+  with very narrow sectors builds its column names in less than half the
+  time: each edge is formatted once.
+
+- [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  takes a day column of ISO date text or of days since 1970-01-01, as
+  the command line gives dates, and
+  [`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md)
+  reads ISO date text as dates, in R and on the command line alike;
+  before, R’s
+  [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  refused numbers and the command line could not give
+  [`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md)
+  dates.
+
+- Fixed:
+  [`irtem()`](https://rootcoder007.github.io/crimlab/reference/irtem.md),
+  [`optcls()`](https://rootcoder007.github.io/crimlab/reference/optcls.md),
+  [`dwnom()`](https://rootcoder007.github.io/crimlab/reference/dwnom.md),
+  [`cjrirt()`](https://rootcoder007.github.io/crimlab/reference/cjrirt.md),
+  [`nomll()`](https://rootcoder007.github.io/crimlab/reference/nomll.md),
+  [`irtlik()`](https://rootcoder007.github.io/crimlab/reference/irtlik.md)
+  and
+  [`nombt()`](https://rootcoder007.github.io/crimlab/reference/nombt.md)
+  accepted votes other than 1, 0 and `NA`, and a matrix of no votes;
+  they refuse them now in the words of
+  [`anomin()`](https://rootcoder007.github.io/crimlab/reference/anomin.md).
+  [`ordocl()`](https://rootcoder007.github.io/crimlab/reference/ordocl.md)
+  refuses a matrix of no responses, and a vector at once.
+
+- Fixed:
+  [`clncolnms()`](https://rootcoder007.github.io/crimlab/reference/clncolnms.md)
+  could return repeated names (`c("x", "x", "x_2")` gave `"x_2"` twice);
+  a number whose name is taken is now skipped. A tab inside a name is a
+  word break, as the help says, and no longer deleted.
+
+- Fixed:
+  [`mcartst()`](https://rootcoder007.github.io/crimlab/reference/mcartst.md)
+  refused columns in different units (income next to a rate) as
+  collinear; the rank check and the EM step’s eigenvalue floor are now
+  on the scale of the correlations.
+
+- Fixed: `rdloc(bw = "ik")` and
+  [`rddens()`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  refused a running variable in metres or in thousands of kilometres;
+  the bandwidths now scale with the running variable, and the estimates
+  do not change.
+
+- Fixed:
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
+  and the other least-squares fits refused columns about 1e7 apart in
+  scale as collinear; a column is now judged against its own size, and a
+  column the fixed effects absorb is found by an explicit check in
+  [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md),
+  [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md)
+  and the tests of
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md).
+
+- Fixed:
+  [`plot.lnkpr()`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  returned an ROC curve of `NA` and an area of `NA` when some crimes
+  were unsolved; the pairs with an unsolved crime are now left out, as
+  [`lnkpr()`](https://rootcoder007.github.io/crimlab/reference/lnkpr.md)
+  leaves them out of its fit, and the area is the model’s AUC.
+
 - New:
   [`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
   builds downwind-exposure instruments from sources of pollution and the

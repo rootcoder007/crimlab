@@ -73,7 +73,8 @@ dwnexp(
 
 - lonlat:
 
-  `TRUE` for longitude and latitude in degrees.
+  `TRUE` for longitude and latitude in degrees (latitudes from -90 to
+  90).
 
 - wrap:
 

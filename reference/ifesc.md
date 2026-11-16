@@ -79,6 +79,10 @@ summary(object, ...)
 
   `NULL` (the generator's current state) or one whole number.
 
+- level:
+
+  The confidence level of the intervals.
+
 - tol:
 
   The convergence tolerance of `b`.

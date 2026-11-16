@@ -65,7 +65,8 @@ boundary; turn every run of other characters into one word break; an
 empty name becomes `x`; join the words in the chosen case; prefix `x` to
 a name starting with a digit; and give repeated names the suffixes
 `<sep>2`, `<sep>3`, ... in order of appearance (the first keeps its
-name).
+name), skipping a number whose name is already taken, so that every name
+is unique.
 
 Record the mapping with the data. Cleaning names changes what a
 downstream script must refer to, so an unrecorded cleaning is itself a

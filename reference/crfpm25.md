@@ -49,7 +49,7 @@ print(x, ...)
 
 - x:
 
-  A result.
+  An object of class `crf`.
 
 - ...:
 

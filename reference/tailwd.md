@@ -21,7 +21,7 @@ tailwd(dir, spd, course = 250, by = NULL, agg = "max")
 
 - spd:
 
-  Wind speeds, one per direction (`NA` allowed).
+  Wind speeds, one per direction, 0 or more (`NA` allowed).
 
 - course:
 
