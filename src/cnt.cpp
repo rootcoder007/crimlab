@@ -335,6 +335,12 @@ bool spdinv(double *m, int k) {
 
 extern "C" {
 
+// A theta the likelihood can fix: positive and finite, and not beyond
+// 1e12, where the variance mu + mu^2 / theta is the Poisson's to rounding
+// (counts with no overdispersion send theta off without bound, and how
+// far it gets before the steps stop differs by platform).
+static bool thok(double th) { return th > 0 && std::isfinite(th) && th <= 1e12; }
+
 int clab_cntreg(const double *y, const double *x, int n, int p, const double *off,
                 const int *cl, int ncl, int nb, int maxit, double eps, double *beta,
                 double *vb, double *vc, double *st, int *alias, double *work,
@@ -376,7 +382,7 @@ int clab_cntreg(const double *y, const double *x, int n, int p, const double *of
     double info;
     int ok;
     th = thml(y, f.mu, n, maxit, &info, &ok);
-    if (!(th > 0) || !std::isfinite(th)) return CLAB_EDOM;
+    if (!thok(th)) return CLAB_EDOM;
     const double d1 = std::sqrt(2 * std::fmax(1.0, static_cast<double>(n - f.rk)));
     double del = 1.0, lm = llnb(y, f.mu, n, th), lm0 = lm + 2 * d1;
     int outer = 0, tok = ok;
@@ -393,7 +399,7 @@ int clab_cntreg(const double *y, const double *x, int n, int p, const double *of
       iter += it > 0 ? it : maxit;
       const double t0 = th;
       th = thml(y, f.mold, n, maxit, &info, &ok);
-      if (!(th > 0) || !std::isfinite(th)) return CLAB_EDOM;
+      if (!thok(th)) return CLAB_EDOM;
       del = t0 - th;
       tok = ok;
       lm0 = lm;

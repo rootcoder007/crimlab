@@ -51,6 +51,12 @@ plain <- function(x) {
     return(list(args = b, preset = a$preset, generic = a$generic, source = a$source,
                 units = a$units, note = a$note, drop = a$drop))
   }
+  # a table with the unit values as its attribute (lrcce()): the columns,
+  # then the units
+  if (is.data.frame(x) && is.matrix(attr(x, "units"))) {
+    u <- attr(x, "units")
+    return(c(lapply(as.list(x), function(v) unname(as.vector(v))), list(units = unname(u))))
+  }
   if (is.factor(x)) {
     n <- names(x)
     x <- as.character(x)
