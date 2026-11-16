@@ -2436,6 +2436,11 @@ ok("ovrchk", data = data.frame(case_number = c("23-OFD-001", "23-OFD-1", NA, "24
                               charges_recommended = c("FALSE", "maybe", "yes", NA)),
    shape = c(case_number = "99-AAA-999|99-AA-999"))
 bad("ovrchk", data = data.frame(a = 1), shape = c(b = "999"))
+tbd <- data.frame(year = rep(2019:2023, 2), svc = rep(c("A", "B"), each = 5),
+                  n = c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33), pop = rep(c(50000, 12000), each = 5))
+ok("tabrpt", data = tbd, value = "n", prd = "year", by = "svc", pop = "pop", rnd = 5)
+ok("tabrpt", data = tbd[1:5, ], value = "n", prd = "year")
+bad("tabrpt", data = tbd, value = "m", prd = "year")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

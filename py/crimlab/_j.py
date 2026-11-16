@@ -7910,3 +7910,21 @@ def ovrchk(data: Any, schema: Any = None, shape: Any = None) -> Any:
     [1.0]
     """
     return jcall("ovrchk", data=data, schema=schema, shape=shape)
+
+
+def tabrpt(data: Any, value: Any, prd: Any, by: Any = None, pop: Any = None, rnd: Any = None,
+           kind: Any = "nearest", per: Any = 1000, level: Any = 0.95, adj: Any = "BH",
+           alpha: Any = 0.05) -> Any:
+    """One call on a published table: check, change, rates and trend.
+
+    The arguments and the result are those of R's ``tabrpt()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"year": [2019, 2020, 2021, 2022], "n": [12, 15, 11, 18]}
+    >>> list(tabrpt(data=d, value="n", prd="year"))
+    ['check', 'change', 'rates', 'trend']
+    """
+    return jcall("tabrpt", data=data, value=value, prd=prd, by=by, pop=pop, rnd=rnd, kind=kind,
+                 per=per, level=level, adj=adj, alpha=alpha)

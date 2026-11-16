@@ -466,6 +466,7 @@ from ._j import (
     ovrsoc,
     ovrkwd,
     ovrchk,
+    tabrpt,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -956,6 +957,7 @@ __all__ = [
     "ovrsoc",
     "ovrkwd",
     "ovrchk",
+    "tabrpt",
 ]
 
 

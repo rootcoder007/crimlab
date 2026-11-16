@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `tabrpt()`, one call on a published table: `catchk()` on its
+  groups, `yoypx()` on the change between periods, `grprr()` on the rates
+  and `trndrr()` on each group's trend.
+
 * New: `ovrchk()` flags the cells of a coded table of oversight reports
   that are not of the form of their field (a real date, a count, a flag)
   or of a pattern such as a case number.

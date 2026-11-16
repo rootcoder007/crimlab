@@ -585,4 +585,116 @@ bool ovrchk(Ctx &c, Val &out) {
   return true;
 }
 
+// tabrpt(): catchk(), yoypx(), grprr() and trndrr() called as R/tabrpt.R
+// calls them, their refusals and warnings given under tabrpt's name.
+bool tabrpt(Ctx &c, Val &out) {
+  Val d;
+  {
+    Ctx q{c.fn, c.in, std::string(), {}};
+    if (c["data"].t != Val::OBJ || !ax::dat(q, c["data"], "data", d)) {
+      return ckstop(c, "`data` must be a data frame with rows");
+    }
+  }
+  auto names = [&](const char *w, bool many, std::vector<std::string> &v) {
+    v.clear();
+    const Val &o = c[w];
+    const std::vector<Val> e = o.t == Val::ARR ? o.a : std::vector<Val>{o};
+    bool ok = !e.empty() && (many || e.size() == 1);
+    for (const Val &x : e) {
+      ok = ok && x.t == Val::STR && ax::fc(d, x.s) != nullptr;
+      if (ok) v.push_back(x.s);
+    }
+    return ok || ckstop(c, "`%s` must name %s of `data`", w, many ? "columns" : "one column");
+  };
+  std::vector<std::string> vn, pn, by, po;
+  CK(names("value", false, vn));
+  CK(names("prd", false, pn));
+  const bool hb = c.has("by"), hp = c.has("pop");
+  if (hb) CK(names("by", true, by));
+  if (hp) CK(names("pop", false, po));
+  const Val &xv = *ax::fc(d, vn[0]), &pv = *ax::fc(d, pn[0]);
+  const std::size_t n = ax::nr(d);
+  std::vector<std::string> g(n);
+  for (std::size_t i = 0; i < n; ++i) {
+    for (std::size_t j = 0; j < by.size(); ++j) g[i] += (j ? " / " : "") + ax::vlab(ax::fc(d, by[j])->a[i]);
+  }
+  auto arg = [&](Val &a, const char *k) {
+    if (c.has(k)) put(a, k, c[k]);
+  };
+  out = vobj();
+  Val r;
+  if (hb) {
+    Val a = vobj(), x = vobj();
+    for (const std::string &b : by) put(x, b.c_str(), *ax::fc(d, b));
+    put(a, "x", std::move(x));
+    CK(ax::call(c, c.fn, catchk, a, r));
+    put(out, "check", std::move(r));
+  } else {
+    put(out, "check", Val());
+  }
+  {
+    Val a = vobj();
+    put(a, "x", xv);
+    put(a, "prd", pv);
+    if (hb) put(a, "by", vstrs(g));
+    for (const char *k : {"rnd", "kind", "level", "adj", "alpha"}) arg(a, k);
+    CK(ax::call(c, c.fn, yoypx, a, r));
+    put(out, "change", std::move(r));
+  }
+  if (hp) {
+    Val a = vobj();
+    put(a, "x", xv);
+    put(a, "n", *ax::fc(d, po[0]));
+    std::vector<std::string> gl = g;
+    if (!hb) {
+      for (std::size_t i = 0; i < n; ++i) gl[i] = ax::vlab(pv.a[i]);
+    }
+    put(a, "grp", vstrs(gl));
+    for (const char *k : {"per", "level"}) arg(a, k);
+    CK(ax::call(c, c.fn, grprr, a, r));
+    put(out, "rates", std::move(r));
+  } else {
+    put(out, "rates", Val());
+  }
+  const std::vector<double> x = ax::colv(xv), p = ax::colv(pv);
+  std::vector<double> e;
+  if (hp) e = ax::colv(*ax::fc(d, po[0]));
+  std::vector<std::string> gg = hb ? g : std::vector<std::string>(n, "all"), ug;
+  for (const std::string &k : gg) {
+    if (std::find(ug.begin(), ug.end(), k) == ug.end()) ug.push_back(k);
+  }
+  Val tr = vobj();
+  for (const std::string &k : ug) {
+    std::vector<double> t;
+    for (std::size_t i = 0; i < n; ++i) {
+      if (gg[i] == k) t.push_back(p[i]);
+    }
+    std::sort(t.begin(), t.end());
+    t.erase(std::unique(t.begin(), t.end()), t.end());
+    std::vector<double> y(t.size(), 0.0), ex(t.size(), 0.0);
+    double sy = 0;
+    for (std::size_t s = 0; s < t.size(); ++s) {
+      for (std::size_t i = 0; i < n; ++i) {
+        if (gg[i] != k || p[i] != t[s]) continue;
+        y[s] += x[i];
+        if (hp) ex[s] += e[i];
+      }
+      sy += y[s];
+    }
+    if (t.size() < 3 || !(sy > 0)) {
+      put(tr, k.c_str(), Val());
+      continue;
+    }
+    Val a = vobj();
+    put(a, "y", vnums(y));
+    put(a, "x", vnums(t));
+    if (hp) put(a, "expo", vnums(ex));
+    arg(a, "level");
+    CK(ax::call(c, c.fn, trndrr, a, r));
+    put(tr, k.c_str(), std::move(r));
+  }
+  put(out, "trend", std::move(tr));
+  return true;
+}
+
 }  // namespace ovr
