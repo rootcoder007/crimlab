@@ -34,7 +34,8 @@
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.0.9000" id="crimlab-0009000">crimlab 0.0.0.9000<a class="anchor" aria-label="anchor" href="#crimlab-0009000"></a></h2>
-<ul><li><p>New: <code><a href="../reference/cemtch.html">cemtch()</a></code>, coarsened exact matching (Iacus, King and Porro 2012) with the weights for the effect on the treated and the L1 imbalance, as Sampson and Winter (2018) match lead-exposed children.</p></li>
+<ul><li><p><code><a href="../reference/plotrdg.html">plotrdg()</a></code> and <code><a href="../reference/plotrdg.html">plotvln()</a></code> take their densities from the compiled kernel that the command line and the other languages use, so the curve is the same everywhere and on every version of R. The kernel agrees with <code><a href="https://rdrr.io/r/stats/density.html" class="external-link">stats::density()</a></code> of R 4.3 and later to rounding.</p></li>
+<li><p>New: <code><a href="../reference/cemtch.html">cemtch()</a></code>, coarsened exact matching (Iacus, King and Porro 2012) with the weights for the effect on the treated and the L1 imbalance, as Sampson and Winter (2018) match lead-exposed children.</p></li>
 <li><p>New: <code><a href="../reference/lrcce.html">lrcce()</a></code>, the CS-ARDL long-run effects and adjustment speed from the unit estimates of <code><a href="../reference/ccepnl.html">ccepnl()</a></code>, as Ditzen (2021) sets them out.</p></li>
 <li><p>New: <code><a href="../reference/ifesc.html">ifesc()</a></code>, the generalized synthetic control of Xu (2017) on the interactive fixed effects model of Bai (2009), with staggered adoption, the number of factors by cross-validation and a bootstrap of units.</p></li>
 <li><p>New: <code>ppmlcf(family = "nb")</code>, the control function with a negative binomial second stage and a cluster bootstrap of both stages, as Feigenbaum and Muller (2016) estimate lead’s effect on homicide.</p></li>

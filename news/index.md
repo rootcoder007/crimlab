@@ -2,6 +2,15 @@
 
 ## crimlab 0.0.0.9000
 
+- [`plotrdg()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  and
+  [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md)
+  take their densities from the compiled kernel that the command line
+  and the other languages use, so the curve is the same everywhere and
+  on every version of R. The kernel agrees with
+  [`stats::density()`](https://rdrr.io/r/stats/density.html) of R 4.3
+  and later to rounding.
+
 - New:
   [`cemtch()`](https://rootcoder007.github.io/crimlab/reference/cemtch.md),
   coarsened exact matching (Iacus, King and Porro 2012) with the weights
