@@ -90,4 +90,3 @@ pinv <- function(f, args, rows) {
   set.seed(seed)
   .axdraw1(g, b)
 }
-
