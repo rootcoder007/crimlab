@@ -55,10 +55,10 @@ inline bool ck(Ctx &c, double &dt, double &step, double &pid, std::vector<std::s
     return c.fail("`dt` must be one number from 0 to 604800 (a week, in seconds).");
   }
   if (c.has("step") && (!one(c["step"], step) || step <= 0)) return c.fail("`step` must be one number above 0.");
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__wasi__)
   pid = static_cast<double>(getpid());
 #else
-  pid = 0.0;
+  pid = 0.0;  // no process identifier there
 #endif
   if (c.has("pid") && (!one(c["pid"], pid) || pid != std::round(pid) || pid < 0 || pid > 2147483647.0)) {
     return c.fail("`pid` must be a process id: a whole number from 0 to 2147483647.");
