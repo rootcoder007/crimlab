@@ -48,7 +48,8 @@ first.}
 \item{meth}{\code{"wild"}, \code{"perm"} or \code{"power"}.}
 
 \item{reps}{The draws: a whole number from 9; \code{NULL} for 9999 (200 for
-\code{"power"}).}
+\code{"power"}). \code{reps} times the clusters and outcomes must be at most
+67108864 (2^26).}
 
 \item{wtype}{\code{"rad"} (Rademacher) or \code{"webb"}.}
 

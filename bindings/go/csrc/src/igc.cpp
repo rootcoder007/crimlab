@@ -71,15 +71,22 @@ std::vector<int> ci(const V &x, const char *nm) {
   return o;
 }
 
-// x is a cnsprof() result (or, from JSON, a frame with its columns)
-bool isprof(const V &x) {
-  if (inh(x, "cnsprof")) return true;
-  if (!x.js || !isdf(x)) return false;
+// x has every column of a cnsprof() result
+bool hascols(const V &x) {
   for (const char *n : {"geo", "dguid", "residence", "gender", "age", "group", "chaid", "characteristic", "parid",
                         "rootid", "sample", "value", "quality"}) {
     if (!col(x, n)) return false;
   }
   return true;
+}
+
+// x is a cnsprof() result (or, from JSON, a frame with its columns). The
+// class is taken on trust here, so that the other arguments are checked
+// first; a function that reads a column without a further check calls
+// hascols() before it does.
+bool isprof(const V &x) {
+  if (inh(x, "cnsprof")) return true;
+  return x.js && isdf(x) && hascols(x);
 }
 
 // .rmbl_ipp_groups
@@ -346,6 +353,7 @@ V f_profshr(const Cx &c) {
                                  smpv = cl(x, "sample"), ch = cl(x, "characteristic"), ql = cl(x, "quality");
   const std::vector<double> val = cd(x, "value");
   if (bad()) return {};
+  if (!hascols(x)) return stop("`x` must come from cnsprof()");
   const Lab rl = lab(*col(x, "residence"));
   std::vector<std::size_t> a, b;
   std::map<std::string, std::size_t> kb;
@@ -444,6 +452,7 @@ V f_cnsstd(const Cx &c) {
   }
   const std::vector<std::string> gv = cl(x, "group"), geov = cl(x, "geo"), dg = cl(x, "dguid"), gen = cl(x, "gender"),
                                  res = cl(x, "residence"), age = cl(x, "age");
+  if (!hascols(x)) return stop("`x` must come from cnsprof()");
   const Lab dgl = lab(*col(x, "dguid"));
   const std::vector<double> val = cd(x, "value");
   if (bad()) return {};

@@ -44,7 +44,8 @@ jntx(
 
 \item{ref}{\code{NULL} (the medians) or the reference point of the surface.}
 
-\item{ngrid}{The points of the surface along each exposure.}
+\item{ngrid}{The points of the surface along each exposure, at most
+8192 (\code{ngrid} times \code{ngrid} at most 2^26).}
 
 \item{ctrl}{\code{NULL} or the names of other regressors.}
 

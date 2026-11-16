@@ -10,11 +10,14 @@ ordirt(Y, ndim = 1, nsamp = 500, burn = 100, seed = 42, lprec = 0)
 \item{Y}{A respondent-by-item matrix of ordinal responses (any ordered
 numeric coding), \code{NA} for missing.}
 
-\item{ndim}{The number of dimensions.}
+\item{ndim}{The number of dimensions; \code{ndim} times the points scaled
+must be at most 67108864 (2^26).}
 
-\item{nsamp}{The draws kept.}
+\item{nsamp}{The draws kept; \code{nsamp} times the values kept per draw
+must be at most 67108864 (2^26).}
 
-\item{burn}{The sweeps discarded first.}
+\item{burn}{The sweeps discarded first; \code{burn} plus \code{nsamp} must be at
+most 2147483647.}
 
 \item{seed}{The seed.}
 

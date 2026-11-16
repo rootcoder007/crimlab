@@ -102,6 +102,7 @@ int clab_jtsurf(const double *x, const double *y, int m, int nx, int ny,
     if (!std::isfinite(x[i]) || !std::isfinite(y[i])) return CLAB_EDOM;
   const int nc = nx * ny;
   for (int c = 0; c < nc; ++c) {
+    if (kutil::stop(m)) return CLAB_EINTR;
     const double cx = x0 + (c % nx + 0.5) * dx, cy = y0 + (c / nx + 0.5) * dy;
     kutil::ksum s;
     bool dead = false;

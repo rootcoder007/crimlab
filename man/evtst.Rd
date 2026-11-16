@@ -39,7 +39,8 @@ constant within units; \code{NA}, 0 or \code{Inf} for a unit never treated.
 Treatment is taken to stay on.}
 
 \item{leads, lags}{The periods before and after adoption estimated: whole
-numbers, \code{leads} at least 1 and \code{lags} at least 0.}
+numbers, \code{leads} at least 1 and \code{lags} at least 0, with \code{leads} plus
+\code{lags} at most the number of rows.}
 
 \item{ref}{The event time left out: a whole number from \code{-leads} to
 \code{lags}.}
@@ -71,7 +72,7 @@ relative to the largest before adoption: numbers from 0.}
 time from 0.}
 
 \item{draws}{The normal draws of the sensitivity interval: a whole
-number from 100.}
+number from 100 to 67108864 (2^26).}
 
 \item{seed}{The seed of the draws: \code{NULL} to draw it from R's generator,
 or a whole number from 0.}

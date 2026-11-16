@@ -27,7 +27,8 @@ sdbsim(
 \arguments{
 \item{n}{The side of the grid: one whole number from 3 (at most 2000).}
 
-\item{steps}{The number of steps: one whole number from 0.}
+\item{steps}{The number of steps: one whole number from 0 to 67108864
+(2^26).}
 
 \item{mode}{\code{"agent"} or \code{"pde"}.}
 

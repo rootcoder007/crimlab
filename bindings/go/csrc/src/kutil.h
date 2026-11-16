@@ -12,6 +12,12 @@
 
 namespace kutil {
 
+// The most cells (doubles or ints) that one object sized by a count of the
+// caller may hold: 2^26, 512 MB of doubles, the bound of pedlr()'s tables.
+// Counts whose product passes it (draws times the values of one draw,
+// points per block times blocks, ...) are refused before anything is made.
+constexpr double maxcell = 67108864.0;
+
 inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
 // One observation of the negative binomial log likelihood (mean mu,

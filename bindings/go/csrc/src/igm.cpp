@@ -1004,6 +1004,11 @@ V f_dualcont(const Cx &c) {
   if (!from) return stop("`x` must come from welprof()");
   const std::string well = str1(c["well"], "well"), dis = str1(c["distress"], "distress");
   if (bad()) return {};
+  // the columns read below, whatever the class says, once the other
+  // arguments are checked
+  for (const char *n : need) {
+    if (!col(x, n)) return stop("`x` must come from welprof()");
+  }
   const Lab gl = lab(*col(x, "group")), il = lab(*col(x, "indicator")), sl = lab(*col(x, "side"));
   const std::size_t n = gl.n();
   bool hw = false, hd = false;

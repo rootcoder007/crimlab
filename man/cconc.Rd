@@ -34,7 +34,8 @@ population is fitted, \verb{log x = log pref + beta log pop}, over the units
 with events.}
 
 \item{nsim}{The number of Poisson samples at the observed mean for the
-null distribution of the Gini (0 for none): a whole number. It needs a
+null distribution of the Gini (0 for none): a whole number, at most
+67108864 (2^26). It needs a
 whole number of units.}
 
 \item{seed}{\code{NULL} (the draws follow \code{\link[=set.seed]{set.seed()}}) or a whole number

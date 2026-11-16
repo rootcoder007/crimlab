@@ -152,7 +152,7 @@ int clab_tpdmc(double pres, double dr, double mr, int k, double *P, double *N, d
 
 int clab_tpdsim(const double *P, int m, int k, int start, int steps, unsigned long long seed,
                 int *path, int *len) {
-  if (m < 2 || k < 1 || k >= m || start < 0 || start >= k || steps < 0) return CLAB_EARG;
+  if (m < 2 || k < 1 || k >= m || start < 0 || start >= k || steps < 0 || steps > kutil::maxcell) return CLAB_EARG;
   kutil::rng r(seed);
   int s = start, n = 1;
   path[0] = s;

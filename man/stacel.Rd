@@ -33,7 +33,8 @@ points may lie outside it.}
 
 \item{r}{The search radius, positive, in the unit of the coordinates.}
 
-\item{top}{The number of busiest circles kept: one whole number from 1.}
+\item{top}{The number of busiest circles kept: one whole number from 1
+(more than the cells of the grid keeps them all).}
 
 \item{minpts}{The fewest points a hot-spot area keeps: a whole number
 from 2.}

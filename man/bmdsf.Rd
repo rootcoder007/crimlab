@@ -9,11 +9,14 @@ bmdsf(D, ndim = 2, nsamp = 1000, burn = 200, sigma = 1, seed = 42)
 \arguments{
 \item{D}{A square matrix of dissimilarities.}
 
-\item{ndim}{The number of dimensions.}
+\item{ndim}{The number of dimensions; \code{ndim} times the points scaled
+must be at most 67108864 (2^26).}
 
-\item{nsamp}{The draws kept.}
+\item{nsamp}{The draws kept; \code{nsamp} times the values kept per draw
+must be at most 67108864 (2^26).}
 
-\item{burn}{The sweeps discarded first.}
+\item{burn}{The sweeps discarded first; \code{burn} plus \code{nsamp} must be at
+most 2147483647.}
 
 \item{sigma}{The starting \eqn{\sigma = \tau^{-1/2}}.}
 

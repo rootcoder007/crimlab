@@ -284,6 +284,7 @@ int clab_okrge(const double *x, const double *y, int n, const double *v, const d
 int clab_bkpts(const double *lo, const double *hi, int nq, double *px, double *py) {
   if (nq < 1) return CLAB_EARG;
   const int k = static_cast<int>(std::nearbyint(std::sqrt(static_cast<double>(nq))));
+  if (static_cast<double>(k) * k > kutil::maxcell) return CLAB_EARG;
   // seq(lo, hi, length.out = k) on each axis, the first axis fastest
   auto seq = [&](double a, double b, int i) {
     if (k == 1) return a;
@@ -300,7 +301,7 @@ int clab_bkpts(const double *lo, const double *hi, int nq, double *px, double *p
 
 int clab_bkrig(const double *x, const double *y, int n, const double *v, const double *bx, const double *by,
                const int *off, int nblk, double nug, double sill, double rg, double *est, double *se) {
-  if (n < 1 || nblk < 1 || !okpts(x, y, n)) return CLAB_EARG;
+  if (n < 1 || nblk < 1 || !okpts(x, y, n) || off[nblk] > kutil::maxcell) return CLAB_EARG;
   if (!kutil::nonneg(nug) || !std::isfinite(sill) || !kutil::pos(rg)) return CLAB_EDOM;
   const double c1 = sill - nug;
   const int k = n + 1;
@@ -313,6 +314,7 @@ int clab_bkrig(const double *x, const double *y, int n, const double *v, const d
     const int q0 = off[b], q1 = off[b + 1], nq = q1 - q0;
     if (nq < 1 || !okpts(bx + q0, by + q0, nq)) return CLAB_EARG;
     for (int i = 0; i < n; ++i) {
+      if (kutil::stop(nq)) return CLAB_EINTR;
       double s = 0;
       for (int q = q0; q < q1; ++q) {
         const double a = x[i] - bx[q], c = y[i] - by[q];
@@ -322,10 +324,11 @@ int clab_bkrig(const double *x, const double *y, int n, const double *v, const d
     }
     R[at(n, b, k)] = 1;
     double s = 0;
-    for (int q = q0; q < q1; ++q)
+    for (int q = q0; q < q1; ++q) {
+      if (kutil::stop(nq)) return CLAB_EINTR;
       for (int r = q0; r < q1; ++r) s += ecov(dxy(bx, by, q, r), nug, c1, rg);
+    }
     Cb[b] = s / (static_cast<double>(nq) * nq);
-    if (kutil::stop(static_cast<double>(nq) * (nq + n))) return CLAB_EINTR;
   }
   vd S(R);
   std::vector<int> piv(static_cast<std::size_t>(k));

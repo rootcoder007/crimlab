@@ -9,7 +9,8 @@ smunf(D, ndim = 2, maxit = 300, tol = 1e-06)
 \arguments{
 \item{D}{A respondent-by-stimulus matrix of dissimilarities.}
 
-\item{ndim}{The number of dimensions.}
+\item{ndim}{The number of dimensions; \code{ndim} times the points scaled
+must be at most 67108864 (2^26).}
 
 \item{maxit}{The most steps.}
 

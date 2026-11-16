@@ -32,7 +32,7 @@ int band(double v, const double *e, int k) {
 // fastest)
 void cells(const std::vector<int> &pi, const std::vector<int> &pj, const std::vector<int> &sb,
            const double *t, const double *dt, int ks, int kt, double *obs) {
-  for (int c = 0; c < ks * kt; ++c) obs[c] = 0;
+  for (std::size_t c = 0; c < static_cast<std::size_t>(ks) * static_cast<std::size_t>(kt); ++c) obs[c] = 0;
   for (std::size_t q = 0; q < pi.size(); ++q) {
     const int b = band(std::fabs(t[pi[q]] - t[pj[q]]), dt, kt);
     if (b >= 0) obs[sb[q] + b * ks] += 1;

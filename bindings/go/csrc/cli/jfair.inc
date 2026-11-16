@@ -70,6 +70,7 @@ bool fairdf(Ctx &c, Val &out) {
   CK(zconf(c, "conf", 0.95, z));
   int B = 0;
   CK(wholed(c, "nboot", 0, 0, B));
+  if (2.0 * B > kutil::maxcell) return c.fail("`nboot` must be at most %.0f.", kutil::maxcell / 2);
   unsigned int s = 0;
   if (B > 0) CK(seed(c, s));
   const int G = g.g;
@@ -412,6 +413,7 @@ bool nordet(Ctx &c, Val &out) {
 bool fairsim(Ctx &c, Val &out) {
   int N = 0;
   CK(wholed(c, "n", 2000, 1, N));
+  if (N > kutil::maxcell) return c.fail("`n` must be at most %.0f.", kutil::maxcell);
   std::vector<std::string> gl = {"A", "B"};
   if (c.has("groups")) {
     if (!alabs(c["groups"], gl) || gl.size() < 2) {

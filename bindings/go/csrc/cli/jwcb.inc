@@ -70,6 +70,9 @@ bool wcbx(Ctx &c, Val &out) {
     ncl = l.g;
     if (ncl < 2) return c.fail("`clus` has one cluster: the inference needs two or more.");
   }
+  if (static_cast<double>(nr) * (ncl + k) > kutil::maxcell) {
+    return c.fail("`reps` times the clusters and outcomes must be at most %.0f.", kutil::maxcell);
+  }
   std::vector<Term> x;
   CK(adjcols(c, c["adj"], zz(n), x, "row of the panel"));
   const int pa = static_cast<int>(x.size());

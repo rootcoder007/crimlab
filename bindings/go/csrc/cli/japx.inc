@@ -852,6 +852,9 @@ inline bool bargs(Ctx &c, int &nb, bool &hs, double &sd) {
 // set.seed(seed).
 inline bool adraw(Ctx &c, int g, int b, bool hs, double sd, std::vector<int> &bm) {
   if (!hs) return c.fail("`seed` is needed outside R: one whole number from 0.");
+  if (static_cast<double>(g) * b > kutil::maxcell) {
+    return c.fail("`nboot` times the clusters must be at most %.0f.", kutil::maxcell);
+  }
   if (sd > 2147483647.0) {
     c.err = "supplied seed is not a valid integer";
     return false;
@@ -1664,7 +1667,10 @@ inline bool anyna(const std::vector<double> &x) {
 // clab_windbin: n x na (nb - 1), column-major.
 inline int wbin(Ctx &c, const std::vector<double> &dir, double width, double start, const std::vector<int> *ac, int na,
                 int base, int edge, std::vector<double> &m, int &nc) {
-  const int nb = static_cast<int>(std::nearbyint(360 / width));
+  const double nbd = std::nearbyint(360 / width);
+  if (nbd > kutil::maxcell) return (c.fail("`width` must divide 360 into at most %.0f sectors.", kutil::maxcell), CLAB_EARG);
+  if (static_cast<double>(na) * (nbd - 1) > 2147483647.0) return (c.fail("the areas times the sectors of `width` must be at most 2147483647 columns."), CLAB_EARG);
+  const int nb = static_cast<int>(nbd);
   nc = na * (nb - 1);
   m.assign(dir.size() * zz(nc), 0.0);
   const int rc = clab_windbin(pd(dir), static_cast<int>(dir.size()), width, start, ac ? ac->data() : nullptr, na,
@@ -2119,6 +2125,7 @@ bool exprun(Ctx &c, Val &out) {
   const double thr = q[0];
   CK(cknumd(c, "cap", 3, q, 1, Inf, false, true));
   const double cap = q[0];
+  if (cap > kutil::maxcell) return c.fail("`cap` must be at most %.0f.", kutil::maxcell);
   CK(cknumd(c, "step", 1, q, -Inf, Inf, true));
   const double step = q[0];
   const Val &tc = *fc(d, vud[2]);

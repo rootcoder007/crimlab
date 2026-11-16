@@ -10,9 +10,11 @@ bamscl(Z, nsamp = 1000, burn = 200, polarity = 1, seed = 42)
 \item{Z}{A respondent-by-stimulus matrix of placements, \code{NA} for
 missing.}
 
-\item{nsamp}{The draws kept.}
+\item{nsamp}{The draws kept; \code{nsamp} times the values kept per draw
+must be at most 67108864 (2^26).}
 
-\item{burn}{The sweeps discarded first.}
+\item{burn}{The sweeps discarded first; \code{burn} plus \code{nsamp} must be at
+most 2147483647.}
 
 \item{polarity}{The column of the stimulus placed on the left.}
 

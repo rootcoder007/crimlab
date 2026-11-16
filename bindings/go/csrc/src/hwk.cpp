@@ -356,7 +356,7 @@ int clab_hwksim(double hor, int kind, int base, double per, const double *th,
                 const double *win, double sig, unsigned int seed, int cap, double *t,
                 double *x, double *y, int *gen, int *n, double *work, int *iwork) {
   if (!kutil::pos(hor) || kind < 0 || kind > 2 || base < 0 || base > 1 ||
-      (base && !kutil::pos(per)) || cap < 1) {
+      (base && !kutil::pos(per)) || cap < 1 || cap > kutil::maxcell) {
     return CLAB_EARG;
   }
   hm m{nullptr, 0, hor, kind, base, per};

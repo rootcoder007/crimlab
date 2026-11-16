@@ -15,7 +15,7 @@ fairsim(
 )
 }
 \arguments{
-\item{n}{The number of records: a whole number from 1.}
+\item{n}{The number of records: a whole number from 1 to 67108864 (2^26).}
 
 \item{groups}{The group labels, at least two, the reference first.}
 

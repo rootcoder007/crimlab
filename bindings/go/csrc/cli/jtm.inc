@@ -449,7 +449,7 @@ bool xcser(Ctx &c, Val &out) {
   int lag = std::max(0, std::min(n - 1, static_cast<int>(std::floor(10 * std::log10(n / 2.0)))));
   if (c.has("lagmax")) CK(whole(c, c["lagmax"], "lagmax", 0, lag));
   if (lag >= n) return c.fail("`lagmax` must be below the number of periods, %d.", n);
-  std::vector<double> r(static_cast<std::size_t>(2 * lag + 1));
+  std::vector<double> r(2 * static_cast<std::size_t>(lag) + 1);
   if (clab_xcser(a.data(), b.data(), n, lag, r.data()) != CLAB_OK) return c.fail("a series is constant: no correlation.");
   const double r0 = r[static_cast<std::size_t>(lag)];
   const double fz = std::atanh(r0), sz = n > 3 ? 1 / std::sqrt(n - 3.0) : NA;
@@ -729,6 +729,7 @@ bool sdbsim(Ctx &c, Val &out) {
   CK(whole(c, c["steps"], "steps", 0, ns));
   CK(pickd(c, "mode", md, 2, 0, mo));
   if (nn > 2000) return c.fail("`n` must be at most 2000.");
+  if (ns > kutil::maxcell) return c.fail("`steps` must be at most %.0f.", kutil::maxcell);
   double par[10] = {0};
   CK(pos1(c, "a0", 1.0 / 30, par[0]));
   CK(num1(c, "omega", 1.0 / 15, 0.0, par[1]));

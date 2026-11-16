@@ -17,7 +17,7 @@ yoypals()
 \code{"sequential"} and \code{"grey"}.}
 
 \item{n}{\code{NULL} (the palette's own colours) or the number of colours
-wanted: one whole number from 1.}
+wanted: one whole number from 1 to 67108864 (2^26).}
 
 \item{...}{For \code{plotopt()}, named options to set (see Details). With
 none, the options in force are returned.}

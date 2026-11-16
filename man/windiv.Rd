@@ -22,7 +22,8 @@ windiv(
 \item{dir}{Wind directions in degrees (numbers; \code{NA} gives a row of
 \code{NA}, and is left out of a group's average).}
 
-\item{width}{The width of a sector in degrees; it must divide 360.}
+\item{width}{The width of a sector in degrees; it must divide 360 into
+at most 67108864 (2^26) sectors.}
 
 \item{start}{Where the first sector begins, in degrees.}
 

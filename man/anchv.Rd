@@ -12,7 +12,8 @@ anchv(y, V, ncat = 5)
 \item{V}{The respondents' ratings of the vignettes (respondents by
 vignettes), \code{NA} for missing.}
 
-\item{ncat}{The number of ordered categories.}
+\item{ncat}{The number of ordered categories; \code{ncat} times the ratings
+must be at most 67108864 (2^26).}
 }
 \value{
 A list of class \code{anchv}: \code{scores} (the corrected ratings),

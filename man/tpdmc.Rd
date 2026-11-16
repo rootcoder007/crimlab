@@ -29,7 +29,7 @@ to 1.}
 its number.}
 
 \item{steps}{The longest path drawn (it stops when absorbed): one whole
-number from 0, 0 for none.}
+number from 0 to 67108864 (2^26), 0 for none.}
 
 \item{seed}{\code{NULL} (the draws follow \code{\link[=set.seed]{set.seed()}}) or a whole number
 from 0.}

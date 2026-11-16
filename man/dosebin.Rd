@@ -29,7 +29,8 @@ dosebin(
 
 \item{var}{The name of the exposure column.}
 
-\item{nq}{The number of quantile bins (when \code{brk} is \code{NULL}).}
+\item{nq}{The number of quantile bins (when \code{brk} is \code{NULL}), at most
+67108864 (2^26).}
 
 \item{brk}{\code{NULL} or increasing breaks (right-closed; the lowest
 included).}

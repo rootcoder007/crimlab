@@ -46,12 +46,32 @@ vd lap(const vd &A, int n) {
   return Q;
 }
 
+// The quantile below when p^s underflows (large counts), where the walk
+// from 0 never moved: it starts 40 standard deviations below the mean,
+// the mass left out far below the rounding of the sum, with the log of
+// the probability from lgamma. NaN when the walk would be too long (a
+// standard deviation past 1e6).
+double qnbl(double target, double s, double p) {
+  const double mu = s * (1 - p) / p, sd = std::sqrt(mu / p), l1p = std::log1p(-p);
+  if (!(sd <= 1e6)) return kutil::nan();
+  double y = std::max(0.0, std::floor(mu - 40 * sd));
+  double lf = std::lgamma(y + s) - std::lgamma(s) - std::lgamma(y + 1) + s * std::log(p) + y * l1p;
+  double cdf = std::exp(lf);
+  while (cdf < target && y <= mu + 80 * sd) {
+    lf += std::log((y + s) / (y + 1)) + l1p;
+    y += 1;
+    cdf += std::exp(lf);
+  }
+  return cdf < target ? kutil::nan() : y;
+}
+
 // The quantile of the negative binomial (size s, probability p) at a, by
 // summing the probabilities up from 0 (the target lowered by 64 ulps, as
 // R's qnbinom() fuzzes it).
 double qnb(double a, double s, double p) {
   const double target = a * (1 - 64 * DBL_EPSILON);
   double f = std::exp(s * std::log(p)), cdf = f, y = 0;
+  if (f == 0) return qnbl(target, s, p);
   while (cdf < target) {
     f *= (y + s) / (y + 1) * (1 - p);
     y += 1;
@@ -299,6 +319,7 @@ int clab_bayout(const double *x, int n, int freq, int b, int w, int acty, double
       for (int k = t - i * freq - w; k <= t - i * freq + w; ++k) add(k);
     if (c == 0) return CLAB_EDOM;
     ub[q] = qnb(1 - alpha, s + 0.5, c / (c + 1));
+    if (std::isnan(ub[q])) return CLAB_EARG;  // counts too large
     alarm[q] = std::isnan(x[t - 1]) ? -1 : (x[t - 1] > ub[q] ? 1 : 0);
   }
   return CLAB_OK;
@@ -822,6 +843,9 @@ int clab_evfilt(const double *y, int n, const double *x, int p, const int *rp, c
         best = f;
       }
     }
+    // no candidate with a finite criterion (values so large the sums
+    // overflow): nothing to add
+    if (bk < 0) break;
     if (crit == 1 && best.aic >= cur.aic) break;
     if (crit == 2 && best.press >= cur.press) break;
     if (crit == 3 && best.r2 - cur.r2 < tol) break;

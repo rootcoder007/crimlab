@@ -25,7 +25,8 @@ infinite values.}
 
 \item{bw}{The bin width in seconds, positive.}
 
-\item{nb}{The number of bins in a period: one whole number from 1.}
+\item{nb}{The number of bins in a period: one whole number from 1 to
+67108864 (2^26).}
 
 \item{origin}{The local clock time at which bin 1 starts, in the same
 units (the default is Sunday 1970-01-04 00:00).}

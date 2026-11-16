@@ -60,7 +60,8 @@ turn.}
 \item{bacon}{\code{TRUE} for the Goodman-Bacon decomposition.}
 
 \item{mtch}{\code{0}, or the number of comparison units matched to each
-treated unit before the fit.}
+treated unit before the fit (more than there are comparison units
+matches them all).}
 
 \item{exact}{\code{NULL} or labels, constant within units: match only within
 them (a region, a district).}

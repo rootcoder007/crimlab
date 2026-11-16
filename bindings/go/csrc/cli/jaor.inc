@@ -25,6 +25,7 @@ bool aorwt(Ctx &c, Val &out) {
   CK(oned(c, "bw", 3600, 0.0, Inf, w));
   int k = 0;
   CK(wholed(c, "nb", 168, 1, k));
+  if (k > kutil::maxcell) return c.fail("`nb` must be at most %.0f.", kutil::maxcell);
   Val d1;
   CK(inst(c, arg(c, "origin", d1, 259200), "origin", org));
   if (org.size() != 1 || std::isnan(org[0])) return c.fail("`origin` must be one instant.");

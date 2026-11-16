@@ -36,7 +36,7 @@ extern "C" {
 int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double *rho,
                 const int *sup, unsigned int seed, double *burg, double *meanb, double *tot,
                 double *work, int *iwork) {
-  if (n < 3 || steps < 0 || mode < 0 || mode > 1) return CLAB_EARG;
+  if (n < 3 || steps < 0 || steps > kutil::maxcell || mode < 0 || mode > 1) return CLAB_EARG;
   const double a0 = par[0], om = par[1], eta = par[2], gam = par[3], th = par[4], dt = par[5],
                dx = par[6], dif = par[7], eps = par[8], z = par[9];
   if (!kutil::pos(a0) || !kutil::nonneg(om) || !(eta >= 0 && eta <= 1) || !kutil::nonneg(gam) ||

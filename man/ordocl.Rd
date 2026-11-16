@@ -10,7 +10,8 @@ ordocl(Y, ndim = 2, maxit = 500)
 \item{Y}{A respondent-by-item matrix of ordinal responses, \code{NA} for
 missing.}
 
-\item{ndim}{The number of dimensions.}
+\item{ndim}{The number of dimensions; \code{ndim} times the points scaled
+must be at most 67108864 (2^26).}
 
 \item{maxit}{The most sweeps.}
 }

@@ -205,6 +205,7 @@ bool tpdmc(Ctx &c, Val &out) {
   if (s0 < 0) return c.fail("`start` must be a transient stage, by name or number from 1 to %d.", k);
   int ns = 0;
   CK(wholed(c, "steps", 0, 0, ns));
+  if (ns > kutil::maxcell) return c.fail("`steps` must be at most %.0f.", kutil::maxcell);
   const std::size_t M = static_cast<std::size_t>(m), K = static_cast<std::size_t>(k);
   std::vector<double> pm(M * M), nm(K * K), bm(K * 2), tv(K);
   CK(kc(c, clab_tpdmc(pr, dr, mr, k, pm.data(), nm.data(), bm.data(), tv.data()),

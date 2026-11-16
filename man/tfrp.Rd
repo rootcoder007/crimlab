@@ -31,7 +31,8 @@ binomial with size \code{(lt + ut) / 2} and probability \code{r}), \code{"nbtrun
 (that law on \code{floor(lt)} to \code{ceiling(ut)}) or \code{"unif"} (uniform on those
 hours).}
 
-\item{ymax}{The largest count reported: a whole number from 0.}
+\item{ymax}{The largest count reported: a whole number from 0, below
+67108864 (2^26).}
 
 \item{nsim}{The Monte Carlo draws of the rates: a whole number from 1.}
 

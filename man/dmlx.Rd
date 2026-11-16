@@ -76,10 +76,11 @@ nuisances, from the same choices.}
 
 \item{alpha}{The mixing parameter of \code{"enet"}, from 0 to 1.}
 
-\item{nlam}{The number of penalties on each elastic net path.}
+\item{nlam}{The number of penalties on each elastic net path, at most
+67108864 (2^26).}
 
 \item{nfin}{The number of inner folds that choose the penalty, at
-least 2.}
+least 2 and at most the rows of \code{x}.}
 
 \item{tol, scr}{The convergence threshold and the screening of the
 elastic net learners, as in \code{\link[=enpath]{enpath()}}.}

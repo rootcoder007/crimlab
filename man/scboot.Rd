@@ -11,7 +11,8 @@ scboot(Z, method = "am", nboot = 200, seed = 42)
 
 \item{method}{\code{"am"}, \code{"blackbox"} or \code{"blackbox_t"}.}
 
-\item{nboot}{The replicates.}
+\item{nboot}{The replicates; \code{nboot} times the positions (rows and
+columns of \code{Z}) must be at most 67108864 (2^26).}
 
 \item{seed}{The seed.}
 }

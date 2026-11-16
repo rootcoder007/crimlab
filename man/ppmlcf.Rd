@@ -52,7 +52,8 @@ column: the unit the bootstrap draws and the naive errors cluster by.}
 \item{ssc}{The small-sample factor of the naive errors, as in
 \code{\link[=ppmlfe]{ppmlfe()}}.}
 
-\item{nboot}{The number of bootstrap draws, at least 2.}
+\item{nboot}{The number of bootstrap draws, at least 2; \code{nboot} times
+the clusters must be at most 67108864 (2^26).}
 
 \item{seed}{\code{NULL} (the generator's current state) or one whole number.}
 

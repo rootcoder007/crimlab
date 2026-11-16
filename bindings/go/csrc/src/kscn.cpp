@@ -183,19 +183,20 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
     }
     if (far) pick.push_back(z);
   }
-  // the null distribution of the largest ratio: times shuffled
-  std::vector<double> mx(nsim);
+  // the null distribution of the largest ratio: times shuffled, each
+  // largest ratio compared with the chosen clusters' as it is drawn, so
+  // that nothing grows with nsim
+  std::vector<double> ge(pick.size(), 0.0);
   kutil::rng g(seed);
   for (int k = 0; k < nsim; ++k) {
     if (kutil::stop(static_cast<double>(n) * nr * nw)) return CLAB_EINTR;
     for (int i = n - 1; i > 0; --i) std::swap(tr[i], tr[g.below(i + 1)]);
-    mx[k] = s.run(tr.data(), false, nullptr);
+    const double mx = s.run(tr.data(), false, nullptr);
+    for (std::size_t q = 0; q < pick.size(); ++q) ge[q] += mx >= pick[q].llr;
   }
   *ncl = static_cast<int>(pick.size());
   for (std::size_t q = 0; q < pick.size(); ++q) {
     const cyl &z = pick[q];
-    double ge = 0;
-    for (int k = 0; k < nsim; ++k) ge += mx[k] >= z.llr;
     double *v = out + 10 * q;
     v[0] = s.ctr[z.ctr];
     v[1] = r[z.rad];
@@ -206,7 +207,7 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
     v[6] = z.ns;
     v[7] = z.nt;
     v[8] = z.llr;
-    v[9] = nsim > 0 ? (1 + ge) / (nsim + 1.0) : kutil::nan();
+    v[9] = nsim > 0 ? (1 + ge[q]) / (nsim + 1.0) : kutil::nan();
   }
   return CLAB_OK;
 }

@@ -20,7 +20,8 @@ package; otherwise by position. No missing or infinite values.}
 
 \item{v}{The values: finite numbers, one per point.}
 
-\item{nbins}{The number of distance bins: one whole number from 1.}
+\item{nbins}{The number of distance bins: one whole number from 1 to
+67108864 (2^26).}
 
 \item{cutoff}{The largest distance used: \code{NULL} for a third of the
 largest distance between two points (the convention of gstat), or one

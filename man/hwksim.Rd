@@ -34,8 +34,8 @@ number.}
 \item{seed}{\code{NULL} to draw the seed from R's generator, or one whole
 number from 0.}
 
-\item{nmax}{The most events simulated: one whole number from 1 (more is
-an error).}
+\item{nmax}{The most events simulated: one whole number from 1 to
+67108864 (2^26; more events than \code{nmax} are an error).}
 }
 \value{
 A data frame in time order: \code{t}, with \code{x} and \code{y} in space, and

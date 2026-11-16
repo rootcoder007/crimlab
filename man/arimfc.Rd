@@ -9,7 +9,7 @@ arimfc(y, h = 12)
 \arguments{
 \item{y}{The counts, in time order, 24 at least.}
 
-\item{h}{The periods to forecast.}
+\item{h}{The periods to forecast, at most 67108864 (2^26).}
 }
 \value{
 A list of class \code{arimfc}: \code{fc} and \code{se} (forecasts and their

@@ -9,7 +9,8 @@ cbootmean(x, B = 1000L, seed = 42L)
 \arguments{
 \item{x}{Numeric (or logical) vector to resample.}
 
-\item{B}{The number of replicates, one whole number from 1.}
+\item{B}{The number of replicates, one whole number from 1 to
+67108864 (2^26).}
 
 \item{seed}{The seed of the core's generator, one whole number from 0,
 below \eqn{2^{53}}.}

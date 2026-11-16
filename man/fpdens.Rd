@@ -9,7 +9,7 @@ fpdens(y, ngrid = 64, nstep = 200)
 \arguments{
 \item{y}{The counts, in time order, three at least.}
 
-\item{ngrid}{The grid points.}
+\item{ngrid}{The grid points, at most 67108864 (2^26).}
 
 \item{nstep}{The steps.}
 }

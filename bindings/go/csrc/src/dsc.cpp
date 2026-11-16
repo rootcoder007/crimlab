@@ -15,6 +15,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -339,7 +340,7 @@ const double eps = 2.220446049250313e-16;
 extern "C" {
 
 int clab_hbin(const double *x, int n, int bins, int *cnt) {
-  if (bins < 1 || n < 0) return CLAB_EARG;
+  if (bins < 1 || bins > kutil::maxcell || n < 0) return CLAB_EARG;
   for (int b = 0; b < bins; ++b) cnt[b] = 0;
   double lo = INFINITY, hi = -INFINITY;
   for (int i = 0; i < n; ++i) {
@@ -621,6 +622,7 @@ int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out,
   int it = 0;
   vector<double> t1(P), t2(P * P), xi(P), ci(P * P);
   for (int k = 1; k <= maxit; ++k) {
+    if (kutil::stop(static_cast<double>(N) * P * P)) return CLAB_EINTR;
     it = k;
     std::fill(t1.begin(), t1.end(), 0.0);
     std::fill(t2.begin(), t2.end(), 0.0);

@@ -165,6 +165,7 @@ bool inlhist(Ctx &c, Val &out) {
   }
   int bins = 10;
   CK(ckposj(c, "bins", 10, bins));
+  if (bins > kutil::maxcell) return c.fail("`bins` must be at most %.0f.", kutil::maxcell);
   out = vstr(spark(x, bins));
   return true;
 }

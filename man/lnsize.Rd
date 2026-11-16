@@ -12,7 +12,7 @@ numbers from 0, 0 for a mock witness who chose no one; one member at
 least must be chosen.}
 
 \item{k}{\code{NULL} for the largest position picked, or the lineup's size:
-one whole number from 2.}
+one whole number from 2 to 67108864 (2^26).}
 
 \item{susp}{The suspect's position: one whole number from 1 to \code{k}.}
 

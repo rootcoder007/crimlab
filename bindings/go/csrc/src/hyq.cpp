@@ -99,7 +99,7 @@ int clab_hypq(const double *lam, const int *pref, int m, int n, double mu, int w
   }
   // workloads and dispatch shares (of all calls)
   for (int u = 0; u < n; ++u) wl[u] = 0;
-  for (int i = 0; i < n * m; ++i) disp[i] = 0;
+  for (std::size_t i = 0; i < static_cast<std::size_t>(n) * static_cast<std::size_t>(m); ++i) disp[i] = 0;
   for (unsigned b = 0; b < full + 1; ++b) {
     for (int u = 0; u < n; ++u) wl[u] += ((b >> u) & 1u) ? pst[b] : 0;
     if (b == full) continue;

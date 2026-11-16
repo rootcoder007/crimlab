@@ -109,7 +109,7 @@ int clab_dastd(const double *x, const double *n, const int *grp, const int *str,
   }
   if (!(ws > 0)) return CLAB_EDOM;
   for (int g = 0; g < ng; ++g) rate[g] = var[g] = wmax[g] = ev[g] = 0;
-  for (int q = 0; q < ng * ns; ++q) seen[q] = 0;
+  for (std::size_t q = 0; q < static_cast<std::size_t>(ng) * static_cast<std::size_t>(ns); ++q) seen[q] = 0;
   for (int i = 0; i < m; ++i) {
     const int g = grp[i], s = str[i];
     if (g < 0 || g >= ng || s < 0 || s >= ns) return CLAB_EARG;

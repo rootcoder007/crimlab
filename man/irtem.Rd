@@ -18,7 +18,8 @@ irtem(
 \arguments{
 \item{votes}{A legislator-by-vote matrix: 1 yea, 0 nay, \code{NA} absent.}
 
-\item{ndim}{The number of dimensions.}
+\item{ndim}{The number of dimensions; \code{ndim} times the points scaled
+must be at most 67108864 (2^26).}
 
 \item{maxit}{The most iterations.}
 

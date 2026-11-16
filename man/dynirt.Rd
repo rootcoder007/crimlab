@@ -29,9 +29,11 @@ dynirt(
 
 \item{period}{The period (term) of each vote, one per column.}
 
-\item{nsamp}{The draws kept.}
+\item{nsamp}{The draws kept; \code{nsamp} times the values kept per draw
+must be at most 67108864 (2^26).}
 
-\item{burn}{The sweeps discarded first.}
+\item{burn}{The sweeps discarded first; \code{burn} plus \code{nsamp} times
+\code{thin} must be at most 2147483647.}
 
 \item{seed}{The seed.}
 

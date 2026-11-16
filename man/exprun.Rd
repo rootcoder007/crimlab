@@ -37,7 +37,8 @@ dates).}
 
 \item{thr}{A day is exposed when \code{var} is above \code{thr}.}
 
-\item{cap}{The day of a run from which one indicator takes all.}
+\item{cap}{The day of a run from which one indicator takes all, at most
+67108864 (2^26).}
 
 \item{step}{The length of a day in the units of \code{day}.}
 

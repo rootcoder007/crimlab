@@ -51,7 +51,7 @@ numeric matrix with the columns of \code{x}.}
 the number of penalties on each elastic net path, as in \code{\link[=dmlx]{dmlx()}}.}
 
 \item{nfin}{The number of inner folds that choose the penalty of the
-elastic net, at least 2.}
+elastic net, at least 2 and at most the rows of \code{x}.}
 
 \item{ntree}{The number of trees of \code{"forest"}: a whole number, at least
 1.}

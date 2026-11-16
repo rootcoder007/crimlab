@@ -33,7 +33,7 @@ binomial family.}
 decreasing order.}
 
 \item{nlam}{When \code{lambda} is \code{NULL}, the number of penalties on the
-path: one whole number, at least 1.}
+path: one whole number from 1 to 67108864 (2^26).}
 
 \item{lmr}{When \code{lambda} is \code{NULL}, the smallest penalty as a share of
 the largest: one number strictly between 0 and 1, or \code{NULL} for 1e-4
