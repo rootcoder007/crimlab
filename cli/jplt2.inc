@@ -216,7 +216,7 @@ bool plotevgrid(Ctx &c, Val &out) {
     if (d == nullptr || d->t != Val::OBJ) d = &p;
     for (const char *k : {"evtm", "est", "lo", "hi"}) {
       const Val *cl = d->t == Val::OBJ ? ax::fc(*d, k) : nullptr;
-      ok = ok && cl != nullptr && ax::numv(*cl);
+      ok = ok && cl != nullptr && isnum(*cl);
     }
     ok = ok && !x.k[i].empty();
     fr.push_back(d);
