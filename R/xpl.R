@@ -21,6 +21,7 @@
 #' The shuffles are drawn in the compiled core from `seed`, the same on
 #' every platform; `perm` returns them, so that every value can be checked.
 #'
+#' @inheritParams cemtch
 #' @param x The rows at which to predict: a numeric matrix, its column
 #'   names those `f` sees, no missing values.
 #' @param f The prediction function: a function of a numeric matrix
@@ -96,7 +97,6 @@ xpimp <- function(x, f, y, nrep = 10, loss = c("se", "ae"), ratio = FALSE,
 }
 
 #' @rdname xpimp
-#' @param ... Not used by `print()`.
 #' @export
 print.xpimp <- function(x, ...) {
   cat("xpimp: permutation importance, ", ncol(x[["rep"]]),
@@ -163,7 +163,6 @@ xppdp <- function(x, f, v, y = NULL, grid = 20, gtype = c("even", "quant"),
 }
 
 #' @rdname xppdp
-#' @param ... Not used by `print()`.
 #' @export
 print.xppdp <- function(x, ...) {
   cat("xppdp: partial dependence on ", x[["term"]], ", averaged over ",
@@ -226,7 +225,6 @@ xpcp <- function(x, f, v, newx = x[1L, , drop = FALSE], y = NULL, grid = 20,
 }
 
 #' @rdname xpcp
-#' @param ... Not used by `print()`.
 #' @export
 print.xpcp <- function(x, ...) {
   r <- apply(x[["prof"]], 1L, range)
@@ -302,7 +300,6 @@ xpale <- function(x, f, v, y = NULL, nbin = 10, lctl = list()) {
 }
 
 #' @rdname xpale
-#' @param ... Not used by `print()`.
 #' @export
 print.xpale <- function(x, ...) {
   cat("xpale: accumulated local effects of ", x[["term"]], " over ",
@@ -382,7 +379,6 @@ xpshap <- function(x, f, newx = x[1L, , drop = FALSE], y = NULL,
 }
 
 #' @rdname xpshap
-#' @param ... Not used by `print()`.
 #' @export
 print.xpshap <- function(x, ...) {
   cat("xpshap: sampling Shapley values, ", x[["nsamp"]],
