@@ -7,6 +7,7 @@
 // filtering, the metapopulation SIR model, Weibull frailty and
 // promotion-time cure models with intrinsic CAR area effects, and the
 // structural bias of graph attention.
+#include <cstdint>
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -300,7 +301,7 @@ double xb(const Sv &s, const double *b, int i) {
 }  // namespace
 
 int clab_bayout(const double *x, int n, int freq, int b, int w, int acty, double alpha, const int *at, int m,
-                double *ub, int *alarm) {
+                double *ub, int *alarm) CLAB_TRY {
   if (n < 1 || freq < 0 || b < 0 || w < 0 || m < 0 || !(alpha > 0 && alpha < 1)) return CLAB_EARG;
   for (int q = 0; q < m; ++q) {
     const int t = at[q];
@@ -323,10 +324,10 @@ int clab_bayout(const double *x, int n, int freq, int b, int w, int acty, double
     alarm[q] = std::isnan(x[t - 1]) ? -1 : (x[t - 1] > ub[q] ? 1 : 0);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_bufexp(const double *rx, const double *ry, int n, const double *sx, const double *sy, int m, double r,
-                const double *w, int ll, double *cnt, double *ws, double *near) {
+                const double *w, int ll, double *cnt, double *ws, double *near) CLAB_TRY {
   if (n < 1 || m < 1 || !kutil::nonneg(r)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     double c = 0, s = 0, mn = HUGE_VAL;
@@ -350,10 +351,10 @@ int clab_bufexp(const double *rx, const double *ry, int n, const double *sx, con
     near[i] = mn;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_kerexp(const double *rx, const double *ry, int n, const double *sx, const double *sy, int m, double h,
-                const double *w, int kern, double *out) {
+                const double *w, int kern, double *out) CLAB_TRY {
   if (n < 1 || m < 1 || kern < 0 || kern > 1) return CLAB_EARG;
   if (!kutil::pos(h)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -368,9 +369,9 @@ int clab_kerexp(const double *rx, const double *ry, int n, const double *sx, con
     out[i] = s / (h * h);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_lerprc(const int *rp, const int *ci, const double *w, int n, double rho, double tau, double *q) {
+int clab_lerprc(const int *rp, const int *ci, const double *w, int n, double rho, double tau, double *q) CLAB_TRY {
   vd A;
   if (n < 1 || !dense(rp, ci, w, n, A)) return CLAB_EARG;
   if (!(rho >= 0 && rho <= 1) || !kutil::pos(tau)) return CLAB_EDOM;
@@ -378,10 +379,10 @@ int clab_lerprc(const int *rp, const int *ci, const double *w, int n, double rho
   for (int j = 0; j < n; ++j)
     for (int i = 0; i < n; ++i) q[at(i, j, n)] = tau * (rho * L[at(i, j, n)] + (1 - rho) * (i == j ? 1.0 : 0.0));
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_bym2(const int *rp, const int *ci, const double *w, int n, double tau, double phi, double tol,
-              double *scale, double *g, double *cov) {
+              double *scale, double *g, double *cov) CLAB_TRY {
   vd A;
   if (n < 2 || !dense(rp, ci, w, n, A)) return CLAB_EARG;
   if (!kutil::pos(tau) || !(phi >= 0 && phi <= 1) || !kutil::pos(tol)) return CLAB_EDOM;
@@ -404,10 +405,10 @@ int clab_bym2(const int *rp, const int *ci, const double *w, int n, double tau, 
   for (int j = 0; j < n; ++j)
     for (int i = 0; i < n; ++i) cov[at(i, j, n)] = ((1 - phi) * (i == j ? 1.0 : 0.0) + phi * g[at(i, j, n)] / s) / tau;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p, int fam, const double *z, int q,
-                double tol, int maxit, double *coef, double *zcoef, double *theta, double *fit, double *ll) {
+                double tol, int maxit, double *coef, double *zcoef, double *theta, double *fit, double *ll) CLAB_TRY {
   if (n < 1 || p < 0 || q < 0 || fam < 0 || fam > 2 || maxit < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!kutil::nonneg(y[i]) || !kutil::pos(e[i])) return CLAB_EDOM;
@@ -473,8 +474,8 @@ int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p,
       lin(Z, n, kz, g.data(), nullptr, ez.data());
       for (int i = 0; i < n; ++i) pr[i] = 1 / (1 + std::exp(-ez[i]));
     };
-    const long lim = static_cast<long>(maxit) * 20;
-    for (long it = 0; it < lim; ++it) {
+    const std::int64_t lim = static_cast<std::int64_t>(maxit) * 20;
+    for (std::int64_t it = 0; it < lim; ++it) {
       if (kutil::stop(static_cast<double>(n) * 100)) return CLAB_EINTR;
       fitted(beta);
       probs(gam);
@@ -541,19 +542,19 @@ int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p,
   std::copy(mu.begin(), mu.end(), fit);
   *ll = L;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_spbias(const int *d, int nr, int nc, const double *b, int nb, double ub, double *out) {
+int clab_spbias(const int *d, int nr, int nc, const double *b, int nb, double ub, double *out) CLAB_TRY {
   if (nr < 1 || nc < 1 || nb < 1) return CLAB_EARG;
   for (std::size_t q = 0; q < static_cast<std::size_t>(nr) * nc; ++q) {
     if (d[q] < -1) return CLAB_EDOM;
     out[q] = d[q] == -1 ? ub : b[std::min(d[q], nb - 1)];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_spsir(const double *i0, int n, const double *pop, const int *rp, const int *ci, const double *w, double beta,
-               double gamma, double kappa, double dt, int steps, double *S, double *I, double *R) {
+               double gamma, double kappa, double dt, int steps, double *S, double *I, double *R) CLAB_TRY {
   if (n < 1 || steps < 0) return CLAB_EARG;
   if (!kutil::nonneg(beta) || !kutil::nonneg(gamma) || !(kappa >= 0 && kappa <= 1) || !kutil::pos(dt)) {
     return CLAB_EDOM;
@@ -625,11 +626,11 @@ int clab_spsir(const double *i0, int n, const double *pop, const int *rp, const 
     put(k);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sfrail(const double *t, const double *d, int n, const double *x, int p, const int *reg, const int *rp,
                 const int *ci, const double *w, int nr, double tau, double tol, double *th, double *se, double *f,
-                int *iters) {
+                int *iters) CLAB_TRY {
   Sv s{t, d, x, reg, n, p, nr, tau, {}, {}};
   if (!svok(s, rp, ci, w)) return CLAB_EDOM;
   const int k = 1 + p + nr;
@@ -668,11 +669,11 @@ int clab_sfrail(const double *t, const double *d, int n, const double *x, int p,
   std::copy(xo.begin(), xo.end(), th);
   th[0] = std::exp(xo[0]);
   return ses(H, k, se) ? CLAB_OK : CLAB_EDOM;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sfcure(const double *t, const double *d, int n, const double *x, int p, const int *reg, const int *rp,
                 const int *ci, const double *w, int nr, double tau, double tol, double *th, double *se, double *f,
-                double *cure, int *iters) {
+                double *cure, int *iters) CLAB_TRY {
   Sv s{t, d, x, reg, n, p, nr, tau, {}, {}};
   if (!svok(s, rp, ci, w)) return CLAB_EDOM;
   const int k = 2 + p + nr;
@@ -717,11 +718,11 @@ int clab_sfcure(const double *t, const double *d, int n, const double *x, int p,
   th[0] = std::exp(xo[0]);
   for (int i = 0; i < n; ++i) cure[i] = std::exp(-std::exp(xb(s, xo.data() + 2, i) + xo[2 + p + reg[i]]));
   return ses(H, k, se) ? CLAB_OK : CLAB_EDOM;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_evfilt(const double *y, int n, const double *x, int p, const int *rp, const int *ci, const double *w,
                 int crit, int cand, double tol, int maxv, int *sel, int *nsel, double *coef, double *st,
-                double *res, double *mi) {
+                double *res, double *mi) CLAB_TRY {
   if (n < 3 || p < 0 || crit < 0 || crit > 3 || cand < 0 || cand > 2) return CLAB_EARG;
   vd A;
   if (!dense(rp, ci, w, n, A)) return CLAB_EARG;
@@ -861,4 +862,4 @@ int clab_evfilt(const double *y, int n, const double *x, int p, const int *rp, c
   st[2] = cur.r2;
   st[3] = cur.r2 - base.r2;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

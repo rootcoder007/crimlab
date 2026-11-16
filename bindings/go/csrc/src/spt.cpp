@@ -47,7 +47,7 @@ extern "C" {
 
 int clab_sptst(const double *a, const double *b, int n, int nboot,
                unsigned int seed, double alpha, double scale, double *out,
-               double *glob, double *work, int *iwork) {
+               double *glob, double *work, int *iwork) CLAB_TRY {
   if (n < 1 || nboot < 1) return CLAB_EARG;
   if (!(alpha > 0.0 && alpha < 1.0) || !kutil::pos(scale)) return CLAB_EDOM;
   // units with a missing count (NaN) are left out entirely and counted;
@@ -140,6 +140,6 @@ int clab_sptst(const double *a, const double *b, int n, int nboot,
                           : 1.0 - kutil::btail(nsig - 1.0, nelig, alpha, false));
   glob[7] = nboot;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

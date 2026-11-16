@@ -63,9 +63,8 @@ set: each is absorbed (see the alternating projections above).}
 
 \item{lag}{\code{NULL} (the rule above) or the Newey-West lag in days.}
 
-\item{nboot, seed}{The bootstrap draws (at least 2; \code{nboot} times the
-clusters at most 67108864 (2^26)) and \code{NULL} or a whole number for R's
-generator, for \code{se = "boot"}.}
+\item{nboot, seed}{The bootstrap draws (at least 2) and \code{NULL} or a whole
+number for R's generator, for \code{se = "boot"}.}
 
 \item{sep}{\code{"fe"}, \code{"sst"} or \code{"none"}: see Separation.}
 

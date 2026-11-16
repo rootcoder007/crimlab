@@ -147,7 +147,11 @@ std::vector<Row> rows(const std::vector<Snap> &s, const Rated &rt) {
           continue;
         }
         double d = q->ctr - p->ctr;
-        if (d < 0 && q->wrap > 0) d += q->wrap;
+        // a fall is a wrap when the energy it implies is at most half the
+        // range, or no more than 1 kW (the scale of the note on long
+        // intervals below) could use in the interval; a larger fall is a
+        // reset of the counter
+        if (d < 0 && q->wrap > 0 && d + q->wrap <= std::fmax(q->wrap / 2, 1000 * ti)) d += q->wrap;
         if (d < 0) {
           // a reset: the power readings at the two ends, when there are any
           if (p->w >= 0 && q->w >= 0) {

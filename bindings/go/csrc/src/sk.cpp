@@ -46,7 +46,7 @@ double norm(kutil::rng &r) {
 extern "C" {
 
 int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
-             unsigned int seed, int *grp, int *ng, int *iwork, double *work) {
+             unsigned int seed, int *grp, int *ng, int *iwork, double *work) CLAB_TRY {
   if (n < 1 || nsim < 1) return CLAB_EARG;
   if (!kutil::pos(s2) || !(alpha > 0.0 && alpha < 1.0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -103,6 +103,6 @@ int clab_skp(const double *x, int n, double s2, double alpha, int nsim,
   }
   *ng = g;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

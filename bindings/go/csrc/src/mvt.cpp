@@ -195,7 +195,7 @@ extern "C" {
 
 int clab_mvtll(const double *y, int n, int nt, int r, const double *x, int p,
                int ng, const double *beta, const double *sig,
-               const double *prob, double *w, double *ll, double *work) {
+               const double *prob, double *w, double *ll, double *work) CLAB_TRY {
   const mdat D{y, x, n, nt, r, p};
   const int rc = check(D, ng);
   if (rc != CLAB_OK) return rc;
@@ -209,11 +209,11 @@ int clab_mvtll(const double *y, int n, int nt, int r, const double *x, int p,
   if (std::isnan(v)) return CLAB_EDOM;
   *ll = v;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_mvtem(const double *y, int n, int nt, int r, const double *x, int p,
                int ng, double *beta, double *sig, double *prob, double *w,
-               double *ll, int maxit, double tol, int *iter, double *work) {
+               double *ll, int maxit, double tol, int *iter, double *work) CLAB_TRY {
   if (maxit < 1 || !(tol > 0.0)) return CLAB_EARG;
   int rc = clab_mvtll(y, n, nt, r, x, p, ng, beta, sig, prob, w, ll, work);
   if (rc != CLAB_OK) return rc;
@@ -243,6 +243,6 @@ int clab_mvtem(const double *y, int n, int nt, int r, const double *x, int p,
   *ll = cur;
   *iter = it;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

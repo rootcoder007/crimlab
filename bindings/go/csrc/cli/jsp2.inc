@@ -44,8 +44,8 @@ bool wread(Ctx &c, int n, Wcsr &o) {
   if (val1(nn) != n) return c.fail("`w` is for %g units, not %d.", val1(nn), n);
   Dv i, j, v;
   CK(num(c, col(w, "i"), "w$i", i, -1, 1.0));
-  CK(num(c, col(w, "j"), "w$j", j, static_cast<long>(i.n()), 1.0));
-  CK(num(c, col(w, "w"), "w$w", v, static_cast<long>(i.n()), 0.0));
+  CK(num(c, col(w, "j"), "w$j", j, static_cast<std::int64_t>(i.n()), 1.0));
+  CK(num(c, col(w, "w"), "w$w", v, static_cast<std::int64_t>(i.n()), 0.0));
   std::vector<int> ei, ej;
   for (std::size_t q = 0; q < i.n(); ++q) {
     const double a = i[q], b = j[q];
@@ -246,7 +246,7 @@ bool locgi(Ctx &c, Val &out) {
   CK(flagd(c, "star", true, st));
   std::vector<double> o(xv.n());
   CK(kc(c, clab_locgi(xv.p(), static_cast<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), st ? 1 : 0, o.data()),
-        "the kernel refused the input."));
+        "`x` is constant: Gi is undefined."));
   out = vauto(o);
   return true;
 }
@@ -325,9 +325,6 @@ bool crwalk(Ctx &c, Val &out) {
   int hh = 0, ns = 0;
   CK(wholed(c, "h", 1, 1, hh));
   CK(wholed(c, "nsim", 999, 1, ns));
-  if (static_cast<double>(hh) * ns > kutil::maxcell) {
-    return c.fail("`h` times `nsim` must be at most %.0f.", kutil::maxcell);
-  }
   unsigned int sd = 0;
   CK(seed(c, sd));
   std::vector<double> st(static_cast<std::size_t>(n) - 1), tu(static_cast<std::size_t>(n) - 2);
@@ -338,7 +335,18 @@ bool crwalk(Ctx &c, Val &out) {
   std::vector<double> obs(H), ex(H), kk(H), sx(H), sy(H), qx(H), qy(H);
   CK(kc(c, clab_crwmsd(p.x.data(), p.y.data(), n, f[0], f[1], f[2], hh, obs.data(), ex.data()),
         "the kernel refused the input."));
-  std::vector<double> px(H * S), py(H * S);
+  std::vector<double> px, py;
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  bool ok = true;
+  try {
+    px.resize(H * S), py.resize(H * S);
+  } catch (const std::bad_alloc &) {
+    ok = false;
+  }
+  if (!ok) return c.fail("not enough memory for `h` times `nsim` values.");
+#else
+  px.resize(H * S), py.resize(H * S);
+#endif
   CK(kc(c, clab_crwsim(st.data(), n - 1, tu.data(), n - 2, p.x[static_cast<std::size_t>(n) - 1],
                        p.y[static_cast<std::size_t>(n) - 1], f[4], hh, ns, sd, px.data(), py.data()),
         "the kernel refused the input."));

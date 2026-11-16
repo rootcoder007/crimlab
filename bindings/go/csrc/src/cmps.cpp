@@ -56,12 +56,19 @@ void ccor(const std::vector<double> &x, const std::vector<double> &y, int mo, st
         sx2 += e * e;
       }
     }
-    double tx = sx, tx2 = sx2, ty = sy, ty2 = sy2, sxy = 0;
+    double tx = sx, tx2 = sx2, ty = sy, ty2 = sy2, sxy = 0, a0 = 0, b0 = 0;
     int k = 0;
+    bool va = false, vb = false;  // the pairs' values vary
     for (int i = 0; i < ny; ++i) {
       const double a = x[static_cast<std::size_t>(i + j)], b = y[static_cast<std::size_t>(i)];
       if (!std::isnan(a)) {
         if (!std::isnan(b)) {
+          if (k == 0) {
+            a0 = a;
+            b0 = b;
+          }
+          va = va || a != a0;
+          vb = vb || b != b0;
           ++k;
           sxy += a * b;
         } else {
@@ -73,7 +80,9 @@ void ccor(const std::vector<double> &x, const std::vector<double> &y, int mo, st
         ty2 -= b * b;
       }
     }
-    if (k < mo) continue;
+    // a constant side has no correlation (cor() gives NA): the running
+    // sums would leave rounding error in place of the 0 that says so
+    if (k < mo || !va || !vb) continue;
     const double den = std::sqrt((k * tx2 - tx * tx) * (k * ty2 - ty * ty));
     if (den != 0) c[static_cast<std::size_t>(j)] = (sxy * k - tx * ty) / den;
   }
@@ -112,7 +121,7 @@ void peaks(const std::vector<double> &c, const std::vector<double> &pos, int npk
 extern "C" {
 
 int clab_cmpsc(const double *a, int na, const double *b, int nb, int len, const int *npk, int nlev,
-               int tx, int full, int *off, int *nseg, int *score, double *pos, double *ccp, int *cmps) {
+               int tx, int full, int *off, int *nseg, int *score, double *pos, double *ccp, int *cmps) CLAB_TRY {
   if (na < 1 || nb < 1 || len < 2 || nlev < 1 || nlev > 8 || tx < 0) return CLAB_EARG;
   for (int l = 0; l < nlev; ++l) {
     if (npk[l] < 1) return CLAB_EARG;
@@ -235,6 +244,6 @@ int clab_cmpsc(const double *a, int na, const double *b, int nb, int len, const 
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

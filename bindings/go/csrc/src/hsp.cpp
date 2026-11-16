@@ -87,7 +87,7 @@ void summ(const double *x, const double *y, const int *idx, int m, int k,
 extern "C" {
 
 int clab_fzmode(const double *x, const double *y, int n, double r, int *iwork,
-                int *cnt) {
+                int *cnt) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!kutil::nonneg(r) || !finite2(x, y, n)) return CLAB_EDOM;
   double b[4];
@@ -103,11 +103,11 @@ int clab_fzmode(const double *x, const double *y, int n, double r, int *iwork,
     cnt[i] = c;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_kmpart(const double *x, const double *y, int n, int k, int init,
                 const double *par, unsigned int seed, int upd, int maxit,
-                double *cen, int *cl, int *iwork, double *work, double *out) {
+                double *cen, int *cl, int *iwork, double *work, double *out) CLAB_TRY {
   if (n < 1 || k < 1 || k > n || init < 0 || init > 2 || upd < 0 ||
       upd > 1 || maxit < 0)
     return CLAB_EARG;
@@ -281,12 +281,12 @@ int clab_kmpart(const double *x, const double *y, int n, int k, int init,
   out[2] = it;
   out[3] = conv;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_nnhclu(const double *x, const double *y, int n, double area,
                 double fixd, double z, int minpts, int minhi, int maxord,
                 int k, double c, int *iwork, double *work, int *cl, int *ncl,
-                double *cs) {
+                double *cs) CLAB_TRY {
   if (n < 2 || minpts < 2 || minhi < 2 || maxord < 1 || k < 0 || k > 2)
     return CLAB_EARG;
   if (!finite2(x, y, n) || !kutil::nonneg(fixd) || !std::isfinite(z) ||
@@ -392,11 +392,11 @@ int clab_nnhclu(const double *x, const double *y, int n, double area,
   }
   *ncl = nc;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_stacel(const double *x, const double *y, int n, const double *win,
                 int nx, int ny, double r, int top, int minpts, int k, double c,
-                int *iwork, double *work, int *cl, int *ncl, double *cs) {
+                int *iwork, double *work, int *cl, int *ncl, double *cs) CLAB_TRY {
   if (n < 1 || nx < 2 || ny < 2 || nx > 10000 || ny > 10000 || top < 1 ||
       minpts < 2 || k < 0 || k > 2)
     return CLAB_EARG;
@@ -483,6 +483,6 @@ int clab_stacel(const double *x, const double *y, int n, const double *win,
   }
   *ncl = nr;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

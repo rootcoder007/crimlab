@@ -437,15 +437,14 @@ bool xfrvrf(Ctx &c, Val &out) {
       c.err.clear();
       return c.fail("`codebook` must be a named vector (code = label), or NULL.");
     }
-    if (!recode(c, L, m, {})) {
-      c.err = "declbld: " + c.err.substr(c.err.find(": ") + 2);
-      return false;
-    }
+    // a refusal of the decoding or of the counts names xfrvrf, as R's
+    // .clas() names it
+    if (!recode(c, L, m, {})) return false;
   }
   bool f = false;
   Val m;
   if (!mrg(c, L, m, f)) {
-    if (!f && c.err.rfind("xfrvrf: ", 0) == 0) c.err = "vrfmrg: " + c.err.substr(8);
+    if (f) c.err = "xfrvrf: " + c.err.substr(c.err.find(": ") + 2);
     return false;
   }
   const bool ok = col(m, "ok").b;

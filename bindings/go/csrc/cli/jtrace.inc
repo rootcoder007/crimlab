@@ -81,7 +81,7 @@ bool lwss(Ctx &c, Val &out) {
   Dv xv, yv;
   CK(num(c, a[0], "x", xv));
   const std::size_t n = xv.n();
-  CK(num(c, a[1], "y", yv, static_cast<long>(n)));
+  CK(num(c, a[1], "y", yv, static_cast<std::int64_t>(n)));
   double sp = 0.0;
   CK(oned(c, "f", 2.0 / 3.0, 0.0, Inf, sp));
   int it = 0;

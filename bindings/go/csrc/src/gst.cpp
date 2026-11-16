@@ -36,7 +36,7 @@ extern "C" {
 
 int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
               int nsim, unsigned int seed, double *out, double *work,
-              int *iwork) {
+              int *iwork) CLAB_TRY {
   if (nr < 1 || nc < 1 || nsim < 0 || nr > 46340 || nc > 46340) return CLAB_EARG;
   if (!(rad >= 0.0) || rad > 1000.0) return CLAB_EDOM;
   const int nn = nr * nc;
@@ -141,6 +141,6 @@ int clab_gstr(const double *cnt, const double *ex, int nr, int nc, double rad,
   bhq(pz, nn, qz, idx);
   bhq(pe, nn, qe, idx);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

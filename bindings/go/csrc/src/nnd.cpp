@@ -4,6 +4,7 @@
 // Evans with Donnelly's edge correction, k-order nearest-neighbour
 // distances against their expectations under complete spatial randomness
 // (Thompson), and a Monte Carlo test in the study rectangle.
+#include <cstdint>
 #include <cmath>
 #include <limits>
 
@@ -42,7 +43,7 @@ void meannn(const double *x, const double *y, int n, const double *win,
     cgeo::knn(g, x, y, i, kmax, best);
     for (int k = 0; k < kmax; ++k) {
       const double d = std::sqrt(best[k]);
-      if (dist) dist[static_cast<long>(i) * kmax + k] = d;
+      if (dist) dist[static_cast<std::int64_t>(i) * kmax + k] = d;
       kutil::ksum s{md[2 * k], md[2 * k + 1]};
       s.add(d);
       md[2 * k] = s.s;
@@ -58,7 +59,7 @@ extern "C" {
 
 int clab_nnidx(const double *x, const double *y, int n, const double *win,
                int kmax, int nsim, unsigned int seed, double *dist,
-               int *iwork, double *work, double *out) {
+               int *iwork, double *work, double *out) CLAB_TRY {
   if (n < 2 || kmax < 1 || kmax > n - 1 || nsim < 0) return CLAB_EARG;
   if (!inwin(x, y, n, win)) return CLAB_EDOM;
   const double w = win[1] - win[0], h = win[3] - win[2];
@@ -114,6 +115,6 @@ int clab_nnidx(const double *x, const double *y, int n, const double *win,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

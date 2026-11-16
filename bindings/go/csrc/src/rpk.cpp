@@ -79,9 +79,11 @@ void kfun(const double *x, const double *y, int n, const double *w,
   const double cell = rmax > 0.0 ? rmax : std::sqrt(A / n);
   cgeo::grid g;
   g.build(x, y, n, w[0], w[1], w[2], w[3], cell, iwork);
-  // how many cells a search must reach on each side
-  const int sx = static_cast<int>(std::ceil(rmax / g.wx));
-  const int sy = static_cast<int>(std::ceil(rmax / g.wy));
+  // how many cells a search must reach on each side: no more than the
+  // grid has (a radius past the window reaches every cell), counted in
+  // double since rmax / wx need not fit an int
+  const int sx = static_cast<int>(std::fmin(std::ceil(rmax / g.wx), g.gx));
+  const int sy = static_cast<int>(std::fmin(std::ceil(rmax / g.wy), g.gy));
   const double r2 = rmax * rmax;
   // centres in cell order, for memory locality
   for (int tt = 0; tt < n; ++tt) {

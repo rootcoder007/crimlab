@@ -10,7 +10,41 @@
 #include <cstdint>
 #include <limits>
 
+// The C boundary. The body of every clab_* function stands between
+// CLAB_TRY and CLAB_CATCH(v) (CLAB_CATCHV for a void one): a failed
+// allocation inside it (std::bad_alloc, or any other exception) returns v
+// (CLAB_ENOMEM, NaN or -1) and is recorded for clab_jrun() (kutil::oomset),
+// so that no exception crosses into C, Python, Go, Rust or Java. In the R
+// package (CLAB_R) the entry points of glue.cpp catch it instead, with the
+// function's name; without exceptions (the WebAssembly build) there is
+// nothing to catch and the program's new-handler answers (cli/jrun.cpp).
+#if (defined(__cpp_exceptions) || defined(_CPPUNWIND)) && !defined(CLAB_R)
+#define CLAB_TRY try
+#define CLAB_CATCH(v) \
+  catch (...) {       \
+    kutil::oomset();  \
+    return v;         \
+  }
+#define CLAB_CATCHV  \
+  catch (...) {      \
+    kutil::oomset(); \
+  }
+#else
+#define CLAB_TRY
+#define CLAB_CATCH(v)
+#define CLAB_CATCHV
+#endif
+
 namespace kutil {
+
+// An allocation failed in a clab_* function of this thread (oomset), and
+// whether one has since the last oomtake(), which clears it.
+void oomset() noexcept;
+bool oomtake() noexcept;
+
+// Counts are int after their checks against INT_MAX; the sizes made from
+// them are 64-bit.
+static_assert(sizeof(int) == 4 && sizeof(std::int64_t) == 8, "int is 32 bits, std::int64_t 64");
 
 // The most cells (doubles or ints) that one object sized by a count of the
 // caller may hold: 2^26, 512 MB of doubles, the bound of pedlr()'s tables.
@@ -20,6 +54,15 @@ constexpr double maxcell = 67108864.0;
 
 inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
+// Every value of v[0..n) the same: a variance computed from such data is
+// rounding error (the mean of n copies of 0.1 is not 0.1), so a test of
+// the sum of squares against 0 does not see it.
+inline bool cnst(const double *v, long n) noexcept {
+  for (long i = 1; i < n; ++i) {
+    if (v[i] != v[0]) return false;
+  }
+  return true;
+}
 // One observation of the negative binomial log likelihood (mean mu,
 // size th). For a whole count the ratio of gamma functions is written as
 // a sum of log1p terms: lgamma(y + th) - lgamma(th) loses every digit of
@@ -35,6 +78,22 @@ inline double nbll(double y, double mu, double th) noexcept {
     a = std::lgamma(y + th) - std::lgamma(th) - y * std::log(th + mu);
   }
   return a - std::lgamma(y + 1) - th * std::log1p(mu / th) + (y > 0 ? y * std::log(mu) : 0.0);
+}
+
+// The squared distance between the farthest corners of the box around
+// the n points is finite: else the distances overflow and an optimiser fed
+// them starts from infinite parameters.
+inline bool span(const double *x, const double *y, int n) noexcept {
+  if (n < 1) return true;
+  double x0 = x[0], x1 = x[0], y0 = y[0], y1 = y[0];
+  for (int i = 1; i < n; ++i) {
+    x0 = std::fmin(x0, x[i]);
+    x1 = std::fmax(x1, x[i]);
+    y0 = std::fmin(y0, y[i]);
+    y1 = std::fmax(y1, y[i]);
+  }
+  const double dx = x1 - x0, dy = y1 - y0;
+  return std::isfinite(dx * dx + dy * dy);
 }
 
 inline double nan() noexcept {

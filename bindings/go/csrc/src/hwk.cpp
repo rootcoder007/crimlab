@@ -52,7 +52,10 @@ double nuint(const hm &m, const double *a, double lo, double hi, double *da) {
     da[0] = v;
     return v;
   }
-  int k = 2 * static_cast<int>(std::ceil((hi - lo) / (m.per / 16)));
+  // counted in double: a period far below the span asks for more steps
+  // than an int holds; at most kutil::maxcell are taken
+  const double kd = 2 * std::ceil((hi - lo) / (m.per / 16));
+  int k = kd < kutil::maxcell ? static_cast<int>(kd) : static_cast<int>(kutil::maxcell);
   if (k < 2) k = 2;
   const double h = (hi - lo) / k;
   double s = 0;
@@ -248,7 +251,7 @@ void bm(kutil::rng &r, double *z0, double *z1) {
 extern "C" {
 
 int clab_hwkll(const double *t, int n, double hor, int kind, int base, double per,
-               const double *th, double *ll, double *grad) {
+               const double *th, double *ll, double *grad) CLAB_TRY {
   if (!okmodel(t, n, hor, kind, base, per)) return CLAB_EARG;
   hm m{t, n, hor, kind, base, per};
   if (!okpar(m, th)) return CLAB_EDOM;
@@ -258,10 +261,10 @@ int clab_hwkll(const double *t, int n, double hor, int kind, int base, double pe
     for (int j = 0; j < nbase(base) + 1 + nkern(kind); ++j) grad[j] = -grad[j];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hwkfit(const double *t, int n, double hor, int kind, int base, double per,
-                const double *start, int maxit, double *th, double *cov, double *st) {
+                const double *start, int maxit, double *th, double *cov, double *st) CLAB_TRY {
   if (!okmodel(t, n, hor, kind, base, per) || n < 2 || maxit < 1) return CLAB_EARG;
   hm m{t, n, hor, kind, base, per};
   const int nb = nbase(base), np = nb + 1 + nkern(kind);
@@ -309,10 +312,10 @@ int clab_hwkfit(const double *t, int n, double hor, int kind, int base, double p
   st[1] = best.iter;
   st[2] = best.conv;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hwkres(const double *t, int n, double hor, int kind, int base, double per,
-                const double *th, double *tau, double *ks, double *work) {
+                const double *th, double *tau, double *ks, double *work) CLAB_TRY {
   if (!okmodel(t, n, hor, kind, base, per)) return CLAB_EARG;
   hm m{t, n, hor, kind, base, per};
   if (!okpar(m, th)) return CLAB_EDOM;
@@ -350,11 +353,11 @@ int clab_hwkres(const double *t, int n, double hor, int kind, int base, double p
   ks[0] = qn::ksd(work, n);
   ks[1] = qn::kspv(ks[0], n, !tie, work);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hwksim(double hor, int kind, int base, double per, const double *th,
                 const double *win, double sig, unsigned int seed, int cap, double *t,
-                double *x, double *y, int *gen, int *n, double *work, int *iwork) {
+                double *x, double *y, int *gen, int *n, double *work, int *iwork) CLAB_TRY {
   if (!kutil::pos(hor) || kind < 0 || kind > 2 || base < 0 || base > 1 ||
       (base && !kutil::pos(per)) || cap < 1 || cap > kutil::maxcell) {
     return CLAB_EARG;
@@ -439,6 +442,6 @@ int clab_hwksim(double hor, int kind, int base, double per, const double *th,
   }
   *n = k;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

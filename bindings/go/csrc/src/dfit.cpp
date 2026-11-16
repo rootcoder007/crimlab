@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -166,6 +167,10 @@ bool nmmin(int n, vector<double> &b, const Fn &fn, double intol, int maxit) {
   vector<vector<double>> P(static_cast<size_t>(n) + 1, vector<double>(static_cast<size_t>(n) + 2));
   double f = fn(b.data());
   if (!std::isfinite(f)) return false;
+  // an infinite start has no simplex: b + step is b however large the step
+  for (int i = 0; i < n; ++i) {
+    if (!std::isfinite(b[static_cast<size_t>(i)])) return false;
+  }
   int funcount = 1;
   const double convtol = intol * (std::fabs(f) + intol);
   const int n1 = n + 1, C = n + 2;
@@ -323,7 +328,9 @@ bool vmmin(int n, vector<double> &b, const Fn &fn, double reltol, int maxit) {
       t[static_cast<size_t>(i)] = s;
       gradproj += s * g[static_cast<size_t>(i)];
     }
-    if (gradproj < 0.0) {
+    // an infinite projection (an overflowed metric) would halve the step
+    // for ever without leaving b infinite: start the metric again instead
+    if (gradproj < 0.0 && std::isfinite(gradproj)) {
       double steplength = 1.0;
       bool accpoint = false;
       do {
@@ -491,12 +498,12 @@ double posmean(const vector<double> &x) {
 
 extern "C" {
 
-int clab_dfnp(int f) {
+int clab_dfnp(int f) CLAB_TRY {
   static const int np[12] = {2, 2, 1, 2, 2, 3, 2, 2, 1, 2, 2, 3};
   return f >= 0 && f < 12 ? np[f] : 0;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dfit(int f, const double *x0, int n, double *par) {
+int clab_dfit(int f, const double *x0, int n, double *par) CLAB_TRY {
   if (f < 0 || f > 11 || n < 1) return CLAB_EARG;
   const vector<double> x(x0, x0 + n);
   const int k = clab_dfnp(f);
@@ -617,19 +624,30 @@ int clab_dfit(int f, const double *x0, int n, double *par) {
   }
   if (!std::isfinite(-nllsum(f, x, par))) return CLAB_EDOM;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-double clab_dfll(int f, const double *x, int n, const double *par) {
+double clab_dfll(int f, const double *x, int n, const double *par) CLAB_TRY {
   return -nllsum(f, vector<double>(x, x + n), par);
-}
+} CLAB_CATCH(kutil::nan())
 
-void clab_dfgof(int f, const double *xs, int n, const double *par, double *out) {
+void clab_dfgof(int f, const double *xs, int n, const double *par, double *out) CLAB_TRY {
   if (f >= 8) {
-    double mx = 0, ks = 0;
-    for (int i = 0; i < n; ++i) mx = std::max(mx, xs[i]);
-    for (double k = 0; k <= mx; ++k) {
-      double c = 0;
-      for (int i = 0; i < n; ++i) c += xs[i] <= k;
+    // the largest |Fn(k) - F(k)| over the whole numbers k from 0 to the
+    // largest value: Fn is constant between the jumps at ceil(x) and F
+    // rises, so it is reached at a jump or one before it; counting only
+    // those keeps the work to the data, not to the size of their values
+    vector<double> s(xs, xs + n), ks0;
+    std::sort(s.begin(), s.end());
+    const double mx = std::max(0.0, s.back());
+    ks0.push_back(0);
+    for (double v : s) {
+      ks0.push_back(std::ceil(v));
+      ks0.push_back(std::ceil(v) - 1);
+    }
+    double ks = 0;
+    for (double k : ks0) {
+      if (!(k >= 0 && k <= mx)) continue;
+      const double c = static_cast<double>(std::upper_bound(s.begin(), s.end(), k) - s.begin());
       ks = std::max(ks, std::fabs(c / n - pf1(f, k, par)));
     }
     out[0] = ks;
@@ -647,6 +665,6 @@ void clab_dfgof(int f, const double *xs, int n, const double *par, double *out) 
   }
   out[0] = ks;
   out[1] = -n - rmean(t);
-}
+} CLAB_CATCHV
 
 }  // extern "C"

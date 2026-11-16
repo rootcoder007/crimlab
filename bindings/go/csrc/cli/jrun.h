@@ -21,7 +21,11 @@ extern "C" {
 /* Runs function fn (an R function name, such as "orrisk") on in, a JSON
  * object of named arguments ("{}" or NULL for none). Writes to out, of
  * cap bytes, a NUL-terminated JSON result (CLAB_OK) or a one-line message
- * "fn: what is wrong" (CLAB_EARG); *need is the size either needs. A
+ * "fn: what is wrong" (CLAB_EARG; CLAB_ENOMEM, "fn: not enough memory for
+ * this size.", when an allocation failed); *need is the size either
+ * needs. No exception and no abort leaves it where the build has
+ * exceptions; without them (WebAssembly) a failed allocation stops the
+ * module and clab_oomed() says so. A
  * number the JSON cannot hold is written as the string "NaN", "Inf" or
  * "-Inf"; a missing value (R's NA) as null. Thread-safe. */
 int clab_jrun(const char *fn, const char *in, char *out, int cap, int *need);
@@ -29,6 +33,10 @@ int clab_jrun(const char *fn, const char *in, char *out, int cap, int *need);
 /* The functions and their arguments, as a JSON object
  * {"orrisk": ["or", "rate", "share"], ...}. Static storage. */
 const char *clab_jfns(void);
+
+/* 1 when the module stopped because an allocation failed (a build without
+ * exceptions, where nothing can be unwound), 0 otherwise. */
+int clab_oomed(void);
 
 #ifdef __cplusplus
 }

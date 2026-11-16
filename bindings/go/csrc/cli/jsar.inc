@@ -441,6 +441,13 @@ bool opteffort(Ctx &c, Val &out) {
   CK(cknum(c, c["effort"], "effort", e, true, 0));
   CK(cknumd(c, "tol", 1e-14, tol, -HUGE_VAL, HUGE_VAL, true));
   const std::size_t n = poc.n();
+  for (std::size_t i = 0; i < n; ++i) {
+    const double r = poc[i] * W[0] / ar[i];
+    if (!std::isfinite(r) || !std::isfinite(ar[i] / W[0]) || (poc[i] > 0 && r == 0)) {
+      return ckstop(c, "`W` = %s is out of range for these cells: poc * W / area and area / W must be finite, and positive where `poc` is",
+                    fmt7(W[0]).c_str());
+    }
+  }
   std::vector<double> z(n), cv(n), pd(n);
   double pos = 0, lam = 0;
   CK(kchk(c, clab_saropt(poc.p(), ar.p(), static_cast<int>(n), W[0], e[0], tol[0], z.data(), cv.data(), pd.data(),

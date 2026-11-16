@@ -84,7 +84,7 @@ extern "C" {
 
 int clab_oaxbd(const double *y, const double *x, const int *grp, int n, int p,
                int ref, double *xm, double *b, double *bse, double *dec,
-               double *var, double *work) {
+               double *var, double *work) CLAB_TRY {
   if (n < 1 || p < 0 || ref < 0 || ref > 1) return CLAB_EARG;
   const int q = p + 1;
   int nn[2] = {0, 0};
@@ -201,6 +201,6 @@ int clab_oaxbd(const double *y, const double *x, const int *grp, int n, int p,
     var[4 * q + j] = dl[j];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

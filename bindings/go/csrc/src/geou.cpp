@@ -23,7 +23,7 @@ bool onseg(double px, double py, double ax, double ay, double bx, double by) {
 }  // namespace
 
 int clab_pinpl(const double *px, const double *py, int n, const double *vx, const double *vy,
-               const int *pid, const int *rid, int nv, int np, int *reg, int *nreg) {
+               const int *pid, const int *rid, int nv, int np, int *reg, int *nreg) CLAB_TRY {
   if (n < 1 || nv < 3 || np < 1) return CLAB_EARG;
   for (int v = 0; v < nv; ++v) {
     if (pid[v] < 0 || pid[v] >= np ||
@@ -76,10 +76,10 @@ int clab_pinpl(const double *px, const double *py, int n, const double *vx, cons
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_arwt(const double *val, int ns, const int *from, const int *to, const double *area, int np,
-              int nt, double *out, double *share, int *main, double *lost) {
+              int nt, double *out, double *share, int *main, double *lost) CLAB_TRY {
   if (ns < 1 || np < 1 || nt < 1) return CLAB_EARG;
   std::vector<double> sa(ns, 0.0);
   for (int q = 0; q < np; ++q) {
@@ -117,4 +117,4 @@ int clab_arwt(const double *val, int ns, const int *from, const int *to, const d
   }
   *lost = l;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

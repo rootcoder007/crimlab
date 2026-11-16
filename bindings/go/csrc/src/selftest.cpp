@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <cstdio>
 
+#include "kutil.h"
 #include "tchk.h"
 
 bool tk_eq(tk &t, const char *id, double got, double want, double tol) {
@@ -170,7 +171,7 @@ void t_self(tk &t) {
 //' @srrstats {G5.5} Random cases come from splitmix64 streams with fixed
 //'   seeds (rng g = {...}), so every run draws the same numbers.
 //' @noRd
-extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
+extern "C" int clab_selftest(char *sink, int cap, int *nfail) CLAB_TRY {
   sink[0] = '\0';
   tk t = {0, 0, sink, static_cast<std::size_t>(cap), 0};
   t_self(t);
@@ -276,7 +277,7 @@ extern "C" int clab_selftest(char *sink, int cap, int *nfail) {
   t_dpn(t, 0);
   *nfail = static_cast<int>(t.nf);
   return static_cast<int>(t.n);
-}
+} CLAB_CATCH(-1)
 
 #ifdef CLAB_MAIN
 // The standalone program: the self-test, or with "bench" the time per

@@ -34,6 +34,7 @@
 #include <initializer_list>
 #include <limits>
 #include <map>
+#include <new>
 #include <regex>
 #include <string>
 #include <unordered_map>
@@ -290,7 +291,7 @@ bool notvec(Ctx &c, const char *nm) {
 
 // .num(): finite numbers, len of them (any number when len < 0), all at
 // least lo (above lo when open).
-bool num(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo = -HUGE_VAL,
+bool num(Ctx &c, const Val &o, const char *nm, Dv &d, std::int64_t len = -1, double lo = -HUGE_VAL,
          bool open = false) {
   const Got g = readd(o, d);
   if (g == NOTNUM || d.n() < 1) return c.fail("`%s` must be finite numbers with no missing values.", nm);
@@ -300,7 +301,7 @@ bool num(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo =
     if (!std::isfinite(x)) return c.fail("`%s` must be finite numbers with no missing values.", nm);
   }
   if (len >= 0 && d.n() != static_cast<std::size_t>(len)) {
-    return c.fail("`%s` must have length %ld, not %ld.", nm, len, static_cast<long>(d.n()));
+    return c.fail("`%s` must have length %lld, not %lld.", nm, static_cast<long long>(len), static_cast<long long>(d.n()));
   }
   for (double x : d.v) {
     if (open ? x <= lo : x < lo) {
@@ -311,7 +312,7 @@ bool num(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo =
 }
 
 // A per-group argument.
-bool gnum(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo = -HUGE_VAL,
+bool gnum(Ctx &c, const Val &o, const char *nm, Dv &d, std::int64_t len = -1, double lo = -HUGE_VAL,
           bool open = false) {
   if (readd(o, d) == NOTNUM) {
     return c.fail("`%s` must be finite numbers, one per group: an array of numbers or an object "
@@ -354,7 +355,7 @@ bool whole(Ctx &c, const Val &o, const char *nm, int lo, int &r) {
 }
 
 // .lgl(): true or false, n of them (any number when n < 0), none missing.
-bool lgl(Ctx &c, const Val &o, const char *nm, long n, std::vector<int> &b) {
+bool lgl(Ctx &c, const Val &o, const char *nm, std::int64_t n, std::vector<int> &b) {
   const Got g = readb(o, b);
   bool na = false;
   for (int v : b) na = na || v < 0;
@@ -446,7 +447,7 @@ bool wts(Ctx &c, Dv &w, std::size_t n) {
     ones(w, n);
     return true;
   }
-  return num(c, c["w"], "w", w, static_cast<long>(n), 0.0);
+  return num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0);
 }
 
 // as.character() of one label: text, a number or a bool; false when
@@ -1198,7 +1199,7 @@ bool incap(Ctx &c, Val &out) {
   if (s.n() != 1 && s.n() != n) return c.fail("`s` must have length 1 or %d.", static_cast<int>(n));
   const bool has = c.has("share");
   if (has) {
-    CK(gnum(c, c["share"], "share", sh, static_cast<long>(n), 0.0));
+    CK(gnum(c, c["share"], "share", sh, static_cast<std::int64_t>(n), 0.0));
     if (std::fabs(nsum(sh.p(), n) - 1) > 1e-9) return c.fail("`share` must sum to 1.");
   }
   std::vector<std::string> g;
@@ -1256,7 +1257,7 @@ bool sellab(Ctx &c, Val &out) {
   std::vector<int> rel, rule;
   CK(lgl(c, c["rel"], "rel", -1, rel));
   const std::size_t n = rel.size();
-  CK(lgl(c, c["rule"], "rule", static_cast<long>(n), rule));
+  CK(lgl(c, c["rule"], "rule", static_cast<std::int64_t>(n), rule));
   Dv y;
   const Got gy = readd(c["y"], y);
   if (gy == NOTNUM || y.n() != n) return c.fail("`y` must be numbers, one per defendant.");
@@ -1904,7 +1905,7 @@ const Ent ents[] = {
     {"lnkpr", "x y? t series mo?", lnkpr},
     {"spcure", "time event x? dist? level? maxit?", spcure},
     {"apcie", "y expo level? maxit?", apcie},
-    {"hsacc", "pred obs area? top? prev?", hsacc},
+    {"hsacc", "pred obs area? top? prev? ties?", hsacc},
     {"sctidy", "x", sctidy},
     {"qltyrcd", "x suppr? caution?", qltyrcd},
     {"limfrom", "est se? cv? moe? moelev? conflvl?", limfrom},
@@ -2063,6 +2064,55 @@ std::vector<std::string> words(const char *s) {
   }
 }
 
+// Text that is valid UTF-8 (RFC 3629: no overlong form, no surrogate,
+// nothing past U+10FFFF): JSON text must be, and the output repeats the
+// input's text.
+bool u8ok(const std::string &s) {
+  const unsigned char *p = reinterpret_cast<const unsigned char *>(s.data());
+  const std::size_t n = s.size();
+  for (std::size_t i = 0; i < n;) {
+    const unsigned c = p[i];
+    if (c < 0x80) {
+      ++i;
+      continue;
+    }
+    std::size_t k;
+    unsigned lo = 0x80, hi = 0xBF;
+    if (c >= 0xC2 && c <= 0xDF) {
+      k = 1;
+    } else if (c >= 0xE0 && c <= 0xEF) {
+      k = 2;
+      if (c == 0xE0) lo = 0xA0;
+      if (c == 0xED) hi = 0x9F;
+    } else if (c >= 0xF0 && c <= 0xF4) {
+      k = 3;
+      if (c == 0xF0) lo = 0x90;
+      if (c == 0xF4) hi = 0x8F;
+    } else {
+      return false;
+    }
+    for (std::size_t j = 1; j <= k; ++j) {
+      if (i + j >= n) return false;
+      const unsigned d = p[i + j];
+      if (d < (j == 1 ? lo : 0x80) || d > (j == 1 ? hi : 0xBF)) return false;
+    }
+    i += k + 1;
+  }
+  return true;
+}
+
+// Every string of v, keys included, valid UTF-8.
+bool u8val(const Val &v) {
+  if (v.t == Val::STR) return u8ok(v.s);
+  for (const std::string &k : v.k) {
+    if (!u8ok(k)) return false;
+  }
+  for (const Val &e : v.a) {
+    if (!u8val(e)) return false;
+  }
+  return true;
+}
+
 int run(const char *fn, const char *in, std::string &res) {
   const Ent *e = nullptr;
   for (const Ent &x : ents) {
@@ -2084,6 +2134,11 @@ int run(const char *fn, const char *in, std::string &res) {
   const std::vector<std::string> as = words(e->args);
   for (std::size_t i = 0; i < v.k.size(); ++i) {
     const std::string &k = v.k[i];
+    if (!u8ok(k)) {
+      c.fail("the name of an argument is not valid UTF-8.");
+      res = c.err;
+      return CLAB_EARG;
+    }
     bool ok = false;
     for (const std::string &a : as) ok = ok || a == k || a == k + "?";
     if (!ok) {
@@ -2093,6 +2148,12 @@ int run(const char *fn, const char *in, std::string &res) {
     }
     if (std::find(v.k.begin(), v.k.begin() + static_cast<std::ptrdiff_t>(i), k) != v.k.begin() + static_cast<std::ptrdiff_t>(i)) {
       c.fail("`%s` is given twice.", k.c_str());
+      res = c.err;
+      return CLAB_EARG;
+    }
+    // once here for every text argument (R's .cktxt())
+    if (!u8val(v.a[i])) {
+      c.fail("`%s` holds text that is not valid UTF-8.", k.c_str());
       res = c.err;
       return CLAB_EARG;
     }
@@ -2115,20 +2176,65 @@ int run(const char *fn, const char *in, std::string &res) {
   return CLAB_OK;
 }
 
+#if !(defined(__cpp_exceptions) || defined(_CPPUNWIND))
+// Without exceptions (the WebAssembly build) a failed allocation cannot be
+// unwound: the new-handler records it and stops the module, and the host
+// (bindings/npm/lib/wasm.js) reads clab_oomed() to report it in words.
+volatile int oomed = 0;
+[[noreturn]] void oomh() {
+  oomed = 1;
+  std::abort();
+}
+#endif
+
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+// The message of a failed allocation, "fn: not enough memory for this
+// size.", into out as clab_jrun() returns results; nothing is allocated.
+int nomem(const char *fn, char *out, int cap, int *need) {
+  char msg[192];
+  std::snprintf(msg, sizeof msg, "%s: not enough memory for this size.", fn != nullptr ? fn : "crimlab");
+  const std::size_t n = std::strlen(msg) + 1;
+  if (need != nullptr) *need = static_cast<int>(n);
+  if (out == nullptr || cap < 1) return CLAB_ESIZE;
+  if (n > static_cast<std::size_t>(cap)) {
+    out[0] = '\0';
+    return CLAB_ESIZE;
+  }
+  std::memcpy(out, msg, n);
+  return CLAB_ENOMEM;
+}
+#endif
+
 }  // namespace
+
+extern "C" int clab_oomed(void) {
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  return 0;
+#else
+  return oomed;
+#endif
+}
 
 extern "C" int clab_jrun(const char *fn, const char *in, char *out, int cap, int *need) {
   std::string res;
   int rc;
+  kutil::oomtake();
 #if defined(__cpp_exceptions) || defined(_CPPUNWIND)
-  // no exception crosses the C interface (std::bad_alloc is the only one)
+  // no exception crosses the C interface: a failed allocation here, or one
+  // a kernel caught (kutil::oomtake()), is the message of nomem()
+  bool full = false;
   try {
     rc = run(fn, in, res);
   } catch (...) {
-    res = "crimlab: out of memory.";
-    rc = CLAB_EARG;
+    full = true;
+  }
+  if (full || (rc != CLAB_OK && kutil::oomtake())) {
+    std::string().swap(res);
+    return nomem(fn, out, cap, need);
   }
 #else
+  static const bool handler = (std::set_new_handler(oomh), true);
+  (void)handler;
   rc = run(fn, in, res);
 #endif
   const std::size_t n = res.size() + 1;
@@ -2143,13 +2249,21 @@ extern "C" int clab_jrun(const char *fn, const char *in, char *out, int cap, int
 }
 
 extern "C" const char *clab_jfns(void) {
-  static const std::string s = [] {
-    Val o;
-    o.t = Val::OBJ;
-    for (const Ent &e : ents) put(o, e.name, vstrs(words(e.args)));
-    std::string r;
-    wval(r, o);
-    return r;
-  }();
-  return s.c_str();
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  try {
+#endif
+    static const std::string s = [] {
+      Val o;
+      o.t = Val::OBJ;
+      for (const Ent &e : ents) put(o, e.name, vstrs(words(e.args)));
+      std::string r;
+      wval(r, o);
+      return r;
+    }();
+    return s.c_str();
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  } catch (...) {
+    return "{}";  // no memory for the table: an empty one, tried again on the next call
+  }
+#endif
 }

@@ -32,7 +32,7 @@ bool spx(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vecto
   }
   for (std::size_t j = 0; j < cs.size(); ++j) {
     Dv d;
-    CK(num(c, *cs[j], "x", d, static_cast<long>(n)));
+    CK(num(c, *cs[j], "x", d, static_cast<std::int64_t>(n)));
     v.insert(v.end(), d.v.begin(), d.v.end());
     nm.push_back(j < names.size() && !names[j].empty() ? names[j] : "x" + std::to_string(j + 1));
   }

@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -163,7 +164,7 @@ void qrfit(std::vector<double> xt, int nt, int q, std::vector<double> yd, std::v
 extern "C" {
 
 int clab_plr(const double *y, const double *d, const double *x, int n, int p, const int *rows, int m,
-             const int *fold, int k, double *out) {
+             const int *fold, int k, double *out) CLAB_TRY {
   out[0] = out[1] = NAN;
   if (n < 1 || p < 0 || m < 1 || k < 2) return CLAB_EARG;
   const int q = p + 1;
@@ -281,9 +282,9 @@ int clab_plr(const double *y, const double *d, const double *x, int n, int p, co
   out[0] = th;
   out[1] = std::sqrt(static_cast<double>(s2)) / denom;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-void clab_bootci(const double *v, int m, const double *pr, int np, double *out) {
+void clab_bootci(const double *v, int m, const double *pr, int np, double *out) CLAB_TRY {
   // sd(): the mean refined by a second pass, the squares summed in long double
   out[0] = NAN;
   if (m > 1) {
@@ -321,6 +322,6 @@ void clab_bootci(const double *v, int m, const double *pr, int np, double *out) 
     }
     out[1 + j] = r;
   }
-}
+} CLAB_CATCHV
 
 }  // extern "C"

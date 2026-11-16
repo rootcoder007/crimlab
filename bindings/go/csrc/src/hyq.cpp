@@ -25,7 +25,7 @@ int first(unsigned b, const int *pref, int j, int m) {
 extern "C" {
 
 int clab_hypq(const double *lam, const int *pref, int m, int n, double mu, int wait,
-              double *pst, double *wl, double *disp, double *st, double *work) {
+              double *pst, double *wl, double *disp, double *st, double *work) CLAB_TRY {
   if (m < 1 || n < 1 || n > 10 || !kutil::pos(mu)) return CLAB_EARG;
   double big = 0;
   for (int j = 0; j < m; ++j) {
@@ -109,9 +109,9 @@ int clab_hypq(const double *lam, const int *pref, int m, int n, double mu, int w
   st[1] = wait ? pst[full] * rho / (1 - rho) : 0;
   st[2] = rho;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sqrtlw(double area, double units, double busy, int metric, double *d, double *c) {
+int clab_sqrtlw(double area, double units, double busy, int metric, double *d, double *c) CLAB_TRY {
   if (!kutil::pos(area) || !kutil::pos(units) || !(busy >= 0 && busy < 1) || metric < 0 ||
       metric > 1) {
     return CLAB_EDOM;
@@ -121,6 +121,6 @@ int clab_sqrtlw(double area, double units, double busy, int metric, double *d, d
   *c = metric ? std::sqrt(2 * pi) / 4 : 0.5;
   *d = *c * std::sqrt(area / (units * (1 - busy)));
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

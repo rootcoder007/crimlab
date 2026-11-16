@@ -501,7 +501,8 @@ bool bfgs(const Fn &fn, std::vector<double> &b, double &fmin, int maxit, bool &c
       t[z(i)] = s;
       gradproj += s * g[z(i)];
     }
-    if (gradproj < 0.0) {
+    // an infinite projection would shrink the step for ever (see dfit.cpp)
+    if (gradproj < 0.0 && std::isfinite(gradproj)) {
       double step = 1.0;
       bool acc = false;
       do {
@@ -595,6 +596,25 @@ bool arima(const std::vector<double> &x, const Arma &a, Fit &ft, std::string &er
     s[0] = 1;
     s[z(a.ns)] = -1;
     Dl = conv(Dl, s);
+  }
+  // a series that is constant once differenced (a constant, a straight
+  // line, a pattern that repeats exactly each season) leaves sums of
+  // squares of 0, whose logarithm the optimiser cannot start from
+  {
+    bool any = false, var = false;
+    double w0 = 0;
+    for (std::size_t t = Dl.size() - 1; t < x.size() && !var; ++t) {
+      double w = 0;
+      for (std::size_t k = 0; k < Dl.size(); ++k) w += Dl[k] * x[t - k];
+      if (std::isnan(w)) continue;
+      if (!any) w0 = w;
+      var = any && w != w0;
+      any = true;
+    }
+    if (!var) {
+      err = "`y` does not vary once differenced: the model has nothing to fit.";
+      return false;
+    }
   }
   std::vector<double> delta(Dl.begin() + 1, Dl.end());
   for (double &e : delta) e = -e;
@@ -913,11 +933,13 @@ bool k_ousim(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const Ou f = oufit(y);
-  const int ns = std::max(1, static_cast<int>(days / dt));
-  if (static_cast<double>(ns) * np > 1e8) {
+  // the steps counted in double: days / dt reaches 1e16, past an int
+  const double nsd = std::fmax(1.0, std::floor(days / dt));
+  if (nsd * np > 1e8) {
     err = "`npath` times the steps must be at most 1e8.";
     return false;
   }
+  const int ns = static_cast<int>(nsd);
   rng g(seed);
   Mat P(np, ns);
   for (int i = 0; i < np; ++i) P(i, 0) = y.back();

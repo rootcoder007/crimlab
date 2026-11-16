@@ -847,23 +847,30 @@ inline bool bargs(Ctx &c, int &nb, bool &hs, double &sd) {
   }
   return true;
 }
-// .axdraw(): how often each of g clusters is drawn in each of b draws (g
-// x b, column-major), tabulate(sample.int(g, g, replace = TRUE)) after
-// set.seed(seed).
-inline bool adraw(Ctx &c, int g, int b, bool hs, double sd, std::vector<int> &bm) {
-  if (!hs) return c.fail("`seed` is needed outside R: one whole number from 0.");
-  if (static_cast<double>(g) * b > kutil::maxcell) {
-    return c.fail("`nboot` times the clusters must be at most %.0f.", kutil::maxcell);
+// .axdraws(): how often each of g clusters is drawn in each draw,
+// tabulate(sample.int(g, g, replace = TRUE)) after set.seed(seed), made a
+// block of draws at a time (next(): k draws, g x k, column-major) so that
+// the g x nboot counts are never held at once.
+struct Adraw {
+  igh::Rng rng;
+  int g;
+  std::size_t blk;  // draws per block: about 2^22 counts
+  Adraw(std::uint32_t s, int gg)
+      : rng(s), g(gg), blk(std::max<std::size_t>(1, (static_cast<std::size_t>(1) << 22) / zz(gg))) {}
+  void next(std::size_t k, std::vector<int> &bm) {
+    bm.assign(zz(g) * k, 0);
+    for (std::size_t j = 0; j < k; ++j) {
+      for (int i = 0; i < g; ++i) ++bm[j * zz(g) + static_cast<std::size_t>(rng.index(g))];
+    }
   }
+};
+inline bool adseed(Ctx &c, bool hs, double sd, std::uint32_t &s) {
+  if (!hs) return c.fail("`seed` is needed outside R: one whole number from 0.");
   if (sd > 2147483647.0) {
     c.err = "supplied seed is not a valid integer";
     return false;
   }
-  igh::Rng rng(static_cast<std::uint32_t>(static_cast<std::int32_t>(sd)));
-  bm.assign(zz(g) * zz(b), 0);
-  for (std::size_t j = 0; j < zz(b); ++j) {
-    for (int i = 0; i < g; ++i) ++bm[j * zz(g) + static_cast<std::size_t>(rng.index(g))];
-  }
+  s = static_cast<std::uint32_t>(static_cast<std::int32_t>(sd));
   return true;
 }
 // apply(x, 2, sd, na.rm = TRUE) of an n x p matrix.
@@ -891,25 +898,32 @@ template <class F>
 bool aboot(Ctx &c, const Val &d, const std::string &cl, int nb, bool hs, double sd, int p, F fit, Bt &r) {
   const Code cc = acode(*fc(d, cl));
   if (cc.n < 2) return ckstop(c, "the bootstrap needs two or more clusters in `%s`", cl.c_str());
+  std::uint32_t s0 = 0;
+  CK(adseed(c, hs, sd, s0));
+  Adraw ad(s0, cc.n);
   std::vector<int> bm;
-  CK(adraw(c, cc.n, nb, hs, sd, bm));
   const std::size_t n = cc.c.size(), snb = zz(nb), sp = zz(p);
   r.g = cc.n;
   r.dr.assign(snb * sp, NA);
   Ix rw;
   std::vector<double> w, beta;
-  for (std::size_t b = 0; b < snb; ++b) {
-    rw.clear();
-    w.clear();
-    for (std::size_t i = 0; i < n; ++i) {
-      const int m = bm[b * zz(cc.n) + zz(cc.c[i])];
-      if (m > 0) {
-        rw.push_back(i);
-        w.push_back(m);
+  for (std::size_t b0 = 0; b0 < snb; b0 += ad.blk) {
+    const std::size_t k = std::min(ad.blk, snb - b0);
+    ad.next(k, bm);
+    for (std::size_t j = 0; j < k; ++j) {
+      const std::size_t b = b0 + j;
+      rw.clear();
+      w.clear();
+      for (std::size_t i = 0; i < n; ++i) {
+        const int m = bm[j * zz(cc.n) + zz(cc.c[i])];
+        if (m > 0) {
+          rw.push_back(i);
+          w.push_back(m);
+        }
       }
-    }
-    if (fit(rw, w, beta)) {
-      for (std::size_t j = 0; j < sp; ++j) r.dr[j * snb + b] = beta[j];
+      if (fit(rw, w, beta)) {
+        for (std::size_t q = 0; q < sp; ++q) r.dr[q * snb + b] = beta[q];
+      }
     }
   }
   r.ok.assign(snb, 1);
@@ -1574,21 +1588,35 @@ bool ppmlcf(Ctx &c, Val &out) {
     bool hs = false;
     double sd = 0;
     CK(bargs(c, nb, hs, sd));
+    std::uint32_t s0 = 0;
+    CK(adseed(c, hs, sd, s0));
+    Adraw ad(s0, cl.a.n);
     std::vector<int> bm;
-    CK(adraw(c, cl.a.n, nb, hs, sd, bm));
     CK(amat(c, ds, endo, me));
     CK(amat(c, ds, x, mxx));
     CK(amat(c, ds, inst, mz));
     const std::size_t kp = tm.size();
     // fst is pe x 4, as src/bapx.cpp gives it
-    std::vector<double> beta(kp), fst(zz(pe) * 4, NA), draw(zz(nb) * kp), st(3);
+    std::vector<double> beta(kp), fst(zz(pe) * 4, NA), draw(zz(nb) * kp), st(3), db;
     const std::vector<double> ys = colv(*fc(ds, y[0]));
-    const int rc = clab_ppmlcf(pd(ys), pd(me), pe, pd(mxx), static_cast<int>(x.size()), pd(mz), q,
-                               static_cast<int>(n), off.empty() ? nullptr : off.data(), f1.c.data(), f1.n,
-                               fe.size() == 2 ? f2.c.data() : nullptr, f2.n, cl.a.c.data(), cl.a.n, bm.data(), nb,
-                               how, maxit, 1e-10, tol, beta.data(), fst.data(), draw.data(), st.data());
-    if (rc != CLAB_OK) return kerr(c, "ppmlcf", rc);
-    const int nf = static_cast<int>(st[2]);
+    // the draws a block at a time, as R makes them: the full-sample fit
+    // is the same in every block
+    int nf = 0;
+    for (std::size_t b0 = 0; b0 < zz(nb); b0 += ad.blk) {
+      const std::size_t kb = std::min(ad.blk, zz(nb) - b0);
+      ad.next(kb, bm);
+      db.assign(kb * kp, NA);
+      const int rc = clab_ppmlcf(pd(ys), pd(me), pe, pd(mxx), static_cast<int>(x.size()), pd(mz), q,
+                                 static_cast<int>(n), off.empty() ? nullptr : off.data(), f1.c.data(), f1.n,
+                                 fe.size() == 2 ? f2.c.data() : nullptr, f2.n, cl.a.c.data(), cl.a.n, bm.data(),
+                                 static_cast<int>(kb), how, maxit, 1e-10, tol, beta.data(), fst.data(), db.data(),
+                                 st.data());
+      if (rc != CLAB_OK) return kerr(c, "ppmlcf", rc);
+      for (std::size_t j = 0; j < kp; ++j) {
+        for (std::size_t e = 0; e < kb; ++e) draw[j * zz(nb) + b0 + e] = db[j * kb + e];
+      }
+      nf += static_cast<int>(st[2]);
+    }
     if (nf > 0) {
       wrn(c, std::to_string(nf) + " of " + std::to_string(nb) +
                  " bootstrap draws could not be fitted and are left out.");

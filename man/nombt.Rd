@@ -15,8 +15,7 @@ nombt(votes, x, normals, cuts, nboot = 100, seed = 42)
 
 \item{cuts}{Fitted cutpoints, one per vote.}
 
-\item{nboot}{The bootstrap replicates; \code{nboot} times the ideal points
-must be at most 67108864 (2^26).}
+\item{nboot}{The bootstrap replicates.}
 
 \item{seed}{The seed.}
 }

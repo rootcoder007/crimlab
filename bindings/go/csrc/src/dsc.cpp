@@ -8,6 +8,7 @@
 // The sums run as the reference implementation and R run them: long
 // double where R's mean(), colMeans() and cov() accumulate in long double,
 // double where its kernels do.
+#include <cstdint>
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -45,9 +46,9 @@ double q7s(const vector<double> &v, double p) {
   if (std::isnan(p)) return p;
   if (n == 1) return v[0];
   const double h = (static_cast<double>(n) - 1.0) * p, fl = std::floor(h);
-  long lo = static_cast<long>(fl);
+  std::int64_t lo = static_cast<std::int64_t>(fl);
   if (lo < 0) lo = 0;
-  if (lo >= static_cast<long>(n) - 1) return v[n - 1];
+  if (lo >= static_cast<std::int64_t>(n) - 1) return v[n - 1];
   const double g = h - fl;
   if (g == 0.0) return v[static_cast<size_t>(lo)];
   const double d = v[static_cast<size_t>(lo) + 1] - v[static_cast<size_t>(lo)];
@@ -309,7 +310,7 @@ vector<double> rcov(const double *x, size_t n, int p, bool pairwise) {
     for (int j = 0; j <= i; ++j) {
       const double *a = x + static_cast<size_t>(i) * n, *b = x + static_cast<size_t>(j) * n;
       ld xs = 0, ys = 0;
-      long nob = 0;
+      std::int64_t nob = 0;
       for (size_t k = 0; k < n; ++k) {
         if (std::isnan(a[k]) || std::isnan(b[k])) continue;
         ++nob;
@@ -339,7 +340,7 @@ const double eps = 2.220446049250313e-16;
 
 extern "C" {
 
-int clab_hbin(const double *x, int n, int bins, int *cnt) {
+int clab_hbin(const double *x, int n, int bins, int *cnt) CLAB_TRY {
   if (bins < 1 || bins > kutil::maxcell || n < 0) return CLAB_EARG;
   for (int b = 0; b < bins; ++b) cnt[b] = 0;
   double lo = INFINITY, hi = -INFINITY;
@@ -392,9 +393,9 @@ int clab_hbin(const double *x, int n, int bins, int *cnt) {
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, int *np) {
+int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, int *np) CLAB_TRY {
   if (n < 0 || p < 2) return CLAB_EARG;
   int k = 0;
   vector<double> a, b;
@@ -413,9 +414,9 @@ int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, 
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_nrun(const int *na, int n, int minrun, int *st, int *en) {
+int clab_nrun(const int *na, int n, int minrun, int *st, int *en) CLAB_TRY {
   int k = 0;
   for (int i = 0; i < n;) {
     if (!na[i]) {
@@ -432,9 +433,9 @@ int clab_nrun(const int *na, int n, int minrun, int *st, int *en) {
     i = j + 1;
   }
   return k;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-void clab_msum(const int *na, int n, int p, double *out) {
+void clab_msum(const int *na, int n, int p, double *out) CLAB_TRY {
   double tot = 0, any = 0, all = 0, comp = 0;
   for (int j = 0; j < p; ++j) {
     double c = 0;
@@ -457,9 +458,9 @@ void clab_msum(const int *na, int n, int p, double *out) {
   out[5] = n == 0 ? 0 : 100 * comp / n;
   out[6] = any;
   out[7] = all;
-}
+} CLAB_CATCHV
 
-void clab_pstat(const double *x, int n, double *out) {
+void clab_pstat(const double *x, int n, double *out) CLAB_TRY {
   for (int k = 0; k < 7; ++k) out[k] = NAN;
   if (n < 1) return;
   const size_t N = static_cast<size_t>(n);
@@ -489,15 +490,15 @@ void clab_pstat(const double *x, int n, double *out) {
   const double q1 = q7s(v, 0.25), q3 = q7s(v, 0.75), iqr = q3 - q1;
   out[5] = q1 - 1.5 * iqr;
   out[6] = q3 + 1.5 * iqr;
-}
+} CLAB_CATCHV
 
-void clab_q7(const double *x, int n, const double *pr, int np, double *out) {
+void clab_q7(const double *x, int n, const double *pr, int np, double *out) CLAB_TRY {
   vector<double> v(x, x + n);
   std::sort(v.begin(), v.end());
   for (int k = 0; k < np; ++k) out[k] = q7s(v, pr[k]);
-}
+} CLAB_CATCHV
 
-double clab_lpchisq(double x, double df) {
+double clab_lpchisq(double x, double df) CLAB_TRY {
   const double q = clab_pchisq(x, df, 0);
   if (q > 1e-280 || !(x > 0)) return std::log(q);
   // the continued fraction of the upper incomplete gamma ratio, on the log
@@ -517,9 +518,9 @@ double clab_lpchisq(double x, double df) {
     if (std::fabs(del - 1) < eps) break;
   }
   return a * std::log(z) - z - std::lgamma(a) + std::log(h);
-}
+} CLAB_CATCH(kutil::nan())
 
-int clab_maha(const double *x, int m, int p, int robust, double *d2) {
+int clab_maha(const double *x, int m, int p, int robust, double *d2) CLAB_TRY {
   if (m < p + 1 || p < 1) return CLAB_EARG;
   const size_t M = static_cast<size_t>(m);
   vector<double> z(M * static_cast<size_t>(p));
@@ -568,9 +569,9 @@ int clab_maha(const double *x, int m, int p, int robust, double *d2) {
     d2[i] = t;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out, double *mu, double *sig) {
+int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out, double *mu, double *sig) CLAB_TRY {
   if (n < 2 || p < 2) return CLAB_EARG;
   const size_t N = static_cast<size_t>(n), P = static_cast<size_t>(p);
   auto X = [&](size_t i, size_t j) { return x[j * N + i]; };
@@ -748,9 +749,9 @@ int clab_mcar(const double *x, int n, int p, int maxit, double tol, double *out,
   for (size_t a = 0; a < P; ++a) mu[a] = m[a];
   for (size_t a = 0; a < P * P; ++a) sig[a] = s[a];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_freq(const int *code, int n, int nlev, int sort, int maxlvl, int fold, int *lev, int *cnt) {
+int clab_freq(const int *code, int n, int nlev, int sort, int maxlvl, int fold, int *lev, int *cnt) CLAB_TRY {
   vector<int> c(static_cast<size_t>(nlev), 0), o(static_cast<size_t>(nlev));
   for (int i = 0; i < n; ++i) {
     if (code[i] >= 1 && code[i] <= nlev) c[static_cast<size_t>(code[i] - 1)]++;
@@ -771,9 +772,9 @@ int clab_freq(const int *code, int n, int nlev, int sort, int maxlvl, int fold, 
     cnt[k++] = other;
   }
   return k;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mgrid(const int *na, int n, int p, int bins, int *start, int *shade) {
+int clab_mgrid(const int *na, int n, int p, int bins, int *start, int *shade) CLAB_TRY {
   // unique(as.integer(round(seq(0, n, length.out = bins + 1))))
   vector<int> e;
   const double by = static_cast<double>(n) / bins;
@@ -794,9 +795,9 @@ int clab_mgrid(const int *na, int n, int p, int bins, int *start, int *shade) {
     }
   }
   return nb;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dups(const int *code, int n, int nlev, int *rows, int *cnt) {
+int clab_dups(const int *code, int n, int nlev, int *rows, int *cnt) CLAB_TRY {
   vector<int> c(static_cast<size_t>(nlev) + 1, 0);
   for (int i = 0; i < n; ++i) c[static_cast<size_t>(code[i])]++;
   vector<int> o;
@@ -809,9 +810,9 @@ int clab_dups(const int *code, int n, int nlev, int *rows, int *cnt) {
     cnt[k] = c[static_cast<size_t>(code[o[k]])];
   }
   return static_cast<int>(o.size());
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-void clab_cochq(const double *y, const double *s, int g, double *out) {
+void clab_cochq(const double *y, const double *s, int g, double *out) CLAB_TRY {
   ld sw = 0, swy = 0;
   vector<double> w(static_cast<size_t>(g));
   for (int i = 0; i < g; ++i) {
@@ -832,6 +833,6 @@ void clab_cochq(const double *y, const double *s, int g, double *out) {
   out[3] = df;
   out[4] = clab_pchisq(qs, df, 0);
   out[5] = qs > 0 ? std::max(0.0, (qs - df) / qs) : 0;
-}
+} CLAB_CATCHV
 
 }  // extern "C"

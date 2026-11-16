@@ -60,7 +60,7 @@ extern "C" {
 int clab_aorwt(const double *from, const double *to, int n, const double *tt,
              const double *toff, int nt, double off0, double origin,
              double bw, int nb, double lo, double hi, double *w, double *tot,
-             int *cnt) {
+             int *cnt) CLAB_TRY {
   if (n < 0 || nb < 1 || nt < 0) return CLAB_EARG;
   if (!kutil::pos(bw) || !std::isfinite(origin) || !std::isfinite(off0) ||
       !kutil::nonneg(lo) || !(hi > 0.0))
@@ -122,6 +122,6 @@ int clab_aorwt(const double *from, const double *to, int n, const double *tt,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

@@ -86,7 +86,7 @@ bool local(const double *x, const double *y, int n, double xs, int nl, int nr,
 extern "C" {
 
 int clab_lwss(const double *x, const double *y, int n, double f, int iter,
-              double delta, double *ys, double *work) {
+              double delta, double *ys, double *work) CLAB_TRY {
   if (n < 1 || iter < 0) return CLAB_EARG;
   if (!(f > 0.0) || !std::isfinite(f) || !(delta >= 0.0) || !std::isfinite(delta))
     return CLAB_EDOM;
@@ -165,6 +165,6 @@ int clab_lwss(const double *x, const double *y, int n, double f, int iter,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

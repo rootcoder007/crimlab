@@ -22,7 +22,7 @@ bool lonlat(double lon, double lat) {
 extern "C" {
 
 int clab_eqinv(const double *x, const double *y, int n, double lon0,
-               double lat0, double r, double *lon, double *lat) {
+               double lat0, double r, double *lon, double *lat) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!kutil::pos(r) || !lonlat(lon0, lat0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -56,6 +56,6 @@ int clab_eqinv(const double *x, const double *y, int n, double lon0,
     lat[i] = la;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

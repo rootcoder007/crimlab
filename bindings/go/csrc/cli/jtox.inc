@@ -20,7 +20,7 @@ bool txcal(Ctx &c, Val &out) {
   Dv xv, yv, kv;
   CK(num(c, c["conc"], "conc", xv, -1, 0.0, true));
   const std::size_t n = xv.n();
-  CK(num(c, c["resp"], "resp", yv, static_cast<long>(n)));
+  CK(num(c, c["resp"], "resp", yv, static_cast<std::int64_t>(n)));
   if (n < 3) return c.fail("`conc` and `resp` must give at least three calibrators.");
   Val dk = varr();
   dk.a = {vnum(3.3), vnum(10)};
@@ -39,7 +39,7 @@ bool txcal(Ctx &c, Val &out) {
     }
   } else {
     Dv wv;
-    CK(num(c, w, "w", wv, static_cast<long>(n), 0.0, true));
+    CK(num(c, w, "w", wv, static_cast<std::int64_t>(n), 0.0, true));
     wt = wv.v;
   }
   std::vector<double> uv;
@@ -100,7 +100,7 @@ bool lodimp(Ctx &c, Val &out) {
 bool pmrrat(Ctx &c, Val &out) {
   Dv cv, pv, kv;
   CK(num(c, c["cen"], "cen", cv, -1, 0.0, true));
-  CK(num(c, c["per"], "per", pv, static_cast<long>(cv.n()), 0.0, true));
+  CK(num(c, c["per"], "per", pv, static_cast<std::int64_t>(cv.n()), 0.0, true));
   Val dk = varr();
   dk.a = {vnum(1), vnum(2)};
   CK(num(c, c.has("cut") ? c["cut"] : dk, "cut", kv, 2, 0.0, true));
@@ -122,7 +122,7 @@ bool pmrrat(Ctx &c, Val &out) {
 bool etohlr(Ctx &c, Val &out) {
   Dv ev;
   CK(num(c, c["eth"], "eth", ev, -1, 0.0));
-  const long n = static_cast<long>(ev.n());
+  const std::int64_t n = static_cast<std::int64_t>(ev.n());
   std::vector<double> pv, bv, gv;
   Val d1, d2, d3;
   CK(nna(c, argna(c, "prop", d1, 0), "prop", n, pv));
@@ -151,7 +151,7 @@ bool mtxrel(Ctx &c, Val &out) {
   CK(num(c, c["base"], "base", bv, -1, 0.0));
   const std::size_t n = bv.n();
   std::vector<int> dl;
-  CK(lgl(c, c["dil"], "dil", static_cast<long>(n), dl));
+  CK(lgl(c, c["dil"], "dil", static_cast<std::int64_t>(n), dl));
   double dy = 0.0, sg = 0.0, dm = 0.0, sm = 0.0, dc = 0.0, sc = 0.0;
   CK(binrd(c, "days", 0, 0.0, HUGE_VAL, dy));
   CK(binrd(c, "stage", 0, 0.0, HUGE_VAL, sg));

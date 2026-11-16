@@ -48,7 +48,8 @@ void bsolve(const double *l, int n, double *b, int m);
 // is replaced by the minimum found; a non-finite value of f counts as
 // 1e35. Stops when the spread of the simplex is at most reltol (|f| +
 // reltol), or after maxit evaluations (return 1), or when a shrink does
-// not reduce the simplex (return 10); 0 on convergence. *fx: the value at
+// not reduce the simplex (return 10); 0 on convergence; 2, x unchanged,
+// when the start or its value is not finite. *fx: the value at
 // x; *nf: the evaluations.
 template <class F>
 int nmmin(int n, double *x, double *fx, F f, double reltol, int maxit, int *nf) {
@@ -60,7 +61,10 @@ int nmmin(int n, double *x, double *fx, F f, double reltol, int maxit, int *nf) 
   std::vector<double> b(x, x + n);
   double v = f(b.data());
   int cnt = 1, fail = 0;
-  if (!std::isfinite(v)) {
+  bool fin = true;
+  for (int i = 0; i < n; ++i) fin = fin && std::isfinite(b[i]);
+  // an infinite start has no simplex: b + step is b however large the step
+  if (!fin || !std::isfinite(v)) {
     *fx = v;
     *nf = cnt;
     return 2;

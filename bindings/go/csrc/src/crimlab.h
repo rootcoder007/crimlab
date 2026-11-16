@@ -24,6 +24,7 @@ extern "C" {
 #define CLAB_EARG 1 /* a size or an index is out of range */
 #define CLAB_EDOM 2 /* a value is outside the domain of the method */
 #define CLAB_EINTR 3 /* the host's interrupt check asked to stop */
+#define CLAB_ENOMEM 4 /* an allocation failed: not enough memory for the sizes asked */
 
 /* The words for an error code. */
 const char *clab_strerror(int code);
@@ -1689,8 +1690,8 @@ typedef struct clab_lrn {
 int clab_dmlxk(int model, int sc);
 
 /* Scratch for clab_dmlx(): returns the doubles, sets *niw to the ints. */
-long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
-                const clab_lrn *ly, const clab_lrn *ld, long *niw);
+int64_t clab_dmlxsz(int model, int n, int p, int nf, int nrep,
+                    const clab_lrn *ly, const clab_lrn *ld, int64_t *niw);
 
 /* Cross-fitted double machine learning. model: 0 partially linear
  * regression (PLR), 1 partially linear IV (PLIV, one instrument z), 2
@@ -1754,7 +1755,7 @@ int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork);
  * l->seed (a learner of weight 0 is not fitted). The fold fits use seed
  * l->seed + 7919 (k + 1). With one learner the stack is that learner,
  * bit for bit. work: clab_stksz() doubles; iwork: the ints it sets. */
-long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw);
+int64_t clab_stksz(int n, int p, int nt, const clab_lrn *l, int64_t *niw);
 int clab_stack(const double *x, int n, int p, const double *y, int fam,
                const clab_lrn *l, const int *fold, const double *xt, int nt,
                double *oof, double *risk, double *wt, double *pred,
@@ -3505,8 +3506,11 @@ int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, d
  * scores; NULL when ishot marks the hot cells), obs (crimes of the
  * evaluation period, from 0, not all 0), area (> 0), prev (NULL or the
  * crimes of the period the map came from). For each of the nt shares top
- * (in (0, 1]; one row with ishot): the hot cells, by score (ties by
- * position) until their area reaches top of the total. Out: res (nt x 11,
+ * (in (0, 1]; one row with ishot): the hot cells, by score until their
+ * area reaches top of the total; the cells whose score ties across that
+ * cut-off are all hot (ties 0), none hot (1) or each hot by the share of
+ * their area still needed (2: cells, area and counts then fractional), so
+ * that the order of the cells does not matter. Out: res (nt x 11,
  * column-major): top (the hot share with ishot), cells, area, area share,
  * the crimes n in hot cells, all crimes N, n / N, the predictive accuracy
  * index (Chainey et al. 2008, doi:10.1057/palgrave.sj.8350066), nmax (the
@@ -3514,7 +3518,7 @@ int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, d
  * efficiency index n / nmax, and the recapture rate index (n / n_prev) /
  * (N / N_prev) (Levine 2008, doi:10.1057/sj.2008.5; NaN without prev). */
 int clab_hsacc(const double *pred, const int *ishot, const double *obs, const double *area, const double *prev,
-               int n, const double *top, int nt, double *res);
+               int n, const double *top, int nt, int ties, double *res);
 /* Bounds on the mean outcome under each of k (>= 2) ordered treatments
  * (mtr.cpp; Manski and Pepper 2000, doi:10.1111/1468-0262.00144). n
  * outcomes y in [ylo, yhi], their treatments z in [0, k) (each with

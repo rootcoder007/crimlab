@@ -28,7 +28,7 @@ double emass(double u, double v, double hx, double hy, const double *win) {
 
 int clab_kdsurf(const double *x, const double *y, const double *w, int n, double hx, double hy,
                 const double *ax, int na, const double *ay, int nb, int grid, const double *win,
-                int edge, int loo, double *out) {
+                int edge, int loo, double *out) CLAB_TRY {
   if (n < 1 || na < 1 || nb < 0 || edge < 0 || edge > 2 || grid < 0 || grid > 1) {
     return CLAB_EARG;
   }
@@ -98,10 +98,10 @@ int clab_kdsurf(const double *x, const double *y, const double *w, int n, double
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dbscn(const double *x, const double *y, int n, double eps, int minpts, int border, int *cl,
-               int *core, int *ncl) {
+               int *core, int *ncl) CLAB_TRY {
   if (n < 1 || minpts < 1 || border < 0 || border > 1) return CLAB_EARG;
   if (!kutil::pos(eps)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -143,11 +143,11 @@ int clab_dbscn(const double *x, const double *y, int n, double eps, int minpts, 
   }
   *ncl = k;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hsper(const double *x, const double *y, const int *prd, int n, int np, double cell,
                double x0, double y0, double top, int *cid, double *ix, double *iy, int *nc,
-               int *hot, double *per, double *cs) {
+               int *hot, double *per, double *cs) CLAB_TRY {
   if (n < 1 || np < 1) return CLAB_EARG;
   if (!kutil::pos(cell) || !(top > 0 && top <= 1) || !std::isfinite(x0) || !std::isfinite(y0)) {
     return CLAB_EDOM;
@@ -254,10 +254,10 @@ int clab_hsper(const double *x, const double *y, const int *prd, int n, int np, 
     cs[3 * j + 2] = best;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ebshr(const double *y, const double *w, int n, double v, double b, double *fit,
-               double *shr, double *fall) {
+               double *shr, double *fall) CLAB_TRY {
   if (n < 2) return CLAB_EARG;
   if (!kutil::nonneg(v) || !(std::isnan(b) || (b >= 0 && b <= 1))) return CLAB_EDOM;
   kutil::ksum sw, sy;
@@ -291,4 +291,4 @@ int clab_ebshr(const double *y, const double *w, int n, double v, double b, doub
   fit[4] = bs;
   fit[5] = bb;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -37,4 +37,16 @@ void t_dfit(tk &T, int) {
   tk_true(T, "dfit.ks", g[0] > 0 && g[0] < 0.5 && std::isfinite(g[1]));
   clab_dfgof(8, c, 10, q, g);
   tk_true(T, "dfit.disc", std::isnan(g[1]));
+  // the discrete KS over every whole number up to the largest value
+  double ks = 0;
+  for (int k = 0; k <= 4; ++k) {
+    double m = 0;
+    for (int i = 0; i < 10; ++i) m += c[i] <= k;
+    ks = std::fmax(ks, std::fabs(m / 10 - clab_ppois(k, q[0], 1)));
+  }
+  tk_eq(T, "dfit.dks", g[0], ks, 0);
+  // values far past 2^53 take no longer than small ones
+  const double h[3] = {0, 3e50, 1e51}, hp[1] = {4e50};
+  clab_dfgof(8, h, 3, hp, g);
+  tk_true(T, "dfit.big", g[0] >= 0 && g[0] <= 1);
 }

@@ -7,8 +7,7 @@
 cunif(n, seed)
 }
 \arguments{
-\item{n}{The number of uniforms, one whole number from 0 to
-67108864 (2^26).}
+\item{n}{The number of uniforms, one whole number from 0.}
 
 \item{seed}{The seed, one whole number from 0, below \eqn{2^{53}} (so
 that it is exact as a double).}

@@ -96,7 +96,7 @@ extern "C" {
 
 int clab_gearc(const double *x, int n, const int *rp, const int *ci,
                const double *w, int nsim, unsigned int seed, double *work,
-               double *out) {
+               double *out) CLAB_TRY {
   const int rc = wcheck(n, rp, ci, w);
   if (rc != CLAB_OK) return rc;
   if (n < 4 || nsim < 0) return CLAB_EARG;
@@ -114,7 +114,7 @@ int clab_gearc(const double *x, int n, const int *rp, const int *ci,
     q4.add(z * z * z * z);
   }
   const double m2 = q2.val(), dn = n;
-  if (!(m2 > 0.0) || !(s[0] > 0.0)) return CLAB_EDOM;
+  if (kutil::cnst(x, n) || !(m2 > 0.0) || !(s[0] > 0.0)) return CLAB_EDOM;
   const double b2 = dn * q4.val() / (m2 * m2), S0 = s[0], S1 = s[1], S2 = s[2];
   const double c = (dn - 1.0) * gnum(x, n, rp, ci, w) / (2.0 * S0 * m2);
   const double vn = ((2.0 * S1 + S2) * (dn - 1.0) - 4.0 * S0 * S0) /
@@ -148,11 +148,11 @@ int clab_gearc(const double *x, int n, const int *rp, const int *ci,
   }
   out[8] = S0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_gorg(const double *x, int n, const int *rp, const int *ci,
               const double *w, int nsim, unsigned int seed, double *work,
-              double *out) {
+              double *out) CLAB_TRY {
   const int rc = wcheck(n, rp, ci, w);
   if (rc != CLAB_OK) return rc;
   if (n < 4 || nsim < 0) return CLAB_EARG;
@@ -201,11 +201,11 @@ int clab_gorg(const double *x, int n, const int *rp, const int *ci,
     out[5] = (1.0 + ge) / (nsim + 1.0);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lmorn(const double *x, int n, const int *rp, const int *ci,
                const double *w, int nsim, unsigned int seed, int *iwork,
-               double *work, double *out) {
+               double *work, double *out) CLAB_TRY {
   const int rc = wcheck(n, rp, ci, w);
   if (rc != CLAB_OK) return rc;
   if (n < 3 || nsim < 0) return CLAB_EARG;
@@ -222,7 +222,7 @@ int clab_lmorn(const double *x, int n, const int *rp, const int *ci,
     q4.add(z[i] * z[i] * z[i] * z[i]);
   }
   const double m2 = q2.val() / dn;
-  if (!(m2 > 0.0)) return CLAB_EDOM;
+  if (kutil::cnst(x, n) || !(m2 > 0.0)) return CLAB_EDOM;
   const double b2 = (q4.val() / dn) / (m2 * m2);
   double *I = out, *E = out + n, *V = out + 2 * n, *Z = out + 3 * n,
          *P = out + 4 * n, *PP = out + 5 * n, *Q = out + 6 * n;
@@ -275,13 +275,30 @@ int clab_lmorn(const double *x, int n, const int *rp, const int *ci,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_locgi(const double *x, int n, const int *rp, const int *ci,
-               const double *w, int star, double *out) {
+               const double *w, int star, double *out) CLAB_TRY {
   const int rc = wcheck(n, rp, ci, w);
   if (rc != CLAB_OK) return rc;
   if (n < 3 || star < 0 || star > 1) return CLAB_EARG;
+  if (kutil::cnst(x, n)) return CLAB_EDOM;
+  // without star, unit i's z needs the others to vary: the one unit
+  // (odd) whose value differs from all the rest, if any, has NaN
+  int odd = -1;
+  if (!star) {
+    int c0 = 0, j1 = -1, c1 = 0;
+    for (int i = 0; i < n; ++i) {
+      if (x[i] == x[0]) {
+        ++c0;
+      } else if (j1 < 0 || x[i] == x[j1]) {
+        if (j1 < 0) j1 = i;
+        ++c1;
+      }
+    }
+    if (c0 == n - 1) odd = j1;
+    if (c1 == n - 1) odd = 0;
+  }
   kutil::ksum a1, a2;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(x[i])) return CLAB_EDOM;
@@ -307,14 +324,14 @@ int clab_locgi(const double *x, int n, const int *rp, const int *ci,
     } else {
       const double xb = (t1 - x[i]) / (dn - 1.0);
       const double s = std::sqrt((t2 - x[i] * x[i]) / (dn - 1.0) - xb * xb);
-      z = (lag - wi * xb) / (s * std::sqrt(((dn - 1.0) * s1 - wi * wi) / (dn - 2.0)));
+      z = i == odd ? kutil::nan() : (lag - wi * xb) / (s * std::sqrt(((dn - 1.0) * s1 - wi * wi) / (dn - 2.0)));
     }
     out[i] = z;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dirmn(const double *a, const double *w, int n, double *out) {
+int clab_dirmn(const double *a, const double *w, int n, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   kutil::ksum sc, ss, sw;
   for (int i = 0; i < n; ++i) {
@@ -338,6 +355,6 @@ int clab_dirmn(const double *a, const double *w, int n, double *out) {
   out[3] = std::sqrt(-2.0 * std::log(r));
   out[4] = W;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

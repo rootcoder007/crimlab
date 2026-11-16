@@ -5,11 +5,14 @@
 // a Kaya identity, the variance inflation factors of a design, the
 // Jarque-Bera test of residuals, and Pesaran's CD test of cross-sectional
 // dependence in a panel. No allocation, no exceptions, no I/O.
+#include <cstdint>
 #include <cmath>
 #include <cstddef>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "pev.h"
+#include "kutil.h"
 
 namespace {
 
@@ -25,7 +28,7 @@ bool pos(double v) { return std::isfinite(v) && v > 0.0; }
 }  // namespace
 
 extern "C" int clab_lmdi(const double *y0, const double *y1, const double *f0,
-                         const double *f1, int n, int k, double *out) {
+                         const double *f1, int n, int k, double *out) CLAB_TRY {
   if (n < 1 || k < 1) return CLAB_EARG;
   const std::size_t sn = static_cast<std::size_t>(n), sk = static_cast<std::size_t>(k);
   for (std::size_t i = 0; i < sn; ++i) {
@@ -41,9 +44,9 @@ extern "C" int clab_lmdi(const double *y0, const double *y1, const double *f0,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" int clab_vif(const double *x, int n, int p, double *out, double *work) {
+extern "C" int clab_vif(const double *x, int n, int p, double *out, double *work) CLAB_TRY {
   if (p < 1 || n < p + 2) return CLAB_EARG;
   const std::size_t sn = static_cast<std::size_t>(n), sp = static_cast<std::size_t>(p);
   double *d = work;         // the constant and the other columns: n p
@@ -81,9 +84,9 @@ extern "C" int clab_vif(const double *x, int n, int p, double *out, double *work
     out[j] = rss > 0.0 ? tss / rss : INFINITY;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" int clab_jb(const double *r, int n, double *out) {
+extern "C" int clab_jb(const double *r, int n, double *out) CLAB_TRY {
   if (n < 4) return CLAB_EARG;
   double m = 0.0;
   for (int i = 0; i < n; ++i) m += r[i];
@@ -98,7 +101,7 @@ extern "C" int clab_jb(const double *r, int n, double *out) {
   m2 /= n;
   m3 /= n;
   m4 /= n;
-  if (!(m2 > 0.0)) return CLAB_EDOM;
+  if (kutil::cnst(r, n) || !(m2 > 0.0)) return CLAB_EDOM;
   const double s = m3 / (m2 * std::sqrt(m2)), k = m4 / (m2 * m2);
   const double jb = n / 6.0 * (s * s + (k - 3.0) * (k - 3.0) / 4.0);
   out[0] = s;
@@ -106,13 +109,13 @@ extern "C" int clab_jb(const double *r, int n, double *out) {
   out[2] = jb;
   out[3] = std::exp(-jb / 2.0);  // the upper tail of chi-squared on 2 df
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) {
+extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) CLAB_TRY {
   if (nu < 2 || nt < 2) return CLAB_EARG;
   const std::size_t st = static_cast<std::size_t>(nt);
   double cd = 0.0, sr = 0.0, sa = 0.0;
-  long m = 0;
+  std::int64_t m = 0;
   for (int a = 0; a < nu; ++a) {
     const double *ea = e + static_cast<std::size_t>(a) * st;
     for (int b = a + 1; b < nu; ++b) {
@@ -135,7 +138,21 @@ extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) {
         saa += (ea[s] - ma) * (ea[s] - ma);
         sbb += (eb[s] - mb) * (eb[s] - mb);
       }
-      if (!(saa > 0.0) || !(sbb > 0.0)) continue;
+      // a unit constant over the shared periods has no correlation (its
+      // sum of squares about a rounded mean need not be 0)
+      double fa = 0.0, fb = 0.0;
+      bool va = false, vb = false, first = true;
+      for (std::size_t s = 0; s < st; ++s) {
+        if (std::isnan(ea[s]) || std::isnan(eb[s])) continue;
+        if (first) {
+          fa = ea[s];
+          fb = eb[s];
+          first = false;
+        }
+        va = va || ea[s] != fa;
+        vb = vb || eb[s] != fb;
+      }
+      if (!va || !vb || !(saa > 0.0) || !(sbb > 0.0)) continue;
       const double rho = sab / std::sqrt(saa * sbb);
       cd += std::sqrt(static_cast<double>(t)) * rho;
       sr += rho;
@@ -151,4 +168,4 @@ extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) {
   out[3] = sa / dm;
   out[4] = dm;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

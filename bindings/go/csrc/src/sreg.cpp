@@ -4,6 +4,7 @@
 // their inference, the spatial lag, error and combined models by maximum
 // likelihood (and the lag model by two-stage least squares), and the
 // direct, indirect and total effects of a lag model.
+#include <cstdint>
 #include <algorithm>
 #include <cmath>
 #include <utility>
@@ -383,7 +384,7 @@ vd dense(int n, const int *rp, const int *ci, const double *w) {
 }  // namespace
 
 int clab_gmoran(const double *x, int n, int k, const int *rp, const int *ci, const double *w,
-                int nsim, unsigned int seed, double *out) {
+                int nsim, unsigned int seed, double *out) CLAB_TRY {
   if (n < 4 || k < 1 || nsim < 0) return CLAB_EARG;
   if (!wok(n, rp, ci, w)) return CLAB_EDOM;
   double s[3];
@@ -441,10 +442,10 @@ int clab_gmoran(const double *x, int n, int k, const int *rp, const int *ci, con
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_bvmor(const double *x, const double *y, int n, const int *rp, const int *ci,
-               const double *w, int nsim, unsigned int seed, double *out) {
+               const double *w, int nsim, unsigned int seed, double *out) CLAB_TRY {
   if (n < 3 || nsim < 0) return CLAB_EARG;
   if (!wok(n, rp, ci, w)) return CLAB_EDOM;
   double s[3];
@@ -465,7 +466,7 @@ int clab_bvmor(const double *x, const double *y, int n, const int *rp, const int
     sx += zx[i] * zx[i];
     sy += zy[i] * zy[i];
   }
-  if (!(s[0] > 0) || !(sx > 0) || !(sy > 0)) return CLAB_EDOM;
+  if (kutil::cnst(x, n) || kutil::cnst(y, n) || !(s[0] > 0) || !(sx > 0) || !(sy > 0)) return CLAB_EDOM;
   const double f = n / s[0] / std::sqrt(sx * sy);
   const double I = f * cross(n, rp, ci, w, zx.data(), zy.data());
   out[0] = I;
@@ -493,11 +494,11 @@ int clab_bvmor(const double *x, const double *y, int n, const int *rp, const int
     out[5] = (1 + std::min(ge, le)) / (nsim + 1.0);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, const int *ci,
                const double *w, int model, int method, const double *inst, int ni, double *coef,
-               double *vc, double *st) {
+               double *vc, double *st) CLAB_TRY {
   if (n < 3 || p < 1 || p >= n || model < 0 || model > 2 || method < 0 || method > 1) {
     return CLAB_EARG;
   }
@@ -506,7 +507,7 @@ int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, co
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i])) return CLAB_EDOM;
   }
-  for (long q = 0; q < static_cast<long>(n) * p; ++q) {
+  for (std::int64_t q = 0; q < static_cast<std::int64_t>(n) * p; ++q) {
     if (!std::isfinite(x[q])) return CLAB_EDOM;
   }
   mdl m;
@@ -807,10 +808,10 @@ int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, co
   st[3] = -0.5 * n * std::log(2 * 3.14159265358979323846 * sso / n) - 0.5 * n;
   st[4] = rmax;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_spill(int n, const int *rp, const int *ci, const double *w, double rho, const double *b,
-               const double *th, int k, const double *vc, double *out) {
+               const double *th, int k, const double *vc, double *out) CLAB_TRY {
   if (n < 2 || k < 1) return CLAB_EARG;
   if (!wok(n, rp, ci, w) || !std::isfinite(rho)) return CLAB_EDOM;
   for (int j = 0; j < k; ++j) {
@@ -859,4 +860,4 @@ int clab_spill(int n, const int *rp, const int *ci, const double *w, double rho,
     o[5] = std::sqrt(std::max(0.0, qf(gt)));
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

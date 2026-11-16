@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -84,7 +85,7 @@ int fold(std::uint32_t c, char *o) {
 
 extern "C" {
 
-int clab_utf8ok(const char *s, int n) {
+int clab_utf8ok(const char *s, int n) CLAB_TRY {
   const unsigned char *u = reinterpret_cast<const unsigned char *>(s);
   std::uint32_t cp = 0;
   for (int i = 0; i < n;) {
@@ -93,9 +94,9 @@ int clab_utf8ok(const char *s, int n) {
     i += k;
   }
   return 1;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_ascii(const char *s, int n, char *out) {
+int clab_ascii(const char *s, int n, char *out) CLAB_TRY {
   const unsigned char *u = reinterpret_cast<const unsigned char *>(s);
   int m = 0;
   std::uint32_t cp = 0;
@@ -113,6 +114,6 @@ int clab_ascii(const char *s, int n, char *out) {
     m += fold(cp, out + m);
   }
   return m;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

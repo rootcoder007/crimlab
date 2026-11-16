@@ -20,7 +20,7 @@ bool bndxw(Ctx &c, Val &out) {
   std::vector<double> wv(m, 1.0);
   if (c.has("w")) {
     Dv d;
-    CK(num(c, c["w"], "w", d, static_cast<long>(m), 0.0));
+    CK(num(c, c["w"], "w", d, static_cast<std::int64_t>(m), 0.0));
     wv = d.v;
   }
   Dv xv;

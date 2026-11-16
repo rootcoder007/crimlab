@@ -182,7 +182,7 @@ int nodes(const double *p, int deffect, double hl, int nq, double *m, double *w)
 extern "C" {
 
 int clab_tfrw(const double *par, int deffect, int tdist, int ymax, double hl,
-              int nq, int *len) {
+              int nq, int *len) CLAB_TRY {
   const int rc = check(par, deffect, tdist, ymax);
   if (rc != CLAB_OK) return rc;
   if (nq < 1 || nq > 100000) return CLAB_EARG;
@@ -194,11 +194,11 @@ int clab_tfrw(const double *par, int deffect, int tdist, int ymax, double hl,
   if (n > 2147483647LL) return CLAB_EARG;
   *len = static_cast<int>(n);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
               unsigned int seed, double hl, int nq, double *prob, double *se,
-              double *cut, double *work) {
+              double *cut, double *work) CLAB_TRY {
   int len;
   int rc = clab_tfrw(par, deffect, tdist, ymax, hl, nq, &len);
   if (rc != CLAB_OK) return rc;
@@ -293,6 +293,6 @@ int clab_tfrp(const double *par, int deffect, int tdist, int ymax, int nsim,
   cut[0] = tcut;          // time distribution left out
   cut[1] = wsum;  // the intensity mass on the nodes (below the grid: zeros)
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

@@ -8,6 +8,7 @@
 #include <limits>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -25,7 +26,7 @@ extern "C" {
 
 int clab_relchk(const double *x, int r, int c, double value, double tol,
                 int *grp, int *g, int *h, int *e, int *kind, double *v,
-                int *match, int *nmatch) {
+                int *match, int *nmatch) CLAB_TRY {
   if (r < 2 || c < 2) return CLAB_EARG;
   // 3 r c (r + c - 2) readings must fit an int
   const double m = 3.0 * r * c * (static_cast<double>(r) + c - 2);
@@ -94,10 +95,10 @@ int clab_relchk(const double *x, int r, int c, double value, double tol,
   }
   *nmatch = nm;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_catchk(const int *code, int n, int k, const int *fold, int nmin,
-                int *cnt, int *twin, int *s, int *work) {
+                int *cnt, int *twin, int *s, int *work) CLAB_TRY {
   if (n < 0 || k < 0 || nmin < 1) return CLAB_EARG;
   for (int j = 0; j < k; ++j) {
     if (fold[j] < 0 || fold[j] >= k) return CLAB_EARG;
@@ -136,6 +137,6 @@ int clab_catchk(const int *code, int n, int k, const int *fold, int nmin,
   s[2] = low;
   s[3] = tw;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

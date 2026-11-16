@@ -71,10 +71,9 @@ double parea(const double *hr, const double *far, int nl, double fmax, double xe
 
 int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, int n, int np, int size,
                double fmax, int nboot, unsigned int seed, double *lev, int *nlev, double *roc, double *cac,
-               double *pauc, double *bse, double *fused) {
+               double *pauc, double *bse, double *fused) CLAB_TRY {
   if (n < 2 || np < 1 || size < 0) return CLAB_EARG;
   if (nboot < 0 || static_cast<double>(nboot) * n > 4e12) return CLAB_EARG;
-  if (static_cast<double>(nboot) * np > kutil::maxcell) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (pr[i] < 0 || pr[i] >= np || pk[i] < 0 || pk[i] > 2 || (tp[i] != 0 && tp[i] != 1)) return CLAB_EARG;
     if (pk[i] != 0 && !std::isfinite(cf[i])) return CLAB_EDOM;
@@ -120,11 +119,17 @@ int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, in
   // target-present and target-absent lineups of each procedure
   for (int p = 0; p < np; ++p) bse[p] = kutil::nan();
   if (nboot > 0) {
-    kutil::rng rg(seed);
-    std::vector<double> bt(static_cast<std::size_t>(nboot) * np), hr(L), fr(L);
+    // Two passes over the same replicates, drawn again from the seed: the
+    // first sums the areas for the means, the second the squared
+    // deviations, in the order a stored table of nboot x np would give,
+    // so nothing grows with nboot.
+    std::vector<double> hr(L), fr(L), bt(static_cast<std::size_t>(np)), m(2 * static_cast<std::size_t>(np), 0.0),
+        ss(2 * static_cast<std::size_t>(np), 0.0);
     std::vector<int> s;
-    for (int b = 0; b < nboot; ++b) {
-      if (kutil::stop(static_cast<double>(n) * 4)) return CLAB_EINTR;
+    // the areas of replicate b of every procedure into bt; false when
+    // interrupted
+    auto rep = [&](kutil::rng &rg) {
+      if (kutil::stop(static_cast<double>(n) * 4)) return false;
       for (int p = 0; p < np; ++p) {
         const std::vector<int> &w = ix[static_cast<std::size_t>(p)];
         std::vector<int> t1, t0;
@@ -133,35 +138,45 @@ int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, in
         for (std::size_t k = 0; k < t1.size(); ++k) s.push_back(t1[static_cast<std::size_t>(rg.below(static_cast<int>(t1.size())))]);
         for (std::size_t k = 0; k < t0.size(); ++k) s.push_back(t0[static_cast<std::size_t>(rg.below(static_cast<int>(t0.size())))]);
         rates(tp, pk, cf, s.data(), static_cast<int>(s.size()), lev, nl, size, hr.data(), fr.data());
-        bt[static_cast<std::size_t>(b) * np + p] = parea(hr.data(), fr.data(), nl, fm, xe);
+        bt[static_cast<std::size_t>(p)] = parea(hr.data(), fr.data(), nl, fm, xe);
+      }
+      return true;
+    };
+    // the value of procedure p (k = 0) or its difference from the first
+    // (k = 1) in the replicate in bt
+    auto val = [&](int p, int k) { return bt[static_cast<std::size_t>(p)] - (k ? bt[0] : 0.0); };
+    for (int pass = 0; pass < 2; ++pass) {
+      kutil::rng rg(seed);
+      for (int b = 0; b < nboot; ++b) {
+        if (!rep(rg)) return CLAB_EINTR;
+        for (int p = 0; p < np; ++p) {
+          for (int k = 0; k < 2; ++k) {
+            const std::size_t c = static_cast<std::size_t>(k * np + p);
+            if (pass == 0) {
+              m[c] += val(p, k);
+            } else {
+              ss[c] += (val(p, k) - m[c]) * (val(p, k) - m[c]);
+            }
+          }
+        }
+      }
+      if (pass == 0) {
+        for (double &e : m) e /= nboot;
       }
     }
     // bse: np x 2: the bootstrap standard error of each area and of its
     // difference from the first procedure's
     for (int p = 0; p < np; ++p) {
       for (int k = 0; k < 2; ++k) {
-        if (k == 1 && p == 0) {
-          bse[np] = kutil::nan();
-          continue;
-        }
-        double m = 0, ss = 0;
-        for (int b = 0; b < nboot; ++b) {
-          const double v = bt[static_cast<std::size_t>(b) * np + p] - (k ? bt[static_cast<std::size_t>(b) * np] : 0.0);
-          m += v;
-        }
-        m /= nboot;
-        for (int b = 0; b < nboot; ++b) {
-          const double v = bt[static_cast<std::size_t>(b) * np + p] - (k ? bt[static_cast<std::size_t>(b) * np] : 0.0);
-          ss += (v - m) * (v - m);
-        }
-        bse[k * np + p] = nboot > 1 ? std::sqrt(ss / (nboot - 1)) : kutil::nan();
+        const std::size_t c = static_cast<std::size_t>(k * np + p);
+        bse[c] = (k == 1 && p == 0) || nboot < 2 ? kutil::nan() : std::sqrt(ss[c] / (nboot - 1));
       }
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out) {
+int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out) CLAB_TRY {
   if (n < 1 || k < 2 || susp < 0 || susp >= k || !(z > 0)) return CLAB_EARG;
   for (int j = 0; j < k; ++j) cnt[j] = 0.0;
   int none = 0;
@@ -212,4 +227,4 @@ int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, do
   out[9] = 1 / (s2 + h);
   out[10] = s2 - h > 0 ? 1 / (s2 - h) : HUGE_VAL;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

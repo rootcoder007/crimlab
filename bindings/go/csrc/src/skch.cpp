@@ -90,7 +90,7 @@ uint64_t bdraw(std::mt19937_64 &g, uint64_t s) {
 
 extern "C" {
 
-void clab_sha256(const unsigned char *d, std::size_t n, unsigned char *out) {
+void clab_sha256(const unsigned char *d, std::size_t n, unsigned char *out) CLAB_TRY {
   uint32_t h[8] = {0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19};
   std::size_t i = 0;
   for (; i + 64 <= n; i += 64) block(h, d + i);
@@ -106,7 +106,7 @@ void clab_sha256(const unsigned char *d, std::size_t n, unsigned char *out) {
   for (int k = 0; k < 8; ++k) {
     for (int b = 0; b < 4; ++b) out[4 * k + b] = static_cast<unsigned char>(h[k] >> (24 - 8 * b));
   }
-}
+} CLAB_CATCHV
 
 uint32_t clab_crc32(const unsigned char *d, std::size_t n, uint32_t crc) {
   // the reflected polynomial 0xEDB88320, one byte at a time
@@ -118,7 +118,7 @@ uint32_t clab_crc32(const unsigned char *d, std::size_t n, uint32_t crc) {
   return ~crc;
 }
 
-int clab_momacc(const double *x, double n, double *out) {
+int clab_momacc(const double *x, double n, double *out) CLAB_TRY {
   for (int i = 0; i < 5; ++i) out[i] = 0;
   if (n < 1) return CLAB_OK;
   const std::size_t m = static_cast<std::size_t>(n);
@@ -140,9 +140,9 @@ int clab_momacc(const double *x, double n, double *out) {
   out[3] = m3;
   out[4] = m4;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mommrg(const double *a, const double *b, double *out) {
+int clab_mommrg(const double *a, const double *b, double *out) CLAB_TRY {
   const double na = a[0], nb = b[0];
   if (na <= 0 || nb <= 0) {
     const double *s = na <= 0 ? b : a;
@@ -161,9 +161,9 @@ int clab_mommrg(const double *a, const double *b, double *out) {
   out[3] = M3;
   out[4] = M4;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_rsv(double n, double k, double seed, double *out) {
+int clab_rsv(double n, double k, double seed, double *out) CLAB_TRY {
   if (!(n >= 0) || !(k >= 0) || !(seed >= 0) || n > 9007199254740992.0 || k > 1e8 || seed >= 9007199254740992.0) {
     return CLAB_EARG;
   }
@@ -181,9 +181,9 @@ int clab_rsv(double n, double k, double seed, double *out) {
   std::sort(res.begin(), res.end());
   for (uint64_t i = 0; i < kk; ++i) out[i] = static_cast<double>(res[static_cast<std::size_t>(i)] + 1);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_hlladd(const char *s, std::size_t len, int p, int *reg) {
+int clab_hlladd(const char *s, std::size_t len, int p, int *reg) CLAB_TRY {
   if (p < 4 || p > 20) return CLAB_EARG;
   unsigned char h[32];
   clab_sha256(reinterpret_cast<const unsigned char *>(s), len, h);
@@ -199,9 +199,9 @@ int clab_hlladd(const char *s, std::size_t len, int p, int *reg) {
   }
   if (rank > reg[idx]) reg[idx] = rank;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-double clab_hllcnt(const int *r, std::size_t m) {
+double clab_hllcnt(const int *r, std::size_t m) CLAB_TRY {
   if (m == 0) return 0;
   double sum = 0;
   std::size_t zeros = 0;
@@ -214,11 +214,11 @@ double clab_hllcnt(const int *r, std::size_t m) {
   double est = al * md * md / sum;
   if (est <= 2.5 * md && zeros > 0) est = md * std::log(md / static_cast<double>(zeros));
   return est;
-}
+} CLAB_CATCH(kutil::nan())
 
 }  // extern "C"
 
-extern "C" void clab_momstat(const double *s, double *o) {
+extern "C" void clab_momstat(const double *s, double *o) CLAB_TRY {
   const double n = s[0], nan = kutil::nan();
   const double m2 = n > 0 ? s[2] / n : nan;
   o[0] = n;
@@ -227,4 +227,4 @@ extern "C" void clab_momstat(const double *s, double *o) {
   o[3] = std::sqrt(o[2]);
   o[4] = n > 2 && s[2] > 0 ? (s[3] / n) / std::pow(m2, 1.5) : nan;
   o[5] = n > 3 && s[2] > 0 ? (s[4] / n) / (m2 * m2) - 3 : nan;
-}
+} CLAB_CATCHV

@@ -12,7 +12,7 @@
 #include "kutil.h"
 
 int clab_rptvic(const int *id, const double *t, int n, int nid, double pop, const double *brk, int nb,
-                double *tab, int *kmax, double *st, double *gap, double *lag) {
+                double *tab, int *kmax, double *st, double *gap, double *lag) CLAB_TRY {
   if (n < 1 || nid < 1 || nid > n || (t == nullptr && nb > 0) || nb < 0 || nb == 1) return CLAB_EARG;
   if (std::isfinite(pop) && pop < nid) return CLAB_EDOM;
   std::vector<int> k(static_cast<std::size_t>(nid), 0);
@@ -95,4 +95,4 @@ int clab_rptvic(const int *id, const double *t, int n, int nid, double pop, cons
     lag[2 * (nb - 1) + j] = m > 0 ? cum / static_cast<double>(m) : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -95,7 +95,7 @@ double d2(const double *x, const double *y, int i, int j) {
 
 int clab_kscan(const double *x, const double *y, const double *t, int n, const double *r, int nr,
                const double *tw, int nw, int minc, int nsim, unsigned int seed, int top,
-               double *out, int *ncl) {
+               double *out, int *ncl) CLAB_TRY {
   if (n < 3 || nr < 1 || nw < 1 || minc < 1 || nsim < 0 || top < 1) return CLAB_EARG;
   for (int k = 0; k < nr; ++k) {
     if (!kutil::pos(r[k]) || (k > 0 && !(r[k] > r[k - 1]))) return CLAB_EDOM;
@@ -141,10 +141,11 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
   std::sort(o.begin(), o.end(), [&](int a, int b) {
     return x[a] == x[b] ? (y[a] == y[b] ? a < b : y[a] < y[b]) : x[a] < x[b];
   });
+  // in the order of their coordinates, not of the rows: a tie in the
+  // likelihood ratio goes to the same centre whatever the order of the rows
   for (int q = 0; q < n; ++q) {
     if (q == 0 || x[o[q]] != x[o[q - 1]] || y[o[q]] != y[o[q - 1]]) s.ctr.push_back(o[q]);
   }
-  std::sort(s.ctr.begin(), s.ctr.end());
   const double rmax2 = r[nr - 1] * r[nr - 1];
   s.memb.resize(s.ctr.size());
   s.cut.resize(s.ctr.size());
@@ -210,4 +211,4 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
     v[9] = nsim > 0 ? (1 + ge[q]) / (nsim + 1.0) : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

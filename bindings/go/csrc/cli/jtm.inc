@@ -201,7 +201,7 @@ bool periods(Ctx &c, std::size_t n, std::vector<double> &v) {
     return true;
   }
   Dv xv;
-  CK(num(c, c["x"], "x", xv, static_cast<long>(n)));
+  CK(num(c, c["x"], "x", xv, static_cast<std::int64_t>(n)));
   for (std::size_t i = 0; i < n; ++i) {
     v[i] = xv[i];
     if (i > 0 && !(v[i] > v[i - 1])) return c.fail("`x` must be strictly increasing.");
@@ -449,6 +449,8 @@ bool xcser(Ctx &c, Val &out) {
   int lag = std::max(0, std::min(n - 1, static_cast<int>(std::floor(10 * std::log10(n / 2.0)))));
   if (c.has("lagmax")) CK(whole(c, c["lagmax"], "lagmax", 0, lag));
   if (lag >= n) return c.fail("`lagmax` must be below the number of periods, %d.", n);
+  if (kutil::cnst(a.data(), n)) return c.fail("`%s` is constant: its correlation with any series is undefined.", "x");
+  if (kutil::cnst(b.data(), n)) return c.fail("`%s` is constant: its correlation with any series is undefined.", "y");
   std::vector<double> r(2 * static_cast<std::size_t>(lag) + 1);
   if (clab_xcser(a.data(), b.data(), n, lag, r.data()) != CLAB_OK) return c.fail("a series is constant: no correlation.");
   const double r0 = r[static_cast<std::size_t>(lag)];

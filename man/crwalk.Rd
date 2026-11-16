@@ -20,8 +20,7 @@ package; otherwise by position. No missing or infinite values.}
 
 \item{h}{The number of steps ahead: a whole number from 1.}
 
-\item{nsim}{The number of simulated continuations: a whole number from 1;
-\code{h} times \code{nsim} must be at most 67108864 (2^26).}
+\item{nsim}{The number of simulated continuations: a whole number from 1.}
 
 \item{seed}{\code{NULL} to draw the simulations' seed from R's generator (so
 \code{\link[=set.seed]{set.seed()}} fixes them), or one whole number from 0.}

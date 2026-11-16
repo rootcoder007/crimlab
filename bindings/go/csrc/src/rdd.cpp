@@ -6,6 +6,7 @@
 // (clab_mccr). The local fits themselves are clab_ivfe with kernel weights
 // (src/apx.cpp). Least squares is that of the policy-evaluation families
 // (pev.h).
+#include <cstdint>
 #include <cmath>
 #include <cstddef>
 #include <vector>
@@ -55,7 +56,7 @@ std::vector<double> poly(const std::vector<double> &v, double c, int p) {
 
 extern "C" {
 
-double clab_rdck(int kern) {
+double clab_rdck(int kern) CLAB_TRY {
   // the moments on [0, 1] of the kernel (any constant multiple: C_K does
   // not depend on it): nu_j of K, pi_j of K^2
   double nu[4], pi[3];
@@ -81,13 +82,16 @@ double clab_rdck(int kern) {
   const double c1 = q * q / 4;
   const double c2 = (nu[2] * nu[2] * pi[0] - 2 * nu[1] * nu[2] * pi[1] + nu[1] * nu[1] * pi[2]) / (d * d);
   return std::pow(c2 / (4 * c1), 0.2);
-}
+} CLAB_CATCH(kutil::nan())
 
-int clab_ikbw(const double *y, const double *x, int n, double c, int kern, double *h, double *st) {
+int clab_ikbw(const double *y, const double *x, int n, double c, int kern, double *h, double *st) CLAB_TRY {
   if (n < 10 || kern < 0 || kern > 2 || !std::isfinite(c)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i]) || !std::isfinite(x[i])) return CLAB_EDOM;
   }
+  // a constant outcome has a third derivative of 0, which its cubic fit
+  // returns as rounding error
+  if (kutil::cnst(y, n)) return CLAB_EDOM;
   const size_t sn = static_cast<size_t>(n);
   // step 1: the pilot bandwidth h1 = 1.84 S_X N^(-1/5), the density and
   // the variances on either side (their equations 11-13, p. 941-942)
@@ -176,9 +180,9 @@ int clab_ikbw(const double *y, const double *x, int n, double c, int kern, doubl
   st[8] = m2r;
   st[9] = ck;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mccr(const double *r, int n, double c, double b, double h, double *st) {
+int clab_mccr(const double *r, int n, double c, double b, double h, double *st) CLAB_TRY {
   if (n < 10 || !std::isfinite(c) || !(b >= 0) || !(h >= 0)) return CLAB_EARG;
   double mr = 0.0, lo = r[0], hi = r[0];
   for (int i = 0; i < n; ++i) {
@@ -197,14 +201,14 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   // the first-step histogram: g(R) = floor((R - c) / b) b + b / 2 + c
   // (equation 2), bins of width b over the support of g, Y_j the share
   // of the rows in bin j over b
-  const long jlo = static_cast<long>(std::floor((lo - c) / b));
-  const long jhi = static_cast<long>(std::floor((hi - c) / b));
-  const long nb = jhi - jlo + 1;
+  const std::int64_t jlo = static_cast<std::int64_t>(std::floor((lo - c) / b));
+  const std::int64_t jhi = static_cast<std::int64_t>(std::floor((hi - c) / b));
+  const std::int64_t nb = jhi - jlo + 1;
   if (nb < 4 || nb > 10000000L) return CLAB_EDOM;
   std::vector<double> xj(static_cast<size_t>(nb)), yj(static_cast<size_t>(nb), 0.0);
-  for (long j = 0; j < nb; ++j) xj[static_cast<size_t>(j)] = (jlo + j) * b + b / 2 + c;
+  for (std::int64_t j = 0; j < nb; ++j) xj[static_cast<size_t>(j)] = (jlo + j) * b + b / 2 + c;
   for (int i = 0; i < n; ++i) {
-    const long j = static_cast<long>(std::floor((r[i] - c) / b)) - jlo;
+    const std::int64_t j = static_cast<std::int64_t>(std::floor((r[i] - c) / b)) - jlo;
     yj[static_cast<size_t>(j)] += 1.0 / (n * b);
   }
   // the bandwidth, when not given: a quartic in the bin midpoints on each
@@ -214,7 +218,7 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
     double hs = 0.0;
     for (int side = 0; side < 2; ++side) {
       std::vector<double> xs, ys;
-      for (long j = 0; j < nb; ++j) {
+      for (std::int64_t j = 0; j < nb; ++j) {
         const double v = xj[static_cast<size_t>(j)];
         if ((side == 0 && v < c) || (side == 1 && v > c)) {
           xs.push_back(v);
@@ -240,7 +244,7 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   double fe[2];
   for (int side = 0; side < 2; ++side) {
     double s0 = 0, s1 = 0, s2 = 0, t0 = 0, t1 = 0;
-    for (long j = 0; j < nb; ++j) {
+    for (std::int64_t j = 0; j < nb; ++j) {
       const double v = xj[static_cast<size_t>(j)];
       if ((side == 0 && !(v < c)) || (side == 1 && !(v > c))) continue;
       const double u = v - c, k = std::fmax(0.0, 1 - std::fabs(u / h));
@@ -264,6 +268,6 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   st[5] = h;
   st[6] = static_cast<double>(nb);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

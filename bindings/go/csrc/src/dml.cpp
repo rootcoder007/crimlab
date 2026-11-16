@@ -9,6 +9,7 @@
 // differences and sample selection, the augmented inverse probability
 // weighting estimator and targeted maximum likelihood. Nothing is
 // allocated; no R here.
+#include <cstdint>
 #include <cmath>
 #include <initializer_list>
 
@@ -28,32 +29,32 @@ inline double clip(double v, double lo, double hi) {
 // learner's predictions (n), the normal equations of the meta-weights and
 // the scratch of its largest learner; ints, the folds and the training and
 // test rows of a fold (3n) and its learners' ints.
-long lw(const clab_lrn &l, int n, int p) {
-  if (l.kind == 0) return 2L * (p + 1) + lrn::gwork(p) + n;
+std::int64_t lw(const clab_lrn &l, int n, int p) {
+  if (l.kind == 0) return std::int64_t{2} * (p + 1) + lrn::gwork(p) + n;
   if (l.kind == 2) return lrn::fwork(n, p, n) + n;
   if (l.kind == 3) {
-    long m = 0;
+    std::int64_t m = 0;
     for (int j = 0; j < l.nsub; ++j) {
-      const long v = lw(l.sub[j], n, p);
+      const std::int64_t v = lw(l.sub[j], n, p);
       m = v > m ? v : m;
     }
-    const long q = l.nsub;
+    const std::int64_t q = l.nsub;
     return (q + 1) * n + 2 * q * q + 8 * q + m;
   }
-  return static_cast<long>(l.nlam) * (p + 4) + lrn::cvwork(n, p, l.nlam, l.nfold) + n;
+  return static_cast<std::int64_t>(l.nlam) * (p + 4) + lrn::cvwork(n, p, l.nlam, l.nfold) + n;
 }
-long liw(const clab_lrn &l, int n, int p) {
+std::int64_t liw(const clab_lrn &l, int n, int p) {
   if (l.kind == 0) return 0;
   if (l.kind == 2) return lrn::fiwork(n, p, n);
   if (l.kind == 3) {
-    long m = 0;
+    std::int64_t m = 0;
     for (int j = 0; j < l.nsub; ++j) {
-      const long v = liw(l.sub[j], n, p);
+      const std::int64_t v = liw(l.sub[j], n, p);
       m = v > m ? v : m;
     }
-    return 3L * n + l.nsub + m;
+    return std::int64_t{3} * n + l.nsub + m;
   }
-  return 3L * n + p;
+  return std::int64_t{3} * n + p;
 }
 
 // A learner's settings: CLAB_EARG or CLAB_EDOM for one out of range. A
@@ -199,7 +200,7 @@ int sfit(const clab_lrn &l, int fam, const double *x, int n, int p, const double
          const int *tr, int mt, const int *te, int me, const int *fold, unsigned int seed,
          double *out, double *w, int *iw, double *risk, double *wt) {
   const int L = l.nsub, K = l.nstk;
-  double *Z = w, *tmp = Z + static_cast<long>(n) * L, *g = tmp + n, *b = g + L * L;
+  double *Z = w, *tmp = Z + static_cast<std::int64_t>(n) * L, *g = tmp + n, *b = g + L * L;
   double *wv = b + L, *rk = wv + L, *nw = rk + L, *sw = nw + L * L + 2 * L;
   int *f = iw, *trk = f + n, *tek = trk + n, *pas = tek + n, *siw = pas + L;
   if (mt < K) return CLAB_EDOM;
@@ -223,13 +224,13 @@ int sfit(const clab_lrn &l, int fam, const double *x, int n, int p, const double
       const int rc = nfit(l.sub[j], fam, x, n, p, y, trk, a, tek, c,
                           seed + 7919U * static_cast<unsigned int>(k + 1), tmp, sw, siw);
       if (rc != CLAB_OK) return rc;
-      double *zj = Z + static_cast<long>(j) * n;
+      double *zj = Z + static_cast<std::int64_t>(j) * n;
       for (int i = 0; i < c; ++i) zj[tek[i]] = tmp[tek[i]];
     }
   }
   // the risks, and the normal equations of y on the predictions
   for (int j = 0; j < L; ++j) {
-    const double *zj = Z + static_cast<long>(j) * n;
+    const double *zj = Z + static_cast<std::int64_t>(j) * n;
     kutil::ksum r, bj;
     for (int i = 0; i < mt; ++i) {
       const double v = y[tr[i]] - zj[tr[i]];
@@ -239,7 +240,7 @@ int sfit(const clab_lrn &l, int fam, const double *x, int n, int p, const double
     rk[j] = r.val() / mt;
     b[j] = bj.val();
     for (int k = 0; k <= j; ++k) {
-      const double *zk = Z + static_cast<long>(k) * n;
+      const double *zk = Z + static_cast<std::int64_t>(k) * n;
       kutil::ksum s;
       for (int i = 0; i < mt; ++i) s.add(zj[tr[i]] * zk[tr[i]]);
       g[j * L + k] = g[k * L + j] = s.val();
@@ -324,14 +325,14 @@ int nfit(const clab_lrn &l, int fam, const double *x, int n, int p,
     kutil::rng g(seed);
     deal(mt, k, g, f, pm);
     double *lam = eta + n, *a0 = lam + nl, *cv = a0 + nl, *beta = cv + 2 * nl;
-    double *cw = beta + static_cast<long>(p) * nl;
+    double *cw = beta + static_cast<std::int64_t>(p) * nl;
     int best[2];
     const double lmr = mt > p ? 1e-4 : 1e-2;
     int nfit;
     const int rc = lrn::cvnet(d, fam, l.alpha, lam, nl, lmr, l.tol, 100000, l.scr, f, k,
                               a0, beta, cv, best, &nfit, cw, ciw);
     if (rc != CLAB_OK) return rc;
-    lrn::lpred(x, n, p, te, me, a0[best[0]], beta + static_cast<long>(p) * best[0], eta);
+    lrn::lpred(x, n, p, te, me, a0[best[0]], beta + static_cast<std::int64_t>(p) * best[0], eta);
   }
   for (int i = 0; i < me; ++i) out[te[i]] = fam == 1 ? expit(eta[i]) : eta[i];
   return CLAB_OK;
@@ -423,7 +424,7 @@ int twoway(const double *pa, const double *pb, int n, const int *fold, int nf,
            const int *clu, int nc, int nc2, double *th, double *var, double *w) {
   const int *c2 = clu + n, *f2 = fold + n;
   double *k1 = w, *k2 = k1 + nf, *g1 = k2 + nf, *g2 = g1 + nc, *s1 = g2 + nc2,
-         *s2 = s1 + static_cast<long>(nc) * nf;
+         *s2 = s1 + static_cast<std::int64_t>(nc) * nf;
   for (int k = 0; k < nf; ++k) k1[k] = k2[k] = 0.0;
   for (int c = 0; c < nc; ++c) g1[c] = -1.0;
   for (int c = 0; c < nc2; ++c) g2[c] = -1.0;
@@ -445,25 +446,25 @@ int twoway(const double *pa, const double *pb, int n, const int *fold, int nf,
   }
   *th = -sb / sa;
   if (!std::isfinite(*th)) return CLAB_EDOM;
-  for (long c = 0; c < static_cast<long>(nc) * nf; ++c) s1[c] = 0.0;
-  for (long c = 0; c < static_cast<long>(nc2) * nf; ++c) s2[c] = 0.0;
+  for (std::int64_t c = 0; c < static_cast<std::int64_t>(nc) * nf; ++c) s1[c] = 0.0;
+  for (std::int64_t c = 0; c < static_cast<std::int64_t>(nc2) * nf; ++c) s2[c] = 0.0;
   for (int i = 0; i < n; ++i) {
     const double ps = pa[i] * *th + pb[i];
-    s1[static_cast<long>(clu[i]) * nf + f2[i]] += ps;
-    s2[static_cast<long>(c2[i]) * nf + fold[i]] += ps;
+    s1[static_cast<std::int64_t>(clu[i]) * nf + f2[i]] += ps;
+    s2[static_cast<std::int64_t>(c2[i]) * nf + fold[i]] += ps;
   }
   double gam = 0.0;
   for (int c = 0; c < nc; ++c) {
     const int k = static_cast<int>(g1[c]);
     for (int l = 0; l < nf; ++l) {
-      const double q = k1[k] * k2[l], v = s1[static_cast<long>(c) * nf + l];
+      const double q = k1[k] * k2[l], v = s1[static_cast<std::int64_t>(c) * nf + l];
       gam += std::fmin(k1[k], k2[l]) / (q * q) * v * v;
     }
   }
   for (int c = 0; c < nc2; ++c) {
     const int l = static_cast<int>(g2[c]);
     for (int k = 0; k < nf; ++k) {
-      const double q = k1[k] * k2[l], v = s2[static_cast<long>(c) * nf + k];
+      const double q = k1[k] * k2[l], v = s2[static_cast<std::int64_t>(c) * nf + k];
       gam += std::fmin(k1[k], k2[l]) / (q * q) * v * v;
     }
   }
@@ -479,8 +480,8 @@ int score(int model, int sc, const double *y, const double *d,
           const int *fold, int nf, const int *clu, int nc, int nc2,
           double trim, double *pa, double *pb, double *th, double *var,
           double *w) {
-  const double *p0 = pr, *p1 = pr + n, *p2 = pr + 2L * n, *p3 = pr + 3L * n,
-               *p4 = pr + 4L * n;
+  const double *p0 = pr, *p1 = pr + n, *p2 = pr + std::int64_t{2} * n, *p3 = pr + std::int64_t{3} * n,
+               *p4 = pr + std::int64_t{4} * n;
   switch (model) {
     case 0:
       for (int i = 0; i < n; ++i) {
@@ -731,34 +732,34 @@ int score(int model, int sc, const double *y, const double *d,
 
 extern "C" {
 
-long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
-                const clab_lrn *ly, const clab_lrn *ld, long *niw) {
+std::int64_t clab_dmlxsz(int model, int n, int p, int nf, int nrep,
+                const clab_lrn *ly, const clab_lrn *ld, std::int64_t *niw) CLAB_TRY {
   const int pa = model == 8 ? p + 1 : p;
-  long a = lw(*ly, n, pa), b = lw(*ld, n, pa);
-  long ia = liw(*ly, n, pa), ib = liw(*ld, n, pa);
-  *niw = 2L * n + (ia > ib ? ia : ib);
-  const long m = (a > b ? a : b) + 2L * n + nf + (model == 8 ? static_cast<long>(n) * (p + 1) : 0) +
-                 2L * nf + 2L * n * (nf + 1);
+  std::int64_t a = lw(*ly, n, pa), b = lw(*ld, n, pa);
+  std::int64_t ia = liw(*ly, n, pa), ib = liw(*ld, n, pa);
+  *niw = std::int64_t{2} * n + (ia > ib ? ia : ib);
+  const std::int64_t m = (a > b ? a : b) + std::int64_t{2} * n + nf + (model == 8 ? static_cast<std::int64_t>(n) * (p + 1) : 0) +
+                 std::int64_t{2} * nf + std::int64_t{2} * n * (nf + 1);
   return m > nrep ? m : nrep;
-}
+} CLAB_CATCH(-1)
 
 int clab_dmlx(int model, int sc, const double *x, int n, int p,
              const double *y, const double *d, const double *z,
              const double *s, const int *fold, int nf, int nrep,
              const int *clu, int nc, int nc2, const clab_lrn *ly,
              const clab_lrn *ld, double trim, int fit, double *pred,
-             double *est, double *psi, double *work, int *iwork) {
+             double *est, double *psi, double *work, int *iwork) CLAB_TRY {
   if (model < 0 || model > 8 || sc < 0 || sc > 1 || n < 2 || p < 1 ||
       nf < 2 || nf > n || nrep < 1 || (clu != nullptr && (model > 1 || nc < 2)) ||
       (nc2 != 0 && (clu == nullptr || nc2 < 2 || nrep != 1)))
     return CLAB_EARG;
   const int nw = nc2 > 0 ? 2 : 1;  // two-way: fold and clu hold two columns
   const int k = clab_dmlxk(model, sc);
-  for (long i = 0; i < static_cast<long>(n) * nrep * nw; ++i) {
+  for (std::int64_t i = 0; i < static_cast<std::int64_t>(n) * nrep * nw; ++i) {
     if (fold[i] < 0 || fold[i] >= nf) return CLAB_EARG;
   }
   if (clu != nullptr) {
-    for (long i = 0; i < static_cast<long>(n) * nw; ++i) {
+    for (std::int64_t i = 0; i < static_cast<std::int64_t>(n) * nw; ++i) {
       if (clu[i] < 0 || clu[i] >= (i < n ? nc : nc2)) return CLAB_EARG;
     }
   }
@@ -769,25 +770,25 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
   if (!(trim >= 0.0 && trim < 0.5)) return CLAB_EDOM;
   const Nu *nu = spec(model, sc);
   int *tr = iwork, *te = tr + n, *liwk = te + n;
-  double *tw = work + 2L * n + nf, *xa = nullptr;
+  double *tw = work + std::int64_t{2} * n + nf, *xa = nullptr;
   double *tgt = work;  // the working target of the IV-type score
   if (model == 8) {
     xa = tw;
-    tw = xa + static_cast<long>(n) * (p + 1);
-    for (long i = 0; i < static_cast<long>(n) * p; ++i) xa[i] = x[i];
-    for (int i = 0; i < n; ++i) xa[static_cast<long>(n) * p + i] = d[i];
+    tw = xa + static_cast<std::int64_t>(n) * (p + 1);
+    for (std::int64_t i = 0; i < static_cast<std::int64_t>(n) * p; ++i) xa[i] = x[i];
+    for (int i = 0; i < n; ++i) xa[static_cast<std::int64_t>(n) * p + i] = d[i];
   }
   double *th = est + 2, *se = est + 2 + nrep;
   for (int r = 0; r < nrep; ++r) {
-    const int *fr = fold + static_cast<long>(r) * n;
-    double *pr = pred + static_cast<long>(r) * k * n;
+    const int *fr = fold + static_cast<std::int64_t>(r) * n;
+    double *pr = pred + static_cast<std::int64_t>(r) * k * n;
     for (int j = 0; fit && j < k; ++j) {
       const Nu &u = nu[j];
       const clab_lrn &l = u.out ? *ly : *ld;
       const double *tv = u.tgt == TY ? y : u.tgt == TD ? d : u.tgt == TZ ? z : u.tgt == TS ? s : tgt;
       if (u.tgt == TW) {
         // y - theta0 d, theta0 from the partialling-out score
-        const double *pd = pr + (model == 0 ? 1L : 2L) * n;
+        const double *pd = pr + (model == 0 ? std::int64_t{1} : std::int64_t{2}) * n;
         const double *pz = pr + n;
         double sa = 0.0, sb = 0.0;
         for (int i = 0; i < n; ++i) {
@@ -816,11 +817,11 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
         }
         const unsigned int sd = l.seed + 7919U * static_cast<unsigned int>(r * 64 + j * 8 + f);
         const int rc = nfit(l, u.fam, u.aug ? xa : x, n, u.aug ? p + 1 : p, tv, tr, mt,
-                            te, me, sd, pr + static_cast<long>(j) * n, tw, liwk);
+                            te, me, sd, pr + static_cast<std::int64_t>(j) * n, tw, liwk);
         if (rc != CLAB_OK) return rc;
       }
     }
-    double *pa = psi + static_cast<long>(r) * n, *pb = psi + static_cast<long>(nrep + r) * n;
+    double *pa = psi + static_cast<std::int64_t>(r) * n, *pb = psi + static_cast<std::int64_t>(nrep + r) * n;
     double v;
     const int rc = score(model, sc, y, d, z, s, pr, n, fr, nf, clu, nc, nc2, trim, pa,
                          pb, th + r, &v, work + n);
@@ -841,38 +842,38 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
   const double md = nrep % 2 ? t[nrep / 2] : 0.5 * (t[nrep / 2 - 1] + t[nrep / 2]);
   est[1] = std::sqrt(md / sf);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dmlxk(int model, int sc) {
+int clab_dmlxk(int model, int sc) CLAB_TRY {
   static const int k[] = {2, 3, 3, 5, 3, 3, 2, 5, 4};
   if (model < 0 || model > 8) return 0;
   // IV-type adds g; the experimental cross-sections drop m
   return k[model] + (model <= 1 && sc == 1 ? 1 : 0) - (model == 7 && sc == 1 ? 1 : 0);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork) {
+int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork) CLAB_TRY {
   if (n < 1 || k < 1 || k > n) return CLAB_EARG;
   kutil::rng g(seed);
   deal(n, k, g, fold, iwork);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw) {
+std::int64_t clab_stksz(int n, int p, int nt, const clab_lrn *l, std::int64_t *niw) CLAB_TRY {
   // sizes clab_stack() refuses need no workspace; the sum is not formed in
   // a long, which is 32 bits on Windows and in WebAssembly
   if (n < 0 || nt < 0 || nt > 2147483647 - n) {
     *niw = 0;
     return 0;
   }
-  const long nn = static_cast<long>(n) + nt;
+  const std::int64_t nn = static_cast<std::int64_t>(n) + nt;
   *niw = 2 * nn + liw(*l, static_cast<int>(nn), p);
   return nn * (p + 2) + lw(*l, static_cast<int>(nn), p);
-}
+} CLAB_CATCH(-1)
 
 int clab_stack(const double *x, int n, int p, const double *y, int fam,
                const clab_lrn *l, const int *fold, const double *xt, int nt,
                double *oof, double *risk, double *wt, double *pred,
-               double *work, int *iwork) {
+               double *work, int *iwork) CLAB_TRY {
   if (n < 2 || p < 1 || nt < 0 || (fam != 0 && fam != 1) || l->kind != 3) return CLAB_EARG;
   // n >= 2 and nt >= 0 here: the sum is tested without forming it (long is
   // 32 bits on Windows and in WebAssembly)
@@ -884,14 +885,14 @@ int clab_stack(const double *x, int n, int p, const double *y, int fam,
     if (!std::isfinite(y[i]) || (fam == 1 && y[i] != 0.0 && y[i] != 1.0)) return CLAB_EDOM;
   }
   const int N = n + nt;
-  double *xa = work, *ya = xa + static_cast<long>(N) * p, *out = ya + N, *w = out + N;
+  double *xa = work, *ya = xa + static_cast<std::int64_t>(N) * p, *out = ya + N, *w = out + N;
   for (int j = 0; j < p; ++j) {
-    for (int i = 0; i < n; ++i) xa[static_cast<long>(j) * N + i] = x[static_cast<long>(j) * n + i];
+    for (int i = 0; i < n; ++i) xa[static_cast<std::int64_t>(j) * N + i] = x[static_cast<std::int64_t>(j) * n + i];
     for (int i = 0; i < nt; ++i) {
-      xa[static_cast<long>(j) * N + n + i] = xt[static_cast<long>(j) * nt + i];
+      xa[static_cast<std::int64_t>(j) * N + n + i] = xt[static_cast<std::int64_t>(j) * nt + i];
     }
   }
-  for (long q = 0; q < static_cast<long>(N) * p; ++q) {
+  for (std::int64_t q = 0; q < static_cast<std::int64_t>(N) * p; ++q) {
     if (!std::isfinite(xa[q])) return CLAB_EDOM;
   }
   for (int i = 0; i < N; ++i) ya[i] = i < n ? y[i] : 0.0;
@@ -902,11 +903,11 @@ int clab_stack(const double *x, int n, int p, const double *y, int fam,
                       risk, wt);
   if (r2 != CLAB_OK) return r2;
   for (int j = 0; j < l->nsub; ++j) {
-    for (int i = 0; i < n; ++i) oof[static_cast<long>(j) * n + i] = w[static_cast<long>(j) * N + i];
+    for (int i = 0; i < n; ++i) oof[static_cast<std::int64_t>(j) * n + i] = w[static_cast<std::int64_t>(j) * N + i];
   }
   for (int i = 0; i < nt; ++i) pred[i] = out[n + i];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
 

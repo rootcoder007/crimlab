@@ -8,6 +8,7 @@
 
 #include "cgeo.h"
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -30,7 +31,7 @@ double dlon(double a, double b) {
 extern "C" {
 
 int clab_hvdist(const double *lon1, const double *lat1, const double *lon2,
-                const double *lat2, int n, double r, double *d) {
+                const double *lat2, int n, double r, double *d) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!(r > 0.0) || !std::isfinite(r)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i)
@@ -54,10 +55,10 @@ int clab_hvdist(const double *lon1, const double *lat1, const double *lon2,
     d[i] = r * std::atan2(num, den);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_eqproj(const double *lon, const double *lat, int n, double lon0,
-                double lat0, double r, double *x, double *y) {
+                double lat0, double r, double *x, double *y) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!(r > 0.0) || !std::isfinite(r) || !lonlat(lon0, lat0))
     return CLAB_EDOM;
@@ -80,6 +81,6 @@ int clab_eqproj(const double *lon, const double *lat, int n, double lon0,
     y[i] = r * kp * (std::sin(dp) + s0 * c * hh);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

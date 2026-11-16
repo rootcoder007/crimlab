@@ -252,6 +252,7 @@ bool slm(Ctx &c, Val &out, int kind) {
   std::vector<double> z;
   CK(zmat(c, "z", n, true, k, z));
   if (n <= k) return c.fail("`v` must have more values than `z` has columns.");
+  if (!kutil::span(p.x.data(), p.y.data(), n)) return c.fail("the points are too far apart: their squared distances overflow a double; rescale `x` and `y`.");
   std::vector<double> b(zz(k)), s(zz(k));
   double o[4];
   const int rc = kind == 0 ? clab_sglmx(z.data(), n, k, v.p(), p.x.data(), p.y.data(), b.data(), s.data(), o)

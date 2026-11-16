@@ -70,6 +70,10 @@ void t_pwr(tk &T, int big) {
     tk_eq(T, "pw.trap", J(r, "gpu"), 40, 1e-12);
     // the process: 20 of 100 busy ticks
     tk_eq(T, "pw.proc", J(r, "pkg", "process"), 14 * 0.2, 1e-12);
+    // a fall of almost the whole range in a second is a reset, not a wrap
+    s[2].d[0] = ctr("pkg", "cpu", 4, 1e6);
+    s[1].d[0].wrap = s[0].d[0].wrap = 1e6;
+    tk_nan(T, "pw.rst", J(pwr::rows(s, none), "pkg"));
     tk_eq(T, "pw.tot", J(r, "all devices"), 54, 1e-12);
     tk_true(T, "pw.tot.why", find(r, "all devices")->why.empty());
     // the utilisation of a CPU is the machine's busy share, 100 / 800

@@ -8,7 +8,7 @@
 #include "crimlab.h"
 #include "kutil.h"
 
-int clab_wdqx(const double *a, const double *b, const double *c, double *out) {
+int clab_wdqx(const double *a, const double *b, const double *c, double *out) CLAB_TRY {
   for (int k = 0; k < 2; ++k) {
     if (!kutil::nonneg(a[k]) || !kutil::nonneg(b[k]) || !kutil::pos(c[k])) return CLAB_EDOM;
   }
@@ -34,4 +34,4 @@ int clab_wdqx(const double *a, const double *b, const double *c, double *out) {
   out[6] = b[0] * g;
   out[7] = (out[5] - a[1]) + (out[6] - b[1]);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

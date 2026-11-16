@@ -284,7 +284,7 @@ bool agemix(Ctx &c, Val &out) {
 bool cumrsk(Ctx &c, Val &out) {
   Dv av, ev, pv, rv, dv;
   CK(num(c, c["age"], "age", av));
-  const long n = static_cast<long>(av.n());
+  const std::int64_t n = static_cast<std::int64_t>(av.n());
   for (std::size_t i = 1; i < av.n(); ++i) {
     if (!(av[i] > av[i - 1])) return c.fail("`age` must be increasing.");
   }
@@ -326,7 +326,7 @@ bool jpipe(Ctx &c, Val &out) {
   Dv nv, dv;
   CK(num(c, c["num"], "num", nv, -1, 0.0));
   const std::size_t n = nv.n();
-  CK(num(c, c["den"], "den", dv, static_cast<long>(n), 0.0));
+  CK(num(c, c["den"], "den", dv, static_cast<std::int64_t>(n), 0.0));
   int w = 0, lg = 0;
   CK(wholed(c, "win", 12, 1, w));
   CK(wholed(c, "lag", 0, 0, lg));

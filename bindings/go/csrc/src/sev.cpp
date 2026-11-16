@@ -9,7 +9,7 @@
 
 int clab_crsev(const double *x, const int *off, const int *key, int n, int no, int nk,
                const double *w, const double *pop, double per, int base, double *cnt, double *sev,
-               double *rate, double *srate, double *idx) {
+               double *rate, double *srate, double *idx) CLAB_TRY {
   if (n < 1 || no < 1 || nk < 1 || base < -1 || base >= nk) return CLAB_EARG;
   if (!kutil::pos(per)) return CLAB_EDOM;
   for (int o = 0; o < no; ++o) {
@@ -37,10 +37,10 @@ int clab_crsev(const double *x, const int *off, const int *key, int n, int no, i
     idx[k] = base >= 0 && s[base] > 0 ? 100.0 * s[k] / s[base] : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_zcomp(const double *x, int nu, int nc, const double *w, double *z, double *comp,
-               double *mu, double *sd) {
+               double *mu, double *sd) CLAB_TRY {
   if (nu < 2 || nc < 1) return CLAB_EARG;
   for (int c = 0; c < nc; ++c) {
     if (!std::isfinite(w[c])) return CLAB_EDOM;
@@ -65,4 +65,4 @@ int clab_zcomp(const double *x, int nu, int nc, const double *w, double *z, doub
     comp[u] = s.val();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

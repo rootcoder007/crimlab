@@ -96,6 +96,12 @@ void jb(tk &tt) {
     tk_near(tt, "env.jb.k2", o[1], 7.0 / 3, 1e-13);
     tk_near(tt, "env.jb.jb2", o[2], 26.0 / 27, 1e-13);
   }
+  // constant residuals, whose mean rounds, have no shape
+  {
+    const double r[5] = {0.1, 0.1, 0.1, 0.1, 0.1};
+    double o[4];
+    tk_ieq(tt, "env.jb.cst", clab_jb(r, 5, o), CLAB_EDOM);
+  }
   const double c[4] = {2, 2, 2, 2};
   double o[4];
   tk_ieq(tt, "env.jb.const", clab_jb(c, 4, o), CLAB_EDOM);

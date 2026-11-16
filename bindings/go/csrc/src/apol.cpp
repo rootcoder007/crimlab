@@ -79,14 +79,14 @@ void smix(std::uint64_t seed, size_t n, double *out) {
 
 extern "C" {
 
-int clab_pgsig(const double *x, int n, int cls, int urb, double *sy, double *sz) {
+int clab_pgsig(const double *x, int n, int cls, int urb, double *sy, double *sz) CLAB_TRY {
   if (n < 0 || cls < 0 || cls > 5) return CLAB_EARG;
   for (int i = 0; i < n; ++i) sig(x[i], cls, urb, sy[i], sz[i]);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_briggs(const double *x, int n, double u, double diam, double ev, double ts, double ta, int cls,
-                double dthdz, double g, double *out, double *rise) {
+                double dthdz, double g, double *out, double *rise) CLAB_TRY {
   if (n < 0 || !(u > 0) || cls < 0 || cls > 5 || !(ts > 0) || !(ta > 0)) return CLAB_EARG;
   const double F = g * ev * (diam * diam) * (ts - ta) / (4 * ts);
   double fin, xf;
@@ -110,10 +110,10 @@ int clab_briggs(const double *x, int n, double u, double diam, double ev, double
     rise[i] = x[i] >= xf ? fin : (tr < fin ? tr : fin);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_gplume(double q, double u, double h, const double *r, int n, int cls, int urb, double lid, int nimg,
-                double *c) {
+                double *c) CLAB_TRY {
   if (n < 0 || !(u > 0) || cls < 0 || cls > 5 || nimg < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (kutil::stop(1e3)) return CLAB_EINTR;
@@ -127,10 +127,10 @@ int clab_gplume(double q, double u, double h, const double *r, int n, int cls, i
     c[i] = q / (2 * pi * u * sy * sz) * std::exp(-(y * y) / (2 * sy * sy)) * vert(z, h, sz, lid, nimg);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_gspuff(double mass, double u, double h, const double *r, int n, double t, int cls, int urb, double lid,
-                int nimg, double *c) {
+                int nimg, double *c) CLAB_TRY {
   if (n < 0 || !(u > 0) || !(t > 0) || cls < 0 || cls > 5 || nimg < 0) return CLAB_EARG;
   double sy, sz;
   sig(u * t, cls, urb, sy, sz);
@@ -142,10 +142,10 @@ int clab_gspuff(double mass, double u, double h, const double *r, int n, double 
            vert(z, h, sz, lid, nimg);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_advdif(double *cm, int nx, int ny, double u, double v, double kx, double ky, double dx, double dy, double dt,
-                double nsteps, const double *src) {
+                double nsteps, const double *src) CLAB_TRY {
   if (nx < 1 || ny < 1 || !(dx > 0) || !(dy > 0) || !(dt > 0) || !(nsteps >= 0)) return CLAB_EARG;
   const double ax = u * dt / dx, ay = v * dt / dy, dxn = kx * dt / (dx * dx), dyn = ky * dt / (dy * dy);
   const size_t m = static_cast<size_t>(nx) * ny;
@@ -167,10 +167,10 @@ int clab_advdif(double *cm, int nx, int ny, double u, double v, double kx, doubl
     std::copy(nw.begin(), nw.end(), cm);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lagr(int n, double x0, double y0, double u, double v, double kx, double ky, double dt, double nsteps,
-              double seed, double *xs, double *ys) {
+              double seed, double *xs, double *ys) CLAB_TRY {
   if (n < 1 || !(dt > 0) || !(nsteps >= 0) || kx < 0 || ky < 0) return CLAB_EARG;
   const double fx = std::sqrt(2 * kx * dt), fy = std::sqrt(2 * ky * dt), eps = 2.220446049250313e-16;
   for (int i = 0; i < n; ++i) {
@@ -192,19 +192,19 @@ int clab_lagr(int n, double x0, double y0, double u, double v, double kx, double
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lagstep(int n, double u, double v, double fx, double fy, double dt, const double *zx, const double *zy,
-                 double *xs, double *ys) {
+                 double *xs, double *ys) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     xs[i] = xs[i] + u * dt + fx * zx[i];
     ys[i] = ys[i] + v * dt + fy * zy[i];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_laggrid(const double *xs, const double *ys, int n, const double *g, double *conc, double *mean) {
+int clab_laggrid(const double *xs, const double *ys, int n, const double *g, double *conc, double *mean) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   long double sx = 0, sy = 0;
   for (int i = 0; i < n; ++i) {
@@ -224,11 +224,11 @@ int clab_laggrid(const double *xs, const double *ys, int n, const double *g, dou
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 // Concentration-response: form 0 the log-linear exp(beta e / 10), 1 the IER
 // 1 + a (1 - exp(-g e^d)), e the excess over refc. rr, lrr (n each).
-int clab_crf(const double *z, int n, double refc, int form, const double *par, double *rr, double *lrr) {
+int clab_crf(const double *z, int n, double refc, int form, const double *par, double *rr, double *lrr) CLAB_TRY {
   if (n < 0 || form < 0 || form > 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     const double e = z[i] - refc > 0 ? z[i] - refc : 0.0;
@@ -241,13 +241,13 @@ int clab_crf(const double *z, int n, double refc, int form, const double *par, d
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-double clab_levin(double rr, double p) { return p * (rr - 1) / (1 + p * (rr - 1)); }
+double clab_levin(double rr, double p) CLAB_TRY { return p * (rr - 1) / (1 + p * (rr - 1)); } CLAB_CATCH(kutil::nan())
 
-double clab_hif(double dx, double pop, double rate, double beta) { return rate * pop * (1 - std::exp(-beta * dx)); }
+double clab_hif(double dx, double pop, double rate, double beta) CLAB_TRY { return rate * pop * (1 - std::exp(-beta * dx)); } CLAB_CATCH(kutil::nan())
 
-int clab_concidx(const double *h, const double *inc, int n, double *out, double *cpop, double *cexp) {
+int clab_concidx(const double *h, const double *inc, int n, double *out, double *cpop, double *cexp) CLAB_TRY {
   if (n < 2) return CLAB_EARG;
   std::vector<int> o(static_cast<size_t>(n));
   std::iota(o.begin(), o.end(), 0);
@@ -292,6 +292,6 @@ int clab_concidx(const double *h, const double *inc, int n, double *out, double 
     cexp[i] = static_cast<double>(run) / static_cast<double>(sh);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

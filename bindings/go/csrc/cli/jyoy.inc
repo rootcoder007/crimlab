@@ -389,14 +389,17 @@ bool fylbl(Ctx &c, Val &out) {
   for (const Val &x : e.t == Val::ARR ? e.a : one) {
     long y = 0;
     bool ok = false;
+    // as.integer() of R: NA outside the range of an int (and for NaN or
+    // infinity), so the year is converted only inside it
+    auto inr = [](double v) { return v > -2147483648.0 && v < 2147483648.0; };
     if (x.t == Val::NUM) {
-      y = static_cast<long>(x.n);
-      ok = true;
+      ok = inr(x.n);
+      if (ok) y = static_cast<long>(x.n);
     } else if (x.t == Val::STR) {
       char *end = nullptr;
       const double v = std::strtod(x.s.c_str(), &end);
-      ok = end != x.s.c_str() && *end == '\0' && std::isfinite(v);
-      y = static_cast<long>(v);
+      ok = end != x.s.c_str() && *end == '\0' && inr(v);
+      if (ok) y = static_cast<long>(v);
     }
     if (!ok) {
       o.a.push_back(Val());

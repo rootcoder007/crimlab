@@ -67,7 +67,7 @@ extern "C" {
 
 int clab_chmb(const double *a, int na, const double *b, int nb, int wopt,
               int wval, double coarse, int *nsame, int *ndiff, double *u,
-              double *p, double *work) {
+              double *p, double *work) CLAB_TRY {
   if (na < 1 || nb < 1 || wopt < 2 || wval < 2 || wval > wopt) return CLAB_EARG;
   if (!(coarse > 0.0) || !std::isfinite(coarse)) return CLAB_EDOM;
   for (int i = 0; i < na; ++i)
@@ -186,6 +186,6 @@ int clab_chmb(const double *a, int na, const double *b, int nb, int wopt,
   *u = z;
   *p = 0.5 * std::erfc(z / std::sqrt(2.0));
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

@@ -439,7 +439,7 @@ int mtch(const double *f, int nu, int k, const int *trt, const int *ex, int rati
 extern "C" int clab_didfe(const double *y, const double *x, int n, int p, const int *u, int nu,
                           const int *t, int nt, int fe, const double *w, const int *cl, int ncl,
                           const int *cl2, int ncl2, double tol, int maxit, double *beta,
-                          double *vc, double *st, double *work, int *iwork) {
+                          double *vc, double *st, double *work, int *iwork) CLAB_TRY {
   if (n < 2 || p < 1 || nu < 1 || nt < 1 || ncl < 2 || (cl2 && ncl2 < 2)) return CLAB_EARG;
   const std::size_t sn = static_cast<std::size_t>(n), sp = static_cast<std::size_t>(p);
   double *v = work;              // y then the columns of x, demeaned: n (p + 1)
@@ -475,4 +475,4 @@ extern "C" int clab_didfe(const double *y, const double *x, int n, int p, const 
   st[3] = static_cast<double>(g) / (g - 1) * (n - 1.0) / (n - kk);
   st[4] = rss.val();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -85,7 +85,7 @@ extern "C" {
 
 int clab_rswp(const double *d, int n, const double *gam, int ng, double z,
               double *plo, double *pup, double *gcrit, double *tsum,
-              double *work, int *iwork) {
+              double *work, int *iwork) CLAB_TRY {
   if (n < 1 || ng < 0) return CLAB_EARG;
   if (!kutil::pos(z)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -136,10 +136,10 @@ int clab_rswp(const double *d, int n, const double *gam, int ng, double z,
     *gcrit = kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
-              double *hi, double *work) {
+              double *hi, double *work) CLAB_TRY {
   if (n < 1 || n > (1 << 26) || ng < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(d[i])) return CLAB_EDOM;
@@ -163,6 +163,6 @@ int clab_rshl(const double *d, int n, const double *gam, int ng, double *lo,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

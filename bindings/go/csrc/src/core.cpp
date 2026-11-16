@@ -3,6 +3,7 @@
 // libcrimlab: the kernels. No R here, no allocation, no exceptions: every
 // function reads the caller's arrays and writes the caller's arrays.
 #include "crimlab.h"
+#include "kutil.h"
 
 #include <cmath>
 #include <limits>
@@ -69,6 +70,8 @@ const char *clab_strerror(int code) {
       return "a value is outside the domain of the method";
     case CLAB_EINTR:
       return "interrupted";
+    case CLAB_ENOMEM:
+      return "not enough memory for this size";
     default:
       return "unknown error";
   }
@@ -76,7 +79,7 @@ const char *clab_strerror(int code) {
 
 int clab_vod(const double *day, const double *night, int n, int ref,
              const double *shift, double *shday, double *shnight,
-             double *ratio, int *sign, double *adj) {
+             double *ratio, int *sign, double *adj) CLAB_TRY {
   if (n < 1 || ref < 0 || ref >= n) return CLAB_EARG;
   double td = 0.0, tn = 0.0;
   for (int i = 0; i < n; ++i) {
@@ -97,9 +100,9 @@ int clab_vod(const double *day, const double *night, int n, int ref,
     if (shift != nullptr) adj[i] = ratio[i] / (shift[i] / shift[ref]);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_orrisk(double orr, double q, double s, double *a, double *b) {
+int clab_orrisk(double orr, double q, double s, double *a, double *b) CLAB_TRY {
   if (!pos(orr) || !unit_open(q) || !unit_open(s)) return CLAB_EDOM;
   // An odds ratio below 1 is solved as its reciprocal with the two groups
   // exchanged: OR - 1 then never rounds to -1, which made 1 + (OR - 1) b
@@ -112,10 +115,10 @@ int clab_orrisk(double orr, double q, double s, double *a, double *b) {
     orrsolve(orr, q, s, 1.0 - s, a, b);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_outtst(const double *q, const double *w, int n, double t,
-                double *stop_rate, double *hit_rate) {
+                double *stop_rate, double *hit_rate) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!std::isfinite(t)) return CLAB_EDOM;
   double tw = 0.0, sw = 0.0, sq = 0.0;
@@ -131,10 +134,10 @@ int clab_outtst(const double *q, const double *w, int n, double t,
   *stop_rate = sw / tw;
   *hit_rate = sw > 0.0 ? sq / sw : std::numeric_limits<double>::quiet_NaN();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dspbm(const double *pop, const double *contact, const double *force,
-               int n, int ref, double *cd, double *fd, double *rd) {
+               int n, int ref, double *cd, double *fd, double *rd) CLAB_TRY {
   if (n < 1 || ref < 0 || ref >= n) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!pos(pop[i]) || !pos(contact[i]) || !pos(force[i])) return CLAB_EDOM;
@@ -148,11 +151,11 @@ int clab_dspbm(const double *pop, const double *contact, const double *force,
     rd[i] = (force[i] / pop[i]) / rr;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dyadrt(const double *count, const int *off, const int *vic, int m,
                 const double *pop, int g, double *rtoff,
-                double *rtpair, double *nulloff, double *ratio) {
+                double *rtpair, double *nulloff, double *ratio) CLAB_TRY {
   if (m < 1 || g < 1) return CLAB_EARG;
   double total = 0.0;
   for (int j = 0; j < g; ++j) {
@@ -178,10 +181,10 @@ int clab_dyadrt(const double *count, const int *off, const int *vic, int m,
     ratio[k] = rtpair[k] / pooled;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_gtmp(const double *p, const double *q, const int *hom, int n,
-              double theta, double *locus, double *log10mp) {
+              double theta, double *locus, double *log10mp) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!(theta >= 0.0 && theta < 1.0)) return CLAB_EDOM;
   const double den = (1.0 + theta) * (1.0 + 2.0 * theta);
@@ -199,10 +202,10 @@ int clab_gtmp(const double *p, const double *q, const int *hom, int n,
   }
   *log10mp = sum;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_cllr(const double *same, int ns, const double *diff, int nd,
-              double *cllr) {
+              double *cllr) CLAB_TRY {
   if (ns < 1 || nd < 1) return CLAB_EARG;
   double cs = 0.0, cd = 0.0;
   for (int i = 0; i < ns; ++i) {
@@ -215,10 +218,10 @@ int clab_cllr(const double *same, int ns, const double *diff, int nd,
   }
   *cllr = 0.5 * (cs / ns + cd / nd) / std::log(2.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lrcal(const double *lr, const int *same, int n, double *post,
-               double *work, double *cllrmin) {
+               double *work, double *cllrmin) CLAB_TRY {
   if (n < 2) return CLAB_EARG;
   double *sum = work;      // same-source count of each block
   double *cnt = work + n;  // size of each block
@@ -264,9 +267,9 @@ int clab_lrcal(const double *lr, const int *same, int n, double *post,
   }
   *cllrmin = 0.5 * (cs / ns + cd / nd) / std::log(2.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mixp(const double *p, const int *need, int n, int x, double *out) {
+int clab_mixp(const double *p, const int *need, int n, int x, double *out) CLAB_TRY {
   if (n < 1 || x < 0) return CLAB_EARG;
   int idx[20];
   int m = 0;
@@ -301,10 +304,10 @@ int clab_mixp(const double *p, const int *need, int n, int x, double *out) {
   }
   *out = acc > 0.0 ? acc : 0.0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_kinidx(const int *g1, const int *g2, const double *f, int n,
-                const double *k, double *idx) {
+                const double *k, double *idx) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!nonneg(k[0]) || !nonneg(k[1]) || !nonneg(k[2]) ||
       std::fabs(k[0] + k[1] + k[2] - 1.0) > 1e-9) {
@@ -327,10 +330,10 @@ int clab_kinidx(const int *g1, const int *g2, const double *f, int n,
     idx[i] = k[0] + k[1] * r1 + k[2] * r2;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_patidx(const int *c, const int *m, const int *af, const double *f,
-                int n, double *idx) {
+                int n, double *idx) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     const int c1 = c[2 * i], c2 = c[2 * i + 1];
@@ -354,7 +357,7 @@ int clab_patidx(const int *c, const int *m, const int *af, const double *f,
     idx[i] = den > 0.0 ? num / den : std::numeric_limits<double>::quiet_NaN();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
 
@@ -365,7 +368,7 @@ extern "C" {
 int clab_clrsmp(const double *clra, const double *reca, const double *clrb,
                 const double *recb, int n, double *ra, double *rb,
                 double *wa, double *wb, double *reff, double *meff,
-                double *tot, int *cnt) {
+                double *tot, int *cnt) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   double sca = 0.0, sra = 0.0, scb = 0.0, srb = 0.0;
   for (int k = 0; k < n; ++k) {
@@ -413,11 +416,11 @@ int clab_clrsmp(const double *clra, const double *reca, const double *clrb,
   cnt[1] = down;
   cnt[2] = type;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_expbnd(const double *y, const double *m, int n, int ref, double gamma,
                 double *rate, double *lo, double *hi, double *ratio,
-                double *rlo, double *rhi, int *sign) {
+                double *rlo, double *rhi, int *sign) CLAB_TRY {
   if (n < 1 || ref < 0 || ref >= n) return CLAB_EARG;
   if (!(std::isfinite(gamma) && gamma >= 1.0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -435,10 +438,10 @@ int clab_expbnd(const double *y, const double *m, int n, int ref, double gamma,
     sign[i] = rlo[i] > 1.0 ? 1 : (rhi[i] < 1.0 ? -1 : 0);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_misrd(double r1, double r0, double p, double se, double sp,
-               double *out) {
+               double *out) CLAB_TRY {
   if (!(r1 >= 0.0 && r1 <= 1.0) || !(r0 >= 0.0 && r0 <= 1.0) ||
       !unit_open(p) || !(se >= 0.0 && se <= 1.0) ||
       !(sp >= 0.0 && sp <= 1.0)) {
@@ -457,10 +460,10 @@ int clab_misrd(double r1, double r0, double p, double se, double sp,
   out[3] = d1;
   out[4] = d0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_rtmhs(const double *x1, const double *x2, const double *w, int n,
-               double c, double *out) {
+               double c, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!std::isfinite(c)) return CLAB_EDOM;
   double s1 = 0.0, m1 = 0.0, s2 = 0.0, m2 = 0.0;  // high: by x1, by x2
@@ -498,11 +501,11 @@ int clab_rtmhs(const double *x1, const double *x2, const double *w, int n,
   out[5] = n1 > 0.0 ? l1 / n1 : nan;
   out[6] = n1 + n2 > 0.0 ? (l1 + l2) / (n1 + n2) : nan;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_incap(const double *lam, const double *q, const double *s, int n,
                const double *share, double *rate, double *prev, double *marg,
-               double *agg) {
+               double *agg) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   double tot = 0.0, free = 0.0, inc = 0.0;
   for (int i = 0; i < n; ++i) {
@@ -530,10 +533,10 @@ int clab_incap(const double *lam, const double *q, const double *s, int n,
     agg[2] = 1.0 - inc / free;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_incapr(const double *lam, int len, int t0, int s, double r,
-                double *out) {
+                double *out) CLAB_TRY {
   if (t0 < 0 || s < 1 || len < 1 || t0 > len - 1 - s) return CLAB_EARG;
   if (!(r >= 0.0 && r <= 1.0)) return CLAB_EDOM;
   for (int i = 0; i < len; ++i) {
@@ -550,10 +553,10 @@ int clab_incapr(const double *lam, int len, int t0, int s, double r,
   out[3] = s * lam[t0 + s];
   out[4] = later;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sellab(const double *y, const int *rel, const int *rule,
-                const double *w, int n, double *out) {
+                const double *w, int n, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   double mr = 0.0, fr = 0.0, mm = 0.0, fi = 0.0, mi = 0.0, mu = 0.0;
   for (int i = 0; i < n; ++i) {
@@ -581,9 +584,9 @@ int clab_sellab(const double *y, const int *rel, const int *rule,
   out[4] = out[3] - out[2];
   out[5] = mi > 0.0 ? fi / mi : std::numeric_limits<double>::quiet_NaN();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_losbnd(const double *t, int n, const double *a, int m, double *out) {
+int clab_losbnd(const double *t, int n, const double *a, int m, double *out) CLAB_TRY {
   if (n < 1 || m < 1) return CLAB_EARG;
   double st = 0.0, sa = 0.0;
   for (int i = 0; i < n; ++i) {
@@ -602,10 +605,10 @@ int clab_losbnd(const double *t, int n, const double *a, int m, double *out) {
   out[3] = static_cast<double>(m) / (static_cast<double>(n) + m) *
            (abar - tbar);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sntbnd(const double *y, const int *z, const double *w, int n,
-                double *out) {
+                double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   double tw = 0.0, j[2] = {0.0, 0.0}, p[2] = {0.0, 0.0};
   for (int i = 0; i < n; ++i) {
@@ -638,10 +641,10 @@ int clab_sntbnd(const double *y, const int *z, const double *w, int n,
   out[9] = hi1 - lo0;
   out[10] = p[0] > 0.0 && p[1] > 0.0 ? j[1] / p[1] - j[0] / p[0] : nan;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hzdsel(double s, double h, double l, const double *ah,
-                const double *al, double *out) {
+                const double *al, double *out) CLAB_TRY {
   if (!unit_open(s) || !(l >= 0.0 && l < h && h <= 1.0)) return CLAB_EDOM;
   for (int k = 0; k < 2; ++k) {
     if (!(ah[k] > 0.0 && ah[k] <= 1.0) || !(al[k] > 0.0 && al[k] <= 1.0)) {
@@ -654,6 +657,6 @@ int clab_hzdsel(double s, double h, double l, const double *ah,
   }
   out[4] = out[3] / out[2];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

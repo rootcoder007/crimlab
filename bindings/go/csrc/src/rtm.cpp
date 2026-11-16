@@ -21,7 +21,7 @@ bool fin(const double *x, int n) {
 }  // namespace
 
 int clab_crchyp(const double *x, const double *y, int n, const double *hx, const double *hy,
-                int nh, double *st, int *pair, int *mar) {
+                int nh, double *st, int *pair, int *mar) CLAB_TRY {
   if (n < 2 || nh < 0) return CLAB_EARG;
   if (!fin(x, n) || !fin(y, n) || !fin(hx, nh) || !fin(hy, nh)) return CLAB_EDOM;
   // ponytail: O(n^2) pairs; a series has tens of sites, not thousands
@@ -49,10 +49,10 @@ int clab_crchyp(const double *x, const double *y, int n, const double *hx, const
   pair[0] = bi;
   pair[1] = bj;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hitscr(const double *s, int n, const int *home, int nh, int *above, int *ties,
-                double *hit, double *hitt) {
+                double *hit, double *hitt) CLAB_TRY {
   if (n < 1 || nh < 1) return CLAB_EARG;
   if (!fin(s, n)) return CLAB_EDOM;
   for (int k = 0; k < nh; ++k) {
@@ -69,10 +69,10 @@ int clab_hitscr(const double *s, int n, const int *home, int nh, int *above, int
     hitt[k] = 100.0 * (a + t) / n;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_rtmlay(const double *cx, const double *cy, int nc, const double *fx, const double *fy,
-                int nf, double rad, int kind, double *out) {
+                int nf, double rad, int kind, double *out) CLAB_TRY {
   if (nc < 1 || nf < 1 || kind < 0 || kind > 2 || (kind == 2 && nc < 2)) return CLAB_EARG;
   if (!kutil::pos(rad) || !fin(cx, nc) || !fin(cy, nc) || !fin(fx, nf) || !fin(fy, nf)) {
     return CLAB_EDOM;
@@ -95,4 +95,4 @@ int clab_rtmlay(const double *cx, const double *cy, int nc, const double *fx, co
     for (int i = 0; i < nc; ++i) out[i] = sd > 0 ? (out[i] - mu) / sd : 0.0;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

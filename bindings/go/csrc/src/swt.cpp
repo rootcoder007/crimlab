@@ -5,6 +5,7 @@
 // neighbour structure (binary or inverse distance, raw or row-standardised).
 // Neighbour structures are compressed sparse rows: the neighbours of unit i
 // are ci[rp[i] .. rp[i + 1]). The statistics of src/lsa.cpp read them.
+#include <cstdint>
 #include <cmath>
 #include <utility>
 
@@ -63,7 +64,7 @@ void sift(double *hd, int *hj, int m, int at) {
 extern "C" {
 
 int clab_swknb(const double *x, const double *y, int n, int k, int metric,
-               int *nb, double *d, int *iwork) {
+               int *nb, double *d, int *iwork) CLAB_TRY {
   if (n < 2 || k < 1 || k > n - 1 || metric < 0 || metric > 1) return CLAB_EARG;
   if (!finite2(x, y, n)) return CLAB_EDOM;
   double b[4];
@@ -74,8 +75,8 @@ int clab_swknb(const double *x, const double *y, int n, int k, int metric,
   g.build(x, y, n, b[0], b[1], b[2], b[3], cell, iwork);
   const double wmin = std::fmin(g.wx, g.wy);
   for (int i = 0; i < n; ++i) {
-    double *hd = d + static_cast<long>(i) * k;
-    int *hj = nb + static_cast<long>(i) * k;
+    double *hd = d + static_cast<std::int64_t>(i) * k;
+    int *hj = nb + static_cast<std::int64_t>(i) * k;
     int m = 0;
     const int ci = g.cx(x[i]), cj = g.cy(y[i]);
     // rings of cells around i's cell; a point of ring r + 1 is at least
@@ -122,21 +123,21 @@ int clab_swknb(const double *x, const double *y, int n, int k, int metric,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_swband(const double *x, const double *y, int n, double dmax,
                 int metric, int cap, int *rp, int *ci, double *d, int *nnz,
-                int *iwork) {
+                int *iwork) CLAB_TRY {
   if (n < 1 || cap < 0 || metric < 0 || metric > 1) return CLAB_EARG;
   if (!kutil::pos(dmax) || !finite2(x, y, n)) return CLAB_EDOM;
   double b[4];
   bbox(x, y, n, b);
   cgeo::grid g;
   g.build(x, y, n, b[0], b[1], b[2], b[3], dmax, iwork);
-  long t = 0;
+  std::int64_t t = 0;
   rp[0] = 0;
   for (int i = 0; i < n; ++i) {
-    const long row = t;
+    const std::int64_t row = t;
     // the cells the square of half-side dmax about the point touches (the
     // grid's cells may be narrower than dmax)
     const int a0 = g.cx(x[i] - dmax), a1 = g.cx(x[i] + dmax);
@@ -161,11 +162,11 @@ int clab_swband(const double *x, const double *y, int n, double dmax,
     if (t > 2147483647L) return CLAB_EARG;
     // each row in increasing order of neighbour (insertion sort of the
     // stored part; rows are short)
-    const long end = t < cap ? t : cap;
-    for (long u = row + 1; u < end; ++u) {
+    const std::int64_t end = t < cap ? t : cap;
+    for (std::int64_t u = row + 1; u < end; ++u) {
       const int j = ci[u];
       const double e = d[u];
-      long v = u - 1;
+      std::int64_t v = u - 1;
       while (v >= row && ci[v] > j) {
         ci[v + 1] = ci[v];
         d[v + 1] = d[v];
@@ -178,10 +179,10 @@ int clab_swband(const double *x, const double *y, int n, double dmax,
   }
   *nnz = static_cast<int>(t);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_swwt(const int *rp, const double *d, int n, double pw, int rowstd,
-              double *w) {
+              double *w) CLAB_TRY {
   if (n < 1 || rp[0] != 0 || rowstd < 0 || rowstd > 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i)
     if (rp[i + 1] < rp[i]) return CLAB_EARG;
@@ -201,6 +202,6 @@ int clab_swwt(const int *rp, const double *d, int n, double pw, int rowstd,
       for (int q = rp[i]; q < rp[i + 1]; ++q) w[q] /= s;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
