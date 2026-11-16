@@ -23,9 +23,10 @@ package; otherwise by position. No missing or infinite values.}
 \item{blocks}{A list of blocks: each a 2 x 2 matrix (rows: lower and
 upper corner, columns: x and y), or a matrix of two columns of points.}
 
-\item{nq}{The number of grid points of a box: one whole number from 1.
-The points of all the blocks (\code{nq}, rounded to a square, for each box)
-must be at most 67108864 (2^26).}
+\item{nq}{The size of the grid of a box: one whole number from 1. A box
+is averaged over \code{round(sqrt(nq))^2} points (\code{nq} rounded to a square:
+10 gives 9). The points of all the blocks must be at most 67108864
+(2^26).}
 
 \item{nugget, sill, range}{The covariance: \code{nugget} from 0, \code{sill} at least
 \code{nugget}, \code{range} positive.}
