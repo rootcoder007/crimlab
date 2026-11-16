@@ -11,7 +11,7 @@ test_that("xppdp() averages the function over the rows at each grid value", {
   expect_equal(r$pd$grid, g, tolerance = 1e-15)
   expect_equal(r$pd$pd, pd(g), tolerance = 1e-13)
   expect_identical(r$term, "a")
-  expect_identical(r$n, n)
+  expect_identical(r$n, as.integer(n))
   q <- xppdp(x, f, 1, grid = 6, gtype = "quant")
   g <- unique(stats::quantile(x[, "a"], seq(0, 1, length.out = 6),
                               names = FALSE))

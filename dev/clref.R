@@ -796,12 +796,12 @@ ok("dmlx", y = ly, d = ld, x = lx, fold = cbind(lf, rev(lf)), lrn = "lasso", lrn
 bad("dmlx", y = ly, d = ld, x = lx, fold = rep(1, 60))
 ok("suplrn", x = lx, y = ly, lrns = c("glm", "lasso"), nfold = 3, nlam = 10)
 bad("suplrn", x = lx, y = ly, lrns = c("glm", "lasso"), nfold = 3, nlam = 1e9)
+gd <- data.frame(y = rep(1:3, 10), a = round(lx[1:30, 1], 3), b = round(lx[1:30, 2], 3))
+gd$s <- c("lo", "mid", "hi")[gd$y]
 ok("gocoef", object = gologt(gd, "y", c("a", "b"), par = "b"))
 ok("gocoef", object = gologt(gd, "y", c("a", "b")), v = "a")
 bad("gocoef", object = gologt(gd, "y", "a"), v = "zz")
 bad("gocoef", object = list(a = 1))
-gd <- data.frame(y = rep(1:3, 10), a = round(lx[1:30, 1], 3), b = round(lx[1:30, 2], 3))
-gd$s <- c("lo", "mid", "hi")[gd$y]
 ok("gologt", data = gd, y = "y", x = c("a", "b"))
 ok("gologt", data = gd, y = "y", x = c("a", "b"), par = "b", level = 0.9)
 ok("gologt", data = gd, y = "s", x = "a", lev = c("lo", "mid", "hi"))

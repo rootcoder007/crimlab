@@ -39,14 +39,14 @@ a shift of crime from one set of places to another.
 }
 \details{
 Each column is centred on its mean over the periods and the
-centred matrix \code{A} is decomposed as \code{A = U D V'} (Lorenz 1956;
+centred matrix \code{A} is decomposed as \verb{A = U D V'} (Lorenz 1956;
 Hannachi, Jolliffe and Stephenson 2007). The EOFs are the columns of
-\code{V}, the series the columns of \code{A V = U D}, and \code{explained} is
+\code{V}, the series the columns of \verb{A V = U D}, and \code{explained} is
 \code{d^2 / sum(d^2)}; \code{sdev} is \code{d / sqrt(n - 1)}, the standard deviation
 of each series, as \code{\link[stats:prcomp]{stats::prcomp()}} gives it. An EOF is defined up to
 its sign: each is signed so that its largest loading in absolute
 value is positive. The compiled kernel finds \code{V} and \code{d} from the
-eigendecomposition (cyclic Jacobi) of the smaller of \code{A'A} and \code{A A'};
+eigendecomposition (cyclic Jacobi) of the smaller of \verb{A'A} and \verb{A A'};
 components with \code{d^2} below \code{1e-10} of the largest are dropped, so a
 matrix of \code{n} periods has at most \code{n - 1} components.
 }

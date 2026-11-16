@@ -4,16 +4,7 @@
 \alias{prpmap}
 \title{Proportional symbol maps}
 \usage{
-prpmap(
-  x,
-  y = NULL,
-  v,
-  rmax = NULL,
-  ...,
-  main = NULL,
-  col = NULL,
-  pal = NULL
-)
+prpmap(x, y = NULL, v, rmax = NULL, ..., main = NULL, col = NULL, pal = NULL)
 }
 \arguments{
 \item{x}{The points: a numeric matrix or data frame of two columns (x

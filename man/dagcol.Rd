@@ -14,7 +14,7 @@ dagcol(from, to, triple = NULL)
 vectors of the same length (at least one edge) with no missing values.}
 
 \item{triple}{\code{NULL} or three labels of nodes, \code{a}, \code{c} and \code{b}: whether
-\verb{a -> c <- b} is a collider of the graph, and whether it is shielded.}
+\code{a -> c <- b} is a collider of the graph, and whether it is shielded.}
 
 \item{x}{For \code{print()}, a \code{dagcol} result.}
 
@@ -29,7 +29,7 @@ values \code{collider} and \code{shielded}.
 }
 \description{
 \code{dagcol()} lists the colliders of a causal graph: every pair of causes
-\verb{a -> c <- b} of a common effect \code{c}. Conditioning on a collider (or on
+\code{a -> c <- b} of a common effect \code{c}. Conditioning on a collider (or on
 a consequence of it), as a study of arrestees or of convicted people
 does, opens a path between its causes and makes them associated when
 they are not (Hernan and Robins 2020, ch. 8; see \code{\link[=colarr]{colarr()}}). A

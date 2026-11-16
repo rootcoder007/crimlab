@@ -34,7 +34,7 @@ test_that("xpshap() samples the Shapley values of a game with interactions", {
   expect_true(all(abs(r$phi[1L, ] - exact) <= 5 * r$se[1L, ] + 1e-12))
   expect_true(all(r$se > 0))
   # the exact values add up to the prediction less the reference
-  expect_equal(sum(exact), f(newx) - f(x), tolerance = 1e-13)
+  expect_equal(sum(exact), unname(f(newx) - f(x)), tolerance = 1e-13)
   expect_identical(xpshap(x, f, newx = newx, nsamp = 5, seed = 2)$phi,
                    xpshap(x, f, newx = newx, nsamp = 5, seed = 2)$phi)
 })

@@ -5,15 +5,7 @@
 \alias{print.xppdp}
 \title{Partial dependence of a prediction function on one input}
 \usage{
-xppdp(
-  x,
-  f,
-  v,
-  y = NULL,
-  grid = 20,
-  gtype = c("even", "quant"),
-  lctl = list()
-)
+xppdp(x, f, v, y = NULL, grid = 20, gtype = c("even", "quant"), lctl = list())
 
 \method{print}{xppdp}(x, ...)
 }
