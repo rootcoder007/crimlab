@@ -182,6 +182,29 @@ test_that("curves", {
   expect_identical(pk2$fpr[2L], mean(lk$pairs$prob[!l] >= max(lk$pairs$prob)))
   lk$pairs$linked <- TRUE
   expect_error(drw(plot(lk)), "^plot: an ROC curve needs both")
+  # unsolved crimes (series NA): the curve is that of the solved pairs and
+  # its area the Mann-Whitney count of the model's probabilities on them
+  set.seed(9)
+  s <- rep(1:6, each = 5)
+  cx <- stats::runif(6, 0, 5000)[s] + stats::rnorm(30, 0, 1500)
+  cy <- stats::runif(6, 0, 5000)[s] + stats::rnorm(30, 0, 1500)
+  day <- stats::runif(6, 0, 300)[s] + stats::rnorm(30, 0, 60)
+  mo <- matrix(stats::rbinom(30 * 5, 1, 0.3), 30)
+  sr <- ifelse(stats::runif(30) < 0.2, NA, s)
+  lk <- lnkpr(cbind(x = cx, y = cy), t = day, series = sr, mo = mo)
+  cu <- drw(plot(lk))
+  expect_false(anyNA(cu))
+  q <- lk$pairs[!is.na(lk$pairs$linked), ]
+  a1 <- q$prob[q$linked]
+  a0 <- q$prob[!q$linked]
+  mw <- mean(outer(a1, a0, ">") + 0.5 * outer(a1, a0, "=="))
+  o <- order(cu$fpr, cu$tpr)
+  x <- cu$fpr[o]
+  y <- cu$tpr[o]
+  tz <- sum(diff(x) * (utils::head(y, -1) + utils::tail(y, -1)) / 2)
+  expect_equal(tz, mw, tolerance = 1e-12)
+  expect_equal(attr(cu, "auc"), mw, tolerance = 1e-12)
+  expect_equal(attr(cu, "auc"), lk$auc[["model"]], tolerance = 1e-12)
   set.seed(2)
   cc <- cconc(stats::rpois(100, 2), nsim = 0)
   pc <- drw(plot(cc))

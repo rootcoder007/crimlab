@@ -27,6 +27,10 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `plot.lnkpr()` returned an ROC curve of `NA` and an area of `NA`
+  when some crimes were unsolved; the pairs with an unsolved crime are now
+  left out, as `lnkpr()` leaves them out of its fit, and the area is the
+  model's AUC.
 
 * New: `dwnexp()` builds downwind-exposure instruments from sources of
   pollution and the wind: the sector and transport-wedge rules of Bao and

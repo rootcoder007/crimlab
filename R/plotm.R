@@ -516,6 +516,8 @@ plot.lnroc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 plot.lnkpr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "lnkpr", "pairs")
   p <- x$pairs
+  # pairs with an unsolved crime have no flag: left out, as lnkpr() fits
+  p <- p[!is.na(p$linked), , drop = FALSE]
   l <- as.logical(p$linked)
   if (!any(l) || all(l)) {
     stop("plot: an ROC curve needs both linked and unlinked pairs.",
