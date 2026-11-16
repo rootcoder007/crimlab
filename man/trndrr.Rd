@@ -51,7 +51,10 @@ periods (ties kept) and normal with the tie and continuity corrections
 beyond. Negating the series negates S, so rises and falls are treated
 alike (\code{proof("trndrr")}). \code{yoy} holds the change on the period before,
 and with \code{seas} the
-totals by season are tested for equality (chi-square).
+totals by season are tested for equality (chi-square). Given the counts
+of one cycle with each season once (incidents by month of the year, by
+day of the week or by hour of the day), that test is the one that the
+counts are spread evenly over the cycle, as \code{chisq.test(y)}.
 }
 \details{
 When every count falls in the first or the last period the likelihood
