@@ -79,6 +79,36 @@
   coordinates, with no spatial package: quantile, equal or given class
   breaks computed in the compiled kernel.
 
+* New: `gocoef()`, the slopes of a `gologt()` fit laid out by threshold,
+  with their standard errors and Wald tests.
+
+* New: `gologt()`, the generalised ordered logit (Peterson and Harrell
+  1990; Williams 2006): an intercept and slopes for each threshold of an
+  ordered outcome, chosen covariates held parallel, with the Wald test
+  of each covariate's slopes and the likelihood-ratio test against
+  proportional odds.
+
+* New: `ulcate()`, the U-learner of conditional average treatment
+  effects (Kunzel et al. 2019) on the cross-fitted learners of `dmlx()`,
+  with a final learner of its own and a clipped denominator.
+
+* New: `xpshap()`, the sampling Shapley values of Strumbelj and
+  Kononenko (2014) for single predictions, with their standard errors.
+
+* New: `xpale()`, the accumulated local effects of one input (Apley
+  and Zhu 2020), with the binning and centring of their 'ALEPlot'.
+
+* New: `xpcp()`, ceteris paribus profiles: the prediction for single
+  rows as one input moves over a grid.
+
+* New: `xppdp()`, the partial dependence of a prediction on one input
+  (Friedman 2001) over an even or a quantile grid.
+
+* New: `xpimp()`, the permutation importance of a risk tool's inputs
+  (Breiman 2001; Fisher, Rudin and Dominici 2019), for an R function or
+  the learners of `suplrn()`, with the shuffles drawn in the compiled
+  core and returned.
+
 * `plotrdg()` and `plotvln()` take their densities from the compiled
   kernel that the command line and the other languages use, so the curve
   is the same everywhere and on every version of R. The kernel agrees

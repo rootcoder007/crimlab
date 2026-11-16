@@ -8059,3 +8059,129 @@ def tabrpt(data: Any, value: Any, prd: Any, by: Any = None, pop: Any = None, rnd
     """
     return jcall("tabrpt", data=data, value=value, prd=prd, by=by, pop=pop, rnd=rnd, kind=kind,
                  per=per, level=level, adj=adj, alpha=alpha)
+
+
+def gocoef(object: Any, v: Any = None) -> Any:
+    """The slopes of a generalised ordered logit by threshold.
+
+    The arguments and the result are those of R's ``gocoef()``: see its help
+    page; ``object`` is a result of ``gologt()``.
+
+    Examples
+    --------
+    >>> p = {"y": [1, 2, 3, 1, 2, 3, 2, 1, 3, 2], "a": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]}
+    >>> r = gocoef(gologt(data=p, y="y", x="a"), v="a")
+    """
+    return jcall("gocoef", object=object, v=v)
+
+
+def gologt(data: Any, y: Any, x: Any, par: Any = None, lev: Any = None, level: Any = 0.95,
+           maxit: Any = 500) -> Any:
+    """The generalised ordered logit.
+
+    The arguments and the result are those of R's ``gologt()``: see its help
+    page; text outcomes need ``lev``.
+
+    Examples
+    --------
+    >>> p = {"y": [1, 2, 3, 1, 2, 3, 2, 1, 3, 2], "a": [1, 0, 1, 1, 0, 0, 1, 0, 1, 0]}
+    >>> r = gologt(data=p, y="y", x="a")
+    """
+    return jcall("gologt", data=data, y=y, x=x, par=par, lev=lev, level=level, maxit=maxit)
+
+
+def ulcate(y: Any, d: Any, x: Any, fold: Any, lrn: Any = "lasso", lrnd: Any = None,
+           lrnt: Any = "glm", clip: Any = 0.01, alpha: Any = 0.5, nlam: Any = 100, nfin: Any = 5,
+           tol: Any = 1e-07, scr: Any = True, hon: Any = False, ntree: Any = 500, mtry: Any = None,
+           pred: Any = None, stk: Any = ["glm", "lasso", "forest"], nstk: Any = 5,
+           disc: Any = False, seed: Any = 1) -> Any:
+    """The U-learner of conditional average treatment effects.
+
+    The arguments and the result are those of R's ``ulcate()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> x = [[0.2], [1.1], [-0.4], [0.9], [-1.3], [0.5], [1.6], [-0.8]]
+    >>> r = ulcate(y=[1.0, 2.9, 0.1, 2.2, -0.9, 1.4, 3.3, 0.0], d=[0, 1, 0, 1, 1, 0, 1, 0],
+    ...            x=x, fold=[1, 1, 2, 2, 1, 1, 2, 2], lrn="glm", lrnd="glm")
+    """
+    return jcall("ulcate", y=y, d=d, x=x, fold=fold, lrn=lrn, lrnd=lrnd, lrnt=lrnt, clip=clip,
+                 alpha=alpha, nlam=nlam, nfin=nfin, tol=tol, scr=scr, hon=hon, ntree=ntree,
+                 mtry=mtry, pred=pred, stk=stk, nstk=nstk, disc=disc, seed=seed)
+
+
+def xpshap(x: Any, f: Any, newx: Any = None, y: Any = None, nsamp: Any = 200, seed: Any = 1,
+           lctl: Any = None) -> Any:
+    """Sampling Shapley values of single predictions.
+
+    The arguments and the result are those of R's ``xpshap()``: see its help
+    page; ``newx`` left out is the first row of ``x``.
+
+    Examples
+    --------
+    >>> x = [[1.2, 0.3], [0.4, 1.1], [2.0, -0.5], [-0.7, 0.8], [0.1, 0.2], [1.5, 1.4]]
+    >>> r = xpshap(x=x, f="glm", y=[1.0, 0.2, 2.4, -0.9, 0.0, 1.1], nsamp=5, lctl={"nfold": 2})
+    """
+    return jcall("xpshap", x=x, f=f, newx=newx, y=y, nsamp=nsamp, seed=seed, lctl=lctl)
+
+
+def xpale(x: Any, f: Any, v: Any, y: Any = None, nbin: Any = 10, lctl: Any = None) -> Any:
+    """Accumulated local effects of one input.
+
+    The arguments and the result are those of R's ``xpale()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> x = [[1.2, 0.3], [0.4, 1.1], [2.0, -0.5], [-0.7, 0.8], [0.1, 0.2], [1.5, 1.4]]
+    >>> r = xpale(x=x, f="glm", v=1, y=[1.0, 0.2, 2.4, -0.9, 0.0, 1.1], nbin=2, lctl={"nfold": 2})
+    """
+    return jcall("xpale", x=x, f=f, v=v, y=y, nbin=nbin, lctl=lctl)
+
+
+def xpcp(x: Any, f: Any, v: Any, newx: Any = None, y: Any = None, grid: Any = 20,
+         gtype: Any = "even", lctl: Any = None) -> Any:
+    """Ceteris paribus profiles of single rows.
+
+    The arguments and the result are those of R's ``xpcp()``: see its help
+    page; ``newx`` left out is the first row of ``x``.
+
+    Examples
+    --------
+    >>> x = [[1.2, 0.3], [0.4, 1.1], [2.0, -0.5], [-0.7, 0.8], [0.1, 0.2], [1.5, 1.4]]
+    >>> r = xpcp(x=x, f="glm", v=1, y=[1.0, 0.2, 2.4, -0.9, 0.0, 1.1], grid=3, lctl={"nfold": 2})
+    """
+    return jcall("xpcp", x=x, f=f, v=v, newx=newx, y=y, grid=grid, gtype=gtype, lctl=lctl)
+
+
+def xppdp(x: Any, f: Any, v: Any, y: Any = None, grid: Any = 20, gtype: Any = "even",
+          lctl: Any = None) -> Any:
+    """Partial dependence of a prediction function on one input.
+
+    The arguments and the result are those of R's ``xppdp()``: see its help
+    page; ``f`` names learners of ``suplrn()`` and ``lctl`` is a dictionary
+    of their settings.
+
+    Examples
+    --------
+    >>> x = [[1.2, 0.3], [0.4, 1.1], [2.0, -0.5], [-0.7, 0.8], [0.1, 0.2], [1.5, 1.4]]
+    >>> r = xppdp(x=x, f="glm", v=1, y=[1.0, 0.2, 2.4, -0.9, 0.0, 1.1], grid=3, lctl={"nfold": 2})
+    """
+    return jcall("xppdp", x=x, f=f, v=v, y=y, grid=grid, gtype=gtype, lctl=lctl)
+
+
+def xpimp(x: Any, f: Any, y: Any, nrep: Any = 10, loss: Any = "se", ratio: Any = False,
+          seed: Any = 1, lctl: Any = None) -> Any:
+    """Permutation importance of a prediction function.
+
+    The arguments and the result are those of R's ``xpimp()``: see its help
+    page; ``f`` names learners of ``suplrn()`` and ``lctl`` is a dictionary
+    of their settings.
+
+    Examples
+    --------
+    >>> x = [[1.2, 0.3], [0.4, 1.1], [2.0, -0.5], [-0.7, 0.8], [0.1, 0.2], [1.5, 1.4]]
+    >>> r = xpimp(x=x, f="glm", y=[1.0, 0.2, 2.4, -0.9, 0.0, 1.1], nrep=2, lctl={"nfold": 2})
+    """
+    return jcall("xpimp", x=x, f=f, y=y, nrep=nrep, loss=loss, ratio=ratio, seed=seed, lctl=lctl)

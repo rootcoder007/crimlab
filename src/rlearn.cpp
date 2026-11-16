@@ -665,4 +665,86 @@ SEXP C_clab_r_suplrn(SEXP x, SEXP y, SEXP fam, SEXP lrns, SEXP nfold, SEXP fold,
   return clab::nlist(out, onm);
 }
 
+
+SEXP C_clab_r_ulcate(SEXP y, SEXP d, SEXP x, SEXP fold, SEXP lrn, SEXP lrnd, SEXP lrnt, SEXP clip, SEXP alpha,
+                     SEXP nlam, SEXP nfin, SEXP tol, SEXP scr, SEXP hon, SEXP ntree, SEXP mtry, SEXP pred,
+                     SEXP stk, SEXP nstk, SEXP disc, SEXP seed) {
+  clab::who = "ulcate";
+  int n, p;
+  SEXP xv = PROTECT(rl::mat(x, "x", &n, &p));
+  if (n < 4 || p < 1) fail("`x` must have at least four rows and one column.");
+  SEXP yv = PROTECT(num(y, "y", n));
+  SEXP dv = PROTECT(bin(d, "d", n));
+  int nf;
+  const int *fv = rl::folds(fold, "fold", n, &nf);
+  const double cl = REAL_RO(num(clip, "clip", 1, 0.0, true))[0];
+  if (cl >= 0.5) fail("`clip` must be below 0.5.");
+  const double al = clab::p01(alpha, "alpha");
+  const int nl = clab::whole(nlam, "nlam", 1);
+  if (nl > kutil::maxcell) fail("`nlam` must be at most %.0f.", kutil::maxcell);
+  const int ni = clab::whole(nfin, "nfin", 2);
+  if (ni > n) fail("`nfin` must be at most the %d rows of `x`.", n);
+  const double sd = REAL_RO(num(seed, "seed", 1, 0.0))[0];
+  const unsigned int us = static_cast<unsigned int>(std::fmod(sd, 4294967296.0));
+  const int nt = clab::whole(ntree, "ntree", 1);
+  const int mt = Rf_isNull(mtry) ? 0 : clab::whole(mtry, "mtry", 1);
+  const double tl = REAL_RO(num(tol, "tol", 1, 0.0, true))[0];
+  clab::lgl(scr, "scr", 1);
+  clab::lgl(hon, "hon", 1);
+  const int ks = clab::whole(nstk, "nstk", 2);
+  clab::lgl(disc, "disc", 1);
+  clab_lrn sy[5], sdd[5], st[5];
+  const Lset ls = {al, nl, ni, tl, LOGICAL_RO(scr)[0], LOGICAL_RO(hon)[0], us, nt, mt};
+  Lset lsd = ls, lst = ls;
+  lsd.seed = us + 1U;
+  lst.seed = us + 2U;
+  const int dc = LOGICAL_RO(disc)[0];
+  const clab_lrn ly = learner(lrn, "lrn", ls, stk, ks, dc, sy);
+  const clab_lrn ld = learner(lrnd, "lrnd", lsd, stk, ks, dc, sdd);
+  const clab_lrn lt = learner(lrnt, "lrnt", lst, stk, ks, dc, st);
+  SEXP pr = PROTECT(Rf_allocMatrix(REALSXP, n, 2));
+  int fit = 1;
+  if (!Rf_isNull(pred)) {
+    SEXP pd = Rf_getAttrib(pred, R_DimSymbol);
+    if (!clab::isnum(pred) || TYPEOF(pd) != INTSXP || XLENGTH(pd) != 2 || INTEGER_RO(pd)[0] != n ||
+        INTEGER_RO(pd)[1] != 2) {
+      fail("`pred` must be a matrix of %d rows and 2 columns.", n);
+    }
+    SEXP pv = PROTECT(clab::dbl(pred));
+    for (R_xlen_t i = 0; i < XLENGTH(pv); ++i) {
+      if (!std::isfinite(REAL_RO(pv)[i])) fail("`pred` must be finite.");
+    }
+    std::memcpy(REAL(pr), REAL_RO(pv), sizeof(double) * 2 * static_cast<std::size_t>(n));
+    UNPROTECT(1);
+    fit = 0;
+  }
+  std::int64_t niw;
+  const std::int64_t nw = clab_ulcsz(n, p, &ly, &ld, &lt, &niw);
+  double *w = rl::dalloc(static_cast<double>(nw) + 1);
+  int *iw = rl::ialloc(static_cast<double>(niw) + 1);
+  SEXP u = PROTECT(Rf_allocVector(REALSXP, n));
+  SEXP tau = PROTECT(Rf_allocVector(REALSXP, n));
+  const int rc = clab_ulcate(REAL_RO(xv), n, p, REAL_RO(yv), REAL_RO(dv), fv, nf, &ly, &ld, &lt, cl, fit, REAL(pr),
+                             REAL(u), REAL(tau), w, iw);
+  if (rc == CLAB_EDOM) fail("no estimate: a learner failed, or a prediction is not finite.");
+  kchk(rc, nullptr);
+  SEXP dn = PROTECT(Rf_allocVector(VECSXP, 2));
+  SEXP cn = PROTECT(Rf_allocVector(STRSXP, 2));
+  SET_STRING_ELT(cn, 0, Rf_mkChar("m"));
+  SET_STRING_ELT(cn, 1, Rf_mkChar("e"));
+  SET_VECTOR_ELT(dn, 1, cn);
+  Rf_setAttrib(pr, R_DimNamesSymbol, dn);
+  SEXP ate = PROTECT(Rf_ScalarReal(clab::nsum(REAL_RO(tau), n) / n));
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, tau);
+  SET_VECTOR_ELT(out, 1, ate);
+  SET_VECTOR_ELT(out, 2, u);
+  SET_VECTOR_ELT(out, 3, pr);
+  static const char *const on[] = {"tau", "ate", "u", "pred"};
+  SEXP res = PROTECT(clab::nlist(out, on));
+  Rf_classgets(res, PROTECT(Rf_mkString("ulcate")));
+  UNPROTECT(12);
+  return res;
+}
+
 }  // extern "C"

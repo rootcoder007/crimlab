@@ -675,6 +675,18 @@ SEXP C_clab_r_mapsym(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_eofst(SEXP, SEXP);
 SEXP C_clab_r_tpsurf(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dagcol(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpperm(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpimp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpgrid(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpcpd(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xppd(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpaled(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpale(SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpshd(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_xpsh(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_ulcate(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
+                     SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_gologt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_idwint(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gtwreg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_asrule(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1089,6 +1101,17 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_eofst", fn<&C_clab_r_eofst>(), 2},
     {"C_clab_r_tpsurf", fn<&C_clab_r_tpsurf>(), 6},
     {"C_clab_r_dagcol", fn<&C_clab_r_dagcol>(), 3},
+    {"C_clab_r_xpperm", fn<&C_clab_r_xpperm>(), 3},
+    {"C_clab_r_xpimp", fn<&C_clab_r_xpimp>(), 7},
+    {"C_clab_r_xpgrid", fn<&C_clab_r_xpgrid>(), 3},
+    {"C_clab_r_xpcpd", fn<&C_clab_r_xpcpd>(), 3},
+    {"C_clab_r_xppd", fn<&C_clab_r_xppd>(), 3},
+    {"C_clab_r_xpaled", fn<&C_clab_r_xpaled>(), 3},
+    {"C_clab_r_xpale", fn<&C_clab_r_xpale>(), 3},
+    {"C_clab_r_xpshd", fn<&C_clab_r_xpshd>(), 4},
+    {"C_clab_r_xpsh", fn<&C_clab_r_xpsh>(), 4},
+    {"C_clab_r_ulcate", fn<&C_clab_r_ulcate>(), 21},
+    {"C_clab_r_gologt", fn<&C_clab_r_gologt>(), 6},
     {"C_clab_r_idwint", fn<&C_clab_r_idwint>(), 11},
     {"C_clab_r_gtwreg", fn<&C_clab_r_gtwreg>(), 8},
     {"C_clab_r_asrule", fn<&C_clab_r_asrule>(), 7},

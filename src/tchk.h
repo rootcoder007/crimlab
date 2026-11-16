@@ -212,4 +212,6 @@ void t_dwn(tk &t, int big);
 void t_spi(tk &t, int big);
 void t_ovr(tk &t, int big);
 void t_map(tk &t, int big);
+void t_xpl(tk &t, int big);
+void t_gol(tk &t, int big);
 #endif

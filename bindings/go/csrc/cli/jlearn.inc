@@ -464,6 +464,80 @@ bool dmlx(Ctx &c, Val &out) {
   return true;
 }
 
+
+bool ulcate(Ctx &c, Val &out) {
+  int n = 0, p = 0;
+  std::vector<double> xv;
+  CK(lmat(c, c["x"], "x", n, p, xv));
+  if (n < 4 || p < 1) return c.fail("`x` must have at least four rows and one column.");
+  const std::size_t sn = static_cast<std::size_t>(n);
+  Dv yv, dv, cv, sdv, tlv;
+  CK(num(c, c["y"], "y", yv, n));
+  CK(lbin(c, "d", n, dv));
+  std::vector<int> fv;
+  int nf = 0;
+  CK(lfolds(c, c["fold"], "fold", n, fv, nf));
+  Val d0, d1, d2;
+  CK(num(c, arg(c, "clip", d0, 0.01), "clip", cv, 1, 0.0, true));
+  if (cv[0] >= 0.5) return c.fail("`clip` must be below 0.5.");
+  double al = 0.0;
+  CK(p01d(c, "alpha", 0.5, al));
+  int nl = 0, ni = 0, nt = 0, mt = 0, ks = 0, sr = 0, hn = 0, dc = 0;
+  CK(wholed(c, "nlam", 100, 1, nl));
+  if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
+  CK(wholed(c, "nfin", 5, 2, ni));
+  if (ni > n) return c.fail("`nfin` must be at most the %d rows of `x`.", n);
+  CK(num(c, arg(c, "seed", d1, 1), "seed", sdv, 1, 0.0));
+  const unsigned int us = static_cast<unsigned int>(std::fmod(sdv[0], 4294967296.0));
+  CK(wholed(c, "ntree", 500, 1, nt));
+  if (c.has("mtry")) CK(whole(c, c["mtry"], "mtry", 1, mt));
+  CK(num(c, arg(c, "tol", d2, 1e-7), "tol", tlv, 1, 0.0, true));
+  CK(lflag(c, "scr", true, sr));
+  CK(lflag(c, "hon", false, hn));
+  CK(wholed(c, "nstk", 5, 2, ks));
+  CK(lflag(c, "disc", false, dc));
+  clab_lrn sy[5], sdd[5], st[5];
+  const Lset ls = {al, nl, ni, tlv[0], sr, hn, us, nt, mt};
+  Lset lsd = ls, lst = ls;
+  lsd.seed = us + 1U;
+  lst.seed = us + 2U;
+  const std::vector<Val> stk = strv(c, "stk", {"glm", "lasso", "forest"});
+  const Val lrn0 = c.has("lrn") ? c["lrn"] : vstr("lasso");
+  clab_lrn ly{}, ld{}, lt{};
+  CK(learner(c, lrn0, "lrn", ls, stk, ks, dc, sy, ly));
+  CK(learner(c, c.has("lrnd") ? c["lrnd"] : lrn0, "lrnd", lsd, stk, ks, dc, sdd, ld));
+  CK(learner(c, c.has("lrnt") ? c["lrnt"] : vstr("glm"), "lrnt", lst, stk, ks, dc, st, lt));
+  std::vector<double> pr(2 * sn), u(sn), tau(sn);
+  int fit = 1;
+  if (c.has("pred")) {
+    const Val &pd = c["pred"];
+    int dim[2] = {-1, -1};
+    bool bad = false;
+    if (pd.t != Val::ARR || pd.a.empty() || pd.a[0].t != Val::ARR || !shape(pd, 2, dim, 0) || dim[0] != n ||
+        dim[1] != 2) {
+      return c.fail("`pred` must be a matrix of %d rows and 2 columns.", n);
+    }
+    fill(pd, 2, dim, 0, 0, 1, pr, bad, false);
+    if (bad) return c.fail("`pred` must be finite.");
+    fit = 0;
+  }
+  std::int64_t niw = 0;
+  const std::size_t nw = static_cast<std::size_t>(clab_ulcsz(n, p, &ly, &ld, &lt, &niw));
+  std::vector<double> w(nw + 1);
+  std::vector<int> iw(static_cast<std::size_t>(niw) + 1);
+  const int rc = clab_ulcate(xv.data(), n, p, yv.p(), dv.p(), fv.data(), nf, &ly, &ld, &lt, cv[0], fit, pr.data(),
+                             u.data(), tau.data(), w.data(), iw.data());
+  if (rc == CLAB_EDOM) return c.fail("no estimate: a learner failed, or a prediction is not finite.");
+  CK(kchk(c, rc));
+  kutil::ksum s;
+  for (double t : tau) s.add(t);
+  out = vobj();
+  put(out, "tau", vauto(tau));
+  put(out, "ate", vnum(s.val() / n));
+  put(out, "u", vauto(u));
+  put(out, "pred", vmat(pr, n, 2));
+  return true;
+}
 bool suplrn(Ctx &c, Val &out) {
   int n = 0, p = 0;
   std::vector<double> xv;

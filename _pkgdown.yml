@@ -169,6 +169,11 @@ reference:
       - fairsim
       - nordet
       - fair
+      - xpshap
+      - xpale
+      - xpcp
+      - xppdp
+      - xpimp
   - title: Plots
     desc: A plot() method for every result with something to draw, the
       palettes and session look they share, and general plots of
@@ -235,6 +240,8 @@ reference:
       - jmono
       - mmshr
       - pscred
+      - gologt
+      - gocoef
   - title: Life course and the justice pipeline
     desc: Age-crime curves of a mixture of types, the cumulative risk of a first
       event by age, and lagged rates between stages; group-based
@@ -284,6 +291,7 @@ reference:
       sensitivity of a matched comparison.
     contents:
       - dmlx
+      - ulcate
       - cbatt
       - smdbal
       - evlx

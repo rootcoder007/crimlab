@@ -654,10 +654,31 @@ void t_stk(tk &t) {
 
 }  // namespace
 
+// the U-learner from given nuisances: m = 0 and e = 1/2 make u = 2 y (d =
+// 1) or -2 y (d = 0), here 2, -4, 6, -8; least squares on x = 0..3 is 2 -
+// 2 x
+static void t_ulc(tk &t) {
+  const double x[4] = {0, 1, 2, 3}, y[4] = {1, 2, 3, 4}, d[4] = {1, 0, 1, 0};
+  const int f[4] = {0, 1, 0, 1};
+  double pr[8] = {0, 0, 0, 0, 0.5, 0.5, 0.5, 0.5}, u[4], tau[4], w[4000];
+  int iw[1000];
+  const clab_lrn l = {0, 1.0, 20, 3, 7, 50, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
+  std::int64_t niw = 0;
+  tk_true(t, "ulc.sz", clab_ulcsz(4, 1, &l, &l, &l, &niw) < 4000 && niw < 1000);
+  tk_ieq(t, "ulc.rc", clab_ulcate(x, 4, 1, y, d, f, 2, &l, &l, &l, 0.01, 0, pr, u, tau, w, iw), CLAB_OK);
+  tk_near(t, "ulc.u", u[3], -8, 1e-15);
+  tk_near(t, "ulc.t0", tau[0], 2, 1e-12);
+  tk_near(t, "ulc.t3", tau[3], -4, 1e-12);
+  const double d2[4] = {1, 0, 2, 0};
+  tk_ieq(t, "ulc.d", clab_ulcate(x, 4, 1, y, d2, f, 2, &l, &l, &l, 0.01, 0, pr, u, tau, w, iw), CLAB_EDOM);
+  tk_ieq(t, "ulc.clip", clab_ulcate(x, 4, 1, y, d, f, 2, &l, &l, &l, 0.5, 0, pr, u, tau, w, iw), CLAB_EDOM);
+}
+
 void t_dml(tk &t, int) {
   t_forms(t);
   t_two(t);
   t_sim(t);
   t_bad(t);
   t_stk(t);
+  t_ulc(t);
 }

@@ -916,5 +916,68 @@ int clab_stack(const double *x, int n, int p, const double *y, int fam,
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 
-}  // extern "C"
 
+std::int64_t clab_ulcsz(int n, int p, const clab_lrn *ly, const clab_lrn *ld, const clab_lrn *lt,
+                        std::int64_t *niw) CLAB_TRY {
+  std::int64_t a = 0, b = 0;
+  for (const clab_lrn *l : {ly, ld, lt}) {
+    const std::int64_t u = lw(*l, n, p), v = liw(*l, n, p);
+    a = u > a ? u : a;
+    b = v > b ? v : b;
+  }
+  *niw = std::int64_t{2} * n + b;
+  return a;
+}
+CLAB_CATCH(-1)
+
+int clab_ulcate(const double *x, int n, int p, const double *y, const double *d, const int *fold, int nf,
+                const clab_lrn *ly, const clab_lrn *ld, const clab_lrn *lt, double clip, int fit, double *pred,
+                double *u, double *tau, double *work, int *iwork) CLAB_TRY {
+  if (n < 2 || p < 1 || nf < 2 || nf > n || fit < 0 || fit > 1) return CLAB_EARG;
+  for (int i = 0; i < n; ++i) {
+    if (fold[i] < 0 || fold[i] >= nf) return CLAB_EARG;
+    if (d[i] != 0.0 && d[i] != 1.0) return CLAB_EDOM;
+  }
+  for (const clab_lrn *l : {ly, ld, lt}) {
+    const int rc = lok(*l, true);
+    if (rc != CLAB_OK) return rc;
+  }
+  if (!(clip > 0.0 && clip < 0.5)) return CLAB_EDOM;
+  int *tr = iwork, *te = tr + n, *liwk = te + n;
+  // the outcome and the propensity, each fold predicted by the learners
+  // fitted on the others
+  for (int j = 0; fit && j < 2; ++j) {
+    const clab_lrn &l = j == 0 ? *ly : *ld;
+    for (int f = 0; f < nf; ++f) {
+      int mt = 0, me = 0;
+      for (int i = 0; i < n; ++i) {
+        if (fold[i] == f) {
+          te[me++] = i;
+        } else {
+          tr[mt++] = i;
+        }
+      }
+      const unsigned int sd = l.seed + 7919U * static_cast<unsigned int>(j * 8 + f);
+      const int rc = nfit(l, j, x, n, p, j == 0 ? y : d, tr, mt, te, me, sd, pred + static_cast<std::int64_t>(j) * n,
+                          work, liwk);
+      if (rc != CLAB_OK) return rc;
+    }
+  }
+  // the pseudo-outcome (y - m) / (d - e), its denominator kept clip from 0
+  for (int i = 0; i < n; ++i) {
+    double r = d[i] - pred[n + i];
+    if (!std::isfinite(r) || !std::isfinite(pred[i])) return CLAB_EDOM;
+    if (std::fabs(r) < clip) r = r >= 0 ? clip : -clip;
+    u[i] = (y[i] - pred[i]) / r;
+  }
+  for (int i = 0; i < n; ++i) tr[i] = i;
+  const int rc = nfit(*lt, 0, x, n, p, u, tr, n, tr, n, lt->seed, tau, work, liwk);
+  if (rc != CLAB_OK) return rc;
+  for (int i = 0; i < n; ++i) {
+    if (!std::isfinite(tau[i])) return CLAB_EDOM;
+  }
+  return CLAB_OK;
+}
+CLAB_CATCH(CLAB_ENOMEM)
+
+}  // extern "C"
