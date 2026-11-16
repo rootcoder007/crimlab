@@ -14,11 +14,13 @@ test_that("cemtch() keeps strata with both groups, weighted to the treated", {
   keep <- unname(nt > 0 & nc > 0)
   mt <- sum(d$lead[keep])
   mc <- sum(1 - d$lead[keep])
-  w <- ifelse(!keep, 0, ifelse(d$lead == 1, 1, nt / nc * mc / mt))
+  w <- nt / nc * mc / mt
+  w[d$lead == 1] <- 1
+  w[!keep] <- 0
   expect_identical(m$keep, keep)
   expect_equal(m$w, unname(w), tolerance = 1e-14)
   expect_identical(m$cut$age, br)
-  expect_equal(as.vector(m$tab["matched", ]), c(mc, mt))
+  expect_identical(as.vector(m$tab["matched", ]), as.integer(c(mc, mt)))
   expect_identical(m$nstrata[["all"]], length(unique(s)))
   expect_identical(m$nstrata[["kept"]], length(unique(s[keep])))
   # strata numbered from 1 in order of first appearance among kept rows

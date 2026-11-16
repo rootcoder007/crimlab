@@ -172,7 +172,7 @@ summary.ifesc <- function(object, ...) object[["eff"]]
   o <- order(iu, it)
   dm <- matrix(dv[o], nt)
   a <- apply(dm, 2L, function(v) if (any(v == 1)) which.max(v) - 1L else nt)
-  if (any(apply(dm, 2L, function(v) is.unsorted(v)))) {
+  if (any(apply(dm, 2L, is.unsorted))) {
     .ckstop(f, "the treatment must stay 1 once it turns 1")
   }
   if (any(a == 0L)) {

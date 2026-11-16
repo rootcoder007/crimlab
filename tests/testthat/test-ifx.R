@@ -78,8 +78,8 @@ test_that("ifesc() with one factor is Bai's estimator and lm()", {
   expect_equal(r$cf$y0, ref$cf$y0, tolerance = 1e-8)
   ev <- tapply(ref$cf$eff, ref$cf$e, mean)
   expect_equal(r$eff$est, as.vector(ev), tolerance = 1e-8)
-  expect_equal(r$eff$e, as.numeric(names(ev)))
-  expect_equal(r$eff$n, as.vector(table(ref$cf$e)))
+  expect_identical(r$eff$e, as.numeric(names(ev)))
+  expect_identical(r$eff$n, as.vector(table(ref$cf$e)))
   expect_equal(r$att$est, mean(ref$cf$eff[ref$cf$e >= 0]), tolerance = 1e-8)
   # the factor spans the eigenvector's direction, its sign as eigsym()
   # fixes it

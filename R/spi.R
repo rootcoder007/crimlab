@@ -93,7 +93,7 @@ idwint <- function(mx, my, mv, tx, ty, p = 2, k = 0, rad = Inf,
   if (length(ty) != length(tx)) .ckstop(f, "`tx` and `ty` must have one length")
   p <- .cknum(p, "p", f, min = 0)
   k <- .cknum(k, "k", f, min = 0, max = 2147483647, whole = TRUE)
-  if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || !(rad > 0)) {
+  if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || rad <= 0) {
     .ckstop(f, "`rad` must be a positive number or Inf")
   }
   list(p = p, k = k, lonlat = .ckflag(lonlat, "lonlat", f))
