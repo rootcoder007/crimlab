@@ -635,7 +635,7 @@ print.wsctst <- function(x, ...) {
 #' r$nfac
 #' # a dynamic panel: y depends on its lag; jackknife-corrected mean group
 #' set.seed(10)
-#' tt <- 30
+#' tt <- 40
 #' d <- expand.grid(year = 1:tt, prov = paste0("p", 1:40))
 #' f <- rnorm(tt)[d$year]
 #' g <- rnorm(40, 1)[as.integer(substring(d$prov, 2))]
