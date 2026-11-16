@@ -22,6 +22,8 @@ empirical-cross-entropy plots.
 
 Useful links:
 
+- <https://crimlab.dev>
+
 - <https://github.com/rootcoder007/crimlab>
 
 - <https://rootcoder007.github.io/crimlab/>
