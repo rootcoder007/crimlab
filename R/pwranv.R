@@ -20,8 +20,7 @@
 #' @param n `NULL`, or the sizes of each group to try: numbers above 1, at
 #'   most 10000000.
 #' @param f The effect sizes to try: numbers from 0.
-#' @param alpha The level of the test: one number strictly between 0 and
-#'   1.
+#' @inheritParams pwrsim
 #' @param power `NULL`, or the power wanted: one number above `alpha` and
 #'   below 1. Give one of `n` and `power`.
 #' @return A data frame, one row per `n` and `f` (`n` varying fastest), or

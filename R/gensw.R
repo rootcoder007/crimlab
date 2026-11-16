@@ -107,7 +107,7 @@ gensw <- function(data, s, x, target = c("generalize", "transport"),
 }
 
 #' @rdname gensw
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.gensw <- function(x, ...) {
   g <- x[["diag"]]

@@ -40,8 +40,7 @@
 #'   from 1 to 100000 with `1 / (nperm + 1)` at most `alpha`.
 #' @param level The level of Wilson's interval: one number strictly
 #'   between 0 and 1.
-#' @param seed `NULL` (drawn from R's generator, so [set.seed()] fixes it)
-#'   or a whole number from 0 to 2147483647.
+#' @inheritParams rndalc
 #' @return An object of class `pwrsim`, a list: `tab`, a data frame with
 #'   one row per design (`n` varying fastest): `n`, `n1` (the treated
 #'   arm), `eff`, `power`, `se`, `lo`, `hi` and `rej` (the trials
@@ -130,7 +129,7 @@ pwrsim <- function(
 
 #' @rdname pwrsim
 #' @param x An object of class `pwrsim`.
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.pwrsim <- function(x, ...) {
   cat("pwrsim: ", x[["fam"]], " outcome, ", x[["test"]], " test (",

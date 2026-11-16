@@ -396,7 +396,8 @@ pcdtst <- function(x, unit, time) {
 #' @param int `TRUE` (default) for a constant in the model.
 #' @param pred `"mean"` (default) for the interval of the mean at each
 #'   point, `"new"` for that of one new row.
-#' @param level The level of the intervals: one number between 0 and 1.
+#' @inheritParams freqtbl
+#' @inheritParams dktflw
 #' @param cook The Cook's distance above which `print()` counts a row.
 #' @param lev Two leverages: `print()` counts the rows between them and
 #'   those above the second.
@@ -404,7 +405,6 @@ pcdtst <- function(x, unit, time) {
 #'   predictors.
 #' @param vif The variance inflation factor above which `print()` counts a
 #'   predictor.
-#' @param ... Not used.
 #' @return An object of class `olsdx`, a list: `coef`, one row per term
 #'   (`term`, `est`, `se`, `t`, `p`, `lo`, `hi`, `beta`, `tol`, `vif`, the
 #'   last three `NA` for the constant); `fit`, one row (`n`, `k`, `r` the

@@ -29,7 +29,8 @@
 #'   each arm with two participants or more.
 #' @param x `NULL` or the names of the baseline covariate columns
 #'   (numbers); for `print()`, an object of class `rcttml`.
-#' @param fam `"gaussian"` or `"binomial"`.
+#' @inheritParams plntfx
+#' @inheritParams enpath
 #' @param inter `TRUE` to let the effect vary with the covariates in `Q`.
 #' @param g `NULL` (the share treated) or the known chance of treatment:
 #'   one number strictly between 0 and 1.
@@ -38,8 +39,6 @@
 #' @param bounds `NULL` (the range of `y`) or two numbers, below and above
 #'   every outcome, that put a continuous outcome on `[0, 1]`.
 #' @param qbound The bound of the scaled `Q`, above 0 and below 0.5.
-#' @param level The level of the intervals: one number strictly between 0
-#'   and 1.
 #' @return An object of class `rcttml`, a list: `tab`, a data frame with
 #'   rows `tmle`, `gcomp` and `unadj` (`method`, `est`, `se`, `lo`, `hi`,
 #'   `p`); `eps`, the fluctuation; `g`, the smallest and largest chance of
@@ -143,7 +142,7 @@ rcttml <- function(
 }
 
 #' @rdname rcttml
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.rcttml <- function(x, ...) {
   cat("rcttml: ", x[["fam"]], " outcome, ", x[["n"]],

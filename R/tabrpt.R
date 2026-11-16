@@ -26,7 +26,7 @@
 #' @param by `NULL`, or the columns of the groups: names.
 #' @param pop `NULL`, or the column of the populations: one name.
 #' @param rnd `NULL`, or the rounding base of the published counts.
-#' @param kind `"nearest"` or `"random"` rounding.
+#' @inheritParams pbbnd
 #' @param per The rates are given per `per` of `pop`: one positive number.
 #' @param level The confidence level of every interval.
 #' @param adj The adjustment of the p-values for the number of
@@ -103,7 +103,7 @@ tabrpt <- function(data, value, prd, by = NULL, pop = NULL, rnd = NULL,
 
 #' @rdname tabrpt
 #' @param x A `tabrpt` result.
-#' @param ... Not used.
+#' @inheritParams freqtbl
 #' @export
 print.tabrpt <- function(x, ...) {
   ch <- x[["change"]]

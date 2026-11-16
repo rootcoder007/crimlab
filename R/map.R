@@ -29,7 +29,7 @@
 #'   `v`).
 #' @param meth How a number of classes is cut: `"quantile"` or `"equal"`.
 #' @param ... Passed to [graphics::plot.window()].
-#' @param main `NULL` (a default title) or one string.
+#' @inheritParams plotlrnz
 #' @param col `NULL` (the palette) or colours, recycled over the classes.
 #' @param pal `NULL` (`"sequential"`) or a palette name for [blpal()].
 #' @return Invisibly, a list: `areas`, a data frame with `area` (the label
@@ -225,10 +225,8 @@ smmap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
 #' @param cl `NULL`, a result of [dbscn()], or the cluster of each point: a
 #'   whole number from 1, `NA` for noise.
 #' @param ... Passed to [graphics::plot.window()].
-#' @param main `NULL` (a default title) or one string.
+#' @inheritParams plotlrnz
 #' @param col `NULL` (the palette) or colours, one per cluster.
-#' @param pal `NULL` (the session palette, see [plotopt()]) or a palette
-#'   name for [blpal()].
 #' @return Invisibly, a list: `pts`, a data frame of the points (`x`, `y`,
 #'   `cl` the cluster or `NA`, `col` and `pch` as drawn); `cent`, one row
 #'   per cluster number from 1 to the largest (`cl`, the centre `x` and

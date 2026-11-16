@@ -22,7 +22,7 @@
 #' @param triple `NULL` or three labels of nodes, `a`, `c` and `b`: whether
 #'   `a -> c <- b` is a collider of the graph, and whether it is shielded.
 #' @param x For `print()`, a `dagcol` result.
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @return An object of class `dagcol`, a list: `col`, a data frame with one
 #'   row per collider (`a`, `c`, `b` and `shielded`, whether `a` and `b`
 #'   are adjacent); `nodes`, the labels in order; `nedge`, the edges once

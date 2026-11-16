@@ -24,22 +24,19 @@
 #' the dominant direction; a bootstrap draw whose fit is singular is left
 #' out.
 #'
-#' @param data A data frame, one row per unit.
+#' @inheritParams rndalc
+#' @inheritParams plntfx
 #' @param y The names of the outcome columns (numbers): each is a
 #'   specification of the outcome.
-#' @param d The name of the treatment column (numbers; it must vary).
 #' @param x `NULL` or the names of the covariates in every specification
 #'   (numbers); for `print()`, an object of class `specrv`.
 #' @param opt `NULL` or the names of the optional covariates (numbers), at
 #'   most ten.
-#' @param se `"hc1"` or `"iid"`.
 #' @param level The level of the intervals and of significance: one
 #'   number strictly between 0 and 1.
 #' @param null `"perm"` or `"boot"`.
 #' @param nsim The data sets under the null: a whole number from 1 to
 #'   100000.
-#' @param seed `NULL` (drawn from R's generator, so [set.seed()] fixes it)
-#'   or a whole number from 0 to 2147483647.
 #' @return An object of class `specrv`, a list: `spec`, one row per
 #'   specification (`outcome`, `ctrl`, the optional covariates in it or
 #'   `"none"`, `est`, `se`, `stat`, `p`, `lo`, `hi`, `sig`); `test`, one
@@ -136,7 +133,7 @@ specrv <- function(
 }
 
 #' @rdname specrv
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.specrv <- function(x, ...) {
   cat("specrv: ", nrow(x[["spec"]]), " specifications, ",

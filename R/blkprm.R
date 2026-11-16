@@ -20,15 +20,14 @@
 #' as at least as extreme, so that arrangements equal to it in exact
 #' arithmetic are never lost to rounding.
 #'
-#' @param data A data frame, one row per unit.
-#' @param y The name of the outcome column (numbers).
+#' @inheritParams cemtch
+#' @inheritParams ifesc
+#' @inheritParams pwrsim
 #' @param d The name of the treatment column: 0 or 1 (or `FALSE`, `TRUE`),
 #'   both present.
 #' @param block The name of the block column (labels).
 #' @param stat `"diff"` (the difference in means) or `"strat"` (the
 #'   block-weighted mean of the blocks' differences).
-#' @param alt The alternative: `"two.sided"`, `"greater"` (the treated
-#'   higher) or `"less"`.
 #' @param nperm The number of arrangements drawn: a whole number from 1 to
 #'   10000000 (not used with `exact`).
 #' @param exact `TRUE` to enumerate every arrangement.
@@ -115,7 +114,7 @@ blkprm <- function(
 
 #' @rdname blkprm
 #' @param x An object of class `blkprm`.
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.blkprm <- function(x, ...) {
   cat("blkprm: ", if (x[["stat"]] == "diff") "difference in means" else

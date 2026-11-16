@@ -21,7 +21,8 @@
 #' 'gologit2' uses to choose the parallel ones), and `lr` is the
 #' likelihood-ratio test of the fit against the proportional-odds model.
 #'
-#' @param data A data frame, one row per unit.
+#' @inheritParams cemtch
+#' @inheritParams spcure
 #' @param y The name of the ordered outcome column: an ordered factor or a
 #'   factor (its levels in order), numbers (in increasing order) or text
 #'   (with `lev`).
@@ -31,9 +32,6 @@
 #'   slope for every threshold).
 #' @param lev `NULL`, or the levels of the outcome from lowest to highest,
 #'   each present in the data; needed for text.
-#' @param level The confidence level of the Wald intervals: one number
-#'   strictly between 0 and 1.
-#' @param maxit The quasi-Newton steps: one whole number from 1.
 #' @return An object of class `gologt`, a list: `coef`, one row per
 #'   parameter (`term`, `thr` the threshold, as `"low|med"`, or `"all"` for
 #'   a parallel slope; `est`, `se`, `z`, `p`, `lo`, `hi`); `wald`, one row
@@ -114,7 +112,7 @@ gologt <- function(data, y, x, par = NULL, lev = NULL, level = 0.95,
 }
 
 #' @rdname gologt
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.gologt <- function(x, ...) {
   f <- x[["fit"]]

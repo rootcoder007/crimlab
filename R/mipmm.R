@@ -30,7 +30,9 @@
 #' increase in variance `(1 + 1 / m) B / U` and `fmi` the fraction of
 #' missing information, as the `mice` package pools.
 #'
-#' @param data A data frame, one row per unit.
+#' @inheritParams cemtch
+#' @inheritParams rndalc
+#' @inheritParams plntfx
 #' @param y The names of the numeric columns to impute (missing values as
 #'   `NA`; observed values finite).
 #' @param x `NULL` or the names of complete numeric columns that predict
@@ -42,10 +44,6 @@
 #' @param fy `NULL` or the outcome of the analysis: a column of `y` or `x`.
 #' @param fx `NULL` or its predictors: columns of `y` or `x` other than
 #'   `fy`.
-#' @param level The level of the intervals: one number strictly between 0
-#'   and 1.
-#' @param seed `NULL` (drawn from R's generator, so [set.seed()] fixes it)
-#'   or a whole number from 0 to 2147483647.
 #' @return An object of class `mipmm`, a list: `imp`, for each column of
 #'   `y` a matrix of its imputed values, one row per missing value (named
 #'   by its row of `data`) and one column per imputation; `pool`, a data
@@ -159,7 +157,7 @@ mipmm <- function(
 }
 
 #' @rdname mipmm
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.mipmm <- function(x, ...) {
   cat("mipmm: ", sum(x[["nmis"]]), " missing value(s) in ",

@@ -20,21 +20,17 @@
 #' (the methods of `p.adjust()`); `nflag` counts the controls whose
 #' adjusted p-value is at most `alpha`.
 #'
-#' @param data A data frame, one row per unit.
+#' @inheritParams plntfx
 #' @param y `NULL` or the name of the outcome of interest (numbers).
-#' @param d The name of the treatment column (numbers; it must vary).
 #' @param nc The names of the negative-control outcome columns (numbers).
 #' @param x `NULL` or the names of the covariate columns (numbers); for
 #'   `print()`, an object of class `falsctl`.
-#' @param se `"hc1"` or `"iid"`.
 #' @param nperm The permutations: a whole number from 0 (none) to
 #'   1000000.
 #' @param adj The adjustment of the controls' p-values: `"holm"`,
 #'   `"bonferroni"`, `"hochberg"`, `"BH"`, `"BY"` or `"none"`.
 #' @param alpha The level at which a control is flagged: one number
 #'   strictly between 0 and 1.
-#' @param level The level of the intervals: one number strictly between 0
-#'   and 1.
 #' @param seed `NULL` (drawn from R's generator, so [set.seed()] fixes it)
 #'   or a whole number from 0 to 2147483647; not used without
 #'   permutations.
@@ -124,7 +120,7 @@ falsctl <- function(
 }
 
 #' @rdname falsctl
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.falsctl <- function(x, ...) {
   cat("falsctl: ", x[["nflag"]], " of ", x[["ncontrol"]],

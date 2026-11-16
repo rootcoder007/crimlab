@@ -30,8 +30,7 @@
 #'   0.5.
 #' @param pred `NULL` to learn `m` and `e`, or their predictions: a matrix
 #'   with one row per observation and two columns, `m` then `e`.
-#' @param seed The seed of the inner folds and of the forests: one number,
-#'   at least 0.
+#' @inheritParams dmlx
 #' @return An object of class `ulcate`, a list: `tau`, the effect at each
 #'   row; `ate`, its mean; `u`, the pseudo-outcome; `pred`, the
 #'   out-of-fold predictions (columns `m` and `e`).
@@ -64,7 +63,7 @@ ulcate <- function(y, d, x, fold, lrn = "lasso", lrnd = lrn, lrnt = "glm",
 }
 
 #' @rdname ulcate
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.ulcate <- function(x, ...) {
   cat("ulcate: U-learner of the effect of d, ", length(x[["tau"]]),

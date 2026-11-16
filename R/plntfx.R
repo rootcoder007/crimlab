@@ -20,8 +20,9 @@
 #' of the mean, `3 sd / sqrt(nrep)`. One shuffle serves every effect, and
 #' the shuffles come from the package's generator.
 #'
-#' @param data A data frame, one row per unit.
-#' @param y The name of the outcome column (numbers).
+#' @inheritParams cemtch
+#' @inheritParams rndalc
+#' @inheritParams ifesc
 #' @param d The name of the treatment column (numbers; it must vary).
 #' @param x `NULL` or the names of the covariate columns (numbers); for
 #'   `print()`, an object of class `plntfx`.
@@ -32,8 +33,6 @@
 #'   and 1.
 #' @param tol `NULL` (three Monte Carlo standard errors) or the largest
 #'   `|bias|` accepted: one number from 0.
-#' @param seed `NULL` (drawn from R's generator, so [set.seed()] fixes it)
-#'   or a whole number from 0 to 2147483647.
 #' @return An object of class `plntfx`, a list: `tab`, a data frame with
 #'   one row per effect (`eff`, `mean`, `bias`, `sd`, `rmse`, `cover`,
 #'   `rej`, `tol`, `ok`); and `nrep`, `se`, `level` and `seed`.
@@ -102,7 +101,7 @@ plntfx <- function(
 }
 
 #' @rdname plntfx
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.plntfx <- function(x, ...) {
   t <- x[["tab"]]

@@ -24,9 +24,8 @@
 #' @param nx,ny The size of the grid: whole numbers from 2 to 1000.
 #' @param ... Not used by `print()`; for `plot()`, passed to
 #'   [graphics::image()].
-#' @param main `NULL` (a default title) or one string.
+#' @inheritParams chomap
 #' @param col Not used: the surface is shaded by `pal`.
-#' @param pal `NULL` (`"sequential"`) or a palette name for [blpal()].
 #' @return An object of class `tpsurf`, a list: `x` and `y` (the grid),
 #'   `z` (the surface on it, `nx` by `ny`, as [graphics::image()] takes
 #'   it), `a` (the basis coefficients), `beta` (`const`, `x`, `y`),

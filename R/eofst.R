@@ -27,7 +27,7 @@
 #' @param k `NULL` (every component) or the most components to keep: one
 #'   whole number from 1.
 #' @param x For `print()`, an `eofst` result.
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @return An object of class `eofst`, a list: `eofs` (places by
 #'   components), `pcs` (periods by components), `explained` (the share of
 #'   the variance of each component), `sdev` and `center` (the column

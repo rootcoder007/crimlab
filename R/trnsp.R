@@ -22,20 +22,17 @@
 #' the rows within the trial and within the rest, a draw whose fit fails
 #' left out (`nfail`), with normal intervals at `level`.
 #'
-#' @param data A data frame, one row per unit of the trial or the target.
+#' @inheritParams gensw
+#' @inheritParams plntfx
 #' @param y The name of the outcome column (numbers; read in the trial).
 #' @param d The name of the treatment column: 0 or 1 in the trial, both
 #'   present.
-#' @param s The name of the column marking the trial's units: 1 in the
-#'   trial, 0 outside it (or `TRUE`, `FALSE`), both present.
 #' @param x The names of the covariate columns (numbers), complete in
 #'   every row; for `print()`, an object of class `trnsp`.
 #' @param target `"transport"` or `"generalize"`.
 #' @param trim The bound of the sampling scores, from 0 to below 0.5.
 #' @param nboot The bootstrap draws: a whole number from 0 (no standard
 #'   errors) to 100000.
-#' @param level The level of the intervals: one number strictly between 0
-#'   and 1.
 #' @param seed `NULL` (drawn from R's generator, so [set.seed()] fixes it)
 #'   or a whole number from 0 to 2147483647; not used without draws.
 #' @return An object of class `trnsp`, a list: `tab`, a data frame with
@@ -128,7 +125,7 @@ trnsp <- function(
 }
 
 #' @rdname trnsp
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.trnsp <- function(x, ...) {
   cat("trnsp: the trial's effect ", if (x[["target"]] == "transport")

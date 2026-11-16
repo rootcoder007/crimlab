@@ -131,7 +131,7 @@ rndalc <- function(
 
 #' @rdname rndalc
 #' @param x An object of class `rndalc`.
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.rndalc <- function(x, ...) {
   cat("rndalc: ", nrow(x[["alloc"]]), " participants, seed ",

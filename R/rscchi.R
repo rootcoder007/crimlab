@@ -81,7 +81,7 @@ rscchi <- function(x, y, w = NULL, strata = NULL, psu = NULL, fpc = NULL) {
 }
 
 #' @rdname rscchi
-#' @param ... Not used by `print()`.
+#' @inheritParams cemtch
 #' @export
 print.rscchi <- function(x, ...) {
   g <- x[["des"]]
