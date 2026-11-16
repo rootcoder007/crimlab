@@ -13,15 +13,13 @@
 #include <string>
 #include <vector>
 
+#include "dpnd.h"
+
 namespace bmat {
 
 // The columns of a numeric matrix (or one vector) of n rows, finite and
 // at least lo, with their names (pre1, pre2, ... where unnamed).
-struct mat {
-  std::vector<double> v;  // n x p, column-major
-  std::vector<std::string> nm;
-  int p = 0;
-};
+using mat = dpnd::xm;
 mat readm(SEXP x, const char *an, const char *pre, int n, double lo);
 
 }  // namespace bmat

@@ -221,6 +221,8 @@ SEXP C_clab_r_lmdix(SEXP y, SEXP q, SEXP unit, SEXP time, SEXP type, SEXP at, SE
     yz[z(i)] = pn.y[i] > 0 ? pn.y[i] : zr;
     factors(yz[z(i)], qz.data() + i, m, z(n), fz.data() + z(i) * z(k));
   }
+  const double cells = static_cast<double>(pn.nu) * pn.nt;
+  if (cells > 67108864.0) fail("the units by periods (%.0f cells) are too many.", cells);
   std::vector<int> row(z(pn.nu) * z(pn.nt), -1);
   for (int i = 0; i < n; ++i) row[z(pn.u[z(i)]) * z(pn.nt) + z(pn.t[z(i)])] = i;
   const std::vector<int> ps = periods(at, pn, sp, sp ? 1 : 2);
@@ -497,6 +499,8 @@ SEXP C_clab_r_pcdtst(SEXP x, SEXP unit, SEXP time) {
   clab::who = "pcdtst";
   int np = 0;
   pevr::pan pn = pevr::panel(x, unit, time, clab::ninf, &np);
+  const double cells = static_cast<double>(pn.nu) * pn.nt;
+  if (cells > 67108864.0) fail("the units by periods (%.0f cells) are too many.", cells);
   std::vector<double> e(z(pn.nu) * z(pn.nt), std::numeric_limits<double>::quiet_NaN());
   for (int i = 0; i < pn.n; ++i) e[z(pn.u[z(i)]) * z(pn.nt) + z(pn.t[z(i)])] = pn.y[i];
   double o[7];
