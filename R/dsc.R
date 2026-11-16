@@ -447,9 +447,7 @@ drpempty <- function(data, which = c("rows", "cols"), quiet = FALSE) {
     data <- data[, !empty, drop = FALSE]
   }
   if ("rows" %in% which && nrow(data) > 0L && ncol(data) > 0L) {
-    na <- vapply(data, is.na, logical(nrow(data)))
-    if (is.null(dim(na))) na <- matrix(na, nrow = nrow(data))
-    keep <- .Call(C_clab_r_rowany, na) > 0L
+    keep <- .Call(C_clab_r_rowany, .namat(data)) > 0L
     data <- data[keep, , drop = FALSE]
     rownames(data) <- NULL
   }
