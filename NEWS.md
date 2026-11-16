@@ -27,6 +27,10 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `mcartst()` refused columns in different units (income next to
+  a rate) as collinear; the rank check and the EM step's eigenvalue floor
+  are now on the scale of the correlations.
+
 * Fixed: `rdloc(bw = "ik")` and `rddens()` refused a running variable in
   metres or in thousands of kilometres; the bandwidths now scale with the
   running variable, and the estimates do not change.

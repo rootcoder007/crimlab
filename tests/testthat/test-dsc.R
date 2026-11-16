@@ -619,3 +619,30 @@ test_that("a number given as invalid text is refused, not read", {
   expect_error(missgrid(data.frame(a = c(1, NA)), height = bad),
                "^missgrid: `height` holds text that is not valid")
 })
+
+test_that("mcartst() takes columns in different units", {
+  # money next to a rate: the rank check is made on the correlations, so
+  # the data are not refused, and Little's statistic does not depend on
+  # the units of a column
+  set.seed(1)
+  n <- 300
+  d <- data.frame(income = rnorm(n, 5e4, 2e4), rate = rnorm(n, 0.01, 0.003),
+                  age = rnorm(n, 40, 10))
+  d$rate[d$age > 45] <- NA
+  s <- data.frame(income = d$income / 1e4, rate = d$rate * 100, age = d$age)
+  r <- mcartst(d)
+  expect_equal(r$statistic, mcartst(s)$statistic, tolerance = 1e-5)
+  # Little's d2 by hand from the returned estimates
+  pt <- apply(!is.na(d), 1L, paste, collapse = "")
+  d2 <- 0
+  for (k in unique(pt)) {
+    rk <- d[pt == k, , drop = FALSE]
+    o <- which(!is.na(rk[1L, ]))
+    df <- colMeans(rk[, o, drop = FALSE]) - r$mu[o]
+    d2 <- d2 + nrow(rk) * drop(df %*% solve(r$sigma[o, o], df))
+  }
+  expect_equal(r$statistic, d2, tolerance = 1e-10)
+  # a constant column is still refused
+  d$k <- 0.1
+  expect_error(mcartst(d), "^mcartst: the columns are collinear")
+})
