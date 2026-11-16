@@ -125,8 +125,8 @@ smkiv <- function(
   by = NULL
 ) {
   f <- "smkiv"
-  adj <- match.arg(adj)
-  cf <- match.arg(cf)
+  adj <- .ckmarg("adj", f)
+  cf <- .ckmarg("cf", f)
   d <- .axdat(data, f)
   ck <- .axsmck(d, plume, unit, day, pm, seas, by, dens, adj, z, f)
   pl <- ck$pl
@@ -226,11 +226,12 @@ runfx <- function(data, y, var, unit, day, thr = 0, cap = 3, step = 1,
   if (!is.function(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
-  r <- exprun(data, var, unit, day, thr = thr, cap = cap, step = step)
+  r <- .clas(f, exprun(data, var, unit, day, thr = thr, cap = cap,
+                       step = step))
   rc <- names(r)[-1L]
   d <- data
   for (k in rc) d[[k]] <- r[[k]]
-  fit <- est(data = d, y = y, x = c(rc, ctrl), ...)
+  fit <- .clas(f, est(data = d, y = y, x = c(rc, ctrl), ...))
   structure(
     list(coef = fit$coef[fit$coef$term %in% rc, , drop = FALSE], fit = fit),
     class = "runfx"
@@ -303,7 +304,7 @@ print.runfx <- function(x, ...) {
 hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
                   ...) {
   f <- "hetfx"
-  how <- match.arg(how)
+  how <- .ckmarg("how", f)
   d <- .axdat(data, f)
   .axcols(d, c(var, mod), "var, mod", f, n = 2L)
   if (!is.function(est)) {
@@ -316,9 +317,9 @@ hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
   }
   a <- list(...)
   h <- if (how == "split") {
-    .axhtspl(d, est, a, var, mv, lv, f)
+    .clas(f, .axhtspl(d, est, a, var, mv, lv, f))
   } else {
-    .axhtint(d, est, a, var, mv, lv)
+    .clas(f, .axhtint(d, est, a, var, mv, lv))
   }
   tab <- h$tab
   b <- h$b
@@ -471,7 +472,7 @@ print.hetfx <- function(x, ...) {
 ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
                    lagv = NULL, lag = 0, ns = NULL, est = ppmlfe, ...) {
   f <- "ccross"
-  strat <- match.arg(strat)
+  strat <- .ckmarg("strat", f)
   d <- .axdat(data, f)
   ck <- .axccck(d, y, unit, day, ma, est, k, lagv, lag, ns, f)
   d <- .axccma(d, unit, day, ma, ck$k, lagv, ck$lag)
@@ -488,7 +489,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   d <- sp$d
   a <- sp$a
   if (is.null(a[["clus"]])) a[["clus"]] <- ".ym"
-  do.call(est, c(list(data = d, y = y, fe = ".strat"), a))
+  .clas(f, do.call(est, c(list(data = d, y = y, fe = ".strat"), a)))
 }
 
 #' Two exposures together: their interaction and the surface of effects
@@ -563,7 +564,7 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
                  ), p2 = c(0.05, 0.5, 0.95), ref = NULL, ngrid = 15,
                  ctrl = NULL, est = ppmlfe, ...) {
   f <- "jntx"
-  form <- match.arg(form)
+  form <- .ckmarg("form", f)
   d <- .axdat(data, f)
   ck <- .axjxck(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f)
   k1 <- ck$k1
@@ -583,7 +584,7 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
   nb2 <- if (form == "linear") 1L else k2 - 1L
   nm <- paste0(".j", seq_len(ncol(bm)))
   for (j in seq_along(nm)) d[[nm[j]]] <- bm[, j]
-  r <- est(data = d, y = y, x = c(nm, ctrl), ...)
+  r <- .clas(f, est(data = d, y = y, x = c(nm, ctrl), ...))
   b <- r$coef$est[match(nm, r$coef$term)]
   v <- .axvcov(r)[nm, nm, drop = FALSE]
   if (is.null(ref)) ref <- c(stats::median(a[, 1L]), stats::median(a[, 2L]))
@@ -685,7 +686,7 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
   nm <- paste0("bin:", lv)
   use <- seq_len(nbin)[-ref]
   for (j in use) d[[nm[j]]] <- as.numeric(bn == lv[j])
-  r <- est(data = d, y = y, x = c(nm[use], ctrl), ...)
+  r <- .clas(f, est(data = d, y = y, x = c(nm[use], ctrl), ...))
   cf <- r$coef[match(nm[use], r$coef$term), , drop = FALSE]
   mid <- as.numeric(tapply(xv, bn, stats::median))
   tab <- data.frame(
@@ -772,7 +773,7 @@ print.dosebin <- function(x, ...) {
 typefx <- function(data, ys, term, est = ppmlfe,
                    adj = c("holm", "bonferroni", "BH", "none"), ...) {
   f <- "typefx"
-  adj <- match.arg(adj)
+  adj <- .ckmarg("adj", f)
   d <- .axdat(data, f)
   .axcols(d, ys, "ys", f)
   if (!is.character(term) || length(term) != 1L) {
@@ -782,7 +783,7 @@ typefx <- function(data, ys, term, est = ppmlfe,
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
   rows <- lapply(ys, function(v) {
-    r <- est(data = d, y = v, ...)
+    r <- .clas(f, est(data = d, y = v, ...))
     cf <- .axrow(r, term, f)
     data.frame(
       y = v,

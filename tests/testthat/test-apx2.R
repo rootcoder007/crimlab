@@ -138,7 +138,8 @@ test_that("typefx: one fit per outcome and the Holm correction", {
   a <- ppmlfe(d, "assault", "pm", fe = c("area", "day"))
   expect_equal(t$tab$est[1L], a$coef$est, tolerance = 1e-12)
   expect_identical(t$tab$padj, stats::p.adjust(t$tab$p, "holm"))
-  expect_error(typefx(d, "assault", "pm", adj = "romano"), "should be one of")
+  expect_error(typefx(d, "assault", "pm", adj = "romano"),
+               "^typefx: `adj` must be one of")
 })
 
 test_that("smkiv cf = childs is the three-year month median (Childs 2022)", {
@@ -383,4 +384,18 @@ test_that("counts that size the designs are refused past their bounds", {
   g$aqi <- rgamma(nrow(g), 4, 0.1)
   expect_error(dosebin(g, "crimes", "aqi", nq = 1e9),
                "dosebin: `nq` must be at most 67108864.", fixed = TRUE)
+})
+
+test_that("a refusal from the estimator names the function called", {
+  set.seed(4)
+  d <- expand.grid(day = 1:30, unit = 1:4)
+  d$pm <- rnorm(nrow(d), 10, 3)
+  d$y <- rpois(nrow(d), 3)
+  m <- "`x` must name columns of `data`"
+  expect_error(runfx(d, "y", "pm", "unit", "day", thr = 10, ctrl = NA,
+                     fe = c("unit", "day")), paste0("^runfx: ", m))
+  expect_error(dosebin(d, "y", "pm", ctrl = NA, fe = c("unit", "day")),
+               paste0("^dosebin: ", m))
+  expect_error(runfx(NULL, "y", "pm", "unit", "day"),
+               "^runfx: `data` must be a data frame")
 })

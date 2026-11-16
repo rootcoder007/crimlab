@@ -67,6 +67,22 @@
   in a CSV cell used to end the cell's number silently (`4<NUL>0` was
   read as 4); it is now refused with its row and column.
 
+* Fixed: a function that calls another (`runfx()` calls `exprun()` and an
+  estimator, `plmfld()` `gplume()`, `polbrdn()` `crfno2()`, `rsvsmp()`
+  `rsvidx()`, `xfrvrf()` `vrfmrg()`, `yoywr()` the writers, and the
+  exposure functions `ppmlfe()`) used to pass on the inner function's
+  refusals and warnings under the inner name ("gplume: ..."); they now
+  carry the name of the function called (`ccross()`, `dosebin()`,
+  `hetfx()`, `jntx()`, `lftab()`, `plcday()`, `plmfld()`, `polbrdn()`,
+  `prechk()`, `rsvsmp()`, `runfx()`, `typefx()`, `xfrvrf()`, `yoyhtml()`,
+  `yoywr()`).
+* Fixed: the choice arguments of the exposure functions (`ppmlfe()`,
+  `ppmlcf()`, `ivfe()`, `ccross()`, `expgmm()`, `hetfx()`, `invsn()`,
+  `jntx()`, `plcday()`, `rdloc()`, `smkiv()`, `typefx()`, `updwn()`,
+  `windiv()`) used to be refused by `match.arg()` in base R's words
+  ("'arg' should be one of ..."); they are now refused like every other
+  choice ("ppmlfe: `se` must be one of ...").
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

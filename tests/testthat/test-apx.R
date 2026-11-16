@@ -413,7 +413,8 @@ test_that("ppmlfe's standard errors: nk, hc1, nw, boot", {
     tolerance = 1e-12
   )
   expect_error(a(se = "twoway", clus = "unit"), "needs two `clus` columns")
-  expect_error(a(se = "robust"), "should be one of")
+  expect_error(a(se = "robust"), "^ppmlfe: `se` must be one of \"cluster\"")
+  expect_error(a(ssc = NA), "^ppmlfe: `ssc` must be one of .*, not NA")
 })
 
 test_that("ppmlfe sep = \"none\" keeps a unit of zeros", {
@@ -511,7 +512,7 @@ test_that("ppmlcf: the plug-in of the paper, naive and bootstrap errors", {
     tolerance = 1e-8
   )
   expect_equal(p$first$eff, 536.97395780637555, tolerance = 1e-6)
-  expect_error(a(how = "gmm"), "should be one of")
+  expect_error(a(how = "gmm"), "^ppmlcf: `how` must be one of")
 })
 
 test_that("windiv: the paper's edges, hours to days", {
@@ -1337,4 +1338,24 @@ test_that("the bootstrap made a draw at a time equals the stored draws", {
   }
   expect_identical(cf(1), cf(1e9))
   expect_identical(cf(2), cf(1e9))
+})
+
+test_that("every choice argument is refused in the package's words", {
+  cs <- list(
+    ppmlfe = c("se", "ssc", "twc", "psd", "sep"),
+    ivfe = c("se", "ssc", "twc", "psd"), ppmlcf = c("how", "se", "ssc"),
+    expgmm = c("err", "step", "se", "ssc"), windiv = c("edges", "avg"),
+    invsn = "sign", plcday = "shift", updwn = c("twin", "norm", "se", "ssc"),
+    smkiv = c("adj", "cf"), hetfx = "how", ccross = "strat", jntx = "form",
+    typefx = "adj", rdloc = c("bw", "kern", "ci", "se", "ssc")
+  )
+  for (fn in names(cs)) {
+    for (a in cs[[fn]]) {
+      for (v in list("zz", NA, 1)) {
+        m <- paste0("^", fn, ": `", a, "` must be one of ")
+        expect_error(do.call(fn, stats::setNames(list(v), a)), m,
+                     info = paste(fn, a))
+      }
+    }
+  }
 })

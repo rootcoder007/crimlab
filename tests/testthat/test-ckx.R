@@ -53,3 +53,15 @@ test_that("a seeded expression leaves the caller's stream as it was", {
   expect_false(identical(.clseed(2^40 + 1, stats::runif(2)), b))
   expect_identical(get(".Random.seed", envir = globalenv()), s)
 })
+
+test_that(".clas() gives another function's refusal under the caller's name", {
+  expect_error(.clas("runfx", stop("ppmlfe: `x` is bad.", call. = FALSE)),
+               "^runfx: `x` is bad\\.$")
+  expect_error(.clas("runfx", stop("runfx: own.", call. = FALSE)),
+               "^runfx: own\\.$")
+  expect_error(.clas("runfx", stop("nofn: kept.", call. = FALSE)),
+               "^nofn: kept\\.$")
+  expect_warning(.clas("runfx", warning("gplume: w.", call. = FALSE)),
+                 "^runfx: w\\.$")
+  expect_identical(.clas("runfx", 3), 3)
+})

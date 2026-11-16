@@ -323,3 +323,7 @@ test_that("dates are counted as their text, and failures are printed", {
   expect_match(x$reasons, "labels are permuted (No -> Yes, Yes -> No)",
                fixed = TRUE)
 })
+
+test_that("xfrvrf() refuses in its own name", {
+  expect_error(xfrvrf(NULL, c(a = 1)), "^xfrvrf: ")
+})

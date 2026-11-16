@@ -580,3 +580,8 @@ test_that("the stage functions refuse a logical or NULL number", {
   expect_error(attrfrac(NULL, 1), "attrfrac: `rr` must be numeric, got NULL.",
                fixed = TRUE)
 })
+
+test_that("plmfld() refuses in its own name", {
+  expect_error(plmfld(q = NULL, u = 5, h = 50, x = seq(100, 300, 100),
+                      y = c(-50, 50)), "^plmfld: `q` must be numeric")
+})

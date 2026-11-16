@@ -290,7 +290,7 @@ dktflw <- function(
 #' @export
 lftab <- function(breaks, events, cens = 0, level = 0.95, ci = "log-log") {
   if (is.character(breaks) || is.factor(breaks)) {
-    b <- .bands(breaks, TRUE, FALSE)
+    b <- .clas("lftab", .bands(breaks, TRUE, FALSE))
     lo <- b$lower
     lo[b$openlo] <- 0
     hi <- ifelse(b$openup, Inf, b$upper)

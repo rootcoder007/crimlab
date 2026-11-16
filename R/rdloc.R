@@ -131,11 +131,11 @@ rdloc <- function(
   level = 0.95
 ) {
   f <- "rdloc"
-  bw <- match.arg(bw)
-  kern <- match.arg(kern)
-  ci <- match.arg(ci)
-  se <- match.arg(se)
-  ssc <- match.arg(ssc)
+  bw <- .ckmarg("bw", f)
+  kern <- .ckmarg("kern", f)
+  ci <- .ckmarg("ci", f)
+  se <- .ckmarg("se", f)
+  ssc <- .ckmarg("ssc", f)
   d <- .axdat(data, f)
   .axcols(d, c(y, run), "y, run", f, n = 2L)
   .axcols(d, trt, "trt", f, n = 1L, null = TRUE)

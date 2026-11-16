@@ -136,3 +136,7 @@ test_that("refusals", {
     )
   )
 })
+
+test_that("prechk() refuses a bad preset table in its own name", {
+  expect_error(prechk(data.frame(a = 1), data.frame()), "^prechk: ")
+})

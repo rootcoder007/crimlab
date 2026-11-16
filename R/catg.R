@@ -370,8 +370,9 @@ xfrvrf <- function(imported, soucnts, codebook = NULL, tol = 0, strict = TRUE) {
   } else {
     NA
   }
-  dec <- .xfdec(imported, lab, codebook, soucnts)
-  m <- vrfmrg(as.character(dec), soucnts, tol = tol, strict = strict)
+  dec <- .clas("xfrvrf", .xfdec(imported, lab, codebook, soucnts))
+  m <- .clas("xfrvrf", vrfmrg(as.character(dec), soucnts, tol = tol,
+                              strict = strict))
   ok <- isTRUE(m$ok) && !isFALSE(cbok)
   reasons <- c(if (isFALSE(cbok)) {
     "the value labels disagree with the code book"

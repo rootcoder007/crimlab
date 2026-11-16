@@ -83,6 +83,45 @@
   choices[[i]]
 }
 
+# expr evaluated for the exported function fn: a refusal or warning from
+# another exported function it calls ("ppmlfe: ...") is given again under
+# fn's name, the one the user called.
+.clas <- function(fn, expr) {
+  ex <- getNamespaceExports("crimlab")
+  re <- function(m) {
+    k <- regexpr("^[a-z][a-z0-9]*: ", m)
+    p <- if (k > 0L) substr(m, 1L, attr(k, "match.length") - 2L) else ""
+    if (nzchar(p) && p != fn && p %in% ex) {
+      paste0(fn, substring(m, nchar(p) + 1L))
+    } else {
+      m
+    }
+  }
+  withCallingHandlers(
+    expr,
+    error = function(e) {
+      m <- re(conditionMessage(e))
+      if (!identical(m, conditionMessage(e))) stop(m, call. = FALSE)
+    },
+    warning = function(w) {
+      m <- re(conditionMessage(w))
+      if (!identical(m, conditionMessage(w))) {
+        warning(m, call. = FALSE)
+        invokeRestart("muffleWarning")
+      }
+    }
+  )
+}
+
+# The choice argument `what` of the calling function, checked by .ckarg()
+# against the choices its formals list (what match.arg(what) reads, with
+# the package's refusal in place of match.arg()'s).
+.ckmarg <- function(what, fn) {
+  env <- parent.frame()
+  ch <- eval(formals(sys.function(sys.parent()))[[what]], env)
+  .ckarg(get(what, envir = env), ch, what, fn)
+}
+
 # Text that is valid in its encoding (or anything that is not text).
 .cktxt <- function(x, what, fn) {
   if (is.character(x) && !all(validEnc(x))) {

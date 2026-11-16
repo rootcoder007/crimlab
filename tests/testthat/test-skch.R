@@ -146,3 +146,7 @@ test_that("an accumulator prints", {
   out <- capture.output(print(onlsmry(c(1, 2, 3, 10))))
   expect_match(out, "Accumulated summary: n 4")
 })
+
+test_that("rsvsmp() refuses in its own name", {
+  expect_error(rsvsmp(1:5, k = NULL), "^rsvsmp: `k` must be numeric")
+})

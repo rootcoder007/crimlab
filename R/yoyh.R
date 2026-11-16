@@ -79,7 +79,7 @@ yoyhtml <- function(x, file, title = "Year-over-year change", sub = "",
   if (!is.finite(sc) || sc == 0) sc <- 1
   rows <- vapply(seq_len(nrow(d)), .yhrow, "", s = s, chg = chg, cls = cls,
                  sc = sc, bars = bars)
-  sm <- yoysmry(d, lag)
+  sm <- .clas("yoyhtml", yoysmry(d, lag))
   cards <- vapply(seq_len(nrow(sm)), .yhcard, "", sm = sm)
   html <- .yhpage(title, sub, p, names(s$cols), rows, cards,
                   c(.yfirst(d, lag), notes))
@@ -165,7 +165,7 @@ yoywr <- function(x, file, format = "auto", ...) {
   if (is.null(f)) {
     stop("yoywr: unknown format: ", format, ".", call. = FALSE)
   }
-  f(x, file, ...)
+  .clas("yoywr", f(x, file, ...))
   invisible(file)
 }
 

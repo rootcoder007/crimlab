@@ -485,7 +485,8 @@ plmfld <- function(
   }
   z <- .adnum(z, "z", f, min = 0)
   rc <- cbind(rep(x, length(y)), rep(y, each = length(x)), z)
-  v <- gplume(q, u, h, rc, stab = stab, set = set, mixh = mixh, nimg = nimg)
+  v <- .clas(f, gplume(q, u, h, rc, stab = stab, set = set, mixh = mixh,
+                       nimg = nimg))
   structure(
     list(
       field = matrix(v, nrow = length(x), ncol = length(y)),

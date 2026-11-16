@@ -501,3 +501,7 @@ test_that("trnmat() counts moves and finds the stationary distribution", {
     )
   )
 })
+
+test_that("lftab() refuses in its own name", {
+  expect_error(lftab(character(0), 1), "^lftab: ")
+})

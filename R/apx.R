@@ -242,11 +242,11 @@ ppmlfe <- function(
   psd = c("none", "eig")
 ) {
   f <- "ppmlfe"
-  se <- match.arg(se)
-  ssc <- match.arg(ssc)
-  twc <- match.arg(twc)
-  psd <- match.arg(psd)
-  sep <- match.arg(sep)
+  se <- .ckmarg("se", f)
+  ssc <- .ckmarg("ssc", f)
+  twc <- .ckmarg("twc", f)
+  psd <- .ckmarg("psd", f)
+  sep <- .ckmarg("sep", f)
   d <- .axdat(data, f)
   a <- .axppck(d, y, x, fe, expo, clus, se, level, tol, maxit, f)
   clus <- a$clus
@@ -540,10 +540,10 @@ ivfe <- function(
   psd = c("none", "eig")
 ) {
   f <- "ivfe"
-  se <- match.arg(se)
-  ssc <- match.arg(ssc)
-  twc <- match.arg(twc)
-  psd <- match.arg(psd)
+  se <- .ckmarg("se", f)
+  ssc <- .ckmarg("ssc", f)
+  twc <- .ckmarg("twc", f)
+  psd <- .ckmarg("psd", f)
   d <- .axdat(data, f)
   a <- .axivck(d, y, endo, inst, x, fe, clus, se, level, tol, f)
   clus <- a$clus
@@ -727,9 +727,9 @@ ppmlcf <- function(
   maxit = 100
 ) {
   f <- "ppmlcf"
-  how <- match.arg(how)
-  se <- match.arg(se)
-  ssc <- match.arg(ssc)
+  how <- .ckmarg("how", f)
+  se <- .ckmarg("se", f)
+  ssc <- .ckmarg("ssc", f)
   d <- .axdat(data, f)
   a <- .axcfck(d, y, endo, inst, x, fe, expo, clus, level, tol, maxit, f)
   clus <- a$clus
@@ -944,10 +944,10 @@ expgmm <- function(
   maxit = 100
 ) {
   f <- "expgmm"
-  err <- match.arg(err)
-  step <- match.arg(step)
-  se <- match.arg(se)
-  ssc <- match.arg(ssc)
+  err <- .ckmarg("err", f)
+  step <- .ckmarg("step", f)
+  se <- .ckmarg("se", f)
+  ssc <- .ckmarg("ssc", f)
   d <- .axdat(data, f)
   a <- .axgmck(d, y, endo, inst, x, fe, expo, clus, se, level, tol, maxit, f)
   clus <- a$clus
@@ -1131,8 +1131,8 @@ windiv <- function(
   spd = NULL
 ) {
   f <- "windiv"
-  edges <- match.arg(edges)
-  avg <- match.arg(avg)
+  edges <- .ckmarg("edges", f)
+  avg <- .ckmarg("avg", f)
   a <- .axwdck(dir, width, start, area, base, sect, share, spd, f)
   dir <- a$dir
   width <- a$width
@@ -1236,7 +1236,7 @@ windiv <- function(
 #' @export
 invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL) {
   f <- "invsn"
-  sign <- match.arg(sign)
+  sign <- .ckmarg("sign", f)
   .axinck(tlow, tup, f)
   up <- as.numeric(tup) - as.numeric(tlow)
   r <- data.frame(
@@ -1330,12 +1330,12 @@ plcday <- function(
   ...
 ) {
   f <- "plcday"
-  shift <- match.arg(shift)
+  shift <- .ckmarg("shift", f)
   d <- .axdat(data, f)
   tv <- .axpdck(d, var, unit, day, with, shift, est, shifts, f)
   uc <- .axcode(d[[unit]])$c
   mv <- switch(shift, both = c(var, with), x = var, z = with)
-  fit <- function(ds) est(data = ds, ...)
+  fit <- function(ds) .clas(f, est(data = ds, ...))
   rows <- lapply(c(0, shifts), .axpdrow, d = d, uc = uc, tv = tv, mv = mv,
                  var = var, fit = fit, f = f)
   structure(
@@ -1520,10 +1520,10 @@ updwn <- function(
   level = 0.95
 ) {
   f <- "updwn"
-  twin <- match.arg(twin)
-  norm <- match.arg(norm)
-  se <- match.arg(se)
-  ssc <- match.arg(ssc)
+  twin <- .ckmarg("twin", f)
+  norm <- .ckmarg("norm", f)
+  se <- .ckmarg("se", f)
+  ssc <- .ckmarg("ssc", f)
   d <- .axdat(data, f)
   sc <- .axudsrc(d, y, ax, ay, day, wind, area, clus, wx, src, f)
   s0 <- sc$s0

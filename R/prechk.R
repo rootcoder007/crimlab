@@ -57,7 +57,7 @@
 #' try(prechk(e, mine))
 #' @export
 prechk <- function(data, preset, codes = NULL) {
-  r <- .pkrow(preset)
+  r <- .clas("prechk", .pkrow(preset))
   if (!is.data.frame(data)) {
     stop("prechk: `data` must be a data frame.", call. = FALSE)
   }

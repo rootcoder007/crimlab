@@ -417,7 +417,8 @@ polbrdn <- function(
   crf <- if (pol == "PM2.5") {
     crfpm25(expomean, y = y, refconc = if (is.null(refconc)) 5.8 else refconc)
   } else {
-    crfno2(expomean, y = y, refconc = if (is.null(refconc)) 10 else refconc)
+    .clas(f, crfno2(expomean, y = y,
+                    refconc = if (is.null(refconc)) 10 else refconc))
   }
   if (expoprev > 1) {
     .ckstop(f, "expoprev must be in [0,1]; got %s", format(expoprev))

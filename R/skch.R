@@ -177,7 +177,7 @@ rsvidx <- function(n, k, seed = 42L) {
 #' @rdname rsvidx
 #' @export
 rsvsmp <- function(x, k, seed = 42L) {
-  x[rsvidx(length(x), k, seed)]
+  x[.clas("rsvsmp", rsvidx(length(x), k, seed))]
 }
 
 #' Distinct-value count in fixed memory

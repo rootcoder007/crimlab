@@ -44,3 +44,7 @@ test_that("the writer refuses a file or a format it cannot take", {
                fixed = TRUE)
   expect_identical(.yasc("a—b ▲"), "a-b +")
 })
+
+test_that("yoywr() refuses in its own name", {
+  expect_error(yoywr(NULL, tempfile(fileext = ".csv")), "^yoywr: ")
+})
