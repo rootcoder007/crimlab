@@ -4,8 +4,10 @@
 // and a half days a day by hand, the sentence left; draws of synfix()
 // against R's (set.seed(1); sample.int(3, 4, TRUE); sample.int(1, 4,
 // TRUE); sample.int(7, 4, TRUE), less one: 0 2 0 1, 0 0 0 0, 1 2 2 0);
-// the presets; and the failure paths. Part of the self-test (selftest.cpp).
+// the presets; the text of a page; and the failure paths. Part of the self-test (selftest.cpp).
 #include <cmath>
+#include <cstdint>
+#include <cstring>
 
 #include "crimlab.h"
 #include "tchk.h"
@@ -49,10 +51,24 @@ void sfx(tk &tt) {
   tk_ieq(tt, "sfx.dn", clab_synfix(bad, 1, 4, 1, c), CLAB_EARG);
 }
 
+void txt(tk &tt) {
+  // two paragraphs and an entity: "a", an empty line, "b&c"
+  const char *h = "<p>a</p>\n<p>b&amp;c</p>";
+  char o[64];
+  int64_t len = 0;
+  tk_ieq(tt, "ovr.txt.rc", clab_ovrtxt(h, static_cast<int64_t>(std::strlen(h)), -1, o, &len), CLAB_OK);
+  tk_ieq(tt, "ovr.txt.len", static_cast<int>(len), 6);
+  tk_true(tt, "ovr.txt", std::memcmp(o, "a\n\nb&c", 6) == 0);
+  // as plain text the tags stay
+  clab_ovrtxt(h, static_cast<int64_t>(std::strlen(h)), 0, o, &len);
+  tk_ieq(tt, "ovr.txt.plain", static_cast<int>(len), static_cast<int>(std::strlen(h)));
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
   (void)big;
   psc(t);
   sfx(t);
+  txt(t);
 }

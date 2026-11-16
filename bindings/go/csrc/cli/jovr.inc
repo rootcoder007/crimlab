@@ -185,4 +185,67 @@ bool synfix(Ctx &c, Val &out) {
   return sdraw(c, nm, vals, n[0], sd[0], out);
 }
 
+// .ovrin(): text, an array of text and nulls (null missing in miss).
+inline bool otxt(Ctx &c, const char *nm, std::vector<std::string> &s, std::vector<char> &miss) {
+  s.clear();
+  miss.clear();
+  const Val &o = c[nm];
+  std::vector<const Val *> e;
+  if (o.t == Val::ARR) {
+    for (const Val &v : o.a) e.push_back(&v);
+  } else {
+    e.push_back(&o);
+  }
+  for (const Val *v : e) {
+    if (v->t != Val::STR && v->t != Val::NUL) {
+      return ckstop(c, "`%s` must be text (a character vector), not %s", nm, ax::vcls(o));
+    }
+    s.push_back(v->t == Val::STR ? v->s : std::string());
+    miss.push_back(v->t == Val::NUL);
+  }
+  return true;
+}
+
+// .ovrhtml(): null (left out), true or false; -1, 1 or 0.
+inline bool ohtml(Ctx &c, int &h) {
+  const Val &o = c["html"];
+  const Val *v = o.t == Val::ARR && o.a.size() == 1 ? &o.a[0] : &o;
+  if (v->t == Val::NUL && o.t != Val::ARR) {
+    h = -1;
+    return true;
+  }
+  if (v->t != Val::BOOL && v->t != Val::NUL) return ckstop(c, "`html` must be NA, TRUE or FALSE");
+  h = v->t == Val::NUL ? -1 : v->b;
+  return true;
+}
+
+// The text of s as the rules read it (src/ovr.cpp).
+inline std::string otext(const std::string &s, int h) {
+  std::string o(s.size() + 1, '\0');
+  int64_t len = 0;
+  clab_ovrtxt(s.data(), static_cast<int64_t>(s.size()), h, &o[0], &len);
+  o.resize(static_cast<std::size_t>(len));
+  return o;
+}
+
+// Text and nulls: one value is that value.
+inline Val ostrs(const std::vector<std::string> &s, const std::vector<char> &miss) {
+  Val v = varr();
+  for (std::size_t i = 0; i < s.size(); ++i) v.a.push_back(miss[i] ? Val() : vstr(s[i]));
+  return unbox(v);
+}
+
+bool ovrtxt(Ctx &c, Val &out) {
+  std::vector<std::string> s;
+  std::vector<char> m;
+  CK(otxt(c, "x", s, m));
+  int h = -1;
+  CK(ohtml(c, h));
+  for (std::size_t i = 0; i < s.size(); ++i) {
+    if (!m[i]) s[i] = otext(s[i], h);
+  }
+  out = ostrs(s, m);
+  return true;
+}
+
 }  // namespace ovr

@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrtxt()`, the plain text of a police oversight report's page,
+  with each block on a line of its own so that section headings stand
+  alone; the first of the tools that code oversight reports.
+
 * New: `synfix()` draws example data in the shape of a published table:
   presets with the columns of Ontario's corrections tables (segregation,
   deaths in custody, use of force), or any table given as the values of

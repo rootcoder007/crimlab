@@ -459,6 +459,7 @@ from ._j import (
     polrpttxt,
     pscred,
     synfix,
+    ovrtxt,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -942,6 +943,7 @@ __all__ = [
     "polrpttxt",
     "pscred",
     "synfix",
+    "ovrtxt",
 ]
 
 

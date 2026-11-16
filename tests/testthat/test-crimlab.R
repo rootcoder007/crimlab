@@ -939,6 +939,7 @@ test_that("every exported function answers one valid call in its shape", {
          c("grp", "prd", "y", "rank")),
     list(quote(pscred(c(10, 30))), c("days", "ratio", "credit")),
     list(quote(synfix(list(a = 1:2), n = 2)), "a"),
+    list(quote(ovrtxt("<p>a</p>")), NULL),
     list(quote(plotevgrid(list(a = evtst(c(1:10, 2:11 + (1:10 > 5)),
                                          rep(1:10, 2), rep(1:2, each = 10),
                                          rep(rep(c(NA, 2), each = 5), 2),

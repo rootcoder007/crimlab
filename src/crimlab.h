@@ -4596,6 +4596,14 @@ int clab_sfxcol(int j, const char **kind, const char **name, int *type, int *lo,
  * after column after set.seed(seed). CLAB_EARG for bad sizes. */
 int clab_synfix(const double *dn, int k, int64_t n, uint32_t seed, int *code);
 
+/* The text of an oversight report (ovrtxt): s (n bytes, UTF-8) read as
+ * HTML (html 1: scripts, styles and comments dropped, block elements on
+ * lines of their own, other tags spaces, entities decoded) or as plain
+ * text (html 0), or as HTML when it holds markup (html -1); spaces
+ * collapsed, lines trimmed, at most one empty line in a row. Out: out (at
+ * least n + 1 bytes) and its length *len. */
+int clab_ovrtxt(const char *s, int64_t n, int html, char *out, int64_t *len);
+
 #ifdef __cplusplus
 }
 #endif

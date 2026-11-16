@@ -578,6 +578,12 @@ reference:
       - toascii
       - asciifb
       - wrtxtfb
+  - title: Police oversight reports
+    desc: Reports of police oversight bodies coded into fields by rules
+      that any agency's layout can be written in, offline and the same on
+      every run.
+    contents:
+      - ovrtxt
   - title: Shares
     desc: Each count as a share of its total, with Wilson intervals that stay inside 0 to 100.
     contents:

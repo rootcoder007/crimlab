@@ -7807,3 +7807,17 @@ def synfix(kind: Any = None, n: Any = 100, seed: Any = 1) -> Any:
     ['year', 'sex']
     """
     return jcall("synfix", kind=kind, n=n, seed=seed)
+
+
+def ovrtxt(x: Any, html: Any = None) -> Any:
+    """Text of a police oversight report.
+
+    The arguments and the result are those of R's ``ovrtxt()``: see its help
+    page; ``html`` None is R's NA.
+
+    Examples
+    --------
+    >>> ovrtxt(x="<p>WO\\n#1</p><p>WO&nbsp;#2</p>")
+    'WO #1\\n\\nWO #2'
+    """
+    return jcall("ovrtxt", x=x, html=html)
