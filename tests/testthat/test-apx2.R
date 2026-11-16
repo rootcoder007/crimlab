@@ -366,3 +366,21 @@ test_that("dosebin refuses a constant exposure: fewer than two bins", {
   expect_error(dosebin(d, "crimes", "k", fe = "area", se = "hc1"),
                "dosebin: `k` gives fewer than two bins")
 })
+
+test_that("counts that size the designs are refused past their bounds", {
+  d <- data.frame(area = c(1, 1, 1, 1, 1, 1, 2, 2), day = c(1:6, 1, 2),
+                  smoke = c(0, 1, 1, 1, 1, 0, 1, 1))
+  expect_error(exprun(d, "smoke", "area", "day", cap = 1e9),
+               "exprun: `cap` must be at most 67108864.", fixed = TRUE)
+  set.seed(10)
+  g <- expand.grid(day = 1:20, city = 1:3)
+  g$temp <- rnorm(nrow(g), 25, 4)
+  g$o3 <- rnorm(nrow(g), 45, 6)
+  g$crimes <- rpois(nrow(g), 3)
+  expect_error(jntx(g, "crimes", "temp", "o3", ngrid = 1e5),
+               "jntx: `ngrid` times `ngrid` must be at most 67108864.",
+               fixed = TRUE)
+  g$aqi <- rgamma(nrow(g), 4, 0.1)
+  expect_error(dosebin(g, "crimes", "aqi", nq = 1e9),
+               "dosebin: `nq` must be at most 67108864.", fixed = TRUE)
+})

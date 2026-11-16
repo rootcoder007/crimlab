@@ -852,6 +852,9 @@ inline bool bargs(Ctx &c, int &nb, bool &hs, double &sd) {
 // set.seed(seed).
 inline bool adraw(Ctx &c, int g, int b, bool hs, double sd, std::vector<int> &bm) {
   if (!hs) return c.fail("`seed` is needed outside R: one whole number from 0.");
+  if (static_cast<double>(g) * b > kutil::maxcell) {
+    return c.fail("`nboot` times the clusters must be at most %.0f.", kutil::maxcell);
+  }
   if (sd > 2147483647.0) {
     c.err = "supplied seed is not a valid integer";
     return false;
@@ -2122,6 +2125,7 @@ bool exprun(Ctx &c, Val &out) {
   const double thr = q[0];
   CK(cknumd(c, "cap", 3, q, 1, Inf, false, true));
   const double cap = q[0];
+  if (cap > kutil::maxcell) return c.fail("`cap` must be at most %.0f.", kutil::maxcell);
   CK(cknumd(c, "step", 1, q, -Inf, Inf, true));
   const double step = q[0];
   const Val &tc = *fc(d, vud[2]);

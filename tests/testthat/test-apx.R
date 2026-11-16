@@ -1315,3 +1315,12 @@ test_that("windiv() refuses more sectors than its bound", {
                "windiv: `width` must divide 360 into at most 67108864 sectors.",
                fixed = TRUE)
 })
+
+test_that("bootstrap draws past their bound are refused before they are made", {
+  d <- simpan()
+  d$y <- d$y + 1
+  expect_error(ppmlfe(d, "y", "x", fe = c("unit", "day"), se = "boot",
+                      nboot = 1e9, seed = 2),
+               "ppmlfe: `nboot` times the clusters must be at most 67108864.",
+               fixed = TRUE)
+})

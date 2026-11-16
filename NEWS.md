@@ -849,6 +849,12 @@
   `insphs()`, the cells of `jtsurf()`, the EM steps of `mcartst()` and
   the bootstrap refits of `dstfit()` can now be interrupted. Loops and sizes that multiplied two integer counts are
   counted in a wide type.
+* `exprun()` and `runfx()` refuse a `cap` past 2^26, `jntx()` an `ngrid`
+  past 8192 (its grid has `ngrid` squared points) and `dosebin()` an `nq`
+  past 2^26; the cluster bootstrap of `ppmlfe()`, `ivfe()` and `ppmlcf()`
+  refuses `nboot` times the clusters past 2^26. These used to stop with
+  R's own "cannot allocate vector" error. The command line gives the same
+  messages where it has the function.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

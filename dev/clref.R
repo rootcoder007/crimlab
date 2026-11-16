@@ -1821,6 +1821,8 @@ axd$pm <- round(20 + 4 * axd$w90 - 3 * axd$w270 + 2 * sin(seq_len(132)) + 0.3 * 
 axd$pop <- rep(seq(1000, 3000, length.out = 11), each = 12)
 axd$crimes <- (axd$day * 3 + seq_len(132)) %% 7 + rep(0:10 %% 3, each = 12) + round(axd$pm / 10)
 ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = c("area", "day"), expo = "pop")
+bad("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = c("area", "day"), expo = "pop", se = "boot",
+    nboot = 1e9, seed = 1)
 ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = c("area", "day"), se = "twoway", ssc = "nk")
 ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "nw", time = "day", lag = 2)
 ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "hc1", ssc = "none", level = 0.9)
@@ -1880,6 +1882,8 @@ bad("smkiv", data = skd, plume = "plume", unit = "place", day = "day", pm = "pm"
 ok("exprun", data = data.frame(area = rep(1:2, each = 6), day = rep(1:6, 2),
                               smoke = c(0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1)),
    var = "smoke", unit = "area", day = "day")
+bad("exprun", data = data.frame(area = 1, day = 1:3, smoke = c(0, 1, 1)), var = "smoke", unit = "area", day = "day",
+    cap = 1e9)
 ok("exprun", data = data.frame(area = 1, day = c(1, 2, 4, 5), pm = c(30, 40, 50, 10)), var = "pm", unit = "area",
    day = "day", thr = 25, cap = 2)
 bad("exprun", data = data.frame(area = 1, day = c(1, 1), s = c(1, 0)), var = "s", unit = "area", day = "day")

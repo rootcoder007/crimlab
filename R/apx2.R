@@ -166,7 +166,8 @@ smkiv <- function(
 #' @param unit,day The names of the place and day columns (days numbers or
 #'   dates).
 #' @param thr A day is exposed when `var` is above `thr`.
-#' @param cap The day of a run from which one indicator takes all.
+#' @param cap The day of a run from which one indicator takes all, at most
+#'   67108864 (2^26).
 #' @param step The length of a day in the units of `day`.
 #' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator: [ppmlfe()] (the default) or [ivfe()] as least
@@ -201,6 +202,7 @@ exprun <- function(data, var, unit, day, thr = 0, cap = 3, step = 1) {
   .axcols(d, c(var, unit, day), "var, unit, day", f, n = 3L)
   thr <- .cknum(thr, "thr", f)
   cap <- .cknum(cap, "cap", f, min = 1, whole = TRUE)
+  if (cap > 2^26) .ckstop(f, "`cap` must be at most 67108864")
   step <- .cknum(step, "step", f, positive = TRUE)
   tv <- d[[day]]
   if (!is.numeric(tv) && !inherits(tv, "Date")) {
@@ -520,7 +522,8 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' @param p1 The two quantiles of `x1` compared (`cond`).
 #' @param p2 The quantiles of `x2` at which they are compared.
 #' @param ref `NULL` (the medians) or the reference point of the surface.
-#' @param ngrid The points of the surface along each exposure.
+#' @param ngrid The points of the surface along each exposure, at most
+#'   8192 (`ngrid` times `ngrid` at most 2^26).
 #' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator, [ppmlfe()] by default.
 #' @param ... The other arguments of `est` (`fe`, `clus`, `se`, ...).
@@ -638,7 +641,8 @@ print.jntx <- function(x, ...) {
 #' @param data A data frame.
 #' @param y The name of the outcome column.
 #' @param var The name of the exposure column.
-#' @param nq The number of quantile bins (when `brk` is `NULL`).
+#' @param nq The number of quantile bins (when `brk` is `NULL`), at most
+#'   67108864 (2^26).
 #' @param brk `NULL` or increasing breaks (right-closed; the lowest
 #'   included).
 #' @param ref The reference bin, counted from 1.
@@ -1112,6 +1116,9 @@ print.typefx <- function(x, ...) {
   p2 <- .cknum(p2, "p2", f, scalar = FALSE, min = 0, max = 1)
   if (length(p1) != 2L) .ckstop(f, "`p1` must be two quantiles")
   ngrid <- .cknum(ngrid, "ngrid", f, min = 2, whole = TRUE)
+  if (ngrid > 2^13) {
+    .ckstop(f, "`ngrid` times `ngrid` must be at most 67108864")
+  }
   list(k1 = k1, k2 = k2, p1 = p1, p2 = p2, ngrid = ngrid)
 }
 
@@ -1160,6 +1167,7 @@ print.typefx <- function(x, ...) {
 .axdbbin <- function(xv, nq, brk, var, f) {
   if (is.null(brk)) {
     nq <- .cknum(nq, "nq", f, min = 2, whole = TRUE)
+    if (nq > 2^26) .ckstop(f, "`nq` must be at most 67108864")
     qs <- seq(0, 1, length.out = nq + 1L)
     brk <- unique(as.numeric(stats::quantile(xv, qs, names = FALSE)))
     # cut() reads one number as a count of intervals, not as a break: an
