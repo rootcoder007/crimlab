@@ -48,6 +48,7 @@
 
 #include "crimlab.h"
 #include "dpnd.h"
+#include "dscd.h"
 #include "frx.h"
 #include "igh.h"
 #include "igk.h"
