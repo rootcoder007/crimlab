@@ -1923,49 +1923,60 @@ bool k_nombt(const Node &a, Node &out, std::string &err) {
       P(i, j) = 1 / (1 + std::exp(-(beta * (p - cp[z(j)]))));
     }
   }
-  if (!cap(static_cast<double>(nb) * n * d, kutil::maxcell, "`nboot` times the ideal points", err)) return false;
-  std::vector<double> bp(z(nb) * z(n) * z(d));
-  for (int b = 0; b < nb; ++b) {
-    if (intr(err, 20.0 * n * m * d)) return false;
+  // One replicate's ideal points into Xb, from the generator g as it
+  // stands. The replicates are drawn twice from the same start: the first
+  // pass sums them for the means, the second the squared deviations, as
+  // mean() and sdv() over stored nboot values would, so nothing grows with
+  // nboot.
+  Mat Xb;
+  auto rep = [&](rng &gr) {
     Mat S(n, m);
     for (int j = 0; j < m; ++j) {
-      for (int i = 0; i < n; ++i) S(i, j) = g.unif() < P(i, j) ? 1.0 : 0.0;
+      for (int i = 0; i < n; ++i) S(i, j) = gr.unif() < P(i, j) ? 1.0 : 0.0;
     }
     for (std::size_t e = 0; e < S.v.size(); ++e) {
       if (std::isnan(V.v[e])) S.v[e] = NaN;
     }
-    Mat Xb = X;
-    for (double &e : Xb.v) e += g.norm() * 0.1;
+    Xb = X;
+    for (double &e : Xb.v) e += gr.norm() * 0.1;
     for (int k = 0; k < 20; ++k) {
       for (int i = 0; i < n; ++i) {
         int nvc = 0;
         for (int j = 0; j < m; ++j) nvc += !std::isnan(S(i, j));
         if (nvc < 2) continue;
-        std::vector<double> gr(z(d));
+        std::vector<double> gv(z(d));
         for (int j = 0; j < m; ++j) {
           if (std::isnan(S(i, j))) continue;
           double p = 0;
           for (int t = 0; t < d; ++t) p += Xb(i, t) * N(j, t);
           const double r = S(i, j) - 1 / (1 + std::exp(-beta * (p - cp[z(j)])));
-          for (int t = 0; t < d; ++t) gr[z(t)] += N(j, t) * r;
+          for (int t = 0; t < d; ++t) gv[z(t)] += N(j, t) * r;
         }
-        for (int t = 0; t < d; ++t) Xb(i, t) += 0.01 * gr[z(t)];
+        for (int t = 0; t < d; ++t) Xb(i, t) += 0.01 * gv[z(t)];
       }
     }
-    for (int t = 0; t < d; ++t) {
-      for (int i = 0; i < n; ++i) bp[z(b) + z(nb) * (z(i) + z(n) * z(t))] = Xb(i, t);
+  };
+  Mat se(n, d), mn(n, d), ss(n, d);
+  const rng g0 = g;
+  for (int pass = 0; pass < 2; ++pass) {
+    g = g0;
+    for (int b = 0; b < nb; ++b) {
+      if (intr(err, 20.0 * n * m * d)) return false;
+      rep(g);
+      for (std::size_t e = 0; e < Xb.v.size(); ++e) {
+        if (pass == 0) {
+          mn.v[e] += Xb.v[e];
+        } else {
+          const double dv = Xb.v[e] - mn.v[e];
+          ss.v[e] += dv * dv;
+        }
+      }
+    }
+    if (pass == 0) {
+      for (double &e : mn.v) e /= nb;
     }
   }
-  Mat se(n, d), mn(n, d);
-  for (int t = 0; t < d; ++t) {
-    for (int i = 0; i < n; ++i) {
-      const double *p = &bp[z(nb) * (z(i) + z(n) * z(t))];
-      se(i, t) = sdv(p, nb);
-      double s = 0;
-      for (int b = 0; b < nb; ++b) s += p[b];
-      mn(i, t) = s / nb;
-    }
-  }
+  for (std::size_t e = 0; e < se.v.size(); ++e) se.v[e] = nb < 2 ? NaN : std::sqrt(ss.v[e] / (nb - 1));
   out.add("se", mnode(se));
   out.add("mean", mnode(mn));
   out.add("nboot", ival(nb));

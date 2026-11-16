@@ -1168,8 +1168,6 @@ test_that("dimensions and replicates past their bounds are refused at once", {
   ef(indscl(list(D, D), ndim = 1e9), paste("indscl:", nd))
   ef(dwnom(V, ndim = 1e9), paste("dwnom:", nd))
   ef(irtem(V, ndim = 1e9), paste("irtem:", nd))
-  ef(nombt(V, matrix(0, 4, 1), matrix(1, 3, 1), c(0, 0, 0), nboot = 1e9),
-     "nombt: `nboot` times the ideal points must be at most 67108864.")
   ef(scboot(Y, nboot = 1e9),
      "scboot: `nboot` times the positions must be at most 67108864.")
   ef(anchv(c(1, 2, 3, 2), Y, ncat = 1e9),

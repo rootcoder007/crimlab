@@ -804,9 +804,11 @@
   `nsamp` used to abort R, and the sweep count overflowed. `optcls()`,
   `smacf()`, `nmdsf()`, `mlsmu()`, `smunf()`, `ordocl()`, `indscl()`,
   `dwnom()` and `irtem()` refuse an `ndim` whose configurations would pass
-  2^26 values, `anomin()` more dimensions than legislators, `nombt()` and
-  `scboot()` too many replicates and `anchv()` too many categories, all
-  before allocating; `smacf()` can now be interrupted. The command line
+  2^26 values, `anomin()` more dimensions than legislators, `scboot()`
+  too many replicates and `anchv()` too many categories, all before
+  allocating; `nombt()` no longer keeps its replicates (it draws them
+  twice from the seed, for the means and then the deviations), so any
+  `nboot` is only long; `smacf()` can now be interrupted. The command line
   gives the same messages.
 * `arimfc()` refuses a horizon `h` past 2^26 and `fpdens()` a grid past
   2^26 points before making them (both used to abort R); the forecast
@@ -826,9 +828,10 @@
   `kscan()` compares each simulated maximum as it is drawn instead of
   keeping all `nsim` of them, so a large `nsim` is only long, and can be
   interrupted. The command line gives the same messages.
-* `lnroc()` refuses an `nboot` whose kept replicates, one per procedure,
-  would pass 2^26, before it starts (it used to abort R). The command
-  line gives the same message.
+* `lnroc()` no longer keeps its bootstrap replicates: it draws them twice
+  from the seed, summing the areas and then their squared deviations, so
+  the errors are those of the kept replicates and a large `nboot` (which
+  used to abort R) is only long.
 * `inlhist()` refuses more than 2^26 `bins`; the command line gives the
   same message.
 * `bayout()` gives the negative binomial bound for large counts (more than

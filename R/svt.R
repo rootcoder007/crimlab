@@ -711,8 +711,7 @@ dwnom <- function(votes, ndim = 2, maxit = 100) {
 #' @param x Fitted ideal points.
 #' @param normals Fitted normal vectors (votes by dimensions).
 #' @param cuts Fitted cutpoints, one per vote.
-#' @param nboot The bootstrap replicates; `nboot` times the ideal points
-#'   must be at most 67108864 (2^26).
+#' @param nboot The bootstrap replicates.
 #' @inheritParams bamscl
 #' @return A list of class `nombt`: `se` and `mean` (legislators by
 #'   dimensions) and `nboot`.

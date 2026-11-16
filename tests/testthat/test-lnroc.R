@@ -275,11 +275,15 @@ test_that("lnroc() and lnsize() refuse bad input in words", {
   )
 })
 
-test_that("bootstrap replicates past their bound are refused at once", {
+test_that("the bootstrap errors do not depend on how many replicates exist", {
+  # the replicates are drawn twice from the seed (sums, then squared
+  # deviations) instead of being kept: a run is reproducible and its
+  # errors finite
   d <- lnsim()
-  expect_error(lnroc(d$tp, d$pick, d$conf, proc = d$proc, nboot = 1e9),
-               "lnroc: `nboot` times the procedures must be at most 67108864.",
-               fixed = TRUE)
+  a <- lnroc(d$tp, d$pick, d$conf, proc = d$proc, nboot = 40, seed = 2)
+  b <- lnroc(d$tp, d$pick, d$conf, proc = d$proc, nboot = 40, seed = 2)
+  expect_identical(a, b)
+  expect_true(all(is.finite(a$pauc$se)))
 })
 
 test_that("lnsize() refuses a lineup larger than its bound", {
