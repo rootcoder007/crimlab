@@ -201,13 +201,7 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   }
   course <- .cknum(course, "course", f)
   agg <- .ckarg(agg, c("max", "mean"), "agg", f)
-  g <- NULL
-  if (!is.null(by)) {
-    if (length(by) != length(dir) || anyNA(by)) {
-      .ckstop(f, "`by` must give the group of each reading, with no NA")
-    }
-    g <- sort(unique(by))
-  }
+  g <- .twgrp(by, length(dir), f)
   v <- .Call(C_clab_r_tailwd, as.numeric(dir), as.numeric(spd), course,
              if (is.null(g)) NULL else match(by, g) - 1L, length(g),
              match(agg, c("max", "mean")) - 1L)
@@ -228,7 +222,7 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
          "`rx` and `ry` must have one length",
          "the place of each row of `rx`", f)
   .cknum(half, "half", f, min = 0, max = 180)
-  if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || !(rad > 0)) {
+  if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || rad <= 0) {
     .ckstop(f, "`rad` must be a positive number or Inf")
   }
   per <- if (is.null(sper)) 1L else sort(unique(sper))
@@ -270,4 +264,13 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   a$ry <- as.numeric(ry)[o]
   a$ro <- as.integer(c(0L, cumsum(cnt)))
   a
+}
+
+# The groups of tailwd(): the sorted values of `by`, or NULL without one.
+.twgrp <- function(by, n, f) {
+  if (is.null(by)) return(NULL)
+  if (length(by) != n || anyNA(by)) {
+    .ckstop(f, "`by` must give the group of each reading, with no NA")
+  }
+  sort(unique(by))
 }

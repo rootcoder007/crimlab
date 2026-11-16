@@ -6,8 +6,7 @@ Authors@R:
            role = c("aut", "cre"),
            comment = c(ORCID = "0009-0004-1750-3592"))
 Description: Statistical methods for courts, corrections, policing,
-    forensics and sociolegal research, computed in a compiled core with a
-    thin R layer.
+    forensics and sociolegal research.
     Where an identity or bound has a machine-checked proof ('Lean'), the
     package names it. This development version holds the disparity
     tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006)
