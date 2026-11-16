@@ -54,7 +54,7 @@ bool rdm(Ctx &c, const Val &o, const char *an, const char *pre, int n, double lo
     for (int j = 0; j < m.p; ++j) m.nm.push_back(pre + std::to_string(j + 1));
   }
   Dv d;
-  CK(num(c, flat, an, d, static_cast<long>(n) * m.p, lo));
+  CK(num(c, flat, an, d, static_cast<std::int64_t>(n) * m.p, lo));
   m.v = d.v;
   return true;
 }

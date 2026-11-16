@@ -31,7 +31,7 @@ const double qnan = std::numeric_limits<double>::quiet_NaN();
 }  // namespace
 
 bool pscore(const cdat &c, const std::vector<int> &idx, std::vector<double> &e) {
-  std::vector<double> cf(z(c.p) + 1), se(z(c.p) + 1), work(z(lrn::gwork(c.p))), eta(idx.size());
+  std::vector<double> cf(z(c.p) + 1), se(z(c.p) + 1), work(static_cast<std::size_t>(lrn::gwork(c.p))), eta(idx.size());
   double dev = 0.0;
   lrn::Dat d{c.x, c.n, c.p, c.d, idx.data(), static_cast<int>(idx.size())};
   if (lrn::glm(d, 1, 1e-10, 50, cf.data(), se.data(), &dev, work.data()) != 0) return false;
@@ -65,7 +65,7 @@ double gcomp(const cdat &c, const std::vector<int> &idx, int tgt) {
   std::vector<int> a[2];
   for (int i : idx) a[c.d[i] > 0.5 ? 1 : 0].push_back(i);
   std::vector<double> m[2];
-  std::vector<double> cf(z(c.p) + 1), se(z(c.p) + 1), work(z(lrn::gwork(c.p))),
+  std::vector<double> cf(z(c.p) + 1), se(z(c.p) + 1), work(static_cast<std::size_t>(lrn::gwork(c.p))),
       eta(idx.size());
   for (int g = 0; g < 2; ++g) {
     double dev = 0.0;

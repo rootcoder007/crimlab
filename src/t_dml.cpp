@@ -29,8 +29,8 @@ double rnorm(rng &g) {
 int run(int model, int sc, int fit, int nrep = 1, const int *clu = nullptr,
         int nc = 0, double trim = 0.0, int kind = 0, int n = N, int nf = 5) {
   const clab_lrn l = {kind, 1.0, 20, 3, 7, 50, 0, 0, 1e-7, 1, 0, nullptr, 0, 0, 0};
-  long niw;
-  const long nw = clab_dmlxsz(model, n, P, nf, nrep, &l, &l, &niw);
+  std::int64_t niw;
+  const std::int64_t nw = clab_dmlxsz(model, n, P, nf, nrep, &l, &l, &niw);
   if (nw > 400000 || niw > 100000) return -1;
   return clab_dmlx(model, sc, X, n, P, Y, D, Z, S, F, nf, nrep, clu, nc, 0, &l, &l,
                   trim, fit, PR, EST, PSI, W, IW);
@@ -581,11 +581,11 @@ void t_stk(tk &t) {
   const clab_lrn two[2] = {g, g};
   const clab_lrn s = {3, 1.0, 20, 3, 7, 0, 0, 0, 1e-7, 1, 0, two, 2, 5, 0};
   double oof[2 * N], rk[2], wt[2], pr[N];
-  long niw;
-  const long nw = clab_stksz(N, P, N, &s, &niw);
+  std::int64_t niw;
+  const std::int64_t nw = clab_stksz(N, P, N, &s, &niw);
   tk_true(t, "stk.size", nw <= 400000 && niw <= 100000);
   // sizes clab_stack() refuses: no workspace, and no sum formed in a long
-  long nz = 1;
+  std::int64_t nz = 1;
   tk_true(t, "stk.size.neg", clab_stksz(-1, P, N, &s, &nz) == 0 && nz == 0);
   nz = 1;
   tk_true(t, "stk.size.big", clab_stksz(N, P, 2147483647, &s, &nz) == 0 && nz == 0);

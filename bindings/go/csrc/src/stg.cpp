@@ -33,7 +33,7 @@ const double qnan = std::numeric_limits<double>::quiet_NaN();
 double drcell(const double *x, int nu, int k, const double *dy, const double *dd,
               const std::vector<int> &all, const std::vector<int> &ctl, int est) {
   std::vector<double> mh(z(nu), 0.0), ps(z(nu), 0.0);
-  std::vector<double> work(z(lrn::gwork(k)));
+  std::vector<double> work(static_cast<std::size_t>(lrn::gwork(k)));
   std::vector<double> cf(z(k) + 1), se(z(k) + 1), eta(all.size());
   double dev = 0.0;
   if (est != 1) {
