@@ -138,6 +138,9 @@ test_that("a title that is not valid UTF-8 is refused before the device", {
 })
 
 test_that("the compiled density agrees with stats::density()", {
+  # the kernel is the density() of R 4.3 and later (old.coords = FALSE):
+  # before that R placed the grid, and worded some refusals, differently
+  skip_if(getRversion() < "4.3.0", "stats::density() differs before R 4.3")
   dens <- crimlab:::.dens
   # the kernel's own radix-2 FFT and R's mixed-radix one round differently:
   # the two agree to about 1e-14 relative, so 1e-12 leaves room. ucv and
@@ -205,6 +208,9 @@ test_that("the compiled density agrees with stats::density()", {
 })
 
 test_that("the compiled density refuses what stats::density() refuses", {
+  # the kernel is the density() of R 4.3 and later (old.coords = FALSE):
+  # before that R placed the grid, and worded some refusals, differently
+  skip_if(getRversion() < "4.3.0", "stats::density() differs before R 4.3")
   dens <- crimlab:::.dens
   x <- faithful$eruptions
   same <- function(r, g) {
