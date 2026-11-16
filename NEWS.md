@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* `plotrdg()` and `plotvln()` take their densities from the compiled
+  kernel that the command line and the other languages use, so the curve
+  is the same everywhere and on every version of R. The kernel agrees
+  with `stats::density()` of R 4.3 and later to rounding.
+
 * New: `cemtch()`, coarsened exact matching (Iacus, King and Porro 2012)
   with the weights for the effect on the treated and the L1 imbalance,
   as Sampson and Winter (2018) match lead-exposed children.

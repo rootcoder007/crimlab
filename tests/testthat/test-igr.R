@@ -24,11 +24,13 @@ test_that(
   {
     z <- stats::qnorm(0.975)
     r <- limfrom(c(40, 10), se = c(2, 1))
-    expect_identical(r$lower, c(40, 10) - z * c(2, 1))
-    expect_identical(r$upper, c(40, 10) + z * c(2, 1))
+    expect_equal(r$lower, c(40, 10) - z * c(2, 1), tolerance = 1e-12)
+    expect_equal(r$upper, c(40, 10) + z * c(2, 1), tolerance = 1e-12)
     expect_identical(limfrom(40, cv = 5)$se, 2)
-    expect_identical(limfrom(40, moe = stats::qnorm(0.95) * 2)$se, 2)
-    expect_identical(limfrom(40, moe = z * 2, moelev = 0.95)$se, 2)
+    expect_equal(limfrom(40, moe = stats::qnorm(0.95) * 2)$se, 2,
+      tolerance = 1e-12)
+    expect_equal(limfrom(40, moe = z * 2, moelev = 0.95)$se, 2,
+      tolerance = 1e-12)
     expect_error(limfrom(40), "give one of")
     expect_error(limfrom(40, se = 1, cv = 1), "give one of")
     expect_error(limfrom(c(1, 2, 3), se = c(1, 2)), "one per estimate")

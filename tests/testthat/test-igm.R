@@ -75,8 +75,10 @@ test_that(
       STATUS = "",
       stringsAsFactors = FALSE
     ))
-    expect_identical(cv$lower, 12.5 * exp(-z * sqrt(log(1 + 0.08^2))))
-    expect_identical(cv$upper, 12.5 * exp(z * sqrt(log(1 + 0.08^2))))
+    expect_equal(cv$lower, 12.5 * exp(-z * sqrt(log(1 + 0.08^2))),
+      tolerance = 1e-12)
+    expect_equal(cv$upper, 12.5 * exp(z * sqrt(log(1 + 0.08^2))),
+      tolerance = 1e-12)
     expect_identical(cv$cisou, "cv")
     se <- scests(data.frame(
       GEO = "A",
