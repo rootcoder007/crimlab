@@ -98,7 +98,7 @@ moments divided by \code{n}, on two degrees of freedom.
 Duan et al.'s model is linear in a count. For a Poisson or negative
 binomial model with the same effects see \code{\link[=didfe]{didfe()}} (binary treatment)
 and \code{\link[=cntreg]{cntreg()}}; Andreatta et al. (2023) fit a dynamic panel of the
-logged rate by system GMM, which the package does not have.
+logged rate by system GMM, as \code{\link[=gmmpnl]{gmmpnl()}} does.
 
 The plot draws the coefficients with their intervals and, with
 an interaction, the simple slopes at each value of the moderator; it

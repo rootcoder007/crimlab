@@ -121,7 +121,10 @@ extractive industries are recorded, and how enforcement behaves. Its
 tools are \code{\link[=lmdix]{lmdix()}} (decomposition over a Kaya identity, Duan et al.
 2026), \code{\link[=fepnl]{fepnl()}} (two-way fixed effects with an interaction and the
 checks Duan et al. report) and \code{\link[=pcdtst]{pcdtst()}} (cross-sectional dependence
-of a panel, Andreatta et al. 2023), with the package's spatial tests
+of a panel, Andreatta et al. 2023), \code{\link[=gmmpnl]{gmmpnl()}} (difference and system
+GMM for dynamic panels, as Andreatta et al. fit them), \code{\link[=wsctst]{wsctst()}}
+(Wooldridge's test of serial correlation) and \code{\link[=ccepnl]{ccepnl()}} (common
+correlated effects), with the package's spatial tests
 (\code{\link[=gmoran]{gmoran()}}, \code{\link[=gearc]{gearc()}}, \code{\link[=lmorn]{lmorn()}}) for the spatial checks Andreatta et
 al. run. Recorded counts are counts of detected, prosecuted or judged
 cases: Duan et al. count first-instance judgments, Andreatta et al.
