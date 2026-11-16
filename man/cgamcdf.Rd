@@ -9,7 +9,8 @@ cgamcdf(shape, x)
 \arguments{
 \item{shape}{The shape \eqn{a}, one positive number.}
 
-\item{x}{Numeric vector of quantiles.}
+\item{x}{Numeric vector: the points at which the distribution function
+of the gamma variable is taken.}
 }
 \value{
 A numeric vector of probabilities, the length of \code{x}.

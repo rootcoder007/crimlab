@@ -578,7 +578,8 @@ cipw <- function(treat, ps, trimlo = 0.01, trimhi = 0.99) {
 #' gives 0 for every finite `x`, as `pgamma()` does.
 #'
 #' @param shape The shape \eqn{a}, one positive number.
-#' @inheritParams cnormpdf
+#' @param x Numeric vector: the points at which the distribution function
+#'   of the gamma variable is taken.
 #' @return A numeric vector of probabilities, the length of `x`.
 #' @seealso [stats::pgamma()].
 #' @examples
