@@ -1655,6 +1655,22 @@ def tpbhm(y: Any, x: Any, grp: Any = None, pm: Any = 0, psd: Any = 10, level: An
     return jcall("tpbhm", y=y, x=x, grp=grp, pm=pm, psd=psd, level=level)
 
 
+
+def dirsim(n: Any, alpha: Any, total: Any = 1, seed: Any = None) -> Any:
+    """Simulated compositions from a Dirichlet distribution.
+
+    The arguments and the result are those of R's ``dirsim()``: see its help
+    page. Outside R a seed is needed.
+
+    Examples
+    --------
+    >>> r = dirsim(n=3, alpha=[30, 15, 5], seed=1)
+    >>> [round(sum(row), 12) for row in r]
+    [1.0, 1.0, 1.0]
+    """
+    return jcall("dirsim", n=n, alpha=alpha, total=total, seed=seed)
+
+
 def enpath(x: Any, y: Any, fam: Any = "gaussian", alpha: Any = 1, lambda_: Any = None,
            nlam: Any = 100, lmr: Any = None, fold: Any = None, tol: Any = 1e-7, maxit: Any = 1e5,
            scr: Any = True) -> Any:
@@ -1845,7 +1861,7 @@ def smdbal(x: Any, d: Any, w: Any = None, ps: Any = None, thr: Any = 0.1) -> Any
 
 
 def evlx(est: Any, lo: Any = None, hi: Any = None, type: Any = "rr", rare: Any = False,
-         sd: Any = None) -> Any:
+         sd: Any = None, true: Any = None) -> Any:
     """E-values: how strong an unmeasured confounder must be.
 
     The arguments and the result are those of R's ``evlx()``: see its help
@@ -1857,7 +1873,7 @@ def evlx(est: Any, lo: Any = None, hi: Any = None, type: Any = "rr", rare: Any =
     >>> list(r)
     ['rr', 'evalue', 'evlim']
     """
-    return jcall("evlx", est=est, lo=lo, hi=hi, type=type, rare=rare, sd=sd)
+    return jcall("evlx", est=est, lo=lo, hi=hi, type=type, rare=rare, sd=sd, true=true)
 
 
 def jdgiv(z: Any = None, d: Any = None, y: Any = None, w: Any = None, dsh: Any = None,

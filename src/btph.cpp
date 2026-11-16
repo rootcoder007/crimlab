@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The R entry points of taphonomy (clrilr, preslr, tpdmc, tpbhm): each
+// The R entry points of taphonomy (clrilr, preslr, tpdmc, tpbhm, dirsim): each
 // checks its arguments, calls the kernels and builds the R result.
 // Nothing calls back into the R evaluator.
 #include <cmath>
@@ -252,6 +252,26 @@ SEXP C_clab_r_tpbhm(SEXP y, SEXP x, SEXP grp, SEXP pm, SEXP psd, SEXP level) {
   static const char *const on[] = {"coef", "sigma", "tau2", "groups", "fitted", "level"};
   UNPROTECT(11);
   return bj::named(out, on);
+}
+
+SEXP C_clab_r_dirsim(SEXP n, SEXP alpha, SEXP total, SEXP seed) {
+  clab::who = "dirsim";
+  const int N = clab::whole(n, "n", 1);
+  SEXP av = PROTECT(bj::nums(alpha, "alpha", -1, 0.0, true));
+  const int k = clab::xlen(av, "alpha");
+  if (k < 2) fail("`alpha` must give two or more parts.");
+  const double tot = clab::one(total, "total", 0.0, R_PosInf);
+  const unsigned int sd = csp::seed(seed);
+  if (static_cast<double>(N) * static_cast<double>(k) > kutil::maxcell) {
+    fail("`n` times the number of parts must be at most %.0f.", kutil::maxcell);
+  }
+  SEXP out = PROTECT(Rf_allocMatrix(REALSXP, N, k));
+  bj::kc(clab_dirsim(REAL(av), k, N, sd, tot, REAL(out)),
+         "a row of draws is all 0: the concentrations `alpha` are too small.");
+  SEXP an = Rf_getAttrib(alpha, R_NamesSymbol);
+  if (!Rf_isNull(an)) bfx::dnm(out, R_NilValue, an);
+  UNPROTECT(2);
+  return out;
 }
 
 }  // extern "C"

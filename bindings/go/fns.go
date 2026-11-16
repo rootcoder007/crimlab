@@ -367,6 +367,9 @@ func Tpdmc(args string) (string, error) { return Jrun("tpdmc", args) }
 // Tpbhm runs tpbhm() of the R package (arguments: y x grp? pm? psd? level?; ? marks an optional one).
 func Tpbhm(args string) (string, error) { return Jrun("tpbhm", args) }
 
+// Dirsim runs dirsim() of the R package (arguments: n alpha total? seed?; ? marks an optional one).
+func Dirsim(args string) (string, error) { return Jrun("dirsim", args) }
+
 // Enpath runs enpath() of the R package (arguments: x y fam? alpha? lambda? nlam? lmr? fold? tol? maxit? scr?; ? marks an optional one).
 func Enpath(args string) (string, error) { return Jrun("enpath", args) }
 
@@ -397,7 +400,7 @@ func Jpipe(args string) (string, error) { return Jrun("jpipe", args) }
 // Smdbal runs smdbal() of the R package (arguments: x d w? ps? thr?; ? marks an optional one).
 func Smdbal(args string) (string, error) { return Jrun("smdbal", args) }
 
-// Evlx runs evlx() of the R package (arguments: est lo? hi? type? rare? sd?; ? marks an optional one).
+// Evlx runs evlx() of the R package (arguments: est lo? hi? type? rare? sd? true?; ? marks an optional one).
 func Evlx(args string) (string, error) { return Jrun("evlx", args) }
 
 // Jdgiv runs jdgiv() of the R package (arguments: z? d y w? dsh? deff?; ? marks an optional one).

@@ -448,6 +448,9 @@ tbx <- data.frame(temp = round(runif(30, 5, 30), 2))
 ok("tpbhm", y = tby, x = tbx)
 ok("tpbhm", y = tby, x = tbx, grp = rep(c("p", "q", "r"), 10), pm = c(0, 0.1), psd = 5, level = 0.9)
 bad("tpbhm", y = tby, x = tbx[1:5, , drop = FALSE])
+ok("dirsim", n = 3, alpha = c(30, 15, 5), seed = 1)
+ok("dirsim", n = 2, alpha = c(85, 5, 2, 0.5), total = 1e6, seed = 7)
+bad("dirsim", n = 2, alpha = c(1, 0), seed = 1)
 
 # Learners
 set.seed(10)
@@ -497,6 +500,8 @@ bad("smdbal", x = bx, d = rep(0, 30))
 ok("evlx", est = 1.8, lo = 1.2, hi = 2.6)
 ok("evlx", est = 0.4, type = "smd", sd = 0.1)
 ok("evlx", est = 2.2, type = "or", rare = TRUE)
+ok("evlx", est = 3.9, lo = 1.8, hi = 8.7, true = 2)
+bad("evlx", est = 2, true = 0)
 bad("evlx", est = 1.8, lo = 2, hi = 3)
 
 # Courts

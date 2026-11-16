@@ -74,6 +74,7 @@ reference:
       - tpdmc
       - tpbhm
       - clrilr
+      - dirsim
   - title: Policing
     desc: Clearance rates, exposure proxies, misrecorded groups and
       regression to the mean.

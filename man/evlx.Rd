@@ -4,7 +4,15 @@
 \alias{evlx}
 \title{E-values: how strong an unmeasured confounder must be}
 \usage{
-evlx(est, lo = NULL, hi = NULL, type = "rr", rare = FALSE, sd = NULL)
+evlx(
+  est,
+  lo = NULL,
+  hi = NULL,
+  type = "rr",
+  rare = FALSE,
+  sd = NULL,
+  true = NULL
+)
 }
 \arguments{
 \item{est}{The estimate: one positive ratio, or one standardised
@@ -18,6 +26,10 @@ difference.}
 then read as a risk ratio).}
 
 \item{sd}{\code{NULL} or the standard error of a standardised difference.}
+
+\item{true}{\code{NULL} for the null (a ratio of 1, a difference of 0), or
+the true value to set the estimate against: one positive ratio, or one
+standardised difference.}
 }
 \value{
 A named numeric vector: \code{rr} (the estimate as a risk ratio),
@@ -37,11 +49,18 @@ taken to \code{sqrt(OR)} and a hazard ratio to \code{(1 - 0.5^sqrt(HR)) / (1 - 0
 \verb{exp(0.91 d)}, its limits to \verb{exp(0.91 d -+ 1.78 sd)} from its standard
 error \code{sd}. The limit's E-value is 1 when the interval holds the null.
 These are the conversions of the 'EValue' package.
+
+Against a true value other than the null (\code{true}, on the scale of \code{est}
+and converted as it is), the estimate and its limits are divided by it
+first: the strength a confounder would need to move the estimate to
+\code{true}, as the \code{true} argument of the 'EValue' package.
 }
 \examples{
 evlx(3.9, 1.8, 8.7)
 evlx(0.8, 0.71, 0.91, type = "hr")
 evlx(0.5, type = "smd", sd = 0.1)
+# how strong a confounder must be to move a ratio of 3.9 down to 2
+evlx(3.9, 1.8, 8.7, true = 2)
 }
 \references{
 VanderWeele, T. J. and Ding, P. (2017). Sensitivity analysis in

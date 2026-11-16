@@ -2,13 +2,16 @@
 //
 // libcrimlab, taphonomy: log-ratio transforms (clab_clrilr), likelihood
 // ratios of measured evidence (clab_preslr), the decay chain
-// (clab_tpdmc, clab_tpdsim) and a conjugate Bayesian preservation model
-// (clab_tpbhm).
+// (clab_tpdmc, clab_tpdsim), a conjugate Bayesian preservation model
+// (clab_tpbhm) and simulated compositions (clab_dirsim).
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
+#include <cstdint>
 
 #include "crimlab.h"
 #include "kutil.h"
+#include "svk.h"
 
 namespace {
 
@@ -261,5 +264,27 @@ int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
   const double tau2 = std::max(0.0, vg.val() / (ng - 1) - sw.val() / ng);
   for (int j = 0; j < ng; ++j) lam[j] = tau2 / (tau2 + s2 / nj[j]);
   st[1] = tau2;
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)
+
+int clab_dirsim(const double *alpha, int64_t k, int64_t n, unsigned int seed, double total,
+                double *out) CLAB_TRY {
+  if (k < 2 || n < 1) return CLAB_EARG;
+  if (!(total > 0.0) || !std::isfinite(total)) return CLAB_EDOM;
+  const std::size_t nk = static_cast<std::size_t>(k), nn = static_cast<std::size_t>(n);
+  for (std::size_t j = 0; j < nk; ++j) {
+    if (!(alpha[j] > 0.0) || !std::isfinite(alpha[j])) return CLAB_EDOM;
+  }
+  // part by part, as rgamma() draws a vector of shapes
+  svk::rng g(static_cast<int>(seed));
+  for (std::size_t j = 0; j < nk; ++j) {
+    for (std::size_t i = 0; i < nn; ++i) out[j * nn + i] = g.gamma(alpha[j], 1.0);
+  }
+  for (std::size_t i = 0; i < nn; ++i) {
+    double s = 0.0;
+    for (std::size_t j = 0; j < nk; ++j) s += out[j * nn + i];
+    if (!(s > 0.0)) return CLAB_EDOM;
+    for (std::size_t j = 0; j < nk; ++j) out[j * nn + i] = out[j * nn + i] / s * total;
+  }
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)

@@ -296,7 +296,8 @@ void smd(const double *x, int n, const double *d, const double *w, double *out) 
   out[3] = q1 / q0;
 }
 
-void evalue(double est, double lo, double hi, int type, int rare, double sd, double *out) {
+void evalue(double est, double lo, double hi, int type, int rare, double sd, double tru,
+            double *out) {
   // to a risk ratio: type 0 RR, 1 OR, 2 HR, 3 a standardised difference
   // (exp(0.91 d); sd the standard error of d for the limits)
   auto rr = [&](double v) {
@@ -318,11 +319,15 @@ void evalue(double est, double lo, double hi, int type, int rare, double sd, dou
     u = std::exp(0.91 * est + 1.78 * sd);
   }
   out[0] = r;
-  out[1] = ev(r);
-  // the limit nearer the null; 1 when the interval holds it
+  // against a true value other than the null, every ratio is divided by
+  // it (the E-value of VanderWeele and Ding for a non-null hypothesis)
+  const double t = std::isnan(tru) ? 1.0 : rr(tru);
+  const double rs = r / t, ls = l / t, us = u / t;
+  out[1] = ev(rs);
+  // the limit nearer the true value; 1 when the interval holds it
   double lim = qnan;
-  if (r >= 1 && !std::isnan(l)) lim = l <= 1 ? 1.0 : ev(l);
-  if (r < 1 && !std::isnan(u)) lim = u >= 1 ? 1.0 : ev(u);
+  if (rs >= 1 && !std::isnan(ls)) lim = ls <= 1 ? 1.0 : ev(ls);
+  if (rs < 1 && !std::isnan(us)) lim = us >= 1 ? 1.0 : ev(us);
   out[2] = lim;
 }
 

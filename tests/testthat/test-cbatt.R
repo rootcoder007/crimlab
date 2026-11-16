@@ -148,6 +148,38 @@ test_that("E-values are EValue's", {
   expect_named(evlx(2), c("rr", "evalue", "evlim"))
 })
 
+test_that("E-values against a true value other than the null", {
+  ev <- function(r) {
+    r <- if (r < 1) 1 / r else r
+    r + sqrt(r * (r - 1))
+  }
+  # every ratio divided by the true one; the lower limit 0.9 holds it
+  expect_equal(evlx(3.9, 1.8, 8.7, true = 2)[["evalue"]], ev(3.9 / 2),
+               tolerance = 1e-14)
+  expect_identical(evlx(3.9, 1.8, 8.7, true = 2)[["evlim"]], 1)
+  expect_equal(evlx(3.9, 2.4, 8.7, true = 2)[["evlim"]], ev(1.2),
+               tolerance = 1e-14)
+  # a protective estimate against a protective true value: the upper limit
+  expect_equal(evlx(0.4, 0.2, 0.6, true = 0.8)[2:3],
+               c(ev(0.5), ev(0.75)), tolerance = 1e-14, ignore_attr = TRUE)
+  # the true value is converted as the estimate is
+  expect_equal(evlx(4, type = "or", true = 2)[["evalue"]],
+               ev(sqrt(4) / sqrt(2)), tolerance = 1e-14)
+  expect_equal(evlx(0.5, type = "smd", true = 0.2)[["evalue"]],
+               ev(exp(0.91 * 0.3)), tolerance = 1e-14)
+  # the risk ratio reported is the estimate's, not the shifted one
+  expect_identical(evlx(3.9, true = 2)[["rr"]], 3.9)
+  expect_identical(evlx(3.9, true = 1), evlx(3.9))
+})
+
+test_that("evlx() refuses a true value that is not one", {
+  expect_error(evlx(2, true = 0), "evlx")
+  expect_error(evlx(2, true = -1), "true")
+  expect_error(evlx(2, true = c(1, 2)), "true")
+  expect_error(evlx(2, true = "a"), "true")
+  expect_error(evlx(2, true = NA), "true")
+})
+
 test_that("cbatt(), smdbal() and evlx() refuse what they cannot do", {
   expect_error(cbatt(z$y, z$d, z$x, est = "ebal"), "ATT only")
   expect_error(cbatt(z$y, z$d, z$x, est = "psm"), "ATT or the ATC")

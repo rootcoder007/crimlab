@@ -157,3 +157,43 @@ tpbhm <- function(y, x, grp = NULL, pm = 0, psd = 10, level = 0.95) {
   if (is.data.frame(x)) x <- as.matrix(x)
   .Call(C_clab_r_tpbhm, y, x, grp, pm, psd, level)
 }
+
+#' Simulated compositions from a Dirichlet distribution
+#'
+#' Compositions that are closed (each row sums to `total`) and positive,
+#' such as the element shares a portable X-ray fluorescence scan reports,
+#' drawn from the Dirichlet distribution with concentrations `alpha`: each
+#' part is a gamma variate of shape `alpha[j]` and rate 1 divided by the
+#' sum of its row. Normal noise is the wrong model for such data, as it
+#' leaves the simplex. The draws are for testing a compositional analysis
+#' before real measurements exist ([clrilr()], [tpbhm()]), never a
+#' substitute for them. The mean share of part `j` is `alpha[j] /
+#' sum(alpha)`; larger concentrations give less spread around it.
+#'
+#' The gammas are drawn part by part, `n` of each, from R's generator
+#' (Mersenne-Twister with inversion, as [set.seed()] seeds it), so that
+#' `set.seed(seed); g <- matrix(rgamma(n * k, rep(alpha, each = n)), n)`
+#' gives the same draws and `g / rowSums(g) * total` the same result.
+#' Without `seed` one is drawn from R's generator.
+#'
+#' @param n The number of compositions: a whole number from 1.
+#' @param alpha The concentration of each part: positive finite numbers,
+#'   at least two; their names name the columns.
+#' @param total What each composition sums to: one positive number (1 for
+#'   shares, 1e6 for parts per million).
+#' @inheritParams hwksim
+#' @return A numeric matrix of `n` rows and one column per part.
+#' @references
+#'   Aitchison, J. (1986). *The Statistical Analysis of Compositional
+#'   Data*. Chapman and Hall. \doi{10.1007/978-94-009-4109-0}
+#' @examples
+#' # a calcium-rich profile and a natural one, in parts per million
+#' lime <- c(Ca = 85, P = 5, Fe = 2, Sr = 0.5, Pb = 0.2, Zn = 0.2)
+#' soil <- c(Ca = 30, P = 15, Fe = 5, Sr = 1, Pb = 0.5, Zn = 0.5)
+#' x <- rbind(dirsim(5, lime, 1e6, seed = 1), dirsim(5, soil, 1e6, seed = 2))
+#' round(x)
+#' clrilr(x)[, "Ca"]
+#' @export
+dirsim <- function(n, alpha, total = 1, seed = NULL) {
+  .Call(C_clab_r_dirsim, n, alpha, total, seed)
+}

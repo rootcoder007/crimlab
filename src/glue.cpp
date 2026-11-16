@@ -548,7 +548,7 @@ SEXP C_clab_r_sthwk(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The design-based causal estimators (bcba.cpp).
 SEXP C_clab_r_cbatt(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_smdbal(SEXP, SEXP, SEXP, SEXP, SEXP);
-SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_evlx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The summary statistics (bprim.cpp).
 SEXP C_clab_r_prim(SEXP, SEXP, SEXP, SEXP);
 // Text to plain ASCII (btxt.cpp).
@@ -745,6 +745,7 @@ SEXP C_clab_r_clrilr(SEXP, SEXP, SEXP);
 SEXP C_clab_r_preslr(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_tpdmc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_tpbhm(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dirsim(SEXP, SEXP, SEXP, SEXP);
 // Forensic toxicology (btox.cpp).
 SEXP C_clab_r_txcal(SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_lodimp(SEXP, SEXP, SEXP);
@@ -971,7 +972,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_sthwk", fn<&C_clab_r_sthwk>(), 9},
     {"C_clab_r_cbatt", fn<&C_clab_r_cbatt>(), 12},
     {"C_clab_r_smdbal", fn<&C_clab_r_smdbal>(), 5},
-    {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 6},
+    {"C_clab_r_evlx", fn<&C_clab_r_evlx>(), 7},
     {"C_clab_r_mtrbnd", fn<&C_clab_r_mtrbnd>(), 6},
     {"C_clab_r_igh", fn<&C_clab_r_igh>(), 2},
     {"C_clab_r_fmt", fn<&C_clab_r_fmt>(), 3},
@@ -1127,6 +1128,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_preslr", fn<&C_clab_r_preslr>(), 5},
     {"C_clab_r_tpdmc", fn<&C_clab_r_tpdmc>(), 7},
     {"C_clab_r_tpbhm", fn<&C_clab_r_tpbhm>(), 6},
+    {"C_clab_r_dirsim", fn<&C_clab_r_dirsim>(), 4},
     {"C_clab_r_txcal", fn<&C_clab_r_txcal>(), 5},
     {"C_clab_r_lodimp", fn<&C_clab_r_lodimp>(), 3},
     {"C_clab_r_pmrrat", fn<&C_clab_r_pmrrat>(), 3},

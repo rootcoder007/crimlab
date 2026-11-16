@@ -169,3 +169,41 @@ test_that("clrilr() refuses an x that is not a vector in words", {
   expect_error(clrilr(NULL), "^clrilr: `x` must be a vector, got NULL\\.$")
   expect_error(clrilr(sum), "^clrilr: `x` must be a vector, got a function")
 })
+
+test_that("dirsim() closes the gammas rgamma() draws", {
+  a <- c(Ca = 30, P = 15, Fe = 5, Sr = 1)
+  set.seed(42)
+  g <- matrix(rgamma(6 * 4, rep(a, each = 6)), 6)
+  r <- g / rowSums(g) * 1e6
+  colnames(r) <- names(a)
+  expect_equal(dirsim(6, a, 1e6, seed = 42), r, tolerance = 1e-14)
+  # shapes below 1 take rgamma()'s other branch
+  b <- c(0.5, 0.2, 2)
+  set.seed(7)
+  g <- matrix(rgamma(5 * 3, rep(b, each = 5)), 5)
+  expect_equal(dirsim(5, b, seed = 7), g / rowSums(g), tolerance = 1e-14)
+  expect_null(colnames(dirsim(5, b, seed = 7)))
+  x <- dirsim(50, b, total = 100, seed = 1)
+  expect_equal(rowSums(x), rep(100, 50), tolerance = 1e-12)
+  expect_true(all(x >= 0))
+  # without a seed, one is drawn from R's generator
+  set.seed(3)
+  u <- dirsim(2, c(1, 1))
+  set.seed(3)
+  expect_identical(dirsim(2, c(1, 1)), u)
+})
+
+test_that("dirsim() refuses what is not a composition's parameters", {
+  expect_error(dirsim(0, c(1, 1)), "dirsim")
+  expect_error(dirsim(1.5, c(1, 1)), "n")
+  expect_error(dirsim(2, 1), "two or more parts")
+  expect_error(dirsim(2, c(1, 0)), "alpha")
+  expect_error(dirsim(2, c(1, -1)), "alpha")
+  expect_error(dirsim(2, c(1, NA)), "alpha")
+  expect_error(dirsim(2, c(1, Inf)), "alpha")
+  expect_error(dirsim(2, c("a", "b")), "alpha")
+  expect_error(dirsim(2, c(1, 1), total = 0), "total")
+  expect_error(dirsim(2, c(1, 1), total = Inf), "total")
+  expect_error(dirsim(2, c(1, 1), seed = -1), "seed")
+  expect_error(dirsim(2, c(1e-300, 1e-300), seed = 1), "too small")
+})

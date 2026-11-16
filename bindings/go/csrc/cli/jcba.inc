@@ -136,9 +136,9 @@ bool evlx(Ctx &c, Val &out) {
   bool rr = false;
   CK(flagd(c, "rare", false, rr));
   const double lw = ty == 3 ? -HUGE_VAL : 0.0;
-  double v3[3];
-  static const char *const an[] = {"est", "lo", "hi"};
-  for (int k = 0; k < 3; ++k) {
+  double v3[4];
+  static const char *const an[] = {"est", "lo", "hi", "true"};
+  for (int k = 0; k < 4; ++k) {
     v3[k] = NaN;
     if (!c.has(an[k])) continue;
     Dv q;
@@ -154,7 +154,7 @@ bool evlx(Ctx &c, Val &out) {
     CK(one(c, c["sd"], "sd", 0.0, HUGE_VAL, s));
   }
   double o[3];
-  pev::evalue(e, l, h, ty, rr, s, o);
+  pev::evalue(e, l, h, ty, rr, s, v3[3], o);
   for (double &v : o) v = na(v);
   static const char *const on[] = {"rr", "evalue", "evlim"};
   out = nvec(3, on, o);

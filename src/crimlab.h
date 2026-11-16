@@ -3233,6 +3233,17 @@ int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
                const double *s0, const int *g, int ng, double *mu, double *sd, double *st,
                double *gm, double *lam, int *nj, double *work);
 
+/* n compositions of k >= 2 parts drawn from the Dirichlet distribution
+ * with concentrations alpha (k, positive and finite): each part a
+ * Gamma(alpha_j, 1) variate over the sum of its row, times total (> 0,
+ * finite). The gammas are drawn part by part, n of each, from R's
+ * generator seeded as set.seed(seed) seeds it, so R's rgamma(n k,
+ * rep(alpha, each = n)) after set.seed(seed) holds the same draws.
+ * CLAB_EDOM when a row of draws is all 0 (concentrations so small that
+ * every gamma underflows). Out: out (n by k, column-major). */
+int clab_dirsim(const double *alpha, int64_t k, int64_t n, unsigned int seed, double total,
+                double *out);
+
 /* ------------------------------------------------------------------------
  * Deterrence theory: the offender's response to certainty and severity,
  * the identification of a sanction design, the inspection game, collider

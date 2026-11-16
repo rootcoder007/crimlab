@@ -16,6 +16,13 @@
   Sarmiento (2020), Batkeyev and DeRemer (2023), Hener (2022), Bao and Da
   (2026) and Rahman et al. (2023), with the arguments that reproduce
   each.
+* New: `dirsim()` draws compositions from a Dirichlet distribution (a
+  gamma variate per part over its row sum), from R's generator, so that
+  `set.seed()` and `rgamma()` give the same draws; for testing a
+  compositional analysis such as `clrilr()` before real measurements exist.
+
+* New: `evlx()` takes `true`, a true value other than the null to set the
+  estimate against, as the argument of that name in the 'EValue' package.
 
 * Fixed: the second sweep found 25 more functions (`lodimp()`, `lnroc()`,
   `ibench()`, `synexp()`, `bndxw()`, `rptvic()`, `etohlr()`, `mndla()`,

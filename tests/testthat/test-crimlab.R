@@ -864,6 +864,7 @@ test_that("every exported function answers one valid call in its shape", {
     list(quote(colarr(0.3, 0.2, 0.1)),
          c("a", "e", "bg", "or", "lor", "c11", "c10", "c01", "c00")),
     list(quote(clrilr(matrix(1:4, 2))), NULL),
+    list(quote(dirsim(2, c(a = 1, b = 2), seed = 1)), NULL),
     list(quote(preslr(1, 1, 1, 0, 1)),
          c("ll1", "ll2", "llr", "lr", "l10", "verbal")),
     list(quote(pedlr(data.frame(id = c("f", "m", "c"), fid = c(NA, NA, "f"),

@@ -177,6 +177,11 @@ print.smdbal <- function(x, ...) {
 #' error `sd`. The limit's E-value is 1 when the interval holds the null.
 #' These are the conversions of the 'EValue' package.
 #'
+#' Against a true value other than the null (`true`, on the scale of `est`
+#' and converted as it is), the estimate and its limits are divided by it
+#' first: the strength a confounder would need to move the estimate to
+#' `true`, as the `true` argument of the 'EValue' package.
+#'
 #' @param est The estimate: one positive ratio, or one standardised
 #'   difference.
 #' @param lo,hi `NULL` or the confidence limits of a ratio.
@@ -184,6 +189,9 @@ print.smdbal <- function(x, ...) {
 #' @param rare `TRUE` when the outcome is rare (an odds or hazard ratio is
 #'   then read as a risk ratio).
 #' @param sd `NULL` or the standard error of a standardised difference.
+#' @param true `NULL` for the null (a ratio of 1, a difference of 0), or
+#'   the true value to set the estimate against: one positive ratio, or one
+#'   standardised difference.
 #' @return A named numeric vector: `rr` (the estimate as a risk ratio),
 #'   `evalue` and `evlim` (the limit's E-value; `NA` without limits).
 #' @references
@@ -194,8 +202,10 @@ print.smdbal <- function(x, ...) {
 #' evlx(3.9, 1.8, 8.7)
 #' evlx(0.8, 0.71, 0.91, type = "hr")
 #' evlx(0.5, type = "smd", sd = 0.1)
+#' # how strong a confounder must be to move a ratio of 3.9 down to 2
+#' evlx(3.9, 1.8, 8.7, true = 2)
 #' @export
 evlx <- function(est, lo = NULL, hi = NULL, type = "rr", rare = FALSE,
-                 sd = NULL) {
-  .Call(C_clab_r_evlx, est, lo, hi, type, rare, sd)
+                 sd = NULL, true = NULL) {
+  .Call(C_clab_r_evlx, est, lo, hi, type, rare, sd, true)
 }

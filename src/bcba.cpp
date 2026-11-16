@@ -327,7 +327,7 @@ SEXP C_clab_r_smdbal(SEXP x, SEXP d, SEXP w, SEXP ps, SEXP thr) {
 
 //' @srrstats {G2.6} evlx() reads one estimate and its optional limits.
 //' @noRd
-SEXP C_clab_r_evlx(SEXP est, SEXP lo, SEXP hi, SEXP type, SEXP rare, SEXP sd) {
+SEXP C_clab_r_evlx(SEXP est, SEXP lo, SEXP hi, SEXP type, SEXP rare, SEXP sd, SEXP tru) {
   clab::who = "evlx";
   static const char *const to[] = {"rr", "or", "hr", "smd"};
   const int ty = csp::pick(type, "type", to, 4);
@@ -341,6 +341,7 @@ SEXP C_clab_r_evlx(SEXP est, SEXP lo, SEXP hi, SEXP type, SEXP rare, SEXP sd) {
     return r;
   };
   const double e = get(est, "est"), l = get(lo, "lo"), h = get(hi, "hi");
+  const double tv = get(tru, "true");
   if (std::isnan(e)) fail("`est` must be one estimate.");
   if (!std::isnan(l) && !std::isnan(h) && !(l <= e && e <= h)) fail("`lo` and `hi` must surround `est`.");
   double s = kutil::nan();
@@ -349,7 +350,7 @@ SEXP C_clab_r_evlx(SEXP est, SEXP lo, SEXP hi, SEXP type, SEXP rare, SEXP sd) {
     s = clab::one(sd, "sd", 0.0, R_PosInf);
   }
   double o[3];
-  pev::evalue(e, l, h, ty, rr, s, o);
+  pev::evalue(e, l, h, ty, rr, s, tv, o);
   static const char *const on[] = {"rr", "evalue", "evlim"};
   for (double &v : o) v = pevr::na(v);
   return clab::nvec(3, on, o);

@@ -234,6 +234,27 @@ bool tpdmc(Ctx &c, Val &out) {
   return true;
 }
 
+bool dirsim(Ctx &c, Val &out) {
+  int N = 0;
+  CK(whole(c, c["n"], "n", 1, N));
+  Dv av;
+  CK(num(c, c["alpha"], "alpha", av, -1, 0.0, true));
+  if (av.n() < 2) return c.fail("`alpha` must give two or more parts.");
+  const int k = static_cast<int>(av.n());
+  double tot = 0.0;
+  CK(oned(c, "total", 1, 0.0, HUGE_VAL, tot));
+  unsigned int sd = 0;
+  CK(seed(c, sd));
+  if (static_cast<double>(N) * static_cast<double>(k) > kutil::maxcell) {
+    return c.fail("`n` times the number of parts must be at most %.0f.", kutil::maxcell);
+  }
+  std::vector<double> o(static_cast<std::size_t>(N) * static_cast<std::size_t>(k));
+  CK(kc(c, clab_dirsim(av.p(), k, N, sd, tot, o.data()),
+        "a row of draws is all 0: the concentrations `alpha` are too small."));
+  out = vmat(o, N, k);
+  return true;
+}
+
 bool tpbhm(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv));

@@ -59,10 +59,12 @@ void smd(const double *x, int n, const double *d, const double *w, double *out);
 // The E-value (VanderWeele and Ding 2017) of an estimate of type 0 (risk
 // ratio), 1 (odds ratio), 2 (hazard ratio) or 3 (standardised difference,
 // with sd its standard error) and its limits lo, hi (NaN for none); rare:
-// the outcome is rare (an OR or HR is then a RR). out (3): the risk ratio,
-// its E-value, the E-value of the limit nearer the null (1 when the
-// interval holds the null; NaN without limits).
-void evalue(double est, double lo, double hi, int type, int rare, double sd, double *out);
+// the outcome is rare (an OR or HR is then a RR); tru: NaN for the null, or
+// the true value (on the scale of est) the estimate is set against. out
+// (3): the risk ratio, its E-value against tru, the E-value of the limit
+// nearer tru (1 when the interval holds it; NaN without limits).
+void evalue(double est, double lo, double hi, int type, int rare, double sd, double tru,
+            double *out);
 
 }  // namespace pev
 
