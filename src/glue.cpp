@@ -655,6 +655,7 @@ SEXP C_clab_r_dwnexp(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
 SEXP C_clab_r_tailwd(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_nbfit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ifesc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_pscred(SEXP, SEXP, SEXP);
 SEXP C_clab_r_cemtch(SEXP, SEXP, SEXP);
 SEXP C_clab_r_idwint(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_gtwreg(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
@@ -1050,6 +1051,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_tailwd", fn<&C_clab_r_tailwd>(), 6},
     {"C_clab_r_nbfit", fn<&C_clab_r_nbfit>(), 7},
     {"C_clab_r_ifesc", fn<&C_clab_r_ifesc>(), 8},
+    {"C_clab_r_pscred", fn<&C_clab_r_pscred>(), 3},
     {"C_clab_r_cemtch", fn<&C_clab_r_cemtch>(), 3},
     {"C_clab_r_idwint", fn<&C_clab_r_idwint>(), 11},
     {"C_clab_r_gtwreg", fn<&C_clab_r_gtwreg>(), 8},

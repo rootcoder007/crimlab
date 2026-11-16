@@ -457,6 +457,7 @@ from ._j import (
     yoyhtml,
     yoypdf,
     polrpttxt,
+    pscred,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -938,6 +939,7 @@ __all__ = [
     "yoyhtml",
     "yoypdf",
     "polrpttxt",
+    "pscred",
 ]
 
 

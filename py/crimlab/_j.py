@@ -7776,3 +7776,18 @@ def polrpttxt(report: Any) -> str:
     'ERROR: no exposure data\\n'
     """
     return jcall("polrpttxt", report=report)
+
+
+def pscred(days: Any, ratio: Any = 1.5, sentence: Any = None) -> Any:
+    """Credit for pre-sentence custody.
+
+    The arguments and the result are those of R's ``pscred()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = pscred(days=[10, 30, 45], sentence=60)
+    >>> list(r)
+    ['days', 'ratio', 'credit', 'sentence', 'remain']
+    """
+    return jcall("pscred", days=days, ratio=ratio, sentence=sentence)

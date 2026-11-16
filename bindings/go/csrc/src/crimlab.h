@@ -4575,6 +4575,15 @@ int clab_txtenc(const unsigned char *r, int64_t n, int *bom);
 int clab_dens(const double *x, const double *w, int64_t nx, int rule, double bw, double adjust, int kern, int64_t nout,
               double cut, int hasfrom, double from, int hasto, double to, double *xo, double *yo, double *st, int *why);
 
+/* Credit for pre-sentence custody (pscred; Criminal Code s. 719(3) and
+ * (3.1)): days (n, from 0) held before sentence, ratio (nr = 1 or n, from 0
+ * to 1.5), sent NULL or the sentences (ns = 1 or n, from 0). Out: credit
+ * (n), days times ratio, and, with sent, remain (n), the sentence less the
+ * credit and 0 when the credit is the larger. CLAB_EARG for bad sizes,
+ * CLAB_EDOM for a value out of its range. */
+int clab_pscred(const double *days, int64_t n, const double *ratio, int64_t nr, const double *sent,
+                int64_t ns, double *credit, double *remain);
+
 #ifdef __cplusplus
 }
 #endif

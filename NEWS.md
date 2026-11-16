@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `pscred()`, the credit for custody before sentence under s. 719(3)
+  and (3.1) of the Criminal Code, at up to one and a half days a day, and
+  the time left to serve.
+
 * `plotrdg()` and `plotvln()` take their densities from the compiled
   kernel that the command line and the other languages use, so the curve
   is the same everywhere and on every version of R. The kernel agrees
