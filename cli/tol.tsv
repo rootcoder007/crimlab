@@ -42,3 +42,6 @@ ccepnl	1e-10	1e-12	the regressors are projected off the cross-section averages u
 wsctst	1e-10	1e-13	p is a tail probability of the F statistic: an error of 1e-14 in it gives 1e-12 in a small p
 ccross	1e-10	0	the covariance sums over strata in the order the rows arrive, which differs after the moving average drops days: last digits (about 1e-12)
 jntx	1e-5	1e-9	the spline surface of the reference case is close to collinear (its joint test is refused for rank): the fit is fixed to about 1e-9, bounds near zero to about 1e-6
+rdloc	1e-10	0	local linear fits on few points beside the cut-off: sums that differ in the last digits with fused multiply-adds (about 1e-12)
+rddens	1e-10	0	the density estimates are ratios of weighted sums: last digits with fused multiply-adds (about 1e-12)
+expgmm	1e-7	0	the exponential GMM estimate is iterated to a stopping rule: compilers and platforms stop within about 1e-9 of one another (measured 3e-9 on arm64, 2e-9 in the Linux wheel, 5e-10 with MSVC)
