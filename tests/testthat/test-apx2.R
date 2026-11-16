@@ -522,10 +522,10 @@ test_that("the spline basis of jntx() is Harrell's restricted cubic spline", {
   t <- as.numeric(stats::quantile(x, c(0.05, 0.275, 0.5, 0.725, 0.95)))
   b <- .axrcs(x, t)
   k <- length(t)
-  h <- sapply(seq_len(k - 2L), function(j) {
+  h <- vapply(seq_len(k - 2L), function(j) {
     (pmax(x - t[j], 0)^3 - pmax(x - t[k - 1], 0)^3 * (t[k] - t[j]) /
        (t[k] - t[k - 1]) + pmax(x - t[k], 0)^3 * (t[k - 1] - t[j]) /
        (t[k] - t[k - 1])) / (t[k] - t[1])^2
-  })
+  }, numeric(length(x)))
   expect_equal(b, unname(cbind(x, h)), tolerance = 1e-13)
 })
