@@ -802,7 +802,8 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
       // one block per fold; two-way, one per pair of folds, whose training
       // rows share neither cluster with its test rows
       for (std::size_t f = 0; f < static_cast<std::size_t>(nf) * static_cast<std::size_t>((nw == 2 ? nf : 1)); ++f) {
-        const int f1 = nw == 2 ? f / nf : f, f2 = f % nf;
+        const int f1 = static_cast<int>(nw == 2 ? f / static_cast<std::size_t>(nf) : f),
+                  f2 = static_cast<int>(f % static_cast<std::size_t>(nf));
         int mt = 0, me = 0;
         for (int i = 0; i < n; ++i) {
           const bool in = fr[i] == f1 && (nw == 1 || fr[n + i] == f2);
