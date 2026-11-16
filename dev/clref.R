@@ -2124,11 +2124,13 @@ for (f in c("runfx", "hetfx", "ccross", "jntx", "dosebin", "typefx",
     }
   }))
 }
+# tol = 1e-7: at the default the last Gauss-Newton steps are of the size of
+# the rounding of the moments, so their number differs by compiler
 ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"),
-   x = "temp", fe = "area", se = "hc1")
+   x = "temp", fe = "area", se = "hc1", tol = 1e-7)
 ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"),
    fe = c("area", "day"), se = "hc1", step = "one", err = "add", ssc = "none",
-   level = 0.9)
+   level = 0.9, tol = 1e-7)
 ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = "w90",
    expo = "pop", se = "hc1", step = "iter")
 bad("expgmm", data = axd, y = "crimes", endo = "pm", inst = "pm")
