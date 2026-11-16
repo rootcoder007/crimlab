@@ -1273,6 +1273,9 @@ func Lrcce(args string) (string, error) { return Jrun("lrcce", args) }
 // Cemtch runs cemtch() of the R package (arguments: data d x cut? lcut?; ? marks an optional one).
 func Cemtch(args string) (string, error) { return Jrun("cemtch", args) }
 
+// Synfix runs synfix() of the R package (arguments: kind? n? seed?; ? marks an optional one).
+func Synfix(args string) (string, error) { return Jrun("synfix", args) }
+
 // Pscred runs pscred() of the R package (arguments: days ratio? sentence?; ? marks an optional one).
 func Pscred(args string) (string, error) { return Jrun("pscred", args) }
 

@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* New: `synfix()` draws example data in the shape of a published table:
+  presets with the columns of Ontario's corrections tables (segregation,
+  deaths in custody, use of force), or any table given as the values of
+  its columns. The draws are R's after `set.seed()`, in every language.
+
 * New: `pscred()`, the credit for custody before sentence under s. 719(3)
   and (3.1) of the Criminal Code, at up to one and a half days a day, and
   the time left to serve.

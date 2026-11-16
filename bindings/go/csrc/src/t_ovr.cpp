@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// Standalone tests for psc.cpp: the credit at one and at one and a half
-// days a day by hand, the sentence left, and the failure paths. Part of
-// the self-test (selftest.cpp).
+// Standalone tests for psc.cpp and sfx.cpp: the credit at one and at one
+// and a half days a day by hand, the sentence left; draws of synfix()
+// against R's (set.seed(1); sample.int(3, 4, TRUE); sample.int(1, 4,
+// TRUE); sample.int(7, 4, TRUE), less one: 0 2 0 1, 0 0 0 0, 1 2 2 0);
+// the presets; and the failure paths. Part of the self-test (selftest.cpp).
 #include <cmath>
 
 #include "crimlab.h"
@@ -29,9 +31,28 @@ void psc(tk &tt) {
   tk_ieq(tt, "psc.len", clab_pscred(d, 2, r2, 2, s, 3, c, m), CLAB_EARG);
 }
 
+void sfx(tk &tt) {
+  // three columns of four rows; the stream runs on from one column to the
+  // next
+  const double dn[3] = {3, 1, 7};
+  int c[12];
+  tk_ieq(tt, "sfx.rc", clab_synfix(dn, 3, 4, 1, c), CLAB_OK);
+  tk_ieq(tt, "sfx.c0", c[0] * 1000 + c[1] * 100 + c[2] * 10 + c[3], 201);
+  tk_ieq(tt, "sfx.c1", c[4] + c[5] + c[6] + c[7], 0);
+  tk_ieq(tt, "sfx.c2", c[8] * 1000 + c[9] * 100 + c[10] * 10 + c[11], 1220);
+  const char *k, *nm, *lv;
+  int ty, lo, hi;
+  tk_ieq(tt, "sfx.col", clab_sfxcol(0, &k, &nm, &ty, &lo, &hi, &lv), CLAB_OK);
+  tk_ieq(tt, "sfx.rng", ty * 10000 + lo, 12018);
+  tk_ieq(tt, "sfx.end", clab_sfxcol(-1, &k, &nm, &ty, &lo, &hi, &lv), CLAB_EARG);
+  const double bad[1] = {0};
+  tk_ieq(tt, "sfx.dn", clab_synfix(bad, 1, 4, 1, c), CLAB_EARG);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
   (void)big;
   psc(t);
+  sfx(t);
 }

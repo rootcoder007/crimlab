@@ -2071,6 +2071,7 @@ const Ent ents[] = {
     {"asrule", "x y minsup? minconf? empty? nm?", asrule},
     {"lrcce", "object x ylag? level?", ax::lrcce},
     {"cemtch", "data d x cut? lcut?", ax::cemtch},
+    {"synfix", "kind? n? seed?", ovr::synfix},
     {"pscred", "days ratio? sentence?", ovr::pscred},
     {"ifesc", "data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?", ax::ifesc},
     {"updwn", "data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?", ax::updwn},

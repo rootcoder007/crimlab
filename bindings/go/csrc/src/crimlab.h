@@ -4584,6 +4584,18 @@ int clab_dens(const double *x, const double *w, int64_t nx, int rule, double bw,
 int clab_pscred(const double *days, int64_t n, const double *ratio, int64_t nr, const double *sent,
                 int64_t ns, double *credit, double *remain);
 
+/* The presets of synfix(): column j (from 0) of the table of every preset,
+ * its preset kind, its name, its type (0 labels lev, separated by '|'; 1
+ * the whole numbers lo to hi; 2 a synthetic identifier) and the values.
+ * Static storage. CLAB_EARG past the last column. */
+int clab_sfxcol(int j, const char **kind, const char **name, int *type, int *lo, int *hi, const char **lev);
+
+/* Synthetic example data (synfix): for each of k columns with dn[j]
+ * values (1 to INT_MAX), n indices from 0 into code (n x k, column-major),
+ * drawn as R's sample.int(dn[j], n, replace = TRUE) draws them column
+ * after column after set.seed(seed). CLAB_EARG for bad sizes. */
+int clab_synfix(const double *dn, int k, int64_t n, uint32_t seed, int *code);
+
 #ifdef __cplusplus
 }
 #endif

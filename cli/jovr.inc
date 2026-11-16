@@ -48,4 +48,141 @@ bool pscred(Ctx &c, Val &out) {
   return true;
 }
 
+// The presets of synfix() (src/sfx.cpp), column by column.
+struct Pcol {
+  std::string kind, name;
+  int type, lo, hi;
+  std::string lev;
+};
+inline std::vector<Pcol> ptab() {
+  std::vector<Pcol> t;
+  const char *k, *nm, *lv;
+  int ty, lo, hi;
+  for (int j = 0; clab_sfxcol(j, &k, &nm, &ty, &lo, &hi, &lv) == CLAB_OK; ++j) t.push_back({k, nm, ty, lo, hi, lv});
+  return t;
+}
+
+// n rows drawn from the values of each column (vals[j], as JSON values).
+inline bool sdraw(Ctx &c, const std::vector<std::string> &nm, const std::vector<std::vector<Val>> &vals, double n,
+                  double seed, Val &out) {
+  const std::size_t k = nm.size(), nn = static_cast<std::size_t>(n);
+  std::vector<double> dn(k);
+  for (std::size_t j = 0; j < k; ++j) dn[j] = static_cast<double>(vals[j].size());
+  std::vector<int> code(nn * k);
+  const int rc = clab_synfix(dn.data(), static_cast<int>(k), static_cast<int64_t>(nn), static_cast<uint32_t>(seed),
+                             code.data());
+  if (rc != CLAB_OK) return kchk(c, rc);
+  out = vobj();
+  for (std::size_t j = 0; j < k; ++j) {
+    Val a = varr();
+    a.a.reserve(nn);
+    for (std::size_t i = 0; i < nn; ++i) a.a.push_back(vals[j][static_cast<std::size_t>(code[j * nn + i])]);
+    put(out, nm[j].c_str(), std::move(a));
+  }
+  return true;
+}
+
+// .sfxpre(): the values of the columns of preset kind.
+inline void spre(const std::vector<Pcol> &t, const std::string &kind, double n, std::vector<std::string> &nm,
+                 std::vector<std::vector<Val>> &vals) {
+  nm.clear();
+  vals.clear();
+  for (const Pcol &p : t) {
+    if (p.kind != kind) continue;
+    nm.push_back(p.name);
+    std::vector<Val> v;
+    if (p.type == 0) {
+      std::size_t a = 0;
+      for (;;) {
+        const std::size_t b = p.lev.find('|', a);
+        v.push_back(vstr(p.lev.substr(a, b == std::string::npos ? std::string::npos : b - a)));
+        if (b == std::string::npos) break;
+        a = b + 1;
+      }
+    } else if (p.type == 1) {
+      for (int x = p.lo; x <= p.hi; ++x) v.push_back(vnum(x));
+    } else {
+      const double m = std::max(2.0, std::floor(n / 4));
+      char b[32];
+      for (double x = 1; x <= m; ++x) {
+        std::snprintf(b, sizeof b, "syn-%05.0f", x);
+        v.push_back(vstr(b));
+      }
+    }
+    vals.push_back(std::move(v));
+  }
+}
+
+bool synfix(Ctx &c, Val &out) {
+  Nv n, sd;
+  CK(cknumd(c, "n", 100, n, 1, 1e7, false, true));
+  CK(cknumd(c, "seed", 1, sd, 0, 2147483647.0, false, true));
+  const std::vector<Pcol> t = ptab();
+  const Val &k = c["kind"];
+  std::vector<std::string> nm;
+  std::vector<std::vector<Val>> vals;
+  if (k.t == Val::NUL) {
+    static const char *const ty[] = {"labels", "range", "id"};
+    Val a = varr(), b = varr(), d = varr(), e = varr();
+    for (const Pcol &p : t) {
+      a.a.push_back(vstr(p.kind));
+      b.a.push_back(vstr(p.name));
+      d.a.push_back(vstr(ty[p.type]));
+      e.a.push_back(vstr(p.type == 1 ? std::to_string(p.lo) + "|" + std::to_string(p.hi) : p.lev));
+    }
+    out = vobj();
+    put(out, "kind", std::move(a));
+    put(out, "column", std::move(b));
+    put(out, "type", std::move(d));
+    put(out, "values", std::move(e));
+    return true;
+  }
+  if (k.t == Val::OBJ) {
+    // .sfxlist()
+    bool ok = !k.k.empty();
+    for (std::size_t j = 0; ok && j < k.k.size(); ++j) {
+      ok = !k.k[j].empty() && std::find(k.k.begin(), k.k.begin() + static_cast<std::ptrdiff_t>(j), k.k[j]) ==
+                                  k.k.begin() + static_cast<std::ptrdiff_t>(j);
+    }
+    if (!ok) return ckstop(c, "a list `kind` must name each column once");
+    for (std::size_t j = 0; j < k.k.size(); ++j) {
+      const Val &v = k.a[j];
+      std::vector<Val> e;
+      if (v.t == Val::ARR) e = v.a;
+      else e.push_back(v);
+      bool good = !e.empty() && e[0].t != Val::NUL && e[0].t != Val::ARR && e[0].t != Val::OBJ;
+      for (const Val &x : e) good = good && x.t == e[0].t;
+      if (!good) {
+        return ckstop(c, "column `%s` of `kind` must be a vector of the values it takes, with no missing values",
+                      k.k[j].c_str());
+      }
+      nm.push_back(k.k[j]);
+      vals.push_back(std::move(e));
+    }
+    return sdraw(c, nm, vals, n[0], sd[0], out);
+  }
+  const Val *s = k.t == Val::ARR && k.a.size() == 1 ? &k.a[0] : &k;
+  if (s->t != Val::STR) {
+    return ckstop(c, "`kind` must be the name of a preset, a named list of the values of each column, or NULL");
+  }
+  std::vector<std::string> fam;
+  for (const Pcol &p : t) {
+    const std::string f = p.kind.substr(0, p.kind.find('-'));
+    if (f == s->s && (fam.empty() || fam.back() != p.kind)) fam.push_back(p.kind);
+  }
+  if (!fam.empty()) {
+    out = vobj();
+    for (std::size_t i = 0; i < fam.size(); ++i) {
+      spre(t, fam[i], n[0], nm, vals);
+      Val f;
+      CK(sdraw(c, nm, vals, n[0], std::fmod(sd[0] + static_cast<double>(i + 1), 2147483648.0), f));
+      put(out, fam[i].substr(fam[i].find('-') + 1).c_str(), std::move(f));
+    }
+    return true;
+  }
+  spre(t, s->s, n[0], nm, vals);
+  if (nm.empty()) return ckstop(c, "`kind` names no preset: \"%s\"; synfix() lists them", s->s.c_str());
+  return sdraw(c, nm, vals, n[0], sd[0], out);
+}
+
 }  // namespace ovr

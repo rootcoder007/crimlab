@@ -7791,3 +7791,19 @@ def pscred(days: Any, ratio: Any = 1.5, sentence: Any = None) -> Any:
     ['days', 'ratio', 'credit', 'sentence', 'remain']
     """
     return jcall("pscred", days=days, ratio=ratio, sentence=sentence)
+
+
+def synfix(kind: Any = None, n: Any = 100, seed: Any = 1) -> Any:
+    """Synthetic example data in the shape of published tables.
+
+    The arguments and the result are those of R's ``synfix()``: see its help
+    page; ``kind`` is a preset's name or a dictionary of the values of each
+    column.
+
+    Examples
+    --------
+    >>> r = synfix(kind={"year": [2019, 2020], "sex": ["F", "M"]}, n=4, seed=9)
+    >>> list(r)
+    ['year', 'sex']
+    """
+    return jcall("synfix", kind=kind, n=n, seed=seed)
