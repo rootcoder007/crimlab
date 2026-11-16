@@ -121,6 +121,7 @@ bool yoypx(Ctx &c, Val &out) {
     for (std::size_t j = 0; j < sm; ++j) {
       const double v = val[j], b = prev[j];
       if (std::isnan(b) || v + b == 0) continue;
+      if (v + b > 9007199254740992.0) return c.fail("the counts of a period and of the one before add up to more than 2^53: the exact test of the change needs whole numbers that a double holds exactly.");
       const double l = v == 0 ? 0 : clab_qbeta(a / 2, v, b + 1, 1);
       const double h = b == 0 ? 1 : clab_qbeta(1 - a / 2, v + 1, b, 1);
       clo[j] = 100 * (l / (1 - l) - 1);

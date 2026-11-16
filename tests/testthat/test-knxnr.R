@@ -98,3 +98,9 @@ test_that("knxnr() refuses bad input in words", {
     list("`nsim`", p, t = 1:5, ds = 1, dt = 1, nsim = -1)
   ))
 })
+
+test_that("distance bands of the smallest double end at once", {
+  p <- cbind(c(0, 1, 2, 3, 4), c(0, 1, 0, 1, 0))
+  k <- knxnr(p, t = c(1, 2, 3, 4, 5), ds = 5e-324, dt = 2, nsim = 0)
+  expect_s3_class(k, "knxnr")
+})

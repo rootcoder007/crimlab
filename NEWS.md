@@ -32,6 +32,21 @@
   The result no longer depends on the order of the rows; without ties at
   the cut-off it is as before.
 
+* Fixed: the point patterns and distance functions used to run without
+  end, or until the machine was stopped, on extreme radii and magnitudes:
+  a radius or distance of 5e-324 (`ripk()`, `ripenv()`, `dbscn()`,
+  `knxnr()` and the other functions on the shared grid of points), a
+  radius of 1e9 (`ripk()`, `ripenv()`), `opteffort(W = 5e-324)`,
+  `dstfit()` and `yoypx()` on counts of 1e50 and `smixm()` on coordinates
+  of 1e200. The grid now starts from the smallest normal double and its
+  searches stop at its edge; `opteffort()` refuses a `W` whose densities
+  underflow or overflow; the goodness of fit of `dstfit()`'s discrete
+  fits looks only at the jumps of the data; `yoypx()` refuses counts
+  above 2^53 for its exact test; `smixm()` and `sglmx()` refuse points
+  whose squared distances overflow; and the optimisers stop on an
+  infinite start or search direction. Results for other inputs are
+  unchanged.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

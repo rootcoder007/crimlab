@@ -410,7 +410,12 @@ test_that("geostatistics refuse bad input in words", {
       list("collinear", v, cbind(1, rep(1, 30)), p)
     )
   )
-  errs("smixm", list(list("collinear", v, cbind(1, rep(1, 30)), p)))
+  errs("smixm", list(
+    list("collinear", v, cbind(1, rep(1, 30)), p),
+    list("the points are too far apart", v, NULL, p * 1e200)
+  ))
+  errs("sglmx", list(list("their squared distances overflow", v, NULL,
+                          p * 1e200)))
   errs(
     "spobj",
     list(

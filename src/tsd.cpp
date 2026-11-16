@@ -501,7 +501,8 @@ bool bfgs(const Fn &fn, std::vector<double> &b, double &fmin, int maxit, bool &c
       t[z(i)] = s;
       gradproj += s * g[z(i)];
     }
-    if (gradproj < 0.0) {
+    // an infinite projection would shrink the step for ever (see dfit.cpp)
+    if (gradproj < 0.0 && std::isfinite(gradproj)) {
       double step = 1.0;
       bool acc = false;
       do {

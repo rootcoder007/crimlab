@@ -573,6 +573,17 @@ test_that("bad inputs are refused with the function named", {
     opteffort(c(0.5, 0.5), c(1, 1), W = 1, effort = 1, tol = 0),
     "`tol` must be positive"
   )
+  m <- "opteffort: `W` = %s is out of range for these cells"
+  expect_error(
+    opteffort(c(0.5, 0.5), c(1, 1), W = 5e-324, effort = 1),
+    sprintf(m, "4.940656e-324"),
+    fixed = TRUE
+  )
+  expect_error(
+    opteffort(c(0.5, 0.5), c(1, 1e-300), W = 1e300, effort = 1),
+    sprintf(m, "1e+300"),
+    fixed = TRUE
+  )
   # the kernels refuse what the wrappers would never pass them
   expect_error(
     .Call(C_clab_r_sarlr, 1, -1, 0L, 1, 0),

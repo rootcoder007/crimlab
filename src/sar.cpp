@@ -424,6 +424,12 @@ int clab_saropt(const double *poc, const double *area, int n, double W, double e
   for (int i = 0; i < n; ++i) {
     if (!(area[i] > 0) || !(poc[i] >= 0)) return CLAB_EDOM;
     r[static_cast<size_t>(i)] = poc[i] * W / area[i];
+    // a density that underflows to 0 (or overflows) leaves no root to
+    // bracket: the search below would step down for ever
+    if (!std::isfinite(r[static_cast<size_t>(i)]) || !std::isfinite(area[i] / W) ||
+        (poc[i] > 0 && !(r[static_cast<size_t>(i)] > 0))) {
+      return CLAB_EDOM;
+    }
     if (poc[i] > 0 && r[static_cast<size_t>(i)] < rmin) rmin = r[static_cast<size_t>(i)];
     if (r[static_cast<size_t>(i)] > rmax) rmax = r[static_cast<size_t>(i)];
     any = any || poc[i] > 0;

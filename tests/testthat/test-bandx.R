@@ -261,7 +261,8 @@ test_that("yoypx() refuses bad input in words", {
       list("`rnd` goes with counts", 1, 1, units = "continuous", rnd = 5),
       list("`adj` must be one of", 1, 1, adj = "fdr"),
       list("`alpha` must be one number", 1, 1, alpha = 1),
-      list("`by` must have one label per value", 1:2, 1:2, by = 1)
+      list("`by` must have one label per value", 1:2, 1:2, by = 1),
+      list("add up to more than 2\\^53", c(3, 5) * 1e50, 1:2)
     )
   )
 })

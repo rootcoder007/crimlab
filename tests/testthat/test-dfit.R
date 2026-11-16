@@ -99,3 +99,10 @@ test_that("dstfit() refuses a confidence level outside (0, 1)", {
     fixed = TRUE
   )
 })
+
+test_that("the discrete fits of huge whole numbers return", {
+  r <- dstfit(c(3, 1, 4, 1, 5, 9, 2, 6) * 1e50, nboot = 0)
+  expect_s3_class(r, "dstfit")
+  k <- r$table$ks[r$table$family == "pois"]
+  expect_true(length(k) == 0L || is.na(k) || (k >= 0 && k <= 1))
+})

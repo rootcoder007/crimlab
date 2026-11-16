@@ -39,3 +39,8 @@ test_that("dbscn() refuses bad input in words", {
     list("`border`", p, eps = 1, border = NA)
   ))
 })
+
+test_that("a radius of the smallest double ends at once", {
+  q <- cbind(c(0, 1, 2, 3), c(0, 1, 0, 1))
+  expect_true(all(is.na(dbscn(q, eps = 5e-324, minpts = 2)$cl)))
+})

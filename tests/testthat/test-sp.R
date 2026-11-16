@@ -687,3 +687,15 @@ test_that("the order of the points does not change the clusters", {
   pinv("stacel", list(x = x, y = y, win = c(0, 10, 0, 10), r = 0.75,
                       top = 5, minpts = 5), c("x", "y"))
 })
+
+test_that("radii far below or above the window end at once", {
+  set.seed(1)
+  x <- runif(40)
+  y <- runif(40)
+  w <- c(0, 1, 0, 1)
+  k <- ripk(x, y, win = w, r = c(0.1, 1e9))
+  expect_equal(k$k[2], ripk(x, y, win = w, r = c(0.1, 2))$k[2])
+  expect_identical(ripk(x, y, win = w, r = 5e-324)$k, 0)
+  e <- ripenv(x, y, win = w, r = c(5e-324, 1e9), nsim = 9, seed = 1)
+  expect_identical(nrow(e$env), 2L)
+})

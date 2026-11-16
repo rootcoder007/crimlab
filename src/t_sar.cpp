@@ -54,6 +54,7 @@ void t_sar(tk &T, int) {
   clab_saropt(q, a, 2, 1, 2, 1e-14, z, cov, pod, &ps2, &lam);
   tk_eq(T, "sar.opt", z[0], 1, 1e-10);
   tk_ieq(T, "sar.opt0", clab_saropt(q, a, 0, 1, 2, 1e-14, z, cov, pod, &ps2, &lam), CLAB_EARG);
+  tk_ieq(T, "sar.optw", clab_saropt(q, a, 2, 5e-324, 2, 1e-14, z, cov, pod, &ps2, &lam), CLAB_EDOM);
   // Frost: an effort of 4 E^2 has the optimal factor 1.02
   const double z4 = 4;
   double sq[8];

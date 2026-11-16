@@ -4,6 +4,7 @@
 #include "cgeo.h"
 
 #include <cmath>
+#include <limits>
 
 #include "kutil.h"
 
@@ -276,7 +277,7 @@ void grid::build(const double *x, const double *y, int n, double ax0, double ax1
     x0 = ax0;
     y0 = ay0;
     const double w = ax1 - ax0, h = ay1 - ay0;
-    double c = cell > 0.0 ? cell : 1.0;
+    double c = cell > 0.0 ? std::fmax(cell, std::numeric_limits<double>::min()) : 1.0;
     for (;;) {
       const double fx = w > 0.0 ? std::ceil(w / c) : 1.0;
       const double fy = h > 0.0 ? std::ceil(h / c) : 1.0;

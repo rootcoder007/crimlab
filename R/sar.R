@@ -108,7 +108,9 @@
 #' @param W Positive number: the sweep width, in the distance unit of the
 #'   grid and the effort (nautical miles, kilometres: one unit throughout).
 #'   For \code{srchpod()}, give it with \code{effort} and \code{area} in
-#'   place of \code{coverage}; default \code{NULL}.
+#'   place of \code{coverage}; default \code{NULL}. For \code{opteffort()},
+#'   \code{poc * W / area} and \code{area / W} must be finite, and positive
+#'   where \code{poc} is (a width of 5e-324 makes every density 0).
 #' @param model For \code{ltrlrng()} and \code{pswppod()}: \code{"invcube"}
 #'   (the default), \code{"definite"} or \code{"mbeta"}. For
 #'   \code{srchpod()}: \code{"random"} (the default), \code{"definite"},
@@ -517,6 +519,7 @@ opteffort <- function(poc, area = NULL, W, effort, tol = 1e-14) {
   W <- .cknum(W, "W", f, positive = TRUE)
   effort <- .cknum(effort, "effort", f, min = 0)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
+  .opdens(poc, area, W, f)
   r <- .Call(
     C_clab_r_saropt, as.vector(poc), as.vector(area), W, effort, tol
   )
@@ -956,6 +959,23 @@ srchfig <- function(fig = NULL, num = NULL) {
 }
 
 # opteffort(): the cells' areas, one positive number per cell of `poc`
+# The densities poc * W / area and the ratios area / W the search works
+# with: finite, and positive where poc is, or no root can be bracketed.
+.opdens <- function(poc, area, W, f) {
+  r <- poc * W / area
+  bad <- !all(is.finite(r)) || !all(is.finite(area / W))
+  if (bad || any(poc > 0 & r == 0)) {
+    .ckstop(
+      f,
+      paste(
+        "`W` = %s is out of range for these cells: poc * W / area and",
+        "area / W must be finite, and positive where `poc` is"
+      ),
+      format(W)
+    )
+  }
+}
+
 .oparea <- function(area, poc, f) {
   if (is.null(area)) {
     .ckstop(f, "`area` must be given, one positive number per cell")

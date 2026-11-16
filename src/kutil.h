@@ -80,6 +80,22 @@ inline double nbll(double y, double mu, double th) noexcept {
   return a - std::lgamma(y + 1) - th * std::log1p(mu / th) + (y > 0 ? y * std::log(mu) : 0.0);
 }
 
+// The squared distance between the farthest corners of the box around
+// the n points is finite: else the distances overflow and an optimiser fed
+// them starts from infinite parameters.
+inline bool span(const double *x, const double *y, int n) noexcept {
+  if (n < 1) return true;
+  double x0 = x[0], x1 = x[0], y0 = y[0], y1 = y[0];
+  for (int i = 1; i < n; ++i) {
+    x0 = std::fmin(x0, x[i]);
+    x1 = std::fmax(x1, x[i]);
+    y0 = std::fmin(y0, y[i]);
+    y1 = std::fmax(y1, y[i]);
+  }
+  const double dx = x1 - x0, dy = y1 - y0;
+  return std::isfinite(dx * dx + dy * dy);
+}
+
 inline double nan() noexcept {
   return std::numeric_limits<double>::quiet_NaN();
 }

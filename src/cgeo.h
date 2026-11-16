@@ -86,7 +86,8 @@ void weber(const double *x, const double *y, const double *w, int n,
 // by counting sort: the points of cell c are ord[start[c] .. start[c + 1]).
 // The rectangle is split into ceil(width / c) by ceil(height / c) cells,
 // c being `cell` grown by factors of 1.25 until there are at most n + 1
-// cells, so a cell's side is at most c and may be shorter than `cell`: a
+// cells (from the smallest normal double when `cell` is below it, where a
+// product by 1.25 can round back to itself), so a cell's side is at most c and may be shorter than `cell`: a
 // search to distance r must reach from cx(x - r) to cx(x + r), not one
 // cell either way. iwork needs n + (n + 2) ints. Points must lie in the
 // rectangle.
@@ -94,13 +95,14 @@ struct grid {
   double x0, y0, wx, wy;
   int gx, gy;
   int *start, *ord;
-  int cx(double x) const {
-    int c = static_cast<int>((x - x0) / wx);
-    return c < 0 ? 0 : (c >= gx ? gx - 1 : c);
-  }
-  int cy(double y) const {
-    int c = static_cast<int>((y - y0) / wy);
-    return c < 0 ? 0 : (c >= gy ? gy - 1 : c);
+  // the cell of a coordinate, clamped to the grid; compared in double
+  // first, as a coordinate far outside (a point plus a radius of 1e300)
+  // has no int cell
+  int cx(double x) const { return clamp((x - x0) / wx, gx); }
+  int cy(double y) const { return clamp((y - y0) / wy, gy); }
+  static int clamp(double t, int g) {
+    if (!(t > 0.0)) return 0;  // NaN too
+    return t >= g ? g - 1 : static_cast<int>(t);
   }
   void build(const double *x, const double *y, int n, double ax0, double ax1,
              double ay0, double ay1, double cell, int *iwork);

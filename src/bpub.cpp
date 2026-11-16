@@ -287,6 +287,8 @@ SEXP C_clab_r_yoypx(SEXP x, SEXP prd, SEXP by, SEXP lag, SEXP units, SEXP minbas
       clo[j] = chi[j] = pv2[j] = pa[j] = NA_REAL;
       sg[j] = NA_LOGICAL;
       if (ISNAN(b) || v + b == 0) continue;
+      // past 2^53 the bisection of binp() cannot split its range
+      if (v + b > 9007199254740992.0) fail("the counts of a period and of the one before add up to more than 2^53: the exact test of the change needs whole numbers that a double holds exactly.");
       const double l = v == 0 ? 0 : Rf_qbeta(a / 2, v, b + 1, 1, 0);
       const double h = b == 0 ? 1 : Rf_qbeta(1 - a / 2, v + 1, b, 1, 0);
       clo[j] = 100 * (l / (1 - l) - 1);

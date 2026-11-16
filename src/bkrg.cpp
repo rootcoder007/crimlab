@@ -49,6 +49,7 @@ SEXP slm(SEXP v, SEXP z, SEXP x, SEXP y, int kind) {
   int k = 0;
   SEXP zz = zmat(z, "z", n, true, &k);
   if (n <= k) fail("`v` must have more values than `z` has columns.");
+  if (!kutil::span(p.x, p.y, n)) fail("the points are too far apart: their squared distances overflow a double; rescale `x` and `y`.");
   double *b = dal(k), *s = dal(k), o[4];
   const int rc = kind == 0 ? clab_sglmx(REAL(zz), n, k, REAL(vv), p.x, p.y, b, s, o)
                            : clab_smixm(REAL(zz), n, k, REAL(vv), p.x, p.y, b, s, o);
