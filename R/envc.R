@@ -272,7 +272,6 @@ print.fepnl <- function(x, ...) {
 }
 
 #' @rdname fepnl
-#' @param ... Passed to the base-graphics call.
 #' @inheritParams plotlrnz
 #' @details The plot draws the coefficients with their intervals and, with
 #'   an interaction, the simple slopes at each value of the moderator; it

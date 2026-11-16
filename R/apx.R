@@ -400,7 +400,6 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' Tests use the t distribution on `G - 1` degrees of freedom for
 #' clustered errors and the normal otherwise.
 #'
-#' @param data A data frame, one row per place and period.
 #' @param y The name of the outcome column (numeric).
 #' @param endo `NULL` or the names of the endogenous columns (the
 #'   exposure).
@@ -872,8 +871,7 @@ summary.ppmlcf <- function(object, ...) object[["coef"]]
 #' at the overall one), everything else at 0.
 #'
 #' @param data,y,expo,level As in [ppmlfe()].
-#' @param endo The names of the endogenous columns.
-#' @param inst The names of the excluded instruments, at least as many.
+#' @inheritParams ppmlcf
 #' @param x `NULL` or the names of the exogenous controls. For
 #'   `print()` and `plot()`, an object of class `expgmm`.
 #' @param fe `NULL` or the names of one or two fixed-effect columns, as

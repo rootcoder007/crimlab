@@ -169,11 +169,8 @@ smkiv <- function(
 #' @param cap The day of a run from which one indicator takes all, at most
 #'   67108864 (2^26).
 #' @param step The length of a day in the units of `day`.
-#' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator: [ppmlfe()] (the default) or [ivfe()] as least
 #'   squares.
-#' @param ... The other arguments of `est` (`fe`, `clus`, `se`, ...).
-#'   For `plot()`, passed to the base-graphics call.
 #' @param x An object of class `runfx`.
 #' @return `exprun()`: a data frame with `run` (0 when not exposed) and the
 #'   indicators `run1`, ..., `run<cap>p`. `runfx()`: a list of class
@@ -525,10 +522,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' @param ref `NULL` (the medians) or the reference point of the surface.
 #' @param ngrid The points of the surface along each exposure, at most
 #'   8192 (`ngrid` times `ngrid` at most 2^26).
-#' @param ctrl `NULL` or the names of other regressors.
 #' @param est The estimator, [ppmlfe()] by default.
-#' @param ... The other arguments of `est` (`fe`, `clus`, `se`, ...).
-#'   For `plot()`, passed to the base-graphics call.
 #' @param x An object of class `jntx`.
 #' @return A list of class `jntx`: `cond`, the log rate ratio (and `rr`)
 #'   of `x1` at `p1[2]` against `p1[1]` at each quantile of `x2`, with

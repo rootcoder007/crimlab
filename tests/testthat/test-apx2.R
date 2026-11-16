@@ -144,7 +144,7 @@ test_that("dosebin: least squares bins are differences of bin means", {
   mu <- tapply(d$y, bn, mean)
   expect_identical(r$tab$bin, levels(bn))
   expect_identical(r$tab$n, as.integer(table(bn)))
-  expect_equal(r$tab$mid, as.numeric(tapply(d$x, bn, median)))
+  expect_identical(r$tab$mid, as.numeric(tapply(d$x, bn, median)))
   expect_equal(r$tab$est, as.numeric(mu - mu[2]), tolerance = 1e-10)
   expect_identical(r$tab$est[2], 0)
   bn2 <- relevel(bn, ref = levels(bn)[2])
