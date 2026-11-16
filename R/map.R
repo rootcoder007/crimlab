@@ -64,87 +64,6 @@ chomap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
   ))
 }
 
-# The areas checked: their coordinates in one vector each (an NA between
-# areas, for the box) and their labels.
-.mpoly <- function(polys, fn) {
-  if (!is.list(polys) || is.data.frame(polys) || !length(polys)) {
-    .ckstop(fn, "`polys` must be a non-empty list of areas")
-  }
-  for (i in seq_along(polys)) {
-    m <- polys[[i]]
-    ok <- is.matrix(m) && is.numeric(m) && ncol(m) == 2L &&
-      !any(is.infinite(m)) && identical(is.na(m[, 1L]), is.na(m[, 2L])) &&
-      sum(!is.na(m[, 1L])) >= 3L
-    if (!ok) {
-      .ckstop(fn, paste0("`polys[[%d]]` must be a two-column numeric ",
-                         "matrix of at least three points (rows of NA ",
-                         "between rings)"), i)
-    }
-  }
-  list(x = unlist(lapply(polys, function(m) c(m[, 1L], NA)), FALSE, FALSE),
-       y = unlist(lapply(polys, function(m) c(m[, 2L], NA)), FALSE, FALSE),
-       lab = if (is.null(names(polys))) seq_along(polys) else names(polys))
-}
-
-# The breaks and the class of each value (NA when not finite), from the
-# compiled kernel.
-.mbrk <- function(v, brk, meth, fn) {
-  if (!is.character(meth) || length(meth) != 1L ||
-        !meth %in% c("quantile", "equal")) {
-    .ckstop(fn, "`meth` must be \"quantile\" or \"equal\"")
-  }
-  fv <- v[is.finite(v)]
-  if (!length(fv)) .ckstop(fn, "`v` has no finite value")
-  one <- length(brk) == 1L
-  ok <- if (one) {
-    .pnum1(brk, 1, 9, TRUE)
-  } else {
-    is.numeric(brk) && length(brk) >= 2L && all(is.finite(brk)) &&
-      all(diff(brk) > 0) && brk[1L] <= min(fv) && brk[length(brk)] >= max(fv)
-  }
-  if (!ok) {
-    .ckstop(fn, paste0("`brk` must be a whole number of classes from 1 to ",
-                       "9, or increasing breaks covering `v`"))
-  }
-  m <- if (!one) 2L else if (meth == "equal") 0L else 1L
-  r <- .Call(C_clab_r_mapbrk, fn, v, if (one) as.integer(brk) else 0L, m,
-             if (one) NULL else as.numeric(brk))
-  cls <- r$cls
-  cls[cls == 0L] <- NA_integer_
-  list(br = r$br, cls = cls)
-}
-
-# The colour of each class and of each value.
-.mfill <- function(b, col, pal, fn) {
-  nc <- length(b$br) - 1L
-  pl <- if (is.null(col)) {
-    blpal(.palnm(if (is.null(pal)) "sequential" else pal, fn), nc)
-  } else {
-    .pcols(nc, col, NULL, fn)
-  }
-  list(pal = pl, col = pl[b$cls])
-}
-
-# An empty map frame: the box at an aspect of 1 and the title.
-.mfrm <- function(bb, main, ...) {
-  graphics::plot.new()
-  graphics::plot.window(bb[1:2], bb[3:4], asp = 1, ...)
-  graphics::title(main = main, font.main = 1, cex.main = 1.05)
-}
-
-.mdraw <- function(polys, fill, br, pl, bb, main, key, ...) {
-  .mfrm(bb, main, ...)
-  for (i in seq_along(polys)) {
-    graphics::polypath(polys[[i]][, 1L], polys[[i]][, 2L], col = fill[i],
-                       border = "#636363", rule = "evenodd")
-  }
-  if (key) {
-    s <- formatC(signif(br, 3), format = "g")
-    graphics::legend("bottomright", legend = paste(s[-length(s)], "-", s[-1L]),
-                     fill = pl, bty = "n", cex = 0.8)
-  }
-}
-
 #' Small multiples of a choropleth map by period
 #'
 #' `smmap()` draws one choropleth map per period in a grid of panels, all
@@ -172,14 +91,7 @@ smmap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
                   col = NULL, pal = NULL) {
   f <- "smmap"
   p <- .mpoly(polys, f)
-  if (is.data.frame(v) && length(v) && all(vapply(v, is.numeric, NA))) {
-    v <- as.matrix(v)
-  }
-  if (!is.matrix(v) || !is.numeric(v) || nrow(v) != length(polys) ||
-        !ncol(v)) {
-    .ckstop(f, paste("`v` must be a numeric matrix, one row per area and",
-                     "one column per period"))
-  }
+  v <- .msmv(v, length(polys), f)
   prd <- colnames(v)
   if (is.null(prd)) prd <- as.character(seq_len(ncol(v)))
   vv <- as.numeric(v)
@@ -291,45 +203,6 @@ plot.dbscn <- function(x, y, ..., main = NULL, col = NULL, pal = NULL) {
         col = col, pal = pal)
 }
 
-# the point shapes of the clusters, in turn
-.mpch <- c(16L, 17L, 15L, 18L, 1L, 2L, 0L, 5L)
-
-# The points checked: x and y, or x a matrix or data frame of two columns.
-.mxy <- function(x, y, fn) {
-  if (is.null(y)) {
-    ok <- (is.matrix(x) && is.numeric(x) && ncol(x) == 2L) ||
-      (is.data.frame(x) && length(x) == 2L &&
-         all(vapply(x, is.numeric, NA)))
-    if (!ok) {
-      .ckstop(fn, paste("`x` must be a two-column matrix or data frame of",
-                        "coordinates, or numbers with `y`"))
-    }
-    y <- x[, 2L]
-    x <- x[, 1L]
-  } else if (!is.numeric(x) || !is.numeric(y) || length(x) != length(y)) {
-    .ckstop(fn, "`x` and `y` must be numbers of the same length")
-  }
-  x <- as.numeric(x)
-  y <- as.numeric(y)
-  if (!length(x) || !all(is.finite(c(x, y)))) {
-    .ckstop(fn, "the coordinates must be finite, at least one point")
-  }
-  list(x = x, y = y)
-}
-
-# The cluster of each point: a dbscn result's, or whole numbers from 1 and
-# NA for noise.
-.mcl <- function(cl, n, fn) {
-  if (inherits(cl, "dbscn")) cl <- cl[["cl"]]
-  ok <- is.numeric(cl) && length(cl) == n &&
-    all(is.na(cl) | (cl >= 1 & cl == round(cl) & cl <= .Machine$integer.max))
-  if (!ok) {
-    .ckstop(fn, paste("`cl` must be a dbscn result or a cluster per point:",
-                      "whole numbers from 1, NA for noise"))
-  }
-  as.integer(cl)
-}
-
 #' Proportional symbol maps
 #'
 #' `prpmap()` draws a circle at each point (a district's centre, say)
@@ -393,4 +266,137 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
     pts = data.frame(x = p$x, y = p$y, v = v, r = r, ord = dr),
     rmax = s$rmax, bbox = s$bb
   ))
+}
+
+# The areas checked: their coordinates in one vector each (an NA between
+# areas, for the box) and their labels.
+.mpoly <- function(polys, fn) {
+  if (!is.list(polys) || is.data.frame(polys) || !length(polys)) {
+    .ckstop(fn, "`polys` must be a non-empty list of areas")
+  }
+  for (i in seq_along(polys)) {
+    m <- polys[[i]]
+    ok <- is.matrix(m) && is.numeric(m) && ncol(m) == 2L &&
+      !any(is.infinite(m)) && identical(is.na(m[, 1L]), is.na(m[, 2L])) &&
+      sum(!is.na(m[, 1L])) >= 3L
+    if (!ok) {
+      .ckstop(fn, paste0("`polys[[%d]]` must be a two-column numeric ",
+                         "matrix of at least three points (rows of NA ",
+                         "between rings)"), i)
+    }
+  }
+  list(x = unlist(lapply(polys, function(m) c(m[, 1L], NA)), FALSE, FALSE),
+       y = unlist(lapply(polys, function(m) c(m[, 2L], NA)), FALSE, FALSE),
+       lab = if (is.null(names(polys))) seq_along(polys) else names(polys))
+}
+
+# The breaks and the class of each value (NA when not finite), from the
+# compiled kernel.
+.mbrk <- function(v, brk, meth, fn) {
+  if (!is.character(meth) || length(meth) != 1L ||
+        !meth %in% c("quantile", "equal")) {
+    .ckstop(fn, "`meth` must be \"quantile\" or \"equal\"")
+  }
+  fv <- v[is.finite(v)]
+  if (!length(fv)) .ckstop(fn, "`v` has no finite value")
+  one <- length(brk) == 1L
+  ok <- if (one) {
+    .pnum1(brk, 1, 9, TRUE)
+  } else {
+    is.numeric(brk) && length(brk) >= 2L && all(is.finite(brk)) &&
+      all(diff(brk) > 0) && brk[1L] <= min(fv) && brk[length(brk)] >= max(fv)
+  }
+  if (!ok) {
+    .ckstop(fn, paste0("`brk` must be a whole number of classes from 1 to ",
+                       "9, or increasing breaks covering `v`"))
+  }
+  m <- if (!one) 2L else if (meth == "equal") 0L else 1L
+  r <- .Call(C_clab_r_mapbrk, fn, v, if (one) as.integer(brk) else 0L, m,
+             if (one) NULL else as.numeric(brk))
+  cls <- r$cls
+  cls[cls == 0L] <- NA_integer_
+  list(br = r$br, cls = cls)
+}
+
+# The colour of each class and of each value.
+.mfill <- function(b, col, pal, fn) {
+  nc <- length(b$br) - 1L
+  pl <- if (is.null(col)) {
+    blpal(.palnm(if (is.null(pal)) "sequential" else pal, fn), nc)
+  } else {
+    .pcols(nc, col, NULL, fn)
+  }
+  list(pal = pl, col = pl[b$cls])
+}
+
+# An empty map frame: the box at an aspect of 1 and the title.
+.mfrm <- function(bb, main, ...) {
+  graphics::plot.new()
+  graphics::plot.window(bb[1:2], bb[3:4], asp = 1, ...)
+  graphics::title(main = main, font.main = 1, cex.main = 1.05)
+}
+
+.mdraw <- function(polys, fill, br, pl, bb, main, key, ...) {
+  .mfrm(bb, main, ...)
+  for (i in seq_along(polys)) {
+    graphics::polypath(polys[[i]][, 1L], polys[[i]][, 2L], col = fill[i],
+                       border = "#636363", rule = "evenodd")
+  }
+  if (key) {
+    s <- formatC(signif(br, 3), format = "g")
+    graphics::legend("bottomright", legend = paste(s[-length(s)], "-", s[-1L]),
+                     fill = pl, bty = "n", cex = 0.8)
+  }
+}
+
+# the point shapes of the clusters, in turn
+.mpch <- c(16L, 17L, 15L, 18L, 1L, 2L, 0L, 5L)
+
+# The points checked: x and y, or x a matrix or data frame of two columns.
+.mxy <- function(x, y, fn) {
+  if (is.null(y)) {
+    ok <- (is.matrix(x) && is.numeric(x) && ncol(x) == 2L) ||
+      (is.data.frame(x) && length(x) == 2L &&
+         all(vapply(x, is.numeric, NA)))
+    if (!ok) {
+      .ckstop(fn, paste("`x` must be a two-column matrix or data frame of",
+                        "coordinates, or numbers with `y`"))
+    }
+    y <- x[, 2L]
+    x <- x[, 1L]
+  } else if (!is.numeric(x) || !is.numeric(y) || length(x) != length(y)) {
+    .ckstop(fn, "`x` and `y` must be numbers of the same length")
+  }
+  x <- as.numeric(x)
+  y <- as.numeric(y)
+  if (!length(x) || !all(is.finite(c(x, y)))) {
+    .ckstop(fn, "the coordinates must be finite, at least one point")
+  }
+  list(x = x, y = y)
+}
+
+# The cluster of each point: a dbscn result's, or whole numbers from 1 and
+# NA for noise.
+.mcl <- function(cl, n, fn) {
+  if (inherits(cl, "dbscn")) cl <- cl[["cl"]]
+  ok <- is.numeric(cl) && length(cl) == n &&
+    all(is.na(cl) | (cl >= 1 & cl == round(cl) & cl <= .Machine$integer.max))
+  if (!ok) {
+    .ckstop(fn, paste("`cl` must be a dbscn result or a cluster per point:",
+                      "whole numbers from 1, NA for noise"))
+  }
+  as.integer(cl)
+}
+
+# The values of smmap(): a numeric matrix (a data frame of numbers made
+# one), one row per area of na and a column per period.
+.msmv <- function(v, na, f) {
+  if (is.data.frame(v) && length(v) && all(vapply(v, is.numeric, NA))) {
+    v <- as.matrix(v)
+  }
+  if (!is.matrix(v) || !is.numeric(v) || nrow(v) != na || !ncol(v)) {
+    .ckstop(f, paste("`v` must be a numeric matrix, one row per area and",
+                     "one column per period"))
+  }
+  v
 }

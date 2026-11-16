@@ -34,27 +34,6 @@ ovrtxt <- function(x, html = NA) {
   .Call(C_clab_r_ovrtxt, x, .ovrhtml(html, f))
 }
 
-# Text: a character vector (a vector of NA only is text that is missing),
-# valid in its encoding, as UTF-8.
-.ovrin <- function(x, what, f) {
-  if (is.logical(x) && length(x) && all(is.na(x))) {
-    x <- as.character(x)
-  }
-  if (!is.character(x) || !is.null(dim(x))) {
-    .ckstop(f, "`%s` must be text (a character vector), not %s", what,
-            class(x)[1L])
-  }
-  enc2utf8(.cktxt(x, what, f))
-}
-
-# NA, TRUE or FALSE.
-.ovrhtml <- function(html, f) {
-  if (!is.logical(html) || length(html) != 1L) {
-    .ckstop(f, "`html` must be NA, TRUE or FALSE")
-  }
-  html
-}
-
 #' Dates written out in reports, as ISO dates
 #'
 #' Finds the first date written in each text, in English or French, and
@@ -199,37 +178,6 @@ ovrpar <- function(x, schema = ovrsch(), html = NA) {
                 check.names = FALSE)
 }
 
-# The rules of a schema, in the order of their codes in src/ovr.cpp.
-.ovrrules <- c("after", "num", "date", "tag", "sent", "prev", "lines",
-               "name", "flag", "before", "word")
-
-# A schema: the columns name, rule, cue, alt and sect, text with no NA,
-# known rules and names given once.
-.ovrschk <- function(schema, f) {
-  cols <- c("name", "rule", "cue", "alt", "sect")
-  if (!is.data.frame(schema) || !all(cols %in% names(schema))) {
-    .ckstop(f, "`schema` must be a data frame with the columns %s",
-            paste(cols, collapse = ", "))
-  }
-  s <- lapply(schema[cols], function(v) {
-    if (is.factor(v)) as.character(v) else v
-  })
-  if (!all(vapply(s, is.character, NA)) || anyNA(unlist(s)) ||
-        !nrow(schema)) {
-    .ckstop(f, "the columns of `schema` must be text with no missing values")
-  }
-  bad <- setdiff(s$rule, .ovrrules)
-  if (length(bad)) {
-    .ckstop(f, "`schema` has a rule that is not one of %s: \"%s\"",
-            paste(.ovrrules, collapse = ", "), bad[1L])
-  }
-  if (!all(nzchar(s$name)) || anyDuplicated(s$name)) {
-    .ckstop(f, "the names of `schema` must be given once each")
-  }
-  s <- lapply(s, enc2utf8)
-  s
-}
-
 #' The number of subject officials in an oversight report
 #'
 #' Counts the subject officials of each report, the officers whose
@@ -284,17 +232,6 @@ ovrsoc <- function(x, tag = "SO", term = c("subject official",
   html <- .ovrhtml(html, f)
   r <- .Call(C_clab_r_ovrsoc, x, html, a$tag, a$term, a$wtag, a$head)
   as.data.frame(r, stringsAsFactors = FALSE)
-}
-
-# Words to look for: text with no missing or empty value and no "|", one
-# of them when one; joined by "|" for the kernels.
-.ovrwords <- function(x, what, f, one = FALSE) {
-  if (!is.character(x) || !length(x) || anyNA(x) || !all(nzchar(x)) ||
-        any(grepl("|", x, fixed = TRUE)) || (one && length(x) != 1L)) {
-    .ckstop(f, "`%s` must be %s, not empty, with no \"|\"", what,
-            if (one) "one text" else "text")
-  }
-  paste(enc2utf8(x), collapse = "|")
 }
 
 #' Keyword indicators in oversight reports
@@ -354,30 +291,6 @@ ovrkwd <- function(x, vocab = "mhr", html = NA) {
   out
 }
 
-# The keyword groups: a preset, a named list of words, or words.
-.ovrvoc <- function(vocab, f) {
-  if (is.character(vocab) && length(vocab) == 1L && identical(vocab, "mhr")) {
-    return(.Call(C_clab_r_ovrvoc, vocab))
-  }
-  if (is.list(vocab) && !is.data.frame(vocab)) {
-    nm <- names(vocab)
-    ok <- length(vocab) && !is.null(nm) && !anyNA(nm) && all(nzchar(nm)) &&
-      !anyDuplicated(nm) && all(vapply(vocab, is.character, NA))
-    w <- unlist(vocab, use.names = FALSE)
-    if (!ok || !length(w) || anyNA(w) || !all(nzchar(w))) {
-      .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
-                       "group, or words"))
-    }
-    return(list(group = rep(nm, lengths(vocab)), term = enc2utf8(w)))
-  }
-  if (!is.character(vocab) || !length(vocab) || anyNA(vocab) ||
-        !all(nzchar(vocab))) {
-    .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
-                     "group, or words"))
-  }
-  list(group = vocab, term = enc2utf8(vocab))
-}
-
 #' Check a coded table of oversight reports
 #'
 #' Flags the cells of a table coded from oversight reports (by
@@ -426,26 +339,14 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   kind <- unname(k[use])
   pat <- rep("", length(cols))
   if (!is.null(shape)) {
-    if (!is.character(shape) || is.null(names(shape)) || anyNA(shape) ||
-          !all(nzchar(shape)) || !all(names(shape) %in% names(data))) {
-      .ckstop(f, "`shape` must be patterns named by columns of `data`")
-    }
+    .ovrshp(shape, data, f)
     cols <- c(cols, names(shape))
     kind <- c(kind, rep(3L, length(shape)))
     pat <- c(pat, enc2utf8(unname(shape)))
   }
   what <- c("date", "count", "flag", "shape")
   bad <- vapply(seq_along(cols), function(j) {
-    v <- data[[cols[j]]]
-    if (is.numeric(v)) {
-      # whole numbers in full (as.character() writes 1e+05)
-      v <- ifelse(is.na(v), NA_character_,
-                  ifelse(v == round(v), sprintf("%.0f", v), as.character(v)))
-    }
-    v <- enc2utf8(trimws(as.character(v)))
-    v[!is.na(v) & !nzchar(v)] <- NA_character_
-    ok <- .Call(C_clab_r_ovrchk, v, kind[j], pat[j])
-    !is.na(ok) & !ok
+    .ovrbad(data[[cols[j]]], kind[j], pat[j])
   }, logical(nrow(data)))
   bad <- matrix(bad, nrow(data))
   lab <- paste0(cols, ": ", what[kind + 1L])
@@ -457,4 +358,116 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
     }, ""),
     stringsAsFactors = FALSE
   )
+}
+
+# Text: a character vector (a vector of NA only is text that is missing),
+# valid in its encoding, as UTF-8.
+.ovrin <- function(x, what, f) {
+  if (is.logical(x) && length(x) && all(is.na(x))) {
+    x <- as.character(x)
+  }
+  if (!is.character(x) || !is.null(dim(x))) {
+    .ckstop(f, "`%s` must be text (a character vector), not %s", what,
+            class(x)[1L])
+  }
+  enc2utf8(.cktxt(x, what, f))
+}
+
+# NA, TRUE or FALSE.
+.ovrhtml <- function(html, f) {
+  if (!is.logical(html) || length(html) != 1L) {
+    .ckstop(f, "`html` must be NA, TRUE or FALSE")
+  }
+  html
+}
+
+# The rules of a schema, in the order of their codes in src/ovr.cpp.
+.ovrrules <- c("after", "num", "date", "tag", "sent", "prev", "lines",
+               "name", "flag", "before", "word")
+
+# A schema: the columns name, rule, cue, alt and sect, text with no NA,
+# known rules and names given once.
+.ovrschk <- function(schema, f) {
+  cols <- c("name", "rule", "cue", "alt", "sect")
+  if (!is.data.frame(schema) || !all(cols %in% names(schema))) {
+    .ckstop(f, "`schema` must be a data frame with the columns %s",
+            toString(cols))
+  }
+  s <- lapply(schema[cols], function(v) {
+    if (is.factor(v)) as.character(v) else v
+  })
+  if (!all(vapply(s, is.character, NA)) || anyNA(unlist(s)) ||
+        !nrow(schema)) {
+    .ckstop(f, "the columns of `schema` must be text with no missing values")
+  }
+  bad <- setdiff(s$rule, .ovrrules)
+  if (length(bad)) {
+    .ckstop(f, "`schema` has a rule that is not one of %s: \"%s\"",
+            toString(.ovrrules), bad[1L])
+  }
+  if (!all(nzchar(s$name)) || anyDuplicated(s$name)) {
+    .ckstop(f, "the names of `schema` must be given once each")
+  }
+  s <- lapply(s, enc2utf8)
+  s
+}
+
+# Words to look for: text with no missing or empty value and no "|", one
+# of them when one; joined by "|" for the kernels.
+.ovrwords <- function(x, what, f, one = FALSE) {
+  if (!is.character(x) || !length(x) || anyNA(x) || !all(nzchar(x)) ||
+        any(grepl("|", x, fixed = TRUE)) || (one && length(x) != 1L)) {
+    .ckstop(f, "`%s` must be %s, not empty, with no \"|\"", what,
+            if (one) "one text" else "text")
+  }
+  paste(enc2utf8(x), collapse = "|")
+}
+
+# The keyword groups: a preset, a named list of words, or words.
+.ovrvoc <- function(vocab, f) {
+  if (is.character(vocab) && length(vocab) == 1L && identical(vocab, "mhr")) {
+    return(.Call(C_clab_r_ovrvoc, vocab))
+  }
+  if (is.list(vocab) && !is.data.frame(vocab)) {
+    nm <- names(vocab)
+    ok <- length(vocab) && !is.null(nm) && !anyNA(nm) && all(nzchar(nm)) &&
+      !anyDuplicated(nm) && all(vapply(vocab, is.character, NA))
+    w <- unlist(vocab, use.names = FALSE)
+    if (!ok || !length(w) || anyNA(w) || !all(nzchar(w))) {
+      .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
+                       "group, or words"))
+    }
+    return(list(group = rep(nm, lengths(vocab)), term = enc2utf8(w)))
+  }
+  if (!is.character(vocab) || !length(vocab) || anyNA(vocab) ||
+        !all(nzchar(vocab))) {
+    .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
+                     "group, or words"))
+  }
+  list(group = vocab, term = enc2utf8(vocab))
+}
+
+# Patterns named by columns of data: text, none missing or empty.
+.ovrshp <- function(shape, data, f) {
+  if (!is.character(shape) || is.null(names(shape)) || anyNA(shape) ||
+        !all(nzchar(shape)) || !all(names(shape) %in% names(data))) {
+    .ckstop(f, "`shape` must be patterns named by columns of `data`")
+  }
+}
+
+# The cells of a column not of their form (kind, pat); a missing value
+# is not flagged.
+.ovrbad <- function(v, kind, pat) {
+  if (is.numeric(v)) {
+    # whole numbers in full (as.character() writes 1e+05)
+    w <- as.character(v)
+    i <- !is.na(v) & v == round(v)
+    w[i] <- sprintf("%.0f", v[i])
+    w[is.na(v)] <- NA_character_
+    v <- w
+  }
+  v <- enc2utf8(trimws(as.character(v)))
+  v[!is.na(v) & !nzchar(v)] <- NA_character_
+  ok <- .Call(C_clab_r_ovrchk, v, kind, pat)
+  !is.na(ok) & !ok
 }
