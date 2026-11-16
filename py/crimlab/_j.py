@@ -6989,8 +6989,8 @@ def gmmpnl(y: Any, x: Any = None, unit: Any = None, time: Any = None, ylag: Any 
     --------
     >>> r = gmmpnl(y=[1, 3, 2, 5, 2, 4, 1, 3, 3, 1, 4, 2], unit=[1] * 4 + [2] * 4 + [3] * 4, time=[1, 2, 3, 4] * 3,
     ...            type="diff", tdum=False, collapse=True, lagmax=2, ar=0)
-    >>> list(r)[:4]
-    ['coef', 'tests', 'wald', 'fit']
+    >>> list(r)[:5]
+    ['coef', 'tests', 'wald', 'xwald', 'fit']
     """
     return jcall("gmmpnl", y=y, x=x, unit=unit, time=time, ylag=ylag, gmm=gmm, iv=iv, z=z, lagmin=lagmin,
                  lagmax=lagmax, collapse=collapse, type=type, trans=trans, steps=steps, robust=robust, wc=wc,
@@ -7014,7 +7014,8 @@ def wsctst(y: Any, x: Any = None, unit: Any = None, time: Any = None, cons: Any 
 
 
 def ccepnl(y: Any, x: Any, unit: Any, time: Any, fac: Any = None, cons: Any = True, w: Any = None,
-           avg: Any = None, level: Any = 0.95) -> Any:
+           avg: Any = None, ylag: Any = 0, lags: Any = None, bias: Any = "none", pool: Any = None,
+           pvar: Any = "pesaran", level: Any = 0.95) -> Any:
     """Common correlated effects for panels with unobserved common factors.
 
     The arguments and the result are those of R's ``ccepnl()``: see its help
@@ -7025,6 +7026,12 @@ def ccepnl(y: Any, x: Any, unit: Any, time: Any, fac: Any = None, cons: Any = Tr
     >>> r = ccepnl(y=[1, 3, 2, 5, 2, 4, 1, 3, 3, 1, 4, 2, 5, 2, 3], x=[2, 1, 4, 3, 1, 5, 2, 2, 4, 3, 1, 2, 5, 3, 4],
     ...            unit=[1] * 5 + [2] * 5 + [3] * 5, time=[1, 2, 3, 4, 5] * 3)
     >>> list(r)
-    ['mg', 'pooled', 'bi', 'vmg', 'vp', 'fit', 'w', 'level']
+    ['mg', 'pooled', 'mg0', 'bi', 'vmg', 'vp', 'vmg0', 'hb', 'nfac', 'fit', 'w', 'bias', 'pvar', 'level']
+    >>> d = ccepnl(y=[1, 3, 2, 5, 2, 4, 1, 3, 3, 1, 4, 2, 5, 2, 3, 2, 3, 4],
+    ...            x=[2, 1, 4, 3, 1, 5, 2, 2, 4, 3, 1, 2, 5, 3, 4, 1, 2, 3], unit=[1] * 6 + [2] * 6 + [3] * 6,
+    ...            time=[1, 2, 3, 4, 5, 6] * 3, ylag=1, lags=0, avg=["x"], cons=False)
+    >>> d["pooled"] is None, d["fit"]["lags"][0] == 0, d["mg"]["term"]
+    (True, True, ['L1.y', 'x'])
     """
-    return jcall("ccepnl", y=y, x=x, unit=unit, time=time, fac=fac, cons=cons, w=w, avg=avg, level=level)
+    return jcall("ccepnl", y=y, x=x, unit=unit, time=time, fac=fac, cons=cons, w=w, avg=avg, ylag=ylag, lags=lags,
+                 bias=bias, pool=pool, pvar=pvar, level=level)

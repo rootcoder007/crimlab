@@ -1949,6 +1949,11 @@ ok("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmax = 4, steps = 2, robust =
 bad("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, steps = 2, wc = TRUE, robust = FALSE)
 bad("gmmpnl", y = gd$y, x = gd["x"], unit = gd$u, time = gd$t, gmm = "q")
 bad("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmin = 3, lagmax = 2)
+ok("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmax = 3, collapse = TRUE, small = TRUE)
+ok("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmax = 3, collapse = TRUE, small = TRUE, robust = FALSE)
+ok("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, type = "diff", small = TRUE, steps = 2, collapse = TRUE)
+bad("gmmpnl", y = c(1, 3, 2, 5, 4, 2), unit = c(1, 1, 1, 1, 1, 2), time = c(1:5, 1), type = "diff",
+    tdum = FALSE, small = TRUE)
 ok("wsctst", y = gd$y, x = gd["x"], unit = gd$u, time = gd$t)
 ok("wsctst", y = gd$y, unit = gd$u, time = gd$t, cons = TRUE, ssc = "none")
 bad("wsctst", y = c(1, 3, 2, 4, 5), unit = c(1, 1, 1, 2, 2), time = c(1, 2, 3, 1, 3))
@@ -1964,6 +1969,23 @@ ok("ccepnl", y = cd$y[-c(5, 33)], x = cd["x"][-c(5, 33), , drop = FALSE], unit =
 ok("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t, fac = cd["tr"], cons = FALSE, avg = "x")
 bad("ccepnl", y = cd$y, x = ave(cd$x, cd$t), unit = cd$u, time = cd$t)
 bad("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t, avg = "q")
+ok("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t, pvar = "bsw")
+ok("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t, pool = FALSE)
+dd <- data.frame(t = rep(1:24, 10), u = rep(sprintf("d%02d", 1:10), each = 24), stringsAsFactors = FALSE)
+df <- sin(dd$t * 1.3)
+dg <- (1 + seq_len(10) / 7)[match(dd$u, unique(dd$u))]
+dd$x <- dg * df + cos(seq_len(240)^2 * 0.37)
+dd$y <- 0
+for (r in which(dd$t > 1)) {
+  dd$y[r] <- 0.4 * dd$y[r - 1] + 0.7 * dd$x[r] + dg[r] * df[r] + sin(r^2 * 0.11)
+}
+ok("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1)
+ok("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1, lags = 1, bias = "jack")
+ok("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1, lags = 1, bias = "rma")
+bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1, pool = TRUE)
+bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, bias = "jack", pool = TRUE)
+bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, ylag = 1, lags = 23)
+bad("ccepnl", y = dd$y, x = dd["x"], unit = dd$u, time = dd$t, pvar = "bsw", w = (seq_along(dd$y) - 1) %/% 24 + 1)
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)
