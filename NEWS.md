@@ -1,5 +1,12 @@
 # crimlab 0.0.0.9000
 
+* Fixed: a colour index past the range of an integer (`col = 1e300`,
+  `Inf`) used to pass the plots' colour check with a coercion warning, or
+  fail in `col2rgb()` ("numerical color values must be >= 0"), in 12 plot
+  functions; it is now refused as any bad colour ("`col` must be
+  colours."). A 1 x 1 matrix for a number such as `bins` used to be
+  accepted with a recycling warning; it is now refused.
+
 * Fixed: a file path longer than a path can be (1e6 characters) used to
   reach `path.expand()` and its warning ("expanded path length ... would be
   too long") in `co2fp()`, `raplok()`, `wrtxtfb()` and the `yoy*()`

@@ -133,9 +133,20 @@ yoypals <- function() names(.YOY_PALETTES)
   name
 }
 
+# one colour: a name, a hex code or a palette index; an index past the
+# range of an integer, or text that is not valid in its encoding, is
+# refused before col2rgb() warns or fails on it
 .iscol <- function(v) {
-  length(v) == 1L && !is.na(v) &&
-    !is.null(tryCatch(grDevices::col2rgb(v), error = function(e) NULL))
+  if (length(v) != 1L || is.na(v) || !(is.numeric(v) || is.character(v))) {
+    return(FALSE)
+  }
+  if (is.numeric(v) && !(v >= 0 && v <= .Machine$integer.max)) {
+    return(FALSE)
+  }
+  if (is.character(v) && !validEnc(v)) {
+    return(FALSE)
+  }
+  !is.null(tryCatch(grDevices::col2rgb(v), error = function(e) NULL))
 }
 
 .pok <- function(k, v) {
@@ -152,7 +163,7 @@ yoypals <- function() names(.YOY_PALETTES)
 
 # one finite number in [lo, hi], a whole number when `int`
 .pnum1 <- function(v, lo = -Inf, hi = Inf, int = FALSE) {
-  is.numeric(v) && length(v) == 1L &&
+  is.numeric(v) && length(v) == 1L && is.null(dim(v)) &&
     all(c(is.finite(v), v >= lo, v <= hi, !int | v == round(v)))
 }
 

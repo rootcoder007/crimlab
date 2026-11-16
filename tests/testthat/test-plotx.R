@@ -120,3 +120,19 @@ test_that("event studies, alone and in a grid", {
   expect_s3_class(drw(plotevgrid(list(One = e))), "data.frame")
   expect_error(plotevgrid(list(e)), "^plotevgrid: `x` must be a named list")
 })
+
+test_that("colours past an integer and a matrix of bins are refused quietly", {
+  x <- c(1, 2, 3, 4)
+  for (cl in list(1e300, Inf, -1, "#zz", sum)) {
+    expect_error(expect_warning(plothex(x, x, col = cl), NA),
+                 "^plothex: `col` must be colours\\.$")
+  }
+  expect_error(expect_warning(plothex(x, x, bins = matrix(5)), NA),
+               "^plothex: `bins` must be one whole number from 2 to 500\\.$")
+})
+
+test_that("a title that is not valid UTF-8 is refused before the device", {
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(plothex(c(1, 2), c(1, 2), main = bad),
+               "^plothex: `main` holds text that is not valid")
+})
