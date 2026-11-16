@@ -237,7 +237,7 @@ fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
 #> [1] 2.678431e-08
 fp$co2eg
-#> [1] 2.436568e-06
+#> [1] 2.436569e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions
@@ -245,7 +245,7 @@ fp$assumptions
 #> [2] "memory charged: the machine's total 15.3 GB"        
 print(fp)
 #> Computation footprint (modelled)
-#>   Time: 0.002 s wall, 0.001 s CPU; utilisation 0.12 (process) on 4 cores
+#>   Time: 0.002 s wall, 0.002 s CPU; utilisation 0.25 (process) on 4 cores
 #>   Energy: 2.68e-08 kWh (cpu 2.36e-08, memory 3.17e-09)
 #>   CO2e: 2.44e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
 #>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.3 GB
