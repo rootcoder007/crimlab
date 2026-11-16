@@ -7028,7 +7028,7 @@ def ccepnl(y: Any, x: Any, unit: Any, time: Any, fac: Any = None, cons: Any = Tr
     >>> list(r)
     ['mg', 'pooled', 'mg0', 'bi', 'vmg', 'vp', 'vmg0', 'hb', 'nfac', 'fit', 'w', 'bias', 'pvar', 'level']
     >>> d = ccepnl(y=[1, 3, 2, 5, 2, 4, 1, 3, 3, 1, 4, 2, 5, 2, 3, 2, 3, 4],
-    ...            x=[2, 1, 4, 3, 1, 5, 2, 2, 4, 3, 1, 2, 5, 3, 4, 1, 2, 3], unit=[1] * 6 + [2] * 6 + [3] * 6,
+    ...            x={"x": [2, 1, 4, 3, 1, 5, 2, 2, 4, 3, 1, 2, 5, 3, 4, 1, 2, 3]}, unit=[1] * 6 + [2] * 6 + [3] * 6,
     ...            time=[1, 2, 3, 4, 5, 6] * 3, ylag=1, lags=0, avg=["x"], cons=False)
     >>> d["pooled"] is None, d["fit"]["lags"][0] == 0, d["mg"]["term"]
     (True, True, ['L1.y', 'x'])

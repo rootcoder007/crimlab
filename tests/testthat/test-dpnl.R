@@ -1011,8 +1011,9 @@ test_that("recursive mean adjustment is the estimator on adjusted series", {
   d <- dsimc(seed = 44, n = 15, tt = 20)
   r <- ccepnl(d$y, d["x"], d$u, d$t, ylag = 1, lags = 1, bias = "rma")
   pm <- function(v) {
-    ave(v, d$u, FUN = function(z) z - c(NA, cumsum(z)[-length(z)]) /
-          c(NA, seq_along(z)[-length(z)]))
+    ave(v, d$u, FUN = function(z) {
+      z - c(NA, cumsum(z)[-length(z)]) / c(NA, seq_along(z)[-length(z)])
+    })
   }
   e <- data.frame(u = d$u, t = d$t, y = pm(d$y), x = pm(d$x))
   e <- e[e$t > 1, ]
@@ -1200,7 +1201,8 @@ test_that("gmmpnl(): xtabond2's joint statistic and the level residuals", {
   # without a constant the two agree and print() shows one line
   q <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, type = "diff")
   expect_identical(q$xwald$stat, q$wald$stat)
-  expect_false(any(grepl("xtabond2 prints", capture.output(print(q)))))
+  pq <- capture.output(print(q))
+  expect_false(any(grepl("xtabond2 prints", pq, fixed = TRUE)))
   # y - b1 y_{t-1} - c in levels, NA in each unit's first period
   ly <- ave(d$y, d$u, FUN = function(v) c(NA, v[-length(v)]))
   expect_equal(r$resid, d$y - b[1] * ly - b[2], tolerance = 1e-12)
