@@ -57,6 +57,8 @@ pre.inc: ../inst/presets/presets.tsv pre.sh
 codes.inc: ../inst/presets/codes.tsv codes.sh
 	sh codes.sh > $@
 $(B)/jrun.o: codes.inc
+# the version yoyhtml() writes in its page
+$(B)/jrun.o: CPPFLAGS += -DCLAB_VER='"$(VER)"'
 
 $(B):
 	mkdir -p $@

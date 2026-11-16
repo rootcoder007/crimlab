@@ -454,6 +454,7 @@ from ._j import (
     plotevgrid,
     plotopt,
     prechk,
+    yoyhtml,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -932,6 +933,7 @@ __all__ = [
     "plotevgrid",
     "plotopt",
     "prechk",
+    "yoyhtml",
 ]
 
 

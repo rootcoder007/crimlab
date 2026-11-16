@@ -4,7 +4,7 @@
 // clab_jrun(): a table is a data frame (an object of columns), numbers
 // are written by src/ynum.h as in R. With `file` the text is written
 // there and the path returned; without, the text is returned. The HTML
-// and PDF writers are R's alone (yoyhtml(), yoypdf()).
+// writer is jyoyh.inc; the PDF writer is R's alone (yoypdf()).
 
 struct Yc {
   int k = 0;  // 0 numbers, 1 text, 2 true and false
@@ -595,6 +595,8 @@ bool yoymd(Ctx &c, Val &out) {
   return ydone(c, txt, f, out);
 }
 
+bool yoyhtml(Ctx &c, Val &out);
+
 bool yoywr(Ctx &c, Val &out) {
   if (c["file"].t != Val::STR) return c.fail("`file` must be one file path.");
   std::string fm;
@@ -615,11 +617,10 @@ bool yoywr(Ctx &c, Val &out) {
     }
     if (fm.empty()) return c.fail("cannot tell the format from \"%s\"; pass `format`.", b.c_str());
   }
-  if (fm == "html" || fm == "pdf") {
-    return c.fail("the %s writer is R's alone: call yoy%s() in R.", fm.c_str(), fm == "html" ? "html" : "pdf");
-  }
+  if (fm == "pdf") return c.fail("the pdf writer is R's alone: call yoypdf() in R.");
   bool ok;
-  if (fm == "csv") ok = yoycsv(c, out);
+  if (fm == "html") ok = yoyhtml(c, out);
+  else if (fm == "csv") ok = yoycsv(c, out);
   else if (fm == "tsv") ok = yoytsv(c, out);
   else if (fm == "json") ok = yoyjs(c, out);
   else if (fm == "markdown") ok = yoymd(c, out);

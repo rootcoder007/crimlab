@@ -7694,3 +7694,35 @@ def prechk(data: Any, preset: Any, codes: Any = None) -> Any:
     ['f', 'm']
     """
     return jcall("prechk", data=data, preset=preset, codes=codes)
+
+
+def yoyhtml(
+    x: Any,
+    file: Any = None,
+    title: Any = "Year-over-year change",
+    sub: Any = "",
+    pal: Any = "diverging",
+    better: Any = "neutral",
+    digits: Any = 1,
+    bars: Any = True,
+    intv: Any = True,
+    notes: Any = None,
+    lag: Any = 1,
+) -> Any:
+    """R's ``yoyhtml()``: a change table as one self-contained HTML page.
+
+    The page is R's, line for line. With ``file`` it is written there and
+    the path returned; without (R requires one) the page is returned as
+    text.
+
+    Examples
+    --------
+    >>> y = yoypx([812, 845, 790], [2021, 2022, 2023])
+    >>> page = yoyhtml(y, title="Reported offences (simulated)", better="lower")
+    >>> page.startswith("<!DOCTYPE html>"), "<tr class=\\"bad\\">" in page
+    (True, True)
+    """
+    return jcall(
+        "yoyhtml", x=x, file=file, title=title, sub=sub, pal=pal, better=better, digits=digits,
+        bars=bars, intv=intv, notes=notes, lag=lag,
+    )

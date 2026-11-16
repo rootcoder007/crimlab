@@ -2333,6 +2333,31 @@ bad("prechk", data = 1:3, preset = "otis-b03-cnt")
 bad("prechk", data = pkd, preset = "otis-b03-cnt", codes = data.frame(a = 1))
 bad("prechk", data = pkd, preset = data.frame(preset = "p", generic = "g",
                                               arg = "recipe", column = "zap"))
+# yoyhtml(): the page R writes, compared byte for byte (without `file` the
+# command line returns it)
+yh <- function(...) {
+  f <- tempfile(fileext = ".html")
+  on.exit(unlink(f))
+  yoyhtml(file = f, ...)
+  txt <- rawToChar(readBin(f, "raw", file.size(f)))
+  Encoding(txt) <- "UTF-8"
+  add("yoyhtml", list(...), js(txt))
+}
+yhd <- yoypx(c(812, 845, 790, 120, 131, 98), rep(2021:2023, 2),
+             rep(c("Assault", "Robbery"), each = 3))
+yh(x = yhd, title = "Reported offences (simulated) & more", better = "lower")
+yh(x = yoypx(c(812, 845, 790), 2021:2023), bars = FALSE, pal = "safe",
+   better = "higher", notes = c("a <note>", "tab\there"), digits = 2)
+yh(x = yoylbl(yoypx(c(4100, 3900, 4400), 2021:2023), fylbl),
+   title = "Days in segregation (simulated)", pal = "mono", lag = 2)
+yh(x = yoypx(c(4, 0, 6, 8), 1:4), sub = "zero base")
+bad("yoyhtml", x = 1, file = "a.html")
+bad("yoyhtml", x = yhd, file = "a.html", pal = "neon")
+bad("yoyhtml", x = yhd, file = "a.html", better = "up")
+bad("yoyhtml", x = yhd, file = "a.html", bars = "x")
+bad("yoyhtml", x = yhd, file = "a.html", notes = 1)
+bad("yoyhtml", x = yhd, file = "a.html", digits = 16)
+bad("yoyhtml", x = yhd, file = "a.html", lag = -1)
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
