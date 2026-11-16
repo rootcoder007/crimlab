@@ -13,13 +13,13 @@ extern "C" {
 // lengths. Out: list(ate, se), NaN where the treatment had no variation.
 SEXP C_clab_r_plr(SEXP y, SEXP d, SEXP x, SEXP rows, SEXP lens, SEXP folds) {
   clab::who = "exprspplr";
-  const int n = static_cast<int>(XLENGTH(y)), p = Rf_isNull(x) ? 0 : Rf_ncols(x);
-  const int ns = static_cast<int>(XLENGTH(lens));
+  const int n = static_cast<int>(clab::xlen(y, "y")), p = Rf_isNull(x) ? 0 : Rf_ncols(x);
+  const int ns = static_cast<int>(clab::xlen(lens, "lens"));
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, ns));
   SET_VECTOR_ELT(r, 1, Rf_allocVector(REALSXP, ns));
-  std::vector<int> rw(static_cast<size_t>(XLENGTH(rows)));
-  for (R_xlen_t i = 0; i < XLENGTH(rows); ++i) rw[static_cast<size_t>(i)] = INTEGER(rows)[i] - 1;
+  std::vector<int> rw(static_cast<size_t>(clab::xlen(rows, "rows")));
+  for (R_xlen_t i = 0; i < clab::xlen(rows, "rows"); ++i) rw[static_cast<size_t>(i)] = INTEGER(rows)[i] - 1;
   R_xlen_t at = 0;
   for (int s = 0; s < ns; ++s) {
     const int m = INTEGER(lens)[s];
@@ -37,8 +37,8 @@ SEXP C_clab_r_plr(SEXP y, SEXP d, SEXP x, SEXP rows, SEXP lens, SEXP folds) {
 }
 
 SEXP C_clab_r_bootci(SEXP v, SEXP pr) {
-  SEXP o = PROTECT(Rf_allocVector(REALSXP, 1 + XLENGTH(pr)));
-  clab_bootci(REAL(v), static_cast<int>(XLENGTH(v)), REAL(pr), static_cast<int>(XLENGTH(pr)), REAL(o));
+  SEXP o = PROTECT(Rf_allocVector(REALSXP, 1 + clab::xlen(pr, "pr")));
+  clab_bootci(REAL(v), static_cast<int>(clab::xlen(v, "v")), REAL(pr), static_cast<int>(clab::xlen(pr, "pr")), REAL(o));
   UNPROTECT(1);
   return o;
 }

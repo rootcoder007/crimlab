@@ -29,13 +29,13 @@ extern "C" {
 SEXP C_clab_r_hbin(SEXP x, SEXP bins) {
   const int b = Rf_asInteger(bins);
   SEXP o = PROTECT(Rf_allocVector(INTSXP, b));
-  clab_hbin(REAL(x), static_cast<int>(XLENGTH(x)), b, INTEGER(o));
+  clab_hbin(REAL(x), static_cast<int>(clab::xlen(x, "x")), b, INTEGER(o));
   UNPROTECT(1);
   return o;
 }
 
 SEXP C_clab_r_freq(SEXP code, SEXP nlev, SEXP nna, SEXP nall, SEXP sort, SEXP maxlvl, SEXP fold) {
-  const int n = static_cast<int>(XLENGTH(code)), nl = Rf_asInteger(nlev), na = Rf_asInteger(nna);
+  const int n = static_cast<int>(clab::xlen(code, "code")), nl = Rf_asInteger(nlev), na = Rf_asInteger(nna);
   const double all = Rf_asReal(nall), valid = all - na;
   std::vector<int> lev(static_cast<size_t>(nl) + 2), cnt(static_cast<size_t>(nl) + 2);
   int k = clab_freq(INTEGER(code), n, nl, Rf_asLogical(sort), Rf_asInteger(maxlvl), Rf_asLogical(fold), lev.data(),
@@ -93,7 +93,7 @@ SEXP C_clab_r_rowany(SEXP na) {
 }
 
 SEXP C_clab_r_nrun(SEXP na, SEXP minrun) {
-  const int n = static_cast<int>(XLENGTH(na));
+  const int n = static_cast<int>(clab::xlen(na, "na"));
   std::vector<int> st(static_cast<size_t>(n) + 1), en(static_cast<size_t>(n) + 1);
   const int k = clab_nrun(LOGICAL(na), n, Rf_asInteger(minrun), st.data(), en.data());
   SEXP a = PROTECT(Rf_allocVector(INTSXP, k));
@@ -116,14 +116,14 @@ SEXP C_clab_r_msum(SEXP na) {
 
 SEXP C_clab_r_pstat(SEXP x) {
   SEXP o = PROTECT(Rf_allocVector(REALSXP, 7));
-  clab_pstat(REAL(x), static_cast<int>(XLENGTH(x)), REAL(o));
+  clab_pstat(REAL(x), static_cast<int>(clab::xlen(x, "x")), REAL(o));
   UNPROTECT(1);
   return o;
 }
 
 SEXP C_clab_r_q7(SEXP x, SEXP pr) {
-  SEXP o = PROTECT(Rf_allocVector(REALSXP, XLENGTH(pr)));
-  clab_q7(REAL(x), static_cast<int>(XLENGTH(x)), REAL(pr), static_cast<int>(XLENGTH(pr)), REAL(o));
+  SEXP o = PROTECT(Rf_allocVector(REALSXP, clab::xlen(pr, "pr")));
+  clab_q7(REAL(x), static_cast<int>(clab::xlen(x, "x")), REAL(pr), static_cast<int>(clab::xlen(pr, "pr")), REAL(o));
   UNPROTECT(1);
   return o;
 }
@@ -184,7 +184,7 @@ SEXP C_clab_r_mgrid(SEXP na, SEXP bins) {
 }
 
 SEXP C_clab_r_dups(SEXP code, SEXP nlev) {
-  const int n = static_cast<int>(XLENGTH(code));
+  const int n = static_cast<int>(clab::xlen(code, "code"));
   std::vector<int> rw(static_cast<size_t>(n)), ct(static_cast<size_t>(n));
   const int k = clab_dups(INTEGER(code), n, Rf_asInteger(nlev), rw.data(), ct.data());
   SEXP a = PROTECT(Rf_allocVector(INTSXP, k));
@@ -200,7 +200,7 @@ SEXP C_clab_r_dups(SEXP code, SEXP nlev) {
 
 SEXP C_clab_r_cochq(SEXP y, SEXP s) {
   SEXP o = PROTECT(Rf_allocVector(REALSXP, 6));
-  clab_cochq(REAL(y), REAL(s), static_cast<int>(XLENGTH(y)), REAL(o));
+  clab_cochq(REAL(y), REAL(s), static_cast<int>(clab::xlen(y, "y")), REAL(o));
   UNPROTECT(1);
   return o;
 }

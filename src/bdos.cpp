@@ -961,7 +961,7 @@ SEXP C_clab_r_oaxbd(SEXP y, SEXP x, SEXP grp, SEXP ref, SEXP conf) {
         SEXP dn = Rf_getAttrib(x, R_DimNamesSymbol);
         if (!Rf_isNull(dn)) tn = VECTOR_ELT(dn, 1);
       } else {
-        if (XLENGTH(x) != n) fail("%s", fmsg);
+        if (clab::xlen(x, "x") != n) fail("%s", fmsg);
         p = 1;
       }
       xv = PROTECT(clab::dcopy(PROTECT(clab::dbl(x))));
@@ -1082,7 +1082,7 @@ SEXP C_clab_r_tlvc(SEXP x, SEXP item) {
 
 SEXP C_clab_r_tlvlr(SEXP xa, SEXP xb, SEXP na, SEXP nb, SEXP bg) {
   clab::who = "tlvlr";
-  if (TYPEOF(bg) != VECSXP || XLENGTH(bg) != 3) {
+  if (TYPEOF(bg) != VECSXP || clab::xlen(bg, "bg") != 3) {
     fail("`bg` must be the list tlvc() returns.");
   }
   SEXP mu = PROTECT(num(VECTOR_ELT(bg, 0), "bg$mu"));

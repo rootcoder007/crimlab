@@ -141,7 +141,7 @@ extern "C" {
 SEXP C_clab_r_bayout(SEXP x, SEXP freq, SEXP b, SEXP w, SEXP acty, SEXP alpha, SEXP at) {
   clab::who = "bayout";
   clab::unlab(x, "x");
-  if (!clab::isnum(x) || XLENGTH(x) < 1) fail("`x` must be a numeric vector of counts.");
+  if (!clab::isnum(x) || clab::xlen(x, "x") < 1) fail("`x` must be a numeric vector of counts.");
   clab::vec(x, "x");
   const int n = clab::xlen(x, "x");
   SEXP xd = PROTECT(clab::dbl(x));

@@ -164,3 +164,8 @@ test_that("tpdmc() refuses a path longer than its bound before making it", {
   expect_error(tpdmc(0.5, 0.6, 0.4, steps = .Machine$integer.max),
                "tpdmc: `steps` must be at most 67108864.", fixed = TRUE)
 })
+
+test_that("clrilr() refuses an x that is not a vector in words", {
+  expect_error(clrilr(NULL), "^clrilr: `x` must be a vector, got NULL\\.$")
+  expect_error(clrilr(sum), "^clrilr: `x` must be a vector, got a function")
+})

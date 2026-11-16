@@ -10,7 +10,7 @@
 extern "C" {
 
 SEXP C_clab_r_fmt(SEXP x, SEXP mode, SEXP digits) {
-  const R_xlen_t n = XLENGTH(x);
+  const R_xlen_t n = clab::xlen(x, "x");
   const int m = Rf_asInteger(mode), d = Rf_asInteger(digits);
   SEXP out = PROTECT(Rf_allocVector(STRSXP, n));
   for (R_xlen_t i = 0; i < n; ++i) {

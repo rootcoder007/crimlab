@@ -73,7 +73,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
   // the outcomes: one vector, or the columns of a matrix or data frame
   std::vector<SEXP> ys;
   if (TYPEOF(y) == VECSXP) {
-    for (R_xlen_t j = 0; j < XLENGTH(y); ++j) ys.push_back(VECTOR_ELT(y, j));
+    for (R_xlen_t j = 0; j < clab::xlen(y, "y"); ++j) ys.push_back(VECTOR_ELT(y, j));
   } else if (Rf_isMatrix(y) && clab::isnum(y) && Rf_ncols(y) > 1) {
     const int nc = Rf_ncols(y), nrw = Rf_nrows(y);
     SEXP yd = PROTECT(clab::dbl(y));

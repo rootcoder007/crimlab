@@ -809,7 +809,7 @@ SEXP C_clab_r_hypq(SEXP lam, SEXP pref, SEXP mu, SEXP queue, SEXP tt) {
   int n = -1;
   std::vector<int> pr;
   if (TYPEOF(pref) == VECSXP) {
-    if (XLENGTH(pref) != m) fail("`pref` must hold one order per atom, %d.", m);
+    if (clab::xlen(pref, "pref") != m) fail("`pref` must hold one order per atom, %d.", m);
     n = static_cast<int>(XLENGTH(VECTOR_ELT(pref, 0)));
     pr.assign(static_cast<std::size_t>(m * n), 0);
     for (int j = 0; j < m; ++j) {
@@ -1180,7 +1180,7 @@ SEXP C_clab_r_sthwk(SEXP times, SEXP x, SEXP y, SEXP hor, SEXP win, SEXP par, SE
     std::vector<double> *dst[3] = {&qt, &qx, &qy};
     for (int c = 0; c < 3; ++c) {
       SEXP col = R_NilValue;
-      for (R_xlen_t j = 0; !Rf_isNull(nms) && j < XLENGTH(at); ++j) {
+      for (R_xlen_t j = 0; !Rf_isNull(nms) && j < clab::xlen(at, "at"); ++j) {
         if (std::strcmp(CHAR(STRING_ELT(nms, j)), want[c]) == 0) col = VECTOR_ELT(at, j);
       }
       if (Rf_isNull(col)) fail("`at` must be a data frame or list with columns t, x and y.");

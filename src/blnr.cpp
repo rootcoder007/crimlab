@@ -37,7 +37,7 @@ SEXP C_clab_r_lnroc(SEXP tp, SEXP pick, SEXP conf, SEXP proc, SEXP size, SEXP fa
                     SEXP level) {
   clab::who = "lnroc";
   int np0 = 0;
-  SEXP tv = PROTECT(csp::bin01(tp, "tp", XLENGTH(tp)));
+  SEXP tv = PROTECT(csp::bin01(tp, "tp", clab::xlen(tp, "tp")));
   ++np0;
   const int n = bj::len(tv, "tp");
   if (n < 2) fail("`tp` must hold two witnesses at least.");
@@ -60,8 +60,8 @@ SEXP C_clab_r_lnroc(SEXP tp, SEXP pick, SEXP conf, SEXP proc, SEXP size, SEXP fa
   clab::vec(conf, "conf");
   // all NA (no identification has a confidence) comes in as logical
   bool nal = TYPEOF(conf) == LGLSXP;
-  for (R_xlen_t i = 0; nal && i < XLENGTH(conf); ++i) nal = LOGICAL(conf)[i] == NA_LOGICAL;
-  if (!(clab::isnum(conf) || nal) || XLENGTH(conf) != n) fail("`conf` must be numbers, one per witness, %d.", n);
+  for (R_xlen_t i = 0; nal && i < clab::xlen(conf, "conf"); ++i) nal = LOGICAL(conf)[i] == NA_LOGICAL;
+  if (!(clab::isnum(conf) || nal) || clab::xlen(conf, "conf") != n) fail("`conf` must be numbers, one per witness, %d.", n);
   SEXP cv = PROTECT(nal ? Rf_coerceVector(conf, REALSXP) : clab::dbl(conf));
   ++np0;
   for (int i = 0; i < n; ++i) {

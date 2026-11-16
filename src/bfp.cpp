@@ -55,7 +55,7 @@ SEXP C_clab_r_proxy(SEXP terr) { return Rf_mkString(clab_terrproxy(CHAR(STRING_E
 
 SEXP C_clab_r_fpe(SEXP in, SEXP r0, SEXP r1, SEXP rmx, SEXP dw, SEXP de, SEXP dk) {
   clab::who = "co2fp";
-  const int nr = static_cast<int>(XLENGTH(r0)), nd = static_cast<int>(XLENGTH(dw));
+  const int nr = static_cast<int>(clab::xlen(r0, "r0")), nd = static_cast<int>(clab::xlen(dw, "dw"));
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(r, 0, Rf_allocVector(REALSXP, 10));
   SET_VECTOR_ELT(r, 1, Rf_allocVector(REALSXP, nd));

@@ -19,7 +19,7 @@ extern "C" {
 
 SEXP C_clab_r_bndxw(SEXP from, SEXP to, SEXP x, SEXP unit, SEXP w) {
   clab::who = "bndxw";
-  const R_xlen_t m0 = XLENGTH(from);
+  const R_xlen_t m0 = clab::xlen(from, "from");
   if (m0 < 1) fail("`from` must hold at least one link.");
   const int m = clab::ilen(static_cast<double>(m0), "from");
   csp::lab f = bj::labs(from, "from", m);
@@ -32,7 +32,7 @@ SEXP C_clab_r_bndxw(SEXP from, SEXP to, SEXP x, SEXP unit, SEXP w) {
   }
   SEXP xv = PROTECT(bj::nums(x, "x"));
   const int n = bj::len(xv, "x");
-  if (XLENGTH(unit) != n) fail("`unit` must have one label per value, %d.", n);
+  if (clab::xlen(unit, "unit") != n) fail("`unit` must have one label per value, %d.", n);
   SEXP ul = PROTECT(clab::labs(unit));
   if (Rf_isNull(ul) || clab::anyna(ul)) fail("`unit` must be labels with no missing values.");
   std::vector<int> u(static_cast<std::size_t>(n));

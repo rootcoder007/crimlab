@@ -16,14 +16,14 @@ extern "C" {
 SEXP C_clab_r_dfit(SEXP fam, SEXP x) {
   const int f = Rf_asInteger(fam), k = clab_dfnp(f);
   SEXP p = PROTECT(Rf_allocVector(REALSXP, k));
-  const int rc = clab_dfit(f, REAL(x), static_cast<int>(XLENGTH(x)), REAL(p));
+  const int rc = clab_dfit(f, REAL(x), static_cast<int>(clab::xlen(x, "x")), REAL(p));
   UNPROTECT(1);
   return rc == CLAB_OK ? p : R_NilValue;
 }
 
 // The log-likelihood, KS and AD statistics of a fit.
 SEXP C_clab_r_dfgof(SEXP fam, SEXP x, SEXP par) {
-  const int f = Rf_asInteger(fam), n = static_cast<int>(XLENGTH(x));
+  const int f = Rf_asInteger(fam), n = static_cast<int>(clab::xlen(x, "x"));
   SEXP o = PROTECT(Rf_allocVector(REALSXP, 3));
   REAL(o)[0] = clab_dfll(f, REAL(x), n, REAL(par));
   clab_dfgof(f, REAL(x), n, REAL(par), REAL(o) + 1);
@@ -60,7 +60,7 @@ SEXP C_clab_r_dfboot(SEXP fam, SEXP x, SEXP idx, SEXP a) {
 // Hill's tail index from the k largest of the sorted x: alpha and its
 // asymptotic limits at conflvl.
 SEXP C_clab_r_dfhill(SEXP x, SEXP k, SEXP lvl) {
-  const int n = static_cast<int>(XLENGTH(x)), kk = Rf_asInteger(k);
+  const int n = static_cast<int>(clab::xlen(x, "x")), kk = Rf_asInteger(k);
   long double s = 0;
   for (int i = 0; i < kk; ++i) s += std::log(REAL(x)[n - 1 - i] / REAL(x)[n - 1 - kk]);
   const double al = kk / static_cast<double>(s), z = clab_qnorm(1 - (1 - Rf_asReal(lvl)) / 2);

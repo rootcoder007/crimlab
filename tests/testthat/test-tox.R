@@ -148,3 +148,11 @@ test_that("the toxicology functions refuse bad input", {
     list("`scap` must be one number from 0 to 1", 1, TRUE, scap = 2)
   ))
 })
+
+test_that("an argument that is not a vector is refused in words", {
+  m <- "^lodimp: `x` must be a vector, got "
+  expect_error(lodimp(NULL, 1), paste0(m, "NULL\\.$"))
+  expect_error(lodimp(sum, 1), paste0(m, "a function\\.$"))
+  expect_error(txcal(1:3, 1:3, unk = new.env()),
+               "^txcal: `unk` must be a vector, got environment\\.$")
+})

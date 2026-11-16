@@ -116,7 +116,7 @@ SEXP C_clab_r_pbbnd(SEXP val, SEXP st, SEXP lim, SEXP rnd, SEXP kind, SEXP sup, 
   ++np;
   SET_VECTOR_ELT(out, 0, f.done());
   if (!Rf_isNull(pval)) {
-    if (XLENGTH(pval) != n) fail("`prev` must have one cell per cell of `x`, %d.", n);
+    if (clab::xlen(pval, "pval") != n) fail("`prev` must have one cell per cell of `x`, %d.", n);
     for (int i = 0; i < n; ++i) {
       if (REAL(pval)[i] < 0) fail("`prev` must hold counts from 0.");
     }

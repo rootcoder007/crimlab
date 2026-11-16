@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* Fixed: the second sweep found 25 more functions (`lodimp()`, `lnroc()`,
+  `ibench()`, `synexp()`, `bndxw()`, `rptvic()`, `etohlr()`, `mndla()`,
+  `crchyp()`, `clrilr()`, ...) whose compiled readers asked for the length
+  of `NULL`, a function or an environment; they now refuse it in words.
+
 * Fixed, after a second sweep: a function given as `est` to the exposure
   designs, `end` of a point `datumpmap()`, a list for the data of
   `expconcidx()`, `exprspplr()` and `polbrdarea()`, `ref` and a single

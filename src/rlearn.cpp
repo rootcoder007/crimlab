@@ -333,10 +333,11 @@ clab_lrn base(int k, const Lset &s) {
 // The learners named by stk, each once, into sub (5 at most); their
 // number.
 int subs(SEXP stk, const char *nm, const Lset &s, clab_lrn *sub) {
-  const R_xlen_t m = XLENGTH(stk);
-  if (TYPEOF(stk) != STRSXP || m < 1 || m > 5) {
+  // the type first: XLENGTH() of NULL or a function fails in R's words
+  if (TYPEOF(stk) != STRSXP || XLENGTH(stk) < 1 || XLENGTH(stk) > 5) {
     fail("`%s` must name from one to five learners.", nm);
   }
+  const R_xlen_t m = XLENGTH(stk);
   int seen[5] = {0, 0, 0, 0, 0};
   for (R_xlen_t j = 0; j < m; ++j) {
     SEXP e = PROTECT(Rf_ScalarString(STRING_ELT(stk, j)));
@@ -388,7 +389,7 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   SEXP yv;
   if (md == 8) {
     // the outcome may be missing where it is not observed; never read there
-    if (!clab::isnum(y) || XLENGTH(y) != n) {
+    if (!clab::isnum(y) || clab::xlen(y, "y") != n) {
       fail("`y` must be numbers, one per row of `x`.");
     }
     yv = PROTECT(clab::dcopy(clab::dbl(y)));
@@ -422,7 +423,7 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
   // folds: a vector, or a matrix with one column per repetition
   SEXP fd = Rf_getAttrib(fold, R_DimSymbol);
   const int nrep = TYPEOF(fd) == INTSXP && XLENGTH(fd) == 2 ? INTEGER_RO(fd)[1] : 1;
-  if (nrep < 1 || XLENGTH(fold) != static_cast<R_xlen_t>(n) * nrep) {
+  if (nrep < 1 || clab::xlen(fold, "fold") != static_cast<R_xlen_t>(n) * nrep) {
     fail("`fold` must have one row per row of `x`.");
   }
   if (!clab::isnum(fold)) fail("`fold` must be finite numbers with no missing values.");

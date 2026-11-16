@@ -10,7 +10,7 @@
 extern "C" {
 
 SEXP C_clab_r_ascii(SEXP x) {
-  const R_xlen_t n = XLENGTH(x);
+  const R_xlen_t n = clab::xlen(x, "x");
   SEXP out = PROTECT(Rf_allocVector(STRSXP, n));
   std::vector<char> b;
   for (R_xlen_t i = 0; i < n; ++i) {

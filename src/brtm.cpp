@@ -87,7 +87,7 @@ SEXP C_clab_r_crchyp(SEXP x, SEXP y, SEXP home) {
   SEXP hv = R_NilValue;
   if (!Rf_isNull(home)) {
     SEXP d = Rf_getAttrib(home, R_DimSymbol);
-    if (Rf_isNull(d) && clab::isnum(home) && XLENGTH(home) == 2) {
+    if (Rf_isNull(d) && clab::isnum(home) && clab::xlen(home, "home") == 2) {
       hv = PROTECT(bj::nums(home, "home", 2));
       nh = 1;
     } else {

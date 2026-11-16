@@ -1711,7 +1711,7 @@ SEXP C_clab_r_sellab(SEXP y, SEXP rel, SEXP rule, SEXP w) {
   clab::lgl(rel, "rel", n);
   clab::lgl(rule, "rule", n);
   clab::unlab(y, "y");
-  if (!clab::isnum(y) || XLENGTH(y) != n) {
+  if (!clab::isnum(y) || clab::xlen(y, "y") != n) {
     fail("`y` must be numbers, one per defendant.");
   }
   clab::vec(y, "y");
@@ -1815,7 +1815,7 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
            Rf_translateChar(lv[0]), Rf_translateChar(lv[1]));
     }
   }
-  SEXP tc = PROTECT(!Rf_isNull(treat) && Rf_isVectorAtomic(treat) && XLENGTH(treat) == 1 ? clab::labs(treat) : R_NilValue);  // NOLINT
+  SEXP tc = PROTECT(!Rf_isNull(treat) && Rf_isVectorAtomic(treat) && clab::xlen(treat, "treat") == 1 ? clab::labs(treat) : R_NilValue);  // NOLINT
   if (!Rf_isNull(treat)) {
     // !is.atomic(treat) || length(treat) != 1L || !as.character(treat) %in% lv
     tr = Rf_isNull(tc) ? NA_STRING : STRING_ELT(tc, 0);
@@ -2724,7 +2724,7 @@ SEXP C_clab_r_coofg(SEXP inc, SEXP off) {
   const int *ci = ncode(inc, &ni);
   SEXP si = PROTECT(ci != nullptr ? R_NilValue : nlab(inc, "inc"));
   SEXP so = PROTECT(nlab(off, "off"));
-  const R_xlen_t k = ci != nullptr ? XLENGTH(inc) : XLENGTH(si);
+  const R_xlen_t k = ci != nullptr ? clab::xlen(inc, "inc") : XLENGTH(si);
   if (XLENGTH(so) != k) {
     char x[32], y[32];
     clab::lfmt(static_cast<double>(k), x, sizeof x);
@@ -2927,7 +2927,7 @@ SEXP C_clab_r_relchk(SEXP x, SEXP value, SEXP type, SEXP group, SEXP ref,
   const double val = REAL_RO(vv)[0];
   clab::unlab(type, "type");
   int q = -1;
-  if (TYPEOF(type) == STRSXP && XLENGTH(type) == 1) {
+  if (TYPEOF(type) == STRSXP && clab::xlen(type, "type") == 1) {
     for (int i = 0; i < 3; ++i) {
       if (clab::kcmp(clab::key(STRING_ELT(type, 0)), Key{kinds[i], 0}) == 0) q = i;
     }
@@ -3283,9 +3283,9 @@ SEXP C_clab_r_catchk(SEXP x, SEXP ref, SEXP nmin) {
   if (TYPEOF(x) == VECSXP) {
     vars = PROTECT(x);
     SEXP n0 = Rf_getAttrib(x, R_NamesSymbol);
-    nms = PROTECT(Rf_allocVector(STRSXP, XLENGTH(x)));
+    nms = PROTECT(Rf_allocVector(STRSXP, clab::xlen(x, "x")));
     char b[32];
-    for (R_xlen_t i = 0; i < XLENGTH(x); ++i) {
+    for (R_xlen_t i = 0; i < clab::xlen(x, "x"); ++i) {
       SEXP s = Rf_isNull(n0) ? NA_STRING : STRING_ELT(n0, i);
       if (s == NA_STRING || CHAR(s)[0] == '\0') {
         clab::lfmt(static_cast<double>(i + 1), b, sizeof b);
@@ -3316,7 +3316,7 @@ SEXP C_clab_r_catchk(SEXP x, SEXP ref, SEXP nmin) {
     if (!l && !Rf_isVectorAtomic(ref)) fail("`ref` must be levels: a vector or a list.");
     SEXP rv = PROTECT(l ? ref : clab::labs(ref));
     if (Rf_isNull(rv)) fail("`ref` must be levels: a vector or a list.");
-    const R_xlen_t nr = XLENGTH(ref);
+    const R_xlen_t nr = clab::xlen(ref, "ref");
     SEXP rn = Rf_getAttrib(ref, R_NamesSymbol);
     if (nr == 0) fail("`ref` must name at least one level.");
     for (R_xlen_t j = 0; j < nr; ++j) {

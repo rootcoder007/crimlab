@@ -49,7 +49,7 @@ extern "C" {
 SEXP C_clab_r_ibench(SEXP y, SEXP off, SEXP x, SEXP minn, SEXP fdr, SEXP dr, SEXP local) {
   clab::who = "ibench";
   int np = 0;
-  SEXP yv = PROTECT(csp::bin01(y, "y", XLENGTH(y)));
+  SEXP yv = PROTECT(csp::bin01(y, "y", clab::xlen(y, "y")));
   ++np;
   const int n = bj::len(yv, "y");
   if (n < 2) fail("`y` must hold two stops at least.");

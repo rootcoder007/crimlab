@@ -304,7 +304,7 @@ SEXP C_clab_r_kdsurf(SEXP x, SEXP y, SEXP w, SEXP h, SEXP win, SEXP nx, SEXP ny,
   SEXP out;
   if (!Rf_isNull(at)) {
     const bool own = TYPEOF(at) == STRSXP;
-    if (own && !(XLENGTH(at) == 1 && std::strcmp(CHAR(STRING_ELT(at, 0)), "points") == 0)) {
+    if (own && !(clab::xlen(at, "at") == 1 && std::strcmp(CHAR(STRING_ELT(at, 0)), "points") == 0)) {
       fail("`at` must be NULL, \"points\" or coordinates.");
     }
     csp::pts q = own ? p : csp::xy(at, R_NilValue, R_NilValue, csp::planar);

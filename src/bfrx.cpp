@@ -273,7 +273,7 @@ SEXP C_clab_r_pedlr(SEXP ped, SEXP geno, SEXP freq, SEXP alt, SEXP mut, SEXP rat
   if (!Rf_isNull(alt) && !isdf(alt, {"id", "fid", "mid"})) {
     clab::fail("`alt` must be NULL or a data frame with columns id, fid and mid.");
   }
-  if (TYPEOF(mut) != STRSXP || XLENGTH(mut) != 1 || STRING_ELT(mut, 0) == NA_STRING) {
+  if (TYPEOF(mut) != STRSXP || clab::xlen(mut, "mut") != 1 || STRING_ELT(mut, 0) == NA_STRING) {
     clab::fail("`mut` must be one of none, equal, step.");
   }
   if (!clab::isnum(rate)) clab::fail("`rate` must be one or two numbers from 0 to 1.");
@@ -340,7 +340,7 @@ SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx, SEXP full) {
   while (f0 < na && ISNAN(REAL(av)[f0])) ++f0;
   while (f1 >= f0 && ISNAN(REAL(av)[f1])) --f1;
   if (f1 - f0 + 1 < ln) clab::fail("`a` must hold at least `len` points from its first value to its last.");
-  if (!clab::isnum(npeaks) || XLENGTH(npeaks) < 1 || XLENGTH(npeaks) > 8) {
+  if (!clab::isnum(npeaks) || clab::xlen(npeaks, "npeaks") < 1 || clab::xlen(npeaks, "npeaks") > 8) {
     clab::fail("`npeaks` must be one to eight whole numbers from 1.");
   }
   SEXP pv = PROTECT(Rf_coerceVector(npeaks, REALSXP));
@@ -351,7 +351,7 @@ SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx, SEXP full) {
     pk[i] = static_cast<int>(v);
   }
   const int t = clab::whole(tx, "tx", 0);
-  if (TYPEOF(full) != LGLSXP || XLENGTH(full) != 1 || LOGICAL(full)[0] == NA_LOGICAL) {
+  if (TYPEOF(full) != LGLSXP || clab::xlen(full, "full") != 1 || LOGICAL(full)[0] == NA_LOGICAL) {
     clab::fail("`full` must be TRUE or FALSE.");
   }
   const int ns = (f1 - f0 + 1) / ln;

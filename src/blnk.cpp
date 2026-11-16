@@ -60,7 +60,7 @@ SEXP C_clab_r_lnkpr(SEXP x, SEXP y, SEXP t, SEXP series, SEXP mo) {
   SEXP tv = PROTECT(bj::nums(t, "t", n));
   clab::unlab(series, "series");
   clab::vec(series, "series");
-  if (XLENGTH(series) != n) fail("`series` must have one label per crime, %d.", n);
+  if (clab::xlen(series, "series") != n) fail("`series` must have one label per crime, %d.", n);
   SEXP sl = PROTECT(clab::labs(series));
   if (Rf_isNull(sl)) fail("`series` must be labels (numbers, text or a factor), NA for an unsolved crime.");
   std::vector<int> ser(static_cast<std::size_t>(n), -1);

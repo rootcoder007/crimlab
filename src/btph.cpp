@@ -93,10 +93,10 @@ SEXP C_clab_r_tpdmc(SEXP pres, SEXP decay, SEXP mum, SEXP states, SEXP start, SE
   const double pr = clab::p01(pres, "pres"), mr = clab::p01(mum, "mum");
   const double dr = bj::inr(decay, "decay", 0.0, 1.0);
   if (!(dr > 0)) fail("`decay` must be above 0.");
-  if (TYPEOF(states) != STRSXP || XLENGTH(states) < 1 || clab::anyna(states)) {
+  if (TYPEOF(states) != STRSXP || clab::xlen(states, "states") < 1 || clab::anyna(states)) {
     fail("`states` must name the transient stages: labels, at least one.");
   }
-  const int k = static_cast<int>(XLENGTH(states)), m = k + 2;
+  const int k = static_cast<int>(clab::xlen(states, "states")), m = k + 2;
   for (int i = 0; i < k; ++i) {
     for (int j = 0; j < i; ++j) {
       if (clab::seql(STRING_ELT(states, i), STRING_ELT(states, j))) {
@@ -105,11 +105,11 @@ SEXP C_clab_r_tpdmc(SEXP pres, SEXP decay, SEXP mum, SEXP states, SEXP start, SE
     }
   }
   int s0 = -1;
-  if (TYPEOF(start) == STRSXP && XLENGTH(start) == 1) {
+  if (TYPEOF(start) == STRSXP && clab::xlen(start, "start") == 1) {
     for (int i = 0; i < k; ++i) {
       if (clab::seql(STRING_ELT(start, 0), STRING_ELT(states, i))) s0 = i;
     }
-  } else if (clab::isnum(start) && XLENGTH(start) == 1) {
+  } else if (clab::isnum(start) && clab::xlen(start, "start") == 1) {
     const double v = clab::val1(start);
     if (v == std::floor(v) && v >= 1 && v <= k) s0 = static_cast<int>(v) - 1;
   }

@@ -71,7 +71,7 @@ SEXP C_clab_r_advdif(SEXP c0, SEXP u, SEXP v, SEXP kx, SEXP ky, SEXP dx, SEXP dy
   clab::who = "advdif2d";
   const int nx = Rf_nrows(c0), ny = Rf_ncols(c0);
   SEXP cm = PROTECT(Rf_allocMatrix(REALSXP, nx, ny));
-  for (R_xlen_t i = 0; i < XLENGTH(c0); ++i) REAL(cm)[i] = REAL(c0)[i];
+  for (R_xlen_t i = 0; i < clab::xlen(c0, "c0"); ++i) REAL(cm)[i] = REAL(c0)[i];
   kc(clab_advdif(REAL(cm), nx, ny, Rf_asReal(u), Rf_asReal(v), Rf_asReal(kx), Rf_asReal(ky), Rf_asReal(dx),
                  Rf_asReal(dy), Rf_asReal(dt), Rf_asReal(ns), Rf_isNull(src) ? nullptr : REAL(src)));
   UNPROTECT(1);

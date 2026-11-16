@@ -16,7 +16,7 @@ extern "C" {
 SEXP C_clab_r_rptvic(SEXP id, SEXP t, SEXP pop, SEXP brk) {
   clab::who = "rptvic";
   int np = 0;
-  const R_xlen_t xn = XLENGTH(id);
+  const R_xlen_t xn = clab::xlen(id, "id");
   if (xn < 1) fail("`id` must hold one incident at least.");
   csp::lab v = bj::labs(id, "id", xn);
   np += 2;

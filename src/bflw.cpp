@@ -32,7 +32,7 @@ SEXP plab(SEXP prd, int n) {
   }
   clab::unlab(prd, "prd");
   clab::vec(prd, "prd");
-  if (XLENGTH(prd) != n) fail("`prd` must have one label per period, %d.", n);
+  if (clab::xlen(prd, "prd") != n) fail("`prd` must have one label per period, %d.", n);
   SEXP s = clab::labs(prd);
   if (Rf_isNull(s)) fail("`prd` must be labels: numbers, text or a factor.");
   return s;
@@ -173,7 +173,7 @@ SEXP C_clab_r_lostay(SEXP days, SEXP w, SEXP breaks, SEXP thr, SEXP flag, SEXP l
   int nb = 0;
   if (!Rf_isNull(breaks)) {
     clab::unlab(breaks, "breaks");
-    if (!clab::isnum(breaks) || XLENGTH(breaks) < 2)
+    if (!clab::isnum(breaks) || clab::xlen(breaks, "breaks") < 2)
       fail("`breaks` must be at least two band edges.");
     bv = PROTECT(clab::dbl(breaks));
     ++np;
@@ -282,7 +282,7 @@ SEXP C_clab_r_bklog(SEXP arrive, SEXP dispose, SEXP horizon, SEXP target) {
   const int n = bj::len(av, "arrive");
   clab::unlab(dispose, "dispose");
   clab::vec(dispose, "dispose");
-  if (!clab::isnum(dispose) || XLENGTH(dispose) != n) {
+  if (!clab::isnum(dispose) || clab::xlen(dispose, "dispose") != n) {
     fail("`dispose` must be numbers (NA for a pending case), one per case, %d.", n);
   }
   SEXP dv = PROTECT(clab::dcopy(PROTECT(clab::dbl(dispose))));

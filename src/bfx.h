@@ -19,7 +19,7 @@ inline SEXP mat(SEXP x, const char *nm, int nc, int *nr, double lo = clab::ninf)
   clab::unlab(x, nm);
   SEXP d = Rf_getAttrib(x, R_DimSymbol);
   const bool m = !Rf_isNull(d) && XLENGTH(d) == 2;
-  const R_xlen_t r = m ? INTEGER(d)[0] : XLENGTH(x), c = m ? INTEGER(d)[1] : 1;
+  const R_xlen_t r = m ? INTEGER(d)[0] : clab::xlen(x, nm), c = m ? INTEGER(d)[1] : 1;
   if (!clab::isnum(x) || r < 1 || (nc >= 0 && c != nc)) {
     if (nc >= 0) clab::fail("`%s` must be a numeric matrix of %d columns.", nm, nc);
     clab::fail("`%s` must be a numeric matrix.", nm);
@@ -38,7 +38,7 @@ inline SEXP mat(SEXP x, const char *nm, int nc, int *nr, double lo = clab::ninf)
 // (n < 0: any length, at least one). A fresh vector, not protected.
 inline SEXP nna(SEXP x, const char *nm, R_xlen_t n) {
   clab::unlab(x, nm);
-  const R_xlen_t m = XLENGTH(x);
+  const R_xlen_t m = clab::xlen(x, nm);
   if (!(clab::isnum(x) || TYPEOF(x) == LGLSXP) || m < 1 || (n >= 0 && m != n && m != 1)) {
     clab::fail("`%s` must be numbers or NA, one per case or one for all.", nm);
   }

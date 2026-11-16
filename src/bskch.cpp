@@ -14,7 +14,7 @@ extern "C" {
 // the CRC-32 of the bytes of the raw vector x from position from (zero
 // based), as a double
 SEXP C_clab_r_crc32(SEXP x, SEXP from) {
-  const R_xlen_t n = XLENGTH(x), f = static_cast<R_xlen_t>(Rf_asReal(from));
+  const R_xlen_t n = clab::xlen(x, "x"), f = static_cast<R_xlen_t>(Rf_asReal(from));
   const R_xlen_t k = f < 0 || f > n ? n : f;
   return Rf_ScalarReal(clab_crc32(RAW(x) + k, static_cast<std::size_t>(n - k), 0));
 }
@@ -22,7 +22,7 @@ SEXP C_clab_r_crc32(SEXP x, SEXP from) {
 SEXP C_clab_r_momupd(SEXP st, SEXP x) {
   clab::who = "smryupd";
   double b[5];
-  clab_momacc(REAL(x), static_cast<double>(XLENGTH(x)), b);
+  clab_momacc(REAL(x), static_cast<double>(clab::xlen(x, "x")), b);
   SEXP o = PROTECT(Rf_allocVector(REALSXP, 5));
   clab_mommrg(REAL(st), b, REAL(o));
   UNPROTECT(1);
@@ -60,7 +60,7 @@ SEXP C_clab_r_hlladd(SEXP x, SEXP p, SEXP reg) {
   const R_xlen_t m = static_cast<R_xlen_t>(1) << pp;
   SEXP o = PROTECT(Rf_allocVector(INTSXP, m));
   for (R_xlen_t i = 0; i < m; ++i) INTEGER(o)[i] = Rf_isNull(reg) ? 0 : INTEGER(reg)[i];
-  for (R_xlen_t i = 0; i < XLENGTH(x); ++i) {
+  for (R_xlen_t i = 0; i < clab::xlen(x, "x"); ++i) {
     SEXP e = STRING_ELT(x, i);
     if (e == NA_STRING) continue;
     const char *s = CHAR(e);
@@ -71,7 +71,7 @@ SEXP C_clab_r_hlladd(SEXP x, SEXP p, SEXP reg) {
 }
 
 SEXP C_clab_r_hllcnt(SEXP reg) {
-  return Rf_ScalarReal(clab_hllcnt(INTEGER(reg), static_cast<std::size_t>(XLENGTH(reg))));
+  return Rf_ScalarReal(clab_hllcnt(INTEGER(reg), static_cast<std::size_t>(clab::xlen(reg, "reg"))));
 }
 
 }  // extern "C"

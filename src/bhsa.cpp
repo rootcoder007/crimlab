@@ -26,7 +26,7 @@ SEXP C_clab_r_hsacc(SEXP pred, SEXP obs, SEXP area, SEXP top, SEXP prev, SEXP ti
   SEXP pv = R_NilValue;
   if (lg) {
     clab::vec(pred, "pred");
-    if (XLENGTH(pred) != n) fail("`pred` must have one value per cell, %d.", n);
+    if (clab::xlen(pred, "pred") != n) fail("`pred` must have one value per cell, %d.", n);
     for (int i = 0; i < n; ++i) {
       if (LOGICAL(pred)[i] == NA_LOGICAL) fail("`pred` must not be NA.");
       hot.push_back(LOGICAL(pred)[i]);

@@ -164,7 +164,7 @@ SEXP tor(const V &v) {
 extern "C" {
 
 SEXP C_clab_r_igh(SEXP fn, SEXP args) {
-  if (TYPEOF(fn) != STRSXP || XLENGTH(fn) != 1) Rf_error("igh: bad function name");
+  if (TYPEOF(fn) != STRSXP || clab::xlen(fn, "fn") != 1) Rf_error("igh: bad function name");
   const char *f = CHAR(STRING_ELT(fn, 0));
   int k = 0;
   for (; k < igh::nfns; ++k) {
@@ -176,7 +176,7 @@ SEXP C_clab_r_igh(SEXP fn, SEXP args) {
   int seed = 0;
   bool draw = false;
   SEXP an = Rf_getAttrib(args, R_NamesSymbol);
-  for (R_xlen_t j = 0; j < XLENGTH(args); ++j) {
+  for (R_xlen_t j = 0; j < clab::xlen(args, "args"); ++j) {
     if (std::strcmp(CHAR(STRING_ELT(an, j)), "seed") == 0 && Rf_isNull(VECTOR_ELT(args, j))) {
       GetRNGstate();
       seed = static_cast<int>(std::floor(unif_rand() * 2147483647.0));
@@ -189,7 +189,7 @@ SEXP C_clab_r_igh(SEXP fn, SEXP args) {
   {
     std::vector<std::string> nm;
     std::vector<V> av;
-    for (R_xlen_t j = 0; j < XLENGTH(args); ++j) {
+    for (R_xlen_t j = 0; j < clab::xlen(args, "args"); ++j) {
       nm.push_back(CHAR(STRING_ELT(an, j)));
       if (draw && nm.back() == "seed") {
         V s;

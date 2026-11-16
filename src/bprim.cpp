@@ -12,7 +12,7 @@ extern "C" {
 
 SEXP C_clab_r_prim(SEXP op, SEXP x, SEXP y, SEXP a) {
   const int k = Rf_asInteger(op);
-  const int n = static_cast<int>(XLENGTH(x));
+  const int n = static_cast<int>(clab::xlen(x, "x"));
   const double *px = REAL(x);
   const double *pa = Rf_isNull(a) ? nullptr : REAL(a);
   SEXP out = R_NilValue;
@@ -27,7 +27,7 @@ SEXP C_clab_r_prim(SEXP op, SEXP x, SEXP y, SEXP a) {
     case 3: *vec(1) = clab_edist(px, REAL(y), n); break;
     case 4: clab_dnorm(px, n, pa[0], pa[1], static_cast<int>(pa[2]), vec(n)); break;
     case 5: clab_moms(px, n, vec(4)); break;
-    case 6: clab_quant(px, n, REAL(y), static_cast<int>(XLENGTH(y)), vec(XLENGTH(y))); break;
+    case 6: clab_quant(px, n, REAL(y), static_cast<int>(clab::xlen(y, "y")), vec(clab::xlen(y, "y"))); break;
     case 7: *vec(1) = clab_mad(px, n, pa[0]); break;
     case 8: *vec(1) = clab_trim(px, n, pa[0]); break;
     case 9: *vec(1) = clab_wins(px, n, pa[0]); break;
@@ -56,9 +56,9 @@ SEXP C_clab_r_prim(SEXP op, SEXP x, SEXP y, SEXP a) {
       clab::kchk(clab_shrs(px, n, pa[0], pa[1], o, o + n, o + 2 * n), "shrs");
       break;
     }
-    case 19: clab_ks(px, n, REAL(y), static_cast<int>(XLENGTH(y)), vec(3)); break;
+    case 19: clab_ks(px, n, REAL(y), static_cast<int>(clab::xlen(y, "y")), vec(3)); break;
     case 20: {
-      const int b = static_cast<int>(pa[0]), ny = static_cast<int>(XLENGTH(y));
+      const int b = static_cast<int>(pa[0]), ny = static_cast<int>(clab::xlen(y, "y"));
       std::vector<double> p(static_cast<std::size_t>(b) + 2), q(p.size());
       const int nbin = clab_psibin(px, n, REAL(y), ny, b, p.data(), q.data());
       double r[2];

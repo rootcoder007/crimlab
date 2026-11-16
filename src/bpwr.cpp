@@ -45,9 +45,9 @@ SEXP C_clab_r_pwrs(SEXP root, SEXP nvml, SEXP smi, SEXP ioreg, SEXP skip, SEXP p
     c.smi = s1(smi);
     c.ioreg = s1(ioreg);
     if (TYPEOF(skip) == STRSXP) {
-      for (R_xlen_t i = 0; i < XLENGTH(skip); ++i) c.skip.emplace_back(bj::str(skip, i));
+      for (R_xlen_t i = 0; i < clab::xlen(skip, "skip"); ++i) c.skip.emplace_back(bj::str(skip, i));
     }
-    c.pid = TYPEOF(pid) == INTSXP && XLENGTH(pid) == 1 && INTEGER(pid)[0] != NA_INTEGER ? INTEGER(pid)[0] : 0;
+    c.pid = TYPEOF(pid) == INTSXP && clab::xlen(pid, "pid") == 1 && INTEGER(pid)[0] != NA_INTEGER ? INTEGER(pid)[0] : 0;
     txt = pwr::put(pwr::snap(c));
   } catch (...) {
     ok = false;
@@ -65,8 +65,8 @@ SEXP C_clab_r_pwrd(SEXP snaps, SEXP rated) {
   double T = 0;
   int err = 0;
   try {
-    std::vector<pwr::Snap> s(static_cast<std::size_t>(XLENGTH(snaps)));
-    for (R_xlen_t i = 0; i < XLENGTH(snaps) && !err; ++i) {
+    std::vector<pwr::Snap> s(static_cast<std::size_t>(clab::xlen(snaps, "snaps")));
+    for (R_xlen_t i = 0; i < clab::xlen(snaps, "snaps") && !err; ++i) {
       if (STRING_ELT(snaps, i) == NA_STRING || !pwr::get(bj::str(snaps, i), s[static_cast<std::size_t>(i)])) err = 1;
       if (!err && i > 0 && s[static_cast<std::size_t>(i)].t < s[static_cast<std::size_t>(i - 1)].t) err = 2;
     }
@@ -168,7 +168,7 @@ SEXP C_clab_r_pwrp(SEXP kind, SEXP x, SEXP ver) {
     std::vector<std::string> nm;
     std::vector<int> pwh;
     const int v = Rf_asInteger(ver);
-    const bool ok = pwr::emimeta(RAW(x), static_cast<unsigned long>(XLENGTH(x)), v, nm, pwh);
+    const bool ok = pwr::emimeta(RAW(x), static_cast<unsigned long>(clab::xlen(x, "x")), v, nm, pwh);
     SEXP o = PROTECT(Rf_allocVector(VECSXP, 2));
     SEXP a = Rf_allocVector(STRSXP, ok ? static_cast<R_xlen_t>(nm.size()) : 0);
     SET_VECTOR_ELT(o, 0, a);
