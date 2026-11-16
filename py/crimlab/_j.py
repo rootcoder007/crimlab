@@ -6823,7 +6823,8 @@ def ivfe(data: Any, y: Any, endo: Any = None, inst: Any = None, x: Any = None, f
 
 def ppmlcf(data: Any, y: Any, endo: Any, inst: Any, x: Any = None, fe: Any = None, expo: Any = None,
            clus: Any = None, how: Any = "cf", se: Any = "boot", ssc: Any = "G", nboot: Any = 199,
-           seed: Any = None, level: Any = 0.95, tol: Any = 1e-12, maxit: Any = 100) -> Any:
+           seed: Any = None, level: Any = 0.95, tol: Any = 1e-12, maxit: Any = 100,
+           family: Any = "poisson") -> Any:
     """Instrumental variables for a count outcome with fixed effects.
 
     The arguments and the result are those of R's ``ppmlcf()``: see its help
@@ -6839,7 +6840,7 @@ def ppmlcf(data: Any, y: Any, endo: Any, inst: Any, x: Any = None, fe: Any = Non
     ['x', 'vhat:x']
     """
     return jcall("ppmlcf", data=data, y=y, endo=endo, inst=inst, x=x, fe=fe, expo=expo, clus=clus, how=how, se=se,
-                 ssc=ssc, nboot=nboot, seed=seed, level=level, tol=tol, maxit=maxit)
+                 ssc=ssc, nboot=nboot, seed=seed, level=level, tol=tol, maxit=maxit, family=family)
 
 
 def windiv(dir: Any, width: Any = 90, start: Any = 0, area: Any = None, base: Any = 1, sect: Any = None,

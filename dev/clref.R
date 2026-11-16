@@ -1860,6 +1860,11 @@ ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe 
    seed = 3)
 ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = "area",
    expo = "pop", how = "plug", se = "naive")
+ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = "area",
+   family = "nb", se = "naive")
+ok("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = "w90", fe = "area", family = "nb", nboot = 10,
+   seed = 3)
+bad("ppmlcf", data = axd, y = "crimes", endo = "pm", inst = "w90", fe = "area", family = "nb", how = "plug")
 bad("ppmlcf", data = axd, y = "crimes", endo = c("pm", "temp"), inst = "w90", fe = "area")
 ok("windiv", dir = c(10, 100, 200, 300, NA, 90))
 bad("windiv", dir = c(10, 100), width = 360 / 2^27)

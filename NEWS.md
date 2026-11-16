@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ppmlcf(family = "nb")`, the control function with a negative
+  binomial second stage and a cluster bootstrap of both stages, as
+  Feigenbaum and Muller (2016) estimate lead's effect on homicide.
+
 * New: `ivfe(se = "dk")`, the standard errors of Driscoll and Kraay
   (1998), robust to correlation across units and over time, as Batkeyev
   and DeRemer (2023) report them.

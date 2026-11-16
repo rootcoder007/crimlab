@@ -267,6 +267,43 @@ SEXP C_clab_r_windbin(SEXP dir, SEXP width, SEXP start, SEXP area, SEXP na, SEXP
   return r;
 }
 
+// The negative binomial regression of clab_cntreg() (theta by maximum
+// likelihood) for ppmlcf(family = "nb"): y, the design x (n x p), NULL or
+// the offsets, NULL or cluster codes; list(beta, vb, vc, st).
+SEXP C_clab_r_nbfit(SEXP y, SEXP x, SEXP off, SEXP cl, SEXP ncl, SEXP maxit, SEXP eps) {
+  clab::who = "ppmlcf";
+  const int n = n32(y), p = Rf_ncols(x), nc = Rf_isNull(cl) ? 0 : Rf_asInteger(ncl);
+  if (static_cast<double>(n) * p + 6.0 * n + p + static_cast<double>(p) * p + 2.0 * nc * p >
+      kutil::maxcell) {
+    clab::fail("the design is too large for the negative binomial fit.");
+  }
+  const size_t nw = static_cast<size_t>(n) * static_cast<size_t>(p) + 6 * static_cast<size_t>(n) +
+                    static_cast<size_t>(p) + static_cast<size_t>(p) * static_cast<size_t>(p) +
+                    2 * static_cast<size_t>(nc) * static_cast<size_t>(p);
+  double *work = reinterpret_cast<double *>(R_alloc(nw, sizeof(double)));
+  int *iwork = reinterpret_cast<int *>(R_alloc(static_cast<size_t>(p), sizeof(int)));
+  int *alias = reinterpret_cast<int *>(R_alloc(static_cast<size_t>(p), sizeof(int)));
+  SEXP b = PROTECT(Rf_allocVector(REALSXP, p));
+  SEXP vb = PROTECT(Rf_allocMatrix(REALSXP, p, p));
+  SEXP vc = PROTECT(Rf_allocMatrix(REALSXP, p, p));
+  SEXP st = PROTECT(Rf_allocVector(REALSXP, 8));
+  const int rc = clab_cntreg(REAL(y), REAL(x), n, p, dnul(off), icodes(cl), nc, 1,
+                             Rf_asInteger(maxit), Rf_asReal(eps), REAL(b), REAL(vb), REAL(vc),
+                             REAL(st), alias, work, iwork);
+  clab::ichk(rc);
+  if (rc != CLAB_OK) clab::fail("the negative binomial fit failed: %s.", clab_strerror(rc));
+  for (int j = 0; j < p; ++j) {
+    if (alias[j]) clab::fail("a regressor of the negative binomial fit is collinear with the others.");
+  }
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 4));
+  SET_VECTOR_ELT(out, 0, b);
+  SET_VECTOR_ELT(out, 1, vb);
+  SET_VECTOR_ELT(out, 2, vc);
+  SET_VECTOR_ELT(out, 3, st);
+  UNPROTECT(5);
+  return out;
+}
+
 SEXP C_clab_r_dshift(SEXP u, SEXP t, SEXP k) {
   clab::who = "plcday";
   const int n = n32(t);

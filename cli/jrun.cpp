@@ -2047,7 +2047,7 @@ const Ent ents[] = {
     {"cmpsc", "a b len? npeaks? tx? full?", cmpsc},
     {"ppmlfe", "data y x fe expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd?", ax::ppmlfe},
     {"ivfe", "data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol? twc? psd?", ax::ivfe},
-    {"ppmlcf", "data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit?", ax::ppmlcf},
+    {"ppmlcf", "data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit? family?", ax::ppmlcf},
     {"windiv", "dir width? start? area? base? sect? edges? by? avg? share? spd?", ax::windiv},
     {"invsn", "tlow tup sign? brk? by? rule?", ax::invsn},
     {"dwnexp", "sx sy sper? sdir rx ry rid? rule? half? rad? from? lonlat? wrap? dwt?", dwnexp},

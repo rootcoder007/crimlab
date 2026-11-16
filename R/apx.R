@@ -722,6 +722,25 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' their second-stage errors account for the first stage. The exponential
 #' generalised method of moments of Mullahy (1997) and Windmeijer and
 #' Santos Silva (1997), which needs no first-stage model, is [expgmm()].
+#' The negative binomial second stage (`family = "nb"`). Feigenbaum and
+#' Muller (2016, secs. 5-6 and table 2) model city homicides as negative
+#' binomial with the population as the exposure (`expo`) and instrument a
+#' city's use of lead pipes by its rail distance to the nearest lead
+#' refinery, estimating "the IV negative binomial regressions following the
+#' control function procedure described by Cameron and Trivedi (2013, p.
+#' 401-406)" with errors from "a bootstrap resampling at the city level".
+#' Here the first stage is as above, by least squares on the instruments,
+#' the controls and the fixed effects; the second stage is the negative
+#' binomial maximum-likelihood fit (variance `mu + mu^2 / theta`, `theta`
+#' estimated, as `MASS::glm.nb()` fits it) of the outcome on the
+#' endogenous columns, the controls, the first-stage residuals, an
+#' intercept and the fixed effects as indicator columns (not absorbed: a
+#' negative binomial fit has no within transformation, and many levels
+#' bring the incidental-parameter bias of a nonlinear model); `se = "boot"`
+#' refits both stages on each draw of the clusters (rows of a cluster
+#' drawn twice enter twice), `"naive"` takes the clustered sandwich of the
+#' second stage alone. Separation is checked as for the Poisson fit.
+#'
 #' Karamik and von Graevenitz (2022, eqs 2-3) use the control function
 #' with the wind sectors of [windiv()] as instruments (one set per region),
 #' area, weekday and month-year effects, the group's population as the
@@ -743,6 +762,8 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #'   column: the unit the bootstrap draws and the naive errors cluster by.
 #' @param how `"cf"` or `"plug"`.
 #' @param se `"boot"` or `"naive"`.
+#' @param family `"poisson"` (the default) or `"nb"`: the second stage's
+#'   likelihood (`"nb"` needs `how = "cf"`).
 #' @param ssc The small-sample factor of the naive errors, as in
 #'   [ppmlfe()].
 #' @param nboot The number of bootstrap draws, at least 2.
@@ -753,8 +774,9 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #'   the endogenous columns, the controls, then for `"cf"` the residual
 #'   terms `"vhat:<endo>"`); `first` (as in [ivfe()]); `draws`, the
 #'   bootstrap estimates (one row per draw; `NULL` for `"naive"`); `nfail`;
-#'   `n`; `nsep`; `ncl`; `nboot`; `how`, `se`; `fe`, `clus` and `level`.
-#'   `summary()` returns `coef`.
+#'   `n`; `nsep`; `ncl`; `nboot`; `how`, `se`; `fe`, `clus` and `level`;
+#'   with `family = "nb"`, `family` and `theta`. `summary()` returns
+#'   `coef`.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -765,6 +787,10 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #'   testing for nonlinear models with endogenous explanatory variables.
 #'   *Journal of Econometrics*, 182(1), 226-234.
 #'   \doi{10.1016/j.jeconom.2014.04.020}
+#'
+#'   Feigenbaum, J. J. and Muller, C. (2016). Lead exposure and violent
+#'   crime in the early twentieth century. *Explorations in Economic
+#'   History*, 62, 51-86. \doi{10.1016/j.eeh.2016.03.002}
 #'
 #'   Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
 #'   effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
@@ -809,11 +835,16 @@ ppmlcf <- function(
   seed = NULL,
   level = 0.95,
   tol = 1e-12,
-  maxit = 100
+  maxit = 100,
+  family = c("poisson", "nb")
 ) {
   f <- "ppmlcf"
   how <- .ckmarg("how", f)
   se <- .ckmarg("se", f)
+  family <- .ckmarg("family", f)
+  if (family == "nb" && how != "cf") {
+    .ckstop(f, "`family = \"nb\"` needs `how = \"cf\"`")
+  }
   ssc <- .ckmarg("ssc", f)
   d <- .axdat(data, f)
   a <- .axcfck(d, y, endo, inst, x, fe, expo, clus, level, tol, maxit, f)
@@ -828,6 +859,10 @@ ppmlcf <- function(
   fx <- .axfe(d, fe)
   cl <- .axcl(d, clus, f)
   tm <- c(endo, x, if (how == "cf") paste0("vhat:", endo))
+  if (family == "nb") {
+    return(.axcfnbr(d, y, yv, endo, inst, x, fe, rw$off, clus, cl, se, ssc,
+                    nboot, seed, level, tol, maxit, k, f))
+  }
   if (se == "naive") {
     return(.axcfnv(d, y, endo, inst, x, fe, expo, clus, how, se, ssc, level,
                    tol, maxit, cl, tm, k, yv, f))
@@ -864,7 +899,8 @@ ppmlcf <- function(
 #' @rdname ppmlcf
 #' @export
 print.ppmlcf <- function(x, ...) {
-  cat("ppmlcf: Poisson ",
+  cat("ppmlcf: ",
+      if (identical(x[["family"]], "nb")) "negative binomial " else "Poisson ",
       if (x[["how"]] == "cf") "control function" else "plug-in",
       ", ", x[["n"]], " rows, fixed effects ",
       paste(x[["fe"]], collapse = " and "), "; ",
@@ -2597,6 +2633,28 @@ summary.expjn <- function(object, ...) {
          draws = NULL, nfail = 0L, n = length(yv), nsep = sum(!k),
          ncl = cl$g, nboot = 0L, how = how, se = se, fe = fe, clus = clus,
          level = level),
+    class = "ppmlcf"
+  )
+}
+
+# The result of ppmlcf(family = "nb") (.axcfnb()), with the first-stage
+# table of ivfe() and theta.
+.axcfnbr <- function(d, y, yv, endo, inst, x, fe, off, clus, cl, se, ssc,
+                     nboot, seed, level, tol, maxit, k, f) {
+  if (se == "boot") {
+    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    if (!is.null(seed)) seed <- .axseed(seed, f)
+  }
+  r1 <- .axivfit(d, y, endo, inst, x, fe, NULL,
+                 list(c1 = cl$c1, n1 = cl$n1, c2 = NULL, n2 = 0L), tol, f)
+  nb <- .axcfnb(d, yv, endo, inst, x, fe, off, clus, cl, se, ssc, nboot,
+                seed, level, maxit, f)
+  structure(
+    list(coef = nb$coef, first = .axfirst(endo, r1$fst, length(inst)),
+         draws = nb$draws, nfail = nb$nfail, n = length(yv), nsep = sum(!k),
+         ncl = cl$g, nboot = if (se == "boot") nboot else 0L, how = "cf",
+         se = se, fe = fe, clus = clus, level = level, family = "nb",
+         theta = nb$theta),
     class = "ppmlcf"
   )
 }
