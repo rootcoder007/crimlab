@@ -178,7 +178,9 @@ sign. For <code>swpwdth()</code>, strictly increasing abscissae, or an
 <dd><p>Positive number: the sweep width, in the distance unit of the
 grid and the effort (nautical miles, kilometres: one unit throughout).
 For <code>srchpod()</code>, give it with <code>effort</code> and <code>area</code> in
-place of <code>coverage</code>; default <code>NULL</code>.</p></dd>
+place of <code>coverage</code>; default <code>NULL</code>. For <code>opteffort()</code>,
+<code>poc * W / area</code> and <code>area / W</code> must be finite, and positive
+where <code>poc</code> is (a width of 5e-324 makes every density 0).</p></dd>
 
 
 <dt id="arg-model">model<a class="anchor" aria-label="anchor" href="#arg-model"></a></dt>

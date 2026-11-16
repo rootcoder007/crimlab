@@ -31,7 +31,7 @@ evfilt(
 
 - v:
 
-  The outcome: finite numbers, one per area.
+  The outcome: finite numbers, one per area, not all the same.
 
 - w:
 
@@ -42,7 +42,8 @@ evfilt(
 - x:
 
   `NULL`, or covariates: a numeric matrix (or vector) with one row per
-  area. An intercept is added.
+  area. An intercept is added, so a column that does not vary is
+  refused.
 
 - method:
 

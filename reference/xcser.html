@@ -78,7 +78,9 @@ not they move together. Every correlation lies in \([-1, 1]\)
 
 <dl><dt id="arg-x-y">x, y<a class="anchor" aria-label="anchor" href="#arg-x-y"></a></dt>
 <dd><p>The series: finite numbers, of one length, or both named by
-period.</p></dd>
+period. A series whose values are all the same is refused: its
+correlation with anything, at every lag, is undefined (0 / 0;
+<code><a href="https://rdrr.io/r/stats/cor.html" class="external-link">stats::cor()</a></code> gives <code>NA</code> and <code><a href="https://rdrr.io/r/stats/acf.html" class="external-link">stats::ccf()</a></code> <code>NaN</code>).</p></dd>
 
 
 <dt id="arg-lagmax">lagmax<a class="anchor" aria-label="anchor" href="#arg-lagmax"></a></dt>

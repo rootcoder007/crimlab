@@ -88,7 +88,7 @@ At least two residual degrees of freedom are kept.</p>
 
 
 <dl><dt id="arg-v">v<a class="anchor" aria-label="anchor" href="#arg-v"></a></dt>
-<dd><p>The outcome: finite numbers, one per area.</p></dd>
+<dd><p>The outcome: finite numbers, one per area, not all the same.</p></dd>
 
 
 <dt id="arg-w">w<a class="anchor" aria-label="anchor" href="#arg-w"></a></dt>
@@ -97,7 +97,8 @@ At least two residual degrees of freedom are kept.</p>
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
 <dd><p><code>NULL</code>, or covariates: a numeric matrix (or vector) with one
-row per area. An intercept is added.</p></dd>
+row per area. An intercept is added, so a column that does not vary
+is refused.</p></dd>
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>

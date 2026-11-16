@@ -33,7 +33,9 @@ locgi(x, w, star = TRUE)
 ## Value
 
 A numeric vector of z values, one per unit; `NaN` for a unit without
-neighbours.
+neighbours and, for G, for a unit whose value is the only one unlike the
+rest (the others, its reference, then do not vary). A constant `x` is
+refused: no z is defined.
 
 ## References
 

@@ -26,8 +26,9 @@ hwpwr(
 
 - dt:
 
-  Seconds to measure over: one number from 0. With 0, one reading (power
-  where a device gives it, for a later `since`). Not used with `since`.
+  Seconds to measure over: one number from 0 to 604800 (a week). With 0,
+  one reading (power where a device gives it, for a later `since`). Not
+  used with `since`.
 
 - since:
 
@@ -46,7 +47,8 @@ hwpwr(
 
 - pid:
 
-  The process whose share is reported: a process id.
+  The process whose share is reported: a process id, a whole number from
+  0 to 2147483647.
 
 - skip:
 
@@ -97,13 +99,18 @@ The sources, by system:
   top-level `package` domains are counted for the CPU and the `dram`
   domain for memory; `core`, `uncore` and `psys` are never added (they
   are parts of a package or more than the CPU). A counter that passes
-  its range (`max_energy_range_uj`) is unwrapped, a package seen through
-  both the MSR and the MMIO interface is counted once, and per-die
-  copies of one counter (multi-die AMD parts) are counted once. Most
-  distributions let only the administrator read `energy_uj`; the row
-  then says "not readable: needs read access to the powercap files", and
-  the estimate, when one is made, uses the package's rated power from
-  its `constraint_0_max_power_uw`.
+  its range (`max_energy_range_uj`) is unwrapped; a fall that would mean
+  more than half the range, and more than 1 kW could use over the
+  interval, is a reset, and a reading above the range is not a
+  measurement (the row says why). A counter file must be a regular file
+  holding a whole decimal number; anything else is "malformed" or "not a
+  regular file", and is not waited on. A package seen through both the
+  MSR and the MMIO interface is counted once, and per-die copies of one
+  counter (multi-die AMD parts) are counted once. Most distributions let
+  only the administrator read `energy_uj`; the row then says "not
+  readable: needs read access to the powercap files", and the estimate,
+  when one is made, uses the package's rated power from its
+  `constraint_0_max_power_uw`.
 
 - Linux, GPUs: AMD (`amdgpu`) from the hwmon `power1_average` or
   `power1_input` (microwatts) and `gpu_busy_percent`; Intel (`i915`,
@@ -116,7 +123,8 @@ The sources, by system:
   energy counter (millijoules), else the power (milliwatts) integrated;
   the GPU's utilisation and the process's share of its compute samples.
   Without the library, on Linux, `nvidia-smi` (power, utilisation,
-  name).
+  name). A library that is not NVML or does not start, and an
+  `nvidia-smi` that fails, add no GPU row.
 
 - macOS on Apple silicon: the energy counters of the IOReport "Energy
   Model" group (CPU, GPU, neural engine and DRAM), read without
@@ -173,14 +181,13 @@ CodeCarbon documentation: Accuracy.
 ``` r
 r <- hwpwr(0.5)
 r[, c("kind", "name", "scope", "watts", "joules", "how")]
-#>    kind           name  scope watts joules     how
-#> 1   cpu            CPU device    NA     NA unknown
-#> 2   gpu card1 (1414:6) device    NA     NA unknown
-#> 3 total    all devices device    NA     NA     sum
+#>    kind        name  scope watts joules     how
+#> 1   cpu         CPU device    NA     NA unknown
+#> 2 total all devices device    NA     NA     sum
 a <- hwpwr(0)
 x <- sum(sqrt(seq_len(1e6)))
 b <- hwpwr(since = a)
 b[b$kind == "total", c("joules", "why")]
-#>   joules                              why
-#> 3     NA not counted: CPU; card1 (1414:6)
+#>   joules              why
+#> 2     NA not counted: CPU
 ```

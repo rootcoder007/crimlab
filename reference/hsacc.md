@@ -12,7 +12,7 @@ the share `top` of the study area (or the cells marked `TRUE` when
 ## Usage
 
 ``` r
-hsacc(pred, obs, area = NULL, top = 0.1, prev = NULL)
+hsacc(pred, obs, area = NULL, top = 0.1, prev = NULL, ties = "in")
 ```
 
 ## Arguments
@@ -41,6 +41,20 @@ hsacc(pred, obs, area = NULL, top = 0.1, prev = NULL)
   `NULL` or the crimes of each cell in the period the map was made from:
   numbers from 0.
 
+- ties:
+
+  Which of the cells whose score ties across the cut-off of `top` are
+  hot: `"in"` (the default) all of them, so that the hot area may pass
+  `top`; `"out"` none of them, so that it may fall short; or `"frac"`
+  each by the share of their area that the cut-off still needs, so that
+  the hot area is `top` and `cells`, `area`, `n` and `nmax` may be
+  fractional. The sources cited do not say how ties are broken. With any
+  of the three the result does not depend on the order of the cells;
+  with no tie across the cut-off all three give the first cells by score
+  whose areas reach `top`, as before `ties` was added (when ties were
+  broken by position, so that reordering the cells could change the
+  result).
+
 ## Value
 
 A data frame with one row per `top`: `top`, `cells`, `area` (hot),
@@ -56,8 +70,8 @@ A data frame with one row per `top`: `top`, `cells`, `area` (hot),
 
 - the predictive efficiency index `PEI = n / nmax`, the crimes caught
   over the most an area of the same size could have caught, its cells
-  taken by observed crimes per unit area (Drawve 2016): 1 for a perfect
-  map of that size;
+  taken by observed crimes per unit area, of equal density the larger
+  first (Drawve 2016): 1 for a perfect map of that size;
 
 - with `prev`, the counts of the period the map was made from, the
   recapture rate index of Levine (2008), `(n / n_prev) / (N / N_prev)`:
@@ -87,8 +101,8 @@ risk <- rgamma(400, 0.5)
 before <- rpois(400, risk)
 after <- rpois(400, risk)
 hsacc(pred = before, obs = after, top = c(0.05, 0.1, 0.2), prev = before)
-#>    top cells area ashare  n   N       hit      pai nmax       pei       rri
-#> 1 0.05    20   20   0.05 36 177 0.2033898 4.067797   72 0.5000000 0.5649718
-#> 2 0.10    40   40   0.10 58 177 0.3276836 3.276836  108 0.5370370 0.5567440
-#> 3 0.20    80   80   0.20 79 177 0.4463277 2.231638  148 0.5337838 0.5386713
+#>    top cells area ashare   n   N       hit      pai nmax       pei       rri
+#> 1 0.05    42   42  0.105  59 177 0.3333333 3.174603  110 0.5363636 0.5451713
+#> 2 0.10    42   42  0.105  59 177 0.3333333 3.174603  110 0.5363636 0.5451713
+#> 3 0.20   110  110  0.275 107 177 0.6045198 2.198254  177 0.6045198 0.6045198
 ```

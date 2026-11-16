@@ -82,8 +82,7 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL, terms = NULL)
 
 - nboot:
 
-  The number of bootstrap draws, at least 2; `nboot` times the clusters
-  must be at most 67108864 (2^26).
+  The number of bootstrap draws, at least 2.
 
 - seed:
 

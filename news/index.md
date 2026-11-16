@@ -2,6 +2,186 @@
 
 ## crimlab 0.0.0.9000
 
+- Fixed:
+  [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
+  used to report r = 0 with an interval, p = 1 and nonzero
+  cross-correlations for a constant series whose mean rounds
+  (`rep(1, 10)`, `rep(0.1, 10)`); a correlation with a constant series
+  is undefined, and
+  [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
+  and the command line now refuse it, naming the series.
+
+- Fixed: the other statistics that divide by the spread of the data used
+  to return numbers for a constant input whose mean rounds
+  (`rep(0.1, n)`, `rep(1 / 3, n)`), where they refused a constant with
+  an exact mean:
+  [`gearc()`](https://rootcoder007.github.io/crimlab/reference/gearc.md),
+  [`lmorn()`](https://rootcoder007.github.io/crimlab/reference/lmorn.md),
+  [`locgi()`](https://rootcoder007.github.io/crimlab/reference/locgi.md)
+  and
+  [`bvmor()`](https://rootcoder007.github.io/crimlab/reference/bvmor.md)
+  (Geary’s C, local Moran, G and the bivariate Moran are undefined),
+  [`txcal()`](https://rootcoder007.github.io/crimlab/reference/txcal.md)
+  (no calibration line),
+  [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md)
+  (no Imbens-Kalyanaraman bandwidth),
+  [`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md)
+  (a pair with a constant unit, now skipped) and the Jarque-Bera test of
+  [`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md).
+  They now refuse it, or skip it, as for any constant.
+  `locgi(star = FALSE)` gives `NaN` for the one unit whose value differs
+  from all the others (its reference values are constant).
+  [`cmpsc()`](https://rootcoder007.github.io/crimlab/reference/cmpsc.md)
+  gives no correlation to a stretch that does not vary, as
+  [`cor()`](https://rdrr.io/r/stats/cor.html) does, instead of one made
+  of the rounding of its running sums.
+  [`ecolrg()`](https://rootcoder007.github.io/crimlab/reference/ecolrg.md)
+  and
+  [`evfilt()`](https://rootcoder007.github.io/crimlab/reference/evfilt.md)
+  refuse a covariate column that does not vary (it cannot be told from
+  the intercept), naming it, and
+  [`evfilt()`](https://rootcoder007.github.io/crimlab/reference/evfilt.md)
+  an outcome that does not vary.
+
+- Fixed:
+  [`hsacc()`](https://rootcoder007.github.io/crimlab/reference/hsacc.md)
+  used to break ties in the predicted score at the cut-off of `top` by
+  the order of the rows, so that reordering the cells changed the hit
+  rate, PAI, PEI and RRI (0.571 or 0.536 at `top = 0.2` in one example);
+  and `nmax` broke ties in density the same way. The new argument `ties`
+  says which tied cells are hot: `"in"` (all, the default), `"out"`
+  (none) or `"frac"` (each by the share of their area still needed);
+  `nmax` takes the larger of equally dense cells first. The result no
+  longer depends on the order of the rows; without ties at the cut-off
+  it is as before.
+
+- Fixed: the point patterns and distance functions used to run without
+  end, or until the machine was stopped, on extreme radii and
+  magnitudes: a radius or distance of 5e-324
+  ([`ripk()`](https://rootcoder007.github.io/crimlab/reference/ripk.md),
+  [`ripenv()`](https://rootcoder007.github.io/crimlab/reference/ripenv.md),
+  [`dbscn()`](https://rootcoder007.github.io/crimlab/reference/dbscn.md),
+  [`knxnr()`](https://rootcoder007.github.io/crimlab/reference/knxnr.md)
+  and the other functions on the shared grid of points), a radius of 1e9
+  ([`ripk()`](https://rootcoder007.github.io/crimlab/reference/ripk.md),
+  [`ripenv()`](https://rootcoder007.github.io/crimlab/reference/ripenv.md)),
+  `opteffort(W = 5e-324)`,
+  [`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md)
+  and
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  on counts of 1e50 and
+  [`smixm()`](https://rootcoder007.github.io/crimlab/reference/smixm.md)
+  on coordinates of 1e200. The grid now starts from the smallest normal
+  double and its searches stop at its edge;
+  [`opteffort()`](https://rootcoder007.github.io/crimlab/reference/ltrlrng.md)
+  refuses a `W` whose densities underflow or overflow; the goodness of
+  fit of
+  [`dstfit()`](https://rootcoder007.github.io/crimlab/reference/dstfit.md)’s
+  discrete fits looks only at the jumps of the data;
+  [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
+  refuses counts above 2^53 for its exact test;
+  [`smixm()`](https://rootcoder007.github.io/crimlab/reference/smixm.md)
+  and
+  [`sglmx()`](https://rootcoder007.github.io/crimlab/reference/sglmx.md)
+  refuse points whose squared distances overflow; and the optimisers
+  stop on an infinite start or search direction. Results for other
+  inputs are unchanged.
+
+- Fixed:
+  [`arimfc()`](https://rootcoder007.github.io/crimlab/reference/arimfc.md)
+  and
+  [`sarfc()`](https://rootcoder007.github.io/crimlab/reference/sarfc.md)
+  used to refuse a series that does not vary once differenced (a
+  constant, a straight line) in the optimiser’s words (“initial value in
+  ‘vmmin’ is not finite”); they now say “`y` does not vary once
+  differenced: the model has nothing to fit.”, as does the command line.
+
+- Fixed: the command line’s
+  [`fylbl()`](https://rootcoder007.github.io/crimlab/reference/yoylbl.md)
+  converted an `endyear` of 1e300, `Inf` or `NaN` to a whole number with
+  undefined behaviour; like R it now gives `NA` for a year outside the
+  range of an integer.
+  [`ousim()`](https://rootcoder007.github.io/crimlab/reference/ousim.md)
+  counted `days / dt` steps as an integer before checking them (1e16 at
+  `dt = 1e-9`), and the periodic baseline of the Hawkes functions its
+  integration steps; both are now counted in double first.
+
+- Fixed: the command line and `clab_jrun()` used to copy text that is
+  not valid UTF-8 from an argument or a CSV cell into their output,
+  which was then not valid JSON; they now refuse it, naming the
+  argument, in the words of R (“`group` holds text that is not valid
+  UTF-8.”). A NUL byte in a CSV cell used to end the cell’s number
+  silently (`4<NUL>0` was read as 4); it is now refused with its row and
+  column.
+
+- Fixed: a function that calls another
+  ([`runfx()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  calls
+  [`exprun()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+  and an estimator,
+  [`plmfld()`](https://rootcoder007.github.io/crimlab/reference/plmfld.md)
+  [`gplume()`](https://rootcoder007.github.io/crimlab/reference/pgsig.md),
+  [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md)
+  [`crfno2()`](https://rootcoder007.github.io/crimlab/reference/crfpm25.md),
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md)
+  [`rsvidx()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`xfrvrf()`](https://rootcoder007.github.io/crimlab/reference/xfrvrf.md)
+  [`vrfmrg()`](https://rootcoder007.github.io/crimlab/reference/vrfmrg.md),
+  [`yoywr()`](https://rootcoder007.github.io/crimlab/reference/yoywr.md)
+  the writers, and the exposure functions
+  [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md))
+  used to pass on the inner function’s refusals and warnings under the
+  inner name (“gplume: …”); they now carry the name of the function
+  called
+  ([`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md),
+  [`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md),
+  [`hetfx()`](https://rootcoder007.github.io/crimlab/reference/hetfx.md),
+  [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md),
+  [`lftab()`](https://rootcoder007.github.io/crimlab/reference/lftab.md),
+  [`plcday()`](https://rootcoder007.github.io/crimlab/reference/plcday.md),
+  [`plmfld()`](https://rootcoder007.github.io/crimlab/reference/plmfld.md),
+  [`polbrdn()`](https://rootcoder007.github.io/crimlab/reference/polbrdn.md),
+  [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md),
+  [`rsvsmp()`](https://rootcoder007.github.io/crimlab/reference/rsvidx.md),
+  [`runfx()`](https://rootcoder007.github.io/crimlab/reference/exprun.md),
+  [`typefx()`](https://rootcoder007.github.io/crimlab/reference/typefx.md),
+  [`xfrvrf()`](https://rootcoder007.github.io/crimlab/reference/xfrvrf.md),
+  [`yoyhtml()`](https://rootcoder007.github.io/crimlab/reference/yoyhtml.md),
+  [`yoywr()`](https://rootcoder007.github.io/crimlab/reference/yoywr.md)).
+
+- Fixed: the choice arguments of the exposure functions
+  ([`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
+  [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md),
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md),
+  [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md),
+  [`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md),
+  [`hetfx()`](https://rootcoder007.github.io/crimlab/reference/hetfx.md),
+  [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md),
+  [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md),
+  [`plcday()`](https://rootcoder007.github.io/crimlab/reference/plcday.md),
+  [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md),
+  [`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md),
+  [`typefx()`](https://rootcoder007.github.io/crimlab/reference/typefx.md),
+  [`updwn()`](https://rootcoder007.github.io/crimlab/reference/updwn.md),
+  [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md))
+  used to be refused by
+  [`match.arg()`](https://rdrr.io/r/base/match.arg.html) in base R’s
+  words (“‘arg’ should be one of …”); they are now refused like every
+  other choice (“ppmlfe: `se` must be one of …”).
+
+- Fixed:
+  [`hwpwr()`](https://rootcoder007.github.io/crimlab/reference/hwpwr.md)
+  used to report as measured a RAPL counter that fell by more than a
+  wrap could explain (a reset read as 257 kJ) or read above its range,
+  and read counter text that is not a whole decimal number (“0x10”,
+  “1.5e3”, an embedded NUL, 26 digits); such rows are now not measured,
+  with the reason in `why`. A FIFO in place of a counter used to block
+  the call for ever; files are now read only when regular, opened
+  without blocking. A library that is not NVML, or an `nvidia-smi` that
+  fails, no longer adds a GPU row. `dt` is at most 604800 (a week) and
+  `pid` at most 2147483647 (`pid = 2^31` used to be accepted with a
+  warning).
+
 - Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region
@@ -1444,12 +1624,13 @@
   refuse an `ndim` whose configurations would pass 2^26 values,
   [`anomin()`](https://rootcoder007.github.io/crimlab/reference/anomin.md)
   more dimensions than legislators,
-  [`nombt()`](https://rootcoder007.github.io/crimlab/reference/nombt.md)
-  and
   [`scboot()`](https://rootcoder007.github.io/crimlab/reference/scboot.md)
   too many replicates and
   [`anchv()`](https://rootcoder007.github.io/crimlab/reference/anchv.md)
   too many categories, all before allocating;
+  [`nombt()`](https://rootcoder007.github.io/crimlab/reference/nombt.md)
+  no longer keeps its replicates (it draws them twice from the seed, for
+  the means and then the deviations), so any `nboot` is only long;
   [`smacf()`](https://rootcoder007.github.io/crimlab/reference/smacf.md)
   can now be interrupted. The command line gives the same messages.
 
@@ -1487,9 +1668,10 @@
   interrupted. The command line gives the same messages.
 
 - [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md)
-  refuses an `nboot` whose kept replicates, one per procedure, would
-  pass 2^26, before it starts (it used to abort R). The command line
-  gives the same message.
+  no longer keeps its bootstrap replicates: it draws them twice from the
+  seed, summing the areas and then their squared deviations, so the
+  errors are those of the kept replicates and a large `nboot` (which
+  used to abort R) is only long.
 
 - [`inlhist()`](https://rootcoder007.github.io/crimlab/reference/inlhist.md)
   refuses more than 2^26 `bins`; the command line gives the same
@@ -1522,17 +1704,19 @@
   end and crashed R.
 
 - [`tfrp()`](https://rootcoder007.github.io/crimlab/reference/tfrp.md)
-  refuses a `ymax` of 2^26 or more,
-  [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
-  more than 2^26 records and
+  refuses a `ymax` of 2^26 or more and
   [`aorwt()`](https://rootcoder007.github.io/crimlab/reference/aorwt.md)
-  more than 2^26 bins, before anything is made; the command line gives
-  the same messages.
+  more than 2^26 bins, before anything is made;
+  [`fairsim()`](https://rootcoder007.github.io/crimlab/reference/fairsim.md)
+  makes as many records as asked, or stops with “fairsim: not enough
+  memory for `n` values.” The command line gives the same messages.
 
 - [`crwalk()`](https://rootcoder007.github.io/crimlab/reference/crwalk.md)
-  refuses `h` times `nsim` past 2^26, the simulated steps it keeps, and
+  makes its simulated paths once, as the matrices it returns (they were
+  made twice), and stops with “not enough memory for `h` times `nsim`
+  values.” when they cannot be made;
   [`vgemp()`](https://rootcoder007.github.io/crimlab/reference/vgemp.md)
-  more than 2^26 distance bins, in R and in the command line.
+  refuses more than 2^26 distance bins. The command line does the same.
 
 - [`lnsize()`](https://rootcoder007.github.io/crimlab/reference/lnsize.md)
   refuses a lineup size `k` past 2^26; the command line gives the same
@@ -1584,14 +1768,16 @@
   [`jntx()`](https://rootcoder007.github.io/crimlab/reference/jntx.md)
   an `ngrid` past 8192 (its grid has `ngrid` squared points) and
   [`dosebin()`](https://rootcoder007.github.io/crimlab/reference/dosebin.md)
-  an `nq` past 2^26; the cluster bootstrap of
+  an `nq` past 2^26. These used to stop with R’s own “cannot allocate
+  vector” error. The command line gives the same messages where it has
+  the function. The cluster bootstrap of
   [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md),
   [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md)
   and
   [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
-  refuses `nboot` times the clusters past 2^26. These used to stop with
-  R’s own “cannot allocate vector” error. The command line gives the
-  same messages where it has the function.
+  makes its draws a block at a time instead of holding the clusters by
+  `nboot` counts at once, with the same draws in the same order, so any
+  number of clusters and draws fits.
 
 - [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md)
   and
@@ -1602,18 +1788,40 @@
 - [`cconc()`](https://rootcoder007.github.io/crimlab/reference/cconc.md)
   refuses an `nsim` past 2^26,
   [`fairdf()`](https://rootcoder007.github.io/crimlab/reference/fairdf.md)
-  an `nboot` past 2^25,
-  [`cbootmean()`](https://rootcoder007.github.io/crimlab/reference/cbootmean.md)
-  a `B` and
-  [`cunif()`](https://rootcoder007.github.io/crimlab/reference/cunif.md)
-  an `n` past 2^26 and
+  an `nboot` past 2^25 and
   [`blpal()`](https://rootcoder007.github.io/crimlab/reference/blpal.md)
   more than 2^26 colours, instead of R’s “cannot allocate vector” error;
-  the command line gives the same messages.
+  [`cbootmean()`](https://rootcoder007.github.io/crimlab/reference/cbootmean.md)
+  and
+  [`cunif()`](https://rootcoder007.github.io/crimlab/reference/cunif.md)
+  make results of any length R can hold, and stop with “not enough
+  memory for `B` values.” (or `n`) when it cannot. The command line
+  gives the same messages.
 
 - [`stacel()`](https://rootcoder007.github.io/crimlab/reference/stacel.md)
   with a `top` above the cells of its grid keeps them all, as that many
   does, instead of sizing its work arrays by `top`.
+
+- No exception leaves a C entry point of the library: every `clab_*`
+  function returns `CLAB_ENOMEM` (new, 4) when an allocation fails in
+  it, `clab_jrun()` then answers “fn: not enough memory for this size.”,
+  and the command-line program prints that and exits with status 1 for a
+  failed allocation anywhere, never aborting. Python raises a
+  `MemoryError` with the message. The WebAssembly build, which has no
+  exceptions, stops the module and the JavaScript binding reports the
+  same words (`clab_oomed()`, new) and asks for the module to be loaded
+  again. In R the entry points still give the function’s name.
+
+- Sizes and products of sizes are 64-bit everywhere they were `long`,
+  which is 32 bits on Windows: the work arrays of the learners
+  ([`enpath()`](https://rootcoder007.github.io/crimlab/reference/enpath.md),
+  [`dmlx()`](https://rootcoder007.github.io/crimlab/reference/dmlx.md),
+  [`suplrn()`](https://rootcoder007.github.io/crimlab/reference/suplrn.md),
+  [`rfor()`](https://rootcoder007.github.io/crimlab/reference/rfor.md)),
+  the neighbour tables, the bins of
+  [`rddens()`](https://rootcoder007.github.io/crimlab/reference/rddens.md)
+  and others. `clab_dmlxsz()` and `clab_stksz()` now return `int64_t`
+  and take an `int64_t *`.
 
 - The quantile functions of the command line, the JSON entry and Python
   give R’s answers at a point mass: the beta quantile with both shapes 0

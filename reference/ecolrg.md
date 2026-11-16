@@ -27,7 +27,8 @@ ecolrg(y, e, x = NULL, family = "poisson", z = NULL, tol = 1e-12, maxit = 500)
 - x:
 
   `NULL`, or the covariates: a numeric matrix (or vector) with one row
-  per count. An intercept is added.
+  per count. An intercept is added, so a column that does not vary is
+  refused.
 
 - family:
 

@@ -186,7 +186,7 @@ ccross(d, "crimes", "area", "day", ma = "pm", x = "pm")
 # effects, errors clustered by county (simulated)
 d$o3 <- rnorm(nrow(d), 0.03, 0.01)
 ccross(d, "crimes", "area", "day", x = c("pm", "o3"), clus = "area")
-#> Warning: ppmlfe: fewer than ten clusters; cluster-robust errors are unreliable with so few (wcbx() is made for this case).
+#> Warning: ccross: fewer than ten clusters; cluster-robust errors are unreliable with so few (wcbx() is made for this case).
 #> ppmlfe: Poisson pseudo-likelihood, 1460 rows, fixed effects .strat; clustered errors (area; 4)
 #>  term     est       se    stat         p        lo     hi    rr
 #>    pm 0.01407 0.002616 5.37971 7.461e-08  0.008946 0.0192 1.014
@@ -204,7 +204,7 @@ d$hol <- as.numeric(format(d$day, "%m-%d") %in% c("01-01", "10-01"))
 d$crimes <- rpois(nrow(d), exp(1 + 0.004 * d$no2))
 h <- ccross(d, "crimes", "area", "day", x = c("no2", "hol"),
             ns = c(temp = 6, rh = 3), clus = "area")
-#> Warning: ppmlfe: fewer than ten clusters; cluster-robust errors are unreliable with so few (wcbx() is made for this case).
+#> Warning: ccross: fewer than ten clusters; cluster-robust errors are unreliable with so few (wcbx() is made for this case).
 b <- h$coef[h$coef$term == "no2", ]
 100 * (exp(c(b$est, b$lo, b$hi) * IQR(d$no2)) - 1)
 #> [1]  1.4930239 -0.7746229  3.8124944

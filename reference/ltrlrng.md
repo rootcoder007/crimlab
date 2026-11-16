@@ -106,7 +106,9 @@ print(x, ...)
   Positive number: the sweep width, in the distance unit of the grid and
   the effort (nautical miles, kilometres: one unit throughout). For
   `srchpod()`, give it with `effort` and `area` in place of `coverage`;
-  default `NULL`.
+  default `NULL`. For `opteffort()`, `poc * W / area` and `area / W`
+  must be finite, and positive where `poc` is (a width of 5e-324 makes
+  every density 0).
 
 - model:
 

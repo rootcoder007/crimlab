@@ -93,9 +93,8 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL, terms = NULL)
 
 - nboot, seed:
 
-  The bootstrap draws (at least 2; `nboot` times the clusters at most
-  67108864 (2^26)) and `NULL` or a whole number for R's generator, for
-  `se = "boot"`.
+  The bootstrap draws (at least 2) and `NULL` or a whole number for R's
+  generator, for `se = "boot"`.
 
 - sep:
 

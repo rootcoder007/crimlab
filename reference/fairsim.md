@@ -24,7 +24,7 @@ fairsim(
 
 - n:
 
-  The number of records: a whole number from 1 to 67108864 (2^26).
+  The number of records: a whole number from 1.
 
 - groups:
 
