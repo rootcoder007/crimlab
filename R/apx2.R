@@ -538,7 +538,11 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #' the penalty of the paper's smooth, so the fit is that of a fixed basis,
 #' not of 'mgcv'; `form = "linear"` uses `x1`, `x2` and `x1 x2`, the
 #' common product-term model. The meta-analysis across cities is not
-#' done here: fit each city and pool the `cond` rows. Use [ccross()]'s
+#' done here: fit each city and pool the `cond` rows. Berman et al. (2019)
+#' estimate the risk of violent and property crime from daily PM2.5, ozone
+#' and temperature in some 300 US counties with "a two-stage hierarchical
+#' time series model", the counties' series pooled in the second stage,
+#' the same pattern. Use [ccross()]'s
 #' `ma` for the lag01 averages, and the fixed effects of [ppmlfe()] for
 #' the paper's spline of calendar time and day of week (or give them in
 #' `...`).
@@ -565,6 +569,11 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
 #'   joint effects of ozone and temperature exposure on violent crime during
 #'   warm months in the United States. *Environmental Research*, 310,
 #'   125969. \doi{10.1016/j.envres.2026.125969}
+#'
+#'   Berman, J., Burkhardt, J., Bayham, J., Carter, E. and Wilson, A.
+#'   (2019). Acute air pollution exposure, temperature, and the risk of
+#'   violent behavior in the United States. Conference abstract,
+#'   *Environmental Epidemiology* (ISEE 2019 abstracts).
 #'
 #'   Harrell, F. E. (2015). *Regression Modeling Strategies*, 2nd ed.
 #'   Springer. \doi{10.1007/978-3-319-19425-7}

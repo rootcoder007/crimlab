@@ -418,7 +418,16 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' allows for serial correlation within clusters only), and report the
 #' Kleibergen-Paap first-stage statistic (`first$kp`). Ayesh (2023, eqs
 #' 1-3) and Bao and Da (2026, sec. 4) instrument district- and
-#' county-level pollution by downwind exposure ([dwnexp()]).
+#' county-level pollution by downwind exposure ([dwnexp()]). Singh and
+#' Visaria (2021, eqs 2 and 4) regress the daily complaints of each police
+#' station of Bihar on PM2.5 instrumented by octant-by-division wind
+#' indicators ([windiv()]), with weather in quartile indicators, station,
+#' year, month, calendar-week and weekday effects and errors clustered by
+#' station. Without `endo` this is least squares with absorbed effects, as
+#' Wesselbaum (2022, eq 1) fits the hourly counts of crimes near each pair
+#' of weather and pollution stations on the pollutants and their squares,
+#' with station, year, month, day and hour effects and errors clustered by
+#' hour (each crime matched to the nearest stations).
 #'
 #' @param y The name of the outcome column (numeric).
 #' @param endo `NULL` or the names of the endogenous columns (the
@@ -476,6 +485,14 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #'   Ayesh, A. (2023). Burned agricultural biomass, air pollution and
 #'   crime. *Journal of Environmental Economics and Management*, 122,
 #'   102887. \doi{10.1016/j.jeem.2023.102887}
+#'
+#'   Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
+#'   crime. Evidence from India. Working paper, Hong Kong University of
+#'   Science and Technology.
+#'
+#'   Wesselbaum, D. (2022). Violent crimes and homicide in New York City:
+#'   the role of weather and pollution. *Journal of Forensic and Legal
+#'   Medicine*, 91, 102430. \doi{10.1016/j.jflm.2022.102430}
 #'
 #'   Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
 #'   California. Working paper, Renmin University of China.
@@ -1122,11 +1139,18 @@ summary.expgmm <- function(object, ...) object[["coef"]]
 #' base = 3`), the direction averaged per region and day and allowed to act
 #' differently in each region (`area`; their robustness check narrows the
 #' bins to 60 degrees). Batkeyev and DeRemer (2023, sec. 4.3) use "the
-#' [0,1] share of weather observations within each time period for which
+#' `[0,1]` share of weather observations within each time period for which
 #' winds are blowing from the southeast, south-by-southeast, or
 #' east-by-southeast", the three 22.5-degree points from 101.25 to 168.75
 #' degrees (`sect = c(101.25, 168.75)`, `by` the period, `share = TRUE`),
 #' for the city's five southern districts and 0 for the northern ones.
+#' Singh and Visaria (2021, eq 4) assign each police station the wind of
+#' the nearest grid point and use "eight wind direction bins ... based on
+#' the octant from which the wind blows", interacted with the nine
+#' administrative divisions of Bihar, with "wind from the east as the base"
+#' (63 instruments); with octants centred on the compass points that is
+#' `width = 45, start = 22.5, base = 2` and `area` the division (the paper
+#' does not say where its octants start).
 #' Sarmiento (2020, eqs 7-8) enters "wind direction" in an hourly
 #' station-level first stage without saying in what form; the sectors here
 #' are one form, and the choice should be reported.
@@ -1185,6 +1209,10 @@ summary.expgmm <- function(object, ...) object[["coef"]]
 #'   Sarmiento, L. (2020). I am innocent: hourly variations in air
 #'   pollution and crime behavior. DIW Berlin Discussion Paper.
 #'   \doi{10.2139/ssrn.3639084}
+#'
+#'   Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
+#'   crime. Evidence from India. Working paper, Hong Kong University of
+#'   Science and Technology.
 #' @seealso [ivfe()], [ppmlcf()], [invsn()], [dwnexp()]
 #' @examples
 #' windiv(c(10, 100, 200, 300))

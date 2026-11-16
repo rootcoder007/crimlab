@@ -18,15 +18,17 @@
 #'   blows to, and the place within `rad` of the source (a place at the
 #'   source counts). This is the point ("centroid") instrument of Bao and
 #'   Da (2026, sec. 3.3), each county collapsed to one point and "the
-#'   great-circle bearing from the plume anchor to that point" within
-#'   "±30°" of the mean wind to-direction (`half = 30`, `rad = Inf`).
+#'   great-circle bearing from the plume anchor to that point" within 30
+#'   degrees either side of the mean wind to-direction (`half = 30`, `rad =
+#'   Inf`).
 #' * `"wedge"`: a place's polygon meets the wedge of half-angle `half` and
 #'   radius `rad` about that direction from the source: their baseline
-#'   instrument, "a wedge-shaped transport corridor ... with a half-angle of
-#'   30° and a radius of 1,000 km", a county downwind "if its census polygon
-#'   intersects this wedge" (sec. 3.3). Planar coordinates only (projected,
-#'   `rad` in their unit). The polygon meets the wedge when a vertex lies in
-#'   it, the apex lies in the polygon, or an edge crosses a side or the arc.
+#'   instrument, "a wedge-shaped transport corridor" with a half-angle of
+#'   30 degrees and a radius of 1,000 km, a county downwind "if its census
+#'   polygon intersects this wedge" (sec. 3.3). Planar coordinates only
+#'   (projected, `rad` in their unit). The polygon meets the wedge when a
+#'   vertex lies in it, the apex lies in the polygon, or an edge crosses a
+#'   side or the arc.
 #' * `"angle"`: per period, the angle between the bearing from the sources'
 #'   mean point to the place and the direction of the sources' mean wind
 #'   vector, and the mean distance from the place to the sources (those at
@@ -46,7 +48,7 @@
 #' The choices the papers leave open, as arguments:
 #'
 #' * `from`: Bao and Da convert the "from-direction" to a "to-direction"
-#'   "by adding 180°"; Ayesh subtracts the wind direction from the
+#'   by adding 180 degrees; Ayesh subtracts the wind direction from the
 #'   azimuth without saying which way the direction is recorded. `from =
 #'   TRUE` (the default) adds 180 degrees, so that the angle is 0 for a
 #'   place straight downwind; `from = FALSE` uses `sdir` as given.

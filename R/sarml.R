@@ -172,6 +172,10 @@ spill <- function(fit = NULL, w = NULL, rho = NULL, b = NULL, th = NULL) {
 #'
 #'   Cliff, A. D. and Ord, J. K. (1981). *Spatial Processes: Models and
 #'   Applications*. Pion, London.
+#'
+#'   Bivand, R. S., Pebesma, E. and Gomez-Rubio, V. (2013). *Applied
+#'   Spatial Data Analysis with R*, 2nd ed., sec. 9.3. Springer.
+#'   \doi{10.1007/978-1-4614-7618-4}
 #' @examples
 #' set.seed(1)
 #' p <- cbind(x = runif(50), y = runif(50))
