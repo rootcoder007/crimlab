@@ -430,6 +430,16 @@ from ._j import (
     dosebin,
     typefx,
     plcday,
+    blpal,
+    yoypals,
+    plotcdfs,
+    plotlrnz,
+    plotgain,
+    plotmult,
+    plothrz,
+    plotbump,
+    plotfnl,
+    plotcal,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -884,6 +894,16 @@ __all__ = [
     "dosebin",
     "typefx",
     "plcday",
+    "blpal",
+    "yoypals",
+    "plotcdfs",
+    "plotlrnz",
+    "plotgain",
+    "plotmult",
+    "plothrz",
+    "plotbump",
+    "plotfnl",
+    "plotcal",
 ]
 
 

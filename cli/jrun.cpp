@@ -1624,6 +1624,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jdwn.inc"
 #include "jrdd.inc"
 #include "jax2.inc"
+#include "jplt.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2070,6 +2071,16 @@ const Ent ents[] = {
     {"dosebin", "data y var nq? brk? ref? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", dosebin},
     {"typefx", "data ys term est? adj? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", typefx},
     {"plcday", "data var unit day shifts? est? with? shift? y? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", plcday},
+    {"blpal", "name? n?", blpal},
+    {"yoypals", "", yoypals},
+    {"plotcdfs", "x grp?", plotcdfs},
+    {"plotlrnz", "x", plotlrnz},
+    {"plotgain", "x grp?", plotgain},
+    {"plotmult", "y prd grp?", plotmult},
+    {"plothrz", "y prd grp? bands?", plothrz},
+    {"plotbump", "y prd grp desc?", plotbump},
+    {"plotfnl", "obs expd area? lvls? target?", plotfnl},
+    {"plotcal", "x y", plotcal},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

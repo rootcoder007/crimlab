@@ -7275,3 +7275,141 @@ def plcday(data: Any, var: Any, unit: Any, day: Any, shifts: Any = None, est: An
     """
     return jcall("plcday", data=data, var=var, unit=unit, day=day, shifts=shifts, est=est, with_=with_,
                  shift=shift, **args)
+
+
+def blpal(name: Any = "okabe", n: Any = None) -> Any:
+    """The colours of a palette of the package's plots.
+
+    The arguments and the result are those of R's ``blpal()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> blpal("sequential", 3)
+    ['#C6DBEF', '#2171B5', '#041E42']
+    """
+    return jcall("blpal", name=name, n=n)
+
+
+def yoypals() -> Any:
+    """The names of the palettes of the change tables.
+
+    Examples
+    --------
+    >>> yoypals()
+    ['diverging', 'safe', 'mono']
+    """
+    return jcall("yoypals")
+
+
+def plotcdfs(x: Any, grp: Any = None) -> Any:
+    """The rows of R's ``plotcdfs()``, the empirical distribution functions.
+
+    Nothing is drawn outside R. The arguments and the result are those of
+    R's ``plotcdfs()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> plotcdfs([3, 1, 2])["y"]
+    [0.3333333333333333, 0.6666666666666666, 1.0]
+    """
+    return jcall("plotcdfs", x=x, grp=grp)
+
+
+def plotlrnz(x: Any) -> Any:
+    """The rows of R's ``plotlrnz()``, a Lorenz curve.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotlrnz()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> list(plotlrnz({"pop": [0.5, 1], "share": [0.2, 1]}))
+    ['pop', 'share']
+    """
+    return jcall("plotlrnz", x=x)
+
+
+def plotgain(x: Any, grp: Any = None) -> Any:
+    """The rows of R's ``plotgain()``, concentration curves by group.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotgain()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> list(plotgain([5, 1, 3, 0, 8, 2], ["u", "v"] * 3))
+    ['grp', 'pop', 'share']
+    """
+    return jcall("plotgain", x=x, grp=grp)
+
+
+def plotmult(y: Any, prd: Any, grp: Any = None) -> Any:
+    """The rows of R's ``plotmult()``, small multiples of series.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotmult()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> plotmult([3, 4], [2, 1])["y"]
+    [4.0, 3.0]
+    """
+    return jcall("plotmult", y=y, prd=prd, grp=grp)
+
+
+def plothrz(y: Any, prd: Any, grp: Any = None, bands: Any = 3) -> Any:
+    """The rows of R's ``plothrz()``, a horizon chart.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plothrz()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> plothrz([3, 4, 9], [1, 2, 3], bands=2)["band"]
+    [1.0, 0.0, 2.0]
+    """
+    return jcall("plothrz", y=y, prd=prd, grp=grp, bands=bands)
+
+
+def plotbump(y: Any, prd: Any, grp: Any, desc: Any = True) -> Any:
+    """The rows of R's ``plotbump()``, ranks over time.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotbump()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> plotbump([3, 4, 5, 6], [1, 1, 2, 2], ["a", "b", "a", "b"])["rank"]
+    [2.0, 2.0, 1.0, 1.0]
+    """
+    return jcall("plotbump", y=y, prd=prd, grp=grp, desc=desc)
+
+
+def plotfnl(obs: Any, expd: Any, area: Any = None, lvls: Any = None, target: Any = 1) -> Any:
+    """The rows of R's ``plotfnl()``, a funnel plot of ratios.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotfnl()`` but its drawing arguments (``lvls`` left out is R's
+    default).
+
+    Examples
+    --------
+    >>> plotfnl([5, 30], [6, 10], area=["p", "q"])["outside"]
+    [False, True]
+    """
+    return jcall("plotfnl", obs=obs, expd=expd, area=area, lvls=lvls, target=target)
+
+
+def plotcal(x: Any, y: Any) -> Any:
+    """The rows of R's ``plotcal()``, a calendar of daily values.
+
+    Nothing is drawn outside R. ``x`` holds dates as "YYYY-MM-DD" or as
+    days since 1970-01-01; the result's dates are days.
+
+    Examples
+    --------
+    >>> plotcal(["2024-01-01", "2024-01-08"], [1, 2])["week"]
+    [0.0, 1.0]
+    """
+    return jcall("plotcal", x=x, y=y)
