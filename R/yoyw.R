@@ -132,7 +132,9 @@ fylbl <- function(endyear, sep = "/", short = TRUE) {
 yoysmry <- function(x, lag = 1) {
   d <- .ytab(x, "yoysmry")
   .ylag(lag, "yoysmry")
-  if (!nrow(d)) {
+  # NROW() of a column: a table subset to no rows can come back from
+  # as.data.frame(unclass()) without a row count
+  if (!NROW(d[["prd"]])) {
     stop("yoysmry: `x` has no rows: there is nothing to summarise.",
          call. = FALSE)
   }
@@ -508,7 +510,7 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
 
 # an array of row objects; ind the indentation of the array, NULL flat
 .yjsrows <- function(d, ind) {
-  if (!nrow(d)) {
+  if (!length(d) || !NROW(d[[1L]])) {
     return("[]")
   }
   rows <- vapply(seq_len(nrow(d)), function(i) {
