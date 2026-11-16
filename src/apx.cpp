@@ -985,7 +985,7 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
     const int ar = area ? area[i] : 0;
     if (ar < 0 || ar >= na) return CLAB_EARG;
     if (!std::isfinite(dir[i])) {
-      for (std::size_t c = 0; c < static_cast<std::size_t>(na) * static_cast<std::size_t>(k); ++c) out[sz(c, n) + static_cast<size_t>(i)] = kutil::nan();
+      for (std::size_t c = 0; c < static_cast<std::size_t>(na) * static_cast<std::size_t>(k); ++c) out[c * static_cast<std::size_t>(n) + static_cast<std::size_t>(i)] = kutil::nan();
       continue;
     }
     double a = std::fmod(dir[i] - start, 360.0);
