@@ -2891,7 +2891,7 @@ summary.expjn <- function(object, ...) {
   vdir <- (atan2(vs(sin), vs(cos)) * 180 / pi) %% 360
   # winds that cancel, or calm, have no direction: a mean vector shorter
   # than 1e-9 of the mean speed is rounding
-  vdir[!(sqrt(vs(sin)^2 + vs(cos)^2) > 1e-9 * vs(function(r) 1))] <- NA
+  vdir[sqrt(vs(sin)^2 + vs(cos)^2) <= 1e-9 * vs(function(r) 1)] <- NA
   if (!is.null(area)) {
     nar <- tapply(as.character(area), gk$c, function(v) length(unique(v)))
     if (any(nar > 1L)) {
