@@ -12,7 +12,7 @@
 // sample() (igh::Rng, src/igk.h); outside R there is no generator to draw
 // from without a seed, so it needs one. The functions that take an
 // estimator function (plcday, runfx, hetfx, ccross, jntx, dosebin,
-// typefx) have no counterpart, as the `stat` of bandx() has none.
+// typefx) are in jax2.inc.
 
 namespace ax {
 

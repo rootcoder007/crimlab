@@ -2064,6 +2064,20 @@ int clab_expgmm(const double *y, const double *x, int k, const double *z, int s,
                 const double *off, const double *b0, const int *cl, int ncl, int err, int step,
                 int maxit, double tol, double *beta, double *vc, double *st);
 
+/* expgmm() from its columns: clab_expgmm with the effects as indicator
+ * columns of x and z after xr (n x px; the endogenous columns and the
+ * controls) and zr (n x pz; the excluded instruments and the controls):
+ * every level of f1 (n codes, n1 levels), the levels of f2 (NULL or n
+ * codes, n2 levels) but its first, or a constant when f1 is NULL; the
+ * start values those of each f1 effect (or the constant) at the log of
+ * its counts over its exposure exp(off), the others 0. beta and vc have
+ * px + nd entries per side, nd the indicator columns. The other arguments
+ * and the results are those of clab_expgmm. */
+int clab_expgmmd(const double *y, const double *xr, int px, const double *zr, int pz, int n,
+                 const int *f1, int n1, const int *f2, int n2, const double *off, const int *cl,
+                 int ncl, int err, int step, int maxit, double tol, double *beta, double *vc,
+                 double *st);
+
 /* The over-identification tests of clab_ivfe (ivfe): the same data,
  * effects (with the mx more sets fx of clab_ivfek) and demeaning; X = (xe, xx), Z = (zi, xx), q >= pe. st (3): the
  * Sargan statistic n u'Z(Z'Z)^-1 Z'u / u'u at the two-stage least squares
@@ -3853,6 +3867,42 @@ int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const
 /* Grams of CO2e as kilometres in a European passenger car (175 g/km) and
  * tree-months of uptake (917 g each). */
 void clab_fpeqv(double g, double *out);
+/* clab_cimatch() of key, else of its part before the first '-' (a zone
+ * of a country the table has no row of its own for), *zone then 1; -1
+ * when neither matches. */
+int clab_cizone(const char *key, int *zone);
+/* Where a run is, for its carbon intensity: the first of env and cod (each
+ * a location clab_cimatch() knows), the territory of the IANA time zone tz
+ * (or, for a territory without a row, the grid clab_terrproxy() gives, or
+ * WORLD), and the country of a locale lc that begins
+ * ^[A-Za-z]{2,3}_[A-Z]{2}; WORLD when none. "" stands for an absent value.
+ * *loc: the location code (static storage); how: the method in words, at
+ * most cap bytes with the terminating 0, its full length in *len (call
+ * again with a buffer of *len + 1 bytes when *len >= cap); *ign: 1 when env
+ * and 2 when cod was given but is not a known location (it was ignored). */
+int clab_fploc(const char *env, const char *cod, const char *tz, const char *lc, const char **loc,
+               char *how, size_t cap, size_t *len, int *ign);
+/* The CPU-package RAPL domains under a powercap directory dir: entries
+ * intel-rapl:<digits> holding energy_uj whose name file's first line
+ * starts with "package", sorted, as paths dir/<entry>, each followed by a
+ * 0 byte, into buf when their *len bytes fit in cap (call again with *len
+ * bytes otherwise); *n their number, 0 when dir cannot be listed. */
+int clab_rapldom(const char *dir, char *buf, size_t cap, size_t *len, int *n);
+/* A RAPL domain's counter (energy_uj, microjoules) and its range
+ * (max_energy_range_uj), each NaN when its file's first line is not one
+ * number. */
+void clab_raplrd(const char *dom, double *uj, double *mx);
+/* The idle (fourth plus fifth number) and total (sum) ticks of the first
+ * line of a CPU accounting file such as /proc/stat: "cpu " and at least
+ * four numbers, else CLAB_EDOM. */
+int clab_cpuacc(const char *path, double *out);
+/* The machine's memory in GB, from MemTotal in /proc/meminfo or hw.memsize
+ * on macOS; NaN when neither can be read. */
+double clab_memgb(void);
+/* The assumption the i-th flag of clab_fpe() (i 0 to 4: bits 1, 4, 2, 8,
+ * 16, the order a footprint lists them) records, NULL when that bit is not
+ * set in flags; machine non-zero for codecarbon's machine load curve. */
+const char *clab_fpnote(int i, int flags, int machine);
 
 /* ------------------------------------------------------------------------
  * The exposure-response estimate of exprspplr() (plr.cpp).
@@ -4187,6 +4237,21 @@ int clab_ikbw(const double *y, const double *x, int n, double c, int kern, doubl
  * CLAB_EDOM when c is not inside the data or a side cannot be fitted. */
 int clab_mccr(const double *r, int n, double c, double b, double h, double *st);
 
+/* One local polynomial fit of rdloc(): y (n) against r (n), the running
+ * variable minus the cutoff, with the weights of kern (as clab_rdck) at
+ * r / h, of order p (1 or 2) on each side, the rows within the bandwidth
+ * alone. Sharp (t NULL): the jump of y at 0; fuzzy: its ratio to the jump
+ * of t (n), the treatment instrumented by the side (r >= 0), by
+ * clab_ivfe. Its variance from the rows' scores (clab_vcx),
+ * heteroskedasticity-robust (cl NULL) or clustered by cl (n codes from 0,
+ * renumbered among the rows kept), times G / (G - 1) with ssc 1 (G the
+ * rows or the clusters). Out: st (7): the estimate, its standard error,
+ * the rows kept, those left and right of 0, G, and a status: 0, or 1
+ * when a side has fewer than p + 2 rows within h, or 2 when the rows kept
+ * fall in one cluster (the others NaN then). */
+int clab_rdfit(const double *y, const double *r, const double *t, int n, double h, int kern,
+               int p, const int *cl, int ssc, double *st);
+
 /* ------------------------------------------------------------------------
  * Environmental crime (src/env.cpp).
  * ------------------------------------------------------------------------ */
@@ -4324,6 +4389,95 @@ int clab_ccedyn(int nu, int nt, int k, const double *y, const double *x, const d
                 const double *d, int q, const int *av, int p, const int *rm, int pool,
                 double *bi, double *bmg, double *vmg, double *bp, double *vp, double *hb,
                 int *bad);
+
+/* The concentration-response function of crfpm25() (pm non-zero; out 0
+ * all-cause, 1 ischaemic heart disease, 2 stroke) or crfno2() (pm 0; out
+ * 0 all-cause, 1 respiratory, 2 asthma onset in children): form 0
+ * log-linear with par[0] the log RR per 10 and ci its 95% limits, form 1
+ * the IER with par = alpha, gamma, delta and ci NaN. par: 3 doubles, ci:
+ * 2. CLAB_EARG for an outcome out of range. */
+int clab_crfpar(int pm, int out, int *form, double *par, double *ci);
+/* polbrdn() over the n areas of a table at exposures e, populations pop
+ * and baseline rates br per person-year, everyone exposed, at the
+ * reference concentration of the pollutant's CRF (pm and out as
+ * clab_crfpar()): rr, paf, att (attributable cases) and base (baseline
+ * cases), worst first (att decreasing, ties in table order, NaN last),
+ * ord the one-based rows they come from. bad: 0, or the one-based first
+ * row a check of polbrdn() refuses (a negative or non-finite value, or a
+ * rate outside 0, 1e-5 to 0.1, widened to 1e-11 by rare and to 1 by
+ * hirate), the outputs then unset. O(n log n). */
+int clab_pbarea(size_t n, const double *e, const double *pop, const double *br, int pm, int out,
+                int rare, int hirate, double *rr, double *paf, double *att, double *base, int64_t *ord,
+                int64_t *bad);
+
+/* The ROC curve of n pairs with probabilities prob (NaN for NA) and flags
+ * lk (1 linked, 0 not, anything else NA): from (0, 0), the share of
+ * unlinked (fpr) and of linked (tpr) pairs at or above each distinct
+ * probability, largest first, k points in all (fpr, tpr: n + 1 doubles),
+ * and auc the trapezoid area under it. na[g] is set when group g holds a
+ * missing value (its shares are then NA in R). O(n log n). */
+int clab_rocpts(size_t n, const double *prob, const int *lk, double *fpr, double *tpr, size_t *k,
+                double *auc, int *na);
+/* ------------------------------------------------------------------------
+ * Data description between arguments and results (dscd.cpp; the text
+ * tables are in dscd.h).
+ * ------------------------------------------------------------------------ */
+
+/* The sketch of the n values x in bins characters, the non-finite ones
+ * skipped: blanks when none is finite, one full block in the middle when
+ * they have no spread, else each bin of clab_hbin() as one of 8 block
+ * heights (uni; UTF-8, 3 bytes each) or 5 ASCII marks, a blank for an
+ * empty bin. Writes *len bytes, at most 3 bins, to out, unterminated. */
+int clab_spark(const double *x, int64_t n, int bins, int uni, char *out, int64_t *len);
+/* The profile of a numeric column x (n, NaN missing): st (12) its distinct
+ * values, zeros, negative and infinite values (0 and NaN when none is
+ * present), then of its finite values the mean, sd, median, MAD, min, max,
+ * skewness (clab_pstat()) and the number beyond the fences (NaN when none
+ * is finite); q, their type-7 quantiles at the np probabilities pr. */
+int clab_prof(const double *x, int64_t n, const double *pr, int np, double *st, double *q);
+/* The Mahalanobis outliers of x (n x p, NaN missing): the complete rows by
+ * descending distance (clab_maha()), then the others in order, NaN. Of
+ * each row (n): its position from 1, the distance, the p-value of the
+ * chi-square on p and its log, and whether the p-value is below alpha (1,
+ * 0; -1 for an incomplete row). CLAB_EDOM with why 1 for fewer than p + 1
+ * complete rows, 2 for collinear columns. */
+int clab_mhtab(const double *x, int64_t n, int p, int robust, double alpha, int *row, double *d, double *pv,
+               double *lp, int *ol, int *why);
+/* The runs of minrun or more missing values (clab_nrun()) of every column
+ * of na (n x p), longest first, ties by rank[column] (p): the column (from
+ * 1), first and last row into col, st, en (room for p (n + 1) / 2 runs);
+ * their number in *k. */
+int clab_mruns(const int *na, int64_t n, int p, int minrun, const int *rank, int *col, int *st, int *en,
+               int64_t *k);
+/* The positions (from 1) of the at most top correlations r (k) that are
+ * present and at least minabs in absolute value, largest first, ties in
+ * order; their number in *m. */
+int clab_topc(const double *r, int64_t k, double minabs, int64_t top, int *idx, int64_t *m);
+/* Little's test's data from x (n x p, NaN missing): the columns with a
+ * value, then the rows with a value in one of them, into y (m x k,
+ * column-major; room for n p) and the kept columns (from 1) into keep.
+ * CLAB_EDOM with why 1 when a kept value is infinite, 2 when fewer than
+ * two columns or rows are kept. */
+int clab_mcdrop(const double *x, int64_t n, int p, double *y, int64_t *m, int *keep, int *k, int *why);
+
+/* ------------------------------------------------------------------------
+ * The exposure file of vrfpol() (vrfp.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Whether the last n (11) bytes t of a bzip2 file end its stream: the
+ * end-of-stream marker 0x177245385090 at a bit offset of 1 to 8, its CRC,
+ * then zero bits. 1, else 0. */
+int clab_bz2end(const unsigned char *t, int64_t n);
+/* Whether the n bytes d inflated from a gzip file end with the data its
+ * last member's trailer t (nt: 8 bytes, CRC-32 then length, little
+ * endian) describes. 1, else 0. */
+int clab_gzend(const unsigned char *d, int64_t n, const unsigned char *t, int64_t nt);
+/* The encoding of the n bytes r of a text file: 1 to 4 for the byte-order
+ * mark of UTF-32LE, UTF-32BE, UTF-16LE or UTF-16BE (its length in *bom);
+ * else 0 without NUL bytes, 3 (UTF-16LE) or 4 (UTF-16BE) when, of the
+ * first 2000 bytes, more than 90% of those at the even (odd) positions
+ * from 1 are NUL and fewer than 10% of the others, -1 otherwise. */
+int clab_txtenc(const unsigned char *r, int64_t n, int *bom);
 
 #ifdef __cplusplus
 }

@@ -2049,7 +2049,7 @@ for (f in c("runfx", "hetfx", "ccross", "jntx", "dosebin", "typefx",
   }))
 }
 ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"),
-   x = "temp", fe = "area")
+   x = "temp", fe = "area", se = "hc1")
 ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"),
    fe = c("area", "day"), se = "hc1", step = "one", err = "add", ssc = "none",
    level = 0.9)
@@ -2072,8 +2072,15 @@ ok("hetfx", data = axd, var = "pm", mod = "g", est = "ivfe", y = "crimes",
    endo = "pm", inst = "w90", x = "temp", fe = "area", se = "hc1")
 bad("hetfx", data = axd, var = "pm", mod = "area", y = "crimes", x = "pm",
     fe = "day", how = "x")
-axc <- axd
-axc$date <- as.Date("2024-01-25") + axd$day
+# eight weeks for four areas: a stratum of year, month and weekday then
+# holds several days, which twelve days running do not give
+axc <- data.frame(area = rep(letters[1:4], each = 56), day = rep(1:56, 4))
+axc$date <- as.Date("2024-01-07") + axc$day
+ic <- seq_len(nrow(axc))
+axc$temp <- round(15 + 4 * cos(axc$day / 2) + ic %% 5, 2)
+axc$pm <- round(20 + 3 * sin(ic) + 2 * cos(ic / 3) + 0.3 * axc$temp, 2)
+axc$crimes <- (axc$day * 3 + ic) %% 7 + rep(0:3 %% 3, each = 56) +
+  round(axc$pm / 10)
 ok("ccross", data = axc, y = "crimes", unit = "area", day = "date", x = "pm",
    se = "hc1")
 ok("ccross", data = axc, y = "crimes", unit = "area", day = "date",

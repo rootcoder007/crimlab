@@ -1227,4 +1227,50 @@ int clab_runlen(const int *u, const double *t, const double *e, int n, double st
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 
+int clab_expgmmd(const double *y, const double *xr, int px, const double *zr, int pz, int n,
+                 const int *f1, int n1, const int *f2, int n2, const double *off, const int *cl,
+                 int ncl, int err, int step, int maxit, double tol, double *beta, double *vc,
+                 double *st) CLAB_TRY {
+  if (n < 1 || px < 0 || pz < 0 || (f1 == nullptr && f2 != nullptr) || (f1 != nullptr && n1 < 1) ||
+      (f2 != nullptr && n2 < 1)) {
+    return CLAB_EARG;
+  }
+  const size_t un = static_cast<size_t>(n);
+  // the effects: every level of the first set, the second set less its
+  // first level, or the constant without effects
+  const int nd = f1 == nullptr ? 1 : n1 + (f2 == nullptr ? 0 : n2 - 1);
+  const int k = px + nd, s = pz + nd;
+  std::vector<double> x(un * static_cast<size_t>(k), 0.0), z(un * static_cast<size_t>(s), 0.0);
+  std::copy(xr, xr + un * static_cast<size_t>(px), x.begin());
+  std::copy(zr, zr + un * static_cast<size_t>(pz), z.begin());
+  for (size_t i = 0; i < un; ++i) {
+    const auto set = [&](int j) {
+      x[static_cast<size_t>(px + j) * un + i] = 1.0;
+      z[static_cast<size_t>(pz + j) * un + i] = 1.0;
+    };
+    if (f1 == nullptr) {
+      set(0);
+      continue;
+    }
+    if (f1[i] < 0 || f1[i] >= n1 || (f2 != nullptr && (f2[i] < 0 || f2[i] >= n2))) return CLAB_EARG;
+    set(f1[i]);
+    if (f2 != nullptr && f2[i] > 0) set(n1 + f2[i] - 1);
+  }
+  // the start: each first-set effect (or the constant) at the log of its
+  // counts over its exposure
+  const int g = f1 == nullptr ? 1 : n1;
+  std::vector<double> sy(static_cast<size_t>(g), 0.0), se(static_cast<size_t>(g), 0.0),
+      b0(static_cast<size_t>(k), 0.0);
+  for (size_t i = 0; i < un; ++i) {
+    const size_t a = f1 == nullptr ? 0 : static_cast<size_t>(f1[i]);
+    sy[a] += y[i];
+    se[a] += off == nullptr ? 1.0 : std::exp(off[i]);
+  }
+  for (int j = 0; j < g; ++j) {
+    b0[static_cast<size_t>(px + j)] = std::log(sy[static_cast<size_t>(j)] / se[static_cast<size_t>(j)]);
+  }
+  return clab_expgmm(y, x.data(), k, z.data(), s, n, off, b0.data(), cl, ncl, err, step, maxit, tol,
+                     beta, vc, st);
+} CLAB_CATCH(CLAB_ENOMEM)
+
 }  // extern "C"

@@ -1288,6 +1288,66 @@ func Wsctst(args string) (string, error) { return Jrun("wsctst", args) }
 // Ccepnl runs ccepnl() of the R package (arguments: y x unit time fac? cons? w? avg? ylag? lags? bias? pool? pvar? level?; ? marks an optional one).
 func Ccepnl(args string) (string, error) { return Jrun("ccepnl", args) }
 
+// Rdloc runs rdloc() of the R package (arguments: data y run cut? trt? bw? h? kern? ci? se? clus? ssc? plac? level?; ? marks an optional one).
+func Rdloc(args string) (string, error) { return Jrun("rdloc", args) }
+
+// Rddens runs rddens() of the R package (arguments: r cut? b? h? level?; ? marks an optional one).
+func Rddens(args string) (string, error) { return Jrun("rddens", args) }
+
+// Expgmm runs expgmm() of the R package (arguments: data y endo inst x? fe? expo? clus? err? step? se? ssc? level? tol? maxit?; ? marks an optional one).
+func Expgmm(args string) (string, error) { return Jrun("expgmm", args) }
+
+// Runfx runs runfx() of the R package (arguments: data y var unit day thr? cap? step? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?; ? marks an optional one).
+func Runfx(args string) (string, error) { return Jrun("runfx", args) }
+
+// Hetfx runs hetfx() of the R package (arguments: data var mod est? how? y? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd?; ? marks an optional one).
+func Hetfx(args string) (string, error) { return Jrun("hetfx", args) }
+
+// Ccross runs ccross() of the R package (arguments: data y unit day strat? ma? k? lagv? lag? ns? est? x? endo? inst? expo? clus? se? ssc? time? nboot? seed? sep? level? tol? maxit? twc? psd? how?; ? marks an optional one).
+func Ccross(args string) (string, error) { return Jrun("ccross", args) }
+
+// Jntx runs jntx() of the R package (arguments: data y x1 x2 form? k1? k2? p1? p2? ref? ngrid? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?; ? marks an optional one).
+func Jntx(args string) (string, error) { return Jrun("jntx", args) }
+
+// Dosebin runs dosebin() of the R package (arguments: data y var nq? brk? ref? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?; ? marks an optional one).
+func Dosebin(args string) (string, error) { return Jrun("dosebin", args) }
+
+// Typefx runs typefx() of the R package (arguments: data ys term est? adj? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?; ? marks an optional one).
+func Typefx(args string) (string, error) { return Jrun("typefx", args) }
+
+// Plcday runs plcday() of the R package (arguments: data var unit day shifts? est? with? shift? y? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?; ? marks an optional one).
+func Plcday(args string) (string, error) { return Jrun("plcday", args) }
+
+// Blpal runs blpal() of the R package (arguments: name? n?; ? marks an optional one).
+func Blpal(args string) (string, error) { return Jrun("blpal", args) }
+
+// Yoypals runs yoypals() of the R package (no arguments; ? marks an optional one).
+func Yoypals(args string) (string, error) { return Jrun("yoypals", args) }
+
+// Plotcdfs runs plotcdfs() of the R package (arguments: x grp?; ? marks an optional one).
+func Plotcdfs(args string) (string, error) { return Jrun("plotcdfs", args) }
+
+// Plotlrnz runs plotlrnz() of the R package (arguments: x; ? marks an optional one).
+func Plotlrnz(args string) (string, error) { return Jrun("plotlrnz", args) }
+
+// Plotgain runs plotgain() of the R package (arguments: x grp?; ? marks an optional one).
+func Plotgain(args string) (string, error) { return Jrun("plotgain", args) }
+
+// Plotmult runs plotmult() of the R package (arguments: y prd grp?; ? marks an optional one).
+func Plotmult(args string) (string, error) { return Jrun("plotmult", args) }
+
+// Plothrz runs plothrz() of the R package (arguments: y prd grp? bands?; ? marks an optional one).
+func Plothrz(args string) (string, error) { return Jrun("plothrz", args) }
+
+// Plotbump runs plotbump() of the R package (arguments: y prd grp desc?; ? marks an optional one).
+func Plotbump(args string) (string, error) { return Jrun("plotbump", args) }
+
+// Plotfnl runs plotfnl() of the R package (arguments: obs expd area? lvls? target?; ? marks an optional one).
+func Plotfnl(args string) (string, error) { return Jrun("plotfnl", args) }
+
+// Plotcal runs plotcal() of the R package (arguments: x y; ? marks an optional one).
+func Plotcal(args string) (string, error) { return Jrun("plotcal", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

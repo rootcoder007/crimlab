@@ -48,6 +48,7 @@
 
 #include "crimlab.h"
 #include "dpnd.h"
+#include "dscd.h"
 #include "frx.h"
 #include "igh.h"
 #include "igk.h"
@@ -1621,6 +1622,9 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "japx.inc"
 #include "jenv.inc"
 #include "jdwn.inc"
+#include "jrdd.inc"
+#include "jax2.inc"
+#include "jplt.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2057,6 +2061,26 @@ const Ent ents[] = {
     {"gmmpnl", "y x? unit time ylag? gmm? iv? z? lagmin? lagmax? collapse? type? trans? steps? robust? wc? small? hmat? cons? tdum? ar? level?", gmmpnl},
     {"wsctst", "y x? unit time cons? ssc?", wsctst},
     {"ccepnl", "y x unit time fac? cons? w? avg? ylag? lags? bias? pool? pvar? level?", ccepnl},
+    {"rdloc", "data y run cut? trt? bw? h? kern? ci? se? clus? ssc? plac? level?", rdloc},
+    {"rddens", "r cut? b? h? level?", rddens},
+    {"expgmm", "data y endo inst x? fe? expo? clus? err? step? se? ssc? level? tol? maxit?", ax::expgmm},
+    {"runfx", "data y var unit day thr? cap? step? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", runfx},
+    {"hetfx", "data var mod est? how? y? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd?", hetfx},
+    {"ccross", "data y unit day strat? ma? k? lagv? lag? ns? est? x? endo? inst? expo? clus? se? ssc? time? nboot? seed? sep? level? tol? maxit? twc? psd? how?", ccross},
+    {"jntx", "data y x1 x2 form? k1? k2? p1? p2? ref? ngrid? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", jntx},
+    {"dosebin", "data y var nq? brk? ref? ctrl? est? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", dosebin},
+    {"typefx", "data ys term est? adj? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", typefx},
+    {"plcday", "data var unit day shifts? est? with? shift? y? x? endo? inst? fe? expo? clus? se? ssc? time? lag? nboot? seed? sep? level? tol? maxit? twc? psd? how?", plcday},
+    {"blpal", "name? n?", blpal},
+    {"yoypals", "", yoypals},
+    {"plotcdfs", "x grp?", plotcdfs},
+    {"plotlrnz", "x", plotlrnz},
+    {"plotgain", "x grp?", plotgain},
+    {"plotmult", "y prd grp?", plotmult},
+    {"plothrz", "y prd grp? bands?", plothrz},
+    {"plotbump", "y prd grp desc?", plotbump},
+    {"plotfnl", "obs expd area? lvls? target?", plotfnl},
+    {"plotcal", "x y", plotcal},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
