@@ -769,6 +769,10 @@ SEXP C_clab_r_mruns(SEXP, SEXP, SEXP);
 SEXP C_clab_r_topcor(SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_dtsel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_mcar2(SEXP, SEXP, SEXP);
+// The exposure file of vrfpol() (bvrfp.cpp).
+SEXP C_clab_r_bz2end(SEXP);
+SEXP C_clab_r_gzend(SEXP, SEXP);
+SEXP C_clab_r_txtenc(SEXP);
 
 // For the tests: on TRUE every poll of a kernel reads as an interrupt
 // (the stop paths run on small inputs, in this process); on FALSE R's
@@ -1144,6 +1148,9 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_topcor", fn<&C_clab_r_topcor>(), 4},
     {"C_clab_r_dtsel", fn<&C_clab_r_dtsel>(), 7},
     {"C_clab_r_mcar2", fn<&C_clab_r_mcar2>(), 3},
+    {"C_clab_r_bz2end", fn<&C_clab_r_bz2end>(), 1},
+    {"C_clab_r_gzend", fn<&C_clab_r_gzend>(), 2},
+    {"C_clab_r_txtenc", fn<&C_clab_r_txtenc>(), 1},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

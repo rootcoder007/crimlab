@@ -883,11 +883,7 @@ print.vrfpol <- function(x, ...) {
   con <- file(path, "rb")
   on.exit(close(con), add = TRUE)
   seek(con, max(0, n - 8))
-  tl <- as.numeric(readBin(con, "raw", 8L))
-  len <- if (length(tl) == 8L) sum(tl[5:8] * 256^(0:3)) else Inf
-  if (len > length(out) ||
-        .Call(C_clab_r_crc32, out, length(out) - len) !=
-          sum(tl[1:4] * 256^(0:3))) {
+  if (!.Call(C_clab_r_gzend, out, readBin(con, "raw", 8L))) {
     stop(
       "is truncated or damaged: its data do not match the length and ",
       "CRC-32 at its end",
@@ -906,61 +902,31 @@ print.vrfpol <- function(x, ...) {
   con <- file(path, "rb")
   on.exit(close(con), add = TRUE)
   seek(con, n - 11)
-  tail <- readBin(con, "raw", 11L)
-  bits <- unlist(lapply(tail, function(b) rev(as.integer(rawToBits(b)))))
-  magic <- unlist(lapply(
-    as.raw(c(0x17, 0x72, 0x45, 0x38, 0x50, 0x90)),
-    function(b) rev(as.integer(rawToBits(b)))
-  ))
-  for (p in 1:8) {
-    if (
-      identical(bits[(p + 1):(p + 48)], magic) &&
-        all(bits[seq_len(88) > p + 80] == 0L)
-    ) {
-      return(TRUE)
-    }
-  }
-  FALSE
+  .Call(C_clab_r_bz2end, readBin(con, "raw", 11L))
 }
 
 .vpenc <- function(raw, path) {
-  boms <- list(
-    "UTF-32LE" = as.raw(c(0xff, 0xfe, 0, 0)),
-    "UTF-32BE" = as.raw(c(0, 0, 0xfe, 0xff)),
-    "UTF-16LE" = as.raw(c(0xff, 0xfe)),
-    "UTF-16BE" = as.raw(c(0xfe, 0xff))
-  )
-  for (enc in names(boms)) {
-    b <- boms[[enc]]
-    if (length(raw) >= length(b) && identical(raw[seq_along(b)], b)) {
-      return(list(utf16 = enc, raw = raw[-seq_along(b)], note = NULL))
-    }
-  }
-  if (!length(grepRaw(as.raw(0L), raw, fixed = TRUE))) {
-    return(list(utf16 = NULL, raw = raw, note = NULL))
-  }
-  probe <- raw[seq_len(min(length(raw), 2000L))]
-  odd <- probe[seq(1L, length(probe), by = 2L)]
-  even <- probe[seq(2L, length(probe), by = 2L)]
-  z0 <- mean(even == as.raw(0L))
-  z1 <- mean(odd == as.raw(0L))
-  utf16 <- if (z0 > 0.9 && z1 < 0.1) {
-    "UTF-16LE"
-  } else if (z1 > 0.9 && z0 < 0.1) {
-    "UTF-16BE"
-  } else {
+  r <- .Call(C_clab_r_txtenc, raw)
+  if (r[1L] < 0L) {
     stop(
       "contains NUL bytes and is not UTF-16 text: not a text CSV",
       call. = FALSE
     )
   }
+  if (r[1L] == 0L) {
+    return(list(utf16 = NULL, raw = raw, note = NULL))
+  }
+  enc <- c("UTF-32LE", "UTF-32BE", "UTF-16LE", "UTF-16BE")[r[1L]]
+  if (r[2L] > 0L) {
+    return(list(utf16 = enc, raw = raw[-seq_len(r[2L])], note = NULL))
+  }
   list(
-    utf16 = utf16,
+    utf16 = enc,
     raw = raw,
     note = sprintf(
       "note: %s has no byte-order mark; read as %s",
       basename(path),
-      utf16
+      enc
     )
   )
 }

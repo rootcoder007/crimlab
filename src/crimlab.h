@@ -4420,6 +4420,25 @@ int clab_topc(const double *r, int64_t k, double minabs, int64_t top, int *idx, 
  * two columns or rows are kept. */
 int clab_mcdrop(const double *x, int64_t n, int p, double *y, int64_t *m, int *keep, int *k, int *why);
 
+/* ------------------------------------------------------------------------
+ * The exposure file of vrfpol() (vrfp.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* Whether the last n (11) bytes t of a bzip2 file end its stream: the
+ * end-of-stream marker 0x177245385090 at a bit offset of 1 to 8, its CRC,
+ * then zero bits. 1, else 0. */
+int clab_bz2end(const unsigned char *t, int64_t n);
+/* Whether the n bytes d inflated from a gzip file end with the data its
+ * last member's trailer t (nt: 8 bytes, CRC-32 then length, little
+ * endian) describes. 1, else 0. */
+int clab_gzend(const unsigned char *d, int64_t n, const unsigned char *t, int64_t nt);
+/* The encoding of the n bytes r of a text file: 1 to 4 for the byte-order
+ * mark of UTF-32LE, UTF-32BE, UTF-16LE or UTF-16BE (its length in *bom);
+ * else 0 without NUL bytes, 3 (UTF-16LE) or 4 (UTF-16BE) when, of the
+ * first 2000 bytes, more than 90% of those at the even (odd) positions
+ * from 1 are NUL and fewer than 10% of the others, -1 otherwise. */
+int clab_txtenc(const unsigned char *r, int64_t n, int *bom);
+
 #ifdef __cplusplus
 }
 #endif
