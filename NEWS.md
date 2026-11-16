@@ -85,9 +85,13 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `yoypdf()` is in `clab_jrun()`, the command line and Python, writing
+  the PDF R writes; without `file` the PDF is returned as text, and
+  `yoywr()` there writes PDF too.
+
 * `yoyhtml()` is in `clab_jrun()`, the command line and Python, writing
   the page R writes; without `file` the page is returned as text, and
-  `yoywr()` there writes HTML too. The PDF writer is still R's alone.
+  `yoywr()` there writes HTML too.
 
 * `prechk()` is in `clab_jrun()`, the command line and Python, with the
   publishers' codes of `codes.tsv` built into the command line as the

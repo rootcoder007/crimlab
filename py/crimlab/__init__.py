@@ -455,6 +455,7 @@ from ._j import (
     plotopt,
     prechk,
     yoyhtml,
+    yoypdf,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -934,6 +935,7 @@ __all__ = [
     "plotopt",
     "prechk",
     "yoyhtml",
+    "yoypdf",
 ]
 
 

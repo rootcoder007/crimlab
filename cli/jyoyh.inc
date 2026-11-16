@@ -123,7 +123,7 @@ struct Show {
   std::vector<Strs> cols;
   std::vector<char> gna;
 };
-inline Show yshow(const Yt &t, int dg, bool intv) {
+inline Show yshow(const Yt &t, int dg, bool intv, const char *na = "") {
   Show s;
   const int vd = yvd(t);
   const bool pp = t.get("ppchg") != nullptr;
@@ -138,10 +138,10 @@ inline Show yshow(const Yt &t, int dg, bool intv) {
   for (std::size_t i = 0; i < t.n; ++i) {
     std::size_t q = 0;
     if (g) {
-      s.cols[q++].push_back(g->na[i] ? "" : g->s[i]);
+      s.cols[q++].push_back(g->na[i] ? na : g->s[i]);
       s.gna.push_back(g->na[i]);
     }
-    s.cols[q++].push_back(pl ? (pl->na[i] ? "" : pl->s[i]) : (p.na[i] ? "" : rfmt(p.d[i])));
+    s.cols[q++].push_back(pl ? (pl->na[i] ? na : pl->s[i]) : (p.na[i] ? na : rfmt(p.d[i])));
     s.cols[q++].push_back(ynum(*t.get("value"), i, vd));
     s.cols[q++].push_back(ynum(*t.get("prev"), i, vd));
     s.cols[q++].push_back(ynum(*t.get("change"), i, vd));

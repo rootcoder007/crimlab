@@ -1637,6 +1637,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jfp2.inc"
 #include "jpchk.inc"
 #include "jyoyh.inc"
+#include "jyoyp.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2108,6 +2109,7 @@ const Ent ents[] = {
     {"plotopt", "palette? grid? cex? las? bg? panel?", plotopt},
     {"prechk", "data preset codes?", prechk},
     {"yoyhtml", "x file? title? sub? pal? better? digits? bars? intv? notes? lag?", yoyhtml},
+    {"yoypdf", "x file? title? sub? pal? better? digits? intv? notes? width? height? lag?", yoypdf},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

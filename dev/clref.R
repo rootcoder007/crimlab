@@ -2358,6 +2358,24 @@ bad("yoyhtml", x = yhd, file = "a.html", bars = "x")
 bad("yoyhtml", x = yhd, file = "a.html", notes = 1)
 bad("yoyhtml", x = yhd, file = "a.html", digits = 16)
 bad("yoyhtml", x = yhd, file = "a.html", lag = -1)
+# yoypdf(): the PDF R writes, compared byte for byte (without `file` the
+# command line returns it)
+yp <- function(...) {
+  f <- tempfile(fileext = ".pdf")
+  on.exit(unlink(f))
+  yoypdf(file = f, ...)
+  add("yoypdf", list(...), js(rawToChar(readBin(f, "raw", file.size(f)))))
+}
+yp(x = yhd, title = "Reported offences (simulated)", better = "lower")
+yp(x = yoypx(c(812, 845, 790), 2021:2023), pal = "safe", better = "higher",
+   notes = c("a (note) \\ here", "café — dash"), digits = 2)
+yp(x = yoypx(seq_len(80) + 100, seq_len(80)), height = 4, width = 7.5)
+yp(x = yoylbl(yoypx(c(4100, 3900, 4400), 2021:2023), fylbl), lag = 2,
+   sub = "fiscal years", pal = "mono")
+bad("yoypdf", x = yhd, file = "a.pdf", width = 1)
+bad("yoypdf", x = yhd, file = "a.pdf", height = 201)
+bad("yoypdf", x = yhd, file = "a.pdf", lag = 0)
+bad("yoypdf", x = yhd, file = "a.pdf", pal = "neon")
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

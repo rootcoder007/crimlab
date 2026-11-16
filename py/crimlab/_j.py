@@ -7726,3 +7726,36 @@ def yoyhtml(
         "yoyhtml", x=x, file=file, title=title, sub=sub, pal=pal, better=better, digits=digits,
         bars=bars, intv=intv, notes=notes, lag=lag,
     )
+
+
+def yoypdf(
+    x: Any,
+    file: Any = None,
+    title: Any = "Year-over-year change",
+    sub: Any = "",
+    pal: Any = "diverging",
+    better: Any = "neutral",
+    digits: Any = 1,
+    intv: Any = True,
+    notes: Any = None,
+    width: Any = 11,
+    height: Any = 8.5,
+    lag: Any = 1,
+) -> Any:
+    """R's ``yoypdf()``: a change table as a PDF the package writes itself.
+
+    The file is R's, byte for byte (Helvetica, ASCII text). With ``file``
+    it is written there and the path returned; without (R requires one)
+    the PDF is returned as text.
+
+    Examples
+    --------
+    >>> y = yoypx([812, 845, 790], [2021, 2022, 2023])
+    >>> pdf = yoypdf(y, title="Reported offences (simulated)")
+    >>> pdf[:8], pdf.rstrip().endswith("%%EOF")
+    ('%PDF-1.4', True)
+    """
+    return jcall(
+        "yoypdf", x=x, file=file, title=title, sub=sub, pal=pal, better=better, digits=digits,
+        intv=intv, notes=notes, width=width, height=height, lag=lag,
+    )
