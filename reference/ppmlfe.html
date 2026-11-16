@@ -259,8 +259,41 @@ are cited as their mechanism literature and its critique.</p>
 <p>Standard errors (<code>se</code>), all from the rows' scores <code>s_i</code> at the final fit
 and the bread <code>(X'WX)^-1</code> of the demeaned regressors <code>X</code>:
 <code>"cluster"</code> (the default; <code>sum_g s_g s_g'</code> over the clusters of the
-first <code>clus</code> column); <code>"twoway"</code> (Cameron, Gelbach and Miller 2011, `V1</p><ul><li><p>V2 - V12<code>; Bondy, Roth and Sager cluster by ward and year-month, table 2; Herrnstadt and others 2019 by monitor and date; given two </code>clus<code>columns,</code>"cluster"<code>means this too);</code>"hc1"<code>(each row alone, the robust errors of Herrnstadt and others 2021);</code>"nw"<code>(Newey-West within each unit of the first</code>clus<code>column over the days of</code>time<code>, Bartlett weights </code>1 - d / (lag + 1)<code>for days</code>d<code>apart up to</code>lag<code>; by default the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634, and p. 635) for the Bartlett kernel without their prewhitening: </code>lag = floor(gamma T^(1/3))<code>, </code>gamma = 1.1447 ((s1 / s0)^2)^(1/3)<code>, </code>s1 = 2 sum_j j sigma_j<code>, </code>s0 = sigma_0 + 2 sum_j sigma_j<code>over</code>j = 1..n<code>, </code>n = floor(4 (T / 100)^(2/9))<code>, </code>T<code>the most days of a unit and</code>sigma_j<code>the sum of the products of the rows' scores (summed over the coefficients) of one unit</code>j<code>days apart (the earlier default here,</code>floor(4 (T / 100)^(2/9))<code>, is their lag-selection parameter </code>n<code>, not the lag); the appendix of Herrnstadt and others 2021); </code>"boot"<code>(a cluster bootstrap over the first</code>clus<code>column,</code>nboot<code>draws from R's generator, each refitting the model);</code>"quasi"<code>(the quasi-Poisson variance, the model-based</code>(X'WX)^-1<code>times the dispersion</code>psi<code>, Pearson's chi-squared over the residual degrees of freedom </code>n - K<code>with</code>K<code>the coefficients and the effects' levels less one each and the intercept, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate the overdispersion of a case-crossover count, returned as</code>psi<code>; not robust to correlation, and </code>ssc<code>does not apply). The small-sample factor</code>ssc<code>: </code>"G"<code>(the default)</code>G / (G - 1)<code>with</code>G<code>the (smaller) number of clusters, or</code>n / (n - 1)<code>for</code>"hc1"<code>and</code>"nw"<code>; </code>"nk"<code>that times</code>(n - 1) / (n - K)<code>, </code>K<code>the coefficients, an intercept and the levels less one of each fixed effect not nested in a cluster (fixest's default for clustered errors);</code>"none"<code>no factor.</code>"cluster"<code>with</code>"G"<code>equals</code>fixest::fepois()<code>with</code>ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.</p></li>
-</ul><p>Two-way clustering (<code>twc</code>, <code>psd</code>), as Cameron, Gelbach and Miller (2011,
+first <code>clus</code> column); <code>"twoway"</code> (Cameron, Gelbach and Miller 2011,
+<code>V1 + V2 - V12</code>; Bondy, Roth and Sager cluster by ward and year-month, table
+2; Herrnstadt and others 2019 by monitor and date; given two <code>clus</code>
+columns, <code>"cluster"</code> means this too); <code>"hc1"</code> (each row alone, the
+robust errors of Herrnstadt and others 2021); <code>"nw"</code> (Newey-West within
+each unit of the first <code>clus</code> column over the days of <code>time</code>, Bartlett
+weights <code>1 - d / (lag + 1)</code> for days <code>d</code> apart up to <code>lag</code>; by default
+the automatic bandwidth of Newey and West (1994, equation 2.2, p. 634,
+and p. 635) for the Bartlett kernel without their prewhitening:
+<code>lag = floor(gamma T^(1/3))</code>,
+<code>gamma = 1.1447 ((s1 / s0)^2)^(1/3)</code>,
+<code>s1 = 2 sum_j j sigma_j</code>,
+<code>s0 = sigma_0 + 2 sum_j sigma_j</code> over <code>j = 1..n</code>,
+<code>n = floor(4 (T / 100)^(2/9))</code>,
+<code>T</code> the most days of a unit and <code>sigma_j</code> the sum of the
+products of the rows' scores (summed over the coefficients) of one unit
+<code>j</code> days apart (the earlier default here, <code>floor(4 (T / 100)^(2/9))</code>, is
+their lag-selection parameter <code>n</code>, not the lag); the appendix of
+Herrnstadt and others 2021); <code>"boot"</code> (a cluster bootstrap
+over the first <code>clus</code> column, <code>nboot</code> draws from R's generator, each
+refitting the model); <code>"quasi"</code> (the quasi-Poisson variance, the
+model-based <code>(X'WX)^-1</code> times the dispersion <code>psi</code>, Pearson's
+chi-squared over the residual degrees of freedom <code>n - K</code> with <code>K</code> the
+coefficients and the effects' levels less one each and the
+intercept, as Armstrong, Gasparrini and Tobias (2014, p. 4) estimate
+the overdispersion of a case-crossover count, returned as <code>psi</code>; not
+robust to correlation, and <code>ssc</code> does not apply). The small-sample
+factor <code>ssc</code>: <code>"G"</code> (the default)
+<code>G / (G - 1)</code> with <code>G</code> the (smaller) number of clusters, or <code>n / (n - 1)</code>
+for <code>"hc1"</code> and <code>"nw"</code>; <code>"nk"</code> that times <code>(n - 1) / (n - K)</code>, <code>K</code> the
+coefficients, an intercept and the levels less one of each fixed effect
+not nested in a cluster (fixest's default for clustered errors); <code>"none"</code>
+no factor. <code>"cluster"</code> with <code>"G"</code> equals <code>fixest::fepois()</code> with
+<code>ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")</code>.</p>
+<p>Two-way clustering (<code>twc</code>, <code>psd</code>), as Cameron, Gelbach and Miller (2011,
 p. 241) give it: <code>twc = "min"</code> (the default, their second method and
 fixest's) puts the one factor of <code>G = min(G, H)</code> on all three
 components; <code>"each"</code> (their first, which they use in their simulations

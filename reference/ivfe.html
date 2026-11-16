@@ -77,7 +77,7 @@ effects.</p>
 <span>  x <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">fe</span>,</span>
 <span>  clus <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  se <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster"</span>, <span class="st">"twoway"</span>, <span class="st">"hc1"</span>, <span class="st">"nw"</span>, <span class="st">"boot"</span><span class="op">)</span>,</span>
+<span>  se <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"cluster"</span>, <span class="st">"twoway"</span>, <span class="st">"hc1"</span>, <span class="st">"nw"</span>, <span class="st">"boot"</span>, <span class="st">"dk"</span><span class="op">)</span>,</span>
 <span>  ssc <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"G"</span>, <span class="st">"nk"</span>, <span class="st">"none"</span><span class="op">)</span>,</span>
 <span>  time <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  lag <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -191,8 +191,8 @@ Roth and Sager report, as far as their text says); <code>kp</code>, the
 Kleibergen-Paap rk Wald statistic divided by the number of instruments
 (the "rk Wald F" of Herrnstadt and others 2019, table 7): for one
 endogenous column it is the same robust Wald statistic over <code>q</code>; for
-more, the rk statistic of Kleibergen and Paap (2006, equation 22, p.
-104) that the instruments' first-stage coefficients have rank one less
+more, the rk statistic of Kleibergen and Paap (2006, equation 22,
+p. 104) that the instruments' first-stage coefficients have rank one less
 than the endogenous columns, with their normalisation <code>Theta = G Pi F'</code>,
 <code>F F'</code> the instruments' cross products and <code>G'G</code> the inverse of the
 endogenous columns' (p. 103), all after the controls and the effects,
@@ -250,10 +250,19 @@ of crimes within two kilometres of a monitoring station on its hourly
 pollution, instrumented by the wind direction, with hour, weekday,
 month, year and station effects and errors clustered by station.
 Batkeyev and DeRemer (2023, sec. 4.4) instrument the log of PM2.5 by
-mountain winds and inversions (<code><a href="windiv.html">windiv()</a></code>, <code><a href="invsn.html">invsn()</a></code>) with errors of
-Driscoll and Kraay, which this estimator does not compute (<code>"nw"</code>
-allows for serial correlation within clusters only), and report the
-Kleibergen-Paap first-stage statistic (<code>first$kp</code>). Ayesh (2023, eqs
+mountain winds and inversions (<code><a href="windiv.html">windiv()</a></code>, <code><a href="invsn.html">invsn()</a></code>) with the errors
+of Driscoll and Kraay (<code>se = "dk"</code>, below), and report the
+Kleibergen-Paap first-stage statistic (<code>first$kp</code>).</p>
+<p><code>se = "dk"</code> (beyond those of <code><a href="ppmlfe.html">ppmlfe()</a></code>): the errors of Driscoll and
+Kraay, robust to correlation across units and over time. With <code>h_t</code>
+the sum of the rows' scores over the rows of time <code>t</code> (the <code>time</code>
+column), the middle of the sandwich is <code>sum_t h_t h_t'</code> plus, for each
+pair of times <code>d</code> apart with <code>0 &lt; d &lt;= lag</code>, <code>(1 - d / (lag + 1)) (h_a h_b' + h_b h_a')</code>, the Newey-West estimator of the series of the
+summed scores. Batkeyev and DeRemer (2023) do not give their lag; the
+default is the bandwidth of Newey and West (1994) of <code>"nw"</code> computed on
+that one series. The small-sample factor <code>"G"</code> is <code>T / (T - 1)</code> with
+<code>T</code> the times; the first-stage statistics cluster by the first <code>clus</code>
+column, as for <code>"nw"</code>. Ayesh (2023, eqs
 1-3) and Bao and Da (2026, sec. 4) instrument district- and
 county-level pollution by downwind exposure (<code><a href="dwnexp.html">dwnexp()</a></code>). Singh and
 Visaria (2021, eqs 2 and 4) regress the daily complaints of each police
@@ -296,8 +305,8 @@ effects of abnormal air pollution on crime. <em>Journal of Economic
 Behavior and Organization</em>, 210, 288-319.
 <a href="https://doi.org/10.1016/j.jebo.2023.04.009" class="external-link">doi:10.1016/j.jebo.2023.04.009</a></p>
 <p>Ayesh, A. (2023). Burned agricultural biomass, air pollution and
-crime. <em>Journal of Environmental Economics and Management</em>, 122,
-102887. <a href="https://doi.org/10.1016/j.jeem.2023.102887" class="external-link">doi:10.1016/j.jeem.2023.102887</a></p>
+crime. <em>Journal of Environmental Economics and Management</em>,
+122, 102887. <a href="https://doi.org/10.1016/j.jeem.2023.102887" class="external-link">doi:10.1016/j.jeem.2023.102887</a></p>
 <p>Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
 crime. Evidence from India. Working paper, Hong Kong University of
 Science and Technology.</p>
@@ -306,6 +315,9 @@ the role of weather and pollution. <em>Journal of Forensic and Legal
 Medicine</em>, 91, 102430. <a href="https://doi.org/10.1016/j.jflm.2022.102430" class="external-link">doi:10.1016/j.jflm.2022.102430</a></p>
 <p>Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
 California. Working paper, Renmin University of China.</p>
+<p>Driscoll, J. and Kraay, A. (1998). Consistent covariance matrix
+estimation with spatially dependent panel data. <em>Review of Economics
+and Statistics</em>, 80(4), 549-560.</p>
 <p>Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018).
 Pollution or crime: the effect of driving restrictions on criminal
 activity. <em>Journal of Public Economics</em>, 164, 50-69.

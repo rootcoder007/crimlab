@@ -6,22 +6,26 @@ officer's stops are compared not with all other stops but with the
 other officers' stops weighted to look like this officer's: the
 propensity e(x) that a stop with circumstances x (place, hour, day,
 reason) is this officer's comes from a logistic regression on x
-(over all stops), and each other officer's stop gets the weight `e / (1
-e), the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, (sum w)^2 /
-sum w^2. With many officers some will stand out by chance: qis the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, andflagmarks those withqbelowfdr`.
-
-"><meta property="og:description" content="Asks whether an officer stops more people of a group (or searches,
+(over all stops), and each other officer's stop gets the weight e / (1 - e), the weights of the effect on the treated (Ridgeway and MacDonald
+2009). The benchmark is the weighted share of the outcome among those
+stops, and the z statistic compares the officer's share with it, with
+the variance of a proportion for the officer and, for the benchmark,
+that of a proportion over its effective number of stops, (sum w)^2 / sum w^2. With many officers some will stand out by chance: q is the
+false discovery rate of Benjamini and Hochberg (1995) over the officers
+tested, and flag marks those with q below fdr."><meta property="og:description" content="Asks whether an officer stops more people of a group (or searches,
 arrests, uses force more often) than other officers do in the same
 circumstances. Officers work different places and hours, so each
 officer's stops are compared not with all other stops but with the
 other officers' stops weighted to look like this officer's: the
 propensity e(x) that a stop with circumstances x (place, hour, day,
 reason) is this officer's comes from a logistic regression on x
-(over all stops), and each other officer's stop gets the weight `e / (1
-e), the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, (sum w)^2 /
-sum w^2. With many officers some will stand out by chance: qis the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, andflagmarks those withqbelowfdr`.
-
-"><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
+(over all stops), and each other officer's stop gets the weight e / (1 - e), the weights of the effect on the treated (Ridgeway and MacDonald
+2009). The benchmark is the weighted share of the outcome among those
+stops, and the z statistic compares the officer's share with it, with
+the variance of a proportion for the officer and, for the benchmark,
+that of a proportion over its effective number of stops, (sum w)^2 / sum w^2. With many officers some will stand out by chance: q is the
+false discovery rate of Benjamini and Hochberg (1995) over the officers
+tested, and flag marks those with q below fdr."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -63,9 +67,14 @@ officer's stops are compared not with all other stops but with the
 other officers' stops weighted to look like this officer's: the
 propensity <code>e(x)</code> that a stop with circumstances <code>x</code> (place, hour, day,
 reason) is this officer's comes from a logistic regression on <code>x</code>
-(over all stops), and each other officer's stop gets the weight `e / (1</p><ul><li><p>e)<code>, the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, </code>(sum w)^2 /
-sum w^2<code>. With many officers some will stand out by chance: </code>q<code>is the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, and</code>flag<code>marks those with</code>q<code>below</code>fdr`.</p></li>
-</ul></div>
+(over all stops), and each other officer's stop gets the weight <code>e / (1 - e)</code>, the weights of the effect on the treated (Ridgeway and MacDonald
+2009). The benchmark is the weighted share of the outcome among those
+stops, and the z statistic compares the officer's share with it, with
+the variance of a proportion for the officer and, for the benchmark,
+that of a proportion over its effective number of stops, <code>(sum w)^2 / sum w^2</code>. With many officers some will stand out by chance: <code>q</code> is the
+false discovery rate of Benjamini and Hochberg (1995) over the officers
+tested, and <code>flag</code> marks those with <code>q</code> below <code>fdr</code>.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>

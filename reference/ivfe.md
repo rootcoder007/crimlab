@@ -22,7 +22,7 @@ ivfe(
   x = NULL,
   fe,
   clus = NULL,
-  se = c("cluster", "twoway", "hc1", "nw", "boot"),
+  se = c("cluster", "twoway", "hc1", "nw", "boot", "dk"),
   ssc = c("G", "nk", "none"),
   time = NULL,
   lag = NULL,
@@ -211,11 +211,23 @@ effects and errors clustered by station. Batkeyev and DeRemer (2023,
 sec. 4.4) instrument the log of PM2.5 by mountain winds and inversions
 ([`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md),
 [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md))
-with errors of Driscoll and Kraay, which this estimator does not compute
-(`"nw"` allows for serial correlation within clusters only), and report
-the Kleibergen-Paap first-stage statistic (`first$kp`). Ayesh (2023, eqs
-1-3) and Bao and Da (2026, sec. 4) instrument district- and county-level
-pollution by downwind exposure
+with the errors of Driscoll and Kraay (`se = "dk"`, below), and report
+the Kleibergen-Paap first-stage statistic (`first$kp`).
+
+`se = "dk"` (beyond those of
+[`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)):
+the errors of Driscoll and Kraay, robust to correlation across units and
+over time. With `h_t` the sum of the rows' scores over the rows of time
+`t` (the `time` column), the middle of the sandwich is `sum_t h_t h_t'`
+plus, for each pair of times `d` apart with `0 < d <= lag`,
+`(1 - d / (lag + 1)) (h_a h_b' + h_b h_a')`, the Newey-West estimator of
+the series of the summed scores. Batkeyev and DeRemer (2023) do not give
+their lag; the default is the bandwidth of Newey and West (1994) of
+`"nw"` computed on that one series. The small-sample factor `"G"` is
+`T / (T - 1)` with `T` the times; the first-stage statistics cluster by
+the first `clus` column, as for `"nw"`. Ayesh (2023, eqs 1-3) and Bao
+and Da (2026, sec. 4) instrument district- and county-level pollution by
+downwind exposure
 ([`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)).
 Singh and Visaria (2021, eqs 2 and 4) regress the daily complaints of
 each police station of Bihar on PM2.5 instrumented by octant-by-division
@@ -284,6 +296,10 @@ role of weather and pollution. *Journal of Forensic and Legal Medicine*,
 
 Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
 California. Working paper, Renmin University of China.
+
+Driscoll, J. and Kraay, A. (1998). Consistent covariance matrix
+estimation with spatially dependent panel data. *Review of Economics and
+Statistics*, 80(4), 549-560.
 
 Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018). Pollution
 or crime: the effect of driving restrictions on criminal activity.

@@ -16,6 +16,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/arimfc.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/arwt.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/asciifb.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/asrule.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/attrfrac.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/bamscl.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/bandx.html</loc></url>
@@ -42,6 +43,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cconc.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/ccovm.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/ccross.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/cemtch.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cgamcdf.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cgmedn.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/cgstat.html</loc></url>
@@ -159,6 +161,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/grprr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/gstr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/gtmp.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/gtwreg.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hdbang.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/healchg.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hetfx.html</loc></url>
@@ -175,6 +178,8 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hypq.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/hzdsel.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/ibench.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/idwint.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/ifesc.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/impfpr.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/incap.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/incapr.html</loc></url>
@@ -222,6 +227,7 @@
 <url><loc>https://rootcoder007.github.io/crimlab/reference/losbnd.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lostay.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lrcal.html</loc></url>
+<url><loc>https://rootcoder007.github.io/crimlab/reference/lrcce.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lrpost.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/ltrlrng.html</loc></url>
 <url><loc>https://rootcoder007.github.io/crimlab/reference/lvfit.html</loc></url>

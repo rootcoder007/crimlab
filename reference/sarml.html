@@ -4,18 +4,32 @@ model y = X beta + u with u = lambda W u + e, or both at once (&quot;sac&quot;,
 one weights matrix for both), with normal errors, by maximum likelihood
 (Ord 1975; Anselin 1988): the likelihood is concentrated in rho or
 lambda and maximised by Brent's method on (-1 / m, 1 / m), m the
-largest row sum of W (which bounds its spectral radius), with `log |I
-rho W|from a dense LU factorisation, so the cost grows asn^3per evaluation (at most 5000 units). The combined model is maximised over both parameters by Nelder and Mead's simplex. Standard errors come from the inverse of the expected information matrix (Anselin 1988, ch. 6); these are the estimates ofspatialreg::lagsarlm(), errorsarlm()andsacsarlm(). durbin = TRUEadds the lagsW xof the varying columns (the spatial Durbin model, or the Durbin error model).method = &quot;2sls&quot;fits the lag model by two-stage least squares with the instrumentsW xandW^2 x(Kelejian and Prucha 1998), asspatialreg::stsls()does, without a likelihood; its standard errors divide the residual sum of squares byn` less the coefficients.
-
-"><meta property="og:description" content="Fits the spatial lag model y = rho W y + X beta + e, the spatial error
+largest row sum of W (which bounds its spectral radius), with log |I - rho W| from a dense LU factorisation, so the cost grows as n^3 per
+evaluation (at most 5000 units). The combined model is maximised over
+both parameters by Nelder and Mead's simplex. Standard errors come from
+the inverse of the expected information matrix (Anselin 1988, ch. 6);
+these are the estimates of spatialreg::lagsarlm(),
+errorsarlm() and sacsarlm(). durbin = TRUE adds the lags W x of
+the varying columns (the spatial Durbin model, or the Durbin error
+model). method = &quot;2sls&quot; fits the lag model by two-stage least squares
+with the instruments W x and W^2 x (Kelejian and Prucha 1998), as
+spatialreg::stsls() does, without a likelihood; its standard errors
+divide the residual sum of squares by n less the coefficients."><meta property="og:description" content="Fits the spatial lag model y = rho W y + X beta + e, the spatial error
 model y = X beta + u with u = lambda W u + e, or both at once (&quot;sac&quot;,
 one weights matrix for both), with normal errors, by maximum likelihood
 (Ord 1975; Anselin 1988): the likelihood is concentrated in rho or
 lambda and maximised by Brent's method on (-1 / m, 1 / m), m the
-largest row sum of W (which bounds its spectral radius), with `log |I
-rho W|from a dense LU factorisation, so the cost grows asn^3per evaluation (at most 5000 units). The combined model is maximised over both parameters by Nelder and Mead's simplex. Standard errors come from the inverse of the expected information matrix (Anselin 1988, ch. 6); these are the estimates ofspatialreg::lagsarlm(), errorsarlm()andsacsarlm(). durbin = TRUEadds the lagsW xof the varying columns (the spatial Durbin model, or the Durbin error model).method = &quot;2sls&quot;fits the lag model by two-stage least squares with the instrumentsW xandW^2 x(Kelejian and Prucha 1998), asspatialreg::stsls()does, without a likelihood; its standard errors divide the residual sum of squares byn` less the coefficients.
-
-"><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
+largest row sum of W (which bounds its spectral radius), with log |I - rho W| from a dense LU factorisation, so the cost grows as n^3 per
+evaluation (at most 5000 units). The combined model is maximised over
+both parameters by Nelder and Mead's simplex. Standard errors come from
+the inverse of the expected information matrix (Anselin 1988, ch. 6);
+these are the estimates of spatialreg::lagsarlm(),
+errorsarlm() and sacsarlm(). durbin = TRUE adds the lags W x of
+the varying columns (the spatial Durbin model, or the Durbin error
+model). method = &quot;2sls&quot; fits the lag model by two-stage least squares
+with the instruments W x and W^2 x (Kelejian and Prucha 1998), as
+spatialreg::stsls() does, without a likelihood; its standard errors
+divide the residual sum of squares by n less the coefficients."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -55,8 +69,18 @@ model <code>y = X beta + u</code> with <code>u = lambda W u + e</code>, or both 
 one weights matrix for both), with normal errors, by maximum likelihood
 (Ord 1975; Anselin 1988): the likelihood is concentrated in <code>rho</code> or
 <code>lambda</code> and maximised by Brent's method on <code>(-1 / m, 1 / m)</code>, <code>m</code> the
-largest row sum of <code>W</code> (which bounds its spectral radius), with `log |I</p><ul><li><p>rho W|<code>from a dense LU factorisation, so the cost grows as</code>n^3<code>per evaluation (at most 5000 units). The combined model is maximised over both parameters by Nelder and Mead's simplex. Standard errors come from the inverse of the expected information matrix (Anselin 1988, ch. 6); these are the estimates of</code>spatialreg::lagsarlm()<code>, </code>errorsarlm()<code>and</code>sacsarlm()<code>. </code>durbin = TRUE<code>adds the lags</code>W x<code>of the varying columns (the spatial Durbin model, or the Durbin error model).</code>method = "2sls"<code>fits the lag model by two-stage least squares with the instruments</code>W x<code>and</code>W^2 x<code>(Kelejian and Prucha 1998), as</code>spatialreg::stsls()<code>does, without a likelihood; its standard errors divide the residual sum of squares by</code>n` less the coefficients.</p></li>
-</ul></div>
+largest row sum of <code>W</code> (which bounds its spectral radius), with <code>log |I - rho W|</code> from a dense LU factorisation, so the cost grows as <code>n^3</code> per
+evaluation (at most 5000 units). The combined model is maximised over
+both parameters by Nelder and Mead's simplex. Standard errors come from
+the inverse of the expected information matrix (Anselin 1988, ch. 6);
+these are the estimates of <code>spatialreg::lagsarlm()</code>,
+<code>errorsarlm()</code> and <code>sacsarlm()</code>. <code>durbin = TRUE</code> adds the lags <code>W x</code> of
+the varying columns (the spatial Durbin model, or the Durbin error
+model). <code>method = "2sls"</code> fits the lag model by two-stage least squares
+with the instruments <code>W x</code> and <code>W^2 x</code> (Kelejian and Prucha 1998), as
+<code>spatialreg::stsls()</code> does, without a likelihood; its standard errors
+divide the residual sum of squares by <code>n</code> less the coefficients.</p>
+    </div>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>

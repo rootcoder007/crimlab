@@ -2,12 +2,14 @@
 
 Counts the points in an `nx` by `ny` grid of equal tiles of the
 rectangle `win` and tests complete spatial randomness by Pearson's
-chi-square, `X2 = sum (n_k - e)^2 / e` with `e` the mean count, on \`nx
-ny
-
-- 1`degrees of freedom: the upper tail against clustering and the two-sided p-value (twice the smaller tail,`quadrat.test()`'s default), which also flags regular patterns. A point on an inner tile boundary goes to the tile above or to its right, one on the outer edge to the tile inside. These are the values of `spatstat.explore::quadrat.test()\`.
-  The counts feed
-  [`morsta()`](https://rootcoder007.github.io/crimlab/reference/morsta.md).
+chi-square, `X2 = sum (n_k - e)^2 / e` with `e` the mean count, on
+`nx ny - 1` degrees of freedom: the upper tail against clustering and
+the two-sided p-value (twice the smaller tail, `quadrat.test()`'s
+default), which also flags regular patterns. A point on an inner tile
+boundary goes to the tile above or to its right, one on the outer edge
+to the tile inside. These are the values of
+`spatstat.explore::quadrat.test()`. The counts feed
+[`morsta()`](https://rootcoder007.github.io/crimlab/reference/morsta.md).
 
 ## Usage
 

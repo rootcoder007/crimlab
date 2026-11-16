@@ -82,16 +82,17 @@ An object of class `svymx`, a list: `est`, one row per domain (`dom`,
 Each estimate is a smooth function of weighted totals; its variance is
 that of the total of its influence values `u_i` (for a mean
 `w_i (y_i - m) / sum w`, a ratio `w_i (y_i - R x_i) / sum w x`, a total
-`w_i y_i`) over the first-stage units within strata: \`sum_h (1 - f_h)
-n_h / (n_h -
-
-1.  sum_j (U_hj - Ubar_h)^2`, with `f_h = n_h /
-    N_h`from`fpc`or 0 (first-stage units drawn with replacement). These are the estimators of the 'survey' package (Lumley 2004) with its default treatment of domains: a domain's influence values are 0 outside it and every first-stage unit stays in the variance, so the domain's own size is random, as it is.`"var"`is the population variance, the mean of`(y -
-    ybar)^2 n / (n -
-    1)` (`n`the units of the domain), as`survey::svyvar()\` gives it.
-    Intervals use Student's t on the design's degrees of freedom,
-    first-stage units less strata. A first-stage unit label is read
-    within its stratum.
+`w_i y_i`) over the first-stage units within strata:
+`sum_h (1 - f_h) n_h / (n_h - 1) sum_j (U_hj - Ubar_h)^2`, with
+`f_h = n_h / N_h` from `fpc` or 0 (first-stage units drawn with
+replacement). These are the estimators of the 'survey' package (Lumley
+2004) with its default treatment of domains: a domain's influence values
+are 0 outside it and every first-stage unit stays in the variance, so
+the domain's own size is random, as it is. `"var"` is the population
+variance, the mean of `(y - ybar)^2 n / (n - 1)` (`n` the units of the
+domain), as `survey::svyvar()` gives it. Intervals use Student's t on
+the design's degrees of freedom, first-stage units less strata. A
+first-stage unit label is read within its stratum.
 
 Without `w`, `strata` and `psu` the sample is simple random: the
 variance is `s^2 / n` with `s^2` on `n - 1` (Bessel's correction, for a

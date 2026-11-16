@@ -1830,6 +1830,21 @@ American Economic Journal - Applied Economics 13(4),
   [`plot(`*`<typefx>`*`)`](https://rootcoder007.github.io/crimlab/reference/typefx.md)
   : Effects by offence type in one call, with a multiple-testing
   correction
+- [`idwint()`](https://rootcoder007.github.io/crimlab/reference/idwint.md)
+  : Inverse-distance-weighted interpolation, and zonal means
+- [`gtwreg()`](https://rootcoder007.github.io/crimlab/reference/gtwreg.md)
+  : Geographically and temporally weighted regression
+- [`asrule()`](https://rootcoder007.github.io/crimlab/reference/asrule.md)
+  : Association rules between two categorical variables
+- [`ifesc()`](https://rootcoder007.github.io/crimlab/reference/ifesc.md)
+  [`print(`*`<ifesc>`*`)`](https://rootcoder007.github.io/crimlab/reference/ifesc.md)
+  [`summary(`*`<ifesc>`*`)`](https://rootcoder007.github.io/crimlab/reference/ifesc.md)
+  : Generalized synthetic control with interactive fixed effects
+- [`lrcce()`](https://rootcoder007.github.io/crimlab/reference/lrcce.md)
+  : Long-run effects from a common correlated effects fit
+- [`cemtch()`](https://rootcoder007.github.io/crimlab/reference/cemtch.md)
+  [`print(`*`<cemtch>`*`)`](https://rootcoder007.github.io/crimlab/reference/cemtch.md)
+  : Coarsened exact matching
 
 ## Regression discontinuity
 

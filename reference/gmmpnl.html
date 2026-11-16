@@ -162,8 +162,8 @@ Roodman's xtabond2) or <code>"diff"</code> (Arellano and Bond 1991).</p></dd>
 
 
 <dt id="arg-trans">trans<a class="anchor" aria-label="anchor" href="#arg-trans"></a></dt>
-<dd><p><code>"fd"</code> (first differences, default, Arellano and Bond
-1991) or <code>"fod"</code> (forward orthogonal deviations, Arellano and Bover
+<dd><p><code>"fd"</code> (first differences, default, Arellano and
+Bond 1991) or <code>"fod"</code> (forward orthogonal deviations, Arellano and Bover
 1995).</p></dd>
 
 
@@ -250,9 +250,16 @@ the time dummies dropped; <code>dummies</code>, those kept; <code>note</code>; <
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The model is `y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i</p><ul><li><p>v_it<code>with</code>L = ylag<code>. Periods are the distinct values of </code>time<code>in order: lags count positions in that order, and a unit without a row in a period has a gap there. A row enters the levels when the unit has the</code>ylag<code> periods before it; the transformed equation is the first difference of two such rows in consecutive periods (</code>trans = "fd"<code>), or the forward orthogonal deviation of a row from the mean of the unit's later rows, scaled by </code>sqrt(T / (T + 1))<code> and dated one period later (</code>trans = "fod"`, Arellano and Bover 1995, sec. 3; Roodman 2009, eq 21),
-which loses no more than the last row of a unit with gaps.</p></li>
-</ul><p>GMM-style instruments (Roodman 2009, sec. 3.2) are made for the lagged
+    <p>The model is <code>y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i + v_it</code> with <code>L = ylag</code>. Periods are the distinct values of <code>time</code> in
+order: lags count positions in that order, and a unit without a row in
+a period has a gap there. A row enters the levels when the unit has the
+<code>ylag</code> periods before it; the transformed equation is the first
+difference of two such rows in consecutive periods (<code>trans = "fd"</code>), or
+the forward orthogonal deviation of a row from the mean of the unit's
+later rows, scaled by <code>sqrt(T / (T + 1))</code> and dated one period later
+(<code>trans = "fod"</code>, Arellano and Bover 1995, sec. 3; Roodman 2009, eq 21),
+which loses no more than the last row of a unit with gaps.</p>
+<p>GMM-style instruments (Roodman 2009, sec. 3.2) are made for the lagged
 outcome (when <code>ylag &gt; 0</code>, first) and for the columns of <code>x</code> named in
 <code>gmm</code>: for the transformed equation dated <code>t</code>, the levels of the
 variable at <code>t - l</code> for <code>l</code> from <code>lagmin</code> to <code>lagmax</code>, zero where the
@@ -401,8 +408,8 @@ other than the constant (above). Every test is on <code>m - k</code> degrees of
 freedom or fewer, <code>m</code> the instruments and <code>k</code> the coefficients. When the
 instruments outnumber the groups, <code>note</code> says so (Roodman 2009, sec.
 2.6). Inference is normal unless <code>small = TRUE</code>. Andreatta et al.
-describe their instruments both as "their second and third lags" (p.
-1373) and as "Lag 2 and earlier lags" (table 3, note); <code>lagmin</code> and
+describe their instruments both as "their second and third lags"
+(p. 1373) and as "Lag 2 and earlier lags" (table 3, note); <code>lagmin</code> and
 <code>lagmax</code> take either reading.</p>
 <p>The plot draws the coefficients other than the constant and
 the time dummies, with their intervals, and returns what it drew.</p>

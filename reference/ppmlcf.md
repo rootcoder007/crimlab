@@ -27,7 +27,8 @@ ppmlcf(
   seed = NULL,
   level = 0.95,
   tol = 1e-12,
-  maxit = 100
+  maxit = 100,
+  family = c("poisson", "nb")
 )
 
 # S3 method for class 'ppmlcf'
@@ -88,6 +89,11 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL, terms = NULL)
 
   `NULL` (the generator's current state) or one whole number.
 
+- family:
+
+  `"poisson"` (the default) or `"nb"`: the second stage's likelihood
+  (`"nb"` needs `how = "cf"`).
+
 - ...:
 
   Not used by [`print()`](https://rdrr.io/r/base/print.html) and
@@ -127,8 +133,8 @@ the endogenous columns, the controls, then for `"cf"` the residual terms
 [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md));
 `draws`, the bootstrap estimates (one row per draw; `NULL` for
 `"naive"`); `nfail`; `n`; `nsep`; `ncl`; `nboot`; `how`, `se`; `fe`,
-`clus` and `level`. [`summary()`](https://rdrr.io/r/base/summary.html)
-returns `coef`.
+`clus` and `level`; with `family = "nb"`, `family` and `theta`.
+[`summary()`](https://rdrr.io/r/base/summary.html) returns `coef`.
 
 ## Details
 
@@ -161,6 +167,29 @@ second-stage errors account for the first stage. The exponential
 generalised method of moments of Mullahy (1997) and Windmeijer and
 Santos Silva (1997), which needs no first-stage model, is
 [`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md).
+The negative binomial second stage (`family = "nb"`). Feigenbaum and
+Muller (2016, secs. 5-6 and table 2) model city homicides as negative
+binomial with the population as the exposure (`expo`) and instrument a
+city's use of lead pipes by its rail distance to the nearest lead
+refinery, estimating "the IV negative binomial regressions following the
+control function procedure described by Cameron and Trivedi (2013, p.
+401-406)" with errors from "a bootstrap resampling at the city level".
+Here the first stage is as above, by least squares on the instruments,
+the controls and the fixed effects; the second stage is the negative
+binomial maximum-likelihood fit (variance `mu + mu^2 / theta`, `theta`
+estimated, as
+[`MASS::glm.nb()`](https://rdrr.io/pkg/MASS/man/glm.nb.html) fits it) of
+the outcome on the endogenous columns, the controls, the first-stage
+residuals, an intercept and the fixed effects as indicator columns (not
+absorbed: a negative binomial fit has no within transformation, and many
+levels bring the incidental-parameter bias of a nonlinear model);
+`se = "boot"` refits both stages on each draw of the clusters (rows of a
+cluster drawn twice enter twice), `"naive"` takes the clustered sandwich
+of the second stage alone. Separation is checked as for the Poisson fit.
+A systematic review of individual-level studies of lead and crime is
+Talayero et al. (2023); see
+[`cemtch()`](https://rootcoder007.github.io/crimlab/reference/cemtch.md).
+
 Karamik and von Graevenitz (2022, eqs 2-3) use the control function with
 the wind sectors of
 [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
@@ -194,6 +223,11 @@ Wooldridge, J. M. (2014). Quasi-maximum likelihood estimation and
 testing for nonlinear models with endogenous explanatory variables.
 *Journal of Econometrics*, 182(1), 226-234.
 [doi:10.1016/j.jeconom.2014.04.020](https://doi.org/10.1016/j.jeconom.2014.04.020)
+
+Feigenbaum, J. J. and Muller, C. (2016). Lead exposure and violent crime
+in the early twentieth century. *Explorations in Economic History*, 62,
+51-86.
+[doi:10.1016/j.eeh.2016.03.002](https://doi.org/10.1016/j.eeh.2016.03.002)
 
 Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
 effect of air pollution on crime. Evidence from Germany. ZEW Mannheim

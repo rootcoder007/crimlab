@@ -3,6 +3,47 @@
 ## crimlab 0.0.0.9000
 
 - New:
+  [`cemtch()`](https://rootcoder007.github.io/crimlab/reference/cemtch.md),
+  coarsened exact matching (Iacus, King and Porro 2012) with the weights
+  for the effect on the treated and the L1 imbalance, as Sampson and
+  Winter (2018) match lead-exposed children.
+
+- New:
+  [`lrcce()`](https://rootcoder007.github.io/crimlab/reference/lrcce.md),
+  the CS-ARDL long-run effects and adjustment speed from the unit
+  estimates of
+  [`ccepnl()`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md),
+  as Ditzen (2021) sets them out.
+
+- New:
+  [`ifesc()`](https://rootcoder007.github.io/crimlab/reference/ifesc.md),
+  the generalized synthetic control of Xu (2017) on the interactive
+  fixed effects model of Bai (2009), with staggered adoption, the number
+  of factors by cross-validation and a bootstrap of units.
+
+- New: `ppmlcf(family = "nb")`, the control function with a negative
+  binomial second stage and a cluster bootstrap of both stages, as
+  Feigenbaum and Muller (2016) estimate lead’s effect on homicide.
+
+- New: `ivfe(se = "dk")`, the standard errors of Driscoll and Kraay
+  (1998), robust to correlation across units and over time, as Batkeyev
+  and DeRemer (2023) report them.
+
+- New:
+  [`idwint()`](https://rootcoder007.github.io/crimlab/reference/idwint.md)
+  carries monitor readings to places by inverse-distance weighting of
+  the nearest monitors and averages them by zone, as Rahman et
+  al. (2023), Wongchanapai et al. (2025) and Wesselbaum (2022) assign
+  exposure;
+  [`gtwreg()`](https://rootcoder007.github.io/crimlab/reference/gtwreg.md)
+  is the geographically and temporally weighted regression of Kuo and
+  Putra (2021), its bandwidth and time scale chosen by cross-validation
+  or AICc;
+  [`asrule()`](https://rootcoder007.github.io/crimlab/reference/asrule.md)
+  gives the association rules between two binned variables that
+  Wongchanapai et al. (2025) mine with Apriori.
+
+- New:
   [`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
   builds downwind-exposure instruments from sources of pollution and the
   wind: the sector and transport-wedge rules of Bao and Da (2026) for
