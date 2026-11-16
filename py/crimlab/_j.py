@@ -7576,13 +7576,13 @@ def hwpwr(
     >>> sorted(hwpwr(since=a, skip=src)["rows"])[:3]
     ['fhi', 'flo', 'how']
     """
-    if isinstance(since, dict):
-        since = since.get("snap")
+    if isinstance(since, dict) and "snap" in since:
+        since = since["snap"]
     return jcall("hwpwr", dt=dt, since=since, step=step, rated=rated, pid=pid, skip=skip, paths=paths)
 
 
 def co2fp(
-    durs: Any,
+    durs: Any = None,
     cputms: Any = 0,
     loc: Any = None,
     meth: Any = "auto",

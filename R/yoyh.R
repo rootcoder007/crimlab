@@ -353,12 +353,18 @@ yoywr <- function(x, file, format = "auto", ...) {
        pages = pages)
 }
 
+# yoypdf(): a coordinate to the hundredth of a point, a half going up. A
+# right-aligned text ends on thousandths of a point, so a half is common,
+# and "%.2f" alone sends it up or down by the last bit of the sum, which
+# differs between machines: the file must be the same bytes on each.
+.ypc <- function(x) floor(x * 100 + 0.5 + 1e-6) / 100
+
 # yoypdf(): a line of text at (x0, y0), its right end there when `right`
 .yptxt <- function(x0, y0, s, size, font = "F1", rgb = "0 0 0",
                    right = FALSE) {
   if (right) x0 <- x0 - .ywid(s, size)
   sprintf("BT /%s %g Tf %s rg %.2f %.2f Td (%s) Tj ET", font, size, rgb,
-          x0, y0, .ypdfs(s))
+          .ypc(x0), .ypc(y0), .ypdfs(s))
 }
 
 # yoypdf(): the content stream of page k: heading, column heads, rows,
@@ -371,7 +377,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   np <- length(lay$pages)
   top <- H - m - 0.12 * H
   rule <- function(y) {
-    sprintf("%s RG 0.7 w %.2f %.2f m %.2f %.2f l S", dim, m, y, W - m, y)
+    sprintf("%s RG 0.7 w %.2f %.2f m %.2f %.2f l S", dim, .ypc(m), .ypc(y),
+            .ypc(W - m), .ypc(y))
   }
   out <- c(.yptxt(m, H - m - 18, lay$title, 18, "F2"),
            .yptxt(m, H - m - 32, lay$sub, 9, rgb = dim),

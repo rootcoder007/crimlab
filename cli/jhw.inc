@@ -140,6 +140,8 @@ inline std::vector<std::string> snaps(const pwr::Cfg &g, bool has, const std::st
     if (left <= 0) break;
 #ifndef __wasi__
     std::this_thread::sleep_for(std::chrono::duration<double>(std::min(step, left)));
+#else
+    (void)step;  // nothing can wait there: dt is 0
 #endif
     s.push_back(pwr::put(pwr::snap(g)));
   }

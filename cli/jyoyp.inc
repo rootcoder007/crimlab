@@ -57,12 +57,15 @@ inline std::string yrgb(const char *hex) {
   }
   return o;
 }
+// .ypc(): a coordinate to the hundredth of a point, a half going up
+inline double ypc(double x) { return std::floor(x * 100 + 0.5 + 1e-6) / 100; }
+
 // .yptxt()
 inline std::string yptxt(double x0, double y0, const std::string &s, double size, const char *font = "F1",
                          const std::string &rgb = "0 0 0", bool right = false) {
   if (right) x0 = x0 - ywid(s, size);
   char b[96];
-  std::snprintf(b, sizeof b, "BT /%s %g Tf %s rg %.2f %.2f Td (", font, size, rgb.c_str(), x0, y0);
+  std::snprintf(b, sizeof b, "BT /%s %g Tf %s rg %.2f %.2f Td (", font, size, rgb.c_str(), ypc(x0), ypc(y0));
   return b + ypdfs(s) + ") Tj ET";
 }
 inline std::string fmt(const char *f, double a, double b, double c, double d) {
@@ -114,7 +117,9 @@ inline void yplay(Lay &l, const Yt &t, const yh::Show &s, double width, double h
 inline std::string ypstr(const Lay &l, std::size_t k) {
   const double m = l.m, W = l.W, H = l.H, top = H - m - 0.12 * H;
   const std::size_t np = l.pages.size();
-  auto rule = [&](double y) { return l.dim + fmt(" RG 0.7 w %.2f %.2f m %.2f %.2f l S", m, y, W - m, y); };
+  auto rule = [&](double y) {
+    return l.dim + fmt(" RG 0.7 w %.2f %.2f m %.2f %.2f l S", ypc(m), ypc(y), ypc(W - m), ypc(y));
+  };
   Strs o = {yptxt(m, H - m - 18, l.title, 18, "F2"), yptxt(m, H - m - 32, l.sub, 9, "F1", l.dim), rule(top + 10)};
   for (std::size_t j = 0; j < l.nc; ++j) {
     const bool r = j + 1 >= l.numfrom && l.hdr[j] != "note";
