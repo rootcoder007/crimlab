@@ -111,6 +111,16 @@ int clab_dtrid(const double *p, const double *s, const double *c, int n, int lg,
     for (int l = j + 1; l < 4; ++l) v -= r[l * 4 + j] * beta[l];
     beta[j] = v / r[j * 4 + j];
   }
+  // a slope whose whole part in the fit is below the rounding of y is 0
+  // (an outcome that is exactly another column leaves about 1e-16 there,
+  // more or less by platform, and the implied discount rate divides by it)
+  double ym = 0;
+  for (int i = 0; i < n; ++i) ym = std::fmax(ym, std::fabs(y[i]));
+  for (int j = 1; j < 4; ++j) {
+    double m = 0;
+    for (int i = 0; i < n; ++i) m = std::fmax(m, std::fabs(beta[j] * X[j * n + i]));
+    if (m <= 1e-12 * ym) beta[j] = 0;
+  }
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 

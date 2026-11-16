@@ -124,7 +124,7 @@ int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, i
   *fv = fx;
   if (!std::isfinite(fx) || !fin(g, p)) return -1;
   eye(h, p, 1.0);
-  bool first = true;
+  bool first = true, steep = true;
   int it = 0, conv = 0;
   for (; it < maxit; ++it) {
     if (kutil::stop(fw)) break;
@@ -141,14 +141,27 @@ int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, i
     // H stays positive definite (updates need s'y > 0): a descent direction
     const double dg = dot(d, g, p);
     double a = 1, fnew = 0;
-    bool found = false;
+    bool found = false, last = false;
     for (int ls = 0; ls < 60 && !found; ++ls) {
       for (int i = 0; i < p; ++i) un[i] = u[i] + a * d[i];
       fnew = f(un, gn, ctx);
-      found = std::isfinite(fnew) && fin(gn, p) && fnew <= fx + 1e-4 * a * dg;
+      last = std::isfinite(fnew) && fin(gn, p);
+      found = last && fnew <= fx + 1e-4 * a * dg;
       if (!found) a *= 0.5;
     }
-    if (!found) break;
+    if (!found) {
+      // no lower point along the quasi-Newton direction: try once more
+      // straight down the gradient. None there either, with f finite at
+      // the smallest step, and u is a minimum as far as rounding can tell
+      // (the gradient left is the rounding of f, which no step removes).
+      if (!steep) {
+        eye(h, p, 1.0);
+        first = steep = true;
+        continue;
+      }
+      conv = last ? 1 : 0;
+      break;
+    }
     // s = a d (in d), y = gn - g (in g)
     for (int i = 0; i < p; ++i) {
       d[i] *= a;
@@ -157,7 +170,7 @@ int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, i
     const double sy = dot(d, g, p), yy = dot(g, g, p);
     if (sy > 1e-12 * std::sqrt(dot(d, d, p) * yy)) {
       if (first) eye(h, p, sy / yy);
-      first = false;
+      first = steep = false;
       for (int i = 0; i < p; ++i) {
         hy[i] = 0;
         for (int j = 0; j < p; ++j) hy[i] += h[ix(i, j, p)] * g[j];
