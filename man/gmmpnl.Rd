@@ -390,6 +390,7 @@ provinces. \emph{Regional Studies}, 57(7), 1367-1379.
 
 Demir, C. and Ozcan, S. E. (2023). Do air quality and green space
 reduce propensity to crime?: an empirical investigation of OECD
-countries. \emph{Management of Environmental Quality}, 34(2), 351-367.
+countries. \emph{Management of Environmental Quality: An International
+Journal}, 34(2), 351-367.
 \doi{10.1108/MEQ-08-2022-0235}
 }

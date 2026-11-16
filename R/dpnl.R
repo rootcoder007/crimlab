@@ -275,7 +275,8 @@
 #'
 #'   Demir, C. and Ozcan, S. E. (2023). Do air quality and green space
 #'   reduce propensity to crime?: an empirical investigation of OECD
-#'   countries. *Management of Environmental Quality*, 34(2), 351-367.
+#'   countries. *Management of Environmental Quality: An International
+#'   Journal*, 34(2), 351-367.
 #'   \doi{10.1108/MEQ-08-2022-0235}
 #' @examples
 #' # 60 provinces over 8 years: a logged rate with persistence 0.5 and one
