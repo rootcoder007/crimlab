@@ -67,7 +67,7 @@ its standard error and interval, for a month of given weather.
 \details{
 The fit is ordinary least squares of \code{y} on a constant (with \code{int}) and
 the columns of \code{x}; tests and intervals use Student's t on \code{n - k}
-degrees of freedom, \code{k} the coefficients. \code{beta} is \code{b sd(x) / sd(y)};
+degrees of freedom, \code{k} the coefficients. \code{beta} is \verb{b sd(x) / sd(y)};
 \code{vif} is \code{1 / (1 - R2_j)}, \code{R2_j} that of column \code{j} regressed on a
 constant and the other columns, and \code{tol} its inverse. \code{dw} is the sum
 of the squared differences of successive residuals over their sum of

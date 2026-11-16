@@ -29,7 +29,7 @@ next date in the text. The reading never depends on the session's
 locale.
 }
 \examples{
-ovrdte(c("January 5, 2023", "le 1er f\\u00e9vrier 2021", "no date"))
+ovrdte(c("January 5, 2023", "le 1er février 2021", "no date"))
 ovrdte("On February 30, 2023 or rather March 2, 2023, the SIU ...")
 as.Date(ovrdte("Date: April 28, 2023"))
 }

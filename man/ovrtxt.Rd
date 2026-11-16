@@ -10,7 +10,7 @@ ovrtxt(x, html = NA)
 \item{x}{The pages or texts: a character vector. \code{NA} stays \code{NA}.}
 
 \item{html}{\code{NA} (the default) to read each element as HTML when it
-holds markup (a \verb{<} followed by a letter, \code{/} or \verb{!}), \code{TRUE} or
+holds markup (a \code{<} followed by a letter, \code{/} or \code{!}), \code{TRUE} or
 \code{FALSE} to say.}
 }
 \value{
@@ -38,6 +38,6 @@ nothing is written; the pass is linear in the length of the page.
 }
 \examples{
 ovrtxt("<h2>The Team</h2><p>Number of investigators assigned: 3</p>")
-ovrtxt("<p>WO\\n#1 Interviewed</p><p>WO&nbsp;#2 Interviewed</p>")
-ovrtxt("a  b\\r\\nc", html = FALSE)
+ovrtxt("<p>WO\n#1 Interviewed</p><p>WO&nbsp;#2 Interviewed</p>")
+ovrtxt("a  b\r\nc", html = FALSE)
 }

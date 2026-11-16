@@ -13,7 +13,7 @@ ovrpar(x, schema = ovrsch(), html = NA)
 \code{name}, \code{rule}, \code{cue}, \code{alt} and \code{sect}, as \code{\link[=ovrsch]{ovrsch()}} gives them.}
 
 \item{html}{\code{NA} (the default) to read each element as HTML when it
-holds markup (a \verb{<} followed by a letter, \code{/} or \verb{!}), \code{TRUE} or
+holds markup (a \code{<} followed by a letter, \code{/} or \code{!}), \code{TRUE} or
 \code{FALSE} to say.}
 }
 \value{

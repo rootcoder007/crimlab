@@ -1327,6 +1327,9 @@ func Fepnl(args string) (string, error) { return Jrun("fepnl", args) }
 // Pcdtst runs pcdtst() of the R package (arguments: x unit time; ? marks an optional one).
 func Pcdtst(args string) (string, error) { return Jrun("pcdtst", args) }
 
+// Olsdx runs olsdx() of the R package (arguments: y x at? int? pred? level?; ? marks an optional one).
+func Olsdx(args string) (string, error) { return Jrun("olsdx", args) }
+
 // Gmmpnl runs gmmpnl() of the R package (arguments: y x? unit time ylag? gmm? iv? z? lagmin? lagmax? collapse? type? trans? steps? robust? wc? small? hmat? cons? tdum? ar? level?; ? marks an optional one).
 func Gmmpnl(args string) (string, error) { return Jrun("gmmpnl", args) }
 

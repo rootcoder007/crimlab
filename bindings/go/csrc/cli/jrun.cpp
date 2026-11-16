@@ -2089,6 +2089,7 @@ const Ent ents[] = {
     {"lmdix", "y q unit time type? at? ref? zero? fnm?", lmdix},
     {"fepnl", "y x unit time int? clus? at? ssc? level?", fepnl},
     {"pcdtst", "x unit time", pcdtst},
+    {"olsdx", "y x at? int? pred? level?", olsdx},
     {"gmmpnl", "y x? unit time ylag? gmm? iv? z? lagmin? lagmax? collapse? type? trans? steps? robust? wc? small? hmat? cons? tdum? ar? level?", gmmpnl},
     {"wsctst", "y x? unit time cons? ssc?", wsctst},
     {"ccepnl", "y x unit time fac? cons? w? avg? ylag? lags? bias? pool? pvar? level?", ccepnl},

@@ -4,7 +4,8 @@
 // LMDI contributions of two-factor identities by hand, their sum, the
 // variance inflation factor of two columns from their correlation, the
 // Jarque-Bera moments of small samples worked by hand, Pesaran's CD of
-// three series by hand, and the failure paths. Part of the self-test
+// three series by hand, a least-squares fit of four points by hand, and
+// the failure paths. Part of the self-test
 // (selftest.cpp).
 #include <cmath>
 
@@ -131,6 +132,40 @@ void pcd(tk &tt) {
   tk_ieq(tt, "env.pcd.n", clab_pcd(g, 1, 2, o), CLAB_EARG);
 }
 
+
+void olsdx(tk &tt) {
+  // y = 1 3 2 5 on x = 0 1 2 3: b = 1.1 and 1.1, residuals -0.1 0.8 -1.3
+  // 0.6, RSS 2.7, s^2 1.35, TSS 8.75, leverage 1/4 + (x - 1.5)^2 / 5
+  const double y[4] = {1, 3, 2, 5}, x[4] = {0, 1, 2, 3}, at[1] = {2};
+  double co[18], vc[4], cr[1], cs[28], pr[4], st[10];
+  tk_ieq(tt, "env.ols.rc",
+         clab_olsdx(y, x, 4, 1, 1, at, 1, 0, 0.95, co, vc, cr, cs, pr, st), CLAB_OK);
+  tk_near(tt, "env.ols.b0", co[0], 1.1, 1e-12);
+  tk_near(tt, "env.ols.b1", co[1], 1.1, 1e-12);
+  tk_near(tt, "env.ols.se1", co[3], std::sqrt(1.35 / 5), 1e-12);
+  tk_near(tt, "env.ols.r2", st[1], 1 - 2.7 / 8.75, 1e-12);
+  tk_near(tt, "env.ols.f", st[4], 6.05 / 1.35, 1e-12);
+  // Durbin-Watson: (0.9^2 + 2.1^2 + 1.9^2) / 2.7
+  tk_near(tt, "env.ols.dw", st[8], 8.83 / 2.7, 1e-12);
+  tk_near(tt, "env.ols.h1", cs[20], 0.7, 1e-12);
+  tk_near(tt, "env.ols.h2", cs[21], 0.3, 1e-12);
+  // Cook's distance of the first row: 0.01 0.7 / (1.35 0.3 2 0.3)
+  tk_near(tt, "env.ols.cook", cs[24], 0.007 / 0.243, 1e-12);
+  // the mean at x = 2: 3.3 with variance 1.35 (1/4 + 0.25 / 5)
+  tk_near(tt, "env.ols.pm", pr[0], 3.3, 1e-12);
+  tk_near(tt, "env.ols.ps", pr[1], std::sqrt(0.405), 1e-12);
+  clab_olsdx(y, x, 4, 1, 1, at, 1, 1, 0.95, co, vc, cr, cs, pr, st);
+  tk_near(tt, "env.ols.pn", pr[1], std::sqrt(1.755), 1e-12);
+  // too few rows, a constant column with the constant, a missing value
+  tk_ieq(tt, "env.ols.n", clab_olsdx(y, x, 3, 1, 1, nullptr, 0, 0, 0.95, co, vc, cr, cs, pr, st),
+         CLAB_EARG);
+  const double one[4] = {1, 1, 1, 1}, nan[4] = {1, NAN, 2, 3};
+  tk_ieq(tt, "env.ols.col",
+         clab_olsdx(y, one, 4, 1, 1, nullptr, 0, 0, 0.95, co, vc, cr, cs, pr, st), CLAB_EDOM);
+  tk_ieq(tt, "env.ols.nan",
+         clab_olsdx(y, nan, 4, 1, 1, nullptr, 0, 0, 0.95, co, vc, cr, cs, pr, st), CLAB_EDOM);
+}
+
 }  // namespace
 
 void t_env(tk &t, int) {
@@ -138,4 +173,5 @@ void t_env(tk &t, int) {
   vif(t);
   jb(t);
   pcd(t);
+  olsdx(t);
 }

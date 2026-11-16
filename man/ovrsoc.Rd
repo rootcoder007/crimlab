@@ -25,7 +25,7 @@ ovrsoc(
 \item{head}{The headings of the roster of subject officials: text.}
 
 \item{html}{\code{NA} (the default) to read each element as HTML when it
-holds markup (a \verb{<} followed by a letter, \code{/} or \verb{!}), \code{TRUE} or
+holds markup (a \code{<} followed by a letter, \code{/} or \code{!}), \code{TRUE} or
 \code{FALSE} to say.}
 }
 \value{
@@ -58,11 +58,11 @@ real answer;
 
 Tags and headings are matched as written; \code{term} in any case. The
 defaults are the words of Canadian oversight bodies; give a body's own
-(\code{tag = "AI"}, \code{term = "agent impliqu\\u00e9"} for a French report).
+(\code{tag = "AI"}, \code{term = "agent impliqué"} for a French report).
 }
 \examples{
-ovrsoc(c("Subject Officials\\nSO #1 Interviewed\\nSO #2 Declined",
+ovrsoc(c("Subject Officials\nSO #1 Interviewed\nSO #2 Declined",
          "Two subject officials were designated.",
-         "Witness Officials\\nWO #1\\nWO #2",
+         "Witness Officials\nWO #1\nWO #2",
          "No officers are named here."))
 }

@@ -14,7 +14,7 @@ named list of character vectors (one group each), or a character
 vector (each word a group of its own).}
 
 \item{html}{\code{NA} (the default) to read each element as HTML when it
-holds markup (a \verb{<} followed by a letter, \code{/} or \verb{!}), \code{TRUE} or
+holds markup (a \code{<} followed by a letter, \code{/} or \code{!}), \code{TRUE} or
 \code{FALSE} to say.}
 }
 \value{
