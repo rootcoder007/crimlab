@@ -72,6 +72,7 @@ bool wrtxtfb(Ctx &c, Val &out) {
   CK(txtin(c, "text", s, m));
   const Val &p = c["path"];
   if (p.t != Val::STR || p.s.empty()) return c.fail("`path` must be one non-empty file path.");
+  CK(ckpath(c, p.s, "path"));
   std::string b;
   for (std::size_t i = 0; i < s.size(); ++i) {
     if (i) b += '\n';

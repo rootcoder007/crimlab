@@ -1550,6 +1550,13 @@ bool proof(Ctx &c, Val &out) {
 }
 
 // The families of the R package's other functions, each in its file.
+// .ckpath() of R: a path no longer than a file path can be (PATH_MAX on
+// Linux).
+bool ckpath(Ctx &c, const std::string &p, const char *nm) {
+  if (p.size() > 4096) return c.fail("`%s` is longer than a file path can be (4096 bytes).", nm);
+  return true;
+}
+
 #include "jx.inc"
 #include "jfair.inc"
 #include "jtrace.inc"

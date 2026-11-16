@@ -556,6 +556,8 @@ ok("ctabx", row = c("A", "A", "B", "B"), col = c("F", "M", "F", "M"), w = c(12, 
 ok("ctabx", row = rbind(c(10, 4), c(3, 12)), correct = TRUE, level = 0.9)
 ok("ctabx", row = c("a", "a", "b", "b", "b"), col = c("x", "y", "x", "x", "y"), w = c(3, 1, 4, 1, 5), agg = "mean")
 bad("ctabx", row = c("a", "b"), col = c("x", "y"), agg = "max")
+bad("ctabx", row = matrix(0, 2, 2))
+bad("wrtxtfb", text = "a", path = strrep("x", 5000))
 
 # Audits of risk scores
 set.seed(31)
@@ -1617,6 +1619,7 @@ bad("yoysmry", x = data.frame(a = 1))
 ok("yoycsv", x = yt)
 ok("yoycsv", x = data.frame(code = c("046", "", "a,b"), n = c(1 / 3, NA, 1e-20)), meta = "simulated", na = "NA")
 ok("yoytsv", x = yt, digits = 2)
+bad("yoytsv", x = yt, file = strrep("x", 5000))
 ok("yoyjs", x = yt)
 ok("yoyjs", x = data.frame(code = c("046", "q\"x"), ok = c(TRUE, NA)), pretty = FALSE, meta = "m")
 bad("yoywr", x = data.frame(n = 1), file = "x.out", format = "nope")

@@ -79,7 +79,7 @@ bool yfile(Ctx &c, std::string &f) {
   if (!c.has("file")) return true;
   if (c["file"].t != Val::STR || c["file"].s.empty()) return c.fail("`file` must be NULL or one file path.");
   f = c["file"].s;
-  return true;
+  return ckpath(c, f, "file");
 }
 
 bool ydone(Ctx &c, const std::string &txt, const std::string &f, Val &out) {
@@ -601,6 +601,7 @@ bool yoywr(Ctx &c, Val &out) {
   CK(ytxt1(c, "format", "auto", fm));
   for (char &ch : fm) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
   const std::string &f = c["file"].s;
+  CK(ckpath(c, f, "file"));
   if (fm == "auto") {
     std::string b = f.substr(f.find_last_of("/\\") == std::string::npos ? 0 : f.find_last_of("/\\") + 1);
     std::string e = b.find('.') == std::string::npos ? b : b.substr(b.find_last_of('.') + 1);
