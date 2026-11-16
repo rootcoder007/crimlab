@@ -156,7 +156,7 @@ plotrdg <- function(x, grp = NULL, bw = "nrd0", ..., main = NULL,
     if (length(v) < 2L) {
       return(NULL)
     }
-    k <- stats::density(v, bw = bw)
+    k <- .pdens(v, bw)
     data.frame(grp = g, x = k$x, y = k$y, stringsAsFactors = FALSE)
   }))
   if (is.null(out)) {
@@ -227,7 +227,7 @@ plotvln <- function(x, grp = NULL, bw = "nrd0", ..., main = NULL,
     sm <- rbind(sm, data.frame(grp = lv[i], median = q[2L], q1 = q[1L],
                                q3 = q[3L], stringsAsFactors = FALSE))
     if (length(v) >= 2L) {
-      k <- stats::density(v, bw = bw)
+      k <- .pdens(v, bw)
       w <- 0.42 * k$y / max(k$y)
       graphics::polygon(c(i - w, rev(i + w)), c(k$x, rev(k$x)),
                         col = grDevices::adjustcolor(cl[i], 0.5),
@@ -586,6 +586,20 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .Call(C_clab_r_dens, as.double(x), weights,
         as.integer(c(rule, match(kernel, ks) - 1L, n)),
         as.double(c(if (is.character(bw)) 0 else bw, adjust, cut, from, to)))
+}
+
+# the density of one group for plotrdg() and plotvln(): the compiled kernel,
+# so R, the command line and the other languages draw the same curve on
+# every version of R, with the warning bw.ucv() and bw.bcv() give and a
+# refusal in the words of stats::density(), under no other name
+.pdens <- function(v, bw) {
+  k <- tryCatch(.dens(v, bw = bw), error = function(e) {
+    stop(sub("^dens: ", "", conditionMessage(e)), call. = FALSE)
+  })
+  if (k$warn) {
+    warning("minimum occurred at one end of the range", call. = FALSE)
+  }
+  k
 }
 
 # the Lorenz curve and Gini of non-negative values, from the compiled core

@@ -192,7 +192,7 @@ test_that("ifesc() prints, and leaves out the draws it cannot fit", {
   s$tr <- as.integer(s$id == 1 & s$yr >= 4)
   s$y <- stats::rnorm(nrow(s)) + s$tr
   bad <- function(seed) {
-    bm <- crimlab:::.ifdraws(4L, 3L, seed)
+    bm <- .ifdraws(4L, 3L, seed)
     sum(bm[1L, ] == 0L | colSums(bm[-1L, ] > 0L) < 2L)
   }
   expect_identical(bad(1), 1L)

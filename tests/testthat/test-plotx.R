@@ -40,7 +40,14 @@ test_that("distributions by group", {
   r <- drw(plotrdg(x, g))
   expect_identical(unique(r$grp), c("a", "b"))
   expect_equal(sum(r$y[r$grp == "a"]) * diff(r$x[1:2]), 1, tolerance = 0.02)
-  expect_identical(r$y[r$grp == "a"], stats::density(x[1:100])$y)
+  expect_identical(r$y[r$grp == "a"], .dens(x[1:100])$y)
+  # a refusal of the kernel comes in the words of stats::density(), and the
+  # warning of bw.ucv() when the minimum is at an end of its range
+  expect_error(drw(plotrdg(c(1, 1, 1, 1), bw = "ucv")),
+               "^data are constant in bandwidth calculation$")
+  dv <- c(2.1, 3.4, 1.9, 5.2, 4.4, 3.3, 2.8, 6.1, 3.9, 4.7, 1.2, 3.0)
+  expect_warning(drw(plotrdg(dv, bw = "ucv")),
+                 "minimum occurred at one end of the range", fixed = TRUE)
   expect_s3_class(drw(plotrdg(c(x, 5), c(g, "lone"), main = "Ridges")),
                   "data.frame")
   e <- drw(plotcdfs(x, g))
@@ -141,7 +148,7 @@ test_that("the compiled density agrees with stats::density()", {
   # the kernel is the density() of R 4.3 and later (old.coords = FALSE):
   # before that R placed the grid, and worded some refusals, differently
   skip_if(getRversion() < "4.3.0", "stats::density() differs before R 4.3")
-  dens <- crimlab:::.dens
+  dens <- .dens
   # the kernel's own radix-2 FFT and R's mixed-radix one round differently:
   # the two agree to about 1e-14 relative, so 1e-12 leaves room. ucv and
   # bcv minimise a criterion with optimize()'s steps: rounding in the
@@ -211,7 +218,7 @@ test_that("the compiled density refuses what stats::density() refuses", {
   # the kernel is the density() of R 4.3 and later (old.coords = FALSE):
   # before that R placed the grid, and worded some refusals, differently
   skip_if(getRversion() < "4.3.0", "stats::density() differs before R 4.3")
-  dens <- crimlab:::.dens
+  dens <- .dens
   x <- faithful$eruptions
   same <- function(r, g) {
     m <- tryCatch(r, error = conditionMessage)
