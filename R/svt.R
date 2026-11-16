@@ -177,7 +177,7 @@ dblctr <- function(D) .sv("dblctr", list(D = D))
 #' stress is Kruskal's stress-1 against the positive distances. The sign
 #' of each dimension is arbitrary.
 #'
-#' @param D A symmetric matrix of distances.
+#' @inheritParams dblctr
 #' @param ndim The number of dimensions.
 #' @return A list of class `cmdsf`: `coords`, `eigen` (the first `ndim`
 #'   eigenvalues), `stress`, `fit` and `B`.
@@ -204,8 +204,7 @@ cmdsf <- function(D, ndim = 2) .sv("cmdsf", list(D = D, ndim = ndim))
 #' w_{ij} (d_{ij} - \delta_{ij})^2} changes by less than `tol`.
 #'
 #' @param D A symmetric matrix of dissimilarities.
-#' @param ndim The number of dimensions; `ndim` times the points scaled
-#'   must be at most 67108864 (2^26).
+#' @inheritParams optcls
 #' @param maxit The most steps.
 #' @param tol The convergence tolerance on the change in stress.
 #' @param w `NULL` for equal weights, or a matrix of weights.
@@ -309,12 +308,10 @@ unfstr <- function(xr, xs, D, w = NULL) {
 #' ([unfstr()]) changes by a relative `tol`; of `nstart` normal starts
 #' (seed 42, as [set.seed()] takes it) the lowest stress is kept.
 #'
-#' @param D A respondent-by-stimulus matrix of dissimilarities.
-#' @param ndim The number of dimensions; `ndim` times the points scaled
-#'   must be at most 67108864 (2^26).
+#' @inheritParams optcls
+#' @inheritParams smunf
 #' @param maxit The most sweeps per start.
 #' @param tol The convergence tolerance on the relative change in stress.
-#' @param nstart The random starts.
 #' @return A list of class `mlsmu`: `xr`, `xs`, `stress`, `iter` and
 #'   `conv`.
 #' @references Poole, K. T. (1984). Least squares metric, unidimensional
@@ -433,8 +430,8 @@ nompr <- function(x, zy, zn, beta = 15, w = NULL) {
 #' [nomutl()] (clamped to \eqn{[10^{-10}, 1 - 10^{-10}]}) and `gmp`, the
 #' share of votes the model classifies correctly.
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
 #' @inheritParams nomutl
+#' @inheritParams optcls
 #' @return A list of class `nomll`: `loglik`, `gmp`, `correct` and
 #'   `total`.
 #' @references Poole, K. T. and Rosenthal, H. (1997). *Congress: A
@@ -481,7 +478,7 @@ procrs <- function(X, target) .sv("procrs", list(X = X, target = target))
 #' \Phi(\beta_j' x_i - \alpha_j)} (clamped to \eqn{[10^{-10}, 1 -
 #' 10^{-10}]}), with the share of votes classified correctly.
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
+#' @inheritParams optcls
 #' @param x Ideal points (legislators by dimensions).
 #' @param alpha One difficulty per vote.
 #' @param beta Discriminations (votes by dimensions).
@@ -536,8 +533,7 @@ irtpst <- function(chain, std = TRUE) {
 #'
 #' @param Y A respondent-by-item matrix of ordinal responses, `NA` for
 #'   missing.
-#' @param ndim The number of dimensions; `ndim` times the points scaled
-#'   must be at most 67108864 (2^26).
+#' @inheritParams optcls
 #' @param maxit The most sweeps.
 #' @return A list of class `ordocl`: `ideal`, `cuts` (one vector per
 #'   item), `normals`, `correct` (the share classified correctly) and
@@ -598,9 +594,8 @@ anchv <- function(y, V, ncat = 5) .sv("anchv", list(y = y, V = V, ncat = ncat))
 #'
 #' @param D A list of square dissimilarity matrices of one size, one per
 #'   individual (judge, panel, survey wave).
-#' @param ndim The number of dimensions; `ndim` times the points scaled
-#'   must be at most 67108864 (2^26).
-#' @param maxit The most sweeps.
+#' @inheritParams ordocl
+#' @inheritParams optcls
 #' @param tol The convergence tolerance on the relative change of the
 #'   configuration.
 #' @return A list of class `indscl`: `config` (stimuli by dimensions),
@@ -679,9 +674,7 @@ cutlns <- function(normals, cuts, xlim = c(-1, 1)) {
 #' probit of the Gaussian utility difference with \eqn{\beta = 15} and
 #' equal dimension weights.
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions; `ndim` times the points scaled
-#'   must be at most 67108864 (2^26).
+#' @inheritParams optcls
 #' @param maxit The sweeps.
 #' @return A list of class `dwnom`: `ideal`, `weights`, `normals`, `mids`
 #'   (the outcome midpoints), `cuts`, `loglik`, `gmp` and `ndim`.
@@ -707,12 +700,12 @@ dwnom <- function(votes, ndim = 2, maxit = 100) {
 #' gradient steps from the fitted point plus normal noise of standard
 #' deviation 0.1. Draws come from `seed`, as [set.seed()] takes it.
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
 #' @param x Fitted ideal points.
 #' @param normals Fitted normal vectors (votes by dimensions).
 #' @param cuts Fitted cutpoints, one per vote.
 #' @param nboot The bootstrap replicates.
 #' @inheritParams bamscl
+#' @inheritParams optcls
 #' @return A list of class `nombt`: `se` and `mean` (legislators by
 #'   dimensions) and `nboot`.
 #' @references Lewis, J. B. and Poole, K. T. (2004). Measuring bias and
@@ -745,9 +738,7 @@ nombt <- function(votes, x, normals, cuts, nboot = 100, seed = 42) {
 #' \eqn{x} from 50 steps of orthogonal iteration on the cross-product of
 #' the column-centred +1/-1 votes.
 #'
-#' @param votes A legislator-by-vote matrix: 1 yea, 0 nay, `NA` absent.
-#' @param ndim The number of dimensions; `ndim` times the points scaled
-#'   must be at most 67108864 (2^26).
+#' @inheritParams optcls
 #' @param maxit The most iterations.
 #' @param tol The convergence threshold.
 #' @param xprior The prior mean and variance of the ideal points.
@@ -821,7 +812,7 @@ scboot <- function(Z, method = "am", nboot = 200, seed = 42) {
 #' arbitrary.
 #'
 #' @param dtm A document-by-term matrix of counts.
-#' @param maxit The most sweeps.
+#' @inheritParams ordocl
 #' @param tol The convergence tolerance.
 #' @return A list of class `wrdfsh`: `pos` (\eqn{\omega}), `beta`,
 #'   `alpha`, `psi`, `loglik` and `iter`.

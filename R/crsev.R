@@ -70,7 +70,7 @@ crsev <- function(
 #' to every unit. A unit with no row for a category counts 0 there, and
 #' its standardised value is computed with that 0.
 #'
-#' @param x The counts: numbers from 0, one per row.
+#' @inheritParams crsev
 #' @param unit The unit of each row: labels, at least two units.
 #' @param cat The category of each row: labels.
 #' @param w `NULL` for equal weights, or the weight of each category: numbers

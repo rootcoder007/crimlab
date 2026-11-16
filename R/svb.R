@@ -65,13 +65,9 @@ bamscl <- function(Z, nsamp = 1000, burn = 200, polarity = 1, seed = 42) {
 #' come from `seed`, as [set.seed()] takes it.
 #'
 #' @param D A square matrix of dissimilarities.
+#' @inheritParams bamscl
 #' @inheritParams optcls
-#' @param nsamp The draws kept; `nsamp` times the values kept per draw
-#'   must be at most 67108864 (2^26).
-#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
-#'   most 2147483647.
 #' @param sigma The starting \eqn{\sigma = \tau^{-1/2}}.
-#' @param seed The seed.
 #' @return A list of class `bmdsf`: `pos` (aligned posterior means), `sd`,
 #'   `dist` (posterior mean distances), `sigma`, `tau`, `draws` (draws by
 #'   objects by dimensions) and `nsamp`.
@@ -143,10 +139,7 @@ bunfld <- function(D, ndim = 2, nsamp = 1000, burn = 200, seed = 42) {
 #' every platform. The default start is the posterior mode of [irtem()].
 #'
 #' @inheritParams optcls
-#' @param nsamp The draws kept; `nsamp` times the values kept per draw
-#'   must be at most 67108864 (2^26).
-#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
-#'   most 2147483647.
+#' @inheritParams bamscl
 #' @param bvar The prior variance \eqn{v} of the vote parameters.
 #' @param start `NULL`, or starting ideal points.
 #' @param seed The Philox key, a whole number from 0.
@@ -200,12 +193,10 @@ cjrirt <- function(votes, ndim = 1, nsamp = 1000, burn = 200, bvar = 25,
 #' fewer than `minvotes` votes are dropped first. Draws come from `seed`,
 #' as [set.seed()] takes it.
 #'
+#' @inheritParams bamscl
 #' @inheritParams optcls
-#' @param nsamp The draws kept; `nsamp` times the values kept per draw
-#'   must be at most 67108864 (2^26).
 #' @param burn The sweeps discarded first; `burn` plus `nsamp` times
 #'   `thin` must be at most 2147483647.
-#' @param seed The seed.
 #' @param thin Keep every `thin`-th sweep after `burn`.
 #' @param lop The smallest minority share of a kept roll call.
 #' @param minvotes The fewest kept roll calls of a kept legislator.
@@ -264,12 +255,8 @@ anomin <- function(votes, ndim = 1, nsamp = 500, burn = 100, seed = 42,
 #'
 #' @param Y A respondent-by-item matrix of ordinal responses (any ordered
 #'   numeric coding), `NA` for missing.
+#' @inheritParams bamscl
 #' @inheritParams optcls
-#' @param nsamp The draws kept; `nsamp` times the values kept per draw
-#'   must be at most 67108864 (2^26).
-#' @param burn The sweeps discarded first; `burn` plus `nsamp` must be at
-#'   most 2147483647.
-#' @param seed The seed.
 #' @param lprec The prior precision \eqn{L_0} of the loadings and
 #'   intercepts (0, flat).
 #' @return A list of class `ordirt`: `ideal` and `sd`, `disc` (items by
@@ -319,11 +306,8 @@ ordirt <- function(Y, ndim = 1, nsamp = 500, burn = 100, seed = 42,
 #' @param votes A member-by-vote matrix of 0/1 votes (-1/1 is read as
 #'   0/1), `NA` absent.
 #' @param period The period (term) of each vote, one per column.
-#' @param nsamp The draws kept; `nsamp` times the values kept per draw
-#'   must be at most 67108864 (2^26).
-#' @param burn The sweeps discarded first; `burn` plus `nsamp` times
-#'   `thin` must be at most 2147483647.
-#' @param seed The seed.
+#' @inheritParams anomin
+#' @inheritParams bamscl
 #' @param thin Keep every `thin`-th sweep.
 #' @param tau2 The evolution variance (its start when estimated).
 #' @param c0,d0 The inverse-gamma prior of \eqn{\tau^2}, held at `tau2`

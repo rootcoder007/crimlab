@@ -30,7 +30,7 @@ the label, exposure, population and rate; defaults \code{"fsa"},
 
 \item{poll, y, rare, hirate}{Passed to \code{\link{polbrdn}} for every area.}
 
-\item{x}{A result.}
+\item{x}{An object of class \code{polbrdarea}.}
 
 \item{...}{Not used.}
 }

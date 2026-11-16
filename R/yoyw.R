@@ -116,7 +116,7 @@ fylbl <- function(endyear, sep = "/", short = TRUE) {
 #' does not exist); `cagrpct` is \eqn{100((last/first)^{1/s} - 1)} with
 #' \eqn{s} = (values - 1) / `lag` steps.
 #'
-#' @param x A change table ([yoypx()]).
+#' @inheritParams yoylbl
 #' @param lag The periods per step, the `lag` the table was made with.
 #' @return A data frame of class `yoysmry`: `group` (for a grouped table),
 #'   `from`, `to`, `first`, `last`, `totalpct`, `cagrpct`, `periods`, `up`,

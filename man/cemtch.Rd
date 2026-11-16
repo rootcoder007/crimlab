@@ -10,7 +10,7 @@ cemtch(data, d, x, cut = NULL, lcut = NULL)
 \method{print}{cemtch}(x, ...)
 }
 \arguments{
-\item{data}{A data frame.}
+\item{data}{A data frame, one row per unit.}
 
 \item{d}{The name of the treatment column: 0 or 1 (or \code{FALSE}, \code{TRUE}).}
 
@@ -22,7 +22,7 @@ its range).}
 
 \item{lcut}{The same for the coarsening on which \code{l1} is measured.}
 
-\item{...}{Not used.}
+\item{...}{Not used by \code{print()}.}
 }
 \value{
 An object of class \code{cemtch}, a list: \code{keep} (logical, the rows

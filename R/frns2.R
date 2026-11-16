@@ -196,8 +196,8 @@ tipplt <- function(same, diff, ...) {
 #' theorem for this plot.
 #'
 #' @inheritParams cllr
+#' @inheritParams tipplt
 #' @param lo The prior log10 odds to draw at.
-#' @param ... Passed to [graphics::plot()].
 #' @return Invisibly, a data frame: `lo`, `ece`, `min` and `ref`.
 #' @references Ramos, D. and Gonzalez-Rodriguez, J. (2013). Reliable support:
 #'   measuring calibration of likelihood ratios. *Forensic Science

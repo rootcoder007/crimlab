@@ -61,7 +61,7 @@
 #' @param betaper10 Optional log relative risk per 10 micrograms per cubic
 #'   metre (a single finite number, e.g. \code{log(1.04)}) overriding the NO2
 #'   outcome table; \code{NULL} (the default) uses the table.
-#' @param x A result.
+#' @param x An object of class `crf`.
 #' @inheritParams freqtbl
 #' @return A list of class \code{crf} with: \code{rr} and \code{logrr}, the
 #'   relative risk and its logarithm at the exposure (their means over a
@@ -364,7 +364,7 @@ mortdisp <- function(
 #' @param refconc Counterfactual concentration; \code{NULL} takes the
 #'   pollutant's default (PM2.5 5.8, NO2 10).
 #' @param rare,hirate As in \code{\link{mortdisp}}.
-#' @param x A result.
+#' @param x An object of class `polbrdn`.
 #' @inheritParams freqtbl
 #' @return A list of class \code{polbrdn} with: \code{paf},
 #'   \code{attrcases} and \code{basecases} (per year), \code{population},
@@ -467,7 +467,7 @@ polbrdn <- function(
 #'   the label, exposure, population and rate; defaults \code{"fsa"},
 #'   \code{"exposure"}, \code{"population"} and \code{"brate"}.
 #' @param poll,y,rare,hirate Passed to \code{\link{polbrdn}} for every area.
-#' @param x A result.
+#' @param x An object of class `polbrdarea`.
 #' @inheritParams freqtbl
 #' @return A data frame of class \code{polbrdarea} with one row per area,
 #'   sorted by \code{attrcases}, largest first: the four input columns plus
@@ -550,7 +550,7 @@ polbrdarea <- function(
 #' @param data A data frame with one row per person or area.
 #' @param expo,income Column names (single strings): the exposure (a
 #'   non-negative concentration) and the income measure (numeric).
-#' @param x A result.
+#' @param x An object of class `expconcidx`.
 #' @inheritParams freqtbl
 #' @return A list of class \code{expconcidx} with \code{concidx} (a number
 #'   in \eqn{[-1, 1]}), \code{interpretation} (a sentence), \code{expomean},

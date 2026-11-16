@@ -86,7 +86,7 @@
 #'   elastic net learners, as in [enpath()].
 #' @param hon `TRUE` for honest forests, on half-samples without
 #'   replacement with `imb = 0.05`, as 'grf' grows them (see [rfor()]).
-#' @param ntree The number of trees of `"forest"`: a whole number, at least 1.
+#' @inheritParams suplrn
 #' @param mtry The columns tried at each split of `"forest"`: `NULL` for the
 #'   default of [rfor()], or a whole number (more than the columns means all
 #'   of them).

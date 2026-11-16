@@ -15,7 +15,7 @@ expconcidx(data, expo, income)
 \item{expo, income}{Column names (single strings): the exposure (a
 non-negative concentration) and the income measure (numeric).}
 
-\item{x}{A result.}
+\item{x}{An object of class \code{expconcidx}.}
 
 \item{...}{Not used.}
 }

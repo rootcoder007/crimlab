@@ -140,7 +140,7 @@ jmono <- function(
 #'
 #' @param sent The sentence of each case: numbers.
 #' @param min The mandatory minimum: one number, or one per case.
-#' @param grp `NULL`, or the group of each case: labels.
+#' @inheritParams jmono
 #' @return A data frame of class `mmshr` with one row per group and a last
 #'   row `"all"`: `group`, `n`, `at`, `below`, `above` (shares) and
 #'   `mexcess` (0 when none is above).

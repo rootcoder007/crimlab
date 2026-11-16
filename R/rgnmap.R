@@ -181,7 +181,7 @@ print.rgnmapcmp <- function(x, ...) {
 #' does not cover, and route entries that are `NA` or blank, are skipped.
 #'
 #' @param map The region map, a data frame.
-#' @param unit,reg The names of its unit and region columns.
+#' @inheritParams rgnmapintg
 #' @param route The second method's assignment: a vector named by unit, or
 #'   a data frame with the columns `unit` and `reg`.
 #' @param known The units whose disagreement is expected and documented.

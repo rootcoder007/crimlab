@@ -41,7 +41,7 @@
 #' each for confounding, and find "limited data at the individual level"
 #' (abstract).
 #'
-#' @param data A data frame.
+#' @param data A data frame, one row per unit.
 #' @param d The name of the treatment column: 0 or 1 (or `FALSE`, `TRUE`).
 #' @param x The names of the covariate columns to match on.
 #' @param cut `NULL` or a named list: for a numeric covariate, the number
@@ -112,7 +112,7 @@ cemtch <- function(data, d, x, cut = NULL, lcut = NULL) {
 }
 
 #' @rdname cemtch
-#' @param ... Not used.
+#' @param ... Not used by `print()`.
 #' @export
 print.cemtch <- function(x, ...) {
   cat("cemtch: coarsened exact matching, ", x[["nstrata"]][["kept"]],

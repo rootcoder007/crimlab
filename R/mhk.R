@@ -68,9 +68,9 @@ print.etasf <- function(x, ...) {
 #' spectral radius `rad` of \eqn{A} is below 1; with one type it is the
 #' exponential process of [hwkfit()] with `eta` \eqn{= A}.
 #'
-#' @param times Event times: numbers sorted in `[0, hor]`, at least 10.
 #' @param type The type of each event: labels, at most 10 types.
 #' @inheritParams hwksim
+#' @inheritParams etasf
 #' @param beta `NULL` to estimate the decay, or a given one: one positive
 #'   number.
 #' @param start `NULL` or the starting parameters in the order of `par`
@@ -127,7 +127,6 @@ print.mvhwk <- function(x, ...) {
 #' there. `at` gives the conditional intensity at query points, from the
 #' events strictly before each. [hwksim()] simulates from a fit.
 #'
-#' @param times Event times: numbers sorted in `[0, hor]`, at least 10.
 #' @param x,y The places of the events: finite numbers in planar units.
 #' @param hor The end of the window in time: one positive number.
 #' @param win `NULL` (the events' bounding box) or the rectangle
@@ -137,6 +136,7 @@ print.mvhwk <- function(x, ...) {
 #' @param at `NULL` or query points: a data frame or list with `t`, `x`
 #'   and `y`.
 #' @param start `NULL` or the starting parameters, as `par`.
+#' @inheritParams etasf
 #' @inheritParams hwkfit
 #' @return An object of class `sthwk`, a list: `par`, `se` and `cov`
 #'   (`mu`, `eta`, `beta`, `sigma`); `loglik`, `aic`; `conv`, `iter`;

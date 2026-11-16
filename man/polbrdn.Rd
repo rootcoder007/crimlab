@@ -41,7 +41,7 @@ pollutant's default (PM2.5 5.8, NO2 10).}
 
 \item{rare, hirate}{As in \code{\link{mortdisp}}.}
 
-\item{x}{A result.}
+\item{x}{An object of class \code{polbrdn}.}
 
 \item{...}{Not used.}
 }

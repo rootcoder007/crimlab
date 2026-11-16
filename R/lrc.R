@@ -35,7 +35,7 @@
 #'   a named list of such sets, one long-run effect each.
 #' @param ylag `NULL` (the columns named `L1.y`, `L2.y`, ... of `bi`) or
 #'   the names of the columns holding the lags of `y`.
-#' @param level The confidence level of the intervals.
+#' @inheritParams ppmlfe
 #' @return A data frame, one row per long-run effect and a last row
 #'   `"phi"`: `term`, `est` (the mean group estimate), `se`, `z`, `p`,
 #'   `lo`, `hi`; with the unit values as the attribute `units` (a matrix,

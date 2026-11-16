@@ -201,7 +201,7 @@ bklog <- function(arrive, dispose, horizon = NULL, target = NULL) {
 #' @param recv,disp `NULL`, or the cases received and disposed in each
 #'   period: numbers from 0.
 #' @param pend `NULL`, or the cases pending at the end of each period.
-#' @param prd `NULL` (1, 2, ...) or the label of each period.
+#' @inheritParams stkflw
 #' @param win The rolling window in periods: a whole number from 1.
 #' @param level The level of the intervals: one number between 0 and 1.
 #' @param span `NULL`, or the days in each period (one number or one per
@@ -274,7 +274,7 @@ dktflw <- function(
 #'   band labels as [bandx()] reads them (`"0-3"`, `"Over 12"`), contiguous.
 #' @param events The cases ending in each band: numbers from 0.
 #' @param cens The cases censored in each band: one number or one per band.
-#' @param level The level of the intervals: one number between 0 and 1.
+#' @inheritParams dktflw
 #' @param ci `"log-log"`, `"log"` or `"plain"`.
 #' @return An object of class `lftab`, a list: `tab` (`lower`, `upper`,
 #'   `entering`, `atrisk`, `events`, `cens`, `q`, `surv`, `se`, `lo`, `hi`,

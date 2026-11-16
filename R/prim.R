@@ -217,7 +217,7 @@ cmom <- function(x) {
 #' `NaN`. `cqnt()` refuses an empty `probs` and any probability outside
 #' \eqn{[0, 1]} or missing.
 #'
-#' @param x Numeric (or logical) vector.
+#' @inheritParams cmom
 #' @param probs Probabilities, each in \eqn{[0, 1]}.
 #' @param const The scale factor of `cmad()`, one number from 0: the
 #'   default 1.4826 is the rounded constant [stats::mad()] uses, so the two
@@ -307,7 +307,7 @@ ctkyfnc <- function(x, k = 1.5) {
 #' \eqn{n} values. At `trim = 0.5` both return the median, as `mean()`
 #' does. An empty `x`, or any `NA` or `NaN`, gives `NaN`.
 #'
-#' @param x Numeric (or logical) vector.
+#' @inheritParams cmom
 #' @param trim The proportion trimmed (or winsorized) at each end, one
 #'   number from 0 to 0.5.
 #' @return A number in the units of `x`.
@@ -578,7 +578,7 @@ cipw <- function(treat, ps, trimlo = 0.01, trimhi = 0.99) {
 #' gives 0 for every finite `x`, as `pgamma()` does.
 #'
 #' @param shape The shape \eqn{a}, one positive number.
-#' @param x Numeric vector of quantiles.
+#' @inheritParams cnorm
 #' @return A numeric vector of probabilities, the length of `x`.
 #' @seealso [stats::pgamma()].
 #' @examples

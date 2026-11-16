@@ -133,7 +133,7 @@ yoypdf <- function(x, file, title = "Year-over-year change", sub = "",
 #' from `format`, and passes the other arguments to it.
 #'
 #' @inheritParams yoylbl
-#' @param file The file path.
+#' @inheritParams yoyhtml
 #' @param format `"auto"` (from the extension), or one of `"html"`, `"pdf"`,
 #'   `"csv"`, `"tsv"`, `"json"`, `"markdown"`.
 #' @param ... The arguments of the chosen writer.

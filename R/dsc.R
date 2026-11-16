@@ -295,11 +295,11 @@ print.cortbl <- function(x, ...) {
 #' @param data A data frame; its numeric pairs are ranked by correlation.
 #' @param n Number of pairs to return, one positive whole number (default
 #'   10).
-#' @param meth \code{"spearman"} (default) or \code{"pearson"}.
 #' @param minabs Report only pairs whose absolute correlation reaches this, a
 #'   number in \eqn{[0, 1]} (default 0).
 #' @param x A result of \code{topcors()}.
 #' @inheritParams freqtbl
+#' @inheritParams cortbl
 #' @return A data frame of class \code{c("topcors", "data.frame")} with
 #'   \code{x} and \code{y} (character, column names), \code{correlation}
 #'   (numeric) and \code{abscor} (numeric), strongest first, at most \code{n}

@@ -151,7 +151,7 @@ ousim <- function(y, npath = 100, days = 365, dt = 1, seed = 42) {
 #' \eqn{\sigma + 1}. The stationary variance is \eqn{\sigma^2 / (2
 #' \theta)}.
 #'
-#' @param y The counts, in time order, three at least.
+#' @inheritParams ousim
 #' @param ngrid The grid points, at most 67108864 (2^26).
 #' @param nstep The steps.
 #' @return A list of class `fpdens`: `theta`, `mu`, `sigma`, `grid`,

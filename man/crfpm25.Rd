@@ -32,7 +32,7 @@ minimum risk exposure level (the WHO 2021 guideline is 5); NO2 default
 metre (a single finite number, e.g. \code{log(1.04)}) overriding the NO2
 outcome table; \code{NULL} (the default) uses the table.}
 
-\item{x}{A result.}
+\item{x}{An object of class \code{crf}.}
 
 \item{...}{Not used.}
 }

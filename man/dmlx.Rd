@@ -88,7 +88,8 @@ elastic net learners, as in \code{\link[=enpath]{enpath()}}.}
 \item{hon}{\code{TRUE} for honest forests, on half-samples without
 replacement with \code{imb = 0.05}, as 'grf' grows them (see \code{\link[=rfor]{rfor()}}).}
 
-\item{ntree}{The number of trees of \code{"forest"}: a whole number, at least 1.}
+\item{ntree}{The number of trees of \code{"forest"}: a whole number, at least
+1.}
 
 \item{mtry}{The columns tried at each split of \code{"forest"}: \code{NULL} for the
 default of \code{\link[=rfor]{rfor()}}, or a whole number (more than the columns means all

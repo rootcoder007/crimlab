@@ -180,8 +180,8 @@ pbbnd <- function(
 #'   number from 0.
 #' @inheritParams dktflw
 #' @param rnd `NULL`, or the rounding base of the counts.
-#' @param kind `"nearest"` or `"random"` rounding.
 #' @inheritParams jmono
+#' @inheritParams pbbnd
 #' @param alpha The level at which `signif` marks an adjusted p-value.
 #' @return A data frame of class `yoypx` with one row per group and period
 #'   (in that order): `group` (with `by`), `prd`, `value`, `prev`,
