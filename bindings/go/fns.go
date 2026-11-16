@@ -856,7 +856,7 @@ func Spcure(args string) (string, error) { return Jrun("spcure", args) }
 // Apcie runs apcie() of the R package (arguments: y expo level? maxit?; ? marks an optional one).
 func Apcie(args string) (string, error) { return Jrun("apcie", args) }
 
-// Hsacc runs hsacc() of the R package (arguments: pred obs area? top? prev?; ? marks an optional one).
+// Hsacc runs hsacc() of the R package (arguments: pred obs area? top? prev? ties?; ? marks an optional one).
 func Hsacc(args string) (string, error) { return Jrun("hsacc", args) }
 
 // Sctidy runs sctidy() of the R package (arguments: x; ? marks an optional one).

@@ -41,12 +41,15 @@ bool hsacc(Ctx &c, Val &out) {
   Dv rv;
   const bool hp = c.has("prev");
   if (hp) CK(num(c, c["prev"], "prev", rv, static_cast<std::int64_t>(n), 0.0));
+  static const char *const to[] = {"in", "out", "frac"};
+  int tk = 0;
+  if (c.has("ties")) CK(pick(c, c["ties"], "ties", to, 3, tk));
   double tot = 0;
   for (double x : ov.v) tot += x;
   if (!(tot > 0)) return c.fail("`obs` has no crimes: every count is 0.");
   std::vector<double> res(11 * zz(nt));
   if (clab_hsacc(lg ? nullptr : pv.p(), lg ? hot.data() : nullptr, ov.p(), av.p(), hp ? rv.p() : nullptr,
-                 static_cast<int>(n), tv.p(), nt, res.data()) != CLAB_OK) {
+                 static_cast<int>(n), tv.p(), nt, tk, res.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
   static const char *const cn[] = {"top", "cells", "area", "ashare", "n", "N", "hit", "pai", "nmax", "pei", "rri"};

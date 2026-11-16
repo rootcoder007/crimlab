@@ -7,13 +7,16 @@
 
 #include "bcol.h"
 #include "rchk.h"
+#include "spin.h"
 
 using clab::fail;
 
 extern "C" {
 
-SEXP C_clab_r_hsacc(SEXP pred, SEXP obs, SEXP area, SEXP top, SEXP prev) {
+SEXP C_clab_r_hsacc(SEXP pred, SEXP obs, SEXP area, SEXP top, SEXP prev, SEXP ties) {
   clab::who = "hsacc";
+  static const char *const to[] = {"in", "out", "frac"};
+  const int tk = csp::pick(ties, "ties", to, 3);
   int np = 0;
   SEXP ov = PROTECT(bj::nums(obs, "obs", -1, 0.0));
   ++np;
@@ -56,7 +59,7 @@ SEXP C_clab_r_hsacc(SEXP pred, SEXP obs, SEXP area, SEXP top, SEXP prev) {
   if (!(tot > 0)) fail("`obs` has no crimes: every count is 0.");
   std::vector<double> res(11 * static_cast<std::size_t>(nt));
   bj::kc(clab_hsacc(lg ? nullptr : REAL(pv), lg ? hot.data() : nullptr, REAL(ov), REAL(av),
-                    Rf_isNull(rv) ? nullptr : REAL(rv), n, REAL(tv), nt, res.data()),
+                    Rf_isNull(rv) ? nullptr : REAL(rv), n, REAL(tv), nt, tk, res.data()),
          "the kernel refused the input.");
   static const char *const cn[] = {"top", "cells", "area", "ashare", "n", "N", "hit", "pai", "nmax", "pei", "rri"};
   bj::cols f(11, nt);

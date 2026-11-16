@@ -1905,7 +1905,7 @@ const Ent ents[] = {
     {"lnkpr", "x y? t series mo?", lnkpr},
     {"spcure", "time event x? dist? level? maxit?", spcure},
     {"apcie", "y expo level? maxit?", apcie},
-    {"hsacc", "pred obs area? top? prev?", hsacc},
+    {"hsacc", "pred obs area? top? prev? ties?", hsacc},
     {"sctidy", "x", sctidy},
     {"qltyrcd", "x suppr? caution?", qltyrcd},
     {"limfrom", "est se? cv? moe? moelev? conflvl?", limfrom},

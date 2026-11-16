@@ -563,7 +563,7 @@ SEXP C_clab_r_pwrs(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_pwrd(SEXP, SEXP);
 SEXP C_clab_r_pwrp(SEXP, SEXP, SEXP);
 // The accuracy of a hot-spot map (bhsa.cpp).
-SEXP C_clab_r_hsacc(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_hsacc(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // Scaling, ideal points and counts over time (bsvt.cpp).
 SEXP C_clab_r_svk(SEXP, SEXP);
 // The age-period-cohort model (bapc.cpp).
@@ -948,7 +948,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_fmt", fn<&C_clab_r_fmt>(), 3},
     {"C_clab_r_ascii", fn<&C_clab_r_ascii>(), 1},
     {"C_clab_r_prim", fn<&C_clab_r_prim>(), 4},
-    {"C_clab_r_hsacc", fn<&C_clab_r_hsacc>(), 5},
+    {"C_clab_r_hsacc", fn<&C_clab_r_hsacc>(), 6},
     {"C_clab_r_svk", fn<&C_clab_r_svk>(), 2},
     {"C_clab_r_pwrs", fn<&C_clab_r_pwrs>(), 6},
     {"C_clab_r_pwrd", fn<&C_clab_r_pwrd>(), 2},

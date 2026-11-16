@@ -22,6 +22,16 @@
   (it cannot be told from the intercept), naming it, and `evfilt()` an
   outcome that does not vary.
 
+* Fixed: `hsacc()` used to break ties in the predicted score at the
+  cut-off of `top` by the order of the rows, so that reordering the cells
+  changed the hit rate, PAI, PEI and RRI (0.571 or 0.536 at `top = 0.2` in
+  one example); and `nmax` broke ties in density the same way. The new
+  argument `ties` says which tied cells are hot: `"in"` (all, the
+  default), `"out"` (none) or `"frac"` (each by the share of their area
+  still needed); `nmax` takes the larger of equally dense cells first.
+  The result no longer depends on the order of the rows; without ties at
+  the cut-off it is as before.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

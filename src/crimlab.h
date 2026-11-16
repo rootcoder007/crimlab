@@ -3506,8 +3506,11 @@ int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, d
  * scores; NULL when ishot marks the hot cells), obs (crimes of the
  * evaluation period, from 0, not all 0), area (> 0), prev (NULL or the
  * crimes of the period the map came from). For each of the nt shares top
- * (in (0, 1]; one row with ishot): the hot cells, by score (ties by
- * position) until their area reaches top of the total. Out: res (nt x 11,
+ * (in (0, 1]; one row with ishot): the hot cells, by score until their
+ * area reaches top of the total; the cells whose score ties across that
+ * cut-off are all hot (ties 0), none hot (1) or each hot by the share of
+ * their area still needed (2: cells, area and counts then fractional), so
+ * that the order of the cells does not matter. Out: res (nt x 11,
  * column-major): top (the hot share with ishot), cells, area, area share,
  * the crimes n in hot cells, all crimes N, n / N, the predictive accuracy
  * index (Chainey et al. 2008, doi:10.1057/palgrave.sj.8350066), nmax (the
@@ -3515,7 +3518,7 @@ int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, d
  * efficiency index n / nmax, and the recapture rate index (n / n_prev) /
  * (N / N_prev) (Levine 2008, doi:10.1057/sj.2008.5; NaN without prev). */
 int clab_hsacc(const double *pred, const int *ishot, const double *obs, const double *area, const double *prev,
-               int n, const double *top, int nt, double *res);
+               int n, const double *top, int nt, int ties, double *res);
 /* Bounds on the mean outcome under each of k (>= 2) ordered treatments
  * (mtr.cpp; Manski and Pepper 2000, doi:10.1111/1468-0262.00144). n
  * outcomes y in [ylo, yhi], their treatments z in [0, k) (each with

@@ -3543,7 +3543,7 @@ def apcie(y: Any, expo: Any, level: Any = 0.95, maxit: Any = 100) -> Any:
     return jcall("apcie", y=y, expo=expo, level=level, maxit=maxit)
 
 
-def hsacc(pred: Any, obs: Any, area: Any = None, top: Any = 0.1, prev: Any = None) -> Any:
+def hsacc(pred: Any, obs: Any, area: Any = None, top: Any = 0.1, prev: Any = None, ties: Any = "in") -> Any:
     """Accuracy of a hot-spot map.
 
     The arguments and the result are those of R's ``hsacc()``: see its help
@@ -3556,7 +3556,7 @@ def hsacc(pred: Any, obs: Any, area: Any = None, top: Any = 0.1, prev: Any = Non
     >>> list(r)
     ['top', 'cells', 'area', 'ashare', 'n', 'N', 'hit', 'pai', 'nmax', 'pei', 'rri']
     """
-    return jcall("hsacc", pred=pred, obs=obs, area=area, top=top, prev=prev)
+    return jcall("hsacc", pred=pred, obs=obs, area=area, top=top, prev=prev, ties=ties)
 
 
 def mtrbnd(y: Any, z: Any, ylo: Any = 0, yhi: Any = 1, assume: Any = "both", w: Any = None) -> Any:

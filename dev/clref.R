@@ -1120,6 +1120,9 @@ ok("hsacc", pred = c(9, 8, 7, 6, 5, 4, 3, 2, 1, 0), obs = c(3, 0, 5, 1, 0, 0, 2,
    prev = c(4, 2, 2, 0, 0, 0, 1, 1, 0, 0))
 ok("hsacc", pred = c(FALSE, TRUE, FALSE, FALSE), obs = c(1, 4, 0, 2), area = c(1, 2, 1, 1))
 bad("hsacc", pred = c(1, 2), obs = c(0, 0))
+ok("hsacc", pred = c(5, 5, 5, 5, 4, 3, 2, 1, 0, 0), obs = c(3, 0, 5, 1, 0, 0, 2, 9, 0, 0), top = 0.2, ties = "frac")
+ok("hsacc", pred = c(5, 5, 5, 5, 4, 3, 2, 1, 0, 0), obs = c(3, 0, 5, 1, 0, 0, 2, 9, 0, 0), top = 0.2, ties = "out")
+bad("hsacc", pred = c(1, 2), obs = c(1, 0), ties = "all")
 
 # Bounds under monotone response and selection
 ok("mtrbnd", y = c(1, 0, 0, 1, 1, 0, 1, 1), z = c(1, 1, 1, 2, 2, 2, 3, 3))
