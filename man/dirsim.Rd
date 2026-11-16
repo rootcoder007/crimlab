@@ -7,7 +7,8 @@
 dirsim(n, alpha, total = 1, seed = NULL)
 }
 \arguments{
-\item{n}{The number of compositions: a whole number from 1.}
+\item{n}{The number of compositions: a whole number from 1 to
+2147483647.}
 
 \item{alpha}{The concentration of each part: positive finite numbers,
 at least two; their names name the columns.}

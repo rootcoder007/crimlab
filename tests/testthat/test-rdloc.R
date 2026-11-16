@@ -204,3 +204,19 @@ test_that("the IK bandwidth and rddens follow the units of the run", {
     expect_equal(m2$tab$theta, m1$tab$theta, tolerance = 1e-8)
   }
 })
+
+test_that("rdloc() and rddens() refuse small or constant input in words", {
+  expect_error(rddens(c(-1, 0.5, 1)),
+               "rddens: `r` must hold at least 10 values.", fixed = TRUE)
+  d <- data.frame(r = c(-2:-1, 1:3), y = 1:5)
+  expect_error(rdloc(d, "y", "r"),
+               paste("rdloc: the bandwidth of Imbens and Kalyanaraman needs",
+                     "at least 10 rows"), fixed = TRUE)
+  set.seed(2)
+  d <- data.frame(r = runif(500, -1, 1))
+  d$y <- rnorm(500)
+  d$t <- 1
+  expect_error(rdloc(d, "y", "r", trt = "t"),
+               paste("rdloc: the local fit failed: the treatment does not",
+                     "vary within the bandwidth"), fixed = TRUE)
+})

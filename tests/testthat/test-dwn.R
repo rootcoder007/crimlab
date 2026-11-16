@@ -245,3 +245,17 @@ test_that("tailwd() is the speed times the cosine off the course", {
   expect_error(tailwd(1, 1, agg = "min"), "tailwd: `agg` must be one of",
                fixed = TRUE)
 })
+
+test_that("tailwd() and dwnexp() refuse speeds below 0 and latitudes past 90", {
+  expect_error(tailwd(10, -2),
+               "tailwd: `spd` must hold wind speeds, 0 or more (or NA).",
+               fixed = TRUE)
+  # the tailwind of a speed 0 is 0, of NA is NA
+  expect_identical(tailwd(c(10, 10), c(0, NA)), c(0, NA))
+  m <- paste("dwnexp: with `lonlat = TRUE`, `sy` and `ry` must be latitudes,",
+             "-90 to 90.")
+  expect_error(dwnexp(0, 100, NULL, 180, c(0, 10), c(80, 10), lonlat = TRUE),
+               m, fixed = TRUE)
+  expect_error(dwnexp(0, 10, NULL, 180, c(0, 10), c(80, -91), lonlat = TRUE),
+               m, fixed = TRUE)
+})

@@ -806,7 +806,8 @@ bool brdn(Ctx &c, const Val &pl, double em, double ep, double br, double pop, co
   Val crf;
   Ctx cc{pol == "PM2.5" ? "crfpm25" : "crfno2", c.in, std::string(), {}};
   if (!crfchk(cc, pol == "PM2.5", y, yone)) {
-    c.err = cc.err;
+    // under the name of the function called, as .clas() gives it in R
+    c.err = std::string(c.fn) + cc.err.substr(std::strlen(cc.fn));
     return false;
   }
   CK(crfv(c, pol == "PM2.5", z, y, refc, false, 0, crf));
@@ -906,12 +907,16 @@ bool polbrdarea(Ctx &c, Val &out) {
         if (m.rfind(pre, 0) == 0) m = m.substr(std::strlen(pre));
       }
       if (!m.empty() && m.back() == '.') m.pop_back();
-      const std::pair<const char *, const char *> mp[] = {
-          {"`expomean`", "`expcol`"}, {"`expo`", "`expcol`"}, {"`pop`", "`popcol`"}, {"`brate`", "`basratecol`"}};
+      // polbrdn()'s argument as the table's column and row
+      const std::string rw = " of row " + std::to_string(i + 1);
+      const std::pair<const char *, std::string> mp[] = {{"`expomean`", "the `expcol` column (`" + ec + "`)" + rw},
+                                                         {"`expo`", "the `expcol` column (`" + ec + "`)" + rw},
+                                                         {"`pop`", "the `popcol` column (`" + pc + "`)" + rw},
+                                                         {"`brate`", "the `basratecol` column (`" + bc + "`)" + rw}};
       for (const auto &kv : mp) {
         for (std::size_t at2 = m.find(kv.first); at2 != std::string::npos; at2 = m.find(kv.first, at2)) {
           m.replace(at2, std::strlen(kv.first), kv.second);
-          at2 += std::strlen(kv.second);
+          at2 += kv.second.size();
         }
       }
       return ckstop(c, "%s", m.c_str());

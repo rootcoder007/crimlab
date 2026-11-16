@@ -246,8 +246,16 @@ SEXP C_clab_r_mccr(SEXP r, SEXP c, SEXP b, SEXP h) {
 SEXP C_clab_r_rdfit(SEXP y, SEXP r, SEXP t, SEXP h, SEXP kern, SEXP p, SEXP cl, SEXP ssc) {
   clab::who = "rdloc";
   SEXP s = PROTECT(Rf_allocVector(REALSXP, 7));
-  kc(clab_rdfit(REAL(y), REAL(r), dnul(t), n32(y), Rf_asReal(h), Rf_asInteger(kern),
-                Rf_asInteger(p), icodes(cl), Rf_asInteger(ssc), REAL(s)));
+  const int rc = clab_rdfit(REAL(y), REAL(r), dnul(t), n32(y), Rf_asReal(h), Rf_asInteger(kern),
+                            Rf_asInteger(p), icodes(cl), Rf_asInteger(ssc), REAL(s));
+  clab::ichk(rc);
+  // rdloc() has no fixed effects: a failed local fit is a treatment that
+  // does not change, or too few distinct values of the running variable
+  if (rc == CLAB_EDOM) {
+    clab::fail("the local fit failed: %sthe running variable has too few distinct values within the "
+               "bandwidth.", Rf_isNull(t) ? "" : "the treatment does not vary within the bandwidth, or ");
+  }
+  if (rc != CLAB_OK) clab::fail("%s", clab_strerror(rc));
   UNPROTECT(1);
   return s;
 }

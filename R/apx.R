@@ -1236,7 +1236,8 @@ summary.expgmm <- function(object, ...) object[["coef"]]
 #' @return A numeric matrix, one row per direction (or per `by` group,
 #'   named by it), columns named `"w<from>_<to>"`, with `":<area>"` added
 #'   when `area` is given. With `by`, the attribute `"dir"` holds the
-#'   group's direction (for `share`, its vector average).
+#'   group's direction (for `share`, its vector average); a group whose
+#'   winds cancel, or are calm, has no direction (`NA`) and no sector.
 #' @references
 #'   Bondy, M., Roth, S. and Sager, L. (2020). Crime is in the air: the
 #'   contemporaneous relationship between air pollution and crime.
@@ -1440,7 +1441,7 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL,
   )
   if (!is.null(brk)) {
     .axinbrk(brk, f)
-    r$bin <- cut(r$diff, brk)
+    r$bin <- .axcut(r$diff, brk)
   }
   attr(r, "diag") <- .axindg(up, r$diff)
   r
@@ -2348,6 +2349,7 @@ summary.expjn <- function(object, ...) {
   .axcols(d, x, "x", f)
   .axcols(d, fe, "fe", f)
   .axcols(d, expo, "expo", f, n = 1L, null = TRUE)
+  .axtwfe(clus, se, fe, f)
   if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
   if (se == "cluster" && length(clus) == 2L) se <- "twoway"
@@ -2359,6 +2361,24 @@ summary.expjn <- function(object, ...) {
   maxit <- .cknum(maxit, "maxit", f, min = 1, max = .Machine$integer.max,
                    whole = TRUE)
   list(clus = clus, se = se, level = level, tol = tol, maxit = maxit)
+}
+
+# Two-way errors without clus cluster by the two fixed effects: refused,
+# naming fe, when there are not two.
+.axtwfe <- function(clus, se, fe, f) {
+  if (is.null(clus) && se == "twoway" && length(fe) != 2L) {
+    .ckstop(f, paste0("`se = \"twoway\"` without `clus` clusters by the two ",
+                      "fixed effects, and `fe` has %d: give two `clus` ",
+                      "columns"), length(fe))
+  }
+}
+
+# cut() with the labels the command line writes: formatC() pads Inf to
+# " Inf", which put a space in one label only ("(0, Inf]").
+.axcut <- function(x, brk, low = FALSE) {
+  b <- cut(x, brk, include.lowest = low)
+  levels(b) <- sub(" Inf", "Inf", levels(b), fixed = TRUE)
+  b
 }
 
 # The rows and regressors ppmlfe() fits: the counts checked, the rows
@@ -2447,6 +2467,7 @@ summary.expjn <- function(object, ...) {
   .axcols(d, inst, "inst", f, null = TRUE)
   .axcols(d, x, "x", f, null = TRUE)
   .axcols(d, fe, "fe", f)
+  .axtwfe(clus, se, fe, f)
   if (is.null(clus)) clus <- if (se == "twoway") fe else fe[1L]
   .axcols(d, clus, "clus", f, n = 1:2)
   if (se == "cluster" && length(clus) == 2L) se <- "twoway"
@@ -2879,6 +2900,9 @@ summary.expjn <- function(object, ...) {
     as.numeric(tapply(ifelse(ok, fun(rd) * wv, NA), gk$c, mean, na.rm = TRUE))
   }
   vdir <- (atan2(vs(sin), vs(cos)) * 180 / pi) %% 360
+  # winds that cancel, or calm, have no direction: a mean vector shorter
+  # than 1e-9 of the mean speed is rounding
+  vdir[!(sqrt(vs(sin)^2 + vs(cos)^2) > 1e-9 * vs(function(r) 1))] <- NA
   if (!is.null(area)) {
     nar <- tapply(as.character(area), gk$c, function(v) length(unique(v)))
     if (any(nar > 1L)) {
@@ -3123,7 +3147,7 @@ summary.expjn <- function(object, ...) {
   ring <- if (is.null(dist)) {
     rep("", sum(use))
   } else {
-    as.character(cut(k$dst[use], dist, include.lowest = TRUE))
+    as.character(.axcut(k$dst[use], dist, TRUE))
   }
   keep <- !is.na(ring)
   rw <- rw[keep]
@@ -3180,7 +3204,7 @@ summary.expjn <- function(object, ...) {
   xs <- "down"
   if (!is.null(dist)) {
     rl <- ring[o]
-    lv <- levels(cut(dist[-1L], dist, include.lowest = TRUE))
+    lv <- levels(.axcut(dist[-1L], dist, TRUE))
     xs <- character()
     for (l in lv[lv %in% rl]) {
       nm <- paste0("down:", l)
@@ -3459,7 +3483,7 @@ summary.expjn <- function(object, ...) {
   r <- data.frame(by = g, n = tabulate(k[ok], length(g)),
                   diff = if (sign == "upper") s[1L, ] else -s[1L, ],
                   inv = as.integer(s[2L, ]))
-  if (!is.null(brk)) r$bin <- cut(r$diff, brk)
+  if (!is.null(brk)) r$bin <- .axcut(r$diff, brk)
   h <- r$n > 0
   attr(r, "diag") <- data.frame(
     n = sum(h), zero = if (any(h)) mean(r$inv[h] == 0L) else NA_real_,

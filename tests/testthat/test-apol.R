@@ -504,7 +504,9 @@ test_that("polbrdarea sorts worst first and refuses bad tables", {
   expect_error(polbrdarea(t2), "must be numeric")
   t3 <- t
   t3$brate <- 800
-  expect_error(polbrdarea(t3), "polbrdarea: `basratecol` is a rate")
+  expect_error(polbrdarea(t3),
+               paste("polbrdarea: the `basratecol` column (`brate`) of row 1",
+                     "is a rate"), fixed = TRUE)
   expect_error(polbrdarea(t, areacol = 1), "`areacol` must name one column")
 })
 
@@ -602,4 +604,16 @@ test_that("advdif2d() refuses a source that is not numbers", {
     expect_error(advdif2d(c0, 0.7, -0.4, 0.2, 0.1, 1, 1, 0.5, 6, source = s),
                  "^advdif2d: `source` must be a finite numeric matrix\\.$")
   }
+})
+
+test_that("polbrdarea() and polbrdn() name the column, row and function", {
+  t <- data.frame(fsa = c("A1", "B2"), exposure = c(NA, 18),
+                  population = c(4e4, 6e4), brate = 0.008)
+  expect_error(polbrdarea(t),
+               paste("polbrdarea: the `expcol` column (`exposure`) of row 1",
+                     "must be"), fixed = TRUE)
+  expect_error(polbrdn(25, 1, 0.008, 1e6, poll = "PM2.5", y = "chiast"),
+               "^polbrdn: Unknown outcome 'chiast'")
+  expect_error(polbrdn(25, 1, 0.008, 1e6, poll = "NO2", y = "nope"),
+               "^polbrdn: Unknown outcome 'nope'")
 })

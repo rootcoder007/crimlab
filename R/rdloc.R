@@ -247,6 +247,7 @@ rddens <- function(r, cut = 0, b = NULL, h = NULL, level = 0.95) {
   if (!is.numeric(r) || anyNA(r) || !all(is.finite(r))) {
     .ckstop(f, "`r` must hold finite numbers")
   }
+  if (length(r) < 10L) .ckstop(f, "`r` must hold at least 10 values")
   cut <- .cknum(cut, "cut", f)
   b <- if (is.null(b)) 0 else .cknum(b, "b", f, positive = TRUE)
   h <- if (is.null(h)) 0 else .cknum(h, "h", f, positive = TRUE)
@@ -317,6 +318,10 @@ summary.rddens <- function(object, ...) object[["tab"]]
     h <- .cknum(h, "h", f, positive = TRUE)
   } else {
     if (!is.null(h)) .ckstop(f, "give `h` with `bw = \"user\"`")
+    if (length(yv) < 10L) {
+      .ckstop(f, paste0("the bandwidth of Imbens and Kalyanaraman needs at ",
+                        "least 10 rows; give `h` with `bw = \"user\"`"))
+    }
     b <- .Call(C_clab_r_ikbw, as.numeric(yv), as.numeric(rv), cut, kc)
     h <- b$h
     ik <- stats::setNames(b$st, c("h1", "f", "vl", "vr", "m3", "h2l", "h2r",

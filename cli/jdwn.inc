@@ -177,6 +177,12 @@ bool dwnexp(Ctx &c, Val &out) {
   CK(dw::flg(c, "wrap", true, wrap));
   CK(dw::pick(c, "dwt", {"mult", "div", "none"}, wt));
   if (ru == 1 && ll) return ckstop(c, "`rule = \"wedge\"` needs planar coordinates (`lonlat = FALSE`)");
+  if (ll) {
+    bool ok = true;
+    for (double v : sy.v) ok = ok && std::fabs(v) <= 90;
+    for (double v : ry.v) ok = ok && std::fabs(v) <= 90;
+    if (!ok) return ckstop(c, "with `lonlat = TRUE`, `sy` and `ry` must be latitudes, -90 to 90");
+  }
   const std::size_t np = pl.nlev;
   if (static_cast<double>(npl) * static_cast<double>(np) > kutil::maxcell || ns > 2147483647u ||
       px.size() > 2147483647u) {
@@ -215,6 +221,9 @@ bool tailwd(Ctx &c, Val &out) {
   const std::vector<double> dv = ax::nums(d), sv = ax::nums(s);
   if (!ax::numv(d) || !ax::numv(s) || dv.size() != sv.size() || dv.empty()) {
     return ckstop(c, "`dir` and `spd` must be numeric vectors of one length");
+  }
+  for (double v : sv) {
+    if (v < 0) return ckstop(c, "`spd` must hold wind speeds, 0 or more (or NA)");
   }
   Nv co;
   if (c.has("course")) {

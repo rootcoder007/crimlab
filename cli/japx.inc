@@ -1201,6 +1201,10 @@ bool ppmlfe(Ctx &c, Val &out) {
   CK(acol(c, d, "fe", {}, false, fe));
   CK(acol(c, d, "expo", {1}, true, expo));
   Nm cn = nms(c, {"clus"});
+  if (cn.null && se == 1 && fe.size() != 2) {
+    return ckstop(c, "`se = \"twoway\"` without `clus` clusters by the two fixed effects, and `fe` has %d: give two "
+                  "`clus` columns", static_cast<int>(fe.size()));
+  }
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
   if (se == 0 && clus.size() == 2) se = 1;
@@ -1335,6 +1339,10 @@ bool ivfe(Ctx &c, Val &out) {
   CK(acol(c, d, "x", {}, true, x));
   CK(acol(c, d, "fe", {}, false, fe));
   Nm cn = nms(c, {"clus"});
+  if (cn.null && se == 1 && fe.size() != 2) {
+    return ckstop(c, "`se = \"twoway\"` without `clus` clusters by the two fixed effects, and `fe` has %d: give two "
+                  "`clus` columns", static_cast<int>(fe.size()));
+  }
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
   if (se == 0 && clus.size() == 2) se = 1;
@@ -1955,9 +1963,15 @@ bool windiv(Ctx &c, Val &out) {
       sn[i] = std::sin(rd) * wv;
       cs[i] = std::cos(rd) * wv;
     }
-    const std::vector<double> ms = gmean(sn), mc = gmean(cs);
+    std::vector<double> sw(n);
+    for (std::size_t i = 0; i < n; ++i) sw[i] = spd.empty() ? 1.0 : spd[i];
+    const std::vector<double> ms = gmean(sn), mc = gmean(cs), mw = gmean(sw);
     std::vector<double> vdir(ng);
-    for (std::size_t g = 0; g < ng; ++g) vdir[g] = rmod(std::atan2(ms[g], mc[g]) * 180 / pi, 360);
+    for (std::size_t g = 0; g < ng; ++g) {
+      // winds that cancel, or calm, have no direction
+      const bool none = !(std::sqrt(ms[g] * ms[g] + mc[g] * mc[g]) > 1e-9 * mw[g]);
+      vdir[g] = none ? NA : rmod(std::atan2(ms[g], mc[g]) * 180 / pi, 360);
+    }
     if (!area.empty()) {
       Cols ga(ng);
       std::vector<char> seen(ng, 0);

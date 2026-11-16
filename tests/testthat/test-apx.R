@@ -561,7 +561,7 @@ test_that("invsn by day: Batkeyev and DeRemer's every-reading rule", {
   g <- invsn(lo, hi, sign = "ground", by = d, brk = c(-Inf, -2, Inf))
   expect_equal(g$diff, -r$diff, tolerance = 1e-15)
   expect_identical(as.character(g$bin),
-                   c("(-Inf,-2]", "(-2, Inf]", "(-2, Inf]"))
+                   c("(-Inf,-2]", "(-2,Inf]", "(-2,Inf]"))
   dg <- attr(r, "diag")
   expect_identical(dg$n, 3L)
   expect_equal(dg$zero, 1 / 3, tolerance = 1e-15)
@@ -1505,4 +1505,40 @@ test_that("windiv() names its sectors by their edges, formatted once", {
   }
   expect_identical(colnames(windiv(1, width = 22.5))[1:2],
                    c("w22.5_45.0", "w45.0_67.5"))
+})
+
+test_that("two-way errors without clus name the fixed effects", {
+  set.seed(1)
+  d <- expand.grid(day = 1:20, area = 1:6)
+  d$pm <- rnorm(nrow(d))
+  d$crimes <- rpois(nrow(d), 3)
+  d$h <- d$day %% 4
+  m <- paste("`se = \"twoway\"` without `clus` clusters by the two fixed",
+             "effects, and `fe` has 3: give two `clus` columns.")
+  expect_error(ppmlfe(d, "crimes", "pm", c("area", "day", "h"),
+                      se = "twoway"), paste("ppmlfe:", m), fixed = TRUE)
+  d$y <- rnorm(nrow(d))
+  expect_error(ivfe(d, "y", x = "pm", fe = c("area", "day", "h"),
+                    se = "twoway"), paste("ivfe:", m), fixed = TRUE)
+  # with clus the three effects are fine
+  f <- ppmlfe(d, "crimes", "pm", c("area", "day", "h"), se = "twoway",
+              clus = c("area", "day"))
+  expect_s3_class(f, "ppmlfe")
+})
+
+test_that("windiv(): winds that cancel or calm have no direction", {
+  w <- windiv(c(0, 180, 100, 120, 10, 20), by = c(1, 1, 2, 2, 3, 3),
+              spd = c(2, 2, 1, 1, 0, 0))
+  # the mean vector by hand: 0 for groups 1 and 3, 110 degrees for group 2
+  v <- c(atan2(mean(sin(c(100, 120) * pi / 180)),
+               mean(cos(c(100, 120) * pi / 180))) * 180 / pi)
+  expect_equal(attr(w, "dir"), c(NA, v, NA), tolerance = 1e-12)
+  expect_true(all(is.na(w[c(1, 3), ])))
+  expect_identical(unname(w[2, ]), c(1, 0, 0))
+})
+
+test_that("invsn() and dosebin() write Inf in a bin as the command line", {
+  b <- invsn(c(10, 5, 2), c(8, 6, 2), brk = c(-Inf, -1, 0, Inf))$bin
+  expect_identical(levels(b), c("(-Inf,-1]", "(-1,0]", "(0,Inf]"))
+  expect_identical(as.integer(b), c(1L, 3L, 2L))
 })

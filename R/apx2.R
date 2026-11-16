@@ -1233,7 +1233,7 @@ print.typefx <- function(x, ...) {
                is.unsorted(brk, strictly = TRUE)) {
     .ckstop(f, "`brk` must be three or more increasing numbers")
   }
-  bn <- cut(xv, brk, include.lowest = TRUE)
+  bn <- .axcut(xv, brk, TRUE)
   if (anyNA(bn)) .ckstop(f, "some values of `%s` fall outside `brk`", var)
   lv <- levels(bn)
   nbin <- length(lv)

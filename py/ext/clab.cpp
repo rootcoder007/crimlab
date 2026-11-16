@@ -548,7 +548,7 @@ int whole(PyObject *o, const char *nm, int lo) {
   bool type;
   const double v = val1(o, type);
   if (std::isnan(v) || v != std::floor(v) || v < lo || v > INT_MAX) {
-    fail(type, "`%s` must be one whole number from %d.", nm, lo);
+    fail(type, "`%s` must be one whole number from %d to 2147483647.", nm, lo);
   }
   return static_cast<int>(v);
 }

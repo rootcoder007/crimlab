@@ -43,7 +43,8 @@ their polygons for \code{rule = "wedge"}.}
 
 \item{from}{\code{TRUE} when \code{sdir} is where the wind blows from.}
 
-\item{lonlat}{\code{TRUE} for longitude and latitude in degrees.}
+\item{lonlat}{\code{TRUE} for longitude and latitude in degrees (latitudes
+from -90 to 90).}
 
 \item{wrap}{\code{TRUE} for the angle about the circle (\code{rule = "angle"}).}
 

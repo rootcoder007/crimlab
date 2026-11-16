@@ -14,6 +14,10 @@ bool fit(Ctx &c, const std::vector<double> &y, const std::vector<double> &r, con
          double h, int kern, int p, const std::vector<int> *cl, bool g, double *st) {
   const int rc = clab_rdfit(y.data(), r.data(), t ? t->data() : nullptr, static_cast<int>(y.size()), h, kern, p,
                             cl ? cl->data() : nullptr, g ? 1 : 0, st);
+  if (rc == CLAB_EDOM) {
+    return ckstop(c, "the local fit failed: %sthe running variable has too few distinct values within the bandwidth",
+                  t ? "the treatment does not vary within the bandwidth, or " : "");
+  }
   if (rc != CLAB_OK) return ax::kerr(c, "rdloc", rc);
   if (st[6] == 1) {
     return ckstop(c, "fewer than %d rows on a side within the bandwidth %g: widen it", p + 2, h);
@@ -67,6 +71,10 @@ bool rdloc(Ctx &c, Val &out) {
     h = q[0];
   } else {
     if (c.has("h")) return ckstop(c, "give `h` with `bw = \"user\"`");
+    if (yv.size() < 10) {
+      return ckstop(c,
+                    "the bandwidth of Imbens and Kalyanaraman needs at least 10 rows; give `h` with `bw = \"user\"`");
+    }
     double st[10];
     const int rc = clab_ikbw(yv.data(), rv.data(), static_cast<int>(yv.size()), cut, kern, &h, st);
     if (rc == CLAB_EDOM) {
@@ -148,6 +156,7 @@ bool rddens(Ctx &c, Val &out) {
   bool ok = numv(o);
   for (double v : r) ok = ok && std::isfinite(v);
   if (!ok) return ckstop(c, "`r` must hold finite numbers");
+  if (r.size() < 10) return ckstop(c, "`r` must hold at least 10 values");
   Nv q;
   CK(cknumd(c, "cut", 0, q));
   const double cut = q[0];

@@ -176,7 +176,8 @@ tpbhm <- function(y, x, grp = NULL, pm = 0, psd = 10, level = 0.95) {
 #' gives the same draws and `g / rowSums(g) * total` the same result.
 #' Without `seed` one is drawn from R's generator.
 #'
-#' @param n The number of compositions: a whole number from 1.
+#' @param n The number of compositions: a whole number from 1 to
+#'   2147483647.
 #' @param alpha The concentration of each part: positive finite numbers,
 #'   at least two; their names name the columns.
 #' @param total What each composition sums to: one positive number (1 for

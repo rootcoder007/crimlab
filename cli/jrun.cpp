@@ -349,7 +349,7 @@ bool p01(Ctx &c, const Val &o, const char *nm, double &v) {
 bool whole(Ctx &c, const Val &o, const char *nm, int lo, int &r) {
   const double v = val1(o);
   if (std::isnan(v) || v != std::floor(v) || v < lo || v > INT_MAX) {
-    return c.fail("`%s` must be one whole number from %d.", nm, lo);
+    return c.fail("`%s` must be one whole number from %d to 2147483647.", nm, lo);
   }
   r = static_cast<int>(v);
   return true;

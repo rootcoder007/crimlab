@@ -327,7 +327,7 @@ int whole(SEXP x, const char *nm, int lo) {
   unlab(x, nm);
   const double v = val1(x);
   if (std::isnan(v) || v != std::floor(v) || v < lo || v > INT_MAX) {
-    fail("`%s` must be one whole number from %d.", nm, lo);
+    fail("`%s` must be one whole number from %d to 2147483647.", nm, lo);
   }
   return static_cast<int>(v);
 }

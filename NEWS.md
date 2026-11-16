@@ -27,6 +27,17 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed, after a review of the checks: `ppmlfe()` and `ivfe()` with
+  `se = "twoway"` and other than two fixed effects, `rddens()` and
+  `rdloc()` with fewer than 10 rows, `rdloc()` with a constant treatment,
+  a refused row of `polbrdarea()` and an outcome `polbrdn()` lacks for
+  PM2.5 are refused in words that name what is wrong; `tailwd()` refuses
+  a negative speed and `dwnexp(lonlat = TRUE)` a latitude past 90;
+  `windiv()` gives winds that cancel, and calm, no direction (`NA`); a
+  whole number past 2147483647 is refused naming that limit; and the bin
+  labels of `invsn()`, `dosebin()` and `updwn()` write `Inf` without a
+  space, as the command line does.
+
 * Fixed: Python `orrisk()` refused `or_`, although an argument named as a
   Python keyword takes a final underscore elsewhere (`from_`, `lambda_`).
 

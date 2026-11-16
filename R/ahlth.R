@@ -411,7 +411,8 @@ polbrdn <- function(
   pop <- .polsc(pop, "pop", f)
   if (!is.null(refconc)) refconc <- .polsc(refconc, "refconc", f)
   crf <- if (pol == "PM2.5") {
-    crfpm25(expomean, y = y, refconc = if (is.null(refconc)) 5.8 else refconc)
+    .clas(f, crfpm25(expomean, y = y,
+                     refconc = if (is.null(refconc)) 5.8 else refconc))
   } else {
     .clas(f, crfno2(expomean, y = y,
                     refconc = if (is.null(refconc)) 10 else refconc))
@@ -870,11 +871,14 @@ print.expconcidx <- function(x, ...) {
     error = function(e) {
       m <- sub("^(polbrdn|crfpm25|crfno2): ", "", conditionMessage(e))
       m <- sub("\\.$", "", m)
-      mp <- c(expomean = "expcol", expo = "expcol", pop = "popcol",
-              brate = "basratecol")
+      # polbrdn()'s argument as the table's column and row
+      mp <- c(expomean = 2L, expo = 2L, pop = 3L, brate = 4L)
+      an <- c("areacol", "expcol", "popcol", "basratecol")
       for (k in names(mp)) {
+        j <- mp[[k]]
         m <- gsub(
-          sprintf("`%s`", k), sprintf("`%s`", mp[[k]]), m,
+          sprintf("`%s`", k),
+          sprintf("the `%s` column (`%s`) of row %d", an[j], cols[j], i), m,
           fixed = TRUE
         )
       }

@@ -457,6 +457,7 @@ bad("tpbhm", y = tby, x = tbx[1:5, , drop = FALSE])
 ok("dirsim", n = 3, alpha = c(30, 15, 5), seed = 1)
 ok("dirsim", n = 2, alpha = c(85, 5, 2, 0.5), total = 1e6, seed = 7)
 bad("dirsim", n = 2, alpha = c(1, 0), seed = 1)
+bad("dirsim", n = 1e10, alpha = c(1, 1), seed = 1)
 
 # Learners
 set.seed(10)
@@ -1230,6 +1231,9 @@ bad("polbrdn", expomean = 4, expoprev = 1, brate = 0.008, pop = 1e6, poll = "O3"
 ok("polbrdarea", areatab = data.frame(fsa = c("A", "B", "C"), exposure = c(18, 28, 9),
                                       population = c(60000, 40000, 5000), brate = c(0.008, 0.007, 0.01)))
 bad("polbrdarea", areatab = data.frame(fsa = "A", exposure = 20, population = 1, brate = 800))
+bad("polbrdarea", areatab = data.frame(fsa = c("A", "B"), exposure = c(NA, 18), population = c(4e4, 6e4),
+                                       brate = 0.008))
+bad("polbrdn", expomean = 25, expoprev = 1, brate = 0.008, pop = 1e6, poll = "PM2.5", y = "chiast")
 ok("expconcidx", data = data.frame(h = c(30, 25, 25, 15, 10, 12), i = c(1, 2, 2, 3, 5, 4)), expo = "h",
    income = "i")
 bad("expconcidx", data = data.frame(e = 1:2, i = 1), expo = "e", income = "i")
@@ -1859,6 +1863,8 @@ ok("ppmlfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "h
 ok("ppmlfe", data = axd, y = "crimes", x = "pm", fe = c("area", "day"), se = "boot", nboot = 20, seed = 1)
 bad("ppmlfe", data = axd, y = "crimes", x = "zz", fe = "area")
 bad("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "twoway")
+bad("ppmlfe", data = transform(axd, h = day %% 4), y = "crimes", x = "pm", fe = c("area", "day", "h"),
+    se = "twoway")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = c("area", "day"))
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "hc1")
 ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "nw", time = "day")
@@ -1909,10 +1915,12 @@ ok("windiv", dir = c(10, 100, 200, 300), width = 120, start = 30, area = c("x", 
 ok("windiv", dir = c(10, 350, 200, 300), sect = c(225, 285))
 ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), spd = c(1, 2, 1, 1, 3, 1))
 ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), avg = "mode")
+ok("windiv", dir = c(0, 180, 100, 120, 10, 20), by = c(1, 1, 2, 2, 3, 3), spd = c(2, 2, 1, 1, 0, 0))
 ok("windiv", dir = c(10, 20, 200, 210, 300, 100), by = c(1, 1, 2, 2, 3, 3), share = TRUE,
    area = c("x", "x", "y", "y", "x", "x"))
 bad("windiv", dir = c(10, 20), width = 70)
 ok("invsn", tlow = c(10, 12, 9, NA), tup = c(12, 11, 9, 8))
+ok("invsn", tlow = c(10, 5, 2), tup = c(8, 6, 2), brk = c(-Inf, -1, 0, Inf))
 ok("invsn", tlow = c(10, 12, 9), tup = c(12, 11, 9.5), sign = "ground", brk = c(-5, 0, 0.5, 5))
 ok("invsn", tlow = c(1, 2, 3, 1, 2, 3, 1, NA), tup = c(4, 5, 6, 4, 1, 6, 2, 5), by = c(1, 1, 1, 2, 2, 2, 3, 3))
 ok("invsn", tlow = c(1, 2, 3, 1, 2, 3), tup = c(4, 5, 6, 4, 1, 6), by = c("b", "b", "b", "a", "a", "a"),
@@ -1955,6 +1963,8 @@ ok("asrule", x = c("l", "h", "h", "m", "l", "h", "m", "h"), y = c("a", "b", "b",
 ok("asrule", x = c(1, 2, 2, 3, 1, 2, 3, 2), y = c("a", "b", "b", "a", "a", "b", "b", "b"), minsup = 0,
    minconf = 0.5, empty = FALSE, nm = c("pm", "ipv"))
 bad("asrule", x = 1:2, y = 1)
+bad("tailwd", dir = 10, spd = -2)
+bad("dwnexp", sx = 0, sy = 100, sper = NULL, sdir = 180, rx = c(0, 10), ry = c(80, 10), lonlat = TRUE)
 bad("invsn", tlow = c(1, 2, 3), tup = c(1, 2))
 upd <- data.frame(area = rep(c("w1", "w2", "w3", "e1", "e2", "e3"), 10),
                   ax = rep(c(-100, -300, -600, 150, 350, 700), 10),
@@ -2091,6 +2101,9 @@ ok("rdloc", data = rdd, y = "y", run = "r", bw = "user", h = 0.5,
    kern = "uni", se = "cluster", clus = "g", ssc = "none",
    plac = c(-0.5, 0.5), level = 0.9)
 bad("rdloc", data = rdd, y = "y", run = "r", bw = "user")
+bad("rdloc", data = transform(rdd, t = 1), y = "y", run = "r", trt = "t")
+bad("rdloc", data = data.frame(r = c(-2, -1, 1, 2, 3), y = 1:5), y = "y", run = "r")
+bad("rddens", r = c(-1, 0.5, 1))
 bad("rdloc", data = rdd, y = "y", run = "r", bw = "user", h = 0.001)
 bad("rdloc", data = rdd, y = "y", run = "r", plac = 0)
 bad("rdloc", data = rdd, y = "y", run = "r", cut = 5)

@@ -82,7 +82,8 @@
 #' @param half The half-angle of the sector, degrees from 0 to 180.
 #' @param rad The radius of the sector: a positive number or `Inf`.
 #' @param from `TRUE` when `sdir` is where the wind blows from.
-#' @param lonlat `TRUE` for longitude and latitude in degrees.
+#' @param lonlat `TRUE` for longitude and latitude in degrees (latitudes
+#'   from -90 to 90).
 #' @param wrap `TRUE` for the angle about the circle (`rule = "angle"`).
 #' @param dwt `"mult"`, `"div"` or `"none"`: the distance weight of the
 #'   angle (`rule = "angle"`).
@@ -130,6 +131,10 @@ dwnexp <- function(sx, sy, sper, sdir, rx, ry, rid = NULL, rule = "sector",
   if (a$rule == 1L && lonlat) {
     .ckstop(f, "`rule = \"wedge\"` needs planar coordinates (`lonlat = FALSE`)")
   }
+  if (lonlat && any(abs(c(as.numeric(sy), a$ry)) > 90)) {
+    .ckstop(f, paste0("with `lonlat = TRUE`, `sy` and `ry` must be ",
+                      "latitudes, -90 to 90"))
+  }
   to <- if (from) (as.numeric(sdir) + 180) %% 360 else as.numeric(sdir)
   k <- .Call(C_clab_r_dwnexp, a$rule, as.numeric(sx), as.numeric(sy),
              a$sp, to, a$rx, a$ry, a$ro, length(a$ids), length(a$per),
@@ -174,7 +179,7 @@ dwnexp <- function(sx, sy, sper, sdir, rx, ry, rid = NULL, rule = "sector",
 #' [ivfe()] for the estimate).
 #'
 #' @param dir Wind directions in degrees (`NA` allowed).
-#' @param spd Wind speeds, one per direction (`NA` allowed).
+#' @param spd Wind speeds, one per direction, 0 or more (`NA` allowed).
 #' @param course The course flown, degrees clockwise from north.
 #' @param by `NULL` or the group of each reading.
 #' @param agg `"max"` or `"mean"`: a group's value.
@@ -198,6 +203,9 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   if (!is.numeric(dir) || !is.numeric(spd) || length(dir) != length(spd) ||
         !length(dir)) {
     .ckstop(f, "`dir` and `spd` must be numeric vectors of one length")
+  }
+  if (any(spd < 0, na.rm = TRUE)) {
+    .ckstop(f, "`spd` must hold wind speeds, 0 or more (or NA)")
   }
   course <- .cknum(course, "course", f)
   agg <- .ckarg(agg, c("max", "mean"), "agg", f)

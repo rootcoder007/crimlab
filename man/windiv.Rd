@@ -54,7 +54,8 @@ sector.}
 A numeric matrix, one row per direction (or per \code{by} group,
 named by it), columns named \code{"w<from>_<to>"}, with \code{":<area>"} added
 when \code{area} is given. With \code{by}, the attribute \code{"dir"} holds the
-group's direction (for \code{share}, its vector average).
+group's direction (for \code{share}, its vector average); a group whose
+winds cancel, or are calm, has no direction (\code{NA}) and no sector.
 }
 \description{
 Turns wind directions into indicators of the sector the wind blows

@@ -207,3 +207,9 @@ test_that("dirsim() refuses what is not a composition's parameters", {
   expect_error(dirsim(2, c(1, 1), seed = -1), "seed")
   expect_error(dirsim(2, c(1e-300, 1e-300), seed = 1), "too small")
 })
+
+test_that("dirsim() names the largest count it takes", {
+  expect_error(dirsim(1e10, c(1, 1)),
+               "dirsim: `n` must be one whole number from 1 to 2147483647.",
+               fixed = TRUE)
+})

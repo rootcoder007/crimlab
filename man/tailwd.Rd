@@ -9,7 +9,7 @@ tailwd(dir, spd, course = 250, by = NULL, agg = "max")
 \arguments{
 \item{dir}{Wind directions in degrees (\code{NA} allowed).}
 
-\item{spd}{Wind speeds, one per direction (\code{NA} allowed).}
+\item{spd}{Wind speeds, one per direction, 0 or more (\code{NA} allowed).}
 
 \item{course}{The course flown, degrees clockwise from north.}
 
