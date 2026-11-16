@@ -661,3 +661,23 @@ test_that("clncolnms() numbers repeats past the names already taken", {
   expect_identical(clncolnms(c("a\tb", "c\nd", "e\001f"), quiet = TRUE),
                    c("a_b", "c_d", "e_f"))
 })
+
+test_that("inlhist() bins values whose range overflows", {
+  # -1e308 and 1e308 are more than the largest double apart: each end is
+  # in its own bin, as the counts by hand give (one in the first of four
+  # bins of width 5e307, one in the last)
+  old <- Sys.getenv("CRIMLAB_ASCII_ONLY", NA)
+  Sys.setenv(CRIMLAB_ASCII_ONLY = "1")
+  on.exit(if (is.na(old)) Sys.unsetenv("CRIMLAB_ASCII_ONLY") else
+    Sys.setenv(CRIMLAB_ASCII_ONLY = old))
+  x <- c(-1e308, 1e308)
+  br <- -1e308 + 0:4 * 5e307
+  cnt <- tabulate(findInterval(x, br, rightmost.closed = TRUE), 4)
+  expect_identical(cnt, c(1L, 0L, 0L, 1L))
+  h <- strsplit(inlhist(x, 4), "")[[1L]]
+  expect_identical(h != " ", cnt > 0)
+  h2 <- strsplit(inlhist(c(-1e308, 0, 1e308), 2), "")[[1L]]
+  expect_identical(h2 != " ", c(TRUE, TRUE))
+  expect_identical(inlhist(c(-1e308, 1e308), 4),
+                   inlhist(c(-1, 1), 4))
+})

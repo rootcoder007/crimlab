@@ -27,6 +27,9 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `inlhist()` lost a value when the range of the values overflowed
+  (`c(-1e308, 1e308)`); the breaks are now built from halves there.
+
 * `windiv()` with very narrow sectors builds its column names in less than
   half the time: each edge is formatted once.
 

@@ -379,13 +379,16 @@ int clab_hbin(const double *x, int n, int bins, int *cnt) CLAB_TRY {
     hi = std::max(hi, x[i]);
   }
   if (n == 0 || !(lo < hi)) return CLAB_EDOM;
-  // seq(lo, hi, length.out = bins + 1) as seq.default() builds it
+  // seq(lo, hi, length.out = bins + 1) as seq.default() builds it; where
+  // hi - lo overflows (finite values more than the largest double apart),
+  // the breaks are built from halves, which stay finite
   const int nb = bins + 1;
+  const bool big = !std::isfinite(hi - lo);
   vector<double> br(static_cast<size_t>(nb));
   br[0] = lo;
   br[static_cast<size_t>(bins)] = hi;
-  const double by = (hi - lo) / bins;
-  for (int i = 1; i < bins; ++i) br[static_cast<size_t>(i)] = lo + i * by;
+  const double by = (hi - lo) / bins, hb = hi / (2.0 * bins) - lo / (2.0 * bins);
+  for (int i = 1; i < bins; ++i) br[static_cast<size_t>(i)] = big ? 2 * (lo / 2 + i * hb) : lo + i * by;
   // hist(): the breaks moved by 1e-7 of the median width (of the range
   // when there are three breaks or fewer, of the smallest positive width
   // when four or five), the first one down
@@ -405,7 +408,8 @@ int clab_hbin(const double *x, int n, int bins, int *cnt) CLAB_TRY {
       if (v > 0) dd = std::min(dd, v);
     }
   }
-  const double di = 1e-7 * dd;
+  // (the range itself overflows: 1e-7 of it from its half)
+  const double di = big && nb <= 3 ? 2e-7 * (hi / 2 - lo / 2) : 1e-7 * dd;
   vector<double> fb(br);
   fb[0] -= di;
   for (int i = 1; i < nb; ++i) fb[static_cast<size_t>(i)] += di;
