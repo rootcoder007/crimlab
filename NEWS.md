@@ -862,6 +862,8 @@
   `cbootmean()` a `B` and `cunif()` an `n` past 2^26 and `blpal()` more
   than 2^26 colours, instead of R's "cannot allocate vector" error; the
   command line gives the same messages.
+* `stacel()` with a `top` above the cells of its grid keeps them all, as
+  that many does, instead of sizing its work arrays by `top`.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

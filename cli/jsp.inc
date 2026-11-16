@@ -580,6 +580,7 @@ bool stacel(Ctx &c, Val &out) {
   if (kk > 2) return c.fail("`k` must be 0, 1 or 2.");
   CK(posn(c, "c", 1, cc));
   const std::size_t n = static_cast<std::size_t>(pz.n), nn = static_cast<std::size_t>(gx) * static_cast<std::size_t>(gy);
+  tp = static_cast<int>(std::min<std::size_t>(static_cast<std::size_t>(tp), nn));  // as R: at most a cluster a cell
   std::vector<int> iw(3 * n + 2 + nn + static_cast<std::size_t>(tp) + std::max(n, 2 * static_cast<std::size_t>(tp))),
       cl(n + 1);
   std::vector<double> wk(nn + 2 * n), cs(8 * n + 1);

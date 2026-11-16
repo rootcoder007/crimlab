@@ -670,3 +670,12 @@ test_that("named per-point vectors are matched by name, as elsewhere", {
     list("`y` must have length 4", x, c(a = 1, b = 3, c = 5))
   ))
 })
+
+test_that("a top past the cells of the grid keeps them all, as many does", {
+  set.seed(11)
+  x <- c(rnorm(40, 0, 0.5), rnorm(40, 4, 0.5), runif(20, -2, 6))
+  y <- c(rnorm(40, 0, 0.5), rnorm(40, 4, 0.5), runif(20, -2, 6))
+  a <- stacel(x, y, win = c(-2, 6, -2, 6), r = 0.75, top = 400, minpts = 5)
+  b <- stacel(x, y, win = c(-2, 6, -2, 6), r = 0.75, top = 1e9, minpts = 5)
+  expect_identical(b, a)
+})

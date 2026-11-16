@@ -574,7 +574,8 @@ nnhclu <- function(x, y = NULL, area = NULL, fixd = NULL, p = 0.5,
 #' @param nx,ny The numbers of grid nodes across and up: whole numbers from
 #'   2 to 10000.
 #' @param r The search radius, positive, in the unit of the coordinates.
-#' @param top The number of busiest circles kept: one whole number from 1.
+#' @param top The number of busiest circles kept: one whole number from 1
+#'   (more than the cells of the grid keeps them all).
 #' @param minpts The fewest points a hot-spot area keeps: a whole number
 #'   from 2.
 #' @inheritParams nnhclu

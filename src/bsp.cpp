@@ -738,12 +738,14 @@ SEXP C_clab_r_stacel(SEXP x, SEXP y, SEXP win, SEXP nx, SEXP ny, SEXP r,
   if (kk > 2) fail("`k` must be 0, 1 or 2.");
   const double cc = posn(c, "c");
   const R_xlen_t n = pz.n, nn = static_cast<R_xlen_t>(gx) * gy;
-  SEXP iw = PROTECT(ints(3 * n + 2 + nn + tp + std::max<R_xlen_t>(n, 2 * static_cast<R_xlen_t>(tp))));
+  // no more clusters than cells: a larger top lists as that many does
+  const int tq = static_cast<int>(std::min<R_xlen_t>(tp, nn));
+  SEXP iw = PROTECT(ints(3 * n + 2 + nn + tq + std::max<R_xlen_t>(n, 2 * static_cast<R_xlen_t>(tq))));
   SEXP wk = PROTECT(real(nn + 2 * n));
   SEXP cl = PROTECT(ints(n));
   SEXP cs = PROTECT(real(8 * n));
   int nc = 0;
-  kc(clab_stacel(pz.x, pz.y, pz.n, w, gx, gy, rad, tp, mp, kk, cc, INTEGER(iw),
+  kc(clab_stacel(pz.x, pz.y, pz.n, w, gx, gy, rad, tq, mp, kk, cc, INTEGER(iw),
                  REAL(wk), INTEGER(cl), &nc, REAL(cs)));
   static const char *const cn[] = {"points", "mx", "my", "wx", "wy",
                                    "a", "b", "angle"};
