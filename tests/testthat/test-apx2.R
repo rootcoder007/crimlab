@@ -128,6 +128,66 @@ test_that("dosebin: quintiles, the reference and the tests", {
   expect_identical(nrow(b$tab), 3L)
 })
 
+test_that("dosebin: least squares bins are differences of bin means", {
+  # with one constant fixed effect the fit is least squares of y on the
+  # bin indicators and an intercept, so each bin's coefficient is its
+  # mean of y less the reference bin's, exactly; HC1 with ssc = "nk" is
+  # the sandwich (X'X)^-1 X' diag(e^2) X (X'X)^-1 n / (n - K), K the bins,
+  # written out here with lm(); 1e-10 allows for the rounding of the
+  # demeaning (tol = 1e-12) against lm()'s QR
+  set.seed(41)
+  d <- data.frame(x = rexp(300), one = 1)
+  d$y <- 2 + sin(3 * d$x) + rnorm(300)
+  r <- dosebin(d, "y", "x", nq = 4, ref = 2, est = ivfe, fe = "one",
+               se = "hc1", ssc = "nk")
+  bn <- cut(d$x, quantile(d$x, 0:4 / 4), include.lowest = TRUE)
+  mu <- tapply(d$y, bn, mean)
+  expect_identical(r$tab$bin, levels(bn))
+  expect_identical(r$tab$n, as.integer(table(bn)))
+  expect_equal(r$tab$mid, as.numeric(tapply(d$x, bn, median)))
+  expect_equal(r$tab$est, as.numeric(mu - mu[2]), tolerance = 1e-10)
+  expect_identical(r$tab$est[2], 0)
+  bn2 <- relevel(bn, ref = levels(bn)[2])
+  m <- lm(d$y ~ bn2)
+  xm <- model.matrix(m)
+  xi <- solve(crossprod(xm))
+  v <- xi %*% crossprod(xm * resid(m)) %*% xi * 300 / (300 - 4)
+  vb <- v[-1, -1]
+  expect_equal(r$tab$se[-2], unname(sqrt(diag(vb))), tolerance = 1e-10)
+  # the tests: all bins 0, and the line through the reference written as
+  # b_j - (dd_j / dd_1) b_1 = 0, an equivalent set of restrictions
+  b <- unname(coef(m)[-1])
+  wa <- drop(t(b) %*% solve(vb, b))
+  dd <- r$tab$mid[-2] - r$tab$mid[2]
+  rl <- cbind(-dd[2:3] / dd[1], diag(2))
+  rb <- rl %*% b
+  wl <- drop(t(rb) %*% solve(rl %*% vb %*% t(rl), rb))
+  expect_equal(r$test$stat, c(wa, wl), tolerance = 1e-8)
+  expect_identical(r$test$df, c(3L, 2L))
+  expect_equal(r$test$p, pchisq(c(wa, wl), c(3, 2), lower.tail = FALSE),
+               tolerance = 1e-8)
+})
+
+test_that("dosebin: Poisson bins with two fixed effects are glm()'s", {
+  # the default estimator, ppmlfe(), is the Poisson maximum likelihood
+  # estimate with area and day effects; glm() with the effects as factors
+  # converged to 1e-12 gives the same coefficients, 1e-6 being the
+  # agreement of two iterative fits stopped at their own tolerances
+  set.seed(42)
+  d <- expand.grid(day = 1:40, area = 1:8)
+  d$aqi <- rgamma(nrow(d), 4, 0.1)
+  d$crimes <- rpois(nrow(d), exp(0.5 + 0.4 * (d$aqi > 50) +
+                                   0.1 * d$area / 8))
+  r <- dosebin(d, "crimes", "aqi", brk = c(0, 30, 50, Inf),
+               fe = c("area", "day"), se = "hc1")
+  bn <- cut(d$aqi, c(0, 30, 50, Inf), include.lowest = TRUE)
+  g <- glm(d$crimes ~ bn + factor(d$area) + factor(d$day),
+           family = poisson(), control = glm.control(epsilon = 1e-12,
+                                                     maxit = 100))
+  expect_equal(r$tab$est[-1], unname(coef(g)[2:3]), tolerance = 1e-6)
+  expect_identical(r$tab$n, as.integer(table(bn)))
+})
+
 test_that("typefx: one fit per outcome and the Holm correction", {
   set.seed(12)
   d <- expand.grid(day = 1:60, area = 1:12)
