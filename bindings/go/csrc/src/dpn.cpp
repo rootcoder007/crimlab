@@ -6,8 +6,9 @@
 // Arellano-Bond tests of serial correlation), Wooldridge's test of serial
 // correlation in the first-differenced regression, and Pesaran's common
 // correlated effects estimators. The work arrays are made here; a failed
-// allocation is caught and returned as CLAB_EARG, so no exception leaves
-// a kernel. Matrices are column-major.
+// allocation would end the program, so every work array is counted
+// first: a size past 2^26 elements is refused with CLAB_EARG before
+// anything is made. Matrices are column-major.
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -27,6 +28,9 @@ using std::size_t;
 using vec = std::vector<double>;
 
 inline size_t z(int i) { return static_cast<size_t>(i); }
+
+// the largest work array, in elements
+constexpr double cap = 67108864.0;
 
 // The inverse of the symmetric m x m matrix a into out: by Cholesky when
 // a is positive definite (1), else the Moore-Penrose inverse from the
@@ -410,12 +414,17 @@ extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const dou
   for (size_t q = 0; q < z(n) * z(m); ++q) {
     if (!std::isfinite(zm[q])) return CLAB_EDOM;
   }
-  const gin g{n, k, m, ng, nd, go, eq, dgo, dt, sub, y, x, zm, h, yd, xd, hc, hdd};
-  try {
-    return gmm(g, steps, rob, nar, b, v, st, ar);
-  } catch (...) {
+  // the work arrays: m x m weights, the groups' moments (m x ng), a
+  // group's H Z (n_g x m), Z'X (m x k)
+  int big = 0;
+  for (int a = 0; a < ng; ++a) big = std::max(big, go[a + 1] - go[a]);
+  const double dm = m;
+  if (dm * dm > cap || dm * ng > cap || dm * big > cap || dm * k > cap ||
+      static_cast<double>(k) * k > cap) {
     return CLAB_EARG;
   }
+  const gin g{n, k, m, ng, nd, go, eq, dgo, dt, sub, y, x, zm, h, yd, xd, hc, hdd};
+  return gmm(g, steps, rob, nar, b, v, st, ar);
 }
 
 namespace {
@@ -602,10 +611,12 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
         v[r] -= s;
       }
     };
-    vec mx(z(ni) * z(k)), my(z(ni));
+    vec mx(z(ni) * z(k)), my(z(ni)), rn(z(k), 0.0);
     for (int j = 0; j < k; ++j) {
       for (int r = 0; r < ni; ++r) {
-        mx[z(j) * z(ni) + z(r)] = x[(z(j) * z(nu) + z(i)) * z(nt) + z(per[z(r)])];
+        const double e = x[(z(j) * z(nu) + z(i)) * z(nt) + z(per[z(r)])];
+        mx[z(j) * z(ni) + z(r)] = e;
+        rn[z(j)] += e * e;
       }
       proj(mx.data() + z(j) * z(ni));
     }
@@ -622,8 +633,12 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
         a[z(g) * z(k) + z(j)] = e;
       }
     }
+    // a regressor the averages take out (to 1e-7 of its norm) leaves only
+    // rounding: Cholesky's relative pivot cannot see that in one column
+    bool gone = false;
+    for (int j = 0; j < k; ++j) gone = gone || !(a[z(j) * z(k) + z(j)] > 1e-14 * rn[z(j)]);
     std::copy(a, a + kk, l.begin());
-    if (!pev::chol(l.data(), k)) {
+    if (gone || !pev::chol(l.data(), k)) {
       *bad = i;
       return CLAB_EDOM;
     }
@@ -705,11 +720,9 @@ extern "C" int clab_wsctst(int n, int p, const double *y, const double *x, const
   for (size_t q = 0; q < z(n) * z(p); ++q) {
     if (!std::isfinite(x[q])) return CLAB_EDOM;
   }
-  try {
-    return wsct(n, p, y, x, u, t, cons, raw, b, vb, out);
-  } catch (...) {
-    return CLAB_EARG;
-  }
+  // the work arrays: the differences (n x p) and p x p matrices
+  if (static_cast<double>(p) * p > cap || static_cast<double>(n) * (p + 4) > cap) return CLAB_EARG;
+  return wsct(n, p, y, x, u, t, cons, raw, b, vb, out);
 }
 
 extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x,
@@ -734,10 +747,9 @@ extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double 
   for (size_t r = 0; r < z(nt) * z(q); ++r) {
     if (!std::isfinite(d[r])) return CLAB_EDOM;
   }
-  try {
-    return cce(nu, nt, k, y, x, w, d, q, av, bi, bmg, vmg, bp, vp, bad);
-  } catch (...) {
+  // the work arrays: the units' k x k matrices and the averages
+  if (static_cast<double>(nu) * k * k > cap || static_cast<double>(nt) * (q + k + 1) > cap) {
     return CLAB_EARG;
   }
-}
+  return cce(nu, nt, k, y, x, w, d, q, av, bi, bmg, vmg, bp, vp, bad);
 }
