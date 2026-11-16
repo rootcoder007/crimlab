@@ -679,9 +679,10 @@ test_that("inlhist() bins values whose range overflows", {
   br <- -1e308 + 0:4 * 5e307
   cnt <- tabulate(findInterval(x, br, rightmost.closed = TRUE), 4)
   expect_identical(cnt, c(1L, 0L, 0L, 1L))
-  h <- strsplit(inlhist(x, 4), "")[[1L]]
+  h <- strsplit(inlhist(x, 4), "", fixed = TRUE)[[1L]]
   expect_identical(h != " ", cnt > 0)
-  h2 <- strsplit(inlhist(c(-1e308, 0, 1e308), 2), "")[[1L]]
+  h2 <- strsplit(inlhist(c(-1e308, 0, 1e308), 2), "",
+                 fixed = TRUE)[[1L]]
   expect_identical(h2 != " ", c(TRUE, TRUE))
   expect_identical(inlhist(c(-1e308, 1e308), 4),
                    inlhist(c(-1, 1), 4))
