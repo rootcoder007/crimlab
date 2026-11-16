@@ -243,7 +243,8 @@ double subj(const vec &sv, const vec &zx, const vec &zy, const int *sub, int m, 
   return quad(zys, as.data(), ms);
 }
 
-int gmm(const gin &g, int steps, int rob, int nar, double *b, double *v, double *st, double *ar) {
+int gmm(const gin &g, int steps, int rob, int nar, double arf, double *b, double *v, double *st,
+        double *ar) {
   const int n = g.n, k = g.k, m = g.m;
   const size_t mm = z(m) * z(m);
   int gen = 0;
@@ -385,7 +386,7 @@ int gmm(const gin &g, int steps, int rob, int nar, double *b, double *v, double 
     if (kutil::stop(static_cast<double>(g.nd) * (k + l) + static_cast<double>(m) * g.ng)) {
       return CLAB_EINTR;
     }
-    ar[l - 1] = abar(g, l, d, ue, sc, vv, steps == 1 && !rob ? sig : 0.0);
+    ar[l - 1] = abar(g, l, d, ue, sc, vv, steps == 1 && !rob ? sig * arf : 0.0);
   }
   return CLAB_OK;
 }
@@ -396,9 +397,10 @@ extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const dou
                            const double *x, const double *zm, const double *h, const int *eq,
                            int nd, const int *dgo, const int *dt, const double *yd,
                            const double *xd, const double *hc, const double *hdd, const int *sub,
-                           int steps, int rob, int nar, double *b, double *v, double *st,
-                           double *ar) {
-  if (n < 1 || k < 1 || m < k || ng < 1 || nd < 0 || nar < 0 || (steps != 1 && steps != 2)) {
+                           int steps, int rob, int nar, double arf, double *b, double *v,
+                           double *st, double *ar) CLAB_TRY {
+  if (n < 1 || k < 1 || m < k || ng < 1 || nd < 0 || nar < 0 || (steps != 1 && steps != 2) ||
+      !(arf > 0.0) || !std::isfinite(arf)) {
     return CLAB_EARG;
   }
   if (go[0] != 0 || go[ng] != n || dgo[0] != 0 || dgo[ng] != nd) return CLAB_EARG;
@@ -424,8 +426,8 @@ extern "C" int clab_gmmpnl(int n, int k, int m, int ng, const int *go, const dou
     return CLAB_EARG;
   }
   const gin g{n, k, m, ng, nd, go, eq, dgo, dt, sub, y, x, zm, h, yd, xd, hc, hdd};
-  return gmm(g, steps, rob, nar, b, v, st, ar);
-}
+  return gmm(g, steps, rob, nar, arf, b, v, st, ar);
+} CLAB_CATCH(CLAB_ENOMEM)
 
 namespace {
 
@@ -712,7 +714,7 @@ int cce(int nu, int nt, int k, const double *y, const double *x, const double *w
 }  // namespace
 
 extern "C" int clab_wsctst(int n, int p, const double *y, const double *x, const int *u,
-                           const int *t, int cons, int raw, double *b, double *vb, double *out) {
+                           const int *t, int cons, int raw, double *b, double *vb, double *out) CLAB_TRY {
   if (n < 2 || p < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i])) return CLAB_EDOM;
@@ -723,11 +725,11 @@ extern "C" int clab_wsctst(int n, int p, const double *y, const double *x, const
   // the work arrays: the differences (n x p) and p x p matrices
   if (static_cast<double>(p) * p > cap || static_cast<double>(n) * (p + 4) > cap) return CLAB_EARG;
   return wsct(n, p, y, x, u, t, cons, raw, b, vb, out);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double *x,
                            const double *w, const double *d, int q, const int *av, double *bi,
-                           double *bmg, double *vmg, double *bp, double *vp, int *bad) {
+                           double *bmg, double *vmg, double *bp, double *vp, int *bad) CLAB_TRY {
   *bad = -1;
   if (nu < 2 || nt < 2 || k < 1 || q < 0) return CLAB_EARG;
   double sw = 0.0;
@@ -752,4 +754,4 @@ extern "C" int clab_ccepnl(int nu, int nt, int k, const double *y, const double 
     return CLAB_EARG;
   }
   return cce(nu, nt, k, y, x, w, d, q, av, bi, bmg, vmg, bp, vp, bad);
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -61,18 +61,44 @@
 #' below, and the two-step variance is the uncorrected `(X'Z A_2 Z'X)^-1`
 #' (Roodman 2009, p. 96). `wc` is the older name of the two-step choice:
 #' left `NULL` it follows `robust`, and a value that contradicts `robust`,
-#' or `wc` with one step, is refused. With `small = TRUE` the variance is
-#' multiplied by `n / (n - k)` (`n` the rows reported in `fit`, `k` the
-#' coefficients), and the coefficients have t statistics and the joint
-#' test is an F test, both on the groups less one (less nothing without a
-#' constant) degrees of freedom. Roodman (2009, p. 123) describes the
-#' option of xtabond2 only as "small-sample corrections to the covariance
-#' matrix estimate, resulting in t-test instead of z-test statistics for
-#' the coefficients and an F test instead of a Wald chi2 test for overall
-#' fit"; the degrees of freedom are those of his outputs (F(16, 140) for
-#' 140 groups without a constant, p. 113; F(12, 139) with one, p. 118),
-#' and the factor `n / (n - k)` is this function's reading, as the paper
-#' gives none.
+#' or `wc` with one step, is refused.
+#'
+#' Roodman (2009, p. 123) describes `small` of xtabond2 only as
+#' "small-sample corrections to the covariance matrix estimate, resulting
+#' in t-test instead of z-test statistics for the coefficients and an F
+#' test instead of a Wald chi2 test for overall fit"; `small = TRUE` makes
+#' the corrections as xtabond2 3.7.2 computes them. With `n` the rows of
+#' the equation reported (`fit$n`), `w` the rows of the transformed
+#' equation in system GMM with `hmat` other than `"id"` and `n` otherwise,
+#' `G` the groups, `k` the coefficients and `c` 1 for the constant of
+#' system GMM (0 otherwise): the conventional one-step variance is
+#' multiplied by `w / (w - k)`, and the robust one-step variance and both
+#' two-step variances by `(n - 1) / (n - k) * G / (G - 1)`; `sigma2` is
+#' multiplied by `w / (w - k)`. The coefficients have t statistics on
+#' `df_r` degrees of freedom and the joint test is `F = W / q` on `q` and
+#' `df_r`, with `df_r = n - q - c` for the conventional one-step variance
+#' and `G - c` otherwise. The Sargan and Hansen statistics are unchanged;
+#' so are the Arellano-Bond statistics, except after the conventional one-step
+#' variance, where the program scales `sigma2` in the errors' variance by
+#' `w / (w - k)` and leaves the coefficients' variance in the statistic
+#' unscaled, and so does this function. Roodman's program also lets the
+#' variance be clustered on other variables, which multiplies each
+#' cluster's terms of the moments' variance by `G / (G - 1)` and drops
+#' that factor from the variance; this function clusters by unit only.
+#'
+#' `wald` is the joint test that the coefficients other than the constant
+#' are 0, `W = b' V^-1 b` over them, on `q` degrees of freedom counted as
+#' xtabond2 3.7.2 counts them, with or without `small`: the rank of the
+#' regressors in the levels (system GMM; the transformed equation is left
+#' out of the test) or in the transformed equation, less `c`; without a
+#' constant, one less again when the vector of ones `i` lies in their
+#' column space, which the program finds when `i'X_p (X'X)^-1 X_p'i`, `X_p`
+#' those rows and `X` the whole stack, is within the machine epsilon times
+#' the groups times the periods of the rows of `X_p`, relatively. The
+#' program's own statistic takes `b' V^-1 b` over every coefficient,
+#' the constant's included, while counting `q` without it; this function
+#' leaves the constant out of the statistic too, so that the two agree
+#' when no constant is estimated.
 #'
 #' The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are
 #' those of serial correlation of orders 1 to `ar` in the differenced
@@ -98,8 +124,8 @@
 #' the one reported for the instruments, and the difference test is the
 #' difference-in-Sargan, the model re-estimated with the block of `Z'HZ`
 #' (Roodman 2009, n. 24). `wald` is the joint test of the coefficients
-#' other than the constant. Every test is on `m - k` degrees of freedom or
-#' fewer, `m` the instruments and `k` the coefficients. When the
+#' other than the constant (above). Every test is on `m - k` degrees of
+#' freedom or fewer, `m` the instruments and `k` the coefficients. When the
 #' instruments outnumber the groups, `note` says so (Roodman 2009, sec.
 #' 2.6). Inference is normal unless `small = TRUE`. Andreatta et al.
 #' describe their instruments both as "their second and third lags" (p.
@@ -142,7 +168,7 @@
 #'   Windmeijer's (2005) correction of the two-step variance; it must agree
 #'   with `robust`.
 #' @param small `FALSE` (default) or `TRUE` for the small-sample variance,
-#'   t statistics and an F test, as above.
+#'   t statistics and an F test as xtabond2 3.7.2 computes them (above).
 #' @param hmat `"ab"` (default), `"dpd"` or `"id"`: `H` of the one-step
 #'   weight, as above (Roodman 2009, secs. 3.3-3.4).
 #' @param cons `TRUE` (default) for a constant in the level equation of

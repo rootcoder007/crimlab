@@ -63,6 +63,14 @@
   vector"), in 31 functions (`calaud()`, `fairdf()`, `tmpaud()`,
   `lodimp()`, `trnmat()`, `fairsim()`, ...); it is now refused in the
   package's ("`area` must be a vector, got NULL.").
+* Changed: `gmmpnl(small = TRUE)` now makes the small-sample corrections
+  as xtabond2 3.7.2 computes them (Roodman 2009): the conventional
+  one-step variance and `sigma2` times `w / (w - k)`, the robust and
+  two-step variances times `(n - 1) / (n - k) G / (G - 1)`, and t and F
+  on `n - q - c` or `G - c` degrees of freedom; it used `n / (n - k)`
+  throughout. The joint test counts its degrees of freedom as the
+  program does, with or without `small`. `small = TRUE` is refused with
+  one group, or with no more transformed rows than coefficients.
 
 * Fixed: `xcser()` used to report r = 0 with an interval, p = 1 and
   nonzero cross-correlations for a constant series whose mean rounds

@@ -188,7 +188,9 @@ gref <- function(d, sys = FALSE, a = 2, b = Inf, coll = FALSE, hm = "ab",
     sx <- drop(t(zu) %*% au %*% zu) / sig
   }
   hab <- lapply(rs, hblock, hm = "ab")
-  arn <- function(l) {
+  # f scales sig in the error variance but not in the coefficients'
+  # variance, as xtabond2 3.7.2 does under small
+  arn <- function(l, f = 1) {
     num <- 0
     t1 <- 0
     q <- 0
@@ -202,9 +204,9 @@ gref <- function(d, sys = FALSE, a = 2, b = Inf, coll = FALSE, hm = "ab",
         if (length(o)) e1[[j]][o] else 0
       }, 0)
       num <- num + sum(w * e1[[j]] * dk[[j]])
-      t1 <- t1 + sig * drop(t(w) %*% hab[[j]] %*% w)
+      t1 <- t1 + f * sig * drop(t(w) %*% hab[[j]] %*% w)
       q <- q + colSums(w * dk[[j]] * xs[[j]])
-      zv <- zv + t(zs[[j]]) %*% (sig * hab[[j]] %*% w)
+      zv <- zv + t(zs[[j]]) %*% (f * sig * hab[[j]] %*% w)
     }
     vv <- t1 - 2 * drop(t(q) %*% f1$mi %*% f1$p %*% zv) +
       drop(t(q) %*% (sig * f1$mi) %*% q)
@@ -213,12 +215,13 @@ gref <- function(d, sys = FALSE, a = 2, b = Inf, coll = FALSE, hm = "ab",
   list(b1 = drop(f1$b), b2 = drop(f2$b), v1 = v1, v2 = v2, vc = vc,
        v1n = sig * f1$mi, sargan = drop(t(ze1) %*% a1 %*% ze1) / sig,
        hansen = drop(t(ze2) %*% a2 %*% ze2), hx = hx, sx = sx,
-       m = length(keys), groups = length(rs),
+       m = length(keys), groups = length(rs), sig = sig,
+       ntr = sum(unlist(dk)),
        n = sum(vapply(rs, function(r) {
          sum(vapply(r, `[[`, "", "kind") == if (sys) "l" else "d")
        }, 0)),
        ar = function(st) vapply(seq_len(nar), function(l) arz(st, l), 0),
-       arn = function() vapply(seq_len(nar), arn, 0))
+       arn = function(f = 1) vapply(seq_len(nar), arn, 0, f = f))
 }
 
 tst <- function(r, nm) r$tests$stat[r$tests$test == nm]
@@ -309,14 +312,22 @@ test_that("the conventional one-step variance and its tests", {
   expect_output(print(r), "conventional variance")
 })
 
-test_that("small-sample corrections: the scaled variance, t and F", {
+test_that("small-sample corrections as xtabond2 3.7.2 computes them", {
+  # Roodman's program (xtabond2.mata 3.7.2) with G groups, n rows of the
+  # equation reported (the levels in system GMM), w rows of the transformed
+  # equation (n in difference GMM or with H = I) and k coefficients: the
+  # robust and the two-step variances times (n - 1) / (n - k) G / (G - 1),
+  # t and F on G less one for the constant; the conventional one-step
+  # variance and sigma^2 times w / (w - k), t and F on n less the model's
+  # degrees of freedom less the constant
   d <- dsim(seed = 33)
   g <- gref(d, sys = TRUE, b = 3, coll = TRUE)
-  r <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
+  arg <- list(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
               collapse = TRUE, small = TRUE)
-  v <- g$v1 * g$n / (g$n - 2)
+  r <- do.call(gmmpnl, arg)
+  f <- (g$n - 1) / (g$n - 2) * g$groups / (g$groups - 1)
+  v <- g$v1 * f
   expect_equal(unname(r$vcov), unname(v), tolerance = 1e-8)
-  # the groups less one, for the constant
   df <- g$groups - 1
   se <- sqrt(diag(v))
   expect_identical(names(r$coef)[4], "t")
@@ -328,6 +339,32 @@ test_that("small-sample corrections: the scaled variance, t and F", {
   expect_identical(w$df2, df)
   expect_equal(w$p, pf(w$stat, 1, df, lower.tail = FALSE), tolerance = 1e-8)
   expect_output(print(r), "F\\(1, 29\\)")
+  # the Hansen and Sargan statistics and the robust AR tests are unscaled
+  expect_equal(tst(r, "Hansen"), g$hansen, tolerance = 1e-8)
+  expect_equal(tst(r, "Sargan"), g$sargan, tolerance = 1e-8)
+  expect_equal(r$tests$stat[1:2], g$ar(1), tolerance = 1e-7)
+  # sigma^2 times w / (w - k) whatever the variance
+  expect_equal(r$fit$sigma2, g$sig * g$ntr / (g$ntr - 2), tolerance = 1e-10)
+  # the two-step variances, uncorrected and Windmeijer's
+  r2 <- do.call(gmmpnl, c(arg, steps = 2, robust = FALSE))
+  expect_equal(unname(r2$vcov), unname(g$v2 * f), tolerance = 1e-8)
+  expect_identical(r2$wald$df2, df)
+  r3 <- do.call(gmmpnl, c(arg, steps = 2))
+  expect_equal(unname(r3$vcov), unname(g$vc * f), tolerance = 1e-7)
+  # the conventional one-step variance: w / (w - k), n - 1 - 1 degrees of
+  # freedom, and in the AR tests sigma^2 scaled but not the variance of b
+  r4 <- do.call(gmmpnl, c(arg, robust = FALSE))
+  fw <- g$ntr / (g$ntr - 2)
+  expect_equal(unname(r4$vcov), unname(g$v1n * fw), tolerance = 1e-8)
+  expect_identical(r4$wald$df2, g$n - 2)
+  expect_equal(r4$tests$stat[1:2], g$arn(fw), tolerance = 1e-7)
+  expect_false(isTRUE(all.equal(g$arn(fw), g$arn())))
+  expect_equal(tst(r4, "Sargan"), g$sargan, tolerance = 1e-8)
+  # with H = I in system GMM, w is the rows in levels
+  gi <- gref(d, sys = TRUE, b = 3, coll = TRUE, hm = "id")
+  r5 <- do.call(gmmpnl, c(arg, robust = FALSE, hmat = "id"))
+  expect_equal(unname(r5$vcov), unname(gi$v1n * g$n / (g$n - 2)),
+               tolerance = 1e-8)
   # without small: Wald chi-squared and normal intervals
   n <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, lagmax = 3,
               collapse = TRUE)
@@ -335,11 +372,47 @@ test_that("small-sample corrections: the scaled variance, t and F", {
   expect_equal(n$wald$stat, g$b1[1]^2 / g$v1[1, 1], tolerance = 1e-8)
   expect_true(is.na(n$wald$df2))
   expect_output(print(n), "Wald chi2\\(1\\)")
-  # difference GMM has no constant: the groups themselves
+  # difference GMM has no constant: the groups themselves, n = w and the
+  # factor (n - 1) / (n - 1) G / (G - 1) with one coefficient
+  gd <- gref(d)
   q <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, type = "diff",
               small = TRUE)
   expect_identical(q$wald$df2, 30)
   expect_identical(q$wald$df1, 1)
+  expect_equal(unname(q$vcov), unname(gd$v1 * 30 / 29), tolerance = 1e-8)
+  q2 <- gmmpnl(d$y, unit = d$u, time = d$t, tdum = FALSE, type = "diff",
+               small = TRUE, robust = FALSE)
+  expect_equal(unname(q2$vcov), unname(gd$v1n * gd$n / (gd$n - 1)),
+               tolerance = 1e-8)
+  expect_identical(q2$wald$df2, gd$n - 1)
+})
+
+test_that("the model degrees of freedom of the joint test", {
+  d <- dsim(seed = 35)
+  # a trend differences to ones: the constant lies in the columns of the
+  # transformed equation, and the joint test of both coefficients has one
+  # degree of freedom (n - 1 residual ones with the conventional variance)
+  tr <- cbind(tr = as.numeric(d$t))
+  r <- gmmpnl(d$y, tr, d$u, d$t, type = "diff", tdum = FALSE, small = TRUE,
+              robust = FALSE)
+  expect_identical(r$coef$term, c("L1.y", "tr"))
+  b <- r$coef$est
+  wv <- drop(t(b) %*% solve(r$vcov) %*% b)
+  expect_identical(r$wald$df1, 1)
+  expect_identical(r$wald$df2, r$fit$n - 1)
+  expect_equal(r$wald$stat, wv, tolerance = 1e-10)
+  r0 <- gmmpnl(d$y, tr, d$u, d$t, type = "diff", tdum = FALSE)
+  expect_identical(r0$wald$df1, 1)
+  expect_equal(r0$wald$p, pchisq(r0$wald$stat, 1, lower.tail = FALSE))
+  # system GMM without a constant but with every period's dummy: their
+  # sum is 1 in the levels and its difference 0 in the transformed rows,
+  # so i'X_p (X'X)^-1 X_p'i, X the whole stack, equals the rows in levels
+  # and the program takes one off the coefficients
+  s <- gmmpnl(d$y, unit = d$u, time = d$t, cons = FALSE, collapse = TRUE,
+              lagmax = 3, small = TRUE)
+  expect_false("(const)" %in% s$coef$term)
+  expect_identical(s$wald$df1, nrow(s$coef) - 1)
+  expect_identical(s$wald$df2, 30)
 })
 
 test_that("robust, wc and small refusals", {
@@ -360,7 +433,24 @@ test_that("robust, wc and small refusals", {
   e <- data.frame(u = c(1, 1, 1, 2, 2), t = c(1, 2, 3, 1, 2),
                   y = c(1, 2, 4, 2, 5))
   expect_error(gmmpnl(e$y, unit = e$u, time = e$t, type = "diff",
-                      tdum = FALSE, small = TRUE), "needs more rows")
+                      tdum = FALSE, small = TRUE),
+               "`small = TRUE` needs more rows (1) than coefficients (1).",
+               fixed = TRUE)
+  # one group with rows: G / (G - 1) is undefined
+  e1 <- data.frame(u = c(1, 1, 1, 1, 1, 2), t = c(1:5, 1),
+                   y = c(1, 3, 2, 5, 4, 2))
+  expect_error(gmmpnl(e1$y, unit = e1$u, time = e1$t, type = "diff",
+                      tdum = FALSE, small = TRUE),
+               paste("gmmpnl: `small = TRUE` with the robust or two-step",
+                     "variance needs two groups or more."), fixed = TRUE)
+  # five rows in levels but one difference for two coefficients
+  e2 <- data.frame(u = c(1, 1, 1, 2, 2, 3, 3, 4, 4),
+                   t = c(1, 2, 3, 1, 2, 1, 2, 1, 2),
+                   y = c(1, 3, 2, 2, 5, 4, 1, 3, 6))
+  expect_error(gmmpnl(e2$y, unit = e2$u, time = e2$t, tdum = FALSE,
+                      small = TRUE),
+               paste("`small = TRUE` needs more rows in the transformed",
+                     "equation (1) than coefficients (2)."), fixed = TRUE)
 })
 
 test_that("with T = 3 difference GMM is Anderson and Hsiao's estimator", {

@@ -8,6 +8,7 @@
 #include "dpnd.h"
 
 #include <algorithm>
+#include <cfloat>
 #include <cmath>
 #include <cstdarg>
 #include <cstddef>
@@ -507,11 +508,11 @@ void ctab(tab &t, const std::vector<std::string> &nm, const double *b, const dou
   }
 }
 
-// The joint Wald test of the coefficients other than the constant:
-// chi-squared on q degrees of freedom, or with df2 > 0 F = W / q on q and
-// df2.
+// The joint Wald test of the coefficients other than the constant on
+// dfm degrees of freedom: chi-squared, or with df2 > 0 F = W / dfm on dfm
+// and df2; NaN when dfm is below 1.
 void wtest(tab &t, const std::vector<std::string> &nm, const std::vector<double> &b,
-           const std::vector<double> &v, int k, double df2) {
+           const std::vector<double> &v, int k, int dfm, double df2) {
   std::vector<int> j;
   for (int i = 0; i < k; ++i) {
     if (nm[z(i)] != "(const)") j.push_back(i);
@@ -522,7 +523,7 @@ void wtest(tab &t, const std::vector<std::string> &nm, const std::vector<double>
     for (int c = 0; c < q; ++c) a[z(c) * z(q) + z(r)] = v[z(j[z(c)]) * z(k) + z(j[z(r)])];
   }
   double w = NAN;
-  if (q > 0 && pev::chol(a.data(), q)) {
+  if (q > 0 && dfm > 0 && pev::chol(a.data(), q)) {
     pev::cinv(a.data(), q, ai.data());
     w = 0.0;
     for (int r = 0; r < q; ++r) {
@@ -531,10 +532,57 @@ void wtest(tab &t, const std::vector<std::string> &nm, const std::vector<double>
   }
   t = tab();
   t.name.push_back(df2 > 0 ? "F" : "Wald");
-  t.stat.push_back(df2 > 0 ? w / q : w);
-  t.df.push_back(q);
+  t.stat.push_back(df2 > 0 ? w / dfm : w);
+  t.df.push_back(dfm);
   t.df2.push_back(df2 > 0 ? df2 : NAN);
-  t.p.push_back(std::isnan(w) ? NAN : df2 > 0 ? clab_pf(w / q, q, df2, 0) : clab_pchisq(w, q, 0));
+  t.p.push_back(std::isnan(w)   ? NAN
+                : df2 > 0       ? clab_pf(w / dfm, dfm, df2, 0)
+                                : clab_pchisq(w, dfm, 0));
+}
+
+// The model degrees of freedom of the joint test as xtabond2 3.7.2
+// computes them (Roodman 2009): the rank of the regressors in the levels
+// (system GMM, whose transformed equation the program leaves out of the
+// test) or in the transformed equation, less one for the constant of
+// system GMM; without that constant, one less again when the vector of
+// ones lies in their column space, which the program finds by comparing
+// i'X_p (X'X)^-1 X_p'i with the rows of X_p, X the whole stack, to the
+// relative tolerance of the machine epsilon times the groups times the
+// periods.
+int mdf(const dsg &d, bool sys, int cons, int nt) {
+  std::vector<int> rr;
+  for (int r = 0; r < d.n; ++r) {
+    if (!sys || !d.eq[z(r)]) rr.push_back(r);
+  }
+  const int np = static_cast<int>(rr.size()), k = d.k;
+  std::vector<double> px(z(np) * z(k)), xi(z(k), 0.0);
+  for (int c = 0; c < k; ++c) {
+    for (int i = 0; i < np; ++i) {
+      const double e = d.x[z(c) * z(d.n) + z(rr[z(i)])];
+      px[z(c) * z(np) + z(i)] = e;
+      xi[z(c)] += e;
+    }
+  }
+  int dfm = -cons;
+  for (char c : indep(px, np, k)) dfm += c;
+  if (cons) return dfm;
+  std::vector<double> xx(z(k) * z(k), 0.0), xv(z(k) * z(k));
+  for (int c = 0; c < k; ++c) {
+    for (int e = 0; e < k; ++e) {
+      double s = 0.0;
+      for (int i = 0; i < d.n; ++i) s += d.x[z(c) * z(d.n) + z(i)] * d.x[z(e) * z(d.n) + z(i)];
+      xx[z(e) * z(k) + z(c)] = s;
+    }
+  }
+  if (!pev::chol(xx.data(), k)) return dfm;
+  pev::cinv(xx.data(), k, xv.data());
+  double q = 0.0;
+  for (int c = 0; c < k; ++c) {
+    for (int e = 0; e < k; ++e) q += xi[z(c)] * xv[z(e) * z(k) + z(c)] * xi[z(e)];
+  }
+  const double tol = DBL_EPSILON * static_cast<double>(d.ng) * nt;
+  if (std::fabs(q - np) / (np + 1.0) < tol) --dfm;
+  return dfm;
 }
 
 // The tests: AR(1..nar), Sargan, Hansen and, for system GMM, the
@@ -598,9 +646,25 @@ std::string gfit(const pnl &pn, const xm &x, const xm &zx, spec sp, gout &o, int
   }
   if (bc == 5) return fmt("the regressors would number %.0f, more than %d.", d.big, mmax);
   if (d.m < d.k) return fmt("the %d instruments are fewer than the %d coefficients.", d.m, d.k);
+  // small, as xtabond2 3.7.2 computes it: the rows n of the equation
+  // reported, the rows w of the transformed equation in system GMM with H
+  // other than the identity (n otherwise), the groups G and the constant c
+  // of system GMM
+  int ntr = 0;
+  for (int e : d.eq) ntr += e;
+  const double wt = sp.sys && sp.hm != 2 ? ntr : d.nobs;
   if (sp.small && d.nobs <= d.k) {
     return fmt("`small = TRUE` needs more rows (%d) than coefficients (%d).", d.nobs, d.k);
   }
+  if (sp.small && wt <= d.k) {
+    return fmt("`small = TRUE` needs more rows in the transformed equation (%.0f) than "
+               "coefficients (%d).",
+               wt, d.k);
+  }
+  if (sp.small && !sp.sig && d.ng < 2) {
+    return "`small = TRUE` with the robust or two-step variance needs two groups or more.";
+  }
+  const double fs = sp.small ? wt / (wt - d.k) : 1.0;
   int msub = 0;
   for (int f : d.sub) msub += f;
   std::vector<double> b(z(d.k)), v(z(d.k) * z(d.k)), st(6), av(z(sp.nar) + 1);
@@ -609,7 +673,7 @@ std::string gfit(const pnl &pn, const xm &x, const xm &zx, spec sp, gout &o, int
                              d.yd.data(), d.xd.data(), sp.sig ? d.hc.data() : nullptr,
                              sp.sig ? d.hdd.data() : nullptr,
                              sp.sys && msub ? d.sub.data() : nullptr, sp.steps, sp.rob, sp.nar,
-                             b.data(), v.data(), st.data(), av.data());
+                             sp.sig ? fs : 1.0, b.data(), v.data(), st.data(), av.data());
   if (rc == CLAB_EINTR || clab_intrd(0) != 0) {
     code = CLAB_EINTR;
     return "";
@@ -631,21 +695,22 @@ std::string gfit(const pnl &pn, const xm &x, const xm &zx, spec sp, gout &o, int
   // small (Roodman 2009, p. 123: "small requests small-sample corrections
   // to the covariance matrix estimate, resulting in t-test instead of
   // z-test statistics for the coefficients and an F test instead of a
-  // Wald chi2 test for overall fit"): the degrees of freedom are the
-  // groups less one when a constant is estimated, as the paper's outputs
-  // print them (F(16, 140) for 140 groups without a constant, p. 113;
-  // F(12, 139) with one, p. 118); the paper gives no formula for the
-  // covariance's correction, and n / (n - k) of the rows reported is this
-  // function's choice
-  const bool hasc = std::find(d.xn.begin(), d.xn.end(), "(const)") != d.xn.end();
-  const double dfr = sp.small ? d.ng - (hasc ? 1.0 : 0.0) : 0.0;
+  // Wald chi2 test for overall fit"), as xtabond2 3.7.2 computes it: the
+  // conventional one-step variance times w / (w - k), any other times
+  // (n - 1) / (n - k) G / (G - 1); sigma^2 times w / (w - k); the
+  // residual degrees of freedom n - dfm - c for the conventional one-step
+  // variance and G - c otherwise
+  const int cons = sp.sys && sp.cons, dfm = mdf(d, sp.sys != 0, cons, pn.nt);
+  double dfr = 0.0;
   if (sp.small) {
-    for (double &e : v) e *= static_cast<double>(d.nobs) / (d.nobs - d.k);
+    const double n1 = d.nobs, g1 = d.ng, fv = sp.sig ? fs : (n1 - 1) / (n1 - d.k) * g1 / (g1 - 1);
+    for (double &e : v) e *= fv;
+    dfr = (sp.sig ? n1 - dfm : g1) - cons;
   }
   ctab(o.coef, d.xn, b.data(), v.data(), d.k, sp.level, dfr);
   o.tstat = sp.small != 0;
   ttab(o.tests, st.data(), av.data(), sp.nar, d.m, d.k, msub, sp.sys != 0, sp.sig != 0);
-  wtest(o.wald, d.xn, b, v, d.k, dfr);
+  wtest(o.wald, d.xn, b, v, d.k, dfm, dfr);
   o.n = d.nobs;
   o.groups = d.ng;
   o.inst = d.m;
@@ -654,7 +719,7 @@ std::string gfit(const pnl &pn, const xm &x, const xm &zx, spec sp, gout &o, int
   o.omax = d.omax;
   o.steps = sp.steps;
   o.k = d.k;
-  o.sigma2 = st[3];
+  o.sigma2 = st[3] * fs;
   o.vcov = v;
   o.inst_names = d.zn;
   o.dropped = d.drop;

@@ -20,7 +20,7 @@ int g0(int n, int k, int m, int ng, const int *go, const double *y, const double
        int rob, double *b, double *v, double *st) {
   double ar[1];
   return clab_gmmpnl(n, k, m, ng, go, y, x, z, h, eq, 0, dgo, nullptr, nullptr, nullptr, nullptr,
-                     nullptr, sub, s, rob, 0, b, v, st, ar);
+                     nullptr, sub, s, rob, 0, 1.0, b, v, st, ar);
 }
 
 void gmmjust(tk &tt) {
