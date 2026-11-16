@@ -1894,15 +1894,96 @@ bool windiv(Ctx &c, Val &out) {
   return true;
 }
 
+// invsn() by group (R's .axinby()): per sorted group the readings with
+// both temperatures, their mean difference by sign and the inversion by
+// rule (0 all, 1 any, 2 the mean above 0).
+bool invby(Ctx &c, const std::vector<double> &up, int sg, int rule, Val &out) {
+  const std::size_t n = up.size();
+  const Val by = asarr(c["by"]);
+  bool num = true, na = by.a.size() != n;
+  for (const Val &e : by.a) {
+    na = na || vna(e);
+    num = num && e.t == Val::NUM;
+  }
+  if (na) return ckstop(c, "`by` must give the group of each reading, with no NA");
+  std::vector<double> gv;
+  Cols gs;
+  for (const Val &e : by.a) {
+    if (num) gv.push_back(nv(e));
+    else gs.push_back(vlab(e));
+  }
+  std::vector<double> lv = gv;
+  Cols ls = gs;
+  std::sort(lv.begin(), lv.end());
+  lv.erase(std::unique(lv.begin(), lv.end()), lv.end());
+  std::sort(ls.begin(), ls.end());
+  ls.erase(std::unique(ls.begin(), ls.end()), ls.end());
+  const std::size_t ng = num ? lv.size() : ls.size();
+  std::vector<std::vector<double>> u(ng);
+  for (std::size_t i = 0; i < n; ++i) {
+    const std::size_t k =
+        num ? static_cast<std::size_t>(std::lower_bound(lv.begin(), lv.end(), gv[i]) - lv.begin())
+            : static_cast<std::size_t>(std::lower_bound(ls.begin(), ls.end(), gs[i]) - ls.begin());
+    if (std::isfinite(up[i])) u[k].push_back(up[i]);
+  }
+  std::vector<double> nn(ng), df(ng);
+  std::vector<int> inv(ng);
+  for (std::size_t k = 0; k < ng; ++k) {
+    nn[k] = static_cast<double>(u[k].size());
+    if (u[k].empty()) {
+      df[k] = NAN;
+      inv[k] = INT_MIN;
+      continue;
+    }
+    const double m = lmean(u[k]);
+    bool all = true, any = false;
+    for (double x : u[k]) {
+      all = all && x > 0;
+      any = any || x > 0;
+    }
+    df[k] = sg == 0 ? m : -m;
+    inv[k] = rule == 0 ? all : (rule == 1 ? any : m > 0);
+  }
+  Frame f;
+  if (num) f.num("by", lv);
+  else f.str("by", ls);
+  f.num("n", nn);
+  Val dv = varr();
+  for (double x : df) dv.a.push_back(std::isnan(x) ? Val() : vnum(x));
+  f.add("diff", dv);
+  f.ints("inv", inv.data(), ng);
+  if (c.has("brk")) {
+    const std::vector<double> br = nums(c["brk"]);
+    if (!numv(c["brk"]) || br.size() < 2 || anyna(br) || !incr(br)) {
+      return ckstop(c, "`brk` must be two or more increasing numbers");
+    }
+    const Cols l = cutlab(br, false);
+    Val bin = varr();
+    for (double x : df) {
+      const int k = std::isnan(x) ? -1 : bincode(x, br, false);
+      bin.a.push_back(k < 0 ? Val() : vstr(l[zz(k)]));
+    }
+    f.add("bin", bin);
+  }
+  out = f.o;
+  return true;
+}
+
 bool invsn(Ctx &c, Val &out) {
-  int sg = 0;
+  int sg = 0, rule = 0;
   CK(marg(c, "sign", {"upper", "ground"}, sg));
+  CK(marg(c, "rule", {"all", "any", "mean"}, rule));
   const Val &lo = c["tlow"], &hi = c["tup"];
   const std::vector<double> a = nums(lo), b = nums(hi);
   if (!numv(lo) || !numv(hi) || a.size() != b.size() || a.empty()) {
     return ckstop(c, "`tlow` and `tup` must be numeric vectors of one length");
   }
   const std::size_t n = a.size();
+  if (c.has("by")) {
+    std::vector<double> up(n);
+    for (std::size_t i = 0; i < n; ++i) up[i] = b[i] - a[i];
+    return invby(c, up, sg, rule, out);
+  }
   std::vector<double> df(n);
   std::vector<int> inv(n);
   for (std::size_t i = 0; i < n; ++i) {

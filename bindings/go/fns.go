@@ -1246,8 +1246,14 @@ func Ppmlcf(args string) (string, error) { return Jrun("ppmlcf", args) }
 // Windiv runs windiv() of the R package (arguments: dir width? start? area? base? sect? edges? by? avg? share? spd?; ? marks an optional one).
 func Windiv(args string) (string, error) { return Jrun("windiv", args) }
 
-// Invsn runs invsn() of the R package (arguments: tlow tup sign? brk?; ? marks an optional one).
+// Invsn runs invsn() of the R package (arguments: tlow tup sign? brk? by? rule?; ? marks an optional one).
 func Invsn(args string) (string, error) { return Jrun("invsn", args) }
+
+// Dwnexp runs dwnexp() of the R package (arguments: sx sy sper? sdir rx ry rid? rule? half? rad? from? lonlat? wrap? dwt?; ? marks an optional one).
+func Dwnexp(args string) (string, error) { return Jrun("dwnexp", args) }
+
+// Tailwd runs tailwd() of the R package (arguments: dir spd course? by? agg?; ? marks an optional one).
+func Tailwd(args string) (string, error) { return Jrun("tailwd", args) }
 
 // Updwn runs updwn() of the R package (arguments: data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?; ? marks an optional one).
 func Updwn(args string) (string, error) { return Jrun("updwn", args) }

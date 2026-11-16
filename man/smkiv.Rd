@@ -103,6 +103,12 @@ instrument, "the number of days a county is affected by a fire smoke
 plume in a given month" (p. 10).
 }
 
+Bao and Da (2026, sec. 3.3) keep only "Medium and Heavy plumes"
+because "including Light plumes badly overstates surface-smoke days"
+(give the density classes in \code{dens} and use their indicators), and
+instead of a plume overhead count the days a county lies downwind of a
+plume (\code{\link[=dwnexp]{dwnexp()}}).
+
 The instrument must move the exposure (a first stage, see \code{\link[=ivfe]{ivfe()}}) and
 change the outcome only through it: smoke may also keep people indoors
 or darken the day (Lee and Lee 2026 discuss both), which the exclusion
@@ -140,7 +146,10 @@ Seattle. \emph{Environmental Research Letters}, 21, 044020.
 Lee, G. and Lee, S. (2026). The impact of wildfire smoke exposure on
 crime. \emph{Environmental and Resource Economics}, 89, 5.
 \doi{10.1007/s10640-025-01053-2}
+
+Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
+California. Working paper, Renmin University of China.
 }
 \seealso{
-\code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=exprun]{exprun()}}
+\code{\link[=ppmlcf]{ppmlcf()}}, \code{\link[=exprun]{exprun()}}, \code{\link[=dwnexp]{dwnexp()}}
 }

@@ -4,7 +4,14 @@
 \alias{invsn}
 \title{Temperature inversions}
 \usage{
-invsn(tlow, tup, sign = c("upper", "ground"), brk = NULL)
+invsn(
+  tlow,
+  tup,
+  sign = c("upper", "ground"),
+  brk = NULL,
+  by = NULL,
+  rule = c("all", "any", "mean")
+)
 }
 \arguments{
 \item{tlow}{Temperatures at the ground (numbers, \code{NA} allowed).}
@@ -15,7 +22,14 @@ unit.}
 \item{sign}{\code{"upper"} or \code{"ground"}: which temperature comes first.}
 
 \item{brk}{\code{NULL} or the breaks of the bins of the difference (as in
-\code{\link[=cut]{cut()}}, right-closed).
+\code{\link[=cut]{cut()}}, right-closed).}
+
+\item{by}{\code{NULL} or the group of each reading (a day, say): one row per
+group, as below.}
+
+\item{rule}{With \code{by}, when a group is an inversion: \code{"all"} (every
+reading with both temperatures inverted), \code{"any"} or \code{"mean"} (the
+mean difference above 0).
 Cautions from a review of 81 studies that use the instrument (Yamada
 2026, section 7 and table 8, pp. 24-25), whose nine checks the help
 here follows. The instrument's strong first stages, mostly from China,
@@ -41,10 +55,12 @@ ground monitors at the scale of the contrasts used.}
 \value{
 A data frame: \code{diff}, the difference by \code{sign}; \code{inv}, 1 when
 \code{tup} is above \code{tlow} and 0 otherwise (\code{NA} where a temperature is
-missing); and with \code{brk}, \code{bin}, a factor. The attribute \code{"diag"} is a
-one-row data frame: \code{n}, the rows with both temperatures; \code{zero}, the
-share of them without an inversion; \code{min}, \code{max}, the support of
-\code{diff}.
+missing); and with \code{brk}, \code{bin}, a factor. With \code{by}, one row per
+group, sorted: \code{by}, \code{n} (the readings with both temperatures), \code{diff}
+(their mean difference), \code{inv} (by \code{rule}; \code{NA} without a reading)
+and \code{bin}. The attribute \code{"diag"} is a one-row data frame: \code{n}, the
+rows (groups) with both temperatures; \code{zero}, the share of them
+without an inversion; \code{min}, \code{max}, the support of \code{diff}.
 }
 \description{
 The instrument of Bondy, Roth and Sager (2020, p. 566-567): "the
@@ -65,6 +81,21 @@ continuous difference, is the other common form of the instrument. With
 chosen sign), for an instrument that lets weak and strong inversions act
 differently.
 
+From readings to days (\code{by}, \code{rule}). Batkeyev and DeRemer (2023, sec.
+4.3, p. 297) compare a station at the city's elevation with one in its
+high southeast corner, read every three hours, and define "a dummy
+which equals 1 if within a day all low-elevation temperature readings
+are less than high-elevation temperature readings" (\code{by} the day, \code{rule = "all"}, the default), a demanding standard that still finds
+inversions on more than 35\% of their days; where evening readings were
+missing they use the readings there are, as \code{"all"} does here.
+\code{"any"} and \code{"mean"} are weaker rules, and \code{diff} (the mean difference)
+is the continuous form of their appendix (sec. A3). Their other
+instrument, the share of a period's readings with the wind from the
+mountains (from the southeast, south-by-southeast or east-by-southeast,
+101.25 to 168.75 degrees), set to 0 for the districts far from the
+mountains, is \code{\link[=windiv]{windiv()}} with \code{sect = c(101.25, 168.75)}, \code{by} the
+period and \code{share = TRUE}.
+
 Cautions. Inversions cover large areas (the paper's satellite readings
 are on a grid of about 110 by 70 km), so they vary little between places
 in a city; Bondy, Roth and Sager use them at the borough and city level
@@ -76,6 +107,8 @@ change what people do as well, so weather controls matter (see
 }
 \examples{
 invsn(c(10, 5, 2), c(8, 6, 2))
+# three-hourly readings, one row per day: inverted when every reading is
+invsn(c(1, 2, 3, 1, 2, 3), c(4, 5, 6, 4, 1, 6), by = c(1, 1, 1, 2, 2, 2))
 invsn(c(10, 5, 2), c(8, 6, 2), sign = "ground", brk = c(-Inf, -1, 0, Inf))
 # the share of days without an inversion and the support (check 3)
 attr(invsn(c(10, 5, 2), c(8, 6, 2)), "diag")
@@ -89,6 +122,11 @@ contemporaneous relationship between air pollution and crime.
 Yamada, H. (2026). When the air doesn't move the data: the thermal
 inversion instrument in developing countries. Keio-IES Discussion
 Paper DP2026-018, Keio University.
+
+Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+effects of abnormal air pollution on crime. \emph{Journal of Economic
+Behavior and Organization}, 210, 288-319.
+\doi{10.1016/j.jebo.2023.04.009}
 }
 \seealso{
 \code{\link[=windiv]{windiv()}}, \code{\link[=ivfe]{ivfe()}}, \code{\link[=ppmlcf]{ppmlcf()}}
