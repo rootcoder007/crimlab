@@ -465,8 +465,6 @@ bool ifesc(Ctx &c, Val &out) {
     f.num("mspe", cm);
     cvv = f.o;
   }
-  Val bv = vobj();
-  for (std::size_t j = 0; j < x.size(); ++j) put(bv, x[j].c_str(), vnum(beta[j]));
   Val cvg;
   cvg.t = Val::BOOL;
   cvg.b = s8[2] == 1;
@@ -475,7 +473,7 @@ bool ifesc(Ctx &c, Val &out) {
   put(out, "eff", eff);
   put(out, "r", vnum(rr));
   put(out, "cv", cvv);
-  put(out, "beta", bv);
+  put(out, "beta", nvec(x, beta.data()));
   put(out, "cf", fc1.o);
   put(out, "factors", vmat(fac.data(), pn.nt, rr));
   put(out, "draws", draws);
@@ -650,7 +648,8 @@ inline bool cemcode(Ctx &c, const Val &d, const Cols &x, const char *what, int r
   }
   const std::size_t n = nr(d);
   code.assign(n * x.size(), 0);
-  cuts = vobj();
+  // list(): an empty array until a numeric column adds its breaks
+  cuts = varr();
   for (std::size_t j = 0; j < x.size(); ++j) {
     const Val &col = *fc(d, x[j]);
     if (!isnumc(col)) {
