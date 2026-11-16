@@ -1489,3 +1489,20 @@ test_that("columns of very different scale are not taken for collinear", {
   expect_equal(b$coef$est, a$coef$est, tolerance = 1e-9)
   expect_equal(b$coef$se, a$coef$se, tolerance = 1e-9)
 })
+
+test_that("windiv() names its sectors by their edges, formatted once", {
+  # the names of sectors that are each the next one's lower edge, against
+  # the edges formatted by hand
+  for (w in c(90, 22.5, 360 / 7, 360 / 2^10)) {
+    for (s in c(0, 10)) {
+      nb <- round(360 / w)
+      lo <- (s + (seq_len(nb) - 1) * w) %% 360
+      a <- format(lo, trim = TRUE)
+      b <- format(c(lo[-1L], lo[1L]), trim = TRUE)
+      m <- windiv(c(5, 100), width = w, start = s, base = 2)
+      expect_identical(colnames(m), paste0("w", a, "_", b)[-2L])
+    }
+  }
+  expect_identical(colnames(windiv(1, width = 22.5))[1:2],
+                   c("w22.5_45.0", "w45.0_67.5"))
+})

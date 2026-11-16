@@ -27,6 +27,9 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* `windiv()` with very narrow sectors builds its column names in less than
+  half the time: each edge is formatted once.
+
 * `ccross()` takes a day column of ISO date text or of days since
   1970-01-01, as the command line gives dates, and `smkiv()` reads ISO
   date text as dates, in R and on the command line alike; before, R's

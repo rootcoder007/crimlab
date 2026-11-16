@@ -2973,9 +2973,10 @@ summary.expjn <- function(object, ...) {
       as.integer(base - 1),
       if (edges == "paper") 1L else 0L
     )
-    lo <- (start + (seq_len(nb) - 1) * width) %% 360
-    nm <- paste0("w", format(lo, trim = TRUE), "_",
-                 format((lo + width) %% 360, trim = TRUE))[-base]
+    # each edge formatted once: a sector's upper edge is the next one's
+    # lower edge (format() of 2^26 numbers is most of the time here)
+    lo <- format((start + (seq_len(nb) - 1) * width) %% 360, trim = TRUE)
+    nm <- sprintf("w%s_%s", lo, c(lo[-1L], lo[1L]))[-base]
     colnames(m) <- if (is.null(lev)) {
       nm
     } else {
