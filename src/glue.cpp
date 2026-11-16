@@ -758,6 +758,17 @@ SEXP C_clab_r_rtmfit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_crfpar(SEXP, SEXP);
 SEXP C_clab_r_pbarea(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rocpts(SEXP, SEXP);
+// Data description between arguments and results (bdscd.cpp).
+SEXP C_clab_r_spark(SEXP, SEXP, SEXP);
+SEXP C_clab_r_cnames(SEXP, SEXP, SEXP);
+SEXP C_clab_r_mgridl(SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mpat(SEXP, SEXP, SEXP);
+SEXP C_clab_r_prof(SEXP, SEXP, SEXP);
+SEXP C_clab_r_mhtab(SEXP, SEXP, SEXP);
+SEXP C_clab_r_mruns(SEXP, SEXP, SEXP);
+SEXP C_clab_r_topcor(SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_dtsel(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+SEXP C_clab_r_mcar2(SEXP, SEXP, SEXP);
 
 // For the tests: on TRUE every poll of a kernel reads as an interrupt
 // (the stop paths run on small inputs, in this process); on FALSE R's
@@ -1123,6 +1134,16 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_crfpar", fn<&C_clab_r_crfpar>(), 2},
     {"C_clab_r_pbarea", fn<&C_clab_r_pbarea>(), 6},
     {"C_clab_r_rocpts", fn<&C_clab_r_rocpts>(), 2},
+    {"C_clab_r_spark", fn<&C_clab_r_spark>(), 3},
+    {"C_clab_r_cnames", fn<&C_clab_r_cnames>(), 3},
+    {"C_clab_r_mgridl", fn<&C_clab_r_mgridl>(), 5},
+    {"C_clab_r_mpat", fn<&C_clab_r_mpat>(), 3},
+    {"C_clab_r_prof", fn<&C_clab_r_prof>(), 3},
+    {"C_clab_r_mhtab", fn<&C_clab_r_mhtab>(), 3},
+    {"C_clab_r_mruns", fn<&C_clab_r_mruns>(), 3},
+    {"C_clab_r_topcor", fn<&C_clab_r_topcor>(), 4},
+    {"C_clab_r_dtsel", fn<&C_clab_r_dtsel>(), 7},
+    {"C_clab_r_mcar2", fn<&C_clab_r_mcar2>(), 3},
     {nullptr, nullptr, 0}};
 
 void R_init_crimlab(DllInfo *dll) {

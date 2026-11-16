@@ -4378,6 +4378,47 @@ int clab_pbarea(size_t n, const double *e, const double *pop, const double *br, 
  * missing value (its shares are then NA in R). O(n log n). */
 int clab_rocpts(size_t n, const double *prob, const int *lk, double *fpr, double *tpr, size_t *k,
                 double *auc, int *na);
+/* ------------------------------------------------------------------------
+ * Data description between arguments and results (dscd.cpp; the text
+ * tables are in dscd.h).
+ * ------------------------------------------------------------------------ */
+
+/* The sketch of the n values x in bins characters, the non-finite ones
+ * skipped: blanks when none is finite, one full block in the middle when
+ * they have no spread, else each bin of clab_hbin() as one of 8 block
+ * heights (uni; UTF-8, 3 bytes each) or 5 ASCII marks, a blank for an
+ * empty bin. Writes *len bytes, at most 3 bins, to out, unterminated. */
+int clab_spark(const double *x, int64_t n, int bins, int uni, char *out, int64_t *len);
+/* The profile of a numeric column x (n, NaN missing): st (12) its distinct
+ * values, zeros, negative and infinite values (0 and NaN when none is
+ * present), then of its finite values the mean, sd, median, MAD, min, max,
+ * skewness (clab_pstat()) and the number beyond the fences (NaN when none
+ * is finite); q, their type-7 quantiles at the np probabilities pr. */
+int clab_prof(const double *x, int64_t n, const double *pr, int np, double *st, double *q);
+/* The Mahalanobis outliers of x (n x p, NaN missing): the complete rows by
+ * descending distance (clab_maha()), then the others in order, NaN. Of
+ * each row (n): its position from 1, the distance, the p-value of the
+ * chi-square on p and its log, and whether the p-value is below alpha (1,
+ * 0; -1 for an incomplete row). CLAB_EDOM with why 1 for fewer than p + 1
+ * complete rows, 2 for collinear columns. */
+int clab_mhtab(const double *x, int64_t n, int p, int robust, double alpha, int *row, double *d, double *pv,
+               double *lp, int *ol, int *why);
+/* The runs of minrun or more missing values (clab_nrun()) of every column
+ * of na (n x p), longest first, ties by rank[column] (p): the column (from
+ * 1), first and last row into col, st, en (room for p (n + 1) / 2 runs);
+ * their number in *k. */
+int clab_mruns(const int *na, int64_t n, int p, int minrun, const int *rank, int *col, int *st, int *en,
+               int64_t *k);
+/* The positions (from 1) of the at most top correlations r (k) that are
+ * present and at least minabs in absolute value, largest first, ties in
+ * order; their number in *m. */
+int clab_topc(const double *r, int64_t k, double minabs, int64_t top, int *idx, int64_t *m);
+/* Little's test's data from x (n x p, NaN missing): the columns with a
+ * value, then the rows with a value in one of them, into y (m x k,
+ * column-major; room for n p) and the kept columns (from 1) into keep.
+ * CLAB_EDOM with why 1 when a kept value is infinite, 2 when fewer than
+ * two columns or rows are kept. */
+int clab_mcdrop(const double *x, int64_t n, int p, double *y, int64_t *m, int *keep, int *k, int *why);
 
 #ifdef __cplusplus
 }

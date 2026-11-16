@@ -1,7 +1,8 @@
 # Data description: the look at a table before trusting it -- the shape of
 # every column, where the gaps are, which values dominate, which rows do
-# not belong. Counting and arithmetic are in the compiled core (dsc.cpp);
-# data frames are taken apart and put together here.
+# not belong. Counting, arithmetic and the building of the tables are in
+# the compiled core (dsc.cpp, dscd.cpp); data frames are taken apart and
+# put together here.
 
 #' Inline histogram for a numeric vector
 #'
@@ -60,7 +61,7 @@ inlhist <- function(x, bins = 10L) {
   }
   bins <- .ckpos(bins, "bins", f)
   if (bins > 2^26) .ckstop(f, "`bins` must be at most 67108864")
-  .spark(as.numeric(x), bins)
+  .Call(C_clab_r_spark, as.numeric(x), bins, .uniok())
 }
 
 #' Frequency table for one column
@@ -345,14 +346,10 @@ topcors <- function(data, n = 10L, meth = c("spearman", "pearson"),
   if (length(minabs) != 1L || is.na(minabs) || minabs < 0 || minabs > 1) {
     .ckstop(f, "`minabs` must be a single value in [0, 1]")
   }
-  r <- .Call(C_clab_r_pcor, .nummat(data, num), meth == "pearson", 3L)
-  pr <- utils::combn(num, 2L)
-  v <- r[[1L]]
-  out <- data.frame(x = pr[1L, ], y = pr[2L, ], correlation = v,
-                    abscor = abs(v), stringsAsFactors = FALSE)
-  out <- out[!is.na(out$correlation) & out$abscor >= minabs, , drop = FALSE]
-  out <- utils::head(out[order(-out$abscor), , drop = FALSE], n)
-  rownames(out) <- NULL
+  r <- .Call(C_clab_r_topcor, .nummat(data, num), meth == "pearson", minabs,
+             n)
+  out <- data.frame(x = num[r[[1L]]], y = num[r[[2L]]], correlation = r[[3L]],
+                    abscor = abs(r[[3L]]), stringsAsFactors = FALSE)
   attr(out, "method") <- meth
   class(out) <- c("topcors", "data.frame")
   out
@@ -587,7 +584,12 @@ clncolnms <- function(
   if (length(nms) == 0L) {
     return(if (is.data.frame(data)) data else character(0))
   }
-  out <- .cndup(.cnfix(nms, case, sep), sep)
+  out <- .Call(
+    C_clab_r_cnames, nms,
+    match(case, c("snake", "lower_camel", "upper_camel", "screaming_snake",
+                  "none")) - 1L,
+    sep
+  )
   if (!quiet) {
     ch <- out != nms
     .dnote(
@@ -714,14 +716,12 @@ mahaoutl <- function(data, alpha = 0.001, robust = TRUE) {
   num <- vapply(data, is.numeric, logical(1))
   if (!any(num)) .ckstop(f, "`data` has no numeric columns")
   X <- .nummat(data, names(data)[num])
-  p <- ncol(X)
   alpha <- .mhalpha(alpha, f)
-  ok <- stats::complete.cases(X)
-  if (sum(ok) < p + 1L) {
+  r <- .Call(C_clab_r_mhtab, X, robust, alpha)
+  if (identical(r, 1L)) {
     .ckstop(f, "need more complete rows than columns to estimate a covariance")
   }
-  r <- .Call(C_clab_r_maha, X[ok, , drop = FALSE], robust, p)
-  if (is.null(r)) {
+  if (identical(r, 2L)) {
     .ckstop(
       f,
       paste0(
@@ -731,17 +731,9 @@ mahaoutl <- function(data, alpha = 0.001, robust = TRUE) {
       )
     )
   }
-  out <- data.frame(row = which(ok), distance = r[[1L]], p_value = r[[2L]],
-                    logpvalue = r[[3L]], stringsAsFactors = FALSE)
-  out$outlier <- out$p_value < alpha
-  sk <- which(!ok)
-  if (length(sk)) {
-    out <- rbind(out, data.frame(row = sk, distance = NA_real_,
-                                 p_value = NA_real_, logpvalue = NA_real_,
-                                 outlier = NA))
-  }
-  out <- out[order(-out$distance, na.last = TRUE), , drop = FALSE]
-  rownames(out) <- NULL
+  out <- data.frame(row = r[[1L]], distance = r[[2L]], p_value = r[[3L]],
+                    logpvalue = r[[4L]], outlier = r[[5L]],
+                    stringsAsFactors = FALSE)
   attr(out, "robust") <- robust
   attr(out, "alpha") <- alpha
   class(out) <- c("mahaoutl", "data.frame")
@@ -818,20 +810,10 @@ missruns <- function(data, minrun = 2L) {
   .dfnm(data, f)
   if (ncol(data) == 0L) .ckstop(f, "`data` has no columns")
   minrun <- .ckpos(minrun, "minrun", f)
-  rows <- lapply(names(data), function(nm) {
-    r <- .Call(C_clab_r_nrun, is.na(data[[nm]]), minrun)
-    if (!length(r[[1L]])) return(NULL)
-    data.frame(column = nm, start = r[[1L]], end = r[[2L]],
-               length = r[[2L]] - r[[1L]] + 1L, stringsAsFactors = FALSE)
-  })
-  out <- do.call(rbind, rows)
-  if (is.null(out)) {
-    out <- data.frame(column = character(0), start = integer(0),
-                      end = integer(0), length = integer(0),
-                      stringsAsFactors = FALSE)
-  }
-  if (nrow(out)) out <- out[order(-out$length, out$column), , drop = FALSE]
-  rownames(out) <- NULL
+  nm <- names(data)
+  r <- .Call(C_clab_r_mruns, .namat(data), minrun, match(nm, sort(nm)))
+  out <- data.frame(column = nm[r[[1L]]], start = r[[2L]], end = r[[3L]],
+                    length = r[[3L]] - r[[2L]] + 1L, stringsAsFactors = FALSE)
   class(out) <- c("missruns", "data.frame")
   out
 }
@@ -896,42 +878,10 @@ missgrid <- function(data, height = 20L, width = 12L) {
   if (ncol(data) == 0L) .ckstop(f, "`data` has no columns")
   height <- .ckpos(height, "height", f)
   width <- .mgwidth(width, f)
-  uni <- .uniok()
-  h <- if (uni) "\u2500" else "-"
-  rule <- function(t = NULL) {
-    if (is.null(t)) return(strrep(h, 66L))
-    l <- paste0(strrep(h, 2L), " ", t, " ")
-    paste0(l, strrep(h, max(0L, 66L - nchar(l))))
-  }
-  shades <- .mgshade(uni)
-  n <- nrow(data)
-  if (n == 0L) {
-    lines <- c(rule("Missingness map"), "  (no rows)", rule())
-    cat(lines, sep = "\n")
-    return(invisible(lines))
-  }
-  nm <- substring(names(data), 1L, width)
-  na <- vapply(data, is.na, logical(n))
-  if (is.null(dim(na))) na <- matrix(na, nrow = n)
-  g <- .Call(C_clab_r_mgrid, na, min(height, n))
-  head <- vapply(seq_len(max(nchar(nm))), function(k) {
-    # a name shorter than k keeps its column with a blank
-    l <- substring(nm, k, k)
-    l[l == ""] <- " "
-    paste0("  ", strrep(" ", 6L), " ", paste(l, collapse = ""))
-  }, character(1))
-  rows <- vapply(seq_along(g[[1L]]), function(i) {
-    sprintf("  %6s %s", paste0(g[[1L]][i], ""),
-            paste(shades[1L + g[[2L]][i, ]], collapse = ""))
-  }, character(1))
-  lines <- c(
-    rule("Missingness map"), head, rows, "",
-    paste0("  legend: '", shades[1L], "' none  '", shades[5L],
-           "' all missing"),
-    rule()
-  )
+  lines <- .Call(C_clab_r_mgridl, .namat(data), names(data), height, width,
+                 .uniok())
   cat(lines, sep = "\n")
-  cat("\n")
+  if (nrow(data)) cat("\n")
   invisible(lines)
 }
 
@@ -1040,18 +990,8 @@ mcartst <- function(data, maxit = 500L, tol = 1e-7) {
   f <- "mcartst"
   ctl <- .mcctl(maxit, tol, f)
   X <- .mcmat(data, f)
-  r <- .Call(C_clab_r_mcar, X, as.integer(ctl$maxit), as.numeric(ctl$tol))
-  if (is.null(r)) {
-    .ckstop(
-      f,
-      paste0(
-        "the columns are collinear (or one is constant), so the ",
-        "multivariate normal likelihood Little's test is built on is ",
-        "degenerate. Drop the redundant column(s) first -- ",
-        "topcors() and drpconst() will find them"
-      )
-    )
-  }
+  r <- .Call(C_clab_r_mcar2, X, as.integer(ctl$maxit), as.numeric(ctl$tol))
+  if (is.integer(r)) .mcstop(r, f)
   o <- r[[1L]]
   df <- o[2L]
   structure(
@@ -1062,11 +1002,11 @@ mcartst <- function(data, maxit = 500L, tol = 1e-7) {
       p_value = if (df > 0) o[3L] else NA_real_,
       npat = as.integer(o[5L]),
       nused = as.integer(o[6L]),
-      nvars = ncol(X),
+      nvars = length(r[[4L]]),
       iterations = as.integer(o[7L]),
-      mu = stats::setNames(r[[2L]], colnames(X)),
+      mu = stats::setNames(r[[2L]], colnames(X)[r[[4L]]]),
       sigma = r[[3L]],
-      note = .mcnote(o)
+      note = r[[5L]]
     ),
     class = c("mcartst", "list")
   )
@@ -1164,32 +1104,10 @@ misspat <- function(data, maxpat = 20L) {
   .dfnm(data, f)
   if (ncol(data) == 0L) .ckstop(f, "`data` has no columns")
   maxpat <- .ckpos(maxpat, "maxpat", f)
-  n <- nrow(data)
-  out <- data.frame(pattern = character(0), n_rows = integer(0),
-                    pctrows = numeric(0), n_missing = integer(0),
-                    columns = character(0), stringsAsFactors = FALSE)
-  if (n > 0L) {
-    na <- vapply(data, is.na, logical(n))
-    if (is.null(dim(na))) na <- matrix(na, nrow = n)
-    codes <- apply(na, 1L, function(r) {
-      paste(ifelse(r, "X", "."), collapse = "")
-    })
-    lv <- sort(unique(codes))
-    r <- .Call(C_clab_r_freq, match(codes, lv), length(lv), 0L,
-               as.numeric(n), TRUE, maxpat, FALSE)
-    keep <- lv[r[[1L]]]
-    flags <- strsplit(keep, "", fixed = TRUE)
-    out <- data.frame(
-      pattern = keep,
-      n_rows = r[[2L]],
-      pctrows = r[[3L]],
-      n_missing = vapply(flags, function(z) sum(z == "X"), integer(1)),
-      columns = vapply(flags, function(z) {
-        if (any(z == "X")) toString(names(data)[z == "X"]) else ""
-      }, ""),
-      stringsAsFactors = FALSE
-    )
-  }
+  r <- .Call(C_clab_r_mpat, .namat(data), names(data), maxpat)
+  out <- data.frame(pattern = r[[1L]], n_rows = r[[2L]], pctrows = r[[3L]],
+                    n_missing = r[[4L]], columns = r[[5L]],
+                    stringsAsFactors = FALSE)
   attr(out, "columns") <- names(data)
   class(out) <- c("misspat", "data.frame")
   out
@@ -1336,11 +1254,8 @@ misssmry <- function(data) {
   f <- "misssmry"
   if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
   if (ncol(data) == 0L) .ckstop(f, "`data` has no columns")
-  n <- nrow(data)
-  na <- vapply(data, function(v) as.vector(is.na(v)), logical(n))
-  if (is.null(dim(na))) na <- matrix(na, nrow = n)
   stats::setNames(
-    .Call(C_clab_r_msum, na),
+    .Call(C_clab_r_msum, .namat(data)),
     c("n_rows", "n_cols", "n_missing", "pct_missing", "n_complete_rows",
       "pct_complete_rows", "n_cols_any_missing", "n_cols_all_missing")
   )
@@ -1431,18 +1346,24 @@ profcols <- function(data, qnts = c(0.25, 0.5, 0.75)) {
   if (anyNA(qnts) || any(qnts < 0 | qnts > 1)) {
     .ckstop(f, "`qnts` must be probabilities in [0, 1]")
   }
-  rows <- lapply(names(data), function(nm) .profrow(data[[nm]], nm))
-  out <- do.call(rbind, rows)
+  r <- .Call(
+    C_clab_r_prof,
+    unname(lapply(data, function(v) if (is.numeric(v)) as.numeric(v))),
+    as.numeric(qnts), .uniok()
+  )
+  nmiss <- vapply(data, function(v) sum(is.na(v)), integer(1),
+                  USE.NAMES = FALSE)
+  len <- lengths(data, use.names = FALSE)
+  out <- data.frame(
+    column = names(data),
+    type = vapply(data, function(v) class(v)[1L], "", USE.NAMES = FALSE),
+    n = len, n_missing = nmiss, pct_missing = 100 * nmiss / pmax(1L, len),
+    stringsAsFactors = FALSE
+  )
+  out <- cbind(out, .proftop(data, r[[1L]]))
   if (length(qnts)) {
-    qm <- do.call(rbind, lapply(data, function(v) {
-      if (is.numeric(v) && any(is.finite(v))) {
-        .Call(C_clab_r_q7, as.numeric(v[is.finite(v)]), as.numeric(qnts))
-      } else {
-        rep(NA_real_, length(qnts))
-      }
-    }))
+    qm <- r[[2L]]
     colnames(qm) <- paste0("q", format(100 * qnts, trim = TRUE))
-    rownames(qm) <- NULL
     out <- cbind(out, qm)
   }
   rownames(out) <- NULL
@@ -1546,12 +1467,14 @@ dstntst <- function(
   y <- .ckn(data[[est]], "est", f)
   lo <- .ckn(data[[lower]], "lower", f)
   hi <- .ckn(data[[upper]], "upper", f)
-  y <- .dtest(y, lo, hi, g, f)
-  s <- (hi - lo) / (2 * z)
-  q <- .dtqual(if (is.null(qual)) rep("ok", length(g)) else data[[qual]], f)
-  pan <- .dtpan(g, pooled)
-  use <- !pan & !q %in% c("F", "x", "..", "...") & is.finite(y) &
-    is.finite(s) & s > 0
+  qv <- if (!is.null(qual)) trimws(as.character(data[[qual]]))
+  pl <- if (!is.null(pooled)) trimws(pooled)
+  r <- .Call(C_clab_r_dtsel, g, as.numeric(y), as.numeric(lo),
+             as.numeric(hi), qv, pl, z)
+  .dtwarn(r, f)
+  use <- r$use
+  y <- r$y
+  s <- r$s
   if (sum(use) < 2L) {
     .ckstop(
       f,
@@ -1717,30 +1640,6 @@ print.dstntst <- function(x, ...) {
   message(paste(c(paste0("-- ", title), paste0("   ", lines)), collapse = "\n"))
 }
 
-# The sparkline of a numeric vector of finite values.
-.spark <- function(x, bins) {
-  x <- x[is.finite(x)]
-  if (!length(x)) {
-    return(strrep(" ", bins))
-  }
-  uni <- .uniok()
-  if (min(x) == max(x)) {
-    return(paste0(
-      strrep(" ", bins %/% 2L), if (uni) "\u2588" else "#",
-      strrep(" ", bins - bins %/% 2L - 1L)
-    ))
-  }
-  cnt <- .Call(C_clab_r_hbin, as.numeric(x), as.integer(bins))
-  lev <- if (uni) {
-    c("\u2581", "\u2582", "\u2583", "\u2584", "\u2585", "\u2586", "\u2587",
-      "\u2588")
-  } else {
-    c(".", ":", "-", "=", "#")
-  }
-  idx <- ifelse(cnt == 0L, 0L, pmax(1L, ceiling(cnt / max(cnt) * length(lev))))
-  paste(ifelse(idx == 0L, " ", lev[pmax(1L, idx)]), collapse = "")
-}
-
 # The numeric columns of a data frame as a double matrix, NA as NaN.
 .nummat <- function(data, cols) {
   m <- matrix(NA_real_, nrow(data), length(cols))
@@ -1762,47 +1661,6 @@ print.dstntst <- function(x, ...) {
   }
 }
 
-# clncolnms(): the names in ASCII, split into words and joined in `case`
-.cnfix <- function(nms, case, sep) {
-  # not iconv(, "ASCII//TRANSLIT"): its letters depend on the system's
-  # iconv ("ete" on one, "'et'e" on another for the same accented word)
-  out <- toascii(nms)
-  out[is.na(out)] <- nms[is.na(out)]
-  out <- gsub("%", " pct ", out, fixed = TRUE)
-  out <- gsub("&", " and ", out, fixed = TRUE)
-  out <- gsub("#", " n ", out, fixed = TRUE)
-  out <- gsub("([a-z0-9])([A-Z])", "\\1 \\2", out)
-  out <- trimws(gsub("[^A-Za-z0-9]+", " ", out))
-  out[!nzchar(out)] <- "x"
-  cap <- function(w) {
-    paste0(toupper(substring(w, 1L, 1L)), tolower(substring(w, 2L)))
-  }
-  out <- vapply(strsplit(out, " ", fixed = TRUE), function(w) {
-    w <- w[nzchar(w)]
-    switch(
-      case,
-      snake = paste(tolower(w), collapse = sep),
-      screaming_snake = paste(toupper(w), collapse = sep),
-      lower_camel = paste0(tolower(w[1L]), paste(cap(w[-1L]), collapse = "")),
-      upper_camel = paste(cap(w), collapse = ""),
-      none = paste(w, collapse = sep)
-    )
-  }, character(1))
-  ifelse(grepl("^[0-9]", out), paste0("x", out), out)
-}
-
-# clncolnms(): a repeated name numbered from its second time, sep 2, 3, ...
-.cndup <- function(out, sep) {
-  dup <- duplicated(out)
-  if (any(dup)) {
-    for (nm in unique(out[dup])) {
-      i <- which(out == nm)
-      out[i] <- paste0(nm, c("", paste0(sep, seq_len(length(i) - 1L) + 1L)))
-    }
-  }
-  out
-}
-
 .mhalpha <- function(alpha, f) {
   alpha <- .ckn(alpha, "alpha", f)
   if (length(alpha) != 1L || is.na(alpha) || alpha <= 0 || alpha >= 1) {
@@ -1819,15 +1677,6 @@ print.dstntst <- function(x, ...) {
   width
 }
 
-# missgrid(): the five shades from none to all missing
-.mgshade <- function(uni) {
-  if (uni) {
-    c(" ", "\u2591", "\u2592", "\u2593", "\u2588")
-  } else {
-    c(" ", ".", "-", "+", "#")
-  }
-}
-
 .mcctl <- function(maxit, tol, f) {
   maxit <- .ckn(maxit, "maxit", f, integer = TRUE)
   if (length(maxit) != 1L || is.na(maxit) || maxit < 1 || maxit > 1e6) {
@@ -1841,8 +1690,8 @@ print.dstntst <- function(x, ...) {
   list(maxit = maxit, tol = tol)
 }
 
-# mcartst(): the numeric columns as a matrix, columns and rows with no
-# value dropped
+# mcartst(): the numeric columns as a named matrix (the compiled core drops
+# the columns and rows with no value)
 .mcmat <- function(data, f) {
   if (is.matrix(data)) data <- as.data.frame(data)
   if (!is.data.frame(data)) {
@@ -1859,84 +1708,26 @@ print.dstntst <- function(x, ...) {
   }
   X <- .nummat(data, names(data))
   colnames(X) <- names(data)
-  X <- X[, !apply(is.na(X), 2L, all), drop = FALSE]
-  X <- X[!apply(is.na(X), 1L, all), , drop = FALSE]
-  if (any(is.infinite(X))) {
-    .ckstop(
-      f,
-      paste0(
-        "`data` has infinite values, which Little's test cannot use; set ",
-        "them to NA first"
-      )
-    )
-  }
-  if (ncol(X) < 2L || nrow(X) < 2L) {
-    .ckstop(f, "too few complete columns or rows remain for Little's test")
-  }
   X
 }
 
-# mcartst(): the note on a test with nothing to test or skipped patterns
-.mcnote <- function(o) {
-  df <- o[2L]
-  note <- NA_character_
-  if (df <= 0) {
-    note <- paste0(
-      "df is ", df, ": with a single missingness pattern there is nothing ",
-      "to test. A complete table trivially satisfies MCAR."
+# mcartst(): the refusals of the compiled core (1 an infinite value, 2 too
+# few columns or rows with a value, 3 collinear columns)
+.mcstop <- function(why, f) {
+  .ckstop(f, switch(
+    why,
+    paste0(
+      "`data` has infinite values, which Little's test cannot use; set ",
+      "them to NA first"
+    ),
+    "too few complete columns or rows remain for Little's test",
+    paste0(
+      "the columns are collinear (or one is constant), so the ",
+      "multivariate normal likelihood Little's test is built on is ",
+      "degenerate. Drop the redundant column(s) first -- ",
+      "topcors() and drpconst() will find them"
     )
-  }
-  if (o[8L] > 0) {
-    note <- paste(stats::na.omit(c(note, sprintf(
-      paste0(
-        "%d pattern(s) were skipped: their observed variables were ",
-        "collinear."
-      ),
-      as.integer(o[8L])
-    ))), collapse = " ")
-  }
-  note
-}
-
-.profrow <- function(v, nm) {
-  nmiss <- sum(is.na(v))
-  base <- data.frame(column = nm, type = class(v)[1L], n = length(v),
-                     n_missing = nmiss,
-                     pct_missing = 100 * nmiss / max(1L, length(v)),
-                     stringsAsFactors = FALSE)
-  na <- list(n_distinct = 0L, nzero = NA_integer_, nneg = NA_integer_,
-             ninf = NA_integer_, mean = NA_real_, sd = NA_real_,
-             median = NA_real_, mad = NA_real_, min = NA_real_,
-             max = NA_real_, skewness = NA_real_, n_outliers = NA_integer_,
-             hist = NA_character_, top = NA_character_)
-  if (!is.numeric(v)) {
-    ok <- as.character(v[!is.na(v)])
-    na$n_distinct <- length(unique(ok))
-    if (length(ok)) na$top <- names(sort(table(ok), decreasing = TRUE))[1L]
-    return(cbind(base, as.data.frame(na, stringsAsFactors = FALSE)))
-  }
-  ok <- v[!is.na(v)]
-  if (!length(ok)) {
-    return(cbind(base, as.data.frame(na, stringsAsFactors = FALSE)))
-  }
-  fin <- as.numeric(ok[is.finite(ok)])
-  na$n_distinct <- length(unique(ok))
-  na$nzero <- sum(ok == 0)
-  na$nneg <- sum(ok < 0)
-  na$ninf <- sum(is.infinite(v))
-  if (length(fin)) {
-    s <- .Call(C_clab_r_pstat, fin)
-    na$mean <- s[1L]
-    na$sd <- s[2L]
-    na$skewness <- s[3L]
-    na$median <- s[4L]
-    na$mad <- s[5L]
-    na$min <- min(fin)
-    na$max <- max(fin)
-    na$n_outliers <- sum(fin < s[6L] | fin > s[7L])
-    na$hist <- .spark(fin, 10L)
-  }
-  cbind(base, as.data.frame(na, stringsAsFactors = FALSE))
+  ))
 }
 
 # dstntst(): a column of `data`, named by one string
@@ -1970,45 +1761,38 @@ print.dstntst <- function(x, ...) {
   }
 }
 
-# dstntst(): an estimate outside its own interval is not compared
-.dtest <- function(y, lo, hi, g, f) {
-  bad <- is.finite(lo) & is.finite(hi) & is.finite(y) & (lo > y | hi < y)
-  if (any(bad)) {
+# dstntst(): the warnings of the groups whose interval does not contain
+# their estimate and of the quality flags not recognised
+.dtwarn <- function(r, f) {
+  if (length(r$bad)) {
     warning(sprintf(
       "%s: the interval does not contain the estimate for: %s; not compared.",
-      f, toString(unique(g[bad]))
+      f, toString(r$bad)
     ), call. = FALSE)
-    y[bad] <- NA_real_
   }
-  y
-}
-
-# dstntst(): the quality flags, blank as "ok" and an unknown one warned of
-.dtqual <- function(q, f) {
-  q <- trimws(as.character(q))
-  q[is.na(q) | q == ""] <- "ok"
-  odd <- setdiff(unique(q), c("ok", "E", "F", "x", "..", "..."))
-  if (length(odd)) {
+  if (length(r$odd)) {
     warning(sprintf(
       "%s: quality flag(s) %s not recognised: treated as ok.", f,
-      paste0("\"", odd, "\"", collapse = ", ")
+      paste0("\"", r$odd, "\"", collapse = ", ")
     ), call. = FALSE)
-    q[q %in% odd] <- "ok"
   }
-  q
 }
 
-# dstntst(): the rows that pool other groups (`pooled`, or by their label)
-.dtpan <- function(g, pooled) {
-  if (!is.null(pooled)) {
-    trimws(g) %in% trimws(pooled)
-  } else {
-    grepl(
-      paste0(
-        "^total|^indigenous identity|^aboriginal identity|^total ",
-        "indigenous|^indigenous population"
-      ),
-      trimws(tolower(g))
-    )
+# The missingness of every column of a data frame as an n x p logical
+# matrix.
+.namat <- function(data) {
+  n <- nrow(data)
+  na <- vapply(data, function(v) as.vector(is.na(v)), logical(n))
+  matrix(na, nrow = n, ncol = length(data))
+}
+
+# profcols(): the statistics of the compiled core, with the number of
+# distinct labels and the commonest one of each column that is not numeric
+.proftop <- function(data, st) {
+  for (j in which(!vapply(data, is.numeric, logical(1)))) {
+    ok <- as.character(data[[j]][!is.na(data[[j]])])
+    st$n_distinct[j] <- length(unique(ok))
+    if (length(ok)) st$top[j] <- names(sort(table(ok), decreasing = TRUE))[1L]
   }
+  as.data.frame(st, stringsAsFactors = FALSE)
 }
