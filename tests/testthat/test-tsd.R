@@ -52,6 +52,8 @@ test_that("ousim() equals the reference simulation", {
     52, 71, 74, 61, 50, 47, 55, 59, 54, 66, 62, 51, 55, 73, 77, 63, 54, 49, 58,
     60, 57, 70, 64)
   r <- ousim(y, 3, 10)
+  # 1e16 steps are counted, not converted to an int, before the refusal
+  expect_error(ousim(y, 1, days = 1e7, dt = 1e-9), "at most 1e8")
   # rmorie 1.5.0: R$morie_tps_langevin_simulate(), the same input,
   # its values printed with 17 significant digits
   ref <- 0.60476815820474661

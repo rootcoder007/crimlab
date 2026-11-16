@@ -52,7 +52,10 @@ double nuint(const hm &m, const double *a, double lo, double hi, double *da) {
     da[0] = v;
     return v;
   }
-  int k = 2 * static_cast<int>(std::ceil((hi - lo) / (m.per / 16)));
+  // counted in double: a period far below the span asks for more steps
+  // than an int holds; at most kutil::maxcell are taken
+  const double kd = 2 * std::ceil((hi - lo) / (m.per / 16));
+  int k = kd < kutil::maxcell ? static_cast<int>(kd) : static_cast<int>(kutil::maxcell);
   if (k < 2) k = 2;
   const double h = (hi - lo) / k;
   double s = 0;

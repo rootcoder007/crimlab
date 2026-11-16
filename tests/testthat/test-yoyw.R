@@ -86,6 +86,9 @@ test_that("the summary equals rmoriebricklayer's", {
 test_that("labels change the periods shown, never the periods", {
   expect_identical(fylbl(c(2023, 2001, NA)), c("2022/23", "2000/01", NA))
   expect_identical(fylbl("2023", "-", FALSE), "2022-2023")
+  expect_identical(fylbl(c(1e300, Inf, NaN, 2023)),
+                   c(NA, NA, NA, "2022/23"))
+  expect_identical(fylbl("3000000000"), NA_character_)
   expect_error(fylbl(2023.5), "whole years")
   expect_error(fylbl(-1), "positive years")
   expect_error(fylbl(TRUE), "numeric or character")

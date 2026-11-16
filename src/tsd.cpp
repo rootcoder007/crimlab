@@ -933,11 +933,13 @@ bool k_ousim(const Node &a, Node &out, std::string &err) {
     return false;
   }
   const Ou f = oufit(y);
-  const int ns = std::max(1, static_cast<int>(days / dt));
-  if (static_cast<double>(ns) * np > 1e8) {
+  // the steps counted in double: days / dt reaches 1e16, past an int
+  const double nsd = std::fmax(1.0, std::floor(days / dt));
+  if (nsd * np > 1e8) {
     err = "`npath` times the steps must be at most 1e8.";
     return false;
   }
+  const int ns = static_cast<int>(nsd);
   rng g(seed);
   Mat P(np, ns);
   for (int i = 0; i < np; ++i) P(i, 0) = y.back();

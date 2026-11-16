@@ -53,6 +53,13 @@
   "`y` does not vary once differenced: the model has nothing to fit.",
   as does the command line.
 
+* Fixed: the command line's `fylbl()` converted an `endyear` of 1e300,
+  `Inf` or `NaN` to a whole number with undefined behaviour; like R it now
+  gives `NA` for a year outside the range of an integer. `ousim()`
+  counted `days / dt` steps as an integer before checking them (1e16 at
+  `dt = 1e-9`), and the periodic baseline of the Hawkes functions its
+  integration steps; both are now counted in double first.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after
