@@ -1850,6 +1850,17 @@ bad("ppmlfe", data = axd, y = "crimes", x = "pm", fe = "area", se = "twoway")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), x = "temp", fe = c("area", "day"))
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "hc1")
 ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "nw", time = "day")
+ifd <- local({
+  set.seed(9)
+  p <- expand.grid(id = 1:16, yr = 1:9)
+  p$x <- round(rnorm(nrow(p)), 3)
+  p$tr <- as.integer(p$id <= 4 & p$yr >= c(6, 6, 7, 7)[pmin(p$id, 4)])
+  p$y <- round(0.4 * p$x + rnorm(16)[p$id] * cumsum(rnorm(9))[p$yr] + p$tr + rnorm(nrow(p), 0, 0.2), 3)
+  p
+})
+ok("ifesc", data = ifd, y = "y", d = "tr", unit = "id", time = "yr", x = "x", r = 1, se = "none")
+ok("ifesc", data = ifd, y = "y", d = "tr", unit = "id", time = "yr", rmax = 2, nboot = 10, seed = 5)
+bad("ifesc", data = ifd[-1, ], y = "y", d = "tr", unit = "id", time = "yr", r = 0)
 ok("ivfe", data = axd, y = "crimes", x = c("pm", "temp"), fe = "area", se = "dk", time = "day")
 ok("ivfe", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"), fe = "area", se = "dk", time = "day",
    lag = 2, ssc = "nk")

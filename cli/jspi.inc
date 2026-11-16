@@ -252,3 +252,242 @@ bool asrule(Ctx &c, Val &out) {
   out = f.o;
   return true;
 }
+
+namespace ax {
+
+// ifesc() (src/ifx.cpp): R/ifx.R in C++, its checks in their order and
+// words. Units in the order they first appear, times sorted by value.
+inline Val ifrow(const std::vector<double> &b, const std::vector<double> &se, double lv) {
+  const double q = clab_qnorm(0.5 + lv / 2);
+  std::vector<double> st, p, lo, hi;
+  for (std::size_t j = 0; j < b.size(); ++j) {
+    const bool na = std::isnan(se[j]);
+    st.push_back(na ? NA : b[j] / se[j]);
+    p.push_back(na ? NA : 2 * clab_pnorm(-std::fabs(b[j] / se[j])));
+    lo.push_back(na ? NA : b[j] - q * se[j]);
+    hi.push_back(na ? NA : b[j] + q * se[j]);
+  }
+  Frame f;
+  f.num("est", b);
+  f.num("se", se);
+  f.num("stat", st);
+  f.num("p", p);
+  f.num("lo", lo);
+  f.num("hi", hi);
+  return f.o;
+}
+
+struct Ipan {
+  std::vector<double> y, x, tt;
+  std::vector<int> a;
+  Cols units;
+  int n = 0, nt = 0, p = 0;
+};
+
+inline bool ifpan(Ctx &c, const Val &d, Cols &x, Ipan &o) {
+  Cols y, tr, un, tm;
+  CK(acol(c, d, "y", {1}, false, y));
+  CK(acol(c, d, "d", {1}, false, tr));
+  CK(acol(c, d, "unit", {1}, false, un));
+  CK(acol(c, d, "time", {1}, false, tm));
+  CK(acol(c, d, "x", {}, true, x));
+  std::vector<double> yv, xm, dv;
+  CK(amat(c, d, y, yv));
+  CK(amat(c, d, x, xm));
+  CK(amat(c, d, tr, dv));
+  for (double v : dv) {
+    if (v != 0 && v != 1) return ckstop(c, "column `%s` must hold 0 or 1", tr[0].c_str());
+  }
+  const Val &tc = *fc(d, tm[0]);
+  if (!isnumc(tc)) return ckstop(c, "column `%s` must hold numbers or dates", tm[0].c_str());
+  const std::vector<double> tv = colv(tc);
+  const std::size_t m = nr(d);
+  std::map<std::string, int> um;
+  std::vector<int> iu(m), it(m);
+  for (std::size_t i = 0; i < m; ++i) {
+    const std::string l = vlab((*fc(d, un[0])).a[i]);
+    const auto e = um.emplace(l, static_cast<int>(o.units.size()));
+    if (e.second) o.units.push_back(l);
+    iu[i] = e.first->second;
+  }
+  o.tt = tv;
+  std::sort(o.tt.begin(), o.tt.end());
+  o.tt.erase(std::unique(o.tt.begin(), o.tt.end()), o.tt.end());
+  o.n = static_cast<int>(o.units.size());
+  o.nt = static_cast<int>(o.tt.size());
+  o.p = static_cast<int>(x.size());
+  const std::size_t sn = zz(o.n), st = zz(o.nt);
+  std::vector<char> seen(sn * st, 0);
+  bool bal = m == sn * st;
+  for (std::size_t i = 0; i < m && bal; ++i) {
+    it[i] = static_cast<int>(std::lower_bound(o.tt.begin(), o.tt.end(), tv[i]) - o.tt.begin());
+    char &s = seen[zz(iu[i]) * st + zz(it[i])];
+    bal = !s;
+    s = 1;
+  }
+  if (!bal) return ckstop(c, "the panel must be balanced: each unit once at each time");
+  o.y.assign(sn * st, 0.0);
+  o.x.assign(sn * st * zz(o.p), 0.0);
+  std::vector<double> dm(sn * st);
+  for (std::size_t i = 0; i < m; ++i) {
+    const std::size_t k = zz(iu[i]) * st + zz(it[i]);
+    o.y[k] = yv[i];
+    dm[k] = dv[i];
+    for (std::size_t j = 0; j < zz(o.p); ++j) o.x[j * sn * st + k] = xm[j * m + i];
+  }
+  bool mono = true;
+  o.a.assign(sn, o.nt);
+  for (std::size_t u = 0; u < sn; ++u) {
+    for (std::size_t t = 0; t < st; ++t) {
+      if (dm[u * st + t] == 1 && o.a[u] == o.nt) o.a[u] = static_cast<int>(t);
+      if (t > 0 && dm[u * st + t] < dm[u * st + t - 1]) mono = false;
+    }
+  }
+  if (!mono) return ckstop(c, "the treatment must stay 1 once it turns 1");
+  int nco = 0;
+  for (int v : o.a) {
+    if (v == 0) {
+      return ckstop(c, "a treated unit is treated at the first time: it has no periods before adoption");
+    }
+    nco += v == o.nt ? 1 : 0;
+  }
+  if (nco == o.n) return ckstop(c, "no unit is treated");
+  if (nco < 2) return ckstop(c, "the panel needs two or more never-treated units");
+  return true;
+}
+
+bool ifesc(Ctx &c, Val &out) {
+  static const std::vector<const char *> ses = {"boot", "none"};
+  int se = 0;
+  CK(marg(c, "se", ses, se));
+  Val d;
+  CK(dat(c, c["data"], "data", d));
+  Cols x;
+  Ipan pn;
+  CK(ifpan(c, d, x, pn));
+  int r = -1;
+  if (c.has("r") && c["r"].t != Val::NUL) {
+    Nv q;
+    CK(cknum(c, c["r"], "r", q, true, 0, Inf, false, true));
+    r = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+  }
+  Nv rm, tl, mx;
+  CK(cknumd(c, "rmax", 5, rm, 0, 50, false, true));
+  double lv = 0;
+  CK(alevel(c, lv));
+  CK(cknumd(c, "tol", 1e-8, tl, -Inf, Inf, true));
+  CK(cknumd(c, "maxit", 1000, mx, 1, Inf, false, true));
+  const int rmax = static_cast<int>(rm[0]), maxit = mx[0] > INT_MAX ? INT_MAX : static_cast<int>(mx[0]);
+  int nb = 0;
+  std::vector<int> bm;
+  if (se == 0) {
+    bool hs = false;
+    double sd = 0;
+    CK(bargs(c, nb, hs, sd));
+    std::uint32_t s0 = 0;
+    CK(adseed(c, hs, sd, s0));
+    Adraw ad(s0, pn.n);
+    std::vector<int> b1;
+    for (std::size_t b0 = 0; b0 < zz(nb); b0 += ad.blk) {
+      const std::size_t k = std::min(ad.blk, zz(nb) - b0);
+      ad.next(k, b1);
+      bm.insert(bm.end(), b1.begin(), b1.end());
+    }
+  }
+  const std::size_t sn = zz(pn.n), st = zz(pn.nt), mxe = 2 * st + 1;
+  if (static_cast<double>(nb) * static_cast<double>(mxe) > kutil::maxcell) {
+    return ckstop(c, "the panel or the bootstrap is too large");
+  }
+  std::vector<double> beta(zz(pn.p)), y0(sn * st), fac(st * zz(std::max(r, rmax))), cv(zz(rmax) + 1), ef(mxe),
+      bef(zz(nb) * mxe), s8(8);
+  const int rc = clab_ifesc(pd(pn.y), pd(pn.x), pn.p, pn.a.data(), pn.n, pn.nt, r, rmax, maxit, tl[0],
+                            bm.empty() ? nullptr : bm.data(), nb, beta.data(), y0.data(), fac.data(), cv.data(),
+                            ef.data(), bef.data(), s8.data());
+  if (rc == CLAB_EDOM) {
+    return ckstop(c, "a treated unit has too few periods before adoption for the factors, or a fit is singular");
+  }
+  if (rc != CLAB_OK) return kerr(c, "ifesc", rc);
+  const int rr = static_cast<int>(s8[0]), ne = static_cast<int>(s8[7]), emin = static_cast<int>(s8[6]);
+  const std::size_t k = zz(ne) + 1;
+  std::vector<double> sev(k, NA);
+  Val draws;
+  const int nf = static_cast<int>(s8[5]);
+  if (se == 0) {
+    if (nf > 0) {
+      wrn(c, std::to_string(nf) + " of " + std::to_string(nb) +
+                 " bootstrap draws could not be fitted and are left out.");
+    }
+    if (nb - nf < 2) return ckstop(c, "fewer than two bootstrap draws could be fitted");
+    sev = csd(bef, zz(nb), static_cast<int>(k));
+    draws = vmat(bef.data(), nb, static_cast<int>(k));
+  }
+  // eff: event times with their treated units counted
+  std::vector<double> e, cnt(zz(ne), 0.0), b2(ef.begin() + 1, ef.begin() + static_cast<std::ptrdiff_t>(k)),
+      s2(sev.begin() + 1, sev.end());
+  for (int i = 0; i < ne; ++i) e.push_back(emin + i);
+  Cols cu;
+  std::vector<double> ct, ce, cy, c0, cf;
+  for (std::size_t u = 0; u < sn; ++u) {
+    if (pn.a[u] == pn.nt) continue;
+    for (std::size_t t = 0; t < st; ++t) {
+      const double ev = static_cast<double>(t) - pn.a[u];
+      cnt[zz(static_cast<int>(ev) - emin)] += 1;
+      cu.push_back(pn.units[u]);
+      ct.push_back(pn.tt[t]);
+      ce.push_back(ev);
+      cy.push_back(pn.y[u * st + t]);
+      c0.push_back(y0[u * st + t]);
+      cf.push_back(pn.y[u * st + t] - y0[u * st + t]);
+    }
+  }
+  Val eff = vobj();
+  put(eff, "e", vnums(e));
+  put(eff, "n", vnums(cnt));
+  const Val er = ifrow(b2, s2, lv);
+  for (std::size_t j = 0; j < er.k.size(); ++j) put(eff, er.k[j].c_str(), er.a[j]);
+  Frame fc1;
+  fc1.str("unit", cu);
+  fc1.num("time", ct);
+  fc1.num("e", ce);
+  fc1.num("y", cy);
+  fc1.num("y0", c0);
+  fc1.num("eff", cf);
+  Val cvv;
+  if (r < 0) {
+    std::vector<double> cr, cm;
+    for (int i = 0; i <= rmax; ++i) {
+      if (std::isnan(cv[zz(i)])) continue;
+      cr.push_back(i);
+      cm.push_back(cv[zz(i)]);
+    }
+    Frame f;
+    f.num("r", cr);
+    f.num("mspe", cm);
+    cvv = f.o;
+  }
+  Val bv = vobj();
+  for (std::size_t j = 0; j < x.size(); ++j) put(bv, x[j].c_str(), vnum(beta[j]));
+  Val cvg;
+  cvg.t = Val::BOOL;
+  cvg.b = s8[2] == 1;
+  out = vobj();
+  put(out, "att", ifrow({ef[0]}, {sev[0]}, lv));
+  put(out, "eff", eff);
+  put(out, "r", vnum(rr));
+  put(out, "cv", cvv);
+  put(out, "beta", bv);
+  put(out, "cf", fc1.o);
+  put(out, "factors", vmat(fac.data(), pn.nt, rr));
+  put(out, "draws", draws);
+  put(out, "ntr", vnum(s8[3]));
+  put(out, "nco", vnum(s8[4]));
+  put(out, "nt", vnum(pn.nt));
+  put(out, "iter", vnum(s8[1]));
+  put(out, "conv", cvg);
+  put(out, "nboot", vnum(nb));
+  put(out, "nfail", vnum(se == 0 ? nf : 0));
+  put(out, "level", vnum(lv));
+  return true;
+}
+
+}  // namespace ax

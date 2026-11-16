@@ -2168,6 +2168,25 @@ int clab_gtwreg(int n, int k, const double *x, const double *y, const double *u,
                 const double *t, double h, double tau, int ll, double *beta, double *se,
                 double *fitv, double *hat, double *loo, double *st);
 
+/* The generalized synthetic control (Xu 2017) on Bai's (2009) interactive
+ * fixed effects model (ifesc): y (nt x n, a column per unit) and x (nt x
+ * n x p) of a balanced panel; a[u] the adoption period of unit u (0-based,
+ * nt for never treated: the controls, at least 2). r factors, or r -1 to
+ * choose 0..rmax by leaving out one pre-adoption period at a time (cv:
+ * rmax + 1 mean squared errors, NaN untried). Bai's estimator alternates
+ * at most maxit times until beta moves by less than tol. bm: NULL or n x
+ * nb unit counts of bootstrap draws. Out: beta (p); y0 (nt x n, the
+ * treated units' counterfactuals, NaN for controls); fac (nt x r, room
+ * for nt x max(r, rmax)); ef (1 + ne: the mean effect over treated cells,
+ * then by event time emin..emin + ne - 1); bef (nb x (1 + ne), NaN for a
+ * draw that fails); st (8): r, iterations, converged, treated units,
+ * control units, failed draws, emin, ne, with emin = -max(a of treated)
+ * and ne = nt - min(a) + max(a). CLAB_EDOM when a treated unit has no
+ * more than r + 1 pre-adoption periods or a fit is singular. */
+int clab_ifesc(const double *y, const double *x, int p, const int *a, int n, int nt, int r, int rmax,
+               int maxit, double tol, const int *bm, int nb, double *beta, double *y0, double *fac,
+               double *cv, double *ef, double *bef, double *st);
+
 /* Association rules of two categorical variables (asrule): codes xc
  * (0..nx-1) and yc (0..ny-1) of n observations; items 0..nx-1 the levels
  * of x, nx..nx+ny-1 those of y. The rules {} => {b} (with empty 1) and {a}

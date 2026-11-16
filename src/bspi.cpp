@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// The R entry points of idwint(), gtwreg() and asrule() (src/idw.cpp,
-// src/gtw.cpp, src/arl.cpp). The R wrappers (R/spi.R) check the
+// The R entry points of idwint(), gtwreg(), asrule() and ifesc()
+// (src/idw.cpp, src/gtw.cpp, src/arl.cpp, src/ifx.cpp). The R wrappers (R/spi.R) check the
 // arguments and pass doubles, codes from 0 and NULL for what is left out;
 // these call the kernels and return their arrays. Nothing calls back
 // into the R evaluator.
@@ -102,6 +102,47 @@ SEXP C_clab_r_asrule(SEXP xc, SEXP nx, SEXP yc, SEXP ny, SEXP minsup, SEXP minco
   static const char *const nms[] = {"lhs", "rhs", "out"};
   SEXP out = lst(3, nms, v);
   UNPROTECT(3);
+  return out;
+}
+
+SEXP C_clab_r_ifesc(SEXP y, SEXP x, SEXP a, SEXP r, SEXP rmax, SEXP maxit, SEXP tol, SEXP bm) {
+  clab::who = "ifesc";
+  const int nt = Rf_nrows(y), n = Rf_ncols(y);
+  SEXP dm = Rf_getAttrib(x, R_DimSymbol);
+  const int p = Rf_length(dm) == 3 ? INTEGER(dm)[2] : 0;
+  const int rr = Rf_asInteger(r), rx = Rf_asInteger(rmax);
+  const int nb = Rf_isNull(bm) ? 0 : Rf_ncols(bm);
+  const int nf = rr > rx ? rr : rx;
+  if (static_cast<double>(nt) * n > kutil::maxcell || static_cast<double>(nb) * (2.0 * nt + 1.0) > kutil::maxcell) {
+    clab::fail("the panel or the bootstrap is too large.");
+  }
+  const int ne = 2 * nt;
+  SEXP v[7];
+  v[0] = PROTECT(Rf_allocVector(REALSXP, p));
+  v[1] = PROTECT(Rf_allocMatrix(REALSXP, nt, n));
+  v[2] = PROTECT(Rf_allocVector(REALSXP, static_cast<R_xlen_t>(nt) * (nf > 0 ? nf : 0)));
+  v[3] = PROTECT(Rf_allocVector(REALSXP, rx + 1));
+  v[4] = PROTECT(Rf_allocVector(REALSXP, ne + 1));
+  v[5] = PROTECT(Rf_allocMatrix(REALSXP, nb, ne + 1));
+  v[6] = PROTECT(Rf_allocVector(REALSXP, 8));
+  kc(clab_ifesc(REAL(y), REAL(x), p, INTEGER(a), n, nt, rr, rx, Rf_asInteger(maxit), Rf_asReal(tol),
+                Rf_isNull(bm) ? nullptr : INTEGER(bm), nb, REAL(v[0]), REAL(v[1]), REAL(v[2]), REAL(v[3]),
+                REAL(v[4]), REAL(v[5]), REAL(v[6])),
+     "a treated unit has too few periods before adoption for the factors, or a fit is singular.");
+  // the kernel's ne = nt - min(a) + max(a) < 2 nt: keep the first ne + 1
+  const int k = static_cast<int>(REAL(v[6])[7]) + 1, r1 = static_cast<int>(REAL(v[6])[0]);
+  SEXP e1 = PROTECT(Rf_allocVector(REALSXP, k));
+  for (int i = 0; i < k; ++i) REAL(e1)[i] = REAL(v[4])[i];
+  v[4] = e1;
+  SEXP be = PROTECT(Rf_allocMatrix(REALSXP, nb, k));
+  for (R_xlen_t i = 0; i < static_cast<R_xlen_t>(nb) * k; ++i) REAL(be)[i] = REAL(v[5])[i];
+  v[5] = be;
+  SEXP fc = PROTECT(Rf_allocVector(REALSXP, static_cast<R_xlen_t>(nt) * r1));
+  for (R_xlen_t i = 0; i < static_cast<R_xlen_t>(nt) * r1; ++i) REAL(fc)[i] = REAL(v[2])[i];
+  v[2] = fc;
+  static const char *const nms[] = {"beta", "y0", "fac", "cv", "ef", "bef", "st"};
+  SEXP out = lst(7, nms, v);
+  UNPROTECT(10);
   return out;
 }
 

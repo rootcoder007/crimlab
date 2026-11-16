@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ifesc()`, the generalized synthetic control of Xu (2017) on the
+  interactive fixed effects model of Bai (2009), with staggered adoption,
+  the number of factors by cross-validation and a bootstrap of units.
+
 * New: `ppmlcf(family = "nb")`, the control function with a negative
   binomial second stage and a cluster bootstrap of both stages, as
   Feigenbaum and Muller (2016) estimate lead's effect on homicide.

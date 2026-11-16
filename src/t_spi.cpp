@@ -97,6 +97,24 @@ void arl(tk &tt) {
   tk_ieq(tt, "spi.arl.code", clab_asrule(4, xc, 1, yc, 2, 0, 0, 0, &nr, lh, rh, o), CLAB_EARG);
 }
 
+void ifx(tk &tt) {
+  // two controls (1 2 3; 3 4 5) and one unit treated at the third time
+  // (2 3 10): mu 3, time effects -1 0 1, the unit's effect 0, its
+  // counterfactual at the third time 4 and its effect 6
+  const double y[9] = {1, 2, 3, 3, 4, 5, 2, 3, 10};
+  const int a[3] = {3, 3, 2};
+  double beta[1], y0[9], fac[3], cv[1], ef[6], bef[1], st[8];
+  tk_ieq(tt, "spi.ifx.rc", clab_ifesc(y, y, 0, a, 3, 3, 0, 0, 100, 1e-8, nullptr, 0, beta, y0, fac, cv, ef, bef, st),
+         CLAB_OK);
+  tk_near(tt, "spi.ifx.y0", y0[8], 4.0, 1e-12);
+  tk_near(tt, "spi.ifx.att", ef[0], 6.0, 1e-12);
+  tk_near(tt, "spi.ifx.ne", st[7], 3.0, 0);
+  // no control left: every unit treated but one
+  const int b[3] = {3, 2, 2};
+  tk_ieq(tt, "spi.ifx.ctl", clab_ifesc(y, y, 0, b, 3, 3, 0, 0, 100, 1e-8, nullptr, 0, beta, y0, fac, cv, ef, bef, st),
+         CLAB_EARG);
+}
+
 }  // namespace
 
 void t_spi(tk &t, int big) {
@@ -104,4 +122,5 @@ void t_spi(tk &t, int big) {
   idw(t);
   gtw(t);
   arl(t);
+  ifx(t);
 }

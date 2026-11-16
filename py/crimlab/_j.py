@@ -6925,6 +6925,26 @@ def asrule(x: Any, y: Any, minsup: Any = 0.1, minconf: Any = 0.2, empty: Any = T
     return jcall("asrule", x=x, y=y, minsup=minsup, minconf=minconf, empty=empty, nm=nm)
 
 
+def ifesc(data: Any, y: Any, d: Any, unit: Any, time: Any, x: Any = None, r: Any = None, rmax: Any = 5,
+          se: Any = "boot", nboot: Any = 200, seed: Any = None, level: Any = 0.95, tol: Any = 1e-8,
+          maxit: Any = 1000) -> Any:
+    """Generalized synthetic control with interactive fixed effects.
+
+    The arguments and the result are those of R's ``ifesc()``: see its help
+    page. The bootstrap, the default, needs ``seed`` outside R.
+
+    Examples
+    --------
+    >>> p = {"id": [1, 1, 1, 2, 2, 2, 3, 3, 3], "t": [1, 2, 3] * 3,
+    ...      "y": [1, 2, 3, 3, 4, 5, 2, 3, 10], "tr": [0, 0, 0, 0, 0, 0, 0, 0, 1]}
+    >>> r = ifesc(data=p, y="y", d="tr", unit="id", time="t", r=0, se="none")
+    >>> round(r["att"]["est"][0], 6)
+    6.0
+    """
+    return jcall("ifesc", data=data, y=y, d=d, unit=unit, time=time, x=x, r=r, rmax=rmax, se=se, nboot=nboot,
+                 seed=seed, level=level, tol=tol, maxit=maxit)
+
+
 def tailwd(dir: Any, spd: Any, course: Any = 250, by: Any = None, agg: Any = "max") -> Any:
     """The tailwind component of the wind along a flight course.
 
