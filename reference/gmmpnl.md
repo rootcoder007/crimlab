@@ -337,6 +337,15 @@ on each year's residuals (p. 1376); their structural breaks (2013, 2014,
 principal components of the enforcement rates are
 [`stats::prcomp()`](https://rdrr.io/r/stats/prcomp.html).
 
+Demir and Ozcan (2023, table 4) fit system GMM to 37 OECD countries over
+2003-2017: the log rate of persons held in prison on its lag, the log
+forest area per person and the log CO2 emissions per head, with the
+controls the tests found endogenous instrumented GMM-style; where AR(2)
+rejected, "the instruments were used at least with their third lags"
+(`lagmin = 3`, with `ar = 3`), and the instruments were kept no more
+than the countries (`collapse`, `lagmax`; `note` warns otherwise), with
+the Hansen test above 0.10.
+
 The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are those
 of serial correlation of orders 1 to `ar` in the differenced residuals
 of the estimate reported, also after deviations, with the variance's
@@ -402,6 +411,11 @@ Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
 Digging into waste: an analysis of waste crime in the Italian provinces.
 *Regional Studies*, 57(7), 1367-1379.
 [doi:10.1080/00343404.2022.2135697](https://doi.org/10.1080/00343404.2022.2135697)
+
+Demir, C. and Ozcan, S. E. (2023). Do air quality and green space reduce
+propensity to crime?: an empirical investigation of OECD countries.
+*Management of Environmental Quality*, 34(2), 351-367.
+[doi:10.1108/MEQ-08-2022-0235](https://doi.org/10.1108/MEQ-08-2022-0235)
 
 ## Examples
 

@@ -195,6 +195,40 @@ coefficients). With `"cluster"` and `ssc = "G"` they equal
 Tests use the t distribution on `G - 1` degrees of freedom for clustered
 errors and the normal otherwise.
 
+Other designs this estimator fits. Hener (2022, sec. 3) instruments the
+daily noise of the municipalities near Frankfurt Airport by the landing
+direction: with the tailwind component on the westbound approach
+([`tailwd()`](https://rootcoder007.github.io/crimlab/reference/tailwd.md))
+above 2.6 m/s the airport lands from the west, so the instrument is 1
+when the tailwind exceeds 2.6 m/s for a municipality under the eastbound
+approach, 1 when it is at most 2.6 m/s for one under the westbound
+approach, and 0 otherwise; municipality, year, month and weekday
+effects, with the errors clustered by "treatment group-year-quarter".
+Sarmiento (2020, eqs 6-8) regresses the log count of crimes within two
+kilometres of a monitoring station on its hourly pollution, instrumented
+by the wind direction, with hour, weekday, month, year and station
+effects and errors clustered by station. Batkeyev and DeRemer (2023,
+sec. 4.4) instrument the log of PM2.5 by mountain winds and inversions
+([`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md),
+[`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md))
+with errors of Driscoll and Kraay, which this estimator does not compute
+(`"nw"` allows for serial correlation within clusters only), and report
+the Kleibergen-Paap first-stage statistic (`first$kp`). Ayesh (2023, eqs
+1-3) and Bao and Da (2026, sec. 4) instrument district- and county-level
+pollution by downwind exposure
+([`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)).
+Singh and Visaria (2021, eqs 2 and 4) regress the daily complaints of
+each police station of Bihar on PM2.5 instrumented by octant-by-division
+wind indicators
+([`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)),
+with weather in quartile indicators, station, year, month, calendar-week
+and weekday effects and errors clustered by station. Without `endo` this
+is least squares with absorbed effects, as Wesselbaum (2022, eq 1) fits
+the hourly counts of crimes near each pair of weather and pollution
+stations on the pollutants and their squares, with station, year, month,
+day and hour effects and errors clustered by hour (each crime matched to
+the nearest stations).
+
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the
 coefficients with their intervals and, with endogenous columns, the
 first-stage coefficient of each instrument (`fstab`, with normal
@@ -221,6 +255,35 @@ Chen, S. and Li, T. (2020). The effect of air pollution on criminal
 activities: evidence from the NOx Budget Trading Program. *Regional
 Science and Urban Economics*, 83, 103528.
 [doi:10.1016/j.regsciurbeco.2020.103528](https://doi.org/10.1016/j.regsciurbeco.2020.103528)
+
+Hener, T. (2022). Noise pollution and violent crime. *Journal of Public
+Economics*, 215, 104748.
+[doi:10.1016/j.jpubeco.2022.104748](https://doi.org/10.1016/j.jpubeco.2022.104748)
+
+Sarmiento, L. (2020). I am innocent: hourly variations in air pollution
+and crime behavior. DIW Berlin Discussion Paper.
+[doi:10.2139/ssrn.3639084](https://doi.org/10.2139/ssrn.3639084)
+
+Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+effects of abnormal air pollution on crime. *Journal of Economic
+Behavior and Organization*, 210, 288-319.
+[doi:10.1016/j.jebo.2023.04.009](https://doi.org/10.1016/j.jebo.2023.04.009)
+
+Ayesh, A. (2023). Burned agricultural biomass, air pollution and crime.
+*Journal of Environmental Economics and Management*, 122, 102887.
+[doi:10.1016/j.jeem.2023.102887](https://doi.org/10.1016/j.jeem.2023.102887)
+
+Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
+crime. Evidence from India. Working paper, Hong Kong University of
+Science and Technology.
+
+Wesselbaum, D. (2022). Violent crimes and homicide in New York City: the
+role of weather and pollution. *Journal of Forensic and Legal Medicine*,
+91, 102430.
+[doi:10.1016/j.jflm.2022.102430](https://doi.org/10.1016/j.jflm.2022.102430)
+
+Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
+California. Working paper, Renmin University of China.
 
 Carrillo, P. E., Lopez-Luzuriaga, A. and Malik, A. S. (2018). Pollution
 or crime: the effect of driving restrictions on criminal activity.

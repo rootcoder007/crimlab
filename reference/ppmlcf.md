@@ -161,6 +161,14 @@ second-stage errors account for the first stage. The exponential
 generalised method of moments of Mullahy (1997) and Windmeijer and
 Santos Silva (1997), which needs no first-stage model, is
 [`expgmm()`](https://rootcoder007.github.io/crimlab/reference/expgmm.md).
+Karamik and von Graevenitz (2022, eqs 2-3) use the control function with
+the wind sectors of
+[`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md)
+as instruments (one set per region), area, weekday and month-year
+effects, the group's population as the offset (`expo`) and a bootstrap
+of both stages with the groups as clusters and 1,000 draws
+(`se = "boot"`, `nboot = 1000`); Batkeyev and DeRemer (2023, appendix)
+report the same design beside their linear one.
 
 Separation is handled as in
 [`ppmlfe()`](https://rootcoder007.github.io/crimlab/reference/ppmlfe.md)
@@ -186,6 +194,16 @@ Wooldridge, J. M. (2014). Quasi-maximum likelihood estimation and
 testing for nonlinear models with endogenous explanatory variables.
 *Journal of Econometrics*, 182(1), 226-234.
 [doi:10.1016/j.jeconom.2014.04.020](https://doi.org/10.1016/j.jeconom.2014.04.020)
+
+Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
+effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
+working paper.
+[doi:10.2139/ssrn.4130091](https://doi.org/10.2139/ssrn.4130091)
+
+Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+effects of abnormal air pollution on crime. *Journal of Economic
+Behavior and Organization*, 210, 288-319.
+[doi:10.1016/j.jebo.2023.04.009](https://doi.org/10.1016/j.jebo.2023.04.009)
 
 ## See also
 

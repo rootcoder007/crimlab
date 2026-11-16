@@ -237,7 +237,7 @@ fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
 #> [1] 2.678431e-08
 fp$co2eg
-#> [1] 2.436569e-06
+#> [1] 2.436568e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions

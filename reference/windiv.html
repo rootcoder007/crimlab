@@ -154,6 +154,27 @@ Roth and Sager's figure A1. <code>avg = "mean"</code> is the plain mean of the
 angles, wrong across north and given only for comparison. <code>share = TRUE</code> instead gives the share of each group's hours in each sector,
 Bondy, Roth and Sager's instrument ("the share of hours in the 24 hours
 of each day", footnote 18); <code>avg</code> is then not used.</p>
+<p>Other papers that use the indicators, and their choices. Karamik and
+von Graevenitz (2022, sec. 3.1) cut the circle into four 90-degree
+bins, "North-East is equivalent to [0 till 90)", with "the South-West
+... the most common wind direction in Germany" left out (<code>width = 90, base = 3</code>), the direction averaged per region and day and allowed to act
+differently in each region (<code>area</code>; their robustness check narrows the
+bins to 60 degrees). Batkeyev and DeRemer (2023, sec. 4.3) use "the
+<code>[0,1]</code> share of weather observations within each time period for which
+winds are blowing from the southeast, south-by-southeast, or
+east-by-southeast", the three 22.5-degree points from 101.25 to 168.75
+degrees (<code>sect = c(101.25, 168.75)</code>, <code>by</code> the period, <code>share = TRUE</code>),
+for the city's five southern districts and 0 for the northern ones.
+Singh and Visaria (2021, eq 4) assign each police station the wind of
+the nearest grid point and use "eight wind direction bins ... based on
+the octant from which the wind blows", interacted with the nine
+administrative divisions of Bihar, with "wind from the east as the base"
+(63 instruments); with octants centred on the compass points that is
+<code>width = 45, start = 22.5, base = 2</code> and <code>area</code> the division (the paper
+does not say where its octants start).
+Sarmiento (2020, eqs 7-8) enters "wind direction" in an hourly
+station-level first stage without saying in what form; the sectors here
+are one form, and the choice should be reported.</p>
 <p>Directions are where the wind blows from, in degrees clockwise from
 north; 360 is 0. The indicators are instruments only if the wind
 direction affects the outcome through the exposure alone (see
@@ -170,10 +191,23 @@ pollution as a cause of violent crime. Working paper.</p>
 <p>Herrnstadt, E. and Muehlegger, E. (2015). Air pollution and criminal
 activity: evidence from Chicago microdata. NBER Working Paper 21787.
 <a href="https://doi.org/10.3386/w21787" class="external-link">doi:10.3386/w21787</a></p>
+<p>Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
+effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
+working paper. <a href="https://doi.org/10.2139/ssrn.4130091" class="external-link">doi:10.2139/ssrn.4130091</a></p>
+<p>Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+effects of abnormal air pollution on crime. <em>Journal of Economic
+Behavior and Organization</em>, 210, 288-319.
+<a href="https://doi.org/10.1016/j.jebo.2023.04.009" class="external-link">doi:10.1016/j.jebo.2023.04.009</a></p>
+<p>Sarmiento, L. (2020). I am innocent: hourly variations in air
+pollution and crime behavior. DIW Berlin Discussion Paper.
+<a href="https://doi.org/10.2139/ssrn.3639084" class="external-link">doi:10.2139/ssrn.3639084</a></p>
+<p>Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
+crime. Evidence from India. Working paper, Hong Kong University of
+Science and Technology.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="ivfe.html">ivfe()</a></code>, <code><a href="ppmlcf.html">ppmlcf()</a></code>, <code><a href="invsn.html">invsn()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="ivfe.html">ivfe()</a></code>, <code><a href="ppmlcf.html">ppmlcf()</a></code>, <code><a href="invsn.html">invsn()</a></code>, <code><a href="dwnexp.html">dwnexp()</a></code></p></div>
     </div>
 
     <div class="section level2">

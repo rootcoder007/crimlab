@@ -115,6 +115,29 @@ of the angles, wrong across north and given only for comparison.
 sector, Bondy, Roth and Sager's instrument ("the share of hours in the
 24 hours of each day", footnote 18); `avg` is then not used.
 
+Other papers that use the indicators, and their choices. Karamik and von
+Graevenitz (2022, sec. 3.1) cut the circle into four 90-degree bins,
+"North-East is equivalent to \[0 till 90)", with "the South-West ... the
+most common wind direction in Germany" left out
+(`width = 90, base = 3`), the direction averaged per region and day and
+allowed to act differently in each region (`area`; their robustness
+check narrows the bins to 60 degrees). Batkeyev and DeRemer (2023, sec.
+4.3) use "the `[0,1]` share of weather observations within each time
+period for which winds are blowing from the southeast,
+south-by-southeast, or east-by-southeast", the three 22.5-degree points
+from 101.25 to 168.75 degrees (`sect = c(101.25, 168.75)`, `by` the
+period, `share = TRUE`), for the city's five southern districts and 0
+for the northern ones. Singh and Visaria (2021, eq 4) assign each police
+station the wind of the nearest grid point and use "eight wind direction
+bins ... based on the octant from which the wind blows", interacted with
+the nine administrative divisions of Bihar, with "wind from the east as
+the base" (63 instruments); with octants centred on the compass points
+that is `width = 45, start = 22.5, base = 2` and `area` the division
+(the paper does not say where its octants start). Sarmiento (2020, eqs
+7-8) enters "wind direction" in an hourly station-level first stage
+without saying in what form; the sectors here are one form, and the
+choice should be reported.
+
 Directions are where the wind blows from, in degrees clockwise from
 north; 360 is 0. The indicators are instruments only if the wind
 direction affects the outcome through the exposure alone (see
@@ -134,11 +157,30 @@ Herrnstadt, E. and Muehlegger, E. (2015). Air pollution and criminal
 activity: evidence from Chicago microdata. NBER Working Paper 21787.
 [doi:10.3386/w21787](https://doi.org/10.3386/w21787)
 
+Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
+effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
+working paper.
+[doi:10.2139/ssrn.4130091](https://doi.org/10.2139/ssrn.4130091)
+
+Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+effects of abnormal air pollution on crime. *Journal of Economic
+Behavior and Organization*, 210, 288-319.
+[doi:10.1016/j.jebo.2023.04.009](https://doi.org/10.1016/j.jebo.2023.04.009)
+
+Sarmiento, L. (2020). I am innocent: hourly variations in air pollution
+and crime behavior. DIW Berlin Discussion Paper.
+[doi:10.2139/ssrn.3639084](https://doi.org/10.2139/ssrn.3639084)
+
+Singh, T. P. and Visaria, S. (2021). Up in the air: air pollution and
+crime. Evidence from India. Working paper, Hong Kong University of
+Science and Technology.
+
 ## See also
 
 [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md),
 [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md),
-[`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md)
+[`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md),
+[`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
 
 ## Examples
 

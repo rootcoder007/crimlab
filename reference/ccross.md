@@ -133,6 +133,20 @@ for an exposure taken as exogenous or
 [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md)
 for the instrumented design of Ju et al. (give `endo` and `inst`).
 
+Deaths or offences one by one. Rahman et al. (2023, sec. 2) fit the
+individual case-crossover design by conditional logistic regression: for
+each death the day it happened against "the first, second, and fourth
+Tuesdays" of the month when it fell on the third, the exposure that of
+the decedent's census tract on each day, each lag from 0 to 7 in its own
+model, relative humidity as a natural spline of 3 degrees of freedom.
+When every decedent of a tract shares the tract's exposure, the
+conditional logistic likelihood of the individuals is the conditional
+Poisson likelihood of the tract's daily counts: the individuals of one
+tract, month and weekday share their referent days and exposures, so
+that design is this one with `unit` the tract, `strat = "ymw"`, `lagv`
+and `lag` for the lag and `ns = c(rh = 3)`, its coefficients the log
+odds ratios.
+
 ## References
 
 Ju, K., Xu, R., Huang, W., Zhang, Y., Ye, T., Yu, W., Yang, Z., Chen,
@@ -162,6 +176,15 @@ Han, D., Guo, Y., Jiang, Y., Niu, Y., Chen, R., Kan, H. and others
 (2026). Air pollution and criminal behavior: a nationwide case-crossover
 analysis in China. *International Journal of Epidemiology*, 55(5),
 dyag214. [doi:10.1093/ije/dyag214](https://doi.org/10.1093/ije/dyag214)
+
+Rahman, M. M., Lorenzo, M., Ban-Weiss, G., Hasan, Z., Azzouz, M., Eckel,
+S. P., Conti, D. V., Lurmann, F., Schlaerth, H., Johnston, J., Ko, J.,
+Palinkas, L., Hurlburt, M., Silva, S., Gauderman, W. J., McConnell, R.
+and Garcia, E. (2023). Ambient temperature and air pollution
+associations with suicide and homicide mortality in California: a
+statewide case-crossover study. *Science of the Total Environment*, 874,
+162462.
+[doi:10.1016/j.scitotenv.2023.162462](https://doi.org/10.1016/j.scitotenv.2023.162462)
 
 ## See also
 

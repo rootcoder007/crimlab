@@ -60,6 +60,10 @@ Moran, P. A. P. (1950). Notes on continuous stochastic phenomena.
 Cliff, A. D. and Ord, J. K. (1981). *Spatial Processes: Models and
 Applications*. Pion, London.
 
+Bivand, R. S., Pebesma, E. and Gomez-Rubio, V. (2013). *Applied Spatial
+Data Analysis with R*, 2nd ed., sec. 9.3. Springer.
+[doi:10.1007/978-1-4614-7618-4](https://doi.org/10.1007/978-1-4614-7618-4)
+
 ## Examples
 
 ``` r

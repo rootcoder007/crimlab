@@ -154,7 +154,11 @@ quantiles (5 and 4 give the paper's dimensions four and three), without
 the penalty of the paper's smooth, so the fit is that of a fixed basis,
 not of 'mgcv'; <code>form = "linear"</code> uses <code>x1</code>, <code>x2</code> and <code>x1 x2</code>, the
 common product-term model. The meta-analysis across cities is not
-done here: fit each city and pool the <code>cond</code> rows. Use <code><a href="ccross.html">ccross()</a></code>'s
+done here: fit each city and pool the <code>cond</code> rows. Berman et al. (2019)
+estimate the risk of violent and property crime from daily PM2.5, ozone
+and temperature in some 300 US counties with "a two-stage hierarchical
+time series model", the counties' series pooled in the second stage,
+the same pattern. Use <code><a href="ccross.html">ccross()</a></code>'s
 <code>ma</code> for the lag01 averages, and the fixed effects of <code><a href="ppmlfe.html">ppmlfe()</a></code> for
 the paper's spline of calendar time and day of week (or give them in
 <code>...</code>).</p>
@@ -169,6 +173,10 @@ returns a list of what it drew (<code>cond</code>, <code>surf</code>).</p>
 joint effects of ozone and temperature exposure on violent crime during
 warm months in the United States. <em>Environmental Research</em>, 310,
 125969. <a href="https://doi.org/10.1016/j.envres.2026.125969" class="external-link">doi:10.1016/j.envres.2026.125969</a></p>
+<p>Berman, J., Burkhardt, J., Bayham, J., Carter, E. and Wilson, A.
+(2019). Acute air pollution exposure, temperature, and the risk of
+violent behavior in the United States. Conference abstract,
+<em>Environmental Epidemiology</em> (ISEE 2019 abstracts).</p>
 <p>Harrell, F. E. (2015). <em>Regression Modeling Strategies</em>, 2nd ed.
 Springer. <a href="https://doi.org/10.1007/978-3-319-19425-7" class="external-link">doi:10.1007/978-3-319-19425-7</a></p>
     </div>

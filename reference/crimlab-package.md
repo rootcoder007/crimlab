@@ -1,10 +1,10 @@
 # crimlab: Statistical Methods for Criminology and Sociolegal Research
 
 Statistical methods for courts, corrections, policing, forensics and
-sociolegal research, computed in a compiled core with a thin R layer.
-Where an identity or bound has a machine-checked proof ('Lean'), the
-package names it. This development version holds the disparity tests:
-the veil-of-darkness contrast of Grogger and Ridgeway (2006)
+sociolegal research. Where an identity or bound has a machine-checked
+proof ('Lean'), the package names it. This development version holds the
+disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway
+(2006)
 [doi:10.1198/016214506000000168](https://doi.org/10.1198/016214506000000168)
 , the outcome test and its infra-marginality problem, benchmark
 decomposition of resident disparities, dyadic offending rates, and the

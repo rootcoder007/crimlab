@@ -170,7 +170,12 @@ moments divided by <code>n</code>, on two degrees of freedom.</p>
 <p>Duan et al.'s model is linear in a count. For a Poisson or negative
 binomial model with the same effects see <code><a href="didfe.html">didfe()</a></code> (binary treatment)
 and <code><a href="cntreg.html">cntreg()</a></code>; Andreatta et al. (2023) fit a dynamic panel of the
-logged rate by system GMM, as <code><a href="gmmpnl.html">gmmpnl()</a></code> does.</p>
+logged rate by system GMM, as <code><a href="gmmpnl.html">gmmpnl()</a></code> does. Melhim (2026) fits the
+annual crime rate of ten US states (2000-2022) on PM2.5, poverty and
+unemployment by pooled least squares and then with state and year fixed
+effects and errors clustered by state, the model here without <code>int</code>;
+the estimate changes from insignificant to positive once the state
+effects enter.</p>
 <p>The plot draws the coefficients with their intervals and, with
 an interaction, the simple slopes at each value of the moderator; it
 returns what it drew.</p>
@@ -186,6 +191,9 @@ Communications</em>. <a href="https://doi.org/10.1057/s41599-026-08766-9" class=
 Digging into waste: an analysis of waste crime in the Italian
 provinces. <em>Regional Studies</em>, 57(7), 1367-1379.
 <a href="https://doi.org/10.1080/00343404.2022.2135697" class="external-link">doi:10.1080/00343404.2022.2135697</a></p>
+<p>Melhim, S. (2026). From air quality to public safety: rethinking crime
+dynamics and social costs of pollution in the United States. <em>Journal
+of Environmental Health</em>, 89(3), 18-25. <a href="https://doi.org/10.70387/001c.171786" class="external-link">doi:10.70387/001c.171786</a></p>
     </div>
 
     <div class="section level2">

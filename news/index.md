@@ -2,6 +2,36 @@
 
 ## crimlab 0.0.0.9000
 
+- New:
+  [`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
+  builds downwind-exposure instruments from sources of pollution and the
+  wind: the sector and transport-wedge rules of Bao and Da (2026) for
+  smoke plumes that move from day to day, and the angle and distance
+  instrument of Ayesh (2023) for fixed sources.
+  [`tailwd()`](https://rootcoder007.github.io/crimlab/reference/tailwd.md)
+  gives the tailwind component along a flight course, from which
+  Hener (2022) builds the instrument of the landing direction for
+  aircraft noise.
+
+- New:
+  [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md)
+  takes `by` and `rule` to turn readings into one inversion per day, as
+  Batkeyev and DeRemer (2023) require every three-hourly reading of a
+  day to be inverted.
+
+- The help pages of
+  [`windiv()`](https://rootcoder007.github.io/crimlab/reference/windiv.md),
+  [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md),
+  [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md),
+  [`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md)
+  and
+  [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  cite the designs of Karamik and von Graevenitz (2022), Sarmiento
+  (2020), Batkeyev and DeRemer (2023), Hener (2022), Bao and Da
+
+  2026. and Rahman et al. (2023), with the arguments that reproduce
+        each.
+
 - Fixed: the second sweep found 25 more functions
   ([`lodimp()`](https://rootcoder007.github.io/crimlab/reference/lodimp.md),
   [`lnroc()`](https://rootcoder007.github.io/crimlab/reference/lnroc.md),

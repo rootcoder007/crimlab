@@ -365,6 +365,14 @@ lag among the regressors). Their checks of spatial dependence are
 (2013, 2014, 2015) are step dummies among the IV-style columns of <code>x</code>,
 and their principal components of the enforcement rates are
 <code><a href="https://rdrr.io/r/stats/prcomp.html" class="external-link">stats::prcomp()</a></code>.</p>
+<p>Demir and Ozcan (2023, table 4) fit system GMM to 37 OECD countries over
+2003-2017: the log rate of persons held in prison on its lag, the log
+forest area per person and the log CO2 emissions per head, with the
+controls the tests found endogenous instrumented GMM-style; where AR(2)
+rejected, "the instruments were used at least with their third lags"
+(<code>lagmin = 3</code>, with <code>ar = 3</code>), and the instruments were kept no more
+than the countries (<code>collapse</code>, <code>lagmax</code>; <code>note</code> warns otherwise), with
+the Hansen test above 0.10.</p>
 <p>The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are
 those of serial correlation of orders 1 to <code>ar</code> in the differenced
 residuals of the estimate reported, also after deviations, with the
@@ -421,6 +429,10 @@ and system GMM in Stata. <em>The Stata Journal</em>, 9(1), 86-136.
 Digging into waste: an analysis of waste crime in the Italian
 provinces. <em>Regional Studies</em>, 57(7), 1367-1379.
 <a href="https://doi.org/10.1080/00343404.2022.2135697" class="external-link">doi:10.1080/00343404.2022.2135697</a></p>
+<p>Demir, C. and Ozcan, S. E. (2023). Do air quality and green space
+reduce propensity to crime?: an empirical investigation of OECD
+countries. <em>Management of Environmental Quality</em>, 34(2), 351-367.
+<a href="https://doi.org/10.1108/MEQ-08-2022-0235" class="external-link">doi:10.1108/MEQ-08-2022-0235</a></p>
     </div>
 
     <div class="section level2">

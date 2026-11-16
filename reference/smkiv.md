@@ -131,6 +131,12 @@ The choices and their sources:
   instrument, "the number of days a county is affected by a fire smoke
   plume in a given month" (p. 10).
 
+Bao and Da (2026, sec. 3.3) keep only "Medium and Heavy plumes" because
+"including Light plumes badly overstates surface-smoke days" (give the
+density classes in `dens` and use their indicators), and instead of a
+plume overhead count the days a county lies downwind of a plume
+([`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)).
+
 The instrument must move the exposure (a first stage, see
 [`ivfe()`](https://rootcoder007.github.io/crimlab/reference/ivfe.md))
 and change the outcome only through it: smoke may also keep people
@@ -159,10 +165,14 @@ Lee, G. and Lee, S. (2026). The impact of wildfire smoke exposure on
 crime. *Environmental and Resource Economics*, 89, 5.
 [doi:10.1007/s10640-025-01053-2](https://doi.org/10.1007/s10640-025-01053-2)
 
+Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
+California. Working paper, Renmin University of China.
+
 ## See also
 
 [`ppmlcf()`](https://rootcoder007.github.io/crimlab/reference/ppmlcf.md),
-[`exprun()`](https://rootcoder007.github.io/crimlab/reference/exprun.md)
+[`exprun()`](https://rootcoder007.github.io/crimlab/reference/exprun.md),
+[`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
 
 ## Examples
 

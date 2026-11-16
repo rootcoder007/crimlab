@@ -185,7 +185,13 @@ are therefore wrong (too small, as a rule): they are given only to
 reproduce papers that report them. Bondy, Roth and Sager do not say how
 their second-stage errors account for the first stage. The exponential
 generalised method of moments of Mullahy (1997) and Windmeijer and
-Santos Silva (1997), which needs no first-stage model, is <code><a href="expgmm.html">expgmm()</a></code>.</p>
+Santos Silva (1997), which needs no first-stage model, is <code><a href="expgmm.html">expgmm()</a></code>.
+Karamik and von Graevenitz (2022, eqs 2-3) use the control function
+with the wind sectors of <code><a href="windiv.html">windiv()</a></code> as instruments (one set per region),
+area, weekday and month-year effects, the group's population as the
+offset (<code>expo</code>) and a bootstrap of both stages with the groups as
+clusters and 1,000 draws (<code>se = "boot"</code>, <code>nboot = 1000</code>); Batkeyev and
+DeRemer (2023, appendix) report the same design beside their linear one.</p>
 <p>Separation is handled as in <code><a href="ppmlfe.html">ppmlfe()</a></code> (groups of zeros dropped), in the
 full sample and in each draw; a draw that cannot be fitted (an
 instrument without variation in it, say) is left out and counted in
@@ -205,6 +211,13 @@ contemporaneous relationship between air pollution and crime.
 testing for nonlinear models with endogenous explanatory variables.
 <em>Journal of Econometrics</em>, 182(1), 226-234.
 <a href="https://doi.org/10.1016/j.jeconom.2014.04.020" class="external-link">doi:10.1016/j.jeconom.2014.04.020</a></p>
+<p>Karamik, Y. and von Graevenitz, K. (2022). Gone with the wind: the
+effect of air pollution on crime. Evidence from Germany. ZEW Mannheim
+working paper. <a href="https://doi.org/10.2139/ssrn.4130091" class="external-link">doi:10.2139/ssrn.4130091</a></p>
+<p>Batkeyev, B. and DeRemer, D. R. (2023). Mountains of evidence: the
+effects of abnormal air pollution on crime. <em>Journal of Economic
+Behavior and Organization</em>, 210, 288-319.
+<a href="https://doi.org/10.1016/j.jebo.2023.04.009" class="external-link">doi:10.1016/j.jebo.2023.04.009</a></p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>

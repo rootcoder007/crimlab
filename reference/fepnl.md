@@ -133,7 +133,11 @@ binomial model with the same effects see
 Andreatta et al. (2023) fit a dynamic panel of the logged rate by system
 GMM, as
 [`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md)
-does.
+does. Melhim (2026) fits the annual crime rate of ten US states
+(2000-2022) on PM2.5, poverty and unemployment by pooled least squares
+and then with state and year fixed effects and errors clustered by
+state, the model here without `int`; the estimate changes from
+insignificant to positive once the state effects enter.
 
 The plot draws the coefficients with their intervals and, with an
 interaction, the simple slopes at each value of the moderator; it
@@ -151,6 +155,11 @@ Andreatta, D., Favarin, S., Lisciandra, M. and Millemaci, E. (2023).
 Digging into waste: an analysis of waste crime in the Italian provinces.
 *Regional Studies*, 57(7), 1367-1379.
 [doi:10.1080/00343404.2022.2135697](https://doi.org/10.1080/00343404.2022.2135697)
+
+Melhim, S. (2026). From air quality to public safety: rethinking crime
+dynamics and social costs of pollution in the United States. *Journal of
+Environmental Health*, 89(3), 18-25.
+[doi:10.70387/001c.171786](https://doi.org/10.70387/001c.171786)
 
 ## Examples
 

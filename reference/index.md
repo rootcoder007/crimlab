@@ -904,6 +904,10 @@ American Economic Journal - Applied Economics 13(4),
   : Wind-direction instruments
 - [`invsn()`](https://rootcoder007.github.io/crimlab/reference/invsn.md)
   : Temperature inversions
+- [`dwnexp()`](https://rootcoder007.github.io/crimlab/reference/dwnexp.md)
+  : Downwind exposure: places downwind of sources of pollution
+- [`tailwd()`](https://rootcoder007.github.io/crimlab/reference/tailwd.md)
+  : The tailwind component of the wind along a flight course
 - [`plcday()`](https://rootcoder007.github.io/crimlab/reference/plcday.md)
   [`print(`*`<plcday>`*`)`](https://rootcoder007.github.io/crimlab/reference/plcday.md)
   [`summary(`*`<plcday>`*`)`](https://rootcoder007.github.io/crimlab/reference/plcday.md)

@@ -165,7 +165,12 @@ to be supplied as a column, not rebuilt here.</p></li>
 the means of the rest per group, Burkhardt et al.'s county-month
 instrument, "the number of days a county is affected by a fire smoke
 plume in a given month" (p. 10).</p></li>
-</ul><p>The instrument must move the exposure (a first stage, see <code><a href="ivfe.html">ivfe()</a></code>) and
+</ul><p>Bao and Da (2026, sec. 3.3) keep only "Medium and Heavy plumes"
+because "including Light plumes badly overstates surface-smoke days"
+(give the density classes in <code>dens</code> and use their indicators), and
+instead of a plume overhead count the days a county lies downwind of a
+plume (<code><a href="dwnexp.html">dwnexp()</a></code>).</p>
+<p>The instrument must move the exposure (a first stage, see <code><a href="ivfe.html">ivfe()</a></code>) and
 change the outcome only through it: smoke may also keep people indoors
 or darken the day (Lee and Lee 2026 discuss both), which the exclusion
 restriction rules out by assumption.</p>
@@ -188,10 +193,12 @@ Seattle. <em>Environmental Research Letters</em>, 21, 044020.
 <p>Lee, G. and Lee, S. (2026). The impact of wildfire smoke exposure on
 crime. <em>Environmental and Resource Economics</em>, 89, 5.
 <a href="https://doi.org/10.1007/s10640-025-01053-2" class="external-link">doi:10.1007/s10640-025-01053-2</a></p>
+<p>Bao, J. and Da, Y. (2026). Wildfire smoke and crime: evidence from
+California. Working paper, Renmin University of China.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
-    <div class="dont-index"><p><code><a href="ppmlcf.html">ppmlcf()</a></code>, <code><a href="exprun.html">exprun()</a></code></p></div>
+    <div class="dont-index"><p><code><a href="ppmlcf.html">ppmlcf()</a></code>, <code><a href="exprun.html">exprun()</a></code>, <code><a href="dwnexp.html">dwnexp()</a></code></p></div>
     </div>
 
     <div class="section level2">
