@@ -329,7 +329,7 @@ r$nfac
 #>   1   2   2 
 # a dynamic panel: y depends on its lag; jackknife-corrected mean group
 set.seed(10)
-tt <- 30
+tt <- 40
 d <- expand.grid(year = 1:tt, prov = paste0("p", 1:40))
 f <- rnorm(tt)[d$year]
 g <- rnorm(40, 1)[as.integer(substring(d$prov, 2))]
@@ -339,5 +339,9 @@ for (i in which(d$year > 1)) {
   d$y[i] <- 0.5 * d$y[i - 1] + 0.7 * d$x[i] + g[i] * f[i] + rnorm(1)
 }
 ccepnl(d$y, d["x"], d$prov, d$year, ylag = 1, bias = "jack")
-#> Error: ccepnl: unit p1 has 12 usable periods in the first half of the periods: its regression on the regressors, the lags of y, the averages with their lags and the observed factors needs at least 13.
+#> ccepnl: common correlated effects, 40 units, 40 periods, 1 lags of y, 3 of the averages
+#> mean group (CCEMG, jack):
+#>  term       est         se        z            p        lo        hi
+#>  L1.y 0.5946119 0.04214017 14.11033 3.280167e-45 0.5120187 0.6772051
+#>     x 0.6781777 0.06129760 11.06369 1.881911e-28 0.5580366 0.7983187
 ```
