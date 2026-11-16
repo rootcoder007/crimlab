@@ -21,7 +21,7 @@ bool mtrbnd(Ctx &c, Val &out) {
   CK(pickd(c, "assume", an, 4, 3, as));
   Dv wv;
   const bool hw = c.has("w");
-  if (hw) CK(num(c, c["w"], "w", wv, static_cast<long>(n), 0.0));
+  if (hw) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
   const int k = g.g;
   std::vector<double> o(6 * zz(k));
   if (clab_mtrbnd(yv.p(), g.code.data(), hw ? wv.p() : nullptr, static_cast<int>(n), k, lo, hi, as, o.data()) !=

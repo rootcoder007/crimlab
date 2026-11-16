@@ -34,7 +34,7 @@ bool cxmat(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vec
   if (cs.empty()) return c.fail("`x` must hold one covariate at least.");
   for (std::size_t j = 0; j < cs.size(); ++j) {
     Dv d;
-    CK(num(c, *cs[j], "x", d, static_cast<long>(n)));
+    CK(num(c, *cs[j], "x", d, static_cast<std::int64_t>(n)));
     v.insert(v.end(), d.v.begin(), d.v.end());
     nm.push_back(j < names.size() && !names[j].empty() ? names[j] : "x" + std::to_string(j + 1));
   }
@@ -55,7 +55,7 @@ bool smdbal(Ctx &c, Val &out) {
   CK(cxmat(c, c["x"], n, xv, nm));
   if (c.has("w")) {
     Dv w;
-    CK(num(c, c["w"], "w", w, static_cast<long>(n), 0.0));
+    CK(num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0));
     wv = w.v;
   }
   const int N = static_cast<int>(n), p = static_cast<int>(nm.size());
@@ -69,7 +69,7 @@ bool smdbal(Ctx &c, Val &out) {
     }
   } else {
     Dv pp;
-    CK(num(c, c["ps"], "ps", pp, static_cast<long>(n)));
+    CK(num(c, c["ps"], "ps", pp, static_cast<std::int64_t>(n)));
     for (double x : pp.v) {
       if (!(x > 0 && x < 1)) return c.fail("`ps` must be propensities strictly between 0 and 1.");
     }

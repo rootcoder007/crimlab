@@ -9,6 +9,7 @@
 // Models of Choice and Judgment, 2nd ed.). Starting values are drawn from
 // R's generator seeded as set.seed(seed), so a fit equals the one of the
 // same method run in R after set.seed().
+#include <cstdint>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -864,9 +865,9 @@ std::vector<double> pava(const std::vector<double> &y) {
       val[i] = (w[i] * val[i] + w[i + 1] * val[i + 1]) / nw;
       w[i] = nw;
       sz[i] += sz[i + 1];
-      val.erase(val.begin() + static_cast<long>(i) + 1);
-      w.erase(w.begin() + static_cast<long>(i) + 1);
-      sz.erase(sz.begin() + static_cast<long>(i) + 1);
+      val.erase(val.begin() + static_cast<std::ptrdiff_t>(i) + 1);
+      w.erase(w.begin() + static_cast<std::ptrdiff_t>(i) + 1);
+      sz.erase(sz.begin() + static_cast<std::ptrdiff_t>(i) + 1);
       if (i > 0) --i;
     } else {
       ++i;

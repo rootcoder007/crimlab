@@ -16,13 +16,14 @@
 // computation of binomial probabilities, 2000), which keeps its relative
 // precision when a and b are large. Quantiles are found by Newton steps
 // on the logarithm of the tail, kept inside a bracket.
+#include <cstdint>
 #include <cfloat>
 #include <cmath>
 #include <limits>
 
 #include "crimlab.h"
-
 #include "kutil.h"
+
 namespace {
 
 const double qnan = std::numeric_limits<double>::quiet_NaN();
@@ -158,7 +159,7 @@ double bcf(double x, double a, double b) {
   if (std::fabs(d) < tiny) d = tiny;
   d = 1 / d;
   double h = d;
-  for (long m = 1; m < 100000000; ++m) {
+  for (std::int64_t m = 1; m < 100000000; ++m) {
     const double m2 = 2.0 * m;
     double aa = m * (b - m) * x / ((qam + m2) * (a + m2));
     d = 1 + aa * d;
@@ -311,7 +312,7 @@ double pgam(double x, double a, int lower) {
   if (a >= 1 && x < a + 1) {
     // x^a e^-x / Gamma(a + 1) sum_{n >= 0} x^n / ((a + 1) ... (a + n))
     double s = 1, cmp = 0, t = 1, ap = a;
-    for (long n = 1; n < 100000000; ++n) {
+    for (std::int64_t n = 1; n < 100000000; ++n) {
       ap += 1;
       t *= x / ap;
       const double u = s + t;
@@ -324,7 +325,7 @@ double pgam(double x, double a, int lower) {
   }
   // x^a e^-x / Gamma(a) times the continued fraction (modified Lentz)
   double b = x + 1 - a, c = 1 / tiny, d = 1 / b, h = d;
-  for (long i = 1; i < 100000000; ++i) {
+  for (std::int64_t i = 1; i < 100000000; ++i) {
     const double an = -i * (i - a);
     b += 2;
     d = an * d + b;

@@ -5,6 +5,7 @@
 // neighbour structure (binary or inverse distance, raw or row-standardised).
 // Neighbour structures are compressed sparse rows: the neighbours of unit i
 // are ci[rp[i] .. rp[i + 1]). The statistics of src/lsa.cpp read them.
+#include <cstdint>
 #include <cmath>
 #include <utility>
 
@@ -74,8 +75,8 @@ int clab_swknb(const double *x, const double *y, int n, int k, int metric,
   g.build(x, y, n, b[0], b[1], b[2], b[3], cell, iwork);
   const double wmin = std::fmin(g.wx, g.wy);
   for (int i = 0; i < n; ++i) {
-    double *hd = d + static_cast<long>(i) * k;
-    int *hj = nb + static_cast<long>(i) * k;
+    double *hd = d + static_cast<std::int64_t>(i) * k;
+    int *hj = nb + static_cast<std::int64_t>(i) * k;
     int m = 0;
     const int ci = g.cx(x[i]), cj = g.cy(y[i]);
     // rings of cells around i's cell; a point of ring r + 1 is at least
@@ -133,10 +134,10 @@ int clab_swband(const double *x, const double *y, int n, double dmax,
   bbox(x, y, n, b);
   cgeo::grid g;
   g.build(x, y, n, b[0], b[1], b[2], b[3], dmax, iwork);
-  long t = 0;
+  std::int64_t t = 0;
   rp[0] = 0;
   for (int i = 0; i < n; ++i) {
-    const long row = t;
+    const std::int64_t row = t;
     // the cells the square of half-side dmax about the point touches (the
     // grid's cells may be narrower than dmax)
     const int a0 = g.cx(x[i] - dmax), a1 = g.cx(x[i] + dmax);
@@ -161,11 +162,11 @@ int clab_swband(const double *x, const double *y, int n, double dmax,
     if (t > 2147483647L) return CLAB_EARG;
     // each row in increasing order of neighbour (insertion sort of the
     // stored part; rows are short)
-    const long end = t < cap ? t : cap;
-    for (long u = row + 1; u < end; ++u) {
+    const std::int64_t end = t < cap ? t : cap;
+    for (std::int64_t u = row + 1; u < end; ++u) {
       const int j = ci[u];
       const double e = d[u];
-      long v = u - 1;
+      std::int64_t v = u - 1;
       while (v >= row && ci[v] > j) {
         ci[v + 1] = ci[v];
         d[v + 1] = d[v];

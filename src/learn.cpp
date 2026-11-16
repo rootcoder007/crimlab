@@ -8,6 +8,7 @@
 // folds; generalised linear models by Newton steps. Rows are used through index lists, never copied.
 #include "learn.h"
 
+#include <cstdint>
 #include <cmath>
 
 #include "crimlab.h"
@@ -29,7 +30,7 @@ inline double soft(double z, double t) {
 void stdz(const lrn::Dat &d, double *mu, double *sd) {
   const double w = 1.0 / d.m;
   for (int j = 0; j < d.p; ++j) {
-    const double *xj = d.x + static_cast<long>(j) * d.n;
+    const double *xj = d.x + static_cast<std::int64_t>(j) * d.n;
     double s = 0.0;
     for (int i = 0; i < d.m; ++i) s += xj[d.idx[i]];
     const double a = s * w;
@@ -68,7 +69,7 @@ bool binary(const lrn::Dat &d) {
 // sum_i r[i] (x[idx[i], j] - mu) / sd over the rows used
 inline double xdot(const lrn::Dat &d, int j, double mu, double sd,
                    const double *r) {
-  const double *xj = d.x + static_cast<long>(j) * d.n;
+  const double *xj = d.x + static_cast<std::int64_t>(j) * d.n;
   double s = 0.0;
   for (int i = 0; i < d.m; ++i) s += r[i] * (xj[d.idx[i]] - mu);
   return s / sd;
@@ -93,8 +94,8 @@ inline double dot(const double *a, const double *b, int m) {
 // of the descent then reads contiguous memory.
 void pack(const lrn::Dat &d, const double *mu, const double *sd, double *xs) {
   for (int j = 0; j < d.p; ++j) {
-    const double *xj = d.x + static_cast<long>(j) * d.n;
-    double *o = xs + static_cast<long>(j) * d.m;
+    const double *xj = d.x + static_cast<std::int64_t>(j) * d.n;
+    double *o = xs + static_cast<std::int64_t>(j) * d.m;
     const double f = sd[j] > 0.0 ? 1.0 / sd[j] : 0.0;
     for (int i = 0; i < d.m; ++i) o[i] = (xj[d.idx[i]] - mu[j]) * f;
   }
@@ -115,7 +116,7 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
           double *beta, double *work, int *iwork) {
   const int p = d.p, m = d.m;
   double *mu = work, *sd = mu + p, *b = sd + p, *g = b + p, *c = g + p;
-  double *t = c + static_cast<long>(p) * p, *xs = t + d.n;
+  double *t = c + static_cast<std::int64_t>(p) * p, *xs = t + d.n;
   int *have = iwork;
   double ym, ys;
   ystat(d, &ym, &ys);
@@ -126,7 +127,7 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
   for (int j = 0; j < p; ++j) {
     b[j] = 0.0;
     have[j] = 0;
-    g[j] = dot(xs + static_cast<long>(j) * m, t, m);
+    g[j] = dot(xs + static_cast<std::int64_t>(j) * m, t, m);
   }
   // the columns of C for the group of four columns that holds j, in 4 x 4
   // tiles: one pass over eight columns gives sixteen inner products
@@ -136,9 +137,9 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
       const int nk = p - k0 < 4 ? p - k0 : 4;
       double acc[4][4] = {{0.0}};
       if (nj == 4 && nk == 4) {
-        const double *a0 = xs + static_cast<long>(j0) * m, *a1 = a0 + m, *a2 = a1 + m,
+        const double *a0 = xs + static_cast<std::int64_t>(j0) * m, *a1 = a0 + m, *a2 = a1 + m,
                      *a3 = a2 + m;
-        const double *b0 = xs + static_cast<long>(k0) * m, *b1 = b0 + m, *b2 = b1 + m,
+        const double *b0 = xs + static_cast<std::int64_t>(k0) * m, *b1 = b0 + m, *b2 = b1 + m,
                      *b3 = b2 + m;
         for (int i = 0; i < m; ++i) {
           const double x0 = a0[i], x1 = a1[i], x2 = a2[i], x3 = a3[i];
@@ -151,13 +152,13 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
       } else {
         for (int u = 0; u < nj; ++u) {
           for (int v = 0; v < nk; ++v) {
-            acc[u][v] = dot(xs + static_cast<long>(j0 + u) * m,
-                            xs + static_cast<long>(k0 + v) * m, m);
+            acc[u][v] = dot(xs + static_cast<std::int64_t>(j0 + u) * m,
+                            xs + static_cast<std::int64_t>(k0 + v) * m, m);
           }
         }
       }
       for (int u = 0; u < nj; ++u) {
-        for (int v = 0; v < nk; ++v) c[static_cast<long>(j0 + u) * p + k0 + v] = acc[u][v] / m;
+        for (int v = 0; v < nk; ++v) c[static_cast<std::int64_t>(j0 + u) * p + k0 + v] = acc[u][v] / m;
       }
     }
     for (int u = 0; u < nj; ++u) have[j0 + u] = 1;
@@ -171,7 +172,7 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
     if (dl == 0.0) return 0.0;
     rsq += dl * (2.0 * g[j] - dl);
     if (!have[j]) col(j);
-    const double *cj = c + static_cast<long>(j) * p;
+    const double *cj = c + static_cast<std::int64_t>(j) * p;
     for (int k = 0; k < p; ++k) g[k] -= dl * cj[k];
     b[j] = nb;
     return dl * dl;
@@ -197,7 +198,7 @@ int gauss(const lrn::Dat &d, double alpha, const double *lam, int nl,
         full = true;
       }
     }
-    double s = ym, *bk = beta + static_cast<long>(k) * p;
+    double s = ym, *bk = beta + static_cast<std::int64_t>(k) * p;
     for (int j = 0; j < p; ++j) {
       bk[j] = b[j] != 0.0 ? b[j] * ys / sd[j] : 0.0;
       s -= mu[j] * bk[j];
@@ -242,7 +243,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
   for (int j = 0; j < p; ++j) {
     b[j] = 0.0;
     act[j] = 0;
-    ga[j] = std::fabs(dot(xs + static_cast<long>(j) * m, r, m));
+    ga[j] = std::fabs(dot(xs + static_cast<std::int64_t>(j) * m, r, m));
     if (alpha > 0.0) lp = std::fmax(lp, ga[j] / alpha);
   }
   int it = 0;
@@ -271,7 +272,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
           bo[j] = b[j];
           if (!act[j]) continue;
           // sum v x^2, in four running sums
-          const double *xj = xs + static_cast<long>(j) * m;
+          const double *xj = xs + static_cast<std::int64_t>(j) * m;
           double s0 = 0.0, s1 = 0.0, s2 = 0.0, s3 = 0.0;
           int i = 0;
           for (; i + 3 < m; i += 4) {
@@ -293,7 +294,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
           dlx = 0.0;
           for (int j = 0; j < p; ++j) {
             if (full ? !act[j] : b[j] == 0.0) continue;
-            const double *xj = xs + static_cast<long>(j) * m;
+            const double *xj = xs + static_cast<std::int64_t>(j) * m;
             const double gj = dot(xj, r, m);
             const double nb = soft(gj + xv[j] * b[j], l1) / (xv[j] + l2);
             const double dl = nb - b[j];
@@ -322,7 +323,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
         double dout = sv * (a - ao) * (a - ao);
         for (int j = 0; j < p; ++j) {
           if (b[j] != 0.0) {
-            const double *xj = xs + static_cast<long>(j) * m;
+            const double *xj = xs + static_cast<std::int64_t>(j) * m;
             for (int i = 0; i < m; ++i) eta[i] += b[j] * xj[i];
           }
           if (act[j]) dout = std::fmax(dout, xv[j] * (b[j] - bo[j]) * (b[j] - bo[j]));
@@ -337,7 +338,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
       for (int j = 0; j < p; ++j) {
         if (!(sd[j] > 0.0)) continue;
         if (act[j]) continue;
-        ga[j] = std::fabs(dot(xs + static_cast<long>(j) * m, r, m));
+        ga[j] = std::fabs(dot(xs + static_cast<std::int64_t>(j) * m, r, m));
         if (ga[j] > l1) {
           act[j] = 1;
           viol = true;
@@ -345,7 +346,7 @@ int binom(const lrn::Dat &d, double alpha, const double *lam, int nl,
       }
       if (!viol) break;
     }
-    double s = a, *bk = beta + static_cast<long>(k) * p;
+    double s = a, *bk = beta + static_cast<std::int64_t>(k) * p;
     for (int j = 0; j < p; ++j) {
       bk[j] = b[j] != 0.0 ? b[j] / sd[j] : 0.0;
       s -= mu[j] * bk[j];
@@ -401,8 +402,8 @@ void csolve(const double *l, int q, double *b) {
 
 namespace lrn {
 
-long pwork(int n, int p) {
-  return static_cast<long>(p) * p + 6L * p + 4L * n + static_cast<long>(n) * p;
+std::int64_t pwork(int n, int p) {
+  return static_cast<std::int64_t>(p) * p + std::int64_t{6} * p + std::int64_t{4} * n + static_cast<std::int64_t>(n) * p;
 }
 
 int lmax(const Dat &d, int fam, double alpha, double *lam, double *work) {
@@ -437,12 +438,12 @@ void lpred(const double *x, int n, int p, const int *idx, int m, double a0,
   for (int i = 0; i < m; ++i) eta[i] = a0;
   for (int j = 0; j < p; ++j) {
     if (b[j] == 0.0) continue;
-    const double *xj = x + static_cast<long>(j) * n;
+    const double *xj = x + static_cast<std::int64_t>(j) * n;
     for (int i = 0; i < m; ++i) eta[i] += b[j] * xj[idx[i]];
   }
 }
 
-long gwork(int p) { return 2L * (p + 1) * (p + 1) + 4L * (p + 1); }
+std::int64_t gwork(int p) { return std::int64_t{2} * (p + 1) * (p + 1) + std::int64_t{4} * (p + 1); }
 
 // Newton's method on the centred design [1, x - mu]: the intercept is then
 // nearly orthogonal to the slopes, which keeps the normal equations well
@@ -451,14 +452,14 @@ long gwork(int p) { return 2L * (p + 1) * (p + 1) + 4L * (p + 1); }
 int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
         double *se, double *dev, double *work) {
   const int p = d.p, q = p + 1, m = d.m;
-  double *a = work, *vi = a + static_cast<long>(q) * q, *mu = vi + static_cast<long>(q) * q;
+  double *a = work, *vi = a + static_cast<std::int64_t>(q) * q, *mu = vi + static_cast<std::int64_t>(q) * q;
   double *u = mu + q, *del = u + q, *zr = del + q;
   if (m <= q || (fam == 1 && !binary(d))) return CLAB_EDOM;
   double ym, ys;
   ystat(d, &ym, &ys);
   if (fam == 1 && !(ys > 0.0)) return CLAB_EDOM;
   for (int j = 0; j < p; ++j) {
-    const double *xj = d.x + static_cast<long>(j) * d.n;
+    const double *xj = d.x + static_cast<std::int64_t>(j) * d.n;
     double s = 0.0;
     for (int i = 0; i < m; ++i) s += xj[d.idx[i]];
     mu[j] = s / m;
@@ -471,7 +472,7 @@ int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
   for (int it = 0;; ++it) {
     if (kutil::stop(static_cast<double>(d.m) * q * q)) return CLAB_EINTR;
     if (it >= maxit) return CLAB_EDOM;
-    for (long k = 0; k < static_cast<long>(q) * q; ++k) a[k] = 0.0;
+    for (std::int64_t k = 0; k < static_cast<std::int64_t>(q) * q; ++k) a[k] = 0.0;
     for (int c = 0; c < q; ++c) u[c] = 0.0;
     dv = 0.0;
     // one pass over the rows: the gradient, the information, the deviance;
@@ -480,7 +481,7 @@ int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
       zr[0] = 1.0;
       double eta = th[0];
       for (int c = 1; c < q; ++c) {
-        zr[c] = d.x[d.idx[i] + static_cast<long>(c - 1) * d.n] - mu[c - 1];
+        zr[c] = d.x[d.idx[i] + static_cast<std::int64_t>(c - 1) * d.n] - mu[c - 1];
         eta += th[c] * zr[c];
       }
       const double yi = d.y[d.idx[i]];
@@ -498,7 +499,7 @@ int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
       for (int c = 0; c < q; ++c) {
         u[c] += zr[c] * ri;
         const double wz = wi * zr[c];
-        double *ac = a + static_cast<long>(c) * q;
+        double *ac = a + static_cast<std::int64_t>(c) * q;
         for (int e = c; e < q; ++e) ac[e] += wz * zr[e];
       }
     }
@@ -520,7 +521,7 @@ int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
         for (int i = 0; i < m; ++i) {
           double eta = th[0];
           for (int c = 1; c < q; ++c) {
-            eta += th[c] * (d.x[d.idx[i] + static_cast<long>(c - 1) * d.n] - mu[c - 1]);
+            eta += th[c] * (d.x[d.idx[i] + static_cast<std::int64_t>(c - 1) * d.n] - mu[c - 1]);
           }
           const double e = d.y[d.idx[i]] - eta;
           dv += e * e;
@@ -531,7 +532,7 @@ int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
   }
   // the inverse information, column by column
   for (int c = 0; c < q; ++c) {
-    double *vc = vi + static_cast<long>(c) * q;
+    double *vc = vi + static_cast<std::int64_t>(c) * q;
     for (int e = 0; e < q; ++e) vc[e] = e == c ? 1.0 : 0.0;
     csolve(a, q, vc);
   }
@@ -567,9 +568,9 @@ inline double loss(int fam, double y, double eta) {
 
 namespace lrn {
 
-long cvwork(int n, int p, int nl, int nf) {
-  return pwork(n, p) + n + static_cast<long>(nl) * (p + 1) +
-         static_cast<long>(nf) * (nl + 1);
+std::int64_t cvwork(int n, int p, int nl, int nf) {
+  return pwork(n, p) + n + static_cast<std::int64_t>(nl) * (p + 1) +
+         static_cast<std::int64_t>(nf) * (nl + 1);
 }
 
 int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
@@ -579,8 +580,8 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
   const int n = d.n, p = d.p;
   int *idx = iwork, *iw = idx + d.m;
   double *pw = work, *eta = pw + pwork(n, p), *fs = eta + n;
-  double *fa = fs + static_cast<long>(nf) * nl, *fb = fa + nl;
-  double *fn = fb + static_cast<long>(p) * nl;
+  double *fa = fs + static_cast<std::int64_t>(nf) * nl, *fb = fa + nl;
+  double *fn = fb + static_cast<std::int64_t>(p) * nl;
   if (lmr > 0.0) {
     double lm;
     const int rc = lmax(d, fam, alpha, &lm, pw);
@@ -614,10 +615,10 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
     rc = path(tr, fam, alpha, lam, nl, thresh, maxit, 0, screen, &nk, fa, fb, pw, iw);
     if (rc != CLAB_OK) return rc;
     for (int k = 0; k < nl; ++k) {
-      lpred(d.x, n, p, idx + t, d.m - t, fa[k], fb + static_cast<long>(k) * p, eta);
+      lpred(d.x, n, p, idx + t, d.m - t, fa[k], fb + static_cast<std::int64_t>(k) * p, eta);
       double s = 0.0;
       for (int i = 0; i < d.m - t; ++i) s += loss(fam, d.y[idx[t + i]], eta[i]);
-      fs[static_cast<long>(f) * nl + k] = s;
+      fs[static_cast<std::int64_t>(f) * nl + k] = s;
     }
     fn[f] = d.m - t;
   }
@@ -627,11 +628,11 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
   double *cm = cv, *cs = cv + nl;
   for (int k = 0; k < nl; ++k) {
     double s = 0.0;
-    for (int f = 0; f < nf; ++f) s += fs[static_cast<long>(f) * nl + k];
+    for (int f = 0; f < nf; ++f) s += fs[static_cast<std::int64_t>(f) * nl + k];
     cm[k] = s / d.m;
     double v = 0.0;
     for (int f = 0; f < nf; ++f) {
-      const double e = fs[static_cast<long>(f) * nl + k] / fn[f] - cm[k];
+      const double e = fs[static_cast<std::int64_t>(f) * nl + k] / fn[f] - cm[k];
       v += fn[f] * e * e;
     }
     cs[k] = std::sqrt(v / d.m / (nf - 1));
@@ -665,7 +666,7 @@ int clab_enpath(const double *x, int n, int p, const double *y, int fam,
     return CLAB_EARG;
   if (!(alpha >= 0.0 && alpha <= 1.0) || !(thresh > 0.0) || !(lmr < 1.0))
     return CLAB_EDOM;
-  for (long k = 0; k < static_cast<long>(n) * p; ++k) {
+  for (std::int64_t k = 0; k < static_cast<std::int64_t>(n) * p; ++k) {
     if (!std::isfinite(x[k])) return CLAB_EDOM;
   }
   for (int i = 0; i < n; ++i) {
@@ -683,7 +684,7 @@ int clab_lgtreg(const double *x, int n, int p, const double *y, double tol,
                 double *work, int *iwork) CLAB_TRY {
   if (n < 1 || p < 0 || maxit < 1) return CLAB_EARG;
   if (!(tol > 0.0)) return CLAB_EDOM;
-  for (long k = 0; k < static_cast<long>(n) * p; ++k) {
+  for (std::int64_t k = 0; k < static_cast<std::int64_t>(n) * p; ++k) {
     if (!std::isfinite(x[k])) return CLAB_EDOM;
   }
   for (int i = 0; i < n; ++i) iwork[i] = i;

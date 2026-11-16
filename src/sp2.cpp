@@ -3,6 +3,7 @@
 // libcrimlab, more spatial methods: the nearest-neighbour index under
 // Manhattan distance, head-bang smoothing, the correlated random walk of a
 // series of events, and risk-adjusted nearest-neighbour clustering.
+#include <cstdint>
 #include <cmath>
 #include <limits>
 
@@ -33,7 +34,7 @@ void meanl1(const double *x, const double *y, int n, int kmax, int *nb,
   clab_swknb(x, y, n, kmax, 1, nb, d, iwork);
   for (int k = 0; k < kmax; ++k) {
     kutil::ksum s;
-    for (int i = 0; i < n; ++i) s.add(d[static_cast<long>(i) * kmax + k]);
+    for (int i = 0; i < n; ++i) s.add(d[static_cast<std::int64_t>(i) * kmax + k]);
     md[k] = s.val() / n;
   }
 }
@@ -74,11 +75,11 @@ int clab_nnidm(const double *x, const double *y, int n, const double *win,
   const double w = win[1] - win[0], h = win[3] - win[2], area = w * h;
   if (!(area > 0.0) || !std::isfinite(area)) return CLAB_EDOM;
   int *nb = iwork + 2 * n + 2;
-  double *d = work, *md = work + static_cast<long>(n) * kmax, *sx = md + kmax,
+  double *d = work, *md = work + static_cast<std::int64_t>(n) * kmax, *sx = md + kmax,
          *sy = sx + n;
   meanl1(x, y, n, kmax, nb, d, iwork, md);
   if (dist != nullptr)
-    for (long q = 0; q < static_cast<long>(n) * kmax; ++q) dist[q] = d[q];
+    for (std::int64_t q = 0; q < static_cast<std::int64_t>(n) * kmax; ++q) dist[q] = d[q];
   const double lam = n / area;
   // a Manhattan ball of radius r has area 2 r^2, so under complete spatial
   // randomness (no edge) R_k^2 is Gamma(k, 2 lam): E R_k = Gamma(k + 1/2) /
@@ -101,7 +102,7 @@ int clab_nnidm(const double *x, const double *y, int n, const double *win,
   e[0] = e[1] = e[3] = kutil::nan();
   e[2] = (out[0] - out[1]) / std::sqrt((4.0 - pi) / (8.0 * lam * n));
   if (nsim > 0) {
-    int *lo = nb + static_cast<long>(n) * kmax, *hi = lo + kmax;
+    int *lo = nb + static_cast<std::int64_t>(n) * kmax, *hi = lo + kmax;
     for (int k = 0; k < kmax; ++k) lo[k] = hi[k] = 0;
     double *ms = sy + n;
     cgeo::rng r(seed);
@@ -275,8 +276,8 @@ int clab_crwsim(const double *step, int ns, const double *turn, int nt,
       const double l = step[r.below(ns)];
       cx += l * std::cos(hd);
       cy += l * std::sin(hd);
-      px[static_cast<long>(k) * nsim + s] = cx;
-      py[static_cast<long>(k) * nsim + s] = cy;
+      px[static_cast<std::int64_t>(k) * nsim + s] = cx;
+      py[static_cast<std::int64_t>(k) * nsim + s] = cy;
     }
   }
   return CLAB_OK;

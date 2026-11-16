@@ -4,6 +4,7 @@
 // their inference, the spatial lag, error and combined models by maximum
 // likelihood (and the lag model by two-stage least squares), and the
 // direct, indirect and total effects of a lag model.
+#include <cstdint>
 #include <algorithm>
 #include <cmath>
 #include <utility>
@@ -506,7 +507,7 @@ int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, co
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i])) return CLAB_EDOM;
   }
-  for (long q = 0; q < static_cast<long>(n) * p; ++q) {
+  for (std::int64_t q = 0; q < static_cast<std::int64_t>(n) * p; ++q) {
     if (!std::isfinite(x[q])) return CLAB_EDOM;
   }
   mdl m;

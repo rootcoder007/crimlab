@@ -892,6 +892,11 @@
   exceptions, stops the module and the JavaScript binding reports the
   same words (`clab_oomed()`, new) and asks for the module to be loaded
   again. In R the entry points still give the function's name.
+* Sizes and products of sizes are 64-bit everywhere they were `long`,
+  which is 32 bits on Windows: the work arrays of the learners
+  (`enpath()`, `dmlx()`, `suplrn()`, `rfor()`), the neighbour tables, the
+  bins of `rddens()` and others. `clab_dmlxsz()` and `clab_stksz()` now
+  return `int64_t` and take an `int64_t *`.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

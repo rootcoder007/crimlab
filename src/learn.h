@@ -8,6 +8,8 @@
 #ifndef CLAB_LEARN_H
 #define CLAB_LEARN_H
 
+#include <cstdint>
+
 namespace lrn {
 
 // A design: x column-major, n rows (its leading dimension), p columns;
@@ -21,7 +23,7 @@ struct Dat {
 };
 
 // Scratch for path(): doubles; and p ints.
-long pwork(int n, int p);
+std::int64_t pwork(int n, int p);
 
 // The largest lambda of the path (all coefficients 0 there) for family fam
 // (0 gaussian, 1 binomial) and mixing alpha; work: pwork() doubles.
@@ -49,7 +51,7 @@ int path(const Dat &d, int fam, double alpha, const double *lam, int nl,
 // minimum and of the largest lambda within one standard error; nfit, the
 // lambdas fitted (a path chosen here stops early, as path() with stop).
 // work: cvwork() doubles; iwork: d.m + p ints.
-long cvwork(int n, int p, int nl, int nf);
+std::int64_t cvwork(int n, int p, int nl, int nf);
 int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
           double lmr, double thresh, int maxit, int screen, const int *fold, int nf,
           double *a0, double *beta, double *cv, int *best, int *nfit,
@@ -60,7 +62,7 @@ int cvnet(const Dat &d, int fam, double alpha, double *lam, int nl,
 // regression). Out: coef[p + 1] (intercept first), se[p + 1] from the
 // inverse information, dev (the deviance). work: gwork() doubles. Returns
 // CLAB_EDOM for a singular system or no convergence within maxit steps.
-long gwork(int p);
+std::int64_t gwork(int p);
 int glm(const Dat &d, int fam, double tol, int maxit, double *coef,
         double *se, double *dev, double *work);
 
@@ -78,8 +80,8 @@ struct Forest {
 
 // Scratch for forest(): doubles and ints, for n rows of x and nt rows to
 // predict.
-long fwork(int n, int p, int nt);
-long fiwork(int n, int p, int nt);
+std::int64_t fwork(int n, int p, int nt);
+std::int64_t fiwork(int n, int p, int nt);
 
 // A random forest fitted to y over the rows tr[0..mt) of x (n rows, p
 // columns) and its mean prediction at the rows te[0..me) of xp (np rows,

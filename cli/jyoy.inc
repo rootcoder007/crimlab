@@ -390,13 +390,13 @@ bool fylbl(Ctx &c, Val &out) {
     long y = 0;
     bool ok = false;
     if (x.t == Val::NUM) {
-      y = static_cast<long>(x.n);
+      y = static_cast<std::int64_t>(x.n);
       ok = true;
     } else if (x.t == Val::STR) {
       char *end = nullptr;
       const double v = std::strtod(x.s.c_str(), &end);
       ok = end != x.s.c_str() && *end == '\0' && std::isfinite(v);
-      y = static_cast<long>(v);
+      y = static_cast<std::int64_t>(v);
     }
     if (!ok) {
       o.a.push_back(Val());

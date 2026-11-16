@@ -441,7 +441,7 @@ bool dmlx(Ctx &c, Val &out) {
     std::copy(pv.begin(), pv.end(), pr.begin());
     fit = 0;
   }
-  long niw = 0;
+  std::int64_t niw = 0;
   const std::size_t nw = static_cast<std::size_t>(clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw));
   std::vector<double> w(nw + 1), est(2 + 2 * sr2), ps(2 * sn * sr2);
   std::vector<int> iw(static_cast<std::size_t>(niw) + 1);
@@ -514,7 +514,7 @@ bool suplrn(Ctx &c, Val &out) {
     CK(lfolds(c, c["fold"], "fold", n, fv, k));
   }
   const clab_lrn l = {3, ls.alpha, ls.nlam, ls.nfin, us, ls.ntree, ls.mtry, 0, ls.tol, ls.scr, ls.hon, sub, ns, k, dc};
-  long niw = 0;
+  std::int64_t niw = 0;
   const std::size_t nw = static_cast<std::size_t>(clab_stksz(n, p, nt, &l, &niw));
   std::vector<double> w(nw + 1), oof(sn * static_cast<std::size_t>(ns)), risk(static_cast<std::size_t>(ns)),
       wt(static_cast<std::size_t>(ns)), pr(static_cast<std::size_t>(nt));

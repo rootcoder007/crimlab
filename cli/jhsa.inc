@@ -23,11 +23,11 @@ bool hsacc(Ctx &c, Val &out) {
     }
     hot = b;
   } else {
-    CK(num(c, pr, "pred", pv, static_cast<long>(n)));
+    CK(num(c, pr, "pred", pv, static_cast<std::int64_t>(n)));
   }
   Dv av;
   if (c.has("area")) {
-    CK(num(c, c["area"], "area", av, static_cast<long>(n), 0.0, true));
+    CK(num(c, c["area"], "area", av, static_cast<std::int64_t>(n), 0.0, true));
   } else {
     ones(av, n);
   }
@@ -40,7 +40,7 @@ bool hsacc(Ctx &c, Val &out) {
   const int nt = lg ? 1 : static_cast<int>(tv.n());
   Dv rv;
   const bool hp = c.has("prev");
-  if (hp) CK(num(c, c["prev"], "prev", rv, static_cast<long>(n), 0.0));
+  if (hp) CK(num(c, c["prev"], "prev", rv, static_cast<std::int64_t>(n), 0.0));
   double tot = 0;
   for (double x : ov.v) tot += x;
   if (!(tot > 0)) return c.fail("`obs` has no crimes: every count is 0.");

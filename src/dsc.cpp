@@ -8,6 +8,7 @@
 // The sums run as the reference implementation and R run them: long
 // double where R's mean(), colMeans() and cov() accumulate in long double,
 // double where its kernels do.
+#include <cstdint>
 #include <algorithm>
 #include <cmath>
 #include <map>
@@ -45,9 +46,9 @@ double q7s(const vector<double> &v, double p) {
   if (std::isnan(p)) return p;
   if (n == 1) return v[0];
   const double h = (static_cast<double>(n) - 1.0) * p, fl = std::floor(h);
-  long lo = static_cast<long>(fl);
+  std::int64_t lo = static_cast<std::int64_t>(fl);
   if (lo < 0) lo = 0;
-  if (lo >= static_cast<long>(n) - 1) return v[n - 1];
+  if (lo >= static_cast<std::int64_t>(n) - 1) return v[n - 1];
   const double g = h - fl;
   if (g == 0.0) return v[static_cast<size_t>(lo)];
   const double d = v[static_cast<size_t>(lo) + 1] - v[static_cast<size_t>(lo)];
@@ -309,7 +310,7 @@ vector<double> rcov(const double *x, size_t n, int p, bool pairwise) {
     for (int j = 0; j <= i; ++j) {
       const double *a = x + static_cast<size_t>(i) * n, *b = x + static_cast<size_t>(j) * n;
       ld xs = 0, ys = 0;
-      long nob = 0;
+      std::int64_t nob = 0;
       for (size_t k = 0; k < n; ++k) {
         if (std::isnan(a[k]) || std::isnan(b[k])) continue;
         ++nob;

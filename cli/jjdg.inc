@@ -41,9 +41,9 @@ bool jdgiv(Ctx &c, Val &out) {
     CK(dec01(c, d0, "d", n, a));
     CK(dec01(c, d1, "d", n, b));
     Dv u, v, wv;
-    CK(num(c, y0, "y", u, static_cast<long>(n)));
-    CK(num(c, y1, "y", v, static_cast<long>(n)));
-    if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<long>(n), 0.0));
+    CK(num(c, y0, "y", u, static_cast<std::int64_t>(n)));
+    CK(num(c, y1, "y", v, static_cast<std::int64_t>(n)));
+    if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
     double o[12];
     if (clab_jdgpop(a.data(), b.data(), u.p(), v.p(), wv.n() ? wv.p() : nullptr, static_cast<int>(n), o) != CLAB_OK) {
       return c.fail("`w` must have a positive total.");
@@ -62,8 +62,8 @@ bool jdgiv(Ctx &c, Val &out) {
   CK(dec01(c, c["z"], "z", n, zd));
   CK(dec01(c, c["d"], "d", n, dd));
   Dv yv, wv, sv, ev;
-  CK(num(c, c["y"], "y", yv, static_cast<long>(n)));
-  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<long>(n), 0.0));
+  CK(num(c, c["y"], "y", yv, static_cast<std::int64_t>(n)));
+  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
   Val ds = vnums(std::vector<double>{0, 0.05, 0.1}), d1;
   CK(num(c, c.has("dsh") ? c["dsh"] : ds, "dsh", sv, -1, 0.0));
   CK(num(c, arg(c, "deff", d1, 0), "deff", ev));
@@ -139,8 +139,8 @@ bool jmono(Ctx &c, Val &out) {
   const std::size_t sj = static_cast<std::size_t>(nj);
   Dv yv, wv;
   const bool hy = c.has("y");
-  if (hy) CK(num(c, c["y"], "y", yv, static_cast<long>(n)));
-  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<long>(n), 0.0));
+  if (hy) CK(num(c, c["y"], "y", yv, static_cast<std::int64_t>(n)));
+  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
   double mn = 0.0, al = 0.0;
   CK(binrd(c, "minn", 30, 0.0, Inf, mn));
   int ad = 0;

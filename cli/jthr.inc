@@ -14,8 +14,8 @@ bool thrtst(Ctx &c, Val &out) {
   Dv sv, kv, hv;
   CK(num(c, c["stops"], "stops", sv, -1, 0.0));
   const std::size_t n = sv.n();
-  CK(num(c, c["srch"], "srch", kv, static_cast<long>(n), 0.0));
-  CK(num(c, c["hits"], "hits", hv, static_cast<long>(n), 0.0));
+  CK(num(c, c["srch"], "srch", kv, static_cast<std::int64_t>(n), 0.0));
+  CK(num(c, c["hits"], "hits", hv, static_cast<std::int64_t>(n), 0.0));
   for (std::size_t i = 0; i < n; ++i) {
     if (kv[i] > sv[i] || hv[i] > kv[i]) {
       return c.fail("`srch` must be at most `stops`, and `hits` at most `srch`, in every row.");

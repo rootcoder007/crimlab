@@ -36,7 +36,7 @@ bool aorwt(Ctx &c, Val &out) {
   Dv tov;
   if (c.has("tt")) {
     CK(inst(c, c["tt"], "tt", ttv));
-    CK(num(c, c["toff"], "toff", tov, static_cast<long>(ttv.size())));
+    CK(num(c, c["toff"], "toff", tov, static_cast<std::int64_t>(ttv.size())));
   }
   const int nt = static_cast<int>(ttv.size());
   const double l = val1d(c, "lo", 120), h = val1d(c, "hi", 604800);
@@ -135,7 +135,7 @@ bool rptc(Ctx &c, Val &out) {
   const std::size_t n = yv.n();
   Lab u;
   CK(codes(c, a[0], "unit", n, u));
-  CK(num(c, a[2], "rep", rv, static_cast<long>(n)));
+  CK(num(c, a[2], "rep", rv, static_cast<std::int64_t>(n)));
   int a0 = 0, a1 = 0, mr = 0;
   CK(whole(c, c["y0"], "y0", 0, a0));
   CK(whole(c, c["y1"], "y1", a0, a1));

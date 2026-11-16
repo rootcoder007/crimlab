@@ -6,6 +6,7 @@
 // (clab_mccr). The local fits themselves are clab_ivfe with kernel weights
 // (src/apx.cpp). Least squares is that of the policy-evaluation families
 // (pev.h).
+#include <cstdint>
 #include <cmath>
 #include <cstddef>
 #include <vector>
@@ -197,14 +198,14 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   // the first-step histogram: g(R) = floor((R - c) / b) b + b / 2 + c
   // (equation 2), bins of width b over the support of g, Y_j the share
   // of the rows in bin j over b
-  const long jlo = static_cast<long>(std::floor((lo - c) / b));
-  const long jhi = static_cast<long>(std::floor((hi - c) / b));
-  const long nb = jhi - jlo + 1;
+  const std::int64_t jlo = static_cast<std::int64_t>(std::floor((lo - c) / b));
+  const std::int64_t jhi = static_cast<std::int64_t>(std::floor((hi - c) / b));
+  const std::int64_t nb = jhi - jlo + 1;
   if (nb < 4 || nb > 10000000L) return CLAB_EDOM;
   std::vector<double> xj(static_cast<size_t>(nb)), yj(static_cast<size_t>(nb), 0.0);
-  for (long j = 0; j < nb; ++j) xj[static_cast<size_t>(j)] = (jlo + j) * b + b / 2 + c;
+  for (std::int64_t j = 0; j < nb; ++j) xj[static_cast<size_t>(j)] = (jlo + j) * b + b / 2 + c;
   for (int i = 0; i < n; ++i) {
-    const long j = static_cast<long>(std::floor((r[i] - c) / b)) - jlo;
+    const std::int64_t j = static_cast<std::int64_t>(std::floor((r[i] - c) / b)) - jlo;
     yj[static_cast<size_t>(j)] += 1.0 / (n * b);
   }
   // the bandwidth, when not given: a quartic in the bin midpoints on each
@@ -214,7 +215,7 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
     double hs = 0.0;
     for (int side = 0; side < 2; ++side) {
       std::vector<double> xs, ys;
-      for (long j = 0; j < nb; ++j) {
+      for (std::int64_t j = 0; j < nb; ++j) {
         const double v = xj[static_cast<size_t>(j)];
         if ((side == 0 && v < c) || (side == 1 && v > c)) {
           xs.push_back(v);
@@ -240,7 +241,7 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   double fe[2];
   for (int side = 0; side < 2; ++side) {
     double s0 = 0, s1 = 0, s2 = 0, t0 = 0, t1 = 0;
-    for (long j = 0; j < nb; ++j) {
+    for (std::int64_t j = 0; j < nb; ++j) {
       const double v = xj[static_cast<size_t>(j)];
       if ((side == 0 && !(v < c)) || (side == 1 && !(v > c))) continue;
       const double u = v - c, k = std::fmax(0.0, 1 - std::fabs(u / h));

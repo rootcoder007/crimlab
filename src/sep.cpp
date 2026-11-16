@@ -7,6 +7,7 @@
 // filtering, the metapopulation SIR model, Weibull frailty and
 // promotion-time cure models with intrinsic CAR area effects, and the
 // structural bias of graph attention.
+#include <cstdint>
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
@@ -473,8 +474,8 @@ int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p,
       lin(Z, n, kz, g.data(), nullptr, ez.data());
       for (int i = 0; i < n; ++i) pr[i] = 1 / (1 + std::exp(-ez[i]));
     };
-    const long lim = static_cast<long>(maxit) * 20;
-    for (long it = 0; it < lim; ++it) {
+    const std::int64_t lim = static_cast<std::int64_t>(maxit) * 20;
+    for (std::int64_t it = 0; it < lim; ++it) {
       if (kutil::stop(static_cast<double>(n) * 100)) return CLAB_EINTR;
       fitted(beta);
       probs(gam);

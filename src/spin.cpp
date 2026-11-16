@@ -387,7 +387,7 @@ SEXP gvec(SEXP x, const char *nm) {
 }
 
 lab codes(SEXP x, const char *nm, R_xlen_t n) {
-  if (Rf_xlength(x) != n) clab::fail("`%s` must have one label per value, %ld.", nm, static_cast<long>(n));
+  if (Rf_xlength(x) != n) clab::fail("`%s` must have one label per value, %lld.", nm, static_cast<long long>(n));
   SEXP s = PROTECT(clab::labs(x));
   if (Rf_isNull(s) || clab::anyna(s)) {
     clab::fail("`%s` must be labels (numbers, text or a factor) with no missing "

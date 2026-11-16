@@ -55,7 +55,7 @@ bool adjcols(Ctx &c, const Val &adj, std::size_t n, std::vector<Term> &out, cons
     }
     if (isnum(x)) {
       Dv v;
-      CK(num(c, x, an.c_str(), v, static_cast<long>(n)));
+      CK(num(c, x, an.c_str(), v, static_cast<std::int64_t>(n)));
       Term t;
       t.nm = p.first;
       t.x = v.v;
@@ -347,7 +347,7 @@ bool grprr(Ctx &c, Val &out) {
   Dv nn;
   const double *nv = nullptr;
   if (ar[1].t != Val::NUL) {
-    CK(num(c, ar[1], "n", nn, static_cast<long>(m), 0.0, true));
+    CK(num(c, ar[1], "n", nn, static_cast<std::int64_t>(m), 0.0, true));
     nv = nn.p();
   }
   double pr = 0.0, z = 0.0, lv = 0.0;
@@ -443,7 +443,7 @@ bool dastd(Ctx &c, Val &out) {
   Dv xv, nv;
   CK(num(c, ar[0], "x", xv, -1, 0.0));
   const std::size_t m = xv.n();
-  CK(num(c, ar[1], "n", nv, static_cast<long>(m), 0.0, true));
+  CK(num(c, ar[1], "n", nv, static_cast<std::int64_t>(m), 0.0, true));
   Lab s, g;
   CK(codes(c, ar[2], "strat", m, s));
   if (ar[3].t != Val::NUL) {
@@ -525,7 +525,7 @@ bool sirex(Ctx &c, Val &out) {
   Dv xv, nv;
   CK(num(c, ar[0], "x", xv, -1, 0.0));
   const std::size_t m = xv.n();
-  CK(num(c, ar[1], "n", nv, static_cast<long>(m), 0.0, true));
+  CK(num(c, ar[1], "n", nv, static_cast<std::int64_t>(m), 0.0, true));
   Lab s, g;
   CK(codes(c, ar[2], "strat", m, s));
   if (ar[3].t == Val::NUL) return c.fail("`grp` must give the group (area) of each row.");
@@ -654,7 +654,7 @@ bool ctabx(Ctx &c, Val &out) {
       }
     } else {
       Dv wv;
-      CK(num(c, a[2], "w", wv, static_cast<long>(n), ag == 1 ? 0.0 : -HUGE_VAL));
+      CK(num(c, a[2], "w", wv, static_cast<std::int64_t>(n), ag == 1 ? 0.0 : -HUGE_VAL));
       for (std::size_t i = 0; i < n; ++i) {
         const std::size_t q = at(i);
         const double v = wv[i];

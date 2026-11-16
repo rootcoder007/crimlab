@@ -1690,8 +1690,8 @@ typedef struct clab_lrn {
 int clab_dmlxk(int model, int sc);
 
 /* Scratch for clab_dmlx(): returns the doubles, sets *niw to the ints. */
-long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
-                const clab_lrn *ly, const clab_lrn *ld, long *niw);
+int64_t clab_dmlxsz(int model, int n, int p, int nf, int nrep,
+                    const clab_lrn *ly, const clab_lrn *ld, int64_t *niw);
 
 /* Cross-fitted double machine learning. model: 0 partially linear
  * regression (PLR), 1 partially linear IV (PLIV, one instrument z), 2
@@ -1755,7 +1755,7 @@ int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork);
  * l->seed (a learner of weight 0 is not fitted). The fold fits use seed
  * l->seed + 7919 (k + 1). With one learner the stack is that learner,
  * bit for bit. work: clab_stksz() doubles; iwork: the ints it sets. */
-long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw);
+int64_t clab_stksz(int n, int p, int nt, const clab_lrn *l, int64_t *niw);
 int clab_stack(const double *x, int n, int p, const double *y, int fam,
                const clab_lrn *l, const int *fold, const double *xt, int nt,
                double *oof, double *risk, double *wt, double *pred,

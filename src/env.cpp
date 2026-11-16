@@ -5,13 +5,14 @@
 // a Kaya identity, the variance inflation factors of a design, the
 // Jarque-Bera test of residuals, and Pesaran's CD test of cross-sectional
 // dependence in a panel. No allocation, no exceptions, no I/O.
+#include <cstdint>
 #include <cmath>
 #include <cstddef>
 
 #include "crimlab.h"
 #include "pev.h"
-
 #include "kutil.h"
+
 namespace {
 
 // the logarithmic mean (a - b) / (ln a - ln b), a when a = b; log1p keeps
@@ -113,7 +114,7 @@ extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) CLAB_TRY {
   if (nu < 2 || nt < 2) return CLAB_EARG;
   const std::size_t st = static_cast<std::size_t>(nt);
   double cd = 0.0, sr = 0.0, sa = 0.0;
-  long m = 0;
+  std::int64_t m = 0;
   for (int a = 0; a < nu; ++a) {
     const double *ea = e + static_cast<std::size_t>(a) * st;
     for (int b = a + 1; b < nu; ++b) {

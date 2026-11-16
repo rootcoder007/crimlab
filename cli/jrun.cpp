@@ -291,7 +291,7 @@ bool notvec(Ctx &c, const char *nm) {
 
 // .num(): finite numbers, len of them (any number when len < 0), all at
 // least lo (above lo when open).
-bool num(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo = -HUGE_VAL,
+bool num(Ctx &c, const Val &o, const char *nm, Dv &d, std::int64_t len = -1, double lo = -HUGE_VAL,
          bool open = false) {
   const Got g = readd(o, d);
   if (g == NOTNUM || d.n() < 1) return c.fail("`%s` must be finite numbers with no missing values.", nm);
@@ -301,7 +301,7 @@ bool num(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo =
     if (!std::isfinite(x)) return c.fail("`%s` must be finite numbers with no missing values.", nm);
   }
   if (len >= 0 && d.n() != static_cast<std::size_t>(len)) {
-    return c.fail("`%s` must have length %ld, not %ld.", nm, len, static_cast<long>(d.n()));
+    return c.fail("`%s` must have length %lld, not %lld.", nm, static_cast<long long>(len), static_cast<long long>(d.n()));
   }
   for (double x : d.v) {
     if (open ? x <= lo : x < lo) {
@@ -312,7 +312,7 @@ bool num(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo =
 }
 
 // A per-group argument.
-bool gnum(Ctx &c, const Val &o, const char *nm, Dv &d, long len = -1, double lo = -HUGE_VAL,
+bool gnum(Ctx &c, const Val &o, const char *nm, Dv &d, std::int64_t len = -1, double lo = -HUGE_VAL,
           bool open = false) {
   if (readd(o, d) == NOTNUM) {
     return c.fail("`%s` must be finite numbers, one per group: an array of numbers or an object "
@@ -355,7 +355,7 @@ bool whole(Ctx &c, const Val &o, const char *nm, int lo, int &r) {
 }
 
 // .lgl(): true or false, n of them (any number when n < 0), none missing.
-bool lgl(Ctx &c, const Val &o, const char *nm, long n, std::vector<int> &b) {
+bool lgl(Ctx &c, const Val &o, const char *nm, std::int64_t n, std::vector<int> &b) {
   const Got g = readb(o, b);
   bool na = false;
   for (int v : b) na = na || v < 0;
@@ -447,7 +447,7 @@ bool wts(Ctx &c, Dv &w, std::size_t n) {
     ones(w, n);
     return true;
   }
-  return num(c, c["w"], "w", w, static_cast<long>(n), 0.0);
+  return num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0);
 }
 
 // as.character() of one label: text, a number or a bool; false when
@@ -1199,7 +1199,7 @@ bool incap(Ctx &c, Val &out) {
   if (s.n() != 1 && s.n() != n) return c.fail("`s` must have length 1 or %d.", static_cast<int>(n));
   const bool has = c.has("share");
   if (has) {
-    CK(gnum(c, c["share"], "share", sh, static_cast<long>(n), 0.0));
+    CK(gnum(c, c["share"], "share", sh, static_cast<std::int64_t>(n), 0.0));
     if (std::fabs(nsum(sh.p(), n) - 1) > 1e-9) return c.fail("`share` must sum to 1.");
   }
   std::vector<std::string> g;
@@ -1257,7 +1257,7 @@ bool sellab(Ctx &c, Val &out) {
   std::vector<int> rel, rule;
   CK(lgl(c, c["rel"], "rel", -1, rel));
   const std::size_t n = rel.size();
-  CK(lgl(c, c["rule"], "rule", static_cast<long>(n), rule));
+  CK(lgl(c, c["rule"], "rule", static_cast<std::int64_t>(n), rule));
   Dv y;
   const Got gy = readd(c["y"], y);
   if (gy == NOTNUM || y.n() != n) return c.fail("`y` must be numbers, one per defendant.");

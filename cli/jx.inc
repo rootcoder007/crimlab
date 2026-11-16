@@ -512,7 +512,7 @@ inline bool xy(Ctx &c, const Val &x, const Val &y, Mode m, Pts &p) {
   CK(vbyname(c, {{"x", &cx}, {"y", &cy}}));
   Dv vx, vy;
   CK(num(c, cx, nx, vx));
-  CK(num(c, cy, ny, vy, static_cast<long>(vx.n())));
+  CK(num(c, cy, ny, vy, static_cast<std::int64_t>(vx.n())));
   p.n = static_cast<int>(vx.n());
   if (!p.ll) {
     p.x = vx.v;
@@ -580,7 +580,7 @@ inline bool pwts(Ctx &c, const Val &w, std::size_t n, std::vector<double> &out) 
   out.clear();
   if (w.t == Val::NUL) return true;
   Dv v;
-  CK(num(c, w, "w", v, static_cast<long>(n), 0.0));
+  CK(num(c, w, "w", v, static_cast<std::int64_t>(n), 0.0));
   bool any = false;
   for (double e : v.v) any = any || e > 0;
   if (!any) return c.fail("`w` must have a positive sum.");
@@ -611,7 +611,7 @@ inline bool binrd(Ctx &c, const char *nm, double def, double lo, double hi, doub
 inline double na(double v) { return std::isnan(v) ? NA : v; }
 // bfx::nna(): numbers or NA (true and false as 1 and 0), no infinite
 // value, n of them or one recycled to n (n < 0: any length, at least one).
-inline bool nna(Ctx &c, const Val &x, const char *nm, long n, std::vector<double> &v) {
+inline bool nna(Ctx &c, const Val &x, const char *nm, std::int64_t n, std::vector<double> &v) {
   const char *m = "`%s` must be numbers or NA, one per case or one for all.";
   const std::size_t k = vlen(x);
   bool ok = k >= 1 && (n < 0 || k == static_cast<std::size_t>(n) || k == 1);

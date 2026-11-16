@@ -4,6 +4,7 @@
 // give over a grid of candidate bases for a series of incidents, kernel
 // calibration of the decay from known trips, accuracy measures, and the
 // Bayesian combination with an origin-destination matrix.
+#include <cstdint>
 #include <cmath>
 #include <limits>
 
@@ -221,13 +222,13 @@ int clab_bjtc(const double *pj, int no, const double *od, int nd,
   for (int o = 0; o < no; ++o) {
     if (!kutil::nonneg(pj[o])) return CLAB_EDOM;
     for (int j = 0; j < nd; ++j)
-      if (!kutil::nonneg(od[static_cast<long>(o) * nd + j])) return CLAB_EDOM;
+      if (!kutil::nonneg(od[static_cast<std::int64_t>(o) * nd + j])) return CLAB_EDOM;
   }
   double *pjt = out, *gen = out + no, *cnd = out + 2 * no, *prd = out + 3 * no,
          *rsk = out + 4 * no;
   for (int o = 0; o < no; ++o) {
     kutil::ksum g, c;
-    const double *row = od + static_cast<long>(o) * nd;
+    const double *row = od + static_cast<std::int64_t>(o) * nd;
     for (int j = 0; j < nd; ++j) g.add(row[j]);
     for (int k = 0; k < m; ++k) c.add(row[dest[k]]);  // repeats count
     pjt[o] = pj[o];

@@ -44,8 +44,8 @@ bool wread(Ctx &c, int n, Wcsr &o) {
   if (val1(nn) != n) return c.fail("`w` is for %g units, not %d.", val1(nn), n);
   Dv i, j, v;
   CK(num(c, col(w, "i"), "w$i", i, -1, 1.0));
-  CK(num(c, col(w, "j"), "w$j", j, static_cast<long>(i.n()), 1.0));
-  CK(num(c, col(w, "w"), "w$w", v, static_cast<long>(i.n()), 0.0));
+  CK(num(c, col(w, "j"), "w$j", j, static_cast<std::int64_t>(i.n()), 1.0));
+  CK(num(c, col(w, "w"), "w$w", v, static_cast<std::int64_t>(i.n()), 0.0));
   std::vector<int> ei, ej;
   for (std::size_t q = 0; q < i.n(); ++q) {
     const double a = i[q], b = j[q];

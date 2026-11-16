@@ -9,6 +9,7 @@
 // columns only through their ranks: a strictly increasing transform of a
 // column leaves every tree unchanged. Trees are grown and used one at a
 // time, so memory does not grow with the number of trees.
+#include <cstdint>
 #include <algorithm>
 #include <cmath>
 
@@ -37,7 +38,7 @@ int cuts(const double *xj, const int *tr, int mt, double *buf, double *cut) {
   }
   int c = 0;
   for (int b = 1; b < NB; ++b) {
-    const double v = buf[static_cast<long>(b) * u / NB];
+    const double v = buf[static_cast<std::int64_t>(b) * u / NB];
     if (c == 0 || v > cut[c - 1]) cut[c++] = v;
   }
   return c;
@@ -57,15 +58,15 @@ struct Node {
 
 namespace lrn {
 
-long fwork(int n, int p, int nt) {
+std::int64_t fwork(int n, int p, int nt) {
   // cut points, a sort buffer, the histogram, the sums of predictions,
   // the nodes (three doubles each, at most 2n + 1)
-  return static_cast<long>(p) * (NB - 1) + n + 2L * NB + nt + 2L * n +
-         5L * (2L * n + 1);
+  return static_cast<std::int64_t>(p) * (NB - 1) + n + std::int64_t{2} * NB + nt + std::int64_t{2} * n +
+         std::int64_t{5} * (std::int64_t{2} * n + 1);
 }
-long fiwork(int n, int p, int nt) {
+std::int64_t fiwork(int n, int p, int nt) {
   // bins (bytes, four to an int), the bag, its counts, the stack, columns
-  return (static_cast<long>(n + nt) * p + 3) / 4 + 3L * n + 1 + p;
+  return (static_cast<std::int64_t>(n + nt) * p + 3) / 4 + std::int64_t{3} * n + 1 + p;
 }
 
 int forest(const double *x, int n, int p, const double *y, const int *tr,
@@ -80,25 +81,25 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
   // honest trees (Wager and Athey 2018): the first half of a shuffled bag
   // places the splits, the second half the leaf means
   const int mg = f.hon ? m / 2 : m;
-  double *cut = work, *buf = cut + static_cast<long>(p) * (NB - 1);
+  double *cut = work, *buf = cut + static_cast<std::int64_t>(p) * (NB - 1);
   double *hs = buf + n, *hc = hs + NB, *acc = hc + NB, *oa = acc + me,
          *on = oa + n;
   // 2m + 1 nodes in the doubles that follow (a node is 24 bytes)
   static_assert(sizeof(Node) == 3 * sizeof(double), "a node is three doubles");
   Node *node = reinterpret_cast<Node *>(on + n);
-  double *es = on + n + 3L * (2L * n + 1), *ec = es + 2L * n + 1;
+  double *es = on + n + std::int64_t{3} * (std::int64_t{2} * n + 1), *ec = es + std::int64_t{2} * n + 1;
   unsigned char *bx = reinterpret_cast<unsigned char *>(iwork);
-  int *bag = iwork + (static_cast<long>(n + me) * p + 3) / 4, *cnt = bag + n;
+  int *bag = iwork + (static_cast<std::int64_t>(n + me) * p + 3) / 4, *cnt = bag + n;
   int *stk = cnt + n, *col = stk + n + 1;
   // bins: training rows first (rows of x), then the rows to predict
-  const long ld = static_cast<long>(n) + me;
+  const std::int64_t ld = static_cast<std::int64_t>(n) + me;
   for (int j = 0; j < p; ++j) {
-    const double *xj = x + static_cast<long>(j) * n;
-    double *cj = cut + static_cast<long>(j) * (NB - 1);
+    const double *xj = x + static_cast<std::int64_t>(j) * n;
+    double *cj = cut + static_cast<std::int64_t>(j) * (NB - 1);
     const int c = cuts(xj, tr, mt, buf, cj);
     unsigned char *bj = bx + j * ld;
     for (int i = 0; i < n; ++i) bj[i] = bin(xj[i], cj, c);
-    const double *pj = xp + static_cast<long>(j) * np;
+    const double *pj = xp + static_cast<std::int64_t>(j) * np;
     for (int i = 0; i < me; ++i) bj[n + i] = bin(pj[te[i]], cj, c);
   }
   for (int i = 0; i < me; ++i) acc[i] = 0.0;
@@ -219,7 +220,7 @@ int forest(const double *x, int n, int p, const double *y, const int *tr,
       }
     }
     // the value at the leaf of the row at column offset o of the bins
-    auto val = [&](long o) {
+    auto val = [&](std::int64_t o) {
       int k = 0, h = 0;
       for (;;) {
         if (f.hon && ec[k] > 0.0) h = k;
@@ -258,10 +259,10 @@ int clab_rfor(const double *x, int n, int p, const double *y,
               double frac, int repl, int hon, double imb, unsigned int seed,
               double *pred, double *oob, double *work, int *iwork) CLAB_TRY {
   if (n < 2 || p < 1 || nt < 0) return CLAB_EARG;
-  for (long k = 0; k < static_cast<long>(n) * p; ++k) {
+  for (std::int64_t k = 0; k < static_cast<std::int64_t>(n) * p; ++k) {
     if (!std::isfinite(x[k])) return CLAB_EDOM;
   }
-  for (long k = 0; k < static_cast<long>(nt) * p; ++k) {
+  for (std::int64_t k = 0; k < static_cast<std::int64_t>(nt) * p; ++k) {
     if (!std::isfinite(xt[k])) return CLAB_EDOM;
   }
   for (int i = 0; i < n; ++i) {

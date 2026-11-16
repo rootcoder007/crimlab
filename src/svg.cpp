@@ -5,12 +5,13 @@
 // written into the caller's buffer, or only measured. Numbers are written
 // by integer arithmetic, never by printf, so the decimal point is "." in
 // every locale and the bytes are the same on every platform.
+#include <cstdint>
 #include <cmath>
 #include <cstring>
 
 #include "crimlab.h"
-
 #include "kutil.h"
+
 namespace {
 
 // The canvas and the plot box, in pixels (documented in crimlab.h).
@@ -20,17 +21,17 @@ constexpr int W = 640, H = 400, L = 64, R = 16, T = 40, B = 52;
 // byte, written or not.
 struct Out {
   char *s;
-  long cap;
-  long n;
+  std::int64_t cap;
+  std::int64_t n;
 };
 
-void put(Out &o, const char *t, long m) {
-  for (long i = 0; i < m; ++i, ++o.n) {
+void put(Out &o, const char *t, std::int64_t m) {
+  for (std::int64_t i = 0; i < m; ++i, ++o.n) {
     if (o.n < o.cap - 1) o.s[o.n] = t[i];
   }
 }
 
-void put(Out &o, const char *t) { put(o, t, static_cast<long>(std::strlen(t))); }
+void put(Out &o, const char *t) { put(o, t, static_cast<std::int64_t>(std::strlen(t))); }
 
 // XML text: & < > " escaped.
 void text(Out &o, const char *t) {

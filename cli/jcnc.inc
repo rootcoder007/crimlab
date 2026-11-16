@@ -61,7 +61,7 @@ bool cconc(Ctx &c, Val &out) {
     n = xv.size();
     if (c.has("w")) {
       Dv w;
-      CK(num(c, c["w"], "w", w, static_cast<long>(n), 0.0, true));
+      CK(num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0, true));
       wv = w.v;
     }
   }
@@ -139,7 +139,7 @@ bool cconc(Ctx &c, Val &out) {
   Val scl;
   if (c.has("pop")) {
     Dv pv;
-    CK(num(c, c["pop"], "pop", pv, static_cast<long>(n), 0.0, true));
+    CK(num(c, c["pop"], "pop", pv, static_cast<std::int64_t>(n), 0.0, true));
     double sc[5];
     if (clab_urbsc(xv.data(), pv.p(), static_cast<int>(n), sc) != CLAB_OK) {
       for (int k = 0; k < 4; ++k) sc[k] = NA;

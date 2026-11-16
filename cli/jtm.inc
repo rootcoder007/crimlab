@@ -201,7 +201,7 @@ bool periods(Ctx &c, std::size_t n, std::vector<double> &v) {
     return true;
   }
   Dv xv;
-  CK(num(c, c["x"], "x", xv, static_cast<long>(n)));
+  CK(num(c, c["x"], "x", xv, static_cast<std::int64_t>(n)));
   for (std::size_t i = 0; i < n; ++i) {
     v[i] = xv[i];
     if (i > 0 && !(v[i] > v[i - 1])) return c.fail("`x` must be strictly increasing.");

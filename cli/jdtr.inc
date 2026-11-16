@@ -8,7 +8,7 @@
 bool detrsp(Ctx &c, Val &out) {
   Dv xv, bv, sv, pv;
   CK(num(c, c["x"], "x", xv));
-  const long n = static_cast<long>(xv.n());
+  const std::int64_t n = static_cast<std::int64_t>(xv.n());
   CK(num(c, c["ben"], "ben", bv, n));
   CK(num(c, c["sanc"], "sanc", sv, n));
   CK(num(c, c["p"], "p", pv, -1, 0.0));
@@ -38,7 +38,7 @@ bool detrsp(Ctx &c, Val &out) {
 bool dtrid(Ctx &c, Val &out) {
   Dv pv, sv, cv, yv;
   CK(num(c, c["p"], "p", pv));
-  const long n = static_cast<long>(pv.n());
+  const std::int64_t n = static_cast<std::int64_t>(pv.n());
   CK(num(c, c["s"], "s", sv, n));
   CK(num(c, c["c"], "c", cv, n));
   if (c.has("y")) CK(num(c, c["y"], "y", yv, n));
@@ -219,7 +219,7 @@ bool crsev(Ctx &c, Val &out) {
   std::vector<double> pv;
   if (c.has("pop")) {
     Dv pr;
-    CK(num(c, c["pop"], "pop", pr, static_cast<long>(n), 0.0, true));
+    CK(num(c, c["pop"], "pop", pr, static_cast<std::int64_t>(n), 0.0, true));
     pv.assign(static_cast<std::size_t>(nk), -1.0);
     for (std::size_t i = 0; i < n; ++i) {
       double &e = pv[static_cast<std::size_t>(key[i])];

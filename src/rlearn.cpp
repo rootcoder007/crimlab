@@ -3,6 +3,7 @@
 // The R entry points of the learning and causal families: each checks its
 // arguments, calls one kernel with scratch from R's transient memory and
 // builds the R result. Nothing here calls back into the R evaluator.
+#include <cstdint>
 #include <climits>
 #include <cmath>
 #include <cstring>
@@ -538,8 +539,8 @@ SEXP C_clab_r_dmlx(SEXP y, SEXP d, SEXP x, SEXP model, SEXP fold, SEXP z,
     PROTECT(pr);
     fit = 0;
   }
-  long niw;
-  const long nw = clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw);
+  std::int64_t niw;
+  const std::int64_t nw = clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw);
   double *w = rl::dalloc(static_cast<double>(nw));
   int *iw = rl::ialloc(static_cast<double>(niw));
   SEXP est = PROTECT(Rf_allocVector(REALSXP, 2 + 2 * static_cast<R_xlen_t>(nrk)));
@@ -628,8 +629,8 @@ SEXP C_clab_r_suplrn(SEXP x, SEXP y, SEXP fam, SEXP lrns, SEXP nfold, SEXP fold,
   }
   const clab_lrn l = {3, ls.alpha, ls.nlam, ls.nfin, us, ls.ntree, ls.mtry, 0, ls.tol,
                       ls.scr, ls.hon, sub, ns, k, LOGICAL_RO(disc)[0]};
-  long niw;
-  const long nw = clab_stksz(n, p, nt, &l, &niw);
+  std::int64_t niw;
+  const std::int64_t nw = clab_stksz(n, p, nt, &l, &niw);
   double *w = rl::dalloc(static_cast<double>(nw));
   int *iw = rl::ialloc(static_cast<double>(niw));
   SEXP oof = PROTECT(Rf_allocMatrix(REALSXP, n, ns));

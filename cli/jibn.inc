@@ -30,7 +30,7 @@ bool ibx(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, int &p) {
   }
   for (const Val *e : cs) {
     Dv d;
-    CK(num(c, *e, "x", d, static_cast<long>(n)));
+    CK(num(c, *e, "x", d, static_cast<std::int64_t>(n)));
     v.insert(v.end(), d.v.begin(), d.v.end());
   }
   p = static_cast<int>(cs.size());
