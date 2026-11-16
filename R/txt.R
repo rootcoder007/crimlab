@@ -102,6 +102,7 @@ wrtxtfb <- function(text, path) {
         !nzchar(path)) {
     stop("wrtxtfb: `path` must be one non-empty file path.", call. = FALSE)
   }
+  .ckpath(path, "wrtxtfb", "path")
   b <- charToRaw(enc2utf8(paste0(paste(text, collapse = "\n"), "\n")))
   writeBin(b, path)
   invisible(path)

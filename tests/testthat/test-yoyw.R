@@ -258,3 +258,12 @@ test_that("the file writers refuse a missing path; an empty PDF has a page", {
   expect_identical(rawToChar(b[1:5]), "%PDF-")
   expect_true(grepl("/Count 1", rawToChar(b[b != as.raw(0)]), fixed = TRUE))
 })
+
+test_that("a path longer than a path can be and invalid text are refused", {
+  y <- yoypx(c(10, 12), 1:2)
+  expect_error(expect_warning(yoycsv(y, file = strrep("x", 5000)), NA),
+               "^yoycsv: `file` is longer than a file path can be")
+  bad <- rawToChar(as.raw(c(0xff, 0xfe, 0x41)))
+  expect_error(yoycsv(y, meta = bad), "^yoycsv: `meta` holds text")
+  expect_error(fylbl(bad), "^fylbl: `endyear` holds text")
+})

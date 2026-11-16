@@ -143,6 +143,16 @@
   x
 }
 
+# One file path (NULL passes): valid text, and no longer than a path can
+# be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it).
+.ckpath <- function(file, fn, what = "file") {
+  .cktxt(file, what, fn)
+  if (!is.null(file) && nchar(file, "bytes") > 4096L) {
+    .ckstop(fn, "`%s` is longer than a file path can be (4096 bytes)", what)
+  }
+  file
+}
+
 # TRUE or FALSE.
 .ckflag <- function(x, what, fn) {
   if (!is.logical(x) || length(x) != 1L || is.na(x)) {

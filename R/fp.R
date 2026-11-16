@@ -221,6 +221,7 @@ raplok <- function(rapldir = "/sys/class/powercap") {
   if (!is.character(rapldir) || length(rapldir) != 1L || is.na(rapldir)) {
     .ckstop("raplok", "`rapldir` must be a single directory path")
   }
+  .ckpath(rapldir, "raplok", "rapldir")
   !is.null(.raplrd(.rapldom(rapldir)))
 }
 
@@ -1023,6 +1024,8 @@ print.fpeqv <- function(x, ...) {
   if (!is.character(procstat) || length(procstat) != 1L || is.na(procstat)) {
     .ckstop(fn, "`procstat` must be a single path")
   }
+  .ckpath(rapldir, fn, "rapldir")
+  .ckpath(procstat, fn, "procstat")
   if (is.null(usage)) usage <- "process"
   if (length(usage) != 1L) {
     .ckstop(

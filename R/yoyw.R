@@ -336,7 +336,7 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
                            is.na(file) || !nzchar(file))) {
     stop(fn, ": `file` must be NULL or one file path.", call. = FALSE)
   }
-  file
+  .ckpath(file, fn)
 }
 
 .yout <- function(txt, file) {

@@ -1,5 +1,10 @@
 # crimlab 0.0.0.9000
 
+* Fixed: a file path longer than a path can be (1e6 characters) used to
+  reach `path.expand()` and its warning ("expanded path length ... would be
+  too long") in `co2fp()`, `raplok()`, `wrtxtfb()` and the `yoy*()`
+  writers; it is now refused, at most 4096 bytes.
+
 * Fixed: text that is not valid UTF-8 given for an argument used to stop
   49 functions inside base R's string functions ("invalid multibyte
   string", "input string 1 is invalid UTF-8") or, in a title, at the
