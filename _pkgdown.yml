@@ -288,6 +288,7 @@ reference:
       - smdbal
       - evlx
       - rswp
+      - dagcol
   - title: Indigenous health and wellbeing
     desc: First Nations, Metis and Inuit health, mental health and wellbeing
       from Statistics Canada's published tables, read as published and
@@ -409,6 +410,12 @@ reference:
       - lnkpr
       - hsacc
       - rtmfit
+      - chomap
+      - smmap
+      - ptmap
+      - prpmap
+      - eofst
+      - tpsurf
   - title: Search and rescue
     desc: Koopman's search theory as search and rescue planning uses it -
       lateral range curves and sweep width, the probability of detection

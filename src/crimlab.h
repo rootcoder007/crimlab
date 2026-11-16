@@ -4677,6 +4677,86 @@ int clab_ovrkwd(const char *t, int64_t n, const char *term, int64_t *count);
  * character itself): *ok 1 or 0. CLAB_EARG for an unknown kind. */
 int clab_ovrchk(const char *s, int64_t n, int kind, const char *shape, int *ok);
 
+/* ------------------------------------------------------------------------
+ * Maps (map.cpp): chomap(), smmap(), ptmap(), prpmap().
+ * ------------------------------------------------------------------------ */
+
+/* Class breaks of the n values v (those not finite set aside, at least
+ * one finite): meth 0 k classes of equal width over their range (br as
+ * seq(min, max, length.out = k + 1)), 1 their type-7 quantiles at
+ * seq(0, 1, length.out = k + 1), breaks that repeat merged; meth 2 the
+ * *nb breaks given in br (increasing, covering the values; CLAB_EDOM when
+ * they do not). One distinct break is widened to (b - 0.5, b + 0.5). br
+ * holds k + 1 (meth 0, 1) or *nb doubles; out: *nb the breaks kept and
+ * cls[i] the class of v[i] from 1, findInterval(rightmost.closed = TRUE,
+ * all.inside = TRUE), 0 when v[i] is not finite. CLAB_EDOM when no value
+ * is finite. O(n log n). */
+int clab_mapbrk(const double *v, int n, int k, int meth, double *br, int *nb, int *cls);
+/* The box of the n points (x, y) with both coordinates finite, bb (4):
+ * xmin, xmax, ymin, ymax, a range of one value widened by 0.5 each side.
+ * CLAB_EDOM when no point is finite. */
+int clab_mapbb(const double *x, const double *y, int n, double *bb);
+
+/* The centres (cx, cy: the means of the coordinates) of the clusters 1
+ * to k of the n points, cl[i] the cluster of point i (0 for none), and
+ * cnt their points; NaN for a cluster no point has. O(n + k). */
+int clab_ptcen(const double *x, const double *y, const int *cl, int n, int k, double *cx, double *cy, int *cnt);
+
+/* Proportional symbols at the n points (x, y) for the values v (from 0,
+ * NaN for none, not all NaN): the radius r[i] = rmax sqrt(v[i] / max v)
+ * (0 when max v is 0, NaN for none), rmax the box's longer side over 15
+ * when given as NaN; ord (*nord) the points with a value from the largest
+ * value down, ties in the order given; bb the box of the points widened
+ * by rmax on every side; *rm the rmax used. O(n log n). */
+int clab_mapsym(const double *x, const double *y, const double *v, int n, double rmax, double *bb, double *r,
+                int *ord, int *nord, double *rm);
+
+/* ------------------------------------------------------------------------
+ * Empirical orthogonal functions (eof.cpp): eofst().
+ * ------------------------------------------------------------------------ */
+
+/* The EOFs of zm (m x p, column-major, finite; m >= 2): ctr (p) the
+ * column means, the centred matrix A decomposed as U D V' from the
+ * eigendecomposition of the smaller of A'A and A A'. The components with
+ * d^2 above 1e-10 of the largest are kept, at most k of them (k 0: all):
+ * *nk of them, eof (p x *nk, room for p min(m, p)) the columns of V and
+ * pc (m x *nk, room for m min(m, p)) those of A V, each signed so that
+ * its largest loading in absolute value is positive; d2 (room for
+ * min(m, p)) the squared singular values; *tot the sum of squares of A.
+ * CLAB_EDOM when A is 0 (every column constant). O(m p s + s^3), s =
+ * min(m, p). */
+int clab_eofst(const double *zm, int m, int p, int k, double *ctr, double *eof, double *pc, double *d2, double *tot,
+               int *nk);
+
+/* ------------------------------------------------------------------------
+ * Thin-plate spline surface (tps.cpp): tpsurf().
+ * ------------------------------------------------------------------------ */
+
+/* The thin-plate spline of the n >= 3 values z at the points (x, y) with
+ * smoothing lam >= 0 (Duchon 1977; Wahba 1990): a (n) the coefficients of
+ * phi(r) = r^2 log r, b (3) those of 1, x, y, solving (K + lam I) a + T b
+ * = z, T'a = 0; fit (n) the surface at the points and gz (nx x ny,
+ * column-major) at (gx[i], gy[j]). CLAB_EDOM when the points lie on one
+ * line (the largest cross product from the first point at most 1e-12 of
+ * the squared distance to the farthest) or the system is singular
+ * (repeated points with lam 0). O(n^3 + n nx ny). */
+int clab_tpsurf(const double *x, const double *y, const double *z, int n, double lam, const double *gx, int nx,
+                const double *gy, int ny, double *a, double *b, double *fit, double *gz);
+
+/* ------------------------------------------------------------------------
+ * Colliders of a DAG (dag.cpp): dagcol().
+ * ------------------------------------------------------------------------ */
+
+/* The colliders of the graph of the ne edges from[i] -> to[i] on the
+ * nodes 0 to nn - 1 (repeats merged): every a -> c <- b with a < b, by c
+ * and then by a and b, the first cap written to ca, cc, cb and sh (1 when
+ * a and b are adjacent, an edge either way); *nc the colliders in all and
+ * *nd the distinct edges. CLAB_EDOM for a cycle (a self-loop included).
+ * Called with cap 0 (and NULL arrays) to count. O(e log e + sum of the
+ * squared in-degrees). */
+int clab_dagcol(const int *from, const int *to, int ne, int nn, int cap, int *ca, int *cc, int *cb, int *sh, int *nc,
+                int *nd);
+
 #ifdef __cplusplus
 }
 #endif

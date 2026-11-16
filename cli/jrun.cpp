@@ -1640,6 +1640,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jyoyp.inc"
 #include "jvrf.inc"
 #include "jovr.inc"
+#include "jmap.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2081,6 +2082,13 @@ const Ent ents[] = {
     {"ovrtxt", "x html?", ovr::ovrtxt},
     {"synfix", "kind? n? seed?", ovr::synfix},
     {"pscred", "days ratio? sentence?", ovr::pscred},
+    {"chomap", "polys v brk? meth?", chomap},
+    {"smmap", "polys v brk? meth?", smmap},
+    {"ptmap", "x y? cl?", ptmap},
+    {"prpmap", "x y? v rmax?", prpmap},
+    {"eofst", "z k?", eofst},
+    {"tpsurf", "x y z lam? nx? ny?", tpsurf},
+    {"dagcol", "from to triple?", dagcol},
     {"ifesc", "data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?", ax::ifesc},
     {"updwn", "data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?", ax::updwn},
     {"expjn", "expo outc by?", ax::expjn},

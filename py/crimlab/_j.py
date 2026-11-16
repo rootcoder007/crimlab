@@ -6941,6 +6941,120 @@ def cemtch(data: Any, d: Any, x: Any, cut: Any = None, lcut: Any = None) -> Any:
     return jcall("cemtch", data=data, d=d, x=x, cut=cut, lcut=lcut)
 
 
+def chomap(polys: Any, v: Any, brk: Any = 5, meth: Any = "quantile") -> Any:
+    """The layout of R's ``chomap()``, a choropleth map.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``chomap()`` but its drawing arguments. An area is a list of
+    ``[x, y]`` rows, ``[None, None]`` between rings; a dictionary of areas
+    names them. The colours are those of the ``"sequential"`` palette.
+
+    Examples
+    --------
+    >>> sq = [[0, 0], [1, 0], [1, 1], [0, 1]]
+    >>> r = chomap(polys=[sq, sq], v=[1, 3], brk=2, meth="equal")
+    >>> r["breaks"], r["areas"]["cls"]
+    ([1.0, 2.0, 3.0], [1.0, 2.0])
+    """
+    return jcall("chomap", polys=polys, v=v, brk=brk, meth=meth)
+
+
+def smmap(polys: Any, v: Any, brk: Any = 5, meth: Any = "quantile") -> Any:
+    """The layout of R's ``smmap()``, small multiples of a choropleth map.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``smmap()`` but its drawing arguments. ``v`` is a list of rows, one
+    per area (the periods numbered from 1), or a dictionary of columns, one
+    per named period.
+
+    Examples
+    --------
+    >>> sq = [[0, 0], [1, 0], [1, 1], [0, 1]]
+    >>> r = smmap(polys=[sq, sq], v=[[1, 2], [3, 4]], brk=1)
+    >>> r["breaks"], r["areas"]["prd"]
+    ([1.0, 4.0], ['1', '1', '2', '2'])
+    """
+    return jcall("smmap", polys=polys, v=v, brk=brk, meth=meth)
+
+
+def ptmap(x: Any, y: Any = None, cl: Any = None) -> Any:
+    """The layout of R's ``ptmap()``, a point map with clusters.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``ptmap()`` but its drawing arguments. ``cl`` is a cluster number
+    per point (``None`` for noise) or a result of ``dbscn()``; the colours
+    are those of the ``"okabe"`` palette.
+
+    Examples
+    --------
+    >>> r = ptmap(x=[0, 2, 9], y=[0, 0, 0], cl=[1, 1, None])
+    >>> r["cent"]["x"], r["pts"]["pch"]
+    ([1.0], [16.0, 16.0, 4.0])
+    """
+    return jcall("ptmap", x=x, y=y, cl=cl)
+
+
+def prpmap(x: Any, y: Any = None, v: Any = None, rmax: Any = None) -> Any:
+    """The layout of R's ``prpmap()``, a proportional symbol map.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``prpmap()`` but its drawing arguments.
+
+    Examples
+    --------
+    >>> r = prpmap(x=[0, 1], y=[0, 0], v=[4, 1], rmax=2)
+    >>> r["pts"]["r"], r["pts"]["ord"]
+    ([2.0, 1.0], [1.0, 2.0])
+    """
+    return jcall("prpmap", x=x, y=y, v=v, rmax=rmax)
+
+
+def eofst(z: Any, k: Any = None) -> Any:
+    """Empirical orthogonal functions of a matrix of periods by places.
+
+    The arguments and the result are those of R's ``eofst()``: see its
+    help page. ``z`` is a list of rows (periods), or a dictionary of
+    columns (places).
+
+    Examples
+    --------
+    >>> r = eofst(z=[[1, 2], [3, 2]])
+    >>> r["explained"]
+    1.0
+    """
+    return jcall("eofst", z=z, k=k)
+
+
+def tpsurf(x: Any, y: Any, z: Any, lam: Any = 0, nx: Any = 50, ny: Any = None) -> Any:
+    """Thin-plate spline surface through values at points in the plane.
+
+    The arguments and the result are those of R's ``tpsurf()``: see its
+    help page; ``ny`` left out is ``nx``.
+
+    Examples
+    --------
+    >>> r = tpsurf(x=[0, 1, 0], y=[0, 0, 1], z=[1, 2, 3], nx=2)
+    >>> [round(v, 6) for v in r["fitted"]]
+    [1.0, 2.0, 3.0]
+    """
+    return jcall("tpsurf", x=x, y=y, z=z, lam=lam, nx=nx, ny=ny)
+
+
+def dagcol(from_: Any, to: Any, triple: Any = None) -> Any:
+    """Colliders of a directed acyclic graph.
+
+    The arguments and the result are those of R's ``dagcol()``: see its
+    help page.
+
+    Examples
+    --------
+    >>> r = dagcol(from_=["a", "b"], to=["c", "c"])
+    >>> r["col"]["c"], r["col"]["shielded"]
+    (['c'], [False])
+    """
+    return jcall("dagcol", from_=from_, to=to, triple=triple)
+
+
 def lrcce(object: Any, x: Any, ylag: Any = None, level: Any = 0.95) -> Any:
     """Long-run effects from a common correlated effects fit.
 

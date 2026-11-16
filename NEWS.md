@@ -52,6 +52,33 @@
   population as the offset and the crime and 311 controls, for
   `cntreg()`.
 
+* New: `dagcol()`, the colliders of a directed acyclic graph given by its
+  edges, shielded or not (v-structures), and whether a given triple is
+  one.
+
+* New: `tpsurf()`, a thin-plate spline surface through values at points
+  in the plane (Duchon 1977), smoothed by `lam`, on a grid with `print()`
+  and `plot()` methods.
+
+* New: `eofst()`, the empirical orthogonal functions of a matrix of
+  periods by places: spatial patterns, their series over time and the
+  share of the variance of each.
+
+* New: `prpmap()`, a proportional symbol map: circles whose areas are
+  proportional to the values, drawn largest first.
+
+* New: `ptmap()`, a point map in base graphics, with clusters from
+  `dbscn()` or given, each in its own colour and shape with its number at
+  its centre; `dbscn()` results now have a `plot()` method that draws
+  them through it.
+
+* New: `smmap()`, small multiples of a choropleth map, one panel per
+  period with the breaks and colours shared by every period.
+
+* New: `chomap()`, a choropleth map in base graphics from polygon
+  coordinates, with no spatial package: quantile, equal or given class
+  breaks computed in the compiled kernel.
+
 * `plotrdg()` and `plotvln()` take their densities from the compiled
   kernel that the command line and the other languages use, so the curve
   is the same everywhere and on every version of R. The kernel agrees
