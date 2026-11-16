@@ -23,8 +23,7 @@ plot.ppmlfe <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 
 #' @rdname ivfe
 #' @inheritParams plotlrnz
-#' @param terms `NULL` (every coefficient) or the names of the terms to
-#'   draw.
+#' @inheritParams plot.ppmlfe
 #' @details `plot()` draws the coefficients with their intervals and, with
 #'   endogenous columns, the first-stage coefficient of each instrument
 #'   (`fstab`, with normal intervals at `level`) and the first-stage F
@@ -50,8 +49,7 @@ plot.ivfe <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 
 #' @rdname ppmlcf
 #' @inheritParams plotlrnz
-#' @param terms `NULL` (every coefficient) or the names of the terms to
-#'   draw.
+#' @inheritParams plot.ppmlfe
 #' @details `plot()` draws the rate ratios with their intervals on a log
 #'   scale and the first-stage F statistics beside the 5% critical value
 #'   of the effective F; it returns a list of what it drew (`coef`,
@@ -72,8 +70,7 @@ plot.ppmlcf <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 
 #' @rdname expgmm
 #' @inheritParams plotlrnz
-#' @param terms `NULL` (every coefficient) or the names of the terms to
-#'   draw.
+#' @inheritParams plot.ppmlfe
 #' @details `plot()` draws the rate ratio `exp(est)` of each term with its
 #'   interval on a log scale, and returns the rows drawn.
 #' @export
