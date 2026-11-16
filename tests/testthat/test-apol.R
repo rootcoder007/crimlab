@@ -448,6 +448,10 @@ test_that("CRFs: 1 at the reference, the log-linear and IER forms", {
   expect_true(is.na(crfpm25(12, y = "ihd")$rrlo))
   expect_identical(crfno2(10)$rr, 1)
   expect_identical(crfno2(30)$logrr, 2 * crfno2(20)$logrr)
+  # respiratory deaths: RR 1.03 (1.00 to 1.05) per 10 ug/m3 above 10
+  rs <- crfno2(25, y = "respiratory")
+  expect_identical(rs$rr, exp(log(1.03) * (25 - 10) / 10))
+  expect_identical(c(rs$rrlo, rs$rrup), exp(log(c(1, 1.05)) * 15 / 10))
   expect_equal(crfno2(20, y = "anything", betaper10 = 0.05)$logrr, 0.05)
   expect_match(crfno2(20, y = "chiast")$citation, "Khreis")
   expect_error(crfpm25(10, y = "nope"), "Unknown outcome")

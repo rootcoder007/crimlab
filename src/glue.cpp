@@ -664,7 +664,6 @@ SEXP C_clab_r_updwn(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_vcx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_runlen(SEXP, SEXP, SEXP, SEXP);
 // One-pass summaries (bskch.cpp).
-SEXP C_clab_r_crc32(SEXP, SEXP);
 SEXP C_clab_r_momupd(SEXP, SEXP);
 SEXP C_clab_r_mommrg(SEXP, SEXP);
 SEXP C_clab_r_momstat(SEXP);
@@ -673,8 +672,6 @@ SEXP C_clab_r_hlladd(SEXP, SEXP, SEXP);
 SEXP C_clab_r_hllcnt(SEXP);
 // The footprint of a computation (bfp.cpp).
 SEXP C_clab_r_citab(void);
-SEXP C_clab_r_cimatch(SEXP);
-SEXP C_clab_r_tzterr(SEXP);
 SEXP C_clab_r_proxy(SEXP);
 SEXP C_clab_r_fpe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_fpeqv(SEXP);
@@ -689,17 +686,10 @@ SEXP C_clab_r_fpnote(SEXP, SEXP);
 SEXP C_clab_r_plr(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_bootci(SEXP, SEXP);
 // Data description (bdsc.cpp).
-SEXP C_clab_r_hbin(SEXP, SEXP);
 SEXP C_clab_r_freq(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_pcor(SEXP, SEXP, SEXP);
 SEXP C_clab_r_rowany(SEXP);
-SEXP C_clab_r_nrun(SEXP, SEXP);
 SEXP C_clab_r_msum(SEXP);
-SEXP C_clab_r_pstat(SEXP);
-SEXP C_clab_r_q7(SEXP, SEXP);
-SEXP C_clab_r_maha(SEXP, SEXP, SEXP);
-SEXP C_clab_r_mcar(SEXP, SEXP, SEXP);
-SEXP C_clab_r_mgrid(SEXP, SEXP);
 SEXP C_clab_r_dups(SEXP, SEXP);
 SEXP C_clab_r_cochq(SEXP, SEXP);
 // Distributions fitted by maximum likelihood (bdfit.cpp).
@@ -766,6 +756,7 @@ SEXP C_clab_r_rtmfit(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_crfpar(SEXP, SEXP);
 SEXP C_clab_r_pbarea(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_rocpts(SEXP, SEXP);
+SEXP C_clab_r_dens(SEXP, SEXP, SEXP, SEXP);
 // Data description between arguments and results (bdscd.cpp).
 SEXP C_clab_r_spark(SEXP, SEXP, SEXP);
 SEXP C_clab_r_cnames(SEXP, SEXP, SEXP);
@@ -1044,7 +1035,6 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_levin", fn<&C_clab_r_levin>(), 2},
     {"C_clab_r_hif", fn<&C_clab_r_hif>(), 4},
     {"C_clab_r_concidx", fn<&C_clab_r_concidx>(), 2},
-    {"C_clab_r_crc32", fn<&C_clab_r_crc32>(), 2},
     {"C_clab_r_fesep", fn<&C_clab_r_fesep>(), 5},
     {"C_clab_r_ppmlfe", fn<&C_clab_r_ppmlfe>(), 16},
     {"C_clab_r_ivfe", fn<&C_clab_r_ivfe>(), 16},
@@ -1075,8 +1065,6 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_hlladd", fn<&C_clab_r_hlladd>(), 3},
     {"C_clab_r_hllcnt", fn<&C_clab_r_hllcnt>(), 1},
     {"C_clab_r_citab", fn<&C_clab_r_citab>(), 0},
-    {"C_clab_r_cimatch", fn<&C_clab_r_cimatch>(), 1},
-    {"C_clab_r_tzterr", fn<&C_clab_r_tzterr>(), 1},
     {"C_clab_r_proxy", fn<&C_clab_r_proxy>(), 1},
     {"C_clab_r_fpe", fn<&C_clab_r_fpe>(), 7},
     {"C_clab_r_fpeqv", fn<&C_clab_r_fpeqv>(), 1},
@@ -1089,17 +1077,10 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_fpnote", fn<&C_clab_r_fpnote>(), 2},
     {"C_clab_r_plr", fn<&C_clab_r_plr>(), 6},
     {"C_clab_r_bootci", fn<&C_clab_r_bootci>(), 2},
-    {"C_clab_r_hbin", fn<&C_clab_r_hbin>(), 2},
     {"C_clab_r_freq", fn<&C_clab_r_freq>(), 7},
     {"C_clab_r_pcor", fn<&C_clab_r_pcor>(), 3},
     {"C_clab_r_rowany", fn<&C_clab_r_rowany>(), 1},
-    {"C_clab_r_nrun", fn<&C_clab_r_nrun>(), 2},
     {"C_clab_r_msum", fn<&C_clab_r_msum>(), 1},
-    {"C_clab_r_pstat", fn<&C_clab_r_pstat>(), 1},
-    {"C_clab_r_q7", fn<&C_clab_r_q7>(), 2},
-    {"C_clab_r_maha", fn<&C_clab_r_maha>(), 3},
-    {"C_clab_r_mcar", fn<&C_clab_r_mcar>(), 3},
-    {"C_clab_r_mgrid", fn<&C_clab_r_mgrid>(), 2},
     {"C_clab_r_dups", fn<&C_clab_r_dups>(), 2},
     {"C_clab_r_cochq", fn<&C_clab_r_cochq>(), 2},
     {"C_clab_r_dfit", fn<&C_clab_r_dfit>(), 2},
@@ -1154,6 +1135,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_crfpar", fn<&C_clab_r_crfpar>(), 2},
     {"C_clab_r_pbarea", fn<&C_clab_r_pbarea>(), 6},
     {"C_clab_r_rocpts", fn<&C_clab_r_rocpts>(), 2},
+    {"C_clab_r_dens", fn<&C_clab_r_dens>(), 4},
     {"C_clab_r_spark", fn<&C_clab_r_spark>(), 3},
     {"C_clab_r_cnames", fn<&C_clab_r_cnames>(), 3},
     {"C_clab_r_mgridl", fn<&C_clab_r_mgridl>(), 5},

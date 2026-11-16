@@ -4565,7 +4565,9 @@ int clab_txtenc(const unsigned char *r, int64_t n, int *bom);
  * finite value; CLAB_EDOM with why 1 fewer than 2 values for a rule, 2
  * constant data, 3 too sparse to find TD, 4 too sparse to find alph2, 5
  * no solution in the range of bandwidths (SJ), 6 a bandwidth that is not
- * finite, 7 one that is not positive, 8 from or to not finite; CLAB_OK
+ * finite, 7 one that is not positive, 8 from not finite, 10 to not
+ * finite, 11 constant data of more than 500 values for ucv or bcv (R's
+ * error from optimize()); CLAB_OK
  * with why 9 when the ucv or bcv minimum is at one end of the range (R's
  * warning), else 0. Agrees with
  * R to rounding (its own radix-2 FFT). O(nx + n log n), O(nx^2) for the

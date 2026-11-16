@@ -298,24 +298,27 @@ double zeroin(double a, double b, double fa, double fb, F f, double tol) {
   return b;
 }
 
-// bw.ucv() (ucv) and bw.bcv(); 1 for constant data, 9 when the minimum
-// is at one end of the range (R's warning).
+// bw.ucv() (ucv) and bw.bcv(); 1 for constant data, 11 for constant data
+// of more than 500 values (R bins them into no bin and fails in
+// optimize()), 9 when the minimum is at one end of the range (R's
+// warning).
 int bwcv(const Vec &x, bool ucv, double *h) {
   const double n = static_cast<double>(x.size());
   const double hmax = 1.144 * std::sqrt(rvar(x)) * npow(x.size(), -1.0 / 5.0);
   Pairs p;
-  if (!pairs(x, p)) return 1;
+  if (!pairs(x, p)) return x.size() > 500 ? 11 : 1;
   const double lower = 0.1 * hmax, tol = 0.1 * lower;
   *h = fmin(lower, hmax, [&](double v) { return crit(ucv ? 0 : 1, n, p, v); }, tol);
   return *h < lower + tol || *h > hmax - tol ? 9 : 0;
 }
 
-// bw.SJ(): 1 constant data, 2 too sparse to find TD, 3 too sparse to find
+// bw.SJ(): 1 constant data (2 past 500 values, where R bins them into no
+// bin and finds no TD), 2 too sparse to find TD, 3 too sparse to find
 // alph2, 4 no solution in the range of bandwidths.
 int bwsj(const Vec &x, bool dpi, double *h) {
   const double n = static_cast<double>(x.size());
   Pairs p;
-  if (!pairs(x, p)) return 1;
+  if (!pairs(x, p)) return x.size() > 500 ? 2 : 1;
   const double scale = std::min(std::sqrt(rvar(x)), iqr(x) / 1.349);
   const double a = 1.24 * scale * npow(x.size(), -1.0 / 7.0);
   const double b = 1.23 * scale * npow(x.size(), -1.0 / 9.0);
@@ -464,8 +467,8 @@ double approx1(const Vec &xs, const Vec &ys, double t) {
   return ys[i] + (ys[j] - ys[i]) * ((t - xs[i]) / (xs[j] - xs[i]));
 }
 
-// The bandwidth of a rule (1 to 6), or 2 to 5 for R's refusals, 9 for its
-// warning.
+// The bandwidth of a rule (1 to 6), or 2 to 5 and 11 for R's refusals, 9
+// for its warning.
 int rulebw(const Vec &v, int rule, double *bw) {
   if (rule == 1) *bw = nrd0(v);
   if (rule == 2) *bw = nrd(v);
@@ -526,7 +529,7 @@ int clab_dens(const double *x, const double *w, int64_t nx, int rule, double bw,
   if (!hasfrom) from = *std::min_element(v.begin(), v.end()) - cut * bw;
   if (!hasto) to = *std::max_element(v.begin(), v.end()) + cut * bw;
   if (!std::isfinite(from) || !std::isfinite(to)) {
-    *why = 8;
+    *why = std::isfinite(from) ? 10 : 8;
     return CLAB_EDOM;
   }
   std::size_t n = static_cast<std::size_t>(std::max<std::int64_t>(nout, 512));
@@ -542,7 +545,13 @@ int clab_dens(const double *x, const double *w, int64_t nx, int rule, double bw,
   fft(y, true);
   Vec dens(n);
   for (std::size_t i = 0; i < n; ++i) dens[i] = std::max(0.0, y[i].real() / static_cast<double>(2 * n));
-  const Vec xords = seqlen(lo, up, n), xs = seqlen(from, to, static_cast<std::size_t>(nout));
+  Vec xords = seqlen(lo, up, n);
+  const Vec xs = seqlen(from, to, static_cast<std::size_t>(nout));
+  // from far above to: the grid runs down, and approx() sorts it first
+  if (lo > up) {
+    std::reverse(xords.begin(), xords.end());
+    std::reverse(dens.begin(), dens.end());
+  }
   for (std::size_t m = 0; m < xs.size(); ++m) {
     xo[m] = xs[m];
     yo[m] = approx1(xords, dens, xs[m]);

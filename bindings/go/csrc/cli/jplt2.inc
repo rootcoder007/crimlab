@@ -55,8 +55,11 @@ inline bool dens(Ctx &c, const std::vector<double> &v, int rule, double bw, std:
                                     "no solution in the specified range of bandwidths",
                                     "non-finite 'bw'",
                                     "'bw' is not positive.",
-                                    "non-finite 'from'"};
-    c.err = m[why >= 0 && why <= 8 ? why : 0];
+                                    "non-finite 'from'",
+                                    "",
+                                    "non-finite 'to'",
+                                    "'xmin' not less than 'xmax'"};
+    c.err = m[why >= 0 && why <= 11 ? why : 0];
     return false;
   }
   if (rc == CLAB_OK && why == 9) c.warn.push_back("minimum occurred at one end of the range");

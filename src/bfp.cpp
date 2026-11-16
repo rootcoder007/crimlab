@@ -41,16 +41,6 @@ SEXP C_clab_r_citab(void) {
   return f;
 }
 
-SEXP C_clab_r_cimatch(SEXP key) {
-  const int i = clab_cimatch(Rf_translateCharUTF8(STRING_ELT(key, 0)));
-  return Rf_ScalarInteger(i < 0 ? NA_INTEGER : i + 1);
-}
-
-SEXP C_clab_r_tzterr(SEXP tz) {
-  const char *t = clab_tzterr(Rf_translateCharUTF8(STRING_ELT(tz, 0)));
-  return t == nullptr ? Rf_ScalarString(NA_STRING) : Rf_mkString(t);
-}
-
 SEXP C_clab_r_proxy(SEXP terr) { return Rf_mkString(clab_terrproxy(CHAR(STRING_ELT(terr, 0)))); }
 
 SEXP C_clab_r_fpe(SEXP in, SEXP r0, SEXP r1, SEXP rmx, SEXP dw, SEXP de, SEXP dk) {

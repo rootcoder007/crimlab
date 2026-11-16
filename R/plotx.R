@@ -571,6 +571,23 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   invisible(bw)
 }
 
+# stats::density(x, bw, adjust, kernel, weights, n, from, to, cut) by the
+# compiled kernel of the command line's plotrdg() and plotvln(): a list of
+# the points x, the densities y, the bandwidth bw, the points n of the FFT
+# grid and warn, TRUE when a ucv or bcv minimum is at one end of its range.
+# from and to NA: not given. An unknown rule or kernel is an error.
+.dens <- function(x, bw = "nrd0", adjust = 1, kernel = "gaussian",
+                  weights = NULL, n = 512L, from = NA, to = NA, cut = 3) {
+  rs <- c("nrd0", "nrd", "ucv", "bcv", "sj-ste", "sj-dpi", "sj")
+  ks <- c("gaussian", "epanechnikov", "rectangular", "triangular",
+          "biweight", "cosine", "optcosine")
+  rule <- if (is.character(bw)) c(1:6, 5L)[match(tolower(bw), rs)] else 0L
+  if (!is.null(weights)) weights <- as.double(weights)
+  .Call(C_clab_r_dens, as.double(x), weights,
+        as.integer(c(rule, match(kernel, ks) - 1L, n)),
+        as.double(c(if (is.character(bw)) 0 else bw, adjust, cut, from, to)))
+}
+
 # the Lorenz curve and Gini of non-negative values, from the compiled core
 .pcc <- function(x, fn) {
   ok <- is.numeric(x) && !is.object(x)

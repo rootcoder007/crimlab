@@ -136,3 +136,114 @@ test_that("a title that is not valid UTF-8 is refused before the device", {
   expect_error(plothex(c(1, 2), c(1, 2), main = bad),
                "^plothex: `main` holds text that is not valid")
 })
+
+test_that("the compiled density agrees with stats::density()", {
+  dens <- crimlab:::.dens
+  # the kernel's own radix-2 FFT and R's mixed-radix one round differently:
+  # the two agree to about 1e-14 relative, so 1e-12 leaves room. ucv and
+  # bcv minimise a criterion with optimize()'s steps: rounding in the
+  # criterion (fused multiply-adds or not) moves the minimum found by about
+  # 1e-12 relative on 1000 values, so 1e-10 for those
+  near <- function(r, g, tol = 1e-12) {
+    expect_equal(g$bw, r$bw, tolerance = tol)
+    expect_equal(g$x, r$x, tolerance = tol)
+    expect_equal(g$y, r$y, tolerance = tol)
+  }
+  set.seed(1)
+  sets <- list(faithful$eruptions, as.numeric(precip),
+               rep(c(1, 2, 2, 3, 5), 20), c(0.5, 1.5, 4),
+               c(stats::rnorm(700), stats::rexp(300)))
+  rules <- c("nrd0", "nrd", "ucv", "bcv", "sj", "sj-ste", "SJ-dpi")
+  for (x in sets) {
+    for (r in rules) {
+      near(suppressWarnings(stats::density(x, bw = r)), dens(x, r),
+           if (r %in% c("ucv", "bcv")) 1e-10 else 1e-12)
+    }
+  }
+  # bw.ucv() and bw.bcv() warn when the minimum is at one end of the range
+  expect_warning(stats::bw.ucv(c(0.5, 1.5, 4)), "one end of the range")
+  expect_true(dens(c(0.5, 1.5, 4), "ucv")$warn)
+  expect_false(dens(faithful$eruptions, "ucv")$warn)
+  x <- faithful$eruptions
+  ks <- c("gaussian", "epanechnikov", "rectangular", "triangular",
+          "biweight", "cosine", "optcosine")
+  for (k in ks) {
+    for (n in c(100L, 512L, 1000L)) {
+      args <- list(x, kernel = k, n = n, adjust = 0.7, cut = 2)
+      near(do.call(stats::density, args), do.call(dens, args))
+    }
+  }
+  # past 512 points the grid is the next power of 2
+  expect_identical(dens(x, n = 1000L)$n, 1024)
+  expect_identical(dens(x, n = 100L)$n, 512)
+  w <- seq_along(x) / sum(seq_along(x))
+  near(stats::density(x, bw = 0.3, weights = w, from = 1, to = 6),
+       dens(x, 0.3, weights = w, from = 1, to = 6))
+  # a rule ignores the weights, with R's warning
+  near(suppressWarnings(stats::density(x, bw = "ucv", weights = w)),
+       dens(x, "ucv", weights = w), 1e-10)
+  # values that are not finite are dropped, and the mass is scaled by the
+  # share of those kept
+  xi <- c(x, Inf, -Inf)
+  near(stats::density(xi, bw = 0.3), dens(xi, 0.3))
+  wi <- c(w, 0.1, 0.2)
+  near(suppressWarnings(stats::density(xi, bw = 0.3, weights = wi)),
+       dens(xi, 0.3, weights = wi))
+  # from far above to: the grid runs down, and R's approx() sorts it
+  near(stats::density(x, from = 5, to = 1), dens(x, from = 5, to = 1))
+  near(stats::density(x, n = 1L), dens(x, n = 1L))
+  # values within one step of the grid below its first point or above its
+  # last share their weight with that point alone, as R's BinDist() does
+  g <- seq(0, 10, by = 0.001)
+  near(stats::density(g, bw = 0.1, from = 5, to = 6),
+       dens(g, 0.1, from = 5, to = 6))
+  # constant data and a zero IQR fall back as bw.nrd0() does
+  for (v in list(rep(3, 5), rep(0, 5), c(rep(1, 10), 2))) {
+    near(stats::density(v), dens(v))
+  }
+  near(stats::density(1e6 + x, bw = 1e-3), dens(1e6 + x, 1e-3))
+})
+
+test_that("the compiled density refuses what stats::density() refuses", {
+  dens <- crimlab:::.dens
+  x <- faithful$eruptions
+  same <- function(r, g) {
+    m <- tryCatch(r, error = conditionMessage)
+    expect_error(g, paste0("dens: ", m), fixed = TRUE)
+  }
+  same(stats::density(1, bw = "nrd0"), dens(1, "nrd0"))
+  same(stats::density(rep(2, 5), bw = "ucv"), dens(rep(2, 5), "ucv"))
+  same(stats::density(rep(2, 5), bw = "sj"), dens(rep(2, 5), "sj"))
+  same(stats::density(rep(2, 600), bw = "sj"), dens(rep(2, 600), "sj"))
+  # past 500 values R bins constant data into no bin and fails later
+  same(stats::density(rep(2, 600), bw = "ucv"), dens(rep(2, 600), "ucv"))
+  same(stats::density(rep(2, 600), bw = "bcv"), dens(rep(2, 600), "bcv"))
+  same(stats::density(c(rep(0, 10), 1, 2), bw = "sj"),
+       dens(c(rep(0, 10), 1, 2), "sj"))
+  same(stats::density(x, bw = Inf), dens(x, Inf))
+  same(stats::density(x, bw = -1), dens(x, -1))
+  same(stats::density(x, bw = 0.3, adjust = 0), dens(x, 0.3, adjust = 0))
+  same(stats::density(c(rep(1, 10), 2), bw = "nrd"),
+       dens(c(rep(1, 10), 2), "nrd"))
+  same(stats::density(c(-1.7e308, 0), bw = 1e308), dens(c(-1.7e308, 0), 1e308))
+  same(stats::density(c(0, 1.7e308), bw = 1e308), dens(c(0, 1.7e308), 1e308))
+  same(stats::density(x, bw = 0.3, from = Inf), dens(x, 0.3, from = Inf))
+  same(stats::density(x, bw = 0.3, to = -Inf), dens(x, 0.3, to = -Inf))
+  # what R refuses in its own words, the kernel refuses as out of range
+  arg <- "dens: a size or an index is out of range"
+  expect_error(stats::density(x, kernel = "box"), "should be one of")
+  expect_error(dens(x, kernel = "box"), arg, fixed = TRUE)
+  expect_error(stats::density(x, bw = "box"), "unknown bandwidth rule")
+  expect_error(dens(x, "box"), arg, fixed = TRUE)
+  expect_error(dens(x, n = 0L), arg, fixed = TRUE)
+  expect_error(dens(numeric(0), 1), arg, fixed = TRUE)
+  expect_error(dens(c(Inf, NaN), 1), arg, fixed = TRUE)
+  expect_error(stats::density(x, weights = c(-1, rep(1, 271))),
+               "'weights' must not be negative")
+  expect_error(dens(x, 0.3, weights = c(-1, rep(1, 271))), arg, fixed = TRUE)
+  expect_error(stats::density(x, weights = c(Inf, rep(1, 271))),
+               "'weights' must all be finite")
+  expect_error(dens(x, 0.3, weights = c(Inf, rep(1, 271))), arg, fixed = TRUE)
+  expect_error(stats::density(x, weights = 1), "unequal length")
+  expect_error(dens(x, 0.3, weights = 1), arg, fixed = TRUE)
+})

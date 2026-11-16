@@ -166,3 +166,46 @@ test_that("ifesc() refuses what it cannot fit", {
                      "adoption for the factors, or a fit is singular."),
                fixed = TRUE)
 })
+
+test_that("ifesc() prints, and leaves out the draws it cannot fit", {
+  p <- ifdat()
+  r <- ifesc(p, "y", "tr", "id", "yr", x = "x", r = 1, se = "none",
+             maxit = 1)
+  # five treated units, twenty never treated, ten years; one alternation
+  # of beta and the factors cannot meet the tolerance
+  expect_false(r$conv)
+  expect_output(print(r), paste("ifesc: generalized synthetic control, 5",
+                                "treated and 20 control units, 10 times, 1",
+                                "factor(s)\n"), fixed = TRUE)
+  expect_output(print(r), "Bai's estimator did not converge.", fixed = TRUE)
+  expect_identical(summary(r), r$eff)
+  cv <- ifesc(p, "y", "tr", "id", "yr", rmax = 1, se = "none")
+  expect_output(print(cv), "factor(s) (cross-validated)", fixed = TRUE)
+  q <- p
+  q$yr <- as.character(q$yr)
+  expect_error(ifesc(q, "y", "tr", "id", "yr", r = 0),
+               "ifesc: column `yr` must hold numbers or dates.", fixed = TRUE)
+  # one treated unit and three controls: a draw can be fitted when it
+  # holds the treated unit and two or more of the controls
+  set.seed(5)
+  s <- expand.grid(id = 1:4, yr = 1:6)
+  s$tr <- as.integer(s$id == 1 & s$yr >= 4)
+  s$y <- stats::rnorm(nrow(s)) + s$tr
+  bad <- function(seed) {
+    bm <- crimlab:::.ifdraws(4L, 3L, seed)
+    sum(bm[1L, ] == 0L | colSums(bm[-1L, ] > 0L) < 2L)
+  }
+  expect_identical(bad(1), 1L)
+  expect_warning(
+    b <- ifesc(s, "y", "tr", "id", "yr", r = 0, nboot = 3, seed = 1),
+    "ifesc: 1 of 3 bootstrap draws could not be fitted and are left out.",
+    fixed = TRUE
+  )
+  expect_identical(b$nfail, 1L)
+  expect_identical(bad(3), 2L)
+  expect_error(
+    suppressWarnings(ifesc(s, "y", "tr", "id", "yr", r = 0, nboot = 3,
+                           seed = 3)),
+    "ifesc: fewer than two bootstrap draws could be fitted.", fixed = TRUE
+  )
+})
