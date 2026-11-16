@@ -4360,6 +4360,28 @@ int clab_jb(const double *r, int n, double *out);
  * normal p-value, the mean of rho_ab, the mean of |rho_ab|, m. CLAB_EDOM
  * when no pair is kept. O(nu^2 nt). */
 int clab_pcd(const double *e, int nu, int nt, double *out);
+/* Least squares with the diagnostics of a regression of counts on
+ * conditions (olsdx; the weather and crime models of Algahtany, Kumar and
+ * Barclay 2022, doi:10.1007/s11356-022-20440-6): y (n) on the p columns
+ * of x (n x p, column-major), with a constant first when icpt. k = p +
+ * (icpt != 0); n >= k + 2. Out: co (k x 9, column-major) est, se, t, the
+ * two-sided p-value on n - k degrees of freedom, the limits at level lv,
+ * the standardised coefficient b sd(x) / sd(y), the tolerance and the
+ * variance inflation factor of clab_vif() (the last three NaN for the
+ * constant); vc (k x k) the variance s^2 (X'X)^-1; cr (p x p) the
+ * correlations of the columns of x; cs (n x 7) the fitted value, the
+ * residual e, e / s, the internally and externally studentised residuals,
+ * the leverage h and Cook's distance (as R's rstandard(), rstudent(),
+ * hatvalues() and cooks.distance()); st (10) R, R^2, the adjusted R^2, s,
+ * F, its two degrees of freedom and p-value, the Durbin-Watson statistic
+ * of the residuals in row order, and the residual sum of squares (without
+ * the constant, R^2 and F are about 0, as R's summary.lm()); pr (m x 4)
+ * at each of the m rows of at (m x p) the fitted mean, its standard error
+ * (that of a new value, adding s^2, when pnew) and its limits. CLAB_EDOM
+ * when a value is not finite or X'X is singular. O(n k^2 + n p^2). */
+int clab_olsdx(const double *y, const double *x, int n, int p, int icpt, const double *at,
+               int m, int pnew, double lv, double *co, double *vc, double *cr, double *cs,
+               double *pr, double *st);
 
 /* ------------------------------------------------------------------------
  * Dynamic and heterogeneous panels (src/dpn.cpp).

@@ -41,6 +41,12 @@
 * New: `pscred()`, the credit for custody before sentence under s. 719(3)
   and (3.1) of the Criminal Code, at up to one and a half days a day, and
   the time left to serve.
+* New: `olsdx()`, least squares with the checks Algahtany, Kumar and
+  Barclay (2022) report for their weather and crime regressions
+  (standardised coefficients, tolerance and variance inflation, the
+  Durbin-Watson statistic, leverage, studentised residuals and Cook's
+  distance) and the expected count, or a new month's, at given weather.
+
 * Preset `laniyonu-gent-cnt`: the tract layout of Laniyonu (2018), stops
   on the three-level gentrification factor (the `gent` recipe) with the
   population as the offset and the crime and 311 controls, for

@@ -3,11 +3,14 @@
 // Environmental crime (crimlab.h): the additive log-mean Divisia index
 // (LMDI) decomposition of a change or a gap in a count over the factors of
 // a Kaya identity, the variance inflation factors of a design, the
-// Jarque-Bera test of residuals, and Pesaran's CD test of cross-sectional
-// dependence in a panel. No allocation, no exceptions, no I/O.
+// Jarque-Bera test of residuals, Pesaran's CD test of cross-sectional
+// dependence in a panel, and least squares with its diagnostics (olsdx).
+// No I/O; only clab_olsdx() allocates, and returns CLAB_ENOMEM when that
+// fails.
 #include <cstdint>
 #include <cmath>
 #include <cstddef>
+#include <vector>
 
 #include "crimlab.h"
 #include "kutil.h"
@@ -167,5 +170,136 @@ extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) CLAB_TRY {
   out[2] = sr / dm;
   out[3] = sa / dm;
   out[4] = dm;
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)
+
+extern "C" int clab_olsdx(const double *y, const double *x, int n, int p, int icpt,
+                          const double *at, int m, int pnew, double lv, double *co,
+                          double *vc, double *cr, double *cs, double *pr,
+                          double *st) CLAB_TRY {
+  const int k = p + (icpt ? 1 : 0);
+  if (p < 1 || n < k + 2 || m < 0 || (m > 0 && !at) || !(lv > 0.0 && lv < 1.0)) {
+    return CLAB_EARG;
+  }
+  const std::size_t sn = static_cast<std::size_t>(n), sp = static_cast<std::size_t>(p),
+                    sk = static_cast<std::size_t>(k), sm = static_cast<std::size_t>(m),
+                    c0 = icpt ? 1 : 0;
+  for (std::size_t i = 0; i < sn; ++i) {
+    if (!std::isfinite(y[i])) return CLAB_EDOM;
+  }
+  for (std::size_t q = 0; q < sn * sp; ++q) {
+    if (!std::isfinite(x[q])) return CLAB_EDOM;
+  }
+  for (std::size_t q = 0; q < sm * sp; ++q) {
+    if (!std::isfinite(at[q])) return CLAB_EDOM;
+  }
+  // the design: the constant (with icpt), then the columns of x
+  std::vector<double> d(sn * sk), b(sk), xi(sk * sk), r(sn), wk(sk * sk + sk);
+  for (std::size_t i = 0; i < sn && icpt; ++i) d[i] = 1.0;
+  for (std::size_t q = 0; q < sn * sp; ++q) d[c0 * sn + q] = x[q];
+  if (pev::ols(d.data(), y, n, k, nullptr, b.data(), xi.data(), r.data(), wk.data()) !=
+      CLAB_OK) {
+    return CLAB_EDOM;
+  }
+  double rss = 0.0, my = 0.0, tss = 0.0, sy = 0.0;
+  for (std::size_t i = 0; i < sn; ++i) {
+    rss += r[i] * r[i];
+    my += y[i] / n;
+  }
+  for (std::size_t i = 0; i < sn; ++i) {
+    sy += (y[i] - my) * (y[i] - my);
+    tss += icpt ? (y[i] - my) * (y[i] - my) : y[i] * y[i];
+  }
+  sy = std::sqrt(sy / (n - 1));
+  const double df2 = n - k, s2 = rss / df2, s = std::sqrt(s2);
+  const double tq = clab_qt(1.0 - (1.0 - lv) / 2.0, df2, 1);
+  for (std::size_t q = 0; q < sk * sk; ++q) vc[q] = s2 * xi[q];
+  // the means and standard deviations of the columns of x
+  std::vector<double> mx(sp, 0.0), sx(sp, 0.0);
+  for (std::size_t j = 0; j < sp; ++j) {
+    for (std::size_t i = 0; i < sn; ++i) mx[j] += x[j * sn + i] / n;
+    for (std::size_t i = 0; i < sn; ++i) {
+      sx[j] += (x[j * sn + i] - mx[j]) * (x[j * sn + i] - mx[j]);
+    }
+    sx[j] = std::sqrt(sx[j] / (n - 1));
+  }
+  std::vector<double> vf(sp), vw(sn * (sp + 1) + 2 * sp * (sp + 1));
+  const bool vok = clab_vif(x, n, p, vf.data(), vw.data()) == CLAB_OK;
+  // coefficients: est, se, t, p, lo, hi, beta, tol, vif (k x 9)
+  for (std::size_t j = 0; j < sk; ++j) {
+    const double e = b[j], se = std::sqrt(vc[j * sk + j]), t = e / se;
+    co[j] = e;
+    co[sk + j] = se;
+    co[2 * sk + j] = t;
+    co[3 * sk + j] = 2.0 * clab_pt(-std::fabs(t), df2, 1);
+    co[4 * sk + j] = e - tq * se;
+    co[5 * sk + j] = e + tq * se;
+    if (j < c0) {
+      co[6 * sk + j] = co[7 * sk + j] = co[8 * sk + j] = NAN;
+      continue;
+    }
+    const std::size_t h = j - c0;
+    const double v = vok ? vf[h] : NAN;
+    co[6 * sk + j] = e * sx[h] / sy;
+    co[7 * sk + j] = 1.0 / v;
+    co[8 * sk + j] = v;
+  }
+  // the correlations of the columns of x (p x p); NaN for a constant one
+  for (std::size_t a = 0; a < sp; ++a) {
+    for (std::size_t c = 0; c < sp; ++c) {
+      double sab = 0.0;
+      for (std::size_t i = 0; i < sn; ++i) {
+        sab += (x[a * sn + i] - mx[a]) * (x[c * sn + i] - mx[c]);
+      }
+      cr[c * sp + a] = sab / (n - 1) / (sx[a] * sx[c]);
+    }
+  }
+  // the rows: fit, resid, zres, sres, tres, hat, cook (n x 7)
+  for (std::size_t i = 0; i < sn; ++i) {
+    double h = 0.0;
+    for (std::size_t a = 0; a < sk; ++a) {
+      double u = 0.0;
+      for (std::size_t c = 0; c < sk; ++c) u += xi[c * sk + a] * d[c * sn + i];
+      h += d[a * sn + i] * u;
+    }
+    const double e = r[i], sr = e / (s * std::sqrt(1.0 - h));
+    cs[i] = y[i] - e;
+    cs[sn + i] = e;
+    cs[2 * sn + i] = e / s;
+    cs[3 * sn + i] = sr;
+    cs[4 * sn + i] = sr * std::sqrt((df2 - 1.0) / (df2 - sr * sr));
+    cs[5 * sn + i] = h;
+    cs[6 * sn + i] = sr * sr * h / (k * (1.0 - h));
+  }
+  double dw = 0.0;
+  for (std::size_t i = 1; i < sn; ++i) dw += (r[i] - r[i - 1]) * (r[i] - r[i - 1]);
+  const double r2 = 1.0 - rss / tss, df1 = k - static_cast<double>(c0);
+  const double f = (tss - rss) / df1 / s2;
+  st[0] = std::sqrt(r2 > 0.0 ? r2 : 0.0);
+  st[1] = r2;
+  st[2] = 1.0 - (1.0 - r2) * (n - static_cast<double>(c0)) / df2;
+  st[3] = s;
+  st[4] = f;
+  st[5] = df1;
+  st[6] = df2;
+  st[7] = clab_pf(f, df1, df2, 0);
+  st[8] = dw / rss;
+  st[9] = rss;
+  // the points at (m x p): the fitted mean, its standard error (of a new
+  // value with pnew) and interval (m x 4)
+  std::vector<double> x0(sk);
+  for (std::size_t a = 0; a < sm; ++a) {
+    if (icpt) x0[0] = 1.0;
+    for (std::size_t j = 0; j < sp; ++j) x0[c0 + j] = at[j * sm + a];
+    double e = 0.0, v = pnew ? s2 : 0.0;
+    for (std::size_t j = 0; j < sk; ++j) {
+      e += x0[j] * b[j];
+      for (std::size_t c = 0; c < sk; ++c) v += x0[j] * vc[c * sk + j] * x0[c];
+    }
+    pr[a] = e;
+    pr[sm + a] = std::sqrt(v);
+    pr[2 * sm + a] = e - tq * pr[sm + a];
+    pr[3 * sm + a] = e + tq * pr[sm + a];
+  }
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)

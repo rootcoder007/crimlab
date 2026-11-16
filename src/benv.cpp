@@ -3,7 +3,8 @@
 // The R entry points of the environmental-crime family: the LMDI
 // decomposition of a count over the factors of a Kaya identity (lmdix),
 // the two-way fixed-effects regression of a count on continuous drivers
-// with an interaction (fepnl), and Pesaran's CD test (pcdtst). Each checks
+// with an interaction (fepnl), Pesaran's CD test (pcdtst), and least
+// squares with its diagnostics (olsdx). Each checks
 // its arguments, builds the kernel's arrays, calls the kernels (env.cpp,
 // and did.cpp for the regression) and builds the R result. Nothing calls
 // back into the R evaluator.
@@ -512,6 +513,106 @@ SEXP C_clab_r_pcdtst(SEXP x, SEXP unit, SEXP time) {
   static const char *const nm[] = {"cd", "p", "rho", "absrho", "pairs", "units", "periods"};
   UNPROTECT(np);
   return clab::nvec(7, nm, o);
+}
+
+SEXP C_clab_r_olsdx(SEXP y, SEXP x, SEXP at, SEXP icp, SEXP pred, SEXP level) {
+  clab::who = "olsdx";
+  static const char *const po[] = {"mean", "new"};
+  const int pn = csp::pick(pred, "pred", po, 2);
+  const double lv = clab::one(level, "level", 0.0, 1.0);
+  clab::lgl(icp, "int", 1);
+  const int ic = LOGICAL(icp)[0] ? 1 : 0;
+  int np = 0;
+  SEXP yv = PROTECT(clab::num(y, "y"));
+  ++np;
+  const int n = static_cast<int>(XLENGTH(yv));
+  mat xm = readm(x, "x", "x", n, clab::ninf);
+  const int p = xm.p, k = p + ic;
+  if (n < k + 2) {
+    fail("`y` must have at least %d values: the %d coefficients and two more.", k + 2, k);
+  }
+  bool cn = true;
+  for (int i = 1; i < n; ++i) cn = cn && REAL(yv)[i] == REAL(yv)[0];
+  if (cn) fail("`y` is constant: there is nothing to explain.");
+  int m = 0;
+  std::vector<double> av;
+  if (!Rf_isNull(at)) {
+    if (!clab::isnum(at) || !Rf_isMatrix(at) || Rf_ncols(at) != p || Rf_nrows(at) < 1) {
+      fail("`at` must be a numeric matrix with the %d columns of `x`, one row per point.", p);
+    }
+    m = Rf_nrows(at);
+    mat am = readm(at, "at", "x", m, clab::ninf);
+    SEXP dn = Rf_getAttrib(at, R_DimNamesSymbol);
+    if (!Rf_isNull(dn) && !Rf_isNull(VECTOR_ELT(dn, 1)) && am.nm != xm.nm) {
+      std::string s;
+      for (const std::string &v : xm.nm) s += (s.empty() ? "" : ", ") + v;
+      fail("`at` must name its columns as `x` does, in its order: %s.", s.c_str());
+    }
+    av = am.v;
+  }
+  const std::size_t sn = z(n), sp = z(p), sk = z(k), sm = z(m);
+  std::vector<double> co(sk * 9), vc(sk * sk), cr(sp * sp), cs(sn * 7), pr(sm * 4);
+  double st[10];
+  if (clab_olsdx(REAL(yv), xm.v.data(), n, p, ic, m ? av.data() : nullptr, m, pn, lv, co.data(),
+                 vc.data(), cr.data(), cs.data(), pr.data(), st) != CLAB_OK) {
+    fail("the columns of `x` are collinear%s: least squares has no unique solution.",
+         ic ? " (with the constant)" : "");
+  }
+  if (!(st[1] < 1.0)) {
+    fail("the fit is exact (an R-squared of 1 to rounding): `y` is a linear function of `x`.");
+  }
+  static const char *const cn9[] = {"est", "se", "t", "p", "lo", "hi", "beta", "tol", "vif"};
+  cols cc(10);
+  SEXP ct = cc.str("term", k);
+  if (ic) SET_STRING_ELT(ct, 0, Rf_mkChar("(Intercept)"));
+  for (int j = 0; j < p; ++j) SET_STRING_ELT(ct, j + ic, Rf_mkCharCE(xm.nm[z(j)].c_str(), CE_UTF8));
+  for (std::size_t c = 0; c < 9; ++c) {
+    double *o = cc.dbl(cn9[c], k);
+    for (std::size_t j = 0; j < sk; ++j) o[j] = c < 6 ? co[c * sk + j] : pevr::na(co[c * sk + j]);
+  }
+  SEXP coef = PROTECT(cc.frame());
+  ++np;
+  static const char *const fn[] = {"n", "k", "r", "r2", "adjr2", "sigma", "f",
+                                   "df1", "df2", "p", "dw", "rss"};
+  const double fv[12] = {static_cast<double>(n), static_cast<double>(k), st[0], st[1], st[2],
+                         st[3], st[4], st[5], st[6], st[7], st[8], st[9]};
+  cols fc(12);
+  for (int q = 0; q < 12; ++q) *fc.dbl(fn[q], 1) = fv[q];
+  SEXP fit = PROTECT(fc.frame());
+  ++np;
+  static const char *const cn7[] = {"fit", "resid", "zres", "sres", "tres", "hat", "cook"};
+  cols ca(7);
+  for (std::size_t c = 0; c < 7; ++c) {
+    double *o = ca.dbl(cn7[c], n);
+    for (std::size_t i = 0; i < sn; ++i) o[i] = cs[c * sn + i];
+  }
+  SEXP cases = PROTECT(ca.frame());
+  ++np;
+  SEXP cm = PROTECT(Rf_allocMatrix(REALSXP, p, p));
+  SEXP vm = PROTECT(Rf_allocMatrix(REALSXP, k, k));
+  np += 2;
+  for (std::size_t q = 0; q < sp * sp; ++q) REAL(cm)[q] = cr[q];
+  for (std::size_t q = 0; q < sk * sk; ++q) REAL(vm)[q] = vc[q];
+  SEXP pf = R_NilValue;
+  if (m) {
+    static const char *const cn4[] = {"fit", "se", "lo", "hi"};
+    cols pc(4);
+    for (std::size_t c = 0; c < 4; ++c) {
+      double *o = pc.dbl(cn4[c], m);
+      for (std::size_t a = 0; a < sm; ++a) o[a] = pr[c * sm + a];
+    }
+    pf = PROTECT(pc.frame());
+    ++np;
+  }
+  SEXP iv = PROTECT(Rf_ScalarLogical(ic)), ps = PROTECT(Rf_mkString(po[pn])),
+       lvs = PROTECT(Rf_ScalarReal(lv));
+  np += 3;
+  SEXP out = PROTECT(nlist({{"coef", coef}, {"fit", fit}, {"cases", cases}, {"cor", cm},
+                            {"vcov", vm}, {"pred", pf}, {"int", iv}, {"ptype", ps},
+                            {"level", lvs}}));
+  Rf_classgets(out, PROTECT(Rf_mkString("olsdx")));
+  UNPROTECT(np + 2);
+  return out;
 }
 
 }  // extern "C"

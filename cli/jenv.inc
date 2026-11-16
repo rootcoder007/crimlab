@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 // Environmental crime and dynamic panels for clab_jrun(): lmdix(),
-// fepnl() and pcdtst() (src/benv.cpp) with their checks in their order
+// fepnl(), pcdtst() and olsdx() (src/benv.cpp) with their checks in their order
 // and words, and gmmpnl(), wsctst() and ccepnl(), whose work after the
 // arguments is shared with the R binding (src/dpnd.cpp). A matrix
 // argument is an array of rows or an object of numeric columns (a data
@@ -801,6 +801,122 @@ bool fepnl(Ctx &c, Val &out) {
   put(out, "vcov", vmat(vc, p, p));
   put(out, "resid", vnums(res, sn));
   put(out, "ssc", vstr(sso[raw]));
+  put(out, "level", vnum(lv));
+  return true;
+}
+
+// olsdx() (src/benv.cpp), its `at` read as R's wrapper reads it: a matrix
+// (an array of rows, or an object of columns), or one point as a vector.
+bool olsdx(Ctx &c, Val &out) {
+  static const char *const po[] = {"mean", "new"};
+  int pn = 0;
+  CK(pickd(c, "pred", po, 2, 0, pn));
+  double lv = 0.0;
+  CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
+  bool icb = true;
+  if (c.has("int")) {
+    const Val &o = c["int"];
+    const Val *e = o.t == Val::ARR && o.a.size() == 1 ? &o.a[0] : &o;
+    if (e->t != Val::BOOL) {
+      return c.fail("`int` must be TRUE or FALSE, one per unit, with no missing values.");
+    }
+    icb = e->b;
+  }
+  const int ic = icb ? 1 : 0;
+  Dv y;
+  CK(num(c, c["y"], "y", y));
+  const int n = static_cast<int>(y.n());
+  dpnd::xm xm;
+  CK(env::rdm(c, c["x"], "x", "x", n, -HUGE_VAL, xm));
+  const int p = xm.p, k = p + ic;
+  if (n < k + 2) return c.fail("`y` must have at least %d values: the %d coefficients and two more.", k + 2, k);
+  bool cn = true;
+  for (int i = 1; i < n; ++i) cn = cn && y[zz(i)] == y[0];
+  if (cn) return c.fail("`y` is constant: there is nothing to explain.");
+  int m = 0;
+  std::vector<double> av;
+  if (c.has("at")) {
+    const Val &o = c["at"];
+    const char *bad = "`at` must be a numeric matrix with the %d columns of `x`, one row per point.";
+    const bool nest = (o.t == Val::ARR || o.t == Val::OBJ) && !o.a.empty() &&
+                      (o.a[0].t == Val::ARR || (o.t == Val::OBJ && o.a[0].t == Val::OBJ));
+    bool ok = nest ? true : isnum(o);
+    for (std::size_t j = 0; nest && j < o.a.size(); ++j) ok = ok && o.a[j].t != Val::OBJ && isnum(o.a[j]);
+    Val one = varr();
+    const Val *a = &o;
+    std::size_t ncol = 0;
+    if (ok && o.t == Val::OBJ) {
+      ncol = o.a.size();
+      m = static_cast<int>(vlen(o.a.empty() ? o : o.a[0]));
+    } else if (ok && nest) {
+      ncol = o.a[0].a.size();
+      m = static_cast<int>(o.a.size());
+    } else if (ok) {
+      // one point: matrix(at, 1)
+      one.a.push_back(o.t == Val::ARR ? o : ax::asarr(o));
+      a = &one;
+      ncol = vlen(o);
+      m = 1;
+    }
+    if (!ok || ncol != zz(p) || m < 1) return c.fail(bad, p);
+    dpnd::xm am;
+    CK(env::rdm(c, *a, "at", "x", m, -HUGE_VAL, am));
+    if (o.t == Val::OBJ && am.nm != xm.nm) {
+      std::string s;
+      for (const std::string &v : xm.nm) s += (s.empty() ? "" : ", ") + v;
+      return c.fail("`at` must name its columns as `x` does, in its order: %s.", s.c_str());
+    }
+    av = am.v;
+  }
+  const std::size_t sn = zz(n), sp = zz(p), sk = zz(k), sm = zz(m);
+  std::vector<double> co(sk * 9), vc(sk * sk), cr(sp * sp), cs(sn * 7), pr(sm * 4);
+  double st[10];
+  if (clab_olsdx(y.p(), xm.v.data(), n, p, ic, m ? av.data() : nullptr, m, pn, lv, co.data(), vc.data(),
+                 cr.data(), cs.data(), pr.data(), st) != CLAB_OK) {
+    return c.fail("the columns of `x` are collinear%s: least squares has no unique solution.",
+                  ic ? " (with the constant)" : "");
+  }
+  if (!(st[1] < 1.0)) {
+    return c.fail("the fit is exact (an R-squared of 1 to rounding): `y` is a linear function of `x`.");
+  }
+  std::vector<std::string> tn;
+  if (ic) tn.push_back("(Intercept)");
+  tn.insert(tn.end(), xm.nm.begin(), xm.nm.end());
+  static const char *const cn9[] = {"est", "se", "t", "p", "lo", "hi", "beta", "tol", "vif"};
+  Frame cf;
+  cf.str("term", tn);
+  for (std::size_t q = 0; q < 9; ++q) {
+    std::vector<double> v(co.begin() + static_cast<std::ptrdiff_t>(q * sk),
+                          co.begin() + static_cast<std::ptrdiff_t>((q + 1) * sk));
+    if (q >= 6) {
+      for (double &e : v) e = na(e);
+    }
+    cf.num(cn9[q], v);
+  }
+  static const char *const fn[] = {"n", "k", "r", "r2", "adjr2", "sigma", "f", "df1", "df2", "p", "dw", "rss"};
+  const double fv[12] = {static_cast<double>(n), static_cast<double>(k), st[0], st[1], st[2], st[3],
+                         st[4], st[5], st[6], st[7], st[8], st[9]};
+  Frame ff;
+  for (int q = 0; q < 12; ++q) col1(ff, fn[q], fv[q]);
+  static const char *const cn7[] = {"fit", "resid", "zres", "sres", "tres", "hat", "cook"};
+  Frame fc;
+  for (std::size_t q = 0; q < 7; ++q) fc.num(cn7[q], cs.data() + q * sn, sn);
+  Val pv;
+  if (m) {
+    static const char *const cn4[] = {"fit", "se", "lo", "hi"};
+    Frame fp;
+    for (std::size_t q = 0; q < 4; ++q) fp.num(cn4[q], pr.data() + q * sm, sm);
+    pv = fp.o;
+  }
+  out = vobj();
+  put(out, "coef", cf.o);
+  put(out, "fit", ff.o);
+  put(out, "cases", fc.o);
+  put(out, "cor", vmat(cr, p, p));
+  put(out, "vcov", vmat(vc, k, k));
+  put(out, "pred", pv);
+  put(out, "int", vbool(icb));
+  put(out, "ptype", vstr(po[pn]));
   put(out, "level", vnum(lv));
   return true;
 }

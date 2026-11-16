@@ -499,6 +499,7 @@ SEXP C_clab_r_wsctst(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_ccepnl(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                      SEXP, SEXP);
 SEXP C_clab_r_pcdtst(SEXP, SEXP, SEXP);
+SEXP C_clab_r_olsdx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 // The policy-evaluation families (bdid.cpp).
 SEXP C_clab_r_didfe(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP,
                     SEXP, SEXP, SEXP, SEXP);
@@ -941,6 +942,7 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_wsctst", fn<&C_clab_r_wsctst>(), 6},
     {"C_clab_r_ccepnl", fn<&C_clab_r_ccepnl>(), 14},
     {"C_clab_r_pcdtst", fn<&C_clab_r_pcdtst>(), 3},
+    {"C_clab_r_olsdx", fn<&C_clab_r_olsdx>(), 6},
     {"C_clab_r_didfe", fn<&C_clab_r_didfe>(), 16},
     {"C_clab_r_evtst", fn<&C_clab_r_evtst>(), 18},
     {"C_clab_r_stgdid", fn<&C_clab_r_stgdid>(), 13},

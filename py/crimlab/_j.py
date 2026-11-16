@@ -7125,6 +7125,23 @@ def pcdtst(x: Any, unit: Any, time: Any) -> Any:
     return jcall("pcdtst", x=x, unit=unit, time=time)
 
 
+def olsdx(y: Any, x: Any, at: Any = None, int: Any = True, pred: Any = "mean", level: Any = 0.95) -> Any:
+    """Least squares with regression diagnostics and predictions.
+
+    The arguments and the result are those of R's ``olsdx()``: see its help
+    page; ``at`` is a list of rows, a dictionary of columns, or one point.
+
+    Examples
+    --------
+    >>> r = olsdx(y=[1, 3, 2, 5, 4], x={"temp": [0, 1, 2, 3, 5]}, at=[2])
+    >>> r["coef"]["term"]
+    ['(Intercept)', 'temp']
+    >>> list(r)
+    ['coef', 'fit', 'cases', 'cor', 'vcov', 'pred', 'int', 'ptype', 'level']
+    """
+    return jcall("olsdx", y=y, x=x, at=at, int=int, pred=pred, level=level)
+
+
 def gmmpnl(y: Any, x: Any = None, unit: Any = None, time: Any = None, ylag: Any = 1, gmm: Any = None,
            iv: Any = None, z: Any = None, lagmin: Any = 2, lagmax: Any = None, collapse: Any = False,
            type: Any = "system", trans: Any = "fd", steps: Any = 1, robust: Any = True, wc: Any = None,

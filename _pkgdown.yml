@@ -479,6 +479,7 @@ reference:
       - ifesc
       - lrcce
       - cemtch
+      - olsdx
   - title: Regression discontinuity
     desc: >
       Local polynomial fits at a cutoff with the bandwidth of Imbens and

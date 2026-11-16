@@ -2036,6 +2036,13 @@ bad("fepnl", y = ep$cases, x = ep[c("cper", "ur")], unit = ep$prov, time = ep$ye
 ok("pcdtst", x = sin(seq_len(54)) + rep(cos(1:9), 6), unit = rep(paste0("p", 1:6), each = 9),
    time = rep(1:9, 6))
 bad("pcdtst", x = rep(1, 4), unit = c(1, 1, 2, 2), time = c(1, 2, 1, 2))
+ok("olsdx", y = ep$cases, x = ep[c("cper", "ur")])
+ok("olsdx", y = ep$cases, x = ep[c("cper", "ur")], at = data.frame(cper = c(0.01, 0.03), ur = c(0.02, 0.025)),
+   pred = "new", level = 0.9)
+ok("olsdx", y = ep$cases, x = ep$cper, int = FALSE, at = 0.02)
+bad("olsdx", y = ep$cases, x = cbind(ep$cper, 2 * ep$cper))
+bad("olsdx", y = ep$cases, x = ep[c("cper", "ur")], at = c(ur = 1, cper = 2))
+bad("olsdx", y = rep(3, 96), x = ep$cper)
 set.seed(41)
 gd <- data.frame(t = rep(1:6, 30), u = rep(sprintf("g%02d", 1:30), each = 6), stringsAsFactors = FALSE)
 mu <- rnorm(30)
