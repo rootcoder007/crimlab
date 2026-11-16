@@ -27,6 +27,10 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: `rdloc(bw = "ik")` and `rddens()` refused a running variable in
+  metres or in thousands of kilometres; the bandwidths now scale with the
+  running variable, and the estimates do not change.
+
 * Fixed: `ppmlfe()`, `ivfe()` and the other least-squares fits refused
   columns about 1e7 apart in scale as collinear; a column is now judged
   against its own size, and a column the fixed effects absorb is found by

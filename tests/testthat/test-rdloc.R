@@ -184,3 +184,23 @@ test_that("a constant outcome has no IK bandwidth, whatever its value", {
   expect_error(rdloc(d, "y", "r"),
                "the bandwidth of Imbens and Kalyanaraman cannot be computed")
 })
+
+test_that("the IK bandwidth and rddens follow the units of the run", {
+  # metres or thousands of kilometres: h scales with the running variable
+  # and the jump does not change (Imbens and Kalyanaraman's steps are each
+  # equivariant); the cubic and quartic pilot fits used to be refused
+  set.seed(5)
+  d <- data.frame(r = runif(2000, -1, 1))
+  d$y <- 1 + 0.8 * d$r + 0.5 * (d$r >= 0) + rnorm(2000, 0, 0.3)
+  f1 <- rdloc(d, "y", "r")
+  m1 <- rddens(d$r)
+  for (k in c(1000, 0.001)) {
+    d$m <- d$r * k
+    f2 <- rdloc(d, "y", "m")
+    expect_equal(f2$h / k, f1$h, tolerance = 1e-8)
+    expect_equal(f2$coef$est, f1$coef$est, tolerance = 1e-8)
+    m2 <- rddens(d$m)
+    expect_equal(c(m2$b, m2$h) / k, c(m1$b, m1$h), tolerance = 1e-8)
+    expect_equal(m2$tab$theta, m1$tab$theta, tolerance = 1e-8)
+  }
+})
