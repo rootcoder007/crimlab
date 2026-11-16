@@ -43,7 +43,7 @@ double auc(const double *s, const int *lk, std::size_t m) {
 
 int clab_lnkpr(const double *px, const double *py, const double *t, const int *mo, int q, const int *ser, int n,
                int *pi, int *pj, double *dist, double *dt, double *jac, int *lk, double *prob, double *coef,
-               double *se, double *aucs, double *dev) {
+               double *se, double *aucs, double *dev) CLAB_TRY {
   if (n < 2 || n > 20000 || q < 0) return CLAB_EARG;
   const std::size_t m = static_cast<std::size_t>(n) * (static_cast<std::size_t>(n) - 1) / 2;
   std::size_t k = 0;
@@ -108,4 +108,4 @@ int clab_lnkpr(const double *px, const double *py, const double *t, const int *m
   aucs[2] = p == 3 ? auc(jac, lk, m) : kutil::nan();
   aucs[3] = auc(eta.data(), lk, m);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

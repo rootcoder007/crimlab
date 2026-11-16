@@ -205,7 +205,7 @@ double along(const double *e, int i, double a, double b) {
 
 extern "C" {
 
-int clab_sargs(int n, int kind, double *t, double *w) {
+int clab_sargs(int n, int kind, double *t, double *w) CLAB_TRY {
   if (n < 2 || n > 1000 || t == nullptr || w == nullptr) return CLAB_EARG;
   std::vector<double> b(static_cast<size_t>(n - 1)), d, z;
   for (int i = 1; i < n; ++i) {
@@ -218,9 +218,9 @@ int clab_sargs(int n, int kind, double *t, double *w) {
     w[i] = (kind == 0 ? std::sqrt(pi) : 2.0) * (z[static_cast<size_t>(i)] * z[static_cast<size_t>(i)]);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarlr(const double *x, int n, double W, int model, double m, double navsd, double *p) {
+int clab_sarlr(const double *x, int n, double W, int model, double m, double navsd, double *p) CLAB_TRY {
   if (n < 0 || !(W > 0) || model < 0 || model > 2 || !(m > 0 && m <= 1) || !(navsd >= 0)) return CLAB_EARG;
   if (navsd == 0) {
     for (int i = 0; i < n; ++i) p[i] = lr(x[i], W, model, m);
@@ -243,23 +243,23 @@ int clab_sarlr(const double *x, int n, double W, int model, double m, double nav
     p[i] = s;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarsw(const double *x, const double *p, int n, double *w) {
+int clab_sarsw(const double *x, const double *p, int n, double *w) CLAB_TRY {
   if (n < 2) return CLAB_EARG;
   double s = 0;
   for (int i = 0; i + 1 < n; ++i) s += (x[i + 1] - x[i]) * (p[i + 1] + p[i]) / 2;
   *w = s;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarpod(const double *cv, int n, int model, double m, double *pod) {
+int clab_sarpod(const double *cv, int n, int model, double m, double *pod) CLAB_TRY {
   if (n < 0 || model < 0 || model > 3 || !(m > 0 && m <= 1)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) pod[i] = pod1(cv[i], model, m);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarpsw(double W, double S, int model, double m, double navsd, int npts, int ntrk, double *pod) {
+int clab_sarpsw(double W, double S, int model, double m, double navsd, int npts, int ntrk, double *pod) CLAB_TRY {
   if (!(W > 0) || !(S > 0) || model < 0 || model > 2 || !(m > 0 && m <= 1) || !(navsd >= 0) || npts < 3 ||
       ntrk < 1) {
     return CLAB_EARG;
@@ -303,10 +303,10 @@ int clab_sarpsw(double W, double S, int model, double m, double navsd, int npts,
   for (int i = 2; i <= npts - 3; i += 2) se += vals[static_cast<size_t>(i)];
   *pod = (vals[0] + vals[static_cast<size_t>(npts - 1)] + 4 * so + 2 * se) * h / 3 / S;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sarscs(const double *poc, int na, const double *D, int ns, double *pos, double *posarea, double *pocupd,
-                double *cumpod, int *certain) {
+                double *cumpod, int *certain) CLAB_TRY {
   if (na < 1 || ns < 1) return CLAB_EARG;
   *certain = 0;
   for (int j = 0; j < na; ++j) pocupd[j] = poc[j];
@@ -330,10 +330,10 @@ int clab_sarscs(const double *poc, int na, const double *D, int ns, double *pos,
   }
   *pos = t;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sarmap(const double *xe, int nxe, const double *ye, int nye, int datum, const double *cen, double sigma,
-                const double *end, int nodes, const double *wts, double *poc) {
+                const double *end, int nodes, const double *wts, double *poc) CLAB_TRY {
   if (nxe < 2 || nye < 2 || datum < 0 || datum > 4) return CLAB_EARG;
   const int nx = nxe - 1, ny = nye - 1;
   const size_t nc = static_cast<size_t>(nx) * ny;
@@ -403,9 +403,9 @@ int clab_sarmap(const double *xe, int nxe, const double *ye, int nye, int datum,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarcrc(double sigma, double W, double effort, double *out) {
+int clab_sarcrc(double sigma, double W, double effort, double *out) CLAB_TRY {
   if (!(sigma > 0) || !(W > 0) || !(effort >= 0)) return CLAB_EARG;
   const double R = std::pow(4 * (sigma * sigma) * W * effort / pi, 0.25);
   const double u = R * R / (2 * (sigma * sigma));
@@ -413,10 +413,10 @@ int clab_sarcrc(double sigma, double W, double effort, double *out) {
   out[1] = 1 - (1 + u) * std::exp(-u);
   out[2] = R * R / (2 * (sigma * sigma) * W);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_saropt(const double *poc, const double *area, int n, double W, double effort, double tol, double *z,
-                double *cov, double *pod, double *pos, double *lam) {
+                double *cov, double *pod, double *pos, double *lam) CLAB_TRY {
   if (n < 1 || !(W > 0) || !(effort >= 0) || !(tol > 0)) return CLAB_EARG;
   std::vector<double> r(static_cast<size_t>(n));
   double rmin = HUGE_VAL, rmax = -HUGE_VAL;
@@ -458,9 +458,9 @@ int clab_saropt(const double *poc, const double *area, int n, double W, double e
   *pos = s;
   *lam = l;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarsq(const double *z, int k, int model, double m, double *out) {
+int clab_sarsq(const double *z, int k, int model, double m, double *out) CLAB_TRY {
   if (k < 1 || model < 0 || model > 3 || !(m > 0 && m <= 1)) return CLAB_EARG;
   const double e0 = std::sqrt(2 * std::log(2.0));
   std::vector<double> a, pd;
@@ -520,7 +520,7 @@ int clab_sarsq(const double *z, int k, int model, double m, double *out) {
     pd.push_back(pd1);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
 
@@ -608,10 +608,10 @@ const char *const figs[][4] = {
 
 }  // namespace
 
-extern "C" int clab_sarfig(int i, const char **out) {
+extern "C" int clab_sarfig(int i, const char **out) CLAB_TRY {
   const int n = static_cast<int>(sizeof figs / sizeof figs[0]);
   if (i < 0 || out == nullptr) return n;
   if (i >= n) return -1;
   for (int k = 0; k < 4; ++k) out[k] = figs[i][k];
   return n;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

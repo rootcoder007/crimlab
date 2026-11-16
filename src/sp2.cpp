@@ -68,7 +68,7 @@ extern "C" {
 
 int clab_nnidm(const double *x, const double *y, int n, const double *win,
                int kmax, int nsim, unsigned int seed, double *dist,
-               int *iwork, double *work, double *out) {
+               int *iwork, double *work, double *out) CLAB_TRY {
   if (n < 2 || kmax < 1 || kmax > n - 1 || nsim < 0) return CLAB_EARG;
   if (!finite2(x, y, n) || !inwin(x, y, n, win)) return CLAB_EDOM;
   const double w = win[1] - win[0], h = win[3] - win[2], area = w * h;
@@ -123,11 +123,11 @@ int clab_nnidm(const double *x, const double *y, int n, const double *win,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hdbang(const double *x, const double *y, const double *v,
                 const double *w, int n, int nn, double ang, int ntrip,
-                int iter, int *iwork, double *work, double *out) {
+                int iter, int *iwork, double *work, double *out) CLAB_TRY {
   if (n < 3 || nn < 2 || nn > n - 1 || iter < 0 || ntrip < 0) return CLAB_EARG;
   if (!finite2(x, y, n) || !(ang >= 90.0 && ang <= 180.0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -191,10 +191,10 @@ int clab_hdbang(const double *x, const double *y, const double *v,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_crwfit(const double *x, const double *y, int n, double *step,
-                double *turn, double *out) {
+                double *turn, double *out) CLAB_TRY {
   if (n < 3) return CLAB_EARG;
   if (!finite2(x, y, n)) return CLAB_EDOM;
   for (int i = 0; i + 1 < n; ++i) {
@@ -222,10 +222,10 @@ int clab_crwfit(const double *x, const double *y, int n, double *step,
   out[3] = ss.val() / (n - 2);
   out[4] = std::atan2(y[n - 1] - y[n - 2], x[n - 1] - x[n - 2]);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_crwmsd(const double *x, const double *y, int n, double ml,
-                double ml2, double c, int h, double *obs, double *msd) {
+                double ml2, double c, int h, double *obs, double *msd) CLAB_TRY {
   if (h < 1 || n < 0) return CLAB_EARG;
   for (int k = 1; k <= h; ++k) {
     // the observed mean squared displacement over k moves, over every start
@@ -254,11 +254,11 @@ int clab_crwmsd(const double *x, const double *y, int n, double ml,
     msd[k - 1] = v;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_crwsim(const double *step, int ns, const double *turn, int nt,
                 double x0, double y0, double head, int h, int nsim,
-                unsigned int seed, double *px, double *py) {
+                unsigned int seed, double *px, double *py) CLAB_TRY {
   if (ns < 1 || nt < 1 || h < 1 || nsim < 1) return CLAB_EARG;
   if (!std::isfinite(x0) || !std::isfinite(y0) || !std::isfinite(head)) return CLAB_EDOM;
   for (int i = 0; i < ns; ++i)
@@ -280,12 +280,12 @@ int clab_crwsim(const double *step, int ns, const double *turn, int nt,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_rnnhcl(const double *x, const double *y, int n, const double *bx,
                 const double *by, const double *bw, int nb, double bwid,
                 double z, int minpts, int k, double c, int *iwork,
-                double *work, double *thr, int *cl, int *ncl, double *cs) {
+                double *work, double *thr, int *cl, int *ncl, double *cs) CLAB_TRY {
   if (n < 2 || nb < 1 || minpts < 2 || k < 0 || k > 2) return CLAB_EARG;
   if (!finite2(x, y, n) || !finite2(bx, by, nb) || !kutil::pos(bwid) ||
       !std::isfinite(z) || !kutil::pos(c))
@@ -385,6 +385,6 @@ int clab_rnnhcl(const double *x, const double *y, int n, const double *bx,
   }
   *ncl = kept;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

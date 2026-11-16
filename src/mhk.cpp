@@ -282,7 +282,7 @@ extern "C" {
 
 int clab_etasf(const double *t, const double *dm, int n, double hor, int afree,
                const double *start, int maxit, double *th, double *cov, double *st,
-               double *grad) {
+               double *grad) CLAB_TRY {
   if (!timesok(t, n, hor) || maxit < 0 || (maxit == 0 && !start)) return CLAB_EARG;
   em m{t, dm, n, hor, afree != 0};
   double g[5], work[5 * 5 + 5 * 5], u[5];
@@ -334,11 +334,11 @@ int clab_etasf(const double *t, const double *dm, int n, double hor, int afree,
   st[2] = b.conv;
   st[3] = th[1] * me * std::pow(th[3], 1 - th[4]) / (th[4] - 1);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_mvhwk(const double *t, const int *ty, int n, int k, double hor, double beta,
                const double *start, int maxit, double *th, double *cov, double *st,
-               double *grad, double *work, int *iwork) {
+               double *grad, double *work, int *iwork) CLAB_TRY {
   if (!timesok(t, n, hor) || k < 1 || k > 10 || maxit < 0 || (maxit == 0 && !start)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (ty[i] < 0 || ty[i] >= k) return CLAB_EARG;
@@ -391,12 +391,12 @@ int clab_mvhwk(const double *t, const int *ty, int n, int k, double hor, double 
   st[2] = b.conv;
   st[3] = lam - 1;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sthwk(const double *t, const double *x, const double *y, int n, double hor,
                double area, const double *start, int maxit, double *th, double *cov,
                double *st, double *grad, const double *qt, const double *qx, const double *qy,
-               int nq, double *qlam) {
+               int nq, double *qlam) CLAB_TRY {
   if (!timesok(t, n, hor) || !kutil::pos(area) || maxit < 0 || (maxit == 0 && !start) || nq < 0) {
     return CLAB_EARG;
   }
@@ -447,6 +447,6 @@ int clab_sthwk(const double *t, const double *x, const double *y, int n, double 
     qlam[i] = v;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

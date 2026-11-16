@@ -15,7 +15,7 @@
 extern "C" {
 
 int clab_cgstat(const double *x, const double *y, const double *w, int n,
-                int k, double *out) {
+                int k, double *out) CLAB_TRY {
   if (n < 1 || k < 0 || k > 2) return CLAB_EARG;
   double m[6];
   if (!cgeo::moments(x, y, w, n, m)) return CLAB_EDOM;
@@ -53,10 +53,10 @@ int clab_cgstat(const double *x, const double *y, const double *w, int n,
   out[8] = px ? W / ix.val() : nan;
   out[9] = py ? W / iy.val() : nan;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_cgmedn(const double *x, const double *y, int n, double *work,
-                double *out) {
+                double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i)
     if (!std::isfinite(x[i]) || !std::isfinite(y[i])) return CLAB_EDOM;
@@ -69,10 +69,10 @@ int clab_cgmedn(const double *x, const double *y, int n, double *work,
                      : work[n / 2 - 1] + 0.5 * (work[n / 2] - work[n / 2 - 1]);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_webpt(const double *x, const double *y, const double *w, int n,
-               const double *start, double tol, int maxit, double *out) {
+               const double *start, double tol, int maxit, double *out) CLAB_TRY {
   if (n < 1 || maxit < 0) return CLAB_EARG;
   if (!(tol > 0.0) || !std::isfinite(tol)) return CLAB_EDOM;
   double m[6];
@@ -94,10 +94,10 @@ int clab_webpt(const double *x, const double *y, const double *w, int n,
   out[4] = r[2];
   out[5] = r[3];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sdell(const double *x, const double *y, const double *w, int n, int k,
-               double c, double *out) {
+               double c, double *out) CLAB_TRY {
   if (n < 1 || k < 0 || k > 2) return CLAB_EARG;
   if (!(c > 0.0) || !std::isfinite(c)) return CLAB_EDOM;
   double m[6];
@@ -113,10 +113,10 @@ int clab_sdell(const double *x, const double *y, const double *w, int n, int k,
   out[4] = t;
   out[5] = cgeo::pi * out[2] * out[3];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_cvhull(const double *x, const double *y, int n, int *idx, int *hull,
-                int *nh, double *out) {
+                int *nh, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i)
     if (!cgeo::okcoord(x[i]) || !cgeo::okcoord(y[i])) return CLAB_EDOM;
@@ -165,6 +165,6 @@ int clab_cvhull(const double *x, const double *y, int n, int *idx, int *hull,
   out[0] = h >= 3 ? 0.5 * a2.val() : 0.0;
   out[1] = per.val();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

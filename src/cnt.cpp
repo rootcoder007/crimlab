@@ -338,7 +338,7 @@ extern "C" {
 int clab_cntreg(const double *y, const double *x, int n, int p, const double *off,
                 const int *cl, int ncl, int nb, int maxit, double eps, double *beta,
                 double *vb, double *vc, double *st, int *alias, double *work,
-                int *iwork) {
+                int *iwork) CLAB_TRY {
   if (maxit < 1 || !(eps > 0) || (cl && ncl < 1)) return CLAB_EARG;
   if (!chkin(y, x, n, p, off, cl, ncl)) return CLAB_EDOM;
   double ysum = 0.0;
@@ -431,11 +431,11 @@ int clab_cntreg(const double *y, const double *x, int n, int p, const double *of
   st[6] = f.rk;
   st[7] = dv;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_geeex(const double *y, const double *x, int n, int p, const double *off,
                const int *cl, int ncl, const int *alias, int maxit, double eps,
-               double *beta, double *vc, double *st, double *work, int *iwork) {
+               double *beta, double *vc, double *st, double *work, int *iwork) CLAB_TRY {
   if (maxit < 1 || !(eps > 0) || ncl < 1) return CLAB_EARG;
   if (!cl || !chkin(y, x, n, p, off, cl, ncl)) return CLAB_EDOM;
   int *kept = iwork, *beg = iwork + p, *ord = beg + ncl + 1;
@@ -556,10 +556,10 @@ int clab_geeex(const double *y, const double *x, int n, int p, const double *off
   st[2] = it;
   st[3] = conv;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int n2,
-               int *keep, double *work) {
+               int *keep, double *work) CLAB_TRY {
   if (n < 1 || n1 < 1 || (f2 && n2 < 1)) return -1;
   double *s1 = work, *s2 = work + n1;
   for (int a = 0; a < n1; ++a) s1[a] = 0.0;
@@ -577,22 +577,22 @@ int clab_fesep(const double *y, int n, const int *f1, int n1, const int *f2, int
     d += !keep[i];
   }
   return d;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ppmlfe(const double *y, const double *x, int n, int p, const double *off,
                 const double *w, const int *f1, int n1, const int *f2, int n2,
                 const int *cl, int ncl, const int *cl2, int ncl2, int maxit, double eps,
                 double tol, double *beta, double *vc, double *sco, double *brd, double *st,
-                double *work, int *iwork) {
+                double *work, int *iwork) CLAB_TRY {
   return clab_ppmlfek(y, x, n, p, off, w, f1, n1, f2, n2, nullptr, nullptr, 0, cl, ncl, cl2, ncl2,
                       maxit, eps, tol, beta, vc, sco, brd, st, work, iwork);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ppmlfek(const double *y, const double *x, int n, int p, const double *off,
                  const double *w, const int *f1, int n1, const int *f2, int n2, const int *fx,
                  const int *nx, int mx, const int *cl, int ncl, const int *cl2, int ncl2,
                  int maxit, double eps, double tol, double *beta, double *vc, double *sco,
-                 double *brd, double *st, double *work, int *iwork) {
+                 double *brd, double *st, double *work, int *iwork) CLAB_TRY {
   if (maxit < 1 || !(eps > 0) || !(tol > 0) || n1 < 1 || (f2 && n2 < 1) ||
       (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2)) || mx < 0 || (mx > 0 && (!f2 || !fx || !nx))) {
     return CLAB_EARG;
@@ -733,6 +733,6 @@ int clab_ppmlfek(const double *y, const double *x, int n, int p, const double *o
   for (int i = 0; i < n; ++i) px2 += (w ? w[i] : 1.0) * (y[i] - mu[i]) * (y[i] - mu[i]) / mu[i];
   st[6] = px2;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

@@ -12,7 +12,7 @@
 #include "kutil.h"
 
 int clab_mtrbnd(const double *y, const int *z, const double *w, int n, int k, double ylo, double yhi, int as,
-                double *out) {
+                double *out) CLAB_TRY {
   if (n < 1 || k < 2 || as < 0 || as > 3) return CLAB_EARG;
   if (!std::isfinite(ylo) || !std::isfinite(yhi) || !(ylo < yhi)) return CLAB_EDOM;
   std::vector<double> P(static_cast<std::size_t>(k), 0.0), m(static_cast<std::size_t>(k), 0.0);
@@ -84,4 +84,4 @@ int clab_mtrbnd(const double *y, const int *z, const double *w, int n, int k, do
     out[5 * k + t] = t == 0 ? kutil::nan() : hi[s] - lo[0];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -866,8 +866,8 @@
   command line gives the same messages.
 * The robustness iterations of `lwss()`, the replicator steps of
   `insphs()`, the cells of `jtsurf()`, the EM steps of `mcartst()` and
-  the bootstrap refits of `dstfit()` can now be interrupted. Loops and sizes that multiplied two integer counts are
-  counted in a wide type.
+  the bootstrap refits of `dstfit()` can now be interrupted. Loops and
+  sizes that multiplied two integer counts are counted in a wide type.
 * `exprun()` and `runfx()` refuse a `cap` past 2^26, `jntx()` an `ngrid`
   past 8192 (its grid has `ngrid` squared points) and `dosebin()` an `nq`
   past 2^26; the cluster bootstrap of `ppmlfe()`, `ivfe()` and `ppmlcf()`
@@ -883,6 +883,15 @@
   command line gives the same messages.
 * `stacel()` with a `top` above the cells of its grid keeps them all, as
   that many does, instead of sizing its work arrays by `top`.
+* No exception leaves a C entry point of the library: every `clab_*`
+  function returns `CLAB_ENOMEM` (new, 4) when an allocation fails in
+  it, `clab_jrun()` then answers "fn: not enough memory for this size.",
+  and the command-line program prints that and exits with status 1 for a
+  failed allocation anywhere, never aborting. Python raises a
+  `MemoryError` with the message. The WebAssembly build, which has no
+  exceptions, stops the module and the JavaScript binding reports the
+  same words (`clab_oomed()`, new) and asks for the module to be loaded
+  again. In R the entry points still give the function's name.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

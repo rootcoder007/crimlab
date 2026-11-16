@@ -113,7 +113,7 @@ double lch(double n, double k) { return std::lgamma(n + 1) - std::lgamma(k + 1) 
 
 int clab_thrtst(const double *stops, const double *srch, const double *hits, const int *g,
                 const int *a, int n, int ng, int na, int ref, int maxit, double *gs, double *hz,
-                double *chi, double *thr, double *tse, double *cfit, double *lrt, int *conv) {
+                double *chi, double *thr, double *tse, double *cfit, double *lrt, int *conv) CLAB_TRY {
   if (n < 1 || ng < 2 || na < 1 || ref < 0 || ref >= ng || maxit < 0) return CLAB_EARG;
   if (static_cast<long long>(ng) * na > 50000000LL) return CLAB_EARG;
   const int nc = ng * na;
@@ -278,11 +278,11 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
         }
         if (qn::hcov(np, best.data(), nll, &M, cv2.data(), hv.data()) != 0) break;
         bool down = false;
-        for (double a = 1; a > 1e-10 && !down; a *= 0.5) {
+        for (double stp = 1; stp > 1e-10 && !down; stp *= 0.5) {
           for (int i = 0; i < np; ++i) {
             double d = 0;
             for (int j = 0; j < np; ++j) d -= cv2[static_cast<std::size_t>(j) * np + i] * gv[static_cast<std::size_t>(j)];
-            xn[static_cast<std::size_t>(i)] = best[static_cast<std::size_t>(i)] + a * d;
+            xn[static_cast<std::size_t>(i)] = best[static_cast<std::size_t>(i)] + stp * d;
           }
           std::vector<double> gn(static_cast<std::size_t>(np));
           const double fn = nll(xn.data(), gn.data(), &M);
@@ -368,11 +368,11 @@ int clab_thrtst(const double *stops, const double *srch, const double *hits, con
   lrt[4] = ll[1];
   lrt[5] = static_cast<double>(cs.size());
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_thrrk(const double *stops, const double *srch, const double *hits, const int *o,
                const int *g, int n, int no, int ng, double zc, double zj, double *rate, double *res,
-               double *mono, double *jt) {
+               double *mono, double *jt) CLAB_TRY {
   if (n < 1 || no < 2 || ng < 2 || !(zc > 0) || !(zj > 0)) return CLAB_EARG;
   if (static_cast<long long>(no) * ng > 50000000LL) return CLAB_EARG;
   const std::size_t nc = static_cast<std::size_t>(no) * ng;
@@ -438,10 +438,10 @@ int clab_thrrk(const double *stops, const double *srch, const double *hits, cons
         K += rate[(ms ? 2 * nc : nc) + c];
         ++used;
       }
-      const int row = 2 * j + ms;
+      const int rw = 2 * j + ms;
       const double pp = N > 0 ? K / N : kutil::nan();
       if (used < 2 || !(pp > 0 && pp < 1)) {
-        mono[row] = mono[nm + row] = mono[2 * nm + row] = kutil::nan();
+        mono[rw] = mono[nm + rw] = mono[2 * nm + rw] = kutil::nan();
         continue;
       }
       double x2 = 0;
@@ -452,9 +452,9 @@ int clab_thrrk(const double *stops, const double *srch, const double *hits, cons
         const double o1 = rate[(ms ? 2 * nc : nc) + c], e1 = d * pp, o0 = d - o1, e0 = d - e1;
         x2 += (o1 - e1) * (o1 - e1) / e1 + (o0 - e0) * (o0 - e0) / e0;
       }
-      mono[row] = x2;
-      mono[nm + row] = used - 1;
-      mono[2 * nm + row] = clab_pchisq(x2, used - 1, 0);
+      mono[rw] = x2;
+      mono[nm + rw] = used - 1;
+      mono[2 * nm + rw] = clab_pchisq(x2, used - 1, 0);
     }
   }
   // jt: 2 rows (measure) x (1 + no): the joint verdict and, when there is
@@ -514,7 +514,7 @@ int clab_thrrk(const double *stops, const double *srch, const double *hits, cons
     for (int x = 0; x < no; ++x) jt[2 * (1 + x) + ms] = rej ? kutil::nan() : rk[static_cast<std::size_t>(x)];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 // ------------------------------------------------------------------------
 // The Bayesian fit of the threshold model (clab_thrbay): the hierarchical
@@ -823,7 +823,7 @@ void nuts(const bay &M, const std::vector<double> &minv, double eps, kutil::rng 
 
 int clab_thrbay(const double *stops, const double *srch, const double *hits, const int *g, const int *a, int n,
                 int ng, int na, int ref, int chains, int iter, unsigned int seed, double level, const double *init,
-                double *post, double *cfit, double *info) {
+                double *post, double *cfit, double *info) CLAB_TRY {
   if (n < 1 || ng < 2 || na < 1 || ref < 0 || ref >= ng || chains < 2 || iter < 20 || !(level > 0 && level < 1)) {
     return CLAB_EARG;
   }
@@ -1076,4 +1076,4 @@ int clab_thrbay(const double *stops, const double *srch, const double *hits, con
   info[2] = epss / chains;
   info[3] = big;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

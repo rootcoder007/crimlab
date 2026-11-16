@@ -55,7 +55,7 @@ bool flat(const double *x, int n) {
 }  // namespace
 
 int clab_detrsp(const double *x, const double *b, const double *s, int n, const double *p,
-                int np, double *xo, double *v) {
+                int np, double *xo, double *v) CLAB_TRY {
   if (n < 1 || np < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(x[i]) || !std::isfinite(b[i]) || !std::isfinite(s[i])) return CLAB_EDOM;
@@ -71,10 +71,10 @@ int clab_detrsp(const double *x, const double *b, const double *s, int n, const 
     v[k] = m;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dtrid(const double *p, const double *s, const double *c, int n, int lg, const double *y,
-               int *rank, int *ident, int *cst, double *beta, double *work) {
+               int *rank, int *ident, int *cst, double *beta, double *work) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   double *X = work, *q = work + 4 * n, r[16];
   for (int i = 0; i < n; ++i) {
@@ -112,10 +112,10 @@ int clab_dtrid(const double *p, const double *s, const double *c, int n, int lg,
     beta[j] = v / r[j * 4 + j];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_inspg(double a, const double *x0, int steps, double dt, double *traj, double *v,
-               double *f0, double *dv) {
+               double *f0, double *dv) CLAB_TRY {
   if (steps < 0) return CLAB_EARG;
   if (!std::isfinite(a) || a == 0 || !kutil::pos(dt)) return CLAB_EDOM;
   if (!kutil::nonneg(x0[0]) || !kutil::nonneg(x0[1]) || !kutil::nonneg(x0[2]) ||
@@ -147,10 +147,10 @@ int clab_inspg(double a, const double *x0, int steps, double dt, double *traj, d
     v[k] = x[0] * x[1] * x[2];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_insphs(const double *T, int nt, const double *g, int ng, int steps, double rate,
-                const double *x0, double *out) {
+                const double *x0, double *out) CLAB_TRY {
   if (nt < 1 || ng < 1 || steps < 0) return CLAB_EARG;
   if (!kutil::pos(rate)) return CLAB_EDOM;
   const double s0 = x0[0] + x0[1] + x0[2];
@@ -189,10 +189,10 @@ int clab_insphs(const double *T, int nt, const double *g, int ng, int steps, dou
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_colarr(const double *a, const double *e, const double *bg, int n, double *cells,
-                double *orr) {
+                double *orr) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!(a[i] > 0 && a[i] < 1) || !(e[i] > 0 && e[i] < 1) || !(bg[i] >= 0 && bg[i] <= 1)) {
@@ -205,4 +205,4 @@ int clab_colarr(const double *a, const double *e, const double *bg, int n, doubl
     orr[i] = c[0] * c[3] / (c[1] * c[2]);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

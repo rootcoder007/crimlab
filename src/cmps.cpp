@@ -112,7 +112,7 @@ void peaks(const std::vector<double> &c, const std::vector<double> &pos, int npk
 extern "C" {
 
 int clab_cmpsc(const double *a, int na, const double *b, int nb, int len, const int *npk, int nlev,
-               int tx, int full, int *off, int *nseg, int *score, double *pos, double *ccp, int *cmps) {
+               int tx, int full, int *off, int *nseg, int *score, double *pos, double *ccp, int *cmps) CLAB_TRY {
   if (na < 1 || nb < 1 || len < 2 || nlev < 1 || nlev > 8 || tx < 0) return CLAB_EARG;
   for (int l = 0; l < nlev; ++l) {
     if (npk[l] < 1) return CLAB_EARG;
@@ -235,6 +235,6 @@ int clab_cmpsc(const double *a, int na, const double *b, int nb, int len, const 
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

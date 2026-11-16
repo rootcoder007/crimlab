@@ -12,7 +12,7 @@
 #include "kutil.h"
 
 int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, double *est, double *se,
-               double *st) {
+               double *st) CLAB_TRY {
   if (na < 3 || np < 3 || maxit < 1 || static_cast<double>(na) * np > 1e6) return CLAB_EARG;
   const int nc = na + np - 1, n = na * np, p = 1 + (na - 1) + (np - 1) + (nc - 1);
   const std::size_t un = static_cast<std::size_t>(n), up = static_cast<std::size_t>(p);
@@ -118,4 +118,4 @@ int clab_apcie(const double *y, const double *expo, int na, int np, int maxit, d
   st[3] = s8[4];
   st[4] = s8[5];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

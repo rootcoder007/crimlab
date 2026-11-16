@@ -18,7 +18,7 @@ bool bin(double v) { return v == 0 || v == 1; }
 }  // namespace
 
 int clab_jdgiv(const double *z, const double *d, const double *y, const double *w, int n,
-               const double *dsh, int nd, const double *deff, int ne, double *est, double *sens) {
+               const double *dsh, int nd, const double *deff, int ne, double *est, double *sens) CLAB_TRY {
   if (n < 2 || nd < 0 || ne < 0) return CLAB_EARG;
   kutil::ksum w1, w0, d1, d0, y1, y0;
   for (int i = 0; i < n; ++i) {
@@ -62,10 +62,10 @@ int clab_jdgiv(const double *z, const double *d, const double *y, const double *
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jdgpop(const double *d0, const double *d1, const double *y0, const double *y1,
-                const double *w, int n, double *out) {
+                const double *w, int n, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   kutil::ksum tw;
   for (int i = 0; i < n; ++i) {
@@ -97,10 +97,10 @@ int clab_jdgpop(const double *d0, const double *d1, const double *y0, const doub
   out[10] = fs.val() != 0 ? itt.val() / fs.val() : kutil::nan();
   out[11] = ate.val();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jrate(const int *jc, const double *d, const double *y, const double *w, int n, int nj,
-               double *cnt, double *one, double *rate, double *outc, double *st) {
+               double *cnt, double *one, double *rate, double *outc, double *st) CLAB_TRY {
   if (n < 1 || nj < 1) return CLAB_EARG;
   for (int j = 0; j < nj; ++j) cnt[j] = one[j] = rate[j] = outc[j] = 0.0;
   // rate and outc first hold weighted sums; st[4] the weights' total
@@ -140,10 +140,10 @@ int clab_jrate(const int *jc, const double *d, const double *y, const double *w,
   st[2] = mn;
   st[3] = mx;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jslope(const double *rate, const double *outc, int nj, double lo, double hi, double *dp,
-                double *dy, double *bnd, int *viol, double *late) {
+                double *dy, double *bnd, int *viol, double *late) CLAB_TRY {
   if (nj < 1) return CLAB_EARG;
   if (!(hi >= lo) || !std::isfinite(lo) || !std::isfinite(hi)) return CLAB_EDOM;
   long long k = 0;
@@ -159,11 +159,11 @@ int clab_jslope(const double *rate, const double *outc, int nj, double lo, doubl
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jsub(const int *jc, const int *gc, const double *d, int n, int nj, int ng, double minn,
               const double *jt, double *cn, double *cr, int *pg, int *ps, int *pl, double *pv,
-              double *sl, int *sj, double *sc, int *npair) {
+              double *sl, int *sj, double *sc, int *npair) CLAB_TRY {
   if (n < 1 || nj < 1 || ng < 1) return CLAB_EARG;
   const long long nc = static_cast<long long>(nj) * ng;
   for (long long c = 0; c < nc; ++c) cn[c] = cr[c] = 0.0;
@@ -226,9 +226,9 @@ int clab_jsub(const int *jc, const int *gc, const double *d, int n, int nj, int 
   }
   *npair = static_cast<int>(k);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mmshr(const double *sent, const double *mn, const int *gc, int n, int ng, double *out) {
+int clab_mmshr(const double *sent, const double *mn, const int *gc, int n, int ng, double *out) CLAB_TRY {
   if (n < 1 || ng < 0) return CLAB_EARG;
   // per group, then overall (row ng): n, at, below, above, the mean excess
   // of those above
@@ -257,4 +257,4 @@ int clab_mmshr(const double *sent, const double *mn, const int *gc, int n, int n
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

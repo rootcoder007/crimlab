@@ -9,6 +9,7 @@
 #include <limits>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -121,7 +122,7 @@ double root01(G g, bool inc) {
 extern "C" {
 
 int clab_ctabx(const double *x, int r, int c, int yates, const int *dg, double *e,
-               double *res, double *st) {
+               double *res, double *st) CLAB_TRY {
   if (r < 1 || c < 1) return CLAB_EARG;
   const long long rc = static_cast<long long>(r) * c;
   double n = 0;
@@ -181,10 +182,10 @@ int clab_ctabx(const double *x, int r, int c, int yates, const int *dg, double *
   }
   st[8] = anyd ? d / n : qnan;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_fshx(const double *x, int r, int c, double cap, double conf, double *st,
-              double *rem) {
+              double *rem) CLAB_TRY {
   if (r < 2 || c < 2 || !(cap >= 1) || !(conf > 0 && conf < 1)) return CLAB_EARG;
   const long long rc = static_cast<long long>(r) * c;
   double n = 0, lobs = 0;
@@ -247,6 +248,6 @@ int clab_fshx(const double *x, int r, int c, double cap, double conf, double *st
     else st[3] = p > al ? 1 / root01([&](double t) { return h.cdf(a, 1 / t, false) - al; }, true) : 1;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

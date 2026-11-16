@@ -108,7 +108,7 @@ extern "C" {
 
 int clab_ntcsr(const int *a, const int *b, const double *w, int m, int n,
                int dir, int *off, int *adj, double *wt, int *iwork,
-               int *nloop, int *ndup) {
+               int *nloop, int *ndup) CLAB_TRY {
   if (n < 1 || m < 0 || (!dir && m > INT_MAX / 2)) return CLAB_EARG;
   for (int k = 0; k < m; ++k) {
     if (a[k] < 0 || a[k] >= n || b[k] < 0 || b[k] >= n) return CLAB_EARG;
@@ -164,10 +164,10 @@ int clab_ntcsr(const int *a, const int *b, const double *w, int m, int n,
   *nloop = loops;
   *ndup = dir ? dup : dup / 2;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntdeg(int n, const int *off, const double *wt, int *deg,
-               double *str) {
+               double *str) CLAB_TRY {
   if (n < 1 || off[0] != 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (off[i + 1] < off[i]) return CLAB_EARG;
@@ -180,14 +180,14 @@ int clab_ntdeg(int n, const int *off, const double *wt, int *deg,
     str[i] = s.val();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 //' @srrstats {G3.0} The network kernels compare path lengths as whole
 //'   numbers and path counts exactly (Brandes); the iterative ones stop on
 //'   a stated tolerance (eigenvector, Fiedler vector, Louvain moves).
 //' @noRd
 int clab_ntbtw(int n, const int *off, const int *adj, int dir, int norm,
-               double *bc, double *work, int *iwork) {
+               double *bc, double *work, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   double *sig = work, *del = work + n;
   int *dist = iwork, *ord = iwork + n;
@@ -238,10 +238,10 @@ int clab_ntbtw(int n, const int *off, const int *adj, int dir, int norm,
   const double sc = !norm ? f : n < 3 ? kutil::nan() : 1.0 / ((nn - 1) * (nn - 2));
   for (int i = 0; i < n; ++i) bc[i] *= sc;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntcls(int n, const int *off, const int *adj, double *cls,
-               double *ncls, double *hrm, int *reach, int *iwork) {
+               double *ncls, double *hrm, int *reach, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   int *dist = iwork, *q = iwork + n;
   for (int i = 0; i < n; ++i) dist[i] = -1;
@@ -280,11 +280,11 @@ int clab_ntcls(int n, const int *off, const int *adj, double *cls,
     for (int t = 0; t < tail; ++t) dist[q[t]] = -1;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntevc(int n, const int *off, const int *adj, const double *wt,
                double tol, int maxit, double *x, double *val, int *iter,
-               int *conv, double *work, int *iwork) {
+               int *conv, double *work, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj) || maxit < 1) return CLAB_EARG;
   if (!wtok(wt, off[n]) || !(tol > 0 && tol < 1)) return CLAB_EDOM;
   int *comp = iwork;
@@ -343,10 +343,10 @@ int clab_ntevc(int n, const int *off, const int *adj, const double *wt,
   *iter = it;
   *conv = ok;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntcore(int n, const int *off, const int *adj, int *core,
-                int *iwork) {
+                int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   // Batagelj and Zaversnik: nodes kept sorted by current degree in vert,
   // bin[d] the first position of degree d
@@ -386,18 +386,18 @@ int clab_ntcore(int n, const int *off, const int *adj, int *core,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntwcc(int n, const int *off, const int *adj, const int *ioff,
-               const int *iadj, int *comp, int *nc, int *iwork) {
+               const int *iadj, int *comp, int *nc, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   if (ioff != nullptr && !csrok(n, ioff, iadj)) return CLAB_EARG;
   *nc = comps(n, off, adj, ioff, iadj, comp, iwork);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntscc(int n, const int *off, const int *adj, int *comp, int *nc,
-               int *iwork) {
+               int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   // Tarjan's algorithm with an explicit call stack (cs, ep: the node and
   // its next edge) so that a long path cannot overflow the C stack
@@ -452,10 +452,10 @@ int clab_ntscc(int n, const int *off, const int *adj, int *comp, int *nc,
   }
   *nc = k;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntmod(int n, const int *off, const int *adj, const double *wt,
-               const int *memb, double res, double *q, double *work) {
+               const int *memb, double res, double *q, double *work) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (memb[i] < 0 || memb[i] >= n) return CLAB_EARG;
@@ -486,18 +486,18 @@ int clab_ntmod(int n, const int *off, const int *adj, const double *wt,
   }
   *q = s.val();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_ntlvnw(int n, int nnz, double *len, double *ilen) {
+int clab_ntlvnw(int n, int nnz, double *len, double *ilen) CLAB_TRY {
   if (n < 1 || nnz < 0) return CLAB_EARG;
   *len = 2.0 * nnz + 3.0 * n;
   *ilen = 2.0 * nnz + 9.0 * n + 3.0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntlvn(int n, const int *off, const int *adj, const double *wt,
                double res, unsigned int seed, int useseed, int *memb,
-               double *q, int *lev, double *work, int *iwork) {
+               double *q, int *lev, double *work, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj)) return CLAB_EARG;
   if (!wtok(wt, off[n]) || !kutil::pos(res)) return CLAB_EDOM;
   const int nnz = off[n];
@@ -632,10 +632,10 @@ int clab_ntlvn(int n, const int *off, const int *adj, const double *wt,
     cn = nc;
   }
   return clab_ntmod(n, off, adj, wt, memb, res, q, work + 2 * nnz);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntbrk(int n, const int *off, const int *adj, const int *ioff,
-               const int *iadj, const int *grp, double *cnt, int *iwork) {
+               const int *iadj, const int *grp, double *cnt, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj) || !csrok(n, ioff, iadj)) return CLAB_EARG;
   int *stamp = iwork;
   for (int i = 0; i < n; ++i) stamp[i] = -1;
@@ -660,11 +660,11 @@ int clab_ntbrk(int n, const int *off, const int *adj, const int *ioff,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ntchg(int n, const int *off, const int *adj, const double *wt,
                double tol, int maxit, double *out, int *set, int *iter,
-               int *conv, double *work, int *iwork) {
+               int *conv, double *work, int *iwork) CLAB_TRY {
   if (!csrok(n, off, adj) || maxit < 1) return CLAB_EARG;
   if (!wtok(wt, off[n]) || !(tol > 0 && tol < 1) || n < 2) return CLAB_EDOM;
   int one = 0;
@@ -770,10 +770,10 @@ int clab_ntchg(int n, const int *off, const int *adj, const double *wt,
   *iter = it;
   *conv = ok;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_coofw(const int *inc, const int *off, int k, int ni, int no,
-               double *npair, double *ilen, int *iwork) {
+               double *npair, double *ilen, int *iwork) CLAB_TRY {
   if (!coofok(inc, off, k, ni, no)) return CLAB_EARG;
   int *bo = iwork, *ord = iwork + ni + 1, *stamp = ord + k;
   bucket(inc, k, ni, bo, ord);
@@ -797,10 +797,10 @@ int clab_coofw(const int *inc, const int *off, int k, int ni, int no,
   *npair = np;
   *ilen = (ni + 1.0) + 2.0 * k + no + ts;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
-               int cap, int *pa, int *pb, double *pw, int *np, int *iwork) {
+               int cap, int *pa, int *pb, double *pw, int *np, int *iwork) CLAB_TRY {
   if (!coofok(inc, off, k, ni, no) || cap < 0 || cap > INT_MAX / 4) {
     return CLAB_EARG;
   }
@@ -843,6 +843,6 @@ int clab_coofg(const int *inc, const int *off, int k, int ni, int no,
   }
   *np = npr;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

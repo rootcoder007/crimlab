@@ -42,7 +42,7 @@ void cells(const std::vector<int> &pi, const std::vector<int> &pj, const std::ve
 }  // namespace
 
 int clab_knxnr(const double *x, const double *y, const double *t, int n, const double *ds, int ks,
-               const double *dt, int kt, int nsim, unsigned int seed, double *out) {
+               const double *dt, int kt, int nsim, unsigned int seed, double *out) CLAB_TRY {
   if (n < 3 || ks < 1 || kt < 1 || nsim < 0) return CLAB_EARG;
   if (!edges(ds, ks) || !edges(dt, kt)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -109,4 +109,4 @@ int clab_knxnr(const double *x, const double *y, const double *t, int n, const d
   }
   for (int c = 0; c < m; ++c) p[c] = (1 + ge[c]) / (nsim + 1.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -4,11 +4,12 @@
 #include <climits>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 extern "C" {
 
 int clab_rptc(const int *unit, const int *year, const int *rep, int n, int a,
-              int y0, int y1, int minrep, int *flag, int *nc, int *work) {
+              int y0, int y1, int minrep, int *flag, int *nc, int *work) CLAB_TRY {
   if (n < 0 || a < 1 || y1 < y0) return CLAB_EARG;
   if (y1 - y0 >= INT_MAX / a) return CLAB_EARG;  // a * years must fit
   const int ny = y1 - y0 + 1;
@@ -30,6 +31,6 @@ int clab_rptc(const int *unit, const int *year, const int *rep, int n, int a,
   }
   *nc = c;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

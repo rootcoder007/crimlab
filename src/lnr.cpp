@@ -71,7 +71,7 @@ double parea(const double *hr, const double *far, int nl, double fmax, double xe
 
 int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, int n, int np, int size,
                double fmax, int nboot, unsigned int seed, double *lev, int *nlev, double *roc, double *cac,
-               double *pauc, double *bse, double *fused) {
+               double *pauc, double *bse, double *fused) CLAB_TRY {
   if (n < 2 || np < 1 || size < 0) return CLAB_EARG;
   if (nboot < 0 || static_cast<double>(nboot) * n > 4e12) return CLAB_EARG;
   if (static_cast<double>(nboot) * np > kutil::maxcell) return CLAB_EARG;
@@ -159,9 +159,9 @@ int clab_lnroc(const int *tp, const int *pk, const double *cf, const int *pr, in
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out) {
+int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, double *out) CLAB_TRY {
   if (n < 1 || k < 2 || susp < 0 || susp >= k || !(z > 0)) return CLAB_EARG;
   for (int j = 0; j < k; ++j) cnt[j] = 0.0;
   int none = 0;
@@ -212,4 +212,4 @@ int clab_lnsize(const int *ch, int n, int k, int susp, double z, double *cnt, do
   out[9] = 1 / (s2 + h);
   out[10] = s2 - h > 0 ? 1 / (s2 - h) : HUGE_VAL;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

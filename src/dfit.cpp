@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -491,12 +492,12 @@ double posmean(const vector<double> &x) {
 
 extern "C" {
 
-int clab_dfnp(int f) {
+int clab_dfnp(int f) CLAB_TRY {
   static const int np[12] = {2, 2, 1, 2, 2, 3, 2, 2, 1, 2, 2, 3};
   return f >= 0 && f < 12 ? np[f] : 0;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dfit(int f, const double *x0, int n, double *par) {
+int clab_dfit(int f, const double *x0, int n, double *par) CLAB_TRY {
   if (f < 0 || f > 11 || n < 1) return CLAB_EARG;
   const vector<double> x(x0, x0 + n);
   const int k = clab_dfnp(f);
@@ -617,13 +618,13 @@ int clab_dfit(int f, const double *x0, int n, double *par) {
   }
   if (!std::isfinite(-nllsum(f, x, par))) return CLAB_EDOM;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-double clab_dfll(int f, const double *x, int n, const double *par) {
+double clab_dfll(int f, const double *x, int n, const double *par) CLAB_TRY {
   return -nllsum(f, vector<double>(x, x + n), par);
-}
+} CLAB_CATCH(kutil::nan())
 
-void clab_dfgof(int f, const double *xs, int n, const double *par, double *out) {
+void clab_dfgof(int f, const double *xs, int n, const double *par, double *out) CLAB_TRY {
   if (f >= 8) {
     double mx = 0, ks = 0;
     for (int i = 0; i < n; ++i) mx = std::max(mx, xs[i]);
@@ -647,6 +648,6 @@ void clab_dfgof(int f, const double *xs, int n, const double *par, double *out) 
   }
   out[0] = ks;
   out[1] = -n - rmean(t);
-}
+} CLAB_CATCHV
 
 }  // extern "C"

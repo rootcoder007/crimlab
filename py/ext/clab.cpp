@@ -1608,7 +1608,8 @@ PyObject *jrun(PyObject *const *a) {
   if (clab_intrd(0) != 0) intr();
   if (rc != CLAB_OK) {
     if (rc == CLAB_ESIZE) throw std::bad_alloc();
-    PyErr_SetString(PyExc_ValueError, out.data());
+    // a failed allocation inside: a MemoryError with the function's name
+    PyErr_SetString(rc == CLAB_ENOMEM ? PyExc_MemoryError : PyExc_ValueError, out.data());
     throw Raised{};
   }
   return PyUnicode_FromString(out.data());

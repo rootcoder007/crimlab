@@ -263,7 +263,7 @@ extern "C" {
 int clab_zgll(const double *y, int n, int nt, const double *off,
                const double *x, int p, const double *z, int q, int ng,
                const double *par, const double *prob, double *w, double *ll,
-               double *work) {
+               double *work) CLAB_TRY {
   const dat D{y, off, x, z, n, nt, p, q};
   const int rc = check(D, ng);
   if (rc != CLAB_OK) return rc;
@@ -277,12 +277,12 @@ int clab_zgll(const double *y, int n, int nt, const double *off,
     if (!std::isfinite(par[j])) return CLAB_EDOM;
   *ll = estep(D, par, prob, ng, w, work);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_zgem(const double *y, int n, int nt, const double *off,
                const double *x, int p, const double *z, int q, int ng,
                double *par, double *prob, double *w, double *ll, int maxit,
-               double tol, int *iter, double *work) {
+               double tol, int *iter, double *work) CLAB_TRY {
   const dat D{y, off, x, z, n, nt, p, q};
   if (maxit < 1 || !(tol > 0.0)) return CLAB_EARG;
   int rc = clab_zgll(y, n, nt, off, x, p, z, q, ng, par, prob, w, ll, work);
@@ -312,6 +312,6 @@ int clab_zgem(const double *y, int n, int nt, const double *off,
   *ll = cur;
   *iter = it;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

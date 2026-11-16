@@ -24,6 +24,7 @@ extern "C" {
 #define CLAB_EARG 1 /* a size or an index is out of range */
 #define CLAB_EDOM 2 /* a value is outside the domain of the method */
 #define CLAB_EINTR 3 /* the host's interrupt check asked to stop */
+#define CLAB_ENOMEM 4 /* an allocation failed: not enough memory for the sizes asked */
 
 /* The words for an error code. */
 const char *clab_strerror(int code);

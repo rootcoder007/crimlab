@@ -24,7 +24,7 @@ extern "C" {
 
 int clab_nordet(const double *cx, const double *cy, int n, const double *ox,
                 const double *oy, int m, double radius, double p, int draw,
-                unsigned int seed, int *k, double *prob, int *det) {
+                unsigned int seed, int *k, double *prob, int *det) CLAB_TRY {
   if (n < 1 || m < 0) return CLAB_EARG;
   if (!kutil::pos(radius) || !(p > 0.0 && p <= 1.0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -51,11 +51,11 @@ int clab_nordet(const double *cx, const double *cy, int n, const double *ox,
     for (int i = 0; i < n; ++i) det[i] = g.unif() < prob[i] ? 1 : 0;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_fairsim(int n, int g, const double *props, int nareas, double base,
                  double bias, unsigned int seed, int *area, int *grp,
-                 int *truth, int *det, double *risk) {
+                 int *truth, int *det, double *risk) CLAB_TRY {
   if (n < 1 || g < 2 || nareas < g) return CLAB_EARG;
   if (!(base >= 0.0 && base <= 1.0) || !(bias >= -1.0 && bias <= 1.0)) return CLAB_EDOM;
   double tot = 0.0;
@@ -89,6 +89,6 @@ int clab_fairsim(int n, int g, const double *props, int nareas, double base,
     risk[i] = std::fmin(500.0, std::fmax(0.0, s));
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

@@ -95,7 +95,7 @@ double d2(const double *x, const double *y, int i, int j) {
 
 int clab_kscan(const double *x, const double *y, const double *t, int n, const double *r, int nr,
                const double *tw, int nw, int minc, int nsim, unsigned int seed, int top,
-               double *out, int *ncl) {
+               double *out, int *ncl) CLAB_TRY {
   if (n < 3 || nr < 1 || nw < 1 || minc < 1 || nsim < 0 || top < 1) return CLAB_EARG;
   for (int k = 0; k < nr; ++k) {
     if (!kutil::pos(r[k]) || (k > 0 && !(r[k] > r[k - 1]))) return CLAB_EDOM;
@@ -210,4 +210,4 @@ int clab_kscan(const double *x, const double *y, const double *t, int n, const d
     v[9] = nsim > 0 ? (1 + ge[q]) / (nsim + 1.0) : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

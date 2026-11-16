@@ -166,7 +166,7 @@ int elim1(Elim &e, int v, const std::vector<int> &u, const std::vector<std::size
 
 extern "C" {
 
-int clab_mutmat(int model, int na, const double *lab, double rate, double range, double *m) {
+int clab_mutmat(int model, int na, const double *lab, double rate, double range, double *m) CLAB_TRY {
   if (na < 1 || na > 46340 || model < 0 || model > 2) return CLAB_EARG;
   if (!(rate >= 0.0 && rate <= 1.0) || (model == 2 && !(range > 0.0 && range < 1.0))) return CLAB_EDOM;
   const std::size_t n = static_cast<std::size_t>(na);
@@ -194,10 +194,10 @@ int clab_mutmat(int model, int na, const double *lab, double rate, double range,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_pedlik(int n, const int *fa, const int *mo, const int *g, int na, const double *p,
-                const double *mm, const double *mf, double *ll) {
+                const double *mm, const double *mf, double *ll) CLAB_TRY {
   if (n < 1 || n > INT_MAX / 2 || na < 1 || na > 46340) return CLAB_EARG;
   double ps = 0.0;
   for (int a = 0; a < na; ++a) {
@@ -313,7 +313,7 @@ int clab_pedlik(int n, const int *fa, const int *mo, const int *g, int na, const
   }
   *ll = pr > 0.0 ? std::log(pr) + e.lsc : -HUGE_VAL;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
 

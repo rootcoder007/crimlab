@@ -171,7 +171,7 @@ bool okz(const double *z, int n, int p, const double *v) {
 }  // namespace
 
 int clab_vgemp(const double *x, const double *y, int n, const double *v, int nb, double cut, double *dist,
-               double *gam, double *np, int *nk) {
+               double *gam, double *np, int *nk) CLAB_TRY {
   if (n < 2 || nb < 1 || !okpts(x, y, n)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(v[i])) return CLAB_EDOM;
@@ -180,9 +180,9 @@ int clab_vgemp(const double *x, const double *y, int n, const double *v, int nb,
   if (!kutil::pos(cut)) return CLAB_EDOM;
   bins(x, y, n, v, nb, cut, dist, gam, np, nk);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_vgfit(const double *x, const double *y, int n, const double *v, int model, double *out) {
+int clab_vgfit(const double *x, const double *y, int n, const double *v, int model, double *out) CLAB_TRY {
   if (n < 3 || !okmodel(model) || !okpts(x, y, n)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(v[i])) return CLAB_EDOM;
@@ -221,9 +221,9 @@ int clab_vgfit(const double *x, const double *y, int n, const double *v, int mod
   out[4] = rc == 0 ? 1 : 0;
   out[5] = nf;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_vgwls(const double *x, const double *y, int n, const double *v, int model, double *out) {
+int clab_vgwls(const double *x, const double *y, int n, const double *v, int model, double *out) CLAB_TRY {
   if (n < 2 || !okmodel(model) || !okpts(x, y, n)) return CLAB_EARG;
   double dist[15], gam[15], np[15];
   int nk = 0;
@@ -249,10 +249,10 @@ int clab_vgwls(const double *x, const double *y, int n, const double *v, int mod
   if (kutil::stop(0)) return CLAB_EINTR;
   for (int k = 0; k < 3; ++k) out[k] = std::exp(p[k]);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_okrge(const double *x, const double *y, int n, const double *v, const double *ax, const double *ay,
-               int m, int model, double nug, double ps, double rg, double *pred, double *var) {
+               int m, int model, double nug, double ps, double rg, double *pred, double *var) CLAB_TRY {
   if (n < 1 || m < 1 || !okmodel(model) || !okpts(x, y, n) || !okpts(ax, ay, m)) return CLAB_EARG;
   if (!kutil::nonneg(nug) || !kutil::nonneg(ps) || !kutil::pos(rg)) return CLAB_EDOM;
   const int k = n + 1;
@@ -279,9 +279,9 @@ int clab_okrge(const double *x, const double *y, int n, const double *v, const d
     var[q] = std::max(t, 0.0);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_bkpts(const double *lo, const double *hi, int nq, double *px, double *py) {
+int clab_bkpts(const double *lo, const double *hi, int nq, double *px, double *py) CLAB_TRY {
   if (nq < 1) return CLAB_EARG;
   const int k = static_cast<int>(std::nearbyint(std::sqrt(static_cast<double>(nq))));
   if (static_cast<double>(k) * k > kutil::maxcell) return CLAB_EARG;
@@ -297,10 +297,10 @@ int clab_bkpts(const double *lo, const double *hi, int nq, double *px, double *p
       py[j * k + i] = seq(lo[1], hi[1], j);
     }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_bkrig(const double *x, const double *y, int n, const double *v, const double *bx, const double *by,
-               const int *off, int nblk, double nug, double sill, double rg, double *est, double *se) {
+               const int *off, int nblk, double nug, double sill, double rg, double *est, double *se) CLAB_TRY {
   if (n < 1 || nblk < 1 || !okpts(x, y, n) || off[nblk] > kutil::maxcell) return CLAB_EARG;
   if (!kutil::nonneg(nug) || !std::isfinite(sill) || !kutil::pos(rg)) return CLAB_EDOM;
   const double c1 = sill - nug;
@@ -343,10 +343,10 @@ int clab_bkrig(const double *x, const double *y, int n, const double *v, const d
     se[b] = std::sqrt(std::max(Cb[b] - l - S[at(n, b, k)], 0.0));
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_krigcv(const double *x, const double *y, int n, const double *v, double nug, double sill, double rg,
-                double *res) {
+                double *res) CLAB_TRY {
   if (n < 2 || !okpts(x, y, n)) return CLAB_EARG;
   if (!kutil::nonneg(nug) || !std::isfinite(sill) || !kutil::pos(rg)) return CLAB_EDOM;
   const double c1 = sill - nug;
@@ -378,10 +378,10 @@ int clab_krigcv(const double *x, const double *y, int n, const double *v, double
     res[o] = v[o] - z;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_trsurf(const double *x, const double *y, int n, const double *v, int order, double *coef, double *se,
-                double *r2) {
+                double *r2) CLAB_TRY {
   if (order < 0 || order > 3 || !okpts(x, y, n)) return CLAB_EARG;
   static const int np[] = {1, 3, 6, 10};
   const int p = np[order];
@@ -404,10 +404,10 @@ int clab_trsurf(const double *x, const double *y, int n, const double *v, int or
   for (int i = 0; i < n; ++i) tss += (v[i] - mu) * (v[i] - mu);
   *r2 = tss > 0 ? 1 - rss / tss : 1;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sglmx(const double *z, int n, int p, const double *v, const double *x, const double *y, double *coef,
-               double *se, double *out) {
+               double *se, double *out) CLAB_TRY {
   if (n < 2 || !okpts(x, y, n)) return CLAB_EARG;
   if (!okz(z, n, p, v)) return CLAB_EDOM;
   const vd D = dmat(x, y, n);
@@ -439,10 +439,10 @@ int clab_sglmx(const double *z, int n, int p, const double *v, const double *x, 
   out[1] = phi;
   out[2] = 0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_smixm(const double *z, int n, int p, const double *v, const double *x, const double *y, double *coef,
-               double *se, double *out) {
+               double *se, double *out) CLAB_TRY {
   if (n < 2 || !okpts(x, y, n)) return CLAB_EARG;
   if (!okz(z, n, p, v)) return CLAB_EDOM;
   const vd D = dmat(x, y, n);
@@ -483,9 +483,9 @@ int clab_smixm(const double *z, int n, int p, const double *v, const double *x, 
   out[2] = phi;
   out[3] = rc == 0 ? 1 : 0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_wmerc(const double *x, const double *y, int n, int inv, double *ox, double *oy) {
+int clab_wmerc(const double *x, const double *y, int n, int inv, double *ox, double *oy) CLAB_TRY {
   const double R = 6378137;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(x[i]) || !std::isfinite(y[i])) return CLAB_EDOM;
@@ -499,9 +499,9 @@ int clab_wmerc(const double *x, const double *y, int n, int inv, double *ox, dou
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_spdens(const double *x, const double *y, int n, int ll, double *prob) {
+int clab_spdens(const double *x, const double *y, int n, int ll, double *prob) CLAB_TRY {
   if (n < 2 || !okpts(x, y, n)) return CLAB_EARG;
   vd D(static_cast<std::size_t>(n) * n, 0.0);
   for (int j = 0; j < n; ++j)
@@ -536,9 +536,9 @@ int clab_spdens(const double *x, const double *y, int n, int ll, double *prob) {
   const double t = tot.val();
   for (int i = 0; i < n; ++i) prob[i] /= t;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_spsamp(const double *prob, int n, int size, unsigned int seed, int *idx) {
+int clab_spsamp(const double *prob, int n, int size, unsigned int seed, int *idx) CLAB_TRY {
   if (n < 1 || size < 0 || size > n) return CLAB_EARG;
   kutil::rng g(seed);
   vd p(static_cast<std::size_t>(n), 1.0);
@@ -574,4 +574,4 @@ int clab_spsamp(const double *prob, int n, int size, unsigned int seed, int *idx
     left[pick] = left[m - 1];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

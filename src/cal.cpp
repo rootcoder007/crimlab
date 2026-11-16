@@ -129,7 +129,7 @@ extern "C" {
 int clab_calaud(const int *area, const double *risk, const double *outc,
                 const int *grp, const double *pop, int n, int na, int g,
                 int nperm, unsigned int seed, double *ar, double *gr,
-                double *st, int *iwork, double *work) {
+                double *st, int *iwork, double *work) CLAB_TRY {
   if (n < 1 || na < 3 || na > n || g < 1 || nperm < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (area[i] < 0 || area[i] >= na || grp[i] < 0 || grp[i] >= g) return CLAB_EARG;
@@ -246,10 +246,10 @@ int clab_calaud(const int *area, const double *risk, const double *outc,
     st[6] = (1.0 + ct) / (1.0 + nperm);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_scrdsp(const double *x, const int *grp, int n, int g, int ref,
-                double *gs, double *st, int *iwork) {
+                double *gs, double *st, int *iwork) CLAB_TRY {
   if (n < 1 || g < 2 || ref < -1 || ref >= g) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (grp[i] < 0 || grp[i] >= g) return CLAB_EARG;
@@ -341,6 +341,6 @@ int clab_scrdsp(const double *x, const int *grp, int n, int g, int ref,
   st[7] = b;
   st[8] = msw;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

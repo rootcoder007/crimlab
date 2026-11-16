@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -41,7 +42,7 @@ extern "C" {
 
 int clab_grprr(const double *x, const double *n, int k, int ref, int prop, double z,
                double *rate, double *lo, double *hi, double *rep, double *ratio,
-               double *rlo, double *rhi, double *diff, double *dlo, double *dhi) {
+               double *rlo, double *rhi, double *diff, double *dlo, double *dhi) CLAB_TRY {
   if (k < 1 || ref < 0 || ref >= k) return CLAB_EARG;
   if (!(z > 0) || !std::isfinite(z) || !cnts(x, n, k, prop != 0)) return CLAB_EDOM;
   double xs = 0, ns = 0;
@@ -94,12 +95,12 @@ int clab_grprr(const double *x, const double *n, int k, int ref, int prop, doubl
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dastd(const double *x, const double *n, const int *grp, const int *str, int m,
                int ng, int ns, const double *w, int ref, double z, double *rate,
                double *var, double *wmax, double *ev, double *ratio, double *rlo,
-               double *rhi, double *diff, double *dlo, double *dhi, int *seen) {
+               double *rhi, double *diff, double *dlo, double *dhi, int *seen) CLAB_TRY {
   if (m < 1 || ng < 1 || ns < 1 || ref < 0 || ref >= ng) return CLAB_EARG;
   if (!(z > 0) || !std::isfinite(z) || !cnts(x, n, m, false)) return CLAB_EDOM;
   double ws = 0;
@@ -148,11 +149,11 @@ int clab_dastd(const double *x, const double *n, const int *grp, const int *str,
     dhi[g] = diff[g] + s;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sirex(const double *x, const double *n, const int *grp, const int *str, int m,
                int ng, int ns, const double *sr, double *obs, double *expd, double *sir,
-               double *eb, double *shr, double *prior, double *work) {
+               double *eb, double *shr, double *prior, double *work) CLAB_TRY {
   if (m < 1 || ng < 1 || ns < 1) return CLAB_EARG;
   if (!cnts(x, n, m, false)) return CLAB_EDOM;
   double *num = work, *den = work + ns;
@@ -203,6 +204,6 @@ int clab_sirex(const double *x, const double *n, const int *grp, const int *str,
   prior[0] = mm;
   prior[1] = s2;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

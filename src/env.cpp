@@ -11,6 +11,7 @@
 #include "crimlab.h"
 #include "pev.h"
 
+#include "kutil.h"
 namespace {
 
 // the logarithmic mean (a - b) / (ln a - ln b), a when a = b; log1p keeps
@@ -25,7 +26,7 @@ bool pos(double v) { return std::isfinite(v) && v > 0.0; }
 }  // namespace
 
 extern "C" int clab_lmdi(const double *y0, const double *y1, const double *f0,
-                         const double *f1, int n, int k, double *out) {
+                         const double *f1, int n, int k, double *out) CLAB_TRY {
   if (n < 1 || k < 1) return CLAB_EARG;
   const std::size_t sn = static_cast<std::size_t>(n), sk = static_cast<std::size_t>(k);
   for (std::size_t i = 0; i < sn; ++i) {
@@ -41,9 +42,9 @@ extern "C" int clab_lmdi(const double *y0, const double *y1, const double *f0,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" int clab_vif(const double *x, int n, int p, double *out, double *work) {
+extern "C" int clab_vif(const double *x, int n, int p, double *out, double *work) CLAB_TRY {
   if (p < 1 || n < p + 2) return CLAB_EARG;
   const std::size_t sn = static_cast<std::size_t>(n), sp = static_cast<std::size_t>(p);
   double *d = work;         // the constant and the other columns: n p
@@ -81,9 +82,9 @@ extern "C" int clab_vif(const double *x, int n, int p, double *out, double *work
     out[j] = rss > 0.0 ? tss / rss : INFINITY;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" int clab_jb(const double *r, int n, double *out) {
+extern "C" int clab_jb(const double *r, int n, double *out) CLAB_TRY {
   if (n < 4) return CLAB_EARG;
   double m = 0.0;
   for (int i = 0; i < n; ++i) m += r[i];
@@ -106,9 +107,9 @@ extern "C" int clab_jb(const double *r, int n, double *out) {
   out[2] = jb;
   out[3] = std::exp(-jb / 2.0);  // the upper tail of chi-squared on 2 df
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) {
+extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) CLAB_TRY {
   if (nu < 2 || nt < 2) return CLAB_EARG;
   const std::size_t st = static_cast<std::size_t>(nt);
   double cd = 0.0, sr = 0.0, sa = 0.0;
@@ -151,4 +152,4 @@ extern "C" int clab_pcd(const double *e, int nu, int nt, double *out) {
   out[3] = sa / dm;
   out[4] = dm;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

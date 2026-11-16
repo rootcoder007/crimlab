@@ -127,10 +127,30 @@ export async function load(stdin = () => new Uint8Array(0)) {
     return s;
   };
 
+  // A failed allocation cannot be unwound in a build without exceptions:
+  // the module's new-handler records it (clab_oomed()) and stops it. Such a
+  // stop is reported in words, as the other bindings report CLAB_ENOMEM,
+  // and the module, whose heap is then unusable, refuses further calls.
+  let dead = false;
+  const oom = (e) => e instanceof WebAssembly.RuntimeError && x.clab_oomed && x.clab_oomed() !== 0;
+  const alive = () => {
+    if (dead) throw new Error('crimlab: the module ran out of memory; load it again');
+  };
+
   return {
     /** clab_jrun(): [status, JSON result or message]. */
     jrun(name, args) {
-      const f = cstr(name);
+      alive();
+      let f, a, need;
+      try {
+        f = cstr(name);
+        a = cstr(args);
+        need = x.malloc(4);
+      } catch (e) {
+        if (!oom(e)) throw e;
+        dead = true;
+        return [4, `${name}: not enough memory for this size.`];
+      }
       const a = cstr(args);
       const need = x.malloc(4);
       let cap = 1 << 16;
@@ -147,15 +167,22 @@ export async function load(stdin = () => new Uint8Array(0)) {
           }
           return [rc, s];
         }
+      } catch (e) {
+        if (!oom(e)) throw e;
+        dead = true;
+        return [4, `${name}: not enough memory for this size.`];
       } finally {
-        x.free(f);
-        x.free(a);
-        x.free(need);
+        if (!dead) {
+          x.free(f);
+          x.free(a);
+          x.free(need);
+        }
       }
     },
     jfns: () => read(x.clab_jfns()),
     /** The command: its exit status, standard output and standard error. */
     cmain(argv) {
+      alive();
       const ps = ['crimlab', ...argv].map(cstr);
       const v = x.malloc(4 * (ps.length + 1));
       ps.forEach((p, i) => dv().setUint32(v + 4 * i, p, true));
@@ -164,6 +191,10 @@ export async function load(stdin = () => new Uint8Array(0)) {
       try {
         code = x.clab_cmain(ps.length, v);
       } catch (e) {
+        if (oom(e)) {
+          dead = true;
+          return { code: 1, out: drain(0), err: drain(1) + 'crimlab: not enough memory for this size.\n' };
+        }
         if (!(e instanceof Exit)) throw e;
         code = e.code;
       }

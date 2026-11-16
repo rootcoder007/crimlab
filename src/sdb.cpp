@@ -35,7 +35,7 @@ extern "C" {
 
 int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double *rho,
                 const int *sup, unsigned int seed, double *burg, double *meanb, double *tot,
-                double *work, int *iwork) {
+                double *work, int *iwork) CLAB_TRY {
   if (n < 3 || steps < 0 || steps > kutil::maxcell || mode < 0 || mode > 1) return CLAB_EARG;
   const double a0 = par[0], om = par[1], eta = par[2], gam = par[3], th = par[4], dt = par[5],
                dx = par[6], dif = par[7], eps = par[8], z = par[9];
@@ -130,10 +130,10 @@ int clab_sdbsim(int n, int steps, int mode, const double *par, double *b, double
     meanb[t] = sb / nn;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_sdbthr(const double *par, const double *k, int nk, double *st, double *tr, double *det,
-                double *gr) {
+                double *gr) CLAB_TRY {
   const double a0 = par[0], om = par[1], eps = par[2], dif = par[3], gam = par[4], eta = par[5],
                z = par[6];
   if (!kutil::pos(a0) || !kutil::pos(om) || !kutil::nonneg(eps) || !kutil::pos(dif) ||
@@ -171,6 +171,6 @@ int clab_sdbthr(const double *par, const double *k, int nk, double *st, double *
     gr[i] = grk(k[i]);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

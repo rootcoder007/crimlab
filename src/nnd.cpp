@@ -58,7 +58,7 @@ extern "C" {
 
 int clab_nnidx(const double *x, const double *y, int n, const double *win,
                int kmax, int nsim, unsigned int seed, double *dist,
-               int *iwork, double *work, double *out) {
+               int *iwork, double *work, double *out) CLAB_TRY {
   if (n < 2 || kmax < 1 || kmax > n - 1 || nsim < 0) return CLAB_EARG;
   if (!inwin(x, y, n, win)) return CLAB_EDOM;
   const double w = win[1] - win[0], h = win[3] - win[2];
@@ -114,6 +114,6 @@ int clab_nnidx(const double *x, const double *y, int n, const double *win,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

@@ -55,7 +55,7 @@ std::vector<double> poly(const std::vector<double> &v, double c, int p) {
 
 extern "C" {
 
-double clab_rdck(int kern) {
+double clab_rdck(int kern) CLAB_TRY {
   // the moments on [0, 1] of the kernel (any constant multiple: C_K does
   // not depend on it): nu_j of K, pi_j of K^2
   double nu[4], pi[3];
@@ -81,9 +81,9 @@ double clab_rdck(int kern) {
   const double c1 = q * q / 4;
   const double c2 = (nu[2] * nu[2] * pi[0] - 2 * nu[1] * nu[2] * pi[1] + nu[1] * nu[1] * pi[2]) / (d * d);
   return std::pow(c2 / (4 * c1), 0.2);
-}
+} CLAB_CATCH(kutil::nan())
 
-int clab_ikbw(const double *y, const double *x, int n, double c, int kern, double *h, double *st) {
+int clab_ikbw(const double *y, const double *x, int n, double c, int kern, double *h, double *st) CLAB_TRY {
   if (n < 10 || kern < 0 || kern > 2 || !std::isfinite(c)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(y[i]) || !std::isfinite(x[i])) return CLAB_EDOM;
@@ -176,9 +176,9 @@ int clab_ikbw(const double *y, const double *x, int n, double c, int kern, doubl
   st[8] = m2r;
   st[9] = ck;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_mccr(const double *r, int n, double c, double b, double h, double *st) {
+int clab_mccr(const double *r, int n, double c, double b, double h, double *st) CLAB_TRY {
   if (n < 10 || !std::isfinite(c) || !(b >= 0) || !(h >= 0)) return CLAB_EARG;
   double mr = 0.0, lo = r[0], hi = r[0];
   for (int i = 0; i < n; ++i) {
@@ -264,6 +264,6 @@ int clab_mccr(const double *r, int n, double c, double b, double h, double *st) 
   st[5] = h;
   st[6] = static_cast<double>(nb);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

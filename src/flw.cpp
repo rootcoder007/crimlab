@@ -23,7 +23,7 @@ double chg(const double *v, int i, int base) {
 
 int clab_stkflw(const double *pe, const double *dy, const double *ad, const double *al,
                 const double *t, int n, int base, const double *expo, double per, const double *rel,
-                double early, double *out) {
+                double early, double *out) CLAB_TRY {
   if (n < 1 || base < 0 || base > 1) return CLAB_EARG;
   const int given = (pe != nullptr) + (dy != nullptr) + (ad != nullptr) + (al != nullptr);
   if (given != 2 || (dy && ad)) return CLAB_EARG;
@@ -73,11 +73,11 @@ int clab_stkflw(const double *pe, const double *dy, const double *ad, const doub
     mn[k] = s.val() / n;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lostay(const double *x, const double *w, int n, const double *br, int nb,
                 const double *thr, int nt, const int *flag, double *st, double *bt, double *tt,
-                double *fit, int *o) {
+                double *fit, int *o) CLAB_TRY {
   if (n < 1 || nb < 0 || nt < 0) return CLAB_EARG;
   kutil::ksum sw, sx;
   for (int i = 0; i < n; ++i) {
@@ -179,9 +179,9 @@ int clab_lostay(const double *x, const double *w, int n, const double *br, int n
     fit[4] = std::sqrt(s2);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_bklog(const double *a, const double *d, int n, double h, double *out) {
+int clab_bklog(const double *a, const double *d, int n, double h, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!kutil::pos(h)) return CLAB_EDOM;
   kutil::ksum occ, wt;
@@ -210,9 +210,9 @@ int clab_bklog(const double *a, const double *d, int n, double h, double *out) {
   // L = lambda W holds exactly with every case disposed
   out[6] = nc == 0 ? occ.val() / h - rate * w : kutil::nan();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dktflw(const double *rc, const double *ds, const double *pd, int n, int win, double *out) {
+int clab_dktflw(const double *rc, const double *ds, const double *pd, int n, int win, double *out) CLAB_TRY {
   if (n < 1 || win < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!kutil::nonneg(rc[i]) || !kutil::nonneg(ds[i]) || (pd && !kutil::nonneg(pd[i]))) {
@@ -249,10 +249,10 @@ int clab_dktflw(const double *rc, const double *ds, const double *pd, int n, int
     tc[i] = pd && pace > 0 ? pd[i] / pace : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dkmix(const double *x, int nt, int k, const double *sc, double a, double *sh, double *lo,
-               double *hi, double *st, double *tr) {
+               double *hi, double *st, double *tr) CLAB_TRY {
   if (nt < 1 || k < 1) return CLAB_EARG;
   if (!(a > 0)) return CLAB_EDOM;
   // x: nt periods by k outcomes, column-major; Goodman's simultaneous
@@ -318,10 +318,10 @@ int clab_dkmix(const double *x, int nt, int k, const double *sc, double a, doubl
     tr[k + j] = sh[nt - 1 + static_cast<long long>(nt) * j] - sh[static_cast<long long>(nt) * j];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lftab(const double *lo, const double *hi, const double *d, const double *w, int k,
-               double z, int ci, double *out) {
+               double z, int ci, double *out) CLAB_TRY {
   if (k < 1 || ci < 0 || ci > 2) return CLAB_EARG;
   kutil::ksum tot;
   for (int i = 0; i < k; ++i) {
@@ -376,10 +376,10 @@ int clab_lftab(const double *lo, const double *hi, const double *d, const double
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_trnmat(const int *from, const int *to, int m, int k, double *cnt, double *p, double *pi,
-                double *st, double *work) {
+                double *st, double *work) CLAB_TRY {
   if (m < 0 || k < 1) return CLAB_EARG;
   const long long kk = static_cast<long long>(k) * k;
   for (long long c = 0; c < kk; ++c) cnt[c] = p[c] = 0.0;
@@ -485,4 +485,4 @@ int clab_trnmat(const int *from, const int *to, int m, int k, double *cnt, doubl
     st[2] = th.val();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

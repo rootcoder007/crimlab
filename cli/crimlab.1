@@ -64,8 +64,9 @@ print a short help.
 .B \-V
 print the version.
 .SH EXIT STATUS
-0 on success, 1 when the function refuses its arguments (the message goes
-to standard error), 2 for a usage error.
+0 on success, 1 when the function refuses its arguments or there is not
+enough memory for the sizes asked (the message goes to standard error), 2
+for a usage error.
 .SH EXAMPLES
 .nf
 crimlab orrisk \-\-or 2 \-\-rate 0.1 \-\-share 0.3

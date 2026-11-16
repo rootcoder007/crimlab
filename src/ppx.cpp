@@ -33,7 +33,7 @@ double ripw(double x, double y, double r, const double *w) {
 
 int clab_crossk(const double *x, const double *y, const int *mk, int n, int ti, int tj,
                 const double *win, const double *r, int nr, double sigma, int nsim,
-                unsigned int seed, double *k, double *seg) {
+                unsigned int seed, double *k, double *seg) CLAB_TRY {
   if (n < 2 || nr < 1 || nsim < 0) return CLAB_EARG;
   if (!(win[0] < win[1] && win[2] < win[3])) return CLAB_EDOM;
   int ni = 0, nj = 0, nt = 0;
@@ -104,10 +104,10 @@ int clab_crossk(const double *x, const double *y, const int *mk, int n, int ti, 
   seg[0] = t0;
   seg[1] = nsim > 0 ? (1 + ge) / (nsim + 1.0) : kutil::nan();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_qdrtst(const double *x, const double *y, int n, const double *win, int nx, int ny,
-                double *cnt, double *st) {
+                double *cnt, double *st) CLAB_TRY {
   if (n < 1 || nx < 1 || ny < 1 || nx * ny < 2) return CLAB_EARG;
   if (!(win[0] < win[1] && win[2] < win[3])) return CLAB_EDOM;
   std::fill(cnt, cnt + static_cast<std::size_t>(nx) * ny, 0.0);
@@ -128,9 +128,9 @@ int clab_qdrtst(const double *x, const double *y, int n, const double *win, int 
   st[1] = nx * ny - 1;
   st[2] = n / ((win[1] - win[0]) * (win[3] - win[2]));
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_morsta(const double *x, int n, double chiu, double chil, double *out) {
+int clab_morsta(const double *x, int n, double chiu, double chil, double *out) CLAB_TRY {
   if (n < 2) return CLAB_EARG;
   double s = 0, s2 = 0;
   for (int i = 0; i < n; ++i) {
@@ -160,10 +160,10 @@ int clab_morsta(const double *x, int n, double chiu, double chil, double *out) {
   out[3] = st;
   out[4] = id * (s - 1) + n - s;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dissix(const double *x, int n, int g, double delta, const int *rp, const int *ci,
-                const double *w, double *d, double *grp, double *dm) {
+                const double *w, double *d, double *grp, double *dm) CLAB_TRY {
   if (n < 1 || g < 2) return CLAB_EARG;
   if (!(delta > 0 && delta < 1)) return CLAB_EDOM;
   std::vector<double> t(n, 0.0), tot(g, 0.0);
@@ -238,4 +238,4 @@ int clab_dissix(const double *x, int n, int g, double delta, const int *rp, cons
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

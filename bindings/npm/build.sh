@@ -18,7 +18,7 @@ if [ "$ver" != "$want" ]; then
   exit 2
 fi
 v=$(sed -n 's/^Version: *//p' "$root/DESCRIPTION")
-exp=$(printf ' -Wl,--export=%s' clab_jrun clab_jfns clab_cmain malloc free fflush)
+exp=$(printf ' -Wl,--export=%s' clab_jrun clab_jfns clab_cmain clab_oomed malloc free fflush)
 ks=$(grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' "$root"/src/*.cpp)
 mkdir -p "$here/dist"
 # shellcheck disable=SC2086 # the source list is split into words on purpose

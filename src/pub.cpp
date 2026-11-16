@@ -11,7 +11,7 @@
 #include "kutil.h"
 
 int clab_bandx(const double *lo, const double *hi, const int *olo, const int *oup, int n, int rule,
-               double cap, double fac, double flr, double *val, double *blo, double *bhi) {
+               double cap, double fac, double flr, double *val, double *blo, double *bhi) CLAB_TRY {
   if (n < 0 || rule < 0 || rule > 3) return CLAB_EARG;
   if (!kutil::pos(fac)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -40,10 +40,10 @@ int clab_bandx(const double *lo, const double *hi, const int *olo, const int *ou
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_pbbnd(const double *val, const int *st, const double *lim, int n, double rnd, int kind,
-               double sup, double *lo, double *hi, int *sto) {
+               double sup, double *lo, double *hi, int *sto) CLAB_TRY {
   if (n < 0 || kind < 0 || kind > 1) return CLAB_EARG;
   if (!std::isnan(rnd) && !kutil::pos(rnd)) return CLAB_EDOM;
   // a cell rounded to the nearest multiple of rnd lies within rnd / 2 of
@@ -72,10 +72,10 @@ int clab_pbbnd(const double *val, const int *st, const double *lim, int n, doubl
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_pbchg(const double *nlo, const double *nhi, const double *plo, const double *phi, int n,
-               const double *pop, const double *ppop, double per, double *out) {
+               const double *pop, const double *ppop, double per, double *out) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!kutil::pos(per)) return CLAB_EDOM;
   double *clo = out, *chi = out + n, *qlo = chi + n, *qhi = qlo + n, *rlo = qhi + n, *rhi = rlo + n,
@@ -94,10 +94,10 @@ int clab_pbchg(const double *nlo, const double *nhi, const double *plo, const do
     shi[i] = ppop ? per * phi[i] / ppop[i] : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_yoypx(const double *v, const double *prd, const int *grp, int n, double lag, double *prev,
-               double *chg, double *pct) {
+               double *chg, double *pct) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!kutil::pos(lag)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -126,9 +126,9 @@ int clab_yoypx(const double *v, const double *prd, const int *grp, int n, double
     pct[i] = prev[i] != 0 ? 100 * (v[i] - prev[i]) / prev[i] : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_pbadj(const double *p, int n, int meth, double *q, int *o) {
+int clab_pbadj(const double *p, int n, int meth, double *q, int *o) CLAB_TRY {
   if (n < 0 || meth < 0 || meth > 5) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!(p[i] >= 0 && p[i] <= 1)) return CLAB_EDOM;
@@ -158,4 +158,4 @@ int clab_pbadj(const double *p, int n, int meth, double *q, int *o) {
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

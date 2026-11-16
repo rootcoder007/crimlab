@@ -101,7 +101,7 @@ std::uint64_t bdraw(std::mt19937_64 &g, std::uint64_t s) {
 
 extern "C" {
 
-double clab_mean(const double *x, int n) {
+double clab_mean(const double *x, int n) CLAB_TRY {
   if (n <= 0) return qnan;
   long double s = 0.0L;
   for (int i = 0; i < n; ++i) s += x[i];
@@ -116,9 +116,9 @@ double clab_mean(const double *x, int n) {
     if (!std::isfinite(x[i])) return static_cast<double>(s);
   }
   return runmean(x, n);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_var(const double *x, int n, int ddof) {
+double clab_var(const double *x, int n, int ddof) CLAB_TRY {
   if (static_cast<long long>(n) - ddof <= 0) return qnan;
   const double m = clab_mean(x, n);
   double sq = 0.0;
@@ -127,9 +127,9 @@ double clab_var(const double *x, int n, int ddof) {
     sq += d * d;
   }
   return sq / (static_cast<double>(n) - static_cast<double>(ddof));
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_cor(const double *x, const double *y, int n) {
+double clab_cor(const double *x, const double *y, int n) CLAB_TRY {
   if (n < 2) return qnan;
   const double mx = clab_mean(x, n), my = clab_mean(y, n);
   if (!std::isfinite(mx) || !std::isfinite(my)) return qnan;
@@ -145,27 +145,27 @@ double clab_cor(const double *x, const double *y, int n) {
   if (r > 1.0L) r = 1.0L;
   if (r < -1.0L) r = -1.0L;
   return static_cast<double>(r);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_edist(const double *a, const double *b, int n) {
+double clab_edist(const double *a, const double *b, int n) CLAB_TRY {
   double s = 0.0;
   for (int i = 0; i < n; ++i) {
     const double d = a[i] - b[i];
     s += d * d;
   }
   return std::sqrt(s);
-}
+} CLAB_CATCH(kutil::nan())
 
-void clab_dnorm(const double *x, int n, double mu, double sd, int lg, double *out) {
+void clab_dnorm(const double *x, int n, double mu, double sd, int lg, double *out) CLAB_TRY {
   const double inv = 1.0 / sd;
   const double c = 0.39894228040143267794, base = -std::log(sd) - 0.91893853320467274178;
   for (int i = 0; i < n; ++i) {
     const double z = (x[i] - mu) * inv;
     out[i] = lg ? base - 0.5 * z * z : inv * c * std::exp(-0.5 * z * z);
   }
-}
+} CLAB_CATCHV
 
-void clab_moms(const double *x, int n, double *out) {
+void clab_moms(const double *x, int n, double *out) CLAB_TRY {
   out[0] = out[1] = out[2] = out[3] = qnan;
   if (n < 1 || hasnan(x, n)) return;
   const double m = clab_mean(x, n);
@@ -189,34 +189,34 @@ void clab_moms(const double *x, int n, double *out) {
   const long double m2 = z2 / dn;
   if (n > 2) out[2] = static_cast<double>((z3 / dn) / std::pow(m2, 1.5L));
   if (n > 3) out[3] = static_cast<double>((z4 / dn) / (m2 * m2) - 3.0L);
-}
+} CLAB_CATCHV
 
-void clab_quant(const double *x, int n, const double *p, int np, double *out) {
+void clab_quant(const double *x, int n, const double *p, int np, double *out) CLAB_TRY {
   if (n < 1 || hasnan(x, n)) {
     for (int k = 0; k < np; ++k) out[k] = qnan;
     return;
   }
   const std::vector<double> v = sorted(x, n);
   for (int k = 0; k < np; ++k) out[k] = q7s(v, p[k]);
-}
+} CLAB_CATCHV
 
-double clab_med(const double *x, int n) {
+double clab_med(const double *x, int n) CLAB_TRY {
   double r = 0.0;
   const double h = 0.5;
   clab_quant(x, n, &h, 1, &r);
   return r;
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_mad(const double *x, int n, double k) {
+double clab_mad(const double *x, int n, double k) CLAB_TRY {
   if (n < 1 || hasnan(x, n)) return qnan;
   std::vector<double> v = sorted(x, n);
   const double med = q7s(v, 0.5);
   for (int i = 0; i < n; ++i) v[static_cast<std::size_t>(i)] = std::fabs(x[i] - med);
   std::sort(v.begin(), v.end());
   return k * q7s(v, 0.5);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_trim(const double *x, int n, double t) {
+double clab_trim(const double *x, int n, double t) CLAB_TRY {
   if (n < 1 || hasnan(x, n) || !(t >= 0.0) || t > 0.5) return qnan;
   const std::vector<double> v = sorted(x, n);
   if (t >= 0.5) return q7s(v, 0.5);
@@ -224,9 +224,9 @@ double clab_trim(const double *x, int n, double t) {
   double s = 0.0;
   for (int i = k; i < n - k; ++i) s += v[static_cast<std::size_t>(i)];
   return s / (n - 2.0 * k);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_wins(const double *x, int n, double t) {
+double clab_wins(const double *x, int n, double t) CLAB_TRY {
   if (n < 1 || hasnan(x, n) || !(t >= 0.0) || t > 0.5) return qnan;
   const std::vector<double> v = sorted(x, n);
   const int k = static_cast<int>(std::floor(n * t));
@@ -235,9 +235,9 @@ double clab_wins(const double *x, int n, double t) {
   double s = 0.0;
   for (double z : v) s += std::min(std::max(z, lo), hi);
   return s / n;
-}
+} CLAB_CATCH(kutil::nan())
 
-void clab_wtd(const double *x, const double *w, int n, double *out) {
+void clab_wtd(const double *x, const double *w, int n, double *out) CLAB_TRY {
   out[0] = out[1] = qnan;
   if (n < 1 || hasnan(x, n) || hasnan(w, n)) return;
   double sw = 0.0, s = 0.0, sw2 = 0.0;
@@ -256,9 +256,9 @@ void clab_wtd(const double *x, const double *w, int n, double *out) {
     q += w[i] * d * d;
   }
   out[1] = q / (sw - sw2 / sw);
-}
+} CLAB_CATCHV
 
-double clab_spear(const double *x, const double *y, int n) {
+double clab_spear(const double *x, const double *y, int n) CLAB_TRY {
   if (n < 2 || hasnan(x, n) || hasnan(y, n)) return qnan;
   std::vector<double> rx(static_cast<std::size_t>(n)), ry(static_cast<std::size_t>(n));
   midr(x, n, rx.data());
@@ -274,11 +274,11 @@ double clab_spear(const double *x, const double *y, int n) {
   }
   const double num = n * sxy - sx * sy, den = (n * sxx - sx * sx) * (n * syy - sy * sy);
   return den <= 0.0 ? qnan : num / std::sqrt(den);
-}
+} CLAB_CATCH(kutil::nan())
 
-void clab_midrk(const double *x, int n, double *out) { midr(x, n, out); }
+void clab_midrk(const double *x, int n, double *out) CLAB_TRY { midr(x, n, out); } CLAB_CATCHV
 
-void clab_covm(const double *x, int n, int p, double *out) {
+void clab_covm(const double *x, int n, int p, double *out) CLAB_TRY {
   const std::size_t un = static_cast<std::size_t>(n), up = static_cast<std::size_t>(p);
   if (n < 2) {
     for (std::size_t k = 0; k < up * up; ++k) out[k] = qnan;
@@ -297,9 +297,9 @@ void clab_covm(const double *x, int n, int p, double *out) {
       out[k * up + j] = out[j * up + k] = s / (n - 1.0);
     }
   }
-}
+} CLAB_CATCHV
 
-int clab_bmean(const double *x, int n, int b, double seed, double *out) {
+int clab_bmean(const double *x, int n, int b, double seed, double *out) CLAB_TRY {
   if (n < 1) {
     for (int k = 0; k < b; ++k) out[k] = qnan;
     return CLAB_OK;
@@ -313,16 +313,16 @@ int clab_bmean(const double *x, int n, int b, double seed, double *out) {
     if (kutil::stop(n)) return CLAB_EINTR;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-void clab_ipw(const double *t, const double *e, int n, double lo, double hi, double *out) {
+void clab_ipw(const double *t, const double *e, int n, double lo, double hi, double *out) CLAB_TRY {
   for (int i = 0; i < n; ++i) {
     const double p = std::min(std::max(e[i], lo), hi);
     out[i] = t[i] == 1.0 ? 1.0 / p : 1.0 / (1.0 - p);
   }
-}
+} CLAB_CATCHV
 
-void clab_unif(double seed, int n, double *out) {
+void clab_unif(double seed, int n, double *out) CLAB_TRY {
   std::uint64_t s = static_cast<std::uint64_t>(seed);
   for (int i = 0; i < n; ++i) {
     s += 0x9E3779B97F4A7C15ULL;
@@ -332,11 +332,11 @@ void clab_unif(double seed, int n, double *out) {
     z ^= z >> 31;
     out[i] = static_cast<double>(z >> 11) * 0x1.0p-53;
   }
-}
+} CLAB_CATCHV
 
 }  // extern "C"
 
-extern "C" int clab_shrs(const double *cnt, int k, double tot, double conf, double *share, double *lo, double *hi) {
+extern "C" int clab_shrs(const double *cnt, int k, double tot, double conf, double *share, double *lo, double *hi) CLAB_TRY {
   if (!(conf > 0 && conf < 1) || !(tot > 0)) return CLAB_EDOM;
   const double z = clab_qnorm(1 - (1 - conf) / 2), z2 = z * z;
   for (int i = 0; i < k; ++i) {
@@ -350,9 +350,9 @@ extern "C" int clab_shrs(const double *cnt, int k, double tot, double conf, doub
     hi[i] = 100 * (c == tot ? 1 : std::min(1.0, cen + half));
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-extern "C" void clab_ysum(const double *v, const double *chg, int n, double lag, double *out) {
+extern "C" void clab_ysum(const double *v, const double *chg, int n, double lag, double *out) CLAB_TRY {
   // out: first, last, totalpct, cagrpct, periods, up, down, flat over the
   // rows in period order; v NaN where missing
   int first = -1, last = -1, np = 0;
@@ -381,4 +381,4 @@ extern "C" void clab_ysum(const double *v, const double *chg, int n, double lag,
   out[1] = b;
   out[2] = a > 0 ? 100 * (b / a - 1) : qnan;
   out[3] = a > 0 && steps > 0 ? 100 * (std::pow(b / a, 1 / steps) - 1) : qnan;
-}
+} CLAB_CATCHV

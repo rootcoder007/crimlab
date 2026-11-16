@@ -89,7 +89,7 @@ double cnll(const double *u, double *g, void *ctx) {
 }  // namespace
 
 int clab_spcure(const double *t, const double *ev, const double *x, int n, int p, int dist, int maxit, double *par,
-                double *cov, double *st) {
+                double *cov, double *st) CLAB_TRY {
   if (n < 2 || p < 0 || dist < 0 || dist > 2 || maxit < 1) return CLAB_EARG;
   double ne = 0, sl = 0, sl2 = 0;
   for (int i = 0; i < n; ++i) {
@@ -128,4 +128,4 @@ int clab_spcure(const double *t, const double *ev, const double *x, int n, int p
   st[3] = c;
   st[4] = md / n;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

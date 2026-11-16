@@ -740,14 +740,14 @@ long clab_dmlxsz(int model, int n, int p, int nf, int nrep,
   const long m = (a > b ? a : b) + 2L * n + nf + (model == 8 ? static_cast<long>(n) * (p + 1) : 0) +
                  2L * nf + 2L * n * (nf + 1);
   return m > nrep ? m : nrep;
-}
+} CLAB_CATCH(-1)
 
 int clab_dmlx(int model, int sc, const double *x, int n, int p,
              const double *y, const double *d, const double *z,
              const double *s, const int *fold, int nf, int nrep,
              const int *clu, int nc, int nc2, const clab_lrn *ly,
              const clab_lrn *ld, double trim, int fit, double *pred,
-             double *est, double *psi, double *work, int *iwork) {
+             double *est, double *psi, double *work, int *iwork) CLAB_TRY {
   if (model < 0 || model > 8 || sc < 0 || sc > 1 || n < 2 || p < 1 ||
       nf < 2 || nf > n || nrep < 1 || (clu != nullptr && (model > 1 || nc < 2)) ||
       (nc2 != 0 && (clu == nullptr || nc2 < 2 || nrep != 1)))
@@ -841,21 +841,21 @@ int clab_dmlx(int model, int sc, const double *x, int n, int p,
   const double md = nrep % 2 ? t[nrep / 2] : 0.5 * (t[nrep / 2 - 1] + t[nrep / 2]);
   est[1] = std::sqrt(md / sf);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dmlxk(int model, int sc) {
+int clab_dmlxk(int model, int sc) CLAB_TRY {
   static const int k[] = {2, 3, 3, 5, 3, 3, 2, 5, 4};
   if (model < 0 || model > 8) return 0;
   // IV-type adds g; the experimental cross-sections drop m
   return k[model] + (model <= 1 && sc == 1 ? 1 : 0) - (model == 7 && sc == 1 ? 1 : 0);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork) {
+int clab_kfold(int n, int k, unsigned int seed, int *fold, int *iwork) CLAB_TRY {
   if (n < 1 || k < 1 || k > n) return CLAB_EARG;
   kutil::rng g(seed);
   deal(n, k, g, fold, iwork);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw) {
   // sizes clab_stack() refuses need no workspace; the sum is not formed in
@@ -867,12 +867,12 @@ long clab_stksz(int n, int p, int nt, const clab_lrn *l, long *niw) {
   const long nn = static_cast<long>(n) + nt;
   *niw = 2 * nn + liw(*l, static_cast<int>(nn), p);
   return nn * (p + 2) + lw(*l, static_cast<int>(nn), p);
-}
+} CLAB_CATCH(-1)
 
 int clab_stack(const double *x, int n, int p, const double *y, int fam,
                const clab_lrn *l, const int *fold, const double *xt, int nt,
                double *oof, double *risk, double *wt, double *pred,
-               double *work, int *iwork) {
+               double *work, int *iwork) CLAB_TRY {
   if (n < 2 || p < 1 || nt < 0 || (fam != 0 && fam != 1) || l->kind != 3) return CLAB_EARG;
   // n >= 2 and nt >= 0 here: the sum is tested without forming it (long is
   // 32 bits on Windows and in WebAssembly)
@@ -906,7 +906,7 @@ int clab_stack(const double *x, int n, int p, const double *y, int fam,
   }
   for (int i = 0; i < nt; ++i) pred[i] = out[n + i];
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
 

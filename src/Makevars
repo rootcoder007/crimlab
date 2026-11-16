@@ -1,1 +1,3 @@
 CXX_STD = CXX17
+# the entry points of glue.cpp catch a failed allocation (src/kutil.h)
+PKG_CPPFLAGS = -DCLAB_R

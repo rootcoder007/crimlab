@@ -342,7 +342,7 @@ bool lfdr(const std::vector<double> &zz, double *fdr, double *nul) {
 }  // namespace
 
 int clab_ibench(const double *y, const int *off, const double *x, int n, int p, int no, int minn, int dr,
-                int local, double *res, int *ok, double *nul) {
+                int local, double *res, int *ok, double *nul) CLAB_TRY {
   if (n < 2 || p < 0 || no < 2 || minn < 1) return CLAB_EARG;
   if (static_cast<long long>(n) * (p > 0 ? p : 1) > 2000000000LL) return CLAB_EARG;
   // the regressions' (p + 2) x (p + 2) work arrays, bounded as the
@@ -485,4 +485,4 @@ int clab_ibench(const double *y, const int *off, const double *x, int n, int p, 
     for (std::size_t k = 0; k < zs.size(); ++k) res[7 * no + zo[k]] = fd[k];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

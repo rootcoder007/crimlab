@@ -42,7 +42,7 @@ extern "C" {
 int clab_gmxlik(int nl, const int *np, const double *p, const double *y, const double *sz,
                 const int *st, int nk, const int *kg, int nu, const double *cn, const double *cl,
                 double theta, double at, double pc, double lambda, int deg, int stut,
-                const double *par, double *ll) {
+                const double *par, double *ll) CLAB_TRY {
   if (nl < 1 || nk < 0 || nu < 0 || nk + nu < 1 || nk + nu > 64) return CLAB_EARG;
   const double mu = par[0], om = par[1], be = par[2], xi = par[3];
   const double *m = par + 4;
@@ -153,7 +153,7 @@ int clab_gmxlik(int nl, const int *np, const double *p, const double *y, const d
     off += static_cast<std::size_t>(n);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"
 

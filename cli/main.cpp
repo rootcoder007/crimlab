@@ -329,7 +329,7 @@ int fail(const std::string &m, int rc) {
 
 }  // namespace
 
-int main(int argc, char **argv) {
+static int mainb(int argc, char **argv) {
 #ifdef _WIN32
   // the same bytes on every system: \n ends a line
   _setmode(_fileno(stdout), _O_BINARY);
@@ -439,4 +439,21 @@ int main(int argc, char **argv) {
   clabj::Parser(out.data(), std::strlen(out.data())).doc(r);
   show(r);
   return 0;
+}
+
+// The program: mainb(), with a failed allocation anywhere in it (reading
+// the input, the call, the printing) reported in words and as status 1,
+// never an abort. Without exceptions (WebAssembly) clab_jrun()'s
+// new-handler answers instead.
+int main(int argc, char **argv) {
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  try {
+    return mainb(argc, argv);
+  } catch (...) {
+    std::fputs("crimlab: not enough memory for this size.\n", stderr);
+    return 1;
+  }
+#else
+  return mainb(argc, argv);
+#endif
 }

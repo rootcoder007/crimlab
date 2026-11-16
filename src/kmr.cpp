@@ -16,7 +16,7 @@ extern "C" {
 int clab_kmrec(const double *time, const int *event, const int *grp, int n, int g, double z,
                int *m, int *gout, double *tt, double *nr, double *nd, double *nc, double *s,
                double *se, double *lo, double *hi, double *med, double *lr, double *work,
-               int *iwork) {
+               int *iwork) CLAB_TRY {
   if (n < 1 || g < 1 || !(z > 0)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!kutil::nonneg(time[i]) || (event[i] != 0 && event[i] != 1) || grp[i] < 0 || grp[i] >= g) {
@@ -118,6 +118,6 @@ int clab_kmrec(const double *time, const int *event, const int *grp, int n, int 
     lr[1] = q;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

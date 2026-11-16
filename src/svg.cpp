@@ -10,6 +10,7 @@
 
 #include "crimlab.h"
 
+#include "kutil.h"
 namespace {
 
 // The canvas and the plot box, in pixels (documented in crimlab.h).
@@ -133,7 +134,7 @@ extern "C" int clab_svgln(int k, const int *off, const int *np, const double *x,
                           const double *y, const int *step, const int *dash,
                           const char *const *lab, const char *title, const char *xlab,
                           const char *ylab, int vline, double vx, int corner, char *out,
-                          int cap, int *len) {
+                          int cap, int *len) CLAB_TRY {
   if (k < 1 || k > 3 || corner < 0 || corner > 3 || cap < 0 || (cap > 0 && out == nullptr)) {
     return CLAB_EARG;
   }
@@ -258,4 +259,4 @@ extern "C" int clab_svgln(int k, const int *off, const int *np, const double *x,
     out[o.n] = '\0';
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

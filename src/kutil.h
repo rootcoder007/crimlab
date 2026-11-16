@@ -10,7 +10,41 @@
 #include <cstdint>
 #include <limits>
 
+// The C boundary. The body of every clab_* function stands between
+// CLAB_TRY and CLAB_CATCH(v) (CLAB_CATCHV for a void one): a failed
+// allocation inside it (std::bad_alloc, or any other exception) returns v
+// (CLAB_ENOMEM, NaN or -1) and is recorded for clab_jrun() (kutil::oomset),
+// so that no exception crosses into C, Python, Go, Rust or Java. In the R
+// package (CLAB_R) the entry points of glue.cpp catch it instead, with the
+// function's name; without exceptions (the WebAssembly build) there is
+// nothing to catch and the program's new-handler answers (cli/jrun.cpp).
+#if (defined(__cpp_exceptions) || defined(_CPPUNWIND)) && !defined(CLAB_R)
+#define CLAB_TRY try
+#define CLAB_CATCH(v) \
+  catch (...) {       \
+    kutil::oomset();  \
+    return v;         \
+  }
+#define CLAB_CATCHV  \
+  catch (...) {      \
+    kutil::oomset(); \
+  }
+#else
+#define CLAB_TRY
+#define CLAB_CATCH(v)
+#define CLAB_CATCHV
+#endif
+
 namespace kutil {
+
+// An allocation failed in a clab_* function of this thread (oomset), and
+// whether one has since the last oomtake(), which clears it.
+void oomset() noexcept;
+bool oomtake() noexcept;
+
+// Counts are int after their checks against INT_MAX; the sizes made from
+// them are 64-bit.
+static_assert(sizeof(int) == 4 && sizeof(std::int64_t) == 8, "int is 32 bits, std::int64_t 64");
 
 // The most cells (doubles or ints) that one object sized by a count of the
 // caller may hold: 2^26, 512 MB of doubles, the bound of pedlr()'s tables.

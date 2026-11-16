@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "kutil.h"
 
 namespace {
 
@@ -77,7 +78,7 @@ double ksp(double d, double ne) {
 
 extern "C" {
 
-void clab_ks(const double *x, int nx, const double *y, int ny, double *out) {
+void clab_ks(const double *x, int nx, const double *y, int ny, double *out) CLAB_TRY {
   out[2] = nx > 0 && ny > 0 ? static_cast<double>(nx) * ny / (static_cast<double>(nx) + ny) : 0.0;
   bool nan = nx < 1 || ny < 1;
   for (int i = 0; i < nx && !nan; ++i) nan = std::isnan(x[i]);
@@ -99,9 +100,9 @@ void clab_ks(const double *x, int nx, const double *y, int ny, double *out) {
   }
   out[0] = d;
   out[1] = ksp(d, out[2]);
-}
+} CLAB_CATCHV
 
-int clab_psibin(const double *x, int nx, const double *y, int ny, int bins, double *px, double *py) {
+int clab_psibin(const double *x, int nx, const double *y, int ny, int bins, double *px, double *py) CLAB_TRY {
   std::vector<double> a(static_cast<std::size_t>(nx)), b(static_cast<std::size_t>(ny));
   for (int i = 0; i < nx; ++i) a[static_cast<std::size_t>(i)] = sig12(x[i]);
   for (int i = 0; i < ny; ++i) b[static_cast<std::size_t>(i)] = sig12(y[i]);
@@ -137,9 +138,9 @@ int clab_psibin(const double *x, int nx, const double *y, int ny, int bins, doub
     py[j] /= ny;
   }
   return k;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-void clab_psi(const double *p, const double *q, int k, double eps, double *out) {
+void clab_psi(const double *p, const double *q, int k, double eps, double *out) CLAB_TRY {
   out[0] = out[1] = qnan;
   if (k < 1) return;
   double s = 0.0, js = 0.0;
@@ -152,9 +153,9 @@ void clab_psi(const double *p, const double *q, int k, double eps, double *out) 
   }
   out[0] = s;
   out[1] = js < 0.0 ? 0.0 : js;
-}
+} CLAB_CATCHV
 
-void clab_chig(const double *o, const double *e, int k, double *out) {
+void clab_chig(const double *o, const double *e, int k, double *out) CLAB_TRY {
   double so = 0, se = 0;
   for (int j = 0; j < k; ++j) {
     so += o[j];
@@ -173,9 +174,9 @@ void clab_chig(const double *o, const double *e, int k, double *out) {
   out[0] = stat;
   out[1] = df;
   out[2] = bad;
-}
+} CLAB_CATCHV
 
-void clab_chih(const double *x, const double *y, int k, double *out) {
+void clab_chih(const double *x, const double *y, int k, double *out) CLAB_TRY {
   double nx = 0, ny = 0;
   for (int j = 0; j < k; ++j) {
     nx += x[j];
@@ -195,6 +196,6 @@ void clab_chih(const double *x, const double *y, int k, double *out) {
   out[1] = df;
   out[2] = mn;
   out[3] = df + 1;
-}
+} CLAB_CATCHV
 
 }  // extern "C"

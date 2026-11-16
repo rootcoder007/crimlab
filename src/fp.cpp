@@ -13,6 +13,7 @@
 
 #include "crimlab.h"
 #include "fpdat.h"
+#include "kutil.h"
 
 namespace {
 
@@ -51,10 +52,10 @@ double rpw(double x, double y) { return y == 2.0 ? x * x : std::pow(x, y); }
 
 extern "C" {
 
-int clab_cin(void) { return cfp::nci; }
+int clab_cin(void) CLAB_TRY { return cfp::nci; } CLAB_CATCH(CLAB_ENOMEM)
 
 void clab_cirow(int i, const char **loc, const char **iso3, const char **name, double *g, int *year,
-                const char **src) {
+                const char **src) CLAB_TRY {
   const cfp::Ci &r = cfp::ci[i];
   *loc = r.loc;
   *iso3 = r.iso3;
@@ -62,9 +63,9 @@ void clab_cirow(int i, const char **loc, const char **iso3, const char **name, d
   *g = r.g;
   *year = r.year;
   *src = cfp::src[r.src];
-}
+} CLAB_CATCHV
 
-int clab_cimatch(const char *key) {
+int clab_cimatch(const char *key) CLAB_TRY {
   const std::string k = ukey(key);
   for (int i = 0; i < cfp::nci; ++i) {
     if (k == cfp::ci[i].loc) return i;
@@ -76,7 +77,7 @@ int clab_cimatch(const char *key) {
     if (k == upper(cfp::ci[i].name)) return i;
   }
   return -1;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 const char *clab_tzterr(const char *tz) {
   const char *k = tz;
@@ -96,7 +97,7 @@ const char *clab_terrproxy(const char *terr) {
 }
 
 int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const double *rmx, int nd,
-             const double *dw, const double *de, const int *dk, double *out, double *dout) {
+             const double *dw, const double *de, const int *dk, double *out, double *dout) CLAB_TRY {
   if (nr < 0 || nd < 0) return CLAB_EARG;
   const double cpu = in[1], cores = in[2], ufix = in[4], pw = in[9], memgb = in[11], mpw = in[12],
                pue = in[13], g = in[14];
@@ -199,11 +200,11 @@ int clab_fpe(const double *in, int nr, const double *r0, const double *r1, const
   out[8] = total;
   out[9] = total * g;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-void clab_fpeqv(double g, double *out) {
+void clab_fpeqv(double g, double *out) CLAB_TRY {
   out[0] = g / 175;
   out[1] = g / 917;
-}
+} CLAB_CATCHV
 
 }  // extern "C"

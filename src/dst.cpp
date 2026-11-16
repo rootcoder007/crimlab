@@ -22,6 +22,7 @@
 
 #include "crimlab.h"
 
+#include "kutil.h"
 namespace {
 
 const double qnan = std::numeric_limits<double>::quiet_NaN();
@@ -392,7 +393,7 @@ double solve(const H &h, const D &dh, double u0, double umin, double umax, bool 
 // 477-484, doi:10.2307/2347330: relative error about 1e-16, the algorithm
 // and the operation order of R's qnorm() (whose tails beyond 1e-300 are
 // refined further).
-double clab_qnorm(double p) {
+double clab_qnorm(double p) CLAB_TRY {
   if (std::isnan(p) || p < 0 || p > 1) return std::numeric_limits<double>::quiet_NaN();
   if (p == 0) return -HUGE_VAL;
   if (p == 1) return HUGE_VAL;
@@ -428,14 +429,14 @@ double clab_qnorm(double p) {
           0.59983220655588793769) * r + 1.0);
   }
   return q < 0 ? -v : v;
-}
+} CLAB_CATCH(kutil::nan())
 
 // From erfc, so the lower tail keeps its relative precision far out.
-double clab_pnorm(double x) { return 0.5 * std::erfc(-x * 0.70710678118654752440); }
+double clab_pnorm(double x) CLAB_TRY { return 0.5 * std::erfc(-x * 0.70710678118654752440); } CLAB_CATCH(kutil::nan())
 
-double clab_pgamma(double x, double a, int lower) { return pgam(x, a, lower); }
+double clab_pgamma(double x, double a, int lower) CLAB_TRY { return pgam(x, a, lower); } CLAB_CATCH(kutil::nan())
 
-double clab_qgamma(double p, double a, int lower) {
+double clab_qgamma(double p, double a, int lower) CLAB_TRY {
   if (std::isnan(p) || std::isnan(a) || p < 0 || p > 1 || a < 0) return qnan;
   // R's order: the ends of p first, so qgamma(1, 0) is Inf, then the
   // point mass at 0
@@ -454,11 +455,11 @@ double clab_qgamma(double p, double a, int lower) {
     return a * dpois(a, x) / pgam(x, a, lower);
   };
   return std::exp(solve(h, dh, std::log(x0), -745, 710, false));
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_pbeta(double x, double a, double b, int lower) { return pbet(x, 1 - x, a, b, lower); }
+double clab_pbeta(double x, double a, double b, int lower) CLAB_TRY { return pbet(x, 1 - x, a, b, lower); } CLAB_CATCH(kutil::nan())
 
-double clab_qbeta(double p, double a, double b, int lower) {
+double clab_qbeta(double p, double a, double b, int lower) CLAB_TRY {
   if (std::isnan(p) || std::isnan(a) || std::isnan(b) || p < 0 || p > 1 || a < 0 || b < 0) return qnan;
   if (p == (lower ? 0 : 1)) return 0;
   if (p == (lower ? 1 : 0)) return 1;
@@ -477,14 +478,14 @@ double clab_qbeta(double p, double a, double b, int lower) {
   auto dh = [&](double u) { return bfac(1 / (1 + std::exp(-u)), 1 / (1 + std::exp(u)), a, b) / t(u); };
   const double u = solve(h, dh, std::log(a / b), -700, 700, false);
   return 1 / (1 + std::exp(-u));
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_pchisq(double x, double df, int lower) { return pgam(x / 2, df / 2, lower); }
+double clab_pchisq(double x, double df, int lower) CLAB_TRY { return pgam(x / 2, df / 2, lower); } CLAB_CATCH(kutil::nan())
 
-double clab_qchisq(double p, double df, int lower) { return 2 * clab_qgamma(p, df / 2, lower); }
+double clab_qchisq(double p, double df, int lower) CLAB_TRY { return 2 * clab_qgamma(p, df / 2, lower); } CLAB_CATCH(kutil::nan())
 
 // The Poisson mixture of central chi-squares, summed out from its mode.
-double clab_pnchisq(double x, double df, double ncp, int lower) {
+double clab_pnchisq(double x, double df, double ncp, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || std::isinf(ncp)) return qnan;
   if (ncp == 0) return clab_pchisq(x, df, lower);
   if (x <= 0) return lower ? 0 : 1;
@@ -502,9 +503,9 @@ double clab_pnchisq(double x, double df, double ncp, int lower) {
     }
   }
   return std::fmin(1.0, s);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_pt(double x, double n, int lower) {
+double clab_pt(double x, double n, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(n) || n <= 0) return qnan;
   if (std::isinf(x)) return (x < 0) == (lower != 0) ? 0 : 1;
   if (std::isinf(n)) return clab_pnorm(lower ? x : -x);
@@ -520,9 +521,9 @@ double clab_pt(double x, double n, int lower) {
   val /= 2;
   const bool up = x <= 0 ? !lower : lower;
   return up ? 0.5 - val + 0.5 : val;
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_qt(double p, double n, int lower) {
+double clab_qt(double p, double n, int lower) CLAB_TRY {
   if (std::isnan(p) || std::isnan(n) || p < 0 || p > 1 || n <= 0) return qnan;
   if (p == 0) return lower ? -HUGE_VAL : HUGE_VAL;
   if (p == 1) return lower ? HUGE_VAL : -HUGE_VAL;
@@ -542,9 +543,9 @@ double clab_qt(double p, double n, int lower) {
   };
   const double t = std::exp(solve(h, dh, std::log(t0 > 0 ? t0 : 1), -745, 710, false));
   return neg ? -t : t;
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_pf(double x, double m, double n, int lower) {
+double clab_pf(double x, double m, double n, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(m) || std::isnan(n) || m <= 0 || n <= 0) return qnan;
   if (x <= 0) return lower ? 0 : 1;
   if (std::isinf(x)) return lower ? 1 : 0;
@@ -555,9 +556,9 @@ double clab_pf(double x, double m, double n, int lower) {
   if (std::isinf(n)) return clab_pchisq(x * m, m, lower);
   if (m * x > n) return clab_pbeta(n / (n + m * x), n / 2, m / 2, !lower);
   return clab_pbeta(m * x / (n + m * x), m / 2, n / 2, lower);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_qf(double p, double m, double n, int lower) {
+double clab_qf(double p, double m, double n, int lower) CLAB_TRY {
   if (std::isnan(p) || std::isnan(m) || std::isnan(n) || p < 0 || p > 1 || m <= 0 || n <= 0) return qnan;
   if (p == (lower ? 0 : 1)) return 0;
   if (p == (lower ? 1 : 0)) return HUGE_VAL;
@@ -571,19 +572,19 @@ double clab_qf(double p, double m, double n, int lower) {
   const double z = clab_qbeta(p, m / 2, n / 2, lower);
   const double r = z < 0.5 ? z / (1 - z) * (n / m) : (1 / clab_qbeta(p, n / 2, m / 2, !lower) - 1) * (n / m);
   return std::isnan(r) ? qnan : r;
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_ppois(double x, double lam, int lower) {
+double clab_ppois(double x, double lam, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(lam) || lam < 0) return qnan;
   if (x < 0) return lower ? 0 : 1;
   if (lam == 0 || std::isinf(x)) return lower ? 1 : 0;
   x = std::floor(x + 1e-7);
   return pgam(lam, x + 1, !lower);
-}
+} CLAB_CATCH(kutil::nan())
 
 // The smallest whole y whose tail reaches p, with R's fuzz of 64 units
 // of rounding for left continuity.
-double clab_qpois(double p, double lam, int lower) {
+double clab_qpois(double p, double lam, int lower) CLAB_TRY {
   if (std::isnan(p) || std::isnan(lam) || p < 0 || p > 1 || lam < 0 || std::isinf(lam)) return qnan;
   if (lam == 0) return 0;
   if (p == (lower ? 0 : 1)) return 0;
@@ -600,17 +601,17 @@ double clab_qpois(double p, double lam, int lower) {
     while (!ok(y));
   }
   return y;
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_dbinom(double x, double n, double p) {
+double clab_dbinom(double x, double n, double p) CLAB_TRY {
   if (std::isnan(x) || std::isnan(n) || std::isnan(p) || p < 0 || p > 1 || n < 0 || n != std::nearbyint(n)) {
     return qnan;
   }
   if (x < 0 || x != std::nearbyint(x) || std::isinf(x)) return 0;
   return dbin(x, n, p, 1 - p);
-}
+} CLAB_CATCH(kutil::nan())
 
-double clab_pbinom(double x, double n, double p, int lower) {
+double clab_pbinom(double x, double n, double p, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(n) || std::isnan(p) || p < 0 || p > 1 || n < 0 || n != std::nearbyint(n)) {
     return qnan;
   }
@@ -618,4 +619,4 @@ double clab_pbinom(double x, double n, double p, int lower) {
   x = std::floor(x + 1e-7);
   if (n <= x) return lower ? 1 : 0;
   return clab_pbeta(p, x + 1, n - x, !lower);
-}
+} CLAB_CATCH(kutil::nan())

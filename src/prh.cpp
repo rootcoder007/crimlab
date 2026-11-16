@@ -23,7 +23,7 @@ int ix(double v, int lo, int hi) {
 
 int clab_prohs(const double *px, const double *py, const double *t, int n, double at, const double *win,
                double cell, double bw, double tw, double tu, double top, double ahead, int nx, int ny, double *z,
-               int *hot, double *ev) {
+               int *hot, double *ev) CLAB_TRY {
   if (n < 1 || nx < 1 || ny < 1 || static_cast<double>(nx) * ny > 1e8) return CLAB_EARG;
   if (!kutil::pos(cell) || !kutil::pos(bw) || !kutil::pos(tw) || !kutil::pos(tu) || !(top > 0 && top <= 1) ||
       !kutil::nonneg(ahead) || !std::isfinite(at)) {
@@ -86,4 +86,4 @@ int clab_prohs(const double *px, const double *py, const double *t, int n, doubl
   ev[3] = ash;
   ev[4] = ne > 0 && ash > 0 ? ev[2] / ash : kutil::nan();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

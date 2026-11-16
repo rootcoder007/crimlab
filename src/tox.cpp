@@ -11,7 +11,7 @@
 #include "kutil.h"
 
 int clab_txcal(const double *x, const double *y, const double *w, int n, const double *u, int nu,
-               double klod, double kloq, double *st, double *xh, int *flag) {
+               double klod, double kloq, double *st, double *xh, int *flag) CLAB_TRY {
   if (n < 3 || nu < 0) return CLAB_EARG;
   if (!kutil::pos(klod) || !kutil::pos(kloq)) return CLAB_EDOM;
   kutil::ksum sw, sx, sy;
@@ -48,10 +48,10 @@ int clab_txcal(const double *x, const double *y, const double *w, int n, const d
     flag[j] = std::isnan(xh[j]) ? -1 : xh[j] < st[4] ? 0 : xh[j] < st[5] ? 1 : 2;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lodimp(const double *x, int n, const double *lod, int nl, int meth, double *out,
-                int *cens, double *st) {
+                int *cens, double *st) CLAB_TRY {
   if (n < 1 || (nl != 1 && nl != n) || meth < 0 || meth > 2) return CLAB_EARG;
   for (int k = 0; k < nl; ++k) {
     if (!kutil::pos(lod[k])) return CLAB_EDOM;
@@ -68,10 +68,10 @@ int clab_lodimp(const double *x, int n, const double *lod, int nl, int meth, dou
   st[0] = meas ? static_cast<double>(nc) / meas : kutil::nan();
   st[1] = n - meas;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_pmrrat(const double *c, const double *p, int n, double c1, double c2, double *r,
-                int *cls) {
+                int *cls) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!kutil::pos(c1) || !std::isfinite(c2) || c2 < c1) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -80,10 +80,10 @@ int clab_pmrrat(const double *c, const double *p, int n, double c1, double c2, d
     cls[i] = r[i] <= c1 ? 0 : r[i] <= c2 ? 1 : 2;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_etohlr(const double *eth, const double *pr, const double *bu, const double *etg, int n,
-                double thr, double *hi, int *v) {
+                double thr, double *hi, int *v) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!std::isfinite(thr)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -93,10 +93,10 @@ int clab_etohlr(const double *eth, const double *pr, const double *bu, const dou
     v[i] = etg[i] > 0 ? 0 : hi[i] > thr ? 1 : 2;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_mtxrel(const double *base, const int *dil, int n, double days, double stage,
-                double dmax, double dcap, double smax, double scap, double *rel, int *ord) {
+                double dmax, double dcap, double smax, double scap, double *rel, int *ord) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!kutil::nonneg(days) || !kutil::nonneg(stage) || !kutil::pos(dmax) || !kutil::pos(smax) ||
       !(dcap >= 0 && dcap <= 1) || !(scap >= 0 && scap <= 1)) {
@@ -116,4 +116,4 @@ int clab_mtxrel(const double *base, const int *dil, int n, double days, double s
     ord[j] = k;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

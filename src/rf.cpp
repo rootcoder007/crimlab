@@ -256,7 +256,7 @@ extern "C" {
 int clab_rfor(const double *x, int n, int p, const double *y,
               const double *xt, int nt, int ntree, int mtry, int minnode,
               double frac, int repl, int hon, double imb, unsigned int seed,
-              double *pred, double *oob, double *work, int *iwork) {
+              double *pred, double *oob, double *work, int *iwork) CLAB_TRY {
   if (n < 2 || p < 1 || nt < 0) return CLAB_EARG;
   for (long k = 0; k < static_cast<long>(n) * p; ++k) {
     if (!std::isfinite(x[k])) return CLAB_EDOM;
@@ -275,6 +275,6 @@ int clab_rfor(const double *x, int n, int p, const double *y,
   const lrn::Forest f = {ntree, mtry, minnode, frac, repl, seed, hon, imb};
   return lrn::forest(x, n, p, y, tr, n, xt, nt, te, nt, f, pred, oob, work,
                      te + nt);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

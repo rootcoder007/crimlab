@@ -11,7 +11,7 @@
 #include "crimlab.h"
 #include "kutil.h"
 
-int clab_agemix(const double *cv, int na, int nt, const double *w, double *agg, double *cov) {
+int clab_agemix(const double *cv, int na, int nt, const double *w, double *agg, double *cov) CLAB_TRY {
   if (na < 1 || nt < 1) return CLAB_EARG;
   kutil::ksum sw;
   for (int k = 0; k < nt; ++k) {
@@ -40,10 +40,10 @@ int clab_agemix(const double *cv, int na, int nt, const double *w, double *agg, 
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_agepan(const double *ya, const double *yb, int n, int nperm, double seed, double *out,
-                double *work) {
+                double *work) CLAB_TRY {
   if (n < 3 || nperm < 0) return CLAB_EARG;
   if (!(seed >= 0)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -76,10 +76,10 @@ int clab_agepan(const double *ya, const double *yb, int n, int nperm, double see
   out[0] = obs;
   out[1] = (1.0 + ge) / (nperm + 1.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_cumrsk(const double *age, const double *e, const double *pop, const double *atrisk,
-                const double *dth, int n, double *h, double *nr, double *cr, double *v) {
+                const double *dth, int n, double *h, double *nr, double *cr, double *v) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(age[i]) || !kutil::nonneg(e[i]) || !kutil::pos(pop[i])) return CLAB_EDOM;
@@ -111,10 +111,10 @@ int clab_cumrsk(const double *age, const double *e, const double *pop, const dou
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jpipe(const double *num, const double *den, int n, int win, int lag, double *onum,
-               double *oden, double *rate) {
+               double *oden, double *rate) CLAB_TRY {
   if (n < 0 || win < 1 || lag < 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!kutil::nonneg(num[i]) || !kutil::nonneg(den[i])) return CLAB_EDOM;
@@ -135,4 +135,4 @@ int clab_jpipe(const double *num, const double *den, int n, int win, int lag, do
     rate[e] = oden[e] > 0 ? onum[e] / oden[e] : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

@@ -63,7 +63,7 @@ void sift(double *hd, int *hj, int m, int at) {
 extern "C" {
 
 int clab_swknb(const double *x, const double *y, int n, int k, int metric,
-               int *nb, double *d, int *iwork) {
+               int *nb, double *d, int *iwork) CLAB_TRY {
   if (n < 2 || k < 1 || k > n - 1 || metric < 0 || metric > 1) return CLAB_EARG;
   if (!finite2(x, y, n)) return CLAB_EDOM;
   double b[4];
@@ -122,11 +122,11 @@ int clab_swknb(const double *x, const double *y, int n, int k, int metric,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_swband(const double *x, const double *y, int n, double dmax,
                 int metric, int cap, int *rp, int *ci, double *d, int *nnz,
-                int *iwork) {
+                int *iwork) CLAB_TRY {
   if (n < 1 || cap < 0 || metric < 0 || metric > 1) return CLAB_EARG;
   if (!kutil::pos(dmax) || !finite2(x, y, n)) return CLAB_EDOM;
   double b[4];
@@ -178,10 +178,10 @@ int clab_swband(const double *x, const double *y, int n, double dmax,
   }
   *nnz = static_cast<int>(t);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_swwt(const int *rp, const double *d, int n, double pw, int rowstd,
-              double *w) {
+              double *w) CLAB_TRY {
   if (n < 1 || rp[0] != 0 || rowstd < 0 || rowstd > 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i)
     if (rp[i + 1] < rp[i]) return CLAB_EARG;
@@ -201,6 +201,6 @@ int clab_swwt(const int *rp, const double *d, int n, double pw, int rowstd,
       for (int q = rp[i]; q < rp[i + 1]; ++q) w[q] /= s;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

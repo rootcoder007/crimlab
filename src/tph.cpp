@@ -54,7 +54,7 @@ double xcol(const double *x, int n, int j, int i) { return j == 0 ? 1.0 : x[(j -
 
 }  // namespace
 
-int clab_clrilr(const double *x, int n, int d, double ps, int type, double *out) {
+int clab_clrilr(const double *x, int n, int d, double ps, int type, double *out) CLAB_TRY {
   if (n < 1 || d < 2 || type < 0 || type > 1) return CLAB_EARG;
   if (!kutil::nonneg(ps)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -81,10 +81,10 @@ int clab_clrilr(const double *x, int n, int d, double ps, int type, double *out)
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_preslr(const double *x, int n, const double *m1, const double *s1, int k1,
-                const double *m2, const double *s2, int k2, double *out, int *band, int *side) {
+                const double *m2, const double *s2, int k2, double *out, int *band, int *side) CLAB_TRY {
   if (n < 1 || (k1 != 1 && k1 != n) || (k2 != 1 && k2 != n)) return CLAB_EARG;
   const double c = 0.91893853320467274178;  // log(2 pi) / 2
   kutil::ksum l1, l2;
@@ -110,10 +110,10 @@ int clab_preslr(const double *x, int n, const double *m1, const double *s1, int 
   *band = b;
   *side = out[2] > 0 ? 1 : out[2] < 0 ? 2 : 0;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_tpdmc(double pres, double dr, double mr, int k, double *P, double *N, double *B,
-               double *t) {
+               double *t) CLAB_TRY {
   if (k < 1) return CLAB_EARG;
   if (!(pres >= 0 && pres <= 1) || !(dr > 0 && dr <= 1) || !(mr >= 0 && mr <= 1)) {
     return CLAB_EDOM;
@@ -148,10 +148,10 @@ int clab_tpdmc(double pres, double dr, double mr, int k, double *P, double *N, d
     B[k + i] = mm.val();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_tpdsim(const double *P, int m, int k, int start, int steps, unsigned long long seed,
-                int *path, int *len) {
+                int *path, int *len) CLAB_TRY {
   if (m < 2 || k < 1 || k >= m || start < 0 || start >= k || steps < 0 || steps > kutil::maxcell) return CLAB_EARG;
   kutil::rng r(seed);
   int s = start, n = 1;
@@ -172,11 +172,11 @@ int clab_tpdsim(const double *P, int m, int k, int start, int steps, unsigned lo
   }
   *len = n;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
                const double *s0, const int *g, int ng, double *mu, double *sd, double *st,
-               double *gm, double *lam, int *nj, double *work) {
+               double *gm, double *lam, int *nj, double *work) CLAB_TRY {
   const int p = q + 1;
   if (n < 2 || q < 1 || (g && ng < 2)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
@@ -262,4 +262,4 @@ int clab_tpbhm(const double *y, const double *x, int n, int q, const double *m0,
   for (int j = 0; j < ng; ++j) lam[j] = tau2 / (tau2 + s2 / nj[j]);
   st[1] = tau2;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

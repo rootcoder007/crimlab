@@ -306,16 +306,16 @@ int clab_ivfe(const double *y, const double *xe, int pe, const double *xx, int p
               const double *zi, int q, int n, const double *w, const int *f1, int n1,
               const int *f2, int n2, const int *cl, int ncl, const int *cl2, int ncl2,
               double tol, double *beta, double *vc, double *fst, double *fres, double *res,
-              double *sco, double *brd, double *st) {
+              double *sco, double *brd, double *st) CLAB_TRY {
   return clab_ivfek(y, xe, pe, xx, px, zi, q, n, w, f1, n1, f2, n2, nullptr, nullptr, 0, cl, ncl,
                     cl2, ncl2, tol, beta, vc, fst, fres, res, sco, brd, st);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ivfek(const double *y, const double *xe, int pe, const double *xx, int px,
                const double *zi, int q, int n, const double *w, const int *f1, int n1,
                const int *f2, int n2, const int *fx, const int *nx, int mx, const int *cl,
                int ncl, const int *cl2, int ncl2, double tol, double *beta, double *vc,
-               double *fst, double *fres, double *res, double *sco, double *brd, double *st) {
+               double *fst, double *fres, double *res, double *sco, double *brd, double *st) CLAB_TRY {
   const int p = pe + px, k = 1 + pe + px + q;
   if (n < 2 || pe < 0 || px < 0 || q < pe || p < 1 || n1 < 1 || (f2 && n2 < 1) ||
       !(tol > 0) || (cl && ncl < 2) || (cl2 && (!cl || ncl2 < 2)) ||
@@ -520,13 +520,13 @@ int clab_ivfek(const double *y, const double *xe, int pe, const double *xx, int 
   st[1] = sw;
   st[2] = rss.val();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int px,
                 const double *zi, int q, int n, const double *off, const int *f1, int n1,
                 const int *f2, int n2, const int *cl, int ncl, const int *bm, int nb,
                 int how, int maxit, double eps, double tol, double *beta, double *fst,
-                double *draw, double *st) {
+                double *draw, double *st) CLAB_TRY {
   // how 0: the control function (the residuals join the regressors); 1:
   // the fitted exposure in place of the exposure
   const int p = how == 1 ? pe + px : pe + px + pe;
@@ -625,11 +625,11 @@ int clab_ppmlcf(const double *y, const double *xe, int pe, const double *xx, int
   }
   st[2] = bad;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_expgmm(const double *y, const double *x, int k, const double *z, int s, int n,
                 const double *off, const double *b0, const int *cl, int ncl, int err, int step,
-                int maxit, double tol, double *beta, double *vc, double *st) {
+                int maxit, double tol, double *beta, double *vc, double *st) CLAB_TRY {
   if (n < 2 || k < 1 || s < k || !cl || ncl < 2 || err < 0 || err > 1 || step < 1 || step > 3 ||
       maxit < 1 || !(tol > 0)) {
     return CLAB_EARG;
@@ -834,12 +834,12 @@ int clab_expgmm(const double *y, const double *x, int k, const double *z, int s,
   st[4] = nw;
   st[5] = obj();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int px,
                const double *zi, int q, int n, const int *f1, int n1, const int *f2, int n2,
                const int *fx, const int *nx, int mx, const int *cl, int ncl, const int *cl2,
-               int ncl2, double tol, double *beta, double *st) {
+               int ncl2, double tol, double *beta, double *st) CLAB_TRY {
   const int p = pe + px, m = q + px, k = 1 + pe + px + q;
   if (n < 2 || pe < 1 || px < 0 || q < pe || !(tol > 0) || !cl || ncl < 2 ||
       (cl2 && ncl2 < 2) || !fecodes(n, f1, n1, f2, n2, fx, nx, mx)) {
@@ -957,19 +957,19 @@ int clab_ivoid(const double *y, const double *xe, int pe, const double *xx, int 
     st[1] = q > pe ? quad(wm.data()) : kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_demean(double *v, int n, int k, const int *f1, int n1, const int *f2, int n2,
-                const int *fx, const int *nx, int mx, double tol, double *work) {
+                const int *fx, const int *nx, int mx, double tol, double *work) CLAB_TRY {
   if (n < 1 || k < 0 || !(tol > 0) || !fecodes(n, f1, n1, f2, n2, fx, nx, mx)) return CLAB_EARG;
   if (demean(v, n, k, f1, n1, f2, n2, nullptr, tol, work, fx, nx, mx) < 0) {
     return kutil::stop(0) ? CLAB_EINTR : CLAB_EDOM;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_windbin(const double *dir, int n, double width, double start, const int *area, int na,
-                 int base, int edge, double *out) {
+                 int base, int edge, double *out) CLAB_TRY {
   if (n < 1 || !(width > 0) || !(width < 360) || !std::isfinite(start) || na < 1 || edge < 0 ||
       edge > 1) {
     return CLAB_EARG;
@@ -1001,9 +1001,9 @@ int clab_windbin(const double *dir, int n, double width, double start, const int
     out[sz(c, n) + static_cast<size_t>(i)] = 1.0;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *ord) {
+int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *ord) CLAB_TRY {
   if (n < 1 || !std::isfinite(k)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(t[i])) return CLAB_EDOM;
@@ -1029,11 +1029,11 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
     idx[i] = lo < n && u[ord[lo]] == u[i] && t[ord[lo]] == want ? ord[lo] : -1;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_updwn(const double *ax, const double *ay, const double *wd, int n, const double *sx0,
                const double *sy0, const double *sx1, const double *sy1, int ns, double band,
-               double tol, int twin, int *src, int *side, int *dn, double *dst) {
+               double tol, int twin, int *src, int *side, int *dn, double *dst) CLAB_TRY {
   if (n < 1 || ns < 1 || !(band > 0) || !(tol > 0) || tol > 90 || twin < 0 || twin > 1) {
     return CLAB_EARG;
   }
@@ -1108,10 +1108,10 @@ int clab_updwn(const double *ax, const double *ay, const double *wd, int n, cons
     dn[i] = a <= tol ? 1 : (a >= 180 - tol ? 0 : -1);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
-             const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc) {
+             const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc) CLAB_TRY {
   if (n < 2 || p < 1 || kind < 0 || kind > 3 || !(fac >= 0)) return CLAB_EARG;
   if ((kind == 0 || kind == 1 || kind == 3) && (!cl || ncl < 1)) return CLAB_EARG;
   if (kind == 1 && (!cl2 || ncl2 < 1)) return CLAB_EARG;
@@ -1197,10 +1197,10 @@ int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_runlen(const int *u, const double *t, const double *e, int n, double step, int *run,
-                int *ord) {
+                int *ord) CLAB_TRY {
   if (n < 1 || !(step > 0)) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(t[i])) return CLAB_EDOM;
@@ -1225,6 +1225,6 @@ int clab_runlen(const int *u, const double *t, const double *e, int n, double st
     run[i] = on ? run[j] + 1 : 1;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

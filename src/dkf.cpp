@@ -9,7 +9,7 @@
 #include "kutil.h"
 
 int clab_crcap(const double *x, int k, double kappa, const double *it, int ni, double *st,
-               double *pw, double *sens) {
+               double *pw, double *sens) CLAB_TRY {
   if (k != 3 && k != 7) return CLAB_EARG;
   if (!(kappa >= 1) || !std::isfinite(kappa)) return CLAB_EDOM;
   for (int j = 0; j < k; ++j) {
@@ -62,10 +62,10 @@ int clab_crcap(const double *x, int k, double kappa, const double *it, int ni, d
     sens[ni + j] = o.val() + sens[j];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_dkfig(const double *v, const double *r, int n, double amax, double bmax, double thr,
-               double *lo, double *hi, double *brk) {
+               double *lo, double *hi, double *brk) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!kutil::nonneg(amax) || !kutil::nonneg(bmax) || !(amax + bmax < 1)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -80,9 +80,9 @@ int clab_dkfig(const double *v, const double *r, int n, double amax, double bmax
     brk[i] = std::isnan(thr) ? kutil::nan() : 1 - v[i] / thr;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dkcmp(double va, double ra, double rb, double lam, double *out) {
+int clab_dkcmp(double va, double ra, double rb, double lam, double *out) CLAB_TRY {
   if (!kutil::pos(va) || !kutil::pos(ra) || !kutil::nonneg(rb)) return CLAB_EDOM;
   if (ra > va || !(lam > 0 && lam <= 1)) return CLAB_EDOM;
   // offences of type A are recorded at rate ra / va; type B, which the
@@ -96,9 +96,9 @@ int clab_dkcmp(double va, double ra, double rb, double lam, double *out) {
   out[5] = va - ra + rb * (1 / k - 1);
   out[6] = rb * (1 - k) / k;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_dkhier(const double *k, int n, double *out) {
+int clab_dkhier(const double *k, int n, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   kutil::ksum s;
   double mx = 0;
@@ -114,4 +114,4 @@ int clab_dkhier(const double *k, int n, double *out) {
   out[4] = n;
   out[5] = mx * n;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

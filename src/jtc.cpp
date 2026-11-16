@@ -80,19 +80,19 @@ bool gridok(int nx, int ny, double x0, double y0, double dx, double dy) {
 extern "C" {
 
 int clab_jtdecay(const double *d, int n, int type, const double *par,
-                 const double *tab, int nt, double *f) {
+                 const double *tab, int nt, double *f) CLAB_TRY {
   if (n < 0 || type < 0 || type > 5) return CLAB_EARG;
   if (!parok(type, par, tab, nt)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i)
     if (!kutil::nonneg(d[i])) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) f[i] = std::exp(lgdec(type, par, tab, nt, d[i]));
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jtsurf(const double *x, const double *y, int m, int nx, int ny,
                 double x0, double y0, double dx, double dy, int metric,
                 int mode, int type, const double *par, const double *tab,
-                int nt, double *raw, double *prob, double *peak) {
+                int nt, double *raw, double *prob, double *peak) CLAB_TRY {
   if (m < 1 || metric < 0 || metric > 1 || mode < 0 || mode > 1 || type < 0 ||
       type > 5)
     return CLAB_EARG;
@@ -138,10 +138,10 @@ int clab_jtsurf(const double *x, const double *y, int m, int nx, int ny,
   peak[1] = x0 + (arg % nx + 0.5) * dx;
   peak[2] = y0 + (arg / nx + 0.5) * dy;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jtcal(const double *d, const double *w, int m, int kern, double h,
-               int refl, const double *t, int k, double *dens) {
+               int refl, const double *t, int k, double *dens) CLAB_TRY {
   if (m < 1 || k < 0 || kern < 0 || kern > 4 || refl < 0 || refl > 1)
     return CLAB_EARG;
   if (!kutil::pos(h)) return CLAB_EDOM;
@@ -183,10 +183,10 @@ int clab_jtcal(const double *d, const double *w, int m, int kern, double h,
     dens[j] = s.val() / (h * W);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_jtacc(const double *prob, int nx, int ny, double x0, double y0,
-               double dx, double dy, double hx, double hy, double *out) {
+               double dx, double dy, double hx, double hy, double *out) CLAB_TRY {
   if (!gridok(nx, ny, x0, y0, dx, dy)) return CLAB_EARG;
   if (!std::isfinite(hx) || !std::isfinite(hy)) return CLAB_EDOM;
   const double fx = (hx - x0) / dx, fy = (hy - y0) / dy;
@@ -211,10 +211,10 @@ int clab_jtacc(const double *prob, int nx, int ny, double x0, double y0,
   out[4] = arg;
   out[5] = home;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_bjtc(const double *pj, int no, const double *od, int nd,
-              const int *dest, int m, double *out) {
+              const int *dest, int m, double *out) CLAB_TRY {
   if (no < 1 || nd < 1 || m < 1 || no > 1000000000 / nd) return CLAB_EARG;
   for (int k = 0; k < m; ++k)
     if (dest[k] < 0 || dest[k] >= nd) return CLAB_EARG;
@@ -250,6 +250,6 @@ int clab_bjtc(const double *pj, int no, const double *od, int nd,
   }
   if (!norm(prd) || !norm(rsk)) return CLAB_EDOM;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

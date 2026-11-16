@@ -130,7 +130,7 @@ extern "C" {
 
 int clab_fair(const double *score, const int *y, const int *grp, int n, int g,
               double cut, int base, double z, double *cnt, double *met,
-              double *rat, double *lo, double *hi) {
+              double *rat, double *lo, double *hi) CLAB_TRY {
   if (n < 1 || g < 1 || base < 0 || base >= g) return CLAB_EARG;
   if (std::isnan(cut)) return CLAB_EDOM;
   if (lo != nullptr && hi != nullptr && !kutil::pos(z)) return CLAB_EDOM;
@@ -180,11 +180,11 @@ int clab_fair(const double *score, const int *y, const int *grp, int n, int g,
     for (int j = 0; j < g; ++j) rat[k * g + j] = met[k * g + j] / met[k * g + base];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_fairdf(const int *pred, const int *y, const int *grp, int n, int g,
                 int base, double z, int nboot, unsigned int seed, double *cnt,
-                double *met, double *sum, double *work) {
+                double *met, double *sum, double *work) CLAB_TRY {
   if (n < 1 || g < 2 || base < -1 || base >= g || nboot < 0) return CLAB_EARG;
   if (!kutil::pos(z)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -298,11 +298,11 @@ int clab_fairdf(const int *pred, const int *y, const int *grp, int n, int g,
     sum[7] = q7(bb, nboot, 1.0 - 0.5 * al);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_tmpaud(const int *pred, const int *grp, const int *cell, int n, int g,
                 int nc, const int *city, int ncity, int base, double *cout,
-                double *yout, double *sum, double *work) {
+                double *yout, double *sum, double *work) CLAB_TRY {
   if (n < 1 || g < 2 || nc < 1 || ncity < 1 || base < -1 || base >= g) return CLAB_EARG;
   for (int c = 0; c < nc; ++c) {
     if (city[c] < 0 || city[c] >= ncity) return CLAB_EARG;
@@ -412,11 +412,11 @@ int clab_tmpaud(const int *pred, const int *grp, const int *cell, int n, int g,
   sum[1] = nm >= 2 ? mhi - mlo : nan;
   sum[2] = b;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lipaud(const double *h, int n, const int *pi, const int *pj,
                 const double *d, int m, double lip, double *gap, double *rat,
-                int *viol, double *sum) {
+                int *viol, double *sum) CLAB_TRY {
   if (n < 1 || m < 1) return CLAB_EARG;
   if (!kutil::nonneg(lip)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -451,10 +451,10 @@ int clab_lipaud(const double *h, int n, const int *pi, const int *pj,
   sum[4] = kg;
   sum[5] = kr;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_nsbnd(const double *pobs, int n, double alo, double ahi, double blo,
-               double bhi, double *lo, double *hi, int *ord, double *bd) {
+               double bhi, double *lo, double *hi, int *ord, double *bd) CLAB_TRY {
   if (n < 1 || static_cast<double>(n) * (n - 1) / 2 > INT_MAX) return CLAB_EARG;
   if (!kutil::nonneg(alo) || !kutil::nonneg(blo) || !(ahi >= alo) ||
       !(bhi >= blo) || !(ahi + bhi < 1.0)) {
@@ -497,10 +497,10 @@ int clab_nsbnd(const double *pobs, int n, double alo, double ahi, double blo,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_impfpr(const double *p, const double *ppv, const double *fnr, int n,
-                double *fpr) {
+                double *fpr) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!(p[i] > 0.0 && p[i] < 1.0) || !(ppv[i] > 0.0 && ppv[i] <= 1.0) ||
@@ -510,10 +510,10 @@ int clab_impfpr(const double *p, const double *ppv, const double *fnr, int n,
     fpr[i] = p[i] / (1.0 - p[i]) * ((1.0 - ppv[i]) / ppv[i]) * (1.0 - fnr[i]);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_rnkres(const double *est, const double *hw, int n, int *id,
-                double *out) {
+                double *out) CLAB_TRY {
   if (n < 2 || static_cast<double>(n) * n > INT_MAX) return CLAB_EARG;
   double mh = 0.0;
   for (int i = 0; i < n; ++i) {
@@ -540,6 +540,6 @@ int clab_rnkres(const double *est, const double *hw, int n, int *id,
   out[2] = nu / np;
   out[3] = 2.0 * mh;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

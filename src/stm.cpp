@@ -42,13 +42,13 @@ extern "C" {
 
 int clab_mantst(const double *x, const double *y, const double *t, int n,
                 double cs, double ct, int nsim, unsigned int seed, int *iwork,
-                double *out) {
+                double *out) CLAB_TRY {
   return clab_mantm(x, y, t, n, 0, cs, ct, nsim, seed, iwork, out);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_mantm(const double *x, const double *y, const double *t, int n,
                int metric, double cs, double ct, int nsim, unsigned int seed,
-               int *iwork, double *out) {
+               int *iwork, double *out) CLAB_TRY {
   if (n < 3 || nsim < 0 || n > 46340 || metric < 0 || metric > 1) return CLAB_EARG;
   if (!kutil::nonneg(cs) || !kutil::nonneg(ct)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i)
@@ -105,10 +105,10 @@ int clab_mantm(const double *x, const double *y, const double *t, int n,
     out[4] = (1.0 + ab) / (nsim + 1.0);
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_stmavg(const double *x, const double *y, const double *t, int n,
-                int span, int *iwork, double *out) {
+                int span, int *iwork, double *out) CLAB_TRY {
   if (n < 1 || span < 1 || span % 2 == 0) return CLAB_EARG;
   for (int i = 0; i < n; ++i)
     if (!std::isfinite(x[i]) || !std::isfinite(y[i]) || !std::isfinite(t[i]))
@@ -132,6 +132,6 @@ int clab_stmavg(const double *x, const double *y, const double *t, int n,
     r[3] = m;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

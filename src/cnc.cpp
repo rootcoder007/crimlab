@@ -106,7 +106,7 @@ double nll(double a, double n, double ls, double xmin) {
 }  // namespace
 
 int clab_cconc(const double *x, const double *w, int n, const double *fr, int nf, double *st,
-               double *lp, double *lv, double *top, double *topn, int *o) {
+               double *lp, double *lv, double *top, double *topn, int *o) CLAB_TRY {
   if (n < 1 || nf < 0) return CLAB_EARG;
   kutil::ksum ws, ts, zs;
   for (int i = 0; i < n; ++i) {
@@ -173,9 +173,9 @@ int clab_cconc(const double *x, const double *w, int n, const double *fr, int nf
     topn[f] = k;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_cnull(double mu, int n, int nsim, double seed, double *g, int *work) {
+int clab_cnull(double mu, int n, int nsim, double seed, double *g, int *work) CLAB_TRY {
   if (n < 1 || nsim < 0) return CLAB_EARG;
   if (!kutil::pos(mu) || mu > 1e8 || !(seed >= 0)) return CLAB_EDOM;
   kutil::rng r(static_cast<std::uint64_t>(seed));
@@ -192,10 +192,10 @@ int clab_cnull(double mu, int n, int nsim, double seed, double *g, int *work) {
     g[s] = t > 0 ? 2 * c / (static_cast<double>(n) * t) - (n + 1.0) / n : 0.0;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_cgrow(const int *code, int n, int ng, double *dist, double *mhat, double *ex, double *lo,
-               double *hi, double *slope, int *seen) {
+               double *hi, double *slope, int *seen) CLAB_TRY {
   if (n < 2 || ng < 1) return CLAB_EARG;
   for (int j = 0; j < ng; ++j) seen[j] = 0;
   int k = 0;
@@ -259,9 +259,9 @@ int clab_cgrow(const int *code, int n, int ng, double *dist, double *mhat, doubl
     *slope = kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_urbsc(const double *x, const double *pop, int n, double *out) {
+int clab_urbsc(const double *x, const double *pop, int n, double *out) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   kutil::ksum sx, sy;
   int c = 0;
@@ -296,16 +296,16 @@ int clab_urbsc(const double *x, const double *pop, int n, double *out) {
   out[2] = std::sqrt(rs.val() / (c - 2) / sxx.val());
   out[3] = syy.val() > 0 ? 1 - rs.val() / syy.val() : kutil::nan();
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_hzta(double s, double q, double *z) {
+int clab_hzta(double s, double q, double *z) CLAB_TRY {
   if (!(s > 1) || !std::isfinite(s) || !kutil::pos(q)) return CLAB_EDOM;
   *z = hz(s, q);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_hilltl(const double *x, int n, double xmin, int discrete, int approx, double *out,
-                double *work) {
+                double *work) CLAB_TRY {
   if (n < 1) return CLAB_EARG;
   if (!kutil::pos(xmin)) return CLAB_EDOM;
   int m = 0;
@@ -378,4 +378,4 @@ int clab_hilltl(const double *x, int n, double xmin, int discrete, int approx, d
   out[0] = alpha;
   out[1] = se;
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

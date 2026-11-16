@@ -11,7 +11,7 @@
 #include "kutil.h"
 
 int clab_mndla(const double *days, const double *hours, const double *miss, const int *nal,
-               int amin, const int *elig, const int *excl, int n, double thr, int *cls) {
+               int amin, const int *elig, const int *excl, int n, double thr, int *cls) CLAB_TRY {
   if (n < 0) return CLAB_EARG;
   if (!kutil::nonneg(thr)) return CLAB_EDOM;
   for (int i = 0; i < n; ++i) {
@@ -28,10 +28,10 @@ int clab_mndla(const double *days, const double *hours, const double *miss, cons
     if ((excl && excl[i]) || (elig && !elig[i])) cls[i] = 0;
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_mndtab(const int *cls, const int *idc, const int *gc, const double *days, const double *w,
-                const int *elig, int n, int ng, double thr, double *out, int *o) {
+                const int *elig, int n, int ng, double thr, double *out, int *o) CLAB_TRY {
   if (n < 1 || ng < 1) return CLAB_EARG;
   for (int k = 0; k < 7 * (ng + 1); ++k) out[k] = 0.0;
   for (int i = 0; i < n; ++i) {
@@ -75,4 +75,4 @@ int clab_mndtab(const int *cls, const int *idc, const int *gc, const double *day
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

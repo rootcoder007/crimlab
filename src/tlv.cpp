@@ -51,7 +51,7 @@ bool qform(const double *u, double a, const double *c, double b, int p,
 extern "C" {
 
 int clab_tlvc(const double *x, int n, int p, const int *item, int m,
-              double *mu, double *u, double *c, double *work) {
+              double *mu, double *u, double *c, double *work) CLAB_TRY {
   if (p < 1 || m < 2 || n <= m) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (item[i] < 0 || item[i] >= m) return CLAB_EARG;
@@ -113,11 +113,11 @@ int clab_tlvc(const double *x, int n, int p, const int *item, int m,
     }
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_tlvlr(const double *u, const double *c, const double *mu, int p,
                const double *xa, double na, const double *xb, double nb,
-               double *out, double *work) {
+               double *out, double *work) CLAB_TRY {
   if (p < 1) return CLAB_EARG;
   if (!kutil::pos(na) || !kutil::pos(nb)) return CLAB_EDOM;
   for (int k = 0; k < p; ++k) {
@@ -148,6 +148,6 @@ int clab_tlvlr(const double *u, const double *c, const double *mu, int p,
   out[0] = l;
   out[1] = l / std::log(10.0);
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

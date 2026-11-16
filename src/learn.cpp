@@ -659,7 +659,7 @@ int clab_enpath(const double *x, int n, int p, const double *y, int fam,
                double alpha, double *lam, int nl, double lmr, double thresh,
                int maxit, int scr, const int *fold, int nf, double *a0,
                double *beta, double *cv, int *best, int *nfit, double *work,
-               int *iwork) {
+               int *iwork) CLAB_TRY {
   if (n < 2 || p < 1 || nl < 1 || maxit < 1 || (fam != 0 && fam != 1) ||
       (fold != nullptr && (nf < 2 || nf > n)))
     return CLAB_EARG;
@@ -676,11 +676,11 @@ int clab_enpath(const double *x, int n, int p, const double *y, int fam,
   return lrn::cvnet(d, fam, alpha, lam, nl, lmr, thresh, maxit, scr != 0, fold,
                     fold == nullptr ? 0 : nf, a0, beta, cv, best, nfit, work,
                     iwork + n);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_lgtreg(const double *x, int n, int p, const double *y, double tol,
                 int maxit, double *coef, double *se, double *dev,
-                double *work, int *iwork) {
+                double *work, int *iwork) CLAB_TRY {
   if (n < 1 || p < 0 || maxit < 1) return CLAB_EARG;
   if (!(tol > 0.0)) return CLAB_EDOM;
   for (long k = 0; k < static_cast<long>(n) * p; ++k) {
@@ -689,6 +689,6 @@ int clab_lgtreg(const double *x, int n, int p, const double *y, double tol,
   for (int i = 0; i < n; ++i) iwork[i] = i;
   const lrn::Dat d = {x, n, p, y, iwork, n};
   return lrn::glm(d, 1, tol, maxit, coef, se, dev, work);
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 }  // extern "C"

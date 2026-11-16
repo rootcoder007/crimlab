@@ -9,7 +9,7 @@
 
 int clab_bndxw(const double *x, const int *u, int n, const int *from, const int *to,
                const double *w, int m, int ns, int nt, double *out, double *wsum, int *best,
-               double *bw) {
+               double *bw) CLAB_TRY {
   if (n < 0 || m < 1 || ns < 1 || nt < 1) return CLAB_EARG;
   for (int k = 0; k < m; ++k) {
     if (from[k] < 0 || from[k] >= ns || to[k] < 0 || to[k] >= nt) return CLAB_EARG;
@@ -44,10 +44,10 @@ int clab_bndxw(const double *x, const int *u, int n, const int *from, const int 
     if (best[s] < 0) bw[s] = kutil::nan();
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)
 
 int clab_synexp(const double *coef, const double *ax, int na, int p, const double *pop,
-                double *rate, double *expo) {
+                double *rate, double *expo) CLAB_TRY {
   if (na < 1 || p < 0) return CLAB_EARG;
   for (int j = 0; j <= p; ++j) {
     if (!std::isfinite(coef[j])) return CLAB_EDOM;
@@ -64,4 +64,4 @@ int clab_synexp(const double *coef, const double *ax, int na, int p, const doubl
     expo[a] = rate[a] * pop[a];
   }
   return CLAB_OK;
-}
+} CLAB_CATCH(CLAB_ENOMEM)

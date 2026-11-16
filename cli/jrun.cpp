@@ -34,6 +34,7 @@
 #include <initializer_list>
 #include <limits>
 #include <map>
+#include <new>
 #include <regex>
 #include <string>
 #include <unordered_map>
@@ -2115,20 +2116,65 @@ int run(const char *fn, const char *in, std::string &res) {
   return CLAB_OK;
 }
 
+#if !(defined(__cpp_exceptions) || defined(_CPPUNWIND))
+// Without exceptions (the WebAssembly build) a failed allocation cannot be
+// unwound: the new-handler records it and stops the module, and the host
+// (bindings/npm/lib/wasm.js) reads clab_oomed() to report it in words.
+volatile int oomed = 0;
+[[noreturn]] void oomh() {
+  oomed = 1;
+  std::abort();
+}
+#endif
+
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+// The message of a failed allocation, "fn: not enough memory for this
+// size.", into out as clab_jrun() returns results; nothing is allocated.
+int nomem(const char *fn, char *out, int cap, int *need) {
+  char msg[192];
+  std::snprintf(msg, sizeof msg, "%s: not enough memory for this size.", fn != nullptr ? fn : "crimlab");
+  const std::size_t n = std::strlen(msg) + 1;
+  if (need != nullptr) *need = static_cast<int>(n);
+  if (out == nullptr || cap < 1) return CLAB_ESIZE;
+  if (n > static_cast<std::size_t>(cap)) {
+    out[0] = '\0';
+    return CLAB_ESIZE;
+  }
+  std::memcpy(out, msg, n);
+  return CLAB_ENOMEM;
+}
+#endif
+
 }  // namespace
+
+extern "C" int clab_oomed(void) {
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  return 0;
+#else
+  return oomed;
+#endif
+}
 
 extern "C" int clab_jrun(const char *fn, const char *in, char *out, int cap, int *need) {
   std::string res;
   int rc;
+  kutil::oomtake();
 #if defined(__cpp_exceptions) || defined(_CPPUNWIND)
-  // no exception crosses the C interface (std::bad_alloc is the only one)
+  // no exception crosses the C interface: a failed allocation here, or one
+  // a kernel caught (kutil::oomtake()), is the message of nomem()
+  bool full = false;
   try {
     rc = run(fn, in, res);
   } catch (...) {
-    res = "crimlab: out of memory.";
-    rc = CLAB_EARG;
+    full = true;
+  }
+  if (full || (rc != CLAB_OK && kutil::oomtake())) {
+    std::string().swap(res);
+    return nomem(fn, out, cap, need);
   }
 #else
+  static const bool handler = (std::set_new_handler(oomh), true);
+  (void)handler;
   rc = run(fn, in, res);
 #endif
   const std::size_t n = res.size() + 1;
@@ -2143,13 +2189,21 @@ extern "C" int clab_jrun(const char *fn, const char *in, char *out, int cap, int
 }
 
 extern "C" const char *clab_jfns(void) {
-  static const std::string s = [] {
-    Val o;
-    o.t = Val::OBJ;
-    for (const Ent &e : ents) put(o, e.name, vstrs(words(e.args)));
-    std::string r;
-    wval(r, o);
-    return r;
-  }();
-  return s.c_str();
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  try {
+#endif
+    static const std::string s = [] {
+      Val o;
+      o.t = Val::OBJ;
+      for (const Ent &e : ents) put(o, e.name, vstrs(words(e.args)));
+      std::string r;
+      wval(r, o);
+      return r;
+    }();
+    return s.c_str();
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  } catch (...) {
+    return "{}";  // no memory for the table: an empty one, tried again on the next call
+  }
+#endif
 }
