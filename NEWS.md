@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* New: `ovrchk()` flags the cells of a coded table of oversight reports
+  that are not of the form of their field (a real date, a count, a flag)
+  or of a pattern such as a case number.
+
 * New: `ovrkwd()` marks the reports that mention the words of keyword
   groups, whole words in any case, with a preset for mental health and
   race and any groups of one's own.

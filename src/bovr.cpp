@@ -230,3 +230,31 @@ SEXP C_clab_r_ovrkwd(SEXP x, SEXP html, SEXP terms) {
 }
 
 }  // extern "C"
+
+extern "C" {
+
+// ovrchk(): for each value of x (text, NA where missing), 1 when it is of
+// the kind (0 a date, 1 a count, 2 a flag, 3 of a shape), else 0; NA for
+// a missing one.
+SEXP C_clab_r_ovrchk(SEXP x, SEXP kind, SEXP shape) {
+  clab::who = "ovrchk";
+  const R_xlen_t n = XLENGTH(x);
+  const int k = Rf_asInteger(kind);
+  const char *sh = Rf_translateCharUTF8(STRING_ELT(shape, 0));
+  SEXP out = PROTECT(Rf_allocVector(LGLSXP, n));
+  for (R_xlen_t i = 0; i < n; ++i) {
+    if (STRING_ELT(x, i) == NA_STRING) {
+      LOGICAL(out)[i] = NA_LOGICAL;
+      continue;
+    }
+    int64_t m = 0;
+    int ok = 0;
+    const char *s = u8(x, i, &m);
+    kc(clab_ovrchk(s, m, k, sh, &ok));
+    LOGICAL(out)[i] = ok;
+  }
+  UNPROTECT(1);
+  return out;
+}
+
+}  // extern "C"

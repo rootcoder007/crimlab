@@ -2430,6 +2430,12 @@ ok("ovrkwd", x = c("The man had a history of schizophrenia; a crisis team came."
                    "<p>An <b>Indigenous</b> woman, in a mental health crisis.</p>", "Blackburn Road; the EDPs unit", NA))
 ok("ovrkwd", x = c("A Taser and a baton.", "none"), vocab = list(force = c("taser", "baton"), dog = "police dog"))
 bad("ovrkwd", x = "a", vocab = 3)
+ok("ovrchk", data = data.frame(case_number = c("23-OFD-001", "23-OFD-1", NA, "24-TCI-140"),
+                              date_of_incident_iso = c("2023-01-05", "2023-02-30", "", "5 Jan 2023"),
+                              number_of_subject_officials = c(1, 2.5, NA, 100000),
+                              charges_recommended = c("FALSE", "maybe", "yes", NA)),
+   shape = c(case_number = "99-AAA-999|99-AA-999"))
+bad("ovrchk", data = data.frame(a = 1), shape = c(b = "999"))
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

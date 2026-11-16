@@ -4648,6 +4648,13 @@ int clab_ovrvoc(const char *preset, int j, const char **group, const char **term
  * (ASCII); a term ending in '*' as the start of a word. */
 int clab_ovrkwd(const char *t, int64_t n, const char *term, int64_t *count);
 
+/* A cell of a coded table of oversight reports (ovrchk): s (n bytes) of
+ * kind 0 (a real date YYYY-MM-DD), 1 (a whole number from 0, digits), 2
+ * (TRUE, FALSE, yes, no, y or n in any case) or 3 (of a pattern of shape,
+ * '|'-separated: 9 a digit, A a capital, a a small letter, any other
+ * character itself): *ok 1 or 0. CLAB_EARG for an unknown kind. */
+int clab_ovrchk(const char *s, int64_t n, int kind, const char *shape, int *ok);
+
 #ifdef __cplusplus
 }
 #endif

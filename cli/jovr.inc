@@ -498,4 +498,91 @@ bool ovrkwd(Ctx &c, Val &out) {
   return true;
 }
 
+bool ovrchk(Ctx &c, Val &out) {
+  Val d;
+  const Val &o = c["data"];
+  if (o.t != Val::OBJ) return ckstop(c, "`data` must be a data frame, not %s", ax::vcls(o));
+  CK(ax::dat(c, o, "data", d));
+  std::vector<std::string> nm, rl;
+  if (c.has("schema")) {
+    const Val &s = c["schema"];
+    const Val *a = s.t == Val::OBJ ? ax::fc(s, "name") : nullptr, *b = s.t == Val::OBJ ? ax::fc(s, "rule") : nullptr;
+    if (a == nullptr || b == nullptr) return ckstop(c, "`schema` must be a data frame with the columns name and rule");
+    nm = ax::coll(ax::asarr(*a));
+    rl = ax::coll(ax::asarr(*b));
+  } else {
+    const char *v[6];
+    for (int i = 0; clab_ovrsch("siu", i, &v[0], &v[1], &v[2], &v[3], &v[4], &v[5]) == CLAB_OK; ++i) {
+      nm.push_back(v[0]);
+      rl.push_back(v[1]);
+    }
+  }
+  std::vector<std::string> cols, pat;
+  std::vector<int> kind;
+  for (std::size_t j = 0; j < nm.size() && j < rl.size(); ++j) {
+    const std::string &r = rl[j];
+    const int k = r == "date" ? 0 : (r == "num" || r == "tag" || r == "before") ? 1 : r == "flag" ? 2 : -1;
+    if (k < 0 || ax::fc(d, nm[j]) == nullptr) continue;
+    cols.push_back(nm[j]);
+    kind.push_back(k);
+    pat.emplace_back();
+  }
+  if (c.has("shape")) {
+    const Val &s = c["shape"];
+    bool ok = s.t == Val::OBJ;
+    for (std::size_t j = 0; ok && j < s.k.size(); ++j) {
+      ok = s.a[j].t == Val::STR && !s.a[j].s.empty() && ax::fc(d, s.k[j]) != nullptr;
+      if (ok) {
+        cols.push_back(s.k[j]);
+        kind.push_back(3);
+        pat.push_back(s.a[j].s);
+      }
+    }
+    if (!ok) return ckstop(c, "`shape` must be patterns named by columns of `data`");
+  }
+  static const char *const what[] = {"date", "count", "flag", "shape"};
+  const std::size_t n = ax::nr(d);
+  Val row = varr(), iss = varr(), wv = varr();
+  std::vector<std::string> w(n);
+  std::vector<int> cnt(n, 0);
+  for (std::size_t j = 0; j < cols.size(); ++j) {
+    const Val &col = *ax::fc(d, cols[j]);
+    for (std::size_t i = 0; i < n; ++i) {
+      const Val &e = col.a[i];
+      std::string s;
+      if (e.t == Val::NUL) continue;
+      if (e.t == Val::NUM) {
+        if (std::isnan(e.n)) continue;
+        char b[64];
+        if (e.n == std::nearbyint(e.n)) std::snprintf(b, sizeof b, "%.0f", e.n);
+        s = e.n == std::nearbyint(e.n) ? std::string(b) : rfmt(e.n);
+      } else if (e.t == Val::BOOL) {
+        s = e.b ? "TRUE" : "FALSE";
+      } else {
+        s = e.t == Val::STR ? e.s : std::string();
+      }
+      std::size_t a = 0, z = s.size();
+      while (a < z && std::isspace(static_cast<unsigned char>(s[a]))) ++a;
+      while (z > a && std::isspace(static_cast<unsigned char>(s[z - 1]))) --z;
+      s = s.substr(a, z - a);
+      if (s.empty()) continue;
+      int ok = 0;
+      clab_ovrchk(s.data(), static_cast<int64_t>(s.size()), kind[j], pat[j].c_str(), &ok);
+      if (ok) continue;
+      ++cnt[i];
+      w[i] += (w[i].empty() ? "" : "; ") + cols[j] + ": " + what[kind[j]];
+    }
+  }
+  for (std::size_t i = 0; i < n; ++i) {
+    row.a.push_back(vnum(static_cast<double>(i + 1)));
+    iss.a.push_back(vnum(cnt[i]));
+    wv.a.push_back(vstr(w[i]));
+  }
+  out = vobj();
+  put(out, "row", std::move(row));
+  put(out, "issues", std::move(iss));
+  put(out, "what", std::move(wv));
+  return true;
+}
+
 }  // namespace ovr

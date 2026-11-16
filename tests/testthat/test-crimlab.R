@@ -947,6 +947,7 @@ test_that("every exported function answers one valid call in its shape", {
                                  alt = "", sect = ""))), "d"),
     list(quote(ovrsoc("SO #1")), c("count", "rule", "reason")),
     list(quote(ovrkwd("a", "a")), c("a", "terms")),
+    list(quote(ovrchk(data.frame(a = 1))), c("row", "issues", "what")),
     list(quote(plotevgrid(list(a = evtst(c(1:10, 2:11 + (1:10 > 5)),
                                          rep(1:10, 2), rep(1:2, each = 10),
                                          rep(rep(c(NA, 2), each = 5), 2),

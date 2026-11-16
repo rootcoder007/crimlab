@@ -7894,3 +7894,19 @@ def ovrkwd(x: Any, vocab: Any = "mhr", html: Any = None) -> Any:
     ['force', 'terms']
     """
     return jcall("ovrkwd", x=x, vocab=vocab, html=html)
+
+
+def ovrchk(data: Any, schema: Any = None, shape: Any = None) -> Any:
+    """Check a coded table of oversight reports.
+
+    The arguments and the result are those of R's ``ovrchk()``: see its help
+    page; ``schema`` None is R's default, ``shape`` a dictionary of patterns
+    by column.
+
+    Examples
+    --------
+    >>> r = ovrchk(data={"date_of_incident_iso": ["2023-02-30"]})
+    >>> r["issues"]
+    [1.0]
+    """
+    return jcall("ovrchk", data=data, schema=schema, shape=shape)

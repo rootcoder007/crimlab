@@ -1049,3 +1049,52 @@ extern "C" int clab_ovrkwd(const char *t, int64_t n, const char *term, int64_t *
   *count = hits(string(t, static_cast<size_t>(n)), term);
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
+
+namespace {
+
+// s matches the shape p: '9' a digit, 'A' a capital, 'a' a small letter
+// (ASCII), any other character itself.
+bool shaped(const string &s, const string &p) {
+  if (s.size() != p.size()) return false;
+  for (size_t i = 0; i < s.size(); ++i) {
+    const unsigned char c = static_cast<unsigned char>(s[i]);
+    const char q = p[i];
+    if (q == '9' ? !isdig(c) : q == 'A' ? !isup(c) : q == 'a' ? !islow(c) : s[i] != q) return false;
+  }
+  return true;
+}
+
+bool check(const string &s, int kind, const char *shape) {
+  switch (kind) {
+    case 0: {
+      if (s.size() != 10 || s[4] != '-' || s[7] != '-') return false;
+      for (size_t i : {0, 1, 2, 3, 5, 6, 8, 9}) {
+        if (!isdig(static_cast<unsigned char>(s[i]))) return false;
+      }
+      return realday(std::stoi(s.substr(0, 4)), std::stoi(s.substr(5, 2)), std::stoi(s.substr(8, 2)));
+    }
+    case 1:
+      if (s.empty()) return false;
+      for (char c : s) {
+        if (!isdig(static_cast<unsigned char>(c))) return false;
+      }
+      return true;
+    case 2: {
+      const string l = lower(s);
+      return l == "true" || l == "false" || l == "yes" || l == "no" || l == "y" || l == "n";
+    }
+    default:
+      for (const string &p : alts(shape)) {
+        if (shaped(s, p)) return true;
+      }
+      return false;
+  }
+}
+
+}  // namespace
+
+extern "C" int clab_ovrchk(const char *s, int64_t n, int kind, const char *shape, int *ok) CLAB_TRY {
+  if (n < 0 || kind < 0 || kind > 3) return CLAB_EARG;
+  *ok = check(string(s, static_cast<size_t>(n)), kind, shape) ? 1 : 0;
+  return CLAB_OK;
+} CLAB_CATCH(CLAB_ENOMEM)

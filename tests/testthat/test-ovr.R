@@ -265,3 +265,40 @@ test_that("ovrkwd() refuses keyword groups it cannot read", {
   expect_error(ovrkwd("a", list(a = NA_character_)), m, fixed = TRUE)
   expect_error(ovrkwd("a", ""), m, fixed = TRUE)
 })
+
+test_that("ovrchk() flags cells not of the form of their field", {
+  d <- data.frame(
+    case_number = c("23-OFD-001", "23-OFD-1", NA, "24-TCI-140"),
+    date_of_incident_iso = c("2023-01-05", "2023-02-30", "", "5 Jan 2023"),
+    number_of_subject_officials = c(1, 2.5, NA, 100000),
+    charges_recommended = c("FALSE", "maybe", "yes", NA),
+    other = c("x", "y", "z", "w")
+  )
+  r <- ovrchk(d, shape = c(case_number = "99-AAA-999|99-AA-999"))
+  expect_identical(names(r), c("row", "issues", "what"))
+  # written out: row 2 fails the shape, the date (February 30), the count
+  # (2.5) and the flag; row 4 the date only; the missing cells pass
+  expect_identical(r$issues, c(0L, 4L, 0L, 1L))
+  expect_identical(r$what[2], paste(
+    "date_of_incident_iso: date; number_of_subject_officials: count;",
+    "charges_recommended: flag; case_number: shape"
+  ))
+  expect_identical(r$what[c(1, 4)], c("", "date_of_incident_iso: date"))
+  # a table coded by ovrpar() passes its own check
+  p <- ovrpar(c("<p>Date: May 5, 2023</p><p>WO #2</p>", "<p>none</p>"))
+  expect_identical(ovrchk(p)$issues, c(0L, 0L))
+})
+
+test_that("ovrchk() refuses what it cannot check", {
+  expect_error(ovrchk(list(a = 1)),
+               "ovrchk: `data` must be a data frame, not list.", fixed = TRUE)
+  expect_error(ovrchk(data.frame(a = 1), data.frame(x = 1)),
+               paste("ovrchk: `schema` must be a data frame with the columns",
+                     "name and rule."), fixed = TRUE)
+  expect_error(ovrchk(data.frame(a = 1), shape = c(b = "999")),
+               "ovrchk: `shape` must be patterns named by columns of `data`.",
+               fixed = TRUE)
+  expect_error(ovrchk(data.frame(a = 1), shape = "999"),
+               "ovrchk: `shape` must be patterns named by columns of `data`.",
+               fixed = TRUE)
+})

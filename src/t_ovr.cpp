@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// Standalone tests for psc.cpp and sfx.cpp: the credit at one and at one
-// and a half days a day by hand, the sentence left; draws of synfix()
-// against R's (set.seed(1); sample.int(3, 4, TRUE); sample.int(1, 4,
-// TRUE); sample.int(7, 4, TRUE), less one: 0 2 0 1, 0 0 0 0, 1 2 2 0);
-// the presets; the text of a page; dates; the schema preset; and the failure paths. Part of the self-test (selftest.cpp).
+// Standalone tests for psc.cpp, sfx.cpp and ovr.cpp: the credit at one
+// and at one and a half days a day by hand, the sentence left; draws of
+// synfix() against R's (set.seed(1); sample.int(3, 4, TRUE);
+// sample.int(1, 4, TRUE); sample.int(7, 4, TRUE), less one: 0 2 0 1,
+// 0 0 0 0, 1 2 2 0) and the presets; the text of a page, dates, the
+// schema preset, fields, subject officials, keywords and checks of
+// oversight reports; and the failure paths. Part of the self-test
+// (selftest.cpp).
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -129,6 +132,21 @@ void kwd(tk &tt) {
   tk_ieq(tt, "ovr.kwd.none", clab_ovrvoc("x", 0, &g, &w), CLAB_EARG);
 }
 
+void chk(tk &tt) {
+  int ok = 0;
+  tk_ieq(tt, "ovr.chk.rc", clab_ovrchk("2024-02-29", 10, 0, "", &ok), CLAB_OK);
+  tk_ieq(tt, "ovr.chk.leap", ok, 1);
+  clab_ovrchk("2023-02-29", 10, 0, "", &ok);
+  tk_ieq(tt, "ovr.chk.date", ok, 0);
+  clab_ovrchk("12", 2, 1, "", &ok);
+  tk_ieq(tt, "ovr.chk.count", ok, 1);
+  clab_ovrchk("Yes", 3, 2, "", &ok);
+  tk_ieq(tt, "ovr.chk.flag", ok, 1);
+  clab_ovrchk("23-OFD-001", 10, 3, "99-AA-999|99-AAA-999", &ok);
+  tk_ieq(tt, "ovr.chk.shape", ok, 1);
+  tk_ieq(tt, "ovr.chk.kind", clab_ovrchk("x", 1, 4, "", &ok), CLAB_EARG);
+}
+
 }  // namespace
 
 void t_ovr(tk &t, int big) {
@@ -141,4 +159,5 @@ void t_ovr(tk &t, int big) {
   fld(t);
   soc(t);
   kwd(t);
+  chk(t);
 }

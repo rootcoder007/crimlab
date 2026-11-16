@@ -377,3 +377,84 @@ ovrkwd <- function(x, vocab = "mhr", html = NA) {
   }
   list(group = vocab, term = enc2utf8(vocab))
 }
+
+#' Check a coded table of oversight reports
+#'
+#' Flags the cells of a table coded from oversight reports (by
+#' [ovrpar()], by hand, or by any other means) that are not of the form
+#' their field calls for, so that a parsing slip or a typing error is
+#' found before the table is analysed. Nothing is changed.
+#'
+#' The form of a column comes from the rule of its field in `schema`:
+#' a `date` field must hold real dates as `YYYY-MM-DD`; a `num`, `tag` or
+#' `before` field whole numbers from 0; a `flag` field `TRUE`, `FALSE`,
+#' yes or no (in any case, or y and n). `shape` adds columns that must
+#' follow a pattern, such as case numbers: in a pattern `9` stands for a
+#' digit, `A` for a capital letter, `a` for a small letter and any other
+#' character for itself, with alternatives separated by `"|"`
+#' (`"99-AAA-999|99-AA-999"`). Columns of `schema` that the table lacks
+#' are passed over. A missing value (`NA` or `""`) is not an error.
+#'
+#' @param data The coded table: a data frame, one row per report.
+#' @param schema The fields, as [ovrsch()] gives them; only `name` and
+#'   `rule` are read.
+#' @param shape `NULL`, or patterns named by column: a named character
+#'   vector.
+#' @return A data frame with one row per row of `data`: `row`, `issues`
+#'   (how many cells are flagged) and `what` (each flagged column with its
+#'   form, `"date_of_incident_iso: date"`, separated by `"; "`).
+#' @examples
+#' d <- data.frame(case_number = c("23-OFD-001", "23-OFD-1", NA),
+#'                 date_of_incident_iso = c("2023-01-05", "2023-02-30", ""),
+#'                 number_of_subject_officials = c(1, 2.5, NA),
+#'                 charges_recommended = c(FALSE, NA, TRUE))
+#' ovrchk(d, shape = c(case_number = "99-AAA-999|99-AA-999"))
+#' @export
+ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
+  f <- "ovrchk"
+  if (!is.data.frame(data)) {
+    .ckstop(f, "`data` must be a data frame, not %s", class(data)[1L])
+  }
+  if (!is.data.frame(schema) || !all(c("name", "rule") %in% names(schema))) {
+    .ckstop(f, "`schema` must be a data frame with the columns name and rule")
+  }
+  form <- c(date = 0L, num = 1L, tag = 1L, before = 1L, flag = 2L)
+  nm <- as.character(schema$name)
+  k <- form[as.character(schema$rule)]
+  use <- !is.na(k) & nm %in% names(data)
+  cols <- nm[use]
+  kind <- unname(k[use])
+  pat <- rep("", length(cols))
+  if (!is.null(shape)) {
+    if (!is.character(shape) || is.null(names(shape)) || anyNA(shape) ||
+          !all(nzchar(shape)) || !all(names(shape) %in% names(data))) {
+      .ckstop(f, "`shape` must be patterns named by columns of `data`")
+    }
+    cols <- c(cols, names(shape))
+    kind <- c(kind, rep(3L, length(shape)))
+    pat <- c(pat, enc2utf8(unname(shape)))
+  }
+  what <- c("date", "count", "flag", "shape")
+  bad <- vapply(seq_along(cols), function(j) {
+    v <- data[[cols[j]]]
+    if (is.numeric(v)) {
+      # whole numbers in full (as.character() writes 1e+05)
+      v <- ifelse(is.na(v), NA_character_,
+                  ifelse(v == round(v), sprintf("%.0f", v), as.character(v)))
+    }
+    v <- enc2utf8(trimws(as.character(v)))
+    v[!is.na(v) & !nzchar(v)] <- NA_character_
+    ok <- .Call(C_clab_r_ovrchk, v, kind[j], pat[j])
+    !is.na(ok) & !ok
+  }, logical(nrow(data)))
+  bad <- matrix(bad, nrow(data))
+  lab <- paste0(cols, ": ", what[kind + 1L])
+  data.frame(
+    row = seq_len(nrow(data)),
+    issues = as.integer(rowSums(bad)),
+    what = vapply(seq_len(nrow(data)), function(i) {
+      paste(lab[bad[i, ]], collapse = "; ")
+    }, ""),
+    stringsAsFactors = FALSE
+  )
+}
