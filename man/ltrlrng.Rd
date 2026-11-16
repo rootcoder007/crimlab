@@ -77,7 +77,9 @@ sign. For \code{swpwdth()}, strictly increasing abscissae, or an
 \item{W}{Positive number: the sweep width, in the distance unit of the
 grid and the effort (nautical miles, kilometres: one unit throughout).
 For \code{srchpod()}, give it with \code{effort} and \code{area} in
-place of \code{coverage}; default \code{NULL}.}
+place of \code{coverage}; default \code{NULL}. For \code{opteffort()},
+\code{poc * W / area} and \code{area / W} must be finite, and positive
+where \code{poc} is (a width of 5e-324 makes every density 0).}
 
 \item{model}{For \code{ltrlrng()} and \code{pswppod()}: \code{"invcube"}
 (the default), \code{"definite"} or \code{"mbeta"}. For

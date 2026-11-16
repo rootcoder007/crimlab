@@ -15,7 +15,8 @@ hwpwr(
 )
 }
 \arguments{
-\item{dt}{Seconds to measure over: one number from 0. With 0, one reading
+\item{dt}{Seconds to measure over: one number from 0 to 604800 (a
+week). With 0, one reading
 (power where a device gives it, for a later \code{since}). Not used with
 \code{since}.}
 
@@ -27,7 +28,8 @@ the interval runs from that reading to now.}
 \item{rated}{\code{NULL}, or rated powers in watts by kind, \code{c(cpu = , gpu = )}: each CPU package's and each GPU's, used for an estimate where a
 device gives a utilisation but no power.}
 
-\item{pid}{The process whose share is reported: a process id.}
+\item{pid}{The process whose share is reported: a process id, a whole
+number from 0 to 2147483647.}
 
 \item{skip}{Sources not to use: any of \code{"rapl"}, \code{"gpu"}, \code{"battery"},
 \code{"proc"}, \code{"nvml"}, \code{"smi"}, \code{"ioreport"}, \code{"ioreg"}, \code{"emi"}. \code{"gpu"}
@@ -79,7 +81,13 @@ The sources, by system:
 \code{package} domains are counted for the CPU and the \code{dram} domain for
 memory; \code{core}, \code{uncore} and \code{psys} are never added (they are parts of
 a package or more than the CPU). A counter that passes its range
-(\code{max_energy_range_uj}) is unwrapped, a package seen through both the
+(\code{max_energy_range_uj}) is unwrapped; a fall that would mean more
+than half the range, and more than 1 kW could use over the interval,
+is a reset, and a reading above the
+range is not a measurement (the row says why). A counter file must be
+a regular file holding a whole decimal number; anything else is
+"malformed" or "not a regular file", and is not waited on. A package
+seen through both the
 MSR and the MMIO interface is counted once, and per-die copies of one
 counter (multi-die AMD parts) are counted once. Most distributions let
 only the administrator read \code{energy_uj}; the row then says "not
@@ -95,7 +103,9 @@ figure and are not added again.
 (\code{libnvidia-ml.so.1}, \code{nvml.dll}), loaded at run time: the total energy
 counter (millijoules), else the power (milliwatts) integrated; the GPU's
 utilisation and the process's share of its compute samples. Without the
-library, on Linux, \code{nvidia-smi} (power, utilisation, name).
+library, on Linux, \code{nvidia-smi} (power, utilisation, name). A library
+that is not NVML or does not start, and an \code{nvidia-smi} that fails,
+add no GPU row.
 \item macOS on Apple silicon: the energy counters of the IOReport "Energy
 Model" group (CPU, GPU, neural engine and DRAM), read without
 administrator rights. IOReport is not a documented public interface of

@@ -4,7 +4,7 @@
 \alias{hsacc}
 \title{Accuracy of a hot-spot map}
 \usage{
-hsacc(pred, obs, area = NULL, top = 0.1, prev = NULL)
+hsacc(pred, obs, area = NULL, top = 0.1, prev = NULL, ties = "in")
 }
 \arguments{
 \item{pred}{The predicted score of each cell (higher is hotter), or
@@ -21,6 +21,18 @@ most 1, one row of the result each (not read when \code{pred} is logical).}
 
 \item{prev}{\code{NULL} or the crimes of each cell in the period the map was
 made from: numbers from 0.}
+
+\item{ties}{Which of the cells whose score ties across the cut-off of
+\code{top} are hot: \code{"in"} (the default) all of them, so that the hot area
+may pass \code{top}; \code{"out"} none of them, so that it may fall short; or
+\code{"frac"} each by the share of their area that the cut-off still needs,
+so that the hot area is \code{top} and \code{cells}, \code{area}, \code{n} and \code{nmax} may
+be fractional. The sources cited do not say how ties are broken. With
+any of the three the result does not depend on the order of the
+cells; with no tie across the cut-off all three give the first cells
+by score whose areas reach \code{top}, as before \code{ties} was added (when ties
+were broken by position, so that reordering the cells could change
+the result).}
 }
 \value{
 A data frame with one row per \code{top}: \code{top}, \code{cells}, \code{area}
@@ -41,8 +53,8 @@ period (\code{obs}) in hot cells, and the predictive accuracy index \code{PAI = 
 (Chainey, Tompson and Uhlig 2008);
 \item the predictive efficiency index \code{PEI = n / nmax}, the crimes caught
 over the most an area of the same size could have caught, its cells
-taken by observed crimes per unit area (Drawve 2016): 1 for a perfect
-map of that size;
+taken by observed crimes per unit area, of equal density the larger
+first (Drawve 2016): 1 for a perfect map of that size;
 \item with \code{prev}, the counts of the period the map was made from, the
 recapture rate index of Levine (2008), \code{(n / n_prev) / (N / N_prev)}:
 whether the hot cells kept their crimes better than the whole area.

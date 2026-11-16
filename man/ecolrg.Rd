@@ -12,7 +12,8 @@ ecolrg(y, e, x = NULL, family = "poisson", z = NULL, tol = 1e-12, maxit = 500)
 \item{e}{The expected counts: positive numbers, one per count.}
 
 \item{x}{\code{NULL}, or the covariates: a numeric matrix (or vector) with one
-row per count. An intercept is added.}
+row per count. An intercept is added, so a column that does not vary
+is refused.}
 
 \item{family}{\code{"poisson"}, \code{"negbin"} or \code{"zip"}.}
 

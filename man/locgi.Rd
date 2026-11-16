@@ -16,7 +16,9 @@ many units as \code{x}.}
 }
 \value{
 A numeric vector of z values, one per unit; \code{NaN} for a unit
-without neighbours.
+without neighbours and, for G, for a unit whose value is the only one
+unlike the rest (the others, its reference, then do not vary). A
+constant \code{x} is refused: no z is defined.
 }
 \description{
 The local statistics of Getis and Ord (1992) as z values (Ord and Getis

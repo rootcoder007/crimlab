@@ -15,12 +15,13 @@ evfilt(
 )
 }
 \arguments{
-\item{v}{The outcome: finite numbers, one per area.}
+\item{v}{The outcome: finite numbers, one per area, not all the same.}
 
 \item{w}{The neighbours, as in \code{\link[=lerprc]{lerprc()}}, for as many areas as \code{v}.}
 
 \item{x}{\code{NULL}, or covariates: a numeric matrix (or vector) with one
-row per area. An intercept is added.}
+row per area. An intercept is added, so a column that does not vary
+is refused.}
 
 \item{method}{\code{"moran"}, \code{"aic"}, \code{"press"} or \code{"r2"}.}
 
