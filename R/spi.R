@@ -66,6 +66,22 @@
 idwint <- function(mx, my, mv, tx, ty, p = 2, k = 0, rad = Inf,
                    lonlat = FALSE, zone = NULL) {
   f <- "idwint"
+  a <- .idwchk(mx, my, mv, tx, ty, p, k, rad, lonlat, f)
+  p <- a$p
+  k <- a$k
+  lonlat <- a$lonlat
+  g <- .idwzn(zone, tx, f)
+  r <- .Call(C_clab_r_idwint, as.numeric(mx), as.numeric(my), as.numeric(mv),
+             as.numeric(tx), as.numeric(ty), p, as.integer(k), as.numeric(rad),
+             lonlat, if (is.null(g)) NULL else match(zone, g) - 1L, length(g))
+  for (j in seq_along(r)) r[[j]][is.na(r[[j]])] <- NA_real_
+  if (is.null(g)) return(data.frame(val = r[[1L]], used = r[[2L]]))
+  data.frame(zone = g, val = r[[3L]], n = r[[4L]])
+}
+
+# The checks of idwint() in its order: the monitors, the targets, p, k,
+# rad and lonlat; list(p, k, lonlat) as checked.
+.idwchk <- function(mx, my, mv, tx, ty, p, k, rad, lonlat, f) {
   .cknum(mx, "mx", f, scalar = FALSE)
   .cknum(my, "my", f, scalar = FALSE)
   if (!is.numeric(mv) || length(my) != length(mx) ||
@@ -80,20 +96,16 @@ idwint <- function(mx, my, mv, tx, ty, p = 2, k = 0, rad = Inf,
   if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || !(rad > 0)) {
     .ckstop(f, "`rad` must be a positive number or Inf")
   }
-  lonlat <- .ckflag(lonlat, "lonlat", f)
-  g <- NULL
-  if (!is.null(zone)) {
-    if (length(zone) != length(tx) || anyNA(zone)) {
-      .ckstop(f, "`zone` must give the zone of each target, with no NA")
-    }
-    g <- sort(unique(zone))
+  list(p = p, k = k, lonlat = .ckflag(lonlat, "lonlat", f))
+}
+
+# The zones of idwint()'s targets, sorted (NULL without zone).
+.idwzn <- function(zone, tx, f) {
+  if (is.null(zone)) return(NULL)
+  if (length(zone) != length(tx) || anyNA(zone)) {
+    .ckstop(f, "`zone` must give the zone of each target, with no NA")
   }
-  r <- .Call(C_clab_r_idwint, as.numeric(mx), as.numeric(my), as.numeric(mv),
-             as.numeric(tx), as.numeric(ty), p, as.integer(k), as.numeric(rad),
-             lonlat, if (is.null(g)) NULL else match(zone, g) - 1L, length(g))
-  for (j in seq_along(r)) r[[j]][is.na(r[[j]])] <- NA_real_
-  if (is.null(g)) return(data.frame(val = r[[1L]], used = r[[2L]]))
-  data.frame(zone = g, val = r[[3L]], n = r[[4L]])
+  sort(unique(zone))
 }
 
 #' Geographically and temporally weighted regression
@@ -244,6 +256,23 @@ print.gtwreg <- function(x, ...) {
 asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
                    nm = c("x", "y")) {
   f <- "asrule"
+  a <- .archk(x, y, minsup, minconf, empty, nm, f)
+  lx <- .arlev(x)
+  ly <- .arlev(y)
+  r <- .Call(C_clab_r_asrule, match(as.character(x), as.character(lx)) - 1L,
+             length(lx), match(as.character(y), as.character(ly)) - 1L,
+             length(ly), a$minsup, a$minconf, a$empty)
+  it <- c(paste0(nm[1L], "=", lx), paste0(nm[2L], "=", ly))
+  # the empty left-hand side is -1: index 0 would drop out of the labels
+  lh <- it[pmax(r$lhs, 0L) + 1L]
+  lh[r$lhs < 0L] <- ""
+  data.frame(lhs = lh, rhs = it[r$rhs + 1L], support = r$out[, 1L],
+             confidence = r$out[, 2L], coverage = r$out[, 3L],
+             lift = r$out[, 4L], count = r$out[, 5L])
+}
+
+# The checks of asrule() in its order; list(minsup, minconf, empty).
+.archk <- function(x, y, minsup, minconf, empty, nm, f) {
   if (length(x) != length(y) || !length(x) || anyNA(x) || anyNA(y)) {
     .ckstop(f, "`x` and `y` must have one length and no NA")
   }
@@ -253,19 +282,12 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
   if (!is.character(nm) || length(nm) != 2L || anyNA(nm)) {
     .ckstop(f, "`nm` must be two names")
   }
-  lx <- if (is.factor(x)) levels(x) else sort(unique(x))
-  ly <- if (is.factor(y)) levels(y) else sort(unique(y))
-  r <- .Call(C_clab_r_asrule, match(as.character(x), as.character(lx)) - 1L,
-             length(lx), match(as.character(y), as.character(ly)) - 1L,
-             length(ly), minsup, minconf, empty)
-  it <- c(paste0(nm[1L], "=", lx), paste0(nm[2L], "=", ly))
-  # the empty left-hand side is -1: index 0 would drop out of the labels
-  lh <- it[pmax(r$lhs, 0L) + 1L]
-  lh[r$lhs < 0L] <- ""
-  data.frame(lhs = lh, rhs = it[r$rhs + 1L], support = r$out[, 1L],
-             confidence = r$out[, 2L], coverage = r$out[, 3L],
-             lift = r$out[, 4L], count = r$out[, 5L])
+  list(minsup = minsup, minconf = minconf, empty = empty)
 }
+
+# The items of one column of asrule(): a factor's levels, else the sorted
+# values.
+.arlev <- function(x) if (is.factor(x)) levels(x) else sort(unique(x))
 
 # The checks of gtwreg() in its order: the outcome, the regressors (with
 # the constant first), the coordinates and the times, as doubles.

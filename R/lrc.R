@@ -81,15 +81,9 @@
 lrcce <- function(object, x, ylag = NULL, level = 0.95) {
   f <- "lrcce"
   b <- .lrcb(object, f)
-  if (!is.list(x)) x <- list(x)
-  if (is.null(names(x))) names(x) <- vapply(x, `[`, "", 1L)
-  if (is.null(ylag)) ylag <- grep("^L[0-9]+\\.y$", colnames(b), value = TRUE)
-  for (s in c(x, list(ylag))) {
-    if (!is.character(s) || anyNA(s) || !all(s %in% colnames(b))) {
-      .ckstop(f, "`x` and `ylag` must name columns of the unit estimates")
-    }
-  }
-  if (!length(ylag)) .ckstop(f, "the fit has no lags of `y`")
+  a <- .lrcx(b, x, ylag, f)
+  x <- a$x
+  ylag <- a$ylag
   level <- .axlevel(level, f)
   phi <- 1 - rowSums(b[, ylag, drop = FALSE])
   u <- cbind(vapply(x, function(s) rowSums(b[, s, drop = FALSE]) / phi,
@@ -113,4 +107,20 @@ lrcce <- function(object, x, ylag = NULL, level = 0.95) {
   }
   if (nrow(b) < 2L) .ckstop(f, "`object` needs two or more units")
   b
+}
+
+# The terms x (a list, named by their first columns when unnamed) and
+# the lags of y (by default the columns L<k>.y) of lrcce(), checked
+# against the unit estimates b: list(x, ylag).
+.lrcx <- function(b, x, ylag, f) {
+  if (!is.list(x)) x <- list(x)
+  if (is.null(names(x))) names(x) <- vapply(x, `[`, "", 1L)
+  if (is.null(ylag)) ylag <- grep("^L[0-9]+\\.y$", colnames(b), value = TRUE)
+  for (s in c(x, list(ylag))) {
+    if (!is.character(s) || anyNA(s) || !all(s %in% colnames(b))) {
+      .ckstop(f, "`x` and `ylag` must name columns of the unit estimates")
+    }
+  }
+  if (!length(ylag)) .ckstop(f, "the fit has no lags of `y`")
+  list(x = x, ylag = ylag)
 }
