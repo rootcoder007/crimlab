@@ -739,7 +739,9 @@ summary.ivfe <- function(object, ...) object[["coef"]]
 #' bring the incidental-parameter bias of a nonlinear model); `se = "boot"`
 #' refits both stages on each draw of the clusters (rows of a cluster
 #' drawn twice enter twice), `"naive"` takes the clustered sandwich of the
-#' second stage alone. Separation is checked as for the Poisson fit.
+#' second stage alone. Separation is checked as for the Poisson fit. A
+#' systematic review of individual-level studies of lead and crime is
+#' Talayero et al. (2023); see [cemtch()].
 #'
 #' Karamik and von Graevenitz (2022, eqs 2-3) use the control function
 #' with the wind sectors of [windiv()] as instruments (one set per region),

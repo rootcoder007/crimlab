@@ -36,6 +36,11 @@
 #' they assess mediators (impulsivity, anxiety) by adding them to that
 #' regression (p. 289).
 #'
+#' Talayero et al. (2023) review seventeen studies of measured lead (blood,
+#' bone or dentine) and later delinquent or criminal behaviour, rating
+#' each for confounding, and find "limited data at the individual level"
+#' (abstract).
+#'
 #' @param data A data frame.
 #' @param d The name of the treatment column: 0 or 1 (or `FALSE`, `TRUE`).
 #' @param x The names of the covariate columns to match on.
@@ -65,6 +70,11 @@
 #'   assessing childhood lead exposure as a cause of crime in a birth
 #'   cohort followed through adolescence. *Criminology*, 56(2), 269-301.
 #'   \doi{10.1111/1745-9125.12171}
+#'
+#'   Talayero, M. J., Robbins, C. R., Smith, E. R. and Santos-Burgoa, C.
+#'   (2023). The association between lead exposure and crime: a systematic
+#'   review. *PLOS Global Public Health*, 3(8), e0002177.
+#'   \doi{10.1371/journal.pgph.0002177}
 #' @examples
 #' set.seed(2)
 #' n <- 300
