@@ -36,3 +36,7 @@ ppmlfe	1e-8	0	the fit iterates until the relative change of the deviance is belo
 ivfe	1e-10	0	the fixed effects are taken out by alternating projections to 1e-12 of each column, and p is a tail probability of the statistic: an error of 1e-14 in it gives 1e-12 in a small p
 ppmlcf	1e-8	0	the Poisson fits iterate as in ppmlfe, on the full sample and on each bootstrap draw
 updwn	1e-8	0	its fit is ivfe() or, for norm = "pois", ppmlfe()
+fepnl	1e-9	1e-13	p is a tail probability of the statistic and the case's design has variance inflation factors above 30: on arm64 a p of 4.8e-21 differs by 4e-12 relative, the estimates by 1e-15
+gmmpnl	1e-10	1e-12	coefficients of time dummies that are small differences of cross-products: on arm64 an estimate of 0.004 differs by 6e-15 absolute, 1.4e-12 relative; the tests are tail probabilities of statistics built from them
+ccepnl	1e-10	1e-12	the regressors are projected off the cross-section averages unit by unit, and what is left cancels to rounding where a regressor follows the averages closely
+wsctst	1e-10	1e-13	p is a tail probability of the F statistic: an error of 1e-14 in it gives 1e-12 in a small p
