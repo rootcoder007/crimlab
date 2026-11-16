@@ -470,6 +470,12 @@ reference:
       - jntx
       - dosebin
       - typefx
+      - idwint
+      - gtwreg
+      - asrule
+      - ifesc
+      - lrcce
+      - cemtch
   - title: Regression discontinuity
     desc: >
       Local polynomial fits at a cutoff with the bandwidth of Imbens and
