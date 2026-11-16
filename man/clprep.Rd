@@ -28,7 +28,10 @@ segregation table, the Special Investigations Unit's cases, a use-of-force
 file) feed the arguments of one of crimlab's generic functions, so that
 \code{generic(clprep(data, preset))} gives the published analysis while the
 same generic runs on anyone's data given as plain vectors. A preset
-describes a layout and ships no data: the user supplies the table.
+describes a layout and ships no data: the user supplies the table. The
+columns a preset reads, as \code{clprep()} lists them, are the layout a table
+needs (what a zero-row template would hold); \code{\link[=prechk]{prechk()}} checks a table
+against them.
 }
 \details{
 The presets are rows of \code{presets.tsv} (in the installed package's \code{presets}
