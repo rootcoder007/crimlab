@@ -27,9 +27,9 @@ test_that("xpale() accumulates the local effects as ALEPlot does", {
     w <- aleref(f, x, 1, K)
     expect_equal(r$ale$z, w$z, tolerance = 1e-15)
     expect_equal(r$ale$ale, w$ale, tolerance = 1e-12)
-    expect_equal(r$bins$n, w$n)
+    expect_identical(r$bins$n, w$n)
     expect_equal(r$bins$eff, w$eff, tolerance = 1e-12)
-    expect_equal(r$bins$lo, w$z[-length(w$z)])
+    expect_identical(r$bins$lo, w$z[-length(w$z)])
   }
   # a linear term: the effect is the slope times the centred edges
   g <- function(m) 3 * m[, "a"] + sin(m[, "b"])
@@ -43,7 +43,7 @@ test_that("xpale() accumulates the local effects as ALEPlot does", {
   t <- cbind(a = rep(1:4, c(10, 1, 1, 8)), b = 1:20)
   w <- aleref(f, t, 1, 10)
   r <- xpale(t, f, 1, nbin = 10)
-  expect_equal(r$ale$z, w$z)
+  expect_identical(r$ale$z, w$z)
   expect_equal(r$ale$ale, w$ale, tolerance = 1e-12)
 })
 

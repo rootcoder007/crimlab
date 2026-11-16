@@ -54,7 +54,7 @@ test_that("rscchi() agrees with svychisq() with weights alone", {
   rs_check(r, 2.1123358348968111, 0.71510642495067211, 0.78528903370924796,
            0.43246171404254102, 3.9721902857918954, 234.35922686172182,
            0.78380486574471098, 4)
-  expect_identical(length(r$deff), 4L)
+  expect_length(r$deff, 4L)
   expect_identical(r$des[["df"]], 59)
 })
 

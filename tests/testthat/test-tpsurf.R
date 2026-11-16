@@ -13,7 +13,7 @@ test_that("tpsurf() solves the thin-plate system", {
   expect_s3_class(t1, "tpsurf")
   expect_equal(t1$a, unname(s[1:15]), tolerance = 1e-8)
   expect_equal(unname(t1$beta), unname(s[16:18]), tolerance = 1e-8)
-  expect_identical(names(t1$beta), c("const", "x", "y"))
+  expect_named(t1$beta, c("const", "x", "y"))
   fit <- as.vector(k %*% s[1:15] + tm %*% s[16:18])
   expect_equal(t1$fitted, fit, tolerance = 1e-8)
   expect_equal(t1$resid, z - t1$fitted, tolerance = 1e-15)

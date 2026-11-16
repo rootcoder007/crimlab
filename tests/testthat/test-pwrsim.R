@@ -1,8 +1,8 @@
 test_that("pwrsim() with no effect rejects at about the level", {
   r <- pwrsim(20, eff = 0, nsim = 4000, seed = 3)
   t <- r$tab
-  expect_identical(names(t), c("n", "n1", "eff", "power", "se", "lo", "hi",
-                               "rej"))
+  expect_named(t, c("n", "n1", "eff", "power", "se", "lo", "hi",
+                    "rej"))
   expect_identical(t$power, t$rej / 4000)
   expect_lt(abs(t$power - 0.05), 4 * sqrt(0.05 * 0.95 / 4000))
   # the Monte Carlo standard error and Wilson's interval, by hand

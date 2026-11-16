@@ -10,14 +10,15 @@ test_that("ulcate() from given nuisances is least squares on the clipped U", {
   r <- ulcate(y, d, x, fold = rep(1:2, length.out = n), lrnt = "glm",
               pred = cbind(m, e), clip = 0.01)
   den <- d - e
-  den <- ifelse(abs(den) < 0.01, ifelse(den >= 0, 0.01, -0.01), den)
+  lo <- abs(den) < 0.01
+  den[lo] <- ifelse(den[lo] >= 0, 0.01, -0.01)
   u <- (y - m) / den
   expect_equal(r$u, u, tolerance = 1e-14)
   expect_equal(den[1:2], c(0.01, -0.01))
   tau <- drop(cbind(1, x) %*% stats::lm.fit(cbind(1, x), u)$coefficients)
   expect_equal(r$tau, tau, tolerance = 1e-10)
   expect_equal(r$ate, mean(tau), tolerance = 1e-12)
-  expect_equal(unname(r$pred), unname(cbind(m, e)))
+  expect_identical(unname(r$pred), unname(cbind(m, e)))
   expect_identical(colnames(r$pred), c("m", "e"))
   expect_s3_class(r, "ulcate")
 })

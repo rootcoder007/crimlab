@@ -5,7 +5,7 @@ test_that("tabrpt() gives the check, change, rates and trend of a table", {
                   pop = rep(c(50000, 12000), each = 5))
   r <- tabrpt(d, "n", "year", by = "svc", pop = "pop", rnd = 5)
   expect_s3_class(r, "tabrpt")
-  expect_identical(names(r), c("check", "change", "rates", "trend"))
+  expect_named(r, c("check", "change", "rates", "trend"))
   # each step is the function it calls, on the columns written out
   expect_identical(r$check, catchk(d["svc"]))
   expect_identical(r$change, yoypx(d$n, d$year, by = d$svc, rnd = 5))
@@ -22,14 +22,14 @@ test_that("tabrpt() sums a period's rows and passes over short groups", {
                   g1 = c("a", "a", "a", "a", "a", "b", "b"),
                   g2 = "x", n = c(3, 4, 6, 9, 12, 5, 6))
   r <- tabrpt(d, "n", "t", by = c("g1", "g2"))
-  expect_identical(names(r$trend), c("a / x", "b / x"))
+  expect_named(r$trend, c("a / x", "b / x"))
   # written out: the two rows of period 1 of group a summed, 3 + 4 = 7
   expect_identical(r$trend[["a / x"]], trndrr(c(7, 6, 9, 12), c(1, 2, 3, 4)))
   expect_null(r$trend[["b / x"]])
   expect_null(r$rates)
   one <- tabrpt(d[1:5, ], "n", "t")
   expect_null(one$check)
-  expect_identical(names(one$trend), "all")
+  expect_named(one$trend, "all")
 })
 
 test_that("tabrpt() refuses what it cannot read, and says so as itself", {

@@ -42,7 +42,7 @@ test_that("gologt() maximises the likelihood written out", {
     expect_equal(r$coef$est, w$est, tolerance = 1e-5)
     expect_equal(r$fit[["loglik"]], w$ll, tolerance = 1e-9)
     expect_equal(r$coef$se, w$se, tolerance = 1e-3)
-    expect_equal(r$fit[["conv"]], 1)
+    expect_identical(r$fit[["conv"]], 1)
   }
   r <- gologt(d, "y", c("race", "age"), par = "age")
   expect_identical(r$coef$term,
@@ -67,7 +67,7 @@ test_that("gologt() maximises the likelihood written out", {
   wd <- (b[1] - b[2])^2 / (v[1, 1] + v[2, 2] - 2 * v[1, 2])
   expect_equal(r$wald$stat[1L], wd, tolerance = 1e-10)
   expect_true(is.na(r$wald$stat[2L]))
-  expect_equal(r$fit[["aic"]], -2 * r$fit[["loglik"]] + 10)
+  expect_identical(r$fit[["aic"]], -2 * r$fit[["loglik"]] + 10)
 })
 
 test_that("gologt() reads the order of the levels", {
@@ -75,11 +75,12 @@ test_that("gologt() reads the order of the levels", {
   a <- gologt(d, "y", "race")
   d$f <- factor(c("lo", "mid", "hi")[d$y], c("lo", "mid", "hi"))
   b <- gologt(d, "f", "race")
-  expect_equal(b$coef$est, a$coef$est)
+  expect_identical(b$coef$est, a$coef$est)
   expect_identical(b$coef$thr[1:2], c("lo|mid", "mid|hi"))
   d$s <- as.character(d$f)
-  expect_equal(gologt(d, "s", "race", lev = c("lo", "mid", "hi"))$coef$est,
-               a$coef$est)
+  expect_identical(
+    gologt(d, "s", "race", lev = c("lo", "mid", "hi"))$coef$est, a$coef$est
+  )
 })
 
 test_that("gologt() refuses bad input in words", {

@@ -76,8 +76,8 @@ test_that("olsdx() predicts the mean and a new row as predict() does", {
   # one point as a vector, named or not, and a matrix
   v <- olsdx(y, w, at = c(temp = 35, hum = 74, haze = 25))$pred
   expect_equal(v, m[1, ], ignore_attr = TRUE)
-  expect_equal(olsdx(y, w, at = c(35, 74, 25))$pred, v)
-  expect_equal(olsdx(y, as.matrix(w), at = as.matrix(nd))$pred, m)
+  expect_identical(olsdx(y, w, at = c(35, 74, 25))$pred, v)
+  expect_identical(olsdx(y, as.matrix(w), at = as.matrix(nd))$pred, m)
 })
 
 test_that("olsdx() by hand, and without the constant", {

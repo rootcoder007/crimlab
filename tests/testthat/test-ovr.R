@@ -67,7 +67,7 @@ test_that("ovrdte() refuses what is not text", {
 
 test_that("ovrsch() gives the fields of the preset and their rules", {
   s <- ovrsch()
-  expect_identical(names(s), c("name", "rule", "cue", "alt", "sect", "desc"))
+  expect_named(s, c("name", "rule", "cue", "alt", "sect", "desc"))
   expect_identical(nrow(s), 17L)
   expect_true(all(s$rule %in% c("after", "num", "date", "tag", "sent",
                                 "prev", "lines", "name", "flag", "before",
@@ -113,7 +113,7 @@ ovr_rep <- paste0(
 
 test_that("ovrpar() reads every field of the preset from a report", {
   p <- ovrpar(ovr_rep)
-  expect_identical(names(p), ovrsch()$name)
+  expect_named(p, ovrsch()$name)
   # written out from the report above
   want <- list(
     case_number = "23-OFD-001",
@@ -200,7 +200,7 @@ test_that("ovrsoc() counts subject officials by the first rule that applies", {
          "Witness Officials\nWO #1 Interviewed\nWO #2 Interviewed",
          "No officers are named here.", NA)
   r <- ovrsoc(x)
-  expect_identical(names(r), c("count", "rule", "reason"))
+  expect_named(r, c("count", "rule", "reason"))
   # written out: the rule each text meets first, and its count
   expect_identical(r$count, c(2L, 3L, NA, 3L, 1L, 0L, 0L, NA, NA))
   expect_identical(r$rule, c(1L, 2L, 6L, 3L, 4L, 5L, 5L, 6L, NA))
@@ -241,7 +241,7 @@ test_that("ovrkwd() marks the groups whose words a report holds", {
          "Blackburn Road; the EDPs unit; nothing of either kind.",
          NA)
   k <- ovrkwd(x)
-  expect_identical(names(k), c("mental_health", "race", "terms"))
+  expect_named(k, c("mental_health", "race", "terms"))
   # written out: schizophren* starts a word of the first; the second has
   # both groups; "Blackburn" and "EDPs" are not the words "Black", "EDP"
   expect_identical(k$mental_health, c(TRUE, TRUE, FALSE, NA))
@@ -254,7 +254,7 @@ test_that("ovrkwd() marks the groups whose words a report holds", {
   expect_identical(w$dog, c(FALSE, FALSE))
   expect_identical(w$terms, c("taser; baton", ""))
   v <- ovrkwd("baton", c("taser", "baton"))
-  expect_identical(names(v), c("taser", "baton", "terms"))
+  expect_named(v, c("taser", "baton", "terms"))
 })
 
 test_that("ovrkwd() refuses keyword groups it cannot read", {
@@ -275,7 +275,7 @@ test_that("ovrchk() flags cells not of the form of their field", {
     other = c("x", "y", "z", "w")
   )
   r <- ovrchk(d, shape = c(case_number = "99-AAA-999|99-AA-999"))
-  expect_identical(names(r), c("row", "issues", "what"))
+  expect_named(r, c("row", "issues", "what"))
   # written out: row 2 fails the shape, the date (February 30), the count
   # (2.5) and the flag; row 4 the date only; the missing cells pass
   expect_identical(r$issues, c(0L, 4L, 0L, 1L))

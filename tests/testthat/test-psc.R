@@ -1,7 +1,7 @@
 test_that("pscred() credits each day at the ratio and leaves the rest", {
   d <- c(10, 30, 45)
   r <- pscred(d)
-  expect_identical(names(r), c("days", "ratio", "credit"))
+  expect_named(r, c("days", "ratio", "credit"))
   expect_identical(r$credit, d * 1.5)
   s <- pscred(d, ratio = c(1, 1.5, 1.5), sentence = c(60, 40, 60))
   # written out: 10, 45, 67.5 days of credit; 60 - 10, 40 - 45 (none

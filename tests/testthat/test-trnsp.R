@@ -34,8 +34,8 @@ test_that("trnsp() weights the trial by the inverse odds of glm()'s score", {
                                         d)))
   w <- (1 - ps) / ps
   tr <- d$s == 1
-  m1 <- tr & d$t %in% 1
-  m0 <- tr & d$t %in% 0
+  m1 <- tr & d$t == 1
+  m0 <- tr & d$t == 0
   iow <- sum(w[m1] * d$y[m1]) / sum(w[m1]) - sum(w[m0] * d$y[m0]) / sum(w[m0])
   expect_equal(r$tab$est[2L], iow, tolerance = 1e-7)
   expect_equal(r$ps, ps, tolerance = 1e-7)

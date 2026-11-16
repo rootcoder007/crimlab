@@ -2,10 +2,10 @@ test_that("rndalc() fills every complete block in the ratio", {
   a <- rndalc(60, arms = c("x", "y", "z"), ratio = c(2, 1, 1),
               block = c(4, 8), seed = 5)
   d <- a$alloc
-  expect_identical(names(d), c("id", "block", "arm"))
+  expect_named(d, c("id", "block", "arm"))
   expect_identical(d$id[c(1L, 60L)], c("P01", "P60"))
   b <- split(d$arm, d$block)
-  expect_identical(names(b), as.character(seq_along(b)))
+  expect_named(b, as.character(seq_along(b)))
   # every block but the last holds 4 or 8 places, 2:1:1
   for (i in seq_len(length(b) - 1L)) {
     m <- length(b[[i]])
@@ -34,7 +34,7 @@ test_that("rndalc() runs the blocks of each stratum on their own", {
   s <- rndalc(arms = c("drug", "placebo"), ratio = c(2, 1),
               strata = c(Toronto = 30, Ottawa = 24), seed = 7)
   d <- s$alloc
-  expect_identical(names(d), c("id", "stratum", "block", "arm"))
+  expect_named(d, c("id", "stratum", "block", "arm"))
   expect_identical(d$stratum, rep(c("Toronto", "Ottawa"), c(30, 24)))
   expect_identical(as.vector(tapply(d$block, d$stratum, min)), c(1L, 1L))
   expect_identical(rownames(s$tab), c("Toronto", "Ottawa"))

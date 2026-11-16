@@ -45,8 +45,8 @@ test_that("synfix() draws a table given as lists of values", {
                      c = 1.5[sample.int(1, 10, TRUE)])
   expect_identical(x, want)
   p <- synfix()
-  expect_identical(names(p), c("kind", "column", "type", "values"))
-  expect_identical(length(unique(p$kind)), 41L)
+  expect_named(p, c("kind", "column", "type", "values"))
+  expect_length(unique(p$kind), 41L)
   expect_identical(p$values[p$kind == "otis-b02" & p$column == "Gender"],
                    "Female|Male")
 })

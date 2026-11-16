@@ -3,8 +3,8 @@ test_that("plntfx() recovers an effect exactly from a constant outcome", {
   d <- data.frame(t = rbinom(40, 1, 0.5), age = runif(40, 18, 60), y = 2)
   r <- plntfx(d, "y", "t", x = "age", eff = c(0, 1.5), nrep = 20, seed = 2)
   tab <- r$tab
-  expect_identical(names(tab), c("eff", "mean", "bias", "sd", "rmse",
-                                 "cover", "rej", "tol", "ok"))
+  expect_named(tab, c("eff", "mean", "bias", "sd", "rmse",
+                      "cover", "rej", "tol", "ok"))
   # shuffling a constant changes nothing: every estimate is eff
   expect_equal(tab$mean, c(0, 1.5), tolerance = 1e-10)
   expect_lt(max(abs(tab$bias)), 1e-10)

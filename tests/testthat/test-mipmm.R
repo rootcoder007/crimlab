@@ -38,7 +38,7 @@ test_that("mipmm() imputes observed values and pools a fit by Rubin's rules", {
   d <- mp_dat()
   r <- mipmm(d, c("priors", "days"), c("age", "male"), m = 6, fy = "days",
              fx = c("priors", "male"), seed = 3)
-  expect_identical(names(r$imp), c("priors", "days"))
+  expect_named(r$imp, c("priors", "days"))
   expect_identical(dim(r$imp$priors), c(25L, 6L))
   expect_identical(rownames(r$imp$days), as.character(which(is.na(d$days))))
   expect_true(all(r$imp$priors %in% d$priors[!is.na(d$priors)]))
@@ -49,8 +49,8 @@ test_that("mipmm() imputes observed values and pools a fit by Rubin's rules", {
     e$days[is.na(d$days)] <- r$imp$days[, j]
     stats::lm(days ~ priors + male, e)
   })
-  q <- sapply(fits, stats::coef)
-  u <- sapply(fits, function(f) diag(stats::vcov(f)))
+  q <- vapply(fits, stats::coef, numeric(3))
+  u <- vapply(fits, function(f) diag(stats::vcov(f)), numeric(3))
   w <- mp_pool(q, u, 6, nrow(d) - 3)
   p <- r$pool
   expect_identical(p$term, c("(Intercept)", "priors", "male"))
@@ -69,15 +69,15 @@ test_that("mipmm() pools the means of the imputed columns by default", {
   d <- mp_dat(seed = 102)
   r <- mipmm(d, c("priors", "days"), "age", m = 4, k = 3, maxit = 2,
              seed = 4)
-  cm <- sapply(1:4, function(j) {
+  cm <- vapply(1:4, function(j) {
     c(mean(replace(d$priors, is.na(d$priors), r$imp$priors[, j])),
       mean(replace(d$days, is.na(d$days), r$imp$days[, j])))
-  })
-  cv <- sapply(1:4, function(j) {
+  }, numeric(2))
+  cv <- vapply(1:4, function(j) {
     c(stats::var(replace(d$priors, is.na(d$priors), r$imp$priors[, j])),
       stats::var(replace(d$days, is.na(d$days), r$imp$days[, j]))) /
       nrow(d)
-  })
+  }, numeric(2))
   w <- mp_pool(cm, cv, 4, nrow(d) - 1)
   expect_identical(r$pool$term, c("priors", "days"))
   expect_equal(r$pool$est, w$est, tolerance = 1e-12)

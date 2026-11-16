@@ -1,7 +1,7 @@
 test_that("pwranv() is the noncentral F upper tail at the critical value", {
   r <- pwranv(4, n = c(10, 25), f = c(0.1, 0.3), alpha = 0.05)
-  expect_identical(names(r), c("k", "n", "f", "df1", "df2", "ncp", "fcrit",
-                               "power"))
+  expect_named(r, c("k", "n", "f", "df1", "df2", "ncp", "fcrit",
+                    "power"))
   expect_identical(r$n, c(10, 25, 10, 25))
   expect_identical(r$f, c(0.1, 0.1, 0.3, 0.3))
   d2 <- 4 * (r$n - 1)
