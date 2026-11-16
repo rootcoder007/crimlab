@@ -1,5 +1,9 @@
 # crimlab 0.0.0.9000
 
+* Fixed: `ctabx()` of a table of zeros used to print "n = NA" and give no
+  statistics; such a table has no total, and it is now refused (here and
+  on the command line).
+
 * Fixed, one function at a time: `bufas()` multiplied a factor or text
   `r` for its default `buf` before checking it (a warning or "non-numeric
   argument to binary operator"); `gtmp()` tested a function `q` for `NA`

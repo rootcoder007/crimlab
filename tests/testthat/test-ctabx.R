@@ -322,3 +322,8 @@ test_that("ctabx() reproduces the SIU tables", {
     tolerance = 0
   )
 })
+
+test_that("a table of zeros is refused: it has no total", {
+  expect_error(ctabx(matrix(0, 2, 2)),
+               "^ctabx: the table holds no counts: every cell is 0\\.$")
+})

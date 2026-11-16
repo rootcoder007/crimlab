@@ -872,6 +872,8 @@ SEXP C_clab_r_ctabx(SEXP row, SEXP col, SEXP w, SEXP agg, SEXP correct, SEXP exa
   }
   const int r2 = static_cast<int>(kr.size()), c2 = static_cast<int>(kc.size());
   const bool counts = ag == 0 || ag == 1 || ag == 5;
+  // a table of counts that are all 0 has no total and no statistic
+  if (counts && r2 == 0) fail("the table holds no counts: every cell is 0.");
   std::vector<double> u(static_cast<std::size_t>(r2) * static_cast<std::size_t>(c2)), e(u.size()),
       rs(u.size()), st(9, qnan);
   std::vector<int> dg(static_cast<std::size_t>(r2), -1);
