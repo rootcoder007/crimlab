@@ -2282,6 +2282,12 @@ bad("plothex", x = 1:3, y = "a")
 bad("plothex", x = c(1, NA, 3), y = c(NA, 2, 4))
 bad("plothex", x = 1:3, y = 1:3, bins = 1)
 bad("plothex", x = 1, y = 1)
+ok("plotevgrid", x = list(
+  Rate = evtst(dd$rate, dd$town, dd$year, dd$first, leads = 2, lags = 2),
+  Did = stgdid(dd$rate, dd$town, dd$year, dd$first, reps = 0)
+))
+bad("plotevgrid", x = list(1))
+bad("plotevgrid", x = list(a = 1))
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

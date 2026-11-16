@@ -7635,3 +7635,20 @@ def plothex(x: Any, y: Any, bins: Any = 30) -> Any:
     ([2.0, 1.0], [1.0, 1.0])
     """
     return jcall("plothex", x=x, y=y, bins=bins)
+
+
+def plotevgrid(x: Any) -> Any:
+    """The rows of R's ``plotevgrid()``, event studies in one grid.
+
+    Nothing is drawn outside R. ``x`` maps each panel's name to a result of
+    ``evtst()`` or ``stgdid()`` (its ``est`` or ``dynamic`` rows are taken,
+    as R takes them) or to those rows themselves: ``evtm``, ``est``,
+    ``lo`` and ``hi``.
+
+    Examples
+    --------
+    >>> r = plotevgrid({"a": {"evtm": [-1, 0], "est": [0, 2], "lo": [-1, 1], "hi": [1, 3]}})
+    >>> r["panel"], r["t"]
+    (['a', 'a'], [-1.0, 0.0])
+    """
+    return jcall("plotevgrid", x=x)

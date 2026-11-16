@@ -201,3 +201,49 @@ bool plothex(Ctx &c, Val &out) {
   out = f.o;
   return true;
 }
+
+// plotevgrid(): x an object of panels, each a result of evtst() or
+// stgdid() (its `est` or `dynamic` rows taken, as R takes them) or those
+// rows themselves; the points by panel, in the order given.
+bool plotevgrid(Ctx &c, Val &out) {
+  const Val &x = c["x"];
+  bool ok = x.t == Val::OBJ && !x.a.empty();
+  std::vector<const Val *> fr;
+  for (std::size_t i = 0; ok && i < x.a.size(); ++i) {
+    const Val &p = x.a[i];
+    const Val *d = p.t == Val::OBJ ? ax::fc(p, "dynamic") : nullptr;
+    if (d == nullptr || d->t != Val::OBJ) d = p.t == Val::OBJ ? ax::fc(p, "est") : nullptr;
+    if (d == nullptr || d->t != Val::OBJ) d = &p;
+    for (const char *k : {"evtm", "est", "lo", "hi"}) {
+      const Val *cl = d->t == Val::OBJ ? ax::fc(*d, k) : nullptr;
+      ok = ok && cl != nullptr && ax::numv(*cl);
+    }
+    ok = ok && !x.k[i].empty();
+    fr.push_back(d);
+  }
+  if (!ok) return c.fail("`x` must be a named list of evtst or stgdid results.");
+  ax::Cols pn;
+  std::vector<double> t, e, lo, hi;
+  for (std::size_t i = 0; i < fr.size(); ++i) {
+    const std::vector<double> a = ax::colv(*ax::fc(*fr[i], "evtm")), b = ax::colv(*ax::fc(*fr[i], "est")),
+                              l = ax::colv(*ax::fc(*fr[i], "lo")), h = ax::colv(*ax::fc(*fr[i], "hi"));
+    if (b.size() != a.size() || l.size() != a.size() || h.size() != a.size()) {
+      return c.fail("`x` must be a named list of evtst or stgdid results.");
+    }
+    for (std::size_t j = 0; j < a.size(); ++j) {
+      pn.push_back(x.k[i]);
+      t.push_back(a[j]);
+      e.push_back(b[j]);
+      lo.push_back(l[j]);
+      hi.push_back(h[j]);
+    }
+  }
+  Frame f;
+  f.str("panel", pn);
+  f.num("t", t);
+  f.num("est", e);
+  f.num("lo", lo);
+  f.num("hi", hi);
+  out = f.o;
+  return true;
+}
