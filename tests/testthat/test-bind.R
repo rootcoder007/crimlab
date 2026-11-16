@@ -33,10 +33,8 @@ test_that("q is NA in every form all(is.na(q)) accepts", {
   expect_error(gtmp(c(0.2, 0.3), factor(c(NA, "a")), hom = TRUE), "`q`")
   d <- as.Date(c(NA, 1), origin = "1970-01-01")
   expect_error(gtmp(c(0.2, 0.3), d, hom = TRUE), "`q`")
-  # is.na() warns on a type that is not a vector, and all() of a length-0
-  # answer is TRUE: the length check then refuses q
-  expect_warning(expect_error(gtmp(0.2, new.env(), hom = TRUE), "`q`"),
-                 "type 'environment'")
+  # a q that is not a vector is refused before is.na() could warn on it
+  expect_error(expect_warning(gtmp(0.2, new.env(), hom = TRUE), NA), "`q`")
   expect_error(gtmp(c(0.2, 0.3), c(NA, 1i), hom = TRUE), "`q`")
   expect_identical(gtmp(c(0.2, 0.3), c(NA, NA_complex_), hom = TRUE), ref)
   expect_error(gtmp(c(0.2, 0.3), as.raw(1:2), hom = TRUE), "`q`")
