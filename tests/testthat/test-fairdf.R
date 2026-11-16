@@ -311,3 +311,8 @@ test_that("fairdf(), tmpaud() and lipaud() refuse what they cannot use", {
     list("finite numbers", c(1, NA), dist(1:2))
   ))
 })
+
+test_that("fairdf() refuses more replicates than it can keep", {
+  expect_error(fairdf(d$p, d$g, d$y, base = "A", nboot = 1e9, seed = 1),
+               "fairdf: `nboot` must be at most 33554432.", fixed = TRUE)
+})

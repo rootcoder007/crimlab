@@ -75,3 +75,8 @@ test_that("a plot of several panels draws them on one page", {
   expect_identical(pages(plotmult(1:9, rep(1:3, 3), rep(1:3, each = 3))),
                    1L)
 })
+
+test_that("blpal() refuses more colours than its bound", {
+  expect_error(blpal(n = 1e9), "blpal: `n` must be at most 67108864.",
+               fixed = TRUE)
+})

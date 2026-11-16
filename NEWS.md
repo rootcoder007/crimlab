@@ -858,6 +858,10 @@
 * `dmlx()` and `suplrn()` refuse more inner folds (`nfin`) than rows of
   `x`, before their work arrays are sized by it; the command line gives
   the same message.
+* `cconc()` refuses an `nsim` past 2^26, `fairdf()` an `nboot` past 2^25,
+  `cbootmean()` a `B` and `cunif()` an `n` past 2^26 and `blpal()` more
+  than 2^26 colours, instead of R's "cannot allocate vector" error; the
+  command line gives the same messages.
 * The quantile functions of the command line, the JSON entry and Python
   give R's answers at a point mass: the beta quantile with both shapes 0
   is 1/2 at p = 1/2 (it was 1) and compares p itself in the upper tail as

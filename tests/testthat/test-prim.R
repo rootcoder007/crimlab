@@ -535,3 +535,10 @@ test_that("an infinite value, a single row and a bad mean are handled", {
   expect_error(cnormpdf(1, mean = NA),
                "cnormpdf: `mean` must be one finite number.", fixed = TRUE)
 })
+
+test_that("cbootmean() and cunif() refuse results past their bound", {
+  expect_error(cbootmean(c(1, 2, 3), B = 1e9),
+               "cbootmean: `B` must be at most 67108864.", fixed = TRUE)
+  expect_error(cunif(1e9, seed = 1),
+               "cunif: `n` must be at most 67108864.", fixed = TRUE)
+})

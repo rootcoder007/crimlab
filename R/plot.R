@@ -31,7 +31,7 @@
 #' @param name The palette: one of `"okabe"` (the default), `"diverging"`,
 #'   `"sequential"` and `"grey"`.
 #' @param n `NULL` (the palette's own colours) or the number of colours
-#'   wanted: one whole number from 1.
+#'   wanted: one whole number from 1 to 67108864 (2^26).
 #' @param ... For `plotopt()`, named options to set (see Details). With
 #'   none, the options in force are returned.
 #' @return `blpal()`: a character vector of colours. `plotopt()`: the named
@@ -58,6 +58,7 @@ blpal <- function(name = "okabe", n = NULL) {
   if (!.pnum1(n, 1, Inf, TRUE)) {
     stop("blpal: `n` must be one positive whole number.", call. = FALSE)
   }
+  if (n > 2^26) stop("blpal: `n` must be at most 67108864.", call. = FALSE)
   if (name %in% c("okabe", "grey")) {
     return(rep_len(base, n))
   }

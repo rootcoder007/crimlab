@@ -43,7 +43,8 @@
 #'   flagged (the first in order on ties), its label, or its position from
 #'   1.
 #' @param nboot The bootstrap replicates for the intervals of the Gini
-#'   coefficient and the score: a whole number from 0 (none).
+#'   coefficient and the score: a whole number from 0 (none) to 33554432
+#'   (2^25; two values are kept for each).
 #' @param seed `NULL` to draw the seed of the bootstrap (or the permutations)
 #'   from R's generator, so that [set.seed()] fixes it, or one whole number
 #'   from 0.

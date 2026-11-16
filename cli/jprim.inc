@@ -282,6 +282,7 @@ bool cbootmean(Ctx &c, Val &out) {
   CK(pnum(c, "x", x));
   double b = 0, s = 0;
   CK(pone(c, "B", 1000, 1, INT_MAX, true, b));
+  if (b > kutil::maxcell) return c.fail("`B` must be at most %.0f.", kutil::maxcell);
   CK(pseed(c, 42, s));
   std::vector<double> o(static_cast<std::size_t>(b));
   CK(kchk(c, clab_bmean(x.data(), ilen(x), static_cast<int>(b), s, o.data())));
@@ -327,6 +328,7 @@ bool cgamcdf(Ctx &c, Val &out) {
 bool cunif(Ctx &c, Val &out) {
   double n = 0, s = 0;
   CK(pone(c, "n", 0, 0, INT_MAX, true, n));
+  if (n > kutil::maxcell) return c.fail("`n` must be at most %.0f.", kutil::maxcell);
   CK(pseed(c, 0, s));
   std::vector<double> o(static_cast<std::size_t>(n));
   clab_unif(s, static_cast<int>(n), o.data());

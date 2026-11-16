@@ -251,3 +251,8 @@ test_that("hilltl() says when it cannot fit", {
     )
   )
 })
+
+test_that("cconc() refuses more null samples than it can keep", {
+  expect_error(cconc(c(1, 0, 2, 3), nsim = 1e9, seed = 1),
+               "cconc: `nsim` must be at most 67108864.", fixed = TRUE)
+})

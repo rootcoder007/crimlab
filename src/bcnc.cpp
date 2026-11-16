@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "bcol.h"
+#include "kutil.h"
 #include "rchk.h"
 
 using clab::fail;
@@ -98,6 +99,7 @@ SEXP C_clab_r_cconc(SEXP x, SEXP w, SEXP by, SEXP fracs, SEXP pop, SEXP nsim, SE
     if (REAL(fr)[f] > 1) fail("`fracs` must be shares from 0 to 1.");
   }
   const int ns = clab::whole(nsim, "nsim", 0);
+  if (ns > kutil::maxcell) fail("`nsim` must be at most %.0f.", kutil::maxcell);
   const double *wp = Rf_isNull(wv) ? nullptr : REAL(wv);
   SEXP st = PROTECT(Rf_allocVector(REALSXP, 16));
   ++np;

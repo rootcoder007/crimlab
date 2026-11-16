@@ -73,6 +73,7 @@ bool cconc(Ctx &c, Val &out) {
   }
   int ns = 0;
   CK(wholed(c, "nsim", 2000, 0, ns));
+  if (ns > kutil::maxcell) return c.fail("`nsim` must be at most %.0f.", kutil::maxcell);
   const std::size_t nf = fr.n();
   std::vector<double> st(16), lp(n + 1), lv(n + 1), ts(nf), tn(nf);
   std::vector<int> ow(n + 1);

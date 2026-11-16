@@ -315,6 +315,8 @@ SEXP C_clab_r_fairdf(SEXP pred, SEXP grp, SEXP y, SEXP base, SEXP conf,
   const int b = Rf_isNull(base) ? -1 : clab::ref(base, g.lev, g.g, "base") - 1;
   const double z = zconf(conf);
   const int B = clab::whole(nboot, "nboot", 0);
+  // two values are kept per replicate
+  if (2.0 * B > kutil::maxcell) fail("`nboot` must be at most %.0f.", kutil::maxcell / 2);
   const unsigned int s = B > 0 ? sd(seed) : 0U;
   const int G = g.g;
   SEXP w = PROTECT(real(40 * static_cast<R_xlen_t>(G) + 11 + 2 * static_cast<R_xlen_t>(B)));
