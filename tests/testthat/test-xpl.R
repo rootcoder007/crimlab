@@ -215,7 +215,7 @@ test_that("xpale() accumulates the local effects as ALEPlot does", {
   t <- cbind(a = rep(1:4, c(10, 1, 1, 8)), b = 1:20)
   w <- aleref(f, t, 1, 10)
   r <- xpale(t, f, 1, nbin = 10)
-  expect_identical(r$ale$z, w$z)
+  expect_identical(r$ale$z, as.numeric(w$z))
   expect_equal(r$ale$ale, w$ale, tolerance = 1e-12)
 })
 
