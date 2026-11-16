@@ -694,7 +694,8 @@ test_that("radii far below or above the window end at once", {
   y <- runif(40)
   w <- c(0, 1, 0, 1)
   k <- ripk(x, y, win = w, r = c(0.1, 1e9))
-  expect_equal(k$k[2], ripk(x, y, win = w, r = c(0.1, 2))$k[2])
+  expect_equal(k$k[2], ripk(x, y, win = w, r = c(0.1, 2))$k[2],
+               tolerance = 1e-12)
   expect_identical(ripk(x, y, win = w, r = 5e-324)$k, 0)
   e <- ripenv(x, y, win = w, r = c(5e-324, 1e9), nsim = 9, seed = 1)
   expect_identical(nrow(e$env), 2L)
