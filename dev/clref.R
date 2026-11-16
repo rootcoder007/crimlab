@@ -2034,6 +2034,80 @@ bad("rdloc", data = rdd, y = "y", run = "r", cut = 5)
 ok("rddens", r = rdd$r, b = 0.05, h = 0.5)
 ok("rddens", r = rdd$r, cut = 0.1, level = 0.9)
 bad("rddens", r = c(1, NA))
+# The exponential-mean GMM and the functions that take an estimator
+# function. Outside R `est` names the estimator: these calls give R the
+# function of that name.
+for (f in c("runfx", "hetfx", "ccross", "jntx", "dosebin", "typefx",
+            "plcday")) {
+  assign(f, local({
+    g <- getExportedValue("crimlab", f)
+    function(...) {
+      a <- list(...)
+      if (is.character(a$est)) a$est <- match.fun(a$est)
+      do.call(g, a)
+    }
+  }))
+}
+ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"),
+   x = "temp", fe = "area")
+ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = c("w90", "w270"),
+   fe = c("area", "day"), se = "hc1", step = "one", err = "add", ssc = "none",
+   level = 0.9)
+ok("expgmm", data = axd, y = "crimes", endo = "pm", inst = "w90",
+   expo = "pop", se = "hc1", step = "iter")
+bad("expgmm", data = axd, y = "crimes", endo = "pm", inst = "pm")
+bad("expgmm", data = axd, y = "crimes", endo = "pm", inst = "w90")
+ok("runfx", data = axd, y = "crimes", var = "pm", unit = "area", day = "day",
+   thr = 22, fe = c("area", "day"))
+ok("runfx", data = axd, y = "crimes", var = "pm", unit = "area", day = "day",
+   thr = 21, cap = 2, ctrl = "temp", fe = "area", se = "hc1")
+bad("runfx", data = axd, y = "crimes", var = "pm", unit = "area", day = "day",
+    est = "sum", fe = "area")
+axd$g <- rep(c("n", "s", "s"), 44)
+ok("hetfx", data = axd, var = "pm", mod = "g", y = "crimes",
+   x = c("pm", "temp"), fe = "area")
+ok("hetfx", data = axd, var = "pm", mod = "g", how = "split", y = "crimes",
+   x = "pm", fe = "area", se = "hc1")
+ok("hetfx", data = axd, var = "pm", mod = "g", est = "ivfe", y = "crimes",
+   endo = "pm", inst = "w90", x = "temp", fe = "area", se = "hc1")
+bad("hetfx", data = axd, var = "pm", mod = "area", y = "crimes", x = "pm",
+    fe = "day", how = "x")
+axc <- axd
+axc$date <- as.Date("2024-01-25") + axd$day
+ok("ccross", data = axc, y = "crimes", unit = "area", day = "date", x = "pm",
+   se = "hc1")
+ok("ccross", data = axc, y = "crimes", unit = "area", day = "date",
+   strat = "ym", ma = "pm", k = 3, x = "pm", ns = c(temp = 3), se = "hc1")
+ok("ccross", data = axc, y = "crimes", unit = "area", day = "date",
+   lagv = "temp", lag = 1, x = c("pm", "temp"), k = 1)
+bad("ccross", data = axc, y = "crimes", unit = "area", day = "date", k = 0)
+ok("jntx", data = axd, y = "crimes", x1 = "pm", x2 = "temp", fe = "area",
+   se = "hc1")
+ok("jntx", data = axd, y = "crimes", x1 = "pm", x2 = "temp", form = "linear",
+   ref = c(20, 15), ngrid = 3, p2 = c(0.25, 0.75), fe = "area")
+bad("jntx", data = axd, y = "crimes", x1 = "pm", x2 = "temp", p1 = 0.5,
+    fe = "area")
+ok("dosebin", data = axd, y = "crimes", var = "pm", fe = "area")
+ok("dosebin", data = axd, y = "crimes", var = "pm", brk = c(0, 22, 25, 40),
+   ref = 2, ctrl = "temp", fe = "area", se = "hc1")
+bad("dosebin", data = axd, y = "crimes", var = "pm", brk = c(1, 2),
+    fe = "area")
+axd$c2 <- (axd$day * 5 + seq_len(132)) %% 4 + round(axd$temp / 6)
+ok("typefx", data = axd, ys = c("crimes", "c2"), term = "pm",
+   x = c("pm", "temp"), fe = "area")
+ok("typefx", data = axd, ys = c("crimes", "c2"), term = "pm", adj = "BH",
+   x = "pm", fe = c("area", "day"), se = "hc1")
+bad("typefx", data = axd, ys = "crimes", term = c("a", "b"), x = "pm",
+    fe = "area")
+bad("typefx", data = axd, ys = "crimes", term = "pm", est = "ivfe",
+    x = "pm", fe = "area", maxit = 5)
+ok("plcday", data = axd, var = "pm", unit = "area", day = "day",
+   shifts = c(-1, 1), y = "crimes", x = c("pm", "temp"), fe = "area")
+ok("plcday", data = axd, var = "pm", unit = "area", day = "day", shifts = 2,
+   est = "ivfe", with = "w90", y = "crimes", endo = "pm", inst = "w90",
+   x = "temp", fe = "area", se = "hc1")
+bad("plcday", data = axd, var = "pm", unit = "area", day = "day", shifts = 0,
+    y = "crimes", x = "pm", fe = "area")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)

@@ -422,6 +422,14 @@ from ._j import (
     ccepnl,
     rdloc,
     rddens,
+    expgmm,
+    runfx,
+    hetfx,
+    ccross,
+    jntx,
+    dosebin,
+    typefx,
+    plcday,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -868,6 +876,14 @@ __all__ = [
     "ccepnl",
     "rdloc",
     "rddens",
+    "expgmm",
+    "runfx",
+    "hetfx",
+    "ccross",
+    "jntx",
+    "dosebin",
+    "typefx",
+    "plcday",
 ]
 
 

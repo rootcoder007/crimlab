@@ -7120,3 +7120,158 @@ def rddens(r: Any, cut: Any = 0, b: Any = None, h: Any = None, level: Any = 0.95
     ['theta', 'se', 'stat', 'p', 'lo', 'hi', 'fl', 'fr']
     """
     return jcall("rddens", r=r, cut=cut, b=b, h=h, level=level)
+
+
+def expgmm(data: Any, y: Any, endo: Any, inst: Any, x: Any = None, fe: Any = None, expo: Any = None,
+           clus: Any = None, err: Any = "mult", step: Any = "two", se: Any = "cluster", ssc: Any = "G",
+           level: Any = 0.95, tol: Any = 1e-10, maxit: Any = 100) -> Any:
+    """The exponential-mean generalised method of moments for a count.
+
+    The arguments and the result are those of R's ``expgmm()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "z": [0, 1, 1, 3, 1, 0, 2, 3],
+    ...      "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = expgmm(data=d, y="y", endo="x", inst="z", fe="a", se="hc1")
+    >>> list(r)[:3]
+    ['coef', 'j', 'vcov']
+    """
+    return jcall("expgmm", data=data, y=y, endo=endo, inst=inst, x=x, fe=fe, expo=expo, clus=clus, err=err,
+                 step=step, se=se, ssc=ssc, level=level, tol=tol, maxit=maxit)
+
+
+def runfx(data: Any, y: Any, var: Any, unit: Any, day: Any, thr: Any = 0, cap: Any = 3, step: Any = 1,
+          ctrl: Any = None, est: Any = None, **args: Any) -> Any:
+    """The effect by day of a run of exposed days.
+
+    The arguments and the result are those of R's ``runfx()``: see its help
+    page. ``est`` names the estimator (``"ppmlfe"``, the default, ``"ivfe"``
+    or ``"ppmlcf"``) and ``args`` are its arguments, R's ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "e": [0, 1, 1, 0, 1, 0, 1, 1], "day": [1, 2, 3, 4] * 2,
+    ...      "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = runfx(data=d, y="y", var="e", unit="a", day="day", cap=1, fe="a", se="hc1")
+    >>> r["coef"]["term"]
+    ['run1p']
+    """
+    return jcall("runfx", data=data, y=y, var=var, unit=unit, day=day, thr=thr, cap=cap, step=step, ctrl=ctrl,
+                 est=est, **args)
+
+
+def hetfx(data: Any, var: Any, mod: Any, est: Any = None, how: Any = "inter", **args: Any) -> Any:
+    """The effect of an exposure by the levels of a moderator.
+
+    The arguments and the result are those of R's ``hetfx()``: see its help
+    page. ``est`` names the estimator and ``args`` are its arguments, R's
+    ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7, 2, 2, 5, 6], "x": [0, 1, 2, 3, 0, 1, 2, 3, 1, 0, 3, 2],
+    ...      "m": ["u", "v"] * 6, "a": ["p"] * 6 + ["q"] * 6}
+    >>> r = hetfx(data=d, var="x", mod="m", y="y", x="x", fe="a", se="hc1")
+    >>> list(r)
+    ['tab', 'test', 'how']
+    """
+    return jcall("hetfx", data=data, var=var, mod=mod, est=est, how=how, **args)
+
+
+def ccross(data: Any, y: Any, unit: Any, day: Any, strat: Any = "ymw", ma: Any = None, k: Any = 2,
+           lagv: Any = None, lag: Any = 0, ns: Any = None, est: Any = None, **args: Any) -> Any:
+    """The time-stratified case-crossover design as a conditional Poisson fit.
+
+    The arguments and the result are those of R's ``ccross()``: see its help
+    page. The day column holds days since 1970-01-01, as an R date does.
+    ``est`` names the estimator and ``args`` are its arguments, R's ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7, 2, 2, 5, 6], "pm": [3, 1, 2, 3, 0, 1, 2, 3, 1, 0, 3, 2],
+    ...      "day": list(range(6)) * 2, "a": ["p"] * 6 + ["q"] * 6}
+    >>> r = ccross(data=d, y="y", unit="a", day="day", strat="ym", k=1, x="pm", se="hc1")
+    >>> r["coef"]["term"]
+    ['pm']
+    """
+    return jcall("ccross", data=data, y=y, unit=unit, day=day, strat=strat, ma=ma, k=k, lagv=lagv, lag=lag, ns=ns,
+                 est=est, **args)
+
+
+def jntx(data: Any, y: Any, x1: Any, x2: Any, form: Any = "spline", k1: Any = 5, k2: Any = 4,
+         p1: Any = None, p2: Any = None, ref: Any = None, ngrid: Any = 15, ctrl: Any = None, est: Any = None,
+         **args: Any) -> Any:
+    """The joint effect of two exposures and its test of no interaction.
+
+    The arguments and the result are those of R's ``jntx()``: see its help
+    page (``p1`` and ``p2`` left out are R's defaults). ``est`` names the
+    estimator and ``args`` are its arguments, R's ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7, 2, 2, 5, 6], "u": [0, 1, 2, 3, 0, 1, 2, 3, 1, 0, 3, 2],
+    ...      "v": [2, 1, 2, 0, 1, 3, 2, 1, 0, 2, 1, 3], "a": ["p"] * 6 + ["q"] * 6}
+    >>> r = jntx(data=d, y="y", x1="u", x2="v", form="linear", ngrid=2, fe="a", se="hc1")
+    >>> list(r)
+    ['cond', 'surf', 'test', 'fit', 'form']
+    """
+    return jcall("jntx", data=data, y=y, x1=x1, x2=x2, form=form, k1=k1, k2=k2, p1=p1, p2=p2, ref=ref, ngrid=ngrid,
+                 ctrl=ctrl, est=est, **args)
+
+
+def dosebin(data: Any, y: Any, var: Any, nq: Any = 5, brk: Any = None, ref: Any = 1, ctrl: Any = None,
+            est: Any = None, **args: Any) -> Any:
+    """The effect of each bin of an exposure against a reference bin.
+
+    The arguments and the result are those of R's ``dosebin()``: see its
+    help page. ``est`` names the estimator and ``args`` are its arguments,
+    R's ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "x": [0, 1, 2, 3, 0, 1, 2, 3], "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = dosebin(data=d, y="y", var="x", nq=2, fe="a", se="hc1")
+    >>> r["tab"]["bin"]
+    ['[0,1.5]', '(1.5,3]']
+    """
+    return jcall("dosebin", data=data, y=y, var=var, nq=nq, brk=brk, ref=ref, ctrl=ctrl, est=est, **args)
+
+
+def typefx(data: Any, ys: Any, term: Any, est: Any = None, adj: Any = "holm", **args: Any) -> Any:
+    """One fit per outcome, with p-values adjusted for their number.
+
+    The arguments and the result are those of R's ``typefx()``: see its help
+    page. ``est`` names the estimator and ``args`` are its arguments, R's
+    ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7], "w": [2, 1, 3, 4, 1, 2, 5, 6], "x": [0, 1, 2, 3, 0, 1, 2, 3],
+    ...      "a": ["p"] * 4 + ["q"] * 4}
+    >>> r = typefx(data=d, ys=["y", "w"], term="x", x="x", fe="a", se="hc1")
+    >>> r["tab"]["y"]
+    ['y', 'w']
+    """
+    return jcall("typefx", data=data, ys=ys, term=term, est=est, adj=adj, **args)
+
+
+def plcday(data: Any, var: Any, unit: Any, day: Any, shifts: Any = None, est: Any = None, with_: Any = None,
+           shift: Any = "both", **args: Any) -> Any:
+    """Placebo tests that move the exposure by days.
+
+    The arguments and the result are those of R's ``plcday()``: see its help
+    page (``shifts`` left out is R's default). ``est`` names the estimator
+    and ``args`` are its arguments, R's ``...``.
+
+    Examples
+    --------
+    >>> d = {"y": [1, 2, 3, 5, 2, 3, 4, 7, 2, 2, 5, 6], "x": [0, 1, 2, 3, 0, 1, 2, 3, 1, 0, 3, 2],
+    ...      "day": list(range(6)) * 2, "a": ["p"] * 6 + ["q"] * 6}
+    >>> r = plcday(data=d, var="x", unit="a", day="day", shifts=[1], y="y", x="x", fe="a", se="hc1")
+    >>> r["tab"]["shift"]
+    [0.0, 1.0]
+    """
+    return jcall("plcday", data=data, var=var, unit=unit, day=day, shifts=shifts, est=est, with_=with_,
+                 shift=shift, **args)
