@@ -820,7 +820,8 @@
   used to add one that does not exist and abort R.
 * `dualcont()`, `frmaud()` and the readers of `cnsprof()` results check
   the columns they read even when the class says where the object came
-  from; an object of that class with a column missing crashed R.
+  from, once their other arguments are checked; an object of that class
+  with a column missing crashed R.
 * `tpdmc()` refuses more than 2^26 `steps` before it makes the path; the
   command line gives the same message.
 * `sirex()` checks `level` before it reads it; an empty `level` was read

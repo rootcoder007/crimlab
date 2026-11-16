@@ -459,3 +459,10 @@ test_that(
     expect_identical(unique(trchlthgap(suiide = su)$period), "2017")
   }
 )
+
+test_that("a cnsprof object with its columns missing is refused, not read", {
+  # the class is trusted until a column is read without a further check;
+  # the other arguments are checked first (see test-igr.R)
+  cp <- structure(data.frame(), class = c("cnsprof", "data.frame"))
+  expect_error(cnsstd(cp), "must come from cnsprof()", fixed = TRUE)
+})
