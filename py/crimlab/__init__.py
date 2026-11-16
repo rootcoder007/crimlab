@@ -411,6 +411,12 @@ from ._j import (
     zcomp,
     zgem,
     zgll,
+    lmdix,
+    fepnl,
+    pcdtst,
+    gmmpnl,
+    wsctst,
+    ccepnl,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -846,6 +852,12 @@ __all__ = [
     "zcomp",
     "zgem",
     "zgll",
+    "lmdix",
+    "fepnl",
+    "pcdtst",
+    "gmmpnl",
+    "wsctst",
+    "ccepnl",
 ]
 
 

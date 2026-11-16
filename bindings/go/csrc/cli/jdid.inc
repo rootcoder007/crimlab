@@ -48,11 +48,12 @@ bool panel(Ctx &c, double lo, Pan &p, const Val *y = nullptr) {
     p.t[i] = static_cast<int>(std::lower_bound(p.tv.begin(), p.tv.end(), tv[i]) - p.tv.begin());
   }
   if (p.nu < 2 || p.nt < 2) return c.fail("the panel needs two units and two periods at least.");
-  std::vector<char> seen(zz(p.nu) * zz(p.nt), 0);
-  for (std::size_t i = 0; i < zz(p.n); ++i) {
-    char &s = seen[zz(p.u[i]) * zz(p.nt) + zz(p.t[i])];
-    if (s) return c.fail("`unit` and `time` repeat a pair: one row per unit and period.");
-    s = 1;
+  // a repeated pair found by sorting, as pevr::panel() does
+  std::vector<std::pair<int, int>> pr(zz(p.n));
+  for (std::size_t i = 0; i < zz(p.n); ++i) pr[i] = {p.u[i], p.t[i]};
+  std::sort(pr.begin(), pr.end());
+  if (std::adjacent_find(pr.begin(), pr.end()) != pr.end()) {
+    return c.fail("`unit` and `time` repeat a pair: one row per unit and period.");
   }
   return true;
 }

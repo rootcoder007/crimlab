@@ -46,6 +46,7 @@
 #endif
 
 #include "crimlab.h"
+#include "dpnd.h"
 #include "frx.h"
 #include "igh.h"
 #include "igk.h"
@@ -1610,6 +1611,7 @@ bool proof(Ctx &c, Val &out) {
 #include "jfrx.inc"
 #include "jsvt.inc"
 #include "japx.inc"
+#include "jenv.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2037,6 +2039,12 @@ const Ent ents[] = {
     {"expjn", "expo outc by?", ax::expjn},
     {"smkiv", "data plume unit day pm? adj? nbr? z? seas? dens? cf? by?", ax::smkiv},
     {"exprun", "data var unit day thr? cap? step?", ax::exprun},
+    {"lmdix", "y q unit time type? at? ref? zero? fnm?", lmdix},
+    {"fepnl", "y x unit time int? clus? at? ssc? level?", fepnl},
+    {"pcdtst", "x unit time", pcdtst},
+    {"gmmpnl", "y x? unit time ylag? gmm? iv? z? lagmin? lagmax? collapse? type? trans? steps? robust? wc? small? hmat? cons? tdum? ar? level?", gmmpnl},
+    {"wsctst", "y x? unit time cons? ssc?", wsctst},
+    {"ccepnl", "y x unit time fac? cons? w? avg? level?", ccepnl},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

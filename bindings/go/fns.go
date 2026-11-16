@@ -1261,6 +1261,24 @@ func Smkiv(args string) (string, error) { return Jrun("smkiv", args) }
 // Exprun runs exprun() of the R package (arguments: data var unit day thr? cap? step?; ? marks an optional one).
 func Exprun(args string) (string, error) { return Jrun("exprun", args) }
 
+// Lmdix runs lmdix() of the R package (arguments: y q unit time type? at? ref? zero? fnm?; ? marks an optional one).
+func Lmdix(args string) (string, error) { return Jrun("lmdix", args) }
+
+// Fepnl runs fepnl() of the R package (arguments: y x unit time int? clus? at? ssc? level?; ? marks an optional one).
+func Fepnl(args string) (string, error) { return Jrun("fepnl", args) }
+
+// Pcdtst runs pcdtst() of the R package (arguments: x unit time; ? marks an optional one).
+func Pcdtst(args string) (string, error) { return Jrun("pcdtst", args) }
+
+// Gmmpnl runs gmmpnl() of the R package (arguments: y x? unit time ylag? gmm? iv? z? lagmin? lagmax? collapse? type? trans? steps? robust? wc? small? hmat? cons? tdum? ar? level?; ? marks an optional one).
+func Gmmpnl(args string) (string, error) { return Jrun("gmmpnl", args) }
+
+// Wsctst runs wsctst() of the R package (arguments: y x? unit time cons? ssc?; ? marks an optional one).
+func Wsctst(args string) (string, error) { return Jrun("wsctst", args) }
+
+// Ccepnl runs ccepnl() of the R package (arguments: y x unit time fac? cons? w? avg? level?; ? marks an optional one).
+func Ccepnl(args string) (string, error) { return Jrun("ccepnl", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

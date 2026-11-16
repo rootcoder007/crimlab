@@ -6925,3 +6925,106 @@ def exprun(data: Any, var: Any, unit: Any, day: Any, thr: Any = 0, cap: Any = 3,
     ['run', 'run1', 'run2', 'run3p']
     """
     return jcall("exprun", data=data, var=var, unit=unit, day=day, thr=thr, cap=cap, step=step)
+
+
+def lmdix(y: Any, q: Any, unit: Any, time: Any, type: Any = "time", at: Any = None, ref: Any = "mean",
+          zero: Any = 0, fnm: Any = None) -> Any:
+    """LMDI decomposition of a count over the factors of a Kaya identity.
+
+    The arguments and the result are those of R's ``lmdix()``: see its help
+    page (``q`` is a matrix as a list of rows, or a dict of columns).
+
+    Examples
+    --------
+    >>> r = lmdix(y=[6, 12, 10, 20], q={"P": [3, 4, 5, 5]}, unit=["a", "a", "b", "b"], time=[1, 2, 1, 2])
+    >>> list(r)
+    ['dec', 'fac', 'ref', 'factors', 'type', 'refkind']
+    """
+    return jcall("lmdix", y=y, q=q, unit=unit, time=time, type=type, at=at, ref=ref, zero=zero, fnm=fnm)
+
+
+def fepnl(y: Any, x: Any, unit: Any, time: Any, int: Any = None, clus: Any = None, at: Any = None,
+          ssc: Any = "cr1", level: Any = 0.95) -> Any:
+    """Two-way fixed effects with an interaction, for counts of offences.
+
+    The arguments and the result are those of R's ``fepnl()``: see its help
+    page (``x`` is a matrix as a list of rows, or a dict of columns).
+
+    Examples
+    --------
+    >>> r = fepnl(y=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 2, 3.3, 4.7, 6, 7.3, 8.7, 10, 11.3, 12.7, 14],
+    ...           x=[0] * 10 + [1, 2, 0, 1, 2, 0, 1, 2, 0, 1], unit=list(range(1, 11)) * 2, time=[1] * 10 + [2] * 10)
+    >>> list(r)
+    ['coef', 'slopes', 'fit', 'jb', 'vcov', 'resid', 'ssc', 'level']
+    """
+    return jcall("fepnl", y=y, x=x, unit=unit, time=time, int=int, clus=clus, at=at, ssc=ssc, level=level)
+
+
+def pcdtst(x: Any, unit: Any, time: Any) -> Any:
+    """Pesaran's CD test of cross-sectional dependence in a panel.
+
+    The arguments and the result are those of R's ``pcdtst()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = pcdtst(x=[1, 2, 3, 1, 3, 2, 3, 2, 1], unit=[1, 1, 1, 2, 2, 2, 3, 3, 3], time=[1, 2, 3] * 3)
+    >>> list(r)
+    ['cd', 'p', 'rho', 'absrho', 'pairs', 'units', 'periods']
+    """
+    return jcall("pcdtst", x=x, unit=unit, time=time)
+
+
+def gmmpnl(y: Any, x: Any = None, unit: Any = None, time: Any = None, ylag: Any = 1, gmm: Any = None,
+           iv: Any = None, z: Any = None, lagmin: Any = 2, lagmax: Any = None, collapse: Any = False,
+           type: Any = "system", trans: Any = "fd", steps: Any = 1, robust: Any = True, wc: Any = None,
+           small: Any = False, hmat: Any = "ab", cons: Any = True, tdum: Any = True, ar: Any = 2,
+           level: Any = 0.95) -> Any:
+    """Difference and system GMM for dynamic panels.
+
+    The arguments and the result are those of R's ``gmmpnl()``: see its help
+    page (``unit`` and ``time`` are needed; ``lagmax=None`` is R's ``Inf``).
+
+    Examples
+    --------
+    >>> r = gmmpnl(y=[1, 3, 2, 5, 2, 4, 1, 3, 3, 1, 4, 2], unit=[1] * 4 + [2] * 4 + [3] * 4, time=[1, 2, 3, 4] * 3,
+    ...            type="diff", tdum=False, collapse=True, lagmax=2, ar=0)
+    >>> list(r)[:4]
+    ['coef', 'tests', 'wald', 'fit']
+    """
+    return jcall("gmmpnl", y=y, x=x, unit=unit, time=time, ylag=ylag, gmm=gmm, iv=iv, z=z, lagmin=lagmin,
+                 lagmax=lagmax, collapse=collapse, type=type, trans=trans, steps=steps, robust=robust, wc=wc,
+                 small=small, hmat=hmat, cons=cons, tdum=tdum, ar=ar, level=level)
+
+
+def wsctst(y: Any, x: Any = None, unit: Any = None, time: Any = None, cons: Any = False,
+           ssc: Any = "cr1") -> Any:
+    """Wooldridge's test for serial correlation in a panel.
+
+    The arguments and the result are those of R's ``wsctst()``: see its help
+    page (``unit`` and ``time`` are needed).
+
+    Examples
+    --------
+    >>> r = wsctst(y=[0, 1, 3, 2, 1, 1, 2, 4, 0, 2, 1, 1], unit=[1] * 4 + [2] * 4 + [3] * 4, time=[1, 2, 3, 4] * 3)
+    >>> list(r)
+    ['stat', 'coef', 'ssc']
+    """
+    return jcall("wsctst", y=y, x=x, unit=unit, time=time, cons=cons, ssc=ssc)
+
+
+def ccepnl(y: Any, x: Any, unit: Any, time: Any, fac: Any = None, cons: Any = True, w: Any = None,
+           avg: Any = None, level: Any = 0.95) -> Any:
+    """Common correlated effects for panels with unobserved common factors.
+
+    The arguments and the result are those of R's ``ccepnl()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = ccepnl(y=[1, 3, 2, 5, 2, 4, 1, 3, 3, 1, 4, 2, 5, 2, 3], x=[2, 1, 4, 3, 1, 5, 2, 2, 4, 3, 1, 2, 5, 3, 4],
+    ...            unit=[1] * 5 + [2] * 5 + [3] * 5, time=[1, 2, 3, 4, 5] * 3)
+    >>> list(r)
+    ['mg', 'pooled', 'bi', 'vmg', 'vp', 'fit', 'w', 'level']
+    """
+    return jcall("ccepnl", y=y, x=x, unit=unit, time=time, fac=fac, cons=cons, w=w, avg=avg, level=level)

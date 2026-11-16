@@ -1891,6 +1891,70 @@ bad("exprun", data = data.frame(area = 1, day = 1:3, smoke = c(0, 1, 1)), var = 
 ok("exprun", data = data.frame(area = 1, day = c(1, 2, 4, 5), pm = c(30, 40, 50, 10)), var = "pm", unit = "area",
    day = "day", thr = 25, cap = 2)
 bad("exprun", data = data.frame(area = 1, day = c(1, 1), s = c(1, 0)), var = "s", unit = "area", day = "day")
+# Environmental crime and dynamic panels
+en <- data.frame(year = rep(2016:2019, 5), unit = rep(paste0("u", 1:5), each = 4),
+                 stringsAsFactors = FALSE)
+en$P <- (seq_len(20) * 7) %% 9 + 1
+en$S <- (seq_len(20) * 5) %% 11 + 5
+en$cases <- (seq_len(20) * 3) %% 13 + 1
+ok("lmdix", y = en$cases, q = en[c("P", "S")], unit = en$unit, time = en$year)
+ok("lmdix", y = en$cases, q = en[c("P", "S")], unit = en$unit, time = en$year, type = "space",
+   ref = "gmean", fnm = c("rate", "dens", "area"))
+ok("lmdix", y = replace(en$cases, 3, 0), q = en[c("P", "S")], unit = en$unit, time = en$year,
+   at = c(2016, 2018, 2019), zero = 1e-8)
+ok("lmdix", y = replace(en$cases, 3, 0), q = cbind(en$P), unit = en$unit, time = en$year, type = "space",
+   at = 2017)
+bad("lmdix", y = en$cases, q = en[c("P", "S")], unit = en$unit, time = en$year, zero = -1)
+bad("lmdix", y = en$cases, q = en[c("P", "S")], unit = en$unit, time = en$year, fnm = "a")
+ep <- data.frame(year = rep(2016:2023, 12), prov = rep(sprintf("p%02d", 1:12), each = 8),
+                 stringsAsFactors = FALSE)
+ep$cper <- 0.02 + 0.01 * sin(seq_len(96))
+ep$ur <- 0.02 + 0.005 * cos(seq_len(96) * 1.3)
+ep$cases <- 50 + 9000 * ep$cper + 1500 * ep$ur - 4e5 * ep$cper * ep$ur + sin(seq_len(96) * 2.1) +
+  as.integer(substring(ep$prov, 2)) + (ep$year - 2016)
+ok("fepnl", y = ep$cases, x = ep[c("cper", "ur")], unit = ep$prov, time = ep$year, int = c("cper", "ur"))
+ok("fepnl", y = ep$cases, x = ep[c("cper", "ur")], unit = ep$prov, time = ep$year, int = c("cper", "ur"),
+   at = c(0.01, 0.02), ssc = "none", level = 0.9)
+ok("fepnl", y = ep$cases, x = ep$cper, unit = ep$prov, time = ep$year, clus = rep(1:4, each = 24))
+bad("fepnl", y = ep$cases, x = ep[c("cper", "ur")], unit = ep$prov, time = ep$year, int = "cper")
+bad("fepnl", y = ep$cases, x = ep[c("cper", "ur")], unit = ep$prov, time = ep$year, at = 1)
+ok("pcdtst", x = sin(seq_len(54)) + rep(cos(1:9), 6), unit = rep(paste0("p", 1:6), each = 9),
+   time = rep(1:9, 6))
+bad("pcdtst", x = rep(1, 4), unit = c(1, 1, 2, 2), time = c(1, 2, 1, 2))
+set.seed(41)
+gd <- data.frame(t = rep(1:6, 30), u = rep(sprintf("g%02d", 1:30), each = 6), stringsAsFactors = FALSE)
+mu <- rnorm(30)
+gd$x <- rnorm(180) + mu[match(gd$u, unique(gd$u))]
+gd$y <- 0
+for (i in seq_len(180)) {
+  m <- mu[match(gd$u[i], unique(gd$u))]
+  gd$y[i] <- if (gd$t[i] == 1) m / 0.5 + rnorm(1) else 0.5 * gd$y[i - 1] + 0.3 * gd$x[i] + m + rnorm(1)
+}
+gd <- gd[-c(9, 40), ]
+ok("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmax = 3, collapse = TRUE)
+ok("gmmpnl", y = gd$y, x = gd["x"], unit = gd$u, time = gd$t, gmm = "x", lagmax = c(3, 2), type = "diff",
+   trans = "fod", steps = 2, tdum = FALSE)
+ok("gmmpnl", y = gd$y, x = gd["x"], unit = gd$u, time = gd$t, iv = "x", collapse = TRUE, robust = FALSE,
+   small = TRUE, hmat = "dpd", ar = 3, level = 0.9)
+ok("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmax = 4, steps = 2, robust = FALSE, hmat = "id")
+bad("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, steps = 2, wc = TRUE, robust = FALSE)
+bad("gmmpnl", y = gd$y, x = gd["x"], unit = gd$u, time = gd$t, gmm = "q")
+bad("gmmpnl", y = gd$y, unit = gd$u, time = gd$t, lagmin = 3, lagmax = 2)
+ok("wsctst", y = gd$y, x = gd["x"], unit = gd$u, time = gd$t)
+ok("wsctst", y = gd$y, unit = gd$u, time = gd$t, cons = TRUE, ssc = "none")
+bad("wsctst", y = c(1, 3, 2, 4, 5), unit = c(1, 1, 1, 2, 2), time = c(1, 2, 3, 1, 3))
+cd <- data.frame(t = rep(1:10, 12), u = rep(sprintf("c%02d", 1:12), each = 10), stringsAsFactors = FALSE)
+cf <- sin(cd$t * 1.7)
+cg <- (1 + seq_len(12) / 10)[match(cd$u, unique(cd$u))]
+cd$x <- cg * cf + cos(seq_len(120) * 0.9)
+cd$y <- 1 + 0.7 * cd$x + cg * cf + sin(seq_len(120) * 2.3)
+cd$tr <- cd$t
+ok("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t)
+ok("ccepnl", y = cd$y[-c(5, 33)], x = cd["x"][-c(5, 33), , drop = FALSE], unit = cd$u[-c(5, 33)],
+   time = cd$t[-c(5, 33)], w = (1 + match(cd$u, unique(cd$u)) %% 3)[-c(5, 33)], level = 0.9)
+ok("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t, fac = cd["tr"], cons = FALSE, avg = "x")
+bad("ccepnl", y = cd$y, x = ave(cd$x, cd$t), unit = cd$u, time = cd$t)
+bad("ccepnl", y = cd$y, x = cd["x"], unit = cd$u, time = cd$t, avg = "q")
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")
 mark <- grep("^# made by dev/clref.R", old)
