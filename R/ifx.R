@@ -62,6 +62,7 @@
 #' @param maxit The most alternations of Bai's estimator.
 #' @param object An object of class `ifesc`.
 #' @inheritParams ppmlcf
+#' @inheritParams ppmlfe
 #' @return An object of class `ifesc`, a list: `att`, a one-row data frame
 #'   (`est`, `se`, `stat`, `p`, `lo`, `hi`); `eff`, one row per event time
 #'   `e` (`n` treated units observed then, and the same columns); `r`; `cv`,

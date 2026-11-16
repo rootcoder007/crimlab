@@ -52,6 +52,8 @@ number from 0.}
 
 \item{seed}{\code{NULL} (the generator's current state) or one whole number.}
 
+\item{level}{The confidence level of the intervals.}
+
 \item{tol}{The convergence tolerance of \code{b}.}
 
 \item{maxit}{The most alternations of Bai's estimator.}
