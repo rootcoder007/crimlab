@@ -476,6 +476,40 @@ test_that("the gentrification recipe", {
   expect_identical(p$row, g[!is.na(g)])
 })
 
+test_that("the Laniyonu gentrification preset feeds cntreg", {
+  set.seed(3)
+  n <- 120
+  d <- data.frame(tract = seq_len(n), median_inc_2000 = runif(n, 2e4, 9e4),
+                  median_rent_2000 = runif(n, 600, 1800),
+                  growth_college = runif(n, -0.05, 0.3),
+                  growth_rent = runif(n, -50, 600))
+  d$population <- round(runif(n, 800, 5000))
+  d$felony_count <- rpois(n, 10)
+  d$calls_311_omp <- rpois(n, 40)
+  d$stops <- rpois(n, d$population / 100)
+  # the factor by hand, as rmorie's mrm_gentrification_panel() builds it
+  q <- function(x, p) quantile(x, p, names = FALSE)
+  el <- d$median_inc_2000 <= q(d$median_inc_2000, 0.5) &
+    d$median_rent_2000 <= q(d$median_rent_2000, 0.5)
+  gr <- d$growth_college >= q(d$growth_college, 0.667) &
+    d$growth_rent >= q(d$growth_rent, 0.667)
+  lv <- c("ineligible", "eligible", "gentrified")
+  g <- factor(lv[1 + el + (el & gr)], lv)
+  expect_true(all(table(g) >= 4))
+  p <- clprep(d, "laniyonu-gent-cnt")
+  expect_identical(attr(p, "drop"), 0L)
+  expect_identical(p$grp, g)
+  expect_named(p$adj, c("felony_count", "calls_311_omp"))
+  expect_identical(
+    cntreg(p),
+    cntreg(as.numeric(d$stops), g,
+           adj = data.frame(felony_count = as.numeric(d$felony_count),
+                            calls_311_omp = as.numeric(d$calls_311_omp)),
+           expo = d$population)
+  )
+  expect_error(clprep(d[-5], "laniyonu-gent-cnt"), "no column growth_rent")
+})
+
 test_that("the toxicology and taphonomy layouts", {
   d <- data.frame(case_id = c("a", "b", "c", "d"), conc = c(0.4, 0.05, NA, 1),
                   lod = c(0.1, 0.1, 0.2, 0.5), stringsAsFactors = FALSE)

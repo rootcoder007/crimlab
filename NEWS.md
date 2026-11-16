@@ -41,6 +41,10 @@
 * New: `pscred()`, the credit for custody before sentence under s. 719(3)
   and (3.1) of the Criminal Code, at up to one and a half days a day, and
   the time left to serve.
+* Preset `laniyonu-gent-cnt`: the tract layout of Laniyonu (2018), stops
+  on the three-level gentrification factor (the `gent` recipe) with the
+  population as the offset and the crime and 311 controls, for
+  `cntreg()`.
 
 * `plotrdg()` and `plotvln()` take their densities from the compiled
   kernel that the command line and the other languages use, so the curve
