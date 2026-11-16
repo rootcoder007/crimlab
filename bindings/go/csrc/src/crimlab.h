@@ -4677,6 +4677,182 @@ int clab_ovrkwd(const char *t, int64_t n, const char *term, int64_t *count);
  * character itself): *ok 1 or 0. CLAB_EARG for an unknown kind. */
 int clab_ovrchk(const char *s, int64_t n, int kind, const char *shape, int *ok);
 
+/* ------------------------------------------------------------------------
+ * Maps (map.cpp): chomap(), smmap(), ptmap(), prpmap().
+ * ------------------------------------------------------------------------ */
+
+/* Class breaks of the n values v (those not finite set aside, at least
+ * one finite): meth 0 k classes of equal width over their range (br as
+ * seq(min, max, length.out = k + 1)), 1 their type-7 quantiles at
+ * seq(0, 1, length.out = k + 1), breaks that repeat merged; meth 2 the
+ * *nb breaks given in br (increasing, covering the values; CLAB_EDOM when
+ * they do not). One distinct break is widened to (b - 0.5, b + 0.5). br
+ * holds k + 1 (meth 0, 1) or *nb doubles; out: *nb the breaks kept and
+ * cls[i] the class of v[i] from 1, findInterval(rightmost.closed = TRUE,
+ * all.inside = TRUE), 0 when v[i] is not finite. CLAB_EDOM when no value
+ * is finite. O(n log n). */
+int clab_mapbrk(const double *v, int n, int k, int meth, double *br, int *nb, int *cls);
+/* The box of the n points (x, y) with both coordinates finite, bb (4):
+ * xmin, xmax, ymin, ymax, a range of one value widened by 0.5 each side.
+ * CLAB_EDOM when no point is finite. */
+int clab_mapbb(const double *x, const double *y, int n, double *bb);
+
+/* The centres (cx, cy: the means of the coordinates) of the clusters 1
+ * to k of the n points, cl[i] the cluster of point i (0 for none), and
+ * cnt their points; NaN for a cluster no point has. O(n + k). */
+int clab_ptcen(const double *x, const double *y, const int *cl, int n, int k, double *cx, double *cy, int *cnt);
+
+/* Proportional symbols at the n points (x, y) for the values v (from 0,
+ * NaN for none, not all NaN): the radius r[i] = rmax sqrt(v[i] / max v)
+ * (0 when max v is 0, NaN for none), rmax the box's longer side over 15
+ * when given as NaN; ord (*nord) the points with a value from the largest
+ * value down, ties in the order given; bb the box of the points widened
+ * by rmax on every side; *rm the rmax used. O(n log n). */
+int clab_mapsym(const double *x, const double *y, const double *v, int n, double rmax, double *bb, double *r,
+                int *ord, int *nord, double *rm);
+
+/* ------------------------------------------------------------------------
+ * Empirical orthogonal functions (eof.cpp): eofst().
+ * ------------------------------------------------------------------------ */
+
+/* The EOFs of zm (m x p, column-major, finite; m >= 2): ctr (p) the
+ * column means, the centred matrix A decomposed as U D V' from the
+ * eigendecomposition of the smaller of A'A and A A'. The components with
+ * d^2 above 1e-10 of the largest are kept, at most k of them (k 0: all):
+ * *nk of them, eof (p x *nk, room for p min(m, p)) the columns of V and
+ * pc (m x *nk, room for m min(m, p)) those of A V, each signed so that
+ * its largest loading in absolute value is positive; d2 (room for
+ * min(m, p)) the squared singular values; *tot the sum of squares of A.
+ * CLAB_EDOM when A is 0 (every column constant). O(m p s + s^3), s =
+ * min(m, p). */
+int clab_eofst(const double *zm, int m, int p, int k, double *ctr, double *eof, double *pc, double *d2, double *tot,
+               int *nk);
+
+/* ------------------------------------------------------------------------
+ * Thin-plate spline surface (tps.cpp): tpsurf().
+ * ------------------------------------------------------------------------ */
+
+/* The thin-plate spline of the n >= 3 values z at the points (x, y) with
+ * smoothing lam >= 0 (Duchon 1977; Wahba 1990): a (n) the coefficients of
+ * phi(r) = r^2 log r, b (3) those of 1, x, y, solving (K + lam I) a + T b
+ * = z, T'a = 0; fit (n) the surface at the points and gz (nx x ny,
+ * column-major) at (gx[i], gy[j]). CLAB_EDOM when the points lie on one
+ * line (the largest cross product from the first point at most 1e-12 of
+ * the squared distance to the farthest) or the system is singular
+ * (repeated points with lam 0). O(n^3 + n nx ny). */
+int clab_tpsurf(const double *x, const double *y, const double *z, int n, double lam, const double *gx, int nx,
+                const double *gy, int ny, double *a, double *b, double *fit, double *gz);
+
+/* ------------------------------------------------------------------------
+ * Colliders of a DAG (dag.cpp): dagcol().
+ * ------------------------------------------------------------------------ */
+
+/* The colliders of the graph of the ne edges from[i] -> to[i] on the
+ * nodes 0 to nn - 1 (repeats merged): every a -> c <- b with a < b, by c
+ * and then by a and b, the first cap written to ca, cc, cb and sh (1 when
+ * a and b are adjacent, an edge either way); *nc the colliders in all and
+ * *nd the distinct edges. CLAB_EDOM for a cycle (a self-loop included).
+ * Called with cap 0 (and NULL arrays) to count. O(e log e + sum of the
+ * squared in-degrees). */
+int clab_dagcol(const int *from, const int *to, int ne, int nn, int cap, int *ca, int *cc, int *cb, int *sh, int *nc,
+                int *nd);
+
+/* ------------------------------------------------------------------------
+ * The explanation of a prediction function (xpl.cpp): a design kernel
+ * writes the rows at which the caller's function predicts, a summary
+ * kernel reads its predictions there.
+ * ------------------------------------------------------------------------ */
+
+/* Permutation importance (xpimp): x n x p; for column j and repetition r
+ * (nrep of them) the block b = j nrep + r of n rows of des (n p nrep x p)
+ * is x with column j permuted by perm[b n .. b n + n), rows from 0, drawn
+ * from seed. CLAB_EARG when des would pass kutil::maxcell values. */
+int clab_xpperm(const double *x, int n, int p, int nrep, unsigned int seed, double *des, int *perm);
+
+/* The importances from y (n), the predictions f0 at x and fp at the rows
+ * of clab_xpperm(): loss 0 squared error, 1 absolute error; rep (p x nrep)
+ * the mean loss after permuting less the loss before (ratio 0) or over it
+ * (ratio 1); st (1 + 2 p): the loss before, then the mean and the standard
+ * deviation of each row of rep. CLAB_EDOM for a value that is not finite,
+ * or a loss of 0 before permuting with ratio 1. */
+int clab_xpimp(const double *y, const double *f0, const double *fp, int n, int p, int nrep, int loss, int ratio,
+               double *rep, double *st);
+
+
+/* The grid of the values v (n): type 0, ng (from 2) points evenly from
+ * their minimum to their maximum (seq(length.out = ng)); type 1, their
+ * type-7 quantiles at seq(0, 1, length.out = ng). Repeats are dropped: g
+ * (ng) holds *m increasing values. */
+int clab_xpgrid(const double *v, int n, int ng, int type, double *g, int *m);
+
+/* Partial dependence and ceteris paribus profiles (xppdp, xpcp): row k ns
+ * + i of des (ns ng x p) is row i of s (ns x p) with column j (from 0) set
+ * to g[k]. */
+int clab_xpcpd(const double *s, int ns, int p, int j, const double *g, int ng, double *des);
+
+/* pd[k] (ng): the mean of the predictions f (ns ng) over block k. */
+int clab_xppd(const double *f, int ns, int ng, double *pd);
+
+
+/* Accumulated local effects (xpale; Apley and Zhu 2020): the edges zz (K +
+ * 1; *nz used) of column j of x (n x p), its minimum and its type-1
+ * quantiles at seq(1/K, 1, length.out = K), repeats dropped; bin (n) the
+ * interval of each row from 0, (z_b, z_b+1], the first closed below; des
+ * (2 n x p) x with column j at the upper edges, then at the lower edges.
+ * CLAB_EDOM when the column has one value. */
+int clab_xpaled(const double *x, int n, int p, int j, int K, double *zz, int *nz, int *bin, double *des);
+
+/* From the predictions f (2 n) at those rows: eff and cnt (nb) the mean
+ * difference and the rows of each interval, ale (nb + 1) the accumulated
+ * effects at the edges, centred on the rows' interval midpoints. */
+int clab_xpale(const double *f, int n, const int *bin, int nb, double *eff, double *cnt, double *ale);
+
+
+/* Sampling Shapley values (xpshap; Strumbelj and Kononenko 2014): for
+ * each instance a of s (ns x p), feature j and sample t (m of them), a
+ * permutation of the features and a row of x (n x p) drawn from seed; row
+ * q = (a p + j) m + t of des (2 Q x p, Q = ns p m) holds the instance on
+ * the features before j and on j, the row drawn elsewhere; row Q + q the
+ * same with j from the row drawn. */
+int clab_xpshd(const double *x, int n, const double *s, int ns, int p, int m, unsigned int seed, double *des);
+
+/* phi and se (ns x p): the mean of f[q] - f[Q + q] over the samples and
+ * its standard error (NaN for one sample). */
+int clab_xpsh(const double *f, int ns, int p, int m, double *phi, double *se);
+
+/* Scratch for clab_ulcate(): returns the doubles, sets *niw to the ints. */
+int64_t clab_ulcsz(int n, int p, const clab_lrn *ly, const clab_lrn *ld, const clab_lrn *lt, int64_t *niw);
+
+/* The U-learner of conditional average treatment effects (ulcate; Kunzel
+ * et al. 2019): x (n x p), y, d (0 or 1) and fold (n, folds from 0, nf of
+ * them). With fit, pred (n x 2) receives the out-of-fold predictions of y
+ * (learner ly) and of the propensity P(d = 1 | x) (ld, as a probability);
+ * otherwise pred holds them. u (n): the pseudo-outcome (y - m) / (d - e),
+ * its denominator moved to clip (0 < clip < 0.5) or -clip when nearer 0;
+ * tau (n): learner lt fitted to u on all the rows, at the rows. CLAB_EDOM
+ * for a treatment that is not 0 or 1, a bad clip or a value that is not
+ * finite. */
+int clab_ulcate(const double *x, int n, int p, const double *y, const double *d, const int *fold, int nf,
+                const clab_lrn *ly, const clab_lrn *ld, const clab_lrn *lt, double clip, int fit, double *pred,
+                double *u, double *tau, double *work, int *iwork);
+
+/* ------------------------------------------------------------------------
+ * The generalised ordered logit (gol.cpp).
+ * ------------------------------------------------------------------------ */
+
+/* gologt (Peterson and Harrell 1990; Williams 2006): y (n) categories 0 to
+ * M - 1 (M from 3, each present), x (n x p) covariates, par (p) 1 for a
+ * covariate with one slope for every threshold. P(y > j) = F(a_j + x b_j)
+ * for j < M - 1. est (np = M - 1 + the slopes): the intercepts, then each
+ * covariate's slope or its M - 1 slopes; cov (np x np) the inverse
+ * Hessian; wd (3 p): for each covariate not held parallel the Wald
+ * chi-square that its slopes are equal, its degrees of freedom M - 2 and
+ * p-value (NaN for a parallel one); st: the log-likelihood, the
+ * quasi-Newton steps, 1 when converged. CLAB_EDOM for a category with no
+ * rows, a covariate that is not finite or a fit that cannot start. */
+int clab_gologt(const int *y, int n, int M, const double *x, int p, const int *par, int maxit, double *est,
+                double *cov, double *wd, double *st);
+
 #ifdef __cplusplus
 }
 #endif

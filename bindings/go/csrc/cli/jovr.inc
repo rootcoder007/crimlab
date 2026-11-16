@@ -651,6 +651,7 @@ bool tabrpt(Ctx &c, Val &out) {
     }
     put(a, "grp", vstrs(gl));
     for (const char *k : {"per", "level"}) arg(a, k);
+    if (!c.has("per")) put(a, "per", vnum(1000.0)); // tabrpt()'s default, not grprr()'s
     CK(ax::call(c, c.fn, grprr, a, r));
     put(out, "rates", std::move(r));
   } else {

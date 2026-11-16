@@ -1640,6 +1640,9 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jyoyp.inc"
 #include "jvrf.inc"
 #include "jovr.inc"
+#include "jmap.inc"
+#include "jxpl.inc"
+#include "jgol.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1826,6 +1829,7 @@ const Ent ents[] = {
     {"wystep", "obs null", wystep},
     {"dmlx", "y d x model? fold z? s? t? score? lrn? lrnd? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? trim? clu? pred? stk? nstk? disc? seed?", dmlx},
     {"suplrn", "x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?", suplrn},
+    {"ulcate", "y d x fold lrn? lrnd? lrnt? clip? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? pred? stk? nstk? disc? seed?", ulcate},
     {"knxnr", "x y? t ds dt nsim? seed? lonlat?", knxnr},
     {"kdsurf", "x y? w? h? win? nx? ny? edge? at? cover?", kdsurf},
     {"dbscn", "x y? eps minpts? border? lonlat?", dbscn},
@@ -2081,6 +2085,20 @@ const Ent ents[] = {
     {"ovrtxt", "x html?", ovr::ovrtxt},
     {"synfix", "kind? n? seed?", ovr::synfix},
     {"pscred", "days ratio? sentence?", ovr::pscred},
+    {"chomap", "polys v brk? meth?", chomap},
+    {"smmap", "polys v brk? meth?", smmap},
+    {"ptmap", "x y? cl?", ptmap},
+    {"prpmap", "x y? v rmax?", prpmap},
+    {"eofst", "z k?", eofst},
+    {"tpsurf", "x y z lam? nx? ny?", tpsurf},
+    {"dagcol", "from to triple?", dagcol},
+    {"gologt", "data y x par? lev? level? maxit?", gologt},
+    {"gocoef", "object v?", gocoef},
+    {"xpshap", "x f newx? y? nsamp? seed? lctl?", xpshap},
+    {"xpale", "x f v y? nbin? lctl?", xpale},
+    {"xpcp", "x f v newx? y? grid? gtype? lctl?", xpcp},
+    {"xppdp", "x f v y? grid? gtype? lctl?", xppdp},
+    {"xpimp", "x f y nrep? loss? ratio? seed? lctl?", xpimp},
     {"ifesc", "data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?", ax::ifesc},
     {"updwn", "data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?", ax::updwn},
     {"expjn", "expo outc by?", ax::expjn},

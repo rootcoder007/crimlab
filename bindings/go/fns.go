@@ -538,6 +538,9 @@ func Dmlx(args string) (string, error) { return Jrun("dmlx", args) }
 // Suplrn runs suplrn() of the R package (arguments: x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?; ? marks an optional one).
 func Suplrn(args string) (string, error) { return Jrun("suplrn", args) }
 
+// Ulcate runs ulcate() of the R package (arguments: y d x fold lrn? lrnd? lrnt? clip? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? pred? stk? nstk? disc? seed?; ? marks an optional one).
+func Ulcate(args string) (string, error) { return Jrun("ulcate", args) }
+
 // Knxnr runs knxnr() of the R package (arguments: x y? t ds dt nsim? seed? lonlat?; ? marks an optional one).
 func Knxnr(args string) (string, error) { return Jrun("knxnr", args) }
 
@@ -1302,6 +1305,48 @@ func Synfix(args string) (string, error) { return Jrun("synfix", args) }
 
 // Pscred runs pscred() of the R package (arguments: days ratio? sentence?; ? marks an optional one).
 func Pscred(args string) (string, error) { return Jrun("pscred", args) }
+
+// Chomap runs chomap() of the R package (arguments: polys v brk? meth?; ? marks an optional one).
+func Chomap(args string) (string, error) { return Jrun("chomap", args) }
+
+// Smmap runs smmap() of the R package (arguments: polys v brk? meth?; ? marks an optional one).
+func Smmap(args string) (string, error) { return Jrun("smmap", args) }
+
+// Ptmap runs ptmap() of the R package (arguments: x y? cl?; ? marks an optional one).
+func Ptmap(args string) (string, error) { return Jrun("ptmap", args) }
+
+// Prpmap runs prpmap() of the R package (arguments: x y? v rmax?; ? marks an optional one).
+func Prpmap(args string) (string, error) { return Jrun("prpmap", args) }
+
+// Eofst runs eofst() of the R package (arguments: z k?; ? marks an optional one).
+func Eofst(args string) (string, error) { return Jrun("eofst", args) }
+
+// Tpsurf runs tpsurf() of the R package (arguments: x y z lam? nx? ny?; ? marks an optional one).
+func Tpsurf(args string) (string, error) { return Jrun("tpsurf", args) }
+
+// Dagcol runs dagcol() of the R package (arguments: from to triple?; ? marks an optional one).
+func Dagcol(args string) (string, error) { return Jrun("dagcol", args) }
+
+// Gologt runs gologt() of the R package (arguments: data y x par? lev? level? maxit?; ? marks an optional one).
+func Gologt(args string) (string, error) { return Jrun("gologt", args) }
+
+// Gocoef runs gocoef() of the R package (arguments: object v?; ? marks an optional one).
+func Gocoef(args string) (string, error) { return Jrun("gocoef", args) }
+
+// Xpshap runs xpshap() of the R package (arguments: x f newx? y? nsamp? seed? lctl?; ? marks an optional one).
+func Xpshap(args string) (string, error) { return Jrun("xpshap", args) }
+
+// Xpale runs xpale() of the R package (arguments: x f v y? nbin? lctl?; ? marks an optional one).
+func Xpale(args string) (string, error) { return Jrun("xpale", args) }
+
+// Xpcp runs xpcp() of the R package (arguments: x f v newx? y? grid? gtype? lctl?; ? marks an optional one).
+func Xpcp(args string) (string, error) { return Jrun("xpcp", args) }
+
+// Xppdp runs xppdp() of the R package (arguments: x f v y? grid? gtype? lctl?; ? marks an optional one).
+func Xppdp(args string) (string, error) { return Jrun("xppdp", args) }
+
+// Xpimp runs xpimp() of the R package (arguments: x f y nrep? loss? ratio? seed? lctl?; ? marks an optional one).
+func Xpimp(args string) (string, error) { return Jrun("xpimp", args) }
 
 // Ifesc runs ifesc() of the R package (arguments: data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?; ? marks an optional one).
 func Ifesc(args string) (string, error) { return Jrun("ifesc", args) }
