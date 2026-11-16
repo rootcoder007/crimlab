@@ -131,7 +131,9 @@ binomial model with the same effects see
 (binary treatment) and
 [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md);
 Andreatta et al. (2023) fit a dynamic panel of the logged rate by system
-GMM, which the package does not have.
+GMM, as
+[`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md)
+does.
 
 The plot draws the coefficients with their intervals and, with an
 interaction, the simple slopes at each value of the moderator; it

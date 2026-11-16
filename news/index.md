@@ -13,8 +13,36 @@
   ([`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md)),
   and Pesaran’s CD test of cross-sectional dependence
   ([`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md),
-  as Andreatta et al. 2023 use it). They are not yet in `clab_jrun()`,
-  the command line or Python.
+  as Andreatta et al. 2023 use it). They are in `clab_jrun()`, the
+  command line and Python.
+
+- Dynamic and heterogeneous panels, for the models Andreatta et
+  al. (2023) fit to waste crime: difference and system GMM
+  ([`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md),
+  Arellano and Bond 1991, Arellano and Bover 1995, Blundell and Bond
+  1998, with the instruments of Roodman 2009), one-step and two-step,
+  first differences or forward orthogonal deviations, GMM-style
+  instruments with lag limits and collapsing, IV-style instruments, the
+  robust or conventional one-step variance and Windmeijer’s corrected or
+  the uncorrected two-step variance, small-sample t and F statistics, a
+  joint Wald or F test, the Arellano-Bond tests, the Sargan, Hansen and
+  difference-in-Hansen tests and the instrument count; Wooldridge’s test
+  of serial correlation
+  ([`wsctst()`](https://rootcoder007.github.io/crimlab/reference/wsctst.md),
+  Drukker 2003); and the common correlated effects mean group and pooled
+  estimators
+  ([`ccepnl()`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md),
+  Pesaran 2006), on balanced and unbalanced panels, with a choice of the
+  averages taken out. They are in `clab_jrun()`, the command line and
+  Python.
+
+- Panels with a repeated unit and period are found by sorting the rows,
+  not with a grid of units by periods, which for many units and periods
+  could ask for more memory than the rows hold.
+  [`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md)
+  and
+  [`lmdix()`](https://rootcoder007.github.io/crimlab/reference/lmdix.md)
+  refuse a panel whose units by periods pass 2^26 cells.
 
 - Spatial epidemiology and surveillance: Bayes outbreak detection
   ([`bayout()`](https://rootcoder007.github.io/crimlab/reference/bayout.md)),

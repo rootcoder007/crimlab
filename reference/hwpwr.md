@@ -173,14 +173,13 @@ CodeCarbon documentation: Accuracy.
 ``` r
 r <- hwpwr(0.5)
 r[, c("kind", "name", "scope", "watts", "joules", "how")]
-#>    kind           name  scope watts joules     how
-#> 1   cpu            CPU device    NA     NA unknown
-#> 2   gpu card1 (1414:6) device    NA     NA unknown
-#> 3 total    all devices device    NA     NA     sum
+#>    kind        name  scope watts joules     how
+#> 1   cpu         CPU device    NA     NA unknown
+#> 2 total all devices device    NA     NA     sum
 a <- hwpwr(0)
 x <- sum(sqrt(seq_len(1e6)))
 b <- hwpwr(since = a)
 b[b$kind == "total", c("joules", "why")]
-#>   joules                              why
-#> 3     NA not counted: CPU; card1 (1414:6)
+#>   joules              why
+#> 2     NA not counted: CPU
 ```

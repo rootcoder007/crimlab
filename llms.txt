@@ -1848,7 +1848,9 @@ Offences against the environment as the outcome: where, when and why
 pollution offences, illegal waste disposal and safety crimes are
 recorded, and how enforcement shapes the counts. The LMDI decomposition
 of a count over a Kaya identity, two-way fixed effects with an
-interaction and its checks, and Pesaran’s CD test of a panel.
+interaction and its checks, Pesaran’s CD test of a panel, difference and
+system GMM for dynamic panels, Wooldridge’s test of serial correlation
+and common correlated effects.
 
 - [`lmdix()`](https://rootcoder007.github.io/crimlab/reference/lmdix.md)
   [`plot(`*`<lmdix>`*`)`](https://rootcoder007.github.io/crimlab/reference/lmdix.md)
@@ -1858,6 +1860,14 @@ interaction and its checks, and Pesaran’s CD test of a panel.
   : Two-way fixed effects with an interaction, for counts of offences
 - [`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md)
   : Pesaran's CD test of cross-sectional dependence in a panel
+- [`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md)
+  [`plot(`*`<gmmpnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md)
+  : Difference and system GMM for dynamic panels
+- [`wsctst()`](https://rootcoder007.github.io/crimlab/reference/wsctst.md)
+  : Wooldridge's test for serial correlation in a panel
+- [`ccepnl()`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md)
+  [`plot(`*`<ccepnl>`*`)`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md)
+  : Common correlated effects for panels with unobserved common factors
 
 ## Data larger than memory
 

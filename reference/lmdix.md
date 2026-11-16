@@ -157,8 +157,14 @@ a Kaya identity, Duan et al. 2026),
 (two-way fixed effects with an interaction and the checks Duan et al.
 report) and
 [`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md)
-(cross-sectional dependence of a panel, Andreatta et al. 2023), with the
-package's spatial tests
+(cross-sectional dependence of a panel, Andreatta et al. 2023),
+[`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md)
+(difference and system GMM for dynamic panels, as Andreatta et al. fit
+them),
+[`wsctst()`](https://rootcoder007.github.io/crimlab/reference/wsctst.md)
+(Wooldridge's test of serial correlation) and
+[`ccepnl()`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md)
+(common correlated effects), with the package's spatial tests
 ([`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md),
 [`gearc()`](https://rootcoder007.github.io/crimlab/reference/gearc.md),
 [`lmorn()`](https://rootcoder007.github.io/crimlab/reference/lmorn.md))
