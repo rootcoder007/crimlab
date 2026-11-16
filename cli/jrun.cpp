@@ -1627,6 +1627,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jax2.inc"
 #include "jplt.inc"
 #include "jspi.inc"
+#include "jplt2.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2089,6 +2090,8 @@ const Ent ents[] = {
     {"plotbump", "y prd grp desc?", plotbump},
     {"plotfnl", "obs expd area? lvls? target?", plotfnl},
     {"plotcal", "x y", plotcal},
+    {"plotrdg", "x grp? bw?", plotrdg},
+    {"plotvln", "x grp? bw?", plotvln},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

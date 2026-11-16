@@ -85,6 +85,12 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `plotrdg()` and `plotvln()` are in `clab_jrun()`, the command line and
+  Python, returning the rows R returns (without the quartiles `plotvln()`
+  keeps as an attribute). Their densities come from a kernel that
+  reproduces `stats::density()`: the bandwidth rules nrd0, nrd, ucv, bcv
+  and SJ, the binning, the FFT convolution and the interpolation, equal
+  to R's to rounding. In R both still call `stats::density()`.
 
 * New: `dwnexp()` builds downwind-exposure instruments from sources of
   pollution and the wind: the sector and transport-wedge rules of Bao and

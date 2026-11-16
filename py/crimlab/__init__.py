@@ -446,6 +446,8 @@ from ._j import (
     plotbump,
     plotfnl,
     plotcal,
+    plotrdg,
+    plotvln,
 )
 from ._frns import cllr, cllrmin, dbsrch, eceplt, gtmp, kinidx, lrcal, lrpost, mixlr, patidx, tipplt
 from ._out import Ece, Record, Table, Tip, Vector
@@ -916,6 +918,8 @@ __all__ = [
     "plotfnl",
     "plotcal",
     "cemtch",
+    "plotrdg",
+    "plotvln",
 ]
 
 

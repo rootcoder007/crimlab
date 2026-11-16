@@ -7514,3 +7514,36 @@ def plotcal(x: Any, y: Any) -> Any:
     [0.0, 1.0]
     """
     return jcall("plotcal", x=x, y=y)
+
+
+def plotrdg(x: Any, grp: Any = None, bw: Any = "nrd0") -> Any:
+    """The rows of R's ``plotrdg()``, a kernel density per group.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotrdg()`` but its drawing arguments. The densities are those of
+    R's ``stats::density()`` (512 points, the same bandwidth rules), equal
+    to rounding.
+
+    Examples
+    --------
+    >>> r = plotrdg([1, 2, 4])
+    >>> len(r["x"]), r["grp"][0]
+    (512, 'all')
+    """
+    return jcall("plotrdg", x=x, grp=grp, bw=bw)
+
+
+def plotvln(x: Any, grp: Any = None, bw: Any = "nrd0") -> Any:
+    """The rows of R's ``plotvln()``, the densities of violins by group.
+
+    Nothing is drawn outside R; the arguments and the result are those of
+    R's ``plotvln()`` but its drawing arguments, and without its attribute
+    ``summary`` of quartiles. The densities are those of R's
+    ``stats::density()``, equal to rounding.
+
+    Examples
+    --------
+    >>> list(plotvln([1, 2, 4], bw=0.5))
+    ['grp', 'x', 'y']
+    """
+    return jcall("plotvln", x=x, grp=grp, bw=bw)
