@@ -61,9 +61,10 @@ inline Val vlgls(const int *x, std::size_t n) {
   return v;
 }
 inline Val vauto(const std::vector<double> &x) { return unbox(vnums(x)); }
-// A named vector of numbers.
+// A named vector of numbers; with no names an empty array, as R writes
+// a vector of no values (put() makes it an object at the first name).
 inline Val nvec(const std::vector<std::string> &nm, const double *x) {
-  Val o = vobj();
+  Val o = varr();
   for (std::size_t i = 0; i < nm.size(); ++i) put(o, nm[i].c_str(), vnum(x[i]));
   return o;
 }

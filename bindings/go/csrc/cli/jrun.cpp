@@ -120,9 +120,10 @@ void put(Val &o, const char *k, Val v) {
   o.k.push_back(k);
   o.a.push_back(std::move(v));
 }
-// A named vector.
+// A named vector; with no names an empty array, as R writes a vector of
+// no values (put() makes it an object at the first name).
 Val nvec(int n, const char *const *nm, const double *x) {
-  Val o;
+  Val o = varr();
   for (int i = 0; i < n; ++i) put(o, nm[i], vnum(x[i]));
   return o;
 }
