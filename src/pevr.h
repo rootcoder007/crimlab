@@ -63,15 +63,6 @@ struct pan {
   std::vector<double> tv;
 };
 
-// The columns of a numeric matrix (or one vector) of n rows, finite and
-// at least lo, with their names (pre1, pre2, ... where unnamed).
-struct mat {
-  std::vector<double> v;  // n x p, column-major
-  std::vector<std::string> nm;
-  int p = 0;
-};
-mat readm(SEXP x, const char *an, const char *pre, int n, double lo);
-
 // The panel of y (finite numbers, at least lo), unit (labels) and time
 // (finite numbers), one row per unit and period. Protects what it keeps
 // and adds the count to *np.

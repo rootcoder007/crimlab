@@ -20,6 +20,7 @@
 #include "crimlab.h"
 #include "kutil.h"
 #include "pev.h"
+#include "bmat.h"
 #include "pevr.h"
 #include "rchk.h"
 #include "spin.h"
@@ -158,7 +159,7 @@ rows mkrows(const pevr::pan &pn, const idx &ix, const spec &sp, double &big) {
 
 // The value of GMM-style variable v (-1: y) of unit a in period s; false
 // when the unit has no row then.
-bool gval(const pevr::pan &pn, const idx &ix, const pevr::mat &xm, int v, int a, int s,
+bool gval(const pevr::pan &pn, const idx &ix, const bmat::mat &xm, int v, int a, int s,
           double &out) {
   const int r = ix.at(a, s);
   if (r < 0) return false;
@@ -206,7 +207,7 @@ struct gcol {
 // Codes of build(): 0 done; 1 no transformed equation; 2 a regressor of
 // the user is collinear (bad); 3 too many instruments or arrays too large
 // (big); 4 interrupted; 5 too many regressors (big).
-int build(const pevr::pan &pn, const pevr::mat &xm, const pevr::mat &zx, const spec &sp,
+int build(const pevr::pan &pn, const bmat::mat &xm, const bmat::mat &zx, const spec &sp,
           dsg &d) {
   const idx ix(pn);
   const rows w = mkrows(pn, ix, sp, d.big);
@@ -496,7 +497,7 @@ int build(const pevr::pan &pn, const pevr::mat &xm, const pevr::mat &zx, const s
 }
 
 // Columns of x named by s (character), each once.
-std::vector<int> cnames(SEXP s, const char *an, const pevr::mat &xm) {
+std::vector<int> cnames(SEXP s, const char *an, const bmat::mat &xm) {
   if (TYPEOF(s) != STRSXP) fail("`%s` must be names of columns of `x`.", an);
   std::vector<int> o;
   for (R_xlen_t i = 0; i < XLENGTH(s); ++i) {
@@ -606,7 +607,7 @@ SEXP rmat(const std::vector<double> &v, int r, int c) {
 }
 
 // The options of gmmpnl() into sp.
-void gopts(spec &sp, const pevr::mat &xm, SEXP ylag, SEXP gmm, SEXP iv, SEXP lmin, SEXP lmax,
+void gopts(spec &sp, const bmat::mat &xm, SEXP ylag, SEXP gmm, SEXP iv, SEXP lmin, SEXP lmax,
            SEXP coll, SEXP type, SEXP trans, SEXP hmat, SEXP cons, SEXP tdum) {
   static const char *const tyo[] = {"system", "diff"};
   static const char *const tro[] = {"fd", "fod"};
@@ -692,8 +693,8 @@ SEXP C_clab_r_gmmpnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP ylag, SEXP gmm, 
   clab::who = "gmmpnl";
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
-  const pevr::mat xm = Rf_isNull(x) ? pevr::mat() : pevr::readm(x, "x", "x", pn.n, clab::ninf);
-  const pevr::mat zx = Rf_isNull(zz) ? pevr::mat() : pevr::readm(zz, "z", "z", pn.n, clab::ninf);
+  const bmat::mat xm = Rf_isNull(x) ? bmat::mat() : bmat::readm(x, "x", "x", pn.n, clab::ninf);
+  const bmat::mat zx = Rf_isNull(zz) ? bmat::mat() : bmat::readm(zz, "z", "z", pn.n, clab::ninf);
   spec sp;
   gopts(sp, xm, ylag, gmm, iv, lmin, lmax, coll, type, trans, hmat, cons, tdum);
   const int ns = clab::whole(steps, "steps", 1);
@@ -825,7 +826,7 @@ SEXP C_clab_r_wsctst(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP cons, SEXP ssc) 
   static const char *const sso[] = {"cr1", "none"};
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
-  const pevr::mat xm = Rf_isNull(x) ? pevr::mat() : pevr::readm(x, "x", "x", pn.n, clab::ninf);
+  const bmat::mat xm = Rf_isNull(x) ? bmat::mat() : bmat::readm(x, "x", "x", pn.n, clab::ninf);
   const int c = csp::flag(cons, "cons");
   const int raw = csp::pick(ssc, "ssc", sso, 2);
   if (xm.p > mmax) fail("`x` must have at most %d columns.", mmax);
@@ -870,10 +871,10 @@ SEXP C_clab_r_ccepnl(SEXP y, SEXP x, SEXP unit, SEXP time, SEXP fac, SEXP cons, 
   int np = 0;
   pevr::pan pn = pevr::panel(y, unit, time, clab::ninf, &np);
   const int n = pn.n, nu = pn.nu, nt = pn.nt;
-  const pevr::mat xm = pevr::readm(x, "x", "x", n, clab::ninf);
+  const bmat::mat xm = bmat::readm(x, "x", "x", n, clab::ninf);
   const int k = xm.p;
   if (k > mmax) fail("`x` must have at most %d columns.", mmax);
-  const pevr::mat fm = Rf_isNull(fac) ? pevr::mat() : pevr::readm(fac, "fac", "f", n, clab::ninf);
+  const bmat::mat fm = Rf_isNull(fac) ? bmat::mat() : bmat::readm(fac, "fac", "f", n, clab::ninf);
   const int cn = csp::flag(cons, "cons"), q = cn + fm.p;
   // the averages kept: y, then the columns of x
   std::vector<int> av(z(k) + 1, Rf_isNull(avg) ? 1 : 0);

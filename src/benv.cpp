@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "crimlab.h"
+#include "bmat.h"
 #include "pevr.h"
 #include "rchk.h"
 #include "spin.h"
@@ -25,8 +26,8 @@ extern "C" double Rf_qt(double, double, int, int);
 
 using clab::fail;
 using pevr::cols;
-using pevr::mat;
-using pevr::readm;
+using bmat::mat;
+using bmat::readm;
 using pevr::nlist;
 using pevr::z;
 
