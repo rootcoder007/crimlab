@@ -848,12 +848,14 @@
   command line gives the same message.
 * `sirex()` checks `level` before it reads it; an empty `level` was read
   past its end and crashed R.
-* `tfrp()` refuses a `ymax` of 2^26 or more, `fairsim()` more than 2^26
-  records and `aorwt()` more than 2^26 bins, before anything is made; the
+* `tfrp()` refuses a `ymax` of 2^26 or more and `aorwt()` more than 2^26
+  bins, before anything is made; `fairsim()` makes as many records as
+  asked, or stops with "fairsim: not enough memory for `n` values." The
   command line gives the same messages.
-* `crwalk()` refuses `h` times `nsim` past 2^26, the simulated steps it
-  keeps, and `vgemp()` more than 2^26 distance bins, in R and in the
-  command line.
+* `crwalk()` makes its simulated paths once, as the matrices it returns
+  (they were made twice), and stops with "not enough memory for `h`
+  times `nsim` values." when they cannot be made; `vgemp()` refuses more
+  than 2^26 distance bins. The command line does the same.
 * `lnsize()` refuses a lineup size `k` past 2^26; the command line gives
   the same message.
 * `evtst()` refuses more than 2^26 `draws` for the sensitivity interval,
@@ -882,10 +884,11 @@
 * `dmlx()` and `suplrn()` refuse more inner folds (`nfin`) than rows of
   `x`, before their work arrays are sized by it; the command line gives
   the same message.
-* `cconc()` refuses an `nsim` past 2^26, `fairdf()` an `nboot` past 2^25,
-  `cbootmean()` a `B` and `cunif()` an `n` past 2^26 and `blpal()` more
-  than 2^26 colours, instead of R's "cannot allocate vector" error; the
-  command line gives the same messages.
+* `cconc()` refuses an `nsim` past 2^26, `fairdf()` an `nboot` past 2^25
+  and `blpal()` more than 2^26 colours, instead of R's "cannot allocate
+  vector" error; `cbootmean()` and `cunif()` make results of any length
+  R can hold, and stop with "not enough memory for `B` values." (or `n`)
+  when it cannot. The command line gives the same messages.
 * `stacel()` with a `top` above the cells of its grid keeps them all, as
   that many does, instead of sizing its work arrays by `top`.
 * No exception leaves a C entry point of the library: every `clab_*`

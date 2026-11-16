@@ -77,8 +77,6 @@ SEXP C_clab_r_crwalk(SEXP x, SEXP y, SEXP h, SEXP nsim, SEXP seed,
   if (n < 3) fail("at least 3 locations are needed.");
   const int hh = clab::whole(h, "h", 1);
   const int ns = clab::whole(nsim, "nsim", 1);
-  // the simulated paths, h steps of each of nsim walks, are kept
-  if (static_cast<double>(hh) * ns > kutil::maxcell) fail("`h` times `nsim` must be at most %.0f.", kutil::maxcell);
   const unsigned int sd = csp::seed(seed);
   SEXP st = PROTECT(real(n - 1));
   SEXP tu = PROTECT(real(n - 2));
@@ -90,8 +88,10 @@ SEXP C_clab_r_crwalk(SEXP x, SEXP y, SEXP h, SEXP nsim, SEXP seed,
   double *c[7];
   SEXP m = PROTECT(dframe(7, hh, mn, c));
   kc(clab_crwmsd(p.x, p.y, n, f[0], f[1], f[2], hh, c[1], c[2]), "the kernel refused the input.");
-  SEXP px = PROTECT(real(static_cast<R_xlen_t>(hh) * ns));
-  SEXP py = PROTECT(real(static_cast<R_xlen_t>(hh) * ns));
+  // the simulated paths are the result (sim$x, sim$y): made once, at the
+  // size asked, or refused cleanly
+  SEXP px = PROTECT(clab::xalloc(REALSXP, static_cast<R_xlen_t>(hh) * ns, "h` times `nsim"));
+  SEXP py = PROTECT(clab::xalloc(REALSXP, static_cast<R_xlen_t>(hh) * ns, "h` times `nsim"));
   kc(clab_crwsim(REAL(st), n - 1, REAL(tu), n - 2, p.x[n - 1], p.y[n - 1], f[4], hh, ns, sd,
                  REAL(px), REAL(py)),
      "the kernel refused the input.");
@@ -121,12 +121,15 @@ SEXP C_clab_r_crwalk(SEXP x, SEXP y, SEXP h, SEXP nsim, SEXP seed,
   static const char *const fn[] = {"steps", "ml", "ml2", "c", "s", "head"};
   SEXP fit = PROTECT(clab::nvec(6, fn, fv));
   SEXP sim = PROTECT(Rf_allocVector(VECSXP, 2));
-  SEXP mx = Rf_allocMatrix(REALSXP, ns, hh);
-  SET_VECTOR_ELT(sim, 0, mx);
-  std::memcpy(REAL(mx), REAL(px), sizeof(double) * static_cast<std::size_t>(hh) * static_cast<std::size_t>(ns));
-  SEXP my = Rf_allocMatrix(REALSXP, ns, hh);
-  SET_VECTOR_ELT(sim, 1, my);
-  std::memcpy(REAL(my), REAL(py), sizeof(double) * static_cast<std::size_t>(hh) * static_cast<std::size_t>(ns));
+  // px and py are nsim x h already (step k of walk s at k nsim + s): they
+  // become the matrices themselves, not copies
+  SEXP dm = PROTECT(Rf_allocVector(INTSXP, 2));
+  INTEGER(dm)[0] = ns;
+  INTEGER(dm)[1] = hh;
+  Rf_setAttrib(px, R_DimSymbol, dm);
+  Rf_setAttrib(py, R_DimSymbol, dm);
+  SET_VECTOR_ELT(sim, 0, px);
+  SET_VECTOR_ELT(sim, 1, py);
   static const char *const sn[] = {"x", "y"};
   clab::nlist(sim, sn);
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
@@ -134,7 +137,7 @@ SEXP C_clab_r_crwalk(SEXP x, SEXP y, SEXP h, SEXP nsim, SEXP seed,
   SET_VECTOR_ELT(out, 1, m);
   SET_VECTOR_ELT(out, 2, sim);
   static const char *const on[] = {"fit", "msd", "sim"};
-  UNPROTECT(9);
+  UNPROTECT(10);
   return clab::nlist(out, on);
 }
 

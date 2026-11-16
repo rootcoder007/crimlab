@@ -69,8 +69,7 @@ hdbang <- function(x, y = NULL, v, w = NULL, nn = 8, ang = 135, ntrip = 0,
 #'
 #' @inheritParams cgstat
 #' @param h The number of steps ahead: a whole number from 1.
-#' @param nsim The number of simulated continuations: a whole number from 1;
-#'   `h` times `nsim` must be at most 67108864 (2^26).
+#' @param nsim The number of simulated continuations: a whole number from 1.
 #' @inheritParams nnidx
 #' @return A list. `fit`, a named vector: `steps`, `ml` (mean step), `ml2`
 #'   (mean squared step), `c` and `s` (mean cosine and sine of the turning

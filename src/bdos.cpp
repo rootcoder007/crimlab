@@ -144,15 +144,17 @@ struct cols {
   SEXP v;
   const char *nm[40];
   int k = 0, n;
-  cols(int ncol, int nr) : n(nr) { v = PROTECT(Rf_allocVector(VECSXP, ncol)); }
+  const char *what = nullptr;  // the argument named when a column cannot be made
+  cols(int ncol, int nr, const char *w = nullptr) : n(nr), what(w) { v = PROTECT(Rf_allocVector(VECSXP, ncol)); }
+  SEXP col(SEXPTYPE t) { return what ? clab::xalloc(t, n, what) : Rf_allocVector(t, n); }
   double *dbl(const char *name) {
-    SEXP c = Rf_allocVector(REALSXP, n);
+    SEXP c = col(REALSXP);
     SET_VECTOR_ELT(v, k, c);
     nm[k++] = name;
     return REAL(c);
   }
   int *in(const char *name, int type = INTSXP) {
-    SEXP c = Rf_allocVector(type, n);
+    SEXP c = col(static_cast<SEXPTYPE>(type));
     SET_VECTOR_ELT(v, k, c);
     nm[k++] = name;
     return type == LGLSXP ? LOGICAL(c) : INTEGER(c);
@@ -871,7 +873,6 @@ SEXP C_clab_r_fairsim(SEXP n, SEXP groups, SEXP props, SEXP nareas, SEXP base,
                       SEXP bias, SEXP seed) {
   clab::who = "fairsim";
   const int N = clab::whole(n, "n", 1);
-  if (N > kutil::maxcell) fail("`n` must be at most %.0f.", kutil::maxcell);
   clab::unlab(groups, "groups");
   SEXP gl = PROTECT(clab::labs(groups));
   if (Rf_isNull(gl) || TYPEOF(groups) == VECSXP || clab::anyna(gl) || XLENGTH(gl) < 2) {
@@ -899,10 +900,11 @@ SEXP C_clab_r_fairsim(SEXP n, SEXP groups, SEXP props, SEXP nareas, SEXP base,
   const double bs = clab::val1(bias);
   if (!(bs >= -1.0 && bs <= 1.0)) fail("`bias` must be one number from -1 to 1.");
   const unsigned int s = sd(seed);
-  SEXP ai = PROTECT(ints(N)), gi = PROTECT(ints(N));
-  cols f(5, N);
+  // the records are the result: as many as asked, or a clean refusal
+  SEXP ai = PROTECT(clab::xalloc(INTSXP, N, "n")), gi = PROTECT(clab::xalloc(INTSXP, N, "n"));
+  cols f(5, N, "n");
   int *ar = f.in("area");
-  SEXP gs = PROTECT(Rf_allocVector(STRSXP, N));
+  SEXP gs = PROTECT(clab::xalloc(STRSXP, N, "n"));
   f.put("group", gs);
   int *tr = f.in("truth"), *dt = f.in("det");
   double *rk = f.dbl("risk");

@@ -489,8 +489,7 @@ ccovm <- function(x) {
 #' replicate that draws it `NA`. A long run can be interrupted.
 #'
 #' @param x Numeric (or logical) vector to resample.
-#' @param B The number of replicates, one whole number from 1 to
-#'   67108864 (2^26).
+#' @param B The number of replicates, one whole number from 1.
 #' @param seed The seed of the core's generator, one whole number from 0,
 #'   below \eqn{2^{53}}.
 #' @return A numeric vector of `B` replicate means.
@@ -508,7 +507,6 @@ ccovm <- function(x) {
 cbootmean <- function(x, B = 1000L, seed = 42L) {
   x <- .pnum(x, "x", "cbootmean")
   B <- .pone(B, "B", "cbootmean", 1, .Machine$integer.max, TRUE)
-  .pmax(B, "B", "cbootmean")
   .pcall(14L, x, a = c(B, .pseed(seed, "cbootmean")))
 }
 
@@ -615,8 +613,7 @@ cgamcdf <- function(shape, x) {
 #' double in [0, 1). R's own generator and `set.seed()` are neither used
 #' nor changed. It is not a statistical replacement for R's generators.
 #'
-#' @param n The number of uniforms, one whole number from 0 to
-#'   67108864 (2^26).
+#' @param n The number of uniforms, one whole number from 0.
 #' @param seed The seed, one whole number from 0, below \eqn{2^{53}} (so
 #'   that it is exact as a double).
 #' @return A numeric vector of `n` values in [0, 1).
@@ -634,7 +631,6 @@ cgamcdf <- function(shape, x) {
 #' @export
 cunif <- function(n, seed) {
   n <- .pone(n, "n", "cunif", 0, .Machine$integer.max, TRUE)
-  .pmax(n, "n", "cunif")
   .pcall(16L, numeric(), a = c(n, .pseed(seed, "cunif")))
 }
 
@@ -665,14 +661,6 @@ cunif <- function(n, seed) {
          call. = FALSE)
   }
   as.numeric(x)
-}
-
-# A count that sizes the result, at most 2^26 (the bound of the kernels).
-.pmax <- function(x, nm, fn) {
-  if (x > 2^26) {
-    stop(fn, ": `", nm, "` must be at most 67108864.", call. = FALSE)
-  }
-  invisible(x)
 }
 
 .psame <- function(x, y, a, b, fn) {

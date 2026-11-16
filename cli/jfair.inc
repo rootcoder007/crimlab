@@ -413,7 +413,6 @@ bool nordet(Ctx &c, Val &out) {
 bool fairsim(Ctx &c, Val &out) {
   int N = 0;
   CK(wholed(c, "n", 2000, 1, N));
-  if (N > kutil::maxcell) return c.fail("`n` must be at most %.0f.", kutil::maxcell);
   std::vector<std::string> gl = {"A", "B"};
   if (c.has("groups")) {
     if (!alabs(c["groups"], gl) || gl.size() < 2) {
@@ -445,8 +444,19 @@ bool fairsim(Ctx &c, Val &out) {
   unsigned int s = 0;
   CK(seed(c, s));
   const std::size_t n = static_cast<std::size_t>(N);
-  std::vector<int> ai(n), gi(n), tr(n), dt(n);
-  std::vector<double> rk(n);
+  std::vector<int> ai, gi, tr, dt;
+  std::vector<double> rk;
+#if defined(__cpp_exceptions) || defined(_CPPUNWIND)
+  bool ok = true;
+  try {
+    ai.resize(n), gi.resize(n), tr.resize(n), dt.resize(n), rk.resize(n);
+  } catch (const std::bad_alloc &) {
+    ok = false;
+  }
+  if (!ok) return c.fail("not enough memory for `n` values.");
+#else
+  ai.resize(n), gi.resize(n), tr.resize(n), dt.resize(n), rk.resize(n);
+#endif
   if (clab_fairsim(N, G, pv.n() ? pv.p() : nullptr, na, b0, bs, s, ai.data(), gi.data(), tr.data(), dt.data(),
                    rk.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");

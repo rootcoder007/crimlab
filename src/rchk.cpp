@@ -174,6 +174,29 @@ SEXP dbl(SEXP x) {
   return v;
 }
 
+namespace {
+
+struct Al {
+  SEXPTYPE t;
+  R_xlen_t n;
+};
+SEXP alloc1(void *d) {
+  const Al *a = static_cast<const Al *>(d);
+  return Rf_allocVector(a->t, a->n);
+}
+SEXP nomem(SEXP, void *) { return R_NilValue; }
+
+}  // namespace
+
+SEXP xalloc(SEXPTYPE t, R_xlen_t n, const char *nm) {
+  Al a{t, n};
+  // R's allocation error, caught here, unwinds no C++ frame: the
+  // allocation is the only thing that runs inside the catch
+  SEXP r = R_tryCatchError(alloc1, &a, nomem, nullptr);
+  if (r == R_NilValue) fail("not enough memory for `%s` values.", nm);
+  return r;
+}
+
 SEXP dcopy(SEXP x) {
   const R_xlen_t n = XLENGTH(x);
   SEXP v = PROTECT(Rf_allocVector(REALSXP, n));

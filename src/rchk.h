@@ -72,6 +72,11 @@ bool anyna(SEXP x);
 SEXP dbl(SEXP x);
 // A fresh double copy of a double vector without its attributes.
 SEXP dcopy(SEXP x);
+// Rf_allocVector(t, n) for a vector of n values sized by argument nm (a
+// result as long as the caller asked for): when R cannot allocate it,
+// "fn: not enough memory for `nm` values." instead of R's own message.
+// Unprotected, as Rf_allocVector() returns it.
+SEXP xalloc(SEXPTYPE t, R_xlen_t n, const char *nm);
 
 // A labelled vector (one with a "labels" attribute, as haven makes) holds
 // codes, not values: it is refused, naming argument nm, with a request to

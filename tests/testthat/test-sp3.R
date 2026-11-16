@@ -239,10 +239,3 @@ test_that("the new functions answer one valid call in their shape", {
                      info = fns[k])
   }
 })
-
-test_that("crwalk() refuses more simulated steps than it can keep", {
-  p <- cbind(x = c(0, 1, 2, 2.5), y = c(0, 0.5, 0.4, 1))
-  expect_error(crwalk(p, h = 1e5, nsim = 1e5, seed = 1),
-               "crwalk: `h` times `nsim` must be at most 67108864.",
-               fixed = TRUE)
-})

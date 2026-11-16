@@ -16,8 +16,8 @@ SEXP C_clab_r_prim(SEXP op, SEXP x, SEXP y, SEXP a) {
   const double *px = REAL(x);
   const double *pa = Rf_isNull(a) ? nullptr : REAL(a);
   SEXP out = R_NilValue;
-  auto vec = [&out](R_xlen_t m) {
-    out = PROTECT(Rf_allocVector(REALSXP, m));
+  auto vec = [&out](R_xlen_t m, const char *nm = "x") {
+    out = PROTECT(clab::xalloc(REALSXP, m, nm));
     return REAL(out);
   };
   switch (k) {
@@ -41,12 +41,16 @@ SEXP C_clab_r_prim(SEXP op, SEXP x, SEXP y, SEXP a) {
     }
     case 14: {
       const int b = static_cast<int>(pa[0]);
-      double *o = vec(b);
+      clab::who = "cbootmean";
+      double *o = vec(b, "B");
       clab::kchk(clab_bmean(px, n, b, pa[1], o), "bootstrap");
       break;
     }
     case 15: clab_ipw(px, REAL(y), n, pa[0], pa[1], vec(n)); break;
-    case 16: clab_unif(pa[1], static_cast<int>(pa[0]), vec(static_cast<R_xlen_t>(pa[0]))); break;
+    case 16:
+      clab::who = "cunif";
+      clab_unif(pa[1], static_cast<int>(pa[0]), vec(static_cast<R_xlen_t>(pa[0]), "n"));
+      break;
     case 18: {
       double *o = vec(3 * static_cast<R_xlen_t>(n));
       clab::kchk(clab_shrs(px, n, pa[0], pa[1], o, o + n, o + 2 * n), "shrs");
@@ -56,9 +60,9 @@ SEXP C_clab_r_prim(SEXP op, SEXP x, SEXP y, SEXP a) {
     case 20: {
       const int b = static_cast<int>(pa[0]), ny = static_cast<int>(XLENGTH(y));
       std::vector<double> p(static_cast<std::size_t>(b) + 2), q(p.size());
-      const int k = clab_psibin(px, n, REAL(y), ny, b, p.data(), q.data());
+      const int nbin = clab_psibin(px, n, REAL(y), ny, b, p.data(), q.data());
       double r[2];
-      clab_psi(p.data(), q.data(), k, pa[1], r);
+      clab_psi(p.data(), q.data(), nbin, pa[1], r);
       double *o = vec(2);
       o[0] = r[0];
       o[1] = r[1];

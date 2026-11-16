@@ -19,7 +19,7 @@
 #' [scrdsp()] on `risk` a gap near `100 bias`, and [calaud()] the other
 #' groups' areas ranked as riskier than their recorded outcomes.
 #'
-#' @param n The number of records: a whole number from 1 to 67108864 (2^26).
+#' @param n The number of records: a whole number from 1.
 #' @param groups The group labels, at least two, the reference first.
 #' @param props `NULL` for equal shares, or one weight from 0 per group (not
 #'   all 0).
