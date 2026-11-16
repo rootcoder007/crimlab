@@ -1366,6 +1366,39 @@ func Plotfnl(args string) (string, error) { return Jrun("plotfnl", args) }
 // Plotcal runs plotcal() of the R package (arguments: x y; ? marks an optional one).
 func Plotcal(args string) (string, error) { return Jrun("plotcal", args) }
 
+// Plotrdg runs plotrdg() of the R package (arguments: x grp? bw?; ? marks an optional one).
+func Plotrdg(args string) (string, error) { return Jrun("plotrdg", args) }
+
+// Plotvln runs plotvln() of the R package (arguments: x grp? bw?; ? marks an optional one).
+func Plotvln(args string) (string, error) { return Jrun("plotvln", args) }
+
+// Hwpwr runs hwpwr() of the R package (arguments: dt? since? step? rated? pid? skip? paths?; ? marks an optional one).
+func Hwpwr(args string) (string, error) { return Jrun("hwpwr", args) }
+
+// Co2fp runs co2fp() of the R package (arguments: durs cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?; ? marks an optional one).
+func Co2fp(args string) (string, error) { return Jrun("co2fp", args) }
+
+// Plothex runs plothex() of the R package (arguments: x y bins?; ? marks an optional one).
+func Plothex(args string) (string, error) { return Jrun("plothex", args) }
+
+// Plotevgrid runs plotevgrid() of the R package (arguments: x; ? marks an optional one).
+func Plotevgrid(args string) (string, error) { return Jrun("plotevgrid", args) }
+
+// Plotopt runs plotopt() of the R package (arguments: palette? grid? cex? las? bg? panel?; ? marks an optional one).
+func Plotopt(args string) (string, error) { return Jrun("plotopt", args) }
+
+// Prechk runs prechk() of the R package (arguments: data preset codes?; ? marks an optional one).
+func Prechk(args string) (string, error) { return Jrun("prechk", args) }
+
+// Yoyhtml runs yoyhtml() of the R package (arguments: x file? title? sub? pal? better? digits? bars? intv? notes? lag?; ? marks an optional one).
+func Yoyhtml(args string) (string, error) { return Jrun("yoyhtml", args) }
+
+// Yoypdf runs yoypdf() of the R package (arguments: x file? title? sub? pal? better? digits? intv? notes? width? height? lag?; ? marks an optional one).
+func Yoypdf(args string) (string, error) { return Jrun("yoypdf", args) }
+
+// Polrpttxt runs polrpttxt() of the R package (arguments: report; ? marks an optional one).
+func Polrpttxt(args string) (string, error) { return Jrun("polrpttxt", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 

@@ -46,9 +46,9 @@ name for \code{\link[=blpal]{blpal()}}.}
 Invisibly, a data frame of what was drawn: \code{grp}, \code{x} and \code{y}
 (the density, or the share at or below), for \code{plotvln()} with the
 quartiles as attribute \code{summary}; for \code{plothex()} the hexagon centres
-\code{x}, \code{y} and \code{count}; for \code{plotgain()} \code{grp}, \code{pop} and \code{share}, with
-the Gini per group as attribute \code{gini}. Values that are not finite are
-left out.
+\code{x}, \code{y} and \code{count}, by row of hexagons and then column; for
+\code{plotgain()} \code{grp}, \code{pop} and \code{share}, with the Gini per group as
+attribute \code{gini}. Values that are not finite are left out.
 }
 \description{
 Plots of many values, split by a group. \code{plotrdg()} stacks a kernel

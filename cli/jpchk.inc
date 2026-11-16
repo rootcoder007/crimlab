@@ -57,11 +57,18 @@ inline Strs rin(const std::string &name, const std::string &arg) {
     v.push_back("Age_Category");
     return v;
   }
-  if (name == "pairb") return {ot[0], ot[1], ot[4], ot[5], ot[6], "Number_Of_Placements"};
-  if (name == "pairc") {
-    return {"Region_AtTimeOfPlacement", "Region_MostRecentPlacement", "NumberConsecutiveDays_Segregation"};
+  // built by push_back: a braced list of strings here trips gcc 16's
+  // -Wfree-nonheap-object once the caller's loop is inlined
+  Strs v;
+  if (name == "pairb") {
+    for (std::size_t i : {0u, 1u, 4u, 5u, 6u}) v.push_back(ot[i]);
+    v.push_back("Number_Of_Placements");
+  } else if (name == "pairc") {
+    v.push_back("Region_AtTimeOfPlacement");
+    v.push_back("Region_MostRecentPlacement");
+    v.push_back("NumberConsecutiveDays_Segregation");
   }
-  return {};
+  return v;
 }
 
 // .fcols(): the columns the filters read ("NA" for an empty rule).

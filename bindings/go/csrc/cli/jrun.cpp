@@ -40,6 +40,10 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <chrono>
+#ifndef __wasi__
+#include <thread>
+#endif
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -61,6 +65,7 @@
 #include "pevw.h"
 #include "ynum.h"
 #include "svk.h"
+#include "pwr.h"
 
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
@@ -1627,6 +1632,13 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jax2.inc"
 #include "jplt.inc"
 #include "jspi.inc"
+#include "jplt2.inc"
+#include "jhw.inc"
+#include "jfp2.inc"
+#include "jpchk.inc"
+#include "jyoyh.inc"
+#include "jyoyp.inc"
+#include "jvrf.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2089,6 +2101,17 @@ const Ent ents[] = {
     {"plotbump", "y prd grp desc?", plotbump},
     {"plotfnl", "obs expd area? lvls? target?", plotfnl},
     {"plotcal", "x y", plotcal},
+    {"plotrdg", "x grp? bw?", plotrdg},
+    {"plotvln", "x grp? bw?", plotvln},
+    {"hwpwr", "dt? since? step? rated? pid? skip? paths?", hwpwr},
+    {"co2fp", "durs cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?", co2fp},
+    {"plothex", "x y bins?", plothex},
+    {"plotevgrid", "x", plotevgrid},
+    {"plotopt", "palette? grid? cex? las? bg? panel?", plotopt},
+    {"prechk", "data preset codes?", prechk},
+    {"yoyhtml", "x file? title? sub? pal? better? digits? bars? intv? notes? lag?", yoyhtml},
+    {"yoypdf", "x file? title? sub? pal? better? digits? intv? notes? width? height? lag?", yoypdf},
+    {"polrpttxt", "report", polrpttxt},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

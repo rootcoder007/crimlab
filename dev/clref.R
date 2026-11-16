@@ -720,6 +720,8 @@ dfirst <- c(2018, 2018, 2018, 2019, 2019, NA, NA, NA)
 dd$bylaw <- as.integer(!is.na(dfirst[di]) & dd$year >= dfirst[di])
 dd$rate <- round(30 + di + 0.5 * (dd$year - 2015) - 4 * dd$bylaw + sin(seq_len(48)), 4)
 dd$first <- dfirst[di]
+# kept under its own name: dd is reused further down
+ddb <- dd
 ok("didfe", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw)
 ok("didfe", y = dd$rate, unit = dd$town, time = dd$year, trt = dd$bylaw, bacon = TRUE, loo = TRUE)
 ok("didfe", y = round(dd$rate), unit = dd$town, time = dd$year, trt = dd$bylaw, fam = "pois", clus = rep(c("p", "q", "r", "s"), 12))
@@ -2283,8 +2285,8 @@ bad("plothex", x = c(1, NA, 3), y = c(NA, 2, 4))
 bad("plothex", x = 1:3, y = 1:3, bins = 1)
 bad("plothex", x = 1, y = 1)
 ok("plotevgrid", x = list(
-  Rate = evtst(dd$rate, dd$town, dd$year, dd$first, leads = 2, lags = 2),
-  Did = stgdid(dd$rate, dd$town, dd$year, dd$first, reps = 0)
+  Rate = evtst(ddb$rate, ddb$town, ddb$year, ddb$first, leads = 2, lags = 2),
+  Did = stgdid(ddb$rate, ddb$town, ddb$year, ddb$first, reps = 0)
 ))
 bad("plotevgrid", x = list(1))
 bad("plotevgrid", x = list(a = 1))
