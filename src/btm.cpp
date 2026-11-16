@@ -656,6 +656,8 @@ SEXP C_clab_r_xcser(SEXP x, SEXP y, SEXP lagmax, SEXP dif, SEXP level) {
   const int lag = Rf_isNull(lagmax) ? std::max(0, std::min(n - 1, static_cast<int>(std::floor(10 * std::log10(n / 2.0)))))
                                     : clab::whole(lagmax, "lagmax", 0);
   if (lag >= n) fail("`lagmax` must be below the number of periods, %d.", n);
+  if (kutil::cnst(a.data(), n)) fail("`%s` is constant: its correlation with any series is undefined.", "x");
+  if (kutil::cnst(b.data(), n)) fail("`%s` is constant: its correlation with any series is undefined.", "y");
   std::vector<double> r(2 * static_cast<std::size_t>(lag) + 1);
   if (clab_xcser(a.data(), b.data(), n, lag, r.data()) != CLAB_OK) fail("a series is constant: no correlation.");
   const double r0 = r[static_cast<std::size_t>(lag)];

@@ -8,7 +8,9 @@ xcser(x, y, lagmax = NULL, dif = FALSE, level = 0.95)
 }
 \arguments{
 \item{x, y}{The series: finite numbers, of one length, or both named by
-period.}
+period. A series whose values are all the same is refused: its
+correlation with anything, at every lag, is undefined (0 / 0;
+\code{\link[stats:cor]{stats::cor()}} gives \code{NA} and \code{\link[stats:acf]{stats::ccf()}} \code{NaN}).}
 
 \item{lagmax}{\code{NULL} or the largest lag: one whole number from 0, below
 the number of periods.}

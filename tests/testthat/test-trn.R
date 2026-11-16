@@ -216,3 +216,10 @@ test_that("bad input is refused", {
     list("constant", 1:4, c(1, 1, 1, 1))
   ))
 })
+
+test_that("a constant series is refused, whose mean rounds", {
+  m <- "is constant: its correlation with any series is undefined"
+  expect_error(xcser(rep(1, 10), 1:10), paste0("^xcser: `x` ", m))
+  expect_error(xcser(1:10, rep(0.1, 10)), paste0("^xcser: `y` ", m))
+  expect_error(xcser(c(1, 2, 4, 8), c(3, 3, 3, 3), dif = TRUE), "`y` is")
+})

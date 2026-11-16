@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* Fixed: `xcser()` used to report r = 0 with an interval, p = 1 and
+  nonzero cross-correlations for a constant series whose mean rounds
+  (`rep(1, 10)`, `rep(0.1, 10)`); a correlation with a constant series is
+  undefined, and `xcser()` and the command line now refuse it, naming the
+  series.
+
 * Environmental crime, with offences against the environment as the
   outcome: the LMDI decomposition of a count over the factors of a Kaya
   identity, over time and against a reference region (`lmdix()`, after

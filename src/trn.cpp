@@ -246,7 +246,7 @@ int clab_xcser(const double *x, const double *y, int n, int lag, double *r) {
     sx += (x[i] - mx) * (x[i] - mx);
     sy += (y[i] - my) * (y[i] - my);
   }
-  if (!(sx > 0 && sy > 0)) return CLAB_EDOM;
+  if (kutil::cnst(x, n) || kutil::cnst(y, n) || !(sx > 0 && sy > 0)) return CLAB_EDOM;
   const double d = std::sqrt(sx * sy);
   // r[lag + k] estimates cor(x[t + k], y[t]), as stats::ccf()
   for (int k = -lag; k <= lag; ++k) {

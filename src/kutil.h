@@ -54,6 +54,15 @@ constexpr double maxcell = 67108864.0;
 
 inline bool pos(double x) noexcept { return std::isfinite(x) && x > 0.0; }
 inline bool nonneg(double x) noexcept { return std::isfinite(x) && x >= 0.0; }
+// Every value of v[0..n) the same: a variance computed from such data is
+// rounding error (the mean of n copies of 0.1 is not 0.1), so a test of
+// the sum of squares against 0 does not see it.
+inline bool cnst(const double *v, long n) noexcept {
+  for (long i = 1; i < n; ++i) {
+    if (v[i] != v[0]) return false;
+  }
+  return true;
+}
 // One observation of the negative binomial log likelihood (mean mu,
 // size th). For a whole count the ratio of gamma functions is written as
 // a sum of log1p terms: lgamma(y + th) - lgamma(th) loses every digit of

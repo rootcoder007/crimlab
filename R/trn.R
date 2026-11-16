@@ -208,7 +208,9 @@ cusrv <- function(
 #' (Cauchy-Schwarz, `proof("xcser")`).
 #'
 #' @param x,y The series: finite numbers, of one length, or both named by
-#'   period.
+#'   period. A series whose values are all the same is refused: its
+#'   correlation with anything, at every lag, is undefined (0 / 0;
+#'   [stats::cor()] gives `NA` and [stats::ccf()] `NaN`).
 #' @param lagmax `NULL` or the largest lag: one whole number from 0, below
 #'   the number of periods.
 #' @param dif `TRUE` to correlate the period-to-period changes.
