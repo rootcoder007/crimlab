@@ -128,3 +128,9 @@ test_that("fairsim() and nordet() refuse what they cannot use", {
     list("TRUE or FALSE", cbind(0, 0), NULL, 1, draw = NA)
   ))
 })
+
+test_that("groups that are not labels are refused in words", {
+  m <- "^fairsim: `groups` must be two or more labels"
+  expect_error(fairsim(100, groups = sum), m)
+  expect_error(fairsim(100, groups = new.env()), m)
+})

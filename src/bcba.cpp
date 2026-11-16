@@ -109,7 +109,7 @@ SEXP C_clab_r_cbatt(SEXP y, SEXP d, SEXP x, SEXP est, SEXP tgt, SEXP ps, SEXP k,
   const double lv = clab::one(level, "level", 0.0, 1.0);
   clab::vec(y, "y");
   SEXP yv = PROTECT(clab::num(y, "y"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   std::vector<double> dv = arms(d, n), xv;
   std::vector<std::string> nm;
   xmat(x, n, xv, nm);

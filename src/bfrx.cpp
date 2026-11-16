@@ -334,7 +334,7 @@ SEXP C_clab_r_cmpsc(SEXP a, SEXP b, SEXP len, SEXP npeaks, SEXP tx, SEXP full) {
       if (std::isinf(REAL(x)[i])) clab::fail("`%s` must be numbers (NA for a missing point), not infinite.", x == av ? "a" : "b");
     }
   }
-  const int na = clab::ilen(static_cast<double>(XLENGTH(av)), "a"), nb = clab::ilen(static_cast<double>(XLENGTH(bv)), "b");
+  const int na = clab::xlen(av, "a"), nb = clab::xlen(bv, "b");
   const int ln = clab::whole(len, "len", 2);
   int f0 = 0, f1 = na - 1;
   while (f0 < na && ISNAN(REAL(av)[f0])) ++f0;

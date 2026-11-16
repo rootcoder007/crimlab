@@ -61,7 +61,7 @@ struct cols {
 // A named list of the k elements of the protected list x.
 inline SEXP named(SEXP x, const char *const *nm) { return clab::nlist(x, nm); }
 
-inline int len(SEXP x, const char *nm) { return clab::ilen(static_cast<double>(XLENGTH(x)), nm); }
+inline int len(SEXP x, const char *nm) { return clab::xlen(x, nm); }
 
 // Labels to codes from 0 (a factor by its levels that occur, anything else
 // by its sorted values), refusing a labelled vector and a matrix. Protects

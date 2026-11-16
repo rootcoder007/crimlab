@@ -479,7 +479,7 @@ SEXP C_clab_r_hsper(SEXP x, SEXP y, SEXP prd, SEXP cell, SEXP top, SEXP org, SEX
 SEXP C_clab_r_ebshr(SEXP y, SEXP v, SEXP w, SEXP b) {
   clab::who = "ebshr";
   SEXP yv = PROTECT(num(y, "y"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   if (n < 2) fail("at least 2 places are needed.");
   SEXP wv = PROTECT(Rf_isNull(w) ? R_NilValue : num(w, "w", n, 0.0));
   const double *pw = Rf_isNull(wv) ? nullptr : REAL(wv);
@@ -580,7 +580,7 @@ SEXP C_clab_r_gmoran(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
   clab::who = "gmoran";
   const bool mat = Rf_isMatrix(x);
   SEXP xv = mat ? mnum(x, "x") : PROTECT(num(x, "x"));
-  const int n = mat ? Rf_nrows(x) : clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int n = mat ? Rf_nrows(x) : clab::xlen(xv, "x");
   const int k = mat ? Rf_ncols(x) : 1;
   if (n < 4) fail("at least 4 units are needed.");
   wcsr c = wread(w, n);
@@ -606,7 +606,7 @@ SEXP C_clab_r_gmoran(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_bvmor(SEXP x, SEXP y, SEXP w, SEXP nsim, SEXP seed) {
   clab::who = "bvmor";
   SEXP xv = PROTECT(num(x, "x"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int n = clab::xlen(xv, "x");
   if (n < 3) fail("at least 3 units are needed.");
   SEXP yv = PROTECT(num(y, "y", n));
   wcsr c = wread(w, n);
@@ -623,7 +623,7 @@ SEXP C_clab_r_bvmor(SEXP x, SEXP y, SEXP w, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_sarml(SEXP y, SEXP x, SEXP w, SEXP model, SEXP durbin, SEXP method, SEXP icpt) {
   clab::who = "sarml";
   SEXP yv = PROTECT(num(y, "y"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   if (n < 4) fail("at least 4 units are needed.");
   if (n > 5000) fail("at most 5000 units: the likelihood takes a dense determinant.");
   if (!Rf_isMatrix(x) || Rf_nrows(x) != n) fail("`x` must have one row per value of `y`.");
@@ -873,7 +873,7 @@ SEXP C_clab_r_qdrtst(SEXP x, SEXP y, SEXP win, SEXP nx, SEXP ny) {
 SEXP C_clab_r_morsta(SEXP counts, SEXP crit) {
   clab::who = "morsta";
   SEXP cv = mnum(counts, "counts", 0.0);
-  const int n = clab::ilen(static_cast<double>(XLENGTH(cv)), "counts");
+  const int n = clab::xlen(cv, "counts");
   if (n < 2) fail("at least 2 quadrats are needed.");
   const double a = clab::one(crit, "crit", 0.0, 1.0);
   double o[5];
@@ -940,7 +940,7 @@ SEXP C_clab_r_pinpl(SEXP x, SEXP y, SEXP poly, SEXP pop) {
     fail("`poly` must be a data frame of x, y and id (and ring).");
   }
   SEXP vx = PROTECT(num(px, "poly$x"));
-  const int nv = clab::ilen(static_cast<double>(XLENGTH(vx)), "poly$x");
+  const int nv = clab::xlen(vx, "poly$x");
   if (nv < 3) fail("`poly` needs at least 3 vertices.");
   SEXP vy = PROTECT(num(py, "poly$y", nv));
   csp::lab id = csp::codes(pi, "poly$id", nv);
@@ -1029,7 +1029,7 @@ SEXP C_clab_r_pinpl(SEXP x, SEXP y, SEXP poly, SEXP pop) {
 SEXP C_clab_r_arwt(SEXP x, SEXP id, SEXP from, SEXP to, SEXP area, SEXP top) {
   clab::who = "arwt";
   SEXP xv = PROTECT(num(x, "x"));
-  const int ns = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int ns = clab::xlen(xv, "x");
   csp::lab src = csp::codes(id, "id", ns);
   if (src.g != ns) fail("`id` must name each source unit once.");
   const int np = clab::ilen(static_cast<double>(Rf_xlength(from)), "from");

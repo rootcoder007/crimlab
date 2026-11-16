@@ -222,3 +222,14 @@ test_that("calaud() and scrdsp() refuse what they cannot use", {
     list("strictly between", 1:4, c(1, 1, 2, 2), conf = 0)
   ))
 })
+
+test_that("an argument that is not a vector is refused in words", {
+  x <- c(0.2, 0.6, 0.4, 0.9)
+  y <- c(0, 1, 0, 1)
+  g <- c("a", "a", "b", "b")
+  m <- "^calaud: `area` must be a vector, got "
+  expect_error(calaud(NULL, x, y, g, nperm = 0), paste0(m, "NULL\\.$"))
+  expect_error(calaud(sum, x, y, g, nperm = 0), paste0(m, "a function\\.$"))
+  expect_error(calaud(new.env(), x, y, g, nperm = 0),
+               paste0(m, "environment\\.$"))
+})

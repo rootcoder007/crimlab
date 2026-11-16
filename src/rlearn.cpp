@@ -146,7 +146,7 @@ SEXP C_clab_r_enpath(SEXP x, SEXP y, SEXP fam, SEXP alpha, SEXP lambda,
     lam = PROTECT(Rf_allocVector(REALSXP, nl));
   } else {
     lam = PROTECT(clab::dcopy(num(lambda, "lambda", -1, 0.0)));
-    nl = clab::ilen(static_cast<double>(XLENGTH(lam)), "lambda");
+    nl = clab::xlen(lam, "lambda");
     for (int k = 1; k < nl; ++k) {
       if (REAL_RO(lam)[k] > REAL_RO(lam)[k - 1]) {
         fail("`lambda` must be decreasing.");

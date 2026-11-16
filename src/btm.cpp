@@ -127,7 +127,7 @@ std::vector<std::string> pnames(int kind, int base) {
 // Event times: finite, sorted, in [0, hor]; tied ones warned about.
 std::vector<double> evtimes(SEXP times, double hor, int nmin) {
   SEXP tv = PROTECT(clab::num(times, "times"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(tv)), "times");
+  const int n = clab::xlen(tv, "times");
   std::vector<double> t(REAL(tv), REAL(tv) + n);
   UNPROTECT(1);
   if (n < nmin) fail("`times` must hold at least %d events, not %d.", nmin, n);
@@ -190,7 +190,7 @@ SEXP C_clab_r_hwkfit(SEXP times, SEXP hor, SEXP kernel, SEXP base, SEXP per, SEX
     // spread each time across its interval [t, t + res), cut at hor
     const double r = pos1(res, "res");
     SEXP tv = p(clab::num(times, "times"));
-    const int n = clab::ilen(static_cast<double>(XLENGTH(tv)), "times");
+    const int n = clab::xlen(tv, "times");
     t.assign(REAL(tv), REAL(tv) + n);
     kutil::rng g(csp::seed(seed));
     for (double &e : t) {
@@ -413,7 +413,7 @@ SEXP C_clab_r_trndrr(SEXP y, SEXP x, SEXP expo, SEXP seas, SEXP alt, SEXP level)
   clab::who = "trndrr";
   prot p;
   SEXP yv = p(clab::num(y, "y", -1, 0.0));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   if (n < 3) fail("`y` must hold at least 3 periods, not %d.", n);
   const double *yy = REAL(yv);
   std::vector<double> xv = periods(x, n);
@@ -546,7 +546,7 @@ SEXP C_clab_r_stpcp(SEXP y, SEXP minseg, SEXP nperm, SEXP seed) {
   clab::who = "stpcp";
   prot p;
   SEXP yv = p(clab::num(y, "y"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   const int m = clab::whole(minseg, "minseg", 1), np = clab::whole(nperm, "nperm", 1);
   if (n < 2 * m) fail("`y` must hold at least 2 `minseg` = %d values, not %d.", 2 * m, n);
   double st[12];
@@ -580,7 +580,7 @@ SEXP C_clab_r_cusrv(SEXP y, SEXP expd, SEXP start, SEXP k, SEXP h, SEXP trans, S
   prot p;
   static const char *const tr[] = {"std", "rossi", "anscombe", "none"};
   SEXP yv = p(clab::num(y, "y", -1, 0.0));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   const double kk = REAL(clab::num(k, "k", 1))[0], hh = pos1(h, "h");
   const int t = csp::pick(trans, "trans", tr, 4);
   const bool rs = csp::flag(reset, "reset");
@@ -688,7 +688,7 @@ SEXP C_clab_r_kmrec(SEXP time, SEXP event, SEXP grp, SEXP unit, SEXP end, SEXP l
   clab::who = "kmrec";
   prot p;
   SEXP tv = p(clab::num(time, "time", -1, 0.0));
-  const int n0 = clab::ilen(static_cast<double>(XLENGTH(tv)), "time");
+  const int n0 = clab::xlen(tv, "time");
   const double z = zlev(level);
   std::vector<double> t;
   std::vector<int> ev, gr;
@@ -802,7 +802,7 @@ SEXP C_clab_r_hypq(SEXP lam, SEXP pref, SEXP mu, SEXP queue, SEXP tt) {
   prot p;
   static const char *const qs[] = {"loss", "wait"};
   SEXP lv = p(clab::num(lam, "lam", -1, 0.0, true));
-  const int m = clab::ilen(static_cast<double>(XLENGTH(lv)), "lam");
+  const int m = clab::xlen(lv, "lam");
   const double u = pos1(mu, "mu");
   const int w = csp::pick(queue, "queue", qs, 2);
   // the orders: an m x n matrix of unit numbers, or a list of m vectors

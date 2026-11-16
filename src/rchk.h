@@ -61,6 +61,10 @@ void lfmt(double x, char *buf, int n);
 // or with the kernels' own out-of-range error when nm is null. Lengths come
 // in as doubles, exact up to 2^53, so the check never overflows.
 int ilen(double n, const char *nm);
+// The length of argument nm, as ilen(): NULL, a function, an environment
+// or anything else that is not a vector is refused in words first (R's own
+// error for XLENGTH() of such an object names no argument).
+int xlen(SEXP x, const char *nm);
 // x, rounded to a double: no fused multiply-add across it.
 double rd(double x);
 

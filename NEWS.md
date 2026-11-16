@@ -1,5 +1,12 @@
 # crimlab 0.0.0.9000
 
+* Fixed: `NULL`, a function or an environment given for a vector argument
+  used to reach the compiled code and fail there in R's words ("LENGTH or
+  similar applied to NULL object", "cannot coerce type 'builtin' to
+  vector"), in 31 functions (`calaud()`, `fairdf()`, `tmpaud()`,
+  `lodimp()`, `trnmat()`, `fairsim()`, ...); it is now refused in the
+  package's ("`area` must be a vector, got NULL.").
+
 * Fixed: `xcser()` used to report r = 0 with an interval, p = 1 and
   nonzero cross-correlations for a constant series whose mean rounds
   (`rep(1, 10)`, `rep(0.1, 10)`); a correlation with a constant series is

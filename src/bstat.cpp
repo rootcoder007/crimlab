@@ -34,7 +34,7 @@ namespace {
 
 const double qnan = std::numeric_limits<double>::quiet_NaN();
 
-int len(SEXP x, const char *nm) { return clab::ilen(static_cast<double>(XLENGTH(x)), nm); }
+int len(SEXP x, const char *nm) { return clab::xlen(x, nm); }
 
 // Columns of a result, all protected until the frame is built.
 struct cols {

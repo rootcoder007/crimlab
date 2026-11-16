@@ -365,7 +365,7 @@ SEXP C_clab_r_wystep(SEXP obs, SEXP null) {
   clab::who = "wystep";
   clab::vec(obs, "obs");
   SEXP ob = PROTECT(clab::num(obs, "obs"));
-  const int k = clab::ilen(static_cast<double>(XLENGTH(ob)), "obs");
+  const int k = clab::xlen(ob, "obs");
   if (!Rf_isMatrix(null) || !clab::isnum(null) || Rf_ncols(null) != k) {
     fail("`null` must be a numeric matrix with one column per statistic of `obs`, %d.", k);
   }

@@ -564,7 +564,7 @@ SEXP C_clab_r_vodtst(SEXP day, SEXP night, SEXP ref, SEXP shift) {
   SEXP a = PROTECT(group(args({day, night, shift}), an));
   SEXP nms = VECTOR_ELT(a, 0);
   SEXP d = PROTECT(num(VECTOR_ELT(a, 1), "day", -1, 0.0));
-  const int n = ilen(static_cast<double>(XLENGTH(d)), "day");
+  const int n = clab::xlen(d, "day");
   SEXP ni = PROTECT(num(VECTOR_ELT(a, 2), "night", n, 0.0, true));
   const bool has = !Rf_isNull(shift);
   SEXP sh = PROTECT(has ? num(VECTOR_ELT(a, 3), "shift", n, 0.0, true) : R_NilValue);
@@ -614,7 +614,7 @@ SEXP C_clab_r_outtst(SEXP q, SEXP t, SEXP w) {
   q = VECTOR_ELT(a, 1);
   w = VECTOR_ELT(a, 2);
   SEXP qv = PROTECT(num(q, "q", -1, 0.0));
-  const int n = ilen(static_cast<double>(XLENGTH(qv)), "q");
+  const int n = clab::xlen(qv, "q");
   const double *p = REAL_RO(qv);
   for (int i = 0; i < n; ++i) {
     if (p[i] > 1) fail("`q` must be at most 1.");
@@ -635,7 +635,7 @@ SEXP C_clab_r_dspbm(SEXP pop, SEXP contact, SEXP force, SEXP ref) {
   SEXP a = PROTECT(group(args({pop, contact, force}), an));
   SEXP nms = VECTOR_ELT(a, 0);
   SEXP p = PROTECT(num(VECTOR_ELT(a, 1), "pop", -1, 0.0, true));
-  const int n = ilen(static_cast<double>(XLENGTH(p)), "pop");
+  const int n = clab::xlen(p, "pop");
   SEXP c = PROTECT(num(VECTOR_ELT(a, 2), "contact", n, 0.0, true));
   SEXP f = PROTECT(num(VECTOR_ELT(a, 3), "force", n, 0.0, true));
   const int i = clab::ref(ref, nms, n);
@@ -657,7 +657,7 @@ SEXP C_clab_r_dyadrt(SEXP count, SEXP pop) {
   clab::who = "dyadrt";
   SEXP pv = PROTECT(gvec(pop, "pop"));
   SEXP p = PROTECT(num(pv, "pop", -1, 0.0, true));
-  const int g = ilen(static_cast<double>(XLENGTH(p)), "pop");
+  const int g = clab::xlen(p, "pop");
   // !is.matrix(count) || nrow(count) != g || ncol(count) != g
   bool ok = Rf_isMatrix(count);
   if (ok) {
@@ -792,7 +792,7 @@ SEXP C_clab_r_gtmp(SEXP p, SEXP q, SEXP hom, SEXP theta) {
   q = VECTOR_ELT(a, 2);
   hom = VECTOR_ELT(a, 3);
   SEXP pv = PROTECT(num(VECTOR_ELT(a, 1), "p", -1, 0.0, true));
-  const int n = ilen(static_cast<double>(XLENGTH(pv)), "p");
+  const int n = clab::xlen(pv, "p");
   const double *pp = REAL_RO(pv);
   for (int i = 0; i < n; ++i) {
     if (pp[i] > 1) fail("`p` must be at most 1.");
@@ -869,8 +869,8 @@ SEXP C_clab_r_cllr(SEXP same, SEXP diff) {
   SEXP s = PROTECT(num(same, "same", -1, 0.0, true));
   SEXP d = PROTECT(num(diff, "diff", -1, 0.0, true));
   double r = 0;
-  kchk(clab_cllr(REAL_RO(s), ilen(static_cast<double>(XLENGTH(s)), "same"), REAL_RO(d),
-                 ilen(static_cast<double>(XLENGTH(d)), "diff"), &r),
+  kchk(clab_cllr(REAL_RO(s), clab::xlen(s, "same"), REAL_RO(d),
+                 clab::xlen(d, "diff"), &r),
        nullptr);
   UNPROTECT(2);
   return Rf_ScalarReal(r);
@@ -944,7 +944,7 @@ SEXP C_clab_r_mixlr(SEXP p, SEXP np, SEXP xp, SEXP nd, SEXP xd) {
   clab::who = "mixlr";
   SEXP nms = PROTECT(Rf_getAttrib(p, R_NamesSymbol));
   SEXP pv = PROTECT(num(p, "p", -1, 0.0, true));
-  const int n = ilen(static_cast<double>(XLENGTH(pv)), "p");
+  const int n = clab::xlen(pv, "p");
   // is.null(nms) || anyDuplicated(nms) || sum(p) > 1 + 1e-12
   bool bad = Rf_isNull(nms);
   Keys nk{};
@@ -1130,8 +1130,8 @@ SEXP C_clab_r_tipplt(SEXP same, SEXP diff) {
   clab::who = "tipplt";
   SEXP s = PROTECT(num(same, "same", -1, 0.0, true));
   SEXP d = PROTECT(num(diff, "diff", -1, 0.0, true));
-  ilen(static_cast<double>(XLENGTH(s)), "same");
-  ilen(static_cast<double>(XLENGTH(d)), "diff");
+  clab::xlen(s, "same");
+  clab::xlen(d, "diff");
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(out, 0, curve(s));
   SET_VECTOR_ELT(out, 1, curve(d));
@@ -1496,7 +1496,7 @@ SEXP C_clab_r_clrsmp(SEXP clra, SEXP reca, SEXP clrb, SEXP recb) {
   recb = VECTOR_ELT(al, 4);
   SEXP nms = PROTECT(VECTOR_ELT(al, 0));
   SEXP a = PROTECT(num(clra, "clra", -1, 0.0));
-  const int n = ilen(static_cast<double>(XLENGTH(a)), "clra");
+  const int n = clab::xlen(a, "clra");
   SEXP ra = PROTECT(num(reca, "reca", n, 0.0, true));
   SEXP b = PROTECT(num(clrb, "clrb", n, 0.0));
   SEXP rb = PROTECT(num(recb, "recb", n, 0.0, true));
@@ -1534,7 +1534,7 @@ SEXP C_clab_r_expbnd(SEXP y, SEXP m, SEXP gamma, SEXP ref) {
   m = VECTOR_ELT(a, 2);
   SEXP nms = PROTECT(VECTOR_ELT(a, 0));
   SEXP yv = PROTECT(num(y, "y", -1, 0.0, true));
-  const int n = ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   SEXP mv = PROTECT(num(m, "m", n, 0.0, true));
   SEXP g = PROTECT(num(gamma, "gamma", 1, 1.0));
   const int i = clab::ref(ref, nms, n);
@@ -1582,7 +1582,7 @@ SEXP C_clab_r_rtmhs(SEXP x1, SEXP x2, SEXP cut, SEXP w) {
   x2 = VECTOR_ELT(al, 2);
   w = VECTOR_ELT(al, 3);
   SEXP a = PROTECT(num(x1, "x1"));
-  const int n = ilen(static_cast<double>(XLENGTH(a)), "x1");
+  const int n = clab::xlen(a, "x1");
   SEXP b = PROTECT(num(x2, "x2", n));
   SEXP c = PROTECT(num(cut, "cut", 1));
   SEXP wv = PROTECT(Rf_isNull(w) ? ones(n) : num(w, "w", n, 0.0));
@@ -1612,7 +1612,7 @@ SEXP C_clab_r_incap(SEXP lam, SEXP q, SEXP s, SEXP share) {
   share = VECTOR_ELT(a, 4);
   SEXP nms = PROTECT(VECTOR_ELT(a, 0));
   SEXP l = PROTECT(num(lam, "lam", -1, 0.0, true));
-  const int n = ilen(static_cast<double>(XLENGTH(l)), "lam");
+  const int n = clab::xlen(l, "lam");
   SEXP qv = PROTECT(num(q, "q", -1, 0.0, true));
   const R_xlen_t nq = XLENGTH(qv);
   for (R_xlen_t i = 0; i < nq; ++i) {
@@ -1740,8 +1740,8 @@ SEXP C_clab_r_losbnd(SEXP done, SEXP open) {
   SEXP d = PROTECT(num(done, "done", -1, 0.0));
   SEXP o = PROTECT(num(open, "open", -1, 0.0));
   double r[4];
-  kchk(clab_losbnd(REAL_RO(d), ilen(static_cast<double>(XLENGTH(d)), "done"), REAL_RO(o),
-                   ilen(static_cast<double>(XLENGTH(o)), "open"), r),
+  kchk(clab_losbnd(REAL_RO(d), clab::xlen(d, "done"), REAL_RO(o),
+                   clab::xlen(o, "open"), r),
        nullptr);
   static const char *const nm[] = {"mean", "age", "lower", "bias"};
   UNPROTECT(2);
@@ -1762,7 +1762,7 @@ SEXP C_clab_r_sntbnd(SEXP y, SEXP z, SEXP treat, SEXP w) {
   z = VECTOR_ELT(a, 2);
   w = VECTOR_ELT(a, 3);
   SEXP yv = PROTECT(num(y, "y", -1, 0.0));
-  const int n = ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   const double *yp = REAL_RO(yv);
   for (int i = 0; i < n; ++i) {
     if (!(yp[i] == 0 || yp[i] == 1)) fail("`y` must be 0 or 1.");
@@ -2304,7 +2304,7 @@ Net net(SEXP from, SEXP to, SEXP nodes) {
     UNPROTECT(3);
   } else {
     SEXP nd = PROTECT(nlab(nodes, "nodes"));
-    g.n = ilen(static_cast<double>(XLENGTH(nd)), "nodes");
+    g.n = clab::xlen(nd, "nodes");
     const Keys s = keys(nd);
     for (R_xlen_t i = 0; i < s.n; ++i) {
       if (!s.first[i]) {
@@ -3298,7 +3298,7 @@ SEXP C_clab_r_catchk(SEXP x, SEXP ref, SEXP nmin) {
   } else {
     fail("`x` must be a vector, a data frame or a list of vectors.");
   }
-  const int nv = ilen(static_cast<double>(XLENGTH(vars)), "x");
+  const int nv = clab::xlen(vars, "x");
   if (nv == 0) fail("`x` has no variables.");
   const Keys kn = keys(nms);
   for (int i = 0; i < nv; ++i) {

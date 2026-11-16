@@ -155,7 +155,7 @@ SEXP C_clab_r_spwt(SEXP x, SEXP y, SEXP type, SEXP k, SEXP d, SEXP nb,
   SEXP rpv, civ, dv;
   if (tp == 2) {
     if (TYPEOF(nb) != VECSXP) fail("`nb` must be a list of neighbour numbers, one element per unit.");
-    n = clab::ilen(static_cast<double>(XLENGTH(nb)), "nb");
+    n = clab::xlen(nb, "nb");
     if (pts && p.n != n) fail("`nb` must have one element per point.");
     if (!pts && pw > 0) fail("inverse-distance weights need the points `x`.");
     std::vector<int> ei, ej;
@@ -261,7 +261,7 @@ SEXP C_clab_r_spwt(SEXP x, SEXP y, SEXP type, SEXP k, SEXP d, SEXP nb,
 SEXP C_clab_r_gearc(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
   clab::who = "gearc";
   SEXP xv = PROTECT(num(x, "x"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int n = clab::xlen(xv, "x");
   if (n < 4) fail("at least 4 values are needed.");
   csr c = wread(w, n);
   const int ns = clab::whole(nsim, "nsim", 0);
@@ -278,7 +278,7 @@ SEXP C_clab_r_gearc(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_gorg(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
   clab::who = "gorg";
   SEXP xv = PROTECT(num(x, "x", -1, 0.0));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int n = clab::xlen(xv, "x");
   if (n < 4) fail("at least 4 values are needed.");
   csr c = wread(w, n);
   const int ns = clab::whole(nsim, "nsim", 0);
@@ -295,7 +295,7 @@ SEXP C_clab_r_gorg(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_lmorn(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
   clab::who = "lmorn";
   SEXP xv = PROTECT(num(x, "x"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int n = clab::xlen(xv, "x");
   if (n < 3) fail("at least 3 values are needed.");
   csr c = wread(w, n);
   const int ns = clab::whole(nsim, "nsim", 0);
@@ -323,7 +323,7 @@ SEXP C_clab_r_lmorn(SEXP x, SEXP w, SEXP nsim, SEXP seed) {
 SEXP C_clab_r_locgi(SEXP x, SEXP w, SEXP star) {
   clab::who = "locgi";
   SEXP xv = PROTECT(num(x, "x"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(xv)), "x");
+  const int n = clab::xlen(xv, "x");
   if (n < 3) fail("at least 3 values are needed.");
   csr c = wread(w, n);
   const bool st = csp::flag(star, "star");
@@ -354,7 +354,7 @@ SEXP C_clab_r_dirmn(SEXP x, SEXP y, SEXP origin, SEXP w, SEXP angle,
   int np = 0;
   if (!Rf_isNull(angle)) {
     a = PROTECT(clab::dcopy(PROTECT(num(angle, "angle"))));
-    n = clab::ilen(static_cast<double>(XLENGTH(a)), "angle");
+    n = clab::xlen(a, "angle");
     np = 2;
   } else {
     csp::pts p = csp::xy(x, y, lonlat);

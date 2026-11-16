@@ -35,7 +35,7 @@ SEXP C_clab_r_svymx(SEXP y, SEXP w, SEXP strata, SEXP psu, SEXP fpc, SEXP stat, 
   clab::vec(y, "y");
   SEXP yv = PROTECT(clab::num(y, "y"));
   int np = 1;
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   if (n < 2) fail("`y` must have two values at least.");
   const double *yy = REAL(yv);
   if (sk == 2) {

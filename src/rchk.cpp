@@ -99,6 +99,13 @@ int ilen(double n, const char *nm) {
   return static_cast<int>(n);
 }
 
+int xlen(SEXP x, const char *nm) {
+  if (!Rf_isVector(x)) {
+    fail("`%s` must be a vector, got %s.", nm, Rf_isNull(x) ? "NULL" : Rf_isFunction(x) ? "a function" : Rf_type2char(TYPEOF(x)));
+  }
+  return ilen(static_cast<double>(XLENGTH(x)), nm);
+}
+
 double rd(double x) {
   // a volatile store rounds x to double: a product is never fused into the
   // sum that follows it, whatever the compiler and the target.
@@ -487,6 +494,9 @@ SEXP labs(SEXP x) {
     return R_NilValue;
   }
   if (TYPEOF(x) == STRSXP) return x;
+  // a function or an environment has no labels: refused, as NULL is, by
+  // every caller in its own words (coerceVector()'s error names no argument)
+  if (!Rf_isVector(x)) return R_NilValue;
   return Rf_coerceVector(x, STRSXP);
 }
 

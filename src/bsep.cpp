@@ -143,7 +143,7 @@ SEXP C_clab_r_bayout(SEXP x, SEXP freq, SEXP b, SEXP w, SEXP acty, SEXP alpha, S
   clab::unlab(x, "x");
   if (!clab::isnum(x) || XLENGTH(x) < 1) fail("`x` must be a numeric vector of counts.");
   clab::vec(x, "x");
-  const int n = clab::ilen(static_cast<double>(XLENGTH(x)), "x");
+  const int n = clab::xlen(x, "x");
   SEXP xd = PROTECT(clab::dbl(x));
   SEXP xv = PROTECT(clab::dcopy(xd));
   for (int i = 0; i < n; ++i) {
@@ -167,7 +167,7 @@ SEXP C_clab_r_bayout(SEXP x, SEXP freq, SEXP b, SEXP w, SEXP acty, SEXP alpha, S
     for (int q = 0; q < m; ++q) t[q] = static_cast<int>(need) + q;
   } else {
     SEXP a = PROTECT(num(at, "at", -1, 1.0));
-    m = clab::ilen(static_cast<double>(XLENGTH(a)), "at");
+    m = clab::xlen(a, "at");
     t = ial(m);
     for (int q = 0; q < m; ++q) {
       const double e = REAL(a)[q];
@@ -266,7 +266,7 @@ SEXP C_clab_r_bym2sc(SEXP w, SEXP tau, SEXP phi, SEXP tol) {
 SEXP C_clab_r_ecolrg(SEXP y, SEXP e, SEXP x, SEXP family, SEXP z, SEXP tol, SEXP maxit) {
   clab::who = "ecolrg";
   SEXP yv = PROTECT(num(y, "y", -1, 0.0));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "y");
+  const int n = clab::xlen(yv, "y");
   SEXP ev = PROTECT(num(e, "e", n, 0.0, true));
   int p = 0, q = 0;
   SEXP xm = zmat(x, "x", n, false, &p);
@@ -326,7 +326,7 @@ SEXP C_clab_r_spbias(SEXP d, SEXP b, SEXP ub) {
     di[q] = static_cast<int>(e);
   }
   SEXP bv = PROTECT(num(b, "b"));
-  const int nb = clab::ilen(static_cast<double>(XLENGTH(bv)), "b");
+  const int nb = clab::xlen(bv, "b");
   SEXP uv = PROTECT(num(ub, "ub", 1));
   SEXP r = PROTECT(Rf_allocVector(VECSXP, 2));
   SET_VECTOR_ELT(r, 0, Rf_allocMatrix(REALSXP, nr, nc));
@@ -341,7 +341,7 @@ SEXP C_clab_r_spbias(SEXP d, SEXP b, SEXP ub) {
 SEXP C_clab_r_spsir(SEXP i0, SEXP w, SEXP pop, SEXP beta, SEXP gamma, SEXP kappa, SEXP tmax, SEXP dt) {
   clab::who = "spsir";
   SEXP iv = PROTECT(num(i0, "i0", -1, 0.0));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(iv)), "i0");
+  const int n = clab::xlen(iv, "i0");
   SEXP pv;
   if (Rf_isNull(pop)) {
     pv = PROTECT(real(n));
@@ -400,7 +400,7 @@ SEXP C_clab_r_sfcure(SEXP time, SEXP event, SEXP x, SEXP reg, SEXP w, SEXP tau, 
 SEXP C_clab_r_evfilt(SEXP v, SEXP w, SEXP x, SEXP method, SEXP cand, SEXP tol, SEXP maxv) {
   clab::who = "evfilt";
   SEXP yv = PROTECT(num(v, "v"));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(yv)), "v");
+  const int n = clab::xlen(yv, "v");
   if (n < 3) fail("`v` must have at least 3 values.");
   if (kutil::cnst(REAL(yv), n)) fail("`v` is constant: there is no autocorrelation to filter.");
   SEXP c = csp::wts(w, n);

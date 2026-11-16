@@ -388,7 +388,7 @@ SEXP C_clab_r_ripk(SEXP x, SEXP y, SEXP win, SEXP r, SEXP corr, SEXP metr) {
   double w[4];
   csp::pts p = inwin(x, y, win, w);
   SEXP rv = PROTECT(radii(r));
-  const int m = clab::ilen(static_cast<double>(XLENGTH(rv)), "r");
+  const int m = clab::xlen(rv, "r");
   const int co = csp::pick(corr, "corr", kcor, 4);
   const int me = metric(metr);
   if (me == 1 && co == 3) {
@@ -418,7 +418,7 @@ SEXP C_clab_r_ripenv(SEXP x, SEXP y, SEXP win, SEXP r, SEXP corr, SEXP nsim,
   double w[4];
   csp::pts p = inwin(x, y, win, w);
   SEXP rv = PROTECT(radii(r));
-  const int m = clab::ilen(static_cast<double>(XLENGTH(rv)), "r");
+  const int m = clab::xlen(rv, "r");
   const int co = csp::pick(corr, "corr", kcor, 4);
   const int ns = clab::whole(nsim, "nsim", 1);
   const unsigned int sd = csp::seed(seed);
@@ -889,7 +889,7 @@ SEXP C_clab_r_stmavg(SEXP x, SEXP y, SEXP t, SEXP span, SEXP lonlat) {
 SEXP C_clab_r_jtdecay(SEXP d, SEXP type, SEXP par, SEXP tab) {
   clab::who = "jtdecay";
   SEXP dv = PROTECT(num(d, "d", -1, 0.0));
-  const int n = clab::ilen(static_cast<double>(XLENGTH(dv)), "d");
+  const int n = clab::xlen(dv, "d");
   decay f = mkdecay(type, par, tab);
   SEXP out = PROTECT(real(n));
   kc(clab_jtdecay(REAL_RO(dv), n, f.type, REAL_RO(f.par),
@@ -939,10 +939,10 @@ SEXP C_clab_r_jtcal(SEXP d, SEXP t, SEXP h, SEXP w, SEXP kern, SEXP refl) {
   d = uv[0];
   w = uv[1];
   SEXP dv = PROTECT(num(d, "d", -1, 0.0));
-  const int m = clab::ilen(static_cast<double>(XLENGTH(dv)), "d");
+  const int m = clab::xlen(dv, "d");
   const bool rf = csp::flag(refl, "refl");
   SEXP tv = PROTECT(num(t, "t", -1, rf ? 0.0 : clab::ninf));
-  const int k = clab::ilen(static_cast<double>(XLENGTH(tv)), "t");
+  const int k = clab::xlen(tv, "t");
   const double bw = posn(h, "h");
   SEXP keep = R_NilValue;
   const double *wp = wts(w, m, &keep);
@@ -984,7 +984,7 @@ SEXP C_clab_r_bjtc(SEXP pj, SEXP od, SEXP dest) {
   clab::who = "bjtc";
   pj = PROTECT(csp::gvec(pj, "pj"));
   SEXP pv = PROTECT(num(pj, "pj", -1, 0.0));
-  const int no = clab::ilen(static_cast<double>(XLENGTH(pv)), "pj");
+  const int no = clab::xlen(pv, "pj");
   SEXP d = Rf_getAttrib(od, R_DimSymbol);
   if (TYPEOF(d) != INTSXP || XLENGTH(d) != 2 || INTEGER_RO(d)[0] != no) {
     fail("`od` must be a matrix with one row per origin zone (the length "
@@ -1001,7 +1001,7 @@ SEXP C_clab_r_bjtc(SEXP pj, SEXP od, SEXP dest) {
     }
   }
   SEXP dv = PROTECT(num(dest, "dest", -1, 1.0));
-  const int m = clab::ilen(static_cast<double>(XLENGTH(dv)), "dest");
+  const int m = clab::xlen(dv, "dest");
   SEXP di = PROTECT(ints(m));
   for (int k = 0; k < m; ++k) {
     const double v = REAL_RO(dv)[k];

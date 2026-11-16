@@ -38,7 +38,7 @@ namespace {
 
 SEXP real(R_xlen_t n) { return Rf_allocVector(REALSXP, n); }
 SEXP ints(R_xlen_t n) { return Rf_allocVector(INTSXP, n); }
-int len(SEXP x, const char *nm) { return clab::ilen(static_cast<double>(XLENGTH(x)), nm); }
+int len(SEXP x, const char *nm) { return clab::xlen(x, nm); }
 
 void kc(int rc, const char *msg) {
   if (rc != CLAB_OK) fail("%s", msg);
