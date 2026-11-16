@@ -1112,10 +1112,10 @@ int clab_updwn(const double *ax, const double *ay, const double *wd, int n, cons
 
 int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
              const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc) CLAB_TRY {
-  if (n < 2 || p < 1 || kind < 0 || kind > 3 || !(fac >= 0)) return CLAB_EARG;
+  if (n < 2 || p < 1 || kind < 0 || kind > 4 || !(fac >= 0)) return CLAB_EARG;
   if ((kind == 0 || kind == 1 || kind == 3) && (!cl || ncl < 1)) return CLAB_EARG;
   if (kind == 1 && (!cl2 || ncl2 < 1)) return CLAB_EARG;
-  if (kind == 3 && (!t || lag < 0)) return CLAB_EARG;
+  if ((kind == 3 || kind == 4) && (!t || lag < 0)) return CLAB_EARG;
   const size_t sn = static_cast<size_t>(n), sp = static_cast<size_t>(p);
   std::vector<double> m(sp * sp, 0.0);
   // m += sg * sum over the groups g of s_g s_g'
@@ -1136,7 +1136,41 @@ int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const
       return CLAB_EARG;
     }
   }
-  if (kind == 0) {
+  if (kind == 4) {
+    // Driscoll and Kraay (1998): the scores summed over the rows of each
+    // time, then Newey-West over the times, the pairs of times 1 to lag
+    // apart weighted 1 - d / (lag + 1)
+    std::vector<int> ord(sn);
+    for (int i = 0; i < n; ++i) {
+      if (!std::isfinite(t[i])) return CLAB_EDOM;
+      ord[static_cast<size_t>(i)] = i;
+    }
+    kutil::hsort(ord.data(), n, [&](int a, int b) { return t[a] < t[b]; });
+    std::vector<double> tv, h;
+    for (size_t a = 0; a < sn; ++a) {
+      const int i = ord[a];
+      if (tv.empty() || t[i] != tv.back()) {
+        tv.push_back(t[i]);
+        h.resize(h.size() + sp, 0.0);
+      }
+      double *hh = h.data() + (tv.size() - 1) * sp;
+      for (size_t j = 0; j < sp; ++j) hh[j] += sco[j * sn + static_cast<size_t>(i)];
+    }
+    for (size_t a = 0; a < tv.size(); ++a) {
+      const double *ha = h.data() + a * sp;
+      for (size_t b = a; b < tv.size(); ++b) {
+        const double d = tv[b] - tv[a];
+        if (d > lag) break;
+        const double *hb = h.data() + b * sp;
+        const double wl = b == a ? 1.0 : 1.0 - d / (lag + 1.0);
+        for (size_t j = 0; j < sp; ++j) {
+          for (size_t k = 0; k < sp; ++k) {
+            m[k * sp + j] += b == a ? ha[j] * ha[k] : wl * (ha[j] * hb[k] + hb[j] * ha[k]);
+          }
+        }
+      }
+    }
+  } else if (kind == 0) {
     grp(cl, ncl, 1.0);
   } else if (kind == 1) {
     std::vector<int> c12(sn), pw(sz(ncl, ncl2));

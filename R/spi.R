@@ -259,8 +259,10 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
              length(lx), match(as.character(y), as.character(ly)) - 1L,
              length(ly), minsup, minconf, empty)
   it <- c(paste0(nm[1L], "=", lx), paste0(nm[2L], "=", ly))
-  data.frame(lhs = ifelse(r$lhs < 0L, "", it[r$lhs + 1L]),
-             rhs = it[r$rhs + 1L], support = r$out[, 1L],
+  # the empty left-hand side is -1: index 0 would drop out of the labels
+  lh <- it[pmax(r$lhs, 0L) + 1L]
+  lh[r$lhs < 0L] <- ""
+  data.frame(lhs = lh, rhs = it[r$rhs + 1L], support = r$out[, 1L],
              confidence = r$out[, 2L], coverage = r$out[, 3L],
              lift = r$out[, 4L], count = r$out[, 5L])
 }

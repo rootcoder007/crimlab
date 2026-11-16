@@ -9,8 +9,8 @@ test_that("cemtch() keeps strata with both groups, weighted to the treated", {
   br <- seq(min(d$age), max(d$age), length.out = 4)
   ab <- findInterval(d$age, br, rightmost.closed = TRUE, all.inside = TRUE)
   s <- paste(d$pov, ab, d$race)
-  nt <- tapply(d$lead, s, sum)[s]
-  nc <- tapply(1 - d$lead, s, sum)[s]
+  nt <- as.vector(tapply(d$lead, s, sum)[s])
+  nc <- as.vector(tapply(1 - d$lead, s, sum)[s])
   keep <- unname(nt > 0 & nc > 0)
   mt <- sum(d$lead[keep])
   mc <- sum(1 - d$lead[keep])

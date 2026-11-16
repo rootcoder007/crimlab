@@ -587,9 +587,9 @@ inline bool nest(const Val &d, const std::string &f, const std::string &cc) {
   return true;
 }
 // .axtime()
-inline bool atime(Ctx &c, const Val &d, std::vector<double> &tv) {
+inline bool atime(Ctx &c, const Val &d, std::vector<double> &tv, const char *se = "nw") {
   const Nm m = nms(c, {"time"});
-  if (m.null) return ckstop(c, "`se = \"nw\"` needs `time`, the name of the day column");
+  if (m.null) return ckstop(c, "`se = \"%s\"` needs `time`, the name of the day column", se);
   Cols t;
   CK(acols(c, d, m, "time", {1}, false, t));
   const Val &a = *fc(d, t[0]);
@@ -636,7 +636,7 @@ inline double nwlag(const std::vector<double> &sco, std::size_t n, int p, const 
 }
 
 // .axvar(): the variance from the rows' scores as se asks (0 cluster, 1
-// twoway, 2 hc1, 3 nw, 5 quasi), the small-sample factor by ssc (0 G, 1
+// twoway, 2 hc1, 3 nw, 5 quasi, 6 dk), the small-sample factor by ssc (0 G, 1
 // nk, 2 none), the two-way factors by twc (0 min, 1 each) and psd (1 eig:
 // the negative eigenvalues of a two-way variance set to 0); the clusters
 // counted, the lag and, for quasi, the dispersion psi from Pearson's sum
@@ -685,8 +685,31 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
     k = kk(clus);
   } else {
     r.g = {static_cast<double>(n)};
-    kind = se == 2 ? 2 : 3;
+    kind = se == 2 ? 2 : (se == 3 ? 3 : 4);
     k = kk(Cols());
+    if (se == 6) {
+      // .axdklag(): the bandwidth of .axnwlag() on the series of the scores
+      // summed over the rows of each time
+      CK(atime(c, d, tv, "dk"));
+      std::vector<double> ut = tv;
+      std::sort(ut.begin(), ut.end());
+      ut.erase(std::unique(ut.begin(), ut.end()), ut.end());
+      r.g = {static_cast<double>(ut.size())};
+      if (c.has("lag")) {
+        Nv q;
+        CK(cknum(c, c["lag"], "lag", q, true, 0, Inf, false, true));
+        lg = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+      } else {
+        const std::size_t nt = ut.size();
+        std::vector<double> h(nt * zz(p), 0.0);
+        for (std::size_t i = 0; i < n; ++i) {
+          const std::size_t t = static_cast<std::size_t>(std::lower_bound(ut.begin(), ut.end(), tv[i]) - ut.begin());
+          for (std::size_t j = 0; j < zz(p); ++j) h[j * nt + t] += sco[j * n + i];
+        }
+        const double l = nwlag(h, nt, p, std::vector<int>(nt, 0), 1, ut);
+        lg = l > INT_MAX ? INT_MAX : static_cast<int>(l);
+      }
+    }
     if (se == 3) {
       const Code u = acode(*fc(d, clus[0]));
       c1 = u.c;
@@ -752,7 +775,7 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
       }
     }
   }
-  r.lag = se == 3 ? lg : NA;
+  r.lag = se == 3 || se == 6 ? lg : NA;
   return true;
 }
 // sqrt(pmax(diag(v), 0))
@@ -1258,7 +1281,7 @@ bool ppmlfe(Ctx &c, Val &out) {
 }
 
 bool ivfe(Ctx &c, Val &out) {
-  static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot"};
+  static const std::vector<const char *> ses = {"cluster", "twoway", "hc1", "nw", "boot", "dk"};
   int se = 0, ssc = 0, twc = 0, psd = 0;
   CK(marg(c, "se", ses, se));
   CK(marg(c, "ssc", sscs, ssc));
@@ -1347,7 +1370,7 @@ bool ivfe(Ctx &c, Val &out) {
     draws = vmat(b.dr, nb, p);
   } else {
     Vr vr;
-    CK(avar(c, d, p, r.sco, r.brd, se, clus, fe, ssc, twc, psd, NaN, vr));
+    CK(avar(c, d, p, r.sco, r.brd, se == 5 ? 6 : se, clus, fe, ssc, twc, psd, NaN, vr));
     v = vr.v;
     sev = sdiag(v, p);
     g = vr.g;
@@ -1436,12 +1459,104 @@ bool ivfe(Ctx &c, Val &out) {
   return true;
 }
 
+// ppmlcf(family = "nb") (R/cfnb.R): on the rows rw of ds (repeated as
+// drawn), the fixed effects as indicators (the first level present left
+// out), the first stage by least squares of each endogenous column on an
+// intercept, the instruments, the controls and the indicators, and the
+// negative binomial fit of clab_cntreg() on the endogenous columns, the
+// controls, the first-stage residuals, an intercept and the indicators.
+struct Nbf {
+  std::vector<double> beta, vb, vc, st;
+  int k = 0;
+};
+inline bool nbcf(const Val &ds, const Ix &rw, const std::string &y, const Cols &endo, const Cols &inst, const Cols &x,
+                 const Cols &fe, const std::vector<double> &off, const int *cl, int ncl, int maxit, Nbf &o) {
+  const std::size_t m = rw.size();
+  auto colr = [&](const std::string &nm) {
+    const std::vector<double> v = colv(*fc(ds, nm));
+    std::vector<double> r(m);
+    for (std::size_t i = 0; i < m; ++i) r[i] = v[rw[i]];
+    return r;
+  };
+  std::vector<double> dm;
+  std::size_t nd = 0;
+  for (const std::string &f : fe) {
+    const Code cf = acode(*fc(ds, f));
+    std::vector<char> pres(zz(cf.n), 0);
+    for (std::size_t i = 0; i < m; ++i) pres[zz(cf.c[rw[i]])] = 1;
+    bool first = true;
+    for (int l = 0; l < cf.n; ++l) {
+      if (!pres[zz(l)]) continue;
+      if (first) {
+        first = false;
+        continue;
+      }
+      for (std::size_t i = 0; i < m; ++i) dm.push_back(cf.c[rw[i]] == l ? 1.0 : 0.0);
+      ++nd;
+    }
+  }
+  std::vector<double> z(m, 1.0);
+  for (const std::string &v : inst) {
+    const std::vector<double> c1 = colr(v);
+    z.insert(z.end(), c1.begin(), c1.end());
+  }
+  for (const std::string &v : x) {
+    const std::vector<double> c1 = colr(v);
+    z.insert(z.end(), c1.begin(), c1.end());
+  }
+  z.insert(z.end(), dm.begin(), dm.end());
+  const int pz = static_cast<int>(1 + inst.size() + x.size() + nd);
+  std::vector<double> x2;
+  for (const std::string &v : endo) {
+    const std::vector<double> c1 = colr(v);
+    x2.insert(x2.end(), c1.begin(), c1.end());
+  }
+  for (const std::string &v : x) {
+    const std::vector<double> c1 = colr(v);
+    x2.insert(x2.end(), c1.begin(), c1.end());
+  }
+  std::vector<double> bz(zz(pz)), xi(zz(pz) * zz(pz)), res(m), wk(zz(pz) * zz(pz) + zz(pz));
+  for (const std::string &v : endo) {
+    const std::vector<double> ev = colr(v);
+    if (pev::ols(z.data(), ev.data(), static_cast<int>(m), pz, nullptr, bz.data(), xi.data(), res.data(), wk.data()) !=
+        CLAB_OK) {
+      return false;
+    }
+    x2.insert(x2.end(), res.begin(), res.end());
+  }
+  x2.insert(x2.end(), m, 1.0);
+  x2.insert(x2.end(), dm.begin(), dm.end());
+  const int k = static_cast<int>(2 * endo.size() + x.size() + 1 + nd);
+  std::vector<double> yr = colr(y), of;
+  for (std::size_t i = 0; i < m && !off.empty(); ++i) of.push_back(off[rw[i]]);
+  std::vector<int> cr;
+  for (std::size_t i = 0; i < m && cl; ++i) cr.push_back(cl[rw[i]]);
+  o.k = k;
+  o.beta.assign(zz(k), 0.0);
+  o.vb.assign(zz(k) * zz(k), 0.0);
+  o.vc.assign(zz(k) * zz(k), 0.0);
+  o.st.assign(8, 0.0);
+  std::vector<double> work(m * zz(k) + 6 * m + zz(k) + zz(k) * zz(k) + 2 * zz(ncl) * zz(k));
+  std::vector<int> iw(zz(k)), al(zz(k));
+  const int rc = clab_cntreg(yr.data(), x2.data(), static_cast<int>(m), k, of.empty() ? nullptr : of.data(),
+                             cl ? cr.data() : nullptr, cl ? ncl : 0, 1, maxit, 1e-10, o.beta.data(), o.vb.data(),
+                             o.vc.data(), o.st.data(), al.data(), work.data(), iw.data());
+  if (rc != CLAB_OK) return false;
+  for (int a : al) {
+    if (a) return false;
+  }
+  return true;
+}
+
 bool ppmlcf(Ctx &c, Val &out) {
-  static const std::vector<const char *> hows = {"cf", "plug"}, ses = {"boot", "naive"};
-  int how = 0, se = 0, ssc = 0;
+  static const std::vector<const char *> hows = {"cf", "plug"}, ses = {"boot", "naive"},
+                                         fams = {"poisson", "nb"};
+  int how = 0, se = 0, ssc = 0, fam = 0;
   CK(marg(c, "how", hows, how));
   CK(marg(c, "se", ses, se));
   CK(marg(c, "ssc", sscs, ssc));
+  CK(marg(c, "family", fams, fam));
+  if (fam == 1 && how != 0) return ckstop(c, "`family = \"nb\"` needs `how = \"cf\"`");
   Val d;
   CK(dat(c, c["data"], "data", d));
   Cols y, endo, inst, x, fe, expo, clus;
@@ -1499,6 +1614,63 @@ bool ppmlcf(Ctx &c, Val &out) {
   }
   std::vector<double> me, mxx, mz;
   const int pe = static_cast<int>(endo.size()), q = static_cast<int>(inst.size());
+  if (fam == 1) {
+    // .axcfnbr(): the first-stage table of ivfe(), then the fit
+    int nb = 0;
+    bool hs = false;
+    double sd = 0;
+    if (se == 0) CK(bargs(c, nb, hs, sd));
+    const Id a = idat(ds, y[0], endo, x, inst, fe);
+    If r1;
+    const int rc1 = ivfit(a, all(n), nullptr, cl.a.c.data(), cl.a.n, nullptr, 0, tol, r1);
+    if (rc1 != CLAB_OK) return kerr(c, "ivfe", rc1);
+    const std::size_t kp = tm.size();
+    Nbf f0;
+    if (!nbcf(ds, all(n), y[0], endo, inst, x, fe, off, se == 1 ? cl.a.c.data() : nullptr, cl.a.n, maxit, f0)) {
+      return ckstop(c, "the negative binomial fit failed");
+    }
+    std::vector<double> b(f0.beta.begin(), f0.beta.begin() + static_cast<std::ptrdiff_t>(kp)), sev(kp);
+    Val draws;
+    int nfl = 0;
+    if (se == 1) {
+      const double g = cl.a.n, dn = static_cast<double>(n), kk = f0.k;
+      const double fac = ssc == 0 ? g / (g - 1) : ssc == 1 ? g / (g - 1) * (dn - 1) / (dn - kk) : 1.0;
+      for (std::size_t j = 0; j < kp; ++j) sev[j] = std::sqrt(fac * f0.vc[j * zz(f0.k) + j]);
+    } else {
+      auto fit = [&](const Ix &rw, const std::vector<double> &w, std::vector<double> &beta) {
+        Ix rr;
+        for (std::size_t i = 0; i < rw.size(); ++i) {
+          for (int r = 0; r < static_cast<int>(w[i]); ++r) rr.push_back(rw[i]);
+        }
+        Nbf fb;
+        if (!nbcf(ds, rr, y[0], endo, inst, x, fe, off, nullptr, 0, maxit, fb)) return false;
+        beta.assign(fb.beta.begin(), fb.beta.begin() + static_cast<std::ptrdiff_t>(kp));
+        return true;
+      };
+      Bt bt;
+      CK(aboot(c, ds, clus[0], nb, hs, sd, static_cast<int>(kp), fit, bt));
+      sev = bt.se;
+      draws = vmat(bt.dr, nb, static_cast<int>(kp));
+      nfl = bt.nf;
+    }
+    out = vobj();
+    put(out, "coef", atab(tm, b, sev, lv, NaN, true));
+    put(out, "first", afirst(endo, r1.fst, q));
+    put(out, "draws", draws);
+    put(out, "nfail", vnum(nfl));
+    put(out, "n", vnum(static_cast<double>(n)));
+    put(out, "nsep", vnum(static_cast<double>(yv.size() - n)));
+    put(out, "ncl", vnum(cl.g[0]));
+    put(out, "nboot", vnum(se == 0 ? nb : 0));
+    put(out, "how", vstr("cf"));
+    put(out, "se", vstr(ses[zz(se)]));
+    put(out, "fe", vs(fe));
+    put(out, "clus", vs(clus));
+    put(out, "level", vnum(lv));
+    put(out, "family", vstr("nb"));
+    put(out, "theta", vnum(f0.st[2]));
+    return true;
+  }
   if (se == 1) {
     CK(amat(c, ds, endo, me));
     CK(amat(c, ds, x, mxx));

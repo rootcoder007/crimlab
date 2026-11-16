@@ -127,8 +127,9 @@ test_that("ifesc()'s bootstrap draws units with R's generator", {
   b <- ifesc(p, "y", "tr", "id", "yr", r = 1, nboot = 20, seed = 4)
   expect_identical(a$draws, b$draws)
   expect_identical(dim(a$draws), c(20L, 1L + nrow(a$eff)))
-  ok <- stats::complete.cases(a$draws)
-  expect_equal(a$att$se, stats::sd(a$draws[ok, 1L]), tolerance = 1e-12)
+  # a draw that could not be fitted is NA and left out
+  expect_equal(a$att$se, stats::sd(a$draws[, 1L], na.rm = TRUE),
+               tolerance = 1e-12)
   expect_identical(a$nboot, 20L)
 })
 

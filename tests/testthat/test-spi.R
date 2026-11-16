@@ -54,7 +54,7 @@ test_that("idwint() is the weighted mean of the nearest monitors", {
   zn <- rep(c("b", "a"), 11)
   z <- idwint(m$x, m$y, m$v, tg$x, tg$y, k = 4, rad = 5, zone = zn)
   expect_identical(z$zone, c("a", "b"))
-  expect_equal(z$val, unname(tapply(r$val, zn, mean, na.rm = TRUE)),
+  expect_equal(z$val, as.vector(tapply(r$val, zn, mean, na.rm = TRUE)),
                tolerance = 1e-14)
   expect_identical(z$n, as.numeric(tapply(!is.na(r$val), zn, sum)))
 })
@@ -175,15 +175,17 @@ test_that("asrule() is the measures of table() written out", {
       data.frame(lhs = "", rhs = paste0("ipv=", b), support = py[[b]],
                  confidence = py[[b]], coverage = 1, lift = 1)
     }),
-    unlist(lapply(levels(x), function(a) lapply(names(py), function(b) {
-      s <- tb[a, b]
-      rbind(data.frame(lhs = paste0("pm=", a), rhs = paste0("ipv=", b),
-                       support = s, confidence = s / px[[a]],
-                       coverage = px[[a]], lift = s / px[[a]] / py[[b]]),
-            data.frame(lhs = paste0("ipv=", b), rhs = paste0("pm=", a),
-                       support = s, confidence = s / py[[b]],
-                       coverage = py[[b]], lift = s / py[[b]] / px[[a]]))
-    })), recursive = FALSE)))
+    unlist(lapply(levels(x), function(a) {
+      lapply(names(py), function(b) {
+        s <- tb[a, b]
+        rbind(data.frame(lhs = paste0("pm=", a), rhs = paste0("ipv=", b),
+                         support = s, confidence = s / px[[a]],
+                         coverage = px[[a]], lift = s / px[[a]] / py[[b]]),
+              data.frame(lhs = paste0("ipv=", b), rhs = paste0("pm=", a),
+                         support = s, confidence = s / py[[b]],
+                         coverage = py[[b]], lift = s / py[[b]] / px[[a]]))
+      })
+    }), recursive = FALSE)))
   want <- want[want$support >= 0.05 & want$confidence >= 0.1, ]
   expect_identical(r$lhs, want$lhs)
   expect_identical(r$rhs, want$rhs)

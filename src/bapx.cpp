@@ -291,6 +291,10 @@ SEXP C_clab_r_nbfit(SEXP y, SEXP x, SEXP off, SEXP cl, SEXP ncl, SEXP maxit, SEX
                              Rf_asInteger(maxit), Rf_asReal(eps), REAL(b), REAL(vb), REAL(vc),
                              REAL(st), alias, work, iwork);
   clab::ichk(rc);
+  if (rc == CLAB_EDOM) {
+    clab::fail("the negative binomial fit failed: theta has no finite estimate (the counts show no "
+               "overdispersion); use family = \"poisson\".");
+  }
   if (rc != CLAB_OK) clab::fail("the negative binomial fit failed: %s.", clab_strerror(rc));
   for (int j = 0; j < p; ++j) {
     if (alias[j]) clab::fail("a regressor of the negative binomial fit is collinear with the others.");

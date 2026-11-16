@@ -2140,6 +2140,74 @@ int clab_dwnexp(int rule, int ns, const double *sx, const double *sy, const int 
 int clab_tailwd(int n, const double *dir, const double *spd, double course, const int *grp,
                 int ng, int agg, double *out);
 
+/* Inverse-distance-weighted interpolation (idwint): nm monitors at (mx,
+ * my) with values mv (NaN: left out) carried to nt targets (tx, ty): a
+ * target at monitors' locations takes their mean; else the k nearest
+ * monitors within rad (k 0: all within rad; ties by monitor order) weigh
+ * d^-p (p >= 0), NaN when none. used: the monitors used per target. With
+ * zone (nt codes 0..nz-1), zout (nz) is the mean of each zone's targets
+ * with a value and zn their number. ll 1: longitude and latitude in
+ * degrees, km on the sphere. CLAB_EARG for arguments out of range,
+ * CLAB_EDOM for a coordinate that is not finite. */
+int clab_idwint(int nm, const double *mx, const double *my, const double *mv, int nt,
+                const double *tx, const double *ty, double p, int k, double rad, int ll,
+                const int *zone, int nz, double *out, double *used, double *zout, double *zn);
+
+/* Geographically and temporally weighted regression (gtwreg; Kuo and
+ * Putra 2021, eqs 5-9): n observations, x (n x k, column-major, k < n), y,
+ * coordinates (u, v) and times t (NULL: none); at each observation the
+ * least-squares fit weighted by w_j = exp(-(ds^2 + tau dt^2) / h^2), ds
+ * planar or km on the sphere (ll 1). Out: beta and se (n x k), the fitted
+ * values, the hat diagonal S_ii, the leave-one-out residuals e_i / (1 -
+ * S_ii), and st (7): RSS, tr S, tr S'S, sigma^2 = RSS / (n - 2 tr S + tr
+ * S'S), the cross-validation score, AICc = n log(RSS / n) + n log(2 pi) +
+ * n (n + tr S) / (n - 2 - tr S), and n - 2 tr S + tr S'S. se: sigma times
+ * the root of the diagonal of A^-1 X'W^2X A^-1, A = X'WX. CLAB_EDOM when a
+ * local fit is singular or a value is not finite. */
+int clab_gtwreg(int n, int k, const double *x, const double *y, const double *u, const double *v,
+                const double *t, double h, double tau, int ll, double *beta, double *se,
+                double *fitv, double *hat, double *loo, double *st);
+
+/* Coarsened exact matching (Iacus, King and Porro 2012; cemtch): code
+ * (n x k, column-major) the coarsened covariates, tr n 0/1 treatments,
+ * lcode (n x lk) the coarsening of the imbalance. Out: strat (the kept
+ * stratum of each row from 1 in order of first appearance, 0 when its
+ * stratum lacks treated or control rows), w (1 for kept treated rows,
+ * (m_T^s / m_C^s)(m_C / m_T) for kept controls, 0 otherwise) and st (6):
+ * L1 before and after (weighted; NaN when a group is empty), the strata
+ * kept, the treated and control rows kept, and the strata in all. */
+int clab_cemtch(const int *code, int n, int k, const int *tr, const int *lcode, int lk, int *strat,
+                double *w, double *st);
+
+/* The generalized synthetic control (Xu 2017) on Bai's (2009) interactive
+ * fixed effects model (ifesc): y (nt x n, a column per unit) and x (nt x
+ * n x p) of a balanced panel; a[u] the adoption period of unit u (0-based,
+ * nt for never treated: the controls, at least 2). r factors, or r -1 to
+ * choose 0..rmax by leaving out one pre-adoption period at a time (cv:
+ * rmax + 1 mean squared errors, NaN untried). Bai's estimator alternates
+ * at most maxit times until beta moves by less than tol. bm: NULL or n x
+ * nb unit counts of bootstrap draws. Out: beta (p); y0 (nt x n, the
+ * treated units' counterfactuals, NaN for controls); fac (nt x r, room
+ * for nt x max(r, rmax)); ef (1 + ne: the mean effect over treated cells,
+ * then by event time emin..emin + ne - 1); bef (nb x (1 + ne), NaN for a
+ * draw that fails); st (8): r, iterations, converged, treated units,
+ * control units, failed draws, emin, ne, with emin = -max(a of treated)
+ * and ne = nt - min(a) + max(a). CLAB_EDOM when a treated unit has no
+ * more than r + 1 pre-adoption periods or a fit is singular. */
+int clab_ifesc(const double *y, const double *x, int p, const int *a, int n, int nt, int r, int rmax,
+               int maxit, double tol, const int *bm, int nb, double *beta, double *y0, double *fac,
+               double *cv, double *ef, double *bef, double *st);
+
+/* Association rules of two categorical variables (asrule): codes xc
+ * (0..nx-1) and yc (0..ny-1) of n observations; items 0..nx-1 the levels
+ * of x, nx..nx+ny-1 those of y. The rules {} => {b} (with empty 1) and {a}
+ * => {b} across the two variables, in both directions, with support at
+ * least minsup and confidence at least minconf: lhs (-1 the empty set),
+ * rhs and out (5 per rule: support, confidence, coverage, lift, count),
+ * nr of them; room for nx + ny + 2 nx ny rules. */
+int clab_asrule(int n, const int *xc, int nx, const int *yc, int ny, double minsup,
+                double minconf, int empty, int *nr, int *lhs, int *rhs, double *out);
+
 /* The same unit on another day (plcday): for row i of unit u[i] on day
  * t[i], idx[i] is the row of unit u[i] on day t[i] + k, or -1. CLAB_EDOM
  * for a non-finite day or a unit with two rows on one day. ord: n ints of
@@ -2173,7 +2241,10 @@ int clab_dshift(const int *u, const double *t, int n, double k, int *idx, int *o
  * each row alone (heteroskedasticity-robust); kind 3, Newey-West within
  * the units cl: each row alone plus, for the pairs of rows of one unit
  * whose times t differ by d in (0, lag], (1 - d / (lag + 1)) (s_i s_j' +
- * s_j s_i'). fac: the small-sample factor, chosen by the caller.
+ * s_j s_i'); kind 4, Driscoll and Kraay (1998): h_t the sum of the scores
+ * of the rows of each time t, M = sum_t h_t h_t' plus, for the pairs of
+ * times d in (0, lag] apart, (1 - d / (lag + 1)) (h_a h_b' + h_b h_a')
+ * (cl not used). fac: the small-sample factor, chosen by the caller.
  * CLAB_EDOM for a non-finite time. */
 int clab_vcx(const double *sco, int n, int p, const double *brd, int kind, const int *cl, int ncl,
              const int *cl2, int ncl2, const double *t, int lag, double fac, double *vc);

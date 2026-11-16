@@ -1627,7 +1627,8 @@ bool ppmlcf(Ctx &c, Val &out) {
     const std::size_t kp = tm.size();
     Nbf f0;
     if (!nbcf(ds, all(n), y[0], endo, inst, x, fe, off, se == 1 ? cl.a.c.data() : nullptr, cl.a.n, maxit, f0)) {
-      return ckstop(c, "the negative binomial fit failed");
+      return ckstop(c, "the negative binomial fit failed: theta has no finite estimate (the counts show no "
+                       "overdispersion); use family = \"poisson\"");
     }
     std::vector<double> b(f0.beta.begin(), f0.beta.begin() + static_cast<std::ptrdiff_t>(kp)), sev(kp);
     Val draws;

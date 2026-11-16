@@ -1243,7 +1243,7 @@ func Ppmlfe(args string) (string, error) { return Jrun("ppmlfe", args) }
 // Ivfe runs ivfe() of the R package (arguments: data y endo? inst? x? fe clus? se? ssc? time? lag? nboot? seed? level? tol? twc? psd?; ? marks an optional one).
 func Ivfe(args string) (string, error) { return Jrun("ivfe", args) }
 
-// Ppmlcf runs ppmlcf() of the R package (arguments: data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit?; ? marks an optional one).
+// Ppmlcf runs ppmlcf() of the R package (arguments: data y endo inst x? fe expo? clus? how? se? ssc? nboot? seed? level? tol? maxit? family?; ? marks an optional one).
 func Ppmlcf(args string) (string, error) { return Jrun("ppmlcf", args) }
 
 // Windiv runs windiv() of the R package (arguments: dir width? start? area? base? sect? edges? by? avg? share? spd?; ? marks an optional one).
@@ -1257,6 +1257,24 @@ func Dwnexp(args string) (string, error) { return Jrun("dwnexp", args) }
 
 // Tailwd runs tailwd() of the R package (arguments: dir spd course? by? agg?; ? marks an optional one).
 func Tailwd(args string) (string, error) { return Jrun("tailwd", args) }
+
+// Idwint runs idwint() of the R package (arguments: mx my mv tx ty p? k? rad? lonlat? zone?; ? marks an optional one).
+func Idwint(args string) (string, error) { return Jrun("idwint", args) }
+
+// Gtwreg runs gtwreg() of the R package (arguments: y x? u v t? h tau? crit? lonlat? cons?; ? marks an optional one).
+func Gtwreg(args string) (string, error) { return Jrun("gtwreg", args) }
+
+// Asrule runs asrule() of the R package (arguments: x y minsup? minconf? empty? nm?; ? marks an optional one).
+func Asrule(args string) (string, error) { return Jrun("asrule", args) }
+
+// Lrcce runs lrcce() of the R package (arguments: object x ylag? level?; ? marks an optional one).
+func Lrcce(args string) (string, error) { return Jrun("lrcce", args) }
+
+// Cemtch runs cemtch() of the R package (arguments: data d x cut? lcut?; ? marks an optional one).
+func Cemtch(args string) (string, error) { return Jrun("cemtch", args) }
+
+// Ifesc runs ifesc() of the R package (arguments: data y d unit time x? r? rmax? se? nboot? seed? level? tol? maxit?; ? marks an optional one).
+func Ifesc(args string) (string, error) { return Jrun("ifesc", args) }
 
 // Updwn runs updwn() of the R package (arguments: data y ax ay day wind src area? tol? band? dist? twin? agg? norm? wx? se? ssc? clus? lag? nboot? seed? offs? level?; ? marks an optional one).
 func Updwn(args string) (string, error) { return Jrun("updwn", args) }
