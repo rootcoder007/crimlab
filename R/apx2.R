@@ -926,7 +926,12 @@ print.typefx <- function(x, ...) {
 .axrcs <- function(x, t) {
   k <- length(t)
   if (k < 3L) return(matrix(x))
-  p <- function(u) pmax(u, 0)^3
+  # the cube as a product, which the command line writes the same way (u^3
+  # is pow(), or powl() on x86-64, which differ in the last bit)
+  p <- function(u) {
+    u <- pmax(u, 0)
+    u * u * u
+  }
   m <- cbind(x, vapply(seq_len(k - 2L), function(j) {
     (p(x - t[j]) - p(x - t[k - 1L]) * (t[k] - t[j]) / (t[k] - t[k - 1L]) +
        p(x - t[k]) * (t[k - 1L] - t[j]) / (t[k] - t[k - 1L])) / (t[k] - t[1L])^2

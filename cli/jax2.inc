@@ -349,10 +349,34 @@ inline Val awald(Ctx &c, const std::vector<double> &b, const std::vector<double>
   return f.o;
 }
 // quantile(x, p) of type 7.
+// quantile(x, p) (type 7) as R's stats::quantile() computes it: the index
+// 1 + (n - 1) p, and (1 - h) x[lo] + h x[hi] between the order statistics.
+// The compiled clab_quant() writes x[lo] + h (x[hi] - x[lo]), equal but for
+// the last bit, which a spline basis at these knots (jntx) magnifies.
 inline std::vector<double> aqnt(const std::vector<double> &x, const std::vector<double> &p) {
-  std::vector<double> q(p.size());
-  clab_quant(x.data(), static_cast<int>(x.size()), p.data(), static_cast<int>(p.size()), q.data());
+  std::vector<double> v(x), q;
+  bool nan = v.empty();
+  for (double e : v) nan = nan || std::isnan(e);
+  std::sort(v.begin(), v.end());
+  for (double pr : p) {
+    if (nan || std::isnan(pr)) {
+      q.push_back(NA);
+      continue;
+    }
+    const double ix = 1 + (static_cast<double>(v.size()) - 1) * pr, lo = std::floor(ix), hi = std::ceil(ix);
+    const double a = v[static_cast<std::size_t>(lo) - 1], b = v[static_cast<std::size_t>(hi) - 1];
+    const double h = ix - lo;
+    q.push_back(ix > lo && b != a ? (1 - h) * a + h * b : a);
+  }
   return q;
+}
+// median(x) as R's stats::median() computes it: the middle value, or the
+// mean of the two middle values (clab_med() interpolates as clab_quant()).
+inline double amed(std::vector<double> v) {
+  if (v.empty()) return NA;
+  std::sort(v.begin(), v.end());
+  const std::size_t m = v.size() / 2;
+  return v.size() % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
 }
 // The rows of the coefficient table of a fit for term t, or R's refusal.
 inline bool arow(Ctx &c, const Val &r, const std::string &t, const char *msg, std::size_t &i) {
@@ -371,7 +395,11 @@ inline std::vector<double> rcs(const std::vector<double> &x, const std::vector<d
   std::vector<double> m(n * zz(nc));
   std::copy(x.begin(), x.end(), m.begin());
   if (k < 3) return m;
-  const auto p = [](double u) { return std::pow(u > 0 ? u : 0.0, 3.0); };
+  // the cube as R's .axrcs() writes it, a product
+  const auto p = [](double u) {
+    const double v = u > 0 ? u : 0.0;
+    return v * v * v;
+  };
   const double tk = t[k - 1], tk1 = t[k - 2], d2 = rpow(tk - t[0], 2);
   for (std::size_t j = 0; j + 2 < k; ++j) {
     for (std::size_t i = 0; i < n; ++i) {
@@ -774,7 +802,7 @@ bool jntx(Ctx &c, Val &out) {
   const std::vector<double> b = cnum(trows(col(r, "coef"), nm), "est");
   const std::vector<double> v = avcov(r, nm);
   std::vector<double> ref = rf.v;
-  if (ref.empty()) ref = {clab_med(a1.data(), static_cast<int>(n)), clab_med(a2.data(), static_cast<int>(n))};
+  if (ref.empty()) ref = {amed(a1), amed(a2)};
   // rel(): the change of the linear predictor and its standard error
   const auto rel = [&](const std::vector<double> &u, const std::vector<double> &w, const std::vector<double> &u0,
                        const std::vector<double> &w0, std::vector<double> &es, std::vector<double> &ss) {
@@ -906,7 +934,7 @@ bool dosebin(Ctx &c, Val &out) {
     for (std::size_t i = 0; i < n; ++i) {
       if (bn[i] == static_cast<int>(j)) in.push_back(xv[i]);
     }
-    mid[j] = in.empty() ? NA : clab_med(in.data(), static_cast<int>(in.size()));
+    mid[j] = amed(in);
     cnt[j] = static_cast<double>(in.size());
   }
   const std::vector<double> ce = cnum(cf, "est"), cs = cnum(cf, "se"), cl = cnum(cf, "lo"), ch = cnum(cf, "hi"),

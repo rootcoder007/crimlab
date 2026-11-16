@@ -511,3 +511,19 @@ test_that("a day as dates, ISO date text or days since 1970", {
   expect_error(smkiv(t, "plume", "place", "day", pm = "pm"),
                "give `seas`, or `day` as dates")
 })
+
+test_that("the spline basis of jntx() is Harrell's restricted cubic spline", {
+  # the cubes are written as products (as on the command line); against the
+  # formula with powers, at the knots of jntx() (k1 = 5)
+  set.seed(10)
+  x <- rnorm(500, 25, 4)
+  t <- as.numeric(stats::quantile(x, c(0.05, 0.275, 0.5, 0.725, 0.95)))
+  b <- .axrcs(x, t)
+  k <- length(t)
+  h <- sapply(seq_len(k - 2L), function(j) {
+    (pmax(x - t[j], 0)^3 - pmax(x - t[k - 1], 0)^3 * (t[k] - t[j]) /
+       (t[k] - t[k - 1]) + pmax(x - t[k], 0)^3 * (t[k - 1] - t[j]) /
+       (t[k] - t[k - 1])) / (t[k] - t[1])^2
+  })
+  expect_equal(b, unname(cbind(x, h)), tolerance = 1e-13)
+})

@@ -27,6 +27,12 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* The command line computes the quantiles and medians of `jntx()`,
+  `ccross(ns =)` and `dosebin()` as R's `quantile()` and `median()` do,
+  and the restricted cubic spline's cube as a product in both, so that a
+  spline surface of `jntx()` is the same fit in R and outside it (it
+  differed by about 1e-8).
+
 * Fixed, after a review of the checks: `ppmlfe()` and `ivfe()` with
   `se = "twoway"` and other than two fixed effects, `rddens()` and
   `rdloc()` with fewer than 10 rows, `rdloc()` with a constant treatment,
