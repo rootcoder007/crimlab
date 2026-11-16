@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* Fixed: `kscan()`'s Monte Carlo p-values used to depend on the order of
+  the rows for a given seed (the times were shuffled over the rows as
+  given); the shuffles now run over the incidents in the order of their
+  coordinates and times. The p-values for a given seed change once; the
+  clusters do not.
+
 * Fixed: `ctabx()` of a table of zeros used to print "n = NA" and give no
   statistics; such a table has no total, and it is now refused (here and
   on the command line).
