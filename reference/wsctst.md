@@ -26,7 +26,7 @@ wsctst(y, x = NULL, unit, time, cons = FALSE, ssc = "cr1")
 
 - y:
 
-  The outcome of each row: finite numbers.
+  The count of each row (a unit in a period): numbers from 0.
 
 - x:
 

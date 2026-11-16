@@ -129,6 +129,44 @@
   …); it is now refused in the package’s (“`area` must be a vector, got
   NULL.”).
 
+- New:
+  [`ccepnl()`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md)
+  estimates dynamic heterogeneous panels as Chudik and Pesaran (2015)
+  set out: `ylag` lags of the outcome among the regressors, `lags` lags
+  of the cross-section averages (by default the integer part of
+  `T^(1/3)` when `ylag > 0`), the mean group estimator and its variance,
+  and the half-panel jackknife (`bias = "jack"`) or recursive mean
+  adjustment (`bias = "rma"`), with the uncorrected estimate alongside
+  in `mg0`. The pooled estimator is not made for dynamic models
+  (`pool`), as their theory is that of the mean group estimator. Calls
+  without the new arguments give the results they gave.
+
+- New:
+  [`ccepnl()`](https://rootcoder007.github.io/crimlab/reference/ccepnl.md)
+  reports the heterogeneity-bias test of the pooled estimator of Juodis
+  and Reese (2026, `hb`) and the number of factors the averages identify
+  by their two regularized procedures (`nfac`), and offers the fixed-T
+  variance of the pooled estimator of Brown, Schmidt and Wooldridge
+  (2026, `pvar = "bsw"`). The help page sets out the five lessons of
+  Juodis and Reese and what each asks of a user.
+
+- New:
+  [`gmmpnl()`](https://rootcoder007.github.io/crimlab/reference/gmmpnl.md)
+  returns the residuals in levels (`resid`), for Pesaran’s test of
+  cross-sectional dependence and Moran’s I on each year, and the joint
+  test as xtabond2 prints it (`xwald`); its help page maps each estimate
+  and test of Andreatta et al. (2023) to a call and has an example of
+  their specification on simulated data.
+
+- Changed: `gmmpnl(small = TRUE)` now makes the small-sample corrections
+  as xtabond2 3.7.2 computes them (Roodman 2009): the conventional
+  one-step variance and `sigma2` times `w / (w - k)`, the robust and
+  two-step variances times `(n - 1) / (n - k) G / (G - 1)`, and t and F
+  on `n - q - c` or `G - c` degrees of freedom; it used `n / (n - k)`
+  throughout. The joint test counts its degrees of freedom as the
+  program does, with or without `small`. `small = TRUE` is refused with
+  one group, or with no more transformed rows than coefficients.
+
 - Fixed:
   [`xcser()`](https://rootcoder007.github.io/crimlab/reference/xcser.md)
   used to report r = 0 with an interval, p = 1 and nonzero

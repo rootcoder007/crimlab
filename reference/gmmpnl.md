@@ -48,7 +48,7 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
 - y:
 
-  The outcome of each row: finite numbers.
+  The count of each row (a unit in a period): numbers from 0.
 
 - x:
 
@@ -129,7 +129,7 @@ plot(x, ..., main = NULL, col = NULL, pal = NULL)
 - small:
 
   `FALSE` (default) or `TRUE` for the small-sample variance, t
-  statistics and an F test, as above.
+  statistics and an F test as xtabond2 3.7.2 computes them (above).
 
 - hmat:
 
@@ -182,12 +182,14 @@ An object of class `gmmpnl`, a list: `coef` (`term`, `est`, `se`, `z`
 test without the level GMM-style instruments and the
 difference-in-Hansen test, or their Sargan counterparts with the
 conventional one-step variance); `wald`, one row (`test`, `"Wald"` or
-`"F"`, `stat`, `df1`, `df2`, `p`); `fit`, one row: `n` (the rows of the
-transformed equation for difference GMM, of the levels for system GMM,
-as xtabond2 counts), `groups`, `inst`, `omin`, `oavg`, `omax` (rows per
-group), `steps`, `k` and `sigma2`; `vcov`; `inst`, the instruments'
-names; `dropped`, the time dummies dropped; `dummies`, those kept;
-`note`; `type`; `trans`; `robust`; `small`; and `level`.
+`"F"`, `stat`, `df1`, `df2`, `p`); `xwald`, the same as xtabond2 prints
+it (over every coefficient); `resid`, `y - x b` in levels, one per row
+of `y`; `fit`, one row: `n` (the rows of the transformed equation for
+difference GMM, of the levels for system GMM, as xtabond2 counts),
+`groups`, `inst`, `omin`, `oavg`, `omax` (rows per group), `steps`, `k`
+and `sigma2`; `vcov`; `inst`, the instruments' names; `dropped`, the
+time dummies dropped; `dummies`, those kept; `note`; `type`; `trans`;
+`robust`; `small`; and `level`.
 
 ## Details
 
@@ -239,18 +241,101 @@ one-step variance is the conventional `s2 (X'Z A Z'X)^-1`, eq 14 with
 below, and the two-step variance is the uncorrected `(X'Z A_2 Z'X)^-1`
 (Roodman 2009, p. 96). `wc` is the older name of the two-step choice:
 left `NULL` it follows `robust`, and a value that contradicts `robust`,
-or `wc` with one step, is refused. With `small = TRUE` the variance is
-multiplied by `n / (n - k)` (`n` the rows reported in `fit`, `k` the
-coefficients), and the coefficients have t statistics and the joint test
-is an F test, both on the groups less one (less nothing without a
-constant) degrees of freedom. Roodman (2009, p. 123) describes the
-option of xtabond2 only as "small-sample corrections to the covariance
-matrix estimate, resulting in t-test instead of z-test statistics for
-the coefficients and an F test instead of a Wald chi2 test for overall
-fit"; the degrees of freedom are those of his outputs (F(16, 140) for
-140 groups without a constant, p. 113; F(12, 139) with one, p. 118), and
-the factor `n / (n - k)` is this function's reading, as the paper gives
-none.
+or `wc` with one step, is refused.
+
+Roodman (2009, p. 123) describes `small` of xtabond2 only as
+"small-sample corrections to the covariance matrix estimate, resulting
+in t-test instead of z-test statistics for the coefficients and an F
+test instead of a Wald chi2 test for overall fit"; `small = TRUE` makes
+the corrections as xtabond2 3.7.2 computes them. With `n` the rows of
+the equation reported (`fit$n`), `w` the rows of the transformed
+equation in system GMM with `hmat` other than `"id"` and `n` otherwise,
+`G` the groups, `k` the coefficients and `c` 1 for the constant of
+system GMM (0 otherwise): the conventional one-step variance is
+multiplied by `w / (w - k)`, and the robust one-step variance and both
+two-step variances by `(n - 1) / (n - k) * G / (G - 1)`; `sigma2` is
+multiplied by `w / (w - k)`. The coefficients have t statistics on
+`df_r` degrees of freedom and the joint test is `F = W / q` on `q` and
+`df_r`, with `df_r = n - q - c` for the conventional one-step variance
+and `G - c` otherwise. The Sargan and Hansen statistics are unchanged;
+so are the Arellano-Bond statistics, except after the conventional
+one-step variance, where the program scales `sigma2` in the errors'
+variance by `w / (w - k)` and leaves the coefficients' variance in the
+statistic unscaled, and so does this function. Roodman's program also
+lets the variance be clustered on other variables, which multiplies each
+cluster's terms of the moments' variance by `G / (G - 1)` and drops that
+factor from the variance; this function clusters by unit only.
+
+`wald` is the joint test that the coefficients other than the constant
+are 0, `W = b' V^-1 b` over them, on `q` degrees of freedom counted as
+xtabond2 3.7.2 counts them, with or without `small`: the rank of the
+regressors in the levels (system GMM; the transformed equation is left
+out of the test) or in the transformed equation, less `c`; without a
+constant, one less again when the vector of ones `i` lies in their
+column space, which the program finds when `i'X_p (X'X)^-1 X_p'i`, `X_p`
+those rows and `X` the whole stack, is within the machine epsilon times
+the groups times the periods of the rows of `X_p`, relatively. The
+program's own statistic takes `b' V^-1 b` over every coefficient, the
+constant's included, while counting `q` without it; this function leaves
+the constant out of the statistic too, so that the two agree when no
+constant is estimated. `xwald` is the program's statistic, `b' V^-1 b`
+over every coefficient on the same `q` (and `F = W / q` with `small`),
+so that its printed line can be reproduced;
+[`print()`](https://rdrr.io/r/base/print.html) shows it on a second line
+when it differs from `wald`.
+
+Two values differ from the program's by design. `sigma2` is that of the
+one-step residuals, which Sargan's statistic uses, also with
+`steps = 2`, where xtabond2 reports the two-step residuals' value. With
+the conventional one-step variance the Arellano-Bond statistics take the
+error variance as `s2` times the covariances of independent errors
+through the differences whatever `hmat` (Roodman 2009, n. 19), where
+with `hmat = "id"` in system GMM the program takes `sigma2` from the
+levels and `H = I` there; the identity is the weight of Blundell and
+Bond's first step, not the covariance of differenced errors.
+
+`resid` holds `y - x b` in levels for every row of the level equation
+(`NA` for rows without the `ylag` periods before), the unit effects
+included; Andreatta et al. (2023, p. 1376) pass such residuals of the
+dynamic model to Pesaran's test of cross-sectional dependence
+([`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md))
+and to Moran's I for each year
+([`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md)).
+
+**Andreatta et al. (2023), step by step.** Their table 3 is one-step
+system GMM with robust errors "with small-sample adjustments" (note):
+`type = "system"`, `steps = 1`, `robust = TRUE`, `small = TRUE`; time
+effects, `tdum = TRUE`; the lagged rate, `ylag = 1`, and the four
+enforcement and organised-crime variables in `gmm`, instrumented by
+"their second and third lags" (p. 1373), `lagmin = 2, lagmax = 3`, or by
+"Lag 2 and earlier lags" (table note), `lagmax = Inf`, the other drivers
+IV-style (`iv`); the difference of lag 1 in the level equation is what
+`lagmin = 2` gives there. Their tests are the rows of `tests`: AR(1) and
+AR(2), Hansen, "Hansen-level", the Hansen test of the first-differenced
+model ("Hansen without level GMM"), and "Hansen-diff"
+("Difference-in-Hansen"); "No. of instruments" is `fit$inst`, kept below
+the 102 provinces (`note` warns otherwise). The supplementary "standard"
+model with first lags as instruments is `lagmin = 1` for the variables
+taken as predetermined. Before choosing a dynamic model they ran
+Wooldridge's test on the static model's residuals
+([`wsctst()`](https://rootcoder007.github.io/crimlab/reference/wsctst.md),
+n. 9, F(1, 101)), and they compare the coefficient of the lagged rate
+with pooled least squares ([`lm()`](https://rdrr.io/r/stats/lm.html))
+and fixed effects
+([`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md)
+with the lag among the regressors). Their checks of spatial dependence
+are
+[`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md)
+and
+[`gearc()`](https://rootcoder007.github.io/crimlab/reference/gearc.md)
+on the rate with several weight matrices,
+[`pcdtst()`](https://rootcoder007.github.io/crimlab/reference/pcdtst.md)
+on the residuals of the static and dynamic models and
+[`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md)
+on each year's residuals (p. 1376); their structural breaks (2013, 2014,
+2015) are step dummies among the IV-style columns of `x`, and their
+principal components of the enforcement rates are
+[`stats::prcomp()`](https://rdrr.io/r/stats/prcomp.html).
 
 The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are those
 of serial correlation of orders 1 to `ar` in the differenced residuals
@@ -276,8 +361,8 @@ left out. With the conventional one-step variance Sargan's statistic is
 the one reported for the instruments, and the difference test is the
 difference-in-Sargan, the model re-estimated with the block of `Z'HZ`
 (Roodman 2009, n. 24). `wald` is the joint test of the coefficients
-other than the constant. Every test is on `m - k` degrees of freedom or
-fewer, `m` the instruments and `k` the coefficients. When the
+other than the constant (above). Every test is on `m - k` degrees of
+freedom or fewer, `m` the instruments and `k` the coefficients. When the
 instruments outnumber the groups, `note` says so (Roodman 2009, sec.
 2.6). Inference is normal unless `small = TRUE`. Andreatta et al.
 describe their instruments both as "their second and third lags" (p.
@@ -347,6 +432,7 @@ r
 #>    t2015  0.04273779 0.21878075  0.19534529 8.451226e-01 -0.3860646 0.4715402
 #>    t2016  0.08698987 0.18530371  0.46944485 6.387517e-01 -0.2761987 0.4501785
 #> Wald chi2(8) = 1275.2, p 5.394e-270
+#> Wald chi2(8) = 1560.9, p 0 (every coefficient, as xtabond2 prints it)
 #>                      test       stat df            p
 #>                     AR(1) -5.0629586 NA 4.127995e-07
 #>                     AR(2)  0.6919913 NA 4.889428e-01
@@ -362,4 +448,47 @@ r$tests
 #> 4                   Hansen  9.3189947  4 5.360236e-02
 #> 5 Hansen without level GMM  0.6621633  2 7.181465e-01
 #> 6     Difference-in-Hansen  8.6568314  2 1.318843e-02
+
+# the specification of Andreatta et al. (2023, table 3) on simulated
+# data: the lagged rate and four drivers GMM-style by their second and
+# third lags, collapsed so that the instruments stay below the
+# provinces, two exogenous drivers, time effects, one-step robust
+# errors with small-sample adjustments
+set.seed(23)
+np <- 102
+d <- expand.grid(year = 2010:2019, prov = paste0("p", 1:np))
+u <- rnorm(np)[as.integer(substring(d$prov, 2))]
+n <- nrow(d)
+for (v in c("clear", "conv", "mafia", "assoc")) d[[v]] <- u + rnorm(n)
+d$gdp <- rnorm(n)
+d$recyc <- rnorm(n)
+d$wcrim <- 0
+for (i in which(d$year > 2010)) {
+  d$wcrim[i] <- 0.4 * d$wcrim[i - 1] - 0.1 * d$clear[i] +
+    0.2 * d$mafia[i] + 0.1 * d$gdp[i] + u[i] + rnorm(1)
+}
+en <- c("clear", "conv", "mafia", "assoc")
+a <- gmmpnl(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year, gmm = en,
+            lagmin = 2, lagmax = 3, collapse = TRUE, small = TRUE)
+a$tests
+#>                       test      stat df            p
+#> 1                    AR(1) -4.694829 NA 0.0000026683
+#> 2                    AR(2)  1.432563 NA 0.1519828001
+#> 3                   Sargan  9.750661 10 0.4626343573
+#> 4                   Hansen 11.268943 10 0.3369524384
+#> 5 Hansen without level GMM  1.868157  5 0.8670707506
+#> 6     Difference-in-Hansen  9.400786  5 0.0941069902
+a$fit$inst < a$fit$groups
+#> [1] TRUE
+# the static model's serial correlation and the dynamic residuals'
+# cross-sectional dependence
+wsctst(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year)
+#> wsctst: Wooldridge test of serial correlation, F(1, 101) = 73.206, p 1.336e-13
+#> lagged residual -0.2747 (se 0.02634; -0.5 without correlation), 816 pairs
+k <- !is.na(a$resid)
+pcdtst(a$resid[k], d$prov[k], d$year[k])
+#>            cd             p           rho        absrho         pairs 
+#> -2.063590e+00  3.905661e-02 -9.584211e-03  2.965807e-01  5.151000e+03 
+#>         units       periods 
+#>  1.020000e+02  9.000000e+00 
 ```

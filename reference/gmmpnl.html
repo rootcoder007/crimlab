@@ -103,7 +103,7 @@ the level instruments, with no more instruments than provinces.</p>
 
 
 <dl><dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>The outcome of each row: finite numbers.</p></dd>
+<dd><p>The count of each row (a unit in a period): numbers from 0.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -186,7 +186,7 @@ with <code>robust</code>.</p></dd>
 
 <dt id="arg-small">small<a class="anchor" aria-label="anchor" href="#arg-small"></a></dt>
 <dd><p><code>FALSE</code> (default) or <code>TRUE</code> for the small-sample variance,
-t statistics and an F test, as above.</p></dd>
+t statistics and an F test as xtabond2 3.7.2 computes them (above).</p></dd>
 
 
 <dt id="arg-hmat">hmat<a class="anchor" aria-label="anchor" href="#arg-hmat"></a></dt>
@@ -238,7 +238,9 @@ name for <code><a href="blpal.html">blpal()</a></code>.</p></dd>
 Hansen test without the level GMM-style instruments and the
 difference-in-Hansen test, or their Sargan counterparts with the
 conventional one-step variance); <code>wald</code>, one row (<code>test</code>, <code>"Wald"</code> or
-<code>"F"</code>, <code>stat</code>, <code>df1</code>, <code>df2</code>, <code>p</code>);
+<code>"F"</code>, <code>stat</code>, <code>df1</code>, <code>df2</code>, <code>p</code>); <code>xwald</code>, the same as xtabond2
+prints it (over every coefficient); <code>resid</code>, <code>y - x b</code> in levels, one
+per row of <code>y</code>;
 <code>fit</code>, one row: <code>n</code> (the rows of the transformed equation for
 difference GMM, of the levels for system GMM, as xtabond2 counts),
 <code>groups</code>, <code>inst</code>, <code>omin</code>, <code>oavg</code>, <code>omax</code> (rows per group), <code>steps</code>,
@@ -286,18 +288,83 @@ one-step variance is the conventional <code>s2 (X'Z A Z'X)^-1</code>, eq 14 with
 below, and the two-step variance is the uncorrected <code>(X'Z A_2 Z'X)^-1</code>
 (Roodman 2009, p. 96). <code>wc</code> is the older name of the two-step choice:
 left <code>NULL</code> it follows <code>robust</code>, and a value that contradicts <code>robust</code>,
-or <code>wc</code> with one step, is refused. With <code>small = TRUE</code> the variance is
-multiplied by <code>n / (n - k)</code> (<code>n</code> the rows reported in <code>fit</code>, <code>k</code> the
-coefficients), and the coefficients have t statistics and the joint
-test is an F test, both on the groups less one (less nothing without a
-constant) degrees of freedom. Roodman (2009, p. 123) describes the
-option of xtabond2 only as "small-sample corrections to the covariance
-matrix estimate, resulting in t-test instead of z-test statistics for
-the coefficients and an F test instead of a Wald chi2 test for overall
-fit"; the degrees of freedom are those of his outputs (F(16, 140) for
-140 groups without a constant, p. 113; F(12, 139) with one, p. 118),
-and the factor <code>n / (n - k)</code> is this function's reading, as the paper
-gives none.</p>
+or <code>wc</code> with one step, is refused.</p>
+<p>Roodman (2009, p. 123) describes <code>small</code> of xtabond2 only as
+"small-sample corrections to the covariance matrix estimate, resulting
+in t-test instead of z-test statistics for the coefficients and an F
+test instead of a Wald chi2 test for overall fit"; <code>small = TRUE</code> makes
+the corrections as xtabond2 3.7.2 computes them. With <code>n</code> the rows of
+the equation reported (<code>fit$n</code>), <code>w</code> the rows of the transformed
+equation in system GMM with <code>hmat</code> other than <code>"id"</code> and <code>n</code> otherwise,
+<code>G</code> the groups, <code>k</code> the coefficients and <code>c</code> 1 for the constant of
+system GMM (0 otherwise): the conventional one-step variance is
+multiplied by <code>w / (w - k)</code>, and the robust one-step variance and both
+two-step variances by <code>(n - 1) / (n - k) * G / (G - 1)</code>; <code>sigma2</code> is
+multiplied by <code>w / (w - k)</code>. The coefficients have t statistics on
+<code>df_r</code> degrees of freedom and the joint test is <code>F = W / q</code> on <code>q</code> and
+<code>df_r</code>, with <code>df_r = n - q - c</code> for the conventional one-step variance
+and <code>G - c</code> otherwise. The Sargan and Hansen statistics are unchanged;
+so are the Arellano-Bond statistics, except after the conventional one-step
+variance, where the program scales <code>sigma2</code> in the errors' variance by
+<code>w / (w - k)</code> and leaves the coefficients' variance in the statistic
+unscaled, and so does this function. Roodman's program also lets the
+variance be clustered on other variables, which multiplies each
+cluster's terms of the moments' variance by <code>G / (G - 1)</code> and drops
+that factor from the variance; this function clusters by unit only.</p>
+<p><code>wald</code> is the joint test that the coefficients other than the constant
+are 0, <code>W = b' V^-1 b</code> over them, on <code>q</code> degrees of freedom counted as
+xtabond2 3.7.2 counts them, with or without <code>small</code>: the rank of the
+regressors in the levels (system GMM; the transformed equation is left
+out of the test) or in the transformed equation, less <code>c</code>; without a
+constant, one less again when the vector of ones <code>i</code> lies in their
+column space, which the program finds when <code>i'X_p (X'X)^-1 X_p'i</code>, <code>X_p</code>
+those rows and <code>X</code> the whole stack, is within the machine epsilon times
+the groups times the periods of the rows of <code>X_p</code>, relatively. The
+program's own statistic takes <code>b' V^-1 b</code> over every coefficient,
+the constant's included, while counting <code>q</code> without it; this function
+leaves the constant out of the statistic too, so that the two agree
+when no constant is estimated. <code>xwald</code> is the program's statistic, <code>b' V^-1 b</code> over every coefficient on the same <code>q</code> (and <code>F = W / q</code> with
+<code>small</code>), so that its printed line can be reproduced; <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> shows
+it on a second line when it differs from <code>wald</code>.</p>
+<p>Two values differ from the program's by design. <code>sigma2</code> is that of
+the one-step residuals, which Sargan's statistic uses, also with
+<code>steps = 2</code>, where xtabond2 reports the two-step residuals' value. With
+the conventional one-step variance the Arellano-Bond statistics take
+the error variance as <code>s2</code> times the covariances of independent errors
+through the differences whatever <code>hmat</code> (Roodman 2009, n. 19), where
+with <code>hmat = "id"</code> in system GMM the program takes <code>sigma2</code> from the
+levels and <code>H = I</code> there; the identity is the weight of Blundell and
+Bond's first step, not the covariance of differenced errors.</p>
+<p><code>resid</code> holds <code>y - x b</code> in levels for every row of the level equation
+(<code>NA</code> for rows without the <code>ylag</code> periods before), the unit effects
+included; Andreatta et al. (2023, p. 1376) pass such residuals of the
+dynamic model to Pesaran's test of cross-sectional dependence
+(<code><a href="pcdtst.html">pcdtst()</a></code>) and to Moran's I for each year (<code><a href="gmoran.html">gmoran()</a></code>).</p>
+<p><strong>Andreatta et al. (2023), step by step.</strong> Their table 3 is one-step
+system GMM with robust errors "with small-sample adjustments" (note):
+<code>type = "system"</code>, <code>steps = 1</code>, <code>robust = TRUE</code>, <code>small = TRUE</code>; time
+effects, <code>tdum = TRUE</code>; the lagged rate, <code>ylag = 1</code>, and the four
+enforcement and organised-crime variables in <code>gmm</code>, instrumented by
+"their second and third lags" (p. 1373), <code>lagmin = 2, lagmax = 3</code>, or
+by "Lag 2 and earlier lags" (table note), <code>lagmax = Inf</code>, the other
+drivers IV-style (<code>iv</code>); the difference of lag 1 in the level equation
+is what <code>lagmin = 2</code> gives there. Their tests are the rows of <code>tests</code>:
+AR(1) and AR(2), Hansen, "Hansen-level", the Hansen test of the
+first-differenced model ("Hansen without level GMM"), and "Hansen-diff"
+("Difference-in-Hansen"); "No. of instruments" is <code>fit$inst</code>, kept
+below the 102 provinces (<code>note</code> warns otherwise). The supplementary
+"standard" model with first lags as instruments is <code>lagmin = 1</code> for
+the variables taken as predetermined. Before choosing a dynamic model
+they ran Wooldridge's test on the static model's residuals (<code><a href="wsctst.html">wsctst()</a></code>,
+n. 9, F(1, 101)), and they compare the coefficient of the lagged rate
+with pooled least squares (<code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">lm()</a></code>) and fixed effects (<code><a href="fepnl.html">fepnl()</a></code> with the
+lag among the regressors). Their checks of spatial dependence are
+<code><a href="gmoran.html">gmoran()</a></code> and <code><a href="gearc.html">gearc()</a></code> on the rate with several weight matrices,
+<code><a href="pcdtst.html">pcdtst()</a></code> on the residuals of the static and dynamic models and
+<code><a href="gmoran.html">gmoran()</a></code> on each year's residuals (p. 1376); their structural breaks
+(2013, 2014, 2015) are step dummies among the IV-style columns of <code>x</code>,
+and their principal components of the enforcement rates are
+<code><a href="https://rdrr.io/r/stats/prcomp.html" class="external-link">stats::prcomp()</a></code>.</p>
 <p>The Arellano-Bond statistics (Arellano and Bond 1991, eqs 8-9) are
 those of serial correlation of orders 1 to <code>ar</code> in the differenced
 residuals of the estimate reported, also after deviations, with the
@@ -322,8 +389,8 @@ left out. With the conventional one-step variance Sargan's statistic is
 the one reported for the instruments, and the difference test is the
 difference-in-Sargan, the model re-estimated with the block of <code>Z'HZ</code>
 (Roodman 2009, n. 24). <code>wald</code> is the joint test of the coefficients
-other than the constant. Every test is on <code>m - k</code> degrees of freedom or
-fewer, <code>m</code> the instruments and <code>k</code> the coefficients. When the
+other than the constant (above). Every test is on <code>m - k</code> degrees of
+freedom or fewer, <code>m</code> the instruments and <code>k</code> the coefficients. When the
 instruments outnumber the groups, <code>note</code> says so (Roodman 2009, sec.
 2.6). Inference is normal unless <code>small = TRUE</code>. Andreatta et al.
 describe their instruments both as "their second and third lags" (p.
@@ -384,6 +451,7 @@ provinces. <em>Regional Studies</em>, 57(7), 1367-1379.
 <span class="r-out co"><span class="r-pr">#&gt;</span>    t2015  0.04273779 0.21878075  0.19534529 8.451226e-01 -0.3860646 0.4715402</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    t2016  0.08698987 0.18530371  0.46944485 6.387517e-01 -0.2761987 0.4501785</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Wald chi2(8) = 1275.2, p 5.394e-270</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Wald chi2(8) = 1560.9, p 0 (every coefficient, as xtabond2 prints it)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                      test       stat df            p</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                     AR(1) -5.0629586 NA 4.127995e-07</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>                     AR(2)  0.6919913 NA 4.889428e-01</span>
@@ -399,6 +467,49 @@ provinces. <em>Regional Studies</em>, 57(7), 1367-1379.
 <span class="r-out co"><span class="r-pr">#&gt;</span> 4                   Hansen  9.3189947  4 5.360236e-02</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 5 Hansen without level GMM  0.6621633  2 7.181465e-01</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 6     Difference-in-Hansen  8.6568314  2 1.318843e-02</span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># the specification of Andreatta et al. (2023, table 3) on simulated</span></span></span>
+<span class="r-in"><span><span class="co"># data: the lagged rate and four drivers GMM-style by their second and</span></span></span>
+<span class="r-in"><span><span class="co"># third lags, collapsed so that the instruments stay below the</span></span></span>
+<span class="r-in"><span><span class="co"># provinces, two exogenous drivers, time effects, one-step robust</span></span></span>
+<span class="r-in"><span><span class="co"># errors with small-sample adjustments</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">23</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">np</span> <span class="op">&lt;-</span> <span class="fl">102</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">2010</span><span class="op">:</span><span class="fl">2019</span>, prov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="va">np</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">u</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">np</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substring</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">prov</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="kw">for</span> <span class="op">(</span><span class="va">v</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clear"</span>, <span class="st">"conv"</span>, <span class="st">"mafia"</span>, <span class="st">"assoc"</span><span class="op">)</span><span class="op">)</span> <span class="va">d</span><span class="op">[[</span><span class="va">v</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">u</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="va">gdp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="va">recyc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="va">wcrim</span> <span class="op">&lt;-</span> <span class="fl">0</span></span></span>
+<span class="r-in"><span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">year</span> <span class="op">&gt;</span> <span class="fl">2010</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">d</span><span class="op">$</span><span class="va">wcrim</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.4</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">wcrim</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span> <span class="op">-</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">clear</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span></span></span>
+<span class="r-in"><span>    <span class="fl">0.2</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">mafia</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.1</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">gdp</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="va">u</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="va">en</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"clear"</span>, <span class="st">"conv"</span>, <span class="st">"mafia"</span>, <span class="st">"assoc"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu">gmmpnl</span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">wcrim</span>, <span class="va">d</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">en</span>, <span class="st">"gdp"</span>, <span class="st">"recyc"</span><span class="op">)</span><span class="op">]</span>, <span class="va">d</span><span class="op">$</span><span class="va">prov</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, gmm <span class="op">=</span> <span class="va">en</span>,</span></span>
+<span class="r-in"><span>            lagmin <span class="op">=</span> <span class="fl">2</span>, lagmax <span class="op">=</span> <span class="fl">3</span>, collapse <span class="op">=</span> <span class="cn">TRUE</span>, small <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">a</span><span class="op">$</span><span class="va">tests</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                       test      stat df            p</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1                    AR(1) -4.694829 NA 0.0000026683</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2                    AR(2)  1.432563 NA 0.1519828001</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3                   Sargan  9.750661 10 0.4626343573</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4                   Hansen 11.268943 10 0.3369524384</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5 Hansen without level GMM  1.868157  5 0.8670707506</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6     Difference-in-Hansen  9.400786  5 0.0941069902</span>
+<span class="r-in"><span><span class="va">a</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">inst</span> <span class="op">&lt;</span> <span class="va">a</span><span class="op">$</span><span class="va">fit</span><span class="op">$</span><span class="va">groups</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] TRUE</span>
+<span class="r-in"><span><span class="co"># the static model's serial correlation and the dynamic residuals'</span></span></span>
+<span class="r-in"><span><span class="co"># cross-sectional dependence</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="wsctst.html">wsctst</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">wcrim</span>, <span class="va">d</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">en</span>, <span class="st">"gdp"</span>, <span class="st">"recyc"</span><span class="op">)</span><span class="op">]</span>, <span class="va">d</span><span class="op">$</span><span class="va">prov</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> wsctst: Wooldridge test of serial correlation, F(1, 101) = 73.206, p 1.336e-13</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> lagged residual -0.2747 (se 0.02634; -0.5 without correlation), 816 pairs</span>
+<span class="r-in"><span><span class="va">k</span> <span class="op">&lt;-</span> <span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/NA.html" class="external-link">is.na</a></span><span class="op">(</span><span class="va">a</span><span class="op">$</span><span class="va">resid</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="pcdtst.html">pcdtst</a></span><span class="op">(</span><span class="va">a</span><span class="op">$</span><span class="va">resid</span><span class="op">[</span><span class="va">k</span><span class="op">]</span>, <span class="va">d</span><span class="op">$</span><span class="va">prov</span><span class="op">[</span><span class="va">k</span><span class="op">]</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span><span class="op">[</span><span class="va">k</span><span class="op">]</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            cd             p           rho        absrho         pairs </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> -2.063590e+00  3.905661e-02 -9.584211e-03  2.965807e-01  5.151000e+03 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         units       periods </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1.020000e+02  9.000000e+00 </span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

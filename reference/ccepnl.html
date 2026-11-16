@@ -75,6 +75,11 @@ Theorem 3 requires, with the variance of eqs 67-69, <code>sum w_i^2 Psi^-1 R Psi
 <span>  cons <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  w <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  avg <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  ylag <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  lags <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  bias <span class="op">=</span> <span class="st">"none"</span>,</span>
+<span>  pool <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  pvar <span class="op">=</span> <span class="st">"pesaran"</span>,</span>
 <span>  level <span class="op">=</span> <span class="fl">0.95</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -87,7 +92,7 @@ Theorem 3 requires, with the variance of eqs 67-69, <code>sum w_i^2 Psi^-1 R Psi
 
 
 <dl><dt id="arg-y">y<a class="anchor" aria-label="anchor" href="#arg-y"></a></dt>
-<dd><p>The outcome of each row: finite numbers.</p></dd>
+<dd><p>The count of each row (a unit in a period): numbers from 0.</p></dd>
 
 
 <dt id="arg-x">x<a class="anchor" aria-label="anchor" href="#arg-x"></a></dt>
@@ -126,6 +131,34 @@ unit; they are scaled to sum to 1 over the units.</p></dd>
 <code>"y"</code> and names of columns of <code>x</code>.</p></dd>
 
 
+<dt id="arg-ylag">ylag<a class="anchor" aria-label="anchor" href="#arg-ylag"></a></dt>
+<dd><p>The lags of <code>y</code> among the regressors: a whole number from 0
+(default 0, the static model of Pesaran 2006).</p></dd>
+
+
+<dt id="arg-lags">lags<a class="anchor" aria-label="anchor" href="#arg-lags"></a></dt>
+<dd><p><code>NULL</code> (default: 0 for the static model, the integer part of
+<code>T^(1/3)</code> with <code>ylag &gt; 0</code>) or the lags of the averages: a whole number
+from 0.</p></dd>
+
+
+<dt id="arg-bias">bias<a class="anchor" aria-label="anchor" href="#arg-bias"></a></dt>
+<dd><p><code>"none"</code> (default), <code>"jack"</code> (half-panel jackknife) or
+<code>"rma"</code> (recursive mean adjustment): the correction of the mean group
+estimate, as above.</p></dd>
+
+
+<dt id="arg-pool">pool<a class="anchor" aria-label="anchor" href="#arg-pool"></a></dt>
+<dd><p><code>NULL</code> (default: CCEP for the static model only), <code>TRUE</code> or
+<code>FALSE</code>: whether to make CCEP; <code>TRUE</code> is refused with <code>ylag &gt; 0</code> or
+<code>bias</code>.</p></dd>
+
+
+<dt id="arg-pvar">pvar<a class="anchor" aria-label="anchor" href="#arg-pvar"></a></dt>
+<dd><p><code>"pesaran"</code> (default, eqs 67-69 of Pesaran 2006) or <code>"bsw"</code>
+(Brown, Schmidt and Wooldridge 2026): the variance of CCEP.</p></dd>
+
+
 <dt id="arg-level">level<a class="anchor" aria-label="anchor" href="#arg-level"></a></dt>
 <dd><p>The confidence level of the intervals.</p></dd>
 
@@ -150,10 +183,15 @@ name for <code><a href="blpal.html">blpal()</a></code>.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>ccepnl</code>, a list: <code>mg</code> and <code>pooled</code>, the
-CCEMG and CCEP estimates (<code>term</code>, <code>est</code>, <code>se</code>, <code>z</code>, <code>p</code>, <code>lo</code>, <code>hi</code>);
-<code>bi</code>, the unit estimates (units by regressors); <code>vmg</code> and <code>vp</code>, the
-variances; <code>fit</code>, one row (<code>units</code>, <code>periods</code>, <code>k</code>, <code>h</code> the columns of
-<code>H</code>, <code>n</code> the rows); <code>w</code>, the weights by unit; and <code>level</code>.</p>
+CCEMG and CCEP estimates (<code>term</code>, <code>est</code>, <code>se</code>, <code>z</code>, <code>p</code>, <code>lo</code>, <code>hi</code>;
+<code>pooled</code> <code>NULL</code> when not made); <code>mg0</code>, the uncorrected mean group
+estimate with <code>bias</code> (<code>NULL</code> otherwise); <code>bi</code>, the unit estimates
+(units by regressors, corrected with <code>bias</code>); <code>vmg</code>, <code>vp</code> and <code>vmg0</code>,
+the variances; <code>hb</code>, the heterogeneity-bias test of CCEP (<code>NULL</code>
+without CCEP); <code>nfac</code>, the number of factors (<code>er</code>, <code>thr</code>, <code>avg</code>);
+<code>fit</code>, one row (<code>units</code>, <code>periods</code>, <code>k</code>, <code>h</code> the columns of <code>H</code>, <code>n</code>
+the rows of the regressions, <code>lags</code>, <code>ylag</code>); <code>w</code>, the weights by unit;
+<code>bias</code>; <code>pvar</code>; and <code>level</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -169,23 +207,103 @@ periods, with its rows of <code>H</code>. CCEMG and its variance are then as abo
 CCEP is <code>(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i</code>, and in its
 variance each <code>X_i'M_i X_i</code> is divided by the unit's own number of
 periods, which is this function's reading of <code>T</code> there. On a balanced
-panel all of this is Pesaran's estimator. Su, Wang and Wang (2026, p.
-2) caution that when whether a unit is observed is related to the
-regressors, the factors or the loadings, the averages no longer proxy
-the factors well. A period observed for one unit only, or a unit with
-fewer periods than its regression needs (twice the regressors, the
-averages kept and the observed factors), is refused by name.</p>
-<p>Juodis and Reese (2026, sec. 1) draw two lessons this function leaves to
-the user: the averages used can bias the estimates and their variance,
-so results should be checked against the number and kind of averages
-(<code>avg</code> keeps a subset; lesson 1), and under Pesaran's assumptions a
-two-way fixed-effects estimator (<code><a href="fepnl.html">fepnl()</a></code>) may still be consistent and
-is worth comparing (lesson 2). With slopes common to all units and <code>T</code>
-not small against <code>N</code>, the intervals of CCEP are not centred without a
-bias correction, which this function does not make (lesson 1, sec.
-3.1). For cross-sectional dependence in the residuals see <code><a href="pcdtst.html">pcdtst()</a></code>.</p>
-<p>The plot draws the CCEMG and CCEP estimates of each regressor
-with their intervals and returns what it drew.</p>
+panel all of this is Pesaran's estimator.
+Su, Wang and Wang (2026, sec. 6.3, p. 20) compute CCE on unbalanced
+panels in the same way, after Zhou and Zhang (2016, eq 12), and caution
+(p. 2 and n. 7, p. 4) that when whether a unit is observed is related
+to its loadings and varies over time, the averages no longer proxy the
+factors well; the estimators for unbalanced panels with interactive
+effects of Czarnowske and Stammann (2026, Assumption 1 and Remark 1, p.
+1309) likewise assume that the data are missing at random, which
+excludes selection related to the idiosyncratic errors. Neither paper
+gives a diagnostic or correction for CCE estimators, and this function
+makes none. A period observed for one unit only, or a unit with fewer
+periods than its regression needs (twice the regressors and lags of
+<code>y</code>, the averages kept with their lags and the observed factors), is
+refused by name.</p>
+<p><strong>Dynamic panels.</strong> With <code>ylag &gt; 0</code> the lags <code>1..ylag</code> of <code>y</code> join the
+regressors (as <code>L1.y</code>, ...), and with <code>lags = p</code> the averages kept enter
+<code>H</code> with their lags <code>1..p</code> as well: the cross-sectionally augmented
+regression of Chudik and Pesaran (2015, eq 24) for heterogeneous panels
+with a lagged dependent variable and weakly exogenous regressors (lags
+of <code>x</code>, as their eq 1 has, are columns of <code>x</code>). A unit's regression runs
+over the periods in which it is observed together with its <code>ylag</code>
+periods before, from the <code>p + 1</code>-th period on (eqs 25-26); the averages
+are those of every observed unit-period, as above. <code>lags = NULL</code> takes
+<code>p = 0</code> for the static model and, with <code>ylag &gt; 0</code>, the integer part of
+<code>T^(1/3)</code>, <code>T</code> the periods, as Chudik and Pesaran recommend (sec. 5.2,
+eq 40, and p. 404: "we recommend setting <code>pT = [T^1/3]</code>"). The mean group
+estimator is the mean of the unit estimates (eq 27) with the
+nonparametric variance of eq 32 over <code>N</code>. Pooled dynamic CCE is not
+supported: Chudik and Pesaran (2015, n. 5) recall that with
+heterogeneous slopes "pooled estimators are inconsistent in the case
+of panel data models with lagged dependent variables" (Pesaran and
+Smith 1995), and their
+theory is that of the mean group estimator; <code>pool = NULL</code> (default)
+makes CCEP only for the static model, and <code>pool = TRUE</code> with <code>ylag &gt; 0</code>
+or with <code>bias</code> is refused.</p>
+<p><code>bias</code> corrects the mean group estimate for the small-T time-series
+bias as Chudik and Pesaran (2015, sec. 4.1) define the corrections.
+<code>"jack"</code> is the half-panel jackknife (sec. 4.1.1, the unnumbered
+equation after eq 32), <code>2 b_MG - (b_MG^a + b_MG^b) / 2</code>, <code>a</code> and <code>b</code> the
+estimates over periods <code>1..[T/2]</code> and <code>[T/2]+1..T</code>; each half is taken
+as a panel of its own, so that the lags of <code>y</code> and of the averages of
+its first rows come from inside the half, as "computed from the first
+half of the available time period" reads, with the same <code>p</code>. <code>"rma"</code> is
+recursive mean adjustment (sec. 4.1.2 and n. 13): <code>y</code> and each column
+of <code>x</code> less the mean of the unit's values in the periods before,
+<code>y_it - (t - 1)^-1 sum_{s&lt;t} y_is</code>, a unit's first period dropped, and the
+estimator applied to these series, so that the lags of <code>y</code> are lags of
+the adjusted <code>y</code> and the averages are those of the adjusted values;
+observed factors are not adjusted (Ditzen 2018, p. 589, leaves the
+constant out). The paper states no variance for the corrected
+estimators: <code>vmg</code> is the nonparametric mean group variance (eq 32)
+applied to the corrected unit estimates (<code>bi</code>: <code>2 b_i - (b_i^a + b_i^b) / 2</code> for the jackknife, the estimates on the adjusted series for
+<code>"rma"</code>), and the uncorrected estimate and its variance are returned in
+<code>mg0</code> and <code>vmg0</code> for comparison.</p>
+<p><strong>Five lessons.</strong> Juodis and Reese (2026) draw five lessons for applied
+work. (1) The averages are factor estimates measured with error, which
+can bias the estimates and change their variance: results should be
+checked against the number and kind of averages (<code>avg</code> keeps a subset),
+and with slopes common to all units and <code>T</code> not small against <code>N</code> the
+intervals of CCEP are not centred without a bias correction, which this
+function does not make (sec. 3.1). <code>nfac</code> reports the number of factors
+that the averages kept identify, by the two regularized procedures of
+their appendix A.1 on a balanced panel: <code>er</code>, the eigenvalue ratio of
+Ahn and Horenstein (2013) on the averages normalised by <code>Sigma^-1/2</code>,
+<code>Sigma = sum_i (Z_i - Zbar)'(Z_i - Zbar) / (N T)</code> (Juodis 2022; steps
+1-3, <code>r_max</code> the averages less one); <code>thr</code>, the number of eigenvalues
+of <code>Zbar'Zbar / T</code> at least 0.01 times the largest (Vogt et al. 2025;
+steps 1-2); and <code>avg</code>, the averages kept; <code>NA</code> where undefined. More
+averages than factors is the case in which the paper warns of extra
+bias; the regularized estimators themselves are not made. (2) A two-way
+fixed-effects estimator (<code><a href="fepnl.html">fepnl()</a></code>) may still be consistent and should
+be compared and tested. <code>hb</code> is their test of heterogeneity bias in
+CCEP (sec. 3.2, case study 2): <code>delta_i = (X_i'M_i X_i - N^-1 sum_j X_j'M_j X_j) (b_i - b_MG)</code>, <code>HB = delta' V^-1 delta</code> with <code>delta</code> their
+mean and <code>V = N^-2 sum delta_i delta_i'</code>, chi-squared on <code>k</code> degrees of
+freedom (<code>stat</code>, <code>df</code>, <code>p</code>); a rejection says that CCEP is biased by
+slopes that vary with the regressors. (3) Dynamic models need the
+dynamics of every observed variable specified, and a bias correction is
+recommended in short panels (sec. 3.3; <code>ylag</code>, <code>lags</code>, <code>bias</code> above).
+(4) The CIPS panel unit-root test does not test what CCE estimation
+needs; they recommend the CSB test of Pesaran et al. (2013) (sec. 3.4),
+which this package does not provide. (5) There is no general recipe for
+nonlinear models, where the average of <code>y</code> should not be among the
+proxies (sec. 3.5); this function is linear. For cross-sectional
+dependence in the residuals see <code><a href="pcdtst.html">pcdtst()</a></code>.</p>
+<p><strong>Fixed-T variance.</strong> Brown, Schmidt and Wooldridge (2026, eqs 12-14
+and Theorem 1) show that CCEP is the pooled least-squares estimate of
+<code>y</code> on the regressors with the columns of <code>H</code> partialled out unit by
+unit, and that time-varying regressors <code>d_t</code> added to it get
+coefficients of exactly 0. Their fixed-T variance of CCEP, which counts
+the sampling error of the averages (sec. 5.4, eqs 36-40, with <code>Psi = H</code>
+and <code>q_i = vec(Z_i - Zbar)</code>, 0 in the columns of the observed factors),
+is <code>pvar = "bsw"</code>: <code>A^-1 B A^-1 / N</code>, <code>A = N^-1 sum X_i'M X_i</code>, <code>B = N^-1 sum s_i s_i'</code>, <code>s_i = X_i'M u_i - G'(I + K)[Psi (Psi'Psi)^-1 (x) M] q_i</code>, <code>u_i = y_i - X_i b</code>, <code>G = N^-1 sum u_i (x) (X_i - Xbar)</code> and
+<code>K</code> the commutation matrix (eq 33); it is for the static pooled
+estimator with equal weights on a balanced panel, and refused
+otherwise.</p>
+<p>The plot draws the CCEMG and, when made, CCEP estimates of each
+regressor with their intervals and returns what it drew.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -201,6 +319,16 @@ of Econometrics</em>, 255, 106222. <a href="https://doi.org/10.1016/j.jeconom.20
 <p>Juodis, A. and Reese, S. (2026). Five lessons for applied researchers
 from twenty years of common correlated effects estimation. <em>Journal of
 Econometrics</em>, 253, 106120. <a href="https://doi.org/10.1016/j.jeconom.2025.106120" class="external-link">doi:10.1016/j.jeconom.2025.106120</a></p>
+<p>Chudik, A. and Pesaran, M. H. (2015). Common correlated effects
+estimation of heterogeneous dynamic panel data models with weakly
+exogenous regressors. <em>Journal of Econometrics</em>, 188(2), 393-420.
+<a href="https://doi.org/10.1016/j.jeconom.2015.03.007" class="external-link">doi:10.1016/j.jeconom.2015.03.007</a></p>
+<p>Brown, N. L., Schmidt, P. and Wooldridge, J. M. (2026). A simple
+reformulation of the common correlated effects model. <em>Econometric
+Reviews</em>, 45(5), 760-772. <a href="https://doi.org/10.1080/07474938.2026.2615434" class="external-link">doi:10.1080/07474938.2026.2615434</a></p>
+<p>Czarnowske, D. and Stammann, A. (2026). Inference in unbalanced panel
+data models with interactive fixed effects. <em>Econometric Reviews</em>,
+45(9), 1306-1337. <a href="https://doi.org/10.1080/07474938.2026.2681519" class="external-link">doi:10.1080/07474938.2026.2681519</a></p>
     </div>
 
     <div class="section level2">
@@ -221,6 +349,23 @@ Econometrics</em>, 253, 106120. <a href="https://doi.org/10.1016/j.jeconom.2025.
 <span class="r-out co"><span class="r-pr">#&gt;</span> pooled (CCEP):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  term       est         se        z            p        lo        hi</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     x 0.7581987 0.06456047 11.74401 7.580526e-32 0.6316625 0.8847349</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> heterogeneity bias of CCEP: chi2(1) = 0.0165, p 0.898</span>
+<span class="r-in"><span><span class="va">r</span><span class="op">$</span><span class="va">nfac</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  er thr avg </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   1   2   2 </span>
+<span class="r-in"><span><span class="co"># a dynamic panel: y depends on its lag; jackknife-corrected mean group</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fl">30</span></span></span>
+<span class="r-in"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/expand.grid.html" class="external-link">expand.grid</a></span><span class="op">(</span>year <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="va">tt</span>, prov <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">40</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">tt</span><span class="op">)</span><span class="op">[</span><span class="va">d</span><span class="op">$</span><span class="va">year</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">1</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/integer.html" class="external-link">as.integer</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/substr.html" class="external-link">substring</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">prov</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span></span>
+<span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="va">x</span> <span class="op">&lt;-</span> <span class="va">g</span> <span class="op">*</span> <span class="va">f</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">d</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">d</span><span class="op">$</span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">0</span></span></span>
+<span class="r-in"><span><span class="kw">for</span> <span class="op">(</span><span class="va">i</span> <span class="kw">in</span> <span class="fu"><a href="https://rdrr.io/r/base/which.html" class="external-link">which</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">year</span> <span class="op">&gt;</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span>  <span class="va">d</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">0.5</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">y</span><span class="op">[</span><span class="va">i</span> <span class="op">-</span> <span class="fl">1</span><span class="op">]</span> <span class="op">+</span> <span class="fl">0.7</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">x</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="va">g</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">*</span> <span class="va">f</span><span class="op">[</span><span class="va">i</span><span class="op">]</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="fu">ccepnl</span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">y</span>, <span class="va">d</span><span class="op">[</span><span class="st">"x"</span><span class="op">]</span>, <span class="va">d</span><span class="op">$</span><span class="va">prov</span>, <span class="va">d</span><span class="op">$</span><span class="va">year</span>, ylag <span class="op">=</span> <span class="fl">1</span>, bias <span class="op">=</span> <span class="st">"jack"</span><span class="op">)</span></span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> ccepnl: unit p1 has 12 usable periods in the first half of the periods: its regression on the regressors, the lags of y, the averages with their lags and the observed factors needs at least 13.</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
