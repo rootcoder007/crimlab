@@ -2265,21 +2265,6 @@ summary.expjn <- function(object, ...) {
   invisible(NULL)
 }
 
-# The fixed effects as indicator columns: every level of the first set (in
-# place of a constant; a constant when there is no set), all but the first
-# level of the others.
-.axdum <- function(d, fe) {
-  if (is.null(fe)) return(matrix(1, nrow(d), 1L, dimnames = list(NULL, "(1)")))
-  do.call(cbind, lapply(seq_along(fe), function(j) {
-    cc <- .axcode(d[[fe[j]]])
-    lv <- seq_len(cc$n)
-    if (j > 1L) lv <- lv[-1L]
-    o <- outer(cc$c + 1L, lv, "==") + 0
-    colnames(o) <- paste0(fe[j], ":", lv)
-    o
-  }))
-}
-
 # The sector (1..nb) of each direction, by the kernel's edges.
 .axsec <- function(dir, width, start, edges) {
   a <- (dir - start) %% 360

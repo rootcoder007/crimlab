@@ -312,8 +312,9 @@ inline Val awald(Ctx &c, const std::vector<double> &b, const std::vector<double>
   const int rk = qrank(mq, q, q, 1e-7, piv);
   Frame f;
   if (rk < q) {
-    wrn(c, "the joint test of " + std::to_string(q) + " restrictions is not computed: the covariance has rank " +
-               std::to_string(rk) + " (too few clusters for it).");
+    // .axwald() warns without a function name
+    c.warn.push_back("the joint test of " + std::to_string(q) + " restrictions is not computed: the covariance has rank " +
+                     std::to_string(rk) + " (too few clusters for it).");
     f.num("stat", {NA});
     f.num("df", {static_cast<double>(q)});
     f.num("p", {NA});
@@ -630,7 +631,7 @@ bool ccross(Ctx &c, Val &out) {
     const std::int64_t mp = (5 * doy + 2) / 153;
     const std::int64_t mo = mp < 10 ? mp + 3 : mp - 9;
     const std::int64_t yr = yoe + era * 400 + (mo <= 2 ? 1 : 0);
-    char b[32];
+    char b[48];
     std::snprintf(b, sizeof b, "%04lld-%02lld", static_cast<long long>(yr), static_cast<long long>(mo));
     ym[i] = b;
     const std::int64_t zd = static_cast<std::int64_t>(std::floor(dv[i]));

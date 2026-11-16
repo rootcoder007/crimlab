@@ -40,3 +40,5 @@ fepnl	1e-9	1e-13	p is a tail probability of the statistic and the case's design 
 gmmpnl	1e-10	1e-12	coefficients of time dummies that are small differences of cross-products: on arm64 an estimate of 0.004 differs by 6e-15 absolute, 1.4e-12 relative; the tests are tail probabilities of statistics built from them
 ccepnl	1e-10	1e-12	the regressors are projected off the cross-section averages unit by unit, and what is left cancels to rounding where a regressor follows the averages closely
 wsctst	1e-10	1e-13	p is a tail probability of the F statistic: an error of 1e-14 in it gives 1e-12 in a small p
+ccross	1e-10	0	the covariance sums over strata in the order the rows arrive, which differs after the moving average drops days: last digits (about 1e-12)
+jntx	1e-5	1e-9	the spline surface of the reference case is close to collinear (its joint test is refused for rank): the fit is fixed to about 1e-9, bounds near zero to about 1e-6

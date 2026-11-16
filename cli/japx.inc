@@ -32,7 +32,7 @@ inline double nv(const Val &e) {
 // is.na(): null or NaN.
 inline bool vna(const Val &e) {
   double x = 0.0;
-  return e.t == Val::NUL || (snum(e, x) && std::isnan(x));
+  return e.t == Val::NUL || (e.t == Val::NUM && std::isnan(e.n)) || (snum(e, x) && std::isnan(x));
 }
 // as.character() of a value.
 inline std::string vlab(const Val &e) {
@@ -164,57 +164,10 @@ inline std::vector<double> rcov(const std::vector<double> &x, std::size_t n, int
 // The warning R gives, prefixed with the function.
 inline void wrn(Ctx &c, const std::string &m) { c.warn.push_back(std::string(c.fn) + ": " + m); }
 
-// match.arg(): left out, or all the choices, is the first; else one text
-// matched exactly or by a prefix of one choice alone.
+// .ckmarg(): left out, or all the choices, is the first; else one text
+// matched exactly or by a prefix of one choice alone (ckarg of jsar.inc).
 inline bool marg(Ctx &c, const char *nm, const std::vector<const char *> &ch, int &k) {
-  k = 0;
-  const Val &o = c[nm];
-  if (o.t == Val::NUL) return true;
-  bool str = o.t == Val::STR;
-  if (o.t == Val::ARR) {
-    str = true;
-    for (const Val &e : o.a) str = str && e.t == Val::STR;
-  }
-  if (!str) {
-    c.err = "'arg' must be NULL or a character vector";
-    return false;
-  }
-  if (o.t == Val::ARR) {
-    bool same = o.a.size() == ch.size();
-    for (std::size_t i = 0; same && i < ch.size(); ++i) same = o.a[i].s == ch[i];
-    if (same) return true;
-    if (o.a.size() > 1) {
-      c.err = "'arg' must be of length 1";
-      return false;
-    }
-  }
-  const Val *s = o.t == Val::ARR ? (o.a.empty() ? nullptr : &o.a[0]) : &o;
-  int hit = -1;
-  if (s != nullptr && !s->s.empty()) {
-    for (std::size_t i = 0; hit < 0 && i < ch.size(); ++i) {
-      if (s->s == ch[i]) hit = static_cast<int>(i);
-    }
-    if (hit < 0) {
-      int np = 0;
-      for (std::size_t i = 0; i < ch.size(); ++i) {
-        if (std::strncmp(ch[i], s->s.c_str(), s->s.size()) == 0) {
-          ++np;
-          hit = static_cast<int>(i);
-        }
-      }
-      if (np != 1) hit = -1;
-    }
-  }
-  if (hit < 0) {
-    std::string m = "'arg' should be one of ";
-    for (std::size_t i = 0; i < ch.size(); ++i) {
-      m += std::string(i ? ", " : "") + "\xe2\x80\x9c" + ch[i] + "\xe2\x80\x9d";
-    }
-    c.err = m;
-    return false;
-  }
-  k = hit;
-  return true;
+  return ckarg(c, nm, std::vector<std::string>(ch.begin(), ch.end()), k);
 }
 
 // Data frames: an object of columns (arrays of one length).

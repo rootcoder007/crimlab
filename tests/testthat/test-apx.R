@@ -1113,16 +1113,6 @@ test_that("the seed of a draw leaves no generator where there was none", {
   expect_identical(colSums(m), c(3, 3))
 })
 
-test_that("the indicator columns of the effects", {
-  d <- data.frame(a = c(1, 2, 1), b = c("x", "y", "y"),
-                  stringsAsFactors = FALSE)
-  m <- .axdum(d, c("a", "b"))
-  # every level of the first set, all but the first of the second
-  expect_identical(colnames(m), c("a:1", "a:2", "b:2"))
-  expect_identical(unname(m[, 3L]), c(0, 1, 1))
-  expect_identical(unname(.axdum(d, NULL)[, 1L]), c(1, 1, 1))
-})
-
 test_that("the Kleibergen-Paap rk statistic with two-way clusters", {
   # with the rows as the second clustering the two-way meat is that of
   # the first: V(unit) + V(row) - V(unit and row), the last two the same

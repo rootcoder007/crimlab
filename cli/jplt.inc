@@ -169,7 +169,8 @@ const Pal pals[] = {
     {"diverging", {"#2166AC", "#8C8C8C", "#D6604D"}},
     {"sequential", {"#C6DBEF", "#6BAED6", "#2171B5", "#08306B", "#041E42"}},
     {"grey", {"#252525", "#636363", "#969696", "#BDBDBD", "#D9D9D9"}}};
-// colorRampPalette(col)(n): linear in RGB, as rgb() rounds.
+// colorRampPalette(col)(n): linear in RGB on the 0-1 scale, the result
+// times 255 cut to a whole number, as rgb(maxColorValue = 255) does.
 inline Cols ramp(const std::vector<const char *> &col, int n) {
   const std::size_t k = col.size();
   std::vector<double> at = {0.0};
@@ -181,7 +182,7 @@ inline Cols ramp(const std::vector<const char *> &col, int n) {
   for (const char *h : col) {
     std::array<double, 3> v{};
     for (std::size_t j = 0; j < 3; ++j) {
-      v[j] = static_cast<double>(std::strtol(std::string(h + 1 + 2 * j, 2).c_str(), nullptr, 16));
+      v[j] = static_cast<double>(std::strtol(std::string(h + 1 + 2 * j, 2).c_str(), nullptr, 16)) / 255.0;
     }
     rgb.push_back(v);
   }
@@ -208,7 +209,7 @@ inline Cols ramp(const std::vector<const char *> &col, int n) {
       } else {
         y = rgb[i][q] + (rgb[j][q] - rgb[i][q]) * ((v - at[i]) / (at[j] - at[i]));
       }
-      u[q] = static_cast<unsigned>(255 * (y / 255) + 0.5);
+      u[q] = static_cast<unsigned>(y * 255.0);
     }
     std::snprintf(b, sizeof b, "#%02X%02X%02X", u[0] & 0xFFu, u[1] & 0xFFu, u[2] & 0xFFu);
     out.push_back(b);
