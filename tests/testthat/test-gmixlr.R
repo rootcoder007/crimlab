@@ -80,7 +80,10 @@ test_that("a single source without drop-in gives 1 / (2 p q), fitted or not", {
                     stringsAsFactors = FALSE)
   r <- gmixlr(pk, fr, ref, hp = "S", nc = 1, pc = 0)
   expect_equal(r$lr, 1 / (2 * 0.1 * 0.3), tolerance = 1e-8)
-  expect_true(all(r$fit$conv))
+  expect_true(
+    all(r$fit$conv),
+    info = paste("iterations", paste(r$fit$iter, collapse = " "))
+  )
   # the fitted mu and omega: those of two gamma peaks of one dose
   expect_equal(r$fit$mu[1], 850, tolerance = 1e-3)
   r2 <- gmixlr(

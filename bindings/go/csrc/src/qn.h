@@ -17,8 +17,9 @@ typedef double (*fn)(const double *u, double *g, void *ctx);
 // Minimises f from u (p values, overwritten with the minimum) by BFGS on
 // the inverse Hessian with a backtracking (Armijo) line search, at most
 // maxit steps, until the largest gradient element is below gtol (1 +
-// |f|), or until no step down the gradient lowers f (a minimum up to the
-// rounding of f). Out: fv, the value at u; iter, the steps taken. Returns
+// |f|), or until no step down the gradient lowers f, or three steps in a
+// row lower it by no more than its rounding (a minimum up to the rounding
+// of f). Out: fv, the value at u; iter, the steps taken. Returns
 // 1 when converged, 0 when the steps ran out, every step down the
 // gradient left the domain or the host asked to stop (kutil::stop; fw is
 // the work of one evaluation of f), -1 when f is not finite at the start.

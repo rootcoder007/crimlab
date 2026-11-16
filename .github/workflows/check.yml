@@ -32,6 +32,7 @@ jobs:
           - {os: ubuntu-24.04, r: '4.1', deps: '"hard"',
              extra: 'any::rcmdcheck, any::testthat, any::knitr, any::rmarkdown'}
           - {os: macos-latest, r: release}
+          - {os: macos-15-intel, r: release}
           - {os: windows-latest, r: release}
     env:
       R_KEEP_PKG_SOURCE: yes

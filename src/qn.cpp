@@ -6,6 +6,7 @@
 // as R computes it. No allocation.
 #include "qn.h"
 
+#include <cfloat>
 #include <cmath>
 #include <cstddef>
 
@@ -125,7 +126,7 @@ int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, i
   if (!std::isfinite(fx) || !fin(g, p)) return -1;
   eye(h, p, 1.0);
   bool first = true, steep = true;
-  int it = 0, conv = 0;
+  int it = 0, conv = 0, flat = 0;
   for (; it < maxit; ++it) {
     if (kutil::stop(fw)) break;
     double gmax = 0;
@@ -186,7 +187,17 @@ int min(int p, double *u, fn f, void *ctx, int maxit, double gtol, double *fv, i
       u[i] = un[i];
       g[i] = gn[i];
     }
+    // three accepted steps in a row that lower f by no more than its
+    // rounding: the search is walking on the noise of f (a gradient by
+    // differences never falls below it), and u is a minimum as far as f
+    // can tell
+    flat = fx - fnew <= 8 * DBL_EPSILON * (1 + std::fabs(fx)) ? flat + 1 : 0;
     fx = fnew;
+    if (flat >= 3) {
+      conv = 1;
+      ++it;
+      break;
+    }
   }
   *fv = fx;
   *iter = it;
