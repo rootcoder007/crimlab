@@ -7050,8 +7050,9 @@ def smkiv(data: Any, plume: Any, unit: Any, day: Any, pm: Any = None, adj: Any =
     """Smoke instruments from plume data.
 
     The arguments and the result are those of R's ``smkiv()``: see its help
-    page. Outside R a day column is numbers, not dates, so ``pm`` needs
-    ``seas``.
+    page. A day column of numbers has no calendar, so ``pm`` then needs
+    ``seas``; days given as ISO date text (``"2024-06-01"``) are dates, and
+    their meteorological seasons are used.
 
     Examples
     --------
@@ -7284,7 +7285,8 @@ def ccross(data: Any, y: Any, unit: Any, day: Any, strat: Any = "ymw", ma: Any =
     """The time-stratified case-crossover design as a conditional Poisson fit.
 
     The arguments and the result are those of R's ``ccross()``: see its help
-    page. The day column holds days since 1970-01-01, as an R date does.
+    page. The day column holds days since 1970-01-01, as an R date does, or
+    ISO date text (``"2024-06-01"``).
     ``est`` names the estimator and ``args`` are its arguments, R's ``...``.
 
     Examples

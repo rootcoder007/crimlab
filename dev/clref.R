@@ -2151,6 +2151,14 @@ ok("ccross", data = axc, y = "crimes", unit = "area", day = "date",
 ok("ccross", data = axc, y = "crimes", unit = "area", day = "date",
    lagv = "temp", lag = 1, x = c("pm", "temp"), k = 1)
 bad("ccross", data = axc, y = "crimes", unit = "area", day = "date", k = 0)
+ok("ccross", data = transform(axc, date = format(date)), y = "crimes",
+   unit = "area", day = "date", ma = "pm", x = "pm", se = "hc1")
+ok("ccross", data = transform(axc, date = as.numeric(date)), y = "crimes",
+   unit = "area", day = "date", x = "pm", se = "hc1")
+bad("ccross", data = transform(axc, date = "2024-02-30"), y = "crimes",
+    unit = "area", day = "date", x = "pm")
+ok("smkiv", data = transform(skd, day = format(as.Date("2024-05-28") + day)),
+   plume = "plume", unit = "place", day = "day", pm = "pm", adj = "own")
 ok("jntx", data = axd, y = "crimes", x1 = "pm", x2 = "temp", fe = "area",
    se = "hc1")
 ok("jntx", data = axd, y = "crimes", x1 = "pm", x2 = "temp", form = "linear",

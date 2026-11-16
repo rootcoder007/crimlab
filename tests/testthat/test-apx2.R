@@ -473,3 +473,41 @@ test_that("an estimator that is not one, and bad jntx() quantiles", {
   expect_error(jntx(d, "y", "pm", "no2", p2 = 0.5, fe = "unit"),
                "^jntx: `p2` must be two or more quantiles\\.$")
 })
+
+test_that("a day as dates, ISO date text or days since 1970", {
+  # ccross() and smkiv() take the day in the forms the command line can
+  # give: each is the same fit as with a Date column
+  set.seed(9)
+  d <- expand.grid(day = as.Date("2023-01-01") + 0:120, area = 1:4)
+  d$pm <- rnorm(nrow(d), 15, 4)
+  d$crimes <- rpois(nrow(d), exp(1 + 0.02 * d$pm))
+  a <- ccross(d, "crimes", "area", "day", ma = "pm", x = "pm", se = "hc1")
+  for (v in list(format(d$day), as.numeric(d$day))) {
+    e <- d
+    e$day <- v
+    b <- ccross(e, "crimes", "area", "day", ma = "pm", x = "pm", se = "hc1")
+    expect_identical(b$coef, a$coef)
+  }
+  e <- d
+  e$day <- format(e$day, "%d/%m/%Y")
+  expect_error(ccross(e, "crimes", "area", "day", x = "pm"),
+               "ccross: column `day` must hold dates: ISO text YYYY-MM-DD.",
+               fixed = TRUE)
+  # smkiv(): ISO text is dates, with the meteorological seasons of each
+  s <- data.frame(place = rep(c("a", "b"), each = 120),
+                  day = rep(as.Date("2024-04-01") + 0:119, 2))
+  s$plume <- rbinom(240, 1, 0.3)
+  s$pm <- rnorm(240, 10, 2) + 10 * s$plume
+  o <- smkiv(s, "plume", "place", "day", pm = "pm", adj = "own")
+  t <- s
+  t$day <- format(t$day)
+  expect_identical(smkiv(t, "plume", "place", "day", pm = "pm", adj = "own"),
+                   o)
+  m <- as.integer(format(s$day, "%m"))
+  t$seas <- c("DJF", "MAM", "JJA", "SON")[(m %/% 3) %% 4 + 1L]
+  expect_identical(smkiv(t, "plume", "place", "day", pm = "pm", adj = "own",
+                         seas = "seas"), o)
+  t$day <- as.numeric(s$day)
+  expect_error(smkiv(t, "plume", "place", "day", pm = "pm"),
+               "give `seas`, or `day` as dates")
+})

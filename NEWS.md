@@ -27,6 +27,12 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* `ccross()` takes a day column of ISO date text or of days since
+  1970-01-01, as the command line gives dates, and `smkiv()` reads ISO
+  date text as dates, in R and on the command line alike; before, R's
+  `ccross()` refused numbers and the command line could not give
+  `smkiv()` dates.
+
 * Fixed: `irtem()`, `optcls()`, `dwnom()`, `cjrirt()`, `nomll()`,
   `irtlik()` and `nombt()` accepted votes other than 1, 0 and `NA`, and a
   matrix of no votes; they refuse them now in the words of `anomin()`.

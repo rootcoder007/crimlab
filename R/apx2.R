@@ -72,8 +72,9 @@
 #' @param nbr For `"nbr"`, the name of the column naming each row's nearest
 #'   neighbouring place (a value of `unit`).
 #' @param z The number of standard deviations above the background.
-#' @param seas `NULL` (meteorological seasons of a date `day`) or the name
-#'   of a season column.
+#' @param seas `NULL` (meteorological seasons of a date `day`: dates, or
+#'   ISO date text such as `"2024-06-01"`; a `day` of numbers has no
+#'   seasons) or the name of a season column.
 #' @param dens `NULL` or the name of a density-class column (`NA` or `""`
 #'   for no plume).
 #' @param cf `"mean"`, `"median"` or `"childs"`: the background of `spm`.
@@ -140,6 +141,7 @@ smkiv <- function(
   ck <- .axsmck(d, plume, unit, day, pm, seas, by, dens, adj, z, f)
   pl <- ck$pl
   z <- ck$z
+  d[[day]] <- .axdate(d[[day]], day, f, FALSE)
   sv <- .axsmsea(d, day, seas, pm, f)
   key <- paste(as.character(d[[unit]]), sv, sep = "\r")
   out <- data.frame(smoke = pl)
@@ -418,7 +420,9 @@ print.hetfx <- function(x, ...) {
 #' @inheritParams smkiv
 #' @inheritParams jntx
 #' @param unit The name of the place column.
-#' @param day The name of the day column (dates).
+#' @param day The name of the day column: dates, ISO date text such as
+#'   `"2024-06-01"`, or numbers of days since 1970-01-01 (as the command
+#'   line gives dates).
 #' @param strat `"ymw"` or `"ym"`.
 #' @param ma `NULL` or the names of columns to average over days.
 #' @param k The days of the moving average.
@@ -503,6 +507,7 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   strat <- .ckmarg("strat", f)
   d <- .axdat(data, f)
   ck <- .axccck(d, y, unit, day, ma, est, k, lagv, lag, ns, f)
+  d[[day]] <- ck$day
   d <- .clas(f, .axccma(d, unit, day, ma, ck$k, lagv, ck$lag))
   ym <- format(d[[day]], "%Y-%m")
   d$.strat <- paste(
@@ -1292,7 +1297,8 @@ print.typefx <- function(x, ...) {
 .axccck <- function(d, y, unit, day, ma, est, k, lagv, lag, ns, f) {
   .axcols(d, c(y, unit, day), "y, unit, day", f, n = 3L)
   .axcols(d, ma, "ma", f, null = TRUE)
-  if (!inherits(d[[day]], "Date")) {
+  dv <- .axdate(d[[day]], day, f, TRUE)
+  if (!inherits(dv, "Date")) {
     .ckstop(f, "column `%s` must hold dates", day)
   }
   if (!.axest(est)) {
@@ -1308,5 +1314,23 @@ print.typefx <- function(x, ...) {
     }
     .axcols(d, names(ns), "names(ns)", f)
   }
-  list(k = k, lag = lag)
+  list(k = k, lag = lag, day = dv)
+}
+
+# A day column as dates: dates as they are, ISO date text (YYYY-MM-DD,
+# every value) read as dates and, with num, numbers as days since
+# 1970-01-01, as the command line gives dates; anything else unchanged.
+.axdate <- function(v, day, f, num) {
+  if (is.character(v) || is.factor(v)) {
+    s <- as.character(v)
+    o <- as.Date(s, format = "%Y-%m-%d", optional = TRUE)
+    if (anyNA(o) || !identical(format(o), s)) {
+      .ckstop(f, "column `%s` must hold dates: ISO text YYYY-MM-DD", day)
+    }
+    return(o)
+  }
+  if (num && is.numeric(v) && !inherits(v, "Date")) {
+    return(as.Date(as.numeric(v), origin = "1970-01-01"))
+  }
+  v
 }

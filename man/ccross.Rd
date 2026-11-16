@@ -26,7 +26,9 @@ ccross(
 
 \item{unit}{The name of the place column.}
 
-\item{day}{The name of the day column (dates).}
+\item{day}{The name of the day column: dates, ISO date text such as
+\code{"2024-06-01"}, or numbers of days since 1970-01-01 (as the command
+line gives dates).}
 
 \item{strat}{\code{"ymw"} or \code{"ym"}.}
 

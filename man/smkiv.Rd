@@ -36,7 +36,9 @@ neighbouring place (a value of \code{unit}).}
 
 \item{z}{The number of standard deviations above the background.}
 
-\item{seas}{\code{NULL} (meteorological seasons of a date \code{day}) or the name
+\item{seas}{\code{NULL} (meteorological seasons of a date \code{day}: dates, or
+ISO date text such as \code{"2024-06-01"}; a \code{day} of numbers has no
+seasons) or the name
 of a season column.}
 
 \item{dens}{\code{NULL} or the name of a density-class column (\code{NA} or \code{""}

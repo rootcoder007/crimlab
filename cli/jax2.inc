@@ -557,6 +557,8 @@ bool ccross(Ctx &c, Val &out) {
   Cols yud, ma, lagv;
   CK(acols(c, d, nms(c, {"y", "unit", "day"}), "y, unit, day", {3}, false, yud));
   CK(acol(c, d, "ma", {}, true, ma));
+  bool dt = false;
+  CK(aday(c, d, yud[2], dt));
   if (!isnumc(*fc(d, yud[2]))) return ckstop(c, "column `%s` must hold dates", yud[2].c_str());
   int e = 0;
   CK(aest(c, e));
