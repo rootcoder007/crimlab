@@ -52,31 +52,11 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
   n <- .cknum(n, "n", f, min = 1, max = 1e7, whole = TRUE)
   seed <- .cknum(seed, "seed", f, min = 0, max = 2147483647, whole = TRUE)
   tab <- as.data.frame(.Call(C_clab_r_sfxtab), stringsAsFactors = FALSE)
-  if (is.null(kind)) {
-    ty <- c("labels", "range", "id")[tab$type + 1L]
-    va <- ifelse(tab$type == 1L, paste(tab$lo, tab$hi, sep = "|"), tab$lev)
-    return(data.frame(kind = tab$kind, column = tab$column, type = ty,
-                      values = va, stringsAsFactors = FALSE))
-  }
+  if (is.null(kind)) return(.sfxls(tab))
   if (is.list(kind) && !is.data.frame(kind)) {
     return(.sfxdraw(.sfxlist(kind, f), n, seed))
   }
-  if (!is.character(kind) || length(kind) != 1L || is.na(kind)) {
-    .ckstop(f, paste("`kind` must be the name of a preset, a named list of",
-                     "the values of each column, or NULL"))
-  }
-  fam <- sub("-.*", "", tab$kind)
-  if (kind %in% fam) {
-    ks <- unique(tab$kind[fam == kind])
-    out <- lapply(seq_along(ks), function(i) {
-      .sfxdraw(.sfxpre(tab, ks[i], n), n, (seed + i) %% 2^31)
-    })
-    return(stats::setNames(out, sub("^[^-]*-", "", ks)))
-  }
-  if (!kind %in% tab$kind) {
-    .ckstop(f, "`kind` names no preset: \"%s\"; synfix() lists them", kind)
-  }
-  .sfxdraw(.sfxpre(tab, kind, n), n, seed)
+  .sfxkind(tab, kind, n, seed, f)
 }
 
 # The columns of a preset as values to draw from.
@@ -118,4 +98,32 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
   out <- lapply(seq_along(cols), function(j) cols[[j]][k[, j] + 1L])
   as.data.frame(stats::setNames(out, names(cols)), stringsAsFactors = FALSE,
                 check.names = FALSE)
+}
+
+# The presets, one row per column.
+.sfxls <- function(tab) {
+  ty <- c("labels", "range", "id")[tab$type + 1L]
+  va <- ifelse(tab$type == 1L, paste(tab$lo, tab$hi, sep = "|"), tab$lev)
+  data.frame(kind = tab$kind, column = tab$column, type = ty,
+             values = va, stringsAsFactors = FALSE)
+}
+
+# A preset by name: one data frame, or a list of them for a family.
+.sfxkind <- function(tab, kind, n, seed, f) {
+  if (!is.character(kind) || length(kind) != 1L || is.na(kind)) {
+    .ckstop(f, paste("`kind` must be the name of a preset, a named list of",
+                     "the values of each column, or NULL"))
+  }
+  fam <- sub("-.*", "", tab$kind)
+  if (kind %in% fam) {
+    ks <- unique(tab$kind[fam == kind])
+    out <- lapply(seq_along(ks), function(i) {
+      .sfxdraw(.sfxpre(tab, ks[i], n), n, (seed + i) %% 2^31)
+    })
+    return(stats::setNames(out, sub("^[^-]*-", "", ks)))
+  }
+  if (!kind %in% tab$kind) {
+    .ckstop(f, "`kind` names no preset: \"%s\"; synfix() lists them", kind)
+  }
+  .sfxdraw(.sfxpre(tab, kind, n), n, seed)
 }

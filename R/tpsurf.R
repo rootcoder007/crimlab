@@ -49,13 +49,7 @@
 #' @export
 tpsurf <- function(x, y, z, lam = 0, nx = 50L, ny = nx) {
   f <- "tpsurf"
-  if (!is.numeric(x) || !is.numeric(y) || !is.numeric(z) ||
-        length(y) != length(x) || length(z) != length(x)) {
-    .ckstop(f, "`x`, `y` and `z` must be numbers of the same length")
-  }
-  if (length(x) < 3L || !all(is.finite(c(x, y, z)))) {
-    .ckstop(f, "`x`, `y` and `z` must be finite, at least three points")
-  }
+  .tpchk(x, y, z, f)
   if (!.pnum1(lam, 0)) .ckstop(f, "`lam` must be one number from 0")
   if (!.pnum1(nx, 2, 1000, TRUE) || !.pnum1(ny, 2, 1000, TRUE)) {
     .ckstop(f, "`nx` and `ny` must be whole numbers from 2 to 1000")
@@ -91,4 +85,15 @@ plot.tpsurf <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "tpsurf", c("x", "y", "z"))
   .psurf(x$x, x$y, x$z, .pmain(main, "Thin-plate spline surface"),
          pal = pal, ...)
+}
+
+# The points: numbers of the same length, finite, at least three.
+.tpchk <- function(x, y, z, f) {
+  if (!is.numeric(x) || !is.numeric(y) || !is.numeric(z) ||
+        length(y) != length(x) || length(z) != length(x)) {
+    .ckstop(f, "`x`, `y` and `z` must be numbers of the same length")
+  }
+  if (length(x) < 3L || !all(is.finite(c(x, y, z)))) {
+    .ckstop(f, "`x`, `y` and `z` must be finite, at least three points")
+  }
 }

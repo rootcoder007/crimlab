@@ -449,12 +449,7 @@ olsdx <- function(y, x, at = NULL, int = TRUE, pred = "mean", level = 0.95) {
 #' @export
 print.olsdx <- function(x, cook = 1, lev = c(0.2, 0.5), r = 0.7, vif = 10,
                         ...) {
-  ok <- function(v, k) is.numeric(v) && length(v) == k && all(is.finite(v))
-  if (!ok(cook, 1L) || !ok(lev, 2L) || !ok(r, 1L) || !ok(vif, 1L) ||
-        lev[1L] > lev[2L]) {
-    stop("print.olsdx: `cook`, `r` and `vif` must be one number each and ",
-         "`lev` two increasing numbers.", call. = FALSE)
-  }
+  .oxpchk(cook, lev, r, vif)
   f <- x[["fit"]]
   cat("olsdx: ", f[["n"]], " rows, ", f[["k"]], " coefficients, R2 ",
       format(f[["r2"]], digits = 4), ", adjusted ",
@@ -479,4 +474,15 @@ print.olsdx <- function(x, cook = 1, lev = c(0.2, 0.5), r = 0.7, vif = 10,
     print(x[["pred"]], row.names = FALSE)
   }
   invisible(x)
+}
+
+# The thresholds of print.olsdx(): one finite number each, lev two
+# increasing.
+.oxpchk <- function(cook, lev, r, vif) {
+  ok <- function(v, k) is.numeric(v) && length(v) == k && all(is.finite(v))
+  if (!ok(cook, 1L) || !ok(lev, 2L) || !ok(r, 1L) || !ok(vif, 1L) ||
+        lev[1L] > lev[2L]) {
+    stop("print.olsdx: `cook`, `r` and `vif` must be one number each and ",
+         "`lev` two increasing numbers.", call. = FALSE)
+  }
 }

@@ -92,17 +92,7 @@ mipmm <- function(
 ) {
   f <- "mipmm"
   dd <- .axdat(data, f)
-  if (is.null(y)) .ckstop(f, "`y` must name columns of `data`, got NULL")
-  if (!is.character(y) || anyNA(y) || !length(y)) {
-    .ckstop(f, "`y` must name columns of `data`")
-  }
-  miss <- setdiff(y, names(dd))
-  if (length(miss)) {
-    .ckstop(f, "`y` names columns not in `data`: %s", toString(miss))
-  }
-  if (anyDuplicated(y)) .ckstop(f, "`y` names a column twice")
-  .axcols(dd, x, "x", f, null = TRUE)
-  if (any(y %in% x)) .ckstop(f, "`y` and `x` must name different columns")
+  .mpcols(dd, y, x, f)
   ym <- vapply(y, function(v) .mpval(dd[[v]], v, f), numeric(nrow(dd)))
   ym <- matrix(ym, nrow(dd))
   xm <- .axmat(dd, x, f)
@@ -111,47 +101,18 @@ mipmm <- function(
   maxit <- .cknum(maxit, "maxit", f, min = 1, max = 1000, whole = TRUE)
   ridge <- .cknum(ridge, "ridge", f, min = 0)
   a <- c(y, x)
-  if (!is.null(fy) && (!is.character(fy) || length(fy) != 1L ||
-                         !fy %in% a)) {
-    .ckstop(f, "`fy` must name one column of `y` or `x`")
-  }
-  if (!is.null(fx) && (is.null(fy) || !is.character(fx) || anyNA(fx) ||
-                         !all(fx %in% setdiff(a, fy)) ||
-                         anyDuplicated(fx))) {
-    .ckstop(f, paste("`fx` must name columns of `y` or `x` other than `fy`,",
-                     "each once"))
-  }
+  .mpfml(fy, fx, a, f)
   level <- .xpopen(level, "level", f)
   seed <- .xpseed(seed, f)
   o <- .Call(C_clab_r_mipmm, cbind(ym, xm), seq_along(y) - 1L, as.integer(m),
              as.integer(k), as.integer(maxit), ridge, seed,
              if (is.null(fy)) -1L else match(fy, a) - 1L,
              match(fx, a) - 1L, level)
-  nmis <- colSums(is.na(ym))
-  names(nmis) <- y
-  imp <- list()
-  at <- 0
-  for (j in seq_along(y)) {
-    r <- which(is.na(ym[, j]))
-    v <- o$imp[at + seq_len(length(r) * m)]
-    imp[[y[j]]] <- matrix(v, length(r), m, dimnames = list(r, NULL))
-    at <- at + length(r) * m
-  }
   term <- if (is.null(fy)) y else c("(Intercept)", fx)
-  np <- length(term)
-  p <- o$pool
   structure(
-    list(imp = imp,
-         pool = data.frame(term = term, est = p[seq_len(np)],
-                           se = p[np + seq_len(np)],
-                           df = p[2L * np + seq_len(np)],
-                           lo = p[3L * np + seq_len(np)],
-                           hi = p[4L * np + seq_len(np)],
-                           p = p[5L * np + seq_len(np)],
-                           riv = p[6L * np + seq_len(np)],
-                           fmi = p[7L * np + seq_len(np)],
-                           stringsAsFactors = FALSE),
-         nmis = nmis, m = m, k = k, maxit = maxit, seed = seed),
+    list(imp = .mpimp(o$imp, ym, y, m), pool = .mppool(o$pool, term),
+         nmis = stats::setNames(colSums(is.na(ym)), y), m = m, k = k,
+         maxit = maxit, seed = seed),
     class = "mipmm"
   )
 }
@@ -177,4 +138,56 @@ print.mipmm <- function(x, ...) {
     .ckstop(f, "column `%s` must be finite where it is observed", nm)
   }
   v
+}
+
+# The columns y to impute and x that predict them, checked.
+.mpcols <- function(dd, y, x, f) {
+  if (is.null(y)) .ckstop(f, "`y` must name columns of `data`, got NULL")
+  if (!is.character(y) || anyNA(y) || !length(y)) {
+    .ckstop(f, "`y` must name columns of `data`")
+  }
+  miss <- setdiff(y, names(dd))
+  if (length(miss)) {
+    .ckstop(f, "`y` names columns not in `data`: %s", toString(miss))
+  }
+  if (anyDuplicated(y)) .ckstop(f, "`y` names a column twice")
+  .axcols(dd, x, "x", f, null = TRUE)
+  if (any(y %in% x)) .ckstop(f, "`y` and `x` must name different columns")
+}
+
+# The analysis checked: fy one of the columns a, fx others of them.
+.mpfml <- function(fy, fx, a, f) {
+  if (!is.null(fy) && (!is.character(fy) || length(fy) != 1L ||
+                         !fy %in% a)) {
+    .ckstop(f, "`fy` must name one column of `y` or `x`")
+  }
+  if (!is.null(fx) && (is.null(fy) || !is.character(fx) || anyNA(fx) ||
+                         !all(fx %in% setdiff(a, fy)) ||
+                         anyDuplicated(fx))) {
+    .ckstop(f, paste("`fx` must name columns of `y` or `x` other than `fy`,",
+                     "each once"))
+  }
+}
+
+# The imputed values of each column of y, one matrix each.
+.mpimp <- function(v, ym, y, m) {
+  imp <- list()
+  at <- 0
+  for (j in seq_along(y)) {
+    r <- which(is.na(ym[, j]))
+    imp[[y[j]]] <- matrix(v[at + seq_len(length(r) * m)], length(r), m,
+                          dimnames = list(r, NULL))
+    at <- at + length(r) * m
+  }
+  imp
+}
+
+# The pooled table from the kernel's pooled values p.
+.mppool <- function(p, term) {
+  np <- length(term)
+  data.frame(term = term, est = p[seq_len(np)], se = p[np + seq_len(np)],
+             df = p[2L * np + seq_len(np)], lo = p[3L * np + seq_len(np)],
+             hi = p[4L * np + seq_len(np)], p = p[5L * np + seq_len(np)],
+             riv = p[6L * np + seq_len(np)], fmi = p[7L * np + seq_len(np)],
+             stringsAsFactors = FALSE)
 }

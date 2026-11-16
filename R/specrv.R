@@ -78,15 +78,7 @@ specrv <- function(
 ) {
   f <- "specrv"
   dd <- .axdat(data, f)
-  .axcols(dd, y, "y", f)
-  .axcols(dd, d, "d", f, n = 1L)
-  .axcols(dd, x, "x", f, null = TRUE)
-  .axcols(dd, opt, "opt", f, null = TRUE)
-  a <- c(y, d, x, opt)
-  if (anyDuplicated(a)) {
-    .ckstop(f, "`y`, `d`, `x` and `opt` must name different columns")
-  }
-  if (length(opt) > 10L) .ckstop(f, "`opt` may name at most ten columns")
+  .sccols(dd, y, d, x, opt, f)
   se <- .ckmarg("se", f)
   null <- .ckmarg("null", f)
   ym <- .axmat(dd, y, f)
@@ -106,18 +98,7 @@ specrv <- function(
   seed <- .xpseed(seed, f)
   k <- .Call(C_clab_r_specrv, xm, length(x), length(opt), ym, dv,
              se == "hc1", level, null == "boot", as.integer(nsim), seed)
-  K <- length(y) * ns
-  s <- k$spec
-  ctrl <- vapply(seq_len(ns) - 1L, function(b) {
-    u <- opt[bitwAnd(b, as.integer(2^(seq_along(opt) - 1L))) > 0L]
-    if (length(u)) paste(u, collapse = " + ") else "none"
-  }, "")
-  p <- s[3L * K + seq_len(K)]
-  spec <- data.frame(outcome = rep(y, each = ns), ctrl = rep(ctrl, length(y)),
-                     est = s[seq_len(K)], se = s[K + seq_len(K)],
-                     stat = s[2L * K + seq_len(K)], p = p,
-                     lo = s[4L * K + seq_len(K)], hi = s[5L * K + seq_len(K)],
-                     sig = p < 1 - level, stringsAsFactors = FALSE)
+  spec <- .scspec(k$spec, y, opt, ns, level)
   st <- k$st
   dist <- matrix(k$dist, nsim, 3L,
                  dimnames = list(NULL, c("median", "nsig", "z")))
@@ -141,4 +122,32 @@ print.specrv <- function(x, ...) {
       format(x[["nok"]], scientific = FALSE), " data sets\n", sep = "")
   print(x[["test"]], row.names = FALSE, digits = 4)
   invisible(x)
+}
+
+# The outcome, treatment and covariate columns: present, each once, at
+# most ten optional.
+.sccols <- function(dd, y, d, x, opt, f) {
+  .axcols(dd, y, "y", f)
+  .axcols(dd, d, "d", f, n = 1L)
+  .axcols(dd, x, "x", f, null = TRUE)
+  .axcols(dd, opt, "opt", f, null = TRUE)
+  if (anyDuplicated(c(y, d, x, opt))) {
+    .ckstop(f, "`y`, `d`, `x` and `opt` must name different columns")
+  }
+  if (length(opt) > 10L) .ckstop(f, "`opt` may name at most ten columns")
+}
+
+# One row per specification from the kernel's values s.
+.scspec <- function(s, y, opt, ns, level) {
+  K <- length(y) * ns
+  ctrl <- vapply(seq_len(ns) - 1L, function(b) {
+    u <- opt[bitwAnd(b, as.integer(2^(seq_along(opt) - 1L))) > 0L]
+    if (length(u)) paste(u, collapse = " + ") else "none"
+  }, "")
+  p <- s[3L * K + seq_len(K)]
+  data.frame(outcome = rep(y, each = ns), ctrl = rep(ctrl, length(y)),
+             est = s[seq_len(K)], se = s[K + seq_len(K)],
+             stat = s[2L * K + seq_len(K)], p = p,
+             lo = s[4L * K + seq_len(K)], hi = s[5L * K + seq_len(K)],
+             sig = p < 1 - level, stringsAsFactors = FALSE)
 }

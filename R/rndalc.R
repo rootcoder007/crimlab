@@ -67,66 +67,19 @@ rndalc <- function(
   prefix = "P"
 ) {
   f <- "rndalc"
-  if (!is.character(arms) || length(arms) < 2L || anyNA(arms) ||
-        !all(nzchar(arms)) || anyDuplicated(arms)) {
-    .ckstop(f, "`arms` must name two or more arms, each once")
-  }
-  ratio <- .cknum(ratio, "ratio", f, scalar = FALSE, min = 1, max = 1e6,
-                  whole = TRUE)
-  if (length(ratio) != length(arms)) {
-    .ckstop(f, "`ratio` must give one number per arm")
-  }
-  sr <- sum(ratio)
+  ratio <- .rnrat(arms, ratio, f)
+  # block's default reads the checked ratio
   block <- .cknum(block, "block", f, scalar = FALSE, min = 0, max = 1e6,
                   whole = TRUE)
-  simple <- length(block) == 1L && block == 0
-  if (!simple && any(block == 0 | block %% sr != 0)) {
-    .ckstop(f, paste("`block` must be 0, or sizes that are multiples of",
-                     "sum(ratio) (%s)"), format(sr))
-  }
-  nm <- NULL
-  if (is.null(strata)) {
-    n <- .cknum(n, "n", f, min = 1, max = 1e7, whole = TRUE)
-    cnt <- n
-  } else {
-    cnt <- .cknum(strata, "strata", f, scalar = FALSE, min = 0, whole = TRUE)
-    nm <- names(strata)
-    if (is.null(nm) || anyNA(nm) || !all(nzchar(nm)) || anyDuplicated(nm)) {
-      .ckstop(f, "`strata` must be named, each stratum once")
-    }
-    tot <- sum(cnt)
-    if (tot < 1 || tot > 1e7) {
-      .ckstop(f, "`strata` must hold from 1 to 10000000 places in all")
-    }
-    if (!is.null(n)) {
-      n <- .cknum(n, "n", f, min = 1, max = 1e7, whole = TRUE)
-      if (n != tot) {
-        .ckstop(f, "`n` must equal the places of `strata` (%s)", format(tot))
-      }
-    }
-    n <- tot
-  }
+  simple <- .rnblk(block, sum(ratio), f)
+  s <- .rncnt(n, strata, f)
   seed <- .xpseed(seed, f)
   if (!is.character(prefix) || length(prefix) != 1L || is.na(prefix)) {
     .ckstop(f, "`prefix` must be one string")
   }
-  k <- .Call(C_clab_r_rndalc, as.integer(cnt), as.integer(ratio),
+  k <- .Call(C_clab_r_rndalc, as.integer(s$cnt), as.integer(ratio),
              if (simple) integer(0) else as.integer(block), seed)
-  n <- as.integer(n)
-  id <- paste0(prefix, formatC(seq_len(n), width = nchar(as.character(n)),
-                               flag = "0"))
-  alloc <- data.frame(id = id, stringsAsFactors = FALSE)
-  if (!is.null(nm)) alloc$stratum <- rep(nm, cnt)
-  b <- k$block
-  b[b == 0L] <- NA_integer_
-  alloc$block <- b
-  alloc$arm <- arms[k$arm + 1L]
-  g <- if (is.null(nm)) rep(1L, n) else rep(seq_along(nm), cnt)
-  ka <- length(arms)
-  tab <- matrix(tabulate((g - 1L) * ka + k$arm + 1L, length(cnt) * ka),
-                ncol = ka, byrow = TRUE,
-                dimnames = list(if (is.null(nm)) "all" else nm, arms))
-  structure(list(alloc = alloc, tab = tab, seed = seed), class = "rndalc")
+  .rnout(k, s, arms, prefix, seed)
 }
 
 #' @rdname rndalc
@@ -148,4 +101,74 @@ print.rndalc <- function(x, ...) {
     return(as.numeric(sample.int(.Machine$integer.max, 1L)))
   }
   .cknum(seed, "seed", f, min = 0, max = .Machine$integer.max, whole = TRUE)
+}
+
+# The arms checked, then the ratio, one whole number per arm.
+.rnrat <- function(arms, ratio, f) {
+  if (!is.character(arms) || length(arms) < 2L || anyNA(arms) ||
+        !all(nzchar(arms)) || anyDuplicated(arms)) {
+    .ckstop(f, "`arms` must name two or more arms, each once")
+  }
+  ratio <- .cknum(ratio, "ratio", f, scalar = FALSE, min = 1, max = 1e6,
+                  whole = TRUE)
+  if (length(ratio) != length(arms)) {
+    .ckstop(f, "`ratio` must give one number per arm")
+  }
+  ratio
+}
+
+# Whether the checked block sizes ask for simple randomisation.
+.rnblk <- function(block, sr, f) {
+  simple <- length(block) == 1L && block == 0
+  if (!simple && any(block == 0 | block %% sr != 0)) {
+    .ckstop(f, paste("`block` must be 0, or sizes that are multiples of",
+                     "sum(ratio) (%s)"), format(sr))
+  }
+  simple
+}
+
+# The places: n, the count of each stratum (n alone without strata) and
+# the strata's names.
+.rncnt <- function(n, strata, f) {
+  if (is.null(strata)) {
+    n <- .cknum(n, "n", f, min = 1, max = 1e7, whole = TRUE)
+    return(list(n = n, cnt = n, nm = NULL))
+  }
+  cnt <- .cknum(strata, "strata", f, scalar = FALSE, min = 0, whole = TRUE)
+  nm <- names(strata)
+  if (is.null(nm) || anyNA(nm) || !all(nzchar(nm)) || anyDuplicated(nm)) {
+    .ckstop(f, "`strata` must be named, each stratum once")
+  }
+  tot <- sum(cnt)
+  if (tot < 1 || tot > 1e7) {
+    .ckstop(f, "`strata` must hold from 1 to 10000000 places in all")
+  }
+  if (!is.null(n)) {
+    n <- .cknum(n, "n", f, min = 1, max = 1e7, whole = TRUE)
+    if (n != tot) {
+      .ckstop(f, "`n` must equal the places of `strata` (%s)", format(tot))
+    }
+  }
+  list(n = tot, cnt = cnt, nm = nm)
+}
+
+# The rndalc object from the kernel's draws and the places s.
+.rnout <- function(k, s, arms, prefix, seed) {
+  n <- as.integer(s$n)
+  cnt <- s$cnt
+  nm <- s$nm
+  id <- paste0(prefix, formatC(seq_len(n), width = nchar(as.character(n)),
+                               flag = "0"))
+  alloc <- data.frame(id = id, stringsAsFactors = FALSE)
+  if (!is.null(nm)) alloc$stratum <- rep(nm, cnt)
+  b <- k$block
+  b[b == 0L] <- NA_integer_
+  alloc$block <- b
+  alloc$arm <- arms[k$arm + 1L]
+  g <- if (is.null(nm)) rep(1L, n) else rep(seq_along(nm), cnt)
+  ka <- length(arms)
+  tab <- matrix(tabulate((g - 1L) * ka + k$arm + 1L, length(cnt) * ka),
+                ncol = ka, byrow = TRUE,
+                dimnames = list(if (is.null(nm)) "all" else nm, arms))
+  structure(list(alloc = alloc, tab = tab, seed = seed), class = "rndalc")
 }

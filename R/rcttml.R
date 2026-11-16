@@ -83,60 +83,27 @@ rcttml <- function(
 ) {
   f <- "rcttml"
   dd <- .axdat(data, f)
-  .axcols(dd, y, "y", f, n = 1L)
-  .axcols(dd, d, "d", f, n = 1L)
-  .axcols(dd, x, "x", f, null = TRUE)
-  if (anyDuplicated(c(y, d, x))) {
-    .ckstop(f, "`y`, `d` and `x` must name different columns")
-  }
+  .rtcols(dd, y, d, x, f)
   fam <- .ckmarg("fam", f)
   yv <- .axmat(dd, y, f)[, 1L]
   dv <- .axmat(dd, d, f)[, 1L]
   xm <- .axmat(dd, x, f)
-  if (!all(dv %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", d)
-  if (sum(dv) < 2 || sum(1 - dv) < 2) {
-    .ckstop(f, "column `%s` must have two participants or more in each arm",
-            d)
-  }
-  if (fam == "binomial" && !all(yv %in% c(0, 1))) {
-    .ckstop(f, "with `fam = \"binomial\"`, column `%s` must hold 0 or 1", y)
-  }
+  .rtarm(yv, dv, y, d, fam, f)
   inter <- .ckflag(inter, "inter", f)
   gx <- .ckflag(gx, "gx", f)
-  if (!is.null(g)) {
-    g <- .xpopen(g, "g", f)
-    if (gx) .ckstop(f, "give `g` or `gx`, not both")
-  }
-  if (gx && is.null(x)) .ckstop(f, "`gx` needs covariates `x`")
+  g <- .rtg(g, gx, x, f)
   gbound <- .cknum(gbound, "gbound", f, min = 0)
   if (gbound >= 0.5) .ckstop(f, "`gbound` must be below 0.5")
-  if (fam == "gaussian") {
-    if (is.null(bounds)) bounds <- range(yv)
-    bounds <- .cknum(bounds, "bounds", f, scalar = FALSE)
-    if (length(bounds) != 2L || bounds[1L] >= bounds[2L] ||
-          bounds[1L] > min(yv) || bounds[2L] < max(yv)) {
-      .ckstop(f, "`bounds` must be two increasing numbers around `y`")
-    }
-  } else {
-    bounds <- c(0, 1)
-  }
+  bounds <- .rtbnd(bounds, yv, fam, f)
   qbound <- .cknum(qbound, "qbound", f, positive = TRUE)
   if (qbound >= 0.5) .ckstop(f, "`qbound` must be below 0.5")
   level <- .xpopen(level, "level", f)
   k <- .Call(C_clab_r_rcttml, xm, yv, as.integer(dv), fam == "binomial",
              inter, gx, if (is.null(g)) NA_real_ else g, gbound, bounds,
              qbound)
-  est <- k$out[1:3]
-  se <- k$out[4:6]
-  se[is.nan(se)] <- NA_real_
-  z <- stats::qnorm(0.5 + level / 2)
   structure(
-    list(tab = data.frame(method = c("tmle", "gcomp", "unadj"), est = est,
-                          se = se, lo = est - z * se, hi = est + z * se,
-                          p = 2 * stats::pnorm(-abs(est / se)),
-                          stringsAsFactors = FALSE),
-         eps = k$aux[1L], g = k$aux[2:3], fam = fam, bounds = bounds,
-         n = nrow(dd), level = level),
+    list(tab = .rttab(k$out, level), eps = k$aux[1L], g = k$aux[2:3],
+         fam = fam, bounds = bounds, n = nrow(dd), level = level),
     class = "rcttml"
   )
 }
@@ -150,4 +117,60 @@ print.rcttml <- function(x, ...) {
       "difference in means\n", sep = "")
   print(x[["tab"]], row.names = FALSE, digits = 4)
   invisible(x)
+}
+
+# The outcome, treatment and covariate columns: present, each once.
+.rtcols <- function(dd, y, d, x, f) {
+  .axcols(dd, y, "y", f, n = 1L)
+  .axcols(dd, d, "d", f, n = 1L)
+  .axcols(dd, x, "x", f, null = TRUE)
+  if (anyDuplicated(c(y, d, x))) {
+    .ckstop(f, "`y`, `d` and `x` must name different columns")
+  }
+}
+
+# The treatment 0 or 1 with two in each arm; a binomial outcome 0 or 1.
+.rtarm <- function(yv, dv, y, d, fam, f) {
+  if (!all(dv %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", d)
+  if (sum(dv) < 2 || sum(1 - dv) < 2) {
+    .ckstop(f, "column `%s` must have two participants or more in each arm",
+            d)
+  }
+  if (fam == "binomial" && !all(yv %in% c(0, 1))) {
+    .ckstop(f, "with `fam = \"binomial\"`, column `%s` must hold 0 or 1", y)
+  }
+}
+
+# The known chance of treatment g, checked against gx and x.
+.rtg <- function(g, gx, x, f) {
+  if (!is.null(g)) {
+    g <- .xpopen(g, "g", f)
+    if (gx) .ckstop(f, "give `g` or `gx`, not both")
+  }
+  if (gx && is.null(x)) .ckstop(f, "`gx` needs covariates `x`")
+  g
+}
+
+# The bounds of a continuous outcome (its range by default); 0, 1 else.
+.rtbnd <- function(bounds, yv, fam, f) {
+  if (fam != "gaussian") return(c(0, 1))
+  if (is.null(bounds)) bounds <- range(yv)
+  bounds <- .cknum(bounds, "bounds", f, scalar = FALSE)
+  if (length(bounds) != 2L || bounds[1L] >= bounds[2L] ||
+        bounds[1L] > min(yv) || bounds[2L] < max(yv)) {
+    .ckstop(f, "`bounds` must be two increasing numbers around `y`")
+  }
+  bounds
+}
+
+# The table of the three estimates from the kernel's out.
+.rttab <- function(out, level) {
+  est <- out[1:3]
+  se <- out[4:6]
+  se[is.nan(se)] <- NA_real_
+  z <- stats::qnorm(0.5 + level / 2)
+  data.frame(method = c("tmle", "gcomp", "unadj"), est = est,
+             se = se, lo = est - z * se, hi = est + z * se,
+             p = 2 * stats::pnorm(-abs(est / se)),
+             stringsAsFactors = FALSE)
 }

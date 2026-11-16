@@ -51,14 +51,7 @@
 #' @export
 eofst <- function(z, k = NULL) {
   f <- "eofst"
-  if (is.data.frame(z) && length(z) && all(vapply(z, is.numeric, NA))) {
-    z <- as.matrix(z)
-  }
-  if (!is.matrix(z) || !is.numeric(z) || nrow(z) < 2L || ncol(z) < 1L) {
-    .ckstop(f, paste("`z` must be a numeric matrix of at least two rows:",
-                     "periods by places"))
-  }
-  if (!all(is.finite(z))) .ckstop(f, "`z` must be finite")
+  z <- .eozmat(z, f)
   if (!is.null(k) && !.pnum1(k, 1, Inf, TRUE)) {
     .ckstop(f, "`k` must be NULL or one whole number from 1")
   }
@@ -87,4 +80,18 @@ print.eofst <- function(x, ...) {
                    explained = signif(e, 4),
                    cumulative = signif(cumsum(e), 4)), row.names = FALSE)
   invisible(x)
+}
+
+# The data checked: a finite numeric matrix (a data frame of numbers
+# made one) of at least two rows.
+.eozmat <- function(z, f) {
+  if (is.data.frame(z) && length(z) && all(vapply(z, is.numeric, NA))) {
+    z <- as.matrix(z)
+  }
+  if (!is.matrix(z) || !is.numeric(z) || nrow(z) < 2L || ncol(z) < 1L) {
+    .ckstop(f, paste("`z` must be a numeric matrix of at least two rows:",
+                     "periods by places"))
+  }
+  if (!all(is.finite(z))) .ckstop(f, "`z` must be finite")
+  z
 }

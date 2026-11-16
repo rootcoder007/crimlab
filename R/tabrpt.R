@@ -53,17 +53,10 @@ tabrpt <- function(data, value, prd, by = NULL, pop = NULL, rnd = NULL,
   if (!is.data.frame(data) || !nrow(data)) {
     .ckstop(f, "`data` must be a data frame with rows")
   }
-  one <- function(v, what, many = FALSE) {
-    if (!is.character(v) || anyNA(v) || !length(v) ||
-          (!many && length(v) != 1L) || !all(v %in% names(data))) {
-      .ckstop(f, "`%s` must name %s of `data`", what,
-              if (many) "columns" else "one column")
-    }
-  }
-  one(value, "value")
-  one(prd, "prd")
-  if (!is.null(by)) one(by, "by", many = TRUE)
-  if (!is.null(pop)) one(pop, "pop")
+  .tbcol(value, "value", data, f)
+  .tbcol(prd, "prd", data, f)
+  if (!is.null(by)) .tbcol(by, "by", data, f, many = TRUE)
+  if (!is.null(pop)) .tbcol(pop, "pop", data, f)
   g <- NULL
   if (!is.null(by)) {
     g <- do.call(paste, c(unname(as.list(data[by])), sep = " / "))
@@ -80,22 +73,7 @@ tabrpt <- function(data, value, prd, by = NULL, pop = NULL, rnd = NULL,
       grprr(x, data[[pop]], grp = if (is.null(g)) as.character(p) else g,
             per = per, level = level)
     }
-    gg <- if (is.null(g)) rep("all", length(x)) else g
-    trend <- lapply(unique(gg), function(k) {
-      i <- gg == k
-      t <- sort(unique(p[i]))
-      y <- vapply(t, function(s) sum(x[i][p[i] == s]), 0)
-      e <- if (is.null(pop)) {
-        NULL
-      } else {
-        vapply(t, function(s) sum(data[[pop]][i][p[i] == s]), 0)
-      }
-      if (length(t) < 3L || sum(y) <= 0) {
-        return(NULL)
-      }
-      trndrr(y, t, expo = e, level = level)
-    })
-    names(trend) <- unique(gg)
+    trend <- .tbtrnd(x, p, g, if (is.null(pop)) NULL else data[[pop]], level)
   })
   structure(list(check = check, change = change, rates = rates,
                  trend = trend), class = "tabrpt")
@@ -108,7 +86,7 @@ tabrpt <- function(data, value, prd, by = NULL, pop = NULL, rnd = NULL,
 print.tabrpt <- function(x, ...) {
   ch <- x[["change"]]
   cat("tabrpt: ", nrow(ch), " group-periods, ", sum(!is.na(ch[["p"]])),
-      " changes tested, ", sum(ch[["signif"]] %in% TRUE),
+      " changes tested, ", sum(ch[["signif"]], na.rm = TRUE),
       " marked after adjustment\n", sep = "")
   if (!is.null(x[["check"]])) {
     ok <- isTRUE(x[["check"]][["ok"]])
@@ -132,4 +110,35 @@ print.tabrpt <- function(x, ...) {
     }
   }
   invisible(x)
+}
+
+# A column argument: one name (many: one or more) of a column of data.
+.tbcol <- function(v, what, data, f, many = FALSE) {
+  if (!is.character(v) || anyNA(v) || !length(v) ||
+        (!many && length(v) != 1L) || !all(v %in% names(data))) {
+    .ckstop(f, "`%s` must name %s of `data`", what,
+            if (many) "columns" else "one column")
+  }
+}
+
+# The trend of each group (all rows without groups g): NULL when it has
+# fewer than three periods or no count.
+.tbtrnd <- function(x, p, g, pv, level) {
+  gg <- if (is.null(g)) rep("all", length(x)) else g
+  trend <- lapply(unique(gg), function(k) {
+    i <- gg == k
+    t <- sort(unique(p[i]))
+    y <- vapply(t, function(s) sum(x[i][p[i] == s]), 0)
+    e <- if (is.null(pv)) {
+      NULL
+    } else {
+      vapply(t, function(s) sum(pv[i][p[i] == s]), 0)
+    }
+    if (length(t) < 3L || sum(y) <= 0) {
+      return(NULL)
+    }
+    trndrr(y, t, expo = e, level = level)
+  })
+  names(trend) <- unique(gg)
+  trend
 }

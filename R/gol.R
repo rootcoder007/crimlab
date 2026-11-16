@@ -71,10 +71,7 @@ gologt <- function(data, y, x, par = NULL, lev = NULL, level = 0.95,
   .axcols(dd, y, "y", f, n = 1L)
   .axcols(dd, x, "x", f)
   xm <- .axmat(dd, x, f)
-  if (!is.null(par) && (!is.character(par) || anyNA(par) ||
-                          !all(par %in% x) || anyDuplicated(par))) {
-    .ckstop(f, "`par` must name columns of `x`, each once")
-  }
+  .gopar(par, x, f)
   lv <- .golev(dd[[y]], lev, y, f)
   yc <- match(as.character(dd[[y]]), as.character(lv)) - 1L
   level <- .cknum(level, "level", f)
@@ -210,4 +207,12 @@ gocoef <- function(object, v = NULL) {
     .ckstop(f, "column `%s` must have at least three levels", y)
   }
   lv
+}
+
+# The parallel terms: NULL, or columns of x, each once.
+.gopar <- function(par, x, f) {
+  if (!is.null(par) && (!is.character(par) || anyNA(par) ||
+                          !all(par %in% x) || anyDuplicated(par))) {
+    .ckstop(f, "`par` must name columns of `x`, each once")
+  }
 }

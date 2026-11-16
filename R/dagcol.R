@@ -49,15 +49,7 @@
 #' @export
 dagcol <- function(from, to, triple = NULL) {
   f <- "dagcol"
-  ok <- is.atomic(from) && is.atomic(to) && length(from) == length(to) &&
-    length(from) > 0L
-  if (!ok) {
-    .ckstop(f, paste("`from` and `to` must be labels of the same length, one",
-                     "edge each, at least one edge"))
-  }
-  if (anyNA(from) || anyNA(to)) {
-    .ckstop(f, "`from` and `to` must have no missing values")
-  }
+  .dgedge(from, to, f)
   from <- as.character(from)
   to <- as.character(to)
   nodes <- unique(as.vector(rbind(from, to)))
@@ -66,17 +58,7 @@ dagcol <- function(from, to, triple = NULL) {
   col <- data.frame(a = nodes[r$a + 1L], c = nodes[r$c + 1L],
                     b = nodes[r$b + 1L], shielded = r$sh,
                     stringsAsFactors = FALSE)
-  q <- NULL
-  if (!is.null(triple)) {
-    t <- as.character(triple)
-    if (!is.atomic(triple) || length(t) != 3L || anyNA(triple) ||
-          !all(t %in% nodes)) {
-      .ckstop(f, "`triple` must be three labels of nodes: a, c, b")
-    }
-    hit <- col$c == t[2L] & ((col$a == t[1L] & col$b == t[3L]) |
-                               (col$a == t[3L] & col$b == t[1L]))
-    q <- c(collider = any(hit), shielded = any(col$shielded[hit]))
-  }
+  q <- if (is.null(triple)) NULL else .dgtrip(triple, nodes, col, f)
   structure(list(col = col, nodes = nodes, nedge = r$nedge, query = q),
             class = "dagcol")
 }
@@ -94,4 +76,29 @@ print.dagcol <- function(x, ...) {
         "\n", sep = "")
   }
   invisible(x)
+}
+
+# The edges: labels of the same length, at least one, none missing.
+.dgedge <- function(from, to, f) {
+  ok <- is.atomic(from) && is.atomic(to) && length(from) == length(to) &&
+    length(from) > 0L
+  if (!ok) {
+    .ckstop(f, paste("`from` and `to` must be labels of the same length, one",
+                     "edge each, at least one edge"))
+  }
+  if (anyNA(from) || anyNA(to)) {
+    .ckstop(f, "`from` and `to` must have no missing values")
+  }
+}
+
+# Whether the triple a, c, b is a collider among col, and shielded.
+.dgtrip <- function(triple, nodes, col, f) {
+  t <- as.character(triple)
+  if (!is.atomic(triple) || length(t) != 3L || anyNA(triple) ||
+        !all(t %in% nodes)) {
+    .ckstop(f, "`triple` must be three labels of nodes: a, c, b")
+  }
+  hit <- col$c == t[2L] & ((col$a == t[1L] & col$b == t[3L]) |
+                             (col$a == t[3L] & col$b == t[1L]))
+  c(collider = any(hit), shielded = any(col$shielded[hit]))
 }
