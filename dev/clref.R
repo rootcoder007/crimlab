@@ -2376,6 +2376,18 @@ bad("yoypdf", x = yhd, file = "a.pdf", width = 1)
 bad("yoypdf", x = yhd, file = "a.pdf", height = 201)
 bad("yoypdf", x = yhd, file = "a.pdf", lag = 0)
 bad("yoypdf", x = yhd, file = "a.pdf", pal = "neon")
+# polrpttxt(): the text of reports of R's vrfpol()
+ok("polrpttxt", report = vrfpol("pm25", expomean = 9, expoprev = 1,
+                                brate = 750, pop = 2.8e6, reg = "Toronto",
+                                years = "2019-2023"))
+ok("polrpttxt", report = vrfpol("no2", demo = TRUE))
+ok("polrpttxt", report = vrfpol("no2", expomean = 20, expoprev = 1,
+                                brate = 0.008))
+ok("polrpttxt", report = vrfpol("no2", expomean = 8, expoprev = 0.25,
+                                pop = 1234567.89, y = "chiast"))
+ok("polrpttxt", report = vrfpol("no2"))
+bad("polrpttxt", report = list(1))
+bad("polrpttxt", report = list(status = "ok"))
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

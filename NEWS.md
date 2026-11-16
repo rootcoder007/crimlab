@@ -85,6 +85,11 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `polrpttxt()` is in `clab_jrun()`, the command line and Python: it
+  writes the text of a `vrfpol()` report given as JSON, its numbers as
+  R's `sprintf()` and `format()` write them. `vrfpol()` itself runs in R
+  only.
+
 * `yoypdf()` is in `clab_jrun()`, the command line and Python, writing
   the PDF R writes; without `file` the PDF is returned as text, and
   `yoywr()` there writes PDF too.

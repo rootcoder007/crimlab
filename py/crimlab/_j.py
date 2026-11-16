@@ -7759,3 +7759,18 @@ def yoypdf(
         "yoypdf", x=x, file=file, title=title, sub=sub, pal=pal, better=better, digits=digits,
         intv=intv, notes=notes, width=width, height=height, lag=lag,
     )
+
+
+def polrpttxt(report: Any) -> str:
+    """R's ``polrpttxt()``: the text of a ``vrfpol()`` report.
+
+    ``report`` is a report as R's ``vrfpol()`` returns it (in JSON); the
+    numbers are written as R's ``sprintf()`` and ``format()`` write them.
+    ``vrfpol()`` itself runs in R only.
+
+    Examples
+    --------
+    >>> polrpttxt({"status": "error", "error": "no exposure data"})
+    'ERROR: no exposure data\\n'
+    """
+    return jcall("polrpttxt", report=report)
