@@ -24,6 +24,11 @@
 #' events, as in a comparison of who is placed in segregation with who is
 #' in custody.
 #'
+#' The change in a rate from one period to the next is a comparison of
+#' two groups: give the periods as `grp` and the earlier one as `ref`, and
+#' `ratio` is the later rate over the earlier, `100 (ratio - 1)` the
+#' percent change, with the exact interval conditional on the two counts.
+#'
 #' @param x The events: numbers from 0; or a `clpre` list from [clprep()].
 #' @param n The exposure (person-time, population) of each row for rates,
 #'   or the trials for proportions: positive numbers; `NULL` for one trial
@@ -127,6 +132,12 @@ dastd <- function(
 #' 1 at its expected count, and the ratio shrunk towards the overall one by
 #' the empirical Bayes estimate of Marshall (a gamma prior fitted by
 #' moments), so that groups with little exposure are not ranked on noise.
+#'
+#' Expected counts found elsewhere (from another standard or an earlier
+#' period) are taken as they are with one stratum and a rate of 1:
+#' `sirex(obs, expd, rep(1, length(obs)), area, rates = 1)` gives each
+#' area's ratio, its exact interval, the funnel limits at its expected count
+#' and the shrunk ratio.
 #'
 #' @param rates `NULL` for the stratum rates pooled over all groups, or the
 #'   reference rate of each stratum: numbers from 0, named by stratum or in

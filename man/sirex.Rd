@@ -38,6 +38,13 @@ those expected from stratum rates, the standardised incidence ratio
 the empirical Bayes estimate of Marshall (a gamma prior fitted by
 moments), so that groups with little exposure are not ranked on noise.
 }
+\details{
+Expected counts found elsewhere (from another standard or an earlier
+period) are taken as they are with one stratum and a rate of 1:
+\code{sirex(obs, expd, rep(1, length(obs)), area, rates = 1)} gives each
+area's ratio, its exact interval, the funnel limits at its expected count
+and the shrunk ratio.
+}
 \examples{
 d <- data.frame(area = rep(c("N", "S", "E"), each = 2),
                 age = rep(c("young", "old"), 3),

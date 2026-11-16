@@ -65,6 +65,11 @@ made.
 (or the trials): over 1 when the group is over-represented among the
 events, as in a comparison of who is placed in segregation with who is
 in custody.
+
+The change in a rate from one period to the next is a comparison of
+two groups: give the periods as \code{grp} and the earlier one as \code{ref}, and
+\code{ratio} is the later rate over the earlier, \code{100 (ratio - 1)} the
+percent change, with the exact interval conditional on the two counts.
 }
 \examples{
 # use-of-force incidents per 1,000 contacts by perceived race
