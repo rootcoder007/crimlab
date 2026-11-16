@@ -13,6 +13,7 @@ Statistical methods for courts, corrections, policing, forensics and sociolegal 
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://crimlab.dev}
   \item \url{https://github.com/rootcoder007/crimlab}
   \item \url{https://rootcoder007.github.io/crimlab/}
   \item Report bugs at \url{https://github.com/rootcoder007/crimlab/issues}
