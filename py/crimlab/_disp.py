@@ -87,7 +87,8 @@ def orrisk(*args: float, **kwargs: float) -> Vector:
     and the relative risk they imply. See ``proof("orrisk")``.
 
     The arguments are ``or``, ``rate`` and ``share``, as in R. ``or`` is a
-    Python keyword, so it is given by position or as ``**{"or": 3}``.
+    Python keyword, so it is given as ``or_`` (as ``from_`` and ``lambda_``
+    are elsewhere), by position or as ``**{"or": 3}``.
 
     Parameters
     ----------
@@ -106,11 +107,13 @@ def orrisk(*args: float, **kwargs: float) -> Vector:
     {'exposed': 0.5282, 'unexposed': 0.2718, 'rr': 1.9436, 'or': 3.0}
     """
     names = ("or", "rate", "share")
-    extra = [k for k in kwargs if k not in names]
+    # an R name that is a Python keyword has a final underscore
+    kw = [("or" if k == "or_" else k, v) for k, v in kwargs.items()]
+    extra = [k for k, _ in kw if k not in names]
     if len(args) > 3 or extra:
         raise TypeError(f"orrisk: takes or, rate and share, not {extra or len(args)}")
     a = dict(zip(names, args))
-    for k, v in kwargs.items():
+    for k, v in kw:
         if k in a:
             raise TypeError(f"orrisk: `{k}` given twice")
         a[k] = v

@@ -27,6 +27,9 @@
   scale chosen by cross-validation or AICc; `asrule()` gives the
   association rules between two binned variables that Wongchanapai et
   al. (2025) mine with Apriori.
+* Fixed: Python `orrisk()` refused `or_`, although an argument named as a
+  Python keyword takes a final underscore elsewhere (`from_`, `lambda_`).
+
 * Fixed: `inlhist()` lost a value when the range of the values overflowed
   (`c(-1e308, 1e308)`); the breaks are now built from halves there.
 

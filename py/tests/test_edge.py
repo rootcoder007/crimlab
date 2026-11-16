@@ -173,6 +173,20 @@ def test_a_group_never_seen_in_daylight_is_no_warning():
         vodtst({"a": 50, "b": 0}, {"a": 40, "b": 3})
 
 
+def test_orrisk_takes_or_with_a_final_underscore():
+    # the risks behind the odds ratio, checked against their definitions
+    r = orrisk(or_=3, rate=0.4, share=0.5)
+    assert r == orrisk(3, 0.4, 0.5)
+    p1, p0 = r["exposed"], r["unexposed"]
+    assert math.isclose(p1 / (1 - p1) / (p0 / (1 - p0)), 3, rel_tol=1e-12)
+    assert math.isclose(0.5 * p1 + 0.5 * p0, 0.4, rel_tol=1e-12)
+    assert orrisk(**{"or": 3}, rate=0.4, share=0.5) == r
+    with pytest.raises(TypeError, match="given twice"):
+        orrisk(3, 0.4, 0.5, or_=3)
+    with pytest.raises(TypeError, match="given twice"):
+        orrisk(**{"or": 3, "or_": 3}, rate=0.4, share=0.5)
+
+
 def test_orrisk_refuses_a_reciprocal_that_overflows():
     with pytest.raises(ValueError, match="reciprocal"):
         orrisk(1e-320, 0.5, 0.5)
