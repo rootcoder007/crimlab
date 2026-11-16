@@ -85,6 +85,11 @@
   when some crimes were unsolved; the pairs with an unsolved crime are now
   left out, as `lnkpr()` leaves them out of its fit, and the area is the
   model's AUC.
+* `prechk()` is in `clab_jrun()`, the command line and Python, with the
+  publishers' codes of `codes.tsv` built into the command line as the
+  presets are (`cli/codes.sh` writes `cli/codes.inc`, and CI checks it
+  is up to date).
+
 * `plotopt()` is in `clab_jrun()`, the command line and Python, where no
   session keeps options: it checks the options given as R does and
   returns them with the defaults for the others.

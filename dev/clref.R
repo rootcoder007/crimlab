@@ -2304,6 +2304,35 @@ bad("plotopt", las = 7)
 bad("plotopt", bg = "notacolour")
 bad("plotopt", panel = 1:2)
 options(crimlab.plot = NULL)
+# prechk(): a table laid out as the published OTIS b03 table, simulated
+pkd <- data.frame(
+  EndFiscalYear = rep(2021:2022, each = 4),
+  Region_AtTimeOfPlacement = rep(c("Central", "Toronto"), 4),
+  Institution_AtTimeOfPlacement = rep(c("Quinte Detention Centre",
+                                        "Toronto South Detention Centre"), 4),
+  Alert_Type = "Mental Health Alert",
+  Alert_Presence = rep(c("Yes", "Yes", "No", "No"), 2),
+  Number_SegregationPlacements = c(31, 52, 140, 260, 28, 61, 133, 248)
+)
+ok("prechk", data = pkd, preset = "otis-b03-cnt")
+pkb <- pkd[-6]
+pkb$Region_AtTimeOfPlacement[1] <- " southern "
+bad("prechk", data = pkb, preset = "otis-b03-cnt")
+pkm <- data.frame(preset = "my-cnt", generic = "cntreg", arg = c("y", "grp"),
+                  column = c("count", "sex"), recode = c("", "f=1;m|has:fem=0"))
+bad("prechk", data = data.frame(count = c(4, 30, 6, 41),
+                                sex = c("f", "m", "Female", "x")),
+    preset = pkm)
+ok("prechk", data = data.frame(count = 1:2, sex = c("f", "m")), preset = pkm,
+   codes = data.frame(column = "sex", value = c(" F", "m")))
+bad("prechk", data = data.frame(count = 1, sex = "x"), preset = pkm,
+    codes = data.frame(column = "sex", value = "f"))
+bad("prechk", data = pkd, preset = "no-such")
+bad("prechk", data = pkd, preset = 3)
+bad("prechk", data = 1:3, preset = "otis-b03-cnt")
+bad("prechk", data = pkd, preset = "otis-b03-cnt", codes = data.frame(a = 1))
+bad("prechk", data = pkd, preset = data.frame(preset = "p", generic = "g",
+                                              arg = "recipe", column = "zap"))
 invisible(grDevices::dev.off())
 out <- file.path("cli", "test.tsv")
 old <- readLines(out, encoding = "UTF-8")

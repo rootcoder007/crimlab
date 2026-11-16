@@ -1635,6 +1635,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jplt2.inc"
 #include "jhw.inc"
 #include "jfp2.inc"
+#include "jpchk.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -2104,6 +2105,7 @@ const Ent ents[] = {
     {"plothex", "x y bins?", plothex},
     {"plotevgrid", "x", plotevgrid},
     {"plotopt", "palette? grid? cex? las? bg? panel?", plotopt},
+    {"prechk", "data preset codes?", prechk},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };

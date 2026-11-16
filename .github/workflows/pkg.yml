@@ -42,6 +42,8 @@ jobs:
         run: sh cli/thm.sh | diff cli/thm.inc -
       - name: cli/pre.inc is the preset table of inst/presets/presets.tsv
         run: sh cli/pre.sh | diff cli/pre.inc -
+      - name: cli/codes.inc is the codes table of inst/presets/codes.tsv
+        run: sh cli/codes.sh | diff cli/codes.inc -
       - name: build, warnings as errors
         run: make -C cli -j4 CXX=${{ matrix.cxx }}
       - name: tests

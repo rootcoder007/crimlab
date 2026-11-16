@@ -53,6 +53,11 @@ thm.inc: ../src/bind.cpp thm.sh
 pre.inc: ../inst/presets/presets.tsv pre.sh
 	sh pre.sh > $@
 
+# the publishers' codes of the presets (prechk())
+codes.inc: ../inst/presets/codes.tsv codes.sh
+	sh codes.sh > $@
+$(B)/jrun.o: codes.inc
+
 $(B):
 	mkdir -p $@
 

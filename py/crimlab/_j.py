@@ -7676,3 +7676,21 @@ def plotopt(
     ('grey', False, '#EEF1F6')
     """
     return jcall("plotopt", palette=palette, grid=grid, cex=cex, las=las, bg=bg, panel=panel)
+
+
+def prechk(data: Any, preset: Any, codes: Any = None) -> Any:
+    """R's ``prechk()``: a table checked against a preset before use.
+
+    Returns ``data`` when it fits the preset; otherwise raises an error
+    naming each missing column and each unknown label, as R does. The
+    publishers' codes of the shipped presets are built in.
+
+    Examples
+    --------
+    >>> d = {"count": [4, 30], "sex": ["f", "m"]}
+    >>> mine = {"preset": ["my-cnt"] * 2, "generic": ["cntreg"] * 2, "arg": ["y", "grp"],
+    ...         "column": ["count", "sex"], "recode": ["", "f=1;m=0"]}
+    >>> prechk(d, mine)["sex"]
+    ['f', 'm']
+    """
+    return jcall("prechk", data=data, preset=preset, codes=codes)
