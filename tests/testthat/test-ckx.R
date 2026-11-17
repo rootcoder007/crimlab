@@ -142,10 +142,12 @@ test_that("a scalar keeps no dimensions; data frames and paths are checked", {
                "^f: `d` holds text that is not valid")
   expect_error(.cktxtdf(data.frame(a = factor("\xfe")), "d", "f"),
                "^f: `d` holds text that is not valid")
-  expect_null(.ckpath(NULL, "f"))
-  expect_error(.ckpath("", "f"), "^f: `file` must be a file path, not empty")
+  expect_null(.ckout(NULL, "f"))
+  expect_error(.ckout("", "f"), "^f: `file` must be a file path, not empty")
   p <- file.path(tempdir(), "no", "such", "x.txt")
-  expect_error(.ckpath(p, "f"), "^f: `file` is in a folder that does not")
-  expect_identical(.ckpath(file.path(tempdir(), "x.txt"), "f"),
+  expect_error(.ckout(p, "f"), "^f: `file` is in a folder that does not")
+  # a path to read may name what is not there
+  expect_identical(.ckpath(p, "f"), p)
+  expect_identical(.ckout(file.path(tempdir(), "x.txt"), "f"),
                    file.path(tempdir(), "x.txt"))
 })

@@ -464,7 +464,7 @@ yoywr <- function(x, file, format = "auto", ...) {
   if (!is.character(file) || length(file) != 1L || is.na(file)) {
     stop(fn, ": `file` must be one file path.", call. = FALSE)
   }
-  .ckpath(file, fn)
+  .ckout(file, fn)
 }
 
 # yoyhtml(): row r of the table, with its note row when it has a note

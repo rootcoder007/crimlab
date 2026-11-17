@@ -209,19 +209,25 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   d
 }
 
-# One file path (NULL passes): valid text, not empty, no longer than a path
-# can be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it),
-# in a folder that exists (where R's file() would warn, then fail in its
-# own words).
+# One file path (NULL passes): valid text, and no longer than a path can
+# be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it).
 .ckpath <- function(file, fn, what = "file") {
   .cktxt(file, what, fn)
+  if (!is.null(file) && nchar(file, "bytes") > 4096L) {
+    .ckstop(fn, "`%s` is longer than a file path can be (4096 bytes)", what)
+  }
+  file
+}
+
+# A file to write (NULL passes): a path as .ckpath() takes it, not empty,
+# in a folder that exists (where R's file() would warn, then fail in its
+# own words).
+.ckout <- function(file, fn, what = "file") {
+  .ckpath(file, fn, what)
   if (is.null(file)) {
     return(file)
   }
   if (!nzchar(file)) .ckstop(fn, "`%s` must be a file path, not empty", what)
-  if (nchar(file, "bytes") > 4096L) {
-    .ckstop(fn, "`%s` is longer than a file path can be (4096 bytes)", what)
-  }
   if (!dir.exists(dirname(path.expand(file)))) {
     .ckstop(fn, "`%s` is in a folder that does not exist: %s", what,
             dirname(file))
