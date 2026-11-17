@@ -43,6 +43,10 @@ jobs:
         with:
           extra-packages: any::covr
           needs: coverage
+      - name: A Latin-1 locale
+        # the test of text in a session's own encoding needs one, and the
+        # runner has none: without it the lines that accept such text never run
+        run: sudo localedef -i en_US -f ISO-8859-1 en_US.ISO-8859-1
       - name: Coverage
         shell: Rscript {0}
         run: |
