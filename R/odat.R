@@ -61,7 +61,7 @@ odtab <- function(
   key,
   cols = NULL,
   refresh = FALSE,
-  base = getOption("crimlab.data", "https://data.rmorie.com")
+  base = getOption("crimlab.data", "https://data.crimlab.dev")
 ) {
   fn <- "odtab"
   if (!is.character(key) || length(key) != 1L || is.na(key)) {
@@ -90,7 +90,7 @@ odtab <- function(
 #' @rdname odtab
 #' @export
 odls <- function(
-  base = getOption("crimlab.data", "https://data.rmorie.com")
+  base = getOption("crimlab.data", "https://data.crimlab.dev")
 ) {
   fn <- "odls"
   base <- .odbase(base, fn)
@@ -286,8 +286,8 @@ odls <- function(
   on.exit(options(old), add = TRUE)
   ua <- c(
     "User-Agent" = paste0(
-      "rmorie/1 (+https://crimlab.dev) crimlab/",
-      utils::packageVersion("crimlab")
+      "crimlab/", utils::packageVersion("crimlab"),
+      " (+https://crimlab.dev)"
     )
   )
   rc <- tryCatch(

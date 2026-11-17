@@ -9,10 +9,10 @@ odtab(
   key,
   cols = NULL,
   refresh = FALSE,
-  base = getOption("crimlab.data", "https://data.rmorie.com")
+  base = getOption("crimlab.data", "https://data.crimlab.dev")
 )
 
-odls(base = getOption("crimlab.data", "https://data.rmorie.com"))
+odls(base = getOption("crimlab.data", "https://data.crimlab.dev"))
 }
 \arguments{
 \item{key}{A table's key, as \code{odls()} lists it.}
