@@ -225,11 +225,10 @@ V f_qltyrcd(const Cx &c) {
   nofn(ca, "caution");
   if (bad()) return {};
   if (x.t == V::NUL || x.t == V::LIST || x.odd) return stop("`x` must be a vector of flags");
-  bool allna = true;
-  for (std::size_t j = 0; j < x.len(); ++j) {
-    const Lab l = lab(rows(x, {j}));
-    allna = allna && l.na[0];
-  }
+  // the labels once (a copy of one row per value made a million flags take
+  // minutes)
+  const Lab f = lab(x);
+  const bool allna = std::all_of(f.na.begin(), f.na.end(), [](char m) { return m != 0; });
   if (x.t != V::STR && x.t != V::FAC && !allna) {
     const char *k = x.t == V::DBL ? "numeric" : x.t == V::INT ? "integer" : "logical";
     return stop("`x` must be a vector of flags (character), not %s", k);
@@ -250,16 +249,15 @@ V f_qltyrcd(const Cx &c) {
   std::set<std::string> ts, tc;
   for (const std::string &a : spv.s) ts.insert(trim(a));
   for (const std::string &a : cav.s) tc.insert(trim(a));
-  const Lab f = lab(x);
   std::vector<std::string> out(f.n(), "ok");
   std::vector<std::string> odd;
+  std::set<std::string> seen;
   for (std::size_t j = 0; j < f.n(); ++j) {
     if (f.na[j]) continue;
     const std::string t = trim(f.s[j]);
     if (tc.count(t)) out[j] = "E";
     if (ts.count(t)) out[j] = "x";
-    if (!t.empty() && !ts.count(t) && !tc.count(t) && t != "ok" &&
-        std::find(odd.begin(), odd.end(), t) == odd.end()) {
+    if (!t.empty() && !ts.count(t) && !tc.count(t) && t != "ok" && seen.insert(t).second) {
       odd.push_back(t);
     }
   }

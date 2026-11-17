@@ -66,6 +66,10 @@
   is escaped before the values are joined, so no label can imitate the
   join.
 
+* `qltyrcd()` reads its flags once: a vector of a million flags took
+  minutes, copying a row per value, and is now read in a fraction of a
+  second.
+
 * Arguments of the wrong type are refused in the package's words, not
   base R's: `gtwreg()` takes `x = NULL` (a model with the constant only,
   which stopped on its column names) and refuses a function or an
