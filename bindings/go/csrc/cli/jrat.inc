@@ -575,20 +575,6 @@ bool sirex(Ctx &c, Val &out) {
   return true;
 }
 
-// The noncentrality at which pnchisq(st, df, ncp) is q (0 when ncp = 0
-// leaves it below q), by bisection.
-double ncpq(double st, double df, double q) {
-  if (clab_pchisq(st, df, 1) <= q) return 0.0;
-  double a = 0, b = std::fmax(1.0, st);
-  while (clab_pnchisq(st, df, b, 1) > q) b *= 2;
-  for (int it = 0; it < 200 && b - a > 1e-12 * b; ++it) {
-    const double m = (a + b) / 2;
-    if (clab_pnchisq(st, df, m, 1) > q) a = m;
-    else b = m;
-  }
-  return (a + b) / 2;
-}
-
 const char *const aggs[] = {"n", "sum", "max", "min", "mean", "dist"};
 
 bool ctabx(Ctx &c, Val &out) {
@@ -734,8 +720,8 @@ bool ctabx(Ctx &c, Val &out) {
   one1("g2p", two ? clab_pchisq(st[3], df, 0) : NaN);
   one1("v", two ? st[4] : NaN);
   const double chu = two ? (yates && r2 == 2 && c2 == 2 ? st[4] * st[4] * nn * (kk - 1) : ch) : NaN;
-  one1("vlo", two ? std::fmin(1.0, std::sqrt(ncpq(chu, df, 1 - (1 - conf) / 2) / (nn * (kk - 1)))) : NaN);
-  one1("vhi", two ? std::fmin(1.0, std::sqrt(ncpq(chu, df, (1 - conf) / 2) / (nn * (kk - 1)))) : NaN);
+  one1("vlo", two ? std::fmin(1.0, std::sqrt(clab_ncpq(chu, df, 1 - (1 - conf) / 2) / (nn * (kk - 1)))) : NaN);
+  one1("vhi", two ? std::fmin(1.0, std::sqrt(clab_ncpq(chu, df, (1 - conf) / 2) / (nn * (kk - 1)))) : NaN);
   one1("vbc", two ? st[5] : NaN);
   one1("cc", two ? st[6] : NaN);
   one1("phi", st[7]);

@@ -501,9 +501,11 @@ int clab_bvmor(const double *x, const double *y, int n, const int *rp, const int
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, const int *ci,
-               const double *w, int model, int method, const double *inst, int ni, double *coef,
-               double *vc, double *st) CLAB_TRY {
+namespace {
+
+// the fit of clab_sarml() on the columns as they come
+int sarml0(const double *y, const double *x, int n, int p, const int *rp, const int *ci, const double *w,
+           int model, int method, const double *inst, int ni, double *coef, double *vc, double *st) {
   if (n < 3 || p < 1 || p >= n || model < 0 || model > 2 || method < 0 || method > 1) {
     return CLAB_EARG;
   }
@@ -812,6 +814,120 @@ int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, co
   st[2] = method == 0 ? -2 * st[0] + 2 * np : kutil::nan();
   st[3] = -0.5 * n * std::log(2 * 3.14159265358979323846 * sso / n) - 0.5 * n;
   st[4] = rmax;
+  return CLAB_OK;
+}
+
+}  // namespace
+
+// The columns of x (and the instruments) other than a constant one are
+// centred on their means when x has a constant column, and scaled by a
+// power of 2 (exact): the fit is equivariant to both, and the cross
+// products of uncentred columns lose the digits of their spread (x + 1e6
+// was refused as collinear). The coefficients, their covariance and the
+// OLS comparison are mapped back to the columns as given.
+int clab_sarml(const double *y, const double *x, int n, int p, const int *rp, const int *ci,
+               const double *w, int model, int method, const double *inst, int ni, double *coef,
+               double *vc, double *st) CLAB_TRY {
+  if (n < 3 || p < 1 || p >= n || ni < 0 || (ni > 0 && inst == nullptr)) return CLAB_EARG;
+  const std::size_t sn = static_cast<std::size_t>(n), sp = static_cast<std::size_t>(p);
+  for (std::size_t q = 0; q < sn * sp; ++q) {
+    if (!std::isfinite(x[q])) return CLAB_EDOM;
+  }
+  int ic = -1;
+  for (int j = 0; j < p && ic < 0; ++j) {
+    const double *c = x + static_cast<std::size_t>(j) * sn;
+    if (c[0] != 0 && std::all_of(c, c + n, [&](double v) { return v == c[0]; })) ic = j;
+  }
+  // a column centred (with a constant column) and scaled; its centre and scale
+  auto cs = [&](const double *c, double *o, double &m, double &sc) {
+    m = 0;
+    if (ic >= 0) {
+      for (int i = 0; i < n; ++i) m += (c[i] - m) / (i + 1);
+    }
+    double big = 0;
+    for (int i = 0; i < n; ++i) big = std::max(big, std::fabs(c[i] - m));
+    int ex = 0;
+    std::frexp(big, &ex);
+    sc = big > 0 ? std::ldexp(1.0, ex) : 1.0;
+    for (int i = 0; i < n; ++i) o[i] = (c[i] - m) / sc;
+  };
+  vd xs(sn * sp), cm(sp, 0.0), sc(sp, 1.0), is(sn * static_cast<std::size_t>(ni));
+  for (int j = 0; j < p; ++j) {
+    const double *c = x + static_cast<std::size_t>(j) * sn;
+    if (j == ic) std::copy(c, c + n, xs.begin() + static_cast<std::ptrdiff_t>(j * sn));
+    else cs(c, xs.data() + static_cast<std::size_t>(j) * sn, cm[static_cast<std::size_t>(j)], sc[static_cast<std::size_t>(j)]);
+  }
+  for (int j = 0; j < ni; ++j) {
+    double m0, s0;
+    cs(inst + static_cast<std::size_t>(j) * sn, is.data() + static_cast<std::size_t>(j) * sn, m0, s0);
+  }
+  const int rc = sarml0(y, xs.data(), n, p, rp, ci, w, model, method, ni ? is.data() : nullptr, ni, coef, vc, st);
+  if (rc != CLAB_OK) return rc;
+  // beta = A beta': 1 / sc on each column, and in the constant's row
+  // -cm / (sc c0) for each other column, c0 the constant's value
+  const int k = p + 2;
+  const std::size_t sk = static_cast<std::size_t>(k);
+  vd a(sp * sp, 0.0);
+  for (int j = 0; j < p; ++j) a[static_cast<std::size_t>(j) * sp + static_cast<std::size_t>(j)] = 1 / sc[static_cast<std::size_t>(j)];
+  for (int j = 0; j < p && ic >= 0; ++j) {
+    if (j != ic) a[static_cast<std::size_t>(ic) * sp + static_cast<std::size_t>(j)] = -cm[static_cast<std::size_t>(j)] / (sc[static_cast<std::size_t>(j)] * x[static_cast<std::size_t>(ic) * sn]);
+  }
+  // A v A' over the beta block of a k x k covariance (rows and columns
+  // past p kept), terms of a zero entry of A left out (a NaN there stays
+  // where it was)
+  auto map = [&](const double *v, double *o, int ld) {
+    const std::size_t sl = static_cast<std::size_t>(ld);
+    vd t(sl * sl);
+    std::copy(v, v + sl * sl, t.begin());
+    for (int r = 0; r < ld; ++r)
+      for (int c = 0; c < ld; ++c) {
+        double s = 0;
+        for (int e = 0; e < ld; ++e) {
+          const double ae = r < p ? (e < p ? a[static_cast<std::size_t>(r) * sp + static_cast<std::size_t>(e)] : 0) : (e == r ? 1 : 0);
+          if (ae == 0) continue;
+          for (int f = 0; f < ld; ++f) {
+            const double af = c < p ? (f < p ? a[static_cast<std::size_t>(c) * sp + static_cast<std::size_t>(f)] : 0) : (f == c ? 1 : 0);
+            if (af != 0) s += ae * t[static_cast<std::size_t>(e) * sl + static_cast<std::size_t>(f)] * af;
+          }
+        }
+        o[static_cast<std::size_t>(r) * sl + static_cast<std::size_t>(c)] = s;
+      }
+  };
+  auto mapb = [&](double *b) {
+    vd t(b, b + p);
+    for (int r = 0; r < p; ++r) {
+      double s = 0;
+      for (int e = 0; e < p; ++e) s += a[static_cast<std::size_t>(r) * sp + static_cast<std::size_t>(e)] * t[static_cast<std::size_t>(e)];
+      b[r] = s;
+    }
+  };
+  mapb(coef);
+  map(vc, vc, k);
+  for (int j = 0; j < k; ++j) {
+    const double v = vc[static_cast<std::size_t>(j) * sk + static_cast<std::size_t>(j)];
+    coef[k + j] = v >= 0 ? std::sqrt(v) : kutil::nan();
+  }
+  // the OLS comparison: its coefficients, and their covariance from the
+  // centred, scaled columns, mapped back
+  double *bo = coef + 2 * p + 4, *so = coef + 3 * p + 4;
+  vd xtx(sp * sp);
+  double sso = 0;
+  for (int i = 0; i < n; ++i) {
+    double f = y[i];
+    for (int j = 0; j < p; ++j) f -= xs[static_cast<std::size_t>(j) * sn + static_cast<std::size_t>(i)] * bo[j];
+    sso += f * f;
+  }
+  for (int r = 0; r < p; ++r)
+    for (int c = 0; c < p; ++c) {
+      double s = 0;
+      for (int i = 0; i < n; ++i) s += xs[static_cast<std::size_t>(r) * sn + static_cast<std::size_t>(i)] * xs[static_cast<std::size_t>(c) * sn + static_cast<std::size_t>(i)];
+      xtx[static_cast<std::size_t>(r) * sp + static_cast<std::size_t>(c)] = s;
+    }
+  if (!inv(xtx.data(), p)) return CLAB_EDOM;
+  for (double &v : xtx) v *= sso / (n - p);
+  map(xtx.data(), xtx.data(), p);
+  mapb(bo);
+  for (int j = 0; j < p; ++j) so[j] = std::sqrt(xtx[static_cast<std::size_t>(j) * sp + static_cast<std::size_t>(j)]);
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 

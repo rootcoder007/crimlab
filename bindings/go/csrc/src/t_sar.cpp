@@ -56,6 +56,21 @@ void t_sar(tk &T, int) {
   tk_ieq(T, "sar.opt0", clab_saropt(q, a, 0, 1, 2, 1e-14, z, cov, pod, &ps2, &lam), CLAB_EARG);
   tk_ieq(T, "sar.optinf", clab_saropt(q, a, 2, 1, INFINITY, 1e-14, z, cov, pod, &ps2, &lam), CLAB_EARG);
   tk_ieq(T, "sar.optw", clab_saropt(q, a, 2, 5e-324, 2, 1e-14, z, cov, pod, &ps2, &lam), CLAB_EDOM);
+  // an effort large next to the areas: the multiplier underflows, the
+  // efforts do not (on its log scale); each cell's share of the effort is
+  // the even split corrected by log(r_i / r_mean), and they add to it
+  {
+    const double q3[3] = {0.7, 0.2, 0.1}, a3[3] = {1, 2, 3};
+    double z3[3], c3[3], p3[3];
+    tk_ieq(T, "sar.optbig", clab_saropt(q3, a3, 3, 1, 1e4, 1e-12, z3, c3, p3, &ps2, &lam), CLAB_OK);
+    tk_eq(T, "sar.optsum", (z3[0] + z3[1] + z3[2]) / 1e4, 1, 1e-12);
+    // r = (0.7, 0.1, 1/30): z_i = a_i (log r_i - L), L from the sum
+    const double L = (std::log(0.7) + 2 * std::log(0.1) + 3 * std::log(1.0 / 30) - 1e4) / 6;
+    tk_eq(T, "sar.optz", z3[1], 2 * (std::log(0.1) - L), 1e-9);
+    tk_true(T, "sar.optpod", p3[0] == 1 && p3[2] == 1 && std::fabs(ps2 - 1) < 1e-15 && lam == 0);
+    tk_ieq(T, "sar.optmax", clab_saropt(q3, a3, 3, 1, 1e308, 1e-12, z3, c3, p3, &ps2, &lam), CLAB_OK);
+    tk_true(T, "sar.optmaxf", std::isfinite(z3[0]) && std::isfinite(z3[2]));
+  }
   // Frost: an effort of 4 E^2 has the optimal factor 1.02
   const double z4 = 4;
   double sq[8];

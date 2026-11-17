@@ -76,22 +76,37 @@ void walk(fen &f, int i, int j, double s, double lp) {
 // row) and the odds ratio t: R's dnhyper, mnhyper and pnhyper.
 struct nh {
   double m, nn, k, lo, hi;
-  double ld(double x) const {
-    return std::lgamma(m + 1) - std::lgamma(x + 1) - std::lgamma(m - x + 1) +
-           std::lgamma(nn + 1) - std::lgamma(k - x + 1) - std::lgamma(nn - k + x + 1);
-  }
-  // sum over the support of exp(ld(x) + x log t - max) f(x), normalised
+  // sum over the support of choose(m, x) choose(nn, k - x) t^x f(x),
+  // normalised.
+  // The terms are log-concave in x: from their mode (the first x where the
+  // next term is smaller, by bisection on the whole numbers) outward by
+  // the ratio of neighbouring terms, until a term is below 1e-18 of the
+  // sum, so the work is of the order of the standard deviation, not the
+  // support (a 2 x 2 table of 1e6 counts took a minute)
   template <class F>
   double ex(double t, F f) const {
-    double mx = -inf;
-    for (double x = lo; x <= hi; x += 1) mx = std::fmax(mx, ld(x) + x * std::log(t));
-    double s = 0, a = 0;
-    for (double x = lo; x <= hi; x += 1) {
-      const double d = std::exp(ld(x) + x * std::log(t) - mx);
-      s += d;
-      a += d * f(x);
+    // term(x + 1) / term(x), and term(x - 1) / term(x)
+    auto rup = [&](double x) { return t * (m - x) * (k - x) / ((x + 1) * (nn - k + x + 1)); };
+    auto rdn = [&](double x) { return x * (nn - k + x) / (t * (m - x + 1) * (k - x + 1)); };
+    double a = lo, b = hi;
+    while (a < b) {
+      const double c = std::floor(a + (b - a) / 2);
+      if (rup(c) >= 1) a = c + 1;
+      else b = c;
     }
-    return a / s;
+    double s = 1, acc = f(a), d = 1;
+    for (double x = a; x < hi && d >= 1e-18 * s; x += 1) {
+      d *= rup(x);
+      s += d;
+      acc += d * f(x + 1);
+    }
+    d = 1;
+    for (double x = a; x > lo && d >= 1e-18 * s; x -= 1) {
+      d *= rdn(x);
+      s += d;
+      acc += d * f(x - 1);
+    }
+    return acc / s;
   }
   double mean(double t) const {
     if (t == 0) return lo;

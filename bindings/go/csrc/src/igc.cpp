@@ -1022,6 +1022,11 @@ int call(const char *fn, const std::vector<std::string> &an, const std::vector<V
       err = st.msg;
       return CLAB_EARG;
     }
+    // every warning starts with the function's name, as the refusals do
+    const std::string pre = std::string(fn) + ": ";
+    for (std::string &w : warn) {
+      if (w.compare(0, pre.size(), pre) != 0) w = pre + w;
+    }
     out = std::move(r);
     return CLAB_OK;
   }

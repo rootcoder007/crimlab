@@ -47,6 +47,18 @@ void tab(tk &t) {
   tk_nan(t, "tab.nodiag", st[8]);
   // 2. Fisher: the p-value by summing the support directly
   double fs[5], rem[6];
+  // the estimate and interval against 40 digits (dev/ref/fshor.py), and a
+  // table of 1e6 counts (support 4e5) in a fraction of a second
+  {
+    double x1[4] = {300, 200, 200, 300}, f1[5], r1[6];
+    clab_fshx(x1, 2, 2, 1e6, 0.95, f1, r1);
+    tk_eq(t, "fsh.or3", f1[1], 2.248125780924261183885, 1e-14);
+    tk_eq(t, "fsh.lo3", f1[2], 1.733040535533118159894, 1e-14);
+    tk_eq(t, "fsh.hi3", f1[3], 2.92151369843048620566, 1e-14);
+    double x2[4] = {300000, 200000, 200000, 300000};
+    tk_ieq(t, "fsh.big", clab_fshx(x2, 2, 2, 1e7, 0.95, f1, r1), CLAB_OK);
+    tk_true(t, "fsh.bigor", f1[2] < 2.25 && 2.25 < f1[3] && std::fabs(f1[1] / 2.25 - 1) < 1e-4);
+  }
   tk_ieq(t, "fsh.rc", clab_fshx(x, 2, 2, 1e6, 0.95, fs, rem), CLAB_OK);
   const double m = 17, nn = 30, k = 21, lo = 0, hi = 17;
   const double l0 = ldh(12, m, nn, k);

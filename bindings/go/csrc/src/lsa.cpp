@@ -6,6 +6,7 @@
 // local G and G* of Getis and Ord. Weights rows must hold distinct
 // neighbours in increasing order, none of them the unit itself.
 #include <cmath>
+#include <vector>
 
 #include "cgeo.h"
 #include "crimlab.h"
@@ -299,31 +300,47 @@ int clab_locgi(const double *x, int n, const int *rp, const int *ci,
     if (c0 == n - 1) odd = j1;
     if (c1 == n - 1) odd = 0;
   }
-  kutil::ksum a1, a2;
+  // the z values depend on the values only through their deviations from
+  // the mean, in ratio: the values are scaled by a power of 2 (exact) to
+  // at most 1 in size and centred on their mean, as sums of squares of the
+  // raw values lose the digits of the deviations once the values are
+  // large next to their spread (x + 1e8 moved z by 0.4)
+  double big = 0.0;
   for (int i = 0; i < n; ++i) {
     if (!std::isfinite(x[i])) return CLAB_EDOM;
-    a1.add(x[i]);
-    a2.add(x[i] * x[i]);
+    big = std::fmax(big, std::fabs(x[i]));
+  }
+  int ex = 0;
+  std::frexp(big, &ex);
+  double m = 0.0;
+  for (int i = 0; i < n; ++i) m += (std::ldexp(x[i], -ex) - m) / (i + 1);
+  std::vector<double> xc(static_cast<std::size_t>(n));
+  kutil::ksum a1, a2;
+  for (int i = 0; i < n; ++i) {
+    xc[static_cast<std::size_t>(i)] = std::ldexp(x[i], -ex) - m;
+    a1.add(xc[static_cast<std::size_t>(i)]);
+    a2.add(xc[static_cast<std::size_t>(i)] * xc[static_cast<std::size_t>(i)]);
   }
   const double t1 = a1.val(), t2 = a2.val(), dn = n;
   for (int i = 0; i < n; ++i) {
+    const double xi = xc[static_cast<std::size_t>(i)];
     double lag = 0.0, wi = 0.0, s1 = 0.0;
     for (int q = rp[i]; q < rp[i + 1]; ++q) {
-      lag += w[q] * x[ci[q]];
+      lag += w[q] * xc[static_cast<std::size_t>(ci[q])];
       wi += w[q];
       s1 += w[q] * w[q];
     }
     double z;
     if (star) {
       // the unit in its own neighbourhood with weight 1
-      lag += x[i];
+      lag += xi;
       wi += 1.0;
       s1 += 1.0;
       const double xb = t1 / dn, s = std::sqrt(t2 / dn - xb * xb);
       z = (lag - wi * xb) / (s * std::sqrt((dn * s1 - wi * wi) / (dn - 1.0)));
     } else {
-      const double xb = (t1 - x[i]) / (dn - 1.0);
-      const double s = std::sqrt((t2 - x[i] * x[i]) / (dn - 1.0) - xb * xb);
+      const double xb = (t1 - xi) / (dn - 1.0);
+      const double s = std::sqrt((t2 - xi * xi) / (dn - 1.0) - xb * xb);
       z = i == odd ? kutil::nan() : (lag - wi * xb) / (s * std::sqrt(((dn - 1.0) * s1 - wi * wi) / (dn - 2.0)));
     }
     out[i] = z;
