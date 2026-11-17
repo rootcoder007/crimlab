@@ -63,6 +63,22 @@ while IFS="$tab" read -r f j w; do
   *) ck "$f $j" "$(printf '%s' "$j" | "$c" "$f" -j -f -)" "$w" "$f" ;;
   esac
 done < "$here/test.tsv"
+# testf.tsv: the cases that read the files of vp/, run in this folder as
+# dev/clref.R ran them
+case $c in
+*/*) case $c in /*) cf=$c ;; *) cf=$(pwd)/$c ;; esac ;;
+*) cf=$c ;;
+esac
+od=$(pwd)
+cd "$here" || exit 2
+while IFS="$tab" read -r f j w; do
+  w=${w%"$cr"}
+  case $f in
+  '#'*) continue ;;
+  esac
+  ck "$f $j" "$(printf '%s' "$j" | "$cf" "$f" -j -f -)" "$w" "$f"
+done < "$here/testf.tsv"
+cd "$od" || exit 2
 # the shortest digits that read back the same, on every system
 eq "format" "$("$c" lrpost -j --lr 2 --prior 0.5)" '0.6666666666666666'
 eq "format, exponent" "$("$c" dbsrch -j --mp 1e-20 --n 1)" '{"np":1e-20,"any":1e-20}'

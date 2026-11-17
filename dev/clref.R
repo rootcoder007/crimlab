@@ -2469,6 +2469,60 @@ ok("polrpttxt", report = vrfpol("no2", expomean = 8, expoprev = 0.25,
 ok("polrpttxt", report = vrfpol("no2"))
 bad("polrpttxt", report = list(1))
 bad("polrpttxt", report = list(status = "ok"))
+# vrfpol(): the report from the demo data and from numbers; an argument
+# the pipeline cannot use is an error report, not an R error
+ok("vrfpol", poll = "no2", demo = TRUE)
+ok("vrfpol", poll = "PM2.5", demo = TRUE, y = "ihd", reg = "Toronto",
+   years = "2019-2023")
+ok("vrfpol", poll = "pm25", demo = TRUE, y = "stroke")
+ok("vrfpol", poll = "no2", demo = TRUE, y = "chiast", brate = 0.012,
+   basrateper = 1)
+ok("vrfpol", poll = "O3", demo = TRUE)
+ok("vrfpol", poll = "pm25", expomean = 9, expoprev = 1, brate = 750,
+   pop = 2.8e6)
+ok("vrfpol", poll = "no2", expomean = 8, expoprev = 0.25, pop = 1234567.89,
+   y = "chiast")
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 1, brate = 0.008)
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 0.5, brate = 0.5,
+   rare = TRUE)
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 0.5, brate = 2e4,
+   hirate = TRUE)
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 0.5, brate = 2e4)
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 1, pop = 2e10)
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 1, y = "stroke")
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 1, ref = numeric(0))
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 1, ref = "ten")
+ok("vrfpol", poll = "no2")
+ok("vrfpol", poll = "no2", expomean = 20)
+ok("vrfpol", poll = "no2", demo = TRUE, expomean = 20, expoprev = 1)
+ok("vrfpol", poll = "no2", demo = "yes")
+ok("vrfpol", poll = "no2", expomean = c(20, 30), expoprev = 1)
+ok("vrfpol", poll = "no2", expomean = 20, expoprev = 1, basrateper = 0)
+ok("vrfpol", poll = "no2", expcsv = "no/such.csv")
+bad("vrfpol", poll = 1)
+# vrfpol() on the files of cli/vp, run in cli/: these lines go to
+# cli/testf.tsv, which cli/test.sh and the Python tests run in cli/ (the
+# WebAssembly build has no files to read)
+nf <- length(cases)
+owd <- setwd("cli")
+ok("vrfpol", poll = "no2", expcsv = "vp/grp.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/grp.csv.gz", reg = "Toronto")
+ok("vrfpol", poll = "pm25", expcsv = "vp/drop.csv", y = "ihd")
+ok("vrfpol", poll = "no2", expcsv = "vp/naps.csv")
+ok("vrfpol", poll = "pm25", expcsv = "vp/naps.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/txt.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/neg.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/ragged.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/dup.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/empty.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/quote.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/inc.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp/noexp.csv")
+ok("vrfpol", poll = "no2", expcsv = "vp")
+ok("vrfpol", poll = "no2", expcsv = "vp/grp.csv", demo = TRUE)
+setwd(owd)
+fcases <- cases[-seq_len(nf)]
+cases <- cases[seq_len(nf)]
 ok("rndalc", n = 10, seed = 3)
 ok("rndalc", arms = c("drug", "placebo"), ratio = c(2, 1), strata = c(a = 6, b = 7), seed = 9)
 ok("rndalc", n = 7, block = 0, seed = 4)
@@ -2600,3 +2654,7 @@ mark <- grep("^# made by dev/clref.R", old)
 keep <- if (length(mark)) old[seq_len(mark[1L] - 1L)] else old
 writeLines(c(keep, "# made by dev/clref.R: do not edit the lines below", cases), out, useBytes = TRUE)
 cat(length(cases), "cases written to", out, "\n")
+outf <- file.path("cli", "testf.tsv")
+hf <- "# made by dev/clref.R: cases that read the files of cli/vp, run in cli/"
+writeLines(c(hf, fcases), outf, useBytes = TRUE)
+cat(length(fcases), "cases written to", outf, "\n")

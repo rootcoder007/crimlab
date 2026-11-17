@@ -2,3 +2,6 @@
 tests/testthat/ref/** -text
 # the command line handlers are C++ included by cli/jrun.cpp
 cli/*.inc linguist-language=C++
+# the exposure files of the vrfpol() cases: their bytes (a byte-order
+# mark, CRLF) are part of the case
+cli/vp/** -text
