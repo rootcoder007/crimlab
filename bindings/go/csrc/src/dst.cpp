@@ -730,14 +730,14 @@ double clab_qchisq(double p, double df, int lower) CLAB_TRY { return 2 * clab_qg
 // Poisson weights each way (past them a weight is below e^-800). Past
 // ncp 100 with df = 1 or df >= 2, the integral of pnchi(), whose work does
 // not grow with ncp; other df (below 2, not 1) keep the sum, which takes
-// of the order of sqrt(ncp) terms: NaN past ncp 1e5.
+// of the order of sqrt(ncp) terms: NaN past ncp 1e8, as before.
 double clab_pnchisq(double x, double df, double ncp, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || std::isinf(ncp)) return qnan;
   if (ncp == 0) return clab_pchisq(x, df, lower);
   if (x <= 0) return lower ? 0 : 1;
   if (std::isinf(x)) return lower ? 1 : 0;
   if (ncp > 100 && (df == 1 || df >= 2)) return pnchi(x, df, ncp, lower);
-  if (ncp > 1e5) return qnan;
+  if (ncp > 1e8) return qnan;
   const double lam = ncp / 2;
   const double j0 = std::floor(lam);
   double s = 0;
@@ -866,9 +866,10 @@ double pnft(double y, double yc, double m, double n, double mu, int lw) {
   if (sd > 200) {
     const double h = sd / 4;
     auto t = [&](double j) { return dpois(j, mu) * pbet(y, yc, m / 2 + j, n / 2, lw); };
-    // the far end first: the whole tail is below 1e-17 when it is there
+    // the far end first: the whole tail is below 1e-17 when it is there,
+    // which is 0 to double precision (the bound itself is not the value)
     const double e = pbet(y, yc, m / 2 + mu + (lw ? -14 : 14) * sd, n / 2, lw);
-    if (e < 1e-17) return e;
+    if (e < 1e-17) return 0;
     kutil::ksum s;
     for (int i = -56; i <= 56; ++i) s.add(t(mu + i * h));
     return h * s.val();

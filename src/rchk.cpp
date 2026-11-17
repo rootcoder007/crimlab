@@ -316,13 +316,16 @@ void unlab(SEXP x, const char *nm) {
   }
   // text (or a factor's labels) whose bytes are not UTF-8, refused as the
   // command line refuses it (cli/jrun.cpp) and R's .cktxt() in a UTF-8
-  // locale; text marked latin1 or bytes is what its mark says
+  // locale; text marked latin1 or bytes is what its mark says, and text in
+  // the session's own encoding is read in it (R translates it): Latin-1
+  // text in a Latin-1 locale is valid text
   SEXP s = Rf_isFactor(x) ? Rf_getAttrib(x, R_LevelsSymbol) : x;
   if (TYPEOF(s) != STRSXP) return;
   for (R_xlen_t i = 0; i < XLENGTH(s); ++i) {
     SEXP c = STRING_ELT(s, i);
     if (c == NA_STRING || Rf_getCharCE(c) == CE_LATIN1 || Rf_getCharCE(c) == CE_BYTES) continue;
-    if (!u8ok(CHAR(c), static_cast<std::size_t>(LENGTH(c)))) {
+    const char *t = Rf_getCharCE(c) == CE_UTF8 ? CHAR(c) : Rf_translateCharUTF8(c);
+    if (!u8ok(t, std::strlen(t))) {
       fail("`%s` holds text that is not valid UTF-8.", nm);
     }
   }

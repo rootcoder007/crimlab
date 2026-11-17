@@ -255,7 +255,8 @@ odls <- function(
   .odbad(r[[1L]], key, fn)
   have <- r[[2L]]
   i <- if (is.null(cols)) seq_along(have) else .odcol(cols, have, fn)
-  nr <- if (length(have)) length(r[[3L]][[1L]]) else 0L
+  # a file with no column was refused above (.odbad)
+  nr <- length(r[[3L]][[1L]])
   n <- d[["rows"]]
   if (is.numeric(n) && length(n) == 1L && is.finite(n) && n != nr) {
     .ckstop(fn, "`%s` has %d rows where its manifest lists %s: not used",

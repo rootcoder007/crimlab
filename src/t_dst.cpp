@@ -136,6 +136,24 @@ void t_dstbig(tk &t) {
   rel(t, "ncpq.e15hi", clab_ncpq(4e13, 1, 0.025), 40000024791805.13364128564);
   tk_true(t, "ncpq.edge", clab_ncpq(0.5, 4, 0.975) == 0 && clab_ncpq(0, 1, 0.5) == 0);
   tk_nan(t, "ncpq.out", clab_ncpq(5, 1, 1));
+  // the bound is the noncentrality at which the statistic is the q-th
+  // quantile: over small and large statistics, both tails and the median
+  {
+    const double dfs[] = {1, 3, 10, 40}, sts[] = {0.4, 3, 12, 60, 400, 5000};
+    const double qs[] = {0.025, 0.2, 0.5, 0.8, 0.975};
+    int bad = 0;
+    for (double df : dfs) {
+      for (double st : sts) {
+        for (double q : qs) {
+          const double l = clab_ncpq(st, df, q);
+          if (std::isnan(l) || l < 0) ++bad;
+          else if (l > 0 && std::fabs(clab_pnchisq(st, df, l, 1) - q) > 1e-9) ++bad;
+          else if (l == 0 && clab_pchisq(st, df, 1) > q + 1e-12) ++bad;
+        }
+      }
+    }
+    tk_true(t, "ncpq.round", bad == 0);
+  }
   tk_nan(t, "ncpq.inf", clab_ncpq(HUGE_VAL, 1, 0.5));
   // the bounds fall as the level of the lower tail rises (a wider interval)
   tk_true(t, "ncpq.mono", clab_ncpq(4e6, 4, 0.995) < clab_ncpq(4e6, 4, 0.975) &&
@@ -158,4 +176,23 @@ void t_dstbig(tk &t) {
                              clab_pnf(3.1588427192606483, 2, 57, 1e308, 0) == 1 &&
                              clab_pnf(3.1588427192606483, 2, 57, HUGE_VAL, 0) == 1);
   tk_nan(t, "pnf.out", clab_pnf(1, 0, 5, 1, 0));
+  // past ncp 40000 the mixture is an integral: against the mixture summed
+  // term by term here, near the middle of the distribution, both tails
+  {
+    const double m = 3, n = 50, ncp = 50000, mu = ncp / 2;
+    const double fs[] = {16000.0, 16700.0, 17500.0};
+    for (double f : fs) {
+      const double y = m * f / (m * f + n);
+      double lo = 0, up = 0;
+      for (double j = std::floor(mu - 9000); j <= mu + 9000; ++j) {
+        const double w = std::exp(-mu + j * std::log(mu) - std::lgamma(j + 1));
+        lo += w * clab_pbeta(y, m / 2 + j, n / 2, 1);
+        up += w * clab_pbeta(y, m / 2 + j, n / 2, 0);
+      }
+      tk_eq(t, "pnf.int.lo", clab_pnf(f, m, n, ncp, 1) / lo, 1.0, 1e-9);
+      tk_eq(t, "pnf.int.up", clab_pnf(f, m, n, ncp, 0) / up, 1.0, 1e-9);
+    }
+    // a tail below double precision there is 0, not the bound of the search
+    tk_true(t, "pnf.int.far", clab_pnf(1e9, m, n, 90000, 0) == 0 || clab_pnf(1e9, m, n, 90000, 0) < 1e-300);
+  }
 }

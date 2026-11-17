@@ -369,3 +369,15 @@ test_that("a kept file that cannot be opened is refused in words", {
   expect_error(suppressWarnings(.odbytes(tempfile(), "db/t", "odtab")),
                "^odtab: `db/t` could not be read")
 })
+
+test_that("escapes of one to four bytes, and a comma that ends the file", {
+  j <- .odjson('{"a": "\\u0041\\u00e9\\u20ac", "b": "\\ud83d\\ude00"}')
+  expect_identical(j$a, "A\u00e9\u20ac")
+  expect_identical(Encoding(j$a), "UTF-8")
+  expect_identical(utf8ToInt(j$b), 0x1F600L)
+  expect_error(.odjson('"\\u00zz"'), "not JSON")
+  # a comma at the very end of the file: one more field, empty
+  r <- .Call(C_clab_r_csv, charToRaw("a,b\n1,"))
+  expect_identical(r[[2L]], c("a", "b"))
+  expect_identical(r[[3L]], list("1", NA_character_))
+})

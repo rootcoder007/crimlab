@@ -255,7 +255,9 @@ test_that("olsdx() fits values large next to their spread as lm() does", {
                  info = format(off))
     expect_equal(o$coef$se[2L], b$coef$se[2L], tolerance = 1e-9,
                  info = format(off))
-    expect_equal(o$pred$fit, sum(stats::coef(l) * c(1, off + 1)),
-                 tolerance = 1e-9, info = format(off))
+    # the fit at x = 1, from the model without the offset: lm()'s own
+    # coefficients times 1e7 keep fewer digits than this compares
+    expect_equal(o$pred$fit, sum(b$coef$est * c(1, 1)), tolerance = 1e-9,
+                 info = format(off))
   }
 })

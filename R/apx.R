@@ -1860,10 +1860,6 @@ summary.expjn <- function(object, ...) {
     .ckstop(fn, "`%s` must be a data frame, got %s", what, class(data)[1L])
   }
   if (!nrow(data)) .ckstop(fn, "`%s` has no rows", what)
-  if (anyDuplicated(names(data))) {
-    .ckstop(fn, "`%s` has two columns named %s", what,
-            names(data)[anyDuplicated(names(data))])
-  }
   .cktxtdf(data, what, fn)
 }
 
@@ -1890,6 +1886,13 @@ summary.expjn <- function(object, ...) {
             toString(miss))
   }
   if (anyDuplicated(cols)) .ckstop(fn, "`%s` names a column twice", what)
+  # a name `data` has twice is refused where the call uses it: which of the
+  # two is meant cannot be told (two unused columns of one name are no one's
+  # concern)
+  twice <- intersect(cols, names(d)[duplicated(names(d))])
+  if (length(twice)) {
+    .ckstop(fn, "`data` has two columns named %s", twice[[1L]])
+  }
   for (k in cols) {
     if (anyNA(d[[k]])) .ckstop(fn, "column `%s` has missing values", k)
   }

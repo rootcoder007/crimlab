@@ -1518,8 +1518,11 @@ test_that("groups, directions and draws of the wrong kind are refused", {
 
 test_that("data with repeated names, a level as a matrix, list names", {
   two <- stats::setNames(data.frame(1, 2), c("a", "a"))
-  expect_error(.axdat(two, "f"),
+  expect_error(.axcols(two, "a", "x", "f"),
                "^f: `data` has two columns named a")
+  # two columns of one name that the call does not use are left alone
+  two$b <- 3
+  expect_identical(.axcols(.axdat(two, "f"), "b", "x", "f"), "b")
   expect_null(dim(.axlevel(matrix(0.9), "f")))
   expect_error(.axcolsj(data.frame(y = 1), list(list("y")), "y", "f", 1L),
                "^f: `y` must name columns of `data`")
@@ -1532,4 +1535,26 @@ test_that("ppmlcf() refuses more draws than can be made", {
   errs("ppmlcf", list(list("`nboot` must be between 2 and 1e\\+07", d, "y",
                            endo = "x", inst = c("z1", "z2"), x = "w",
                            fe = c("unit", "day"), nboot = 2^53)))
+})
+
+test_that("text in the session's own encoding is text outside UTF-8 too", {
+  old <- Sys.getlocale("LC_CTYPE")
+  on.exit(Sys.setlocale("LC_CTYPE", old), add = TRUE)
+  ok <- FALSE
+  for (l in c("en_US.ISO-8859-1", "en_US.iso88591", "de_DE.ISO-8859-1",
+              "de_DE.iso88591", "fr_FR.ISO-8859-1", "fr_FR.iso88591",
+              "French_France.1252", "English_United States.1252")) {
+    if (nzchar(suppressWarnings(Sys.setlocale("LC_CTYPE", l)))) {
+      ok <- TRUE
+      break
+    }
+  }
+  skip_if_not(ok && !isTRUE(l10n_info()[["UTF-8"]]), "no Latin-1 locale here")
+  # as read.csv() gives it there: Latin-1 bytes, marked as nothing
+  g <- rawToChar(as.raw(c(0x51, 0x75, 0xe9, 0x62, 0x65, 0x63)))
+  h <- rawToChar(as.raw(c(0x4d, 0x6f, 0x6e, 0x74, 0x72, 0xe9, 0x61, 0x6c)))
+  grp <- c(g, h, g, h)
+  expect_true(all(validEnc(grp)))
+  r <- tmpaud(pred = c(1, 0, 1, 0), grp = grp, period = c(1, 1, 2, 2))
+  expect_type(r, "list")
 })
