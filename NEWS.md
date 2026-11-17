@@ -10,6 +10,40 @@
   picks columns without regard to case or underscores, and `base` (or
   `options(crimlab.data)`) points at a mirror.
 
+* Placement volatility and alert complexity: `plcvol()` counts the changes
+  of placement region in each person-year (within a record and between
+  consecutive records) and `alrtcx()` the distinct alert configurations
+  its records span, as defined in Ruhela's study of Ontario's restrictive
+  confinement records. `otpyr()` reduces a release of those records (a
+  data frame, or a key of the open data service read by `odtab()`) to one
+  row per person and fiscal year, finding the columns without regard to
+  case or underscores and taking the fiscal years from the data. `cxvol()`
+  gives, pooled or for each fiscal year, the descriptives, the crude rate
+  ratio, the one-to-one propensity matching, the count model with a random
+  intercept per regional cluster and the bounds on the effect without
+  ignorability; `cxdml()` the interactive double machine learning
+  estimates (ATE and ATTE); `cxyoy()` the year-over-year table of
+  regional changes per 1,000 placements and per 1,000 person-years with
+  exact intervals. A single fiscal year with a year term, or a sample
+  with no complex or no other person-year, is refused in words.
+  `cntmix()` fits a Poisson or negative binomial count with a normal
+  random intercept per cluster by the Laplace approximation, and
+  `cxsim()` simulates the bias, spread and coverage of the estimators,
+  with or without an unobserved confounder.
+
+* Proofs: `inst/lean/Volat.lean` (the two measures: bounds, the cases of
+  no change and of one record, relabelling, order of the records with a
+  counterexample and the sorted case, adding a record, pooling, weighted
+  and unweighted means, and two counterexamples on what alert complexity
+  counts), `inst/lean/Ident.lean` (identification by adjustment, weighting
+  and augmentation, double robustness, exact matching, the log-link rate
+  ratio, a negative control, Manski's bounds and the non-identification of
+  the counterfactual arm) and `inst/lean/Custody.lean` (Lakner's average
+  daily population, length of stay and expansion estimator with the
+  manual's worked examples, and the arithmetic of year-over-year changes,
+  including what a first-to-last column means once a year is added).
+  `proof()` lists them.
+
 * `vrfpol()` is in `clab_jrun()`, the command line and Python, with the
   report R gives: the demo data are R's draws, and the exposure file is
   read as R reads plain and gzip UTF-8 text. A bzip2 or xz file and
