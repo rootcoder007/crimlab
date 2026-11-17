@@ -164,3 +164,31 @@ test_that("an accumulator without its state is refused in words", {
   expect_error(smryupd(a, 1), "^smryupd: `acc` must come from onlsmry")
   expect_error(smrymrg(a, onlsmry()), "^smrymrg: both arguments")
 })
+
+test_that("SHA-256 gives the FIPS 180-4 test vectors", {
+  h <- function(x) paste(.Call(C_clab_r_sha256, charToRaw(x)), collapse = "")
+  expect_identical(
+    h(""),
+    "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  )
+  expect_identical(
+    h("abc"),
+    "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+  )
+  # 56 bytes: the length no longer fits the first padding block
+  expect_identical(
+    h("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"),
+    "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
+  )
+  expect_identical(
+    h(paste0(
+      "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmn",
+      "hijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"
+    )),
+    "cf5b16a778af8380036ce59e7b0492370b249b11e8f07a51afac45037afee9d1"
+  )
+  expect_identical(
+    h(strrep("a", 1e6)),
+    "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0"
+  )
+})

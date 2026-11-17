@@ -11,6 +11,14 @@
 
 extern "C" {
 
+// the SHA-256 (FIPS 180-4) of the bytes of the raw vector x, 32 raw bytes
+SEXP C_clab_r_sha256(SEXP x) {
+  SEXP o = PROTECT(Rf_allocVector(RAWSXP, 32));
+  clab_sha256(RAW(x), static_cast<std::size_t>(XLENGTH(x)), RAW(o));
+  UNPROTECT(1);
+  return o;
+}
+
 SEXP C_clab_r_momupd(SEXP st, SEXP x) {
   clab::who = "smryupd";
   double b[5];
