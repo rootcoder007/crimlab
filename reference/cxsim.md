@@ -62,7 +62,7 @@ cxsim(
 - seed:
 
   The seed of the whole run, set once before the first table is drawn:
-  one whole number.
+  one whole number. The session's own random stream is left as it was.
 
 ## Value
 
@@ -90,10 +90,10 @@ a fresh table from `seed`; a fit that fails is left out and counted.
 ## Examples
 
 ``` r
-cxsim(reps = 2, n = 200, ncl = 5, seed = 1)
-#> cxsim: 2 tables of 200 person-years, log rate ratio 0.2624
-#>      est   bias     sd  rmse cover ok
-#>    crude -0.338 0.3906 0.437    NA  2
-#>    mixed -0.617 0.0947 0.621     1  2
-#>  matched -0.622 0.1139 0.627     1  2
+cxsim(reps = 1, n = 100, ncl = 5, b0 = 0, seed = 1)
+#> cxsim: 1 tables of 100 person-years, log rate ratio 0.2624
+#>      est   bias sd   rmse cover ok
+#>    crude 0.4090 NA 0.4090    NA  1
+#>    mixed 0.1381 NA 0.1381     1  1
+#>  matched 0.0113 NA 0.0113     1  1
 ```

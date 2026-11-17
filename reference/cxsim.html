@@ -117,7 +117,8 @@ intercepts.</p></dd>
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
 <dd><p>The seed of the whole run, set once before the first table is
-drawn: one whole number.</p></dd>
+drawn: one whole number. The session's own random stream is left as it
+was.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -141,12 +142,12 @@ fresh table from <code>seed</code>; a fit that fails is left out and counted.</p
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">cxsim</span><span class="op">(</span>reps <span class="op">=</span> <span class="fl">2</span>, n <span class="op">=</span> <span class="fl">200</span>, ncl <span class="op">=</span> <span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> cxsim: 2 tables of 200 person-years, log rate ratio 0.2624</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      est   bias     sd  rmse cover ok</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    crude -0.338 0.3906 0.437    NA  2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    mixed -0.617 0.0947 0.621     1  2</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  matched -0.622 0.1139 0.627     1  2</span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">cxsim</span><span class="op">(</span>reps <span class="op">=</span> <span class="fl">1</span>, n <span class="op">=</span> <span class="fl">100</span>, ncl <span class="op">=</span> <span class="fl">5</span>, b0 <span class="op">=</span> <span class="fl">0</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> cxsim: 1 tables of 100 person-years, log rate ratio 0.2624</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      est   bias sd   rmse cover ok</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    crude 0.4090 NA 0.4090    NA  1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    mixed 0.1381 NA 0.1381     1  1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  matched 0.0113 NA 0.0113     1  1</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -20,7 +20,7 @@ otpyr(
   years = NULL,
   ord = "region",
   keep = c("100", "010", "110", "011", "111", "000"),
-  base = getOption("crimlab.data", "https://data.rmorie.com")
+  base = getOption("crimlab.data", "https://data.crimlab.dev")
 )
 ```
 

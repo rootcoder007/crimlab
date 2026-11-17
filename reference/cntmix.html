@@ -92,10 +92,12 @@ between 0 and 1.</p></dd>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>cntmix</code>, a list: <code>coef</code>, a data frame
-(<code>term</code>, <code>est</code>, <code>se</code>, <code>z</code>, <code>p</code>, <code>irr</code>, <code>lo</code>, <code>hi</code>); <code>sigma</code>, the
-standard deviation of the intercepts; <code>theta</code> (<code>NA</code> for Poisson);
-<code>loglik</code>, <code>aic</code>; <code>fam</code>, the family reported; <code>n</code>, <code>ngrp</code>; <code>conv</code>, the
-optimiser's code (0 when it converged); <code>level</code>.</p>
+(<code>term</code>, <code>est</code>, <code>se</code>, <code>z</code>, <code>p</code>, <code>irr</code>, <code>lo</code>, <code>hi</code>; <code>NA</code> for a term
+that cannot be estimated); <code>sigma</code>, the standard deviation of the
+intercepts; <code>theta</code> (<code>NA</code> for Poisson); <code>loglik</code>, <code>aic</code>; <code>fam</code>, the
+family reported; <code>n</code>, <code>ngrp</code>; <code>conv</code>, the optimiser's code (0 when it
+converged); <code>level</code>; <code>notes</code>, why a term has no estimate (empty when
+every term has one).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -113,6 +115,14 @@ singular; the Poisson model is then reported, as it is the limit, with
 <code>theta</code> noted (<code>fam</code> says which). Fewer than two clusters, or clusters of
 one row each, are refused: the variance of the intercepts is then not
 identified.</p>
+<p>A coefficient that cannot be estimated is <code>NA</code> with its standard error,
+test and interval, and <code>notes</code> says why, never a standard error of 0:
+a column aliased with the others (a constant, or a combination of other
+columns, found by the QR decomposition of the design before the fit,
+which drops it as <code><a href="https://rdrr.io/r/stats/lm.html" class="external-link">stats::lm()</a></code> does); a 0/1 column all of whose counts
+on one side are 0 (separation: its rate ratio is 0 or infinite, and so
+is the intercept's when the zeros are where the column is 0); and an
+estimate whose variance from the Hessian is not a positive number.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>

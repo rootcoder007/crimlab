@@ -48,10 +48,11 @@ cntmix(y, x, grp, fam = c("nb", "poisson"), w = NULL, level = 0.95)
 ## Value
 
 An object of class `cntmix`, a list: `coef`, a data frame (`term`,
-`est`, `se`, `z`, `p`, `irr`, `lo`, `hi`); `sigma`, the standard
-deviation of the intercepts; `theta` (`NA` for Poisson); `loglik`,
-`aic`; `fam`, the family reported; `n`, `ngrp`; `conv`, the optimiser's
-code (0 when it converged); `level`.
+`est`, `se`, `z`, `p`, `irr`, `lo`, `hi`; `NA` for a term that cannot be
+estimated); `sigma`, the standard deviation of the intercepts; `theta`
+(`NA` for Poisson); `loglik`, `aic`; `fam`, the family reported; `n`,
+`ngrp`; `conv`, the optimiser's code (0 when it converged); `level`;
+`notes`, why a term has no estimate (empty when every term has one).
 
 ## Details
 
@@ -70,6 +71,16 @@ is singular; the Poisson model is then reported, as it is the limit,
 with `theta` noted (`fam` says which). Fewer than two clusters, or
 clusters of one row each, are refused: the variance of the intercepts is
 then not identified.
+
+A coefficient that cannot be estimated is `NA` with its standard error,
+test and interval, and `notes` says why, never a standard error of 0: a
+column aliased with the others (a constant, or a combination of other
+columns, found by the QR decomposition of the design before the fit,
+which drops it as [`stats::lm()`](https://rdrr.io/r/stats/lm.html)
+does); a 0/1 column all of whose counts on one side are 0 (separation:
+its rate ratio is 0 or infinite, and so is the intercept's when the
+zeros are where the column is 0); and an estimate whose variance from
+the Hessian is not a positive number.
 
 ## References
 

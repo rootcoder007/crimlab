@@ -3,23 +3,27 @@
 confinement records: from the person-year table (otpyr()) it gives,
 for the years pooled or for each fiscal year, the share of person-years
 with complex alert profiles (cx = 1), mean placement volatility by
-group, the crude Poisson rate ratio, the one-to-one nearest-neighbour
-propensity matching without replacement of each complex person-year to
-a control on age group, gender and fiscal year (cbatt(), in
-'MatchIt”s default order), the count model on the matched frame with a
-random intercept per regional cluster (cntmix()), and the bounds on the
-average effect on the matched frame with no assumption and under
-monotone treatment response and selection (mtrbnd())."><meta property="og:description" content="The analysis of Ruhela (2026) on any release of Ontario's restrictive
+group, the crude Poisson rate ratio (the ratio of the two means,
+infinite when every count without complex alerts is 0), the one-to-one
+nearest-neighbour propensity matching without replacement of each
+complex person-year to a control on age group, gender and fiscal year
+(cbatt(), in 'MatchIt”s default order), the count model on the
+matched frame with a random intercept per regional cluster
+(cntmix()), and the bounds on the average effect on the matched
+frame with no assumption and under monotone treatment response and
+selection (mtrbnd())."><meta property="og:description" content="The analysis of Ruhela (2026) on any release of Ontario's restrictive
 confinement records: from the person-year table (otpyr()) it gives,
 for the years pooled or for each fiscal year, the share of person-years
 with complex alert profiles (cx = 1), mean placement volatility by
-group, the crude Poisson rate ratio, the one-to-one nearest-neighbour
-propensity matching without replacement of each complex person-year to
-a control on age group, gender and fiscal year (cbatt(), in
-'MatchIt”s default order), the count model on the matched frame with a
-random intercept per regional cluster (cntmix()), and the bounds on the
-average effect on the matched frame with no assumption and under
-monotone treatment response and selection (mtrbnd())."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
+group, the crude Poisson rate ratio (the ratio of the two means,
+infinite when every count without complex alerts is 0), the one-to-one
+nearest-neighbour propensity matching without replacement of each
+complex person-year to a control on age group, gender and fiscal year
+(cbatt(), in 'MatchIt”s default order), the count model on the
+matched frame with a random intercept per regional cluster
+(cntmix()), and the bounds on the average effect on the matched
+frame with no assumption and under monotone treatment response and
+selection (mtrbnd())."><meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -58,13 +62,15 @@ monotone treatment response and selection (mtrbnd())."><meta property="og:image"
 confinement records: from the person-year table (<code><a href="otpyr.html">otpyr()</a></code>) it gives,
 for the years pooled or for each fiscal year, the share of person-years
 with complex alert profiles (<code>cx = 1</code>), mean placement volatility by
-group, the crude Poisson rate ratio, the one-to-one nearest-neighbour
-propensity matching without replacement of each complex person-year to
-a control on age group, gender and fiscal year (<code><a href="cbatt.html">cbatt()</a></code>, in
-'MatchIt”s default order), the count model on the matched frame with a
-random intercept per regional cluster (<code><a href="cntmix.html">cntmix()</a></code>), and the bounds on the
-average effect on the matched frame with no assumption and under
-monotone treatment response and selection (<code><a href="mtrbnd.html">mtrbnd()</a></code>).</p>
+group, the crude Poisson rate ratio (the ratio of the two means,
+infinite when every count without complex alerts is 0), the one-to-one
+nearest-neighbour propensity matching without replacement of each
+complex person-year to a control on age group, gender and fiscal year
+(<code><a href="cbatt.html">cbatt()</a></code>, in 'MatchIt”s default order), the count model on the
+matched frame with a random intercept per regional cluster
+(<code><a href="cntmix.html">cntmix()</a></code>), and the bounds on the average effect on the matched
+frame with no assumption and under monotone treatment response and
+selection (<code><a href="mtrbnd.html">mtrbnd()</a></code>).</p>
     </div>
 
     <div class="section level2">
@@ -105,7 +111,9 @@ propensity and count models.</p></dd>
 <code>vm1m</code>, <code>vm0m</code>, <code>irr</code>, <code>lo</code>, <code>hi</code>, <code>est</code>, <code>se</code>, <code>p</code>, <code>ncl</code>, <code>fam</code>,
 <code>mlo</code>, <code>mhi</code>, <code>bhi</code>: the Manski bounds and the upper bound under both
 monotonicity assumptions, whose lower bound is 0; <code>ymax</code>, the largest
-count on the matched frame, the range used by the bounds); <code>fits</code>, the
+count on the matched frame, the range used by the bounds; <code>note</code>, why
+the rate ratio has no estimate when it has none, such as a group whose
+counts on the matched frame are all 0, else <code>""</code>); <code>fits</code>, the
 <code><a href="cntmix.html">cntmix()</a></code> fits; <code>by</code>; <code>yterm</code>.</p>
     </div>
     <div class="section level2">

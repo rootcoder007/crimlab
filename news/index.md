@@ -63,6 +63,76 @@
   [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md)
   lists them.
 
+- [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
+  gives the values the file holds: every column is read as text and
+  becomes numbers only when each value is a plain decimal number held
+  exactly, so identifiers such as `"007"`, `"7"` and `"0007"` stay
+  distinct and a column of `"F"` stays text (it became `FALSE`). A line
+  with more or fewer fields than the header is refused, naming the line
+  (a long line was wrapped into a row of its own), and so is a table
+  whose number of rows is not the one the manifest lists. The manifest
+  reader takes all JSON: an empty key, a string of any length (one of a
+  few megabytes failed in PCRE), and characters past U+FFFF written as
+  surrogate pairs.
+
+- Messages quote invalid UTF-8 bytes of the input as `<xx>`, in every
+  refusal and warning of the package and of its C++ binding:
+  [`dspbm()`](https://rootcoder007.github.io/crimlab/reference/dspbm.md),
+  [`clprep()`](https://rootcoder007.github.io/crimlab/reference/clprep.md)
+  and about twenty others carried the bytes themselves, and
+  [`substr()`](https://rdrr.io/r/base/substr.html) or
+  [`grepl()`](https://rdrr.io/r/base/grep.html) on such a message
+  failed.
+
+- The keys that join several columns (the person-years of
+  [`plcvol()`](https://rootcoder007.github.io/crimlab/reference/plcvol.md)
+  and
+  [`alrtcx()`](https://rootcoder007.github.io/crimlab/reference/alrtcx.md),
+  the units and days of
+  [`expjn()`](https://rootcoder007.github.io/crimlab/reference/expjn.md),
+  [`smkiv()`](https://rootcoder007.github.io/crimlab/reference/smkiv.md),
+  [`ccross()`](https://rootcoder007.github.io/crimlab/reference/ccross.md)
+  and
+  [`updwn()`](https://rootcoder007.github.io/crimlab/reference/updwn.md))
+  no longer merge labels holding a carriage return: each value is
+  escaped before the values are joined, so no label can imitate the
+  join.
+
+- [`qltyrcd()`](https://rootcoder007.github.io/crimlab/reference/qltyrcd.md)
+  reads its flags once: a vector of a million flags took minutes,
+  copying a row per value, and is now read in a fraction of a second.
+
+- Arguments of the wrong type are refused in the package’s words, not
+  base R’s:
+  [`gtwreg()`](https://rootcoder007.github.io/crimlab/reference/gtwreg.md)
+  takes `x = NULL` (a model with the constant only, which stopped on its
+  column names) and refuses a function or an environment as `x`;
+  [`grdbin()`](https://rootcoder007.github.io/crimlab/reference/grdbin.md)
+  a `col` that is not one name;
+  [`xfrvrf()`](https://rootcoder007.github.io/crimlab/reference/xfrvrf.md)
+  an `imported` that is not a vector;
+  [`dagcol()`](https://rootcoder007.github.io/crimlab/reference/dagcol.md)
+  a `triple` that is not labels;
+  [`lrcce()`](https://rootcoder007.github.io/crimlab/reference/lrcce.md)
+  an `x` that names no column; the plots a `col` that is not colours (a
+  function was warned about, a data frame failed in the graphics).
+
+- The help of
+  [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
+  says what it refuses with an R error: only a `poll` that is not one
+  pollutant name, as the command line refuses it; it said the function
+  never stops with an R error.
+
+- [`bayout()`](https://rootcoder007.github.io/crimlab/reference/bayout.md)
+  gives R’s [`qnbinom()`](https://rdrr.io/r/stats/NegBinomial.html)
+  bound for every reference sum, in R, the command line and Python. For
+  sums near 4,800 (a week of about 800) the probability of 0 was a
+  subnormal number: the bound came out too low (805 for 856, raising
+  alarms wrongly) and for nearby sums the search never ended
+  (`bayout(1:810)` did not return). The quantile is now a search of at
+  most about 160 evaluations of the distribution function, and the
+  Poisson quantile of the command line and Python takes the same search.
+
 - [`vrfpol()`](https://rootcoder007.github.io/crimlab/reference/vrfpol.md)
   is in `clab_jrun()`, the command line and Python, with the report R
   gives: the demo data are R’s draws, and the exposure file is read as R

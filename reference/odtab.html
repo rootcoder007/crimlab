@@ -110,12 +110,22 @@ now; otherwise, or with <code>refresh = TRUE</code>, the table is downloaded aga
 of them, matched without regard to case or underscores (<code>"case_id"</code>
 finds <code>"CaseID"</code>), so that a publisher's respelling of a name does not
 break a call; an exact name is preferred.</p>
+<p>The values are those the file holds. Every column is read as text; an
+empty field and the text <code>NA</code> are missing values. A column becomes
+numbers only when every value in it is a plain decimal number that a
+number holds exactly as written: digits with at most a leading minus,
+a decimal point and an exponent, no leading zero, at most 15
+significant digits. So identifiers such as <code>"007"</code> (not the same as
+<code>"7"</code>), long identifiers, dates and codes such as <code>"F"</code> stay text, and
+no column becomes logical. A column of whole numbers within R's
+integer range is integer, any other numeric column double.</p>
 <p>Errors: a key the manifest does not list; a table listed without a
-SHA-256; a file that does not match it; a column the table does not
-have, or a name that matches more than one; a service that cannot be
-reached, answers with an error or does not answer in time (60 seconds
-for the manifest, 600 for a table, or <code>getOption("timeout")</code> if
-longer).</p>
+SHA-256; a file that does not match it; a line with more or fewer
+fields than the header; a table whose number of rows is not the one
+the manifest lists; a column the table does not have, or a name that
+matches more than one; a service that cannot be reached, answers with
+an error or does not answer in time (60 seconds for the manifest, 600
+for a table, or <code>getOption("timeout")</code> if longer).</p>
     </div>
 
     <div class="section level2">

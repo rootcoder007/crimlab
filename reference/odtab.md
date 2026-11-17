@@ -66,11 +66,23 @@ them, matched without regard to case or underscores (`"case_id"` finds
 `"CaseID"`), so that a publisher's respelling of a name does not break a
 call; an exact name is preferred.
 
+The values are those the file holds. Every column is read as text; an
+empty field and the text `NA` are missing values. A column becomes
+numbers only when every value in it is a plain decimal number that a
+number holds exactly as written: digits with at most a leading minus, a
+decimal point and an exponent, no leading zero, at most 15 significant
+digits. So identifiers such as `"007"` (not the same as `"7"`), long
+identifiers, dates and codes such as `"F"` stay text, and no column
+becomes logical. A column of whole numbers within R's integer range is
+integer, any other numeric column double.
+
 Errors: a key the manifest does not list; a table listed without a
-SHA-256; a file that does not match it; a column the table does not
-have, or a name that matches more than one; a service that cannot be
-reached, answers with an error or does not answer in time (60 seconds
-for the manifest, 600 for a table, or `getOption("timeout")` if longer).
+SHA-256; a file that does not match it; a line with more or fewer fields
+than the header; a table whose number of rows is not the one the
+manifest lists; a column the table does not have, or a name that matches
+more than one; a service that cannot be reached, answers with an error
+or does not answer in time (60 seconds for the manifest, 600 for a
+table, or `getOption("timeout")` if longer).
 
 ## Examples
 

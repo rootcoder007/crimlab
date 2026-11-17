@@ -5,9 +5,11 @@ confinement records: from the person-year table
 ([`otpyr()`](https://rootcoder007.github.io/crimlab/reference/otpyr.md))
 it gives, for the years pooled or for each fiscal year, the share of
 person-years with complex alert profiles (`cx = 1`), mean placement
-volatility by group, the crude Poisson rate ratio, the one-to-one
-nearest-neighbour propensity matching without replacement of each
-complex person-year to a control on age group, gender and fiscal year
+volatility by group, the crude Poisson rate ratio (the ratio of the two
+means, infinite when every count without complex alerts is 0), the
+one-to-one nearest-neighbour propensity matching without replacement of
+each complex person-year to a control on age group, gender and fiscal
+year
 ([`cbatt()`](https://rootcoder007.github.io/crimlab/reference/cbatt.md),
 in 'MatchIt”s default order), the count model on the matched frame with
 a random intercept per regional cluster
@@ -59,7 +61,9 @@ An object of class `cxvol`, a list: `res`, one row per sample (`sample`,
 `irr`, `lo`, `hi`, `est`, `se`, `p`, `ncl`, `fam`, `mlo`, `mhi`, `bhi`:
 the Manski bounds and the upper bound under both monotonicity
 assumptions, whose lower bound is 0; `ymax`, the largest count on the
-matched frame, the range used by the bounds); `fits`, the
+matched frame, the range used by the bounds; `note`, why the rate ratio
+has no estimate when it has none, such as a group whose counts on the
+matched frame are all 0, else `""`); `fits`, the
 [`cntmix()`](https://rootcoder007.github.io/crimlab/reference/cntmix.md)
 fits; `by`; `yterm`.
 
