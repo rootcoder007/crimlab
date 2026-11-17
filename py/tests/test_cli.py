@@ -14,7 +14,7 @@ import crimlab
 from crimlab import _j
 
 # the functions of crimlab/_j.py
-NJ = 475
+NJ = 476
 
 TSV = Path(__file__).resolve().parents[2] / "cli" / "test.tsv"
 # cli/tol.tsv: the functions with bounds other than 1e-12 relative
@@ -33,6 +33,12 @@ if TSV.is_file():
             # the functions with their own entry points have tests/ref.py
             if hasattr(_j, f):
                 CASES.append((f, a, w))
+# cli/testf.tsv: the cases that read the files of cli/vp, run in cli/
+FCASES = []
+if TSV.with_name("testf.tsv").is_file():
+    for ln in TSV.with_name("testf.tsv").read_text(encoding="utf-8").splitlines():
+        if ln and not ln.startswith("#"):
+            FCASES.append(tuple(ln.split("\t")))
 
 
 def nodup(pairs):
@@ -73,6 +79,12 @@ def same(py, r, where, rel=1e-12, ab=0.0):
 
 @pytest.mark.parametrize("f,a,w", [c for c in CASES if not c[2].startswith("!")], ids=lambda x: x[:20])
 def test_result_matches_r(f, a, w):
+    same(getattr(crimlab, f)(**kw(a)), json.loads(w), f, *TOL.get(f, (1e-12, 0.0)))
+
+
+@pytest.mark.parametrize("f,a,w", FCASES, ids=lambda x: x[:20])
+def test_file_result_matches_r(f, a, w, monkeypatch):
+    monkeypatch.chdir(TSV.parent)
     same(getattr(crimlab, f)(**kw(a)), json.loads(w), f, *TOL.get(f, (1e-12, 0.0)))
 
 

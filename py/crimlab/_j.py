@@ -7897,9 +7897,9 @@ def yoypdf(
 def polrpttxt(report: Any) -> str:
     """R's ``polrpttxt()``: the text of a ``vrfpol()`` report.
 
-    ``report`` is a report as R's ``vrfpol()`` returns it (in JSON); the
-    numbers are written as R's ``sprintf()`` and ``format()`` write them.
-    ``vrfpol()`` itself runs in R only.
+    ``report`` is a report as R's ``vrfpol()`` (or :func:`vrfpol`) returns
+    it (in JSON); the numbers are written as R's ``sprintf()`` and
+    ``format()`` write them.
 
     Examples
     --------
@@ -7907,6 +7907,40 @@ def polrpttxt(report: Any) -> str:
     'ERROR: no exposure data\\n'
     """
     return jcall("polrpttxt", report=report)
+
+
+def vrfpol(poll: Any, y: Any = "allcause", reg: Any = None, years: Any = None, demo: Any = False,
+           expcsv: Any = None, expomean: Any = None, expoprev: Any = None, ref: Any = None,
+           brate: Any = 500, basrateper: Any = 1e5, pop: Any = 1e6, rare: Any = False,
+           hirate: Any = False) -> Any:
+    """Run the pollution-to-health pipeline and report it.
+
+    The arguments and the result are those of R's ``vrfpol()``: see its help
+    page. The demo data are R's draws. ``expcsv`` is read as R reads it when
+    it is plain or gzip UTF-8 text (with or without a byte-order mark, any
+    line ending); a bzip2 or xz file, UTF-16 or UTF-32 text and text that
+    is not UTF-8 (R reads it as Latin-1) are an error report here, and
+    ``None`` cannot stand for R's ``NA``.
+
+    Examples
+    --------
+    >>> import os, tempfile
+    >>> f = os.path.join(tempfile.mkdtemp(), "no2.csv")
+    >>> e = [12.5, 18, 25.25, 31, 9, 22, 27.5, 15, 35, 19, 24, 28, "NA"]
+    >>> rows = "".join(f"{x},{i % 5 + 1}\\n" for i, x in enumerate(e))
+    >>> with open(f, "w") as h:
+    ...     _ = h.write("exposure,income\\n" + rows)
+    >>> r = vrfpol(poll="no2", expcsv=f)
+    >>> r["status"], r["inputs"]["drorows"], r["inputs"]["expoprev"]
+    ('ok', 1.0, 0.9166666666666666)
+    >>> os.remove(f)
+    >>> os.rmdir(os.path.dirname(f))
+    >>> vrfpol(poll="no2")["error"]
+    'no exposure data: pass expcsv, or expomean and expoprev, or demo = TRUE'
+    """
+    return jcall("vrfpol", poll=poll, y=y, reg=reg, years=years, demo=demo, expcsv=expcsv,
+                 expomean=expomean, expoprev=expoprev, ref=ref, brate=brate,
+                 basrateper=basrateper, pop=pop, rare=rare, hirate=hirate)
 
 
 def pscred(days: Any, ratio: Any = 1.5, sentence: Any = None) -> Any:
