@@ -754,3 +754,8 @@ reference:
       - fpdens
       - lvfit
       - catcor
+  - title: Open data
+    desc: Tables of the project's open data service, loaded by their key and
+      used only when they match the SHA-256 the service's manifest lists.
+    contents:
+      - odtab
