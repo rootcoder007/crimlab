@@ -31,6 +31,52 @@
   `cxsim()` simulates the bias, spread and coverage of the estimators,
   with or without an unobserved confounder.
 
+* `ctabx()` bounds Cramer's V right at any total: for a chi-square past
+  about 1.5e6 (a 2 x 2 table of 1e8 counts) both bounds in R fell below
+  the estimate, with warnings from R's `pchisq()`, and on the command line
+  and in Python the bounds took 149 s at 1e9 counts. R, the command line
+  and Python now take them from one routine of the core, an integral of
+  the noncentral chi-square whose work does not grow with the counts
+  (about a millisecond a bound, to 1e-14 of references of 34 to 40
+  digits). With `exact = TRUE` the odds ratio of a 2 x 2 table and its
+  interval are summed about their mode: a table of 1e6 counts took a
+  minute.
+
+* `pwranv()` gives power 1 for a large effect (0.9999999486 at `f =
+  1000`) and returns at once for any `f`; `f = 2^31` and larger never
+  returned.
+
+* `gstr()` takes the same time whatever the counts: the binomial tail of
+  its exposure test summed the terms one by one (20 s for counts near
+  2e6 with `nsim = 0`, no end for larger ones).
+
+* `opteffort()` gives finite efforts that add to the total for any total:
+  from about 1e4 the multiplier underflowed and the first cell's effort
+  was `Inf`.
+
+* `locgi()`, `olsdx()` and `sarml()` give the same results for values
+  shifted by a constant (and `locgi()` for values scaled): with values
+  large next to their spread `locgi()`'s z-values moved by 0.4 (1e8) or
+  became `NaN` (1e9), `olsdx()` moved its slope (1e6) or refused the
+  column as collinear (1e7) and `sarml()` refused it (1e6).
+
+* `gtwreg()` fits an integer `x` with `cons = FALSE` (it stopped in R's C
+  words).
+
+* `plothrz()` refuses a period that is not finite; with one it never
+  returned.
+
+* Refusals and warnings start with the function's name, in the
+  package's words: about forty functions refused some inputs in base R's
+  words (a date where a column name goes, a function where a vector goes,
+  text that is not valid UTF-8, a path in a folder that does not exist, a
+  count past what can be allocated, a 1 x 1 matrix for a number), and
+  the warnings of `stdprev()`, `dosebin()`, `hetfx()` and `jntx()` did
+  not name their function. A text argument that is not valid UTF-8 is
+  refused in R as on the command line ("`ref` holds text that is not
+  valid UTF-8"); in Python with the same words. `plotgain()` no longer
+  says that counts whose total overflows are all 0.
+
 * Proofs: `inst/lean/Volat.lean` (the two measures: bounds, the cases of
   no change and of one record, relabelling, order of the records with a
   counterexample and the sorted case, adding a record, pooling, weighted

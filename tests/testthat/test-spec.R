@@ -436,3 +436,17 @@ test_that("the order of the people does not change fair()", {
                     grp = rep(c("a", "b"), 30), cut = 0.5),
        c("score", "y", "grp"))
 })
+
+test_that("gstr()'s exposure test takes the same time for any counts", {
+  # two cells, rad 0: the first holds g of n points with exposure share
+  # 0.01; P(X <= g) for Binomial(2e8, 0.01) to 40 digits
+  # (dev/ref/dstbig.py), the two-sided p twice it
+  m <- matrix(c(1990000, 198010000), 2, 1)
+  t0 <- proc.time()[["elapsed"]]
+  g <- gstr(m, matrix(c(0.01, 0.99), 2, 1), rad = 0)
+  expect_lt(proc.time()[["elapsed"]] - t0, 1)
+  expect_equal(g$pe[1L], 2 * 5.714803963440756959975e-13, tolerance = 1e-12)
+  set.seed(1)
+  cnt <- matrix(rpois(100, 2), 10)
+  expect_lt(system.time(gstr(cnt * 1e6, nsim = 0))[["elapsed"]], 1)
+})

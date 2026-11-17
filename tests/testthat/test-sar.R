@@ -740,3 +740,11 @@ test_that("datumpmap() checks `end` whatever the datum", {
     expect_error(datumpmap(xe, xe, "point", end = e), "^datumpmap: `end`")
   }
 })
+
+test_that("opteffort() keeps its efforts finite for a large total", {
+  for (e in c(1e4, 1e8, 1e300)) {
+    a <- opteffort(c(0.7, 0.2, 0.1), c(1, 2, 3), 1, e)
+    expect_true(all(is.finite(a$effort)), info = format(e))
+    expect_equal(sum(a$effort), e, tolerance = 1e-12, info = format(e))
+  }
+})

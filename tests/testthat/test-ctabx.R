@@ -327,3 +327,48 @@ test_that("a table of zeros is refused: it has no total", {
   expect_error(ctabx(matrix(0, 2, 2)),
                "^ctabx: the table holds no counts: every cell is 0\\.$")
 })
+
+test_that("the interval of Cramer's V is right and quick at any total", {
+  # a 2 x 2 table of 0.3, 0.2, 0.2, 0.3 of N: V = 0.2, chi-square 0.04 N;
+  # the noncentrality bounds of 40 digits (dev/ref/dstbig.py) at N = 1e8
+  r <- c("a", "a", "b", "b")
+  k <- c("x", "y", "x", "y")
+  s <- expect_silent(ctabx(r, k, w = round(c(0.3, 0.2, 0.2, 0.3) * 1e8))$stat)
+  expect_equal(s$vlo, sqrt(3992163.985520660478702051 / 1e8),
+               tolerance = 1e-13)
+  expect_equal(s$vhi, sqrt(4007843.697396980910972984 / 1e8),
+               tolerance = 1e-13)
+  # up to 1e15, the interval holds the estimate and narrows with N
+  t <- system.time(for (n in 10^(6:15)) {
+    s <- ctabx(r, k, w = c(0.3, 0.2, 0.2, 0.3) * n)$stat
+    expect_lt(s$vlo, s$v)
+    expect_lt(s$v, s$vhi)
+    expect_lt(s$vhi - s$vlo, 8 / sqrt(n))
+  })[["elapsed"]]
+  expect_lt(t, 1)
+  # a wider level, a wider interval; a 3 x 3 table of 1e9 counts alike
+  w9 <- c(3, 1, 1, 1, 3, 1, 1, 1, 3) * 1e8
+  a <- rep(c("a", "b", "c"), 3)
+  b <- rep(c("x", "y", "z"), each = 3)
+  s90 <- ctabx(a, b, w = w9, level = 0.9)$stat
+  s99 <- ctabx(a, b, w = w9, level = 0.99)$stat
+  expect_lt(s99$vlo, s90$vlo)
+  expect_lt(s90$vlo, s90$v)
+  expect_lt(s90$v, s90$vhi)
+  expect_lt(s90$vhi, s99$vhi)
+})
+
+test_that("the exact interval of the odds ratio is quick for large counts", {
+  # 40-digit reference (dev/ref/fshor.py) for a table of 1000
+  s <- ctabx(c("a", "a", "b", "b"), c("x", "y", "x", "y"),
+             w = c(300, 200, 200, 300), exact = TRUE)$stat
+  expect_equal(c(s$or, s$orlo, s$orhi),
+               c(2.248125780924261183885, 1.733040535533118159894,
+                 2.92151369843048620566), tolerance = 1e-12)
+  t0 <- proc.time()[["elapsed"]]
+  s <- ctabx(c("a", "a", "b", "b"), c("x", "y", "x", "y"),
+             w = c(3, 2, 2, 3) * 1e5, exact = TRUE)$stat
+  expect_lt(proc.time()[["elapsed"]] - t0, 3)
+  expect_lt(s$orlo, 2.25)
+  expect_gt(s$orhi, 2.25)
+})

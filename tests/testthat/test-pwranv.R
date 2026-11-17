@@ -59,3 +59,16 @@ test_that("pwranv() refuses sizes, levels and powers it cannot use", {
                "pwranv: `power` must be above `alpha` and below 1.",
                fixed = TRUE)
 })
+
+test_that("a large effect has power 1, at once", {
+  t0 <- proc.time()[["elapsed"]]
+  p <- pwranv(3, 20, c(1000, 2^31, 2^53, 1e308))$power
+  expect_lt(proc.time()[["elapsed"]] - t0, 1)
+  expect_identical(p, rep(1, 4))
+  # against R's noncentral F where both are accurate
+  fc <- stats::qf(0.05, 2, 57, lower.tail = FALSE)
+  f <- c(0.1, 0.3, 0.6)
+  expect_equal(pwranv(3, 20, f)$power,
+               stats::pf(fc, 2, 57, 60 * f^2, lower.tail = FALSE),
+               tolerance = 1e-9)
+})
