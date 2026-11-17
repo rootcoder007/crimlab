@@ -143,7 +143,7 @@ smkiv <- function(
   z <- ck$z
   d[[day]] <- .axdate(d[[day]], day, f, FALSE)
   sv <- .axsmsea(d, day, seas, pm, f)
-  key <- paste(as.character(d[[unit]]), sv, sep = "\r")
+  key <- .clkey(d[[unit]], sv)
   out <- data.frame(smoke = pl)
   if (!is.null(pm)) {
     out <- .axsmpm(d, out, pl, key, pm, adj, nbr, z, cf, unit, day, f)
@@ -511,11 +511,10 @@ ccross <- function(data, y, unit, day, strat = c("ymw", "ym"), ma = NULL, k = 2,
   d[[day]] <- ck$day
   d <- .clas(f, .axccma(d, unit, day, ma, ck$k, lagv, ck$lag))
   ym <- format(d[[day]], "%Y-%m")
-  d$.strat <- paste(
-    as.character(d[[unit]]),
+  d$.strat <- .clkey(
+    d[[unit]],
     ym,
-    if (strat == "ymw") as.POSIXlt(d[[day]])$wday else "",
-    sep = "\r"
+    if (strat == "ymw") as.POSIXlt(d[[day]])$wday else ""
   )
   d$.ym <- ym
   a <- list(...)
@@ -960,7 +959,7 @@ print.typefx <- function(x, ...) {
     .ckstop(fn, "`cf = \"childs\"` needs `day` as dates")
   }
   yr <- as.integer(format(d[[day]], "%Y"))
-  um <- paste(as.character(d[[unit]]), format(d[[day]], "%m"), sep = "\r")
+  um <- .clkey(d[[unit]], format(d[[day]], "%m"))
   bg <- rep(NA_real_, length(pv))
   for (g in split(seq_along(pv), um)) {
     for (y in unique(yr[g])) {
@@ -1025,8 +1024,8 @@ print.typefx <- function(x, ...) {
     }
     .axcols(d, nbr, "nbr", f, n = 1L)
     j <- match(
-      paste(as.character(d[[nbr]]), as.character(d[[day]]), sep = "\r"),
-      paste(as.character(d[[unit]]), as.character(d[[day]]), sep = "\r")
+      .clkey(d[[nbr]], as.character(d[[day]])),
+      .clkey(d[[unit]], as.character(d[[day]]))
     )
     out$smoke <- as.numeric(hi[j])
   }

@@ -198,7 +198,7 @@ print.alrtcx <- function(x, ...) {
     names(l) <- if (length(l) == 1L) "id" else paste0("id", seq_along(l))
   }
   lab <- as.data.frame(l, stringsAsFactors = FALSE, optional = TRUE)
-  key <- do.call(paste, c(lapply(l, as.character), sep = "\r"))
+  key <- do.call(.clkey, unname(l))
   key[Reduce(`|`, lapply(l, is.na))] <- NA
   list(key = key, lab = lab)
 }

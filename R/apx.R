@@ -1814,7 +1814,7 @@ expjn <- function(expo, outc, by = c("area", "day")) {
     .ckstop(f, "`by` must name the key columns")
   }
   val <- .axjnck(e, o, by, f)
-  key <- function(t) do.call(paste, c(lapply(t[by], as.character), sep = "\r"))
+  key <- function(t) do.call(.clkey, unname(as.list(t[by])))
   ke <- key(e)
   ko <- key(o)
   if (anyDuplicated(ke)) {
@@ -3081,7 +3081,7 @@ summary.expjn <- function(object, ...) {
     .ckstop(f, "`se = \"nw\"` needs a day column of numbers or dates")
   }
   av <- if (!is.null(area)) as.character(d[[area]])
-  if (!is.null(area) && anyDuplicated(paste(av, dv, sep = "\r"))) {
+  if (!is.null(area) && anyDuplicated(.clkey(av, dv))) {
     .ckstop(f, "an area has two rows on one day")
   }
   list(yv = yv, xy = xy, wd = wd, dv = dv, tnum = tnum, av = av)
@@ -3148,11 +3148,11 @@ summary.expjn <- function(object, ...) {
   ln <- line[sr]
   g <- ifelse(
     ln & agg,
-    paste("s", sr, sd0, ring, sep = "\r"),
-    paste("a", if (is.null(area)) "" else av[rw], sr, ring, sep = "\r")
+    .clkey("s", sr, sd0, ring),
+    .clkey("a", if (is.null(area)) "" else av[rw], sr, ring)
   )
-  cell <- paste(g, dv[rw], sep = "\r")
-  sdy <- paste(sr, dv[rw], sep = "\r")
+  cell <- .clkey(g, dv[rw])
+  sdy <- .clkey(sr, dv[rw])
   if (same(dn, cell)) {
     .ckstop(
       f,

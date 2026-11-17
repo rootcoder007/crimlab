@@ -251,3 +251,19 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   }
   expr
 }
+
+# One text key per row of the vectors given (of one length, or 1): two
+# rows share a key exactly when they agree in every vector. Each value is
+# written with its backslashes doubled and its carriage returns as \r, a
+# missing value as \N, and the values are joined by a carriage return, so
+# no label can imitate the join (as with paste(sep = "\r"), where "a\rb"
+# and "a", "b" met).
+.clkey <- function(...) {
+  v <- lapply(list(...), function(x) {
+    s <- gsub("\\", "\\\\", as.character(x), fixed = TRUE)
+    s <- gsub("\r", "\\r", s, fixed = TRUE)
+    s[is.na(x)] <- "\\N"
+    s
+  })
+  do.call(paste, c(unname(v), sep = "\r"))
+}

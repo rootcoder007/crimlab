@@ -113,3 +113,9 @@ test_that("plcvol() and alrtcx() name unnamed ids, take a matrix, print", {
     )
   )
 })
+
+test_that("labels holding a carriage return keep person-years apart", {
+  id <- list(p = c("x\ry", "x"), y = c("z", "y\rz"))
+  expect_identical(nrow(plcvol(c("A", "B"), c("A", "B"), id)), 2L)
+  expect_identical(nrow(alrtcx(data.frame(a = c(1, 0)), id)), 2L)
+})

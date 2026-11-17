@@ -60,6 +60,12 @@
   `clprep()` and about twenty others carried the bytes themselves, and
   `substr()` or `grepl()` on such a message failed.
 
+* The keys that join several columns (the person-years of `plcvol()` and
+  `alrtcx()`, the units and days of `expjn()`, `smkiv()`, `ccross()` and
+  `updwn()`) no longer merge labels holding a carriage return: each value
+  is escaped before the values are joined, so no label can imitate the
+  join.
+
 * Arguments of the wrong type are refused in the package's words, not
   base R's: `gtwreg()` takes `x = NULL` (a model with the constant only,
   which stopped on its column names) and refuses a function or an

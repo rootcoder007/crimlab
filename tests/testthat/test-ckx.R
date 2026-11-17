@@ -103,3 +103,12 @@ test_that("the package's stop() and warning() keep the call as base R's", {
                    quote(h()))
   expect_identical(tryCatch(message("m"), message = conditionMessage), "m\n")
 })
+
+test_that(".clkey() keys rows apart unless they agree in every vector", {
+  k <- .clkey(c("a\rb", "a", NA, "NA", "\\N", "a\\", "a"),
+              c("c", "b\rc", "x", "x", "x", "\rc", "\\\rc"))
+  expect_identical(anyDuplicated(k), 0L)
+  expect_identical(.clkey(1:2, "x"), .clkey(c("1", "2"), "x"))
+  expect_identical(.clkey(NA, NA), .clkey(NA_character_, NA_real_))
+  expect_identical(.clkey(sep = "a", collapse = "b"), "a\rb")
+})
