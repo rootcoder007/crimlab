@@ -78,16 +78,16 @@ test_that("a condition quoting invalid text carries it as <xx>", {
   bad <- rawToChar(as.raw(c(0xff, 0xfe)))
   ok <- function(e) validEnc(conditionMessage(e))
   # refusals made in R and in the C++ binding
-  expect_identical(tryCatch(clprep(preset = bad), error = ok), TRUE)
-  expect_identical(tryCatch(dastd(c(5, 3), c(100, 100), c("a", "b"),
-                                  ref = bad), error = ok), TRUE)
+  expect_true(tryCatch(clprep(preset = bad), error = ok))
+  expect_true(tryCatch(dastd(c(5, 3), c(100, 100), c("a", "b"),
+                             ref = bad), error = ok))
   # the package's stop(), warning() and message(), and conditions given
-  expect_identical(tryCatch(stop("x ", bad), error = ok), TRUE)
-  expect_identical(tryCatch(stop(simpleError(bad)), error = ok), TRUE)
-  expect_identical(tryCatch(warning("x ", bad), warning = ok), TRUE)
-  expect_identical(tryCatch(warning(simpleWarning(bad)), warning = ok), TRUE)
-  expect_identical(tryCatch(message("x ", bad), message = ok), TRUE)
-  expect_identical(tryCatch(message(simpleMessage(bad)), message = ok), TRUE)
+  expect_true(tryCatch(stop("x ", bad), error = ok))
+  expect_true(tryCatch(stop(simpleError(bad)), error = ok))
+  expect_true(tryCatch(warning("x ", bad), warning = ok))
+  expect_true(tryCatch(warning(simpleWarning(bad)), warning = ok))
+  expect_true(tryCatch(message("x ", bad), message = ok))
+  expect_true(tryCatch(message(simpleMessage(bad)), message = ok))
   skip_if_not(isTRUE(l10n_info()[["UTF-8"]]))
   expect_identical(tryCatch(stop("x ", bad), error = conditionMessage),
                    "x <ff><fe>")

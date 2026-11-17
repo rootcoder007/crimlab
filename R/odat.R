@@ -135,7 +135,7 @@ odls <- function(
 .odman <- function(base, fn) {
   f <- tempfile(fileext = ".json")
   on.exit(unlink(f), add = TRUE)
-  .odget(paste0(base, "/manifest.json"), f, 60, "the manifest", fn)
+  .odget(sprintf("%s/manifest.json", base), f, 60, "the manifest", fn)
   m <- tryCatch(
     .odjson(paste(readLines(f, warn = FALSE, encoding = "UTF-8"),
                   collapse = "\n")),

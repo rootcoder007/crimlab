@@ -194,7 +194,7 @@ print.alrtcx <- function(x, ...) {
   if (!length(l) || any(lengths(l) != n) || n == 0L) {
     .ckstop(fn, "`id` must give one label per record (a vector or a list)")
   }
-  if (is.null(names(l)) || any(!nzchar(names(l)))) {
+  if (is.null(names(l)) || !all(nzchar(names(l)))) {
     names(l) <- if (length(l) == 1L) "id" else paste0("id", seq_along(l))
   }
   lab <- as.data.frame(l, stringsAsFactors = FALSE, optional = TRUE)
@@ -217,24 +217,22 @@ print.alrtcx <- function(x, ...) {
   ) {
     .ckstop(fn, "`flags` must be columns of equal length, one per flag")
   }
-  m <- vapply(
-    flags,
-    function(v) {
-      if (is.logical(v) || is.numeric(v)) {
-        # 0 or 1 exactly: 0.6 is not a flag, and as.integer() would cut it
-        out <- rep(NA_integer_, length(v))
-        ok <- !is.na(v) & (v == 0 | v == 1)
-        out[ok] <- as.integer(v[ok])
-        return(out)
-      }
-      s <- tolower(trimws(as.character(v)))
-      ifelse(
-        s %in% c("yes", "y", "true", "1"),
-        1L,
-        ifelse(s %in% c("no", "n", "false", "0"), 0L, NA_integer_)
-      )
-    },
-    integer(length(flags[[1L]]))
-  )
+  m <- vapply(flags, .acflag1, integer(length(flags[[1L]])))
   matrix(m, ncol = length(flags))
+}
+
+# One column of flags as 0/1 integers, NA for anything else.
+.acflag1 <- function(v) {
+  if (is.logical(v) || is.numeric(v)) {
+    # 0 or 1 exactly: 0.6 is not a flag, and as.integer() would cut it
+    out <- rep(NA_integer_, length(v))
+    ok <- !is.na(v) & (v == 0 | v == 1)
+    out[ok] <- as.integer(v[ok])
+    return(out)
+  }
+  s <- tolower(trimws(as.character(v)))
+  # the 1 forms, then the 0 forms; anything else (NA too) is NA
+  c(1L, 1L, 1L, 1L, 0L, 0L, 0L, 0L)[
+    match(s, c("yes", "y", "true", "1", "no", "n", "false", "0"))
+  ]
 }

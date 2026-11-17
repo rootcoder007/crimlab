@@ -1479,9 +1479,10 @@ test_that("two-way errors without clus name the fixed effects", {
   d$y <- rnorm(nrow(d))
   expect_error(ivfe(d, "y", x = "pm", fe = c("area", "day", "h"),
                     se = "twoway"), paste("ivfe:", m), fixed = TRUE)
-  # with clus the three effects are fine
-  f <- ppmlfe(d, "crimes", "pm", c("area", "day", "h"), se = "twoway",
-              clus = c("area", "day"))
+  # with clus the three effects are fine (the few clusters are warned of)
+  expect_warning(f <- ppmlfe(d, "crimes", "pm", c("area", "day", "h"),
+                             se = "twoway", clus = c("area", "day")),
+                 "fewer than ten clusters")
   expect_s3_class(f, "ppmlfe")
 })
 

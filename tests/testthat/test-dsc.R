@@ -594,8 +594,13 @@ test_that("dstntst() refuses and warns in its own words", {
     fixed = TRUE
   )
   expect_identical(r$groups$group, c("A", "C"))
-  ef(dstntst(rbind(g, g[1, ]), "group", "est", "lo", "hi"),
-     "dstntst: a group appears twice.")
+  # B is still outside its interval: warned of before the refusal
+  expect_warning(
+    ef(dstntst(rbind(g, g[1, ]), "group", "est", "lo", "hi"),
+       "dstntst: a group appears twice."),
+    "dstntst: the interval does not contain the estimate for: B; not compared.",
+    fixed = TRUE
+  )
 })
 
 test_that("freqtbl() refuses a sort that is not TRUE or FALSE", {

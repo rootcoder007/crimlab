@@ -333,12 +333,13 @@ print.cxyoy <- function(x, ...) {
 
 # One sample: descriptives, crude ratio, matching, count model, bounds.
 .cxone <- function(d, yt, fam, nm, fn) {
-  if (sum(d$cx == 1) == 0L || sum(d$cx == 0) == 0L) {
+  # cx is 0 or 1 in every row (.cxpy()), never missing
+  if (!any(d$cx == 1) || !any(d$cx == 0)) {
     .ckstop(
       fn,
       "sample %s has no person-year with cx = %d: no contrast can be estimated",
       nm,
-      if (sum(d$cx == 1) == 0L) 1L else 0L
+      if (any(d$cx == 1)) 0L else 1L
     )
   }
   ds <- .cxdes(d[c("age", "gender", if (yt) "year")], nm, fn)

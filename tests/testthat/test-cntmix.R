@@ -83,7 +83,8 @@ test_that("cntmix() takes weights and a matrix, and says when theta runs off", {
   expect_equal(fw$sigma, fr$sigma, tolerance = 1e-6)
   expect_equal(fw$loglik, fr$loglik, tolerance = 1e-8)
   # a numeric matrix is its data frame
-  expect_equal(cntmix(y, cbind(d = d), g, fam = "poisson"), fp)
+  expect_equal(cntmix(y, cbind(d = d), g, fam = "poisson"), fp,
+               tolerance = testthat_tolerance())
   # the Poisson limit: the Poisson fit, theta named in fam
   fn <- cntmix(y, x, g, fam = "nb")
   expect_match(fn$fam, "^poisson \\(negative binomial theta .*Poisson limit\\)")
@@ -136,8 +137,8 @@ test_that("cntmix() reports an aliased column as NA, with the reason", {
   f <- cntmix(y, data.frame(x, k = 5, x2 = 2 * x), g, fam = "poisson")
   a <- cntmix(y, data.frame(x), g, fam = "poisson")
   expect_identical(f$coef$term, c("(Intercept)", "x", "k", "x2"))
-  expect_identical(anyNA(f$coef[1:2, ]), FALSE)
-  expect_identical(all(is.na(f$coef[3:4, -1])), TRUE)
+  expect_false(anyNA(f$coef[1:2, ]))
+  expect_true(all(is.na(f$coef[3:4, -1])))
   expect_equal(f$coef[1:2, ], a$coef, tolerance = 1e-6)
   expect_identical(f$notes, paste("k, x2: aliased with the other columns",
                                   "(constant, or collinear), dropped"))

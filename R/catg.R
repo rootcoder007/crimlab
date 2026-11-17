@@ -363,15 +363,8 @@ print.vrfmrg <- function(x, ...) {
 #' xfrvrf(c("No", "Yes", "Yes"), c(No = 1, Yes = 2))
 #' @export
 xfrvrf <- function(imported, soucnts, codebook = NULL, tol = 0, strict = TRUE) {
-  if (is.null(imported) || !is.atomic(imported)) {
-    .ckstop("xfrvrf", "`imported` must be the imported column, a vector")
-  }
+  .xfargs(imported, codebook)
   strict <- isTRUE(strict)
-  if (!is.null(codebook) && (!is.atomic(codebook) || is.null(names(codebook)) ||
-                               inherits(codebook, c("Date", "POSIXt")))) {
-    stop("xfrvrf: `codebook` must be a named vector (code = label), or NULL.",
-         call. = FALSE)
-  }
   lab <- attr(imported, "labels", exact = TRUE)
   cbok <- if (!is.null(lab) && !is.null(codebook)) {
     .xfcb(lab, codebook, strict)
@@ -399,6 +392,18 @@ print.xfrvrf <- function(x, ...) {
   print(x$marginals)
   if (length(x$reasons)) cat(paste("failed:", x$reasons), sep = "\n")
   invisible(x)
+}
+
+# xfrvrf(): the imported column and the code book refused before any work.
+.xfargs <- function(imported, codebook) {
+  if (is.null(imported) || !is.atomic(imported)) {
+    .ckstop("xfrvrf", "`imported` must be the imported column, a vector")
+  }
+  if (!is.null(codebook) && (!is.atomic(codebook) || is.null(names(codebook)) ||
+                               inherits(codebook, c("Date", "POSIXt")))) {
+    stop("xfrvrf: `codebook` must be a named vector (code = label), or NULL.",
+         call. = FALSE)
+  }
 }
 
 .cq <- function(v) paste0("'", v, "'")

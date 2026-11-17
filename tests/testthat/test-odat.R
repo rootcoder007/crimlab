@@ -6,7 +6,7 @@ test_that("odtab() loads a table as served and keeps it in the cache", {
   odrun(d, {
     to <- getOption("timeout")
     x <- odtab("db1/t1")
-    expect_identical(names(x), c("Case_ID", "offence type", "year"))
+    expect_named(x, c("Case_ID", "offence type", "year"))
     expect_identical(x$year, c(2020L, 2021L))
     expect_identical(getOption("timeout"), to)
     kept <- file.path(tools::R_user_dir("crimlab", "cache"), "db1",
@@ -43,7 +43,7 @@ test_that("odtab() matches columns without regard to case or underscores", {
   d <- odfix()
   odrun(d, {
     x <- odtab("db1/t1", cols = c("YEAR", "caseid", "offence type"))
-    expect_identical(names(x), c("year", "Case_ID", "offence type"))
+    expect_named(x, c("year", "Case_ID", "offence type"))
     expect_identical(x$Case_ID, 1:2)
     errs("odtab", list(
       list("no column `nope`", "db1/t1", cols = "nope"),
@@ -93,7 +93,7 @@ test_that("odls() lists the manifest's tables", {
   gz <- file.path(d, "db1", "t1.csv.gz")
   odrun(d, {
     l <- odls()
-    expect_identical(names(l), c("key", "rows", "bytes", "sha256", "columns"))
+    expect_named(l, c("key", "rows", "bytes", "sha256", "columns"))
     expect_identical(l$key, c("db1/t1", "db1/t2"))
     expect_identical(l$rows, c(2, 1))
     expect_identical(l$bytes, c(file.size(gz), NA))
@@ -261,7 +261,7 @@ test_that("odtab() refuses a ragged file and a count not the manifest's", {
 
 test_that("the manifest reader takes all JSON, of any length", {
   j <- .odjson(r"({"": 1, "a": {"": [2]}})")
-  expect_identical(names(j), c("", "a"))
+  expect_named(j, c("", "a"))
   expect_identical(j[[1L]], 1)
   expect_identical(j$a, stats::setNames(list(list(2)), ""))
   expect_identical(.odjson(r"([{"": [null, {}]}])"),

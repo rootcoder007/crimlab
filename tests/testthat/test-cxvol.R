@@ -19,8 +19,8 @@ test_that("cxvol() gives the descriptives, matching, model and bounds", {
   p <- pyfix()
   r <- cxvol(p, fam = "poisson")$res
   expect_identical(r$n, 600L)
-  expect_equal(r$vm1, mean(p$vm[p$cx == 1]))
-  expect_equal(r$vm0, mean(p$vm[p$cx == 0]))
+  expect_equal(r$vm1, mean(p$vm[p$cx == 1]), tolerance = testthat_tolerance())
+  expect_equal(r$vm0, mean(p$vm[p$cx == 0]), tolerance = testthat_tolerance())
   # one control per complex person-year
   expect_identical(r$nm, 2L * sum(p$cx == 1))
   # the crude ratio is the ratio of the group means
@@ -66,12 +66,13 @@ test_that("cxyoy() gives the rates and their changes", {
   )
   r <- cxyoy(p)
   # year 1: 2 changes, 20 placements, 2 person-years; year 2: 3, 100, 3
-  expect_equal(r$rnp, c(100, 30))
-  expect_equal(r$rpy, c(1000, 1000))
+  expect_equal(r$rnp, c(100, 30), tolerance = testthat_tolerance())
+  expect_equal(r$rpy, c(1000, 1000), tolerance = testthat_tolerance())
   expect_equal(r$share, c(0.4, 0.6))
-  expect_equal(r$dvm, c(NA, 50))
-  expect_equal(r$drnp, c(NA, -70))
-  expect_equal(r$rnplo[1], 1000 * stats::qgamma(0.025, 2) / 20)
+  expect_equal(r$dvm, c(NA, 50), tolerance = testthat_tolerance())
+  expect_equal(r$drnp, c(NA, -70), tolerance = testthat_tolerance())
+  expect_equal(r$rnplo[1], 1000 * stats::qgamma(0.025, 2) / 20,
+               tolerance = testthat_tolerance())
   expect_identical(cxyoy(transform(p, vm = 0))$rnplo, c(0, 0))
 })
 
@@ -148,7 +149,7 @@ test_that("a covariate with one value in a sample is left out", {
   # the estimate is a finite rate ratio
   est <- one$fits[[1L]]$coef
   expect_true(all(is.finite(est$est)))
-  expect_false(any(grepl("gender", est$term)))
+  expect_false(any(grepl("gender", est$term, fixed = TRUE)))
   dm <- cxdml(p, yterm = FALSE, ntree = 20, nfold = 2, seed = 1)
   expect_true(all(is.finite(dm$est)))
   p$age <- "a"

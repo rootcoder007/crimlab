@@ -68,7 +68,7 @@ test_that("otpyr() builds the person-year table from the release", {
     "otpyr",
     list(
       list("no column", a01()[-1]),
-      list("must be named", a01(), cols = c("x")),
+      list("must be named", a01(), cols = "x"),
       list("data frame or a table key", 1:3)
     )
   )
@@ -107,7 +107,8 @@ test_that("otpyr() takes other column names, refuses empty years, prints", {
   )
   expect_output(print(p), "year py  cx  vm")
   # nothing dropped, nothing said of it
-  expect_false(any(grepl("dropped", capture.output(print(otpyr(a01()))))))
+  expect_false(any(grepl("dropped", capture.output(print(otpyr(a01()))),
+                        fixed = TRUE)))
 })
 
 test_that("a flag that is neither yes nor no drops its record everywhere", {
@@ -146,7 +147,7 @@ test_that("every default address of a service is the one of odtab()", {
       vapply(Filter(is.call, as.list(formals(v))), deparse1, "")
     }
   }))
-  expect_identical(unique(d[grepl("://", d, fixed = TRUE)]),
+  expect_identical(unique(grep("://", d, fixed = TRUE, value = TRUE)),
                    deparse1(formals(odtab)$base))
   expect_identical(formals(otpyr)$base, formals(odtab)$base)
 })

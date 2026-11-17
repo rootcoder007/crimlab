@@ -110,7 +110,8 @@ test_that("jntx: the linear form equals a hand fit with the product", {
   expect_equal(j$cond$est[2L], (q1[2] - q1[1]) * (b[1] + b[3] * q2),
                tolerance = 1e-10)
   expect_equal(j$test$stat, (b[3] / h$coef$se[3])^2, tolerance = 1e-10)
-  s <- jntx(d, "crimes", "temp", "o3", fe = "city")
+  expect_warning(s <- jntx(d, "crimes", "temp", "o3", fe = "city"),
+                 "the joint test of 12 restrictions is not computed")
   expect_identical(ncol(s$fit$vcov), 4L + 3L + 12L)
   expect_identical(nrow(s$surf), 225L)
 })
@@ -231,16 +232,19 @@ test_that("ccross: single-day lags and spline controls (Han et al. 2026)", {
   d$pm <- rnorm(nrow(d), 15, 4)
   d$temp <- rnorm(nrow(d), 10, 5)
   d$crimes <- rpois(nrow(d), exp(1 + 0.02 * d$pm))
-  f <- ccross(d, "crimes", "area", "day", lagv = "pm", lag = 1, x = "pm")
+  expect_warning(f <- ccross(d, "crimes", "area", "day", lagv = "pm",
+                             lag = 1, x = "pm"), "fewer than ten clusters")
   # the same fit by hand: pm of the day before, the first day dropped
   e <- d[order(d$area, d$day), ]
   e$pm <- stats::ave(e$pm, e$area, FUN = function(v) c(NA, v[-length(v)]))
   e <- e[!is.na(e$pm), ]
   e$.strat <- paste(e$area, format(e$day, "%Y-%m"), as.POSIXlt(e$day)$wday)
   e$.ym <- format(e$day, "%Y-%m")
-  g <- ppmlfe(e, "crimes", "pm", fe = ".strat", clus = ".ym")
+  expect_warning(g <- ppmlfe(e, "crimes", "pm", fe = ".strat", clus = ".ym"),
+                 "fewer than ten clusters")
   expect_equal(f$coef$est, g$coef$est, tolerance = 1e-10)
-  h <- ccross(d, "crimes", "area", "day", x = "pm", ns = c(temp = 4))
+  expect_warning(h <- ccross(d, "crimes", "area", "day", x = "pm",
+                             ns = c(temp = 4)), "fewer than ten clusters")
   expect_identical(h$coef$term, c("pm", paste0("temp:ns", 1:4)))
   expect_error(ccross(d, "crimes", "area", "day", x = "pm", ns = 3),
                "named by column")
@@ -394,8 +398,10 @@ test_that("ccross with one degree of freedom is the linear term", {
   d$pm <- rnorm(nrow(d), 15, 4)
   d$temp <- rnorm(nrow(d), 10, 5)
   d$crimes <- rpois(nrow(d), exp(1 + 0.02 * d$pm))
-  a <- ccross(d, "crimes", "area", "day", x = "pm", ns = c(temp = 1))
-  b <- ccross(d, "crimes", "area", "day", x = c("pm", "temp"))
+  expect_warning(a <- ccross(d, "crimes", "area", "day", x = "pm",
+                             ns = c(temp = 1)), "fewer than ten clusters")
+  expect_warning(b <- ccross(d, "crimes", "area", "day", x = c("pm", "temp")),
+                 "fewer than ten clusters")
   expect_identical(a$coef$term, c("pm", "temp:ns1"))
   expect_equal(a$coef$est, b$coef$est, tolerance = 1e-12)
 })
