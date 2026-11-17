@@ -4,13 +4,15 @@
 #' confinement records: from the person-year table ([otpyr()]) it gives,
 #' for the years pooled or for each fiscal year, the share of person-years
 #' with complex alert profiles (`cx = 1`), mean placement volatility by
-#' group, the crude Poisson rate ratio, the one-to-one nearest-neighbour
-#' propensity matching without replacement of each complex person-year to
-#' a control on age group, gender and fiscal year ([cbatt()], in
-#' 'MatchIt''s default order), the count model on the matched frame with a
-#' random intercept per regional cluster ([cntmix()]), and the bounds on the
-#' average effect on the matched frame with no assumption and under
-#' monotone treatment response and selection ([mtrbnd()]).
+#' group, the crude Poisson rate ratio (the ratio of the two means,
+#' infinite when every count without complex alerts is 0), the one-to-one
+#' nearest-neighbour propensity matching without replacement of each
+#' complex person-year to a control on age group, gender and fiscal year
+#' ([cbatt()], in 'MatchIt''s default order), the count model on the
+#' matched frame with a random intercept per regional cluster
+#' ([cntmix()]), and the bounds on the average effect on the matched
+#' frame with no assumption and under monotone treatment response and
+#' selection ([mtrbnd()]).
 #'
 #' A single fiscal year cannot identify a year term: `by = "pool"` with one
 #' year and `yterm = TRUE` is refused; `by = "year"` drops the term in each
@@ -29,7 +31,9 @@
 #'   `vm1m`, `vm0m`, `irr`, `lo`, `hi`, `est`, `se`, `p`, `ncl`, `fam`,
 #'   `mlo`, `mhi`, `bhi`: the Manski bounds and the upper bound under both
 #'   monotonicity assumptions, whose lower bound is 0; `ymax`, the largest
-#'   count on the matched frame, the range used by the bounds); `fits`, the
+#'   count on the matched frame, the range used by the bounds; `note`, why
+#'   the rate ratio has no estimate when it has none, such as a group whose
+#'   counts on the matched frame are all 0, else `""`); `fits`, the
 #'   [cntmix()] fits; `by`; `yterm`.
 #' @inherit plcvol references
 #' @examples
@@ -105,6 +109,10 @@ print.cxvol <- function(x, ...) {
     "selection (below 0, the data contradict the two assumptions)\n",
     sep = ""
   )
+  nt <- nzchar(r$note)
+  if (any(nt)) {
+    cat(paste0("note (", r$sample[nt], "): ", r$note[nt], "\n"), sep = "")
+  }
   invisible(x)
 }
 
@@ -191,7 +199,7 @@ print.cxdml <- function(x, ...) {
 #'
 #' @inheritParams cxvol
 #' @param level The confidence level of the gamma intervals of both rates:
-#'   one number from 0 to 1.
+#'   one number strictly between 0 and 1.
 #' @return A data frame of class `cxyoy`, one row per fiscal year: `year`,
 #'   `vm`, `np`, `py`, `rnp`, `rnplo`, `rnphi` (per 1,000 placements),
 #'   `rpy`, `rpylo`, `rpyhi` (per 1,000 person-years), `share`, `dvm`,
@@ -204,12 +212,13 @@ print.cxdml <- function(x, ...) {
 #' @export
 cxyoy <- function(x, level = 0.95, ...) {
   fn <- "cxyoy"
-  level <- .cknum(level, "level", fn, min = 0, max = 1)
+  level <- .xpopen(level, "level", fn)
   p <- if (is.data.frame(x) && all(c("year", "vm", "np") %in% names(x))) {
     x
   } else {
     .clas(fn, otpyr(x, ...))
   }
+  p <- .cyck(p, fn)
   y <- factor(p$year, sort(unique(p$year)))
   vm <- as.vector(tapply(p$vm, y, sum))
   np <- as.vector(tapply(p$np, y, sum))
@@ -244,6 +253,23 @@ print.cxyoy <- function(x, ...) {
   invisible(x)
 }
 
+# cxyoy()'s table checked: a person-year or more, every year given, the
+# counts of changes and of placements whole numbers from 0, and each
+# year with a placement (the denominator of its rate).
+.cyck <- function(p, fn) {
+  if (!nrow(p) || anyNA(p$year)) {
+    .ckstop(fn, "`x` must have a person-year or more, each with its `year`")
+  }
+  p$vm <- .cknum(p$vm, "vm", fn, scalar = FALSE, min = 0, whole = TRUE)
+  p$np <- .cknum(p$np, "np", fn, scalar = FALSE, min = 0, whole = TRUE)
+  np <- tapply(p$np, p$year, sum)
+  if (any(np == 0)) {
+    .ckstop(fn, "year %s has no placement: no rate per placement",
+            names(np)[np == 0][1L])
+  }
+  p
+}
+
 # The person-year table, built when x is not one; its columns checked.
 .cxpy <- function(x, fn, ...) {
   p <- if (
@@ -265,6 +291,13 @@ print.cxyoy <- function(x, ...) {
       toString(need)
     )
   }
+  if (is.logical(p$cx)) {
+    p$cx <- as.numeric(p$cx)
+  }
+  if (!is.numeric(p$cx) || !all(p$cx %in% 0:1)) {
+    .ckstop(fn, "`cx` must be 0 or 1 (or TRUE or FALSE) in every person-year")
+  }
+  p$vm <- .cknum(p$vm, "vm", fn, scalar = FALSE, min = 0, whole = TRUE)
   p
 }
 
@@ -328,7 +361,6 @@ print.cxyoy <- function(x, ...) {
 
 # The row of one sample: descriptives, crude ratio, model and bounds.
 .cxrow <- function(d, md, fit, nm, fn) {
-  cr <- .clas(fn, cntreg(d$vm, factor(d$cx, 0:1)))$irr
   z <- factor(md$cx, 0:1)
   b0 <- .clas(fn, mtrbnd(md$vm, z, 0, max(md$vm), "none"))$bnd
   b2 <- .clas(fn, mtrbnd(md$vm, z, 0, max(md$vm), "both"))$bnd
@@ -341,7 +373,7 @@ print.cxyoy <- function(x, ...) {
     vm = mean(d$vm),
     vm1 = mean(d$vm[d$cx == 1]),
     vm0 = mean(d$vm[d$cx == 0]),
-    crude = cr$irr[cr$fit == "pois"][1L],
+    crude = mean(d$vm[d$cx == 1]) / mean(d$vm[d$cx == 0]),
     nm = nrow(md),
     vm1m = mean(md$vm[md$cx == 1]),
     vm0m = mean(md$vm[md$cx == 0]),
@@ -352,6 +384,8 @@ print.cxyoy <- function(x, ...) {
     mhi = b0$atehi[2L],
     bhi = b2$atehi[2L],
     ymax = max(md$vm),
+    note = paste(grep("(^|, )cx(, |: )", fit$notes, value = TRUE),
+                 collapse = "; "),
     row.names = NULL
   )
 }
@@ -384,8 +418,7 @@ print.cxyoy <- function(x, ...) {
     )
   }
   X <- .cxdes(d[c("gender", "age", "rc", if (yt) "year")], nm, fn)$X
-  set.seed(seed)
-  fold <- sample(rep_len(seq_len(nfold), nrow(d)))
+  fold <- .clseed(seed, sample(rep_len(seq_len(nfold), nrow(d))))
   a <- .clas(
     fn,
     dmlx(

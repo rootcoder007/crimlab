@@ -25,7 +25,9 @@ An object of class \code{cxvol}, a list: \code{res}, one row per sample
 \code{vm1m}, \code{vm0m}, \code{irr}, \code{lo}, \code{hi}, \code{est}, \code{se}, \code{p}, \code{ncl}, \code{fam},
 \code{mlo}, \code{mhi}, \code{bhi}: the Manski bounds and the upper bound under both
 monotonicity assumptions, whose lower bound is 0; \code{ymax}, the largest
-count on the matched frame, the range used by the bounds); \code{fits}, the
+count on the matched frame, the range used by the bounds; \code{note}, why
+the rate ratio has no estimate when it has none, such as a group whose
+counts on the matched frame are all 0, else \code{""}); \code{fits}, the
 \code{\link[=cntmix]{cntmix()}} fits; \code{by}; \code{yterm}.
 }
 \description{
@@ -33,13 +35,15 @@ The analysis of Ruhela (2026) on any release of Ontario's restrictive
 confinement records: from the person-year table (\code{\link[=otpyr]{otpyr()}}) it gives,
 for the years pooled or for each fiscal year, the share of person-years
 with complex alert profiles (\code{cx = 1}), mean placement volatility by
-group, the crude Poisson rate ratio, the one-to-one nearest-neighbour
-propensity matching without replacement of each complex person-year to
-a control on age group, gender and fiscal year (\code{\link[=cbatt]{cbatt()}}, in
-'MatchIt''s default order), the count model on the matched frame with a
-random intercept per regional cluster (\code{\link[=cntmix]{cntmix()}}), and the bounds on the
-average effect on the matched frame with no assumption and under
-monotone treatment response and selection (\code{\link[=mtrbnd]{mtrbnd()}}).
+group, the crude Poisson rate ratio (the ratio of the two means,
+infinite when every count without complex alerts is 0), the one-to-one
+nearest-neighbour propensity matching without replacement of each
+complex person-year to a control on age group, gender and fiscal year
+(\code{\link[=cbatt]{cbatt()}}, in 'MatchIt''s default order), the count model on the
+matched frame with a random intercept per regional cluster
+(\code{\link[=cntmix]{cntmix()}}), and the bounds on the average effect on the matched
+frame with no assumption and under monotone treatment response and
+selection (\code{\link[=mtrbnd]{mtrbnd()}}).
 }
 \details{
 A single fiscal year cannot identify a year term: \code{by = "pool"} with one

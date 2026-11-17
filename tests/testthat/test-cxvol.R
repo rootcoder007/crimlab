@@ -156,3 +156,50 @@ test_that("a covariate with one value in a sample is left out", {
     list("one value of every covariate", p, yterm = FALSE, fam = "poisson")
   ))
 })
+
+test_that("cxvol() says when cx separates the counts, with NA inference", {
+  p <- pyfix(n = 300)
+  p$vm <- 3 * p$cx
+  x <- cxvol(p, yterm = FALSE, fam = "poisson")
+  r <- x$res
+  expect_identical(r$crude, Inf)
+  expect_identical(c(r$irr, r$se, r$p, r$lo, r$hi), rep(NA_real_, 5))
+  expect_identical(r$note, paste("cx: every count where it is 0 is 0, so",
+                                 "its rate ratio is infinite"))
+  expect_output(print(x), "note \\(2025-2026\\): cx: every count")
+})
+
+test_that("cxvol() takes cx as TRUE or FALSE and refuses other values", {
+  p <- pyfix(n = 100)
+  expect_identical(.cxpy(transform(p, cx = cx == 1), "cxvol")$cx,
+                   as.numeric(p$cx))
+  errs("cxvol", list(
+    list("`cx` must be 0 or 1 \\(or TRUE or FALSE\\)", transform(p, cx = 2)),
+    list("`cx` must be 0 or 1", transform(p, cx = "a")),
+    list("`vm` must be at least 0", transform(p, vm = -1))
+  ))
+})
+
+test_that("cxyoy() checks its table and its level", {
+  ok <- data.frame(year = c(1, 2), vm = c(1, 2), np = c(3, 3))
+  errs("cxyoy", list(
+    list("`np` must be at least 0", transform(ok, np = c(-1, 3))),
+    list("`vm` must be finite", transform(ok, vm = c(NA, 2))),
+    list("`vm` must be numeric", transform(ok, vm = c("a", "b"))),
+    list("`vm` must be a whole number", transform(ok, vm = c(0.5, 2))),
+    list("each with its `year`", transform(ok, year = c(1, NA))),
+    list("a person-year or more", ok[0, ]),
+    list("year 2 has no placement", transform(ok, np = c(3, 0))),
+    list("strictly between 0 and 1", ok, level = 0),
+    list("strictly between 0 and 1", ok, level = 1)
+  ))
+})
+
+test_that("cxdml() leaves the session's random stream as it was", {
+  p <- pyfix(n = 200)
+  set.seed(11)
+  s <- .Random.seed
+  a <- cxdml(p, lrn = "glm", seed = 3e9)
+  expect_identical(.Random.seed, s)
+  expect_identical(cxdml(p, lrn = "glm", seed = 3e9), a)
+})

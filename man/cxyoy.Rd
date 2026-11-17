@@ -11,7 +11,7 @@ cxyoy(x, level = 0.95, ...)
 data frame of the release or a table key).}
 
 \item{level}{The confidence level of the gamma intervals of both rates:
-one number from 0 to 1.}
+one number strictly between 0 and 1.}
 
 \item{...}{Passed to \code{\link[=otpyr]{otpyr()}} when \code{x} is not a person-year table.}
 }
