@@ -235,3 +235,22 @@ test_that("every weights function answers one valid call in its shape", {
                      info = fns[k])
   }
 })
+
+test_that("locgi() depends on the values through their deviations only", {
+  set.seed(8)
+  n <- 40
+  p <- cbind(runif(n), runif(n))
+  x <- p[, 1] * 2 + rnorm(n)
+  sb <- spwt(p, type = "knn", k = 4, style = "raw")
+  for (st in c(TRUE, FALSE)) {
+    z <- locgi(x, sb, star = st)
+    for (off in c(1e4, 1e8, 1e9)) {
+      expect_equal(locgi(x + off, sb, star = st), z, tolerance = 1e-6,
+                   info = format(off))
+    }
+    for (k in c(1e-200, 1e6, 1e200)) {
+      expect_equal(locgi(x * k, sb, star = st), z, tolerance = 1e-10,
+                   info = format(k))
+    }
+  }
+})

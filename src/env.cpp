@@ -193,13 +193,42 @@ extern "C" int clab_olsdx(const double *y, const double *x, int n, int p, int ic
   for (std::size_t q = 0; q < sm * sp; ++q) {
     if (!std::isfinite(at[q])) return CLAB_EDOM;
   }
-  // the design: the constant (with icpt), then the columns of x
+  // the design: the constant (with icpt), then the columns of x, centred
+  // (with icpt; y too) and scaled by a power of 2 (exact): the fit is
+  // equivariant to both, and the cross products of uncentred columns lose
+  // the digits of their spread (x + 1e6 moved the slope by 3e-4, and x +
+  // 1e7 was taken for collinear where lm() fits). b and xi are those of
+  // the centred, scaled columns; ba and the variance vc are mapped back.
+  std::vector<double> cx(sp, 0.0), sc(sp, 1.0), yc(sn);
+  double cy = 0.0;
+  for (std::size_t i = 0; i < sn && icpt; ++i) cy += (y[i] - cy) / static_cast<double>(i + 1);
+  for (std::size_t j = 0; j < sp; ++j) {
+    for (std::size_t i = 0; i < sn && icpt; ++i) cx[j] += (x[j * sn + i] - cx[j]) / static_cast<double>(i + 1);
+    double big = 0.0;
+    for (std::size_t i = 0; i < sn; ++i) big = std::fmax(big, std::fabs(x[j * sn + i] - cx[j]));
+    int ex = 0;
+    std::frexp(big, &ex);
+    if (big > 0.0) sc[j] = std::ldexp(1.0, ex);
+  }
   std::vector<double> d(sn * sk), b(sk), xi(sk * sk), r(sn), wk(sk * sk + sk);
+  for (std::size_t i = 0; i < sn; ++i) yc[i] = y[i] - cy;
   for (std::size_t i = 0; i < sn && icpt; ++i) d[i] = 1.0;
-  for (std::size_t q = 0; q < sn * sp; ++q) d[c0 * sn + q] = x[q];
-  if (pev::ols(d.data(), y, n, k, nullptr, b.data(), xi.data(), r.data(), wk.data()) !=
+  for (std::size_t j = 0; j < sp; ++j) {
+    for (std::size_t i = 0; i < sn; ++i) d[(c0 + j) * sn + i] = (x[j * sn + i] - cx[j]) / sc[j];
+  }
+  if (pev::ols(d.data(), yc.data(), n, k, nullptr, b.data(), xi.data(), r.data(), wk.data()) !=
       CLAB_OK) {
     return CLAB_EDOM;
+  }
+  // back to the columns as given: beta = A b (+ cy in the constant), A
+  // the identity but 1 / sc on the slopes and -cx / sc in the constant's
+  // row; vc = A (s2 xi) A'
+  std::vector<double> am(sk * sk, 0.0), ba(sk);
+  for (std::size_t j = 0; j < sk; ++j) am[j * sk + j] = j < c0 ? 1.0 : 1.0 / sc[j - c0];
+  for (std::size_t j = 0; j < sp && icpt; ++j) am[(c0 + j) * sk] = -cx[j] / sc[j];
+  for (std::size_t a = 0; a < sk; ++a) {
+    ba[a] = a < c0 ? cy : 0.0;
+    for (std::size_t c = 0; c < sk; ++c) ba[a] += am[c * sk + a] * b[c];
   }
   double rss = 0.0, my = 0.0, tss = 0.0, sy = 0.0;
   for (std::size_t i = 0; i < sn; ++i) {
@@ -213,7 +242,15 @@ extern "C" int clab_olsdx(const double *y, const double *x, int n, int p, int ic
   sy = std::sqrt(sy / (n - 1));
   const double df2 = n - k, s2 = rss / df2, s = std::sqrt(s2);
   const double tq = clab_qt(1.0 - (1.0 - lv) / 2.0, df2, 1);
-  for (std::size_t q = 0; q < sk * sk; ++q) vc[q] = s2 * xi[q];
+  for (std::size_t a = 0; a < sk; ++a) {
+    for (std::size_t c = 0; c < sk; ++c) {
+      double v = 0.0;
+      for (std::size_t e = 0; e < sk; ++e) {
+        for (std::size_t f = 0; f < sk; ++f) v += am[e * sk + a] * xi[f * sk + e] * am[f * sk + c];
+      }
+      vc[c * sk + a] = s2 * v;
+    }
+  }
   // the means and standard deviations of the columns of x
   std::vector<double> mx(sp, 0.0), sx(sp, 0.0);
   for (std::size_t j = 0; j < sp; ++j) {
@@ -227,7 +264,7 @@ extern "C" int clab_olsdx(const double *y, const double *x, int n, int p, int ic
   const bool vok = clab_vif(x, n, p, vf.data(), vw.data()) == CLAB_OK;
   // coefficients: est, se, t, p, lo, hi, beta, tol, vif (k x 9)
   for (std::size_t j = 0; j < sk; ++j) {
-    const double e = b[j], se = std::sqrt(vc[j * sk + j]), t = e / se;
+    const double e = ba[j], se = std::sqrt(vc[j * sk + j]), t = e / se;
     co[j] = e;
     co[sk + j] = se;
     co[2 * sk + j] = t;
@@ -289,13 +326,15 @@ extern "C" int clab_olsdx(const double *y, const double *x, int n, int p, int ic
   // value with pnew) and interval (m x 4)
   std::vector<double> x0(sk);
   for (std::size_t a = 0; a < sm; ++a) {
+    // in the centred, scaled columns, as fitted
     if (icpt) x0[0] = 1.0;
-    for (std::size_t j = 0; j < sp; ++j) x0[c0 + j] = at[j * sm + a];
-    double e = 0.0, v = pnew ? s2 : 0.0;
+    for (std::size_t j = 0; j < sp; ++j) x0[c0 + j] = (at[j * sm + a] - cx[j]) / sc[j];
+    double e = cy, v = 0.0;
     for (std::size_t j = 0; j < sk; ++j) {
       e += x0[j] * b[j];
-      for (std::size_t c = 0; c < sk; ++c) v += x0[j] * vc[c * sk + j] * x0[c];
+      for (std::size_t c = 0; c < sk; ++c) v += x0[j] * xi[c * sk + j] * x0[c];
     }
+    v = s2 * (v + (pnew ? 1.0 : 0.0));
     pr[a] = e;
     pr[sm + a] = std::sqrt(v);
     pr[2 * sm + a] = e - tq * pr[sm + a];

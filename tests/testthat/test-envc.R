@@ -239,3 +239,23 @@ test_that("print and plot return their input and what they drew", {
   expect_identical(g$slopes$est, f$slopes$slope)
   expect_error(plot(structure(list(), class = "fepnl")), "not a complete")
 })
+
+test_that("olsdx() fits values large next to their spread as lm() does", {
+  set.seed(8)
+  x <- 2 * runif(40) + rnorm(40)
+  y <- x + rnorm(40)
+  b <- olsdx(y, cbind(x))
+  # x + 1e9 rounds x itself to 1e-7: the offsets that keep its digits
+  for (off in c(1e6, 1e7)) {
+    o <- olsdx(y, cbind(x = x + off), at = c(x = off + 1))
+    l <- stats::lm(y ~ I(x + off))
+    expect_equal(o$coef$est[2L], b$coef$est[2L], tolerance = 1e-9,
+                 info = format(off))
+    expect_equal(o$coef$est, unname(stats::coef(l)), tolerance = 1e-7,
+                 info = format(off))
+    expect_equal(o$coef$se[2L], b$coef$se[2L], tolerance = 1e-9,
+                 info = format(off))
+    expect_equal(o$pred$fit, sum(stats::coef(l) * c(1, off + 1)),
+                 tolerance = 1e-9, info = format(off))
+  }
+})

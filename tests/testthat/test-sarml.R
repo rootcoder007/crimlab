@@ -265,3 +265,28 @@ test_that("sarml() refuses an x that is not numbers in words", {
     expect_error(sarml(1:5, x, diag(5)), m)
   }
 })
+
+test_that("sarml() fits values large next to their spread", {
+  set.seed(4)
+  n <- 50
+  p <- cbind(runif(n), runif(n))
+  w <- spwt(p, k = 4)
+  x <- rnorm(n)
+  y <- 1 + 0.5 * x + rnorm(n)
+  for (m in c("lag", "error")) {
+    a <- sarml(y, x, w, model = m)
+    for (off in c(1e6, 1e8)) {
+      b <- sarml(y, x + off, w, model = m)
+      expect_equal(b$coef$est[-1L], a$coef$est[-1L], tolerance = 1e-6,
+                   info = paste(m, off))
+      expect_equal(b$coef$se[-1L], a$coef$se[-1L], tolerance = 1e-6,
+                   info = paste(m, off))
+    }
+  }
+})
+
+test_that("spill() refuses a fit stripped of its names in words", {
+  d <- sdat()
+  f <- sarml(d$y, d$x, d$w)
+  expect_error(spill(unname(f)), "^spill: `fit` must be a sarml\\(\\) fit")
+})
