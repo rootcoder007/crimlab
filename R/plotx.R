@@ -355,7 +355,8 @@ plotgain <- function(x, grp = NULL, ..., main = NULL, col = NULL,
 #' plotbump(d$v, d$year, d$area)
 #' @export
 plotcal <- function(x, y, ..., main = NULL, col = NULL, pal = NULL) {
-  dt <- tryCatch(as.Date(x), error = function(e) NULL)
+  # before R 4.3 a number needs the origin given; text and dates ignore it
+  dt <- tryCatch(as.Date(x, origin = "1970-01-01"), error = function(e) NULL)
   if (is.null(dt) || !is.numeric(y) || length(dt) != length(y) ||
         anyNA(dt[!is.na(x)])) {
     stop("plotcal: `x` must be dates, one per value of the numbers `y`.",
