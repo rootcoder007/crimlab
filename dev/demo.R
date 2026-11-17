@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 # The one-minute demo behind man/figures/demo.svg: a veil-of-darkness table,
 # a reported odds ratio checked against every labelling of its table, a
-# clearance paradox, a categorical audit, a posterior from a likelihood
+# clearance paradox, a categorical audit, a cross-table with an interval for
+# its association, placement volatility, a posterior from a likelihood
 # ratio, hot spots, spatial autocorrelation, the command-line program, and
 # the theorems behind a function. Every command really runs in this R
 # session; only the prompt and the typing are paced for reading.
@@ -82,6 +83,12 @@ run("b <- list(clr = c(violent = 150, property = 105), rec = c(300, 700))", 0.3)
 run("round(clrsmp(a$clr, a$rec, b$clr, b$rec)$total, 3)", 3)
 say("what would an analysis make of this column?")
 run("catchk(data.frame(sex = c(\"Male\", \"male\", \"Female\", \"Female\", NA)), nmin = 2)", 3)
+say("use of force by group: the test, and Cramer's V with its interval")
+run("ctabx(rbind(yes = c(A = 30, B = 12), no = c(A = 10, B = 28)))", 3)
+say("moves between regions within a person-year: placement volatility")
+run("from <- c(\"East\", \"East\", \"West\", \"North\", \"North\")", 0.3)
+run("to <- c(\"East\", \"West\", \"West\", \"North\", \"East\")", 0.3)
+run("plcvol(from, to, id = c(1, 1, 1, 2, 2))", 3)
 say("a likelihood ratio of 1000 on prior odds of 1 in 10,000: the posterior probability")
 run("lrpost(1000, prior = 1 / 10000)", 2)
 say("hot spots: nearest-neighbour hierarchical clusters of 120 incidents")
