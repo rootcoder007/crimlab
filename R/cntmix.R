@@ -96,6 +96,28 @@ cntmix <- function(
   .cmout(fit, X, y, g, level)
 }
 
+#' @export
+print.cntmix <- function(x, ...) {
+  cat(
+    "cntmix: ",
+    x$fam,
+    " counts with a random intercept per cluster\n",
+    x$n,
+    " counts in ",
+    x$ngrp,
+    " clusters; sigma ",
+    format(x$sigma, digits = 4),
+    if (!is.na(x$theta)) paste0(", theta ", format(x$theta, digits = 4)),
+    "; log-likelihood ",
+    format(x$loglik, digits = 7),
+    if (x$conv != 0) " (the optimiser did not converge)",
+    "\n",
+    sep = ""
+  )
+  print(x$coef, row.names = FALSE, digits = 4)
+  invisible(x)
+}
+
 # The design matrix with an intercept, its columns named.
 .cmx <- function(x, n, fn) {
   if (is.matrix(x) && is.numeric(x)) {
@@ -233,26 +255,4 @@ cntmix <- function(
     ),
     class = "cntmix"
   )
-}
-
-#' @export
-print.cntmix <- function(x, ...) {
-  cat(
-    "cntmix: ",
-    x$fam,
-    " counts with a random intercept per cluster\n",
-    x$n,
-    " counts in ",
-    x$ngrp,
-    " clusters; sigma ",
-    format(x$sigma, digits = 4),
-    if (!is.na(x$theta)) paste0(", theta ", format(x$theta, digits = 4)),
-    "; log-likelihood ",
-    format(x$loglik, digits = 7),
-    if (x$conv != 0) " (the optimiser did not converge)",
-    "\n",
-    sep = ""
-  )
-  print(x$coef, row.names = FALSE, digits = 4)
-  invisible(x)
 }

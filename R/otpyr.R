@@ -104,6 +104,31 @@ otpyr <- function(
   )
 }
 
+#' @export
+print.otpyr <- function(x, ...) {
+  yrs <- attr(x, "years")
+  cat(
+    "otpyr: ",
+    nrow(x),
+    " person-years, fiscal years ",
+    paste(range(yrs), collapse = "-"),
+    " (",
+    length(yrs),
+    ")",
+    if (attr(x, "drop") > 0) sprintf(", %d rows dropped", attr(x, "drop")),
+    "\n",
+    sep = ""
+  )
+  tab <- data.frame(
+    year = yrs,
+    py = as.vector(table(factor(x$year, yrs))),
+    cx = as.vector(tapply(x$cx, factor(x$year, yrs), mean)),
+    vm = as.vector(tapply(x$vm, factor(x$year, yrs), mean))
+  )
+  print(tab, row.names = FALSE, digits = 4)
+  invisible(x)
+}
+
 # The column names, defaults overridden by cols.
 .otcn <- function(cols, fn) {
   cn <- c(
@@ -142,29 +167,4 @@ otpyr <- function(
     "",
     USE.NAMES = FALSE
   )
-}
-
-#' @export
-print.otpyr <- function(x, ...) {
-  yrs <- attr(x, "years")
-  cat(
-    "otpyr: ",
-    nrow(x),
-    " person-years, fiscal years ",
-    paste(range(yrs), collapse = "-"),
-    " (",
-    length(yrs),
-    ")",
-    if (attr(x, "drop") > 0) sprintf(", %d rows dropped", attr(x, "drop")),
-    "\n",
-    sep = ""
-  )
-  tab <- data.frame(
-    year = yrs,
-    py = as.vector(table(factor(x$year, yrs))),
-    cx = as.vector(tapply(x$cx, factor(x$year, yrs), mean)),
-    vm = as.vector(tapply(x$vm, factor(x$year, yrs), mean))
-  )
-  print(tab, row.names = FALSE, digits = 4)
-  invisible(x)
 }

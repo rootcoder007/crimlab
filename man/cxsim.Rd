@@ -32,7 +32,8 @@ intercepts.}
 
 \item{conf}{0, or the effect of the unobserved trait.}
 
-\item{seed}{The seed.}
+\item{seed}{The seed of the whole run, set once before the first table is
+drawn: one whole number.}
 }
 \value{
 An object of class \code{cxsim}, a list: \code{res}, one row per estimator

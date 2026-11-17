@@ -70,6 +70,180 @@ cxvol <- function(
   )
 }
 
+#' @export
+print.cxvol <- function(x, ...) {
+  cat(
+    "cxvol: alert complexity (cx) and placement volatility (vm), ",
+    if (x$by == "pool") "years pooled" else "each fiscal year (no year term)",
+    if (x$by == "pool" && !x$yterm) ", no year term",
+    "\n",
+    sep = ""
+  )
+  r <- x$res
+  print(
+    data.frame(
+      sample = r$sample,
+      n = r$n,
+      cx = r$share,
+      vm1 = r$vm1,
+      vm0 = r$vm0,
+      crude = r$crude,
+      matched = r$nm,
+      irr = r$irr,
+      lo = r$lo,
+      hi = r$hi,
+      p = signif(r$p, 3),
+      bound = r$bhi
+    ),
+    row.names = FALSE,
+    digits = 4
+  )
+  cat(
+    "irr: rate ratio of the matched count model (",
+    r$fam[1L],
+    "); bound: upper end of [0, bound] under monotone response and\n",
+    "selection (below 0, the data contradict the two assumptions)\n",
+    sep = ""
+  )
+  invisible(x)
+}
+
+#' Double machine learning of the effect of alert complexity
+#'
+#' The interactive regression model of Chernozhukov et al. (2018) for the
+#' effect of complex alert profiles (`cx`) on placement volatility (`vm`)
+#' on the person-year table, by [dmlx()]: random forests (or another
+#' learner of [dmlx()]) for the outcome regressions and the propensity,
+#' `nfold`-fold cross-fitting, propensities kept within `trim` of 0 and 1,
+#' covariates gender, age group, regional cluster and (pooled, with
+#' `yterm`) fiscal year. Both the average effect (ATE) and the effect on
+#' the treated (ATTE) are given, from one set of cross-fitted nuisances.
+#' The same refusals as [cxvol()] apply.
+#'
+#' @inheritParams cxvol
+#' @param lrn The learner of [dmlx()], for both nuisances.
+#' @param ntree The trees of a forest.
+#' @param nfold The folds of the cross-fitting: a whole number from 2.
+#' @param trim Propensities are kept within `trim` of 0 and 1.
+#' @param seed The seed of the folds and of the learners.
+#' @return An object of class `cxdml`: a data frame with one row per sample
+#'   and estimand (`sample`, `n`, `estimand`, `est`, `se`, `lo`, `hi`).
+#' @references Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E.,
+#'   Hansen, C., Newey, W. and Robins, J. (2018). Double/debiased machine
+#'   learning for treatment and structural parameters. *The Econometrics
+#'   Journal*, 21(1), C1-C68. \doi{10.1111/ectj.12097}
+#' @examples
+#' set.seed(5)
+#' n <- 400
+#' p <- data.frame(year = sample(2025:2026, n, TRUE),
+#'                 gender = sample(c("Male", "Female"), n, TRUE),
+#'                 age = sample(c("18 to 24", "25 to 49"), n, TRUE),
+#'                 rc = sample(c("A", "B"), n, TRUE), cx = rbinom(n, 1, 0.3))
+#' p$vm <- rpois(n, exp(-1.5 + 0.4 * p$cx))
+#' cxdml(p, lrn = "glm")
+#' @export
+cxdml <- function(
+  x,
+  by = c("pool", "year"),
+  yterm = TRUE,
+  lrn = "forest",
+  ntree = 500,
+  nfold = 3,
+  trim = 0.01,
+  seed = 1,
+  ...
+) {
+  fn <- "cxdml"
+  by <- .ckmarg("by", fn)
+  yterm <- .ckflag(yterm, "yterm", fn)
+  nfold <- .cknum(nfold, "nfold", fn, min = 2, whole = TRUE)
+  seed <- .ckseed(seed, "seed", fn)
+  s <- .cxsplit(.cxpy(x, fn, ...), by, yterm, fn)
+  out <- do.call(
+    rbind,
+    lapply(names(s), function(nm) {
+      .cxdone(s[[nm]]$d, s[[nm]]$yt, nm, lrn, ntree, nfold, trim, seed, fn)
+    })
+  )
+  structure(out, class = c("cxdml", "data.frame"))
+}
+
+#' @export
+print.cxdml <- function(x, ...) {
+  cat("cxdml: interactive model, effect of cx on vm (additive scale)\n")
+  print(as.data.frame(unclass(x)), row.names = FALSE, digits = 4)
+  invisible(x)
+}
+
+#' Placement volatility events by fiscal year
+#'
+#' The year-over-year table of placement volatility (Ruhela 2026,
+#' Appendix E, Table E15) from the person-year table: for each fiscal year
+#' the regional changes (`vm` summed), placements, person-years, the rates
+#' of changes per 1,000 placements and per 1,000 person-years with exact
+#' Poisson intervals, each year's share of all changes, and the percent
+#' changes from the previous year of the count and of both rates. The rate
+#' intervals are `qgamma(a/2, n)` to `qgamma(1 - a/2, n + 1)` over the
+#' exposure, so a count of 0 has lower limit 0.
+#'
+#' The two rates can disagree in direction: placements per person-year
+#' move too, and the placement denominator absorbs their growth.
+#'
+#' @inheritParams cxvol
+#' @param level The confidence level of the gamma intervals of both rates:
+#'   one number from 0 to 1.
+#' @return A data frame of class `cxyoy`, one row per fiscal year: `year`,
+#'   `vm`, `np`, `py`, `rnp`, `rnplo`, `rnphi` (per 1,000 placements),
+#'   `rpy`, `rpylo`, `rpyhi` (per 1,000 person-years), `share`, `dvm`,
+#'   `drnp`, `drpy` (percent changes from the previous year).
+#' @inherit plcvol references
+#' @examples
+#' p <- data.frame(year = rep(2024:2026, c(50, 60, 70)), vm = rpois(180, 0.2),
+#'                 np = rpois(180, 20) + 1)
+#' cxyoy(p)
+#' @export
+cxyoy <- function(x, level = 0.95, ...) {
+  fn <- "cxyoy"
+  level <- .cknum(level, "level", fn, min = 0, max = 1)
+  p <- if (is.data.frame(x) && all(c("year", "vm", "np") %in% names(x))) {
+    x
+  } else {
+    .clas(fn, otpyr(x, ...))
+  }
+  y <- factor(p$year, sort(unique(p$year)))
+  vm <- as.vector(tapply(p$vm, y, sum))
+  np <- as.vector(tapply(p$np, y, sum))
+  py <- as.vector(table(y))
+  a <- (1 - level) / 2
+  lo <- ifelse(vm == 0, 0, stats::qgamma(a, vm))
+  hi <- stats::qgamma(1 - a, vm + 1)
+  pc <- function(v) c(NA, 100 * (v[-1L] / v[-length(v)] - 1))
+  out <- data.frame(
+    year = levels(y),
+    vm = vm,
+    np = np,
+    py = py,
+    rnp = 1000 * vm / np,
+    rnplo = 1000 * lo / np,
+    rnphi = 1000 * hi / np,
+    rpy = 1000 * vm / py,
+    rpylo = 1000 * lo / py,
+    rpyhi = 1000 * hi / py,
+    share = vm / sum(vm),
+    dvm = pc(vm),
+    drnp = pc(vm / np),
+    drpy = pc(vm / py)
+  )
+  structure(out, class = c("cxyoy", "data.frame"))
+}
+
+#' @export
+print.cxyoy <- function(x, ...) {
+  cat("cxyoy: regional changes per fiscal year\n")
+  print(as.data.frame(unclass(x)), row.names = FALSE, digits = 4)
+  invisible(x)
+}
+
 # The person-year table, built when x is not one; its columns checked.
 .cxpy <- function(x, fn, ...) {
   p <- if (
@@ -182,104 +356,6 @@ cxvol <- function(
   )
 }
 
-#' @export
-print.cxvol <- function(x, ...) {
-  cat(
-    "cxvol: alert complexity (cx) and placement volatility (vm), ",
-    if (x$by == "pool") "years pooled" else "each fiscal year (no year term)",
-    if (x$by == "pool" && !x$yterm) ", no year term",
-    "\n",
-    sep = ""
-  )
-  r <- x$res
-  print(
-    data.frame(
-      sample = r$sample,
-      n = r$n,
-      cx = r$share,
-      vm1 = r$vm1,
-      vm0 = r$vm0,
-      crude = r$crude,
-      matched = r$nm,
-      irr = r$irr,
-      lo = r$lo,
-      hi = r$hi,
-      p = signif(r$p, 3),
-      bound = r$bhi
-    ),
-    row.names = FALSE,
-    digits = 4
-  )
-  cat(
-    "irr: rate ratio of the matched count model (",
-    r$fam[1L],
-    "); bound: upper end of [0, bound] under monotone response and\n",
-    "selection (below 0, the data contradict the two assumptions)\n",
-    sep = ""
-  )
-  invisible(x)
-}
-
-#' Double machine learning of the effect of alert complexity
-#'
-#' The interactive regression model of Chernozhukov et al. (2018) for the
-#' effect of complex alert profiles (`cx`) on placement volatility (`vm`)
-#' on the person-year table, by [dmlx()]: random forests (or another
-#' learner of [dmlx()]) for the outcome regressions and the propensity,
-#' `nfold`-fold cross-fitting, propensities kept within `trim` of 0 and 1,
-#' covariates gender, age group, regional cluster and (pooled, with
-#' `yterm`) fiscal year. Both the average effect (ATE) and the effect on
-#' the treated (ATTE) are given, from one set of cross-fitted nuisances.
-#' The same refusals as [cxvol()] apply.
-#'
-#' @inheritParams cxvol
-#' @param lrn The learner of [dmlx()], for both nuisances.
-#' @param ntree The trees of a forest.
-#' @param nfold The folds of the cross-fitting: a whole number from 2.
-#' @param trim Propensities are kept within `trim` of 0 and 1.
-#' @param seed The seed of the folds and of the learners.
-#' @return An object of class `cxdml`: a data frame with one row per sample
-#'   and estimand (`sample`, `n`, `estimand`, `est`, `se`, `lo`, `hi`).
-#' @references Chernozhukov, V., Chetverikov, D., Demirer, M., Duflo, E.,
-#'   Hansen, C., Newey, W. and Robins, J. (2018). Double/debiased machine
-#'   learning for treatment and structural parameters. *The Econometrics
-#'   Journal*, 21(1), C1-C68. \doi{10.1111/ectj.12097}
-#' @examples
-#' set.seed(5)
-#' n <- 400
-#' p <- data.frame(year = sample(2025:2026, n, TRUE),
-#'                 gender = sample(c("Male", "Female"), n, TRUE),
-#'                 age = sample(c("18 to 24", "25 to 49"), n, TRUE),
-#'                 rc = sample(c("A", "B"), n, TRUE), cx = rbinom(n, 1, 0.3))
-#' p$vm <- rpois(n, exp(-1.5 + 0.4 * p$cx))
-#' cxdml(p, lrn = "glm")
-#' @export
-cxdml <- function(
-  x,
-  by = c("pool", "year"),
-  yterm = TRUE,
-  lrn = "forest",
-  ntree = 500,
-  nfold = 3,
-  trim = 0.01,
-  seed = 1,
-  ...
-) {
-  fn <- "cxdml"
-  by <- .ckmarg("by", fn)
-  yterm <- .ckflag(yterm, "yterm", fn)
-  nfold <- .cknum(nfold, "nfold", fn, min = 2, whole = TRUE)
-  seed <- .ckseed(seed, "seed", fn)
-  s <- .cxsplit(.cxpy(x, fn, ...), by, yterm, fn)
-  out <- do.call(
-    rbind,
-    lapply(names(s), function(nm) {
-      .cxdone(s[[nm]]$d, s[[nm]]$yt, nm, lrn, ntree, nfold, trim, seed, fn)
-    })
-  )
-  structure(out, class = c("cxdml", "data.frame"))
-}
-
 # The covariates as factors (cv) and as indicator columns (X). A covariate
 # with one value in the sample (one gender in a year, say) tells nothing
 # apart and is left out of both; model.matrix() would stop on it.
@@ -340,79 +416,4 @@ cxdml <- function(
     lo = c(a$coef, b$coef) - z * c(a$se, b$se),
     hi = c(a$coef, b$coef) + z * c(a$se, b$se)
   )
-}
-
-#' @export
-print.cxdml <- function(x, ...) {
-  cat("cxdml: interactive model, effect of cx on vm (additive scale)\n")
-  print(as.data.frame(unclass(x)), row.names = FALSE, digits = 4)
-  invisible(x)
-}
-
-#' Placement volatility events by fiscal year
-#'
-#' The year-over-year table of placement volatility (Ruhela 2026,
-#' Appendix E, Table E15) from the person-year table: for each fiscal year
-#' the regional changes (`vm` summed), placements, person-years, the rates
-#' of changes per 1,000 placements and per 1,000 person-years with exact
-#' Poisson intervals, each year's share of all changes, and the percent
-#' changes from the previous year of the count and of both rates. The rate
-#' intervals are `qgamma(a/2, n)` to `qgamma(1 - a/2, n + 1)` over the
-#' exposure, so a count of 0 has lower limit 0.
-#'
-#' The two rates can disagree in direction: placements per person-year
-#' move too, and the placement denominator absorbs their growth.
-#'
-#' @inheritParams cxvol
-#' @param level The confidence level of the intervals.
-#' @return A data frame of class `cxyoy`, one row per fiscal year: `year`,
-#'   `vm`, `np`, `py`, `rnp`, `rnplo`, `rnphi` (per 1,000 placements),
-#'   `rpy`, `rpylo`, `rpyhi` (per 1,000 person-years), `share`, `dvm`,
-#'   `drnp`, `drpy` (percent changes from the previous year).
-#' @inherit plcvol references
-#' @examples
-#' p <- data.frame(year = rep(2024:2026, c(50, 60, 70)), vm = rpois(180, 0.2),
-#'                 np = rpois(180, 20) + 1)
-#' cxyoy(p)
-#' @export
-cxyoy <- function(x, level = 0.95, ...) {
-  fn <- "cxyoy"
-  level <- .cknum(level, "level", fn, min = 0, max = 1)
-  p <- if (is.data.frame(x) && all(c("year", "vm", "np") %in% names(x))) {
-    x
-  } else {
-    .clas(fn, otpyr(x, ...))
-  }
-  y <- factor(p$year, sort(unique(p$year)))
-  vm <- as.vector(tapply(p$vm, y, sum))
-  np <- as.vector(tapply(p$np, y, sum))
-  py <- as.vector(table(y))
-  a <- (1 - level) / 2
-  lo <- ifelse(vm == 0, 0, stats::qgamma(a, vm))
-  hi <- stats::qgamma(1 - a, vm + 1)
-  pc <- function(v) c(NA, 100 * (v[-1L] / v[-length(v)] - 1))
-  out <- data.frame(
-    year = levels(y),
-    vm = vm,
-    np = np,
-    py = py,
-    rnp = 1000 * vm / np,
-    rnplo = 1000 * lo / np,
-    rnphi = 1000 * hi / np,
-    rpy = 1000 * vm / py,
-    rpylo = 1000 * lo / py,
-    rpyhi = 1000 * hi / py,
-    share = vm / sum(vm),
-    dvm = pc(vm),
-    drnp = pc(vm / np),
-    drpy = pc(vm / py)
-  )
-  structure(out, class = c("cxyoy", "data.frame"))
-}
-
-#' @export
-print.cxyoy <- function(x, ...) {
-  cat("cxyoy: regional changes per fiscal year\n")
-  print(as.data.frame(unclass(x)), row.names = FALSE, digits = 4)
-  invisible(x)
 }

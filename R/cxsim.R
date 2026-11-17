@@ -30,7 +30,8 @@
 #' @param theta The negative binomial dispersion.
 #' @param b0 The intercept of the log mean.
 #' @param conf 0, or the effect of the unobserved trait.
-#' @param seed The seed.
+#' @param seed The seed of the whole run, set once before the first table is
+#'   drawn: one whole number.
 #' @return An object of class `cxsim`, a list: `res`, one row per estimator
 #'   (`est`, `bias`, `sd`, `rmse`, `cover`, `ok` the replicates fitted);
 #'   `draws`, every replicate's estimates; and the settings.
@@ -83,6 +84,23 @@ cxsim <- function(
   )
 }
 
+#' @export
+print.cxsim <- function(x, ...) {
+  cat(
+    "cxsim: ",
+    x$reps,
+    " tables of ",
+    x$n,
+    " person-years, log rate ratio ",
+    format(x$beta, digits = 4),
+    if (x$conf != 0) sprintf(", unobserved confounder %g", x$conf),
+    "\n",
+    sep = ""
+  )
+  print(x$res, row.names = FALSE, digits = 3)
+  invisible(x)
+}
+
 # One person-year table from the model.
 .csdraw <- function(n, beta, ncl, sdcl, theta, b0, conf) {
   cl <- sample.int(ncl, n, TRUE)
@@ -127,21 +145,4 @@ cxsim <- function(
     lo = m[, 2L],
     hi = m[, 3L]
   )
-}
-
-#' @export
-print.cxsim <- function(x, ...) {
-  cat(
-    "cxsim: ",
-    x$reps,
-    " tables of ",
-    x$n,
-    " person-years, log rate ratio ",
-    format(x$beta, digits = 4),
-    if (x$conf != 0) sprintf(", unobserved confounder %g", x$conf),
-    "\n",
-    sep = ""
-  )
-  print(x$res, row.names = FALSE, digits = 3)
-  invisible(x)
 }

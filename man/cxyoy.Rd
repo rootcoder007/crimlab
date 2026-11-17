@@ -10,7 +10,8 @@ cxyoy(x, level = 0.95, ...)
 \item{x}{A person-year table from \code{\link[=otpyr]{otpyr()}}, or what \code{\link[=otpyr]{otpyr()}} takes (a
 data frame of the release or a table key).}
 
-\item{level}{The confidence level of the intervals.}
+\item{level}{The confidence level of the gamma intervals of both rates:
+one number from 0 to 1.}
 
 \item{...}{Passed to \code{\link[=otpyr]{otpyr()}} when \code{x} is not a person-year table.}
 }

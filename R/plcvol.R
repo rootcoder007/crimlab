@@ -75,22 +75,6 @@ plcvol <- function(ra, rb, id, ord = c("region", "given")) {
   structure(out, class = c("plcvol", "data.frame"), ord = ord)
 }
 
-# The person-year of each record: a key (labels joined) and the labels as
-# a data frame, from one vector or a list of them, each of length n.
-.pvgrp <- function(id, n, fn) {
-  l <- if (is.list(id)) as.list(id) else list(id = id)
-  if (!length(l) || any(lengths(l) != n) || n == 0L) {
-    .ckstop(fn, "`id` must give one label per record (a vector or a list)")
-  }
-  if (is.null(names(l)) || any(!nzchar(names(l)))) {
-    names(l) <- if (length(l) == 1L) "id" else paste0("id", seq_along(l))
-  }
-  lab <- as.data.frame(l, stringsAsFactors = FALSE, optional = TRUE)
-  key <- do.call(paste, c(lapply(l, as.character), sep = "\r"))
-  key[Reduce(`|`, lapply(l, is.na))] <- NA
-  list(key = key, lab = lab)
-}
-
 #' @export
 print.plcvol <- function(x, ...) {
   cat(
@@ -186,6 +170,39 @@ alrtcx <- function(flags, id, keep = NULL) {
   structure(out, class = c("alrtcx", "data.frame"))
 }
 
+#' @export
+print.alrtcx <- function(x, ...) {
+  cat(
+    "alrtcx: ",
+    nrow(x),
+    " person-years; ",
+    sum(x$cx),
+    " (",
+    format(100 * mean(x$cx), digits = 3),
+    "%) span two or more ",
+    "alert configurations\n",
+    sep = ""
+  )
+  print(utils::head(as.data.frame(unclass(x)), 10L), row.names = FALSE)
+  invisible(x)
+}
+
+# The person-year of each record: a key (labels joined) and the labels as
+# a data frame, from one vector or a list of them, each of length n.
+.pvgrp <- function(id, n, fn) {
+  l <- if (is.list(id)) as.list(id) else list(id = id)
+  if (!length(l) || any(lengths(l) != n) || n == 0L) {
+    .ckstop(fn, "`id` must give one label per record (a vector or a list)")
+  }
+  if (is.null(names(l)) || any(!nzchar(names(l)))) {
+    names(l) <- if (length(l) == 1L) "id" else paste0("id", seq_along(l))
+  }
+  lab <- as.data.frame(l, stringsAsFactors = FALSE, optional = TRUE)
+  key <- do.call(paste, c(lapply(l, as.character), sep = "\r"))
+  key[Reduce(`|`, lapply(l, is.na))] <- NA
+  list(key = key, lab = lab)
+}
+
 # The flags as a 0/1 integer matrix with NA for a value that is none of
 # the accepted forms.
 .acflags <- function(flags, fn) {
@@ -220,21 +237,4 @@ alrtcx <- function(flags, id, keep = NULL) {
     integer(length(flags[[1L]]))
   )
   matrix(m, ncol = length(flags))
-}
-
-#' @export
-print.alrtcx <- function(x, ...) {
-  cat(
-    "alrtcx: ",
-    nrow(x),
-    " person-years; ",
-    sum(x$cx),
-    " (",
-    format(100 * mean(x$cx), digits = 3),
-    "%) span two or more ",
-    "alert configurations\n",
-    sep = ""
-  )
-  print(utils::head(as.data.frame(unclass(x)), 10L), row.names = FALSE)
-  invisible(x)
 }
