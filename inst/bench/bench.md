@@ -6,7 +6,7 @@ Machine: Apple M2 arm64, R version 4.6.1 (2026-06-24); crimlab built with R's de
 
 This is one of three speed tables: this one covers the functions of the disparity, forensic, policing and corrections families (with the network functions in net.csv, from dev/bench-net.R); the spatial functions are in sp.csv (dev/bench-sp.R) and the learners in dml.csv.
 
-Median seconds per call; ratio = other / crimlab (above 1: crimlab faster). Kind: third, another package; own, rmorie (the maintainer's own package); base, a base-R implementation of the formula where no package computes the quantity.
+Median seconds per call; ratio = other / crimlab (above 1: crimlab faster). Kind: third, another package; own, rmorie; base, a base-R implementation of the formula where no package computes the quantity.
 
 | function | counterpart | kind | n | of | crimlab | other | ratio | lo | hi | agree |
 |---|---|---|--:|---|--:|--:|--:|--:|--:|---|

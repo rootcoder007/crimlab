@@ -245,10 +245,9 @@ practice, after checking that the two give the same values;
 `dev/bench-net.R` does the same for the network functions. The search for
 those packages, with the reason each candidate does or does not compute the
 same quantity, is [inst/bench/counterparts.csv](inst/bench/counterparts.csv)
-(written by `dev/cpart.R`). rmorie, the maintainer's own package, is timed
-too but reported apart: it is not another package. Where no package
-computes a quantity, the function is timed against rmorie or a base-R
-implementation of the formula, and no claim is made against the field. The
+(written by `dev/cpart.R`). Where no package computes a quantity, the
+function is timed against rmorie or a base-R implementation of the formula,
+and no claim is made against the field. The
 tables, with the machine, its load during each run and the spread over
 three runs, are [inst/bench/bench.md](inst/bench/bench.md) (and
 `bench.csv`) and `inst/bench/net.csv`. The lists below are written by the
@@ -261,7 +260,7 @@ Faster, by at least a tenth, than every other package found that computes the sa
 
 Not faster than another package at some size timed: `kinidx()`, `patidx()`, `lrcal()`.
 
-No other package found that computes the same quantity, so no claim of speed against the field: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incap()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`, `lrpost()`, `dbsrch()`, `tipplt()`, `proof()`. Of these, compared with rmorie, the maintainer's own package: faster at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`; not faster at some size: `incap()`. Compared with a base-R implementation of the formula: faster at every size timed: `dbsrch()`, `proof()`; not faster at some size: `lrpost()`, `tipplt()`.
+No other package found that computes the same quantity, so no claim of speed against the field: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incap()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`, `lrpost()`, `dbsrch()`, `tipplt()`, `proof()`. Of these, compared with rmorie: faster at every size timed: `vodtst()`, `orrisk()`, `outtst()`, `dspbm()`, `dyadrt()`, `expbnd()`, `misrd()`, `rtmhs()`, `incapr()`, `sellab()`, `losbnd()`, `sntbnd()`, `hzdsel()`; not faster at some size: `incap()`. Compared with a base-R implementation of the formula: faster at every size timed: `dbsrch()`, `proof()`; not faster at some size: `lrpost()`, `tipplt()`.
 <!-- bench end -->
 
 <!-- netbench start: written by dev/bench-net.R -->
