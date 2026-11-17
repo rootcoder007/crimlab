@@ -991,6 +991,13 @@ double clab_qpois(double p, double lam, int lower) CLAB_TRY {
 
 namespace kutil {
 
+// P(X >= g) = I_p(g, n - g + 1) and P(X <= g) = 1 - I_p(g + 1, n - g).
+double btail(double g, double n, double p, bool up) {
+  if (p >= 1.0) return up ? 1.0 : (g >= n ? 1.0 : 0.0);
+  if (up) return g <= 0 ? 1.0 : g > n ? 0.0 : pbet(p, 1 - p, g, n - g + 1, 1);
+  return g >= n ? 1.0 : g < 0 ? 0.0 : pbet(p, 1 - p, g + 1, n - g, 0);
+}
+
 // The negative binomial quantile at a (lower tail), F(y) = I_p(s, y + 1)
 // as R's pnbinom(); the target lowered by 8 units of rounding as R's
 // qnbinom() fuzzes it; the Cornish-Fisher start of R's qnbinom().

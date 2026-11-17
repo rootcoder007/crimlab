@@ -120,11 +120,9 @@ struct ksum {
   double val() const noexcept { return s + c; }
 };
 
-// A tail of Binomial(n, p) starting at g: P(X >= g) when up, P(X <= g)
-// otherwise, for g on the far side of the mean (the terms then decrease
-// monotonically away from g); O(sd) terms. Needs p > 0 (both callers have
-// it); p >= 1 is a point mass at n. Defined in kutil.cpp (one translation
-// unit, so its coverage is counted once).
+// A tail of Binomial(n, p) at g: P(X >= g) when up, P(X <= g) otherwise,
+// as the incomplete beta ratio (src/dst.cpp), so its work does not grow
+// with n; p >= 1 is a point mass at n.
 double btail(double g, double n, double p, bool up);
 
 // The quantile of the negative binomial (size s, probability p) at a in

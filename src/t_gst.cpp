@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "crimlab.h"
+#include "kutil.h"
 #include "tchk.h"
 
 namespace {
@@ -102,6 +103,12 @@ void run(tk &tt) {
       if (want > 1e-300 && std::fabs(got - want) > 1e-10 * want) ++bad;
     }
     tk_true(tt, "gst.binom", bad == 0);
+    // counts of 2e8: P(X <= 1990000) for Binomial(2e8, 0.01), the
+    // incomplete beta of 40 digits (dev/ref/dstbig.py), at once
+    tk_eq(tt, "gst.btailbig", kutil::btail(1990000, 2e8, 0.01, false) / 5.714803963440756959975e-13, 1, 1e-12);
+    tk_true(tt, "gst.btailends", kutil::btail(0, 5, 0.3, true) == 1 && kutil::btail(6, 5, 0.3, true) == 0 &&
+                                     kutil::btail(5, 5, 0.3, false) == 1 && kutil::btail(-1, 5, 0.3, false) == 0 &&
+                                     kutil::btail(3, 5, 1, true) == 1 && kutil::btail(3, 5, 1, false) == 0);
   }
   // 3. Benjamini-Hochberg against the definition q_i = min_{p_j >= p_i}
   // m p_j / rank_j
