@@ -124,6 +124,7 @@ test_that("odtab() refuses a table it cannot fetch, check, keep or read", {
   odrun(d, {
     odgz(gz, c("Case_ID,offence type,year", "1,theft,2020"))
     cur <- sub("[0-9a-f]{64}", .odhash(gz, "t"), m)
+    cur <- sub(r"("rows": 2)", r"("rows": 1)", cur, fixed = TRUE)
     odman(d, cur)
     expect_identical(nrow(odtab("db1/t1")), 1L)
     # a folder where the kept file goes: the download cannot replace it
@@ -195,4 +196,85 @@ test_that("a file that changed, with a manifest that lists no SHA-256 now", {
     errs("odtab", list(list("against none", "db1/t1")))
     expect_identical(st$n, 2L)
   })
+})
+
+# A mirror holding one table db1/t1 of the given CSV lines, its manifest
+# listing rows (the lines after the header unless given).
+odone <- function(lines, rows = length(lines) - 1L) {
+  d <- tempfile("od")
+  dir.create(file.path(d, "db1"), recursive = TRUE)
+  gz <- file.path(d, "db1", "t1.csv.gz")
+  odgz(gz, lines)
+  odman(d, sprintf(
+    r"({"datasets": [{"db": "db1", "table": "t1", "key": "db1/t1",
+      "rows": %s, "sha256": "%s"}]})",
+    rows, .odhash(gz, "odone")
+  ))
+  d
+}
+
+test_that("odtab() gives the values the file holds", {
+  d <- odone(c(
+    "id,sex,x,n,day,big,e,neg,miss,txt",
+    "007,F,1.5,2020,2024-01-31,12345678901234567890,1e400,-0.25,,NA",
+    "7,F,2,2021,2024-02-01,1,2,-1,,a",
+    "0007,F,10,-3,2024-02-02,2,3,0,,b"
+  ))
+  odrun(d, {
+    x <- odtab("db1/t1")
+    expect_identical(x$id, c("007", "7", "0007"))
+    expect_identical(x$sex, c("F", "F", "F"))
+    expect_identical(x$x, c(1.5, 2, 10))
+    expect_identical(x$n, c(2020L, 2021L, -3L))
+    expect_identical(x$day, c("2024-01-31", "2024-02-01", "2024-02-02"))
+    expect_identical(x$big, c("12345678901234567890", "1", "2"))
+    expect_identical(x$e, c("1e400", "2", "3"))
+    expect_identical(x$neg, c(-0.25, -1, 0))
+    expect_identical(x$miss, rep(NA_character_, 3))
+    expect_identical(x$txt, c(NA, "a", "b"))
+    expect_identical(odtab("db1/t1", cols = c("n", "id")),
+                     x[c("n", "id")])
+  })
+  d <- odone(c("w,v", "1,3000000000", "2,1.0", "3,2.5e2"))
+  odrun(d, {
+    x <- odtab("db1/t1")
+    expect_identical(x$w, 1:3)
+    expect_identical(x$v, c(3e9, 1, 250))
+  })
+})
+
+test_that("odtab() refuses a ragged file and a count not the manifest's", {
+  long <- c("a,b", "1,2", "3,4", "5,6", "7,8", "9,10", "11,12,13,14")
+  odrun(odone(long), errs("odtab", list(
+    list("line 7 of `db1/t1` has 4 fields where its header has 2", "db1/t1")
+  )))
+  odrun(odone(c("a,b", "1,2", "3")), errs("odtab", list(
+    list("line 3 of `db1/t1` has 1 fields where its header has 2", "db1/t1")
+  )))
+  odrun(odone(c("a,b", "1,2", "3,4"), rows = 3), errs("odtab", list(
+    list("`db1/t1` has 2 rows where its manifest lists 3", "db1/t1")
+  )))
+  # a field in quotes over two lines, and a blank line, are one row each
+  d <- odone(c("a,b", "\"x", "y\",2", "", "z,3"), rows = 2)
+  odrun(d, expect_identical(odtab("db1/t1")$a, c("x\ny", "z")))
+})
+
+test_that("the manifest reader takes all JSON, of any length", {
+  j <- .odjson(r"({"": 1, "a": {"": [2]}})")
+  expect_identical(names(j), c("", "a"))
+  expect_identical(j[[1L]], 1)
+  expect_identical(j$a, stats::setNames(list(list(2)), ""))
+  expect_identical(.odjson(r"([{"": [null, {}]}])"),
+                   list(stats::setNames(list(list(NULL, list())), "")))
+  s <- strrep("ab", 5e6)
+  expect_identical(.odjson(paste0(r"({"s": ")", s, '"}'))$s, s)
+  e <- strrep(r"(\n)", 1e5)
+  expect_identical(nchar(.odjson(paste0('["', e, '"]'))[[1L]]), 100000L)
+  expect_identical(.odjson(r"(["\ud83d\ude00", "\\ud83d", "\ud83d x"])"),
+                   list("\U1F600", "\\ud83d", "\ufffd x"))
+  expect_identical(.odjson(r"(["\u0000"])"), list("\ufffd"))
+  bad <- c(r"({"a"})", r"({"a", 1})", r"(["a": 1])", r"({"a": "b": 1})",
+           r"("a": 1)", r"(["\q"])", "[tru]", "[1e]",
+           r"({"": 1, 2})", r"(["": 1])", r"({"": "": 1})", r"("": 1)")
+  for (b in bad) expect_error(.odjson(b), info = b)
 })

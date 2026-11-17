@@ -29,12 +29,23 @@
 #' finds `"CaseID"`), so that a publisher's respelling of a name does not
 #' break a call; an exact name is preferred.
 #'
+#' The values are those the file holds. Every column is read as text; an
+#' empty field and the text `NA` are missing values. A column becomes
+#' numbers only when every value in it is a plain decimal number that a
+#' number holds exactly as written: digits with at most a leading minus,
+#' a decimal point and an exponent, no leading zero, at most 15
+#' significant digits. So identifiers such as `"007"` (not the same as
+#' `"7"`), long identifiers, dates and codes such as `"F"` stay text, and
+#' no column becomes logical. A column of whole numbers within R's
+#' integer range is integer, any other numeric column double.
+#'
 #' Errors: a key the manifest does not list; a table listed without a
-#' SHA-256; a file that does not match it; a column the table does not
-#' have, or a name that matches more than one; a service that cannot be
-#' reached, answers with an error or does not answer in time (60 seconds
-#' for the manifest, 600 for a table, or `getOption("timeout")` if
-#' longer).
+#' SHA-256; a file that does not match it; a line with more or fewer
+#' fields than the header; a table whose number of rows is not the one
+#' the manifest lists; a column the table does not have, or a name that
+#' matches more than one; a service that cannot be reached, answers with
+#' an error or does not answer in time (60 seconds for the manifest, 600
+#' for a table, or `getOption("timeout")` if longer).
 #'
 #' @param key A table's key, as `odls()` lists it.
 #' @param cols The names of the columns to keep, or `NULL` (all).
@@ -84,7 +95,7 @@ odtab <- function(
   if (refresh || !file.exists(path) || .odhash(path, fn) != want) {
     .odfetch(d, want, base, dir, path, fn)
   }
-  .odread(path, cols, key, fn)
+  .odread(path, cols, d, fn)
 }
 
 #' @rdname odtab
@@ -224,26 +235,66 @@ odls <- function(
   invisible(path)
 }
 
-# The kept file as a data frame, as served (column names unchanged); with
-# cols, only those columns are read.
-.odread <- function(path, cols, key, fn) {
+# The kept file as a data frame of the values it holds (column names
+# unchanged), entry d of the manifest; with cols, only those columns.
+.odread <- function(path, cols, d, fn) {
+  key <- d[["key"]]
   rd <- function(...) {
     tryCatch(
       utils::read.csv(path, check.names = FALSE, stringsAsFactors = FALSE,
-                      encoding = "UTF-8", skipNul = TRUE, ...),
+                      encoding = "UTF-8", skipNul = TRUE, fill = FALSE,
+                      na.strings = c("", "NA"), ...),
       error = function(e) {
         .ckstop(fn, "`%s` could not be read: %s", key, conditionMessage(e))
       }
     )
   }
-  if (is.null(cols)) {
-    return(rd())
-  }
-  have <- names(rd(nrows = 1L))
-  i <- .odcol(cols, have, fn)
+  .odrag(path, key, fn)
+  have <- names(rd(nrows = 1L, colClasses = "character"))
+  i <- if (is.null(cols)) seq_along(have) else .odcol(cols, have, fn)
   cc <- rep("NULL", length(have))
-  cc[i] <- NA
-  rd(colClasses = cc)[match(i, which(is.na(cc)))]
+  cc[i] <- "character"
+  x <- rd(colClasses = cc)[match(i, which(cc != "NULL"))]
+  n <- d[["rows"]]
+  if (is.numeric(n) && length(n) == 1L && is.finite(n) && n != nrow(x)) {
+    .ckstop(fn, "`%s` has %d rows where its manifest lists %s: not used",
+            key, nrow(x), format(n))
+  }
+  x[] <- lapply(x, .odnum)
+  x
+}
+
+# A file whose lines do not all have as many fields as its header (a
+# field in quotes may span lines) is refused, naming the first such line:
+# read.csv() would wrap a long line into a row of its own.
+.odrag <- function(path, key, fn) {
+  nf <- utils::count.fields(path, sep = ",", quote = "\"", comment.char = "",
+                            blank.lines.skip = FALSE)
+  bad <- which(!is.na(nf) & nf != 0L & nf != nf[1L])
+  if (length(bad)) {
+    .ckstop(fn, "line %d of `%s` has %d fields where its header has %d",
+            bad[1L], key, nf[bad[1L]], nf[1L])
+  }
+}
+
+# A column of text as numbers when every value is a plain decimal number
+# a double holds exactly as written (see odtab()); else as it is.
+.odnum <- function(v) {
+  w <- v[!is.na(v)]
+  if (!length(w) ||
+        !all(grepl("^-?(0|[1-9][0-9]*)(\\.[0-9]+)?([eE][+-]?[0-9]+)?$", w))) {
+    return(v)
+  }
+  sig <- nchar(sub("^0+", "", gsub("[-.]", "", sub("[eE].*$", "", w))))
+  n <- as.numeric(v)
+  if (any(sig > 15L) || !all(is.finite(n[!is.na(v)]))) {
+    return(v)
+  }
+  if (all(grepl("^-?[0-9]+$", w)) && all(abs(n) <= .Machine$integer.max,
+                                         na.rm = TRUE)) {
+    return(as.integer(n))
+  }
+  n
 }
 
 # The positions of the columns cols among have: an exact name, else the
@@ -339,33 +390,40 @@ odls <- function(
 
 # JSON text as lists (arrays too), with NULL for null. The strings stay as
 # string literals; the text between them, once checked to hold only
-# JSON's punctuation, numbers and literals, becomes list() calls, which
-# are evaluated with nothing but list() and minus in scope.
-# ponytail: \u escapes of characters outside the Basic Multilingual Plane
-# (surrogate pairs) are refused with the manifest; decode them if a
-# manifest ever carries one.
+# JSON's punctuation, numbers and literals, becomes calls of .odarr() and
+# .odobj(), a key naming its value's argument ("key" = value; the empty
+# key, which R cannot name an argument, as "" := value), evaluated with
+# nothing but those, `:=` and minus in scope. No pattern repeats per
+# character of a string, so a string of any length is read.
 .odjson <- function(txt) {
   # bytes: character positions in a long UTF-8 text take minutes
-  m <- gregexpr(r"("(?:[^"\\]++|\\.)*+")", txt, perl = TRUE, useBytes = TRUE)
+  m <- gregexpr(r"("[^"\\]*+(?:\\.[^"\\]*+)*+")", txt, perl = TRUE,
+                useBytes = TRUE)
   s <- regmatches(txt, m)[[1L]]
   g <- regmatches(txt, m, invert = TRUE)[[1L]]
   Encoding(s) <- "UTF-8"
-  tok <- paste0(
-    r"(^(?:\s|[\[\]{}:,]|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)",
-    r"(|true|false|null)*$)"
-  )
-  esc <- r"(^"(?:[^\\]|\\["\\/bfnrtu])*"$)"
-  ok <- all(grepl(tok, g, perl = TRUE, useBytes = TRUE)) &&
-    all(grepl(esc, s, perl = TRUE, useBytes = TRUE))
+  # between the strings only JSON's punctuation, numbers and literals,
+  # and in them every backslash begins one of its escapes: nothing is
+  # left once they are taken out
+  tok <- r"(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|true|false|null|[\s\[\]{}:,]+)"
+  esc <- r"(\\(?:["\\/bfnrt]|u[0-9A-Fa-f]{4}))"
+  ok <- !any(nzchar(gsub(tok, "", g, perl = TRUE, useBytes = TRUE))) &&
+    !any(grepl("\\", gsub(esc, "", s, perl = TRUE, useBytes = TRUE),
+               fixed = TRUE))
   if (!ok) {
     stop("not JSON", call. = FALSE)
   }
-  s <- gsub(r"((?<!\\)((?:\\\\)*)\\/)", "\\1/", s, perl = TRUE)
-  g <- gsub(r"([\[{])", "list(", g, perl = TRUE)
-  g <- gsub(r"([\]}])", ")", g, perl = TRUE)
-  lit <- c(":" = "=", true = "TRUE", false = "FALSE", null = "NULL")
-  for (k in names(lit)) g <- gsub(k, lit[[k]], g, fixed = TRUE)
+  s <- .odesc(s)
+  g <- gsub("[", ".odarr(", g, fixed = TRUE)
+  g <- gsub("{", ".odobj(", g, fixed = TRUE)
+  g <- gsub("[]}]", ")", g, perl = TRUE)
   n <- length(s)
+  lit <- c(true = "TRUE", false = "FALSE", null = "NULL")
+  for (k in names(lit)) g <- gsub(k, lit[[k]], g, fixed = TRUE)
+  # the gap after an empty key starts with its colon
+  e0 <- c(FALSE, s == r"("")")
+  g[e0] <- sub(":", ":=", g[e0], fixed = TRUE)
+  g[!e0] <- gsub(":", "=", g[!e0], fixed = TRUE)
   e <- parse(
     text = paste(c(rbind(g[seq_len(n)], s), g[n + 1L]), collapse = ""),
     keep.source = FALSE,
@@ -374,5 +432,92 @@ odls <- function(
   if (length(e) != 1L) {
     stop("not JSON", call. = FALSE)
   }
-  eval(e[[1L]], list2env(list(list = list, "-" = `-`), parent = emptyenv()))
+  # with no empty key, no pair can arise: the quicker checks suffice
+  f <- if (any(e0)) list(.odarr0, .odobj0) else list(.odarr, .odobj)
+  r <- eval(e[[1L]], list2env(
+    list(.odarr = f[[1L]], .odobj = f[[2L]], ":=" = .odkv, "-" = `-`),
+    parent = emptyenv()
+  ))
+  if (.odis(list(r))) {
+    stop("not JSON", call. = FALSE)
+  }
+  r
+}
+
+# The empty key and its value, as a pairlist (which no JSON value is); an
+# array; an object, its keys as names. Each refuses what JSON's grammar
+# does not allow: a key in an array, a value without a key in an object.
+# .odarr0() and .odobj0() take the pairs of empty keys too.
+.odkv <- function(k, v) {
+  if (!identical(k, "") || (is.pairlist(v) && !is.null(v))) {
+    stop("not JSON", call. = FALSE)
+  }
+  pairlist(k, v)
+}
+
+.odarr <- function(...) {
+  a <- list(...)
+  if (any(nzchar(names(a)))) {
+    stop("not JSON", call. = FALSE)
+  }
+  a
+}
+
+.odobj <- function(...) {
+  a <- list(...)
+  nm <- names(a)
+  if (length(a) && (is.null(nm) || !all(nzchar(nm)))) {
+    stop("not JSON", call. = FALSE)
+  }
+  a
+}
+
+.odarr0 <- function(...) {
+  a <- .odarr(...)
+  if (any(.odis(a))) {
+    stop("not JSON", call. = FALSE)
+  }
+  a
+}
+
+.odobj0 <- function(...) {
+  a <- list(...)
+  kv <- .odis(a)
+  nm <- names(a)
+  if (is.null(nm)) {
+    nm <- character(length(a))
+  }
+  if (any(kv == nzchar(nm))) {
+    stop("not JSON", call. = FALSE)
+  }
+  a[kv] <- lapply(a[kv], .subset2, 2L)
+  if (length(a)) {
+    names(a) <- nm
+  }
+  a
+}
+
+# Which elements of the list a are pairs.
+.odis <- function(a) vapply(a, is.pairlist, NA) & !vapply(a, is.null, NA)
+
+# JSON string literals as R's: \/ is /, and the \u escapes R does not
+# take (a pair for a character past U+FFFF, a lone half of one, U+0000)
+# are written as R's \U{} or as U+FFFD.
+.odesc <- function(s) {
+  pre <- r"((?<!\\)((?:\\\\)*))"
+  s <- gsub(paste0(pre, r"(\\/)"), "\\1/", s, perl = TRUE, useBytes = TRUE)
+  sur <- paste0(pre, r"(\\u[dD][89abAB][0-9a-fA-F]{2})",
+                r"(\\u[dD][c-fC-F][0-9a-fA-F]{2})")
+  hit <- grepl(sur, s, perl = TRUE, useBytes = TRUE)
+  if (any(hit)) {
+    m <- gregexpr(sur, s[hit], perl = TRUE, useBytes = TRUE)
+    regmatches(s[hit], m) <- lapply(regmatches(s[hit], m), function(x) {
+      h <- strtoi(substr(x, nchar(x) - 9L, nchar(x) - 6L), 16L)
+      l <- strtoi(substr(x, nchar(x) - 3L, nchar(x)), 16L)
+      cp <- 65536L + (h - 55296L) * 1024L + (l - 56320L)
+      paste0(substr(x, 1L, nchar(x) - 12L), sprintf("\\U{%X}", cp))
+    })
+  }
+  gsub(paste0(pre, r"(\\u(?:[dD][89a-fA-F][0-9a-fA-F]{2}|0000))"),
+       "\\1\\\\ufffd", s, perl = TRUE, useBytes = TRUE)
 }

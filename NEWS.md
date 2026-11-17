@@ -44,6 +44,17 @@
   including what a first-to-last column means once a year is added).
   `proof()` lists them.
 
+* `odtab()` gives the values the file holds: every column is read as
+  text and becomes numbers only when each value is a plain decimal number
+  held exactly, so identifiers such as `"007"`, `"7"` and `"0007"` stay
+  distinct and a column of `"F"` stays text (it became `FALSE`). A line
+  with more or fewer fields than the header is refused, naming the line
+  (a long line was wrapped into a row of its own), and so is a table
+  whose number of rows is not the one the manifest lists. The manifest
+  reader takes all JSON: an empty key, a string of any length (one of a
+  few megabytes failed in PCRE), and characters past U+FFFF written as
+  surrogate pairs.
+
 * Messages quote invalid UTF-8 bytes of the input as `<xx>`, in every
   refusal and warning of the package and of its C++ binding: `dspbm()`,
   `clprep()` and about twenty others carried the bytes themselves, and
