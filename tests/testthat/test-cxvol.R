@@ -516,3 +516,54 @@ test_that("cxsim() counts failed fits and prints its settings", {
     )
   )
 })
+
+test_that("a flag that is neither yes nor no drops its record everywhere", {
+  d <- data.frame(
+    EndFiscalYear = 2025, UniqueIndividual_ID = c("a", "a", "b", "c", "c"),
+    Region_AtTimeOfPlacement = c("E", "W", "E", "N", "N"),
+    Region_MostRecentPlacement = "E", Gender = "Male", Age_Category = "x",
+    MentalHealth_Alert = c("Yes", "No", "Unknown", "No", "No"),
+    SuicideRisk_Alert = "No", SuicideWatch_Alert = "No",
+    Number_Of_Placements = 1, stringsAsFactors = FALSE
+  )
+  p <- otpyr(d)
+  # person b's only record has no usable flag: b is not a person-year, and
+  # nobody's alert counts are another's
+  expect_identical(p$id, c("a", "c"))
+  expect_identical(attr(p, "drop"), 1L)
+  expect_identical(p$ac, c(2L, 1L))
+  expect_identical(p$cx, c(1L, 0L))
+  expect_identical(p$anyal, c(1L, 0L))
+  expect_identical(p$n, c(2L, 2L))
+  rest <- otpyr(d[d$UniqueIndividual_ID != "b", ])
+  expect_identical(p, rest, ignore_attr = "drop")
+  d$MentalHealth_Alert <- "Unknown"
+  errs("otpyr", list(list("no row has every column present", d)))
+  # a number that is not 0 or 1 is no flag: it is not cut to one
+  f <- alrtcx(data.frame(a = c(0.6, 1, 0, 1.9)), c(1, 1, 2, 2))
+  expect_identical(f$n, c(1L, 1L))
+  expect_identical(f$ac, c(1L, 1L))
+})
+
+test_that("a covariate with one value in a sample is left out", {
+  set.seed(7)
+  n <- 300
+  p <- data.frame(
+    year = 2025, gender = "Male", age = sample(c("a", "b"), n, TRUE),
+    rc = sample(c("A", "B", "C"), n, TRUE), cx = rbinom(n, 1, 0.3),
+    stringsAsFactors = FALSE
+  )
+  p$vm <- rpois(n, exp(-1 + 0.4 * p$cx))
+  one <- cxvol(p, yterm = FALSE, fam = "poisson")
+  # the same as with a gender that varies but is no use to the matching:
+  # the estimate is a finite rate ratio
+  est <- one$fits[[1L]]$coef
+  expect_true(all(is.finite(est$est)))
+  expect_false(any(grepl("gender", est$term)))
+  dm <- cxdml(p, yterm = FALSE, ntree = 20, nfold = 2, seed = 1)
+  expect_true(all(is.finite(dm$est)))
+  p$age <- "a"
+  errs("cxvol", list(
+    list("one value of every covariate", p, yterm = FALSE, fam = "poisson")
+  ))
+})

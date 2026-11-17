@@ -134,10 +134,9 @@ cxvol <- function(
       if (sum(d$cx == 1) == 0L) 1L else 0L
     )
   }
-  cv <- d[c("age", "gender", if (yt) "year")]
-  cv[] <- lapply(cv, function(v) factor(as.character(v)))
-  X <- stats::model.matrix(~., cv)[, -1L, drop = FALSE]
-  X <- X[, apply(X, 2L, stats::var) > 0, drop = FALSE]
+  ds <- .cxdes(d[c("age", "gender", if (yt) "year")], nm, fn)
+  cv <- ds$cv
+  X <- ds$X
   m <- .clas(fn, cbatt(d$vm, d$cx, X, est = "psm", tgt = "att", reps = 0))
   rows <- c(m$match$focal, m$match$match)
   md <- d[rows, ]
@@ -281,6 +280,23 @@ cxdml <- function(
   structure(out, class = c("cxdml", "data.frame"))
 }
 
+# The covariates as factors (cv) and as indicator columns (X). A covariate
+# with one value in the sample (one gender in a year, say) tells nothing
+# apart and is left out of both; model.matrix() would stop on it.
+.cxdes <- function(cv, nm, fn) {
+  cv[] <- lapply(cv, function(v) factor(as.character(v)))
+  cv <- cv[vapply(cv, nlevels, 1L) > 1L]
+  if (!length(cv)) {
+    .ckstop(
+      fn,
+      "sample %s has one value of every covariate: nothing to adjust for",
+      nm
+    )
+  }
+  X <- stats::model.matrix(~., cv)[, -1L, drop = FALSE]
+  list(cv = cv, X = X[, apply(X, 2L, stats::var) > 0, drop = FALSE])
+}
+
 # One sample's ATE and ATTE, the nuisances learned once.
 .cxdone <- function(d, yt, nm, lrn, ntree, nfold, trim, seed, fn) {
   if (sum(d$cx == 1) < nfold || sum(d$cx == 0) < nfold) {
@@ -291,9 +307,7 @@ cxdml <- function(
       nfold
     )
   }
-  cv <- d[c("gender", "age", "rc", if (yt) "year")]
-  cv[] <- lapply(cv, function(v) factor(as.character(v)))
-  X <- stats::model.matrix(~., cv)[, -1L, drop = FALSE]
+  X <- .cxdes(d[c("gender", "age", "rc", if (yt) "year")], nm, fn)$X
   set.seed(seed)
   fold <- sample(rep_len(seq_len(nfold), nrow(d)))
   a <- .clas(

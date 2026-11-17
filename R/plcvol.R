@@ -204,8 +204,10 @@ alrtcx <- function(flags, id, keep = NULL) {
     flags,
     function(v) {
       if (is.logical(v) || is.numeric(v)) {
-        out <- as.integer(v)
-        out[!out %in% c(0L, 1L)] <- NA
+        # 0 or 1 exactly: 0.6 is not a flag, and as.integer() would cut it
+        out <- rep(NA_integer_, length(v))
+        ok <- !is.na(v) & (v == 0 | v == 1)
+        out[ok] <- as.integer(v[ok])
         return(out)
       }
       s <- tolower(trimws(as.character(v)))

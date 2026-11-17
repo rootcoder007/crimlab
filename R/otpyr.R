@@ -17,7 +17,8 @@
 #' unit, never the person.
 #'
 #' Rows missing any column used are dropped and counted (attribute
-#' `drop`). Alert complexity counts the six configurations the release
+#' `drop`); an alert flag that is neither yes nor no (nor 1 or 0) is a
+#' missing one. Alert complexity counts the six configurations the release
 #' shows (`keep`), as the published analysis does.
 #'
 #' @param x A data frame, or the key of a table of the open data service.
@@ -64,7 +65,10 @@ otpyr <- function(
   }
   d <- x[.odcol(unname(cn), names(x), fn)]
   names(d) <- names(cn)
-  ok <- stats::complete.cases(d)
+  # a flag that is neither yes nor no is a missing one: the record is
+  # dropped here, so that both counts below see the same records
+  fl <- .acflags(d[c("mh", "sr", "sw")], fn)
+  ok <- stats::complete.cases(d) & rowSums(is.na(fl)) == 0L
   if (!is.null(years)) {
     ok <- ok & d$year %in% years
   }
@@ -75,6 +79,10 @@ otpyr <- function(
   key <- list(id = d$id, year = d$year)
   v <- .clas(fn, plcvol(d$ra, d$rb, key, ord = ord))
   a <- .clas(fn, alrtcx(d[c("mh", "sr", "sw")], key, keep = keep))
+  pk <- c("id", "year", "n")
+  if (!identical(unclass(v)[pk], unclass(a)[pk])) {
+    .ckstop(fn, "the two counts do not cover the same person-years")
+  }
   k <- paste(d$id, d$year, sep = "\r")
   first <- !duplicated(k)
   out <- data.frame(

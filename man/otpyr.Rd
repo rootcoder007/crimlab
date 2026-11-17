@@ -53,7 +53,8 @@ reassigned every fiscal year in the release, so the person-year is the
 unit, never the person.
 
 Rows missing any column used are dropped and counted (attribute
-\code{drop}). Alert complexity counts the six configurations the release
+\code{drop}); an alert flag that is neither yes nor no (nor 1 or 0) is a
+missing one. Alert complexity counts the six configurations the release
 shows (\code{keep}), as the published analysis does.
 }
 \examples{
