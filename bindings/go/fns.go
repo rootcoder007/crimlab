@@ -1513,6 +1513,9 @@ func Yoypdf(args string) (string, error) { return Jrun("yoypdf", args) }
 // Polrpttxt runs polrpttxt() of the R package (arguments: report; ? marks an optional one).
 func Polrpttxt(args string) (string, error) { return Jrun("polrpttxt", args) }
 
+// Vrfpol runs vrfpol() of the R package (arguments: poll y? reg? years? demo? expcsv? expomean? expoprev? ref? brate? basrateper? pop? rare? hirate?; ? marks an optional one).
+func Vrfpol(args string) (string, error) { return Jrun("vrfpol", args) }
+
 // Selftest runs selftest() of the R package (no arguments; ? marks an optional one).
 func Selftest(args string) (string, error) { return Jrun("selftest", args) }
 
