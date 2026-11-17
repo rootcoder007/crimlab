@@ -27,3 +27,11 @@ test_that("cxsim() counts failed fits and prints its settings", {
     )
   )
 })
+
+test_that("cxsim() leaves the session's random stream as it was", {
+  set.seed(12)
+  s <- .Random.seed
+  a <- cxsim(reps = 1, n = 100, ncl = 5, b0 = 0, seed = 2^40)
+  expect_identical(.Random.seed, s)
+  expect_identical(cxsim(reps = 1, n = 100, ncl = 5, b0 = 0, seed = 2^40), a)
+})

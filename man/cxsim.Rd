@@ -33,7 +33,8 @@ intercepts.}
 \item{conf}{0, or the effect of the unobserved trait.}
 
 \item{seed}{The seed of the whole run, set once before the first table is
-drawn: one whole number.}
+drawn: one whole number. The session's own random stream is left as it
+was.}
 }
 \value{
 An object of class \code{cxsim}, a list: \code{res}, one row per estimator
@@ -65,5 +66,5 @@ log-link identity). Results are \code{bias} (mean estimate less \code{beta}),
 fresh table from \code{seed}; a fit that fails is left out and counted.
 }
 \examples{
-cxsim(reps = 2, n = 200, ncl = 5, seed = 1)
+cxsim(reps = 1, n = 100, ncl = 5, b0 = 0, seed = 1)
 }

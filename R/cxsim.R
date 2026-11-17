@@ -31,12 +31,13 @@
 #' @param b0 The intercept of the log mean.
 #' @param conf 0, or the effect of the unobserved trait.
 #' @param seed The seed of the whole run, set once before the first table is
-#'   drawn: one whole number.
+#'   drawn: one whole number. The session's own random stream is left as it
+#'   was.
 #' @return An object of class `cxsim`, a list: `res`, one row per estimator
 #'   (`est`, `bias`, `sd`, `rmse`, `cover`, `ok` the replicates fitted);
 #'   `draws`, every replicate's estimates; and the settings.
 #' @examples
-#' cxsim(reps = 2, n = 200, ncl = 5, seed = 1)
+#' cxsim(reps = 1, n = 100, ncl = 5, b0 = 0, seed = 1)
 #' @export
 cxsim <- function(
   reps = 200,
@@ -57,13 +58,12 @@ cxsim <- function(
     .cknum(get(a), a, fn)
   }
   theta <- .cknum(theta, "theta", fn, positive = TRUE)
-  set.seed(.ckseed(seed, "seed", fn))
-  dr <- do.call(
+  dr <- .clseed(.ckseed(seed, "seed", fn), do.call(
     rbind,
     lapply(seq_len(reps), function(r) {
       .csone(.csdraw(n, beta, ncl, sdcl, theta, b0, conf))
     })
-  )
+  ))
   res <- do.call(
     rbind,
     lapply(c("crude", "mixed", "matched"), function(e) {
