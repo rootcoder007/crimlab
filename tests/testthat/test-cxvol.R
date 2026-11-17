@@ -306,3 +306,213 @@ test_that("cxsim() reports bias, spread and coverage", {
   expect_identical(s2$conf, 1)
   errs("cxsim", list(list("at least 1", reps = 0)))
 })
+
+# print(x) writes a header matching pat and gives x back invisibly.
+prt <- function(x, pat) {
+  v <- NULL
+  expect_output(v <- withVisible(print(x)), pat)
+  expect_false(v$visible)
+  expect_identical(v$value, x)
+}
+
+test_that("plcvol() and alrtcx() name unnamed ids, take a matrix, print", {
+  ra <- c("W", "E", "W", "N", "N")
+  rb <- c("W", "W", "W", "N", "N")
+  # an unnamed list of labels: its columns are named id1, id2, or id alone
+  u <- plcvol(ra, rb, list(c(1, 1, 1, 2, 2), rep(2025, 5)))
+  expect_identical(names(u)[1:2], c("id1", "id2"))
+  expect_identical(u$vm, c(2L, 0L))
+  expect_identical(names(plcvol(ra, rb, list(c(1, 1, 1, 2, 2))))[1], "id")
+  # person 1: vm 2 (within 1, across 1); person 2: 0
+  prt(
+    plcvol(ra, rb, c(1, 1, 1, 2, 2)),
+    paste0(
+      "^plcvol: 2 person-years, records in region order; ",
+      "mean volatility 1 \\(within 0.5, across 0.5\\)"
+    )
+  )
+  prt(plcvol(ra, rb, c(1, 1, 1, 2, 2), ord = "given"), "in given order")
+  # a matrix of flags, numeric or text, counts as its data frame does
+  m <- cbind(
+    mh = c(1, 0, 0, 1, 1),
+    sr = c(0, 0, 1, 1, 1),
+    sw = c(0, 0, 0, 1, 1)
+  )
+  id <- c(1, 1, 2, 3, 3)
+  a <- alrtcx(m, id)
+  expect_identical(a, alrtcx(as.data.frame(m), id))
+  expect_identical(alrtcx(ifelse(m == 1, "Yes", "No"), id), a)
+  expect_identical(a$ac, c(2L, 1L, 1L))
+  # one of three person-years spans two configurations: 33.3%
+  prt(
+    a,
+    paste0(
+      "^alrtcx: 3 person-years; 1 \\(33.3%\\) span two or more ",
+      "alert configurations"
+    )
+  )
+})
+
+test_that("otpyr() takes other column names, refuses empty years, prints", {
+  d <- a01()
+  names(d)[5] <- "Sex"
+  expect_identical(otpyr(d, cols = c(gender = "Sex")), otpyr(a01()))
+  errs("otpyr", list(list("in the years asked", a01(), years = 1999)))
+  d <- a01()
+  d$Gender[2] <- NA
+  p <- otpyr(d)
+  # four person-years in 2025 and 2026, the row with no gender dropped
+  prt(
+    p,
+    "^otpyr: 4 person-years, fiscal years 2025-2026 \\(2\\), 1 rows dropped"
+  )
+  expect_output(print(p), "year py  cx  vm")
+  # nothing dropped, nothing said of it
+  expect_false(any(grepl("dropped", capture.output(print(otpyr(a01()))))))
+})
+
+test_that("cntmix() takes weights and a matrix, and says when theta runs off", {
+  set.seed(1)
+  g <- rep(1:6, each = 10)
+  d <- rep(0:1, 30)
+  # binomial counts are less dispersed than Poisson: theta runs off
+  y <- stats::rbinom(
+    60,
+    3,
+    stats::plogis(-0.5 + 0.4 * d + c(-0.3, 0, 0.2, 0.4, -0.1, 0.1)[g])
+  )
+  x <- data.frame(d = d)
+  fp <- cntmix(y, x, g, fam = "poisson")
+  # integer weights are the rows repeated
+  w <- rep(1:3, 20)
+  i <- rep(seq_along(y), w)
+  fw <- cntmix(y, x, g, fam = "poisson", w = w)
+  fr <- cntmix(y[i], data.frame(d = d[i]), g[i], fam = "poisson")
+  expect_equal(
+    fw$coef[c("est", "se")],
+    fr$coef[c("est", "se")],
+    tolerance = 1e-6
+  )
+  expect_equal(fw$sigma, fr$sigma, tolerance = 1e-6)
+  expect_equal(fw$loglik, fr$loglik, tolerance = 1e-8)
+  # a numeric matrix is its data frame
+  expect_equal(cntmix(y, cbind(d = d), g, fam = "poisson"), fp)
+  # the Poisson limit: the Poisson fit, theta named in fam
+  fn <- cntmix(y, x, g, fam = "nb")
+  expect_match(fn$fam, "^poisson \\(negative binomial theta .*Poisson limit\\)")
+  expect_gt(as.numeric(sub(".*theta ([^:]+):.*", "\\1", fn$fam)), 1e6)
+  expect_identical(fn$theta, NA_real_)
+  expect_equal(fn$coef$est, fp$coef$est, tolerance = 1e-4)
+  expect_equal(fn$coef$se, fp$coef$se, tolerance = 1e-3)
+  # where the likelihood overflows, a very low value
+  expect_identical(
+    .cmlap(c(800, 0, 0), y, cbind(1, d), g, rep(1, 60), "poisson"),
+    -1e300
+  )
+  errs(
+    "cntmix",
+    list(
+      list("one value per count", y, x, g, w = 1:3),
+      list("a cluster for every count", y, x, g[-1]),
+      list("a cluster for every count", y, x, replace(g, 1, NA))
+    )
+  )
+  prt(fn, "^cntmix: poisson \\(negative binomial theta .*\n60 counts in 6 ")
+  expect_false(any(grepl("theta [0-9.]+;", capture.output(print(fn)))))
+  # an overdispersed sample keeps the negative binomial and shows theta
+  yn <- stats::rnbinom(60, size = 1, mu = exp(0.5 + 0.4 * d))
+  fb <- cntmix(yn, x, g, fam = "nb")
+  expect_identical(fb$fam, "nb")
+  prt(fb, "^cntmix: nb counts with a random intercept per cluster\n60 counts")
+  expect_output(print(fb), paste0("theta ", format(fb$theta, digits = 4)))
+  fb$conv <- 1L
+  expect_output(print(fb), "\\(the optimiser did not converge\\)")
+  # a singular Hessian (as when a column is given twice): no standard
+  # error, the estimates as they were
+  fit <- .cmfit
+  local_mocked_bindings(.cmfit = function(...) {
+    f <- fit(...)
+    f$hess[] <- 0
+    f
+  })
+  fs <- cntmix(y, x, g, fam = "poisson")
+  expect_true(all(is.na(fs$coef[c("se", "z", "p", "lo", "hi")])))
+  expect_identical(fs$coef$est, fp$coef$est)
+})
+
+# A release of 200 person-years with one to three rows each.
+rel <- function(n = 200) {
+  set.seed(9)
+  yr <- sample(2025:2026, n, TRUE)
+  i <- rep(seq_len(n), sample(1:3, n, TRUE))
+  m <- length(i)
+  reg <- c("East", "West", "North")
+  yn <- function(p) sample(c("Yes", "No"), m, TRUE, c(p, 1 - p))
+  data.frame(
+    EndFiscalYear = yr[i],
+    UniqueIndividual_ID = paste0("p", i),
+    Region_AtTimeOfPlacement = sample(reg, m, TRUE, c(6, 3, 1)),
+    Region_MostRecentPlacement = sample(reg, m, TRUE, c(6, 3, 1)),
+    Gender = sample(c("Male", "Female"), n, TRUE, c(0.8, 0.2))[i],
+    Age_Category = sample(c("18 to 24", "25 to 49", "50+"), n, TRUE)[i],
+    MentalHealth_Alert = yn(0.2),
+    SuicideRisk_Alert = yn(0.1),
+    SuicideWatch_Alert = "No",
+    Number_Of_Placements = sample(1:4, m, TRUE)
+  )
+}
+
+test_that("cxvol() and cxyoy() take the release, refuse gaps and print", {
+  r <- rel()
+  p <- otpyr(r)
+  v <- cxvol(p, fam = "poisson")
+  expect_identical(cxvol(r, fam = "poisson"), v)
+  expect_identical(cxyoy(r), cxyoy(p))
+  q <- pyfix()
+  errs(
+    "cxvol",
+    list(
+      list("none missing", replace(q, "vm", list(c(NA, q$vm[-1])))),
+      list("no person-year with cx = 0", transform(q, cx = 1))
+    )
+  )
+  prt(
+    v,
+    paste0(
+      "^cxvol: alert complexity \\(cx\\) and placement volatility \\(vm\\), ",
+      "years pooled\n"
+    )
+  )
+  expect_output(
+    print(v),
+    "irr: rate ratio of the matched count model \\(poisson\\)"
+  )
+  prt(cxvol(p, yterm = FALSE, fam = "poisson"), "years pooled, no year term\n")
+  prt(
+    cxvol(p, by = "year", fam = "poisson"),
+    "each fiscal year \\(no year term\\)\n.*\n *2025 .*\n *2026 "
+  )
+  prt(cxyoy(p), "^cxyoy: regional changes per fiscal year\n")
+  prt(
+    cxdml(q, lrn = "glm"),
+    "^cxdml: interactive model, effect of cx on vm \\(additive scale\\)\n"
+  )
+})
+
+test_that("cxsim() counts failed fits and prints its settings", {
+  # every count model failing: those estimates are missing and not
+  # counted, the crude ratio still given
+  local_mocked_bindings(cntmix = function(...) stop("no fit"))
+  f <- cxsim(reps = 2, n = 200, ncl = 5, seed = 1)
+  expect_identical(f$res$ok, c(2L, 0L, 0L))
+  expect_true(all(is.finite(f$draws$b[f$draws$est == "crude"])))
+  expect_true(all(is.na(f$draws[f$draws$est != "crude", c("b", "lo", "hi")])))
+  prt(f, "^cxsim: 2 tables of 200 person-years, log rate ratio 0.2624\n")
+  prt(
+    cxsim(reps = 2, n = 200, ncl = 5, conf = 0.5, seed = 1),
+    paste0(
+      "^cxsim: 2 tables of 200 person-years, log rate ratio 0.2624, ",
+      "unobserved confounder 0.5\n"
+    )
+  )
+})
