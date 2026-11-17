@@ -1,5 +1,15 @@
 # crimlab 0.0.0.9000
 
+* Open data: `odtab()` loads a table of the project's open data service by
+  its key and `odls()` lists the tables, with their rows, columns and
+  SHA-256. Everything about a table is read from the service's manifest
+  at the time of the call, so a table its publisher replaces is loaded as
+  it is now, with no new release. A file is used only when its SHA-256 is
+  the one the manifest lists; tables are kept in
+  `tools::R_user_dir("crimlab", "cache")` while they still match. `cols`
+  picks columns without regard to case or underscores, and `base` (or
+  `options(crimlab.data)`) points at a mirror.
+
 * `vrfpol()` is in `clab_jrun()`, the command line and Python, with the
   report R gives: the demo data are R's draws, and the exposure file is
   read as R reads plain and gzip UTF-8 text. A bzip2 or xz file and
