@@ -555,3 +555,9 @@ test_that("a column name that is not text is refused before it is joined", {
          as.POSIXct("2024-01-01", tz = "UTC"), "u", "day")
   ))
 })
+
+test_that("jntx()'s reference point is two numbers", {
+  expect_null(.axjxref(NULL, "jntx"))
+  expect_identical(.axjxref(c(1L, 2L), "jntx"), c(1, 2))
+  expect_error(.axjxref(1, "jntx"), "^jntx: `ref` must be two numbers")
+})

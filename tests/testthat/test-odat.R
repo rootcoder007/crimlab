@@ -364,3 +364,8 @@ test_that("the manifest reader is JSON's grammar, of any depth", {
   expect_identical(.odjson(r"-(["system('x')", "`a`"])-"),
                    list("system('x')", "`a`"))
 })
+
+test_that("a kept file that cannot be opened is refused in words", {
+  expect_error(suppressWarnings(.odbytes(tempfile(), "db/t", "odtab")),
+               "^odtab: `db/t` could not be read")
+})

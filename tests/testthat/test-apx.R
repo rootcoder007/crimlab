@@ -1525,3 +1525,10 @@ test_that("data with repeated names, a level as a matrix, list names", {
   expect_identical(.axcolsj(data.frame(y = 1, u = 2), list("y", "u"), "y, u",
                             "f", 2L), c("y", "u"))
 })
+
+test_that("ppmlcf() refuses more draws than can be made", {
+  d <- simpan()
+  errs("ppmlcf", list(list("`nboot` must be between 2 and 1e\\+07", d, "y",
+                           endo = "x", inst = c("z1", "z2"), x = "w",
+                           fe = c("unit", "day"), nboot = 2^53)))
+})
