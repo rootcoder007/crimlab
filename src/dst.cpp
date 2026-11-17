@@ -725,14 +725,15 @@ double clab_qchisq(double p, double df, int lower) CLAB_TRY { return 2 * clab_qg
 // from its mode in whole steps, at most 40 standard deviations of the
 // Poisson weights each way (past them a weight is below e^-800). Past
 // ncp 100 with df = 1 or df >= 2, the integral of pnchi(), whose work does
-// not grow with ncp; other df keep the sum, NaN for ncp past 1e8.
+// not grow with ncp; other df (below 2, not 1) keep the sum, which takes
+// of the order of sqrt(ncp) terms: NaN past ncp 1e5.
 double clab_pnchisq(double x, double df, double ncp, int lower) CLAB_TRY {
   if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || std::isinf(ncp)) return qnan;
   if (ncp == 0) return clab_pchisq(x, df, lower);
   if (x <= 0) return lower ? 0 : 1;
   if (std::isinf(x)) return lower ? 1 : 0;
   if (ncp > 100 && (df == 1 || df >= 2)) return pnchi(x, df, ncp, lower);
-  if (ncp > 1e8) return qnan;
+  if (ncp > 1e5) return qnan;
   const double lam = ncp / 2;
   const double j0 = std::floor(lam);
   double s = 0;

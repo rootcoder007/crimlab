@@ -4087,6 +4087,8 @@ double clab_pbeta(double x, double a, double b, int lower);
 double clab_qbeta(double p, double a, double b, int lower);
 double clab_pchisq(double x, double df, int lower);
 double clab_qchisq(double p, double df, int lower);
+/* The noncentral chi-square: NaN for ncp past 1e5 when df is below 2 and
+ * not 1. */
 double clab_pnchisq(double x, double df, double ncp, int lower);
 /* The noncentrality at which pnchisq(st, df, ncp) is q (lower tail): the
  * bound of the noncentral chi-square interval; 0 when pchisq(st, df) <= q,
