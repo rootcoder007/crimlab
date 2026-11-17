@@ -26,7 +26,6 @@ extern "C" double Rf_qbeta(double, double, double, int, int);
 extern "C" double Rf_qchisq(double, double, int, int);
 extern "C" double Rf_qpois(double, double, int, int);
 extern "C" double Rf_pchisq(double, double, int, int);
-extern "C" double Rf_pnchisq(double, double, double, int, int);
 
 using clab::fail;
 
@@ -269,21 +268,6 @@ std::vector<double> perstr(SEXP v, const char *nm, SEXP lev, int ns) {
 const char *const rtype[] = {"rate", "prop"};
 
 // ------------------------------------------------------------ tables
-
-// The noncentrality at which a chi-square statistic st on df degrees of
-// freedom sits at lower-tail probability q: pnchisq(st, df, ncp) falls as
-// ncp grows; 0 when even ncp = 0 leaves it below q.
-double ncp(double st, double df, double q) {
-  if (Rf_pchisq(st, df, 1, 0) <= q) return 0.0;
-  double a = 0, b = std::fmax(1.0, st);
-  while (Rf_pnchisq(st, df, b, 1, 0) > q) b *= 2;
-  for (int it = 0; it < 200 && b - a > 1e-12 * b; ++it) {
-    const double m = (a + b) / 2;
-    if (Rf_pnchisq(st, df, m, 1, 0) > q) a = m;
-    else b = m;
-  }
-  return (a + b) / 2;
-}
 
 const char *const aggs[] = {"n", "sum", "max", "min", "mean", "dist"};
 
@@ -937,8 +921,8 @@ SEXP C_clab_r_ctabx(SEXP row, SEXP col, SEXP w, SEXP agg, SEXP correct, SEXP exa
   put("v", two ? st[4] : qnan);
   // DescTools' noncentral chi-square interval: sqrt(ncp / (n (k - 1)))
   const double chu = two ? (yates && r2 == 2 && c2 == 2 ? st[4] * st[4] * nn * (kk - 1) : ch) : qnan;
-  put("vlo", two ? std::fmin(1.0, std::sqrt(ncp(chu, df, 1 - (1 - conf) / 2) / (nn * (kk - 1)))) : qnan);
-  put("vhi", two ? std::fmin(1.0, std::sqrt(ncp(chu, df, (1 - conf) / 2) / (nn * (kk - 1)))) : qnan);
+  put("vlo", two ? std::fmin(1.0, std::sqrt(clab_ncpq(chu, df, 1 - (1 - conf) / 2) / (nn * (kk - 1)))) : qnan);
+  put("vhi", two ? std::fmin(1.0, std::sqrt(clab_ncpq(chu, df, (1 - conf) / 2) / (nn * (kk - 1)))) : qnan);
   put("vbc", two ? st[5] : qnan);
   put("cc", two ? st[6] : qnan);
   put("phi", st[7]);

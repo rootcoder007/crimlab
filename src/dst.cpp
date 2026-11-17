@@ -16,6 +16,7 @@
 // computation of binomial probabilities, 2000), which keeps its relative
 // precision when a and b are large. Quantiles are found by Newton steps
 // on the logarithm of the tail, kept inside a bracket.
+#include <algorithm>
 #include <cstdint>
 #include <cfloat>
 #include <cmath>
@@ -84,10 +85,11 @@ double stirlerr(double n) {
   return (S0 - (S1 - (S2 - (S3 - S4 / nn) / nn) / nn) / nn) / n;
 }
 
-// x log(x / np) + np - x, precise when x is near np.
-double bd0(double x, double np) {
-  if (std::fabs(x - np) < 0.1 * (x + np)) {
-    double v = (x - np) / (x + np), s = (x - np) * v;
+// x log(x / np) + np - x, precise when x is near np; d = x - np, given
+// exactly by a caller that has it (x and np may then be rounded).
+double bd0x(double x, double np, double d) {
+  if (std::fabs(d) < 0.1 * (x + np)) {
+    double v = d / (x + np), s = d * v;
     if (std::fabs(s) < DBL_MIN) return s;
     double ej = 2 * x * v;
     v *= v;
@@ -98,8 +100,10 @@ double bd0(double x, double np) {
       s = s1;
     }
   }
-  return x * std::log(x / np) + np - x;
+  return x * std::log(x / np) - d;
 }
+
+double bd0(double x, double np) { return bd0x(x, np, x - np); }
 
 // x^a e^-x / Gamma(a + 1) for real a >= 0.
 double dpois(double a, double x) {
@@ -142,9 +146,12 @@ double bfac(double x, double y, double a, double b) {
   if (x == 0 || y == 0) return 0;
   if (a >= 1 && b >= 1) {
     // Loader's form of choose(n, a) x^a y^b, n = a + b, times a b / n
+    // a - n x and b - n y by a fused multiply-add: formed from the rounded
+    // products they lose the digits that matter when a and b are large
     const double n = a + b;
-    const double lc = stirlerr(n) - stirlerr(a) - stirlerr(b) - bd0(a, n * x) - bd0(b, n * y);
-    return std::exp(lc) * std::sqrt(a * b / (2 * pi * n));
+    const double lc = stirlerr(n) - stirlerr(a) - stirlerr(b) - bd0x(a, n * x, std::fma(-n, x, a)) -
+                      bd0x(b, n * y, std::fma(-n, y, b));
+    return std::exp(lc) * std::sqrt(a) * std::sqrt(b / (2 * pi * n));
   }
   const double lx = x < 0.5 ? std::log(x) : std::log1p(-y), ly = y < 0.5 ? std::log(y) : std::log1p(-x);
   const double s = std::fmin(a, b), l = std::fmax(a, b);
@@ -265,6 +272,95 @@ double apser(double x, double a, double b) {
   return -std::expm1(a * std::log(x) + lgd(a, b) - lgamma1p(a) + std::log1p(a * s));
 }
 
+// The integral of f >= 0 over the pieces between the nb sorted break
+// points bp (2 to 16 of them) by the Gauss-Kronrod pair of 7 and 15 points
+// (QUADPACK's qk15), the piece of the largest error estimate halved until
+// the estimates (|Kronrod - Gauss|) sum to at most 1e-10 of the integral
+// or there are 200 pieces. The Kronrod sum of a piece is exact for
+// polynomials of degree 22, so its error is far below the estimate once
+// that is small (the proof in src/t_dst.cpp and the references of 34 and
+// 40 digits behind it).
+template <class F>
+double gk15(const F &f, const double *bp, int nb) {
+  static const double xk[8] = {0.991455371120812639206854697526329, 0.949107912342758524526189684047851,
+                               0.864864423359769072789712788640926, 0.741531185599394439863864773280788,
+                               0.586087235467691130294144845693013, 0.405845151377397166906606412076961,
+                               0.207784955007898467600689403773245, 0.0};
+  static const double wk[8] = {0.022935322010529224963732008058970, 0.063092092629978553290700663189204,
+                               0.104790010322250183839876322541518, 0.140653259715525918745189590510238,
+                               0.169004726639267902826583426598550, 0.190350578064785409913256402421014,
+                               0.204432940075298892414161999234649, 0.209482141084727828012999174891714};
+  static const double wg[4] = {0.129484966168869693270611432679082, 0.279705391489276667901467771423780,
+                               0.381830050505118944950369775488975, 0.417959183673469387755102040816327};
+  struct Pc {
+    double a, b, v, e;
+  };
+  auto rule = [&](double lo, double hi) {
+    const double c = 0.5 * (lo + hi), h = 0.5 * (hi - lo), fc = f(c);
+    double k = fc * wk[7], g = fc * wg[3];
+    for (int j = 0; j < 7; ++j) {
+      const double d = h * xk[j], s = f(c - d) + f(c + d);
+      k += wk[j] * s;
+      if (j % 2) g += wg[j / 2] * s;
+    }
+    return Pc{lo, hi, k * h, std::fabs((k - g) * h)};
+  };
+  Pc pc[200];
+  int n = 0;
+  for (int i = 0; i + 1 < nb; ++i) {
+    if (bp[i] < bp[i + 1]) pc[n++] = rule(bp[i], bp[i + 1]);
+  }
+  if (n == 0) return 0;
+  for (;;) {
+    double v = 0, e = 0;
+    int w = 0;
+    for (int i = 0; i < n; ++i) {
+      v += pc[i].v;
+      e += pc[i].e;
+      if (pc[i].e > pc[w].e) w = i;
+    }
+    if (!(e > 1e-10 * v) || n == 200) return v;
+    const double m = 0.5 * (pc[w].a + pc[w].b);
+    pc[n++] = rule(m, pc[w].b);
+    pc[w] = rule(pc[w].a, m);
+  }
+}
+
+template <class F>
+double gk15(const F &f, double a, double b) {
+  const double bp[2] = {a, b};
+  return gk15(f, bp, 2);
+}
+
+// I_x(a, b) or its complement for a, b >= 1e6, where the continued
+// fraction takes of the order of sqrt(min(a, b)) steps and its rounding
+// grows with them: the integral of the beta density by gk15(), as pgbig()
+// does for the gamma, in d = t - a / n (n = a + b), the density (a b / n)
+// dbinom(a, n, t) / (t (1 - t)) in Loader's form with a - n t = -n d and
+// b - n (1 - t) = n d exact, on the side of the mean where x lies, over 45
+// standard deviations (the log density is concave). x - a / n is formed
+// by a fused multiply-add from x or from y, whichever is the smaller. Past
+// n = 1e32 the standard deviation is below the spacing of the doubles at
+// the mean and the result is as exact as the rounded a + b allows.
+double pbbig(double x, double y, double a, double b, int lower) {
+  const double n = a + b, ma = a / n, mb = b / n, ab = a * mb, sd = std::sqrt(ab) / n;
+  const double dx = x < 0.5 ? std::fma(x, n, -a) / n : -std::fma(y, n, -b) / n;
+  auto f = [&](double d) {
+    const double t = ma + d, tc = mb - d;
+    if (!(t > 0 && tc > 0)) return 0.0;
+    return ab / (t * tc) * std::exp(-bd0x(a, a + n * d, -n * d) - bd0x(b, b - n * d, n * d));
+  };
+  const double k = std::exp(stirlerr(n) - stirlerr(a) - stirlerr(b)) / std::sqrt(2 * pi * ab);
+  if (dx <= 0) {
+    const double l = k * gk15(f, std::fmax(-ma, dx - 45 * sd), dx);
+    return lower ? l : 1 - l;
+  }
+  const double u = k * gk15(f, dx, std::fmin(mb, dx + 45 * sd));
+  return lower ? 1 - u : u;
+}
+
+double pgam(double x, double a, int lower);
+
 // I_x(a, b) and its complement; y = 1 - x.
 double pbet(double x, double y, double a, double b, int lower) {
   if (std::isnan(x) || std::isnan(a) || std::isnan(b) || a < 0 || b < 0) return qnan;
@@ -279,6 +375,13 @@ double pbet(double x, double y, double a, double b, int lower) {
     else lo = x < 0.5 ? 0 : 1;
     return lower ? lo : 1 - lo;
   }
+  // one shape past 1e17 times the other: -log of the variable is the
+  // gamma of the small shape with rate the large one, to a relative O(1e-17)
+  // (Abramowitz and Stegun 26.5.21's limit); the continued fraction would
+  // not converge in 1e8 steps there
+  if (a > 1e17 * b) return pgam(-a * (x < 0.5 ? std::log(x) : std::log1p(-y)), b, !lower);
+  if (b > 1e17 * a) return pgam(-b * (y < 0.5 ? std::log(y) : std::log1p(-x)), a, lower);
+  if (a >= 1e6 && b >= 1e6) return pbbig(x, y, a, b, lower);
   // w = I_x(a, b) on the side where its continued fraction converges
   const bool sw = !(x < (a + 1) / (a + b + 2));
   const double w = sw ? ibet(y, x, b, a) : ibet(x, y, a, b);
@@ -291,12 +394,42 @@ double pbet(double x, double y, double a, double b, int lower) {
   return (lower != 0) == sw ? 1 - w : w;
 }
 
+// P(a, x) or Q(a, x) for a > 1e7, where the series and the continued
+// fraction below take of the order of sqrt(a) terms: the integral of the
+// gamma density by gk15(), on the side of the mode where x lies, so the
+// smaller tail is the one integrated, over 45 sqrt(a) from x (the density
+// falls at least as fast there as about its mode, where it is below
+// e^-1000 of its peak that far out).
+double pgbig(double x, double a, int lower) {
+  // in d = t - a, so that no node is rounded to the coarse grid of the
+  // doubles near a (a spacing that is a tenth of sqrt(a) past a = 1e30):
+  // the density is a / t dpois(a, t), dpois from bd0x(a, t, -d), its
+  // constant e^-stirlerr(a) / sqrt(2 pi a) applied after the integral (in
+  // the exponent it would cost digits: log(2 pi a) is 690 at a = 1e300)
+  const double w = 45 * std::sqrt(a), dx = x - a;
+  auto f = [&](double d) {
+    const double t = a + d;
+    return t > 0 ? a / t * std::exp(-bd0x(a, t, -d)) : 0.0;
+  };
+  const double k = std::exp(-stirlerr(a)) / std::sqrt(2 * pi * a);
+  if (x <= a - 1) {
+    const double l = k * gk15(f, std::fmax(-a, dx - w), dx);
+    return lower ? l : 1 - l;
+  }
+  const double u = k * gk15(f, dx, dx + w);
+  return lower ? 1 - u : u;
+}
+
 // The regularized incomplete gamma ratio P(a, x), or Q(a, x).
 double pgam(double x, double a, int lower) {
   if (std::isnan(x) || std::isnan(a) || a < 0) return qnan;
   if (x <= 0) return lower ? 0 : 1;
   if (a == 0 || std::isinf(x)) return lower ? 1 : 0;
   if (std::isinf(a)) return lower ? 0 : 1;
+  if (a > 1e7) return pgbig(x, a, lower);
+  // Q(a, x) < e^-1e299 here; the continued fraction's 1 / (x + 1 - a)
+  // would be subnormal and never settle
+  if (x > 1e300) return lower ? 1 : 0;
   if (a < 1 && x < 1) {
     // x^a / Gamma(a + 1) (1 + a sum_{n >= 1} (-x)^n / (n! (a + n)))
     double s = 0, c = 1;
@@ -427,6 +560,70 @@ double dsrch(const Ok &ok, double y0) {
   return hi;
 }
 
+// The noncentral chi-square on df >= 1 degrees of freedom (df = 1 or df >=
+// 2), noncentrality lam > 0, at x > 0: P(X <= x) (lower) or P(X > x). X is
+// (Z + r)^2 + U^2, r = sqrt(lam), Z standard normal and U chi on m = df - 1
+// degrees of freedom; given U = u, X <= x when |Z + r| <= s = sqrt(x - u^2),
+// with probability Phi(s - r) - Phi(-s - r). This is integrated over u
+// against the chi density, in u where u^2 <= x / 2 and in s (u = sqrt(x -
+// s^2), du = -s / u ds) above, so that neither x - u^2 nor x - s^2 loses
+// digits, s - r is formed as (x - lam - u^2) / (s + r) (x - lam exact when
+// they are close), and the integrand is smooth at both ends. The chi
+// density is negligible (below e^-700) more than 40 from its mode. The
+// work does not grow with lam, x or df.
+double pnchi(double x, double df, double lam, int lower) {
+  const double r = std::sqrt(lam), m = df - 1, xl = x - lam;
+  auto g = [&](double s, double d) {
+    const double b = clab_pnorm(-s - r);
+    return lower ? clab_pnorm(d) - b : clab_pnorm(-d) + b;
+  };
+  if (m == 0) {
+    const double s = std::sqrt(x);
+    return g(s, xl / (s + r));
+  }
+  // the chi density on m degrees of freedom: u^(m - 1) e^(-u^2 / 2) /
+  // (2^(m / 2 - 1) Gamma(m / 2)) directly for a few degrees of freedom
+  // (its logarithm is small where the density counts), else in Loader's
+  // form m dpois(m / 2, u^2 / 2) / u
+  const double lc = (m / 2 - 1) * std::log(2.0) + std::lgamma(m / 2);
+  auto f = [&](double u) {
+    return m <= 50 ? std::exp((m - 1) * std::log(u) - u * u / 2 - lc) : m * dpois(m / 2, u * u / 2) / u;
+  };
+  const double u0 = std::sqrt(std::fmax(m - 1, 0.0)), ul = std::fmax(0.0, u0 - 40), uh = u0 + 40,
+               hx = std::sqrt(x / 2), sx = std::sqrt(x);
+  double v = lower ? 0 : pgam(x / 2, m / 2, 0);
+  const double a1 = std::fmin(uh, hx);
+  // one integral (so one error budget) over t in [0, l1 + l2]: u = ul + t
+  // below l1, s = sa + t - l1 above; break points at the ends of both and
+  // at u0 +- 3 and 8, where the density's mass is
+  const double b0 = std::fmax(ul, hx), b1 = std::fmin(uh, sx);
+  const double sa = b1 >= sx ? 0 : std::sqrt(x - b1 * b1), sb = b0 < b1 ? std::sqrt(x - b0 * b0) : 0;
+  const double l1 = std::fmax(0.0, a1 - ul), l2 = b0 < b1 ? sb - sa : 0;
+  static const double off[] = {-8, -3, 3, 8};
+  double bp[12];
+  int nb = 0;
+  bp[nb++] = 0;
+  bp[nb++] = l1;
+  bp[nb++] = l1 + l2;
+  for (double o : off) {
+    const double u = u0 + o;
+    if (u > ul && u < a1) bp[nb++] = u - ul;
+    if (u > b0 && u < b1) bp[nb++] = l1 + std::sqrt(x - u * u) - sa;
+  }
+  std::sort(bp, bp + nb);
+  v += gk15(
+      [&](double t) {
+        if (t < l1) {
+          const double u = ul + t, s = std::sqrt(x - u * u);
+          return f(u) * g(s, (xl - u * u) / (s + r));
+        }
+        const double s = sa + (t - l1), u = std::sqrt(x - s * s);
+        return f(u) * g(s, s - r) * s / u;
+      },
+      bp, nb);
+  return std::fmin(1.0, std::fmax(0.0, v));
+}
+
 }  // namespace
 
 // Wichura's algorithm AS 241 (PPND16), Applied Statistics 37 (1988),
@@ -524,15 +721,18 @@ double clab_pchisq(double x, double df, int lower) CLAB_TRY { return pgam(x / 2,
 
 double clab_qchisq(double p, double df, int lower) CLAB_TRY { return 2 * clab_qgamma(p, df / 2, lower); } CLAB_CATCH(kutil::nan())
 
-// The Poisson mixture of central chi-squares, summed out from its mode
-// in whole steps, at most 40 standard deviations of the Poisson weights
-// each way (past them a weight is below e^-800); NaN for ncp past 1e8,
-// where R's pchisq() does not converge either.
+// Up to ncp 100, the Poisson mixture of central chi-squares, summed out
+// from its mode in whole steps, at most 40 standard deviations of the
+// Poisson weights each way (past them a weight is below e^-800). Past
+// ncp 100 with df = 1 or df >= 2, the integral of pnchi(), whose work does
+// not grow with ncp; other df keep the sum, NaN for ncp past 1e8.
 double clab_pnchisq(double x, double df, double ncp, int lower) CLAB_TRY {
-  if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || !(ncp <= 1e8)) return qnan;
+  if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || std::isinf(ncp)) return qnan;
   if (ncp == 0) return clab_pchisq(x, df, lower);
   if (x <= 0) return lower ? 0 : 1;
   if (std::isinf(x)) return lower ? 1 : 0;
+  if (ncp > 100 && (df == 1 || df >= 2)) return pnchi(x, df, ncp, lower);
+  if (ncp > 1e8) return qnan;
   const double lam = ncp / 2;
   const double j0 = std::floor(lam);
   double s = 0;
@@ -547,6 +747,155 @@ double clab_pnchisq(double x, double df, double ncp, int lower) CLAB_TRY {
     }
   }
   return std::fmin(1.0, s);
+} CLAB_CATCH(kutil::nan())
+
+// pnchisq(st, df, ncp) falls as ncp grows: 0 when it is at most q already
+// at ncp 0. The root is found for qnorm(pnchisq(st, df, ncp)) - qnorm(q),
+// close to linear in ncp (under the normal approximation it is (st - df -
+// ncp) / sqrt(2 df + 4 ncp) less a constant), so that regula falsi needs
+// few steps: from the normal approximation's root, steps of the same
+// slope until the sign changes, then regula falsi with the Illinois step,
+// halving when a value is infinite (a tail beyond the doubles) or three
+// steps have not halved the bracket, and a probe of the final width past
+// a point close to the root, to a width of 4 eps of the bound or a value
+// within 1e-14 of the root's (the rounding of the two functions).
+double clab_ncpq(double st, double df, double q) CLAB_TRY {
+  if (std::isnan(st) || std::isnan(df) || std::isnan(q) || st < 0 || std::isinf(st) || df <= 0 || std::isinf(df) ||
+      !(q > 0 && q < 1))
+    return qnan;
+  if (clab_pchisq(st, df, 1) <= q) return 0;
+  const double zq = clab_qnorm(q);
+  auto h = [&](double l) { return clab_qnorm(clab_pnchisq(st, df, l, 1)) - zq; };
+  const double a = st - df, b = a + 2 * zq * zq;
+  const double rt = std::sqrt(std::fmax(0.0, 4 * a * zq * zq + 4 * zq * zq * zq * zq + 2 * zq * zq * df));
+  double l0 = std::fmax(zq > 0 ? b - rt : b + rt, 0.0), h0 = h(l0);
+  if (std::isnan(h0)) return qnan;
+  // h(0) > 0; step from l0 by the normal model's slope -1 / sd, doubled
+  // until the sign changes
+  double lo = 0, hi = l0, flo = HUGE_VAL, fhi = h0;
+  for (double k = 1.2; fhi > 0; k *= 2) {
+    lo = hi;
+    flo = fhi;
+    const double sd = std::sqrt(2 * df + 4 * hi);
+    hi = hi + k * (std::isinf(fhi) ? 8 : fhi) * sd + 1;
+    fhi = h(hi);
+    if (std::isnan(fhi) || std::isinf(hi)) return qnan;
+  }
+  if (lo == 0 && l0 > 0) {
+    // l0 was past the root: step down toward 0 likewise
+    for (double k = 1.2;; k *= 2) {
+      const double sd = std::sqrt(2 * df + 4 * hi);
+      const double c = std::fmax(0.0, hi + k * (std::isinf(fhi) ? -8 : fhi) * sd);
+      const double fc = c > 0 ? h(c) : HUGE_VAL;
+      if (std::isnan(fc)) return qnan;
+      if (fc > 0) {
+        lo = c;
+        flo = fc;
+        break;
+      }
+      hi = c;
+      fhi = fc;
+    }
+  }
+  int side = 0, slow = 0;
+  double w = hi - lo;
+  for (int it = 0; it < 300 && hi - lo > 4 * eps * hi; ++it) {
+    double c = std::isinf(flo) || std::isinf(fhi) ? 0.5 * (lo + hi) : (lo * fhi - hi * flo) / (fhi - flo);
+    if (++slow == 3) {
+      if (hi - lo > 0.5 * w) c = 0.5 * (lo + hi);
+      w = hi - lo;
+      slow = 0;
+    }
+    if (!(c > lo && c < hi)) c = 0.5 * (lo + hi);
+    const double fc = h(c);
+    if (std::isnan(fc)) return qnan;
+    // within the rounding of qnorm(pnchisq()) of the root
+    if (std::fabs(fc) <= 1e-14 * (1 + std::fabs(zq))) return c;
+    if (fc > 0) {
+      lo = c;
+      flo = fc;
+      if (side == 1) fhi *= 0.5;
+      side = 1;
+    } else {
+      hi = c;
+      fhi = fc;
+      if (side == -1) flo *= 0.5;
+      side = -1;
+    }
+    // near the root, a step of the final width past it closes the
+    // bracket (regula falsi alone creeps up on it from one side)
+    if (std::fabs(fc) < 1e-9) {
+      const double d = 4 * eps * c, c2 = fc > 0 ? c + d : c - d;
+      if (c2 > lo && c2 < hi) {
+        const double f2 = h(c2);
+        if (std::isnan(f2)) return qnan;
+        if (f2 > 0) {
+          lo = c2;
+          flo = f2;
+        } else {
+          hi = c2;
+          fhi = f2;
+        }
+      }
+    }
+  }
+  return 0.5 * (lo + hi);
+} CLAB_CATCH(kutil::nan())
+
+namespace {
+
+// One tail of the noncentral F as a Poisson mixture over j (mean mu) of
+// the beta tails I_y(m / 2 + j, n / 2) (Johnson, Kotz and Balakrishnan
+// 1995, ch. 30): lw the lower tail. The beta tail falls as j grows (lower)
+// or falls (upper), so the mixture is summed from the far end of the
+// Poisson weights (40 sd) toward the other, and stops once the beta tail
+// is below 1e-17 of the sum: a tail that is 0 to double precision costs
+// one term. Past sd 200 the sum over whole j is the integral of the same
+// function of a real j (Poisson's summation formula: the two differ by
+// terms of order exp(-2 pi^2 sd^2)), taken by the trapezoidal rule of step
+// sd / 4 over 14 sd each way, whose error is of order exp(-2 pi^2 16) for
+// such a smooth function: at most 113 terms whatever ncp.
+double pnft(double y, double yc, double m, double n, double mu, int lw) {
+  if (mu == 0) return pbet(y, yc, m / 2, n / 2, lw);
+  const double sd = std::sqrt(mu);
+  if (sd > 200) {
+    const double h = sd / 4;
+    auto t = [&](double j) { return dpois(j, mu) * pbet(y, yc, m / 2 + j, n / 2, lw); };
+    // the far end first: the whole tail is below 1e-17 when it is there
+    const double e = pbet(y, yc, m / 2 + mu + (lw ? -14 : 14) * sd, n / 2, lw);
+    if (e < 1e-17) return e;
+    kutil::ksum s;
+    for (int i = -56; i <= 56; ++i) s.add(t(mu + i * h));
+    return h * s.val();
+  }
+  const double lo = std::fmax(0, std::floor(mu - 40 * sd - 40)), hi = std::ceil(mu + 40 * sd + 40);
+  kutil::ksum s;
+  for (double i = 0; i <= hi - lo; i += 1) {
+    const double j = lw ? lo + i : hi - i, b = pbet(y, yc, m / 2 + j, n / 2, lw);
+    s.add(dpois(j, mu) * b);
+    if (b <= 1e-17 * s.val() || b < 1e-300) break;
+  }
+  return s.val();
+}
+
+}  // namespace
+
+// The noncentral F (m, n degrees of freedom, noncentrality ncp): the tail
+// below 1/2 by pnft(), the other as 1 minus it; ncp Inf is a point mass
+// at infinity.
+double clab_pnf(double x, double m, double n, double ncp, int lower) CLAB_TRY {
+  if (std::isnan(x) || std::isnan(m) || std::isnan(n) || std::isnan(ncp) || !(m > 0) || !(n > 0) || ncp < 0 ||
+      std::isinf(m) || std::isinf(n))
+    return qnan;
+  if (!(x > 0)) return lower ? 0 : 1;
+  if (std::isinf(x) && std::isfinite(ncp)) return lower ? 1 : 0;
+  if (std::isinf(ncp)) return lower ? 0 : 1;
+  // y = m x / (m x + n) and 1 - y, without overflow for a huge x
+  const double y = 1 / (1 + n / (m * x)), yc = 1 / (1 + m * x / n), mu = ncp / 2;
+  const double l = pnft(y, yc, m, n, mu, 1);
+  if (l <= 0.5) return lower ? l : 1 - l;
+  const double u = pnft(y, yc, m, n, mu, 0);
+  return lower ? 1 - u : u;
 } CLAB_CATCH(kutil::nan())
 
 double clab_pt(double x, double n, int lower) CLAB_TRY {

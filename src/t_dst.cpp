@@ -14,6 +14,8 @@ namespace {
 void rel(tk &t, const char *id, double got, double want) { tk_eq(t, id, got / want, 1.0, 1e-12); }
 }  // namespace
 
+void t_dstbig(tk &t);
+
 void t_dst(tk &t, int big) {
   (void)big;
   tk_eq(t, "qnorm.975", clab_qnorm(0.975), 1.959963984540054, 1e-15);
@@ -109,4 +111,51 @@ void t_dst(tk &t, int big) {
   tk_eq(t, "qpois.up1", clab_qpois(0.05, 3, 1), 1, 0);
   tk_eq(t, "qpois.up2", clab_qpois(0.2, 3, 1), 2, 0);
   tk_eq(t, "qpois.up3", clab_qpois(0.8, 3, 0), 2, 0);
+  t_dstbig(t);
+}
+
+// Large parameters, against references of 34 to 40 digits from mpmath
+// (dev/ref/dstbig.py): the noncentral chi-square by an integral over the
+// normal part (another representation from src/dst.cpp's), its
+// noncentrality bounds by the secant method on it (df 1 in closed form),
+// the incomplete gamma and beta ratios by their defining integrals, the
+// noncentral F by its Poisson mixture. Each value takes at most a few
+// milliseconds, whatever the parameter's size.
+void t_dstbig(tk &t) {
+  rel(t, "pnchisq.int", clab_pnchisq(1002, 2, 1000, 1), 0.5063033675594192372927274);
+  rel(t, "pnchisq.intlo", clab_pnchisq(685.614159608872569151571951806545257568359375, 2, 1000, 1),
+      2.436332487074393327752203e-8);
+  rel(t, "pnchisq.e15", clab_pnchisq(999999873508894.625, 1, 1e15, 1), 0.02275012941425419019968595);
+  rel(t, "pnchisq.e15up", clab_pnchisq(1000000316227767, 1, 1e15, 0), 2.86652136445840593867498e-7);
+  rel(t, "pnchisq.e8", clab_pnchisq(100040001.00010000169277191162109375, 1, 1e8, 0), 0.02275822991822743518459779);
+  tk_nan(t, "pnchisq.inf", clab_pnchisq(5, 3, HUGE_VAL, 1));
+  // the bounds of Cramer's V for a 2 x 2 table of 1e8 and of 1e15 counts
+  rel(t, "ncpq.e8lo", clab_ncpq(4e6, 1, 0.975), 3992163.985520660478702051);
+  rel(t, "ncpq.e8hi", clab_ncpq(4e6, 1, 0.025), 4007843.697396980910972984);
+  rel(t, "ncpq.e15lo", clab_ncpq(4e13, 1, 0.975), 39999975208202.54927636026);
+  rel(t, "ncpq.e15hi", clab_ncpq(4e13, 1, 0.025), 40000024791805.13364128564);
+  tk_true(t, "ncpq.edge", clab_ncpq(0.5, 4, 0.975) == 0 && clab_ncpq(0, 1, 0.5) == 0);
+  tk_nan(t, "ncpq.out", clab_ncpq(5, 1, 1));
+  tk_nan(t, "ncpq.inf", clab_ncpq(HUGE_VAL, 1, 0.5));
+  // the bounds fall as the level of the lower tail rises (a wider interval)
+  tk_true(t, "ncpq.mono", clab_ncpq(4e6, 4, 0.995) < clab_ncpq(4e6, 4, 0.975) &&
+                              clab_ncpq(4e6, 4, 0.025) < clab_ncpq(4e6, 4, 0.005) &&
+                              clab_ncpq(500, 99, 0.995) < clab_ncpq(500, 99, 0.975));
+  rel(t, "pgamma.e8", clab_pgamma(99970000.0, 1e8, 1), 0.00134871644916155059179);
+  rel(t, "pgamma.e16", clab_pgamma(9999999700000000.0, 1e16, 1), 0.001349897913447472645822);
+  rel(t, "pgamma.e16up", clab_pgamma(9999999700000000.0, 1e16, 0), 0.9986501020865525273542);
+  tk_true(t, "pgamma.e300", std::fabs(clab_pgamma(1e300, 1e300, 1) - 0.5) < 1e-15);
+  rel(t, "pbeta.e8", clab_pbeta(0.49992928932188135, 1e8, 1e8, 1), 0.02275013154326005409058);
+  rel(t, "pbeta.e12", clab_pbeta(0.4999992928932188, 1e12, 1e12, 1), 0.02275013194857566620789);
+  rel(t, "pbeta.e8up", clab_pbeta(0.01, 1990001, 198010000, 0), 5.714803963440756959975e-13);
+  tk_true(t, "pbeta.e300", std::fabs(clab_pbeta(0.5, 1e300, 1e300, 1) - 0.5) < 1e-15 &&
+                               clab_pbeta(0.1, 5e307, 28.5, 1) == 0 && clab_pbeta(0.1, 28.5, 5e307, 0) == 0);
+  tk_true(t, "pgamma.max", clab_pgamma(1.7e308, 28.5, 0) == 0);
+  rel(t, "pnf", clab_pnf(3.1588427192606483, 2, 57, 6, 0), 0.560173535744839529465);
+  rel(t, "pnf.60", clab_pnf(3.1588427192606483, 2, 57, 60, 0), 0.9999999008156065140529);
+  rel(t, "pnf.60lo", clab_pnf(3.1588427192606483, 2, 57, 60, 1), 9.91843934859471e-8);
+  tk_true(t, "pnf.huge", clab_pnf(3.1588427192606483, 2, 57, 6e7, 0) == 1 &&
+                             clab_pnf(3.1588427192606483, 2, 57, 1e308, 0) == 1 &&
+                             clab_pnf(3.1588427192606483, 2, 57, HUGE_VAL, 0) == 1);
+  tk_nan(t, "pnf.out", clab_pnf(1, 0, 5, 1, 0));
 }

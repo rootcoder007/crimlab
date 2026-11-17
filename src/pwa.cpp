@@ -6,29 +6,14 @@
 // ch. 8), and the power is the chance that it passes the critical value
 // of the central F at alpha. The upper tail of the noncentral F is the
 // Poisson mixture of the upper tails of beta distributions (Johnson, Kotz
-// and Balakrishnan 1995, ch. 30), summed over the Poisson weights within
-// 40 standard deviations of their mean.
+// and Balakrishnan 1995, ch. 30), clab_pnf() of src/dst.cpp, whose work
+// does not grow with the noncentrality.
 #include <cmath>
 
 #include "crimlab.h"
 #include "kutil.h"
 
 namespace {
-
-// P(F > x) for F noncentral with df m, n and noncentrality l.
-double pnfu(double x, double m, double n, double l) {
-  if (!(x > 0)) return 1;
-  const double y = m * x / (m * x + n), mu = l / 2;
-  if (mu == 0) return clab_pbeta(y, m / 2, n / 2, 0);
-  const double sd = std::sqrt(mu);
-  const double lo = std::fmax(0, std::floor(mu - 40 * sd - 40)), hi = std::ceil(mu + 40 * sd + 40);
-  kutil::ksum s;
-  for (double j = lo; j <= hi; j += 1) {
-    const double w = std::exp(-mu + j * std::log(mu) - std::lgamma(j + 1));
-    if (w > 0) s.add(w * clab_pbeta(y, m / 2 + j, n / 2, 0));
-  }
-  return std::fmin(1.0, s.val());
-}
 
 // One cell: k groups of n, effect f; out the 6 columns from df1.
 void cell(int k, double n, double f, double alpha, double *o) {
@@ -38,7 +23,7 @@ void cell(int k, double n, double f, double alpha, double *o) {
   o[1] = d2;
   o[2] = l;
   o[3] = fc;
-  o[4] = pnfu(fc, d1, d2, l);
+  o[4] = clab_pnf(fc, d1, d2, l, 0);
 }
 
 }  // namespace
