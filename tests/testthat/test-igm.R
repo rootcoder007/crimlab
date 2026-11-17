@@ -804,3 +804,10 @@ test_that("the mental health results print, distinctions kept", {
   ))
   expect_output(print(s), "Statistics Canada table")
 })
+
+test_that("the warnings of the table functions start with their name", {
+  expect_warning(
+    stdprev(c(5, 20), c(8, 18), c(12, 22), std = c(1, 1)),
+    "^stdprev: 1 interval\\(s\\) do not contain their estimate"
+  )
+})

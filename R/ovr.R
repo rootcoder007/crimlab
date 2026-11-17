@@ -415,6 +415,7 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
 # Words to look for: text with no missing or empty value and no "|", one
 # of them when one; joined by "|" for the kernels.
 .ovrwords <- function(x, what, f, one = FALSE) {
+  .cktxt(x, what, f)
   if (!is.character(x) || !length(x) || anyNA(x) || !all(nzchar(x)) ||
         any(grepl("|", x, fixed = TRUE)) || (one && length(x) != 1L)) {
     .ckstop(f, "`%s` must be %s, not empty, with no \"|\"", what,
@@ -439,8 +440,9 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
     }
     return(list(group = rep(nm, lengths(vocab)), term = enc2utf8(w)))
   }
+  # a word is also a group's name, and R's names hold 10000 bytes at most
   if (!is.character(vocab) || !length(vocab) || anyNA(vocab) ||
-        !all(nzchar(vocab))) {
+        !all(nzchar(vocab)) || any(nchar(vocab, "bytes") > 10000L)) {
     .ckstop(f, paste("`vocab` must be \"mhr\", a list of words named by",
                      "group, or words"))
   }

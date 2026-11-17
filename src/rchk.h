@@ -11,6 +11,7 @@
 #include <R.h>
 #include <Rinternals.h>
 
+#include <cstddef>
 #include <limits>
 
 // With R_NO_REMAP_RMATH (set where Rmath.h is included, so that its short
@@ -86,9 +87,18 @@ SEXP dcopy(SEXP x);
 // Unprotected, as Rf_allocVector() returns it.
 SEXP xalloc(SEXPTYPE t, R_xlen_t n, const char *nm);
 
+// UTF-8 without NUL.
+bool u8ok(const char *s, std::size_t len);
+
+// The total of non-negative counts nm: refused when it is 0 ("`nm` has no
+// what: every count is 0.") or too large for a double (a sum past
+// 1.8e308 is not 0, however its shares would read).
+void tot0(double tot, const char *nm, const char *what);
+
 // A labelled vector (one with a "labels" attribute, as haven makes) holds
 // codes, not values: it is refused, naming argument nm, with a request to
-// decode it first. num(), one(), p01(), whole(), lgl() and ref() call it.
+// decode it first; so is text that is not UTF-8. num(), one(), p01(),
+// whole(), lgl() and ref() call it.
 void unlab(SEXP x, const char *nm);
 
 // .num(): finite numbers, of length len (unless len < 0), all at least lo

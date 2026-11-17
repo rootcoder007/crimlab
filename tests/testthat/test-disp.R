@@ -130,3 +130,12 @@ test_that("results agree with rmorie", {
   expect_equal(d[["nulloff"]], m$nulloff, tolerance = 1e-13)
   expect_equal(d[["ratio"]], m$ratio, tolerance = 1e-13)
 })
+
+test_that("text that is not UTF-8 is refused as the command line refuses it", {
+  expect_error(dspbm(c(9, 1), c(3, 1), c(2, 1), ref = "\xff\xfe"),
+               "^dspbm: `ref` holds text that is not valid UTF-8\\.$")
+  expect_error(dspbm(c(9, 1), c(3, 1), c(2, 1), ref = factor("\xff")),
+               "^dspbm: `ref` holds text that is not valid UTF-8\\.$")
+  expect_identical(nrow(dspbm(c(a = 9, b = 1), c(a = 3, b = 1),
+                              c(a = 2, b = 1), ref = "a")), 2L)
+})

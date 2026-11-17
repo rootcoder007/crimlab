@@ -129,3 +129,12 @@ def test_array_interfaces_that_are_not_numbers():
         sellab([1, 0], [True, True], [True, False])
     with pytest.raises(TypeError, match="`rel` must be TRUE or FALSE"):
         sellab([1, 0], Arr("i", [1, 0], E + "i4"), [True, True])
+
+
+def test_text_that_is_not_utf8():
+    # bytes that are not UTF-8, as os.fsdecode() hands them over (lone
+    # surrogates): refused in the words of R and the command line
+    from crimlab import dspbm
+
+    with pytest.raises(ValueError, match=r"^dspbm: `ref` holds text that is not valid UTF-8\.$"):
+        dspbm([9, 1], [3, 1], [2, 1], ref=b"\xff\xfe".decode("utf-8", "surrogateescape"))

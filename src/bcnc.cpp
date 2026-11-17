@@ -111,6 +111,9 @@ SEXP C_clab_r_cconc(SEXP x, SEXP w, SEXP by, SEXP fracs, SEXP pop, SEXP nsim, SE
   SEXP ow = PROTECT(Rf_allocVector(INTSXP, n));
   ++np;
   np += 2;
+  double tot = 0;
+  for (R_xlen_t i = 0; i < XLENGTH(xv); ++i) tot += REAL(xv)[i];
+  clab::tot0(tot, "x", "events");
   if (clab_cconc(REAL(xv), wp, n, REAL(fr), nf, REAL(st), lp, lvv, ts, tn, INTEGER(ow)) !=
       CLAB_OK) {
     fail("`x` has no events: every count is 0.");

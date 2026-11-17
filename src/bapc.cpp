@@ -53,7 +53,7 @@ SEXP C_clab_r_apcie(SEXP y, SEXP expo, SEXP level, SEXP maxit) {
   SEXP yv = PROTECT(cells(y, "y", false));
   double tot = 0;
   for (R_xlen_t i = 0; i < XLENGTH(yv); ++i) tot += REAL(yv)[i];
-  if (!(tot > 0)) fail("`y` has no events: every count is 0.");
+  clab::tot0(tot, "y", "events");
   if (!Rf_isMatrix(expo) || Rf_nrows(expo) != na || Rf_ncols(expo) != np) {
     fail("`expo` must be a matrix of the dimensions of `y`, %d by %d.", na, np);
   }

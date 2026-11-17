@@ -535,3 +535,23 @@ test_that("the spline basis of jntx() is Harrell's restricted cubic spline", {
   }, numeric(length(x)))
   expect_equal(b, unname(cbind(x, h)), tolerance = 1e-13)
 })
+
+test_that("the joint test's warning names the function", {
+  expect_warning(
+    r <- .axwald(c(1, 2), matrix(0, 2, 2), diag(2), "dosebin"),
+    "^dosebin: the joint test of 2 restrictions is not computed"
+  )
+  expect_true(is.na(r$stat))
+})
+
+test_that("a column name that is not text is refused before it is joined", {
+  d <- data.frame(y = 1:4, u = 1:4, day = Sys.Date() + 0:3, v = 1:4)
+  errs("ccross", list(
+    list("`y, unit, day` must name columns of `data`", d,
+         as.Date("2024-01-01"), "u", "day")
+  ))
+  errs("exprun", list(
+    list("`var, unit, day` must name columns of `data`", d,
+         as.POSIXct("2024-01-01", tz = "UTC"), "u", "day")
+  ))
+})

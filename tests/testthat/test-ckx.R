@@ -112,3 +112,39 @@ test_that(".clkey() keys rows apart unless they agree in every vector", {
   expect_identical(.clkey(NA, NA), .clkey(NA_character_, NA_real_))
   expect_identical(.clkey(sep = "a", collapse = "b"), "a\rb")
 })
+
+test_that("the package's warning() and message() take base R's arguments", {
+  f <- function() warning("imm", immediate. = TRUE, noBreaks. = TRUE)
+  w <- tryCatch(f(), warning = identity)
+  expect_identical(conditionMessage(w), "imm")
+  expect_identical(conditionCall(w), quote(f()))
+  # immediate. (warn 1 while it is signalled) leaves warn as it was
+  op <- options(warn = 0)
+  on.exit(options(op))
+  suppressWarnings(f())
+  expect_identical(as.integer(getOption("warn")), 0L)
+  g <- function() message("m", appendLF = FALSE)
+  m <- tryCatch(g(), message = identity)
+  expect_identical(conditionMessage(m), "m")
+  expect_identical(conditionCall(m), quote(message("m", appendLF = FALSE)))
+  # base R's call is the message() call itself
+  expect_identical(conditionCall(tryCatch(message("m"), message = identity)),
+                   quote(message("m")))
+})
+
+test_that("a scalar keeps no dimensions; data frames and paths are checked", {
+  expect_null(dim(.cknum(matrix(0.5), "p", "f")))
+  expect_identical(.cktxtdf(data.frame(a = "x"), "d", "f"), data.frame(a = "x"))
+  expect_error(.cktxtdf(data.frame(a = "\xff"), "d", "f"),
+               "^f: `d` holds text that is not valid")
+  expect_error(.cktxtdf(stats::setNames(data.frame(1), "\xfe"), "d", "f"),
+               "^f: `d` holds text that is not valid")
+  expect_error(.cktxtdf(data.frame(a = factor("\xfe")), "d", "f"),
+               "^f: `d` holds text that is not valid")
+  expect_null(.ckpath(NULL, "f"))
+  expect_error(.ckpath("", "f"), "^f: `file` must be a file path, not empty")
+  p <- file.path(tempdir(), "no", "such", "x.txt")
+  expect_error(.ckpath(p, "f"), "^f: `file` is in a folder that does not")
+  expect_identical(.ckpath(file.path(tempdir(), "x.txt"), "f"),
+                   file.path(tempdir(), "x.txt"))
+})

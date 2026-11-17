@@ -230,6 +230,8 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
          "`rx` and `ry` must have one length",
          "the place of each row of `rx`", f)
   .cknum(half, "half", f, min = 0, max = 180)
+  # a direction is reduced modulo 360: past 1e9 R's %% loses its digits
+  .cknum(sdir, "sdir", f, scalar = FALSE, min = -1e9, max = 1e9)
   if (!is.numeric(rad) || length(rad) != 1L || is.na(rad) || rad <= 0) {
     .ckstop(f, "`rad` must be a positive number or Inf")
   }
@@ -243,7 +245,8 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
 .dwlen <- function(v, lab, lnm, msg, what, f) {
   for (nm in names(v)) .cknum(v[[nm]], nm, f, scalar = FALSE)
   if (length(unique(lengths(v))) != 1L) .ckstop(f, msg)
-  if (!is.null(lab) && (length(lab) != length(v[[1L]]) || anyNA(lab))) {
+  if (!is.null(lab) &&
+        (!is.atomic(lab) || length(lab) != length(v[[1L]]) || anyNA(lab))) {
     .ckstop(f, "`%s` must give %s, with no NA", lnm, what)
   }
   invisible(NULL)
@@ -277,7 +280,7 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
 # The groups of tailwd(): the sorted values of `by`, or NULL without one.
 .twgrp <- function(by, n, f) {
   if (is.null(by)) return(NULL)
-  if (length(by) != n || anyNA(by)) {
+  if (!is.atomic(by) || length(by) != n || anyNA(by)) {
     .ckstop(f, "`by` must give the group of each reading, with no NA")
   }
   sort(unique(by))

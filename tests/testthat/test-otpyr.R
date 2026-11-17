@@ -151,3 +151,13 @@ test_that("every default address of a service is the one of odtab()", {
                    deparse1(formals(odtab)$base))
   expect_identical(formals(otpyr)$base, formals(odtab)$base)
 })
+
+test_that("otpyr() refuses years that are not values, and text not UTF-8", {
+  x <- a01()
+  x$UniqueIndividual_ID[1L] <- "\xff"
+  errs("otpyr", list(
+    list("`years` must be NULL or the fiscal years to keep", a01(),
+         years = function() 1),
+    list("`x` holds text that is not valid", x)
+  ))
+})

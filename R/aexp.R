@@ -216,6 +216,10 @@ print.exprspplr <- function(x, ...) {
       sub("\\.$", "", conditionMessage(e))
     )
   })
+  if (!is.list(base) || !is.numeric(base[["ate"]])) {
+    .ckstop(f, paste("`estr` must return a list with the estimate `ate`,",
+                     "as the built-in estimator does"))
+  }
   boot <- .clseed(rstate, {
     out <- numeric(0)
     for (b in seq_len(nboot)) {
@@ -224,7 +228,9 @@ print.exprspplr <- function(x, ...) {
         estr(data[idx, , drop = FALSE], y, expo, confs),
         error = function(e) NULL
       )
-      if (!is.null(rb)) out <- c(out, as.numeric(rb$ate))
+      if (is.list(rb) && is.numeric(rb[["ate"]])) {
+        out <- c(out, as.numeric(rb[["ate"]]))
+      }
     }
     out
   })

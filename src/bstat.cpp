@@ -313,7 +313,7 @@ SEXP C_clab_r_cntreg(SEXP y, SEXP grp, SEXP adj, SEXP expo, SEXP clus, SEXP ref,
   const double *yy = REAL(yv);
   double tot = 0.0;
   for (int i = 0; i < n; ++i) tot += yy[i];
-  if (!(tot > 0)) fail("`y` has no events: every count is 0.");
+  clab::tot0(tot, "y", "events");
   if (Rf_isNull(uv[1])) fail("`grp` must give the group of each count.");
   csp::lab g = csp::codes(uv[1], "grp", n);
   np += 2;

@@ -78,7 +78,8 @@ gologt <- function(data, y, x, par = NULL, lev = NULL, level = 0.95,
   if (level <= 0 || level >= 1) {
     .ckstop(f, "`level` must be strictly between 0 and 1")
   }
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, max = .Machine$integer.max,
+                  whole = TRUE)
   M <- length(lv)
   pv <- as.integer(x %in% par)
   k <- .Call(C_clab_r_gologt, yc, M, xm, pv, min(maxit, 2147483647), level)

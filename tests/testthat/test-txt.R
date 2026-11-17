@@ -61,3 +61,10 @@ test_that("four-byte characters and bytes that start nothing are dropped", {
     rep("ab", 4)
   )
 })
+
+test_that("a path in a folder that does not exist is refused in words", {
+  p <- file.path(tempdir(), "no", "such", "f.txt")
+  expect_no_warning(expect_error(
+    wrtxtfb("x", p), "^wrtxtfb: `path` is in a folder that does not exist"
+  ))
+})

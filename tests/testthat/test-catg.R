@@ -342,3 +342,14 @@ test_that("grdbin() and xfrvrf() refuse arguments of the wrong type", {
   errs("xfrvrf", list(list(m, function() 1, c(a = 1)),
                       list(m, NULL, c(a = 1))))
 })
+
+test_that("levels named twice are refused in words", {
+  expect_error(grdlvls(c("a", "b"), c("a", "b", "a")),
+               "^grdlvls: `lvls` names level")
+})
+
+test_that("vrfrcd() checks an empty label as any other", {
+  expect_identical(vrfrcd("", "", c(x = "y"))$Freq, 1L)
+  expect_error(vrfrcd(c("", ""), c("a", "b"), character()),
+               "^vrfrcd: original category mapped to MULTIPLE")
+})

@@ -113,14 +113,17 @@ ifesc <- function(
   se <- .ckmarg("se", f)
   dd <- .axdat(data, f)
   pn <- .ifpan(dd, y, d, unit, time, x, f)
-  if (!is.null(r)) r <- .cknum(r, "r", f, min = 0, whole = TRUE)
+  if (!is.null(r)) {
+    r <- .cknum(r, "r", f, min = 0, max = .Machine$integer.max, whole = TRUE)
+  }
   rmax <- .cknum(rmax, "rmax", f, min = 0, max = 50, whole = TRUE)
   level <- .axlevel(level, f)
   tol <- .cknum(tol, "tol", f, positive = TRUE)
-  maxit <- .cknum(maxit, "maxit", f, min = 1, whole = TRUE)
+  maxit <- .cknum(maxit, "maxit", f, min = 1, max = .Machine$integer.max,
+                  whole = TRUE)
   bm <- NULL
   if (se == "boot") {
-    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    nboot <- .cknum(nboot, "nboot", f, min = 2, max = 1e7, whole = TRUE)
     if (!is.null(seed)) seed <- .axseed(seed, f)
     bm <- .ifdraws(ncol(pn$y), nboot, seed)
   }

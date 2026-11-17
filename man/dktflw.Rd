@@ -21,9 +21,10 @@ dktflw(
 }
 \arguments{
 \item{recv, disp}{\code{NULL}, or the cases received and disposed in each
-period: numbers from 0.}
+period: numbers from 0 to 2^53.}
 
-\item{pend}{\code{NULL}, or the cases pending at the end of each period.}
+\item{pend}{\code{NULL}, or the cases pending at the end of each period
+(at most 2^53).}
 
 \item{prd}{\code{NULL} (1, 2, ...) or the label of each period.}
 

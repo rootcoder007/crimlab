@@ -714,7 +714,7 @@ mahaoutl <- function(data, alpha = 0.001, robust = TRUE) {
   .ckflag(robust, "robust", f)
   num <- vapply(data, is.numeric, logical(1))
   if (!any(num)) .ckstop(f, "`data` has no numeric columns")
-  X <- .nummat(data, names(data)[num])
+  X <- .nummat(data, which(num))
   alpha <- .mhalpha(alpha, f)
   r <- .Call(C_clab_r_mhtab, X, robust, alpha)
   if (identical(r, 1L)) {
@@ -1455,23 +1455,13 @@ dstntst <- function(
   pooled = NULL
 ) {
   f <- "dstntst"
-  if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
-  grp <- .dtcol(grp, "grp", data, f)
-  est <- .dtcol(est, "est", data, f)
-  lower <- .dtcol(lower, "lower", data, f)
-  upper <- .dtcol(upper, "upper", data, f)
-  if (!is.null(qual)) qual <- .dtcol(qual, "qual", data, f)
+  k <- .dtin(data, grp, est, lower, upper, qual, f)
+  g <- k$g
   conflvl <- .dfcl(conflvl, f)
   z <- stats::qnorm(1 - (1 - conflvl) / 2)
-  g <- enc2utf8(trimws(as.character(data[[grp]])))
   .dtpool(pooled, g, f)
-  y <- .ckn(data[[est]], "est", f)
-  lo <- .ckn(data[[lower]], "lower", f)
-  hi <- .ckn(data[[upper]], "upper", f)
-  qv <- if (!is.null(qual)) trimws(as.character(data[[qual]]))
   pl <- if (!is.null(pooled)) trimws(pooled)
-  r <- .Call(C_clab_r_dtsel, g, as.numeric(y), as.numeric(lo),
-             as.numeric(hi), qv, pl, z)
+  r <- .Call(C_clab_r_dtsel, g, k$y, k$lo, k$hi, k$qv, pl, z)
   .dtwarn(r, f)
   use <- r$use
   y <- r$y
@@ -1642,7 +1632,27 @@ print.dstntst <- function(x, ...) {
 }
 
 # The numeric columns of a data frame as a double matrix, NA as NaN.
+# dstntst(): the table's columns, checked in their order: the groups as
+# text, the estimates and limits as doubles, the quality flags (or NULL)
+.dtin <- function(data, grp, est, lower, upper, qual, f) {
+  if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
+  .cktxtdf(data, "data", f)
+  grp <- .dtcol(grp, "grp", data, f)
+  est <- .dtcol(est, "est", data, f)
+  lower <- .dtcol(lower, "lower", data, f)
+  upper <- .dtcol(upper, "upper", data, f)
+  if (!is.null(qual)) qual <- .dtcol(qual, "qual", data, f)
+  list(
+    g = enc2utf8(trimws(as.character(data[[grp]]))),
+    y = as.numeric(.ckn(data[[est]], "est", f)),
+    lo = as.numeric(.ckn(data[[lower]], "lower", f)),
+    hi = as.numeric(.ckn(data[[upper]], "upper", f)),
+    qv = if (!is.null(qual)) trimws(as.character(data[[qual]]))
+  )
+}
+
 .nummat <- function(data, cols) {
+  # cols: names, or positions (a column may have no name, or share one)
   m <- matrix(NA_real_, nrow(data), length(cols))
   for (j in seq_along(cols)) m[, j] <- as.numeric(data[[cols[j]]])
   m
@@ -1707,7 +1717,7 @@ print.dstntst <- function(x, ...) {
   if (ncol(data) < 2L) {
     .ckstop(f, "Little's test needs at least two numeric columns")
   }
-  X <- .nummat(data, names(data))
+  X <- .nummat(data, seq_along(data))
   colnames(X) <- names(data)
   X
 }

@@ -126,7 +126,7 @@ spill <- function(fit = NULL, w = NULL, rho = NULL, b = NULL, th = NULL) {
   if (is.null(fit)) {
     return(.spillx(w, rho, b, th))
   }
-  if (!inherits(fit, "sarml") || !fit[["model"]] %in% c("lag", "sac")) {
+  if (!inherits(fit, "sarml") || !isTRUE(fit[["model"]] %in% c("lag", "sac"))) {
     stop("spill: `fit` must be a sarml() fit of a lag or combined model; ",
          "in an error model the coefficients are the effects.", call. = FALSE)
   }

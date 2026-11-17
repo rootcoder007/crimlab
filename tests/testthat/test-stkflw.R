@@ -505,3 +505,12 @@ test_that("trnmat() counts moves and finds the stationary distribution", {
 test_that("lftab() refuses in its own name", {
   expect_error(lftab(character(0), 1), "^lftab: ")
 })
+
+test_that("dktflw() refuses counts past 2^53 in words, without warnings", {
+  expect_no_warning(errs("dktflw", list(
+    list("`disp` must be counts of at most 2\\^53", recv = c(5, 6),
+         disp = c(1e308, 2)),
+    list("`recv` must be counts of at most 2\\^53", recv = c(2^60, 6),
+         disp = c(1, 2))
+  )))
+})

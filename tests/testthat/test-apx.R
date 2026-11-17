@@ -1502,3 +1502,15 @@ test_that("invsn() and dosebin() write Inf in a bin as the command line", {
   expect_identical(levels(b), c("(-Inf,-1]", "(-1,0]", "(0,Inf]"))
   expect_identical(as.integer(b), c(1L, 3L, 2L))
 })
+
+test_that("groups, directions and draws of the wrong kind are refused", {
+  errs("invsn", list(list("`by` must give the group of each reading",
+                          c(1, 2), c(2, 3), by = function() 1)))
+  errs("windiv", list(
+    list("`start` must be between -1e\\+09 and 1e\\+09", c(10, 200),
+         start = 1e308),
+    list("`dir` must be directions in degrees, at most 1e9", c(10, 1e308))
+  ))
+  e <- data.frame(area = c("a", "\xff"), day = 1:2, t = 1:2)
+  errs("expjn", list(list("`expo` holds text that is not valid", e, e)))
+})

@@ -119,3 +119,12 @@ test_that("labels holding a carriage return keep person-years apart", {
   expect_identical(nrow(plcvol(c("A", "B"), c("A", "B"), id)), 2L)
   expect_identical(nrow(alrtcx(data.frame(a = c(1, 0)), id)), 2L)
 })
+
+test_that("alrtcx() refuses flags and codes that are not UTF-8 in words", {
+  errs("alrtcx", list(
+    list("`flags` holds text that is not valid",
+         data.frame(a = c("Y", "\xff"), b = "N"), 1:2),
+    list("`keep` holds text that is not valid",
+         data.frame(a = c("Y", "N"), b = "N"), 1:2, keep = "\xff\xfe")
+  ))
+})

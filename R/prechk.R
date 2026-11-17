@@ -61,6 +61,7 @@ prechk <- function(data, preset, codes = NULL) {
   if (!is.data.frame(data)) {
     stop("prechk: `data` must be a data frame.", call. = FALSE)
   }
+  .cktxtdf(data, "data", "prechk")
   name <- r$preset[1L]
   codes <- .pkcodes(codes, name)
   rec <- r$arg == "recipe"

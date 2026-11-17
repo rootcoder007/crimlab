@@ -22,14 +22,15 @@
 #' (`NA` for `crude`, which reports no interval). Each replicate is a
 #' fresh table from `seed`; a fit that fails is left out and counted.
 #'
-#' @param reps The replicates: a whole number from 1.
-#' @param n The person-years of each table: a whole number from 50.
-#' @param beta The log rate ratio of `cx`.
+#' @param reps The replicates: a whole number from 1 to 10000000.
+#' @param n The person-years of each table: a whole number from 50 to
+#'   10000000.
+#' @param beta The log rate ratio of `cx`, from -20 to 20.
 #' @param ncl,sdcl The clusters and the standard deviation of their
 #'   intercepts.
 #' @param theta The negative binomial dispersion.
-#' @param b0 The intercept of the log mean.
-#' @param conf 0, or the effect of the unobserved trait.
+#' @param b0 The intercept of the log mean, from -20 to 20.
+#' @param conf 0, or the effect of the unobserved trait, from -20 to 20.
 #' @param seed The seed of the whole run, set once before the first table is
 #'   drawn: one whole number. The session's own random stream is left as it
 #'   was.
@@ -51,12 +52,14 @@ cxsim <- function(
   seed = 1
 ) {
   fn <- "cxsim"
-  reps <- .cknum(reps, "reps", fn, min = 1, whole = TRUE)
-  n <- .cknum(n, "n", fn, min = 50, whole = TRUE)
+  reps <- .cknum(reps, "reps", fn, min = 1, max = 1e7, whole = TRUE)
+  n <- .cknum(n, "n", fn, min = 50, max = 1e7, whole = TRUE)
   ncl <- .cknum(ncl, "ncl", fn, min = 2, max = n / 10, whole = TRUE)
-  for (a in c("beta", "sdcl", "b0", "conf")) {
-    .cknum(get(a), a, fn)
-  }
+  # sizes a simulation can mean: the log rates stay far from overflow
+  beta <- .cknum(beta, "beta", fn, min = -20, max = 20)
+  sdcl <- .cknum(sdcl, "sdcl", fn, min = 0, max = 10)
+  b0 <- .cknum(b0, "b0", fn, min = -20, max = 20)
+  conf <- .cknum(conf, "conf", fn, min = -20, max = 20)
   theta <- .cknum(theta, "theta", fn, positive = TRUE)
   dr <- .clseed(.ckseed(seed, "seed", fn), do.call(
     rbind,

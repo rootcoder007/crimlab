@@ -143,6 +143,7 @@ alrtcx <- function(flags, id, keep = NULL) {
   if (!any(ok)) {
     .ckstop(fn, "no record has `id` and every flag present")
   }
+  .cktxt(keep, "keep", fn)
   if (
     !is.null(keep) &&
       (!is.character(keep) || anyNA(keep) || any(nchar(keep) != ncol(f)))
@@ -217,6 +218,7 @@ print.alrtcx <- function(x, ...) {
   ) {
     .ckstop(fn, "`flags` must be columns of equal length, one per flag")
   }
+  .cktxtdf(flags, "flags", fn)
   m <- vapply(flags, .acflag1, integer(length(flags[[1L]])))
   matrix(m, ncol = length(flags))
 }

@@ -17,20 +17,21 @@ cxsim(
 )
 }
 \arguments{
-\item{reps}{The replicates: a whole number from 1.}
+\item{reps}{The replicates: a whole number from 1 to 10000000.}
 
-\item{n}{The person-years of each table: a whole number from 50.}
+\item{n}{The person-years of each table: a whole number from 50 to
+10000000.}
 
-\item{beta}{The log rate ratio of \code{cx}.}
+\item{beta}{The log rate ratio of \code{cx}, from -20 to 20.}
 
 \item{ncl, sdcl}{The clusters and the standard deviation of their
 intercepts.}
 
 \item{theta}{The negative binomial dispersion.}
 
-\item{b0}{The intercept of the log mean.}
+\item{b0}{The intercept of the log mean, from -20 to 20.}
 
-\item{conf}{0, or the effect of the unobserved trait.}
+\item{conf}{0, or the effect of the unobserved trait, from -20 to 20.}
 
 \item{seed}{The seed of the whole run, set once before the first table is
 drawn: one whole number. The session's own random stream is left as it

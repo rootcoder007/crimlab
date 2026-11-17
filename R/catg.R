@@ -111,6 +111,10 @@ grdlvls <- function(x, lvls, ref = NULL) {
     stop("grdlvls: `lvls` must be a non-empty character vector.",
          call. = FALSE)
   }
+  if (anyDuplicated(lvls)) {
+    stop("grdlvls: `lvls` names level ", .cq(lvls[anyDuplicated(lvls)]),
+         " twice.", call. = FALSE)
+  }
   x <- as.character(x)
   stray <- setdiff(unique(x[!is.na(x)]), lvls)
   if (length(stray)) {
@@ -255,8 +259,10 @@ vrfrcd <- function(orig, recd, decl) {
          toString(.cq(names(fan)[fan > 1L])), ". The recode is not a ",
          "function of the category label.", call. = FALSE)
   }
-  for (old in rownames(tab)) {
-    got <- colnames(tab)[tab[old, ] > 0]
+  # by position: a label may be "", which no name can index
+  for (i in seq_len(nrow(tab))) {
+    old <- rownames(tab)[i]
+    got <- colnames(tab)[tab[i, ] > 0]
     want <- if (old %in% names(decl)) unname(decl[old]) else old
     if (!identical(got, as.character(want))) {
       stop("vrfrcd: ", .cq(old), " was mapped to ", .cq(got), " but the ",

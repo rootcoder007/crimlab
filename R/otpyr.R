@@ -56,25 +56,8 @@ otpyr <- function(
   base = getOption("crimlab.data", "https://data.crimlab.dev")
 ) {
   fn <- "otpyr"
-  cn <- .otcn(cols, fn)
-  if (is.character(x) && length(x) == 1L) {
-    x <- .clas(fn, odtab(x, cols = unname(cn), base = base))
-  }
-  if (!is.data.frame(x)) {
-    .ckstop(fn, "`x` must be a data frame or a table key")
-  }
-  d <- x[.odcol(unname(cn), names(x), fn)]
-  names(d) <- names(cn)
-  # a flag that is neither yes nor no is a missing one: the record is
-  # dropped here, so that both counts below see the same records
-  fl <- .acflags(d[c("mh", "sr", "sw")], fn)
-  ok <- stats::complete.cases(d) & rowSums(is.na(fl)) == 0L
-  if (!is.null(years)) {
-    ok <- ok & d$year %in% years
-  }
-  if (!any(ok)) {
-    .ckstop(fn, "no row has every column present in the years asked")
-  }
+  d <- .otin(x, .otcn(cols, fn), base, fn)
+  ok <- .otok(d, years, fn)
   d <- d[ok, , drop = FALSE]
   key <- list(id = d$id, year = d$year)
   v <- .clas(fn, plcvol(d$ra, d$rb, key, ord = ord))
@@ -127,6 +110,39 @@ print.otpyr <- function(x, ...) {
   )
   print(tab, row.names = FALSE, digits = 4)
   invisible(x)
+}
+
+# otpyr(): the release (a data frame, or a key of the service) reduced to
+# the columns named cn, renamed to their short names
+.otin <- function(x, cn, base, fn) {
+  if (is.character(x) && length(x) == 1L) {
+    x <- .clas(fn, odtab(x, cols = unname(cn), base = base))
+  }
+  if (!is.data.frame(x)) {
+    .ckstop(fn, "`x` must be a data frame or a table key")
+  }
+  .cktxtdf(x, "x", fn)
+  d <- x[.odcol(unname(cn), names(x), fn)]
+  names(d) <- names(cn)
+  d
+}
+
+# otpyr(): the rows kept, complete and in the years asked. A flag that is
+# neither yes nor no is a missing one: the record is dropped here, so that
+# both counts see the same records.
+.otok <- function(d, years, fn) {
+  fl <- .acflags(d[c("mh", "sr", "sw")], fn)
+  ok <- stats::complete.cases(d) & rowSums(is.na(fl)) == 0L
+  if (!is.null(years)) {
+    if (!is.atomic(years) || !length(years)) {
+      .ckstop(fn, "`years` must be NULL or the fiscal years to keep")
+    }
+    ok <- ok & d$year %in% years
+  }
+  if (!any(ok)) {
+    .ckstop(fn, "no row has every column present in the years asked")
+  }
+  ok
 }
 
 # The column names, defaults overridden by cols.

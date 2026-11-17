@@ -305,6 +305,11 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
          "prd, value, prev, change and pctchg or ppchg, as yoypx() gives.",
          call. = FALSE)
   }
+  .cktxtdf(x, "x", fn)
+  if (anyDuplicated(names(x))) {
+    .ckstop(fn, "`x` has two columns named %s",
+            names(x)[anyDuplicated(names(x))])
+  }
   as.data.frame(unclass(x))
 }
 

@@ -29,9 +29,18 @@ stop <- function(..., call. = TRUE, domain = NULL) {
   base::stop(.u8cnd(list(...), simpleError, call., domain, cl))
 }
 
-warning <- function(..., call. = TRUE, domain = NULL) {
+warning <- function(..., call. = TRUE, immediate. = FALSE, noBreaks. = FALSE,
+                    domain = NULL) {
   cl <- sys.call(-1L)
-  base::warning(.u8cnd(list(...), simpleWarning, call., domain, cl))
+  cnd <- .u8cnd(list(...), simpleWarning, call., domain, cl)
+  # base R prints a warning at once with immediate.; a condition is printed
+  # at once when the option warn is 1 (noBreaks. only changes how base R
+  # wraps that line, and is taken for the same arguments)
+  if (isTRUE(immediate.) && getOption("warn") < 1L) {
+    op <- options(warn = 1L)
+    on.exit(options(op))
+  }
+  base::warning(cnd)
 }
 
 message <- function(..., domain = NULL, appendLF = TRUE) {
@@ -40,8 +49,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
     a[[1L]][["message"]] <- .u8(conditionMessage(a[[1L]]))
     return(base::message(a[[1L]]))
   }
+  # the call is this one, message(...), as base R's
   m <- .makeMessage(..., domain = domain, appendLF = appendLF)
-  base::message(.u8(m), appendLF = FALSE)
+  base::message(simpleMessage(.u8(m), sys.call()))
 }
 
 # The condition stop() or warning() signals: the one given, or one built
@@ -106,7 +116,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   if (whole && any(v != round(v))) {
     .ckstop(fn, "`%s` must be a whole number", what)
   }
-  if (!is.null(dim(x))) {
+  # a scalar is one plain number: a 1 x 1 matrix keeps no dimensions,
+  # which R's arithmetic would recycle with a warning
+  if (!scalar && !is.null(dim(x))) {
     dim(v) <- dim(x)
   }
   v
@@ -186,12 +198,33 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   x
 }
 
-# One file path (NULL passes): valid text, and no longer than a path can
-# be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it).
+# Every text column of a data frame (a factor's labels, and the names
+# too) valid text, as .cktxt() asks of one argument.
+.cktxtdf <- function(d, what, fn) {
+  v <- c(list(names(d)),
+         lapply(d, function(x) if (is.factor(x)) levels(x) else x))
+  for (x in v) {
+    if (is.character(x)) .cktxt(x, what, fn)
+  }
+  d
+}
+
+# One file path (NULL passes): valid text, not empty, no longer than a path
+# can be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it),
+# in a folder that exists (where R's file() would warn, then fail in its
+# own words).
 .ckpath <- function(file, fn, what = "file") {
   .cktxt(file, what, fn)
-  if (!is.null(file) && nchar(file, "bytes") > 4096L) {
+  if (is.null(file)) {
+    return(file)
+  }
+  if (!nzchar(file)) .ckstop(fn, "`%s` must be a file path, not empty", what)
+  if (nchar(file, "bytes") > 4096L) {
     .ckstop(fn, "`%s` is longer than a file path can be (4096 bytes)", what)
+  }
+  if (!dir.exists(dirname(path.expand(file)))) {
+    .ckstop(fn, "`%s` is in a folder that does not exist: %s", what,
+            dirname(file))
   }
   file
 }

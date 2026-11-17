@@ -274,12 +274,57 @@ SEXP dcopy(SEXP x) {
 //'   vector with a labels attribute) holds category codes: unlab() refuses
 //'   it rather than read the codes as numbers or as group labels.
 //' @noRd
+bool u8ok(const char *s, std::size_t len) {
+  const unsigned char *p = reinterpret_cast<const unsigned char *>(s), *e = p + len;
+  while (p < e) {
+    const unsigned c = *p;
+    if (c < 0x80) {
+      if (c == 0) return false;
+      ++p;
+      continue;
+    }
+    int n;
+    unsigned lo = 0x80, hi = 0xbf;
+    if (c >= 0xc2 && c <= 0xdf) n = 1;
+    else if (c >= 0xe0 && c <= 0xef) n = 2;
+    else if (c >= 0xf0 && c <= 0xf4) n = 3;
+    else return false;
+    if (c == 0xe0) lo = 0xa0;
+    if (c == 0xed) hi = 0x9f;  // no surrogates
+    if (c == 0xf0) lo = 0x90;
+    if (c == 0xf4) hi = 0x8f;
+    if (e - p <= n || p[1] < lo || p[1] > hi) return false;
+    for (int i = 2; i <= n; ++i) {
+      if (p[i] < 0x80 || p[i] > 0xbf) return false;
+    }
+    p += n + 1;
+  }
+  return true;
+}
+
+void tot0(double tot, const char *nm, const char *what) {
+  if (std::isinf(tot)) fail("`%s` has a total too large for a number.", nm);
+  if (!(tot > 0)) fail("`%s` has no %s: every count is 0.", nm, what);
+}
+
 void unlab(SEXP x, const char *nm) {
   // the symbol is looked up once: Rf_install() hashes its name each call
   static SEXP lab = Rf_install("labels");
   if (!Rf_isNull(Rf_getAttrib(x, lab))) {
     fail("`%s` has value labels: its numbers are category codes. Decode it "
          "first (haven::as_factor(), say).", nm);
+  }
+  // text (or a factor's labels) whose bytes are not UTF-8, refused as the
+  // command line refuses it (cli/jrun.cpp) and R's .cktxt() in a UTF-8
+  // locale; text marked latin1 or bytes is what its mark says
+  SEXP s = Rf_isFactor(x) ? Rf_getAttrib(x, R_LevelsSymbol) : x;
+  if (TYPEOF(s) != STRSXP) return;
+  for (R_xlen_t i = 0; i < XLENGTH(s); ++i) {
+    SEXP c = STRING_ELT(s, i);
+    if (c == NA_STRING || Rf_getCharCE(c) == CE_LATIN1 || Rf_getCharCE(c) == CE_BYTES) continue;
+    if (!u8ok(CHAR(c), static_cast<std::size_t>(LENGTH(c)))) {
+      fail("`%s` holds text that is not valid UTF-8.", nm);
+    }
   }
 }
 

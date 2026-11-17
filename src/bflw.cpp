@@ -38,9 +38,16 @@ SEXP plab(SEXP prd, int n) {
   return s;
 }
 
-// A count per period, or NULL: numbers from 0, n of them.
+// A count per period, or NULL: numbers from 0, n of them, at most 2^53
+// (whole numbers a double holds; past them R's qbeta() for the intervals
+// loses its digits and warns).
 SEXP per0(SEXP x, const char *nm, int n) {
-  return Rf_isNull(x) ? R_NilValue : bj::nums(x, nm, n, 0.0);
+  if (Rf_isNull(x)) return R_NilValue;
+  SEXP v = bj::nums(x, nm, n, 0.0);
+  for (R_xlen_t i = 0; i < XLENGTH(v); ++i) {
+    if (REAL(v)[i] > 9007199254740992.0) fail("`%s` must be counts of at most 2^53.", nm);
+  }
+  return v;
 }
 
 // The exact interval of a ratio a / b of counts, from the conditional
@@ -331,7 +338,8 @@ SEXP C_clab_r_dktflw(SEXP recv, SEXP disp, SEXP pend, SEXP prd, SEXP win, SEXP l
     ++np;
     const int n = bj::len(rv, "recv");
     if (Rf_isNull(disp)) fail("`disp` must come with `recv`.");
-    SEXP dv = PROTECT(bj::nums(disp, "disp", n, 0.0));
+    per0(recv, "recv", n);
+    SEXP dv = PROTECT(per0(disp, "disp", n));
     SEXP pv = PROTECT(per0(pend, "pend", n));
     SEXP pl = PROTECT(plab(prd, n));
     np += 3;

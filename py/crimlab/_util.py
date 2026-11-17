@@ -359,6 +359,21 @@ def jarg(x: Any) -> Any:
         raise TypeError(f"cannot pass a {type(x).__name__} to crimlab") from None
 
 
+def u8ok(x: Any) -> bool:
+    """False when x holds a str that cannot be written as UTF-8."""
+    if isinstance(x, str):
+        try:
+            x.encode("utf-8")
+        except UnicodeEncodeError:
+            return False
+        return True
+    if isinstance(x, dict):
+        return all(u8ok(k) and u8ok(v) for k, v in x.items())
+    if isinstance(x, list):
+        return all(u8ok(v) for v in x)
+    return True
+
+
 def jnum(x: Any) -> Any:
     """NaN and the infinities, written as text in JSON, as floats."""
     if isinstance(x, str) and x in ("NaN", "Inf", "-Inf"):
@@ -378,5 +393,11 @@ def jcall(fn: str, **kw: Any) -> Any:
     # an R name that is a Python keyword (from, lambda) has a final underscore
     a = {(k[:-1] if k.endswith("_") and keyword.iskeyword(k[:-1]) else k): jarg(v)
          for k, v in kw.items() if v is not None}
+    # text that is not Unicode (a lone surrogate, as os.fsdecode() makes of
+    # bytes that are not UTF-8) is refused in the words of R and the
+    # command line, which refuse such bytes
+    for k, v in a.items():
+        if not u8ok(v):
+            raise ValueError(f"{fn}: `{k}` holds text that is not valid UTF-8.")
     r = jnum(json.loads(_clab.jrun(fn, json.dumps(a, allow_nan=False)), parse_int=float))
     return wrap(r)

@@ -111,6 +111,9 @@ test_that("exprspplr() refuses what it cannot use", {
                "`estr` must be a function")
   expect_error(exprspplr(d, "asthma", "exposure", "x1", estr = "no.such.fn"),
                "`estr` names no function")
+  expect_error(exprspplr(d, "asthma", "exposure", "x1",
+                         estr = function(...) 1),
+               "^exprspplr: `estr` must return a list with the estimate `ate`")
   d$x1 <- as.character(d$x1)
   expect_error(exprspplr(d, "asthma", "exposure", "x1"),
                "column `x1` must be numeric")

@@ -302,3 +302,12 @@ test_that("ovrchk() refuses what it cannot check", {
                "ovrchk: `shape` must be patterns named by columns of `data`.",
                fixed = TRUE)
 })
+
+test_that("keyword groups and words are refused in words", {
+  errs("ovrkwd", list(
+    list("a list of words named by group, or words", "a text",
+         strrep("a", 1e5))
+  ))
+  errs("ovrsoc", list(list("`tag` holds text that is not valid", "a text",
+                           tag = "\xff")))
+})

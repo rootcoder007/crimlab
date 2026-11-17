@@ -692,3 +692,17 @@ test_that("inlhist() bins values whose range overflows", {
   expect_identical(inlhist(c(-1e308, 1e308), 4),
                    inlhist(c(-1, 1), 4))
 })
+
+test_that("columns without names are read by position", {
+  set.seed(3)
+  m <- matrix(rnorm(60), 20)
+  d <- stats::setNames(as.data.frame(m), c("", "", ""))
+  expect_identical(mahaoutl(d)$distance, mahaoutl(as.data.frame(m))$distance)
+  m[cbind(1:5, c(1, 2, 3, 1, 2))] <- NA
+  d <- stats::setNames(as.data.frame(m), c("", "", ""))
+  expect_identical(mcartst(d)$statistic,
+                   mcartst(as.data.frame(m))$statistic)
+  errs("dstntst", list(list("`data` holds text that is not valid",
+                            data.frame(g = "\xff", e = 1, l = 0, u = 2),
+                            "g", "e", "l", "u")))
+})

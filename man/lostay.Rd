@@ -7,7 +7,7 @@
 lostay(days, w = NULL, breaks = NULL, thr = NULL, flag = NULL, level = 0.95)
 }
 \arguments{
-\item{days}{The stays: numbers from 0.}
+\item{days}{The stays: numbers from 0 to 2^53.}
 
 \item{w}{\code{NULL}, or how many stays each value stands for: whole numbers
 from 0 with a positive total.}

@@ -207,7 +207,7 @@ smkiv <- function(
 exprun <- function(data, var, unit, day, thr = 0, cap = 3, step = 1) {
   f <- "exprun"
   d <- .axdat(data, f)
-  .axcols(d, c(var, unit, day), "var, unit, day", f, n = 3L)
+  .axcols(d, list(var, unit, day), "var, unit, day", f, n = 3L)
   thr <- .cknum(thr, "thr", f)
   cap <- .cknum(cap, "cap", f, min = 1, whole = TRUE)
   if (cap > 2^26) .ckstop(f, "`cap` must be at most 67108864")
@@ -314,7 +314,7 @@ hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
   f <- "hetfx"
   how <- .ckmarg("how", f)
   d <- .axdat(data, f)
-  .axcols(d, c(var, mod), "var, mod", f, n = 2L)
+  .axcols(d, list(var, mod), "var, mod", f, n = 2L)
   if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
@@ -335,7 +335,7 @@ hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
   k <- length(b)
   rr <- cbind(diag(k - 1L), 0) - cbind(0, diag(k - 1L))
   structure(
-    list(tab = tab, test = .axwald(b, v, rr), how = how),
+    list(tab = tab, test = .axwald(b, v, rr, f), how = how),
     class = "hetfx"
   )
 }
@@ -611,10 +611,7 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
   p1 <- ck$p1
   p2 <- ck$p2
   ngrid <- ck$ngrid
-  if (!is.null(ref)) {
-    ref <- .cknum(ref, "ref", f, scalar = FALSE)
-    if (length(ref) != 2L) .ckstop(f, "`ref` must be two numbers, x1 and x2")
-  }
+  ref <- .axjxref(ref, f)
   a <- .axmat(d, c(x1, x2), f)
   t1 <- .axknots(a[, 1L], k1)
   t2 <- .axknots(a[, 2L], k2)
@@ -643,7 +640,7 @@ jntx <- function(data, y, x1, x2, form = c("spline", "linear"), k1 = 5, k2 = 4,
   ii <- (nb1 + nb2 + 1L):ncol(bm)
   rr <- diag(ncol(bm))[ii, , drop = FALSE]
   structure(
-    list(cond = o$cond, surf = o$surf, test = .axwald(b, v, rr), fit = r,
+    list(cond = o$cond, surf = o$surf, test = .axwald(b, v, rr, f), fit = r,
          form = form),
     class = "jntx"
   )
@@ -718,7 +715,7 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
                     est = ppmlfe, ...) {
   f <- "dosebin"
   d <- .axdat(data, f)
-  .axcols(d, c(y, var), "y, var", f, n = 2L)
+  .axcols(d, list(y, var), "y, var", f, n = 2L)
   if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
@@ -751,7 +748,7 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
   b <- cf$est
   v <- .axvcov(r)[nm[use], nm[use], drop = FALSE]
   k <- length(b)
-  tst <- .axdbtst(b, v, mid, use, ref, k)
+  tst <- .axdbtst(b, v, mid, use, ref, k, f)
   structure(list(tab = tab, test = tst[c("test", "stat", "df", "p")], fit = r),
             class = "dosebin")
 }
@@ -872,7 +869,15 @@ print.typefx <- function(x, ...) {
   is.function(est) && "data" %in% names(formals(args(est)))
 }
 
-.axwald <- function(b, v, r) {
+# jntx(): NULL, or the reference point, two numbers
+.axjxref <- function(ref, f) {
+  if (is.null(ref)) return(NULL)
+  ref <- .cknum(ref, "ref", f, scalar = FALSE)
+  if (length(ref) != 2L) .ckstop(f, "`ref` must be two numbers, x1 and x2")
+  ref
+}
+
+.axwald <- function(b, v, r, fn) {
   rb <- r %*% b
   m <- r %*% v %*% t(r)
   # a cluster-robust covariance has rank below the number of clusters, so
@@ -880,7 +885,8 @@ print.typefx <- function(x, ...) {
   # one from a matrix that is singular up to rounding
   if (qr(m)$rank < nrow(r)) {
     warning(
-      "the joint test of ", nrow(r), " restrictions is not computed: the ",
+      fn, ": the joint test of ", nrow(r),
+      " restrictions is not computed: the ",
       "covariance has rank ", qr(m)$rank, " (too few clusters for it).",
       call. = FALSE
     )
@@ -1163,7 +1169,7 @@ print.typefx <- function(x, ...) {
 # The checks of jntx()'s columns and numbers, in their order:
 # list(k1, k2, p1, p2, ngrid).
 .axjxck <- function(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f) {
-  .axcols(d, c(y, x1, x2), "y, x1, x2", f, n = 3L)
+  .axcols(d, list(y, x1, x2), "y, x1, x2", f, n = 3L)
   if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
@@ -1249,8 +1255,8 @@ print.typefx <- function(x, ...) {
 # The Wald tests of dosebin(): every bin equal to the reference (all),
 # and, with two bins or more, the bins on the line through the reference
 # and the first bin at their medians (linear).
-.axdbtst <- function(b, v, mid, use, ref, k) {
-  tst <- .axwald(b, v, diag(k))
+.axdbtst <- function(b, v, mid, use, ref, k, fn) {
+  tst <- .axwald(b, v, diag(k), fn)
   tst$test <- "all"
   if (k >= 2L) {
     dd <- mid[use] - mid[ref]
@@ -1260,7 +1266,7 @@ print.typefx <- function(x, ...) {
       w[1L] <- -1 / dd[1L]
       w
     }, numeric(k)))
-    tl <- .axwald(b, v, rl)
+    tl <- .axwald(b, v, rl, fn)
     tl$test <- "linear"
     tst <- rbind(tst, tl)
   }
@@ -1270,7 +1276,7 @@ print.typefx <- function(x, ...) {
 # The checks of smkiv()'s columns and numbers, in their order: list(pl
 # the plume indicator, z).
 .axsmck <- function(d, plume, unit, day, pm, seas, by, dens, adj, z, f) {
-  .axcols(d, c(plume, unit, day), "plume, unit, day", f, n = 3L)
+  .axcols(d, list(plume, unit, day), "plume, unit, day", f, n = 3L)
   .axcols(d, pm, "pm", f, n = 1L, null = TRUE)
   .axcols(d, seas, "seas", f, n = 1L, null = TRUE)
   .axcols(d, by, "by", f, n = 1L, null = TRUE)
@@ -1300,7 +1306,7 @@ print.typefx <- function(x, ...) {
 # The checks of ccross()'s columns, estimator and numbers, in their
 # order: list(k, lag).
 .axccck <- function(d, y, unit, day, ma, est, k, lagv, lag, ns, f) {
-  .axcols(d, c(y, unit, day), "y, unit, day", f, n = 3L)
+  .axcols(d, list(y, unit, day), "y, unit, day", f, n = 3L)
   .axcols(d, ma, "ma", f, null = TRUE)
   dv <- .axdate(d[[day]], day, f, TRUE)
   if (!inherits(dv, "Date")) {

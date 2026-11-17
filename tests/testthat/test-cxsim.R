@@ -7,7 +7,16 @@ test_that("cxsim() reports bias, spread and coverage", {
   expect_true(is.na(s$res$cover[1]))
   s2 <- cxsim(reps = 2, n = 300, ncl = 6, conf = 1, seed = 1)
   expect_identical(s2$conf, 1)
-  errs("cxsim", list(list("at least 1", reps = 0)))
+  errs("cxsim", list(
+    list("`reps` must be between 1 and 1e\\+07", reps = 0),
+    list("`reps` must be between 1 and 1e\\+07", reps = 2^53),
+    list("`n` must be between 50 and 1e\\+07", n = 1e308),
+    list("`beta` must be between -20 and 20", beta = 1e308),
+    list("`sdcl` must be between 0 and 10", sdcl = 1e308)
+  ))
+  # a 1 x 1 matrix is a number
+  f <- cxsim(reps = 2, n = 200, ncl = 5, beta = matrix(log(1.3)), seed = 1)
+  expect_identical(f, cxsim(reps = 2, n = 200, ncl = 5, seed = 1))
 })
 
 test_that("cxsim() counts failed fits and prints its settings", {

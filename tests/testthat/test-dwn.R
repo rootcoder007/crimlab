@@ -259,3 +259,16 @@ test_that("tailwd() and dwnexp() refuse speeds below 0 and latitudes past 90", {
   expect_error(dwnexp(0, 10, NULL, 180, c(0, 10), c(80, -91), lonlat = TRUE),
                m, fixed = TRUE)
 })
+
+test_that("labels that are not vectors and directions past 1e9 are refused", {
+  errs("dwnexp", list(
+    list("`sper` must give the period of each source", 0, 0, function() 1,
+         90, 1, 1),
+    list("`sdir` must be between -1e\\+09 and 1e\\+09", 0, 0, NULL, 1e308,
+         1, 1)
+  ))
+  errs("tailwd", list(
+    list("`by` must give the group of each reading", c(10, 20), c(1, 2),
+         by = list(1, 2))
+  ))
+})

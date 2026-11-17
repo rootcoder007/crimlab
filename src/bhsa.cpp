@@ -56,7 +56,7 @@ SEXP C_clab_r_hsacc(SEXP pred, SEXP obs, SEXP area, SEXP top, SEXP prev, SEXP ti
   }
   double tot = 0;
   for (int i = 0; i < n; ++i) tot += REAL(ov)[i];
-  if (!(tot > 0)) fail("`obs` has no crimes: every count is 0.");
+  clab::tot0(tot, "obs", "crimes");
   std::vector<double> res(11 * static_cast<std::size_t>(nt));
   bj::kc(clab_hsacc(lg ? nullptr : REAL(pv), lg ? hot.data() : nullptr, REAL(ov), REAL(av),
                     Rf_isNull(rv) ? nullptr : REAL(rv), n, REAL(tv), nt, tk, res.data()),

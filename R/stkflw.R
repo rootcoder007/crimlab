@@ -106,7 +106,7 @@ stkflw <- function(
 #' short ones. A stay still open is a lower bound on its length; see
 #' [losbnd()] for the mean it bounds.
 #'
-#' @param days The stays: numbers from 0.
+#' @param days The stays: numbers from 0 to 2^53.
 #' @param w `NULL`, or how many stays each value stands for: whole numbers
 #'   from 0 with a positive total.
 #' @param breaks `NULL`, or band edges, increasing; a band is `(lo, hi]`.
@@ -199,8 +199,9 @@ bklog <- function(arrive, dispose, horizon = NULL, target = NULL) {
 #' adjustment.
 #'
 #' @param recv,disp `NULL`, or the cases received and disposed in each
-#'   period: numbers from 0.
-#' @param pend `NULL`, or the cases pending at the end of each period.
+#'   period: numbers from 0 to 2^53.
+#' @param pend `NULL`, or the cases pending at the end of each period
+#'   (at most 2^53).
 #' @inheritParams stkflw
 #' @param win The rolling window in periods: a whole number from 1.
 #' @param level The level of the intervals: one number between 0 and 1.

@@ -137,28 +137,18 @@ rdloc <- function(
   se <- .ckmarg("se", f)
   ssc <- .ckmarg("ssc", f)
   d <- .axdat(data, f)
-  .axcols(d, c(y, run), "y, run", f, n = 2L)
-  .axcols(d, trt, "trt", f, n = 1L, null = TRUE)
-  yv <- .axmat(d, y, f)[, 1L]
-  rv <- .axmat(d, run, f)[, 1L]
-  tv <- if (is.null(trt)) NULL else .axmat(d, trt, f)[, 1L]
-  cut <- .cknum(cut, "cut", f)
+  v <- .rdin(d, y, run, trt, cut, f)
+  yv <- v$yv
+  rv <- v$rv
+  cut <- v$cut
   level <- .axlevel(level, f)
-  if (!any(rv < cut) || !any(rv >= cut)) {
-    .ckstop(f, "`cut` must have rows on both sides")
-  }
-  cl <- NULL
-  if (se == "cluster") {
-    if (is.null(clus)) .ckstop(f, "`se = \"cluster\"` needs `clus`")
-    .axcols(d, clus, "clus", f, n = 1L)
-    cl <- d[[clus]]
-  }
+  cl <- .rdcl(d, se, clus, f)
   kc <- match(kern, c("tri", "uni", "epa")) - 1L
   bb <- .rdbw(bw, h, yv, rv, cut, kc, f)
   h <- bb$h
   ik <- bb$ik
-  r1 <- .rdfit(yv, rv - cut, tv, h, kern, 1L, cl, ssc, f)
-  r2 <- .rdfit(yv, rv - cut, tv, h, kern, 2L, cl, ssc, f)
+  r1 <- .rdfit(yv, rv - cut, v$tv, h, kern, 1L, cl, ssc, f)
+  r2 <- .rdfit(yv, rv - cut, v$tv, h, kern, 2L, cl, ssc, f)
   tab <- .axtab(c("conventional", "robust"), c(r1$est, r2$est),
                 c(r1$se, r2$se), level)
   names(tab)[1L] <- "method"
@@ -311,6 +301,29 @@ summary.rddens <- function(object, ...) object[["tab"]]
 
 # The bandwidth of rdloc(): h as given (bw = "user") or that of Imbens and
 # Kalyanaraman (2012) from src/rdd.cpp, with its steps: list(h, ik).
+# rdloc(): the outcome, running and treatment columns as numbers, and the
+# cut, with rows on both sides of it
+.rdin <- function(d, y, run, trt, cut, f) {
+  .axcols(d, list(y, run), "y, run", f, n = 2L)
+  .axcols(d, trt, "trt", f, n = 1L, null = TRUE)
+  yv <- .axmat(d, y, f)[, 1L]
+  rv <- .axmat(d, run, f)[, 1L]
+  tv <- if (is.null(trt)) NULL else .axmat(d, trt, f)[, 1L]
+  cut <- .cknum(cut, "cut", f)
+  if (!any(rv < cut) || !any(rv >= cut)) {
+    .ckstop(f, "`cut` must have rows on both sides")
+  }
+  list(yv = yv, rv = rv, tv = tv, cut = cut)
+}
+
+# rdloc(): the clusters with se = "cluster", else NULL
+.rdcl <- function(d, se, clus, f) {
+  if (se != "cluster") return(NULL)
+  if (is.null(clus)) .ckstop(f, "`se = \"cluster\"` needs `clus`")
+  .axcols(d, clus, "clus", f, n = 1L)
+  d[[clus]]
+}
+
 .rdbw <- function(bw, h, yv, rv, cut, kc, f) {
   ik <- NULL
   if (bw == "user") {

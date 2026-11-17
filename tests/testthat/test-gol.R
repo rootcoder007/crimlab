@@ -99,7 +99,8 @@ test_that("gologt() refuses bad input in words", {
     "gologt: `par` must name columns of `x`, each once.")
   e(gologt(d, "y", "race", level = 1),
     "gologt: `level` must be strictly between 0 and 1.")
-  e(gologt(d, "y", "race", maxit = 0), "gologt: `maxit` must be at least 1.")
+  e(gologt(d, "y", "race", maxit = 0),
+    "gologt: `maxit` must be between 1 and 2147483647.")
   e(gologt(d, "y", "zz"), "gologt: `x` names columns not in `data`: zz.")
 })
 

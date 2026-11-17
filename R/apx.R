@@ -1860,14 +1860,23 @@ summary.expjn <- function(object, ...) {
     .ckstop(fn, "`%s` must be a data frame, got %s", what, class(data)[1L])
   }
   if (!nrow(data)) .ckstop(fn, "`%s` has no rows", what)
-  data
+  .cktxtdf(data, what, fn)
 }
 
-# Column names: character, present in d, no missing values in them.
+# Column names: character, present in d, no missing values in them. cols
+# may be a list of several arguments' names, each checked to be text
+# before they are joined (c() of a date and a name would read the name as
+# a date).
 .axcols <- function(d, cols, what, fn, n = NULL, null = FALSE) {
   if (is.null(cols)) {
     if (null) return(NULL)
     .ckstop(fn, "`%s` must name columns of `data`, got NULL", what)
+  }
+  if (is.list(cols) && !is.object(cols)) {
+    if (!all(vapply(cols, function(v) is.character(v) && !is.object(v), NA))) {
+      .ckstop(fn, "`%s` must name columns of `data`", what)
+    }
+    cols <- unlist(cols)
   }
   if (!is.character(cols) || anyNA(cols) || !length(cols)) {
     .ckstop(fn, "`%s` must name columns of `data`", what)
@@ -2392,7 +2401,7 @@ summary.expjn <- function(object, ...) {
   dr <- NULL
   psi <- NA_real_
   if (se == "boot") {
-    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    nboot <- .cknum(nboot, "nboot", f, min = 2, max = 1e7, whole = TRUE)
     if (!is.null(seed)) seed <- .axseed(seed, f)
     b <- .axboot(d, clus[1L], nboot, seed, length(x), function(rows, w) {
       ds <- d[rows, , drop = FALSE]
@@ -2477,7 +2486,7 @@ summary.expjn <- function(object, ...) {
   dr <- NULL
   df <- NULL
   if (se == "boot") {
-    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    nboot <- .cknum(nboot, "nboot", f, min = 2, max = 1e7, whole = TRUE)
     if (!is.null(seed)) seed <- .axseed(seed, f)
     b <- .axboot(d, clus[1L], nboot, seed, length(tm), function(rows, w) {
       .axivfit(d[rows, , drop = FALSE], y, endo, inst, x, fe, as.numeric(w),
@@ -2638,7 +2647,7 @@ summary.expjn <- function(object, ...) {
 .axcfnbr <- function(d, y, yv, endo, inst, x, fe, off, clus, cl, se, ssc,
                      nboot, seed, level, tol, maxit, k, f) {
   if (se == "boot") {
-    nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+    nboot <- .cknum(nboot, "nboot", f, min = 2, max = 1e7, whole = TRUE)
     if (!is.null(seed)) seed <- .axseed(seed, f)
   }
   r1 <- .axivfit(d, y, endo, inst, x, fe, NULL,
@@ -2660,7 +2669,7 @@ summary.expjn <- function(object, ...) {
 # fail are left out with a warning: list(r, dr the draws, nfail, nboot).
 .axcfboot <- function(d, yv, endo, inst, x, off, fx, cl, nboot, seed, how,
                       tol, maxit, tm, f) {
-  nboot <- .cknum(nboot, "nboot", f, min = 2, whole = TRUE)
+  nboot <- .cknum(nboot, "nboot", f, min = 2, max = 1e7, whole = TRUE)
   if (!is.null(seed)) seed <- .axseed(seed, f)
   me <- .axmat(d, endo, f)
   mx <- .axmat(d, x, f)
@@ -2843,6 +2852,10 @@ summary.expjn <- function(object, ...) {
     .ckstop(f, "`dir` must be numeric directions in degrees")
   }
   dir <- as.numeric(dir)
+  # a direction is reduced modulo 360: past 1e9 R's %% loses its digits
+  if (any(abs(dir) > 1e9, na.rm = TRUE)) {
+    .ckstop(f, "`dir` must be directions in degrees, at most 1e9 in size")
+  }
   if (!is.logical(share) || length(share) != 1L || is.na(share)) {
     .ckstop(f, "`share` must be TRUE or FALSE")
   }
@@ -2855,7 +2868,7 @@ summary.expjn <- function(object, ...) {
   }
   if (is.null(sect)) {
     width <- .cknum(width, "width", f, positive = TRUE)
-    start <- .cknum(start, "start", f)
+    start <- .cknum(start, "start", f, min = -1e9, max = 1e9)
     nb <- round(360 / width)
     if (width >= 360 || abs(360 / width - nb) > 1e-9) {
       .ckstop(f, "`width` must divide 360 into two or more sectors")
@@ -3003,7 +3016,7 @@ summary.expjn <- function(object, ...) {
 # the sources that are segments).
 .axudsrc <- function(d, y, ax, ay, day, wind, area, clus, wx, src, f) {
   .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, c(ax, ay), "ax, ay", f, n = 2L)
+  .axcols(d, list(ax, ay), "ax, ay", f, n = 2L)
   .axcols(d, day, "day", f, n = 1L)
   .axcols(d, wind, "wind", f, n = 1L)
   .axcols(d, area, "area", f, n = 1L, null = TRUE)
@@ -3456,7 +3469,7 @@ summary.expjn <- function(object, ...) {
 # (every reading, any reading, or the mean difference above 0); NA for a
 # group without a reading. The "diag" attribute as for rows, over groups.
 .axinby <- function(up, by, sign, rule, brk, f) {
-  if (length(by) != length(up) || anyNA(by)) {
+  if (!is.atomic(by) || length(by) != length(up) || anyNA(by)) {
     .ckstop(f, "`by` must give the group of each reading, with no NA")
   }
   if (!is.null(brk)) .axinbrk(brk, f)

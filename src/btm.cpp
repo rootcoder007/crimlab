@@ -430,7 +430,7 @@ SEXP C_clab_r_trndrr(SEXP y, SEXP x, SEXP expo, SEXP seas, SEXP alt, SEXP level)
     xm += xv[static_cast<std::size_t>(i)] / n;
     tot += yy[i];
   }
-  if (!(tot > 0)) fail("`y` has no events: every count is 0.");
+  clab::tot0(tot, "y", "events");
   int lo = n, hi = -1;
   for (int i = 0; i < n; ++i) {
     if (yy[i] > 0) {

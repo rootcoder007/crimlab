@@ -265,7 +265,7 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
 # The zones of idwint()'s targets, sorted (NULL without zone).
 .idwzn <- function(zone, tx, f) {
   if (is.null(zone)) return(NULL)
-  if (length(zone) != length(tx) || anyNA(zone)) {
+  if (!is.atomic(zone) || length(zone) != length(tx) || anyNA(zone)) {
     .ckstop(f, "`zone` must give the zone of each target, with no NA")
   }
   sort(unique(zone))
@@ -273,8 +273,9 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
 
 # The checks of asrule() in its order; list(minsup, minconf, empty).
 .archk <- function(x, y, minsup, minconf, empty, nm, f) {
-  if (length(x) != length(y) || !length(x) || anyNA(x) || anyNA(y)) {
-    .ckstop(f, "`x` and `y` must have one length and no NA")
+  if (!is.atomic(x) || !is.atomic(y) || length(x) != length(y) ||
+        !length(x) || anyNA(x) || anyNA(y)) {
+    .ckstop(f, "`x` and `y` must be vectors of one length and no NA")
   }
   minsup <- .cknum(minsup, "minsup", f, min = 0, max = 1)
   minconf <- .cknum(minconf, "minconf", f, min = 0, max = 1)
@@ -306,6 +307,8 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
     colnames(xm) <- paste0("x", seq_len(ncol(xm)))
   }
   if (cons) xm <- cbind("(const)" = 1, xm)
+  # an integer (or logical) matrix is numbers too; the core reads doubles
+  storage.mode(xm) <- "double"
   if (!ncol(xm)) .ckstop(f, "the model needs `x` or `cons = TRUE`")
   .cknum(u, "u", f, scalar = FALSE)
   .cknum(v, "v", f, scalar = FALSE)

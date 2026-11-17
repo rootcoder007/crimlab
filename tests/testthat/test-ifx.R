@@ -209,3 +209,13 @@ test_that("ifesc() prints, and leaves out the draws it cannot fit", {
     "ifesc: fewer than two bootstrap draws could be fitted.", fixed = TRUE
   )
 })
+
+test_that("ifesc() refuses counts past R's integers in words", {
+  p <- ifdat()
+  errs("ifesc", list(
+    list("`maxit` must be between 1 and 2147483647", p, "y", "tr", "id",
+         "yr", maxit = 2^53),
+    list("`r` must be between 0 and 2147483647", p, "y", "tr", "id", "yr",
+         r = 1e308)
+  ))
+})

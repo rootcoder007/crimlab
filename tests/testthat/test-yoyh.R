@@ -54,3 +54,19 @@ test_that("yoypdf() checks lag as yoysmry() does", {
   expect_error(yoypdf(y, tempfile(fileext = ".pdf"), lag = NULL),
                "^yoypdf: `lag` must be one positive number\\.$")
 })
+
+test_that("the writers refuse a missing folder, repeated names, bad text", {
+  p <- file.path(tempdir(), "no", "such", "f.html")
+  for (f in c("yoyhtml", "yoypdf", "yoywr")) {
+    expect_no_warning(expect_error(
+      get(f)(y, p), paste0("^", f, ": `file` is in a folder that does not")
+    ))
+  }
+  d <- y
+  d$extra <- 1
+  names(d)[ncol(d)] <- "prd"
+  expect_error(yoyhtml(d, tempfile()), "^yoyhtml: `x` has two columns named")
+  d <- y
+  d$grp <- "\xff"
+  expect_error(yoymd(d), "^yoymd: `x` holds text that is not valid")
+})

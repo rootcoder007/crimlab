@@ -140,3 +140,8 @@ test_that("refusals", {
 test_that("prechk() refuses a bad preset table in its own name", {
   expect_error(prechk(data.frame(a = 1), data.frame()), "^prechk: ")
 })
+
+test_that("text that is not UTF-8 is refused in prechk's words", {
+  expect_error(prechk(data.frame(a = "\xff"), "otis-b03-cnt"),
+               "^prechk: `data` holds text that is not valid")
+})

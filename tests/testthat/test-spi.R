@@ -199,7 +199,7 @@ test_that("asrule() is the measures of table() written out", {
               minconf = 0, empty = FALSE)
   expect_identical(q$lhs, c("x=a", "y=p", "x=a", "y=q", "x=b", "y=q"))
   e <- function(m, ...) expect_error(asrule(...), m, fixed = TRUE)
-  e("asrule: `x` and `y` must have one length and no NA.", 1:2, 1)
+  e("asrule: `x` and `y` must be vectors of one length and no NA.", 1:2, 1)
   e("asrule: `minsup` must be between 0 and 1.", 1, 1, minsup = 2)
   e("asrule: `nm` must be two names.", 1, 1, nm = "a")
 })
@@ -212,4 +212,24 @@ test_that("gtwreg() takes x = NULL and refuses x of the wrong type", {
   errs("gtwreg", list(list(m, v, function(x) x, v, v, h = 2),
                       list(m, v, globalenv(), v, v, h = 2),
                       list(m, v, list(1), v, v, h = 2)))
+})
+
+test_that("gtwreg() fits an integer x without the constant", {
+  y <- c(1, 3, 5, 7, 9, 12, 4, 6)
+  u <- c(0, 1, 2, 0, 1, 2, 0, 1)
+  v <- c(0, 0, 0, 1, 1, 1, 2, 2)
+  xi <- cbind(x = c(0L, 1L, 2L, 3L, 4L, 5L, 2L, 3L))
+  expect_identical(gtwreg(y, xi, u, v, h = 1.5, cons = FALSE)$coef,
+                   gtwreg(y, xi * 1, u, v, h = 1.5, cons = FALSE)$coef)
+})
+
+test_that("labels of the wrong kind are refused in words", {
+  errs("asrule", list(
+    list("`x` and `y` must be vectors", list("a", "b"), c("x", "y")),
+    list("`x` and `y` must be vectors", c("a", "b"), list("x", "y"))
+  ))
+  errs("idwint", list(
+    list("`zone` must give the zone of each target", c(0, 1), c(0, 1),
+         c(1, 2), 0.5, 0.5, zone = function() 1)
+  ))
 })
