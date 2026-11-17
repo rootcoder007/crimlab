@@ -1523,3 +1523,27 @@ only when they match the SHA-256 the service’s manifest lists.
 - [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
   [`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
   : Tables of the open data service
+
+## Placement volatility and alert complexity
+
+Counts of regional changes and of alert configurations per person-year
+of a restrictive confinement release, the person-year table they are
+built from, and the analysis of one on the other, pooled or by fiscal
+year, with a simulation of its estimators.
+
+- [`plcvol()`](https://rootcoder007.github.io/crimlab/reference/plcvol.md)
+  : Placement volatility of each person-year
+- [`alrtcx()`](https://rootcoder007.github.io/crimlab/reference/alrtcx.md)
+  : Alert complexity of each person-year
+- [`otpyr()`](https://rootcoder007.github.io/crimlab/reference/otpyr.md)
+  : Person-year table of a restrictive confinement release
+- [`cntmix()`](https://rootcoder007.github.io/crimlab/reference/cntmix.md)
+  : Count regression with a random intercept per cluster
+- [`cxvol()`](https://rootcoder007.github.io/crimlab/reference/cxvol.md)
+  : Alert complexity and placement volatility, pooled or by fiscal year
+- [`cxdml()`](https://rootcoder007.github.io/crimlab/reference/cxdml.md)
+  : Double machine learning of the effect of alert complexity
+- [`cxyoy()`](https://rootcoder007.github.io/crimlab/reference/cxyoy.md)
+  : Placement volatility events by fiscal year
+- [`cxsim()`](https://rootcoder007.github.io/crimlab/reference/cxsim.md)
+  : Simulation of the alert complexity estimators
