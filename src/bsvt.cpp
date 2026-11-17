@@ -30,6 +30,12 @@ bool fromr(SEXP x, Node &n, std::string &err, const std::string &nm) {
         err = "`" + nm + "` must not be a factor.";
         return false;
       }
+      // a date or a time is not a count or a size: its days or seconds
+      // since 1970 would be taken for one (an iteration count of 1.7e9)
+      if (Rf_inherits(x, "Date") || Rf_inherits(x, "POSIXt") || Rf_inherits(x, "difftime")) {
+        err = "`" + nm + "` must be numbers, not dates or times.";
+        return false;
+      }
       n.d.resize(static_cast<std::size_t>(len));
       for (R_xlen_t i = 0; i < len; ++i) {
         double v;

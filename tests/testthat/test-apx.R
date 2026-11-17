@@ -1511,6 +1511,17 @@ test_that("groups, directions and draws of the wrong kind are refused", {
          start = 1e308),
     list("`dir` must be directions in degrees, at most 1e9", c(10, 1e308))
   ))
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   e <- data.frame(area = c("a", "\xff"), day = 1:2, t = 1:2)
   errs("expjn", list(list("`expo` holds text that is not valid", e, e)))
+})
+
+test_that("data with repeated names, a level as a matrix, list names", {
+  expect_error(.axdat(data.frame(a = 1, a = 2, check.names = FALSE), "f"),
+               "^f: `data` has two columns named a")
+  expect_null(dim(.axlevel(matrix(0.9), "f")))
+  expect_error(.axcolsj(data.frame(y = 1), list(list("y")), "y", "f", 1L),
+               "^f: `y` must name columns of `data`")
+  expect_identical(.axcolsj(data.frame(y = 1, u = 2), list("y", "u"), "y, u",
+                            "f", 2L), c("y", "u"))
 })

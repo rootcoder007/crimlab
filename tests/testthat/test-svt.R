@@ -1203,3 +1203,12 @@ test_that("the vote scalings refuse codes other than 1, 0 and NA", {
                fixed = TRUE)
   expect_lt(proc.time()[["elapsed"]] - t0, 5)
 })
+
+test_that("a date or a time is refused where a count goes", {
+  set.seed(4)
+  v <- matrix(rbinom(48, 1, 0.5), 8)
+  expect_error(cjrirt(votes = v, nsamp = 3, burn = Sys.Date(), chains = FALSE),
+               "^cjrirt: `burn` must be numbers, not dates or times")
+  expect_error(cjrirt(votes = v, nsamp = Sys.time(), chains = FALSE),
+               "^cjrirt: `nsamp` must be numbers, not dates or times")
+})

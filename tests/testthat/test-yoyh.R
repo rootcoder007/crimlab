@@ -66,6 +66,7 @@ test_that("the writers refuse a missing folder, repeated names, bad text", {
   d$extra <- 1
   names(d)[ncol(d)] <- "prd"
   expect_error(yoyhtml(d, tempfile()), "^yoyhtml: `x` has two columns named")
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   d <- y
   d$grp <- "\xff"
   expect_error(yoymd(d), "^yoymd: `x` holds text that is not valid")

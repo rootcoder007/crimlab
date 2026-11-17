@@ -142,6 +142,7 @@ test_that("prechk() refuses a bad preset table in its own name", {
 })
 
 test_that("text that is not UTF-8 is refused in prechk's words", {
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   expect_error(prechk(data.frame(a = "\xff"), "otis-b03-cnt"),
                "^prechk: `data` holds text that is not valid")
 })

@@ -1860,23 +1860,18 @@ summary.expjn <- function(object, ...) {
     .ckstop(fn, "`%s` must be a data frame, got %s", what, class(data)[1L])
   }
   if (!nrow(data)) .ckstop(fn, "`%s` has no rows", what)
+  if (anyDuplicated(names(data))) {
+    .ckstop(fn, "`%s` has two columns named %s", what,
+            names(data)[anyDuplicated(names(data))])
+  }
   .cktxtdf(data, what, fn)
 }
 
-# Column names: character, present in d, no missing values in them. cols
-# may be a list of several arguments' names, each checked to be text
-# before they are joined (c() of a date and a name would read the name as
-# a date).
+# Column names: character, present in d, no missing values in them.
 .axcols <- function(d, cols, what, fn, n = NULL, null = FALSE) {
   if (is.null(cols)) {
     if (null) return(NULL)
     .ckstop(fn, "`%s` must name columns of `data`, got NULL", what)
-  }
-  if (is.list(cols) && !is.object(cols)) {
-    if (!all(vapply(cols, function(v) is.character(v) && !is.object(v), NA))) {
-      .ckstop(fn, "`%s` must name columns of `data`", what)
-    }
-    cols <- unlist(cols)
   }
   if (!is.character(cols) || anyNA(cols) || !length(cols)) {
     .ckstop(fn, "`%s` must name columns of `data`", what)
@@ -1899,6 +1894,16 @@ summary.expjn <- function(object, ...) {
     if (anyNA(d[[k]])) .ckstop(fn, "column `%s` has missing values", k)
   }
   cols
+}
+
+# The column names of several arguments (a list), each checked to be text
+# before they are joined (c() of a date and a name would read the name as
+# a date), then as .axcols() checks them.
+.axcolsj <- function(d, cols, what, fn, n) {
+  if (!all(vapply(cols, function(v) is.character(v) && !is.object(v), NA))) {
+    .ckstop(fn, "`%s` must name columns of `data`", what)
+  }
+  .axcols(d, unlist(cols), what, fn, n = n)
 }
 
 # Numeric columns as a matrix (n x 0 for none), finite.
@@ -1975,7 +1980,8 @@ summary.expjn <- function(object, ...) {
         level <= 0 || level >= 1) {
     .ckstop(fn, "`level` must be one number strictly between 0 and 1")
   }
-  level
+  # one plain number: a 1 x 1 matrix would be recycled with a warning
+  as.vector(level)
 }
 
 # The coefficient table: est, se, stat, p and the interval; t on df
@@ -3016,7 +3022,7 @@ summary.expjn <- function(object, ...) {
 # the sources that are segments).
 .axudsrc <- function(d, y, ax, ay, day, wind, area, clus, wx, src, f) {
   .axcols(d, y, "y", f, n = 1L)
-  .axcols(d, list(ax, ay), "ax, ay", f, n = 2L)
+  .axcolsj(d, list(ax, ay), "ax, ay", f, 2L)
   .axcols(d, day, "day", f, n = 1L)
   .axcols(d, wind, "wind", f, n = 1L)
   .axcols(d, area, "area", f, n = 1L, null = TRUE)

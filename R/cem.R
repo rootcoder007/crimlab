@@ -88,6 +88,7 @@
 cemtch <- function(data, d, x, cut = NULL, lcut = NULL) {
   f <- "cemtch"
   dd <- .axdat(data, f)
+  if (nrow(dd) < 2L) .ckstop(f, "`data` needs two rows at least")
   .axcols(dd, d, "d", f, n = 1L)
   .axcols(dd, x, "x", f)
   tr <- .axmat(dd, d, f)[, 1L]

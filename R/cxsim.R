@@ -126,7 +126,9 @@ print.cxsim <- function(x, ...) {
 
 # The three estimates of one table.
 .csone <- function(d) {
-  ft <- function(f) tryCatch(f, error = function(e) NULL)
+  # a fit that fails is counted; its warnings (glm.fit()'s on a draw it
+  # cannot fit) are not the caller's
+  ft <- function(f) tryCatch(suppressWarnings(f), error = function(e) NULL)
   cr <- ft(stats::glm.fit(cbind(1, d$cx), d$vm, family = stats::poisson()))
   mx <- ft(cntmix(d$vm, d[c("cx", "age", "gender")], d$rc, fam = "nb"))
   mt <- ft(cxvol(d, yterm = FALSE, fam = "nb")$fits[[1L]])

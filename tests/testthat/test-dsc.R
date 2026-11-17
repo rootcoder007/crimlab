@@ -702,6 +702,7 @@ test_that("columns without names are read by position", {
   d <- stats::setNames(as.data.frame(m), c("", "", ""))
   expect_identical(mcartst(d)$statistic,
                    mcartst(as.data.frame(m))$statistic)
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   errs("dstntst", list(list("`data` holds text that is not valid",
                             data.frame(g = "\xff", e = 1, l = 0, u = 2),
                             "g", "e", "l", "u")))

@@ -308,6 +308,7 @@ test_that("keyword groups and words are refused in words", {
     list("a list of words named by group, or words", "a text",
          strrep("a", 1e5))
   ))
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   errs("ovrsoc", list(list("`tag` holds text that is not valid", "a text",
                            tag = "\xff")))
 })

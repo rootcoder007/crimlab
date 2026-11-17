@@ -304,7 +304,7 @@ summary.rddens <- function(object, ...) object[["tab"]]
 # rdloc(): the outcome, running and treatment columns as numbers, and the
 # cut, with rows on both sides of it
 .rdin <- function(d, y, run, trt, cut, f) {
-  .axcols(d, list(y, run), "y, run", f, n = 2L)
+  .axcolsj(d, list(y, run), "y, run", f, 2L)
   .axcols(d, trt, "trt", f, n = 1L, null = TRUE)
   yv <- .axmat(d, y, f)[, 1L]
   rv <- .axmat(d, run, f)[, 1L]

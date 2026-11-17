@@ -10,10 +10,10 @@
 #include <vector>
 
 #include "bcol.h"
+#include "crimlab.h"
 #include "rchk.h"
 
 extern "C" double Rf_qt(double, double, int, int);
-extern "C" double Rf_qbeta(double, double, double, int, int);
 extern "C" double Rf_qchisq(double, double, int, int);
 extern "C" double Rf_pchisq(double, double, int, int);
 
@@ -57,8 +57,10 @@ void rci(double a, double b, double p, double *lo, double *hi) {
     *lo = *hi = NA_REAL;
     return;
   }
-  const double l = a == 0 ? 0 : Rf_qbeta(p, a, b + 1, 1, 0);
-  const double h = b == 0 ? 1 : Rf_qbeta(1 - p, a + 1, b, 1, 0);
+  // the core's quantile: R's loses its digits, with a warning, once one
+  // count is 1e13 times the other
+  const double l = a == 0 ? 0 : clab_qbeta(p, a, b + 1, 1);
+  const double h = b == 0 ? 1 : clab_qbeta(1 - p, a + 1, b, 1);
   *lo = l / (1 - l);
   *hi = h >= 1 ? R_PosInf : h / (1 - h);
 }

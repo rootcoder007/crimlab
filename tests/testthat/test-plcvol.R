@@ -121,6 +121,7 @@ test_that("labels holding a carriage return keep person-years apart", {
 })
 
 test_that("alrtcx() refuses flags and codes that are not UTF-8 in words", {
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   errs("alrtcx", list(
     list("`flags` holds text that is not valid",
          data.frame(a = c("Y", "\xff"), b = "N"), 1:2),

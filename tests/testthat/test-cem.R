@@ -85,3 +85,8 @@ test_that("cemtch() prints its strata and refuses bad columns and bins", {
                "cemtch: `cut$x` must be a whole number of bins from 1.",
                fixed = TRUE)
 })
+
+test_that("cemtch() refuses a table of one row in words", {
+  expect_error(cemtch(data.frame(t = 1, x = 2), "t", "x"),
+               "^cemtch: `data` needs two rows at least")
+})

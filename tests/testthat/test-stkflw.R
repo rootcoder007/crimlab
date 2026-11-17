@@ -514,3 +514,8 @@ test_that("dktflw() refuses counts past 2^53 in words, without warnings", {
          disp = c(1, 2))
   )))
 })
+
+test_that("dktflw()'s intervals for extreme ratios of counts come quietly", {
+  r <- expect_no_warning(dktflw(recv = c(5, 6), disp = c(2^53, 2)))
+  expect_true(all(r$flow$lo <= r$flow$clear & r$flow$clear <= r$flow$hi))
+})

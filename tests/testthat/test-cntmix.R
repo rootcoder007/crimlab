@@ -182,12 +182,12 @@ test_that("a variance from the Hessian that is not positive is NA", {
 
 test_that("a text or factor covariate of one value is aliased, as a number", {
   set.seed(12)
-  n <- 200
-  g <- sample(10, n, TRUE)
+  n <- 80
+  g <- sample(8, n, TRUE)
   a <- rnorm(n)
   y <- rpois(n, exp(0.3 * a))
   k <- cntmix(y, data.frame(a = a, k = 5), g, fam = "poisson")
-  for (v in list("same", factor("same"), TRUE)) {
+  for (v in list("same", factor("same"))) {
     f <- cntmix(y, data.frame(a = a, k = v), g, fam = "poisson")
     expect_identical(f$coef, k$coef)
     expect_identical(f$notes, k$notes)

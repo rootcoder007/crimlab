@@ -153,6 +153,7 @@ test_that("every default address of a service is the one of odtab()", {
 })
 
 test_that("otpyr() refuses years that are not values, and text not UTF-8", {
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   x <- a01()
   x$UniqueIndividual_ID[1L] <- "\xff"
   errs("otpyr", list(

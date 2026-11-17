@@ -135,6 +135,7 @@ test_that("the package's warning() and message() take base R's arguments", {
 test_that("a scalar keeps no dimensions; data frames and paths are checked", {
   expect_null(dim(.cknum(matrix(0.5), "p", "f")))
   expect_identical(.cktxtdf(data.frame(a = "x"), "d", "f"), data.frame(a = "x"))
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]), "not a UTF-8 session")
   expect_error(.cktxtdf(data.frame(a = "\xff"), "d", "f"),
                "^f: `d` holds text that is not valid")
   expect_error(.cktxtdf(stats::setNames(data.frame(1), "\xfe"), "d", "f"),

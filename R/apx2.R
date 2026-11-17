@@ -207,7 +207,7 @@ smkiv <- function(
 exprun <- function(data, var, unit, day, thr = 0, cap = 3, step = 1) {
   f <- "exprun"
   d <- .axdat(data, f)
-  .axcols(d, list(var, unit, day), "var, unit, day", f, n = 3L)
+  .axcolsj(d, list(var, unit, day), "var, unit, day", f, 3L)
   thr <- .cknum(thr, "thr", f)
   cap <- .cknum(cap, "cap", f, min = 1, whole = TRUE)
   if (cap > 2^26) .ckstop(f, "`cap` must be at most 67108864")
@@ -314,7 +314,7 @@ hetfx <- function(data, var, mod, est = ppmlfe, how = c("inter", "split"),
   f <- "hetfx"
   how <- .ckmarg("how", f)
   d <- .axdat(data, f)
-  .axcols(d, list(var, mod), "var, mod", f, n = 2L)
+  .axcolsj(d, list(var, mod), "var, mod", f, 2L)
   if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
@@ -715,7 +715,7 @@ dosebin <- function(data, y, var, nq = 5, brk = NULL, ref = 1, ctrl = NULL,
                     est = ppmlfe, ...) {
   f <- "dosebin"
   d <- .axdat(data, f)
-  .axcols(d, list(y, var), "y, var", f, n = 2L)
+  .axcolsj(d, list(y, var), "y, var", f, 2L)
   if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
@@ -1169,7 +1169,7 @@ print.typefx <- function(x, ...) {
 # The checks of jntx()'s columns and numbers, in their order:
 # list(k1, k2, p1, p2, ngrid).
 .axjxck <- function(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f) {
-  .axcols(d, list(y, x1, x2), "y, x1, x2", f, n = 3L)
+  .axcolsj(d, list(y, x1, x2), "y, x1, x2", f, 3L)
   if (!.axest(est)) {
     .ckstop(f, "`est` must be an estimator function, such as ppmlfe")
   }
@@ -1276,7 +1276,7 @@ print.typefx <- function(x, ...) {
 # The checks of smkiv()'s columns and numbers, in their order: list(pl
 # the plume indicator, z).
 .axsmck <- function(d, plume, unit, day, pm, seas, by, dens, adj, z, f) {
-  .axcols(d, list(plume, unit, day), "plume, unit, day", f, n = 3L)
+  .axcolsj(d, list(plume, unit, day), "plume, unit, day", f, 3L)
   .axcols(d, pm, "pm", f, n = 1L, null = TRUE)
   .axcols(d, seas, "seas", f, n = 1L, null = TRUE)
   .axcols(d, by, "by", f, n = 1L, null = TRUE)
@@ -1306,7 +1306,7 @@ print.typefx <- function(x, ...) {
 # The checks of ccross()'s columns, estimator and numbers, in their
 # order: list(k, lag).
 .axccck <- function(d, y, unit, day, ma, est, k, lagv, lag, ns, f) {
-  .axcols(d, list(y, unit, day), "y, unit, day", f, n = 3L)
+  .axcolsj(d, list(y, unit, day), "y, unit, day", f, 3L)
   .axcols(d, ma, "ma", f, null = TRUE)
   dv <- .axdate(d[[day]], day, f, TRUE)
   if (!inherits(dv, "Date")) {

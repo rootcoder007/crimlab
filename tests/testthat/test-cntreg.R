@@ -125,9 +125,9 @@ test_that("adversarial counts", {
   r <- cntreg(cn$y, cn$x, adj = data.frame(xx = cn$x * 2, f = cn$f))
   expect_true(is.na(pick(r, "pois")[3]))
   expect_identical(r$fit$rank[1], 4)
-  # counts beyond the double range: the fit leaves the finite range
+  # counts whose total is beyond the double range
   expect_error(cntreg(c(1.7e308, 1e308, 1e-300, 5), c(1, 2, 1, 2)),
-               "the fit failed")
+               "`y` has a total too large for a number")
   # counts equal to their group means: no finite theta, the negative
   # binomial rows NA
   expect_warning(r <- cntreg(c(4, 4, 6, 6), c(1, 1, 2, 2)), "no finite")
