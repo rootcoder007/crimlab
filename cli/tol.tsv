@@ -51,3 +51,4 @@ gologt	1e-9	0	standard errors and the covariance come from the Hessian at the op
 tpsurf	1e-12	1e-14	residuals of an exact interpolation are zero up to rounding (about 1e-15)
 blkprm	1e-12	1e-14	permuted differences that are zero up to rounding (about 1e-15)
 rcttml	1e-12	1e-15	eps is zero up to rounding (about 1e-16) when the first fit already solves the score
+olsdx	1e-11	0	the columns are centred and scaled before the fit: Cook's distances near 5e-5 differ from those of the uncentred fit in the twelfth digit, rounding either way

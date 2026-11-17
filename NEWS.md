@@ -75,7 +75,14 @@
   not name their function. A text argument that is not valid UTF-8 is
   refused in R as on the command line ("`ref` holds text that is not
   valid UTF-8"); in Python with the same words. `plotgain()` no longer
-  says that counts whose total overflows are all 0.
+  says that counts whose total overflows are all 0. A date or a time
+  given where the scaling and IRT models take a count (`burn`, `nsamp`,
+  `ndim`, `maxit`) is refused; it was read as its days or seconds since
+  1970 and ran for hours.
+
+* `dktflw()` takes its clearance intervals from the core's beta quantile,
+  as the command line does: R's lost its digits, with warnings, once one
+  count was 1e13 times the other.
 
 * Proofs: `inst/lean/Volat.lean` (the two measures: bounds, the cases of
   no change and of one record, relabelling, order of the records with a

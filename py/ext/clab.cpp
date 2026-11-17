@@ -119,6 +119,19 @@ std::string vfmt(const char *f, std::va_list ap) {
   throw Raised{};
 }
 
+// The UTF-8 bytes of the text argument nm: a str holding a lone surrogate
+// (bytes that are not UTF-8, as os.fsdecode() hands them over) is refused
+// in the words of R and the command line, not Python's codec error.
+const char *u8arg(PyObject *s, const char *nm) {
+  const char *c = PyUnicode_AsUTF8AndSize(s, nullptr);
+  if (c == nullptr) {
+    if (!PyErr_ExceptionMatches(PyExc_UnicodeEncodeError)) throw Raised{};
+    PyErr_Clear();
+    fail(false, "`%s` holds text that is not valid UTF-8.", nm);
+  }
+  return c;
+}
+
 void kchk(int code) {
   if (code == CLAB_EINTR || clab_intrd(0) != 0) intr();
   if (code != CLAB_OK) fail(false, "%s", clab_strerror(code));
@@ -626,6 +639,7 @@ Obj grp(PyObject *names, Py_ssize_t n) {
 // position; None and bools are neither; anything else is a name.
 int ref(PyObject *r, const Obj &nms, int n) {
   const bool pos = r == Py_None || isbool(r) || PyNumber_Check(r);
+  if (PyUnicode_Check(r)) u8arg(r, "ref");
   if (!pos) {
     for (Py_ssize_t i = 0; i < n; ++i) {
       const int eq = PyObject_RichCompareBool(r, PyList_GetItem(nms.get(), i), Py_EQ);
@@ -1143,8 +1157,7 @@ void kin(PyObject *rel, double *k) {
   static const char *const nm[] = {"parent", "sibling", "half", "cousin"};
   static const double ks[4][3] = {{0, 1, 0}, {0.25, 0.5, 0.25}, {0.5, 0.5, 0}, {0.75, 0.25, 0}};
   if (PyUnicode_Check(rel)) {
-    const char *s = PyUnicode_AsUTF8AndSize(rel, nullptr);
-    if (s == nullptr) throw Raised{};
+    const char *s = u8arg(rel, "rel");
     for (int i = 0; i < 4; ++i) {
       if (std::strcmp(s, nm[i]) == 0) {
         std::memcpy(k, ks[i], sizeof ks[i]);
@@ -1518,8 +1531,7 @@ PyObject *hzdsel(PyObject *const *a) {
 // .pick() (src/spin.cpp): one of the n strings opt.
 int pick(PyObject *o, const char *nm, const char *const *opt, int n) {
   if (PyUnicode_Check(o)) {
-    const char *v = PyUnicode_AsUTF8AndSize(o, nullptr);
-    if (v == nullptr) throw Raised{};
+    const char *v = u8arg(o, nm);
     for (int k = 0; k < n; ++k) {
       if (std::strcmp(v, opt[k]) == 0) return k;
     }
