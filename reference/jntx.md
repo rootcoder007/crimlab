@@ -167,7 +167,7 @@ d$crimes <- rpois(
   exp(1 + 0.02 * d$temp + 0.001 * d$temp * d$o3 / 10)
 )
 j <- jntx(d, "crimes", "temp", "o3", fe = "city")
-#> Warning: the joint test of 12 restrictions is not computed: the covariance has rank 9 (too few clusters for it).
+#> Warning: jntx: the joint test of 12 restrictions is not computed: the covariance has rank 9 (too few clusters for it).
 j
 #> jntx: the effect of x1 (spline surface) at levels of x2
 #>     x2   p2    est      se       lo     hi    rr

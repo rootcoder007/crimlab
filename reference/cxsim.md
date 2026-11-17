@@ -33,15 +33,15 @@ cxsim(
 
 - reps:
 
-  The replicates: a whole number from 1.
+  The replicates: a whole number from 1 to 10000000.
 
 - n:
 
-  The person-years of each table: a whole number from 50.
+  The person-years of each table: a whole number from 50 to 10000000.
 
 - beta:
 
-  The log rate ratio of `cx`.
+  The log rate ratio of `cx`, from -20 to 20.
 
 - ncl, sdcl:
 
@@ -53,11 +53,11 @@ cxsim(
 
 - b0:
 
-  The intercept of the log mean.
+  The intercept of the log mean, from -20 to 20.
 
 - conf:
 
-  0, or the effect of the unobserved trait.
+  0, or the effect of the unobserved trait, from -20 to 20.
 
 - seed:
 

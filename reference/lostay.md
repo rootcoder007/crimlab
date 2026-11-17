@@ -21,7 +21,7 @@ lostay(days, w = NULL, breaks = NULL, thr = NULL, flag = NULL, level = 0.95)
 
 - days:
 
-  The stays: numbers from 0.
+  The stays: numbers from 0 to 2^53.
 
 - w:
 

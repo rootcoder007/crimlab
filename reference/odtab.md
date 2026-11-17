@@ -61,24 +61,38 @@ Tables are kept in `tools::R_user_dir("crimlab", "cache")`. A kept file
 is used again only while its SHA-256 is the one the manifest lists now;
 otherwise, or with `refresh = TRUE`, the table is downloaded again.
 
-The columns are those of the file, named as served. `cols` picks some of
-them, matched without regard to case or underscores (`"case_id"` finds
-`"CaseID"`), so that a publisher's respelling of a name does not break a
-call; an exact name is preferred.
+The file is read as CSV (RFC 4180): fields separated by commas, a field
+in double quotes may hold commas, line breaks and doubled quotes, lines
+end in LF or CRLF, a byte order mark is skipped. A blank line is a row
+of a table of one column (its value missing), and is skipped in a wider
+table, as [`read.csv()`](https://rdrr.io/r/utils/read.table.html) skips
+it. Bytes that are not valid UTF-8 are kept as text, each written `<xx>`
+(its value in hexadecimal), so no value is lost and none is in an
+invalid encoding.
+
+The columns are those of the file, named as served (an empty or a
+repeated name too). `cols` picks some of them, matched without regard to
+case or underscores (`"case_id"` finds `"CaseID"`), so that a
+publisher's respelling of a name does not break a call; an exact name is
+preferred.
 
 The values are those the file holds. Every column is read as text; an
 empty field and the text `NA` are missing values. A column becomes
 numbers only when every value in it is a plain decimal number that a
 number holds exactly as written: digits with at most a leading minus, a
 decimal point and an exponent, no leading zero, at most 15 significant
-digits. So identifiers such as `"007"` (not the same as `"7"`), long
-identifiers, dates and codes such as `"F"` stay text, and no column
-becomes logical. A column of whole numbers within R's integer range is
-integer, any other numeric column double.
+digits, and not so large or so small that a number cannot hold it
+(`"1e400"`, `"1e-400"` and `"1e-320"` stay text). So identifiers such as
+`"007"` (not the same as `"7"`), long identifiers, dates and codes such
+as `"F"` stay text, and no column becomes logical. A column of whole
+numbers within R's integer range is integer, any other numeric column
+double.
 
 Errors: a key the manifest does not list; a table listed without a
 SHA-256; a file that does not match it; a line with more or fewer fields
-than the header; a table whose number of rows is not the one the
+than the header, a quote inside a field that is not in quotes, a quoted
+field never closed, text after a closing quote or a NUL byte (each
+naming the line); a table whose number of rows is not the one the
 manifest lists; a column the table does not have, or a name that matches
 more than one; a service that cannot be reached, answers with an error
 or does not answer in time (60 seconds for the manifest, 600 for a

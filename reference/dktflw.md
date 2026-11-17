@@ -35,11 +35,11 @@ dktflw(
 - recv, disp:
 
   `NULL`, or the cases received and disposed in each period: numbers
-  from 0.
+  from 0 to 2^53.
 
 - pend:
 
-  `NULL`, or the cases pending at the end of each period.
+  `NULL`, or the cases pending at the end of each period (at most 2^53).
 
 - prd:
 

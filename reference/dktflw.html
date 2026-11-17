@@ -88,11 +88,12 @@ at <code>floors</code>) bound the mean from below.</p>
 
 <dl><dt id="arg-recv-disp">recv, disp<a class="anchor" aria-label="anchor" href="#arg-recv-disp"></a></dt>
 <dd><p><code>NULL</code>, or the cases received and disposed in each
-period: numbers from 0.</p></dd>
+period: numbers from 0 to 2^53.</p></dd>
 
 
 <dt id="arg-pend">pend<a class="anchor" aria-label="anchor" href="#arg-pend"></a></dt>
-<dd><p><code>NULL</code>, or the cases pending at the end of each period.</p></dd>
+<dd><p><code>NULL</code>, or the cases pending at the end of each period
+(at most 2^53).</p></dd>
 
 
 <dt id="arg-prd">prd<a class="anchor" aria-label="anchor" href="#arg-prd"></a></dt>
