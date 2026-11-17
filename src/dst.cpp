@@ -610,7 +610,11 @@ double pnchi(double x, double df, double lam, int lower) {
     if (u > ul && u < a1) bp[nb++] = u - ul;
     if (u > b0 && u < b1) bp[nb++] = l1 + std::sqrt(x - u * u) - sa;
   }
-  std::sort(bp, bp + nb);
+  // at most 11 points: an insertion sort (std::sort's threshold of 16
+  // reads past them in GCC's bounds analysis)
+  for (int i = 1; i < nb; ++i) {
+    for (int j = i; j > 0 && bp[j] < bp[j - 1]; --j) std::swap(bp[j], bp[j - 1]);
+  }
   v += gk15(
       [&](double t) {
         if (t < l1) {
