@@ -41,6 +41,7 @@
 #include <utility>
 #include <vector>
 #include <chrono>
+#include <sys/stat.h>
 #ifndef __wasi__
 #include <thread>
 #endif
@@ -2155,6 +2156,7 @@ const Ent ents[] = {
     {"yoyhtml", "x file? title? sub? pal? better? digits? bars? intv? notes? lag?", yoyhtml},
     {"yoypdf", "x file? title? sub? pal? better? digits? intv? notes? width? height? lag?", yoypdf},
     {"polrpttxt", "report", polrpttxt},
+    {"vrfpol", "poll y? reg? years? demo? expcsv? expomean? expoprev? ref? brate? basrateper? pop? rare? hirate?", vrfpol},
     {"selftest", "", selftest},
     {"proof", "fn?", proof},
 };
