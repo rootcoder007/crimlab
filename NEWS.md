@@ -1,5 +1,11 @@
 # crimlab 0.0.0.9000
 
+* `vrfpol()` is in `clab_jrun()`, the command line and Python, with the
+  report R gives: the demo data are R's draws, and the exposure file is
+  read as R reads plain and gzip UTF-8 text. A bzip2 or xz file and
+  UTF-16, UTF-32 or Latin-1 text, which R decodes, are an error report
+  outside R.
+
 * New: `tabrpt()`, one call on a published table: `catchk()` on its
   groups, `yoypx()` on the change between periods, `grprr()` on the rates
   and `trndrr()` on each group's trend.
