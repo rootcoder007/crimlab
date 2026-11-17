@@ -80,3 +80,11 @@ test_that("blpal() refuses more colours than its bound", {
   expect_error(blpal(n = 1e9), "blpal: `n` must be at most 67108864.",
                fixed = TRUE)
 })
+
+test_that("a col that is not colours is refused, never warned about", {
+  expect_no_warning(errs("plotcal", list(
+    list("`col` must be colours", c(0.2, 0.8), c(0, 1), col = function() 1),
+    list("`col` must be colours", c(0.2, 0.8), c(0, 1),
+         col = data.frame(x = 1))
+  )))
+})

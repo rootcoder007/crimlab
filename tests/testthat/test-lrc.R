@@ -40,3 +40,9 @@ test_that("lrcce() reads a ccepnl fit and refuses what it cannot use", {
   expect_error(lrcce(cbind(L1.y = c(1, 0.5), x = c(1, 1)), "x"),
                "lrcce: a unit's lags of `y` sum to 1.", fixed = TRUE)
 })
+
+test_that("lrcce() refuses x that names no column, in its own words", {
+  b <- matrix(1:4, 2, dimnames = list(c("r1", "r2"), c("c1", "c2")))
+  errs("lrcce", list(list("`x` and `ylag` must name columns", b, 1),
+                     list("`x` and `ylag` must name columns", b, list(2))))
+})

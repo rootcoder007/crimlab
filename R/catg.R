@@ -193,6 +193,9 @@ declbld <- function(x, vlabs = NULL) {
 #' try(grdbin(c(0, 1, 2), "custody"))
 #' @export
 grdbin <- function(x, col) {
+  if (!is.character(col) || length(col) != 1L || is.na(col)) {
+    .ckstop("grdbin", "`col` must be one column name")
+  }
   if (is.null(x) || !is.atomic(x)) {
     stop("grdbin: column `", col, "` must be an atomic vector.", call. = FALSE)
   }
@@ -360,6 +363,9 @@ print.vrfmrg <- function(x, ...) {
 #' xfrvrf(c("No", "Yes", "Yes"), c(No = 1, Yes = 2))
 #' @export
 xfrvrf <- function(imported, soucnts, codebook = NULL, tol = 0, strict = TRUE) {
+  if (is.null(imported) || !is.atomic(imported)) {
+    .ckstop("xfrvrf", "`imported` must be the imported column, a vector")
+  }
   strict <- isTRUE(strict)
   if (!is.null(codebook) && (!is.atomic(codebook) || is.null(names(codebook)) ||
                                inherits(codebook, c("Date", "POSIXt")))) {

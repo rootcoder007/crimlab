@@ -334,3 +334,11 @@ test_that("labels to keep that are not a vector are refused in words", {
   expect_error(grdrcd(c("a", "b"), c(a = "A"), keep = sum),
                "^grdrcd: `keep` must be labels")
 })
+
+test_that("grdbin() and xfrvrf() refuse arguments of the wrong type", {
+  errs("grdbin", list(list("`col` must be one column name", 1, function() 1),
+                      list("`col` must be one column name", 1, NA)))
+  m <- "`imported` must be the imported column, a vector"
+  errs("xfrvrf", list(list(m, function() 1, c(a = 1)),
+                      list(m, NULL, c(a = 1))))
+})

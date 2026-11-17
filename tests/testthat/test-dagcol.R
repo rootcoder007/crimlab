@@ -67,3 +67,9 @@ test_that("dagcol() refuses what is not a DAG", {
   expect_error(dagcol("a", "b", triple = c("a", "b", "z")), tri, fixed = TRUE)
   expect_error(dagcol("a", "b", triple = c("a", NA, "b")), tri, fixed = TRUE)
 })
+
+test_that("dagcol() refuses a triple that is not labels", {
+  m <- "`triple` must be three labels of nodes"
+  errs("dagcol", list(list(m, c("a", "b"), c("c", "c"), triple = function() 1),
+                      list(m, c("a", "b"), c("c", "c"), triple = list(1))))
+})

@@ -93,9 +93,8 @@ print.dagcol <- function(x, ...) {
 
 # Whether the triple a, c, b is a collider among col, and shielded.
 .dgtrip <- function(triple, nodes, col, f) {
-  t <- as.character(triple)
-  if (!is.atomic(triple) || length(t) != 3L || anyNA(triple) ||
-        !all(t %in% nodes)) {
+  t <- if (is.atomic(triple)) as.character(triple)
+  if (length(t) != 3L || anyNA(triple) || !all(t %in% nodes)) {
     .ckstop(f, "`triple` must be three labels of nodes: a, c, b")
   }
   hit <- col$c == t[2L] & ((col$a == t[1L] & col$b == t[3L]) |

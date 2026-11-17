@@ -295,11 +295,16 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
   .cknum(y, "y", f, scalar = FALSE)
   n <- length(y)
   cons <- .ckflag(cons, "cons", f)
+  if (!is.null(x) && !is.numeric(x) && !is.data.frame(x)) {
+    .ckstop(f, "`x` must be finite numbers, one row per value of `y`")
+  }
   xm <- if (is.null(x)) matrix(0, n, 0) else as.matrix(x)
   if (!is.numeric(xm) || nrow(xm) != n || anyNA(xm) || !all(is.finite(xm))) {
     .ckstop(f, "`x` must be finite numbers, one row per value of `y`")
   }
-  if (is.null(colnames(xm))) colnames(xm) <- paste0("x", seq_len(ncol(xm)))
+  if (is.null(colnames(xm)) && ncol(xm)) {
+    colnames(xm) <- paste0("x", seq_len(ncol(xm)))
+  }
   if (cons) xm <- cbind("(const)" = 1, xm)
   if (!ncol(xm)) .ckstop(f, "the model needs `x` or `cons = TRUE`")
   .cknum(u, "u", f, scalar = FALSE)

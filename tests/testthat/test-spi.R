@@ -203,3 +203,13 @@ test_that("asrule() is the measures of table() written out", {
   e("asrule: `minsup` must be between 0 and 1.", 1, 1, minsup = 2)
   e("asrule: `nm` must be two names.", 1, 1, nm = "a")
 })
+
+test_that("gtwreg() takes x = NULL and refuses x of the wrong type", {
+  v <- c(2.5, 1.3, 4.1, 3.3, 0.7, 5.2, 2.2, 1.9, 3.8, 4.4, 2.9, 1.1)
+  g <- gtwreg(v, NULL, v, rev(v), h = 2)
+  expect_identical(colnames(g$coef), "(const)")
+  m <- "`x` must be finite numbers, one row per value of `y`"
+  errs("gtwreg", list(list(m, v, function(x) x, v, v, h = 2),
+                      list(m, v, globalenv(), v, v, h = 2),
+                      list(m, v, list(1), v, v, h = 2)))
+})

@@ -183,7 +183,7 @@ yoypals <- function() names(.YOY_PALETTES)
 # n colours: `col` as given (recycled) or the palette's
 .pcols <- function(n, col = NULL, pal = NULL, fn = "plot") {
   if (!is.null(col)) {
-    if (!length(col) || !all(vapply(col, .iscol, NA))) {
+    if (!is.atomic(col) || !length(col) || !all(vapply(col, .iscol, NA))) {
       stop(fn, ": `col` must be colours.", call. = FALSE)
     }
     return(rep_len(col, n))

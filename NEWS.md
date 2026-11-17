@@ -60,6 +60,15 @@
   `clprep()` and about twenty others carried the bytes themselves, and
   `substr()` or `grepl()` on such a message failed.
 
+* Arguments of the wrong type are refused in the package's words, not
+  base R's: `gtwreg()` takes `x = NULL` (a model with the constant only,
+  which stopped on its column names) and refuses a function or an
+  environment as `x`; `grdbin()` a `col` that is not one name;
+  `xfrvrf()` an `imported` that is not a vector; `dagcol()` a `triple`
+  that is not labels; `lrcce()` an `x` that names no column; the plots
+  a `col` that is not colours (a function was warned about, a data
+  frame failed in the graphics).
+
 * The help of `vrfpol()` says what it refuses with an R error: only a
   `poll` that is not one pollutant name, as the command line refuses it;
   it said the function never stops with an R error.
