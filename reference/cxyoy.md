@@ -27,7 +27,8 @@ cxyoy(x, level = 0.95, ...)
 
 - level:
 
-  The confidence level of the intervals.
+  The confidence level of the gamma intervals of both rates: one number
+  from 0 to 1.
 
 - ...:
 

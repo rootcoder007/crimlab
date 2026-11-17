@@ -61,7 +61,8 @@ cxsim(
 
 - seed:
 
-  The seed.
+  The seed of the whole run, set once before the first table is drawn:
+  one whole number.
 
 ## Value
 
