@@ -436,28 +436,41 @@ int clab_saropt(const double *poc, const double *area, int n, double W, double e
     any = any || poc[i] > 0;
   }
   if (!any) return CLAB_EDOM;
-  auto total = [&](double l) {
+  // on the log scale of the multiplier, L = log(lambda): the effort of a
+  // cell is area / W log(r / lambda) = area / W (log r - L) where positive,
+  // so neither lambda nor r / lambda is formed (lambda underflows once the
+  // effort is large next to the areas)
+  std::vector<double> lr(static_cast<size_t>(n));
+  double ca = 0, lmin = HUGE_VAL;
+  for (int i = 0; i < n; ++i) {
+    lr[static_cast<size_t>(i)] = poc[i] > 0 ? std::log(r[static_cast<size_t>(i)]) : -HUGE_VAL;
+    if (poc[i] > 0) ca += area[i] / W;
+    if (poc[i] > 0 && lr[static_cast<size_t>(i)] < lmin) lmin = lr[static_cast<size_t>(i)];
+  }
+  auto total = [&](double L) {
     double s = 0;
     for (int i = 0; i < n; ++i) {
-      const double q = r[static_cast<size_t>(i)] / l;
-      if (q > 1) s += area[i] / W * std::log(q);
+      if (lr[static_cast<size_t>(i)] > L) s += area[i] / W * (lr[static_cast<size_t>(i)] - L);
     }
     return s;
   };
   double lo = std::log(rmin) - 50;
-  while (total(std::exp(lo)) <= effort) lo -= 50;
+  // below lmin every cell with poc > 0 takes effort, ca (lmin - L) at least
+  if (total(lo) <= effort) lo = lmin - effort / ca - 1;
+  if (!std::isfinite(lo)) return CLAB_EDOM;
   double hi = std::log(rmax);
-  for (int it = 0; it < 400; ++it) {
+  for (int it = 0; it < 2200; ++it) {
     const double mid = (lo + hi) / 2;
-    if (total(std::exp(mid)) > effort) lo = mid;
+    if (mid <= lo || mid >= hi) break;  // no double between them
+    if (total(mid) > effort) lo = mid;
     else hi = mid;
     if (hi - lo < tol) break;
   }
-  const double l = std::exp((lo + hi) / 2);
+  const double L = (lo + hi) / 2, l = std::exp(L);
   double s = 0;
   for (int i = 0; i < n; ++i) {
-    const double q = r[static_cast<size_t>(i)] / l;
-    z[i] = q > 1 ? area[i] / W * std::log(q) : 0.0;
+    const double d = lr[static_cast<size_t>(i)] - L;
+    z[i] = d > 0 ? area[i] / W * d : 0.0;
     cov[i] = W * z[i] / area[i];
     pod[i] = 1 - std::exp(-cov[i]);
     s += poc[i] * pod[i];
