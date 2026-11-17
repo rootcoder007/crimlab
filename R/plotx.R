@@ -412,7 +412,7 @@ plothrz <- function(y, prd, grp = NULL, bands = 3L, ..., main = NULL,
   d$dev <- d$y - stats::ave(d$y, d$grp, FUN = function(v) {
     stats::median(v, na.rm = TRUE)
   })
-  top <- max(abs(d$dev), 0, na.rm = TRUE)
+  top <- max(abs(d$dev[is.finite(d$dev)]), 0)
   if (top == 0) top <- 1
   bw <- top / bands
   up <- blpal("sequential", bands + 1L)[-1L]
@@ -554,6 +554,10 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   if (nrow(d) < 2L) {
     stop(fn, ": `x` needs at least two finite values.", call. = FALSE)
   }
+  # past 1e300 the axis and the densities' ranges overflow
+  if (any(abs(d$x) > 1e300)) {
+    stop(fn, ": `x` must be numbers at most 1e300 in size.", call. = FALSE)
+  }
   d$grp <- factor(d$grp, levels = unique(d$grp))
   d
 }
@@ -606,9 +610,11 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 # the Lorenz curve and Gini of non-negative values, from the compiled core
 .pcc <- function(x, fn) {
   ok <- is.numeric(x) && !is.object(x)
-  if (!ok || !length(x) || any(!is.finite(x) | x < 0) || sum(x) <= 0) {
-    stop(fn, ": `x` must be finite values from 0 with a positive total.",
-         call. = FALSE)
+  # the total too must be a number: values near 1e308 add up to Inf
+  if (!ok || !length(x) || !all(is.finite(x) & x >= 0) ||
+        !(sum(x) > 0 && is.finite(sum(x)))) {
+    stop(fn, ": `x` must be finite values from 0 with a positive, finite ",
+         "total.", call. = FALSE)
   }
   cconc(as.numeric(x), nsim = 0)
 }
@@ -676,10 +682,22 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   } else {
     match(d$prd, unique(d$prd))
   }
+  # an infinite period has no place on the axis (and a hatched polygon
+  # out to it is never finished drawing)
+  if (!all(is.finite(d$pos))) {
+    stop(fn, ": `prd` must be finite periods.", call. = FALSE)
+  }
   d[order(d$grp, d$pos), , drop = FALSE]
 }
 
 # the checked inputs of plotfnl(): areas missing either count dropped
+# plotfnl(): NULL, or a label per area
+.pfarea <- function(area, n) {
+  if (!is.null(area) && !(is.atomic(area) && length(area) == n)) {
+    stop("plotfnl: `area` must have one label per area.", call. = FALSE)
+  }
+}
+
 .pfchk <- function(obs, expd, area, lvls, target) {
   for (a in list(list(obs, "obs"), list(expd, "expd"), list(lvls, "lvls"))) {
     if (!is.numeric(a[[1L]])) {
@@ -691,9 +709,7 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
     stop("plotfnl: `obs` and `expd` must be the same length, from 1.",
          call. = FALSE)
   }
-  if (!is.null(area) && length(area) != n) {
-    stop("plotfnl: `area` must have one label per area.", call. = FALSE)
-  }
+  .pfarea(area, n)
   keep <- !is.na(obs) & !is.na(expd)
   obs <- as.numeric(obs[keep])
   expd <- as.numeric(expd[keep])

@@ -260,3 +260,27 @@ test_that("the compiled density refuses what stats::density() refuses", {
   expect_error(stats::density(x, weights = 1), "unequal length")
   expect_error(dens(x, 0.3, weights = 1), arg, fixed = TRUE)
 })
+
+test_that("periods and values the axes cannot hold are refused at once", {
+  for (f in c("plothrz", "plotmult", "plotbump")) {
+    dt <- structure(c(1, Inf), class = "Date")
+    for (p in list(c(Inf, 2), c(1, -Inf), dt)) {
+      expect_error(drw(get(f)(c(1, 3), p, NULL)),
+                   paste0("^", f, ": `prd` must be finite periods"), info = f)
+    }
+  }
+  # a deviation that overflows is left out of the bands, not drawn to Inf
+  expect_s3_class(drw(plothrz(c(1e308, -1e308, 0), 1:3)), "data.frame")
+  for (f in c("plotrdg", "plotvln", "plotgain")) {
+    expect_error(drw(get(f)(c(1, 1e308, 2))),
+                 paste0("^", f, ": `x` must be numbers at most 1e300"),
+                 info = f)
+  }
+  expect_error(drw(plotfnl(c(5, 9), c(4, 8), area = function() 1)),
+               "^plotfnl: `area` must have one label per area")
+})
+
+test_that("counts whose total overflows are refused as such", {
+  expect_error(drw(plotlrnz(c(1e308, 1e308))),
+               "^plotlrnz: `x` must be finite values from 0 with a positive")
+})
