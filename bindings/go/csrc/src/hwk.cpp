@@ -377,6 +377,7 @@ int clab_hwksim(double hor, int kind, int base, double per, const double *th,
   // the immigrants: thinning against the largest the baseline can be
   const double top = base ? std::exp(th[0] + std::fmax(0.0, th[1]) + std::hypot(th[2], th[3]))
                           : std::exp(th[0]);
+  if (!(top * hor <= 1e12)) return CLAB_EDOM;
   for (double s = -std::log(1 - r.unif()) / top; s < hor; s += -std::log(1 - r.unif()) / top) {
     if (base && r.unif() * top > nu(m, th, s, f)) continue;
     if (k == cap) return CLAB_EDOM;

@@ -538,7 +538,7 @@ int clab_ntlvn(int n, const int *off, const int *adj, const double *wt,
       }
     }
     bool any = false;
-    int moves;
+    int moves, pass = 0;
     do {
       if (kutil::stop(cn + oa[cn])) return CLAB_EINTR;
       moves = 0;
@@ -579,7 +579,7 @@ int clab_ntlvn(int n, const int *off, const int *adj, const double *wt,
       }
       any = any || moves > 0;
       for (int i = 0; i < cn; ++i) mark[i] = 0;
-    } while (moves > 0);
+    } while (moves > 0 && ++pass < 1000);  // each pass gains: a cap, never reached
     if (!any) break;
     ++*lev;
     // communities renumbered by their first node

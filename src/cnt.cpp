@@ -36,6 +36,7 @@ size_t at(int i, int j, int n) {
 // digamma and trigamma for x > 0: the recurrence up to x >= 10, then the
 // asymptotic series to the x^-12 term (error below 1e-14 there).
 double digam(double x) {
+  if (!(x > 0)) return qnan;
   double s = 0.0;
   while (x < 10.0) {
     s -= 1.0 / x;
@@ -47,6 +48,7 @@ double digam(double x) {
 }
 
 double trigam(double x) {
+  if (!(x > 0)) return qnan;
   double s = 0.0;
   while (x < 10.0) {
     s += 1.0 / (x * x);

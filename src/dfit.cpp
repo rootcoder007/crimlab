@@ -410,7 +410,7 @@ double fmin(double ax, double bx, const std::function<double(double)> &fn) {
   };
   double eps = std::sqrt(DBL_EPSILON), a = ax, b = bx, v = a + c * (b - a), w = v, x = v, d = 0., e = 0.;
   double fx = f(x), fv = fx, fw = fx, tol3 = tol / 3.;
-  for (;;) {
+  for (int it = 0; it < 10000; ++it) {  // Brent's steps: a cap, never reached
     const double xm = (a + b) * .5, tol1 = eps * std::fabs(x) + tol3, t2 = tol1 * 2.;
     if (std::fabs(x - xm) <= t2 - (b - a) * .5) break;
     double p = 0., q = 0., r = 0., u;

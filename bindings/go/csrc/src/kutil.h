@@ -127,6 +127,13 @@ struct ksum {
 // unit, so its coverage is counted once).
 double btail(double g, double n, double p, bool up);
 
+// The quantile of the negative binomial (size s, probability p) at a in
+// the lower tail: the smallest whole y with P(X <= y) >= a, as R's
+// qnbinom(); NaN outside the domain or past 2^53. A bounded search (about
+// 160 evaluations of the distribution function at most). Defined in
+// dst.cpp.
+double qnbin(double a, double s, double p);
+
 // The poll of a long loop (resampling, simulation, iterative fitting, a
 // scan over pairs): w is the work done since the last poll, in element
 // operations roughly. The host's check (clab_onintr) runs once the work

@@ -572,6 +572,20 @@ test_that("bayout() bounds large counts and refuses counts past any bound", {
                      "for the negative binomial bound."), fixed = TRUE)
 })
 
+test_that("bayout() gives R's bound where p^s is a subnormal double", {
+  # windows summing to about 4800: p^s was a subnormal double, the sum of
+  # the probabilities from it lost its digits (805 for 856) and for some
+  # sums never reached the level, so bayout(1:810) did not return
+  r <- bayout(c(4833, 0, 0, 0, 0, 0, 0), w = 6, at = 7)
+  expect_identical(r$ub, qnbinom(0.95, 4833.5, 6 / 7))
+  r <- bayout(1:810)
+  s <- vapply(r$t, function(t) sum(t - 1:6), 0)
+  expect_identical(r$ub, qnbinom(0.95, s + 0.5, 6 / 7))
+  x <- c(rep(0, 6), 4000:5000)
+  r <- bayout(x, w = 0, b = 1, freq = 1, acty = FALSE)
+  expect_identical(r$ub, qnbinom(0.95, x[r$t - 1] + 0.5, 1 / 2))
+})
+
 test_that("evfilt() on values whose sums overflow adds no eigenvector", {
   # every criterion is NaN: no candidate is best, and the selection used
   # to add an eigenvector that does not exist

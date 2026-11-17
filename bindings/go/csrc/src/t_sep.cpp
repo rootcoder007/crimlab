@@ -55,6 +55,12 @@ void t_sep(tk &T, int big) {
   const double xa[8] = {NAN, NAN, NAN, NAN, NAN, NAN, NAN, 1};
   tk_ieq(T, "bo.empty", clab_bayout(xa, 8, 52, 0, 6, 1, 0.05, at, 1, ub, al), CLAB_EDOM);
   tk_ieq(T, "bo.alpha", clab_bayout(x, 8, 52, 0, 6, 1, 1, at, 1, ub, al), CLAB_EARG);
+  // a window summing to 4833: p^s is a subnormal double; R's
+  // qnbinom(0.95, 4833.5, 6 / 7) is 856
+  const double xb[7] = {4833, 0, 0, 0, 0, 0, 0};
+  const int a7 = 7;
+  tk_ieq(T, "bo.sub", clab_bayout(xb, 7, 52, 0, 6, 1, 0.05, &a7, 1, ub, al), CLAB_OK);
+  tk_eq(T, "bo.subq", ub[0], 856, 0);
   // buffers: two sources, one receptor near both
   const double rx[2] = {0, 5}, ry[2] = {0, 5}, sx[2] = {0.5, 1}, sy[2] = {0.5, 0}, sw[2] = {2, 3};
   double cn[2], ws[2], nr[2];

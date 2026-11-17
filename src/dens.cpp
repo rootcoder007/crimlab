@@ -211,7 +211,7 @@ double fmin(double ax, double bx, F f, double tol) {
   s.w = s.x = s.v;
   s.fx = s.fv = s.fw = ff(s.x);
   const double tol3 = tol / 3.;
-  for (;;) {
+  for (int it = 0; it < 10000; ++it) {  // Brent's steps: a cap, never reached
     const double xm = (s.a + s.b) * .5, tol1 = eps * std::fabs(s.x) + tol3, t2 = tol1 * 2.;
     if (std::fabs(s.x - xm) <= t2 - (s.b - s.a) * .5) break;
     const double u = fstep(s, xm, tol1, t2), fu = ff(u);

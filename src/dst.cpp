@@ -284,8 +284,8 @@ double pbet(double x, double y, double a, double b, int lower) {
   const double w = sw ? ibet(y, x, b, a) : ibet(x, y, a, b);
   // the other tail, 1 - w, loses digits when w is near 1: by the series
   if (w > 0.5) {
-    double v = sw ? bpser(x, y, a, b) : bpser(y, x, b, a);
-    if (std::isnan(v)) v = sw ? apser(y, b, a) : apser(x, a, b);
+    double v = sw ? apser(y, b, a) : apser(x, a, b);
+    if (std::isnan(v)) v = sw ? bpser(x, y, a, b) : bpser(y, x, b, a);
     if (!std::isnan(v)) return (lower != 0) == sw ? v : 1 - v;
   }
   return (lower != 0) == sw ? 1 - w : w;
@@ -388,6 +388,45 @@ double solve(const H &h, const D &dh, double u0, double umin, double umax, bool 
   return u;
 }
 
+// The smallest whole y in [0, 2^53] with ok(y), ok false then true as y
+// grows, from a start y0: a bracket widened by doubling steps, then
+// bisection on the whole numbers, so at most about 3 x 53 calls of ok
+// wherever the quantile lies. NaN when ok is false at 2^53 (no whole
+// double past it).
+template <class Ok>
+double dsrch(const Ok &ok, double y0) {
+  const double big = 9007199254740992.0;
+  double lo, hi;
+  if (!(y0 >= 0)) y0 = 0;  // also NaN
+  if (y0 > big) y0 = big;
+  if (ok(y0)) {
+    hi = y0;
+    for (double st = 1;; st *= 2) {
+      lo = hi - st;
+      if (lo < 0) {
+        lo = -1;
+        break;
+      }
+      if (!ok(lo)) break;
+      hi = lo;
+    }
+  } else {
+    lo = y0;
+    for (double st = 1;; st *= 2) {
+      hi = std::fmin(lo + st, big);
+      if (ok(hi)) break;
+      if (hi == big) return qnan;
+      lo = hi;
+    }
+  }
+  while (hi - lo > 1) {
+    const double m = std::floor(lo + (hi - lo) / 2);
+    if (ok(m)) hi = m;
+    else lo = m;
+  }
+  return hi;
+}
+
 }  // namespace
 
 // Wichura's algorithm AS 241 (PPND16), Applied Statistics 37 (1988),
@@ -485,18 +524,22 @@ double clab_pchisq(double x, double df, int lower) CLAB_TRY { return pgam(x / 2,
 
 double clab_qchisq(double p, double df, int lower) CLAB_TRY { return 2 * clab_qgamma(p, df / 2, lower); } CLAB_CATCH(kutil::nan())
 
-// The Poisson mixture of central chi-squares, summed out from its mode.
+// The Poisson mixture of central chi-squares, summed out from its mode
+// in whole steps, at most 40 standard deviations of the Poisson weights
+// each way (past them a weight is below e^-800); NaN for ncp past 1e8,
+// where R's pchisq() does not converge either.
 double clab_pnchisq(double x, double df, double ncp, int lower) CLAB_TRY {
-  if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || std::isinf(ncp)) return qnan;
+  if (std::isnan(x) || std::isnan(df) || std::isnan(ncp) || df < 0 || ncp < 0 || !(ncp <= 1e8)) return qnan;
   if (ncp == 0) return clab_pchisq(x, df, lower);
   if (x <= 0) return lower ? 0 : 1;
   if (std::isinf(x)) return lower ? 1 : 0;
   const double lam = ncp / 2;
   const double j0 = std::floor(lam);
   double s = 0;
+  const double far = 40 * std::sqrt(lam) + 100;
   for (int dir = 0; dir < 2; ++dir) {
     double prev = HUGE_VAL;
-    for (double j = dir ? j0 - 1 : j0; j >= 0; j += dir ? -1 : 1) {
+    for (double j = dir ? j0 - 1 : j0; j >= 0 && std::fabs(j - j0) <= far; j += dir ? -1 : 1) {
       const double w = dpois(j, lam), t = w * clab_pchisq(x, df + 2 * j, lower);
       s += t;
       if (w == 0 || (t <= 1e-17 * s && t <= prev && std::fabs(j - j0) > 2)) break;
@@ -583,26 +626,37 @@ double clab_ppois(double x, double lam, int lower) CLAB_TRY {
   return pgam(lam, x + 1, !lower);
 } CLAB_CATCH(kutil::nan())
 
-// The smallest whole y whose tail reaches p, with R's fuzz of 64 units
-// of rounding for left continuity.
+// The smallest whole y whose tail reaches p, with R's fuzz of 8 units of
+// rounding for left continuity, from the Cornish-Fisher start.
 double clab_qpois(double p, double lam, int lower) CLAB_TRY {
   if (std::isnan(p) || std::isnan(lam) || p < 0 || p > 1 || lam < 0 || std::isinf(lam)) return qnan;
   if (lam == 0) return 0;
   if (p == (lower ? 0 : 1)) return 0;
   if (p == (lower ? 1 : 0)) return HUGE_VAL;
   const double s = std::sqrt(lam), z = lower ? clab_qnorm(p) : -clab_qnorm(p);
-  double y = std::fmax(0.0, std::nearbyint(lam + s * (z + (z * z - 1) / (6 * s))));
   // in the lower tail F(y) >= p; in the upper P(X > y) <= p
-  const double pf = lower ? p * (1 - 64 * eps) : p * (1 + 64 * eps);
+  const double pf = lower ? p * (1 - 8 * eps) : p * (1 + 8 * eps);
   auto ok = [&](double v) { return lower ? clab_ppois(v, lam, 1) >= pf : clab_ppois(v, lam, 0) <= pf; };
-  if (ok(y)) {
-    while (y > 0 && ok(y - 1)) y -= 1;
-  } else {
-    do y += 1;
-    while (!ok(y));
-  }
-  return y;
+  return dsrch(ok, std::nearbyint(lam + s * (z + (z * z - 1) / (6 * s))));
 } CLAB_CATCH(kutil::nan())
+
+namespace kutil {
+
+// The negative binomial quantile at a (lower tail), F(y) = I_p(s, y + 1)
+// as R's pnbinom(); the target lowered by 8 units of rounding as R's
+// qnbinom() fuzzes it; the Cornish-Fisher start of R's qnbinom().
+double qnbin(double a, double s, double p) {
+  if (std::isnan(a) || std::isnan(s) || std::isnan(p) || a < 0 || a > 1 || s < 0 || !(p > 0) || p > 1) return qnan;
+  if (p == 1 || s == 0 || a == 0) return 0;
+  if (a == 1) return HUGE_VAL;
+  if (std::isinf(s)) return qnan;
+  const double t = a * (1 - 8 * eps), q = 1 - p;
+  const double mu = s * q / p, sd = std::sqrt(s * q) / p, g = (2 - p) / std::sqrt(s * q), z = clab_qnorm(a);
+  auto ok = [&](double y) { return pbet(p, q, s, y + 1, 1) >= t; };
+  return dsrch(ok, std::nearbyint(mu + sd * (z + g * (z * z - 1) / 6)));
+}
+
+}  // namespace kutil
 
 double clab_dbinom(double x, double n, double p) CLAB_TRY {
   if (std::isnan(x) || std::isnan(n) || std::isnan(p) || p < 0 || p > 1 || n < 0 || n != std::nearbyint(n)) {

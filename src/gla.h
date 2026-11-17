@@ -190,7 +190,7 @@ double fmin(F f, double lo, double hi, double tol) {
   const double c = (3. - std::sqrt(5.)) * .5, eps = std::sqrt(DBL_EPSILON), tol3 = tol / 3.;
   double a = lo, b = hi, v = a + c * (b - a), w = v, x = v, d = 0., e = 0.;
   double fx = f(x), fv = fx, fw = fx;
-  for (;;) {
+  for (int it = 0; it < 10000; ++it) {  // Brent's steps: a cap, never reached
     if (kutil::stop(1e4)) break;
     const double xm = (a + b) * .5, tol1 = eps * std::fabs(x) + tol3, t2 = tol1 * 2.;
     if (std::fabs(x - xm) <= t2 - (b - a) * .5) break;

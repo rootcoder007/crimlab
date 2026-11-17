@@ -44,6 +44,15 @@
   including what a first-to-last column means once a year is added).
   `proof()` lists them.
 
+* `bayout()` gives R's `qnbinom()` bound for every reference sum, in R,
+  the command line and Python. For sums near 4,800 (a week of about 800)
+  the probability of 0 was a subnormal number: the bound came out too low
+  (805 for 856, raising alarms wrongly) and for nearby sums the search
+  never ended (`bayout(1:810)` did not return). The quantile is now a
+  search of at most about 160 evaluations of the distribution function,
+  and the Poisson quantile of the command line and Python takes the same
+  search.
+
 * `vrfpol()` is in `clab_jrun()`, the command line and Python, with the
   report R gives: the demo data are R's draws, and the exposure file is
   read as R reads plain and gzip UTF-8 text. A bzip2 or xz file and
