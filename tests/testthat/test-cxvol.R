@@ -204,3 +204,8 @@ test_that("cxdml() leaves the session's random stream as it was", {
   expect_identical(.Random.seed, s)
   expect_identical(cxdml(p, lrn = "glm", seed = 3e9), a)
 })
+
+test_that("cxdml() refuses a number of folds it cannot print or use", {
+  errs("cxdml", list(list("`nfold` must be between 2 and 1e\\+06",
+                          data.frame(), nfold = 2^53)))
+})

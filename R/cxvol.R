@@ -164,7 +164,7 @@ cxdml <- function(
   fn <- "cxdml"
   by <- .ckmarg("by", fn)
   yterm <- .ckflag(yterm, "yterm", fn)
-  nfold <- .cknum(nfold, "nfold", fn, min = 2, whole = TRUE)
+  nfold <- .cknum(nfold, "nfold", fn, min = 2, max = 1e6, whole = TRUE)
   seed <- .ckseed(seed, "seed", fn)
   s <- .cxsplit(.cxpy(x, fn, ...), by, yterm, fn)
   out <- do.call(
@@ -404,7 +404,7 @@ print.cxyoy <- function(x, ...) {
       nm
     )
   }
-  X <- stats::model.matrix(~., cv)[, -1L, drop = FALSE]
+  X <- .dsgn(cv, fn)[, -1L, drop = FALSE]
   list(cv = cv, X = X[, apply(X, 2L, stats::var) > 0, drop = FALSE])
 }
 

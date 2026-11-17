@@ -179,3 +179,29 @@ test_that("a variance from the Hessian that is not positive is NA", {
   o <- .cmout(fit, X, e, rep(1, 4), c(1, 1, 2, 2), 0.95)
   expect_identical(is.na(o$coef$se), c(TRUE, TRUE))
 })
+
+test_that("a text or factor covariate of one value is aliased, as a number", {
+  set.seed(12)
+  n <- 200
+  g <- sample(10, n, TRUE)
+  a <- rnorm(n)
+  y <- rpois(n, exp(0.3 * a))
+  k <- cntmix(y, data.frame(a = a, k = 5), g, fam = "poisson")
+  for (v in list("same", factor("same"), TRUE)) {
+    f <- cntmix(y, data.frame(a = a, k = v), g, fam = "poisson")
+    expect_identical(f$coef, k$coef)
+    expect_identical(f$notes, k$notes)
+  }
+  # unnamed columns are named by position; the rest is refused in words
+  f <- cntmix(y, stats::setNames(data.frame(a, a^2), c("", "")), g,
+              fam = "poisson")
+  expect_identical(f$coef$term, c("(Intercept)", "x1", "x2"))
+  errs("cntmix", list(
+    list("two columns named a", y,
+         stats::setNames(data.frame(a, a), c("a", "a")), g),
+    list("finite numbers, text", y, data.frame(a = replace(a, 1, Inf)), g),
+    list("finite numbers, text", y, data.frame(a = Sys.Date() + seq_len(n)), g),
+    list("`grp` must give a cluster", y, data.frame(a), as.list(g)),
+    list("`y` must be between 0 and", replace(y, 1, 1e308), data.frame(a), g)
+  ))
+})

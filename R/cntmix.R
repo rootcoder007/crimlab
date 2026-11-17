@@ -78,7 +78,8 @@ cntmix <- function(
 ) {
   fn <- "cntmix"
   fam <- .ckmarg("fam", fn)
-  y <- .cknum(y, "y", fn, scalar = FALSE, min = 0, whole = TRUE)
+  # whole numbers a double holds exactly
+  y <- .cknum(y, "y", fn, scalar = FALSE, min = 0, max = 2^53, whole = TRUE)
   X <- .cmx(x, length(y), fn)
   w <- if (is.null(w)) {
     rep(1, length(y))
@@ -145,23 +146,44 @@ print.cntmix <- function(x, ...) {
       "`x` must be a data frame or numeric matrix, one complete row per count"
     )
   }
-  x[] <- lapply(x, function(v) {
-    if (is.character(v) || is.logical(v)) factor(v) else v
-  })
-  X <- stats::model.matrix(
-    ~.,
-    x,
-    contrasts.arg = lapply(
-      Filter(is.factor, x),
-      function(v) "contr.treatment"
-    )
-  )
+  X <- .dsgn(x, fn)
   X[, colSums(abs(X)) > 0 | colnames(X) == "(Intercept)", drop = FALSE]
+}
+
+# The design matrix of the covariates x (a data frame) with an intercept,
+# for cntmix() and cxvol(): text and logical columns enter as factors, each
+# level but the first an indicator column; a factor of one level, or a
+# numeric column, enters as one column of its name, so that one value
+# throughout is a constant column (aliased with the intercept) rather than
+# base R's refusal of the contrasts. Columns must be named (an empty name
+# becomes x and its position), with distinct names, and numbers finite.
+.dsgn <- function(x, fn) {
+  nm <- names(x)
+  nm[!nzchar(nm)] <- paste0("x", which(!nzchar(nm)))
+  if (anyDuplicated(nm)) {
+    .ckstop(fn, "`x` has two columns named %s", nm[anyDuplicated(nm)])
+  }
+  names(x) <- nm
+  ok <- vapply(x, function(v) {
+    is.factor(v) || is.character(v) || is.logical(v) ||
+      (is.numeric(v) && !is.object(v) && all(is.finite(v)))
+  }, NA)
+  if (!all(ok)) {
+    .ckstop(fn, "`x` must hold finite numbers, text, logicals or factors")
+  }
+  x[] <- lapply(x, function(v) {
+    if (is.numeric(v)) return(v)
+    v <- factor(v)
+    if (nlevels(v) < 2L) rep(1, length(v)) else v
+  })
+  stats::model.matrix(~., x, contrasts.arg = lapply(
+    Filter(is.factor, x), function(v) "contr.treatment"
+  ))
 }
 
 # The clusters as integers 1..G, refusing what cannot identify sigma.
 .cmgrp <- function(grp, n, fn) {
-  if (length(grp) != n || anyNA(grp)) {
+  if (!is.atomic(grp) || length(grp) != n || anyNA(grp)) {
     .ckstop(fn, "`grp` must give a cluster for every count")
   }
   g <- as.integer(factor(grp))
