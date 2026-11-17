@@ -72,7 +72,8 @@ are those in the data; `years` keeps some of them. Identifiers are
 reassigned every fiscal year in the release, so the person-year is the
 unit, never the person.
 
-Rows missing any column used are dropped and counted (attribute `drop`).
+Rows missing any column used are dropped and counted (attribute `drop`);
+an alert flag that is neither yes nor no (nor 1 or 0) is a missing one.
 Alert complexity counts the six configurations the release shows
 (`keep`), as the published analysis does.
 
