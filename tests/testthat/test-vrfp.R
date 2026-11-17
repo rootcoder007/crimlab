@@ -567,3 +567,10 @@ test_that("a pollutant name that is not valid text is refused", {
                      "assumption_failure")
   }
 })
+
+test_that("vrfpol() refuses a poll that is not one name, as its help says", {
+  m <- "`poll` must be one pollutant name"
+  errs("vrfpol", list(list(m, NA), list(m, NULL), list(m, 1),
+                      list(m, c("no2", "pm25"))))
+  expect_identical(vrfpol("O3", demo = TRUE)$status, "assumption_failure")
+})

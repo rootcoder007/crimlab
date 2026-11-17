@@ -60,6 +60,10 @@
   `clprep()` and about twenty others carried the bytes themselves, and
   `substr()` or `grepl()` on such a message failed.
 
+* The help of `vrfpol()` says what it refuses with an R error: only a
+  `poll` that is not one pollutant name, as the command line refuses it;
+  it said the function never stops with an R error.
+
 * `bayout()` gives R's `qnbinom()` bound for every reference sum, in R,
   the command line and Python. For sums near 4,800 (a week of about 800)
   the probability of 0 was a subnormal number: the bound came out too low

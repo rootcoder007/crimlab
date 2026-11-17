@@ -29,7 +29,8 @@ polrpttxt(report)
 }
 \arguments{
 \item{poll}{\code{"no2"} or \code{"pm25"} (also \code{"PM2.5"}), in either
-case.}
+case: one name (another name gives a report whose assumption on the
+pollutant fails; anything but one name is an R error).}
 
 \item{y}{Outcome key for the concentration-response function; the
 mortality outcomes count deaths, \code{"chiast"} incident cases.}
@@ -88,7 +89,8 @@ anything else is refused with an R error.}
 exit code (0, 1 or 2). An argument the pipeline cannot use (no exposure
 data at all, a vector where a single number is expected, an unknown
 outcome, a missing reference, a directory as \code{expcsv}) is an
-\code{"error"} report with exit status 2, never a raw R error; an exposure
+\code{"error"} report with exit status 2, not an R error (\code{poll}
+aside, see the description); an exposure
 at or below the reference is a valid run with zero attributable cases.
 On \code{"ok"} the report also holds \code{inputs} (the resolved exposure
 mean and prevalence, the rate per 100,000, the population, the reference
@@ -106,9 +108,12 @@ column and an optional \code{income} column, a NAPS-style pull with a
 assumptions, and when they all hold runs the concentration-response,
 attributable-fraction, displaced-mortality, burden and equity stages.
 \code{polrpttxt()} renders the result as plain text. It is the one-call
-version of the air pollution functions, made for scripts: it never stops
-with an R error for bad input, but returns a report whose status says what
-went wrong.
+version of the air pollution functions, made for scripts: for bad data or
+a value it cannot use it does not stop with an R error, but returns a
+report whose status says what went wrong. Only \code{poll}, which names
+the report, is checked first and refused with an R error (as the command
+line refuses it) when it is not one pollutant name: missing, not text,
+\code{NULL}, several names, or text that is not valid UTF-8.
 }
 \details{
 In environmental criminology the report is the burden side of green
