@@ -417,7 +417,8 @@ int clab_sarcrc(double sigma, double W, double effort, double *out) CLAB_TRY {
 
 int clab_saropt(const double *poc, const double *area, int n, double W, double effort, double tol, double *z,
                 double *cov, double *pod, double *pos, double *lam) CLAB_TRY {
-  if (n < 1 || !(W > 0) || !(effort >= 0) || !(tol > 0)) return CLAB_EARG;
+  // an infinite effort leaves no root: the bracket would step down for ever
+  if (n < 1 || !(W > 0) || !(effort >= 0) || !std::isfinite(effort) || !(tol > 0)) return CLAB_EARG;
   std::vector<double> r(static_cast<size_t>(n));
   double rmin = HUGE_VAL, rmax = -HUGE_VAL;
   bool any = false;
