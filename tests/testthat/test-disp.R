@@ -67,9 +67,15 @@ test_that("proof names real theorems", {
     src <- readLines(f, warn = FALSE)
     nm <- sub(".*\\.", "", p[["theorem"]][k])
     expect_true(any(grepl(paste0("^theorem ", nm, "\\b"), src)), info = nm)
-    # the namespace in the file is the one proof() gives
+    # the namespace in the file is the one proof() gives: opened whole, or
+    # as a namespace opened inside the file's own
     ns <- sub("\\.[^.]*$", "", p[["theorem"]][k])
-    expect_true(any(src == paste("namespace", ns)), info = ns)
+    inner <- sub(".*\\.", "", ns)
+    outer <- sub("\\.[^.]*$", "", ns)
+    whole <- any(src == paste("namespace", ns))
+    nested <- any(src == paste("namespace", outer)) &&
+      any(src == paste("namespace", inner))
+    expect_true(whole || nested, info = ns)
   }
   expect_false(any(grepl("sorry", unlist(lapply(
     list.files(system.file("lean", package = "crimlab"), "\\.lean$",

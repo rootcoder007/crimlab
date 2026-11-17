@@ -56,7 +56,12 @@ def test_proof_names_real_theorems():
         src = (root / f).read_text(encoding="utf-8").splitlines()
         nm = th.rsplit(".", 1)[1]
         assert any(re.match(rf"theorem {nm}\b", ln) for ln in src), nm
-        assert f"namespace {th.rsplit('.', 1)[0]}" in src
+        # the namespace is opened whole, or inside the file's own
+        ns = th.rsplit(".", 1)[0]
+        outer, inner = ns.rsplit(".", 1)
+        assert f"namespace {ns}" in src or (
+            f"namespace {outer}" in src and f"namespace {inner}" in src
+        ), ns
     for f in root.glob("lean/*.lean"):
         assert "sorry" not in f.read_text(encoding="utf-8")
     two = crimlab.proof(["cllr", "dbsrch"])
