@@ -420,12 +420,10 @@ practice, after checking that the two give the same values;
 for those packages, with the reason each candidate does or does not
 compute the same quantity, is
 [inst/bench/counterparts.csv](https://rootcoder007.github.io/crimlab/inst/bench/counterparts.csv)
-(written by `dev/cpart.R`). rmorie, the maintainer’s own package, is
-timed too but reported apart: it is not another package. Where no
-package computes a quantity, the function is timed against rmorie or a
-base-R implementation of the formula, and no claim is made against the
-field. The tables, with the machine, its load during each run and the
-spread over three runs, are
+(written by `dev/cpart.R`). Where no package computes a quantity, the
+function is timed against rmorie or a base-R implementation of the
+formula, and no claim is made against the field. The tables, with the
+machine, its load during each run and the spread over three runs, are
 [inst/bench/bench.md](https://rootcoder007.github.io/crimlab/inst/bench/bench.md)
 (and `bench.csv`) and `inst/bench/net.csv`. The lists below are written
 by the same scripts from those tables. The spatial functions and the
@@ -467,8 +465,7 @@ speed against the field:
 [`dbsrch()`](https://rootcoder007.github.io/crimlab/reference/dbsrch.md),
 [`tipplt()`](https://rootcoder007.github.io/crimlab/reference/tipplt.md),
 [`proof()`](https://rootcoder007.github.io/crimlab/reference/proof.md).
-Of these, compared with rmorie, the maintainer’s own package: faster at
-every size timed:
+Of these, compared with rmorie: faster at every size timed:
 [`vodtst()`](https://rootcoder007.github.io/crimlab/reference/vodtst.md),
 [`orrisk()`](https://rootcoder007.github.io/crimlab/reference/orrisk.md),
 [`outtst()`](https://rootcoder007.github.io/crimlab/reference/outtst.md),

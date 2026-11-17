@@ -1514,3 +1514,12 @@ counts per unit between categories.
   : Lotka-Volterra rates of a yearly count series
 - [`catcor()`](https://rootcoder007.github.io/crimlab/reference/catcor.md)
   : Correlation of counts per unit between categories
+
+## Open data
+
+Tables of the project’s open data service, loaded by their key and used
+only when they match the SHA-256 the service’s manifest lists.
+
+- [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
+  [`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
+  : Tables of the open data service
