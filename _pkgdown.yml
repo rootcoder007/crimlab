@@ -759,3 +759,17 @@ reference:
       used only when they match the SHA-256 the service's manifest lists.
     contents:
       - odtab
+  - title: Placement volatility and alert complexity
+    desc: Counts of regional changes and of alert configurations per
+      person-year of a restrictive confinement release, the person-year table
+      they are built from, and the analysis of one on the other, pooled or by
+      fiscal year, with a simulation of its estimators.
+    contents:
+      - plcvol
+      - alrtcx
+      - otpyr
+      - cntmix
+      - cxvol
+      - cxdml
+      - cxyoy
+      - cxsim
