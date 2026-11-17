@@ -579,7 +579,9 @@ inline std::string rdtab(const std::string &t, Tab &tb) {
         cur += ch;
       }
     }
-    if (eofq || !any) continue;
+    // a record a quote leaves open ends at the end of the text, as
+    // count.fields() ends it: its fields so far, on the last line
+    if (!any) continue;
     r.f.push_back(cur);
     nl += lines;
     r.end = nl;
@@ -588,7 +590,10 @@ inline std::string rdtab(const std::string &t, Tab &tb) {
   const std::string open =
       "could not be read cleanly (EOF within quoted string): no rows are used from a file the parser stopped "
       "part-way through";
-  if (rs.empty()) return eofq ? open : "";
+  // .vpshape() reads the header and the first row (readtablehead()) before
+  // anything else: a quote left open there stops that read
+  if (eofq && rs.size() <= 2) return open;
+  if (rs.empty()) return "";
   const std::vector<std::string> &hd = rs[0].f;
   std::vector<std::string> key, dup;
   for (const std::string &h : hd) {
@@ -1002,8 +1007,9 @@ inline bool stages(const std::string &poll, const std::string &y, const Src &s, 
     for (std::size_t i = 0; i < s.ex.size(); ++i) {
       k += std::isfinite(s.ex[i]) && std::isfinite(s.inc[i]) ? 1 : 0;
       pos = pos || s.ex[i] > 0;
-      ec.a.push_back(vnum(na(s.ex[i])));
-      ic.a.push_back(vnum(na(s.inc[i])));
+      // a missing value is null, which expconcidx() drops with its row
+      ec.a.push_back(std::isnan(s.ex[i]) ? Val() : vnum(s.ex[i]));
+      ic.a.push_back(std::isnan(s.inc[i]) ? Val() : vnum(s.inc[i]));
     }
     if (k >= 2 && pos) {
       Val d = vobj();
