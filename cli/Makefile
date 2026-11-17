@@ -43,10 +43,10 @@ all: crimlab libcrimlab.a $(SO)
 $(B)/%.o: ../src/%.cpp ../src/*.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -c $< -o $@
 
-$(B)/jrun.o: jrun.cpp jrun.h json.h $(wildcard j*.inc) thm.inc pre.inc ../src/crimlab.h | $(B)
+$(B)/jrun.o: jrun.cpp jrun.h ../src/json.h $(wildcard j*.inc) thm.inc pre.inc ../src/crimlab.h | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -fPIC -I../src -c $< -o $@
 
-$(B)/main.o: main.cpp jrun.h json.h ../src/crimlab.h ../DESCRIPTION | $(B)
+$(B)/main.o: main.cpp jrun.h ../src/json.h ../src/crimlab.h ../DESCRIPTION | $(B)
 	$(CXX) $(WARN) $(CPPFLAGS) $(CXXFLAGS) -I../src -DCLAB_VER='"$(VER)"' -c $< -o $@
 
 # the proof table of the R binding

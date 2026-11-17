@@ -708,6 +708,8 @@ SEXP C_clab_r_vcx(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 SEXP C_clab_r_runlen(SEXP, SEXP, SEXP, SEXP);
 // One-pass summaries (bskch.cpp).
 SEXP C_clab_r_sha256(SEXP);
+SEXP C_clab_r_json(SEXP);
+SEXP C_clab_r_csv(SEXP);
 SEXP C_clab_r_momupd(SEXP, SEXP);
 SEXP C_clab_r_mommrg(SEXP, SEXP);
 SEXP C_clab_r_momstat(SEXP);
@@ -1081,6 +1083,8 @@ static const R_CallMethodDef calls[] = {
     {"C_clab_r_hif", fn<&C_clab_r_hif>(), 4},
     {"C_clab_r_concidx", fn<&C_clab_r_concidx>(), 2},
     {"C_clab_r_sha256", fn<&C_clab_r_sha256>(), 1},
+    {"C_clab_r_json", fn<&C_clab_r_json>(), 1},
+    {"C_clab_r_csv", fn<&C_clab_r_csv>(), 1},
     {"C_clab_r_fesep", fn<&C_clab_r_fesep>(), 5},
     {"C_clab_r_ppmlfe", fn<&C_clab_r_ppmlfe>(), 16},
     {"C_clab_r_ivfe", fn<&C_clab_r_ivfe>(), 16},

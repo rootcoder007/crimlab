@@ -36,7 +36,7 @@ def sync():
             shutil.copy2(f, k / f.name)
     # clab_jrun(), which the functions of crimlab/_j.py call
     for f in sorted((top / "cli").iterdir()):
-        if f.name in ("jrun.cpp", "jrun.h", "json.h") or f.suffix == ".inc":
+        if f.name in ("jrun.cpp", "jrun.h") or f.suffix == ".inc":
             shutil.copy2(f, k / f.name)
     desc = (top / "DESCRIPTION").read_text(encoding="utf-8")
     ver = re.search(r"^Version:\s*(\S+)", desc, re.MULTILINE).group(1).replace("-", ".")

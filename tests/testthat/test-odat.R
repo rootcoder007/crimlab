@@ -83,7 +83,7 @@ test_that("the manifest reader takes JSON and nothing else", {
   )
   expect_identical(j$a, list(1, -25, TRUE, FALSE, NULL))
   expect_identical(j$b, "x\"\\/yé")
-  expect_identical(j$c, list())
+  expect_identical(j$c, stats::setNames(list(), character()))
   bad <- c(r"({"a": system("x")})", "[e]", "[1] [2]", "[1,", "", r"(["\x"])")
   for (b in bad) expect_error(.odjson(b), info = b)
 })
@@ -139,7 +139,8 @@ test_that("odtab() refuses a table it cannot fetch, check, keep or read", {
     # an empty file: its SHA-256 is the manifest's, a table it is not
     odgz(gz, character(0))
     odman(d, sub("[0-9a-f]{64}", .odhash(gz, "t"), m))
-    errs("odtab", list(list("`db1/t1` could not be read", "db1/t1")))
+    errs("odtab", list(list("`db1/t1` is empty: it has no header line",
+                            "db1/t1")))
     # a cache folder that cannot be made
     blk <- file.path(d, "blk")
     writeLines("x", blk)
@@ -265,16 +266,101 @@ test_that("the manifest reader takes all JSON, of any length", {
   expect_identical(j[[1L]], 1)
   expect_identical(j$a, stats::setNames(list(list(2)), ""))
   expect_identical(.odjson(r"([{"": [null, {}]}])"),
-                   list(stats::setNames(list(list(NULL, list())), "")))
+                   list(stats::setNames(list(list(
+                     NULL, stats::setNames(list(), character())
+                   )), "")))
   s <- strrep("ab", 5e6)
   expect_identical(.odjson(paste0(r"({"s": ")", s, '"}'))$s, s)
   e <- strrep(r"(\n)", 1e5)
   expect_identical(nchar(.odjson(paste0('["', e, '"]'))[[1L]]), 100000L)
-  expect_identical(.odjson(r"(["\ud83d\ude00", "\\ud83d", "\ud83d x"])"),
-                   list("\U1F600", "\\ud83d", "\ufffd x"))
-  expect_identical(.odjson(r"(["\u0000"])"), list("\ufffd"))
+  expect_identical(.odjson(r"(["\ud83d\ude00", "\\ud83d"])"),
+                   list("\U1F600", "\\ud83d"))
+  # a lone half of a surrogate pair, U+0000 (no R text holds it) and bytes
+  # that are not UTF-8 are not text: refused
   bad <- c(r"({"a"})", r"({"a", 1})", r"(["a": 1])", r"({"a": "b": 1})",
            r"("a": 1)", r"(["\q"])", "[tru]", "[1e]",
-           r"({"": 1, 2})", r"(["": 1])", r"({"": "": 1})", r"("": 1)")
+           r"({"": 1, 2})", r"(["": 1])", r"({"": "": 1})", r"("": 1)",
+           r"(["\ud83d x"])", r"(["\u0000"])", "[\"\xff\"]")
   for (b in bad) expect_error(.odjson(b), info = b)
+})
+
+# a table of the bytes b, gzip'd, listed with rows rows
+odraw <- function(b, rows) {
+  d <- tempfile("od")
+  dir.create(file.path(d, "db1"), recursive = TRUE)
+  gz <- file.path(d, "db1", "t1.csv.gz")
+  con <- gzfile(gz, "wb")
+  writeBin(b, con)
+  close(con)
+  odman(d, sprintf(
+    r"({"datasets": [{"db": "db1", "table": "t1", "key": "db1/t1",
+      "rows": %s, "sha256": "%s"}]})",
+    rows, .odhash(gz, "odraw")
+  ))
+  d
+}
+
+test_that("odtab() reads the CSV it is given, row for row, names as served", {
+  # a blank line is a missing value of a one-column table
+  odrun(odone(c("v", "1", "", "3")),
+        expect_identical(odtab("db1/t1")$v, c(1L, NA, 3L)))
+  odrun(odone(c("a,a", "1,2")),
+        expect_named(odtab("db1/t1"), c("a", "a")))
+  odrun(odone(c(",x,", "1,2,3")),
+        expect_named(odtab("db1/t1"), c("", "x", "")))
+  # numbers only when held as written: underflow stays text
+  d <- odone(c("u,s,n", "1e-400,1e-320,1e-300", "1,1,2"))
+  odrun(d, {
+    x <- odtab("db1/t1")
+    expect_identical(x$u, c("1e-400", "1"))
+    expect_identical(x$s, c("1e-320", "1"))
+    expect_identical(x$n, c(1e-300, 2))
+  })
+  # quotes, a byte order mark, CRLF; bytes that are not UTF-8 as <xx>
+  b <- c(as.raw(c(0xef, 0xbb, 0xbf)),
+         charToRaw("a,b\r\n\"x,\"\"y\"\"\nz\",2\r\n"),
+         charToRaw("caf"), as.raw(0xe9), charToRaw(",3\r\n"))
+  odrun(odraw(b, 2), {
+    x <- expect_silent(odtab("db1/t1"))
+    expect_identical(x$a, c("x,\"y\"\nz", "caf<e9>"))
+    expect_identical(x$b, 2:3)
+  })
+})
+
+test_that("odtab() refuses what is not CSV, naming the line", {
+  bad <- list(
+    list(c("a,b", "1,x\"y"), "line 2 of `db1/t1` has a quote inside"),
+    list(c("a,b", "1,2", "\"3,4"), "line 3 of `db1/t1` opens a quoted"),
+    list(c("a", "\"x\"y"), "line 2 of `db1/t1` has text after the quote")
+  )
+  for (k in bad) {
+    expect_no_warning(odrun(odone(k[[1L]], rows = 1),
+                            errs("odtab", list(list(k[[2L]], "db1/t1")))))
+  }
+  odrun(odraw(c(charToRaw("a\n1"), as.raw(0), charToRaw("\n")), 1),
+        errs("odtab", list(list("line 2 of `db1/t1` holds a NUL", "db1/t1"))))
+  odrun(odraw(raw(), 0),
+        errs("odtab", list(list("`db1/t1` is empty", "db1/t1"))))
+})
+
+test_that("the manifest reader is JSON's grammar, of any depth", {
+  # every case of RFC 8259's grammar the round-2 conformance set names
+  # valid parses, every invalid one is refused
+  ok <- c("{}", "[]", "[-0]", "[1E5]", "[-1.25e-3]", r"(["\/\b\f\n\r\t"])",
+          r"({"":{"":[]}})", " \t\r\n[ 1 , 2 ]\n ", r"("str")", "1", "null",
+          r"({"a":1,"a":2})", "[1.7976931348623157e308]", "[5e-324]")
+  for (s in ok) expect_no_error(.odjson(s))
+  no <- c("[01]", "[1.]", "[.5]", "[+1]", "[1,]", "[1 2]", "{a:1}", "[NaN]",
+          "[1e]", "[3-1]", "[3 -1]", "[}", "{]", "[", "", "[\"a\tb\"]",
+          r"(["\x41"])", r"(["\u12"])", "[1]x", "{}{}", "[1]\n[2]", "﻿[1]",
+          "[1]\001", r"(["\ud800"])")
+  for (s in no) expect_error(.odjson(s), "not JSON", info = s)
+  expect_identical(.odjson("[1e400]"), list(Inf))
+  # 10000 levels inside the outermost are read, 10001 refused; nothing
+  # is evaluated
+  d <- paste0(strrep("[", 10002L), strrep("]", 10002L))
+  expect_length(.odjson(substr(d, 2L, nchar(d) - 1L)), 1L)
+  expect_error(.odjson(d), "not JSON")
+  expect_identical(.odjson(r"-(["system('x')", "`a`"])-"),
+                   list("system('x')", "`a`"))
 })

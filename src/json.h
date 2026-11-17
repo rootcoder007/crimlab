@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// JSON for clab_jrun() and the command-line program: a value, a reader
-// (strict RFC 8259, at most 64 levels deep) and a writer.
+// JSON for clab_jrun(), the command-line program and the R package's
+// manifest reader (src/bjsn.cpp): a value, a reader (strict RFC 8259) and a
+// writer. The reader is iterative, so its depth is a limit of its caller's
+// (64 for arguments, 10000 for a manifest), never of the stack; it hands
+// what it reads to a builder (ValB here, an R one in src/bjsn.cpp).
 #ifndef CLAB_JSON_H
 #define CLAB_JSON_H
 
@@ -52,10 +55,50 @@ inline const Val nul;
 class Parser {
  public:
   Parser(const char *s, std::size_t n) : p_(s), e_(s + n) {}
-  bool doc(Val &v) {
-    if (!val(v, 0)) return false;
-    ws();
-    return p_ == e_;
+  // One JSON text into v, at most 64 levels deep (arguments).
+  bool doc(Val &v);
+  // One JSON text to the builder b: open(obj), key(k), str(s), num(d),
+  // boolean(b), null() and close(), each false to stop. At most maxd
+  // levels of arrays and objects inside the outermost.
+  template <class B>
+  bool run(B &b, int maxd) {
+    std::vector<char> st;  // the closing bracket of each open container
+    for (;;) {
+      ws();
+      if (p_ == e_ || static_cast<int>(st.size()) > maxd) return false;
+      const char c = *p_;
+      if (c == '{' || c == '[') {
+        ++p_;
+        const char end = c == '{' ? '}' : ']';
+        if (!b.open(c == '{')) return false;
+        ws();
+        if (p_ < e_ && *p_ == end) {
+          ++p_;
+          if (!b.close()) return false;
+        } else {
+          st.push_back(end);
+          if (end == '}' && !key(b)) return false;
+          continue;
+        }
+      } else if (!scalar(b)) {
+        return false;
+      }
+      // after a value: a comma (and the next key) or closing brackets
+      for (;;) {
+        ws();
+        if (st.empty()) return p_ == e_;
+        if (p_ == e_) return false;
+        if (*p_ == ',') {
+          ++p_;
+          if (st.back() == '}' && !key(b)) return false;
+          break;
+        }
+        if (*p_ != st.back()) return false;
+        ++p_;
+        st.pop_back();
+        if (!b.close()) return false;
+      }
+    }
   }
 
  private:
@@ -157,57 +200,86 @@ class Parser {
     d = std::strtod(std::string(b, p_).c_str(), nullptr);
     return true;
   }
-  bool val(Val &v, int depth) {
+  template <class B>
+  bool key(B &b) {
     ws();
-    if (p_ == e_ || depth > 64) return false;
+    std::string k;
+    if (!str(k)) return false;
+    ws();
+    if (p_ == e_ || *p_ != ':') return false;
+    ++p_;
+    return b.key(std::move(k));
+  }
+  template <class B>
+  bool scalar(B &b) {
     const char c = *p_;
-    if (c == '{' || c == '[') {
-      ++p_;
-      v.t = c == '{' ? Val::OBJ : Val::ARR;
-      const char end = c == '{' ? '}' : ']';
-      ws();
-      if (p_ < e_ && *p_ == end) {
-        ++p_;
-        return true;
-      }
-      for (;;) {
-        if (v.t == Val::OBJ) {
-          ws();
-          std::string k;
-          if (!str(k)) return false;
-          ws();
-          if (p_ == e_ || *p_ != ':') return false;
-          ++p_;
-          v.k.push_back(std::move(k));
-        }
-        Val x;
-        if (!val(x, depth + 1)) return false;
-        v.a.push_back(std::move(x));
-        ws();
-        if (p_ == e_) return false;
-        if (*p_ == ',') {
-          ++p_;
-          continue;
-        }
-        if (*p_ != end) return false;
-        ++p_;
-        return true;
-      }
-    }
     if (c == '"') {
-      v.t = Val::STR;
-      return str(v.s);
+      std::string s;
+      return str(s) && b.str(std::move(s));
     }
-    if (c == 't' || c == 'f') {
-      v.t = Val::BOOL;
-      v.b = c == 't';
-      return lit(v.b ? "true" : "false");
-    }
-    if (c == 'n') return lit("null");
-    v.t = Val::NUM;
-    return num(v.n);
+    if (c == 't' || c == 'f') return lit(c == 't' ? "true" : "false") && b.boolean(c == 't');
+    if (c == 'n') return lit("null") && b.null();
+    double d;
+    return num(d) && b.num(d);
   }
 };
+
+// The builder of a Val: the open containers on a stack, each the last
+// item of the one below it (only the top one grows, so none moves).
+class ValB {
+ public:
+  explicit ValB(Val &root) : root_(root) {}
+  bool open(bool obj) {
+    Val &v = slot();
+    v.t = obj ? Val::OBJ : Val::ARR;
+    st_.push_back(&v);
+    return true;
+  }
+  bool close() {
+    st_.pop_back();
+    return true;
+  }
+  bool key(std::string k) {
+    st_.back()->k.push_back(std::move(k));
+    return true;
+  }
+  bool str(std::string s) {
+    Val &v = slot();
+    v.t = Val::STR;
+    v.s = std::move(s);
+    return true;
+  }
+  bool num(double d) {
+    Val &v = slot();
+    v.t = Val::NUM;
+    v.n = d;
+    return true;
+  }
+  bool boolean(bool b) {
+    Val &v = slot();
+    v.t = Val::BOOL;
+    v.b = b;
+    return true;
+  }
+  bool null() {
+    slot();
+    return true;
+  }
+
+ private:
+  Val &root_;
+  std::vector<Val *> st_;
+  Val &slot() {
+    if (st_.empty()) return root_;
+    st_.back()->a.emplace_back();
+    return st_.back()->a.back();
+  }
+};
+
+inline bool Parser::doc(Val &v) {
+  ValB b(v);
+  return run(b, 64);
+}
 
 inline void wstr(std::string &o, const std::string &s) {
   o += '"';
