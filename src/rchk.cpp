@@ -47,7 +47,55 @@ void fail(const char *f, ...) {
     std::vsnprintf(buf, len, f, ap);
     va_end(ap);
   }
-  Rf_errorcall(R_NilValue, "%s: %s", who, buf);
+  Rf_errorcall(R_NilValue, "%s: %s", who, u8esc(buf));
+}
+
+namespace {
+
+// The length of the valid UTF-8 sequence at s (1 to 4), 0 when the bytes
+// there are not one (a stray continuation, an overlong form, a surrogate,
+// past U+10FFFF, or cut short by the terminating 0).
+int u8seq(const unsigned char *s) {
+  const unsigned c = s[0];
+  if (c < 0x80) return 1;
+  const int n = c >= 0xC2 && c <= 0xDF ? 2 : (c & 0xF0) == 0xE0 ? 3 : c >= 0xF0 && c <= 0xF4 ? 4 : 0;
+  unsigned cp = c & (0x7F >> n);
+  for (int i = 1; i < n; ++i) {
+    if ((s[i] & 0xC0) != 0x80) return 0;
+    cp = (cp << 6) | (s[i] & 0x3F);
+  }
+  if ((n == 3 && (cp < 0x800 || (cp >= 0xD800 && cp <= 0xDFFF))) || (n == 4 && (cp < 0x10000 || cp > 0x10FFFF))) {
+    return 0;
+  }
+  return n;
+}
+
+}  // namespace
+
+const char *u8esc(const char *s) {
+  const unsigned char *u = reinterpret_cast<const unsigned char *>(s);
+  std::size_t bad = 0, len = 0;
+  while (u[len] != 0) {
+    const int k = u8seq(u + len);
+    bad += k == 0;
+    len += k == 0 ? 1 : static_cast<std::size_t>(k);
+  }
+  if (bad == 0) return s;
+  char *o = R_alloc(len + 3 * bad + 1, 1), *p = o;
+  for (std::size_t i = 0; i < len;) {
+    const int k = u8seq(u + i);
+    if (k == 0) {
+      std::snprintf(p, 5, "<%02x>", u[i]);
+      p += 4;
+      ++i;
+    } else {
+      std::memcpy(p, u + i, static_cast<std::size_t>(k));
+      p += k;
+      i += static_cast<std::size_t>(k);
+    }
+  }
+  *p = 0;
+  return o;
 }
 
 SEXP lang(const char *src) {

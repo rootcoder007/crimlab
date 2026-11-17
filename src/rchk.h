@@ -45,6 +45,10 @@ extern const char *who;
 // stop(<message>, call. = FALSE), prefixed with who. R_PRINTF_FORMAT (R's own macro) lets the
 // compiler check every format against its arguments.
 [[noreturn]] void fail(const char *fmt, ...) R_PRINTF_FORMAT(1, 2);
+// s with every byte outside a valid UTF-8 sequence written as <xx> (as
+// .ckstop() writes it), so that a message quoting the input is valid text;
+// s itself when it is valid, else R's transient memory.
+const char *u8esc(const char *s);
 // The R call in src, parsed (for conditions rebuilt on error paths).
 SEXP lang(const char *src);
 // A kernel's error code, raised with the call the old R wrapper made, src.

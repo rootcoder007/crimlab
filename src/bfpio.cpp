@@ -30,7 +30,7 @@ void ign(const char *var, SEXP v) {
   Rf_warningcall(R_NilValue,
                  "dtctloc: %s='%s' is not a location co2inttab() knows (code, alpha-3 or name); it is "
                  "ignored.",
-                 var, Rf_translateChar(STRING_ELT(v, 0)));
+                 var, clab::u8esc(Rf_translateChar(STRING_ELT(v, 0))));
 }
 
 }  // namespace

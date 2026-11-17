@@ -5,13 +5,54 @@
 .ckstop <- function(fn, fmt, ...) {
   # a value quoted from the input may be text that is not valid UTF-8,
   # on which sprintf() fails: its bytes are written as <xx> instead
-  a <- lapply(list(...), function(v) {
-    if (is.character(v) && !all(validEnc(v))) {
-      v <- iconv(v, "UTF-8", "UTF-8", sub = "byte")
-    }
-    v
-  })
+  a <- lapply(list(...), .u8)
   stop(fn, ": ", do.call(sprintf, c(list(fmt), a)), ".", call. = FALSE)
+}
+
+# Text with every byte that is not valid in its encoding written as <xx>
+# (anything that is not text as it is).
+.u8 <- function(x) {
+  if (is.character(x) && !all(validEnc(x))) {
+    x <- iconv(x, "UTF-8", "UTF-8", sub = "byte")
+  }
+  x
+}
+
+# stop(), warning() and message() of the package: base R's, with the
+# message made valid text by .u8(). A message that quotes the input may
+# hold its invalid bytes, and substr(), grepl() or nchar() on such a
+# condition message fail; defined once here, no refusal anywhere in the
+# package can carry them. A condition object passes with its message
+# made valid the same way.
+stop <- function(..., call. = TRUE, domain = NULL) {
+  cl <- sys.call(-1L)
+  base::stop(.u8cnd(list(...), simpleError, call., domain, cl))
+}
+
+warning <- function(..., call. = TRUE, domain = NULL) {
+  cl <- sys.call(-1L)
+  base::warning(.u8cnd(list(...), simpleWarning, call., domain, cl))
+}
+
+message <- function(..., domain = NULL, appendLF = TRUE) {
+  a <- list(...)
+  if (length(a) == 1L && inherits(a[[1L]], "condition")) {
+    a[[1L]][["message"]] <- .u8(conditionMessage(a[[1L]]))
+    return(base::message(a[[1L]]))
+  }
+  m <- .makeMessage(..., domain = domain, appendLF = appendLF)
+  base::message(.u8(m), appendLF = FALSE)
+}
+
+# The condition stop() or warning() signals: the one given, or one built
+# by mk from the arguments, with the call when call. is TRUE.
+.u8cnd <- function(a, mk, call., domain, cl) {
+  if (length(a) == 1L && inherits(a[[1L]], "condition")) {
+    a[[1L]][["message"]] <- .u8(conditionMessage(a[[1L]]))
+    return(a[[1L]])
+  }
+  m <- do.call(.makeMessage, c(a, list(domain = domain)))
+  mk(.u8(m), if (call.) cl)
 }
 
 # A numeric argument as a double vector (dimensions kept): numbers only,

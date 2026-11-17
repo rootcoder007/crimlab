@@ -66,7 +66,7 @@ struct Safe<F> {
     }
     const bool hit = clab_intrd(1) != 0 || stop;
     if (hit) Rf_onintr();  // returns only while R holds interrupts back
-    if (bad != nullptr) Rf_errorcall(R_NilValue, "%s: %s", clab::who, bad);
+    if (bad != nullptr) Rf_errorcall(R_NilValue, "%s: %s", clab::who, clab::u8esc(bad));
     return hit ? R_NilValue : r;
   }
 };

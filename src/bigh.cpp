@@ -219,7 +219,7 @@ SEXP C_clab_r_igh(SEXP fn, SEXP args) {
   }
   if (code != CLAB_OK) clab::fail("%s", msg);
   for (R_xlen_t j = 0; j < XLENGTH(wv); ++j) {
-    Rf_warningcall(R_NilValue, "%s", Rf_translateCharUTF8(STRING_ELT(wv, j)));
+    Rf_warningcall(R_NilValue, "%s", clab::u8esc(Rf_translateCharUTF8(STRING_ELT(wv, j))));
   }
   UNPROTECT(2);
   return res;

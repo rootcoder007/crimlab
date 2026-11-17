@@ -44,6 +44,11 @@
   including what a first-to-last column means once a year is added).
   `proof()` lists them.
 
+* Messages quote invalid UTF-8 bytes of the input as `<xx>`, in every
+  refusal and warning of the package and of its C++ binding: `dspbm()`,
+  `clprep()` and about twenty others carried the bytes themselves, and
+  `substr()` or `grepl()` on such a message failed.
+
 * `bayout()` gives R's `qnbinom()` bound for every reference sum, in R,
   the command line and Python. For sums near 4,800 (a week of about 800)
   the probability of 0 was a subnormal number: the bound came out too low

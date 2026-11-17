@@ -73,3 +73,33 @@ test_that(".clas() renames a message that quotes invalid text", {
                 error = conditionMessage)
   expect_identical(rawToChar(charToRaw(e)[1:8]), "xfrvrf: ")
 })
+
+test_that("a condition quoting invalid text carries it as <xx>", {
+  bad <- rawToChar(as.raw(c(0xff, 0xfe)))
+  ok <- function(e) validEnc(conditionMessage(e))
+  # refusals made in R and in the C++ binding
+  expect_identical(tryCatch(clprep(preset = bad), error = ok), TRUE)
+  expect_identical(tryCatch(dastd(c(5, 3), c(100, 100), c("a", "b"),
+                                  ref = bad), error = ok), TRUE)
+  # the package's stop(), warning() and message(), and conditions given
+  expect_identical(tryCatch(stop("x ", bad), error = ok), TRUE)
+  expect_identical(tryCatch(stop(simpleError(bad)), error = ok), TRUE)
+  expect_identical(tryCatch(warning("x ", bad), warning = ok), TRUE)
+  expect_identical(tryCatch(warning(simpleWarning(bad)), warning = ok), TRUE)
+  expect_identical(tryCatch(message("x ", bad), message = ok), TRUE)
+  expect_identical(tryCatch(message(simpleMessage(bad)), message = ok), TRUE)
+  skip_if_not(isTRUE(l10n_info()[["UTF-8"]]))
+  expect_identical(tryCatch(stop("x ", bad), error = conditionMessage),
+                   "x <ff><fe>")
+})
+
+test_that("the package's stop() and warning() keep the call as base R's", {
+  f <- function() stop("a")
+  expect_identical(conditionCall(tryCatch(f(), error = identity)), quote(f()))
+  g <- function() stop("a", call. = FALSE)
+  expect_null(conditionCall(tryCatch(g(), error = identity)))
+  h <- function() warning("w")
+  expect_identical(conditionCall(tryCatch(h(), warning = identity)),
+                   quote(h()))
+  expect_identical(tryCatch(message("m"), message = conditionMessage), "m\n")
+})
