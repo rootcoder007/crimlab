@@ -271,7 +271,7 @@ odls <- function(
   con <- tryCatch(gzfile(path, "rb"), error = function(e) {
     .ckstop(fn, "`%s` could not be read: %s", key, conditionMessage(e))
   })
-  on.exit(close(con))
+  on.exit(close(con), add = TRUE)
   b <- list()
   repeat {
     x <- readBin(con, "raw", 16777216L)

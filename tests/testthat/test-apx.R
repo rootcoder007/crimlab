@@ -1517,7 +1517,8 @@ test_that("groups, directions and draws of the wrong kind are refused", {
 })
 
 test_that("data with repeated names, a level as a matrix, list names", {
-  expect_error(.axdat(data.frame(a = 1, a = 2, check.names = FALSE), "f"),
+  two <- stats::setNames(data.frame(1, 2), c("a", "a"))
+  expect_error(.axdat(two, "f"),
                "^f: `data` has two columns named a")
   expect_null(dim(.axlevel(matrix(0.9), "f")))
   expect_error(.axcolsj(data.frame(y = 1), list(list("y")), "y", "f", 1L),

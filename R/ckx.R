@@ -38,7 +38,7 @@ warning <- function(..., call. = TRUE, immediate. = FALSE, noBreaks. = FALSE,
   # wraps that line, and is taken for the same arguments)
   if (isTRUE(immediate.) && getOption("warn") < 1L) {
     op <- options(warn = 1L)
-    on.exit(options(op))
+    on.exit(options(op), add = TRUE)
   }
   base::warning(cnd)
 }

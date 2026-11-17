@@ -112,12 +112,12 @@ bool xpimp(Ctx &c, Val &out) {
   const int k = static_cast<int>(rv[0]);
   const double rows = static_cast<double>(n) * p * k;
   CK(xp::big(c, rows, p, "nrep"));
-  std::vector<double> des(xp::sz(rows) * xp::sz(p));
+  std::vector<double> dsg(xp::sz(rows) * xp::sz(p));
   std::vector<int> perm(xp::sz(rows));
-  CK(kchk(c, clab_xpperm(x.data(), n, p, k, static_cast<unsigned int>(std::fmod(sd[0], 4294967296.0)), des.data(),
+  CK(kchk(c, clab_xpperm(x.data(), n, p, k, static_cast<unsigned int>(std::fmod(sd[0], 4294967296.0)), dsg.data(),
                          perm.data())));
   std::vector<double> v;
-  CK(xp::pred(c, xp::rbind(x, n, des, static_cast<int>(rows), p), n + static_cast<int>(rows), p, v));
+  CK(xp::pred(c, xp::rbind(x, n, dsg, static_cast<int>(rows), p), n + static_cast<int>(rows), p, v));
   std::vector<double> rep(xp::sz(p) * xp::sz(k)), st(1 + 2 * xp::sz(p));
   const int rc = clab_xpimp(yv.p(), v.data(), v.data() + n, n, p, k, lo, rt ? 1 : 0, rep.data(), st.data());
   if (rc == CLAB_EDOM) return ckstop(c, "`ratio` needs a loss above 0 before permuting");
@@ -195,9 +195,9 @@ bool xppdp(Ctx &c, Val &out) {
   CK(xp::grid(c, x, n, j, g));
   const int ng = static_cast<int>(g.size());
   CK(xp::big(c, static_cast<double>(n) * ng, p, "grid"));
-  std::vector<double> des(xp::sz(n) * xp::sz(ng) * xp::sz(p)), v, pd(xp::sz(ng));
-  CK(kchk(c, clab_xpcpd(x.data(), n, p, j, g.data(), ng, des.data())));
-  CK(xp::pred(c, des, n * ng, p, v));
+  std::vector<double> dsg(xp::sz(n) * xp::sz(ng) * xp::sz(p)), v, pd(xp::sz(ng));
+  CK(kchk(c, clab_xpcpd(x.data(), n, p, j, g.data(), ng, dsg.data())));
+  CK(xp::pred(c, dsg, n * ng, p, v));
   CK(kchk(c, clab_xppd(v.data(), n, ng, pd.data())));
   Frame f;
   f.num("grid", g);
@@ -248,9 +248,9 @@ bool xpcp(Ctx &c, Val &out) {
   CK(xp::grid(c, x, n, j, g));
   const int ng = static_cast<int>(g.size());
   CK(xp::big(c, static_cast<double>(ns) * (ng + 1), p, "grid"));
-  std::vector<double> des(xp::sz(ns) * xp::sz(ng) * xp::sz(p)), v;
-  CK(kchk(c, clab_xpcpd(s.data(), ns, p, j, g.data(), ng, des.data())));
-  CK(xp::pred(c, xp::rbind(des, ns * ng, s, ns, p), ns * (ng + 1), p, v));
+  std::vector<double> dsg(xp::sz(ns) * xp::sz(ng) * xp::sz(p)), v;
+  CK(kchk(c, clab_xpcpd(s.data(), ns, p, j, g.data(), ng, dsg.data())));
+  CK(xp::pred(c, xp::rbind(dsg, ns * ng, s, ns, p), ns * (ng + 1), p, v));
   std::vector<double> pr(v.begin() + static_cast<std::ptrdiff_t>(ns * ng), v.end());
   out = vobj();
   put(out, "prof", vmat(v.data(), ns, ng));
@@ -271,14 +271,14 @@ bool xpale(Ctx &c, Val &out) {
   if (kb[0] > 67108864.0) return ckstop(c, "`nbin` must be at most 67108864");
   CK(xp::big(c, 2.0 * n, p, "x"));
   const int K = static_cast<int>(kb[0]);
-  std::vector<double> z(xp::sz(K) + 1), des(2 * xp::sz(n) * xp::sz(p)), v;
+  std::vector<double> z(xp::sz(K) + 1), dsg(2 * xp::sz(n) * xp::sz(p)), v;
   std::vector<int> bin(xp::sz(n));
   int nz = 0;
-  const int rc = clab_xpaled(x.data(), n, p, j, K, z.data(), &nz, bin.data(), des.data());
+  const int rc = clab_xpaled(x.data(), n, p, j, K, z.data(), &nz, bin.data(), dsg.data());
   if (rc == CLAB_EDOM) return ckstop(c, "`v` names a column with one value: it has no local effects");
   CK(kchk(c, rc));
   z.resize(xp::sz(nz));
-  CK(xp::pred(c, des, 2 * n, p, v));
+  CK(xp::pred(c, dsg, 2 * n, p, v));
   const int nb = nz - 1;
   std::vector<double> eff(xp::sz(nb)), cnt(xp::sz(nb)), ale(xp::sz(nz));
   CK(kchk(c, clab_xpale(v.data(), n, bin.data(), nb, eff.data(), cnt.data(), ale.data())));
@@ -308,10 +308,10 @@ bool xpshap(Ctx &c, Val &out) {
   const double rows = 2.0 * ns * p * mv[0];
   CK(xp::big(c, rows + ns + n, p, "nsamp"));
   const int m = static_cast<int>(mv[0]), q = static_cast<int>(rows);
-  std::vector<double> des(xp::sz(rows) * xp::sz(p)), v;
+  std::vector<double> dsg(xp::sz(rows) * xp::sz(p)), v;
   CK(kchk(c, clab_xpshd(x.data(), n, s.data(), ns, p, m, static_cast<unsigned int>(std::fmod(sd[0], 4294967296.0)),
-                        des.data())));
-  CK(xp::pred(c, xp::rbind(xp::rbind(des, q, s, ns, p), q + ns, x, n, p), q + ns + n, p, v));
+                        dsg.data())));
+  CK(xp::pred(c, xp::rbind(xp::rbind(dsg, q, s, ns, p), q + ns, x, n, p), q + ns + n, p, v));
   std::vector<double> phi(xp::sz(ns) * xp::sz(p)), se(phi.size());
   CK(kchk(c, clab_xpsh(v.data(), ns, p, m, phi.data(), se.data())));
   double b = 0;
