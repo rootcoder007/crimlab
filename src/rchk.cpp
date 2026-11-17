@@ -14,6 +14,7 @@
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "crimlab.h"
@@ -317,15 +318,24 @@ void unlab(SEXP x, const char *nm) {
   // text (or a factor's labels) whose bytes are not UTF-8, refused as the
   // command line refuses it (cli/jrun.cpp) and R's .cktxt() in a UTF-8
   // locale; text marked latin1 or bytes is what its mark says, and text in
-  // the session's own encoding is read in it (R translates it): Latin-1
-  // text in a Latin-1 locale is valid text
+  // the session's own encoding is read in it: Latin-1 text in a Latin-1
+  // locale is valid text
   SEXP s = Rf_isFactor(x) ? Rf_getAttrib(x, R_LevelsSymbol) : x;
   if (TYPEOF(s) != STRSXP) return;
   for (R_xlen_t i = 0; i < XLENGTH(s); ++i) {
     SEXP c = STRING_ELT(s, i);
     if (c == NA_STRING || Rf_getCharCE(c) == CE_LATIN1 || Rf_getCharCE(c) == CE_BYTES) continue;
-    const char *t = Rf_getCharCE(c) == CE_UTF8 ? CHAR(c) : Rf_translateCharUTF8(c);
-    if (!u8ok(t, std::strlen(t))) {
+    const char *t = CHAR(c);
+    if (u8ok(t, static_cast<std::size_t>(LENGTH(c)))) continue;
+    // bytes that are not UTF-8: text of the session's own encoding where
+    // that is another one (the C library then reads them as characters),
+    // and no text at all in a UTF-8 session. R's own translation is not
+    // asked: before 4.2 it writes bytes it cannot read as <ff>, which
+    // made them valid
+    if (Rf_getCharCE(c) == CE_NATIVE && std::mbstowcs(nullptr, t, 0) != static_cast<std::size_t>(-1)) {
+      continue;
+    }
+    {
       fail("`%s` holds text that is not valid UTF-8.", nm);
     }
   }
