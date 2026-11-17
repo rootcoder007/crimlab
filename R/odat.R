@@ -6,11 +6,12 @@
 
 #' Tables of the open data service
 #'
-#' `odtab()` loads a table of the project's open data service by its key,
-#' as the service serves it at the time of the call. Everything about a
-#' table (its address, rows, columns and SHA-256) is read from the
-#' service's manifest at run time, so a table that its publisher has
-#' replaced is loaded as it is now, with no new release of crimlab.
+#' `odls()` lists the tables of the project's open data service and
+#' `odtab()` loads one by its key, as the service serves it at the time of
+#' the call. Everything about a table (its address, rows, columns and
+#' SHA-256) is read from the service's manifest at run time, so a table
+#' that its publisher has replaced is loaded as it is now, with no new
+#' release of crimlab.
 #'
 #' A downloaded file is used only when its SHA-256 is the one the
 #' manifest lists. When it is not, the manifest is read once more (the
@@ -35,7 +36,7 @@
 #' for the manifest, 600 for a table, or `getOption("timeout")` if
 #' longer).
 #'
-#' @param key A table's key, as the service's manifest lists it.
+#' @param key A table's key, as `odls()` lists it.
 #' @param cols The names of the columns to keep, or `NULL` (all).
 #' @param refresh `TRUE` downloads the table again even when the cache
 #'   holds a copy that matches.
@@ -43,7 +44,18 @@
 #'   holding `manifest.json` and `<db>/<table>.csv.gz`, which may be a
 #'   `file://` address). The default is `getOption("crimlab.data")`, or
 #'   the project's service when that is not set.
-#' @return The table as a data frame.
+#' @return `odls()` a data frame with a row per table: `key`, `rows`,
+#'   `bytes` (of the gzip file), `sha256` (`NA` for a table that cannot be
+#'   checked) and `columns`, a list of the column names. `odtab()` the
+#'   table as a data frame.
+#' @examples
+#' \dontrun{
+#' # needs the internet
+#' tabs <- odls()
+#' head(tabs[, c("key", "rows")])
+#' x <- odtab(tabs$key[!is.na(tabs$sha256)][1L])
+#' str(x)
+#' }
 #' @export
 odtab <- function(
   key,
@@ -53,7 +65,7 @@ odtab <- function(
 ) {
   fn <- "odtab"
   if (!is.character(key) || length(key) != 1L || is.na(key)) {
-    .ckstop(fn, "`key` must be a single table key")
+    .ckstop(fn, "`key` must be a single table key, as odls() lists them")
   }
   refresh <- .ckflag(refresh, "refresh", fn)
   base <- .odbase(base, fn)
@@ -73,6 +85,25 @@ odtab <- function(
     .odfetch(d, want, base, dir, path, fn)
   }
   .odread(path, cols, key, fn)
+}
+
+#' @rdname odtab
+#' @export
+odls <- function(
+  base = getOption("crimlab.data", "https://data.rmorie.com")
+) {
+  fn <- "odls"
+  base <- .odbase(base, fn)
+  ds <- Filter(is.list, .odman(base, fn)[["datasets"]])
+  out <- data.frame(
+    key = .odfld(ds, "key", NA_character_),
+    rows = .odfld(ds, "rows", NA_real_),
+    bytes = .odfld(ds, "bytes_gz", NA_real_),
+    sha256 = vapply(ds, .odsha, ""),
+    stringsAsFactors = FALSE
+  )
+  out$columns <- lapply(ds, function(d) as.character(unlist(d[["columns"]])))
+  out
 }
 
 # The service's address: one http(s):// or file:// address, without the
@@ -120,7 +151,7 @@ odtab <- function(
       return(d)
     }
   }
-  .ckstop(fn, "`%s` is not a table of %s", key, base)
+  .ckstop(fn, "`%s` is not a table of %s: odls() lists them", key, base)
 }
 
 # The entry's SHA-256 in lower case, or NA when it lists none.
@@ -131,6 +162,17 @@ odtab <- function(
   }
   s <- sub("^sha256:", "", tolower(s))
   if (grepl("^[0-9a-f]{64}$", s)) s else NA_character_
+}
+
+# One field of every entry, NA where it is missing or not a single value.
+.odfld <- function(ds, f, na) {
+  vapply(ds, function(d) {
+    v <- d[[f]]
+    if (length(v) != 1L || is.list(v)) {
+      return(na)
+    }
+    suppressWarnings(as.vector(v, typeof(na)))
+  }, na)
 }
 
 # The SHA-256 of a file, in lower-case hex.

@@ -87,3 +87,25 @@ test_that("the manifest reader takes JSON and nothing else", {
   bad <- c(r"({"a": system("x")})", "[e]", "[1] [2]", "[1,", "", r"(["\x"])")
   for (b in bad) expect_error(.odjson(b), info = b)
 })
+
+test_that("odls() lists the manifest's tables", {
+  d <- odfix()
+  gz <- file.path(d, "db1", "t1.csv.gz")
+  odrun(d, {
+    l <- odls()
+    expect_identical(names(l), c("key", "rows", "bytes", "sha256", "columns"))
+    expect_identical(l$key, c("db1/t1", "db1/t2"))
+    expect_identical(l$rows, c(2, 1))
+    expect_identical(l$bytes, c(file.size(gz), NA))
+    expect_identical(l$sha256, c(.odhash(gz, "odls"), NA))
+    expect_identical(
+      l$columns,
+      list(c("Case_ID", "offence type", "year"), character(0))
+    )
+    errs("odls", list(
+      list("`base` must be one", base = NA),
+      list("manifest could not be downloaded",
+           base = odurl(file.path(d, "none")))
+    ))
+  })
+})

@@ -1,5 +1,5 @@
 # The exported spatial (spf) and specialist (dsx) functions, whose shapes
-# test-sp.R and test-spec.R check, and the open data function (odx), which
+# test-sp.R and test-spec.R check, and the open data functions (odx), which
 # test-odat.R checks on a copy of the service; spx is all of them, left out
 # of the shape test of test-crimlab.R.
 spf <- c("hvdist", "eqproj", "eqinv", "cgstat", "cgmedn", "webpt", "sdell",
@@ -11,5 +11,5 @@ dsx <- c("fair", "tlvc", "tlvlr", "aorwt", "bdig", "bnft", "skp", "rptc",
          "chmb", "gstr", "sptst")
 spw <- c("spwt", "gearc", "gorg", "lmorn", "locgi", "dirmn")
 sp3x <- c("hdbang", "crwalk", "rnnhcl")
-odx <- "odtab"
+odx <- c("odtab", "odls")
 spx <- c(spf, dsx, spw, sp3x, odx)

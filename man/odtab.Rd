@@ -2,6 +2,7 @@
 % Please edit documentation in R/odat.R
 \name{odtab}
 \alias{odtab}
+\alias{odls}
 \title{Tables of the open data service}
 \usage{
 odtab(
@@ -10,9 +11,11 @@ odtab(
   refresh = FALSE,
   base = getOption("crimlab.data", "https://data.rmorie.com")
 )
+
+odls(base = getOption("crimlab.data", "https://data.rmorie.com"))
 }
 \arguments{
-\item{key}{A table's key, as the service's manifest lists it.}
+\item{key}{A table's key, as \code{odls()} lists it.}
 
 \item{cols}{The names of the columns to keep, or \code{NULL} (all).}
 
@@ -25,14 +28,18 @@ holding \code{manifest.json} and \verb{<db>/<table>.csv.gz}, which may be a
 the project's service when that is not set.}
 }
 \value{
-The table as a data frame.
+\code{odls()} a data frame with a row per table: \code{key}, \code{rows},
+\code{bytes} (of the gzip file), \code{sha256} (\code{NA} for a table that cannot be
+checked) and \code{columns}, a list of the column names. \code{odtab()} the
+table as a data frame.
 }
 \description{
-\code{odtab()} loads a table of the project's open data service by its key,
-as the service serves it at the time of the call. Everything about a
-table (its address, rows, columns and SHA-256) is read from the
-service's manifest at run time, so a table that its publisher has
-replaced is loaded as it is now, with no new release of crimlab.
+\code{odls()} lists the tables of the project's open data service and
+\code{odtab()} loads one by its key, as the service serves it at the time of
+the call. Everything about a table (its address, rows, columns and
+SHA-256) is read from the service's manifest at run time, so a table
+that its publisher has replaced is loaded as it is now, with no new
+release of crimlab.
 }
 \details{
 A downloaded file is used only when its SHA-256 is the one the
@@ -57,4 +64,13 @@ have, or a name that matches more than one; a service that cannot be
 reached, answers with an error or does not answer in time (60 seconds
 for the manifest, 600 for a table, or \code{getOption("timeout")} if
 longer).
+}
+\examples{
+\dontrun{
+# needs the internet
+tabs <- odls()
+head(tabs[, c("key", "rows")])
+x <- odtab(tabs$key[!is.na(tabs$sha256)][1L])
+str(x)
+}
 }
