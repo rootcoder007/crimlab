@@ -137,3 +137,16 @@ test_that("a flag that is neither yes nor no drops its record everywhere", {
   expect_identical(f$n, c(1L, 1L))
   expect_identical(f$ac, c(1L, 1L))
 })
+
+test_that("every default address of a service is the one of odtab()", {
+  ns <- asNamespace("crimlab")
+  d <- unlist(lapply(ls(ns), function(f) {
+    v <- get(f, ns)
+    if (is.function(v)) {
+      vapply(Filter(is.call, as.list(formals(v))), deparse1, "")
+    }
+  }))
+  expect_identical(unique(d[grepl("://", d, fixed = TRUE)]),
+                   deparse1(formals(odtab)$base))
+  expect_identical(formals(otpyr)$base, formals(odtab)$base)
+})
