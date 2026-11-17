@@ -126,3 +126,55 @@ test_that("cntmix() takes weights and a matrix, and says when theta runs off", {
   expect_true(all(is.na(fs$coef[c("se", "z", "p", "lo", "hi")])))
   expect_identical(fs$coef$est, fp$coef$est)
 })
+
+test_that("cntmix() reports an aliased column as NA, with the reason", {
+  set.seed(5)
+  n <- 200
+  g <- sample(10, n, TRUE)
+  x <- rnorm(n)
+  y <- rpois(n, exp(0.2 + 0.3 * x + rnorm(10, 0, 0.5)[g]))
+  f <- cntmix(y, data.frame(x, k = 5, x2 = 2 * x), g, fam = "poisson")
+  a <- cntmix(y, data.frame(x), g, fam = "poisson")
+  expect_identical(f$coef$term, c("(Intercept)", "x", "k", "x2"))
+  expect_identical(anyNA(f$coef[1:2, ]), FALSE)
+  expect_identical(all(is.na(f$coef[3:4, -1])), TRUE)
+  expect_equal(f$coef[1:2, ], a$coef, tolerance = 1e-6)
+  expect_identical(f$notes, paste("k, x2: aliased with the other columns",
+                                  "(constant, or collinear), dropped"))
+  expect_identical(a$notes, character(0))
+  expect_output(print(f), "note: k, x2: aliased")
+  errs("cntmix", list(
+    list("`level` must be one number strictly between 0 and 1", y,
+         data.frame(x), g, level = 1),
+    list("`level` must be one number strictly between 0 and 1", y,
+         data.frame(x), g, level = 0)
+  ))
+})
+
+test_that("cntmix() says when a 0/1 column separates the counts", {
+  set.seed(6)
+  n <- 200
+  g <- sample(8, n, TRUE)
+  d <- rbinom(n, 1, 0.3)
+  f <- cntmix(rpois(n, 2) * (1 - d), data.frame(d), g, fam = "poisson")
+  expect_identical(is.na(f$coef$se), c(FALSE, TRUE))
+  expect_identical(f$notes,
+                   "d: every count where it is 1 is 0, so its rate ratio is 0")
+  f <- cntmix(rpois(n, 2) * d, data.frame(d), g, fam = "poisson")
+  expect_identical(is.na(f$coef$est), c(TRUE, TRUE))
+  expect_match(f$notes, "where it is 0 is 0, so its rate ratio is infinite")
+})
+
+test_that("a variance from the Hessian that is not positive is NA", {
+  X <- cbind("(Intercept)" = 1, a = c(0, 1, 0, 1))
+  e <- list(keep = 1:2, na = character(0), notes = NULL)
+  fit <- list(par = c(0.1, 0.2, 0), hess = diag(c(1, -1, 1)), ll = -1,
+              conv = 0, fam = "poisson", nb = FALSE)
+  o <- .cmout(fit, X, e, rep(1, 4), c(1, 1, 2, 2), 0.95)
+  expect_identical(is.na(o$coef$se), c(FALSE, TRUE))
+  expect_identical(o$notes, paste("a: the Hessian gives no positive",
+                                  "variance, so no standard error"))
+  fit$hess <- matrix(0, 3, 3)
+  o <- .cmout(fit, X, e, rep(1, 4), c(1, 1, 2, 2), 0.95)
+  expect_identical(is.na(o$coef$se), c(TRUE, TRUE))
+})

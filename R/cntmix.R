@@ -26,6 +26,15 @@
 #' one row each, are refused: the variance of the intercepts is then not
 #' identified.
 #'
+#' A coefficient that cannot be estimated is `NA` with its standard error,
+#' test and interval, and `notes` says why, never a standard error of 0:
+#' a column aliased with the others (a constant, or a combination of other
+#' columns, found by the QR decomposition of the design before the fit,
+#' which drops it as [stats::lm()] does); a 0/1 column all of whose counts
+#' on one side are 0 (separation: its rate ratio is 0 or infinite, and so
+#' is the intercept's when the zeros are where the column is 0); and an
+#' estimate whose variance from the Hessian is not a positive number.
+#'
 #' @param y The counts: whole numbers from 0.
 #' @param x The covariates: a data frame (factors and text enter as
 #'   indicators of each level but the first) or a numeric matrix, one row
@@ -36,10 +45,12 @@
 #' @param w `NULL` or a weight from 0 for each count.
 #' @inheritParams cntreg
 #' @return An object of class `cntmix`, a list: `coef`, a data frame
-#'   (`term`, `est`, `se`, `z`, `p`, `irr`, `lo`, `hi`); `sigma`, the
-#'   standard deviation of the intercepts; `theta` (`NA` for Poisson);
-#'   `loglik`, `aic`; `fam`, the family reported; `n`, `ngrp`; `conv`, the
-#'   optimiser's code (0 when it converged); `level`.
+#'   (`term`, `est`, `se`, `z`, `p`, `irr`, `lo`, `hi`; `NA` for a term
+#'   that cannot be estimated); `sigma`, the standard deviation of the
+#'   intercepts; `theta` (`NA` for Poisson); `loglik`, `aic`; `fam`, the
+#'   family reported; `n`, `ngrp`; `conv`, the optimiser's code (0 when it
+#'   converged); `level`; `notes`, why a term has no estimate (empty when
+#'   every term has one).
 #' @references Breslow, N. E. and Clayton, D. G. (1993). Approximate
 #'   inference in generalized linear mixed models. *Journal of the
 #'   American Statistical Association*, 88(421), 9-25.
@@ -74,7 +85,7 @@ cntmix <- function(
   } else {
     .cknum(w, "w", fn, scalar = FALSE, min = 0)
   }
-  level <- .cknum(level, "level", fn, min = 0, max = 1)
+  level <- .xpopen(level, "level", fn)
   g <- .cmgrp(grp, length(y), fn)
   if (length(w) != length(y)) {
     .ckstop(fn, "`w` must have one value per count")
@@ -82,18 +93,20 @@ cntmix <- function(
   if (all(y == 0)) {
     .ckstop(fn, "`y` is 0 throughout: there is no rate to model")
   }
-  b0 <- stats::glm.fit(X, y, w, family = stats::poisson())$coefficients
+  e <- .cmest(X, y, w)
+  Xk <- X[, e$keep, drop = FALSE]
+  b0 <- stats::glm.fit(Xk, y, w, family = stats::poisson())$coefficients
   b0[is.na(b0)] <- 0
-  fit <- .cmfit(y, X, g, w, fam, b0)
+  fit <- .cmfit(y, Xk, g, w, fam, b0)
   if (fam == "nb" && exp(fit$par[length(fit$par)]) > 1e6) {
     th <- exp(fit$par[length(fit$par)])
-    fit <- .cmfit(y, X, g, w, "poisson", fit$par[seq_len(ncol(X))])
+    fit <- .cmfit(y, Xk, g, w, "poisson", fit$par[seq_len(ncol(Xk))])
     fit$fam <- sprintf(
       "poisson (negative binomial theta %.3g: the Poisson limit)",
       th
     )
   }
-  .cmout(fit, X, y, g, level)
+  .cmout(fit, X, e, y, g, level)
 }
 
 #' @export
@@ -115,6 +128,9 @@ print.cntmix <- function(x, ...) {
     sep = ""
   )
   print(x$coef, row.names = FALSE, digits = 4)
+  if (length(x$notes)) {
+    cat(paste0("note: ", x$notes, "\n"), sep = "")
+  }
   invisible(x)
 }
 
@@ -220,14 +236,55 @@ print.cntmix <- function(x, ...) {
   )
 }
 
-# The result object.
-.cmout <- function(fit, X, y, g, level) {
-  p <- ncol(X)
-  v <- tryCatch(solve(fit$hess), error = function(e) {
+# The columns of the design that can be estimated (e$keep, by the QR
+# decomposition with lm()'s tolerance) and the terms that have no finite
+# estimate (e$na: those aliased, and those a 0/1 column separates), with
+# a note on each (e$notes). Rows of weight 0 tell nothing.
+.cmest <- function(X, y, w) {
+  q <- qr(X)
+  keep <- sort(q$pivot[seq_len(q$rank)])
+  na <- colnames(X)[-keep]
+  notes <- if (length(na)) {
+    sprintf(
+      "%s: aliased with the other columns (constant, or collinear), dropped",
+      toString(na)
+    )
+  }
+  on <- w > 0
+  for (j in keep[colnames(X)[keep] != "(Intercept)"]) {
+    v <- X[on, j]
+    if (!all(v %in% c(0, 1)) || all(v == v[1L])) next
+    z <- c(all(y[on][v == 0] == 0), all(y[on][v == 1] == 0))
+    if (any(z)) {
+      na <- c(na, colnames(X)[j], if (z[1L]) "(Intercept)")
+      notes <- c(notes, sprintf(
+        "%s: every count where it is %d is 0, so its rate ratio is %s",
+        colnames(X)[j], if (z[1L]) 0L else 1L,
+        if (z[1L]) "infinite" else "0"
+      ))
+    }
+  }
+  list(keep = keep, na = unique(na), notes = notes)
+}
+
+# The result object: the coefficients of the columns e$keep from the fit,
+# NA for the terms e$na and for a variance that is not a positive number.
+.cmout <- function(fit, X, e, y, g, level) {
+  p <- length(e$keep)
+  v <- tryCatch(solve(fit$hess), error = function(err) {
     matrix(NA_real_, nrow(fit$hess), ncol(fit$hess))
   })
-  se <- sqrt(pmax(diag(v)[seq_len(p)], 0))
-  est <- fit$par[seq_len(p)]
+  d <- diag(v)[seq_len(p)]
+  est <- se <- rep(NA_real_, ncol(X))
+  est[e$keep] <- fit$par[seq_len(p)]
+  se[e$keep[is.finite(d) & d > 0]] <- sqrt(d[is.finite(d) & d > 0])
+  bad <- colnames(X) %in% e$na
+  est[bad] <- se[bad] <- NA_real_
+  hs <- colnames(X)[!bad & is.na(se)]
+  notes <- c(e$notes, if (length(hs)) {
+    sprintf("%s: the Hessian gives no positive variance, so no standard error",
+            toString(hs))
+  })
   z <- stats::qnorm(1 - (1 - level) / 2)
   cf <- data.frame(
     term = colnames(X),
@@ -251,7 +308,8 @@ print.cntmix <- function(x, ...) {
       n = length(y),
       ngrp = max(g),
       conv = fit$conv,
-      level = level
+      level = level,
+      notes = as.character(notes)
     ),
     class = "cntmix"
   )

@@ -25,10 +25,12 @@ between 0 and 1.}
 }
 \value{
 An object of class \code{cntmix}, a list: \code{coef}, a data frame
-(\code{term}, \code{est}, \code{se}, \code{z}, \code{p}, \code{irr}, \code{lo}, \code{hi}); \code{sigma}, the
-standard deviation of the intercepts; \code{theta} (\code{NA} for Poisson);
-\code{loglik}, \code{aic}; \code{fam}, the family reported; \code{n}, \code{ngrp}; \code{conv}, the
-optimiser's code (0 when it converged); \code{level}.
+(\code{term}, \code{est}, \code{se}, \code{z}, \code{p}, \code{irr}, \code{lo}, \code{hi}; \code{NA} for a term
+that cannot be estimated); \code{sigma}, the standard deviation of the
+intercepts; \code{theta} (\code{NA} for Poisson); \code{loglik}, \code{aic}; \code{fam}, the
+family reported; \code{n}, \code{ngrp}; \code{conv}, the optimiser's code (0 when it
+converged); \code{level}; \code{notes}, why a term has no estimate (empty when
+every term has one).
 }
 \description{
 Fits the log-linear model of a count with a normal random intercept
@@ -56,6 +58,15 @@ singular; the Poisson model is then reported, as it is the limit, with
 \code{theta} noted (\code{fam} says which). Fewer than two clusters, or clusters of
 one row each, are refused: the variance of the intercepts is then not
 identified.
+
+A coefficient that cannot be estimated is \code{NA} with its standard error,
+test and interval, and \code{notes} says why, never a standard error of 0:
+a column aliased with the others (a constant, or a combination of other
+columns, found by the QR decomposition of the design before the fit,
+which drops it as \code{\link[stats:lm]{stats::lm()}} does); a 0/1 column all of whose counts
+on one side are 0 (separation: its rate ratio is 0 or infinite, and so
+is the intercept's when the zeros are where the column is 0); and an
+estimate whose variance from the Hessian is not a positive number.
 }
 \examples{
 set.seed(2)
