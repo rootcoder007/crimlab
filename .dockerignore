@@ -3,6 +3,7 @@
 *
 !src/
 !cli/
+!inst/presets/
 !DESCRIPTION
 !LICENSE
 !NOTICE

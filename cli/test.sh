@@ -20,6 +20,10 @@ n=0
 bad=0
 ck() { # name, got, want, function
   n=$((n + 1))
+  # the same text is the same result; the comparison below is for numbers
+  # that differ in their last digits (and an awk that reads Inf or NaN in
+  # a label as a number would call equal texts different)
+  [ "$2" = "$3" ] && return 0
   tl=$(awk -F '\t' -v f="${4-}" '$1 == f { print $2, $3 }' "$here/tol.tsv")
   if ! awk -v a="$2" -v b="$3" -v rel="${tl% *}" -v abs="${tl#* }" 'BEGIN {
       if (rel == "") { rel = 1e-12; abs = 0 }
@@ -118,7 +122,7 @@ pyi="$here/../py/crimlab/__init__.py"
 if [ -f "$pyi" ]; then
   n=$((n + 1))
   miss=$(sed -n '/^__all__ = \[/,/^]/p' "$pyi" | grep -o '"[a-z][a-z0-9]*"' | tr -d '"' |
-    while read -r f; do "$c" -l | grep -q "^$f\( \|$\)" || printf '%s ' "$f"; done)
+    while read -r f; do "$c" -l | grep -E -q "^$f( |\$)" || printf '%s ' "$f"; done)
   [ -z "$miss" ] || { bad=$((bad + 1)); echo "FAIL not in clab_jrun(): $miss"; }
 fi
 echo "test.sh: $n checks, $bad failed"

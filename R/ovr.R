@@ -116,9 +116,11 @@ ovrdte <- function(x) {
 #' s <- ovrsch()
 #' s[, c("name", "rule")]
 #' # a field of one's own: the date a complaint came in
-#' rbind(s, data.frame(name = "date_received", rule = "date",
-#'                     cue = "received the complaint", alt = "", sect = "",
-#'                     desc = "the date the complaint came in"))
+#' s2 <- rbind(s, data.frame(name = "date_received", rule = "date",
+#'                           cue = "received the complaint", alt = "",
+#'                           sect = "",
+#'                           desc = "the date the complaint came in"))
+#' tail(s2[, c("name", "rule", "cue")], 2)
 #' @export
 ovrsch <- function(preset = "siu") {
   f <- "ovrsch"
