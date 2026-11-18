@@ -40,7 +40,10 @@ bool intr(std::string &err, double w) {
   return true;
 }
 
+// The mean of the kept draws; the callers keep at least one, and a compiler
+// that cannot see that (MSVC, C4723) is given the empty case.
 double mean(const std::vector<double> &v) {
+  if (v.empty()) return 0.0;
   double s = 0;
   for (double e : v) s += e;
   return s / static_cast<double>(v.size());
