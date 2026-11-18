@@ -10,7 +10,17 @@
   JavaScript and Rust packages, which is what each registry shows, says
   how to cite crimlab.
 
-- No function changed.
+- Fixed: `ecolrg(family = "negbin")` on counts with no overdispersion.
+  The search for the size sends it off without bound there, and past
+  about ten million its score is no more than rounding; on 32-bit x86
+  without SSE2 (x87 arithmetic) a step taken from that noise ended at a
+  wrong fit, with a lower likelihood. The search now ends at the cap
+  once the size passes a million, where the fit is the Poisson fit to
+  six digits. Results elsewhere do not change.
+
+- The tests of the command run on x87 as well: its test table compares
+  the numbers inside a text result, and two cases whose last digits
+  differ there have a bound.
 
 ## crimlab 0.0.1
 

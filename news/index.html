@@ -65,7 +65,8 @@
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.2" id="crimlab-002">crimlab 0.0.2<a class="anchor" aria-label="anchor" href="#crimlab-002"></a></h2>
 <ul><li><p>Every package carries the title of the R package, “Statistical Toolkit for Criminology and Sociolegal Research”: the Python, JavaScript, Rust, Java and Go packages, the command’s manual page, the C header and the Homebrew, Scoop, Debian, RPM and container descriptions said “criminology and sociolegal statistics”. The README of the Python, JavaScript and Rust packages, which is what each registry shows, says how to cite crimlab.</p></li>
-<li><p>No function changed.</p></li>
+<li><p>Fixed: <code>ecolrg(family = "negbin")</code> on counts with no overdispersion. The search for the size sends it off without bound there, and past about ten million its score is no more than rounding; on 32-bit x86 without SSE2 (x87 arithmetic) a step taken from that noise ended at a wrong fit, with a lower likelihood. The search now ends at the cap once the size passes a million, where the fit is the Poisson fit to six digits. Results elsewhere do not change.</p></li>
+<li><p>The tests of the command run on x87 as well: its test table compares the numbers inside a text result, and two cases whose last digits differ there have a bound.</p></li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="crimlab-001">crimlab 0.0.1<a class="anchor" aria-label="anchor" href="#crimlab-001"></a></h2>
