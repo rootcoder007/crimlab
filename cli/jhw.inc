@@ -80,7 +80,10 @@ inline bool pth(Ctx &c, pwr::Cfg &g) {
   if (std::ifstream("/usr/sbin/ioreg").good()) g.ioreg = "/usr/sbin/ioreg";
   const Val &p = c["paths"];
   if (p.t == Val::NUL || (p.t == Val::ARR && p.a.empty())) return true;
-  bool ok = p.t == Val::OBJ && keys(p, {"root", "nvml", "smi", "ioreg"});
+  // a named list: gcc 16 on aarch64 reports the destructor of a temporary
+  // one here as freeing a pointer inside an object (-Wfree-nonheap-object)
+  static const ax::Cols nm = {"root", "nvml", "smi", "ioreg"};
+  bool ok = p.t == Val::OBJ && keys(p, nm);
   for (std::size_t i = 0; ok && i < p.k.size(); ++i) {
     const Val &e = p.a[i].t == Val::ARR && p.a[i].a.size() == 1 ? p.a[i].a[0] : p.a[i];
     ok = e.t == Val::STR;
@@ -96,7 +99,8 @@ inline bool pth(Ctx &c, pwr::Cfg &g) {
 inline bool rt(Ctx &c, pwr::Rated &r) {
   const Val &o = c["rated"];
   if (o.t == Val::NUL) return true;
-  bool ok = o.t == Val::OBJ && !o.a.empty() && keys(o, {"cpu", "gpu"});
+  static const ax::Cols nm = {"cpu", "gpu"};
+  bool ok = o.t == Val::OBJ && !o.a.empty() && keys(o, nm);
   for (std::size_t i = 0; ok && i < o.k.size(); ++i) {
     double v = 0.0;
     ok = one(o.a[i], v) && v >= 0;
