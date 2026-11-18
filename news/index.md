@@ -2,6 +2,29 @@
 
 ## crimlab 0.0.1
 
+- The results of the Indigenous health and wellbeing functions have
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html) methods: gaps
+  between groups with their intervals
+  ([`indgap()`](https://rootcoder007.github.io/crimlab/reference/indgap.md),
+  [`trchlthgap()`](https://rootcoder007.github.io/crimlab/reference/trchlthgap.md)),
+  wellness beside distress
+  ([`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md),
+  [`welprof()`](https://rootcoder007.github.io/crimlab/reference/welprof.md),
+  [`holbal()`](https://rootcoder007.github.io/crimlab/reference/holbal.md)),
+  community indices and Community Well-Being scores
+  ([`commidx()`](https://rootcoder007.github.io/crimlab/reference/commidx.md),
+  [`cnscwb()`](https://rootcoder007.github.io/crimlab/reference/cnscwb.md),
+  [`cwbscr()`](https://rootcoder007.github.io/crimlab/reference/cwbscr.md)),
+  standardised prevalence
+  ([`stdprev()`](https://rootcoder007.github.io/crimlab/reference/stdprev.md)),
+  ordered ratings
+  ([`ordcmp()`](https://rootcoder007.github.io/crimlab/reference/ordcmp.md))
+  and change between surveys
+  ([`healchg()`](https://rootcoder007.github.io/crimlab/reference/healchg.md)).
+  A dot plot keeps every row label, in letters sized to the rows, and
+  leaves room for its key above the data; lines over periods written as
+  text (“2020/21”) are drawn in the order given and labelled as written.
+
 - Open data:
   [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
   loads a table of the project’s open data service by its key and

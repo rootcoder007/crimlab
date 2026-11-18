@@ -869,10 +869,22 @@ function of the package by its R name with its arguments as a JSON
 object and returns its result as JSON, with R’s checks and messages. The
 Go, Rust, Java and JavaScript packages under `bindings/` call it, and so
 do most functions of the Python package. It holds every exported
-function of the R package but those that work in R only, the plot
-functions and the table check
-[`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md)
-(420 of 454); `crimlab -l` lists them and their arguments, and
+function of the R package but those that are in R only: the tables of
+the open data service
+([`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md),
+[`odls()`](https://rootcoder007.github.io/crimlab/reference/odtab.md))
+and the functions of placement volatility and alert complexity
+([`plcvol()`](https://rootcoder007.github.io/crimlab/reference/plcvol.md),
+[`alrtcx()`](https://rootcoder007.github.io/crimlab/reference/alrtcx.md),
+[`otpyr()`](https://rootcoder007.github.io/crimlab/reference/otpyr.md),
+[`cntmix()`](https://rootcoder007.github.io/crimlab/reference/cntmix.md),
+[`cxvol()`](https://rootcoder007.github.io/crimlab/reference/cxvol.md),
+[`cxdml()`](https://rootcoder007.github.io/crimlab/reference/cxdml.md),
+[`cxyoy()`](https://rootcoder007.github.io/crimlab/reference/cxyoy.md),
+[`cxsim()`](https://rootcoder007.github.io/crimlab/reference/cxsim.md)).
+[`plot()`](https://rdrr.io/r/graphics/plot.default.html) of a result is
+R’s as well; the plot functions return the data they draw everywhere.
+`crimlab -l` lists the functions it holds and their arguments, and
 `cli/test.tsv` holds the values the R package gives for them
 (`dev/clref.R`), which every front end is tested against. A warning R
 would give is returned in the result as `warnings`, an array of its
