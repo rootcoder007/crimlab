@@ -7,7 +7,7 @@ bool rptvic(Ctx &c, Val &out) {
   if (xn < 1) return c.fail("`id` must hold one incident at least.");
   Lab v;
   CK(codes(c, c["id"], "id", xn, v));
-  const int n = static_cast<int>(xn);
+  const int n = sat<int>(xn);
   Dv tv;
   const bool ht = c.has("t");
   if (ht) CK(num(c, c["t"], "t", tv, n));
@@ -21,7 +21,7 @@ bool rptvic(Ctx &c, Val &out) {
   if (c.has("brk")) {
     if (!ht) return c.fail("`brk` needs the times `t`.");
     CK(num(c, c["brk"], "brk", bv));
-    nb = static_cast<int>(bv.n());
+    nb = sat<int>(bv.n());
     if (nb < 2) return c.fail("`brk` must hold two breaks at least.");
     for (int j = 1; j < nb; ++j) {
       if (!(bv[zz(j)] > bv[zz(j - 1)])) return c.fail("`brk` must increase.");

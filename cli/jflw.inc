@@ -23,7 +23,7 @@ bool plab(Ctx &c, std::size_t n, std::vector<std::string> &s) {
       if (e.t == Val::ARR || e.t == Val::OBJ) return notvec(c, "prd");
     }
   }
-  if (vlen(p) != n) return c.fail("`prd` must have one label per period, %d.", static_cast<int>(n));
+  if (vlen(p) != n) return c.fail("`prd` must have one label per period, %d.", sat<int>(n));
   if (!alabs(p, s)) return c.fail("`prd` must be labels: numbers, text or a factor.");
   return true;
 }
@@ -45,7 +45,7 @@ void rci(double a, double b, double p, double &lo, double &hi) {
 bool rec1(Ctx &c, const Val &v, const char *nm, std::size_t n, std::vector<double> &out) {
   Dv d;
   CK(num(c, v, nm, d, -1, 0.0, true));
-  if (d.n() != 1 && d.n() != n) return c.fail("`%s` must be one number or one per period, %d.", nm, static_cast<int>(n));
+  if (d.n() != 1 && d.n() != n) return c.fail("`%s` must be one number or one per period, %d.", nm, sat<int>(n));
   out.assign(n, 0.0);
   for (std::size_t i = 0; i < n; ++i) out[i] = d[d.n() == 1 ? 0 : i];
   return true;
@@ -55,7 +55,7 @@ bool lostay(Ctx &c, Val &out) {
   Dv xv;
   CK(num(c, c["days"], "days", xv, -1, 0.0));
   const std::size_t sn = xv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   Dv wv;
   if (c.has("w")) {
     CK(num(c, c["w"], "w", wv, n, 0.0));
@@ -72,9 +72,9 @@ bool lostay(Ctx &c, Val &out) {
     const Val &b = c["breaks"];
     if (!isnum(b) || vlen(b) < 2) return c.fail("`breaks` must be at least two band edges.");
     bv = dbl(b);
-    nb = static_cast<int>(bv.size());
+    nb = sat<int>(bv.size());
     for (int k = 0; k < nb; ++k) {
-      const std::size_t sk = static_cast<std::size_t>(k);
+      const std::size_t sk = sat<std::size_t>(k);
       if (std::isnan(bv[sk]) || (k > 0 && !(bv[sk] > bv[sk - 1]))) {
         return c.fail("`breaks` must be increasing band edges with no missing values.");
       }
@@ -84,14 +84,14 @@ bool lostay(Ctx &c, Val &out) {
   int nt = 0;
   if (c.has("thr")) {
     CK(num(c, c["thr"], "thr", tv, -1, 0.0));
-    nt = static_cast<int>(tv.n());
+    nt = sat<int>(tv.n());
   }
   std::vector<int> fv;
   if (c.has("flag")) CK(lgl(c, c["flag"], "flag", n, fv));
   double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   double st[9] = {0}, fit[6] = {0};
-  std::vector<double> bw(2 * static_cast<std::size_t>(nb) + static_cast<std::size_t>(nt) + 2);
+  std::vector<double> bw(2 * sat<std::size_t>(nb) + sat<std::size_t>(nt) + 2);
   std::vector<int> ow(sn);
   double *bt = bw.data(), *tt = bt + 2 * nb;
   clab_lostay(xv.p(), wv.n() ? wv.p() : nullptr, n, bv.empty() ? nullptr : bv.data(), nb, nt ? tv.p() : nullptr, nt,
@@ -105,7 +105,7 @@ bool lostay(Ctx &c, Val &out) {
   put(out, "stay", nvec(11, sn2, sv));
   Val bands, thr;
   if (nb >= 2) {
-    const std::size_t k = static_cast<std::size_t>(nb - 1);
+    const std::size_t k = sat<std::size_t>(nb - 1);
     std::vector<double> gl(k), gh(k), gn(k), gs(k), gf(k);
     for (std::size_t j = 0; j < k; ++j) {
       gl[j] = bv[j];
@@ -123,7 +123,7 @@ bool lostay(Ctx &c, Val &out) {
     bands = g.o;
   }
   if (nt > 0) {
-    std::vector<double> at(tt, tt + nt), ab(static_cast<std::size_t>(nt));
+    std::vector<double> at(tt, tt + nt), ab(sat<std::size_t>(nt));
     for (std::size_t i = 0; i < ab.size(); ++i) ab[i] = 1 - at[i];
     Frame h;
     h.num("thr", tv.v);
@@ -138,10 +138,10 @@ bool lostay(Ctx &c, Val &out) {
   std::vector<int> mb(3);
   int best = -1;
   for (int k = 0; k < 3; ++k) {
-    ma[static_cast<std::size_t>(k)] = na(fit[k]);
+    ma[sat<std::size_t>(k)] = na(fit[k]);
     if (!std::isnan(fit[k]) && (best < 0 || fit[k] < fit[best])) best = k;
   }
-  for (int k = 0; k < 3; ++k) mb[static_cast<std::size_t>(k)] = k == best;
+  for (int k = 0; k < 3; ++k) mb[sat<std::size_t>(k)] = k == best;
   Frame m;
   m.str("model", {mo[0], mo[1], mo[2]});
   m.num("aic", ma);
@@ -157,7 +157,7 @@ bool bklog(Ctx &c, Val &out) {
   Dv av;
   CK(num(c, c["arrive"], "arrive", av, -1, 0.0));
   const std::size_t sn = av.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   const Val &dp = c["dispose"];
   if (dp.t == Val::ARR) {
     for (const Val &e : dp.a) {
@@ -172,7 +172,7 @@ bool bklog(Ctx &c, Val &out) {
   for (std::size_t i = 0; i < sn; ++i) {
     const double d = dv[i];
     if (std::isinf(d)) return c.fail("`dispose` must be finite or NA.");
-    if (!std::isnan(d) && d < av[i]) return c.fail("a disposition precedes its arrival (case %d).", static_cast<int>(i) + 1);
+    if (!std::isnan(d) && d < av[i]) return c.fail("a disposition precedes its arrival (case %d).", sat<int>(i) + 1);
     h = std::fmax(h, std::fmax(av[i], std::isnan(d) ? 0 : d));
   }
   if (c.has("horizon")) CK(one(c, c["horizon"], "horizon", 0.0, Inf, h));
@@ -206,7 +206,7 @@ bool dktflw(Ctx &c, Val &out) {
     Dv rv, dv, pv;
     CK(num(c, c["recv"], "recv", rv, -1, 0.0));
     const std::size_t sn = rv.n();
-    const int n = static_cast<int>(sn);
+    const int n = sat<int>(sn);
     if (!c.has("disp")) return c.fail("`disp` must come with `recv`.");
     CK(num(c, c["disp"], "disp", dv, n, 0.0));
     const bool hp = c.has("pend");
@@ -281,16 +281,16 @@ bool dktflw(Ctx &c, Val &out) {
       const int k = dim[1];
       Dv fl;
       CK(num(c, c["floors"], "floors", fl, k, 0.0));
-      std::vector<double> sv(sn * static_cast<std::size_t>(k));
+      std::vector<double> sv(sn * sat<std::size_t>(k));
       bool bad = false;
       fill(sh, 2, dim, 0, 0, 1, sv, bad, true);
-      for (std::size_t j = 1; j < static_cast<std::size_t>(k); ++j) {
+      for (std::size_t j = 1; j < sat<std::size_t>(k); ++j) {
         if (fl[j] < fl[j - 1]) return c.fail("`floors` must be increasing.");
       }
       std::vector<double> bf(sn);
       for (std::size_t i = 0; i < sn; ++i) {
         double s = 0, sw = 0;
-        for (std::size_t j = 0; j < static_cast<std::size_t>(k); ++j) {
+        for (std::size_t j = 0; j < sat<std::size_t>(k); ++j) {
           const double v = sv[i + sn * j];
           if (!(v >= 0) || !std::isfinite(v)) return c.fail("`shares` must be numbers from 0.");
           s += v * fl[j];
@@ -311,7 +311,7 @@ bool dktflw(Ctx &c, Val &out) {
     }
     const int nt = dim[0], k = dim[1];
     if (nt < 1 || k < 1) return c.fail("`mix` must have a period and an outcome.");
-    const std::size_t st = static_cast<std::size_t>(nt), sk = static_cast<std::size_t>(k);
+    const std::size_t st = sat<std::size_t>(nt), sk = sat<std::size_t>(k);
     std::vector<double> xv(st * sk);
     bool bad = false;
     fill(mx, 2, dim, 0, 0, 1, xv, bad, true);
@@ -349,7 +349,7 @@ bool dktflw(Ctx &c, Val &out) {
       gs[j] = na(tr[j]);
       gp[j] = std::isnan(gs[j]) ? NA : clab_pchisq(gs[j], 1.0, 0);
       gc[j] = tr[sk + j];
-      if (!std::isnan(gp[j])) pw[static_cast<std::size_t>(m++)] = gp[j];
+      if (!std::isnan(gp[j])) pw[sat<std::size_t>(m++)] = gp[j];
     }
     clab_pbadj(pw.data(), m, 2, pw.data() + sk, iw.data());
     for (std::size_t j = 0, i = 0; j < sk; ++j) gh[j] = std::isnan(gp[j]) ? NA : pw[sk + i++];
@@ -458,7 +458,7 @@ bool stkflw(Ctx &c, Val &out) {
     }
   }
   const std::size_t sn = hpe ? vlen(c["people"]) : hd ? vlen(c["days"]) : av.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   Dv pv, dv, lv;
   if (hpe) CK(num(c, c["people"], "people", pv, n, 0.0, true));
   if (hd) CK(num(c, c["days"], "days", dv, n, 0.0));
@@ -499,7 +499,7 @@ bool stkflw(Ctx &c, Val &out) {
     if (k >= 9 && k <= 12 && xv.empty()) continue;
     if (k >= 13 && rv.empty()) continue;
     std::vector<double> d(sn);
-    for (std::size_t i = 0; i < sn; ++i) d[i] = na(o[static_cast<std::size_t>(k) * sn + i]);
+    for (std::size_t i = 0; i < sn; ++i) d[i] = na(o[sat<std::size_t>(k) * sn + i]);
     f.num(cn[k], d);
   }
   static const char *const mn[] = {"people", "days", "adp", "alos"};
@@ -513,7 +513,7 @@ bool stkflw(Ctx &c, Val &out) {
 
 bool trnmat(Ctx &c, Val &out) {
   const std::size_t sn = vlen(c["state"]);
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   Lab s, p;
   CK(codes(c, c["state"], "state", sn, s));
   CK(codes(c, c["id"], "id", sn, p));
@@ -521,7 +521,7 @@ bool trnmat(Ctx &c, Val &out) {
   const bool ht = c.has("time");
   if (ht) CK(num(c, c["time"], "time", tv, n));
   std::vector<int> o(sn);
-  for (int i = 0; i < n; ++i) o[static_cast<std::size_t>(i)] = i;
+  for (int i = 0; i < n; ++i) o[sat<std::size_t>(i)] = i;
   const int *pc = p.code.data();
   const double *tt = ht ? tv.p() : nullptr;
   std::stable_sort(o.begin(), o.end(), [&](int a, int b) { return pc[a] < pc[b] || (pc[a] == pc[b] && tt && tt[a] < tt[b]); });
@@ -529,15 +529,15 @@ bool trnmat(Ctx &c, Val &out) {
   for (std::size_t i = 1; i < sn; ++i) {
     const int a = o[i - 1], b = o[i];
     if (pc[a] != pc[b]) continue;
-    fr.push_back(s.code[static_cast<std::size_t>(a)]);
-    to.push_back(s.code[static_cast<std::size_t>(b)]);
+    fr.push_back(s.code[sat<std::size_t>(a)]);
+    to.push_back(s.code[sat<std::size_t>(b)]);
   }
   const int k = s.g;
-  if (static_cast<long long>(k) * k > 25000000LL) return c.fail("`state` has more than 5000 states.");
-  const std::size_t sk = static_cast<std::size_t>(k);
+  if (sat<long long>(k) * k > 25000000LL) return c.fail("`state` has more than 5000 states.");
+  const std::size_t sk = sat<std::size_t>(k);
   std::vector<double> cnt(sk * sk), pm(sk * sk), pv(sk), wk(sk * (sk + 1));
   double st[3] = {0};
-  clab_trnmat(fr.data(), to.data(), static_cast<int>(fr.size()), k, cnt.data(), pm.data(), pv.data(), st, wk.data());
+  clab_trnmat(fr.data(), to.data(), sat<int>(fr.size()), k, cnt.data(), pm.data(), pv.data(), st, wk.data());
   for (double &e : pv) e = na(e);
   for (double &e : st) e = na(e);
   static const char *const smn[] = {"moves", "stay", "theil"};
@@ -723,7 +723,7 @@ bool bandx(Ctx &c, Val &out) {
   Bands b;
   CK(bands(c, c["x"], clsup, intsca, b));
   const std::size_t sn = b.lab.size();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   static const char *const rules[] = {"midpoint", "lower", "upper", "geometric"};
   int r = 0;
   CK(pickd(c, "rule", rules, 4, 0, r));
@@ -859,7 +859,7 @@ bool pbbnd(Ctx &c, Val &out) {
   const bool hp = c.has("prev");
   if (hp) CK(cells(c, c["prev"], sup, "prev", pvv, pst, plim));
   const std::size_t sn = val.size();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   double rn = NaN, sp = NaN;
   CK(optd(c, "rnd", 0.0, rn));
   CK(optd(c, "suplim", 0.0, sp));
@@ -921,7 +921,7 @@ bool pbbnd(Ctx &c, Val &out) {
     Frame g;
     for (int k = 0; k < nc; ++k) {
       std::vector<double> d(sn);
-      for (std::size_t i = 0; i < sn; ++i) d[i] = na(o[static_cast<std::size_t>(k) * sn + i]);
+      for (std::size_t i = 0; i < sn; ++i) d[i] = na(o[sat<std::size_t>(k) * sn + i]);
       g.num(cn[k], d);
     }
     chg = g.o;
@@ -957,7 +957,7 @@ bool lftab(Ctx &c, Val &out) {
     hi.assign(e.begin() + 1, e.end());
   }
   const std::size_t sk = lo.size();
-  const int k = static_cast<int>(sk);
+  const int k = sat<int>(sk);
   Dv dv;
   CK(num(c, c["events"], "events", dv, k, 0.0));
   std::vector<double> cv;

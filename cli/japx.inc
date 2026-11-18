@@ -338,7 +338,7 @@ inline bool acols(Ctx &c, const Val &d, const Nm &m, const char *what, std::init
     return ckstop(c, "`%s` must name columns of `data`, got NULL", what);
   }
   if (!m.chr || m.na || m.v.empty()) return ckstop(c, "`%s` must name columns of `data`", what);
-  if (nn.size() && std::find(nn.begin(), nn.end(), static_cast<int>(m.v.size())) == nn.end()) {
+  if (nn.size() && std::find(nn.begin(), nn.end(), sat<int>(m.v.size())) == nn.end()) {
     std::string s;
     for (int k : nn) s += (s.empty() ? "" : " or ") + std::to_string(k);
     return ckstop(c, "`%s` must name %s column(s)", what, s.c_str());
@@ -483,7 +483,7 @@ struct Fr {
   const int *p2() const { return c2.empty() ? nullptr : c2.data(); }
   const int *px() const { return cx.empty() ? nullptr : cx.data(); }
   const int *pn() const { return nx.empty() ? nullptr : nx.data(); }
-  int mx() const { return static_cast<int>(nx.size()); }
+  int mx() const { return sat<int>(nx.size()); }
   // the doubles of scratch the kernels ask for each level of every set
   std::size_t ng() const {
     std::size_t g = zz(n1 + n2);
@@ -509,10 +509,10 @@ inline int fesep(const std::vector<double> &y, const Fr &f, std::vector<int> &ke
   const std::size_t n = y.size();
   keep.assign(n, 0);
   std::vector<double> wk(f.ng() + 1);
-  int rc = clab_fesep(pd(y), static_cast<int>(n), f.c1.data(), f.n1, f.p2(), f.n2, keep.data(), wk.data());
+  int rc = clab_fesep(pd(y), sat<int>(n), f.c1.data(), f.n1, f.p2(), f.n2, keep.data(), wk.data());
   std::vector<int> k2(n);
   for (std::size_t j = 0; rc >= 0 && j < f.nx.size(); ++j) {
-    rc = clab_fesep(pd(y), static_cast<int>(n), &f.cx[j * n], f.nx[j], nullptr, 0, k2.data(), wk.data());
+    rc = clab_fesep(pd(y), sat<int>(n), &f.cx[j * n], f.nx[j], nullptr, 0, k2.data(), wk.data());
     for (std::size_t i = 0; i < n; ++i) keep[i] = keep[i] && k2[i];
   }
   return rc;
@@ -528,7 +528,7 @@ struct Pd {
 inline Pd pdat(const Val &d, const std::string &y, const Cols &x, const Cols &fe, const Cols &expo) {
   Pd a;
   a.n = nr(d);
-  a.p = static_cast<int>(x.size());
+  a.p = sat<int>(x.size());
   a.y = colv(*fc(d, y));
   a.x = matv(d, x);
   if (!expo.empty()) {
@@ -545,7 +545,7 @@ struct Pf {
 // frequency weights w (nullptr or one per row of r).
 inline int ppfit(const Pd &a, const Ix &r, const double *w, double tol, int maxit, Pf &f) {
   const std::size_t n = r.size(), sp = zz(a.p);
-  if (n > static_cast<std::size_t>(INT_MAX)) return CLAB_EARG;
+  if (n > sat<std::size_t>(INT_MAX)) return CLAB_EARG;
   std::vector<double> y(n), x(n * sp), off(a.hoff ? n : 0);
   for (std::size_t i = 0; i < n; ++i) {
     y[i] = a.y[r[i]];
@@ -562,7 +562,7 @@ inline int ppfit(const Pd &a, const Ix &r, const double *w, double tol, int maxi
   std::vector<double> vc(sp * sp, NA);
   std::vector<double> wk(n * (2 * sp + 8) + 3 * sp * sp + sp + 4 * e.ng() + 1);
   std::vector<int> iw(n + 1);
-  return clab_ppmlfek(pd(y), pd(x), static_cast<int>(n), a.p, a.hoff ? off.data() : nullptr, w, e.c1.data(), e.n1,
+  return clab_ppmlfek(pd(y), pd(x), sat<int>(n), a.p, a.hoff ? off.data() : nullptr, w, e.c1.data(), e.n1,
                       e.p2(), e.n2, e.px(), e.pn(), e.mx(), nullptr, 0, nullptr, 0, maxit, 1e-10, tol,
                       f.beta.data(), vc.data(), f.sco.data(), f.brd.data(), f.st.data(), wk.data(), iw.data());
 }
@@ -651,7 +651,7 @@ inline double nwlag(const std::vector<double> &sco, std::size_t n, int p, const 
   std::vector<int> tab(zz(ng), 0);
   for (int v : u) ++tab[zz(v)];
   const double tt = *std::max_element(tab.begin(), tab.end());
-  const int nn = static_cast<int>(std::floor(4 * std::pow(tt / 100, 2.0 / 9)));
+  const int nn = sat<int>(std::floor(4 * std::pow(tt / 100, 2.0 / 9)));
   // match(paste(u, tv - j), paste(u, tv)): the first row of a unit and day
   std::map<std::pair<int, double>, std::size_t> key;
   for (std::size_t i = 0; i < n; ++i) key.emplace(std::make_pair(u[i], tv[i]), i);
@@ -737,16 +737,16 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
       if (c.has("lag")) {
         Nv q;
         CK(cknum(c, c["lag"], "lag", q, true, 0, Inf, false, true));
-        lg = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+        lg = q[0] > INT_MAX ? INT_MAX : sat<int>(q[0]);
       } else {
         const std::size_t nt = ut.size();
         std::vector<double> h(nt * zz(p), 0.0);
         for (std::size_t i = 0; i < n; ++i) {
-          const std::size_t t = static_cast<std::size_t>(std::lower_bound(ut.begin(), ut.end(), tv[i]) - ut.begin());
+          const std::size_t t = sat<std::size_t>(std::lower_bound(ut.begin(), ut.end(), tv[i]) - ut.begin());
           for (std::size_t j = 0; j < zz(p); ++j) h[j * nt + t] += sco[j * n + i];
         }
         const double l = nwlag(h, nt, p, std::vector<int>(nt, 0), 1, ut);
-        lg = l > INT_MAX ? INT_MAX : static_cast<int>(l);
+        lg = l > INT_MAX ? INT_MAX : sat<int>(l);
       }
     }
     if (se == 3) {
@@ -757,7 +757,7 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
       const Val lv = c.has("lag") ? c["lag"] : vnum(nwlag(sco, n, p, u.c, u.n, tv));
       Nv q;
       CK(cknum(c, lv, "lag", q, true, 0, Inf, false, true));
-      lg = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+      lg = q[0] > INT_MAX ? INT_MAX : sat<int>(q[0]);
     }
   }
   const double dn = static_cast<double>(n);
@@ -766,7 +766,7 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
   auto vcx = [&](int kd, const std::vector<int> &a1, int m1, const std::vector<int> &a2, int m2, double fac,
                  std::vector<double> &v) {
     v.assign(zz(p) * zz(p), 0.0);
-    const int rc = clab_vcx(pd(sco), static_cast<int>(n), p, pd(brd), kd, a1.empty() ? nullptr : a1.data(), m1,
+    const int rc = clab_vcx(pd(sco), sat<int>(n), p, pd(brd), kd, a1.empty() ? nullptr : a1.data(), m1,
                             a2.empty() ? nullptr : a2.data(), m2, tv.empty() ? nullptr : tv.data(), lg, fac,
                             v.data());
     if (rc == CLAB_EDOM) {
@@ -786,9 +786,9 @@ inline bool avar(Ctx &c, const Val &d, int p, const std::vector<double> &sco, co
     std::map<std::pair<int, int>, int> h;
     std::vector<int> c12(n);
     for (std::size_t i = 0; i < n; ++i) {
-      c12[i] = h.emplace(std::make_pair(c1[i], c2[i]), static_cast<int>(h.size())).first->second;
+      c12[i] = h.emplace(std::make_pair(c1[i], c2[i]), sat<int>(h.size())).first->second;
     }
-    const int n12 = static_cast<int>(h.size());
+    const int n12 = sat<int>(h.size());
     std::vector<double> v1, v2, v3;
     const std::vector<int> none;
     CK(vcx(0, c1, n1, none, 0, ff(n1), v1));
@@ -854,7 +854,7 @@ inline Val atab(const Cols &tm, const std::vector<double> &b, const std::vector<
 inline bool bargs(Ctx &c, int &nb, bool &hs, double &sd) {
   Nv q;
   CK(cknumd(c, "nboot", 199, q, 2, Inf, false, true));
-  nb = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+  nb = q[0] > INT_MAX ? INT_MAX : sat<int>(q[0]);
   hs = c.has("seed");
   if (hs) {
     CK(cknum(c, c["seed"], "seed", q, true, 0, Inf, false, true));
@@ -871,11 +871,11 @@ struct Adraw {
   int g;
   std::size_t blk;  // draws per block: about 2^22 counts
   Adraw(std::uint32_t s, int gg)
-      : rng(s), g(gg), blk(std::max<std::size_t>(1, (static_cast<std::size_t>(1) << 22) / zz(gg))) {}
+      : rng(s), g(gg), blk(std::max<std::size_t>(1, (sat<std::size_t>(1) << 22) / zz(gg))) {}
   void next(std::size_t k, std::vector<int> &bm) {
     bm.assign(zz(g) * k, 0);
     for (std::size_t j = 0; j < k; ++j) {
-      for (int i = 0; i < g; ++i) ++bm[j * zz(g) + static_cast<std::size_t>(rng.index(g))];
+      for (int i = 0; i < g; ++i) ++bm[j * zz(g) + sat<std::size_t>(rng.index(g))];
     }
   }
 };
@@ -892,8 +892,8 @@ inline bool adseed(Ctx &c, bool hs, double sd, std::uint32_t &s) {
 inline std::vector<double> csd(const std::vector<double> &x, std::size_t n, int p) {
   std::vector<double> s;
   for (std::size_t j = 0; j < zz(p); ++j) {
-    std::vector<double> col(x.begin() + static_cast<std::ptrdiff_t>(j * n),
-                            x.begin() + static_cast<std::ptrdiff_t>((j + 1) * n));
+    std::vector<double> col(x.begin() + sat<std::ptrdiff_t>(j * n),
+                            x.begin() + sat<std::ptrdiff_t>((j + 1) * n));
     std::vector<char> ok(n);
     for (std::size_t i = 0; i < n; ++i) ok[i] = !std::isnan(col[i]);
     s.push_back(std::sqrt(rcov(col, n, 1, ok)[0]));
@@ -967,9 +967,9 @@ struct Id {
 inline Id idat(const Val &d, const std::string &y, const Cols &endo, const Cols &x, const Cols &inst, const Cols &fe) {
   Id a;
   a.n = nr(d);
-  a.pe = static_cast<int>(endo.size());
-  a.px = static_cast<int>(x.size());
-  a.q = static_cast<int>(inst.size());
+  a.pe = sat<int>(endo.size());
+  a.px = sat<int>(x.size());
+  a.q = sat<int>(inst.size());
   a.y = colv(*fc(d, y));
   a.xe = matv(d, endo);
   a.xx = matv(d, x);
@@ -992,7 +992,7 @@ inline std::vector<double> sub(const std::vector<double> &m, std::size_t n, int 
 inline int ivfit(const Id &a, const Ix &r, const double *w, const int *c1, int n1, const int *c2, int n2, double tol,
                  If &f) {
   const std::size_t n = r.size(), p = zz(a.pe + a.px), pe = zz(a.pe);
-  if (n > static_cast<std::size_t>(INT_MAX)) return CLAB_EARG;
+  if (n > sat<std::size_t>(INT_MAX)) return CLAB_EARG;
   const std::vector<double> y = sub(a.y, a.n, 1, r), xe = sub(a.xe, a.n, a.pe, r), xx = sub(a.xx, a.n, a.px, r),
                             zi = sub(a.zi, a.n, a.q, r);
   const Fr e = frows(a.fe, r);
@@ -1008,7 +1008,7 @@ inline int ivfit(const Id &a, const Ix &r, const double *w, const int *c1, int n
   f.brd.assign(p * p, 0.0);
   double z[3];
   auto po = [&](std::vector<double> &v) { return v.empty() ? z : v.data(); };
-  return clab_ivfek(pd(y), pd(xe), a.pe, pd(xx), a.px, pd(zi), a.q, static_cast<int>(n), w, e.c1.data(), e.n1,
+  return clab_ivfek(pd(y), pd(xe), a.pe, pd(xx), a.px, pd(zi), a.q, sat<int>(n), w, e.c1.data(), e.n1,
                     e.p2(), e.n2, e.px(), e.pn(), e.mx(), c1, n1, c2, n2, tol, po(f.beta), po(f.vc), po(f.fst),
                     po(f.fres), po(f.res), po(f.sco), po(f.brd), po(f.st));
 }
@@ -1153,7 +1153,7 @@ inline bool asst(Ctx &c, const Val &d, const std::vector<double> &yv, const Cols
   std::vector<double> m;
   CK(amat(c, dp, x, m));
   const Fr e = frows(afe(dp, fe), all(pos.size()));
-  const int n = static_cast<int>(pos.size()), p = static_cast<int>(x.size());
+  const int n = sat<int>(pos.size()), p = sat<int>(x.size());
   std::vector<double> s0(zz(p), 0.0);
   for (int j = 0; j < p; ++j) {
     const double *cj = m.data() + zz(j) * zz(n);
@@ -1203,7 +1203,7 @@ bool ppmlfe(Ctx &c, Val &out) {
   Nm cn = nms(c, {"clus"});
   if (cn.null && se == 1 && fe.size() != 2) {
     return ckstop(c, "`se = \"twoway\"` without `clus` clusters by the two fixed effects, and `fe` has %d: give two "
-                  "`clus` columns", static_cast<int>(fe.size()));
+                  "`clus` columns", sat<int>(fe.size()));
   }
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
@@ -1215,7 +1215,7 @@ bool ppmlfe(Ctx &c, Val &out) {
   CK(cknumd(c, "tol", 1e-12, tl, -Inf, Inf, true));
   CK(cknumd(c, "maxit", 100, mx, 1, Inf, false, true));
   const double tol = tl[0];
-  const int maxit = mx[0] > INT_MAX ? INT_MAX : static_cast<int>(mx[0]);
+  const int maxit = mx[0] > INT_MAX ? INT_MAX : sat<int>(mx[0]);
   std::vector<double> yv, t;
   CK(amat(c, d, y, yv));
   bool any = false;
@@ -1257,7 +1257,7 @@ bool ppmlfe(Ctx &c, Val &out) {
   const int rc = ppfit(a, all(n), nullptr, tol, maxit, r);
   if (rc != CLAB_OK) return kerr(c, "ppmlfe", rc);
   if (r.st[1] != 1) wrn(c, "the fit did not converge in " + rfmt(mx[0]) + " iterations.");
-  const int p = static_cast<int>(x.size());
+  const int p = sat<int>(x.size());
   std::vector<double> v, sev, g;
   double lg = NA, psi = NA;
   Val draws;
@@ -1341,7 +1341,7 @@ bool ivfe(Ctx &c, Val &out) {
   Nm cn = nms(c, {"clus"});
   if (cn.null && se == 1 && fe.size() != 2) {
     return ckstop(c, "`se = \"twoway\"` without `clus` clusters by the two fixed effects, and `fe` has %d: give two "
-                  "`clus` columns", static_cast<int>(fe.size()));
+                  "`clus` columns", sat<int>(fe.size()));
   }
   if (cn.null) cn = nmof(se == 1 ? fe : Cols{fe[0]});
   CK(acols(c, d, cn, "clus", {1, 2}, false, clus));
@@ -1374,8 +1374,8 @@ bool ivfe(Ctx &c, Val &out) {
   std::vector<int> c1, c2;
   int n1 = 0, n2 = 0;
   if (se == 2) {
-    for (std::size_t i = 0; i < n; ++i) c1.push_back(static_cast<int>(i));
-    n1 = static_cast<int>(n);
+    for (std::size_t i = 0; i < n; ++i) c1.push_back(sat<int>(i));
+    n1 = sat<int>(n);
   } else {
     const Code ca = acode(*fc(d, clus[0]));
     Code cb;
@@ -1394,7 +1394,7 @@ bool ivfe(Ctx &c, Val &out) {
   If r;
   const int rc = ivfit(a, all(n), nullptr, c1.data(), n1, se == 1 ? c2.data() : nullptr, n2, tol, r);
   if (rc != CLAB_OK) return kerr(c, "ivfe", rc);
-  const int p = static_cast<int>(tm.size());
+  const int p = sat<int>(tm.size());
   std::vector<double> v, sev, g;
   double lg = NA, df = NaN;
   Val draws;
@@ -1431,7 +1431,7 @@ bool ivfe(Ctx &c, Val &out) {
   if (inst.size() > endo.size() && !endo.empty()) {
     const Fr e = frows(a.fe, all(n));
     std::vector<double> ob(zz(p)), os(3);
-    const int ro = clab_ivoid(pd(a.y), pd(a.xe), a.pe, pd(a.xx), a.px, pd(a.zi), a.q, static_cast<int>(n),
+    const int ro = clab_ivoid(pd(a.y), pd(a.xe), a.pe, pd(a.xx), a.px, pd(a.zi), a.q, sat<int>(n),
                               e.c1.data(), e.n1, e.p2(), e.n2, e.px(), e.pn(), e.mx(), c1.data(), n1,
                               se == 1 ? c2.data() : nullptr, n2, tol, ob.data(), os.data());
     if (ro != CLAB_OK) return kerr(c, "ivfe", ro);
@@ -1552,7 +1552,7 @@ inline bool nbcf(const Val &ds, const Ix &rw, const std::string &y, const Cols &
     z.insert(z.end(), c1.begin(), c1.end());
   }
   z.insert(z.end(), dm.begin(), dm.end());
-  const int pz = static_cast<int>(1 + inst.size() + x.size() + nd);
+  const int pz = sat<int>(1 + inst.size() + x.size() + nd);
   std::vector<double> x2;
   for (const std::string &v : endo) {
     const std::vector<double> c1 = colr(v);
@@ -1565,7 +1565,7 @@ inline bool nbcf(const Val &ds, const Ix &rw, const std::string &y, const Cols &
   std::vector<double> bz(zz(pz)), xi(zz(pz) * zz(pz)), res(m), wk(zz(pz) * zz(pz) + zz(pz));
   for (const std::string &v : endo) {
     const std::vector<double> ev = colr(v);
-    if (pev::ols(z.data(), ev.data(), static_cast<int>(m), pz, nullptr, bz.data(), xi.data(), res.data(), wk.data()) !=
+    if (pev::ols(z.data(), ev.data(), sat<int>(m), pz, nullptr, bz.data(), xi.data(), res.data(), wk.data()) !=
         CLAB_OK) {
       return false;
     }
@@ -1573,7 +1573,7 @@ inline bool nbcf(const Val &ds, const Ix &rw, const std::string &y, const Cols &
   }
   x2.insert(x2.end(), m, 1.0);
   x2.insert(x2.end(), dm.begin(), dm.end());
-  const int k = static_cast<int>(2 * endo.size() + x.size() + 1 + nd);
+  const int k = sat<int>(2 * endo.size() + x.size() + 1 + nd);
   std::vector<double> yr = colr(y), of;
   for (std::size_t i = 0; i < m && !off.empty(); ++i) of.push_back(off[rw[i]]);
   std::vector<int> cr;
@@ -1585,7 +1585,7 @@ inline bool nbcf(const Val &ds, const Ix &rw, const std::string &y, const Cols &
   o.st.assign(8, 0.0);
   std::vector<double> work(m * zz(k) + 6 * m + zz(k) + zz(k) * zz(k) + 2 * zz(ncl) * zz(k));
   std::vector<int> iw(zz(k)), al(zz(k));
-  const int rc = clab_cntreg(yr.data(), x2.data(), static_cast<int>(m), k, of.empty() ? nullptr : of.data(),
+  const int rc = clab_cntreg(yr.data(), x2.data(), sat<int>(m), k, of.empty() ? nullptr : of.data(),
                              cl ? cr.data() : nullptr, cl ? ncl : 0, 1, maxit, 1e-10, o.beta.data(), o.vb.data(),
                              o.vc.data(), o.st.data(), al.data(), work.data(), iw.data());
   if (rc != CLAB_OK) return false;
@@ -1622,7 +1622,7 @@ bool ppmlcf(Ctx &c, Val &out) {
   CK(cknumd(c, "tol", 1e-12, tl, -Inf, Inf, true));
   CK(cknumd(c, "maxit", 100, mx, 1, Inf, false, true));
   const double tol = tl[0];
-  const int maxit = mx[0] > INT_MAX ? INT_MAX : static_cast<int>(mx[0]);
+  const int maxit = mx[0] > INT_MAX ? INT_MAX : sat<int>(mx[0]);
   if (inst.size() < endo.size()) {
     return ckstop(c, "`inst` must give at least as many instruments as `endo` has columns");
   }
@@ -1660,7 +1660,7 @@ bool ppmlcf(Ctx &c, Val &out) {
     for (const std::string &e : endo) tm.push_back("vhat:" + e);
   }
   std::vector<double> me, mxx, mz;
-  const int pe = static_cast<int>(endo.size()), q = static_cast<int>(inst.size());
+  const int pe = sat<int>(endo.size()), q = sat<int>(inst.size());
   if (fam == 1) {
     // .axcfnbr(): the first-stage table of ivfe(), then the fit
     int nb = 0;
@@ -1677,7 +1677,7 @@ bool ppmlcf(Ctx &c, Val &out) {
       return ckstop(c, "the negative binomial fit failed: theta has no finite estimate (the counts show no "
                        "overdispersion); use family = \"poisson\"");
     }
-    std::vector<double> b(f0.beta.begin(), f0.beta.begin() + static_cast<std::ptrdiff_t>(kp)), sev(kp);
+    std::vector<double> b(f0.beta.begin(), f0.beta.begin() + sat<std::ptrdiff_t>(kp)), sev(kp);
     Val draws;
     int nfl = 0;
     if (se == 1) {
@@ -1688,17 +1688,17 @@ bool ppmlcf(Ctx &c, Val &out) {
       auto fit = [&](const Ix &rw, const std::vector<double> &w, std::vector<double> &beta) {
         Ix rr;
         for (std::size_t i = 0; i < rw.size(); ++i) {
-          for (int r = 0; r < static_cast<int>(w[i]); ++r) rr.push_back(rw[i]);
+          for (int r = 0; r < sat<int>(w[i]); ++r) rr.push_back(rw[i]);
         }
         Nbf fb;
         if (!nbcf(ds, rr, y[0], endo, inst, x, fe, off, nullptr, 0, maxit, fb)) return false;
-        beta.assign(fb.beta.begin(), fb.beta.begin() + static_cast<std::ptrdiff_t>(kp));
+        beta.assign(fb.beta.begin(), fb.beta.begin() + sat<std::ptrdiff_t>(kp));
         return true;
       };
       Bt bt;
-      CK(aboot(c, ds, clus[0], nb, hs, sd, static_cast<int>(kp), fit, bt));
+      CK(aboot(c, ds, clus[0], nb, hs, sd, sat<int>(kp), fit, bt));
       sev = bt.se;
-      draws = vmat(bt.dr, nb, static_cast<int>(kp));
+      draws = vmat(bt.dr, nb, sat<int>(kp));
       nfl = bt.nf;
     }
     out = vobj();
@@ -1779,27 +1779,27 @@ bool ppmlcf(Ctx &c, Val &out) {
       const std::size_t kb = std::min(ad.blk, zz(nb) - b0);
       ad.next(kb, bm);
       db.assign(kb * kp, NA);
-      const int rc = clab_ppmlcf(pd(ys), pd(me), pe, pd(mxx), static_cast<int>(x.size()), pd(mz), q,
-                                 static_cast<int>(n), off.empty() ? nullptr : off.data(), f1.c.data(), f1.n,
+      const int rc = clab_ppmlcf(pd(ys), pd(me), pe, pd(mxx), sat<int>(x.size()), pd(mz), q,
+                                 sat<int>(n), off.empty() ? nullptr : off.data(), f1.c.data(), f1.n,
                                  fe.size() == 2 ? f2.c.data() : nullptr, f2.n, cl.a.c.data(), cl.a.n, bm.data(),
-                                 static_cast<int>(kb), how, maxit, 1e-10, tol, beta.data(), fst.data(), db.data(),
+                                 sat<int>(kb), how, maxit, 1e-10, tol, beta.data(), fst.data(), db.data(),
                                  st.data());
       if (rc != CLAB_OK) return kerr(c, "ppmlcf", rc);
       for (std::size_t j = 0; j < kp; ++j) {
         for (std::size_t e = 0; e < kb; ++e) draw[j * zz(nb) + b0 + e] = db[j * kb + e];
       }
-      nf += static_cast<int>(st[2]);
+      nf += sat<int>(st[2]);
     }
     if (nf > 0) {
       wrn(c, std::to_string(nf) + " of " + std::to_string(nb) +
                  " bootstrap draws could not be fitted and are left out.");
     }
     if (nb - nf < 2) return ckstop(c, "fewer than two bootstrap draws could be fitted");
-    const std::vector<double> sev = csd(draw, zz(nb), static_cast<int>(kp));
+    const std::vector<double> sev = csd(draw, zz(nb), sat<int>(kp));
     out = vobj();
     put(out, "coef", atab(tm, beta, sev, lv, NaN, true));
     put(out, "first", afirst(endo, fst, q));
-    put(out, "draws", vmat(draw, nb, static_cast<int>(kp)));
+    put(out, "draws", vmat(draw, nb, sat<int>(kp)));
     put(out, "nfail", vnum(nf));
     put(out, "n", vnum(static_cast<double>(n)));
     put(out, "nsep", vnum(static_cast<double>(yv.size() - n)));
@@ -1849,7 +1849,7 @@ inline int bincode(double x, const std::vector<double> &b, bool low) {
     if (x > b[nw]) lo = nw;
     else hi = nw;
   }
-  return static_cast<int>(lo);
+  return sat<int>(lo);
 }
 // is.unsorted(x, strictly = TRUE) is false
 inline bool incr(const std::vector<double> &x) {
@@ -1871,10 +1871,10 @@ inline int wbin(Ctx &c, const std::vector<double> &dir, double width, double sta
   const double nbd = std::nearbyint(360 / width);
   if (nbd > kutil::maxcell) return (c.fail("`width` must divide 360 into at most %.0f sectors.", kutil::maxcell), CLAB_EARG);
   if (static_cast<double>(na) * (nbd - 1) > 2147483647.0) return (c.fail("the areas times the sectors of `width` must be at most 2147483647 columns."), CLAB_EARG);
-  const int nb = static_cast<int>(nbd);
+  const int nb = sat<int>(nbd);
   nc = na * (nb - 1);
   m.assign(dir.size() * zz(nc), 0.0);
-  const int rc = clab_windbin(pd(dir), static_cast<int>(dir.size()), width, start, ac ? ac->data() : nullptr, na,
+  const int rc = clab_windbin(pd(dir), sat<int>(dir.size()), width, start, ac ? ac->data() : nullptr, na,
                               base, edge, m.empty() ? nullptr : m.data());
   return rc == CLAB_OK ? rc : (kerr(c, "windiv", rc), rc);
 }
@@ -1920,12 +1920,12 @@ bool windiv(Ctx &c, Val &out) {
     width = q[0];
     CK(cknumd(c, "start", 0, q));
     start = q[0];
-    nb = static_cast<int>(std::nearbyint(360 / width));
+    nb = sat<int>(std::nearbyint(360 / width));
     if (width >= 360 || std::fabs(360 / width - nb) > 1e-9) {
       return ckstop(c, "`width` must divide 360 into two or more sectors");
     }
     CK(cknumd(c, "base", 1, q, 1, nb, false, true));
-    base = static_cast<int>(q[0]);
+    base = sat<int>(q[0]);
   } else {
     const std::vector<double> s = nums(c["sect"]);
     bool ok = numv(c["sect"]) && s.size() == 2;
@@ -2005,7 +2005,7 @@ bool windiv(Ctx &c, Val &out) {
         for (std::size_t g = 0; g < ng; ++g) m[j * ng + g] /= cnt[g];
       }
       if (area.empty()) {
-        out = vmat(m, static_cast<int>(ng), k);
+        out = vmat(m, sat<int>(ng), k);
         return true;
       }
       Cols lev = area;
@@ -2014,10 +2014,10 @@ bool windiv(Ctx &c, Val &out) {
       const std::size_t nl = lev.size();
       std::vector<double> mm(ng * zz(k) * nl, 0.0);
       for (std::size_t g = 0; g < ng; ++g) {
-        const std::size_t ai = zz(static_cast<int>(std::lower_bound(lev.begin(), lev.end(), area[g]) - lev.begin()));
+        const std::size_t ai = zz(sat<int>(std::lower_bound(lev.begin(), lev.end(), area[g]) - lev.begin()));
         for (std::size_t j = 0; j < zz(k); ++j) mm[(ai * zz(k) + j) * ng + g] = m[j * ng + g];
       }
-      out = vmat(mm, static_cast<int>(ng), static_cast<int>(zz(k) * nl));
+      out = vmat(mm, sat<int>(ng), sat<int>(zz(k) * nl));
       return true;
     }
     if (avg == 0) {
@@ -2032,13 +2032,13 @@ bool windiv(Ctx &c, Val &out) {
         if (!ok2[i]) continue;
         const double s = asec(dir[i], width, start, paper);
         if (std::isnan(s)) continue;
-        ++tab[zz(gk.c[i])][zz(static_cast<int>(s) - 1)];
+        ++tab[zz(gk.c[i])][zz(sat<int>(s) - 1)];
         hit[zz(gk.c[i])] = 1;
       }
       dir.assign(ng, NA);
       for (std::size_t g = 0; g < ng; ++g) {
         if (!hit[g]) continue;
-        const int md = static_cast<int>(std::max_element(tab[g].begin(), tab[g].end()) - tab[g].begin()) + 1;
+        const int md = sat<int>(std::max_element(tab[g].begin(), tab[g].end()) - tab[g].begin()) + 1;
         dir[g] = rmod(start + (md - 0.5) * width, 360);
       }
     }
@@ -2050,7 +2050,7 @@ bool windiv(Ctx &c, Val &out) {
       const double a = rmod(dir[i] - s1, 360), b = rmod(s2 - s1, 360);
       v[i] = std::isnan(a) || std::isnan(b) ? NA : (a < b ? 1.0 : 0.0);
     }
-    out = vmat(v, static_cast<int>(m), 1);
+    out = vmat(v, sat<int>(m), 1);
     return true;
   }
   std::vector<int> ac;
@@ -2060,16 +2060,16 @@ bool windiv(Ctx &c, Val &out) {
     std::sort(lev.begin(), lev.end());
     lev.erase(std::unique(lev.begin(), lev.end()), lev.end());
     for (const std::string &s : area) {
-      ac.push_back(static_cast<int>(std::lower_bound(lev.begin(), lev.end(), s) - lev.begin()));
+      ac.push_back(sat<int>(std::lower_bound(lev.begin(), lev.end(), s) - lev.begin()));
     }
-    na = static_cast<int>(lev.size());
+    na = sat<int>(lev.size());
   }
   std::vector<double> w;
   int k = 0;
   if (wbin(c, dir, width, start, area.empty() ? nullptr : &ac, na, base - 1, paper ? 1 : 0, w, k) != CLAB_OK) {
     return false;
   }
-  out = vmat(w, static_cast<int>(m), k);
+  out = vmat(w, sat<int>(m), k);
   return true;
 }
 
@@ -2101,8 +2101,8 @@ bool invby(Ctx &c, const std::vector<double> &up, int sg, int rule, Val &out) {
   std::vector<std::vector<double>> u(ng);
   for (std::size_t i = 0; i < n; ++i) {
     const std::size_t k =
-        num ? static_cast<std::size_t>(std::lower_bound(lv.begin(), lv.end(), gv[i]) - lv.begin())
-            : static_cast<std::size_t>(std::lower_bound(ls.begin(), ls.end(), gs[i]) - ls.begin());
+        num ? sat<std::size_t>(std::lower_bound(lv.begin(), lv.end(), gv[i]) - lv.begin())
+            : sat<std::size_t>(std::lower_bound(ls.begin(), ls.end(), gs[i]) - ls.begin());
     if (std::isfinite(up[i])) u[k].push_back(up[i]);
   }
   std::vector<double> nn(ng), df(ng);
@@ -2308,7 +2308,7 @@ bool smkiv(Ctx &c, Val &out) {
     // the meteorological season of each date: civil month of a day number
     static const char *const sn[] = {"DJF", "MAM", "JJA", "SON"};
     for (double t : colv(*fc(d, pud[2]))) {
-      const std::int64_t zd = static_cast<std::int64_t>(std::floor(t)) + 719468;
+      const std::int64_t zd = sat<std::int64_t>(std::floor(t)) + 719468;
       const std::int64_t era = (zd >= 0 ? zd : zd - 146096) / 146097, doe = zd - era * 146097;
       const std::int64_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
       const std::int64_t mp = (5 * (doe - (365 * yoe + yoe / 4 - yoe / 100)) + 2) / 153;
@@ -2438,7 +2438,7 @@ bool exprun(Ctx &c, Val &out) {
   const std::vector<double> tv = colv(tc);
   const std::size_t n = e.size();
   std::vector<int> run(n), ord(n);
-  const int rc = clab_runlen(u.c.data(), tv.data(), e.data(), static_cast<int>(n), step, run.data(), ord.data());
+  const int rc = clab_runlen(u.c.data(), tv.data(), e.data(), sat<int>(n), step, run.data(), ord.data());
   if (rc == CLAB_EDOM) {
     c.err = "exprun: a unit has two rows on one day: give one row per unit and day.";
     return false;
@@ -2562,8 +2562,8 @@ bool updwn(Ctx &c, Val &out) {
   static const char *const labs[] = {"downwind", "upwind", "along", "nosource", "twosources", "onsource", "missing"};
   // labs by dn: 1 downwind, 0 upwind, -1 along, ... -5 missing
   auto li = [](int dn) { return zz(dn == 1 ? 0 : 1 - dn); };
-  const std::vector<double> axv(xy.begin(), xy.begin() + static_cast<std::ptrdiff_t>(n)),
-      ayv(xy.begin() + static_cast<std::ptrdiff_t>(n), xy.end());
+  const std::vector<double> axv(xy.begin(), xy.begin() + sat<std::ptrdiff_t>(n)),
+      ayv(xy.begin() + sat<std::ptrdiff_t>(n), xy.end());
   struct K {
     std::vector<int> src, side, dn, row;
     std::vector<double> dst;
@@ -2577,15 +2577,15 @@ bool updwn(Ctx &c, Val &out) {
                   const std::vector<double> &b1, std::size_t j0, std::size_t j1, int tw, K &k) {
     std::vector<int> sr(n), sd(n), dn(n);
     std::vector<double> ds(n);
-    const int rc = clab_updwn(pd(axv), pd(ayv), pd(wd), static_cast<int>(n), &a0[j0], &b0[j0], &a1[j0], &b1[j0],
-                              static_cast<int>(j1 - j0), band, tol, tw, sr.data(), sd.data(), dn.data(), ds.data());
+    const int rc = clab_updwn(pd(axv), pd(ayv), pd(wd), sat<int>(n), &a0[j0], &b0[j0], &a1[j0], &b1[j0],
+                              sat<int>(j1 - j0), band, tol, tw, sr.data(), sd.data(), dn.data(), ds.data());
     if (rc != CLAB_OK) return kerr(c, "updwn", rc);
     for (std::size_t i = 0; i < n; ++i) {
-      k.src.push_back(sr[i] < 0 ? -1 : sr[i] + 1 + static_cast<int>(j0));
+      k.src.push_back(sr[i] < 0 ? -1 : sr[i] + 1 + sat<int>(j0));
       k.side.push_back(sd[i]);
       k.dn.push_back(dn[i]);
       k.dst.push_back(ds[i]);
-      k.row.push_back(static_cast<int>(i) + 1);
+      k.row.push_back(sat<int>(i) + 1);
     }
     return true;
   };

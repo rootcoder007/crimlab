@@ -73,7 +73,7 @@ inline Val vmat(const double *x, int nr, int nc) {
   Val v = varr();
   for (int i = 0; i < nr; ++i) {
     Val r = varr();
-    for (int j = 0; j < nc; ++j) r.a.push_back(vnum(x[i + static_cast<std::size_t>(nr) * j]));
+    for (int j = 0; j < nc; ++j) r.a.push_back(vnum(x[i + sat<std::size_t>(nr) * j]));
     v.a.push_back(r);
   }
   return v;
@@ -84,7 +84,7 @@ inline Val vlmat(const int *x, int nr, int nc) {
   for (int i = 0; i < nr; ++i) {
     Val r = varr();
     for (int j = 0; j < nc; ++j) {
-      const int e = x[i + static_cast<std::size_t>(nr) * j];
+      const int e = x[i + sat<std::size_t>(nr) * j];
       r.a.push_back(e < 0 ? Val() : vbool(e != 0));
     }
     v.a.push_back(r);
@@ -99,7 +99,7 @@ inline Val varr3(const double *x, const int *d) {
     for (int j = 0; j < d[1]; ++j) {
       Val s = varr();
       for (int k = 0; k < d[2]; ++k) {
-        s.a.push_back(vnum(x[i + static_cast<std::size_t>(d[0]) * (j + static_cast<std::size_t>(d[1]) * k)]));
+        s.a.push_back(vnum(x[i + sat<std::size_t>(d[0]) * (j + sat<std::size_t>(d[1]) * k)]));
       }
       r.a.push_back(s);
     }
@@ -109,7 +109,7 @@ inline Val varr3(const double *x, const int *d) {
 }
 inline Val vstrs(const std::vector<std::string> &x, const std::vector<int> &code) {
   Val v = varr();
-  for (int k : code) v.a.push_back(k < 0 ? Val() : vstr(x[static_cast<std::size_t>(k)]));
+  for (int k : code) v.a.push_back(k < 0 ? Val() : vstr(x[sat<std::size_t>(k)]));
   return v;
 }
 
@@ -198,7 +198,7 @@ struct Lab {
   int g = 0;
 };
 inline bool codes(Ctx &c, const Val &o, const char *nm, std::size_t n, Lab &L) {
-  if (vlen(o) != n) return c.fail("`%s` must have one label per value, %d.", nm, static_cast<int>(n));
+  if (vlen(o) != n) return c.fail("`%s` must have one label per value, %d.", nm, sat<int>(n));
   std::vector<std::string> s;
   if (!alabs(o, s)) {
     return c.fail("`%s` must be labels (numbers, text or a factor) with no missing values.", nm);
@@ -207,16 +207,16 @@ inline bool codes(Ctx &c, const Val &o, const char *nm, std::size_t n, Lab &L) {
     if (e.t == Val::ARR || e.t == Val::OBJ) return notvec(c, nm);
   }
   std::vector<int> ord(n);
-  for (std::size_t i = 0; i < n; ++i) ord[i] = static_cast<int>(i);
+  for (std::size_t i = 0; i < n; ++i) ord[i] = sat<int>(i);
   std::stable_sort(ord.begin(), ord.end(), [&s](int a, int b) {
-    return std::strcmp(s[static_cast<std::size_t>(a)].c_str(), s[static_cast<std::size_t>(b)].c_str()) < 0;
+    return std::strcmp(s[sat<std::size_t>(a)].c_str(), s[sat<std::size_t>(b)].c_str()) < 0;
   });
   L.code.assign(n, 0);
   L.lev.clear();
   int g = -1;
   for (std::size_t q = 0; q < n; ++q) {
-    const std::size_t i = static_cast<std::size_t>(ord[q]);
-    if (q == 0 || s[static_cast<std::size_t>(ord[q - 1])] != s[i]) {
+    const std::size_t i = sat<std::size_t>(ord[q]);
+    if (q == 0 || s[sat<std::size_t>(ord[q - 1])] != s[i]) {
       ++g;
       L.lev.push_back(s[i]);
     }
@@ -233,7 +233,7 @@ inline bool bin01(Ctx &c, const Val &o, const char *nm, std::size_t n, std::vect
   if (vlen(o) != n) return c.fail(m, nm);
   auto one1 = [&b](const Val &e) {
     if (e.t == Val::BOOL) b.push_back(e.b ? 1 : 0);
-    else if (e.t == Val::NUM && (e.n == 0 || e.n == 1)) b.push_back(static_cast<int>(e.n));
+    else if (e.t == Val::NUM && (e.n == 0 || e.n == 1)) b.push_back(sat<int>(e.n));
     else return false;
     return true;
   };
@@ -254,18 +254,18 @@ inline bool rref(Ctx &c, const Val &r, const std::vector<std::string> &g, const 
   if (e->t == Val::STR) {
     for (std::size_t k = 0; k < g.size(); ++k) {
       if (g[k] == e->s) {
-        i = static_cast<int>(k) + 1;
+        i = sat<int>(k) + 1;
         return true;
       }
     }
     return c.fail("`%s` names no %s: %s.", an, what, e->s.c_str());
   }
   const double v = val1(r);
-  const int n = static_cast<int>(g.size());
+  const int n = sat<int>(g.size());
   if (std::isnan(v) || v != std::floor(v) || v < 1 || v > n) {
     return c.fail("`%s` must be one %s name or a position from 1 to %d.", an, what, n);
   }
-  i = static_cast<int>(v);
+  i = sat<int>(v);
   return true;
 }
 
@@ -276,8 +276,8 @@ inline bool rref(Ctx &c, const Val &r, const std::vector<std::string> &g, const 
 inline bool shape(const Val &o, int nd, int *dim, int at) {
   double x = 0.0;
   if (at == nd) return o.t == Val::NUM || o.t == Val::NUL || snum(o, x);
-  if (o.t != Val::ARR || o.a.size() > static_cast<std::size_t>(INT_MAX)) return false;
-  const int n = static_cast<int>(o.a.size());
+  if (o.t != Val::ARR || o.a.size() > sat<std::size_t>(INT_MAX)) return false;
+  const int n = sat<int>(o.a.size());
   if (dim[at] < 0) dim[at] = n;
   if (dim[at] != n) return false;
   if (n == 0) {
@@ -299,7 +299,7 @@ inline void fill(const Val &o, int nd, const int *dim, int at, std::size_t off, 
     return;
   }
   for (std::size_t i = 0; i < o.a.size(); ++i) {
-    fill(o.a[i], nd, dim, at + 1, off + i * step, step * static_cast<std::size_t>(dim[at]), v, bad, na);
+    fill(o.a[i], nd, dim, at + 1, off + i * step, step * sat<std::size_t>(dim[at]), v, bad, na);
   }
 }
 inline bool narr(Ctx &c, const Val &o, const char *nm, int nd, int *dim, std::vector<double> &v, bool na = false) {
@@ -310,7 +310,7 @@ inline bool narr(Ctx &c, const Val &o, const char *nm, int nd, int *dim, std::ve
   double tot = 1;
   for (int j = 0; j < nd; ++j) tot *= dim[j];
   if (tot > 4503599627370496.0) return c.fail("`%s` is too large.", nm);
-  v.assign(static_cast<std::size_t>(tot), 0.0);
+  v.assign(sat<std::size_t>(tot), 0.0);
   bool bad = false;
   fill(o, nd, dim, 0, 0, 1, v, bad, na);
   if (bad) return c.fail(na ? "`%s` must hold finite numbers or NA." : "`%s` must hold finite numbers.", nm);
@@ -371,7 +371,7 @@ inline bool vbyname(Ctx &c, std::vector<std::pair<const char *, Val *>> as) {
         return c.fail("`%s` must name the same units as `%s`; `%s` has no %s.", as[g[q]].first, as[g[0]].first,
                       as[g[q]].first, f.k[i].c_str());
       }
-      put(o, f.k[i].c_str(), d.a[static_cast<std::size_t>(it - d.k.begin())]);
+      put(o, f.k[i].c_str(), d.a[sat<std::size_t>(it - d.k.begin())]);
     }
     d = o;
   }
@@ -441,7 +441,7 @@ constexpr double deg = 3.14159265358979323846 / 180.0;
 
 inline int find(const std::vector<std::string> &nm, const char *a) {
   for (std::size_t j = 0; j < nm.size(); ++j) {
-    if (nm[j] == a) return static_cast<int>(j);
+    if (nm[j] == a) return sat<int>(j);
   }
   return -1;
 }
@@ -464,7 +464,7 @@ inline bool xy(Ctx &c, const Val &x, const Val &y, Mode m, Pts &p) {
       nm = x.k;
       nc = x.a.size();
     } else if (x.t == Val::ARR && !x.a.empty() && shape(x, 2, dim, 0)) {
-      nc = static_cast<std::size_t>(dim[1]);
+      nc = sat<std::size_t>(dim[1]);
     } else {
       return c.fail("`y` is missing: give `x` and `y`, or a matrix or data frame of coordinates as `x`.");
     }
@@ -499,22 +499,22 @@ inline bool xy(Ctx &c, const Val &x, const Val &y, Mode m, Pts &p) {
     }
     if (isll && !p.ll) return c.fail("columns lon and lat hold degrees: set `lonlat = TRUE`.");
     if (lst) {
-      cx = x.a[static_cast<std::size_t>(jx)];
-      cy = x.a[static_cast<std::size_t>(jy)];
+      cx = x.a[sat<std::size_t>(jx)];
+      cy = x.a[sat<std::size_t>(jy)];
     } else {
       cx = varr();
       cy = varr();
       for (const Val &r : x.a) {
-        cx.a.push_back(r.a[static_cast<std::size_t>(jx)]);
-        cy.a.push_back(r.a[static_cast<std::size_t>(jy)]);
+        cx.a.push_back(r.a[sat<std::size_t>(jx)]);
+        cy.a.push_back(r.a[sat<std::size_t>(jy)]);
       }
     }
   }
   CK(vbyname(c, {{"x", &cx}, {"y", &cy}}));
   Dv vx, vy;
   CK(num(c, cx, nx, vx));
-  CK(num(c, cy, ny, vy, static_cast<std::int64_t>(vx.n())));
-  p.n = static_cast<int>(vx.n());
+  CK(num(c, cy, ny, vy, sat<std::int64_t>(vx.n())));
+  p.n = sat<int>(vx.n());
   if (!p.ll) {
     p.x = vx.v;
     p.y = vy.v;
@@ -522,7 +522,7 @@ inline bool xy(Ctx &c, const Val &x, const Val &y, Mode m, Pts &p) {
   }
   double ss = 0.0, sc = 0.0, sl = 0.0;
   for (int i = 0; i < p.n; ++i) {
-    const double lo = vx.v[static_cast<std::size_t>(i)], la = vy.v[static_cast<std::size_t>(i)];
+    const double lo = vx.v[sat<std::size_t>(i)], la = vy.v[sat<std::size_t>(i)];
     if (lo < -180.0 || lo > 180.0) return c.fail("`%s` must be longitudes from -180 to 180.", nx);
     if (la < -90.0 || la > 90.0) return c.fail("`%s` must be latitudes from -90 to 90.", ny);
     ss += std::sin(lo * deg);
@@ -568,7 +568,7 @@ inline void back(const Pts &p, double *px, double *py, int n) {
 inline bool win(Ctx &c, const Val &s, double *w) {
   Dv v;
   CK(num(c, s, "win", v, 4));
-  for (int j = 0; j < 4; ++j) w[j] = v[static_cast<std::size_t>(j)];
+  for (int j = 0; j < 4; ++j) w[j] = v[sat<std::size_t>(j)];
   if (!(w[0] < w[1] && w[2] < w[3])) {
     return c.fail("`win` must be c(xmin, xmax, ymin, ymax) with xmin < xmax and ymin < ymax.");
   }
@@ -581,7 +581,7 @@ inline bool pwts(Ctx &c, const Val &w, std::size_t n, std::vector<double> &out) 
   out.clear();
   if (w.t == Val::NUL) return true;
   Dv v;
-  CK(num(c, w, "w", v, static_cast<std::int64_t>(n), 0.0));
+  CK(num(c, w, "w", v, sat<std::int64_t>(n), 0.0));
   bool any = false;
   for (double e : v.v) any = any || e > 0;
   if (!any) return c.fail("`w` must have a positive sum.");
@@ -615,7 +615,7 @@ inline double na(double v) { return std::isnan(v) ? NA : v; }
 inline bool nna(Ctx &c, const Val &x, const char *nm, std::int64_t n, std::vector<double> &v) {
   const char *m = "`%s` must be numbers or NA, one per case or one for all.";
   const std::size_t k = vlen(x);
-  bool ok = k >= 1 && (n < 0 || k == static_cast<std::size_t>(n) || k == 1);
+  bool ok = k >= 1 && (n < 0 || k == sat<std::size_t>(n) || k == 1);
   std::vector<double> d;
   const bool arr = x.t == Val::ARR || x.t == Val::OBJ;
   for (std::size_t i = 0; ok && i < k; ++i) {
@@ -626,7 +626,7 @@ inline bool nna(Ctx &c, const Val &x, const char *nm, std::int64_t n, std::vecto
     else ok = false;
   }
   if (!ok) return c.fail(m, nm);
-  const std::size_t out = n < 0 ? k : static_cast<std::size_t>(n);
+  const std::size_t out = n < 0 ? k : sat<std::size_t>(n);
   v.assign(out, 0.0);
   for (std::size_t i = 0; i < out; ++i) {
     v[i] = d[k == 1 ? 0 : i];
@@ -641,8 +641,8 @@ inline bool bmat(Ctx &c, const Val &x, const char *nm, int nc, int &nr, std::vec
   int dim[2] = {-1, -1};
   const bool m = x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR && shape(x, 2, dim, 0);
   const bool vec = isnum(x);
-  const std::size_t r = m ? static_cast<std::size_t>(dim[0]) : vlen(x), k = m ? static_cast<std::size_t>(dim[1]) : 1;
-  if (!(m || vec) || r < 1 || (nc >= 0 && k != static_cast<std::size_t>(nc))) {
+  const std::size_t r = m ? sat<std::size_t>(dim[0]) : vlen(x), k = m ? sat<std::size_t>(dim[1]) : 1;
+  if (!(m || vec) || r < 1 || (nc >= 0 && k != sat<std::size_t>(nc))) {
     if (nc >= 0) return c.fail("`%s` must be a numeric matrix of %d columns.", nm, nc);
     return c.fail("`%s` must be a numeric matrix.", nm);
   }
@@ -656,8 +656,8 @@ inline bool bmat(Ctx &c, const Val &x, const char *nm, int nc, int &nr, std::vec
   for (double e : v) {
     if (!std::isfinite(e) || e < lo) return c.fail("`%s` must hold finite numbers from %g.", nm, lo);
   }
-  if (r > static_cast<std::size_t>(INT_MAX)) return c.fail("`%s` is too long for crimlab.", nm);
-  nr = static_cast<int>(r);
+  if (r > sat<std::size_t>(INT_MAX)) return c.fail("`%s` is too long for crimlab.", nm);
+  nr = sat<int>(r);
   return true;
 }
 // Codes from 0 (-1 for NA) as the labels of a factor over lev.
@@ -674,7 +674,7 @@ inline bool perlev(Ctx &c, const Val &x, const char *nm, const std::vector<std::
   const std::size_t k = lev.size();
   out.assign(k, 0.0);
   if (d.nm.empty()) {
-    if (d.n() != k) return c.fail("`%s` must have one value per label, %d, or be named by label.", nm, static_cast<int>(k));
+    if (d.n() != k) return c.fail("`%s` must have one value per label, %d, or be named by label.", nm, sat<int>(k));
     out = d.v;
     return true;
   }
@@ -682,7 +682,7 @@ inline bool perlev(Ctx &c, const Val &x, const char *nm, const std::vector<std::
   for (std::size_t i = 0; i < d.n(); ++i) {
     const auto f = std::find(lev.begin(), lev.end(), d.nm[i]);
     if (f == lev.end()) continue;
-    const std::size_t j = static_cast<std::size_t>(f - lev.begin());
+    const std::size_t j = sat<std::size_t>(f - lev.begin());
     if (seen[j]++) return c.fail("`%s` names %s twice.", nm, d.nm[i].c_str());
     out[j] = d.v[i];
   }

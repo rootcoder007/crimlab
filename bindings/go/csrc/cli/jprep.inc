@@ -66,7 +66,7 @@ std::string lab(const Col &x, std::size_t i) {
     case Col::STR: return x.s[i];
     case Col::NUM: return rfmt(x.d[i]);
     case Col::LGL: return x.d[i] != 0 ? "TRUE" : "FALSE";
-    case Col::FAC: return x.lev[static_cast<std::size_t>(x.d[i]) - 1];
+    case Col::FAC: return x.lev[sat<std::size_t>(x.d[i]) - 1];
   }
   return std::string();
 }
@@ -370,8 +370,8 @@ bool prc(Pr &p, const Col *x, const std::string &s, std::size_t n, V &v) {
         const std::string l = lab(cx, i);
         const double st = a < 1 ? 1 : a;
         if (st <= b) {
-          const std::size_t i0 = cpos(l, static_cast<std::size_t>(st) - 1);
-          const std::size_t i1 = cpos(l, static_cast<std::size_t>(b));
+          const std::size_t i0 = cpos(l, sat<std::size_t>(st) - 1);
+          const std::size_t i1 = cpos(l, sat<std::size_t>(b));
           if (i0 < i1) t = l.substr(i0, i1 - i0);
         }
       }
@@ -415,7 +415,7 @@ double q7(std::vector<double> x, double q) {
   std::sort(x.begin(), x.end());
   const double ix = 1 + static_cast<double>(n - 1) * q;
   const double lo = std::floor(ix), hi = std::ceil(ix);
-  const double a = x[static_cast<std::size_t>(lo) - 1], b = x[static_cast<std::size_t>(hi) - 1];
+  const double a = x[sat<std::size_t>(lo) - 1], b = x[sat<std::size_t>(hi) - 1];
   if (!(ix > lo && b != a)) return a;
   const double h = ix - lo;
   return (1 - h) * a + h * b;
@@ -470,7 +470,7 @@ bool pyrows(Pr &p, Tbl d, bool extra, Pyr &y) {
     double v = a != b;
     if (i > 0 && key[i] == key[i - 1] && a != lab(ra, i - 1)) v += 1;
     y.vmrow.push_back(v);
-    const std::size_t j = static_cast<std::size_t>(std::find(seen.begin(), seen.end(), key[i]) - seen.begin());
+    const std::size_t j = sat<std::size_t>(std::find(seen.begin(), seen.end(), key[i]) - seen.begin());
     if (j == seen.size()) {
       seen.push_back(key[i]);
       y.g.emplace_back();
@@ -623,7 +623,7 @@ bool recipe(Pr &p, const std::string &name, const std::string &arg, Tbl &d) {
   }
   if (name == "gent") {
     const std::vector<std::string> a = split(arg, ',');
-    std::vector<std::string> four(a.begin(), a.begin() + static_cast<std::ptrdiff_t>(std::min<std::size_t>(4, a.size())));
+    std::vector<std::string> four(a.begin(), a.begin() + sat<std::ptrdiff_t>(std::min<std::size_t>(4, a.size())));
     while (four.size() < 4) four.push_back("NA");
     if (!keep(p, d, four, false)) return false;
     bool bad = false;
@@ -637,7 +637,7 @@ bool recipe(Pr &p, const std::string &name, const std::string &arg, Tbl &d) {
     double cut[4];
     for (int k = 0; k < 4; ++k) {
       bool w = false;
-      v.push_back(asnum(*d.col(four[static_cast<std::size_t>(k)]), w));
+      v.push_back(asnum(*d.col(four[sat<std::size_t>(k)]), w));
       if (w) p.coerce();
       const double q = k < 2 ? q1 : q2;
       cut[k] = std::isnan(q) ? NA : q7(v.back().d, q);
@@ -660,7 +660,7 @@ bool recipe(Pr &p, const std::string &name, const std::string &arg, Tbl &d) {
   }
   // pop: count / rate * per
   const std::vector<std::string> a = split(arg, ';');
-  std::vector<std::string> two(a.begin(), a.begin() + static_cast<std::ptrdiff_t>(std::min<std::size_t>(2, a.size())));
+  std::vector<std::string> two(a.begin(), a.begin() + sat<std::ptrdiff_t>(std::min<std::size_t>(2, a.size())));
   while (two.size() < 2) two.push_back("NA");
   if (!keep(p, d, two, false)) return false;
   bool w1 = false, w2 = false, w3 = false;
@@ -753,7 +753,7 @@ bool clprep(Ctx &c, Val &out) {
   Rows tab;
   for (const auto &r : ptsv) {
     std::array<std::string, 9> x;
-    for (int j = 0; j < 9; ++j) x[static_cast<std::size_t>(j)] = r[j];
+    for (int j = 0; j < 9; ++j) x[sat<std::size_t>(j)] = r[j];
     tab.push_back(x);
   }
   const Val &pv = c["preset"];
@@ -778,7 +778,7 @@ bool clprep(Ctx &c, Val &out) {
     // .plist(): one row per preset
     std::vector<std::string> nm, gen, args, src;
     for (const auto &r : tab) {
-      const std::size_t k = static_cast<std::size_t>(std::find(nm.begin(), nm.end(), r[0]) - nm.begin());
+      const std::size_t k = sat<std::size_t>(std::find(nm.begin(), nm.end(), r[0]) - nm.begin());
       if (k == nm.size()) {
         nm.push_back(r[0]);
         gen.push_back(r[1]);

@@ -21,7 +21,7 @@ bool bayout(Ctx &c, Val &out) {
   const Got g = readd(xo, x);
   if (g == NOTNUM || x.n() < 1) return c.fail("`x` must be a numeric vector of counts.");
   if (g == MATRIX) return notvec(c, "x");
-  const int n = static_cast<int>(x.n());
+  const int n = sat<int>(x.n());
   for (double e : x.v) {
     if (!std::isnan(e) && (!(e >= 0) || !std::isfinite(e))) return c.fail("`x` must be counts from 0, or NA.");
   }
@@ -37,17 +37,17 @@ bool bayout(Ctx &c, Val &out) {
   std::vector<int> t;
   if (!c.has("at")) {
     if (n < need) return c.fail("`x` has %d values; the reference window needs at least %.0f.", n, need);
-    for (int q = static_cast<int>(need); q <= n; ++q) t.push_back(q);
+    for (int q = sat<int>(need); q <= n; ++q) t.push_back(q);
   } else {
     Dv a;
     CK(num(c, c["at"], "at", a, -1, 1.0));
     for (double e : a.v) {
       if (e != std::floor(e) || e > n) return c.fail("`at` must be times from 1 to %d.", n);
       if (e < need) return c.fail("time %.0f is too early for the reference window, which needs %.0f.", e, need);
-      t.push_back(static_cast<int>(e));
+      t.push_back(sat<int>(e));
     }
   }
-  const int m = static_cast<int>(t.size());
+  const int m = sat<int>(t.size());
   std::vector<double> ub(zz(m));
   std::vector<int> al2(zz(m));
   const int rc = clab_bayout(x.p(), n, fq, bb, ww, ay, al, t.data(), m, ub.data(), al2.data());
@@ -125,12 +125,12 @@ bool nareas(Ctx &c, int &n) {
   if (w.t == Val::OBJ) {
     const Val &nb = col(w, "neighbours");
     if (nb.t == Val::ARR && col(w, "weights").t != Val::NUL) {
-      n = static_cast<int>(nb.a.size());
+      n = sat<int>(nb.a.size());
       return true;
     }
     const double v = val1(col(w, "n"));
     if (v >= 1 && v <= 1e9 && v == std::floor(v)) {
-      n = static_cast<int>(v);
+      n = sat<int>(v);
       return true;
     }
   }
@@ -175,7 +175,7 @@ bool bym2sc(Ctx &c, Val &out) {
 bool ecolrg(Ctx &c, Val &out) {
   Dv y, e;
   CK(num(c, c["y"], "y", y, -1, 0.0));
-  const int n = static_cast<int>(y.n());
+  const int n = sat<int>(y.n());
   CK(num(c, c["e"], "e", e, n, 0.0, true));
   int p = 0, q = 0;
   std::vector<double> x, z;
@@ -220,14 +220,14 @@ bool spbias(Ctx &c, Val &out) {
     if (!std::isfinite(e) || e != std::floor(e) || e < -1 || e > 2147483647.0) {
       return c.fail("`d` must hold whole numbers from 0, or -1 for an unreachable pair.");
     }
-    di[q] = static_cast<int>(e);
+    di[q] = sat<int>(e);
   }
   Dv b, u;
   CK(num(c, c["b"], "b", b));
   Val dd;
   CK(num(c, arg(c, "ub", dd, -10), "ub", u, 1));
   std::vector<double> o(dv.size());
-  CK(kc(c, clab_spbias(di.data(), dim[0], dim[1], b.p(), static_cast<int>(b.n()), u[0], o.data()),
+  CK(kc(c, clab_spbias(di.data(), dim[0], dim[1], b.p(), sat<int>(b.n()), u[0], o.data()),
         "the kernel refused the input."));
   out = vobj();
   put(out, "bias", vmat(o, dim[0], dim[1]));
@@ -238,7 +238,7 @@ bool spbias(Ctx &c, Val &out) {
 bool spsir(Ctx &c, Val &out) {
   Dv iv, pv;
   CK(num(c, c["i0"], "i0", iv, -1, 0.0));
-  const int n = static_cast<int>(iv.n());
+  const int n = sat<int>(iv.n());
   if (c.has("pop")) {
     CK(num(c, c["pop"], "pop", pv, n, 0.0, true));
   } else {
@@ -260,7 +260,7 @@ bool spsir(Ctx &c, Val &out) {
   CK(oned(c, "dt", 0.1, 0.0, Inf, h));
   const double st = std::nearbyint(tm / h);
   if (st > 1e6) return c.fail("`tmax` / `dt` must be at most 1e6 steps.");
-  const int steps = static_cast<int>(st);
+  const int steps = sat<int>(st);
   const std::size_t T = zz(steps) + 1;
   std::vector<double> S(T * zz(n)), I(S), R(S);
   CK(kc(c, clab_spsir(iv.p(), n, pv.p(), hw ? w.rp.data() : nullptr, hw ? w.ci.data() : nullptr,
@@ -277,9 +277,9 @@ bool spsir(Ctx &c, Val &out) {
   put(out, "attack", vnum(rs / ns));
   put(out, "r0", vnum(bv[0] / gv[0]));
   put(out, "t", vauto(t));
-  put(out, "S", vmat(S, static_cast<int>(T), n));
-  put(out, "I", vmat(I, static_cast<int>(T), n));
-  put(out, "R", vmat(R, static_cast<int>(T), n));
+  put(out, "S", vmat(S, sat<int>(T), n));
+  put(out, "I", vmat(I, sat<int>(T), n));
+  put(out, "R", vmat(R, sat<int>(T), n));
   return true;
 }
 
@@ -287,7 +287,7 @@ bool spsir(Ctx &c, Val &out) {
 bool surv(Ctx &c, Val &out, int kind) {
   Dv t;
   CK(num(c, c["time"], "time", t, -1, 0.0, true));
-  const int n = static_cast<int>(t.n());
+  const int n = sat<int>(t.n());
   std::vector<int> ev;
   CK(bin01(c, c["event"], "event", zz(n), ev));
   std::vector<double> d(ev.begin(), ev.end());
@@ -304,7 +304,7 @@ bool surv(Ctx &c, Val &out, int kind) {
   for (int i = 0; i < n; ++i) {
     const double v = rg[zz(i)];
     if (v != std::floor(v) || v > nr) return c.fail("`reg` must be area numbers from 1 to %d, the rows of `w`.", nr);
-    reg[zz(i)] = static_cast<int>(v) - 1;
+    reg[zz(i)] = sat<int>(v) - 1;
   }
   Dv tu;
   Val d1;
@@ -339,7 +339,7 @@ bool sfcure(Ctx &c, Val &out) { return surv(c, out, 1); }
 bool evfilt(Ctx &c, Val &out) {
   Dv y;
   CK(num(c, c["v"], "v", y));
-  const int n = static_cast<int>(y.n());
+  const int n = sat<int>(y.n());
   if (n < 3) return c.fail("`v` must have at least 3 values.");
   if (kutil::cnst(y.p(), n)) return c.fail("`v` is constant: there is no autocorrelation to filter.");
   Wcsr w;

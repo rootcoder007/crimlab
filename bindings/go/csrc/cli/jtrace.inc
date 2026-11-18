@@ -9,10 +9,10 @@ bool tlvc(Ctx &c, Val &out) {
   std::vector<double> xv;
   CK(nmat(c, c["x"], "x", n, p, xv));
   Lab g;
-  CK(codes(c, c["item"], "item", static_cast<std::size_t>(n), g));
+  CK(codes(c, c["item"], "item", sat<std::size_t>(n), g));
   if (g.g < 2 || n <= g.g) return c.fail("at least 2 items are needed, and more observations than items.");
-  const std::size_t P = static_cast<std::size_t>(p);
-  std::vector<double> mu(P), u(P * P), cv(P * P), wk(static_cast<std::size_t>(g.g) * P + 2 * static_cast<std::size_t>(g.g));
+  const std::size_t P = sat<std::size_t>(p);
+  std::vector<double> mu(P), u(P * P), cv(P * P), wk(sat<std::size_t>(g.g) * P + 2 * sat<std::size_t>(g.g));
   if (clab_tlvc(xv.data(), n, p, g.code.data(), g.g, mu.data(), u.data(), cv.data(), wk.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
@@ -28,7 +28,7 @@ bool tlvlr(Ctx &c, Val &out) {
   if ((bg.t != Val::OBJ && bg.t != Val::ARR) || bg.a.size() != 3) return c.fail("`bg` must be the list tlvc() returns.");
   Dv mu;
   CK(num(c, bg.a[0], "bg$mu", mu));
-  const int p = static_cast<int>(mu.n());
+  const int p = sat<int>(mu.n());
   int r1 = 0, c1 = 0, r2 = 0, c2 = 0;
   std::vector<double> u, cv;
   CK(nmat(c, bg.a[1], "bg$u", r1, c1, u));
@@ -42,7 +42,7 @@ bool tlvlr(Ctx &c, Val &out) {
   double ma = 0.0, mb = 0.0;
   CK(one(c, c["na"], "na", 0.0, Inf, ma));
   CK(one(c, c["nb"], "nb", 0.0, Inf, mb));
-  std::vector<double> wk(static_cast<std::size_t>(p) * p + 2 * static_cast<std::size_t>(p));
+  std::vector<double> wk(sat<std::size_t>(p) * p + 2 * sat<std::size_t>(p));
   double o[2];
   if (clab_tlvlr(u.data(), cv.data(), mu.p(), p, xa.p(), ma, xb.p(), mb, o, wk.data()) != CLAB_OK) {
     return c.fail("a covariance matrix of the model is not positive definite.");
@@ -56,7 +56,7 @@ bool tlvlr(Ctx &c, Val &out) {
 bool skp(Ctx &c, Val &out) {
   Dv v;
   CK(num(c, c["x"], "x", v));
-  const int n = static_cast<int>(v.n());
+  const int n = sat<int>(v.n());
   double s = 0.0, a = 0.0;
   CK(one(c, c["s2"], "s2", 0.0, Inf, s));
   CK(oned(c, "alpha", 0.05, 0.0, 1.0, a));
@@ -81,27 +81,27 @@ bool lwss(Ctx &c, Val &out) {
   Dv xv, yv;
   CK(num(c, a[0], "x", xv));
   const std::size_t n = xv.n();
-  CK(num(c, a[1], "y", yv, static_cast<std::int64_t>(n)));
+  CK(num(c, a[1], "y", yv, sat<std::int64_t>(n)));
   double sp = 0.0;
   CK(oned(c, "f", 2.0 / 3.0, 0.0, Inf, sp));
   int it = 0;
   CK(wholed(c, "iter", 3, 0, it));
   std::vector<int> ord(n);
-  for (std::size_t i = 0; i < n; ++i) ord[i] = static_cast<int>(i);
+  for (std::size_t i = 0; i < n; ++i) ord[i] = sat<int>(i);
   const double *px = xv.p();
   std::stable_sort(ord.begin(), ord.end(), [px](int p, int q) { return px[p] < px[q]; });
   std::vector<double> sx(n), sy(n);
   for (std::size_t i = 0; i < n; ++i) {
     sx[i] = px[ord[i]];
-    sy[i] = yv[static_cast<std::size_t>(ord[i])];
+    sy[i] = yv[sat<std::size_t>(ord[i])];
   }
   const double dl = c.has("delta") ? val1(c["delta"]) : 0.01 * (sx[n - 1] - sx[0]);
   if (!(dl >= 0) || !std::isfinite(dl)) return c.fail("`delta` must be one number from 0.");
   std::vector<double> fit(n), wk(3 * n), o(n);
-  if (clab_lwss(sx.data(), sy.data(), static_cast<int>(n), sp, it, dl, fit.data(), wk.data()) != CLAB_OK) {
+  if (clab_lwss(sx.data(), sy.data(), sat<int>(n), sp, it, dl, fit.data(), wk.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
-  for (std::size_t i = 0; i < n; ++i) o[static_cast<std::size_t>(ord[i])] = fit[i];
+  for (std::size_t i = 0; i < n; ++i) o[sat<std::size_t>(ord[i])] = fit[i];
   out = vauto(o);
   return true;
 }
@@ -110,7 +110,7 @@ bool chmb(Ctx &c, Val &out) {
   Dv av, bv;
   CK(num(c, c["a"], "a", av));
   CK(num(c, c["b"], "b", bv));
-  const int na = static_cast<int>(av.n()), nb = static_cast<int>(bv.n());
+  const int na = sat<int>(av.n()), nb = sat<int>(bv.n());
   int wo = 0, wv = 0;
   CK(whole(c, c["wopt"], "wopt", 2, wo));
   CK(whole(c, c["wval"], "wval", 2, wv));
@@ -151,13 +151,13 @@ bool tfrp(Ctx &c, Val &out) {
   if (clab_tfrw(pv.p(), de ? 1 : 0, td, ym, h, q, &wl) != CLAB_OK) {
     return c.fail("`par` is outside the model's domain, or `hl` is outside 1e-4 to 1, or `nq` above 100000.");
   }
-  std::vector<double> wk(static_cast<std::size_t>(wl)), p(static_cast<std::size_t>(ym) + 1),
-      se(static_cast<std::size_t>(ym) + 1), y(static_cast<std::size_t>(ym) + 1);
+  std::vector<double> wk(sat<std::size_t>(wl)), p(sat<std::size_t>(ym) + 1),
+      se(sat<std::size_t>(ym) + 1), y(sat<std::size_t>(ym) + 1);
   double cut[2];
   if (clab_tfrp(pv.p(), de ? 1 : 0, td, ym, ns, s, h, q, p.data(), se.data(), cut, wk.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
-  for (int j = 0; j <= ym; ++j) y[static_cast<std::size_t>(j)] = j;
+  for (int j = 0; j <= ym; ++j) y[sat<std::size_t>(j)] = j;
   Frame f;
   f.num("y", y);
   f.num("p", p);

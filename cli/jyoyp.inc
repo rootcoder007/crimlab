@@ -104,7 +104,7 @@ inline void yplay(Lay &l, const Yt &t, const yh::Show &s, double width, double h
     l.xs.push_back(l.m + (l.W - 2 * l.m) * static_cast<double>(cs));
   }
   const double pf = std::floor((0.82 * height - 0.22 * 1.1) / 0.22);
-  const std::size_t per = static_cast<std::size_t>(std::max(5.0, pf));
+  const std::size_t per = sat<std::size_t>(std::max(5.0, pf));
   for (std::size_t i = 0; i < t.n; ++i) {
     if (i % per == 0) l.pages.emplace_back();
     l.pages.back().push_back(i);
@@ -166,7 +166,7 @@ inline std::string ypdfw(const Strs &st, double W, double H, const std::string &
     std::snprintf(b, sizeof b,
                   "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 %.2f %.2f] /Resources << /Font << /F1 3 0 R /F2 4 0 R "
                   ">> >> /Contents %d 0 R >>",
-                  W, H, static_cast<int>(6 + 2 * k));
+                  W, H, sat<int>(6 + 2 * k));
     obj.push_back(b);
     obj.push_back("<< /Length " + std::to_string(st[k].size()) + " >>\nstream\n" + st[k] + "\nendstream");
   }
@@ -175,7 +175,7 @@ inline std::string ypdfw(const Strs &st, double W, double H, const std::string &
   std::string body, xref = "xref\n0 " + std::to_string(obj.size() + 1) + "\n0000000000 65535 f \n";
   for (std::size_t i = 0; i < obj.size(); ++i) {
     char b[32];
-    std::snprintf(b, sizeof b, "%010d 00000 n \n", static_cast<int>(head.size() + body.size()));
+    std::snprintf(b, sizeof b, "%010d 00000 n \n", sat<int>(head.size() + body.size()));
     xref += b;
     body += std::to_string(i + 1) + " 0 obj\n" + obj[i] + "\nendobj\n";
   }

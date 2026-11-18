@@ -105,7 +105,7 @@ inline bool adimg(Ctx &c, int &k) {
   if (d[0] > 1000) {
     return ckstop(c, "`nimg` must be at most 1,000: the image terms decay geometrically and more add only time");
   }
-  k = static_cast<int>(d[0]);
+  k = sat<int>(d[0]);
   return true;
 }
 
@@ -141,14 +141,14 @@ inline bool adrec(Ctx &c, std::vector<double> &r, int &n) {
     r = x;
     r.insert(r.end(), y.begin(), y.end());
     r.insert(r.end(), z.begin(), z.end());
-    n = static_cast<int>(x.size());
+    n = sat<int>(x.size());
   } else {
     Dv t;
     if (readd(o, t) != NUM || t.n() == 0 || t.n() % 3 != 0) return bad();
-    n = static_cast<int>(t.n() / 3);
-    r.assign(3 * static_cast<std::size_t>(n), 0.0);
+    n = sat<int>(t.n() / 3);
+    r.assign(3 * sat<std::size_t>(n), 0.0);
     for (int i = 0; i < n; ++i) {
-      for (int k = 0; k < 3; ++k) r[static_cast<std::size_t>(k) * n + i] = t[3 * static_cast<std::size_t>(i) + k];
+      for (int k = 0; k < 3; ++k) r[sat<std::size_t>(k) * n + i] = t[3 * sat<std::size_t>(i) + k];
     }
   }
   for (double v : r) {
@@ -160,7 +160,7 @@ inline bool adrec(Ctx &c, std::vector<double> &r, int &n) {
 inline void adhts(Ctx &c, const std::vector<double> &r, int n, double lid) {
   int lo = 0, hi = 0;
   for (int i = 0; i < n; ++i) {
-    const double z = r[2 * static_cast<std::size_t>(n) + i];
+    const double z = r[2 * sat<std::size_t>(n) + i];
     lo += z < 0;
     hi += !std::isnan(lid) && z > lid;
   }
@@ -184,7 +184,7 @@ bool pgsig(Ctx &c, Val &out) {
   Nv x;
   CK(adnum(c, c["x"], "x", x, 0, false, false));
   std::vector<double> sy(x.n()), sz(x.n());
-  CK(kchk(c, clab_pgsig(x.p(), static_cast<int>(x.n()), k, u, sy.data(), sz.data())));
+  CK(kchk(c, clab_pgsig(x.p(), sat<int>(x.n()), k, u, sy.data(), sz.data())));
   out = vobj();
   put(out, "sigmay", vauto(sy));
   put(out, "sigmaz", vauto(sz));
@@ -223,7 +223,7 @@ bool briggs(Ctx &c, Val &out) {
   }
   double o[3];
   std::vector<double> rise(x.n());
-  CK(kchk(c, clab_briggs(x.p(), static_cast<int>(x.n()), u, di[0], ev[0], std::max(ts[0], ta[0]), ta[0], k, lap,
+  CK(kchk(c, clab_briggs(x.p(), sat<int>(x.n()), u, di[0], ev[0], std::max(ts[0], ta[0]), ta[0], k, lap,
                          g[0], o, rise.data())));
   out = vobj();
   put(out, "flux", vnum(o[0]));
@@ -251,7 +251,7 @@ bool plume(Ctx &c, Val &out, bool puff) {
   int k = 0, ur = 0;
   CK(adcls(c, k));
   CK(adset(c, ur));
-  std::vector<double> v(static_cast<std::size_t>(n));
+  std::vector<double> v(sat<std::size_t>(n));
   if (puff) {
     CK(kchk(c, clab_gspuff(q[0], u[0], h[0], r.data(), n, t[0], k, ur, lid, ni, v.data())));
   } else {
@@ -313,7 +313,7 @@ bool plmfld(Ctx &c, Val &out) {
   Nv h;
   CK(adnum(c, c["h"], "h", h, 0));
   out = vobj();
-  put(out, "field", vmat(f, static_cast<int>(nx), static_cast<int>(ny)));
+  put(out, "field", vmat(f, sat<int>(nx), sat<int>(ny)));
   put(out, "x", vauto(x.v));
   put(out, "y", vauto(y.v));
   put(out, "dx", ddx.empty() ? Val() : vnum(med(ddx)));
@@ -328,9 +328,9 @@ inline std::string bigm(double x) {
   char b[64];
   std::snprintf(b, sizeof b, "%.0f", std::fabs(x));
   std::string s = b, r;
-  const int n = static_cast<int>(s.size());
+  const int n = sat<int>(s.size());
   for (int i = 0; i < n; ++i) {
-    r += s[static_cast<std::size_t>(i)];
+    r += s[sat<std::size_t>(i)];
     if ((n - i - 1) % 3 == 0 && i < n - 1) r += ',';
   }
   return x < 0 ? "-" + r : r;
@@ -345,7 +345,7 @@ bool advdif2d(Ctx &c, Val &out) {
     if (o.t != Val::ARR || o.a.empty() || o.a[0].t != Val::ARR || !shape(o, 2, d, 0)) {
       return ckstop(c, "`c0` must be a numeric matrix (one row per x cell, one column per y cell)");
     }
-    c0.assign(static_cast<std::size_t>(d[0]) * static_cast<std::size_t>(d[1]), 0.0);
+    c0.assign(sat<std::size_t>(d[0]) * sat<std::size_t>(d[1]), 0.0);
     bool bad = false;
     fill(o, 2, d, 0, 0, 1, c0, bad, true);
     nx = d[0];
@@ -421,7 +421,7 @@ bool advdif2d(Ctx &c, Val &out) {
                   "advdif2d: explicit scheme outside its stability bound (|u dt/dx| + |v dt/dy| + 2 (kx dt/dx^2 + ky "
                   "dt/dy^2) = %.3f > 1): each step is taken as %d sub-steps of dt/%d; pass a smaller dt to silence "
                   "this.",
-                  b[4], static_cast<int>(sub), static_cast<int>(sub));
+                  b[4], sat<int>(sub), sat<int>(sub));
     c.warn.push_back(w);
     t = t / sub;
     nb(t, b);
@@ -500,11 +500,11 @@ bool lagrprt(Ctx &c, Val &out) {
                     bigm(g[4]).c_str(), bigm(g[5]).c_str(), bigm(g[4] * g[5]).c_str(), bigm(maxw).c_str());
     }
   }
-  const int m = static_cast<int>(n[0]);
-  std::vector<double> xs(static_cast<std::size_t>(m)), ys(xs);
+  const int m = sat<int>(n[0]);
+  std::vector<double> xs(sat<std::size_t>(m)), ys(xs);
   CK(kchk(c, clab_lagr(m, x0[0], y0[0], u[0], v[0], kx[0], ky[0], dt[0], ns[0], seed, xs.data(), ys.data())));
   double mean[2];
-  std::vector<double> conc(hg ? static_cast<std::size_t>(g[4] * g[5]) : 0);
+  std::vector<double> conc(hg ? sat<std::size_t>(g[4] * g[5]) : 0);
   CK(kchk(c, clab_laggrid(xs.data(), ys.data(), m, hg ? g.p() : nullptr, conc.data(), mean)));
   out = vobj();
   put(out, "x", vauto(xs));
@@ -512,7 +512,7 @@ bool lagrprt(Ctx &c, Val &out) {
   put(out, "mean_x", vnum(mean[0]));
   put(out, "meany", vnum(mean[1]));
   put(out, "grid", hg ? c["grid"] : Val());
-  if (hg) put(out, "concentration", vmat(conc, static_cast<int>(g[4]), static_cast<int>(g[5])));
+  if (hg) put(out, "concentration", vmat(conc, sat<int>(g[4]), sat<int>(g[5])));
   return true;
 }
 
@@ -620,7 +620,7 @@ bool crfv(Ctx &c, bool pm, const Nv &z, const std::string &y, double refc, bool 
     CK(kchk(c, clab_crfpar(pm ? 1 : 0, crfcode(pm, y), &form, par, ci)));
     if (form == 1) ci[0] = ci[1] = NA;
   }
-  const int n = static_cast<int>(z.n());
+  const int n = sat<int>(z.n());
   CK(kchk(c, clab_crf(z.p(), n, refc, form, par, rr.data(), lr.data())));
   if (form == 0 && !std::isnan(ci[0])) {
     std::vector<double> t(z.n());
@@ -884,7 +884,7 @@ bool polbrdarea(Ctx &c, Val &out) {
   for (const std::string &k : {ec, pc, bc}) {
     const Val &cl = col(t, k.c_str());
     if (!isnum(cl)) return ckstop(c, "column `%s` must be numeric (a factor or character column is not a count)", k.c_str());
-    v[static_cast<std::size_t>(q++)] = dbl(cl);
+    v[sat<std::size_t>(q++)] = dbl(cl);
   }
   bool ra = false, hi = false;
   CK(flag01(c, "rare", ra));
@@ -921,7 +921,7 @@ bool polbrdarea(Ctx &c, Val &out) {
       }
       return ckstop(c, "%s", m.c_str());
     }
-    return ckstop(c, "row %d of `areatab` could not be read", static_cast<int>(i + 1));
+    return ckstop(c, "row %d of `areatab` could not be read", sat<int>(i + 1));
   };
   const std::string pol = polkey(c["poll"]);
   const int oc = one && !pol.empty() ? crfcode(pol == "PM2.5", y) : -1;
@@ -931,9 +931,9 @@ bool polbrdarea(Ctx &c, Val &out) {
   std::int64_t bad = 0;
   CK(kchk(c, clab_pbarea(n, v[0].data(), v[1].data(), v[2].data(), pol == "PM2.5" ? 1 : 0, oc, ra ? 1 : 0,
                          hi ? 1 : 0, rr.data(), pf.data(), at.data(), bs.data(), ord.data(), &bad)));
-  if (bad > 0) return refuse(static_cast<std::size_t>(bad - 1));
+  if (bad > 0) return refuse(sat<std::size_t>(bad - 1));
   std::vector<std::size_t> o(n);
-  for (std::size_t i = 0; i < n; ++i) o[i] = static_cast<std::size_t>(ord[i] - 1);
+  for (std::size_t i = 0; i < n; ++i) o[i] = sat<std::size_t>(ord[i] - 1);
   auto pick = [&](const std::vector<double> &x) {
     std::vector<double> r;
     for (std::size_t i : o) r.push_back(x[i]);
@@ -996,7 +996,7 @@ bool expconcidx(Ctx &c, Val &out) {
   const std::size_t n = h.n();
   double o[3];
   std::vector<double> cp(n), ce(n);
-  CK(kchk(c, clab_concidx(h.p(), iv.p(), static_cast<int>(n), o, cp.data(), ce.data())));
+  CK(kchk(c, clab_concidx(h.p(), iv.p(), sat<int>(n), o, cp.data(), ce.data())));
   char b[256];
   if (o[0] < -0.01) {
     std::snprintf(b, sizeof b,

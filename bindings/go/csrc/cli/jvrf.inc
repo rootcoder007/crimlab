@@ -52,7 +52,7 @@ inline std::string rfmt7(double x, bool big, int dig = 7) {
     if (std::isdigit(static_cast<unsigned char>(s[i]))) dg += s[i];
   }
   int nsig = dig;
-  while (nsig > 1 && dg[static_cast<std::size_t>(nsig) - 1] == '0') --nsig;
+  while (nsig > 1 && dg[sat<std::size_t>(nsig) - 1] == '0') --nsig;
   const int neg = x < 0 ? 1 : 0;
   const int rgt = std::max(0, nsig - kp - 1);
   const int wf = neg + (kp >= 0 ? kp + 1 : 1) + (rgt > 0 ? rgt + 1 : 0);
@@ -65,7 +65,7 @@ inline std::string rfmt7(double x, bool big, int dig = 7) {
   std::string o = b;
   if (!big) return o;
   const std::size_t dot = o.find('.') == std::string::npos ? o.size() : o.find('.');
-  for (std::size_t k = dot; k > static_cast<std::size_t>(neg) + 3; k -= 3) o.insert(k - 3, ",");
+  for (std::size_t k = dot; k > sat<std::size_t>(neg) + 3; k -= 3) o.insert(k - 3, ",");
   return o;
 }
 
@@ -237,7 +237,7 @@ struct Zin {
     }
     bb = v >> need;
     bc -= need;
-    return static_cast<int>(v & ((1UL << need) - 1));
+    return sat<int>(v & ((1UL << need) - 1));
   }
 };
 
@@ -302,7 +302,7 @@ inline bool hcodes(Zin &z, const Huf &lc, const Huf &dc) {
       const int len = lb[s] + z.bits(le[s]);
       const int d = hdec(z, dc);
       if (d < 0 || d >= 30) return false;
-      const std::size_t dist = static_cast<std::size_t>(db[d] + z.bits(de[d]));
+      const std::size_t dist = sat<std::size_t>(db[d] + z.bits(de[d]));
       if (z.eof || dist > z.o.size() - z.st) return false;
       for (int k = 0; k < len; ++k) z.o.push_back(z.o[z.o.size() - dist]);
     }
@@ -320,8 +320,8 @@ inline bool stored(Zin &z) {
     z.eof = true;
     return false;
   }
-  const unsigned len = static_cast<unsigned>(z.s[z.p]) | static_cast<unsigned>(z.s[z.p + 1]) << 8;
-  const unsigned nl = static_cast<unsigned>(z.s[z.p + 2]) | static_cast<unsigned>(z.s[z.p + 3]) << 8;
+  const unsigned len = sat<unsigned>(z.s[z.p]) | sat<unsigned>(z.s[z.p + 1]) << 8;
+  const unsigned nl = sat<unsigned>(z.s[z.p + 2]) | sat<unsigned>(z.s[z.p + 3]) << 8;
   z.p += 4;
   if (len != (~nl & 0xffffu)) return false;
   if (z.n - z.p < len) {
@@ -404,7 +404,7 @@ inline std::string gunzip(const std::string &b, std::size_t lim, std::string &o)
     std::size_t q = p + 10;
     if (fl & 4) {
       if (n - q < 2) return bad;
-      q += 2 + (static_cast<std::size_t>(s[q]) | static_cast<std::size_t>(s[q + 1]) << 8);
+      q += 2 + (sat<std::size_t>(s[q]) | sat<std::size_t>(s[q + 1]) << 8);
     }
     for (int f : {8, 16}) {
       if (!(fl & f)) continue;
@@ -645,14 +645,14 @@ inline std::string vpload(const std::string &f, Tab &tb) {
   if (n >= 2 && u[0] == 0x1f && u[1] == 0x8b) {
     const double lim = std::min(std::min(1073741824.0, std::max(67108864.0, 200.0 * static_cast<double>(n))),
                                 2147483646.0);
-    const std::string e = gunzip(b, static_cast<std::size_t>(lim), d);
+    const std::string e = gunzip(b, sat<std::size_t>(lim), d);
     if (!e.empty()) return f + ": " + e;
   } else {
     d.swap(b);
   }
   if (d.empty()) return empty;
   int bom = 0;
-  const int r = clab_txtenc(reinterpret_cast<const unsigned char *>(d.data()), static_cast<std::int64_t>(d.size()), &bom);
+  const int r = clab_txtenc(reinterpret_cast<const unsigned char *>(d.data()), sat<std::int64_t>(d.size()), &bom);
   if (r < 0) return f + ": contains NUL bytes and is not UTF-16 text: not a text CSV";
   if (r > 0) {
     static const char *const en[4] = {"UTF-32LE", "UTF-32BE", "UTF-16LE", "UTF-16BE"};
@@ -679,7 +679,7 @@ struct Src {
 
 inline int coln(const Tab &t, const char *k) {
   for (std::size_t j = 0; j < t.nm.size(); ++j) {
-    if (t.nm[j] == k) return static_cast<int>(j);
+    if (t.nm[j] == k) return sat<int>(j);
   }
   return -1;
 }

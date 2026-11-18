@@ -202,7 +202,7 @@ inline Val cites(const Val &ci) {
   const Val &yr = col(ci, "year");
   if (yr.t == Val::NUM) {
     char b[64];
-    std::snprintf(b, sizeof b, "%d", static_cast<int>(yr.n));
+    std::snprintf(b, sizeof b, "%d", sat<int>(yr.n));
     s.push_back("carbon intensity: " + col(ci, "source").s + " (" + col(ci, "name").s + ", " + b + ")");
   }
   return vstrs(s);
@@ -254,11 +254,11 @@ bool co2fp(Ctx &c, Val &out) {
                          rp ? 1.0 : 0.0};
   const std::size_t nd = dv.kind.size();
   std::vector<double> o(10, 0.0), dout(nd, 0.0);
-  CK(kchk(c, clab_fpe(in, static_cast<int>(r0.size()), r0.data(), r1.empty() ? r0.data() : r1.data(), rmx.data(),
-                      static_cast<int>(nd), dv.w.data(), dv.e.data(), dv.kind.data(), o.data(), dout.data())));
-  const int um = static_cast<int>(o[2]);
+  CK(kchk(c, clab_fpe(in, sat<int>(r0.size()), r0.data(), r1.empty() ? r0.data() : r1.data(), rmx.data(),
+                      sat<int>(nd), dv.w.data(), dv.e.data(), dv.kind.data(), o.data(), dout.data())));
+  const int um = sat<int>(o[2]);
   for (int i = 0; i < 5; ++i) {
-    const char *f = clab_fpnote(i, static_cast<int>(o[4]), um == 1 ? 1 : 0);
+    const char *f = clab_fpnote(i, sat<int>(o[4]), um == 1 ? 1 : 0);
     if (f != nullptr) asm_.push_back(f);
   }
   if (!mn.empty()) asm_.push_back(mn);
@@ -276,13 +276,13 @@ bool co2fp(Ctx &c, Val &out) {
   put(out, "durs", vnum(o[0]));
   put(out, "cputms", vnum(cpu));
   put(out, "usage", vnum(o[1]));
-  put(out, "usagemode", vstr(modes[static_cast<std::size_t>(um)]));
+  put(out, "usagemode", vstr(modes[sat<std::size_t>(um)]));
   put(out, "cores", vnum(a.cores));
   put(out, "memgb", vnum(a.memgb));
   put(out, "enekwh", en);
   put(out, "co2eg", vnum(o[9]));
   put(out, "co2int", ci);
-  put(out, "method", vstr(static_cast<int>(o[3]) == 0 ? "rapl" : "model"));
+  put(out, "method", vstr(sat<int>(o[3]) == 0 ? "rapl" : "model"));
   put(out, "assumptions", vstrs(asm_));
   put(out, "citations", cites(ci));
   if (dv.has) put(out, "devices", devout(dv, dout));

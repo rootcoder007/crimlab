@@ -43,7 +43,7 @@ std::vector<std::string> hpnames(int kind, int base) {
 
 // evtimes() on given values: finite, sorted, in [0, hor], at least nmin.
 bool evtv(Ctx &c, const std::vector<double> &t, double hor, int nmin) {
-  const int n = static_cast<int>(t.size());
+  const int n = sat<int>(t.size());
   if (n < nmin) return c.fail("`times` must hold at least %d events, not %d.", nmin, n);
   for (std::size_t i = 0; i < t.size(); ++i) {
     if (t[i] < 0 || t[i] > hor) return c.fail("`times` must lie between 0 and `hor`.");
@@ -65,15 +65,15 @@ void tiewarn(Ctx &c, const std::vector<double> &t, const char *fn) {
 
 // A covariance matrix as rows, NaN as NA.
 Val covm(const double *cov, int np) {
-  std::vector<double> v(cov, cov + static_cast<std::size_t>(np) * np);
+  std::vector<double> v(cov, cov + sat<std::size_t>(np) * np);
   for (double &e : v) e = na(e);
   return vmat(v, np, np);
 }
 // par, se and cov of a fit, named by nm.
 void pse(Val &out, const std::vector<std::string> &nm, const double *th, const double *cov) {
-  const int np = static_cast<int>(nm.size());
-  std::vector<double> p(th, th + np), s(static_cast<std::size_t>(np));
-  for (int j = 0; j < np; ++j) s[static_cast<std::size_t>(j)] = na(std::sqrt(cov[j * np + j]));
+  const int np = sat<int>(nm.size());
+  std::vector<double> p(th, th + np), s(sat<std::size_t>(np));
+  for (int j = 0; j < np; ++j) s[sat<std::size_t>(j)] = na(std::sqrt(cov[j * np + j]));
   for (double &e : p) e = na(e);
   put(out, "par", nvec(nm, p.data()));
   put(out, "se", nvec(nm, s.data()));
@@ -104,20 +104,20 @@ bool hwkfit(Ctx &c, Val &out) {
       if (e < 0 || e > h) return c.fail("`times` must lie between 0 and `hor`.");
       e += g.unif() * std::fmin(r, h - e);
     }
-    kutil::hsort(t.data(), static_cast<int>(t.size()), [](double a, double b) { return a < b; });
+    kutil::hsort(t.data(), sat<int>(t.size()), [](double a, double b) { return a < b; });
     CK(evtv(c, t, h, 10));
     jit = true;
   } else {
     CK(evtimes(c, h, 10, t));
     tiewarn(c, t, "hwkfit");
   }
-  const int n = static_cast<int>(t.size());
-  const int nc = static_cast<int>(ks.size() * bs.size());
+  const int n = sat<int>(t.size());
+  const int nc = sat<int>(ks.size() * bs.size());
   std::vector<double> st0;
   if (c.has("start")) {
     if (nc > 1) return c.fail("`start` needs one kernel and one baseline.");
     CK(parv(c, "start", ks[0], bs[0], st0));
-    if (!(st0[static_cast<std::size_t>(hnpar(ks[0], bs[0]) - (ks[0] ? 3 : 2))] < 1)) {
+    if (!(st0[sat<std::size_t>(hnpar(ks[0], bs[0]) - (ks[0] ? 3 : 2))] < 1)) {
       return c.fail("`start`: eta must be below 1.");
     }
   }
@@ -127,9 +127,9 @@ bool hwkfit(Ctx &c, Val &out) {
   int bi = -1, bk = 0, bb = 0;
   std::vector<double> bth, bcov, bst;
   for (int q = 0; q < nc; ++q) {
-    const int kd = ks[static_cast<std::size_t>(q) / bs.size()], bd = bs[static_cast<std::size_t>(q) % bs.size()];
+    const int kd = ks[sat<std::size_t>(q) / bs.size()], bd = bs[sat<std::size_t>(q) % bs.size()];
     const int np = hnpar(kd, bd);
-    std::vector<double> th(static_cast<std::size_t>(np)), cov(static_cast<std::size_t>(np * np)), st(3);
+    std::vector<double> th(sat<std::size_t>(np)), cov(sat<std::size_t>(np * np)), st(3);
     if (clab_hwkfit(t.data(), n, h, kd, bd, pr, st0.empty() ? nullptr : st0.data(), mx, th.data(), cov.data(),
                     st.data()) != CLAB_OK) {
       return c.fail("the %s fit failed: the likelihood is not finite at any start.", hkinds[kd]);
@@ -140,9 +140,9 @@ bool hwkfit(Ctx &c, Val &out) {
     ckp.push_back(np);
     ca.push_back(2 * np - 2 * st[0]);
     cbi.push_back(np * std::log(static_cast<double>(n)) - 2 * st[0]);
-    ce.push_back(th[static_cast<std::size_t>(np - (kd ? 3 : 2))]);
+    ce.push_back(th[sat<std::size_t>(np - (kd ? 3 : 2))]);
     cv.push_back(st[2] > 0);
-    if (bi < 0 || ca.back() < ca[static_cast<std::size_t>(bi)]) {
+    if (bi < 0 || ca.back() < ca[sat<std::size_t>(bi)]) {
       bi = q;
       bth = th;
       bcov = cov;
@@ -152,7 +152,7 @@ bool hwkfit(Ctx &c, Val &out) {
     }
   }
   const int np = hnpar(bk, bb);
-  const double eta = bth[static_cast<std::size_t>(np - (bk ? 3 : 2))];
+  const double eta = bth[sat<std::size_t>(np - (bk ? 3 : 2))];
   const double br[4] = {eta, eta < 1 ? 1 / (1 - eta) : Inf, bb == 0 && eta < 1 ? std::exp(bth[0]) / (1 - eta) : NA, eta};
   static const char *const bn[] = {"eta", "size", "rate", "share"};
   if (eta > 0.99) {
@@ -175,11 +175,11 @@ bool hwkfit(Ctx &c, Val &out) {
   out = vobj();
   pse(out, hpnames(bk, bb), bth.data(), bcov.data());
   put(out, "loglik", vnum(bst[0]));
-  put(out, "aic", vnum(ca[static_cast<std::size_t>(bi)]));
-  put(out, "bic", vnum(cbi[static_cast<std::size_t>(bi)]));
+  put(out, "aic", vnum(ca[sat<std::size_t>(bi)]));
+  put(out, "bic", vnum(cbi[sat<std::size_t>(bi)]));
   put(out, "branch", nvec(4, bn, br));
   put(out, "conv", vbool(bst[2] > 0));
-  put(out, "iter", vnum(static_cast<int>(bst[1])));
+  put(out, "iter", vnum(sat<int>(bst[1])));
   put(out, "kernel", vstr(hkinds[bk]));
   put(out, "base", vstr(hbases[bb]));
   put(out, "per", vnum(pr));
@@ -201,7 +201,7 @@ bool periods(Ctx &c, std::size_t n, std::vector<double> &v) {
     return true;
   }
   Dv xv;
-  CK(num(c, c["x"], "x", xv, static_cast<std::int64_t>(n)));
+  CK(num(c, c["x"], "x", xv, sat<std::int64_t>(n)));
   for (std::size_t i = 0; i < n; ++i) {
     v[i] = xv[i];
     if (i > 0 && !(v[i] > v[i - 1])) return c.fail("`x` must be strictly increasing.");
@@ -224,7 +224,7 @@ bool trndrr(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv, -1, 0.0));
   const std::size_t sn = yv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   if (n < 3) return c.fail("`y` must hold at least 3 periods, not %d.", n);
   const double *yy = yv.p();
   std::vector<double> xv;
@@ -326,9 +326,9 @@ bool trndrr(Ctx &c, Val &out) {
     Lab l;
     CK(codes(c, c["seas"], "seas", sn, l));
     if (l.g < 2) return c.fail("`seas` has one season: the test needs two or more.");
-    const std::size_t sg = static_cast<std::size_t>(l.g);
+    const std::size_t sg = sat<std::size_t>(l.g);
     std::vector<double> nn(sg, 0.0), ex(sg, tot / l.g);
-    for (std::size_t i = 0; i < sn; ++i) nn[static_cast<std::size_t>(l.code[i])] += yy[i];
+    for (std::size_t i = 0; i < sn; ++i) nn[sat<std::size_t>(l.code[i])] += yy[i];
     double x2 = 0;
     for (std::size_t g = 0; g < sg; ++g) x2 += (nn[g] - ex[g]) * (nn[g] - ex[g]) / ex[g];
     Frame tab;
@@ -360,7 +360,7 @@ bool cusrv(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv, -1, 0.0));
   const std::size_t sn = yv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   Dv kd;
   Val d1;
   CK(num(c, arg(c, "k", d1, 1.04), "k", kd, 1));
@@ -378,7 +378,7 @@ bool cusrv(Ctx &c, Val &out) {
     --s0;
     if (s0 >= n) return c.fail("`start` must be at most the number of counts, %d.", n);
     double b = 0;
-    for (int i = 0; i < s0; ++i) b += yv[static_cast<std::size_t>(i)] / s0;
+    for (int i = 0; i < s0; ++i) b += yv[sat<std::size_t>(i)] / s0;
     if (!(b > 0)) return c.fail("the counts before `start` are all 0: no expected count.");
     for (double &v : m) v = b;
   } else {
@@ -386,12 +386,12 @@ bool cusrv(Ctx &c, Val &out) {
     CK(num(c, c["expd"], "expd", e, n, 0.0, true));
     m = e.v;
   }
-  const std::size_t nw = sn - static_cast<std::size_t>(s0);
+  const std::size_t nw = sn - sat<std::size_t>(s0);
   std::vector<double> z(nw), s(nw);
   std::vector<int> al(nw);
-  clab_cusrv(yv.p() + s0, m.data() + s0, static_cast<int>(nw), kd[0], hh, t, rs ? 1 : 0, z.data(), s.data(), al.data());
+  clab_cusrv(yv.p() + s0, m.data() + s0, sat<int>(nw), kd[0], hh, t, rs ? 1 : 0, z.data(), s.data(), al.data());
   std::vector<int> ix(nw);
-  for (std::size_t i = 0; i < nw; ++i) ix[i] = s0 + static_cast<int>(i) + 1;
+  for (std::size_t i = 0; i < nw; ++i) ix[i] = s0 + sat<int>(i) + 1;
   std::vector<double> yy(yv.v.begin() + s0, yv.v.end()), mm(m.begin() + s0, m.end());
   for (double &e : z) e = na(e);
   for (double &e : s) e = na(e);
@@ -442,18 +442,18 @@ bool xcser(Ctx &c, Val &out) {
       b.erase(b.begin());
     }
   }
-  const int n = static_cast<int>(a.size());
+  const int n = sat<int>(a.size());
   if (n < 3) return c.fail("the series have %d periods in common: at least 3 are needed.", n);
   double z = 0.0;
   CK(zconf(c, "level", 0.95, z));
-  int lag = std::max(0, std::min(n - 1, static_cast<int>(std::floor(10 * std::log10(n / 2.0)))));
+  int lag = std::max(0, std::min(n - 1, sat<int>(std::floor(10 * std::log10(n / 2.0)))));
   if (c.has("lagmax")) CK(whole(c, c["lagmax"], "lagmax", 0, lag));
   if (lag >= n) return c.fail("`lagmax` must be below the number of periods, %d.", n);
   if (kutil::cnst(a.data(), n)) return c.fail("`%s` is constant: its correlation with any series is undefined.", "x");
   if (kutil::cnst(b.data(), n)) return c.fail("`%s` is constant: its correlation with any series is undefined.", "y");
-  std::vector<double> r(2 * static_cast<std::size_t>(lag) + 1);
+  std::vector<double> r(2 * sat<std::size_t>(lag) + 1);
   if (clab_xcser(a.data(), b.data(), n, lag, r.data()) != CLAB_OK) return c.fail("a series is constant: no correlation.");
-  const double r0 = r[static_cast<std::size_t>(lag)];
+  const double r0 = r[sat<std::size_t>(lag)];
   const double fz = std::atanh(r0), sz = n > 3 ? 1 / std::sqrt(n - 3.0) : NA;
   const double tt = r0 * std::sqrt((n - 2) / (1 - r0 * r0));
   const double cc[4] = {r0, n > 3 ? std::tanh(fz - z * sz) : NA, n > 3 ? std::tanh(fz + z * sz) : NA,
@@ -482,7 +482,7 @@ bool kmrec(Ctx &c, Val &out) {
   Dv tv;
   CK(num(c, c["time"], "time", tv, -1, 0.0));
   const std::size_t s0 = tv.n();
-  const int n0 = static_cast<int>(s0);
+  const int n0 = sat<int>(s0);
   double z = 0.0;
   CK(zconf(c, "level", 0.95, z));
   std::vector<double> t;
@@ -516,21 +516,21 @@ bool kmrec(Ctx &c, Val &out) {
       }
     }
     std::vector<int> ix(s0);
-    for (int i = 0; i < n0; ++i) ix[static_cast<std::size_t>(i)] = i;
+    for (int i = 0; i < n0; ++i) ix[sat<std::size_t>(i)] = i;
     const int *uc = u.code.data();
     const double *tp = tv.p();
     kutil::hsort(ix.data(), n0, [&](int a, int b) { return uc[a] == uc[b] ? (tp[a] == tp[b] ? a < b : tp[a] < tp[b]) : uc[a] < uc[b]; });
     for (int i = 0; i < n0; ++i) {
-      const int a = ix[static_cast<std::size_t>(i)];
-      const int gg = hg ? gl.code[static_cast<std::size_t>(a)] : 0;
-      if (i > 0 && uc[ix[static_cast<std::size_t>(i - 1)]] == uc[a]) {
-        const int b = ix[static_cast<std::size_t>(i - 1)];
-        if (hg && gl.code[static_cast<std::size_t>(b)] != gg) return c.fail("`grp` must be the same for every time of a unit.");
+      const int a = ix[sat<std::size_t>(i)];
+      const int gg = hg ? gl.code[sat<std::size_t>(a)] : 0;
+      if (i > 0 && uc[ix[sat<std::size_t>(i - 1)]] == uc[a]) {
+        const int b = ix[sat<std::size_t>(i - 1)];
+        if (hg && gl.code[sat<std::size_t>(b)] != gg) return c.fail("`grp` must be the same for every time of a unit.");
         t.push_back(tp[a] - tp[b]);
         ev.push_back(1);
         gr.push_back(gg);
       }
-      const bool last = i == n0 - 1 || uc[ix[static_cast<std::size_t>(i + 1)]] != uc[a];
+      const bool last = i == n0 - 1 || uc[ix[sat<std::size_t>(i + 1)]] != uc[a];
       if (last && std::isfinite(e)) {
         t.push_back(e - tp[a]);
         ev.push_back(0);
@@ -540,19 +540,19 @@ bool kmrec(Ctx &c, Val &out) {
     if (t.empty()) return c.fail("no unit has two times and `end` is not given: there are no gaps.");
   }
   const std::vector<std::string> lev = hg ? gl.lev : std::vector<std::string>{"all"};
-  const int n = static_cast<int>(t.size());
-  const std::size_t sn = t.size(), sg = static_cast<std::size_t>(g);
+  const int n = sat<int>(t.size());
+  const std::size_t sn = t.size(), sg = sat<std::size_t>(g);
   std::vector<int> go(sn), iw(sn);
   std::vector<double> tt(sn), nr(sn), nd(sn), nc(sn), s(sn), se(sn), lo(sn), hi(sn), med(2 * sg), w(3 * sg + sg * sg);
   double lr[2] = {0};
   int m = 0;
   clab_kmrec(t.data(), ev.data(), gr.data(), n, g, z, &m, go.data(), tt.data(), nr.data(), nd.data(), nc.data(),
              s.data(), se.data(), lo.data(), hi.data(), med.data(), lr, w.data(), iw.data());
-  const std::size_t sm = static_cast<std::size_t>(m);
+  const std::size_t sm = sat<std::size_t>(m);
   std::vector<std::string> gk(sm);
-  for (std::size_t i = 0; i < sm; ++i) gk[i] = lev[static_cast<std::size_t>(go[i])];
+  for (std::size_t i = 0; i < sm; ++i) gk[i] = lev[sat<std::size_t>(go[i])];
   auto nv = [](const std::vector<double> &v, std::size_t k) {
-    std::vector<double> r(v.begin(), v.begin() + static_cast<std::ptrdiff_t>(k));
+    std::vector<double> r(v.begin(), v.begin() + sat<std::ptrdiff_t>(k));
     for (double &e : r) e = na(e);
     return r;
   };
@@ -568,8 +568,8 @@ bool kmrec(Ctx &c, Val &out) {
   km.num("hi", nv(hi, sm));
   std::vector<double> gn(sg, 0.0), ge(sg, 0.0);
   for (std::size_t i = 0; i < sn; ++i) {
-    gn[static_cast<std::size_t>(gr[i])] += 1;
-    ge[static_cast<std::size_t>(gr[i])] += ev[i];
+    gn[sat<std::size_t>(gr[i])] += 1;
+    ge[sat<std::size_t>(gr[i])] += ev[i];
   }
   Frame md;
   md.str("grp", lev);
@@ -599,7 +599,7 @@ bool numat(Ctx &c, const Val &x, const char *nm, double lo, int &nr, int &nc, st
   if (!(x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR && shape(x, 2, dim, 0))) return c.fail("`%s` must hold numbers.", nm);
   nr = dim[0];
   nc = dim[1];
-  v.assign(static_cast<std::size_t>(nr) * static_cast<std::size_t>(nc), 0.0);
+  v.assign(sat<std::size_t>(nr) * sat<std::size_t>(nc), 0.0);
   bool bad = false;
   fill(x, 2, dim, 0, 0, 1, v, bad, true);
   for (double e : v) {
@@ -616,7 +616,7 @@ bool hypq(Ctx &c, Val &out) {
   static const char *const qs[] = {"loss", "wait"};
   Dv lv;
   CK(num(c, c["lam"], "lam", lv, -1, 0.0, true));
-  const int m = static_cast<int>(lv.n());
+  const int m = sat<int>(lv.n());
   double u = 0.0;
   CK(pos1(c, "mu", 1, u));
   int w = 0;
@@ -626,15 +626,15 @@ bool hypq(Ctx &c, Val &out) {
   std::vector<int> pr;
   int dim[2];
   if (pf.t == Val::OBJ || (pf.t == Val::ARR && !pf.a.empty() && pf.a[0].t == Val::ARR && !ismat(pf, dim))) {
-    if (static_cast<int>(pf.a.size()) != m) return c.fail("`pref` must hold one order per atom, %d.", m);
-    n = static_cast<int>(vlen(pf.a[0]));
-    pr.assign(static_cast<std::size_t>(m * n), 0);
+    if (sat<int>(pf.a.size()) != m) return c.fail("`pref` must hold one order per atom, %d.", m);
+    n = sat<int>(vlen(pf.a[0]));
+    pr.assign(sat<std::size_t>(m * n), 0);
     for (int j = 0; j < m; ++j) {
-      const Val &v = pf.a[static_cast<std::size_t>(j)];
-      if (static_cast<int>(vlen(v)) != n) return c.fail("`pref`: every order must list all %d units.", n);
+      const Val &v = pf.a[sat<std::size_t>(j)];
+      if (sat<int>(vlen(v)) != n) return c.fail("`pref`: every order must list all %d units.", n);
       Dv d;
       CK(num(c, v, "pref", d));
-      for (int r = 0; r < n; ++r) pr[static_cast<std::size_t>(j + r * m)] = static_cast<int>(d[static_cast<std::size_t>(r)]) - 1;
+      for (int r = 0; r < n; ++r) pr[sat<std::size_t>(j + r * m)] = sat<int>(d[sat<std::size_t>(r)]) - 1;
     }
   } else {
     if (!ismat(pf, dim) || dim[0] != m) return c.fail("`pref` must be a matrix with one row per atom, %d, or a list.", m);
@@ -642,14 +642,14 @@ bool hypq(Ctx &c, Val &out) {
     std::vector<double> d;
     CK(numat(c, pf, "pref", -HUGE_VAL, nr, n, d));
     pr.resize(d.size());
-    for (std::size_t i = 0; i < d.size(); ++i) pr[i] = static_cast<int>(d[i]) - 1;
+    for (std::size_t i = 0; i < d.size(); ++i) pr[i] = sat<int>(d[i]) - 1;
   }
   for (int e : pr) {
     if (e < 0 || e >= n) return c.fail("`pref` must hold unit numbers from 1 to %d.", n);
   }
   if (n > 10) return c.fail("at most 10 units: the model has 2^n states.");
-  const std::size_t s = static_cast<std::size_t>(1) << n;
-  std::vector<double> pst(s), wl(static_cast<std::size_t>(n)), dp(static_cast<std::size_t>(n * m)), work(s * s + s);
+  const std::size_t s = sat<std::size_t>(1) << n;
+  std::vector<double> pst(s), wl(sat<std::size_t>(n)), dp(sat<std::size_t>(n * m)), work(s * s + s);
   double st[3] = {0};
   if (clab_hypq(lv.p(), pr.data(), m, n, u, w, pst.data(), wl.data(), dp.data(), st, work.data()) != CLAB_OK) {
     return c.fail(w ? "every order must list each unit once, and the calls must be fewer than the units can serve "
@@ -671,15 +671,15 @@ bool hypq(Ctx &c, Val &out) {
     int nr = 0, nc2 = 0;
     std::vector<double> tv;
     CK(numat(c, tv0, "tt", 0.0, nr, nc2, tv));
-    std::vector<double> at(static_cast<std::size_t>(m));
+    std::vector<double> at(sat<std::size_t>(m));
     double nm2 = 0, den = 0;
     for (int j = 0; j < m; ++j) {
       double a = 0, b = 0;
       for (int v = 0; v < n; ++v) {
-        a += dp[static_cast<std::size_t>(v + j * n)] * tv[static_cast<std::size_t>(v + j * n)];
-        b += dp[static_cast<std::size_t>(v + j * n)];
+        a += dp[sat<std::size_t>(v + j * n)] * tv[sat<std::size_t>(v + j * n)];
+        b += dp[sat<std::size_t>(v + j * n)];
       }
-      at[static_cast<std::size_t>(j)] = na(a / b);
+      at[sat<std::size_t>(j)] = na(a / b);
       nm2 += a;
       den += b;
     }
@@ -707,7 +707,7 @@ bool hypq(Ctx &c, Val &out) {
 
 // field(): an n x n matrix of numbers from 0, or fill.
 bool field(Ctx &c, const char *nm, double fl, int nn, std::vector<double> &v) {
-  const std::size_t s = static_cast<std::size_t>(nn) * static_cast<std::size_t>(nn);
+  const std::size_t s = sat<std::size_t>(nn) * sat<std::size_t>(nn);
   v.assign(s, fl);
   if (!c.has(nm)) return true;
   int dim[2];
@@ -744,7 +744,7 @@ bool sdbsim(Ctx &c, Val &out) {
   CK(num1(c, "eps", 1, 0.0, par[8]));
   CK(pos1(c, "z", 4, par[9]));
   if (par[1] * par[5] > 1) return c.fail("`omega` times `dt` must be at most 1.");
-  const std::size_t s = static_cast<std::size_t>(nn) * static_cast<std::size_t>(nn);
+  const std::size_t s = sat<std::size_t>(nn) * sat<std::size_t>(nn);
   std::vector<double> bv, rv;
   CK(field(c, "b", 0.0, nn, bv));
   CK(field(c, "rho", mo ? par[3] / par[0] : 0.0, nn, rv));
@@ -760,15 +760,15 @@ bool sdbsim(Ctx &c, Val &out) {
     sp.assign(s, 0);
     for (int i = 0; i < nn; ++i) {
       for (int j = 0; j < nn; ++j) {
-        const Val &e = c["sup"].a[static_cast<std::size_t>(i)].a[static_cast<std::size_t>(j)];
+        const Val &e = c["sup"].a[sat<std::size_t>(i)].a[sat<std::size_t>(j)];
         if (e.t != Val::BOOL) return c.fail("`sup` must be TRUE or FALSE at each site, with no missing values.");
-        sp[static_cast<std::size_t>(i) + static_cast<std::size_t>(nn) * static_cast<std::size_t>(j)] = e.b;
+        sp[sat<std::size_t>(i) + sat<std::size_t>(nn) * sat<std::size_t>(j)] = e.b;
       }
     }
   }
   unsigned int sd = 0;
   CK(seed(c, sd));
-  std::vector<double> burg(static_cast<std::size_t>(ns)), mb(static_cast<std::size_t>(ns)), tot(s), w(3 * s);
+  std::vector<double> burg(sat<std::size_t>(ns)), mb(sat<std::size_t>(ns)), tot(s), w(3 * s);
   std::vector<int> iw(s);
   if (clab_sdbsim(nn, ns, mo, par, bv.data(), rv.data(), sp.empty() ? nullptr : sp.data(), sd, burg.data(), mb.data(),
                   tot.data(), w.data(), iw.data()) != CLAB_OK) {
@@ -810,7 +810,7 @@ bool sdbthr(Ctx &c, Val &out) {
     CK(num(c, c["k"], "k", d, -1, 0.0));
     kv = d.v;
   }
-  const int nk = static_cast<int>(kv.size());
+  const int nk = sat<int>(kv.size());
   double st[12] = {0};
   std::vector<double> tr(kv.size()), de(kv.size()), gr(kv.size());
   clab_sdbthr(par, kv.data(), nk, st, tr.data(), de.data(), gr.data());
@@ -848,7 +848,7 @@ bool etasf(Ctx &c, Val &out) {
   std::vector<double> t;
   CK(evtimes(c, h, 10, t));
   tiewarn(c, t, "etasf");
-  const int n = static_cast<int>(t.size());
+  const int n = sat<int>(t.size());
   int mx = 0;
   CK(wholed(c, "maxit", 500, 1, mx));
   std::vector<double> dm(t.size(), 0.0);
@@ -888,7 +888,7 @@ bool etasf(Ctx &c, Val &out) {
   put(out, "aic", vnum(2 * k - 2 * st[0]));
   put(out, "branch", vnum(st[3]));
   put(out, "conv", vbool(st[2] > 0));
-  put(out, "iter", vnum(static_cast<int>(st[1])));
+  put(out, "iter", vnum(sat<int>(st[1])));
   put(out, "afree", vbool(af));
   put(out, "n", vnum(n));
   put(out, "hor", vnum(h));
@@ -901,7 +901,7 @@ bool mvhwk(Ctx &c, Val &out) {
   std::vector<double> t;
   CK(evtimes(c, h, 10, t));
   tiewarn(c, t, "mvhwk");
-  const int n = static_cast<int>(t.size());
+  const int n = sat<int>(t.size());
   int mx = 0;
   CK(wholed(c, "maxit", 500, 1, mx));
   Lab l;
@@ -917,7 +917,7 @@ bool mvhwk(Ctx &c, Val &out) {
     CK(num(c, c["start"], "start", d, np));
     s0 = d.v;
   }
-  const std::size_t sp = static_cast<std::size_t>(np), sk = static_cast<std::size_t>(k);
+  const std::size_t sp = sat<std::size_t>(np), sk = sat<std::size_t>(k);
   std::vector<double> th(sp), cov(sp * sp), st(4), w(2 * sk + 8 * sp + sp * sp);
   std::vector<int> iw(sk);
   if (clab_mvhwk(t.data(), l.code.data(), n, k, h, b, s0.empty() ? nullptr : s0.data(), mx, th.data(), cov.data(),
@@ -925,9 +925,9 @@ bool mvhwk(Ctx &c, Val &out) {
     return c.fail("`start` must hold positive numbers.");
   }
   std::vector<std::string> nm;
-  for (int q = 0; q < k; ++q) nm.push_back("mu." + l.lev[static_cast<std::size_t>(q)]);
+  for (int q = 0; q < k; ++q) nm.push_back("mu." + l.lev[sat<std::size_t>(q)]);
   for (int j = 0; j < k; ++j) {
-    for (int q = 0; q < k; ++q) nm.push_back("a." + l.lev[static_cast<std::size_t>(q)] + "." + l.lev[static_cast<std::size_t>(j)]);
+    for (int q = 0; q < k; ++q) nm.push_back("a." + l.lev[sat<std::size_t>(q)] + "." + l.lev[sat<std::size_t>(j)]);
   }
   if (b <= 0) nm.emplace_back("beta");
   out = vobj();
@@ -941,7 +941,7 @@ bool mvhwk(Ctx &c, Val &out) {
   put(out, "loglik", vnum(st[0]));
   put(out, "aic", vnum(2 * np - 2 * st[0]));
   put(out, "conv", vbool(st[2] > 0));
-  put(out, "iter", vnum(static_cast<int>(st[1])));
+  put(out, "iter", vnum(sat<int>(st[1])));
   put(out, "n", vnum(n));
   put(out, "hor", vnum(h));
   return true;
@@ -953,7 +953,7 @@ bool sthwk(Ctx &c, Val &out) {
   std::vector<double> t;
   CK(evtimes(c, h, 10, t));
   tiewarn(c, t, "sthwk");
-  const int n = static_cast<int>(t.size());
+  const int n = sat<int>(t.size());
   int mx = 0;
   CK(wholed(c, "maxit", 500, 1, mx));
   Dv xv, yv;
@@ -1004,7 +1004,7 @@ bool sthwk(Ctx &c, Val &out) {
   double th[4] = {0}, cov[16] = {0}, st[3] = {0};
   std::vector<double> ql(qt.size());
   if (clab_sthwk(t.data(), xv.p(), yv.p(), n, h, area, s0.empty() ? nullptr : s0.data(), hp ? 0 : mx, th, cov, st,
-                 nullptr, qt.data(), qx.data(), qy.data(), static_cast<int>(qt.size()), ql.data()) != CLAB_OK) {
+                 nullptr, qt.data(), qx.data(), qy.data(), sat<int>(qt.size()), ql.data()) != CLAB_OK) {
     return c.fail("`par` or `start`: mu, beta and sigma must be above 0 (and eta below 1 for a start).");
   }
   static const char *const wn[] = {"xmin", "xmax", "ymin", "ymax"};
@@ -1013,7 +1013,7 @@ bool sthwk(Ctx &c, Val &out) {
   put(out, "loglik", vnum(st[0]));
   put(out, "aic", vnum(8 - 2 * st[0]));
   put(out, "conv", vbool(st[2] > 0));
-  put(out, "iter", vnum(static_cast<int>(st[1])));
+  put(out, "iter", vnum(sat<int>(st[1])));
   put(out, "fit", vbool(!hp));
   put(out, "n", vnum(n));
   put(out, "hor", vnum(h));

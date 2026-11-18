@@ -11,7 +11,7 @@ Val gframe(const char *first, const std::vector<std::string> &lab, const char *c
            const double *src) {
   Frame f;
   f.str(first, lab);
-  for (int t = 0; t < k; ++t) f.num(nm[t], src + static_cast<std::size_t>(t) * g, static_cast<std::size_t>(g));
+  for (int t = 0; t < k; ++t) f.num(nm[t], src + sat<std::size_t>(t) * g, sat<std::size_t>(g));
   return f.o;
 }
 
@@ -36,9 +36,9 @@ bool fair(Ctx &c, Val &out) {
   double z = 0.0;
   CK(zconf(c, "conf", 0.95, z));
   const int G = g.g;
-  std::vector<double> w(static_cast<std::size_t>(41) * G);
+  std::vector<double> w(sat<std::size_t>(41) * G);
   double *cnt = w.data(), *met = cnt + 5 * G, *rat = met + 10 * G, *lo = rat + 10 * G, *hi = lo + 8 * G;
-  if (clab_fair(s.p(), y.data(), g.code.data(), static_cast<int>(n), G, ct, b - 1, z, cnt, met, rat, lo, hi) !=
+  if (clab_fair(s.p(), y.data(), g.code.data(), sat<int>(n), G, ct, b - 1, z, cnt, met, rat, lo, hi) !=
       CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
@@ -74,9 +74,9 @@ bool fairdf(Ctx &c, Val &out) {
   unsigned int s = 0;
   if (B > 0) CK(seed(c, s));
   const int G = g.g;
-  std::vector<double> w(static_cast<std::size_t>(40) * G + 11 + 2 * static_cast<std::size_t>(B));
+  std::vector<double> w(sat<std::size_t>(40) * G + 11 + 2 * sat<std::size_t>(B));
   double *cnt = w.data(), *met = cnt + 6 * G, *sum = met + 23 * G, *wk = sum + 11;
-  if (clab_fairdf(pv.data(), hy ? yv.data() : nullptr, g.code.data(), static_cast<int>(n), G, b - 1, z, B, s, cnt,
+  if (clab_fairdf(pv.data(), hy ? yv.data() : nullptr, g.code.data(), sat<int>(n), G, b - 1, z, B, s, cnt,
                   met, sum, wk) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
@@ -87,7 +87,7 @@ bool fairdf(Ctx &c, Val &out) {
   out = vobj();
   put(out, "tab", gframe("group", g.lev, mn, hy ? 23 : 11, G, met));
   put(out, "sum", nvec(hy ? 10 : 8, sn, sum));
-  put(out, "base", vstr(g.lev[static_cast<std::size_t>(sum[10])]));
+  put(out, "base", vstr(g.lev[sat<std::size_t>(sum[10])]));
   return true;
 }
 
@@ -110,36 +110,36 @@ bool tmpaud(Ctx &c, Val &out) {
     CK(glab(c, a[3], "city", n, ct));
   }
   std::vector<long long> key(n);
-  for (std::size_t i = 0; i < n; ++i) key[i] = static_cast<long long>(ct.code[i]) * per.g + per.code[i];
+  for (std::size_t i = 0; i < n; ++i) key[i] = sat<long long>(ct.code[i]) * per.g + per.code[i];
   std::vector<long long> u(key);
   std::sort(u.begin(), u.end());
   u.erase(std::unique(u.begin(), u.end()), u.end());
-  const int nc = static_cast<int>(u.size());
-  std::vector<int> cell(n), cy(static_cast<std::size_t>(nc));
+  const int nc = sat<int>(u.size());
+  std::vector<int> cell(n), cy(sat<std::size_t>(nc));
   for (std::size_t i = 0; i < n; ++i) {
-    cell[i] = static_cast<int>(std::lower_bound(u.begin(), u.end(), key[i]) - u.begin());
+    cell[i] = sat<int>(std::lower_bound(u.begin(), u.end(), key[i]) - u.begin());
   }
-  for (int k = 0; k < nc; ++k) cy[static_cast<std::size_t>(k)] = static_cast<int>(u[static_cast<std::size_t>(k)] / per.g);
+  for (int k = 0; k < nc; ++k) cy[sat<std::size_t>(k)] = sat<int>(u[sat<std::size_t>(k)] / per.g);
   int b = 0;
   if (c.has("base")) CK(rref(c, c["base"], g.lev, "base", "group", b));
   const int ncity = ct.g;
-  std::vector<double> w(6 * static_cast<std::size_t>(nc) + 9 * static_cast<std::size_t>(ncity) + 3 +
-                        2 * static_cast<std::size_t>(nc) * g.g + 2 * static_cast<std::size_t>(g.g));
-  double *co = w.data(), *yo = co + 6 * static_cast<std::size_t>(nc), *sum = yo + 9 * ncity, *wk = sum + 3;
-  if (clab_tmpaud(pv.data(), g.code.data(), cell.data(), static_cast<int>(n), g.g, nc, cy.data(), ncity, b - 1, co,
+  std::vector<double> w(6 * sat<std::size_t>(nc) + 9 * sat<std::size_t>(ncity) + 3 +
+                        2 * sat<std::size_t>(nc) * g.g + 2 * sat<std::size_t>(g.g));
+  double *co = w.data(), *yo = co + 6 * sat<std::size_t>(nc), *sum = yo + 9 * ncity, *wk = sum + 3;
+  if (clab_tmpaud(pv.data(), g.code.data(), cell.data(), sat<int>(n), g.g, nc, cy.data(), ncity, b - 1, co,
                   yo, sum, wk) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
   Frame fc;
   std::vector<std::string> cn, pn;
-  std::vector<int> cnn(static_cast<std::size_t>(nc)), ok(static_cast<std::size_t>(nc));
+  std::vector<int> cnn(sat<std::size_t>(nc)), ok(sat<std::size_t>(nc));
   std::vector<double> v[4];
   for (int k = 0; k < nc; ++k) {
-    const long long kk = u[static_cast<std::size_t>(k)];
-    cn.push_back(ct.lev[static_cast<std::size_t>(kk / per.g)]);
-    pn.push_back(per.lev[static_cast<std::size_t>(kk % per.g)]);
-    cnn[static_cast<std::size_t>(k)] = static_cast<int>(co[6 * k]);
-    ok[static_cast<std::size_t>(k)] = co[6 * k + 1] > 0.0;
+    const long long kk = u[sat<std::size_t>(k)];
+    cn.push_back(ct.lev[sat<std::size_t>(kk / per.g)]);
+    pn.push_back(per.lev[sat<std::size_t>(kk % per.g)]);
+    cnn[sat<std::size_t>(k)] = sat<int>(co[6 * k]);
+    ok[sat<std::size_t>(k)] = co[6 * k + 1] > 0.0;
     for (int t = 0; t < 4; ++t) v[t].push_back(co[6 * k + 2 + t]);
   }
   fc.str("city", cn);
@@ -153,9 +153,9 @@ bool tmpaud(Ctx &c, Val &out) {
   std::vector<int> ncl, gt;
   std::vector<double> yv[7];
   for (int k = 0; k < ncity; ++k) {
-    ncl.push_back(static_cast<int>(yo[9 * k]));
+    ncl.push_back(sat<int>(yo[9 * k]));
     for (int t = 0; t < 7; ++t) yv[t].push_back(yo[9 * k + 1 + t]);
-    gt.push_back(static_cast<int>(yo[9 * k + 8]));
+    gt.push_back(sat<int>(yo[9 * k + 8]));
   }
   fy.ints("ncell", ncl.data(), ncl.size());
   static const char *const yn[] = {"di", "dp", "gini", "bas", "dimin", "dimax", "dirng"};
@@ -166,14 +166,14 @@ bool tmpaud(Ctx &c, Val &out) {
   put(out, "cells", fc.o);
   put(out, "cities", fy.o);
   put(out, "sum", nvec(2, sn, sum));
-  put(out, "base", vstr(g.lev[static_cast<std::size_t>(sum[2])]));
+  put(out, "base", vstr(g.lev[sat<std::size_t>(sum[2])]));
   return true;
 }
 
 bool lipaud(Ctx &c, Val &out) {
   Dv hv, lv;
   CK(num(c, c["h"], "h", hv));
-  const int n = static_cast<int>(hv.n());
+  const int n = sat<int>(hv.n());
   Val d1;
   CK(num(c, arg(c, "lip", d1, 1), "lip", lv, 1, 0.0));
   int m = 0;
@@ -189,7 +189,7 @@ bool lipaud(Ctx &c, Val &out) {
     if (!shape(c["d"], 2, dim, 0) || dim[0] != n || dim[1] != n) {
       return c.fail("`d` must be a dist object or a square matrix of distances between the %d cases.", n);
     }
-    dd.assign(static_cast<std::size_t>(n) * static_cast<std::size_t>(n), 0.0);
+    dd.assign(sat<std::size_t>(n) * sat<std::size_t>(n), 0.0);
     bool bad = false;
     fill(c["d"], 2, dim, 0, 0, 1, dd, bad, true);
     if (n < 2) return c.fail("`h` must hold at least two cases.");
@@ -199,8 +199,8 @@ bool lipaud(Ctx &c, Val &out) {
       for (int i = j + 1; i < n; ++i) {
         pi.push_back(j);
         pj.push_back(i);
-        const double e = dd[static_cast<std::size_t>(i) + static_cast<std::size_t>(n) * j];
-        if (!(e == dd[static_cast<std::size_t>(j) + static_cast<std::size_t>(n) * i])) {
+        const double e = dd[sat<std::size_t>(i) + sat<std::size_t>(n) * j];
+        if (!(e == dd[sat<std::size_t>(j) + sat<std::size_t>(n) * i])) {
           return c.fail("`d` must be symmetric.");
         }
         if (!(e >= 0.0) || !std::isfinite(e)) return c.fail("`d` must hold finite distances, at least 0.");
@@ -213,12 +213,12 @@ bool lipaud(Ctx &c, Val &out) {
     CK(nmat(c, c["pairs"], "pairs", r, k2, pm));
     if (k2 != 2 || r < 1) return c.fail("`pairs` must be a matrix of two columns, one row per pair.");
     m = r;
-    pi.assign(static_cast<std::size_t>(m), 0);
-    pj.assign(static_cast<std::size_t>(m), 0);
+    pi.assign(sat<std::size_t>(m), 0);
+    pj.assign(sat<std::size_t>(m), 0);
     for (int k = 0; k < 2 * m; ++k) {
-      const double e = pm[static_cast<std::size_t>(k)];
+      const double e = pm[sat<std::size_t>(k)];
       if (e != std::floor(e) || e < 1 || e > n) return c.fail("`pairs` must hold case numbers from 1 to %d.", n);
-      (k < m ? pi : pj)[static_cast<std::size_t>(k % m)] = static_cast<int>(e) - 1;
+      (k < m ? pi : pj)[sat<std::size_t>(k % m)] = sat<int>(e) - 1;
     }
     if (hd) {
       Dv d;
@@ -226,16 +226,16 @@ bool lipaud(Ctx &c, Val &out) {
       dv = d.v;
     }
   }
-  std::vector<double> gap(static_cast<std::size_t>(m)), rat(static_cast<std::size_t>(m));
-  std::vector<int> vi(static_cast<std::size_t>(m));
+  std::vector<double> gap(sat<std::size_t>(m)), rat(sat<std::size_t>(m));
+  std::vector<int> vi(sat<std::size_t>(m));
   double sum[6];
   if (clab_lipaud(hv.p(), n, pi.data(), pj.data(), dv.empty() ? nullptr : dv.data(), m, lv[0], gap.data(), rat.data(),
                   vi.data(), sum) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
-  std::vector<int> ci(static_cast<std::size_t>(m)), cj(static_cast<std::size_t>(m));
-  std::vector<double> cd(static_cast<std::size_t>(m));
-  for (std::size_t k = 0; k < static_cast<std::size_t>(m); ++k) {
+  std::vector<int> ci(sat<std::size_t>(m)), cj(sat<std::size_t>(m));
+  std::vector<double> cd(sat<std::size_t>(m));
+  for (std::size_t k = 0; k < sat<std::size_t>(m); ++k) {
     ci[k] = pi[k] + 1;
     cj[k] = pj[k] + 1;
     cd[k] = dv.empty() ? 1.0 : dv[k];
@@ -247,7 +247,7 @@ bool lipaud(Ctx &c, Val &out) {
   f.num("gap", gap);
   f.num("ratio", rat);
   f.lgl("viol", vi.data(), vi.size());
-  const std::size_t kr = static_cast<std::size_t>(sum[5]);
+  const std::size_t kr = sat<std::size_t>(sum[5]);
   out = vobj();
   put(out, "lreq", vnum(sum[0]));
   put(out, "nviol", vnum(sum[1]));
@@ -274,7 +274,7 @@ bool box(Ctx &c, const char *nm, double &lo, double &hi) {
 bool nsbnd(Ctx &c, Val &out) {
   Dv pv;
   CK(num(c, c["pobs"], "pobs", pv, -1, 0.0));
-  const int n = static_cast<int>(pv.n());
+  const int n = sat<int>(pv.n());
   for (double x : pv.v) {
     if (x > 1.0) return c.fail("`pobs` must be rates from 0 to 1.");
   }
@@ -285,8 +285,8 @@ bool nsbnd(Ctx &c, Val &out) {
   if (0.5 * n * (n - 1.0) > INT_MAX) return c.fail("`pobs` holds too many rates for every pair.");
   const int m = n * (n - 1) / 2;
   const std::vector<std::string> lab = nmsof(pv.nm, pv.n());
-  std::vector<double> lo(pv.n()), hi(pv.n()), wd(pv.n()), bd(static_cast<std::size_t>(m));
-  std::vector<int> ord(static_cast<std::size_t>(m));
+  std::vector<double> lo(pv.n()), hi(pv.n()), wd(pv.n()), bd(sat<std::size_t>(m));
+  std::vector<int> ord(sat<std::size_t>(m));
   if (clab_nsbnd(pv.p(), n, alo, ahi, blo, bhi, lo.data(), hi.data(), ord.data(), bd.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
@@ -322,7 +322,7 @@ bool nsbnd(Ctx &c, Val &out) {
 bool rnkres(Ctx &c, Val &out) {
   Dv ev, hv;
   CK(num(c, c["est"], "est", ev));
-  const int n = static_cast<int>(ev.n());
+  const int n = sat<int>(ev.n());
   if (n < 2) return c.fail("`est` must hold at least two estimates.");
   if (static_cast<double>(n) * n > INT_MAX) return c.fail("`est` holds too many estimates.");
   CK(num(c, c["hw"], "hw", hv, -1, 0.0));
@@ -397,8 +397,8 @@ bool nordet(Ctx &c, Val &out) {
   const std::size_t n = cx.size(), m = ox.size();
   std::vector<int> k(n), det(n);
   std::vector<double> pr(n);
-  if (clab_nordet(cx.data(), cy.data(), static_cast<int>(n), m ? ox.data() : nullptr, m ? oy.data() : nullptr,
-                  static_cast<int>(m), r[0], pd, dr ? 1 : 0, s, k.data(), pr.data(), dr ? det.data() : nullptr) !=
+  if (clab_nordet(cx.data(), cy.data(), sat<int>(n), m ? ox.data() : nullptr, m ? oy.data() : nullptr,
+                  sat<int>(m), r[0], pd, dr ? 1 : 0, s, k.data(), pr.data(), dr ? det.data() : nullptr) !=
       CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
@@ -419,10 +419,10 @@ bool fairsim(Ctx &c, Val &out) {
       return c.fail("`groups` must be two or more labels with no missing values.");
     }
   }
-  const int G = static_cast<int>(gl.size());
+  const int G = sat<int>(gl.size());
   for (int i = 0; i < G; ++i) {
     for (int j = 0; j < i; ++j) {
-      if (gl[static_cast<std::size_t>(i)] == gl[static_cast<std::size_t>(j)]) {
+      if (gl[sat<std::size_t>(i)] == gl[sat<std::size_t>(j)]) {
         return c.fail("`groups` must not repeat a label.");
       }
     }
@@ -443,7 +443,7 @@ bool fairsim(Ctx &c, Val &out) {
   if (!(bs >= -1.0 && bs <= 1.0)) return c.fail("`bias` must be one number from -1 to 1.");
   unsigned int s = 0;
   CK(seed(c, s));
-  const std::size_t n = static_cast<std::size_t>(N);
+  const std::size_t n = sat<std::size_t>(N);
   std::vector<int> ai, gi, tr, dt;
   std::vector<double> rk;
 #if defined(__cpp_exceptions) || defined(_CPPUNWIND)
@@ -477,7 +477,7 @@ bool oaxbd(Ctx &c, Val &out) {
   CK(a.byname(c));
   Dv yv;
   CK(num(c, a[0], "y", yv));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   Lab g;
   CK(glab(c, a[1], "grp", yv.n(), g));
   if (g.g != 2) return c.fail("`grp` must hold exactly two groups.");
@@ -497,7 +497,7 @@ bool oaxbd(Ctx &c, Val &out) {
     const Val &x = c["x"];
     int dim[2] = {-1, -1};
     if (x.t == Val::OBJ) {
-      p = static_cast<int>(x.a.size());
+      p = sat<int>(x.a.size());
       for (const Val &e : x.a) {
         if (!isnum(e) || vlen(e) != yv.n() || e.t == Val::OBJ) return c.fail("%s", fmsg);
         const std::vector<double> v = dbl(e);
@@ -526,23 +526,23 @@ bool oaxbd(Ctx &c, Val &out) {
   if (nn[0] <= q || nn[1] <= q) return c.fail("each group needs more cases than coefficients, %d.", q);
   std::vector<std::string> lab = {"const"};
   for (int j = 0; j < p; ++j) {
-    if (!tn.empty() && !tn[static_cast<std::size_t>(j)].empty()) {
-      lab.push_back(tn[static_cast<std::size_t>(j)]);
+    if (!tn.empty() && !tn[sat<std::size_t>(j)].empty()) {
+      lab.push_back(tn[sat<std::size_t>(j)]);
     } else {
       char b[24];
       std::snprintf(b, sizeof b, p == 1 && tn.empty() ? "x" : "x%d", j + 1);
       lab.push_back(b);
     }
   }
-  const std::size_t Q = static_cast<std::size_t>(q), N = yv.n();
+  const std::size_t Q = sat<std::size_t>(q), N = yv.n();
   std::vector<double> w(2 * Q * 3 + 14 + 5 * Q + Q * (N + 5 * Q + 1) + N);
   double *xm = w.data(), *bb = xm + 2 * q, *bse = bb + 2 * q, *dec = bse + 2 * q, *var = dec + 14, *wk = var + 5 * q;
   const int rc = clab_oaxbd(yv.p(), xv.empty() ? nullptr : xv.data(), g.code.data(), n, p, r, xm, bb, bse, dec, var, wk);
   if (rc == CLAB_EDOM) return c.fail("a covariate is constant, or a combination of the others, within a group.");
   if (rc != CLAB_OK) return c.fail("the kernel refused the input.");
   Val gl = vobj();
-  put(gl, "a", vstr(g.lev[static_cast<std::size_t>(1 - r)]));
-  put(gl, "b", vstr(g.lev[static_cast<std::size_t>(r)]));
+  put(gl, "a", vstr(g.lev[sat<std::size_t>(1 - r)]));
+  put(gl, "b", vstr(g.lev[sat<std::size_t>(r)]));
   Frame fm, fc, fv, fd;
   fm.str("term", lab);
   fm.num("a", xm, Q);
@@ -554,17 +554,17 @@ bool oaxbd(Ctx &c, Val &out) {
   fc.num("bse", bse + q, Q);
   fv.str("term", lab);
   static const char *const vn[] = {"exp", "expse", "unexp", "unexpse", "shift"};
-  for (int t = 0; t < 5; ++t) fv.num(vn[t], var + static_cast<std::size_t>(t) * Q, Q);
+  for (int t = 0; t < 5; ++t) fv.num(vn[t], var + sat<std::size_t>(t) * Q, Q);
   static const char *const pn[] = {"gap", "exp", "unexp", "expa", "unexpa", "endow", "coef", "inter"};
   const int ix[8] = {2, 4, 6, 8, 10, 4, 10, 12};
   std::vector<double> de(8), ds(8), dl(8), dh(8);
   std::vector<std::string> ps;
   for (int k = 0; k < 8; ++k) {
     ps.push_back(pn[k]);
-    de[static_cast<std::size_t>(k)] = dec[ix[k]];
-    ds[static_cast<std::size_t>(k)] = dec[ix[k] + 1];
-    dl[static_cast<std::size_t>(k)] = de[static_cast<std::size_t>(k)] - z * ds[static_cast<std::size_t>(k)];
-    dh[static_cast<std::size_t>(k)] = de[static_cast<std::size_t>(k)] + z * ds[static_cast<std::size_t>(k)];
+    de[sat<std::size_t>(k)] = dec[ix[k]];
+    ds[sat<std::size_t>(k)] = dec[ix[k] + 1];
+    dl[sat<std::size_t>(k)] = de[sat<std::size_t>(k)] - z * ds[sat<std::size_t>(k)];
+    dh[sat<std::size_t>(k)] = de[sat<std::size_t>(k)] + z * ds[sat<std::size_t>(k)];
   }
   fd.str("part", ps);
   fd.num("est", de);

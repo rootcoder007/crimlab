@@ -15,7 +15,7 @@ bool hsacc(Ctx &c, Val &out) {
   std::vector<int> hot;
   Dv pv;
   if (lg) {
-    if (vlen(pr) != n) return c.fail("`pred` must have one value per cell, %d.", static_cast<int>(n));
+    if (vlen(pr) != n) return c.fail("`pred` must have one value per cell, %d.", sat<int>(n));
     std::vector<int> b;
     readb(pr, b);
     for (int v : b) {
@@ -23,11 +23,11 @@ bool hsacc(Ctx &c, Val &out) {
     }
     hot = b;
   } else {
-    CK(num(c, pr, "pred", pv, static_cast<std::int64_t>(n)));
+    CK(num(c, pr, "pred", pv, sat<std::int64_t>(n)));
   }
   Dv av;
   if (c.has("area")) {
-    CK(num(c, c["area"], "area", av, static_cast<std::int64_t>(n), 0.0, true));
+    CK(num(c, c["area"], "area", av, sat<std::int64_t>(n), 0.0, true));
   } else {
     ones(av, n);
   }
@@ -37,10 +37,10 @@ bool hsacc(Ctx &c, Val &out) {
   for (double x : tv.v) {
     if (x > 1) return c.fail("`top` must be at most 1.");
   }
-  const int nt = lg ? 1 : static_cast<int>(tv.n());
+  const int nt = lg ? 1 : sat<int>(tv.n());
   Dv rv;
   const bool hp = c.has("prev");
-  if (hp) CK(num(c, c["prev"], "prev", rv, static_cast<std::int64_t>(n), 0.0));
+  if (hp) CK(num(c, c["prev"], "prev", rv, sat<std::int64_t>(n), 0.0));
   static const char *const to[] = {"in", "out", "frac"};
   int tk = 0;
   if (c.has("ties")) CK(pick(c, c["ties"], "ties", to, 3, tk));
@@ -49,7 +49,7 @@ bool hsacc(Ctx &c, Val &out) {
   if (!(tot > 0)) return c.fail("`obs` has no crimes: every count is 0.");
   std::vector<double> res(11 * zz(nt));
   if (clab_hsacc(lg ? nullptr : pv.p(), lg ? hot.data() : nullptr, ov.p(), av.p(), hp ? rv.p() : nullptr,
-                 static_cast<int>(n), tv.p(), nt, tk, res.data()) != CLAB_OK) {
+                 sat<int>(n), tv.p(), nt, tk, res.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
   static const char *const cn[] = {"top", "cells", "area", "ashare", "n", "N", "hit", "pai", "nmax", "pei", "rri"};

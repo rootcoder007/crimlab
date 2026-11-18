@@ -54,7 +54,7 @@ bool wcbx(Ctx &c, Val &out) {
   if (ys.size() > 1 && mt != 1) return c.fail("several outcomes are taken by `meth = \"perm\"` only.");
   Pan pn;
   CK(panel(c, -HUGE_VAL, pn, &ys[0]));
-  const int n = pn.n, k = static_cast<int>(ys.size());
+  const int n = pn.n, k = sat<int>(ys.size());
   std::vector<std::vector<double>> yv(zz(k));
   for (int j = 0; j < k; ++j) {
     Dv v;
@@ -75,10 +75,10 @@ bool wcbx(Ctx &c, Val &out) {
   }
   std::vector<Term> x;
   CK(adjcols(c, c["adj"], zz(n), x, "row of the panel"));
-  const int pa = static_cast<int>(x.size());
+  const int pa = sat<int>(x.size());
   const int p = pa + 1;
   std::vector<double> xa(zz(n) * zz(p), 0.0);
-  for (int j = 0; j < pa; ++j) std::copy(x[zz(j)].x.begin(), x[zz(j)].x.end(), xa.begin() + static_cast<std::ptrdiff_t>(j + 1) * n);
+  for (int j = 0; j < pa; ++j) std::copy(x[zz(j)].x.begin(), x[zz(j)].x.end(), xa.begin() + sat<std::ptrdiff_t>(j + 1) * n);
   Val res;
   int nd = 0;
   bool en = false;
@@ -189,7 +189,7 @@ bool wcbx(Ctx &c, Val &out) {
           as.push_back(q);
         }
       }
-      nd = static_cast<int>(as.size());
+      nd = sat<int>(as.size());
       std::vector<double> nv0(zz(nd) * zz(k), NA), xp = xa;
       std::vector<double> cnt(zz(k), 0.0), ok(zz(k), 0.0);
       for (int d = 0; d < nd; ++d) {
@@ -245,7 +245,7 @@ bool wcbx(Ctx &c, Val &out) {
     for (double v : av.v) {
       const auto it = std::find(pn.tv.begin(), pn.tv.end(), v);
       if (it == pn.tv.end() || it == pn.tv.begin()) return c.fail("`adopt` must be periods of `time` after the first.");
-      ac.push_back(static_cast<int>(it - pn.tv.begin()));
+      ac.push_back(sat<int>(it - pn.tv.begin()));
     }
     double al = 0.0, pw = 0.0;
     CK(oned(c, "alpha", 0.05, 0.0, 1.0, al));
@@ -263,7 +263,7 @@ bool wcbx(Ctx &c, Val &out) {
       ev = e.v;
       std::sort(ev.begin(), ev.end());
     }
-    const int ne = static_cast<int>(ev.size());
+    const int ne = sat<int>(ev.size());
     std::vector<double> rej(zz(ne), 0.0), tot(zz(ne), 0.0), yy(zz(n)), xp = xa;
     unsigned int sd = 0;
     CK(seed(c, sd));
@@ -273,7 +273,7 @@ bool wcbx(Ctx &c, Val &out) {
       for (int a = 0; a < ncl; ++a) q[zz(a)] = a;
       for (int a = 0; a < nt1; ++a) {
         std::swap(q[zz(a)], q[zz(a + rg.below(ncl - a))]);
-        ga[zz(q[zz(a)])] = ac[zz(rg.below(static_cast<int>(ac.size())))];
+        ga[zz(q[zz(a)])] = ac[zz(rg.below(sat<int>(ac.size())))];
       }
       for (std::size_t i = 0; i < zz(n); ++i) xp[i] = pn.t[i] >= ga[zz(cl[i])] ? 1.0 : 0.0;
       for (int e = 0; e < ne; ++e) {
@@ -317,7 +317,7 @@ bool wystep(Ctx &c, Val &out) {
   CK(isvec(c, c["obs"], "obs"));
   Dv ob;
   CK(num(c, c["obs"], "obs", ob));
-  const int k = static_cast<int>(ob.n());
+  const int k = sat<int>(ob.n());
   const Val &nl = c["null"];
   int dim[2] = {-1, -1};
   if (!(nl.t == Val::ARR && !nl.a.empty() && nl.a[0].t == Val::ARR && shape(nl, 2, dim, 0)) || dim[1] != k) {

@@ -121,7 +121,7 @@ bool ydig(Ctx &c, const char *nm, int def, int &d, bool null) {
     return c.fail("`%s` must be one whole number from 0 to 15.", nm);
   }
   (void)null;
-  d = static_cast<int>(v);
+  d = sat<int>(v);
   return true;
 }
 
@@ -244,16 +244,16 @@ std::string yjsrows(const Yt &t, bool pretty, int ind) {
   std::string o = pretty ? "[\n" : "[";
   for (std::size_t i = 0; i < t.n; ++i) {
     if (i) o += pretty ? ",\n" : ",";
-    if (pretty) o += std::string(static_cast<std::size_t>(ind) + 2, ' ') + "{\n";
+    if (pretty) o += std::string(sat<std::size_t>(ind) + 2, ' ') + "{\n";
     else o += "{";
     for (std::size_t j = 0; j < t.nm.size(); ++j) {
       if (j) o += pretty ? ",\n" : ",";
-      if (pretty) o += std::string(static_cast<std::size_t>(ind) + 4, ' ');
+      if (pretty) o += std::string(sat<std::size_t>(ind) + 4, ' ');
       o += yjs1s(t.nm[j]) + (pretty ? ": " : ":") + yjs1(t.c[j], i);
     }
-    o += pretty ? "\n" + std::string(static_cast<std::size_t>(ind) + 2, ' ') + "}" : "}";
+    o += pretty ? "\n" + std::string(sat<std::size_t>(ind) + 2, ' ') + "}" : "}";
   }
-  return o + (pretty ? "\n" + std::string(static_cast<std::size_t>(ind), ' ') + "]" : "]");
+  return o + (pretty ? "\n" + std::string(sat<std::size_t>(ind), ' ') + "]" : "]");
 }
 
 // yoysmry() of the table t as a table of the same form
@@ -292,7 +292,7 @@ bool ysmry(Ctx &c, const Yt &t, double lag, Yt &s) {
       if (!v->na[i] && !std::isnan(v->d[i])) fin.push_back(i);
     }
     double r[8];
-    clab_ysum(vv.data(), cc.data(), static_cast<int>(vv.size()), lag, r);
+    clab_ysum(vv.data(), cc.data(), sat<int>(vv.size()), lag, r);
     if (g) {
       s.c[0].s.push_back(k);
       s.c[0].d.push_back(NaN);
@@ -394,12 +394,12 @@ bool fylbl(Ctx &c, Val &out) {
     auto inr = [](double v) { return v > -2147483648.0 && v < 2147483648.0; };
     if (x.t == Val::NUM) {
       ok = inr(x.n);
-      if (ok) y = static_cast<long>(x.n);
+      if (ok) y = sat<long>(x.n);
     } else if (x.t == Val::STR) {
       char *end = nullptr;
       const double v = std::strtod(x.s.c_str(), &end);
       ok = end != x.s.c_str() && *end == '\0' && inr(v);
-      if (ok) y = static_cast<long>(v);
+      if (ok) y = sat<long>(v);
     }
     if (!ok) {
       o.a.push_back(Val());
@@ -442,10 +442,10 @@ bool yoylbl(Ctx &c, Val &out) {
     }
     if (v.size() != u.size()) {
       return c.fail("`labels` has %d entries for %d distinct periods; name them, or pass a function.",
-                    static_cast<int>(v.size()), static_cast<int>(u.size()));
+                    sat<int>(v.size()), sat<int>(u.size()));
     }
     for (std::size_t i = 0; i < t.n; ++i) {
-      out1[i] = v[static_cast<std::size_t>(std::find(u.begin(), u.end(), lab1[i]) - u.begin())];
+      out1[i] = v[sat<std::size_t>(std::find(u.begin(), u.end(), lab1[i]) - u.begin())];
     }
   }
   out = c["x"];

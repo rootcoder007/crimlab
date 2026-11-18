@@ -13,26 +13,26 @@ bool wbuild(Ctx &c, int n, const std::vector<int> &ei, const std::vector<int> &e
             Wcsr &o) {
   const std::size_t m = ei.size();
   std::vector<int> ord(m);
-  for (std::size_t q = 0; q < m; ++q) ord[q] = static_cast<int>(q);
+  for (std::size_t q = 0; q < m; ++q) ord[q] = sat<int>(q);
   std::sort(ord.begin(), ord.end(), [&](int a, int b) {
-    const std::size_t i = static_cast<std::size_t>(a), j = static_cast<std::size_t>(b);
+    const std::size_t i = sat<std::size_t>(a), j = sat<std::size_t>(b);
     return ei[i] < ei[j] || (ei[i] == ei[j] && ej[i] < ej[j]);
   });
-  o.rp.assign(static_cast<std::size_t>(n) + 1, 0);
+  o.rp.assign(sat<std::size_t>(n) + 1, 0);
   o.ci.assign(m, 0);
   o.w.assign(m, 0.0);
   for (std::size_t q = 0; q < m; ++q) {
-    const std::size_t a = static_cast<std::size_t>(ord[q]);
+    const std::size_t a = sat<std::size_t>(ord[q]);
     if (ei[a] == ej[a]) return c.fail("a unit cannot be its own neighbour in `w`.");
     if (q > 0) {
-      const std::size_t b = static_cast<std::size_t>(ord[q - 1]);
+      const std::size_t b = sat<std::size_t>(ord[q - 1]);
       if (ei[a] == ei[b] && ej[a] == ej[b]) return c.fail("`w` lists a pair of units twice.");
     }
     o.ci[q] = ej[a];
     o.w[q] = ew[a];
-    ++o.rp[static_cast<std::size_t>(ei[a]) + 1];
+    ++o.rp[sat<std::size_t>(ei[a]) + 1];
   }
-  for (std::size_t i = 0; i < static_cast<std::size_t>(n); ++i) o.rp[i + 1] += o.rp[i];
+  for (std::size_t i = 0; i < sat<std::size_t>(n); ++i) o.rp[i + 1] += o.rp[i];
   return true;
 }
 
@@ -44,16 +44,16 @@ bool wread(Ctx &c, int n, Wcsr &o) {
   if (val1(nn) != n) return c.fail("`w` is for %g units, not %d.", val1(nn), n);
   Dv i, j, v;
   CK(num(c, col(w, "i"), "w$i", i, -1, 1.0));
-  CK(num(c, col(w, "j"), "w$j", j, static_cast<std::int64_t>(i.n()), 1.0));
-  CK(num(c, col(w, "w"), "w$w", v, static_cast<std::int64_t>(i.n()), 0.0));
+  CK(num(c, col(w, "j"), "w$j", j, sat<std::int64_t>(i.n()), 1.0));
+  CK(num(c, col(w, "w"), "w$w", v, sat<std::int64_t>(i.n()), 0.0));
   std::vector<int> ei, ej;
   for (std::size_t q = 0; q < i.n(); ++q) {
     const double a = i[q], b = j[q];
     if (a > n || b > n || a != std::floor(a) || b != std::floor(b)) {
       return c.fail("`w$i` and `w$j` must be unit numbers from 1 to %d.", n);
     }
-    ei.push_back(static_cast<int>(a) - 1);
-    ej.push_back(static_cast<int>(b) - 1);
+    ei.push_back(sat<int>(a) - 1);
+    ej.push_back(sat<int>(b) - 1);
   }
   return wbuild(c, n, ei, ej, v.v, o);
 }
@@ -77,25 +77,25 @@ bool spwt(Ctx &c, Val &out) {
   if (tp == 2) {
     const Val &nb = c["nb"];
     if (nb.t != Val::ARR) return c.fail("`nb` must be a list of neighbour numbers, one element per unit.");
-    if (nb.a.size() > static_cast<std::size_t>(INT_MAX)) return c.fail("`nb` is too long for crimlab.");
-    n = static_cast<int>(nb.a.size());
+    if (nb.a.size() > sat<std::size_t>(INT_MAX)) return c.fail("`nb` is too long for crimlab.");
+    n = sat<int>(nb.a.size());
     if (pts && p.n != n) return c.fail("`nb` must have one element per point.");
     if (!pts && pw > 0) return c.fail("inverse-distance weights need the points `x`.");
     std::vector<int> ei, ej;
     for (int i = 0; i < n; ++i) {
-      const Val &a = nb.a[static_cast<std::size_t>(i)];
+      const Val &a = nb.a[sat<std::size_t>(i)];
       if (!isnum(a)) return c.fail("`nb` must be a list of neighbour numbers, one element per unit.");
       const std::vector<double> av = dbl(a);
       for (double j : av) {
         if (j == 0 && av.size() == 1) break;
         if (!(j >= 1 && j <= n && j == std::floor(j))) return c.fail("`nb` must hold unit numbers from 1 to %d.", n);
         ei.push_back(i);
-        ej.push_back(static_cast<int>(j) - 1);
+        ej.push_back(sat<int>(j) - 1);
       }
     }
     std::vector<double> ed(ei.size());
     for (std::size_t q = 0; q < ei.size(); ++q) {
-      const std::size_t a = static_cast<std::size_t>(ei[q]), b = static_cast<std::size_t>(ej[q]);
+      const std::size_t a = sat<std::size_t>(ei[q]), b = sat<std::size_t>(ej[q]);
       ed[q] = pts ? (me ? std::fabs(p.x[a] - p.x[b]) + std::fabs(p.y[a] - p.y[b]) : std::hypot(p.x[a] - p.x[b], p.y[a] - p.y[b]))
                   : -HUGE_VAL;
     }
@@ -108,21 +108,21 @@ bool spwt(Ctx &c, Val &out) {
     if (!pts) return c.fail("`x` must give the points for `type = \"%s\"`.", to[tp]);
     n = p.n;
     if (n < 2) return c.fail("at least 2 points are needed.");
-    std::vector<int> iw(2 * static_cast<std::size_t>(n) + 2);
+    std::vector<int> iw(2 * sat<std::size_t>(n) + 2);
     if (tp == 0) {
       int kk = 0;
       CK(wholed(c, "k", 4, 1, kk));
       if (kk > n - 1) return c.fail("`k` must be below the number of points.");
-      const std::size_t m = static_cast<std::size_t>(n) * static_cast<std::size_t>(kk);
-      rp.assign(static_cast<std::size_t>(n) + 1, 0);
+      const std::size_t m = sat<std::size_t>(n) * sat<std::size_t>(kk);
+      rp.assign(sat<std::size_t>(n) + 1, 0);
       ci.assign(m, 0);
       dv.assign(m, 0.0);
       CK(kc(c, clab_swknb(p.x.data(), p.y.data(), n, kk, me, ci.data(), dv.data(), iw.data()),
             "the kernel refused the input."));
-      for (int i = 0; i <= n; ++i) rp[static_cast<std::size_t>(i)] = i * kk;
+      for (int i = 0; i <= n; ++i) rp[sat<std::size_t>(i)] = i * kk;
       for (int i = 0; i < n; ++i) {
-        int *cc = ci.data() + static_cast<std::size_t>(i) * kk;
-        double *e = dv.data() + static_cast<std::size_t>(i) * kk;
+        int *cc = ci.data() + sat<std::size_t>(i) * kk;
+        double *e = dv.data() + sat<std::size_t>(i) * kk;
         for (int u = 1; u < kk; ++u) {
           const int j = cc[u];
           const double f = e[u];
@@ -140,15 +140,15 @@ bool spwt(Ctx &c, Val &out) {
       double dm = 0.0;
       CK(one(c, c["d"], "d", 0.0, Inf, dm));
       int nnz = 0;
-      rp.assign(static_cast<std::size_t>(n) + 1, 0);
+      rp.assign(sat<std::size_t>(n) + 1, 0);
       CK(kc(c, clab_swband(p.x.data(), p.y.data(), n, dm, me, 0, rp.data(), nullptr, nullptr, &nnz, iw.data()),
             "the kernel refused the input."));
-      ci.assign(static_cast<std::size_t>(nnz) + 1, 0);
-      dv.assign(static_cast<std::size_t>(nnz) + 1, 0.0);
+      ci.assign(sat<std::size_t>(nnz) + 1, 0);
+      dv.assign(sat<std::size_t>(nnz) + 1, 0.0);
       CK(kc(c, clab_swband(p.x.data(), p.y.data(), n, dm, me, nnz, rp.data(), ci.data(), dv.data(), &nnz, iw.data()),
             "the kernel refused the input."));
-      ci.resize(static_cast<std::size_t>(nnz));
-      dv.resize(static_cast<std::size_t>(nnz));
+      ci.resize(sat<std::size_t>(nnz));
+      dv.resize(sat<std::size_t>(nnz));
     }
   }
   const std::size_t m = ci.size();
@@ -157,10 +157,10 @@ bool spwt(Ctx &c, Val &out) {
         "inverse-distance weights need distinct points: two neighbours coincide."));
   wv.resize(m);
   std::vector<int> iv(m), jv(m);
-  for (std::size_t i = 0; i < static_cast<std::size_t>(n); ++i) {
+  for (std::size_t i = 0; i < sat<std::size_t>(n); ++i) {
     for (int q = rp[i]; q < rp[i + 1]; ++q) {
-      iv[static_cast<std::size_t>(q)] = static_cast<int>(i) + 1;
-      jv[static_cast<std::size_t>(q)] = ci[static_cast<std::size_t>(q)] + 1;
+      iv[sat<std::size_t>(q)] = sat<int>(i) + 1;
+      jv[sat<std::size_t>(q)] = ci[sat<std::size_t>(q)] + 1;
     }
   }
   if (tp == 2 && !pts) {
@@ -178,7 +178,7 @@ bool spwt(Ctx &c, Val &out) {
 // x, and the weights for its values: gearc(), gorg(), lmorn(), locgi().
 bool xw(Ctx &c, double lo, int nmin, Dv &xv, Wcsr &w) {
   CK(num(c, c["x"], "x", xv, -1, lo));
-  const int n = static_cast<int>(xv.n());
+  const int n = sat<int>(xv.n());
   if (n < nmin) return c.fail("at least %d values are needed.", nmin);
   return wread(c, n, w);
 }
@@ -193,7 +193,7 @@ bool gearc(Ctx &c, Val &out) {
   if (ns > 0) CK(seed(c, s));
   std::vector<double> wk(xv.n());
   double o[9];
-  CK(kc(c, clab_gearc(xv.p(), static_cast<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), ns, s, wk.data(), o),
+  CK(kc(c, clab_gearc(xv.p(), sat<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), ns, s, wk.data(), o),
         "`x` is constant, or `w` has no positive weight: C is undefined."));
   static const char *const nm[] = {"c", "vn", "vr", "zn", "zr", "pn", "pr", "pperm", "s0"};
   out = nvec(9, nm, o);
@@ -210,7 +210,7 @@ bool gorg(Ctx &c, Val &out) {
   if (ns > 0) CK(seed(c, s));
   std::vector<double> wk(xv.n());
   double o[6];
-  CK(kc(c, clab_gorg(xv.p(), static_cast<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), ns, s, wk.data(), o),
+  CK(kc(c, clab_gorg(xv.p(), sat<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), ns, s, wk.data(), o),
         "G is undefined: fewer than 2 positive values of `x`, or no positive weight."));
   static const char *const nm[] = {"g", "e", "v", "z", "p", "pperm"};
   out = nvec(6, nm, o);
@@ -228,12 +228,12 @@ bool lmorn(Ctx &c, Val &out) {
   const std::size_t n = xv.n();
   std::vector<int> iw(n);
   std::vector<double> wk(n), o(7 * n);
-  CK(kc(c, clab_lmorn(xv.p(), static_cast<int>(n), w.rp.data(), w.ci.data(), w.w.data(), ns, s, iw.data(), wk.data(),
+  CK(kc(c, clab_lmorn(xv.p(), sat<int>(n), w.rp.data(), w.ci.data(), w.w.data(), ns, s, iw.data(), wk.data(),
                       o.data()),
         "`x` is constant: local Moran is undefined."));
   static const char *const nm[] = {"ii", "e", "v", "z", "p", "pperm", "quad"};
   Frame f;
-  for (int j = 0; j < 7; ++j) f.num(nm[j], o.data() + static_cast<std::size_t>(j) * n, n);
+  for (int j = 0; j < 7; ++j) f.num(nm[j], o.data() + sat<std::size_t>(j) * n, n);
   out = f.o;
   return true;
 }
@@ -245,7 +245,7 @@ bool locgi(Ctx &c, Val &out) {
   bool st = false;
   CK(flagd(c, "star", true, st));
   std::vector<double> o(xv.n());
-  CK(kc(c, clab_locgi(xv.p(), static_cast<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), st ? 1 : 0, o.data()),
+  CK(kc(c, clab_locgi(xv.p(), sat<int>(xv.n()), w.rp.data(), w.ci.data(), w.w.data(), st ? 1 : 0, o.data()),
         "`x` is constant: Gi is undefined."));
   out = vauto(o);
   return true;
@@ -272,12 +272,12 @@ bool dirmn(Ctx &c, Val &out) {
     double ox = o[0], oy = o[1];
     CK(fwd(c, p, &ox, &oy, 1));
     for (int i = 0; i < p.n; ++i) {
-      const double dx = p.x[static_cast<std::size_t>(i)] - ox, dy = p.y[static_cast<std::size_t>(i)] - oy;
+      const double dx = p.x[sat<std::size_t>(i)] - ox, dy = p.y[sat<std::size_t>(i)] - oy;
       if (dx == 0 && dy == 0) return c.fail("a point lies on `origin`: it has no direction.");
       an.push_back(std::atan2(dy, dx));
     }
   }
-  const int n = static_cast<int>(an.size());
+  const int n = sat<int>(an.size());
   Dv wv;
   if (a[3].t != Val::NUL) CK(num(c, a[3], "w", wv, n, 0.0));
   double o[5];
@@ -307,9 +307,9 @@ bool hdbang(Ctx &c, Val &out) {
   if (!(an >= 90 && an <= 180)) return c.fail("`ang` must be one number from 90 to 180.");
   CK(wholed(c, "ntrip", 0, 0, nt));
   CK(wholed(c, "iter", 1, 0, it));
-  const std::size_t T = static_cast<std::size_t>(k) * static_cast<std::size_t>(k - 1) / 2, N = static_cast<std::size_t>(n);
-  std::vector<int> iw(2 * N + 2 + N * static_cast<std::size_t>(k) + 3 * T);
-  std::vector<double> wk(N * static_cast<std::size_t>(k) + N + 5 * T), o(N);
+  const std::size_t T = sat<std::size_t>(k) * sat<std::size_t>(k - 1) / 2, N = sat<std::size_t>(n);
+  std::vector<int> iw(2 * N + 2 + N * sat<std::size_t>(k) + 3 * T);
+  std::vector<double> wk(N * sat<std::size_t>(k) + N + 5 * T), o(N);
   CK(kc(c, clab_hdbang(p.x.data(), p.y.data(), vv.p(), wv.n() ? wv.p() : nullptr, n, k, an, nt, it, iw.data(), wk.data(),
                        o.data()),
         "the kernel refused the input."));
@@ -327,11 +327,11 @@ bool crwalk(Ctx &c, Val &out) {
   CK(wholed(c, "nsim", 999, 1, ns));
   unsigned int sd = 0;
   CK(seed(c, sd));
-  std::vector<double> st(static_cast<std::size_t>(n) - 1), tu(static_cast<std::size_t>(n) - 2);
+  std::vector<double> st(sat<std::size_t>(n) - 1), tu(sat<std::size_t>(n) - 2);
   double f[5];
   CK(kc(c, clab_crwfit(p.x.data(), p.y.data(), n, st.data(), tu.data(), f),
         "two successive locations coincide: a repeated location has no heading; drop repeats first."));
-  const std::size_t H = static_cast<std::size_t>(hh), S = static_cast<std::size_t>(ns);
+  const std::size_t H = sat<std::size_t>(hh), S = sat<std::size_t>(ns);
   std::vector<double> obs(H), ex(H), kk(H), sx(H), sy(H), qx(H), qy(H);
   CK(kc(c, clab_crwmsd(p.x.data(), p.y.data(), n, f[0], f[1], f[2], hh, obs.data(), ex.data()),
         "the kernel refused the input."));
@@ -347,8 +347,8 @@ bool crwalk(Ctx &c, Val &out) {
 #else
   px.resize(H * S), py.resize(H * S);
 #endif
-  CK(kc(c, clab_crwsim(st.data(), n - 1, tu.data(), n - 2, p.x[static_cast<std::size_t>(n) - 1],
-                       p.y[static_cast<std::size_t>(n) - 1], f[4], hh, ns, sd, px.data(), py.data()),
+  CK(kc(c, clab_crwsim(st.data(), n - 1, tu.data(), n - 2, p.x[sat<std::size_t>(n) - 1],
+                       p.y[sat<std::size_t>(n) - 1], f[4], hh, ns, sd, px.data(), py.data()),
         "the kernel refused the input."));
   for (std::size_t k = 0; k < H; ++k) {
     double mx = 0, my = 0, vx = 0, vy = 0;
@@ -401,7 +401,7 @@ bool rnnhcl(Ctx &c, Val &out) {
   CK(fwd(c, p, bx.data(), by.data(), b.n));
   Dv bv;
   if (c.has("bw")) CK(num(c, c["bw"], "bw", bv, b.n, 0.0));
-  std::vector<double> ones(static_cast<std::size_t>(b.n), 1.0);
+  std::vector<double> ones(sat<std::size_t>(b.n), 1.0);
   if (bv.n()) ones = bv.v;
   double hb = 0.0, pv = 0.0, cc = 0.0;
   CK(one(c, c["h"], "h", 0.0, Inf, hb));
@@ -412,7 +412,7 @@ bool rnnhcl(Ctx &c, Val &out) {
   CK(wholed(c, "k", 1, 0, kk));
   if (kk > 2) return c.fail("`k` must be 0, 1 or 2.");
   CK(oned(c, "c", 1, 0.0, Inf, cc));
-  const std::size_t N = static_cast<std::size_t>(n);
+  const std::size_t N = sat<std::size_t>(n);
   std::vector<int> iw(4 * N), cl(N);
   std::vector<double> wk(3 * N), thr(N), cs(8 * N);
   int nc = 0;

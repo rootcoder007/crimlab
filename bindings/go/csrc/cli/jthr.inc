@@ -14,8 +14,8 @@ bool thrtst(Ctx &c, Val &out) {
   Dv sv, kv, hv;
   CK(num(c, c["stops"], "stops", sv, -1, 0.0));
   const std::size_t n = sv.n();
-  CK(num(c, c["srch"], "srch", kv, static_cast<std::int64_t>(n), 0.0));
-  CK(num(c, c["hits"], "hits", hv, static_cast<std::int64_t>(n), 0.0));
+  CK(num(c, c["srch"], "srch", kv, sat<std::int64_t>(n), 0.0));
+  CK(num(c, c["hits"], "hits", hv, sat<std::int64_t>(n), 0.0));
   for (std::size_t i = 0; i < n; ++i) {
     if (kv[i] > sv[i] || hv[i] > kv[i]) {
       return c.fail("`srch` must be at most `stops`, and `hits` at most `srch`, in every row.");
@@ -47,7 +47,7 @@ bool thrtst(Ctx &c, Val &out) {
   int nch = 0, nit = 0;
   CK(wholed(c, "chains", 4, 2, nch));
   CK(wholed(c, "iter", 1000, 20, nit));
-  const int ng = g.g, in = static_cast<int>(n);
+  const int ng = g.g, in = sat<int>(n);
   std::vector<double> tk(zz(ng), 0.0);
   for (std::size_t i = 0; i < n; ++i) tk[zz(g.code[i])] += kv[i];
   for (int j = 0; j < ng; ++j) {
@@ -99,7 +99,7 @@ bool thrtst(Ctx &c, Val &out) {
       df[j] = tse[un + j];
       ds[j] = na(tse[2 * un + j]);
       const double zv = df[j] / tse[2 * un + j];
-      const bool r0 = static_cast<int>(j) == rf - 1 || std::isnan(zv);
+      const bool r0 = sat<int>(j) == rf - 1 || std::isnan(zv);
       dz[j] = r0 ? NA : zv;
       dp[j] = r0 ? NA : 2 * clab_pnorm(-std::fabs(zv));
     }
@@ -165,7 +165,7 @@ bool thrtst(Ctx &c, Val &out) {
     for (int j = 0; j < ng; ++j) pn.push_back("phi[" + g.lev[zz(j)] + "]");
     for (int j = 0; j < ng; ++j) pn.push_back("delta[" + g.lev[zz(j)] + "]");
     for (const char *hp : {"muphi", "sigphi", "mudelta", "sigdelta"}) pn.push_back(hp);
-    const int pin = static_cast<int>(info[3]);
+    const int pin = sat<int>(info[3]);
     for (int q = 0; q < nar; ++q) {
       if (q != pin) pn.push_back("phi[" + al(q) + "]");
     }
@@ -203,7 +203,7 @@ bool thrtst(Ctx &c, Val &out) {
     for (int q = 0; q < 4; ++q) {
       std::vector<double> v(un);
       for (std::size_t j = 0; j < un; ++j) {
-        v[j] = q > 0 && static_cast<int>(j) == rf - 1 ? NA : post[zz(q) * uq + un + j];
+        v[j] = q > 0 && sat<int>(j) == rf - 1 ? NA : post[zz(q) * uq + un + j];
       }
       t.num(dn2[q], v);
     }
@@ -244,7 +244,7 @@ bool thrtst(Ctx &c, Val &out) {
     for (int q = 0; q < 6; ++q) {
       std::vector<double> v(uq);
       for (std::size_t r = 0; r < uq; ++r) {
-        v[r] = q > 0 && static_cast<int>(r) == ng + rf - 1 ? NA : na(post[zz(q) * uq + r]);
+        v[r] = q > 0 && sat<int>(r) == ng + rf - 1 ? NA : na(post[zz(q) * uq + r]);
       }
       ps.num(qn2[q], v);
     }

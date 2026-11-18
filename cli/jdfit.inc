@@ -136,7 +136,7 @@ bool dstfit(Ctx &c, Val &out) {
       if (!okf[i]) return ckstop(c, "`%s` needs %s", fam[i], need[i]);
     }
   }
-  const int n = static_cast<int>(x.size());
+  const int n = sat<int>(x.size());
   struct Row {
     int f, k;
     bool ok;
@@ -148,7 +148,7 @@ bool dstfit(Ctx &c, Val &out) {
     Row r{f, clab_dfnp(f), false, NA, NA, NA, NA, NA, std::vector<double>(3)};
     if (clab_dfit(f, x.data(), n, r.p.data()) == CLAB_OK) {
       r.ok = true;
-      r.p.resize(static_cast<std::size_t>(r.k));
+      r.p.resize(sat<std::size_t>(r.k));
       r.ll = clab_dfll(f, x.data(), n, r.p.data());
       r.aic = 2 * r.k - 2 * r.ll;
       r.bic = std::log(static_cast<double>(n)) * r.k - 2 * r.ll;
@@ -188,8 +188,8 @@ bool dstfit(Ctx &c, Val &out) {
       const std::vector<std::string> fv = rfmtv(sg);
       Val fo = vobj();
       for (int j = 0; j < r.k; ++j) {
-        t += std::string(j ? ", " : "") + pars[r.f][j] + " = " + fv[static_cast<std::size_t>(j)];
-        put(fo, pars[r.f][j], vnum(r.p[static_cast<std::size_t>(j)]));
+        t += std::string(j ? ", " : "") + pars[r.f][j] + " = " + fv[sat<std::size_t>(j)];
+        put(fo, pars[r.f][j], vnum(r.p[sat<std::size_t>(j)]));
       }
       put(fits, fam[r.f], fo);
     }
@@ -207,7 +207,7 @@ bool dstfit(Ctx &c, Val &out) {
   put(tab, "converged", cv);
   put(tab, "params", ps);
   // the bootstrap: R's generator from seed, nboot resamples per fitted family
-  const int B = static_cast<int>(nb);
+  const int B = sat<int>(nb);
   const double a = (1 - lvl) / 2;
   Val bf = varr(), bp = varr(), be = varr(), bl = varr(), bu = varr();
   double sd = 1;
@@ -220,21 +220,21 @@ bool dstfit(Ctx &c, Val &out) {
   Rmt g(sd);
   for (const Row &r : rows) {
     if (!r.ok) continue;
-    std::vector<std::vector<double>> est(static_cast<std::size_t>(r.k));
-    std::vector<double> xb(static_cast<std::size_t>(n)), p(3);
+    std::vector<std::vector<double>> est(sat<std::size_t>(r.k));
+    std::vector<double> xb(sat<std::size_t>(n)), p(3);
     for (int b = 0; b < B; ++b) {
-      for (int i = 0; i < n; ++i) xb[static_cast<std::size_t>(i)] = x[static_cast<std::size_t>(g.index(n))];
+      for (int i = 0; i < n; ++i) xb[sat<std::size_t>(i)] = x[sat<std::size_t>(g.index(n))];
       if (clab_dfit(r.f, xb.data(), n, p.data()) != CLAB_OK) continue;
-      for (int j = 0; j < r.k; ++j) est[static_cast<std::size_t>(j)].push_back(p[static_cast<std::size_t>(j)]);
+      for (int j = 0; j < r.k; ++j) est[sat<std::size_t>(j)].push_back(p[sat<std::size_t>(j)]);
     }
     for (int j = 0; j < r.k; ++j) {
       bf.a.push_back(vstr(fam[r.f]));
       bp.a.push_back(vstr(pars[r.f][j]));
-      be.a.push_back(vnum(r.p[static_cast<std::size_t>(j)]));
-      const std::vector<double> &e = est[static_cast<std::size_t>(j)];
+      be.a.push_back(vnum(r.p[sat<std::size_t>(j)]));
+      const std::vector<double> &e = est[sat<std::size_t>(j)];
       double q[3] = {NA, NA, NA};
       const double pr[2] = {a, 1 - a};
-      if (!e.empty()) clab_bootci(e.data(), static_cast<int>(e.size()), pr, 2, q);
+      if (!e.empty()) clab_bootci(e.data(), sat<int>(e.size()), pr, 2, q);
       bl.a.push_back(vnum(e.empty() ? NA : q[1]));
       bu.a.push_back(vnum(e.empty() ? NA : q[2]));
     }
@@ -247,16 +247,16 @@ bool dstfit(Ctx &c, Val &out) {
   put(boot, "upper", bu);
   Val hill;
   if (n >= 10 && posv) {
-    int k = static_cast<int>(std::floor(std::sqrt(static_cast<double>(n))));
+    int k = sat<int>(std::floor(std::sqrt(static_cast<double>(n))));
     if (c.has("k")) {
       const double v = val1(c["k"]);
       if (std::isfinite(v) && v != std::floor(v)) return ckstop(c, "`k` must be a whole number, not %s", rfmt(v).c_str());
       if (!(v >= 2 && v <= n - 1)) return ckstop(c, "`k` must be one whole number from 2 to %d", n - 1);
-      k = static_cast<int>(v);
+      k = sat<int>(v);
     }
     long double s = 0;
     for (int i = 0; i < k; ++i) {
-      s += std::log(x[static_cast<std::size_t>(n - 1 - i)] / x[static_cast<std::size_t>(n - 1 - k)]);
+      s += std::log(x[sat<std::size_t>(n - 1 - i)] / x[sat<std::size_t>(n - 1 - k)]);
     }
     const double al = k / static_cast<double>(s), z = clab_qnorm(1 - (1 - lvl) / 2);
     hill = vobj();

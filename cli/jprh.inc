@@ -25,7 +25,7 @@ bool prohs(Ctx &c, Val &out) {
   CK(binrd(c, "ahead", 7, 0.0, Inf, ah));
   const double gx = std::ceil((w[1] - w[0]) / ce), gy = std::ceil((w[3] - w[2]) / ce);
   if (gx * gy > 1e8) return c.fail("the grid would have more than 1e8 cells: make `cell` larger.");
-  const int nx = static_cast<int>(gx), ny = static_cast<int>(gy);
+  const int nx = sat<int>(gx), ny = sat<int>(gy);
   std::vector<double> z(zz(nx) * zz(ny));
   std::vector<int> hot(z.size());
   double ev[5];

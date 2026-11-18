@@ -125,7 +125,7 @@ inline bool rsvrun(Ctx &c, double n, std::vector<double> &idx) {
     }
     seed = s[0];
   }
-  idx.assign(static_cast<std::size_t>(std::min(n, k)), 0.0);
+  idx.assign(sat<std::size_t>(std::min(n, k)), 0.0);
   return kchk(c, clab_rsv(n, k, seed, idx.data()));
 }
 
@@ -148,7 +148,7 @@ bool rsvsmp(Ctx &c, Val &out) {
     return false;
   }
   Val o = varr();
-  for (double i : idx) o.a.push_back(x.t == Val::ARR ? x.a[static_cast<std::size_t>(i) - 1] : x);
+  for (double i : idx) o.a.push_back(x.t == Val::ARR ? x.a[sat<std::size_t>(i) - 1] : x);
   out = o.a.size() == 1 ? o.a[0] : o;
   return true;
 }
@@ -164,7 +164,7 @@ inline bool skreg(Ctx &c, const char *nm, std::vector<int> &r) {
     if (!std::isfinite(v) || v < 0 || v > 64 || v != std::floor(v)) {
       return ckstop(c, "`%s` must be non-negative integer registers", nm);
     }
-    r.push_back(static_cast<int>(v));
+    r.push_back(sat<int>(v));
   }
   return true;
 }
@@ -179,8 +179,8 @@ bool dstnskch(Ctx &c, Val &out) {
     }
     p = v[0];
   }
-  const int pp = static_cast<int>(p);
-  std::vector<int> reg(static_cast<std::size_t>(1) << pp, 0);
+  const int pp = sat<int>(p);
+  std::vector<int> reg(sat<std::size_t>(1) << pp, 0);
   if (c.has("regstr")) {
     std::vector<int> r;
     CK(skreg(c, "regstr", r));

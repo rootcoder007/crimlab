@@ -14,7 +14,7 @@ bool rswp(Ctx &c, Val &out) {
   std::vector<double> plo(ng), pup(ng), wk(v.n());
   std::vector<int> iw(v.n());
   double gc = 0, ts = 0;
-  if (clab_rswp(v.p(), static_cast<int>(v.n()), g.p(), static_cast<int>(ng), z, plo.data(), pup.data(), &gc, &ts,
+  if (clab_rswp(v.p(), sat<int>(v.n()), g.p(), sat<int>(ng), z, plo.data(), pup.data(), &gc, &ts,
                 wk.data(), iw.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
@@ -35,7 +35,7 @@ bool rshl(Ctx &c, Val &out) {
   Val d1;
   CK(num(c, arg(c, "gam", d1, 1), "gam", g, -1, 1.0));
   std::vector<double> lo(g.n()), hi(g.n()), wk(v.n());
-  if (clab_rshl(v.p(), static_cast<int>(v.n()), g.p(), static_cast<int>(g.n()), lo.data(), hi.data(), wk.data()) !=
+  if (clab_rshl(v.p(), sat<int>(v.n()), g.p(), sat<int>(g.n()), lo.data(), hi.data(), wk.data()) !=
       CLAB_OK) {
     return c.fail("`d` must hold at most 2^26 values.");
   }

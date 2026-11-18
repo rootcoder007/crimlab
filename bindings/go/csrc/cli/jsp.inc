@@ -41,13 +41,13 @@ bool hvdist(Ctx &c, Val &out) {
   CK(xy(c, c["to"], nul, RAW, b));
   if (a.n != b.n && a.n != 1 && b.n != 1) return c.fail("`from` and `to` must have the same number of points, or one.");
   const int n = std::max(a.n, b.n);
-  std::vector<double> q(4 * static_cast<std::size_t>(n)), d(static_cast<std::size_t>(n));
+  std::vector<double> q(4 * sat<std::size_t>(n)), d(sat<std::size_t>(n));
   for (int i = 0; i < n; ++i) {
-    const std::size_t ia = static_cast<std::size_t>(a.n == 1 ? 0 : i), ib = static_cast<std::size_t>(b.n == 1 ? 0 : i);
-    q[static_cast<std::size_t>(i)] = a.x[ia];
-    q[static_cast<std::size_t>(n + i)] = a.y[ia];
-    q[static_cast<std::size_t>(2 * n + i)] = b.x[ib];
-    q[static_cast<std::size_t>(3 * n + i)] = b.y[ib];
+    const std::size_t ia = sat<std::size_t>(a.n == 1 ? 0 : i), ib = sat<std::size_t>(b.n == 1 ? 0 : i);
+    q[sat<std::size_t>(i)] = a.x[ia];
+    q[sat<std::size_t>(n + i)] = a.y[ia];
+    q[sat<std::size_t>(2 * n + i)] = b.x[ib];
+    q[sat<std::size_t>(3 * n + i)] = b.y[ib];
   }
   CK(kc(c, clab_hvdist(q.data(), q.data() + n, q.data() + 2 * n, q.data() + 3 * n, n, rad, d.data())));
   out = vauto(d);
@@ -68,7 +68,7 @@ bool eqproj(Ctx &c, Val &out) {
     CK(inr(c, c["lon0"], "lon0", -180.0, 180.0, c0));
     CK(inr(c, c["lat0"], "lat0", -90.0, 90.0, c1));
   }
-  std::vector<double> x(static_cast<std::size_t>(p.n)), y(static_cast<std::size_t>(p.n));
+  std::vector<double> x(sat<std::size_t>(p.n)), y(sat<std::size_t>(p.n));
   CK(kc(c, clab_eqproj(p.x.data(), p.y.data(), p.n, c0, c1, rad, x.data(), y.data()),
         "a point lies at the antipode of the centre."));
   Frame f;
@@ -86,7 +86,7 @@ bool eqinv(Ctx &c, Val &out) {
   double c0 = 0.0, c1 = 0.0;
   CK(inr(c, c["lon0"], "lon0", -180.0, 180.0, c0));
   CK(inr(c, c["lat0"], "lat0", -90.0, 90.0, c1));
-  std::vector<double> lo(static_cast<std::size_t>(p.n)), la(static_cast<std::size_t>(p.n));
+  std::vector<double> lo(sat<std::size_t>(p.n)), la(sat<std::size_t>(p.n));
   CK(kc(c, clab_eqinv(p.x.data(), p.y.data(), p.n, c0, c1, rad, lo.data(), la.data()),
         "a point lies farther than 2 r from the centre."));
   Frame f;
@@ -101,7 +101,7 @@ bool xyw(Ctx &c, Mode m, Pts &p, std::vector<double> &w) {
   Args a(c, {"x", "y", "w"});
   CK(a.byname(c));
   CK(xy(c, a[0], a[1], m, p));
-  return pwts(c, a[2], static_cast<std::size_t>(p.n), w);
+  return pwts(c, a[2], sat<std::size_t>(p.n), w);
 }
 
 bool cgstat(Ctx &c, Val &out) {
@@ -124,7 +124,7 @@ bool cgstat(Ctx &c, Val &out) {
 bool cgmedn(Ctx &c, Val &out) {
   Pts p;
   CK(xy(c, PROJ, p));
-  std::vector<double> wk(static_cast<std::size_t>(p.n));
+  std::vector<double> wk(sat<std::size_t>(p.n));
   double o[2];
   CK(kc(c, clab_cgmedn(p.x.data(), p.y.data(), p.n, wk.data(), o)));
   back(p, o, o + 1, 1);
@@ -177,7 +177,7 @@ bool sdell(Ctx &c, Val &out) {
 bool cvhull(Ctx &c, Val &out) {
   Pts p;
   CK(xy(c, PROJ, p));
-  std::vector<int> iw(static_cast<std::size_t>(p.n) + 1), h(2 * static_cast<std::size_t>(p.n) + 1);
+  std::vector<int> iw(sat<std::size_t>(p.n) + 1), h(2 * sat<std::size_t>(p.n) + 1);
   int nh = 0;
   double o[2];
   CK(kc(c, clab_cvhull(p.x.data(), p.y.data(), p.n, iw.data(), h.data(), &nh, o),
@@ -196,7 +196,7 @@ bool inwin(Ctx &c, Pts &p, double *w) {
   CK(win(c, c["win"], w));
   if (p.n < 2) return c.fail("at least 2 points are needed.");
   for (int i = 0; i < p.n; ++i) {
-    if (!inside(w, p.x[static_cast<std::size_t>(i)], p.y[static_cast<std::size_t>(i)])) {
+    if (!inside(w, p.x[sat<std::size_t>(i)], p.y[sat<std::size_t>(i)])) {
       return c.fail("every point must lie inside `win`.");
     }
   }
@@ -226,20 +226,20 @@ bool nnidx(Ctx &c, Val &out) {
   CK(metric(c, me));
   unsigned int sd = 0;
   if (ns > 0) CK(seed(c, sd));
-  const std::size_t nk = static_cast<std::size_t>(n) * static_cast<std::size_t>(km);
-  std::vector<int> iw(2 * static_cast<std::size_t>(n) + 2 + 2 * static_cast<std::size_t>(km) + (me ? nk : 0));
-  std::vector<double> wk(3 * static_cast<std::size_t>(km) + 2 * static_cast<std::size_t>(n) + (me ? nk : 0));
-  std::vector<double> dv(dd ? nk : 0), o(6 * static_cast<std::size_t>(km) + 4);
+  const std::size_t nk = sat<std::size_t>(n) * sat<std::size_t>(km);
+  std::vector<int> iw(2 * sat<std::size_t>(n) + 2 + 2 * sat<std::size_t>(km) + (me ? nk : 0));
+  std::vector<double> wk(3 * sat<std::size_t>(km) + 2 * sat<std::size_t>(n) + (me ? nk : 0));
+  std::vector<double> dv(dd ? nk : 0), o(6 * sat<std::size_t>(km) + 4);
   CK(kc(c, (me ? clab_nnidm : clab_nnidx)(p.x.data(), p.y.data(), n, w, km, ns, sd, dd ? dv.data() : nullptr, iw.data(),
                                          wk.data(), o.data())));
   static const char *const on[] = {"mean", "exp", "ratio", "pclu", "preg", "sd"};
   Frame f;
-  std::vector<double> kk(static_cast<std::size_t>(km));
-  for (int k = 0; k < km; ++k) kk[static_cast<std::size_t>(k)] = k + 1;
+  std::vector<double> kk(sat<std::size_t>(km));
+  for (int k = 0; k < km; ++k) kk[sat<std::size_t>(k)] = k + 1;
   f.num("k", kk);
   for (int j = 0; j < 6; ++j) {
-    std::vector<double> col(static_cast<std::size_t>(km));
-    for (int k = 0; k < km; ++k) col[static_cast<std::size_t>(k)] = o[static_cast<std::size_t>(6 * k + j)];
+    std::vector<double> col(sat<std::size_t>(km));
+    for (int k = 0; k < km; ++k) col[sat<std::size_t>(k)] = o[sat<std::size_t>(6 * k + j)];
     f.num(on[j], col);
   }
   static const char *const cn[] = {"donnelly", "ratio", "z", "zc"};
@@ -251,7 +251,7 @@ bool nnidx(Ctx &c, Val &out) {
     std::vector<double> dm(nk);
     for (int i = 0; i < n; ++i) {
       for (int k = 0; k < km; ++k) {
-        dm[static_cast<std::size_t>(i) + static_cast<std::size_t>(n) * k] = dv[static_cast<std::size_t>(i) * km + k];
+        dm[sat<std::size_t>(i) + sat<std::size_t>(n) * k] = dv[sat<std::size_t>(i) * km + k];
       }
     }
     put(out, "dist", vmat(dm, n, km));
@@ -267,14 +267,14 @@ bool ripk(Ctx &c, Val &out) {
   CK(inwin(c, p, w));
   Dv rv;
   CK(radii(c, rv));
-  const int m = static_cast<int>(rv.n());
+  const int m = sat<int>(rv.n());
   int co = 0, me = 0;
   CK(pickd(c, "corr", kcor, 4, 3, co));
   CK(metric(c, me));
   if (me == 1 && co == 3) {
     return c.fail("the isotropic correction has no Manhattan form: use corr = \"border\", \"modif\" or \"none\".");
   }
-  std::vector<int> iw(2 * static_cast<std::size_t>(p.n) + 2);
+  std::vector<int> iw(2 * sat<std::size_t>(p.n) + 2);
   std::vector<double> wk(4 * rv.n()), k(rv.n()), l(rv.n());
   CK(kc(c, clab_ripkm(p.x.data(), p.y.data(), p.n, w, rv.p(), m, co, me, iw.data(), wk.data(), k.data())));
   for (std::size_t j = 0; j < rv.n(); ++j) l[j] = std::sqrt(k[j] / (me ? 2.0 : 3.14159265358979323846));
@@ -292,19 +292,19 @@ bool ripenv(Ctx &c, Val &out) {
   CK(inwin(c, p, w));
   Dv rv;
   CK(radii(c, rv));
-  const int m = static_cast<int>(rv.n());
+  const int m = sat<int>(rv.n());
   int co = 0, ns = 0;
   CK(pickd(c, "corr", kcor, 4, 3, co));
   CK(wholed(c, "nsim", 99, 1, ns));
   unsigned int sd = 0;
   CK(seed(c, sd));
-  std::vector<int> iw(2 * static_cast<std::size_t>(p.n) + 2);
-  std::vector<double> wk(5 * rv.n() + 2 * static_cast<std::size_t>(p.n)), o(4 * rv.n() + 2);
+  std::vector<int> iw(2 * sat<std::size_t>(p.n) + 2);
+  std::vector<double> wk(5 * rv.n() + 2 * sat<std::size_t>(p.n)), o(4 * rv.n() + 2);
   CK(kc(c, clab_ripenv(p.x.data(), p.y.data(), p.n, w, rv.p(), m, co, ns, sd, iw.data(), wk.data(), o.data())));
   static const char *const en[] = {"obs", "lo", "hi", "mean"};
   Frame f;
   f.num("r", rv.v);
-  for (int b = 0; b < 4; ++b) f.num(en[b], o.data() + static_cast<std::size_t>(b) * rv.n(), rv.n());
+  for (int b = 0; b < 4; ++b) f.num(en[b], o.data() + sat<std::size_t>(b) * rv.n(), rv.n());
   static const char *const tn[] = {"t", "p"};
   out = vobj();
   put(out, "env", f.o);
@@ -338,10 +338,10 @@ bool expand(Ctx &c, const Pts &p, Zones &z) {
   double tot = 0;
   for (double e : cv) tot += e;
   if (tot > 1e8) return c.fail("`count` must sum to at most 1e8.");
-  z.first.assign(static_cast<std::size_t>(p.n), -1);
+  z.first.assign(sat<std::size_t>(p.n), -1);
   int t = 0;
-  for (std::size_t i = 0; i < static_cast<std::size_t>(p.n); ++i) {
-    const int k = static_cast<int>(cv[i]);
+  for (std::size_t i = 0; i < sat<std::size_t>(p.n); ++i) {
+    const int k = sat<int>(cv[i]);
     z.first[i] = k > 0 ? t : -1;
     for (int q = 0; q < k; ++q, ++t) {
       z.x.push_back(p.x[i]);
@@ -353,13 +353,13 @@ bool expand(Ctx &c, const Pts &p, Zones &z) {
 // Per-zone group numbers from the copies' (NA for empty zones), cols
 // columns of nc copies each.
 std::vector<int> zgroups(const Zones &z, const std::vector<int> &cl, int nz, int cols) {
-  std::vector<int> v(static_cast<std::size_t>(nz) * static_cast<std::size_t>(cols));
+  std::vector<int> v(sat<std::size_t>(nz) * sat<std::size_t>(cols));
   const std::size_t nc = z.x.size();
   for (int j = 0; j < cols; ++j) {
     for (int i = 0; i < nz; ++i) {
-      const int f = z.first[static_cast<std::size_t>(i)];
-      v[static_cast<std::size_t>(i) + static_cast<std::size_t>(nz) * j] =
-          f < 0 ? INT_MIN : cl[static_cast<std::size_t>(f) + nc * static_cast<std::size_t>(j)];
+      const int f = z.first[sat<std::size_t>(i)];
+      v[sat<std::size_t>(i) + sat<std::size_t>(nz) * j] =
+          f < 0 ? INT_MIN : cl[sat<std::size_t>(f) + nc * sat<std::size_t>(j)];
     }
   }
   return v;
@@ -376,7 +376,7 @@ Val vimat(const std::vector<int> &x, int nr, int nc) {
   for (int i = 0; i < nr; ++i) {
     Val r = varr();
     for (int j = 0; j < nc; ++j) {
-      const int e = x[static_cast<std::size_t>(i) + static_cast<std::size_t>(nr) * j];
+      const int e = x[sat<std::size_t>(i) + sat<std::size_t>(nr) * j];
       r.a.push_back(e == INT_MIN ? Val() : vnum(e));
     }
     v.a.push_back(r);
@@ -386,16 +386,16 @@ Val vimat(const std::vector<int> &x, int nr, int nc) {
 // The cluster table of nnhclu and stacel: nc rows of w values, columns nm;
 // columns cx, cx + 1 and cx + 2, cx + 3 hold centres.
 Val ctab(const Pts &p, const std::vector<double> &cs, int nc, int w, const char *const *nm, int cx) {
-  std::vector<std::vector<double>> col(static_cast<std::size_t>(w), std::vector<double>(static_cast<std::size_t>(nc)));
+  std::vector<std::vector<double>> col(sat<std::size_t>(w), std::vector<double>(sat<std::size_t>(nc)));
   for (int i = 0; i < nc; ++i) {
     for (int j = 0; j < w; ++j) {
-      col[static_cast<std::size_t>(j)][static_cast<std::size_t>(i)] = cs[static_cast<std::size_t>(i) * w + j];
+      col[sat<std::size_t>(j)][sat<std::size_t>(i)] = cs[sat<std::size_t>(i) * w + j];
     }
   }
-  back(p, col[static_cast<std::size_t>(cx)].data(), col[static_cast<std::size_t>(cx + 1)].data(), nc);
-  back(p, col[static_cast<std::size_t>(cx + 2)].data(), col[static_cast<std::size_t>(cx + 3)].data(), nc);
+  back(p, col[sat<std::size_t>(cx)].data(), col[sat<std::size_t>(cx + 1)].data(), nc);
+  back(p, col[sat<std::size_t>(cx + 2)].data(), col[sat<std::size_t>(cx + 3)].data(), nc);
   Frame f;
-  for (int j = 0; j < w; ++j) f.num(nm[j], col[static_cast<std::size_t>(j)]);
+  for (int j = 0; j < w; ++j) f.num(nm[j], col[sat<std::size_t>(j)]);
   return f.o;
 }
 
@@ -406,7 +406,7 @@ bool fzmode(Ctx &c, Val &out) {
   CK(inr(c, c["r"], "r", 0.0, std::numeric_limits<double>::max(), rad));
   int me = 0;
   CK(metric(c, me));
-  const std::size_t n = static_cast<std::size_t>(p.n);
+  const std::size_t n = sat<std::size_t>(p.n);
   std::vector<int> iw(2 * n + 2);
   if (!c.has("count") && me == 0) {
     std::vector<int> o(n);
@@ -420,13 +420,13 @@ bool fzmode(Ctx &c, Val &out) {
   std::vector<int> rp(n + 1);
   int nnz = 0;
   CK(kc(c, clab_swband(p.x.data(), p.y.data(), p.n, dm, me, 0, rp.data(), nullptr, nullptr, &nnz, iw.data())));
-  std::vector<int> ci(static_cast<std::size_t>(nnz) + 1);
-  std::vector<double> dv(static_cast<std::size_t>(nnz) + 1);
+  std::vector<int> ci(sat<std::size_t>(nnz) + 1);
+  std::vector<double> dv(sat<std::size_t>(nnz) + 1);
   CK(kc(c, clab_swband(p.x.data(), p.y.data(), p.n, dm, me, nnz, rp.data(), ci.data(), dv.data(), &nnz, iw.data())));
   std::vector<double> o(n);
   for (std::size_t i = 0; i < n; ++i) {
     double s = cv.empty() ? 1.0 : cv[i];
-    for (int q = rp[i]; q < rp[i + 1]; ++q) s += cv.empty() ? 1.0 : cv[static_cast<std::size_t>(ci[static_cast<std::size_t>(q)])];
+    for (int q = rp[i]; q < rp[i + 1]; ++q) s += cv.empty() ? 1.0 : cv[sat<std::size_t>(ci[sat<std::size_t>(q)])];
     o[i] = s;
   }
   out = vauto(o);
@@ -443,13 +443,13 @@ bool kmpart(Ctx &c, Val &out) {
   if (zon) {
     pz.x = zn.x;
     pz.y = zn.y;
-    pz.n = static_cast<int>(zn.x.size());
+    pz.n = sat<int>(zn.x.size());
   }
   const int n = pz.n;
   int kk = 0;
   CK(whole(c, c["k"], "k", 1, kk));
   if (kk > n) return c.fail("`k` must be at most the number of points.");
-  std::vector<double> cen(2 * static_cast<std::size_t>(kk));
+  std::vector<double> cen(2 * sat<std::size_t>(kk));
   int in0 = 1;
   double par[2] = {0, 0};
   const Val &ini = c["init"];
@@ -480,16 +480,16 @@ bool kmpart(Ctx &c, Val &out) {
   CK(wholed(c, "maxit", 100, 0, mi));
   unsigned int sd = 0;
   if (in0 == 1) CK(seed(c, sd));
-  const std::size_t N = static_cast<std::size_t>(n);
+  const std::size_t N = sat<std::size_t>(n);
   std::vector<int> cl(N), iw(2 * N);
-  std::vector<double> wk(2 * N), o(4 + 3 * static_cast<std::size_t>(kk));
+  std::vector<double> wk(2 * N), o(4 + 3 * sat<std::size_t>(kk));
   CK(kc(c, clab_kmpart(pz.x.data(), pz.y.data(), n, kk, in0, par, sd, up, mi, cen.data(), cl.data(), iw.data(),
                        wk.data(), o.data()),
         in0 == 1 ? "fewer distinct points than `k`." : "fewer than `k` cells hold points far enough apart."));
-  const std::size_t K = static_cast<std::size_t>(kk);
+  const std::size_t K = sat<std::size_t>(kk);
   std::vector<double> cx(cen.begin(), cen.begin() + kk), cy(cen.begin() + kk, cen.end()), cn3[3];
   for (std::size_t j = 0; j < K; ++j) {
-    for (int b = 0; b < 3; ++b) cn3[b].push_back(o[4 + 3 * j + static_cast<std::size_t>(b)]);
+    for (int b = 0; b < 3; ++b) cn3[b].push_back(o[4 + 3 * j + sat<std::size_t>(b)]);
   }
   back(p, cx.data(), cy.data(), kk);
   Frame f;
@@ -518,7 +518,7 @@ bool nnhclu(Ctx &c, Val &out) {
   if (zon) {
     pz.x = zn.x;
     pz.y = zn.y;
-    pz.n = static_cast<int>(zn.x.size());
+    pz.n = sat<int>(zn.x.size());
   }
   const int n = pz.n;
   if (n < 2) return c.fail("at least 2 points are needed.");
@@ -539,8 +539,8 @@ bool nnhclu(Ctx &c, Val &out) {
   CK(wholed(c, "k", 1, 0, kk));
   if (kk > 2) return c.fail("`k` must be 0, 1 or 2.");
   CK(posn(c, "c", 1, cc));
-  const std::size_t N = static_cast<std::size_t>(n);
-  std::vector<int> iw(6 * N + 2), cl(N * static_cast<std::size_t>(mo));
+  const std::size_t N = sat<std::size_t>(n);
+  std::vector<int> iw(6 * N + 2), cl(N * sat<std::size_t>(mo));
   std::vector<double> wk(4 * N), cs(11 * N);
   int nc = 0;
   CK(kc(c, clab_nnhclu(pz.x.data(), pz.y.data(), n, ar, fd, z, mp, mh, mo, kk, cc, iw.data(), wk.data(), cl.data(), &nc,
@@ -564,7 +564,7 @@ bool stacel(Ctx &c, Val &out) {
   if (zon) {
     pz.x = zn.x;
     pz.y = zn.y;
-    pz.n = static_cast<int>(zn.x.size());
+    pz.n = sat<int>(zn.x.size());
   }
   double w[4];
   CK(win(c, c["win"], w));
@@ -579,9 +579,9 @@ bool stacel(Ctx &c, Val &out) {
   CK(wholed(c, "k", 1, 0, kk));
   if (kk > 2) return c.fail("`k` must be 0, 1 or 2.");
   CK(posn(c, "c", 1, cc));
-  const std::size_t n = static_cast<std::size_t>(pz.n), nn = static_cast<std::size_t>(gx) * static_cast<std::size_t>(gy);
-  tp = static_cast<int>(std::min<std::size_t>(static_cast<std::size_t>(tp), nn));  // as R: at most a cluster a cell
-  std::vector<int> iw(3 * n + 2 + nn + static_cast<std::size_t>(tp) + std::max(n, 2 * static_cast<std::size_t>(tp))),
+  const std::size_t n = sat<std::size_t>(pz.n), nn = sat<std::size_t>(gx) * sat<std::size_t>(gy);
+  tp = sat<int>(std::min<std::size_t>(sat<std::size_t>(tp), nn));  // as R: at most a cluster a cell
+  std::vector<int> iw(3 * n + 2 + nn + sat<std::size_t>(tp) + std::max(n, 2 * sat<std::size_t>(tp))),
       cl(n + 1);
   std::vector<double> wk(nn + 2 * n), cs(8 * n + 1);
   int nc = 0;
@@ -618,7 +618,7 @@ bool mantst(Ctx &c, Val &out) {
   CK(metric(c, me));
   unsigned int sd = 0;
   if (ns > 0) CK(seed(c, sd));
-  std::vector<int> iw(static_cast<std::size_t>(p.n));
+  std::vector<int> iw(sat<std::size_t>(p.n));
   double o[5];
   CK(kc(c, clab_mantm(p.x.data(), p.y.data(), tv.p(), p.n, me, a, b, ns, sd, iw.data(), o),
         "the distances or the time intervals are all equal: r is undefined."));
@@ -634,13 +634,13 @@ bool stmavg(Ctx &c, Val &out) {
   int sp = 0;
   CK(wholed(c, "span", 5, 1, sp));
   if (sp % 2 == 0) return c.fail("`span` must be odd.");
-  const std::size_t n = static_cast<std::size_t>(p.n);
+  const std::size_t n = sat<std::size_t>(p.n);
   std::vector<int> iw(n);
   std::vector<double> o(4 * n), mx(n), my(n), k(n);
   CK(kc(c, clab_stmavg(p.x.data(), p.y.data(), tv.p(), p.n, sp, iw.data(), o.data())));
   for (std::size_t q = 0; q < n; ++q) {
     const double *r = o.data() + 4 * q;
-    const std::size_t i = static_cast<std::size_t>(r[0]);
+    const std::size_t i = sat<std::size_t>(r[0]);
     mx[i] = r[1];
     my[i] = r[2];
     k[i] = r[3];
@@ -700,8 +700,8 @@ bool jtdecay(Ctx &c, Val &out) {
   Decay f;
   CK(mkdecay(c, f));
   std::vector<double> o(dv.n());
-  CK(kc(c, clab_jtdecay(dv.p(), static_cast<int>(dv.n()), f.type, f.par.p(), f.type == 5 ? f.tab.p() : nullptr,
-                        f.type == 5 ? static_cast<int>(f.tab.n()) : 0, o.data()),
+  CK(kc(c, clab_jtdecay(dv.p(), sat<int>(dv.n()), f.type, f.par.p(), f.type == 5 ? f.tab.p() : nullptr,
+                        f.type == 5 ? sat<int>(f.tab.n()) : 0, o.data()),
         "`par` is outside the domain of this decay type."));
   out = vauto(o);
   return true;
@@ -721,11 +721,11 @@ bool jtsurf(Ctx &c, Val &out) {
   CK(metric(c, me));
   static const char *const so[] = {"sum", "lik"};
   CK(pickd(c, "mode", so, 2, 0, md));
-  const std::size_t m = static_cast<std::size_t>(g.nx) * static_cast<std::size_t>(g.ny);
+  const std::size_t m = sat<std::size_t>(g.nx) * sat<std::size_t>(g.ny);
   std::vector<double> raw(m), prob(m);
   double pk[3];
   CK(kc(c, clab_jtsurf(p.x.data(), p.y.data(), p.n, g.nx, g.ny, g.x0, g.y0, g.dx, g.dy, me, md, f.type, f.par.p(),
-                       f.type == 5 ? f.tab.p() : nullptr, f.type == 5 ? static_cast<int>(f.tab.n()) : 0, raw.data(),
+                       f.type == 5 ? f.tab.p() : nullptr, f.type == 5 ? sat<int>(f.tab.n()) : 0, raw.data(),
                        prob.data(), pk),
         "the surface is 0 everywhere: no cell is within reach of the decay function, or `par` is outside its domain."));
   pk[0] += 1;
@@ -753,7 +753,7 @@ bool jtcal(Ctx &c, Val &out) {
   int kk = 0;
   CK(pickd(c, "kern", ko, 5, 0, kk));
   std::vector<double> o(tv.n());
-  CK(kc(c, clab_jtcal(dv.p(), ptr(w), static_cast<int>(dv.n()), kk, bw, rf ? 1 : 0, tv.p(), static_cast<int>(tv.n()),
+  CK(kc(c, clab_jtcal(dv.p(), ptr(w), sat<int>(dv.n()), kk, bw, rf ? 1 : 0, tv.p(), sat<int>(tv.n()),
                       o.data())));
   out = vauto(o);
   return true;
@@ -767,7 +767,7 @@ bool jtacc(Ctx &c, Val &out) {
   std::vector<double> pv;
   int nr = 0, nc = 0;
   bool bad = false;
-  pv.assign(static_cast<std::size_t>(dim[0]) * static_cast<std::size_t>(dim[1]), 0.0);
+  pv.assign(sat<std::size_t>(dim[0]) * sat<std::size_t>(dim[1]), 0.0);
   fill(c["prob"], 2, dim, 0, 0, 1, pv, bad, true);
   nr = dim[0];
   nc = dim[1];
@@ -792,13 +792,13 @@ bool jtacc(Ctx &c, Val &out) {
 bool bjtc(Ctx &c, Val &out) {
   Dv pv;
   CK(num(c, gvec(c["pj"]), "pj", pv, -1, 0.0));
-  const int no = static_cast<int>(pv.n());
+  const int no = sat<int>(pv.n());
   int dim[2] = {-1, -1};
   if (!shape(c["od"], 2, dim, 0) || dim[0] != no) {
     return c.fail("`od` must be a matrix with one row per origin zone (the length of `pj`).");
   }
   const int nd = dim[1];
-  std::vector<double> ov(static_cast<std::size_t>(no) * static_cast<std::size_t>(nd));
+  std::vector<double> ov(sat<std::size_t>(no) * sat<std::size_t>(nd));
   bool bad = false;
   fill(c["od"], 2, dim, 0, 0, 1, ov, bad, true);
   if (ov.empty()) return c.fail("`od` must be finite numbers from 0 with no missing values.");
@@ -806,7 +806,7 @@ bool bjtc(Ctx &c, Val &out) {
   std::vector<double> tr(ov.size());
   for (int o = 0; o < no; ++o) {
     for (int j = 0; j < nd; ++j) {
-      tr[static_cast<std::size_t>(o) * nd + j] = ov[static_cast<std::size_t>(o) + static_cast<std::size_t>(no) * j];
+      tr[sat<std::size_t>(o) * nd + j] = ov[sat<std::size_t>(o) + sat<std::size_t>(no) * j];
     }
   }
   Dv dv;
@@ -815,14 +815,14 @@ bool bjtc(Ctx &c, Val &out) {
   for (std::size_t k = 0; k < dv.n(); ++k) {
     const double v = dv[k];
     if (v != std::floor(v) || v > nd) return c.fail("`dest` must be whole numbers from 1 to %d, the columns of `od`.", nd);
-    di[k] = static_cast<int>(v) - 1;
+    di[k] = sat<int>(v) - 1;
   }
-  std::vector<double> o(5 * static_cast<std::size_t>(no));
-  CK(kc(c, clab_bjtc(pv.p(), no, tr.data(), nd, di.data(), static_cast<int>(dv.n()), o.data()),
+  std::vector<double> o(5 * sat<std::size_t>(no));
+  CK(kc(c, clab_bjtc(pv.p(), no, tr.data(), nd, di.data(), sat<int>(dv.n()), o.data()),
         "a block sums to 0: no journey-to-crime value, no solved offence, or no solved offence in the series' zones."));
   static const char *const nm[] = {"pj", "po", "pod", "prod", "risk"};
   Frame f;
-  for (int b = 0; b < 5; ++b) f.num(nm[b], o.data() + static_cast<std::size_t>(b) * no, static_cast<std::size_t>(no));
+  for (int b = 0; b < 5; ++b) f.num(nm[b], o.data() + sat<std::size_t>(b) * no, sat<std::size_t>(no));
   out = f.o;
   return true;
 }

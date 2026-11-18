@@ -48,7 +48,7 @@ bool pseed(Ctx &c, double def, double &s) {
          c.fail("`seed` must be one whole number from 0, below 2^53.");
 }
 
-int ilen(const std::vector<double> &v) { return static_cast<int>(v.size()); }
+int ilen(const std::vector<double> &v) { return sat<int>(v.size()); }
 
 bool cmn(Ctx &c, Val &out) {
   std::vector<double> x;
@@ -78,7 +78,7 @@ bool csdev(Ctx &c, Val &out) {
   CK(pnum(c, "x", x));
   double d = 0;
   CK(pone(c, "ddof", 1, 0, INT_MAX, true, d));
-  out = vnum(std::sqrt(clab_var(x.data(), ilen(x), static_cast<int>(d))));
+  out = vnum(std::sqrt(clab_var(x.data(), ilen(x), sat<int>(d))));
   return true;
 }
 
@@ -255,10 +255,10 @@ bool ccovm(Ctx &c, Val &out) {
       if (!isnum(e)) return c.fail("every column of `x` must be numeric.");
     }
     cn = x.k;
-    nc = static_cast<int>(x.a.size());
-    nr = nc ? static_cast<int>(vlen(x.a[0])) : 0;
+    nc = sat<int>(x.a.size());
+    nr = nc ? sat<int>(vlen(x.a[0])) : 0;
     for (const Val &e : x.a) {
-      if (static_cast<int>(vlen(e)) != nr) return c.fail("`x` must be a numeric matrix or data frame.");
+      if (sat<int>(vlen(e)) != nr) return c.fail("`x` must be a numeric matrix or data frame.");
       const std::vector<double> d = dbl(e);
       v.insert(v.end(), d.begin(), d.end());
     }
@@ -266,12 +266,12 @@ bool ccovm(Ctx &c, Val &out) {
     c.err.clear();
     return c.fail("`x` must be a numeric matrix or data frame.");
   }
-  std::vector<double> o(static_cast<std::size_t>(nc) * static_cast<std::size_t>(nc));
+  std::vector<double> o(sat<std::size_t>(nc) * sat<std::size_t>(nc));
   clab_covm(v.data(), nr, nc, o.data());
   out = varr();
   for (int i = 0; i < nc; ++i) {
     Val r = varr();
-    for (int j = 0; j < nc; ++j) r.a.push_back(vnum(o[static_cast<std::size_t>(j) * nc + i]));
+    for (int j = 0; j < nc; ++j) r.a.push_back(vnum(o[sat<std::size_t>(j) * nc + i]));
     out.a.push_back(r);
   }
   return true;
@@ -304,8 +304,8 @@ bool cbootmean(Ctx &c, Val &out) {
   CK(pone(c, "B", 1000, 1, INT_MAX, true, b));
   CK(pseed(c, 42, s));
   std::vector<double> o;
-  CK(rvec(c, o, static_cast<std::size_t>(b), "B"));
-  CK(kchk(c, clab_bmean(x.data(), ilen(x), static_cast<int>(b), s, o.data())));
+  CK(rvec(c, o, sat<std::size_t>(b), "B"));
+  CK(kchk(c, clab_bmean(x.data(), ilen(x), sat<int>(b), s, o.data())));
   out = unbox(vnums(o));
   return true;
 }
@@ -350,8 +350,8 @@ bool cunif(Ctx &c, Val &out) {
   CK(pone(c, "n", 0, 0, INT_MAX, true, n));
   CK(pseed(c, 0, s));
   std::vector<double> o;
-  CK(rvec(c, o, static_cast<std::size_t>(n), "n"));
-  clab_unif(s, static_cast<int>(n), o.data());
+  CK(rvec(c, o, sat<std::size_t>(n), "n"));
+  clab_unif(s, sat<int>(n), o.data());
   out = unbox(vnums(o));
   return true;
 }

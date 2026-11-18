@@ -38,7 +38,7 @@ inline bool labs(const Val &o, std::size_t n, bool sorted, Lab &l) {
     }
     l.nv = u;
     for (std::size_t i = 0; i < n; ++i) {
-      l.code[i] = static_cast<int>(std::find(u.begin(), u.end(), v[i]) - u.begin());
+      l.code[i] = sat<int>(std::find(u.begin(), u.end(), v[i]) - u.begin());
     }
     l.nlev = u.size();
   } else {
@@ -51,7 +51,7 @@ inline bool labs(const Val &o, std::size_t n, bool sorted, Lab &l) {
     if (sorted) std::sort(u.begin(), u.end());
     l.sv = u;
     for (std::size_t i = 0; i < n; ++i) {
-      l.code[i] = static_cast<int>(std::find(u.begin(), u.end(), v[i]) - u.begin());
+      l.code[i] = sat<int>(std::find(u.begin(), u.end(), v[i]) - u.begin());
     }
     l.nlev = u.size();
   }
@@ -79,7 +79,7 @@ inline bool pick(Ctx &c, const char *nm, const std::vector<const char *> &ch, in
   int hit = -1;
   if (s->t == Val::STR && !s->s.empty()) {
     for (std::size_t i = 0; hit < 0 && i < ch.size(); ++i) {
-      if (std::strncmp(ch[i], s->s.c_str(), s->s.size()) == 0) hit = static_cast<int>(i);
+      if (std::strncmp(ch[i], s->s.c_str(), s->s.size()) == 0) hit = sat<int>(i);
     }
   }
   if (hit >= 0) {
@@ -167,7 +167,7 @@ bool dwnexp(Ctx &c, Val &out) {
         px.push_back(rx.v[i]);
         py.push_back(ry.v[i]);
       }
-      ro.push_back(static_cast<int>(px.size()));
+      ro.push_back(sat<int>(px.size()));
     }
     npl = il.nlev;
   }
@@ -190,9 +190,9 @@ bool dwnexp(Ctx &c, Val &out) {
   }
   std::vector<double> to(ns), o1(npl * np), o2(ru == 2 ? npl * np : 0);
   for (std::size_t i = 0; i < ns; ++i) to[i] = from ? ax::rmod(sd.v[i] + 180, 360) : sd.v[i];
-  const int rc = clab_dwnexp(ru, static_cast<int>(ns), sx.p(), sy.p(), pl.code.data(), to.data(),
-                             static_cast<int>(npl), px.data(), py.data(), ro.empty() ? nullptr : ro.data(),
-                             static_cast<int>(np), hf.v[0], rad, ll ? 1 : 0, wrap ? 1 : 0, o1.data(),
+  const int rc = clab_dwnexp(ru, sat<int>(ns), sx.p(), sy.p(), pl.code.data(), to.data(),
+                             sat<int>(npl), px.data(), py.data(), ro.empty() ? nullptr : ro.data(),
+                             sat<int>(np), hf.v[0], rad, ll ? 1 : 0, wrap ? 1 : 0, o1.data(),
                              ru == 2 ? o2.data() : nullptr);
   if (rc != CLAB_OK) return c.fail("%s", clab_strerror(rc));
   Frame f;
@@ -237,7 +237,7 @@ bool tailwd(Ctx &c, Val &out) {
   if (n > 2147483647u) return ckstop(c, "`dir` must have at most 2147483647 values");
   if (!c.has("by")) {
     std::vector<double> o(n);
-    const int rc = clab_tailwd(static_cast<int>(n), dv.data(), sv.data(), co.v[0], nullptr, 0, 0, o.data());
+    const int rc = clab_tailwd(sat<int>(n), dv.data(), sv.data(), co.v[0], nullptr, 0, 0, o.data());
     if (rc != CLAB_OK) return c.fail("%s", clab_strerror(rc));
     out = env::nas(o);
     return true;
@@ -245,8 +245,8 @@ bool tailwd(Ctx &c, Val &out) {
   dw::Lab g;
   if (!dw::labs(c["by"], n, true, g)) return ckstop(c, "`by` must give the group of each reading, with no NA");
   std::vector<double> o(g.nlev);
-  const int rc = clab_tailwd(static_cast<int>(n), dv.data(), sv.data(), co.v[0], g.code.data(),
-                             static_cast<int>(g.nlev), agg, o.data());
+  const int rc = clab_tailwd(sat<int>(n), dv.data(), sv.data(), co.v[0], g.code.data(),
+                             sat<int>(g.nlev), agg, o.data());
   if (rc != CLAB_OK) return c.fail("%s", clab_strerror(rc));
   Frame f;
   f.add("by", dw::labv(g, 1, g.nlev, false));

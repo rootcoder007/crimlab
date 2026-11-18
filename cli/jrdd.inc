@@ -12,7 +12,7 @@ const char *const kerns[] = {"tri", "uni", "epa"};
 // .rdfit(): one fit, or false with R's message.
 bool fit(Ctx &c, const std::vector<double> &y, const std::vector<double> &r, const std::vector<double> *t,
          double h, int kern, int p, const std::vector<int> *cl, bool g, double *st) {
-  const int rc = clab_rdfit(y.data(), r.data(), t ? t->data() : nullptr, static_cast<int>(y.size()), h, kern, p,
+  const int rc = clab_rdfit(y.data(), r.data(), t ? t->data() : nullptr, sat<int>(y.size()), h, kern, p,
                             cl ? cl->data() : nullptr, g ? 1 : 0, st);
   if (rc == CLAB_EDOM) {
     return ckstop(c, "the local fit failed: %sthe running variable has too few distinct values within the bandwidth",
@@ -76,7 +76,7 @@ bool rdloc(Ctx &c, Val &out) {
                     "the bandwidth of Imbens and Kalyanaraman needs at least 10 rows; give `h` with `bw = \"user\"`");
     }
     double st[10];
-    const int rc = clab_ikbw(yv.data(), rv.data(), static_cast<int>(yv.size()), cut, kern, &h, st);
+    const int rc = clab_ikbw(yv.data(), rv.data(), sat<int>(yv.size()), cut, kern, &h, st);
     if (rc == CLAB_EDOM) {
       return c.fail("the bandwidth of Imbens and Kalyanaraman cannot be computed: too few rows near the cutoff or a "
                     "third derivative of 0; give `h` with `bw = \"user\"`.");
@@ -172,7 +172,7 @@ bool rddens(Ctx &c, Val &out) {
   double lv = 0;
   CK(alevel(c, lv));
   double s[7];
-  const int rc = clab_mccr(r.data(), static_cast<int>(r.size()), cut, b, h, s);
+  const int rc = clab_mccr(r.data(), sat<int>(r.size()), cut, b, h, s);
   if (rc == CLAB_EDOM) {
     return c.fail("the density cannot be estimated: the cutoff is outside the data, or a side has too few bins (give "
                   "`b` or `h`).");

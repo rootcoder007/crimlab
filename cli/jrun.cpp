@@ -33,6 +33,7 @@
 #include <fstream>
 #include <initializer_list>
 #include <limits>
+#include <type_traits>
 #include <map>
 #include <new>
 #include <regex>
@@ -71,6 +72,19 @@
 extern "C" int clab_selftest(char *sink, int cap, int *nfail);
 
 namespace {
+
+// A number as an integer. A double outside the range of T becomes the
+// nearest end of that range, and NaN becomes 0, where static_cast would be
+// undefined behaviour: the numbers here are the caller's. Every other
+// type converts as static_cast does.
+template <class T, class U> constexpr T sat(U v) {
+  if constexpr (std::is_floating_point<U>::value) {
+    if (v != v) return T(0);
+    if (v <= static_cast<U>(std::numeric_limits<T>::min())) return std::numeric_limits<T>::min();
+    if (v >= static_cast<U>(std::numeric_limits<T>::max())) return std::numeric_limits<T>::max();
+  }
+  return static_cast<T>(v);
+}
 
 using namespace clabj;
 
@@ -162,8 +176,8 @@ struct Ctx {
     va_copy(aq, ap);
     std::vector<char> b(256);
     const int n = std::vsnprintf(b.data(), b.size(), f, ap);
-    if (n >= static_cast<int>(b.size())) {
-      b.resize(static_cast<std::size_t>(n) + 1);
+    if (n >= sat<int>(b.size())) {
+      b.resize(sat<std::size_t>(n) + 1);
       std::vsnprintf(b.data(), b.size(), f, aq);
     }
     va_end(aq);
@@ -308,8 +322,8 @@ bool num(Ctx &c, const Val &o, const char *nm, Dv &d, std::int64_t len = -1, dou
   for (double x : d.v) {
     if (!std::isfinite(x)) return c.fail("`%s` must be finite numbers with no missing values.", nm);
   }
-  if (len >= 0 && d.n() != static_cast<std::size_t>(len)) {
-    return c.fail("`%s` must have length %lld, not %lld.", nm, static_cast<long long>(len), static_cast<long long>(d.n()));
+  if (len >= 0 && d.n() != sat<std::size_t>(len)) {
+    return c.fail("`%s` must have length %lld, not %lld.", nm, sat<long long>(len), sat<long long>(d.n()));
   }
   for (double x : d.v) {
     if (open ? x <= lo : x < lo) {
@@ -358,7 +372,7 @@ bool whole(Ctx &c, const Val &o, const char *nm, int lo, int &r) {
   if (std::isnan(v) || v != std::floor(v) || v < lo || v > INT_MAX) {
     return c.fail("`%s` must be one whole number from %d to 2147483647.", nm, lo);
   }
-  r = static_cast<int>(v);
+  r = sat<int>(v);
   return true;
 }
 
@@ -367,7 +381,7 @@ bool lgl(Ctx &c, const Val &o, const char *nm, std::int64_t n, std::vector<int> 
   const Got g = readb(o, b);
   bool na = false;
   for (int v : b) na = na || v < 0;
-  if (g == NOTNUM || b.empty() || (n >= 0 && b.size() != static_cast<std::size_t>(n)) || na) {
+  if (g == NOTNUM || b.empty() || (n >= 0 && b.size() != sat<std::size_t>(n)) || na) {
     return c.fail("`%s` must be TRUE or FALSE, one per unit, with no missing values.", nm);
   }
   if (g == MATRIX) return notvec(c, nm);
@@ -398,7 +412,7 @@ bool align(Ctx &c, std::vector<std::pair<const char *, Dv *>> as, std::vector<st
     for (std::size_t i = 0; ok && i < g.size(); ++i) {
       const auto j = std::find(d.nm.begin(), d.nm.end(), g[i]);
       ok = j != d.nm.end();
-      if (ok) v[i] = d.v[static_cast<std::size_t>(j - d.nm.begin())];
+      if (ok) v[i] = d.v[sat<std::size_t>(j - d.nm.begin())];
     }
     if (!ok) return c.fail("`%s` must name the same groups as `%s`.", a.first, gn);
     d.v = v;
@@ -417,14 +431,14 @@ std::vector<std::string> grp(std::vector<std::string> g, std::size_t n) {
 
 // .ref(): the group named or numbered (from 1) by r; 1 when left out.
 bool ref(Ctx &c, const Val &r, const std::vector<std::string> &g, int &i) {
-  const int n = static_cast<int>(g.size());
+  const int n = sat<int>(g.size());
   if (r.t == Val::NUL) {
     i = 1;
     return true;
   }
   if (r.t == Val::STR) {
     for (int k = 0; k < n; ++k) {
-      if (g[static_cast<std::size_t>(k)] == r.s) {
+      if (g[sat<std::size_t>(k)] == r.s) {
         i = k + 1;
         return true;
       }
@@ -435,7 +449,7 @@ bool ref(Ctx &c, const Val &r, const std::vector<std::string> &g, int &i) {
   if (std::isnan(v) || v != std::floor(v) || v < 1 || v > n) {
     return c.fail("`ref` must be one group name or a position from 1 to %d.", n);
   }
-  i = static_cast<int>(v);
+  i = sat<int>(v);
   return true;
 }
 
@@ -455,7 +469,7 @@ bool wts(Ctx &c, Dv &w, std::size_t n) {
     ones(w, n);
     return true;
   }
-  return num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0);
+  return num(c, c["w"], "w", w, sat<std::int64_t>(n), 0.0);
 }
 
 // as.character() of one label: text, a number or a bool; false when
@@ -490,7 +504,7 @@ bool labs(const Val &v, std::vector<std::string> &out) {
 bool vodtst(Ctx &c, Val &out) {
   Dv d, ni, sh;
   CK(gnum(c, c["day"], "day", d, -1, 0.0));
-  const int n = static_cast<int>(d.n());
+  const int n = sat<int>(d.n());
   CK(gnum(c, c["night"], "night", ni, n, 0.0, true));
   const bool has = c.has("shift");
   if (has) CK(gnum(c, c["shift"], "shift", sh, n, 0.0, true));
@@ -499,7 +513,7 @@ bool vodtst(Ctx &c, Val &out) {
   g = grp(g, d.n());
   int i = 1;
   CK(ref(c, c["ref"], g, i));
-  if (d[static_cast<std::size_t>(i - 1)] <= 0) return c.fail("the reference group has no daylight stops.");
+  if (d[sat<std::size_t>(i - 1)] <= 0) return c.fail("the reference group has no daylight stops.");
   const std::size_t un = d.n();
   std::vector<double> sd(un), sn(un), ra(un), adj(has ? un : 0);
   std::vector<int> sg(un);
@@ -542,7 +556,7 @@ bool outtst(Ctx &c, Val &out) {
   CK(wts(c, w, q.n()));
   if (!pos(w)) return c.fail("`w` must have a positive total.");
   double r[2];
-  CK(kchk(c, clab_outtst(q.p(), w.p(), static_cast<int>(q.n()), t[0], r, r + 1)));
+  CK(kchk(c, clab_outtst(q.p(), w.p(), sat<int>(q.n()), t[0], r, r + 1)));
   static const char *const nm[] = {"stop", "hit"};
   out = nvec(2, nm, r);
   return true;
@@ -551,7 +565,7 @@ bool outtst(Ctx &c, Val &out) {
 bool dspbm(Ctx &c, Val &out) {
   Dv p, ct, f;
   CK(gnum(c, c["pop"], "pop", p, -1, 0.0, true));
-  const int n = static_cast<int>(p.n());
+  const int n = sat<int>(p.n());
   CK(gnum(c, c["contact"], "contact", ct, n, 0.0, true));
   CK(gnum(c, c["force"], "force", f, n, 0.0, true));
   std::vector<std::string> g;
@@ -582,7 +596,7 @@ bool dyadrt(Ctx &c, Val &out) {
   const Val &t = c["count"];
   bool ok = t.t == Val::ARR && t.a.size() == g;
   for (std::size_t i = 0; ok && i < g; ++i) ok = t.a[i].t == Val::ARR && t.a[i].a.size() == g;
-  if (!ok) return c.fail("`count` must be a %d by %d matrix.", static_cast<int>(g), static_cast<int>(g));
+  if (!ok) return c.fail("`count` must be a %d by %d matrix.", sat<int>(g), sat<int>(g));
   Val flat = varr();  // column by column
   for (std::size_t j = 0; j < g; ++j) {
     for (std::size_t i = 0; i < g; ++i) flat.a.push_back(t.a[i].a[j]);
@@ -593,14 +607,14 @@ bool dyadrt(Ctx &c, Val &out) {
   std::vector<int> off(m), vic(m);
   std::vector<std::string> so(m), sv(m);
   for (std::size_t k = 0; k < m; ++k) {
-    off[k] = static_cast<int>(k % g);
-    vic[k] = static_cast<int>(k / g);
+    off[k] = sat<int>(k % g);
+    vic[k] = sat<int>(k / g);
     so[k] = nm[k % g];
     sv[k] = nm[k / g];
   }
   std::vector<double> ro(m), rp(m), no(m), ra(m);
-  CK(kchk(c, clab_dyadrt(x.p(), off.data(), vic.data(), static_cast<int>(m), p.p(),
-                         static_cast<int>(g), ro.data(), rp.data(), no.data(), ra.data())));
+  CK(kchk(c, clab_dyadrt(x.p(), off.data(), vic.data(), sat<int>(m), p.p(),
+                         sat<int>(g), ro.data(), rp.data(), no.data(), ra.data())));
   put(out, "off", vstrs(so));
   put(out, "vic", vstrs(sv));
   put(out, "count", vnums(x.v));
@@ -660,7 +674,7 @@ bool gtmp(Ctx &c, Val &out) {
   }
   std::vector<double> mp(n);
   double l10 = 0;
-  CK(kchk(c, clab_gtmp(p.p(), q.data(), h.data(), static_cast<int>(n), th, mp.data(), &l10)));
+  CK(kchk(c, clab_gtmp(p.p(), q.data(), h.data(), sat<int>(n), th, mp.data(), &l10)));
   Val loc, hl = varr();
   for (int v : h) hl.a.push_back(vbool(v != 0));
   put(loc, "locus", vstrs(grp(g, n)));
@@ -677,7 +691,7 @@ bool cllr(Ctx &c, Val &out) {
   CK(num(c, c["same"], "same", s, -1, 0.0, true));
   CK(num(c, c["diff"], "diff", d, -1, 0.0, true));
   double r = 0;
-  CK(kchk(c, clab_cllr(s.p(), static_cast<int>(s.n()), d.p(), static_cast<int>(d.n()), &r)));
+  CK(kchk(c, clab_cllr(s.p(), sat<int>(s.n()), d.p(), sat<int>(d.n()), &r)));
   out = vnum(r);
   return true;
 }
@@ -716,7 +730,7 @@ bool mix(Ctx &c, const Dv &p, const char *an, const char *bn, double &r) {
   for (std::size_t i = 0; i < p.n(); ++i) {
     in[i] = std::binary_search(need.begin(), need.end(), p.nm[i]);
   }
-  return kchk(c, clab_mixp(p.p(), in.data(), static_cast<int>(p.n()), static_cast<int>(v), &r));
+  return kchk(c, clab_mixp(p.p(), in.data(), sat<int>(p.n()), sat<int>(v), &r));
 }
 
 // p: an object from allele to frequency.
@@ -783,7 +797,7 @@ bool cal(Ctx &c, Cal &k) {
     is[i] = o[i] < ns;
     ls[i] = lr[o[i]];
   }
-  CK(kchk(c, clab_lrcal(ls.data(), is.data(), static_cast<int>(n), post.data(), work.data(), &k.min)));
+  CK(kchk(c, clab_lrcal(ls.data(), is.data(), sat<int>(n), post.data(), work.data(), &k.min)));
   k.cs.resize(ns);
   k.cd.resize(nd);
   for (std::size_t i = 0; i < n; ++i) {
@@ -798,7 +812,7 @@ bool cllrmin(Ctx &c, Val &out) {
   Cal k;
   CK(cal(c, k));
   double r[3];
-  CK(kchk(c, clab_cllr(k.s.p(), static_cast<int>(k.s.n()), k.d.p(), static_cast<int>(k.d.n()), r)));
+  CK(kchk(c, clab_cllr(k.s.p(), sat<int>(k.s.n()), k.d.p(), sat<int>(k.d.n()), r)));
   r[1] = k.min;
   r[2] = r[0] - k.min;
   static const char *const nm[] = {"cllr", "min", "cal"};
@@ -941,7 +955,7 @@ bool gtab(Ctx &c, const char *an, const char *nm, Tab &t) {
 }
 
 bool nrows(Ctx &c, const char *nm, const Tab &t, std::size_t n) {
-  if (t.rows() != n) return c.fail("`%s` must have %d rows, not %d.", nm, static_cast<int>(n), static_cast<int>(t.rows()));
+  if (t.rows() != n) return c.fail("`%s` must have %d rows, not %d.", nm, sat<int>(n), sat<int>(t.rows()));
   return true;
 }
 
@@ -968,7 +982,7 @@ bool loci(Ctx &c, std::vector<std::pair<const char *, Tab *>> ts, std::vector<st
       const auto j = std::find(t.loci.begin(), t.loci.end(), loc[i]);
       ok = j != t.loci.end();
       if (!ok) break;
-      const std::size_t k = static_cast<std::size_t>(j - t.loci.begin());
+      const std::size_t k = sat<std::size_t>(j - t.loci.begin());
       for (std::size_t h = 0; h < 2; ++h) {
         if (t.lab.empty()) u.x[2 * i + h] = t.x[2 * k + h];
         else u.lab[2 * i + h] = t.lab[2 * k + h];
@@ -990,7 +1004,7 @@ std::vector<std::vector<int>> codes(const std::vector<const Tab *> &ts) {
     for (const std::string &s : t->lab) {
       auto j = std::find(u.begin(), u.end(), s);
       if (j == u.end()) j = u.insert(u.end(), s);
-      v.push_back(static_cast<int>(j - u.begin()) + 1);
+      v.push_back(sat<int>(j - u.begin()) + 1);
     }
     out.push_back(v);
   }
@@ -1032,7 +1046,7 @@ bool kin(Ctx &c, double *k) {
     Dv v;
     if (readd(rel, v) == NUM && v.n() == 3) {
       bool ok = true;
-      for (int i = 0; i < 3; ++i) ok = ok && !std::isnan(v[static_cast<std::size_t>(i)]) && v[static_cast<std::size_t>(i)] >= 0;
+      for (int i = 0; i < 3; ++i) ok = ok && !std::isnan(v[sat<std::size_t>(i)]) && v[sat<std::size_t>(i)] >= 0;
       if (ok && std::fabs(nsum(v.p(), 3) - 1) < 1e-9) {
         std::memcpy(k, v.p(), 3 * sizeof(double));
         return true;
@@ -1071,7 +1085,7 @@ bool kinidx(Ctx &c, Val &out) {
   double r[3];
   CK(kin(c, r));
   std::vector<double> ix(a.rows());
-  CK(kchk(c, clab_kinidx(k[0].data(), k[1].data(), f.x.data(), static_cast<int>(a.rows()), r, ix.data())));
+  CK(kchk(c, clab_kinidx(k[0].data(), k[1].data(), f.x.data(), sat<int>(a.rows()), r, ix.data())));
   idx(loc, ix, out);
   return true;
 }
@@ -1094,7 +1108,7 @@ bool patidx(Ctx &c, Val &out) {
   CK(loci(c, {{cn, &a}, {fn, &b}, {"mother", &m}, {"freq", &f}}, loc));
   const auto k = hasm ? codes({&a, &b, &m}) : codes({&a, &b});
   CK(gf(c, f, fok, k[0], cn));
-  const int nr = static_cast<int>(a.rows());
+  const int nr = sat<int>(a.rows());
   std::vector<double> ix(a.rows());
   if (hasm) {
     CK(kchk(c, clab_patidx(k[0].data(), k[2].data(), k[1].data(), f.x.data(), nr, ix.data())));
@@ -1111,7 +1125,7 @@ bool patidx(Ctx &c, Val &out) {
 bool clrsmp(Ctx &c, Val &out) {
   Dv ca, ra, cb, rb;
   CK(gnum(c, c["clra"], "clra", ca, -1, 0.0));
-  const int n = static_cast<int>(ca.n());
+  const int n = sat<int>(ca.n());
   CK(gnum(c, c["reca"], "reca", ra, n, 0.0, true));
   CK(gnum(c, c["clrb"], "clrb", cb, n, 0.0));
   CK(gnum(c, c["recb"], "recb", rb, n, 0.0, true));
@@ -1138,7 +1152,7 @@ bool clrsmp(Ctx &c, Val &out) {
 bool expbnd(Ctx &c, Val &out) {
   Dv y, m, gm;
   CK(gnum(c, c["y"], "y", y, -1, 0.0, true));
-  const int n = static_cast<int>(y.n());
+  const int n = sat<int>(y.n());
   CK(gnum(c, c["m"], "m", m, n, 0.0, true));
   CK(num(c, c["gamma"], "gamma", gm, 1, 1.0));
   std::vector<std::string> g;
@@ -1178,7 +1192,7 @@ bool misrd(Ctx &c, Val &out) {
 bool rtmhs(Ctx &c, Val &out) {
   Dv x1, x2, ct, w;
   CK(num(c, c["x1"], "x1", x1));
-  const int n = static_cast<int>(x1.n());
+  const int n = sat<int>(x1.n());
   CK(num(c, c["x2"], "x2", x2, n));
   CK(num(c, c["cut"], "cut", ct, 1));
   CK(wts(c, w, x1.n()));
@@ -1203,11 +1217,11 @@ bool incap(Ctx &c, Val &out) {
     if (x > 1) return c.fail("`q` must be at most 1.");
   }
   CK(gnum(c, c["s"], "s", s, -1, 0.0));
-  if (q.n() != 1 && q.n() != n) return c.fail("`q` must have length 1 or %d.", static_cast<int>(n));
-  if (s.n() != 1 && s.n() != n) return c.fail("`s` must have length 1 or %d.", static_cast<int>(n));
+  if (q.n() != 1 && q.n() != n) return c.fail("`q` must have length 1 or %d.", sat<int>(n));
+  if (s.n() != 1 && s.n() != n) return c.fail("`s` must have length 1 or %d.", sat<int>(n));
   const bool has = c.has("share");
   if (has) {
-    CK(gnum(c, c["share"], "share", sh, static_cast<std::int64_t>(n), 0.0));
+    CK(gnum(c, c["share"], "share", sh, sat<std::int64_t>(n), 0.0));
     if (std::fabs(nsum(sh.p(), n) - 1) > 1e-9) return c.fail("`share` must sum to 1.");
   }
   std::vector<std::string> g;
@@ -1223,7 +1237,7 @@ bool incap(Ctx &c, Val &out) {
     v[2][i] = s[s.n() == 1 ? 0 : i];
   }
   double agg[3];
-  CK(kchk(c, clab_incap(v[0].data(), v[1].data(), v[2].data(), static_cast<int>(n),
+  CK(kchk(c, clab_incap(v[0].data(), v[1].data(), v[2].data(), sat<int>(n),
                         has ? sh.p() : nullptr, v[3].data(), v[4].data(), v[5].data(), agg)));
   if (has) {
     v[0][n] = agg[0];
@@ -1255,7 +1269,7 @@ bool incapr(Ctx &c, Val &out) {
   double rv = 0;
   if (c.has("r")) CK(p01(c, c["r"], "r", rv));
   double o[5];
-  CK(kchk(c, clab_incapr(l.p(), static_cast<int>(l.n()), tv, sv, rv, o)));
+  CK(kchk(c, clab_incapr(l.p(), sat<int>(l.n()), tv, sv, rv, o)));
   static const char *const nm[] = {"prev", "net", "upper", "lower", "later"};
   out = nvec(5, nm, o);
   return true;
@@ -1265,7 +1279,7 @@ bool sellab(Ctx &c, Val &out) {
   std::vector<int> rel, rule;
   CK(lgl(c, c["rel"], "rel", -1, rel));
   const std::size_t n = rel.size();
-  CK(lgl(c, c["rule"], "rule", static_cast<std::int64_t>(n), rule));
+  CK(lgl(c, c["rule"], "rule", sat<std::int64_t>(n), rule));
   Dv y;
   const Got gy = readd(c["y"], y);
   if (gy == NOTNUM || y.n() != n) return c.fail("`y` must be numbers, one per defendant.");
@@ -1282,7 +1296,7 @@ bool sellab(Ctx &c, Val &out) {
   if (!pos(w, &rel)) return c.fail("the judge released nobody.");
   if (!pos(w, &rule)) return c.fail("the rule releases nobody.");
   double r[6];
-  CK(kchk(c, clab_sellab(yv.data(), rel.data(), rule.data(), w.p(), static_cast<int>(n), r)));
+  CK(kchk(c, clab_sellab(yv.data(), rel.data(), rule.data(), w.p(), sat<int>(n), r)));
   static const char *const nm[] = {"obs", "unobs", "lower", "upper", "width", "naive"};
   out = nvec(6, nm, r);
   return true;
@@ -1293,7 +1307,7 @@ bool losbnd(Ctx &c, Val &out) {
   CK(num(c, c["done"], "done", d, -1, 0.0));
   CK(num(c, c["open"], "open", o, -1, 0.0));
   double r[4];
-  CK(kchk(c, clab_losbnd(d.p(), static_cast<int>(d.n()), o.p(), static_cast<int>(o.n()), r)));
+  CK(kchk(c, clab_losbnd(d.p(), sat<int>(d.n()), o.p(), sat<int>(o.n()), r)));
   static const char *const nm[] = {"mean", "age", "lower", "bias"};
   out = nvec(4, nm, r);
   return true;
@@ -1319,7 +1333,7 @@ bool sntbnd(Ctx &c, Val &out) {
     alln = alln && zv.a[i].t != Val::STR;
     z.push_back(s);
   }
-  if (bad) return c.fail("`z` must have length %d and no missing values.", static_cast<int>(n));
+  if (bad) return c.fail("`z` must have length %d and no missing values.", sat<int>(n));
   const char kind = alll ? 'l' : alln ? 'n' : 's';
   // lv <- sort(unique(z)): exactly two labels, in code-point order
   std::vector<std::string> lv = z;
@@ -1347,7 +1361,7 @@ bool sntbnd(Ctx &c, Val &out) {
   std::vector<int> zi(n);
   for (std::size_t i = 0; i < n; ++i) zi[i] = z[i] == lv[tr];
   double r[11];
-  CK(kchk(c, clab_sntbnd(y.p(), zi.data(), w.p(), static_cast<int>(n), r)));
+  CK(kchk(c, clab_sntbnd(y.p(), zi.data(), w.p(), sat<int>(n), r)));
   const double col[4][3] = {{r[2], r[3], NA},
                             {r[4], r[6], r[8]},
                             {r[5], r[7], r[9]},
@@ -1418,7 +1432,7 @@ bool byname(Ctx &c, std::vector<std::pair<const char *, Dv *>> as) {
         return c.fail("`%s` must name the same units as `%s`; `%s` has no %s.", as[g[q]].first,
                       as[g[0]].first, as[g[q]].first, f.nm[i].c_str());
       }
-      v[i] = d.v[static_cast<std::size_t>(it - d.nm.begin())];
+      v[i] = d.v[sat<std::size_t>(it - d.nm.begin())];
     }
     d.v = v;
     d.nm = f.nm;
@@ -1457,7 +1471,7 @@ bool impfpr(Ctx &c, Val &out) {
     if (!(x[2][i] >= 0.0 && x[2][i] < 1.0)) return c.fail("`fnr` must be in [0, 1).");
   }
   std::vector<double> o(n);
-  CK(kchk(c, clab_impfpr(x[0].data(), x[1].data(), x[2].data(), static_cast<int>(n), o.data())));
+  CK(kchk(c, clab_impfpr(x[0].data(), x[1].data(), x[2].data(), sat<int>(n), o.data())));
   for (int t = 0; t < 3; ++t) {
     if (v[t].n() == n && !v[t].nm.empty()) {
       out = Val();
@@ -1505,7 +1519,7 @@ bool sqrtlw(Ctx &c, Val &out) {
 bool selftest(Ctx &, Val &out) {
   std::vector<char> sink(1 << 16);
   int nf = 0;
-  const int n = clab_selftest(sink.data(), static_cast<int>(sink.size()), &nf);
+  const int n = clab_selftest(sink.data(), sat<int>(sink.size()), &nf);
   put(out, "n", vnum(n));
   put(out, "nfail", vnum(nf));
   put(out, "report", vstr(sink.data()));
@@ -2257,7 +2271,7 @@ int run(const char *fn, const char *in, std::string &res) {
       res = c.err;
       return CLAB_EARG;
     }
-    if (std::find(v.k.begin(), v.k.begin() + static_cast<std::ptrdiff_t>(i), k) != v.k.begin() + static_cast<std::ptrdiff_t>(i)) {
+    if (std::find(v.k.begin(), v.k.begin() + sat<std::ptrdiff_t>(i), k) != v.k.begin() + sat<std::ptrdiff_t>(i)) {
       c.fail("`%s` is given twice.", k.c_str());
       res = c.err;
       return CLAB_EARG;
@@ -2319,9 +2333,9 @@ int nomem(const char *fn, char *out, int cap, int *need) {
   char msg[192];
   std::snprintf(msg, sizeof msg, "%s: not enough memory for this size.", fn != nullptr ? fn : "crimlab");
   const std::size_t n = std::strlen(msg) + 1;
-  if (need != nullptr) *need = static_cast<int>(n);
+  if (need != nullptr) *need = sat<int>(n);
   if (out == nullptr || cap < 1) return CLAB_ESIZE;
-  if (n > static_cast<std::size_t>(cap)) {
+  if (n > sat<std::size_t>(cap)) {
     out[0] = '\0';
     return CLAB_ESIZE;
   }
@@ -2363,9 +2377,9 @@ extern "C" int clab_jrun(const char *fn, const char *in, char *out, int cap, int
   rc = run(fn, in, res);
 #endif
   const std::size_t n = res.size() + 1;
-  if (need != nullptr) *need = n > INT_MAX ? INT_MAX : static_cast<int>(n);
+  if (need != nullptr) *need = n > INT_MAX ? INT_MAX : sat<int>(n);
   if (out == nullptr || cap < 1) return CLAB_ESIZE;
-  if (n > static_cast<std::size_t>(cap)) {
+  if (n > sat<std::size_t>(cap)) {
     out[0] = '\0';
     return CLAB_ESIZE;
   }

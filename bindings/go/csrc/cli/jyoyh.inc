@@ -72,11 +72,11 @@ inline std::string yctl(const std::string &s) {
     } else if (k == 7 || k == 8 || k == 12 || k == 13 || k == 27) {
       o += k == 7 ? "\\a" : k == 8 ? "\\b" : k == 12 ? "\\f" : k == 13 ? "\\r" : "\\033";
     } else if (k < 32 || k == 127) {
-      std::snprintf(b, sizeof b, "\\%03o", static_cast<unsigned>(k));
+      std::snprintf(b, sizeof b, "\\%03o", sat<unsigned>(k));
       o += b;
     } else if ((k >= 0x80 && k <= 0x9f) || k == 0x200e || k == 0x200f || (k >= 0x202a && k <= 0x202e) ||
                (k >= 0x2066 && k <= 0x2069)) {
-      std::snprintf(b, sizeof b, "<U+%04X>", static_cast<unsigned>(k));
+      std::snprintf(b, sizeof b, "<U+%04X>", sat<unsigned>(k));
       o += b;
     } else {
       utf8(o, k);
@@ -207,7 +207,7 @@ inline std::string yhcard(const Yt &sm, std::size_t r) {
   auto num = [&](const char *k) { return sm.get(k)->na[r] ? NaN : sm.get(k)->d[r]; };
   auto txt = [&](const char *k) { return sm.get(k)->na[r] ? std::string("NA") : rfmt(sm.get(k)->d[r]); };
   auto cnt = [&](const char *k) {
-    return sm.get(k)->na[r] ? std::string("NA") : std::to_string(static_cast<std::int64_t>(num(k)));
+    return sm.get(k)->na[r] ? std::string("NA") : std::to_string(sat<std::int64_t>(num(k)));
   };
   const Yc *g = sm.get("group");
   return "<div class=\"card\"><div class=\"lab\">" + esc(g ? g->s[r] : "overall") + "</div><div class=\"big\">" +
@@ -321,7 +321,7 @@ inline bool ypick(Ctx &c, const char *nm, const Strs &opt, const char *def, int 
   }
   for (std::size_t i = 0; i < opt.size(); ++i) {
     if (opt[i] == v) {
-      k = static_cast<int>(i);
+      k = sat<int>(i);
       return true;
     }
   }

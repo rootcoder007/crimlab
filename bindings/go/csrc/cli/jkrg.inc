@@ -23,7 +23,7 @@ bool zmat(Ctx &c, const char *nm, int n, bool one, int &p, std::vector<double> &
     if (!nmat(c, o, nm, nr, p, v, true)) return c.fail("`%s` must be a numeric matrix or vector.", nm);
   } else {
     v = dbl(o);
-    if (static_cast<int>(v.size()) != n) return c.fail("`%s` must have %d rows.", nm, n);
+    if (sat<int>(v.size()) != n) return c.fail("`%s` must have %d rows.", nm, n);
     p = 1;
   }
   for (double e : v) {
@@ -55,7 +55,7 @@ bool vgemp(Ctx &c, Val &out) {
   CK(kc(c, clab_vgemp(p.x.data(), p.y.data(), p.n, v.p(), nb, cut, d.data(), g.data(), np.data(), &nk),
         "the points all coincide."));
   std::vector<int> ni(zz(nk));
-  for (int k = 0; k < nk; ++k) ni[zz(k)] = static_cast<int>(np[zz(k)]);
+  for (int k = 0; k < nk; ++k) ni[zz(k)] = sat<int>(np[zz(k)]);
   Frame f;
   f.num("dist", d.data(), zz(nk));
   f.num("gamma", g.data(), zz(nk));
@@ -142,8 +142,8 @@ bool bkrig(Ctx &c, Val &out) {
   CK(covpar(c, cp));
   const Val &bl = c["blocks"];
   if (bl.t != Val::ARR || bl.a.empty()) return c.fail("`blocks` must be a list of blocks.");
-  const int nb = static_cast<int>(bl.a.size());
-  const int k = static_cast<int>(std::nearbyint(std::sqrt(static_cast<double>(q))));
+  const int nb = sat<int>(bl.a.size());
+  const int k = sat<int>(std::nearbyint(std::sqrt(static_cast<double>(q))));
   std::vector<int> off(zz(nb) + 1, 0);
   std::vector<std::vector<double>> m(zz(nb));
   std::vector<int> nr(zz(nb));
@@ -318,7 +318,7 @@ bool spobj(Ctx &c, Val &out) {
     if (d.k[j] != cs[0] && d.k[j] != cs[1]) put(rest, d.k[j].c_str(), d.a[j]);
   }
   out = vobj();
-  put(out, "coords", vmat(m, static_cast<int>(n), 2));
+  put(out, "coords", vmat(m, sat<int>(n), 2));
   put(out, "data", rest);
   put(out, "cnames", vstrs(cs));
   put(out, "crs", vnum(crs));

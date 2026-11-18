@@ -44,7 +44,7 @@ inline bool dens(Ctx &c, const std::vector<double> &v, int rule, double bw, std:
   y.assign(512, 0.0);
   double st[2] = {0.0, 0.0};
   int why = 0;
-  const int rc = clab_dens(v.data(), nullptr, static_cast<std::int64_t>(v.size()), rule, bw, 1.0, 0, 512, 3.0, 0, 0.0,
+  const int rc = clab_dens(v.data(), nullptr, sat<std::int64_t>(v.size()), rule, bw, 1.0, 0, 512, 3.0, 0, 0.0,
                            0, 0.0, x.data(), y.data(), st, &why);
   if (rc == CLAB_EDOM) {
     static const char *const m[] = {"",
@@ -360,7 +360,7 @@ inline bool iscol(const Val &o) {
   if (s == "NA" || s == "transparent") return true;
   for (const char *p = rcols; *p != '\0';) {
     const char *q = std::strchr(p, ' ');
-    const std::size_t n = q == nullptr ? std::strlen(p) : static_cast<std::size_t>(q - p);
+    const std::size_t n = q == nullptr ? std::strlen(p) : sat<std::size_t>(q - p);
     if (strmatch(p, s.c_str(), n)) return true;
     p += n + (q == nullptr ? 0 : 1);
   }

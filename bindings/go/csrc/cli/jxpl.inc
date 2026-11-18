@@ -10,7 +10,7 @@
 
 namespace xp {
 
-inline std::size_t sz(double v) { return static_cast<std::size_t>(v); }
+inline std::size_t sz(double v) { return sat<std::size_t>(v); }
 
 const char *const set[] = {"fam", "nfold", "fold", "disc", "alpha", "nlam", "nfin", "ntree", "mtry", "seed"};
 
@@ -75,12 +75,12 @@ inline bool pred(Ctx &c, const std::vector<double> &m, int nr, int p, std::vecto
 inline std::vector<double> rbind(const std::vector<double> &a, int na, const std::vector<double> &b, int nb, int p) {
   std::vector<double> m(sz(na + nb) * sz(p));
   for (int j = 0; j < p; ++j) {
-    std::copy(a.begin() + static_cast<std::ptrdiff_t>(sz(j) * sz(na)),
-              a.begin() + static_cast<std::ptrdiff_t>(sz(j + 1) * sz(na)),
-              m.begin() + static_cast<std::ptrdiff_t>(sz(j) * sz(na + nb)));
-    std::copy(b.begin() + static_cast<std::ptrdiff_t>(sz(j) * sz(nb)),
-              b.begin() + static_cast<std::ptrdiff_t>(sz(j + 1) * sz(nb)),
-              m.begin() + static_cast<std::ptrdiff_t>(sz(j) * sz(na + nb) + sz(na)));
+    std::copy(a.begin() + sat<std::ptrdiff_t>(sz(j) * sz(na)),
+              a.begin() + sat<std::ptrdiff_t>(sz(j + 1) * sz(na)),
+              m.begin() + sat<std::ptrdiff_t>(sz(j) * sz(na + nb)));
+    std::copy(b.begin() + sat<std::ptrdiff_t>(sz(j) * sz(nb)),
+              b.begin() + sat<std::ptrdiff_t>(sz(j + 1) * sz(nb)),
+              m.begin() + sat<std::ptrdiff_t>(sz(j) * sz(na + nb) + sz(na)));
   }
   return m;
 }
@@ -109,7 +109,7 @@ bool xpimp(Ctx &c, Val &out) {
   bool rt = false;
   CK(flagd(c, "ratio", false, rt));
   CK(cknumd(c, "seed", 1, sd, 0));
-  const int k = static_cast<int>(rv[0]);
+  const int k = sat<int>(rv[0]);
   const double rows = static_cast<double>(n) * p * k;
   CK(xp::big(c, rows, p, "nrep"));
   std::vector<double> dsg(xp::sz(rows) * xp::sz(p));
@@ -117,7 +117,7 @@ bool xpimp(Ctx &c, Val &out) {
   CK(kchk(c, clab_xpperm(x.data(), n, p, k, static_cast<unsigned int>(std::fmod(sd[0], 4294967296.0)), dsg.data(),
                          perm.data())));
   std::vector<double> v;
-  CK(xp::pred(c, xp::rbind(x, n, dsg, static_cast<int>(rows), p), n + static_cast<int>(rows), p, v));
+  CK(xp::pred(c, xp::rbind(x, n, dsg, sat<int>(rows), p), n + sat<int>(rows), p, v));
   std::vector<double> rep(xp::sz(p) * xp::sz(k)), st(1 + 2 * xp::sz(p));
   const int rc = clab_xpimp(yv.p(), v.data(), v.data() + n, n, p, k, lo, rt ? 1 : 0, rep.data(), st.data());
   if (rc == CLAB_EDOM) return ckstop(c, "`ratio` needs a loss above 0 before permuting");
@@ -148,11 +148,11 @@ inline bool vcol(Ctx &c, const std::vector<std::string> &nm, int &j) {
   j = -1;
   if (e.t == Val::STR) {
     for (std::size_t q = 0; q < nm.size() && j < 0; ++q) {
-      if (nm[q] == e.s) j = static_cast<int>(q);
+      if (nm[q] == e.s) j = sat<int>(q);
     }
   } else if (e.t == Val::NUM && std::isfinite(e.n) && e.n == std::floor(e.n) && e.n >= 1 &&
              e.n <= static_cast<double>(nm.size())) {
-    j = static_cast<int>(e.n) - 1;
+    j = sat<int>(e.n) - 1;
   }
   if (j < 0) return ckstop(c, "`v` must name or number one column of `x`");
   return true;
@@ -176,7 +176,7 @@ inline bool grid(Ctx &c, const std::vector<double> &x, int n, int j, std::vector
     g = d.v;
     return true;
   }
-  const int ng = static_cast<int>(d[0]);
+  const int ng = sat<int>(d[0]);
   g.assign(sz(ng), 0.0);
   int m = 0;
   CK(kchk(c, clab_xpgrid(x.data() + sz(j) * sz(n), n, ng, ty, g.data(), &m)));
@@ -193,7 +193,7 @@ bool xppdp(Ctx &c, Val &out) {
   CK(xp::ck(c, n, p, x, nm));
   CK(xp::vcol(c, nm, j));
   CK(xp::grid(c, x, n, j, g));
-  const int ng = static_cast<int>(g.size());
+  const int ng = sat<int>(g.size());
   CK(xp::big(c, static_cast<double>(n) * ng, p, "grid"));
   std::vector<double> dsg(xp::sz(n) * xp::sz(ng) * xp::sz(p)), v, pd(xp::sz(ng));
   CK(kchk(c, clab_xpcpd(x.data(), n, p, j, g.data(), ng, dsg.data())));
@@ -246,12 +246,12 @@ bool xpcp(Ctx &c, Val &out) {
   CK(xp::vcol(c, nm, j));
   CK(xp::newx(c, x, n, p, s, ns));
   CK(xp::grid(c, x, n, j, g));
-  const int ng = static_cast<int>(g.size());
+  const int ng = sat<int>(g.size());
   CK(xp::big(c, static_cast<double>(ns) * (ng + 1), p, "grid"));
   std::vector<double> dsg(xp::sz(ns) * xp::sz(ng) * xp::sz(p)), v;
   CK(kchk(c, clab_xpcpd(s.data(), ns, p, j, g.data(), ng, dsg.data())));
   CK(xp::pred(c, xp::rbind(dsg, ns * ng, s, ns, p), ns * (ng + 1), p, v));
-  std::vector<double> pr(v.begin() + static_cast<std::ptrdiff_t>(ns * ng), v.end());
+  std::vector<double> pr(v.begin() + sat<std::ptrdiff_t>(ns * ng), v.end());
   out = vobj();
   put(out, "prof", vmat(v.data(), ns, ng));
   put(out, "grid", vauto(g));
@@ -270,7 +270,7 @@ bool xpale(Ctx &c, Val &out) {
   CK(cknumd(c, "nbin", 10, kb, 1, HUGE_VAL, false, true));
   if (kb[0] > 67108864.0) return ckstop(c, "`nbin` must be at most 67108864");
   CK(xp::big(c, 2.0 * n, p, "x"));
-  const int K = static_cast<int>(kb[0]);
+  const int K = sat<int>(kb[0]);
   std::vector<double> z(xp::sz(K) + 1), dsg(2 * xp::sz(n) * xp::sz(p)), v;
   std::vector<int> bin(xp::sz(n));
   int nz = 0;
@@ -307,7 +307,7 @@ bool xpshap(Ctx &c, Val &out) {
   CK(cknumd(c, "seed", 1, sd, 0));
   const double rows = 2.0 * ns * p * mv[0];
   CK(xp::big(c, rows + ns + n, p, "nsamp"));
-  const int m = static_cast<int>(mv[0]), q = static_cast<int>(rows);
+  const int m = sat<int>(mv[0]), q = sat<int>(rows);
   std::vector<double> dsg(xp::sz(rows) * xp::sz(p)), v;
   CK(kchk(c, clab_xpshd(x.data(), n, s.data(), ns, p, m, static_cast<unsigned int>(std::fmod(sd[0], 4294967296.0)),
                         dsg.data())));

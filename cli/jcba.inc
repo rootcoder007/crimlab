@@ -10,10 +10,10 @@ bool cxmat(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vec
   nm.clear();
   int dim[2] = {-1, -1};
   if (x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR) {
-    if (!shape(x, 2, dim, 0) || !isnum(x.a[0]) || static_cast<std::size_t>(dim[0]) != n) {
-      return c.fail("`x` must be a numeric matrix with one row per unit, %d.", static_cast<int>(n));
+    if (!shape(x, 2, dim, 0) || !isnum(x.a[0]) || sat<std::size_t>(dim[0]) != n) {
+      return c.fail("`x` must be a numeric matrix with one row per unit, %d.", sat<int>(n));
     }
-    v.assign(n * static_cast<std::size_t>(dim[1]), 0.0);
+    v.assign(n * sat<std::size_t>(dim[1]), 0.0);
     bool bad = false;
     fill(x, 2, dim, 0, 0, 1, v, bad, true);
     for (double e : v) {
@@ -34,7 +34,7 @@ bool cxmat(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vec
   if (cs.empty()) return c.fail("`x` must hold one covariate at least.");
   for (std::size_t j = 0; j < cs.size(); ++j) {
     Dv d;
-    CK(num(c, *cs[j], "x", d, static_cast<std::int64_t>(n)));
+    CK(num(c, *cs[j], "x", d, sat<std::int64_t>(n)));
     v.insert(v.end(), d.v.begin(), d.v.end());
     nm.push_back(j < names.size() && !names[j].empty() ? names[j] : "x" + std::to_string(j + 1));
   }
@@ -55,21 +55,21 @@ bool smdbal(Ctx &c, Val &out) {
   CK(cxmat(c, c["x"], n, xv, nm));
   if (c.has("w")) {
     Dv w;
-    CK(num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0));
+    CK(num(c, c["w"], "w", w, sat<std::int64_t>(n), 0.0));
     wv = w.v;
   }
-  const int N = static_cast<int>(n), p = static_cast<int>(nm.size());
+  const int N = sat<int>(n), p = sat<int>(nm.size());
   pev::cdat cd{dv.data(), dv.data(), xv.data(), N, p};
   std::vector<double> e;
   if (!c.has("ps")) {
     std::vector<int> all(n);
-    for (std::size_t i = 0; i < n; ++i) all[i] = static_cast<int>(i);
+    for (std::size_t i = 0; i < n; ++i) all[i] = sat<int>(i);
     if (!pev::pscore(cd, all, e)) {
       return c.fail("the logistic propensity has no finite fit (a covariate separates the arms); give `ps`.");
     }
   } else {
     Dv pp;
-    CK(num(c, c["ps"], "ps", pp, static_cast<std::int64_t>(n)));
+    CK(num(c, c["ps"], "ps", pp, sat<std::int64_t>(n)));
     for (double x : pp.v) {
       if (!(x > 0 && x < 1)) return c.fail("`ps` must be propensities strictly between 0 and 1.");
     }
@@ -79,7 +79,7 @@ bool smdbal(Ctx &c, Val &out) {
   bool bal = true;
   for (int j = 0; j < p; ++j) {
     double o[4];
-    const double *xj = xv.data() + static_cast<std::size_t>(j) * n;
+    const double *xj = xv.data() + sat<std::size_t>(j) * n;
     pev::smd(xj, N, dv.data(), nullptr, o);
     m1.push_back(o[0]);
     m0.push_back(o[1]);
@@ -181,7 +181,7 @@ bool cbatt(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, y, "y", yv));
   const std::size_t sn = yv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   std::vector<int> di;
   CK(bin01(c, c["d"], "d", sn, di));
   std::vector<double> dv(di.begin(), di.end());
@@ -192,9 +192,9 @@ bool cbatt(Ctx &c, Val &out) {
   CK(cxmat(c, c["x"], sn, xv, nm));
   if (me == 4 && tg != 1) return c.fail("entropy balancing (`est = \"ebal\"`) estimates the ATT only.");
   if (me == 3 && tg == 0) return c.fail("matching (`est = \"psm\"`) estimates the ATT or the ATC.");
-  pev::cdat cd{yv.p(), dv.data(), xv.data(), n, static_cast<int>(nm.size())};
+  pev::cdat cd{yv.p(), dv.data(), xv.data(), n, sat<int>(nm.size())};
   std::vector<int> all(sn);
-  for (int i = 0; i < n; ++i) all[static_cast<std::size_t>(i)] = i;
+  for (int i = 0; i < n; ++i) all[sat<std::size_t>(i)] = i;
   const bool need = me == 0 || me == 2 || me == 3, own = need && !c.has("ps");
   std::vector<double> e(sn, NaN);
   if (own) {
@@ -244,7 +244,7 @@ bool cbatt(Ctx &c, Val &out) {
     se = std::sqrt(ss / m);
     std::vector<double> sd = dif;
     std::sort(sd.begin(), sd.end());
-    med = m % 2 ? sd[static_cast<std::size_t>(m / 2)] : 0.5 * (sd[static_cast<std::size_t>(m / 2 - 1)] + sd[static_cast<std::size_t>(m / 2)]);
+    med = m % 2 ? sd[sat<std::size_t>(m / 2)] : 0.5 * (sd[sat<std::size_t>(m / 2 - 1)] + sd[sat<std::size_t>(m / 2)]);
     std::vector<double> a, bb;
     for (std::size_t q = 0; q < ft.size(); ++q) {
       a.push_back(ft[q] + 1);

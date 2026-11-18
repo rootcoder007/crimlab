@@ -28,7 +28,7 @@ bool calaud(Ctx &c, Val &out) {
   }
   CK(vbyname(c, {{"area", &uv[0]}, {"risk", &uv[1]}, {"outcome", &uv[2]}, {"group", &uv[3]}}));
   const std::size_t sn = vlen(uv[0]);
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   if (n < 1) return c.fail("`area` must hold at least one record.");
   Lab a, g;
   CK(codes(c, uv[0], "area", sn, a));
@@ -42,20 +42,20 @@ bool calaud(Ctx &c, Val &out) {
     Dv pv;
     CK(num(c, pop, "population", pv, -1, 0.0, true));
     pp.resize(sn);
-    if (!pv.nm.empty() && pv.n() == static_cast<std::size_t>(a.g)) {
-      std::vector<int> at(static_cast<std::size_t>(a.g), -1);
+    if (!pv.nm.empty() && pv.n() == sat<std::size_t>(a.g)) {
+      std::vector<int> at(sat<std::size_t>(a.g), -1);
       for (std::size_t k = 0; k < pv.n(); ++k) {
         for (std::size_t t = 0; t < at.size(); ++t) {
           if (pv.nm[k] == a.lev[t]) {
             if (at[t] >= 0) return c.fail("`population` names an area twice.");
-            at[t] = static_cast<int>(k);
+            at[t] = sat<int>(k);
           }
         }
       }
       for (std::size_t t = 0; t < at.size(); ++t) {
         if (at[t] < 0) return c.fail("`population` has no value for area %s.", a.lev[t].c_str());
       }
-      for (std::size_t i = 0; i < sn; ++i) pp[i] = pv[static_cast<std::size_t>(at[static_cast<std::size_t>(a.code[i])])];
+      for (std::size_t i = 0; i < sn; ++i) pp[i] = pv[sat<std::size_t>(at[sat<std::size_t>(a.code[i])])];
     } else if (pv.n() == sn) {
       pp = pv.v;
     } else {
@@ -67,7 +67,7 @@ bool calaud(Ctx &c, Val &out) {
   unsigned int s = 0;
   if (B > 0) CK(seed(c, s));
   const int na = a.g, G = g.g;
-  const std::size_t sa = static_cast<std::size_t>(na), sg = static_cast<std::size_t>(G);
+  const std::size_t sa = sat<std::size_t>(na), sg = sat<std::size_t>(G);
   std::vector<int> iw(sn + 2 * sa);
   std::vector<double> w(7 * sa + 3 * sg + 7 + sa + 3 * sg);
   double *ar = w.data(), *gr = ar + 7 * sa, *st = gr + 3 * sg, *wk = st + 7;
@@ -76,7 +76,7 @@ bool calaud(Ctx &c, Val &out) {
   if (rc == CLAB_EDOM) return c.fail("`population` must take one value within each area.");
   if (rc != CLAB_OK) return c.fail("the kernel refused the input.");
   std::vector<std::string> ag(sa);
-  for (std::size_t k = 0; k < sa; ++k) ag[k] = g.lev[static_cast<std::size_t>(ar[3 * sa + k])];
+  for (std::size_t k = 0; k < sa; ++k) ag[k] = g.lev[sat<std::size_t>(ar[3 * sa + k])];
   Frame fa;
   fa.str("area", a.lev);
   fa.num("n", ar, sa);
@@ -113,7 +113,7 @@ bool scrdsp(Ctx &c, Val &out) {
   Dv xv;
   CK(num(c, a[0], "score", xv));
   const std::size_t sn = xv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   Lab g;
   CK(codes(c, a[1], "group", sn, g));
   if (g.g < 2) return c.fail("`group` must hold at least two groups.");
@@ -125,7 +125,7 @@ bool scrdsp(Ctx &c, Val &out) {
   double cf = 0.0;
   CK(oned(c, "conf", 0.95, 0.0, 1.0, cf));
   const int G = g.g;
-  const std::size_t sg = static_cast<std::size_t>(G);
+  const std::size_t sg = sat<std::size_t>(G);
   std::vector<int> iw(sn);
   std::vector<double> w(6 * sg + 9);
   double *gs = w.data(), *st = gs + 6 * sg;
@@ -137,7 +137,7 @@ bool scrdsp(Ctx &c, Val &out) {
   f.str("group", g.lev);
   f.num("n", gs, sg);
   static const char *const cn[] = {"mean", "median", "sd", "gap", "se"};
-  for (int t = 0; t < 5; ++t) f.num(cn[t], gs + static_cast<std::size_t>(t + 1) * sg, sg);
+  for (int t = 0; t < 5; ++t) f.num(cn[t], gs + sat<std::size_t>(t + 1) * sg, sg);
   std::vector<double> lo(sg), hi(sg);
   for (std::size_t j = 0; j < sg; ++j) {
     lo[j] = gs[4 * sg + j] - q * gs[5 * sg + j];
@@ -154,6 +154,6 @@ bool scrdsp(Ctx &c, Val &out) {
   put(out, "anova", nvec(4, fn, an));
   put(out, "welch", nvec(4, fn, wl));
   put(out, "spread", vnum(st[6]));
-  put(out, "ref", vstr(g.lev[static_cast<std::size_t>(st[7])]));
+  put(out, "ref", vstr(g.lev[sat<std::size_t>(st[7])]));
   return true;
 }

@@ -4,7 +4,7 @@
 // reader, two-way fixed effects difference in differences and the event
 // study.
 
-inline std::size_t zz(int i) { return static_cast<std::size_t>(i); }
+inline std::size_t zz(int i) { return sat<std::size_t>(i); }
 
 // pevr::panel(): y, unit and time, one row per unit and period.
 struct Pan {
@@ -28,7 +28,7 @@ bool panel(Ctx &c, double lo, Pan &p, const Val *y = nullptr) {
   CK(isvec(c, *y, "y"));
   Dv yv;
   CK(num(c, *y, "y", yv, -1, lo));
-  p.n = static_cast<int>(yv.n());
+  p.n = sat<int>(yv.n());
   if (p.n < 4) return c.fail("`y` must have at least four rows (two units in two periods).");
   p.y = yv.v;
   Lab l;
@@ -42,10 +42,10 @@ bool panel(Ctx &c, double lo, Pan &p, const Val *y = nullptr) {
   p.tv = tv.v;
   std::sort(p.tv.begin(), p.tv.end());
   p.tv.erase(std::unique(p.tv.begin(), p.tv.end()), p.tv.end());
-  p.nt = static_cast<int>(p.tv.size());
+  p.nt = sat<int>(p.tv.size());
   p.t.resize(zz(p.n));
   for (std::size_t i = 0; i < zz(p.n); ++i) {
-    p.t[i] = static_cast<int>(std::lower_bound(p.tv.begin(), p.tv.end(), tv[i]) - p.tv.begin());
+    p.t[i] = sat<int>(std::lower_bound(p.tv.begin(), p.tv.end(), tv[i]) - p.tv.begin());
   }
   if (p.nu < 2 || p.nt < 2) return c.fail("the panel needs two units and two periods at least.");
   // a repeated pair found by sorting, as pevr::panel() does
@@ -159,7 +159,7 @@ int recode(const int *src, const std::vector<int> &idx, std::vector<int> &out) {
   int k = 0;
   for (std::size_t q = 0; q < idx.size(); ++q) {
     const int s = src[idx[q]];
-    if (s >= static_cast<int>(map.size())) map.resize(zz(s) + 1, -1);
+    if (s >= sat<int>(map.size())) map.resize(zz(s) + 1, -1);
     if (map[zz(s)] < 0) map[zz(s)] = k++;
     out[q] = map[zz(s)];
   }
@@ -177,7 +177,7 @@ bool nests(const std::vector<int> &f, int nf, const std::vector<int> &cl) {
 // run() of src/bdid.cpp: the fit on the rows idx.
 Pfit prun(const Pmod &m, std::vector<int> idx) {
   Pfit r;
-  const int p = static_cast<int>(m.x->size());
+  const int p = sat<int>(m.x->size());
   if (m.fam > 0) {
     for (;;) {
       std::vector<double> su(zz(m.pn->nu), 0.0), st(zz(m.pn->nt), 0.0);
@@ -193,7 +193,7 @@ Pfit prun(const Pmod &m, std::vector<int> idx) {
       idx.swap(keep);
     }
   }
-  const int n = static_cast<int>(idx.size());
+  const int n = sat<int>(idx.size());
   std::vector<int> u, t, c1, c2;
   const int nu = recode(m.pn->u.data(), idx, u), nt = recode(m.pn->t.data(), idx, t);
   const int ncl = recode(m.cl, idx, c1), ncl2 = m.cl2 ? recode(m.cl2, idx, c2) : 0;
@@ -389,7 +389,7 @@ bool didfe(Ctx &c, Val &out) {
   x[0].nm = "trt";
   x[0].x.assign(d, d + n);
   CK(adjcols(c, c["adj"], zz(n), x, "row of the panel"));
-  const int p = static_cast<int>(x.size());
+  const int p = sat<int>(x.size());
   if ((dbac || ratio > 0) && fm != 0) return c.fail("`bacon` and `mtch` work with `fam = \"ols\"`.");
   if (dbac && (p > 1 || !wv.empty() || !fx)) {
     return c.fail("`bacon = TRUE` decomposes the plain two-way estimate: no `adj`, no `w`, `fe = \"both\"`.");
@@ -433,7 +433,7 @@ bool didfe(Ctx &c, Val &out) {
     for (std::size_t i = 0; i < zz(n); ++i) {
       if (pn.t[i] < g0) f[zz(pn.t[i]) * zz(pn.nu) + zz(pn.u[i])] = pn.y[i];
     }
-    const int n1 = static_cast<int>(std::count(tr.begin(), tr.end(), 1));
+    const int n1 = sat<int>(std::count(tr.begin(), tr.end(), 1));
     // at most as many matches as comparison units, as in R
     const int rr = std::min(ratio, pn.nu - n1);
     std::vector<int> ma(zz(n1) * zz(rr)), mc(zz(n1) * zz(rr));
@@ -548,7 +548,7 @@ bool evtst(Ctx &c, Val &out) {
   CK(wholed(c, "lags", 4, 0, lg));
   const double rf = val1d(c, "ref", -1);
   if (!(rf == std::floor(rf) && rf >= -ld && rf <= lg)) return c.fail("`ref` must be one whole number from -leads to lags.");
-  const int r0 = static_cast<int>(rf);
+  const int r0 = sat<int>(rf);
   bool bn = true, nm = true;
   CK(flagd(c, "bin", true, bn));
   CK(flagd(c, "norm", true, nm));
@@ -606,9 +606,9 @@ bool evtst(Ctx &c, Val &out) {
     if (!seen) return c.fail("no row has event time %d: narrow `leads` or `lags`.", e);
     x.push_back(tm);
   }
-  const int q = static_cast<int>(x.size());
+  const int q = sat<int>(x.size());
   CK(adjcols(c, c["adj"], zz(n), x, "row of the panel"));
-  const int p = static_cast<int>(x.size());
+  const int p = sat<int>(x.size());
   Pmod m{pn.y.data(), &pn, &x, c1.data(), kc == 2 ? c2.data() : nullptr, wv.empty() ? nullptr : wv.data(), nullptr, 1, 0};
   std::vector<int> idx;
   for (int i = 0; i < n; ++i) {
@@ -653,7 +653,7 @@ bool evtst(Ctx &c, Val &out) {
   for (int j = 0; j < q; ++j) {
     if (ks[zz(j)] < 0) pre.push_back(j);
   }
-  const int nq = static_cast<int>(pre.size());
+  const int nq = sat<int>(pre.size());
   double fst = NA, fp = NA;
   if (nq > 0) {
     std::vector<double> vp(zz(nq) * zz(nq)), vi(zz(nq) * zz(nq));
@@ -701,7 +701,7 @@ bool evtst(Ctx &c, Val &out) {
         mv.push_back(sm[zz(a)] / cnt[zz(a)]);
       }
     }
-    const int nc = static_cast<int>(tt.size());
+    const int nc = sat<int>(tt.size());
     std::vector<double> av(zz(nc), NA);
     for (int a = mw - 1; a < nc; ++a) {
       double s2 = 0.0;
@@ -730,7 +730,7 @@ bool evtst(Ctx &c, Val &out) {
   if (c.has("mbar")) {
     Dv mb;
     CK(num(c, c["mbar"], "mbar", mb, -1, 0.0));
-    const int nb = static_cast<int>(mb.n());
+    const int nb = sat<int>(mb.n());
     int nd = 0;
     CK(wholed(c, "draws", 5000, 100, nd));
     if (nd > kutil::maxcell) return c.fail("`draws` must be at most %.0f.", kutil::maxcell);
@@ -789,7 +789,7 @@ bool evtst(Ctx &c, Val &out) {
     auto q7 = [](std::vector<double> xs, double pr) {
       std::sort(xs.begin(), xs.end());
       const double h = (static_cast<double>(xs.size()) - 1) * pr;
-      const std::size_t l = static_cast<std::size_t>(std::floor(h));
+      const std::size_t l = sat<std::size_t>(std::floor(h));
       const std::size_t u = std::min(l + 1, xs.size() - 1);
       return xs[l] + (h - static_cast<double>(l)) * (xs[u] - xs[l]);
     };
@@ -887,14 +887,14 @@ bool stgdid(Ctx &c, Val &out) {
       } else {
         const auto it = std::lower_bound(pn.tv.begin(), pn.tv.end(), v);
         if (*it != v) return c.fail("`first` must be one of the periods of `time` (or NA, 0, Inf).");
-        g[a] = static_cast<int>(it - pn.tv.begin());
+        g[a] = sat<int>(it - pn.tv.begin());
       }
       for (int b = g[a]; b < nt; ++b) dw[zz(b) * zz(nu) + a] = 1;
     }
   }
   std::vector<Term> x;
   CK(adjcols(c, c["adj"], zz(n), x, "row of the panel"));
-  s.k = static_cast<int>(x.size());
+  s.k = sat<int>(x.size());
   if (s.k > 0 && s.meth != 0) return c.fail("`adj` is taken by `meth = \"csa\"` only.");
   std::vector<double> xw(zz(s.k) * zz(nt) * zz(nu));
   for (int j = 0; j < s.k; ++j) {
@@ -964,7 +964,7 @@ bool stgdid(Ctx &c, Val &out) {
     for (std::size_t q = 0; q < s.cg.size(); ++q) ev.push_back(s.ct[q] - s.cg[q]);
     std::sort(ev.begin(), ev.end());
     ev.erase(std::unique(ev.begin(), ev.end()), ev.end());
-    const int nc = static_cast<int>(s.cg.size()), ne = static_cast<int>(ev.size());
+    const int nc = sat<int>(s.cg.size()), ne = sat<int>(ev.size());
     const int ns = nc + 1 + ne;
     std::vector<double> v(zz(ns)), se(zz(ns), NA);
     pev::stat(s, idx, ev, v.data());
@@ -1053,12 +1053,12 @@ bool widen(Ctx &c, const Pan &pn, Wide &w) {
   if (w.ctl.size() < 2) return c.fail("the comparison needs two units never treated at least.");
   const auto it = std::find(pn.tv.begin(), pn.tv.end(), g);
   if (it == pn.tv.begin() || it == pn.tv.end()) return c.fail("the adoption period must be a period of `time` after the first.");
-  w.t0 = static_cast<int>(it - pn.tv.begin());
+  w.t0 = sat<int>(it - pn.tv.begin());
   return true;
 }
 
 bool synth(const Wide &w, int nu, int nt, int i, const std::vector<int> &d, double *om, double *gap) {
-  const int n0 = static_cast<int>(d.size());
+  const int n0 = sat<int>(d.size());
   std::vector<double> a(zz(w.t0) * zz(n0)), b(zz(w.t0)), g(zz(n0) * zz(n0));
   for (int s = 0; s < w.t0; ++s) {
     b[zz(s)] = w.yw[zz(s) * zz(nu) + zz(i)];
@@ -1088,8 +1088,8 @@ bool synthc(Ctx &c, Val &out) {
   CK(panel(c, -HUGE_VAL, pn));
   Wide w;
   CK(widen(c, pn, w));
-  if (w.trd.size() != 1) return c.fail("one unit must be treated: `first` is finite for %d.", static_cast<int>(w.trd.size()));
-  const int nu = pn.nu, nt = pn.nt, n0 = static_cast<int>(w.ctl.size()), i1 = w.trd[0];
+  if (w.trd.size() != 1) return c.fail("one unit must be treated: `first` is finite for %d.", sat<int>(w.trd.size()));
+  const int nu = pn.nu, nt = pn.nt, n0 = sat<int>(w.ctl.size()), i1 = w.trd[0];
   std::vector<double> om(zz(n0)), gap(zz(nt));
   if (!synth(w, nu, nt, i1, w.ctl, om.data(), gap.data())) return c.fail("%s", wfail);
   const double pre = rmspe(gap.data(), w.t0, nt, false), post = rmspe(gap.data(), w.t0, nt, true);
@@ -1157,8 +1157,8 @@ bool sdidx(Ctx &c, Val &out) {
   CK(panel(c, -HUGE_VAL, pn));
   Wide w;
   CK(widen(c, pn, w));
-  const int nu = pn.nu, nt = pn.nt, n0 = static_cast<int>(w.ctl.size());
-  const int n1 = static_cast<int>(w.trd.size());
+  const int nu = pn.nu, nt = pn.nt, n0 = sat<int>(w.ctl.size());
+  const int n1 = sat<int>(w.trd.size());
   std::vector<double> om(zz(n0)), la(zz(w.t0));
   const double tau = pev::sdtau(w.yw.data(), nu, nt, w.ctl, w.trd, w.t0, true, om.data(), la.data());
   if (std::isnan(tau)) return c.fail("%s", wfail);

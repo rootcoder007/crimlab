@@ -86,29 +86,29 @@ bool expgmm(Ctx &c, Val &out) {
   CK(amat(c, d, zn, zm));
   const std::size_t n = yk.size();
   std::vector<int> cc;
-  int nc = static_cast<int>(n);
+  int nc = sat<int>(n);
   if (se == 0) {
     Cl cl;
     CK(acl(c, d, clus, cl));
     cc = cl.a.c;
     nc = cl.a.n;
   } else {
-    for (std::size_t i = 0; i < n; ++i) cc.push_back(static_cast<int>(i));
+    for (std::size_t i = 0; i < n; ++i) cc.push_back(sat<int>(i));
   }
-  const int nz = static_cast<int>(zn.size()) + (fe.empty() ? 1 : nl - static_cast<int>(fe.size()) + 1);
+  const int nz = sat<int>(zn.size()) + (fe.empty() ? 1 : nl - sat<int>(fe.size()) + 1);
   if (nz > nc) {
     return ckstop(c, "%d moment conditions but %d clusters: the weight matrix would be singular (fewer instruments, "
                      "controls or effects, or more clusters)", nz, nc);
   }
   // .axgmfit()
-  const int px = static_cast<int>(tm.size());
-  const int kk = px + (fe.empty() ? 1 : nl - static_cast<int>(fe.size()) + 1);
+  const int px = sat<int>(tm.size());
+  const int kk = px + (fe.empty() ? 1 : nl - sat<int>(fe.size()) + 1);
   std::vector<double> beta(zz(kk)), vc(zz(kk) * zz(kk)), st(6);
-  const int rc = clab_expgmmd(yk.data(), xm.data(), px, zm.data(), static_cast<int>(zn.size()), static_cast<int>(n),
+  const int rc = clab_expgmmd(yk.data(), xm.data(), px, zm.data(), sat<int>(zn.size()), sat<int>(n),
                               fe.empty() ? nullptr : fc2[0].c.data(), fe.empty() ? 0 : fc2[0].n,
                               fe.size() < 2 ? nullptr : fc2[1].c.data(), fe.size() < 2 ? 0 : fc2[1].n,
                               off.empty() ? nullptr : off.data(), cc.data(), nc, err, step == 1 ? 1 : step == 0 ? 2 : 3,
-                              static_cast<int>(mx[0]), tl[0], beta.data(), vc.data(), st.data());
+                              sat<int>(mx[0]), tl[0], beta.data(), vc.data(), st.data());
   if (rc == CLAB_EDOM) {
     return c.fail("the fit failed: the instruments or the regressors are collinear, there are no more clusters than "
                   "moment conditions (the weight matrix is singular), or the mean overflows from the start values.");
@@ -274,7 +274,7 @@ inline std::vector<double> avcov(const Val &r, const Cols &t) {
         if (std::isnan(x[j * nb + b])) ok[b] = 0;
       }
     }
-    v = rcov(x, nb, static_cast<int>(p), ok);
+    v = rcov(x, nb, sat<int>(p), ok);
   }
   std::vector<std::size_t> ix;
   for (const std::string &s : t) {
@@ -364,7 +364,7 @@ inline std::vector<double> aqnt(const std::vector<double> &x, const std::vector<
       continue;
     }
     const double ix = 1 + (static_cast<double>(v.size()) - 1) * pr, lo = std::floor(ix), hi = std::ceil(ix);
-    const double a = v[static_cast<std::size_t>(lo) - 1], b = v[static_cast<std::size_t>(hi) - 1];
+    const double a = v[sat<std::size_t>(lo) - 1], b = v[sat<std::size_t>(hi) - 1];
     const double h = ix - lo;
     q.push_back(ix > lo && b != a ? (1 - h) * a + h * b : a);
   }
@@ -391,7 +391,7 @@ inline double cell(const Val &r, const char *k, std::size_t i) { return nv(col(c
 // the knots t, column-major n x (k - 1); x alone for fewer than 3 knots.
 inline std::vector<double> rcs(const std::vector<double> &x, const std::vector<double> &t, int &nc) {
   const std::size_t n = x.size(), k = t.size();
-  nc = k < 3 ? 1 : static_cast<int>(k) - 1;
+  nc = k < 3 ? 1 : sat<int>(k) - 1;
   std::vector<double> m(n * zz(nc));
   std::copy(x.begin(), x.end(), m.begin());
   if (k < 3) return m;
@@ -426,7 +426,7 @@ inline bool ashift(Ctx &c, const std::vector<int> &u, const std::vector<double> 
   const std::size_t n = t.size();
   std::vector<int> ord(n);
   ix.assign(n, -1);
-  const int rc = clab_dshift(u.data(), t.data(), static_cast<int>(n), k, ix.data(), ord.data());
+  const int rc = clab_dshift(u.data(), t.data(), sat<int>(n), k, ix.data(), ord.data());
   if (rc == CLAB_EDOM) return ckstop(c, "a unit has two rows on one day: give one row per unit and day");
   if (rc != CLAB_OK) return c.fail("%s", clab_strerror(rc));
   return true;
@@ -562,7 +562,7 @@ bool hetfx(Ctx &c, Val &out) {
   f.num("hi", hi);
   f.num("p", p);
   f.num("n", nn);
-  const int q = static_cast<int>(k) - 1;
+  const int q = sat<int>(k) - 1;
   std::vector<double> rr(zz(q) * k, 0.0);
   for (std::size_t i = 0; i < zz(q); ++i) {
     rr[i * zz(q) + i] = 1.0;
@@ -653,7 +653,7 @@ bool ccross(Ctx &c, Val &out) {
   Cols st(n), ym(n);
   for (std::size_t i = 0; i < n; ++i) {
     // civil date of a day number (H. Hinnant's days_from_civil inverse)
-    const std::int64_t z = static_cast<std::int64_t>(std::floor(dv[i])) + 719468;
+    const std::int64_t z = sat<std::int64_t>(std::floor(dv[i])) + 719468;
     const std::int64_t era = (z >= 0 ? z : z - 146096) / 146097;
     const std::int64_t doe = z - era * 146097;
     const std::int64_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
@@ -662,9 +662,9 @@ bool ccross(Ctx &c, Val &out) {
     const std::int64_t mo = mp < 10 ? mp + 3 : mp - 9;
     const std::int64_t yr = yoe + era * 400 + (mo <= 2 ? 1 : 0);
     char b[48];
-    std::snprintf(b, sizeof b, "%04lld-%02lld", static_cast<long long>(yr), static_cast<long long>(mo));
+    std::snprintf(b, sizeof b, "%04lld-%02lld", sat<long long>(yr), sat<long long>(mo));
     ym[i] = b;
-    const std::int64_t zd = static_cast<std::int64_t>(std::floor(dv[i]));
+    const std::int64_t zd = sat<std::int64_t>(std::floor(dv[i]));
     const std::int64_t wd = ((zd + 4) % 7 + 7) % 7;
     st[i] = ul[i] + "\r" + ym[i] + "\r" + (strat == 0 ? std::to_string(wd) : std::string());
   }
@@ -676,7 +676,7 @@ bool ccross(Ctx &c, Val &out) {
     const Val &xc = *fc(d, nsn[j]);
     if (!isnumc(xc)) return ckstop(c, "column `%s` must be numeric", nsn[j].c_str());
     const std::vector<double> x = colv(xc);
-    const int dg = static_cast<int>(nsd[j]);
+    const int dg = sat<int>(nsd[j]);
     std::vector<double> pr;
     for (int i = 1; i < dg; ++i) pr.push_back(static_cast<double>(i) / dg);
     std::vector<double> kn = {*std::min_element(x.begin(), x.end())};
@@ -720,9 +720,9 @@ bool jntx(Ctx &c, Val &out) {
   CK(aest(c, e));
   Nv q, p1, p2;
   CK(cknumd(c, "k1", 5, q, 3, 7, false, true));
-  const int k1 = static_cast<int>(q[0]);
+  const int k1 = sat<int>(q[0]);
   CK(cknumd(c, "k2", 4, q, 3, 7, false, true));
-  const int k2 = static_cast<int>(q[0]);
+  const int k2 = sat<int>(q[0]);
   if (c.has("p1")) {
     CK(cknum(c, c["p1"], "p1", p1, false, 0, 1));
   } else {
@@ -737,7 +737,7 @@ bool jntx(Ctx &c, Val &out) {
   if (p2.n() < 2) return ckstop(c, "`p2` must be two or more quantiles");
   CK(cknumd(c, "ngrid", 15, q, 2, Inf, false, true));
   if (q[0] > 8192) return ckstop(c, "`ngrid` times `ngrid` must be at most 67108864");
-  const int ng = static_cast<int>(q[0]);
+  const int ng = sat<int>(q[0]);
   Nv rf;
   if (c.has("ref")) {
     CK(cknum(c, c["ref"], "ref", rf, false));
@@ -891,7 +891,7 @@ bool dosebin(Ctx &c, Val &out) {
   if (!c.has("brk")) {
     CK(cknumd(c, "nq", 5, q, 2, Inf, false, true));
     if (q[0] > kutil::maxcell) return ckstop(c, "`nq` must be at most 67108864");
-    const int nq = static_cast<int>(q[0]);
+    const int nq = sat<int>(q[0]);
     brk = aqnt(xv, seqn(0, 1, nq + 1));
     brk.erase(std::unique(brk.begin(), brk.end()), brk.end());
     if (brk.size() < 3) return ckstop(c, "`%s` gives fewer than two bins", yv[1].c_str());
@@ -910,7 +910,7 @@ bool dosebin(Ctx &c, Val &out) {
     if (bn[i] < 0) return ckstop(c, "some values of `%s` fall outside `brk`", yv[1].c_str());
   }
   CK(cknumd(c, "ref", 1, q, 1, static_cast<double>(nbin), false, true));
-  const std::size_t ref = static_cast<std::size_t>(q[0]) - 1;
+  const std::size_t ref = sat<std::size_t>(q[0]) - 1;
   Cols nm, use;
   std::vector<std::size_t> ui;
   for (std::size_t j = 0; j < nbin; ++j) {
@@ -919,7 +919,7 @@ bool dosebin(Ctx &c, Val &out) {
     ui.push_back(j);
     use.push_back(nm[j]);
     std::vector<double> w(n);
-    for (std::size_t i = 0; i < n; ++i) w[i] = bn[i] == static_cast<int>(j) ? 1.0 : 0.0;
+    for (std::size_t i = 0; i < n; ++i) w[i] = bn[i] == sat<int>(j) ? 1.0 : 0.0;
     setc(d, nm[j], vnums(w));
   }
   Val r;
@@ -932,7 +932,7 @@ bool dosebin(Ctx &c, Val &out) {
   for (std::size_t j = 0; j < nbin; ++j) {
     std::vector<double> in;
     for (std::size_t i = 0; i < n; ++i) {
-      if (bn[i] == static_cast<int>(j)) in.push_back(xv[i]);
+      if (bn[i] == sat<int>(j)) in.push_back(xv[i]);
     }
     mid[j] = amed(in);
     cnt[j] = static_cast<double>(in.size());
@@ -957,7 +957,7 @@ bool dosebin(Ctx &c, Val &out) {
   tb.num("p", p);
   // .axdbtst()
   const std::vector<double> v = avcov(r, use);
-  const int k = static_cast<int>(ce.size());
+  const int k = sat<int>(ce.size());
   std::vector<double> id(zz(k) * zz(k), 0.0);
   for (std::size_t i = 0; i < zz(k); ++i) id[i * zz(k) + i] = 1.0;
   Val t1 = awald(c, ce, v, id, k);

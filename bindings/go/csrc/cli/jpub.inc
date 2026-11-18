@@ -41,7 +41,7 @@ bool yoypx(Ctx &c, Val &out) {
   Dv xv, pv;
   CK(num(c, c["x"], "x", xv, -1, u == 0 ? 0.0 : -HUGE_VAL));
   const std::size_t sn = xv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   CK(num(c, c["prd"], "prd", pv, n));
   double lg = 0.0, mb = 0.0, lv = 0.0, rn = 0.0, al = 0.0;
   CK(oned(c, "lag", 1, 0.0, Inf, lg));
@@ -58,7 +58,7 @@ bool yoypx(Ctx &c, Val &out) {
   const bool hb = c.has("by");
   if (hb) CK(codes(c, c["by"], "by", sn, g));
   std::vector<int> o(sn);
-  for (int i = 0; i < n; ++i) o[static_cast<std::size_t>(i)] = i;
+  for (int i = 0; i < n; ++i) o[sat<std::size_t>(i)] = i;
   const int *gi = hb ? g.code.data() : nullptr;
   const double *pp = pv.p();
   std::stable_sort(o.begin(), o.end(), [&](int a, int b) {
@@ -68,19 +68,19 @@ bool yoypx(Ctx &c, Val &out) {
   std::vector<double> cx, cp;
   std::vector<int> cgr, cn;
   for (int i = 0; i < n; ++i) {
-    const int a = o[static_cast<std::size_t>(i)];
-    const int b = i ? o[static_cast<std::size_t>(i - 1)] : -1;
+    const int a = o[sat<std::size_t>(i)];
+    const int b = i ? o[sat<std::size_t>(i - 1)] : -1;
     if (i == 0 || (gi ? gi[a] != gi[b] : false) || pp[a] != pp[b]) {
       cx.push_back(0);
       cp.push_back(pp[a]);
       cgr.push_back(gi ? gi[a] : 0);
       cn.push_back(0);
     }
-    cx.back() += xv[static_cast<std::size_t>(a)];
+    cx.back() += xv[sat<std::size_t>(a)];
     ++cn.back();
   }
   const std::size_t sm = cx.size();
-  const int m = static_cast<int>(sm);
+  const int m = sat<int>(sm);
   if (u != 0) {
     for (std::size_t j = 0; j < sm; ++j) cx[j] /= cn[j];
   }
@@ -103,7 +103,7 @@ bool yoypx(Ctx &c, Val &out) {
   Frame f;
   if (hb) {
     std::vector<std::string> gl(sm);
-    for (std::size_t j = 0; j < sm; ++j) gl[j] = g.lev[static_cast<std::size_t>(cgr[j])];
+    for (std::size_t j = 0; j < sm; ++j) gl[j] = g.lev[sat<std::size_t>(cgr[j])];
     f.str("group", gl);
   }
   f.num("prd", cp);
@@ -129,7 +129,7 @@ bool yoypx(Ctx &c, Val &out) {
       pv2[j] = binp(std::round(v), std::round(v + b), 0.5);
       pk.push_back(pv2[j]);
     }
-    clab_pbadj(pk.data(), static_cast<int>(pk.size()), ad, qk.data(), oi.data());
+    clab_pbadj(pk.data(), sat<int>(pk.size()), ad, qk.data(), oi.data());
     for (std::size_t j = 0, i = 0; j < sm; ++j) {
       if (std::isnan(pv2[j])) continue;
       pa[j] = qk[i++];

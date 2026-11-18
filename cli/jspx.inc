@@ -40,12 +40,12 @@ bool dfmat(Ctx &c, const Val &x, const char *nm, double lo, int &nr, int &nc, st
            std::vector<std::string> &cn, const char *pre) {
   cn.clear();
   if (isdf(x)) {
-    nc = static_cast<int>(x.a.size());
-    nr = static_cast<int>(vlen(x.a[0]));
+    nc = sat<int>(x.a.size());
+    nr = sat<int>(vlen(x.a[0]));
     v.clear();
     for (std::size_t j = 0; j < x.a.size(); ++j) {
       const Val &e = x.a[j];
-      if (!isnum(e) || static_cast<int>(vlen(e)) != nr) return c.fail("`%s` must be numeric.", nm);
+      if (!isnum(e) || sat<int>(vlen(e)) != nr) return c.fail("`%s` must be numeric.", nm);
       const std::vector<double> d = dbl(e);
       for (double q : d) {
         if (!std::isfinite(q) || q < lo) {
@@ -73,8 +73,8 @@ bool wreadx(Ctx &c, const Val &w, int n, Wcsr &o) {
   std::vector<double> ew;
   if (w.t == Val::OBJ && col(w, "neighbours").t != Val::NUL) {
     const Val &nb = col(w, "neighbours"), &wt = col(w, "weights");
-    if (nb.t != Val::ARR || wt.t != Val::ARR || static_cast<int>(nb.a.size()) != n ||
-        static_cast<int>(wt.a.size()) != n) {
+    if (nb.t != Val::ARR || wt.t != Val::ARR || sat<int>(nb.a.size()) != n ||
+        sat<int>(wt.a.size()) != n) {
       return c.fail("`w` must have one row of neighbours and weights per unit.");
     }
     for (int i = 0; i < n; ++i) {
@@ -92,7 +92,7 @@ bool wreadx(Ctx &c, const Val &w, int n, Wcsr &o) {
         const double j = av[q];
         if (j < 1 || j > n) return c.fail("`w` names a neighbour outside 1 to %d.", n);
         ei.push_back(i);
-        ej.push_back(static_cast<int>(j) - 1);
+        ej.push_back(sat<int>(j) - 1);
         ew.push_back(bv[q]);
       }
     }
@@ -118,15 +118,15 @@ bool wreadx(Ctx &c, const Val &w, int n, Wcsr &o) {
     if (val1(nn) != n) return c.fail("`w` is for %g units, not %d.", val1(nn), n);
     Dv i, j, v;
     CK(num(c, col(w, "i"), "w$i", i, -1, 1.0));
-    CK(num(c, col(w, "j"), "w$j", j, static_cast<std::int64_t>(i.n()), 1.0));
-    CK(num(c, col(w, "w"), "w$w", v, static_cast<std::int64_t>(i.n()), 0.0));
+    CK(num(c, col(w, "j"), "w$j", j, sat<std::int64_t>(i.n()), 1.0));
+    CK(num(c, col(w, "w"), "w$w", v, sat<std::int64_t>(i.n()), 0.0));
     for (std::size_t q = 0; q < i.n(); ++q) {
       const double a = i[q], b = j[q];
       if (a > n || b > n || a != std::floor(a) || b != std::floor(b)) {
         return c.fail("`w$i` and `w$j` must be unit numbers from 1 to %d.", n);
       }
-      ei.push_back(static_cast<int>(a) - 1);
-      ej.push_back(static_cast<int>(b) - 1);
+      ei.push_back(sat<int>(a) - 1);
+      ej.push_back(sat<int>(b) - 1);
       ew.push_back(v[q]);
     }
   }
@@ -151,7 +151,7 @@ bool knxnr(Ctx &c, Val &out) {
   CK(num(c, c["t"], "t", tv, n));
   CK(edges(c, "ds", sv));
   CK(edges(c, "dt", bv));
-  const int ks = static_cast<int>(sv.n()), kt = static_cast<int>(bv.n());
+  const int ks = sat<int>(sv.n()), kt = sat<int>(bv.n());
   int ns = 0;
   CK(wholed(c, "nsim", 999, 0, ns));
   unsigned int sd = 0;
@@ -191,12 +191,12 @@ bool knxnr(Ctx &c, Val &out) {
 
 // nrd(): the normal reference bandwidth of MASS::bandwidth.nrd() / 4.
 double nrd(const std::vector<double> &v) {
-  const int n = static_cast<int>(v.size());
+  const int n = sat<int>(v.size());
   std::vector<double> u(v);
   std::sort(u.begin(), u.end());
   auto q = [&](double pr) {
     const double h = (n - 1) * pr;
-    const int lo = static_cast<int>(std::floor(h));
+    const int lo = sat<int>(std::floor(h));
     return lo + 1 < n ? u[zz(lo)] + (h - lo) * (u[zz(lo + 1)] - u[zz(lo)]) : u[zz(lo)];
   };
   double m = 0, ss = 0;
@@ -404,14 +404,14 @@ bool hsper(Ctx &c, Val &out) {
   put(out, "cells", cf.o);
   put(out, "hot", vlmat(hm.data(), nc, np));
   put(out, "cell", unbox(vints(cid.data(), cid.size())));
-  put(out, "k", vnum(std::max(1, static_cast<int>(std::ceil(tp * nc)))));
+  put(out, "k", vnum(std::max(1, sat<int>(std::ceil(tp * nc)))));
   return true;
 }
 
 bool ebshr(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   if (n < 2) return c.fail("at least 2 places are needed.");
   Dv wv;
   if (c.has("w")) CK(num(c, c["w"], "w", wv, n, 0.0));
@@ -462,7 +462,7 @@ bool kscan(Ctx &c, Val &out) {
   CK(wholed(c, "nsim", 999, 0, ns));
   unsigned int sd = 0;
   CK(nseed(c, ns, sd));
-  const int nr = static_cast<int>(rv.n()), nw = static_cast<int>(wv.n());
+  const int nr = sat<int>(rv.n()), nw = sat<int>(wv.n());
   const int tq = tp < n ? tp : n;
   std::vector<double> o(10 * zz(tq));
   int nc = 0;
@@ -474,7 +474,7 @@ bool kscan(Ctx &c, Val &out) {
   std::vector<int> mb(zz(n), INT_MIN);
   for (int k = nc - 1; k >= 0; --k) {
     const double *v = o.data() + 10 * zz(k);
-    const std::size_t ci = static_cast<std::size_t>(v[0]), sk = zz(k);
+    const std::size_t ci = sat<std::size_t>(v[0]), sk = zz(k);
     cc[0][sk] = p.x[ci];
     cc[1][sk] = p.y[ci];
     for (int j = 0; j < 7; ++j) cc[2 + j][sk] = v[1 + j];
@@ -510,7 +510,7 @@ bool gmoran(Ctx &c, Val &out) {
     Dv d;
     CK(num(c, x, "x", d));
     xv = d.v;
-    n = static_cast<int>(d.n());
+    n = sat<int>(d.n());
     cn = {"x"};
   }
   if (n < 4) return c.fail("at least 4 units are needed.");
@@ -539,7 +539,7 @@ bool gmoran(Ctx &c, Val &out) {
 bool bvmor(Ctx &c, Val &out) {
   Dv xv, yv;
   CK(num(c, c["x"], "x", xv));
-  const int n = static_cast<int>(xv.n());
+  const int n = sat<int>(xv.n());
   if (n < 3) return c.fail("at least 3 units are needed.");
   CK(num(c, c["y"], "y", yv, n));
   Wcsr w;
@@ -560,7 +560,7 @@ bool bvmor(Ctx &c, Val &out) {
 bool sarml(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   const std::size_t sn = yv.n();
   if (n < 4) return c.fail("at least 4 units are needed.");
   if (n > 5000) return c.fail("at most 5000 units: the likelihood takes a dense determinant.");
@@ -569,12 +569,12 @@ bool sarml(Ctx &c, Val &out) {
   std::vector<double> xv;
   std::vector<std::string> xn;
   if (ismat2(x)) {
-    if (isdf(x) ? static_cast<int>(vlen(x.a[0])) != n : static_cast<int>(x.a.size()) != n) {
+    if (isdf(x) ? sat<int>(vlen(x.a[0])) != n : sat<int>(x.a.size()) != n) {
       return c.fail("`x` must have one row per value of `y`.");
     }
     CK(dfmat(c, x, "x", -HUGE_VAL, nr, px, xv, xn, "x"));
   } else {
-    if (static_cast<int>(vlen(x)) != n) return c.fail("`x` must have one row per value of `y`.");
+    if (sat<int>(vlen(x)) != n) return c.fail("`x` must have one row per value of `y`.");
     if (!isnum(x)) return c.fail("`x` must be numeric.");
     xv = dbl(x);
     for (double e : xv) {
@@ -601,7 +601,7 @@ bool sarml(Ctx &c, Val &out) {
     for (int i = 1; i < n && same; ++i) same = v[i] == v[0];
     if (!same) var.push_back(j);
   }
-  const int nv = static_cast<int>(var.size());
+  const int nv = sat<int>(var.size());
   auto lag = [&](const double *v, double *o) {
     for (int i = 0; i < n; ++i) {
       double s = 0;
@@ -620,8 +620,8 @@ bool sarml(Ctx &c, Val &out) {
     ++cc;
   }
   for (int j = 0; j < px; ++j) {
-    std::copy(xv.begin() + static_cast<std::ptrdiff_t>(zz(j) * sn), xv.begin() + static_cast<std::ptrdiff_t>(zz(j + 1) * sn),
-              X.begin() + static_cast<std::ptrdiff_t>(zz(cc) * sn));
+    std::copy(xv.begin() + sat<std::ptrdiff_t>(zz(j) * sn), xv.begin() + sat<std::ptrdiff_t>(zz(j + 1) * sn),
+              X.begin() + sat<std::ptrdiff_t>(zz(cc) * sn));
     tn.push_back(xn[zz(j)]);
     ++cc;
   }
@@ -642,7 +642,7 @@ bool sarml(Ctx &c, Val &out) {
     int h = 0;
     for (int j : var) {
       lag(xv.data() + zz(j) * sn, t.data());
-      if (!db) std::copy(t.begin(), t.end(), H.begin() + static_cast<std::ptrdiff_t>(zz(h++) * sn));
+      if (!db) std::copy(t.begin(), t.end(), H.begin() + sat<std::ptrdiff_t>(zz(h++) * sn));
       lag(t.data(), H.data() + zz(h++) * sn);
     }
   }
@@ -704,12 +704,12 @@ bool spill(Ctx &c, Val &out) {
       return c.fail("`fit` is not a sarml() fit.");
     }
     const int pv = dim[0] - 2;
-    if (pv < 0 || static_cast<std::size_t>(pv) > tm.size()) return c.fail("`fit` is not a sarml() fit.");
+    if (pv < 0 || sat<std::size_t>(pv) > tm.size()) return c.fail("`fit` is not a sarml() fit.");
     // the names of the vcov rows: the terms, then rho and lambda
     std::vector<std::string> rn(tm.begin(), tm.begin() + pv);
     rn.push_back("rho");
     rn.push_back("lambda");
-    const int nl = static_cast<int>(val1(col(f, "nlag")));
+    const int nl = sat<int>(val1(col(f, "nlag")));
     std::vector<std::string> lg, xs;
     if (nl > 0) lg.assign(rn.begin() + (pv - nl), rn.begin() + pv);
     for (int j = 0; j < pv; ++j) {
@@ -736,7 +736,7 @@ bool spill(Ctx &c, Val &out) {
     for (const std::string &s : id) {
       const auto it = std::find(rn.begin(), rn.end(), s);
       if (it == rn.end()) return c.fail("`fit` is not a sarml() fit.");
-      ix.push_back(static_cast<int>(it - rn.begin()));
+      ix.push_back(sat<int>(it - rn.begin()));
     }
     rho = vnum(at("rho"));
     b = varr();
@@ -762,7 +762,7 @@ bool spill(Ctx &c, Val &out) {
   }
   Dv bv, tv;
   CK(num(c, b, "b", bv));
-  const int k = static_cast<int>(bv.n());
+  const int k = sat<int>(bv.n());
   if (nm.empty()) {
     nm = bv.nm;
     if (nm.empty()) nm = nmsof({}, zz(k));
@@ -775,11 +775,11 @@ bool spill(Ctx &c, Val &out) {
   CK(one(c, rho, "rho", -HUGE_VAL, HUGE_VAL, r));
   int n = 0;
   if (w.t == Val::OBJ && col(w, "neighbours").t != Val::NUL) {
-    n = static_cast<int>(vlen(col(w, "neighbours")));
+    n = sat<int>(vlen(col(w, "neighbours")));
   } else if (w.t == Val::ARR && !w.a.empty() && w.a[0].t == Val::ARR) {
-    n = static_cast<int>(w.a.size());
+    n = sat<int>(w.a.size());
   } else if (w.t == Val::OBJ && col(w, "n").t != Val::NUL) {
-    n = static_cast<int>(val1(col(w, "n")));
+    n = sat<int>(val1(col(w, "n")));
   } else {
     return c.fail("`w` must be the list spwt() returns, an spdep listw or a matrix.");
   }
@@ -829,7 +829,7 @@ bool crossk(Ctx &c, Val &out) {
   for (std::size_t q = 1; q < rv.n(); ++q) {
     if (!(rv[q] > rv[q - 1])) return c.fail("`r` must increase.");
   }
-  const int nr = static_cast<int>(rv.n());
+  const int nr = sat<int>(rv.n());
   const bool sg = c.has("sigma");
   double sd = 0.0;
   if (sg) CK(one(c, c["sigma"], "sigma", 0.0, HUGE_VAL, sd));
@@ -911,7 +911,7 @@ bool morsta(Ctx &c, Val &out) {
       if (!std::isfinite(e) || e < 0) return c.fail("`counts` must hold finite numbers from 0 with no missing values.");
     }
   }
-  const int n = static_cast<int>(cv.size());
+  const int n = sat<int>(cv.size());
   if (n < 2) return c.fail("at least 2 quadrats are needed.");
   double a = 0.0;
   CK(oned(c, "crit", 0.05, 0.0, 1.0, a));
@@ -934,7 +934,7 @@ bool dissix(Ctx &c, Val &out) {
   {
     // the dimensions first, then the values (the order of R's checks)
     int dim[2] = {-1, -1};
-    g = isdf(x) ? static_cast<int>(x.a.size()) : (shape(x, 2, dim, 0) ? dim[1] : 0);
+    g = isdf(x) ? sat<int>(x.a.size()) : (shape(x, 2, dim, 0) ? dim[1] : 0);
   }
   if (g < 2) return c.fail("`x` must have at least 2 groups (columns).");
   CK(dfmat(c, x, "x", 0.0, n, g, xv, gn, "g"));
@@ -978,7 +978,7 @@ bool pinpl(Ctx &c, Val &out) {
   if (px.t == Val::NUL || py.t == Val::NUL || pi.t == Val::NUL) return c.fail("%s", pm);
   Dv vx, vy;
   CK(num(c, px, "poly$x", vx));
-  const int nv = static_cast<int>(vx.n());
+  const int nv = sat<int>(vx.n());
   if (nv < 3) return c.fail("`poly` needs at least 3 vertices.");
   CK(num(c, py, "poly$y", vy, nv));
   Lab id, rr;
@@ -1048,7 +1048,7 @@ bool pinpl(Ctx &c, Val &out) {
 bool arwt(Ctx &c, Val &out) {
   Dv xv;
   CK(num(c, c["x"], "x", xv));
-  const int ns = static_cast<int>(xv.n());
+  const int ns = sat<int>(xv.n());
   Val idv;
   if (c.has("id")) {
     idv = c["id"];
@@ -1060,7 +1060,7 @@ bool arwt(Ctx &c, Val &out) {
   Lab src;
   CK(codes(c, idv, "id", zz(ns), src));
   if (src.g != ns) return c.fail("`id` must name each source unit once.");
-  const int np = static_cast<int>(vlen(c["from"]));
+  const int np = sat<int>(vlen(c["from"]));
   if (np < 1) return c.fail("`from` must hold at least one pair.");
   Lab tg, fr;
   CK(codes(c, c["to"], "to", zz(np), tg));
@@ -1127,7 +1127,7 @@ bool arwt(Ctx &c, Val &out) {
   std::vector<std::string> cnn = {"gini"};
   std::vector<double> cc = {sum > 0 ? (nt + 1 - 2 * scum / sum) / nt : 0.0};
   for (double t : tv.v) {
-    const int m = static_cast<int>(std::min<double>(nt, std::floor(t)));
+    const int m = sat<int>(std::min<double>(nt, std::floor(t)));
     double s = 0;
     for (int q = nt - m; q < nt; ++q) s += v[zz(q)];
     cc.push_back(sum > 0 ? s / sum : NaN);

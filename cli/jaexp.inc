@@ -67,12 +67,12 @@ struct Rmt {
   // R_unif_index(): rejection sampling from the next power of two
   double index(double dn) {
     if (dn <= 0) return 0;
-    const int bits = static_cast<int>(std::ceil(std::log2(dn)));
+    const int bits = sat<int>(std::ceil(std::log2(dn)));
     double dv;
     do {
       std::int_least64_t v = 0;
       for (int n = 0; n <= bits; n += 16) {
-        const int v1 = static_cast<int>(std::floor(unif() * 65536));
+        const int v1 = sat<int>(std::floor(unif() * 65536));
         v = 65536 * v + v1;
       }
       dv = static_cast<double>(v & ((static_cast<std::int_least64_t>(1) << bits) - 1));
@@ -91,7 +91,7 @@ inline std::vector<int> ccase(const std::vector<const Val *> &cs, std::size_t n)
       double x = 0;
       ok = ok && e.t != Val::NUL && !(e.t == Val::NUM && std::isnan(e.n)) && !(snum(e, x) && std::isnan(x));
     }
-    if (ok) r.push_back(static_cast<int>(i));
+    if (ok) r.push_back(sat<int>(i));
   }
   return r;
 }
@@ -161,32 +161,32 @@ bool exprspplr(Ctx &c, Val &out) {
     if (num[j].size() == 1 && n > 1) num[j].assign(n, t.v[0]);
   }
   if (keep.size() < 10) {
-    return ckstop(c, "need at least 10 complete rows for 5 folds; have %d", static_cast<int>(keep.size()));
+    return ckstop(c, "need at least 10 complete rows for 5 folds; have %d", sat<int>(keep.size()));
   }
-  const int p = static_cast<int>(cf.size());
-  std::vector<double> xm(n * static_cast<std::size_t>(p));
+  const int p = sat<int>(cf.size());
+  std::vector<double> xm(n * sat<std::size_t>(p));
   for (int j = 0; j < p; ++j) {
-    for (std::size_t i = 0; i < n; ++i) xm[static_cast<std::size_t>(j) * n + i] = num[static_cast<std::size_t>(2 + j)][i];
+    for (std::size_t i = 0; i < n; ++i) xm[sat<std::size_t>(j) * n + i] = num[sat<std::size_t>(2 + j)][i];
   }
   std::vector<char> ok(n, 0);
-  for (int r : keep) ok[static_cast<std::size_t>(r)] = 1;
+  for (int r : keep) ok[sat<std::size_t>(r)] = 1;
   // the folds: sample(rep_len(1:5, m)) after set.seed(1), one set per size
   auto folds = [](int m) {
     Rmt g(1);
-    std::vector<int> x(static_cast<std::size_t>(m)), f(static_cast<std::size_t>(m));
-    for (int i = 0; i < m; ++i) x[static_cast<std::size_t>(i)] = i;
+    std::vector<int> x(sat<std::size_t>(m)), f(sat<std::size_t>(m));
+    for (int i = 0; i < m; ++i) x[sat<std::size_t>(i)] = i;
     int left = m;
     for (int i = 0; i < m; ++i) {
-      const int j = static_cast<int>(g.index(left));
-      f[static_cast<std::size_t>(i)] = x[static_cast<std::size_t>(j)] % 5 + 1;
-      x[static_cast<std::size_t>(j)] = x[static_cast<std::size_t>(--left)];
+      const int j = sat<int>(g.index(left));
+      f[sat<std::size_t>(i)] = x[sat<std::size_t>(j)] % 5 + 1;
+      x[sat<std::size_t>(j)] = x[sat<std::size_t>(--left)];
     }
     return f;
   };
   double o[2];
-  const int nn = static_cast<int>(n);
+  const int nn = sat<int>(n);
   int rc = clab_plr(num[0].data(), num[1].data(), p ? xm.data() : nullptr, nn, p, keep.data(),
-                    static_cast<int>(keep.size()), folds(static_cast<int>(keep.size())).data(), 5, o);
+                    sat<int>(keep.size()), folds(sat<int>(keep.size())).data(), 5, o);
   if (rc == CLAB_EDOM) {
     return ckstop(c, "the treatment has no variation left after partialling out the covariates");
   }
@@ -194,25 +194,25 @@ bool exprspplr(Ctx &c, Val &out) {
   const double ate = o[0], se = o[1];
   Rmt g(rs);
   std::vector<double> est;
-  for (int b = 0; b < static_cast<int>(nb); ++b) {
+  for (int b = 0; b < sat<int>(nb); ++b) {
     std::vector<int> rows;
     for (std::size_t i = 0; i < n; ++i) {
-      const int r = static_cast<int>(g.index(static_cast<double>(n)));
-      if (ok[static_cast<std::size_t>(r)]) rows.push_back(r);
+      const int r = sat<int>(g.index(static_cast<double>(n)));
+      if (ok[sat<std::size_t>(r)]) rows.push_back(r);
     }
     if (rows.size() < 10) continue;
     rc = clab_plr(num[0].data(), num[1].data(), p ? xm.data() : nullptr, nn, p, rows.data(),
-                  static_cast<int>(rows.size()), folds(static_cast<int>(rows.size())).data(), 5, o);
+                  sat<int>(rows.size()), folds(sat<int>(rows.size())).data(), 5, o);
     if (rc == CLAB_OK) est.push_back(o[0]);
   }
   if (est.size() < 10) {
     return ckstop(c,
                   "Only %d successful bootstrap fits; need >=10. Inspect the model's convergence on your resamples",
-                  static_cast<int>(est.size()));
+                  sat<int>(est.size()));
   }
   const double pr[2] = {0.025, 0.975};
   double s[3];
-  clab_bootci(est.data(), static_cast<int>(est.size()), pr, 2, s);
+  clab_bootci(est.data(), sat<int>(est.size()), pr, 2, s);
   out = vobj();
   put(out, "ate", vnum(ate));
   put(out, "seana", vnum(se));

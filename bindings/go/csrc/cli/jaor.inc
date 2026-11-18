@@ -18,7 +18,7 @@ bool inst(Ctx &c, const Val &x, const char *nm, std::vector<double> &v) {
 bool aorwt(Ctx &c, Val &out) {
   std::vector<double> f, t, org, ttv;
   CK(inst(c, c["from"], "from", f));
-  const int n = static_cast<int>(f.size());
+  const int n = sat<int>(f.size());
   CK(inst(c, c["to"], "to", t));
   if (t.size() != f.size()) return c.fail("`to` must have the length of `from`.");
   double w = 0.0;
@@ -36,14 +36,14 @@ bool aorwt(Ctx &c, Val &out) {
   Dv tov;
   if (c.has("tt")) {
     CK(inst(c, c["tt"], "tt", ttv));
-    CK(num(c, c["toff"], "toff", tov, static_cast<std::int64_t>(ttv.size())));
+    CK(num(c, c["toff"], "toff", tov, sat<std::int64_t>(ttv.size())));
   }
-  const int nt = static_cast<int>(ttv.size());
+  const int nt = sat<int>(ttv.size());
   const double l = val1d(c, "lo", 120), h = val1d(c, "hi", 604800);
   if (!(l >= 0) || !(h > l)) return c.fail("`lo` and `hi` must be numbers with 0 <= lo < hi.");
   bool ea = false;
   CK(flagd(c, "each", false, ea));
-  std::vector<double> wm(ea ? static_cast<std::size_t>(n) * k : 0), tot(static_cast<std::size_t>(k));
+  std::vector<double> wm(ea ? sat<std::size_t>(n) * k : 0), tot(sat<std::size_t>(k));
   int cnt[5];
   if (clab_aorwt(f.data(), t.data(), n, ttv.data(), tov.v.data(), nt, o0[0], org[0], w, k, l, h,
                  ea ? wm.data() : nullptr, tot.data(), cnt) != CLAB_OK) {
@@ -62,7 +62,7 @@ bool aorwt(Ctx &c, Val &out) {
 bool bdig(Ctx &c, Val &out) {
   if (!isnum(c["x"]) || c["x"].t == Val::NUL) return c.fail("`x` must be numbers.");
   const std::vector<double> v = dbl(c["x"]);
-  const int n = static_cast<int>(v.size());
+  const int n = sat<int>(v.size());
   int d = 0;
   CK(wholed(c, "nd", 1, 1, d));
   if (d > 9) return c.fail("`nd` must be from 1 to 9.");
@@ -73,7 +73,7 @@ bool bdig(Ctx &c, Val &out) {
   CK(pickd(c, "sgn", so, 3, 0, s));
   std::vector<int> dig(v.size());
   int cnt[4];
-  if (clab_bdig(v.data(), n, d, static_cast<int>(dv), s == 0 ? 1 : (s == 1 ? -1 : 0), dig.data(), cnt) != CLAB_OK) {
+  if (clab_bdig(v.data(), n, d, sat<int>(dv), s == 0 ? 1 : (s == 1 ? -1 : 0), dig.data(), cnt) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
   double cd[4];
@@ -91,29 +91,29 @@ bool bnft(Ctx &c, Val &out) {
   int d = 0;
   CK(wholed(c, "nd", 1, 1, d));
   if (d > 6) return c.fail("`nd` must be from 1 to 6.");
-  const int lo = static_cast<int>(std::pow(10.0, d - 1));
+  const int lo = sat<int>(std::pow(10.0, d - 1));
   std::vector<int> iv(v.n());
   for (std::size_t i = 0; i < v.n(); ++i) {
     const double e = v[i];
     if (e != std::floor(e) || (e != 0 && (e < lo || e >= 10.0 * lo))) {
       return c.fail("`dig` must hold %d-digit numbers (or 0, skipped), as bdig() gives.", d);
     }
-    iv[i] = static_cast<int>(e);
+    iv[i] = sat<int>(e);
   }
   int ns = 0;
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
   const int k = 9 * lo;
-  std::vector<double> obs(static_cast<std::size_t>(k)), wk(static_cast<std::size_t>(k));
+  std::vector<double> obs(sat<std::size_t>(k)), wk(sat<std::size_t>(k));
   double o[6];
-  if (clab_bnft(iv.data(), static_cast<int>(v.n()), d, ns, s, obs.data(), wk.data(), o) != CLAB_OK) {
+  if (clab_bnft(iv.data(), sat<int>(v.n()), d, ns, s, obs.data(), wk.data(), o) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
-  std::vector<double> dg(static_cast<std::size_t>(k)), ex(static_cast<std::size_t>(k));
+  std::vector<double> dg(sat<std::size_t>(k)), ex(sat<std::size_t>(k));
   for (int j = 0; j < k; ++j) {
-    dg[static_cast<std::size_t>(j)] = lo + j;
-    ex[static_cast<std::size_t>(j)] = o[0] * std::log10(1.0 + 1.0 / (lo + j));
+    dg[sat<std::size_t>(j)] = lo + j;
+    ex[sat<std::size_t>(j)] = o[0] * std::log10(1.0 + 1.0 / (lo + j));
   }
   Frame f;
   f.num("digit", dg);
@@ -135,7 +135,7 @@ bool rptc(Ctx &c, Val &out) {
   const std::size_t n = yv.n();
   Lab u;
   CK(codes(c, a[0], "unit", n, u));
-  CK(num(c, a[2], "rep", rv, static_cast<std::int64_t>(n)));
+  CK(num(c, a[2], "rep", rv, sat<std::int64_t>(n)));
   int a0 = 0, a1 = 0, mr = 0;
   CK(whole(c, c["y0"], "y0", 0, a0));
   CK(whole(c, c["y1"], "y1", a0, a1));
@@ -147,12 +147,12 @@ bool rptc(Ctx &c, Val &out) {
     if (e != std::floor(e) || std::fabs(e) > 1e9 || r != std::floor(r) || std::fabs(r) > 1e9) {
       return c.fail("`year` and `rep` must be whole numbers.");
     }
-    yi[i] = static_cast<int>(e);
-    ri[i] = static_cast<int>(r);
+    yi[i] = sat<int>(e);
+    ri[i] = sat<int>(r);
   }
-  std::vector<int> fl(static_cast<std::size_t>(u.g)), wk(static_cast<std::size_t>(u.g) * static_cast<std::size_t>(a1 - a0 + 1));
+  std::vector<int> fl(sat<std::size_t>(u.g)), wk(sat<std::size_t>(u.g) * sat<std::size_t>(a1 - a0 + 1));
   int nc = 0;
-  if (clab_rptc(u.code.data(), yi.data(), ri.data(), static_cast<int>(n), u.g, a0, a1, mr, fl.data(), &nc,
+  if (clab_rptc(u.code.data(), yi.data(), ri.data(), sat<int>(n), u.g, a0, a1, mr, fl.data(), &nc,
                 wk.data()) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }

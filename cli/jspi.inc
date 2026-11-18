@@ -61,9 +61,9 @@ bool idwint(Ctx &c, Val &out) {
     return ckstop(c, "`zone` must give the zone of each target, with no NA");
   }
   std::vector<double> o(nt), u(nt), zo(hz ? z.nlev : 0), zn(hz ? z.nlev : 0);
-  const int rc = clab_idwint(static_cast<int>(nm), mx.p(), my.p(), mv.data(), static_cast<int>(nt), tx.p(), ty.p(),
-                             p.v[0], static_cast<int>(k.v[0]), rad, ll ? 1 : 0, hz ? z.code.data() : nullptr,
-                             hz ? static_cast<int>(z.nlev) : 0, o.data(), u.data(), hz ? zo.data() : nullptr,
+  const int rc = clab_idwint(sat<int>(nm), mx.p(), my.p(), mv.data(), sat<int>(nt), tx.p(), ty.p(),
+                             p.v[0], sat<int>(k.v[0]), rad, ll ? 1 : 0, hz ? z.code.data() : nullptr,
+                             hz ? sat<int>(z.nlev) : 0, o.data(), u.data(), hz ? zo.data() : nullptr,
                              hz ? zn.data() : nullptr);
   if (rc != CLAB_OK) return c.fail("%s", clab_strerror(rc));
   Frame f;
@@ -95,7 +95,7 @@ inline int gfit(const std::vector<double> &x, int k, const Nv &y, const Nv &u, c
   g.hat.assign(n, 0.0);
   g.loo.assign(n, 0.0);
   g.st.assign(7, 0.0);
-  return clab_gtwreg(static_cast<int>(n), k, x.data(), y.p(), u.p(), v.p(), t ? t->p() : nullptr, h, tau, ll ? 1 : 0,
+  return clab_gtwreg(sat<int>(n), k, x.data(), y.p(), u.p(), v.p(), t ? t->p() : nullptr, h, tau, ll ? 1 : 0,
                      g.b.data(), g.se.data(), g.fit.data(), g.hat.data(), g.loo.data(), g.st.data());
 }
 
@@ -109,7 +109,7 @@ bool gtwreg(Ctx &c, Val &out) {
   bool cons = true, ll = false;
   CK(dw::flg(c, "cons", true, cons));
   dpnd::xm xm;
-  if (c.has("x")) CK(env::rdm(c, c["x"], "x", "x", static_cast<int>(n), -HUGE_VAL, xm));
+  if (c.has("x")) CK(env::rdm(c, c["x"], "x", "x", sat<int>(n), -HUGE_VAL, xm));
   const int k = xm.p + (cons ? 1 : 0);
   if (k == 0) return ckstop(c, "the model needs `x` or `cons = TRUE`");
   std::vector<double> x;
@@ -170,8 +170,8 @@ bool gtwreg(Ctx &c, Val &out) {
     tss += (y.v[i] - ym) * (y.v[i] - ym);
   }
   out = vobj();
-  put(out, "coef", vmat(g.b, static_cast<int>(n), k));
-  put(out, "se", vmat(g.se, static_cast<int>(n), k));
+  put(out, "coef", vmat(g.b, sat<int>(n), k));
+  put(out, "se", vmat(g.se, sat<int>(n), k));
   put(out, "fit", vnums(g.fit));
   put(out, "resid", vnums(res));
   put(out, "hat", vnums(g.hat));
@@ -222,12 +222,12 @@ bool asrule(Ctx &c, Val &out) {
   dw::labs(c["y"], n, true, ly);
   const double mxr = static_cast<double>(lx.nlev + ly.nlev) + 2.0 * static_cast<double>(lx.nlev) * static_cast<double>(ly.nlev);
   if (mxr > kutil::maxcell) return ckstop(c, "the levels of `x` and `y` are too many");
-  const std::size_t m = static_cast<std::size_t>(mxr);
+  const std::size_t m = sat<std::size_t>(mxr);
   std::vector<int> lh(m), rh(m);
   std::vector<double> o(m * 5);
   int nr = 0;
-  const int rc = clab_asrule(static_cast<int>(n), lx.code.data(), static_cast<int>(lx.nlev), ly.code.data(),
-                             static_cast<int>(ly.nlev), ms.v[0], mc.v[0], empty ? 1 : 0, &nr, lh.data(), rh.data(),
+  const int rc = clab_asrule(sat<int>(n), lx.code.data(), sat<int>(lx.nlev), ly.code.data(),
+                             sat<int>(ly.nlev), ms.v[0], mc.v[0], empty ? 1 : 0, &nr, lh.data(), rh.data(),
                              o.data());
   if (rc != CLAB_OK) return c.fail("%s", clab_strerror(rc));
   auto lab = [&](const dw::Lab &l, std::size_t i) {
@@ -306,21 +306,21 @@ inline bool ifpan(Ctx &c, const Val &d, Cols &x, Ipan &o) {
   std::vector<int> iu(m), it(m);
   for (std::size_t i = 0; i < m; ++i) {
     const std::string l = vlab((*fc(d, un[0])).a[i]);
-    const auto e = um.emplace(l, static_cast<int>(o.units.size()));
+    const auto e = um.emplace(l, sat<int>(o.units.size()));
     if (e.second) o.units.push_back(l);
     iu[i] = e.first->second;
   }
   o.tt = tv;
   std::sort(o.tt.begin(), o.tt.end());
   o.tt.erase(std::unique(o.tt.begin(), o.tt.end()), o.tt.end());
-  o.n = static_cast<int>(o.units.size());
-  o.nt = static_cast<int>(o.tt.size());
-  o.p = static_cast<int>(x.size());
+  o.n = sat<int>(o.units.size());
+  o.nt = sat<int>(o.tt.size());
+  o.p = sat<int>(x.size());
   const std::size_t sn = zz(o.n), st = zz(o.nt);
   std::vector<char> seen(sn * st, 0);
   bool bal = m == sn * st;
   for (std::size_t i = 0; i < m && bal; ++i) {
-    it[i] = static_cast<int>(std::lower_bound(o.tt.begin(), o.tt.end(), tv[i]) - o.tt.begin());
+    it[i] = sat<int>(std::lower_bound(o.tt.begin(), o.tt.end(), tv[i]) - o.tt.begin());
     char &s = seen[zz(iu[i]) * st + zz(it[i])];
     bal = !s;
     s = 1;
@@ -339,7 +339,7 @@ inline bool ifpan(Ctx &c, const Val &d, Cols &x, Ipan &o) {
   o.a.assign(sn, o.nt);
   for (std::size_t u = 0; u < sn; ++u) {
     for (std::size_t t = 0; t < st; ++t) {
-      if (dm[u * st + t] == 1 && o.a[u] == o.nt) o.a[u] = static_cast<int>(t);
+      if (dm[u * st + t] == 1 && o.a[u] == o.nt) o.a[u] = sat<int>(t);
       if (t > 0 && dm[u * st + t] < dm[u * st + t - 1]) mono = false;
     }
   }
@@ -369,7 +369,7 @@ bool ifesc(Ctx &c, Val &out) {
   if (c.has("r") && c["r"].t != Val::NUL) {
     Nv q;
     CK(cknum(c, c["r"], "r", q, true, 0, Inf, false, true));
-    r = q[0] > INT_MAX ? INT_MAX : static_cast<int>(q[0]);
+    r = q[0] > INT_MAX ? INT_MAX : sat<int>(q[0]);
   }
   Nv rm, tl, mx;
   CK(cknumd(c, "rmax", 5, rm, 0, 50, false, true));
@@ -377,7 +377,7 @@ bool ifesc(Ctx &c, Val &out) {
   CK(alevel(c, lv));
   CK(cknumd(c, "tol", 1e-8, tl, -Inf, Inf, true));
   CK(cknumd(c, "maxit", 1000, mx, 1, Inf, false, true));
-  const int rmax = static_cast<int>(rm[0]), maxit = mx[0] > INT_MAX ? INT_MAX : static_cast<int>(mx[0]);
+  const int rmax = sat<int>(rm[0]), maxit = mx[0] > INT_MAX ? INT_MAX : sat<int>(mx[0]);
   int nb = 0;
   std::vector<int> bm;
   if (se == 0) {
@@ -407,22 +407,22 @@ bool ifesc(Ctx &c, Val &out) {
     return ckstop(c, "a treated unit has too few periods before adoption for the factors, or a fit is singular");
   }
   if (rc != CLAB_OK) return kerr(c, "ifesc", rc);
-  const int rr = static_cast<int>(s8[0]), ne = static_cast<int>(s8[7]), emin = static_cast<int>(s8[6]);
+  const int rr = sat<int>(s8[0]), ne = sat<int>(s8[7]), emin = sat<int>(s8[6]);
   const std::size_t k = zz(ne) + 1;
   std::vector<double> sev(k, NA);
   Val draws;
-  const int nf = static_cast<int>(s8[5]);
+  const int nf = sat<int>(s8[5]);
   if (se == 0) {
     if (nf > 0) {
       wrn(c, std::to_string(nf) + " of " + std::to_string(nb) +
                  " bootstrap draws could not be fitted and are left out.");
     }
     if (nb - nf < 2) return ckstop(c, "fewer than two bootstrap draws could be fitted");
-    sev = csd(bef, zz(nb), static_cast<int>(k));
-    draws = vmat(bef.data(), nb, static_cast<int>(k));
+    sev = csd(bef, zz(nb), sat<int>(k));
+    draws = vmat(bef.data(), nb, sat<int>(k));
   }
   // eff: event times with their treated units counted
-  std::vector<double> e, cnt(zz(ne), 0.0), b2(ef.begin() + 1, ef.begin() + static_cast<std::ptrdiff_t>(k)),
+  std::vector<double> e, cnt(zz(ne), 0.0), b2(ef.begin() + 1, ef.begin() + sat<std::ptrdiff_t>(k)),
       s2(sev.begin() + 1, sev.end());
   for (int i = 0; i < ne; ++i) e.push_back(emin + i);
   Cols cu;
@@ -431,7 +431,7 @@ bool ifesc(Ctx &c, Val &out) {
     if (pn.a[u] == pn.nt) continue;
     for (std::size_t t = 0; t < st; ++t) {
       const double ev = static_cast<double>(t) - pn.a[u];
-      cnt[zz(static_cast<int>(ev) - emin)] += 1;
+      cnt[zz(sat<int>(ev) - emin)] += 1;
       cu.push_back(pn.units[u]);
       ct.push_back(pn.tt[t]);
       ce.push_back(ev);
@@ -585,7 +585,7 @@ bool lrcce(Ctx &c, Val &out) {
   const Val tb = atab(nm, mu, se, lv, NaN, false);
   out = vobj();
   for (std::size_t j = 0; j < tb.k.size(); ++j) put(out, tb.k[j] == "stat" ? "z" : tb.k[j].c_str(), tb.a[j]);
-  put(out, "units", vmat(u.data(), static_cast<int>(n), static_cast<int>(m)));
+  put(out, "units", vmat(u.data(), sat<int>(n), sat<int>(m)));
   return true;
 }
 
@@ -626,7 +626,7 @@ inline bool cembr(Ctx &c, const std::vector<double> &z, const Val *k, int rule, 
     }
     const double n1 = nb, del = hi - lo;
     br.push_back(lo);
-    for (int j = 1; j < static_cast<int>(nb); ++j) br.push_back(lo + j * (del / n1));
+    for (int j = 1; j < sat<int>(nb); ++j) br.push_back(lo + j * (del / n1));
     br.push_back(hi);
     return true;
   }
@@ -658,7 +658,7 @@ inline bool cemcode(Ctx &c, const Val &d, const Cols &x, const char *what, int r
     if (!isnumc(col)) {
       std::map<std::string, int> h;
       for (std::size_t i = 0; i < n; ++i) {
-        code[j * n + i] = h.emplace(vlab(col.a[i]), static_cast<int>(h.size()) + 1).first->second;
+        code[j * n + i] = h.emplace(vlab(col.a[i]), sat<int>(h.size()) + 1).first->second;
       }
       continue;
     }
@@ -674,9 +674,9 @@ inline bool cemcode(Ctx &c, const Val &d, const Cols &x, const char *what, int r
     CK(cembr(c, z, k, rule, x[j], what, br));
     put(cuts, x[j].c_str(), vnums(br));
     // findInterval(rightmost.closed, all.inside)
-    const int nb = static_cast<int>(br.size());
+    const int nb = sat<int>(br.size());
     for (std::size_t i = 0; i < n; ++i) {
-      int b = static_cast<int>(std::upper_bound(br.begin(), br.end(), z[i]) - br.begin());
+      int b = sat<int>(std::upper_bound(br.begin(), br.end(), z[i]) - br.begin());
       if (z[i] == br.back()) b = nb - 1;
       code[j * n + i] = std::min(std::max(b, 1), nb - 1);
     }
@@ -701,10 +701,10 @@ bool cemtch(Ctx &c, Val &out) {
   CK(cemcode(c, d, x, "lcut", 1, b, lc));
   const std::size_t n = nr(d);
   std::vector<int> tr(n), s(n);
-  for (std::size_t i = 0; i < n; ++i) tr[i] = static_cast<int>(tv[i]);
+  for (std::size_t i = 0; i < n; ++i) tr[i] = sat<int>(tv[i]);
   std::vector<double> w(n), st(6);
-  const int k = static_cast<int>(x.size());
-  const int rc = clab_cemtch(a.data(), static_cast<int>(n), k, tr.data(), b.data(), k, s.data(), w.data(), st.data());
+  const int k = sat<int>(x.size());
+  const int rc = clab_cemtch(a.data(), sat<int>(n), k, tr.data(), b.data(), k, s.data(), w.data(), st.data());
   if (rc != CLAB_OK) return kerr(c, "cemtch", rc);
   Val keep = varr(), sv = varr();
   double tab[6] = {0, 0, 0, 0, 0, 0};

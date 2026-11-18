@@ -32,7 +32,7 @@ bool txtin(Ctx &c, const char *nm, std::vector<std::string> &s, std::vector<char
 
 std::string ascii1(const std::string &s) {
   std::string o(s.size() + 1, '\0');
-  o.resize(static_cast<std::size_t>(clab_ascii(s.data(), static_cast<int>(s.size()), &o[0])));
+  o.resize(sat<std::size_t>(clab_ascii(s.data(), sat<int>(s.size()), &o[0])));
   return o;
 }
 

@@ -65,18 +65,18 @@ inline std::vector<Pcol> ptab() {
 // n rows drawn from the values of each column (vals[j], as JSON values).
 inline bool sdraw(Ctx &c, const std::vector<std::string> &nm, const std::vector<std::vector<Val>> &vals, double n,
                   double seed, Val &out) {
-  const std::size_t k = nm.size(), nn = static_cast<std::size_t>(n);
+  const std::size_t k = nm.size(), nn = sat<std::size_t>(n);
   std::vector<double> dn(k);
   for (std::size_t j = 0; j < k; ++j) dn[j] = static_cast<double>(vals[j].size());
   std::vector<int> code(nn * k);
-  const int rc = clab_synfix(dn.data(), static_cast<int>(k), static_cast<int64_t>(nn), static_cast<uint32_t>(seed),
+  const int rc = clab_synfix(dn.data(), sat<int>(k), static_cast<int64_t>(nn), static_cast<uint32_t>(seed),
                              code.data());
   if (rc != CLAB_OK) return kchk(c, rc);
   out = vobj();
   for (std::size_t j = 0; j < k; ++j) {
     Val a = varr();
     a.a.reserve(nn);
-    for (std::size_t i = 0; i < nn; ++i) a.a.push_back(vals[j][static_cast<std::size_t>(code[j * nn + i])]);
+    for (std::size_t i = 0; i < nn; ++i) a.a.push_back(vals[j][sat<std::size_t>(code[j * nn + i])]);
     put(out, nm[j].c_str(), std::move(a));
   }
   return true;
@@ -141,8 +141,8 @@ bool synfix(Ctx &c, Val &out) {
     // .sfxlist()
     bool ok = !k.k.empty();
     for (std::size_t j = 0; ok && j < k.k.size(); ++j) {
-      ok = !k.k[j].empty() && std::find(k.k.begin(), k.k.begin() + static_cast<std::ptrdiff_t>(j), k.k[j]) ==
-                                  k.k.begin() + static_cast<std::ptrdiff_t>(j);
+      ok = !k.k[j].empty() && std::find(k.k.begin(), k.k.begin() + sat<std::ptrdiff_t>(j), k.k[j]) ==
+                                  k.k.begin() + sat<std::ptrdiff_t>(j);
     }
     if (!ok) return ckstop(c, "a list `kind` must name each column once");
     for (std::size_t j = 0; j < k.k.size(); ++j) {
@@ -224,7 +224,7 @@ inline std::string otext(const std::string &s, int h) {
   std::string o(s.size() + 1, '\0');
   int64_t len = 0;
   clab_ovrtxt(s.data(), static_cast<int64_t>(s.size()), h, &o[0], &len);
-  o.resize(static_cast<std::size_t>(len));
+  o.resize(sat<std::size_t>(len));
   return o;
 }
 
@@ -328,8 +328,8 @@ inline bool osch(Ctx &c, Sch &s) {
   }
   for (std::size_t i = 0; i < s.col[0].size(); ++i) {
     const std::string &nm = s.col[0][i];
-    if (nm.empty() || std::find(s.col[0].begin(), s.col[0].begin() + static_cast<std::ptrdiff_t>(i), nm) !=
-                          s.col[0].begin() + static_cast<std::ptrdiff_t>(i)) {
+    if (nm.empty() || std::find(s.col[0].begin(), s.col[0].begin() + sat<std::ptrdiff_t>(i), nm) !=
+                          s.col[0].begin() + sat<std::ptrdiff_t>(i)) {
       return ckstop(c, "the names of `schema` must be given once each");
     }
   }
@@ -344,7 +344,7 @@ inline Val ofield(const std::string &t, const Sch &s, std::size_t j) {
   clab_ovrfld(t.data(), static_cast<int64_t>(t.size()), s.rule[j], s.col[2][j].c_str(), s.col[3][j].c_str(),
               s.col[4][j].c_str(), &b[0], &len);
   if (len < 0) return Val();
-  b.resize(static_cast<std::size_t>(len));
+  b.resize(sat<std::size_t>(len));
   const int r = s.rule[j];
   if (r == 1 || r == 3 || r == 9) return vnum(std::strtod(b.c_str(), nullptr));
   if (r == 8) return vbool(b == "TRUE");
@@ -443,8 +443,8 @@ bool ovrkwd(Ctx &c, Val &out) {
   } else if (v.t == Val::OBJ) {
     ok = !v.k.empty();
     for (std::size_t j = 0; ok && j < v.k.size(); ++j) {
-      ok = !v.k[j].empty() && std::find(v.k.begin(), v.k.begin() + static_cast<std::ptrdiff_t>(j), v.k[j]) ==
-                                  v.k.begin() + static_cast<std::ptrdiff_t>(j);
+      ok = !v.k[j].empty() && std::find(v.k.begin(), v.k.begin() + sat<std::ptrdiff_t>(j), v.k[j]) ==
+                                  v.k.begin() + sat<std::ptrdiff_t>(j);
       const std::vector<Val> e = v.a[j].t == Val::ARR ? v.a[j].a : std::vector<Val>{v.a[j]};
       for (const Val &w : e) {
         ok = ok && w.t == Val::STR && !w.s.empty();
@@ -486,7 +486,7 @@ bool ovrkwd(Ctx &c, Val &out) {
       int64_t k = 0;
       clab_ovrkwd(t.data(), static_cast<int64_t>(t.size()), trm[j].c_str(), &k);
       if (k <= 0) continue;
-      any[static_cast<std::size_t>(std::find(gs.begin(), gs.end(), grp[j]) - gs.begin())] = 1;
+      any[sat<std::size_t>(std::find(gs.begin(), gs.end(), grp[j]) - gs.begin())] = 1;
       found += (found.empty() ? "" : "; ") + trm[j];
     }
     for (std::size_t g = 0; g < gs.size(); ++g) col[g].a.push_back(vbool(any[g] != 0));

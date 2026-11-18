@@ -10,17 +10,17 @@ bool lkmo(Ctx &c, const Val &mo, std::size_t n, std::vector<int> &v, int &q) {
   if (mo.t == Val::NUL) return true;
   auto bit = [](const Val &e, int &b) {
     if (e.t == Val::BOOL) b = e.b ? 1 : 0;
-    else if (e.t == Val::NUM && (e.n == 0 || e.n == 1)) b = static_cast<int>(e.n);
+    else if (e.t == Val::NUM && (e.n == 0 || e.n == 1)) b = sat<int>(e.n);
     else return false;
     return true;
   };
   if (mo.t == Val::ARR && !mo.a.empty() && mo.a[0].t == Val::ARR) {
     const std::size_t k = mo.a[0].a.size();
-    if (mo.a.size() != n) return c.fail("`mo` must be a 0/1 or logical matrix with one row per crime, %d.", static_cast<int>(n));
+    if (mo.a.size() != n) return c.fail("`mo` must be a 0/1 or logical matrix with one row per crime, %d.", sat<int>(n));
     v.assign(n * k, 0);
     for (std::size_t i = 0; i < n; ++i) {
       if (mo.a[i].t != Val::ARR || mo.a[i].a.size() != k) {
-        return c.fail("`mo` must be a 0/1 or logical matrix with one row per crime, %d.", static_cast<int>(n));
+        return c.fail("`mo` must be a 0/1 or logical matrix with one row per crime, %d.", sat<int>(n));
       }
       for (std::size_t j = 0; j < k; ++j) {
         int b = 0;
@@ -28,7 +28,7 @@ bool lkmo(Ctx &c, const Val &mo, std::size_t n, std::vector<int> &v, int &q) {
         v[j * n + i] = b;
       }
     }
-    q = static_cast<int>(k);
+    q = sat<int>(k);
     return true;
   }
   if (mo.t != Val::OBJ) return c.fail("`mo` must be a matrix, a data frame or a list of 0/1 columns.");
@@ -37,7 +37,7 @@ bool lkmo(Ctx &c, const Val &mo, std::size_t n, std::vector<int> &v, int &q) {
     CK(bin01(c, e, "mo", n, b));
     v.insert(v.end(), b.begin(), b.end());
   }
-  q = static_cast<int>(mo.a.size());
+  q = sat<int>(mo.a.size());
   return true;
 }
 
@@ -66,7 +66,7 @@ bool lnkpr(Ctx &c, Val &out) {
     std::sort(at.begin(), at.end());
     at.erase(std::unique(at.begin(), at.end()), at.end());
     for (std::size_t i = 0; i < zz(n); ++i) {
-      if (has[i]) ser[i] = static_cast<int>(std::lower_bound(at.begin(), at.end(), s[i]) - at.begin());
+      if (has[i]) ser[i] = sat<int>(std::lower_bound(at.begin(), at.end(), s[i]) - at.begin());
     }
   }
   std::vector<int> mv;

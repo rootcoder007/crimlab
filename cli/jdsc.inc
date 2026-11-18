@@ -101,7 +101,7 @@ inline bool ckposj(Ctx &c, const char *nm, int def, int &v) {
   }
   if (o.t == Val::ARR && o.a.size() != 1) x = NaN;
   if (!(x >= 1) || x > INT_MAX) return ckstop(c, "`%s` must be a single positive integer", nm);
-  v = static_cast<int>(x);
+  v = sat<int>(x);
   return true;
 }
 
@@ -122,10 +122,10 @@ inline bool uniok() {
 
 // .spark(): the sketch of finite values x (clab_spark()).
 inline std::string spark(const std::vector<double> &x, int bins) {
-  std::vector<char> b(static_cast<std::size_t>(bins) * 3 + 1, 0);
+  std::vector<char> b(sat<std::size_t>(bins) * 3 + 1, 0);
   std::int64_t len = 0;
-  clab_spark(x.data(), static_cast<std::int64_t>(x.size()), bins, uniok(), b.data(), &len);
-  return std::string(b.data(), static_cast<std::size_t>(len));
+  clab_spark(x.data(), sat<std::int64_t>(x.size()), bins, uniok(), b.data(), &len);
+  return std::string(b.data(), sat<std::size_t>(len));
 }
 
 bool inlhist(Ctx &c, Val &out) {
@@ -162,14 +162,14 @@ inline void freq(const std::vector<std::string> &s, const std::vector<char> &na,
   lv.erase(std::unique(lv.begin(), lv.end()), lv.end());
   std::vector<int> code;
   for (std::size_t i = 0; i < s.size(); ++i) {
-    if (!na[i]) code.push_back(static_cast<int>(std::lower_bound(lv.begin(), lv.end(), s[i]) - lv.begin()) + 1);
+    if (!na[i]) code.push_back(sat<int>(std::lower_bound(lv.begin(), lv.end(), s[i]) - lv.begin()) + 1);
   }
   lev.assign(lv.size() + 1, 0);
   cnt.assign(lv.size() + 1, 0);
-  const int k = clab_freq(code.data(), static_cast<int>(code.size()), static_cast<int>(lv.size()), srt, maxlvl, fold,
+  const int k = clab_freq(code.data(), sat<int>(code.size()), sat<int>(lv.size()), srt, maxlvl, fold,
                           lev.data(), cnt.data());
-  lev.resize(static_cast<std::size_t>(k));
-  cnt.resize(static_cast<std::size_t>(k));
+  lev.resize(sat<std::size_t>(k));
+  cnt.resize(sat<std::size_t>(k));
 }
 
 bool freqtbl(Ctx &c, Val &out) {
@@ -217,7 +217,7 @@ bool freqtbl(Ctx &c, Val &out) {
   };
   if (!s.empty()) {
     for (std::size_t i = 0; i < lev.size(); ++i) {
-      row(vstr(lev[i] > static_cast<int>(lv.size()) ? "(other)" : lv[static_cast<std::size_t>(lev[i] - 1)]), cnt[i],
+      row(vstr(lev[i] > sat<int>(lv.size()) ? "(other)" : lv[sat<std::size_t>(lev[i] - 1)]), cnt[i],
           false);
     }
     if (nna > 0) row(Val(), nna, true);
@@ -248,15 +248,15 @@ inline bool corin(Ctx &c, std::vector<Dcol> &cs, std::vector<const Dcol *> &num,
 
 inline void corrun(const std::vector<const Dcol *> &num, std::size_t n, int meth, int minprs, std::vector<double> &r,
                    std::vector<int> &np) {
-  const int p = static_cast<int>(num.size());
-  std::vector<double> x(n * static_cast<std::size_t>(p));
+  const int p = sat<int>(num.size());
+  std::vector<double> x(n * sat<std::size_t>(p));
   for (int j = 0; j < p; ++j) {
-    for (std::size_t i = 0; i < n; ++i) x[static_cast<std::size_t>(j) * n + i] = num[static_cast<std::size_t>(j)]->x[i];
+    for (std::size_t i = 0; i < n; ++i) x[sat<std::size_t>(j) * n + i] = num[sat<std::size_t>(j)]->x[i];
   }
-  const std::size_t k = static_cast<std::size_t>(p) * (p - 1) / 2;
+  const std::size_t k = sat<std::size_t>(p) * (p - 1) / 2;
   r.assign(k, 0.0);
   np.assign(k, 0);
-  clab_pcor(x.data(), static_cast<int>(n), p, meth, minprs, r.data(), np.data());
+  clab_pcor(x.data(), sat<int>(n), p, meth, minprs, r.data(), np.data());
   for (std::size_t i = 0; i < k; ++i) {
     if (np[i] < minprs) r[i] = NA;
   }
@@ -277,7 +277,7 @@ bool cortbl(Ctx &c, Val &out) {
       return ckstop(c, "`minprs` must be a whole number, not %s", rfmt(v).c_str());
     }
     if (!(v >= 2) || v > INT_MAX) return ckstop(c, "`minprs` must be a single integer of at least 2");
-    mp = static_cast<int>(v);
+    mp = sat<int>(v);
   }
   std::vector<double> r;
   std::vector<int> np;
@@ -321,10 +321,10 @@ bool topcors(Ctx &c, Val &out) {
   }
   std::vector<int> idx(r.size() + 1, 0);
   std::int64_t m = 0;
-  clab_topc(r.data(), static_cast<std::int64_t>(r.size()), mn, top, idx.data(), &m);
+  clab_topc(r.data(), sat<std::int64_t>(r.size()), mn, top, idx.data(), &m);
   Val x = varr(), y = varr(), cr = varr(), ab = varr();
   for (std::int64_t t = 0; t < m; ++t) {
-    const std::size_t k = static_cast<std::size_t>(idx[static_cast<std::size_t>(t)] - 1);
+    const std::size_t k = sat<std::size_t>(idx[sat<std::size_t>(t)] - 1);
     x.a.push_back(vstr(num[pr[k].first]->nm));
     y.a.push_back(vstr(num[pr[k].second]->nm));
     cr.a.push_back(vnum(r[k]));
@@ -481,12 +481,12 @@ bool mahaoutl(Ctx &c, Val &out) {
     alpha = val1(c["alpha"]);
     if (!(alpha > 0 && alpha < 1)) return ckstop(c, "`alpha` must be a single value strictly inside (0, 1)");
   }
-  const int p = static_cast<int>(num.size());
+  const int p = sat<int>(num.size());
   const std::vector<double> x = nmat(num, n);
   std::vector<int> rw(n, 0), ob(n, 0);
   std::vector<double> d(n, 0.0), pv(n, 0.0), lp(n, 0.0);
   int why = 0;
-  clab_mhtab(x.data(), static_cast<std::int64_t>(n), p, rob, alpha, rw.data(), d.data(), pv.data(), lp.data(),
+  clab_mhtab(x.data(), sat<std::int64_t>(n), p, rob, alpha, rw.data(), d.data(), pv.data(), lp.data(),
              ob.data(), &why);
   if (why == 1) return ckstop(c, "need more complete rows than columns to estimate a covariance");
   if (why == 2) {
@@ -539,16 +539,16 @@ bool missruns(Ctx &c, Val &out) {
   for (std::size_t j = 0; j < cs.size(); ++j) o[j] = j;
   std::sort(o.begin(), o.end(), [&](std::size_t a, std::size_t b) { return cs[a].nm < cs[b].nm; });
   std::vector<int> rank(cs.size() + 1, 0);
-  for (std::size_t j = 0; j < o.size(); ++j) rank[o[j]] = static_cast<int>(j) + 1;
+  for (std::size_t j = 0; j < o.size(); ++j) rank[o[j]] = sat<int>(j) + 1;
   const std::vector<int> na = namat(cs, n);
   const std::size_t cap = cs.size() * (n / 2 + 1);
   std::vector<int> col(cap, 0), st(cap, 0), en(cap, 0);
   std::int64_t k = 0;
-  clab_mruns(na.data(), static_cast<std::int64_t>(n), static_cast<int>(cs.size()), mr, rank.data(), col.data(),
+  clab_mruns(na.data(), sat<std::int64_t>(n), sat<int>(cs.size()), mr, rank.data(), col.data(),
              st.data(), en.data(), &k);
   Val cl = varr(), s = varr(), e = varr(), l = varr();
-  for (std::size_t i = 0; i < static_cast<std::size_t>(k); ++i) {
-    cl.a.push_back(vstr(cs[static_cast<std::size_t>(col[i] - 1)].nm));
+  for (std::size_t i = 0; i < sat<std::size_t>(k); ++i) {
+    cl.a.push_back(vstr(cs[sat<std::size_t>(col[i] - 1)].nm));
     s.a.push_back(vnum(st[i]));
     e.a.push_back(vnum(en[i]));
     l.a.push_back(vnum(en[i] - st[i] + 1));
@@ -573,7 +573,7 @@ bool missgrid(Ctx &c, Val &out) {
       return ckstop(c, "`width` must be a whole number, not %s", rfmt(v).c_str());
     }
     if (!(v >= 1 && v <= 10000)) return ckstop(c, "`width` must be one whole number from 1 to 10000");
-    w = static_cast<int>(v);
+    w = sat<int>(v);
   }
   std::vector<std::string> nm;
   for (const Dcol &k : cs) nm.push_back(k.nm);
@@ -590,7 +590,7 @@ bool mcartst(Ctx &c, Val &out) {
       return ckstop(c, "`maxit` must be a whole number, not %s", rfmt(v).c_str());
     }
     if (!(v >= 1 && v <= 1e6)) return ckstop(c, "`maxit` must be one whole number from 1 to 1e+06");
-    maxit = static_cast<int>(v);
+    maxit = sat<int>(v);
   }
   double tol = 1e-7;
   if (c.has("tol")) {
@@ -613,16 +613,16 @@ bool mcartst(Ctx &c, Val &out) {
   std::vector<int> kc(num.size() + 1, 0);
   std::int64_t mm = 0;
   int kk = 0, why = 0;
-  clab_mcdrop(xa.data(), static_cast<std::int64_t>(n), static_cast<int>(num.size()), x.data(), &mm, kc.data(), &kk,
+  clab_mcdrop(xa.data(), sat<std::int64_t>(n), sat<int>(num.size()), x.data(), &mm, kc.data(), &kk,
               &why);
   if (why == 1) return ckstop(c, "`data` has infinite values, which Little's test cannot use; set them to NA first");
   if (why == 2) return ckstop(c, "too few complete columns or rows remain for Little's test");
-  const std::size_t m = static_cast<std::size_t>(mm), p = static_cast<std::size_t>(kk);
+  const std::size_t m = sat<std::size_t>(mm), p = sat<std::size_t>(kk);
   std::vector<const Dcol *> keep;
-  for (std::size_t j = 0; j < p; ++j) keep.push_back(num[static_cast<std::size_t>(kc[j] - 1)]);
+  for (std::size_t j = 0; j < p; ++j) keep.push_back(num[sat<std::size_t>(kc[j] - 1)]);
   double o[8];
   std::vector<double> mu(p), sig(p * p);
-  const int rc = clab_mcar(x.data(), static_cast<int>(m), static_cast<int>(p), maxit, tol, o, mu.data(), sig.data());
+  const int rc = clab_mcar(x.data(), sat<int>(m), sat<int>(p), maxit, tol, o, mu.data(), sig.data());
   if (rc != CLAB_OK) {
     if (o[0] == 1) {
       return ckstop(c,
@@ -730,16 +730,16 @@ bool duprows(Ctx &c, Val &out) {
   lv.erase(std::unique(lv.begin(), lv.end()), lv.end());
   std::vector<int> code(n), rows(n), ct(n);
   for (std::size_t i = 0; i < n; ++i) {
-    code[i] = static_cast<int>(std::lower_bound(lv.begin(), lv.end(), key[i]) - lv.begin()) + 1;
+    code[i] = sat<int>(std::lower_bound(lv.begin(), lv.end(), key[i]) - lv.begin()) + 1;
   }
-  const int k = n ? clab_dups(code.data(), static_cast<int>(n), static_cast<int>(lv.size()), rows.data(), ct.data())
+  const int k = n ? clab_dups(code.data(), sat<int>(n), sat<int>(lv.size()), rows.data(), ct.data())
                   : 0;
   std::vector<std::size_t> rr;
-  for (int i = 0; i < k; ++i) rr.push_back(static_cast<std::size_t>(rows[static_cast<std::size_t>(i)] - 1));
+  for (int i = 0; i < k; ++i) rr.push_back(sat<std::size_t>(rows[sat<std::size_t>(i)] - 1));
   std::vector<char> all(cs.size(), 1);
   out = subframe(cs, rr, all);
   Val dc = varr();
-  for (int i = 0; i < k; ++i) dc.a.push_back(vnum(ct[static_cast<std::size_t>(i)]));
+  for (int i = 0; i < k; ++i) dc.a.push_back(vnum(ct[sat<std::size_t>(i)]));
   put(out, "dupe_count", dc);
   return true;
 }
@@ -751,7 +751,7 @@ bool misssmry(Ctx &c, Val &out) {
   if (cs.empty()) return ckstop(c, "`data` has no columns");
   const std::vector<int> na = namat(cs, n);
   double o[8];
-  clab_msum(na.data(), static_cast<int>(n), static_cast<int>(cs.size()), o);
+  clab_msum(na.data(), sat<int>(n), sat<int>(cs.size()), o);
   static const char *const nm[] = {"n_rows",          "n_cols",           "n_missing",          "pct_missing",
                                    "n_complete_rows", "pct_complete_rows", "n_cols_any_missing", "n_cols_all_missing"};
   out = nvec(8, nm, o);
@@ -823,22 +823,22 @@ bool profcols(Ctx &c, Val &out) {
       std::vector<int> lev, cnt;
       freq(k.s, k.na, true, INT_MAX, false, lv, lev, cnt);
       st[0] = vnum(static_cast<double>(lv.size()));
-      if (!lev.empty()) st[13] = vstr(lv[static_cast<std::size_t>(lev[0] - 1)]);
+      if (!lev.empty()) st[13] = vstr(lv[sat<std::size_t>(lev[0] - 1)]);
     } else {
       std::vector<double> x(n, 0.0);
       for (std::size_t i = 0; i < n; ++i) x[i] = k.na[i] ? NaN : k.x[i];
       double v[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-      clab_prof(x.data(), static_cast<std::int64_t>(n), q.data(), static_cast<int>(q.size()), v, qv.data());
+      clab_prof(x.data(), sat<std::int64_t>(n), q.data(), sat<int>(q.size()), v, qv.data());
       for (int j = 0; j < 12; ++j) {
-        if (!std::isnan(v[j]) || j == 0) st[static_cast<std::size_t>(j)] = vnum(v[j]);
+        if (!std::isnan(v[j]) || j == 0) st[sat<std::size_t>(j)] = vnum(v[j]);
       }
       if (!std::isnan(v[8])) st[12] = vstr(spark(x, 10));
     }
-    for (int j = 0; j < 14; ++j) col[static_cast<std::size_t>(5 + j)].a.push_back(st[static_cast<std::size_t>(j)]);
+    for (int j = 0; j < 14; ++j) col[sat<std::size_t>(5 + j)].a.push_back(st[sat<std::size_t>(j)]);
     for (std::size_t j = 0; j < q.size(); ++j) qc[j].a.push_back(vnum(qv[j]));
   }
   out = vobj();
-  for (int j = 0; j < 19; ++j) put(out, nm[j], col[static_cast<std::size_t>(j)]);
+  for (int j = 0; j < 19; ++j) put(out, nm[j], col[sat<std::size_t>(j)]);
   std::vector<double> pq;
   for (double v : q) pq.push_back(100 * v);
   const std::vector<std::string> qn = rformat(pq);
@@ -956,7 +956,7 @@ bool dstntst(Ctx &c, Val &out) {
     }
   }
   double r[6];
-  clab_cochq(yu.data(), su.data(), static_cast<int>(yu.size()), r);
+  clab_cochq(yu.data(), su.data(), sat<int>(yu.size()), r);
   Val grp = vobj();
   put(grp, "group", gu);
   put(grp, "estimate", vnums(yu));

@@ -36,8 +36,8 @@ bool drftpsi(Ctx &c, Val &out) {
   if (std::isnan(b) || b < 2 || b != std::floor(b)) return c.fail("`bins` must be one whole number of at least 2.");
   if (b > 1e6) return c.fail("`bins` must be at most 1,000,000.");
   if (std::isnan(e) || e <= 0 || e >= 1) return c.fail("`eps` must be a positive floor below one (0 < eps < 1).");
-  std::vector<double> p(static_cast<std::size_t>(b) + 2), q(p.size());
-  const int k = clab_psibin(x.data(), ilen(x), y.data(), ilen(y), static_cast<int>(b), p.data(), q.data());
+  std::vector<double> p(sat<std::size_t>(b) + 2), q(p.size());
+  const int k = clab_psibin(x.data(), ilen(x), y.data(), ilen(y), sat<int>(b), p.data(), q.data());
   double r[2];
   clab_psi(p.data(), q.data(), k, e, r);
   static const char *const nm[] = {"psi", "jsdiv"};
@@ -83,7 +83,7 @@ void dralign(std::vector<std::string> &all, const std::vector<std::string> &lv, 
   o.assign(all.size(), 0);
   for (std::size_t j = 0; j < all.size(); ++j) {
     const auto it = std::find(lv.begin(), lv.end(), all[j]);
-    if (it != lv.end()) o[j] = n[static_cast<std::size_t>(it - lv.begin())];
+    if (it != lv.end()) o[j] = n[sat<std::size_t>(it - lv.begin())];
   }
 }
 
@@ -119,7 +119,7 @@ bool drftchisq(Ctx &c, Val &out) {
   if (so <= 0) return c.fail("`obs` has no counts.");
   if (se <= 0) return c.fail("`expd` has no counts.");
   double r[3];
-  clab_chig(o.data(), e.data(), static_cast<int>(lv.size()), r);
+  clab_chig(o.data(), e.data(), sat<int>(lv.size()), r);
   if (r[2] > 0) {
     out = chout(HUGE_VAL, std::max(1.0, r[1]), 0, -HUGE_VAL);
   } else if (r[1] < 1) {
@@ -146,7 +146,7 @@ bool drfthomog(Ctx &c, Val &out) {
   }
   if (sx <= 0 || sy <= 0) return c.fail("both samples must have at least one observation.");
   double r[4];
-  clab_chih(x.data(), y.data(), static_cast<int>(lv.size()), r);
+  clab_chih(x.data(), y.data(), sat<int>(lv.size()), r);
   if (r[1] < 1 || (sx + sy) / r[3] < 2) {
     out = chout(r[0], std::max(r[1], 0.0), NA, NA);
     return true;

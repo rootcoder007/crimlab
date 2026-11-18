@@ -81,10 +81,10 @@ bool tonode(const Val &v, svk::Node &n) {
            t.d.size() == el[0].d.size() && t.dim == el[0].dim && t.dim.size() <= 2;
   }
   if (same && !el.empty()) {
-    const int nr = static_cast<int>(el.size());
+    const int nr = sat<int>(el.size());
     n.k = svk::Node::NUM;
     if (el[0].dim.empty()) {
-      const int nc = static_cast<int>(el[0].d.size());
+      const int nc = sat<int>(el[0].d.size());
       n.d.assign(zz(nr) * zz(nc), 0.0);
       for (int i = 0; i < nr; ++i) {
         for (int j = 0; j < nc; ++j) n.d[zz(j) * zz(nr) + zz(i)] = el[zz(i)].d[zz(j)];

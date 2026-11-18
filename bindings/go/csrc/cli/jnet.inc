@@ -55,7 +55,7 @@ bool net(Ctx &c, Net &g) {
   }
   if (2.0 * f.size() > INT_MAX) return c.fail("`from` is too long for crimlab: more than %d values.", INT_MAX);
   const std::size_t m = f.size();
-  g.m = static_cast<int>(m);
+  g.m = sat<int>(m);
   g.a.assign(m, 0);
   g.b.assign(m, 0);
   if (!c.has("nodes")) {
@@ -74,8 +74,8 @@ bool net(Ctx &c, Net &g) {
   } else {
     std::vector<std::string> nd;
     CK(nlab(c, c["nodes"], "nodes", nd));
-    if (nd.size() > static_cast<std::size_t>(INT_MAX)) return c.fail("`nodes` is too long for crimlab.");
-    g.n = static_cast<int>(nd.size());
+    if (nd.size() > sat<std::size_t>(INT_MAX)) return c.fail("`nodes` is too long for crimlab.");
+    g.n = sat<int>(nd.size());
     std::vector<std::size_t> ix(nd.size());
     for (std::size_t i = 0; i < nd.size(); ++i) ix[i] = i;
     std::stable_sort(ix.begin(), ix.end(), [&nd](std::size_t p, std::size_t q) { return nd[p] < nd[q]; });
@@ -94,7 +94,7 @@ bool net(Ctx &c, Net &g) {
         if (it == ix.end() || nd[*it] != x[k]) {
           return c.fail("`%s` names a node not in `nodes`: %s.", e ? "to" : "from", x[k].c_str());
         }
-        o[k] = static_cast<int>(*it);
+        o[k] = sat<int>(*it);
       }
     }
     g.lab = nd;
@@ -119,20 +119,20 @@ struct Csr {
   std::vector<double> wt;
 };
 Csr csr(const Net &g, const std::vector<double> &w, bool dir, bool rev = false) {
-  const std::size_t cap = static_cast<std::size_t>(g.m) * (dir ? 1 : 2);
+  const std::size_t cap = sat<std::size_t>(g.m) * (dir ? 1 : 2);
   Csr o;
-  o.off.assign(static_cast<std::size_t>(g.n) + 1, 0);
+  o.off.assign(sat<std::size_t>(g.n) + 1, 0);
   o.adj.assign(cap + 1, 0);
   o.wt.assign(cap + 1, 0.0);
-  std::vector<int> iw(static_cast<std::size_t>(g.n));
+  std::vector<int> iw(sat<std::size_t>(g.n));
   int nl = 0, nd = 0;
   clab_ntcsr(rev ? g.b.data() : g.a.data(), rev ? g.a.data() : g.b.data(), w.empty() ? nullptr : w.data(), g.m, g.n,
              dir, o.off.data(), o.adj.data(), o.wt.data(), iw.data(), &nl, &nd);
   return o;
 }
 
-std::vector<int> ivec(double n) { return std::vector<int>(static_cast<std::size_t>(n) + 1); }
-std::vector<double> dvec(double n) { return std::vector<double>(static_cast<std::size_t>(n) + 1); }
+std::vector<int> ivec(double n) { return std::vector<int>(sat<std::size_t>(n) + 1); }
+std::vector<double> dvec(double n) { return std::vector<double>(sat<std::size_t>(n) + 1); }
 
 // One value per node, coded by first appearance in node order: from the
 // names of an object matched to the labels, or an array in node order.
@@ -140,9 +140,9 @@ bool pernode(Ctx &c, const char *nm, const Net &g, std::vector<int> &code, std::
   const Val &x = c[nm];
   std::vector<std::string> s;
   CK(nlab(c, x, nm, s));
-  val.assign(static_cast<std::size_t>(g.n), std::string());
+  val.assign(sat<std::size_t>(g.n), std::string());
   if (x.t != Val::OBJ) {
-    if (s.size() != static_cast<std::size_t>(g.n)) {
+    if (s.size() != sat<std::size_t>(g.n)) {
       return c.fail("`%s` must have one value per node (%d) or names.", nm, g.n);
     }
     val = s;
@@ -152,10 +152,10 @@ bool pernode(Ctx &c, const char *nm, const Net &g, std::vector<int> &code, std::
         if (x.k[i] == x.k[j]) return c.fail("`%s` must not repeat a name: %s.", nm, x.k[i].c_str());
       }
     }
-    for (std::size_t i = 0; i < static_cast<std::size_t>(g.n); ++i) {
+    for (std::size_t i = 0; i < sat<std::size_t>(g.n); ++i) {
       const auto it = std::find(x.k.begin(), x.k.end(), g.lab[i]);
       if (it == x.k.end()) return c.fail("`%s` has no value for node %s.", nm, g.lab[i].c_str());
-      val[i] = s[static_cast<std::size_t>(it - x.k.begin())];
+      val[i] = s[sat<std::size_t>(it - x.k.begin())];
     }
   }
   int nd = 0;
@@ -183,7 +183,7 @@ bool ntdeg(Ctx &c, Val &out) {
   bool d = false;
   CK(flagd(c, "dir", false, d));
   const Csr o = csr(g, w, d);
-  const std::size_t n = static_cast<std::size_t>(g.n);
+  const std::size_t n = sat<std::size_t>(g.n);
   std::vector<int> od(n);
   std::vector<double> os(n);
   CK(kchk(c, clab_ntdeg(g.n, o.off.data(), o.wt.data(), od.data(), os.data())));
@@ -219,7 +219,7 @@ bool ntbtw(Ctx &c, Val &out) {
   CK(flagd(c, "dir", false, d));
   CK(flagd(c, "norm", false, nz));
   const Csr o = csr(g, {}, d);
-  std::vector<double> b(static_cast<std::size_t>(g.n)), wk = dvec(2.0 * g.n);
+  std::vector<double> b(sat<std::size_t>(g.n)), wk = dvec(2.0 * g.n);
   std::vector<int> iw = ivec(2.0 * g.n);
   CK(kchk(c, clab_ntbtw(g.n, o.off.data(), o.adj.data(), d, nz, b.data(), wk.data(), iw.data())));
   Frame f = nframe(g);
@@ -234,7 +234,7 @@ bool ntcls(Ctx &c, Val &out) {
   bool d = false;
   CK(flagd(c, "dir", false, d));
   const Csr o = csr(g, {}, d);
-  const std::size_t n = static_cast<std::size_t>(g.n);
+  const std::size_t n = sat<std::size_t>(g.n);
   std::vector<int> r(n), iw = ivec(2.0 * g.n);
   std::vector<double> cl(n), nc(n), hr(n);
   CK(kchk(c, clab_ntcls(g.n, o.off.data(), o.adj.data(), cl.data(), nc.data(), hr.data(), r.data(), iw.data())));
@@ -257,7 +257,7 @@ bool ntevc(Ctx &c, Val &out) {
   CK(oned(c, "tol", 1e-13, 0, 1, tl));
   CK(wholed(c, "maxit", 100000, 1, mi));
   const Csr o = csr(g, w, false);
-  std::vector<double> x(static_cast<std::size_t>(g.n)), wk = dvec(4.0 * g.n);
+  std::vector<double> x(sat<std::size_t>(g.n)), wk = dvec(4.0 * g.n);
   std::vector<int> iw = ivec(2.0 * g.n);
   double val = 0.0;
   int it = 0, cv = 0;
@@ -277,7 +277,7 @@ bool ntcore(Ctx &c, Val &out) {
   Net g;
   CK(net(c, g));
   const Csr o = csr(g, {}, false);
-  std::vector<int> k(static_cast<std::size_t>(g.n)), iw = ivec(3.0 * g.n);
+  std::vector<int> k(sat<std::size_t>(g.n)), iw = ivec(3.0 * g.n);
   CK(kchk(c, clab_ntcore(g.n, o.off.data(), o.adj.data(), k.data(), iw.data())));
   Frame f = nframe(g);
   f.ints("core", k.data(), k.size());
@@ -293,7 +293,7 @@ bool ntcmp(Ctx &c, Val &out) {
   const Csr o = csr(g, {}, d);
   Csr ic;
   if (d) ic = csr(g, {}, true, true);
-  std::vector<int> wc(static_cast<std::size_t>(g.n)), sc(static_cast<std::size_t>(g.n)), iw = ivec(6.0 * g.n);
+  std::vector<int> wc(sat<std::size_t>(g.n)), sc(sat<std::size_t>(g.n)), iw = ivec(6.0 * g.n);
   int nc = 0;
   CK(kchk(c, clab_ntwcc(g.n, o.off.data(), o.adj.data(), d ? ic.off.data() : nullptr, d ? ic.adj.data() : nullptr,
                         wc.data(), &nc, iw.data())));
@@ -319,11 +319,11 @@ bool ntlvn(Ctx &c, Val &out) {
   if (use) CK(whole(c, c["seed"], "seed", 0, sd));
   const Csr o = csr(g, w, false);
   double len = 0.0, il = 0.0, q = 0.0;
-  CK(kchk(c, clab_ntlvnw(g.n, o.off[static_cast<std::size_t>(g.n)], &len, &il)));
-  std::vector<int> m(static_cast<std::size_t>(g.n)), iw = ivec(il);
+  CK(kchk(c, clab_ntlvnw(g.n, o.off[sat<std::size_t>(g.n)], &len, &il)));
+  std::vector<int> m(sat<std::size_t>(g.n)), iw = ivec(il);
   std::vector<double> wk = dvec(len);
   int lev = 0;
-  CK(kchk(c, clab_ntlvn(g.n, o.off.data(), o.adj.data(), o.wt.data(), rs[0], static_cast<unsigned>(sd), use, m.data(),
+  CK(kchk(c, clab_ntlvn(g.n, o.off.data(), o.adj.data(), o.wt.data(), rs[0], sat<unsigned>(sd), use, m.data(),
                         &q, &lev, wk.data(), iw.data())));
   Frame f = nframe(g);
   const std::vector<int> m1 = plus1(m.data(), g.n);
@@ -366,7 +366,7 @@ bool ntbrk(Ctx &c, Val &out) {
   Csr ic;
   if (d) ic = csr(g, {}, true, true);
   const Csr &i2 = d ? ic : o;
-  const std::size_t n = static_cast<std::size_t>(g.n);
+  const std::size_t n = sat<std::size_t>(g.n);
   std::vector<double> cnt(5 * n);
   std::vector<int> iw = ivec(g.n);
   CK(kchk(c, clab_ntbrk(g.n, o.off.data(), o.adj.data(), i2.off.data(), i2.adj.data(), gr.data(), cnt.data(),
@@ -404,7 +404,7 @@ bool ntchg(Ctx &c, Val &out) {
   CK(kchk(c, clab_ntchg(g.n, o.off.data(), o.adj.data(), o.wt.data(), tl, mi, b, set.data(), &it, &cv, wk.data(),
                         iw.data())));
   std::vector<std::string> s;
-  for (std::size_t i = 0; i < static_cast<std::size_t>(g.n); ++i) {
+  for (std::size_t i = 0; i < sat<std::size_t>(g.n); ++i) {
     if (set[i]) s.push_back(g.lab[i]);
   }
   static const char *const bn[] = {"lambda2", "lower", "upper", "sweep"};
@@ -432,23 +432,23 @@ bool coofg(Ctx &c, Val &out) {
   const std::vector<int> ci = fcode(si, ni, nullptr), co = fcode(so, no, &fo);
   double np = 0.0, il = 0.0;
   std::vector<int> iw = ivec(static_cast<double>(ni) + 1 + static_cast<double>(k) + no);
-  CK(kchk(c, clab_coofw(ci.data(), co.data(), static_cast<int>(k), ni, no, &np, &il, iw.data())));
-  const int cap = static_cast<int>(np);
+  CK(kchk(c, clab_coofw(ci.data(), co.data(), sat<int>(k), ni, no, &np, &il, iw.data())));
+  const int cap = sat<int>(np);
   std::vector<int> pa = ivec(cap), pb = ivec(cap), iw2 = ivec(il);
   std::vector<double> pw = dvec(cap);
   int n = 0;
-  CK(kchk(c, clab_coofg(ci.data(), co.data(), static_cast<int>(k), ni, no, cap, pa.data(), pb.data(), pw.data(), &n,
+  CK(kchk(c, clab_coofg(ci.data(), co.data(), sat<int>(k), ni, no, cap, pa.data(), pb.data(), pw.data(), &n,
                         iw2.data())));
   std::vector<std::string> f, t, nd;
   for (int p = 0; p < n; ++p) {
-    f.push_back(so[fo[static_cast<std::size_t>(pa[static_cast<std::size_t>(p)])]]);
-    t.push_back(so[fo[static_cast<std::size_t>(pb[static_cast<std::size_t>(p)])]]);
+    f.push_back(so[fo[sat<std::size_t>(pa[sat<std::size_t>(p)])]]);
+    t.push_back(so[fo[sat<std::size_t>(pb[sat<std::size_t>(p)])]]);
   }
-  for (int j = 0; j < no; ++j) nd.push_back(so[fo[static_cast<std::size_t>(j)]]);
+  for (int j = 0; j < no; ++j) nd.push_back(so[fo[sat<std::size_t>(j)]]);
   Frame e;
   e.str("from", f);
   e.str("to", t);
-  e.num("w", pw.data(), static_cast<std::size_t>(n));
+  e.num("w", pw.data(), sat<std::size_t>(n));
   out = vobj();
   put(out, "edges", e.o);
   put(out, "nodes", unbox(vstrs(nd)));

@@ -28,7 +28,7 @@ bool rdm(Ctx &c, const Val &o, const char *an, const char *pre, int n, double lo
   }
   Val flat = varr();
   if (o.t == Val::OBJ) {
-    m.p = static_cast<int>(cl.size());
+    m.p = sat<int>(cl.size());
     if (m.p < 1) return c.fail("`%s` must have one row per row of `y`, %d.", an, n);
     for (const Val *e : cl) {
       const Val a = ax::asarr(*e);
@@ -40,7 +40,7 @@ bool rdm(Ctx &c, const Val &o, const char *an, const char *pre, int n, double lo
       if (r.t != Val::ARR || r.a.size() != p || !isnum(r)) return c.fail(bad, an);
     }
     if (o.a.size() != zz(n) || p < 1) return c.fail("`%s` must have one row per row of `y`, %d.", an, n);
-    m.p = static_cast<int>(p);
+    m.p = sat<int>(p);
     for (std::size_t j = 0; j < p; ++j) {
       for (const Val &r : o.a) flat.a.push_back(r.a[j]);
     }
@@ -54,7 +54,7 @@ bool rdm(Ctx &c, const Val &o, const char *an, const char *pre, int n, double lo
     for (int j = 0; j < m.p; ++j) m.nm.push_back(pre + std::to_string(j + 1));
   }
   Dv d;
-  CK(num(c, flat, an, d, static_cast<std::int64_t>(n) * m.p, lo));
+  CK(num(c, flat, an, d, sat<std::int64_t>(n) * m.p, lo));
   m.v = d.v;
   return true;
 }
@@ -98,7 +98,7 @@ bool cnames(Ctx &c, const Val &o, const char *an, const dpnd::xm &x, std::vector
   for (const std::string &v : s) {
     const auto it = std::find(x.nm.begin(), x.nm.end(), v);
     if (it == x.nm.end()) return c.fail("`%s` names %s, which is not a column of `x`.", an, v.c_str());
-    const int j = static_cast<int>(it - x.nm.begin());
+    const int j = sat<int>(it - x.nm.begin());
     if (std::find(out.begin(), out.end(), j) != out.end()) return c.fail("`%s` names %s twice.", an, v.c_str());
     out.push_back(j);
   }
@@ -122,7 +122,7 @@ bool lags(Ctx &c, const Val &o, const char *an, int nv, int lo, bool inf, std::v
     if (!std::isfinite(v) || v != std::floor(v) || v < lo || v > 1e6) {
       return c.fail("`%s` must hold whole numbers from %d%s.", an, lo, inf ? ", or Inf" : "");
     }
-    out.push_back(static_cast<int>(v));
+    out.push_back(sat<int>(v));
   }
   return true;
 }
@@ -196,7 +196,7 @@ bool gmmpnl(Ctx &c, Val &out) {
       }
     }
   }
-  const int nv = static_cast<int>(sp.gv.size());
+  const int nv = sat<int>(sp.gv.size());
   if (nv > 0) {
     Val d1, d2;
     CK(env::lags(c, arg(c, "lagmin", d1, 2), "lagmin", nv, 1, false, sp.lo));
@@ -223,7 +223,7 @@ bool gmmpnl(Ctx &c, Val &out) {
   int code = CLAB_OK;
   const std::string msg = dpnd::gfit(env::plain(pn), xm, zx, sp, o, code);
   CK(env::done(c, msg, code));
-  const int k = static_cast<int>(o.k);
+  const int k = sat<int>(o.k);
   out = vobj();
   put(out, "coef", env::ctab(o.coef, o.tstat));
   Frame te;
@@ -342,7 +342,7 @@ bool ccepnl(Ctx &c, Val &out) {
   const std::string msg =
       dpnd::cfit(env::plain(pn), xm, fm, cn, wv, !c.has("avg"), an, co, lv, o, code);
   CK(env::done(c, msg, code));
-  const int k = static_cast<int>(o.k), nu = pn.nu;
+  const int k = sat<int>(o.k), nu = pn.nu;
   out = vobj();
   put(out, "mg", env::ctab(o.mg, false));
   put(out, "pooled", o.pool ? env::ctab(o.pooled, false) : Val());
@@ -425,7 +425,7 @@ bool periods(Ctx &c, const Pan &pn, int def, int need, std::vector<int> &out) {
     if (!out.empty() && s <= out.back()) return c.fail("`at` must be increasing.");
     out.push_back(s);
   }
-  if (static_cast<int>(out.size()) < need) return c.fail("`at` must hold at least %d periods.", need);
+  if (sat<int>(out.size()) < need) return c.fail("`at` must hold at least %d periods.", need);
   return true;
 }
 
@@ -444,7 +444,7 @@ struct dec {
 inline bool good(double v) { return std::isfinite(v) && v > 0; }
 
 void decompose(dec &d, int k) {
-  const int r = static_cast<int>(d.unit.size());
+  const int r = sat<int>(d.unit.size());
   d.c.assign(zz(r) * zz(k), NA);
   std::vector<int> ok;
   for (int i = 0; i < r; ++i) {
@@ -452,7 +452,7 @@ void decompose(dec &d, int k) {
     for (int j = 0; j < k; ++j) g = g && good(d.f0[zz(i) * zz(k) + zz(j)]) && good(d.f1[zz(i) * zz(k) + zz(j)]);
     if (g) ok.push_back(i);
   }
-  const int m = static_cast<int>(ok.size());
+  const int m = sat<int>(ok.size());
   if (m == 0) return;
   std::vector<double> y0(zz(m)), y1(zz(m)), a(zz(m) * zz(k)), b(zz(m) * zz(k)), cc(zz(m) * zz(k));
   for (int h = 0; h < m; ++h) {
@@ -471,7 +471,7 @@ void decompose(dec &d, int k) {
 }
 
 Val decframe(const dec &d, const Pan &pn, const std::vector<std::string> &fn, bool sp) {
-  const int r = static_cast<int>(d.unit.size()), k = static_cast<int>(fn.size());
+  const int r = sat<int>(d.unit.size()), k = sat<int>(fn.size());
   std::vector<std::string> u;
   std::vector<double> a, b, v0, v1, dy;
   for (int i = 0; i < r; ++i) {
@@ -580,7 +580,7 @@ bool lmdix(Ctx &c, Val &out) {
       }
     }
   } else {
-    const int nr = static_cast<int>(ps.size());
+    const int nr = sat<int>(ps.size());
     std::vector<double> rt(zz(nr)), ry(zz(nr)), rc(zz(nr) * zz(k)), f(zz(k));
     for (int h = 0; h < nr; ++h) {
       std::vector<int> rows;
@@ -825,7 +825,7 @@ bool olsdx(Ctx &c, Val &out) {
   const int ic = icb ? 1 : 0;
   Dv y;
   CK(num(c, c["y"], "y", y));
-  const int n = static_cast<int>(y.n());
+  const int n = sat<int>(y.n());
   dpnd::xm xm;
   CK(env::rdm(c, c["x"], "x", "x", n, -HUGE_VAL, xm));
   const int p = xm.p, k = p + ic;
@@ -847,10 +847,10 @@ bool olsdx(Ctx &c, Val &out) {
     std::size_t ncol = 0;
     if (ok && o.t == Val::OBJ) {
       ncol = o.a.size();
-      m = static_cast<int>(vlen(o.a.empty() ? o : o.a[0]));
+      m = sat<int>(vlen(o.a.empty() ? o : o.a[0]));
     } else if (ok && nest) {
       ncol = o.a[0].a.size();
-      m = static_cast<int>(o.a.size());
+      m = sat<int>(o.a.size());
     } else if (ok) {
       // one point: matrix(at, 1)
       one.a.push_back(o.t == Val::ARR ? o : ax::asarr(o));
@@ -886,8 +886,8 @@ bool olsdx(Ctx &c, Val &out) {
   Frame cf;
   cf.str("term", tn);
   for (std::size_t q = 0; q < 9; ++q) {
-    std::vector<double> v(co.begin() + static_cast<std::ptrdiff_t>(q * sk),
-                          co.begin() + static_cast<std::ptrdiff_t>((q + 1) * sk));
+    std::vector<double> v(co.begin() + sat<std::ptrdiff_t>(q * sk),
+                          co.begin() + sat<std::ptrdiff_t>((q + 1) * sk));
     if (q >= 6) {
       for (double &e : v) e = na(e);
     }

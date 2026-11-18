@@ -28,14 +28,14 @@ bool adjcols(Ctx &c, const Val &adj, std::size_t n, std::vector<Term> &out, cons
     }
   } else if (adj.t == Val::ARR && !adj.a.empty() && adj.a[0].t == Val::ARR && shape(adj, 2, dim, 0)) {
     const int nc = dim[1];
-    if (static_cast<std::size_t>(dim[0]) != n) return c.fail("`adj` must have one row per %s, %d.", per, static_cast<int>(n));
-    std::vector<double> v(n * static_cast<std::size_t>(nc));
+    if (sat<std::size_t>(dim[0]) != n) return c.fail("`adj` must have one row per %s, %d.", per, sat<int>(n));
+    std::vector<double> v(n * sat<std::size_t>(nc));
     bool bad = false;
     fill(adj, 2, dim, 0, 0, 1, v, bad, true);
     for (int j = 0; j < nc; ++j) {
       Term t;
       t.nm = "adj" + std::to_string(j + 1);
-      t.x.assign(v.begin() + static_cast<std::ptrdiff_t>(j * n), v.begin() + static_cast<std::ptrdiff_t>((j + 1) * n));
+      t.x.assign(v.begin() + sat<std::ptrdiff_t>(j * n), v.begin() + sat<std::ptrdiff_t>((j + 1) * n));
       for (double e : t.x) {
         if (!std::isfinite(e)) return c.fail("`adj` must hold finite numbers with no missing values.");
       }
@@ -51,11 +51,11 @@ bool adjcols(Ctx &c, const Val &adj, std::size_t n, std::vector<Term> &out, cons
     const bool vec = x.t != Val::OBJ && !(x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR);
     if (!vec || vlen(x) != n) {
       return c.fail("`adj` column %s must be a vector with one value per %s, %d.", p.first.c_str(), per,
-                    static_cast<int>(n));
+                    sat<int>(n));
     }
     if (isnum(x)) {
       Dv v;
-      CK(num(c, x, an.c_str(), v, static_cast<std::int64_t>(n)));
+      CK(num(c, x, an.c_str(), v, sat<std::int64_t>(n)));
       Term t;
       t.nm = p.first;
       t.x = v.v;
@@ -66,7 +66,7 @@ bool adjcols(Ctx &c, const Val &adj, std::size_t n, std::vector<Term> &out, cons
     CK(codes(c, x, an.c_str(), n, l));
     for (int k = 1; k < l.g; ++k) {
       Term t;
-      t.nm = p.first + "=" + l.lev[static_cast<std::size_t>(k)];
+      t.nm = p.first + "=" + l.lev[sat<std::size_t>(k)];
       t.x.resize(n);
       for (std::size_t i = 0; i < n; ++i) t.x[i] = l.code[i] == k ? 1.0 : 0.0;
       out.push_back(t);
@@ -81,7 +81,7 @@ bool cntreg(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, a[0], "y", yv, -1, 0.0));
   const std::size_t sn = yv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   double tot = 0.0;
   for (double e : yv.v) tot += e;
   if (!(tot > 0)) return c.fail("`y` has no events: every count is 0.");
@@ -120,18 +120,18 @@ bool cntreg(Ctx &c, Val &out) {
   for (int k = 0; k < g.g; ++k) {
     if (k == r0) continue;
     Term t;
-    t.nm = g.lev[static_cast<std::size_t>(k)];
+    t.nm = g.lev[sat<std::size_t>(k)];
     t.x.resize(sn);
     for (std::size_t i = 0; i < sn; ++i) t.x[i] = g.code[i] == k ? 1.0 : 0.0;
     ts.push_back(t);
     gt.push_back(k);
   }
   CK(adjcols(c, c["adj"], sn, ts));
-  const int p = static_cast<int>(ts.size());
-  const std::size_t sp = static_cast<std::size_t>(p);
+  const int p = sat<int>(ts.size());
+  const std::size_t sp = sat<std::size_t>(p);
   std::vector<double> x(sn * sp);
-  for (std::size_t j = 0; j < sp; ++j) std::copy(ts[j].x.begin(), ts[j].x.end(), x.begin() + static_cast<std::ptrdiff_t>(j * sn));
-  const std::size_t sc = static_cast<std::size_t>(ncl);
+  for (std::size_t j = 0; j < sp; ++j) std::copy(ts[j].x.begin(), ts[j].x.end(), x.begin() + sat<std::ptrdiff_t>(j * sn));
+  const std::size_t sc = sat<std::size_t>(ncl);
   std::vector<double> work(sn * sp + 6 * sn + sp + sp * sp + 2 * sc * sp + 2 * sn);
   std::vector<int> iwork(sp + sc + 1 + sn);
   std::vector<double> beta(3 * sp, NaN), vb(2 * sp * sp, NaN), vc(3 * sp * sp, NaN), st(3 * 8, NaN);
@@ -139,7 +139,7 @@ bool cntreg(Ctx &c, Val &out) {
   const double *of = off.empty() ? nullptr : off.data();
   bool ok[3] = {false, false, false};
   for (int f = 0; f < 2; ++f) {
-    const std::size_t fo = static_cast<std::size_t>(f);
+    const std::size_t fo = sat<std::size_t>(f);
     const int rc = clab_cntreg(yv.p(), x.data(), n, p, of, clp, ncl, f, 25, 1e-8, &beta[fo * sp], &vb[fo * sp * sp],
                                &vc[fo * sp * sp], &st[fo * 8], &alias[fo * sp], work.data(), iwork.data());
     if (f == 0 && rc != CLAB_OK) {
@@ -150,7 +150,7 @@ bool cntreg(Ctx &c, Val &out) {
     else c.warn.push_back("cntreg: the negative binomial fit failed (theta has no finite estimate); its rows are NA.");
   }
   if (dogee) {
-    std::copy(beta.begin(), beta.begin() + static_cast<std::ptrdiff_t>(sp), beta.begin() + static_cast<std::ptrdiff_t>(2 * sp));
+    std::copy(beta.begin(), beta.begin() + sat<std::ptrdiff_t>(sp), beta.begin() + sat<std::ptrdiff_t>(2 * sp));
     if (clab_geeex(yv.p(), x.data(), n, p, of, clp, ncl, alias.data(), 100, 1e-10, &beta[2 * sp], &vc[2 * sp * sp],
                    &st[16], work.data(), iwork.data()) == CLAB_OK) {
       ok[2] = true;
@@ -170,10 +170,10 @@ bool cntreg(Ctx &c, Val &out) {
     rows.push_back({"nbcl", 1, 1});
   }
   if (dogee) rows.push_back({"gee", 2, 1});
-  std::vector<double> gsum(static_cast<std::size_t>(g.g), 0.0);
-  for (std::size_t i = 0; i < sn; ++i) gsum[static_cast<std::size_t>(g.code[i])] += yv[i];
+  std::vector<double> gsum(sat<std::size_t>(g.g), 0.0);
+  for (std::size_t i = 0; i < sn; ++i) gsum[sat<std::size_t>(g.code[i])] += yv[i];
   auto est = [&](const Row &w, std::size_t j, double &b, double &s) {
-    const std::size_t fo = static_cast<std::size_t>(w.f);
+    const std::size_t fo = sat<std::size_t>(w.f);
     b = ok[w.f] ? beta[fo * sp + j] : NaN;
     const double v = !ok[w.f] ? NaN
                      : w.v == 0 ? vb[fo * sp * sp + j * sp + j]
@@ -204,7 +204,7 @@ bool cntreg(Ctx &c, Val &out) {
       il.push_back(fin ? std::exp(b - z * s) : NA);
       ih.push_back(fin ? std::exp(b + z * s) : NA);
       ip.push_back(fin ? 2 * clab_pnorm(-std::fabs(b / s)) : NA);
-      is.push_back(gsum[static_cast<std::size_t>(gt[k])] == 0 || gsum[static_cast<std::size_t>(r0)] == 0 ? 1 : 0);
+      is.push_back(gsum[sat<std::size_t>(gt[k])] == 0 || gsum[sat<std::size_t>(r0)] == 0 ? 1 : 0);
     }
   }
   Frame fi, fco, ff;
@@ -227,7 +227,7 @@ bool cntreg(Ctx &c, Val &out) {
   std::vector<double> fll, fa, ft, fst, fal, fit, frk;
   std::vector<int> fcv;
   for (int f = 0; f < nf; ++f) {
-    const double *s = &st[static_cast<std::size_t>(f) * 8];
+    const double *s = &st[sat<std::size_t>(f) * 8];
     fn.push_back(fl[f]);
     auto nv = [&](double v) { return ok[f] && !std::isnan(v) ? v : NA; };
     if (f < 2) {
@@ -263,7 +263,7 @@ bool cntreg(Ctx &c, Val &out) {
   put(out, "irr", fi.o);
   put(out, "coef", fco.o);
   put(out, "fit", ff.o);
-  put(out, "ref", vstr(g.lev[static_cast<std::size_t>(r0)]));
+  put(out, "ref", vstr(g.lev[sat<std::size_t>(r0)]));
   put(out, "n", vnum(n));
   put(out, "ncl", vnum(ncl));
   put(out, "level", vnum(lv));
@@ -289,9 +289,9 @@ bool groups(Ctx &c, const Val &grp, const Dv &xv, const double *nv, Grpd &r) {
   const std::size_t m = xv.n();
   if (grp.t == Val::NUL) {
     r.lev = nmsof(xv.nm, m);
-    r.g = static_cast<int>(m);
+    r.g = sat<int>(m);
     r.code.resize(m);
-    for (std::size_t i = 0; i < m; ++i) r.code[i] = static_cast<int>(i);
+    for (std::size_t i = 0; i < m; ++i) r.code[i] = sat<int>(i);
   } else {
     Lab l;
     CK(codes(c, grp, "grp", m, l));
@@ -299,10 +299,10 @@ bool groups(Ctx &c, const Val &grp, const Dv &xv, const double *nv, Grpd &r) {
     r.g = l.g;
     r.code = l.code;
   }
-  r.x.assign(static_cast<std::size_t>(r.g), 0.0);
-  r.n.assign(static_cast<std::size_t>(r.g), 0.0);
+  r.x.assign(sat<std::size_t>(r.g), 0.0);
+  r.n.assign(sat<std::size_t>(r.g), 0.0);
   for (std::size_t i = 0; i < m; ++i) {
-    const std::size_t k = static_cast<std::size_t>(r.code[i]);
+    const std::size_t k = sat<std::size_t>(r.code[i]);
     r.x[k] += xv[i];
     r.n[k] += nv ? nv[i] : 1.0;
   }
@@ -316,7 +316,7 @@ bool perstr(Ctx &c, const Val &v, const char *nm, const std::vector<std::string>
   const std::size_t ns = lev.size();
   out.assign(ns, 0.0);
   if (d.nm.empty()) {
-    if (d.n() != ns) return c.fail("`%s` must have one value per stratum, %d.", nm, static_cast<int>(ns));
+    if (d.n() != ns) return c.fail("`%s` must have one value per stratum, %d.", nm, sat<int>(ns));
     out = d.v;
     return true;
   }
@@ -325,11 +325,11 @@ bool perstr(Ctx &c, const Val &v, const char *nm, const std::vector<std::string>
     for (std::size_t j = 0; j < d.n(); ++j) {
       if (d.nm[j] == lev[s]) {
         if (hit >= 0) return c.fail("`%s` names stratum %s twice.", nm, lev[s].c_str());
-        hit = static_cast<int>(j);
+        hit = sat<int>(j);
       }
     }
     if (hit < 0) return c.fail("`%s` has no value for stratum %s.", nm, lev[s].c_str());
-    out[s] = d[static_cast<std::size_t>(hit)];
+    out[s] = d[sat<std::size_t>(hit)];
   }
   return true;
 }
@@ -347,7 +347,7 @@ bool grprr(Ctx &c, Val &out) {
   Dv nn;
   const double *nv = nullptr;
   if (ar[1].t != Val::NUL) {
-    CK(num(c, ar[1], "n", nn, static_cast<std::int64_t>(m), 0.0, true));
+    CK(num(c, ar[1], "n", nn, sat<std::int64_t>(m), 0.0, true));
     nv = nn.p();
   }
   double pr = 0.0, z = 0.0, lv = 0.0;
@@ -357,9 +357,9 @@ bool grprr(Ctx &c, Val &out) {
   Grpd g;
   CK(groups(c, ar[2], xv, nv, g));
   for (int k = 0; k < g.g; ++k) {
-    if (prop && g.x[static_cast<std::size_t>(k)] > g.n[static_cast<std::size_t>(k)]) {
+    if (prop && g.x[sat<std::size_t>(k)] > g.n[sat<std::size_t>(k)]) {
       return c.fail("group %s has more events than trials: `x` must not exceed `n` for proportions.",
-                    g.lev[static_cast<std::size_t>(k)].c_str());
+                    g.lev[sat<std::size_t>(k)].c_str());
     }
   }
   if (!prop && !nv) return c.fail("`n` must give the exposure of each count for `type = \"rate\"`.");
@@ -367,7 +367,7 @@ bool grprr(Ctx &c, Val &out) {
   CK(ref(c, c["ref"], g.lev, r0));
   --r0;
   const int k = g.g;
-  const std::size_t sk = static_cast<std::size_t>(k);
+  const std::size_t sk = sat<std::size_t>(k);
   std::vector<double> o(10 * sk);
   double *rt = &o[0], *lo = &o[sk], *hi = &o[2 * sk], *rp = &o[3 * sk], *ra = &o[4 * sk], *rl = &o[5 * sk],
          *rh = &o[6 * sk], *df = &o[7 * sk], *dl = &o[8 * sk], *dh = &o[9 * sk];
@@ -396,10 +396,10 @@ bool grprr(Ctx &c, Val &out) {
   rs.num("rep", cp);
   std::vector<std::string> cg;
   std::vector<double> mr, ml, mh, me, mf, md, mdl, mdh;
-  const double x0 = g.x[static_cast<std::size_t>(r0)], n0 = g.n[static_cast<std::size_t>(r0)];
+  const double x0 = g.x[sat<std::size_t>(r0)], n0 = g.n[sat<std::size_t>(r0)];
   for (int i = 0; i < k; ++i) {
     if (i == r0) continue;
-    const std::size_t si = static_cast<std::size_t>(i);
+    const std::size_t si = sat<std::size_t>(i);
     const double x1 = g.x[si], n1 = g.n[si];
     cg.push_back(g.lev[si]);
     mr.push_back(na(ra[i]));
@@ -430,7 +430,7 @@ bool grprr(Ctx &c, Val &out) {
   out = vobj();
   put(out, "rates", rs.o);
   put(out, "cmp", cm.o);
-  put(out, "ref", vstr(g.lev[static_cast<std::size_t>(r0)]));
+  put(out, "ref", vstr(g.lev[sat<std::size_t>(r0)]));
   put(out, "type", vstr(rtype[prop]));
   put(out, "per", vnum(pr));
   put(out, "level", vnum(lv));
@@ -443,7 +443,7 @@ bool dastd(Ctx &c, Val &out) {
   Dv xv, nv;
   CK(num(c, ar[0], "x", xv, -1, 0.0));
   const std::size_t m = xv.n();
-  CK(num(c, ar[1], "n", nv, static_cast<std::int64_t>(m), 0.0, true));
+  CK(num(c, ar[1], "n", nv, sat<std::int64_t>(m), 0.0, true));
   Lab s, g;
   CK(codes(c, ar[2], "strat", m, s));
   if (ar[3].t != Val::NUL) {
@@ -463,12 +463,12 @@ bool dastd(Ctx &c, Val &out) {
   CK(lvl(c, z, lv));
   const double a = 1 - lv;
   const int k = g.g;
-  const std::size_t sk = static_cast<std::size_t>(k);
+  const std::size_t sk = sat<std::size_t>(k);
   std::vector<double> o(10 * sk);
-  std::vector<int> seen(sk * static_cast<std::size_t>(s.g));
+  std::vector<int> seen(sk * sat<std::size_t>(s.g));
   double *rt = &o[0], *vr = &o[sk], *wm = &o[2 * sk], *ev = &o[3 * sk], *ra = &o[4 * sk], *rl = &o[5 * sk],
          *rh = &o[6 * sk], *df = &o[7 * sk], *dl = &o[8 * sk], *dh = &o[9 * sk];
-  const int rc = clab_dastd(xv.p(), nv.p(), g.code.data(), s.code.data(), static_cast<int>(m), k, s.g, w.data(), r0,
+  const int rc = clab_dastd(xv.p(), nv.p(), g.code.data(), s.code.data(), sat<int>(m), k, s.g, w.data(), r0,
                             z, rt, vr, wm, ev, ra, rl, rh, df, dl, dh, seen.data());
   if (rc == CLAB_EARG) return c.fail("each group must have one row per stratum.");
   if (rc != CLAB_OK) {
@@ -494,7 +494,7 @@ bool dastd(Ctx &c, Val &out) {
   std::vector<double> mr, ml, mh, md, mdl, mdh;
   for (int i = 0; i < k; ++i) {
     if (i == r0) continue;
-    cg.push_back(g.lev[static_cast<std::size_t>(i)]);
+    cg.push_back(g.lev[sat<std::size_t>(i)]);
     mr.push_back(na(ra[i]));
     ml.push_back(na(rl[i]));
     mh.push_back(na(rh[i]));
@@ -513,7 +513,7 @@ bool dastd(Ctx &c, Val &out) {
   out = vobj();
   put(out, "rates", rs.o);
   put(out, "cmp", cm.o);
-  put(out, "ref", vstr(g.lev[static_cast<std::size_t>(r0)]));
+  put(out, "ref", vstr(g.lev[sat<std::size_t>(r0)]));
   put(out, "per", vnum(pr));
   put(out, "level", vnum(lv));
   return true;
@@ -525,7 +525,7 @@ bool sirex(Ctx &c, Val &out) {
   Dv xv, nv;
   CK(num(c, ar[0], "x", xv, -1, 0.0));
   const std::size_t m = xv.n();
-  CK(num(c, ar[1], "n", nv, static_cast<std::int64_t>(m), 0.0, true));
+  CK(num(c, ar[1], "n", nv, sat<std::int64_t>(m), 0.0, true));
   Lab s, g;
   CK(codes(c, ar[2], "strat", m, s));
   if (ar[3].t == Val::NUL) return c.fail("`grp` must give the group (area) of each row.");
@@ -536,10 +536,10 @@ bool sirex(Ctx &c, Val &out) {
   CK(lvl(c, z, lv));
   const double a = 1 - lv;
   const int k = g.g;
-  const std::size_t sk = static_cast<std::size_t>(k);
-  std::vector<double> o(5 * sk), wk(2 * static_cast<std::size_t>(s.g));
+  const std::size_t sk = sat<std::size_t>(k);
+  std::vector<double> o(5 * sk), wk(2 * sat<std::size_t>(s.g));
   double prior[2];
-  if (clab_sirex(xv.p(), nv.p(), g.code.data(), s.code.data(), static_cast<int>(m), k, s.g,
+  if (clab_sirex(xv.p(), nv.p(), g.code.data(), s.code.data(), sat<int>(m), k, s.g,
                  sr.empty() ? nullptr : sr.data(), &o[0], &o[sk], &o[2 * sk], &o[3 * sk], &o[4 * sk], prior,
                  wk.data()) != CLAB_OK) {
     return c.fail("every group needs a positive expected count: a stratum rate of 0 or a group with no exposure "
@@ -595,14 +595,14 @@ bool ctabx(Ctx &c, Val &out) {
     if (c.has("w")) return c.fail("`w` goes with `row` and `col` labels, not with a table.");
     r = dim[0];
     cc = dim[1];
-    t.assign(static_cast<std::size_t>(r) * cc, 0.0);
+    t.assign(sat<std::size_t>(r) * cc, 0.0);
     bool bad = false;
     fill(row, 2, dim, 0, 0, 1, t, bad, true);
     for (double e : t) {
       if (!(e >= 0) || !std::isfinite(e)) return c.fail("`row` must hold counts: finite numbers from 0.");
     }
-    rl = nmsof({}, static_cast<std::size_t>(r));
-    cl = nmsof({}, static_cast<std::size_t>(cc));
+    rl = nmsof({}, sat<std::size_t>(r));
+    cl = nmsof({}, sat<std::size_t>(cc));
     CK(pickd(c, "agg", aggs, 6, 0, ag));
     if (ag > 1) return c.fail("`agg` applies to `row` and `col` labels, not to a table.");
   } else {
@@ -618,11 +618,11 @@ bool ctabx(Ctx &c, Val &out) {
     rl = la.lev;
     cl = lb.lev;
     CK(pickd(c, "agg", aggs, 6, a[2].t == Val::NUL ? 0 : 1, ag));
-    const std::size_t rc = static_cast<std::size_t>(r) * static_cast<std::size_t>(cc);
+    const std::size_t rc = sat<std::size_t>(r) * sat<std::size_t>(cc);
     t.assign(rc, 0.0);
     std::vector<double> cnt(rc, 0.0);
     auto at = [&](std::size_t i) {
-      return static_cast<std::size_t>(lb.code[i]) * static_cast<std::size_t>(r) + static_cast<std::size_t>(la.code[i]);
+      return sat<std::size_t>(lb.code[i]) * sat<std::size_t>(r) + sat<std::size_t>(la.code[i]);
     };
     if (ag == 0) {
       if (a[2].t != Val::NUL) return c.fail("`agg = \"n\"` counts rows: leave `w` out.");
@@ -640,7 +640,7 @@ bool ctabx(Ctx &c, Val &out) {
       }
     } else {
       Dv wv;
-      CK(num(c, a[2], "w", wv, static_cast<std::int64_t>(n), ag == 1 ? 0.0 : -HUGE_VAL));
+      CK(num(c, a[2], "w", wv, sat<std::int64_t>(n), ag == 1 ? 0.0 : -HUGE_VAL));
       for (std::size_t i = 0; i < n; ++i) {
         const std::size_t q = at(i);
         const double v = wv[i];
@@ -655,30 +655,30 @@ bool ctabx(Ctx &c, Val &out) {
       }
     }
   }
-  const std::size_t sr = static_cast<std::size_t>(r);
+  const std::size_t sr = sat<std::size_t>(r);
   std::vector<int> kr, kc;
   for (int i = 0; i < r; ++i) {
     double s = 0;
-    for (int j = 0; j < cc; ++j) s += t[static_cast<std::size_t>(j) * sr + static_cast<std::size_t>(i)];
+    for (int j = 0; j < cc; ++j) s += t[sat<std::size_t>(j) * sr + sat<std::size_t>(i)];
     if (s > 0) kr.push_back(i);
   }
   for (int j = 0; j < cc; ++j) {
     double s = 0;
-    for (int i = 0; i < r; ++i) s += t[static_cast<std::size_t>(j) * sr + static_cast<std::size_t>(i)];
+    for (int i = 0; i < r; ++i) s += t[sat<std::size_t>(j) * sr + sat<std::size_t>(i)];
     if (s > 0) kc.push_back(j);
   }
-  const int r2 = static_cast<int>(kr.size()), c2 = static_cast<int>(kc.size());
-  const std::size_t s2 = static_cast<std::size_t>(r2);
+  const int r2 = sat<int>(kr.size()), c2 = sat<int>(kc.size());
+  const std::size_t s2 = sat<std::size_t>(r2);
   const bool counts = ag == 0 || ag == 1 || ag == 5;
   if (counts && r2 == 0) return c.fail("the table holds no counts: every cell is 0.");
-  std::vector<double> u(s2 * static_cast<std::size_t>(c2)), e(u.size()), rs(u.size()), st(9, NaN);
+  std::vector<double> u(s2 * sat<std::size_t>(c2)), e(u.size()), rs(u.size()), st(9, NaN);
   std::vector<int> dg(s2, -1);
-  for (std::size_t j = 0; j < static_cast<std::size_t>(c2); ++j) {
-    for (std::size_t i = 0; i < s2; ++i) u[j * s2 + i] = t[static_cast<std::size_t>(kc[j]) * sr + static_cast<std::size_t>(kr[i])];
+  for (std::size_t j = 0; j < sat<std::size_t>(c2); ++j) {
+    for (std::size_t i = 0; i < s2; ++i) u[j * s2 + i] = t[sat<std::size_t>(kc[j]) * sr + sat<std::size_t>(kr[i])];
   }
   for (std::size_t i = 0; i < s2; ++i) {
     for (int j = 0; j < c2; ++j) {
-      if (rl[static_cast<std::size_t>(kr[i])] == cl[static_cast<std::size_t>(kc[static_cast<std::size_t>(j)])]) dg[i] = j;
+      if (rl[sat<std::size_t>(kr[i])] == cl[sat<std::size_t>(kc[sat<std::size_t>(j)])]) dg[i] = j;
     }
   }
   bool any = false;
@@ -691,7 +691,7 @@ bool ctabx(Ctx &c, Val &out) {
       return c.fail("the kernel refused the table.");
     }
     if (ex && r2 >= 2 && c2 >= 2) {
-      std::vector<double> rem(static_cast<std::size_t>(r2 + c2));
+      std::vector<double> rem(sat<std::size_t>(r2 + c2));
       if (clab_fshx(u.data(), r2, c2, 1e7, conf, fs, rem.data()) != CLAB_OK) {
         for (double v : u) {
           if (v != std::floor(v)) return c.fail("the exact test needs whole counts.");

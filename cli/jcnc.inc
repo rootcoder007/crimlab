@@ -6,7 +6,7 @@
 
 // The units, total and Gini of each group.
 Val bygini(const std::vector<double> &x, const double *w, const std::vector<int> &code, const Lab &g) {
-  const std::size_t n = x.size(), G = static_cast<std::size_t>(g.g);
+  const std::size_t n = x.size(), G = sat<std::size_t>(g.g);
   std::vector<double> un(G), tot(G), gi(G);
   std::vector<double> xs(n + 1), ws(n + 1), lp(n + 2), lv(n + 2);
   std::vector<int> o(n + 1);
@@ -14,11 +14,11 @@ Val bygini(const std::vector<double> &x, const double *w, const std::vector<int>
   for (std::size_t k = 0; k < G; ++k) {
     std::size_t m = 0;
     for (std::size_t i = 0; i < n; ++i) {
-      if (static_cast<std::size_t>(code[i]) != k) continue;
+      if (sat<std::size_t>(code[i]) != k) continue;
       xs[m] = x[i];
       ws[m++] = w ? w[i] : 1.0;
     }
-    if (clab_cconc(xs.data(), ws.data(), static_cast<int>(m), nullptr, 0, st, lp.data(), lv.data(), nullptr, nullptr,
+    if (clab_cconc(xs.data(), ws.data(), sat<int>(m), nullptr, 0, st, lp.data(), lv.data(), nullptr, nullptr,
                    o.data()) == CLAB_OK) {
       un[k] = st[0];
       tot[k] = st[1];
@@ -51,9 +51,9 @@ bool cconc(Ctx &c, Val &out) {
     if (c.has("w")) return c.fail("`w` goes with counts: with places of events, each event counts once.");
     if (c.has("pop")) return c.fail("`pop` goes with counts per unit, not with places of events.");
     CK(codes(c, x, "x", ne, p));
-    n = static_cast<std::size_t>(p.g);
+    n = sat<std::size_t>(p.g);
     xv.assign(n, 0.0);
-    for (int e : p.code) xv[static_cast<std::size_t>(e)] += 1;
+    for (int e : p.code) xv[sat<std::size_t>(e)] += 1;
   } else {
     Dv d;
     CK(num(c, x, "x", d, -1, 0.0));
@@ -61,7 +61,7 @@ bool cconc(Ctx &c, Val &out) {
     n = xv.size();
     if (c.has("w")) {
       Dv w;
-      CK(num(c, c["w"], "w", w, static_cast<std::int64_t>(n), 0.0, true));
+      CK(num(c, c["w"], "w", w, sat<std::int64_t>(n), 0.0, true));
       wv = w.v;
     }
   }
@@ -77,7 +77,7 @@ bool cconc(Ctx &c, Val &out) {
   const std::size_t nf = fr.n();
   std::vector<double> st(16), lp(n + 1), lv(n + 1), ts(nf), tn(nf);
   std::vector<int> ow(n + 1);
-  if (clab_cconc(xv.data(), ptr(wv), static_cast<int>(n), fr.p(), static_cast<int>(nf), st.data(), lp.data(), lv.data(),
+  if (clab_cconc(xv.data(), ptr(wv), sat<int>(n), fr.p(), sat<int>(nf), st.data(), lp.data(), lv.data(),
                  ts.data(), tn.data(), ow.data()) != CLAB_OK) {
     return c.fail("`x` has no events: every count is 0.");
   }
@@ -93,9 +93,9 @@ bool cconc(Ctx &c, Val &out) {
     }
     unsigned int sd = 0;
     CK(seed(c, sd));
-    const int nu = static_cast<int>(std::round(un));
-    std::vector<double> g(static_cast<std::size_t>(ns));
-    std::vector<int> wk(static_cast<std::size_t>(nu) + 1);
+    const int nu = sat<int>(std::round(un));
+    std::vector<double> g(sat<std::size_t>(ns));
+    std::vector<int> wk(sat<std::size_t>(nu) + 1);
     CK(kc(c, clab_cnull(st[2], nu, ns, sd, g.data(), wk.data()), "the mean count is above 1e8: no null to simulate."));
     const double gobs = st[10];
     int ge = 0;
@@ -106,9 +106,9 @@ bool cconc(Ctx &c, Val &out) {
     }
     std::sort(g.begin(), g.end());
     const double h = 0.95 * (ns - 1);
-    const int lo = static_cast<int>(std::floor(h));
-    const double q = g[static_cast<std::size_t>(lo)] +
-                     (h - lo) * (g[static_cast<std::size_t>(std::min(lo + 1, ns - 1))] - g[static_cast<std::size_t>(lo)]);
+    const int lo = sat<int>(std::floor(h));
+    const double q = g[sat<std::size_t>(lo)] +
+                     (h - lo) * (g[sat<std::size_t>(std::min(lo + 1, ns - 1))] - g[sat<std::size_t>(lo)]);
     const double nv[5] = {static_cast<double>(ns), sum / ns, q, (1.0 + ge) / (ns + 1.0), gobs - sum / ns};
     static const char *const nn[] = {"nsim", "mean", "q95", "p", "excess"};
     nres = nvec(5, nn, nv);
@@ -119,14 +119,14 @@ bool cconc(Ctx &c, Val &out) {
     if (labs) {
       CK(codes(c, c["by"], "by", ne, g));
       std::vector<long long> key(ne);
-      for (std::size_t i = 0; i < ne; ++i) key[i] = static_cast<long long>(g.code[i]) * static_cast<long long>(n) + p.code[i];
+      for (std::size_t i = 0; i < ne; ++i) key[i] = sat<long long>(g.code[i]) * sat<long long>(n) + p.code[i];
       std::sort(key.begin(), key.end());
       std::vector<double> cx;
       std::vector<int> cg;
       for (std::size_t i = 0; i < ne; ++i) {
         if (i == 0 || key[i] != key[i - 1]) {
           cx.push_back(0);
-          cg.push_back(static_cast<int>(key[i] / static_cast<long long>(n)));
+          cg.push_back(sat<int>(key[i] / sat<long long>(n)));
         }
         cx.back() += 1;
       }
@@ -139,9 +139,9 @@ bool cconc(Ctx &c, Val &out) {
   Val scl;
   if (c.has("pop")) {
     Dv pv;
-    CK(num(c, c["pop"], "pop", pv, static_cast<std::int64_t>(n), 0.0, true));
+    CK(num(c, c["pop"], "pop", pv, sat<std::int64_t>(n), 0.0, true));
     double sc[5];
-    if (clab_urbsc(xv.data(), pv.p(), static_cast<int>(n), sc) != CLAB_OK) {
+    if (clab_urbsc(xv.data(), pv.p(), sat<int>(n), sc) != CLAB_OK) {
       for (int k = 0; k < 4; ++k) sc[k] = NA;
     }
     static const char *const cn[] = {"beta", "pref", "se", "r2", "used"};
@@ -152,10 +152,10 @@ bool cconc(Ctx &c, Val &out) {
     std::vector<int> ix(ne), sw(n + 1);
     std::vector<double> di(ne), ex(ne), glo(ne), ghi(ne);
     double mh = 0.0, sl = 0.0;
-    clab_cgrow(p.code.data(), static_cast<int>(ne), static_cast<int>(n), di.data(), &mh, ex.data(), glo.data(), ghi.data(),
+    clab_cgrow(p.code.data(), sat<int>(ne), sat<int>(n), di.data(), &mh, ex.data(), glo.data(), ghi.data(),
                &sl, sw.data());
     for (std::size_t i = 0; i < ne; ++i) {
-      ix[i] = static_cast<int>(i) + 1;
+      ix[i] = sat<int>(i) + 1;
       ex[i] = na(ex[i]);
       glo[i] = na(glo[i]);
       ghi[i] = na(ghi[i]);
@@ -197,7 +197,7 @@ bool hilltl(Ctx &c, Val &out) {
     if (e > 0) pv.push_back(e);
   }
   if (pv.empty()) return c.fail("`x` has no values above 0 to fit a tail to.");
-  const int n = static_cast<int>(pv.size());
+  const int n = sat<int>(pv.size());
   bool dis = false, apx = false;
   CK(flagd(c, "discrete", true, dis));
   CK(flagd(c, "approx", false, apx));
@@ -208,14 +208,14 @@ bool hilltl(Ctx &c, Val &out) {
   if (!c.has("xmin")) {
     std::vector<double> s(pv);
     std::sort(s.begin(), s.end(), [](double a, double b) { return a > b; });
-    xm = n >= 50 ? s[49] : s[static_cast<std::size_t>(n) - 1];
+    xm = n >= 50 ? s[49] : s[sat<std::size_t>(n) - 1];
   } else {
     CK(one(c, c["xmin"], "xmin", 0.0, HUGE_VAL, xm));
   }
   std::vector<double> wk(pv.size());
   double o[5];
   const int rc = clab_hilltl(pv.data(), n, xm, dis, apx, o, wk.data());
-  const int ntl = static_cast<int>(o[3]);
+  const int ntl = sat<int>(o[3]);
   const char *meth;
   if (ntl < mt) {
     meth = "too few tail observations";
@@ -241,7 +241,7 @@ bool hilltl(Ctx &c, Val &out) {
 bool crcap(Ctx &c, Val &out) {
   Dv xv;
   CK(num(c, c["x"], "x", xv, -1, 0.0));
-  const int k = static_cast<int>(xv.n());
+  const int k = sat<int>(xv.n());
   if (k != 3 && k != 7) return c.fail("`x` must be c(n1, n2, m) for two lists or the seven cells of three.");
   double kp = 0.0;
   CK(binrd(c, "kappa", 1, 1.0, HUGE_VAL, kp));
@@ -252,12 +252,12 @@ bool crcap(Ctx &c, Val &out) {
   const bool need = k == 7;
   if (xv.nm.empty()) {
     if (need) return c.fail("`x` must name its seven cells 100, 010, 001, 110, 101, 011 and 111.");
-    for (int j = 0; j < k; ++j) cl[j] = xv[static_cast<std::size_t>(j)];
+    for (int j = 0; j < k; ++j) cl[j] = xv[sat<std::size_t>(j)];
   } else {
     for (int j = 0; j < k; ++j) {
       int hit = -1;
       for (int i = 0; i < k; ++i) {
-        if (xv.nm[static_cast<std::size_t>(i)] == nm[j]) {
+        if (xv.nm[sat<std::size_t>(i)] == nm[j]) {
           if (hit >= 0) return c.fail("`x` names %s twice.", nm[j]);
           hit = i;
         }
@@ -266,7 +266,7 @@ bool crcap(Ctx &c, Val &out) {
         if (need) return c.fail("`x` must name its seven cells 100, 010, 001, 110, 101, 011 and 111.");
         return c.fail("`x` must be named n1, n2 and m, or not named at all.");
       }
-      cl[j] = xv[static_cast<std::size_t>(hit)];
+      cl[j] = xv[sat<std::size_t>(hit)];
     }
   }
   Dv iv;
@@ -274,7 +274,7 @@ bool crcap(Ctx &c, Val &out) {
     if (k == 3) return c.fail("`int` goes with three lists.");
     CK(num(c, c["int"], "int", iv));
   }
-  const int ni = static_cast<int>(iv.n());
+  const int ni = sat<int>(iv.n());
   double st[6], pw[18];
   std::vector<double> sv(2 * iv.n() + 1);
   if (clab_crcap(cl, k, kp, iv.n() ? iv.p() : nullptr, ni, st, pw, sv.data()) != CLAB_OK) {
@@ -322,7 +322,7 @@ bool dkfig(Ctx &c, Val &out) {
     const std::size_t n = vv.n();
     if (!c.has("r")) return c.fail("`r` must give the recorded rate with `v`.");
     CK(num(c, c["r"], "r", r0, -1, 0.0));
-    if (r0.n() != 1 && r0.n() != n) return c.fail("`r` must have length 1 or the length of `v`, %d.", static_cast<int>(n));
+    if (r0.n() != 1 && r0.n() != n) return c.fail("`r` must have length 1 or the length of `v`, %d.", sat<int>(n));
     for (std::size_t i = 0; i < n; ++i) {
       if (vv[i] > 1) return c.fail("`v` must be rates from 0 to 1.");
       if (r0[r0.n() == 1 ? 0 : i] > 1) return c.fail("`r` must be rates from 0 to 1.");
@@ -340,7 +340,7 @@ bool dkfig(Ctx &c, Val &out) {
     }
     std::vector<double> rr(n), lo(n), hi(n), dlo(n), dhi(n), ru(n), bk(n);
     for (std::size_t i = 0; i < n; ++i) rr[i] = r0[r0.n() == 1 ? 0 : i];
-    clab_dkfig(vv.p(), rr.data(), static_cast<int>(n), a, b, th, lo.data(), hi.data(), bk.data());
+    clab_dkfig(vv.p(), rr.data(), sat<int>(n), a, b, th, lo.data(), hi.data(), bk.data());
     for (std::size_t i = 0; i < n; ++i) {
       dlo[i] = lo[i] - rr[i];
       dhi[i] = hi[i] - rr[i];
@@ -375,7 +375,7 @@ bool dkfig(Ctx &c, Val &out) {
     Dv kv;
     CK(num(c, c["k"], "k", kv, -1, 1.0));
     double o[6];
-    if (clab_dkhier(kv.p(), static_cast<int>(kv.n()), o) != CLAB_OK) {
+    if (clab_dkhier(kv.p(), sat<int>(kv.n()), o) != CLAB_OK) {
       return c.fail("`k` must be whole numbers of offences from 1.");
     }
     static const char *const hn[] = {"incid", "offen", "ratio", "extra", "lower", "upper"};

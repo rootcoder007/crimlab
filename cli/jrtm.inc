@@ -23,7 +23,7 @@ bool lcols(Ctx &c, const Val &lay, int n, std::vector<double> &L, std::vector<st
   CK(bmat(c, lay, "lay", -1, r, v));
   if (r != n) return c.fail("`lay` must have one row per cell, %d.", n);
   L = v;
-  for (std::size_t j = 0; j < v.size() / static_cast<std::size_t>(n); ++j) nm.push_back("");
+  for (std::size_t j = 0; j < v.size() / sat<std::size_t>(n); ++j) nm.push_back("");
   return true;
 }
 // rtmfit()'s layers from features: one matrix of points, or an object of them.
@@ -41,12 +41,12 @@ bool lfeats(Ctx &c, const Val &lay, int n, std::vector<double> &L, std::vector<s
   const bool one1 = lay.t != Val::OBJ;
   const std::size_t k = one1 ? 1 : lay.a.size();
   if (k < 1) return c.fail("`lay` must hold at least one layer.");
-  L.resize(static_cast<std::size_t>(n) * k);
+  L.resize(sat<std::size_t>(n) * k);
   for (std::size_t j = 0; j < k; ++j) {
     int nf = 0;
     std::vector<double> f;
     CK(bmat(c, asmat(one1 ? lay : lay.a[j]), "lay", 2, nf, f));
-    clab_rtmlay(cv.data(), cv.data() + n, n, f.data(), f.data() + nf, nf, r, kd, &L[static_cast<std::size_t>(n) * j]);
+    clab_rtmlay(cv.data(), cv.data() + n, n, f.data(), f.data() + nf, nf, r, kd, &L[sat<std::size_t>(n) * j]);
     nm.push_back(one1 ? "" : lay.k[j]);
   }
   return true;
@@ -55,7 +55,7 @@ bool lfeats(Ctx &c, const Val &lay, int n, std::vector<double> &L, std::vector<s
 bool crchyp(Ctx &c, Val &out) {
   Dv xv, yv;
   CK(num(c, c["x"], "x", xv));
-  const int n = static_cast<int>(xv.n());
+  const int n = sat<int>(xv.n());
   CK(num(c, c["y"], "y", yv, n));
   if (n < 2) return c.fail("`x` and `y` must give at least two sites.");
   int nh = 0;
@@ -73,7 +73,7 @@ bool crchyp(Ctx &c, Val &out) {
   }
   double st[4];
   int pair[2];
-  std::vector<int> mar(static_cast<std::size_t>(nh) + 1);
+  std::vector<int> mar(sat<std::size_t>(nh) + 1);
   const double *hx = nh ? hv.data() : nullptr;
   clab_crchyp(xv.p(), yv.p(), n, hx, nh ? hx + nh : nullptr, nh, st, pair, mar.data());
   static const char *const cn[] = {"x", "y"};
@@ -83,25 +83,25 @@ bool crchyp(Ctx &c, Val &out) {
   put(out, "r", vnum(st[2]));
   put(out, "pair", vints(pr, 2));
   put(out, "share", vnum(st[3]));
-  put(out, "mar", nh ? unbox(vlgls(mar.data(), static_cast<std::size_t>(nh))) : Val());
+  put(out, "mar", nh ? unbox(vlgls(mar.data(), sat<std::size_t>(nh))) : Val());
   return true;
 }
 
 bool hitscr(Ctx &c, Val &out) {
   Dv sv, hv;
   CK(num(c, c["s"], "s", sv));
-  const int n = static_cast<int>(sv.n());
+  const int n = sat<int>(sv.n());
   CK(num(c, c["home"], "home", hv, -1, 1.0));
   const std::size_t nh = hv.n();
   std::vector<int> h(nh), hm(nh), ab(nh), ti(nh), rk(nh);
   for (std::size_t k = 0; k < nh; ++k) {
     const double v = hv[k];
     if (v != std::floor(v) || v > n) return c.fail("`home` must be cell numbers from 1 to %d.", n);
-    h[k] = static_cast<int>(v) - 1;
+    h[k] = sat<int>(v) - 1;
     hm[k] = h[k] + 1;
   }
   std::vector<double> hit(nh), hitt(nh);
-  clab_hitscr(sv.p(), n, h.data(), static_cast<int>(nh), ab.data(), ti.data(), hit.data(), hitt.data());
+  clab_hitscr(sv.p(), n, h.data(), sat<int>(nh), ab.data(), ti.data(), hit.data(), hitt.data());
   for (std::size_t k = 0; k < nh; ++k) rk[k] = ab[k] + 1;
   Frame f;
   f.ints("home", hm.data(), nh);
@@ -117,7 +117,7 @@ bool hitscr(Ctx &c, Val &out) {
 bool rtmfit(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv, -1, 0.0));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   bool any = false;
   for (double e : yv.v) any = any || e > 0;
   if (!any) return c.fail("`y` must hold at least one count above 0.");
@@ -130,12 +130,12 @@ bool rtmfit(Ctx &c, Val &out) {
   } else {
     CK(lcols(c, c["lay"], n, L, nm));
   }
-  const int k = static_cast<int>(nm.size());
+  const int k = sat<int>(nm.size());
   for (int j = 0; j < k; ++j) {
-    if (nm[static_cast<std::size_t>(j)].empty()) nm[static_cast<std::size_t>(j)] = "layer" + std::to_string(j + 1);
+    if (nm[sat<std::size_t>(j)].empty()) nm[sat<std::size_t>(j)] = "layer" + std::to_string(j + 1);
   }
   const int p = k + 1;
-  const std::size_t N = static_cast<std::size_t>(n), P = static_cast<std::size_t>(p);
+  const std::size_t N = sat<std::size_t>(n), P = sat<std::size_t>(p);
   std::vector<double> x(N * P, 1.0);
   std::copy(L.begin(), L.end(), x.begin() + n);
   std::vector<double> beta(P), vb(P * P), vc(1), st(8), w(N * P + 6 * N + P + P * P);
@@ -199,9 +199,9 @@ bool lcmat(Ctx &c, const Val &x, const char *nm, int &nr, int &nc, std::vector<d
   cn.clear();
   v.clear();
   if (x.t == Val::OBJ) {
-    nc = static_cast<int>(x.a.size());
+    nc = sat<int>(x.a.size());
     if (nc < 1) return c.fail("`%s` must have at least one column.", nm);
-    nr = static_cast<int>(vlen(x.a[0]));
+    nr = sat<int>(vlen(x.a[0]));
     for (const Val &e : x.a) {
       Dv d;
       CK(num(c, e, nm, d, nr));
@@ -216,7 +216,7 @@ bool lcmat(Ctx &c, const Val &x, const char *nm, int &nr, int &nc, std::vector<d
   }
   nr = dim[0];
   nc = dim[1];
-  v.assign(static_cast<std::size_t>(nr) * static_cast<std::size_t>(nc), 0.0);
+  v.assign(sat<std::size_t>(nr) * sat<std::size_t>(nc), 0.0);
   bool bad = false;
   fill(x, 2, dim, 0, 0, 1, v, bad, true);
   for (double e : v) {
@@ -242,16 +242,16 @@ bool agemix(Ctx &c, Val &out) {
     } else {
       for (int a = 0; a < na2; ++a) av.v.push_back(a + 1);
     }
-    const std::size_t A = static_cast<std::size_t>(na2);
+    const std::size_t A = sat<std::size_t>(na2);
     std::vector<double> ag(A), cm(A * A);
     if (clab_agemix(cv.data(), na2, nt, w.p(), ag.data(), cm.data()) != CLAB_OK) return c.fail("`shares` must sum to 1.");
     Frame f;
     f.num("age", av.v);
     f.num("agg", ag);
     for (int k = 0; k < nt; ++k) {
-      const std::string nk = !cn.empty() && !cn[static_cast<std::size_t>(k)].empty() ? cn[static_cast<std::size_t>(k)]
+      const std::string nk = !cn.empty() && !cn[sat<std::size_t>(k)].empty() ? cn[sat<std::size_t>(k)]
                                                                                     : "type" + std::to_string(k + 1);
-      f.num(nk.c_str(), cv.data() + A * static_cast<std::size_t>(k), A);
+      f.num(nk.c_str(), cv.data() + A * sat<std::size_t>(k), A);
     }
     crv = f.o;
     cov = vmat(cm, na2, na2);
@@ -267,7 +267,7 @@ bool agemix(Ctx &c, Val &out) {
     CK(wholed(c, "nperm", 2000, 0, nps));
     unsigned int sd = 0;
     if (nps > 0) CK(seed(c, sd));
-    std::vector<double> wk(static_cast<std::size_t>(n));
+    std::vector<double> wk(sat<std::size_t>(n));
     double o[2];
     clab_agepan(pv.data(), pv.data() + n, n, nps, sd, o, wk.data());
     static const char *const pn[] = {"cov", "p", "n", "nperm"};
@@ -284,7 +284,7 @@ bool agemix(Ctx &c, Val &out) {
 bool cumrsk(Ctx &c, Val &out) {
   Dv av, ev, pv, rv, dv;
   CK(num(c, c["age"], "age", av));
-  const std::int64_t n = static_cast<std::int64_t>(av.n());
+  const std::int64_t n = sat<std::int64_t>(av.n());
   for (std::size_t i = 1; i < av.n(); ++i) {
     if (!(av[i] > av[i - 1])) return c.fail("`age` must be increasing.");
   }
@@ -302,7 +302,7 @@ bool cumrsk(Ctx &c, Val &out) {
   const double z = qnorm(0.5 + lv / 2);
   const std::size_t N = av.n();
   std::vector<double> h(N), nr(N), cr(N), lo(N), hi(N), vw(N);
-  if (clab_cumrsk(av.p(), ev.p(), pv.p(), rv.n() ? rv.p() : nullptr, dv.n() ? dv.p() : nullptr, static_cast<int>(n), h.data(),
+  if (clab_cumrsk(av.p(), ev.p(), pv.p(), rv.n() ? rv.p() : nullptr, dv.n() ? dv.p() : nullptr, sat<int>(n), h.data(),
                   nr.data(), cr.data(), vw.data()) != CLAB_OK) {
     return c.fail("more first events (and deaths) than people at risk at some age.");
   }
@@ -326,7 +326,7 @@ bool jpipe(Ctx &c, Val &out) {
   Dv nv, dv;
   CK(num(c, c["num"], "num", nv, -1, 0.0));
   const std::size_t n = nv.n();
-  CK(num(c, c["den"], "den", dv, static_cast<std::int64_t>(n), 0.0));
+  CK(num(c, c["den"], "den", dv, sat<std::int64_t>(n), 0.0));
   int w = 0, lg = 0;
   CK(wholed(c, "win", 12, 1, w));
   CK(wholed(c, "lag", 0, 0, lg));
@@ -334,28 +334,28 @@ bool jpipe(Ctx &c, Val &out) {
   const bool hg = c.has("grp");
   if (hg) CK(codes(c, c["grp"], "grp", n, g));
   std::vector<int> o(n);
-  for (std::size_t i = 0; i < n; ++i) o[i] = static_cast<int>(i);
+  for (std::size_t i = 0; i < n; ++i) o[i] = sat<int>(i);
   if (hg) {
     std::stable_sort(o.begin(), o.end(), [&](int a, int b) {
-      return g.code[static_cast<std::size_t>(a)] < g.code[static_cast<std::size_t>(b)];
+      return g.code[sat<std::size_t>(a)] < g.code[sat<std::size_t>(b)];
     });
   }
   std::vector<double> sn(n), sd(n), on(n), od(n), rt(n);
   for (std::size_t i = 0; i < n; ++i) {
-    sn[i] = nv[static_cast<std::size_t>(o[i])];
-    sd[i] = dv[static_cast<std::size_t>(o[i])];
+    sn[i] = nv[sat<std::size_t>(o[i])];
+    sd[i] = dv[sat<std::size_t>(o[i])];
   }
   std::vector<std::string> gl(n);
   std::vector<int> ix(n);
-  auto code = [&](std::size_t i) { return hg ? g.code[static_cast<std::size_t>(o[i])] : 0; };
+  auto code = [&](std::size_t i) { return hg ? g.code[sat<std::size_t>(o[i])] : 0; };
   for (std::size_t a = 0; a < n;) {
     std::size_t b = a;
     const int ca = code(a);
     while (b < n && code(b) == ca) ++b;
-    clab_jpipe(sn.data() + a, sd.data() + a, static_cast<int>(b - a), w, lg, on.data() + a, od.data() + a, rt.data() + a);
+    clab_jpipe(sn.data() + a, sd.data() + a, sat<int>(b - a), w, lg, on.data() + a, od.data() + a, rt.data() + a);
     for (std::size_t i = a; i < b; ++i) {
-      gl[i] = hg ? g.lev[static_cast<std::size_t>(ca)] : "all";
-      ix[i] = static_cast<int>(i - a) + 1;
+      gl[i] = hg ? g.lev[sat<std::size_t>(ca)] : "all";
+      ix[i] = sat<int>(i - a) + 1;
       on[i] = na(on[i]);
       od[i] = na(od[i]);
       rt[i] = na(rt[i]);

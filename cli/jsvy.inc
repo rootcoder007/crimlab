@@ -12,7 +12,7 @@ bool svymx(Ctx &c, Val &out) {
   CK(isvec(c, c["y"], "y"));
   Dv yv;
   CK(num(c, c["y"], "y", yv));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   const std::size_t sn = yv.n();
   if (n < 2) return c.fail("`y` must have two values at least.");
   const double *yy = yv.p();

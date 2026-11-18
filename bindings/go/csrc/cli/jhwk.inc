@@ -20,7 +20,7 @@ bool evtimes(Ctx &c, double hor, int nmin, std::vector<double> &t) {
   Dv tv;
   CK(num(c, c["times"], "times", tv));
   t = tv.v;
-  const int n = static_cast<int>(t.size());
+  const int n = sat<int>(t.size());
   if (n < nmin) return c.fail("`times` must hold at least %d events, not %d.", nmin, n);
   for (std::size_t i = 0; i < t.size(); ++i) {
     if (t[i] < 0 || t[i] > hor) return c.fail("`times` must lie between 0 and `hor`.");
@@ -34,9 +34,9 @@ bool parv(Ctx &c, const char *nm, int kind, int base, std::vector<double> &th) {
   Dv v;
   CK(num(c, c[nm], nm, v, np, -HUGE_VAL));
   th = v.v;
-  if (!(th[static_cast<std::size_t>(np - (kind ? 3 : 2))] >= 0)) return c.fail("`%s`: eta must be at least 0.", nm);
+  if (!(th[sat<std::size_t>(np - (kind ? 3 : 2))] >= 0)) return c.fail("`%s`: eta must be at least 0.", nm);
   for (int j = np - (kind ? 2 : 1); j < np; ++j) {
-    if (!(th[static_cast<std::size_t>(j)] > 0)) return c.fail("`%s`: the kernel parameters must be positive.", nm);
+    if (!(th[sat<std::size_t>(j)] > 0)) return c.fail("`%s`: the kernel parameters must be positive.", nm);
   }
   return true;
 }
@@ -54,7 +54,7 @@ bool hwkres(Ctx &c, Val &out) {
   const std::size_t n = t.size();
   std::vector<double> tau(n), work(n < 100 ? 3 * (2 * n + 1) * (2 * n + 1) + n : n), u(n);
   double ks[2];
-  clab_hwkres(t.data(), static_cast<int>(n), h, kd, bd, pr, th.data(), tau.data(), ks, work.data());
+  clab_hwkres(t.data(), sat<int>(n), h, kd, bd, pr, th.data(), tau.data(), ks, work.data());
   for (std::size_t i = 0; i < n; ++i) u[i] = -std::expm1(-tau[i]);
   for (double &e : tau) e = na(e);
   for (double &e : u) e = na(e);
@@ -88,7 +88,7 @@ bool hwksim(Ctx &c, Val &out) {
   }
   unsigned int sd = 0;
   CK(seed(c, sd));
-  const std::size_t sc = static_cast<std::size_t>(cap);
+  const std::size_t sc = sat<std::size_t>(cap);
   std::vector<double> t(sc), x(sp ? sc : 0), y(sp ? sc : 0), work(3 * sc);
   std::vector<int> gen(sc), iwork(2 * sc);
   int n = 0;
@@ -96,7 +96,7 @@ bool hwksim(Ctx &c, Val &out) {
                   sp ? y.data() : nullptr, gen.data(), &n, work.data(), iwork.data()) != CLAB_OK) {
     return c.fail("more than `nmax` = %d events: raise it, or lower eta (at 1 or above the process explodes).", cap);
   }
-  const std::size_t N = static_cast<std::size_t>(n);
+  const std::size_t N = sat<std::size_t>(n);
   Frame f;
   f.num("t", t.data(), N);
   if (sp) {
@@ -111,7 +111,7 @@ bool hwksim(Ctx &c, Val &out) {
 bool stpcp(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   int m = 0, np = 0;
   CK(wholed(c, "minseg", 2, 1, m));
   CK(wholed(c, "nperm", 9999, 1, np));
@@ -119,10 +119,10 @@ bool stpcp(Ctx &c, Val &out) {
   unsigned int sd = 0;
   CK(seed(c, sd));
   double st[12];
-  std::vector<double> w(static_cast<std::size_t>(n));
-  std::vector<int> iw(static_cast<std::size_t>(n));
+  std::vector<double> w(sat<std::size_t>(n));
+  std::vector<int> iw(sat<std::size_t>(n));
   clab_stpcp(yv.p(), n, m, np, sd, st, w.data(), iw.data());
-  const int k[2] = {static_cast<int>(st[0]), static_cast<int>(st[7])};
+  const int k[2] = {sat<int>(st[0]), sat<int>(st[7])};
   const double be[2] = {st[1], st[10]}, af[2] = {st[2], st[11]}, sa[2] = {st[3], st[8]}, pv[2] = {st[4], st[9]};
   Frame f;
   f.str("test", {"step", "pettitt"});
@@ -136,9 +136,9 @@ bool stpcp(Ctx &c, Val &out) {
   if (c.has("x")) {
     // stpcp() in R/trn.R: the periods at the change points
     const Val &x = c["x"];
-    if (vlen(x) != static_cast<std::size_t>(n)) return c.fail("`x` must have one period per value, %d.", n);
+    if (vlen(x) != sat<std::size_t>(n)) return c.fail("`x` must have one period per value, %d.", n);
     Val at = varr();
-    for (int q : k) at.a.push_back(x.t == Val::ARR || x.t == Val::OBJ ? x.a[static_cast<std::size_t>(q) - 1] : x);
+    for (int q : k) at.a.push_back(x.t == Val::ARR || x.t == Val::OBJ ? x.a[sat<std::size_t>(q) - 1] : x);
     f.add("at", at);
   }
   out = vobj();

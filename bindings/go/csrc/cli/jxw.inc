@@ -20,13 +20,13 @@ bool bndxw(Ctx &c, Val &out) {
   std::vector<double> wv(m, 1.0);
   if (c.has("w")) {
     Dv d;
-    CK(num(c, c["w"], "w", d, static_cast<std::int64_t>(m), 0.0));
+    CK(num(c, c["w"], "w", d, sat<std::int64_t>(m), 0.0));
     wv = d.v;
   }
   Dv xv;
   CK(num(c, c["x"], "x", xv));
   const std::size_t n = xv.n();
-  if (vlen(c["unit"]) != n) return c.fail("`unit` must have one label per value, %d.", static_cast<int>(n));
+  if (vlen(c["unit"]) != n) return c.fail("`unit` must have one label per value, %d.", sat<int>(n));
   std::vector<std::string> ul;
   if (!alabs(c["unit"], ul)) return c.fail("`unit` must be labels with no missing values.");
   std::vector<int> u(n);
@@ -34,23 +34,23 @@ bool bndxw(Ctx &c, Val &out) {
   std::vector<std::string> miss;
   for (std::size_t i = 0; i < n; ++i) {
     const auto it = std::find(f.lev.begin(), f.lev.end(), ul[i]);
-    u[i] = it == f.lev.end() ? -1 : static_cast<int>(it - f.lev.begin());
+    u[i] = it == f.lev.end() ? -1 : sat<int>(it - f.lev.begin());
     if (u[i] < 0) {
       lost += xv[i];
       if (std::find(miss.begin(), miss.end(), ul[i]) == miss.end()) miss.push_back(ul[i]);
     }
   }
-  const std::size_t F = static_cast<std::size_t>(f.g);
-  std::vector<double> ws(F), bw(F), o(static_cast<std::size_t>(g.g));
+  const std::size_t F = sat<std::size_t>(f.g);
+  std::vector<double> ws(F), bw(F), o(sat<std::size_t>(g.g));
   std::vector<int> best(F);
-  clab_bndxw(xv.p(), u.data(), static_cast<int>(n), f.code.data(), g.code.data(), wv.data(), static_cast<int>(m), f.g, g.g,
+  clab_bndxw(xv.p(), u.data(), sat<int>(n), f.code.data(), g.code.data(), wv.data(), sat<int>(m), f.g, g.g,
              o.data(), ws.data(), best.data(), bw.data());
   Frame tb, mp;
   tb.str("to", g.lev);
   tb.num("value", o);
   Val bt = varr();
   for (std::size_t s = 0; s < F; ++s) {
-    bt.a.push_back(best[s] < 0 ? Val() : vstr(g.lev[static_cast<std::size_t>(best[s])]));
+    bt.a.push_back(best[s] < 0 ? Val() : vstr(g.lev[sat<std::size_t>(best[s])]));
     bw[s] = na(bw[s]);
   }
   mp.str("from", f.lev);
@@ -70,7 +70,7 @@ bool synexp(Ctx &c, Val &out) {
   std::vector<double> xv, av;
   const Val x = asmat(c["x"]);
   CK(bmat(c, x, "x", -1, n, xv));
-  const int p = static_cast<int>(xv.size() / static_cast<std::size_t>(n));
+  const int p = sat<int>(xv.size() / sat<std::size_t>(n));
   Dv yv;
   CK(num(c, c["y"], "y", yv, n));
   int n0 = 0, n1 = 0;
@@ -84,16 +84,16 @@ bool synexp(Ctx &c, Val &out) {
   CK(bmat(c, asmat(c["ax"]), "ax", p, na2, av));
   Dv pv;
   CK(num(c, c["pop"], "pop", pv, na2, 0.0));
-  const std::size_t q = static_cast<std::size_t>(p) + 1;
+  const std::size_t q = sat<std::size_t>(p) + 1;
   std::vector<double> cf(q), se(q), wk(2 * q * q + 4 * q);
-  std::vector<int> iw(static_cast<std::size_t>(n));
+  std::vector<int> iw(sat<std::size_t>(n));
   double dev = 0;
   CK(kc(c, clab_lgtreg(xv.data(), n, p, yv.p(), 1e-10, 50, cf.data(), se.data(), &dev, wk.data(), iw.data()),
         "no fit: collinear columns of `x`, or separated outcomes."));
   const std::vector<std::string> cn = mcols(c["x"]);
   std::vector<std::string> tn = {"(Intercept)"};
-  for (int j = 0; j < p; ++j) tn.push_back(cn.empty() ? "x" + std::to_string(j + 1) : cn[static_cast<std::size_t>(j)]);
-  std::vector<double> rate(static_cast<std::size_t>(na2)), ex(static_cast<std::size_t>(na2));
+  for (int j = 0; j < p; ++j) tn.push_back(cn.empty() ? "x" + std::to_string(j + 1) : cn[sat<std::size_t>(j)]);
+  std::vector<double> rate(sat<std::size_t>(na2)), ex(sat<std::size_t>(na2));
   clab_synexp(cf.data(), av.data(), na2, p, pv.p(), rate.data(), ex.data());
   double tot = 0;
   for (double e : ex) tot += e;
@@ -116,7 +116,7 @@ bool clrilr(Ctx &c, Val &out) {
   int n = 0;
   std::vector<double> xv;
   CK(bmat(c, asmat(c["x"]), "x", -1, n, xv, 0.0));
-  const int d = static_cast<int>(xv.size() / static_cast<std::size_t>(n));
+  const int d = sat<int>(xv.size() / sat<std::size_t>(n));
   if (d < 2) return c.fail("`x` must have at least two parts (columns).");
   static const char *const to[] = {"clr", "ilr"};
   int ty = 0;
@@ -124,7 +124,7 @@ bool clrilr(Ctx &c, Val &out) {
   double pc = 0.0;
   CK(binrd(c, "ps", 1e-6, 0.0, HUGE_VAL, pc));
   const int dc = ty == 0 ? d : d - 1;
-  std::vector<double> o(static_cast<std::size_t>(n) * static_cast<std::size_t>(dc));
+  std::vector<double> o(sat<std::size_t>(n) * sat<std::size_t>(dc));
   CK(kc(c, clab_clrilr(xv.data(), n, d, pc, ty, o.data()), "a part is 0 after the pseudocount: give `ps` above 0."));
   out = vmat(o, n, dc);
   return true;
@@ -138,7 +138,7 @@ bool oneorn(Ctx &c, const char *nm, std::size_t n, bool pos, std::vector<double>
   } else {
     CK(num(c, c[nm], nm, d));
   }
-  if (d.n() != 1 && d.n() != n) return c.fail("`%s` must be one number or one per value, %d.", nm, static_cast<int>(n));
+  if (d.n() != 1 && d.n() != n) return c.fail("`%s` must be one number or one per value, %d.", nm, sat<int>(n));
   o.assign(n, 0.0);
   for (std::size_t i = 0; i < n; ++i) o[i] = d[d.n() == 1 ? 0 : i];
   return true;
@@ -155,7 +155,7 @@ bool preslr(Ctx &c, Val &out) {
   CK(oneorn(c, "s2", n, true, d));
   double o[5];
   int band = 0, side = 0;
-  const int N = static_cast<int>(n);
+  const int N = sat<int>(n);
   clab_preslr(xv.p(), N, a.data(), b.data(), N, cc.data(), d.data(), N, o, &band, &side);
   static const char *const bw[] = {"no support either way", "weak support", "moderate support",
                                    "moderately strong support", "strong support", "very strong support",
@@ -185,10 +185,10 @@ bool tpdmc(Ctx &c, Val &out) {
     }
     if (!ok || st.empty()) return c.fail("`states` must name the transient stages: labels, at least one.");
   }
-  const int k = static_cast<int>(st.size()), m = k + 2;
+  const int k = sat<int>(st.size()), m = k + 2;
   for (int i = 0; i < k; ++i) {
     for (int j = 0; j < i; ++j) {
-      if (st[static_cast<std::size_t>(i)] == st[static_cast<std::size_t>(j)]) return c.fail("`states` must name each stage once.");
+      if (st[sat<std::size_t>(i)] == st[sat<std::size_t>(j)]) return c.fail("`states` must name each stage once.");
     }
   }
   int s0 = -1;
@@ -196,17 +196,17 @@ bool tpdmc(Ctx &c, Val &out) {
   const Val *e = sv.t == Val::ARR && sv.a.size() == 1 ? &sv.a[0] : &sv;
   if (e->t == Val::STR) {
     for (int i = 0; i < k; ++i) {
-      if (e->s == st[static_cast<std::size_t>(i)]) s0 = i;
+      if (e->s == st[sat<std::size_t>(i)]) s0 = i;
     }
   } else {
     const double v = val1(sv);
-    if (v == std::floor(v) && v >= 1 && v <= k) s0 = static_cast<int>(v) - 1;
+    if (v == std::floor(v) && v >= 1 && v <= k) s0 = sat<int>(v) - 1;
   }
   if (s0 < 0) return c.fail("`start` must be a transient stage, by name or number from 1 to %d.", k);
   int ns = 0;
   CK(wholed(c, "steps", 0, 0, ns));
   if (ns > kutil::maxcell) return c.fail("`steps` must be at most %.0f.", kutil::maxcell);
-  const std::size_t M = static_cast<std::size_t>(m), K = static_cast<std::size_t>(k);
+  const std::size_t M = sat<std::size_t>(m), K = sat<std::size_t>(k);
   std::vector<double> pm(M * M), nm(K * K), bm(K * 2), tv(K);
   CK(kc(c, clab_tpdmc(pr, dr, mr, k, pm.data(), nm.data(), bm.data(), tv.data()),
         "nothing leaves a stage: with `pres` 1, `mum` must be above 0."));
@@ -217,11 +217,11 @@ bool tpdmc(Ctx &c, Val &out) {
   if (ns > 0) {
     unsigned int sd = 0;
     CK(seed(c, sd));
-    std::vector<int> p(static_cast<std::size_t>(ns) + 1);
+    std::vector<int> p(sat<std::size_t>(ns) + 1);
     int len = 0;
     clab_tpdsim(pm.data(), m, k, s0, ns, sd, p.data(), &len);
     std::vector<std::string> ps;
-    for (int i = 0; i < len; ++i) ps.push_back(all[static_cast<std::size_t>(p[static_cast<std::size_t>(i)])]);
+    for (int i = 0; i < len; ++i) ps.push_back(all[sat<std::size_t>(p[sat<std::size_t>(i)])]);
     path = unbox(vstrs(ps));
   }
   out = vobj();
@@ -240,7 +240,7 @@ bool dirsim(Ctx &c, Val &out) {
   Dv av;
   CK(num(c, c["alpha"], "alpha", av, -1, 0.0, true));
   if (av.n() < 2) return c.fail("`alpha` must give two or more parts.");
-  const int k = static_cast<int>(av.n());
+  const int k = sat<int>(av.n());
   double tot = 0.0;
   CK(oned(c, "total", 1, 0.0, HUGE_VAL, tot));
   unsigned int sd = 0;
@@ -248,7 +248,7 @@ bool dirsim(Ctx &c, Val &out) {
   if (static_cast<double>(N) * static_cast<double>(k) > kutil::maxcell) {
     return c.fail("`n` times the number of parts must be at most %.0f.", kutil::maxcell);
   }
-  std::vector<double> o(static_cast<std::size_t>(N) * static_cast<std::size_t>(k));
+  std::vector<double> o(sat<std::size_t>(N) * sat<std::size_t>(k));
   CK(kc(c, clab_dirsim(av.p(), k, N, sd, tot, o.data()),
         "a row of draws is all 0: the concentrations `alpha` are too small."));
   out = vmat(o, N, k);
@@ -258,23 +258,23 @@ bool dirsim(Ctx &c, Val &out) {
 bool tpbhm(Ctx &c, Val &out) {
   Dv yv;
   CK(num(c, c["y"], "y", yv));
-  const int n = static_cast<int>(yv.n());
+  const int n = sat<int>(yv.n());
   int nr = 0;
   std::vector<double> xv;
   CK(bmat(c, asmat(c["x"]), "x", -1, nr, xv));
   if (nr != n) return c.fail("`x` must have one row per case, %d.", n);
-  const int q = static_cast<int>(xv.size() / static_cast<std::size_t>(n)), p = q + 1;
+  const int q = sat<int>(xv.size() / sat<std::size_t>(n)), p = q + 1;
   if (n < 2) return c.fail("`y` must hold at least two cases.");
   Dv mv, sv;
   Val d1, d2;
   CK(num(c, arg(c, "pm", d1, 0), "pm", mv));
   CK(num(c, arg(c, "psd", d2, 10), "psd", sv, -1, 0.0, true));
-  if ((mv.n() != 1 && mv.n() != static_cast<std::size_t>(p)) || (sv.n() != 1 && sv.n() != static_cast<std::size_t>(p))) {
+  if ((mv.n() != 1 && mv.n() != sat<std::size_t>(p)) || (sv.n() != 1 && sv.n() != sat<std::size_t>(p))) {
     return c.fail("`pm` and `psd` must be one number or one per term, %d.", p);
   }
   double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
-  const std::size_t P = static_cast<std::size_t>(p);
+  const std::size_t P = sat<std::size_t>(p);
   std::vector<double> m0(P), s0(P);
   for (std::size_t j = 0; j < P; ++j) {
     m0[j] = mv[mv.n() == 1 ? 0 : j];
@@ -287,7 +287,7 @@ bool tpbhm(Ctx &c, Val &out) {
     ng = g.g;
     if (ng < 2) return c.fail("`grp` must hold at least two groups.");
   }
-  const std::size_t G = static_cast<std::size_t>(ng) + 1;
+  const std::size_t G = sat<std::size_t>(ng) + 1;
   std::vector<double> mu(P), sd(P), st(2), gm(G), lam(G), w(2 * P * P + P);
   std::vector<int> nj(G);
   CK(kc(c, clab_tpbhm(yv.p(), xv.data(), n, q, m0.data(), s0.data(), ng ? g.code.data() : nullptr, ng, mu.data(), sd.data(),
@@ -296,18 +296,18 @@ bool tpbhm(Ctx &c, Val &out) {
   const double zq = qnorm(0.5 + lv / 2);
   const std::vector<std::string> cn = mcols(c["x"]);
   std::vector<std::string> tn = {"(Intercept)"};
-  for (int j = 1; j < p; ++j) tn.push_back(cn.empty() ? "x" + std::to_string(j) : cn[static_cast<std::size_t>(j) - 1]);
+  for (int j = 1; j < p; ++j) tn.push_back(cn.empty() ? "x" + std::to_string(j) : cn[sat<std::size_t>(j) - 1]);
   std::vector<double> lo(P), hi(P), pp(P);
   for (std::size_t j = 0; j < P; ++j) {
     lo[j] = mu[j] - zq * sd[j];
     hi[j] = mu[j] + zq * sd[j];
     pp[j] = clab_pnorm(mu[j] / sd[j]);
   }
-  std::vector<double> fit(static_cast<std::size_t>(n));
+  std::vector<double> fit(sat<std::size_t>(n));
   for (int i = 0; i < n; ++i) {
     double v = mu[0];
-    for (int j = 1; j < p; ++j) v += xv[static_cast<std::size_t>(j - 1) * static_cast<std::size_t>(n) + static_cast<std::size_t>(i)] * mu[static_cast<std::size_t>(j)];
-    fit[static_cast<std::size_t>(i)] = v;
+    for (int j = 1; j < p; ++j) v += xv[sat<std::size_t>(j - 1) * sat<std::size_t>(n) + sat<std::size_t>(i)] * mu[sat<std::size_t>(j)];
+    fit[sat<std::size_t>(i)] = v;
   }
   Frame f;
   f.str("term", tn);
@@ -319,7 +319,7 @@ bool tpbhm(Ctx &c, Val &out) {
   f.num("prior", s0);
   Val gr;
   if (ng) {
-    std::vector<double> po(static_cast<std::size_t>(ng));
+    std::vector<double> po(sat<std::size_t>(ng));
     for (std::size_t j = 0; j < po.size(); ++j) po[j] = lam[j] * gm[j];
     Frame h;
     h.str("group", g.lev);

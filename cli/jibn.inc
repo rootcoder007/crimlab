@@ -10,8 +10,8 @@ bool ibx(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, int &p) {
   if (x.t == Val::NUL) return true;
   int dim[2] = {-1, -1};
   if (x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR) {
-    if (!shape(x, 2, dim, 0) || !isnum(x.a[0]) || static_cast<std::size_t>(dim[0]) != n) {
-      return c.fail("`x` must be a numeric matrix with one row per stop, %d.", static_cast<int>(n));
+    if (!shape(x, 2, dim, 0) || !isnum(x.a[0]) || sat<std::size_t>(dim[0]) != n) {
+      return c.fail("`x` must be a numeric matrix with one row per stop, %d.", sat<int>(n));
     }
     v.assign(n * zz(dim[1]), 0.0);
     bool bad = false;
@@ -30,10 +30,10 @@ bool ibx(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, int &p) {
   }
   for (const Val *e : cs) {
     Dv d;
-    CK(num(c, *e, "x", d, static_cast<std::int64_t>(n)));
+    CK(num(c, *e, "x", d, sat<std::int64_t>(n)));
     v.insert(v.end(), d.v.begin(), d.v.end());
   }
-  p = static_cast<int>(cs.size());
+  p = sat<int>(cs.size());
   return true;
 }
 
@@ -60,7 +60,7 @@ bool ibench(Ctx &c, Val &out) {
   const int no = o.g;
   std::vector<double> res(8 * zz(no)), nl3(3);
   std::vector<int> ok(zz(no));
-  const int rc = clab_ibench(yd.data(), o.code.data(), p ? xv.data() : nullptr, static_cast<int>(n), p, no, mn, udr,
+  const int rc = clab_ibench(yd.data(), o.code.data(), p ? xv.data() : nullptr, sat<int>(n), p, no, mn, udr,
                              ulf, res.data(), ok.data(), nl3.data());
   if (rc == CLAB_EDOM && ulf) {
     return c.fail("the local false discovery rate could not be estimated: the null could not be fitted to the "

@@ -16,7 +16,7 @@ int yword(const std::string &s) {
 }
 // yes(): TRUE or FALSE, 0 or 1, or "yes" or "no", one per stay.
 bool yes(Ctx &c, const Val &x, const char *nm, std::size_t n, int *out) {
-  if (vlen(x) != n) return c.fail("`%s` must have one value per stay, %d.", nm, static_cast<int>(n));
+  if (vlen(x) != n) return c.fail("`%s` must have one value per stay, %d.", nm, sat<int>(n));
   const bool arr = x.t == Val::ARR || x.t == Val::OBJ;
   for (std::size_t i = 0; i < n; ++i) {
     const Val &e = arr ? x.a[i] : x;
@@ -34,7 +34,7 @@ bool mndla(Ctx &c, Val &out) {
   Dv dv;
   CK(num(c, c["days"], "days", dv, -1, 0.0));
   const std::size_t sn = dv.n();
-  const int n = static_cast<int>(sn);
+  const int n = sat<int>(sn);
   double th = 0.0, lv = 0.0;
   CK(binrd(c, "thr", 15, 0.0, Inf, th));
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
@@ -59,15 +59,15 @@ bool mndla(Ctx &c, Val &out) {
     const Val &al = c["alert"];
     int dim[2] = {-1, -1};
     const bool m = al.t == Val::ARR && !al.a.empty() && al.a[0].t == Val::ARR && shape(al, 2, dim, 0);
-    const int k = al.t == Val::OBJ ? static_cast<int>(al.a.size()) : m ? dim[1] : 1;
+    const int k = al.t == Val::OBJ ? sat<int>(al.a.size()) : m ? dim[1] : 1;
     for (int j = 0; j < k; ++j) {
       if (m) {
         if (dim[0] != n) return c.fail("`alert` must have one row per stay, %d.", n);
         Val s = varr();
-        for (const Val &r : al.a) s.a.push_back(r.a[static_cast<std::size_t>(j)]);
+        for (const Val &r : al.a) s.a.push_back(r.a[sat<std::size_t>(j)]);
         CK(yes(c, s, "alert", sn, cls));
       } else {
-        CK(yes(c, al.t == Val::OBJ ? al.a[static_cast<std::size_t>(j)] : al, "alert", sn, cls));
+        CK(yes(c, al.t == Val::OBJ ? al.a[sat<std::size_t>(j)] : al, "alert", sn, cls));
       }
       for (int i = 0; i < n; ++i) nal[i] += cls[i];
     }
@@ -93,7 +93,7 @@ bool mndla(Ctx &c, Val &out) {
   const int *idc = c.has("id") ? pid.code.data() : nullptr;
   Dv wv;
   if (c.has("w")) CK(num(c, c["w"], "w", wv, n, 0.0));
-  std::vector<double> ow(7 * (static_cast<std::size_t>(ng) + 1));
+  std::vector<double> ow(7 * (sat<std::size_t>(ng) + 1));
   std::vector<int> oi(2 * sn);
   clab_mndtab(cls, idc, gcode.data(), dv.p(), wv.n() ? wv.p() : nullptr, he ? el : nullptr, n, ng, th, ow.data(),
               oi.data());
@@ -105,7 +105,7 @@ bool mndla(Ctx &c, Val &out) {
   for (int g = g0; g <= ng; ++g) {
     const double *o = ow.data() + 7 * (g == ng ? ng : g);
     for (int d = 0; d < nd; ++d) {
-      gs.push_back(g == ng ? "all" : glev[static_cast<std::size_t>(g)]);
+      gs.push_back(g == ng ? "all" : glev[sat<std::size_t>(g)]);
       ds.push_back(dn[d]);
       const double nn = d == 0 ? o[0] : o[4], kk = d == 0 ? o[1] : d == 1 ? o[5] : o[6];
       fn.push_back(nn);

@@ -257,7 +257,7 @@ bool vrfrcd(Ctx &c, Val &out) {
   CK(catx(c, "recd", r));
   if (o.size() != r.size()) {
     return c.fail("length mismatch (%d vs %d): rows were lost or duplicated during the recode.",
-                  static_cast<int>(o.size()), static_cast<int>(r.size()));
+                  sat<int>(o.size()), sat<int>(r.size()));
   }
   if (o.na != r.na) return c.fail("missingness changed during the recode (values silently became NA, or NAs were filled).");
   Map d;
@@ -274,7 +274,7 @@ bool vrfrcd(Ctx &c, Val &out) {
   std::sort(rc.begin(), rc.end(), by);
   std::vector<double> f(ro.size() * rc.size(), 0.0);
   auto at = [](const std::vector<std::string> &v, const std::string &s) {
-    return static_cast<std::size_t>(std::find(v.begin(), v.end(), s) - v.begin());
+    return sat<std::size_t>(std::find(v.begin(), v.end(), s) - v.begin());
   };
   for (std::size_t i = 0; i < o.size(); ++i) {
     if (!o.na[i]) f[at(ro, o.s[i]) + ro.size() * at(rc, r.s[i])] += 1;
@@ -329,7 +329,7 @@ bool pfind(std::vector<std::size_t> &pre, const std::vector<std::size_t> &rest, 
     bool same = true, fit = true;
     for (std::size_t j = 0; j < k; ++j) same = same && pre[j] == j;
     for (std::size_t j = 0; j < k && fit; ++j) {
-      const std::size_t q = static_cast<std::size_t>(std::find(pre.begin(), pre.end(), j) - pre.begin());
+      const std::size_t q = sat<std::size_t>(std::find(pre.begin(), pre.end(), j) - pre.begin());
       fit = std::fabs(obs[q] - pub[j]) <= tol;
     }
     return !same && fit;
@@ -337,7 +337,7 @@ bool pfind(std::vector<std::size_t> &pre, const std::vector<std::size_t> &rest, 
   for (std::size_t i = 0; i < rest.size(); ++i) {
     std::vector<std::size_t> r2 = rest;
     pre.push_back(rest[i]);
-    r2.erase(r2.begin() + static_cast<std::ptrdiff_t>(i));
+    r2.erase(r2.begin() + sat<std::ptrdiff_t>(i));
     if (pfind(pre, r2, obs, pub, tol)) return true;
     pre.pop_back();
   }

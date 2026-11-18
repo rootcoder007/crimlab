@@ -72,7 +72,7 @@ inline bool pser(Ctx &c, Ser &d) {
     if (ax::vna(g[i]) || ax::vna(p[i])) continue;
     s.g.push_back(ax::vlab(g[i]));
     if (!ax::has(s.lv, s.g.back())) s.lv.push_back(s.g.back());
-    s.gi.push_back(static_cast<int>(std::find(s.lv.begin(), s.lv.end(), s.g.back()) - s.lv.begin()));
+    s.gi.push_back(sat<int>(std::find(s.lv.begin(), s.lv.end(), s.g.back()) - s.lv.begin()));
     s.prd.push_back(p[i]);
     s.y.push_back(y[i]);
     if (num) {
@@ -134,7 +134,7 @@ inline bool pcc(Ctx &c, const Val &x, Val &r) {
 }
 // The civil date of a day number: year, month, day.
 inline void civil(double day, std::int64_t &y, std::int64_t &m, std::int64_t &d) {
-  const std::int64_t z = static_cast<std::int64_t>(std::floor(day)) + 719468;
+  const std::int64_t z = sat<std::int64_t>(std::floor(day)) + 719468;
   const std::int64_t era = (z >= 0 ? z : z - 146096) / 146097;
   const std::int64_t doe = z - era * 146097;
   const std::int64_t yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
@@ -155,7 +155,7 @@ inline double daynum(std::int64_t y, std::int64_t m, std::int64_t d) {
 }
 // ISO weekday, 1 Monday to 7 Sunday.
 inline std::int64_t isowd(double day) {
-  const std::int64_t z = static_cast<std::int64_t>(std::floor(day));
+  const std::int64_t z = sat<std::int64_t>(std::floor(day));
   return ((z + 3) % 7 + 7) % 7 + 1;
 }
 
@@ -209,7 +209,7 @@ inline Cols ramp(const std::vector<const char *> &col, int n) {
       } else {
         y = rgb[i][q] + (rgb[j][q] - rgb[i][q]) * ((v - at[i]) / (at[j] - at[i]));
       }
-      u[q] = static_cast<unsigned>(y * 255.0);
+      u[q] = sat<unsigned>(y * 255.0);
     }
     std::snprintf(b, sizeof b, "#%02X%02X%02X", u[0] & 0xFFu, u[1] & 0xFFu, u[2] & 0xFFu);
     out.push_back(b);
@@ -241,7 +241,7 @@ bool blpal(Ctx &c, Val &out) {
     return c.fail("`n` must be one positive whole number.");
   }
   if (n > kutil::maxcell) return c.fail("`n` must be at most 67108864.");
-  const int k = static_cast<int>(n);
+  const int k = sat<int>(n);
   if (std::strcmp(p->name, "okabe") == 0 || std::strcmp(p->name, "grey") == 0) {
     ax::Cols r;
     for (int i = 0; i < k; ++i) r.push_back(base[zz(i) % base.size()]);
@@ -385,7 +385,7 @@ bool plothrz(Ctx &c, Val &out) {
   for (std::size_t l = 0; l < d.lv.size(); ++l) {
     std::vector<double> v;
     for (std::size_t i = 0; i < d.y.size(); ++i) {
-      if (d.gi[i] == static_cast<int>(l)) v.push_back(d.y[i]);
+      if (d.gi[i] == sat<int>(l)) v.push_back(d.y[i]);
     }
     md.push_back(plt::med(v));
   }

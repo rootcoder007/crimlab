@@ -73,7 +73,7 @@ Val one(const igh::V &v, std::size_t j) {
     case igh::V::LGL:
       return v.i[j] == INT_MIN ? Val() : vbool(v.i[j] != 0);
     case igh::V::FAC:
-      return v.i[j] == INT_MIN ? Val() : vstr(v.s[static_cast<std::size_t>(v.i[j] - 1)]);
+      return v.i[j] == INT_MIN ? Val() : vstr(v.s[sat<std::size_t>(v.i[j] - 1)]);
     case igh::V::STR:
       return !v.na.empty() && v.na[j] ? Val() : vstr(v.s[j]);
     default:
@@ -109,7 +109,7 @@ Val toj(const igh::V &v) {
     Val o = varr();
     for (int r = 0; r < v.nr; ++r) {
       Val row = varr();
-      for (int k = 0; k < v.nc; ++k) row.a.push_back(one(v, static_cast<std::size_t>(k * v.nr + r)));
+      for (int k = 0; k < v.nc; ++k) row.a.push_back(one(v, sat<std::size_t>(k * v.nr + r)));
       o.a.push_back(row);
     }
     return o;

@@ -8,23 +8,23 @@
 bool detrsp(Ctx &c, Val &out) {
   Dv xv, bv, sv, pv;
   CK(num(c, c["x"], "x", xv));
-  const std::int64_t n = static_cast<std::int64_t>(xv.n());
+  const std::int64_t n = sat<std::int64_t>(xv.n());
   CK(num(c, c["ben"], "ben", bv, n));
   CK(num(c, c["sanc"], "sanc", sv, n));
   CK(num(c, c["p"], "p", pv, -1, 0.0));
   std::vector<int> o(xv.n());
-  for (std::size_t i = 0; i < o.size(); ++i) o[i] = static_cast<int>(i);
+  for (std::size_t i = 0; i < o.size(); ++i) o[i] = sat<int>(i);
   std::stable_sort(o.begin(), o.end(), [&](int a, int b) {
-    return xv[static_cast<std::size_t>(a)] < xv[static_cast<std::size_t>(b)];
+    return xv[sat<std::size_t>(a)] < xv[sat<std::size_t>(b)];
   });
   std::vector<double> xs(xv.n()), bs(xv.n()), ss(xv.n()), xo(pv.n()), v(pv.n());
   for (std::size_t i = 0; i < xv.n(); ++i) {
-    const std::size_t k = static_cast<std::size_t>(o[i]);
+    const std::size_t k = sat<std::size_t>(o[i]);
     xs[i] = xv[k];
     bs[i] = bv[k];
     ss[i] = sv[k];
   }
-  CK(kc(c, clab_detrsp(xs.data(), bs.data(), ss.data(), static_cast<int>(n), pv.p(), static_cast<int>(pv.n()), xo.data(),
+  CK(kc(c, clab_detrsp(xs.data(), bs.data(), ss.data(), sat<int>(n), pv.p(), sat<int>(pv.n()), xo.data(),
                        v.data()),
         "`x` must not repeat a level and `sanc` must increase with `x`."));
   Frame f;
@@ -38,7 +38,7 @@ bool detrsp(Ctx &c, Val &out) {
 bool dtrid(Ctx &c, Val &out) {
   Dv pv, sv, cv, yv;
   CK(num(c, c["p"], "p", pv));
-  const std::int64_t n = static_cast<std::int64_t>(pv.n());
+  const std::int64_t n = sat<std::int64_t>(pv.n());
   CK(num(c, c["s"], "s", sv, n));
   CK(num(c, c["c"], "c", cv, n));
   if (c.has("y")) CK(num(c, c["y"], "y", yv, n));
@@ -55,7 +55,7 @@ bool dtrid(Ctx &c, Val &out) {
   int rank = 0, id[3], cst[3];
   double beta[4];
   std::vector<double> w(8 * pv.n());
-  if (clab_dtrid(pv.p(), sv.p(), cv.p(), static_cast<int>(n), l, yv.n() ? yv.p() : nullptr, &rank, id, cst, beta,
+  if (clab_dtrid(pv.p(), sv.p(), cv.p(), sat<int>(n), l, yv.n() ? yv.p() : nullptr, &rank, id, cst, beta,
                  w.data()) != CLAB_OK) {
     return c.fail("the design has rank %d of 4: a dimension held fixed is not identified, so `y` cannot be fitted.",
                   rank);
@@ -102,7 +102,7 @@ bool inspg(Ctx &c, Val &out) {
   double h = 0.0;
   CK(oned(c, "dt", 0.01, 0.0, HUGE_VAL, h));
   const int m = ns + 1;
-  std::vector<double> tr(3 * static_cast<std::size_t>(m)), v(static_cast<std::size_t>(m));
+  std::vector<double> tr(3 * sat<std::size_t>(m)), v(sat<std::size_t>(m));
   double f0[3], dv = 0;
   clab_inspg(av, xv.p(), ns, h, tr.data(), v.data(), f0, &dv);
   double drift = 0;
@@ -121,10 +121,10 @@ bool inspg(Ctx &c, Val &out) {
 
 // seq(from, to, length.out = n), as R computes it.
 std::vector<double> rseq(double from, double to, int n) {
-  std::vector<double> v(static_cast<std::size_t>(n));
+  std::vector<double> v(sat<std::size_t>(n));
   const double by = (to - from) / (n - 1);
-  for (int i = 0; i < n; ++i) v[static_cast<std::size_t>(i)] = from + i * by;
-  if (n > 1) v[static_cast<std::size_t>(n) - 1] = to;
+  for (int i = 0; i < n; ++i) v[sat<std::size_t>(i)] = from + i * by;
+  if (n > 1) v[sat<std::size_t>(n) - 1] = to;
   return v;
 }
 
@@ -134,7 +134,7 @@ bool insphs(Ctx &c, Val &out) {
   dx.a = {vnum(0.34), vnum(0.33), vnum(0.33)};
   CK(num(c, c.has("temp") ? c["temp"] : dt, "temp", tv));
   CK(num(c, c.has("cost") ? c["cost"] : dg, "cost", gv));
-  const int nt = static_cast<int>(tv.n()), ng = static_cast<int>(gv.n());
+  const int nt = sat<int>(tv.n()), ng = sat<int>(gv.n());
   if (static_cast<double>(nt) * ng > 1e7) return c.fail("`temp` and `cost` make more than 1e7 cells.");
   int ns = 0;
   double r = 0.0;
@@ -142,7 +142,7 @@ bool insphs(Ctx &c, Val &out) {
   CK(oned(c, "rate", 0.05, 0.0, HUGE_VAL, r));
   CK(num(c, c.has("x0") ? c["x0"] : dx, "x0", xv, 3, 0.0));
   if (!(xv[0] + xv[1] + xv[2] > 0)) return c.fail("`x0` must have a positive sum.");
-  const std::size_t cells = static_cast<std::size_t>(nt) * static_cast<std::size_t>(ng);
+  const std::size_t cells = sat<std::size_t>(nt) * sat<std::size_t>(ng);
   std::vector<double> o(3 * cells);
   clab_insphs(tv.p(), nt, gv.p(), ng, ns, r, xv.p(), o.data());
   static const int at[3] = {1, 0, 2};
@@ -165,11 +165,11 @@ bool colarr(Ctx &c, Val &out) {
   static const char *const nm[] = {"a", "e", "bg"};
   for (int t = 0; t < 3; ++t) {
     const std::size_t k = src[t]->n();
-    if (k != 1 && k != n) return c.fail("`%s` must be one number or one per scenario, %d.", nm[t], static_cast<int>(n));
+    if (k != 1 && k != n) return c.fail("`%s` must be one number or one per scenario, %d.", nm[t], sat<int>(n));
     for (std::size_t i = 0; i < n; ++i) v[t].push_back((*src[t])[k == 1 ? 0 : i]);
   }
   std::vector<double> cl(4 * n), orr(n), lor(n);
-  CK(kc(c, clab_colarr(v[0].data(), v[1].data(), v[2].data(), static_cast<int>(n), cl.data(), orr.data()),
+  CK(kc(c, clab_colarr(v[0].data(), v[1].data(), v[2].data(), sat<int>(n), cl.data(), orr.data()),
         "`a` and `e` must be strictly between 0 and 1, `bg` from 0 to 1."));
   for (std::size_t i = 0; i < n; ++i) lor[i] = std::log(orr[i]);
   Frame f;
@@ -177,7 +177,7 @@ bool colarr(Ctx &c, Val &out) {
   f.num("or", orr);
   f.num("lor", lor);
   static const char *const cn[] = {"c11", "c10", "c01", "c00"};
-  for (int k = 0; k < 4; ++k) f.num(cn[k], cl.data() + static_cast<std::size_t>(k) * n, n);
+  for (int k = 0; k < 4; ++k) f.num(cn[k], cl.data() + sat<std::size_t>(k) * n, n);
   out = f.o;
   return true;
 }
@@ -209,20 +209,20 @@ bool crsev(Ctx &c, Val &out) {
     nt = t.g;
   }
   std::vector<long long> k(n);
-  for (std::size_t i = 0; i < n; ++i) k[i] = static_cast<long long>(uc[i]) * nt + tc[i];
+  for (std::size_t i = 0; i < n; ++i) k[i] = sat<long long>(uc[i]) * nt + tc[i];
   std::vector<long long> s(k);
   std::sort(s.begin(), s.end());
   s.erase(std::unique(s.begin(), s.end()), s.end());
-  const int nk = static_cast<int>(s.size());
+  const int nk = sat<int>(s.size());
   std::vector<int> key(n);
-  for (std::size_t i = 0; i < n; ++i) key[i] = static_cast<int>(std::lower_bound(s.begin(), s.end(), k[i]) - s.begin());
+  for (std::size_t i = 0; i < n; ++i) key[i] = sat<int>(std::lower_bound(s.begin(), s.end(), k[i]) - s.begin());
   std::vector<double> pv;
   if (c.has("pop")) {
     Dv pr;
-    CK(num(c, c["pop"], "pop", pr, static_cast<std::int64_t>(n), 0.0, true));
-    pv.assign(static_cast<std::size_t>(nk), -1.0);
+    CK(num(c, c["pop"], "pop", pr, sat<std::int64_t>(n), 0.0, true));
+    pv.assign(sat<std::size_t>(nk), -1.0);
     for (std::size_t i = 0; i < n; ++i) {
-      double &e = pv[static_cast<std::size_t>(key[i])];
+      double &e = pv[sat<std::size_t>(key[i])];
       if (e >= 0 && e != pr[i]) return c.fail("`pop` must be the same on every row of a unit and period.");
       e = pr[i];
     }
@@ -233,16 +233,16 @@ bool crsev(Ctx &c, Val &out) {
   if (c.has("base")) CK(whole(c, c["base"], "base", 1, b));
   --b;
   if (b >= nk) return c.fail("`base` must be a row of the result, from 1 to %d.", nk);
-  const std::size_t K = static_cast<std::size_t>(nk);
+  const std::size_t K = sat<std::size_t>(nk);
   std::vector<double> cnt(K), sev(K), rate(K), srate(K), idx(K);
-  CK(kc(c, clab_crsev(xv.p(), o.code.data(), key.data(), static_cast<int>(n), o.g, nk, wv.data(), ptr(pv), pe, b,
+  CK(kc(c, clab_crsev(xv.p(), o.code.data(), key.data(), sat<int>(n), o.g, nk, wv.data(), ptr(pv), pe, b,
                       cnt.data(), sev.data(), rate.data(), srate.data(), idx.data()),
         "the kernel refused the input."));
   Frame f;
   std::vector<std::string> ul, tl;
   for (std::size_t j = 0; j < K; ++j) {
-    if (hu) ul.push_back(u.lev[static_cast<std::size_t>(s[j] / nt)]);
-    if (ht) tl.push_back(t.lev[static_cast<std::size_t>(s[j] % nt)]);
+    if (hu) ul.push_back(u.lev[sat<std::size_t>(s[j] / nt)]);
+    if (ht) tl.push_back(t.lev[sat<std::size_t>(s[j] % nt)]);
   }
   if (hu) f.str("unit", ul);
   if (ht) f.str("time", tl);
@@ -276,25 +276,25 @@ bool zcomp(Ctx &c, Val &out) {
   CK(codes(c, c["unit"], "unit", n, u));
   CK(codes(c, c["cat"], "cat", n, ct));
   if (u.g < 2) return c.fail("`unit` must hold at least two units.");
-  const long long cells = static_cast<long long>(u.g) * ct.g;
+  const long long cells = sat<long long>(u.g) * ct.g;
   if (cells > 100000000LL) return c.fail("`unit` and `cat` make more than 1e8 cells.");
-  std::vector<double> xm(static_cast<std::size_t>(cells), 0.0), zm(static_cast<std::size_t>(cells));
+  std::vector<double> xm(sat<std::size_t>(cells), 0.0), zm(sat<std::size_t>(cells));
   for (std::size_t i = 0; i < n; ++i) {
-    xm[static_cast<std::size_t>(u.code[i]) + static_cast<std::size_t>(u.g) * static_cast<std::size_t>(ct.code[i])] += xv[i];
+    xm[sat<std::size_t>(u.code[i]) + sat<std::size_t>(u.g) * sat<std::size_t>(ct.code[i])] += xv[i];
   }
-  std::vector<double> wv(static_cast<std::size_t>(ct.g), 1.0);
+  std::vector<double> wv(sat<std::size_t>(ct.g), 1.0);
   if (c.has("w")) CK(perlev(c, c["w"], "w", ct.lev, wv));
-  std::vector<double> comp(static_cast<std::size_t>(u.g)), mu(static_cast<std::size_t>(ct.g)), sd(static_cast<std::size_t>(ct.g));
+  std::vector<double> comp(sat<std::size_t>(u.g)), mu(sat<std::size_t>(ct.g)), sd(sat<std::size_t>(ct.g));
   clab_zcomp(xm.data(), u.g, ct.g, wv.data(), zm.data(), comp.data(), mu.data(), sd.data());
-  std::vector<int> ord(static_cast<std::size_t>(u.g)), rk(static_cast<std::size_t>(u.g));
-  for (int j = 0; j < u.g; ++j) ord[static_cast<std::size_t>(j)] = j;
+  std::vector<int> ord(sat<std::size_t>(u.g)), rk(sat<std::size_t>(u.g));
+  for (int j = 0; j < u.g; ++j) ord[sat<std::size_t>(j)] = j;
   std::stable_sort(ord.begin(), ord.end(), [&](int a, int b) {
-    return comp[static_cast<std::size_t>(a)] > comp[static_cast<std::size_t>(b)];
+    return comp[sat<std::size_t>(a)] > comp[sat<std::size_t>(b)];
   });
   for (std::size_t j = 0; j < ord.size(); ++j) {
-    const std::size_t k = static_cast<std::size_t>(ord[j]);
-    rk[k] = j > 0 && comp[static_cast<std::size_t>(ord[j - 1])] == comp[k] ? rk[static_cast<std::size_t>(ord[j - 1])]
-                                                                           : static_cast<int>(j) + 1;
+    const std::size_t k = sat<std::size_t>(ord[j]);
+    rk[k] = j > 0 && comp[sat<std::size_t>(ord[j - 1])] == comp[k] ? rk[sat<std::size_t>(ord[j - 1])]
+                                                                           : sat<int>(j) + 1;
   }
   Frame f, g;
   f.str("unit", u.lev);

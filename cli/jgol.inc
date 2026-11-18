@@ -73,34 +73,34 @@ bool gologt(Ctx &c, Val &out) {
   const Val &ya = *ax::fc(d, yc[0]);
   std::vector<std::string> lv;
   CK(gol::lev(c, ya, yc[0], lv));
-  const int n = static_cast<int>(ax::nr(d)), M = static_cast<int>(lv.size()), J = M - 1;
-  const int p = static_cast<int>(x.size());
-  std::vector<int> yv(static_cast<std::size_t>(n));
+  const int n = sat<int>(ax::nr(d)), M = sat<int>(lv.size()), J = M - 1;
+  const int p = sat<int>(x.size());
+  std::vector<int> yv(sat<std::size_t>(n));
   for (int i = 0; i < n; ++i) {
-    const std::string s = ax::vlab(ya.a[static_cast<std::size_t>(i)]);
-    yv[static_cast<std::size_t>(i)] = static_cast<int>(std::find(lv.begin(), lv.end(), s) - lv.begin());
+    const std::string s = ax::vlab(ya.a[sat<std::size_t>(i)]);
+    yv[sat<std::size_t>(i)] = sat<int>(std::find(lv.begin(), lv.end(), s) - lv.begin());
   }
   Nv lvl, mi;
   CK(cknumd(c, "level", 0.95, lvl));
   if (lvl[0] <= 0 || lvl[0] >= 1) return ckstop(c, "`level` must be strictly between 0 and 1");
   CK(cknumd(c, "maxit", 500, mi, 1, HUGE_VAL, false, true));
-  const int mx = mi[0] > 2147483647.0 ? 2147483647 : static_cast<int>(mi[0]);
+  const int mx = mi[0] > 2147483647.0 ? 2147483647 : sat<int>(mi[0]);
   int np = J, fr = 0;
   for (int k = 0; k < p; ++k) {
-    np += pv[static_cast<std::size_t>(k)] ? 1 : J;
-    fr += pv[static_cast<std::size_t>(k)] ? 0 : 1;
+    np += pv[sat<std::size_t>(k)] ? 1 : J;
+    fr += pv[sat<std::size_t>(k)] ? 0 : 1;
   }
-  const std::size_t snp = static_cast<std::size_t>(np);
-  std::vector<double> est(snp), cov(snp * snp), wd(3 * static_cast<std::size_t>(p)), st(3);
+  const std::size_t snp = sat<std::size_t>(np);
+  std::vector<double> est(snp), cov(snp * snp), wd(3 * sat<std::size_t>(p)), st(3);
   const char *dom = "the likelihood could not be maximised from its start";
   int rc = clab_gologt(yv.data(), n, M, xm.data(), p, pv.data(), mx, est.data(), cov.data(), wd.data(), st.data());
   if (rc == CLAB_EDOM) return ckstop(c, "%s", dom);
   CK(kchk(c, rc));
   double lr[3] = {NA, NA, NA};
   if (fr > 0) {
-    const std::size_t n0 = static_cast<std::size_t>(J + p);
-    std::vector<int> all(static_cast<std::size_t>(p), 1);
-    std::vector<double> e0(n0), c0(n0 * n0), w0(3 * static_cast<std::size_t>(p)), s0(3);
+    const std::size_t n0 = sat<std::size_t>(J + p);
+    std::vector<int> all(sat<std::size_t>(p), 1);
+    std::vector<double> e0(n0), c0(n0 * n0), w0(3 * sat<std::size_t>(p)), s0(3);
     rc = clab_gologt(yv.data(), n, M, xm.data(), p, all.data(), mx, e0.data(), c0.data(), w0.data(), s0.data());
     if (rc == CLAB_EDOM) return ckstop(c, "%s", dom);
     CK(kchk(c, rc));
@@ -110,15 +110,15 @@ bool gologt(Ctx &c, Val &out) {
   }
   const double z = qnorm(0.5 + 0.5 * lvl[0]);
   std::vector<std::string> term, thr, lb;
-  for (int j = 0; j < J; ++j) lb.push_back(lv[static_cast<std::size_t>(j)] + "|" + lv[static_cast<std::size_t>(j + 1)]);
+  for (int j = 0; j < J; ++j) lb.push_back(lv[sat<std::size_t>(j)] + "|" + lv[sat<std::size_t>(j + 1)]);
   for (int j = 0; j < J; ++j) {
     term.push_back("(Intercept)");
-    thr.push_back(lb[static_cast<std::size_t>(j)]);
+    thr.push_back(lb[sat<std::size_t>(j)]);
   }
   for (int k = 0; k < p; ++k) {
-    for (int j = 0; j < (pv[static_cast<std::size_t>(k)] ? 1 : J); ++j) {
-      term.push_back(x[static_cast<std::size_t>(k)]);
-      thr.push_back(pv[static_cast<std::size_t>(k)] ? "all" : lb[static_cast<std::size_t>(j)]);
+    for (int j = 0; j < (pv[sat<std::size_t>(k)] ? 1 : J); ++j) {
+      term.push_back(x[sat<std::size_t>(k)]);
+      thr.push_back(pv[sat<std::size_t>(k)] ? "all" : lb[sat<std::size_t>(j)]);
     }
   }
   std::vector<double> se(snp), zv(snp), pr(snp), lo(snp), hi(snp);
@@ -141,9 +141,9 @@ bool gologt(Ctx &c, Val &out) {
   f.num("hi", hi);
   std::vector<double> ws, wf, wp;
   for (int k = 0; k < p; ++k) {
-    ws.push_back(wd[3 * static_cast<std::size_t>(k)]);
-    wf.push_back(wd[3 * static_cast<std::size_t>(k) + 1]);
-    wp.push_back(wd[3 * static_cast<std::size_t>(k) + 2]);
+    ws.push_back(wd[3 * sat<std::size_t>(k)]);
+    wf.push_back(wd[3 * sat<std::size_t>(k) + 1]);
+    wp.push_back(wd[3 * sat<std::size_t>(k) + 2]);
   }
   w.str("term", x);
   w.num("stat", ws);
@@ -216,8 +216,8 @@ bool gocoef(Ctx &c, Val &out) {
     put(w, wd.k[j].c_str(), cv);
   }
   out = vobj();
-  put(out, "est", vmat(me.data(), static_cast<int>(J), static_cast<int>(K)));
-  put(out, "se", vmat(ms.data(), static_cast<int>(J), static_cast<int>(K)));
+  put(out, "est", vmat(me.data(), sat<int>(J), sat<int>(K)));
+  put(out, "se", vmat(ms.data(), sat<int>(J), sat<int>(K)));
   put(out, "wald", w);
   return true;
 }

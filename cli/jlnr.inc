@@ -20,7 +20,7 @@ bool lnroc(Ctx &c, Val &out) {
   for (std::size_t i = 0; i < n; ++i) pk[i] = map[zz(pl.code[i])];
   Dv cv;
   if (readd(c["conf"], cv) != NUM || cv.n() != n) {
-    return c.fail("`conf` must be numbers, one per witness, %d.", static_cast<int>(n));
+    return c.fail("`conf` must be numbers, one per witness, %d.", sat<int>(n));
   }
   for (std::size_t i = 0; i < n; ++i) {
     if (pk[i] != 0 && !std::isfinite(cv[i])) return c.fail("`conf` must be a finite number for every identification.");
@@ -60,7 +60,7 @@ bool lnroc(Ctx &c, Val &out) {
   std::vector<double> lev(n), roc(3 * zz(np) * n), cac(3 * zz(np) * n), pa(zz(np)), bse(2 * zz(np));
   int nl = 0;
   double fu = 0.0;
-  const int rc = clab_lnroc(tv.data(), pk.data(), cv.p(), pr.code.data(), static_cast<int>(n), np, sz, fm, nb, sd,
+  const int rc = clab_lnroc(tv.data(), pk.data(), cv.p(), pr.code.data(), sat<int>(n), np, sz, fm, nb, sd,
                             lev.data(), &nl, roc.data(), cac.data(), pa.data(), bse.data(), &fu);
   if (rc == CLAB_EINTR) return kchk(c, rc);
   if (rc != CLAB_OK) return c.fail("the false alarm rates are all 0: no partial area.");
@@ -118,7 +118,7 @@ bool lnsize(Ctx &c, Val &out) {
     if (v != std::floor(v) || v > INT_MAX) {
       return c.fail("`choice` must be whole numbers from 0: lineup positions, 0 for no choice.");
     }
-    mx = std::max(mx, static_cast<int>(v));
+    mx = std::max(mx, sat<int>(v));
   }
   if (mx == 0) return c.fail("`choice` must name a lineup member at least once.");
   int kk = std::max(mx, 2);
@@ -131,10 +131,10 @@ bool lnsize(Ctx &c, Val &out) {
   double lv = 0.0;
   CK(oned(c, "level", 0.95, 0.0, 1.0, lv));
   std::vector<int> ch;
-  for (double v : cv.v) ch.push_back(static_cast<int>(v) - 1);
+  for (double v : cv.v) ch.push_back(sat<int>(v) - 1);
   std::vector<double> cnt(zz(kk));
   double o[11];
-  if (clab_lnsize(ch.data(), static_cast<int>(ch.size()), kk, sp - 1, qnorm(0.5 + 0.5 * lv), cnt.data(), o) != CLAB_OK) {
+  if (clab_lnsize(ch.data(), sat<int>(ch.size()), kk, sp - 1, qnorm(0.5 + 0.5 * lv), cnt.data(), o) != CLAB_OK) {
     return c.fail("the kernel refused the input.");
   }
   static const char *const sn[] = {"n",      "k",   "nm",    "psusp", "pbin", "fsize",

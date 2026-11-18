@@ -54,8 +54,8 @@ bool ctab(Ctx &c, const Val &x, std::vector<double> &p, int &r, int &k, std::vec
     onames(x, cl, cna);
     if (nc > 0) onames(x.a[0], rl, rna);
   } else if (x.t == Val::ARR && shape(x, 2, dim, 0)) {
-    nr = static_cast<std::size_t>(dim[0]);
-    nc = static_cast<std::size_t>(dim[1]);
+    nr = sat<std::size_t>(dim[0]);
+    nc = sat<std::size_t>(dim[1]);
   } else {
     return c.fail("`x` must be counts: %s.", tforms);
   }
@@ -90,8 +90,8 @@ bool ctab(Ctx &c, const Val &x, std::vector<double> &p, int &r, int &k, std::vec
       return c.fail("`x` has no count in column %s: an outcome no unit has gives no contrast.", cn[j].c_str());
     }
   }
-  r = static_cast<int>(nr);
-  k = static_cast<int>(nc);
+  r = sat<int>(nr);
+  k = sat<int>(nc);
   return true;
 }
 
@@ -148,7 +148,7 @@ bool relchk(Ctx &c, Val &out) {
   --hi;
   --ei;
   if (gi >= 0 && gi == hi) return c.fail("`group` and `ref` must name two different rows.");
-  const std::size_t m = 3 * static_cast<std::size_t>(r) * static_cast<std::size_t>(k) * static_cast<std::size_t>(r + k - 2);
+  const std::size_t m = 3 * sat<std::size_t>(r) * sat<std::size_t>(k) * sat<std::size_t>(r + k - 2);
   std::vector<int> gr(m), g(m), h(m), e(m), kd(m), mt(m);
   std::vector<double> v(m);
   int nm = 0;
@@ -162,9 +162,9 @@ bool relchk(Ctx &c, Val &out) {
     const std::vector<std::string> &gl = gr[j] == 0 ? rn : cn, &el = gr[j] == 0 ? cn : rn;
     c0.a.push_back(vstr(side[gr[j]]));
     c1.a.push_back(vstr(kinds[kd[j]]));
-    c2.a.push_back(vstr(gl[static_cast<std::size_t>(g[j])]));
-    c3.a.push_back(vstr(gl[static_cast<std::size_t>(h[j])]));
-    c4.a.push_back(vstr(el[static_cast<std::size_t>(e[j])]));
+    c2.a.push_back(vstr(gl[sat<std::size_t>(g[j])]));
+    c3.a.push_back(vstr(gl[sat<std::size_t>(h[j])]));
+    c4.a.push_back(vstr(el[sat<std::size_t>(e[j])]));
     cl[j] = gr[j] == 0 && kd[j] == q && (gi < 0 || g[j] == gi) && (hi < 0 || h[j] == hi) && (ei < 0 || e[j] == ei);
     if (cl[j] && mt[j] != 0) ++hold;
   }
@@ -178,9 +178,9 @@ bool relchk(Ctx &c, Val &out) {
   rd.lgl("match", mt.data(), m);
   rd.lgl("claim", cl.data(), m);
   Val cv = vobj();
-  put(cv, "group", gi < 0 ? Val() : vstr(rn[static_cast<std::size_t>(gi)]));
-  put(cv, "ref", hi < 0 ? Val() : vstr(rn[static_cast<std::size_t>(hi)]));
-  put(cv, "event", ei < 0 ? Val() : vstr(cn[static_cast<std::size_t>(ei)]));
+  put(cv, "group", gi < 0 ? Val() : vstr(rn[sat<std::size_t>(gi)]));
+  put(cv, "ref", hi < 0 ? Val() : vstr(rn[sat<std::size_t>(hi)]));
+  put(cv, "event", ei < 0 ? Val() : vstr(cn[sat<std::size_t>(ei)]));
   out = vobj();
   put(out, "verdict", vstr(hold > 0 ? "holds" : (nm > 0 ? "other" : "none")));
   put(out, "ok", vbool(hold > 0));
@@ -254,8 +254,8 @@ std::vector<const Val *> elems(const Val &x) {
 
 bool vaud(Ctx &c, const Val &x, int nmin, Var &v) {
   const std::vector<const Val *> el = elems(x);
-  if (el.size() > static_cast<std::size_t>(INT_MAX)) return c.fail("`x` is too long for crimlab.");
-  v.n = static_cast<int>(el.size());
+  if (el.size() > sat<std::size_t>(INT_MAX)) return c.fail("`x` is too long for crimlab.");
+  v.n = sat<int>(el.size());
   const Jt t = jtype(x);
   int dim[2] = {-1, -1};
   if (t == JLIST) {
@@ -295,7 +295,7 @@ bool vaud(Ctx &c, const Val &x, int nmin, Var &v) {
     v.k = 2;
     for (std::size_t i = 0; i < el.size(); ++i) {
       const Val *e = el[i];
-      code[i] = e->t == Val::BOOL ? (e->b ? 1 : 0) : e->t == Val::NUM ? static_cast<int>(e->n) : -1;
+      code[i] = e->t == Val::BOOL ? (e->b ? 1 : 0) : e->t == Val::NUM ? sat<int>(e->n) : -1;
     }
   } else {
     // the distinct values as text, by first appearance
@@ -310,17 +310,17 @@ bool vaud(Ctx &c, const Val &x, int nmin, Var &v) {
       for (; j < v.lev.size() && v.lev[j] != s[i]; ++j) {
       }
       if (j == v.lev.size()) v.lev.push_back(s[i]);
-      code[i] = static_cast<int>(j);
+      code[i] = sat<int>(j);
     }
-    v.k = static_cast<int>(v.lev.size());
+    v.k = sat<int>(v.lev.size());
   }
   std::vector<std::string> fl;
   for (const std::string &e : v.lev) fl.push_back(lfold(e));
   int nd = 0;
   const std::vector<int> fk = fcode(fl, nd, nullptr);
-  v.cnt.assign(static_cast<std::size_t>(v.k) + 1, 0);
-  v.twin.assign(static_cast<std::size_t>(v.k) + 1, 0);
-  std::vector<int> iw(static_cast<std::size_t>(v.k) + 1);
+  v.cnt.assign(sat<std::size_t>(v.k) + 1, 0);
+  v.twin.assign(sat<std::size_t>(v.k) + 1, 0);
+  std::vector<int> iw(sat<std::size_t>(v.k) + 1);
   CK(kchk(c, clab_catchk(code.data(), v.n, v.k, fk.data(), nmin, v.cnt.data(), v.twin.data(), v.s, iw.data())));
   v.codes = num && !v.bin && v.k >= 1 && v.k <= 10;
   if (t == JLGL) {
@@ -338,9 +338,9 @@ bool vaud(Ctx &c, const Val &x, int nmin, Var &v) {
 // catchk()'s verdict on a stated reference w for v.
 const char *refst(const Var &v, const std::string &w, int nmin) {
   for (int j = 0; j < v.k; ++j) {
-    if (v.lev[static_cast<std::size_t>(j)] != w) continue;
-    if (v.cnt[static_cast<std::size_t>(j)] == 0) return "empty";
-    if (v.cnt[static_cast<std::size_t>(j)] < nmin) return "low";
+    if (v.lev[sat<std::size_t>(j)] != w) continue;
+    if (v.cnt[sat<std::size_t>(j)] == 0) return "empty";
+    if (v.cnt[sat<std::size_t>(j)] < nmin) return "low";
     return j == v.dref ? "default" : "other";
   }
   const std::string fw = lfold(w);
@@ -399,7 +399,7 @@ bool catchk(Ctx &c, Val &out) {
       }
       const auto it = std::find(nms.begin(), nms.end(), rf.k[j]);
       if (it == nms.end()) return c.fail("`ref` names no variable: %s.", rf.k[j].c_str());
-      const std::size_t i = static_cast<std::size_t>(it - nms.begin());
+      const std::size_t i = sat<std::size_t>(it - nms.begin());
       if (has[i]) return c.fail("`ref` names a variable twice: %s.", rf.k[j].c_str());
       want[i] = w;
       has[i] = 1;
@@ -433,7 +433,7 @@ bool catchk(Ctx &c, Val &out) {
     col[9].a.push_back(vbool(v.cat && v.codes));
     col[10].a.push_back(vnum(0));
     col[11].a.push_back(vnum(0));
-    col[12].a.push_back(v.dref < 0 ? Val() : vstr(v.lev[static_cast<std::size_t>(v.dref)]));
+    col[12].a.push_back(v.dref < 0 ? Val() : vstr(v.lev[sat<std::size_t>(v.dref)]));
     col[13].a.push_back(vstr(v.why));
     col[14].a.push_back(has[i] ? vstr(want[i]) : Val());
     col[15].a.push_back(st == nullptr ? Val() : vstr(st));
@@ -444,12 +444,12 @@ bool catchk(Ctx &c, Val &out) {
       lv[2].a.push_back(Val());
       lv[3].a.push_back(vnum(v.cnt[j]));
       lv[4].a.push_back(vbool(v.cnt[j] > 0 && v.cnt[j] < mn));
-      lv[5].a.push_back(v.twin[j] < 0 ? Val() : vstr(v.lev[static_cast<std::size_t>(v.twin[j])]));
-      lv[6].a.push_back(vbool(static_cast<int>(j) == v.dref));
+      lv[5].a.push_back(v.twin[j] < 0 ? Val() : vstr(v.lev[sat<std::size_t>(v.twin[j])]));
+      lv[6].a.push_back(vbool(sat<int>(j) == v.dref));
     }
   }
   Frame vd, ld;
-  for (int j = 0; j < 17; ++j) vd.add(vnm[j], col[static_cast<std::size_t>(j)]);
+  for (int j = 0; j < 17; ++j) vd.add(vnm[j], col[sat<std::size_t>(j)]);
   static const char *const lnm[] = {"var", "level", "label", "n", "low", "twin", "ref"};
   for (int j = 0; j < 7; ++j) ld.add(lnm[j], lv[j]);
   out = vobj();

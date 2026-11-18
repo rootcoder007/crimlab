@@ -10,8 +10,8 @@ bool spx(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vecto
   if (x.t == Val::NUL) return true;
   int dim[2] = {-1, -1};
   if (x.t == Val::ARR && !x.a.empty() && x.a[0].t == Val::ARR) {
-    if (!shape(x, 2, dim, 0) || !isnum(x.a[0]) || static_cast<std::size_t>(dim[0]) != n) {
-      return c.fail("`x` must be a numeric matrix with one row per person, %d.", static_cast<int>(n));
+    if (!shape(x, 2, dim, 0) || !isnum(x.a[0]) || sat<std::size_t>(dim[0]) != n) {
+      return c.fail("`x` must be a numeric matrix with one row per person, %d.", sat<int>(n));
     }
     v.assign(n * zz(dim[1]), 0.0);
     bool bad = false;
@@ -32,7 +32,7 @@ bool spx(Ctx &c, const Val &x, std::size_t n, std::vector<double> &v, std::vecto
   }
   for (std::size_t j = 0; j < cs.size(); ++j) {
     Dv d;
-    CK(num(c, *cs[j], "x", d, static_cast<std::int64_t>(n)));
+    CK(num(c, *cs[j], "x", d, sat<std::int64_t>(n)));
     v.insert(v.end(), d.v.begin(), d.v.end());
     nm.push_back(j < names.size() && !names[j].empty() ? names[j] : "x" + std::to_string(j + 1));
   }
@@ -47,11 +47,11 @@ bool spcure(Ctx &c, Val &out) {
   CK(bin01(c, c["event"], "event", n, ev));
   int ne = 0;
   for (int e : ev) ne += e;
-  if (ne < 1 || ne >= static_cast<int>(n)) return c.fail("`event` must hold failures and censored times both.");
+  if (ne < 1 || ne >= sat<int>(n)) return c.fail("`event` must hold failures and censored times both.");
   std::vector<double> xv;
   std::vector<std::string> xn;
   CK(spx(c, c["x"], n, xv, xn));
-  const int p = static_cast<int>(xn.size());
+  const int p = sat<int>(xn.size());
   static const char *const dn[] = {"weibull", "exp", "lognormal"};
   int d = 0;
   CK(pickd(c, "dist", dn, 3, 0, d));
@@ -62,7 +62,7 @@ bool spcure(Ctx &c, Val &out) {
   std::vector<double> evd(ev.begin(), ev.end());
   const int q = p + 1, np = 2 * q + (d != 1);
   std::vector<double> par(zz(np)), cov(zz(np) * zz(np)), st(5);
-  const int rc = clab_spcure(tv.p(), evd.data(), p ? xv.data() : nullptr, static_cast<int>(n), p, d, mi, par.data(),
+  const int rc = clab_spcure(tv.p(), evd.data(), p ? xv.data() : nullptr, sat<int>(n), p, d, mi, par.data(),
                              cov.data(), st.data());
   if (rc == CLAB_EINTR) return kchk(c, rc);
   if (rc != CLAB_OK) return c.fail("the likelihood could not be maximised from its start.");

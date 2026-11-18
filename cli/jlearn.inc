@@ -12,7 +12,7 @@ bool lmat(Ctx &c, const Val &x, const char *nm, int &n, int &p, std::vector<doub
   }
   n = dim[0];
   p = dim[1];
-  v.assign(static_cast<std::size_t>(n) * static_cast<std::size_t>(p), 0.0);
+  v.assign(sat<std::size_t>(n) * sat<std::size_t>(p), 0.0);
   bool bad = false;
   fill(x, 2, dim, 0, 0, 1, v, bad, true);
   for (double e : v) {
@@ -30,15 +30,15 @@ bool lfolds(Ctx &c, const Val &f, const char *nm, int n, std::vector<int> &o, in
     mx = std::fmax(mx, e);
   }
   if (mx < 2.0 || mx > n) return c.fail("`%s` must number at least two folds.", nm);
-  k = static_cast<int>(mx);
+  k = sat<int>(mx);
   o.assign(v.n(), 0);
-  std::vector<char> seen(static_cast<std::size_t>(k), 0);
+  std::vector<char> seen(sat<std::size_t>(k), 0);
   for (std::size_t i = 0; i < v.n(); ++i) {
-    o[i] = static_cast<int>(v[i]) - 1;
-    seen[static_cast<std::size_t>(o[i])] = 1;
+    o[i] = sat<int>(v[i]) - 1;
+    seen[sat<std::size_t>(o[i])] = 1;
   }
   for (int j = 0; j < k; ++j) {
-    if (!seen[static_cast<std::size_t>(j)]) return c.fail("`%s` leaves fold %d empty.", nm, j + 1);
+    if (!seen[sat<std::size_t>(j)]) return c.fail("`%s` leaves fold %d empty.", nm, j + 1);
   }
   return true;
 }
@@ -82,12 +82,12 @@ bool enpath(Ctx &c, Val &out) {
     if (nl > kutil::maxcell) return c.fail("`nlam` must be at most %.0f.", kutil::maxcell);
     r = n > p ? 1e-4 : 1e-2;
     if (c.has("lmr")) CK(one(c, c["lmr"], "lmr", 0, 1, r));
-    lam.assign(static_cast<std::size_t>(nl), 0.0);
+    lam.assign(sat<std::size_t>(nl), 0.0);
   } else {
     Dv l;
     CK(num(c, c["lambda"], "lambda", l, -1, 0.0));
     lam = l.v;
-    nl = static_cast<int>(lam.size());
+    nl = sat<int>(lam.size());
     for (std::size_t k = 1; k < lam.size(); ++k) {
       if (lam[k] > lam[k - 1]) return c.fail("`lambda` must be decreasing.");
     }
@@ -102,10 +102,10 @@ bool enpath(Ctx &c, Val &out) {
   CK(wholed(c, "maxit", 1e5, 1, mi));
   CK(lflag(c, "scr", true, sc));
   const double dp = p, dn = n;
-  const std::size_t L = static_cast<std::size_t>(nl), P = static_cast<std::size_t>(p);
+  const std::size_t L = sat<std::size_t>(nl), P = sat<std::size_t>(p);
   std::vector<double> a0(L), beta(P * L), cv(2 * L);
-  std::vector<double> w(static_cast<std::size_t>(dp * dp + 6 * dp + 5 * dn + dn * dp + nl * (dp + 1) + nf * (nl + 1.0)) + 1);
-  std::vector<int> iw(static_cast<std::size_t>(2 * dn + dp) + 1);
+  std::vector<double> w(sat<std::size_t>(dp * dp + 6 * dp + 5 * dn + dn * dp + nl * (dp + 1) + nf * (nl + 1.0)) + 1);
+  std::vector<int> iw(sat<std::size_t>(2 * dn + dp) + 1);
   int best[2], nk = nl;
   const int rc = clab_enpath(xv.data(), n, p, yv.p(), f, a, lam.data(), nl, r, th[0], mi, sc, fd.empty() ? nullptr : fd.data(),
                              nf, a0.data(), beta.data(), cv.data(), best, &nk, w.data(), iw.data());
@@ -120,8 +120,8 @@ bool enpath(Ctx &c, Val &out) {
   if (!fd.empty()) {
     put(out, "cvm", vauto(std::vector<double>(cv.begin(), cv.begin() + nk)));
     put(out, "cvsd", vauto(std::vector<double>(cv.begin() + nk, cv.begin() + 2 * nk)));
-    put(out, "lmin", vnum(lam[static_cast<std::size_t>(best[0])]));
-    put(out, "l1se", vnum(lam[static_cast<std::size_t>(best[1])]));
+    put(out, "lmin", vnum(lam[sat<std::size_t>(best[0])]));
+    put(out, "l1se", vnum(lam[sat<std::size_t>(best[1])]));
   } else {
     for (const char *k : {"cvm", "cvsd", "lmin", "l1se"}) put(out, k, Val());
   }
@@ -141,9 +141,9 @@ bool lgtreg(Ctx &c, Val &out) {
   CK(num(c, arg(c, "tol", d1, 1e-10), "tol", th, 1, 0.0, true));
   int mi = 0;
   CK(wholed(c, "maxit", 50, 1, mi));
-  const std::size_t q = static_cast<std::size_t>(p) + 1;
+  const std::size_t q = sat<std::size_t>(p) + 1;
   std::vector<double> w(2 * q * q + 4 * q), cf(q), se(q);
-  std::vector<int> iw(static_cast<std::size_t>(n));
+  std::vector<int> iw(sat<std::size_t>(n));
   double dev = 0.0;
   const int rc = clab_lgtreg(xv.data(), n, p, yv.p(), th[0], mi, cf.data(), se.data(), &dev, w.data(), iw.data());
   if (rc == CLAB_EDOM) {
@@ -170,7 +170,7 @@ bool rfor(Ctx &c, Val &out) {
   if (pt != p) return c.fail("`newx` must have the %d columns of `x`.", p);
   int ntr = 0, mt = 0, mn = 0;
   CK(wholed(c, "ntree", 500, 1, ntr));
-  mt = static_cast<int>(std::fmin(std::ceil(std::sqrt(p) + 20.0), p));
+  mt = sat<int>(std::fmin(std::ceil(std::sqrt(p) + 20.0), p));
   if (c.has("mtry")) CK(whole(c, c["mtry"], "mtry", 1, mt));
   if (mt > p) return c.fail("`mtry` must be at most the %d columns of `x`.", p);
   CK(wholed(c, "minnode", 5, 1, mn));
@@ -185,9 +185,9 @@ bool rfor(Ctx &c, Val &out) {
   if (ib[0] >= 0.5) return c.fail("`imb` must be below 0.5.");
   CK(num(c, arg(c, "seed", d3, 1), "seed", sd, 1, 0.0));
   if (std::llround(fr[0] * n) < (hn ? 2 : 1)) return c.fail("`frac` leaves too few rows in a bag.");
-  std::vector<double> pr(static_cast<std::size_t>(nt)), ob(static_cast<std::size_t>(n));
-  std::vector<double> w(static_cast<std::size_t>(lrn::fwork(n, p, nt)) + 1);
-  std::vector<int> iw(static_cast<std::size_t>(lrn::fiwork(n, p, nt)) + static_cast<std::size_t>(n + nt) + 1);
+  std::vector<double> pr(sat<std::size_t>(nt)), ob(sat<std::size_t>(n));
+  std::vector<double> w(sat<std::size_t>(lrn::fwork(n, p, nt)) + 1);
+  std::vector<int> iw(sat<std::size_t>(lrn::fiwork(n, p, nt)) + sat<std::size_t>(n + nt) + 1);
   CK(kchk(c, clab_rfor(xv.data(), n, p, yv.p(), tv.data(), nt, ntr, mt, mn, fr[0], rp, hn, ib[0],
                        static_cast<unsigned int>(std::fmod(sd[0], 4294967296.0)), pr.data(), ob.data(), w.data(),
                        iw.data())));
@@ -245,7 +245,7 @@ bool lsubs(Ctx &c, const std::vector<Val> &stk, const char *nm, const Lset &s, c
     if (seen[k]++ > 0) return c.fail("`%s` names \"%s\" twice.", nm, lch[k]);
     sub[j] = lbase(k, s);
   }
-  ns = static_cast<int>(m);
+  ns = sat<int>(m);
   return true;
 }
 
@@ -276,7 +276,7 @@ bool dmlx(Ctx &c, Val &out) {
   std::vector<double> xv;
   CK(lmat(c, c["x"], "x", n, p, xv));
   if (n < 4 || p < 1) return c.fail("`x` must have at least four rows and one column.");
-  const std::size_t sn = static_cast<std::size_t>(n);
+  const std::size_t sn = sat<std::size_t>(n);
   Dv sv, yv, dv, zv;
   if (md == 8) CK(lbin(c, "s", n, sv));
   else if (md == 7) CK(lbin(c, "t", n, sv));
@@ -308,12 +308,12 @@ bool dmlx(Ctx &c, Val &out) {
   int fdim[2] = {-1, -1};
   const bool fm = fo.t == Val::ARR && !fo.a.empty() && fo.a[0].t == Val::ARR && shape(fo, 2, fdim, 0);
   const int nrep = fm ? fdim[1] : 1;
-  if (nrep < 1 || (fm ? fdim[0] : static_cast<int>(vlen(fo))) != n) return c.fail("`fold` must have one row per row of `x`.");
+  if (nrep < 1 || (fm ? fdim[0] : sat<int>(vlen(fo))) != n) return c.fail("`fold` must have one row per row of `x`.");
   std::vector<Val> fcols;
   if (fm) {
     for (int r = 0; r < nrep; ++r) {
       Val v = varr();
-      for (const Val &row : fo.a) v.a.push_back(row.a[static_cast<std::size_t>(r)]);
+      for (const Val &row : fo.a) v.a.push_back(row.a[sat<std::size_t>(r)]);
       fcols.push_back(v);
     }
   } else {
@@ -323,14 +323,14 @@ bool dmlx(Ctx &c, Val &out) {
     if (!isnum(v)) return c.fail("`fold` must be finite numbers with no missing values.");
   }
   int nf = 0;
-  std::vector<int> fv(sn * static_cast<std::size_t>(nrep));
+  std::vector<int> fv(sn * sat<std::size_t>(nrep));
   for (int r = 0; r < nrep; ++r) {
     std::vector<int> f;
     int k = 0;
-    CK(lfolds(c, fcols[static_cast<std::size_t>(r)], "fold", n, f, k));
+    CK(lfolds(c, fcols[sat<std::size_t>(r)], "fold", n, f, k));
     if (r > 0 && k != nf) return c.fail("`fold` must number the same folds in every column.");
     nf = k;
-    std::copy(f.begin(), f.end(), fv.begin() + static_cast<std::ptrdiff_t>(static_cast<std::size_t>(r) * sn));
+    std::copy(f.begin(), f.end(), fv.begin() + sat<std::ptrdiff_t>(sat<std::size_t>(r) * sn));
   }
   int nc = 0, nc2 = 0, nrk = nrep;
   std::vector<int> cw;
@@ -358,14 +358,14 @@ bool dmlx(Ctx &c, Val &out) {
     } else {
       CK(lfolds(c, cu, "clu", n, cw, nc));
     }
-    std::vector<int> cf(static_cast<std::size_t>(nc > nc2 ? nc : nc2));
+    std::vector<int> cf(sat<std::size_t>(nc > nc2 ? nc : nc2));
     for (int r = 0; r < nrep; ++r) {
-      const int *cr = cw.data() + (two ? static_cast<std::size_t>(r) * sn : 0);
+      const int *cr = cw.data() + (two ? sat<std::size_t>(r) * sn : 0);
       const int ncr = two && r == 1 ? nc2 : nc;
-      for (int q = 0; q < ncr; ++q) cf[static_cast<std::size_t>(q)] = -1;
+      for (int q = 0; q < ncr; ++q) cf[sat<std::size_t>(q)] = -1;
       for (std::size_t i = 0; i < sn; ++i) {
-        const int f = fv[static_cast<std::size_t>(r) * sn + i];
-        int &e = cf[static_cast<std::size_t>(cr[i])];
+        const int f = fv[sat<std::size_t>(r) * sn + i];
+        int &e = cf[sat<std::size_t>(cr[i])];
         if (e >= 0 && e != f) return c.fail("`fold` must be constant within each cluster.");
         e = f;
       }
@@ -409,7 +409,7 @@ bool dmlx(Ctx &c, Val &out) {
     if (tr >= 0.5) return c.fail("`trim` must be below 0.5.");
   }
   const int k = clab_dmlxk(md, sc);
-  const std::size_t sk = static_cast<std::size_t>(k), sr2 = static_cast<std::size_t>(nrk);
+  const std::size_t sk = sat<std::size_t>(k), sr2 = sat<std::size_t>(nrk);
   std::vector<double> pr(sn * sk * sr2);
   int fit = 1;
   if (c.has("pred")) {
@@ -442,9 +442,9 @@ bool dmlx(Ctx &c, Val &out) {
     fit = 0;
   }
   std::int64_t niw = 0;
-  const std::size_t nw = static_cast<std::size_t>(clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw));
+  const std::size_t nw = sat<std::size_t>(clab_dmlxsz(md, n, p, nf, nrk, &ly, &ld, &niw));
   std::vector<double> w(nw + 1), est(2 + 2 * sr2), ps(2 * sn * sr2);
-  std::vector<int> iw(static_cast<std::size_t>(niw) + 1);
+  std::vector<int> iw(sat<std::size_t>(niw) + 1);
   const int rc = clab_dmlx(md, sc, xv.data(), n, p, yv.p(), dv.p(), zv.n() ? zv.p() : nullptr, sv.n() ? sv.p() : nullptr,
                            fv.data(), nf, nrk, cw.empty() ? nullptr : cw.data(), nc, nc2, &ly, &ld, tr, fit, pr.data(),
                            est.data(), ps.data(), w.data(), iw.data());
@@ -470,7 +470,7 @@ bool ulcate(Ctx &c, Val &out) {
   std::vector<double> xv;
   CK(lmat(c, c["x"], "x", n, p, xv));
   if (n < 4 || p < 1) return c.fail("`x` must have at least four rows and one column.");
-  const std::size_t sn = static_cast<std::size_t>(n);
+  const std::size_t sn = sat<std::size_t>(n);
   Dv yv, dv, cv, sdv, tlv;
   CK(num(c, c["y"], "y", yv, n));
   CK(lbin(c, "d", n, dv));
@@ -522,9 +522,9 @@ bool ulcate(Ctx &c, Val &out) {
     fit = 0;
   }
   std::int64_t niw = 0;
-  const std::size_t nw = static_cast<std::size_t>(clab_ulcsz(n, p, &ly, &ld, &lt, &niw));
+  const std::size_t nw = sat<std::size_t>(clab_ulcsz(n, p, &ly, &ld, &lt, &niw));
   std::vector<double> w(nw + 1);
-  std::vector<int> iw(static_cast<std::size_t>(niw) + 1);
+  std::vector<int> iw(sat<std::size_t>(niw) + 1);
   const int rc = clab_ulcate(xv.data(), n, p, yv.p(), dv.p(), fv.data(), nf, &ly, &ld, &lt, cv[0], fit, pr.data(),
                              u.data(), tau.data(), w.data(), iw.data());
   if (rc == CLAB_EDOM) return c.fail("no estimate: a learner failed, or a prediction is not finite.");
@@ -577,7 +577,7 @@ bool suplrn(Ctx &c, Val &out) {
   CK(lsubs(c, lr, "lrns", ls, sub, ns));
   int k = 0;
   std::vector<int> fv;
-  const std::size_t sn = static_cast<std::size_t>(n);
+  const std::size_t sn = sat<std::size_t>(n);
   if (!c.has("fold")) {
     CK(wholed(c, "nfold", 5, 2, k));
     if (k > n) return c.fail("`nfold` must be at most the %d rows of `x`.", n);
@@ -589,10 +589,10 @@ bool suplrn(Ctx &c, Val &out) {
   }
   const clab_lrn l = {3, ls.alpha, ls.nlam, ls.nfin, us, ls.ntree, ls.mtry, 0, ls.tol, ls.scr, ls.hon, sub, ns, k, dc};
   std::int64_t niw = 0;
-  const std::size_t nw = static_cast<std::size_t>(clab_stksz(n, p, nt, &l, &niw));
-  std::vector<double> w(nw + 1), oof(sn * static_cast<std::size_t>(ns)), risk(static_cast<std::size_t>(ns)),
-      wt(static_cast<std::size_t>(ns)), pr(static_cast<std::size_t>(nt));
-  std::vector<int> iw(static_cast<std::size_t>(niw) + 1);
+  const std::size_t nw = sat<std::size_t>(clab_stksz(n, p, nt, &l, &niw));
+  std::vector<double> w(nw + 1), oof(sn * sat<std::size_t>(ns)), risk(sat<std::size_t>(ns)),
+      wt(sat<std::size_t>(ns)), pr(sat<std::size_t>(nt));
+  std::vector<int> iw(sat<std::size_t>(niw) + 1);
   const int rc = clab_stack(xv.data(), n, p, yv.p(), fm, &l, fv.data(), tv.data(), nt, oof.data(), risk.data(), wt.data(),
                             pr.data(), w.data(), iw.data());
   if (rc == CLAB_EDOM) {
@@ -600,7 +600,7 @@ bool suplrn(Ctx &c, Val &out) {
   }
   CK(kchk(c, rc));
   std::vector<std::string> nm;
-  for (int j = 0; j < ns; ++j) nm.push_back(lr[static_cast<std::size_t>(j)].s);
+  for (int j = 0; j < ns; ++j) nm.push_back(lr[sat<std::size_t>(j)].s);
   std::vector<int> fo(sn);
   for (std::size_t i = 0; i < sn; ++i) fo[i] = fv[i] + 1;
   out = vobj();

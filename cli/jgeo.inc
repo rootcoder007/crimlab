@@ -153,7 +153,7 @@ bool rgnmapcmp(Ctx &c, Val &out) {
   first.push_back(!onlyp.empty() ? "published only: " + onlyp[0]
                                  : !onlyo.empty() ? "recomputed only: " + onlyo[0] : std::string());
   auto pos = [](const std::vector<std::string> &v, const std::string &s) {
-    return static_cast<std::size_t>(std::find(v.begin(), v.end(), s) - v.begin());
+    return sat<std::size_t>(std::find(v.begin(), v.end(), s) - v.begin());
   };
   for (const std::string &k : cols) {
     const Val &a = col(P, k.c_str()), &b = col(O, k.c_str());
@@ -235,7 +235,7 @@ bool rgnmapalt(Ctx &c, Val &out) {
   for (std::size_t i = 0; i < u.size(); ++i) {
     const auto it = std::find(rk.begin(), rk.end(), u[i]);
     if (it == rk.end()) continue;
-    const std::string &s = rv[static_cast<std::size_t>(it - rk.begin())];
+    const std::string &s = rv[sat<std::size_t>(it - rk.begin())];
     if (s != r[i]) {
       bad.push_back(i);
       sec.push_back(s);

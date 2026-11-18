@@ -70,7 +70,7 @@ inline bool cknum(Ctx &c, const Val &o, const char *w, Nv &d, bool scalar = true
     int dim[2];
     for (int &k : dim) k = -1;
     if (!shape(o, 2, dim, 0)) return ckstop(c, "`%s` must be numeric, got list", w);
-    d.v.assign(static_cast<std::size_t>(dim[0]) * static_cast<std::size_t>(dim[1]), 0.0);
+    d.v.assign(sat<std::size_t>(dim[0]) * sat<std::size_t>(dim[1]), 0.0);
     bool bad = false;
     fill(o, 2, dim, 0, 0, 1, d.v, bad, true);
     d.nr = dim[0];
@@ -141,13 +141,13 @@ inline bool ckarg(Ctx &c, const char *nm, const std::vector<std::string> &ch, in
   int hit = -1, part = 0;
   if (s->t == Val::STR && !s->s.empty()) {
     for (std::size_t i = 0; i < ch.size(); ++i) {
-      if (ch[i] == s->s) hit = static_cast<int>(i);
+      if (ch[i] == s->s) hit = sat<int>(i);
     }
     if (hit < 0) {
       for (std::size_t i = 0; i < ch.size(); ++i) {
         if (ch[i].compare(0, s->s.size(), s->s) == 0) {
           ++part;
-          hit = static_cast<int>(i);
+          hit = sat<int>(i);
         }
       }
       if (part != 1) hit = -1;
@@ -226,7 +226,7 @@ bool ltrlrng(Ctx &c, Val &out) {
   CK(cknumd(c, "m", 1, m, 0, 1, true));
   CK(cknumd(c, "navsd", 0, sd, 0));
   std::vector<double> p(x.n());
-  CK(kchk(c, clab_sarlr(x.p(), static_cast<int>(x.n()), W[0], md, m[0], sd[0], p.data())));
+  CK(kchk(c, clab_sarlr(x.p(), sat<int>(x.n()), W[0], md, m[0], sd[0], p.data())));
   out = vauto(p);
   return true;
 }
@@ -236,11 +236,11 @@ bool swpwdth(Ctx &c, Val &out) {
   CK(sarincr(c, c["x"], "x", x));
   CK(cknum(c, c["p"], "p", p, false, 0, 1));
   if (p.n() != x.n()) {
-    return ckstop(c, "`p` must have one value per `x` (%d), got %d", static_cast<int>(x.n()),
-                  static_cast<int>(p.n()));
+    return ckstop(c, "`p` must have one value per `x` (%d), got %d", sat<int>(x.n()),
+                  sat<int>(p.n()));
   }
   double w = 0;
-  CK(kchk(c, clab_sarsw(x.p(), p.p(), static_cast<int>(x.n()), &w)));
+  CK(kchk(c, clab_sarsw(x.p(), p.p(), sat<int>(x.n()), &w)));
   out = vnum(w);
   return true;
 }
@@ -271,7 +271,7 @@ bool srchpod(Ctx &c, Val &out) {
   Nv m;
   CK(cknumd(c, "m", 1, m, 0, 1, true));
   std::vector<double> p(cv.size());
-  CK(kchk(c, clab_sarpod(cv.data(), static_cast<int>(cv.size()), md, m[0], p.data())));
+  CK(kchk(c, clab_sarpod(cv.data(), sat<int>(cv.size()), md, m[0], p.data())));
   out = vauto(p);
   return true;
 }
@@ -287,7 +287,7 @@ bool pswppod(Ctx &c, Val &out) {
   CK(cknumd(c, "npts", 2001, np, 3, 1e5, false, true));
   CK(cknumd(c, "ntrk", 60, nt, 1, 1e4, false, true));
   double p = 0;
-  CK(kchk(c, clab_sarpsw(W[0], S[0], md, m[0], sd[0], static_cast<int>(np[0]), static_cast<int>(nt[0]), &p)));
+  CK(kchk(c, clab_sarpsw(W[0], S[0], md, m[0], sd[0], sat<int>(np[0]), sat<int>(nt[0]), &p)));
   out = vnum(p);
   return true;
 }
@@ -304,23 +304,23 @@ bool srchscs(Ctx &c, Val &out) {
   if (map && poc.nr >= 0 && dv.t == Val::ARR && !dv.a.empty() && dv.a[0].t == Val::ARR) {
     int dim[2] = {-1, -1};
     if (shape(dv, 2, dim, 0) && dim[0] == poc.nr && dim[1] == poc.nc) {
-      std::vector<double> v(static_cast<std::size_t>(dim[0]) * static_cast<std::size_t>(dim[1]));
+      std::vector<double> v(sat<std::size_t>(dim[0]) * sat<std::size_t>(dim[1]));
       bool bad = false;
       fill(dv, 2, dim, 0, 0, 1, v, bad, true);
       dv = vnums(v);
     }
   }
   CK(cknum(c, dv, "pod", pod, false, 0, 1));
-  const int ns = pod.nr >= 0 ? pod.nr : 1, nd = pod.nr >= 0 ? pod.nc : static_cast<int>(pod.n());
-  if (nd != static_cast<int>(poc.n())) {
+  const int ns = pod.nr >= 0 ? pod.nr : 1, nd = pod.nr >= 0 ? pod.nc : sat<int>(pod.n());
+  if (nd != sat<int>(poc.n())) {
     return ckstop(c, "`pod` must have one value (or column) per area of `poc` (%d), got %d",
-                  static_cast<int>(poc.n()), nd);
+                  sat<int>(poc.n()), nd);
   }
   const std::size_t nar = poc.n();
   std::vector<double> pa(nar), up(nar), cp(nar);
   double pos = 0;
   int cert = 0;
-  CK(kchk(c, clab_sarscs(poc.p(), static_cast<int>(nar), pod.p(), ns, &pos, pa.data(), up.data(), cp.data(), &cert)));
+  CK(kchk(c, clab_sarscs(poc.p(), sat<int>(nar), pod.p(), ns, &pos, pa.data(), up.data(), cp.data(), &cert)));
   if (cert) {
     c.warn.push_back("srchscs: the search is certain to find the object (POS = 1), so the updated containment is "
                      "undefined and returned as NA.");
@@ -362,12 +362,12 @@ bool datumpmap(Ctx &c, Val &out) {
   CK(cknumd(c, "sigma", 1, sg, -HUGE_VAL, HUGE_VAL, true));
   const bool ne = dt >= 1 && dt <= 3;
   if (ne) {
-    if (!c.has("end")) return ckstop(c, "a %s datum needs `end`, two numbers", ch[static_cast<std::size_t>(dt)].c_str());
+    if (!c.has("end")) return ckstop(c, "a %s datum needs `end`, two numbers", ch[sat<std::size_t>(dt)].c_str());
     CK(cknum(c, c["end"], "end", end, false));
     if (end.n() != 2) return ckstop(c, "`end` must be two numbers, x and y");
   }
   CK(cknumd(c, "nodes", 64, nd, 2, 1000, false, true));
-  const int nx = static_cast<int>(xe.n()) - 1, ny = static_cast<int>(ye.n()) - 1;
+  const int nx = sat<int>(xe.n()) - 1, ny = sat<int>(ye.n()) - 1;
   if (dt == 3) {
     if (cen[1] != end[1] && cen[0] != end[0]) return ckstop(c, "a corridor datum must run along x or along y");
     if (cen[0] == end[0] && cen[1] == end[1]) return ckstop(c, "a corridor datum needs `center` and `end` to differ");
@@ -387,9 +387,9 @@ bool datumpmap(Ctx &c, Val &out) {
     if (!any) return ckstop(c, "`wts` must have at least one positive weight");
   }
   const double e0[2] = {0, 0};
-  std::vector<double> g(static_cast<std::size_t>(nx) * static_cast<std::size_t>(ny));
-  CK(kchk(c, clab_sarmap(xe.p(), static_cast<int>(xe.n()), ye.p(), static_cast<int>(ye.n()), dt, cen.p(), sg[0],
-                         ne ? end.p() : e0, static_cast<int>(nd[0]), dt == 4 ? w.p() : nullptr, g.data())));
+  std::vector<double> g(sat<std::size_t>(nx) * sat<std::size_t>(ny));
+  CK(kchk(c, clab_sarmap(xe.p(), sat<int>(xe.n()), ye.p(), sat<int>(ye.n()), dt, cen.p(), sg[0],
+                         ne ? end.p() : e0, sat<int>(nd[0]), dt == 4 ? w.p() : nullptr, g.data())));
   double s = 0;
   for (double v : g) s += v;
   out = vobj();
@@ -397,7 +397,7 @@ bool datumpmap(Ctx &c, Val &out) {
   put(out, "outside", vnum(1 - s));
   put(out, "xedg", vauto(xe.v));
   put(out, "yedg", vauto(ye.v));
-  put(out, "datum", vstr(ch[static_cast<std::size_t>(dt)]));
+  put(out, "datum", vstr(ch[sat<std::size_t>(dt)]));
   put(out, "center", vauto(cen.v));
   put(out, "end", ne ? vauto(end.v) : c["end"]);
   put(out, "sigma", vnum(sg[0]));
@@ -433,8 +433,8 @@ bool opteffort(Ctx &c, Val &out) {
     return ckstop(c, "`area` must be given, one positive number per cell");
   }
   if (ar.n() != poc.n()) {
-    return ckstop(c, "`area` must have one value per cell of `poc` (%d), got %d", static_cast<int>(poc.n()),
-                  static_cast<int>(ar.n()));
+    return ckstop(c, "`area` must have one value per cell of `poc` (%d), got %d", sat<int>(poc.n()),
+                  sat<int>(ar.n()));
   }
   Nv W, e, tol;
   CK(cknum(c, c["W"], "W", W, true, -HUGE_VAL, HUGE_VAL, true));
@@ -450,7 +450,7 @@ bool opteffort(Ctx &c, Val &out) {
   }
   std::vector<double> z(n), cv(n), pd(n);
   double pos = 0, lam = 0;
-  CK(kchk(c, clab_saropt(poc.p(), ar.p(), static_cast<int>(n), W[0], e[0], tol[0], z.data(), cv.data(), pd.data(),
+  CK(kchk(c, clab_saropt(poc.p(), ar.p(), sat<int>(n), W[0], e[0], tol[0], z.data(), cv.data(), pd.data(),
                          &pos, &lam)));
   const int nr = poc.nr >= 0 ? poc.nr : ar.nr, nc = poc.nr >= 0 ? poc.nc : ar.nc;
   auto shp = [&](const std::vector<double> &v) { return nr >= 0 ? vmat(v, nr, nc) : vauto(v); };
@@ -481,12 +481,12 @@ bool optsqr(Ctx &c, Val &out) {
   const std::size_t k = e.n();
   std::vector<double> z(k), o(8 * k);
   for (std::size_t i = 0; i < k; ++i) z[i] = e[i] / (E[0] * E[0]);
-  CK(kchk(c, clab_sarsq(z.data(), static_cast<int>(k), code[md], m[0], o.data())));
+  CK(kchk(c, clab_sarsq(z.data(), sat<int>(k), code[md], m[0], o.data())));
   std::vector<int> sn;
   std::vector<std::vector<double>> cl(7);
   std::vector<double> side;
   for (std::size_t i = 0; i < k; ++i) {
-    sn.push_back(static_cast<int>(i) + 1);
+    sn.push_back(sat<int>(i) + 1);
     for (std::size_t j = 0; j < 7; ++j) cl[j].push_back(o[8 * i + j]);
     side.push_back(2 * o[8 * i + 1] * E[0]);
   }
@@ -498,7 +498,7 @@ bool optsqr(Ctx &c, Val &out) {
   f.num("factor", cl[1]);
   f.num("side", side);
   static const char *const nm[] = {"poc", "coverage", "pod", "pos", "cumpos"};
-  for (int j = 0; j < 5; ++j) f.num(nm[j], cl[static_cast<std::size_t>(j) + 2]);
+  for (int j = 0; j < 5; ++j) f.num(nm[j], cl[sat<std::size_t>(j) + 2]);
   out = f.o;
   return true;
 }
@@ -509,7 +509,7 @@ bool srchfig(Ctx &c, Val &out) {
   const char *row[4];
   for (int i = 0; i < n; ++i) {
     clab_sarfig(i, row);
-    for (int k = 0; k < 4; ++k) t[static_cast<std::size_t>(k)].push_back(row[k]);
+    for (int k = 0; k < 4; ++k) t[sat<std::size_t>(k)].push_back(row[k]);
   }
   int pick = -1;
   if (c.has("fig")) {
@@ -526,19 +526,19 @@ bool srchfig(Ctx &c, Val &out) {
       fg = s->s;
     }
     for (int i = 0; i < n; ++i) {
-      if (t[0][static_cast<std::size_t>(i)] == fg) pick = i;
+      if (t[0][sat<std::size_t>(i)] == fg) pick = i;
     }
     if (pick < 0) {
       std::string all;
-      for (int i = 0; i < n; ++i) all += (i ? ", " : "") + t[0][static_cast<std::size_t>(i)];
+      for (int i = 0; i < n; ++i) all += (i ? ", " : "") + t[0][sat<std::size_t>(i)];
       return ckstop(c, "`fig` must be one of the book's figures, %s; got \"%s\"", all.c_str(), fg.c_str());
     }
   }
   static const char *const nm[] = {"fig", "caption", "how", "yours"};
   Frame f;
   for (int k = 0; k < 4; ++k) {
-    std::vector<std::string> v = t[static_cast<std::size_t>(k)];
-    if (pick >= 0) v = {v[static_cast<std::size_t>(pick)]};
+    std::vector<std::string> v = t[sat<std::size_t>(k)];
+    if (pick >= 0) v = {v[sat<std::size_t>(pick)]};
     f.str(nm[k], v);
   }
   out = f.o;

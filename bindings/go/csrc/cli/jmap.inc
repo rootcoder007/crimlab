@@ -44,7 +44,7 @@ inline bool poly(Ctx &c, Poly &p) {
     if (!ring(o.a[i], x, y)) {
       return c.fail("`polys[[%d]]` must be a two-column numeric matrix of at least three points (rows of NA between "
                     "rings).",
-                    static_cast<int>(i + 1));
+                    sat<int>(i + 1));
     }
     p.ax.insert(p.ax.end(), x.begin(), x.end());
     p.ay.insert(p.ay.end(), y.begin(), y.end());
@@ -84,13 +84,13 @@ inline bool brk(Ctx &c, const std::vector<double> &v, std::vector<double> &br, s
     ok = ok && b.front() <= lo && b.back() >= hi;
   }
   if (!ok) return c.fail("`brk` must be a whole number of classes from 1 to 9, or increasing breaks covering `v`.");
-  const int k = one ? static_cast<int>(b[0]) : 0, mt = one ? (meth == "equal" ? 0 : 1) : 2;
-  int nb = one ? k + 1 : static_cast<int>(b.size());
-  br.assign(static_cast<std::size_t>(nb), 0.0);
+  const int k = one ? sat<int>(b[0]) : 0, mt = one ? (meth == "equal" ? 0 : 1) : 2;
+  int nb = one ? k + 1 : sat<int>(b.size());
+  br.assign(sat<std::size_t>(nb), 0.0);
   if (!one) br = b;
   cls.assign(v.size(), 0);
-  CK(kchk(c, clab_mapbrk(v.data(), static_cast<int>(v.size()), k, mt, br.data(), &nb, cls.data())));
-  br.resize(static_cast<std::size_t>(nb));
+  CK(kchk(c, clab_mapbrk(v.data(), sat<int>(v.size()), k, mt, br.data(), &nb, cls.data())));
+  br.resize(sat<std::size_t>(nb));
   return true;
 }
 
@@ -102,7 +102,7 @@ inline ax::Cols pal(const char *nm, int n) {
   }
   ax::Cols r;
   if (std::strcmp(p->name, "okabe") == 0 || std::strcmp(p->name, "grey") == 0) {
-    for (int i = 0; i < n; ++i) r.push_back(p->col[static_cast<std::size_t>(i) % p->col.size()]);
+    for (int i = 0; i < n; ++i) r.push_back(p->col[sat<std::size_t>(i) % p->col.size()]);
     return r;
   }
   if (n == 1) return {p->col[0]};
@@ -111,7 +111,7 @@ inline ax::Cols pal(const char *nm, int n) {
 
 inline bool bbox(Ctx &c, const std::vector<double> &x, const std::vector<double> &y, std::vector<double> &bb) {
   bb.assign(4, 0.0);
-  return kchk(c, clab_mapbb(x.data(), y.data(), static_cast<int>(x.size()), bb.data()));
+  return kchk(c, clab_mapbb(x.data(), y.data(), sat<int>(x.size()), bb.data()));
 }
 
 // The columns cls (NA for none) and col (null for none) of a frame.
@@ -120,7 +120,7 @@ inline void cls(Frame &f, const std::vector<int> &k, const ax::Cols &pl) {
   Val col = varr();
   for (int v : k) {
     cv.push_back(v > 0 ? static_cast<double>(v) : NA);
-    col.a.push_back(v > 0 ? vstr(pl[static_cast<std::size_t>(v - 1)]) : Val());
+    col.a.push_back(v > 0 ? vstr(pl[sat<std::size_t>(v - 1)]) : Val());
   }
   f.num("cls", cv);
   f.add("col", col);
@@ -142,7 +142,7 @@ bool chomap(Ctx &c, Val &out) {
   Frame f;
   f.add("area", p.lab);
   f.num("v", v);
-  mp::cls(f, k, mp::pal("sequential", static_cast<int>(br.size()) - 1));
+  mp::cls(f, k, mp::pal("sequential", sat<int>(br.size()) - 1));
   out = vobj();
   put(out, "areas", f.o);
   put(out, "breaks", vnums(br));
@@ -196,7 +196,7 @@ bool smmap(Ctx &c, Val &out) {
   f.add("area", lab);
   f.str("prd", pv);
   f.num("v", v);
-  mp::cls(f, k, mp::pal("sequential", static_cast<int>(br.size()) - 1));
+  mp::cls(f, k, mp::pal("sequential", sat<int>(br.size()) - 1));
   out = vobj();
   put(out, "areas", f.o);
   put(out, "breaks", vnums(br));
@@ -263,7 +263,7 @@ bool ptmap(Ctx &c, Val &out) {
     bool ok = co->t != Val::OBJ && isnum(*co) && v.size() == n;
     for (std::size_t i = 0; ok && i < n; ++i) {
       ok = std::isnan(v[i]) || (v[i] >= 1 && v[i] == std::round(v[i]) && v[i] <= INT_MAX);
-      if (ok && !std::isnan(v[i])) cl[i] = static_cast<int>(v[i]);
+      if (ok && !std::isnan(v[i])) cl[i] = sat<int>(v[i]);
     }
     if (!ok) return c.fail("`cl` must be a dbscn result or a cluster per point: whole numbers from 1, NA for noise.");
   }
@@ -281,16 +281,16 @@ bool ptmap(Ctx &c, Val &out) {
       ph[i] = 4;
     } else {
       cv[i] = cl[i];
-      col.a.push_back(vstr(pl[static_cast<std::size_t>(cl[i] - 1)]));
+      col.a.push_back(vstr(pl[sat<std::size_t>(cl[i] - 1)]));
       ph[i] = pch[(cl[i] - 1) % 8];
     }
   }
   std::vector<double> bb;
   CK(mp::bbox(c, x, y, bb));
-  const std::size_t kk = static_cast<std::size_t>(k);
+  const std::size_t kk = sat<std::size_t>(k);
   std::vector<double> cx(kk), cy(kk), id(kk);
   std::vector<int> cn(kk);
-  CK(kchk(c, clab_ptcen(x.data(), y.data(), cl.data(), static_cast<int>(n), k, cx.data(), cy.data(), cn.data())));
+  CK(kchk(c, clab_ptcen(x.data(), y.data(), cl.data(), sat<int>(n), k, cx.data(), cy.data(), cn.data())));
   for (std::size_t j = 0; j < kk; ++j) id[j] = static_cast<double>(j + 1);
   Frame f, g;
   f.num("x", x);
@@ -335,10 +335,10 @@ bool prpmap(Ctx &c, Val &out) {
   std::vector<int> od(n);
   int no = 0;
   double rm = 0.0;
-  CK(kchk(c, clab_mapsym(x.data(), y.data(), v.data(), static_cast<int>(n), rmax, bb.data(), r.data(), od.data(),
+  CK(kchk(c, clab_mapsym(x.data(), y.data(), v.data(), sat<int>(n), rmax, bb.data(), r.data(), od.data(),
                          &no, &rm)));
   std::vector<double> dr(n, NA);
-  for (int q = 0; q < no; ++q) dr[static_cast<std::size_t>(od[static_cast<std::size_t>(q)])] = q + 1;
+  for (int q = 0; q < no; ++q) dr[sat<std::size_t>(od[sat<std::size_t>(q)])] = q + 1;
   for (std::size_t i = 0; i < n; ++i) {
     if (std::isnan(v[i])) r[i] = NA;
   }
@@ -397,18 +397,18 @@ bool eofst(Ctx &c, Val &out) {
     if (!isnum(c["k"]) || kv.size() != 1 || !std::isfinite(kv[0]) || kv[0] < 1 || kv[0] != std::round(kv[0])) {
       return c.fail("`k` must be NULL or one whole number from 1.");
     }
-    k = static_cast<int>(std::min(kv[0], static_cast<double>(s)));
+    k = sat<int>(std::min(kv[0], static_cast<double>(s)));
   }
   std::vector<double> ctr(p), ev(p * s), pc(m * s), d2(s);
   double tot = 0.0;
   int kk = 0;
-  const int rc = clab_eofst(a.data(), static_cast<int>(m), static_cast<int>(p), k, ctr.data(), ev.data(), pc.data(),
+  const int rc = clab_eofst(a.data(), sat<int>(m), sat<int>(p), k, ctr.data(), ev.data(), pc.data(),
                             d2.data(), &tot, &kk);
   if (rc == CLAB_EDOM) return c.fail("`z` has no variation: every column is constant.");
   CK(kchk(c, rc));
   std::vector<double> ex, sd;
   for (int j = 0; j < kk; ++j) {
-    const double d = d2[static_cast<std::size_t>(j)];
+    const double d = d2[sat<std::size_t>(j)];
     ex.push_back(d / tot);
     sd.push_back(std::sqrt(d) / std::sqrt(static_cast<double>(m) - 1));
   }
@@ -419,8 +419,8 @@ bool eofst(Ctx &c, Val &out) {
     for (std::size_t j = 0; j < p; ++j) put(ce, cn[j].c_str(), vnum(ctr[j]));
   }
   out = vobj();
-  put(out, "eofs", vmat(ev.data(), static_cast<int>(p), kk));
-  put(out, "pcs", vmat(pc.data(), static_cast<int>(m), kk));
+  put(out, "eofs", vmat(ev.data(), sat<int>(p), kk));
+  put(out, "pcs", vmat(pc.data(), sat<int>(m), kk));
   put(out, "explained", unbox(vnums(ex)));
   put(out, "sdev", unbox(vnums(sd)));
   put(out, "center", ce);
@@ -462,10 +462,10 @@ bool tpsurf(Ctx &c, Val &out) {
     g[q] = v[0];
   }
   if (x.size() > 4000) return c.fail("at most 4000 points.");
-  const int n = static_cast<int>(x.size()), nx = static_cast<int>(g[0]), ny = static_cast<int>(g[1]);
+  const int n = sat<int>(x.size()), nx = sat<int>(g[0]), ny = sat<int>(g[1]);
   const auto rx = std::minmax_element(x.begin(), x.end()), ry = std::minmax_element(y.begin(), y.end());
   const std::vector<double> gx = ax::seqn(*rx.first, *rx.second, nx), gy = ax::seqn(*ry.first, *ry.second, ny);
-  std::vector<double> a(x.size()), b(3), fit(x.size()), gz(static_cast<std::size_t>(nx) * static_cast<std::size_t>(ny));
+  std::vector<double> a(x.size()), b(3), fit(x.size()), gz(sat<std::size_t>(nx) * sat<std::size_t>(ny));
   const int rc = clab_tpsurf(x.data(), y.data(), z.data(), n, lam, gx.data(), nx, gy.data(), ny, a.data(), b.data(),
                              fit.data(), gz.data());
   if (rc == CLAB_EDOM) return c.fail("the system is singular: the points lie on one line, or repeat with `lam` 0.");
@@ -504,27 +504,27 @@ bool dagcol(Ctx &c, Val &out) {
   std::vector<int> fc, tc;
   const auto code = [&nodes](const std::string &s) {
     const auto it = std::find(nodes.begin(), nodes.end(), s);
-    if (it != nodes.end()) return static_cast<int>(it - nodes.begin());
+    if (it != nodes.end()) return sat<int>(it - nodes.begin());
     nodes.push_back(s);
-    return static_cast<int>(nodes.size()) - 1;
+    return sat<int>(nodes.size()) - 1;
   };
   for (std::size_t i = 0; i < f.size(); ++i) {
     fc.push_back(code(ax::vlab(f[i])));
     tc.push_back(code(ax::vlab(t[i])));
   }
-  const int ne = static_cast<int>(f.size()), nn = static_cast<int>(nodes.size());
+  const int ne = sat<int>(f.size()), nn = sat<int>(nodes.size());
   int nc = 0, nd = 0;
   int rc = clab_dagcol(fc.data(), tc.data(), ne, nn, 0, nullptr, nullptr, nullptr, nullptr, &nc, &nd);
   if (rc == CLAB_EDOM) return c.fail("the edges have a cycle; a DAG has none.");
   CK(kchk(c, rc));
-  const std::size_t k = static_cast<std::size_t>(nc);
+  const std::size_t k = sat<std::size_t>(nc);
   std::vector<int> a(k), cc(k), b(k), sh(k);
   CK(kchk(c, clab_dagcol(fc.data(), tc.data(), ne, nn, nc, a.data(), cc.data(), b.data(), sh.data(), &nc, &nd)));
   ax::Cols la, lc, lb;
   for (std::size_t i = 0; i < k; ++i) {
-    la.push_back(nodes[static_cast<std::size_t>(a[i])]);
-    lc.push_back(nodes[static_cast<std::size_t>(cc[i])]);
-    lb.push_back(nodes[static_cast<std::size_t>(b[i])]);
+    la.push_back(nodes[sat<std::size_t>(a[i])]);
+    lc.push_back(nodes[sat<std::size_t>(cc[i])]);
+    lb.push_back(nodes[sat<std::size_t>(b[i])]);
   }
   Val q;
   if (c.has("triple")) {

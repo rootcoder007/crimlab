@@ -31,7 +31,7 @@ bool zread(Ctx &c, Zin &a) {
     if (r != a.n || k != a.nt) return c.fail("`off` must have the dimensions of `y`.");
   }
   CK(shares(c, a.prob));
-  a.ng = static_cast<int>(a.prob.n());
+  a.ng = sat<int>(a.prob.n());
   CK(nmat(c, c["par"], "par", r, k, a.par));
   if (r != a.p + a.q || k != a.ng) {
     return c.fail("`par` must have one row per column of `x` and `z` and one column per group.");
@@ -42,7 +42,7 @@ bool zread(Ctx &c, Zin &a) {
 bool zgll(Ctx &c, Val &out) {
   Zin a;
   CK(zread(c, a));
-  std::vector<double> post(static_cast<std::size_t>(a.n) * a.ng), wk(2 * static_cast<std::size_t>(a.nt));
+  std::vector<double> post(sat<std::size_t>(a.n) * a.ng), wk(2 * sat<std::size_t>(a.nt));
   double ll = 0;
   if (clab_zgll(a.y.data(), a.n, a.nt, a.hoff ? a.off.data() : nullptr, a.x.data(), a.p, a.z.data(), a.q, a.ng,
                 a.par.data(), a.prob.p(), post.data(), &ll, wk.data()) != CLAB_OK) {
@@ -61,8 +61,8 @@ bool zgem(Ctx &c, Val &out) {
   double tl = 0.0;
   CK(wholed(c, "maxit", 500, 1, mi));
   CK(oned(c, "tol", 1e-8, 0.0, Inf, tl));
-  const std::size_t pq = static_cast<std::size_t>(a.p + a.q);
-  std::vector<double> post(static_cast<std::size_t>(a.n) * a.ng), wk(2 * pq * pq + 3 * pq + 7 * static_cast<std::size_t>(a.nt));
+  const std::size_t pq = sat<std::size_t>(a.p + a.q);
+  std::vector<double> post(sat<std::size_t>(a.n) * a.ng), wk(2 * pq * pq + 3 * pq + 7 * sat<std::size_t>(a.nt));
   std::vector<double> pm = a.par, pr = a.prob.v;
   double ll = 0;
   int it = 0;
@@ -71,7 +71,7 @@ bool zgem(Ctx &c, Val &out) {
     return c.fail("`y` must hold whole counts from 0 (NA or a negative value is missing).");
   }
   out = vobj();
-  put(out, "par", vmat(pm, static_cast<int>(pq), a.ng));
+  put(out, "par", vmat(pm, sat<int>(pq), a.ng));
   put(out, "prob", vauto(pr));
   put(out, "post", vmat(post, a.n, a.ng));
   put(out, "ll", vnum(ll));
@@ -89,7 +89,7 @@ bool mread(Ctx &c, Min &a) {
   CK(narr(c, c["y"], "y", 3, a.dy, a.y, true));
   CK(narr(c, c["x"], "x", 2, a.dx, a.x));
   CK(shares(c, a.prob));
-  a.ng = static_cast<int>(a.prob.n());
+  a.ng = sat<int>(a.prob.n());
   CK(narr(c, c["beta"], "beta", 3, a.db, a.b));
   CK(narr(c, c["sig"], "sig", 3, a.ds, a.s));
   const int nt = a.dy[1], r = a.dy[2], p = a.dx[1];
@@ -105,7 +105,7 @@ bool mvtll(Ctx &c, Val &out) {
   Min a;
   CK(mread(c, a));
   const int n = a.dy[0], nt = a.dy[1], r = a.dy[2], p = a.dx[1];
-  std::vector<double> post(static_cast<std::size_t>(n) * a.ng), wk(static_cast<std::size_t>(r) * r + r);
+  std::vector<double> post(sat<std::size_t>(n) * a.ng), wk(sat<std::size_t>(r) * r + r);
   double ll = 0;
   if (clab_mvtll(a.y.data(), n, nt, r, a.x.data(), p, a.ng, a.b.data(), a.s.data(), a.prob.p(), post.data(), &ll,
                  wk.data()) != CLAB_OK) {
@@ -125,8 +125,8 @@ bool mvtem(Ctx &c, Val &out) {
   double tl = 0.0;
   CK(wholed(c, "maxit", 500, 1, mi));
   CK(oned(c, "tol", 1e-8, 0.0, Inf, tl));
-  std::vector<double> post(static_cast<std::size_t>(n) * a.ng),
-      wk(static_cast<std::size_t>(p) * p + static_cast<std::size_t>(p) * r + static_cast<std::size_t>(r) * r + r);
+  std::vector<double> post(sat<std::size_t>(n) * a.ng),
+      wk(sat<std::size_t>(p) * p + sat<std::size_t>(p) * r + sat<std::size_t>(r) * r + r);
   std::vector<double> pr = a.prob.v;
   double ll = 0;
   int it = 0;

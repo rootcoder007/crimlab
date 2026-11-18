@@ -15,15 +15,15 @@ bool dec01(Ctx &c, const Val &x, const char *nm, std::size_t n, std::vector<doub
 bool col2(Ctx &c, const Val &x, int j, const char *nm, Val &v) {
   if (x.t == Val::OBJ) {
     if (x.a.size() != 2) return c.fail("`%s` must have two columns.", nm);
-    v = x.a[static_cast<std::size_t>(j)];
+    v = x.a[sat<std::size_t>(j)];
     return true;
   }
   int dim[2] = {-1, -1};
   if (x.t != Val::ARR || x.a.empty() || !shape(x, 2, dim, 0) || dim[1] != 2) return c.fail("`%s` must have two columns.", nm);
   v = varr();
   for (const Val &r : x.a) {
-    if (r.a[static_cast<std::size_t>(j)].t == Val::STR) return c.fail("`%s` must hold numbers.", nm);
-    v.a.push_back(r.a[static_cast<std::size_t>(j)]);
+    if (r.a[sat<std::size_t>(j)].t == Val::STR) return c.fail("`%s` must hold numbers.", nm);
+    v.a.push_back(r.a[sat<std::size_t>(j)]);
   }
   return true;
 }
@@ -41,11 +41,11 @@ bool jdgiv(Ctx &c, Val &out) {
     CK(dec01(c, d0, "d", n, a));
     CK(dec01(c, d1, "d", n, b));
     Dv u, v, wv;
-    CK(num(c, y0, "y", u, static_cast<std::int64_t>(n)));
-    CK(num(c, y1, "y", v, static_cast<std::int64_t>(n)));
-    if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
+    CK(num(c, y0, "y", u, sat<std::int64_t>(n)));
+    CK(num(c, y1, "y", v, sat<std::int64_t>(n)));
+    if (c.has("w")) CK(num(c, c["w"], "w", wv, sat<std::int64_t>(n), 0.0));
     double o[12];
-    if (clab_jdgpop(a.data(), b.data(), u.p(), v.p(), wv.n() ? wv.p() : nullptr, static_cast<int>(n), o) != CLAB_OK) {
+    if (clab_jdgpop(a.data(), b.data(), u.p(), v.p(), wv.n() ? wv.p() : nullptr, sat<int>(n), o) != CLAB_OK) {
       return c.fail("`w` must have a positive total.");
     }
     static const char *const sn[] = {"complier", "defier", "always", "never"};
@@ -62,8 +62,8 @@ bool jdgiv(Ctx &c, Val &out) {
   CK(dec01(c, c["z"], "z", n, zd));
   CK(dec01(c, c["d"], "d", n, dd));
   Dv yv, wv, sv, ev;
-  CK(num(c, c["y"], "y", yv, static_cast<std::int64_t>(n)));
-  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
+  CK(num(c, c["y"], "y", yv, sat<std::int64_t>(n)));
+  if (c.has("w")) CK(num(c, c["w"], "w", wv, sat<std::int64_t>(n), 0.0));
   Val ds = vnums(std::vector<double>{0, 0.05, 0.1}), d1;
   CK(num(c, c.has("dsh") ? c["dsh"] : ds, "dsh", sv, -1, 0.0));
   CK(num(c, arg(c, "deff", d1, 0), "deff", ev));
@@ -73,8 +73,8 @@ bool jdgiv(Ctx &c, Val &out) {
   }
   double est[6];
   std::vector<double> sens(nd * ne);
-  if (clab_jdgiv(zd.data(), dd.data(), yv.p(), wv.n() ? wv.p() : nullptr, static_cast<int>(n), sv.p(), static_cast<int>(nd),
-                 ev.p(), static_cast<int>(ne), est, sens.data()) != CLAB_OK) {
+  if (clab_jdgiv(zd.data(), dd.data(), yv.p(), wv.n() ? wv.p() : nullptr, sat<int>(n), sv.p(), sat<int>(nd),
+                 ev.p(), sat<int>(ne), est, sens.data()) != CLAB_OK) {
     return c.fail("`z` must take both values, each with a positive weight.");
   }
   static const char *const en[] = {"fs", "itt", "wald"};
@@ -106,22 +106,22 @@ bool mmshr(Ctx &c, Val &out) {
   CK(num(c, c["sent"], "sent", sv));
   const std::size_t n = sv.n();
   CK(num(c, c["min"], "min", mv));
-  if (mv.n() != 1 && mv.n() != n) return c.fail("`min` must be one number or one per case, %d.", static_cast<int>(n));
+  if (mv.n() != 1 && mv.n() != n) return c.fail("`min` must be one number or one per case, %d.", sat<int>(n));
   std::vector<double> mr(n);
   for (std::size_t i = 0; i < n; ++i) mr[i] = mv[mv.n() == 1 ? 0 : i];
   Lab g;
   const bool hg = c.has("grp");
   if (hg) CK(codes(c, c["grp"], "grp", n, g));
   const int ng = hg ? g.g : 0;
-  std::vector<double> ov(5 * (static_cast<std::size_t>(ng) + 1));
-  clab_mmshr(sv.p(), mr.data(), hg ? g.code.data() : nullptr, static_cast<int>(n), ng, ov.data());
+  std::vector<double> ov(5 * (sat<std::size_t>(ng) + 1));
+  clab_mmshr(sv.p(), mr.data(), hg ? g.code.data() : nullptr, sat<int>(n), ng, ov.data());
   const int r0 = hg ? 0 : ng, nr = hg ? ng + 1 : 1;
   std::vector<std::string> gl;
-  for (int k = 0; k < nr; ++k) gl.push_back(k < nr - 1 ? g.lev[static_cast<std::size_t>(k)] : "all");
+  for (int k = 0; k < nr; ++k) gl.push_back(k < nr - 1 ? g.lev[sat<std::size_t>(k)] : "all");
   Frame f;
   f.str("group", gl);
   static const char *const cn[] = {"n", "at", "below", "above", "mexcess"};
-  for (int q = 0; q < 5; ++q) f.num(cn[q], ov.data() + q * (ng + 1) + r0, static_cast<std::size_t>(nr));
+  for (int q = 0; q < 5; ++q) f.num(cn[q], ov.data() + q * (ng + 1) + r0, sat<std::size_t>(nr));
   out = f.o;
   return true;
 }
@@ -130,17 +130,17 @@ const char *const padjs[] = {"none", "bonferroni", "holm", "hochberg", "BH", "BY
 
 bool jmono(Ctx &c, Val &out) {
   const std::size_t n = vlen(c["d"]);
-  const int ni = static_cast<int>(n);
+  const int ni = sat<int>(n);
   std::vector<double> dd;
   CK(dec01(c, c["d"], "d", n, dd));
   Lab j;
   CK(codes(c, c["judge"], "judge", n, j));
   const int nj = j.g;
-  const std::size_t sj = static_cast<std::size_t>(nj);
+  const std::size_t sj = sat<std::size_t>(nj);
   Dv yv, wv;
   const bool hy = c.has("y");
-  if (hy) CK(num(c, c["y"], "y", yv, static_cast<std::int64_t>(n)));
-  if (c.has("w")) CK(num(c, c["w"], "w", wv, static_cast<std::int64_t>(n), 0.0));
+  if (hy) CK(num(c, c["y"], "y", yv, sat<std::int64_t>(n)));
+  if (c.has("w")) CK(num(c, c["w"], "w", wv, sat<std::int64_t>(n), 0.0));
   double mn = 0.0, al = 0.0;
   CK(binrd(c, "minn", 30, 0.0, Inf, mn));
   int ad = 0;
@@ -153,13 +153,13 @@ bool jmono(Ctx &c, Val &out) {
     return c.fail("every judge needs cases with a positive total weight.");
   }
   std::vector<int> o(sj);
-  for (int k = 0; k < nj; ++k) o[static_cast<std::size_t>(k)] = k;
+  for (int k = 0; k < nj; ++k) o[sat<std::size_t>(k)] = k;
   std::stable_sort(o.begin(), o.end(), [&](int a, int b) { return rate[a] < rate[b]; });
   std::vector<std::string> jl(sj);
   std::vector<double> fn(sj), sr(sj), sy(sj);
   for (std::size_t k = 0; k < sj; ++k) {
     const int q = o[k];
-    jl[k] = j.lev[static_cast<std::size_t>(q)];
+    jl[k] = j.lev[sat<std::size_t>(q)];
     fn[k] = cnt[q];
     sr[k] = rate[q];
     sy[k] = outc[q];
@@ -194,9 +194,9 @@ bool jmono(Ctx &c, Val &out) {
       if (v < h) return c.fail("`hi` must be at least the largest outcome.");
       h = v;
     }
-    const long long npr = static_cast<long long>(nj) * (nj - 1) / 2;
+    const long long npr = sat<long long>(nj) * (nj - 1) / 2;
     if (npr > 50000000LL) return c.fail("`judge` has too many judges for every pair (more than 1e4).");
-    const std::size_t m = static_cast<std::size_t>(npr);
+    const std::size_t m = sat<std::size_t>(npr);
     std::vector<std::string> ja, jb;
     for (std::size_t a = 0; a < sj; ++a) {
       for (std::size_t b = a + 1; b < sj; ++b) {
@@ -221,15 +221,15 @@ bool jmono(Ctx &c, Val &out) {
   if (c.has("grp")) {
     Lab g;
     CK(codes(c, c["grp"], "grp", n, g));
-    if (static_cast<long long>(nj) * g.g > 100000000LL) return c.fail("`judge` and `grp` make more than 1e8 cells.");
-    const std::size_t sg = static_cast<std::size_t>(g.g);
+    if (sat<long long>(nj) * g.g > 100000000LL) return c.fail("`judge` and `grp` make more than 1e8 cells.");
+    const std::size_t sg = sat<std::size_t>(g.g);
     std::vector<double> cw(2 * sj * sg + 2 * sg);
     double *cn = cw.data(), *cr = cn + sj * sg, *sl = cr + sj * sg, *sc = sl + sg;
     std::vector<int> sjv(sg);
     int npair = 0;
     clab_jsub(j.code.data(), g.code.data(), dd.data(), ni, nj, g.g, mn, rate, cn, cr, nullptr, nullptr, nullptr,
               nullptr, sl, sjv.data(), sc, &npair);
-    const std::size_t np = static_cast<std::size_t>(npair);
+    const std::size_t np = sat<std::size_t>(npair);
     std::vector<int> iw(3 * np + 1), ow(np + 1);
     std::vector<double> zw(2 * np + 1);
     int *pg = iw.data(), *ps = pg + np, *pl = ps + np;
@@ -240,11 +240,11 @@ bool jmono(Ctx &c, Val &out) {
     std::vector<double> rs(np), rl(np), gs(np), gl(np), ns(np), nl(np), zz(np), pv(np), pj(np);
     std::vector<int> rv(np), sgf(np);
     for (std::size_t k = 0; k < np; ++k) {
-      const std::size_t ch = static_cast<std::size_t>(ps[k]) + sj * static_cast<std::size_t>(pg[k]);
-      const std::size_t c2 = static_cast<std::size_t>(pl[k]) + sj * static_cast<std::size_t>(pg[k]);
-      cg[k] = g.lev[static_cast<std::size_t>(pg[k])];
-      cs[k] = j.lev[static_cast<std::size_t>(ps[k])];
-      cl[k] = j.lev[static_cast<std::size_t>(pl[k])];
+      const std::size_t ch = sat<std::size_t>(ps[k]) + sj * sat<std::size_t>(pg[k]);
+      const std::size_t c2 = sat<std::size_t>(pl[k]) + sj * sat<std::size_t>(pg[k]);
+      cg[k] = g.lev[sat<std::size_t>(pg[k])];
+      cs[k] = j.lev[sat<std::size_t>(ps[k])];
+      cl[k] = j.lev[sat<std::size_t>(pl[k])];
       rs[k] = rate[ps[k]];
       rl[k] = rate[pl[k]];
       gs[k] = cr[ch];
@@ -267,7 +267,7 @@ bool jmono(Ctx &c, Val &out) {
     std::vector<int> sjj;
     for (std::size_t k = 0; k < np; ++k) {
       if (!sgf[k]) continue;
-      spr.push_back(static_cast<long long>(ps[k]) * nj + pl[k]);
+      spr.push_back(sat<long long>(ps[k]) * nj + pl[k]);
       sjj.push_back(ps[k]);
       sjj.push_back(pl[k]);
     }

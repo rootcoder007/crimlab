@@ -21,8 +21,8 @@ bool gstr(Ctx &c, Val &out) {
   CK(wholed(c, "nsim", 0, 0, ns));
   unsigned int s = 0;
   if (ns > 0) CK(seed(c, s));
-  const std::size_t m = static_cast<std::size_t>(nr) * static_cast<std::size_t>(nc);
-  const std::size_t q = 2 * static_cast<std::size_t>(std::floor(rd)) + 1;
+  const std::size_t m = sat<std::size_t>(nr) * sat<std::size_t>(nc);
+  const std::size_t q = 2 * sat<std::size_t>(std::floor(rd)) + 1;
   std::vector<double> o(7 * m), wk(m);
   std::vector<int> iw(2 * q * q + 3 * m);
   if (clab_gstr(cv.data(), ev.data(), nr, nc, rd, ns, s, o.data(), wk.data(), iw.data()) != CLAB_OK) {
@@ -31,13 +31,13 @@ bool gstr(Ctx &c, Val &out) {
   static const char *const nm[] = {"gz", "pz", "qz", "pp", "ze", "pe", "qe"};
   std::vector<double> rw(m), cl(m);
   for (std::size_t i = 0; i < m; ++i) {
-    rw[i] = static_cast<double>(i % static_cast<std::size_t>(nr) + 1);
-    cl[i] = static_cast<double>(i / static_cast<std::size_t>(nr) + 1);
+    rw[i] = static_cast<double>(i % sat<std::size_t>(nr) + 1);
+    cl[i] = static_cast<double>(i / sat<std::size_t>(nr) + 1);
   }
   Frame f;
   f.num("row", rw);
   f.num("col", cl);
-  for (int j = 0; j < 7; ++j) f.num(nm[j], o.data() + static_cast<std::size_t>(j) * m, m);
+  for (int j = 0; j < 7; ++j) f.num(nm[j], o.data() + sat<std::size_t>(j) * m, m);
   out = f.o;
   return true;
 }
@@ -52,7 +52,7 @@ bool sptst(Ctx &c, Val &out) {
     return c.fail("`a` and `b` must be counts.");
   }
   const std::vector<double> av = dbl(a[0]), bv = dbl(a[1]);
-  const int n = static_cast<int>(av.size());
+  const int n = sat<int>(av.size());
   if (n < 1 || bv.size() != av.size()) return c.fail("`a` and `b` must have the same length, from 1.");
   int nbt = 0;
   CK(wholed(c, "nboot", 200, 1, nbt));

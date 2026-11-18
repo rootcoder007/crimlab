@@ -50,7 +50,7 @@ bool rndalc(Ctx &c, Val &out) {
     }
     if (!ok) return ckstop(c, "`arms` must name two or more arms, each once");
   }
-  const int k = static_cast<int>(arms.size());
+  const int k = sat<int>(arms.size());
   Nv ra;
   if (c.has("ratio")) {
     CK(cknum(c, c["ratio"], "ratio", ra, false, 1, 1e6, false, true));
@@ -104,18 +104,18 @@ bool rndalc(Ctx &c, Val &out) {
   std::vector<int> ci, ri, bi;
   int n = 0;
   for (double v : cnt) {
-    ci.push_back(static_cast<int>(v));
-    n += static_cast<int>(v);
+    ci.push_back(sat<int>(v));
+    n += sat<int>(v);
   }
-  for (double v : ra.v) ri.push_back(static_cast<int>(v));
+  for (double v : ra.v) ri.push_back(sat<int>(v));
   if (!simple) {
-    for (double v : bl.v) bi.push_back(static_cast<int>(v));
+    for (double v : bl.v) bi.push_back(sat<int>(v));
   }
   std::vector<int> arm(zz(n)), bno(zz(n));
-  const int rc = clab_rndalc(static_cast<int>(ci.size()), ci.data(), k, ri.data(), bi.empty() ? nullptr : bi.data(),
-                             static_cast<int>(bi.size()), sd, arm.data(), bno.data());
+  const int rc = clab_rndalc(sat<int>(ci.size()), ci.data(), k, ri.data(), bi.empty() ? nullptr : bi.data(),
+                             sat<int>(bi.size()), sd, arm.data(), bno.data());
   if (rc != CLAB_OK) return kerr(c, "rndalc", rc);
-  const int w = static_cast<int>(std::to_string(n).size());
+  const int w = sat<int>(std::to_string(n).size());
   Cols id, st, av;
   Val bv = varr();
   std::vector<double> tab(ci.size() * zz(k), 0.0);
@@ -139,7 +139,7 @@ bool rndalc(Ctx &c, Val &out) {
   f.str("arm", av);
   out = vobj();
   put(out, "alloc", f.o);
-  put(out, "tab", vmat(tab, static_cast<int>(ci.size()), k));
+  put(out, "tab", vmat(tab, sat<int>(ci.size()), k));
   put(out, "seed", vnum(sd));
   return true;
 }
@@ -210,10 +210,10 @@ bool blkprm(Ctx &c, Val &out) {
     CK(xseed(c, sd));
   }
   std::vector<int> di(n);
-  for (std::size_t i = 0; i < n; ++i) di[i] = static_cast<int>(tv[i]);
-  const int nd = static_cast<int>(np);
+  for (std::size_t i = 0; i < n; ++i) di[i] = sat<int>(tv[i]);
+  const int nd = sat<int>(np);
   std::vector<double> s4(4), dist(zz(nd));
-  const int rc = clab_blkprm(yv.data(), di.data(), b.c.data(), static_cast<int>(n), b.n, st, al, nd, ex ? 1 : 0, sd,
+  const int rc = clab_blkprm(yv.data(), di.data(), b.c.data(), sat<int>(n), b.n, st, al, nd, ex ? 1 : 0, sd,
                              nd, s4.data(), dist.data());
   if (rc != CLAB_OK) return kerr(c, "blkprm", rc);
   static const char *const sn[] = {"diff", "strat"}, *const an[] = {"two.sided", "greater", "less"};
@@ -260,9 +260,9 @@ bool pwranv(Ctx &c, Val &out) {
     if (tg <= alpha || tg >= 1) return ckstop(c, "`power` must be above `alpha` and below 1");
     f = fv.v;
   }
-  const int m = static_cast<int>(f.size());
+  const int m = sat<int>(f.size());
   std::vector<double> o(zz(m) * 6);
-  const int rc = clab_pwranv(static_cast<int>(kv[0]), m, n.empty() ? nullptr : n.data(), f.data(), alpha, tg, o.data());
+  const int rc = clab_pwranv(sat<int>(kv[0]), m, n.empty() ? nullptr : n.data(), f.data(), alpha, tg, o.data());
   if (rc != CLAB_OK) return kerr(c, "pwranv", rc);
   for (double &v : o) {
     if (std::isnan(v)) v = NA;
@@ -313,14 +313,14 @@ bool pwrsim(Ctx &c, Val &out) {
   double alpha = 0, level = 0;
   CK(xopen(c, "alpha", 0.05, alpha));
   CK(cknumd(c, "nsim", 1000, q, 1, 1e6, false, true));
-  const int nsim = static_cast<int>(q[0]);
+  const int nsim = sat<int>(q[0]);
   int nperm = 1;
   if (test == 1) {
     CK(cknumd(c, "nperm", 199, q, 1, 1e5, false, true));
     if (1 / (q[0] + 1) > alpha) {
       return ckstop(c, "`nperm` is too few for `alpha`: the least p-value, 1 / (nperm + 1), is above it");
     }
-    nperm = static_cast<int>(q[0]);
+    nperm = sat<int>(q[0]);
   }
   CK(xopen(c, "level", 0.95, level));
   unsigned int sd = 0;
@@ -331,14 +331,14 @@ bool pwrsim(Ctx &c, Val &out) {
     for (double a : nv.v) {
       const double b = std::nearbyint(ratio * a);
       if (b < 2 || b > 1e6) return ckstop(c, "`ratio * n` must round to treated arms of 2 to 1000000");
-      n0.push_back(static_cast<int>(a));
-      n1.push_back(static_cast<int>(b));
+      n0.push_back(sat<int>(a));
+      n1.push_back(sat<int>(b));
       gn.push_back(a);
       gn1.push_back(b);
       ge.push_back(e);
     }
   }
-  const int m = static_cast<int>(ge.size());
+  const int m = sat<int>(ge.size());
   std::vector<double> o(zz(m) * 5);
   const int rc = clab_pwrsim(fam, par, m, n0.data(), n1.data(), ge.data(), test, alt, alpha, nsim, nperm, level,
                              sd, o.data());
@@ -390,7 +390,7 @@ bool falsctl(Ctx &c, Val &out) {
   if (!vary) return ckstop(c, "column `%s` must vary", dc[0].c_str());
   Nv q;
   CK(cknumd(c, "nperm", 0, q, 0, 1e6, false, true));
-  const int np = static_cast<int>(q[0]);
+  const int np = sat<int>(q[0]);
   double alpha = 0, level = 0;
   CK(xopen(c, "alpha", 0.05, alpha));
   CK(xopen(c, "level", 0.95, level));
@@ -400,9 +400,9 @@ bool falsctl(Ctx &c, Val &out) {
   if (!yc.empty()) ctl.push_back(0);
   ctl.insert(ctl.end(), nc.size(), 1);
   static const int code[] = {2, 1, 3, 4, 5, 0};
-  const int m = static_cast<int>(oc.size());
+  const int m = sat<int>(oc.size());
   std::vector<double> o(zz(m) * 8);
-  const int rc = clab_falsctl(pd(xm), static_cast<int>(n), static_cast<int>(xc.size()), dv.data(), ym.data(), m,
+  const int rc = clab_falsctl(pd(xm), sat<int>(n), sat<int>(xc.size()), dv.data(), ym.data(), m,
                               ctl.data(), se == 0 ? 1 : 0, level, code[adj], np, sd, o.data());
   if (rc == CLAB_EDOM) return c.fail("the covariates are collinear, or `d` does not vary once they are taken out.");
   if (rc != CLAB_OK) return kerr(c, "falsctl", rc);
@@ -466,10 +466,10 @@ bool plntfx(Ctx &c, Val &out) {
   if (c.has("tol")) CK(cknum(c, c["tol"], "tol", tv, true, 0));
   unsigned int sd = 0;
   CK(xseed(c, sd));
-  const int m = static_cast<int>(ev.n());
+  const int m = sat<int>(ev.n());
   std::vector<double> o(zz(m) * 5);
-  const int rc = clab_plntfx(pd(xm), static_cast<int>(n), static_cast<int>(xc.size()), yv.data(), dv.data(),
-                             ev.p(), m, static_cast<int>(nrep), se == 0 ? 1 : 0, level, sd, o.data());
+  const int rc = clab_plntfx(pd(xm), sat<int>(n), sat<int>(xc.size()), yv.data(), dv.data(),
+                             ev.p(), m, sat<int>(nrep), se == 0 ? 1 : 0, level, sd, o.data());
   if (rc == CLAB_EDOM) return c.fail("the covariates are collinear, or `d` does not vary once they are taken out.");
   if (rc != CLAB_OK) return kerr(c, "plntfx", rc);
   std::vector<double> bias, tl;
@@ -531,7 +531,7 @@ bool specrv(Ctx &c, Val &out) {
   bool vary = false;
   for (double v : dv) vary = vary || v != dv[0];
   if (!vary) return ckstop(c, "column `%s` must vary", dc[0].c_str());
-  const int m = static_cast<int>(oc.size()), ns = 1 << m, ny = static_cast<int>(yc.size()), K = ny * ns;
+  const int m = sat<int>(oc.size()), ns = 1 << m, ny = sat<int>(yc.size()), K = ny * ns;
   const double dn = static_cast<double>(n);
   if (ns * dn * (static_cast<double>(xo.size()) + 1) + ns * static_cast<double>(ny) * dn > 67108864.0) {
     return ckstop(c, "too many specifications for these rows");
@@ -540,11 +540,11 @@ bool specrv(Ctx &c, Val &out) {
   CK(xopen(c, "level", 0.95, level));
   Nv q;
   CK(cknumd(c, "nsim", 500, q, 1, 1e5, false, true));
-  const int nsim = static_cast<int>(q[0]);
+  const int nsim = sat<int>(q[0]);
   unsigned int sd = 0;
   CK(xseed(c, sd));
   std::vector<double> sp(zz(K) * 6), st(8), dist(zz(nsim) * 3);
-  const int rc = clab_specrv(pd(xm), static_cast<int>(n), static_cast<int>(xc.size()), m, ym.data(), ny, dv.data(),
+  const int rc = clab_specrv(pd(xm), sat<int>(n), sat<int>(xc.size()), m, ym.data(), ny, dv.data(),
                              se == 0 ? 1 : 0, level, nl, nsim, sd, sp.data(), st.data(), dist.data());
   if (rc == CLAB_EDOM) return c.fail("the covariates are collinear, or `d` does not vary once they are taken out.");
   if (rc != CLAB_OK) return kerr(c, "specrv", rc);
@@ -617,11 +617,11 @@ bool gensw(Ctx &c, Val &out) {
   const double trim = q[0];
   if (trim >= 0.5) return ckstop(c, "`trim` must be below 0.5");
   CK(cknumd(c, "bins", 10, q, 1, 1e4, false, true));
-  const int p = static_cast<int>(xc.size());
+  const int p = sat<int>(xc.size());
   std::vector<int> si(n);
-  for (std::size_t i = 0; i < n; ++i) si[i] = static_cast<int>(sv[i]);
+  for (std::size_t i = 0; i < n; ++i) si[i] = sat<int>(sv[i]);
   std::vector<double> ps(n), w(n), cf(zz(p) + 1), st(6), bal(zz(p) * 5);
-  const int rc = clab_gensw(xm.data(), static_cast<int>(n), p, si.data(), tg, trim, static_cast<int>(q[0]),
+  const int rc = clab_gensw(xm.data(), sat<int>(n), p, si.data(), tg, trim, sat<int>(q[0]),
                             ps.data(), w.data(), cf.data(), st.data(), bal.data());
   if (rc == CLAB_EDOM) {
     return c.fail("the sampling model cannot be fitted: the covariates separate the trial from the rest, or are "
@@ -716,18 +716,18 @@ bool trnsp(Ctx &c, Val &out) {
   const double trim = q[0];
   if (trim >= 0.5) return ckstop(c, "`trim` must be below 0.5");
   CK(cknumd(c, "nboot", 200, q, 0, 1e5, false, true));
-  const int nb = static_cast<int>(q[0]);
+  const int nb = sat<int>(q[0]);
   double lv = 0;
   CK(xopen(c, "level", 0.95, lv));
   unsigned int sd = 0;
   if (nb > 0) CK(xseed(c, sd));
   std::vector<int> si(n), di(n);
   for (std::size_t i = 0; i < n; ++i) {
-    si[i] = static_cast<int>(sv[i]);
-    di[i] = static_cast<int>(dv[i]);
+    si[i] = sat<int>(sv[i]);
+    di[i] = sat<int>(dv[i]);
   }
   std::vector<double> est(2), se(2), dr(zz(nb) * 2), ps(n), w(n), nf(1);
-  const int rc = clab_trnsp(xm.data(), static_cast<int>(n), static_cast<int>(xc.size()), yv.data(), di.data(),
+  const int rc = clab_trnsp(xm.data(), sat<int>(n), sat<int>(xc.size()), yv.data(), di.data(),
                             si.data(), tg == 0 ? 1 : 0, trim, nb, sd, est.data(), se.data(), dr.data(), ps.data(),
                             w.data(), nf.data());
   if (rc == CLAB_EDOM) {
@@ -830,9 +830,9 @@ bool rcttml(Ctx &c, Val &out) {
   double lv = 0;
   CK(xopen(c, "level", 0.95, lv));
   std::vector<int> di(n);
-  for (std::size_t i = 0; i < n; ++i) di[i] = static_cast<int>(dv[i]);
+  for (std::size_t i = 0; i < n; ++i) di[i] = sat<int>(dv[i]);
   std::vector<double> o(6), aux(3);
-  const int rc = clab_rcttml(pd(xm), static_cast<int>(n), static_cast<int>(xc.size()), yv.data(), di.data(), fam,
+  const int rc = clab_rcttml(pd(xm), sat<int>(n), sat<int>(xc.size()), yv.data(), di.data(), fam,
                              inter, gx, g0, gb, lo, hi, qb, o.data(), aux.data());
   if (rc == CLAB_EDOM) {
     return c.fail("the outcome or treatment model cannot be fitted: the covariates are collinear, or separate the "
@@ -872,8 +872,8 @@ bool rcttml(Ctx &c, Val &out) {
 // svymx() reads it.
 bool rscchi(Ctx &c, Val &out) {
   const std::size_t sn = vlen(c["x"]);
-  const int n = static_cast<int>(sn);
-  if (sn > static_cast<std::size_t>(INT_MAX)) return c.fail("`x` is too long for crimlab: more than %d values.", INT_MAX);
+  const int n = sat<int>(sn);
+  if (sn > sat<std::size_t>(INT_MAX)) return c.fail("`x` is too long for crimlab: more than %d values.", INT_MAX);
   if (n < 2) return c.fail("`x` must have two values at least.");
   Lab lx, ly;
   CK(codes(c, c["x"], "x", sn, lx));
@@ -999,11 +999,11 @@ bool mipmm(Ctx &c, Val &out) {
   xm.insert(xm.end(), xv.begin(), xv.end());
   Nv q;
   CK(cknumd(c, "m", 5, q, 2, 1000, false, true));
-  const int m = static_cast<int>(q[0]);
+  const int m = sat<int>(q[0]);
   CK(cknumd(c, "k", 5, q, 1, 1e4, false, true));
-  const int k = static_cast<int>(q[0]);
+  const int k = sat<int>(q[0]);
   CK(cknumd(c, "maxit", 5, q, 1, 1000, false, true));
-  const int mx = static_cast<int>(q[0]);
+  const int mx = sat<int>(q[0]);
   CK(cknumd(c, "ridge", 1e-5, q, 0));
   const double ridge = q[0];
   Cols a = yc;
@@ -1014,7 +1014,7 @@ bool mipmm(Ctx &c, Val &out) {
     if (!strs(c["fy"], v) || v.size() != 1 || !has(a, v[0])) {
       return ckstop(c, "`fy` must name one column of `y` or `x`");
     }
-    fy = static_cast<int>(std::find(a.begin(), a.end(), v[0]) - a.begin());
+    fy = sat<int>(std::find(a.begin(), a.end(), v[0]) - a.begin());
   }
   Cols fxn;
   std::vector<int> fx;
@@ -1023,7 +1023,7 @@ bool mipmm(Ctx &c, Val &out) {
     for (std::size_t i = 0; ok && i < fxn.size(); ++i) {
       ok = has(a, fxn[i]) && fxn[i] != a[zz(fy)];
       for (std::size_t j = 0; ok && j < i; ++j) ok = fxn[i] != fxn[j];
-      if (ok) fx.push_back(static_cast<int>(std::find(a.begin(), a.end(), fxn[i]) - a.begin()));
+      if (ok) fx.push_back(sat<int>(std::find(a.begin(), a.end(), fxn[i]) - a.begin()));
     }
     if (!ok) return ckstop(c, "`fx` must name columns of `y` or `x` other than `fy`, each once");
   }
@@ -1031,19 +1031,19 @@ bool mipmm(Ctx &c, Val &out) {
   CK(xopen(c, "level", 0.95, lv));
   unsigned int sd = 0;
   CK(xseed(c, sd));
-  const int nt = static_cast<int>(yc.size()), qn = static_cast<int>(a.size());
+  const int nt = sat<int>(yc.size()), qn = sat<int>(a.size());
   std::vector<int> tg(zz(nt));
   std::vector<double> nmis(zz(nt), 0.0);
   std::size_t tot = 0;
   for (int j = 0; j < nt; ++j) {
     tg[zz(j)] = j;
     for (std::size_t i = 0; i < n; ++i) nmis[zz(j)] += std::isnan(xm[zz(j) * n + i]) ? 1 : 0;
-    tot += static_cast<std::size_t>(nmis[zz(j)]);
+    tot += sat<std::size_t>(nmis[zz(j)]);
   }
-  const int np = fy >= 0 ? static_cast<int>(fx.size()) + 1 : nt;
+  const int np = fy >= 0 ? sat<int>(fx.size()) + 1 : nt;
   std::vector<double> imp(tot * zz(m)), pool(zz(np) * 8);
-  const int rc = clab_mipmm(xm.data(), static_cast<int>(n), qn, tg.data(), nt, m, k, mx, ridge, sd, fy,
-                            fx.empty() ? nullptr : fx.data(), static_cast<int>(fx.size()), lv, imp.data(),
+  const int rc = clab_mipmm(xm.data(), sat<int>(n), qn, tg.data(), nt, m, k, mx, ridge, sd, fy,
+                            fx.empty() ? nullptr : fx.data(), sat<int>(fx.size()), lv, imp.data(),
                             pool.data());
   if (rc == CLAB_EDOM) {
     return c.fail("a column of `y` has too few observed values for its predictors, or they are collinear.");
@@ -1052,7 +1052,7 @@ bool mipmm(Ctx &c, Val &out) {
   Val iv = vobj();
   std::size_t at = 0;
   for (int j = 0; j < nt; ++j) {
-    const int r = static_cast<int>(nmis[zz(j)]);
+    const int r = sat<int>(nmis[zz(j)]);
     put(iv, yc[zz(j)].c_str(), vmat(imp.data() + at, r, m));
     at += zz(r) * zz(m);
   }

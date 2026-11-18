@@ -238,12 +238,12 @@ bool cmpsc(Ctx &c, Val &out) {
     for (double x : v[k].v) bad = bad || std::isinf(x);
     if (bad) return c.fail("`%s` must be numbers (NA for a missing point), not infinite.", an[k]);
   }
-  const int na = static_cast<int>(v[0].n()), nb = static_cast<int>(v[1].n());
+  const int na = sat<int>(v[0].n()), nb = sat<int>(v[1].n());
   int ln = 50, tx = 25;
   if (c.has("len")) CK(whole(c, c["len"], "len", 2, ln));
   int f0 = 0, f1 = na - 1;
-  while (f0 < na && std::isnan(v[0][static_cast<std::size_t>(f0)])) ++f0;
-  while (f1 >= f0 && std::isnan(v[0][static_cast<std::size_t>(f1)])) --f1;
+  while (f0 < na && std::isnan(v[0][sat<std::size_t>(f0)])) ++f0;
+  while (f1 >= f0 && std::isnan(v[0][sat<std::size_t>(f1)])) --f1;
   if (f1 - f0 + 1 < ln) return c.fail("`a` must hold at least `len` points from its first value to its last.");
   std::vector<int> pk = {5, 3, 1};
   if (c.has("npeaks")) {
@@ -252,7 +252,7 @@ bool cmpsc(Ctx &c, Val &out) {
     pk.clear();
     for (double x : d.v) {
       bad = bad || !(x >= 1 && x <= INT_MAX && x == std::floor(x));
-      if (!bad) pk.push_back(static_cast<int>(x));
+      if (!bad) pk.push_back(sat<int>(x));
     }
     if (bad) return c.fail("`npeaks` must be one to eight whole numbers from 1.");
   }
@@ -260,11 +260,11 @@ bool cmpsc(Ctx &c, Val &out) {
   bool full = false;
   CK(fj::jflag(c, "full", full));
   const int ns = (f1 - f0 + 1) / ln;
-  std::vector<double> ccp(static_cast<std::size_t>(ns));
-  std::vector<int> cm(static_cast<std::size_t>(ns));
+  std::vector<double> ccp(sat<std::size_t>(ns));
+  std::vector<int> cm(sat<std::size_t>(ns));
   int off = 0, nseg = 0, sc = 0;
   double pos = 0;
-  const int rc = clab_cmpsc(v[0].p(), na, v[1].p(), nb, ln, pk.data(), static_cast<int>(pk.size()), tx, full, &off,
+  const int rc = clab_cmpsc(v[0].p(), na, v[1].p(), nb, ln, pk.data(), sat<int>(pk.size()), tx, full, &off,
                             &nseg, &sc, &pos, ccp.data(), cm.data());
   if (rc == CLAB_EARG) return c.fail("`b` is shorter than a widened segment; give a longer reference or `full = TRUE`.");
   CK(kchk(c, rc));
@@ -276,8 +276,8 @@ bool cmpsc(Ctx &c, Val &out) {
   for (int s = 0; s < ns; ++s) {
     s1.a.push_back(vnum(s + 1));
     s2.a.push_back(vnum(off + s * ln + 1));
-    s3.a.push_back(std::isnan(ccp[static_cast<std::size_t>(s)]) ? Val() : vnum(ccp[static_cast<std::size_t>(s)]));
-    s4.a.push_back(vbool(cm[static_cast<std::size_t>(s)] != 0));
+    s3.a.push_back(std::isnan(ccp[sat<std::size_t>(s)]) ? Val() : vnum(ccp[sat<std::size_t>(s)]));
+    s4.a.push_back(vbool(cm[sat<std::size_t>(s)] != 0));
   }
   put(sg, "seg", s1);
   put(sg, "start", s2);
