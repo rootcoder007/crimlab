@@ -488,9 +488,9 @@ lists every figure that was assumed rather than measured.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">fp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/co2fp.html">co2fp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">2e5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, loc <span class="op">=</span> <span class="st">"CA-ON"</span><span class="op">)</span></span>
 <span><span class="va">fp</span><span class="op">$</span><span class="va">enekwh</span><span class="op">$</span><span class="va">total</span></span>
-<span><span class="co">#&gt; [1] 2.684117e-08</span></span>
+<span><span class="co">#&gt; [1] 2.684137e-08</span></span>
 <span><span class="va">fp</span><span class="op">$</span><span class="va">co2eg</span></span>
-<span><span class="co">#&gt; [1] 2.441741e-06</span></span>
+<span><span class="co">#&gt; [1] 2.441759e-06</span></span>
 <span><span class="va">fp</span><span class="op">$</span><span class="va">co2int</span><span class="op">$</span><span class="va">year</span></span>
 <span><span class="co">#&gt; [1] 2024</span></span>
 <span><span class="va">fp</span><span class="op">$</span><span class="va">assumptions</span></span>
@@ -498,7 +498,7 @@ lists every figure that was assumed rather than measured.</p>
 <span><span class="co">#&gt; [2] "memory charged: the machine's total 15.6 GB"</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">fp</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Computation footprint (modelled)</span></span>
-<span><span class="co">#&gt;   Time: 0.002 s wall, 0.002 s CPU; utilisation 0.25 (process) on 4 cores</span></span>
+<span><span class="co">#&gt;   Time: 0.002 s wall, 0.003 s CPU; utilisation 0.38 (process) on 4 cores</span></span>
 <span><span class="co">#&gt;   Energy: 2.68e-08 kWh (cpu 2.36e-08, memory 3.23e-09)</span></span>
 <span><span class="co">#&gt;   CO2e: 2.44e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)</span></span>
 <span><span class="co">#&gt;   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.6 GB</span></span>
@@ -549,9 +549,9 @@ lists every figure that was assumed rather than measured.</p>
 <span><span class="va">fp3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/co2fp.html">co2fp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fl">2e5</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>, loc <span class="op">=</span> <span class="st">"CA-ON"</span>, cpupwrw <span class="op">=</span> <span class="fl">65</span>,</span>
 <span>             memgb <span class="op">=</span> <span class="fl">16</span>, meth <span class="op">=</span> <span class="st">"model"</span>, devices <span class="op">=</span> <span class="va">dev</span><span class="op">)</span></span>
 <span><span class="va">fp3</span><span class="op">$</span><span class="va">devices</span></span>
-<span><span class="co">#&gt;   kind  vendor      name               how          kwh counted</span></span>
-<span><span class="co">#&gt; 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE</span></span>
-<span><span class="co">#&gt; 2  cpu example package 0 simulated reading          NaN   FALSE</span></span>
+<span><span class="co">#&gt;   kind  vendor      name               how   kwh counted</span></span>
+<span><span class="co">#&gt; 1  gpu example    card 0 simulated reading 1e-07    TRUE</span></span>
+<span><span class="co">#&gt; 2  cpu example package 0 simulated reading   NaN   FALSE</span></span>
 <span><span class="co">#&gt;                                      note</span></span>
 <span><span class="co">#&gt; 1              average power over the run</span></span>
 <span><span class="co">#&gt; 2 already counted as CPU or memory energy</span></span>

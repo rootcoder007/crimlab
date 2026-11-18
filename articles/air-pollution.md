@@ -419,9 +419,9 @@ measured.
 
 fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
-#> [1] 2.684117e-08
+#> [1] 2.684137e-08
 fp$co2eg
-#> [1] 2.441741e-06
+#> [1] 2.441759e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions
@@ -429,7 +429,7 @@ fp$assumptions
 #> [2] "memory charged: the machine's total 15.6 GB"
 print(fp)
 #> Computation footprint (modelled)
-#>   Time: 0.002 s wall, 0.002 s CPU; utilisation 0.25 (process) on 4 cores
+#>   Time: 0.002 s wall, 0.003 s CPU; utilisation 0.38 (process) on 4 cores
 #>   Energy: 2.68e-08 kWh (cpu 2.36e-08, memory 3.23e-09)
 #>   CO2e: 2.44e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
 #>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.6 GB
@@ -480,9 +480,9 @@ dev <- data.frame(
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
              memgb = 16, meth = "model", devices = dev)
 fp3$devices
-#>   kind  vendor      name               how          kwh counted
-#> 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE
-#> 2  cpu example package 0 simulated reading          NaN   FALSE
+#>   kind  vendor      name               how   kwh counted
+#> 1  gpu example    card 0 simulated reading 1e-07    TRUE
+#> 2  cpu example package 0 simulated reading   NaN   FALSE
 #>                                      note
 #> 1              average power over the run
 #> 2 already counted as CPU or memory energy
