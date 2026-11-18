@@ -15,13 +15,15 @@ names the theorem.
 
 ![crimlab in one minute: a veil-of-darkness table, a reported odds ratio
 checked against every labelling of its table, a clearance paradox, a
-categorical audit, a posterior from a likelihood ratio, hot spots,
+categorical audit, a cross-table with an interval for its association,
+placement volatility, a posterior from a likelihood ratio, hot spots,
 spatial autocorrelation, the command-line program, and the theorems
 behind a function](reference/figures/demo.svg)
 
 crimlab in one minute: a veil-of-darkness table, a reported odds ratio
 checked against every labelling of its table, a clearance paradox, a
-categorical audit, a posterior from a likelihood ratio, hot spots,
+categorical audit, a cross-table with an interval for its association,
+placement volatility, a posterior from a likelihood ratio, hot spots,
 spatial autocorrelation, the command-line program, and the theorems
 behind a function
 
