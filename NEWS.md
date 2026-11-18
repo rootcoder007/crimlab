@@ -1,5 +1,16 @@
 # crimlab 0.0.1
 
+* The results of the Indigenous health and wellbeing functions have
+  `plot()` methods: gaps between groups with their intervals
+  (`indgap()`, `trchlthgap()`), wellness beside distress (`dualcont()`,
+  `welprof()`, `holbal()`), community indices and Community Well-Being
+  scores (`commidx()`, `cnscwb()`, `cwbscr()`), standardised prevalence
+  (`stdprev()`), ordered ratings (`ordcmp()`) and change between surveys
+  (`healchg()`). A dot plot keeps every row label, in letters sized to
+  the rows, and leaves room for its key above the data; lines over
+  periods written as text ("2020/21") are drawn in the order given and
+  labelled as written.
+
 * Open data: `odtab()` loads a table of the project's open data service by
   its key and `odls()` lists the tables, with their rows, columns and
   SHA-256. Everything about a table is read from the service's manifest

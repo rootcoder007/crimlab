@@ -604,9 +604,12 @@ function of the package by its R name with its arguments as a JSON object
 and returns its result as JSON, with R's checks and messages. The Go,
 Rust, Java and JavaScript packages under `bindings/` call it, and so do
 most functions of the Python package. It holds every exported function
-of the R package but those that work in R only, the plot functions
-and the table check `prechk()`
-(420 of 454); `crimlab -l` lists them and
+of the R package but those that are in R only: the tables of the open
+data service (`odtab()`, `odls()`) and the functions of placement
+volatility and alert complexity (`plcvol()`, `alrtcx()`, `otpyr()`,
+`cntmix()`, `cxvol()`, `cxdml()`, `cxyoy()`, `cxsim()`). `plot()` of a
+result is R's as well; the plot functions return the data they draw
+everywhere. `crimlab -l` lists the functions it holds and
 their arguments, and `cli/test.tsv` holds the values the R package gives
 for them (`dev/clref.R`), which every front end is tested against. A
 warning R would give is returned in the result as `warnings`, an array of
