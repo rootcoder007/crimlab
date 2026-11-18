@@ -37,6 +37,17 @@
 <p>crimlab is a statistical library: it reads the data a caller passes, and opens no network connection except in the documented readers of open data (<code><a href="reference/odtab.html">odtab()</a></code>, <code><a href="reference/odtab.html">odls()</a></code>). It implements no cryptography. It has not had an external security review.</p>
 <p>Please report a vulnerability privately through GitHub’s “Report a vulnerability” button on this repository (Security tab, <a href="https://github.com/rootcoder007/crimlab/security/advisories/new" class="external-link uri">https://github.com/rootcoder007/crimlab/security/advisories/new</a>), not in a public issue. A reply comes within 7 days, and a fix and an advisory within 90 days. Fixed vulnerabilities are listed at <a href="https://github.com/rootcoder007/crimlab/security/advisories" class="external-link uri">https://github.com/rootcoder007/crimlab/security/advisories</a>.</p>
 <p>A crash, a hang or memory that grows without bound on input a caller could reasonably pass counts as a vulnerability here, in the R package, the command-line program and every binding. A wrong number is a bug: report it in the issue tracker.</p>
+<div class="section level2">
+<h2 id="release-signing-key">Release signing key<a class="anchor" aria-label="anchor" href="#release-signing-key"></a></h2>
+<p>Each release’s <code>SHA256SUMS</code> is signed with this SSH key (namespace <code>file</code>); the signature is the release file <code>SHA256SUMS.sig</code>.</p>
+<pre><code>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCgdm/W6LtsPET14oTqb1lOFga52VG4HSJTtQHfLTFc</code></pre>
+<p>Fingerprint <code>SHA256:o8zFxDLZk0Q4Cm00HWgHXqfD/rlI6TVLAI00OaAtrAk</code>. To check a release, put the key in an allowed-signers file and verify the sums, then check the archive against them:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="bu">echo</span> <span class="st">"crimlab ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCgdm/W6LtsPET14oTqb1lOFga52VG4HSJTtQHfLTFc"</span> <span class="op">&gt;</span> allowed_signers</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">ssh-keygen</span> <span class="at">-Y</span> verify <span class="at">-f</span> allowed_signers <span class="at">-I</span> crimlab <span class="at">-n</span> file <span class="dt">\</span></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">-s</span> SHA256SUMS.sig <span class="op">&lt;</span> SHA256SUMS</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="fu">sha256sum</span> <span class="at">-c</span> <span class="at">--ignore-missing</span> SHA256SUMS</span></code></pre></div>
+<p><code>install.sh</code> and <code>install.ps1</code> make the same check when the environment variable <code>CRIMLAB_SIGNER</code> holds that allowed-signers line (<code>crimlab ssh-ed25519 ...</code>); without it they check the archive against <code>SHA256SUMS</code> only.</p>
+</div>
 </div>
 
   </main></div>
