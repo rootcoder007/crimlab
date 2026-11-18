@@ -84,8 +84,29 @@ jobs:
               }
               FALSE
             }, NA)
-            for (u in urls) cat(if (ok[[u]]) "reachable:" else "BROKEN:", u, "\n")
-            if (all(ok)) failed <- setdiff(failed, "urlchecker_ok")
+            # the README links the package's page on crates.io and on
+            # pkg.go.dev, which exist from the first release on. Until the
+            # repository has a release they are not asked for; from then on
+            # they are checked as every other address is.
+            rel <- tryCatch({
+              h <- curl::new_handle()
+              curl::handle_setheaders(
+                h, Authorization = paste("Bearer", Sys.getenv("GITHUB_PAT"))
+              )
+              curl::curl_fetch_memory(paste0(
+                "https://api.github.com/repos/",
+                Sys.getenv("GITHUB_REPOSITORY"), "/releases/latest"
+              ), handle = h)$status_code == 200L
+            }, error = function(e) TRUE)
+            later <- !rel & grepl(
+              "^https://(crates[.]io/crates|pkg[.]go[.]dev/github[.]com)/",
+              urls
+            )
+            for (u in urls) {
+              cat(if (ok[[u]]) "reachable:" else "BROKEN:", u, "\n")
+            }
+            for (u in urls[later & !ok]) cat("  (after the first release)\n")
+            if (all(ok | later)) failed <- setdiff(failed, "urlchecker_ok")
           }
           if (length(failed)) {
             cat("failed checks:", paste(failed, collapse = ", "), "\n")

@@ -53,10 +53,14 @@ flags)
     # only where the sanitizer runtime is installed
     if echo 'int main(){}' | $cc -x c++ -fsanitize=address,undefined - \
         -o "$t/san" 2>/dev/null; then
-      # -Wno-maybe-uninitialized: with the sanitizers on, gcc reports
-      # std::function inside its own <regex> as possibly uninitialised
+      # -Wno-maybe-uninitialized, for gcc (clang has no such option): with
+      # the sanitizers on, gcc reports std::function inside its own <regex>
+      # as possibly uninitialised
+      mu=
+      case $cc in g++*) mu=-Wno-maybe-uninitialized ;; esac
+      # shellcheck disable=SC2086
       one "$cc asan+ubsan" $cc -O1 -g -fsanitize=address,undefined \
-        -fno-sanitize-recover=all -Wno-maybe-uninitialized
+        -fno-sanitize-recover=all $mu
     else
       echo "PORT $cc asan+ubsan: skipped, no sanitizer runtime"
     fi

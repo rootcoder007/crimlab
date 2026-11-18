@@ -3,14 +3,6 @@
 # is a dot-and-interval chart of what the result's print method tabulates:
 # a group's level beside its interval, never a ranking drawn without it.
 
-# a group's label, starred where the source flags the estimate (E)
-.pstar <- function(lab, flag) {
-  lab <- as.character(lab)
-  f <- !is.na(flag) & as.logical(flag)
-  lab[f] <- paste(lab[f], "*")
-  lab
-}
-
 #' @rdname plotm
 #' @export
 plot.indgap <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
@@ -113,17 +105,6 @@ plot.trchlthgap <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          ref = 1, grp = paste(x$indicator, x$period), log = "x", ...)
 }
 
-# the four components of a Community Well-Being score and the score, one
-# row per community or group
-.pcwb <- function(lab, x, main, col, pal, ...) {
-  k <- c(income = "income", education = "education", housing = "housing",
-         labour = "labour force", cwb = "score")
-  v <- unlist(x[names(k)], use.names = FALSE)
-  .pdots(rep(lab, length(k)), v, NA, NA, main,
-         "0 to 100; the score is the mean of the four", col, pal,
-         grp = rep(k, each = length(lab)), ...)
-}
-
 #' @rdname plotm
 #' @export
 plot.cnscwb <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
@@ -138,4 +119,25 @@ plot.cwbscr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "cwbscr", c("income", "cwb"))
   .pcwb(paste("community", rownames(x)), x,
         .pmain(main, "Community Well-Being scores"), col, pal, ...)
+}
+
+# ---- helpers ----------------------------------------------------------------
+
+# a group's label, starred where the source flags the estimate (E)
+.pstar <- function(lab, flag) {
+  lab <- as.character(lab)
+  f <- !is.na(flag) & as.logical(flag)
+  lab[f] <- paste(lab[f], "*")
+  lab
+}
+
+# the four components of a Community Well-Being score and the score, one
+# row per community or group
+.pcwb <- function(lab, x, main, col, pal, ...) {
+  k <- c(income = "income", education = "education", housing = "housing",
+         labour = "labour force", cwb = "score")
+  v <- unlist(x[names(k)], use.names = FALSE)
+  .pdots(rep(lab, length(k)), v, NA, NA, main,
+         "0 to 100; the score is the mean of the four", col, pal,
+         grp = rep(k, each = length(lab)), ...)
 }

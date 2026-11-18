@@ -335,6 +335,23 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(data.frame(t = t, est = est, lo = lo, hi = hi))
 }
 
+# the frame of a plot over `x`, and `x` as numbers. Periods written as text
+# are the numbers they spell ("2021") or else their order ("2020/21"), and
+# the axis shows them as they were written, each at its place
+.pxfrm <- function(x, ylim, main, xlab, ylab, ...) {
+  if (is.numeric(x)) {
+    .pfrm(.prange(x), ylim, main, xlab, ylab, ...)
+    return(x)
+  }
+  lab <- unique(as.character(x))
+  at <- suppressWarnings(as.numeric(lab))
+  if (anyNA(at)) at <- seq_along(lab)
+  x <- at[match(as.character(x), lab)]
+  .pfrm(.prange(x), ylim, main, xlab, ylab, xaxt = "n", ...)
+  graphics::axis(1, at = at, labels = lab)
+  x
+}
+
 # one line per group, each with its own colour, line type and point shape,
 # and a band (a step band for steps) when `lo` and `hi` are given; returns
 # the points drawn
@@ -346,24 +363,8 @@ yoypals <- function() names(.YOY_PALETTES)
   cl <- .pcols(k, col, pal)
   op <- .ppar()
   on.exit(graphics::par(op), add = TRUE)
-  # periods written as text: the numbers they spell ("2021"), or else
-  # their order, with the texts on the axis ("2020/21")
   x0 <- x
-  lab <- NULL
-  if (!is.numeric(x)) {
-    lab <- unique(as.character(x))
-    at <- suppressWarnings(as.numeric(lab))
-    if (anyNA(at)) at <- seq_along(lab)
-    x <- at[match(as.character(x), lab)]
-  }
-  if (is.null(lab)) {
-    .pfrm(.prange(x), .prange(y, lo, hi, ref), main, xlab, ylab, ...)
-  } else {
-    # the periods as they were written, each at its place
-    .pfrm(.prange(x), .prange(y, lo, hi, ref), main, xlab, ylab,
-          xaxt = "n", ...)
-    graphics::axis(1, at = at, labels = lab)
-  }
+  x <- .pxfrm(x, .prange(y, lo, hi, ref), main, xlab, ylab, ...)
   if (!is.null(ref)) graphics::abline(h = ref, lty = 2, col = "#636363")
   st <- type == "s"
   for (i in seq_len(k)) {
