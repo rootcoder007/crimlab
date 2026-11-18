@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-"""crimlab: criminology and sociolegal statistics.
+"""crimlab: Statistical Toolkit for Criminology and Sociolegal Research.
 
 The same compiled kernels as the R package crimlab, with the same function
 and argument names and the same results, for the functions bound through

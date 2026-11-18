@@ -1,7 +1,7 @@
 {
   "name": "crimlab",
-  "version": "0.0.1",
-  "description": "Criminology and sociolegal statistics: every function of the R and Python packages crimlab, from the C++ kernels as WebAssembly, and the crimlab command",
+  "version": "0.0.2",
+  "description": "Statistical Toolkit for Criminology and Sociolegal Research: every function of the R and Python packages crimlab, from the C++ kernels as WebAssembly, and the crimlab command",
   "keywords": ["statistics", "criminology", "forensics", "policing", "courts", "webassembly"],
   "license": "Apache-2.0 WITH LLVM-exception",
   "author": "Vansh Singh Ruhela (https://orcid.org/0009-0004-1750-3592)",

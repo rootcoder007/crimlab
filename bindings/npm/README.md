@@ -1,6 +1,6 @@
 # crimlab for JavaScript
 
-Criminology and sociolegal statistics: the C++ kernels of the R and Python
+Statistical Toolkit for Criminology and Sociolegal Research: the C++ kernels of the R and Python
 packages [crimlab](https://github.com/rootcoder007/crimlab), built to
 WebAssembly, with the `crimlab` command. No dependencies; the module sees
 no files and no network.
@@ -28,3 +28,11 @@ throws an `Error` whose message names the function and what is wrong.
 
 Node 18 or later, or any browser with WebAssembly (the module is fetched
 next to `lib/`). Licence: Apache-2.0 WITH LLVM-exception.
+
+## Citation
+
+> Ruhela, V. S. (2026). *crimlab: Statistical Toolkit for Criminology and
+> Sociolegal Research.* <https://github.com/rootcoder007/crimlab>
+
+`CITATION.cff` in the repository holds the same reference for reference
+managers; in R, `citation("crimlab")` prints it.

@@ -244,9 +244,10 @@ def test_join_is_linear():
         return time.perf_counter() - t0
 
     run(1000)
-    small, big = min(run(20000) for _ in range(3)), min(run(100000) for _ in range(3))
-    # five times the rows: about five times the time; quadratic would be 25
-    assert big < 12 * small, (small, big)
+    small, big = min(run(20000) for _ in range(5)), min(run(100000) for _ in range(5))
+    # five times the rows: about five times the time; quadratic would be 25.
+    # The bound leaves room for a loaded machine (13 has been seen there).
+    assert big < 20 * small, (small, big)
 
 
 def test_values_of_no_kind_and_control_characters():

@@ -1,6 +1,6 @@
 /* SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  *
- * libcrimlab: criminology and sociolegal statistics. The C interface.
+ * libcrimlab: Statistical Toolkit for Criminology and Sociolegal Research. The C interface.
  *
  * Every function is plain C from the outside: no exceptions cross it, no
  * memory is allocated for the caller, and nothing here knows about R. A

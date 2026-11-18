@@ -119,7 +119,7 @@ jobs:
           unset P
           prj="home:$U"
           if ! osc meta pkg "$prj" crimlab > /dev/null 2>&1; then
-            printf '<package name="crimlab" project="%s"><title>crimlab</title><description>Criminology and sociolegal statistics</description><url>https://github.com/rootcoder007/crimlab</url></package>\n' "$prj" > meta.xml
+            printf '<package name="crimlab" project="%s"><title>crimlab</title><description>Statistical Toolkit for Criminology and Sociolegal Research</description><url>https://github.com/rootcoder007/crimlab</url></package>\n' "$prj" > meta.xml
             osc meta pkg "$prj" crimlab -F meta.xml
           fi
           osc checkout -o co "$prj" crimlab

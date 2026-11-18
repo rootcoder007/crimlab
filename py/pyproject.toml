@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "crimlab"
 dynamic = ["version"]
-description = "Criminology and sociolegal statistics"
+description = "Statistical Toolkit for Criminology and Sociolegal Research"
 readme = "README.md"
 license = "Apache-2.0 WITH LLVM-exception"
 license-files = ["LICENSE", "NOTICE"]
@@ -21,6 +21,7 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/rootcoder007/crimlab"
 Issues = "https://github.com/rootcoder007/crimlab/issues"
+Citation = "https://github.com/rootcoder007/crimlab/blob/main/CITATION.cff"
 
 [tool.setuptools]
 packages = ["crimlab", "crimlab.lean"]

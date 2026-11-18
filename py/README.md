@@ -1,6 +1,6 @@
 # crimlab for Python
 
-Criminology and sociolegal statistics: the Python package binds the same
+Statistical Toolkit for Criminology and Sociolegal Research: the Python package binds the same
 compiled kernels as the R package crimlab (`../src`), with the same
 function names, the same argument names and the same results. Every
 number in the parity tests (`tests/data/ref.json`, written by
@@ -358,3 +358,11 @@ name in `__all__` and `_clab.pyi`, and its cases in `dev/pyref.R`.
 
 A documentation site is left to the maintainer; the docstrings follow the
 numpydoc layout, so Sphinx with `numpydoc` or `napoleon` can render them.
+
+## Citation
+
+> Ruhela, V. S. (2026). *crimlab: Statistical Toolkit for Criminology and
+> Sociolegal Research.* <https://github.com/rootcoder007/crimlab>
+
+`CITATION.cff` in the repository holds the same reference for reference
+managers; in R, `citation("crimlab")` prints it.

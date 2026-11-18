@@ -6,7 +6,7 @@
 # sets url and sha256 for each published release; `brew install --HEAD`
 # builds main.
 class Crimlab < Formula
-  desc "Criminology and sociolegal statistics from the command-line"
+  desc "Statistical toolkit for criminology and sociolegal research"
   homepage "https://github.com/rootcoder007/crimlab"
   url "https://github.com/rootcoder007/crimlab/releases/download/v0.0.0/crimlab-0.0.0.tar.gz"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"

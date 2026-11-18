@@ -26,6 +26,6 @@ COPY LICENSE NOTICE /usr/share/licenses/crimlab/
 USER 65532
 CMD ["crimlab", "-h"]
 LABEL org.opencontainers.image.title="crimlab" \
-      org.opencontainers.image.description="The crimlab command: criminology and sociolegal statistics" \
+      org.opencontainers.image.description="The crimlab command: Statistical Toolkit for Criminology and Sociolegal Research" \
       org.opencontainers.image.licenses="Apache-2.0 WITH LLVM-exception" \
       org.opencontainers.image.source="https://github.com/rootcoder007/crimlab"

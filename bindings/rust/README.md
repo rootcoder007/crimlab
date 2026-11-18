@@ -1,6 +1,6 @@
 # crimlab for Rust
 
-Criminology and sociolegal statistics: the C++ kernels of the R and Python
+Statistical Toolkit for Criminology and Sociolegal Research: the C++ kernels of the R and Python
 packages [crimlab](https://github.com/rootcoder007/crimlab), compiled into
 the crate by its build script with the `cc` crate (a C++17 compiler is all
 it needs). No other dependencies.
@@ -26,3 +26,11 @@ fn main() -> crimlab::Result<()> {
 A refused call returns `crimlab::Error`, whose message names the function
 and what is wrong, as in R and Python. Licence: Apache-2.0 WITH
 LLVM-exception.
+
+## Citation
+
+> Ruhela, V. S. (2026). *crimlab: Statistical Toolkit for Criminology and
+> Sociolegal Research.* <https://github.com/rootcoder007/crimlab>
+
+`CITATION.cff` in the repository holds the same reference for reference
+managers; in R, `citation("crimlab")` prints it.

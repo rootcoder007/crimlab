@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 [package]
 name = "crimlab"
-version = "0.0.1"
+version = "0.0.2"
 edition = "2021"
 rust-version = "1.73"
-description = "Criminology and sociolegal statistics: the crimlab C++ kernels, compiled in, called by name with JSON"
+description = "Statistical Toolkit for Criminology and Sociolegal Research: the crimlab C++ kernels, compiled in, called by name with JSON"
 license = "Apache-2.0 WITH LLVM-exception"
 authors = ["Vansh Singh Ruhela"]
 repository = "https://github.com/rootcoder007/crimlab"

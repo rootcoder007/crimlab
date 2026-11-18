@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Criminology and sociolegal statistics: every function of the R and Python packages crimlab, by
+ * Statistical Toolkit for Criminology and Sociolegal Research: every function of the R and Python packages crimlab, by
  * its R name, through the Foreign Function and Memory API (JDK 22 or later). A function takes its
  * named arguments as a JSON object and returns its result as JSON: a data frame is an object of
  * columns, a named vector an object of numbers, a missing value {@code null}, and a number JSON

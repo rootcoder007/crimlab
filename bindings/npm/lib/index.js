@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
-// crimlab: criminology and sociolegal statistics. Every function of the R
+// crimlab: Statistical Toolkit for Criminology and Sociolegal Research. Every function of the R
 // and Python packages crimlab, by its R name, from the C++ kernels built
 // to WebAssembly. A function takes its named arguments as an object and
 // returns its result as JSON.parse gives it: a data frame is an object of

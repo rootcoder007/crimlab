@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
-// Package crimlab is the Go binding of crimlab, criminology and
-// sociolegal statistics: the C++ kernels of the R and Python packages
+// Package crimlab is the Go binding of crimlab, a Statistical Toolkit for
+// Criminology and Sociolegal Research: the C++ kernels of the R and Python packages
 // crimlab, compiled into the package with cgo from the copy in csrc/
 // (tools/vendor.sh makes it); a C++17 compiler is all it needs.
 //
