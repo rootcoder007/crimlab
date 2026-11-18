@@ -16,7 +16,14 @@ namespace {
 // a message of the extended run (standalone, "ext"); silent by default
 template <class... A>
 void info(int big, const char *f, A... a) {
+#ifdef CLAB_MAIN
   if (big) std::printf(f, a...);
+#else
+  // in the R package nothing is written to stdout
+  (void)big;
+  (void)f;
+  ((void)a, ...);
+#endif
 }
 
 const double PI = cgeo::pi;
