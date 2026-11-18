@@ -1,0 +1,131 @@
+---
+title: "Placement volatility and alert complexity"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Placement volatility and alert complexity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+How often a person in custody is moved within a year, how many alerts a record carries, and what follows from both.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+## Placement volatility of each person-year
+
+`plcvol()`: Counts how often a person's placement region changes within a period (a fiscal year), from records that each carry the region at the time of placement `ra` and the region of the most recent placement `rb`. For a person-year with records r = 1, ..., R in a given order the count is
+
+```{r plcvol}
+ra <- c("East", "East", "West", "North", "North")
+rb <- c("East", "West", "West", "North", "East")
+plcvol(ra, rb, id = c(1, 1, 1, 2, 2))
+plcvol(ra, rb, id = c(1, 1, 1, 2, 2), ord = "given")
+```
+
+## Alert complexity of each person-year
+
+`alrtcx()`: Counts the distinct alert configurations among a person-year's records. Each record carries flags (in Ontario's records the mental health, suicide risk and suicide watch alerts); its configuration is the tuple of the flags, (1, 0, 0) for a mental health alert alone, coded as the text `"100"`. Alert complexity is the number of distinct configurations the person-year's records span, and `cx`, complexity of two or more, is the treatment of Ruhela (2026, Appendix H).
+
+```{r alrtcx}
+f <- data.frame(mh = c("Yes", "No", "No", "Yes"),
+                sr = c("No", "No", "Yes", "Yes"),
+                sw = c("No", "No", "No", "Yes"))
+alrtcx(f, id = c(1, 1, 2, 3))
+```
+
+## Person-year table of a restrictive confinement release
+
+`otpyr()`: Reduces a placement-level release of Ontario's restrictive confinement records (table a01 of the open data, one row per person, fiscal year, pair of regions and alert configuration, with a count of placements) to one row per person and fiscal year, carrying placement volatility (`plcvol()`), alert complexity (`alrtcx()`) and the covariates of Ruhela (2026): gender, age group, fiscal year and regional cluster (the regions the person-year's records name, sorted and joined by `" + "`).
+
+```{r otpyr}
+d <- data.frame(
+  EndFiscalYear = c(2025, 2025, 2025, 2026, 2026),
+  UniqueIndividual_ID = c("a", "a", "b", "a", "c"),
+  Region_AtTimeOfPlacement = c("East", "West", "East", "North", "East"),
+  Region_MostRecentPlacement = c("East", "West", "East", "East", "East"),
+  Gender = "Male", Age_Category = "25 to 49",
+  MentalHealth_Alert = c("Yes", "No", "No", "No", "Yes"),
+  SuicideRisk_Alert = "No", SuicideWatch_Alert = "No",
+  Number_Of_Placements = c(3, 1, 2, 4, 1)
+)
+otpyr(d)
+```
+
+## Count regression with a random intercept per cluster
+
+`cntmix()`: Fits the log-linear model of a count with a normal random intercept for each cluster, log E[y_ij | u_j] = x_ij' beta + u_j, u_j ~ N(0, sigma^2), with a Poisson or a negative binomial (variance `mu + mu^2 / theta`) response, by maximum likelihood with the Laplace approximation of each cluster's integral (Breslow and Clayton 1993), as 'glmmTMB' and 'lme4' fit it. It is the main model of Ruhela (2026): placement volatility on alert complexity with a random intercept per regional cluster.
+
+```{r cntmix}
+set.seed(2)
+g <- rep(1:12, each = 40)
+d <- rbinom(480, 1, 0.3)
+y <- rpois(480, exp(-1 + 0.4 * d + rnorm(12, 0, 0.5)[g]))
+cntmix(y, data.frame(d = d), g, fam = "poisson")
+```
+
+## Alert complexity and placement volatility, pooled or by fiscal year
+
+`cxvol()`: The analysis of Ruhela (2026) on any release of Ontario's restrictive confinement records: from the person-year table (`otpyr()`) it gives, for the years pooled or for each fiscal year, the share of person-years with complex alert profiles (`cx = 1`), mean placement volatility by group, the crude Poisson rate ratio (the ratio of the two means, infinite when every count without complex alerts is 0), the one-to-one nearest-neighbour propensity matching without replacement of each complex person-year to a control on age group, gender and fiscal year (`cbatt()`, in 'MatchIt''s default order), the count model on the matched frame with a random intercept per regional cluster (`cntmix()`), and the bounds on the average effect on the matched frame with no assumption and under monotone treatment response and selection (`mtrbnd()`).
+
+```{r cxvol}
+set.seed(4)
+n <- 600
+p <- data.frame(year = sample(2025:2026, n, TRUE),
+                gender = sample(c("Male", "Female"), n, TRUE, c(9, 1)),
+                age = sample(c("18 to 24", "25 to 49", "50+"), n, TRUE),
+                rc = sample(c("A", "B", "A + B", "C"), n, TRUE),
+                cx = rbinom(n, 1, 0.2))
+p$vm <- rpois(n, exp(-2 + 0.3 * p$cx + (p$rc == "A + B")))
+cxvol(p, fam = "poisson")
+```
+
+## Double machine learning of the effect of alert complexity
+
+`cxdml()`: The interactive regression model of Chernozhukov et al. (2018) for the effect of complex alert profiles (`cx`) on placement volatility (`vm`) on the person-year table, by `dmlx()`: random forests (or another learner of `dmlx()`) for the outcome regressions and the propensity, `nfold`-fold cross-fitting, propensities kept within `trim` of 0 and 1, covariates gender, age group, regional cluster and (pooled, with `yterm`) fiscal year. Both the average effect (ATE) and the effect on the treated (ATTE) are given, from one set of cross-fitted nuisances. The same refusals as `cxvol()` apply.
+
+```{r cxdml}
+set.seed(5)
+n <- 400
+p <- data.frame(year = sample(2025:2026, n, TRUE),
+                gender = sample(c("Male", "Female"), n, TRUE),
+                age = sample(c("18 to 24", "25 to 49"), n, TRUE),
+                rc = sample(c("A", "B"), n, TRUE), cx = rbinom(n, 1, 0.3))
+p$vm <- rpois(n, exp(-1.5 + 0.4 * p$cx))
+cxdml(p, lrn = "glm")
+```
+
+## Placement volatility events by fiscal year
+
+`cxyoy()`: The year-over-year table of placement volatility (Ruhela 2026, Appendix E, Table E15) from the person-year table: for each fiscal year the regional changes (`vm` summed), placements, person-years, the rates of changes per 1,000 placements and per 1,000 person-years with exact Poisson intervals, each year's share of all changes, and the percent changes from the previous year of the count and of both rates. The rate intervals are `qgamma(a/2, n)` to `qgamma(1 - a/2, n + 1)` over the exposure, so a count of 0 has lower limit 0.
+
+```{r cxyoy}
+p <- data.frame(year = rep(2024:2026, c(50, 60, 70)), vm = rpois(180, 0.2),
+                np = rpois(180, 20) + 1)
+cxyoy(p)
+```
+
+## Simulation of the alert complexity estimators
+
+`cxsim()`: Draws person-year tables from the model of Ruhela (2026) and reports the bias, spread and interval coverage of the estimators of `cxvol()`. Each table has `n` person-years in `ncl` regional clusters with normal intercepts (standard deviation `sdcl`), an age group (three levels) and a gender, a treatment drawn from a logistic model in which the covariates and the cluster raise the chance of a complex profile, and a negative binomial count (dispersion `theta`) whose log mean is `b0 + beta * cx` plus the covariates and the cluster. With `conf` the person-year also has an unobserved trait that raises both the chance of treatment and the count (by `conf` on the logit and on the log mean): ignorability given the observed covariates then fails.
+
+```{r cxsim}
+cxsim(reps = 1, n = 100, ncl = 5, b0 = 0, seed = 1)
+```

@@ -12,6 +12,33 @@ articles:
     navbar: ~
     contents:
       - crimlab
+      - disparities-and-checks
+      - forensics
+      - eyewitness-and-toxicology
+      - policing-and-deterrence
+      - corrections-and-custody
+      - placement-and-alerts
+      - courts-and-life-course
+      - networks
+      - spatial-geometry
+      - spatial-crime-analysis
+      - geostatistics-and-epidemiology
+      - risk-tools
+      - counts-rates-and-tables
+      - change-tables-and-drift
+      - describing-a-table
+      - learning-and-presets
+      - causal-estimates
+      - experiments-and-policy
+      - time-and-contagion
+      - surveys-and-summaries
+      - indigenous-health
+      - air-pollution
+      - exposure-and-crime
+      - environmental-crime-and-rescue
+      - scaling
+      - oversight-reports
+      - plots-and-proofs
 
 reference:
   - title: Disparities

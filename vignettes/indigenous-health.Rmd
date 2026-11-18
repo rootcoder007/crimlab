@@ -1,0 +1,526 @@
+---
+title: "Indigenous health and wellbeing"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Indigenous health and wellbeing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Tables of First Nations, Inuit and Métis health and wellbeing: reading them, their quality flags, and gaps with their uncertainty.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+## Read a Statistics Canada table as published
+
+`sctidy()`: Tidies a Statistics Canada full-table download (the “CSV for database loading” form, ): `VALUE` as a number, and the quality flags kept beside it in `quality`.
+
+```{r sctidy}
+# the layout of a downloaded table, with one cell suppressed (made-up
+# numbers)
+d <- data.frame(REF_DATE = "2019/2022", GEO = "Canada",
+                `Indigenous identity` = c("First Nations", "Inuk (Inuit)",
+                                          "Non-Indigenous"),
+                VALUE = c("45.8", "", "61.5"), STATUS = c("", "x", ""),
+                check.names = FALSE)
+sctidy(d)
+```
+
+## The estimates of a Statistics Canada table, with their confidence limits
+
+`scests()`: Statistics Canada's tables give each estimate on several rows: the estimate itself (a percent, a rate, a count, a life expectancy), its low and high confidence limits, or its coefficient of variation or standard error, all in one statistics column (`Statistics`, `Characteristics`, `Statistics (3)`, ...). This puts them side by side, one row per cell of the table and measure, ready for `indgap`, `ordcmp`, `stdprev` and the rest. Every table reads: one without a statistics column (a census count) gives each value as its own estimate, with no limits.
+
+```{r scests}
+# the layout of a downloaded table: percent and number of persons, with
+# limits for the percent
+d <- data.frame(
+  REF_DATE = "2022",
+  GEO = "Canada",
+  `Indigenous identity` = rep(c("First Nations", "Metis"), each = 4),
+  Statistics = rep(
+    c(
+      "Number of persons",
+      "Percent",
+      "Low 95% confidence interval",
+      "High 95% confidence interval"
+    ),
+    2
+  ),
+  UOM = rep(c("Persons", "Percent", "Percent", "Percent"), 2),
+  VALUE = c(415000, 47.1, 45.2, 49.0, 320000, 50.3, 48.1, 52.5),
+  STATUS = "",
+  check.names = FALSE
+)
+scests(d)
+# a rate with its coefficient of variation instead of limits
+r <- data.frame(
+  GEO = "Canada",
+  Characteristics = c("Rate", "Coefficient of variation for rate"),
+  VALUE = c(12.5, 8),
+  STATUS = ""
+)
+scests(r)
+```
+
+## Recode another agency's quality flags to the package's
+
+`qltyrcd()`: The comparisons of this family read Statistics Canada's quality flags: `E` (use with caution), and `F`, `x`, `..`, `...` (no value: too unreliable, suppressed, not available, not applicable). Other agencies flag otherwise: the Australian Bureau of Statistics `np` (not published) and `*` or `**` (relative standard error over 25% or 50%), Stats NZ `S` (suppressed), the US Census Bureau `(X)`. This maps them to the package's vocabulary, so suppressed cells are never compared and uncertain ones are marked.
+
+```{r qltyrcd}
+# flags as an Australian table might give them
+qltyrcd(c("", "np", "*", "**", NA), suppr = c("np", "**"), caution = "*")
+```
+
+## Confidence limits from a standard error, a coefficient of variation or a margin of error
+
+`limfrom()`: The comparisons of this family take an estimate and its published confidence limits. Agencies that publish a standard error, a relative standard error (coefficient of variation) or a margin of error instead give the same information; this turns it into limits at the level wanted.
+
+```{r limfrom}
+limfrom(c(24.1, 31.5), cv = c(8, 12))
+limfrom(1520, moe = 210)                 # a 90% margin of error
+```
+
+## Compare published group estimates with a reference group
+
+`indgap()`: For published estimates with their confidence limits (percentages, rates, years of life expectancy: any scale, with the limits on the same scale), the ratio and the difference of each group to a reference group, with confidence intervals worked from the published ones: First Nations, Metis and Inuit against non-Indigenous people, Aboriginal and Torres Strait Islander people against non-Indigenous Australians, Maori against non-Maori, or any groups with published intervals.
+
+```{r indgap}
+# made-up percentages for three groups and their pooled total, with
+# published limits and one estimate flagged E
+d <- data.frame(
+  group = c("First Nations", "Metis", "Inuit", "Total Indigenous",
+            "Non-Indigenous"),
+  pct = c(45.8, 52.8, 47.8, 49, 61.5),
+  lo = c(43.9, 50.6, 43.1, 47.5, 61),
+  hi = c(47.7, 55, 52.5, 50.5, 62),
+  q = c("", "", "E", "", "")
+)
+indgap(d, "group", "pct", "lo", "hi", qual = "q")
+# your own table: made-up numbers in another country's layout, with relative
+# standard errors instead of limits and that agency's flags
+own <- data.frame(
+  group = c(
+    "Aboriginal",
+    "Torres Strait Islander",
+    "Aboriginal and Torres Strait Islander",
+    "Non-Indigenous Australians"
+  ),
+  pct = c(31.2, 27.5, 30.8, 18.9),
+  rse = c(4.1, 22.0, 3.9, 1.2),
+  flag = c("", "*", "", "")
+)
+own <- cbind(own, limfrom(own$pct, cv = own$rse)[c("lower", "upper")])
+own$q <- qltyrcd(own$flag, suppr = c("np", "**"), caution = "*")
+indgap(
+  own,
+  "group",
+  "pct",
+  "lower",
+  "upper",
+  ref = "Non-Indigenous Australians",
+  qual = "q",
+  pooled = "Aboriginal and Torres Strait Islander"
+)
+```
+
+## Compare rated scales (perceived mental health, life satisfaction) between groups
+
+`ordcmp()`: For a rated scale published as the percentage in each category with its confidence limits (perceived mental health from poor to excellent, life satisfaction from 0 to 10, agreement with a statement), the probability that a person in each group rates higher than a person in the reference group, with its confidence interval: a comparison of the whole distribution, not of one category cut from it.
+
+```{r ordcmp}
+# your own table: a made-up four-level rating for two groups, with limits
+own <- data.frame(
+  group = rep(c("Nation A", "Everyone else"), each = 4),
+  rating = rep(c("Poor", "Fair", "Good", "Excellent"), 2),
+  pct = c(10, 25, 40, 25, 6, 20, 44, 30),
+  lo = c(7, 21, 35, 21, 5, 18, 42, 28),
+  hi = c(13, 29, 45, 29, 7, 22, 46, 32)
+)
+ordcmp(own, "group", "rating", "pct", "lo", "hi",
+       lvls = c("Poor", "Fair", "Good", "Excellent"), ref = "Everyone else")
+```
+
+## Age-standardise survey percentages
+
+`stdprev()`: The percentage (or proportion, or rate) a group would have with the age structure of a standard population, from the estimate and published limits in each age group: for comparing First Nations, Metis and Inuit prevalences (suicidal thoughts, mood and anxiety disorders, heavy drinking) with each other and with an older population, for example, when the age pattern of the outcome is steep.
+
+```{r stdprev}
+# made-up percentages in three age groups for two groups, standardised to a
+# population of 500, 300 and 200 in those age groups
+stdprev(
+  est = c(12, 9, 6, 8, 6, 4),
+  lower = c(9, 6, 3, 7, 5, 3),
+  upper = c(15, 12, 9, 9, 7, 5),
+  std = c(500, 300, 200),
+  grp = rep(c("Nation A", "Everyone else"), each = 3)
+)
+```
+
+## Wellness beside distress: a strengths-first profile of published indicators
+
+`welprof()`: Puts a group's wellness indicators (life satisfaction, perceived mental health, a hopeful outlook, a sense of belonging, a strong cultural identity) first and its distress indicators (suicidal thoughts, mood and anxiety disorders, fair or poor mental health) after them, each with its published interval, for each First Nations, Metis and Inuit group: so that a table of mental health is never read, or plotted, as a list of deficits alone.
+
+```{r welprof}
+# your own table: made-up percentages for two communities, with limits
+own <- data.frame(
+  community = rep(c("Lakeside", "Riverbend"), each = 4),
+  item = rep(c("Hopeful", "Satisfied", "Rarely hopeful", "Low satisfaction"),
+             2),
+  pct = c(64, 71, 12, 18, 58, 66, 16, 22),
+  lo = c(59, 66, 9, 14, 52, 60, 12, 17),
+  hi = c(69, 76, 15, 22, 64, 72, 20, 27)
+)
+welprof(own, "community", "item", "pct", "lo", "hi",
+        well = c("Hopeful", "Satisfied"),
+        distress = c("Rarely hopeful", "Low satisfaction"))
+```
+
+## Wellness and distress as two continua
+
+`dualcont()`: For each group, one wellness indicator against one distress indicator, each with its published interval, and the ratio of the two: the dual-continua view of mental health, in which wellness is not the absence of distress and is measured in its own right.
+
+```{r dualcont}
+# your own table: made-up percentages for two communities, with limits
+own <- data.frame(
+  community = rep(c("Lakeside", "Riverbend"), each = 4),
+  item = rep(c("Hopeful", "Satisfied", "Rarely hopeful", "Low satisfaction"),
+             2),
+  pct = c(64, 71, 12, 18, 58, 66, 16, 22),
+  lo = c(59, 66, 9, 14, 52, 60, 12, 17),
+  hi = c(69, 76, 15, 22, 64, 72, 20, 27)
+)
+w <- welprof(own, "community", "item", "pct", "lo", "hi",
+             well = "Hopeful", distress = "Rarely hopeful")
+dualcont(w, "Hopeful", "Rarely hopeful")
+```
+
+## Holistic balance: how evenly wellness is held across the domains of a whole person
+
+`holbal()`: For each group, from published percentages of wellness in each holistic domain (physical, emotional, mental, spiritual, or the domains a community names), the overall level of wellness and how balanced it is across the domains, with Monte Carlo intervals from the published ones.
+
+```{r holbal}
+# your own table: made-up percentages of wellness in four domains a Nation
+# set for itself, for two communities
+own <- data.frame(
+  community = rep(c("Lakeside", "Riverbend"), each = 4),
+  domain = rep(c("body", "mind", "spirit", "family"), 2),
+  pct = c(62, 58, 70, 75, 55, 61, 66, 80),
+  lo = c(57, 53, 65, 70, 49, 55, 60, 75),
+  hi = c(67, 63, 75, 80, 61, 67, 72, 85)
+)
+holbal(own, "community", "domain", "pct", "lo", "hi", reps = 2000)
+```
+
+## The four directions of the First Nations Mental Wellness Continuum, from published indicators
+
+`mhcont()`: Lays out a group's published indicators under the four outcomes of the First Nations Mental Wellness Continuum Framework (hope, belonging, meaning, purpose), each with its interval, and says which directions the tables have no measure of.
+
+```{r mhcont}
+# your own table: made-up percentages for two communities, with limits;
+# one item stands for both meaning and purpose, and none for belonging
+own <- data.frame(
+  community = rep(c("Lakeside", "Riverbend"), each = 2),
+  item = rep(c("Hopeful", "Life has meaning"), 2),
+  pct = c(64, 70, 58, 75),
+  lo = c(59, 65, 52, 70),
+  hi = c(69, 75, 64, 80)
+)
+mhcont(own, "community", "item", "pct", "lo", "hi", hope = "Hopeful",
+       meaning = "Life has meaning", purp = "Life has meaning")
+```
+
+## Healing as a process: change in published indicators between two periods
+
+`healchg()`: For each group and indicator, the change between two survey periods with its confidence interval, wellness indicators first: change over time read as Indigenous scholars describe mental health, as a process of healing, not as a fixed deficit.
+
+```{r healchg}
+# your own table: made-up percentages for one community in two surveys
+own <- data.frame(
+  community = "Lakeside",
+  item = rep(c("Good mental health", "Anxiety"), 2),
+  survey = rep(c("2018", "2023"), each = 2),
+  pct = c(55, 14, 61, 11),
+  lo = c(50, 11, 56, 8),
+  hi = c(60, 17, 66, 14)
+)
+healchg(own, "community", "item", "survey", "pct", "lo", "hi",
+        from = "2018", to = "2023", well = "Good mental health",
+        distress = "Anxiety")
+```
+
+## Connection across places: does one indicator rise where another does?
+
+`connassoc()`: For two indicators published for the same places (regions, provinces, Inuit regions), their rank correlation across places, an exact permutation p-value, and an interval that carries the sampling error of the published estimates: for connection to land and wellness, community belonging and mental health, education and health.
+
+```{r connassoc}
+# your own places: made-up shares in six regions, without limits
+own <- data.frame(
+  region = c("North", "South", "East", "West", "Coast", "Interior"),
+  language = c(41, 18, 27, 33, 22, 38),
+  wellbeing = c(68, 55, 60, 66, 57, 63)
+)
+connassoc(own, "region", "language", "wellbeing", reps = 2000)
+```
+
+## A community-weighted index of protective and risk factors
+
+`commidx()`: Combines published indicators into one index for each group or place, with weights the community sets: protective factors count for, risk factors against. The weights are never estimated.
+
+```{r commidx}
+# your own table and the weights a community chose: made-up percentages
+own <- data.frame(
+  community = rep(c("Lakeside", "Riverbend"), each = 3),
+  item = rep(c("Speaks the language", "Has a doctor", "Food insecure"), 2),
+  pct = c(38, 72, 21, 25, 64, 30),
+  lo = c(33, 67, 17, 20, 58, 25),
+  hi = c(43, 77, 25, 30, 70, 35)
+)
+commidx(own, "community", "item", "pct", "lo", "hi",
+        w = c("Speaks the language" = 2, "Has a doctor" = 1,
+              "Food insecure" = -1))
+```
+
+## How deficit-framed is a set of results?
+
+`frmaud()`: Counts how many of the indicators in a report measure distress, deficit or disparity and how many measure wellness or strength, and names any group reported on deficits alone.
+
+```{r frmaud}
+# your own table: made-up percentages for two communities, with limits
+own <- data.frame(
+  community = rep(c("Lakeside", "Riverbend"), each = 4),
+  item = rep(c("Hopeful", "Satisfied", "Rarely hopeful", "Low satisfaction"),
+             2),
+  pct = c(64, 71, 12, 18, 58, 66, 16, 22),
+  lo = c(59, 66, 9, 14, 52, 60, 12, 17),
+  hi = c(69, 76, 15, 22, 64, 72, 20, 27)
+)
+frmaud(welprof(own, "community", "item", "pct", "lo", "hi",
+               well = c("Hopeful", "Satisfied"),
+               distress = c("Rarely hopeful", "Low satisfaction")))
+```
+
+## The Community Well-Being index of a community
+
+`cwbscr()`: Indigenous Services Canada's Community Well-Being (CWB) index: income, education, housing and labour force activity, each scored from 0 to 100, and their mean, from census profile figures.
+
+```{r cwbscr}
+# made-up profile figures for two communities, to show the computation
+cwbscr(incpercap = c(18000, 31000), highsch20p = c(58, 81),
+          uni25p = c(6, 19), notcro = c(71, 95),
+          nomajrep = c(62, 90),
+          partic = c(55, 68), empl = c(78, 92))
+```
+
+## Generations of residential school attendance in a family
+
+`genexpo()`: Codes the intergenerational exposure used in the epidemiology of Indian Residential Schools: how many generations before the respondent attended, 0 (neither parents nor grandparents), 1 (parents or grandparents) or 2 (both a parent and a grandparent), as in McQuaid et al. (2017).
+
+```{r genexpo}
+genexpo(c(TRUE, FALSE, TRUE, NA, FALSE), c(TRUE, FALSE, FALSE, TRUE, NA))
+genexpo(c(TRUE, FALSE, TRUE, NA, FALSE), c(TRUE, FALSE, FALSE, TRUE, NA),
+                    partial = "lowerbnd")
+```
+
+## A dose-response across generations of exposure
+
+`exptrnd()`: For counts of an outcome (suicidal thoughts, distress) among people with 0, 1 or 2 generations of residential school attendance in their family (or any ordered exposure), the odds ratio of each level against the lowest level, with Woolf intervals, and the Cochran-Armitage test for a trend across the levels.
+
+```{r exptrnd}
+# made-up counts by 0, 1 and 2 generations of attendance, to show the
+# computation
+et <- exptrnd(cases = c(60, 95, 70), n = c(500, 520, 300))
+et
+attr(et, "trend")
+```
+
+## Read the 2021 Census Indigenous Population Profile
+
+`cnsprof()`: Reads a table of the Indigenous Population Profile, 2021 Census of Population (Statistics Canada catalogue 98-510-X2021001 to 98-510-X2021016), as published, into one row per geography, gender, age group, characteristic and group: First Nations, Metis, Inuit, the other identity groups and non-Indigenous people (or, in the household tables, Indigenous and non-Indigenous households), each in its own rows.
+
+```{r cnsprof}
+# made-up numbers in the layout of a population profile table, for one
+# place and two groups (the published tables hold many more rows)
+nm <- c(
+  "Total - Age groups of the population - 100% data",
+  paste("Number of total income recipients aged 15 years and over in",
+        "private households in 2020 - 25% sample data"),
+  "Average total income in 2020 among recipients ($)",
+  paste("Total - Highest certificate, diploma or degree for the population",
+        "aged 25 years and over in private households - 25% sample data"),
+  "  No certificate, diploma or degree",
+  "  Bachelor's degree or higher",
+  "Participation rate",
+  "Unemployment rate"
+)
+x <- data.frame(
+  GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+  AGE_GROUP = c(rep("Total - Age groups", 3), rep("25 years and over", 3),
+                rep("25 to 64 years", 2)),
+  RESIDENCE = "Total - Residence on or off reserve",
+  CHARACTERISTIC_ID = 1:8, CHARACTERISTIC_NAME = nm,
+  `IND_IDENT (2)` = c(1200, 900, 38000, 700, 150, 120, 62, 14),
+  SYMBOL_IND_IDENT = "",
+  NON_IND = c(5000, 4000, 52000, 3500, 400, 900, 66, 6),
+  SYMBOL_NON_IND = "",
+  check.names = FALSE
+)
+p <- cnsprof(x)
+p[p$chaid == 5, c("group", "characteristic", "level", "parid", "value")]
+```
+
+## The share of a population with a characteristic, from the census profile
+
+`profshr()`: The share of a group with a characteristic of the 2021 Census Indigenous Population Profile (foster children among children, speakers of an Indigenous language, households needing major repairs, ...), with an approximate confidence interval that carries the long-form sample and the random rounding of the counts.
+
+```{r profshr}
+# made-up numbers in the layout of a population profile table, for one
+# place and two groups (the published tables hold many more rows)
+nm <- c(
+  "Total - Age groups of the population - 100% data",
+  paste("Number of total income recipients aged 15 years and over in",
+        "private households in 2020 - 25% sample data"),
+  "Average total income in 2020 among recipients ($)",
+  paste("Total - Highest certificate, diploma or degree for the population",
+        "aged 25 years and over in private households - 25% sample data"),
+  "  No certificate, diploma or degree",
+  "  Bachelor's degree or higher",
+  "Participation rate",
+  "Unemployment rate"
+)
+x <- data.frame(
+  GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+  AGE_GROUP = c(rep("Total - Age groups", 3), rep("25 years and over", 3),
+                rep("25 to 64 years", 2)),
+  RESIDENCE = "Total - Residence on or off reserve",
+  CHARACTERISTIC_ID = 1:8, CHARACTERISTIC_NAME = nm,
+  `IND_IDENT (2)` = c(1200, 900, 38000, 700, 150, 120, 62, 14),
+  SYMBOL_IND_IDENT = "",
+  NON_IND = c(5000, 4000, 52000, 3500, 400, 900, 66, 6),
+  SYMBOL_NON_IND = "",
+  check.names = FALSE
+)
+p <- cnsprof(x)
+# the share with no certificate, of the population aged 25 and over
+profshr(p, num = "No certificate, diploma or degree")
+```
+
+## An Indigenous standard population from the census
+
+`cnsstd()`: The age structure of a group in a geography of the 2021 Census Indigenous Population Profile, as the standard of `dastd` or `stdprev`.
+
+```{r cnsstd}
+# made-up population counts by age group for two groups, in the layout of a
+# profile table
+ages <- c("0 to 14 years", "15 to 64 years", "65 years and over")
+x <- data.frame(
+  GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+  AGE_GROUP = c("Total - Age groups", ages),
+  RESIDENCE = "Total - Residence on or off reserve",
+  CHARACTERISTIC_ID = 1,
+  CHARACTERISTIC_NAME = "Total - Age groups of the population - 100% data",
+  `IND_IDENT (2)` = c(1200, 400, 700, 100), SYMBOL_IND_IDENT = "",
+  NON_IND = c(5000, 800, 3300, 900), SYMBOL_NON_IND = "",
+  check.names = FALSE
+)
+cnsstd(cnsprof(x), geo = "Lakeside", ages = ages)
+```
+
+## A Community Well-Being score from the census profile
+
+`cnscwb()`: Indigenous Services Canada's Community Well-Being (CWB) index (`cwbscr`) computed from the public 2021 Census Indigenous Population Profile, for each geography and group.
+
+```{r cnscwb}
+# made-up numbers in the layout of a population profile table, for one
+# place and two groups (the published tables hold many more rows)
+nm <- c(
+  "Total - Age groups of the population - 100% data",
+  paste("Number of total income recipients aged 15 years and over in",
+        "private households in 2020 - 25% sample data"),
+  "Average total income in 2020 among recipients ($)",
+  paste("Total - Highest certificate, diploma or degree for the population",
+        "aged 25 years and over in private households - 25% sample data"),
+  "  No certificate, diploma or degree",
+  "  Bachelor's degree or higher",
+  "Participation rate",
+  "Unemployment rate"
+)
+x <- data.frame(
+  GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+  AGE_GROUP = c(rep("Total - Age groups", 3), rep("25 years and over", 3),
+                rep("25 to 64 years", 2)),
+  RESIDENCE = "Total - Residence on or off reserve",
+  CHARACTERISTIC_ID = 1:8, CHARACTERISTIC_NAME = nm,
+  `IND_IDENT (2)` = c(1200, 900, 38000, 700, 150, 120, 62, 14),
+  SYMBOL_IND_IDENT = "",
+  NON_IND = c(5000, 4000, 52000, 3500, 400, 900, 66, 6),
+  SYMBOL_NON_IND = "",
+  check.names = FALSE
+)
+p <- cnsprof(x)
+cnscwb(p, groups = c("Indigenous identity", "Non-Indigenous"), minpop = 0)
+```
+
+## The indicators of Calls to Action 19 and 55, and the tables that measure them
+
+`trcind()`: Call to Action 19 asks the federal government to “establish measurable goals to identify and close the gaps in health outcomes between Aboriginal and non-Aboriginal communities, and to publish annual progress reports and assess long-term trends”, focusing on “infant mortality, maternal health, suicide, mental health, addictions, life expectancy, birth rates, infant and child health issues, chronic diseases, illness and injury incidence, and the availability of appropriate health services”. Call to Action 55 asks for annual data on, among others, “the number of Aboriginal children-including Metis and Inuit children-in care, compared with non-Aboriginal children” and “the educational and income attainments of Aboriginal peoples in Canada compared with non-Aboriginal people”. This lists, for each indicator, the Statistics Canada tables (or the census profile) that measure it, the measure, and which direction is better.
+
+```{r trcind}
+ti <- trcind()
+ti[ti$call == "19", c("indicator", "table", "measure", "better")]
+```
+
+## The Call to Action 19 health gaps, in one place
+
+`trchlthgap()`: For each health indicator of Call to Action 19 that the published tables measure, each group's estimate against non-Indigenous people's, with its interval, turned into one scale, the disadvantage ratio: the factor by which the group's outcome is worse (above 1) or better (below 1).
+
+```{r trchlthgap}
+# your own table: made-up life expectancies with their limits; the tables
+# you do not have are NULL
+le <- data.frame(
+  period = "2017/2019",
+  group = c("First Nations", "Inuit", "Non-Indigenous"),
+  estimate = c(74.2, 70.9, 81.8),
+  lower = c(73.6, 69.1, 81.6),
+  upper = c(74.8, 72.7, 82.0),
+  quality = "ok"
+)
+trchlthgap(health = NULL, lifeexp = le, infmort = NULL, suiide = NULL)
+```
+
+## Calls to Action completed, year by year
+
+`trccmpl()`: The number of the Truth and Reconciliation Commission's 94 Calls to Action that the Yellowhead Institute's annual accountability reports judged complete, by the year they were completed, to the end of 2022: the only counts here are those the reports state.
+
+```{r trccmpl}
+trccmpl()
+```
+
+## How fast the Calls to Action are being completed
+
+`trcprog()`: From cumulative counts of completed Calls to Action over time, the completion rate (calls a year), its exact Poisson interval, and the year all 94 would be complete at that rate.
+
+```{r trcprog}
+p <- trcprog()
+p
+
+# your own count: Calls completed by the end of each year, made up
+trcprog(done = c(2, 6, 9, 13), yearend = 2016:2019)
+```

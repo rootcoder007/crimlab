@@ -1,0 +1,245 @@
+---
+title: "Surveys and summary statistics"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Surveys and summary statistics}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Survey estimates with their design, and the summary statistics the rest of the package is built on.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Surveys
+
+## Design-based estimates from a complex survey
+
+`svymx()`: Means, totals, proportions, ratios and variances from a stratified, clustered, weighted sample (a victimisation survey, say), with standard errors by linearisation that respect the design, by domain and with the differences between domains; and a description of the design.
+
+```{r svymx}
+set.seed(1)
+d <- data.frame(region = rep(c("north", "south"), each = 60),
+                block = rep(1:12, each = 10),
+                victim = rbinom(120, 1, rep(c(0.2, 0.35), each = 60)),
+                w = runif(120, 50, 150))
+svymx(d$victim, d$w, d$region, d$block, stat = "prop")
+svymx(d$victim, d$w, d$region, d$block, stat = "prop", by = d$region)$cmp
+```
+
+## Rao-Scott chi-square test for a survey table
+
+`rscchi()`: The test of independence of two categorical variables in a two-way table from a stratified, clustered and weighted sample (a victimisation or justice survey, say), with Rao and Scott's corrections for the design, to go with the estimates of `svymx()` and the tables of `ctabx()`. Pearson's statistic on such data is too large: the design makes the cell proportions vary more than simple random sampling, and the corrections divide it by the design effects.
+
+```{r rscchi}
+set.seed(1)
+d <- data.frame(region = rep(c("north", "south"), each = 60),
+                block = rep(1:12, each = 10),
+                age = sample(c("young", "middle", "old"), 120, TRUE),
+                w = runif(120, 50, 150))
+d$victim <- rbinom(120, 1, ifelse(d$age == "young", 0.35, 0.2))
+rscchi(d$age, d$victim, d$w, d$region, d$block)
+```
+
+# Summary statistics
+
+## Mean, variance and correlation (C backend)
+
+`cmn()`, `cvari()`, `ccorr()`: `cmn()`, `cvari()` and `ccorr()` compute the mean, the sample variance and the Pearson correlation in compiled code, the same kernels that crimlab's other front ends (the command line, Python and the bindings) call, so a result computed here is the result they give. For everyday work `mean()`, `var()` and `cor()` give the same numbers.
+
+```{r cstat}
+cmn(1:10)
+cmn(c(1, 2, NA))
+cmn(c(1e308, 1e308))
+cvari(c(2, 4, 4, 4, 5, 5, 7, 9))
+all.equal(cvari(1:10), stats::var(1:10))
+ccorr(1:10, (1:10)^2)
+ccorr(1:10, 10:1)
+try(cmn(c("1", "2")))
+try(ccorr(1:3, 1:4))
+```
+
+## Standard deviation and Euclidean distance (C backend)
+
+`csdev()`, `cdistm()`: `csdev()` returns the standard deviation of a numeric vector and `cdistm()` the straight-line (Euclidean) distance between two vectors of the same length.
+
+```{r cspread}
+csdev(c(2, 4, 4, 4, 5, 5, 7, 9))
+all.equal(csdev(1:10), stats::sd(1:10))
+csdev(1:10, ddof = 0)
+csdev(c(3, NA, 5))
+cdistm(c(0, 0), c(3, 4))
+try(cdistm(1:3, 1:2))
+```
+
+## Normal density and log-density (C backend)
+
+`cnormpdf()`, `cnormlpdf()`: `cnormpdf()` evaluates the density of the normal distribution with a given mean and standard deviation at each value of `x`; `cnormlpdf()` its logarithm, computed directly from the formula rather than as `log(dnorm(x))`. Summing log-densities is how a normal model is scored, and computing them directly keeps the sum finite far into the tails, where the density itself underflows to zero.
+
+```{r cnorm}
+cnormpdf(c(-1, 0, 1))
+cnormpdf(c(0, 5, 10), mean = 5, sd = 2)
+all.equal(cnormpdf(-2:2), stats::dnorm(-2:2))
+stats::dnorm(50)
+cnormlpdf(50)
+y <- c(4.8, 5.1, 5.6, 4.9, 5.3)
+sum(cnormlpdf(y, mean = mean(y), sd = stats::sd(y)))
+try(cnormpdf(0, sd = 0))
+try(cnormlpdf(1, mean = c(0, 1)))
+```
+
+## Mean, variance, skewness and kurtosis (C backend)
+
+`cmom()`: The four standard descriptive moments of a numeric vector in one call: where it is centred, how spread out it is, whether it leans to one side and how heavy its tails are.
+
+```{r cmom}
+cmom(c(2, 4, 4, 4, 5, 5, 7, 9))
+m <- cmom(1:10)
+all.equal(m[["variance"]], stats::var(1:10))
+cmom(c(-2, -1, 0, 1, 2))[["skewness"]]
+cmom(c(1, 2))
+```
+
+## Quantiles, median and robust spread (C backend)
+
+`cqnt()`, `cmed()`, `cmad()`, `ciqr()` and others: `cqnt()` is the type-7 quantile, R's default, so it agrees with `stats::quantile(x, probs)`. `cmed()` is the 50% point. `cmad()` is the median absolute deviation scaled by `const` so that it estimates the standard deviation of a normal sample. `ciqr()` is the interquartile range and `ctkyfnc()` the outlier fences drawn `k` IQRs beyond the quartiles. A single corrupted row can move a mean or a variance arbitrarily far, but moves a median or a MAD hardly at all, which is what is wanted when screening a column of a released table for values to inspect by hand.
+
+```{r crob}
+x <- c(2, 4, 4, 4, 5, 5, 7, 9)
+cqnt(x, c(0.25, 0.5, 0.75))
+cmed(x)
+cmad(x)
+all.equal(cmad(x), stats::mad(x))
+ciqr(x)
+ctkyfnc(x)
+wild <- c(x, 1000)
+f <- ctkyfnc(wild)
+wild[wild < f[["lower"]] | wild > f[["upper"]]]
+cmed(c(1, NA, 3))
+try(cqnt(x, 1.5))
+```
+
+## Trimmed and winsorized means (C backend)
+
+`ctrmmean()`, `cwinsmean()`: Two ways to stop a handful of extreme rows dominating a column's centre. `ctrmmean()` DISCARDS the `floor(n * trim)` largest and smallest values, as `mean(x, trim = )` does. `cwinsmean()` instead PULLS THEM IN to the most extreme surviving values, so every observation still counts, usually the better choice when the extremes are real measurements rather than errors.
+
+```{r ctrm}
+x <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 100)
+mean(x)
+ctrmmean(x, 0.1)
+cwinsmean(x, 0.1)
+all.equal(ctrmmean(x, 0.2), mean(x, trim = 0.2))
+all.equal(ctrmmean(x, 0.5), cmed(x))
+try(cwinsmean(x, 0.7))
+```
+
+## Weighted mean and variance (C backend)
+
+`cwtd()`: The weighted mean and variance of a numeric vector, for data where some observations count for more than others: an average over areas weighted by population, or measurements weighted by their precision.
+
+```{r cwtd}
+x <- c(10, 20, 30, 40)
+w <- c(1, 1, 2, 4)
+cwtd(x, w)
+all.equal(cwtd(x, w)[["mean"]], stats::weighted.mean(x, w))
+all.equal(cwtd(x, rep(1, 4))[["variance"]], stats::var(x))
+try(cwtd(x, c(1, -1, 1, 1)))
+```
+
+## Rank correlation and midranks (C backend)
+
+`cspr()`, `cmidrk()`: `cspr()` is Spearman's rho, the Pearson correlation of the ranks: it measures monotone association and is unaffected by any order-preserving transformation of either variable. `cmidrk()` gives the ranks themselves; tied values share the average of the ranks they span, which is what makes the result agree with `stats::cor()` on tied data.
+
+```{r crank}
+x <- c(1, 2, 3, 4, 5)
+y <- c(2, 4, 9, 16, 25)
+cspr(x, y)
+ccorr(x, y)
+xt <- c(1, 2, 2, 2, 5, 5, 7)
+yt <- c(3, 1, 1, 4, 4, 9, 2)
+all.equal(cspr(xt, yt), stats::cor(xt, yt, method = "spearman"))
+cmidrk(xt)
+cmidrk(c(3, NA, 1, 3))
+try(cspr(1:3, 1:4))
+```
+
+## Covariance matrix (C backend)
+
+`ccovm()`: The covariance of every pair of columns of a numeric matrix or data frame. Column names are carried to both dimensions of the result.
+
+```{r ccovm}
+X <- cbind(a = c(1, 2, 3, 4), b = c(2, 4, 7, 8), c = c(5, 3, 2, 1))
+ccovm(X)
+all.equal(ccovm(X), stats::cov(X))
+ccovm(data.frame(u = 1:5, v = c(2, 1, 4, 3, 6)))
+try(ccovm(1:5))
+```
+
+## Bootstrap replicate means (C backend)
+
+`cbootmean()`: `B` resamples of `x`, drawn with replacement and each the length of `x`, with the mean of each. The spread of these replicate means estimates the standard error of the sample mean, and their quantiles give a percentile interval, without assuming the data are normal (Efron and Tibshirani, 1993). The draws come from the core's own 64-bit Mersenne Twister seeded by `seed`, not from R's generator, so a seed gives the same replicates in every front end and on every platform, and R's random stream is left untouched.
+
+```{r cbootmean}
+set.seed(1)
+x <- stats::rnorm(50, mean = 5)
+reps <- cbootmean(x, B = 500, seed = 7)
+c(sample = mean(x), bootstrap = mean(reps))
+stats::quantile(reps, c(0.025, 0.975))
+identical(cbootmean(x, 10, seed = 1), cbootmean(x, 100, seed = 1)[1:10])
+try(cbootmean(x, B = 0))
+```
+
+## Trimmed inverse-probability weights (C backend)
+
+`cipw()`: The inverse-probability-of-treatment weights 1/e for the treated and 1/(1-e) for the untreated, with the propensity score clamped into [trimlo, trimhi] first: an untrimmed score near 0 or 1 gives one observation a weight large enough to dominate the estimate. The weights reweight a treated and an untreated group so that each resembles the whole sample on the covariates behind the propensity score (Rosenbaum and Rubin, 1983).
+
+```{r cipw}
+cipw(c(1, 0, 1, 0), c(0.5, 0.25, 0.02, 0.9))
+cipw(c(1, 0, 1, 0), c(0.5, 0.25, 0.02, 0.9), trimlo = 0.1)
+cipw(c(TRUE, FALSE), c(0.4, 0.4))
+try(cipw(c(1, 2), c(0.5, 0.5)))
+```
+
+## Regularized incomplete gamma function (C backend)
+
+`cgamcdf()`: The lower regularized incomplete gamma function P(a, x), the distribution function of a gamma distribution with shape `a` and unit rate; the p-value of a chi-square statistic q on k degrees of freedom is 1 - P(k/2, q/2).
+
+```{r cgamcdf}
+cgamcdf(3.5, c(0.5, 1, 4, 12))
+all.equal(cgamcdf(3.5, c(0.5, 1, 4, 12)),
+          stats::pgamma(c(0.5, 1, 4, 12), shape = 3.5))
+1 - cgamcdf(2 / 2, 5.99 / 2)
+try(cgamcdf(0, 1))
+```
+
+## Reproducible uniforms (splitmix64)
+
+`cunif()`: Returns `n` pseudo-random numbers on [0, 1) from a 64-bit seed with the splitmix64 generator. The stream depends only on `seed`, and any program that implements splitmix64 (Python, Go, a spreadsheet macro) computes the same numbers, so a subsample or a jitter drawn in one language can be reproduced exactly in another.
+
+```{r cunif}
+cunif(3, 42)
+all.equal(cunif(3, 7), cunif(10, 7)[1:3])
+set.seed(1); a <- runif(1)
+set.seed(1); invisible(cunif(100, 9)); b <- runif(1)
+identical(a, b)
+try(cunif(-1, 1))
+try(cunif(2, 2^53))
+```

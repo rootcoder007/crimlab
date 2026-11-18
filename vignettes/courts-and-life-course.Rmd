@@ -1,0 +1,192 @@
+---
+title: "Courts, sentencing and the life course"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Courts, sentencing and the life course}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Judge-leniency designs, sentencing models, the age-crime curve, cumulative risk and the justice pipeline.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Courts and sentencing
+
+## The judge-leniency instrument
+
+`jdgiv()`: When cases are assigned to judges at random, the judge's leniency is an instrument for the decision (detention, a custodial sentence): the difference in outcomes between lenient and strict judges over the difference in decisions is the Wald ratio (Imbens and Angrist 1994). It is the average effect on the compliers, the cases whose decision depends on the judge, only if no case defies (is detained by the lenient judge and released by the strict one). With a share of defiers `s` whose effect is `e`, the compliers number the first stage plus `s` and their effect is `(wald * fs + s * e) / (fs + s)`; `sens` gives it over a grid, so a reader sees how far the conclusion rests on monotonicity (de Chaisemartin 2017). Code `z` so that the first stage is positive (1 for the judge whose decision is more often 1); with a negative one the complier share is negative and `ceff` is `NA`.
+
+```{r jdgiv}
+set.seed(7)
+z <- rbinom(1000, 1, 0.5)
+d <- rbinom(1000, 1, ifelse(z == 1, 0.3, 0.5))
+y <- rbinom(1000, 1, 0.2 + 0.1 * d)
+jdgiv(z, d, y)
+```
+
+## Do judges' leniency rankings hold? Monotonicity checks
+
+`jmono()`: The decision rate of each judge (with a chi-square test that the rate is the same for all, and its range), and two checks of the monotonicity a judge-leniency design rests on.
+
+```{r jmono}
+set.seed(9)
+j <- sample(paste0("J", 1:6), 1200, TRUE)
+len <- c(J1 = 0.2, J2 = 0.3, J3 = 0.35, J4 = 0.4, J5 = 0.5, J6 = 0.6)
+d <- rbinom(1200, 1, len[j])
+g <- sample(c("adult", "youth"), 1200, TRUE)
+r <- jmono(j, d, grp = g)
+r$sub$summary
+```
+
+```{r jmono-plot}
+plot(r)
+```
+
+## Sentences at, below and above a mandatory minimum
+
+`mmshr()`: The shares of sentences at the mandatory minimum, below it (where a court found a way around it) and above it, and the mean excess of those above, overall and by group (offence, court).
+
+```{r mmshr}
+mmshr(c(365, 400, 300, 365, 730), 365, c("a", "a", "b", "b", "b"))
+```
+
+## Credit for pre-sentence custody
+
+`pscred()`: The credit a Canadian court gives for time held in custody before sentence: each day held counts for at most one day of the sentence (Criminal Code s. 719(3)) or, where the circumstances justify it, for at most one and a half days (s. 719(3.1)). With the sentence imposed, the time left to serve after the credit is given too.
+
+```{r pscred}
+pscred(c(10, 30, 45))
+pscred(c(10, 30, 45), ratio = c(1, 1.5, 1.5), sentence = 60)
+```
+
+## The generalised ordered logit
+
+`gologt()`: An ordered outcome (a risk level, a charge's seriousness, a sentence band) regressed on covariates without forcing each covariate to act the same way at every cut of the scale. For an outcome with levels 1, ..., M, each threshold `j < M` has its own intercept and slopes, P(y > j) = F(a_j + x b_j) with `F` the logistic distribution function (Peterson and Harrell 1990; Williams 2006, the parameterisation of 'gologit2'); a covariate named in `par` keeps one slope for all the thresholds, as in the proportional-odds model, so that `par = x` is that model. O'Connell and Laniyonu (2025) find racial disparity in a risk tool concentrated at the low-to-medium cut and absent at the medium-to-high one, which a proportional-odds fit averages away.
+
+```{r gologt}
+set.seed(7)
+n <- 400
+d <- data.frame(race = rbinom(n, 1, 0.4), age = rnorm(n))
+e1 <- 0.5 + 0.8 * d$race - 0.5 * d$age
+e2 <- -1 + 0.1 * d$race - 0.5 * d$age
+u <- runif(n)
+d$risk <- factor(1 + (u < plogis(e1)) + (u < plogis(e2)), 1:3,
+                 c("low", "med", "high"))
+r <- gologt(d, "risk", c("race", "age"), par = "age")
+r
+```
+
+## The slopes of a generalised ordered logit by threshold
+
+`gocoef()`: The coefficients of `gologt()` laid out as a table: one row per threshold of the outcome, one column per term, so that a covariate's slopes can be read across the cuts of the scale (a parallel covariate repeats its one slope), with their standard errors and, for the free covariates, the Wald test that the slopes are equal.
+
+```{r gocoef}
+set.seed(8)
+n <- 300
+d <- data.frame(race = rbinom(n, 1, 0.4), age = rnorm(n))
+u <- runif(n)
+d$risk <- 1 + (u < plogis(0.5 + 0.8 * d$race)) +
+  (u < plogis(-1 + 0.1 * d$race - 0.3 * d$age))
+gocoef(gologt(d, "risk", c("race", "age")), "race")
+```
+
+# Life course and the justice pipeline
+
+## The age-crime curve of a mixture of offender types
+
+`agemix()`: The aggregate age-crime curve is the share-weighted mean of the curves of latent types (adolescence-limited, life-course persistent, and so on), and one aggregate curve fits many mixtures: the aggregate alone cannot tell one type from several (Moffitt 1993; Gottfredson and Hirschi 1990). What does tell them apart is the covariance of an individual's offending at two ages: with one type it is 0 (given the type, ages are independent), with several it is the covariance across types of their curves at the two ages, which `cov` gives for every pair of ages. With a panel of individuals observed at two ages, the observed covariance and its permutation test say whether one type is enough. See `proof("agemix")`.
+
+```{r agemix}
+ages <- 12:30
+al <- dnorm(ages, 17, 2)
+lcp <- rep(0.08, length(ages))
+r <- agemix(cbind(al = al, lcp = lcp), c(0.8, 0.2), ages)
+r$cov["15", "25"]
+```
+
+```{r agemix-plot}
+plot(r)
+```
+
+## Cumulative risk of a first event by age
+
+`cumrsk()`: The share of a birth cohort that has had a first arrest, conviction or prison admission by each age, from first events by age and the population: the hazard at each age is the first events over those still without one, and the cumulative risk is one minus the product of the complements, with Greenwood's interval on the log scale of the survival (Bonczar 2003; Pettit and Western 2004). With death rates the first events count only among the cohort still alive, and no interval is given.
+
+```{r cumrsk}
+cumrsk(18:22, c(120, 100, 80, 60, 40), rep(10000, 5))
+```
+
+## Age-period-cohort model by the intrinsic estimator
+
+`apcie()`: Asks how much of the change in a rate (arrests, imprisonment, victimisation per head) over the years belongs to age, to the period and to the generation (cohort) people were born into. From a table of counts by age group (rows) and period (columns), with equal widths, and the population at risk in each cell, the Poisson log-linear model
+
+```{r apcie}
+# arrests by five-year age group (rows) and five-year period (columns)
+set.seed(11)
+ag <- c(-1, 0.5, 0.2, -0.3, -0.6)
+pe <- c(-0.2, 0, 0.1, 0.1)
+co <- seq(-0.4, 0.4, length.out = 8)
+ck <- outer(1:5, 1:4, function(i, j) j - i + 5)
+eta <- outer(ag, pe, "+") + matrix(co[ck], 5)
+pop <- matrix(1e5, 5, 4)
+y <- matrix(rpois(20, pop * exp(-6 + eta)), 5,
+            dimnames = list(c("15-19", "20-24", "25-29", "30-34", "35-39"),
+                            c(2000, 2005, 2010, 2015)))
+apcie(y, pop)
+```
+
+## Rates between stages of the justice pipeline
+
+`jpipe()`: Cases moving from one stage to the next (charges to convictions, admissions to releases) take time, so a rate of this period's outflow over this period's inflow mixes cohorts. `jpipe()` divides the numerator summed over a window by the denominator summed over the same window moved back by the lag between the stages.
+
+```{r jpipe}
+jpipe(num = c(5, 7, 6, 9, 8, 10), den = c(20, 22, 19, 25, 24, 26),
+      win = 3, lag = 1)
+```
+
+## Group-based trajectory model for counts
+
+`zgll()`, `zgem()`: The finite mixture of Nagin (1999) for counts over time, zero-inflated Poisson within groups (Lambert 1992; Nielsen et al. 2014): unit `i` belongs to group `k` with probability `prob[k]`; given `k`, its counts are independent Poisson with log mean off + x_t' beta_k and, when `z` is given, zero with extra probability plogis(z_t' gamma_k). `zgll()` evaluates the log-likelihood and the posterior memberships; `zgem()` fits by a generalised EM from the values given (the log-likelihood never decreases). One start per call: the model has local maxima, so several starts are the caller's loop, and the number of groups is the caller's choice (compare the log-likelihoods with a penalty such as BIC).
+
+```{r zgll}
+set.seed(1)
+x <- cbind(1, (1:6 - 3.5) / 2.5)
+b <- cbind(c(0.5, -1), c(1.5, 0.5))
+y <- t(sapply(rep(1:2, each = 50),
+              function(k) rpois(6, exp(x %*% b[, k]))))
+f <- zgem(y, x, par = b + 0.2, prob = c(0.5, 0.5))
+f$par
+```
+
+## Group-based multivariate trajectories
+
+`mvtll()`, `mvtem()`: The group-based trajectory model with several normal indicators per unit (Nagin 1999; Magrini 2022): given group `k`, the <code>r</code> indicators of a unit at period `t` are multivariate normal with mean B_k' x_t and covariance `S_k`, independently over periods. `mvtll()` evaluates the log-likelihood and posterior memberships; `mvtem()` fits by EM with closed-form steps from the values given. A period with any missing indicator is left out for that unit.
+
+```{r mvtll}
+set.seed(1)
+x <- cbind(1, 1:5)
+y <- array(rnorm(40 * 5 * 2), c(40, 5, 2))
+y[1:20, , 1] <- y[1:20, , 1] + 3
+b <- array(c(0, 0, 0, 0, 3, 0, 0, 0), c(2, 2, 2))
+s <- array(diag(2), c(2, 2, 2))
+mvtem(y, x, b, s, prob = c(0.5, 0.5))$prob
+```

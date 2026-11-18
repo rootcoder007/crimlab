@@ -1,0 +1,231 @@
+---
+title: "Risk tools and predictive policing"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Risk tools and predictive policing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Fairness of a risk score across groups, its calibration, and audits of a predictive-policing rule.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+## Differences between groups in a risk tool's decisions
+
+`fairdf()`: How the share of cases a tool flags (predicts positive) differs between groups, as a difference and as a ratio against a base group, each with an interval; with the outcomes, how its true and false positive rates differ; and the bias amplification score, the largest parity gap times the Gini coefficient of the groups' shares.
+
+```{r fairdf}
+set.seed(1)
+g <- rep(c("a", "b"), each = 200)
+y <- rbinom(400, 1, 0.3)
+p <- rbinom(400, 1, ifelse(g == "a", 0.4, 0.25))
+r <- fairdf(p, g, y, nboot = 199, seed = 1)
+r$tab[, c("group", "ppos", "dp", "dplo", "dphi", "di", "dilo", "dihi")]
+r$sum
+```
+
+## Disparity metrics over time and place
+
+`tmpaud()`: The disparate impact ratio, the parity gap, the Gini coefficient of the groups' shares flagged and the bias amplification score of `fairdf()`, for every city and period, and how far each city's ratio moves over the periods (after Barman and Barman 2026).
+
+```{r tmpaud}
+set.seed(2)
+n <- 600
+g <- sample(c("a", "b"), n, TRUE)
+per <- sample(c("2024-1", "2024-2", "2024-3"), n, TRUE)
+cty <- sample(c("north", "south"), n, TRUE)
+p <- rbinom(n, 1, ifelse(g == "a", 0.4, ifelse(cty == "north", 0.3, 0.2)))
+tmpaud(p, g, per, cty)$cities
+```
+
+## Calibration audit of a predictive-policing ranking
+
+`calaud()`: Does the order in which an algorithm ranks areas by predicted risk match the order of what was later recorded there, and does the disagreement follow the areas' demographic make-up? `calaud()` ranks the areas both ways, measures the agreement by Spearman's correlation, and gives each group the mean gap between its areas' two ranks, with a permutation test. It generalises the district-level analysis of the SciencesPo predictive-policing study of Chicago (Lacherade et al. 2021) to any place: the five columns of the audit are `area`, `risk`, `outcome`, `group` and `population`.
+
+```{r calaud}
+set.seed(3)
+d <- fairsim(4000, nareas = 24, bias = 0.5, seed = 1)
+# the recorded outcome is `det`: the incidents that were detected
+r <- calaud(d$area, d$risk, d$det, d$group, nperm = 499, seed = 1)
+r$groups
+r$spear
+```
+
+## A risk score's spread across groups
+
+`scrdsp()`: Each group's number of cases, mean, median and standard deviation of a score, each mean's gap to a reference group with its interval, and the one-way analysis of variance of the score on group, with Welch's (1951) test, which does not assume equal variances.
+
+```{r scrdsp}
+set.seed(7)
+g <- rep(c("x", "y", "z"), c(40, 40, 20))
+s <- rnorm(100, ifelse(g == "x", 0, ifelse(g == "y", 0.5, 1)))
+scrdsp(s, g)
+```
+
+## Individual fairness: a Lipschitz audit
+
+`lipaud()`: Dwork et al. (2012) ask that similar individuals be treated similarly: that the gap between two people's scores be at most `lip` times the distance between them, for a distance that says who is alike for the task. `lipaud()` checks the given pairs against that rule and reports the smallest constant the scores satisfy on them.
+
+```{r lipaud}
+x <- c(1, 2, 2.5, 6)
+h <- c(0.10, 0.20, 0.60, 0.65)
+# scores on a scale of 0 to 1 against distances in years
+lipaud(h, dist(x), lip = 0.2)
+```
+
+## A true base rate behind a noisily recorded one
+
+`nsbnd()`: A recorded outcome is often a proxy: a rearrest for a reoffence, a recorded crime for one committed. With false-positive noise `a`, the chance a case without the outcome is recorded with it, and false-negative noise `b`, the chance a case with it is not, a true base rate `p` is recorded as pobs = p (1 - b) + (1 - p) a. Given only the boxes the noise rates lie in, `nsbnd()` gives the interval of true rates consistent with each recorded rate, and says for each pair of groups whether the order of their true rates follows from the records whatever the noise.
+
+```{r nsbnd}
+# rearrest rates of two groups; up to 10% false positives, 20% missed
+nsbnd(c(a = 0.35, b = 0.55), a = 0.10, b = 0.20)
+# with up to 40% missed, the order is no longer identified
+nsbnd(c(a = 0.35, b = 0.55), a = 0.05, b = 0.40)$pairs
+# known noise rates give the true rate itself
+nsbnd(0.4 * 0.8 + 0.6 * 0.1, a = c(0.1, 0.1), b = c(0.2, 0.2))$bnd
+```
+
+## The false positive rate the other rates imply
+
+`impfpr()`: Chouldechova's (2017) identity: in any confusion table, the false positive rate is `p / (1 - p) (1 - ppv) / ppv (1 - fnr)`, from the base rate `p`, the positive predictive value `ppv` and the false negative rate `fnr`. So two groups whose scores are equally calibrated (the same `ppv`) and miss equally (the same `fnr`) but whose base rates differ must have different false positive rates: no score, however it is built, can equalise all three. The identity is arithmetic, true of any tool on any data; it says which equalities cannot hold together, not which one should give way. See `proof("impfpr")`.
+
+```{r impfpr}
+# the same ppv and fnr, different base rates: different fpr
+impfpr(p = c(a = 0.3, b = 0.5), ppv = 0.6, fnr = 0.25)
+```
+
+## Which pairs a noisy ranking orders
+
+`rnkres()`: People (or areas, or courts) ranked by estimated scores are ordered correctly whatever the noise only when their estimates differ by more than their two interval half-widths together: below that, admissible errors can reverse them, above it none can. `rnkres()` says which pairs that holds for, and the share it fails for; the resolution of the ranking is twice the largest half-width. A league table whose intervals are wide orders few of its pairs (Goldstein and Spiegelhalter 1996). See `proof("rnkres")`.
+
+```{r rnkres}
+rnkres(c(a = 0.2, b = 0.35, c = 0.8), hw = c(0.1, 0.1, 0.05))
+```
+
+## Oaxaca-Blinder decomposition of a gap between two groups
+
+`oaxbd()`: Splits the gap in mean outcome between two groups (a sentence length between two groups of defendants, say) into the part their covariates' means account for and the part they do not, by least squares in each group (Oaxaca 1973; Blinder 1973), with delta-method standard errors (Jann 2008).
+
+```{r oaxbd}
+set.seed(3)
+g <- rep(c("a", "b"), each = 200)
+sev <- rnorm(400, ifelse(g == "a", 5, 4))
+pri <- rpois(400, ifelse(g == "a", 2, 1))
+len <- 2 + 0.8 * sev + 0.5 * pri + ifelse(g == "a", 1, 0) + rnorm(400)
+r <- oaxbd(len, data.frame(sev, pri), g, ref = "b")
+r$dec
+```
+
+## Simulated records with a known disparity
+
+`fairsim()`: Incidents in segregated areas, whose true occurrence is the same for every group but whose recording, and the risk an algorithm predicts for them, differ by group by a set amount: data on which an audit's answer is known (after Barman and Barman 2026). The first group is the reference.
+
+```{r fairsim}
+d <- fairsim(2000, seed = 1)
+head(d)
+# the injected ratio is 1 - 0.5
+fairdf(d$det, d$group, base = "A")$tab[, c("group", "di", "dilo", "dihi")]
+```
+
+## Noisy-OR detection by patrols
+
+`nordet()`: The chance that an incident is seen by patrols when each officer within `radius` of it sees it independently with probability `p`: with `k` officers in range, `1 - (1 - p)^k` (the detection model of Barman and Barman 2026). With `draw = TRUE`, one detection outcome is drawn for each incident. A model of who is seen, under stated assumptions; how patrols are actually placed and how much they see are matters of fact the model does not settle.
+
+```{r nordet}
+set.seed(1)
+inc <- matrix(runif(20), ncol = 2)
+off <- matrix(runif(10), ncol = 2)
+nordet(inc, off, radius = 0.3, p = 0.7)
+```
+
+## Fairness metrics of a binary risk tool by group
+
+`fair()`: The confusion matrix of a risk score cut at `cut` within each group, and the usual rates computed from it: accuracy, sensitivity (true positive rate), specificity, false positive and false negative rates, positive and negative predictive values, the share and number predicted positive and the Matthews correlation, each with its ratio to the base group and, for the first eight, a Wilson score interval (Wilson 1927). A case is predicted positive when its score exceeds `cut`. No single metric defines fairness, and when base rates differ between groups the error rates and the predictive values cannot all be equal at once (Chouldechova 2017); the table shows which differ, not which should not.
+
+```{r fair}
+set.seed(1)
+g <- rep(c("a", "b"), each = 100)
+y <- rbinom(200, 1, ifelse(g == "a", 0.3, 0.5))
+s <- plogis(rnorm(200, ifelse(y == 1, 0.8, -0.8)))
+fair(s, y, g)$met
+```
+
+## Sampling Shapley values of single predictions
+
+`xpshap()`: Shares out one person's prediction among the inputs: the Shapley value of input `j` is its contribution averaged over every order in which the inputs could be revealed, the inputs not yet revealed taking values from the rows of `x` (the reference data). Strumbelj and Kononenko (2014) estimate it by sampling: each sample draws an order of the inputs and a row `w` of `x`, and takes the prediction at the person's values on `j` and the inputs before it (`w`'s on the rest) less the prediction with `j` too taken from `w`. The value is the mean over `nsamp` samples, its standard error their standard deviation over `sqrt(nsamp)`. Over all the inputs the values add up, in expectation, to the person's prediction less the mean prediction over `x`.
+
+```{r xpshap}
+set.seed(5)
+x <- cbind(prior = rpois(100, 2), age = runif(100, 18, 60))
+f <- function(m) plogis(-1 + 0.5 * m[, "prior"] - 0.03 * m[, "age"])
+xpshap(x, f, newx = x[1:2, ], nsamp = 100)
+```
+
+## Accumulated local effects of one input
+
+`xpale()`: The effect of one input on a prediction, measured only where the data are (Apley and Zhu 2020): the range of the column is cut at its quantiles into intervals, each row's prediction is taken at the upper and at the lower edge of its own interval with its other inputs as they are, the differences are averaged within each interval and accumulated from the lowest edge. Unlike partial dependence (`xppdp()`) no row is moved far from where it lies, so an input correlated with others (prior arrests and age, say) is not credited with their effects.
+
+```{r xpale}
+set.seed(4)
+age <- runif(200, 18, 60)
+prior <- rpois(200, (60 - age) / 10)
+x <- cbind(prior, age)
+f <- function(m) plogis(-1 + 0.5 * m[, "prior"] - 0.03 * m[, "age"])
+xpale(x, f, "age", nbin = 5)
+```
+
+## Ceteris paribus profiles of single rows
+
+`xpcp()`: The prediction for one person as one input moves over a grid while the person's other inputs stay as they are: what the risk tool would have said had only that input been different. One profile per row of `newx`; over all the rows of `x` the profiles are the individual conditional expectation curves of Goldstein et al. (2015), and their mean is the partial dependence of `xppdp()`. A steep profile on a protected or proxy input is a decision that turns on that input alone.
+
+```{r xpcp}
+set.seed(3)
+x <- cbind(prior = rpois(100, 2), age = runif(100, 18, 60))
+f <- function(m) plogis(-1 + 0.5 * m[, "prior"] - 0.03 * m[, "age"])
+xpcp(x, f, "prior", newx = x[1:2, ], grid = c(0, 2, 4, 6))
+```
+
+## Partial dependence of a prediction function on one input
+
+`xppdp()`: The average prediction when one input is set to a value for every row and the others keep their values (Friedman 2001, sec. 8.2): at each value `g` of a grid, the mean of the predictions with column `v` set to `g` in every row. It is the effect of the input averaged over the data, as a risk tool's user would read it; where the input is correlated with the others it averages over combinations the data never hold, which `xpale()` avoids.
+
+```{r xppdp}
+set.seed(2)
+x <- cbind(prior = rpois(100, 2), age = runif(100, 18, 60))
+f <- function(m) plogis(-1 + 0.5 * m[, "prior"] - 0.03 * m[, "age"])
+xppdp(x, f, "age", grid = 5)
+```
+
+## Permutation importance of a prediction function
+
+`xpimp()`: How much worse a risk tool predicts when one of its inputs is made useless: the column is shuffled across the rows, which keeps its distribution but breaks its link with the outcome and with the other columns, and the loss of the predictions against `y` is measured again (Breiman 2001; Fisher, Rudin and Dominici 2019, who call the ratio the model reliance). Each column is shuffled `nrep` times and the mean and the standard deviation of the increases are reported.
+
+```{r xpimp}
+set.seed(1)
+x <- cbind(prior = rpois(200, 2), age = runif(200, 18, 60),
+           noise = rnorm(200))
+y <- 0.3 * x[, "prior"] - 0.02 * x[, "age"] + rnorm(200, sd = 0.5)
+f <- function(m) 0.3 * m[, "prior"] - 0.02 * m[, "age"]
+xpimp(x, f, y, nrep = 5)
+xpimp(x, "glm", y, nrep = 5, lctl = list(nfold = 2))
+```

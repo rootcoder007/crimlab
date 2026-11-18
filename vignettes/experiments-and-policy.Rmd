@@ -1,0 +1,274 @@
+---
+title: "Experiments and policy evaluation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Experiments and policy evaluation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Randomisation, power, falsification tests, difference-in-differences, event studies and synthetic controls.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Experiments
+
+## Randomisation lists for a trial
+
+`rndalc()`: Allocates participants to arms by simple, permuted-block or stratified block randomisation from a seed, so that the list can be made again exactly from the seed and the settings, in R or on the command line.
+
+```{r rndalc}
+a <- rndalc(40, seed = 12)
+a
+head(a$alloc)
+s <- rndalc(arms = c("drug", "placebo"), ratio = c(2, 1),
+            strata = c(Toronto = 30, Ottawa = 24), seed = 7)
+s$tab
+rndalc(20, block = 0, seed = 1)$tab
+```
+
+## Permutation test within blocks
+
+`blkprm()`: The randomisation test of a treatment effect in a blocked (or stratified, or matched) experiment: the treatment labels are permuted within each block, so that every arrangement keeps each block's number of treated units, as the design randomised them, and the observed statistic is compared with its values over the arrangements (Rosenbaum 2002, ch. 2; Good 2005, sec. 3.6).
+
+```{r blkprm}
+set.seed(4)
+d <- data.frame(site = rep(1:6, each = 4), t = rep(c(1, 0, 1, 0), 6))
+d$y <- d$site + 0.8 * d$t + rnorm(24, sd = 0.5)
+blkprm(d, "y", "t", "site", nperm = 999, seed = 1)
+blkprm(d[1:12, ], "y", "t", "site", stat = "strat", exact = TRUE)$p
+```
+
+## Power of the one-way analysis of variance
+
+`pwranv()`: The power of the F test of equal means in `k` groups of `n` with Cohen's effect size `f` (the standard deviation of the group means about their mean, over the common standard deviation), from the noncentral F distribution; or, given the power wanted, the smallest whole `n` per group that reaches it.
+
+```{r pwranv}
+pwranv(3, n = c(20, 40, 60), f = 0.25)
+pwranv(4, f = c(0.1, 0.25, 0.4), power = 0.8)
+```
+
+## Power by simulation
+
+`pwrsim()`: The power of a two-arm trial found by simulating it: for each control arm size in `n` and each effect in `eff`, `nsim` trials are drawn, each is tested, and the power is the share rejected at `alpha`, with its Monte Carlo standard error and Wilson's interval (Morris, White and Crowther 2019). It answers what a formula cannot: an outcome that is binary or a count, unequal arms, a permutation test.
+
+```{r pwrsim}
+pwrsim(c(20, 50), eff = c(0, 0.5), nsim = 400, seed = 1)
+pwrsim(100, eff = 0.15, fam = "binary", p0 = 0.3, nsim = 400,
+       seed = 2)$tab
+```
+
+## Falsification with negative-control outcomes
+
+`falsctl()`: Estimates the "effect" of the treatment on outcomes it cannot have affected (negative controls: an outcome measured before treatment, or one with no plausible path from it), by the same regression as the outcome of interest. An association with a negative control points to confounding or another bias that the adjustment did not remove (Lipsitch, Tchetgen Tchetgen and Cohen 2010; Shi, Miao and Tchetgen Tchetgen 2020).
+
+```{r falsctl}
+set.seed(5)
+n <- 300
+d <- data.frame(age = runif(n, 18, 60), u = rnorm(n))
+d$t <- rbinom(n, 1, plogis(0.8 * d$u))
+d$arrest <- 0.4 * d$t + 0.5 * d$u + rnorm(n)
+d$prior <- 0.5 * d$u + rnorm(n)     # before treatment: a control
+d$height <- rnorm(n)                # no path from treatment
+falsctl(d, "arrest", "t", c("prior", "height"), x = "age")
+```
+
+## Does the analysis recover a planted effect?
+
+`plntfx()`: Plants effects of known size in the real data and checks that the analysis finds them: the outcome is shuffled across rows, which removes whatever association it had with the treatment and the covariates while keeping its distribution, an effect `eff` is added to the treated (y* = shuffled y + eff d), and the analysis is run again, `nrep` times for each effect. An analysis that is biased, or whose intervals are too narrow, shows it here on data where the truth is known, a positive control in the sense of Lipsitch, Tchetgen Tchetgen and Cohen (2010).
+
+```{r plntfx}
+set.seed(6)
+d <- data.frame(age = runif(200, 18, 60), t = rbinom(200, 1, 0.4))
+d$y <- 0.02 * d$age + rnorm(200)
+plntfx(d, "y", "t", x = "age", eff = c(0, 0.25, 0.5), nrep = 200,
+       seed = 1)
+```
+
+## Specification curve
+
+`specrv()`: The estimate of a treatment effect under every reasonable specification at once, and whether the specifications as a whole show an effect: the specification curve of Simonsohn, Simmons and Nelson (2020). A finding that holds under one specification only is fragile; one that survives the choices an analyst could defensibly have made is not.
+
+```{r specrv}
+set.seed(7)
+n <- 200
+d <- data.frame(t = rbinom(n, 1, 0.5), age = runif(n, 18, 60),
+                prior = rpois(n, 2), male = rbinom(n, 1, 0.5))
+d$arrest <- 0.3 * d$t + 0.1 * d$prior + rnorm(n)
+d$charge <- 0.2 * d$t + 0.1 * d$prior + rnorm(n)
+s <- specrv(d, c("arrest", "charge"), "t", opt = c("age", "prior",
+            "male"), nsim = 200, seed = 1)
+s
+head(s$spec)
+```
+
+# Policy evaluation
+
+## A simulated policy panel for the examples
+
+`polex()`: Twenty districts in four regions over 36 months; a reform adopted region by region in three stages (months 13, 19 and 25), with the fourth region never adopting it; crime and arrest rates and counts. The numbers are made up, with a known effect of the reform (a fall of 3 in the crime rate per 100,000), so the examples and tests can check that each estimator recovers it.
+
+```{r polex}
+# the panel is simulated: made-up numbers with a known effect of -3
+p <- polex()
+head(p)
+# the same seed gives the same panel
+identical(polex(7), polex(7))
+```
+
+## Difference in differences with two-way fixed effects
+
+`didfe()`: The effect of a policy on a unit-by-period panel (towns by year, beats by month, courts by quarter) from a regression of the outcome on the treatment with unit and period fixed effects, with standard errors clustered by unit or by any coarser grouping, one-way or two-way. Counts can be fitted by Poisson or negative binomial regression with the same effects. Options give the estimate leaving out each treated unit in turn, its Goodman-Bacon decomposition, and the estimate after matching treated units to comparison units on their outcomes before treatment.
+
+```{r didfe}
+# twelve towns over ten years; four adopt a by-law in 2019, four in 2021
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+first <- c(2019, 2019, 2019, 2019, 2021, 2021, 2021, 2021, NA, NA, NA, NA)
+d$bylaw <- as.integer(!is.na(first[i]) & d$year >= first[i])
+d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * d$bylaw + sin(seq_len(120))
+r <- didfe(d$rate, d$town, d$year, d$bylaw)
+r
+# its comparisons, and each adopting town left out in turn
+didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE)$bacon
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+didfe(p$crmrate, p$district, p$month, p$reformed)
+```
+
+```{r didfe-plot}
+plot(r)
+```
+
+## An event study: the effect period by period around adoption
+
+`evtst()`: Leads and lags of a policy's adoption from a two-way fixed-effects regression on indicators of the time since adoption, with the joint test that the leads are zero (no effect before the policy, the testable part of parallel trends), and the raw mean outcome of each adoption cohort around its adoption.
+
+```{r evtst}
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+d$first <- c(2019, 2019, 2019, 2019, 2021, 2021, 2021, 2021,
+             NA, NA, NA, NA)[i]
+on <- !is.na(d$first) & d$year >= d$first
+d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * on + sin(seq_len(120))
+e <- evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3)
+e
+e$pre
+# how far trends may bend before the effect is lost
+evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3,
+      mbar = c(0, 1, 2), seed = 1)$sens
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+evtst(p$crmrate, p$district, p$month, p$refmonth, leads = 3,
+      lags = 3)$est
+```
+
+```{r evtst-plot}
+plot(e)
+```
+
+## Effects of a policy adopted at different times
+
+`stgdid()`: Difference-in-differences estimators for staggered adoption that never use an already-treated unit as a control: the group-time effects of Callaway and Sant'Anna (2021), optionally with covariates; the regression on cohort-period cells of Wooldridge (2021); and, for a treatment that switches on and off, the estimator of de Chaisemartin and D'Haultfoeuille (2020) with its placebo. Standard errors come from the cluster bootstrap.
+
+```{r stgdid}
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+d$first <- c(2019, 2019, 2019, 2019, 2021, 2021, 2021, 2021,
+             NA, NA, NA, NA)[i]
+on <- !is.na(d$first) & d$year >= d$first
+d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * on + sin(seq_len(120))
+s <- stgdid(d$rate, d$town, d$year, d$first, reps = 99, seed = 1)
+s$overall
+s$dynamic
+# a by-law some towns repeal
+d$law <- as.integer(on & !(i == 1 & d$year >= 2022))
+stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
+       seed = 1)$overall
+# the simulated panel of polex(): a reform with a known effect of -3
+p <- polex()
+stgdid(p$crmrate, p$district, p$month, p$refmonth, reps = 49,
+       seed = 1)$overall
+```
+
+```{r stgdid-plot}
+plot(s)
+```
+
+## Synthetic control for one treated unit
+
+`synthc()`: A weighted average of units never treated that tracks the treated unit before the policy, as its counterfactual after; with the placebo test that runs the same method on every comparison unit.
+
+```{r synthc}
+d <- expand.grid(year = 2010:2024, town = LETTERS[1:8])
+i <- match(d$town, LETTERS)
+d$first <- ifelse(d$town == "A", 2019, NA)
+d$rate <- 20 + i + (d$year - 2010) * (0.2 + i / 20) +
+  sin(seq_len(120)) - 3 * (d$town == "A" & d$year >= 2019)
+s <- synthc(d$rate, d$town, d$year, d$first)
+s
+s$path
+```
+
+```{r synthc-plot}
+plot(s)
+```
+
+## Synthetic difference in differences
+
+`sdidx()`: The estimator of Arkhangelsky et al. (2021) for units adopting a policy in one period: comparison units weighted so that their path before adoption parallels the treated units', periods before adoption weighted so that they predict the comparison units' level after, and the difference in differences taken with both weights.
+
+```{r sdidx}
+d <- expand.grid(year = 2010:2024, town = LETTERS[1:10])
+i <- match(d$town, LETTERS)
+d$first <- ifelse(i <= 3, 2019, NA)
+d$rate <- 20 + i + (d$year - 2010) * (0.2 + i / 20) +
+  sin(seq_len(150)) - 3 * (i <= 3 & d$year >= 2019)
+sdidx(d$rate, d$town, d$year, d$first)
+```
+
+## Inference for a difference in differences with few clusters
+
+`wcbx()`: Tests of the two-way fixed-effects effect of `didfe()` that stay accurate when a policy was assigned to a handful of clusters (districts, states), where the cluster-robust t test over-rejects: the restricted wild cluster bootstrap, and the permutation of the adoption dates across clusters; and the power of a design simulated on real untreated data.
+
+```{r wcbx}
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:8])
+i <- match(d$town, LETTERS)
+d$bylaw <- as.integer(i <= 3 & d$year >= 2019)
+d$rate <- 30 + i + 0.5 * (d$year - 2015) - 2 * d$bylaw + sin(seq_len(80))
+# eight towns: every one of the 2^8 sign patterns
+wcbx(d$rate, d$town, d$year, d$bylaw)
+# every assignment of the by-law to three of the eight towns
+wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+# the simulated panel of polex(), its four regions the clusters
+p <- polex()
+wcbx(p$crmrate, p$district, p$month, p$reformed, clus = p$region)
+```
+
+## Westfall-Young stepdown p-values
+
+`wystep()`: Adjusted p-values for several hypotheses tested together, from the joint null distribution of their statistics (permutations or bootstrap draws), holding the family-wise error rate while using the correlation between the tests.
+
+```{r wystep}
+set.seed(1)
+null <- matrix(rnorm(3000), ncol = 3)
+wystep(c(2.5, 0.4, -2.1), null)
+```

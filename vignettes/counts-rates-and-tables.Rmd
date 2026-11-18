@@ -1,0 +1,210 @@
+---
+title: "Counts, rates, concentration and published tables"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Counts, rates, concentration and published tables}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Count regression, standardised rates, cross-tables, concentration of crime, the dark figure, and tables published in bands.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Counts, rates and tables
+
+## Count regression: rate ratios between groups
+
+`cntreg()`: Fits a log-linear model of a count on a group, with adjustment columns, an exposure and clusters, by Poisson and negative binomial maximum likelihood, and reports the incidence rate ratio (IRR) of each group against the reference with its interval. The same model serves counts of people, placements, days or deaths in the cells of a published table and counts per person or per area.
+
+```{r cntreg}
+# placements by group in eight institutions over three years
+d <- data.frame(
+  n = c(12, 30, 8, 25, 14, 41, 9, 22, 11, 35, 7, 28),
+  female = rep(c("no", "yes"), 6),
+  year = factor(rep(c(2021, 2022, 2023), each = 4)),
+  inst = rep(c("A", "B", "C", "D"), each = 2, length.out = 12)
+)
+cntreg(d$n, d$female, adj = d["year"], clus = d$inst)
+# rates: a count per person-days of exposure
+cntreg(c(5, 12), c("a", "b"), expo = c(1000, 1500))
+```
+
+## Rates and proportions by group: ratios and differences
+
+`grprr()`: The rate (events over exposure) or the proportion (events over trials) of each group, and its ratio to and difference from a reference group, with approximate and exact intervals. Rows that share a group are pooled: give one row per group, or one per case (0/1 outcomes with `n = 1`, the default for proportions), or anything between.
+
+```{r grprr}
+# use-of-force incidents per 1,000 contacts by perceived race
+grprr(c(white = 120, black = 95, other = 30),
+      c(white = 60000, black = 21000, other = 15000), per = 1000)
+# proportions from one row per case
+grprr(c(1, 0, 0, 1, 1, 0, 1, 1), grp = c(1, 1, 1, 1, 2, 2, 2, 2),
+      type = "prop")
+```
+
+## Directly standardised rates
+
+`dastd()`: The rate each group would have with the stratum make-up (age bands, say) of a standard population: the sum over strata of the standard's weights times the group's stratum rates. The interval is Fay and Feuer's gamma interval; the ratio of two standardised rates has a log-normal interval and their difference a normal one.
+
+```{r dastd}
+d <- data.frame(age = rep(c("18-29", "30-49", "50+"), 2),
+                grp = rep(c("A", "B"), each = 3),
+                x = c(30, 22, 5, 41, 30, 12),
+                n = c(5000, 9000, 6000, 3000, 8000, 7000))
+dastd(d$x, d$n, d$age, d$grp, std = c(30, 45, 25), per = 1e4)
+```
+
+## Indirect standardisation: standardised ratios with shrinkage
+
+`sirex()`: The events observed in each group (an area, a police service) against those expected from stratum rates, the standardised incidence ratio (SIR) with its exact Poisson interval, funnel-plot limits for a ratio of 1 at its expected count, and the ratio shrunk towards the overall one by the empirical Bayes estimate of Marshall (a gamma prior fitted by moments), so that groups with little exposure are not ranked on noise.
+
+```{r sirex}
+d <- data.frame(area = rep(c("N", "S", "E"), each = 2),
+                age = rep(c("young", "old"), 3),
+                x = c(12, 3, 30, 9, 4, 1),
+                n = c(4000, 2000, 8000, 3000, 1500, 900))
+sirex(d$x, d$n, d$age, d$area)
+```
+
+## Cross-tabulation with tests and measures of association
+
+`ctabx()`: Builds a two-way table from labels (counting rows, summing a count column of an aggregate table, or counting distinct ids per cell) and gives Pearson's chi-square test, the likelihood-ratio test, Cramer's V with an interval and its bias-corrected form, the contingency coefficient, phi for a 2 x 2 table, the share on the diagonal (the rows whose label is also the column's, as a region at placement against the region now), and on request Fisher's exact test with, for a 2 x 2 table, the conditional odds ratio and its exact interval.
+
+```{r ctabx}
+# force type by weapon, one row per incident
+wp <- c("none", "none", "knife", "gun", "none", "knife", "gun", "none")
+fc <- c("hands", "hands", "CEW", "firearm", "CEW", "hands", "firearm",
+        "hands")
+ctabx(wp, fc)
+# region at placement against region now: the diagonal share
+ctabx(c("N", "N", "E", "W", "E"), c("N", "E", "E", "W", "E"))
+# a published aggregate table: sum its count column
+d <- data.frame(race = c("A", "A", "B", "B"), sex = c("F", "M", "F", "M"),
+                n = c(12, 40, 9, 51))
+ctabx(d$race, d$sex, w = d$n, exact = TRUE)
+```
+
+# Concentration
+
+## Concentration of crime across places, people or units
+
+`cconc()`: How unequally a total is spread across units: the Gini coefficient and the Lorenz curve, the share held by the top units, and what chance alone would show. A few places holding most of the incidents, or a few people most of the placements, is the law of crime concentration (Weisburd 2015); with sparse counts much of the Gini comes from the units with no events at all, and a Poisson process at the same mean already leaves many units at zero (Bernasco and Steenbeek 2017).
+
+```{r cconc}
+set.seed(2)
+n <- rnbinom(200, mu = 2, size = 0.4)
+r <- cconc(n, nsim = 200, seed = 1)
+r$stat[c("gini", "zero", "gpos", "gnull")]
+r$top
+# people by number of placements, from a banded table
+cconc(c(1, 2, 4, 8), w = c(500, 120, 40, 9), nsim = 0)$stat["gini"]
+# the place of each incident, in order
+cconc(sample(letters[1:8], 60, TRUE, prob = 8:1), nsim = 0)$grow$mhat
+```
+
+```{r cconc-plot}
+plot(r)
+```
+
+## Tail index of a heavy-tailed count
+
+`hilltl()`: The exponent `alpha` of a power-law tail, `P(X = k)` proportional to `k^-alpha` above a threshold `xmin`, as when a few people account for most repeat placements or most steps of an offender's path are short and a few very long (Clauset, Shalizi and Newman 2009). For counts the maximum likelihood estimate of the discrete law is the default, its normalising constant the Hurwitz zeta function `zeta(alpha, xmin)`; `approx = TRUE` gives the closed form with `xmin - 1/2`, and `discrete = FALSE` the continuous Hill estimator 1 + n / sum log(x / xmin) for measurements such as distances. `ks` is the Kolmogorov-Smirnov distance between the tail and the fitted law: an exponent is only as good as that fit. The values at or below 0 are left out.
+
+```{r hilltl}
+set.seed(4)
+k <- floor(runif(400)^(-1 / 1.5))
+hilltl(k, xmin = 1)
+```
+
+# Dark figure
+
+## Capture-recapture estimates of a hidden population
+
+`crcap()`: How many offenders, victims or incidents no list records, from the overlap of two or three lists (police records, hospital records, a survey). With two lists the Lincoln-Petersen estimate n1 n2 / m assumes the lists are independent; when being on one list changes the odds of being on the other by at most a factor `kappa`, the truth lies within [n1 n2 / (kappa m), kappa n1 n2 / m] (`lower`, `upper`), and no data can narrow that box. Chapman's estimate `(n1 + 1)(n2 + 1) / (m + 1) - 1` is nearly unbiased, with Seber's standard error.
+
+```{r crcap}
+crcap(c(n1 = 500, n2 = 400, m = 80), kappa = 1.5)
+crcap(c("100" = 120, "010" = 90, "001" = 60, "110" = 30, "101" = 20,
+        "011" = 15, "111" = 8), int = c(-0.5, 0, 0.5))
+```
+
+## The dark figure of crime: bounds instead of a point
+
+`dkfig()`: What recorded crime and a victimisation survey together say about the crime that is never recorded, as intervals that hold under stated limits on the errors (Manski 2003).
+
+```{r dkfig}
+dkfig(v = c(0.12, 0.08), r = 0.03, amax = 0.01, bmax = 0.2, thr = 0.15)
+dkfig(va = 900, ra = 300, rb = 450, lam = 0.5)
+dkfig(k = c(1, 1, 2, 1, 3))
+```
+
+# Published tables
+
+## Banded categories: bounds, values and what the open band costs
+
+`bandx()`: Justice statistics are often published in bands ("1-5 days", "16 to 30", "Over 60", "Less than 1 year"). `bandx()` reads each label into a lower and an upper end, places a value in each band (the midpoint, an end, or the geometric mean), expands a banded frequency table into one value per unit, and shows how much a statistic of those values depends on the cap assumed for an open top band.
+
+```{r bandx}
+b <- c("1-5", "6-15", "16-30", "31-60", "Over 60")
+n <- c(40, 25, 15, 12, 8)
+r <- bandx(b, n, stat = mean)
+r$bands
+r$sens
+```
+
+```{r bandx-plot}
+plot(r)
+```
+
+## Bounds implied by rounding and suppression in a published table
+
+`pbbnd()`: A published count stands for every true count that could have produced it. Rounded to the nearest multiple of `rnd`, a true count lies within `rnd / 2` of it (randomly rounded, within `rnd - 1`); suppressed below a limit `k` (a cell written `"<k"`, or a marker such as `"x"` with `suplim = k`), it lies from 0 to `k - 1`. Given the cells of an earlier period, `chg` holds every change the two columns allow, and an interval that spans 0 cannot tell a rise from a fall. See `proof("pbbnd")`.
+
+```{r pbbnd}
+pbbnd(c("1,240", "35", "<5", "x"), rnd = 5, suplim = 10)
+pbbnd(c(120, 15), rnd = 5, prev = c(100, 20), pop = 5e4)
+```
+
+## Year-over-year change in a published series
+
+`yoypx()`: The change of each period against the period `lag` before it, within groups (an agency, a region): the difference, the percent change (or, for percentages, the change in points), and for counts the exact interval of the percent change, from the conditional binomial of the count now among both, the exact two-sided p-value of no change (as `stats::binom.test()`), and the p-values adjusted for the number of comparisons (as `stats::p.adjust()`). With `rnd`, the counts are taken as rounded, and the envelope of the change they allow is added, with a percent interval that covers both.
+
+```{r yoypx}
+d <- data.frame(year = rep(2019:2023, 2),
+                svc = rep(c("A", "B"), each = 5),
+                n = c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33))
+yoypx(d$n, d$year, d$svc, rnd = 5)
+```
+
+## One call on a published table: check, change, rates and trend
+
+`tabrpt()`: The questions asked of a table an agency publishes are nearly always the same: are its categories sound, what changed from one period to the next and how sure can one be, what are the rates where there is a population, and does a short series trend. `tabrpt()` answers them in one call on a table in long form (one row per period and group), with the steps a reviewer needs and that are easy to forget on a deadline: exact intervals and p-values adjusted over every comparison, and the envelope that rounding in the release allows.
+
+```{r tabrpt}
+d <- data.frame(year = rep(2019:2023, 2),
+                svc = rep(c("A", "B"), each = 5),
+                n = c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33),
+                pop = rep(c(50000, 12000), each = 5))
+r <- tabrpt(d, "n", "year", by = "svc", pop = "pop", rnd = 5)
+r
+r$change[, c("group", "prd", "pctchg", "padj")]
+```

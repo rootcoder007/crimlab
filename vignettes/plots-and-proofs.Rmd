@@ -1,0 +1,150 @@
+---
+title: "Plot helpers, proofs and the rest"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Plot helpers, proofs and the rest}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+The plot helpers shared by the package, the theorems behind a function, and the functions no other guide holds.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Plots
+
+## Plot methods for the package's results
+
+`plotm()`: Every result of the package that holds something to draw has a `plot()` method, on base graphics only. No argument beyond the object is needed; every method takes the same customisation: `main`, `col` or `pal`, and `...` passed to the base-graphics call, with the session look set by `plotopt()`. Each method returns, invisibly, the data it drew (a data frame, or a list of them), so the same picture can be drawn with any other tool. Series that differ in colour also differ in line type or point shape, and shaded cells carry their numbers, so no plot depends on colour alone.
+
+```{r plotm}
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+first <- rep(c(2019, 2021, NA), each = 4)
+d$first <- first[i]
+d$bylaw <- as.integer(!is.na(d$first) & d$year >= d$first)
+d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * d$bylaw + sin(seq_len(120))
+plot(evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3))
+plot(didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE))
+one <- d[d$town %in% c("A", "I", "J", "K", "L"), ]
+plot(synthc(one$rate, one$town, one$year, one$first))
+plot(grprr(c(a = 120, b = 95, c = 30), c(a = 6e4, b = 2.1e4, c = 1.5e4)))
+plot(kmrec(c(3, 8, 8, 12, 20, 24), event = c(1, 1, 0, 1, 0, 1),
+           grp = c("a", "a", "a", "b", "b", "b")))
+plot(trnmat(c("N", "N", "E", "N", "W", "W", "E", "E"),
+            c(1, 1, 1, 2, 2, 2, 3, 3), time = c(1, 2, 3, 1, 2, 3, 1, 2)))
+set.seed(1)
+plot(cconc(rpois(200, 2), nsim = 0))
+```
+
+## Plot styling: palettes and session options
+
+`blpal()`, `plotopt()`, `yoypals()`: Every plot in the package draws with base graphics and one small set of style choices, which these functions expose. `blpal()` returns colour-blind-safe palettes: `"okabe"` (the Okabe-Ito categorical set), `"diverging"` (blue, grey, orange-red), `"sequential"` (light to dark blue) and `"grey"`. `plotopt()` sets, for the session, the defaults every plot uses: `palette`, `grid`, `cex`, `las`, `bg` and `panel`. Each plot also takes `main`, `col` (which overrides the palette), `pal` and `...` (passed to the base-graphics call), so one plot can change without changing the session.
+
+```{r blpal}
+blpal("okabe", 3)
+old <- plotopt()
+plotopt(palette = "grey", grid = FALSE)
+plotopt(palette = old$palette, grid = old$grid)
+plot(1:8, pch = 19, cex = 3, col = blpal())
+```
+
+## Lorenz and funnel plots
+
+`plotlrnz()`, `plotfnl()`: `plotlrnz()` draws the Lorenz curve of a total spread over units: the cumulative share of the total held by the cumulative share of units, smallest first, against the line of equality, with the Gini coefficient (from `cconc()`) in the title. `plotfnl()` draws a funnel plot (Spiegelhalter 2005): each area's ratio of observed to expected counts against its expected count, with exact Poisson control limits around `target`; areas outside the outer limits are drawn in a second colour and a second shape, and labelled when `area` is given.
+
+```{r plotlrnz}
+plotlrnz(c(0, 0, 1, 1, 2, 3, 8, 25))
+plotfnl(obs = c(4, 20, 50, 2), expd = c(5, 22, 40, 20),
+        area = c("a", "b", "c", "d"))
+```
+
+## Distributions by group: ridgelines, distribution functions, violins, hexagonal bins and concentration curves
+
+`plotrdg()`, `plotcdfs()`, `plotvln()`, `plothex()` and others: Plots of many values, split by a group. `plotrdg()` stacks a kernel density per group (a ridgeline plot); `plotcdfs()` overlays the empirical distribution functions; `plotvln()` draws a violin per group with its median and quartiles; `plothex()` counts two variables in hexagonal bins, shaded by count; `plotgain()` overlays the concentration (Lorenz) curves of the groups with their Gini coefficients.
+
+```{r plotrdg}
+set.seed(1)
+x <- c(rnorm(100), rnorm(100, 2))
+g <- rep(c("a", "b"), each = 100)
+plotrdg(x, g)
+plotcdfs(x, g)
+plotvln(x, g)
+plothex(x, x + rnorm(200), bins = 10)
+plotgain(rexp(200), g)
+```
+
+## Many series over time: calendar, horizon, small-multiple and bump charts
+
+`plotcal()`, `plothrz()`, `plotmult()`, `plotbump()`: `plotcal()` draws daily values as a calendar: one row of weeks per year, each day a cell shaded by its value. `plothrz()` draws a horizon chart: each series' distance from its own median, folded into `bands` bands of darkening shade, blue above and red below, one row per series. `plotmult()` draws each series in its own panel on a shared scale (small multiples). `plotbump()` draws the rank of each series in each period (a bump chart).
+
+```{r plotcal}
+days <- seq(as.Date("2024-01-01"), as.Date("2024-03-31"), by = "day")
+plotcal(days, seq_along(days) %% 7)
+d <- expand.grid(year = 2015:2020, area = c("n", "s", "e"))
+d$v <- c(1:6, 6:1, rep(3, 6))
+plothrz(d$v, d$year, d$area, bands = 2)
+plotmult(d$v, d$year, d$area)
+plotbump(d$v, d$year, d$area)
+```
+
+## Event studies for several outcomes in one grid
+
+`plotevgrid()`: Draws the event-study path of each result in a named list, one panel each, as `plot()` draws one: estimates by time since adoption with their intervals, before adoption in open circles and after in filled ones.
+
+```{r plotevgrid}
+d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])
+i <- match(d$town, LETTERS)
+first <- rep(c(2019, 2021, NA), each = 4)
+d$first <- first[i]
+d$rate <- 30 + i + 0.5 * (d$year - 2015) -
+  4 * (!is.na(d$first) & d$year >= d$first) + sin(seq_len(120))
+d$cases <- d$rate / 2 + cos(seq_len(120))
+plotevgrid(list(
+  Rate = evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3),
+  Cases = evtst(d$cases, d$town, d$year, d$first, leads = 3, lags = 3)
+))
+```
+
+# Proofs
+
+## Machine-checked proofs behind the package
+
+`proof()`: Names the 'Lean' theorem each function rests on. The theorems ship with the package: `file` is the path below `system.file(package = "crimlab")`, and each file compiles against 'Mathlib'.
+
+```{r proof}
+proof("vodtst")
+```
+
+# Package
+
+## Power and energy of the machine's devices
+
+`hwpwr()`: Reads what the CPU packages, the memory and the GPUs of this machine draw, from the operating system's own energy counters and power readings, over an interval: `dt` seconds from now, or since an earlier reading (`since`). Every figure says how it was obtained, and a device that cannot be measured is listed with the reason, never counted as zero. It is the measured layer under an energy or carbon footprint of a computation.
+
+```{r hwpwr}
+r <- hwpwr(0.5)
+r[, c("kind", "name", "scope", "watts", "joules", "how")]
+a <- hwpwr(0)
+x <- sum(sqrt(seq_len(1e6)))
+b <- hwpwr(since = a)
+b[b$kind == "total", c("joules", "why")]
+```

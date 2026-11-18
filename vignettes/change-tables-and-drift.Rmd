@@ -1,0 +1,226 @@
+---
+title: "Change tables, drift between releases and region maps"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Change tables, drift between releases and region maps}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Year-over-year tables in several formats, tests that a new release of data still looks like the last, and checks of a region map.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Change tables out
+
+## Label the periods of a change table without changing them
+
+`yoylbl()`, `fylbl()`: A period's value and its name are not the same thing: a fiscal year keyed by the year it ends (2023 for the year that runs from 2022 into 2023) printed as "2023" names a calendar year the row is not about. `yoylbl()` adds a column `perlbl` that the writers show in place of the period; the comparison still runs on the value, so relabelling cannot change an answer. `fylbl()` names a fiscal year by the years it spans.
+
+```{r yoylbl}
+fylbl(c(2023, 2024))
+fylbl(2023, sep = "-", short = FALSE)
+# simulated admissions to custody by fiscal year
+y <- yoypx(c(120, 131, 98), 2021:2023)
+yoylbl(y, fylbl)
+yoylbl(y, c("2023" = "the last year"))
+```
+
+## Summarise a change table
+
+`yoysmry()`: One row per series (per group of a grouped table): the first and last period with a value, the values there, the change from the first to the last in percent, the compound rate per step, and how many of the period-to-period changes went up, down or nowhere.
+
+```{r yoysmry}
+# simulated police-reported counts of two offences
+d <- data.frame(year = rep(2019:2023, 2),
+                offence = rep(c("Assault", "Robbery"), each = 5),
+                n = c(812, 845, 790, 901, 954, 120, 131, 98, 105, 140))
+yoysmry(yoypx(d$n, d$year, d$offence))
+```
+
+## Write a change table as delimited text, JSON or Markdown
+
+`yoycsv()`, `yoytsv()`, `yoyjs()`, `yoymd()`: `yoycsv()` and `yoytsv()` write every column of the table, one row per line, numbers with every digit (the shortest text that reads back as the same number), text as it is (a code such as `046` stays `046`), `TRUE` and `FALSE` as such and missing values as `na`; `meta` lines come first as comments. In CSV a field holding a comma, a quote or a line break is quoted, and an empty text field is written as `""` so that it stays apart from a missing value written as empty. A TSV field cannot hold a tab or a line break, so those become spaces. `yoyjs()` writes a JSON object of the `meta` lines, the summary (`yoysmry()`) and the rows, every digit kept. `yoymd()` writes a Markdown table for reading, with the values rounded for display and Markdown's own characters escaped.
+
+```{r yoycsv}
+# simulated police-reported counts by offence and year, any agency
+d <- data.frame(year = rep(2021:2023, 2),
+                offence = rep(c("Assault", "Robbery"), each = 3),
+                n = c(812, 845, 790, 120, 131, 98))
+y <- yoypx(d$n, d$year, d$offence)
+cat(yoycsv(y, meta = "simulated counts"))
+cat(yoymd(y))
+# simulated admissions to custody, with a code that must stay "046"
+a <- data.frame(code = c("046", "112"), n = c(1 / 3, 2))
+cat(yoytsv(a))
+cat(yoyjs(y, pretty = FALSE))
+```
+
+```{r yoycsv-plot}
+plot(y)
+```
+
+## Render a change table to HTML or PDF
+
+`yoyhtml()`, `yoypdf()`: `yoyhtml()` writes one self-contained HTML page (every style inlined, nothing fetched, so the file renders the same years later): the table, a card per series with its change over the span (`yoysmry()`) and the notes. `yoypdf()` writes a PDF of the table, paginated when it does not fit, with the standard Helvetica font and no other program: crimlab writes the file itself.
+
+```{r yoyhtml}
+# simulated police-reported counts by offence and year, any agency
+d <- data.frame(year = rep(2021:2023, 2),
+                offence = rep(c("Assault", "Robbery"), each = 3),
+                n = c(812, 845, 790, 120, 131, 98))
+y <- yoypx(d$n, d$year, d$offence)
+f <- tempfile(fileext = ".html")
+yoyhtml(y, f, title = "Reported offences (simulated)", better = "lower")
+g <- tempfile(fileext = ".pdf")
+yoypdf(y, g, title = "Reported offences (simulated)")
+# simulated days in segregation by fiscal year
+s <- yoylbl(yoypx(c(4100, 3900, 4400), 2021:2023), fylbl)
+yoyhtml(s, f, title = "Days in segregation (simulated)", better = "lower")
+unlink(c(f, g))
+```
+
+```{r yoyhtml-plot}
+plot(y)
+```
+
+## Write a change table in the format its file name says
+
+`yoywr()`: Picks the writer from the extension of `file` (`.html` or `.htm`, `.pdf`, `.csv`, `.tsv` or `.tab`, `.json`, `.md` or `.markdown`), or from `format`, and passes the other arguments to it.
+
+```{r yoywr}
+# simulated police-reported counts by offence and year
+y <- yoypx(c(812, 845, 790), 2021:2023)
+f <- tempfile(fileext = ".csv")
+yoywr(y, f)
+readLines(f)
+unlink(f)
+```
+
+# Drift between releases
+
+## Two-sample Kolmogorov-Smirnov test (C backend)
+
+`drftks()`: Tests whether two numeric samples come from the same distribution, for example a column of last year's release of a table and the same column of this year's. It needs no assumption about the shape of either distribution and reacts to any kind of change: a shift, a change in spread or a change in shape.
+
+```{r drftks}
+set.seed(1)
+ref <- stats::rnorm(200)
+drftks(ref, stats::rnorm(200))
+drftks(ref, stats::rnorm(200, mean = 0.8))
+drftks(ref, stats::rnorm(200, sd = 2.5))
+drftks(ref, ref)[["statistic"]]
+# simulated monthly counts of an offence in two releases
+drftks(c(41, 38, 52, 47, 44, 50), c(41, 38, 52, 47, 61, 66))
+```
+
+## Population stability index and Jensen-Shannon divergence (C backend)
+
+`drftpsi()`: Two effect sizes of how far the distribution of a numeric column has moved from a reference sample. Both samples are binned on the reference's quantiles and the two sets of bin shares compared. Unlike a p-value they do not grow with the sample size, so they say how large a shift is rather than whether it is detectable.
+
+```{r drftpsi}
+set.seed(2)
+ref <- stats::rnorm(500)
+drftpsi(ref, stats::rnorm(500))
+drftpsi(ref, stats::rnorm(500, mean = 1))
+drftpsi(ref, ref)
+drftpsi(c(1, 1, 1), c(9, 9, 9))[["jsdiv"]] <= log(2)
+drftpsi(ref, stats::rnorm(500, mean = 1), bins = 4, eps = 0.01)
+try(drftpsi(ref, ref, bins = 1))
+```
+
+## Chi-square test of a categorical column against a known distribution
+
+`drftchisq()`: Tests whether the category counts of a new sample agree with a reference distribution taken as known (proportions fixed by a specification, or a published breakdown): Pearson's chi-square goodness-of-fit test. When the reference is itself a sample, use `drfthomog()`, which carries the reference's own sampling error.
+
+```{r drftchisq}
+ref <- c(a = 50, b = 30, c = 20)
+drftchisq(c(a = 100, b = 60, c = 40), ref)
+drftchisq(c(a = 40, b = 60, c = 100), ref)
+drftchisq(c("a", "a", "b", "b"), c("a", "b"))
+drftchisq(c("a", "a", "b", "d"), c("a", "a", "b", "b"))
+```
+
+## Chi-square test of homogeneity of two categorical samples
+
+`drfthomog()`: Tests whether two samples of a categorical variable (offence type, region, race in last year's and this year's release) were drawn from the same distribution, by Pearson's chi-square on the 2-by-k table of their counts.
+
+```{r drfthomog}
+set.seed(1)
+a <- sample(c("x", "y", "z"), 300, TRUE)
+b <- sample(c("x", "y", "z"), 300, TRUE)
+drfthomog(a, b)
+drfthomog(a, sample(c("x", "y", "z"), 300, TRUE, prob = c(0.7, 0.2, 0.1)))
+drfthomog(c(a = 30, b = 20), c(a = 25, b = 25))
+attr(drfthomog(c(a = 3, b = 1, c = 2), c(a = 1, b = 4, c = 1)), "method")
+try(drfthomog(c(1, 2), c(a = 3)))
+```
+
+# Region maps
+
+## Internal soundness of a region map
+
+`rgnmapintg()`: Checks that a region map (a crosswalk from units, such as correctional facilities or police detachments, to the statistical regions that contain them) lists each unit once, gives every unit a region, and names only regions the reference geography knows. Run it on any crosswalk before tables are built on it.
+
+```{r rgnmapintg}
+# a simulated crosswalk of facilities to census divisions
+cw <- data.frame(inst = c("North Jail", "South Jail", "East Jail"),
+                 cd = c("3557", "3520", "3506"))
+rgnmapintg(cw, "inst", "cd", regs = c("3557", "3520", "3506"))
+cw$cd[3] <- "2406"
+rgnmapintg(cw, "inst", "cd", regs = c("3557", "3520", "3506"))
+cw2 <- rbind(cw, data.frame(inst = c("North Jail", "West Jail"),
+                            cd = c("3560", "")))
+rgnmapintg(cw2, "inst", "cd")
+try(rgnmapintg(cw, "institution", "cd"))
+```
+
+## Compare a recomputed region map against a published one
+
+`rgnmapcmp()`: Matches two region maps on the unit and compares the named columns cell by cell, reporting for each column how many cells disagree and the first disagreement. Use it to confirm that a region map rebuilt from a boundary file reproduces the one that was published.
+
+```{r rgnmapcmp}
+pub <- data.frame(inst = c("North Jail", "South Jail"),
+                  cd = c("3557", "3520"))
+obs <- pub
+obs$cd[2] <- "3521"
+rgnmapcmp(pub, obs, "inst")
+pub$lat <- c(44.39, 43.65)
+obs2 <- data.frame(inst = c("North Jail", "Hill Jail"),
+                   cd = c("3557", "3506"), lat = c(44.39 + 1e-12, 45.1))
+rgnmapcmp(pub, obs2, "inst", cols = c("cd", "lat"))
+try(rgnmapcmp(pub, obs, "inst", cols = "lat"))
+```
+
+## Check a region map against an independently derived assignment
+
+`rgnmapalt()`: Compares the region each unit was assigned with the region a different method assigns it (a name lookup, a postal geography, an administrative list), and marks the disagreements that are already known and explained. This is the only check here that can catch an error in the method that built the map, because it does not use that method.
+
+```{r rgnmapalt}
+cw <- data.frame(inst = c("North Jail", "South Jail", "Hill Jail"),
+                 cd = c("3557", "3520", "3506"))
+route <- c("North Jail" = "3557", "South Jail" = "3521",
+           "Hill Jail" = "3519")
+d <- rgnmapalt(cw, "inst", "cd", route, known = "Hill Jail")
+d
+sum(!d$known)
+try(rgnmapalt(cw, "inst", "cd", c("3557", "3520")))
+```

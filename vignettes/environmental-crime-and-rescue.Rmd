@@ -1,0 +1,280 @@
+---
+title: "Environmental crime, panels and search and rescue"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Environmental crime, panels and search and rescue}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Panel models and tests used for environmental crime, and the search theory behind a search-and-rescue plan.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Environmental crime
+
+## LMDI decomposition of a count over the factors of a Kaya identity
+
+`lmdix()`: How much of a change in recorded environmental offences (pollution cases, waste violations) between two years, or of a region's gap to a reference region, is owed to each factor of an identity that multiplies out to the count: the additive log-mean Divisia index (LMDI) decomposition, temporal and spatial, as Duan et al. (2026, eqs 1-5, pp. 8-9) apply it to crimes of polluting the environment in 30 Chinese provinces, 2016-2023.
+
+```{r lmdix}
+# six provinces over four years: cases, population (millions), area
+# (1000 km2), emissions (1000 t), GDP (billions) and the unemployed
+# (millions), simulated
+set.seed(1)
+d <- expand.grid(year = c(2016, 2018, 2020, 2023), prov = LETTERS[1:6])
+i <- match(d$prov, LETTERS)
+d$P <- 10 * i * (1 + 0.01 * (d$year - 2016))
+d$S <- 50 + 20 * i
+d$W <- 30 * i * (1 - 0.03 * (d$year - 2016))
+d$GDP <- 40 * i * (1 + 0.05 * (d$year - 2016))
+d$UN <- 0.3 * i * (1 + 0.02 * (d$year - 2016))
+d$cases <- rpois(24, 2 * i + 8 * (d$year == 2018))
+q <- d[c("P", "S", "W", "GDP", "P", "UN")]
+f <- c("CPER", "PD", "EIPA^-1", "PEI", "EDL", "UR^-1", "UN")
+r <- lmdix(d$cases, q, d$prov, d$year, at = c(2016, 2018, 2020, 2023),
+           fnm = f)
+r
+# the gap of each province to the average province, by year
+lmdix(d$cases, q, d$prov, d$year, type = "space", fnm = f)$dec
+```
+
+```{r lmdix-plot}
+plot(r)
+```
+
+## Two-way fixed effects with an interaction, for counts of offences
+
+`fepnl()`: The regression Duan et al. (2026, eqs 6-8, pp. 9-11) use to check the drivers of recorded pollution crimes: the count on continuous drivers and the product of two of them, with unit and period fixed effects, errors clustered by unit, standardised coefficients, variance inflation factors, the simple slopes of one driver at values of the other (p. 23), and the Jarque-Bera test of the residuals (p. 25).
+
+```{r fepnl}
+# 30 provinces over 8 years: cases on the case rate, the unemployment
+# rate and their product, simulated
+set.seed(2)
+d <- expand.grid(year = 2016:2023, prov = paste0("p", 1:30))
+d$cper <- runif(240, 0.005, 0.04)
+d$ur <- runif(240, 0.01, 0.03)
+d$eipa <- rnorm(240, 5)
+d$cases <- 50 + 9000 * d$cper + 1500 * d$ur - 4e5 * d$cper * d$ur +
+  rnorm(240, sd = 5)
+r <- fepnl(d$cases, d[c("cper", "eipa", "ur")], d$prov, d$year,
+           int = c("cper", "ur"))
+r
+r$slopes
+```
+
+```{r fepnl-plot}
+plot(r)
+```
+
+## Pesaran's CD test of cross-sectional dependence in a panel
+
+`pcdtst()`: Whether the residuals (or any variable) of a unit-by-period panel move together across units, the test Andreatta et al. (2023, p. 1376) run on the residuals of their waste-crime models before deciding a spatial model is not needed. For each pair of units the correlation `rho_ab` of their values over the `T_ab` periods they share, about the means over those periods; CD = sum sqrt(T_ab) rho_ab / sqrt(m) over the `m` pairs, which for a balanced panel of `N` units and `T` periods is sqrt(2 T / (N (N - 1))) sum rho_ab, standard normal under no dependence. Pairs that share fewer than two periods, or along which a unit does not vary, are left out. This is the statistic of `plm::pcdtest(test = "cd")`. For dependence between neighbours rather than across all pairs, use `gmoran()` on each period's residuals, as Andreatta et al. also do.
+
+```{r pcdtst}
+set.seed(3)
+d <- expand.grid(year = 2009:2017, prov = paste0("p", 1:20))
+common <- rnorm(9)
+d$e <- rnorm(180) + 0.8 * common[d$year - 2008]
+pcdtst(d$e, d$prov, d$year)
+# the residuals of a two-way fit
+d$x <- rnorm(180)
+d$y <- d$x + d$e
+pcdtst(fepnl(d$y, d$x, d$prov, d$year)$resid, d$prov, d$year)
+```
+
+## Difference and system GMM for dynamic panels
+
+`gmmpnl()`: The generalized method of moments estimators of a dynamic panel with unit effects: the difference estimator of Arellano and Bond (1991) and the system estimator of Arellano and Bover (1995) and Blundell and Bond (1998), with the instrument matrix built as Roodman (2009) describes it. Andreatta et al. (2023, pp. 1372-1374, table 3) fit the logged rate of waste crime in Italian provinces this way: one-step system GMM with robust errors, time effects, the lagged rate and four enforcement and organised-crime variables instrumented GMM-style by their second and third lags, the AR(1) and AR(2) tests, the Hansen test, the Hansen test of the differenced equations alone and the difference-in-Hansen test of the level instruments, with no more instruments than provinces.
+
+```{r gmmpnl}
+# 60 provinces over 8 years: a logged rate with persistence 0.5 and one
+# endogenous driver, simulated
+set.seed(7)
+d <- expand.grid(year = 2010:2017, prov = paste0("p", 1:60))
+u <- rnorm(60)[as.integer(substring(d$prov, 2))]
+d$enf <- u + rnorm(480)
+d$y <- 0
+for (i in which(d$year > 2010)) {
+  d$y[i] <- 0.5 * d$y[i - 1] + 0.3 * d$enf[i] + u[i] + rnorm(1)
+}
+r <- gmmpnl(d$y, d["enf"], d$prov, d$year, gmm = "enf", lagmax = 3,
+            collapse = TRUE)
+r
+r$tests
+
+# the specification of Andreatta et al. (2023, table 3) on simulated
+# data: the lagged rate and four drivers GMM-style by their second and
+# third lags, collapsed so that the instruments stay below the
+# provinces, two exogenous drivers, time effects, one-step robust
+# errors with small-sample adjustments
+set.seed(23)
+np <- 102
+d <- expand.grid(year = 2010:2019, prov = paste0("p", 1:np))
+u <- rnorm(np)[as.integer(substring(d$prov, 2))]
+n <- nrow(d)
+for (v in c("clear", "conv", "mafia", "assoc")) d[[v]] <- u + rnorm(n)
+d$gdp <- rnorm(n)
+d$recyc <- rnorm(n)
+d$wcrim <- 0
+for (i in which(d$year > 2010)) {
+  d$wcrim[i] <- 0.4 * d$wcrim[i - 1] - 0.1 * d$clear[i] +
+    0.2 * d$mafia[i] + 0.1 * d$gdp[i] + u[i] + rnorm(1)
+}
+en <- c("clear", "conv", "mafia", "assoc")
+a <- gmmpnl(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year, gmm = en,
+            lagmin = 2, lagmax = 3, collapse = TRUE, small = TRUE)
+a$tests
+a$fit$inst < a$fit$groups
+# the static model's serial correlation and the dynamic residuals'
+# cross-sectional dependence
+wsctst(d$wcrim, d[c(en, "gdp", "recyc")], d$prov, d$year)
+k <- !is.na(a$resid)
+pcdtst(a$resid[k], d$prov[k], d$year[k])
+```
+
+```{r gmmpnl-plot}
+plot(a)
+```
+
+## Wooldridge's test for serial correlation in a panel
+
+`wsctst()`: Whether the idiosyncratic errors of a linear panel model with unit effects are serially correlated, by the test Wooldridge (2002) derives and Drukker (2003) sets out and evaluates, the test Andreatta et al. (2023, p. 1373) run on the residuals of their static models before choosing a dynamic one. The first differences of `y` are regressed on those of `x`, without a constant, which differencing removes (Drukker 2003, sec. 2); without serial correlation the residuals `e_it` of consecutive differences correlate at -0.5, so `e_it` is regressed on e_i,t-1 with the variance clustered by unit, and the coefficient is tested against -0.5: `F = ((coef + 0.5) / se)^2` on 1 and `G - 1` degrees of freedom, `G` the units with a pair. A difference needs the period before, so a gap removes two differences and the pairs that use them. Drukker does not say whether the second regression has a constant; `cons = FALSE` (the default) leaves it out, since the residuals of the first have none to absorb.
+
+```{r wsctst}
+set.seed(8)
+d <- expand.grid(year = 1:8, prov = paste0("p", 1:40))
+d$x <- rnorm(320)
+d$e <- 0
+for (i in which(d$year > 1)) d$e[i] <- 0.6 * d$e[i - 1] + rnorm(1)
+d$y <- d$x + rnorm(40)[as.integer(substring(d$prov, 2))] + d$e
+wsctst(d$y, d["x"], d$prov, d$year)
+```
+
+## Common correlated effects for panels with unobserved common factors
+
+`ccepnl()`: The common correlated effects estimators of Pesaran (2006) for a panel whose errors hold unobserved common factors with unit-specific loadings, correlated with the regressors: the dependent variable and the regressors averaged across units in each period (with the weights `w`) are added to each unit's regression, with the observed common factors `d_t` (a constant, with `cons = TRUE`, and the columns of `fac`). With H = (D, ybar_w, Xbar_w) and M = I - H (H'H)^- H' (eq 15, a generalized inverse), the unit estimates are b_i = (X_i'M X_i)^-1 X_i'M y_i. The mean group estimator `CCEMG` is their mean (eq 53), with the nonparametric variance sum (b_i - b_MG)(b_i - b_MG)' / (N (N - 1)) (eq 58). The pooled estimator `CCEP` is (sum w_i X_i'M X_i)^-1 sum w_i X_i'M y_i, the pooling weights equal to the averaging weights as Theorem 3 requires, with the variance of eqs 67-69, sum w_i^2 Psi^-1 R Psi^-1, Psi = sum w_i X_i'M X_i / T and R = sum wt_i^2 (X_i'M X_i / T) (b_i - b_MG)(b_i - b_MG)' (X_i'M X_i / T) / (N - 1), `wt_i = w_i / sqrt(mean(w^2))`. Inference is normal.
+
+```{r ccepnl}
+# 30 provinces over 12 years, one unobserved factor in y and x
+set.seed(9)
+d <- expand.grid(year = 1:12, prov = paste0("p", 1:30))
+f <- rnorm(12)[d$year]
+g <- rnorm(30, 1)[as.integer(substring(d$prov, 2))]
+d$x <- g * f + rnorm(360)
+d$y <- 1 + 0.7 * d$x + g * f + rnorm(360)
+r <- ccepnl(d$y, d["x"], d$prov, d$year)
+r
+r$nfac
+# a dynamic panel: y depends on its lag; jackknife-corrected mean group
+set.seed(10)
+tt <- 40
+d <- expand.grid(year = 1:tt, prov = paste0("p", 1:40))
+f <- rnorm(tt)[d$year]
+g <- rnorm(40, 1)[as.integer(substring(d$prov, 2))]
+d$x <- g * f + rnorm(nrow(d))
+d$y <- 0
+for (i in which(d$year > 1)) {
+  d$y[i] <- 0.5 * d$y[i - 1] + 0.7 * d$x[i] + g[i] * f[i] + rnorm(1)
+}
+ccepnl(d$y, d["x"], d$prov, d$year, ylag = 1, bias = "jack")
+```
+
+```{r ccepnl-plot}
+plot(r)
+```
+
+# Search and rescue
+
+## Search theory for search and rescue planning
+
+`ltrlrng()`, `swpwdth()`, `srchpod()`, `pswppod()` and others: The quantities a search and rescue planner works with (Koopman's search theory, as used in the U.S. Coast Guard and IAMSAR planning methods):
+
+```{r ltrlrng}
+# inverse cube detection 0.5, 1 and 2 sweep widths off the track
+ltrlrng(c(0.5, 1, 2), W = 1)
+
+# the area under the curve is the sweep width
+xs <- seq(-200, 200, by = 0.01)
+swpwdth(xs, ltrlrng(xs, W = 1, model = "definite"))
+
+# POD at coverage 1 under the three models
+srchpod(1)
+srchpod(c(0.5, 1, 2), model = "invcube")
+
+# a parallel sweep at spacing 1.3 W, without and with navigation error
+pswppod(1, 1.3)
+pswppod(1, 1.3, navsd = 0.3, npts = 201)
+
+# three areas searched once; the containment after finding nothing
+srchscs(c(0.5, 0.3, 0.2), c(0.8, 0.5, 0))
+
+# a point datum on a 10 x 10 grid, and the best use of 30 units of track
+m <- datumpmap(seq(-5, 5), seq(-5, 5), sigma = 2)
+a <- opteffort(m, W = 1, effort = 30)
+a$pos
+optcrcsrch(sigma = 2, W = 1, effort = 30)$pos
+
+# a simulated search, step by step: a last known position 2 km east and
+# 3 km north of the base, known to about 1.5 km, on a grid of 1 km cells
+own <- datumpmap(seq(-3, 7), seq(-2, 8), center = c(2, 3), sigma = 1.5)
+own
+# 0.6 km sweep width; 12 km of track walked in each of the four cells
+# round the position, none elsewhere
+walked <- matrix(0, nrow(own$poc), ncol(own$poc))
+walked[5:6, 5:6] <- 12
+pd <- srchpod(W = 0.6, effort = walked, area = own, model = "invcube")
+# the chance that the search found the person, and the map if it did not
+day1 <- srchscs(own, pd)
+day1
+# the best use of the next day's 40 km on what is left
+opteffort(day1$map, W = 0.6, effort = 40)
+
+# inputs that cannot be right are refused
+try(ltrlrng(1, W = -1))
+try(srchpod(1, W = 0.6))
+try(srchscs(c(0.8, 0.8), c(0.5, 0.5)))
+```
+
+## The optimal search square for a circular normal datum
+
+`optsqr()`: For a point datum with a circular normal distribution of position error, the square centred on the datum that a given effort, spread evenly, should cover to make the probability of success as large as possible (Frost 1996, chapter 6). With several efforts, each search is optimized in turn against the distribution as earlier unsuccessful searches left it.
+
+```{r optsqr}
+# Frost's example: an effort of 4 E^2 on a point datum
+optsqr(4)
+# poor search conditions: the random search curve
+optsqr(4, model = "random")
+# three searches in a row, each optimal for what the last ones left
+optsqr(c(4, 4, 8), E = 2)
+try(optsqr(-1))
+```
+
+## The figures of The Theory of Search
+
+`srchfig()`: Lists the figures of Frost (1996), “The Theory of Search: A Simplified Explanation”, with how each is computed from the search theory functions with the book's parameters, and one line of R that computes a version of it from the reader's own numbers.
+
+```{r srchfig}
+head(srchfig())
+srchfig("3-4")
+srchfig(5, 8)
+try(srchfig("9-9"))
+```

@@ -1,0 +1,211 @@
+---
+title: "Causal estimates and regression discontinuity"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Causal estimates and regression discontinuity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Double machine learning, balance, sensitivity of an estimate to what was not measured, and regression discontinuity.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Causal estimates
+
+## Double machine learning by cross-fitting
+
+`dmlx()`: Estimates a causal parameter from orthogonal scores whose nuisance functions (outcome regressions, propensities) are learned out of fold: each fold's predictions come from learners fitted on the other folds, so that the estimate keeps root-n inference while the learners are flexible (Chernozhukov et al. 2018). The learning, the scores, the estimate and its standard error are all compiled; the folds are the caller's, so results can be matched with other software fold for fold.
+
+```{r dmlx}
+set.seed(1)
+n <- 500
+x <- matrix(rnorm(n * 5), n)
+d <- x[, 1] + rnorm(n)
+y <- 0.5 * d + x[, 1] - x[, 2] + rnorm(n)
+fold <- sample(rep(1:5, length.out = n))
+r <- dmlx(y, d, x, "plr", fold, lrn = "glm", lrnd = "glm")
+c(r$coef, r$se)
+```
+
+## The U-learner of conditional average treatment effects
+
+`ulcate()`: Estimates how the effect of a 0/1 treatment varies with the covariates (Kunzel et al. 2019, sec. 2 and appendix): the outcome regression `m(x) = E[y | x]` and the propensity `e(x) = P(d = 1 | x)` are learned out of fold, as in `dmlx()`, each fold predicted by learners fitted on the others; the pseudo-outcome `u = (y - m) / (d - e)` has expectation `tau(x)` given `x` when the treatment is unconfounded given `x`; and `tau` is the learner `lrnt` fitted to `u` on all the rows. The mean of `tau` over the rows is reported as `ate`.
+
+```{r ulcate}
+set.seed(6)
+n <- 400
+x <- matrix(rnorm(n * 2), n)
+d <- rbinom(n, 1, plogis(0.5 * x[, 1]))
+y <- x[, 2] + d * (1 + x[, 1]) + rnorm(n)
+fold <- sample(rep(1:4, length.out = n))
+r <- ulcate(y, d, x, fold, lrn = "glm", lrnd = "glm")
+r
+```
+
+## Design-based causal effects of a 0/1 treatment
+
+`cbatt()`: The battery of estimators of the effect of a 0/1 treatment `d` on an outcome `y` given covariates `x` that do not learn the nuisances by cross-fitting: Hajek-normalised inverse probability weighting, g-computation, subclassification on the propensity, nearest-neighbour matching on the propensity with a caliper, and entropy balancing, covariate-balancing weights for the effect on the treated. `dmlx()` gives the cross-fitted ones (augmented inverse probability weighting, targeted maximum likelihood, the interactive model).
+
+```{r cbatt}
+set.seed(1)
+x <- matrix(rnorm(400), 200)
+d <- rbinom(200, 1, plogis(x[, 1]))
+y <- 2 * d + x[, 1] - x[, 2] + rnorm(200)
+cbatt(y, d, x, reps = 99, seed = 1)$res
+cbatt(y, d, x, est = "ebal", tgt = "att", reps = 99, seed = 1)$res
+cbatt(y, d, x, est = "psm", tgt = "att", calip = 0.2)$res
+```
+
+## Covariate balance and overlap
+
+`smdbal()`: The standardised mean difference and variance ratio of each covariate between the treated and the controls, before and after weighting, with a verdict by a threshold; and the overlap of the propensity between the arms.
+
+```{r smdbal}
+set.seed(1)
+x <- data.frame(age = rnorm(200, 40, 10), prior = rpois(200, 2))
+d <- rbinom(200, 1, plogis((x$age - 40) / 10))
+smdbal(x, d)
+w <- cbatt(rnorm(200), d, x, est = "ebal", tgt = "att", reps = 0)$w
+smdbal(x, d, w = w)$tab
+```
+
+## E-values: how strong an unmeasured confounder must be
+
+`evlx()`: The E-value of VanderWeele and Ding (2017): the smallest strength of association, on the risk-ratio scale, that an unmeasured confounder would need with both the treatment and the outcome to explain away an estimate; and that of the confidence limit nearer the null.
+
+```{r evlx}
+evlx(3.9, 1.8, 8.7)
+evlx(0.8, 0.71, 0.91, type = "hr")
+evlx(0.5, type = "smd", sd = 0.1)
+# how strong a confounder must be to move a ratio of 3.9 down to 2
+evlx(3.9, 1.8, 8.7, true = 2)
+```
+
+## Rosenbaum sensitivity bounds for matched pairs
+
+`rswp()`, `rshl()`: How strong would hidden bias have to be to explain away a matched-pairs result? `gam` is Gamma, the most the odds of treatment can differ within a pair because of an unobserved covariate (1: no hidden bias). `rswp()` gives the bounds on the one-sided p-value of Wilcoxon's signed-rank test at each Gamma (Rosenbaum 1987), from the normal approximation, and the Gamma at which the upper bound reaches `alpha`. `rshl()` gives the bounds on the Hodges-Lehmann estimate of the effect (Rosenbaum 1993), computed exactly from the Walsh averages, with no grid.
+
+```{r rswp}
+set.seed(1)
+d <- rnorm(50, 0.5)
+rswp(d, gam = c(1, 1.5, 2))
+rshl(d, gam = c(1, 1.5, 2))
+```
+
+## Colliders of a directed acyclic graph
+
+`dagcol()`: `dagcol()` lists the colliders of a causal graph: every pair of causes `a -> c <- b` of a common effect `c`. Conditioning on a collider (or on a consequence of it), as a study of arrestees or of convicted people does, opens a path between its causes and makes them associated when they are not (Hernan and Robins 2020, ch. 8; see `colarr()`). A collider whose causes are not adjacent is unshielded, a v-structure: the v-structures and the skeleton of a graph are what the data can tell apart (Verma and Pearl 1991).
+
+```{r dagcol}
+# offending and mental illness both raise the chance of arrest; a study
+# of arrestees conditions on the collider "arrest"
+g <- dagcol(c("offend", "mental", "policing", "arrest"),
+            c("arrest", "arrest", "arrest", "record"))
+g
+dagcol(c("a", "b", "a"), c("c", "c", "b"), triple = c("a", "c", "b"))$query
+```
+
+## Generalisability weights for a trial
+
+`gensw()`: The weights that make the units of a randomised trial stand for a target population, and how far the trial is from it. The data hold the trial's units (`s = 1`) and a sample of the target (`s = 0`) with the same covariates. The sampling score `ps`, the chance of being in the trial given the covariates, is a logistic regression of `s` on `x`, trimmed to [trim, 1 - trim].
+
+```{r gensw}
+set.seed(8)
+n <- 600
+d <- data.frame(age = rnorm(n, 35, 10), prior = rpois(n, 1.5))
+d$s <- rbinom(n, 1, plogis(-1 + 0.04 * (d$age - 35) + 0.3 * d$prior))
+g <- gensw(d, "s", c("age", "prior"), target = "transport")
+g
+g$bal
+```
+
+## Transport a trial's effect to a target population
+
+`trnsp()`: The average treatment effect of a randomised trial carried over to a target population whose covariates differ from the trial's, by the outcome model and by inverse odds weighting (Dahabreh et al. 2020; Westreich et al. 2017). The data hold the trial's units (`s = 1`), with outcome and treatment, and a sample of the target (`s = 0`), with the covariates only; `y` and `d` are not read outside the trial and may be `NA` there.
+
+```{r trnsp}
+set.seed(9)
+n <- 600
+d <- data.frame(age = rnorm(n, 35, 10))
+d$s <- rbinom(n, 1, plogis(-0.05 * (d$age - 35)))
+d$t <- ifelse(d$s == 1, rbinom(n, 1, 0.5), NA)
+d$y <- ifelse(d$s == 1, 0.5 * d$t + 0.02 * d$t * d$age + rnorm(n), NA)
+trnsp(d, "y", "t", "s", "age", nboot = 100, seed = 1)
+```
+
+## Targeted maximum likelihood for a randomised trial
+
+`rcttml()`: The average treatment effect of a randomised trial with adjustment for baseline covariates by targeted maximum likelihood (Moore and van der Laan 2009): more precise than the difference in means when the covariates predict the outcome, and consistent whatever the outcome model, since the chance of treatment is known by design.
+
+```{r rcttml}
+set.seed(10)
+n <- 300
+d <- data.frame(prior = rpois(n, 2), age = runif(n, 18, 50),
+                t = rbinom(n, 1, 0.5))
+d$days <- 30 - 6 * d$t + 3 * d$prior - 0.1 * d$age + rnorm(n, sd = 4)
+rcttml(d, "days", "t", c("prior", "age"))
+d$rearrest <- rbinom(n, 1, plogis(-1 - 0.6 * d$t + 0.4 * d$prior))
+rcttml(d, "rearrest", "t", "prior", fam = "binomial")$tab
+```
+
+# Regression discontinuity
+
+## Regression discontinuity by local polynomials
+
+`rdloc()`: Estimates the jump at a cutoff in a running variable: the outcome's (sharp design) or its ratio to the jump in the treatment (fuzzy design), by local-linear fits on either side with kernel weights, with the bandwidth of Imbens and Kalyanaraman (2012) or one given, conventional and robust intervals, clustered errors and placebo cutoffs. Carrillo, Lopez-Luzuriaga and Malik (2018, equation 6, p. 8) use the sharp design in space: crime counts by distance to a restriction border, a line on each side, within a window.
+
+```{r rdloc}
+set.seed(5)
+d <- data.frame(r = runif(2000, -1, 1))
+d$y <- 1 + 0.8 * d$r + 0.5 * (d$r >= 0) + rnorm(2000, 0, 0.3)
+f <- rdloc(d, "y", "r")
+f
+plot(f)
+# a given bandwidth, the uniform kernel and two placebo cutoffs
+summary(rdloc(d, "y", "r", bw = "user", h = 0.3, kern = "uni",
+              plac = c(-0.5, 0.5)))
+# fuzzy: treatment taken up more often above the cutoff
+d$t <- as.numeric(runif(2000) < 0.2 + 0.6 * (d$r >= 0))
+d$y2 <- 1 + 0.8 * d$r + 0.7 * d$t + rnorm(2000, 0, 0.3)
+rdloc(d, "y2", "r", trt = "t")$coef
+```
+
+```{r rdloc-plot}
+plot(f)
+```
+
+## The density test of McCrary at a cutoff
+
+`rddens()`: Tests whether the density of a running variable jumps at the cutoff, which manipulation of the running variable would cause, by the two-step estimator of McCrary (2008): a finely binned histogram, then local-linear smoothing of the bin heights on each side with the triangle kernel.
+
+```{r rddens}
+set.seed(6)
+rddens(runif(3000, -1, 1))
+# bunching just above the cutoff
+r <- rddens(c(runif(3000, -1, 1), runif(300, 0, 0.1)))
+r
+plot(r)
+```
+
+```{r rddens-plot}
+plot(r)
+```

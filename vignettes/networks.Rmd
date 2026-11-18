@@ -1,0 +1,126 @@
+---
+title: "Networks of co-offending"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Networks of co-offending}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Building a co-offending network and measuring who is central in it.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+## Co-offending graph from an incident table
+
+`coofg()`: The one-mode projection of offenders onto incidents: two offenders are joined when they are recorded in the same incident, and the weight of the tie is the number of incidents they share. An offender recorded twice in one incident counts once there. Offenders who never offend with anyone appear in `nodes` but in no edge; give `nodes` to the network functions to keep them as isolated nodes.
+
+```{r coofg}
+g <- coofg(inc = c(1, 1, 1, 2, 2, 3), off = c("a", "b", "c", "a", "b", "d"))
+g$edges
+ntdeg(g$edges$from, g$edges$to, w = g$edges$w, nodes = g$nodes)
+```
+
+## Degree and strength of each node
+
+`ntdeg()`: A graph is an edge list: `from[k]` is tied to `to[k]`. The rules below hold for every network function in crimlab.
+
+```{r ntdeg}
+ntdeg(c("a", "a", "b", "a"), c("b", "c", "c", "b"))
+ntdeg(c("a", "a"), c("b", "c"), nodes = c("c", "b", "a", "z"), dir = TRUE)
+```
+
+## Betweenness of each node
+
+`ntbtw()`: The sum, over pairs of other nodes, of the share of their shortest paths that pass through the node (Freeman 1977), by Brandes' algorithm in O(nodes x edges) time. Paths are counted in steps: weights are tie strengths, not lengths, and are not taken. An undirected pair is counted once. Graph rules as in `ntdeg()`.
+
+```{r ntbtw}
+ntbtw(c(1, 2, 3), c(2, 3, 4))
+```
+
+## Closeness of each node
+
+`ntcls()`: Distances are counted in steps (weights are not taken), along edges' directions when `dir = TRUE` (out-distances). A disconnected graph is handled in the two standard ways, both returned: `cls` and `ncls` count only the nodes a node reaches (as `igraph::closeness()` does), so a node close to the few it reaches scores high; `hrm`, the harmonic centrality, sums `1 / distance` over every other node, an unreachable one adding 0, so reaching more nodes always scores more. Graph rules as in `ntdeg()`.
+
+```{r ntcls}
+ntcls(c(1, 2, 3), c(2, 3, 4), nodes = 1:5)
+```
+
+## Eigenvector centrality of each node
+
+`ntevc()`: The leading eigenvector of the (weighted) adjacency matrix of the undirected graph, scaled to a maximum of 1 (Bonacich 1972). It is found by power iteration on A + c I, `c` the largest weight, which has the same eigenvectors and whose leading eigenvalue is strictly dominant even on a bipartite graph (a co-offending network between two roles, a star), where plain power iteration oscillates. The iteration starts from 1 for every node and stops when no value changes by `tol` or more between two steps, or after `maxit` steps (then `conv` is `FALSE`).
+
+```{r ntevc}
+ntevc(c("hub", "hub", "hub", "a"), c("a", "b", "c", "b"))
+```
+
+## k-core of each node
+
+`ntcore()`: The coreness of a node is the largest k such that it belongs to a subgraph in which every node has at least k neighbours (Seidman 1983), computed in O(nodes + edges) by the algorithm of Batagelj and Zaversnik. The cores are nested: the (k + 1)-core lies inside the k-core (`proof("ntcore")`). Edges are taken as undirected, without weights. Graph rules as in `ntdeg()`.
+
+```{r ntcore}
+ntcore(c(1, 1, 1, 2, 2, 3, 4), c(2, 3, 4, 3, 4, 4, 5))
+```
+
+## Connected components
+
+`ntcmp()`: Weak components join nodes linked by edges in either direction; strong components (Tarjan's algorithm, without recursion) join nodes that reach each other along the edges' directions. Undirected, the two coincide. Components are numbered 1, 2, ... in the order of their first node. Graph rules as in `ntdeg()`.
+
+```{r ntcmp}
+ntcmp(c("a", "b", "c", "x"), c("b", "c", "a", "y"), dir = TRUE)
+```
+
+## Communities by the Louvain method
+
+`ntlvn()`: Groups nodes to raise the modularity (see `ntmod()`) of the undirected, weighted graph (Blondel et al. 2008). Each level visits the nodes in node order when `seed` is `NULL`, or in a random order drawn from `seed` (one stream for the whole run), and moves each to the neighbouring community with the largest gain in modularity, the first met among equal gains, when that gain beats staying by more than 1e-12 of the node's strength; passes repeat until none moves a node. The communities then become the nodes of the next level, and a level that moves nothing ends the run. The result is the same on every platform for the same input and seed.
+
+```{r ntlvn}
+e <- c(1, 1, 2, 4, 4, 5, 3)
+f <- c(2, 3, 3, 5, 6, 6, 4)
+ntlvn(e, f)
+```
+
+## Modularity of a partition
+
+`ntmod()`: Q = sum over communities of in / 2m - res (tot / 2m)^2, where in is the weight of edges inside the community (counted from both ends), `tot` the summed strength of its nodes and 2m the total strength (Newman and Girvan 2004), on the undirected, weighted graph. At `res = 1` it lies between -1/2 and 1 (`proof("ntmod")`). `NaN` for a graph without edges. Graph rules as in `ntdeg()`.
+
+```{r ntmod}
+ntmod(c(1, 1, 2, 4, 4, 5, 3), c(2, 3, 3, 5, 6, 6, 4),
+      memb = c(1, 1, 1, 2, 2, 2))
+```
+
+## Brokerage roles
+
+`ntbrk()`: Counts, for each node v, the two-paths `i -> v -> j` with `i != j` and no tie `i -> j` (v brokers between them), by the roles of Gould and Fernandez (1989), given each node's group: `coord` (coordinator: i, v and j in one group), `itin` (itinerant: i and j in one group, v in another), `repr` (representative: v in i's group, j outside), `gate` (gatekeeper: v in j's group, i outside) and `liais` (liaison: three groups). Undirected, each tie runs both ways, so each unordered pair of neighbours counts twice and `repr` equals `gate`. Weights are not taken. Graph rules as in `ntdeg()`. Raw counts only: the expected counts and z-scores of Gould and Fernandez are not given.
+
+```{r ntbrk}
+ntbrk(c("a", "b", "b"), c("b", "c", "d"),
+      grp = c(a = "x", b = "y", c = "y", d = "z"), dir = TRUE)
+```
+
+## Cheeger bounds on a network's bottleneck
+
+`ntchg()`: The conductance of a set of nodes S is the weight of the edges leaving it over the smaller of its volume and that of the rest (volume: summed strength); the graph's conductance h is the least over all sets, a measure of how cleanly the network splits in two. Finding h is hard, but the second-smallest eigenvalue `lambda2` of the normalised Laplacian I - D^-1/2 A D^-1/2 brackets it: lambda2 / 2 <= h <= sqrt(2 lambda2) (Cheeger's inequality; the lower half is `proof("ntchg")`). The sweep over the eigenvector finds a set whose conductance (`sweep`) is at most sqrt(2 lambda2); h is at most `sweep`.
+
+```{r ntchg}
+# two triangles joined by one edge
+ntchg(c(1, 1, 2, 4, 4, 5, 3), c(2, 3, 3, 5, 6, 6, 4))
+```

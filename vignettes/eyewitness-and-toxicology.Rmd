@@ -1,0 +1,153 @@
+---
+title: "Eyewitness identification, toxicology and taphonomy"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Eyewitness identification, toxicology and taphonomy}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Lineup performance, calibration of a toxicology method, post-mortem redistribution and the time since death.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Eyewitness identification
+
+## Eyewitness lineups: ROC curves, partial areas and confidence-accuracy
+
+`lnroc()`: Asks how well a lineup procedure lets witnesses tell the culprit from an innocent suspect, and how much a witness's confidence is worth. Each witness saw a lineup that held the culprit (target present, `tp`) or did not (target absent), picked the suspect, a filler or nobody (`pick`), and stated a confidence (`conf`, higher is surer). Counting only the identifications made at confidence `c` or above gives, at each cut `c` from the highest down, the hit rate (suspect identifications in target-present lineups over those lineups) and the false alarm rate (innocent-suspect identifications in target-absent lineups over those lineups). The points trace the receiver operating characteristic (ROC) of Mickes, Flowe and Wixted (2012); a procedure whose curve lies higher discriminates better. When target-absent lineups have no designated innocent suspect, give the lineup `size`: every identification in a target-absent lineup then counts, divided by `size` (the rate at which an innocent suspect would be picked in a fair lineup).
+
+```{r lnroc}
+set.seed(3)
+n <- 400
+tp <- rep(0:1, each = n / 2)
+proc <- rep(c("sim", "seq"), n / 2)
+ch <- c("suspect", "filler", "none")
+pick <- ifelse(tp == 1, sample(ch, n, TRUE, c(0.5, 0.15, 0.35)),
+               sample(ch, n, TRUE, c(0.1, 0.3, 0.6)))
+conf <- ifelse(pick == "none", NA, sample(1:5, n, TRUE))
+r <- lnroc(tp, pick, conf, proc = proc, nboot = 200, seed = 1)
+r$pauc
+plot(r$roc$far, r$roc$hr, col = factor(r$roc$proc))
+```
+
+```{r lnroc-plot}
+plot(r)
+```
+
+## Fairness of a lineup from mock witnesses
+
+`lnsize()`: Asks whether a lineup singles out its suspect. People who never saw the crime (mock witnesses) read the witness's description and pick the lineup member who fits it best; in a fair lineup of `k` they pick each member about equally often. A choice of 0 records a mock witness who chose no one. With `n` mock witnesses, `m` of whom chose a member, and `o_i` the choices of member `i`:
+
+```{r lnsize}
+# 40 mock witnesses, a lineup of six, the suspect in position 3
+ch <- c(rep(3, 15), rep(1, 5), rep(2, 6), rep(4, 4), rep(5, 7), rep(6, 3))
+lnsize(ch, k = 6, susp = 3)
+```
+
+# Toxicology and taphonomy
+
+## Calibration line of an assay
+
+`txcal()`: Fits the calibration line of a quantitative assay (the response, an analyte to internal standard peak-area ratio say, against the known concentration of each calibrator) by weighted least squares, and reads unknown samples off it. Weights `1/x^2` or `1/x` keep the precise low calibrators from being swamped by the high ones, as is usual when the error grows with the concentration. The limits of detection and of quantitation follow the calibration-curve rule of ICH Q2: `k[1]` and `k[2]` (3.3 and 10) times the residual standard error over the slope.
+
+```{r txcal}
+conc <- c(5, 10, 25, 50, 100, 250)
+resp <- c(0.051, 0.098, 0.26, 0.49, 1.02, 2.47)
+txcal(conc, resp, unk = c(0.03, 0.6))
+```
+
+## Values below the limit of detection
+
+`lodimp()`: Substitutes the values of an assay that fall below the limit of detection (left-censored) by a fraction of that limit: `lod / 2`, `lod / sqrt(2)` (Hornung and Reed 1990) or `lod` itself. A value not measured (`NA`) stays `NA` and is not counted as censored. Substitution is the simple choice; with much censoring it biases the mean and the spread.
+
+```{r lodimp}
+lodimp(c(0.4, 0.05, NA, 1.2, 0.08), lod = 0.1)
+```
+
+## Postmortem redistribution ratio
+
+`pmrrat()`: After death drugs move from organs into the central blood vessels, so that heart blood can read well above the concentration at death. The ratio of the central (heart) to the peripheral (femoral) concentration flags it: at most `cut[1]` (1) minimal, at most `cut[2]` (2) modest, above that significant, when the peripheral value is the better guide to the concentration at death.
+
+```{r pmrrat}
+pmrrat(c(0.4, 1.5, 0.9), c(0.5, 1, 0.2))
+```
+
+## Ethanol in a decomposed body: drunk before death or made after
+
+`etohlr()`: Microbes make ethanol in a body after death, and with it the higher alcohols n-propanol and n-butanol; ethyl glucuronide, a metabolite, is made only by a living body. So for each case: ethyl glucuronide present (above 0) says the ethanol was taken before death; otherwise a higher alcohol above `thr` says it was (at least partly) made after death; otherwise the signals do not decide.
+
+```{r etohlr}
+etohlr(c(0.8, 0.5, 0.3), prop = c(0, 0.02, NA), etg = c(1.1, NA, NA))
+```
+
+## Reliability of specimen matrices in a submerged or decomposed body
+
+`mtxrel()`: Ranks the specimen matrices of a case (vitreous humour, liver, femoral blood) by how far their results can be trusted. Each matrix starts from a reliability in a fresh body, `base`, which the user sets from the literature for the analyte at hand; decomposition lowers every matrix by `stage / smax`, at most by `scap`, and water dilutes the matrices marked `dil` (blood, urine) by a further `days / dmax`, at most `dcap`. A transparent ordering, not an estimate.
+
+```{r mtxrel}
+base <- c(vitreous = 0.95, liver = 0.8, femoral = 0.55, heart = 0.35)
+mtxrel(base, dil = c(FALSE, FALSE, TRUE, TRUE), days = 12, stage = 3)
+```
+
+## Decay chain of a body
+
+`tpdmc()`: A discrete-time Markov chain of decomposition: from each transient stage (fresh, bloat, active and advanced decay, or the user's own stages) a body advances to the next stage with probability `decay * (1 - pres)` (after the last, to skeletal), mummifies with probability `mum * pres`, and otherwise stays. `pres` is the strength of what preserves the body (aridity, quicklime, a sealed casket), 0 for none. From the fundamental matrix come the probability of ending skeletal or mummified from each stage and the expected steps to get there. With no preservation nothing mummifies, so the column `mummified` of `absorb` is also the change in the chance of mummifying that the preservation makes. With `steps` above 0 one path is drawn from `start`.
+
+```{r tpdmc}
+tpdmc(pres = 0.4)$absorb
+tpdmc(pres = 0.4, steps = 50, seed = 1)$path
+```
+
+## Bayesian preservation model
+
+`tpbhm()`: A Bayesian linear model of a preservation score (or any outcome) on burial conditions and measurements, with a normal prior on each coefficient and the noise variance fixed at the least-squares residual variance (an empirical Bayes plug-in), so that the posterior is normal in closed form. An informative prior on a treatment (say, that quicklime preserves) is set through `pm` and `psd`, and the data revise it. With groups (cemeteries, sites) the mean residual of each group is shrunk towards 0 by the method of moments: `tau2` is the variance between the group means beyond what the noise explains.
+
+```{r tpbhm}
+set.seed(1)
+d <- data.frame(lime = rbinom(30, 1, 0.5), temp = rnorm(30, 12, 3))
+y <- 0.3 + 0.2 * d$lime - 0.01 * d$temp + rnorm(30, sd = 0.05)
+tpbhm(y, d, grp = rep(c("a", "b", "c"), 10), pm = c(0, 0.2, 0))$coef
+```
+
+## Log-ratio transforms of compositions
+
+`clrilr()`: Element shares from portable X-ray fluorescence of bone or soil, or any parts of a whole, live on the simplex: they sum to one, and ordinary statistics on the raw shares mislead. The centred log-ratio (`"clr"`) takes each part's log over the geometric mean of its row; the isometric log-ratio (`"ilr"`, Egozcue et al. 2003) gives `d - 1` coordinates in an orthonormal basis (the default pivot basis: coordinate `i` contrasts the first `i` parts with part `i + 1`), on which the usual methods apply. Each row is closed to sum 1 after `ps` is added to every part, so that a part below the detection limit (0) has a log.
+
+```{r clrilr}
+x <- rbind(c(Ca = 60, P = 25, Fe = 10, Zn = 5),
+           c(Ca = 80, P = 12, Fe = 6, Zn = 2))
+clrilr(x)
+clrilr(x, "ilr")
+```
+
+## Simulated compositions from a Dirichlet distribution
+
+`dirsim()`: Compositions that are closed (each row sums to `total`) and positive, such as the element shares a portable X-ray fluorescence scan reports, drawn from the Dirichlet distribution with concentrations `alpha`: each part is a gamma variate of shape `alpha[j]` and rate 1 divided by the sum of its row. Normal noise is the wrong model for such data, as it leaves the simplex. The draws are for testing a compositional analysis before real measurements exist (`clrilr()`, `tpbhm()`), never a substitute for them. The mean share of part `j` is `alpha[j] / sum(alpha)`; larger concentrations give less spread around it.
+
+```{r dirsim}
+# a calcium-rich profile and a natural one, in parts per million
+lime <- c(Ca = 85, P = 5, Fe = 2, Sr = 0.5, Pb = 0.2, Zn = 0.2)
+soil <- c(Ca = 30, P = 15, Fe = 5, Sr = 1, Pb = 0.5, Zn = 0.5)
+x <- rbind(dirsim(5, lime, 1e6, seed = 1), dirsim(5, soil, 1e6, seed = 2))
+round(x)
+clrilr(x)[, "Ca"]
+```

@@ -1,0 +1,180 @@
+---
+title: "Policing, police-reported crime and deterrence"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Policing, police-reported crime and deterrence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Clearance rates, exposure bounds, crime severity and reporting, and how inspection or arrest risk deters.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Policing
+
+## Clearance-rate decomposition and Simpson's paradox
+
+`clrsmp()`: Splits the change in an aggregate clearance rate between two periods, areas or services (A and B) into a rate effect, from each offence type clearing more or less, and a mix effect, from the workload moving between types that clear at different rates (Kitagawa's decomposition). The two always add up to the change. When every type clears better in B and the aggregate still falls, the fall is all mix: Simpson's paradox, and the reason an aggregate clearance rate cannot be read as performance without the split by type. See `proof("clrsmp")`.
+
+```{r clrsmp}
+# both types clear better in B, yet the aggregate falls
+clrsmp(clra = c(minor = 90, serious = 20), reca = c(100, 50),
+       clrb = c(19, 60), recb = c(20, 140))
+```
+
+## Rates and disparities when exposure is measured by a proxy
+
+`expbnd()`: Recorded counts (stops, searches, uses of force) are rates per unit of exposure to police, and exposure is seldom observed. If each group's true exposure lies within a factor `gamma` of an observed proxy (residents, drivers on the road, calls for service), each group's true rate lies within a factor `gamma` of its proxy rate, and the ratio of two groups' true rates within a factor `gamma^2` of the proxy ratio. The direction of a disparity is settled only when the proxy ratio lies outside that band. See `proof("expbnd")`.
+
+```{r expbnd}
+expbnd(y = c(white = 100, black = 300), m = c(1000, 1000), gamma = 1.5)
+```
+
+## Risk difference when group membership is misrecorded
+
+`misrd()`: When the group a person is recorded in (an officer's perception of race, say) differs at random from the true one, with the same error rates whatever the outcome, the measured groups are mixtures of the true ones. The measured risk difference is then the true one times the factor (se + sp - 1) p (1 - p) / (d1 d0), where `d1` and `d0` are the shares recorded in each group. For any sensitivity and specificity it is never larger in size than the true difference, so a disparity in recorded data understates the true one; with `se + sp >= 1` it never has the opposite sign, while with `se + sp < 1` a difference other than 0 has it. See `proof("misrd")`.
+
+```{r misrd}
+misrd(r1 = 0.3, r0 = 0.1, prev = 0.4, se = 0.8, sp = 0.9)
+```
+
+## Regression to the mean at selected hot spots
+
+`rtmhs()`: Places chosen because their count in a first period exceeds a cut show a fall in the next period even with no treatment and no trend: if the two periods are exchangeable, the selected places' mean change is never positive, and places chosen for being low never fall on average. This reports the change at the selected places next to the same statistic on the data together with its period-swapped copy, which is exchangeable by construction and so never positive; the excess of the first over the second is the part of the fall that selection alone does not explain. A treatment effect needs a control group selected the same way. See `proof("rtmhs")`.
+
+```{r rtmhs}
+set.seed(5)
+mu <- rgamma(300, 2, 0.5)
+x1 <- rpois(300, mu)
+x2 <- rpois(300, mu)
+rtmhs(x1, x2, cut = quantile(x1, 0.9))
+```
+
+# Police-reported crime
+
+## Severity-weighted crime index
+
+`crsev()`: Police-reported crime weighted by seriousness, as the Crime Severity Index of Statistics Canada is built (Wallace et al. 2009): each offence's count is multiplied by its weight (there, the incarceration rate of the offence times its mean prison sentence in days), the products are summed for each unit (a city, a neighbourhood) and period, divided by the population and expressed against a base cell as 100.
+
+```{r crsev}
+d <- data.frame(city = rep(c("A", "B"), each = 2),
+                off = rep(c("theft", "robbery"), 2),
+                n = c(10, 2, 8, 3), pop = 1000)
+crsev(d$n, d$off, c(theft = 1, robbery = 50), unit = d$city,
+      pop = d$pop, base = 1)
+```
+
+## Composite index of standardised counts
+
+`zcomp()`: Ranks units (neighbourhoods, divisions) on several kinds of crime at once: each category's counts are standardised across the units (minus the mean, over the standard deviation) and the standardised values are summed with weights. A category whose counts do not vary contributes 0 to every unit. A unit with no row for a category counts 0 there, and its standardised value is computed with that 0.
+
+```{r zcomp}
+d <- data.frame(hood = rep(c("a", "b", "c"), 2),
+                kind = rep(c("assault", "theft"), each = 3),
+                n = c(5, 9, 1, 30, 22, 41))
+zcomp(d$n, d$hood, d$kind)
+```
+
+## Repeat victimisation: how often the same targets are victimised again
+
+`rptvic()`: Asks how much crime falls on targets (people, households, addresses, businesses) already victimised, and how soon a repeat follows. From one record per incident with the target's identifier (and its date):
+
+```{r rptvic}
+set.seed(8)
+hh <- sample(1:400, 300, TRUE, prob = rgamma(400, 0.5))
+day <- sort(sample(1:365, 300, TRUE))
+rptvic(hh, t = day, pop = 1000, brk = c(0, 7, 30, 90, 365))
+```
+
+## Benford digit screens
+
+`bdig()`, `bnft()`: `bdig()` takes the first `nd` significant digits of each value. With `dp = -1` they are the digits of the shortest decimal that gives back the double, decided exactly, so 0.29 gives 29 where truncating `x` times a power of ten gives 28; with `dp` from 0 to 22 the data are taken as recorded to `dp` decimals. `bnft()` tests the digits against Benford's law, `P(d) = log10(1 + 1 / d)`, by the chi-square statistic with its exact upper tail, a Monte Carlo p-value from samples of Benford digits of the same size, and Nigrini's mean absolute deviation. A departure from Benford's law is a reason to look, not a finding of fabrication: many honest data sets (bounded amounts, assigned numbers) do not follow it.
+
+```{r bdig}
+set.seed(1)
+x <- exp(runif(500, 0, 10))
+d <- bdig(x)$dig
+bnft(d, nsim = 199, seed = 1)$stat
+```
+
+## Constant reporters of a reporting panel
+
+`rptc()`: The units (agencies reporting to a national crime statistics programme, say) that report at least `minrep` months in every year from `y0` to `y1`. A year without a record of the unit, or with too few months, disqualifies it, whatever other units do that year. Counts over time are comparable only on such a constant panel; a trend from all reporters mixes change in crime with change in who reports.
+
+```{r rptc}
+rptc(unit = c("a", "a", "b", "b", "b"), year = c(2020, 2021, 2020, 2021,
+     2021), rep = c(12, 12, 12, 6, 12), y0 = 2020, y1 = 2021)
+```
+
+# Deterrence
+
+## Offending chosen under certainty and severity of sanction
+
+`detrsp()`: An offender picks the level of offending `x` from a menu to maximise the benefit less the expected sanction, `ben - p * sanc`, with the sanction increasing in `x`. For any shape of the benefit (no concavity, no smoothness) the chosen level never rises with the certainty `p`, and never rises when the sanction schedule grows faster: convexity buys a unique and smooth response, not its direction. Gives the chosen level at each certainty; of tied optima (within `1e-12`), the largest.
+
+```{r detrsp}
+x <- 0:10
+detrsp(x, ben = 3 * sqrt(x) - (x %% 3 == 0), sanc = x^1.5,
+       p = c(0.1, 0.3, 0.5, 1))
+```
+
+## Which deterrence effects a design identifies
+
+`dtrid()`: For the response y = b0 + b1 p + b2 s + b3 c to the certainty `p`, severity `s` and celerity (delay) `c` of the sanction regimes observed, a dimension that never varies has no identified coefficient, and the coefficients are identified exactly when the design (1, p, s, c) has full rank. Gives the rank and, for each dimension, whether its effect is identified given the others (full rank, or the rank falls without it). With `log = TRUE` the design is (1, log p, log s, c): the expected cost of an offence p s exp(-rho c) is linear on that scale, and with a response `y` the ratio of the celerity to the certainty coefficient, `-b3 / b1`, is the discount rate `rho` the response implies.
+
+```{r dtrid}
+# certainty varied at fixed severity and celerity
+dtrid(p = c(0.1, 0.3, 0.5), s = c(2, 2, 2), c = c(30, 30, 30))
+set.seed(2)
+p <- runif(40, 0.1, 0.9)
+s <- runif(40, 1, 10)
+c <- runif(40, 0, 12)
+y <- 2 - 0.8 * log(p) - 0.8 * log(s) + 0.08 * c + rnorm(40, sd = 0.1)
+dtrid(p, s, c, y, log = TRUE)$disc
+```
+
+## The criminal, citizen and inspector game
+
+`inspg()`: Replicator dynamics of a rock-paper-scissors game of three strategies (criminals, citizens, inspectors), each beating the next with stake `a`: x_i' = a x_i (x_{i+1} - x_{i+2}). The centroid is the only interior rest point and x1 x2 x3 is conserved, so the shares circle the centroid for ever and more inspection does not steadily lower crime (D'Orsogna and Perc 2015). Integrated by fourth-order Runge-Kutta; the drift of the invariant measures the integration error.
+
+```{r inspg}
+g <- inspg(1, c(0.5, 0.3, 0.2), steps = 200)
+g$drift
+```
+
+## Phase diagram of the inspection game
+
+`insphs()`: The inspection game of Helbing et al. (2010) with cooperators (C), criminals (P) and inspectors (O), against C, P, O: C earns (1, 0, 1), P earns (T, 0, T - 1) for the temptation `T`, O earns `1 - g` whatever it meets for the inspection cost `g`. Discrete replicator steps x += rate * x * (f - mean f) (negative shares set to 0, the shares normalised) run from `x0` at each point of a grid of temptations and costs; the final shares map the phases of the game, the criminals' share standing for the crime rate.
+
+```{r insphs}
+ph <- insphs(seq(0.1, 1.8, by = 0.3), seq(0.1, 1.1, by = 0.25),
+             steps = 200)
+round(ph$crime, 2)
+```
+
+## Collider bias of arrest data
+
+`colarr()`: Two causes of arrest with prevalences `a` and `e`, independent in the population, and a background cause of prevalence `bg`; a person is arrested when any is present. Among arrestees the two causes are no longer independent: their odds ratio is exactly `bg`, below 1, and the negative association grows as arrests for other reasons become rare. Studying arrestees alone manufactures it (Hernan and Robins, Fine Point 8.2).
+
+```{r colarr}
+colarr(a = 0.3, e = 0.2, bg = c(0.5, 0.1, 0.01))
+```

@@ -1,0 +1,203 @@
+---
+title: "Learners, presets and data larger than memory"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Learners, presets and data larger than memory}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Penalised regression and forests written in the package, checks before a model is fitted, and summaries of data read in one pass.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Learning
+
+## Elastic net by coordinate descent, with cross-validation
+
+`enpath()`: Fits the lasso, ridge and elastic net path by cyclical coordinate descent, for a numeric (gaussian) or a 0/1 (binomial) outcome, and cross-validates it over folds the caller supplies. The objective, the standardisation of the columns and the scale of `lambda` are those of 'glmnet', so that with the same `lambda` and the same folds the two give the same coefficients, up to their convergence thresholds: the gaussian family minimises (1 / 2n) |y - a0 - x b|^2 + lambda pen(b), the binomial family the mean negative log-likelihood plus lambda pen(b), with pen(b) = sum((1 - alpha) / 2 (s b)^2 + alpha |s b|), `s` the population standard deviations of the columns. For the gaussian family the outcome is scaled to unit variance while fitting, as 'glmnet' does. The intercept is never penalised; a constant column keeps a zero coefficient.
+
+```{r enpath}
+set.seed(1)
+x <- matrix(rnorm(200 * 5), 200)
+y <- x[, 1] - 0.5 * x[, 2] + rnorm(200)
+f <- enpath(x, y, nlam = 20, fold = rep(1:5, 40))
+f$lmin
+f$beta[, f$lambda == f$lmin]
+```
+
+## Logistic regression
+
+`lgtreg()`: Maximum likelihood for a 0/1 outcome and a logit link, by Newton's method on the design with centred columns, the method `glm()` uses with `family = binomial()` when the columns are not collinear. Standard errors come from the inverse Fisher information.
+
+```{r lgtreg}
+set.seed(1)
+x <- matrix(rnorm(300 * 2), 300)
+y <- rbinom(300, 1, plogis(0.5 + x[, 1] - x[, 2]))
+lgtreg(x, y)$coef
+```
+
+## Random forest for regression and probabilities
+
+`rfor()`: Grows a random forest (Breiman 2001) on `x` and `y` and returns its mean prediction at the rows of `newx` and its out-of-bag prediction at each row of `x`. Each tree is grown on a bag of rows drawn from `x`, as deep as `minnode` allows, choosing at each node the best of `mtry` columns drawn at random by the reduction in the sum of squares; for a 0/1 outcome this is the Gini split, and the forest's mean is a probability, as in a probability forest of 'ranger'.
+
+```{r rfor}
+set.seed(1)
+x <- matrix(rnorm(400 * 4), 400)
+y <- sin(2 * x[, 1]) + x[, 2] + rnorm(400, sd = 0.3)
+f <- rfor(x, y, ntree = 100)
+mean((f$oob - y)^2)
+```
+
+## Stacking: the super learner
+
+`suplrn()`: Combines the learners of the package (least squares or logistic regression, the elastic net of `enpath()`, the random forest of `rfor()`) into one predictor by stacking (van der Laan, Polley and Hubbard 2007). Each learner is fitted K times, on the rows outside each fold, and predicts the fold left out; the meta-weights are the non-negative least squares fit of `y` on these cross-fitted predictions, scaled to sum to 1 (the `method.NNLS` of 'SuperLearner'). With `disc = TRUE` the stack is the discrete super learner: the one learner of least cross-validated risk. The predictions are then the weighted sum of the learners fitted on all the rows. Everything, the folds included, is computed in the compiled core and is the same for the same `seed`; with one learner the stack is that learner, bit for bit.
+
+```{r suplrn}
+set.seed(1)
+x <- matrix(rnorm(300 * 4), 300)
+y <- sin(2 * x[, 1]) + x[, 2] + rnorm(300, sd = 0.3)
+s <- suplrn(x, y, lrns = c("glm", "lasso", "forest"), ntree = 50)
+s$wt
+s$risk
+```
+
+# Presets
+
+## Presets: a published dataset's columns onto a generic function's arguments
+
+`clprep()`: A preset says how the columns of one published dataset (an Ontario segregation table, the Special Investigations Unit's cases, a use-of-force file) feed the arguments of one of crimlab's generic functions, so that `generic(clprep(data, preset))` gives the published analysis while the same generic runs on anyone's data given as plain vectors. A preset describes a layout and ships no data: the user supplies the table. The columns a preset reads, as `clprep()` lists them, are the layout a table needs (what a zero-row template would hold); `prechk()` checks a table against them.
+
+```{r clprep}
+head(clprep())
+# a table laid out as the published OTIS c01 table (numbers made up)
+d <- data.frame(EndFiscalYear = rep(2020:2022, each = 2),
+                Gender = rep(c("Female", "Male"), 3),
+                NumberIndividuals_RestrictiveConfinement =
+                  c(40, 310, 52, 335, 47, 360))
+p <- clprep(d, "otis-c01-cnt")
+cntreg(p)
+# the same model on plain vectors
+cntreg(d$NumberIndividuals_RestrictiveConfinement, d$Gender == "Female",
+       adj = factor(d$EndFiscalYear))
+# a preset of one's own, for another agency's columns
+mine <- data.frame(preset = "my-cnt", generic = "cntreg",
+                   arg = c("y", "grp", "adj"),
+                   column = c("count", "sex", "year"),
+                   recode = c("", "f=1;*=0", "fac"))
+e <- data.frame(count = c(4, 30, 6, 41), sex = c("f", "m", "f", "m"),
+                year = c(1, 1, 2, 2))
+cntreg(clprep(e, mine))
+```
+
+## Check a table against a preset before use
+
+`prechk()`: `prechk()` reads a table the way `clprep()` would under a preset and reports, in one error, every problem that would stop it or quietly change its result: the columns the preset reads (directly, in a filter or in a recipe) that the table lacks, the labels of a column outside the codes the publisher lists for it, and the labels a mapping recode with no `*` rule does not cover. A table that passes is returned unchanged, so the check can sit in front of the call: `clprep(prechk(d, p), p)`.
+
+```{r prechk}
+# a table laid out as the published OTIS b03 table, simulated
+d <- data.frame(
+  EndFiscalYear = rep(2021:2022, each = 4),
+  Region_AtTimeOfPlacement = rep(c("Central", "Toronto"), 4),
+  Institution_AtTimeOfPlacement = rep(c("Quinte Detention Centre",
+                                        "Toronto South Detention Centre"),
+                                      4),
+  Alert_Type = "Mental Health Alert",
+  Alert_Presence = rep(c("Yes", "Yes", "No", "No"), 2),
+  Number_SegregationPlacements = c(31, 52, 140, 260, 28, 61, 133, 248)
+)
+prechk(d, "otis-b03-cnt")
+# a region the publisher does not list, and a column missing
+bad <- d[-6]
+bad$Region_AtTimeOfPlacement[1] <- "Southern"
+try(prechk(bad, "otis-b03-cnt"))
+# a preset of one's own, and a label its recode does not cover
+mine <- data.frame(preset = "my-cnt", generic = "cntreg",
+                   arg = c("y", "grp"), column = c("count", "sex"),
+                   recode = c("", "f=1;m=0"))
+e <- data.frame(count = c(4, 30, 6, 41), sex = c("f", "m", "f", "x"))
+try(prechk(e, mine))
+```
+
+## Synthetic example data in the shape of published tables
+
+`synfix()`: Draws a data frame with the columns of a published administrative table and values of the kinds it holds, for examples, tests and teaching where the real table cannot be shipped or fetched. Each column is drawn on its own, uniformly from its values: nothing in the result is a record of anyone, and no relation between columns is kept.
+
+```{r synfix}
+head(synfix("otis-b02", n = 20, seed = 3))
+x <- synfix("cuof", n = 5)
+names(x)
+synfix(list(year = 2019:2023, sex = c("F", "M")), n = 4, seed = 9)
+head(synfix())
+```
+
+# Data larger than memory
+
+## Summary statistics accumulated in blocks
+
+`onlsmry()`, `smryupd()`, `smrymrg()`, `smrystat()`: An accumulator for the count, mean, variance, skewness and kurtosis of a numeric column that does not fit in memory, or that arrives in pieces (a file read in chunks, results from several machines). Start one with `onlsmry()`, feed it blocks with `smryupd()`, combine two with `smrymrg()` and read the result with `smrystat()`.
+
+```{r onlsmry}
+set.seed(1)
+x <- stats::rnorm(1000) # simulated
+# accumulate in blocks of 100
+acc <- onlsmry()
+for (i in seq(1, 1000, by = 100)) acc <- smryupd(acc, x[i:(i + 99)])
+smrystat(acc)
+all.equal(smrystat(acc)[["variance"]], stats::var(x))
+# two accumulators built independently can be merged
+a <- smryupd(onlsmry(), x[1:400])
+b <- smryupd(onlsmry(), x[401:1000])
+all.equal(smrystat(smrymrg(a, b)), smrystat(acc))
+# an empty accumulator reports nothing rather than zero
+smrystat(onlsmry())
+try(onlsmry(c("a", "b")))
+```
+
+## Uniform sample of a stream in one pass
+
+`rsvidx()`, `rsvsmp()`: Vitter's Algorithm R: draws `k` items from a stream, each item equally likely to be retained, in a single pass and using memory proportional to `k` rather than to the stream's length. `rsvidx()` returns the retained positions, so the same sample can be applied to a file read line by line; `rsvsmp()` applies it to a vector in memory.
+
+```{r rsvidx}
+rsvidx(1000, 5, seed = 1)
+rsvsmp(letters, 4, seed = 2)
+rsvidx(3, 10)
+# sample rows of a data frame
+df <- data.frame(id = 1:20, v = (1:20)^2)
+df[rsvidx(nrow(df), 3, seed = 7), ]
+try(rsvidx(10, -1))
+```
+
+## Distinct-value count in fixed memory
+
+`dstnskch()`, `dstncnt()`, `skchmrg()`: HyperLogLog: estimates how many distinct values a column holds using a fixed register per bucket, regardless of the column's length or cardinality. `dstnskch()` builds or extends the registers, `dstncnt()` turns them into an estimate, and `skchmrg()` combines two sketches.
+
+```{r dstnskch}
+set.seed(1)
+x <- sample(1:5000, 200000, replace = TRUE) # simulated
+dstncnt(dstnskch(x))
+length(unique(x))
+dstncnt(dstnskch(c("a", "b", "c", "a", "b")))
+a <- dstnskch(x[1:100000])
+b <- dstnskch(x[100001:200000])
+dstncnt(skchmrg(a, b))
+try(skchmrg(dstnskch(1:10, p = 4), dstnskch(1:10, p = 5)))
+```

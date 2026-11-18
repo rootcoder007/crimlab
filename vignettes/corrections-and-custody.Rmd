@@ -1,0 +1,188 @@
+---
+title: "Corrections, custody and court flow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Corrections, custody and court flow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Incapacitation, bounds on sentence effects, stock and flow in custody and court backlogs, and segregation against the Mandela Rules.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Corrections
+
+## Incapacitation: crime rate, share prevented and the marginal year
+
+`incap()`: An offender commits crimes at rate `lam` a year while free, and each crime leads to a custodial sentence of `s` years with probability `q`. Over a career the crime rate is lam / (1 + lam q s): the share of offending prevented, lam q s / (1 + lam q s), never reaches 1, longer or surer sentences lower the rate, and one more year of sentence prevents lam^2 q / ((1 + lam q s) (1 + lam q (s + 1))) crimes a year, less for each year added. A sentence uniform across offenders prevents a larger share of the offending of those with the higher rate. The model holds the rate fixed over the career and replaces nobody; see `incapr()` for both. See `proof("incap")`.
+
+```{r incap}
+incap(lam = c(low = 2, high = 10), q = 0.1, s = 1, share = c(0.8, 0.2))
+```
+
+## Incapacitation under desistance and replacement
+
+`incapr()`: Crimes prevented by a sentence of `s` periods served from career age `t0`, when the offending rate falls with career age and a share <code>r</code> of the crimes prevented is committed by someone else instead. The count is at most `s` times the rate at the start of the sentence and at least `s` times the rate at its end; the same sentence served one period later prevents no more; and, net of replacement, the estimate from the rate at the start is still an upper bound. The usual constant-rate estimate therefore overstates what a sentence buys under both assumptions. See `proof("incapr")`.
+
+```{r incapr}
+incapr(lam = c(12, 10, 8, 6, 5, 4, 3, 2, 2, 1), t0 = 2, s = 3, r = 0.25)
+```
+
+## Evaluating a release rule from the released alone
+
+`sellab()`: Failures (a missed court date, a new arrest) are seen only for the defendants a judge released. A proposed rule that releases only people the judge released is scored exactly from their outcomes; one that releases people the judge detained has a failure rate known only up to the worst and best cases for them, an interval whose width is the share of the rule's releases the judge detained. Both ends can occur. The naive score on the rule's observed releases alone always lies inside the interval, but reports one point of it as if it were known. See `proof("sellab")`.
+
+```{r sellab}
+set.seed(4)
+risk <- runif(500)
+y <- rbinom(500, 1, risk)
+sellab(y, rel = risk < 0.7, rule = risk < 0.8)
+```
+
+## Mean time in custody from completed and current stays
+
+`losbnd()`: The mean length of stay of the people released (or of the cases disposed) leaves out everyone still inside. Their elapsed time is a lower bound on their stay, so the mean over everyone admitted is at least `lower`, the mean of the completed stays and the elapsed times together; the released-only mean falls short of it by `m / (n + m)` times the excess of the mean elapsed time over the released mean, and understates the truth for certain when that excess is positive. No upper bound exists without a cap on how long the current stays will last. See `proof("losbnd")`.
+
+```{r losbnd}
+losbnd(done = c(30, 45, 60, 90, 120), open = c(100, 150, 200))
+```
+
+## Bounds on a sentence's effect without assumptions
+
+`sntbnd()`: Each person receives one of two sentences and shows the outcome (say, reconviction) under that one only. With no assumption about who receives which, the chance of the outcome under a sentence is known only up to an interval whose width is the share who received the other sentence, and the effect of one sentence against the other lies in an interval of width exactly 1 that always contains 0: observational data alone cannot even sign it. See `proof("sntbnd")`.
+
+```{r sntbnd}
+set.seed(1)
+z <- sample(c("community", "custody"), 500, TRUE, c(0.6, 0.4))
+y <- rbinom(500, 1, ifelse(z == "custody", 0.55, 0.35))
+sntbnd(y, z, treat = "custody")
+```
+
+## Bounds on sentence effects under monotone response and selection
+
+`mtrbnd()`: Asks what can be said about the effect of a harsher sentence (a longer term, custody against probation) on an outcome such as reconviction when who received which sentence was not random. With no assumption the mean outcome everyone would have under sentence `t` is known only to an interval (see `sntbnd()` for two sentences). Manski and Pepper (2000) narrow it with two assumptions about ordered treatments:
+
+```{r mtrbnd}
+set.seed(13)
+z <- factor(sample(c("fine", "probation", "custody"), 800, TRUE),
+            levels = c("fine", "probation", "custody"))
+y <- rbinom(800, 1, c(0.2, 0.35, 0.5)[as.integer(z)])
+mtrbnd(y, z, assume = "both")
+mtrbnd(y, z, assume = "none")
+```
+
+## Period-two hazards after selective depletion
+
+`hzdsel()`: A share `s` of a cohort is at high risk of reconviction, `h` a period, and the rest at low risk, `l`. If a programme changes who survives the first period without reconviction, the period-two hazard among the survivors is a weighted average of `h` and `l` with weight the share of high-risk survivors, and it rises with that share. An arm that keeps more of its high-risk people out of reconviction in period one therefore shows the higher period-two hazard even if it has no effect on anyone in period two: a period-by-period hazard ratio is not a causal contrast; a risk difference at a fixed follow-up is. See `proof("hzdsel")`.
+
+```{r hzdsel}
+hzdsel(s = 0.5, h = 0.5, l = 0.1, surh = c(0.5, 0.8), surl = c(0.9, 0.9))
+```
+
+# Custody and court flow
+
+## Stock and flow of a population held over time
+
+`stkflw()`: Person-days divided by the length of a period give the average daily population (a stock: how many are held at once); divided by the people admitted or released, the average length of stay (how long each stays). The two share a numerator and `days = adp * t = people * alos` (Little's law in the words of corrections planning; Lakner 1976), so any two of people, days, average daily population and average length of stay give the rest, except days with the average daily population, which carry the same information. When the length of stay moves, the stock and the flow can move in opposite directions; `pshare` is the share of the change in days (on the log scale) that the change in people accounts for, the rest coming from the length of stay. See `proof("stkflw")`.
+
+```{r stkflw}
+stkflw(people = c(5200, 4800, 4300), days = c(310000, 318000, 330000),
+       prd = 2021:2023)
+# admissions implied by a population and a length of stay
+stkflw(adp = 900, alos = 61)$flow$people
+```
+
+## Lengths of stay: their distribution and its fit
+
+`lostay()`: The lengths of stay of a set of placements (or of people): the mean with its t interval, the median and quartiles, the longest; the share of stays in each band and at or below each threshold (15 days, the Mandela Rules' limit, say), with the share of each band carrying a flag (no review on record); and the fit of lognormal, exponential and Pareto laws by maximum likelihood, compared by AIC: a heavy tail (Pareto or lognormal beating the exponential) separates a few long stays from many short ones. A stay still open is a lower bound on its length; see `losbnd()` for the mean it bounds.
+
+```{r lostay}
+set.seed(3)
+s <- round(rlnorm(400, 2.3, 1.1)) + 1
+r <- lostay(s, breaks = c(0, 5, 15, 31, 61, Inf), thr = 15)
+r$bands
+r$fit
+```
+
+```{r lostay-plot}
+plot(r)
+```
+
+## Little's law on a court docket
+
+`bklog()`: From the arrival and disposition times of cases (a disposition missing or after the horizon: still pending), the time-average backlog equals the filing rate times the mean time to disposition when every case has been disposed (Little 1961): `resid` is that identity's residual, 0 up to rounding. The backlog counts each pending case to the horizon; the mean time is over the disposed cases, which understates the truth when cases are pending (see `losbnd()`). Given a target backlog, `need` is the mean time to disposition that holds it at the present filing rate. See `proof("bklog")`.
+
+```{r bklog}
+bklog(arrive = c(0, 2, 3, 7, 9), dispose = c(5, 4, 12, NA, 15),
+      horizon = 20, target = 2)
+```
+
+## Case flow through a court
+
+`dktflw()`: Cases received and disposed by period: the clearance rate (disposed over received, above 1 when the caseload shrinks) with its exact interval, the net, the clearance over a rolling window, and with the pending caseload its change and the periods it would take to clear at the recent pace. With the length of each period (`span`) the filing rate gives, by Little's law, the mean time to disposition the pending caseload implies, to set beside a published mean (`mtime`): their `ratio` far from 1 means the published mean leaves out the long-pending cases. Published duration bands (`shares` of cases in bands starting at `floors`) bound the mean from below.
+
+```{r dktflw}
+dktflw(recv = c(120, 130, 125, 140), disp = c(110, 135, 120, 150),
+       pend = c(400, 395, 400, 390), win = 2, span = 91)
+m <- matrix(c(50, 55, 60, 30, 28, 25, 20, 17, 15), 3,
+            dimnames = list(2021:2023, c("guilty", "withdrawn", "other")))
+dktflw(mix = m)$mix$trend
+```
+
+## Actuarial life table of grouped times
+
+`lftab()`: How long cases take, from the counts of cases ending (and censored) in each band of time: the conditional probability of ending in each band with the censored counted as half a case at risk, the survival (the share still open at the end of each band) with Greenwood's standard error and a plain, log or log-log interval, the hazard, and the median, linear within its band.
+
+```{r lftab}
+lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
+      cens = c(2, 2, 3, 3, 4))
+```
+
+## Transition matrix between states
+
+`trnmat()`: The moves of people between states (regions, institutions, security levels) from their sequence of records: the counts and probabilities of each move between consecutive records of the same person, the stationary distribution of the chain (where the population would settle if the probabilities held), the share of moves that stay in their state, and the Theil index of the moves between states (0 when they spread evenly over the pairs of states, higher when a few pairs carry them).
+
+```{r trnmat}
+r <- trnmat(c("N", "N", "E", "N", "W", "W", "E", "E"),
+            c(1, 1, 1, 2, 2, 2, 3, 3), time = c(1, 2, 3, 1, 2, 3, 1, 2))
+r$prob
+r$pi
+```
+
+```{r trnmat-plot}
+plot(r)
+```
+
+# Segregation and the Mandela Rules
+
+## Segregation placements under the Mandela Rules
+
+`mndla()`: The United Nations Standard Minimum Rules for the Treatment of Prisoners (the Mandela Rules) define solitary confinement as 22 hours or more a day without meaningful human contact (Rule 44), and prolonged solitary confinement, which Rule 43 prohibits, as more than 15 consecutive days of it. `mndla()` classifies each placement and gives the share that meets the rules, overall and by group (a year, a region), with three denominators that answer different questions (Sprott and Doob 2021):
+
+```{r mndla}
+set.seed(6)
+d <- data.frame(id = sample(1:80, 150, TRUE), yr = sample(2021:2022, 150,
+                TRUE), days = rgeom(150, 0.08) + 1)
+mndla(d$days, d$id, d$yr)$tab
+# the rule of Rules 43 and 44 with hours out of cell
+mndla(c(5, 20, 30), hours = c(1, 1.5, 3), miss = c(100, 100, 40))$tab
+```

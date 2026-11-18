@@ -1,0 +1,137 @@
+---
+title: "Police oversight reports and open data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Police oversight reports and open data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Reading the text of police oversight reports into fields, and loading tables of the project's open data service.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Police oversight reports
+
+## Text of a police oversight report
+
+`ovrtxt()`: Turns the page of a report published by a police oversight body (a civilian investigation unit, an ombudsman, an inspector) into the plain text its other tools read: markup removed, each paragraph, heading, list item and table row on a line of its own, so that section headings stand alone, and character entities decoded. Use it to read or search saved reports without a browser, or before the rules that code them.
+
+```{r ovrtxt}
+ovrtxt("<h2>The Team</h2><p>Number of investigators assigned: 3</p>")
+ovrtxt("<p>WO\n#1 Interviewed</p><p>WO&nbsp;#2 Interviewed</p>")
+ovrtxt("a  b\r\nc", html = FALSE)
+```
+
+## Dates written out in reports, as ISO dates
+
+`ovrdte()`: Finds the first date written in each text, in English or French, and gives it as `YYYY-MM-DD`, the form that sorts and that `as.Date()` reads. `"January 5, 2023"`, `"Jan. 5th 2023"`, `"5 January 2023"`, `"5th of January, 2023"`, `"5 janvier 2023"` and `"2023-01-05"` all give `"2023-01-05"`.
+
+```{r ovrdte}
+ovrdte(c("January 5, 2023", "le 1er février 2021", "no date"))
+ovrdte("On February 30, 2023 or rather March 2, 2023, the SIU ...")
+as.Date(ovrdte("Date: April 28, 2023"))
+```
+
+## Field schemas for coding police oversight reports
+
+`ovrsch()`: The fields a preset reads from each report, and the rule, cues and section of each: a data frame that `ovrpar()` takes as `schema`. Copy it and change rows, or write one of the same columns, to code the reports of any oversight body; nothing in the rules is tied to one agency.
+
+```{r ovrsch}
+s <- ovrsch()
+s[, c("name", "rule")]
+# a field of one's own: the date a complaint came in
+rbind(s, data.frame(name = "date_received", rule = "date",
+                    cue = "received the complaint", alt = "", sect = "",
+                    desc = "the date the complaint came in"))
+```
+
+## Code police oversight reports into fields
+
+`ovrpar()`: Reads the fields of a schema from each report: the dates, the counts of officials and witnesses, the service, the outcome and whatever else the schema names, each by its rule (see `ovrsch()`). The rules are deterministic and offline, so the same report always gives the same row, and a folder of saved reports becomes a data set whose every value can be traced to the words that gave it.
+
+```{r ovrpar}
+r <- paste(
+  "<h1>Director's Report - Case # 23-OFD-001</h1>",
+  "<p>On January 6, 2023, the Barrie Police Service contacted the SIU.",
+  "In the night, a 34-year-old man was injured.</p>",
+  "<p>Number of SIU Investigators assigned: 3</p>",
+  "<p>WO #1 Interviewed</p><p>WO #2 Interviewed</p>",
+  "<p>Joseph Martino</p><p>Director</p>"
+)
+p <- ovrpar(r)
+p[, c("case_number", "police_service", "date_siu_notified_iso",
+      "siu_investigators", "number_of_witness_officials",
+      "age_affected", "directors_name")]
+```
+
+## The number of subject officials in an oversight report
+
+`ovrsoc()`: Counts the subject officials of each report, the officers whose conduct the oversight body investigated, and says which rule gave the count and on what words, so that the number can be checked against the report. Use it where a report has no roster `ovrpar()` can read, or to check a count coded by hand.
+
+```{r ovrsoc}
+ovrsoc(c("Subject Officials\nSO #1 Interviewed\nSO #2 Declined",
+         "Two subject officials were designated.",
+         "Witness Officials\nWO #1\nWO #2",
+         "No officers are named here."))
+```
+
+## Keyword indicators in oversight reports
+
+`ovrkwd()`: Marks each report that mentions any word of each keyword group: the signals of mental health and of race that analyses of oversight reports tally, or any groups of one's own. A mention is a signal to read the report, not a finding: a report may name a condition only to rule it out.
+
+```{r ovrkwd}
+x <- c("The man had a history of schizophrenia; a crisis team came.",
+       "An Indigenous woman was arrested.",
+       "Nothing of either kind.")
+k <- ovrkwd(x)
+k
+colSums(k[c("mental_health", "race")])
+ovrkwd(x, list(force = c("taser", "conducted energy weapon", "baton")))
+```
+
+## Check a coded table of oversight reports
+
+`ovrchk()`: Flags the cells of a table coded from oversight reports (by `ovrpar()`, by hand, or by any other means) that are not of the form their field calls for, so that a parsing slip or a typing error is found before the table is analysed. Nothing is changed.
+
+```{r ovrchk}
+d <- data.frame(case_number = c("23-OFD-001", "23-OFD-1", NA),
+                date_of_incident_iso = c("2023-01-05", "2023-02-30", ""),
+                number_of_subject_officials = c(1, 2.5, NA),
+                charges_recommended = c(FALSE, NA, TRUE))
+ovrchk(d, shape = c(case_number = "99-AAA-999|99-AA-999"))
+```
+
+# Open data
+
+## Tables of the open data service
+
+`odtab()`, `odls()`: `odls()` lists the tables of the project's open data service and `odtab()` loads one by its key, as the service serves it at the time of the call. Everything about a table (its address, rows, columns and SHA-256) is read from the service's manifest at run time, so a table that its publisher has replaced is loaded as it is now, with no new release of crimlab.
+
+```{r odtab}
+## Not run: 
+##D # needs the internet
+##D tabs <- odls()
+##D head(tabs[, c("key", "rows")])
+##D x <- odtab(tabs$key[!is.na(tabs$sha256)][1L])
+##D str(x)
+## End(Not run)
+```

@@ -1,0 +1,374 @@
+---
+title: "Air pollution and the footprint of a computation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Air pollution and the footprint of a computation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+# the vignette runs in full in GitHub CI and for the package tarball (NOT_CRAN),
+# on r-universe (MY_UNIVERSE), on the package website (IN_PKGDOWN) and in an
+# interactive session; when CRAN re-builds it in its check, none of these is set
+# and only this chunk runs
+if (!interactive() &&
+      !any(nzchar(Sys.getenv(c("NOT_CRAN", "MY_UNIVERSE", "IN_PKGDOWN"))))) {
+  knitr::knit_exit()
+}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 6.5,
+                      fig.height = 4, fig.align = "center", dpi = 72)
+options(width = 88)
+set.seed(1)
+library(crimlab)
+```
+
+Dispersion of a pollutant, the health burden attributed to it, and the energy and carbon cost of running an analysis.
+
+Each section is one help page: what the function is for, the example of its
+help page as it runs, and the plot of its result where the package draws
+one. `?name` gives the arguments and the value in full.
+
+# Air pollution
+
+## Atmospheric dispersion: sigmas, plume rise, plume, puff, grid and particles
+
+`pgsig()`, `briggs()`, `gplume()`, `gspuff()` and others: Six standard models of how a pollutant released into the air spreads downwind, for exposure estimates around a stack, a fire or an industrial site (for example when relating air quality to health or justice outcomes by neighbourhood):
+
+```{r pgsig}
+# plume widths 1 km downwind: neutral, then very stable, urban
+pgsig(1000, "D")
+pgsig(c(500, 1000, 2000), "F", set = "urban")
+
+# rise of a hot plume, and the effective height it gives a 50 m stack
+rise <- briggs(c(100, 1000), u = 4, diam = 1, exitvel = 12,
+               stktmp = 420, ambtmp = 285)
+rise$rise
+heff <- 50 + rise$finalrise
+
+# ground-level concentration (g/m^3) from 100 g/s along the centreline
+rec <- cbind(x = c(500, 1000, 2000, 8000), y = 0, z = 0)
+gplume(100, u = 4, h = heff, rcpt = rec)
+
+# under a 120 m mixing lid the far receptor sees a trapped plume
+gplume(100, u = 4, h = heff, rcpt = rec, mixh = 120)
+
+# a 1 kg puff, 10 minutes after release, at the puff centre
+gspuff(1000, u = 3, h = 10, rcpt = rbind(c(1800, 0, 0)), t = 600)
+
+# a small grid: a blob moved by wind and spread by diffusion
+c0 <- matrix(0, 15, 15)
+c0[4, 8] <- 1
+f <- advdif2d(c0, u = 1, v = 0, kx = 0.5, ky = 0.5,
+              dx = 1, dy = 1, dt = 0.2, nsteps = 20)
+f$stable
+round(f$mass, 3)
+
+# 2,000 simulated particles, counted on a grid
+p <- lagrprt(2000, x0 = 0, y0 = 0, u = 1, v = 0, kx = 1, ky = 1,
+             dt = 1, nsteps = 10, seed = 1,
+             grid = c(-10, 30, -20, 20, 8, 8))
+c(p$mean_x, p$meany)
+
+# inputs that cannot be right are refused
+try(pgsig(100, "G"))
+try(briggs(100, u = 4, diam = 1, exitvel = 12, stktmp = 155, ambtmp = 20))
+```
+
+## A Gaussian-plume concentration field on a grid
+
+`plmfld()`: Evaluates `gplume` at every point of an `x` by `y` ground-level grid (or at height `z`) and returns the field as a matrix with the axes. It maps where the plume from a single stack touches the ground, how far downwind the highest concentration lies, and how wide the affected area is.
+
+```{r plmfld}
+f <- plmfld(100, 5, 50, x = seq(100, 3000, by = 100),
+            y = seq(-500, 500, by = 50))
+dim(f$field)
+# where the ground-level maximum lies, downwind
+f$x[which.max(apply(f$field, 1, max))]
+# the coordinates must increase
+try(plmfld(100, 5, 50, x = c(300, 100), y = c(-50, 0, 50)))
+```
+
+## Concentration-response functions for PM2.5 and NO2
+
+`crfpm25()`, `crfno2()`: A concentration-response function (CRF) turns an air-pollution concentration into the relative risk (RR) of a health outcome compared with a counterfactual “clean air” level: an RR of 1.05 means 5% more deaths (or cases) than at the reference concentration. These are the first step of any burden estimate; `polbrdn` calls them.
+
+```{r crfpm25}
+# All-cause mortality at an annual PM2.5 of 12 micrograms per cubic metre
+r <- crfpm25(12)
+c(rr = r$rr, lower = r$rrlo, upper = r$rrup)
+# the cause-specific IER curve for ischaemic heart disease
+crfpm25(12, y = "ihd")$rr
+# NO2 and respiratory deaths; at or below the reference no excess risk
+crfno2(25, y = "respiratory")$rr
+crfno2(8)$rr
+# a vector of exposures (one per area): the mean RR and each area's RR
+crfpm25(c(5, 12, 20))$extra$rrperunit
+# a coefficient of the reader's own: RR 1.04 per 10 micrograms
+crfno2(30, betaper10 = log(1.04))$rr
+# the environment as a driver of offending: a simulated daily NO2 series
+# and simulated daily counts of assaults for three areas, joined by area
+# and day
+set.seed(1)
+d <- data.frame(area = rep(c("a", "b", "c"), each = 30), day = rep(1:30, 3))
+d$no2 <- stats::rlnorm(90, log(20), 0.3)
+d$assaults <- stats::rpois(90, 3 + 0.05 * d$no2)
+# the relative risk each area-day's exposure carries, and the mean count
+# on days above and below its median
+d$rr <- crfno2(d$no2)$extra$rrperunit
+tapply(d$assaults, d$rr > stats::median(d$rr), mean)
+# an outcome without a published function is refused
+try(crfpm25(12, y = "asthma"))
+```
+
+## Population attributable fraction
+
+`attrfrac()`: The share of all cases in a population that is due to an exposure: the fraction that would not occur if the exposure were removed and nothing else changed. It combines how strongly the exposure raises risk (the relative risk) with how common it is (the prevalence); multiplied by the number of cases it gives the attributable cases, as `polbrdn` does.
+
+```{r attrfrac}
+attrfrac(1.5, 0.4)
+attrfrac(2, 1) # everyone exposed: 1 - 1/RR
+paf <- attrfrac(1.08, 1, rrlo = 1.06, rrup = 1.09)
+attr(paf, "ci")
+attrfrac(0.8, 0.5) # protective
+try(attrfrac(1.5, 40))
+```
+
+## Deaths avoided under a counterfactual exposure reduction
+
+`mortdisp()`: The expected number of deaths (or cases) a year that a given drop in exposure would avoid in a population, from the baseline rate and a log-linear concentration-response coefficient. This is the health-impact function used in regulatory benefit assessments.
+
+```{r mortdisp}
+# a 10-unit cut, a million people, 800 deaths per 100,000 a year
+mortdisp(10, 1e6, 0.008, 0.0039)
+# the PM2.5 all-cause coefficient is published per 10 micrograms
+mortdisp(5, 2.8e6, 0.0075, log(1.08) / 10)
+# a rare outcome must be declared
+mortdisp(5, 1e6, 5e-6, 0.01, rare = TRUE)
+# a rate per 100,000 passed as a rate per person is refused
+try(mortdisp(10, 1e6, 800, 0.0039))
+```
+
+## End-to-end pollution burden
+
+`polbrdn()`: Chains the concentration-response function, the attributable fraction and the baseline case count into annual attributable cases, as the GBD risk factor estimates do (GBD 2019 Risk Factors Collaborators 2020). It serves a single population (a city, a region) whose mean exposure, baseline rate and size are known; for many areas at once see `polbrdarea`.
+
+```{r polbrdn}
+# ambient NO2 of 25 micrograms per cubic metre over a million people
+b <- polbrdn(25, 1, 0.008, 1e6, poll = "NO2")
+b$attrcases
+# PM2.5 and ischaemic heart disease deaths, against the WHO guideline
+polbrdn(12, 1, 0.0012, 2.8e6, poll = "PM2.5", y = "ihd",
+        refconc = 5)$attrcases
+# childhood asthma counts incident cases, not deaths
+polbrdn(30, 1, 0.012, 5e5, y = "chiast")$extra$unit
+try(polbrdn(40, 1, 0.008, 1e6, poll = "O3"))
+```
+
+## Per-area pollution burden
+
+`polbrdarea()`: Applies `polbrdn` to every row of a table with one row per area (forward sortation area, census tract, neighbourhood, ...) and returns the rows sorted by attributable cases, worst first: where in a city or region the pollution burden falls.
+
+```{r polbrdarea}
+# simulated areas
+t <- data.frame(fsa = c("A1", "B2"), exposure = c(28, 18),
+                population = c(40000, 60000), brate = 0.008)
+polbrdarea(t)
+try(polbrdarea(t[, c("fsa", "exposure")]))
+```
+
+## Concentration index of exposure by income
+
+`expconcidx()`: Measures whether exposure to pollution is concentrated among lower-income or higher-income people. The index runs from -1 (all the exposure borne by the poorest) through 0 (exposure shared evenly across income) to +1 (all of it borne by the richest); environmental-justice analyses report it next to the burden.
+
+```{r expconcidx}
+d <- data.frame(exposure = c(30, 25, 20, 15, 10), income = 1:5)
+ci <- expconcidx(d, "exposure", "income")
+ci$concidx
+ci$interpretation
+try(expconcidx(data.frame(exposure = 1:3, income = c("a", "b", "c")),
+               "exposure", "income"))
+```
+
+## Exposure-response estimate with a bootstrap sensitivity interval
+
+`exprspplr()`: Fits the partially linear exposure-response model (the effect of an exposure on an outcome, the confounders partialled out by cross-fitted regressions), or any estimator with the same interface, then re-fits it on `nboot` non-parametric resamples of the rows for a percentile interval (Efron and Tibshirani 1993, chapter 13). The bootstrap interval does not lean on the estimator's own standard error, so it is a check on it: when the two disagree, the analytic one should not be trusted alone.
+
+```{r exprspplr}
+# simulated areas: exposure driven by x1, the outcome by the exposure and
+# x2
+set.seed(1)
+d <- data.frame(x1 = rnorm(200), x2 = rnorm(200))
+d$exposure <- 20 + 2 * d$x1 + rnorm(200)
+d$asthma <- 5 + 0.3 * d$exposure + d$x2 + rnorm(200)
+r <- exprspplr(d, y = "asthma", expo = "exposure", confs = c("x1", "x2"),
+               nboot = 20)
+r$ate
+c(r$cilobs, r$ciupbs)
+
+# Any estimator with the same interface: here an ordinary regression.
+ols <- function(data, outcome, treatment, covariates) {
+  f <- stats::reformulate(c(treatment, covariates), outcome)
+  cf <- summary(stats::lm(f, data = data))$coefficients
+  list(ate = cf[treatment, 1], se = cf[treatment, 2], method = "OLS")
+}
+exprspplr(d, "asthma", "exposure", c("x1", "x2"), nboot = 20,
+          estr = ols)$method
+
+# Fewer than 10 resamples cannot give an interval.
+try(exprspplr(d, "asthma", "exposure", c("x1", "x2"), nboot = 5))
+```
+
+## Run the pollution-to-health pipeline and report it
+
+`vrfpol()`, `polrpttxt()`: Resolves the exposure (simulated demo data, a CSV with an `exposure` column and an optional `income` column, a NAPS-style pull with a `value` column and a `unit`, or scalar arguments), logs the assumptions, and when they all hold runs the concentration-response, attributable-fraction, displaced-mortality, burden and equity stages. `polrpttxt()` renders the result as plain text. It is the one-call version of the air pollution functions, made for scripts: for bad data or a value it cannot use it does not stop with an R error, but returns a report whose status says what went wrong. Only `poll`, which names the report, is checked first and refused with an R error (as the command line refuses it) when it is not one pollutant name: missing, not text, `NULL`, several names, or text that is not valid UTF-8.
+
+```{r vrfpol}
+r <- vrfpol("no2", demo = TRUE)
+r$status
+r$pipeline$paf
+cat(polrpttxt(r))
+
+# Scalar inputs: a city of 2.8 million at a PM2.5 mean of 9.
+s <- vrfpol("pm25", expomean = 9, expoprev = 1, brate = 750, pop = 2.8e6,
+            reg = "Toronto")
+s$pipeline$burden$attrcases
+attr(s, "exitstat")
+
+# A CSV of simulated measurements with an income column.
+f <- tempfile(fileext = ".csv")
+utils::write.csv(data.frame(exposure = c(12, 18, 25, 31, 9), income = 1:5),
+                 f, row.names = FALSE)
+vrfpol("no2", expcsv = f)$pipeline$equity$concidx
+
+# A rate per person-year passed as per 100,000 fails an assumption ...
+bad <- vrfpol("no2", expomean = 20, expoprev = 1, brate = 0.008)
+bad$status
+# ... and an argument it cannot use is an error report, not an R error.
+vrfpol("no2")$error
+```
+
+# The footprint of a computation
+
+## Energy and carbon footprint of a computation
+
+`co2fp()`: Evaluates `expr` and reports the electricity it used and the CO2-equivalent that electricity implies, by one of two methods, for the grid it ran on, offline. Use it to report the energy and emissions of an analysis next to its results (as journals and funders increasingly ask), or to compare two ways of running the same computation. The result keeps the value of `expr`, and lists every figure that was assumed rather than measured.
+
+```{r co2fp}
+fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
+fp$enekwh$total
+fp$co2eg
+fp$co2int$year
+fp$assumptions
+print(fp)
+# wherever you are, offline: the location is detected and recorded
+co2fp(1 + 1, cpupwrw = 45, memgb = 8)$assumptions
+# the whole machine's utilisation, on codecarbon's machine curve
+co2fp(
+  1 + 1,
+  loc = "FR",
+  usage = "machine",
+  loadcur = "codecarbon",
+  cpupwrw = 45,
+  memgb = 8
+)$usagemode
+# a fixed utilisation and a data-centre PUE, with a carbon intensity given
+# as a number
+fp2 <- co2fp(
+  sum(sqrt(seq_len(2e5))),
+  loc = 30,
+  usage = 0.5,
+  cpupwrw = 65,
+  memgb = 16,
+  pue = 1.67,
+  meth = "model"
+)
+fp2$enekwh
+fpeqv(fp2$co2eg)
+# a graphics card measured at 120 W on average (a simulated reading) and
+# a CPU row, which is not counted twice
+dev <- data.frame(
+  kind = c("gpu", "cpu"), vendor = c("example", "example"),
+  name = c("card 0", "package 0"), watts = c(120, 35),
+  how = c("simulated reading", "simulated reading")
+)
+fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
+             memgb = 16, meth = "model", devices = dev)
+fp3$devices
+# a bad argument is refused before the expression runs
+try(co2fp(Sys.sleep(10), pue = 0.9))
+```
+
+## Is CPU energy measurable here?
+
+`raplok()`: `TRUE` when the operating system exposes readable RAPL (Running Average Power Limit) energy counters for at least one CPU package: Linux with the `intel_rapl` powercap driver (Intel and, since kernel 5.8, AMD), with read permission on `energy_uj`. On most systems since Linux 5.10 that file is readable by root only, so `FALSE` is the common answer for an ordinary user, and `co2fp` then falls back to its model.
+
+```{r raplok}
+raplok()
+
+# a fake powercap tree with one readable package domain (Linux names the
+# domain "intel-rapl:0"; a colon is not allowed in a Windows file name)
+if (.Platform$OS.type != "windows") {
+  d <- file.path(tempfile(), "intel-rapl:0")
+  dir.create(d, recursive = TRUE)
+  writeLines("package-0", file.path(d, "name"))
+  writeLines("123456789", file.path(d, "energy_uj"))
+  raplok(dirname(d))
+}
+
+# a folder that does not exist is simply FALSE; a non-path is an error
+raplok(file.path(tempdir(), "no-such-dir"))
+try(raplok(NA_character_))
+```
+
+## Carbon intensity of electricity by location, offline, anywhere
+
+`co2int()`, `co2inttab()`: The grams of CO2-equivalent emitted per kilowatt-hour of electricity at a location, with the year and source of the figure. The table is compiled into the package, so it works offline in any country: every country at the latest year published by Our World in Data from Ember's yearly electricity data (the latest year each grid reports: 2025 or 2024 for nearly all, older for a few grids, Ukraine (2022) among them, named in `year`), sub-national zones from Electricity Maps' 2024 yearly data as redistributed in the Green Algorithms data release v3.1 (Canadian provinces and territories, US balancing authorities, Australian states, Indian and Japanese regions, Brazilian and Chilean systems, ...), and the world average. All figures are lifecycle intensities (generation plus upstream), the basis both sources publish.
+
+```{r co2int}
+co2int("CA-ON")
+co2int("Canada")$year
+co2int("CA-XX")$note
+co2int(120)$source
+nrow(co2inttab())
+# the Canadian provinces in the table, lowest intensity first
+tab <- co2inttab()
+ca <- tab[
+  startsWith(tab$location, "CA-"),
+  c("location", "name", "g_per_kwh", "year")
+]
+head(ca[order(ca$g_per_kwh), ])
+# a location the table does not know is an error, not a silent world
+# average
+try(co2int("Atlantis"))
+```
+
+## Where is this computation running?
+
+`dtctloc()`: Finds a location code for `co2int` without any network access, in this order:
+
+```{r dtctloc}
+dtctloc()
+dtctloc(envloc = "", codloc = "", tz = "Europe/Paris")
+dtctloc(envloc = "", codloc = "", tz = "", locale = "en_IN.UTF-8")
+# an explicit setting wins over everything else
+dtctloc(envloc = "CA-QC", tz = "Europe/Paris")
+# nothing usable: the world average, and the method says so
+dtctloc(envloc = "", codloc = "", tz = "UTC", locale = "C")
+```
+
+## Everyday equivalents of a quantity of CO2-equivalent
+
+`fpeqv()`: Converts grams of CO2-equivalent into two everyday comparisons: kilometres driven in an average European passenger car (175 gCO2/km) and tree-months of carbon sequestration (917 gCO2 per tree per month), the two comparisons the Green Algorithms calculator prints, with their sources. Use it to make the `co2eg` of `co2fp` easier to read in a report.
+
+```{r fpeqv}
+fpeqv(1200)
+
+# the footprint of a small computation, in everyday terms
+fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 45,
+            memgb = 8)
+unlist(fpeqv(fp$co2eg)[c("carkm", "treemon")])
+
+# a vector is refused: convert one total at a time
+try(fpeqv(c(10, 20)))
+```
