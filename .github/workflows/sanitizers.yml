@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-24.04
     # unpinned on purpose: the job exists to test against today's R-devel
     container: rocker/r-devel-san  # zizmor: ignore[unpinned-images]
-    timeout-minutes: 30
+    timeout-minutes: 60
     env:
       # R itself leaks by design at exit; a leak report would drown the signal
       ASAN_OPTIONS: detect_leaks=0:abort_on_error=0:print_summary=1

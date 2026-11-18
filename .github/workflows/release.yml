@@ -68,7 +68,7 @@ jobs:
     name: build ${{ matrix.target }}
     needs: meta
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -105,7 +105,7 @@ jobs:
     # separate runtime installed
     needs: meta
     runs-on: windows-2025
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -299,7 +299,7 @@ jobs:
     name: image ${{ matrix.arch }}
     needs: [meta, install]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 60
     environment: release
     permissions:
       contents: read
