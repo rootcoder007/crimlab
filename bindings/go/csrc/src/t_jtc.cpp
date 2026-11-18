@@ -336,7 +336,8 @@ void t_acc(tk &T, int /*big*/) {
   const double pr[6] = {0.1, 0.3, 0.1, 0.3, 0.15, 0.05};
   double o[6];
   tk_true(T, "acc.ok", clab_jtacc(pr, 3, 2, 10, 20, 1, 1, 10.2, 20.7, o) == CLAB_OK);
-  tk_true(T, "acc.cell", o[5] == 0 && o[0] == 0.1);
+  // double(): where arithmetic is in long double (x87) a literal is too
+  tk_true(T, "acc.cell", o[5] == 0 && o[0] == double(0.1));
   // greater than 0.1: 0.3, 0.3, 0.15; at least 0.1: those and two 0.1s
   tk_eq(T, "acc.best", o[1], 4.0 / 6, 1e-15);
   tk_eq(T, "acc.worst", o[2], 5.0 / 6, 1e-15);

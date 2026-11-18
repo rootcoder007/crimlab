@@ -175,8 +175,12 @@ void zeta(tk &t) {
   tk_eq(t, "hzta.shiftq", a - b, std::pow(300.0, -1.7), 1e-12);
   // next to the pole: 1 / (s - 1) + Euler's gamma + gamma_1 (s - 1)
   // (Stieltjes constants gamma_1 and gamma_2; s - 1 is exact in doubles)
-  const double e = 1.0001 - 1;
-  clab_hzta(1 + e, 1, &z);
+  // s as the double it is, then s - 1: written 1.0001 - 1, the literal has
+  // more digits where arithmetic is in long double (x87), and s - 1 is then
+  // not the distance from the pole of the s that is passed
+  const double s1 = 1.0001;
+  const double e = s1 - 1;
+  clab_hzta(s1, 1, &z);
   tk_eq(t, "hzta.pole", z,
         1 / e + 0.5772156649015329 + 0.0728158454836767 * e - 0.0048451815964361 * e * e, 1e-14);
   tk_ieq(t, "hzta.s", clab_hzta(1, 1, &z), CLAB_EDOM);

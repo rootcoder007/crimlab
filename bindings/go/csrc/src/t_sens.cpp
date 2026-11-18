@@ -128,8 +128,11 @@ void run(tk &tt) {
         const std::int64_t num = static_cast<std::int64_t>(4 * gs[k]) * m, den = 4 + static_cast<std::int64_t>(4 * gs[k]);
         const std::int64_t cu = (num + den - 1) / den, fu = num / den + 1;
         const std::int64_t cl = (4LL * m + den - 1) / den, fl = 4LL * m / den + 1;
-        bad += hi[k] != 0.5 * all[cu - 1] + 0.5 * all[fu - 1];
-        bad += lo[k] != 0.5 * all[cl - 1] + 0.5 * all[fl - 1];
+        // the means as doubles, as the kernel stores them (x87 keeps more
+        // digits in the expression)
+        const double eh = 0.5 * all[cu - 1] + 0.5 * all[fu - 1], el = 0.5 * all[cl - 1] + 0.5 * all[fl - 1];
+        bad += hi[k] != eh;
+        bad += lo[k] != el;
       }
     }
     tk_true(tt, "sens.hl.brute", bad == 0);

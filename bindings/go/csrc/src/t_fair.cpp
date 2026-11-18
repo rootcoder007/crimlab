@@ -334,7 +334,8 @@ void run2(tk &tt) {
         for (int j = 0; j <= 221; ++j) {
           // grid steps of 0.001; the points a = pobs and b = 1 - pobs added
           const double a = i == 111 ? r : 0.01 + 0.001 * i, b = j == 221 ? 1 - r : 0.03 + 0.001 * j;
-          if (a > 0.12 + 1e-12 || b > 0.25 + 1e-12 || a < 0.01 || b < 0.03) continue;
+          // double(): where arithmetic is in long double (x87) a literal is too
+          if (a > 0.12 + 1e-12 || b > 0.25 + 1e-12 || a < double(0.01) || b < double(0.03)) continue;
           const double p = (r - a) / (1 - a - b);
           if (p < -1e-12 || p > 1 + 1e-12) continue;
           mn = std::fmin(mn, p);

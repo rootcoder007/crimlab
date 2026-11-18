@@ -269,7 +269,8 @@ void famtest(tk &T, int big) {
     // a smooth surface: strong positive autocorrelation, C well below 1
     for (int i = 0; i < n; ++i) v[i] = x[i] + y[i];
     clab_gearc(v.data(), n, rp.data(), ci.data(), w.data(), 99, 3, wk.data(), a);
-    tk_true(T, "gearc.power", a[0] < 0.5 && a[7] == 0.01);
+    // double(): where arithmetic is in long double (x87) a literal is too
+    tk_true(T, "gearc.power", a[0] < 0.5 && a[7] == double(0.01));
   }
   // directional mean: closed forms
   {
