@@ -325,3 +325,54 @@ jobs:
         with:
           prepare: /usr/sbin/pkg_add gmake
           run: gmake -C cli -j4 check CXX=c++ WERROR=
+
+  t2:
+    # T2 SDE publishes ISOs, not container images: the job makes an image of
+    # the root file system of a T2 ISO (pinned by its SHA-256) and builds
+    # and tests the command there with T2's own gcc, at the two
+    # optimisation levels T2 builds packages with (-O2 and -Os), with
+    # -Werror; arm64 runs natively on an arm runner
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: x86_64
+            iso: t2-26.6-x86-64-base-wayland-bootstrap-gcc-nocona.iso
+            sum: e176704d9a10b5fbdee494a29822b956cc72a41b6690417b21ea5d5f8be0b3eb
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+            iso: t2-26.7-arm64-base-wayland-bootstrap-gcc.iso
+            sum: 388c2c2142c6409ac5a22308356a25f2ee8d4e6eb7517a18de5710707a9f6eb1
+    name: t2 (${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: T2 userland from the ISO
+        env:
+          ISO: ${{ matrix.iso }}
+          SUM: ${{ matrix.sum }}
+        run: |
+          curl -sSfL -o t2.iso "https://dl.t2sde.org/binary/2026/incoming/$ISO"
+          echo "$SUM  t2.iso" | sha256sum -c -
+          docker run --rm -v "$PWD:/w" alpine@sha256:020dfcbaaf4cc1078bf2d9c7ba31a8466e334061dcd2f248001d68f79e52c000 sh -c \
+            "apk add -q squashfs-tools xorriso >&2 &&
+            xorriso -osirrox on -indev /w/t2.iso -extract /rootfs.sqf /tmp/r.sqf 2>/dev/null &&
+            unsquashfs -q -n -d /tmp/r /tmp/r.sqf >&2 && tar -C /tmp/r -cf - ." | docker import - t2
+          rm t2.iso
+      - name: the command and its tests, -O2 and -Os, -Werror, then an install
+        run: |
+          docker run --rm -v "$PWD:/src:ro" t2 sh -c '
+            set -eu
+            g++ --version | head -n 1
+            for o in O2 Os; do
+              echo "== -$o"
+              cp -a /src "/tmp/$o"
+              make -C "/tmp/$o/cli" -j"$(nproc)" check CXXFLAGS="-$o"
+            done
+            make -C /tmp/O2/cli install DESTDIR=/tmp/i PREFIX=/usr CXXFLAGS=-O2
+            LD_LIBRARY_PATH=/tmp/i/usr/lib /tmp/i/usr/bin/crimlab orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
+            echo "== t2 ok"'
