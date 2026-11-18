@@ -1,4 +1,4 @@
-# crimlab 0.0.0.9000
+# crimlab 0.0.1
 
 * Open data: `odtab()` loads a table of the project's open data service by
   its key and `odls()` lists the tables, with their rows, columns and

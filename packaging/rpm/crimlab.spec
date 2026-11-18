@@ -2,7 +2,7 @@
 # Fedora and EPEL RPM (COPR builds it from the repository through
 # .copr/Makefile, which sets Version from DESCRIPTION).
 Name:           crimlab
-Version:        0.0.0.9000
+Version:        0.0.1
 Release:        1%{?dist}
 Summary:        Criminology and sociolegal statistics: library and command
 License:        Apache-2.0 WITH LLVM-exception
@@ -51,5 +51,5 @@ make -C cli check WERROR=
 %{_libdir}/libcrimlab.so
 
 %changelog
-* Thu Nov 12 2026 rootcoder007 <278967282+rootcoder007@users.noreply.github.com> - 0.0.0.9000-1
+* Thu Nov 12 2026 rootcoder007 <278967282+rootcoder007@users.noreply.github.com> - 0.0.1-1
 - First package
