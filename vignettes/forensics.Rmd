@@ -116,6 +116,11 @@ ref <- data.frame(id = rep(c("V", "S"), each = 2),
 gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
 ```
 
+```{r gmixlr-plot}
+res <- gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
+plot(res)
+```
+
 ## Kinship index
 
 `kinidx()`: The weight of two DNA profiles for a stated relationship against no relationship, locus by locus and overall. Loci are taken as independent; there is no allowance for mutation or coancestry. See `proof("kinidx")`.
@@ -153,6 +158,11 @@ freq <- data.frame(locus = rep(c("D3", "vWA"), c(4, 4)),
 pedlr(trio, geno, freq, alt)
 # the child's vWA allele 19 cannot come from AF without a mutation
 pedlr(trio, geno, freq, alt, mut = "equal", rate = 0.002)
+```
+
+```{r pedlr-plot}
+res <- pedlr(trio, geno, freq, alt, mut = "equal", rate = 0.002)
+plot(res)
 ```
 
 ## Database search
@@ -234,4 +244,9 @@ a <- cumsum(rnorm(600, sd = 0.5)) + sin(seq_len(600) / 9)
 b <- a[31:600] + rnorm(570, sd = 0.1)
 cmpsc(a, b)
 cmpsc(a, cumsum(rnorm(570, sd = 0.5)))$score
+```
+
+```{r cmpsc-plot}
+res <- cmpsc(a, b)
+plot(res)
 ```

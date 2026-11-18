@@ -90,6 +90,11 @@ mtrbnd(y, z, assume = "both")
 mtrbnd(y, z, assume = "none")
 ```
 
+```{r mtrbnd-plot}
+res <- mtrbnd(y, z, assume = "none")
+plot(res)
+```
+
 ## Period-two hazards after selective depletion
 
 `hzdsel()`: A share `s` of a cohort is at high risk of reconviction, `h` a period, and the rest at low risk, `l`. If a programme changes who survives the first period without reconviction, the period-two hazard among the survivors is a weighted average of `h` and `l` with weight the share of high-risk survivors, and it rises with that share. An arm that keeps more of its high-risk people out of reconviction in period one therefore shows the higher period-two hazard even if it has no effect on anyone in period two: a period-by-period hazard ratio is not a causal contrast; a risk difference at a fixed follow-up is. See `proof("hzdsel")`.
@@ -109,6 +114,12 @@ stkflw(people = c(5200, 4800, 4300), days = c(310000, 318000, 330000),
        prd = 2021:2023)
 # admissions implied by a population and a length of stay
 stkflw(adp = 900, alos = 61)$flow$people
+```
+
+```{r stkflw-plot}
+res <- stkflw(people = c(5200, 4800, 4300), days = c(310000, 318000, 330000),
+              prd = 2021:2023)
+plot(res)
 ```
 
 ## Lengths of stay: their distribution and its fit
@@ -148,6 +159,12 @@ m <- matrix(c(50, 55, 60, 30, 28, 25, 20, 17, 15), 3,
 dktflw(mix = m)$mix$trend
 ```
 
+```{r dktflw-plot}
+res <- dktflw(recv = c(120, 130, 125, 140), disp = c(110, 135, 120, 150),
+              pend = c(400, 395, 400, 390), win = 2, span = 91)
+plot(res)
+```
+
 ## Actuarial life table of grouped times
 
 `lftab()`: How long cases take, from the counts of cases ending (and censored) in each band of time: the conditional probability of ending in each band with the censored counted as half a case at risk, the survival (the share still open at the end of each band) with Greenwood's standard error and a plain, log or log-log interval, the hazard, and the median, linear within its band.
@@ -155,6 +172,12 @@ dktflw(mix = m)$mix$trend
 ```{r lftab}
 lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
       cens = c(2, 2, 3, 3, 4))
+```
+
+```{r lftab-plot}
+res <- lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
+             cens = c(2, 2, 3, 3, 4))
+plot(res)
 ```
 
 ## Transition matrix between states

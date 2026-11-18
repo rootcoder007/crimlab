@@ -199,6 +199,13 @@ crossk(p, marks = m, i = "burglary", j = "robbery",
        nsim = 19, seed = 1)
 ```
 
+```{r crossk-plot}
+res <- crossk(p, marks = m, i = "burglary", j = "robbery",
+              win = c(0, 1, 0, 1), r = c(0.05, 0.1, 0.2), sigma = 0.1,
+              nsim = 19, seed = 1)
+plot(res)
+```
+
 ## Quadrat count test
 
 `qdrtst()`: Counts the points in an `nx` by `ny` grid of equal tiles of the rectangle `win` and tests complete spatial randomness by Pearson's chi-square, `X2 = sum (n_k - e)^2 / e` with `e` the mean count, on nx ny - 1 degrees of freedom: the upper tail against clustering and the two-sided p-value (twice the smaller tail, `quadrat.test()`'s default), which also flags regular patterns. A point on an inner tile boundary goes to the tile above or to its right, one on the outer edge to the tile inside. These are the values of `spatstat.explore::quadrat.test()`. The counts feed `morsta()`.
@@ -234,6 +241,11 @@ dissix(x, w = spwt(nb = list(2, c(1, 3), c(2, 4), c(3, 5), 4),
                    type = "contig"))$dm
 ```
 
+```{r dissix-plot}
+res <- dissix(x)
+plot(res)
+```
+
 ## Points in polygons, and the population the units cover
 
 `pinpl()`: Finds the region holding each point (a facility, a station, an incident) by the even-odd rule, a point on a boundary counting as inside; a region given as several rings (parts and holes) is one region, and a hole is any ring inside another of the same region. A point outside every region gets `NA`; one inside overlapping regions takes the first by label and `nreg` says how many hold it. Coordinates are taken as planar (longitude and latitude work for regions small enough that their edges are straight in degrees).
@@ -262,6 +274,14 @@ plot(u)
 arwt(c(a = 120, b = 40, c = 60, d = 100),
      from = c("a", "b", "c", "d", "d"), to = c("N1", "N1", "N2", "N2", "N3"),
      area = c(1, 1, 1, 7, 3), top = 1)
+```
+
+```{r arwt-plot}
+res <-
+  arwt(c(a = 120, b = 40, c = 60, d = 100),
+       from = c("a", "b", "c", "d", "d"), to = c("N1", "N1", "N2", "N2", "N3"),
+       area = c(1, 1, 1, 7, 3), top = 1)
+plot(res)
 ```
 
 ## Crosswalk between boundary versions

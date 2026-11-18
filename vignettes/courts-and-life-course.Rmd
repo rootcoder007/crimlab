@@ -43,6 +43,11 @@ y <- rbinom(1000, 1, 0.2 + 0.1 * d)
 jdgiv(z, d, y)
 ```
 
+```{r jdgiv-plot}
+res <- jdgiv(z, d, y)
+plot(res)
+```
+
 ## Do judges' leniency rankings hold? Monotonicity checks
 
 `jmono()`: The decision rate of each judge (with a chi-square test that the rate is the same for all, and its range), and two checks of the monotonicity a judge-leniency design rests on.
@@ -67,6 +72,11 @@ plot(r)
 
 ```{r mmshr}
 mmshr(c(365, 400, 300, 365, 730), 365, c("a", "a", "b", "b", "b"))
+```
+
+```{r mmshr-plot}
+res <- mmshr(c(365, 400, 300, 365, 730), 365, c("a", "a", "b", "b", "b"))
+plot(res)
 ```
 
 ## Credit for pre-sentence custody
@@ -135,6 +145,11 @@ plot(r)
 cumrsk(18:22, c(120, 100, 80, 60, 40), rep(10000, 5))
 ```
 
+```{r cumrsk-plot}
+res <- cumrsk(18:22, c(120, 100, 80, 60, 40), rep(10000, 5))
+plot(res)
+```
+
 ## Age-period-cohort model by the intrinsic estimator
 
 `apcie()`: Asks how much of the change in a rate (arrests, imprisonment, victimisation per head) over the years belongs to age, to the period and to the generation (cohort) people were born into. From a table of counts by age group (rows) and period (columns), with equal widths, and the population at risk in each cell, the Poisson log-linear model
@@ -154,6 +169,11 @@ y <- matrix(rpois(20, pop * exp(-6 + eta)), 5,
 apcie(y, pop)
 ```
 
+```{r apcie-plot}
+res <- apcie(y, pop)
+plot(res)
+```
+
 ## Rates between stages of the justice pipeline
 
 `jpipe()`: Cases moving from one stage to the next (charges to convictions, admissions to releases) take time, so a rate of this period's outflow over this period's inflow mixes cohorts. `jpipe()` divides the numerator summed over a window by the denominator summed over the same window moved back by the lag between the stages.
@@ -161,6 +181,12 @@ apcie(y, pop)
 ```{r jpipe}
 jpipe(num = c(5, 7, 6, 9, 8, 10), den = c(20, 22, 19, 25, 24, 26),
       win = 3, lag = 1)
+```
+
+```{r jpipe-plot}
+res <- jpipe(num = c(5, 7, 6, 9, 8, 10), den = c(20, 22, 19, 25, 24, 26),
+             win = 3, lag = 1)
+plot(res)
 ```
 
 ## Group-based trajectory model for counts

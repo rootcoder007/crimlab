@@ -108,6 +108,11 @@ e <- data.frame(count = c(4, 30, 6, 41), sex = c("f", "m", "f", "m"),
 cntreg(clprep(e, mine))
 ```
 
+```{r clprep-plot}
+res <- cntreg(clprep(e, mine))
+plot(res)
+```
+
 ## Check a table against a preset before use
 
 `prechk()`: `prechk()` reads a table the way `clprep()` would under a preset and reports, in one error, every problem that would stop it or quietly change its result: the columns the preset reads (directly, in a filter or in a recipe) that the table lacks, the labels of a column outside the codes the publisher lists for it, and the labels a mapping recode with no `*` rule does not cover. A table that passes is returned unchanged, so the check can sit in front of the call: `clprep(prechk(d, p), p)`.

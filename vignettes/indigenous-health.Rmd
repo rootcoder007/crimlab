@@ -141,6 +141,20 @@ indgap(
 )
 ```
 
+```{r indgap-plot}
+res <- indgap(
+  own,
+  "group",
+  "pct",
+  "lower",
+  "upper",
+  ref = "Non-Indigenous Australians",
+  qual = "q",
+  pooled = "Aboriginal and Torres Strait Islander"
+)
+plot(res)
+```
+
 ## Compare rated scales (perceived mental health, life satisfaction) between groups
 
 `ordcmp()`: For a rated scale published as the percentage in each category with its confidence limits (perceived mental health from poor to excellent, life satisfaction from 0 to 10, agreement with a statement), the probability that a person in each group rates higher than a person in the reference group, with its confidence interval: a comparison of the whole distribution, not of one category cut from it.
@@ -158,6 +172,13 @@ ordcmp(own, "group", "rating", "pct", "lo", "hi",
        lvls = c("Poor", "Fair", "Good", "Excellent"), ref = "Everyone else")
 ```
 
+```{r ordcmp-plot}
+res <-
+  ordcmp(own, "group", "rating", "pct", "lo", "hi",
+         lvls = c("Poor", "Fair", "Good", "Excellent"), ref = "Everyone else")
+plot(res)
+```
+
 ## Age-standardise survey percentages
 
 `stdprev()`: The percentage (or proportion, or rate) a group would have with the age structure of a standard population, from the estimate and published limits in each age group: for comparing First Nations, Metis and Inuit prevalences (suicidal thoughts, mood and anxiety disorders, heavy drinking) with each other and with an older population, for example, when the age pattern of the outcome is steep.
@@ -172,6 +193,17 @@ stdprev(
   std = c(500, 300, 200),
   grp = rep(c("Nation A", "Everyone else"), each = 3)
 )
+```
+
+```{r stdprev-plot}
+res <- stdprev(
+  est = c(12, 9, 6, 8, 6, 4),
+  lower = c(9, 6, 3, 7, 5, 3),
+  upper = c(15, 12, 9, 9, 7, 5),
+  std = c(500, 300, 200),
+  grp = rep(c("Nation A", "Everyone else"), each = 3)
+)
+plot(res)
 ```
 
 ## Wellness beside distress: a strengths-first profile of published indicators
@@ -193,6 +225,13 @@ welprof(own, "community", "item", "pct", "lo", "hi",
         distress = c("Rarely hopeful", "Low satisfaction"))
 ```
 
+```{r welprof-plot}
+res <- welprof(own, "community", "item", "pct", "lo", "hi",
+               well = c("Hopeful", "Satisfied"),
+               distress = c("Rarely hopeful", "Low satisfaction"))
+plot(res)
+```
+
 ## Wellness and distress as two continua
 
 `dualcont()`: For each group, one wellness indicator against one distress indicator, each with its published interval, and the ratio of the two: the dual-continua view of mental health, in which wellness is not the absence of distress and is measured in its own right.
@@ -212,6 +251,10 @@ w <- welprof(own, "community", "item", "pct", "lo", "hi",
 dualcont(w, "Hopeful", "Rarely hopeful")
 ```
 
+```{r dualcont-plot}
+plot(w)
+```
+
 ## Holistic balance: how evenly wellness is held across the domains of a whole person
 
 `holbal()`: For each group, from published percentages of wellness in each holistic domain (physical, emotional, mental, spiritual, or the domains a community names), the overall level of wellness and how balanced it is across the domains, with Monte Carlo intervals from the published ones.
@@ -227,6 +270,11 @@ own <- data.frame(
   hi = c(67, 63, 75, 80, 61, 67, 72, 85)
 )
 holbal(own, "community", "domain", "pct", "lo", "hi", reps = 2000)
+```
+
+```{r holbal-plot}
+res <- holbal(own, "community", "domain", "pct", "lo", "hi", reps = 2000)
+plot(res)
 ```
 
 ## The four directions of the First Nations Mental Wellness Continuum, from published indicators
@@ -247,6 +295,12 @@ mhcont(own, "community", "item", "pct", "lo", "hi", hope = "Hopeful",
        meaning = "Life has meaning", purp = "Life has meaning")
 ```
 
+```{r mhcont-plot}
+res <- mhcont(own, "community", "item", "pct", "lo", "hi", hope = "Hopeful",
+              meaning = "Life has meaning", purp = "Life has meaning")
+plot(res)
+```
+
 ## Healing as a process: change in published indicators between two periods
 
 `healchg()`: For each group and indicator, the change between two survey periods with its confidence interval, wellness indicators first: change over time read as Indigenous scholars describe mental health, as a process of healing, not as a fixed deficit.
@@ -264,6 +318,13 @@ own <- data.frame(
 healchg(own, "community", "item", "survey", "pct", "lo", "hi",
         from = "2018", to = "2023", well = "Good mental health",
         distress = "Anxiety")
+```
+
+```{r healchg-plot}
+res <- healchg(own, "community", "item", "survey", "pct", "lo", "hi",
+               from = "2018", to = "2023", well = "Good mental health",
+               distress = "Anxiety")
+plot(res)
 ```
 
 ## Connection across places: does one indicator rise where another does?
@@ -298,6 +359,13 @@ commidx(own, "community", "item", "pct", "lo", "hi",
               "Food insecure" = -1))
 ```
 
+```{r commidx-plot}
+res <- commidx(own, "community", "item", "pct", "lo", "hi",
+               w = c("Speaks the language" = 2, "Has a doctor" = 1,
+                     "Food insecure" = -1))
+plot(res)
+```
+
 ## How deficit-framed is a set of results?
 
 `frmaud()`: Counts how many of the indicators in a report measure distress, deficit or disparity and how many measure wellness or strength, and names any group reported on deficits alone.
@@ -327,6 +395,14 @@ cwbscr(incpercap = c(18000, 31000), highsch20p = c(58, 81),
           uni25p = c(6, 19), notcro = c(71, 95),
           nomajrep = c(62, 90),
           partic = c(55, 68), empl = c(78, 92))
+```
+
+```{r cwbscr-plot}
+res <- cwbscr(incpercap = c(18000, 31000), highsch20p = c(58, 81),
+                 uni25p = c(6, 19), notcro = c(71, 95),
+                 nomajrep = c(62, 90),
+                 partic = c(55, 68), empl = c(78, 92))
+plot(res)
 ```
 
 ## Generations of residential school attendance in a family
@@ -478,6 +554,12 @@ p <- cnsprof(x)
 cnscwb(p, groups = c("Indigenous identity", "Non-Indigenous"), minpop = 0)
 ```
 
+```{r cnscwb-plot}
+res <-
+  cnscwb(p, groups = c("Indigenous identity", "Non-Indigenous"), minpop = 0)
+plot(res)
+```
+
 ## The indicators of Calls to Action 19 and 55, and the tables that measure them
 
 `trcind()`: Call to Action 19 asks the federal government to “establish measurable goals to identify and close the gaps in health outcomes between Aboriginal and non-Aboriginal communities, and to publish annual progress reports and assess long-term trends”, focusing on “infant mortality, maternal health, suicide, mental health, addictions, life expectancy, birth rates, infant and child health issues, chronic diseases, illness and injury incidence, and the availability of appropriate health services”. Call to Action 55 asks for annual data on, among others, “the number of Aboriginal children-including Metis and Inuit children-in care, compared with non-Aboriginal children” and “the educational and income attainments of Aboriginal peoples in Canada compared with non-Aboriginal people”. This lists, for each indicator, the Statistics Canada tables (or the census profile) that measure it, the measure, and which direction is better.
@@ -503,6 +585,11 @@ le <- data.frame(
   quality = "ok"
 )
 trchlthgap(health = NULL, lifeexp = le, infmort = NULL, suiide = NULL)
+```
+
+```{r trchlthgap-plot}
+res <- trchlthgap(health = NULL, lifeexp = le, infmort = NULL, suiide = NULL)
+plot(res)
 ```
 
 ## Calls to Action completed, year by year

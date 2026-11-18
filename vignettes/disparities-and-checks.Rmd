@@ -82,6 +82,11 @@ thrtst(rep(600, 9), c(72, 48, 60, 60, 72, 48, 48, 60, 72),
        off = rep(c("a", "b", "c"), 3), rank = "joint")$rank
 ```
 
+```{r thrtst-plot}
+res <- thrtst(d$stops, d$srch, d$hits, d$grp, area = d$area)
+plot(res)
+```
+
 ## Internal benchmarking of officers
 
 `ibench()`: Asks whether an officer stops more people of a group (or searches, arrests, uses force more often) than other officers do in the same circumstances. Officers work different places and hours, so each officer's stops are compared not with all other stops but with the other officers' stops weighted to look like this officer's: the propensity `e(x)` that a stop with circumstances `x` (place, hour, day, reason) is this officer's comes from a logistic regression on `x` (over all stops), and each other officer's stop gets the weight `e / (1 - e)`, the weights of the effect on the treated (Ridgeway and MacDonald 2009). The benchmark is the weighted share of the outcome among those stops, and the z statistic compares the officer's share with it, with the variance of a proportion for the officer and, for the benchmark, that of a proportion over its effective number of stops, (sum w)^2 / sum w^2. With many officers some will stand out by chance: `q` is the false discovery rate of Benjamini and Hochberg (1995) over the officers tested, and `flag` marks those with `q` below `fdr`.
@@ -94,6 +99,11 @@ night <- rbinom(n, 1, ifelse(off %in% c("o01", "o02"), 0.7, 0.3))
 y <- rbinom(n, 1, plogis(-1 + night + 0.8 * (off == "o03")))
 ibench(y, off, data.frame(night), minn = 50)
 ibench(y, off, data.frame(night), minn = 50, dr = TRUE)$tab
+```
+
+```{r ibench-plot}
+res <- ibench(y, off, data.frame(night), minn = 50)
+plot(res)
 ```
 
 ## Benchmark decomposition of a disparity
@@ -129,6 +139,11 @@ relchk(tab, 2.25, ref = "B", event = "yes")
 relchk(tab, 0.44, ref = "B", event = "yes")
 # a risk ratio reported as an odds ratio
 relchk(tab, 2.0, type = "or", digits = 1)
+```
+
+```{r relchk-plot}
+res <- relchk(tab, 2.0, type = "or", digits = 1)
+plot(res)
 ```
 
 ## Audit categorical inputs before an analysis

@@ -83,6 +83,12 @@ crsev(d$n, d$off, c(theft = 1, robbery = 50), unit = d$city,
       pop = d$pop, base = 1)
 ```
 
+```{r crsev-plot}
+res <- crsev(d$n, d$off, c(theft = 1, robbery = 50), unit = d$city,
+             pop = d$pop, base = 1)
+plot(res)
+```
+
 ## Composite index of standardised counts
 
 `zcomp()`: Ranks units (neighbourhoods, divisions) on several kinds of crime at once: each category's counts are standardised across the units (minus the mean, over the standard deviation) and the standardised values are summed with weights. A category whose counts do not vary contributes 0 to every unit. A unit with no row for a category counts 0 there, and its standardised value is computed with that 0.
@@ -94,6 +100,11 @@ d <- data.frame(hood = rep(c("a", "b", "c"), 2),
 zcomp(d$n, d$hood, d$kind)
 ```
 
+```{r zcomp-plot}
+res <- zcomp(d$n, d$hood, d$kind)
+plot(res)
+```
+
 ## Repeat victimisation: how often the same targets are victimised again
 
 `rptvic()`: Asks how much crime falls on targets (people, households, addresses, businesses) already victimised, and how soon a repeat follows. From one record per incident with the target's identifier (and its date):
@@ -103,6 +114,11 @@ set.seed(8)
 hh <- sample(1:400, 300, TRUE, prob = rgamma(400, 0.5))
 day <- sort(sample(1:365, 300, TRUE))
 rptvic(hh, t = day, pop = 1000, brk = c(0, 7, 30, 90, 365))
+```
+
+```{r rptvic-plot}
+res <- rptvic(hh, t = day, pop = 1000, brk = c(0, 7, 30, 90, 365))
+plot(res)
 ```
 
 ## Benford digit screens

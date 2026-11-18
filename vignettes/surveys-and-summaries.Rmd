@@ -45,6 +45,11 @@ svymx(d$victim, d$w, d$region, d$block, stat = "prop")
 svymx(d$victim, d$w, d$region, d$block, stat = "prop", by = d$region)$cmp
 ```
 
+```{r svymx-plot}
+res <- svymx(d$victim, d$w, d$region, d$block, stat = "prop")
+plot(res)
+```
+
 ## Rao-Scott chi-square test for a survey table
 
 `rscchi()`: The test of independence of two categorical variables in a two-way table from a stratified, clustered and weighted sample (a victimisation or justice survey, say), with Rao and Scott's corrections for the design, to go with the estimates of `svymx()` and the tables of `ctabx()`. Pearson's statistic on such data is too large: the design makes the cell proportions vary more than simple random sampling, and the corrections divide it by the design effects.

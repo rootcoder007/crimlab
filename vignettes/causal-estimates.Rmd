@@ -88,6 +88,11 @@ w <- cbatt(rnorm(200), d, x, est = "ebal", tgt = "att", reps = 0)$w
 smdbal(x, d, w = w)$tab
 ```
 
+```{r smdbal-plot}
+res <- smdbal(x, d)
+plot(res)
+```
+
 ## E-values: how strong an unmeasured confounder must be
 
 `evlx()`: The E-value of VanderWeele and Ding (2017): the smallest strength of association, on the risk-ratio scale, that an unmeasured confounder would need with both the treatment and the outcome to explain away an estimate; and that of the confidence limit nearer the null.

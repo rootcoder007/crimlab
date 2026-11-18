@@ -33,7 +33,7 @@ one. `?name` gives the arguments and the value in full.
 
 ## Plot methods for the package's results
 
-`plotm()`: Every result of the package that holds something to draw has a `plot()` method, on base graphics only. No argument beyond the object is needed; every method takes the same customisation: `main`, `col` or `pal`, and `...` passed to the base-graphics call, with the session look set by `plotopt()`. Each method returns, invisibly, the data it drew (a data frame, or a list of them), so the same picture can be drawn with any other tool. Series that differ in colour also differ in line type or point shape, and shaded cells carry their numbers, so no plot depends on colour alone.
+`plot.indgap()`: Every result of the package that holds something to draw has a `plot()` method, on base graphics only. No argument beyond the object is needed; every method takes the same customisation: `main`, `col` or `pal`, and `...` passed to the base-graphics call, with the session look set by `plotopt()`. Each method returns, invisibly, the data it drew (a data frame, or a list of them), so the same picture can be drawn with any other tool. Series that differ in colour also differ in line type or point shape, and shaded cells carry their numbers, so no plot depends on colour alone.
 
 ```{r plotm}
 d <- expand.grid(year = 2015:2024, town = LETTERS[1:12])

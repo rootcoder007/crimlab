@@ -23,12 +23,16 @@ import yaml
 repo = pathlib.Path(sys.argv[1])
 pages = json.load(open(sys.argv[2]))
 plot = {}
+call = {}
 slow = {}
 for line in open(sys.argv[3]).read().split("\n"):
     if line:
-        f, ok, var, sec = line.split("\t")[:4]
+        c = line.split("\t")
+        f, ok, var, sec = c[:4]
         if ok == "ok" and var:
             plot[f] = var
+        elif ok == "ok" and len(c) > 5 and c[5]:
+            call[f] = c[5].replace("\\n", "\n")
         slow[f] = float(sec)
 
 # guide file, title, one sentence, the families of _pkgdown.yml it holds
@@ -178,6 +182,25 @@ out = repo / "vignettes"
 written = []
 
 
+def saved(code):
+    """The call of an example that only printed its result, saved as res.
+
+    Arguments aligned under the opening bracket move right with it; a call
+    whose arguments hang two spaces in stays as it is. Where that makes a
+    line longer than 80 characters the call goes on the line below the
+    arrow, and None is returned if it does not fit there either."""
+    ln = code.split("\n")
+    hang = any(re.match(r" {3,}\S", x) for x in ln[1:])
+    for first, pad in (("res <- " + ln[0], 7), ("res <-\n  " + ln[0], 2)):
+        move = hang or pad == 2
+        out = [first] + [(" " * pad + x if move and x.strip() else x)
+                         for x in ln[1:]]
+        text = "\n".join(out)
+        if max(len(x) for x in text.split("\n")) <= 80:
+            return text
+    return None
+
+
 def section(p):
     names = [a for a in p["aliases"] if a in exports] or p["aliases"][:1]
     calls = ", ".join("`%s()`" % n for n in names[:4]) + (" and others" if len(names) > 4 else "")
@@ -189,6 +212,9 @@ def section(p):
     v = plot.get(p["file"])
     if v:
         s += ["```{r %s-plot}" % lab, "plot(%s)" % v, "```", ""]
+    elif p["file"] in call and saved(call[p["file"]]):
+        s += ["```{r %s-plot}" % lab, saved(call[p["file"]]), "plot(res)",
+              "```", ""]
     return "\n".join(s)
 
 

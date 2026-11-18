@@ -245,6 +245,11 @@ d$rate <- 20 + i + (d$year - 2010) * (0.2 + i / 20) +
 sdidx(d$rate, d$town, d$year, d$first)
 ```
 
+```{r sdidx-plot}
+res <- sdidx(d$rate, d$town, d$year, d$first)
+plot(res)
+```
+
 ## Inference for a difference in differences with few clusters
 
 `wcbx()`: Tests of the two-way fixed-effects effect of `didfe()` that stay accurate when a policy was assigned to a handful of clusters (districts, states), where the cluster-robust t test over-rejects: the restricted wild cluster bootstrap, and the permutation of the adoption dates across clusters; and the power of a design simulated on real untreated data.

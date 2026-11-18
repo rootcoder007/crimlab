@@ -80,6 +80,11 @@ trndrr(c(20, 25, 30, 33), expo = c(1000, 1500, 2500, 2600))$rr
 trndrr(c(5, 9, 7, 4, 6, 10, 8, 5), seas = rep(1:4, 2))$seas
 ```
 
+```{r trndrr-plot}
+res <- trndrr(y, 2017:2023)
+plot(res)
+```
+
 ## Change point: a step in a series and Pettitt's test
 
 `stpcp()`: Asks whether a series moved to a new level, and where. The step scan takes every split after period `k` with at least `minseg` periods on each side, and the largest between-segment sum of squares T_k = k (n - k) / n (\bar y_a - \bar y_b)^2; its p-value comes from the same maximum over reorderings of the series (every ordering when n! is at most `nperm`, giving an exact p-value; otherwise `nperm` random ones, (1 + #{T* >= T}) / (1 + nperm)), so it is a test of a step anywhere, not of the best split alone. Pettitt's rank test takes the split with the largest |U_t|, U_t = sum_{i <= t < j} sign(y_j - y_i), with its approximate p-value 2 \exp(-6 K^2 / (n^3 + n^2)). Both assume exchangeable periods under no change: a steady trend can read as a step.
@@ -111,6 +116,11 @@ xcser(a, b)
 xcser(a, b, dif = TRUE)$cor
 ```
 
+```{r xcser-plot}
+res <- xcser(a, b)
+plot(res)
+```
+
 ## Kaplan-Meier survival and recurrence
 
 `kmrec()`: Estimates the share still without an event at each time since the start (release, placement, a case opening, the last incident at a place) by Kaplan-Meier, by group, with Greenwood's standard error and the log-scale interval of `survival::survfit()` (its default), each group's median (where the curve sits at exactly 1/2, halfway to its next fall, as `survfit()` does), and the log-rank test between groups (`survival::survdiff()`). Each product step is a factor in [0, 1], so the curve starts at most 1 and never rises (`proof("kmrec")`).
@@ -121,6 +131,12 @@ kmrec(c(3, 8, 8, 12, 20, 24), event = c(1, 1, 0, 1, 0, 1),
 # repeat incidents at three places, watched to day 100
 kmrec(c(2, 9, 30, 5, 70, 11, 12, 13),
       unit = rep(c("p", "q", "r"), c(3, 2, 3)), end = 100)$med
+```
+
+```{r kmrec-plot}
+res <- kmrec(c(3, 8, 8, 12, 20, 24), event = c(1, 1, 0, 1, 0, 1),
+             grp = c("a", "a", "a", "b", "b", "b"))
+plot(res)
 ```
 
 ## Split-population (cure) model of recidivism
@@ -150,6 +166,11 @@ plot(r)
 pref <- rbind(c(1, 2, 3), c(2, 1, 3), c(3, 2, 1), c(3, 1, 2))
 tt <- matrix(c(2, 5, 8, 6, 3, 7, 9, 6, 2, 7, 8, 3), 3)
 hypq(c(0.4, 0.7, 0.3, 0.6), pref, mu = 1.5, tt = tt)
+```
+
+```{r hypq-plot}
+res <- hypq(c(0.4, 0.7, 0.3, 0.6), pref, mu = 1.5, tt = tt)
+plot(res)
 ```
 
 ## Square-root law of response distance

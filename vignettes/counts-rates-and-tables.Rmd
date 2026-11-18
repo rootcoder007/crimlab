@@ -48,6 +48,11 @@ cntreg(d$n, d$female, adj = d["year"], clus = d$inst)
 cntreg(c(5, 12), c("a", "b"), expo = c(1000, 1500))
 ```
 
+```{r cntreg-plot}
+res <- cntreg(c(5, 12), c("a", "b"), expo = c(1000, 1500))
+plot(res)
+```
+
 ## Rates and proportions by group: ratios and differences
 
 `grprr()`: The rate (events over exposure) or the proportion (events over trials) of each group, and its ratio to and difference from a reference group, with approximate and exact intervals. Rows that share a group are pooled: give one row per group, or one per case (0/1 outcomes with `n = 1`, the default for proportions), or anything between.
@@ -59,6 +64,12 @@ grprr(c(white = 120, black = 95, other = 30),
 # proportions from one row per case
 grprr(c(1, 0, 0, 1, 1, 0, 1, 1), grp = c(1, 1, 1, 1, 2, 2, 2, 2),
       type = "prop")
+```
+
+```{r grprr-plot}
+res <- grprr(c(1, 0, 0, 1, 1, 0, 1, 1), grp = c(1, 1, 1, 1, 2, 2, 2, 2),
+             type = "prop")
+plot(res)
 ```
 
 ## Directly standardised rates
@@ -73,6 +84,11 @@ d <- data.frame(age = rep(c("18-29", "30-49", "50+"), 2),
 dastd(d$x, d$n, d$age, d$grp, std = c(30, 45, 25), per = 1e4)
 ```
 
+```{r dastd-plot}
+res <- dastd(d$x, d$n, d$age, d$grp, std = c(30, 45, 25), per = 1e4)
+plot(res)
+```
+
 ## Indirect standardisation: standardised ratios with shrinkage
 
 `sirex()`: The events observed in each group (an area, a police service) against those expected from stratum rates, the standardised incidence ratio (SIR) with its exact Poisson interval, funnel-plot limits for a ratio of 1 at its expected count, and the ratio shrunk towards the overall one by the empirical Bayes estimate of Marshall (a gamma prior fitted by moments), so that groups with little exposure are not ranked on noise.
@@ -83,6 +99,11 @@ d <- data.frame(area = rep(c("N", "S", "E"), each = 2),
                 x = c(12, 3, 30, 9, 4, 1),
                 n = c(4000, 2000, 8000, 3000, 1500, 900))
 sirex(d$x, d$n, d$age, d$area)
+```
+
+```{r sirex-plot}
+res <- sirex(d$x, d$n, d$age, d$area)
+plot(res)
 ```
 
 ## Cross-tabulation with tests and measures of association
@@ -101,6 +122,11 @@ ctabx(c("N", "N", "E", "W", "E"), c("N", "E", "E", "W", "E"))
 d <- data.frame(race = c("A", "A", "B", "B"), sex = c("F", "M", "F", "M"),
                 n = c(12, 40, 9, 51))
 ctabx(d$race, d$sex, w = d$n, exact = TRUE)
+```
+
+```{r ctabx-plot}
+res <- ctabx(d$race, d$sex, w = d$n, exact = TRUE)
+plot(res)
 ```
 
 # Concentration
@@ -157,6 +183,11 @@ dkfig(va = 900, ra = 300, rb = 450, lam = 0.5)
 dkfig(k = c(1, 1, 2, 1, 3))
 ```
 
+```{r dkfig-plot}
+res <- dkfig(v = c(0.12, 0.08), r = 0.03, amax = 0.01, bmax = 0.2, thr = 0.15)
+plot(res)
+```
+
 # Published tables
 
 ## Banded categories: bounds, values and what the open band costs
@@ -184,6 +215,11 @@ pbbnd(c("1,240", "35", "<5", "x"), rnd = 5, suplim = 10)
 pbbnd(c(120, 15), rnd = 5, prev = c(100, 20), pop = 5e4)
 ```
 
+```{r pbbnd-plot}
+res <- pbbnd(c(120, 15), rnd = 5, prev = c(100, 20), pop = 5e4)
+plot(res)
+```
+
 ## Year-over-year change in a published series
 
 `yoypx()`: The change of each period against the period `lag` before it, within groups (an agency, a region): the difference, the percent change (or, for percentages, the change in points), and for counts the exact interval of the percent change, from the conditional binomial of the count now among both, the exact two-sided p-value of no change (as `stats::binom.test()`), and the p-values adjusted for the number of comparisons (as `stats::p.adjust()`). With `rnd`, the counts are taken as rounded, and the envelope of the change they allow is added, with a percent interval that covers both.
@@ -193,6 +229,11 @@ d <- data.frame(year = rep(2019:2023, 2),
                 svc = rep(c("A", "B"), each = 5),
                 n = c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33))
 yoypx(d$n, d$year, d$svc, rnd = 5)
+```
+
+```{r yoypx-plot}
+res <- yoypx(d$n, d$year, d$svc, rnd = 5)
+plot(res)
 ```
 
 ## One call on a published table: check, change, rates and trend
