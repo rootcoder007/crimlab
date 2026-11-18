@@ -379,7 +379,9 @@ bool rdate(const std::string &s, char sep, double &d) {
   while (*p == ' ') ++p;
   char *e = nullptr;
   const long y = std::strtol(p, &e, 10);
-  if (e == p || *e != sep) return false;
+  // as.Date() reads a year of 0 to 9999; a longer one is not a date (and
+  // would overflow the day count below)
+  if (e == p || *e != sep || y < 0 || y > 9999) return false;
   p = e + 1;
   const long m = std::strtol(p, &e, 10);
   if (e == p || *e != sep || m < 1 || m > 12) return false;
