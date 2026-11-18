@@ -46,7 +46,7 @@ jobs:
     # project rootcoder007/crimlab must exist)
     needs: versions
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: release
     permissions:
       contents: read
@@ -83,7 +83,7 @@ jobs:
     # Secrets CLAB_OBS_USER and CLAB_OBS_PASS.
     needs: versions
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: release
     permissions:
       contents: read
@@ -135,7 +135,7 @@ jobs:
     # publish-update of crimlab
     needs: versions
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: release
     permissions:
       contents: read
@@ -164,7 +164,7 @@ jobs:
     name: jnat ${{ matrix.pl }}
     needs: versions
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     permissions:
       contents: read
     strategy:
@@ -225,7 +225,7 @@ jobs:
     # key, armoured).
     needs: jnat
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: release
     permissions:
       contents: read
@@ -328,7 +328,7 @@ jobs:
     # versions need none.
     needs: versions
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: release
     permissions:
       contents: read

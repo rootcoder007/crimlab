@@ -11,67 +11,9 @@
 #   sh dev/port.sh in             (inside a container) build and run
 # ENGINE: podman (default) or docker. Prints one PORT line per run.
 set -u
-src="src/core.cpp src/t_disp.cpp src/t_frns.cpp src/t_pol.cpp src/t_corr.cpp
-src/cgeo.cpp
-src/geo.cpp src/t_geo.cpp
-src/cgr.cpp src/t_cgr.cpp
-src/nnd.cpp src/t_nnd.cpp
-src/rpk.cpp src/t_rpk.cpp
-src/jtc.cpp src/t_jtc.cpp
-src/hsp.cpp src/t_hsp.cpp
-src/stm.cpp src/t_stm.cpp
-src/fair.cpp src/t_fair.cpp
-src/cal.cpp src/t_cal.cpp
-src/fsim.cpp src/t_fsim.cpp
-src/oax.cpp src/t_oax.cpp
-src/tlv.cpp src/t_tlv.cpp
-src/aor.cpp src/t_aor.cpp
-src/bnf.cpp src/t_bnf.cpp
-src/tfr.cpp src/t_tfr.cpp
-src/sk.cpp src/t_sk.cpp
-src/rpt.cpp src/t_rpt.cpp
-src/sens.cpp src/t_sens.cpp
-src/trj.cpp src/t_trj.cpp
-src/mvt.cpp src/t_mvt.cpp
-src/lws.cpp src/t_lws.cpp
-src/chm.cpp src/t_chm.cpp
-src/gst.cpp src/t_gst.cpp
-src/spt.cpp src/t_spt.cpp
-src/t_orc.cpp src/kutil.cpp
-src/net.cpp src/t_net.cpp
-src/geo2.cpp src/t_geo2.cpp
-src/swt.cpp src/lsa.cpp src/t_swt.cpp
-src/svg.cpp src/t_svg.cpp
-src/lab.cpp src/t_lab.cpp
-src/cnt.cpp src/t_cnt.cpp
-src/rat.cpp src/t_rat.cpp
-src/tab.cpp src/t_tab.cpp
-src/learn.cpp src/t_learn.cpp
-src/rf.cpp src/t_rf.cpp
-src/dml.cpp src/t_dml.cpp
-src/sp2.cpp src/t_sp2.cpp
-src/knx.cpp src/t_knx.cpp
-src/hot.cpp src/t_hot.cpp
-src/kscn.cpp src/t_kscn.cpp
-src/sreg.cpp src/t_sreg.cpp
-src/ppx.cpp src/t_ppx.cpp
-src/geou.cpp src/t_geou.cpp
-src/buf.cpp src/t_buf.cpp
-src/qn.cpp src/hwk.cpp src/t_hwk.cpp
-src/trn.cpp src/t_trn.cpp
-src/kmr.cpp src/t_kmr.cpp
-src/hyq.cpp src/t_hyq.cpp
-src/sdb.cpp src/t_sdb.cpp
-src/mhk.cpp src/t_mhk.cpp
-src/sev.cpp src/t_sev.cpp
-src/cnc.cpp src/t_cnc.cpp
-src/dkf.cpp src/t_dkf.cpp
-src/pub.cpp src/t_pub.cpp
-src/jdg.cpp src/t_jdg.cpp
-src/lcr.cpp src/t_lcr.cpp
-src/mnd.cpp src/t_mnd.cpp
-src/flw.cpp src/t_flw.cpp
-src/selftest.cpp"
+# every source that does not include R: the rule of cli/Makefile, so a new
+# kernel is here the day it is written
+src=$(grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' src/*.cpp | tr '\n' ' ')
 base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$
 mkdir -p "$t"

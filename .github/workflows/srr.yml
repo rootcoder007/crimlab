@@ -21,7 +21,7 @@ concurrency:
 jobs:
   srr:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       PKG_USE_BIOCONDUCTOR: "false"

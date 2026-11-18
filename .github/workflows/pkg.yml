@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ['src/**', 'cli/**', 'bindings/**', 'packaging/**', '.copr/**', 'DESCRIPTION',
+    paths: ['src/**', 'cli/**', 'bindings/**', 'packaging/**', '.copr/**', 'DESCRIPTION', 'Dockerfile',
             '.github/workflows/pkg.yml']
   pull_request:
     branches: [main]
-    paths: ['src/**', 'cli/**', 'bindings/**', 'packaging/**', '.copr/**', 'DESCRIPTION',
+    paths: ['src/**', 'cli/**', 'bindings/**', 'packaging/**', '.copr/**', 'DESCRIPTION', 'Dockerfile',
             '.github/workflows/pkg.yml']
 
 permissions:
@@ -25,7 +25,7 @@ jobs:
   cli:
     name: cli (${{ matrix.os }}, ${{ matrix.cxx }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -59,7 +59,7 @@ jobs:
 
   msvc:
     runs-on: windows-2025
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -83,7 +83,7 @@ jobs:
 
   rpm:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     # fedora:latest
     container: docker.io/library/fedora@sha256:43b29f65a41eb9c35e1cd5323e3bdf3b655c2357a9f4f1ff2f9c2798e5045d80
     steps:
@@ -109,7 +109,7 @@ jobs:
 
   deb:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -140,7 +140,7 @@ jobs:
   rust:
     name: rust (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -167,7 +167,7 @@ jobs:
   java:
     name: java (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -186,7 +186,7 @@ jobs:
   go:
     name: go (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -215,7 +215,7 @@ jobs:
 
   npm:
     runs-on: ubuntu-24.04
-    timeout-minutes: 60
+    timeout-minutes: 120
     defaults:
       run:
         working-directory: bindings/npm
@@ -245,3 +245,83 @@ jobs:
           npm install --no-audit --no-fund "$GITHUB_WORKSPACE"/bindings/npm/crimlab-*.tgz
           npx --offline crimlab orrisk --or 2 --rate 0.1 --share 0.3
           node --input-type=module -e 'import c from "crimlab"; if (c.selftest().nfail !== 0) process.exit(1)'
+
+  docker:
+    # the image of the Dockerfile, as release.yml builds it on a tag
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: |
+          docker build -t crimlab .
+          docker run --rm crimlab crimlab orrisk --or 2 --rate 0.1 --share 0.3 | grep 0.1475205
+
+  brew:
+    # the Homebrew formula, filled as tap.yml fills it, from a source
+    # tarball of this commit: install from source, then brew test
+    name: brew (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+      HOMEBREW_NO_INSTALL_CLEANUP: "1"
+      HOMEBREW_NO_ANALYTICS: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: |
+          if [ -x /home/linuxbrew/.linuxbrew/bin/brew ]; then eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"; fi
+          v=$(sed -n 's/^Version: *//p' DESCRIPTION)
+          t="$RUNNER_TEMP/crimlab-$v.tar.gz"
+          git archive --format=tar --prefix="crimlab-$v/" HEAD | gzip -n -9 > "$t"
+          if command -v sha256sum > /dev/null; then s=$(sha256sum "$t" | cut -d' ' -f1); else s=$(shasum -a 256 "$t" | cut -d' ' -f1); fi
+          brew tap-new --no-git local/crimlab
+          f="$(brew --repository local/crimlab)/Formula/crimlab.rb"
+          sed -e "s|https://github.com/rootcoder007/crimlab/releases/download/v0\.0\.0/crimlab-0\.0\.0\.tar\.gz|file://$t|" \
+              -e "s|sha256 \"0\{64\}\"|sha256 \"$s\"|" packaging/brew/crimlab.rb > "$f"
+          grep -q "file://$t" "$f" && grep -q "$s" "$f"
+          brew install --build-from-source local/crimlab/crimlab
+          brew test local/crimlab/crimlab
+
+  freebsd:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: vmactions/freebsd-vm@811efaaac0668df8bfb8308c3ec997b5ab50037b # v1.6.0
+        with:
+          prepare: pkg install -y gmake
+          run: gmake -C cli -j4 check CXX=c++ WERROR=
+
+  openbsd:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: vmactions/openbsd-vm@f1ca8bc8ecc5b6ef7218e5b914836e067e1546d3 # v1.4.9
+        with:
+          prepare: pkg_add gmake
+          run: gmake -C cli -j4 check CXX=c++ WERROR=
+
+  netbsd:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: vmactions/netbsd-vm@5957cf330aef2e6ddc63c604364c99ce2e02b91d # v1.5.3
+        with:
+          prepare: /usr/sbin/pkg_add gmake
+          run: gmake -C cli -j4 check CXX=c++ WERROR=

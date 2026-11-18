@@ -945,7 +945,7 @@ V f_polex(const Cx &c) {
   std::vector<double> refm, rf, pp, lp, lam, cr, ar;
   for (int i = 1; i <= nd; ++i) {
     for (int t = 1; t <= nm; ++t) {
-      char b[8];
+      char b[16];
       std::snprintf(b, sizeof b, "D%02d", i);
       dist.push_back(b);
       reg.push_back("R" + std::to_string((i - 1) % 4 + 1));

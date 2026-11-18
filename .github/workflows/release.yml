@@ -23,6 +23,9 @@ name: release
 on:
   push:
     tags: ['v[0-9]*.[0-9]*.[0-9]*']
+    branches: [main]
+    paths: ['src/**', 'cli/**', 'install.sh', 'install.ps1', 'packaging/scoop/**', 'DESCRIPTION',
+            '.github/workflows/release.yml']
   workflow_dispatch:
 
 permissions:
@@ -68,7 +71,7 @@ jobs:
     name: build ${{ matrix.target }}
     needs: meta
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -105,7 +108,7 @@ jobs:
     # separate runtime installed
     needs: meta
     runs-on: windows-2025
-    timeout-minutes: 60
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -176,8 +179,9 @@ jobs:
     timeout-minutes: 10
     # the signing key is a secret of the environment release, as every
     # other secret of a release is: without this line the step that signs
-    # SHA256SUMS could not read it and would leave the sums unsigned
-    environment: release
+    # SHA256SUMS could not read it and would leave the sums unsigned. A dry
+    # run (no tag) signs nothing and waits for no approval
+    environment: ${{ github.ref_type == 'tag' && 'release' || '' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -270,6 +274,34 @@ jobs:
           $o = & "$HOME\.local\bin\crimlab.exe" orrisk --or 2 --rate 0.1 --share 0.3
           $o
           if (-not ($o -match '0\.1475205')) { throw 'wrong result' }
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        if: runner.os == 'Windows'
+        with:
+          persist-credentials: false
+          path: src
+          sparse-checkout: packaging/scoop
+      - name: the Scoop manifest, filled as tap.yml fills it, installed by Scoop
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          V: ${{ needs.meta.outputs.version }}
+        run: |
+          $v = $env:V
+          Start-Process python -ArgumentList '-m', 'http.server', '8472', '--bind', '127.0.0.1' -WorkingDirectory r -WindowStyle Hidden
+          Start-Sleep -Seconds 3
+          $h = (Get-FileHash "r/download/v$v/crimlab-$v-windows-x86_64.zip" -Algorithm SHA256).Hash.ToLower()
+          $m = (Get-Content src/packaging/scoop/crimlab.json -Raw).Replace('0.0.0', $v)
+          $m = $m.Replace('"' + ('0' * 64) + '"', '"' + $h + '"')
+          $m = $m.Replace("https://github.com/rootcoder007/crimlab/releases/download/v$v/", "http://127.0.0.1:8472/download/v$v/")
+          if (-not $m.Contains($h)) { throw 'the hash was not set' }
+          Set-Content -Path crimlab.json -Value $m
+          Invoke-RestMethod get.scoop.sh -OutFile scoop.ps1
+          ./scoop.ps1 -RunAsAdmin
+          $env:PATH = "$HOME\scoop\shims;$env:PATH"
+          scoop install ./crimlab.json
+          $o = & "$HOME\scoop\shims\crimlab.exe" orrisk --or 2 --rate 0.1 --share 0.3
+          $o
+          if (-not ($o -match '0\.1475205')) { throw 'wrong result' }
 
   release:
     # a DRAFT release; the maintainer reads it and publishes it
@@ -303,7 +335,7 @@ jobs:
     name: image ${{ matrix.arch }}
     needs: [meta, install]
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 120
     environment: release
     permissions:
       contents: read
