@@ -160,104 +160,14 @@ the provisions considered.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 16             specific_injuries   sent</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 17          relevant_legislation  lines</span>
 <span class="r-in"><span><span class="co"># a field of one's own: the date a complaint came in</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">s</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"date_received"</span>, rule <span class="op">=</span> <span class="st">"date"</span>,</span></span>
-<span class="r-in"><span>                    cue <span class="op">=</span> <span class="st">"received the complaint"</span>, alt <span class="op">=</span> <span class="st">""</span>, sect <span class="op">=</span> <span class="st">""</span>,</span></span>
-<span class="r-in"><span>                    desc <span class="op">=</span> <span class="st">"the date the complaint came in"</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                             name   rule</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                    case_number  after</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                 police_service   name</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3           date_of_incident_iso   date</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4          date_siu_notified_iso   date</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5  date_of_director_decision_iso   date</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6              siu_investigators    num</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7    siu_forensics_investigators    num</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8    number_of_witness_officials    tag</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9   number_of_civilian_witnesses    tag</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10   number_of_subject_officials    tag</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                  age_affected before</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12           sex_gender_affected   word</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13           charges_recommended   flag</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                directors_name   prev</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15              location_of_call  after</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16             specific_injuries   sent</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17          relevant_legislation  lines</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18                 date_received   date</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                                           cue</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                                      Case #</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                     Police Service|Provincial Police|Police</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                                            </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                       notified the SIU|contacted the SIU|SIU was notified|SIU was contacted</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                                       Date:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                        Number of SIU Investigators assigned</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                               Number of SIU Forensic Investigators assigned</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                                                          WO</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                                          CW</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                                         SO</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                          year-old|year old</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                                          year-old|year old</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13                             charged with|charges have been laid|criminal charges were laid</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                                  Director|Acting Director|Interim Director</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15   in the City of|in the Town of|in the Township of|in the Municipality of|in the Region of</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16 fracture|fractures|fractured|broken|laceration|lacerations|gunshot|stab|stabbed|burn|burns</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17                                                                                    Section</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18                                                                     received the complaint</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                       alt</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                        </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13 no reasonable grounds|No charges|no charges|not be laid|decline to lay</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18                                                                       </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                                 sect</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                                                 Incident Narrative</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9                                                                   </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10                                                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                                                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12                                                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13 Analysis and Director's Decision|Analysis and Director’s Decision</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                                                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15                                                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16       Nature of Injuries / Treatment|Nature of Injuries/Treatment</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17                                              Relevant Legislation</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18                                                                  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                                                    desc</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1                         the case number of the report</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2  the police service whose officials were investigated</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3                              the date of the incident</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4                        the date the unit was notified</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5                   the date of the director's decision</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6                  the number of investigators assigned</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7         the number of forensic investigators assigned</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8          the number of witness officials (WO #1, ...)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9         the number of civilian witnesses (CW #1, ...)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 10         the number of subject officials (SO #1, ...)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 11                       the age of the affected person</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 12             the sex or gender of the affected person</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 13       whether the director found grounds for charges</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 14                 the name of the director who decided</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 15         the municipality where the incident happened</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 16                 the injuries the affected person had</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 17               the provisions the director considered</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 18                       the date the complaint came in</span>
+<span class="r-in"><span><span class="va">s2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="va">s</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>name <span class="op">=</span> <span class="st">"date_received"</span>, rule <span class="op">=</span> <span class="st">"date"</span>,</span></span>
+<span class="r-in"><span>                          cue <span class="op">=</span> <span class="st">"received the complaint"</span>, alt <span class="op">=</span> <span class="st">""</span>,</span></span>
+<span class="r-in"><span>                          sect <span class="op">=</span> <span class="st">""</span>,</span></span>
+<span class="r-in"><span>                          desc <span class="op">=</span> <span class="st">"the date the complaint came in"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">tail</a></span><span class="op">(</span><span class="va">s2</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"name"</span>, <span class="st">"rule"</span>, <span class="st">"cue"</span><span class="op">)</span><span class="op">]</span>, <span class="fl">2</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>                    name  rule                    cue</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17 relevant_legislation lines                Section</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18        date_received  date received the complaint</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
