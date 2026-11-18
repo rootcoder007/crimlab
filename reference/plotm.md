@@ -15,6 +15,39 @@ alone.
 ## Usage
 
 ``` r
+# S3 method for class 'indgap'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'dualcont'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'commidx'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'stdprev'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'ordcmp'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'welprof'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'holbal'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'healchg'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'trchlthgap'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'cnscwb'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
+# S3 method for class 'cwbscr'
+plot(x, ..., main = NULL, col = NULL, pal = NULL)
+
 # S3 method for class 'cntreg'
 plot(x, ..., main = NULL, col = NULL, pal = NULL)
 
@@ -275,6 +308,15 @@ What each method draws:
 - Points: `bufas` (distances to sites), `cmpsc` (segment positions),
   `ebshr` (raw against shrunk values), `ibench` (rate against benchmark)
   and `kscan` (clusters as circles).
+
+- Indigenous health and wellbeing, each group's level with its interval
+  and a star on an estimate the source flags: `indgap` and `trchlthgap`
+  (ratio to the reference group, log scale), `dualcont` (wellness beside
+  distress), `welprof` and `mhcont` (every indicator, by group),
+  `healchg` (change between two periods), `holbal` (level and balance of
+  the domains), `commidx`, `stdprev`, `ordcmp`, and `cnscwb` and
+  `cwbscr` (the four components of a Community Well-Being score and the
+  score).
 
 ## Examples
 

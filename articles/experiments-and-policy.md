@@ -472,6 +472,14 @@ sdidx(d$rate, d$town, d$year, d$first)
 #>  -4.019258 0.2406598 -4.490942 -3.547573
 ```
 
+``` r
+
+res <- sdidx(d$rate, d$town, d$year, d$first)
+plot(res)
+```
+
+![](experiments-and-policy_files/figure-html/sdidx-plot-1.png)
+
 ### Inference for a difference in differences with few clusters
 
 [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md):

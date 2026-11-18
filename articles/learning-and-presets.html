@@ -267,6 +267,10 @@ against them.</p>
 <span><span class="co">#&gt;  pois    1 0.1408451 0.07265014 0.2730529 6.508047e-09 FALSE</span></span>
 <span><span class="co">#&gt;    nb    1 0.1408451 0.07265012 0.2730530 6.508134e-09 FALSE</span></span>
 <span><span class="co">#&gt; negative binomial theta 19720034; AIC Poisson 23.74163, negative binomial 25.74164</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cntreg.html">cntreg</a></span><span class="op">(</span><span class="fu"><a href="../reference/clprep.html">clprep</a></span><span class="op">(</span><span class="va">e</span>, <span class="va">mine</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="learning-and-presets_files/figure-html/clprep-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="check-a-table-against-a-preset-before-use">Check a table against a preset before use<a class="anchor" aria-label="anchor" href="#check-a-table-against-a-preset-before-use"></a>
@@ -280,7 +284,7 @@ lists for it, and the labels a mapping recode with no <code>*</code>
 rule does not cover. A table that passes is returned unchanged, so the
 check can sit in front of the call:
 <code>clprep(prechk(d, p), p)</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># a table laid out as the published OTIS b03 table, simulated</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  EndFiscalYear <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">2021</span><span class="op">:</span><span class="fl">2022</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
@@ -318,7 +322,7 @@ examples, tests and teaching where the real table cannot be shipped or
 fetched. Each column is drawn on its own, uniformly from its values:
 nothing in the result is a record of anyone, and no relation between
 columns is kept.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fu"><a href="../reference/synfix.html">synfix</a></span><span class="op">(</span><span class="st">"otis-b02"</span>, n <span class="op">=</span> <span class="fl">20</span>, seed <span class="op">=</span> <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   EndFiscalYear UniqueIndividual_ID Gender Region_MostRecentPlacement Age_Category</span></span>
 <span><span class="co">#&gt; 1          2022           syn-00002 Female                    Toronto          50+</span></span>
@@ -370,7 +374,7 @@ chunks, results from several machines). Start one with
 <code><a href="../reference/onlsmry.html">onlsmry()</a></code>, feed it blocks with <code><a href="../reference/onlsmry.html">smryupd()</a></code>,
 combine two with <code><a href="../reference/onlsmry.html">smrymrg()</a></code> and read the result with
 <code><a href="../reference/onlsmry.html">smrystat()</a></code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">1000</span><span class="op">)</span> <span class="co"># simulated</span></span>
 <span><span class="co"># accumulate in blocks of 100</span></span>
@@ -403,7 +407,7 @@ retained, in a single pass and using memory proportional to
 returns the retained positions, so the same sample can be applied to a
 file read line by line; <code><a href="../reference/rsvidx.html">rsvsmp()</a></code> applies it to a vector in
 memory.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rsvidx.html">rsvidx</a></span><span class="op">(</span><span class="fl">1000</span>, <span class="fl">5</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  33  67 304 630 638</span></span>
 <span><span class="fu"><a href="../reference/rsvidx.html">rsvsmp</a></span><span class="op">(</span><span class="va">letters</span>, <span class="fl">4</span>, seed <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
@@ -429,7 +433,7 @@ a column holds using a fixed register per bucket, regardless of the
 column’s length or cardinality. <code><a href="../reference/dstnskch.html">dstnskch()</a></code> builds or
 extends the registers, <code><a href="../reference/dstnskch.html">dstncnt()</a></code> turns them into an
 estimate, and <code><a href="../reference/dstnskch.html">skchmrg()</a></code> combines two sketches.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">5000</span>, <span class="fl">200000</span>, replace <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span> <span class="co"># simulated</span></span>
 <span><span class="fu"><a href="../reference/dstnskch.html">dstncnt</a></span><span class="op">(</span><span class="fu"><a href="../reference/dstnskch.html">dstnskch</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">)</span></span>

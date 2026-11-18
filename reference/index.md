@@ -304,7 +304,18 @@ A plot() method for every result with something to draw, the palettes
 and session look they share, and general plots of distributions,
 concentration and series over time.
 
-- [`plot(`*`<cntreg>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+- [`plot(`*`<indgap>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<dualcont>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<commidx>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<stdprev>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<ordcmp>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<welprof>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<holbal>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<healchg>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<trchlthgap>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<cnscwb>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<cwbscr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
+  [`plot(`*`<cntreg>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<dastd>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<grprr>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)
   [`plot(`*`<sirex>`*`)`](https://rootcoder007.github.io/crimlab/reference/plotm.md)

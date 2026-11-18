@@ -122,6 +122,14 @@ smdbal(x, d, w = w)$tab
 #> 2 0.6845163
 ```
 
+``` r
+
+res <- smdbal(x, d)
+plot(res)
+```
+
+![](causal-estimates_files/figure-html/smdbal-plot-1.png)
+
 ### E-values: how strong an unmeasured confounder must be
 
 [`evlx()`](https://rootcoder007.github.io/crimlab/reference/evlx.md):

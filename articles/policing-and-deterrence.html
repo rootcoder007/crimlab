@@ -216,6 +216,11 @@ as 100.</p>
 <span><span class="co">#&gt;  unit count sev  pop rate srate      idx</span></span>
 <span><span class="co">#&gt;     A    12 110 1000 1200 11000 100.0000</span></span>
 <span><span class="co">#&gt;     B    11 158 1000 1100 15800 143.6364</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/crsev.html">crsev</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">n</span>, <span class="va">d</span><span class="op">$</span><span class="va">off</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>theft <span class="op">=</span> <span class="fl">1</span>, robbery <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>, unit <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">city</span>,</span>
+<span>             pop <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">pop</span>, base <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="policing-and-deterrence_files/figure-html/crsev-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="composite-index-of-standardised-counts">Composite index of standardised counts<a class="anchor" aria-label="anchor" href="#composite-index-of-standardised-counts"></a>
@@ -226,7 +231,7 @@ across the units (minus the mean, over the standard deviation) and the
 standardised values are summed with weights. A category whose counts do
 not vary contributes 0 to every unit. A unit with no row for a category
 counts 0 there, and its standardised value is computed with that 0.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>hood <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
 <span>                kind <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"assault"</span>, <span class="st">"theft"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
 <span>                n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">9</span>, <span class="fl">1</span>, <span class="fl">30</span>, <span class="fl">22</span>, <span class="fl">41</span><span class="op">)</span><span class="op">)</span></span>
@@ -236,6 +241,10 @@ counts 0 there, and its standardised value is computed with that 0.</p>
 <span><span class="co">#&gt;     a -0.10482848    3</span></span>
 <span><span class="co">#&gt;     b  0.05654365    1</span></span>
 <span><span class="co">#&gt;     c  0.04828484    2</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/zcomp.html">zcomp</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">n</span>, <span class="va">d</span><span class="op">$</span><span class="va">hood</span>, <span class="va">d</span><span class="op">$</span><span class="va">kind</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="policing-and-deterrence_files/figure-html/zcomp-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="repeat-victimisation-how-often-the-same-targets-are-victimised-again">Repeat victimisation: how often the same targets are victimised
@@ -245,7 +254,7 @@ again<a class="anchor" aria-label="anchor" href="#repeat-victimisation-how-often
 households, addresses, businesses) already victimised, and how soon a
 repeat follows. From one record per incident with the target’s
 identifier (and its date):</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">hh</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">400</span>, <span class="fl">300</span>, <span class="cn">TRUE</span>, prob <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/GammaDist.html" class="external-link">rgamma</a></span><span class="op">(</span><span class="fl">400</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">day</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">365</span>, <span class="fl">300</span>, <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
@@ -265,6 +274,10 @@ identifier (and its date):</p>
 <span><span class="co">#&gt;   7  30 26 0.17931034 0.24137931</span></span>
 <span><span class="co">#&gt;  30  90 58 0.40000000 0.64137931</span></span>
 <span><span class="co">#&gt;  90 365 52 0.35862069 1.00000000</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rptvic.html">rptvic</a></span><span class="op">(</span><span class="va">hh</span>, t <span class="op">=</span> <span class="va">day</span>, pop <span class="op">=</span> <span class="fl">1000</span>, brk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">7</span>, <span class="fl">30</span>, <span class="fl">90</span>, <span class="fl">365</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="policing-and-deterrence_files/figure-html/rptvic-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="benford-digit-screens">Benford digit screens<a class="anchor" aria-label="anchor" href="#benford-digit-screens"></a>
@@ -282,7 +295,7 @@ of Benford digits of the same size, and Nigrini’s mean absolute
 deviation. A departure from Benford’s law is a reason to look, not a
 finding of fabrication: many honest data sets (bounded amounts, assigned
 numbers) do not follow it.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Uniform.html" class="external-link">runif</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bdig.html">bdig</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span><span class="op">$</span><span class="va">dig</span></span>
@@ -300,7 +313,7 @@ crime statistics programme, say) that report at least
 months, disqualifies it, whatever other units do that year. Counts over
 time are comparable only on such a constant panel; a trend from all
 reporters mixes change in crime with change in who reports.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/rptc.html">rptc</a></span><span class="op">(</span>unit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span>, year <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2020</span>, <span class="fl">2021</span>, <span class="fl">2020</span>, <span class="fl">2021</span>,</span>
 <span>     <span class="fl">2021</span><span class="op">)</span>, rep <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">12</span>, <span class="fl">6</span>, <span class="fl">12</span><span class="op">)</span>, y0 <span class="op">=</span> <span class="fl">2020</span>, y1 <span class="op">=</span> <span class="fl">2021</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   unit const</span></span>
@@ -323,7 +336,7 @@ smoothness) the chosen level never rises with the certainty
 convexity buys a unique and smooth response, not its direction. Gives
 the chosen level at each certainty; of tied optima (within
 <code>1e-12</code>), the largest.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fl">0</span><span class="op">:</span><span class="fl">10</span></span>
 <span><span class="fu"><a href="../reference/detrsp.html">detrsp</a></span><span class="op">(</span><span class="va">x</span>, ben <span class="op">=</span> <span class="fl">3</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/MathFun.html" class="external-link">sqrt</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span> <span class="op">-</span> <span class="op">(</span><span class="va">x</span> <span class="op"><a href="https://rdrr.io/r/base/Arithmetic.html" class="external-link">%%</a></span> <span class="fl">3</span> <span class="op">==</span> <span class="fl">0</span><span class="op">)</span>, sanc <span class="op">=</span> <span class="va">x</span><span class="op">^</span><span class="fl">1.5</span>,</span>
 <span>       p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
@@ -348,7 +361,7 @@ cost of an offence p s exp(-rho c) is linear on that scale, and with a
 response <code>y</code> the ratio of the celerity to the certainty
 coefficient, <code>-b3 / b1</code>, is the discount rate
 <code>rho</code> the response implies.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># certainty varied at fixed severity and celerity</span></span>
 <span><span class="fu"><a href="../reference/dtrid.html">dtrid</a></span><span class="op">(</span>p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">0.5</span><span class="op">)</span>, s <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">2</span>, <span class="fl">2</span><span class="op">)</span>, c <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">30</span>, <span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $rank</span></span>
@@ -389,7 +402,7 @@ so the shares circle the centroid for ever and more inspection does not
 steadily lower crime (D’Orsogna and Perc 2015). Integrated by
 fourth-order Runge-Kutta; the drift of the invariant measures the
 integration error.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">g</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/inspg.html">inspg</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.3</span>, <span class="fl">0.2</span><span class="op">)</span>, steps <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="va">g</span><span class="op">$</span><span class="va">drift</span></span>
 <span><span class="co">#&gt; [1] 3.334832e-14</span></span></code></pre></div>
@@ -406,7 +419,7 @@ inspection cost <code>g</code>. Discrete replicator steps x += rate * x
 from <code>x0</code> at each point of a grid of temptations and costs;
 the final shares map the phases of the game, the criminals’ share
 standing for the crime rate.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ph</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/insphs.html">insphs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">1.8</span>, by <span class="op">=</span> <span class="fl">0.3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">1.1</span>, by <span class="op">=</span> <span class="fl">0.25</span><span class="op">)</span>,</span>
 <span>             steps <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">ph</span><span class="op">$</span><span class="va">crime</span>, <span class="fl">2</span><span class="op">)</span></span>
@@ -429,7 +442,7 @@ independent: their odds ratio is exactly <code>bg</code>, below 1, and
 the negative association grows as arrests for other reasons become rare.
 Studying arrestees alone manufactures it (Hernan and Robins, Fine Point
 8.2).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/colarr.html">colarr</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">0.3</span>, e <span class="op">=</span> <span class="fl">0.2</span>, bg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">0.1</span>, <span class="fl">0.01</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     a   e   bg   or        lor        c11       c10       c01        c00</span></span>
 <span><span class="co">#&gt; 1 0.3 0.2 0.50 0.50 -0.6931472 0.08333333 0.3333333 0.1944444 0.38888889</span></span>

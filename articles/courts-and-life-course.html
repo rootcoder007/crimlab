@@ -138,6 +138,10 @@ first stage is positive (1 for the judge whose decision is more often
 <span><span class="co">#&gt;  0.00    0 -0.17071258   NA</span></span>
 <span><span class="co">#&gt;  0.05    0 -0.12071258   NA</span></span>
 <span><span class="co">#&gt;  0.10    0 -0.07071258   NA</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/jdgiv.html">jdgiv</a></span><span class="op">(</span><span class="va">z</span>, <span class="va">d</span>, <span class="va">y</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="courts-and-life-course_files/figure-html/jdgiv-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="do-judges-leniency-rankings-hold-monotonicity-checks">Do judges’ leniency rankings hold? Monotonicity checks<a class="anchor" aria-label="anchor" href="#do-judges-leniency-rankings-hold-monotonicity-checks"></a>
@@ -145,7 +149,7 @@ first stage is positive (1 for the judge whose decision is more often
 <p><code><a href="../reference/jmono.html">jmono()</a></code>: The decision rate of each judge (with a
 chi-square test that the rate is the same for all, and its range), and
 two checks of the monotonicity a judge-leniency design rests on.</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">9</span><span class="op">)</span></span>
 <span><span class="va">j</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"J"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">6</span><span class="op">)</span>, <span class="fl">1200</span>, <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">len</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>J1 <span class="op">=</span> <span class="fl">0.2</span>, J2 <span class="op">=</span> <span class="fl">0.3</span>, J3 <span class="op">=</span> <span class="fl">0.35</span>, J4 <span class="op">=</span> <span class="fl">0.4</span>, J5 <span class="op">=</span> <span class="fl">0.5</span>, J6 <span class="op">=</span> <span class="fl">0.6</span><span class="op">)</span></span>
@@ -155,7 +159,7 @@ two checks of the monotonicity a judge-leniency design rests on.</p>
 <span><span class="va">r</span><span class="op">$</span><span class="va">sub</span><span class="op">$</span><span class="va">summary</span></span>
 <span><span class="co">#&gt;       pairs    reversed       share      signif     refuted      judges </span></span>
 <span><span class="co">#&gt; 30.00000000  1.00000000  0.03333333  0.00000000  0.00000000  0.00000000</span></span></code></pre></div>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="courts-and-life-course_files/figure-html/jmono-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -166,13 +170,17 @@ two checks of the monotonicity a judge-leniency design rests on.</p>
 minimum, below it (where a court found a way around it) and above it,
 and the mean excess of those above, overall and by group (offence,
 court).</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/mmshr.html">mmshr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">365</span>, <span class="fl">400</span>, <span class="fl">300</span>, <span class="fl">365</span>, <span class="fl">730</span><span class="op">)</span>, <span class="fl">365</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; mmshr: sentences against the minimum</span></span>
 <span><span class="co">#&gt;  group n        at     below     above mexcess</span></span>
 <span><span class="co">#&gt;      a 2 0.5000000 0.0000000 0.5000000      35</span></span>
 <span><span class="co">#&gt;      b 3 0.3333333 0.3333333 0.3333333     365</span></span>
 <span><span class="co">#&gt;    all 5 0.4000000 0.2000000 0.4000000     200</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mmshr.html">mmshr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">365</span>, <span class="fl">400</span>, <span class="fl">300</span>, <span class="fl">365</span>, <span class="fl">730</span><span class="op">)</span>, <span class="fl">365</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="courts-and-life-course_files/figure-html/mmshr-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="credit-for-pre-sentence-custody">Credit for pre-sentence custody<a class="anchor" aria-label="anchor" href="#credit-for-pre-sentence-custody"></a>
@@ -183,7 +191,7 @@ day of the sentence (Criminal Code s. 719(3)) or, where the
 circumstances justify it, for at most one and a half days (s. 719(3.1)).
 With the sentence imposed, the time left to serve after the credit is
 given too.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pscred.html">pscred</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">30</span>, <span class="fl">45</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   days ratio credit</span></span>
 <span><span class="co">#&gt; 1   10   1.5   15.0</span></span>
@@ -210,7 +218,7 @@ the proportional-odds model, so that <code>par = x</code> is that model.
 O’Connell and Laniyonu (2025) find racial disparity in a risk tool
 concentrated at the low-to-medium cut and absent at the medium-to-high
 one, which a proportional-odds fit averages away.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">7</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">400</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>race <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.4</span><span class="op">)</span>, age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
@@ -245,7 +253,7 @@ term, so that a covariate’s slopes can be read across the cuts of the
 scale (a parallel covariate repeats its one slope), with their standard
 errors and, for the free covariates, the Wald test that the slopes are
 equal.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">8</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">300</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>race <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.4</span><span class="op">)</span>, age <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="va">n</span><span class="op">)</span><span class="op">)</span></span>
@@ -286,14 +294,14 @@ covariance across types of their curves at the two ages, which
 individuals observed at two ages, the observed covariance and its
 permutation test say whether one type is enough. See
 <code>proof("agemix")</code>.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ages</span> <span class="op">&lt;-</span> <span class="fl">12</span><span class="op">:</span><span class="fl">30</span></span>
 <span><span class="va">al</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">dnorm</a></span><span class="op">(</span><span class="va">ages</span>, <span class="fl">17</span>, <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">lcp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0.08</span>, <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">ages</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/agemix.html">agemix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span>al <span class="op">=</span> <span class="va">al</span>, lcp <span class="op">=</span> <span class="va">lcp</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">0.2</span><span class="op">)</span>, <span class="va">ages</span><span class="op">)</span></span>
 <span><span class="va">r</span><span class="op">$</span><span class="va">cov</span><span class="op">[</span><span class="st">"15"</span>, <span class="st">"25"</span><span class="op">]</span></span>
 <span><span class="co">#&gt; [1] -0.0005241738</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="courts-and-life-course_files/figure-html/agemix-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -308,7 +316,7 @@ minus the product of the complements, with Greenwood’s interval on the
 log scale of the survival (Bonczar 2003; Pettit and Western 2004). With
 death rates the first events count only among the cohort still alive,
 and no interval is given.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/cumrsk.html">cumrsk</a></span><span class="op">(</span><span class="fl">18</span><span class="op">:</span><span class="fl">22</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">100</span>, <span class="fl">80</span>, <span class="fl">60</span>, <span class="fl">40</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">10000</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; cumrsk: cumulative risk of a first event by age</span></span>
 <span><span class="co">#&gt;  age      hazard atrisk cumrisk          lo         hi</span></span>
@@ -317,6 +325,10 @@ and no interval is given.</p>
 <span><span class="co">#&gt;   20 0.008179959   9780   0.030 0.026650783 0.03333769</span></span>
 <span><span class="co">#&gt;   21 0.006185567   9700   0.036 0.032341858 0.03964431</span></span>
 <span><span class="co">#&gt;   22 0.004149378   9640   0.040 0.036151577 0.04383306</span></span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cumrsk.html">cumrsk</a></span><span class="op">(</span><span class="fl">18</span><span class="op">:</span><span class="fl">22</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">100</span>, <span class="fl">80</span>, <span class="fl">60</span>, <span class="fl">40</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">10000</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="courts-and-life-course_files/figure-html/cumrsk-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="age-period-cohort-model-by-the-intrinsic-estimator">Age-period-cohort model by the intrinsic estimator<a class="anchor" aria-label="anchor" href="#age-period-cohort-model-by-the-intrinsic-estimator"></a>
@@ -327,7 +339,7 @@ the period and to the generation (cohort) people were born into. From a
 table of counts by age group (rows) and period (columns), with equal
 widths, and the population at risk in each cell, the Poisson log-linear
 model</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># arrests by five-year age group (rows) and five-year period (columns)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span>
 <span><span class="va">ag</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">1</span>, <span class="fl">0.5</span>, <span class="fl">0.2</span>, <span class="op">-</span><span class="fl">0.3</span>, <span class="op">-</span><span class="fl">0.6</span><span class="op">)</span></span>
@@ -360,6 +372,10 @@ model</p>
 <span><span class="co">#&gt;       cohort     6  0.0636191215 0.03380790 -0.002643152  0.129881395</span></span>
 <span><span class="co">#&gt;       cohort     7  0.0937161963 0.03550707  0.024123611  0.163308782</span></span>
 <span><span class="co">#&gt;       cohort     8  0.0510250929 0.08760061 -0.120668942  0.222719128</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/apcie.html">apcie</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">pop</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="courts-and-life-course_files/figure-html/apcie-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="rates-between-stages-of-the-justice-pipeline">Rates between stages of the justice pipeline<a class="anchor" aria-label="anchor" href="#rates-between-stages-of-the-justice-pipeline"></a>
@@ -370,7 +386,7 @@ this period’s outflow over this period’s inflow mixes cohorts.
 <code><a href="../reference/jpipe.html">jpipe()</a></code> divides the numerator summed over a window by the
 denominator summed over the same window moved back by the lag between
 the stages.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/jpipe.html">jpipe</a></span><span class="op">(</span>num <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">6</span>, <span class="fl">9</span>, <span class="fl">8</span>, <span class="fl">10</span><span class="op">)</span>, den <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">22</span>, <span class="fl">19</span>, <span class="fl">25</span>, <span class="fl">24</span>, <span class="fl">26</span><span class="op">)</span>,</span>
 <span>      win <span class="op">=</span> <span class="fl">3</span>, lag <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; jpipe: lagged rates between stages</span></span>
@@ -381,6 +397,11 @@ the stages.</p>
 <span><span class="co">#&gt;    all     4  22  61 0.3606557</span></span>
 <span><span class="co">#&gt;    all     5  23  66 0.3484848</span></span>
 <span><span class="co">#&gt;    all     6  27  68 0.3970588</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/jpipe.html">jpipe</a></span><span class="op">(</span>num <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">7</span>, <span class="fl">6</span>, <span class="fl">9</span>, <span class="fl">8</span>, <span class="fl">10</span><span class="op">)</span>, den <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">22</span>, <span class="fl">19</span>, <span class="fl">25</span>, <span class="fl">24</span>, <span class="fl">26</span><span class="op">)</span>,</span>
+<span>             win <span class="op">=</span> <span class="fl">3</span>, lag <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="courts-and-life-course_files/figure-html/jpipe-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="group-based-trajectory-model-for-counts">Group-based trajectory model for counts<a class="anchor" aria-label="anchor" href="#group-based-trajectory-model-for-counts"></a>
@@ -397,7 +418,7 @@ by a generalised EM from the values given (the log-likelihood never
 decreases). One start per call: the model has local maxima, so several
 starts are the caller’s loop, and the number of groups is the caller’s
 choice (compare the log-likelihoods with a penalty such as BIC).</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">1</span>, <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">6</span> <span class="op">-</span> <span class="fl">3.5</span><span class="op">)</span> <span class="op">/</span> <span class="fl">2.5</span><span class="op">)</span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="op">-</span><span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.5</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
@@ -421,7 +442,7 @@ B_k’ x_t and covariance <code>S_k</code>, independently over periods.
 memberships; <code><a href="../reference/mvtll.html">mvtem()</a></code> fits by EM with closed-form steps from
 the values given. A period with any missing indicator is left out for
 that unit.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">cbind</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">5</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/array.html" class="external-link">array</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">40</span> <span class="op">*</span> <span class="fl">5</span> <span class="op">*</span> <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">40</span>, <span class="fl">5</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>

@@ -49,6 +49,16 @@ cntreg(c(5, 12), c("a", "b"), expo = c(1000, 1500))
 #>    nb    b  NA       NA       NA        NA FALSE
 ```
 
+``` r
+
+res <- cntreg(c(5, 12), c("a", "b"), expo = c(1000, 1500))
+#> Warning: cntreg: the negative binomial fit failed (theta has no finite estimate); its
+#> rows are NA.
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/cntreg-plot-1.png)
+
 ### Rates and proportions by group: ratios and differences
 
 [`grprr()`](https://rootcoder007.github.io/crimlab/reference/grprr.md):
@@ -84,6 +94,15 @@ grprr(c(1, 0, 0, 1, 1, 0, 1, 1), grp = c(1, 1, 1, 1, 2, 2, 2, 2),
 #>      2   1.5 0.4837821 4.650854  NA  NA 0.25 -0.3195573 0.6552867
 ```
 
+``` r
+
+res <- grprr(c(1, 0, 0, 1, 1, 0, 1, 1), grp = c(1, 1, 1, 1, 2, 2, 2, 2),
+             type = "prop")
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/grprr-plot-1.png)
+
 ### Directly standardised rates
 
 [`dastd()`](https://rootcoder007.github.io/crimlab/reference/dastd.md):
@@ -109,6 +128,14 @@ dastd(d$x, d$n, d$age, d$grp, std = c(30, 45, 25), per = 1e4)
 #>      B 1.999809 1.414352 2.82761 31.07738 14.7742 47.38057
 ```
 
+``` r
+
+res <- dastd(d$x, d$n, d$age, d$grp, std = c(30, 45, 25), per = 1e4)
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/dastd-plot-1.png)
+
 ### Indirect standardisation: standardised ratios with shrinkage
 
 [`sirex()`](https://rootcoder007.github.io/crimlab/reference/sirex.md):
@@ -132,6 +159,14 @@ sirex(d$x, d$n, d$age, d$area)
 #>      N  15 18.036409 0.8316511 0.4654688 1.371682  1   1 0.5544341 1.496972 FALSE
 #>      S  39 33.869429 1.1514809 0.8188155 1.574112  1   1 0.6790785 1.358157 FALSE
 ```
+
+``` r
+
+res <- sirex(d$x, d$n, d$age, d$area)
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/sirex-plot-1.png)
 
 ### Cross-tabulation with tests and measures of association
 
@@ -181,6 +216,14 @@ ctabx(d$race, d$sex, w = d$n, exact = TRUE)
 #> Cramer's V 0.1032031 [0, 0.2883748], bias-corrected 0.04070387
 #> Fisher's exact p = 0.3348875
 ```
+
+``` r
+
+res <- ctabx(d$race, d$sex, w = d$n, exact = TRUE)
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/ctabx-plot-1.png)
 
 ## Concentration
 
@@ -311,6 +354,14 @@ dkfig(k = c(1, 1, 2, 1, 3))
 #>   5.0   8.0   1.6   0.6   5.0  15.0
 ```
 
+``` r
+
+res <- dkfig(v = c(0.12, 0.08), r = 0.03, amax = 0.01, bmax = 0.2, thr = 0.15)
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/dkfig-plot-1.png)
+
 ## Published tables
 
 ### Banded categories: bounds, values and what the open band costs
@@ -389,6 +440,14 @@ pbbnd(c(120, 15), rnd = 5, prev = c(100, 20), pop = 5e4)
 #>    -10     0 -44.44444  0.00000   0.25   0.35
 ```
 
+``` r
+
+res <- pbbnd(c(120, 15), rnd = 5, prev = c(100, 20), pop = 5e4)
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/pbbnd-plot-1.png)
+
 ### Year-over-year change in a published series
 
 [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md):
@@ -433,6 +492,14 @@ yoypx(d$n, d$year, d$svc, rnd = 5)
 #>  0.06401750 0.1707133  FALSE   -21   -11 -48.275862 -28.57143 -64.464747   2.692906
 #>  0.35814330 0.5730293  FALSE     3    13  10.909091  57.77778 -23.859990 131.538008
 ```
+
+``` r
+
+res <- yoypx(d$n, d$year, d$svc, rnd = 5)
+plot(res)
+```
+
+![](counts-rates-and-tables_files/figure-html/yoypx-plot-1.png)
 
 ### One call on a published table: check, change, rates and trend
 

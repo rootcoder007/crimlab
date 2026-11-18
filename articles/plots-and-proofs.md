@@ -12,7 +12,7 @@ arguments and the value in full.
 
 ### Plot methods for the package’s results
 
-[`plotm()`](https://rootcoder007.github.io/crimlab/reference/plotm.md):
+[`plot.indgap()`](https://rootcoder007.github.io/crimlab/reference/plotm.md):
 Every result of the package that holds something to draw has a
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) method, on base
 graphics only. No argument beyond the object is needed; every method

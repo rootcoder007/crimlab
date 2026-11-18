@@ -241,6 +241,23 @@ indgap(
 #> * use with caution: the source flags the estimate (E, high sampling variability).
 ```
 
+``` r
+
+res <- indgap(
+  own,
+  "group",
+  "pct",
+  "lower",
+  "upper",
+  ref = "Non-Indigenous Australians",
+  qual = "q",
+  pooled = "Aboriginal and Torres Strait Islander"
+)
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/indgap-plot-1.png)
+
 ## Compare rated scales (perceived mental health, life satisfaction) between groups
 
 [`ordcmp()`](https://rootcoder007.github.io/crimlab/reference/ordcmp.md):
@@ -281,6 +298,16 @@ ordcmp(own, "group", "rating", "pct", "lo", "hi",
 #> carries the survey's design effect).
 ```
 
+``` r
+
+res <-
+  ordcmp(own, "group", "rating", "pct", "lo", "hi",
+         lvls = c("Poor", "Fair", "Good", "Excellent"), ref = "Everyone else")
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/ordcmp-plot-1.png)
+
 ## Age-standardise survey percentages
 
 [`stdprev()`](https://rootcoder007.github.io/crimlab/reference/stdprev.md):
@@ -318,6 +345,20 @@ stdprev(
 #> so the groups compare without their age structures.
 #> Compare only rates standardised to the same population.
 ```
+
+``` r
+
+res <- stdprev(
+  est = c(12, 9, 6, 8, 6, 4),
+  lower = c(9, 6, 3, 7, 5, 3),
+  upper = c(15, 12, 9, 9, 7, 5),
+  std = c(500, 300, 200),
+  grp = rep(c("Nation A", "Everyone else"), each = 3)
+)
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/stdprev-plot-1.png)
 
 ## Wellness beside distress: a strengths-first profile of published indicators
 
@@ -376,6 +417,16 @@ welprof(own, "community", "item", "pct", "lo", "hi",
 #> before its distress (Stewart 2008).
 ```
 
+``` r
+
+res <- welprof(own, "community", "item", "pct", "lo", "hi",
+               well = c("Hopeful", "Satisfied"),
+               distress = c("Rarely hopeful", "Low satisfaction"))
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/welprof-plot-1.png)
+
 ## Wellness and distress as two continua
 
 [`dualcont()`](https://rootcoder007.github.io/crimlab/reference/dualcont.md):
@@ -415,6 +466,13 @@ dualcont(w, "Hopeful", "Rarely hopeful")
 #> Both estimates come from the same respondents and their covariance
 #> is not published: the interval treats them as independent.
 ```
+
+``` r
+
+plot(w)
+```
+
+![](indigenous-health_files/figure-html/dualcont-plot-1.png)
 
 ## Holistic balance: how evenly wellness is held across the domains of a whole person
 
@@ -461,6 +519,14 @@ holbal(own, "community", "domain", "pct", "lo", "hi", reps = 2000)
 #> The weights say how much each domain counts; a community may set
 #> its own (CARE: authority to control, Carroll et al. 2020).
 ```
+
+``` r
+
+res <- holbal(own, "community", "domain", "pct", "lo", "hi", reps = 2000)
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/holbal-plot-1.png)
 
 ## The four directions of the First Nations Mental Wellness Continuum, from published indicators
 
@@ -514,6 +580,15 @@ mhcont(own, "community", "item", "pct", "lo", "hi", hope = "Hopeful",
 #> yes (shared): one indicator serves two directions, counted for each.
 ```
 
+``` r
+
+res <- mhcont(own, "community", "item", "pct", "lo", "hi", hope = "Hopeful",
+              meaning = "Life has meaning", purp = "Life has meaning")
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/mhcont-plot-1.png)
+
 ## Healing as a process: change in published indicators between two periods
 
 [`healchg()`](https://rootcoder007.github.io/crimlab/reference/healchg.md):
@@ -558,6 +633,16 @@ healchg(own, "community", "item", "survey", "pct", "lo", "hi",
 #> A change is only as comparable as the two periods' questions and
 #> designs: across a break in the series it is not a change in people.
 ```
+
+``` r
+
+res <- healchg(own, "community", "item", "survey", "pct", "lo", "hi",
+               from = "2018", to = "2023", well = "Good mental health",
+               distress = "Anxiety")
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/healchg-plot-1.png)
 
 ## Connection across places: does one indicator rise where another does?
 
@@ -635,6 +720,16 @@ commidx(own, "community", "item", "pct", "lo", "hi",
 #> Risk and protective factors: Inuit Tapiriit Kanatami (2016).
 ```
 
+``` r
+
+res <- commidx(own, "community", "item", "pct", "lo", "hi",
+               w = c("Speaks the language" = 2, "Has a doctor" = 1,
+                     "Food insecure" = -1))
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/commidx-plot-1.png)
+
 ## How deficit-framed is a set of results?
 
 [`frmaud()`](https://rootcoder007.github.io/crimlab/reference/frmaud.md):
@@ -701,6 +796,17 @@ cwbscr(incpercap = c(18000, 31000), highsch20p = c(58, 81),
 #> 
 #> Each component runs from 0 to 100, and the CWB score is their mean: income, education, housing and labour force activity.
 ```
+
+``` r
+
+res <- cwbscr(incpercap = c(18000, 31000), highsch20p = c(58, 81),
+                 uni25p = c(6, 19), notcro = c(71, 95),
+                 nomajrep = c(62, 90),
+                 partic = c(55, 68), empl = c(78, 92))
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/cwbscr-plot-1.png)
 
 ## Generations of residential school attendance in a family
 
@@ -953,6 +1059,15 @@ cnscwb(p, groups = c("Indigenous identity", "Non-Indigenous"), minpop = 0)
 #> Housing needs the household table (dwell).
 ```
 
+``` r
+
+res <-
+  cnscwb(p, groups = c("Indigenous identity", "Non-Indigenous"), minpop = 0)
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/cnscwb-plot-1.png)
+
 ## The indicators of Calls to Action 19 and 55, and the tables that measure them
 
 [`trcind()`](https://rootcoder007.github.io/crimlab/reference/trcind.md):
@@ -1053,6 +1168,14 @@ trchlthgap(health = NULL, lifeexp = le, infmort = NULL, suiide = NULL)
 #> Call 19 asks for measurable goals to close the gaps in health
 #> outcomes; Call 55 for annual reports on progress.
 ```
+
+``` r
+
+res <- trchlthgap(health = NULL, lifeexp = le, infmort = NULL, suiide = NULL)
+plot(res)
+```
+
+![](indigenous-health_files/figure-html/trchlthgap-plot-1.png)
 
 ## Calls to Action completed, year by year
 

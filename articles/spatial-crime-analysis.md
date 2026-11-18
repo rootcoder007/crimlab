@@ -439,6 +439,16 @@ crossk(p, marks = m, i = "burglary", j = "robbery",
 #> segregation T 47.42, p 0.05 (19 relabellings)
 ```
 
+``` r
+
+res <- crossk(p, marks = m, i = "burglary", j = "robbery",
+              win = c(0, 1, 0, 1), r = c(0.05, 0.1, 0.2), sigma = 0.1,
+              nsim = 19, seed = 1)
+plot(res)
+```
+
+![](spatial-crime-analysis_files/figure-html/crossk-plot-1.png)
+
 ## Quadrat count test
 
 [`qdrtst()`](https://rootcoder007.github.io/crimlab/reference/qdrtst.md):
@@ -529,6 +539,14 @@ dissix(x, w = spwt(nb = list(2, c(1, 3), c(2, 4), c(3, 5), 4),
 #> b 0.3134779 0.0000000
 ```
 
+``` r
+
+res <- dissix(x)
+plot(res)
+```
+
+![](spatial-crime-analysis_files/figure-html/dissix-plot-1.png)
+
 ## Points in polygons, and the population the units cover
 
 [`pinpl()`](https://rootcoder007.github.io/crimlab/reference/pinpl.md):
@@ -596,6 +614,17 @@ arwt(c(a = 120, b = 40, c = 60, d = 100),
 #>   gini   top1 
 #> 0.2708 0.5000
 ```
+
+``` r
+
+res <-
+  arwt(c(a = 120, b = 40, c = 60, d = 100),
+       from = c("a", "b", "c", "d", "d"), to = c("N1", "N1", "N2", "N2", "N3"),
+       area = c(1, 1, 1, 7, 3), top = 1)
+plot(res)
+```
+
+![](spatial-crime-analysis_files/figure-html/arwt-plot-1.png)
 
 ## Crosswalk between boundary versions
 

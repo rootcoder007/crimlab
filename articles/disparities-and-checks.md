@@ -114,6 +114,14 @@ thrtst(rep(600, 9), c(72, 48, 60, 60, 72, 48, 48, 60, 72),
 #> 6    hit   c    2 FALSE
 ```
 
+``` r
+
+res <- thrtst(d$stops, d$srch, d$hits, d$grp, area = d$area)
+plot(res)
+```
+
+![](disparities-and-checks_files/figure-html/thrtst-plot-1.png)
+
 ### Internal benchmarking of officers
 
 [`ibench()`](https://rootcoder007.github.io/crimlab/reference/ibench.md):
@@ -171,6 +179,14 @@ ibench(y, off, data.frame(night), minn = 50, dr = TRUE)$tab
 #> 11 o11 249 0.3694779 0.3490945 2646.200  0.65262224 5.139998e-01 9.384964e-01 FALSE
 #> 12 o12 242 0.2768595 0.3613048 2687.908 -2.86006053 4.235602e-03 2.541361e-02  TRUE
 ```
+
+``` r
+
+res <- ibench(y, off, data.frame(night), minn = 50)
+plot(res)
+```
+
+![](disparities-and-checks_files/figure-html/ibench-plot-1.png)
 
 ### Benchmark decomposition of a disparity
 
@@ -254,6 +270,14 @@ relchk(tab, 2.0, type = "or", digits = 1)
 #>   grp type group ref event value claim
 #>  rows   rr     A   B   yes     2 FALSE
 ```
+
+``` r
+
+res <- relchk(tab, 2.0, type = "or", digits = 1)
+plot(res)
+```
+
+![](disparities-and-checks_files/figure-html/relchk-plot-1.png)
 
 ### Audit categorical inputs before an analysis
 

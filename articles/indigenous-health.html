@@ -326,6 +326,19 @@ published intervals.</p>
 <span><span class="co">#&gt; (pooled): a pan-Indigenous total, shown beside, not a distinct group (poogrp).</span></span>
 <span><span class="co">#&gt; Report a gap beside each group's own level, not alone.</span></span>
 <span><span class="co">#&gt; * use with caution: the source flags the estimate (E, high sampling variability).</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/indgap.html">indgap</a></span><span class="op">(</span></span>
+<span>  <span class="va">own</span>,</span>
+<span>  <span class="st">"group"</span>,</span>
+<span>  <span class="st">"pct"</span>,</span>
+<span>  <span class="st">"lower"</span>,</span>
+<span>  <span class="st">"upper"</span>,</span>
+<span>  ref <span class="op">=</span> <span class="st">"Non-Indigenous Australians"</span>,</span>
+<span>  qual <span class="op">=</span> <span class="st">"q"</span>,</span>
+<span>  pooled <span class="op">=</span> <span class="st">"Aboriginal and Torres Strait Islander"</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/indgap-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="compare-rated-scales-perceived-mental-health-life-satisfaction-between-groups">Compare rated scales (perceived mental health, life satisfaction)
@@ -338,7 +351,7 @@ statement), the probability that a person in each group rates higher
 than a person in the reference group, with its confidence interval: a
 comparison of the whole distribution, not of one category cut from
 it.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: a made-up four-level rating for two groups, with limits</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Nation A"</span>, <span class="st">"Everyone else"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
@@ -365,6 +378,12 @@ it.</p>
 <span><span class="co">#&gt; delta (Cliff's) = share rating higher less share rating lower.</span></span>
 <span><span class="co">#&gt; neff: the effective sample size the published limits imply (it</span></span>
 <span><span class="co">#&gt; carries the survey's design effect).</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="../reference/ordcmp.html">ordcmp</a></span><span class="op">(</span><span class="va">own</span>, <span class="st">"group"</span>, <span class="st">"rating"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>,</span>
+<span>         lvls <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Poor"</span>, <span class="st">"Fair"</span>, <span class="st">"Good"</span>, <span class="st">"Excellent"</span><span class="op">)</span>, ref <span class="op">=</span> <span class="st">"Everyone else"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/ordcmp-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="age-standardise-survey-percentages">Age-standardise survey percentages<a class="anchor" aria-label="anchor" href="#age-standardise-survey-percentages"></a>
@@ -376,7 +395,7 @@ Nations, Metis and Inuit prevalences (suicidal thoughts, mood and
 anxiety disorders, heavy drinking) with each other and with an older
 population, for example, when the age pattern of the outcome is
 steep.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up percentages in three age groups for two groups, standardised to a</span></span>
 <span><span class="co"># population of 500, 300 and 200 in those age groups</span></span>
 <span><span class="fu"><a href="../reference/stdprev.html">stdprev</a></span><span class="op">(</span></span>
@@ -401,6 +420,16 @@ steep.</p>
 <span><span class="co">#&gt; Each group's prevalence as if it had the standard population's ages,</span></span>
 <span><span class="co">#&gt; so the groups compare without their age structures.</span></span>
 <span><span class="co">#&gt; Compare only rates standardised to the same population.</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/stdprev.html">stdprev</a></span><span class="op">(</span></span>
+<span>  est <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">12</span>, <span class="fl">9</span>, <span class="fl">6</span>, <span class="fl">8</span>, <span class="fl">6</span>, <span class="fl">4</span><span class="op">)</span>,</span>
+<span>  lower <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">9</span>, <span class="fl">6</span>, <span class="fl">3</span>, <span class="fl">7</span>, <span class="fl">5</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>  upper <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">12</span>, <span class="fl">9</span>, <span class="fl">9</span>, <span class="fl">7</span>, <span class="fl">5</span><span class="op">)</span>,</span>
+<span>  std <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">300</span>, <span class="fl">200</span><span class="op">)</span>,</span>
+<span>  grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Nation A"</span>, <span class="st">"Everyone else"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/stdprev-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="wellness-beside-distress-a-strengths-first-profile-of-published-indicators">Wellness beside distress: a strengths-first profile of published
@@ -413,7 +442,7 @@ belonging, a strong cultural identity) first and its distress indicators
 health) after them, each with its published interval, for each First
 Nations, Metis and Inuit group: so that a table of mental health is
 never read, or plotted, as a list of deficits alone.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up percentages for two communities, with limits</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  community <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lakeside"</span>, <span class="st">"Riverbend"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
@@ -456,6 +485,12 @@ never read, or plotted, as a list of deficits alone.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Wellness indicators come first, so each group's strengths are read</span></span>
 <span><span class="co">#&gt; before its distress (Stewart 2008).</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/welprof.html">welprof</a></span><span class="op">(</span><span class="va">own</span>, <span class="st">"community"</span>, <span class="st">"item"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>,</span>
+<span>               well <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Hopeful"</span>, <span class="st">"Satisfied"</span><span class="op">)</span>,</span>
+<span>               distress <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Rarely hopeful"</span>, <span class="st">"Low satisfaction"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/welprof-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="wellness-and-distress-as-two-continua">Wellness and distress as two continua<a class="anchor" aria-label="anchor" href="#wellness-and-distress-as-two-continua"></a>
@@ -465,7 +500,7 @@ against one distress indicator, each with its published interval, and
 the ratio of the two: the dual-continua view of mental health, in which
 wellness is not the absence of distress and is measured in its own
 right.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up percentages for two communities, with limits</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  community <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lakeside"</span>, <span class="st">"Riverbend"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
@@ -494,6 +529,9 @@ right.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Both estimates come from the same respondents and their covariance</span></span>
 <span><span class="co">#&gt; is not published: the interval treats them as independent.</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">w</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/dualcont-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="holistic-balance-how-evenly-wellness-is-held-across-the-domains-of-a-whole-person">Holistic balance: how evenly wellness is held across the domains of
@@ -504,7 +542,7 @@ wellness in each holistic domain (physical, emotional, mental,
 spiritual, or the domains a community names), the overall level of
 wellness and how balanced it is across the domains, with Monte Carlo
 intervals from the published ones.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up percentages of wellness in four domains a Nation</span></span>
 <span><span class="co"># set for itself, for two communities</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -539,6 +577,10 @@ intervals from the published ones.</p>
 <span><span class="co">#&gt; A method inspired by Stewart (2008), not taken from it.</span></span>
 <span><span class="co">#&gt; The weights say how much each domain counts; a community may set</span></span>
 <span><span class="co">#&gt; its own (CARE: authority to control, Carroll et al. 2020).</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/holbal.html">holbal</a></span><span class="op">(</span><span class="va">own</span>, <span class="st">"community"</span>, <span class="st">"domain"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>, reps <span class="op">=</span> <span class="fl">2000</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/holbal-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="the-four-directions-of-the-first-nations-mental-wellness-continuum-from-published-indicators">The four directions of the First Nations Mental Wellness Continuum,
@@ -548,7 +590,7 @@ from published indicators<a class="anchor" aria-label="anchor" href="#the-four-d
 the four outcomes of the First Nations Mental Wellness Continuum
 Framework (hope, belonging, meaning, purpose), each with its interval,
 and says which directions the tables have no measure of.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up percentages for two communities, with limits;</span></span>
 <span><span class="co"># one item stands for both meaning and purpose, and none for belonging</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -589,6 +631,11 @@ and says which directions the tables have no measure of.</p>
 <span><span class="co">#&gt; Every level is a proxy: no survey table measures the directions as</span></span>
 <span><span class="co">#&gt; the Framework defines them (Health Canada and AFN 2015).</span></span>
 <span><span class="co">#&gt; yes (shared): one indicator serves two directions, counted for each.</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mhcont.html">mhcont</a></span><span class="op">(</span><span class="va">own</span>, <span class="st">"community"</span>, <span class="st">"item"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>, hope <span class="op">=</span> <span class="st">"Hopeful"</span>,</span>
+<span>              meaning <span class="op">=</span> <span class="st">"Life has meaning"</span>, purp <span class="op">=</span> <span class="st">"Life has meaning"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/mhcont-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="healing-as-a-process-change-in-published-indicators-between-two-periods">Healing as a process: change in published indicators between two
@@ -598,7 +645,7 @@ periods<a class="anchor" aria-label="anchor" href="#healing-as-a-process-change-
 between two survey periods with its confidence interval, wellness
 indicators first: change over time read as Indigenous scholars describe
 mental health, as a process of healing, not as a fixed deficit.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up percentages for one community in two surveys</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  community <span class="op">=</span> <span class="st">"Lakeside"</span>,</span>
@@ -632,6 +679,12 @@ mental health, as a process of healing, not as a fixed deficit.</p>
 <span><span class="co">#&gt; Wellness indicators come first: a change is read as part of healing.</span></span>
 <span><span class="co">#&gt; A change is only as comparable as the two periods' questions and</span></span>
 <span><span class="co">#&gt; designs: across a break in the series it is not a change in people.</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/healchg.html">healchg</a></span><span class="op">(</span><span class="va">own</span>, <span class="st">"community"</span>, <span class="st">"item"</span>, <span class="st">"survey"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>,</span>
+<span>               from <span class="op">=</span> <span class="st">"2018"</span>, to <span class="op">=</span> <span class="st">"2023"</span>, well <span class="op">=</span> <span class="st">"Good mental health"</span>,</span>
+<span>               distress <span class="op">=</span> <span class="st">"Anxiety"</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/healchg-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="connection-across-places-does-one-indicator-rise-where-another-does">Connection across places: does one indicator rise where another
@@ -643,7 +696,7 @@ across places, an exact permutation p-value, and an interval that
 carries the sampling error of the published estimates: for connection to
 land and wellness, community belonging and mental health, education and
 health.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own places: made-up shares in six regions, without limits</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  region <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"South"</span>, <span class="st">"East"</span>, <span class="st">"West"</span>, <span class="st">"Coast"</span>, <span class="st">"Interior"</span><span class="op">)</span>,</span>
@@ -670,7 +723,7 @@ health.</p>
 for each group or place, with weights the community sets: protective
 factors count for, risk factors against. The weights are never
 estimated.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table and the weights a community chose: made-up percentages</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  community <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lakeside"</span>, <span class="st">"Riverbend"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">3</span><span class="op">)</span>,</span>
@@ -705,6 +758,12 @@ estimated.</p>
 <span><span class="co">#&gt; with other weights it ranks places otherwise. It is never a ranking</span></span>
 <span><span class="co">#&gt; of Nations or communities on their culture.</span></span>
 <span><span class="co">#&gt; Risk and protective factors: Inuit Tapiriit Kanatami (2016).</span></span></code></pre></div>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/commidx.html">commidx</a></span><span class="op">(</span><span class="va">own</span>, <span class="st">"community"</span>, <span class="st">"item"</span>, <span class="st">"pct"</span>, <span class="st">"lo"</span>, <span class="st">"hi"</span>,</span>
+<span>               w <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Speaks the language"</span> <span class="op">=</span> <span class="fl">2</span>, <span class="st">"Has a doctor"</span> <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>                     <span class="st">"Food insecure"</span> <span class="op">=</span> <span class="op">-</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/commidx-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="how-deficit-framed-is-a-set-of-results">How deficit-framed is a set of results?<a class="anchor" aria-label="anchor" href="#how-deficit-framed-is-a-set-of-results"></a>
@@ -712,7 +771,7 @@ estimated.</p>
 <p><code><a href="../reference/frmaud.html">frmaud()</a></code>: Counts how many of the indicators in a report
 measure distress, deficit or disparity and how many measure wellness or
 strength, and names any group reported on deficits alone.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up percentages for two communities, with limits</span></span>
 <span><span class="va">own</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
 <span>  community <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Lakeside"</span>, <span class="st">"Riverbend"</span><span class="op">)</span>, each <span class="op">=</span> <span class="fl">4</span><span class="op">)</span>,</span>
@@ -750,7 +809,7 @@ strength, and names any group reported on deficits alone.</p>
 Well-Being (CWB) index: income, education, housing and labour force
 activity, each scored from 0 to 100, and their mean, from census profile
 figures.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up profile figures for two communities, to show the computation</span></span>
 <span><span class="fu"><a href="../reference/cwbscr.html">cwbscr</a></span><span class="op">(</span>incpercap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">18000</span>, <span class="fl">31000</span><span class="op">)</span>, highsch20p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">58</span>, <span class="fl">81</span><span class="op">)</span>,</span>
 <span>          uni25p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">19</span><span class="op">)</span>, notcro <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">71</span>, <span class="fl">95</span><span class="op">)</span>,</span>
@@ -767,6 +826,13 @@ figures.</p>
 <span><span class="co">#&gt;         2   73.57      60.33     92.5    80.0  76.60</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Each component runs from 0 to 100, and the CWB score is their mean: income, education, housing and labour force activity.</span></span></code></pre></div>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cwbscr.html">cwbscr</a></span><span class="op">(</span>incpercap <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">18000</span>, <span class="fl">31000</span><span class="op">)</span>, highsch20p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">58</span>, <span class="fl">81</span><span class="op">)</span>,</span>
+<span>                 uni25p <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">19</span><span class="op">)</span>, notcro <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">71</span>, <span class="fl">95</span><span class="op">)</span>,</span>
+<span>                 nomajrep <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">62</span>, <span class="fl">90</span><span class="op">)</span>,</span>
+<span>                 partic <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">55</span>, <span class="fl">68</span><span class="op">)</span>, empl <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">78</span>, <span class="fl">92</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/cwbscr-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="generations-of-residential-school-attendance-in-a-family">Generations of residential school attendance in a family<a class="anchor" aria-label="anchor" href="#generations-of-residential-school-attendance-in-a-family"></a>
@@ -776,7 +842,7 @@ the epidemiology of Indian Residential Schools: how many generations
 before the respondent attended, 0 (neither parents nor grandparents), 1
 (parents or grandparents) or 2 (both a parent and a grandparent), as in
 McQuaid et al. (2017).</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/genexpo.html">genexpo</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">NA</span>, <span class="cn">FALSE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1]  2  0  1 NA NA</span></span>
 <span><span class="fu"><a href="../reference/genexpo.html">genexpo</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">NA</span>, <span class="cn">FALSE</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
@@ -791,7 +857,7 @@ distress) among people with 0, 1 or 2 generations of residential school
 attendance in their family (or any ordered exposure), the odds ratio of
 each level against the lowest level, with Woolf intervals, and the
 Cochran-Armitage test for a trend across the levels.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up counts by 0, 1 and 2 generations of attendance, to show the</span></span>
 <span><span class="co"># computation</span></span>
 <span><span class="va">et</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/exptrnd.html">exptrnd</a></span><span class="op">(</span>cases <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">95</span>, <span class="fl">70</span><span class="op">)</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">500</span>, <span class="fl">520</span>, <span class="fl">300</span><span class="op">)</span><span class="op">)</span></span>
@@ -831,7 +897,7 @@ geography, gender, age group, characteristic and group: First Nations,
 Metis, Inuit, the other identity groups and non-Indigenous people (or,
 in the household tables, Indigenous and non-Indigenous households), each
 in its own rows.</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up numbers in the layout of a population profile table, for one</span></span>
 <span><span class="co"># place and two groups (the published tables hold many more rows)</span></span>
 <span><span class="va">nm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -875,7 +941,7 @@ the 2021 Census Indigenous Population Profile (foster children among
 children, speakers of an Indigenous language, households needing major
 repairs, …), with an approximate confidence interval that carries the
 long-form sample and the random rounding of the counts.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up numbers in the layout of a population profile table, for one</span></span>
 <span><span class="co"># place and two groups (the published tables hold many more rows)</span></span>
 <span><span class="va">nm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -928,7 +994,7 @@ long-form sample and the random rounding of the counts.</p>
 <p><code><a href="../reference/cnsstd.html">cnsstd()</a></code>: The age structure of a group in a geography of
 the 2021 Census Indigenous Population Profile, as the standard of
 <code>dastd</code> or <code>stdprev</code>.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up population counts by age group for two groups, in the layout of a</span></span>
 <span><span class="co"># profile table</span></span>
 <span><span class="va">ages</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"0 to 14 years"</span>, <span class="st">"15 to 64 years"</span>, <span class="st">"65 years and over"</span><span class="op">)</span></span>
@@ -955,7 +1021,7 @@ the 2021 Census Indigenous Population Profile, as the standard of
 Well-Being (CWB) index (<code>cwbscr</code>) computed from the public
 2021 Census Indigenous Population Profile, for each geography and
 group.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># made-up numbers in the layout of a population profile table, for one</span></span>
 <span><span class="co"># place and two groups (the published tables hold many more rows)</span></span>
 <span><span class="va">nm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -1004,6 +1070,11 @@ group.</p>
 <span><span class="co">#&gt; Never a measure of wellness as First Nations, Métis or Inuit</span></span>
 <span><span class="co">#&gt; people define it. A group below minpop people gets no score.</span></span>
 <span><span class="co">#&gt; Housing needs the household table (dwell).</span></span></code></pre></div>
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span></span>
+<span>  <span class="fu"><a href="../reference/cnscwb.html">cnscwb</a></span><span class="op">(</span><span class="va">p</span>, groups <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Indigenous identity"</span>, <span class="st">"Non-Indigenous"</span><span class="op">)</span>, minpop <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/cnscwb-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="the-indicators-of-calls-to-action-19-and-55-and-the-tables-that-measure-them">The indicators of Calls to Action 19 and 55, and the tables that
@@ -1024,7 +1095,7 @@ Aboriginal peoples in Canada compared with non-Aboriginal people”. This
 lists, for each indicator, the Statistics Canada tables (or the census
 profile) that measure it, the measure, and which direction is
 better.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">ti</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/trcind.html">trcind</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">ti</span><span class="op">[</span><span class="va">ti</span><span class="op">$</span><span class="va">call</span> <span class="op">==</span> <span class="st">"19"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"indicator"</span>, <span class="st">"table"</span>, <span class="st">"measure"</span>, <span class="st">"better"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt;                                      indicator          table</span></span>
@@ -1074,7 +1145,7 @@ Action 19 that the published tables measure, each group’s estimate
 against non-Indigenous people’s, with its interval, turned into one
 scale, the disadvantage ratio: the factor by which the group’s outcome
 is worse (above 1) or better (below 1).</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># your own table: made-up life expectancies with their limits; the tables</span></span>
 <span><span class="co"># you do not have are NULL</span></span>
 <span><span class="va">le</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
@@ -1102,6 +1173,10 @@ is worse (above 1) or better (below 1).</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Call 19 asks for measurable goals to close the gaps in health</span></span>
 <span><span class="co">#&gt; outcomes; Call 55 for annual reports on progress.</span></span></code></pre></div>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/trchlthgap.html">trchlthgap</a></span><span class="op">(</span>health <span class="op">=</span> <span class="cn">NULL</span>, lifeexp <span class="op">=</span> <span class="va">le</span>, infmort <span class="op">=</span> <span class="cn">NULL</span>, suiide <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="indigenous-health_files/figure-html/trchlthgap-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="calls-to-action-completed-year-by-year">Calls to Action completed, year by year<a class="anchor" aria-label="anchor" href="#calls-to-action-completed-year-by-year"></a>
@@ -1111,7 +1186,7 @@ Commission’s 94 Calls to Action that the Yellowhead Institute’s annual
 accountability reports judged complete, by the year they were completed,
 to the end of 2022: the only counts here are those the reports
 state.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/trccmpl.html">trccmpl</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt;      period yearend completed cumulative                                      source</span></span>
 <span><span class="co">#&gt; 1 2015-2019    2019         8          8 Jewell and Mosby (2022): 13 complete in all</span></span>
@@ -1125,7 +1200,7 @@ state.</p>
 <p><code><a href="../reference/trcprog.html">trcprog()</a></code>: From cumulative counts of completed Calls to
 Action over time, the completion rate (calls a year), its exact Poisson
 interval, and the year all 94 would be complete at that rate.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb38"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/trcprog.html">trcprog</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="va">p</span></span>
 <span><span class="co">#&gt; Truth and Reconciliation Calls to Action: progress</span></span>

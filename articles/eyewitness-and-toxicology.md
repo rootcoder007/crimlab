@@ -78,6 +78,14 @@ lnsize(ch, k = 6, susp = 3)
 #>  4.700000000  4.700000000  4.444444444  3.345535088  6.618389805
 ```
 
+``` r
+
+res <- lnsize(ch, k = 6, susp = 3)
+plot(res)
+```
+
+![](eyewitness-and-toxicology_files/figure-html/lnsize-plot-1.png)
+
 ## Toxicology and taphonomy
 
 ### Calibration line of an assay

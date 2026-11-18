@@ -419,9 +419,9 @@ measured.
 
 fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
-#> [1] 2.684137e-08
+#> [1] 2.684117e-08
 fp$co2eg
-#> [1] 2.441759e-06
+#> [1] 2.441741e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions
@@ -429,7 +429,7 @@ fp$assumptions
 #> [2] "memory charged: the machine's total 15.6 GB"
 print(fp)
 #> Computation footprint (modelled)
-#>   Time: 0.002 s wall, 0.001 s CPU; utilisation 0.12 (process) on 4 cores
+#>   Time: 0.002 s wall, 0.003 s CPU; utilisation 0.38 (process) on 4 cores
 #>   Energy: 2.68e-08 kWh (cpu 2.36e-08, memory 3.23e-09)
 #>   CO2e: 2.44e-06 g at 90.97 gCO2e/kWh (Canada, Ontario, 2024)
 #>   Assumed: CPU power unknown: 85 W x 50% (codecarbon fallback); memory charged: the machine's total 15.6 GB
@@ -459,17 +459,17 @@ fp2 <- co2fp(
 )
 fp2$enekwh
 #> $cpu
-#> [1] 4.522917e-08
+#> [1] 6.030556e-08
 #> 
 #> $memory
-#> [1] 8.294333e-09
+#> [1] 1.105911e-08
 #> 
 #> $total
-#> [1] 5.35235e-08
+#> [1] 7.136467e-08
 fpeqv(fp2$co2eg)
 #> Footprint in everyday terms
-#>   Car travel: 9.175e-09 km
-#>   Tree uptake: 1.751e-09 tree-months
+#>   Car travel: 1.223e-08 km
+#>   Tree uptake: 2.335e-09 tree-months
 # a graphics card measured at 120 W on average (a simulated reading) and
 # a CPU row, which is not counted twice
 dev <- data.frame(
@@ -480,9 +480,9 @@ dev <- data.frame(
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
              memgb = 16, meth = "model", devices = dev)
 fp3$devices
-#>   kind  vendor      name               how          kwh counted
-#> 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE
-#> 2  cpu example package 0 simulated reading          NaN   FALSE
+#>   kind  vendor      name               how   kwh counted
+#> 1  gpu example    card 0 simulated reading 1e-07    TRUE
+#> 2  cpu example package 0 simulated reading   NaN   FALSE
 #>                                      note
 #> 1              average power over the run
 #> 2 already counted as CPU or memory energy
@@ -640,7 +640,7 @@ fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 45,
             memgb = 8)
 unlist(fpeqv(fp$co2eg)[c("carkm", "treemon")])
 #>        carkm      treemon 
-#> 5.733998e-09 1.094274e-09
+#> 6.594603e-09 1.258512e-09
 
 # a vector is refused: convert one total at a time
 try(fpeqv(c(10, 20)))

@@ -34,6 +34,14 @@ svymx(d$victim, d$w, d$region, d$block, stat = "prop", by = d$region)$cmp
 #> 1 south 0.2234697 0.04419731 5.056184 0.0004947409
 ```
 
+``` r
+
+res <- svymx(d$victim, d$w, d$region, d$block, stat = "prop")
+plot(res)
+```
+
+![](surveys-and-summaries_files/figure-html/svymx-plot-1.png)
+
 ### Rao-Scott chi-square test for a survey table
 
 [`rscchi()`](https://rootcoder007.github.io/crimlab/reference/rscchi.md):

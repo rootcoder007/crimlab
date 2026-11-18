@@ -45,6 +45,14 @@ jdgiv(z, d, y)
 #>  0.10    0 -0.07071258   NA
 ```
 
+``` r
+
+res <- jdgiv(z, d, y)
+plot(res)
+```
+
+![](courts-and-life-course_files/figure-html/jdgiv-plot-1.png)
+
 ### Do judges’ leniency rankings hold? Monotonicity checks
 
 [`jmono()`](https://rootcoder007.github.io/crimlab/reference/jmono.md):
@@ -88,6 +96,14 @@ mmshr(c(365, 400, 300, 365, 730), 365, c("a", "a", "b", "b", "b"))
 #>      b 3 0.3333333 0.3333333 0.3333333     365
 #>    all 5 0.4000000 0.2000000 0.4000000     200
 ```
+
+``` r
+
+res <- mmshr(c(365, 400, 300, 365, 730), 365, c("a", "a", "b", "b", "b"))
+plot(res)
+```
+
+![](courts-and-life-course_files/figure-html/mmshr-plot-1.png)
 
 ### Credit for pre-sentence custody
 
@@ -248,6 +264,14 @@ cumrsk(18:22, c(120, 100, 80, 60, 40), rep(10000, 5))
 #>   22 0.004149378   9640   0.040 0.036151577 0.04383306
 ```
 
+``` r
+
+res <- cumrsk(18:22, c(120, 100, 80, 60, 40), rep(10000, 5))
+plot(res)
+```
+
+![](courts-and-life-course_files/figure-html/cumrsk-plot-1.png)
+
 ### Age-period-cohort model by the intrinsic estimator
 
 [`apcie()`](https://rootcoder007.github.io/crimlab/reference/apcie.md):
@@ -293,6 +317,14 @@ apcie(y, pop)
 #>       cohort     8  0.0510250929 0.08760061 -0.120668942  0.222719128
 ```
 
+``` r
+
+res <- apcie(y, pop)
+plot(res)
+```
+
+![](courts-and-life-course_files/figure-html/apcie-plot-1.png)
+
 ### Rates between stages of the justice pipeline
 
 [`jpipe()`](https://rootcoder007.github.io/crimlab/reference/jpipe.md):
@@ -316,6 +348,15 @@ jpipe(num = c(5, 7, 6, 9, 8, 10), den = c(20, 22, 19, 25, 24, 26),
 #>    all     5  23  66 0.3484848
 #>    all     6  27  68 0.3970588
 ```
+
+``` r
+
+res <- jpipe(num = c(5, 7, 6, 9, 8, 10), den = c(20, 22, 19, 25, 24, 26),
+             win = 3, lag = 1)
+plot(res)
+```
+
+![](courts-and-life-course_files/figure-html/jpipe-plot-1.png)
 
 ### Group-based trajectory model for counts
 

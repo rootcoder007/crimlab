@@ -197,6 +197,14 @@ gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
 #>   hd  U1 0.2712476
 ```
 
+``` r
+
+res <- gmixlr(peaks, freq, ref, hp = c("V", "S"), nc = 2, hd = "V")
+plot(res)
+```
+
+![](forensics_files/figure-html/gmixlr-plot-1.png)
+
 ## Kinship index
 
 [`kinidx()`](https://rootcoder007.github.io/crimlab/reference/kinidx.md):
@@ -284,6 +292,14 @@ pedlr(trio, geno, freq, alt, mut = "equal", rate = 0.002)
 #>    vWA -5.444349 -3.141802 0.004982566
 #> log10 LR -2.002386; LR 0.009945212
 ```
+
+``` r
+
+res <- pedlr(trio, geno, freq, alt, mut = "equal", rate = 0.002)
+plot(res)
+```
+
+![](forensics_files/figure-html/pedlr-plot-1.png)
 
 ## Database search
 
@@ -473,3 +489,11 @@ cmpsc(a, b)
 cmpsc(a, cumsum(rnorm(570, sd = 0.5)))$score
 #> [1] 2
 ```
+
+``` r
+
+res <- cmpsc(a, b)
+plot(res)
+```
+
+![](forensics_files/figure-html/cmpsc-plot-1.png)

@@ -200,6 +200,10 @@ found):</p>
 <span><span class="co">#&gt; 4    hit   a    1 FALSE</span></span>
 <span><span class="co">#&gt; 5    hit   b    3 FALSE</span></span>
 <span><span class="co">#&gt; 6    hit   c    2 FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/thrtst.html">thrtst</a></span><span class="op">(</span><span class="va">d</span><span class="op">$</span><span class="va">stops</span>, <span class="va">d</span><span class="op">$</span><span class="va">srch</span>, <span class="va">d</span><span class="op">$</span><span class="va">hits</span>, <span class="va">d</span><span class="op">$</span><span class="va">grp</span>, area <span class="op">=</span> <span class="va">d</span><span class="op">$</span><span class="va">area</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="disparities-and-checks_files/figure-html/thrtst-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="internal-benchmarking-of-officers">Internal benchmarking of officers<a class="anchor" aria-label="anchor" href="#internal-benchmarking-of-officers"></a>
@@ -222,7 +226,7 @@ officers some will stand out by chance: <code>q</code> is the false
 discovery rate of Benjamini and Hochberg (1995) over the officers
 tested, and <code>flag</code> marks those with <code>q</code> below
 <code>fdr</code>.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">3000</span></span>
 <span><span class="va">off</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sample.html" class="external-link">sample</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"o%02d"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">12</span><span class="op">)</span>, <span class="va">n</span>, <span class="cn">TRUE</span><span class="op">)</span></span>
@@ -257,6 +261,10 @@ tested, and <code>flag</code> marks those with <code>q</code> below
 <span><span class="co">#&gt; 10 o10 235 0.2936170 0.3549139 2651.348 -2.01670530 4.372628e-02 1.311788e-01 FALSE</span></span>
 <span><span class="co">#&gt; 11 o11 249 0.3694779 0.3490945 2646.200  0.65262224 5.139998e-01 9.384964e-01 FALSE</span></span>
 <span><span class="co">#&gt; 12 o12 242 0.2768595 0.3613048 2687.908 -2.86006053 4.235602e-03 2.541361e-02  TRUE</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ibench.html">ibench</a></span><span class="op">(</span><span class="va">y</span>, <span class="va">off</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span><span class="va">night</span><span class="op">)</span>, minn <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="disparities-and-checks_files/figure-html/ibench-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="benchmark-decomposition-of-a-disparity">Benchmark decomposition of a disparity<a class="anchor" aria-label="anchor" href="#benchmark-decomposition-of-a-disparity"></a>
@@ -265,7 +273,7 @@ tested, and <code>flag</code> marks those with <code>q</code> below
 resident, against a reference group, into a disparity in contact per
 resident times a disparity in force per contact. The split is a product,
 never a sum. See <code>proof("dspbm")</code>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/dspbm.html">dspbm</a></span><span class="op">(</span>pop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">9000</span>, b <span class="op">=</span> <span class="fl">1000</span><span class="op">)</span>, contact <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">900</span>, b <span class="op">=</span> <span class="fl">300</span><span class="op">)</span>,</span>
 <span>      force <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">9</span>, b <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   group   ref cd fd rd</span></span>
@@ -280,7 +288,7 @@ rate per member of the offending group and as a rate per offender-victim
 pair exposed. The rate per offender rises with the size of the victim
 group even when offenders choose victims at random; the rate per pair
 does not. See <code>proof("dyadrt")</code>.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pop</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>a <span class="op">=</span> <span class="fl">800</span>, b <span class="op">=</span> <span class="fl">200</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/dyadrt.html">dyadrt</a></span><span class="op">(</span>count <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/outer.html" class="external-link">outer</a></span><span class="op">(</span><span class="va">pop</span>, <span class="va">pop</span><span class="op">)</span> <span class="op">/</span> <span class="fl">1000</span>, pop <span class="op">=</span> <span class="va">pop</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   off vic count rtoff rtpair nulloff ratio</span></span>
@@ -302,7 +310,7 @@ event and which margin of the table holds the groups.
 <code><a href="../reference/relchk.html">relchk()</a></code> recomputes the contrast from the table under every
 such reading and says which ones reproduce the reported value: the
 labelling the report states, another one, or none.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">tab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">10</span>, <span class="fl">80</span>, <span class="fl">90</span><span class="op">)</span>, <span class="fl">2</span>,</span>
 <span>              dimnames <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"A"</span>, <span class="st">"B"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"yes"</span>, <span class="st">"no"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co"># 2.25 is the odds ratio of A against B for "yes"</span></span>
@@ -332,6 +340,10 @@ labelling the report states, another one, or none.</p>
 <span><span class="co">#&gt; verdict: only readings the claim does not allow match</span></span>
 <span><span class="co">#&gt;   grp type group ref event value claim</span></span>
 <span><span class="co">#&gt;  rows   rr     A   B   yes     2 FALSE</span></span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/relchk.html">relchk</a></span><span class="op">(</span><span class="va">tab</span>, <span class="fl">2.0</span>, type <span class="op">=</span> <span class="st">"or"</span>, digits <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="disparities-and-checks_files/figure-html/relchk-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="audit-categorical-inputs-before-an-analysis">Audit categorical inputs before an analysis<a class="anchor" aria-label="anchor" href="#audit-categorical-inputs-before-an-analysis"></a>
@@ -343,7 +355,7 @@ counts, missing values, unused levels, levels counted fewer than
 a 0/1 or logical coding, integer codes that look like categories, value
 labels (as haven makes) that do not match the values, and which level a
 default would take as the reference, and why. Nothing is changed.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Male"</span>, <span class="st">"male"</span>, <span class="st">"Female"</span>, <span class="st">"Female"</span>, <span class="cn">NA</span><span class="op">)</span>,</span>
 <span>                custody <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>                court <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fl">2L</span>, <span class="fl">2L</span>, <span class="fl">3L</span>, <span class="fl">1L</span><span class="op">)</span><span class="op">)</span></span>
@@ -375,7 +387,7 @@ denominator is the total of the same events, so shares over a complete
 grouping sum to 100. Use a rate (such as <code><a href="../reference/grprr.html">grprr()</a></code>) instead
 when the denominator is a population; “40% of stops” and “40 stops per
 1,000 residents” are different claims.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># simulated stops by division</span></span>
 <span><span class="va">stops</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>division <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"North"</span>, <span class="st">"South"</span>, <span class="st">"East"</span><span class="op">)</span>,</span>
 <span>                    stops <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">412</span>, <span class="fl">77</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>

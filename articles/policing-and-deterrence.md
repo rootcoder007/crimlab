@@ -130,6 +130,15 @@ crsev(d$n, d$off, c(theft = 1, robbery = 50), unit = d$city,
 #>     B    11 158 1000 1100 15800 143.6364
 ```
 
+``` r
+
+res <- crsev(d$n, d$off, c(theft = 1, robbery = 50), unit = d$city,
+             pop = d$pop, base = 1)
+plot(res)
+```
+
+![](policing-and-deterrence_files/figure-html/crsev-plot-1.png)
+
 ### Composite index of standardised counts
 
 [`zcomp()`](https://rootcoder007.github.io/crimlab/reference/zcomp.md):
@@ -152,6 +161,14 @@ zcomp(d$n, d$hood, d$kind)
 #>     b  0.05654365    1
 #>     c  0.04828484    2
 ```
+
+``` r
+
+res <- zcomp(d$n, d$hood, d$kind)
+plot(res)
+```
+
+![](policing-and-deterrence_files/figure-html/zcomp-plot-1.png)
 
 ### Repeat victimisation: how often the same targets are victimised again
 
@@ -182,6 +199,14 @@ rptvic(hh, t = day, pop = 1000, brk = c(0, 7, 30, 90, 365))
 #>  30  90 58 0.40000000 0.64137931
 #>  90 365 52 0.35862069 1.00000000
 ```
+
+``` r
+
+res <- rptvic(hh, t = day, pop = 1000, brk = c(0, 7, 30, 90, 365))
+plot(res)
+```
+
+![](policing-and-deterrence_files/figure-html/rptvic-plot-1.png)
 
 ### Benford digit screens
 

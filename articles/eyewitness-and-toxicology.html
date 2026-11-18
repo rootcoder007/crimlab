@@ -165,6 +165,10 @@ mock witnesses, <code>m</code> of whom chose a member, and
 <span><span class="co">#&gt; 40.000000000  6.000000000 40.000000000  0.375000000  0.001282306  2.666666667 </span></span>
 <span><span class="co">#&gt;        esize       esizeb          etr        etrlo        etrhi </span></span>
 <span><span class="co">#&gt;  4.700000000  4.700000000  4.444444444  3.345535088  6.618389805</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lnsize.html">lnsize</a></span><span class="op">(</span><span class="va">ch</span>, k <span class="op">=</span> <span class="fl">6</span>, susp <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="eyewitness-and-toxicology_files/figure-html/lnsize-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div class="section level2">
@@ -183,7 +187,7 @@ with the concentration. The limits of detection and of quantitation
 follow the calibration-curve rule of ICH Q2: <code>k[1]</code> and
 <code>k[2]</code> (3.3 and 10) times the residual standard error over
 the slope.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">conc</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">5</span>, <span class="fl">10</span>, <span class="fl">25</span>, <span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">250</span><span class="op">)</span></span>
 <span><span class="va">resp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.051</span>, <span class="fl">0.098</span>, <span class="fl">0.26</span>, <span class="fl">0.49</span>, <span class="fl">1.02</span>, <span class="fl">2.47</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/txcal.html">txcal</a></span><span class="op">(</span><span class="va">conc</span>, <span class="va">resp</span>, unk <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.03</span>, <span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
@@ -209,7 +213,7 @@ Reed 1990) or <code>lod</code> itself. A value not measured
 (<code>NA</code>) stays <code>NA</code> and is not counted as censored.
 Substitution is the simple choice; with much censoring it biases the
 mean and the spread.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lodimp.html">lodimp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.05</span>, <span class="cn">NA</span>, <span class="fl">1.2</span>, <span class="fl">0.08</span><span class="op">)</span>, lod <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $tab</span></span>
 <span><span class="co">#&gt;      x lod  imp  cens</span></span>
@@ -235,7 +239,7 @@ peripheral (femoral) concentration flags it: at most <code>cut[1]</code>
 (1) minimal, at most <code>cut[2]</code> (2) modest, above that
 significant, when the peripheral value is the better guide to the
 concentration at death.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/pmrrat.html">pmrrat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">1.5</span>, <span class="fl">0.9</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.5</span>, <span class="fl">1</span>, <span class="fl">0.2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   cen per ratio      redist</span></span>
 <span><span class="co">#&gt; 1 0.4 0.5   0.8     minimal</span></span>
@@ -252,7 +256,7 @@ case: ethyl glucuronide present (above 0) says the ethanol was taken
 before death; otherwise a higher alcohol above <code>thr</code> says it
 was (at least partly) made after death; otherwise the signals do not
 decide.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/etohlr.html">etohlr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.8</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span><span class="op">)</span>, prop <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.02</span>, <span class="cn">NA</span><span class="op">)</span>, etg <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1.1</span>, <span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;   eth prop but etg higher       verdict</span></span>
 <span><span class="co">#&gt; 1 0.8 0.00   0 1.1   0.00    antemortem</span></span>
@@ -272,7 +276,7 @@ analyte at hand; decomposition lowers every matrix by
 dilutes the matrices marked <code>dil</code> (blood, urine) by a further
 <code>days / dmax</code>, at most <code>dcap</code>. A transparent
 ordering, not an estimate.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">base</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>vitreous <span class="op">=</span> <span class="fl">0.95</span>, liver <span class="op">=</span> <span class="fl">0.8</span>, femoral <span class="op">=</span> <span class="fl">0.55</span>, heart <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/mtxrel.html">mtxrel</a></span><span class="op">(</span><span class="va">base</span>, dil <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">FALSE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>, <span class="cn">TRUE</span><span class="op">)</span>, days <span class="op">=</span> <span class="fl">12</span>, stage <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     matrix base   rel   dil rank</span></span>
@@ -297,7 +301,7 @@ preservation nothing mummifies, so the column <code>mummified</code> of
 <code>absorb</code> is also the change in the chance of mummifying that
 the preservation makes. With <code>steps</code> above 0 one path is
 drawn from <code>start</code>.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/tpdmc.html">tpdmc</a></span><span class="op">(</span>pres <span class="op">=</span> <span class="fl">0.4</span><span class="op">)</span><span class="op">$</span><span class="va">absorb</span></span>
 <span><span class="co">#&gt;          skeletal mummified</span></span>
 <span><span class="co">#&gt; fresh      0.1296    0.8704</span></span>
@@ -320,7 +324,7 @@ and <code>psd</code>, and the data revise it. With groups (cemeteries,
 sites) the mean residual of each group is shrunk towards 0 by the method
 of moments: <code>tau2</code> is the variance between the group means
 beyond what the noise explains.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>lime <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">1</span>, <span class="fl">0.5</span><span class="op">)</span>, temp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">30</span>, <span class="fl">12</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fl">0.3</span> <span class="op">+</span> <span class="fl">0.2</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">lime</span> <span class="op">-</span> <span class="fl">0.01</span> <span class="op">*</span> <span class="va">d</span><span class="op">$</span><span class="va">temp</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">30</span>, sd <span class="op">=</span> <span class="fl">0.05</span><span class="op">)</span></span>
@@ -344,7 +348,7 @@ coordinates in an orthonormal basis (the default pivot basis: coordinate
 <code>i + 1</code>), on which the usual methods apply. Each row is
 closed to sum 1 after <code>ps</code> is added to every part, so that a
 part below the detection limit (0) has a log.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Ca <span class="op">=</span> <span class="fl">60</span>, P <span class="op">=</span> <span class="fl">25</span>, Fe <span class="op">=</span> <span class="fl">10</span>, Zn <span class="op">=</span> <span class="fl">5</span><span class="op">)</span>,</span>
 <span>           <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Ca <span class="op">=</span> <span class="fl">80</span>, P <span class="op">=</span> <span class="fl">12</span>, Fe <span class="op">=</span> <span class="fl">6</span>, Zn <span class="op">=</span> <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/clrilr.html">clrilr</a></span><span class="op">(</span><span class="va">x</span><span class="op">)</span></span>
@@ -370,7 +374,7 @@ measurements exist (<code><a href="../reference/clrilr.html">clrilr()</a></code>
 a substitute for them. The mean share of part <code>j</code> is
 <code>alpha[j] / sum(alpha)</code>; larger concentrations give less
 spread around it.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># a calcium-rich profile and a natural one, in parts per million</span></span>
 <span><span class="va">lime</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Ca <span class="op">=</span> <span class="fl">85</span>, P <span class="op">=</span> <span class="fl">5</span>, Fe <span class="op">=</span> <span class="fl">2</span>, Sr <span class="op">=</span> <span class="fl">0.5</span>, Pb <span class="op">=</span> <span class="fl">0.2</span>, Zn <span class="op">=</span> <span class="fl">0.2</span><span class="op">)</span></span>
 <span><span class="va">soil</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span>Ca <span class="op">=</span> <span class="fl">30</span>, P <span class="op">=</span> <span class="fl">15</span>, Fe <span class="op">=</span> <span class="fl">5</span>, Sr <span class="op">=</span> <span class="fl">1</span>, Pb <span class="op">=</span> <span class="fl">0.5</span>, Zn <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span></span>

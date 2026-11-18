@@ -185,6 +185,14 @@ cntreg(clprep(e, mine))
 #> negative binomial theta 19720034; AIC Poisson 23.74163, negative binomial 25.74164
 ```
 
+``` r
+
+res <- cntreg(clprep(e, mine))
+plot(res)
+```
+
+![](learning-and-presets_files/figure-html/clprep-plot-1.png)
+
 ### Check a table against a preset before use
 
 [`prechk()`](https://rootcoder007.github.io/crimlab/reference/prechk.md):

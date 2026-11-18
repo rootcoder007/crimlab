@@ -320,6 +320,10 @@ evenly over the cycle, as <code>chisq.test(y)</code>.</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $p</span></span>
 <span><span class="co">#&gt; [1] 0.2241485</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/trndrr.html">trndrr</a></span><span class="op">(</span><span class="va">y</span>, <span class="fl">2017</span><span class="op">:</span><span class="fl">2023</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="time-and-contagion_files/figure-html/trndrr-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="change-point-a-step-in-a-series-and-pettitts-test">Change point: a step in a series and Pettitt’s test<a class="anchor" aria-label="anchor" href="#change-point-a-step-in-a-series-and-pettitts-test"></a>
@@ -336,7 +340,7 @@ alone. Pettitt’s rank test takes the split with the largest |U_t|, U_t =
 sum_{i &lt;= t &lt; j} sign(y_j - y_i), with its approximate p-value 2
 (-6 K^2 / (n^3 + n^2)). Both assume exchangeable periods under no
 change: a steady trend can read as a step.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/stpcp.html">stpcp</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">104</span>, <span class="fl">98</span>, <span class="fl">60</span>, <span class="fl">63</span>, <span class="fl">58</span><span class="op">)</span>, x <span class="op">=</span> <span class="fl">2018</span><span class="op">:</span><span class="fl">2023</span><span class="op">)</span></span>
 <span><span class="co">#&gt; stpcp: 6 periods; step p-value exact over 720 orderings</span></span>
 <span><span class="co">#&gt;     test k   before    after     stat         p   at</span></span>
@@ -362,7 +366,7 @@ before <code>start</code>, the first period watched. <code>z</code> is
 or the count itself (<code>"none"</code>, for <code>k</code> and
 <code>h</code> on the count scale). With <code>reset</code> the sum
 starts again from 0 after an alarm.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">12</span>, <span class="fl">9</span>, <span class="fl">11</span>, <span class="fl">10</span>, <span class="fl">13</span>, <span class="fl">19</span>, <span class="fl">22</span>, <span class="fl">25</span>, <span class="fl">12</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/cusrv.html">cusrv</a></span><span class="op">(</span><span class="va">y</span>, start <span class="op">=</span> <span class="fl">6</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    i  y expd         z        s alarm</span></span>
@@ -400,7 +404,7 @@ period to the next are correlated instead of the levels: two series that
 both trend correlate in level whether or not they move together. Every
 correlation lies in [-1, 1] (Cauchy-Schwarz,
 <code>proof("xcser")</code>).</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2019"</span> <span class="op">=</span> <span class="fl">120</span>, <span class="st">"2020"</span> <span class="op">=</span> <span class="fl">98</span>, <span class="st">"2021"</span> <span class="op">=</span> <span class="fl">105</span>, <span class="st">"2022"</span> <span class="op">=</span> <span class="fl">130</span>, <span class="st">"2023"</span> <span class="op">=</span> <span class="fl">141</span><span class="op">)</span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2018"</span> <span class="op">=</span> <span class="fl">50</span>, <span class="st">"2019"</span> <span class="op">=</span> <span class="fl">61</span>, <span class="st">"2020"</span> <span class="op">=</span> <span class="fl">44</span>, <span class="st">"2021"</span> <span class="op">=</span> <span class="fl">52</span>, <span class="st">"2022"</span> <span class="op">=</span> <span class="fl">66</span>,</span>
 <span>       <span class="st">"2023"</span> <span class="op">=</span> <span class="fl">70</span><span class="op">)</span></span>
@@ -417,6 +421,10 @@ correlation lies in [-1, 1] (Cauchy-Schwarz,
 <span><span class="fu"><a href="../reference/xcser.html">xcser</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span>, dif <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">$</span><span class="va">cor</span></span>
 <span><span class="co">#&gt;           r        lo        hi          p n</span></span>
 <span><span class="co">#&gt; 1 0.9734683 0.1922192 0.9994666 0.02653166 4</span></span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/xcser.html">xcser</a></span><span class="op">(</span><span class="va">a</span>, <span class="va">b</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="time-and-contagion_files/figure-html/xcser-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="kaplan-meier-survival-and-recurrence">Kaplan-Meier survival and recurrence<a class="anchor" aria-label="anchor" href="#kaplan-meier-survival-and-recurrence"></a>
@@ -431,7 +439,7 @@ standard error and the log-scale interval of
 (<code><a href="https://rdrr.io/pkg/survival/man/survdiff.html" class="external-link">survival::survdiff()</a></code>). Each product step is a factor in
 [0, 1], so the curve starts at most 1 and never rises
 (<code>proof("kmrec")</code>).</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/kmrec.html">kmrec</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">8</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">20</span>, <span class="fl">24</span><span class="op">)</span>, event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
 <span>      grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; kmrec: 6 durations</span></span>
@@ -444,6 +452,11 @@ standard error and the log-scale interval of
 <span>      unit <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"p"</span>, <span class="st">"q"</span>, <span class="st">"r"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>, end <span class="op">=</span> <span class="fl">100</span><span class="op">)</span><span class="op">$</span><span class="va">med</span></span>
 <span><span class="co">#&gt;   grp n events median</span></span>
 <span><span class="co">#&gt; 1 all 8      5     43</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/kmrec.html">kmrec</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">8</span>, <span class="fl">8</span>, <span class="fl">12</span>, <span class="fl">20</span>, <span class="fl">24</span><span class="op">)</span>, event <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>             grp <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"b"</span>, <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="time-and-contagion_files/figure-html/kmrec-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="split-population-cure-model-of-recidivism">Split-population (cure) model of recidivism<a class="anchor" aria-label="anchor" href="#split-population-cure-model-of-recidivism"></a>
@@ -464,7 +477,7 @@ common standard deviation <code>sigma</code>). A person followed to time
 who failed at <code>t</code> contributes delta f(t). The parameters are
 estimated by maximum likelihood (quasi-Newton steps with the analytic
 gradient) with standard errors from the inverse of the Hessian.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
 <span><span class="va">n</span> <span class="op">&lt;-</span> <span class="fl">600</span></span>
 <span><span class="va">prior</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="va">n</span>, <span class="fl">1</span>, <span class="fl">0.4</span><span class="op">)</span></span>
@@ -480,7 +493,7 @@ gradient) with standard errors from the inverse of the Hessian.</p>
 <span><span class="co">#&gt;   time (Intercept)  5.7522378 0.06907445  5.6168543  5.8876212 83.2759080 0.000000e+00</span></span>
 <span><span class="co">#&gt;   time       prior -0.0414838 0.09364132 -0.2250174  0.1420498 -0.4430074 6.577604e-01</span></span>
 <span><span class="co">#&gt;  shape  log(shape)  0.3494171 0.04854205  0.2542765  0.4445578  7.1982364 6.099631e-13</span></span></code></pre></div>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></code></pre></div>
 <p><img src="time-and-contagion_files/figure-html/spcure-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
@@ -501,13 +514,17 @@ wait, and with travel times the mean response travel time. Whatever the
 orders, the number of busy units follows Erlang’s loss or delay system.
 The noisy-OR chance that patrols detect an event is
 <code><a href="../reference/nordet.html">nordet()</a></code>.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pref</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">1</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">2</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">3</span>, <span class="fl">1</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">tt</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">2</span>, <span class="fl">5</span>, <span class="fl">8</span>, <span class="fl">6</span>, <span class="fl">3</span>, <span class="fl">7</span>, <span class="fl">9</span>, <span class="fl">6</span>, <span class="fl">2</span>, <span class="fl">7</span>, <span class="fl">8</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/hypq.html">hypq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.7</span>, <span class="fl">0.3</span>, <span class="fl">0.6</span><span class="op">)</span>, <span class="va">pref</span>, mu <span class="op">=</span> <span class="fl">1.5</span>, tt <span class="op">=</span> <span class="va">tt</span><span class="op">)</span></span>
 <span><span class="co">#&gt; hypq: 3 units, rho 0.4444444; P(all busy) 0.109215</span></span>
 <span><span class="co">#&gt; workloads: 0.3722186 0.4025169 0.4129779</span></span>
 <span><span class="co">#&gt; mean travel time 3.944009</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hypq.html">hypq</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.4</span>, <span class="fl">0.7</span>, <span class="fl">0.3</span>, <span class="fl">0.6</span><span class="op">)</span>, <span class="va">pref</span>, mu <span class="op">=</span> <span class="fl">1.5</span>, tt <span class="op">=</span> <span class="va">tt</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">res</span><span class="op">)</span></span></code></pre></div>
+<p><img src="time-and-contagion_files/figure-html/hypq-plot-1.png" class="r-plt" alt="" width="468" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level3">
 <h3 id="square-root-law-of-response-distance">Square-root law of response distance<a class="anchor" aria-label="anchor" href="#square-root-law-of-response-distance"></a>
@@ -521,7 +538,7 @@ sqrt{2 pi} / 4 on a rectangular street grid. Quadrupling the units
 halves the distance and scaling area and units together leaves it
 unchanged (<code>proof("sqrtlw")</code>). The busy share can come from
 <code><a href="../reference/hypq.html">hypq()</a></code>’s workloads.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/sqrtlw.html">sqrtlw</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">4</span><span class="op">)</span></span>
 <span><span class="co">#&gt; $dist</span></span>
 <span><span class="co">#&gt; [1] 2.5</span></span>
@@ -568,7 +585,7 @@ omega b + epsilon D rho A and rho_t = (D / z)(Delta rho - 2 (rho A / A))
 spacing <code>dx</code>; <code>sup</code> marks sites where policing
 suppresses crime (no burglaries there). The step must satisfy dt &lt;= z
 dx^2 / (4 dif max(1, eta)).</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sdbsim.html">sdbsim</a></span><span class="op">(</span><span class="fl">20</span>, <span class="fl">50</span>, a0 <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">30</span>, omega <span class="op">=</span> <span class="fl">1</span> <span class="op">/</span> <span class="fl">15</span>, eta <span class="op">=</span> <span class="fl">0.03</span>,</span>
 <span>            gam <span class="op">=</span> <span class="fl">0.02</span>, theta <span class="op">=</span> <span class="fl">0.5</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">s</span></span>
@@ -577,7 +594,7 @@ dx^2 / (4 dif max(1, eta)).</p>
 <span>            rho <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fl">0.07</span>, <span class="fl">16</span>, <span class="fl">16</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">p</span><span class="op">$</span><span class="va">b</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] 0.05691214 0.05691214</span></span></code></pre></div>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">p</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning in contour.default(x, y, z, add = TRUE, drawlabels = FALSE, col = "#636363", :</span></span>
 <span><span class="co">#&gt; all z values are equal</span></span></code></pre></div>
@@ -599,7 +616,7 @@ state is stable at every wavelength (<code>proof("sdbthr")</code>).
 <code>z</code> places the lattice’s neighbour count on both diffusion
 terms, as <code><a href="../reference/sdbsim.html">sdbsim()</a></code> does (<code>z = 1</code> is the
 continuum form).</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/sdbthr.html">sdbthr</a></span><span class="op">(</span>a0 <span class="op">=</span> <span class="fl">1</span>, omega <span class="op">=</span> <span class="fl">1</span>, eps <span class="op">=</span> <span class="fl">2</span>, dif <span class="op">=</span> <span class="fl">1</span>, gam <span class="op">=</span> <span class="fl">1</span>, eta <span class="op">=</span> <span class="fl">0.01</span><span class="op">)</span></span>
 <span><span class="co">#&gt; sdbthr: steady b 2, rho 0.3333333; 3 eps dif rho = 2 against omega + eta A = 1.03</span></span>
 <span><span class="co">#&gt; hot spots form; critical k 48.5</span></span>
@@ -612,7 +629,7 @@ continuum form).</p>
 <p><code><a href="../reference/etasf.html">etasf()</a></code>: Fits the temporal epidemic-type aftershock
 sequence (ETAS) model of Ogata (1988) to event times with marks (a
 magnitude, the number of victims, the severity of an incident):</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">x</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwksim.html">hwksim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.3</span><span class="op">)</span>, <span class="fl">0.5</span>, <span class="fl">0.6</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">800</span>, kernel <span class="op">=</span> <span class="st">"lomax"</span>, seed <span class="op">=</span> <span class="fl">5</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/etasf.html">etasf</a></span><span class="op">(</span><span class="va">x</span><span class="op">$</span><span class="va">t</span>, <span class="fl">800</span><span class="op">)</span></span>
 <span><span class="co">#&gt; etasf: 530 events in [0, 800]; no marks, alpha fixed at 0</span></span>
@@ -630,7 +647,7 @@ magnitude, the number of victims, the severity of an incident):</p>
 <p><code><a href="../reference/mvhwk.html">mvhwk()</a></code>: Fits a multivariate Hawkes process with
 exponential kernels to event times of several types (offence types,
 gangs, areas):</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwksim.html">hwksim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.3</span><span class="op">)</span>, <span class="fl">0.3</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">400</span>, seed <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwksim.html">hwksim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.2</span><span class="op">)</span>, <span class="fl">0.4</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">400</span>, seed <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span>
 <span><span class="va">d</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/cbind.html" class="external-link">rbind</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>t <span class="op">=</span> <span class="va">a</span><span class="op">$</span><span class="va">t</span>, type <span class="op">=</span> <span class="st">"a"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>t <span class="op">=</span> <span class="va">b</span><span class="op">$</span><span class="va">t</span>, type <span class="op">=</span> <span class="st">"b"</span><span class="op">)</span><span class="op">)</span></span>
@@ -650,7 +667,7 @@ gangs, areas):</p>
 </h3>
 <p><code><a href="../reference/sthwk.html">sthwk()</a></code>: Fits the self-exciting point process of crime
 in space and time of Mohler et al. (2011):</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/hwksim.html">hwksim</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">log</a></span><span class="op">(</span><span class="fl">0.02</span><span class="op">)</span>, <span class="fl">0.5</span>, <span class="fl">1</span><span class="op">)</span>, <span class="fl">100</span>, win <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span>,</span>
 <span>            sigma <span class="op">=</span> <span class="fl">0.3</span>, seed <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
 <span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sthwk.html">sthwk</a></span><span class="op">(</span><span class="va">s</span><span class="op">$</span><span class="va">t</span>, <span class="va">s</span><span class="op">$</span><span class="va">x</span>, <span class="va">s</span><span class="op">$</span><span class="va">y</span>, <span class="fl">100</span>, win <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">10</span>, <span class="fl">0</span>, <span class="fl">10</span><span class="op">)</span><span class="op">)</span></span>
@@ -679,7 +696,7 @@ follow stated rules: an event with no <code>from</code> is left out;
 with no <code>to</code>, a reversed interval or one shorter than
 <code>lo</code> seconds, its whole weight goes to the start’s bin; one
 of at least <code>hi</code> seconds is spread evenly over all bins.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2024-03-04 22:00"</span>, <span class="st">"2024-03-05 09:30"</span><span class="op">)</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span></span>
 <span><span class="va">t</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2024-03-05 02:00"</span>, <span class="st">"2024-03-05 10:30"</span><span class="op">)</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/aorwt.html">aorwt</a></span><span class="op">(</span><span class="va">f</span>, <span class="va">t</span>, bw <span class="op">=</span> <span class="fl">3600</span>, nb <span class="op">=</span> <span class="fl">24</span>, origin <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
@@ -701,7 +718,7 @@ conditional-sum-of-squares fit as its start, as
 <code><a href="https://rdrr.io/r/stats/arima.html" class="external-link">stats::arima()</a></code> does by default, and forecasts
 <code>h</code> periods ahead with their standard errors. AIC is -2 L +
 2(k + 1); BIC is + (k + 1)(n - 2), k the ARMA coefficients.</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># 48 simulated months of counts</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">48</span>, <span class="fl">50</span> <span class="op">+</span> <span class="fl">10</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">48</span> <span class="op">/</span> <span class="fl">6</span><span class="op">)</span><span class="op">)</span></span>
@@ -718,7 +735,7 @@ against them: the mean absolute percentage error (each error over the
 larger of the count and 1) and the root mean square error. The model
 must difference the series once at least (<code>order[2]</code> or
 <code>seasonal[2]</code> above 0), so it has no mean.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">60</span>, <span class="fl">50</span> <span class="op">+</span> <span class="fl">10</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Trig.html" class="external-link">sin</a></span><span class="op">(</span><span class="fl">2</span> <span class="op">*</span> <span class="va">pi</span> <span class="op">*</span> <span class="op">(</span><span class="fl">1</span><span class="op">:</span><span class="fl">60</span><span class="op">)</span> <span class="op">/</span> <span class="fl">12</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/sarfc.html">sarfc</a></span><span class="op">(</span><span class="va">y</span>, h <span class="op">=</span> <span class="fl">6</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mape"</span>, <span class="st">"rmse"</span><span class="op">)</span><span class="op">]</span></span>
@@ -740,7 +757,7 @@ differences on the lagged values (theta = -b, at least 10^{-6}, mu =
 Euler-Maruyama paths of <code>days / dt</code> steps from the last
 value. Draws come from <code>seed</code>, as <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code>
 takes it.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">y</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">20</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/ousim.html">ousim</a></span><span class="op">(</span><span class="va">y</span>, npath <span class="op">=</span> <span class="fl">20</span>, days <span class="op">=</span> <span class="fl">30</span><span class="op">)</span><span class="op">$</span><span class="va">q</span></span>
@@ -758,7 +775,7 @@ count plus 1, <code>nstep</code> steps of 0.05, edges copied from their
 neighbours, the density kept non-negative and of total 1. It starts as a
 normal curve at the last count with standard deviation sigma + 1. The
 stationary variance is sigma^2 / (2 theta).</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fpdens.html">fpdens</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Poisson.html" class="external-link">rpois</a></span><span class="op">(</span><span class="fl">200</span>, <span class="fl">20</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">f</span><span class="op">$</span><span class="va">peak</span></span>
@@ -775,7 +792,7 @@ median log growth of y plus 0.05, beta = alpha / (y), delta = gamma /
 (x), and the linearised cycle has period 2pi / sqrt{alphagamma}
 (D’Orsogna and Perc 2015, section 3.4). The rates describe the series;
 they are not a fitted dynamical model.</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/lvfit.html">lvfit</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">410</span>, <span class="fl">455</span>, <span class="fl">430</span>, <span class="fl">470</span>, <span class="fl">520</span>, <span class="fl">498</span>, <span class="fl">515</span><span class="op">)</span>, year <span class="op">=</span> <span class="fl">2017</span><span class="op">:</span><span class="fl">2023</span><span class="op">)</span><span class="op">$</span><span class="va">period</span></span>
 <span><span class="co">#&gt; [1] 299.0938</span></span></code></pre></div>
 </div>
@@ -787,7 +804,7 @@ type, call type) by unit (neighbourhood, beat, district), over the union
 of the units with a 0 where a category has none, and gives the Pearson
 correlations of those counts between every pair of categories: whether
 the same places score high on both.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># simulated events of three categories in 20 areas</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="va">a</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sprintf.html" class="external-link">sprintf</a></span><span class="op">(</span><span class="st">"%02d"</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">20</span><span class="op">)</span></span>

@@ -240,6 +240,14 @@ trndrr(c(5, 9, 7, 4, 6, 10, 8, 5), seas = rep(1:4, 2))$seas
 #> [1] 0.2241485
 ```
 
+``` r
+
+res <- trndrr(y, 2017:2023)
+plot(res)
+```
+
+![](time-and-contagion_files/figure-html/trndrr-plot-1.png)
+
 ### Change point: a step in a series and Pettitt’s test
 
 [`stpcp()`](https://rootcoder007.github.io/crimlab/reference/stpcp.md):
@@ -343,6 +351,14 @@ xcser(a, b, dif = TRUE)$cor
 #> 1 0.9734683 0.1922192 0.9994666 0.02653166 4
 ```
 
+``` r
+
+res <- xcser(a, b)
+plot(res)
+```
+
+![](time-and-contagion_files/figure-html/xcser-plot-1.png)
+
 ### Kaplan-Meier survival and recurrence
 
 [`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md):
@@ -373,6 +389,15 @@ kmrec(c(2, 9, 30, 5, 70, 11, 12, 13),
 #>   grp n events median
 #> 1 all 8      5     43
 ```
+
+``` r
+
+res <- kmrec(c(3, 8, 8, 12, 20, 24), event = c(1, 1, 0, 1, 0, 1),
+             grp = c("a", "a", "a", "b", "b", "b"))
+plot(res)
+```
+
+![](time-and-contagion_files/figure-html/kmrec-plot-1.png)
 
 ### Split-population (cure) model of recidivism
 
@@ -445,6 +470,14 @@ hypq(c(0.4, 0.7, 0.3, 0.6), pref, mu = 1.5, tt = tt)
 #> workloads: 0.3722186 0.4025169 0.4129779
 #> mean travel time 3.944009
 ```
+
+``` r
+
+res <- hypq(c(0.4, 0.7, 0.3, 0.6), pref, mu = 1.5, tt = tt)
+plot(res)
+```
+
+![](time-and-contagion_files/figure-html/hypq-plot-1.png)
 
 ### Square-root law of response distance
 

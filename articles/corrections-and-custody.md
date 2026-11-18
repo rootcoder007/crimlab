@@ -152,6 +152,14 @@ mtrbnd(y, z, assume = "none")
 #>    custody 0.32625 0.4712644 0.15375 0.82750 -0.58 0.75625
 ```
 
+``` r
+
+res <- mtrbnd(y, z, assume = "none")
+plot(res)
+```
+
+![](corrections-and-custody_files/figure-html/mtrbnd-plot-1.png)
+
 ### Period-two hazards after selective depletion
 
 [`hzdsel()`](https://rootcoder007.github.io/crimlab/reference/hzdsel.md):
@@ -206,6 +214,15 @@ stkflw(people = c(5200, 4800, 4300), days = c(310000, 318000, 330000),
 stkflw(adp = 900, alos = 61)$flow$people
 #> [1] 5385.246
 ```
+
+``` r
+
+res <- stkflw(people = c(5200, 4800, 4300), days = c(310000, 318000, 330000),
+              prd = 2021:2023)
+plot(res)
+```
+
+![](corrections-and-custody_files/figure-html/stkflw-plot-1.png)
 
 ### Lengths of stay: their distribution and its fit
 
@@ -308,6 +325,15 @@ dktflw(mix = m)$mix$trend
 #> 3     other 0.8723635 0.3503018 0.7006036  -0.05
 ```
 
+``` r
+
+res <- dktflw(recv = c(120, 130, 125, 140), disp = c(110, 135, 120, 150),
+              pend = c(400, 395, 400, 390), win = 2, span = 91)
+plot(res)
+```
+
+![](corrections-and-custody_files/figure-html/dktflw-plot-1.png)
+
 ### Actuarial life table of grouped times
 
 [`lftab()`](https://rootcoder007.github.io/crimlab/reference/lftab.md):
@@ -336,6 +362,15 @@ lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
 #>  0.18020436 0.05376344
 #>  0.09308838         NA
 ```
+
+``` r
+
+res <- lftab(c(0, 3, 6, 12, 24, Inf), events = c(40, 30, 20, 10, 5),
+             cens = c(2, 2, 3, 3, 4))
+plot(res)
+```
+
+![](corrections-and-custody_files/figure-html/lftab-plot-1.png)
 
 ### Transition matrix between states
 
