@@ -1,5 +1,17 @@
 # Changelog
 
+## crimlab 0.0.2
+
+- Every package carries the title of the R package, “Statistical Toolkit
+  for Criminology and Sociolegal Research”: the Python, JavaScript,
+  Rust, Java and Go packages, the command’s manual page, the C header
+  and the Homebrew, Scoop, Debian, RPM and container descriptions said
+  “criminology and sociolegal statistics”. The README of the Python,
+  JavaScript and Rust packages, which is what each registry shows, says
+  how to cite crimlab.
+
+- No function changed.
+
 ## crimlab 0.0.1
 
 - The results of the Indigenous health and wellbeing functions have
