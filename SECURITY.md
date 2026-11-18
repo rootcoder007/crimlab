@@ -16,3 +16,29 @@ A crash, a hang or memory that grows without bound on input a caller could
 reasonably pass counts as a vulnerability here, in the R package, the
 command-line program and every binding. A wrong number is a bug: report it
 in the issue tracker.
+
+## Release signing key
+
+Each release's `SHA256SUMS` is signed with this SSH key (namespace
+`file`); the signature is the release file `SHA256SUMS.sig`.
+
+```
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCgdm/W6LtsPET14oTqb1lOFga52VG4HSJTtQHfLTFc
+```
+
+Fingerprint `SHA256:o8zFxDLZk0Q4Cm00HWgHXqfD/rlI6TVLAI00OaAtrAk`. To check
+a release, put the key in an allowed-signers file and verify the sums, then
+check the archive against them:
+
+```sh
+echo "crimlab ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDCgdm/W6LtsPET14oTqb1lOFga52VG4HSJTtQHfLTFc" > allowed_signers
+ssh-keygen -Y verify -f allowed_signers -I crimlab -n file \
+  -s SHA256SUMS.sig < SHA256SUMS
+sha256sum -c --ignore-missing SHA256SUMS
+```
+
+`install.sh` and `install.ps1` make the same check when the environment
+variable `CRIMLAB_SIGNER` holds that allowed-signers line
+(`crimlab ssh-ed25519 ...`); without it they check the archive against
+`SHA256SUMS` only.
+
