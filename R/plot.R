@@ -266,10 +266,11 @@ yoypals <- function() names(.YOY_PALETTES)
 .ppch <- function(g) c(19, 17, 15, 1, 2, 0)[(as.integer(g) - 1L) %% 6L + 1L]
 
 # a dot-and-interval (forest) chart, one row per label from the top; `grp`
-# gives each group its colour and shape (several groups may share a row);
+# gives each group its colour and shape (several groups may share a row),
+# named in a key unless `key` is FALSE (the row labels then say it);
 # returns the points drawn
 .pdots <- function(lab, est, lo, hi, main, xlab, col = NULL, pal = NULL,
-                   ref = NULL, grp = NULL, log = "", ...) {
+                   ref = NULL, grp = NULL, log = "", key = TRUE, ...) {
   lab <- as.character(lab)
   n <- length(lab)
   lo <- rep_len(as.numeric(lo), n)
@@ -284,14 +285,27 @@ yoypals <- function() names(.YOY_PALETTES)
   on.exit(graphics::par(op), add = TRUE)
   v <- c(est, lo, hi, ref)
   if (log == "x") v <- v[v > 0]
-  .pfrm(.prange(v), c(0.5, k + 0.5), main, xlab, "", yaxt = "n",
+  # rows of room above the first row for the key, so that it covers no
+  # point: its height in inches against that of the plot region
+  top <- 0
+  if (!is.null(grp) && key) {
+    kh <- nlevels(g) * graphics::par("cin")[2L] * graphics::par("cex") * 0.95
+    ph <- graphics::par("fin")[2L] - sum(graphics::par("mai")[c(1L, 3L)])
+    if (ph > kh) top <- kh * (k + 1) / (ph - kh)
+  }
+  .pfrm(.prange(v), c(0.5, k + 0.5 + top), main, xlab, "", yaxt = "n",
           log = log, ...)
-  graphics::axis(2, at = rev(seq_len(k)), labels = u, tick = FALSE, las = 1)
+  # every row keeps its label (axis() would drop one that comes close to
+  # its neighbour), in letters small enough for the height of a row
+  rh <- graphics::par("pin")[2L] / (k + top)
+  ch <- graphics::par("cin")[2L] * graphics::par("cex")
+  graphics::axis(2, at = rev(seq_len(k)), labels = u, tick = FALSE, las = 1,
+                 gap.axis = -1, cex.axis = max(0.5, min(1, 0.85 * rh / ch)))
   if (!is.null(ref)) graphics::abline(v = ref, lty = 2, col = "#636363")
   w <- is.finite(lo) & is.finite(hi)
   graphics::segments(lo[w], y[w], hi[w], y[w], col = cl[g][w], lwd = 2)
   graphics::points(est, y, pch = .ppch(g), col = cl[g], cex = 1.2)
-  if (!is.null(grp)) {
+  if (!is.null(grp) && key) {
     .pkey("topright", levels(g), cl, lty = if (any(w)) 1 else NA,
           pch = .ppch(seq_len(nlevels(g))))
   }
@@ -332,7 +346,24 @@ yoypals <- function() names(.YOY_PALETTES)
   cl <- .pcols(k, col, pal)
   op <- .ppar()
   on.exit(graphics::par(op), add = TRUE)
-  .pfrm(.prange(x), .prange(y, lo, hi, ref), main, xlab, ylab, ...)
+  # periods written as text: the numbers they spell ("2021"), or else
+  # their order, with the texts on the axis ("2020/21")
+  x0 <- x
+  lab <- NULL
+  if (!is.numeric(x)) {
+    lab <- unique(as.character(x))
+    at <- suppressWarnings(as.numeric(lab))
+    if (anyNA(at)) at <- seq_along(lab)
+    x <- at[match(as.character(x), lab)]
+  }
+  if (is.null(lab)) {
+    .pfrm(.prange(x), .prange(y, lo, hi, ref), main, xlab, ylab, ...)
+  } else {
+    # the periods as they were written, each at its place
+    .pfrm(.prange(x), .prange(y, lo, hi, ref), main, xlab, ylab,
+          xaxt = "n", ...)
+    graphics::axis(1, at = at, labels = lab)
+  }
   if (!is.null(ref)) graphics::abline(h = ref, lty = 2, col = "#636363")
   st <- type == "s"
   for (i in seq_len(k)) {
@@ -353,7 +384,7 @@ yoypals <- function() names(.YOY_PALETTES)
     .pkey(where, levels(g), cl, lty = seq_len(k),
           pch = if (st) NA else .ppch(seq_len(k)))
   }
-  d <- data.frame(x = x, series = as.character(g), y = y,
+  d <- data.frame(x = x0, series = as.character(g), y = y,
                   stringsAsFactors = FALSE)
   if (!is.null(lo)) {
     d$lo <- lo

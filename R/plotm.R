@@ -41,6 +41,14 @@
 #' * Points: `bufas` (distances to sites), `cmpsc` (segment positions),
 #'   `ebshr` (raw against shrunk values), `ibench` (rate against
 #'   benchmark) and `kscan` (clusters as circles).
+#' * Indigenous health and wellbeing, each group's level with its interval
+#'   and a star on an estimate the source flags: `indgap` and `trchlthgap`
+#'   (ratio to the reference group, log scale), `dualcont` (wellness beside
+#'   distress), `welprof` and `mhcont` (every indicator, by group),
+#'   `healchg` (change between two periods), `holbal` (level and balance
+#'   of the domains), `commidx`, `stdprev`, `ordcmp`, and `cnscwb` and
+#'   `cwbscr` (the four components of a Community Well-Being score and the
+#'   score).
 #'
 #' @param x A result of the package.
 #' @inheritParams plotlrnz
@@ -246,31 +254,48 @@ plot.dissix <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 #' @export
 plot.didfe <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "didfe", "coef")
-  n <- 1L + sum(!vapply(x[c("bacon", "loo")], is.null, NA))
+  r <- x$coef
+  # with the units left out in turn, the estimate is the first row of that
+  # panel and has none of its own
+  n <- sum(!vapply(x[c("bacon", "loo")], is.null, NA)) + is.null(x$loo)
   op <- .ppanels(n)
   on.exit(graphics::par(op), add = TRUE)
-  r <- x$coef
-  out <- list(coef = .pdots(r$term, r$est, r$lo, r$hi,
-                            .pmain(main, "Two-way fixed-effects estimate"),
-                            "Effect", col, pal, ref = 0, ...))
+  out <- list()
+  if (is.null(x$loo)) {
+    out$coef <- .pdots(r$term, r$est, r$lo, r$hi,
+                       .pmain(main, "Two-way fixed-effects estimate"),
+                       "Effect", col, pal, ref = 0, ...)
+  }
   if (!is.null(x$bacon)) {
     b <- x$bacon
     g <- factor(b$type, levels = unique(b$type))
     cl <- .pcols(nlevels(g), col, pal)
     .ppar()
-    .pfrm(.prange(b$weight, 0), .prange(b$est, r$est[1L]),
-            "Goodman-Bacon comparisons", "Weight", "Estimate", ...)
+    # room on the right for the heaviest comparison, and above the points
+    # for the key, which then covers none of them
+    xr <- .prange(b$weight, 0)
+    yr <- .prange(b$est, r$est[1L])
+    .pfrm(xr + c(0, 0.06) * diff(xr),
+          yr + c(-0.08, 0.2 * (nlevels(g) + 1L)) * diff(yr),
+          "Goodman-Bacon comparisons", "Weight", "Estimate", ...)
     graphics::abline(h = r$est[1L], lty = 2, col = "#636363")
     graphics::points(b$weight, b$est, col = cl[g], pch = .ppch(g), cex = 1.3)
-    .pkey("bottomright", levels(g), cl, pch = .ppch(seq_len(nlevels(g))))
+    .pkey("topleft", levels(g), cl, pch = .ppch(seq_len(nlevels(g))))
     out$bacon <- b
   }
   if (!is.null(x$loo)) {
     l <- x$loo
     z <- stats::qnorm(1 - (1 - x$level) / 2)
-    out$loo <- .pdots(paste("without", l$unit), l$est, l$est - z * l$se,
-                      l$est + z * l$se, "Leaving one adopting unit out",
-                      "Effect", col, pal, ref = r$est[1L], ...)
+    k <- nrow(l)
+    d <- .pdots(c("all units", paste("without", l$unit)),
+                c(r$est[1L], l$est), c(r$lo[1L], l$est - z * l$se),
+                c(r$hi[1L], l$est + z * l$se),
+                .pmain(main, "Estimate, each unit left out"), "Effect",
+                col, pal, ref = r$est[1L],
+                grp = rep(c("all units", "one left out"), c(1L, k)),
+                key = FALSE, ...)
+    out$coef <- d[1L, , drop = FALSE]
+    out$loo <- d[-1L, , drop = FALSE]
   }
   invisible(out)
 }
@@ -720,7 +745,11 @@ plot.mmshr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
                     xlab = "Share of sentences", main = "", ...)
   graphics::title(main = .pmain(main, "Sentences against the minimum"),
                   font.main = 1, cex.main = 1.05)
-  graphics::legend("bottom", inset = c(0, -0.32), xpd = NA, horiz = TRUE,
+  u <- graphics::par("usr")
+  graphics::legend(mean(u[1:2]),
+                   graphics::grconvertY(1.3 * graphics::par("csi"), "inches",
+                                        "user"),
+                   xjust = 0.5, yjust = 0.5, xpd = NA, horiz = TRUE,
                    legend = rownames(m), fill = cl, density = dn,
                    angle = c(0, 45, 135), bty = "n", cex = 0.85)
   invisible(d)
