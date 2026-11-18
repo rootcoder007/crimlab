@@ -1,6 +1,6 @@
 # Changelog
 
-## crimlab 0.0.0.9000
+## crimlab 0.0.1
 
 - Open data:
   [`odtab()`](https://rootcoder007.github.io/crimlab/reference/odtab.md)
