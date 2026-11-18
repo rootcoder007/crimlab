@@ -328,7 +328,7 @@ ordirt <- function(Y, ndim = 1, nsamp = 500, burn = 100, seed = 42,
 #' set.seed(7)
 #' period <- rep(1:3, each = 15)
 #' walk <- function(s) s + cumsum(c(0, rnorm(2, 0, 0.3)))
-#' truth <- t(sapply(rnorm(12), walk))
+#' truth <- t(vapply(rnorm(12), walk, numeric(3)))
 #' p <- pnorm(-rep(rnorm(45, 0, 0.5), each = 12) +
 #'   rep(rnorm(45, 1.5, 0.5), each = 12) * truth[, period])
 #' V <- matrix(rbinom(length(p), 1, p), 12)

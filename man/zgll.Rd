@@ -51,8 +51,8 @@ choice (compare the log-likelihoods with a penalty such as BIC).
 set.seed(1)
 x <- cbind(1, (1:6 - 3.5) / 2.5)
 b <- cbind(c(0.5, -1), c(1.5, 0.5))
-y <- t(sapply(rep(1:2, each = 50),
-              function(k) rpois(6, exp(x \%*\% b[, k]))))
+y <- t(vapply(rep(1:2, each = 50),
+              function(k) rpois(6, exp(x \%*\% b[, k])), integer(6)))
 f <- zgem(y, x, par = b + 0.2, prob = c(0.5, 0.5))
 f$par
 }

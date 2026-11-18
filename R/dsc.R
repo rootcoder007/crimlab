@@ -552,9 +552,9 @@ drpconst <- function(data, naasval = FALSE, quiet = FALSE) {
 #' attr(cleaned, "orignms")
 #'
 #' # Other cases.
-#' clncolnms(c("Total Pop"), case = "lower_camel")
-#' clncolnms(c("Total Pop"), case = "upper_camel")
-#' clncolnms(c("Total Pop"), case = "screaming_snake")
+#' clncolnms("Total Pop", case = "lower_camel")
+#' clncolnms("Total Pop", case = "upper_camel")
+#' clncolnms("Total Pop", case = "screaming_snake")
 #'
 #' # a different separator, and a name that starts with a digit
 #' clncolnms(c("2021 count", "Rate per 1000"), sep = ".")

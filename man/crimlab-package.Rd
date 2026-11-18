@@ -4,7 +4,7 @@
 \name{crimlab-package}
 \alias{crimlab}
 \alias{crimlab-package}
-\title{crimlab: Statistical Methods for Criminology and Sociolegal Research}
+\title{crimlab: Statistical Toolkit for Criminology and Sociolegal Research}
 \description{
 \if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
 

@@ -1,8 +1,8 @@
 ---
-title: "Time, contagion and operations"
+title: "Events in time: contagion, trends and operations"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Time, contagion and operations}
+  %\VignetteIndexEntry{Events in time: contagion, trends and operations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

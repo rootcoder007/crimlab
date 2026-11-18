@@ -87,7 +87,7 @@ GROUPS = [
     ("experiments-and-policy", "Experiments and policy evaluation",
      "Randomisation, power, falsification tests, difference-in-differences, event studies and synthetic controls.",
      ["Experiments", "Policy evaluation"]),
-    ("time-and-contagion", "Time, contagion and operations",
+    ("time-and-contagion", "Events in time: contagion, trends and operations",
      "Self-exciting processes, trends, change points, survival, forecasts and the other methods for events in time.",
      ["Time, contagion and operations", "Counts over time and across categories"]),
     ("surveys-and-summaries", "Surveys and summary statistics",

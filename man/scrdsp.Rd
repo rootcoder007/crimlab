@@ -48,7 +48,7 @@ recorded, or \code{\link[=fair]{fair()}}, which compares them with outcomes case
 \examples{
 set.seed(7)
 g <- rep(c("x", "y", "z"), c(40, 40, 20))
-s <- rnorm(100, ifelse(g == "x", 0, ifelse(g == "y", 0.5, 1)))
+s <- rnorm(100, c(x = 0, y = 0.5, z = 1)[g])
 scrdsp(s, g)
 }
 \references{

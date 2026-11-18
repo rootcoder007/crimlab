@@ -59,7 +59,9 @@ n <- 600
 g <- sample(c("a", "b"), n, TRUE)
 per <- sample(c("2024-1", "2024-2", "2024-3"), n, TRUE)
 cty <- sample(c("north", "south"), n, TRUE)
-p <- rbinom(n, 1, ifelse(g == "a", 0.4, ifelse(cty == "north", 0.3, 0.2)))
+pr <- c(south = 0.2, north = 0.3)[cty]
+pr[g == "a"] <- 0.4
+p <- rbinom(n, 1, pr)
 tmpaud(p, g, per, cty)$cities
 }
 \references{

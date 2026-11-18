@@ -53,7 +53,9 @@ n <- 600
 g <- sample(c("a", "b"), n, TRUE)
 per <- sample(c("2024-1", "2024-2", "2024-3"), n, TRUE)
 cty <- sample(c("north", "south"), n, TRUE)
-p <- rbinom(n, 1, ifelse(g == "a", 0.4, ifelse(cty == "north", 0.3, 0.2)))
+pr <- c(south = 0.2, north = 0.3)[cty]
+pr[g == "a"] <- 0.4
+p <- rbinom(n, 1, pr)
 tmpaud(p, g, per, cty)$cities
 ```
 
@@ -77,7 +79,7 @@ r$spear
 ```{r scrdsp}
 set.seed(7)
 g <- rep(c("x", "y", "z"), c(40, 40, 20))
-s <- rnorm(100, ifelse(g == "x", 0, ifelse(g == "y", 0.5, 1)))
+s <- rnorm(100, c(x = 0, y = 0.5, z = 1)[g])
 scrdsp(s, g)
 ```
 
@@ -131,7 +133,7 @@ set.seed(3)
 g <- rep(c("a", "b"), each = 200)
 sev <- rnorm(400, ifelse(g == "a", 5, 4))
 pri <- rpois(400, ifelse(g == "a", 2, 1))
-len <- 2 + 0.8 * sev + 0.5 * pri + ifelse(g == "a", 1, 0) + rnorm(400)
+len <- 2 + 0.8 * sev + 0.5 * pri + (g == "a") + rnorm(400)
 r <- oaxbd(len, data.frame(sev, pri), g, ref = "b")
 r$dec
 ```
