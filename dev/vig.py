@@ -184,7 +184,8 @@ def section(p):
     desc = quote(p["desc"])
     s = ["## %s" % p["title"].rstrip("."), "", "%s: %s" % (calls, desc), ""]
     lab = re.sub(r"[^A-Za-z0-9]+", "-", p["file"][:-3]).strip("-")
-    s += ["```{r %s}" % lab, p["ex"], "```", ""]
+    ex = "\n".join(l.rstrip() for l in p["ex"].split("\n"))
+    s += ["```{r %s}" % lab, ex, "```", ""]
     v = plot.get(p["file"])
     if v:
         s += ["```{r %s-plot}" % lab, "plot(%s)" % v, "```", ""]

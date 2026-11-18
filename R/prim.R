@@ -624,8 +624,11 @@ cgamcdf <- function(shape, x) {
 #' @examples
 #' cunif(3, 42)
 #' all.equal(cunif(3, 7), cunif(10, 7)[1:3])
-#' set.seed(1); a <- runif(1)
-#' set.seed(1); invisible(cunif(100, 9)); b <- runif(1)
+#' set.seed(1)
+#' a <- runif(1)
+#' set.seed(1)
+#' invisible(cunif(100, 9))
+#' b <- runif(1)
 #' identical(a, b)
 #' try(cunif(-1, 1))
 #' try(cunif(2, 2^53))

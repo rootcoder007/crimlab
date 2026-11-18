@@ -127,7 +127,7 @@ ovrchk(d, shape = c(case_number = "99-AAA-999|99-AA-999"))
 `odtab()`, `odls()`: `odls()` lists the tables of the project's open data service and `odtab()` loads one by its key, as the service serves it at the time of the call. Everything about a table (its address, rows, columns and SHA-256) is read from the service's manifest at run time, so a table that its publisher has replaced is loaded as it is now, with no new release of crimlab.
 
 ```{r odtab}
-## Not run: 
+## Not run:
 ##D # needs the internet
 ##D tabs <- odls()
 ##D head(tabs[, c("key", "rows")])

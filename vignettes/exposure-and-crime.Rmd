@@ -551,7 +551,7 @@ for (i in which(d$year > 1)) {
     g[i] * f[i] + rnorm(1)
 }
 k <- d$year > 1
-# CS-ARDL: theta = (0.5 + 0.1) / (1 - 0.4) = 1
+# CS-ARDL: theta is 0.6 over 0.6, that is 1
 r <- ccepnl(d$y[k], d[k, c("x", "xl")], d$prov[k], d$year[k], ylag = 1)
 lrcce(r, c("x", "xl"))
 # CS-DL: x and its first difference; the coefficient of x is theta
