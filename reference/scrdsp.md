@@ -69,7 +69,7 @@ alternative approach. *Biometrika*, 38(3-4), 330-336.
 ``` r
 set.seed(7)
 g <- rep(c("x", "y", "z"), c(40, 40, 20))
-s <- rnorm(100, ifelse(g == "x", 0, ifelse(g == "y", 0.5, 1)))
+s <- rnorm(100, c(x = 0, y = 0.5, z = 1)[g])
 scrdsp(s, g)
 #> $tab
 #>   group  n      mean    median        sd       gap        se          lo

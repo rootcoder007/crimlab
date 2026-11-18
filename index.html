@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Statistical Methods for Criminology and Sociolegal Research • crimlab</title>
+<title>Statistical Toolkit for Criminology and Sociolegal Research • crimlab</title>
 <!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
 <link rel="icon" type="”image/svg+xml”" href="favicon.svg">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
@@ -15,7 +15,7 @@
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Statistical Methods for Criminology and Sociolegal Research">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Statistical Toolkit for Criminology and Sociolegal Research">
 <meta name="description" content="Statistical methods for courts, corrections, policing, forensics and sociolegal research. Where an identity or bound has a machine-checked proof (Lean), the package names it. This development version holds the disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006) &lt;doi:10.1198/016214506000000168&gt;, the outcome test and its infra-marginality problem, benchmark decomposition of resident disparities, dyadic offending rates, and the bounds a relative risk obeys given an odds ratio; and the first forensic methods: genotype match probabilities with the correction of Balding and Nichols (1994) &lt;doi:10.1016/0379-0738(94)90222-4&gt;, the log-likelihood-ratio cost of Brummer and du Preez (2006) &lt;doi:10.1016/j.csl.2005.08.001&gt; with its calibrated minimum, mixture likelihood ratios, kinship and paternity indices, database-search corrections, and Tippett and empirical-cross-entropy plots.">
 <meta property="og:description" content="Statistical methods for courts, corrections, policing, forensics and sociolegal research. Where an identity or bound has a machine-checked proof (Lean), the package names it. This development version holds the disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway (2006) &lt;doi:10.1198/016214506000000168&gt;, the outcome test and its infra-marginality problem, benchmark decomposition of resident disparities, dyadic offending rates, and the bounds a relative risk obeys given an odds ratio; and the first forensic methods: genotype match probabilities with the correction of Balding and Nichols (1994) &lt;doi:10.1016/0379-0738(94)90222-4&gt;, the log-likelihood-ratio cost of Brummer and du Preez (2006) &lt;doi:10.1016/j.csl.2005.08.001&gt; with its calibrated minimum, mixture likelihood ratios, kinship and paternity indices, database-search corrections, and Tippett and empirical-cross-entropy plots.">
 <meta property="og:image" content="https://rootcoder007.github.io/crimlab/logo.svg">
@@ -39,6 +39,38 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/crimlab.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
+<li><a class="dropdown-item" href="articles/disparities-and-checks.html">Disparities, benchmarks and checks of a reported number</a></li>
+    <li><a class="dropdown-item" href="articles/forensics.html">Forensic evidence: likelihood ratios and their calibration</a></li>
+    <li><a class="dropdown-item" href="articles/eyewitness-and-toxicology.html">Eyewitness identification, toxicology and taphonomy</a></li>
+    <li><a class="dropdown-item" href="articles/policing-and-deterrence.html">Policing, police-reported crime and deterrence</a></li>
+    <li><a class="dropdown-item" href="articles/corrections-and-custody.html">Corrections, custody and court flow</a></li>
+    <li><a class="dropdown-item" href="articles/placement-and-alerts.html">Placement volatility and alert complexity</a></li>
+    <li><a class="dropdown-item" href="articles/courts-and-life-course.html">Courts, sentencing and the life course</a></li>
+    <li><a class="dropdown-item" href="articles/networks.html">Networks of co-offending</a></li>
+    <li><a class="dropdown-item" href="articles/spatial-geometry.html">Spatial geometry and centrography</a></li>
+    <li><a class="dropdown-item" href="articles/spatial-crime-analysis.html">Spatial crime analysis: hot spots, clusters and near repeats</a></li>
+    <li><a class="dropdown-item" href="articles/geostatistics-and-epidemiology.html">Geostatistics and spatial epidemiology</a></li>
+    <li><a class="dropdown-item" href="articles/risk-tools.html">Risk tools and predictive policing</a></li>
+    <li><a class="dropdown-item" href="articles/counts-rates-and-tables.html">Counts, rates, concentration and published tables</a></li>
+    <li><a class="dropdown-item" href="articles/change-tables-and-drift.html">Change tables, drift between releases and region maps</a></li>
+    <li><a class="dropdown-item" href="articles/describing-a-table.html">Describing a table and keeping its categories whole</a></li>
+    <li><a class="dropdown-item" href="articles/learning-and-presets.html">Learners, presets and data larger than memory</a></li>
+    <li><a class="dropdown-item" href="articles/causal-estimates.html">Causal estimates and regression discontinuity</a></li>
+    <li><a class="dropdown-item" href="articles/experiments-and-policy.html">Experiments and policy evaluation</a></li>
+    <li><a class="dropdown-item" href="articles/time-and-contagion.html">Events in time: contagion, trends and operations</a></li>
+    <li><a class="dropdown-item" href="articles/surveys-and-summaries.html">Surveys and summary statistics</a></li>
+    <li><a class="dropdown-item" href="articles/indigenous-health.html">Indigenous health and wellbeing</a></li>
+    <li><a class="dropdown-item" href="articles/air-pollution.html">Air pollution and the footprint of a computation</a></li>
+    <li><a class="dropdown-item" href="articles/exposure-and-crime.html">Environmental exposure and crime</a></li>
+    <li><a class="dropdown-item" href="articles/environmental-crime-and-rescue.html">Environmental crime, panels and search and rescue</a></li>
+    <li><a class="dropdown-item" href="articles/scaling.html">Scaling and ideal points</a></li>
+    <li><a class="dropdown-item" href="articles/oversight-reports.html">Police oversight reports and open data</a></li>
+    <li><a class="dropdown-item" href="articles/plots-and-proofs.html">Plot helpers, proofs and the rest</a></li>
+  </ul>
+</li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -58,7 +90,7 @@
 <img src="logo.svg" class="logo" alt=""><h1 id="crimlab-">crimlab <a class="anchor" aria-label="anchor" href="#crimlab-"></a>
 </h1>
 </div>
-<p><a href="https://github.com/rootcoder007/crimlab/actions/workflows/check.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/check.yml/badge.svg" alt="check"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/coverage.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/coverage.yml/badge.svg" alt="coverage"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml/badge.svg" alt="srr"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml/badge.svg" alt="pkgdown"></a> <a href="https://www.bestpractices.dev/projects/16873" class="external-link"><img src="https://www.bestpractices.dev/projects/16873/badge" alt="OpenSSF Best Practices"></a> <a href="https://rootcoder007.r-universe.dev/crimlab" class="external-link"><img src="https://rootcoder007.r-universe.dev/badges/crimlab" alt="r-universe"></a></p>
+<p><a href="https://github.com/rootcoder007/crimlab/actions/workflows/check.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/check.yml/badge.svg" alt="check"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/coverage.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/coverage.yml/badge.svg" alt="coverage"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/srr.yml/badge.svg" alt="srr"></a> <a href="https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml" class="external-link"><img src="https://github.com/rootcoder007/crimlab/actions/workflows/pkgdown.yml/badge.svg" alt="pkgdown"></a> <a href="https://www.bestpractices.dev/projects/16873" class="external-link"><img src="https://www.bestpractices.dev/projects/16873/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/rootcoder007/crimlab/releases/latest" class="external-link"><img src="https://img.shields.io/github/v/release/rootcoder007/crimlab?label=release&amp;color=2ea44f" alt="Release"></a> <a href="https://pypi.org/project/crimlab/" class="external-link"><img src="https://img.shields.io/pypi/v/crimlab?label=PyPI&amp;color=3775a9" alt="PyPI"></a> <a href="https://www.npmjs.com/package/crimlab" class="external-link"><img src="https://img.shields.io/npm/v/crimlab?label=npm&amp;color=cb3837" alt="npm"></a> <a href="https://crates.io/crates/crimlab" class="external-link"><img src="https://img.shields.io/crates/v/crimlab?label=crates.io&amp;color=f0b400" alt="crates.io"></a> <a href="https://central.sonatype.com/artifact/io.github.rootcoder007/crimlab" class="external-link"><img src="https://img.shields.io/maven-central/v/io.github.rootcoder007/crimlab?label=Maven%20Central&amp;color=6f42c1" alt="Maven Central"></a> <a href="https://pkg.go.dev/github.com/rootcoder007/crimlab/bindings/go" class="external-link"><img src="https://pkg.go.dev/badge/github.com/rootcoder007/crimlab/bindings/go.svg" alt="Go Reference"></a> <a href="https://copr.fedorainfracloud.org/coprs/rootcoder007/crimlab/" class="external-link"><img src="https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcopr.fedorainfracloud.org%2Fapi_3%2Fpackage%2F%3Fownername%3Drootcoder007%26projectname%3Dcrimlab%26packagename%3Dcrimlab%26with_latest_build%3Dtrue&amp;query=%24.builds.latest.state&amp;label=COPR%20build&amp;color=2ea44f" alt="COPR"></a> <a href="https://build.opensuse.org/package/show/home:rootcoder007/crimlab" class="external-link"><img src="https://build.opensuse.org/projects/home:rootcoder007/packages/crimlab/badge.svg?type=default" alt="OBS"></a> <a href="https://rootcoder007.r-universe.dev/crimlab" class="external-link"><img src="https://rootcoder007.r-universe.dev/badges/crimlab" alt="r-universe"></a></p>
 <p>Statistical methods for courts, corrections, policing, forensics and sociolegal research. The computations run in a compiled C++17 core with a plain C interface (<code>src/crimlab.h</code>); the R functions check their arguments and call it. Where an identity or a bound has a machine-checked proof in Lean, <code><a href="reference/proof.html">proof()</a></code> names the theorem.</p>
 <div class="float">
 <img src="reference/figures/demo.svg" alt="crimlab in one minute: a veil-of-darkness table, a reported odds ratio checked against every labelling of its table, a clearance paradox, a categorical audit, a cross-table with an interval for its association, placement volatility, a posterior from a likelihood ratio, hot spots, spatial autocorrelation, the command-line program, and the theorems behind a function"><div class="figcaption">crimlab in one minute: a veil-of-darkness table, a reported odds ratio checked against every labelling of its table, a clearance paradox, a categorical audit, a cross-table with an interval for its association, placement volatility, a posterior from a likelihood ratio, hot spots, spatial autocorrelation, the command-line program, and the theorems behind a function</div>
@@ -437,7 +469,7 @@
 </h2>
 <p><code>citation("crimlab")</code> gives the reference for the installed version:</p>
 <blockquote>
-<p>Ruhela, V. S. (2026). <em>crimlab: Statistical Methods for Criminology and Sociolegal Research.</em> R package. <a href="https://github.com/rootcoder007/crimlab" class="external-link uri">https://github.com/rootcoder007/crimlab</a></p>
+<p>Ruhela, V. S. (2026). <em>crimlab: Statistical Toolkit for Criminology and Sociolegal Research.</em> R package. <a href="https://github.com/rootcoder007/crimlab" class="external-link uri">https://github.com/rootcoder007/crimlab</a></p>
 </blockquote>
 </div>
 <div class="section level2">

@@ -10,12 +10,12 @@
 Source:
 [`inst/CITATION`](https://github.com/rootcoder007/crimlab/blob/main/inst/CITATION)
 
-Ruhela VS (2026). *crimlab: Statistical Methods for Criminology and
+Ruhela VS (2026). *crimlab: Statistical Toolkit for Criminology and
 Sociolegal Research*. R package version 0.0.1,
 <https://github.com/rootcoder007/crimlab>.
 
     @Manual{,
-      title = {crimlab: Statistical Methods for Criminology and Sociolegal Research},
+      title = {crimlab: Statistical Toolkit for Criminology and Sociolegal Research},
       author = {Vansh Singh Ruhela},
       year = {2026},
       note = {R package version 0.0.1},

@@ -98,7 +98,7 @@ set.seed(3)
 g <- rep(c("a", "b"), each = 200)
 sev <- rnorm(400, ifelse(g == "a", 5, 4))
 pri <- rpois(400, ifelse(g == "a", 2, 1))
-len <- 2 + 0.8 * sev + 0.5 * pri + ifelse(g == "a", 1, 0) + rnorm(400)
+len <- 2 + 0.8 * sev + 0.5 * pri + (g == "a") + rnorm(400)
 r <- oaxbd(len, data.frame(sev, pri), g, ref = "b")
 r$dec
 #>     part        est        se         lo        hi

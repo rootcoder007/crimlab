@@ -98,15 +98,15 @@ attr(cleaned, "orignms")
 #> [1] "Total Pop" "% change" 
 
 # Other cases.
-clncolnms(c("Total Pop"), case = "lower_camel")
+clncolnms("Total Pop", case = "lower_camel")
 #> -- Column names cleaned
 #>    Total Pop -> totalPop
 #> [1] "totalPop"
-clncolnms(c("Total Pop"), case = "upper_camel")
+clncolnms("Total Pop", case = "upper_camel")
 #> -- Column names cleaned
 #>    Total Pop -> TotalPop
 #> [1] "TotalPop"
-clncolnms(c("Total Pop"), case = "screaming_snake")
+clncolnms("Total Pop", case = "screaming_snake")
 #> -- Column names cleaned
 #>    Total Pop -> TOTAL_POP
 #> [1] "TOTAL_POP"

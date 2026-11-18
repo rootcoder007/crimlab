@@ -1,4 +1,4 @@
-# crimlab: Statistical Methods for Criminology and Sociolegal Research
+# crimlab: Statistical Toolkit for Criminology and Sociolegal Research
 
 Statistical methods for courts, corrections, policing, forensics and
 sociolegal research. Where an identity or bound has a machine-checked

@@ -2,8 +2,35 @@ pandoc: 3.8.3
 pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
+  air-pollution: air-pollution.html
+  causal-estimates: causal-estimates.html
+  change-tables-and-drift: change-tables-and-drift.html
+  corrections-and-custody: corrections-and-custody.html
+  counts-rates-and-tables: counts-rates-and-tables.html
+  courts-and-life-course: courts-and-life-course.html
   crimlab: crimlab.html
-last_built: 2026-11-18T03:42Z
+  describing-a-table: describing-a-table.html
+  disparities-and-checks: disparities-and-checks.html
+  environmental-crime-and-rescue: environmental-crime-and-rescue.html
+  experiments-and-policy: experiments-and-policy.html
+  exposure-and-crime: exposure-and-crime.html
+  eyewitness-and-toxicology: eyewitness-and-toxicology.html
+  forensics: forensics.html
+  geostatistics-and-epidemiology: geostatistics-and-epidemiology.html
+  indigenous-health: indigenous-health.html
+  learning-and-presets: learning-and-presets.html
+  networks: networks.html
+  oversight-reports: oversight-reports.html
+  placement-and-alerts: placement-and-alerts.html
+  plots-and-proofs: plots-and-proofs.html
+  policing-and-deterrence: policing-and-deterrence.html
+  risk-tools: risk-tools.html
+  scaling: scaling.html
+  spatial-crime-analysis: spatial-crime-analysis.html
+  spatial-geometry: spatial-geometry.html
+  surveys-and-summaries: surveys-and-summaries.html
+  time-and-contagion: time-and-contagion.html
+last_built: 2026-11-18T07:27Z
 urls:
   reference: https://rootcoder007.github.io/crimlab/reference
   article: https://rootcoder007.github.io/crimlab/articles

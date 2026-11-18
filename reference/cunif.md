@@ -49,8 +49,11 @@ cunif(3, 42)
 #> [1] 0.7415649 0.1599104 0.2786011
 all.equal(cunif(3, 7), cunif(10, 7)[1:3])
 #> [1] TRUE
-set.seed(1); a <- runif(1)
-set.seed(1); invisible(cunif(100, 9)); b <- runif(1)
+set.seed(1)
+a <- runif(1)
+set.seed(1)
+invisible(cunif(100, 9))
+b <- runif(1)
 identical(a, b)
 #> [1] TRUE
 try(cunif(-1, 1))

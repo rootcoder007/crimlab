@@ -88,8 +88,9 @@ Other scaling:
 # 40 simulated respondents place five stimuli on a 1-7 scale
 set.seed(1)
 truth <- c(-1.2, -0.4, 0.1, 0.9, 1.5)
-Z <- t(sapply(1:40, function(i) 4 + rnorm(1, 0, 0.3) +
-  runif(1, 0.6, 1.4) * truth + rnorm(5, 0, 0.3)))
+Z <- t(vapply(1:40, function(i) {
+  4 + rnorm(1, 0, 0.3) + runif(1, 0.6, 1.4) * truth + rnorm(5, 0, 0.3)
+}, numeric(5)))
 round(amscal(Z)$zhat, 2)
 #> [1] -1.28 -0.59 -0.05  0.67  1.25
 round((truth - mean(truth)) / sd(truth), 2)
