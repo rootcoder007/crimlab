@@ -321,7 +321,11 @@ jobs:
   npm:
     # npmjs.com by trusted publishing, with provenance: no secret; crimlab's
     # trusted publisher names this repository, publish.yml and the
-    # environment release
+    # environment release. npm lets a trusted publisher be named only for a
+    # package that exists, so the first version is published with the
+    # secret NPM_TOKEN (a granular token of the release environment); once
+    # the trusted publisher is set the secret is deleted and later
+    # versions need none.
     needs: versions
     runs-on: ubuntu-24.04
     timeout-minutes: 20
@@ -350,5 +354,11 @@ jobs:
       - name: build and test
         run: sh build.sh && npm test
       - name: publish
-        run: npm publish --provenance --access public
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -n "$NPM_TOKEN" ]; then
+            export NODE_AUTH_TOKEN="$NPM_TOKEN"
+          fi
+          npm publish --provenance --access public
 
