@@ -110,3 +110,79 @@ test_that("a chart of many rows keeps the label of every row", {
   d <- .pdots(x$group, x$est, x$est - 1, x$est + 1, "", "Value")
   expect_identical(d$label, x$group)
 })
+
+test_that("a pooled total is drawn in its own colour and shape", {
+  d <- data.frame(group = c("First Nations", "Inuit", "Total Indigenous",
+                            "Non-Indigenous"),
+                  pct = c(45.8, 47.8, 49, 61.5), lo = c(43.9, 43.1, 47.5, 61),
+                  hi = c(47.7, 52.5, 50.5, 62))
+  g <- indgap(d, "group", "pct", "lo", "hi", pooled = "Total Indigenous")
+  p <- drw(plot(g))
+  expect_identical(p$group, c("distinct group", "distinct group",
+                              "pooled total"))
+})
+
+test_that("a rating, a change and a health gap are drawn", {
+  r <- data.frame(group = rep(c("Nation A", "Everyone else"), each = 4),
+                  rating = rep(c("Poor", "Fair", "Good", "Excellent"), 2),
+                  pct = c(10, 25, 40, 25, 6, 20, 44, 30),
+                  lo = c(7, 21, 35, 21, 5, 18, 42, 28),
+                  hi = c(13, 29, 45, 29, 7, 22, 46, 32))
+  o <- ordcmp(r, "group", "rating", "pct", "lo", "hi",
+              lvls = c("Poor", "Fair", "Good", "Excellent"),
+              ref = "Everyone else")
+  expect_identical(drw(plot(o))$est, o$probbet)
+  h <- data.frame(community = "Lakeside",
+                  item = rep(c("Good mental health", "Anxiety"), 2),
+                  survey = rep(c("2018", "2023"), each = 2),
+                  pct = c(55, 14, 61, 11), lo = c(50, 11, 56, 8),
+                  hi = c(60, 17, 66, 14))
+  ch <- healchg(h, "community", "item", "survey", "pct", "lo", "hi",
+                from = "2018", to = "2023", well = "Good mental health",
+                distress = "Anxiety")
+  expect_identical(drw(plot(ch))$est, ch$change)
+  le <- data.frame(period = "2017/2019",
+                   group = c("First Nations", "Inuit", "Non-Indigenous"),
+                   estimate = c(74.2, 70.9, 81.8),
+                   lower = c(73.6, 69.1, 81.6),
+                   upper = c(74.8, 72.7, 82.0), quality = "ok")
+  tg <- trchlthgap(health = NULL, lifeexp = le, infmort = NULL,
+                   suiide = NULL)
+  p <- drw(plot(tg))
+  expect_identical(p$est, tg$disratio)
+  expect_identical(unique(p$group), "life expectancy 2017/2019")
+})
+
+test_that("Community Well-Being from a census profile is drawn", {
+  nm <- c(
+    "Total - Age groups of the population - 100% data",
+    paste("Number of total income recipients aged 15 years and over in",
+          "private households in 2020 - 25% sample data"),
+    "Average total income in 2020 among recipients ($)",
+    paste("Total - Highest certificate, diploma or degree for the",
+          "population aged 25 years and over in private households - 25%",
+          "sample data"),
+    "  No certificate, diploma or degree",
+    "  Bachelor's degree or higher",
+    "Participation rate",
+    "Unemployment rate"
+  )
+  x <- data.frame(
+    GEO_NAME = "Lakeside", DGUID = "X0001", GENDER = "Total - Gender",
+    AGE_GROUP = c(rep("Total - Age groups", 3), rep("25 years and over", 3),
+                  rep("25 to 64 years", 2)),
+    RESIDENCE = "Total - Residence on or off reserve",
+    CHARACTERISTIC_ID = 1:8, CHARACTERISTIC_NAME = nm,
+    `IND_IDENT (2)` = c(1200, 900, 38000, 700, 150, 120, 62, 14),
+    SYMBOL_IND_IDENT = "",
+    NON_IND = c(5000, 4000, 52000, 3500, 400, 900, 66, 6),
+    SYMBOL_NON_IND = "",
+    check.names = FALSE
+  )
+  w <- cnscwb(cnsprof(x), groups = c("Indigenous identity",
+                                     "Non-Indigenous"), minpop = 0)
+  p <- drw(plot(w))
+  expect_identical(p$est[p$group == "income"], w$income)
+  expect_identical(unique(p$label),
+                   paste("Lakeside", w$group, sep = ": "))
+})

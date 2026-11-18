@@ -29,12 +29,7 @@ plot.indgap <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 #' @export
 plot.dualcont <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "dualcont", c("group", "wellness", "distress"))
-  lab <- attr(x, "labels")
-  k <- if (length(lab) == 2L) {
-    paste(c("wellness:", "distress:"), lab)
-  } else {
-    c("wellness", "distress")
-  }
+  k <- paste(c("wellness:", "distress:"), attr(x, "labels"))
   .pdots(rep(.pstar(x$group, x$usewithcau), 2L), c(x$wellness, x$distress),
          c(x$wello, x$distrlo), c(x$welup, x$distrup),
          .pmain(main, "Wellness beside distress"), "Estimate", col, pal,
@@ -141,8 +136,6 @@ plot.cnscwb <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 #' @export
 plot.cwbscr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "cwbscr", c("income", "cwb"))
-  lab <- rownames(x)
-  if (is.null(lab)) lab <- as.character(seq_len(nrow(x)))
-  .pcwb(paste("community", lab), x,
+  .pcwb(paste("community", rownames(x)), x,
         .pmain(main, "Community Well-Being scores"), col, pal, ...)
 }
