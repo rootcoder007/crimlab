@@ -14,7 +14,9 @@ set -u
 # every source that does not include R: the rule of cli/Makefile, so a new
 # kernel is here the day it is written
 src=$(grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' src/*.cpp | tr '\n' ' ')
-base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -DCLAB_MAIN"
+# -Wno-psabi: on 32-bit ARM gcc notes, for every std::vector, that the
+# calling convention changed in GCC 7.1; it is no warning about this code
+base="-std=c++17 -fno-exceptions -fno-rtti -Wall -Wextra -pedantic -Wno-psabi -DCLAB_MAIN"
 t=${TMPDIR:-/tmp}/clab-port.$$
 mkdir -p "$t"
 trap 'rm -rf "$t"' EXIT
@@ -51,8 +53,10 @@ flags)
     # only where the sanitizer runtime is installed
     if echo 'int main(){}' | $cc -x c++ -fsanitize=address,undefined - \
         -o "$t/san" 2>/dev/null; then
+      # -Wno-maybe-uninitialized: with the sanitizers on, gcc reports
+      # std::function inside its own <regex> as possibly uninitialised
       one "$cc asan+ubsan" $cc -O1 -g -fsanitize=address,undefined \
-        -fno-sanitize-recover=all
+        -fno-sanitize-recover=all -Wno-maybe-uninitialized
     else
       echo "PORT $cc asan+ubsan: skipped, no sanitizer runtime"
     fi
