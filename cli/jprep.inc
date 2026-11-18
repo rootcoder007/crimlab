@@ -510,6 +510,7 @@ bool recipe(Pr &p, const std::string &name, const std::string &arg, Tbl &d) {
   }
   if (name == "long") {
     const std::vector<std::string> ab = split(arg, ',');
+    if (ab.size() != 2) return p.fail("the recipe long takes two columns, as a,b.");
     if (!keep(p, d, ab, false)) return false;
     Tbl o;
     std::vector<std::size_t> twice;
