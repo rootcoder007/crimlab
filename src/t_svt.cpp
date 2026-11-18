@@ -72,8 +72,10 @@ void t_svt(tk &T, int big) {
   Node lv = svk::list();
   lv.add("y", svk::vec({10, 10, 10, 10, 10}));
   tk_ieq(T, "sv.lv", svk::run("lvfit", lv, out, err), 1);
-  tk_eq(T, "sv.lva", out.at("alpha")->d[0], 0.05, 1e-15);
-  tk_eq(T, "sv.lvb", out.at("beta")->d[0], 0.005, 1e-15);
+  // to 1e-14: x87 returns log() in long double, and the difference of two
+  // equal logarithms is then the rounding of one of them, not 0
+  tk_eq(T, "sv.lva", out.at("alpha")->d[0], 0.05, 1e-14);
+  tk_eq(T, "sv.lvb", out.at("beta")->d[0], 0.005, 1e-14);
   tk_eq(T, "sv.lvp", out.at("period")->d[0], 40 * 3.141592653589793, 1e-10);
   // refusals
   Node e = svk::list();

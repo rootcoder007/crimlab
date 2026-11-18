@@ -396,11 +396,12 @@ void closeness(tk &t) {
                           std::isnan(c.nc[7]) && c.h[7] == 0);
   mk(g, 6, a, b, nullptr, star(5, a, b), 0);
   c = cls(g);
-  tk_true(t, "net53", c.c[0] == 0.2 && c.c[2] == 1.0 / 9 && c.h[2] == 3);
+  // double(): where arithmetic is in long double (x87) a literal is too
+  tk_true(t, "net53", c.c[0] == double(0.2) && c.c[2] == double(1.0 / 9) && c.h[2] == 3);
   // a directed path reaches forward only
   mk(g, 4, a, b, nullptr, path(4, a, b), 1);
   c = cls(g);
-  tk_true(t, "net54", c.r[0] == 3 && c.r[3] == 0 && c.c[1] == 1.0 / 3 &&
+  tk_true(t, "net54", c.r[0] == 3 && c.r[3] == 0 && c.c[1] == double(1.0 / 3) &&
                           c.h[2] == 1);
   int bad[2] = {1, 0};
   tk_ieq(t, "net55", clab_ntcls(1, bad, a, c.c, c.nc, c.h, c.r, nullptr),
@@ -801,8 +802,11 @@ void rgraph(tk &t, int big) {
         sum += p.d[s][u];
         h += 1.0 / p.d[s][u];
       }
+      // the quotient as a double, as the kernel stored it: where arithmetic
+      // is in long double (x87) the expression alone has more digits
+      const double inv = 1 / sum;
       ok = ok && c.r[s] == rc && std::fabs(c.h[s] - h) < 1e-13 &&
-           (rc == 0 ? std::isnan(c.c[s]) : c.c[s] == 1 / sum);
+           (rc == 0 ? std::isnan(c.c[s]) : c.c[s] == inv);
     }
     tk_true(t, "net171", ok);
     // components by transitive closure, numbered by first node

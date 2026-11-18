@@ -124,7 +124,8 @@ void t_mantel(tk &T, int big) {
       v[i] = r.unif() * 0.1;
     }
     clab_mantst(u, v, w, 40, 0, 0, 199, 9, iw, out);
-    tk_true(T, "man.power", out[2] == 1.0 / 200 && out[0] > 0.5);
+    // double(): where arithmetic is in long double (x87) a literal is too
+    tk_true(T, "man.power", out[2] == double(1.0 / 200) && out[0] > 0.5);
   }
   // guards
   double c[3] = {1, 1, 1}, a[3] = {0, 1, 2};

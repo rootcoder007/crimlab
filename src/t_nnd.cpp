@@ -212,7 +212,8 @@ void famtest(tk &T, int big) {
       y[i] = 0.5 + 0.05 * r.unif();
     }
     clab_nnidx(x, y, 100, win, 1, 99, 5, nullptr, iw, wk, out);
-    tk_true(T, "nn.cluster", out[3] == 0.01 && out[2] < 0.5);
+    // double(): where arithmetic is in long double (x87) a literal is too
+    tk_true(T, "nn.cluster", out[3] == double(0.01) && out[2] < 0.5);
   }
   // guards
   double x[3] = {0.5, 1, 1.5}, y[3] = {0.5, 0.5, 0.5};

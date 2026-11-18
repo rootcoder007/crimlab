@@ -274,7 +274,8 @@ void famtest(tk &T, int big) {
       v[i] = 0.5 + 0.06 * g.unif();
     }
     clab_ripenv(u, v, 60, win, rr, 10, 3, 99, 1, iw, wk, out);
-    tk_true(T, "env.power", out[41] == 0.01 && out[0] > out[20]);
+    // double(): where arithmetic is in long double (x87) a literal is too
+    tk_true(T, "env.power", out[41] == double(0.01) && out[0] > out[20]);
     // the envelope brackets every simulated curve: lo <= mean <= hi
     bool br = true;
     for (int j = 0; j < 10; ++j) br = br && out[10 + j] <= out[30 + j] && out[30 + j] <= out[20 + j];

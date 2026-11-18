@@ -189,7 +189,9 @@ void run(tk &tt) {
     for (int i = 0; i < 2000; ++i) dg[i] = 1 + (i * 7919 % 2000 < 650 ? 0 : (i % 9));
     clab_bnft(dg, 2000, 1, 999, 5, obs, work, out);
     const double p = out[3], sd = std::sqrt(p * (1 - p) / 999);
-    tk_true(tt, "bnf.mc.asym", std::fabs(out[4] - p) <= 4 * sd + 1.0 / 1000);
+    // double(): where arithmetic is in long double (x87) a literal is too,
+    // and the smallest Monte Carlo p, 1 / 1000 as a double, is above it
+    tk_true(tt, "bnf.mc.asym", std::fabs(out[4] - p) <= 4 * sd + double(1.0 / 1000));
     // a gross departure: p is 1 / (B + 1), not 0
     for (int i = 0; i < 2000; ++i) dg[i] = 9;
     clab_bnft(dg, 2000, 1, 99, 5, obs, work, out);
