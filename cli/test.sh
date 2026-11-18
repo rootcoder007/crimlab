@@ -31,6 +31,9 @@ ck() { # name, got, want, function
       if (na != nb) exit 1
       for (i = 1; i <= na; i++) {
         if (x[i] == y[i]) continue
+        # a number inside a text result (JSON written by the function) has
+        # blanks around it
+        gsub(/^[ \t]+|[ \t]+$/, "", x[i]); gsub(/^[ \t]+|[ \t]+$/, "", y[i])
         if (x[i] !~ /^-?[0-9.]+(e[-+]?[0-9]+)?$/ || y[i] !~ /^-?[0-9.]+(e[-+]?[0-9]+)?$/) exit 1
         d = x[i] - y[i]; if (d < 0) d = -d
         p = x[i] < 0 ? -x[i] : x[i]; q = y[i] < 0 ? -y[i] : y[i]
@@ -86,8 +89,10 @@ cd "$od" || exit 2
 # the shortest digits that read back the same, on every system
 eq "format" "$("$c" lrpost -j --lr 2 --prior 0.5)" '0.6666666666666666'
 eq "format, exponent" "$("$c" dbsrch -j --mp 1e-20 --n 1)" '{"np":1e-20,"any":1e-20}'
-eq "format, grid" "$("$c" eceplt -j --same 10 --diff 0.1 | sed 's/^{"lo":\[\([^]]*\)\].*/\1/' | cut -d, -f14,15,50-52)" \
-  '-1.85,-1.7999999999999998,-0.04999999999999982,0,0.050000000000000266'
+# a grid made by adding steps: these digits where a double is a double, and
+# within the bound on x87, whose extended precision gives -1.8 for the second
+ck "format, grid" "$("$c" eceplt -j --same 10 --diff 0.1 | sed 's/^{"lo":\[\([^]]*\)\].*/\1/' | cut -d, -f14,15,50-52)" \
+  '-1.85,-1.7999999999999998,-0.04999999999999982,0,0.050000000000000266' fmtgrid
 ck "selftest" "$("$c" selftest -j | sed 's/"n":[0-9]*,//')" '{"nfail":0,"report":""}'
 ck "csv" "$(printf 'group,day,night\na,40,50\nb,60,50\n' | "$c" vodtst -j --ref b)" \
   '{"group":["a","b"],"ref":[false,true],"shday":[0.4,0.6],"shnight":[0.5,0.5],"ratio":[0.6666666666666666,1],"sign":[-1,1]}'

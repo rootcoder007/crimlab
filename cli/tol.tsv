@@ -52,3 +52,5 @@ tpsurf	1e-12	1e-14	residuals of an exact interpolation are zero up to rounding (
 blkprm	1e-12	1e-14	permuted differences that are zero up to rounding (about 1e-15)
 rcttml	1e-12	1e-15	eps is zero up to rounding (about 1e-16) when the first fit already solves the score
 olsdx	1e-11	0	the columns are centred and scaled before the fit: Cook's distances near 5e-5 differ from those of the uncentred fit in the twelfth digit, rounding either way
+bbscal	1e-10	1e-13	a weight near 7e-4 beside weights near 0.8: with the extended precision of x87 (32-bit x86 without SSE2) its thirteenth digit differs, 1.1e-12 relative
+fmtgrid	1e-12	1e-15	the grid of eceplt is made by adding steps: on x87 a point near 0.05 differs by 4e-16

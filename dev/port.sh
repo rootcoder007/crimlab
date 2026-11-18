@@ -92,7 +92,19 @@ m32)
   for o in "-O2" "-O2 -mfpmath=387" "-O2 -msse2 -mfpmath=sse"; do
     # shellcheck disable=SC2086
     one "g++ -m32 $o" g++ -m32 $o
-  done ;;
+  done
+  # the command and its whole test table with the arithmetic of x87, as a
+  # 32-bit x86 distribution without SSE2 builds it (the package builders
+  # for such systems ran it first, after a release was tagged)
+  mkdir -p "$t/c32"
+  cp -R cli src inst DESCRIPTION "$t/c32/"
+  rm -rf "$t/c32/cli/build" "$t/c32/cli/crimlab" "$t/c32/cli"/libcrimlab.*
+  if make -s -C "$t/c32/cli" -j4 check CXX="g++ -m32 -mfpmath=387" WERROR= > "$t/c32.log" 2>&1; then
+    echo "PORT cli g++ -m32 x87: $(grep -o "[0-9]* checks, [0-9]* failed" "$t/c32.log")"
+  else
+    echo "PORT cli g++ -m32 x87: FAILED"; grep -A2 "^FAIL" "$t/c32.log" | cut -c1-300 | head -30
+    tail -5 "$t/c32.log"; rc=1
+  fi ;;
 bench)
   cc=${CXX:-g++}
   # shellcheck disable=SC2086

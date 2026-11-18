@@ -404,6 +404,16 @@ int clab_ecolrg(const double *y, const double *e, int n, const double *x, int p,
     for (int it = 0; it < maxit; ++it) {
       if (kutil::stop(static_cast<double>(n) * 100)) return CLAB_EINTR;
       for (int j = 0; j < 100; ++j) {
+        // Counts with no overdispersion send theta off without bound. Past
+        // a million the variance mu + mu^2 / theta is the Poisson's to six
+        // digits, and the score and its derivative, which fall as 1 / th^2
+        // and 1 / th^3, are soon no more than rounding of terms of order
+        // one: a step taken from them is noise (and went to a wrong fit
+        // with the extended precision of x87). The search ends at the cap.
+        if (th >= 1e6) {
+          th = 1e10;
+          break;
+        }
         double sc = 0, inf = 0;
         const double dth = dig(th), tth = trig(th);
         for (int i = 0; i < n; ++i) {
