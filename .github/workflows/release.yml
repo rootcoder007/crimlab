@@ -298,7 +298,7 @@ jobs:
           Invoke-RestMethod get.scoop.sh -OutFile scoop.ps1
           ./scoop.ps1 -RunAsAdmin
           $env:PATH = "$HOME\scoop\shims;$env:PATH"
-          scoop install ./crimlab.json
+          scoop install (Resolve-Path crimlab.json).Path
           $o = & "$HOME\scoop\shims\crimlab.exe" orrisk --or 2 --rate 0.1 --share 0.3
           $o
           if (-not ($o -match '0\.1475205')) { throw 'wrong result' }
