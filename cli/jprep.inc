@@ -628,6 +628,10 @@ bool recipe(Pr &p, const std::string &name, const std::string &arg, Tbl &d) {
     bool bad = false;
     const double q1 = a.size() > 4 ? rnum(a[4], bad) : 0.5;
     const double q2 = a.size() > 4 ? (a.size() > 5 ? rnum(a[5], bad) : NA) : 0.667;
+    // as stats::quantile(): a probability, or the index below leaves the data
+    for (const double q : {q1, q2}) {
+      if (!std::isnan(q) && !(q >= 0 && q <= 1)) return p.fail("the quantiles of the recipe gent must be between 0 and 1.");
+    }
     std::vector<Col> v;
     double cut[4];
     for (int k = 0; k < 4; ++k) {

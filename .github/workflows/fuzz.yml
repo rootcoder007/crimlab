@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+#
+# libFuzzer on clab_jrun(), the entry that the command-line program and
+# every binding call with a function name and JSON arguments
+# (fuzz/fjrun.cpp, built by fuzz/build.sh with ASan and UBSan). It runs for
+# five minutes on every push and pull request, and for an hour every week,
+# from the rows of cli/test.tsv as its seeds. A crash, a memory error,
+# undefined behaviour or a leak fails the job, and the input is uploaded as
+# the artifact fuzz.
+name: fuzz
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['src/**', 'cli/**', 'fuzz/**', '.github/workflows/fuzz.yml']
+  pull_request:
+    branches: [main]
+    paths: ['src/**', 'cli/**', 'fuzz/**', '.github/workflows/fuzz.yml']
+  schedule:
+    - cron: "17 4 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      EVENT: ${{ github.event_name }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: build
+        run: CXX=clang++ CLJ=4 fuzz/build.sh "$RUNNER_TEMP/fz"
+      - name: fuzz
+        run: |
+          secs=300
+          if [ "$EVENT" = schedule ]; then secs=3600; fi
+          fuzz/run.sh "$RUNNER_TEMP/fz" "$secs"
+      - name: upload the failing inputs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz
+          path: |
+            ${{ runner.temp }}/fz/run/crash-*
+            ${{ runner.temp }}/fz/run/leak-*

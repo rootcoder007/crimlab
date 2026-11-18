@@ -44,6 +44,11 @@ bool rmcol(Ctx &c, const char *arg, const char *nmarg, std::vector<std::string> 
   nm = c[nmarg].s;
   const Val &v = col(d, nm.c_str());
   if (v.t == Val::NUL || !rmtxt(v, s, na)) return c.fail("`%s` has no column `%s`.", arg, nm.c_str());
+  // every column of a data frame has one length: the callers index one
+  // column by the rows of another
+  for (const Val &e : d.a) {
+    if ((e.t == Val::ARR ? e.a.size() : 1) != s.size()) return c.fail("the columns of `%s` differ in length.", arg);
+  }
   if (raw) *raw = &v;
   return true;
 }

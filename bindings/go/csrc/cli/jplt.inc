@@ -520,6 +520,9 @@ bool plotcal(Ctx &c, Val &out) {
     } else if (e.t != Val::NUL) {
       ok = false;
     }
+    // a day number is a date up to the year 9999, or it is no date (and
+    // no whole number the calendar arithmetic below can hold)
+    if (!std::isnan(v) && !(std::fabs(v) <= 2932896)) ok = false;
     dt.push_back(v);
   }
   if (!ok) return c.fail("`x` must be dates, one per value of the numbers `y`.");

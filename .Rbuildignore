@@ -25,3 +25,4 @@
 ^\.dockerignore$
 ^LICENSE$
 ^SECURITY\.md$
+^fuzz$

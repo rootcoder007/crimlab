@@ -2262,6 +2262,20 @@ int run(const char *fn, const char *in, std::string &res) {
       res = c.err;
       return CLAB_EARG;
     }
+    // once here for every data frame: an object of arrays has columns of
+    // one length, and the functions index one column by the rows of
+    // another. `units`, `polys` and `kind` are lists of vectors of any
+    // lengths
+    if (v.a[i].t == Val::OBJ && !v.a[i].a.empty() && k != "units" && k != "polys" && k != "kind") {
+      bool df = true, rag = false;
+      for (const Val &x : v.a[i].a) df = df && x.t == Val::ARR;
+      for (const Val &x : v.a[i].a) rag = rag || (df && x.a.size() != v.a[i].a[0].a.size());
+      if (rag) {
+        c.fail("the columns of `%s` differ in length.", k.c_str());
+        res = c.err;
+        return CLAB_EARG;
+      }
+    }
     // once here for every text argument (R's .cktxt())
     if (!u8val(v.a[i])) {
       c.fail("`%s` holds text that is not valid UTF-8.", k.c_str());
