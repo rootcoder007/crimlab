@@ -68,7 +68,10 @@
 #' vcov(f)
 #' nobs(f)
 #' @name racc
-#' @importFrom stats coef confint nobs vcov
+#' @rawNamespace importFrom(stats,coef)
+#' @rawNamespace importFrom(stats,confint)
+#' @rawNamespace importFrom(stats,nobs)
+#' @rawNamespace importFrom(stats,vcov)
 NULL
 
 #' The table of estimates of a fit and the names of its rows: the terms
