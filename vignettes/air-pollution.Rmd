@@ -281,7 +281,7 @@ fp2 <- co2fp(
   cpupwrw = 65,
   memgb = 16,
   pue = 1.67,
-  meth = "model"
+  mthd = "model"
 )
 fp2$enekwh
 fpeqv(fp2$co2eg)
@@ -293,7 +293,7 @@ dev <- data.frame(
   how = c("simulated reading", "simulated reading")
 )
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
-             memgb = 16, meth = "model", devices = dev)
+             memgb = 16, mthd = "model", devices = dev)
 fp3$devices
 # a bad argument is refused before the expression runs
 try(co2fp(Sys.sleep(10), pue = 0.9))

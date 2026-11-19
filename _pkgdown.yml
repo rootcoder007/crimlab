@@ -212,6 +212,7 @@ reference:
       - plotrdg
       - plotcal
       - plotevgrid
+      - plotcoh
   - title: Checks
     desc: Which labelling of a table reproduces a reported contrast, and an
       audit of categorical inputs.
@@ -282,9 +283,14 @@ reference:
       - mvtll
   - title: Segregation and the Mandela Rules
     desc: Placements that meet the Mandela Rules' limits on solitary
-      confinement, by group and denominator.
+      confinement, by group and denominator; whether a review due by a set
+      day was held; the days on which an entitlement was missed; and
+      whether decision makers decide alike.
     contents:
       - mndla
+      - rvwtim
+      - entcmp
+      - dmvar
   - title: Custody and court flow
     desc: Stocks and flows of people held, lengths of stay, Little's law on a
       docket, case flow and outcome mix, life tables of grouped times, and

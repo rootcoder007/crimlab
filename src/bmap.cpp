@@ -34,12 +34,12 @@ SEXP lst(int n, const char *const *nm, SEXP *v) {
 }  // namespace
 
 // src/map.cpp: the breaks (br) and the class of each value (cls, 0 for
-// none); meth 0 equal widths, 1 quantiles, 2 the breaks br as given.
+// none); mthd 0 equal widths, 1 quantiles, 2 the breaks br as given.
 extern "C" {
 
-SEXP C_clab_r_mapbrk(SEXP fn, SEXP v, SEXP k, SEXP meth, SEXP br) {
+SEXP C_clab_r_mapbrk(SEXP fn, SEXP v, SEXP k, SEXP mthd, SEXP br) {
   clab::who = CHAR(STRING_ELT(fn, 0));
-  const int n = Rf_length(v), kk = Rf_asInteger(k), m = Rf_asInteger(meth);
+  const int n = Rf_length(v), kk = Rf_asInteger(k), m = Rf_asInteger(mthd);
   int nb = m == 2 ? Rf_length(br) : kk + 1;
   SEXP b = PROTECT(Rf_allocVector(REALSXP, nb));
   if (m == 2) std::copy(REAL(br), REAL(br) + nb, REAL(b));

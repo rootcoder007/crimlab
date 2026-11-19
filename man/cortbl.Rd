@@ -5,14 +5,14 @@
 \alias{print.cortbl}
 \title{Full pairwise correlation table}
 \usage{
-cortbl(data, meth = c("spearman", "pearson"), minprs = 3L)
+cortbl(data, mthd = c("spearman", "pearson"), minprs = 3L)
 
 \method{print}{cortbl}(x, ...)
 }
 \arguments{
 \item{data}{A data frame; its numeric columns are correlated in pairs.}
 
-\item{meth}{\code{"spearman"} (default) or \code{"pearson"}.}
+\item{mthd}{\code{"spearman"} (default) or \code{"pearson"}.}
 
 \item{minprs}{Minimum complete pairs required before a correlation is
 computed, a whole number of at least 2 (default 3). Below it the pair is
@@ -45,7 +45,7 @@ constant column (no variance), gets \code{NA}. The pairs are listed in
 column order (\code{utils::combn()}).
 
 Errors: \code{data} not a data frame; fewer than two numeric columns;
-\code{minprs} not a whole number of at least 2; an invalid \code{meth}.
+\code{minprs} not a whole number of at least 2; an invalid \code{mthd}.
 }
 \examples{
 set.seed(1)
@@ -55,7 +55,7 @@ df$c <- df$a + stats::rnorm(100, sd = 0.2) # simulated
 cortbl(df)
 
 # Pearson instead of Spearman
-cortbl(df, meth = "pearson")
+cortbl(df, mthd = "pearson")
 
 # nprs shows how much data each figure rests on.
 gappy <- df

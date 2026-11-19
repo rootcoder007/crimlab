@@ -304,7 +304,7 @@ func Rnnhcl(args string) (string, error) { return Jrun("rnnhcl", args) }
 // Txcal runs txcal() of the R package (arguments: conc resp w? unk? k?; ? marks an optional one).
 func Txcal(args string) (string, error) { return Jrun("txcal", args) }
 
-// Lodimp runs lodimp() of the R package (arguments: x lod meth?; ? marks an optional one).
+// Lodimp runs lodimp() of the R package (arguments: x lod mthd?; ? marks an optional one).
 func Lodimp(args string) (string, error) { return Jrun("lodimp", args) }
 
 // Pmrrat runs pmrrat() of the R package (arguments: cen per cut?; ? marks an optional one).
@@ -511,7 +511,7 @@ func Didfe(args string) (string, error) { return Jrun("didfe", args) }
 // Evtst runs evtst() of the R package (arguments: y unit time first leads? lags? ref? bin? adj? clus? w? ma? norm? mbar? target? draws? seed? level?; ? marks an optional one).
 func Evtst(args string) (string, error) { return Jrun("evtst", args) }
 
-// Stgdid runs stgdid() of the R package (arguments: y unit time first? trt? meth? ctrl? adj? est? clus? reps? seed? level?; ? marks an optional one).
+// Stgdid runs stgdid() of the R package (arguments: y unit time first? trt? mthd? ctrl? adj? est? clus? reps? seed? level?; ? marks an optional one).
 func Stgdid(args string) (string, error) { return Jrun("stgdid", args) }
 
 // Synthc runs synthc() of the R package (arguments: y unit time first plac?; ? marks an optional one).
@@ -526,7 +526,7 @@ func Cbatt(args string) (string, error) { return Jrun("cbatt", args) }
 // Svymx runs svymx() of the R package (arguments: y w? strata? psu? fpc? stat? den? by? ref? level?; ? marks an optional one).
 func Svymx(args string) (string, error) { return Jrun("svymx", args) }
 
-// Wcbx runs wcbx() of the R package (arguments: y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?; ? marks an optional one).
+// Wcbx runs wcbx() of the R package (arguments: y unit time trt? adj? clus? mthd? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?; ? marks an optional one).
 func Wcbx(args string) (string, error) { return Jrun("wcbx", args) }
 
 // Wystep runs wystep() of the R package (arguments: obs null; ? marks an optional one).
@@ -718,10 +718,10 @@ func Inlhist(args string) (string, error) { return Jrun("inlhist", args) }
 // Freqtbl runs freqtbl() of the R package (arguments: data col? maxlvl? sort?; ? marks an optional one).
 func Freqtbl(args string) (string, error) { return Jrun("freqtbl", args) }
 
-// Cortbl runs cortbl() of the R package (arguments: data meth? minprs?; ? marks an optional one).
+// Cortbl runs cortbl() of the R package (arguments: data mthd? minprs?; ? marks an optional one).
 func Cortbl(args string) (string, error) { return Jrun("cortbl", args) }
 
-// Topcors runs topcors() of the R package (arguments: data n? meth? minabs?; ? marks an optional one).
+// Topcors runs topcors() of the R package (arguments: data n? mthd? minabs?; ? marks an optional one).
 func Topcors(args string) (string, error) { return Jrun("topcors", args) }
 
 // Drpempty runs drpempty() of the R package (arguments: data which? quiet?; ? marks an optional one).
@@ -1306,10 +1306,10 @@ func Synfix(args string) (string, error) { return Jrun("synfix", args) }
 // Pscred runs pscred() of the R package (arguments: days ratio? sentence?; ? marks an optional one).
 func Pscred(args string) (string, error) { return Jrun("pscred", args) }
 
-// Chomap runs chomap() of the R package (arguments: polys v brk? meth?; ? marks an optional one).
+// Chomap runs chomap() of the R package (arguments: polys v brk? mthd?; ? marks an optional one).
 func Chomap(args string) (string, error) { return Jrun("chomap", args) }
 
-// Smmap runs smmap() of the R package (arguments: polys v brk? meth?; ? marks an optional one).
+// Smmap runs smmap() of the R package (arguments: polys v brk? mthd?; ? marks an optional one).
 func Smmap(args string) (string, error) { return Jrun("smmap", args) }
 
 // Ptmap runs ptmap() of the R package (arguments: x y? cl?; ? marks an optional one).
@@ -1489,7 +1489,7 @@ func Plotvln(args string) (string, error) { return Jrun("plotvln", args) }
 // Hwpwr runs hwpwr() of the R package (arguments: dt? since? step? rated? pid? skip? paths?; ? marks an optional one).
 func Hwpwr(args string) (string, error) { return Jrun("hwpwr", args) }
 
-// Co2fp runs co2fp() of the R package (arguments: durs? cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?; ? marks an optional one).
+// Co2fp runs co2fp() of the R package (arguments: durs? cputms? loc? mthd? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?; ? marks an optional one).
 func Co2fp(args string) (string, error) { return Jrun("co2fp", args) }
 
 // Plothex runs plothex() of the R package (arguments: x y bins?; ? marks an optional one).
@@ -1497,6 +1497,18 @@ func Plothex(args string) (string, error) { return Jrun("plothex", args) }
 
 // Plotevgrid runs plotevgrid() of the R package (arguments: x; ? marks an optional one).
 func Plotevgrid(args string) (string, error) { return Jrun("plotevgrid", args) }
+
+// Plotcoh runs plotcoh() of the R package (arguments: y unit time first win? ma? norm?; ? marks an optional one).
+func Plotcoh(args string) (string, error) { return Jrun("plotcoh", args) }
+
+// Rvwtim runs rvwtim() of the R package (arguments: days first due by? cuts? level?; ? marks an optional one).
+func Rvwtim(args string) (string, error) { return Jrun("rvwtim", args) }
+
+// Entcmp runs entcmp() of the R package (arguments: miss days? by? hours? ref? cuts? level?; ? marks an optional one).
+func Entcmp(args string) (string, error) { return Jrun("entcmp", args) }
+
+// Dmvar runs dmvar() of the R package (arguments: dec dm out nmin? level?; ? marks an optional one).
+func Dmvar(args string) (string, error) { return Jrun("dmvar", args) }
 
 // Plotopt runs plotopt() of the R package (arguments: palette? grid? cex? las? bg? panel?; ? marks an optional one).
 func Plotopt(args string) (string, error) { return Jrun("plotopt", args) }

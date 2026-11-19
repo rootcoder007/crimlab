@@ -6,10 +6,10 @@
 #' compiled kernel; R only draws. Areas are drawn with `polypath()`, so a
 #' ring inside another is a hole.
 #'
-#' @details With `brk` a number of classes, `meth = "quantile"` puts the
+#' @details With `brk` a number of classes, `mthd = "quantile"` puts the
 #'   breaks at R's type-7 quantiles of the finite values (so the classes
 #'   hold about equal counts; breaks that repeat are merged, which leaves
-#'   fewer classes) and `meth = "equal"` cuts their range into classes of
+#'   fewer classes) and `mthd = "equal"` cuts their range into classes of
 #'   equal width, as `seq(min, max, length.out = brk + 1)`. A value falls
 #'   in the class whose interval holds it, intervals closed on the left
 #'   and the last closed on both sides, as `findInterval(v, breaks,
@@ -27,7 +27,7 @@
 #' @param brk The number of classes (a whole number from 1 to 9), or the
 #'   breaks themselves (increasing numbers covering the finite values of
 #'   `v`).
-#' @param meth How a number of classes is cut: `"quantile"` or `"equal"`.
+#' @param mthd How a number of classes is cut: `"quantile"` or `"equal"`.
 #' @param ... Passed to [graphics::plot.window()].
 #' @inheritParams plotlrnz
 #' @param col `NULL` (the palette) or colours, recycled over the classes.
@@ -42,7 +42,7 @@
 #' chomap(p, c(12, 3, 7, 25), brk = 2)
 #' chomap(p, c(12, 3, 7, 25), brk = c(0, 5, 10, 30), main = "Rates")
 #' @export
-chomap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
+chomap <- function(polys, v, brk = 5, mthd = "quantile", ..., main = NULL,
                    col = NULL, pal = NULL) {
   f <- "chomap"
   p <- .mpoly(polys, f)
@@ -50,7 +50,7 @@ chomap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
     .ckstop(f, "`v` must be numbers, one per area")
   }
   v <- as.numeric(v)
-  b <- .mbrk(v, brk, meth, f)
+  b <- .mbrk(v, brk, mthd, f)
   fl <- .mfill(b, col, pal, f)
   bb <- .Call(C_clab_r_mapbb, f, p$x, p$y)
   mn <- .pmain(main, "Choropleth", f)
@@ -87,7 +87,7 @@ chomap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
 #'            `2024` = c(6, 12, 2, 0))
 #' smmap(p, v, brk = 3)
 #' @export
-smmap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
+smmap <- function(polys, v, brk = 5, mthd = "quantile", ..., main = NULL,
                   col = NULL, pal = NULL) {
   f <- "smmap"
   p <- .mpoly(polys, f)
@@ -95,7 +95,7 @@ smmap <- function(polys, v, brk = 5, meth = "quantile", ..., main = NULL,
   prd <- colnames(v)
   if (is.null(prd)) prd <- as.character(seq_len(ncol(v)))
   vv <- as.numeric(v)
-  b <- .mbrk(vv, brk, meth, f)
+  b <- .mbrk(vv, brk, mthd, f)
   fl <- .mfill(b, col, pal, f)
   bb <- .Call(C_clab_r_mapbb, f, p$x, p$y)
   mn <- .pmain(main, "Small multiples by period", f)
@@ -293,10 +293,10 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
 
 # The breaks and the class of each value (NA when not finite), from the
 # compiled kernel.
-.mbrk <- function(v, brk, meth, fn) {
-  if (!is.character(meth) || length(meth) != 1L ||
-        !meth %in% c("quantile", "equal")) {
-    .ckstop(fn, "`meth` must be \"quantile\" or \"equal\"")
+.mbrk <- function(v, brk, mthd, fn) {
+  if (!is.character(mthd) || length(mthd) != 1L ||
+        !mthd %in% c("quantile", "equal")) {
+    .ckstop(fn, "`mthd` must be \"quantile\" or \"equal\"")
   }
   fv <- v[is.finite(v)]
   if (!length(fv)) .ckstop(fn, "`v` has no finite value")
@@ -311,7 +311,7 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
     .ckstop(fn, paste0("`brk` must be a whole number of classes from 1 to ",
                        "9, or increasing breaks covering `v`"))
   }
-  m <- if (!one) 2L else if (meth == "equal") 0L else 1L
+  m <- if (!one) 2L else if (mthd == "equal") 0L else 1L
   r <- .Call(C_clab_r_mapbrk, fn, v, if (one) as.integer(brk) else 0L, m,
              if (one) NULL else as.numeric(brk))
   cls <- r$cls

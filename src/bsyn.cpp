@@ -181,10 +181,10 @@ SEXP C_clab_r_sdidx(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP reps, SEXP se
   const double tau = pev::sdtau(w.yw.data(), nu, nt, w.ctl, w.trd, w.t0, true, om.data(), la.data());
   if (std::isnan(tau)) fail("%s", wfail);
   double se = NA_REAL;
-  const char *meth;
+  const char *mthd;
   if (n1 == 1) {
     // placebo: n1 comparison units at random treated as if adopting
-    meth = "placebo";
+    mthd = "placebo";
     kutil::rng g(csp::seed(seed));
     std::vector<double> o2(z(n0 - 1)), l2(z(w.t0));
     kutil::ksum s1, s2;
@@ -207,7 +207,7 @@ SEXP C_clab_r_sdidx(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP reps, SEXP se
     }
   } else {
     // the jackknife over units with the weights held
-    meth = "jackknife";
+    mthd = "jackknife";
     std::vector<double> u;
     for (int a = 0; a < n0 + n1; ++a) {
       std::vector<int> c, t;
@@ -270,9 +270,9 @@ SEXP C_clab_r_sdidx(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP reps, SEXP se
     for (int q = 0; q < n0; ++q) ps[s] += om[z(q)] * w.yw[z(s) * z(nu) + z(w.ctl[z(q)])];
   }
   SEXP path = PROTECT(cp.frame());
-  SEXP m1 = PROTECT(Rf_mkString(meth)), l1 = PROTECT(Rf_ScalarReal(lv));
+  SEXP m1 = PROTECT(Rf_mkString(mthd)), l1 = PROTECT(Rf_ScalarReal(lv));
   np += 6;
-  SEXP out = PROTECT(pevr::nlist({{"est", est}, {"meth", m1}, {"unitw", unitw}, {"timew", timew},
+  SEXP out = PROTECT(pevr::nlist({{"est", est}, {"mthd", m1}, {"unitw", unitw}, {"timew", timew},
                                   {"path", path}, {"level", l1}}));
   ++np;
   Rf_classgets(out, PROTECT(Rf_mkString("sdidx")));

@@ -36,6 +36,28 @@ jobs:
       - name: x86 32-bit, x87 and SSE2
         run: sh dev/port.sh m32
 
+  xcli:
+    name: cli ${{ matrix.arch }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {arch: riscv64, gcc: g++-riscv64-linux-gnu}
+          - {arch: s390x, gcc: g++-s390x-linux-gnu}
+          - {arch: ppc64le, gcc: g++-powerpc64le-linux-gnu}
+          - {arch: aarch64, gcc: g++-aarch64-linux-gnu}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: cross compiler and qemu
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ${{ matrix.gcc }} qemu-user-static
+          command -v qemu-${{ matrix.arch }}-static || command -v qemu-${{ matrix.arch }}
+      - name: the command's test table on ${{ matrix.arch }}
+        run: sh dev/port.sh xcli ${{ matrix.arch }}
+
   emu:
     runs-on: ubuntu-24.04
     timeout-minutes: 120

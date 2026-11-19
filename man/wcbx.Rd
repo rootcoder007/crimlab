@@ -11,7 +11,7 @@ wcbx(
   trt = NULL,
   adj = NULL,
   clus = NULL,
-  meth = "wild",
+  mthd = "wild",
   reps = NULL,
   wtype = "rad",
   ties = "count",
@@ -26,7 +26,7 @@ wcbx(
 )
 }
 \arguments{
-\item{y}{The outcome: numbers, one per row; for \code{meth = "perm"} also a
+\item{y}{The outcome: numbers, one per row; for \code{mthd = "perm"} also a
 matrix or data frame of several outcomes, one column each.}
 
 \item{unit}{The unit of each row: labels.}
@@ -45,7 +45,7 @@ first.}
 
 \item{clus}{\code{NULL} (cluster by unit) or the cluster of each row.}
 
-\item{meth}{\code{"wild"}, \code{"perm"} or \code{"power"}.}
+\item{mthd}{\code{"wild"}, \code{"perm"} or \code{"power"}.}
 
 \item{reps}{The draws: a whole number from 9; \code{NULL} for 9999 (200 for
 \code{"power"}). \code{reps} times the clusters and outcomes must be at most
@@ -78,9 +78,12 @@ between 0 and 1.}
 An object of class \code{wcbx}, a list: \code{res}, for \code{"wild"} one row
 (\code{est}, \code{stat}, \code{p}, \code{lo}, \code{hi}), for \code{"perm"} one row per outcome
 (\code{outcome}, \code{est}, \code{stat}, \code{p}, \code{pstep}), for \code{"power"} one row per
-effect (\code{eff}, \code{power}); \code{meth}; \code{ncl}; \code{draws}; \code{enum} (\code{TRUE} when
+effect (\code{eff}, \code{power}); \code{mthd}; \code{ncl}; \code{draws}; \code{enum} (\code{TRUE} when
 every draw was enumerated); \code{mde} and \code{size} (\code{"power"}, else \code{NA});
-and \code{level}.
+\code{level}; and \code{null}, for \code{"perm"} the statistic of every draw, a
+matrix with one column per outcome (else \code{NULL}). \code{plot()} draws the
+permuted statistics with the observed one (\code{"perm"}) and the power
+curve (\code{"power"}).
 }
 \description{
 Tests of the two-way fixed-effects effect of \code{\link[=didfe]{didfe()}} that stay
@@ -90,7 +93,7 @@ wild cluster bootstrap, and the permutation of the adoption dates across
 clusters; and the power of a design simulated on real untreated data.
 }
 \details{
-\code{meth = "wild"} is the restricted wild cluster bootstrap-t (WCR) of
+\code{mthd = "wild"} is the restricted wild cluster bootstrap-t (WCR) of
 Cameron, Gelbach and Miller (2008): the model is fitted with the null
 \code{b = b0} imposed, each bootstrap outcome is that fit plus its residuals
 multiplied cluster by cluster by a random sign (\code{wtype = "rad"}) or one
@@ -105,7 +108,7 @@ with Rademacher weights the smallest attainable p-value is \code{2 / 2^G}, so
 with four clusters nothing is rejected at 5\% and the interval is the
 whole line: the honest answer.
 
-\code{meth = "perm"} shuffles the adoption period of each cluster (all its
+\code{mthd = "perm"} shuffles the adoption period of each cluster (all its
 units adopt together; never is a period too) among the clusters,
 keeping the number adopting at each date, and recomputes the t statistic
 (\code{stat = "t"}) or the estimate (\code{"est"}). When the distinct assignments
@@ -116,7 +119,7 @@ assigned at random. With several outcomes (the columns of \code{y}), \code{pstep
 holds the Westfall-Young stepdown p-values of \code{\link[=wystep]{wystep()}} over the same
 assignments.
 
-\code{meth = "power"} draws \code{ntrt} clusters, gives each an adoption period
+\code{mthd = "power"} draws \code{ntrt} clusters, gives each an adoption period
 drawn from \code{adopt}, adds each effect of \code{eff} to their outcomes from
 adoption on, and counts the CR1 t tests that reject at \code{alpha}; on real
 untreated data the serial correlation and clustering are carried, as
@@ -133,7 +136,7 @@ d$rate <- 30 + i + 0.5 * (d$year - 2015) - 2 * d$bylaw + sin(seq_len(80))
 # eight towns: every one of the 2^8 sign patterns
 wcbx(d$rate, d$town, d$year, d$bylaw)
 # every assignment of the by-law to three of the eight towns
-wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm")$res
 # the simulated panel of polex(), its four regions the clusters
 p <- polex()
 wcbx(p$crmrate, p$district, p$month, p$reformed, clus = p$region)

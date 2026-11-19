@@ -128,7 +128,7 @@ void adj(tk &t) {
     tk_veq(t, "pbadj.q", q, want[m], 4, 1e-15);
   }
   const double pb[1] = {1.5};
-  tk_ieq(t, "pbadj.meth", clab_pbadj(p, 4, 6, q, o), CLAB_EARG);
+  tk_ieq(t, "pbadj.mthd", clab_pbadj(p, 4, 6, q, o), CLAB_EARG);
   tk_ieq(t, "pbadj.p", clab_pbadj(pb, 1, 0, q, o), CLAB_EDOM);
 }
 

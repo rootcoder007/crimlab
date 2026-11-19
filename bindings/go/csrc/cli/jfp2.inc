@@ -7,7 +7,7 @@
 // before and after (`stat`: {before: [idle, total], after: [idle, total]},
 // as clab_cpuacc() reads /proc/stat), else the process utilisation is used
 // with R's note; for RAPL the package counters before and after (`rapl`:
-// {before: [uj...], after: [uj...], max: [uj...]}), else the model (meth
+// {before: [uj...], after: [uj...], max: [uj...]}), else the model (mthd
 // "rapl" without them is refused as R refuses unreadable counters). The
 // arithmetic is clab_fpe(), as in R; the checks are R's in their order and
 // words.
@@ -213,8 +213,8 @@ inline Val cites(const Val &ci) {
 // co2fp()
 bool co2fp(Ctx &c, Val &out) {
   using namespace fp2;
-  int meth = 0, lc = 0;
-  CK(ckarg(c, "meth", {"auto", "rapl", "model"}, meth));
+  int mthd = 0, lc = 0;
+  CK(ckarg(c, "mthd", {"auto", "rapl", "model"}, mthd));
   CK(ckarg(c, "loadcur", {"linear", "codecarbon"}, lc));
   Val ci;
   CK(ciget(c, ci));
@@ -231,10 +231,10 @@ bool co2fp(Ctx &c, Val &out) {
   }
   // the counters: before, after and their ranges
   std::vector<double> r0, r1, rmx;
-  const bool rp = meth != 2 && c["rapl"].t == Val::OBJ && pair(c["rapl"], "before", 0, r0) &&
+  const bool rp = mthd != 2 && c["rapl"].t == Val::OBJ && pair(c["rapl"], "before", 0, r0) &&
                   pair(c["rapl"], "after", r0.size(), r1) && pair(c["rapl"], "max", r0.size(), rmx);
-  if (meth == 1 && !rp) {
-    return ckstop(c, "RAPL energy counters are not readable here (see raplok()); use meth = \"model\"");
+  if (mthd == 1 && !rp) {
+    return ckstop(c, "RAPL energy counters are not readable here (see raplok()); use mthd = \"model\"");
   }
   if (!rp) r0.clear();
   ax::Cols asm_;

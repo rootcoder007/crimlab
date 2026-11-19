@@ -26,7 +26,7 @@ bool wcbx(Ctx &c, Val &out) {
   static const char *const to[] = {"count", "strict"};
   static const char *const so[] = {"t", "est"};
   int mt = 0, wt = 0, ti = 0, sk = 0, nr = 0;
-  CK(pickd(c, "meth", mo, 3, 0, mt));
+  CK(pickd(c, "mthd", mo, 3, 0, mt));
   CK(pickd(c, "wtype", wo, 2, 0, wt));
   CK(pickd(c, "ties", to, 2, 0, ti));
   const int tie = ti == 0 ? 1 : 0;
@@ -51,7 +51,7 @@ bool wcbx(Ctx &c, Val &out) {
   } else {
     ys.push_back(y);
   }
-  if (ys.size() > 1 && mt != 1) return c.fail("several outcomes are taken by `meth = \"perm\"` only.");
+  if (ys.size() > 1 && mt != 1) return c.fail("several outcomes are taken by `mthd = \"perm\"` only.");
   Pan pn;
   CK(panel(c, -HUGE_VAL, pn, &ys[0]));
   const int n = pn.n, k = sat<int>(ys.size());
@@ -79,7 +79,7 @@ bool wcbx(Ctx &c, Val &out) {
   const int p = pa + 1;
   std::vector<double> xa(zz(n) * zz(p), 0.0);
   for (int j = 0; j < pa; ++j) std::copy(x[zz(j)].x.begin(), x[zz(j)].x.end(), xa.begin() + sat<std::ptrdiff_t>(j + 1) * n);
-  Val res;
+  Val res, nulv;
   int nd = 0;
   bool en = false;
   double mde = NA, size = NA;
@@ -233,6 +233,7 @@ bool wcbx(Ctx &c, Val &out) {
       r.num("p", rp);
       r.num("pstep", rs);
       res = r.o;
+      nulv = vmat(nv0, nd, k);
     }
   } else {
     int nt1 = 0;
@@ -303,13 +304,14 @@ bool wcbx(Ctx &c, Val &out) {
   }
   out = vobj();
   put(out, "res", res);
-  put(out, "meth", vstr(mo[mt]));
+  put(out, "mthd", vstr(mo[mt]));
   put(out, "ncl", vnum(ncl));
   put(out, "draws", vnum(nd));
   put(out, "enum", vbool(en));
   put(out, "mde", vnum(mde));
   put(out, "size", vnum(size));
   put(out, "level", vnum(lv));
+  put(out, "null", nulv);
   return true;
 }
 

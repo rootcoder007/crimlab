@@ -618,8 +618,9 @@ V f_cnscwb(const Cx &c) {
       se[i] = s.a[1].d[k];
       sh[i] = std::isnan(notcro[i]) || std::isnan(nomaj[i]) ? NA : s.a[2].d[k];
       sl[i] = s.a[3].d[k];
+      // NA is set, not left to the sum (see cwbscr)
       const long double t = static_cast<long double>(si[i]) + se[i] + sh[i] + sl[i];
-      sc[i] = static_cast<double>(t / 4);
+      sc[i] = isna(si[i]) || isna(se[i]) || isna(sh[i]) || isna(sl[i]) ? NA : static_cast<double>(t / 4);
     }
   }
   V out = frame({"geo", "dguid", "group", "income", "education", "housing", "labour", "cwb", "incpercap", "highsch25p",

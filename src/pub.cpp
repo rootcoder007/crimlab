@@ -128,8 +128,8 @@ int clab_yoypx(const double *v, const double *prd, const int *grp, int n, double
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_pbadj(const double *p, int n, int meth, double *q, int *o) CLAB_TRY {
-  if (n < 0 || meth < 0 || meth > 5) return CLAB_EARG;
+int clab_pbadj(const double *p, int n, int mthd, double *q, int *o) CLAB_TRY {
+  if (n < 0 || mthd < 0 || mthd > 5) return CLAB_EARG;
   for (int i = 0; i < n; ++i) {
     if (!(p[i] >= 0 && p[i] <= 1)) return CLAB_EDOM;
     o[i] = i;
@@ -139,9 +139,9 @@ int clab_pbadj(const double *p, int n, int meth, double *q, int *o) CLAB_TRY {
   for (int i = n; i >= 1; --i) by += 1.0 / i;
   // 0 none, 1 Bonferroni, 2 Holm, 3 Hochberg, 4 Benjamini-Hochberg, 5
   // Benjamini-Yekutieli, as p.adjust()
-  if (meth <= 1) {
-    for (int i = 0; i < n; ++i) q[i] = meth == 0 ? p[i] : std::fmin(1.0, n * p[i]);
-  } else if (meth == 2) {
+  if (mthd <= 1) {
+    for (int i = 0; i < n; ++i) q[i] = mthd == 0 ? p[i] : std::fmin(1.0, n * p[i]);
+  } else if (mthd == 2) {
     double run = 0;
     for (int i = 0; i < n; ++i) {
       run = std::fmax(run, (n - i) * p[o[i]]);
@@ -150,8 +150,8 @@ int clab_pbadj(const double *p, int n, int meth, double *q, int *o) CLAB_TRY {
   } else {
     double run = 1;
     for (int i = n - 1; i >= 0; --i) {
-      const double f = meth == 3   ? n - i
-                       : meth == 4 ? static_cast<double>(n) / (i + 1)
+      const double f = mthd == 3   ? n - i
+                       : mthd == 4 ? static_cast<double>(n) / (i + 1)
                                    : by * n / (i + 1);
       run = std::fmin(run, f * p[o[i]]);
       q[o[i]] = run;

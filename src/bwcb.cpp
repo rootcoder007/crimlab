@@ -56,7 +56,7 @@ extern "C" {
 //'   and clusters as plain vectors of one length (several outcomes as the
 //'   columns of a matrix or data frame).
 //' @noRd
-SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, SEXP meth,
+SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, SEXP mthd,
                    SEXP reps, SEXP wtype, SEXP ties, SEXP stat, SEXP ntrt, SEXP adopt, SEXP eff,
                    SEXP alpha, SEXP power, SEXP seed, SEXP level) {
   clab::who = "wcbx";
@@ -64,7 +64,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
   static const char *const wo[] = {"rad", "webb"};
   static const char *const to[] = {"count", "strict"};
   static const char *const so[] = {"t", "est"};
-  const int mt = csp::pick(meth, "meth", mo, 3), wt = csp::pick(wtype, "wtype", wo, 2);
+  const int mt = csp::pick(mthd, "mthd", mo, 3), wt = csp::pick(wtype, "wtype", wo, 2);
   const int tie = csp::pick(ties, "ties", to, 2) == 0 ? 1 : 0;
   const int sk = csp::pick(stat, "stat", so, 2);
   const int nr = Rf_isNull(reps) ? (mt == 2 ? 200 : 9999) : clab::whole(reps, "reps", 9);
@@ -88,7 +88,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
     ys.push_back(y);
   }
   if (ys.empty()) fail("`y` has no outcome.");
-  if (ys.size() > 1 && mt != 1) fail("several outcomes are taken by `meth = \"perm\"` only.");
+  if (ys.size() > 1 && mt != 1) fail("several outcomes are taken by `mthd = \"perm\"` only.");
   pevr::pan pn = pevr::panel(ys[0], unit, time, clab::ninf, &np);
   const int n = pn.n, k = static_cast<int>(ys.size());
   std::vector<std::vector<double>> yv(z(k));
@@ -118,6 +118,7 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
   std::vector<double> xa(z(n) * z(p), 0.0);
   for (int j = 0; j < pa; ++j) std::copy(x[z(j)].x.begin(), x[z(j)].x.end(), xa.begin() + static_cast<std::ptrdiff_t>(j + 1) * n);
   SEXP res;
+  SEXP nulm = R_NilValue;
   int nd = 0;
   bool en = false;
   double mde = NA_REAL, size = NA_REAL;
@@ -278,6 +279,10 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
       }
       res = PROTECT(r.frame());
       ++np;
+      // the statistics of the draws, one column per outcome: plot() draws them
+      nulm = PROTECT(Rf_allocMatrix(REALSXP, nd, k));
+      ++np;
+      std::copy(nul.begin(), nul.end(), REAL(nulm));
     }
   } else {
     // power: ntrt clusters drawn, adoption periods drawn from adopt, the
@@ -351,8 +356,9 @@ SEXP C_clab_r_wcbx(SEXP y, SEXP unit, SEXP time, SEXP trt, SEXP adj, SEXP clus, 
        mm = PROTECT(Rf_ScalarReal(mde)), sz = PROTECT(Rf_ScalarReal(size)),
        l1 = PROTECT(Rf_ScalarReal(lv));
   np += 7;
-  SEXP out = PROTECT(pevr::nlist({{"res", res}, {"meth", m1}, {"ncl", g1}, {"draws", d1},
-                                  {"enum", e1}, {"mde", mm}, {"size", sz}, {"level", l1}}));
+  SEXP out = PROTECT(pevr::nlist({{"res", res}, {"mthd", m1}, {"ncl", g1}, {"draws", d1},
+                                  {"enum", e1}, {"mde", mm}, {"size", sz}, {"level", l1},
+                                  {"null", nulm}}));
   ++np;
   Rf_classgets(out, PROTECT(Rf_mkString("wcbx")));
   UNPROTECT(np + 1);

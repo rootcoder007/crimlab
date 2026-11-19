@@ -128,7 +128,7 @@ test_that("the toxicology functions refuse bad input", {
   errs("lodimp", list(
     list("`lod` must be one limit, or one per value, 3", 1:3, c(1, 2)),
     list("`lod` must be greater than 0", 1:3, 0),
-    list("`meth` must be one of", 1:3, 1, meth = "x"),
+    list("`mthd` must be one of", 1:3, 1, mthd = "x"),
     list("`x` must be numbers or NA", character(0), 1)
   ))
   errs("pmrrat", list(

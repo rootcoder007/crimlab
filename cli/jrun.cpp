@@ -1659,6 +1659,7 @@ bool ckpath(Ctx &c, const std::string &p, const char *nm) {
 #include "jxpl.inc"
 #include "jgol.inc"
 #include "jxpr.inc"
+#include "jrvw.inc"
 
 // The table: name, arguments (? for an optional one), entry point.
 using Fn = bool (*)(Ctx &, Val &);
@@ -1767,7 +1768,7 @@ const Ent ents[] = {
     {"crwalk", "x y? h? nsim? seed? lonlat?", crwalk},
     {"rnnhcl", "x y? base bw? h p? minpts? k? c? lonlat?", rnnhcl},
     {"txcal", "conc resp w? unk? k?", txcal},
-    {"lodimp", "x lod meth?", lodimp},
+    {"lodimp", "x lod mthd?", lodimp},
     {"pmrrat", "cen per cut?", pmrrat},
     {"etohlr", "eth prop? but? etg? thr?", etohlr},
     {"mtxrel", "base dil days? stage? dmax? dcap? smax? scap?", mtxrel},
@@ -1836,12 +1837,12 @@ const Ent ents[] = {
     {"sthwk", "times x y hor win? par? at? start? maxit?", sthwk},
     {"didfe", "y unit time trt adj? clus? w? fe? fam? expo? loo? bacon? mtch? exact? calip? level?", didfe},
     {"evtst", "y unit time first leads? lags? ref? bin? adj? clus? w? ma? norm? mbar? target? draws? seed? level?", evtst},
-    {"stgdid", "y unit time first? trt? meth? ctrl? adj? est? clus? reps? seed? level?", stgdid},
+    {"stgdid", "y unit time first? trt? mthd? ctrl? adj? est? clus? reps? seed? level?", stgdid},
     {"synthc", "y unit time first plac?", synthc},
     {"sdidx", "y unit time first reps? seed? level?", sdidx},
     {"cbatt", "y d x est? tgt? ps? k? calip? nsub? reps? seed? level?", cbatt},
     {"svymx", "y w? strata? psu? fpc? stat? den? by? ref? level?", svymx},
-    {"wcbx", "y unit time trt? adj? clus? meth? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?", wcbx},
+    {"wcbx", "y unit time trt? adj? clus? mthd? reps? wtype? ties? stat? ntrt? adopt? eff? alpha? power? seed? level?", wcbx},
     {"wystep", "obs null", wystep},
     {"dmlx", "y d x model? fold z? s? t? score? lrn? lrnd? alpha? nlam? nfin? tol? scr? hon? ntree? mtry? trim? clu? pred? stk? nstk? disc? seed?", dmlx},
     {"suplrn", "x y fam? lrns? nfold? fold? disc? newx? alpha? nlam? nfin? ntree? mtry? seed?", suplrn},
@@ -1905,8 +1906,8 @@ const Ent ents[] = {
     {"exprspplr", "data y expo confs nboot? rstate?", exprspplr},
     {"inlhist", "x bins?", inlhist},
     {"freqtbl", "data col? maxlvl? sort?", freqtbl},
-    {"cortbl", "data meth? minprs?", cortbl},
-    {"topcors", "data n? meth? minabs?", topcors},
+    {"cortbl", "data mthd? minprs?", cortbl},
+    {"topcors", "data n? mthd? minabs?", topcors},
     {"drpempty", "data which? quiet?", drpempty},
     {"drpconst", "data naasval? quiet?", drpconst},
     {"clncolnms", "data case? sep? quiet?", clncolnms},
@@ -2101,8 +2102,8 @@ const Ent ents[] = {
     {"ovrtxt", "x html?", ovr::ovrtxt},
     {"synfix", "kind? n? seed?", ovr::synfix},
     {"pscred", "days ratio? sentence?", ovr::pscred},
-    {"chomap", "polys v brk? meth?", chomap},
-    {"smmap", "polys v brk? meth?", smmap},
+    {"chomap", "polys v brk? mthd?", chomap},
+    {"smmap", "polys v brk? mthd?", smmap},
     {"ptmap", "x y? cl?", ptmap},
     {"prpmap", "x y? v rmax?", prpmap},
     {"eofst", "z k?", eofst},
@@ -2162,9 +2163,13 @@ const Ent ents[] = {
     {"plotrdg", "x grp? bw?", plotrdg},
     {"plotvln", "x grp? bw?", plotvln},
     {"hwpwr", "dt? since? step? rated? pid? skip? paths?", hwpwr},
-    {"co2fp", "durs? cputms? loc? meth? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?", co2fp},
+    {"co2fp", "durs? cputms? loc? mthd? cpupwrw? usage? loadcur? cores? memgb? mempwrwpergb? pue? devices? rapl? stat?", co2fp},
     {"plothex", "x y bins?", plothex},
     {"plotevgrid", "x", plotevgrid},
+    {"plotcoh", "y unit time first win? ma? norm?", plotcoh},
+    {"rvwtim", "days first due by? cuts? level?", rvwtim},
+    {"entcmp", "miss days? by? hours? ref? cuts? level?", entcmp},
+    {"dmvar", "dec dm out nmin? level?", dmvar},
     {"plotopt", "palette? grid? cex? las? bg? panel?", plotopt},
     {"prechk", "data preset codes?", prechk},
     {"yoyhtml", "x file? title? sub? pal? better? digits? bars? intv? notes? lag?", yoyhtml},

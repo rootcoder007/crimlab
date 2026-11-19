@@ -2966,10 +2966,10 @@ int clab_pbchg(const double *nlo, const double *nhi, const double *plo, const do
 int clab_yoypx(const double *v, const double *prd, const int *grp, int n, double lag, double *prev,
                double *chg, double *pct);
 
-/* Adjusted p-values (yoypx), as p.adjust(): p, n values in [0, 1]; meth 0
+/* Adjusted p-values (yoypx), as p.adjust(): p, n values in [0, 1]; mthd 0
  * none, 1 Bonferroni, 2 Holm, 3 Hochberg, 4 Benjamini-Hochberg, 5
  * Benjamini-Yekutieli. Out: q (n). o: n ints of scratch. */
-int clab_pbadj(const double *p, int n, int meth, double *q, int *o);
+int clab_pbadj(const double *p, int n, int mthd, double *q, int *o);
 
 /* The judge-leniency instrument on observed data (jdgiv; Lean:
  * Crimlab.Judge.wald_with_defiers): z, d n values 0 or 1 (the lenient or
@@ -3227,11 +3227,11 @@ int clab_txcal(const double *x, const double *y, const double *w, int n, const d
 
 /* Substitution of left-censored values: x (n; NaN for not measured, kept
  * as it is) below the limit of detection lod (nl = 1 or n, positive) is
- * replaced by lod / 2 (meth 0), lod / sqrt(2) (1) or lod (2). Out: out
+ * replaced by lod / 2 (mthd 0), lod / sqrt(2) (1) or lod (2). Out: out
  * (n), cens (n, 1 for a replaced value), st (2), the share of measured
  * values replaced (NaN when none is measured) and the number not
  * measured. */
-int clab_lodimp(const double *x, int n, const double *lod, int nl, int meth, double *out,
+int clab_lodimp(const double *x, int n, const double *lod, int nl, int mthd, double *out,
                 int *cens, double *st);
 
 /* Postmortem redistribution from the central and peripheral (femoral)
@@ -4002,11 +4002,11 @@ void clab_bootci(const double *v, int m, const double *pr, int np, double *out);
  * (breaks moved by 1e-7 of the median width, both ends included); non-finite
  * values are skipped. CLAB_EDOM when the finite values have no spread. */
 int clab_hbin(const double *x, int n, int bins, int *cnt);
-/* The Spearman (meth 0: Pearson's of the midranks) or Pearson (1)
+/* The Spearman (mthd 0: Pearson's of the midranks) or Pearson (1)
  * correlation of every pair of the p columns of x (n x p, NaN missing), the
  * pairs in column order, over the rows where both are present: np[k] such
  * rows; NaN below minprs of them or for a column with no spread. */
-int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, int *np);
+int clab_pcor(const double *x, int n, int p, int mthd, int minprs, double *cor, int *np);
 /* The runs of nonzero na (n) of length minrun or more: their first and last
  * positions (from 1) into st and en; returns their number. */
 int clab_nrun(const int *na, int n, int minrun, int *st, int *en);
@@ -4690,16 +4690,16 @@ int clab_ovrchk(const char *s, int64_t n, int kind, const char *shape, int *ok);
  * ------------------------------------------------------------------------ */
 
 /* Class breaks of the n values v (those not finite set aside, at least
- * one finite): meth 0 k classes of equal width over their range (br as
+ * one finite): mthd 0 k classes of equal width over their range (br as
  * seq(min, max, length.out = k + 1)), 1 their type-7 quantiles at
- * seq(0, 1, length.out = k + 1), breaks that repeat merged; meth 2 the
+ * seq(0, 1, length.out = k + 1), breaks that repeat merged; mthd 2 the
  * *nb breaks given in br (increasing, covering the values; CLAB_EDOM when
  * they do not). One distinct break is widened to (b - 0.5, b + 0.5). br
- * holds k + 1 (meth 0, 1) or *nb doubles; out: *nb the breaks kept and
+ * holds k + 1 (mthd 0, 1) or *nb doubles; out: *nb the breaks kept and
  * cls[i] the class of v[i] from 1, findInterval(rightmost.closed = TRUE,
  * all.inside = TRUE), 0 when v[i] is not finite. CLAB_EDOM when no value
  * is finite. O(n log n). */
-int clab_mapbrk(const double *v, int n, int k, int meth, double *br, int *nb, int *cls);
+int clab_mapbrk(const double *v, int n, int k, int mthd, double *br, int *nb, int *cls);
 /* The box of the n points (x, y) with both coordinates finite, bb (4):
  * xmin, xmax, ymin, ymax, a range of one value widened by 0.5 each side.
  * CLAB_EDOM when no point is finite. */

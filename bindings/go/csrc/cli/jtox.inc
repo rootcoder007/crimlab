@@ -79,7 +79,7 @@ bool lodimp(Ctx &c, Val &out) {
   if (lv.n() != 1 && lv.n() != n) return c.fail("`lod` must be one limit, or one per value, %d.", sat<int>(n));
   static const char *const mo[] = {"half", "sqrt2", "lod"};
   int m = 0;
-  CK(pickd(c, "meth", mo, 3, 0, m));
+  CK(pickd(c, "mthd", mo, 3, 0, m));
   std::vector<double> l(n), o(n);
   std::vector<int> cs(n);
   for (std::size_t i = 0; i < n; ++i) l[i] = lv[lv.n() == 1 ? 0 : i];

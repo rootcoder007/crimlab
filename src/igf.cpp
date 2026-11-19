@@ -189,14 +189,19 @@ V f_cwbscr(const Cx &c) {
   auto at = [&](int k, std::size_t j) { return a[static_cast<std::size_t>(k)][j % a[static_cast<std::size_t>(k)].size()]; };
   std::vector<double> inc(n), edu(n), hou(n), lab2(n), cwb(n);
   for (std::size_t j = 0; j < n; ++j) {
+    // a missing value is set, not left to the arithmetic: a processor may
+    // answer an operation on one with a NaN of its own (RISC-V does), and
+    // the result would then read NaN where R gives NA
+    auto miss = [&](int k) { return isna(at(k, j)); };
     double v = 100 * (std::log(at(0, j)) - std::log(b[0])) / (std::log(b[1]) - std::log(b[0]));
     if (!std::isnan(v)) v = std::min(100.0, std::max(0.0, v));
-    inc[j] = v;
-    edu[j] = 2.0 / 3 * at(1, j) + 1.0 / 3 * at(2, j);
-    hou[j] = (at(3, j) + at(4, j)) / 2;
-    lab2[j] = (at(5, j) + at(6, j)) / 2;
+    inc[j] = miss(0) ? na() : v;
+    edu[j] = miss(1) || miss(2) ? na() : 2.0 / 3 * at(1, j) + 1.0 / 3 * at(2, j);
+    hou[j] = miss(3) || miss(4) ? na() : (at(3, j) + at(4, j)) / 2;
+    lab2[j] = miss(5) || miss(6) ? na() : (at(5, j) + at(6, j)) / 2;
     const long double s = static_cast<long double>(inc[j]) + edu[j] + hou[j] + lab2[j];
-    cwb[j] = static_cast<double>(s / 4);
+    const bool any = isna(inc[j]) || isna(edu[j]) || isna(hou[j]) || isna(lab2[j]);
+    cwb[j] = any ? na() : static_cast<double>(s / 4);
   }
   V out = frame({"income", "education", "housing", "labour", "cwb"}, {dv(inc), dv(edu), dv(hou), dv(lab2), dv(cwb)});
   out.cls = {"cwbscr", "data.frame"};

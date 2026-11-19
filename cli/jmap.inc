@@ -58,13 +58,13 @@ inline bool poly(Ctx &c, Poly &p) {
 
 // .mbrk(): the breaks and the class of each value (0 for none).
 inline bool brk(Ctx &c, const std::vector<double> &v, std::vector<double> &br, std::vector<int> &cls) {
-  std::string meth = "quantile";
-  if (c.has("meth")) {
-    const Val &m = c["meth"];
+  std::string mthd = "quantile";
+  if (c.has("mthd")) {
+    const Val &m = c["mthd"];
     const Val &e = m.t == Val::ARR && m.a.size() == 1 ? m.a[0] : m;
-    meth = e.t == Val::STR ? e.s : std::string();
+    mthd = e.t == Val::STR ? e.s : std::string();
   }
-  if (meth != "quantile" && meth != "equal") return c.fail("`meth` must be \"quantile\" or \"equal\".");
+  if (mthd != "quantile" && mthd != "equal") return c.fail("`mthd` must be \"quantile\" or \"equal\".");
   double lo = HUGE_VAL, hi = -HUGE_VAL;
   for (double x : v) {
     if (!std::isfinite(x)) continue;
@@ -84,7 +84,7 @@ inline bool brk(Ctx &c, const std::vector<double> &v, std::vector<double> &br, s
     ok = ok && b.front() <= lo && b.back() >= hi;
   }
   if (!ok) return c.fail("`brk` must be a whole number of classes from 1 to 9, or increasing breaks covering `v`.");
-  const int k = one ? sat<int>(b[0]) : 0, mt = one ? (meth == "equal" ? 0 : 1) : 2;
+  const int k = one ? sat<int>(b[0]) : 0, mt = one ? (mthd == "equal" ? 0 : 1) : 2;
   int nb = one ? k + 1 : sat<int>(b.size());
   br.assign(sat<std::size_t>(nb), 0.0);
   if (!one) br = b;
@@ -269,7 +269,7 @@ bool ptmap(Ctx &c, Val &out) {
   }
   int k = 0;
   for (int v : cl) k = std::max(k, v);
-  const ax::Cols pl = mp::pal("okabe", std::max(k, 1));
+  const ax::Cols pl = mp::pal("grey", std::max(k, 1));
   static const int pch[8] = {16, 17, 15, 18, 1, 2, 0, 5};
   std::vector<double> cv(n, NA), ph(n, 16);
   Val col = varr();

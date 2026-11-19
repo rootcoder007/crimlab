@@ -52,7 +52,7 @@ txcal <- function(conc, resp, w = "1/x^2", unk = NULL, k = c(3.3, 10)) {
 #'   elements fill the arguments by name.
 #' @param lod The limit of detection: one positive number, or one per value
 #'   (each sample's own limit).
-#' @param meth `"half"`, `"sqrt2"` or `"lod"`.
+#' @param mthd `"half"`, `"sqrt2"` or `"lod"`.
 #' @return A list: `tab`, a data frame with one row per value (`x`, `lod`,
 #'   `imp` the value after substitution, `cens` whether it was below the
 #'   limit); `frac`, the share of the measured values below the limit
@@ -65,11 +65,11 @@ txcal <- function(conc, resp, w = "1/x^2", unk = NULL, k = c(3.3, 10)) {
 #' @examples
 #' lodimp(c(0.4, 0.05, NA, 1.2, 0.08), lod = 0.1)
 #' @export
-lodimp <- function(x, lod, meth = "half") {
+lodimp <- function(x, lod, mthd = "half") {
   if (inherits(x, "clpre")) {
     return(.prep(lodimp, x, match.call(), parent.frame()))
   }
-  .Call(C_clab_r_lodimp, x, lod, meth)
+  .Call(C_clab_r_lodimp, x, lod, mthd)
 }
 
 #' Postmortem redistribution ratio

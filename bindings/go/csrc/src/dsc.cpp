@@ -429,7 +429,7 @@ int clab_hbin(const double *x, int n, int bins, int *cnt) CLAB_TRY {
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, int *np) CLAB_TRY {
+int clab_pcor(const double *x, int n, int p, int mthd, int minprs, double *cor, int *np) CLAB_TRY {
   if (n < 0 || p < 2) return CLAB_EARG;
   int k = 0;
   vector<double> a, b;
@@ -444,7 +444,7 @@ int clab_pcor(const double *x, int n, int p, int meth, int minprs, double *cor, 
         b.push_back(v);
       }
       np[k] = static_cast<int>(a.size());
-      cor[k] = np[k] < minprs ? NAN : meth == 0 ? spear(a.data(), b.data(), a.size()) : pears(a.data(), b.data(), a.size());
+      cor[k] = np[k] < minprs ? NAN : mthd == 0 ? spear(a.data(), b.data(), a.size()) : pears(a.data(), b.data(), a.size());
     }
   }
   return CLAB_OK;

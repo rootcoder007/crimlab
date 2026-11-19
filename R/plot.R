@@ -18,15 +18,17 @@
 #'   `"diverging"` has three anchors (blue `#2166AC`, grey `#8C8C8C`,
 #'   orange-red `#D6604D`) and is used for changes and residuals;
 #'   `"sequential"` has five blues from light to dark, and `"grey"` five
-#'   greys from dark to light. With `n` given, `"okabe"` and `"grey"` repeat
+#'   greys, black first. With `n` given, `"okabe"` and `"grey"` repeat
 #'   their colours and `"diverging"` and `"sequential"` are interpolated.
 #'
 #'   The session options are kept in `options(crimlab.plot)`; the defaults
-#'   are `palette = "okabe"`, `grid = TRUE`, `cex = 1`, `las = 1`,
-#'   `bg = "white"` and `panel = "#EEF1F6"` (the fill of the plot region
-#'   behind white grid lines; `NA` for none). Setting some options keeps the
-#'   others; an unusable value set by hand with `options()` falls back to its
-#'   default.
+#'   are `palette = "grey"`, `grid = FALSE`, `cex = 1`, `las = 1`,
+#'   `bg = "white"` and `panel = NA` (the fill of the plot region; `NA` for
+#'   none): black and grey on white, as a journal prints it. For colour,
+#'   `plotopt(palette = "okabe")`; for a tinted panel behind white grid
+#'   lines, `plotopt(grid = TRUE, panel = "#EEF1F6")`. Setting some options
+#'   keeps the others; an unusable value set by hand with `options()` falls
+#'   back to its default.
 #'
 #' @param name The palette: one of `"okabe"` (the default), `"diverging"`,
 #'   `"sequential"` and `"grey"`.
@@ -41,12 +43,12 @@
 #'   people. <https://jfly.uni-koeln.de/color/>
 #' @srrstats {EA5.0} All plots share one base-graphics style set through
 #'   plotopt(), with colour-blind-safe palettes from blpal().
-#' @srrstats {EA5.0b} The default palette is Okabe-Ito; series differ by line
-#'   type or point shape as well as colour.
+#' @srrstats {EA5.0b} The default palette is black and grey, with Okabe-Ito
+#'   for colour; series differ by line type or point shape as well as colour.
 #' @examples
 #' blpal("okabe", 3)
 #' old <- plotopt()
-#' plotopt(palette = "grey", grid = FALSE)
+#' plotopt(palette = "okabe", grid = TRUE)
 #' plotopt(palette = old$palette, grid = old$grid)
 #' plot(1:8, pch = 19, cex = 3, col = blpal())
 #' @export
@@ -117,7 +119,7 @@ yoypals <- function() names(.YOY_PALETTES)
             "#56B4E9", "#F0E442", "#000000"),
   diverging = c("#2166AC", "#8C8C8C", "#D6604D"),
   sequential = c("#C6DBEF", "#6BAED6", "#2171B5", "#08306B", "#041E42"),
-  grey = c("#252525", "#636363", "#969696", "#BDBDBD", "#D9D9D9")
+  grey = c("#000000", "#636363", "#969696", "#3D3D3D", "#B0B0B0")
 )
 
 .pmsg <- list(grid = "TRUE or FALSE", cex = "one positive number",
@@ -169,8 +171,8 @@ yoypals <- function() names(.YOY_PALETTES)
 
 # the options in force: the defaults, overridden by usable set values
 .popt <- function() {
-  d <- list(palette = "okabe", grid = TRUE, cex = 1, las = 1, bg = "white",
-            panel = "#EEF1F6")
+  d <- list(palette = "grey", grid = FALSE, cex = 1, las = 1, bg = "white",
+            panel = NA)
   o <- getOption("crimlab.plot")
   for (k in intersect(names(o), names(d))) {
     if (.pok(k, o[[k]])) d[[k]] <- o[[k]]
@@ -231,8 +233,8 @@ yoypals <- function() names(.YOY_PALETTES)
     graphics::abline(h = graphics::axTicks(2), v = graphics::axTicks(1),
                      col = gc, lwd = 0.8)
   }
-  graphics::box(col = "#8C8C8C")
-  graphics::title(main = main, font.main = 1, cex.main = 1.05)
+  graphics::box()
+  graphics::title(main = main, font.main = 2, cex.main = 1.05)
   invisible(NULL)
 }
 
@@ -303,7 +305,7 @@ yoypals <- function() names(.YOY_PALETTES)
                  gap.axis = -1, cex.axis = max(0.5, min(1, 0.85 * rh / ch)))
   if (!is.null(ref)) graphics::abline(v = ref, lty = 2, col = "#636363")
   w <- is.finite(lo) & is.finite(hi)
-  graphics::segments(lo[w], y[w], hi[w], y[w], col = cl[g][w], lwd = 2)
+  .pint(lo[w], y[w], hi[w], y[w], cl[g][w], 2)
   graphics::points(est, y, pch = .ppch(g), col = cl[g], cex = 1.2)
   if (!is.null(grp) && key) {
     .pkey("topright", levels(g), cl, lty = if (any(w)) 1 else NA,
@@ -315,10 +317,65 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(d)
 }
 
+# one of the values a plot option takes
+.pany <- function(v, ok, nm) {
+  if (!is.character(v) || length(v) != 1L || is.na(v) || !v %in% ok) {
+    stop("plot: `", nm, "` must be one of ", toString(dQuote(ok, FALSE)),
+         ".", call. = FALSE)
+  }
+  v
+}
+
+# a histogram (or a density with its 5th and 95th percentiles dashed) of
+# `z` with a red line at `obs`, and lines of text above the bars
+.phist <- function(z, obs, main, xlab, type, fill, note = NULL, ...) {
+  op <- .ppar()
+  on.exit(graphics::par(op), add = TRUE)
+  if (type == "density" && length(unique(z)) > 1L) {
+    k <- stats::density(z)
+    .pfrm(.prange(k$x, obs), .prange(0, k$y), main, xlab, "Density", ...)
+    graphics::lines(k$x, k$y, col = if (fill == "#D5D5D5") "#000000" else fill,
+                    lwd = 2)
+    graphics::abline(v = stats::quantile(z, c(0.05, 0.95)), lty = 2,
+                     col = "#636363")
+  } else {
+    h <- graphics::hist(z, breaks = min(30L, max(5L, length(z) %/% 3L)),
+                        plot = FALSE)
+    top <- max(h$counts) * if (is.null(note)) 1.05 else 1.45
+    .pfrm(.prange(h$breaks, obs), c(0, top), main, xlab, "Count", ...)
+    nb <- length(h$breaks)
+    graphics::rect(h$breaks[-nb], 0, h$breaks[-1L], h$counts, col = fill,
+                   border = "white")
+  }
+  graphics::abline(v = obs, col = "#C0392B", lwd = 2)
+  if (!is.null(note)) {
+    graphics::legend("topleft", legend = note, bty = "n", cex = 0.8)
+  }
+  graphics::box()
+  invisible(NULL)
+}
+
+# the fill of histogram bars: grey, or the colour the caller asked for
+.pfill <- function(col, pal) {
+  if (is.null(col) && is.null(pal)) "#D5D5D5" else .pcols(1L, col, pal)
+}
+
+# intervals as bars with a cap at each end; one of no length gets no cap
+.pint <- function(x0, y0, x1, y1, col, lwd) {
+  col <- rep_len(col, length(x0))
+  z <- x0 == x1 & y0 == y1
+  graphics::segments(x0[z], y0[z], x1[z], y1[z], col = col[z], lwd = lwd)
+  if (!all(z)) {
+    graphics::arrows(x0[!z], y0[!z], x1[!z], y1[!z], length = 0.03,
+                     angle = 90, code = 3, col = col[!z], lwd = lwd)
+  }
+}
+
 # estimates over time with intervals: before the reference in one colour and
 # open circles, after in another and filled; returns the rows drawn
 .ppath <- function(t, est, lo, hi, main, xlab, ylab, col = NULL, pal = NULL,
-                   ref = 0, at = -0.5, ...) {
+                   ref = 0, at = -0.5, ..., style = "bars") {
+  .pany(style, c("bars", "stata"), "style")
   cl <- .pcols(2L, col, pal)
   op <- .ppar()
   on.exit(graphics::par(op), add = TRUE)
@@ -327,8 +384,18 @@ yoypals <- function() names(.YOY_PALETTES)
   graphics::abline(v = at, lty = 3, col = "#636363")
   post <- t > at
   w <- is.finite(lo) & is.finite(hi) & hi > lo
-  graphics::segments(t[w], lo[w], t[w], hi[w], col = cl[post + 1L][w],
-                     lwd = 1.6)
+  if (style == "stata") {
+    # hollow points joined by a line, their intervals dashed, in one colour
+    o <- order(t)
+    graphics::par(lty = 2)
+    .pint(t[w], lo[w], t[w], hi[w], cl[1L], 1)
+    graphics::par(lty = 1)
+    graphics::lines(t[o], est[o], col = cl[1L], lwd = 1.4)
+    graphics::points(t, est, pch = 21, bg = .popt()$bg, col = cl[1L],
+                     cex = 1.1)
+    return(invisible(data.frame(t = t, est = est, lo = lo, hi = hi)))
+  }
+  .pint(t[w], lo[w], t[w], hi[w], cl[post + 1L][w], 1.6)
   graphics::points(t, est, pch = ifelse(post, 19, 1), col = cl[post + 1L],
                    cex = 1.2, lwd = 1.6)
   .pkey("bottomleft", c("before", "after"), cl, pch = c(1, 19))
@@ -357,7 +424,7 @@ yoypals <- function() names(.YOY_PALETTES)
 # the points drawn
 .pgrp <- function(x, y, g, main, xlab, ylab, col = NULL, pal = NULL,
                   lo = NULL, hi = NULL, type = "o", ref = NULL,
-                  where = "topright", ...) {
+                  where = "topright", vref = NULL, ...) {
   g <- factor(g, levels = unique(g))
   k <- nlevels(g)
   cl <- .pcols(k, col, pal)
@@ -366,10 +433,12 @@ yoypals <- function() names(.YOY_PALETTES)
   x0 <- x
   x <- .pxfrm(x, .prange(y, lo, hi, ref), main, xlab, ylab, ...)
   if (!is.null(ref)) graphics::abline(h = ref, lty = 2, col = "#636363")
-  st <- type == "s"
+  if (!is.null(vref)) graphics::abline(v = vref, lty = 3, col = "#636363")
+  # steps and plain lines carry no point marks
+  st <- type != "o"
   for (i in seq_len(k)) {
     s <- which(g == levels(g)[i])
-    if (!is.null(lo) && st) {
+    if (!is.null(lo) && type == "s") {
       graphics::lines(x[s], lo[s], type = "s", col = cl[i], lty = 3)
       graphics::lines(x[s], hi[s], type = "s", col = cl[i], lty = 3)
     } else if (!is.null(lo)) {
@@ -440,10 +509,10 @@ yoypals <- function() names(.YOY_PALETTES)
   f <- t(m[rv, , drop = FALSE])
   graphics::image(seq_len(ncol(m)), seq_len(nrow(m)), f, col = sh, zlim = r,
                   axes = FALSE, main = "", xlab = xlab, ylab = ylab, ...)
-  graphics::title(main = main, font.main = 1, cex.main = 1.05)
+  graphics::title(main = main, font.main = 2, cex.main = 1.05)
   graphics::axis(1, at = seq_len(ncol(m)), labels = cn, tick = FALSE)
   graphics::axis(2, at = rv, labels = rl, tick = FALSE)
-  graphics::box(col = "#8C8C8C")
+  graphics::box()
   z <- (f - r[1L]) / diff(r)
   tc <- ifelse(is.finite(z) & (z > 0.7 | (div & z < 0.3)), "white", "black")
   graphics::text(rep(seq_len(ncol(m)), nrow(m)),
@@ -463,7 +532,7 @@ yoypals <- function() names(.YOY_PALETTES)
                   asp = 1, ...)
   graphics::contour(x, y, z, add = TRUE, drawlabels = FALSE,
                     col = "#636363", nlevels = 6)
-  graphics::title(main = main, font.main = 1, cex.main = 1.05)
+  graphics::title(main = main, font.main = 2, cex.main = 1.05)
   invisible(list(x = x, y = y, z = z))
 }
 

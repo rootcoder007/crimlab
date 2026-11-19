@@ -8,7 +8,7 @@
 co2fp(
   expr,
   loc = NULL,
-  meth = c("auto", "rapl", "model"),
+  mthd = c("auto", "rapl", "model"),
   cpupwrw = NULL,
   usage = "process",
   loadcur = c("linear", "codecarbon"),
@@ -32,7 +32,7 @@ promise).}
 code, alpha-3 code or name, a number in gCO2e/kWh, or \code{NULL} (the
 default) to detect it.}
 
-\item{meth}{Character scalar: \code{"auto"} (the default; RAPL when
+\item{mthd}{Character scalar: \code{"auto"} (the default; RAPL when
 readable, else the model), \code{"rapl"} (measured; an error when the
 counters are not readable) or \code{"model"} (always the Green
 Algorithms model).}
@@ -108,14 +108,14 @@ the value of \code{expr}, and lists every figure that was assumed rather
 than measured.
 }
 \details{
-\strong{Measured} (\code{meth = "rapl"}): the CPU package energy
+\strong{Measured} (\code{mthd = "rapl"}): the CPU package energy
 counters (RAPL, microjoules, read from \code{rapldir}) before and after,
 with wrap-around handled through \code{max_energy_range_uj}. This is what
 codecarbon does on Linux; the counters cover the CPU packages only, so
 memory is still modelled. Available when \code{\link{raplok}()} is
 \code{TRUE}.
 
-\strong{Modelled} (\code{meth = "model"}): the Green Algorithms formula
+\strong{Modelled} (\code{mthd = "model"}): the Green Algorithms formula
 (Lannelongue, Grealey and Inouye 2021),
 \deqn{E = t \,(P_{cpu}\, u + M\, P_{mem})\, PUE}
 with \eqn{t} the running time, \eqn{P_{cpu}} the CPU's thermal design
@@ -179,7 +179,7 @@ Errors: an unknown \code{loc}; \code{pue} below 1 or not a single finite
 number; \code{cpupwrw} or \code{cores} not a single positive number
 (\code{cores} also whole); \code{memgb} or \code{mempwrwpergb} negative;
 \code{usage} other than \code{"process"}, \code{"machine"} or one number in
-\eqn{[0, 1]}; \code{meth = "rapl"} where the counters are not readable;
+\eqn{[0, 1]}; \code{mthd = "rapl"} where the counters are not readable;
 a \code{devices} table without its columns or with a negative or infinite
 figure. An error inside \code{expr} propagates unchanged. Nothing is
 written and nothing is fetched.
@@ -211,7 +211,7 @@ fp2 <- co2fp(
   cpupwrw = 65,
   memgb = 16,
   pue = 1.67,
-  meth = "model"
+  mthd = "model"
 )
 fp2$enekwh
 fpeqv(fp2$co2eg)
@@ -223,7 +223,7 @@ dev <- data.frame(
   how = c("simulated reading", "simulated reading")
 )
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
-             memgb = 16, meth = "model", devices = dev)
+             memgb = 16, mthd = "model", devices = dev)
 fp3$devices
 # a bad argument is refused before the expression runs
 try(co2fp(Sys.sleep(10), pue = 0.9))

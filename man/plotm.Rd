@@ -34,6 +34,7 @@
 \alias{plot.stgdid}
 \alias{plot.synthc}
 \alias{plot.sdidx}
+\alias{plot.wcbx}
 \alias{plot.trndrr}
 \alias{plot.stkflw}
 \alias{plot.dktflw}
@@ -132,7 +133,7 @@
 
 \method{plot}{dissix}(x, ..., main = NULL, col = NULL, pal = NULL)
 
-\method{plot}{didfe}(x, ..., main = NULL, col = NULL, pal = NULL)
+\method{plot}{didfe}(x, ..., main = NULL, col = NULL, pal = NULL, type = "dots")
 
 \method{plot}{evtst}(x, ..., main = NULL, col = NULL, pal = NULL)
 
@@ -141,6 +142,8 @@
 \method{plot}{synthc}(x, ..., main = NULL, col = NULL, pal = NULL)
 
 \method{plot}{sdidx}(x, ..., main = NULL, col = NULL, pal = NULL)
+
+\method{plot}{wcbx}(x, ..., main = NULL, col = NULL, pal = NULL, type = "hist")
 
 \method{plot}{trndrr}(x, ..., main = NULL, col = NULL, pal = NULL)
 
@@ -152,7 +155,7 @@
 
 \method{plot}{hsper}(x, ..., main = NULL, col = NULL, pal = NULL)
 
-\method{plot}{yoypx}(x, ..., main = NULL, col = NULL, pal = NULL)
+\method{plot}{yoypx}(x, ..., main = NULL, col = NULL, pal = NULL, what = "pctchg")
 
 \method{plot}{cumrsk}(x, ..., main = NULL, col = NULL, pal = NULL)
 
@@ -237,6 +240,14 @@
 
 \item{pal}{\code{NULL} (the session palette, see \code{\link[=plotopt]{plotopt()}}) or a palette
 name for \code{\link[=blpal]{blpal()}}.}
+
+\item{type}{For \code{didfe} with its leave-one-out estimates: \code{"dots"} (each
+estimate with its interval) or \code{"hist"} (their histogram, with the
+estimate from every unit and a summary). For \code{wcbx(mthd = "perm")}:
+\code{"hist"} or \code{"density"}.}
+
+\item{what}{For \code{yoypx}: \code{"pctchg"} (the percent change with its
+interval) or \code{"value"} (the values themselves over the periods).}
 }
 \value{
 Invisibly, the data drawn: a data frame, or for a method of
@@ -266,10 +277,18 @@ comparisons and leave-one-out estimates when computed), \code{smdbal}
 (covariate balance), \code{jmono} (rates by judge), \code{relchk} (the readings
 of a table against the claim) and \code{dissix} (segregation indices).
 \item Effects by time since adoption: \code{evtst} and \code{stgdid}, before adoption
-in open circles and after in filled ones.
+in open circles and after in filled ones; \code{pal = "diverging"} draws
+them blue before and red after.
+\item The power of a design: \code{wcbx(mthd = "power")}, the power at each
+effect tried, with the power asked for and the minimum detectable
+effect marked. The permutations of \code{wcbx(mthd = "perm")}: the
+statistics of the draws, one panel per outcome, with the observed one
+in red and its p-value in the title.
 \item Paths over time: \code{synthc} and \code{sdidx} (treated against its synthetic
-comparison), \code{trndrr} (series and fitted trend), \code{stkflw} (population,
-person-days, average daily population and length of stay), \code{dktflw}
+comparison, as plain lines with a dotted line at the adoption;
+\code{type = "o"} adds a point mark on every period), \code{trndrr} (series and
+fitted trend), \code{stkflw} (population, person-days, average daily
+population and length of stay), \code{dktflw}
 (clearance rate and pending cases), \code{jpipe}, \code{hsper}, \code{yoypx} (percent
 change with its interval), \code{cumrsk}, \code{agemix} and \code{apcie}.
 \item Curves: \code{kmrec} and \code{lftab} (survival), \code{lnroc} (lineup ROC curves),
@@ -306,6 +325,9 @@ d$bylaw <- as.integer(!is.na(d$first) & d$year >= d$first)
 d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * d$bylaw + sin(seq_len(120))
 plot(evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3))
 plot(didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE))
+plot(didfe(d$rate, d$town, d$year, d$bylaw, loo = TRUE), type = "hist")
+plot(wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm", reps = 99,
+          seed = 1))
 one <- d[d$town \%in\% c("A", "I", "J", "K", "L"), ]
 plot(synthc(one$rate, one$town, one$year, one$first))
 plot(grprr(c(a = 120, b = 95, c = 30), c(a = 6e4, b = 2.1e4, c = 1.5e4)))

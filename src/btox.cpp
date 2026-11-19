@@ -82,7 +82,7 @@ SEXP C_clab_r_txcal(SEXP conc, SEXP resp, SEXP w, SEXP unk, SEXP k) {
   return bj::named(out, nm);
 }
 
-SEXP C_clab_r_lodimp(SEXP x, SEXP lod, SEXP meth) {
+SEXP C_clab_r_lodimp(SEXP x, SEXP lod, SEXP mthd) {
   clab::who = "lodimp";
   SEXP xv = PROTECT(bfx::nna(x, "x", -1));
   const int n = bj::len(xv, "x");
@@ -90,7 +90,7 @@ SEXP C_clab_r_lodimp(SEXP x, SEXP lod, SEXP meth) {
   const int nl = bj::len(lv, "lod");
   if (nl != 1 && nl != n) fail("`lod` must be one limit, or one per value, %d.", n);
   static const char *const mo[] = {"half", "sqrt2", "lod"};
-  const int m = csp::pick(meth, "meth", mo, 3);
+  const int m = csp::pick(mthd, "mthd", mo, 3);
   bj::cols f(4, n);
   f.put("x", xv);
   double *l = f.dbl("lod");

@@ -199,7 +199,7 @@ plot(r)
 
 ## Segregation placements under the Mandela Rules
 
-`mndla()`: The United Nations Standard Minimum Rules for the Treatment of Prisoners (the Mandela Rules) define solitary confinement as 22 hours or more a day without meaningful human contact (Rule 44), and prolonged solitary confinement, which Rule 43 prohibits, as more than 15 consecutive days of it. `mndla()` classifies each placement and gives the share that meets the rules, overall and by group (a year, a region), with three denominators that answer different questions (Sprott and Doob 2021):
+`mndla()`: The United Nations Standard Minimum Rules for the Treatment of Prisoners (the Mandela Rules) define solitary confinement as 22 hours or more a day without meaningful human contact (Rule 44), and prolonged solitary confinement, which Rule 43 prohibits, as more than 15 consecutive days of it. `mndla()` classifies each placement and gives the share that meets the rules, overall and by group (a year, a region), with three denominators that answer different questions:
 
 ```{r mndla}
 set.seed(6)
@@ -208,4 +208,36 @@ d <- data.frame(id = sample(1:80, 150, TRUE), yr = sample(2021:2022, 150,
 mndla(d$days, d$id, d$yr)$tab
 # the rule of Rules 43 and 44 with hours out of cell
 mndla(c(5, 20, 30), hours = c(1, 1.5, 3), miss = c(100, 100, 40))$tab
+```
+
+## Was the review held, and in time?
+
+`rvwtim()`: A stay in a restrictive unit is to be reviewed by a set day. `rvwtim()` takes the length of each stay and the day of its first review, and gives how many stays of each length were never reviewed, how many of those past the day a review was due had none, and how long the reviews that were held took. Sprott, Doob and Iftene (2021, Tables 2 and 15) asked this of the reviews by Independent External Decision Makers of stays in Canada's Structured Intervention Units; the question is the same for any review a rule sets a day for (a bail review, a segregation review, a hearing).
+
+```{r rvwtim}
+days <- c(12, 40, 75, 90, 130, 150, 64, 20)
+first <- c(NA, 31, 48, NA, 61, NA, 33, NA)
+rvwtim(days, first, due = 60, cuts = c(60, 120))
+```
+
+## Days on which an entitlement was missed
+
+`entcmp()`: The law may give a person held in a restrictive unit something every day: hours out of the cell, time with other people. `entcmp()` takes, for each stay, the percentage of its days on which that was missed, and gives the stays by how often it was missed, the share that missed it every day, and the share of all days missed. With the hours received on the days it was missed, it shows how far short those days fell; with the percentage of days the person refused, how many stays missed more days than refusal accounts for. These are the tables of Sprott and Doob (2021, Tables 6, 7, 14, 17 and 21) on the four hours out of cell and the two hours of human contact in Canada's Structured Intervention Units.
+
+```{r entcmp}
+miss <- c(100, 100, 80, 45, 10, 0, 100, 60)
+entcmp(miss, days = c(20, 35, 16, 40, 18, 5, 62, 30),
+       hours = c(0.4, 1.5, 2.2, 3, 3.5, NA, 0.8, 1),
+       ref = c(10, 100, 5, 0, 0, 0, 30, 60))
+```
+
+## Do decision makers decide alike?
+
+`dmvar()`: When cases are shared among several decision makers (reviewers, judges, panels), the share of their decisions that go one way should differ by no more than chance if the cases are alike. `dmvar()` gives each decision maker's rate with its exact interval and the share of all such decisions that are theirs, the chi-square test that the rates are equal, the same test without the decision makers who decided few cases, and the test with each decision maker left out in turn, which shows whether one of them makes the difference. Sprott, Doob and Iftene (2021, Tables 10 and 11) found the share of reviews that kept a person in a Structured Intervention Unit to run from 37.5% to over 75% across twelve decision makers, with and without the one who had decided fewest.
+
+```{r dmvar}
+dm <- rep(c("a", "b", "c", "d"), c(30, 28, 25, 4))
+dec <- rep(c("remain", "remove", "remain", "remove", "remain", "remove",
+             "remain"), c(24, 6, 10, 18, 15, 10, 4))
+dmvar(dec, dm, out = "remain")
 ```

@@ -231,7 +231,7 @@ bool freqtbl(Ctx &c, Val &out) {
 }
 
 inline bool methj(Ctx &c, int &m) {
-  CK(ckarg(c, "meth", {"spearman", "pearson"}, m));
+  CK(ckarg(c, "mthd", {"spearman", "pearson"}, m));
   return true;
 }
 
@@ -246,7 +246,7 @@ inline bool corin(Ctx &c, std::vector<Dcol> &cs, std::vector<const Dcol *> &num,
   return true;
 }
 
-inline void corrun(const std::vector<const Dcol *> &num, std::size_t n, int meth, int minprs, std::vector<double> &r,
+inline void corrun(const std::vector<const Dcol *> &num, std::size_t n, int mthd, int minprs, std::vector<double> &r,
                    std::vector<int> &np) {
   const int p = sat<int>(num.size());
   std::vector<double> x(n * sat<std::size_t>(p));
@@ -256,15 +256,15 @@ inline void corrun(const std::vector<const Dcol *> &num, std::size_t n, int meth
   const std::size_t k = sat<std::size_t>(p) * (p - 1) / 2;
   r.assign(k, 0.0);
   np.assign(k, 0);
-  clab_pcor(x.data(), sat<int>(n), p, meth, minprs, r.data(), np.data());
+  clab_pcor(x.data(), sat<int>(n), p, mthd, minprs, r.data(), np.data());
   for (std::size_t i = 0; i < k; ++i) {
     if (np[i] < minprs) r[i] = NA;
   }
 }
 
 bool cortbl(Ctx &c, Val &out) {
-  int meth = 0;
-  CK(methj(c, meth));
+  int mthd = 0;
+  CK(methj(c, mthd));
   std::vector<Dcol> cs;
   std::vector<const Dcol *> num;
   std::size_t n = 0;
@@ -281,7 +281,7 @@ bool cortbl(Ctx &c, Val &out) {
   }
   std::vector<double> r;
   std::vector<int> np;
-  corrun(num, n, meth, mp, r, np);
+  corrun(num, n, mthd, mp, r, np);
   Val x = varr(), y = varr();
   for (std::size_t i = 0; i < num.size(); ++i) {
     for (std::size_t j = i + 1; j < num.size(); ++j) {
@@ -298,8 +298,8 @@ bool cortbl(Ctx &c, Val &out) {
 }
 
 bool topcors(Ctx &c, Val &out) {
-  int meth = 0;
-  CK(methj(c, meth));
+  int mthd = 0;
+  CK(methj(c, mthd));
   if (c["data"].t != Val::OBJ) return ckstop(c, "`data` must be a data frame");
   std::vector<Dcol> cs;
   std::vector<const Dcol *> num;
@@ -314,7 +314,7 @@ bool topcors(Ctx &c, Val &out) {
   }
   std::vector<double> r;
   std::vector<int> np;
-  corrun(num, n, meth, 3, r, np);
+  corrun(num, n, mthd, 3, r, np);
   std::vector<std::pair<std::size_t, std::size_t>> pr;
   for (std::size_t i = 0; i < num.size(); ++i) {
     for (std::size_t j = i + 1; j < num.size(); ++j) pr.push_back({i, j});

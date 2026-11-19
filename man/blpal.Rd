@@ -48,15 +48,17 @@ distinguishable under the common forms of colour-vision deficiency.
 \code{"diverging"} has three anchors (blue \verb{#2166AC}, grey \verb{#8C8C8C},
 orange-red \verb{#D6604D}) and is used for changes and residuals;
 \code{"sequential"} has five blues from light to dark, and \code{"grey"} five
-greys from dark to light. With \code{n} given, \code{"okabe"} and \code{"grey"} repeat
+greys, black first. With \code{n} given, \code{"okabe"} and \code{"grey"} repeat
 their colours and \code{"diverging"} and \code{"sequential"} are interpolated.
 
 The session options are kept in \code{options(crimlab.plot)}; the defaults
-are \code{palette = "okabe"}, \code{grid = TRUE}, \code{cex = 1}, \code{las = 1},
-\code{bg = "white"} and \code{panel = "#EEF1F6"} (the fill of the plot region
-behind white grid lines; \code{NA} for none). Setting some options keeps the
-others; an unusable value set by hand with \code{options()} falls back to its
-default.
+are \code{palette = "grey"}, \code{grid = FALSE}, \code{cex = 1}, \code{las = 1},
+\code{bg = "white"} and \code{panel = NA} (the fill of the plot region; \code{NA} for
+none): black and grey on white, as a journal prints it. For colour,
+\code{plotopt(palette = "okabe")}; for a tinted panel behind white grid
+lines, \code{plotopt(grid = TRUE, panel = "#EEF1F6")}. Setting some options
+keeps the others; an unusable value set by hand with \code{options()} falls
+back to its default.
 
 \code{yoypals()} lists the palettes of the year-over-year change
 tables: \code{"diverging"} (orange-red for a rise judged bad, teal for one
@@ -66,7 +68,7 @@ blindness) and \code{"mono"} (black and grey).
 \examples{
 blpal("okabe", 3)
 old <- plotopt()
-plotopt(palette = "grey", grid = FALSE)
+plotopt(palette = "okabe", grid = TRUE)
 plotopt(palette = old$palette, grid = old$grid)
 plot(1:8, pch = 19, cex = 3, col = blpal())
 }

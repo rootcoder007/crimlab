@@ -10,7 +10,7 @@ stgdid(
   time,
   first = NULL,
   trt = NULL,
-  meth = "csa",
+  mthd = "csa",
   ctrl = "notyet",
   adj = NULL,
   est = "dr",
@@ -33,9 +33,9 @@ each unit at most once per period.}
 within units; \code{NA}, 0 or \code{Inf} for never), or \code{NULL} with \code{trt}.}
 
 \item{trt}{The treatment of each row, 0 or 1, or \code{NULL} with \code{first}.
-For \code{meth = "csa"} and \code{"wool"} it must stay on once on.}
+For \code{mthd = "csa"} and \code{"wool"} it must stay on once on.}
 
-\item{meth}{\code{"csa"}, \code{"wool"} or \code{"dcdh"}.}
+\item{mthd}{\code{"csa"}, \code{"wool"} or \code{"dcdh"}.}
 
 \item{ctrl}{\code{"notyet"} or \code{"never"}: the comparison units of \code{"csa"}.}
 
@@ -62,7 +62,7 @@ effects (\code{cohort}, \code{period}, \code{evtm}, \code{est}, \code{se}, \code
 the cohort's size; \code{NULL} for \code{"dcdh"}); \code{overall} (\code{term}, \code{est},
 \code{se}, \code{lo}, \code{hi}, and for \code{"dcdh"} the rows \code{"effect"} and \code{"placebo"}
 with \code{n}, the switchers); \code{dynamic}, by event time (\code{evtm}, \code{est},
-\code{se}, \code{lo}, \code{hi}; \code{NULL} for \code{"dcdh"}); \code{meth}; \code{ctrl}; \code{reps}; and
+\code{se}, \code{lo}, \code{hi}; \code{NULL} for \code{"dcdh"}); \code{mthd}; \code{ctrl}; \code{reps}; and
 \code{level}.
 }
 \description{
@@ -78,7 +78,7 @@ cluster bootstrap.
 Let cohort \code{g} be the units first treated in period \code{g}, and the
 comparison units those never treated (\code{ctrl = "never"}) or not yet
 treated by period \code{max(t, b)} (\code{"notyet"}, outside cohort \code{g}). For
-\code{meth = "csa"}, \code{ATT(g, t)} is the cohort's mean change in the outcome
+\code{mthd = "csa"}, \code{ATT(g, t)} is the cohort's mean change in the outcome
 from the base period \code{b} less the comparison units', with \code{b = g - 1}
 from adoption on and \code{b = t - 1} before (the \code{"varying"} base of the
 'did' package), so an effect before adoption is a placebo over one
@@ -91,7 +91,7 @@ cohort; \code{"ipw"} without \code{m}; \code{"reg"} without the weights. Compari
 units with \code{p} of 0.995 or more are left out, as 'DRDID' does. Use
 covariates fixed before treatment.
 
-For \code{meth = "wool"}, the regression of the outcome on unit and period
+For \code{mthd = "wool"}, the regression of the outcome on unit and period
 effects and one indicator for every treated cohort-period cell gives
 each \code{ATT(g, t)} after adoption as a coefficient (without covariates
 this is the imputation estimator); without units never treated, the
@@ -103,7 +103,7 @@ time \code{e} averages \code{ATT(g, g + e)} over the cohorts observed at \code{e
 weighted by cohort size. Event time counts observed periods. Units
 treated from the first period are left out.
 
-For \code{meth = "dcdh"}, in each period the units that switch into
+For \code{mthd = "dcdh"}, in each period the units that switch into
 treatment are compared with the units untreated in both periods, and
 the units that switch out with the units treated in both: \verb{DID_M = sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S} over the
 \code{N_S} switchers that have a comparison. The placebo runs the same
@@ -126,7 +126,7 @@ s$overall
 s$dynamic
 # a by-law some towns repeal
 d$law <- as.integer(on & !(i == 1 & d$year >= 2022))
-stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
+stgdid(d$rate, d$town, d$year, trt = d$law, mthd = "dcdh", reps = 49,
        seed = 1)$overall
 # the simulated panel of polex(): a reform with a known effect of -3
 p <- polex()

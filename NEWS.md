@@ -1,5 +1,51 @@
 # crimlab 0.0.2
 
+* The argument that names a method is `mthd` (it was `meth`), and so is
+  the part of a result that records it: in `lodimp()`, `stgdid()`,
+  `wcbx()`, `sarml()`, `cortbl()`, `topcors()`, `evfilt()`, `scboot()`,
+  `chomap()`, `smmap()` and `co2fp()`, in R and in every other language.
+  A call that names the old argument is refused.
+
+* Plots are black and grey on a white ground with a black frame and a
+  bold title, as a journal prints them: the tinted panel and its grid are
+  no longer the default. `plotopt(palette = "okabe")` brings the colours
+  back, and `plotopt(grid = TRUE, panel = "#EEF1F6")` the panel and grid.
+  The `"grey"` palette starts at black and has no grey too pale to read
+  on white.
+
+* Intervals are drawn with a cap at each end. `plot()` of `evtst()` and
+  `stgdid()` with `pal = "diverging"` is blue before adoption and red
+  after. `plot()` draws the power curve of `wcbx(mthd = "power")`.
+  `plotevgrid(x, style = "stata")`, and `plot()` of `evtst()` and
+  `stgdid()` with it, draws hollow points joined by a line with dashed
+  intervals. The Goodman-Bacon panel of `plot(didfe())` names the two-way
+  estimate its line marks.
+
+* New functions for the review of restrictive confinement, after the
+  analyses of Sprott and Doob (2021) and of Sprott, Doob and Iftene (2021)
+  of Canada's Structured Intervention Units, in R and in every other
+  language. `rvwtim()`: whether a review due by a set day was held, the
+  stays past that day never reviewed, and how long the reviews held took.
+  `entcmp()`: the days of a stay on which an entitlement (hours out of
+  cell, human contact) was missed, by how often, with the hours received
+  on those days and the part refusals account for. `dmvar()`: whether
+  decision makers decide alike, with each one's rate, the chi-square test,
+  and the test with the small ones and with each one left out.
+
+* New plots. `plot()` of `wcbx(mthd = "perm")` draws the permuted
+  statistics of each outcome with the observed one, as a histogram or a
+  density (the result now keeps them, as `null`, in every language).
+  `plot(didfe(loo = TRUE), type = "hist")` draws the leave-one-out
+  estimates as a histogram with a summary. `plotcoh()` draws the mean
+  outcome of each adoption cohort around its adoption, and returns the
+  points in every language. `plot()` of
+  `yoypx()` with `what = "value"` draws the values over the periods.
+
+* `plot()` of `synthc()` and `sdidx()` draws the treated path solid and
+  its comparison dashed, as plain lines, with a dotted line where the
+  policy was adopted. `plot(x, type = "o")` puts a point mark on every
+  period, as before.
+
 * Every package carries the title of the R package, "Statistical Toolkit
   for Criminology and Sociolegal Research": the Python, JavaScript, Rust,
   Java and Go packages, the command's manual page, the C header and the

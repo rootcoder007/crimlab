@@ -252,11 +252,11 @@ void aggr(const stg &s, const std::vector<int> &idx, const double *att, std::vec
 
 void stat(const stg &s, const std::vector<int> &idx, std::vector<int> &ev, double *v) {
   const int nc = static_cast<int>(s.cg.size());
-  if (s.meth == 2) {
+  if (s.mthd == 2) {
     dcdh(s, idx, v);
     return;
   }
-  if (s.meth == 0) {
+  if (s.mthd == 0) {
     csa(s, idx, v);
   } else {
     wool(s, idx, v);

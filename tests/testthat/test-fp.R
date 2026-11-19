@@ -169,7 +169,7 @@ test_that("the energy of a run equals the reference", {
 
 test_that("co2fp() has the reference's shape and assumptions", {
   fp <- co2fp(1 + 1, loc = "CA-ON", cpupwrw = 45, memgb = 8, usage = 0.5,
-              meth = "model")
+              mthd = "model")
   expect_s3_class(fp, "co2fp")
   expect_named(
     fp,
@@ -187,7 +187,7 @@ test_that("co2fp() has the reference's shape and assumptions", {
   expect_equal(fp$enekwh$cpu, h * 45 * 0.5 / 1000, tolerance = 1e-12)
   expect_identical(fp$co2eg, fp$enekwh$total * 90.969999999999999)
   fp2 <- co2fp(1 + 1, loc = 30, cpupwrw = 65, memgb = 16, pue = 1.67,
-               meth = "model", loadcur = "codecarbon")
+               mthd = "model", loadcur = "codecarbon")
   expect_identical(
     fp2$assumptions,
     c("codecarbon process load curve applied to the CPU power",
@@ -209,7 +209,7 @@ test_that("co2fp() adds the energy of other devices", {
     stringsAsFactors = FALSE
   )
   fp <- co2fp(1 + 1, loc = 30, cpupwrw = 45, memgb = 8, usage = 0.5,
-              meth = "model", devices = dev)
+              mthd = "model", devices = dev)
   h <- fp$durs / 3600
   expect_identical(fp$devices$counted, c(TRUE, FALSE, TRUE, FALSE))
   expect_equal(fp$devices$kwh, c(h * 120 / 1000, NA, 0.002, NA),
@@ -224,7 +224,7 @@ test_that("co2fp() adds the energy of other devices", {
                fp$enekwh$cpu + fp$enekwh$memory + fp$enekwh$devices,
                tolerance = 1e-12)
   expect_identical(fp$co2eg, fp$enekwh$total * 30)
-  expect_false("devices" %in% names(co2fp(1, loc = 30, meth = "model")))
+  expect_false("devices" %in% names(co2fp(1, loc = 30, mthd = "model")))
   expect_error(co2fp(1, devices = dev[, c("kind", "name")]),
                "^co2fp: `devices` is missing columns: vendor, how\\.$")
   expect_error(co2fp(1, devices = dev[, c("kind", "vendor", "name", "how")]),
@@ -245,7 +245,7 @@ test_that("co2fp() refuses bad arguments before the expression runs", {
                "`cpupwrw` must be a single positive number")
   expect_error(co2fp(1, usage = 2), "`usage` must be")
   expect_error(co2fp(1, usage = "both"), "`usage` must be one of")
-  expect_error(co2fp(1, meth = "rapl", rapldir = tempfile()),
+  expect_error(co2fp(1, mthd = "rapl", rapldir = tempfile()),
                "RAPL energy counters are not readable here")
   expect_error(co2int("Atlantis"), "^co2int: Unknown location 'Atlantis'")
   expect_error(co2int(c(1, 2)), "numeric `loc` must be a single")
@@ -294,7 +294,7 @@ test_that("machine utilisation is read from the CPU accounting file", {
   on.exit(unlink(ps), add = TRUE)
   mfp <- function(expr, ...) {
     co2fp(expr, loc = 30, cpupwrw = 45, memgb = 8, usage = "machine",
-          procstat = ps, meth = "model", ...)
+          procstat = ps, mthd = "model", ...)
   }
   # idle is the fourth and fifth numbers: 850 of 1000 ticks, then 1600 of
   # 1900, so 1 - 750 / 900 of the machine was busy
@@ -357,7 +357,7 @@ test_that("each argument of co2fp() is checked by its own message", {
             "single number in [0, 1]."))
   expect_identical(
     co2fp(1, loc = 30, cpupwrw = 45, memgb = 8, usage = NULL,
-          meth = "model")$usagemode,
+          mthd = "model")$usagemode,
     "process"
   )
   ef(co2fp(1, devices = 1),
@@ -368,7 +368,7 @@ test_that("each argument of co2fp() is checked by its own message", {
   # a table with watts only: no energy column, so no measured energy
   dev$watts <- 5
   fp <- co2fp(1, loc = 30, cpupwrw = 45, memgb = 8, usage = 0.5,
-              meth = "model", devices = dev)
+              mthd = "model", devices = dev)
   expect_identical(fp$devices$note, "average power over the run")
   expect_equal(fp$devices$kwh, fp$durs / 3600 * 5 / 1000, tolerance = 1e-12)
 })
@@ -376,13 +376,13 @@ test_that("each argument of co2fp() is checked by its own message", {
 test_that("unknown cores and memory are assumed and said so", {
   local_mocked_bindings(.memgb = function() NA_real_)
   fp <- co2fp(1, loc = 30, cpupwrw = 45, cores = 2, usage = 0.5,
-              meth = "model")
+              mthd = "model")
   expect_identical(fp$memgb, 8)
   expect_identical(fp$assumptions, "memory size unknown: 8 GB assumed")
   local_mocked_bindings(detectCores = function(...) NA_integer_,
                         .package = "parallel")
   fp <- co2fp(1, loc = 30, cpupwrw = 45, memgb = 4, usage = 0.5,
-              meth = "model")
+              mthd = "model")
   expect_identical(fp$cores, 1L)
   expect_identical(fp$assumptions, "core count unknown; 1 assumed")
 })

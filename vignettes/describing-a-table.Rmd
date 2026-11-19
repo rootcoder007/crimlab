@@ -130,7 +130,7 @@ df$c <- df$a + stats::rnorm(100, sd = 0.2) # simulated
 cortbl(df)
 
 # Pearson instead of Spearman
-cortbl(df, meth = "pearson")
+cortbl(df, mthd = "pearson")
 
 # nprs shows how much data each figure rests on.
 gappy <- df
@@ -165,9 +165,9 @@ topcors(df)
 
 # The curved pair is ranked correctly by Spearman and understated by
 # Pearson, which is why Spearman is the default.
-tc <- topcors(df, meth = "spearman")
+tc <- topcors(df, mthd = "spearman")
 tc[tc$x == "a" & tc$y == "d", "correlation"]
-tp <- topcors(df, meth = "pearson")
+tp <- topcors(df, mthd = "pearson")
 tp[tp$x == "a" & tp$y == "d", "correlation"]
 
 # Filter to the pairs worth looking at, and keep the top two.

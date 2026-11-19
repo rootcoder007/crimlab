@@ -6,7 +6,7 @@
 #' wild cluster bootstrap, and the permutation of the adoption dates across
 #' clusters; and the power of a design simulated on real untreated data.
 #'
-#' `meth = "wild"` is the restricted wild cluster bootstrap-t (WCR) of
+#' `mthd = "wild"` is the restricted wild cluster bootstrap-t (WCR) of
 #' Cameron, Gelbach and Miller (2008): the model is fitted with the null
 #' `b = b0` imposed, each bootstrap outcome is that fit plus its residuals
 #' multiplied cluster by cluster by a random sign (`wtype = "rad"`) or one
@@ -21,7 +21,7 @@
 #' with four clusters nothing is rejected at 5% and the interval is the
 #' whole line: the honest answer.
 #'
-#' `meth = "perm"` shuffles the adoption period of each cluster (all its
+#' `mthd = "perm"` shuffles the adoption period of each cluster (all its
 #' units adopt together; never is a period too) among the clusters,
 #' keeping the number adopting at each date, and recomputes the t statistic
 #' (`stat = "t"`) or the estimate (`"est"`). When the distinct assignments
@@ -32,7 +32,7 @@
 #' holds the Westfall-Young stepdown p-values of [wystep()] over the same
 #' assignments.
 #'
-#' `meth = "power"` draws `ntrt` clusters, gives each an adoption period
+#' `mthd = "power"` draws `ntrt` clusters, gives each an adoption period
 #' drawn from `adopt`, adds each effect of `eff` to their outcomes from
 #' adoption on, and counts the CR1 t tests that reject at `alpha`; on real
 #' untreated data the serial correlation and clustering are carried, as
@@ -42,13 +42,13 @@
 #' interpolation.
 #'
 #' @inheritParams didfe
-#' @param y The outcome: numbers, one per row; for `meth = "perm"` also a
+#' @param y The outcome: numbers, one per row; for `mthd = "perm"` also a
 #'   matrix or data frame of several outcomes, one column each.
 #' @param trt The treatment of each row, 0 or 1 (`"wild"`, `"perm"`; for
 #'   `"perm"` it must stay on, from one period within each cluster); `NULL`
 #'   for `"power"`.
 #' @param clus `NULL` (cluster by unit) or the cluster of each row.
-#' @param meth `"wild"`, `"perm"` or `"power"`.
+#' @param mthd `"wild"`, `"perm"` or `"power"`.
 #' @param reps The draws: a whole number from 9; `NULL` for 9999 (200 for
 #'   `"power"`). `reps` times the clusters and outcomes must be at most
 #'   67108864 (2^26).
@@ -65,9 +65,12 @@
 #' @return An object of class `wcbx`, a list: `res`, for `"wild"` one row
 #'   (`est`, `stat`, `p`, `lo`, `hi`), for `"perm"` one row per outcome
 #'   (`outcome`, `est`, `stat`, `p`, `pstep`), for `"power"` one row per
-#'   effect (`eff`, `power`); `meth`; `ncl`; `draws`; `enum` (`TRUE` when
+#'   effect (`eff`, `power`); `mthd`; `ncl`; `draws`; `enum` (`TRUE` when
 #'   every draw was enumerated); `mde` and `size` (`"power"`, else `NA`);
-#'   and `level`.
+#'   `level`; and `null`, for `"perm"` the statistic of every draw, a
+#'   matrix with one column per outcome (else `NULL`). `plot()` draws the
+#'   permuted statistics with the observed one (`"perm"`) and the power
+#'   curve (`"power"`).
 #' @references
 #'   Cameron, A. C., Gelbach, J. B. and Miller, D. L. (2008).
 #'   Bootstrap-based improvements for inference with clustered errors.
@@ -89,26 +92,26 @@
 #' # eight towns: every one of the 2^8 sign patterns
 #' wcbx(d$rate, d$town, d$year, d$bylaw)
 #' # every assignment of the by-law to three of the eight towns
-#' wcbx(d$rate, d$town, d$year, d$bylaw, meth = "perm")$res
+#' wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm")$res
 #' # the simulated panel of polex(), its four regions the clusters
 #' p <- polex()
 #' wcbx(p$crmrate, p$district, p$month, p$reformed, clus = p$region)
 #' @export
 wcbx <- function(y, unit, time, trt = NULL, adj = NULL, clus = NULL,
-                 meth = "wild", reps = NULL, wtype = "rad", ties = "count",
+                 mthd = "wild", reps = NULL, wtype = "rad", ties = "count",
                  stat = "t", ntrt = 1, adopt = NULL, eff = NULL,
                  alpha = 0.05, power = 0.8, seed = NULL, level = 0.95) {
-  .Call(C_clab_r_wcbx, y, unit, time, trt, adj, clus, meth, reps, wtype,
+  .Call(C_clab_r_wcbx, y, unit, time, trt, adj, clus, mthd, reps, wtype,
         ties, stat, ntrt, adopt, eff, alpha, power, seed, level)
 }
 
 #' @export
 print.wcbx <- function(x, ...) {
-  cat("wcbx: ", x[["meth"]], ", ", x[["ncl"]], " clusters, ", x[["draws"]],
+  cat("wcbx: ", x[["mthd"]], ", ", x[["ncl"]], " clusters, ", x[["draws"]],
       if (isTRUE(x[["enum"]])) " draws (all enumerated)\n" else " draws\n",
       sep = "")
   print(x[["res"]], row.names = FALSE)
-  if (x[["meth"]] == "power") {
+  if (x[["mthd"]] == "power") {
     cat("size ", format(x[["size"]]), ", minimum detectable effect ",
         format(x[["mde"]]), "\n", sep = "")
   }

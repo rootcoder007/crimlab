@@ -20,10 +20,18 @@
 #'   (covariate balance), `jmono` (rates by judge), `relchk` (the readings
 #'   of a table against the claim) and `dissix` (segregation indices).
 #' * Effects by time since adoption: `evtst` and `stgdid`, before adoption
-#'   in open circles and after in filled ones.
+#'   in open circles and after in filled ones; `pal = "diverging"` draws
+#'   them blue before and red after.
+#' * The power of a design: `wcbx(mthd = "power")`, the power at each
+#'   effect tried, with the power asked for and the minimum detectable
+#'   effect marked. The permutations of `wcbx(mthd = "perm")`: the
+#'   statistics of the draws, one panel per outcome, with the observed one
+#'   in red and its p-value in the title.
 #' * Paths over time: `synthc` and `sdidx` (treated against its synthetic
-#'   comparison), `trndrr` (series and fitted trend), `stkflw` (population,
-#'   person-days, average daily population and length of stay), `dktflw`
+#'   comparison, as plain lines with a dotted line at the adoption;
+#'   `type = "o"` adds a point mark on every period), `trndrr` (series and
+#'   fitted trend), `stkflw` (population, person-days, average daily
+#'   population and length of stay), `dktflw`
 #'   (clearance rate and pending cases), `jpipe`, `hsper`, `yoypx` (percent
 #'   change with its interval), `cumrsk`, `agemix` and `apcie`.
 #' * Curves: `kmrec` and `lftab` (survival), `lnroc` (lineup ROC curves),
@@ -51,6 +59,12 @@
 #'   score).
 #'
 #' @param x A result of the package.
+#' @param type For `didfe` with its leave-one-out estimates: `"dots"` (each
+#'   estimate with its interval) or `"hist"` (their histogram, with the
+#'   estimate from every unit and a summary). For `wcbx(mthd = "perm")`:
+#'   `"hist"` or `"density"`.
+#' @param what For `yoypx`: `"pctchg"` (the percent change with its
+#'   interval) or `"value"` (the values themselves over the periods).
 #' @inheritParams plotlrnz
 #' @return Invisibly, the data drawn: a data frame, or for a method of
 #'   several panels a list of data frames. A result missing a part the plot
@@ -67,6 +81,9 @@
 #' d$rate <- 30 + i + 0.5 * (d$year - 2015) - 4 * d$bylaw + sin(seq_len(120))
 #' plot(evtst(d$rate, d$town, d$year, d$first, leads = 3, lags = 3))
 #' plot(didfe(d$rate, d$town, d$year, d$bylaw, bacon = TRUE, loo = TRUE))
+#' plot(didfe(d$rate, d$town, d$year, d$bylaw, loo = TRUE), type = "hist")
+#' plot(wcbx(d$rate, d$town, d$year, d$bylaw, mthd = "perm", reps = 99,
+#'           seed = 1))
 #' one <- d[d$town %in% c("A", "I", "J", "K", "L"), ]
 #' plot(synthc(one$rate, one$town, one$year, one$first))
 #' plot(grprr(c(a = 120, b = 95, c = 30), c(a = 6e4, b = 2.1e4, c = 1.5e4)))
@@ -252,8 +269,10 @@ plot.dissix <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 
 #' @rdname plotm
 #' @export
-plot.didfe <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
+plot.didfe <- function(x, ..., main = NULL, col = NULL, pal = NULL,
+                       type = "dots") {
   .pck(x, "didfe", "coef")
+  .pany(type, c("dots", "hist"), "type")
   r <- x$coef
   # with the units left out in turn, the estimate is the first row of that
   # panel and has none of its own
@@ -266,36 +285,13 @@ plot.didfe <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
                        .pmain(main, "Two-way fixed-effects estimate"),
                        "Effect", col, pal, ref = 0, ...)
   }
-  if (!is.null(x$bacon)) {
-    b <- x$bacon
-    g <- factor(b$type, levels = unique(b$type))
-    cl <- .pcols(nlevels(g), col, pal)
-    .ppar()
-    # room on the right for the heaviest comparison, and above the points
-    # for the key, which then covers none of them
-    xr <- .prange(b$weight, 0)
-    yr <- .prange(b$est, r$est[1L])
-    .pfrm(xr + c(0, 0.06) * diff(xr),
-          yr + c(-0.08, 0.2 * (nlevels(g) + 1L)) * diff(yr),
-          "Goodman-Bacon comparisons", "Weight", "Estimate", ...)
-    graphics::abline(h = r$est[1L], lty = 2, col = "#636363")
-    graphics::points(b$weight, b$est, col = cl[g], pch = .ppch(g), cex = 1.3)
-    .pkey("topleft", levels(g), cl, pch = .ppch(seq_len(nlevels(g))))
-    out$bacon <- b
-  }
+  if (!is.null(x$bacon)) out$bacon <- .pbacon(x$bacon, r$est[1L], col, pal, ...)
   if (!is.null(x$loo)) {
-    l <- x$loo
-    z <- stats::qnorm(1 - (1 - x$level) / 2)
-    k <- nrow(l)
-    d <- .pdots(c("all units", paste("without", l$unit)),
-                c(r$est[1L], l$est), c(r$lo[1L], l$est - z * l$se),
-                c(r$hi[1L], l$est + z * l$se),
-                .pmain(main, "Estimate, each unit left out"), "Effect",
-                col, pal, ref = r$est[1L],
-                grp = rep(c("all units", "one left out"), c(1L, k)),
-                key = FALSE, ...)
-    out$coef <- d[1L, , drop = FALSE]
-    out$loo <- d[-1L, , drop = FALSE]
+    out[c("coef", "loo")] <- if (type == "hist") {
+      .ploohist(x$loo, r, main, col, pal, ...)
+    } else {
+      .ploodots(x$loo, r, x$level, main, col, pal, ...)
+    }
   }
   invisible(out)
 }
@@ -332,11 +328,12 @@ plot.synthc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   p <- x$path
   op <- .ppanels(2L)
   on.exit(graphics::par(op), add = TRUE)
-  .plines(p$time, list(treated = p$treated, synthetic = p$synth),
-          .pmain(main, paste("Synthetic control:", x$unit)), "Period",
-          "Outcome", col, pal, where = "topleft", ...)
-  .plines(p$time, list(gap = p$gap), "Treated minus synthetic", "Period",
-          "Gap", col, pal, ref = 0, ...)
+  cl <- .ptwo(col, pal)
+  .ppaths(p$time, list(Treated = p$treated, Synthetic = p$synth),
+          .pmain(main, paste("Synthetic control:", x$unit)), "Outcome", cl,
+          .padopt(p), where = "topleft", ...)
+  .ppaths(p$time, list(gap = p$gap), "Treated minus synthetic", "Gap",
+          cl[1L], .padopt(p), ref = 0, ...)
   invisible(p)
 }
 
@@ -345,10 +342,40 @@ plot.synthc <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 plot.sdidx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pck(x, "sdidx", "path")
   p <- x$path
-  .plines(p$time, list(treated = p$treated, `weighted comparison` = p$synth),
-          .pmain(main, "Synthetic difference in differences"), "Period",
-          "Outcome", col, pal, where = "topleft", ...)
+  .ppaths(p$time, list(Treated = p$treated, `Weighted comparison` = p$synth),
+          .pmain(main, "Synthetic difference in differences"), "Outcome",
+          .ptwo(col, pal), .padopt(p, x$timew), where = "topleft", ...)
   invisible(p)
+}
+
+#' @rdname plotm
+#' @export
+plot.wcbx <- function(x, ..., main = NULL, col = NULL, pal = NULL,
+                      type = "hist") {
+  .pck(x, "wcbx", c("res", "mthd"))
+  .pany(type, c("hist", "density"), "type")
+  r <- x$res
+  if (identical(x$mthd, "perm")) {
+    return(.pperm(r, x$null, main, .pfill(col, pal), type, ...))
+  }
+  if (!identical(x$mthd, "power") || !all(c("eff", "power") %in% names(r))) {
+    stop("plot: a wcbx result is drawn for mthd = \"perm\" (the permuted ",
+         "statistics) and \"power\" (the power at each effect); this one ",
+         "is \"", x$mthd, "\".", call. = FALSE)
+  }
+  cl <- .pcols(1L, col, pal)
+  op <- .ppar()
+  on.exit(graphics::par(op), add = TRUE)
+  .pfrm(.prange(r$eff), c(0, 1), .pmain(main, "Power of the design"),
+        "Effect size", "Power", ...)
+  graphics::lines(r$eff, r$power, type = "o", pch = 19, col = cl, lwd = 2)
+  if (is.finite(x$mde)) {
+    # the power asked for, where the curve reaches it
+    pw <- stats::approx(r$eff, r$power, x$mde, ties = "ordered")$y
+    if (is.finite(pw)) graphics::abline(h = pw, lty = 2, col = "#636363")
+    graphics::abline(v = x$mde, lty = 3, col = "#636363")
+  }
+  invisible(r)
 }
 
 #' @rdname plotm
@@ -424,7 +451,19 @@ plot.hsper <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 
 #' @rdname plotm
 #' @export
-plot.yoypx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
+plot.yoypx <- function(x, ..., main = NULL, col = NULL, pal = NULL,
+                       what = "pctchg") {
+  .pany(what, c("pctchg", "value"), "what")
+  if (what == "value") {
+    .pck(x, "yoypx", c("prd", "value"))
+    g <- if (is.null(x$group)) rep("all", length(x$prd)) else x$group
+    d <- data.frame(group = g, prd = x$prd, value = x$value,
+                    stringsAsFactors = FALSE)
+    d <- d[is.finite(d$value), , drop = FALSE]
+    .pgrp(d$prd, d$value, d$group, .pmain(main, "Value by period"),
+          "Period", "Value", col, pal, ...)
+    return(invisible(d))
+  }
   .pck(x, "yoypx", c("prd", "pctchg"))
   d <- data.frame(group = x$group, prd = x$prd, pct = x$pctchg,
                   lo = x$pctlo, hi = x$pctup, stringsAsFactors = FALSE)
@@ -440,7 +479,7 @@ plot.yoypx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
           "Percent change", ...)
   graphics::abline(h = 0, lty = 2, col = "#636363")
   w <- is.finite(d$lo) & is.finite(d$hi)
-  graphics::segments(at[w], d$lo[w], at[w], d$hi[w], col = cl[g][w], lwd = 2)
+  .pint(at[w], d$lo[w], at[w], d$hi[w], cl[g][w], 2)
   graphics::points(at, d$pct, col = cl[g], pch = .ppch(g), cex = 1.2)
   if (k > 1L) .pkey("topright", levels(g), cl, pch = .ppch(seq_len(k)))
   invisible(d)
@@ -744,7 +783,7 @@ plot.mmshr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
                     angle = c(0, 45, 135), border = "#252525",
                     xlab = "Share of sentences", main = "", ...)
   graphics::title(main = .pmain(main, "Sentences against the minimum"),
-                  font.main = 1, cex.main = 1.05)
+                  font.main = 2, cex.main = 1.05)
   u <- graphics::par("usr")
   graphics::legend(mean(u[1:2]),
                    graphics::grconvertY(1.3 * graphics::par("csi"), "inches",
@@ -956,4 +995,104 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 .pev <- function(x) {
   d <- if (inherits(x, "stgdid")) x$dynamic else x$est
   d[, c("evtm", "est", "lo", "hi")]
+}
+
+# the colours of a treated path and its comparison: the caller's, the
+# palette asked for, or else both black, told apart by the line type
+.ptwo <- function(col, pal) {
+  if (is.null(col) && is.null(pal) && .popt()$palette == "grey") {
+    return(c("#000000", "#000000"))
+  }
+  .pcols(2L, col, pal)
+}
+
+# where the adoption falls on a path: halfway between the last period
+# before it and the first after. The periods before are those with a time
+# weight (synthetic difference in differences) or, for a synthetic control,
+# those up to the last one fitted; NULL when the result does not say
+.padopt <- function(p, timew = NULL) {
+  t <- sort(unique(p$time))
+  pre <- if (is.null(timew)) attr(p, "pre") else timew[[1L]]
+  pre <- suppressWarnings(as.numeric(pre))
+  if (!length(pre) || anyNA(pre)) {
+    return(NULL)
+  }
+  after <- t[t > max(pre)]
+  if (!length(after)) {
+    return(NULL)
+  }
+  (max(pre) + min(after)) / 2
+}
+
+# paths over the periods with a dotted line at the adoption: plain lines,
+# or with a point mark on every period when the caller gives type = "o"
+.ppaths <- function(t, ys, main, ylab, cl, vref, ..., type = "l") {
+  .pany(type, c("l", "o"), "type")
+  .plines(t, ys, main, "Period", ylab, cl, type = type, vref = vref, ...)
+}
+
+# the permuted statistics of each outcome, with the observed one
+.pperm <- function(r, nul, main, fill, type, ...) {
+  if (!is.matrix(nul) || ncol(nul) != nrow(r)) {
+    stop("plot: this wcbx result holds no permuted statistics.",
+         call. = FALSE)
+  }
+  main <- .pmain(main, "")
+  op <- .ppanels(nrow(r))
+  on.exit(graphics::par(op), add = TRUE)
+  for (j in seq_len(nrow(r))) {
+    z <- nul[, j]
+    ttl <- sprintf("%s (p = %.3g)", r$outcome[j], r$p[j])
+    .phist(z[is.finite(z)], r$stat[j], if (nzchar(main)) main else ttl,
+           "Permuted statistic", type, fill, ...)
+  }
+  invisible(r)
+}
+
+
+# the Goodman-Bacon panel: each 2 x 2 comparison by its weight, with a line
+# at the two-way estimate they average to
+.pbacon <- function(b, est, col, pal, ...) {
+  g <- factor(b$type, levels = unique(b$type))
+  cl <- .pcols(nlevels(g), col, pal)
+  .ppar()
+  # room on the right for the heaviest comparison, and above the points
+  # for the key, which then covers none of them
+  xr <- .prange(b$weight, 0)
+  yr <- .prange(b$est, est)
+  .pfrm(xr + c(0, 0.06) * diff(xr),
+        yr + c(-0.08, 0.2 * (nlevels(g) + 1L)) * diff(yr),
+        "Bacon decomposition", "Weight",
+        "2 x 2 difference-in-differences estimate", ...)
+  graphics::abline(h = est, lwd = 1.5)
+  graphics::mtext(sprintf("Two-way estimate (line) = %.4g", est),
+                  side = 3, line = 0.2, cex = 0.8)
+  graphics::points(b$weight, b$est, col = cl[g], pch = .ppch(g), cex = 1.3)
+  .pkey("topleft", levels(g), cl, pch = .ppch(seq_len(nlevels(g))))
+  b
+}
+
+# the estimates with each unit left out, as a histogram with a summary
+.ploohist <- function(l, r, main, col, pal, ...) {
+  e <- l$est[is.finite(l$est)]
+  .phist(e, r$est[1L], .pmain(main, "Leave-one-out sensitivity"),
+         "Estimate leaving one unit out", "hist", .pfill(col, pal),
+         note = c(sprintf("N = %d", length(e)),
+                  sprintf("Range: [%.3g, %.3g]", min(e), max(e)),
+                  sprintf("Mean %.3g, SD %.2g", mean(e), stats::sd(e)),
+                  sprintf("Full sample = %.3g", r$est[1L])), ...)
+  list(r[1L, , drop = FALSE], l)
+}
+
+# the same estimates, each with its interval under the one from all units
+.ploodots <- function(l, r, level, main, col, pal, ...) {
+  z <- stats::qnorm(1 - (1 - level) / 2)
+  d <- .pdots(c("all units", paste("without", l$unit)),
+              c(r$est[1L], l$est), c(r$lo[1L], l$est - z * l$se),
+              c(r$hi[1L], l$est + z * l$se),
+              .pmain(main, "Estimate, each unit left out"), "Effect",
+              col, pal, ref = r$est[1L],
+              grp = rep(c("all units", "one left out"), c(1L, nrow(l))),
+              key = FALSE, ...)
+  list(d[1L, , drop = FALSE], d[-1L, , drop = FALSE])
 }

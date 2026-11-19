@@ -55,4 +55,8 @@ Applications}. Pion, London.
 Bivand, R. S., Pebesma, E. and Gomez-Rubio, V. (2013). \emph{Applied
 Spatial Data Analysis with R}, 2nd ed., sec. 9.3. Springer.
 \doi{10.1007/978-1-4614-7618-4}
+
+Laniyonu (2017), on policing practices in gentrifying neighbourhoods,
+uses Moran's I as here, to establish that areal residuals are
+spatially dependent.
 }

@@ -216,15 +216,15 @@ bool hilltl(Ctx &c, Val &out) {
   double o[5];
   const int rc = clab_hilltl(pv.data(), n, xm, dis, apx, o, wk.data());
   const int ntl = sat<int>(o[3]);
-  const char *meth;
+  const char *mthd;
   if (ntl < mt) {
-    meth = "too few tail observations";
+    mthd = "too few tail observations";
   } else if (rc != CLAB_OK) {
-    meth = "not estimable: every tail value is the same";
+    mthd = "not estimable: every tail value is the same";
   } else if (dis && !apx) {
-    meth = o[4] > 0 ? "discrete maximum likelihood (alpha at an end of the search)" : "discrete maximum likelihood";
+    mthd = o[4] > 0 ? "discrete maximum likelihood (alpha at an end of the search)" : "discrete maximum likelihood";
   } else {
-    meth = dis ? "continuity-corrected Hill estimator (approximate)" : "continuous Hill estimator";
+    mthd = dis ? "continuity-corrected Hill estimator (approximate)" : "continuous Hill estimator";
   }
   const bool fit = ntl >= mt && rc == CLAB_OK;
   out = vobj();
@@ -234,7 +234,7 @@ bool hilltl(Ctx &c, Val &out) {
   put(out, "ntl", vnum(ntl));
   put(out, "ks", vnum(fit ? o[2] : NA));
   put(out, "reliable", vbool(fit && ntl >= 50 && o[4] == 0));
-  put(out, "method", vstr(meth));
+  put(out, "method", vstr(mthd));
   return true;
 }
 

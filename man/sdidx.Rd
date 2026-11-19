@@ -26,7 +26,7 @@ generator, or a whole number from 0.}
 }
 \value{
 An object of class \code{sdidx}, a list: \code{est} (\code{est}, \code{se}, \code{lo},
-\code{hi}); \code{meth} (\code{"placebo"} or \code{"jackknife"}); \code{unitw} (\code{unit}, \code{w});
+\code{hi}); \code{mthd} (\code{"placebo"} or \code{"jackknife"}); \code{unitw} (\code{unit}, \code{w});
 \code{timew} (\code{time}, \code{w}); \code{path} (\code{time}, \code{treated}, the treated mean,
 and \code{synth}, the weighted comparison units); \code{level}.
 }

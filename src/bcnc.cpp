@@ -279,16 +279,16 @@ SEXP C_clab_r_hilltl(SEXP x, SEXP xmin, SEXP discrete, SEXP approx, SEXP mintl) 
   double o[5];
   const int rc = clab_hilltl(REAL(pv), n, xm, dis, apx, o, REAL(wk));
   const int ntl = static_cast<int>(o[3]);
-  const char *meth;
+  const char *mthd;
   if (ntl < mt) {
-    meth = "too few tail observations";
+    mthd = "too few tail observations";
   } else if (rc != CLAB_OK) {
-    meth = "not estimable: every tail value is the same";
+    mthd = "not estimable: every tail value is the same";
   } else if (dis && !apx) {
-    meth = o[4] > 0 ? "discrete maximum likelihood (alpha at an end of the search)"
+    mthd = o[4] > 0 ? "discrete maximum likelihood (alpha at an end of the search)"
                     : "discrete maximum likelihood";
   } else {
-    meth = dis ? "continuity-corrected Hill estimator (approximate)" : "continuous Hill estimator";
+    mthd = dis ? "continuity-corrected Hill estimator (approximate)" : "continuous Hill estimator";
   }
   const bool fit = ntl >= mt && rc == CLAB_OK;
   SEXP out = PROTECT(Rf_allocVector(VECSXP, 7));
@@ -299,7 +299,7 @@ SEXP C_clab_r_hilltl(SEXP x, SEXP xmin, SEXP discrete, SEXP approx, SEXP mintl) 
   SET_VECTOR_ELT(out, 3, Rf_ScalarInteger(ntl));
   SET_VECTOR_ELT(out, 4, Rf_ScalarReal(fit ? o[2] : NA_REAL));
   SET_VECTOR_ELT(out, 5, Rf_ScalarLogical(fit && ntl >= 50 && o[4] == 0));
-  SET_VECTOR_ELT(out, 6, Rf_mkString(meth));
+  SET_VECTOR_ELT(out, 6, Rf_mkString(mthd));
   static const char *const nm[] = {"alpha", "se", "xmin", "ntl", "ks", "reliable", "method"};
   UNPROTECT(np);
   return bj::named(out, nm);

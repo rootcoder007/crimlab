@@ -195,10 +195,10 @@ print.freqtbl <- function(x, ...) {
 #' column order (\code{utils::combn()}).
 #'
 #' Errors: \code{data} not a data frame; fewer than two numeric columns;
-#' \code{minprs} not a whole number of at least 2; an invalid \code{meth}.
+#' \code{minprs} not a whole number of at least 2; an invalid \code{mthd}.
 #'
 #' @param data A data frame; its numeric columns are correlated in pairs.
-#' @param meth \code{"spearman"} (default) or \code{"pearson"}.
+#' @param mthd \code{"spearman"} (default) or \code{"pearson"}.
 #' @param minprs Minimum complete pairs required before a correlation is
 #'   computed, a whole number of at least 2 (default 3). Below it the pair is
 #'   \code{NA} rather than a number computed from almost nothing.
@@ -218,7 +218,7 @@ print.freqtbl <- function(x, ...) {
 #' cortbl(df)
 #'
 #' # Pearson instead of Spearman
-#' cortbl(df, meth = "pearson")
+#' cortbl(df, mthd = "pearson")
 #'
 #' # nprs shows how much data each figure rests on.
 #' gappy <- df
@@ -233,9 +233,9 @@ print.freqtbl <- function(x, ...) {
 #' # one numeric column cannot be correlated
 #' try(cortbl(data.frame(a = 1:5, b = letters[1:5])))
 #' @export
-cortbl <- function(data, meth = c("spearman", "pearson"), minprs = 3L) {
+cortbl <- function(data, mthd = c("spearman", "pearson"), minprs = 3L) {
   f <- "cortbl"
-  meth <- .ckarg(meth, c("spearman", "pearson"), "meth", f)
+  mthd <- .ckarg(mthd, c("spearman", "pearson"), "mthd", f)
   if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
   .dfnm(data, f)
   num <- names(data)[vapply(data, is.numeric, logical(1))]
@@ -246,11 +246,11 @@ cortbl <- function(data, meth = c("spearman", "pearson"), minprs = 3L) {
   if (length(minprs) != 1L || is.na(minprs) || minprs < 2L) {
     .ckstop(f, "`minprs` must be a single integer of at least 2")
   }
-  r <- .Call(C_clab_r_pcor, .nummat(data, num), meth == "pearson", minprs)
+  r <- .Call(C_clab_r_pcor, .nummat(data, num), mthd == "pearson", minprs)
   pr <- utils::combn(num, 2L)
   out <- data.frame(x = pr[1L, ], y = pr[2L, ], correlation = r[[1L]],
                     nprs = r[[2L]], stringsAsFactors = FALSE)
-  attr(out, "method") <- meth
+  attr(out, "method") <- mthd
   class(out) <- c("cortbl", "data.frame")
   out
 }
@@ -290,7 +290,7 @@ print.cortbl <- function(x, ...) {
 #'
 #' Errors: \code{data} not a data frame; fewer than two numeric columns;
 #' \code{n} not one positive whole number; \code{minabs} not one number in
-#' \eqn{[0, 1]}; an invalid \code{meth}.
+#' \eqn{[0, 1]}; an invalid \code{mthd}.
 #'
 #' @param data A data frame; its numeric pairs are ranked by correlation.
 #' @param n Number of pairs to return, one positive whole number (default
@@ -320,9 +320,9 @@ print.cortbl <- function(x, ...) {
 #'
 #' # The curved pair is ranked correctly by Spearman and understated by
 #' # Pearson, which is why Spearman is the default.
-#' tc <- topcors(df, meth = "spearman")
+#' tc <- topcors(df, mthd = "spearman")
 #' tc[tc$x == "a" & tc$y == "d", "correlation"]
-#' tp <- topcors(df, meth = "pearson")
+#' tp <- topcors(df, mthd = "pearson")
 #' tp[tp$x == "a" & tp$y == "d", "correlation"]
 #'
 #' # Filter to the pairs worth looking at, and keep the top two.
@@ -331,10 +331,10 @@ print.cortbl <- function(x, ...) {
 #' # a threshold above 1 is an error
 #' try(topcors(df, minabs = 2))
 #' @export
-topcors <- function(data, n = 10L, meth = c("spearman", "pearson"),
+topcors <- function(data, n = 10L, mthd = c("spearman", "pearson"),
                     minabs = 0) {
   f <- "topcors"
-  meth <- .ckarg(meth, c("spearman", "pearson"), "meth", f)
+  mthd <- .ckarg(mthd, c("spearman", "pearson"), "mthd", f)
   if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
   .dfnm(data, f)
   num <- names(data)[vapply(data, is.numeric, logical(1))]
@@ -346,11 +346,11 @@ topcors <- function(data, n = 10L, meth = c("spearman", "pearson"),
   if (length(minabs) != 1L || is.na(minabs) || minabs < 0 || minabs > 1) {
     .ckstop(f, "`minabs` must be a single value in [0, 1]")
   }
-  r <- .Call(C_clab_r_topcor, .nummat(data, num), meth == "pearson", minabs,
+  r <- .Call(C_clab_r_topcor, .nummat(data, num), mthd == "pearson", minabs,
              n)
   out <- data.frame(x = num[r[[1L]]], y = num[r[[2L]]], correlation = r[[3L]],
                     abscor = abs(r[[3L]]), stringsAsFactors = FALSE)
-  attr(out, "method") <- meth
+  attr(out, "method") <- mthd
   class(out) <- c("topcors", "data.frame")
   out
 }

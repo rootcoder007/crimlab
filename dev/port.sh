@@ -8,6 +8,9 @@
 #   sh dev/port.sh bench          ns per element of each kernel
 #   sh dev/port.sh emu ARCH...    in a container under qemu: i386 i387
 #                                 armv7 aarch64 riscv64 ppc64le s390x musl
+#   sh dev/port.sh xcli ARCH...   the command's test table, cross-built and
+#                                 run under qemu: riscv64 s390x ppc64le
+#                                 aarch64
 #   sh dev/port.sh in             (inside a container) build and run
 # ENGINE: podman (default) or docker. Prints one PORT line per run.
 set -u
@@ -105,6 +108,47 @@ m32)
     echo "PORT cli g++ -m32 x87: FAILED"; grep -A2 "^FAIL" "$t/c32.log" | cut -c1-300 | head -30
     tail -5 "$t/c32.log"; rc=1
   fi ;;
+xcli)
+  # the command and its whole test table on another processor: built by a
+  # cross compiler and run under qemu's user emulation. The self-test (emu)
+  # covers the kernels; this covers what the program prints, where a
+  # processor's way with a missing value shows. RISC-V answers an operation
+  # on a NaN with a NaN of its own, so an NA left to arithmetic comes out
+  # as NaN there (the package builders for riscv64 ran it first, after a
+  # release was tagged)
+  shift
+  for a in "$@"; do
+    case $a in
+    riscv64) tr=riscv64-linux-gnu ;;
+    s390x) tr=s390x-linux-gnu ;;
+    ppc64le) tr=powerpc64le-linux-gnu ;;
+    aarch64) tr=aarch64-linux-gnu ;;
+    *) echo "PORT cli $a: unknown"; rc=1; continue ;;
+    esac
+    q=qemu-$a-static
+    command -v "$q" > /dev/null || q=qemu-$a
+    if ! command -v "$q" > /dev/null || ! command -v "$tr-g++" > /dev/null; then
+      echo "PORT cli $a: FAILED: needs $tr-g++ and qemu-$a (qemu-user)"
+      rc=1; continue
+    fi
+    d=$t/x-$a
+    mkdir -p "$d"
+    cp -R cli src inst DESCRIPTION "$d/"
+    rm -rf "$d/cli/build" "$d/cli/crimlab" "$d/cli"/libcrimlab.*
+    if ! make -s -C "$d/cli" -j4 crimlab CXX="$tr-g++" AR="$tr-ar" \
+      LDFLAGS=-static WERROR= > "$d/log" 2>&1; then
+      echo "PORT cli $a: build FAILED"; tail -20 "$d/log"; rc=1; continue
+    fi
+    printf '#!/bin/sh\nexec %s "%s" "$@"\n' "$q" "$d/cli/crimlab" > "$d/cli/run"
+    chmod +x "$d/cli/run"
+    if (cd "$d/cli" && sh test.sh ./run) > "$d/log" 2>&1; then
+      echo "PORT cli $a: $(grep -o "[0-9]* checks, [0-9]* failed" "$d/log")"
+    else
+      echo "PORT cli $a: FAILED"
+      grep -A2 "^FAIL" "$d/log" | cut -c1-300 | head -30
+      tail -5 "$d/log"; rc=1
+    fi
+  done ;;
 bench)
   cc=${CXX:-g++}
   # shellcheck disable=SC2086
@@ -146,6 +190,6 @@ emu)
       -v "$PWD:/src:ro" -w /src -e XFLAGS="$x" \
       "$img" sh -c "$pre && sh dev/port.sh in" || rc=1
   done ;;
-*) echo "usage: sh dev/port.sh flags|mem|bench|emu ARCH...|in"; rc=1 ;;
+*) echo "usage: sh dev/port.sh flags|mem|m32|bench|emu ARCH...|xcli ARCH...|in"; rc=1 ;;
 esac
 exit $rc

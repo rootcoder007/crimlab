@@ -1,4 +1,4 @@
-# crimlab for Rust
+# crimlab for Rust <img src="https://raw.githubusercontent.com/rootcoder007/crimlab/main/man/figures/logo.png" align="right" height="139" alt="crimlab hex logo" />
 
 Statistical Toolkit for Criminology and Sociolegal Research: the C++ kernels of the R and Python
 packages [crimlab](https://github.com/rootcoder007/crimlab), compiled into

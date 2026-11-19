@@ -14,7 +14,7 @@ test_that("chomap() classes the areas by quantile, equal or given breaks", {
   expect_identical(r$areas$v, v)
   expect_identical(r$areas$col, blpal("sequential", length(br) - 1L)[cls])
   expect_identical(r$bbox, c(0, 3, 0, 2))
-  e <- drw(chomap(p, v, brk = 2, meth = "equal"))
+  e <- drw(chomap(p, v, brk = 2, mthd = "equal"))
   expect_identical(e$breaks, seq(3, 10, length.out = 3))
   expect_identical(e$areas$cls, c(1L, 2L, 1L, 2L, NA))
   g <- drw(chomap(p, v, brk = c(0, 5, 10)))
@@ -58,8 +58,8 @@ test_that("chomap() refuses what it cannot draw", {
                fixed = TRUE)
   expect_error(chomap(p, c(NA, Inf)), "chomap: `v` has no finite value.",
                fixed = TRUE)
-  expect_error(chomap(p, 1:2, meth = "jenks"),
-               "chomap: `meth` must be \"quantile\" or \"equal\".",
+  expect_error(chomap(p, 1:2, mthd = "jenks"),
+               "chomap: `mthd` must be \"quantile\" or \"equal\".",
                fixed = TRUE)
   msg <- paste("chomap: `brk` must be a whole number of classes from 1 to 9,",
                "or increasing breaks covering `v`.")
@@ -78,7 +78,7 @@ test_that("chomap() refuses what it cannot draw", {
 test_that("smmap() shares one set of breaks over the periods", {
   p <- list(sq(0, 0), sq(1, 0), sq(2, 0))
   v <- cbind(`2023` = c(1, 5, 9), `2024` = c(2, NA, 12))
-  r <- drw(smmap(p, v, brk = 2, meth = "equal"))
+  r <- drw(smmap(p, v, brk = 2, mthd = "equal"))
   br <- seq(1, 12, length.out = 3)
   expect_identical(r$breaks, br)
   expect_identical(r$areas$prd, rep(c("2023", "2024"), each = 3))

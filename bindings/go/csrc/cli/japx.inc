@@ -2160,14 +2160,16 @@ bool invsn(Ctx &c, Val &out) {
   const std::size_t n = a.size();
   if (c.has("by")) {
     std::vector<double> up(n);
-    for (std::size_t i = 0; i < n; ++i) up[i] = b[i] - a[i];
+    for (std::size_t i = 0; i < n; ++i) up[i] = isna(a[i]) || isna(b[i]) ? NA : b[i] - a[i];
     return invby(c, up, sg, rule, out);
   }
   std::vector<double> df(n);
   std::vector<int> inv(n);
   for (std::size_t i = 0; i < n; ++i) {
-    const double up = b[i] - a[i];
-    df[i] = sg == 0 ? up : -up;
+    // NA is set, not left to the subtraction: a processor may answer an
+    // operation on it with a NaN of its own (RISC-V does)
+    const double up = isna(a[i]) || isna(b[i]) ? NA : b[i] - a[i];
+    df[i] = isna(up) ? NA : sg == 0 ? up : -up;
     inv[i] = std::isnan(up) ? INT_MIN : (up > 0 ? 1 : 0);
   }
   Frame f;

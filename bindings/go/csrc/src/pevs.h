@@ -14,11 +14,11 @@ namespace pev {
 
 struct stg {
   const double *yw;   // outcomes, nu x nt
-  const int *dw;      // treatments 0 or 1, nu x nt (meth 2)
+  const int *dw;      // treatments 0 or 1, nu x nt (mthd 2)
   const double *xw;   // covariates, (k nt) x nu: column j of period s at [(j nt + s) nu + i]
   const int *g;       // first treated period of each unit (code; nt for never)
   int nu, nt, k;
-  int meth;           // 0 Callaway-Sant'Anna, 1 Wooldridge, 2 de Chaisemartin-D'Haultfoeuille
+  int mthd;           // 0 Callaway-Sant'Anna, 1 Wooldridge, 2 de Chaisemartin-D'Haultfoeuille
   int ctrl;           // 0 not yet treated, 1 never treated
   int est;            // with covariates: 0 doubly robust, 1 IPW, 2 regression
   std::vector<int> cg, ct;  // the group-time cells: cohort and period codes

@@ -168,7 +168,7 @@ const Pal pals[] = {
     {"okabe", {"#0072B2", "#D55E00", "#009E73", "#E69F00", "#CC79A7", "#56B4E9", "#F0E442", "#000000"}},
     {"diverging", {"#2166AC", "#8C8C8C", "#D6604D"}},
     {"sequential", {"#C6DBEF", "#6BAED6", "#2171B5", "#08306B", "#041E42"}},
-    {"grey", {"#252525", "#636363", "#969696", "#BDBDBD", "#D9D9D9"}}};
+    {"grey", {"#000000", "#636363", "#969696", "#3D3D3D", "#B0B0B0"}}};
 // colorRampPalette(col)(n): linear in RGB on the 0-1 scale, the result
 // times 255 cut to a whole number, as rgb(maxColorValue = 255) does.
 inline Cols ramp(const std::vector<const char *> &col, int n) {

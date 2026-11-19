@@ -1,4 +1,4 @@
-# crimlab for Python
+# crimlab for Python <img src="https://raw.githubusercontent.com/rootcoder007/crimlab/main/man/figures/logo.png" align="right" height="139" alt="crimlab hex logo" />
 
 Statistical Toolkit for Criminology and Sociolegal Research: the Python package binds the same
 compiled kernels as the R package crimlab (`../src`), with the same

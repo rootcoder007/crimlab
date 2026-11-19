@@ -63,8 +63,7 @@ or more a day without meaningful human contact (Rule 44), and prolonged
 solitary confinement, which Rule 43 prohibits, as more than 15
 consecutive days of it. \code{mndla()} classifies each placement and gives
 the share that meets the rules, overall and by group (a year, a
-region), with three denominators that answer different questions
-(Sprott and Doob 2021):
+region), with three denominators that answer different questions:
 }
 \details{
 \itemize{
@@ -79,9 +78,10 @@ With only the length of each stay, a stay qualifies when it is longer
 than \code{thr} days, and with \code{alert}, also when it carries at least \code{amin}
 alerts (mental health, suicide risk). With \code{hours} (the average hours
 out of cell a day) and \code{miss} (the percentage of days without the four
-hours out of cell the law requires), the rule of Sprott and Doob: a
-stay with at most 2 hours out and every day missed is solitary
-confinement (class 1) up to \code{thr} days and torture (class 2) beyond.
+hours out of cell the law requires), the operational definition of
+Sprott and Doob (2021, Table 19): a stay with at most 2 hours out and
+every day missed is solitary confinement (class 1) up to \code{thr} days and
+torture (class 2) beyond.
 \code{elig} restricts the qualifying stays (to stays with an alert, say, as a
 proxy for the absence of contact) and \code{excl} removes those where
 meaningful contact was recorded. Rows of an aggregate table enter with
@@ -103,5 +103,5 @@ resolution 70/175.
 
 Sprott, J. B. and Doob, A. N. (2021). \emph{Solitary Confinement, Torture,
 and Canada's Structured Intervention Units}. University of Toronto,
-Centre for Criminology and Sociolegal Studies.
+Centre for Criminology and Sociolegal Studies, 23 February 2021.
 }

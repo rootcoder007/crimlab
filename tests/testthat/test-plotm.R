@@ -111,6 +111,47 @@ test_that("paths over time", {
   expect_identical(drw(plot(sy)), sy$path)
   sd <- sdidx(one$rate, one$town, one$year, one$first)
   expect_identical(drw(plot(sd)), sd$path)
+  # the adoption is drawn only where the result says when it was
+  expect_null(.padopt(data.frame(time = 1:3)))
+  expect_null(.padopt(data.frame(time = 1:3), list(1:3)))
+  expect_identical(.padopt(data.frame(time = 1:4), list(1:2)), 2.5)
+  # with a point mark on every period, in colour, and a type not offered
+  expect_identical(drw(plot(sd, type = "o")), sd$path)
+  expect_identical(drw(plot(sy, type = "o", pal = "okabe")), sy$path)
+  expect_error(plot(sd, type = "h"), "`type` must be")
+  expect_identical(attr(sy$path, "pre"), sort(unique(one$year[one$year <
+    min(one$first, na.rm = TRUE)])))
+  # the power of a design, and a result that holds no curve
+  pn <- d[is.na(d$first), ]
+  pw <- wcbx(pn$rate, pn$town, pn$year, mthd = "power", ntrt = 2,
+             adopt = 2020, reps = 60, seed = 1)
+  expect_identical(drw(plot(pw)), pw$res)
+  wb <- wcbx(d$rate, d$town, d$year, d$bylaw)
+  expect_error(plot(wb), "drawn for mthd = \"perm\"")
+  # the permuted statistics, as a histogram and as a density
+  pm <- wcbx(list(rate = d$rate, half = d$rate / 2 + cos(seq_len(120))),
+             d$town, d$year, d$bylaw, mthd = "perm", reps = 40, seed = 1)
+  expect_identical(dim(pm$null), c(pm$draws, 2L))
+  expect_identical(drw(plot(pm)), pm$res)
+  expect_identical(drw(plot(pm, type = "density", col = "navy",
+                            main = "Both")), pm$res)
+  expect_error(plot(pm, type = "bars"), "`type` must be one of")
+  pm$null <- NULL
+  expect_error(plot(pm), "holds no permuted statistics")
+  # the estimates leaving a unit out, as a histogram
+  lo <- didfe(d$rate, d$town, d$year, d$bylaw, loo = TRUE)
+  lh <- drw(plot(lo, type = "hist"))
+  expect_identical(lh$loo, lo$loo)
+  expect_identical(lh$coef$est, lo$coef$est[1L])
+  expect_error(plot(lo, type = "pie"), "`type` must be one of")
+  # the values of a change table over the periods
+  yy <- yoypx(c(120, 131, 98, 105, 140, 30, 28, 41, 25, 33),
+              rep(2019:2023, 2), rep(c("A", "B"), each = 5))
+  yv <- drw(plot(yy, what = "value"))
+  expect_identical(yv$value, yy$value)
+  expect_identical(drw(plot(yoypx(c(4, 6, 9), 1:3), what = "value"))$group,
+                   rep("all", 3L))
+  expect_error(plot(yy, what = "rank"), "`what` must be one of")
   tr <- trndrr(c(402, 377, 390, 368, 331, 310, 305), 2017:2023)
   pt <- drw(plot(tr))
   expect_identical(pt$fitted, tr$fitted)

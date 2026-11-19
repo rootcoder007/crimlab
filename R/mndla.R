@@ -6,8 +6,7 @@
 #' solitary confinement, which Rule 43 prohibits, as more than 15
 #' consecutive days of it. `mndla()` classifies each placement and gives
 #' the share that meets the rules, overall and by group (a year, a
-#' region), with three denominators that answer different questions
-#' (Sprott and Doob 2021):
+#' region), with three denominators that answer different questions:
 #'
 #' * `stays`: the share of placements;
 #' * `people`: the share of people with at least one qualifying
@@ -19,9 +18,10 @@
 #' than `thr` days, and with `alert`, also when it carries at least `amin`
 #' alerts (mental health, suicide risk). With `hours` (the average hours
 #' out of cell a day) and `miss` (the percentage of days without the four
-#' hours out of cell the law requires), the rule of Sprott and Doob: a
-#' stay with at most 2 hours out and every day missed is solitary
-#' confinement (class 1) up to `thr` days and torture (class 2) beyond.
+#' hours out of cell the law requires), the operational definition of
+#' Sprott and Doob (2021, Table 19): a stay with at most 2 hours out and
+#' every day missed is solitary confinement (class 1) up to `thr` days and
+#' torture (class 2) beyond.
 #' `elig` restricts the qualifying stays (to stays with an alert, say, as a
 #' proxy for the absence of contact) and `excl` removes those where
 #' meaningful contact was recorded. Rows of an aggregate table enter with
@@ -59,7 +59,7 @@
 #'
 #'   Sprott, J. B. and Doob, A. N. (2021). *Solitary Confinement, Torture,
 #'   and Canada's Structured Intervention Units*. University of Toronto,
-#'   Centre for Criminology and Sociolegal Studies.
+#'   Centre for Criminology and Sociolegal Studies, 23 February 2021.
 #' @examples
 #' set.seed(6)
 #' d <- data.frame(id = sample(1:80, 150, TRUE), yr = sample(2021:2022, 150,

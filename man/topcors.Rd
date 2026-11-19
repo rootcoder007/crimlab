@@ -5,7 +5,7 @@
 \alias{print.topcors}
 \title{Strongest pairwise correlations in a data frame}
 \usage{
-topcors(data, n = 10L, meth = c("spearman", "pearson"), minabs = 0)
+topcors(data, n = 10L, mthd = c("spearman", "pearson"), minabs = 0)
 
 \method{print}{topcors}(x, ...)
 }
@@ -15,7 +15,7 @@ topcors(data, n = 10L, meth = c("spearman", "pearson"), minabs = 0)
 \item{n}{Number of pairs to return, one positive whole number (default
 10).}
 
-\item{meth}{\code{"spearman"} (default) or \code{"pearson"}.}
+\item{mthd}{\code{"spearman"} (default) or \code{"pearson"}.}
 
 \item{minabs}{Report only pairs whose absolute correlation reaches this, a
 number in \eqn{[0, 1]} (default 0).}
@@ -53,7 +53,7 @@ behind each.
 
 Errors: \code{data} not a data frame; fewer than two numeric columns;
 \code{n} not one positive whole number; \code{minabs} not one number in
-\eqn{[0, 1]}; an invalid \code{meth}.
+\eqn{[0, 1]}; an invalid \code{mthd}.
 }
 \examples{
 set.seed(1)
@@ -70,9 +70,9 @@ topcors(df)
 
 # The curved pair is ranked correctly by Spearman and understated by
 # Pearson, which is why Spearman is the default.
-tc <- topcors(df, meth = "spearman")
+tc <- topcors(df, mthd = "spearman")
 tc[tc$x == "a" & tc$y == "d", "correlation"]
-tp <- topcors(df, meth = "pearson")
+tp <- topcors(df, mthd = "pearson")
 tp[tp$x == "a" & tp$y == "d", "correlation"]
 
 # Filter to the pairs worth looking at, and keep the top two.

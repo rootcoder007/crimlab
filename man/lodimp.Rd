@@ -4,7 +4,7 @@
 \alias{lodimp}
 \title{Values below the limit of detection}
 \usage{
-lodimp(x, lod, meth = "half")
+lodimp(x, lod, mthd = "half")
 }
 \arguments{
 \item{x}{The measured values: numbers, \code{NA} for not measured. A \code{clpre}
@@ -14,7 +14,7 @@ elements fill the arguments by name.}
 \item{lod}{The limit of detection: one positive number, or one per value
 (each sample's own limit).}
 
-\item{meth}{\code{"half"}, \code{"sqrt2"} or \code{"lod"}.}
+\item{mthd}{\code{"half"}, \code{"sqrt2"} or \code{"lod"}.}
 }
 \value{
 A list: \code{tab}, a data frame with one row per value (\code{x}, \code{lod},

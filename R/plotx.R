@@ -395,7 +395,7 @@ plotcal <- function(x, y, ..., main = NULL, col = NULL, pal = NULL) {
   graphics::title(main = .pmain(main, sprintf(
     "Daily values, %s to %s (darker is higher)", format(r[1L]),
     format(r[2L])
-  ), "plotcal"), font.main = 1, cex.main = 1.05)
+  ), "plotcal"), font.main = 2, cex.main = 1.05)
   invisible(d[, c("date", "year", "week", "wday", "y")])
 }
 
@@ -438,7 +438,7 @@ plothrz <- function(y, prd, grp = NULL, bands = 3L, ..., main = NULL,
                  tick = FALSE)
   graphics::title(main = .pmain(main, sprintf(paste0(
     "Distance from each series' median, %d bands (above solid, below ",
-    "hatched)"), bands), "plothrz"), font.main = 1, cex.main = 1)
+    "hatched)"), bands), "plothrz"), font.main = 2, cex.main = 1)
   d$band <- pmin(bands, ceiling(abs(d$dev) / bw))
   invisible(d[, c("grp", "prd", "y", "band")])
 }
@@ -501,7 +501,10 @@ plotbump <- function(y, prd, grp, desc = TRUE, ..., main = NULL, col = NULL,
 #' intervals, before adoption in open circles and after in filled ones.
 #'
 #' @param x A named list of results of [evtst()] or [stgdid()].
-#' @param ... Passed to the base-graphics call that draws each panel.
+#' @param ... Passed to the base-graphics call that draws each panel;
+#'   `style = "stata"` draws hollow points joined by a line with dashed
+#'   intervals, in place of open points before adoption and filled ones
+#'   after.
 #' @param main `NULL` or one string, an overall title.
 #' @param col,pal As for [plotlrnz()].
 #' @return Invisibly, a data frame of the points drawn: `panel`, `t`, `est`,
@@ -536,6 +539,76 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   }))
   if (nzchar(main)) graphics::mtext(main, side = 3, line = -1.2, outer = TRUE)
   invisible(out)
+}
+
+#' Outcome by adoption cohort
+#'
+#' The mean outcome of each adoption cohort by time since its adoption,
+#' smoothed by a moving average and scaled to 1 in the period before
+#' adoption: a look, before any model, at whether the cohorts moved together
+#' before the policy. The period before adoption is shaded.
+#'
+#' A cohort is the units first treated in the same period. Its mean in a
+#' period is over its units observed then; the moving average is over that
+#' period and the `ma - 1` before it, so the first `ma - 1` periods of a
+#' cohort have no value. With `norm`, a cohort whose period before adoption
+#' is not in the window, or is 0, has no values.
+#'
+#' @param y The outcome: numbers, one per row.
+#' @param unit,time The unit and the period of each row; `time` numbers.
+#' @param first The period the unit of each row is first treated, `NA` for
+#'   a unit never treated (those are not drawn).
+#' @param win The periods before and after adoption to show: two whole
+#'   numbers, the first -1 or below and the second 0 or above.
+#' @param ma The periods in the moving average: a whole number from 1 (no
+#'   smoothing) to 100.
+#' @param norm `TRUE` to divide each cohort by its value in the period
+#'   before adoption.
+#' @inheritParams plotlrnz
+#' @return Invisibly, a data frame of the points drawn: `cohort`, `evtm`
+#'   (periods since adoption) and `value`.
+#' @examples
+#' d <- expand.grid(year = 2012:2024, town = LETTERS[1:12])
+#' i <- match(d$town, LETTERS)
+#' d$first <- rep(c(2018, 2021, NA), each = 4)[i]
+#' d$rate <- 30 + i + 0.5 * (d$year - 2012) + sin(seq_len(156)) -
+#'   4 * (!is.na(d$first) & d$year >= d$first)
+#' plotcoh(d$rate, d$town, d$year, d$first, win = c(-4, 3), ma = 1)
+#' @export
+plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
+                    norm = TRUE, ..., main = NULL, col = NULL, pal = NULL) {
+  .pcohck(y, unit, time, first, win, ma, norm)
+  ok <- is.finite(y) & !is.na(unit) & is.finite(time) & is.finite(first)
+  co <- sort(unique(first[ok]))
+  if (!length(co)) {
+    stop("plotcoh: no unit is ever treated (`first` has no period).",
+         call. = FALSE)
+  }
+  d <- do.call(rbind, lapply(co, function(g) {
+    k <- ok & first == g
+    .pcohrow(y[k], time[k], g, win, ma, norm)
+  }))
+  if (!any(is.finite(d$value))) {
+    stop("plotcoh: no cohort has a value in the window (with `norm`, the ",
+         "period before adoption must be in it and not 0).", call. = FALSE)
+  }
+  main <- .pmain(main, "Outcome by adoption cohort", "plotcoh")
+  cl <- .pcols(length(co), col, pal, "plotcoh")
+  op <- .ppar()
+  on.exit(graphics::par(op), add = TRUE)
+  .pfrm(.prange(d$evtm), .prange(d$value), main, "Periods since adoption",
+        if (norm) "Mean outcome (1 = period before adoption)" else
+          "Mean outcome", ...)
+  u <- graphics::par("usr")
+  graphics::rect(-1.5, u[3L], -0.5, u[4L], border = NA,
+                 col = grDevices::adjustcolor("#9A9A9A", 0.25))
+  for (i in seq_along(co)) {
+    s <- d[d$cohort == co[i], , drop = FALSE]
+    graphics::lines(s$evtm, s$value, col = cl[i], lty = i, lwd = 2)
+  }
+  .pkey("bottomleft", paste("Adopted at", co), cl, lty = seq_along(co))
+  graphics::box()
+  invisible(d)
 }
 
 # ---- checks and computations for the helpers --------------------------------
@@ -732,4 +805,55 @@ plotevgrid <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   ok <- c(is.list(x), !is.object(x), length(x) > 0L, !is.null(names(x)))
   all(ok) && all(nzchar(names(x)), vapply(x, inherits, NA,
                                           c("evtst", "stgdid")))
+}
+
+.pcohck <- function(y, unit, time, first, win, ma, norm) {
+  n <- length(y)
+  if (!is.numeric(y) || is.object(y) || !n) {
+    stop("plotcoh: `y` must be a numeric vector.", call. = FALSE)
+  }
+  if (length(unit) != n || length(time) != n || length(first) != n) {
+    stop("plotcoh: `unit`, `time` and `first` must have one entry per ",
+         "value of `y`.", call. = FALSE)
+  }
+  if (!is.numeric(time) || !is.numeric(first)) {
+    stop("plotcoh: `time` and `first` must be numbers.", call. = FALSE)
+  }
+  .pcohopt(win, ma, norm)
+}
+
+# the window, the moving average and the scaling
+.pcohopt <- function(win, ma, norm) {
+  if (!is.numeric(win) || length(win) != 2L || anyNA(win) ||
+        any(win != round(win)) || win[1L] > -1 || win[2L] < 0) {
+    stop("plotcoh: `win` must be two whole numbers, the first -1 or below ",
+         "and the second 0 or above.", call. = FALSE)
+  }
+  if (!.pnum1(ma, 1, 100, TRUE)) {
+    stop("plotcoh: `ma` must be one whole number from 1 to 100.",
+         call. = FALSE)
+  }
+  if (!isTRUE(norm) && !isFALSE(norm)) {
+    stop("plotcoh: `norm` must be TRUE or FALSE.", call. = FALSE)
+  }
+  invisible(NULL)
+}
+
+# one cohort: its mean by period, smoothed, by periods since adoption
+.pcohrow <- function(y, time, g, win, ma, norm) {
+  m <- tapply(y, time, mean)
+  v <- as.vector(m)
+  if (ma > 1) v <- as.vector(stats::filter(v, rep(1 / ma, ma), sides = 1))
+  e <- as.numeric(names(m)) - g
+  kp <- e >= win[1L] & e <= win[2L]
+  o <- data.frame(cohort = rep(g, sum(kp)), evtm = e[kp], value = v[kp])
+  if (norm) {
+    b <- o$value[o$evtm == -1]
+    o$value <- if (length(b) == 1L && is.finite(b) && b != 0) {
+      o$value / b
+    } else {
+      NA_real_
+    }
+  }
+  o
 }

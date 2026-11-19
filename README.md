@@ -9,7 +9,7 @@
 [![Release](https://img.shields.io/github/v/release/rootcoder007/crimlab?label=release&color=2ea44f)](https://github.com/rootcoder007/crimlab/releases/latest)
 [![PyPI](https://img.shields.io/pypi/v/crimlab?label=PyPI&color=3775a9)](https://pypi.org/project/crimlab/)
 [![npm](https://img.shields.io/npm/v/crimlab?label=npm&color=cb3837)](https://www.npmjs.com/package/crimlab)
-[![crates.io](https://img.shields.io/crates/v/crimlab?label=crates.io&color=f0b400)](https://crates.io/crates/crimlab)
+[![crates.io](https://img.shields.io/crates/v/crimlab?label=crates.io&color=f0b400)](https://docs.rs/crimlab/latest/crimlab/)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.rootcoder007/crimlab?label=Maven%20Central&color=6f42c1)](https://central.sonatype.com/artifact/io.github.rootcoder007/crimlab)
 [![Go Reference](https://pkg.go.dev/badge/github.com/rootcoder007/crimlab/bindings/go.svg)](https://pkg.go.dev/github.com/rootcoder007/crimlab/bindings/go)
 [![COPR](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fcopr.fedorainfracloud.org%2Fapi_3%2Fpackage%2F%3Fownername%3Drootcoder007%26projectname%3Dcrimlab%26packagename%3Dcrimlab%26with_latest_build%3Dtrue&query=%24.builds.latest.state&label=COPR%20build&color=2ea44f)](https://copr.fedorainfracloud.org/coprs/rootcoder007/crimlab/)
@@ -153,6 +153,11 @@ The functions work on summary data, not on raw records:
 * Segregation: how many placements, and how many people, meet the Mandela
   Rules' definitions of solitary confinement and prolonged solitary
   confinement, by year or region and under each denominator (`mndla()`).
+* Review of restrictive confinement: whether the review a rule sets a day
+  for was held, and the stays past that day never reviewed (`rvwtim()`);
+  on how many days of a stay an entitlement, hours out of the cell or human
+  contact, was missed, and what refusals account for (`entcmp()`); and
+  whether decision makers decide alike (`dmvar()`).
 * Custody and courts as stocks and flows: how the population held,
   admissions and the length of stay determine each other (`stkflw()`), how
   long stays are (`lostay()`), what a backlog implies about the time cases
@@ -575,6 +580,71 @@ lake build
 ```
 
 A build with no error and no `sorry` is the check.
+
+## Acknowledgements
+
+crimlab rests on other people's published work. The help page of each
+function cites what it implements; some of that work shaped the package
+more than a citation shows.
+
+* The estimators of Indigenous mental wellness follow the frameworks of
+  Professor Suzanne Stewart (Yellowknives Dene First Nation) and Professor
+  Angela Mashford-Pringle (Timiskaming First Nation), of the
+  Waakebiness-Bryce Institute for Indigenous Health at the University of
+  Toronto's Dalla Lana School of Public Health. Any error in turning their
+  frameworks into estimators is the package's, not theirs.
+* The policy-evaluation functions and their plots (event studies,
+  staggered adoption, the Goodman-Bacon panel, cohort outcomes,
+  leave-one-out and permutation checks) follow the designs of Professor
+  Ángela Zorro Medina's studies of criminal procedure reform (Zorro Medina
+  2020; Acosta, Mejia and Zorro Medina 2023).
+* The generalised ordered logit (`gologt()`) follows O'Connell and
+  Laniyonu (2025), and the test of spatial dependence in areal residuals
+  the use Professor Ayobami Laniyonu (2017) made of Moran's I.
+* The stock and flow measures of a custodial population (`stkflw()`:
+  average daily population, average length of stay and the identity that
+  ties them) are those of Lakner's *A Manual of Statistical Sampling
+  Methods for Corrections Planners* (1976).
+* `mndla()` reads segregation placements against the Mandela Rules. Where
+  the hours out of cell are recorded it offers the operational definition
+  that Professor Jane B. Sprott and Professor Emeritus Anthony N. Doob
+  applied to stays in Canada's Structured Intervention Units ([Sprott and
+  Doob 2021](https://www.crimsl.utoronto.ca/sites/www.crimsl.utoronto.ca/files/TortureSolitarySIUsSprottDoob23Feb2021_0.pdf));
+  the reading of Ontario's segregation tables, which publish durations
+  and alerts, is the package's own. Their reports, and the work of the
+  Structured Intervention Unit Implementation Advisory Panel that
+  Professor Doob chaired, informed the analyses of Ontario's tables here.
+  The presets on the tables of Professor Doob's affidavit in *Canadian
+  Civil Liberties Association et al. v. The Attorney General of Canada*
+  (Federal Court file T-539-20, 2020) reproduce its analyses of releases,
+  of the flow of prisoners and of age (`grprr()`, `stkflw()`); its
+  question, whether imprisonment follows crime, is put to two series by
+  `xcser()` and `stpcp()`. `rvwtim()`, `entcmp()` and `dmvar()` make
+  general functions of the analyses in Sprott and Doob (2021) and in
+  Sprott, Doob and Iftene (2021) of reviews, of hours out of cell and of
+  the decisions of Independent External Decision Makers.
+* The presets read tables that public bodies publish: Ontario's Ministry
+  of the Solicitor General (segregation and deaths in custody, from the
+  Offender Tracking Information System), the Special Investigations Unit,
+  the Toronto Police Service, the Correctional Service of Canada and
+  Statistics Canada. The check of a reported contrast against every
+  labelling of its table (`relchk()`) takes its case from the correction
+  the Ontario Human Rights Commission published in 2023.
+* Results were checked against these R packages, and speed compared with
+  them: bacondecomp, cobalt, DasGuptR, data.table, ddml, DemoDecomp, did,
+  DRDID, EValue, Familias, fixest, forensim, forrel, geosphere, glmnet,
+  grf, igraph, MatchIt, mlr3, netmem, paramlink, pedtools, ranger, relSim,
+  sna, spatstat, spdep, SuperLearner, survey, tmle, tnet and WeightIt.
+  None of them is needed to use crimlab.
+
+Thanks, too, to the people who gave their time: Uwe Ligges and his
+colleagues at CRAN; Jeroen Ooms, for R-universe; Mark Padgham and Mauro
+Lepore, in rOpenSci's review, whose reviews and tools shaped the checks
+here; the Fedora community, and especially its system administrators,
+for their help with COPR; the maintainers of the CRAN Task Views and of
+the distributions' package collections who answered and reviewed the
+requests; and everyone
+who reviewed this work before it was a package.
 
 ## Citation
 

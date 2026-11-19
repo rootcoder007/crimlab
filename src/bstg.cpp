@@ -22,7 +22,7 @@ extern "C" {
 //' @srrstats {G2.6} stgdid() reads the outcome, units, periods and
 //'   treatment as plain vectors of one length; covariates as for didfe().
 //' @noRd
-SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP meth,
+SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP mthd,
                      SEXP ctrl, SEXP adj, SEXP est, SEXP clus, SEXP reps, SEXP seed,
                      SEXP level) {
   clab::who = "stgdid";
@@ -30,7 +30,7 @@ SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP me
   static const char *const co[] = {"notyet", "never"};
   static const char *const eo[] = {"dr", "ipw", "reg"};
   pev::stg s{};
-  s.meth = csp::pick(meth, "meth", mo, 3);
+  s.mthd = csp::pick(mthd, "mthd", mo, 3);
   s.ctrl = csp::pick(ctrl, "ctrl", co, 2);
   s.est = csp::pick(est, "est", eo, 3);
   const int nr = clab::whole(reps, "reps", 0);
@@ -46,7 +46,7 @@ SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP me
     SEXP dv = PROTECT(csp::bin01(trt, "trt", n));
     ++np;
     for (int i = 0; i < n; ++i) dw[z(pn.t[z(i)]) * z(nu) + z(pn.u[z(i)])] = INTEGER(dv)[i];
-    if (s.meth != 2) g = pevr::firsts(pn, INTEGER(dv));
+    if (s.mthd != 2) g = pevr::firsts(pn, INTEGER(dv));
   } else {
     std::vector<double> fv = pevr::firstcol(first, pn);
     for (int a = 0; a < nu; ++a) {
@@ -66,7 +66,7 @@ SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP me
   std::vector<pevr::term> x;
   pevr::adjcols(adj, n, x);
   s.k = static_cast<int>(x.size());
-  if (s.k > 0 && s.meth != 0) fail("`adj` is taken by `meth = \"csa\"` only.");
+  if (s.k > 0 && s.mthd != 0) fail("`adj` is taken by `mthd = \"csa\"` only.");
   std::vector<double> xw(z(s.k) * z(nt) * z(nu));
   for (int j = 0; j < s.k; ++j) {
     for (int i = 0; i < n; ++i) {
@@ -103,11 +103,11 @@ SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP me
   // units treated from the first period have no period before: left out
   std::vector<int> idx;
   for (int a = 0; a < nu; ++a) {
-    if (s.meth == 2 || g[z(a)] > 0) idx.push_back(a);
+    if (s.mthd == 2 || g[z(a)] > 0) idx.push_back(a);
   }
   const double zq = Rf_qnorm5(0.5 + 0.5 * lv, 0.0, 1.0, 1, 0);
   SEXP att = R_NilValue, dyn = R_NilValue, ov;
-  if (s.meth == 2) {
+  if (s.mthd == 2) {
     double v[4], se[4] = {NA_REAL, NA_REAL, NA_REAL, NA_REAL};
     std::vector<int> ev;
     pev::stat(s, idx, ev, v);
@@ -128,7 +128,7 @@ SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP me
     ov = PROTECT(c.frame());
     ++np;
   } else {
-    pev::cells(g.data(), nu, nt, s.cg, s.ct, s.meth == 1 ? 1 : 0);
+    pev::cells(g.data(), nu, nt, s.cg, s.ct, s.mthd == 1 ? 1 : 0);
     if (s.cg.empty()) fail("no unit is first treated after the first period.");
     std::vector<int> ev;
     for (std::size_t c = 0; c < s.cg.size(); ++c) ev.push_back(s.ct[c] - s.cg[c]);
@@ -181,11 +181,11 @@ SEXP C_clab_r_stgdid(SEXP y, SEXP unit, SEXP time, SEXP first, SEXP trt, SEXP me
     dyn = PROTECT(d.frame());
     np += 3;
   }
-  SEXP m1 = PROTECT(Rf_mkString(mo[s.meth])), c1 = PROTECT(Rf_mkString(co[s.ctrl])),
+  SEXP m1 = PROTECT(Rf_mkString(mo[s.mthd])), c1 = PROTECT(Rf_mkString(co[s.ctrl])),
        r1 = PROTECT(Rf_ScalarInteger(nr)), l1 = PROTECT(Rf_ScalarReal(lv));
   np += 4;
   SEXP out = PROTECT(pevr::nlist({{"att", att}, {"overall", ov}, {"dynamic", dyn},
-                                  {"meth", m1}, {"ctrl", c1}, {"reps", r1}, {"level", l1}}));
+                                  {"mthd", m1}, {"ctrl", c1}, {"reps", r1}, {"level", l1}}));
   ++np;
   Rf_classgets(out, PROTECT(Rf_mkString("stgdid")));
   UNPROTECT(np + 1);

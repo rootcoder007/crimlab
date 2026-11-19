@@ -47,7 +47,12 @@
 #' s$path
 #' @export
 synthc <- function(y, unit, time, first, plac = TRUE) {
-  .Call(C_clab_r_synthc, y, unit, time, first, plac)
+  r <- .Call(C_clab_r_synthc, y, unit, time, first, plac)
+  # the periods before adoption, for the line plot() draws at the adoption
+  if (is.numeric(time) && is.numeric(first) && !all(is.na(first))) {
+    attr(r$path, "pre") <- sort(unique(time[time < min(first, na.rm = TRUE)]))
+  }
+  r
 }
 
 #' @export
@@ -97,7 +102,7 @@ print.synthc <- function(x, ...) {
 #'   generator, or a whole number from 0.
 #' @inheritParams cbatt
 #' @return An object of class `sdidx`, a list: `est` (`est`, `se`, `lo`,
-#'   `hi`); `meth` (`"placebo"` or `"jackknife"`); `unitw` (`unit`, `w`);
+#'   `hi`); `mthd` (`"placebo"` or `"jackknife"`); `unitw` (`unit`, `w`);
 #'   `timew` (`time`, `w`); `path` (`time`, `treated`, the treated mean,
 #'   and `synth`, the weighted comparison units); `level`.
 #' @references
@@ -119,7 +124,7 @@ sdidx <- function(y, unit, time, first, reps = 200, seed = NULL,
 
 #' @export
 print.sdidx <- function(x, ...) {
-  cat("sdidx: standard error by ", x[["meth"]], "\n", sep = "")
+  cat("sdidx: standard error by ", x[["mthd"]], "\n", sep = "")
   print(x[["est"]], row.names = FALSE)
   invisible(x)
 }

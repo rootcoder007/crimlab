@@ -8,7 +8,7 @@ chomap(
   polys,
   v,
   brk = 5,
-  meth = "quantile",
+  mthd = "quantile",
   ...,
   main = NULL,
   col = NULL,
@@ -26,7 +26,7 @@ by a row of \code{NA}. Names, when given, label the areas.}
 breaks themselves (increasing numbers covering the finite values of
 \code{v}).}
 
-\item{meth}{How a number of classes is cut: \code{"quantile"} or \code{"equal"}.}
+\item{mthd}{How a number of classes is cut: \code{"quantile"} or \code{"equal"}.}
 
 \item{...}{Passed to \code{\link[graphics:plot.window]{graphics::plot.window()}}.}
 
@@ -50,10 +50,10 @@ compiled kernel; R only draws. Areas are drawn with \code{polypath()}, so a
 ring inside another is a hole.
 }
 \details{
-With \code{brk} a number of classes, \code{meth = "quantile"} puts the
+With \code{brk} a number of classes, \code{mthd = "quantile"} puts the
 breaks at R's type-7 quantiles of the finite values (so the classes
 hold about equal counts; breaks that repeat are merged, which leaves
-fewer classes) and \code{meth = "equal"} cuts their range into classes of
+fewer classes) and \code{mthd = "equal"} cuts their range into classes of
 equal width, as \code{seq(min, max, length.out = brk + 1)}. A value falls
 in the class whose interval holds it, intervals closed on the left
 and the last closed on both sides, as \code{findInterval(v, breaks, rightmost.closed = TRUE, all.inside = TRUE)} gives. When every finite

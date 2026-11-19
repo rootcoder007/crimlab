@@ -144,20 +144,20 @@ void run(tk &tt) {
     pev::stat(s, idx, ev, v);
     tk_near(tt, "did.csa", v[0], 2.5, 1e-14);
     tk_near(tt, "did.csa.all", v[1], 2.5, 1e-14);
-    s.meth = 1;
+    s.mthd = 1;
     pev::stat(s, idx, ev, v);
     tk_near(tt, "did.wool", v[0], 2.5, 1e-13);
-    s.meth = 2;
+    s.mthd = 2;
     double d4[4];
     pev::stat(s, idx, ev, d4);
     tk_near(tt, "did.dcdh", d4[0], 2.5, 1e-14);
     tk_nan(tt, "did.dcdh.pl", d4[1]);
     // no unit outside the cohort: no comparison, no cells for Wooldridge
     std::vector<int> two = {2, 3};
-    s.meth = 0;
+    s.mthd = 0;
     pev::stat(s, two, ev, v);
     tk_nan(tt, "did.csa.none", v[0]);
-    s.meth = 1;
+    s.mthd = 1;
     pev::stat(s, two, ev, v);
     tk_nan(tt, "did.wool.none", v[0]);
   }

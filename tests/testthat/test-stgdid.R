@@ -64,7 +64,7 @@ test_that("covariates give did's doubly robust, IPW and regression cells", {
 })
 
 test_that("Wooldridge's cells are the coefficients of the cell dummies", {
-  s <- stgdid(pd$rate, pd$town, pd$year, pd$first, meth = "wool", reps = 0)
+  s <- stgdid(pd$rate, pd$town, pd$year, pd$first, mthd = "wool", reps = 0)
   cell <- ifelse(pd$on == 1, paste(pd$first, pd$year), "0")
   m <- lm(rate ~ factor(cell) + factor(town) + factor(year), pd)
   b <- coef(m)[paste0("factor(cell)", s$att$cohort, " ", s$att$period)]
@@ -72,7 +72,7 @@ test_that("Wooldridge's cells are the coefficients of the cell dummies", {
   # without never-treated units the periods from the last adoption go
   k <- !is.na(pd$first)
   s2 <- stgdid(pd$rate[k], pd$town[k], pd$year[k], pd$first[k],
-               meth = "wool", reps = 0)
+               mthd = "wool", reps = 0)
   expect_true(all(is.na(s2$att$est[s2$att$period >= 2022])))
   d <- pd[k & pd$year < 2022, ]
   cell <- ifelse(d$on == 1, paste(d$first, d$year), "0")
@@ -83,7 +83,7 @@ test_that("Wooldridge's cells are the coefficients of the cell dummies", {
 
 test_that("DID_M and its placebo are the switchers' differences", {
   law <- pd$on * !(pd$town %in% c(1, 2) & pd$year >= 2022)
-  s <- stgdid(pd$rate, pd$town, pd$year, trt = law, meth = "dcdh", reps = 0)
+  s <- stgdid(pd$rate, pd$town, pd$year, trt = law, mthd = "dcdh", reps = 0)
   # by hand, period by period
   yw <- matrix(pd$rate, 10)
   dw <- matrix(law, 10)
@@ -115,8 +115,8 @@ test_that("DID_M and its placebo are the switchers' differences", {
   expect_null(s$att)
   expect_output(print(s), "dcdh")
   # from first: the same as from the absorbing treatment
-  a <- stgdid(pd$rate, pd$town, pd$year, pd$first, meth = "dcdh", reps = 0)
-  b <- stgdid(pd$rate, pd$town, pd$year, trt = pd$on, meth = "dcdh",
+  a <- stgdid(pd$rate, pd$town, pd$year, pd$first, mthd = "dcdh", reps = 0)
+  b <- stgdid(pd$rate, pd$town, pd$year, trt = pd$on, mthd = "dcdh",
               reps = 0)
   expect_equal(a$overall, b$overall, tolerance = testthat_tolerance())
 })
@@ -140,7 +140,7 @@ test_that("the bootstrap is seeded, clustered, and its errors fit", {
   r1 <- stgdid(pd$rate, pd$town, pd$year, pd$first, reps = 1, seed = 1)
   expect_true(is.na(r1$overall$se))
   # two clusters, many samples: some lack a cohort
-  r2 <- stgdid(pd$rate, pd$town, pd$year, pd$first, meth = "wool",
+  r2 <- stgdid(pd$rate, pd$town, pd$year, pd$first, mthd = "wool",
                clus = as.integer(is.na(pd$first)), reps = 40, seed = 2)
   expect_true(is.finite(r2$overall$se))
 })
@@ -171,11 +171,11 @@ test_that("stgdid() refuses what it cannot estimate", {
   expect_error(stgdid(y, u, t), "one of `first` and `trt`")
   expect_error(stgdid(y, u, t, f, trt = pd$on), "one of `first` and `trt`")
   expect_error(stgdid(y, u, t, f + 0.5), "one of the periods")
-  expect_error(stgdid(y, u, t, f, adj = pd$x, meth = "wool"), "csa")
+  expect_error(stgdid(y, u, t, f, adj = pd$x, mthd = "wool"), "csa")
   expect_error(stgdid(y, u, t, f, clus = t), "constant within")
   expect_error(stgdid(y, u, t, f, clus = rep(1, 300)), "one cluster")
   expect_error(stgdid(y, u, t, rep(2015, 300)), "after the first period")
-  expect_error(stgdid(y, u, t, trt = rep(0, 300), meth = "dcdh"),
+  expect_error(stgdid(y, u, t, trt = rep(0, 300), mthd = "dcdh"),
                "no unit switches")
   # first beyond the window is never; at the start, always (left out)
   f2 <- as.numeric(f)

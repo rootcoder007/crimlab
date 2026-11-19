@@ -8,7 +8,7 @@ smmap(
   polys,
   v,
   brk = 5,
-  meth = "quantile",
+  mthd = "quantile",
   ...,
   main = NULL,
   col = NULL,
@@ -28,7 +28,7 @@ periods.}
 breaks themselves (increasing numbers covering the finite values of
 \code{v}).}
 
-\item{meth}{How a number of classes is cut: \code{"quantile"} or \code{"equal"}.}
+\item{mthd}{How a number of classes is cut: \code{"quantile"} or \code{"equal"}.}
 
 \item{...}{Passed to \code{\link[graphics:plot.window]{graphics::plot.window()}}.}
 

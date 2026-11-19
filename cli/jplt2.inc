@@ -134,6 +134,125 @@ bool plotvln(Ctx &c, Val &out) {
   return true;
 }
 
+// plotcoh(): the mean outcome of each adoption cohort by periods since its
+// adoption, the points R's plotcoh() draws. The mean of a period is R's
+// mean() (a second pass over the residuals), and the moving average the
+// sum stats::filter() forms, latest period first.
+bool plotcoh(Ctx &c, Val &out) {
+  const Val &yo = c["y"], &uo = c["unit"], &to = c["time"], &fo = c["first"];
+  if (!ax::numv(yo) || plt::len(yo) == 0) return c.fail("`y` must be a numeric vector.");
+  const std::vector<double> y = plt::vals(yo);
+  const std::vector<Val> u = plt::elems(uo);
+  const std::size_t n = y.size();
+  if (u.size() != n || plt::len(to) != n || plt::len(fo) != n) {
+    return c.fail("`unit`, `time` and `first` must have one entry per value of `y`.");
+  }
+  if (!ax::numv(to) || !ax::numv(fo)) return c.fail("`time` and `first` must be numbers.");
+  const std::vector<double> t = plt::vals(to), g = plt::vals(fo);
+  double w0 = -12, w1 = 12, ma = 3;
+  bool nrm = true;
+  const Val &wo = c["win"], &mo = c["ma"], &no = c["norm"];
+  if (wo.t != Val::NUL) {
+    const std::vector<double> w = ax::numv(wo) ? plt::vals(wo) : std::vector<double>();
+    if (w.size() != 2 || !(w[0] == std::round(w[0])) || !(w[1] == std::round(w[1])) || w[0] > -1 || w[1] < 0) {
+      return c.fail("`win` must be two whole numbers, the first -1 or below and the second 0 or above.");
+    }
+    w0 = w[0];
+    w1 = w[1];
+  }
+  if (mo.t != Val::NUL) {
+    const std::vector<double> mv = ax::numv(mo) ? plt::vals(mo) : std::vector<double>();
+    if (mv.size() != 1 || !std::isfinite(mv[0]) || mv[0] < 1 || mv[0] > 100 || mv[0] != std::round(mv[0])) {
+      return c.fail("`ma` must be one whole number from 1 to 100.");
+    }
+    ma = mv[0];
+  }
+  if (no.t != Val::NUL) {
+    const Val *s = no.t == Val::ARR && no.a.size() == 1 ? &no.a[0] : &no;
+    if (s->t != Val::BOOL) return c.fail("`norm` must be TRUE or FALSE.");
+    nrm = s->b;
+  }
+  std::vector<std::size_t> ok;
+  std::vector<double> co;
+  for (std::size_t i = 0; i < n; ++i) {
+    if (!std::isfinite(y[i]) || ax::vna(u[i]) || !std::isfinite(t[i]) || !std::isfinite(g[i])) continue;
+    ok.push_back(i);
+    co.push_back(g[i]);
+  }
+  std::sort(co.begin(), co.end());
+  co.erase(std::unique(co.begin(), co.end()), co.end());
+  if (co.empty()) return c.fail("no unit is ever treated (`first` has no period).");
+  const int m = static_cast<int>(ma);
+  std::vector<double> oc, oe, ov;
+  bool any = false;
+  for (double cg : co) {
+    // the periods of the cohort, in order, and the mean outcome of each
+    std::vector<double> tt;
+    for (std::size_t i : ok) {
+      if (g[i] == cg) tt.push_back(t[i]);
+    }
+    std::sort(tt.begin(), tt.end());
+    tt.erase(std::unique(tt.begin(), tt.end()), tt.end());
+    std::vector<double> v(tt.size());
+    for (std::size_t q = 0; q < tt.size(); ++q) {
+      long double s = 0.0L;
+      std::size_t k = 0;
+      for (std::size_t i : ok) {
+        if (g[i] == cg && t[i] == tt[q]) {
+          s += y[i];
+          ++k;
+        }
+      }
+      const long double mu = s / static_cast<long double>(k);
+      long double r = 0.0L;
+      for (std::size_t i : ok) {
+        if (g[i] == cg && t[i] == tt[q]) r += y[i] - mu;
+      }
+      v[q] = static_cast<double>(mu + r / static_cast<long double>(k));
+    }
+    if (m > 1) {
+      std::vector<double> sm(v.size(), NA);
+      for (std::size_t q = static_cast<std::size_t>(m) - 1; q < v.size(); ++q) {
+        double z = 0.0;
+        for (int j = 0; j < m; ++j) z += (1.0 / m) * v[q - static_cast<std::size_t>(j)];
+        sm[q] = z;
+      }
+      v = sm;
+    }
+    const std::size_t at = oc.size();
+    double base = NA;
+    int nb = 0;
+    for (std::size_t q = 0; q < tt.size(); ++q) {
+      const double e = tt[q] - cg;
+      if (e < w0 || e > w1) continue;
+      oc.push_back(cg);
+      oe.push_back(e);
+      ov.push_back(v[q]);
+      if (e == -1) {
+        base = v[q];
+        ++nb;
+      }
+    }
+    if (nrm) {
+      const bool div = nb == 1 && std::isfinite(base) && base != 0;
+      // NA is set, not left to the division: a processor may answer an
+      // operation on it with a NaN of its own (RISC-V does)
+      for (std::size_t q = at; q < ov.size(); ++q) ov[q] = div && !isna(ov[q]) ? ov[q] / base : NA;
+    }
+    for (std::size_t q = at; q < ov.size(); ++q) any = any || std::isfinite(ov[q]);
+  }
+  if (!any) {
+    return c.fail("no cohort has a value in the window (with `norm`, the period before adoption must be in it and not "
+                  "0).");
+  }
+  Frame f;
+  f.num("cohort", oc);
+  f.num("evtm", oe);
+  f.num("value", ov);
+  out = f.o;
+  return true;
+}
+
 namespace plt {
 
 // .prange() of finite values: their range, widened by 0.5 each side when
@@ -384,12 +503,12 @@ bool plotopt(Ctx &c, Val &out) {
   static const char *const msg[] = {"", "TRUE or FALSE", "one positive number", "0, 1, 2 or 3", "one colour",
                                     "one colour, or NA"};
   out = vobj();
-  put(out, "palette", vstr("okabe"));
-  put(out, "grid", vbool(true));
+  put(out, "palette", vstr("grey"));
+  put(out, "grid", vbool(false));
   put(out, "cex", vnum(1));
   put(out, "las", vnum(1));
   put(out, "bg", vstr("white"));
-  put(out, "panel", vstr("#EEF1F6"));
+  put(out, "panel", Val());  // NA: no fill
   for (std::size_t i = 0; i < c.in->k.size(); ++i) {
     const std::string &k = c.in->k[i];
     const Val &v = c.in->a[i];

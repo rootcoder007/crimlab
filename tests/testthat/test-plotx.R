@@ -125,6 +125,11 @@ test_that("event studies, alone and in a grid", {
   expect_identical(unique(g$panel), c("Event", "Staggered"))
   expect_identical(g$est[g$panel == "Event"], e$est$est)
   expect_s3_class(drw(plotevgrid(list(One = e))), "data.frame")
+  expect_identical(drw(plotevgrid(list(Event = e, Staggered = s),
+                                  style = "stata")), g)
+  expect_identical(drw(plot(e, style = "stata", pal = "diverging"))$est,
+                   g$est[g$panel == "Event"])
+  expect_error(plot(e, style = "ggplot"), "`style` must be")
   expect_error(plotevgrid(list(e)), "^plotevgrid: `x` must be a named list")
 })
 
@@ -283,4 +288,36 @@ test_that("periods and values the axes cannot hold are refused at once", {
 test_that("counts whose total overflows are refused as such", {
   expect_error(drw(plotlrnz(c(1e308, 1e308))),
                "^plotlrnz: `x` must be finite values from 0 with a positive")
+})
+
+test_that("the outcome by adoption cohort", {
+  d <- did()
+  p <- drw(plotcoh(d$rate, d$town, d$year, d$first, win = c(-3, 2), ma = 1))
+  expect_named(p, c("cohort", "evtm", "value"))
+  expect_identical(sort(unique(p$cohort)), c(2019, 2021))
+  expect_identical(p$value[p$evtm == -1], c(1, 1))
+  a <- d$town %in% LETTERS[1:4]
+  expect_equal(p$value[p$cohort == 2019 & p$evtm == 0],
+               mean(d$rate[a & d$year == 2019]) /
+                 mean(d$rate[a & d$year == 2018]), tolerance = 1e-12)
+  # the moving average, and the outcome in its own units, in colour
+  q <- drw(plotcoh(d$rate, d$town, d$year, d$first, win = c(-2, 2), ma = 2,
+                   norm = FALSE, pal = "okabe", main = "Raw"))
+  expect_equal(q$value[q$cohort == 2021 & q$evtm == 0],
+               mean(d$rate[d$town %in% LETTERS[5:8] & d$year %in% 2020:2021]),
+               tolerance = 1e-12)
+  # a cohort with no period before adoption in the data has no values
+  late <- d[d$year >= 2019, ]
+  r <- drw(plotcoh(late$rate, late$town, late$year, late$first,
+                   win = c(-1, 2), ma = 1))
+  expect_true(all(is.na(r$value[r$cohort == 2019])))
+  expect_error(plotcoh("a", 1, 1, 1), "`y` must be a numeric vector")
+  expect_error(plotcoh(1:2, 1, 1:2, 1:2), "one entry per value")
+  expect_error(plotcoh(1:2, 1:2, c("a", "b"), 1:2), "must be numbers")
+  expect_error(plotcoh(1:2, 1:2, 1:2, 1:2, win = c(0, 2)), "`win` must be")
+  expect_error(plotcoh(1:2, 1:2, 1:2, 1:2, ma = 0), "`ma` must be")
+  expect_error(plotcoh(1:2, 1:2, 1:2, 1:2, norm = NA), "`norm` must be")
+  expect_error(plotcoh(1:2, 1:2, 1:2, c(NA_real_, NA)), "no unit is ever")
+  expect_error(plotcoh(c(1, 2), c(1, 1), 1:2, c(1, 1), win = c(-1, 1),
+                       ma = 1), "no cohort has a value")
 })

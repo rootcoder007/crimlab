@@ -46,8 +46,8 @@ bool box(const double *x, const double *y, int n, double *bb) {
 
 }  // namespace
 
-extern "C" int clab_mapbrk(const double *v, int n, int k, int meth, double *br, int *nb, int *cls) CLAB_TRY {
-  if (n < 1 || meth < 0 || meth > 2 || (meth < 2 && k < 1) || (meth == 2 && *nb < 2)) return CLAB_EARG;
+extern "C" int clab_mapbrk(const double *v, int n, int k, int mthd, double *br, int *nb, int *cls) CLAB_TRY {
+  if (n < 1 || mthd < 0 || mthd > 2 || (mthd < 2 && k < 1) || (mthd == 2 && *nb < 2)) return CLAB_EARG;
   std::vector<double> f;
   for (int i = 0; i < n; ++i) {
     if (std::isfinite(v[i])) f.push_back(v[i]);
@@ -55,13 +55,13 @@ extern "C" int clab_mapbrk(const double *v, int n, int k, int meth, double *br, 
   if (f.empty()) return CLAB_EDOM;
   const double lo = *std::min_element(f.begin(), f.end()), hi = *std::max_element(f.begin(), f.end());
   int m = *nb;
-  if (meth == 2) {
+  if (mthd == 2) {
     for (int j = 1; j < m; ++j) {
       if (!(br[j] > br[j - 1])) return CLAB_EARG;
     }
     if (br[0] > lo || br[m - 1] < hi) return CLAB_EDOM;
   } else {
-    if (meth == 0) {
+    if (mthd == 0) {
       // seq(lo, hi, length.out = k + 1)
       br[0] = lo;
       for (int j = 1; j < k; ++j) br[j] = lo + kutil::rd(j * ((hi - lo) / k));

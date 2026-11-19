@@ -1315,7 +1315,7 @@ def txcal(conc: Any, resp: Any, w: Any = "1/x^2", unk: Any = None, k: Any = None
     return jcall("txcal", conc=conc, resp=resp, w=w, unk=unk, k=k)
 
 
-def lodimp(x: Any, lod: Any, meth: Any = "half") -> Any:
+def lodimp(x: Any, lod: Any, mthd: Any = "half") -> Any:
     """Values below the limit of detection.
 
     The arguments and the result are those of R's ``lodimp()``: see its help
@@ -1327,7 +1327,7 @@ def lodimp(x: Any, lod: Any, meth: Any = "half") -> Any:
     >>> list(r)
     ['tab', 'frac', 'nmiss']
     """
-    return jcall("lodimp", x=x, lod=lod, meth=meth)
+    return jcall("lodimp", x=x, lod=lod, mthd=mthd)
 
 
 def pmrrat(cen: Any, per: Any, cut: Any = None) -> Any:
@@ -2949,7 +2949,7 @@ def sdidx(y: Any, unit: Any, time: Any, first: Any, reps: Any = 200, seed: Any =
     ... None, None, None, None, None, None, None, None, None, None, None, None, None, None,
     ... None], reps=20, seed=1)
     >>> list(r)
-    ['est', 'meth', 'unitw', 'timew', 'path', 'level']
+    ['est', 'mthd', 'unitw', 'timew', 'path', 'level']
     """
     return jcall("sdidx", y=y, unit=unit, time=time, first=first, reps=reps, seed=seed, level=level)
 
@@ -3020,7 +3020,7 @@ def spill(fit: Any = None, w: Any = None, rho: Any = None, b: Any = None, th: An
     return jcall("spill", fit=fit, w=w, rho=rho, b=b, th=th)
 
 
-def stgdid(y: Any, unit: Any, time: Any, first: Any = None, trt: Any = None, meth: Any = "csa",
+def stgdid(y: Any, unit: Any, time: Any, first: Any = None, trt: Any = None, mthd: Any = "csa",
            ctrl: Any = "notyet", adj: Any = None, est: Any = "dr", clus: Any = None,
            reps: Any = 499, seed: Any = None, level: Any = 0.95) -> Any:
     """Effects of a policy adopted at different times.
@@ -3043,11 +3043,11 @@ def stgdid(y: Any, unit: Any, time: Any, first: Any = None, trt: Any = None, met
     ... 2017, 2018, 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020, 2015, 2016, 2017, 2018,
     ... 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020], trt=[0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1,
     ... 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    ... 0, 0, 0, 0, 0, 0, 0, 0], meth="dcdh", reps=0)
+    ... 0, 0, 0, 0, 0, 0, 0, 0], mthd="dcdh", reps=0)
     >>> list(r)
-    ['att', 'overall', 'dynamic', 'meth', 'ctrl', 'reps', 'level']
+    ['att', 'overall', 'dynamic', 'mthd', 'ctrl', 'reps', 'level']
     """
-    return jcall("stgdid", y=y, unit=unit, time=time, first=first, trt=trt, meth=meth, ctrl=ctrl,
+    return jcall("stgdid", y=y, unit=unit, time=time, first=first, trt=trt, mthd=mthd, ctrl=ctrl,
                   adj=adj, est=est, clus=clus, reps=reps, seed=seed, level=level)
 
 
@@ -3222,7 +3222,7 @@ def trnmat(state: Any, id: Any, time: Any = None) -> Any:
 
 
 def wcbx(y: Any, unit: Any, time: Any, trt: Any = None, adj: Any = None, clus: Any = None,
-         meth: Any = "wild", reps: Any = None, wtype: Any = "rad", ties: Any = "count",
+         mthd: Any = "wild", reps: Any = None, wtype: Any = "rad", ties: Any = "count",
          stat: Any = "t", ntrt: Any = 1, adopt: Any = None, eff: Any = None, alpha: Any = 0.05,
          power: Any = 0.8, seed: Any = None, level: Any = 0.95) -> Any:
     """Inference for a difference in differences with few clusters.
@@ -3243,12 +3243,12 @@ def wcbx(y: Any, unit: Any, time: Any, trt: Any = None, adj: Any = None, clus: A
     ... "H", "H"], time=[2015, 2016, 2017, 2018, 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020,
     ... 2015, 2016, 2017, 2018, 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020, 2015, 2016,
     ... 2017, 2018, 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020, 2015, 2016, 2017, 2018,
-    ... 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020], meth="power", reps=20, adopt=2018,
+    ... 2019, 2020, 2015, 2016, 2017, 2018, 2019, 2020], mthd="power", reps=20, adopt=2018,
     ... ntrt=2, eff=[0, 2, 5], seed=1)
     >>> list(r)
-    ['res', 'meth', 'ncl', 'draws', 'enum', 'mde', 'size', 'level']
+    ['res', 'mthd', 'ncl', 'draws', 'enum', 'mde', 'size', 'level', 'null']
     """
-    return jcall("wcbx", y=y, unit=unit, time=time, trt=trt, adj=adj, clus=clus, meth=meth,
+    return jcall("wcbx", y=y, unit=unit, time=time, trt=trt, adj=adj, clus=clus, mthd=mthd,
                   reps=reps, wtype=wtype, ties=ties, stat=stat, ntrt=ntrt, adopt=adopt, eff=eff,
                   alpha=alpha, power=power, seed=seed, level=level)
 
@@ -5759,7 +5759,7 @@ def freqtbl(data: Any, col: Any = None, maxlvl: Any = 25, sort: Any = True) -> A
     """
     return jcall("freqtbl", data=data, col=col, maxlvl=maxlvl, sort=sort)
 
-def cortbl(data: Any, meth: Any = None, minprs: Any = 3) -> Any:
+def cortbl(data: Any, mthd: Any = None, minprs: Any = 3) -> Any:
     """Correlation of every pair of numeric columns.
 
     The arguments and the result are those of R's ``cortbl()``: see its help
@@ -5770,9 +5770,9 @@ def cortbl(data: Any, meth: Any = None, minprs: Any = 3) -> Any:
     >>> cortbl(data={'a': [1, 2, 3], 'b': [2, 4, 7]})['correlation']
     [1.0]
     """
-    return jcall("cortbl", data=data, meth=meth, minprs=minprs)
+    return jcall("cortbl", data=data, mthd=mthd, minprs=minprs)
 
-def topcors(data: Any, n: Any = 10, meth: Any = None, minabs: Any = 0) -> Any:
+def topcors(data: Any, n: Any = 10, mthd: Any = None, minabs: Any = 0) -> Any:
     """The strongest pairwise correlations.
 
     The arguments and the result are those of R's ``topcors()``: see its help
@@ -5783,7 +5783,7 @@ def topcors(data: Any, n: Any = 10, meth: Any = None, minabs: Any = 0) -> Any:
     >>> topcors(data={'a': [1, 2, 3], 'b': [3, 2, 1]})['abscor']
     [1.0]
     """
-    return jcall("topcors", data=data, n=n, meth=meth, minabs=minabs)
+    return jcall("topcors", data=data, n=n, mthd=mthd, minabs=minabs)
 
 def drpempty(data: Any, which: Any = None, quiet: Any = False) -> Any:
     """Drop rows and columns that are entirely missing.
@@ -6941,7 +6941,7 @@ def cemtch(data: Any, d: Any, x: Any, cut: Any = None, lcut: Any = None) -> Any:
     return jcall("cemtch", data=data, d=d, x=x, cut=cut, lcut=lcut)
 
 
-def chomap(polys: Any, v: Any, brk: Any = 5, meth: Any = "quantile") -> Any:
+def chomap(polys: Any, v: Any, brk: Any = 5, mthd: Any = "quantile") -> Any:
     """The layout of R's ``chomap()``, a choropleth map.
 
     Nothing is drawn outside R; the arguments and the result are those of
@@ -6952,14 +6952,14 @@ def chomap(polys: Any, v: Any, brk: Any = 5, meth: Any = "quantile") -> Any:
     Examples
     --------
     >>> sq = [[0, 0], [1, 0], [1, 1], [0, 1]]
-    >>> r = chomap(polys=[sq, sq], v=[1, 3], brk=2, meth="equal")
+    >>> r = chomap(polys=[sq, sq], v=[1, 3], brk=2, mthd="equal")
     >>> r["breaks"], r["areas"]["cls"]
     ([1.0, 2.0, 3.0], [1.0, 2.0])
     """
-    return jcall("chomap", polys=polys, v=v, brk=brk, meth=meth)
+    return jcall("chomap", polys=polys, v=v, brk=brk, mthd=mthd)
 
 
-def smmap(polys: Any, v: Any, brk: Any = 5, meth: Any = "quantile") -> Any:
+def smmap(polys: Any, v: Any, brk: Any = 5, mthd: Any = "quantile") -> Any:
     """The layout of R's ``smmap()``, small multiples of a choropleth map.
 
     Nothing is drawn outside R; the arguments and the result are those of
@@ -6974,7 +6974,7 @@ def smmap(polys: Any, v: Any, brk: Any = 5, meth: Any = "quantile") -> Any:
     >>> r["breaks"], r["areas"]["prd"]
     ([1.0, 4.0], ['1', '1', '2', '2'])
     """
-    return jcall("smmap", polys=polys, v=v, brk=brk, meth=meth)
+    return jcall("smmap", polys=polys, v=v, brk=brk, mthd=mthd)
 
 
 def ptmap(x: Any, y: Any = None, cl: Any = None) -> Any:
@@ -7716,7 +7716,7 @@ def co2fp(
     durs: Any = None,
     cputms: Any = 0,
     loc: Any = None,
-    meth: Any = "auto",
+    mthd: Any = "auto",
     cpupwrw: Any = None,
     usage: Any = "process",
     loadcur: Any = "linear",
@@ -7740,14 +7740,14 @@ def co2fp(
     Examples
     --------
     >>> r = co2fp(10, 10, loc=30, usage=0.5, cpupwrw=65, cores=4, memgb=16,
-    ...           pue=1.67, meth="model")
+    ...           pue=1.67, mthd="model")
     >>> round(r["co2eg"], 6)  # worked out by hand: 10 s x 38.46 W x 1.67 x 30 g/kWh
     0.005352
     >>> r["usagemode"], r["method"]
     ('fixed', 'model')
     """
     return jcall(
-        "co2fp", durs=durs, cputms=cputms, loc=loc, meth=meth, cpupwrw=cpupwrw, usage=usage,
+        "co2fp", durs=durs, cputms=cputms, loc=loc, mthd=mthd, cpupwrw=cpupwrw, usage=usage,
         loadcur=loadcur, cores=cores, memgb=memgb, mempwrwpergb=mempwrwpergb, pue=pue,
         devices=devices, rapl=rapl, stat=stat,
     )
@@ -7787,6 +7787,76 @@ def plotevgrid(x: Any) -> Any:
     return jcall("plotevgrid", x=x)
 
 
+def rvwtim(days: Any, first: Any, due: Any, by: Any = None, cuts: Any = None, level: Any = None) -> Any:
+    """Was the review held, and in time?
+
+    The arguments and the result are those of R's ``rvwtim()``: see its help
+    page. ``first`` is None for a stay never reviewed.
+
+    Examples
+    --------
+    >>> r = rvwtim([12, 75, 90, 130], [None, 48, None, 61], due=60)
+    >>> r["sum"]["past"], r["sum"]["pastnever"]
+    ([3.0], [1.0])
+    """
+    return jcall("rvwtim", days=days, first=first, due=due, by=by, cuts=cuts, level=level)
+
+
+def entcmp(miss: Any, days: Any = None, by: Any = None, hours: Any = None, ref: Any = None,
+           cuts: Any = None, level: Any = None) -> Any:
+    """Days on which an entitlement was missed.
+
+    The arguments and the result are those of R's ``entcmp()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = entcmp([100, 100, 45, 0])
+    >>> r["sum"]["all"], r["sum"]["half"]
+    ([2.0], [2.0])
+    """
+    return jcall("entcmp", miss=miss, days=days, by=by, hours=hours, ref=ref, cuts=cuts, level=level)
+
+
+def dmvar(dec: Any, dm: Any, out: Any, nmin: Any = None, level: Any = None) -> Any:
+    """Do decision makers decide alike?
+
+    The arguments and the result are those of R's ``dmvar()``: see its help
+    page.
+
+    Examples
+    --------
+    >>> r = dmvar(["y", "y", "n", "n", "y", "n"], ["a", "a", "a", "b", "b", "b"], out="y")
+    >>> r["tab"]["k"]
+    [2.0, 1.0]
+    """
+    return jcall("dmvar", dec=dec, dm=dm, out=out, nmin=nmin, level=level)
+
+
+def plotcoh(
+    y: Any,
+    unit: Any,
+    time: Any,
+    first: Any,
+    win: Any = None,
+    ma: Any = None,
+    norm: Any = None,
+) -> Any:
+    """The points of R's ``plotcoh()``, the outcome by adoption cohort.
+
+    The mean outcome of each adoption cohort by periods since its adoption
+    (``evtm``), smoothed by a moving average of ``ma`` periods and, with
+    ``norm``, divided by its value in the period before adoption.
+
+    Examples
+    --------
+    >>> r = plotcoh([4, 5, 6, 3], [1, 1, 1, 1], [1, 2, 3, 4], [3, 3, 3, 3], win=[-2, 1], ma=1)
+    >>> r["evtm"], r["value"]
+    ([-2.0, -1.0, 0.0, 1.0], [0.8, 1.0, 1.2, 0.6])
+    """
+    return jcall("plotcoh", y=y, unit=unit, time=time, first=first, win=win, ma=ma, norm=norm)
+
+
 def plotopt(
     palette: Any = None,
     grid: Any = None,
@@ -7804,9 +7874,9 @@ def plotopt(
 
     Examples
     --------
-    >>> o = plotopt(palette="grey", grid=False)
+    >>> o = plotopt(palette="okabe", grid=True)
     >>> o["palette"], o["grid"], o["panel"]
-    ('grey', False, '#EEF1F6')
+    ('okabe', True, None)
     """
     return jcall("plotopt", palette=palette, grid=grid, cex=cex, las=las, bg=bg, panel=panel)
 

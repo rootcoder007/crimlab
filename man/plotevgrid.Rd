@@ -9,7 +9,10 @@ plotevgrid(x, ..., main = NULL, col = NULL, pal = NULL)
 \arguments{
 \item{x}{A named list of results of \code{\link[=evtst]{evtst()}} or \code{\link[=stgdid]{stgdid()}}.}
 
-\item{...}{Passed to the base-graphics call that draws each panel.}
+\item{...}{Passed to the base-graphics call that draws each panel;
+\code{style = "stata"} draws hollow points joined by a line with dashed
+intervals, in place of open points before adoption and filled ones
+after.}
 
 \item{main}{\code{NULL} or one string, an overall title.}
 

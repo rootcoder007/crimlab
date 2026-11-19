@@ -11,7 +11,7 @@
 #' Let cohort `g` be the units first treated in period `g`, and the
 #' comparison units those never treated (`ctrl = "never"`) or not yet
 #' treated by period `max(t, b)` (`"notyet"`, outside cohort `g`). For
-#' `meth = "csa"`, `ATT(g, t)` is the cohort's mean change in the outcome
+#' `mthd = "csa"`, `ATT(g, t)` is the cohort's mean change in the outcome
 #' from the base period `b` less the comparison units', with `b = g - 1`
 #' from adoption on and `b = t - 1` before (the `"varying"` base of the
 #' 'did' package), so an effect before adoption is a placebo over one
@@ -25,7 +25,7 @@
 #' units with `p` of 0.995 or more are left out, as 'DRDID' does. Use
 #' covariates fixed before treatment.
 #'
-#' For `meth = "wool"`, the regression of the outcome on unit and period
+#' For `mthd = "wool"`, the regression of the outcome on unit and period
 #' effects and one indicator for every treated cohort-period cell gives
 #' each `ATT(g, t)` after adoption as a coefficient (without covariates
 #' this is the imputation estimator); without units never treated, the
@@ -37,7 +37,7 @@
 #' weighted by cohort size. Event time counts observed periods. Units
 #' treated from the first period are left out.
 #'
-#' For `meth = "dcdh"`, in each period the units that switch into
+#' For `mthd = "dcdh"`, in each period the units that switch into
 #' treatment are compared with the units untreated in both periods, and
 #' the units that switch out with the units treated in both: `DID_M =
 #' sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S` over the
@@ -53,8 +53,8 @@
 #' @param first The period each row's unit is first treated (constant
 #'   within units; `NA`, 0 or `Inf` for never), or `NULL` with `trt`.
 #' @param trt The treatment of each row, 0 or 1, or `NULL` with `first`.
-#'   For `meth = "csa"` and `"wool"` it must stay on once on.
-#' @param meth `"csa"`, `"wool"` or `"dcdh"`.
+#'   For `mthd = "csa"` and `"wool"` it must stay on once on.
+#' @param mthd `"csa"`, `"wool"` or `"dcdh"`.
 #' @param ctrl `"notyet"` or `"never"`: the comparison units of `"csa"`.
 #' @param adj `NULL` or covariates for `"csa"`: a data frame or list of
 #'   columns, a numeric matrix or one vector, one value per row.
@@ -70,7 +70,7 @@
 #'   the cohort's size; `NULL` for `"dcdh"`); `overall` (`term`, `est`,
 #'   `se`, `lo`, `hi`, and for `"dcdh"` the rows `"effect"` and `"placebo"`
 #'   with `n`, the switchers); `dynamic`, by event time (`evtm`, `est`,
-#'   `se`, `lo`, `hi`; `NULL` for `"dcdh"`); `meth`; `ctrl`; `reps`; and
+#'   `se`, `lo`, `hi`; `NULL` for `"dcdh"`); `mthd`; `ctrl`; `reps`; and
 #'   `level`.
 #' @references
 #'   Callaway, B. and Sant'Anna, P. H. C. (2021). Difference-in-differences
@@ -100,24 +100,24 @@
 #' s$dynamic
 #' # a by-law some towns repeal
 #' d$law <- as.integer(on & !(i == 1 & d$year >= 2022))
-#' stgdid(d$rate, d$town, d$year, trt = d$law, meth = "dcdh", reps = 49,
+#' stgdid(d$rate, d$town, d$year, trt = d$law, mthd = "dcdh", reps = 49,
 #'        seed = 1)$overall
 #' # the simulated panel of polex(): a reform with a known effect of -3
 #' p <- polex()
 #' stgdid(p$crmrate, p$district, p$month, p$refmonth, reps = 49,
 #'        seed = 1)$overall
 #' @export
-stgdid <- function(y, unit, time, first = NULL, trt = NULL, meth = "csa",
+stgdid <- function(y, unit, time, first = NULL, trt = NULL, mthd = "csa",
                    ctrl = "notyet", adj = NULL, est = "dr", clus = NULL,
                    reps = 499, seed = NULL, level = 0.95) {
-  .Call(C_clab_r_stgdid, y, unit, time, first, trt, meth, ctrl, adj, est,
+  .Call(C_clab_r_stgdid, y, unit, time, first, trt, mthd, ctrl, adj, est,
         clus, reps, seed, level)
 }
 
 #' @export
 print.stgdid <- function(x, ...) {
-  cat("stgdid: ", x[["meth"]],
-      if (x[["meth"]] == "csa") paste0(", against units ", x[["ctrl"]]),
+  cat("stgdid: ", x[["mthd"]],
+      if (x[["mthd"]] == "csa") paste0(", against units ", x[["ctrl"]]),
       ", ", x[["reps"]], " bootstrap samples\n", sep = "")
   print(x[["overall"]], row.names = FALSE)
   if (!is.null(x[["dynamic"]])) {

@@ -91,7 +91,7 @@ test_that("random draws are seeded; few clusters give the whole line", {
 
 test_that("the permutations are every assignment of the dates", {
   d <- wpanel(4)
-  r <- wcbx(d$rate, d$town, d$year, d$on, meth = "perm")
+  r <- wcbx(d$rate, d$town, d$year, d$on, mthd = "perm")
   # choose(8, 3) = 56 assignments of the 2019 date
   cmb <- combn(8, 3)
   ts <- apply(cmb, 2, function(s) {
@@ -102,7 +102,7 @@ test_that("the permutations are every assignment of the dates", {
   expect_true(r$enum)
   expect_equal(r$res$p, mean(abs(ts) >= abs(r$res$stat) - 1e-12),
                tolerance = 1e-14)
-  re <- wcbx(d$rate, d$town, d$year, d$on, meth = "perm", stat = "est",
+  re <- wcbx(d$rate, d$town, d$year, d$on, mthd = "perm", stat = "est",
              ties = "strict")
   es <- apply(cmb, 2, function(s) {
     tr <- as.integer(as.integer(d$town) %in% s & d$year >= 2019)
@@ -112,7 +112,7 @@ test_that("the permutations are every assignment of the dates", {
                tolerance = 1e-14)
   # two outcomes: the stepdown over the same assignments
   y2 <- data.frame(a = d$rate, b = d$x)
-  r2 <- wcbx(y2, d$town, d$year, d$on, meth = "perm")
+  r2 <- wcbx(y2, d$town, d$year, d$on, mthd = "perm")
   expect_identical(r2$res$outcome, c("a", "b"))
   tb <- apply(cmb, 2, function(s) {
     tr <- as.integer(as.integer(d$town) %in% s & d$year >= 2019)
@@ -120,10 +120,10 @@ test_that("the permutations are every assignment of the dates", {
   })
   w <- wystep(r2$res$stat, cbind(ts, tb))
   expect_equal(r2$res$pstep, w$padj, tolerance = 1e-14)
-  r3 <- wcbx(cbind(d$rate, d$x), d$town, d$year, d$on, meth = "perm")
+  r3 <- wcbx(cbind(d$rate, d$x), d$town, d$year, d$on, mthd = "perm")
   expect_identical(r3$res$outcome, c("y1", "y2"))
   # random assignments when there are more than reps
-  r4 <- wcbx(d$rate, d$town, d$year, d$on, meth = "perm", reps = 20,
+  r4 <- wcbx(d$rate, d$town, d$year, d$on, mthd = "perm", reps = 20,
              seed = 1)
   expect_false(r4$enum)
   expect_equal(r4$res$p * 21, round(r4$res$p * 21), tolerance = 1e-12)
@@ -132,7 +132,7 @@ test_that("the permutations are every assignment of the dates", {
 test_that("the power's size is near its level; the effect is detected", {
   d <- wpanel(5, nu = 30)
   d$rate <- d$rate + 1.5 * d$on
-  r <- wcbx(d$rate, d$town, d$year, meth = "power", ntrt = 10,
+  r <- wcbx(d$rate, d$town, d$year, mthd = "power", ntrt = 10,
             adopt = 2018:2021, eff = c(0, 0.5, 3), reps = 400, seed = 1)
   expect_lt(abs(r$size - 0.05), 4 * sqrt(0.05 * 0.95 / 400))
   expect_identical(r$res$power[3], 1)
@@ -140,7 +140,7 @@ test_that("the power's size is near its level; the effect is detected", {
   want <- 0.5 + (0.8 - p[2]) / (p[3] - p[2]) * 2.5
   expect_equal(r$mde, if (p[2] >= 0.8) 0.5 else want,
                tolerance = testthat_tolerance())
-  r0 <- wcbx(d$rate, d$town, d$year, meth = "power", ntrt = 10,
+  r0 <- wcbx(d$rate, d$town, d$year, mthd = "power", ntrt = 10,
              adopt = 2020, reps = 20, seed = 2, power = 0.01)
   expect_identical(nrow(r0$res), 5L)
   expect_identical(r0$mde, 0)
@@ -177,15 +177,15 @@ test_that("wcbx() and wystep() refuse what they cannot test", {
   expect_error(wcbx(y, u, t, d$on, clus = rep(1, 80)), "one cluster")
   expect_error(wcbx(y, u, t, d$on, adj = data.frame(a = as.integer(u))),
                "absorb")
-  expect_error(wcbx(y, u, t, d$on, meth = "perm",
+  expect_error(wcbx(y, u, t, d$on, mthd = "perm",
                     clus = (as.integer(u) + 1) %/% 2), "same period")
-  expect_error(wcbx(y, u, t, d$on, meth = "perm",
+  expect_error(wcbx(y, u, t, d$on, mthd = "perm",
                     adj = data.frame(a = as.integer(u))), "absorb")
-  expect_error(wcbx(y, u, t, meth = "power", ntrt = 8), "untreated")
-  expect_error(wcbx(y, u, t, meth = "power"), "adoption periods")
-  expect_error(wcbx(y, u, t, meth = "power", adopt = 2015), "after the first")
-  expect_error(wcbx(y, u, t, meth = "power", adopt = numeric()), "adopt")
-  expect_error(wcbx(y, u, t, meth = "power", adopt = 2019,
+  expect_error(wcbx(y, u, t, mthd = "power", ntrt = 8), "untreated")
+  expect_error(wcbx(y, u, t, mthd = "power"), "adoption periods")
+  expect_error(wcbx(y, u, t, mthd = "power", adopt = 2015), "after the first")
+  expect_error(wcbx(y, u, t, mthd = "power", adopt = numeric()), "adopt")
+  expect_error(wcbx(y, u, t, mthd = "power", adopt = 2019,
                     eff = numeric()), "eff")
   expect_error(wcbx(y, u, t, d$on, reps = 3), "reps")
   expect_error(wystep(c(1, NA), matrix(0, 2, 2)), "obs")

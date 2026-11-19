@@ -77,7 +77,7 @@ test_that("the synthetic DiD weights solve their problems; tau from them", {
   ch <- function(v) mean(v[10:15]) - sum(l * v[1:9])
   tau <- ch(y1) - sum(w * apply(y0, 2, ch))
   expect_equal(r$est$est, tau, tolerance = 1e-12)
-  expect_identical(r$meth, "jackknife")
+  expect_identical(r$mthd, "jackknife")
   # the jackknife with the weights held
   u <- c(vapply(1:9, function(j) {
     ww <- w[-j] / sum(w[-j])
@@ -96,7 +96,7 @@ test_that("one treated unit takes the placebo error, seeded", {
   a <- sdidx(d$rate, d$town, d$year, d$first, reps = 50, seed = 3)
   b <- sdidx(d$rate, d$town, d$year, d$first, reps = 50, seed = 3)
   expect_identical(a, b)
-  expect_identical(a$meth, "placebo")
+  expect_identical(a$mthd, "placebo")
   set.seed(5)
   c1 <- sdidx(d$rate, d$town, d$year, d$first, reps = 20)
   set.seed(5)

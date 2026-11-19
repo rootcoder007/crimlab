@@ -50,13 +50,13 @@ int clab_txcal(const double *x, const double *y, const double *w, int n, const d
   return CLAB_OK;
 } CLAB_CATCH(CLAB_ENOMEM)
 
-int clab_lodimp(const double *x, int n, const double *lod, int nl, int meth, double *out,
+int clab_lodimp(const double *x, int n, const double *lod, int nl, int mthd, double *out,
                 int *cens, double *st) CLAB_TRY {
-  if (n < 1 || (nl != 1 && nl != n) || meth < 0 || meth > 2) return CLAB_EARG;
+  if (n < 1 || (nl != 1 && nl != n) || mthd < 0 || mthd > 2) return CLAB_EARG;
   for (int k = 0; k < nl; ++k) {
     if (!kutil::pos(lod[k])) return CLAB_EDOM;
   }
-  const double f = meth == 0 ? 0.5 : meth == 1 ? 1 / std::sqrt(2.0) : 1.0;
+  const double f = mthd == 0 ? 0.5 : mthd == 1 ? 1 / std::sqrt(2.0) : 1.0;
   int meas = 0, nc = 0;
   for (int i = 0; i < n; ++i) {
     const double l = lod[nl == 1 ? 0 : i];

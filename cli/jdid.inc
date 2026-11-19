@@ -858,7 +858,7 @@ bool stgdid(Ctx &c, Val &out) {
   static const char *const co[] = {"notyet", "never"};
   static const char *const eo[] = {"dr", "ipw", "reg"};
   pev::stg s{};
-  CK(pickd(c, "meth", mo, 3, 0, s.meth));
+  CK(pickd(c, "mthd", mo, 3, 0, s.mthd));
   CK(pickd(c, "ctrl", co, 2, 0, s.ctrl));
   CK(pickd(c, "est", eo, 3, 0, s.est));
   int nr = 0;
@@ -875,7 +875,7 @@ bool stgdid(Ctx &c, Val &out) {
     std::vector<int> dv;
     CK(bin01(c, c["trt"], "trt", zz(n), dv));
     for (std::size_t i = 0; i < zz(n); ++i) dw[zz(pn.t[i]) * zz(nu) + zz(pn.u[i])] = dv[i];
-    if (s.meth != 2) CK(firsts(c, pn, dv.data(), g));
+    if (s.mthd != 2) CK(firsts(c, pn, dv.data(), g));
   } else {
     std::vector<double> fv;
     CK(firstcol(c, pn, fv));
@@ -895,7 +895,7 @@ bool stgdid(Ctx &c, Val &out) {
   std::vector<Term> x;
   CK(adjcols(c, c["adj"], zz(n), x, "row of the panel"));
   s.k = sat<int>(x.size());
-  if (s.k > 0 && s.meth != 0) return c.fail("`adj` is taken by `meth = \"csa\"` only.");
+  if (s.k > 0 && s.mthd != 0) return c.fail("`adj` is taken by `mthd = \"csa\"` only.");
   std::vector<double> xw(zz(s.k) * zz(nt) * zz(nu));
   for (int j = 0; j < s.k; ++j) {
     for (std::size_t i = 0; i < zz(n); ++i) xw[(zz(j) * zz(nt) + zz(pn.t[i])) * zz(nu) + zz(pn.u[i])] = x[zz(j)].x[i];
@@ -931,11 +931,11 @@ bool stgdid(Ctx &c, Val &out) {
   s.nt = nt;
   std::vector<int> idx;
   for (int a = 0; a < nu; ++a) {
-    if (s.meth == 2 || g[zz(a)] > 0) idx.push_back(a);
+    if (s.mthd == 2 || g[zz(a)] > 0) idx.push_back(a);
   }
   const double zq = clab_qnorm(0.5 + 0.5 * lv);
   Val att, dyn, ov;
-  if (s.meth == 2) {
+  if (s.mthd == 2) {
     double v[4] = {0}, se[4] = {NA, NA, NA, NA};
     std::vector<int> ev;
     pev::stat(s, idx, ev, v);
@@ -958,7 +958,7 @@ bool stgdid(Ctx &c, Val &out) {
     f.num("n", ns);
     ov = f.o;
   } else {
-    pev::cells(g.data(), nu, nt, s.cg, s.ct, s.meth == 1 ? 1 : 0);
+    pev::cells(g.data(), nu, nt, s.cg, s.ct, s.mthd == 1 ? 1 : 0);
     if (s.cg.empty()) return c.fail("no unit is first treated after the first period.");
     std::vector<int> ev;
     for (std::size_t q = 0; q < s.cg.size(); ++q) ev.push_back(s.ct[q] - s.cg[q]);
@@ -1019,7 +1019,7 @@ bool stgdid(Ctx &c, Val &out) {
   put(out, "att", att);
   put(out, "overall", ov);
   put(out, "dynamic", dyn);
-  put(out, "meth", vstr(mo[s.meth]));
+  put(out, "mthd", vstr(mo[s.mthd]));
   put(out, "ctrl", vstr(co[s.ctrl]));
   put(out, "reps", vnum(nr));
   put(out, "level", vnum(lv));
@@ -1163,7 +1163,7 @@ bool sdidx(Ctx &c, Val &out) {
   const double tau = pev::sdtau(w.yw.data(), nu, nt, w.ctl, w.trd, w.t0, true, om.data(), la.data());
   if (std::isnan(tau)) return c.fail("%s", wfail);
   double se = NA;
-  const char *meth = "placebo";
+  const char *mthd = "placebo";
   if (n1 == 1) {
     unsigned int sd = 0;
     CK(seed(c, sd));
@@ -1187,7 +1187,7 @@ bool sdidx(Ctx &c, Val &out) {
       se = std::sqrt((nr - 1.0) / nr * std::max(0.0, (s2.val() - k * m * m) / (k - 1)));
     }
   } else {
-    meth = "jackknife";
+    mthd = "jackknife";
     std::vector<double> u;
     for (int a = 0; a < n0 + n1; ++a) {
       std::vector<int> cc, t;
@@ -1244,7 +1244,7 @@ bool sdidx(Ctx &c, Val &out) {
   path.num("synth", ps);
   out = vobj();
   put(out, "est", est.o);
-  put(out, "meth", vstr(meth));
+  put(out, "mthd", vstr(mthd));
   put(out, "unitw", unitw.o);
   put(out, "timew", timew.o);
   put(out, "path", path.o);

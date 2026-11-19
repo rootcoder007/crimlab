@@ -68,17 +68,17 @@ test_that("cortbl() and topcors() give the reference correlations", {
   expect_s3_class(c1, "cortbl")
   expect_identical(attr(c1, "method"), "spearman")
   expect_equal(cols(c1), dsref$ct1, tolerance = 1e-12)
-  expect_equal(cols(cortbl(d, meth = "pearson", minprs = 29)), dsref$ct2,
+  expect_equal(cols(cortbl(d, mthd = "pearson", minprs = 29)), dsref$ct2,
                tolerance = 1e-12)
   expect_equal(cols(topcors(d)), dsref$tc1, tolerance = 1e-12)
-  expect_equal(cols(topcors(d, n = 2, minabs = 0.5, meth = "pearson")),
+  expect_equal(cols(topcors(d, n = 2, minabs = 0.5, mthd = "pearson")),
                dsref$tc2, tolerance = 1e-12)
   expect_error(cortbl(data.frame(a = 1:5, b = letters[1:5])),
                "^cortbl: need at least two numeric columns to correlate\\.$")
   expect_error(cortbl(d, minprs = 1), "`minprs` must be a single integer")
   expect_error(topcors(d, minabs = 2),
                "^topcors: `minabs` must be a single value in \\[0, 1\\]\\.$")
-  expect_error(topcors(d, meth = "kendall"), "`meth` must be one of")
+  expect_error(topcors(d, mthd = "kendall"), "`mthd` must be one of")
   expect_output(print(topcors(d)), "Top correlations")
 })
 
