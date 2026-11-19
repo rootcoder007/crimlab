@@ -62,8 +62,12 @@
   arguments and returns the picture as a standalone SVG document with the
   rows drawn: `plotlrnz()`, `plotgain()`, `plotcdfs()`, `plotrdg()`,
   `plotvln()`, `plothex()`, `plotfnl()`, `plotcal()`, `plotmult()`,
-  `plotbump()`, `plothrz()`, `plotevgrid()` and `plotcoh()`, and the
-  results of `evtst()`, `stgdid()`, `synthc()` and `sdidx()`, with the look
+  `plotbump()`, `plothrz()`, `plotevgrid()` and `plotcoh()`, and every
+  result R draws with `plot()` (`evtst()`, `stgdid()`, `synthc()`,
+  `sdidx()`, `didfe()`, `cntreg()`, `kmrec()`, `rdloc()`, `indgap()` and
+  the rest, 109 plots in all; `bandx()` is left to R, since its plot needs
+  a statistic given as an R function), with the choices `type`, `what`,
+  `units` and `terms` of those plots and the look
   of the R plots (black and grey, a black frame, a bold title; `palette =
   "okabe"` for colours, `grid = TRUE` for a grid). One drawing code in the
   C++ core serves every language.

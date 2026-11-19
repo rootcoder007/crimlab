@@ -7867,19 +7867,30 @@ def plotsvg(
     grid: Any = None,
     width: Any = None,
     height: Any = None,
+    type: Any = None,
+    what: Any = None,
+    units: Any = None,
+    terms: Any = None,
 ) -> Any:
     """A plot of the package drawn as a standalone SVG document.
 
     Runs the plot function named by ``plot`` (``plotlrnz``, ``plotgain``,
     ``plotcdfs``, ``plotrdg``, ``plotvln``, ``plothex``, ``plotfnl``,
     ``plotcal``, ``plotmult``, ``plotbump``, ``plothrz``, ``plotevgrid``,
-    ``plotcoh``, or ``evtst``, ``stgdid``, ``synthc``, ``sdidx``, whose
-    results R draws with ``plot()``) on ``args``, a dict of that function's
+    ``plotcoh``, or any function whose result R draws with ``plot()``:
+    ``evtst``, ``stgdid``, ``synthc``, ``sdidx``, ``didfe``, ``cntreg``,
+    ``kmrec``, ``rdloc``, ``indgap`` and the others; a wrong name is
+    answered with the full list) on ``args``, a dict of that function's
     own arguments, and draws what it returns the way R draws it: a white page, a black
     box, a bold title, the ``palette`` of :func:`plotopt` (``"grey"`` by
     default; ``"okabe"`` for colours), a ``grid`` only when asked for.
     ``main``, ``xlab`` and ``ylab`` replace the title and the axis titles;
-    ``width`` and ``height`` are the size in pixels (720 by 480).
+    ``width`` and ``height`` are the size in pixels (720 by 480). The
+    choices some R plots take are passed the same way: ``type`` (``didfe``:
+    ``"dots"`` or ``"hist"``; ``wcbx``: ``"hist"`` or ``"density"``),
+    ``what`` (``yoypx``: ``"pctchg"`` or ``"value"``), ``units``
+    (``lmdix``: the units to sum over) and ``terms`` (the fixed-effects
+    fits: the coefficients to show).
 
     The result has the document as text in ``svg`` (write it to a file
     ending in ``.svg``, or show it in a notebook) and what the function
@@ -7904,6 +7915,10 @@ def plotsvg(
         grid=grid,
         width=width,
         height=height,
+        type=type,
+        what=what,
+        units=units,
+        terms=terms,
     )
 
 

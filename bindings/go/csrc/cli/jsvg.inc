@@ -16,7 +16,8 @@ namespace sv {
 enum Kind { LINE, STEP, POLY, PTS, SEG, TXT };
 
 // One thing drawn, in data coordinates. SEG: pairs of points, one segment
-// each (cap > 0: a bar of that half-width in pixels across both ends).
+// each (cap > 0: a bar of that half-width in pixels across both ends; hz
+// for a segment that runs across the page).
 // PTS: pch 0 a disc, 1 a triangle, 2 a ring, 3 a square, 4 a diamond.
 // TXT: anc 0 starts at the point, 1 is centred on it, 2 ends at it; with
 // `edge` it starts right of the box, level with the point.
@@ -26,7 +27,7 @@ struct It {
   std::string col = "#000000", fill = "none", txt;
   double lw = 1.6, op = 1, r = 3.4, cap = 0;
   int lty = 1, pch = 0, anc = 0;
-  bool edge = false;
+  bool edge = false, hz = false;
   std::vector<int> pchs;
   ax::Cols cols;
 };
@@ -167,7 +168,10 @@ inline void item(std::string &o, const It &i, const Box &b) {
     if (i.kind == SEG && k % 2 == 0 && k + 1 < i.x.size()) {
       const double x2 = b.X(i.x[k + 1]), y2 = b.Y(i.y[k + 1]);
       std::string d = "M" + px(x) + " " + px(y) + "L" + px(x2) + " " + px(y2);
-      if (i.cap > 0) {
+      if (i.cap > 0 && i.hz) {
+        d += "M" + px(x) + " " + px(y - i.cap) + "V" + px(y + i.cap) + "M" + px(x2) + " " + px(y2 - i.cap) + "V" +
+             px(y2 + i.cap);
+      } else if (i.cap > 0) {
         d += "M" + px(x - i.cap) + " " + px(y) + "H" + px(x + i.cap) + "M" + px(x2 - i.cap) + " " + px(y2) + "H" +
              px(x2 + i.cap);
       }
@@ -371,6 +375,15 @@ inline void labs(Ax &a, const ax::Cols &l, const std::vector<double> &at, bool t
   a.ticks = tk;
   a.at = at;
   a.lab = l;
+}
+
+// One text option, or "" when it is left out; false when it is not text.
+inline bool str1(const Val &o, std::string &s) {
+  if (o.t == Val::NUL) return true;
+  const Val *e = o.t == Val::ARR && o.a.size() == 1 ? &o.a[0] : &o;
+  if (e->t != Val::STR) return false;
+  s = e->s;
+  return true;
 }
 
 // What a builder is given: the arguments of the plot function, the rows it
@@ -980,6 +993,9 @@ inline bool bsdid(In s) {
   return true;
 }
 
+#include "jsvg2.inc"
+#include "jsvg3.inc"
+
 // The plots: the function that makes the rows and the one that draws them.
 struct Plot {
   const char *name;
@@ -992,16 +1008,99 @@ const Plot plots[] = {
     {"plotfnl", plotfnl, bfnl},    {"plotcal", plotcal, bcal},    {"plotmult", plotmult, bmult},
     {"plotbump", plotbump, bbump}, {"plothrz", plothrz, bhrz},    {"plotevgrid", plotevgrid, bevg},
     {"plotcoh", plotcoh, bcoh},  {"evtst", evtst, bevt},        {"stgdid", stgdid, bevt},
-    {"synthc", synthc, bsyn},     {"sdidx", sdidx, bsdid}};
-
-// One text option, or "" when it is left out; false when it is not text.
-inline bool str1(const Val &o, std::string &s) {
-  if (o.t == Val::NUL) return true;
-  const Val *e = o.t == Val::ARR && o.a.size() == 1 ? &o.a[0] : &o;
-  if (e->t != Val::STR) return false;
-  s = e->s;
-  return true;
-}
+    {"synthc", synthc, bsyn},     {"sdidx", sdidx, bsdid},
+    {"cntreg", cntreg, rcntreg},
+    {"dastd", dastd, rdastd},
+    {"grprr", grprr, rgrprr},
+    {"sirex", sirex, rsirex},
+    {"svymx", svymx, rsvymx},
+    {"mndla", mndla, rmndla},
+    {"thrtst", thrtst, rthrtst},
+    {"sarml", sarml, rsarml},
+    {"spcure", spcure, rspcure},
+    {"mtrbnd", mtrbnd, rmtrbnd},
+    {"pbbnd", pbbnd, rpbbnd},
+    {"dkfig", dkfig, rdkfig},
+    {"smdbal", smdbal, rsmdbal},
+    {"jmono", jmono, rjmono},
+    {"relchk", relchk, rrelchk},
+    {"dissix", dissix, rdissix},
+    {"gmmpnl", gmmpnl, rgmmpnl},
+    {"ccepnl", ccepnl, rccepnl},
+    {"fepnl", fepnl, rfepnl},
+    {"hetfx", hetfx, rhetfx},
+    {"typefx", typefx, rtypefx},
+    {"plcday", plcday, rplcday},
+    {"arwt", arwt, rarwt},
+    {"crsev", crsev, rcrsev},
+    {"gmixlr", gmixlr, rgmixlr},
+    {"pedlr", pedlr, rpedlr},
+    {"hypq", hypq, rhypq},
+    {"lnsize", lnsize, rlnsize},
+    {"lostay", lostay, rlostay},
+    {"pinpl", pinpl, rpinpl},
+    {"lmdix", lmdix, rlmdix},
+    {"trndrr", trndrr, rtrndrr},
+    {"stkflw", stkflw, rstkflw},
+    {"dktflw", dktflw, rdktflw},
+    {"jpipe", jpipe, rjpipe},
+    {"hsper", hsper, rhsper},
+    {"cumrsk", cumrsk, rcumrsk},
+    {"agemix", agemix, ragemix},
+    {"apcie", apcie, rapcie},
+    {"kmrec", kmrec, rkmrec},
+    {"lftab", lftab, rlftab},
+    {"lnroc", lnroc, rlnroc},
+    {"lnkpr", lnkpr, rlnkpr},
+    {"cconc", cconc, rcconc},
+    {"crossk", crossk, rcrossk},
+    {"jdgiv", jdgiv, rjdgiv},
+    {"rptvic", rptvic, rrptvic},
+    {"ctabx", ctabx, rctabx},
+    {"knxnr", knxnr, rknxnr},
+    {"qdrtst", qdrtst, rqdrtst},
+    {"trnmat", trnmat, rtrnmat},
+    {"zcomp", zcomp, rzcomp},
+    {"kdsurf", kdsurf, rkdsurf},
+    {"tpsurf", tpsurf, rtpsurf},
+    {"sdbsim", sdbsim, rsdbsim},
+    {"prohs", prohs, rprohs},
+    {"xcser", xcser, rxcser},
+    {"hwkres", hwkres, rhwkres},
+    {"mmshr", mmshr, rmmshr},
+    {"bufas", bufas, rbufas},
+    {"cmpsc", cmpsc, rcmpsc},
+    {"ebshr", ebshr, rebshr},
+    {"ibench", ibench, ribench},
+    {"kscan", kscan, rkscan},
+    {"didfe", didfe, rdidfe},
+    {"wcbx", wcbx, rwcbx},
+    {"yoypx", yoypx, ryoypx},
+    {"indgap", indgap, rindgap},
+    {"dualcont", dualcont, rdualcont},
+    {"commidx", commidx, rcommidx},
+    {"stdprev", stdprev, rstdprev},
+    {"ordcmp", ordcmp, rordcmp},
+    {"welprof", welprof, rwelprof},
+    {"healchg", healchg, rhealchg},
+    {"holbal", holbal, rholbal},
+    {"trchlthgap", trchlthgap, rtrchlthgap},
+    {"cnscwb", cnscwb, rcnscwb},
+    {"cwbscr", cwbscr, rcwbscr},
+    {"ppmlfe", ax::ppmlfe, rppmlfe},
+    {"expgmm", ax::expgmm, rexpgmm},
+    {"ivfe", ax::ivfe, rivfe},
+    {"ppmlcf", ax::ppmlcf, rppmlcf},
+    {"updwn", ax::updwn, rupdwn},
+    {"runfx", runfx, rrunfx},
+    {"dosebin", dosebin, rdosebin},
+    {"jntx", jntx, rjntx},
+    {"ptmap", ptmap, rptmap},
+    {"dbscn", dbscn, rdbscn},
+    {"tipplt", tipplt, rtipplt},
+    {"eceplt", eceplt, receplt},
+    {"rdloc", rdloc, rrdloc},
+    {"rddens", rddens, rrddens}};
 
 }  // namespace sv
 

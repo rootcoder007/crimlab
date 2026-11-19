@@ -2168,7 +2168,7 @@ const Ent ents[] = {
     {"plothex", "x y bins?", plothex},
     {"plotevgrid", "x", plotevgrid},
     {"plotcoh", "y unit time first win? ma? norm?", plotcoh},
-    {"plotsvg", "plot args main? xlab? ylab? palette? grid? width? height?", plotsvg},
+    {"plotsvg", "plot args main? xlab? ylab? palette? grid? width? height? type? what? units? terms?", plotsvg},
     {"rvwtim", "days first due by? cuts? level?", rvwtim},
     {"entcmp", "miss days? by? hours? ref? cuts? level?", entcmp},
     {"dmvar", "dec dm out nmin? level?", dmvar},

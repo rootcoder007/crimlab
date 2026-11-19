@@ -106,3 +106,36 @@ def test_special_values():
         _clab.svg([([0.0], [0.0])], "t", "x", "y", False, 0.0, 0)
     with pytest.raises(ValueError, match="dash must be 0, 1 or 2"):
         _clab.svg([([0.0], [0.0], False, 3, "x")], "t", "x", "y", False, 0.0, 0)
+
+
+def test_plotsvg_draws_every_plot():
+    """Each plot plotsvg() names is drawn from a case of cli/test.tsv."""
+    import json
+    import re
+    from pathlib import Path
+
+    import crimlab
+
+    tsv = Path(__file__).resolve().parents[2] / "cli" / "test.tsv"
+    if not tsv.exists():
+        pytest.skip("no cli/test.tsv outside the repository")
+    with pytest.raises(Exception) as e:
+        crimlab.plotsvg("nope", {})
+    names = re.findall(r"[a-z0-9]+", str(e.value).split("one of", 1)[1])
+    assert len(names) > 100
+    cases = {}
+    for ln in tsv.read_text(encoding="utf-8").splitlines():
+        p = ln.split("\t")
+        if len(p) == 3 and not p[2].startswith("!") and p[0] in names:
+            cases.setdefault(p[0], []).append(json.loads(p[1]))
+    for n in names:
+        assert n in cases, n
+        drawn = False
+        for a in sorted(cases[n], key=lambda v: -len(json.dumps(v)))[:6]:
+            try:
+                r = crimlab.plotsvg(n, a, palette="okabe")
+            except Exception:  # noqa: BLE001, S112
+                continue
+            drawn = r["svg"].startswith("<svg") and r["svg"].rstrip().endswith("</svg>")
+            break
+        assert drawn, n
