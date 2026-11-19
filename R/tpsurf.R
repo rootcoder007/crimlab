@@ -88,7 +88,8 @@ plot.tpsurf <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          pal = pal, ...)
 }
 
-# The points: numbers of the same length, finite, at least three.
+#' The points: numbers of the same length, finite, at least three.
+#' @noRd
 .tpchk <- function(x, y, z, f) {
   if (!is.numeric(x) || !is.numeric(y) || !is.numeric(z) ||
         length(y) != length(x) || length(z) != length(x)) {

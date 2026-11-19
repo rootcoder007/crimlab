@@ -104,7 +104,8 @@ print.cxsim <- function(x, ...) {
   invisible(x)
 }
 
-# One person-year table from the model.
+#' One person-year table from the model.
+#' @noRd
 .csdraw <- function(n, beta, ncl, sdcl, theta, b0, conf) {
   cl <- sample.int(ncl, n, TRUE)
   u <- stats::rnorm(ncl, 0, sdcl)[cl]
@@ -124,7 +125,8 @@ print.cxsim <- function(x, ...) {
   )
 }
 
-# The three estimates of one table.
+#' The three estimates of one table.
+#' @noRd
 .csone <- function(d) {
   # a fit that fails is counted; its warnings (glm.fit()'s on a draw it
   # cannot fit) are not the caller's

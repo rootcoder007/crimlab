@@ -17,9 +17,18 @@
 //' @srrstats {G1.1} README "Algorithms" says that every method is a
 //'   published one, none new, and that crimlab claims no first
 //'   implementation in R.
-//' @srrstats {G1.2} README "Life cycle" states that the package is
-//'   experimental and that names, arguments and results may change before
-//'   a first release.
+//' @srrstats {G1.2} README "Life cycle" states the stage: experimental,
+//'   so that names, arguments and results may change before version 1.0,
+//'   with each change recorded in NEWS.md.
+//' @srrstats {G1.4a} Every internal R function (the ones named with a
+//'   leading dot) has a roxygen2 comment saying what it does, ending in
+//'   `@noRd`.
+//' @srrstats {G5.10} The whole suite is the extended set: tests/testthat.R
+//'   runs every test file when the environment variable NOT_CRAN is
+//'   "true" (the project's workflows set it, as devtools does) and one
+//'   file otherwise, which is what CRAN runs.
+//' @srrstats {G5.12} tests/README.md gives the switch, what the full
+//'   suite needs and how long it takes.
 //' @srrstats {G1.6} The package makes no claim of speed or accuracy over
 //'   other packages; tests named "agree with" (test-disp.R, test-pol.R,
 //'   test-corr.R) compare its results with another R implementation when
@@ -59,10 +68,11 @@
 //'   by group, individual binary outcomes, allele frequencies and
 //'   genotypes, and likelihood ratios from validation studies.
 //' @srrstats {EA1.3} Each @param gives the kind of data the argument takes.
-//' @srrstats {EA4.2} Results are base data frames, named numeric vectors
-//'   and lists of these, so the default print methods show them, except
-//'   the reports of relchk() and catchk(), which have print methods of
-//'   their own; the two plotting functions are tipplt() and eceplt().
+//' @srrstats {EA4.2} Results are data frames, named vectors and lists of
+//'   these. The lists that are fits or reports carry a class with a
+//'   print method of its own; those that are drawn have a plot method
+//'   (the help page `plotm` lists most of them, the pages of their
+//'   functions the rest), and some have a summary method.
 //' @srrstats {EA6.0} Return values of every exported function are tested;
 //'   see EA6.0a-e.
 //' @srrstats {EA6.0e} Nearly every expect_equal() on a number, and every
@@ -84,30 +94,26 @@
 //'
 //' Standards that do not apply, with the reason for each.
 //'
-//' @srrstatsNA {G1.4a} No internal R function remains: every R function is
-//'   exported and documented with roxygen2, and the code behind them is
-//'   C++, where each function has a comment saying what it does.
 //' @srrstatsNA {G1.5} There is no associated publication with performance
 //'   claims to reproduce.
-//' @srrstatsNA {G2.4d} No input is converted to a factor and no result is
-//'   a factor.
+//' @srrstatsNA {G2.4d} No argument has to be a factor, so no input needs
+//'   converting to one; where a function counts over a fixed set of
+//'   levels it builds the factor itself, inside table().
 //' @srrstatsNA {G2.14b} Dropping a missing count would change the groups or
 //'   the population a result describes, so missing values are an error,
 //'   never silently ignored; the caller can subset first.
 //' @srrstatsNA {G2.14c} Imputing a count, a frequency or an outcome would
 //'   invent the data the result is about.
-//' @srrstatsNA {G4.0} Nothing is written to a file; the plots draw on the
-//'   current device.
 //' @srrstatsNA {G5.0} No standard data set (such as NIST's) exists for these
 //'   quantities; tests use small inputs with answers computed by hand.
 //' @srrstatsNA {G5.1} The package ships no data set; test data are built
-//'   in the test files, and tests/testthat/netref.rds holds the reference
-//'   values dev/netref.R writes from igraph and sna.
-//' @srrstatsNA {G5.10} There are no extended tests; the whole suite runs in
-//'   seconds.
-//' @srrstatsNA {G5.11} There are no extended tests and no downloads.
-//' @srrstatsNA {G5.11a} There are no extended tests and no downloads.
-//' @srrstatsNA {G5.12} There are no extended tests.
+//'   in the test files, and the files tests/testthat/*.rds hold reference
+//'   values that scripts in dev/ write from other packages (netref.R,
+//'   ref-dml.R, ref-fair.R, ref-learn.R, ref-rf.R).
+//' @srrstatsNA {G5.11} No test needs a large data set or a download: the
+//'   tests of the open tables read a copy of the service that
+//'   helper-od.R makes in a temporary folder.
+//' @srrstatsNA {G5.11a} No test downloads anything (G5.11).
 //' @srrstatsNA {EA2.0} No table filtering or joining.
 //' @srrstatsNA {EA2.1} No index columns, because no joins (EA2.0).
 //' @srrstatsNA {EA2.2} No index columns (EA2.0).

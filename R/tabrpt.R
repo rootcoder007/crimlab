@@ -112,7 +112,8 @@ print.tabrpt <- function(x, ...) {
   invisible(x)
 }
 
-# A column argument: one name (many: one or more) of a column of data.
+#' A column argument: one name (many: one or more) of a column of data.
+#' @noRd
 .tbcol <- function(v, what, data, f, many = FALSE) {
   if (!is.character(v) || anyNA(v) || !length(v) ||
         (!many && length(v) != 1L) || !all(v %in% names(data))) {
@@ -121,8 +122,9 @@ print.tabrpt <- function(x, ...) {
   }
 }
 
-# The trend of each group (all rows without groups g): NULL when it has
-# fewer than three periods or no count.
+#' The trend of each group (all rows without groups g): NULL when it has
+#' fewer than three periods or no count.
+#' @noRd
 .tbtrnd <- function(x, p, g, pv, level) {
   gg <- if (is.null(g)) rep("all", length(x)) else g
   trend <- lapply(unique(gg), function(k) {

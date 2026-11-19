@@ -665,6 +665,9 @@ print.expconcidx <- function(x, ...) {
   invisible(x)
 }
 
+#' The outcome `y` checked against the outcomes available; an unknown one is
+#'   refused with the list.
+#' @noRd
 .crfout <- function(y, avail, fn, tail) {
   if (!is.character(y) || length(y) != 1L || !y %in% avail) {
     .ckstop(
@@ -675,7 +678,8 @@ print.expconcidx <- function(x, ...) {
   }
 }
 
-# The curve at the exposures, its limits through the published interval.
+#' The curve at the exposures, its limits through the published interval.
+#' @noRd
 .crfobj <- function(z, refconc, form, par, ci, pol, cite, extra) {
   r <- .Call(C_clab_r_crf, z, refconc, form, par)
   lo <- up <- rep(NA_real_, length(z))
@@ -701,7 +705,8 @@ print.expconcidx <- function(x, ...) {
   )
 }
 
-# One finite number, optionally non-negative or positive.
+#' One finite number, optionally non-negative or positive.
+#' @noRd
 .polsc <- function(x, what, fn, nonneg = TRUE, positive = FALSE) {
   if (is.logical(x) && !all(is.na(x))) {
     .ckstop(fn, "`%s` must be numeric, not logical", what)
@@ -726,6 +731,9 @@ print.expconcidx <- function(x, ...) {
   v
 }
 
+#' `expo` checked as a numeric exposure (not logical, NULL, a factor or a
+#'   list).
+#' @noRd
 .polexp <- function(expo, fn) {
   if (is.logical(expo)) .ckstop(fn, "`expo` must be numeric, not logical")
   if (is.null(expo)) .ckstop(fn, "`expo` must be numeric, got NULL")
@@ -746,7 +754,8 @@ print.expconcidx <- function(x, ...) {
   z
 }
 
-# A baseline rate per person-year, checked against the band.
+#' A baseline rate per person-year, checked against the band.
+#' @noRd
 .polrate <- function(rate, rare, hirate, fn) {
   for (a in list(list("rare", rare), list("hirate", hirate))) {
     if (!is.logical(a[[2L]]) || length(a[[2L]]) != 1L || is.na(a[[2L]])) {
@@ -768,8 +777,9 @@ print.expconcidx <- function(x, ...) {
   rate
 }
 
-# .polrate(): a rate too small or too large to be a rate per person-year,
-# unless `rare` or `hirate` says it is
+#' .polrate(): a rate too small or too large to be a rate per person-year,
+#' unless `rare` or `hirate` says it is
+#' @noRd
 .polrlo <- function(rate, rare, hirate, fn) {
   if (rate < 1e-11) {
     .ckstop(
@@ -810,6 +820,8 @@ print.expconcidx <- function(x, ...) {
   invisible(rate)
 }
 
+#' The pollutant name `poll` as its standard key, NA when it is not one name.
+#' @noRd
 .polkey <- function(poll) {
   if (!is.character(poll) || length(poll) != 1L || is.na(poll) ||
         !validEnc(poll)) {
@@ -821,6 +833,9 @@ print.expconcidx <- function(x, ...) {
   NA_character_
 }
 
+#' `x` checked as the name of one column of `data` (of one or more with
+#'   `several`).
+#' @noRd
 .colnm <- function(x, what, fn, several = FALSE) {
   ok <- is.character(x) && length(x) >= 1L && !anyNA(x) && all(nzchar(x)) &&
     (several || length(x) == 1L)
@@ -833,7 +848,8 @@ print.expconcidx <- function(x, ...) {
   x
 }
 
-# polbrdarea(): the table has the columns, rows, and numbers it needs
+#' polbrdarea(): the table has the columns, rows, and numbers it needs
+#' @noRd
 .pbachk <- function(areatab, need, f) {
   if (!is.data.frame(areatab)) .ckstop(f, "`areatab` must be a data frame")
   miss <- setdiff(need, names(areatab))
@@ -853,9 +869,10 @@ print.expconcidx <- function(x, ...) {
   }
 }
 
-# polbrdarea(): polbrdn() on area i, its refusal put in the table's
-# words; `cols` are the area, exposure, population and baseline-rate
-# columns
+#' polbrdarea(): polbrdn() on area i, its refusal put in the table's
+#' words; `cols` are the area, exposure, population and baseline-rate
+#' columns
+#' @noRd
 .pbarow <- function(i, areatab, cols, poll, y, rare, hirate, f) {
   expcol <- cols[2L]
   popcol <- cols[3L]
@@ -888,8 +905,9 @@ print.expconcidx <- function(x, ...) {
   invisible(r)
 }
 
-# polbrdarea(): the pollutant and outcome as src/ahl.cpp numbers them;
-# NULL when polbrdn() refuses them or the flags
+#' polbrdarea(): the pollutant and outcome as src/ahl.cpp numbers them;
+#' NULL when polbrdn() refuses them or the flags
+#' @noRd
 .pbakey <- function(poll, y, rare, hirate) {
   pol <- .polkey(poll)
   pm <- identical(pol, "PM2.5")
@@ -903,6 +921,8 @@ print.expconcidx <- function(x, ...) {
   if (ok) c(as.integer(pm), match(y, av) - 1L)
 }
 
+#' The sentence that reads a concentration index `ci` in words.
+#' @noRd
 .concread <- function(ci) {
   if (ci < -0.01) {
     sprintf(
@@ -928,8 +948,9 @@ print.expconcidx <- function(x, ...) {
   }
 }
 
-# What expconcidx() needs of its two columns: exposures that are not
-# negative and not all zero, and an income that varies.
+#' What expconcidx() needs of its two columns: exposures that are not
+#' negative and not all zero, and an income that varies.
+#' @noRd
 .concck <- function(h, inc, expo, income, f) {
   if (any(h < 0)) {
     .ckstop(

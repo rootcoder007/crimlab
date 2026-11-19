@@ -59,6 +59,16 @@
 //'   rules (distance thresholds, search circles); kmpart() is K-means on
 //'   the coordinates alone, where proximity is the only variable, not an
 //'   added weight.
+//' @srrstats {SP3.3} sarml() estimates the spatial autoregressive
+//'   coefficient of the outcome (`rho`) and that of the errors (`lambda`)
+//'   apart from the coefficients of the covariates, and spill() separates
+//'   each covariate's direct effect from its spillover.
+//' @srrstats {SP5.0} The spatial results that are drawn have plot
+//'   methods (help page `plotm`): kernel and prospective surfaces, scan
+//'   clusters, Knox tables, quadrat counts, hot spots over periods, the
+//'   cross K function, buffers, thin-plate surfaces and DBSCAN clusters.
+//' @srrstats {SP5.1} Those plots put the first coordinate on the
+//'   horizontal axis and the second on the vertical one.
 //' @srrstats {SP6.3} test-sp.R checks each way of defining neighbours
 //'   against brute force: radii 0 and positive (fzmode()), fixed and
 //'   random-expectation thresholds (nnhclu()), orders 1 to 3 (nnidx()),
@@ -73,22 +83,27 @@
 //'
 //' Spatial standards that do not apply, with the reason for each.
 //'
-//' @srrstatsNA {SP2.0a} No new class is implemented.
-//' @srrstatsNA {SP2.5} No new class is implemented; sf input brings its
-//'   own CRS, which is read (SP2.4).
-//' @srrstatsNA {SP2.5a} No new class is implemented.
+//' @srrstatsNA {SP2.0a} No new class for spatial data is implemented:
+//'   points come in as vectors, a matrix, a data frame or sf points. The
+//'   classes that results carry are for print() and plot() only.
+//' @srrstatsNA {SP2.5} No new class for spatial data is implemented
+//'   (SP2.0a); sf input brings its own CRS, which is read (SP2.4).
+//' @srrstatsNA {SP2.5a} No new class for spatial data is implemented
+//'   (SP2.0a).
 //' @srrstatsNA {SP3.2} Simulations draw complete spatial randomness, the
 //'   null hypothesis being tested; sampling by local density would change
 //'   the null, not estimate it.
-//' @srrstatsNA {SP3.3} No spatial regression.
-//' @srrstatsNA {SP3.5} No machine learning.
-//' @srrstatsNA {SP3.6} No machine learning.
+//' @srrstatsNA {SP3.5} No spatial machine learning: the learners
+//'   (enpath(), rfor(), dmlx()) take no coordinates.
+//' @srrstatsNA {SP3.6} No spatial machine learning (SP3.5).
 //' @srrstatsNA {SP4.0a} Results are base data frames and vectors whatever
 //'   the input class (SP4.0b).
-//' @srrstatsNA {SP5.0} No class is implemented, so no plot method.
-//' @srrstatsNA {SP5.1} No spatial function draws a plot.
-//' @srrstatsNA {SP5.2} No spatial function draws a plot.
-//' @srrstatsNA {SP5.3} No spatial function draws a plot.
-//' @srrstatsNA {SP6.6} No machine learning.
+//' @srrstatsNA {SP5.2} Planar coordinates come in the caller's unit,
+//'   which no argument states, so the axes of a plot are labelled x and
+//'   y, without a unit.
+//' @srrstatsNA {SP5.3} The plots use base graphics; the results are
+//'   plain tables and matrices, which an interactive library takes as
+//'   they are.
+//' @srrstatsNA {SP6.6} No spatial machine learning (SP3.5).
 //' @noRd
 #endif

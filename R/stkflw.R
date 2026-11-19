@@ -418,7 +418,8 @@ print.trnmat <- function(x, ...) {
   invisible(x)
 }
 
-# Days from `from` to `to`, counting both: one per period.
+#' Days from `from` to `to`, counting both: one per period.
+#' @noRd
 .perdays <- function(from, to) {
   rd <- function(v, nm) {
     if (

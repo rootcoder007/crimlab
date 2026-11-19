@@ -126,6 +126,8 @@ yoypals <- function() names(.YOY_PALETTES)
               las = "0, 1, 2 or 3", bg = "one colour",
               panel = "one colour, or NA")
 
+#' The name of a palette checked.
+#' @noRd
 .palnm <- function(name, fn) {
   if (!is.character(name) || length(name) != 1L ||
         !name %in% names(.pals)) {
@@ -135,9 +137,10 @@ yoypals <- function() names(.YOY_PALETTES)
   name
 }
 
-# one colour: a name, a hex code or a palette index; an index past the
-# range of an integer, or text that is not valid in its encoding, is
-# refused before col2rgb() warns or fails on it
+#' one colour: a name, a hex code or a palette index; an index past the
+#' range of an integer, or text that is not valid in its encoding, is
+#' refused before col2rgb() warns or fails on it
+#' @noRd
 .iscol <- function(v) {
   if (length(v) != 1L || is.na(v) || !(is.numeric(v) || is.character(v))) {
     return(FALSE)
@@ -151,6 +154,8 @@ yoypals <- function() names(.YOY_PALETTES)
   !is.null(tryCatch(grDevices::col2rgb(v), error = function(e) NULL))
 }
 
+#' Whether the value `v` is a valid setting of the plot option `k`.
+#' @noRd
 .pok <- function(k, v) {
   switch(
     k,
@@ -163,13 +168,15 @@ yoypals <- function() names(.YOY_PALETTES)
   )
 }
 
-# one finite number in [lo, hi], a whole number when `int`
+#' one finite number in \[lo, hi\], a whole number when `int`
+#' @noRd
 .pnum1 <- function(v, lo = -Inf, hi = Inf, int = FALSE) {
   is.numeric(v) && length(v) == 1L && is.null(dim(v)) &&
     all(c(is.finite(v), v >= lo, v <= hi, !int | v == round(v)))
 }
 
-# the options in force: the defaults, overridden by usable set values
+#' the options in force: the defaults, overridden by usable set values
+#' @noRd
 .popt <- function() {
   d <- list(palette = "grey", grid = FALSE, cex = 1, las = 1, bg = "white",
             panel = NA)
@@ -182,7 +189,8 @@ yoypals <- function() names(.YOY_PALETTES)
 
 # ---- the drawing kit every plot uses ----------------------------------------
 
-# n colours: `col` as given (recycled) or the palette's
+#' n colours: `col` as given (recycled) or the palette's
+#' @noRd
 .pcols <- function(n, col = NULL, pal = NULL, fn = "plot") {
   if (!is.null(col)) {
     if (!is.atomic(col) || !length(col) || !all(vapply(col, .iscol, NA))) {
@@ -193,6 +201,8 @@ yoypals <- function() names(.YOY_PALETTES)
   blpal(.palnm(if (is.null(pal)) .popt()$palette else pal, fn), n)
 }
 
+#' The title of a plot: `main` when given (one string), else the default.
+#' @noRd
 .pmain <- function(main, def, fn = "plot") {
   if (is.null(main)) {
     return(def)
@@ -203,19 +213,22 @@ yoypals <- function() names(.YOY_PALETTES)
   .cktxt(main, "main", fn)
 }
 
-# sets the session look and the margins; returns the old values to restore
+#' sets the session look and the margins; returns the old values to restore
+#' @noRd
 .ppar <- function(mar = c(4.2, 4.6, 3, 1), ...) {
   o <- .popt()
   graphics::par(bg = o$bg, las = o$las, cex = o$cex, mar = mar,
                 mgp = c(2.6, 0.7, 0), ...)
 }
 
-# the left margin that fits row labels
+#' the left margin that fits row labels
+#' @noRd
 .plmar <- function(lab) {
   max(4.6, min(18, 0.55 * max(nchar(as.character(lab)), 1L) + 1.5))
 }
 
-# an empty frame: panel fill, grid, title and axis titles
+#' an empty frame: panel fill, grid, title and axis titles
+#' @noRd
 .pfrm <- function(xlim, ylim, main, xlab = "", ylab = "", ...) {
   o <- .popt()
   graphics::plot(xlim, ylim, type = "n", main = "", xlab = xlab,
@@ -238,6 +251,9 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(NULL)
 }
 
+#' The range of the finite values given, widened when it is a point, and 0 to
+#'   1 when there is none.
+#' @noRd
 .prange <- function(...) {
   r <- suppressWarnings(range(c(...), finite = TRUE))
   if (!all(is.finite(r))) r <- c(0, 1)
@@ -245,7 +261,8 @@ yoypals <- function() names(.YOY_PALETTES)
   r
 }
 
-# a grid of n panels; returns the old par to restore
+#' a grid of n panels; returns the old par to restore
+#' @noRd
 .ppanels <- function(n) {
   nc <- ceiling(sqrt(n))
   # setting mfrow resets cex: keep the values before it, mfrow first so that
@@ -256,7 +273,8 @@ yoypals <- function() names(.YOY_PALETTES)
   op
 }
 
-# a legend that pairs every colour with a line type or point shape
+#' a legend that pairs every colour with a line type or point shape
+#' @noRd
 .pkey <- function(where, lab, col, lty = NA, pch = NA, ...) {
   a <- list(where, legend = lab, col = col, bty = "n", cex = 0.85, ...)
   if (!all(is.na(lty))) a$lty <- lty
@@ -264,13 +282,15 @@ yoypals <- function() names(.YOY_PALETTES)
   do.call(graphics::legend, a)
 }
 
-# point shapes, one per group, that also tell the groups apart in grey
+#' point shapes, one per group, that also tell the groups apart in grey
+#' @noRd
 .ppch <- function(g) c(19, 17, 15, 1, 2, 0)[(as.integer(g) - 1L) %% 6L + 1L]
 
-# a dot-and-interval (forest) chart, one row per label from the top; `grp`
-# gives each group its colour and shape (several groups may share a row),
-# named in a key unless `key` is FALSE (the row labels then say it);
-# returns the points drawn
+#' a dot-and-interval (forest) chart, one row per label from the top; `grp`
+#' gives each group its colour and shape (several groups may share a row),
+#' named in a key unless `key` is FALSE (the row labels then say it);
+#' returns the points drawn
+#' @noRd
 .pdots <- function(lab, est, lo, hi, main, xlab, col = NULL, pal = NULL,
                    ref = NULL, grp = NULL, log = "", key = TRUE, ...) {
   lab <- as.character(lab)
@@ -317,7 +337,8 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(d)
 }
 
-# one of the values a plot option takes
+#' one of the values a plot option takes
+#' @noRd
 .pany <- function(v, ok, nm) {
   if (!is.character(v) || length(v) != 1L || is.na(v) || !v %in% ok) {
     stop("plot: `", nm, "` must be one of ", toString(dQuote(ok, FALSE)),
@@ -326,8 +347,9 @@ yoypals <- function() names(.YOY_PALETTES)
   v
 }
 
-# a histogram (or a density with its 5th and 95th percentiles dashed) of
-# `z` with a red line at `obs`, and lines of text above the bars
+#' a histogram (or a density with its 5th and 95th percentiles dashed) of
+#' `z` with a red line at `obs`, and lines of text above the bars
+#' @noRd
 .phist <- function(z, obs, main, xlab, type, fill, note = NULL, ...) {
   op <- .ppar()
   on.exit(graphics::par(op), add = TRUE)
@@ -355,12 +377,14 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(NULL)
 }
 
-# the fill of histogram bars: grey, or the colour the caller asked for
+#' the fill of histogram bars: grey, or the colour the caller asked for
+#' @noRd
 .pfill <- function(col, pal) {
   if (is.null(col) && is.null(pal)) "#D5D5D5" else .pcols(1L, col, pal)
 }
 
-# intervals as bars with a cap at each end; one of no length gets no cap
+#' intervals as bars with a cap at each end; one of no length gets no cap
+#' @noRd
 .pint <- function(x0, y0, x1, y1, col, lwd) {
   col <- rep_len(col, length(x0))
   z <- x0 == x1 & y0 == y1
@@ -371,8 +395,9 @@ yoypals <- function() names(.YOY_PALETTES)
   }
 }
 
-# estimates over time with intervals: before the reference in one colour and
-# open circles, after in another and filled; returns the rows drawn
+#' estimates over time with intervals: before the reference in one colour and
+#' open circles, after in another and filled; returns the rows drawn
+#' @noRd
 .ppath <- function(t, est, lo, hi, main, xlab, ylab, col = NULL, pal = NULL,
                    ref = 0, at = -0.5, ..., style = "bars") {
   .pany(style, c("bars", "stata"), "style")
@@ -402,9 +427,10 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(data.frame(t = t, est = est, lo = lo, hi = hi))
 }
 
-# the frame of a plot over `x`, and `x` as numbers. Periods written as text
-# are the numbers they spell ("2021") or else their order ("2020/21"), and
-# the axis shows them as they were written, each at its place
+#' the frame of a plot over `x`, and `x` as numbers. Periods written as text
+#' are the numbers they spell ("2021") or else their order ("2020/21"), and
+#' the axis shows them as they were written, each at its place
+#' @noRd
 .pxfrm <- function(x, ylim, main, xlab, ylab, ...) {
   if (is.numeric(x)) {
     .pfrm(.prange(x), ylim, main, xlab, ylab, ...)
@@ -419,9 +445,10 @@ yoypals <- function() names(.YOY_PALETTES)
   x
 }
 
-# one line per group, each with its own colour, line type and point shape,
-# and a band (a step band for steps) when `lo` and `hi` are given; returns
-# the points drawn
+#' one line per group, each with its own colour, line type and point shape,
+#' and a band (a step band for steps) when `lo` and `hi` are given; returns
+#' the points drawn
+#' @noRd
 .pgrp <- function(x, y, g, main, xlab, ylab, col = NULL, pal = NULL,
                   lo = NULL, hi = NULL, type = "o", ref = NULL,
                   where = "topright", vref = NULL, ...) {
@@ -463,7 +490,8 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(d)
 }
 
-# named series on a shared x
+#' named series on a shared x
+#' @noRd
 .plines <- function(x, ys, main, xlab, ylab, col = NULL, pal = NULL,
                     lo = NULL, hi = NULL, ...) {
   ys <- as.list(ys)
@@ -474,7 +502,8 @@ yoypals <- function() names(.YOY_PALETTES)
         hi = if (!is.null(hi)) unlist(hi, use.names = FALSE), ...)
 }
 
-# horizontal bars, first row at the top; returns the rows drawn
+#' horizontal bars, first row at the top; returns the rows drawn
+#' @noRd
 .pbars <- function(v, lab, main, xlab, col = NULL, pal = NULL, ref = NULL,
                    ...) {
   cl <- .pcols(1L, col, pal)
@@ -491,8 +520,9 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(data.frame(label = lab, value = v, stringsAsFactors = FALSE))
 }
 
-# a matrix as coloured cells with its numbers printed in them, so the
-# shading is never the only reading; returns the long data
+#' a matrix as coloured cells with its numbers printed in them, so the
+#' shading is never the only reading; returns the long data
+#' @noRd
 .pmat <- function(m, main, xlab = "", ylab = "", div = FALSE, mid = 0,
                   lab = m, pal = NULL, ...) {
   m <- as.matrix(m)
@@ -523,7 +553,8 @@ yoypals <- function() names(.YOY_PALETTES)
                        value = as.vector(m), stringsAsFactors = FALSE))
 }
 
-# a surface on a grid, shaded and with contour lines
+#' a surface on a grid, shaded and with contour lines
+#' @noRd
 .psurf <- function(x, y, z, main, xlab = "x", ylab = "y", pal = NULL, ...) {
   op <- .ppar()
   on.exit(graphics::par(op), add = TRUE)
@@ -536,7 +567,8 @@ yoypals <- function() names(.YOY_PALETTES)
   invisible(list(x = x, y = y, z = z))
 }
 
-# the result object holds the parts a plot needs, or the plot refuses it
+#' the result object holds the parts a plot needs, or the plot refuses it
+#' @noRd
 .pck <- function(x, cls, need) {
   ok <- is.list(x) && all(need %in% names(x)) &&
     all(vapply(need, function(k) !is.null(x[[k]]), NA))

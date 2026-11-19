@@ -54,7 +54,8 @@ pscred <- function(days, ratio = 1.5, sentence = NULL) {
   out
 }
 
-# One value, or one per value of `days`.
+#' One value, or one per value of `days`.
+#' @noRd
 .pscone <- function(x, n, what, f) {
   if (length(x) != 1L && length(x) != n) {
     .ckstop(f, "`%s` must have one value or one per value of `days`", what)

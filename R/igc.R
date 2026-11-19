@@ -678,8 +678,9 @@ format.trchlthgap <- function(x, ...) {
 #' @export
 polex <- function(seed = 20240101) .igc("polex", seed = seed)
 
-# format.cnsprof(): the distinct values of a column, or their count and
-# range when there are more than four
+#' format.cnsprof(): the distinct values of a column, or their count and
+#' range when there are more than four
+#' @noRd
 .igvals <- function(v) {
   u <- unique(as.character(v[!is.na(v)]))
   if (length(u) <= 4L) {
@@ -689,7 +690,8 @@ polex <- function(seed = 20240101) .igc("polex", seed = seed)
   }
 }
 
-# format.cnsprof(): what the profile holds and how much of it is flagged
+#' format.cnsprof(): what the profile holds and how much of it is flagged
+#' @noRd
 .cpread <- function(x) {
   q <- as.character(x$quality)
   bad <- !is.na(q) & q != "ok"
@@ -714,7 +716,8 @@ polex <- function(seed = 20240101) .igc("polex", seed = seed)
   )
 }
 
-# a row's label: its place, residence, age and group, totals left out
+#' a row's label: its place, residence, age and group, totals left out
+#' @noRd
 .iglab <- function(x) {
   parts <- lapply(c("geo", "residence", "age", "gender", "group"), function(k) {
     v <- as.character(x[[k]])
@@ -725,7 +728,8 @@ polex <- function(seed = 20240101) .igc("polex", seed = seed)
   })
 }
 
-# format.trchlthgap(): one table per indicator, measure and period
+#' format.trchlthgap(): one table per indicator, measure and period
+#' @noRd
 .thtabs <- function(x) {
   key <- sprintf("%s: %s (%s)", x$indicator, x$measure, x$period)
   tabs <- lapply(unique(key), function(k) {

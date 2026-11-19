@@ -148,8 +148,9 @@ print.ifesc <- function(x, ...) {
 #' @export
 summary.ifesc <- function(object, ...) object[["eff"]]
 
-# The balanced panel: y (T x N), x (T x N x p), each unit's adoption
-# period a (0-based; T for never treated), the units and the times.
+#' The balanced panel: y (T x N), x (T x N x p), each unit's adoption
+#' period a (0-based; T for never treated), the units and the times.
+#' @noRd
 .ifpan <- function(d, y, tr, unit, time, x, f) {
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, tr, "d", f, n = 1L)
@@ -187,6 +188,9 @@ summary.ifesc <- function(object, ...) object[["eff"]]
        a = as.integer(a), units = uu, times = tt)
 }
 
+#' Refuses a panel with no treated unit or with fewer than two never-treated
+#'   units.
+#' @noRd
 .ifck <- function(a, nt, f) {
   if (all(a == nt)) .ckstop(f, "no unit is treated")
   if (sum(a == nt) < 2L) {
@@ -194,7 +198,8 @@ summary.ifesc <- function(object, ...) object[["eff"]]
   }
 }
 
-# The bootstrap counts of the units, N x nboot.
+#' The bootstrap counts of the units, N x nboot.
+#' @noRd
 .ifdraws <- function(n, nboot, seed) {
   acc <- new.env(parent = emptyenv())
   acc$bm <- matrix(0L, n, nboot)
@@ -205,7 +210,8 @@ summary.ifesc <- function(object, ...) object[["eff"]]
   acc$bm
 }
 
-# The result of ifesc() from the kernel's list k.
+#' The result of ifesc() from the kernel's list k.
+#' @noRd
 .ifout <- function(k, pn, x, r, se, nboot, level, f) {
   st <- k$st
   ne <- st[8L]
@@ -251,6 +257,9 @@ summary.ifesc <- function(object, ...) object[["eff"]]
   )
 }
 
+#' The cross-validation errors `cv` as a table of ranks and mean squared
+#'   prediction errors.
+#' @noRd
 .ifcv <- function(cv) {
   k <- !is.na(cv)
   data.frame(r = which(k) - 1L, mspe = cv[k])

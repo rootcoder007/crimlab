@@ -393,9 +393,10 @@ print.xpshap <- function(x, ...) {
 .xpset <- c("fam", "nfold", "fold", "disc", "alpha", "nlam", "nfin", "ntree",
             "mtry", "seed")
 
-# The checks the explanation functions share: x a numeric matrix, finite,
-# its column names (x1, x2, ... where it has none); f a function or the
-# names of learners; lctl their settings; y given for learners.
+#' The checks the explanation functions share: x a numeric matrix, finite,
+#' its column names (x1, x2, ... where it has none); f a function or the
+#' names of learners; lctl their settings; y given for learners.
+#' @noRd
 .xpck <- function(x, f, y, lctl, fn) {
   if (!is.matrix(x) || !is.numeric(x) || !nrow(x) || !ncol(x)) {
     .ckstop(fn, paste("`x` must be a numeric matrix with at least one row",
@@ -429,7 +430,8 @@ print.xpshap <- function(x, ...) {
   list(x = x, nm = nm)
 }
 
-# The outcome: one finite number per row of x.
+#' The outcome: one finite number per row of x.
+#' @noRd
 .xpy <- function(y, n, fn) {
   y <- as.numeric(.cknum(y, "y", fn, scalar = FALSE))
   if (length(y) != n) {
@@ -438,7 +440,8 @@ print.xpshap <- function(x, ...) {
   y
 }
 
-# A design of rows times p values within 2^26.
+#' A design of rows times p values within 2^26.
+#' @noRd
 .xpbig <- function(rows, p, what, fn) {
   if (rows * p > 67108864) {
     .ckstop(fn, paste("`%s` asks for %.0f rows of %d columns to predict,",
@@ -446,8 +449,9 @@ print.xpshap <- function(x, ...) {
   }
 }
 
-# The predictions of f at the rows of m: f(m) for a function, else the
-# learners named by f fitted to x and y by suplrn() with the settings lctl.
+#' The predictions of f at the rows of m: f(m) for a function, else the
+#' learners named by f fitted to x and y by suplrn() with the settings lctl.
+#' @noRd
 .xpf <- function(f, x, y, lctl, m, fn) {
   if (is.function(f)) {
     v <- f(m)
@@ -461,7 +465,8 @@ print.xpshap <- function(x, ...) {
   .clas(fn, do.call(suplrn, a))$pred
 }
 
-# The column v of x, by name or number: its number.
+#' The column v of x, by name or number: its number.
+#' @noRd
 .xpv <- function(v, nm, fn) {
   j <- if (is.character(v) && length(v) == 1L && !is.na(v)) {
     match(v, nm)
@@ -475,8 +480,9 @@ print.xpshap <- function(x, ...) {
   j
 }
 
-# The grid of column j of x: grid points spaced by gtype, or the values
-# given.
+#' The grid of column j of x: grid points spaced by gtype, or the values
+#' given.
+#' @noRd
 .xpg <- function(x, j, grid, gtype, fn) {
   gtype <- .ckarg(gtype, c("even", "quant"), "gtype", fn)
   ok <- is.numeric(grid) && length(grid) && all(is.finite(grid))
@@ -491,7 +497,8 @@ print.xpshap <- function(x, ...) {
   .Call(C_clab_r_xpgrid, x[, j], grid, match(gtype, c("even", "quant")) - 1L)
 }
 
-# The instances: a numeric matrix with the columns of x, finite.
+#' The instances: a numeric matrix with the columns of x, finite.
+#' @noRd
 .xpnew <- function(newx, x, fn) {
   if (!is.matrix(newx) || !is.numeric(newx) || !nrow(newx) ||
         ncol(newx) != ncol(x) || !all(is.finite(newx))) {

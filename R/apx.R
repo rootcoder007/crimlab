@@ -1854,7 +1854,8 @@ summary.expjn <- function(object, ...) {
              nexp = object[["nexp"]])
 }
 
-# A data frame argument.
+#' A data frame argument.
+#' @noRd
 .axdat <- function(data, fn, what = "data") {
   if (!is.data.frame(data)) {
     .ckstop(fn, "`%s` must be a data frame, got %s", what, class(data)[1L])
@@ -1863,7 +1864,8 @@ summary.expjn <- function(object, ...) {
   .cktxtdf(data, what, fn)
 }
 
-# Column names: character, present in d, no missing values in them.
+#' Column names: character, present in d, no missing values in them.
+#' @noRd
 .axcols <- function(d, cols, what, fn, n = NULL, null = FALSE) {
   if (is.null(cols)) {
     if (null) return(NULL)
@@ -1899,9 +1901,10 @@ summary.expjn <- function(object, ...) {
   cols
 }
 
-# The column names of several arguments (a list), each checked to be text
-# before they are joined (c() of a date and a name would read the name as
-# a date), then as .axcols() checks them.
+#' The column names of several arguments (a list), each checked to be text
+#' before they are joined (c() of a date and a name would read the name as
+#' a date), then as .axcols() checks them.
+#' @noRd
 .axcolsj <- function(d, cols, what, fn, n) {
   if (!all(vapply(cols, function(v) is.character(v) && !is.object(v), NA))) {
     .ckstop(fn, "`%s` must name columns of `data`", what)
@@ -1909,7 +1912,8 @@ summary.expjn <- function(object, ...) {
   .axcols(d, unlist(cols), what, fn, n = n)
 }
 
-# Numeric columns as a matrix (n x 0 for none), finite.
+#' Numeric columns as a matrix (n x 0 for none), finite.
+#' @noRd
 .axmat <- function(d, cols, fn) {
   if (!length(cols)) return(matrix(numeric(0), nrow(d), 0L))
   for (k in cols) {
@@ -1924,15 +1928,17 @@ summary.expjn <- function(object, ...) {
   m
 }
 
-# Codes from 0 of a label column, in order of first appearance.
+#' Codes from 0 of a label column, in order of first appearance.
+#' @noRd
 .axcode <- function(v) {
   if (is.factor(v)) v <- as.character(v)
   u <- unique(v)
   list(c = match(v, u) - 1L, n = length(u))
 }
 
-# The effects as codes: the first two columns, and any more as an n x m
-# integer matrix cx with their counts nx (NULL for none).
+#' The effects as codes: the first two columns, and any more as an n x m
+#' integer matrix cx with their counts nx (NULL for none).
+#' @noRd
 .axfe <- function(d, fe) {
   a <- .axcode(d[[fe[1L]]])
   b <- if (length(fe) >= 2L) .axcode(d[[fe[2L]]]) else list(c = NULL, n = 0L)
@@ -1945,9 +1951,10 @@ summary.expjn <- function(object, ...) {
   list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, cx = cx, nx = nx)
 }
 
-# The rows kept by the separation of the effects: a group of any set
-# without counts goes (clab_fesep on the first two sets, then on each
-# further set alone; dropping zeros changes no other group's total).
+#' The rows kept by the separation of the effects: a group of any set
+#' without counts goes (clab_fesep on the first two sets, then on each
+#' further set alone; dropping zeros changes no other group's total).
+#' @noRd
 .axfesep <- function(y, f) {
   k <- .Call(C_clab_r_fesep, y, f$c1, f$n1, f$c2, f$n2)
   for (j in seq_along(f$nx)) {
@@ -1956,8 +1963,9 @@ summary.expjn <- function(object, ...) {
   k
 }
 
-# The clusters (one or two columns) as codes; refuses one cluster, warns
-# under ten, as didfe() does.
+#' The clusters (one or two columns) as codes; refuses one cluster, warns
+#' under ten, as didfe() does.
+#' @noRd
 .axcl <- function(d, clus, fn) {
   a <- .axcode(d[[clus[1L]]])
   b <- if (length(clus) == 2L) {
@@ -1978,6 +1986,9 @@ summary.expjn <- function(object, ...) {
   list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n, g = g)
 }
 
+#' `level` checked as one number strictly between 0 and 1, returned as a plain
+#'   number.
+#' @noRd
 .axlevel <- function(level, fn) {
   if (!is.numeric(level) || length(level) != 1L || !is.finite(level) ||
         level <= 0 || level >= 1) {
@@ -1987,8 +1998,9 @@ summary.expjn <- function(object, ...) {
   as.vector(level)
 }
 
-# The coefficient table: est, se, stat, p and the interval; t on df
-# degrees of freedom, or the normal when df is NULL.
+#' The coefficient table: est, se, stat, p and the interval; t on df
+#' degrees of freedom, or the normal when df is NULL.
+#' @noRd
 .axtab <- function(term, est, se, level, df = NULL) {
   st <- est / se
   if (is.null(df)) {
@@ -2002,8 +2014,9 @@ summary.expjn <- function(object, ...) {
              lo = est - q * se, hi = est + q * se, row.names = NULL)
 }
 
-# The rows kept after separation by the effects, with a warning naming
-# how many rows and groups went.
+#' The rows kept after separation by the effects, with a warning naming
+#' how many rows and groups went.
+#' @noRd
 .axsep <- function(y, d, fe, fn) {
   k <- .axfesep(y, .axfe(d, fe))
   if (!any(k)) .ckstop(fn, "every group of the fixed effects has no counts")
@@ -2016,18 +2029,19 @@ summary.expjn <- function(object, ...) {
   k
 }
 
-# The regressors to drop by the check of Santos Silva and Tenreyro (2010,
-# p. 311, steps 1 and 2): those that are linear combinations of the
-# others (after the effects) on the rows with positive counts, found as
-# least squares finds them, in order (qr() with its default tolerance on
-# the regressors demeaned by the effects on those rows).
-#
-# The effects are regressors too. One they absorb on those rows (it is
-# the same within each place there, or a place part plus a day part) is
-# left by the demeaning as rounding noise, and qr() judges a column
-# against its own size, so it would keep the noise as a column of full
-# rank. Such a column is set to zero first: what is left of it is below
-# qr()'s own tolerance, 1e-7, of its spread before the demeaning.
+#' The regressors to drop by the check of Santos Silva and Tenreyro (2010,
+#' p. 311, steps 1 and 2): those that are linear combinations of the
+#' others (after the effects) on the rows with positive counts, found as
+#' least squares finds them, in order (qr() with its default tolerance on
+#' the regressors demeaned by the effects on those rows).
+#'
+#' The effects are regressors too. One they absorb on those rows (it is
+#' the same within each place there, or a place part plus a day part) is
+#' left by the demeaning as rounding noise, and qr() judges a column
+#' against its own size, so it would keep the noise as a column of full
+#' rank. Such a column is set to zero first: what is left of it is below
+#' qr()'s own tolerance, 1e-7, of its spread before the demeaning.
+#' @noRd
 .axsst <- function(d, yv, x, fe, tol, fn) {
   pos <- yv > 0
   dp <- d[pos, , drop = FALSE]
@@ -2045,15 +2059,17 @@ summary.expjn <- function(object, ...) {
   x[sort(q$pivot[-seq_len(q$rank)])]
 }
 
-# Whether each level of f falls in one level of c (the effect is nested
-# in the clusters).
+#' Whether each level of f falls in one level of c (the effect is nested
+#' in the clusters).
+#' @noRd
 .axnest <- function(f, c) {
   u <- unique(data.frame(a = as.character(f), b = as.character(c),
                          stringsAsFactors = FALSE))
   !anyDuplicated(u$a)
 }
 
-# A time column as numbers (numbers or dates).
+#' A time column as numbers (numbers or dates).
+#' @noRd
 .axtime <- function(d, time, fn, se = "nw") {
   if (is.null(time)) {
     .ckstop(fn, "`se = \"%s\"` needs `time`, the name of the day column", se)
@@ -2066,9 +2082,10 @@ summary.expjn <- function(object, ...) {
   as.numeric(tv)
 }
 
-# The variance of a fit from its rows' scores (r$sco, r$brd), as `se`
-# asks: cluster (kind 0), twoway (1), hc1 (2), nw (3); the small-sample
-# factor by `ssc`. Returns the matrix, the cluster counts and the lag.
+#' The variance of a fit from its rows' scores (r$sco, r$brd), as `se`
+#' asks: cluster (kind 0), twoway (1), hc1 (2), nw (3); the small-sample
+#' factor by `ssc`. Returns the matrix, the cluster counts and the lag.
+#' @noRd
 .axvar <- function(r, d, se, clus, time, lag, ssc, fe, fn, twc = "min",
                    psd = "none") {
   n <- nrow(r$sco)
@@ -2101,15 +2118,16 @@ summary.expjn <- function(object, ...) {
        k = k)
 }
 
-# The Newey-West (1994) bandwidth for the Bartlett kernel, without
-# prewhitening: with h the row scores summed over the coefficients (the
-# weight vector w of ones; their w = (0, 1, ..., 1)' drops a constant's
-# entry, and the absorbed effects leave none), sigma_j the sum of h_i h_i'
-# over the pairs of rows of one unit j days apart, n = [4 (T / 100)^(2/9)]
-# (T the most days of a unit), s1 = 2 sum_j j sigma_j, s0 = sigma_0 + 2
-# sum_j sigma_j (j = 1..n), gamma = 1.1447 ((s1 / s0)^2)^(1/3), the lag is
-# [gamma T^(1/3)] (their equation 2.2, p. 634, and m = [gamma T^(1/3)],
-# p. 635).
+#' The Newey-West (1994) bandwidth for the Bartlett kernel, without
+#' prewhitening: with h the row scores summed over the coefficients (the
+#' weight vector w of ones; their w = (0, 1, ..., 1)' drops a constant's
+#' entry, and the absorbed effects leave none), sigma_j the sum of h_i h_i'
+#' over the pairs of rows of one unit j days apart, n = \[4 (T / 100)^(2/9)\]
+#' (T the most days of a unit), s1 = 2 sum_j j sigma_j, s0 = sigma_0 + 2
+#' sum_j sigma_j (j = 1..n), gamma = 1.1447 ((s1 / s0)^2)^(1/3), the lag is
+#' \[gamma T^(1/3)\] (their equation 2.2, p. 634, and m = \[gamma T^(1/3)\],
+#' p. 635).
+#' @noRd
 .axnwlag <- function(sco, u, tv) {
   h <- rowSums(sco)
   tt <- max(tabulate(u + 1L))
@@ -2126,24 +2144,29 @@ summary.expjn <- function(object, ...) {
   floor(1.1447 * ((s1 / s0)^2)^(1 / 3) * tt^(1 / 3))
 }
 
-# The default lag of Driscoll and Kraay's variance: the bandwidth of
-# .axnwlag() for the one series of the scores summed over the rows of
-# each time.
+#' The default lag of Driscoll and Kraay's variance: the bandwidth of
+#' .axnwlag() for the one series of the scores summed over the rows of
+#' each time.
+#' @noRd
 .axdklag <- function(sco, tv) {
   ut <- sort(unique(tv))
   h <- rowsum(sco, match(tv, ut), reorder = TRUE)
   .axnwlag(h, integer(length(ut)), ut)
 }
 
-# The cluster bootstrap: nboot draws of the clusters of column cl from R's
-# generator; fit(rows, w) returns the coefficients of the rows drawn with
-# their weights, or an error for a draw that cannot be fitted (left out).
-# A bootstrap seed for set.seed(): a whole number from 0 that an integer
-# holds (set.seed() refuses more, in its own words).
+#' The cluster bootstrap: nboot draws of the clusters of column cl from R's
+#' generator; fit(rows, w) returns the coefficients of the rows drawn with
+#' their weights, or an error for a draw that cannot be fitted (left out).
+#' A bootstrap seed for set.seed(): a whole number from 0 that an integer
+#' holds (set.seed() refuses more, in its own words).
+#' @noRd
 .axseed <- function(seed, f) {
   .cknum(seed, "seed", f, min = 0, max = .Machine$integer.max, whole = TRUE)
 }
 
+#' The cluster bootstrap of a fit: `nboot` draws of the clusters of column
+#'   `cl`.
+#' @noRd
 .axboot <- function(d, cl, nboot, seed, p, fit, fn) {
   cc <- .axcode(d[[cl]])
   if (cc$n < 2L) {
@@ -2185,7 +2208,8 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The Poisson fit on the rows of d (codes made here), with weights w.
+#' The Poisson fit on the rows of d (codes made here), with weights w.
+#' @noRd
 .axppfit <- function(d, y, x, fe, expo, w, tol, maxit, fn) {
   fx <- .axfe(d, fe)
   off <- if (!is.null(expo)) log(d[[expo]])
@@ -2210,6 +2234,8 @@ summary.expjn <- function(object, ...) {
   )
 }
 
+#' The name in words of each kind of standard error.
+#' @noRd
 .axsen <- function(se) {
   c(
     cluster = "clustered",
@@ -2222,8 +2248,9 @@ summary.expjn <- function(object, ...) {
   )[[se]]
 }
 
-# The ivfe kernel on the rows of d with weights w; first-stage clusters
-# fc (codes) as the variance kind asks.
+#' The ivfe kernel on the rows of d with weights w; first-stage clusters
+#' fc (codes) as the variance kind asks.
+#' @noRd
 .axivfit <- function(d, y, endo, inst, x, fe, w, fc, tol, fn) {
   fx <- .axfe(d, fe)
   .Call(
@@ -2247,9 +2274,10 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The clusters of the first-stage statistics: those of the variance for
-# "cluster" and "twoway", each row for "hc1", the first clus column for
-# "nw" and "boot".
+#' The clusters of the first-stage statistics: those of the variance for
+#' "cluster" and "twoway", each row for "hc1", the first clus column for
+#' "nw" and "boot".
+#' @noRd
 .axfc <- function(d, se, clus, fn) {
   if (se == "hc1") {
     return(list(c1 = seq_len(nrow(d)) - 1L, n1 = nrow(d), c2 = NULL, n2 = 0L))
@@ -2263,6 +2291,9 @@ summary.expjn <- function(object, ...) {
   list(c1 = a$c, n1 = a$n, c2 = b$c, n2 = b$n)
 }
 
+#' The table of first-stage statistics of the endogenous columns, with the
+#'   critical value of the effective F of Montiel Olea and Pflueger.
+#' @noRd
 .axfirst <- function(endo, fst, q) {
   m <- matrix(fst, ncol = 4L)
   # the simplified test of Montiel Olea and Pflueger (2013, section
@@ -2285,20 +2316,22 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# b draws of the clusters from R's generator as it stands: g x b counts.
+#' b draws of the clusters from R's generator as it stands: g x b counts.
+#' @noRd
 .axdraw1 <- function(g, b) {
   vapply(seq_len(b), function(i) {
     tabulate(sample.int(g, g, replace = TRUE), g)
   }, integer(g))
 }
 
-# The bootstrap draws, how often each of g clusters is drawn in each of b
-# draws from R's generator (seed, when given, is used and the generator's
-# state put back), made a block at a time instead of all at once:
-# each(bm, i) is called with the g x k counts of draws i + 1 to i + k, in
-# order, so the draws are those of one g x b draw without a g x b
-# matrix being held. The blocks are of about 2^22 counts (the option
-# crimlab.drawblock, a number of draws, sets them for the tests).
+#' The bootstrap draws, how often each of g clusters is drawn in each of b
+#' draws from R's generator (seed, when given, is used and the generator's
+#' state put back), made a block at a time instead of all at once:
+#' each(bm, i) is called with the g x k counts of draws i + 1 to i + k, in
+#' order, so the draws are those of one g x b draw without a g x b
+#' matrix being held. The blocks are of about 2^22 counts (the option
+#' crimlab.drawblock, a number of draws, sets them for the tests).
+#' @noRd
 .axdraws <- function(g, b, seed, each) {
   if (!is.null(seed)) {
     env <- globalenv()
@@ -2321,7 +2354,8 @@ summary.expjn <- function(object, ...) {
   invisible(NULL)
 }
 
-# The sector (1..nb) of each direction, by the kernel's edges.
+#' The sector (1..nb) of each direction, by the kernel's edges.
+#' @noRd
 .axsec <- function(dir, width, start, edges) {
   a <- (dir - start) %% 360
   b <- if (edges == "paper") {
@@ -2332,9 +2366,10 @@ summary.expjn <- function(object, ...) {
   pmin(b, round(360 / width) - 1) + 1
 }
 
-# The checks of ppmlfe()'s columns and numbers, in their order: the
-# cluster columns (the first fixed effect, or both for two-way, by
-# default; two columns make the errors two-way), the level, tol and maxit.
+#' The checks of ppmlfe()'s columns and numbers, in their order: the
+#' cluster columns (the first fixed effect, or both for two-way, by
+#' default; two columns make the errors two-way), the level, tol and maxit.
+#' @noRd
 .axppck <- function(d, y, x, fe, expo, clus, se, level, tol, maxit, f) {
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, x, "x", f)
@@ -2354,8 +2389,9 @@ summary.expjn <- function(object, ...) {
   list(clus = clus, se = se, level = level, tol = tol, maxit = maxit)
 }
 
-# Two-way errors without clus cluster by the two fixed effects: refused,
-# naming fe, when there are not two.
+#' Two-way errors without clus cluster by the two fixed effects: refused,
+#' naming fe, when there are not two.
+#' @noRd
 .axtwfe <- function(clus, se, fe, f) {
   if (is.null(clus) && se == "twoway" && length(fe) != 2L) {
     .ckstop(f, paste0("`se = \"twoway\"` without `clus` clusters by the two ",
@@ -2364,18 +2400,20 @@ summary.expjn <- function(object, ...) {
   }
 }
 
-# cut() with the labels the command line writes: formatC() pads Inf to
-# " Inf", which put a space in one label only ("(0, Inf]").
+#' cut() with the labels the command line writes: formatC() pads Inf to
+#' " Inf", which put a space in one label only ("(0, Inf]").
+#' @noRd
 .axcut <- function(x, brk, low = FALSE) {
   b <- cut(x, brk, include.lowest = low)
   levels(b) <- sub(" Inf", "Inf", levels(b), fixed = TRUE)
   b
 }
 
-# The rows and regressors ppmlfe() fits: the counts checked, the rows
-# separated by the effects (sep) left out, the regressors collinear on the
-# rows with counts dropped with a warning (sep = "sst"), the exposure
-# checked: list(d, k the rows kept, x, xdrop).
+#' The rows and regressors ppmlfe() fits: the counts checked, the rows
+#' separated by the effects (sep) left out, the regressors collinear on the
+#' rows with counts dropped with a warning (sep = "sst"), the exposure
+#' checked: list(d, k the rows kept, x, xdrop).
+#' @noRd
 .axpprows <- function(d, y, x, fe, expo, sep, tol, f) {
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
@@ -2402,9 +2440,10 @@ summary.expjn <- function(object, ...) {
   list(d = d, k = k, x = x, xdrop = xdrop)
 }
 
-# The covariance of a ppmlfe() fit r: by the cluster bootstrap (each draw
-# refitted, its separated rows left out as in the fit) or by .axvar():
-# list(v named by x, sev, g, lg, psi, dr the draws or NULL).
+#' The covariance of a ppmlfe() fit r: by the cluster bootstrap (each draw
+#' refitted, its separated rows left out as in the fit) or by .axvar():
+#' list(v named by x, sev, g, lg, psi, dr the draws or NULL).
+#' @noRd
 .axppv <- function(r, d, y, x, fe, expo, clus, se, ssc, time, lag, nboot,
                    seed, sep, tol, maxit, twc, psd, f) {
   dr <- NULL
@@ -2449,9 +2488,10 @@ summary.expjn <- function(object, ...) {
   list(v = v, sev = sev, g = g, lg = lg, psi = psi, dr = dr)
 }
 
-# The checks of ivfe()'s columns and numbers, in their order: the cluster
-# columns as in .axppck(), the level and tol, then that the instruments,
-# the endogenous columns and the controls make a model.
+#' The checks of ivfe()'s columns and numbers, in their order: the cluster
+#' columns as in .axppck(), the level and tol, then that the instruments,
+#' the endogenous columns and the controls make a model.
+#' @noRd
 .axivck <- function(d, y, endo, inst, x, fe, clus, se, level, tol, f) {
   .axcols(d, y, "y", f, n = 1L)
   .axcols(d, endo, "endo", f, null = TRUE)
@@ -2486,10 +2526,11 @@ summary.expjn <- function(object, ...) {
   list(clus = clus, se = se, level = level, tol = tol)
 }
 
-# The covariance of an ivfe() fit r over the terms tm: by the cluster
-# bootstrap or by .axvar(); df, the degrees of freedom of the t
-# intervals, is that of the clusters for clustered errors:
-# list(v named by tm, sev, g, lg, dr the draws or NULL, df).
+#' The covariance of an ivfe() fit r over the terms tm: by the cluster
+#' bootstrap or by .axvar(); df, the degrees of freedom of the t
+#' intervals, is that of the clusters for clustered errors:
+#' list(v named by tm, sev, g, lg, dr the draws or NULL, df).
+#' @noRd
 .axivv <- function(r, d, y, endo, inst, x, fe, clus, se, ssc, time, lag,
                    nboot, seed, tol, twc, psd, tm, f) {
   dr <- NULL
@@ -2519,10 +2560,11 @@ summary.expjn <- function(object, ...) {
   list(v = v, sev = sev, g = g, lg = lg, dr = dr, df = df)
 }
 
-# The over-identification tests of ivfe() (Yamada 2026, section 7 and
-# table 8, item 6): Sargan and the cluster-robust Hansen J of the two-step
-# estimate: list(overid, gmm), both NULL when exactly identified or
-# without endogenous columns.
+#' The over-identification tests of ivfe() (Yamada 2026, section 7 and
+#' table 8, item 6): Sargan and the cluster-robust Hansen J of the two-step
+#' estimate: list(overid, gmm), both NULL when exactly identified or
+#' without endogenous columns.
+#' @noRd
 .axivoid <- function(d, y, endo, inst, x, fe, fc, tol, tm, f) {
   overid <- NULL
   gmm <- NULL
@@ -2544,10 +2586,11 @@ summary.expjn <- function(object, ...) {
   list(overid = overid, gmm = gmm)
 }
 
-# The first stages of ivfe() in the exposure's units, per unit of each
-# instrument and over the exposure's mean (Yamada 2026, table 8, item 5):
-# one row per endogenous column and instrument, NULL without endogenous
-# columns.
+#' The first stages of ivfe() in the exposure's units, per unit of each
+#' instrument and over the exposure's mean (Yamada 2026, table 8, item 5):
+#' one row per endogenous column and instrument, NULL without endogenous
+#' columns.
+#' @noRd
 .axivfst <- function(d, endo, inst, x, fe, clus, se, ssc, time, lag, level,
                      tol, twc, psd) {
   fstab <- NULL
@@ -2565,10 +2608,11 @@ summary.expjn <- function(object, ...) {
   fstab
 }
 
-# The checks of ppmlcf()'s columns and numbers, in their order: the
-# cluster column (the first fixed effect by default), the level, tol and
-# maxit, and that the instruments are enough and apart from the
-# regressors.
+#' The checks of ppmlcf()'s columns and numbers, in their order: the
+#' cluster column (the first fixed effect by default), the level, tol and
+#' maxit, and that the instruments are enough and apart from the
+#' regressors.
+#' @noRd
 .axcfck <- function(d, y, endo, inst, x, fe, expo, clus, level, tol, maxit,
                     f) {
   .axcols(d, y, "y", f, n = 1L)
@@ -2595,9 +2639,10 @@ summary.expjn <- function(object, ...) {
   list(clus = clus, level = level, tol = tol, maxit = maxit)
 }
 
-# The rows ppmlcf() fits: the counts checked, the rows separated by the
-# effects left out, the log exposure as the offset:
-# list(d, k the rows kept, yv the counts kept, off).
+#' The rows ppmlcf() fits: the counts checked, the rows separated by the
+#' effects left out, the log exposure as the offset:
+#' list(d, k the rows kept, yv the counts kept, off).
+#' @noRd
 .axcfrows <- function(d, y, fe, expo, f) {
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
@@ -2614,10 +2659,11 @@ summary.expjn <- function(object, ...) {
   list(d = d, k = k, yv = yv, off = off)
 }
 
-# ppmlcf() with se = "naive": the first stage by .axivfit(), its
-# residuals added (cf) or taken from the endogenous columns (plug), and
-# the Poisson fit of ppmlfe() with its errors, which ignore the first
-# stage.
+#' ppmlcf() with se = "naive": the first stage by .axivfit(), its
+#' residuals added (cf) or taken from the endogenous columns (plug), and
+#' the Poisson fit of ppmlfe() with its errors, which ignore the first
+#' stage.
+#' @noRd
 .axcfnv <- function(d, y, endo, inst, x, fe, expo, clus, how, se, ssc, level,
                     tol, maxit, cl, tm, k, yv, f) {
   r1 <- .axivfit(d, y, endo, inst, x, fe, NULL,
@@ -2651,8 +2697,9 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The result of ppmlcf(family = "nb") (.axcfnb()), with the first-stage
-# table of ivfe() and theta.
+#' The result of ppmlcf(family = "nb") (.axcfnb()), with the first-stage
+#' table of ivfe() and theta.
+#' @noRd
 .axcfnbr <- function(d, y, yv, endo, inst, x, fe, off, clus, cl, se, ssc,
                      nboot, seed, level, tol, maxit, k, f) {
   if (se == "boot") {
@@ -2673,9 +2720,10 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The bootstrap of ppmlcf(): the cluster draws of .axdraws(), every draw
-# refitted in src/apx.cpp a block at a time (.axdraws()); the draws that
-# fail are left out with a warning: list(r, dr the draws, nfail, nboot).
+#' The bootstrap of ppmlcf(): the cluster draws of .axdraws(), every draw
+#' refitted in src/apx.cpp a block at a time (.axdraws()); the draws that
+#' fail are left out with a warning: list(r, dr the draws, nfail, nboot).
+#' @noRd
 .axcfboot <- function(d, yv, endo, inst, x, off, fx, cl, nboot, seed, how,
                       tol, maxit, tm, f) {
   nboot <- .cknum(nboot, "nboot", f, min = 2, max = 1e7, whole = TRUE)
@@ -2712,9 +2760,10 @@ summary.expjn <- function(object, ...) {
   list(r = r, dr = dr, nfail = nfail, nboot = nboot)
 }
 
-# The result of ppmlcf() with the bootstrap (.axcfboot()): the table of
-# the full-sample fit with the draws' standard errors and the rate ratios;
-# rw the rows of .axcfrows().
+#' The result of ppmlcf() with the bootstrap (.axcfboot()): the table of
+#' the full-sample fit with the draws' standard errors and the rate ratios;
+#' rw the rows of .axcfrows().
+#' @noRd
 .axcfbres <- function(b, tm, endo, q, rw, cl, how, se, fe, clus, level) {
   sev <- apply(b$dr, 2L, stats::sd, na.rm = TRUE)
   tab <- .axtab(tm, b$r$beta, sev, level)
@@ -2728,10 +2777,11 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The checks of expgmm()'s columns and numbers, in their order: the
-# cluster column for se = "cluster" (the first fixed effect by default),
-# the level, tol and maxit, and that the instruments are enough and apart
-# from the regressors.
+#' The checks of expgmm()'s columns and numbers, in their order: the
+#' cluster column for se = "cluster" (the first fixed effect by default),
+#' the level, tol and maxit, and that the instruments are enough and apart
+#' from the regressors.
+#' @noRd
 .axgmck <- function(d, y, endo, inst, x, fe, expo, clus, se, level, tol,
                     maxit, f) {
   .axcols(d, y, "y", f, n = 1L)
@@ -2765,9 +2815,10 @@ summary.expjn <- function(object, ...) {
   list(clus = clus, level = level, tol = tol, maxit = maxit)
 }
 
-# The rows expgmm() fits: the counts checked, with effects the rows they
-# separate left out, the log exposure as the offset:
-# list(d, k the rows kept, yv the counts kept, off).
+#' The rows expgmm() fits: the counts checked, with effects the rows they
+#' separate left out, the log exposure as the offset:
+#' list(d, k the rows kept, yv the counts kept, off).
+#' @noRd
 .axgmrows <- function(d, y, fe, expo, f) {
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
@@ -2784,11 +2835,12 @@ summary.expjn <- function(object, ...) {
   list(d = d, k = k, yv = yv, off = off)
 }
 
-# The design of expgmm(): no more than 200 levels of the effects (they
-# enter as indicator columns in src/apx.cpp, clab_expgmmd), the
-# regressors xm and instruments zm, and the cluster of each row (each row
-# its own for hc1), no fewer clusters than moment conditions:
-# list(xm, zm, cc, nc).
+#' The design of expgmm(): no more than 200 levels of the effects (they
+#' enter as indicator columns in src/apx.cpp, clab_expgmmd), the
+#' regressors xm and instruments zm, and the cluster of each row (each row
+#' its own for hc1), no fewer clusters than moment conditions:
+#' list(xm, zm, cc, nc).
+#' @noRd
 .axgmdes <- function(d, endo, inst, x, fe, clus, se, f) {
   nl <- sum(vapply(fe, function(v) length(unique(d[[v]])), 1L))
   if (nl > 200L) {
@@ -2816,8 +2868,9 @@ summary.expjn <- function(object, ...) {
   list(xm = xm, zm = zm, cc = cc, nc = nc)
 }
 
-# The GMM fit of expgmm(), clab_expgmmd in src/apx.cpp; a warning when it
-# does not converge.
+#' The GMM fit of expgmm(), clab_expgmmd in src/apx.cpp; a warning when it
+#' does not converge.
+#' @noRd
 .axgmfit <- function(d, yv, off, xm, zm, cc, nc, fe, endo, x, err, step,
                      maxit, tol, f) {
   a <- if (is.null(fe)) list() else .axcode(d[[fe[1L]]])
@@ -2832,9 +2885,10 @@ summary.expjn <- function(object, ...) {
   r
 }
 
-# The coefficients of an expgmm() fit r over the terms tm, their
-# covariance with the small-sample factor, and Hansen's J test:
-# list(v, tab, jt).
+#' The coefficients of an expgmm() fit r over the terms tm, their
+#' covariance with the small-sample factor, and Hansen's J test:
+#' list(v, tab, jt).
+#' @noRd
 .axgmtab <- function(r, tm, nc, ssc, level) {
   p <- length(tm)
   fac <- if (ssc == "G") nc / (nc - 1) else 1
@@ -2852,9 +2906,10 @@ summary.expjn <- function(object, ...) {
   list(v = v, tab = tab, jt = jt)
 }
 
-# The checks of windiv()'s arguments, in their order; the sectors by
-# width: two or more, nb of them, and the base sector among them:
-# list(dir, width, start, base, nb NULL with sect).
+#' The checks of windiv()'s arguments, in their order; the sectors by
+#' width: two or more, nb of them, and the base sector among them:
+#' list(dir, width, start, base, nb NULL with sect).
+#' @noRd
 .axwdck <- function(dir, width, start, area, base, sect, share, spd, f) {
   nb <- NULL
   if (!is.numeric(dir) || !length(dir)) {
@@ -2893,10 +2948,11 @@ summary.expjn <- function(object, ...) {
   list(dir = dir, width = width, start = start, base = base, nb = nb)
 }
 
-# windiv() by groups: the mean direction of each group's vector (weighted
-# by the speeds), the area of each group, and either the shares of its
-# hours in the sectors (share; list(m)) or the group's direction by avg:
-# list(dir, area, gl the groups).
+#' windiv() by groups: the mean direction of each group's vector (weighted
+#' by the speeds), the area of each group, and either the shares of its
+#' hours in the sectors (share; list(m)) or the group's direction by avg:
+#' list(dir, area, gl the groups).
+#' @noRd
 .axwdby <- function(dir, by, spd, area, share, sect, width, start, base,
                     edges, avg, nb, f) {
   if (length(by) != length(dir) || anyNA(by)) {
@@ -2945,8 +3001,9 @@ summary.expjn <- function(object, ...) {
   list(dir = dir, area = area, gl = gl)
 }
 
-# The shares of each group's hours in the sectors (by area, with areas),
-# the rows named by group and the mean direction as attribute "dir".
+#' The shares of each group's hours in the sectors (by area, with areas),
+#' the rows named by group and the mean direction as attribute "dir".
+#' @noRd
 .axwdshr <- function(dir, ok, gk, gl, area, vdir, width, start, base, edges,
                      sect, f) {
   if (!is.null(sect)) {
@@ -2978,8 +3035,9 @@ summary.expjn <- function(object, ...) {
   m
 }
 
-# The indicator columns of windiv(): one for the sector sect, or one per
-# sector by width but the base, by area with areas.
+#' The indicator columns of windiv(): one for the sector sect, or one per
+#' sector by width but the base, by area with areas.
+#' @noRd
 .axwdbin <- function(dir, sect, width, start, area, base, edges, nb) {
   if (!is.null(sect)) {
     inside <- (dir - sect[1L]) %% 360 < (sect[2L] - sect[1L]) %% 360
@@ -3021,8 +3079,9 @@ summary.expjn <- function(object, ...) {
   m
 }
 
-# The column checks of updwn() and its sources: list(s0, t0, s1, t1, line
-# the sources that are segments).
+#' The column checks of updwn() and its sources: list(s0, t0, s1, t1, line
+#' the sources that are segments).
+#' @noRd
 .axudsrc <- function(d, y, ax, ay, day, wind, area, clus, wx, src, f) {
   .axcols(d, y, "y", f, n = 1L)
   .axcolsj(d, list(ax, ay), "ax, ay", f, 2L)
@@ -3052,8 +3111,9 @@ summary.expjn <- function(object, ...) {
   list(s0 = s0, t0 = t0, s1 = s1, t1 = t1, line = line)
 }
 
-# The checks of updwn()'s other arguments, in their order:
-# list(tol, band, level).
+#' The checks of updwn()'s other arguments, in their order:
+#' list(tol, band, level).
+#' @noRd
 .axudck <- function(tol, band, dist, agg, area, line, offs, se, clus, level,
                     f) {
   tol <- .cknum(tol, "tol", f, positive = TRUE, min = 0, max = 90)
@@ -3085,9 +3145,10 @@ summary.expjn <- function(object, ...) {
   list(tol = tol, band = band, level = level)
 }
 
-# The columns updwn() reads: the counts, the coordinates, the wind, the
-# day (as labels, and as numbers for se = "nw"), the area of each row:
-# list(yv, xy, wd, dv, tnum, av).
+#' The columns updwn() reads: the counts, the coordinates, the wind, the
+#' day (as labels, and as numbers for se = "nw"), the area of each row:
+#' list(yv, xy, wd, dv, tnum, av).
+#' @noRd
 .axudprep <- function(d, y, ax, ay, day, wind, wx, area, se, f) {
   yv <- .axmat(d, y, f)[, 1L]
   if (any(yv < 0)) .ckstop(f, "column `%s` must hold counts, at least 0", y)
@@ -3109,9 +3170,10 @@ summary.expjn <- function(object, ...) {
   list(yv = yv, xy = xy, wd = wd, dv = dv, tnum = tnum, av = av)
 }
 
-# The side of each area against the sources a0, b0, a1, b1 (src/apx.cpp),
-# each source on its own for twin = "keep", and the table of the rows by
-# side: list(k, tb).
+#' The side of each area against the sources a0, b0, a1, b1 (src/apx.cpp),
+#' each source on its own for twin = "keep", and the table of the rows by
+#' side: list(k, tb).
+#' @noRd
 .axudcls <- function(xy, wd, a0, b0, a1, b1, band, tol, twin) {
   labs <- c(`1` = "downwind", `0` = "upwind", `-1` = "along", `-2` = "nosource",
             `-3` = "twosources", `-4` = "onsource", `-5` = "missing")
@@ -3142,10 +3204,11 @@ summary.expjn <- function(object, ...) {
   list(k = k, tb = tb)
 }
 
-# The rows upwind and downwind of a source, their rings, and the cells of
-# the design (a side, or an area, of a source on a day), with the checks
-# that the wind, the clusters and the weather are constant within a cell:
-# list(rw, ring, sr, sd0, dn, g, cell, sdy).
+#' The rows upwind and downwind of a source, their rings, and the cells of
+#' the design (a side, or an area, of a source on a day), with the checks
+#' that the wind, the clusters and the weather are constant within a cell:
+#' list(rw, ring, sr, sd0, dn, g, cell, sdy).
+#' @noRd
 .axudcell <- function(k, dist, line, agg, area, av, dv, d, clus, wx, f) {
   same <- function(v, cell) {
     any(tapply(v, cell, function(u) length(unique(u))) > 1L)
@@ -3197,9 +3260,10 @@ summary.expjn <- function(object, ...) {
        cell = cell, sdy = sdy)
 }
 
-# The table updwn() fits: the counts summed by cell, the downwind
-# indicator (by ring, with rings), each side's own weather terms:
-# list(e, xs the downwind terms).
+#' The table updwn() fits: the counts summed by cell, the downwind
+#' indicator (by ring, with rings), each side's own weather terms:
+#' list(e, xs the downwind terms).
+#' @noRd
 .axuddat <- function(yv, rw, ring, sr, dn, g, cell, sdy, tnum, d, dist, clus,
                      wx) {
   o <- !duplicated(cell)
@@ -3239,8 +3303,9 @@ summary.expjn <- function(object, ...) {
   list(e = e, xs = xs)
 }
 
-# The fit of the updwn() table e: ppmlfe() for norm = "pois", ivfe() on the
-# normalised counts otherwise, with the side and source-day effects.
+#' The fit of the updwn() table e: ppmlfe() for norm = "pois", ivfe() on the
+#' normalised counts otherwise, with the side and source-day effects.
+#' @noRd
 .axudfit <- function(e, xs, se, ssc, clus, norm, lag, nboot, seed, level,
                      f) {
   xa <- setdiff(names(e), c("y", "g", "sd", "down", "row", "t", clus))
@@ -3286,8 +3351,9 @@ summary.expjn <- function(object, ...) {
   r
 }
 
-# The placebo estimates of updwn(): run() on the segments moved by each
-# offset, NA with a warning where a moved segment has too few areas.
+#' The placebo estimates of updwn(): run() on the segments moved by each
+#' offset, NA with a warning where a moved segment has too few areas.
+#' @noRd
 .axudplc <- function(offs, s0, t0, s1, t1, run, f) {
   len <- sqrt((s1 - s0)^2 + (t1 - t0)^2)
   nx <- -(t1 - t0) / len
@@ -3308,9 +3374,10 @@ summary.expjn <- function(object, ...) {
   }))
 }
 
-# The sides of the areas against each source on its own (twin = "keep"):
-# the results of the sources one after another, each row with its source
-# and its row of the data.
+#' The sides of the areas against each source on its own (twin = "keep"):
+#' the results of the sources one after another, each row with its source
+#' and its row of the data.
+#' @noRd
 .axudkeep <- function(xy, wd, a0, b0, a1, b1, band, tol) {
   parts <- lapply(seq_along(a0), function(j) {
     k <- .Call(
@@ -3339,9 +3406,10 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The keys of expjn()'s two tables: present and not missing in both, and
-# no value column of the exposure table in the outcome table: the names
-# of the exposure table's value columns.
+#' The keys of expjn()'s two tables: present and not missing in both, and
+#' no value column of the exposure table in the outcome table: the names
+#' of the exposure table's value columns.
+#' @noRd
 .axjnck <- function(e, o, by, f) {
   for (nm in c("expo", "outc")) {
     t <- if (nm == "expo") e else o
@@ -3369,9 +3437,10 @@ summary.expjn <- function(object, ...) {
   val
 }
 
-# The degrees of freedom of the fit for the small-sample factor "nk": the
-# p coefficients, the constant, and the levels of every fixed effect not
-# nested in a cluster column of cls.
+#' The degrees of freedom of the fit for the small-sample factor "nk": the
+#' p coefficients, the constant, and the levels of every fixed effect not
+#' nested in a cluster column of cls.
+#' @noRd
 .axvark <- function(cls, p, fe, d) {
   k <- p + 1
   for (f in fe) {
@@ -3382,9 +3451,10 @@ summary.expjn <- function(object, ...) {
   k
 }
 
-# The clusters of .axvar(): their codes for se = "cluster" or "twoway",
-# the unit codes, days and lag for se = "nw", and the kind of the
-# sandwich in src/apx.cpp: list(c1, n1, c2, n2, g, kind, k, tv, lg).
+#' The clusters of .axvar(): their codes for se = "cluster" or "twoway",
+#' the unit codes, days and lag for se = "nw", and the kind of the
+#' sandwich in src/apx.cpp: list(c1, n1, c2, n2, g, kind, k, tv, lg).
+#' @noRd
 .axvarcl <- function(r, d, se, clus, time, lag, fe, fn, p) {
   n <- nrow(r$sco)
   c1 <- c2 <- tv <- NULL
@@ -3421,8 +3491,9 @@ summary.expjn <- function(object, ...) {
        tv = tv, lg = lg)
 }
 
-# The sandwich of .axvar() with the clusters cl: each two-way component
-# with its own factor (twc = "each"), or all with fac.
+#' The sandwich of .axvar() with the clusters cl: each two-way component
+#' with its own factor (twc = "each"), or all with fac.
+#' @noRd
 .axvarvc <- function(r, se, twc, ssc, cl, fac, n, k) {
   if (se == "twoway" && twc == "each") {
     # Cameron, Gelbach and Miller (2011, p. 241): each of the three
@@ -3455,7 +3526,8 @@ summary.expjn <- function(object, ...) {
   v
 }
 
-# The check of invsn()'s temperatures.
+#' The check of invsn()'s temperatures.
+#' @noRd
 .axinck <- function(tlow, tup, f) {
   if (!is.numeric(tlow) || !is.numeric(tup) || length(tlow) != length(tup) ||
         !length(tlow)) {
@@ -3464,7 +3536,8 @@ summary.expjn <- function(object, ...) {
   invisible(NULL)
 }
 
-# The check of invsn()'s breaks.
+#' The check of invsn()'s breaks.
+#' @noRd
 .axinbrk <- function(brk, f) {
   if (!is.numeric(brk) || length(brk) < 2L || anyNA(brk) ||
         is.unsorted(brk, strictly = TRUE)) {
@@ -3473,10 +3546,11 @@ summary.expjn <- function(object, ...) {
   invisible(NULL)
 }
 
-# invsn() by group (`by`): per group the readings with both
-# temperatures, the mean difference by `sign` and the inversion by `rule`
-# (every reading, any reading, or the mean difference above 0); NA for a
-# group without a reading. The "diag" attribute as for rows, over groups.
+#' invsn() by group (`by`): per group the readings with both
+#' temperatures, the mean difference by `sign` and the inversion by `rule`
+#' (every reading, any reading, or the mean difference above 0); NA for a
+#' group without a reading. The "diag" attribute as for rows, over groups.
+#' @noRd
 .axinby <- function(up, by, sign, rule, brk, f) {
   if (!is.atomic(by) || length(by) != length(up) || anyNA(by)) {
     .ckstop(f, "`by` must give the group of each reading, with no NA")
@@ -3504,9 +3578,10 @@ summary.expjn <- function(object, ...) {
   r
 }
 
-# The "diag" attribute of invsn(): the rows with both temperatures, the
-# share of them without an inversion and the support of the difference
-# dv.
+#' The "diag" attribute of invsn(): the rows with both temperatures, the
+#' share of them without an inversion and the support of the difference
+#' dv.
+#' @noRd
 .axindg <- function(up, dv) {
   ok <- is.finite(up)
   data.frame(
@@ -3516,8 +3591,9 @@ summary.expjn <- function(object, ...) {
   )
 }
 
-# The checks of plcday()'s columns, estimator, shifts and days, in their
-# order: the days as numbers.
+#' The checks of plcday()'s columns, estimator, shifts and days, in their
+#' order: the days as numbers.
+#' @noRd
 .axpdck <- function(d, var, unit, day, with, shift, est, shifts, f) {
   .axcols(d, var, "var", f, n = 1L)
   .axcols(d, unit, "unit", f, n = 1L)
@@ -3537,8 +3613,9 @@ summary.expjn <- function(object, ...) {
   as.numeric(tv)
 }
 
-# The check of plcday()'s shifts, in two steps: numbers, then whole,
-# not 0 and distinct.
+#' The check of plcday()'s shifts, in two steps: numbers, then whole,
+#' not 0 and distinct.
+#' @noRd
 .axpdsh <- function(shifts, f) {
   m <- "`shifts` must be distinct whole numbers of days other than 0"
   if (!is.numeric(shifts) || !length(shifts) || !all(is.finite(shifts))) {
@@ -3551,8 +3628,9 @@ summary.expjn <- function(object, ...) {
   invisible(NULL)
 }
 
-# One row of plcday()'s table: the columns mv moved by s days within the
-# place, fit() on the rows left, the coefficient of var.
+#' One row of plcday()'s table: the columns mv moved by s days within the
+#' place, fit() on the rows left, the coefficient of var.
+#' @noRd
 .axpdrow <- function(s, d, uc, tv, mv, var, fit, f) {
   ix <- .Call(C_clab_r_dshift, uc, tv, s)
   k <- !is.na(ix)

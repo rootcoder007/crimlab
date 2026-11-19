@@ -862,15 +862,17 @@ print.typefx <- function(x, ...) {
   invisible(x)
 }
 
-# A Wald test of R b = 0: the statistic, its degrees of freedom and the
-# chi-square p-value.
-# An estimator: a function with a `data` argument, as ppmlfe() and ivfe()
-# have (sum(), say, would be called with the rows as its numbers).
+#' A Wald test of R b = 0: the statistic, its degrees of freedom and the
+#' chi-square p-value.
+#' An estimator: a function with a `data` argument, as ppmlfe() and ivfe()
+#' have (sum(), say, would be called with the rows as its numbers).
+#' @noRd
 .axest <- function(est) {
   is.function(est) && "data" %in% names(formals(args(est)))
 }
 
-# jntx(): NULL, or the reference point, two numbers
+#' jntx(): NULL, or the reference point, two numbers
+#' @noRd
 .axjxref <- function(ref, f) {
   if (is.null(ref)) return(NULL)
   ref <- .cknum(ref, "ref", f, scalar = FALSE)
@@ -878,6 +880,9 @@ print.typefx <- function(x, ...) {
   ref
 }
 
+#' The Wald statistic of the restrictions `r` on the estimates `b` with
+#'   covariance `v`; none when the covariance cannot test that many.
+#' @noRd
 .axwald <- function(b, v, r, fn) {
   rb <- r %*% b
   m <- r %*% v %*% t(r)
@@ -901,13 +906,15 @@ print.typefx <- function(x, ...) {
   )
 }
 
-# The covariance of a fit: vcov, or from the bootstrap draws.
+#' The covariance of a fit: vcov, or from the bootstrap draws.
+#' @noRd
 .axvcov <- function(r) {
   if (!is.null(r[["vcov"]])) return(r[["vcov"]])
   stats::cov(r[["draws"]], use = "complete.obs")
 }
 
-# The row of term in a fit's coefficients, or an error.
+#' The row of term in a fit's coefficients, or an error.
+#' @noRd
 .axrow <- function(r, term, fn) {
   cf <- r[["coef"]]
   if (!is.data.frame(cf) || !term %in% cf[["term"]]) {
@@ -916,8 +923,9 @@ print.typefx <- function(x, ...) {
   cf[cf[["term"]] == term, , drop = FALSE]
 }
 
-# Replace var by new names in the estimator's arguments x and endo, and
-# each instrument by its interactions (inst).
+#' Replace var by new names in the estimator's arguments x and endo, and
+#' each instrument by its interactions (inst).
+#' @noRd
 .axrepl <- function(a, var, new, inst = NULL) {
   for (k in c("x", "endo")) {
     if (!is.null(a[[k]]) && var %in% a[[k]]) {
@@ -928,8 +936,9 @@ print.typefx <- function(x, ...) {
   a
 }
 
-# A restricted cubic spline basis (Harrell): x and k - 2 cubic terms, with
-# knots t at quantiles of x.
+#' A restricted cubic spline basis (Harrell): x and k - 2 cubic terms, with
+#' knots t at quantiles of x.
+#' @noRd
 .axrcs <- function(x, t) {
   k <- length(t)
   if (k < 3L) return(matrix(x))
@@ -946,6 +955,9 @@ print.typefx <- function(x, ...) {
   unname(m)
 }
 
+#' The knots of a restricted cubic spline with `k` knots, at fixed quantiles
+#'   of `x`.
+#' @noRd
 .axknots <- function(x, k) {
   pr <- switch(
     as.character(k),
@@ -958,9 +970,10 @@ print.typefx <- function(x, ...) {
   as.numeric(stats::quantile(x, pr, names = FALSE))
 }
 
-# The background of Childs et al. (2022, equation 2): for each row, the
-# median PM2.5 of its place and calendar month over the years y - 1 to y +
-# 1 on days without smoke; NA (with a warning) when there are none.
+#' The background of Childs et al. (2022, equation 2): for each row, the
+#' median PM2.5 of its place and calendar month over the years y - 1 to y +
+#' 1 on days without smoke; NA (with a warning) when there are none.
+#' @noRd
 .axchilds <- function(d, unit, day, pv, pl, fn) {
   if (!inherits(d[[day]], "Date")) {
     .ckstop(fn, "`cf = \"childs\"` needs `day` as dates")
@@ -982,8 +995,9 @@ print.typefx <- function(x, ...) {
   bg
 }
 
-# The season of each row for smkiv()'s backgrounds: the column seas, or
-# the meteorological season of a date day, or one season.
+#' The season of each row for smkiv()'s backgrounds: the column seas, or
+#' the meteorological season of a date day, or one season.
+#' @noRd
 .axsmsea <- function(d, day, seas, pm, f) {
   if (!is.null(seas)) {
     as.character(d[[seas]])
@@ -1003,9 +1017,10 @@ print.typefx <- function(x, ...) {
   }
 }
 
-# The PM2.5 columns of smkiv(): the background of each place and season
-# from its days without a plume, the indicator adjusted by its own or its
-# neighbour's PM2.5, and the smoke PM2.5 above the background.
+#' The PM2.5 columns of smkiv(): the background of each place and season
+#' from its days without a plume, the indicator adjusted by its own or its
+#' neighbour's PM2.5, and the smoke PM2.5 above the background.
+#' @noRd
 .axsmpm <- function(d, out, pl, key, pm, adj, nbr, z, cf, unit, day, f) {
   pv <- .axmat(d, pm, f)[, 1L]
   cl <- pl == 0
@@ -1047,8 +1062,9 @@ print.typefx <- function(x, ...) {
   out
 }
 
-# smkiv()'s columns aggregated to the groups of by: means of the
-# PM2.5 columns, sums of the others.
+#' smkiv()'s columns aggregated to the groups of by: means of the
+#' PM2.5 columns, sums of the others.
+#' @noRd
 .axsmby <- function(out, d, by) {
   g <- .axcode(d[[by]])
   a <- data.frame(by = unique(as.character(d[[by]])))
@@ -1064,8 +1080,9 @@ print.typefx <- function(x, ...) {
   a
 }
 
-# hetfx(how = "split"): est on the rows of each level of the moderator:
-# list(tab, b the estimates, v their covariance, diagonal).
+#' hetfx(how = "split"): est on the rows of each level of the moderator:
+#' list(tab, b the estimates, v their covariance, diagonal).
+#' @noRd
 .axhtspl <- function(d, est, a, var, mv, lv, f) {
   rows <- lapply(lv, function(l) {
     r <- do.call(est, c(list(data = d[mv == l, , drop = FALSE]), a))
@@ -1086,9 +1103,10 @@ print.typefx <- function(x, ...) {
   list(tab = tab, b = b, v = v)
 }
 
-# hetfx(how = "inter"): one fit of est with the exposure (and the
-# instruments) times the indicator of each level of the moderator:
-# list(tab, b the estimates, v their covariance).
+#' hetfx(how = "inter"): one fit of est with the exposure (and the
+#' instruments) times the indicator of each level of the moderator:
+#' list(tab, b the estimates, v their covariance).
+#' @noRd
 .axhtint <- function(d, est, a, var, mv, lv) {
   nm <- paste0(var, ":", lv)
   for (j in seq_along(lv)) d[[nm[j]]] <- d[[var]] * (mv == lv[j])
@@ -1121,9 +1139,10 @@ print.typefx <- function(x, ...) {
   list(tab = tab, b = b, v = v)
 }
 
-# The exposures of ccross(): the columns of lagv lag days before, and the
-# columns of ma averaged over k days, a place's day left out where one of
-# them is missing.
+#' The exposures of ccross(): the columns of lagv lag days before, and the
+#' columns of ma averaged over k days, a place's day left out where one of
+#' them is missing.
+#' @noRd
 .axccma <- function(d, unit, day, ma, k, lagv, lag) {
   if (length(lagv) && lag > 0) {
     # the value lag days before, of the same place (a day without one is
@@ -1147,11 +1166,12 @@ print.typefx <- function(x, ...) {
   d
 }
 
-# The natural cubic splines of ccross() of the covariates in ns: with d
-# degrees of freedom, knots at the range and the quantiles 1/d, ...,
-# (d-1)/d (those of splines::ns(x, df = d)), in the restricted cubic
-# spline basis, which spans the same functions: list(d with the basis
-# columns, a with them among the regressors x).
+#' The natural cubic splines of ccross() of the covariates in ns: with d
+#' degrees of freedom, knots at the range and the quantiles 1/d, ...,
+#' (d-1)/d (those of splines::ns(x, df = d)), in the restricted cubic
+#' spline basis, which spans the same functions: list(d with the basis
+#' columns, a with them among the regressors x).
+#' @noRd
 .axccns <- function(d, a, ns, f) {
   for (v in names(ns)) {
     x <- d[[v]]
@@ -1167,8 +1187,9 @@ print.typefx <- function(x, ...) {
   list(d = d, a = a)
 }
 
-# The checks of jntx()'s columns and numbers, in their order:
-# list(k1, k2, p1, p2, ngrid).
+#' The checks of jntx()'s columns and numbers, in their order:
+#' list(k1, k2, p1, p2, ngrid).
+#' @noRd
 .axjxck <- function(d, y, x1, x2, est, k1, k2, p1, p2, ngrid, f) {
   .axcolsj(d, list(y, x1, x2), "y, x1, x2", f, 3L)
   if (!.axest(est)) {
@@ -1187,9 +1208,10 @@ print.typefx <- function(x, ...) {
   list(k1 = k1, k2 = k2, p1 = p1, p2 = p2, ngrid = ngrid)
 }
 
-# The basis of jntx() at u and v: the two exposures and their product
-# (linear), or their restricted cubic splines at the knots t1 and t2 and
-# the products of the two bases (spline).
+#' The basis of jntx() at u and v: the two exposures and their product
+#' (linear), or their restricted cubic splines at the knots t1 and t2 and
+#' the products of the two bases (spline).
+#' @noRd
 .axjxbas <- function(u, v, form, t1, t2) {
   if (form == "linear") return(cbind(u, v, u * v))
   b1 <- .axrcs(u, t1)
@@ -1201,9 +1223,10 @@ print.typefx <- function(x, ...) {
   )
 }
 
-# What jntx() reports from rel(), the change of the linear predictor
-# between two points: the effect of x1 from its p1 quantiles at the p2
-# quantiles of x2 (cond), and over a grid of both against ref (surf).
+#' What jntx() reports from rel(), the change of the linear predictor
+#' between two points: the effect of x1 from its p1 quantiles at the p2
+#' quantiles of x2 (cond), and over a grid of both against ref (surf).
+#' @noRd
 .axjxout <- function(a, p1, p2, ref, ngrid, rel) {
   q1 <- as.numeric(stats::quantile(a[, 1L], p1, names = FALSE))
   q2 <- as.numeric(stats::quantile(a[, 2L], p2, names = FALSE))
@@ -1227,8 +1250,9 @@ print.typefx <- function(x, ...) {
   list(cond = cond, surf = g)
 }
 
-# The bins of dosebin(): nq quantile bins of xv or the breaks brk, two at
-# least, every value in one: list(bn the bin of each row, lv, nbin).
+#' The bins of dosebin(): nq quantile bins of xv or the breaks brk, two at
+#' least, every value in one: list(bn the bin of each row, lv, nbin).
+#' @noRd
 .axdbbin <- function(xv, nq, brk, var, f) {
   if (is.null(brk)) {
     nq <- .cknum(nq, "nq", f, min = 2, whole = TRUE)
@@ -1253,9 +1277,10 @@ print.typefx <- function(x, ...) {
   list(bn = bn, lv = lv, nbin = nbin)
 }
 
-# The Wald tests of dosebin(): every bin equal to the reference (all),
-# and, with two bins or more, the bins on the line through the reference
-# and the first bin at their medians (linear).
+#' The Wald tests of dosebin(): every bin equal to the reference (all),
+#' and, with two bins or more, the bins on the line through the reference
+#' and the first bin at their medians (linear).
+#' @noRd
 .axdbtst <- function(b, v, mid, use, ref, k, fn) {
   tst <- .axwald(b, v, diag(k), fn)
   tst$test <- "all"
@@ -1274,8 +1299,9 @@ print.typefx <- function(x, ...) {
   tst
 }
 
-# The checks of smkiv()'s columns and numbers, in their order: list(pl
-# the plume indicator, z).
+#' The checks of smkiv()'s columns and numbers, in their order: list(pl
+#' the plume indicator, z).
+#' @noRd
 .axsmck <- function(d, plume, unit, day, pm, seas, by, dens, adj, z, f) {
   .axcolsj(d, list(plume, unit, day), "plume, unit, day", f, 3L)
   .axcols(d, pm, "pm", f, n = 1L, null = TRUE)
@@ -1293,8 +1319,9 @@ print.typefx <- function(x, ...) {
   list(pl = pl, z = z)
 }
 
-# smkiv()'s indicators of the levels of the density column dens, added
-# to out (out unchanged without dens).
+#' smkiv()'s indicators of the levels of the density column dens, added
+#' to out (out unchanged without dens).
+#' @noRd
 .axsmdn <- function(out, d, dens) {
   if (!is.null(dens)) {
     dv <- as.character(d[[dens]])
@@ -1304,8 +1331,9 @@ print.typefx <- function(x, ...) {
   out
 }
 
-# The checks of ccross()'s columns, estimator and numbers, in their
-# order: list(k, lag).
+#' The checks of ccross()'s columns, estimator and numbers, in their
+#' order: list(k, lag).
+#' @noRd
 .axccck <- function(d, y, unit, day, ma, est, k, lagv, lag, ns, f) {
   .axcolsj(d, list(y, unit, day), "y, unit, day", f, 3L)
   .axcols(d, ma, "ma", f, null = TRUE)
@@ -1329,9 +1357,10 @@ print.typefx <- function(x, ...) {
   list(k = k, lag = lag, day = dv)
 }
 
-# A day column as dates: dates as they are, ISO date text (YYYY-MM-DD,
-# every value) read as dates and, with num, numbers as days since
-# 1970-01-01, as the command line gives dates; anything else unchanged.
+#' A day column as dates: dates as they are, ISO date text (YYYY-MM-DD,
+#' every value) read as dates and, with num, numbers as days since
+#' 1970-01-01, as the command line gives dates; anything else unchanged.
+#' @noRd
 .axdate <- function(v, day, f, num) {
   if (is.character(v) || is.factor(v)) {
     s <- as.character(v)

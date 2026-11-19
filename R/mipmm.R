@@ -128,7 +128,8 @@ print.mipmm <- function(x, ...) {
   invisible(x)
 }
 
-# A column to impute: numbers, finite where observed.
+#' A column to impute: numbers, finite where observed.
+#' @noRd
 .mpval <- function(v, nm, f) {
   if (!is.numeric(v) && !is.logical(v)) {
     .ckstop(f, "column `%s` must be numeric, got %s", nm, class(v)[1L])
@@ -140,7 +141,8 @@ print.mipmm <- function(x, ...) {
   v
 }
 
-# The columns y to impute and x that predict them, checked.
+#' The columns y to impute and x that predict them, checked.
+#' @noRd
 .mpcols <- function(dd, y, x, f) {
   if (is.null(y)) .ckstop(f, "`y` must name columns of `data`, got NULL")
   if (!is.character(y) || anyNA(y) || !length(y)) {
@@ -155,7 +157,8 @@ print.mipmm <- function(x, ...) {
   if (any(y %in% x)) .ckstop(f, "`y` and `x` must name different columns")
 }
 
-# The analysis checked: fy one of the columns a, fx others of them.
+#' The analysis checked: fy one of the columns a, fx others of them.
+#' @noRd
 .mpfml <- function(fy, fx, a, f) {
   if (!is.null(fy) && (!is.character(fy) || length(fy) != 1L ||
                          !fy %in% a)) {
@@ -169,7 +172,8 @@ print.mipmm <- function(x, ...) {
   }
 }
 
-# The imputed values of each column of y, one matrix each.
+#' The imputed values of each column of y, one matrix each.
+#' @noRd
 .mpimp <- function(v, ym, y, m) {
   imp <- list()
   at <- 0
@@ -182,7 +186,8 @@ print.mipmm <- function(x, ...) {
   imp
 }
 
-# The pooled table from the kernel's pooled values p.
+#' The pooled table from the kernel's pooled values p.
+#' @noRd
 .mppool <- function(p, term) {
   np <- length(term)
   data.frame(term = term, est = p[seq_len(np)], se = p[np + seq_len(np)],

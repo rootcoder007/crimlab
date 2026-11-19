@@ -125,9 +125,10 @@ print.cemtch <- function(x, ...) {
   invisible(x)
 }
 
-# The covariates of x as integer codes (n x k) and the breaks of the
-# numeric ones: cut[[v]] a number of bins or the breaks, else rule(v)
-# bins.
+#' The covariates of x as integer codes (n x k) and the breaks of the
+#' numeric ones: cut\[\[v\]\] a number of bins or the breaks, else rule(v)
+#' bins.
+#' @noRd
 .cemcode <- function(d, x, cut, what, rule, f) {
   if (!is.null(cut) && (!is.list(cut) || is.null(names(cut)) ||
                           !all(names(cut) %in% x))) {
@@ -149,6 +150,9 @@ print.cemtch <- function(x, ...) {
   list(code = m, cut = br)
 }
 
+#' The break points of one variable for coarsened exact matching: from a
+#'   number of bins, a rule, or the breaks given.
+#' @noRd
 .cembr <- function(z, k, rule, v, what, f) {
   r <- range(z)
   if (is.null(k)) k <- rule(z)

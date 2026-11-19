@@ -112,8 +112,9 @@ print.otpyr <- function(x, ...) {
   invisible(x)
 }
 
-# otpyr(): the release (a data frame, or a key of the service) reduced to
-# the columns named cn, renamed to their short names
+#' otpyr(): the release (a data frame, or a key of the service) reduced to
+#' the columns named cn, renamed to their short names
+#' @noRd
 .otin <- function(x, cn, base, fn) {
   if (is.character(x) && length(x) == 1L) {
     x <- .clas(fn, odtab(x, cols = unname(cn), base = base))
@@ -127,9 +128,10 @@ print.otpyr <- function(x, ...) {
   d
 }
 
-# otpyr(): the rows kept, complete and in the years asked. A flag that is
-# neither yes nor no is a missing one: the record is dropped here, so that
-# both counts see the same records.
+#' otpyr(): the rows kept, complete and in the years asked. A flag that is
+#' neither yes nor no is a missing one: the record is dropped here, so that
+#' both counts see the same records.
+#' @noRd
 .otok <- function(d, years, fn) {
   fl <- .acflags(d[c("mh", "sr", "sw")], fn)
   ok <- stats::complete.cases(d) & rowSums(is.na(fl)) == 0L
@@ -145,7 +147,8 @@ print.otpyr <- function(x, ...) {
   ok
 }
 
-# The column names, defaults overridden by cols.
+#' The column names, defaults overridden by cols.
+#' @noRd
 .otcn <- function(cols, fn) {
   cn <- c(
     year = "EndFiscalYear",
@@ -173,7 +176,8 @@ print.otpyr <- function(x, ...) {
   cn
 }
 
-# The regional cluster of each person-year: its regions, sorted, joined.
+#' The regional cluster of each person-year: its regions, sorted, joined.
+#' @noRd
 .otrc <- function(ra, rb, k) {
   f <- factor(k, unique(k))
   r <- split(c(as.character(ra), as.character(rb)), c(f, f))

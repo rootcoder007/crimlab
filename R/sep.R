@@ -508,6 +508,9 @@ print.evfilt <- function(x, ...) {
   invisible(x)
 }
 
+#' The names of the parameters of a fit: `a`, then x1, x2 and so on, then `b`
+#'   numbered.
+#' @noRd
 .sfnames <- function(x, a, b) {
   c(
     a,

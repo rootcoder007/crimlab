@@ -35,7 +35,8 @@ Depends:
     R (>= 4.1.0)
 Imports:
     graphics,
-    grDevices
+    grDevices,
+    stats
 Suggests:
     knitr,
     rmarkdown,

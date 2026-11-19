@@ -524,6 +524,7 @@ reference:
       - ivfe
       - ppmlcf
       - expgmm
+      - racc
       - windiv
       - invsn
       - dwnexp

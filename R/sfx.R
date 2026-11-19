@@ -59,7 +59,8 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
   .sfxkind(tab, kind, n, seed, f)
 }
 
-# The columns of a preset as values to draw from.
+#' The columns of a preset as values to draw from.
+#' @noRd
 .sfxpre <- function(tab, kind, n) {
   t <- tab[tab$kind == kind, ]
   v <- lapply(seq_len(nrow(t)), function(j) {
@@ -71,7 +72,8 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
   stats::setNames(v, t$column)
 }
 
-# A named list of columns, each the values it takes.
+#' A named list of columns, each the values it takes.
+#' @noRd
 .sfxlist <- function(x, f) {
   nm <- names(x)
   if (!length(x) || is.null(nm) || anyNA(nm) || !all(nzchar(nm)) ||
@@ -91,7 +93,8 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
   x
 }
 
-# n rows drawn from the values of each column.
+#' n rows drawn from the values of each column.
+#' @noRd
 .sfxdraw <- function(cols, n, seed) {
   dn <- as.numeric(lengths(cols))
   k <- .Call(C_clab_r_synfix, dn, n, seed)
@@ -100,7 +103,8 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
                 check.names = FALSE)
 }
 
-# The presets, one row per column.
+#' The presets, one row per column.
+#' @noRd
 .sfxls <- function(tab) {
   ty <- c("labels", "range", "id")[tab$type + 1L]
   va <- ifelse(tab$type == 1L, paste(tab$lo, tab$hi, sep = "|"), tab$lev)
@@ -108,7 +112,8 @@ synfix <- function(kind = NULL, n = 100, seed = 1) {
              values = va, stringsAsFactors = FALSE)
 }
 
-# A preset by name: one data frame, or a list of them for a family.
+#' A preset by name: one data frame, or a list of them for a family.
+#' @noRd
 .sfxkind <- function(tab, kind, n, seed, f) {
   if (!is.character(kind) || length(kind) != 1L || is.na(kind)) {
     .ckstop(f, paste("`kind` must be the name of a preset, a named list of",

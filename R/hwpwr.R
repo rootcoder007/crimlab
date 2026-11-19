@@ -151,8 +151,9 @@ hwpwr <- function(
   r
 }
 
-# The programs and roots hwpwr() reads, the defaults overridden by
-# paths; bad() is hwpwr()'s error.
+#' The programs and roots hwpwr() reads, the defaults overridden by
+#' paths; bad() is hwpwr()'s error.
+#' @noRd
 .hwpth <- function(paths, bad) {
   lnx <- identical(Sys.info()[["sysname"]], "Linux")
   pth <- c(
@@ -177,7 +178,8 @@ hwpwr <- function(
   pth
 }
 
-# The rated watts of the CPU and the GPU, NA where not given.
+#' The rated watts of the CPU and the GPU, NA where not given.
+#' @noRd
 .hwrt <- function(rated, bad) {
   rt <- c(cpu = NA_real_, gpu = NA_real_)
   if (!is.null(rated)) {
@@ -197,8 +199,9 @@ hwpwr <- function(
   rt
 }
 
-# The snapshot text of hwpwr(): one reading, then one every step seconds
-# for dt seconds, or after the snapshots of since.
+#' The snapshot text of hwpwr(): one reading, then one every step seconds
+#' for dt seconds, or after the snapshots of since.
+#' @noRd
 .hwsnap <- function(pth, skip, pid, since, dt, step) {
   rd <- function() {
     .Call(
@@ -230,8 +233,9 @@ hwpwr <- function(
   s
 }
 
-# The checks of hwpwr()'s interval, step, process id and skipped
-# sources (.hwskp()), in their order; bad() is hwpwr()'s error.
+#' The checks of hwpwr()'s interval, step, process id and skipped
+#' sources (.hwskp()), in their order; bad() is hwpwr()'s error.
+#' @noRd
 .hwck <- function(dt, step, pid, skip, bad) {
   if (!.hwone(dt) || dt < 0 || dt > 604800) {
     bad("`dt` must be one number from 0 to 604800 (a week, in seconds).")
@@ -246,10 +250,12 @@ hwpwr <- function(
   .hwskp(skip, bad)
 }
 
-# One finite number.
+#' One finite number.
+#' @noRd
 .hwone <- function(x) is.numeric(x) && length(x) == 1L && is.finite(x)
 
-# The check of hwpwr()'s skipped sources.
+#' The check of hwpwr()'s skipped sources.
+#' @noRd
 .hwskp <- function(skip, bad) {
   src <- c(
     "rapl",
@@ -268,8 +274,9 @@ hwpwr <- function(
   invisible(NULL)
 }
 
-# The check of hwpwr()'s since: NULL or an earlier result, with its last
-# snapshot.
+#' The check of hwpwr()'s since: NULL or an earlier result, with its last
+#' snapshot.
+#' @noRd
 .hwsin <- function(since, bad) {
   if (!is.null(since)) {
     sn <- attr(since, "snap")

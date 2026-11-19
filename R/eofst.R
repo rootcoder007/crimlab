@@ -82,8 +82,9 @@ print.eofst <- function(x, ...) {
   invisible(x)
 }
 
-# The data checked: a finite numeric matrix (a data frame of numbers
-# made one) of at least two rows.
+#' The data checked: a finite numeric matrix (a data frame of numbers
+#' made one) of at least two rows.
+#' @noRd
 .eozmat <- function(z, f) {
   if (is.data.frame(z) && length(z) && all(vapply(z, is.numeric, NA))) {
     z <- as.matrix(z)

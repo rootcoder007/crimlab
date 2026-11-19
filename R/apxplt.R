@@ -231,15 +231,17 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 
 # ---- helpers -----------------------------------------------------------------
 
-# normal intervals at `level` about estimates with standard errors
+#' normal intervals at `level` about estimates with standard errors
+#' @noRd
 .axci <- function(est, se, level) {
   z <- stats::qnorm(0.5 + level / 2)
   list(lo = est - z * se, hi = est + z * se)
 }
 
-# the rings of an updwn() fit from its term names "down:(a,b]": the ends
-# and the midpoint of each (cut() prints the breaks to three digits, so
-# the positions are drawn to that precision)
+#' the rings of an updwn() fit from its term names "down:(a,b]": the ends
+#' and the midpoint of each (cut() prints the breaks to three digits, so
+#' the positions are drawn to that precision)
+#' @noRd
 .axring <- function(term) {
   v <- gsub("^[^:]*:[[(]|[])]$", "", term)
   e <- matrix(as.numeric(unlist(strsplit(v, ",", fixed = TRUE))), ncol = 2L,
@@ -247,10 +249,12 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   data.frame(lo = e[, 1L], hi = e[, 2L], mid = (e[, 1L] + e[, 2L]) / 2)
 }
 
-# the day of a run of each runfx() term: "run2" is 2, "run3p" is 3
+#' the day of a run of each runfx() term: "run2" is 2, "run3p" is 3
+#' @noRd
 .axrun <- function(term) as.numeric(gsub("^run|p$", "", term))
 
-# the coefficient rows drawn: every row, or the rows of `terms`
+#' the coefficient rows drawn: every row, or the rows of `terms`
+#' @noRd
 .axterm <- function(cf, terms) {
   if (is.null(terms)) {
     return(cf)
@@ -263,8 +267,9 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   cf[cf$term %in% terms, , drop = FALSE]
 }
 
-# coefficients as a forest chart: rate ratios on a log scale for the
-# Poisson and exponential-mean fits, the coefficients for least squares
+#' coefficients as a forest chart: rate ratios on a log scale for the
+#' Poisson and exponential-mean fits, the coefficients for least squares
+#' @noRd
 .axcoef <- function(cf, rr, main, col = NULL, pal = NULL, ...) {
   if (rr) {
     .pdots(cf$term, exp(cf$est), exp(cf$lo), exp(cf$hi), main,
@@ -275,9 +280,10 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   }
 }
 
-# the strength of the first stage of each endogenous column: the robust
-# Wald F, the Kleibergen-Paap F and the effective F beside the 5% critical
-# value of Montiel Olea and Pflueger
+#' the strength of the first stage of each endogenous column: the robust
+#' Wald F, the Kleibergen-Paap F and the effective F beside the 5% critical
+#' value of Montiel Olea and Pflueger
+#' @noRd
 .axfst <- function(fs, col = NULL, pal = NULL, ...) {
   k <- c("Wald F", "Kleibergen-Paap F", "effective F", "5% critical value")
   .pdots(rep(fs$endo, 4L), c(fs$wald, fs$kp, fs$eff, fs$cv), NA, NA,
@@ -285,8 +291,9 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          grp = rep(k, each = nrow(fs)), ...)
 }
 
-# the first-stage coefficient of each excluded instrument, with normal
-# intervals at the fit's level
+#' the first-stage coefficient of each excluded instrument, with normal
+#' intervals at the fit's level
+#' @noRd
 .axfstab <- function(fb, level, col = NULL, pal = NULL, ...) {
   ci <- .axci(fb$est, fb$se, level)
   .pdots(paste0(fb$inst, " (", fb$endo, ")"), fb$est, ci$lo, ci$hi,
@@ -294,11 +301,12 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          ref = 0, ...)
 }
 
-# estimates at positions on a numeric axis (days of a run, bin medians,
-# distances, offsets) with their intervals, joined by a dotted line; the
-# positions in `mark` (the reference, or the true design) are drawn as
-# squares in the second colour, named in the legend by `key`; `at` and
-# `lab` give the ticks of the axis; returns the rows drawn
+#' estimates at positions on a numeric axis (days of a run, bin medians,
+#' distances, offsets) with their intervals, joined by a dotted line; the
+#' positions in `mark` (the reference, or the true design) are drawn as
+#' squares in the second colour, named in the legend by `key`; `at` and
+#' `lab` give the ticks of the axis; returns the rows drawn
+#' @noRd
 .axprof <- function(x, est, lo, hi, main, xlab, ylab, col = NULL, pal = NULL,
                     mark = NULL, key = NULL, at = NULL, lab = NULL, ...) {
   cl <- .pcols(2L, col, pal)
@@ -320,8 +328,9 @@ plot.typefx <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   invisible(data.frame(x = x, est = est, lo = lo, hi = hi, mark = m))
 }
 
-# the surface of a jntx() fit: the log rate ratio shaded on a scale
-# centred at 0, with contour lines labelled by the rate ratio
+#' the surface of a jntx() fit: the log rate ratio shaded on a scale
+#' centred at 0, with contour lines labelled by the rate ratio
+#' @noRd
 .axsurf <- function(s, pal = NULL, ...) {
   u <- sort(unique(s$x1))
   v <- sort(unique(s$x2))

@@ -585,11 +585,16 @@ print.fpeqv <- function(x, ...) {
   invisible(x)
 }
 
+#' The table of carbon intensities, read from the kernel once and kept.
+#' @noRd
 .citab <- function() {
   if (is.null(.fpcache$tab)) .fpcache$tab <- .Call(C_clab_r_citab)
   .fpcache$tab
 }
 
+#' The carbon intensity for `loc`: a number the caller gives, or the entry of
+#'   the table for a place.
+#' @noRd
 .ciget <- function(loc, fn) {
   .cktxt(loc, "loc", fn)
   if (is.numeric(loc)) {
@@ -630,7 +635,8 @@ print.fpeqv <- function(x, ...) {
   .cirow(tab, i, note)
 }
 
-# .ciget(): a carbon intensity the caller gave as a number
+#' .ciget(): a carbon intensity the caller gave as a number
+#' @noRd
 .ciuser <- function(loc, fn) {
   if (length(loc) != 1L || !is.finite(loc) || loc < 0) {
     .ckstop(
@@ -652,7 +658,8 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
-# .ciget(): row i of the table of intensities
+#' .ciget(): row i of the table of intensities
+#' @noRd
 .cirow <- function(tab, i, note) {
   structure(
     list(
@@ -668,18 +675,21 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
-# The machine's total memory in GB, NA when it cannot be read.
+#' The machine's total memory in GB, NA when it cannot be read.
+#' @noRd
 .memgb <- function() .Call(C_clab_r_memgb)
 
-# co2fp(): the energy by part, the devices' when there are devices
+#' co2fp(): the energy by part, the devices' when there are devices
+#' @noRd
 .fpen <- function(o, devices) {
   en <- list(cpu = o[6L], memory = o[7L], total = o[9L])
   if (!is.null(devices)) en$devices <- o[8L]
   en
 }
 
-# co2fp(): the RAPL domains and their counters before the run (NULL when
-# unreadable, an error when RAPL was asked for)
+#' co2fp(): the RAPL domains and their counters before the run (NULL when
+#' unreadable, an error when RAPL was asked for)
+#' @noRd
 .fprapl <- function(mthd, rapldir, f) {
   domains <- if (mthd != "model") .Call(C_clab_r_rapldom, rapldir)
   before <- if (mthd != "model") .Call(C_clab_r_raplrd, domains)
@@ -695,8 +705,9 @@ print.fpeqv <- function(x, ...) {
   list(domains = domains, before = before)
 }
 
-# co2fp(): the utilisation mode and the machine's CPU accounting before the
-# run, process utilisation when /proc/stat cannot be read
+#' co2fp(): the utilisation mode and the machine's CPU accounting before the
+#' run, process utilisation when /proc/stat cannot be read
+#' @noRd
 .fpmode <- function(mode, procstat, asm) {
   st0 <- if (mode == "machine") .Call(C_clab_r_cpuacc, procstat)
   if (mode == "machine" && is.null(st0)) {
@@ -712,7 +723,8 @@ print.fpeqv <- function(x, ...) {
   list(mode = mode, st0 = st0, asm = asm)
 }
 
-# co2fp(): the cores charged, 1 when the count is unknown
+#' co2fp(): the cores charged, 1 when the count is unknown
+#' @noRd
 .fpcores <- function(cores, asm) {
   if (is.null(cores)) {
     cores <- tryCatch(
@@ -727,8 +739,9 @@ print.fpeqv <- function(x, ...) {
   list(cores = cores, asm = asm)
 }
 
-# co2fp(): the memory charged, the machine's total by default, 8 GB when
-# that is unknown
+#' co2fp(): the memory charged, the machine's total by default, 8 GB when
+#' that is unknown
+#' @noRd
 .fpmem <- function(memgb) {
   note <- NULL
   if (is.null(memgb)) {
@@ -743,7 +756,8 @@ print.fpeqv <- function(x, ...) {
   list(memgb = memgb, note = note)
 }
 
-# co2fp(): the energy and emissions from the core
+#' co2fp(): the energy and emissions from the core
+#' @noRd
 .fpcall <- function(inp, before, after, dv) {
   nr <- if (is.null(before)) 0L else length(before$uj)
   r1 <- if (is.null(after)) rep(NA_real_, nr) else after$uj
@@ -756,6 +770,8 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
+#' `x` checked as one number (positive with `positive`); NULL stays NULL.
+#' @noRd
 .fpnum <- function(x, what, fn, positive = FALSE) {
   if (is.null(x)) {
     return(NULL)
@@ -778,6 +794,8 @@ print.fpeqv <- function(x, ...) {
   as.numeric(x)
 }
 
+#' The arguments of the footprint functions checked.
+#' @noRd
 .fpargs <- function(pue, cpupwrw, cores, memgb, mempwrwpergb, rapldir,
                     procstat, usage, fn) {
   if (!is.numeric(pue) || length(pue) != 1L || !is.finite(pue) || pue < 1) {
@@ -829,8 +847,9 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
-# The devices table, checked: kinds as codes (1 for a CPU or memory row,
-# counted already), figures as numbers (NA: not measured).
+#' The devices table, checked: kinds as codes (1 for a CPU or memory row,
+#' counted already), figures as numbers (NA: not measured).
+#' @noRd
 .fpdev <- function(d, fn) {
   if (is.null(d)) {
     return(list(kind = integer(0), watts = numeric(0), energy = numeric(0)))
@@ -875,6 +894,9 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
+#' The table of the devices of a footprint, with a note on how the energy of
+#'   each was got.
+#' @noRd
 .fpdevout <- function(dv, kwh) {
   d <- dv$tab
   # the first that holds: counted already, measured energy, average power
@@ -894,6 +916,8 @@ print.fpeqv <- function(x, ...) {
   )
 }
 
+#' The references behind a footprint estimate.
+#' @noRd
 .fpcites <- function(ci) {
   cites <- c(
     paste0(

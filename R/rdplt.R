@@ -57,8 +57,9 @@ plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
                     "Density: bin heights and fits", col, pal, ...))
 }
 
-# the weighted least-squares line y = a + b u: c(a, b), NA when the
-# weights rest on fewer than two distinct values of u
+#' the weighted least-squares line y = a + b u: c(a, b), NA when the
+#' weights rest on fewer than two distinct values of u
+#' @noRd
 .rdwls <- function(u, y, w) {
   s0 <- sum(w)
   s1 <- sum(w * u)
@@ -72,9 +73,10 @@ plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   c((s2 * t0 - s1 * t1) / dn, (s0 * t1 - s1 * t0) / dn)
 }
 
-# the means of y in nb equal bins of u over lim (one side of the cutoff,
-# so no bin straddles it): the bins' midpoints x, means y and rows n; the
-# empty bins left out
+#' the means of y in nb equal bins of u over lim (one side of the cutoff,
+#' so no bin straddles it): the bins' midpoints x, means y and rows n; the
+#' empty bins left out
+#' @noRd
 .rdbin <- function(u, y, lim, nb, side) {
   if (lim[2L] <= lim[1L]) {
     return(data.frame(x = lim[1L], y = mean(y), n = length(y), side = side))
@@ -88,9 +90,10 @@ plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
              side = rep(side, sum(k)))
 }
 
-# what plot.rdloc() draws: the outcome's means in nb bins on each side,
-# and the local-linear line of each side over the rows the kernel weighs
-# (its intercepts differ by the conventional sharp estimate)
+#' what plot.rdloc() draws: the outcome's means in nb bins on each side,
+#' and the local-linear line of each side over the rows the kernel weighs
+#' (its intercepts differ by the conventional sharp estimate)
+#' @noRd
 .rdplt <- function(yv, rv, cut, h, kern, nb = 20L) {
   u <- rv - cut
   lf <- u < 0
@@ -107,10 +110,11 @@ plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   list(bins = bins, fit = fit)
 }
 
-# what plot.rddens() draws: McCrary's first-step histogram (the share of
-# the rows in each bin of width b, over b, at the bins' midpoints) and
-# the local-linear smooth of the heights on each side, triangle kernel of
-# bandwidth h, at ng points from the side's last bin to the cutoff
+#' what plot.rddens() draws: McCrary's first-step histogram (the share of
+#' the rows in each bin of width b, over b, at the bins' midpoints) and
+#' the local-linear smooth of the heights on each side, triangle kernel of
+#' bandwidth h, at ng points from the side's last bin to the cutoff
+#' @noRd
 .rddplt <- function(r, cut, b, h, ng = 40L) {
   j <- floor((r - cut) / b)
   lo <- min(j)
@@ -135,7 +139,8 @@ plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   list(bins = bins, fit = fit[is.finite(fit$y), , drop = FALSE])
 }
 
-# the pieces kept by the fit, or a refusal for a result without them
+#' the pieces kept by the fit, or a refusal for a result without them
+#' @noRd
 .rdpget <- function(x, cls) {
   p <- attr(x, "plt")
   if (!is.list(p) || is.null(p$bins) || is.null(p$fit)) {
@@ -145,8 +150,9 @@ plot.rddens <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   p
 }
 
-# the bins as points (open below the cutoff, filled from it on) and the
-# fitted lines of the two sides, the cutoff dashed; returns both
+#' the bins as points (open below the cutoff, filled from it on) and the
+#' fitted lines of the two sides, the cutoff dashed; returns both
+#' @noRd
 .rddraw <- function(p, cut, main, xlab, ylab, col = NULL, pal = NULL, ...) {
   cl <- .pcols(2L, col, pal)
   b <- p$bins

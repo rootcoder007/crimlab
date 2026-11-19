@@ -146,8 +146,9 @@ print.dstfit <- function(x, ...) {
   invisible(x)
 }
 
-# The families: names, whether they are for counts, what they need, their
-# parameters.
+#' The families: names, whether they are for counts, what they need, their
+#' parameters.
+#' @noRd
 .dfams <- function() {
   pos <- "every value above 0"
   cn <- "counts (whole numbers, 0 or more)"
@@ -167,7 +168,8 @@ print.dstfit <- function(x, ...) {
   )
 }
 
-# dstfit(): `x` checked, its missing values counted and dropped, sorted
+#' dstfit(): `x` checked, its missing values counted and dropped, sorted
+#' @noRd
 .dfx <- function(x, f) {
   if (!is.numeric(x) || is.object(x)) {
     .ckstop(f, "`x` must be a numeric vector")
@@ -187,6 +189,8 @@ print.dstfit <- function(x, ...) {
   list(x = x, nmiss = nmiss)
 }
 
+#' `nboot` checked as one whole number from 0 to 100,000.
+#' @noRd
 .dfnb <- function(nboot, f) {
   nboot <- .ckn(nboot, "nboot", f, integer = TRUE)
   if (length(nboot) != 1L || is.na(nboot) || nboot < 0 || nboot > 1e5) {
@@ -195,6 +199,8 @@ print.dstfit <- function(x, ...) {
   nboot
 }
 
+#' `conflvl` checked as one number strictly between 0 and 1.
+#' @noRd
 .dfcl <- function(conflvl, f) {
   conflvl <- .ckn(conflvl, "conflvl", f)
   if (length(conflvl) != 1L || is.na(conflvl) || conflvl <= 0 ||
@@ -204,8 +210,9 @@ print.dstfit <- function(x, ...) {
   conflvl
 }
 
-# the families asked for (by default every one the data allow), each
-# checked against what it needs
+#' the families asked for (by default every one the data allow), each
+#' checked against what it needs
+#' @noRd
 .dffams <- function(fams, x, fm, f) {
   pos <- all(x > 0)
   cnt <- all(x >= 0 & x == round(x))
@@ -223,8 +230,9 @@ print.dstfit <- function(x, ...) {
   fams
 }
 
-# one family fitted: its row of the table and its parameters (NULL when
-# the fit failed)
+#' one family fitted: its row of the table and its parameters (NULL when
+#' the fit failed)
+#' @noRd
 .dfone <- function(nm, x, fm) {
   n <- length(x)
   i <- match(nm, fm$name)
@@ -247,7 +255,8 @@ print.dstfit <- function(x, ...) {
   ), p = p)
 }
 
-# the bootstrap intervals of every fitted family's parameters
+#' the bootstrap intervals of every fitted family's parameters
+#' @noRd
 .dfboot <- function(fits, x, fm, nboot, conflvl, seed, f) {
   n <- length(x)
   a <- (1 - conflvl) / 2
@@ -277,7 +286,8 @@ print.dstfit <- function(x, ...) {
   ))
 }
 
-# the Hill estimate of the tail index, for ten or more positive values
+#' the Hill estimate of the tail index, for ten or more positive values
+#' @noRd
 .dfhill <- function(x, k, conflvl, f) {
   n <- length(x)
   if (n < 10L || !all(x > 0)) {
@@ -288,6 +298,8 @@ print.dstfit <- function(x, ...) {
   list(k = as.integer(kk), alpha = h[1L], lower = h[2L], upper = h[3L])
 }
 
+#' `k` checked as one whole number from 2 to n - 1.
+#' @noRd
 .dfk <- function(k, n, f) {
   v <- .ckn(k, "k", f, integer = TRUE)
   if (length(v) != 1L || is.na(v) || v < 2 || v > n - 1) {

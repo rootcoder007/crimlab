@@ -613,6 +613,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
 
 # ---- checks and computations for the helpers --------------------------------
 
+#' `x` and `grp` checked for the plots of a variable by group.
+#' @noRd
 .pxg <- function(x, grp, fn) {
   if (!is.numeric(x) || is.object(x)) {
     stop(fn, ": `x` must be a numeric vector.", call. = FALSE)
@@ -635,6 +637,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   d
 }
 
+#' The bandwidth `bw` checked: the name of a rule or one positive number.
+#' @noRd
 .pbw <- function(bw, fn) {
   rules <- c("nrd0", "nrd", "ucv", "bcv", "sj", "sj-ste", "sj-dpi")
   ok <- if (is.character(bw)) {
@@ -649,11 +653,12 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   invisible(bw)
 }
 
-# stats::density(x, bw, adjust, kernel, weights, n, from, to, cut) by the
-# compiled kernel of the command line's plotrdg() and plotvln(): a list of
-# the points x, the densities y, the bandwidth bw, the points n of the FFT
-# grid and warn, TRUE when a ucv or bcv minimum is at one end of its range.
-# from and to NA: not given. An unknown rule or kernel is an error.
+#' stats::density(x, bw, adjust, kernel, weights, n, from, to, cut) by the
+#' compiled kernel of the command line's plotrdg() and plotvln(): a list of
+#' the points x, the densities y, the bandwidth bw, the points n of the FFT
+#' grid and warn, TRUE when a ucv or bcv minimum is at one end of its range.
+#' from and to NA: not given. An unknown rule or kernel is an error.
+#' @noRd
 .dens <- function(x, bw = "nrd0", adjust = 1, kernel = "gaussian",
                   weights = NULL, n = 512L, from = NA, to = NA, cut = 3) {
   rs <- c("nrd0", "nrd", "ucv", "bcv", "sj-ste", "sj-dpi", "sj")
@@ -666,10 +671,11 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
         as.double(c(if (is.character(bw)) 0 else bw, adjust, cut, from, to)))
 }
 
-# the density of one group for plotrdg() and plotvln(): the compiled kernel,
-# so R, the command line and the other languages draw the same curve on
-# every version of R, with the warning bw.ucv() and bw.bcv() give and a
-# refusal in the words of stats::density(), under no other name
+#' the density of one group for plotrdg() and plotvln(): the compiled kernel,
+#' so R, the command line and the other languages draw the same curve on
+#' every version of R, with the warning bw.ucv() and bw.bcv() give and a
+#' refusal in the words of stats::density(), under no other name
+#' @noRd
 .pdens <- function(v, bw) {
   k <- tryCatch(.dens(v, bw = bw), error = function(e) {
     stop(sub("^dens: ", "", conditionMessage(e)), call. = FALSE)
@@ -680,7 +686,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   k
 }
 
-# the Lorenz curve and Gini of non-negative values, from the compiled core
+#' the Lorenz curve and Gini of non-negative values, from the compiled core
+#' @noRd
 .pcc <- function(x, fn) {
   ok <- is.numeric(x) && !is.object(x)
   # the total too must be a number: values near 1e308 add up to Inf
@@ -692,6 +699,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   cconc(as.numeric(x), nsim = 0)
 }
 
+#' The columns pop and share of a frame for plotlrnz(), checked and ordered.
+#' @noRd
 .plz <- function(d) {
   if (!all(c("pop", "share") %in% names(d))) {
     stop("plotlrnz: a frame `x` needs the columns pop and share.",
@@ -710,6 +719,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   d
 }
 
+#' The hexagonal bin of each point.
+#' @noRd
 .phex <- function(x, y, bins, rx, ry) {
   sx <- (x - rx[1L]) / diff(rx) * bins
   sy <- (y - ry[1L]) / diff(ry) * bins
@@ -732,6 +743,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
              count = tabulate(match(key, key[f]), length(f)))
 }
 
+#' `y`, `prd` and `grp` checked for the plots of series.
+#' @noRd
 .pser <- function(y, prd, grp, fn) {
   if (!is.numeric(y) || is.object(y)) {
     stop(fn, ": `y` must be a numeric vector.", call. = FALSE)
@@ -763,14 +776,17 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   d[order(d$grp, d$pos), , drop = FALSE]
 }
 
-# the checked inputs of plotfnl(): areas missing either count dropped
-# plotfnl(): NULL, or a label per area
+#' the checked inputs of plotfnl(): areas missing either count dropped
+#' plotfnl(): NULL, or a label per area
+#' @noRd
 .pfarea <- function(area, n) {
   if (!is.null(area) && !(is.atomic(area) && length(area) == n)) {
     stop("plotfnl: `area` must have one label per area.", call. = FALSE)
   }
 }
 
+#' The arguments of plotfnl() checked.
+#' @noRd
 .pfchk <- function(obs, expd, area, lvls, target) {
   for (a in list(list(obs, "obs"), list(expd, "expd"), list(lvls, "lvls"))) {
     if (!is.numeric(a[[1L]])) {
@@ -800,13 +816,16 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   list(obs = obs, expd = expd, keep = keep, lv = sort(as.numeric(lvls)))
 }
 
-# a named list of event studies
+#' a named list of event studies
+#' @noRd
 .pevok <- function(x) {
   ok <- c(is.list(x), !is.object(x), length(x) > 0L, !is.null(names(x)))
   all(ok) && all(nzchar(names(x)), vapply(x, inherits, NA,
                                           c("evtst", "stgdid")))
 }
 
+#' The arguments of plotcoh() checked.
+#' @noRd
 .pcohck <- function(y, unit, time, first, win, ma, norm) {
   n <- length(y)
   if (!is.numeric(y) || is.object(y) || !n) {
@@ -822,7 +841,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   .pcohopt(win, ma, norm)
 }
 
-# the window, the moving average and the scaling
+#' the window, the moving average and the scaling
+#' @noRd
 .pcohopt <- function(win, ma, norm) {
   if (!is.numeric(win) || length(win) != 2L || anyNA(win) ||
         any(win != round(win)) || win[1L] > -1 || win[2L] < 0) {
@@ -839,7 +859,8 @@ plotcoh <- function(y, unit, time, first, win = c(-12, 12), ma = 3,
   invisible(NULL)
 }
 
-# one cohort: its mean by period, smoothed, by periods since adoption
+#' one cohort: its mean by period, smoothed, by periods since adoption
+#' @noRd
 .pcohrow <- function(y, time, g, win, ma, norm) {
   m <- tapply(y, time, mean)
   v <- as.vector(m)

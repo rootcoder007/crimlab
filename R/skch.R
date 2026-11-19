@@ -270,14 +270,18 @@ skchmrg <- function(a, b) {
   pmax(a, b)
 }
 
-# .rmbl_num(): numbers, or text that reads as numbers; not flags.
-# An accumulator of onlsmry(): its class and a state of five numbers (a
-# list of that class without them, unnamed, would reach the compiled code).
+#' .rmbl_num(): numbers, or text that reads as numbers; not flags.
+#' An accumulator of onlsmry(): its class and a state of five numbers (a
+#' list of that class without them, unnamed, would reach the compiled code).
+#' @noRd
 .skacc <- function(a) {
   inherits(a, "onlsmry") && is.list(a) && is.numeric(a[["state"]]) &&
     length(a[["state"]]) == 5L
 }
 
+#' `x` checked for the sketches: numbers, logicals or text, never a factor or
+#'   a list.
+#' @noRd
 .sknum <- function(x, what, fn) {
   if (is.factor(x) || is.list(x) ||
         !(is.numeric(x) || is.logical(x) || is.character(x))) {
@@ -300,6 +304,8 @@ skchmrg <- function(a, b) {
   as.numeric(x)
 }
 
+#' Adds the values `x` to a moment sketch; infinite values are refused.
+#' @noRd
 .skupd <- function(acc, x, fn) {
   x <- x[!is.na(x)]
   if (any(is.infinite(x))) {
@@ -313,7 +319,8 @@ skchmrg <- function(a, b) {
   acc
 }
 
-# rsvidx(): `n` and `k`, whole numbers from 0 to 2147483647
+#' rsvidx(): `n` and `k`, whole numbers from 0 to 2147483647
+#' @noRd
 .rswhole <- function(v, what, f) {
   if (length(v) != 1L || is.na(v) || !is.finite(v) || v < 0 ||
         v != floor(v)) {
@@ -324,6 +331,8 @@ skchmrg <- function(a, b) {
   }
 }
 
+#' `seed` checked as a whole number in [0, 2^53).
+#' @noRd
 .rsseed <- function(seed, f) {
   if (length(seed) != 1L || is.na(seed) || seed < 0 || seed != floor(seed) ||
         seed >= 2^53) {
@@ -332,6 +341,8 @@ skchmrg <- function(a, b) {
   seed
 }
 
+#' `p` checked as one whole number from 4 to 20.
+#' @noRd
 .dsp <- function(p, f) {
   if (length(p) != 1L || is.na(p) || p < 4 || p > 20 || p != round(p)) {
     .ckstop(f, "`p` must be a single integer between 4 and 20")
@@ -339,7 +350,8 @@ skchmrg <- function(a, b) {
   p
 }
 
-# dstnskch(): the registers of a sketch with the same `p`
+#' dstnskch(): the registers of a sketch with the same `p`
+#' @noRd
 .dsreg <- function(regstr, p, f) {
   regstr <- .skreg(regstr, "regstr", f)
   if (length(regstr) != 2^p) {
@@ -351,6 +363,8 @@ skchmrg <- function(a, b) {
   regstr
 }
 
+#' The registers `r` checked as whole numbers from 0 to 64.
+#' @noRd
 .skreg <- function(r, what, fn) {
   if (is.factor(r) || is.list(r) || !(is.numeric(r) || is.logical(r))) {
     .ckstop(fn, "`%s` must be numeric, got %s", what, class(r)[1L])

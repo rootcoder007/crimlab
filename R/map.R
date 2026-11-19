@@ -269,8 +269,9 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
   ))
 }
 
-# The areas checked: their coordinates in one vector each (an NA between
-# areas, for the box) and their labels.
+#' The areas checked: their coordinates in one vector each (an NA between
+#' areas, for the box) and their labels.
+#' @noRd
 .mpoly <- function(polys, fn) {
   if (!is.list(polys) || is.data.frame(polys) || !length(polys)) {
     .ckstop(fn, "`polys` must be a non-empty list of areas")
@@ -291,8 +292,9 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
        lab = if (is.null(names(polys))) seq_along(polys) else names(polys))
 }
 
-# The breaks and the class of each value (NA when not finite), from the
-# compiled kernel.
+#' The breaks and the class of each value (NA when not finite), from the
+#' compiled kernel.
+#' @noRd
 .mbrk <- function(v, brk, mthd, fn) {
   if (!is.character(mthd) || length(mthd) != 1L ||
         !mthd %in% c("quantile", "equal")) {
@@ -319,7 +321,8 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
   list(br = r$br, cls = cls)
 }
 
-# The colour of each class and of each value.
+#' The colour of each class and of each value.
+#' @noRd
 .mfill <- function(b, col, pal, fn) {
   nc <- length(b$br) - 1L
   pl <- if (is.null(col)) {
@@ -330,13 +333,16 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
   list(pal = pl, col = pl[b$cls])
 }
 
-# An empty map frame: the box at an aspect of 1 and the title.
+#' An empty map frame: the box at an aspect of 1 and the title.
+#' @noRd
 .mfrm <- function(bb, main, ...) {
   graphics::plot.new()
   graphics::plot.window(bb[1:2], bb[3:4], asp = 1, ...)
   graphics::title(main = main, font.main = 1, cex.main = 1.05)
 }
 
+#' Draws the polygons of a map with their fills, and the key.
+#' @noRd
 .mdraw <- function(polys, fill, br, pl, bb, main, key, ...) {
   .mfrm(bb, main, ...)
   for (i in seq_along(polys)) {
@@ -353,7 +359,8 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
 # the point shapes of the clusters, in turn
 .mpch <- c(16L, 17L, 15L, 18L, 1L, 2L, 0L, 5L)
 
-# The points checked: x and y, or x a matrix or data frame of two columns.
+#' The points checked: x and y, or x a matrix or data frame of two columns.
+#' @noRd
 .mxy <- function(x, y, fn) {
   if (is.null(y)) {
     ok <- (is.matrix(x) && is.numeric(x) && ncol(x) == 2L) ||
@@ -376,8 +383,9 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
   list(x = x, y = y)
 }
 
-# The cluster of each point: a dbscn result's, or whole numbers from 1 and
-# NA for noise.
+#' The cluster of each point: a dbscn result's, or whole numbers from 1 and
+#' NA for noise.
+#' @noRd
 .mcl <- function(cl, n, fn) {
   if (inherits(cl, "dbscn")) cl <- cl[["cl"]]
   ok <- is.numeric(cl) && length(cl) == n &&
@@ -389,8 +397,9 @@ prpmap <- function(x, y = NULL, v, rmax = NULL, ..., main = NULL,
   as.integer(cl)
 }
 
-# The values of smmap(): a numeric matrix (a data frame of numbers made
-# one), one row per area of na and a column per period.
+#' The values of smmap(): a numeric matrix (a data frame of numbers made
+#' one), one row per area of na and a column per period.
+#' @noRd
 .msmv <- function(v, na, f) {
   if (is.data.frame(v) && length(v) && all(vapply(v, is.numeric, NA))) {
     v <- as.matrix(v)

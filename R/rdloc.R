@@ -269,7 +269,8 @@ print.rddens <- function(x, ...) {
 #' @export
 summary.rddens <- function(object, ...) object[["tab"]]
 
-# The kernel weights of u = distance / h: 0 outside (-1, 1).
+#' The kernel weights of u = distance / h: 0 outside (-1, 1).
+#' @noRd
 .rdkw <- function(u, kern) {
   switch(
     kern,
@@ -279,11 +280,12 @@ summary.rddens <- function(object, ...) object[["tab"]]
   )
 }
 
-# One local polynomial fit of order p at 0 of the centred running
-# variable rv with bandwidth h: the jump in y (sharp) or its ratio to the
-# jump in tv (fuzzy, the treatment instrumented by the side), and its
-# variance from the rows' scores, heteroskedasticity-robust or clustered
-# by cl (the labels of all rows, or NULL); src/rdd.cpp, clab_rdfit.
+#' One local polynomial fit of order p at 0 of the centred running
+#' variable rv with bandwidth h: the jump in y (sharp) or its ratio to the
+#' jump in tv (fuzzy, the treatment instrumented by the side), and its
+#' variance from the rows' scores, heteroskedasticity-robust or clustered
+#' by cl (the labels of all rows, or NULL); src/rdd.cpp, clab_rdfit.
+#' @noRd
 .rdfit <- function(yv, rv, tv, h, kern, p, cl, ssc, fn) {
   cc <- if (is.null(cl)) NULL else .axcode(cl)$c
   s <- .Call(C_clab_r_rdfit, as.numeric(yv), as.numeric(rv),
@@ -299,10 +301,11 @@ summary.rddens <- function(object, ...) object[["tab"]]
   list(est = s[1L], se = s[2L], n = m[1L], nl = m[2L], nr = m[3L], g = m[4L])
 }
 
-# The bandwidth of rdloc(): h as given (bw = "user") or that of Imbens and
-# Kalyanaraman (2012) from src/rdd.cpp, with its steps: list(h, ik).
-# rdloc(): the outcome, running and treatment columns as numbers, and the
-# cut, with rows on both sides of it
+#' The bandwidth of rdloc(): h as given (bw = "user") or that of Imbens and
+#' Kalyanaraman (2012) from src/rdd.cpp, with its steps: list(h, ik).
+#' rdloc(): the outcome, running and treatment columns as numbers, and the
+#' cut, with rows on both sides of it
+#' @noRd
 .rdin <- function(d, y, run, trt, cut, f) {
   .axcolsj(d, list(y, run), "y, run", f, 2L)
   .axcols(d, trt, "trt", f, n = 1L, null = TRUE)
@@ -316,7 +319,8 @@ summary.rddens <- function(object, ...) object[["tab"]]
   list(yv = yv, rv = rv, tv = tv, cut = cut)
 }
 
-# rdloc(): the clusters with se = "cluster", else NULL
+#' rdloc(): the clusters with se = "cluster", else NULL
+#' @noRd
 .rdcl <- function(d, se, clus, f) {
   if (se != "cluster") return(NULL)
   if (is.null(clus)) .ckstop(f, "`se = \"cluster\"` needs `clus`")
@@ -324,6 +328,9 @@ summary.rddens <- function(object, ...) object[["tab"]]
   d[[clus]]
 }
 
+#' The bandwidth of rdloc(): the caller's `h`, or the one of Imbens and
+#'   Kalyanaraman.
+#' @noRd
 .rdbw <- function(bw, h, yv, rv, cut, kc, f) {
   ik <- NULL
   if (bw == "user") {
@@ -343,8 +350,9 @@ summary.rddens <- function(object, ...) object[["tab"]]
   list(h = h, ik = ik)
 }
 
-# The placebo cutoffs of rdloc(): the local linear fit at each false
-# cutoff on the rows of its own side of the true one.
+#' The placebo cutoffs of rdloc(): the local linear fit at each false
+#' cutoff on the rows of its own side of the true one.
+#' @noRd
 .rdplc <- function(plac, cut, yv, rv, h, kern, cl, ssc, f) {
   plac <- .cknum(plac, "plac", f, scalar = FALSE)
   if (any(plac == cut)) .ckstop(f, "`plac` must not hold `cut` itself")

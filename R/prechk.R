@@ -79,7 +79,8 @@ prechk <- function(data, preset, codes = NULL) {
   invisible(data)
 }
 
-# prechk(): the rows of the preset, named or given as a table
+#' prechk(): the rows of the preset, named or given as a table
+#' @noRd
 .pkrow <- function(preset) {
   if (is.data.frame(preset)) {
     return(.ptab(preset))
@@ -97,7 +98,8 @@ prechk <- function(data, preset, codes = NULL) {
   r
 }
 
-# prechk(): the publisher's codes, by default those of the preset's agency
+#' prechk(): the publisher's codes, by default those of the preset's agency
+#' @noRd
 .pkcodes <- function(codes, name) {
   if (is.null(codes)) {
     k <- .presets("codes.tsv")
@@ -110,7 +112,8 @@ prechk <- function(data, preset, codes = NULL) {
   codes
 }
 
-# prechk(): the columns the preset reads from the table
+#' prechk(): the columns the preset reads from the table
+#' @noRd
 .pkneed <- function(r, rec) {
   ins <- unlist(Map(.rin, r$column[rec], r$recode[rec]), use.names = FALSE)
   ins <- ins[!is.na(ins) & nzchar(ins)]
@@ -120,8 +123,9 @@ prechk <- function(data, preset, codes = NULL) {
   unique(c(ins, read))
 }
 
-# prechk(): what does not fit: missing columns, labels outside the codes,
-# labels a mapping leaves without a value
+#' prechk(): what does not fit: missing columns, labels outside the codes,
+#' labels a mapping leaves without a value
+#' @noRd
 .pkmsg <- function(data, r, rec, need, codes) {
   msg <- character()
   miss <- setdiff(need, names(data))
@@ -145,9 +149,10 @@ prechk <- function(data, preset, codes = NULL) {
   msg
 }
 
-# The labels of x (column col) that known(), given labels in lower case
-# without surrounding space, rejects: one line of prechk()'s message, or
-# none when all are known.
+#' The labels of x (column col) that known(), given labels in lower case
+#' without surrounding space, rejects: one line of prechk()'s message, or
+#' none when all are known.
+#' @noRd
 .unk <- function(x, col, why, known) {
   u <- unique(trimws(as.character(x[!is.na(x)])))
   u <- u[!known(tolower(u))]
@@ -157,8 +162,9 @@ prechk <- function(data, preset, codes = NULL) {
   sprintf("column %s has labels %s: %s.", col, why, toString(u))
 }
 
-# The labels a mapping rule s covers, as clprep() matches them: a function
-# of labels in lower case.
+#' The labels a mapping rule s covers, as clprep() matches them: a function
+#' of labels in lower case.
+#' @noRd
 .known <- function(s) {
   keys <- vapply(strsplit(strsplit(s, ";", fixed = TRUE)[[1L]], "=",
                           fixed = TRUE), `[`, "", 1L)
@@ -172,7 +178,8 @@ prechk <- function(data, preset, codes = NULL) {
   }
 }
 
-# The columns of the table a recipe reads, from its name and its recode.
+#' The columns of the table a recipe reads, from its name and its recode.
+#' @noRd
 .rin <- function(name, arg) {
   sp <- function(s) strsplit(arg, s, fixed = TRUE)[[1L]]
   switch(

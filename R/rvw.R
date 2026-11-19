@@ -224,6 +224,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
 
 # ---- checks and parts shared by the three --------------------------------
 
+#' `x` checked as numbers from 0 with none missing; returns how many.
+#' @noRd
 .sdnum <- function(x, nm, fn) {
   if (!is.numeric(x) || !length(x) || anyNA(x) || any(x < 0)) {
     stop(fn, ": `", nm, "` must be numbers from 0 with no missing value.",
@@ -232,6 +234,9 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
   length(x)
 }
 
+#' `x` checked as percentages from 0 to 100 with none missing; returns how
+#'   many.
+#' @noRd
 .sdpct <- function(x, nm, fn) {
   if (!is.numeric(x) || !length(x) || anyNA(x) || any(x < 0 | x > 100)) {
     stop(fn, ": `", nm, "` must be percentages from 0 to 100 with no ",
@@ -240,10 +245,14 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
   length(x)
 }
 
+#' Stops: an argument must have one value per stay.
+#' @noRd
 .sdlen <- function(nm, fn) {
   stop(fn, ": `", nm, "` must have one value per stay.", call. = FALSE)
 }
 
+#' `cuts` checked as increasing numbers above 0 and below `top`.
+#' @noRd
 .sdcuts <- function(cuts, fn, top) {
   bad <- !is.numeric(cuts) || !length(cuts) || anyNA(cuts)
   if (!bad) {
@@ -257,6 +266,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
   invisible(NULL)
 }
 
+#' `level` checked as one number between 0 and 1.
+#' @noRd
 .sdlev <- function(level, fn) {
   if (!.pnum1(level) || level <= 0 || level >= 1) {
     stop(fn, ": `level` must be one number between 0 and 1.", call. = FALSE)
@@ -264,7 +275,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
   level
 }
 
-# the groups in the order they appear, then "all"
+#' the groups in the order they appear, then "all"
+#' @noRd
 .sdgrp <- function(by, n, fn) {
   if (is.null(by)) {
     return(list(lev = "all", all = function(k) rep(TRUE, n)))
@@ -278,8 +290,9 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
        all = function(k) if (k == "all") rep(TRUE, n) else by == k)
 }
 
-# the names of the bands the cuts part: up to the first, between, over the
-# last (or, with `top`, over the last and under `top`)
+#' the names of the bands the cuts part: up to the first, between, over the
+#' last (or, with `top`, over the last and under `top`)
+#' @noRd
 .sdband <- function(cuts, top = NULL) {
   f <- sprintf("%.15g", cuts)
   k <- length(f)
@@ -289,7 +302,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
       paste("over", f[k], "to under", top))
 }
 
-# k of n: the share and its Clopper-Pearson limits (NA of no cases)
+#' k of n: the share and its Clopper-Pearson limits (NA of no cases)
+#' @noRd
 .sdcp <- function(k, n, a) {
   lo <- suppressWarnings(ifelse(k > 0, stats::qbeta(a / 2, k, n - k + 1), 0))
   hi <- suppressWarnings(ifelse(k < n, stats::qbeta(1 - a / 2, k + 1, n - k),
@@ -299,7 +313,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
        hi = ifelse(z, NA_real_, hi))
 }
 
-# the stays that missed, by the hours they received on the days they missed
+#' the stays that missed, by the hours they received on the days they missed
+#' @noRd
 .enthrs <- function(hours, miss, n) {
   if (length(hours) != n || !(is.numeric(hours) || all(is.na(hours))) ||
         any(hours < 0, na.rm = TRUE)) {
@@ -313,8 +328,9 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
              stringsAsFactors = FALSE)
 }
 
-# refusals: the stays that refused most days, and those that missed on more
-# days than they refused
+#' refusals: the stays that refused most days, and those that missed on more
+#' days than they refused
+#' @noRd
 .entref <- function(ref, miss, n, g) {
   if (.sdpct(ref, "ref", "entcmp") != n) .sdlen("ref", "entcmp")
   do.call(rbind, lapply(g$lev, function(k) {
@@ -324,7 +340,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
   }))
 }
 
-# the checks of dmvar()
+#' the checks of dmvar()
+#' @noRd
 .dmck <- function(dec, dm, out, nmin) {
   n <- length(dec)
   if (!n || anyNA(dec) || !is.atomic(dec)) {
@@ -347,7 +364,8 @@ dmvar <- function(dec, dm, out, nmin = 5, level = 0.95) {
   invisible(NULL)
 }
 
-# Pearson's chi-square that k of n is one rate over the decision makers
+#' Pearson's chi-square that k of n is one rate over the decision makers
+#' @noRd
 .dmchi <- function(n, k) {
   m <- length(n)
   tot <- sum(n)

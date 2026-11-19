@@ -133,8 +133,9 @@ print.exprspplr <- function(x, ...) {
   invisible(x)
 }
 
-# The built-in estimator on the full sample and the resamples: the rows and
-# folds drawn here with R's generator, the fits in the core.
+#' The built-in estimator on the full sample and the resamples: the rows and
+#' folds drawn here with R's generator, the fits in the core.
+#' @noRd
 .plrfit <- function(data, y, expo, confs, nboot, rstate, fn) {
   keep <- .plrkeep(data, c(y, expo, confs), fn)
   n <- nrow(data)
@@ -177,7 +178,8 @@ print.exprspplr <- function(x, ...) {
   )
 }
 
-# exprspplr(): `estr` as a function (a name looked up), or NULL
+#' exprspplr(): `estr` as a function (a name looked up), or NULL
+#' @noRd
 .esfun <- function(estr, f) {
   if (is.character(estr) && length(estr) == 1L && !is.na(estr)) {
     nm <- estr
@@ -194,6 +196,9 @@ print.exprspplr <- function(x, ...) {
   estr
 }
 
+#' `nboot` checked as a whole number of resamples up to a million, as an
+#'   integer.
+#' @noRd
 .esnb <- function(nboot, f) {
   nboot <- .polsc(nboot, "nboot", f)
   if (nboot != round(nboot) || nboot > 1e6) {
@@ -202,8 +207,9 @@ print.exprspplr <- function(x, ...) {
   as.integer(nboot)
 }
 
-# exprspplr(): the caller's estimator on the full sample and the resamples
-# (a resample it fails on is left out)
+#' exprspplr(): the caller's estimator on the full sample and the resamples
+#' (a resample it fails on is left out)
+#' @noRd
 .esuser <- function(data, y, expo, confs, nboot, rstate, estr, f) {
   n <- nrow(data)
   base <- tryCatch(estr(data, y, expo, confs), error = function(e) {
@@ -237,7 +243,8 @@ print.exprspplr <- function(x, ...) {
   list(base = base, boot = boot)
 }
 
-# exprspplr(): the result from the estimate and its resampled estimates
+#' exprspplr(): the result from the estimate and its resampled estimates
+#' @noRd
 .esout <- function(base, boot, f) {
   if (length(boot) < 10L) {
     .ckstop(
@@ -267,7 +274,8 @@ print.exprspplr <- function(x, ...) {
   )
 }
 
-# .plrfit(): the complete rows of the columns, each column checked
+#' .plrfit(): the complete rows of the columns, each column checked
+#' @noRd
 .plrkeep <- function(data, cols, fn) {
   miss <- setdiff(cols, names(data))
   if (length(miss)) {
@@ -296,7 +304,8 @@ print.exprspplr <- function(x, ...) {
   keep
 }
 
-# the folds plrcf() draws: seed 1 for every fit, so one set per size
+#' the folds plrcf() draws: seed 1 for every fit, so one set per size
+#' @noRd
 .plrfolds <- function() {
   fd <- new.env(parent = emptyenv())
   function(m) {

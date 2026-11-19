@@ -119,7 +119,8 @@ print.rcttml <- function(x, ...) {
   invisible(x)
 }
 
-# The outcome, treatment and covariate columns: present, each once.
+#' The outcome, treatment and covariate columns: present, each once.
+#' @noRd
 .rtcols <- function(dd, y, d, x, f) {
   .axcols(dd, y, "y", f, n = 1L)
   .axcols(dd, d, "d", f, n = 1L)
@@ -129,7 +130,8 @@ print.rcttml <- function(x, ...) {
   }
 }
 
-# The treatment 0 or 1 with two in each arm; a binomial outcome 0 or 1.
+#' The treatment 0 or 1 with two in each arm; a binomial outcome 0 or 1.
+#' @noRd
 .rtarm <- function(yv, dv, y, d, fam, f) {
   if (!all(dv %in% c(0, 1))) .ckstop(f, "column `%s` must hold 0 or 1", d)
   if (sum(dv) < 2 || sum(1 - dv) < 2) {
@@ -141,7 +143,8 @@ print.rcttml <- function(x, ...) {
   }
 }
 
-# The known chance of treatment g, checked against gx and x.
+#' The known chance of treatment g, checked against gx and x.
+#' @noRd
 .rtg <- function(g, gx, x, f) {
   if (!is.null(g)) {
     g <- .xpopen(g, "g", f)
@@ -151,7 +154,8 @@ print.rcttml <- function(x, ...) {
   g
 }
 
-# The bounds of a continuous outcome (its range by default); 0, 1 else.
+#' The bounds of a continuous outcome (its range by default); 0, 1 else.
+#' @noRd
 .rtbnd <- function(bounds, yv, fam, f) {
   if (fam != "gaussian") return(c(0, 1))
   if (is.null(bounds)) bounds <- range(yv)
@@ -163,7 +167,8 @@ print.rcttml <- function(x, ...) {
   bounds
 }
 
-# The table of the three estimates from the kernel's out.
+#' The table of the three estimates from the kernel's out.
+#' @noRd
 .rttab <- function(out, level) {
   est <- out[1:3]
   se <- out[4:6]

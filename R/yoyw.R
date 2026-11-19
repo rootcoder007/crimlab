@@ -185,7 +185,8 @@ print.yoysmry <- function(x, ...) {
 #'
 #' @param x A change table ([yoypx()]); `yoycsv()`, `yoytsv()` and
 #'   `yoyjs()` take any data frame.
-#' @param file A file path, or `NULL` to return the text.
+#' @param file A file path, or `NULL` to return the text. A name with no
+#'   suffix is given the format's own (`.csv`, `.tsv`, `.json`, `.md`).
 #' @param digits `NULL`, or the decimals of the percentage columns (0 to
 #'   15); in `yoymd()` the decimals of the change shown.
 #' @param na The text of a missing value.
@@ -194,7 +195,8 @@ print.yoysmry <- function(x, ...) {
 #' @param comment The comment mark of the `meta` line.
 #' @param pretty `TRUE` indents the JSON.
 #' @param align `TRUE` pads the Markdown columns to a common width.
-#' @return The text when `file` is `NULL`, otherwise `file`, invisibly.
+#' @return The text when `file` is `NULL`, otherwise the path written,
+#'   invisibly.
 #' @seealso [yoywr()], [yoyhtml()].
 #' @examples
 #' # simulated police-reported counts by offence and year, any agency
@@ -225,7 +227,7 @@ yoytsv <- function(x, file = NULL, digits = NULL, na = "", meta = NULL,
 #' @rdname yoycsv
 #' @export
 yoyjs <- function(x, file = NULL, digits = NULL, pretty = TRUE, meta = NULL) {
-  file <- .yfile(file, "yoyjs")
+  file <- .cksfx(.yfile(file, "yoyjs"), "json")
   pretty <- .yflag(pretty, "pretty", "yoyjs")
   d <- .yexp(x, digits, "yoyjs")
   m <- .ymeta(meta, "yoyjs")
@@ -253,7 +255,7 @@ yoyjs <- function(x, file = NULL, digits = NULL, pretty = TRUE, meta = NULL) {
 #' @rdname yoycsv
 #' @export
 yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
-  file <- .yfile(file, "yoymd")
+  file <- .cksfx(.yfile(file, "yoymd"), "md")
   d <- .ytab(x, "yoymd")
   digits <- .ydig(digits, "yoymd")
   align <- .yflag(align, "align", "yoymd")
@@ -293,10 +295,14 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   .yout(paste0(paste(lines, collapse = "\n"), "\n"), file)
 }
 
+#' Numbers formatted by the kernel in the given mode and decimals.
+#' @noRd
 .yfmt <- function(x, mode, d = 0L) {
   .Call(C_clab_r_fmt, as.numeric(x), as.integer(mode), as.integer(d))
 }
 
+#' `x` checked as a change table.
+#' @noRd
 .ytab <- function(x, fn) {
   need <- c("prd", "value", "prev", "change")
   if (!is.data.frame(x) || !all(need %in% names(x)) ||
@@ -313,8 +319,14 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   as.data.frame(unclass(x))
 }
 
+#' The name of the change column of a table: ppchg when it has it, else
+#'   pctchg.
+#' @noRd
 .ychg <- function(d) if ("ppchg" %in% names(d)) "ppchg" else "pctchg"
 
+#' `d` checked as one whole number of decimals from 0 to 15 (NULL allowed with
+#'   `null`).
+#' @noRd
 .ydig <- function(d, fn, nm = "digits", null = FALSE) {
   if (null && is.null(d)) {
     return(NULL)
@@ -327,6 +339,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   as.integer(d)
 }
 
+#' `x` checked as TRUE or FALSE.
+#' @noRd
 .yflag <- function(x, nm, fn) {
   if (!is.logical(x) || length(x) != 1L || is.na(x)) {
     stop(fn, ": `", nm, "` must be TRUE or FALSE.", call. = FALSE)
@@ -334,7 +348,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   x
 }
 
-# The lag of a summary: one positive number.
+#' The lag of a summary: one positive number.
+#' @noRd
 .ylag <- function(lag, fn) {
   if (!is.numeric(lag) || length(lag) != 1L || !is.finite(lag) || lag <= 0) {
     stop(fn, ": `lag` must be one positive number.", call. = FALSE)
@@ -342,6 +357,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   lag
 }
 
+#' `x` checked as one string.
+#' @noRd
 .ytxt1 <- function(x, nm, fn) {
   if (!is.character(x) || length(x) != 1L || is.na(x)) {
     stop(fn, ": `", nm, "` must be one string.", call. = FALSE)
@@ -349,6 +366,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   .cktxt(x, nm, fn)
 }
 
+#' `file` checked as NULL or one file path in a folder that exists.
+#' @noRd
 .yfile <- function(file, fn) {
   if (!is.null(file) && (!is.character(file) || length(file) != 1L ||
                            is.na(file) || !nzchar(file))) {
@@ -357,6 +376,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   .ckout(file, fn)
 }
 
+#' Returns the text, or writes it to `file` as UTF-8 and returns the path.
+#' @noRd
 .yout <- function(txt, file) {
   if (is.null(file)) {
     return(txt)
@@ -365,6 +386,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   invisible(file)
 }
 
+#' `meta` checked and joined into one line.
+#' @noRd
 .ymeta <- function(meta, fn) {
   if (!is.null(meta) && (!is.character(meta) || anyNA(meta))) {
     stop(fn, ": `meta` must be NULL or text.", call. = FALSE)
@@ -373,13 +396,15 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   if (length(meta)) gsub("[\r\n]+", " ", paste(meta, collapse = "; "))
 }
 
-# the period as shown: its label (yoylbl()) when there is one
+#' the period as shown: its label (yoylbl()) when there is one
+#' @noRd
 .yper <- function(d) {
   as.character(if ("perlbl" %in% names(d)) d$perlbl else d$prd)
 }
 
-# decimals of the values shown: none for counts (a table with an exact
-# interval), else the fewest that show every value to six places
+#' decimals of the values shown: none for counts (a table with an exact
+#' interval), else the fewest that show every value to six places
+#' @noRd
 .yvd <- function(d) {
   if ("pctlo" %in% names(d)) {
     return(0L)
@@ -394,20 +419,25 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   }, 0L)))
 }
 
+#' Numbers as text, a dash for a missing one.
+#' @noRd
 .ynum <- function(v, dg) {
   out <- .yfmt(v, 1L, dg)
   out[is.na(v)] <- "\u2014"
   out
 }
 
+#' Percentages or points as text, a dash for a missing one.
+#' @noRd
 .ypct <- function(v, dg, pp) {
   out <- .yfmt(v, if (pp) 3L else 2L, dg)
   out[is.na(v) | is.nan(v)] <- "\u2014"
   out
 }
 
-# control characters shown escaped, never written; ws keeps tabs and line
-# breaks
+#' control characters shown escaped, never written; ws keeps tabs and line
+#' breaks
+#' @noRd
 .yctl <- function(s, ws = FALSE) {
   s <- as.character(s)
   u <- function(k) intToUtf8(k)
@@ -438,7 +468,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   s
 }
 
-# a data frame with the percentage columns rounded when digits is given
+#' a data frame with the percentage columns rounded when digits is given
+#' @noRd
 .yexp <- function(x, digits, fn) {
   if (!is.data.frame(x)) {
     stop(fn, ": `x` must be a data frame.", call. = FALSE)
@@ -453,14 +484,17 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   d
 }
 
-# one column as text: numbers with every digit
+#' one column as text: numbers with every digit
+#' @noRd
 .ycol <- function(v) {
   if (is.factor(v)) v <- as.character(v)
   if (is.numeric(v)) .yfmt(v, 0L) else as.character(v)
 }
 
+#' Writes a table as delimited text, comma or tab.
+#' @noRd
 .ydelim <- function(x, file, sep, digits, na, meta, comment, fn) {
-  file <- .yfile(file, fn)
+  file <- .cksfx(.yfile(file, fn), if (sep == ",") "csv" else "tsv")
   na <- .ytxt1(na, "na", fn)
   comment <- .ytxt1(comment, "comment", fn)
   d <- .yexp(x, digits, fn)
@@ -483,7 +517,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   .yout(paste0(paste(lines, collapse = "\n"), "\n"), file)
 }
 
-# JSON text of one value
+#' JSON text of one value
+#' @noRd
 .yjs1 <- function(v) {
   if (is.factor(v)) v <- as.character(v)
   if (is.null(v) || length(v) == 0L || is.na(v)) {
@@ -513,7 +548,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   paste0("\"", s, "\"")
 }
 
-# an array of row objects; ind the indentation of the array, NULL flat
+#' an array of row objects; ind the indentation of the array, NULL flat
+#' @noRd
 .yjsrows <- function(d, ind) {
   if (!length(d) || !NROW(d[[1L]])) {
     return("[]")
@@ -538,6 +574,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   }
 }
 
+#' Text escaped for a cell of a Markdown table.
+#' @noRd
 .ymdesc <- function(v) {
   v <- .yctl(gsub("([\\\\`*])", "\\\\\\1", gsub("[\r\n]+", " ", v)))
   v <- gsub("&", "&amp;", v, fixed = TRUE)
@@ -546,7 +584,8 @@ yoymd <- function(x, file = NULL, digits = 1L, align = TRUE, meta = NULL) {
   gsub("|", "\\|", v, fixed = TRUE)
 }
 
-# the columns shown by the display writers, as text
+#' the columns shown by the display writers, as text
+#' @noRd
 .yshow <- function(d, digits, intv = TRUE, md = TRUE) {
   vd <- .yvd(d)
   chg <- .ychg(d)

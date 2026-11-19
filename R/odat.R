@@ -130,8 +130,9 @@ odls <- function(
   out
 }
 
-# The service's address: one http(s):// or file:// address, without the
-# trailing slashes.
+#' The service's address: one http(s):// or file:// address, without the
+#' trailing slashes.
+#' @noRd
 .odbase <- function(base, fn) {
   ok <- is.character(base) && length(base) == 1L && !is.na(base) &&
     grepl("^(https?|file)://.", base)
@@ -144,7 +145,8 @@ odls <- function(
   sub("/+$", "", base)
 }
 
-# The manifest, as lists.
+#' The manifest, as lists.
+#' @noRd
 .odman <- function(base, fn) {
   f <- tempfile(fileext = ".json")
   on.exit(unlink(f), add = TRUE)
@@ -159,8 +161,9 @@ odls <- function(
   m
 }
 
-# The manifest's entry for key, with a db and table that are safe as a
-# file name and in an address.
+#' The manifest's entry for key, with a db and table that are safe as a
+#' file name and in an address.
+#' @noRd
 .odent <- function(m, key, base, fn) {
   for (d in m[["datasets"]]) {
     if (is.list(d) && identical(d[["key"]], key)) {
@@ -177,7 +180,8 @@ odls <- function(
   .ckstop(fn, "`%s` is not a table of %s: odls() lists them", key, base)
 }
 
-# The entry's SHA-256 in lower case, or NA when it lists none.
+#' The entry's SHA-256 in lower case, or NA when it lists none.
+#' @noRd
 .odsha <- function(d) {
   s <- d[["sha256"]]
   if (!is.character(s) || length(s) != 1L || is.na(s)) {
@@ -187,7 +191,8 @@ odls <- function(
   if (grepl("^[0-9a-f]{64}$", s)) s else NA_character_
 }
 
-# One field of every entry, NA where it is missing or not a single value.
+#' One field of every entry, NA where it is missing or not a single value.
+#' @noRd
 .odfld <- function(ds, f, na) {
   vapply(ds, function(d) {
     v <- d[[f]]
@@ -198,9 +203,10 @@ odls <- function(
   }, na)
 }
 
-# The SHA-256 of a file, in lower-case hex.
-# ponytail: the whole file is read at once, so up to 2^31 - 1 bytes; hash
-# in chunks if a table's gzip file ever outgrows that.
+#' The SHA-256 of a file, in lower-case hex.
+#' ponytail: the whole file is read at once, so up to 2^31 - 1 bytes; hash
+#' in chunks if a table's gzip file ever outgrows that.
+#' @noRd
 .odhash <- function(path, fn) {
   n <- file.size(path)
   if (is.na(n) || n > .Machine$integer.max) {
@@ -209,9 +215,10 @@ odls <- function(
   paste(.Call(C_clab_r_sha256, readBin(path, "raw", n)), collapse = "")
 }
 
-# The table downloaded into the cache. A file whose SHA-256 is not the
-# manifest's is checked against the manifest read once more, then
-# deleted and refused; only a match replaces the kept copy.
+#' The table downloaded into the cache. A file whose SHA-256 is not the
+#' manifest's is checked against the manifest read once more, then
+#' deleted and refused; only a match replaces the kept copy.
+#' @noRd
 .odfetch <- function(d, want, base, dir, path, fn) {
   if (!dir.exists(dir) && !dir.create(dir, recursive = TRUE,
                                       showWarnings = FALSE)) {
@@ -247,8 +254,9 @@ odls <- function(
   invisible(path)
 }
 
-# The kept file as a data frame of the values it holds (column names
-# unchanged), entry d of the manifest; with cols, only those columns.
+#' The kept file as a data frame of the values it holds (column names
+#' unchanged), entry d of the manifest; with cols, only those columns.
+#' @noRd
 .odread <- function(path, cols, d, fn) {
   key <- d[["key"]]
   r <- .Call(C_clab_r_csv, .odbytes(path, key, fn))
@@ -267,7 +275,8 @@ odls <- function(
             class = "data.frame", row.names = .set_row_names(nr))
 }
 
-# The bytes of a (gzip) file, read in pieces of 16 MB.
+#' The bytes of a (gzip) file, read in pieces of 16 MB.
+#' @noRd
 .odbytes <- function(path, key, fn) {
   con <- tryCatch(gzfile(path, "rb"), error = function(e) {
     .ckstop(fn, "`%s` could not be read: %s", key, conditionMessage(e))
@@ -282,8 +291,9 @@ odls <- function(
   do.call(c, c(list(raw()), b))
 }
 
-# The refusal of a table that is not CSV, from the reader's status: the
-# kind, the line where the record starts, its fields and the header's.
+#' The refusal of a table that is not CSV, from the reader's status: the
+#' kind, the line where the record starts, its fields and the header's.
+#' @noRd
 .odbad <- function(st, key, fn) {
   if (st[1L] == 0) {
     return(invisible())
@@ -300,8 +310,9 @@ odls <- function(
   .ckstop(fn, paste("line %d of `%s`", why[st[1L] - 1]), st[2L], key)
 }
 
-# A column of text as numbers when every value is a plain decimal number
-# a double holds exactly as written (see odtab()); else as it is.
+#' A column of text as numbers when every value is a plain decimal number
+#' a double holds exactly as written (see odtab()); else as it is.
+#' @noRd
 .odnum <- function(v) {
   w <- v[!is.na(v)]
   if (!length(w) ||
@@ -320,18 +331,20 @@ odls <- function(
   n
 }
 
-# Whether the decimal numbers w are held exactly by their doubles (sizes
-# nw): at most 15 significant digits, and a normal double unless written
-# as 0; a value that underflows (1e-400 is 0, 1e-320 subnormal) or
-# overflows is not.
+#' Whether the decimal numbers w are held exactly by their doubles (sizes
+#' nw): at most 15 significant digits, and a normal double unless written
+#' as 0; a value that underflows (1e-400 is 0, 1e-320 subnormal) or
+#' overflows is not.
+#' @noRd
 .odexact <- function(w, nw) {
   sig <- nchar(sub("^0+", "", gsub("[-.]", "", sub("[eE].*$", "", w))))
   !any(sig > 15L) && all(is.finite(nw)) &&
     all(sig == 0L | nw >= .Machine$double.xmin)
 }
 
-# The positions of the columns cols among have: an exact name, else the
-# one name equal to it without regard to case or underscores.
+#' The positions of the columns cols among have: an exact name, else the
+#' one name equal to it without regard to case or underscores.
+#' @noRd
 .odcol <- function(cols, have, fn) {
   if (!is.character(cols) || !length(cols) || anyNA(cols)) {
     .ckstop(fn, "`cols` must be column names, or NULL for all")
@@ -360,10 +373,11 @@ odls <- function(
   }, 1L, USE.NAMES = FALSE)
 }
 
-# url downloaded to dest, sent with a User-Agent the service accepts
-# from a package, waiting up to wait seconds (or the session's longer
-# timeout, restored afterwards). Any failure deletes dest and refuses
-# in fn's name, saying what the service answered.
+#' url downloaded to dest, sent with a User-Agent the service accepts
+#' from a package, waiting up to wait seconds (or the session's longer
+#' timeout, restored afterwards). Any failure deletes dest and refuses
+#' in fn's name, saying what the service answered.
+#' @noRd
 .odget <- function(url, dest, wait, what, fn) {
   to <- suppressWarnings(as.numeric(getOption("timeout", 60))[1L])
   old <- options(timeout = max(wait, to, na.rm = TRUE))
@@ -388,7 +402,8 @@ odls <- function(
   invisible(dest)
 }
 
-# A failed download in words, from download.file()'s message m.
+#' A failed download in words, from download.file()'s message m.
+#' @noRd
 .odwhy <- function(m, url, what, wait) {
   host <- sub("^(https?://[^/]*).*$", "\\1", url)
   st <- regmatches(m, regexec("status was '([0-9]{3})", m))[[1L]][2L]
@@ -421,11 +436,12 @@ odls <- function(
   )
 }
 
-# JSON text (or its bytes) as lists, by the reader of the core (src/json.h,
-# strict RFC 8259, through src/bjsn.cpp): an array a list, an object a
-# named list, a string UTF-8 text, a number a double, true and false
-# logicals, null NULL. Nothing is evaluated; the reader is iterative, 10000
-# levels deep, linear in the text.
+#' JSON text (or its bytes) as lists, by the reader of the core (src/json.h,
+#' strict RFC 8259, through src/bjsn.cpp): an array a list, an object a
+#' named list, a string UTF-8 text, a number a double, true and false
+#' logicals, null NULL. Nothing is evaluated; the reader is iterative, 10000
+#' levels deep, linear in the text.
+#' @noRd
 .odjson <- function(txt) {
   if (is.character(txt)) txt <- charToRaw(txt)
   r <- .Call(C_clab_r_json, txt)

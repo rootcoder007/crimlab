@@ -230,7 +230,8 @@ bvmor <- function(x, y, w, nsim = 999, seed = NULL) {
   .Call(C_clab_r_bvmor, x, y, w, nsim, seed)
 }
 
-# spill() without a fit: the effects of the coefficients given.
+#' spill() without a fit: the effects of the coefficients given.
+#' @noRd
 .spillx <- function(w, rho, b, th) {
   if (is.null(w) || is.null(rho) || is.null(b)) {
     stop("spill: give a sarml() fit, or `w`, `rho` and `b`.", call. = FALSE)

@@ -718,7 +718,8 @@ format.frmaud <- function(x, ...) {
   )
 }
 
-# format.mhcont(): one table per group, a direction to a row
+#' format.mhcont(): one table per group, a direction to a row
+#' @noRd
 .mhtabs <- function(x) {
   tabs <- lapply(unique(x$group), function(g) {
     r <- x[x$group == g, , drop = FALSE]
@@ -735,7 +736,8 @@ format.frmaud <- function(x, ...) {
   tabs
 }
 
-# format.healchg(): one table per indicator, named with its side
+#' format.healchg(): one table per indicator, named with its side
+#' @noRd
 .hctabs <- function(x, ind) {
   tabs <- lapply(ind, function(k) {
     r <- x[x$indicator == k, , drop = FALSE]

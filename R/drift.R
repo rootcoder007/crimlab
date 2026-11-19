@@ -279,11 +279,17 @@ drfthomog <- function(x, y, seed = 1L) {
   .drm(out, "drfthomog", inp, m)
 }
 
+#' A drift statistic `v` with its inputs and method as attributes, and its
+#'   class.
+#' @noRd
 .drm <- function(v, name, inputs, method = NULL) {
   structure(v, lakner = inputs, method = method,
             class = c(name, "drftm", "numeric"))
 }
 
+#' `x` as finite numbers with the missing ones dropped; refused when infinite
+#'   or empty.
+#' @noRd
 .drfin <- function(x, nm, fn) {
   x <- .pnum(x, nm, fn)
   x <- x[!is.na(x)]
@@ -297,6 +303,8 @@ drfthomog <- function(x, y, seed = 1L) {
   x
 }
 
+#' The arguments `bins` and `eps` of drftpsi() checked.
+#' @noRd
 .psargs <- function(bins, eps) {
   if (!is.numeric(bins) || length(bins) != 1L || is.na(bins) || bins < 2 ||
         bins != floor(bins)) {
@@ -313,8 +321,9 @@ drfthomog <- function(x, y, seed = 1L) {
   }
 }
 
-# counts by label: a factor or text is tabulated, a numeric vector must be
-# named counts
+#' counts by label: a factor or text is tabulated, a numeric vector must be
+#' named counts
+#' @noRd
 .drtab <- function(v, nm, fn) {
   if (is.factor(v) || is.character(v)) {
     t <- table(as.character(v))
@@ -331,9 +340,12 @@ drfthomog <- function(x, y, seed = 1L) {
   out
 }
 
+#' The counts `o` laid out over the levels `lv`, 0 where a level is absent.
+#' @noRd
 .dralign <- function(o, lv) stats::setNames(ifelse(is.na(o[lv]), 0, o[lv]), lv)
 
-# expr evaluated under set.seed(seed), the caller's stream restored
+#' expr evaluated under set.seed(seed), the caller's stream restored
+#' @noRd
 .drseed <- function(seed, expr) {
   if (!is.numeric(seed) || length(seed) != 1L || is.na(seed) ||
         seed != floor(seed) || abs(seed) > .Machine$integer.max) {

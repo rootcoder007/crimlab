@@ -771,7 +771,8 @@ format.dualcont <- function(x, ...) {
   )
 }
 
-# format.welprof(): one table per indicator, named with its side
+#' format.welprof(): one table per indicator, named with its side
+#' @noRd
 .wptabs <- function(x, ind) {
   tabs <- lapply(ind, function(k) {
     r <- x[x$indicator == k, , drop = FALSE]
@@ -790,7 +791,8 @@ format.dualcont <- function(x, ...) {
   tabs
 }
 
-# format.welprof(): on which indicators the groups' intervals part
+#' format.welprof(): on which indicators the groups' intervals part
+#' @noRd
 .wpread <- function(x, ind) {
   apart <- vapply(
     ind,
@@ -817,7 +819,8 @@ format.dualcont <- function(x, ...) {
   }
 }
 
-# format.holbal(): the balance table, with the domain levels when kept
+#' format.holbal(): the balance table, with the domain levels when kept
+#' @noRd
 .hbtabs <- function(x, lab) {
   show <- data.frame(
     group = lab,
@@ -839,7 +842,8 @@ format.dualcont <- function(x, ...) {
   tabs
 }
 
-# format.holbal(): the weights, "equal" when they are
+#' format.holbal(): the weights, "equal" when they are
+#' @noRd
 .hbwts <- function(w) {
   if (length(w)) {
     if (length(unique(w)) == 1L) {

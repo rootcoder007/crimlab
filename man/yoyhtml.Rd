@@ -37,7 +37,8 @@ yoypdf(
 \arguments{
 \item{x}{A change table (\code{\link[=yoypx]{yoypx()}}).}
 
-\item{file}{The file path.}
+\item{file}{The file path. A name with no suffix is given the
+format's own (\code{.html}, \code{.pdf}).}
 
 \item{title}{The heading (and the page title).}
 
@@ -63,7 +64,7 @@ note on the first periods.}
 \item{width, height}{The PDF page in inches, each from 2 to 200.}
 }
 \value{
-\code{file}, invisibly.
+The path written, invisibly.
 }
 \description{
 \code{yoyhtml()} writes one self-contained HTML page (every style inlined,

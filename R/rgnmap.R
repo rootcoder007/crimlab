@@ -230,6 +230,8 @@ rgnmapalt <- function(map, unit, reg, route, known = character()) {
   out
 }
 
+#' Checks that `nm` names one column of the data frame `d`.
+#' @noRd
 .rmcol <- function(d, nm, arg, fn) {
   if (!is.data.frame(d)) {
     stop(fn, ": `", arg, "` must be a data frame.", call. = FALSE)
@@ -245,8 +247,9 @@ rgnmapalt <- function(map, unit, reg, route, known = character()) {
   .cktxt(d[[nm]], arg, fn)
 }
 
-# A vector of names or codes (NULL allowed): text, numbers or a factor,
-# valid in its encoding; what is not a vector (a function) is refused.
+#' A vector of names or codes (NULL allowed): text, numbers or a factor,
+#' valid in its encoding; what is not a vector (a function) is refused.
+#' @noRd
 .rmtxt <- function(v, what, fn) {
   if (!is.null(v) && !is.atomic(v) && !is.factor(v)) {
     .ckstop(fn, "`%s` must be a vector of names or codes", what)

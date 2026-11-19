@@ -101,7 +101,8 @@ print.shrs <- function(x, ...) {
   invisible(x)
 }
 
-# shrs.data.frame(): `count` names one numeric column of `x`
+#' shrs.data.frame(): `count` names one numeric column of `x`
+#' @noRd
 .shnm <- function(nm, x) {
   if (!is.character(nm) || length(nm) != 1L || is.na(nm)) {
     stop("shrs: `count` must name the column of counts.", call. = FALSE)
@@ -114,6 +115,8 @@ print.shrs <- function(x, ...) {
   }
 }
 
+#' The `by` columns of shrs() checked to be columns of `x`.
+#' @noRd
 .shby <- function(by, x) {
   by <- as.character(by)
   miss <- setdiff(by, names(x))
@@ -123,7 +126,8 @@ print.shrs <- function(x, ...) {
   by
 }
 
-# shrs.data.frame(): the counts summed, by the `by` columns
+#' shrs.data.frame(): the counts summed, by the `by` columns
+#' @noRd
 .shagg <- function(x, nm, by) {
   if (is.null(by)) {
     data.frame(count = sum(x[[nm]], na.rm = TRUE))
@@ -134,8 +138,9 @@ print.shrs <- function(x, ...) {
   }
 }
 
-# shrs.data.frame(): the denominator: the counts' sum, a column's sum or a
-# number
+#' shrs.data.frame(): the denominator: the counts' sum, a column's sum or a
+#' number
+#' @noRd
 .shden <- function(total, x, agg) {
   if (is.null(total)) {
     sum(agg$count)
@@ -149,6 +154,8 @@ print.shrs <- function(x, ...) {
   }
 }
 
+#' Refuses unused arguments of shrs().
+#' @noRd
 .shnodots <- function(...) {
   if (...length()) {
     stop("shrs: unused argument(s): ", toString(names(list(...))), ".",
@@ -156,6 +163,8 @@ print.shrs <- function(x, ...) {
   }
 }
 
+#' `total` of shrs() checked as one finite number from 0.
+#' @noRd
 .shtot <- function(total, also) {
   if (!is.numeric(total) || length(total) != 1L || !is.finite(total) ||
         total < 0) {
@@ -165,6 +174,8 @@ print.shrs <- function(x, ...) {
   as.numeric(total)
 }
 
+#' Builds the result of shrs() from the aggregated counts.
+#' @noRd
 .shout <- function(agg, den, conflvl, nm, by) {
   if (!is.numeric(conflvl) || length(conflvl) != 1L || is.na(conflvl) ||
         conflvl <= 0 || conflvl >= 1) {

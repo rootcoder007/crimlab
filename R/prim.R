@@ -638,11 +638,14 @@ cunif <- function(n, seed) {
   .pcall(16L, numeric(), a = c(n, .pseed(seed, "cunif")))
 }
 
+#' Calls the kernel primitive `op` on `x` (and `y`, `a`).
+#' @noRd
 .pcall <- function(op, x, y = NULL, a = NULL) {
   .Call(C_clab_r_prim, op, x, y, if (!is.null(a)) as.numeric(a))
 }
 
-# numbers or TRUE and FALSE, as doubles; NULL is no values
+#' numbers or TRUE and FALSE, as doubles; NULL is no values
+#' @noRd
 .pnum <- function(x, nm, fn) {
   if (is.null(x)) {
     return(numeric())
@@ -654,7 +657,8 @@ cunif <- function(n, seed) {
   as.numeric(x)
 }
 
-# one number from lo (to hi), finite
+#' one number from lo (to hi), finite
+#' @noRd
 .pone <- function(x, nm, fn, lo = 0, hi = Inf, whole = FALSE) {
   ok <- is.numeric(x) && length(x) == 1L && is.finite(x) && x >= lo &&
     x <= hi && (!whole || x == floor(x))
@@ -667,6 +671,8 @@ cunif <- function(n, seed) {
   as.numeric(x)
 }
 
+#' Refuses two arguments of different lengths.
+#' @noRd
 .psame <- function(x, y, a, b, fn) {
   if (length(x) != length(y)) {
     stop(fn, ": `", a, "` and `", b, "` must have the same length.",
@@ -674,6 +680,8 @@ cunif <- function(n, seed) {
   }
 }
 
+#' `seed` checked as one whole number from 0, below 2^53.
+#' @noRd
 .pseed <- function(seed, fn) {
   if (!is.numeric(seed) || length(seed) != 1L || is.na(seed) || seed < 0 ||
         seed != floor(seed) || seed >= 2^53) {
@@ -683,6 +691,8 @@ cunif <- function(n, seed) {
   as.numeric(seed)
 }
 
+#' `x`, `mean` and `sd` checked for the normal primitives.
+#' @noRd
 .pnorm <- function(x, mean, sd, lg, fn) {
   x <- .pnum(x, "x", fn)
   if (!is.numeric(mean) || length(mean) != 1L || !is.finite(mean)) {

@@ -991,14 +991,16 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   invisible(k)
 }
 
-# the event-time estimates of an event study or a staggered design
+#' the event-time estimates of an event study or a staggered design
+#' @noRd
 .pev <- function(x) {
   d <- if (inherits(x, "stgdid")) x$dynamic else x$est
   d[, c("evtm", "est", "lo", "hi")]
 }
 
-# the colours of a treated path and its comparison: the caller's, the
-# palette asked for, or else both black, told apart by the line type
+#' the colours of a treated path and its comparison: the caller's, the
+#' palette asked for, or else both black, told apart by the line type
+#' @noRd
 .ptwo <- function(col, pal) {
   if (is.null(col) && is.null(pal) && .popt()$palette == "grey") {
     return(c("#000000", "#000000"))
@@ -1006,10 +1008,11 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   .pcols(2L, col, pal)
 }
 
-# where the adoption falls on a path: halfway between the last period
-# before it and the first after. The periods before are those with a time
-# weight (synthetic difference in differences) or, for a synthetic control,
-# those up to the last one fitted; NULL when the result does not say
+#' where the adoption falls on a path: halfway between the last period
+#' before it and the first after. The periods before are those with a time
+#' weight (synthetic difference in differences) or, for a synthetic control,
+#' those up to the last one fitted; NULL when the result does not say
+#' @noRd
 .padopt <- function(p, timew = NULL) {
   t <- sort(unique(p$time))
   pre <- if (is.null(timew)) attr(p, "pre") else timew[[1L]]
@@ -1024,14 +1027,16 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   (max(pre) + min(after)) / 2
 }
 
-# paths over the periods with a dotted line at the adoption: plain lines,
-# or with a point mark on every period when the caller gives type = "o"
+#' paths over the periods with a dotted line at the adoption: plain lines,
+#' or with a point mark on every period when the caller gives type = "o"
+#' @noRd
 .ppaths <- function(t, ys, main, ylab, cl, vref, ..., type = "l") {
   .pany(type, c("l", "o"), "type")
   .plines(t, ys, main, "Period", ylab, cl, type = type, vref = vref, ...)
 }
 
-# the permuted statistics of each outcome, with the observed one
+#' the permuted statistics of each outcome, with the observed one
+#' @noRd
 .pperm <- function(r, nul, main, fill, type, ...) {
   if (!is.matrix(nul) || ncol(nul) != nrow(r)) {
     stop("plot: this wcbx result holds no permuted statistics.",
@@ -1050,8 +1055,9 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 }
 
 
-# the Goodman-Bacon panel: each 2 x 2 comparison by its weight, with a line
-# at the two-way estimate they average to
+#' the Goodman-Bacon panel: each 2 x 2 comparison by its weight, with a line
+#' at the two-way estimate they average to
+#' @noRd
 .pbacon <- function(b, est, col, pal, ...) {
   g <- factor(b$type, levels = unique(b$type))
   cl <- .pcols(nlevels(g), col, pal)
@@ -1072,7 +1078,8 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   b
 }
 
-# the estimates with each unit left out, as a histogram with a summary
+#' the estimates with each unit left out, as a histogram with a summary
+#' @noRd
 .ploohist <- function(l, r, main, col, pal, ...) {
   e <- l$est[is.finite(l$est)]
   .phist(e, r$est[1L], .pmain(main, "Leave-one-out sensitivity"),
@@ -1084,7 +1091,8 @@ plot.kscan <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   list(r[1L, , drop = FALSE], l)
 }
 
-# the same estimates, each with its interval under the one from all units
+#' the same estimates, each with its interval under the one from all units
+#' @noRd
 .ploodots <- function(l, r, level, main, col, pal, ...) {
   z <- stats::qnorm(1 - (1 - level) / 2)
   d <- .pdots(c("all units", paste("without", l$unit)),

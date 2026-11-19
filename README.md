@@ -285,8 +285,8 @@ Networks, against igraph, sna, tnet and netmem: faster, by at least a tenth, tha
 
 ## Life cycle
 
-Experimental. This is a development version: function names, arguments and
-results may change before a first release.
+Experimental: function names, arguments and results may change before
+version 1.0. `NEWS.md` records each change.
 
 ## Installation
 

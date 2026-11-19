@@ -612,10 +612,12 @@ format.trcprog <- function(x, ...) {
   )
 }
 
-# Runs one of these functions in the compiled core.
+#' Runs one of these functions in the compiled core.
+#' @noRd
 .igc <- function(fn, ...) .Call(C_clab_r_igh, fn, list(...))
 
-# The printed block of a result: a title, facts, tables, a reading, notes.
+#' The printed block of a result: a title, facts, tables, a reading, notes.
+#' @noRd
 .igb <- function(
   title,
   facts = list(),
@@ -655,7 +657,8 @@ format.trcprog <- function(x, ...) {
   out
 }
 
-# A data frame as lines of text.
+#' A data frame as lines of text.
+#' @noRd
 .igt <- function(d, digits = 4L) {
   n <- nrow(d)
   d <- structure(
@@ -676,7 +679,8 @@ format.trcprog <- function(x, ...) {
   apply(m, 1L, paste, collapse = "  ")
 }
 
-# A table with only the columns that are there (a subset of a result).
+#' A table with only the columns that are there (a subset of a result).
+#' @noRd
 .igplain <- function(x, need, title) {
   if (all(need %in% names(x)) && nrow(x)) {
     return(NULL)
@@ -684,13 +688,16 @@ format.trcprog <- function(x, ...) {
   c(title, "", .igt(x))
 }
 
+#' An interval as text, "\[lo, hi\]", empty when a limit is not finite.
+#' @noRd
 .igci <- function(lo, hi, d = 3L) {
   ok <- is.finite(lo) & is.finite(hi)
   f <- function(v) trimws(formatC(v, digits = d, format = "g"))
   ifelse(ok, paste0("[", f(lo), ", ", f(hi), "]"), "")
 }
 
-# "A", "A and B", "A, B and C"
+#' "A", "A and B", "A, B and C"
+#' @noRd
 .iglist <- function(lab) {
   n <- length(lab)
   if (n < 2L) {
@@ -699,15 +706,22 @@ format.trcprog <- function(x, ...) {
   paste(toString(lab[-n]), "and", lab[n])
 }
 
-# TRUE where a logical flag is TRUE, FALSE where it is FALSE or missing
+#' TRUE where a logical flag is TRUE, FALSE where it is FALSE or missing
+#' @noRd
 .igyes <- function(v) !is.na(v) & v
 
+#' A label with a star when its flag says to use it with caution.
+#' @noRd
 .igstar <- function(lab, flag) paste0(lab, ifelse(.igyes(flag), " *", ""))
 
+#' A label marked "(pooled)" when its flag is set.
+#' @noRd
 .igpool <- function(lab, flag) {
   paste0(lab, ifelse(.igyes(flag), " (pooled)", ""))
 }
 
+#' The footnote on estimates flagged for caution, NULL when none is.
+#' @noRd
 .igcau <- function(flag) {
   if (!any(.igyes(flag))) {
     return(NULL)
@@ -718,9 +732,12 @@ format.trcprog <- function(x, ...) {
   )
 }
 
+#' A level as a percentage in text.
+#' @noRd
 .iglvl <- function(l) if (is.numeric(l)) paste0(format(100 * l), "%")
 
-# Which rows have an interval above, below or across the null value.
+#' Which rows have an interval above, below or across the null value.
+#' @noRd
 .ignull <- function(lab, lo, hi, null, up, down) {
   known <- is.finite(lo) & is.finite(hi)
   above <- known & lo > null
@@ -745,8 +762,9 @@ format.trcprog <- function(x, ...) {
   )
 }
 
-# The highest and the lowest of the groups, and whether their intervals
-# part.
+#' The highest and the lowest of the groups, and whether their intervals
+#' part.
+#' @noRd
 .igrange <- function(lab, est, what = "estimate", lo = NULL, hi = NULL) {
   ok <- which(is.finite(est))
   if (!length(ok)) {
@@ -788,6 +806,8 @@ format.trcprog <- function(x, ...) {
   )
 }
 
+#' A p-value as text.
+#' @noRd
 .igp <- function(p) {
   if (!length(p) || is.na(p)) {
     return("not available")
@@ -795,7 +815,8 @@ format.trcprog <- function(x, ...) {
   if (p < 0.001) "< 0.001" else format(signif(p, 3))
 }
 
-# format.exptrnd(): the odds at the highest level and the trend's verdict
+#' format.exptrnd(): the odds at the highest level and the trend's verdict
+#' @noRd
 .etread <- function(x, tr) {
   k <- nrow(x)
   c(

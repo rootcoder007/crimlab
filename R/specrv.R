@@ -124,8 +124,9 @@ print.specrv <- function(x, ...) {
   invisible(x)
 }
 
-# The outcome, treatment and covariate columns: present, each once, at
-# most ten optional.
+#' The outcome, treatment and covariate columns: present, each once, at
+#' most ten optional.
+#' @noRd
 .sccols <- function(dd, y, d, x, opt, f) {
   .axcols(dd, y, "y", f)
   .axcols(dd, d, "d", f, n = 1L)
@@ -137,7 +138,8 @@ print.specrv <- function(x, ...) {
   if (length(opt) > 10L) .ckstop(f, "`opt` may name at most ten columns")
 }
 
-# One row per specification from the kernel's values s.
+#' One row per specification from the kernel's values s.
+#' @noRd
 .scspec <- function(s, y, opt, ns, level) {
   K <- length(y) * ns
   ctrl <- vapply(seq_len(ns) - 1L, function(b) {

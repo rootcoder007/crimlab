@@ -78,7 +78,8 @@ print.dagcol <- function(x, ...) {
   invisible(x)
 }
 
-# The edges: labels of the same length, at least one, none missing.
+#' The edges: labels of the same length, at least one, none missing.
+#' @noRd
 .dgedge <- function(from, to, f) {
   ok <- is.atomic(from) && is.atomic(to) && length(from) == length(to) &&
     length(from) > 0L
@@ -91,7 +92,8 @@ print.dagcol <- function(x, ...) {
   }
 }
 
-# Whether the triple a, c, b is a collider among col, and shielded.
+#' Whether the triple a, c, b is a collider among col, and shielded.
+#' @noRd
 .dgtrip <- function(triple, nodes, col, f) {
   t <- if (is.atomic(triple)) as.character(triple)
   if (length(t) != 3L || anyNA(triple) || !all(t %in% nodes)) {

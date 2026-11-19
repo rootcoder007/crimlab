@@ -1,12 +1,13 @@
-# ppmlcf(family = "nb"): the control function with a negative binomial
-# second stage (Feigenbaum and Muller 2016, after Cameron and Trivedi
-# 2013): the fixed effects as indicator columns (the first level of each
-# left out, an intercept kept), the first stage by least squares of each
-# endogenous column on the instruments, the controls and the indicators,
-# its residuals added to the second stage, fitted by maximum likelihood
-# with theta (clab_cntreg()); the errors by a bootstrap of the clusters
-# refitting both stages, or naive (the clustered sandwich of the second
-# stage alone).
+#' ppmlcf(family = "nb"): the control function with a negative binomial
+#' second stage (Feigenbaum and Muller 2016, after Cameron and Trivedi
+#' 2013): the fixed effects as indicator columns (the first level of each
+#' left out, an intercept kept), the first stage by least squares of each
+#' endogenous column on the instruments, the controls and the indicators,
+#' its residuals added to the second stage, fitted by maximum likelihood
+#' with theta (clab_cntreg()); the errors by a bootstrap of the clusters
+#' refitting both stages, or naive (the clustered sandwich of the second
+#' stage alone).
+#' @noRd
 .axcfnb <- function(d, yv, endo, inst, x, fe, off, clus, cl, se, ssc, nboot,
                     seed, level, maxit, f) {
   tm <- c(endo, x, paste0("vhat:", endo))
@@ -47,8 +48,9 @@
   list(coef = tab, draws = dr, theta = r[[4L]][3L], nfail = nf)
 }
 
-# The indicators of the fixed effects of the rows of d, the first level
-# of each left out.
+#' The indicators of the fixed effects of the rows of d, the first level
+#' of each left out.
+#' @noRd
 .axcfdum <- function(d, fe) {
   m <- lapply(fe, function(v) {
     stats::model.matrix(~g, data.frame(g = factor(d[[v]])))[, -1L,

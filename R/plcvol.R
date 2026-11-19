@@ -188,8 +188,9 @@ print.alrtcx <- function(x, ...) {
   invisible(x)
 }
 
-# The person-year of each record: a key (labels joined) and the labels as
-# a data frame, from one vector or a list of them, each of length n.
+#' The person-year of each record: a key (labels joined) and the labels as
+#' a data frame, from one vector or a list of them, each of length n.
+#' @noRd
 .pvgrp <- function(id, n, fn) {
   l <- if (is.list(id)) as.list(id) else list(id = id)
   if (!length(l) || any(lengths(l) != n) || n == 0L) {
@@ -204,8 +205,9 @@ print.alrtcx <- function(x, ...) {
   list(key = key, lab = lab)
 }
 
-# The flags as a 0/1 integer matrix with NA for a value that is none of
-# the accepted forms.
+#' The flags as a 0/1 integer matrix with NA for a value that is none of
+#' the accepted forms.
+#' @noRd
 .acflags <- function(flags, fn) {
   if (is.matrix(flags)) {
     flags <- as.data.frame(flags)
@@ -223,7 +225,8 @@ print.alrtcx <- function(x, ...) {
   matrix(m, ncol = length(flags))
 }
 
-# One column of flags as 0/1 integers, NA for anything else.
+#' One column of flags as 0/1 integers, NA for anything else.
+#' @noRd
 .acflag1 <- function(v) {
   if (is.logical(v) || is.numeric(v)) {
     # 0 or 1 exactly: 0.6 is not a flag, and as.integer() would cut it

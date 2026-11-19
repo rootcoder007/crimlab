@@ -830,6 +830,8 @@ wrdfsh <- function(dtm, maxit = 100, tol = 1e-6) {
   .sv("wrdfsh", list(dtm = dtm, maxit = maxit, tol = tol))
 }
 
+#' Calls the survey kernel `fn` on `args` and classes the result.
+#' @noRd
 .sv <- function(fn, args, cls = "svfit") {
   args <- lapply(args, function(a) if (is.data.frame(a)) as.matrix(a) else a)
   r <- .Call(C_clab_r_svk, fn, args)

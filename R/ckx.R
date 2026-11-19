@@ -2,6 +2,9 @@
 # footprint and data description families: each refusal names the
 # function, "fn: <message>.", as the command line gives it.
 
+#' Stops with the message "fn: <message>.", built with sprintf(); text that is
+#'   not valid UTF-8 is written by its bytes.
+#' @noRd
 .ckstop <- function(fn, fmt, ...) {
   # a value quoted from the input may be text that is not valid UTF-8,
   # on which sprintf() fails: its bytes are written as <xx> instead
@@ -9,8 +12,9 @@
   stop(fn, ": ", do.call(sprintf, c(list(fmt), a)), ".", call. = FALSE)
 }
 
-# Text with every byte that is not valid in its encoding written as <xx>
-# (anything that is not text as it is).
+#' Text with every byte that is not valid in its encoding written as <xx>
+#' (anything that is not text as it is).
+#' @noRd
 .u8 <- function(x) {
   if (is.character(x) && !all(validEnc(x))) {
     x <- iconv(x, "UTF-8", "UTF-8", sub = "byte")
@@ -54,8 +58,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   base::message(simpleMessage(.u8(m), sys.call()))
 }
 
-# The condition stop() or warning() signals: the one given, or one built
-# by mk from the arguments, with the call when call. is TRUE.
+#' The condition stop() or warning() signals: the one given, or one built
+#' by mk from the arguments, with the call when call. is TRUE.
+#' @noRd
 .u8cnd <- function(a, mk, call., domain, cl) {
   if (length(a) == 1L && inherits(a[[1L]], "condition")) {
     a[[1L]][["message"]] <- .u8(conditionMessage(a[[1L]]))
@@ -65,8 +70,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   mk(.u8(m), if (call.) cl)
 }
 
-# A numeric argument as a double vector (dimensions kept): numbers only,
-# none missing or infinite, at least one; scalar: exactly one.
+#' A numeric argument as a double vector (dimensions kept): numbers only,
+#' none missing or infinite, at least one; scalar: exactly one.
+#' @noRd
 .cknum <- function(
   x,
   what,
@@ -124,8 +130,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   v
 }
 
-# One of the choices, matched partially; NULL or the whole default picks
-# the first.
+#' One of the choices, matched partially; NULL or the whole default picks
+#' the first.
+#' @noRd
 .ckarg <- function(arg, choices, what, fn) {
   if (is.null(arg) || identical(arg, choices)) {
     return(choices[[1L]])
@@ -144,9 +151,10 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   choices[[i]]
 }
 
-# expr evaluated for the exported function fn: a refusal or warning from
-# another exported function it calls ("ppmlfe: ...") is given again under
-# fn's name, the one the user called.
+#' expr evaluated for the exported function fn: a refusal or warning from
+#' another exported function it calls ("ppmlfe: ...") is given again under
+#' fn's name, the one the user called.
+#' @noRd
 .clas <- function(fn, expr) {
   ex <- getNamespaceExports("crimlab")
   # by bytes: the message may quote text that is not valid in its encoding
@@ -176,16 +184,18 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   )
 }
 
-# The choice argument `what` of the calling function, checked by .ckarg()
-# against the choices its formals list (what match.arg(what) reads, with
-# the package's refusal in place of match.arg()'s).
+#' The choice argument `what` of the calling function, checked by .ckarg()
+#' against the choices its formals list (what match.arg(what) reads, with
+#' the package's refusal in place of match.arg()'s).
+#' @noRd
 .ckmarg <- function(what, fn) {
   env <- parent.frame()
   ch <- eval(formals(sys.function(sys.parent()))[[what]], env)
   .ckarg(get(what, envir = env), ch, what, fn)
 }
 
-# Text that is valid in its encoding (or anything that is not text).
+#' Text that is valid in its encoding (or anything that is not text).
+#' @noRd
 .cktxt <- function(x, what, fn) {
   if (is.character(x) && !all(validEnc(x))) {
     .ckstop(
@@ -198,8 +208,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   x
 }
 
-# Every text column of a data frame (a factor's labels, and the names
-# too) valid text, as .cktxt() asks of one argument.
+#' Every text column of a data frame (a factor's labels, and the names
+#' too) valid text, as .cktxt() asks of one argument.
+#' @noRd
 .cktxtdf <- function(d, what, fn) {
   v <- c(list(names(d)),
          lapply(d, function(x) if (is.factor(x)) levels(x) else x))
@@ -209,8 +220,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   d
 }
 
-# One file path (NULL passes): valid text, and no longer than a path can
-# be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it).
+#' One file path (NULL passes): valid text, and no longer than a path can
+#' be (4096 bytes, PATH_MAX on Linux; R's path.expand() warns past it).
+#' @noRd
 .ckpath <- function(file, fn, what = "file") {
   .cktxt(file, what, fn)
   if (!is.null(file) && nchar(file, "bytes") > 4096L) {
@@ -219,9 +231,10 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   file
 }
 
-# A file to write (NULL passes): a path as .ckpath() takes it, not empty,
-# in a folder that exists (where R's file() would warn, then fail in its
-# own words).
+#' A file to write (NULL passes): a path as .ckpath() takes it, not empty,
+#' in a folder that exists (where R's file() would warn, then fail in its
+#' own words).
+#' @noRd
 .ckout <- function(file, fn, what = "file") {
   .ckpath(file, fn, what)
   if (is.null(file)) {
@@ -235,7 +248,18 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   file
 }
 
-# TRUE or FALSE.
+#' `file` with the suffix `ext` when its name has none (NULL stays NULL):
+#' a file written without a suffix would not say what it holds.
+#' @noRd
+.cksfx <- function(file, ext) {
+  if (is.null(file) || nzchar(tools::file_ext(file))) {
+    return(file)
+  }
+  paste0(file, ".", ext)
+}
+
+#' TRUE or FALSE.
+#' @noRd
 .ckflag <- function(x, what, fn) {
   if (!is.logical(x) || length(x) != 1L || is.na(x)) {
     .ckstop(fn, "`%s` must be TRUE or FALSE", what)
@@ -243,8 +267,9 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   x
 }
 
-# A seed for R's own generator: one whole number from -2147483647 to
-# 2^53 - 1; an integer when it fits.
+#' A seed for R's own generator: one whole number from -2147483647 to
+#' 2^53 - 1; an integer when it fits.
+#' @noRd
 .ckseed <- function(seed, what, fn) {
   if (
     !is.numeric(seed) || length(seed) != 1L || !is.finite(seed) ||
@@ -259,11 +284,12 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   if (abs(seed) <= .Machine$integer.max) as.integer(seed) else as.numeric(seed)
 }
 
-# expr evaluated with R's generator set from seed (checked by .ckseed()),
-# the caller's stream restored afterwards. Past 2147483647 the
-# Mersenne-Twister state is that set.seed() makes from the seed's low 31
-# bits, XORed with the state it makes from minus its high bits, shifted by
-# one word, so that every seed up to 2^53 has a stream of its own.
+#' expr evaluated with R's generator set from seed (checked by .ckseed()),
+#' the caller's stream restored afterwards. Past 2147483647 the
+#' Mersenne-Twister state is that set.seed() makes from the seed's low 31
+#' bits, XORed with the state it makes from minus its high bits, shifted by
+#' one word, so that every seed up to 2^53 has a stream of its own.
+#' @noRd
 .clseed <- function(seed, expr) {
   had <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
   old <- if (had) get(".Random.seed", envir = globalenv(), inherits = FALSE)
@@ -291,12 +317,13 @@ message <- function(..., domain = NULL, appendLF = TRUE) {
   expr
 }
 
-# One text key per row of the vectors given (of one length, or 1): two
-# rows share a key exactly when they agree in every vector. Each value is
-# written with its backslashes doubled and its carriage returns as \r, a
-# missing value as \N, and the values are joined by a carriage return, so
-# no label can imitate the join (as with paste(sep = "\r"), where "a\rb"
-# and "a", "b" met).
+#' One text key per row of the vectors given (of one length, or 1): two
+#' rows share a key exactly when they agree in every vector. Each value is
+#' written with its backslashes doubled and its carriage returns as \r, a
+#' missing value as \N, and the values are joined by a carriage return, so
+#' no label can imitate the join (as with paste(sep = "\r"), where "a\rb"
+#' and "a", "b" met).
+#' @noRd
 .clkey <- function(...) {
   v <- lapply(list(...), function(x) {
     s <- gsub("\\", "\\\\", as.character(x), fixed = TRUE)

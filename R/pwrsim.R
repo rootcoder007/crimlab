@@ -140,7 +140,8 @@ print.pwrsim <- function(x, ...) {
   invisible(x)
 }
 
-# One number strictly between 0 and 1.
+#' One number strictly between 0 and 1.
+#' @noRd
 .xpopen <- function(x, what, f) {
   x <- .cknum(x, what, f)
   if (x <= 0 || x >= 1) {

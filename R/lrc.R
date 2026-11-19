@@ -97,7 +97,8 @@ lrcce <- function(object, x, ylag = NULL, level = 0.95) {
   tab
 }
 
-# The unit estimates of lrcce()'s object, checked.
+#' The unit estimates of lrcce()'s object, checked.
+#' @noRd
 .lrcb <- function(object, f) {
   b <- if (inherits(object, "ccepnl")) object[["bi"]] else object
   if (is.data.frame(b)) b <- as.matrix(b)
@@ -109,9 +110,10 @@ lrcce <- function(object, x, ylag = NULL, level = 0.95) {
   b
 }
 
-# The terms x (a list, named by their first columns when unnamed) and
-# the lags of y (by default the columns L<k>.y) of lrcce(), checked
-# against the unit estimates b: list(x, ylag).
+#' The terms x (a list, named by their first columns when unnamed) and
+#' the lags of y (by default the columns L<k>.y) of lrcce(), checked
+#' against the unit estimates b: list(x, ylag).
+#' @noRd
 .lrcx <- function(b, x, ylag, f) {
   if (!is.list(x)) x <- list(x)
   if (is.null(ylag)) ylag <- grep("^L[0-9]+\\.y$", colnames(b), value = TRUE)

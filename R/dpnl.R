@@ -711,7 +711,8 @@ plot.ccepnl <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
          ref = 0, grp = rep(c("CCEMG", "CCEP"), c(nrow(a), nrow(b))), ...)
 }
 
-# One line of a joint test of gmmpnl(): F or Wald chi-squared, with a tail.
+#' One line of a joint test of gmmpnl(): F or Wald chi-squared, with a tail.
+#' @noRd
 .gwline <- function(w, tail) {
   paste0(if (w$test == "F") {
     paste0("F(", w$df1, ", ", w$df2, ")")

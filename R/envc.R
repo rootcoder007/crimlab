@@ -476,8 +476,9 @@ print.olsdx <- function(x, cook = 1, lev = c(0.2, 0.5), r = 0.7, vif = 10,
   invisible(x)
 }
 
-# The thresholds of print.olsdx(): one finite number each, lev two
-# increasing.
+#' The thresholds of print.olsdx(): one finite number each, lev two
+#' increasing.
+#' @noRd
 .oxpchk <- function(cook, lev, r, vif) {
   ok <- function(v, k) is.numeric(v) && length(v) == k && all(is.finite(v))
   if (!ok(cook, 1L) || !ok(lev, 2L) || !ok(r, 1L) || !ok(vif, 1L) ||

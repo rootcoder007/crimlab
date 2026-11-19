@@ -9,7 +9,8 @@ yoywr(x, file, format = "auto", ...)
 \arguments{
 \item{x}{A change table (\code{\link[=yoypx]{yoypx()}}).}
 
-\item{file}{The file path.}
+\item{file}{The file path. A name with no suffix is given the
+format's own (\code{.html}, \code{.pdf}).}
 
 \item{format}{\code{"auto"} (from the extension), or one of \code{"html"}, \code{"pdf"},
 \code{"csv"}, \code{"tsv"}, \code{"json"}, \code{"markdown"}.}
@@ -17,7 +18,7 @@ yoywr(x, file, format = "auto", ...)
 \item{...}{The arguments of the chosen writer.}
 }
 \value{
-\code{file}, invisibly.
+The path written, invisibly.
 }
 \description{
 Picks the writer from the extension of \code{file} (\code{.html} or \code{.htm},

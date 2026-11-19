@@ -564,7 +564,8 @@ print.lagrprt <- function(x, ...) {
   invisible(x)
 }
 
-# The checks of the dispersion inputs, in their words.
+#' The checks of the dispersion inputs, in their words.
+#' @noRd
 .adnum <- function(
   x,
   what,
@@ -597,6 +598,8 @@ print.lagrprt <- function(x, ...) {
   v
 }
 
+#' The Pasquill stability class `stab` ("A" to "F") as its number from 0.
+#' @noRd
 .adcls <- function(stab, fn) {
   .cktxt(stab, "stab", fn)
   cls <- if (is.atomic(stab)) toupper(as.character(stab)) else NA
@@ -606,6 +609,8 @@ print.lagrprt <- function(x, ...) {
   match(cls, LETTERS[1:6]) - 1L
 }
 
+#' `set` ("rural" or "urban") as 0 or 1.
+#' @noRd
 .adset <- function(set, fn) {
   if (!is.character(set) || length(set) != 1L ||
         !set %in% c("rural", "urban")) {
@@ -614,6 +619,8 @@ print.lagrprt <- function(x, ...) {
   as.integer(set == "urban")
 }
 
+#' `nimg` checked as a whole number of image terms, at most 1,000.
+#' @noRd
 .adimg <- function(nimg, fn) {
   nimg <- .adnum(nimg, "nimg", fn, min = 0, whole = TRUE)
   if (nimg > 1000) {
@@ -628,6 +635,9 @@ print.lagrprt <- function(x, ...) {
   as.integer(nimg)
 }
 
+#' The mixing height `mixh` as a number (NA when NULL), with a warning when
+#'   the release height is above it.
+#' @noRd
 .adlid <- function(mixh, h, fn) {
   if (is.null(mixh)) return(NA_real_)
   lid <- .adnum(mixh, "mixh", fn, positive = TRUE)
@@ -642,6 +652,9 @@ print.lagrprt <- function(x, ...) {
   lid
 }
 
+#' The receptors `r` (a list of x, y, z triples, a matrix or a data frame) as
+#'   a matrix of three columns.
+#' @noRd
 .adrec <- function(r, fn) {
   bad <- function() {
     .ckstop(fn, "`rcpt` must give x, y, z for at least one receptor")
@@ -660,6 +673,9 @@ print.lagrprt <- function(x, ...) {
   m
 }
 
+#' Checks the receptor heights (column 3 of `R`) against the ground and the
+#'   mixing height `lid`, with a warning for those below ground.
+#' @noRd
 .adhts <- function(R, lid, fn) {
   z <- R[, 3L]
   if (any(z < 0)) {
@@ -683,7 +699,8 @@ print.lagrprt <- function(x, ...) {
   }
 }
 
-# The advection and diffusion numbers and their stability number.
+#' The advection and diffusion numbers and their stability number.
+#' @noRd
 .adnb <- function(u, v, kx, ky, dx, dy, dt) {
   ax <- u * dt / dx
   ay <- v * dt / dy
@@ -692,13 +709,16 @@ print.lagrprt <- function(x, ...) {
   c(ax, ay, dxn, dyn, abs(ax) + abs(ay) + 2 * (dxn + dyn))
 }
 
+#' `u` checked as one positive wind speed.
+#' @noRd
 .adu <- function(u, f) {
   if (!is.numeric(u) || length(u) != 1L || !is.finite(u) || u <= 0) {
     .ckstop(f, "`u` must be a single positive wind speed")
   }
 }
 
-# advdif2d(): the starting field, a finite non-negative numeric matrix
+#' advdif2d(): the starting field, a finite non-negative numeric matrix
+#' @noRd
 .adc0 <- function(c0, f) {
   if (!is.matrix(c0) || !is.numeric(c0)) {
     .ckstop(
@@ -719,7 +739,8 @@ print.lagrprt <- function(x, ...) {
   cm
 }
 
-# advdif2d(): the emission field, NULL or a matrix shaped like `c0`
+#' advdif2d(): the emission field, NULL or a matrix shaped like `c0`
+#' @noRd
 .adsrc <- function(source, cm, f) {
   if (is.null(source)) {
     return(NULL)
@@ -742,6 +763,8 @@ print.lagrprt <- function(x, ...) {
   unname(as.matrix(source)) * 1
 }
 
+#' `maxwork` checked as one positive number.
+#' @noRd
 .admax <- function(maxwork, f) {
   if (!is.numeric(maxwork) || length(maxwork) != 1L || is.na(maxwork) ||
         maxwork <= 0) {
@@ -749,8 +772,9 @@ print.lagrprt <- function(x, ...) {
   }
 }
 
-# advdif2d(): the sub-steps per step the stability number needs, the
-# whole run held under `maxwork` cell updates
+#' advdif2d(): the sub-steps per step the stability number needs, the
+#' whole run held under `maxwork` cell updates
+#' @noRd
 .adwork <- function(nx, ny, nsteps, stab, maxwork, f) {
   if (!is.finite(stab)) {
     .ckstop(
@@ -790,6 +814,8 @@ print.lagrprt <- function(x, ...) {
   as.integer(sub)
 }
 
+#' `seed` checked as one whole number in the range the generator takes.
+#' @noRd
 .lgseed <- function(seed, f) {
   if (!is.numeric(seed) || length(seed) != 1L || !is.finite(seed) ||
         seed != round(seed) || seed < -.Machine$integer.max || seed >= 2^53) {
@@ -800,7 +826,8 @@ print.lagrprt <- function(x, ...) {
   }
 }
 
-# lagrprt(): particles x steps held under `maxwork`
+#' lagrprt(): particles x steps held under `maxwork`
+#' @noRd
 .lgwork <- function(n, nsteps, maxwork, f) {
   .admax(maxwork, f)
   if (n * nsteps > maxwork) {
@@ -820,7 +847,8 @@ print.lagrprt <- function(x, ...) {
   }
 }
 
-# lagrprt(): the counting grid c(xmin, xmax, ymin, ymax, nx, ny)
+#' lagrprt(): the counting grid c(xmin, xmax, ymin, ymax, nx, ny)
+#' @noRd
 .lggrid <- function(grid, maxwork, f) {
   if (length(grid) != 6L) {
     .ckstop(f, "`grid` must be c(xmin, xmax, ymin, ymax, nx, ny)")
@@ -848,8 +876,9 @@ print.lagrprt <- function(x, ...) {
   g
 }
 
-# lagrprt(): the walk with the caller's normal draws; `pr` holds x0, y0,
-# u, v, kx, ky and dt
+#' lagrprt(): the walk with the caller's normal draws; `pr` holds x0, y0,
+#' u, v, kx, ky and dt
+#' @noRd
 .lgnorm <- function(n, pr, nsteps, seed, g, normals, f) {
   xs <- rep(pr[1L], n)
   ys <- rep(pr[2L], n)
@@ -867,7 +896,8 @@ print.lagrprt <- function(x, ...) {
   c(list(xs, ys), .Call(C_clab_r_laggrid, xs, ys, g))
 }
 
-# lagrprt(): n normal draws of stream s from the caller's `normals`
+#' lagrprt(): n normal draws of stream s from the caller's `normals`
+#' @noRd
 .lgdraw <- function(normals, n, seed, s, f) {
   z <- tryCatch(normals(n, seed, s), error = function(e) {
     .ckstop(
@@ -891,8 +921,9 @@ print.lagrprt <- function(x, ...) {
   as.numeric(z)
 }
 
-# advdif2d(): the result; `sz` is a list of nx, ny, the steps and the
-# sub-steps
+#' advdif2d(): the result; `sz` is a list of nx, ny, the steps and the
+#' sub-steps
+#' @noRd
 .adres <- function(cm, nb, sz, dt, dx, dy) {
   stab <- nb[[5L]]
   nx <- sz[[1L]]

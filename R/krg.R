@@ -499,7 +499,8 @@ spsamp <- function(x, size, dens = TRUE, seed = NULL) {
   .Call(C_clab_r_spsamp, x, size, dens, seed)
 }
 
-# the coefficient table of a fit
+#' the coefficient table of a fit
+#' @noRd
 .ctab <- function(b, s) {
   data.frame(
     term = names(b),
@@ -509,6 +510,8 @@ spsamp <- function(x, size, dens = TRUE, seed = NULL) {
   )
 }
 
+#' The arguments of spobj() checked.
+#' @noRd
 .spargs <- function(data, coords, crs) {
   if (!is.data.frame(data)) {
     stop("spobj: `data` must be a data frame.", call. = FALSE)
@@ -532,6 +535,8 @@ spsamp <- function(x, size, dens = TRUE, seed = NULL) {
   }
 }
 
+#' Refuses anything that is not the object spobj() returns.
+#' @noRd
 .isobj <- function(x, f) {
   if (!inherits(x, "spobj")) {
     stop(f, ": `x` must be the object spobj() returns.", call. = FALSE)

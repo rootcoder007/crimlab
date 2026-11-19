@@ -93,9 +93,10 @@ print.rndalc <- function(x, ...) {
   invisible(x)
 }
 
-# The seed of a kernel's generator: one whole number from 0 to
-# 2147483647, drawn from R's generator when NULL (so set.seed() fixes it)
-# and returned with the result.
+#' The seed of a kernel's generator: one whole number from 0 to
+#' 2147483647, drawn from R's generator when NULL (so set.seed() fixes it)
+#' and returned with the result.
+#' @noRd
 .xpseed <- function(seed, f) {
   if (is.null(seed)) {
     return(as.numeric(sample.int(.Machine$integer.max, 1L)))
@@ -103,7 +104,8 @@ print.rndalc <- function(x, ...) {
   .cknum(seed, "seed", f, min = 0, max = .Machine$integer.max, whole = TRUE)
 }
 
-# The arms checked, then the ratio, one whole number per arm.
+#' The arms checked, then the ratio, one whole number per arm.
+#' @noRd
 .rnrat <- function(arms, ratio, f) {
   if (!is.character(arms) || length(arms) < 2L || anyNA(arms) ||
         !all(nzchar(arms)) || anyDuplicated(arms)) {
@@ -117,7 +119,8 @@ print.rndalc <- function(x, ...) {
   ratio
 }
 
-# Whether the checked block sizes ask for simple randomisation.
+#' Whether the checked block sizes ask for simple randomisation.
+#' @noRd
 .rnblk <- function(block, sr, f) {
   simple <- length(block) == 1L && block == 0
   if (!simple && any(block == 0 | block %% sr != 0)) {
@@ -127,8 +130,9 @@ print.rndalc <- function(x, ...) {
   simple
 }
 
-# The places: n, the count of each stratum (n alone without strata) and
-# the strata's names.
+#' The places: n, the count of each stratum (n alone without strata) and
+#' the strata's names.
+#' @noRd
 .rncnt <- function(n, strata, f) {
   if (is.null(strata)) {
     n <- .cknum(n, "n", f, min = 1, max = 1e7, whole = TRUE)
@@ -152,7 +156,8 @@ print.rndalc <- function(x, ...) {
   list(n = tot, cnt = cnt, nm = nm)
 }
 
-# The rndalc object from the kernel's draws and the places s.
+#' The rndalc object from the kernel's draws and the places s.
+#' @noRd
 .rnout <- function(k, s, arms, prefix, seed) {
   n <- as.integer(s$n)
   cnt <- s$cnt

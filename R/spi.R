@@ -242,8 +242,9 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
              lift = r$out[, 4L], count = r$out[, 5L])
 }
 
-# The checks of idwint() in its order: the monitors, the targets, p, k,
-# rad and lonlat; list(p, k, lonlat) as checked.
+#' The checks of idwint() in its order: the monitors, the targets, p, k,
+#' rad and lonlat; list(p, k, lonlat) as checked.
+#' @noRd
 .idwchk <- function(mx, my, mv, tx, ty, p, k, rad, lonlat, f) {
   .cknum(mx, "mx", f, scalar = FALSE)
   .cknum(my, "my", f, scalar = FALSE)
@@ -262,7 +263,8 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
   list(p = p, k = k, lonlat = .ckflag(lonlat, "lonlat", f))
 }
 
-# The zones of idwint()'s targets, sorted (NULL without zone).
+#' The zones of idwint()'s targets, sorted (NULL without zone).
+#' @noRd
 .idwzn <- function(zone, tx, f) {
   if (is.null(zone)) return(NULL)
   if (!is.atomic(zone) || length(zone) != length(tx) || anyNA(zone)) {
@@ -271,7 +273,8 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
   sort(unique(zone))
 }
 
-# The checks of asrule() in its order; list(minsup, minconf, empty).
+#' The checks of asrule() in its order; list(minsup, minconf, empty).
+#' @noRd
 .archk <- function(x, y, minsup, minconf, empty, nm, f) {
   if (!is.atomic(x) || !is.atomic(y) || length(x) != length(y) ||
         !length(x) || anyNA(x) || anyNA(y)) {
@@ -286,12 +289,14 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
   list(minsup = minsup, minconf = minconf, empty = empty)
 }
 
-# The items of one column of asrule(): a factor's levels, else the sorted
-# values.
+#' The items of one column of asrule(): a factor's levels, else the sorted
+#' values.
+#' @noRd
 .arlev <- function(x) if (is.factor(x)) levels(x) else sort(unique(x))
 
-# The checks of gtwreg() in its order: the outcome, the regressors (with
-# the constant first), the coordinates and the times, as doubles.
+#' The checks of gtwreg() in its order: the outcome, the regressors (with
+#' the constant first), the coordinates and the times, as doubles.
+#' @noRd
 .gtchk <- function(y, x, u, v, t, cons, f) {
   .cknum(y, "y", f, scalar = FALSE)
   n <- length(y)
@@ -326,7 +331,8 @@ asrule <- function(x, y, minsup = 0.1, minconf = 0.2, empty = TRUE,
        t = if (is.null(t)) NULL else as.numeric(t))
 }
 
-# The result of gtwreg() from the kernel's r at the chosen h and tau.
+#' The result of gtwreg() from the kernel's r at the chosen h and tau.
+#' @noRd
 .gtout <- function(r, a, g, h, tau) {
   cn <- colnames(a$x)
   dimnames(r$coef) <- dimnames(r$se) <- list(NULL, cn)

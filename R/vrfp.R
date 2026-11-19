@@ -199,7 +199,8 @@ print.vrfpol <- function(x, ...) {
   invisible(x)
 }
 
-# polrpttxt(): does the report have its inputs, assumptions and pipeline?
+#' polrpttxt(): does the report have its inputs, assumptions and pipeline?
+#' @noRd
 .vpok <- function(report) {
   is.list(report$inputs) &&
     is.list(report$assumptions) &&
@@ -211,9 +212,12 @@ print.vrfpol <- function(x, ...) {
     (!identical(report$status, "ok") || is.list(report$pipeline))
 }
 
-# `b` when `a` is NULL
+#' `b` when `a` is NULL
+#' @noRd
 .vpor <- function(a, b) if (is.null(a)) b else a
 
+#' The pollutant `poll` as the key the pollution check uses.
+#' @noRd
 .vpkey <- function(poll, fn) {
   if (!is.character(poll) || length(poll) != 1L || is.na(poll)) {
     .ckstop(fn, "`poll` must be one pollutant name (\"PM2.5\" or \"NO2\")")
@@ -228,6 +232,8 @@ print.vrfpol <- function(x, ...) {
   }
 }
 
+#' The pollutant name as its standard name, NA when it is not recognised.
+#' @noRd
 .vppol <- function(p) {
   if (!is.character(p) || length(p) != 1L || is.na(p)) {
     return(NA_character_)
@@ -242,6 +248,9 @@ print.vrfpol <- function(x, ...) {
   NA_character_
 }
 
+#' The result of a pollution check that could not run: the error and exit
+#'   status 2.
+#' @noRd
 .vpfail <- function(msg) {
   structure(
     list(status = "error", error = msg),
@@ -250,12 +259,18 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' One row of the table of assumptions: its name, whether it holds, a note.
+#' @noRd
 .vprow <- function(name, ok, note) {
   list(assumption = name, ok = isTRUE(ok), note = note)
 }
 
+#' Whether `x` is one finite number.
+#' @noRd
 .vpfin <- function(x) length(x) == 1L && is.finite(x)
 
+#' The assumptions of the pollution check, each with whether it holds.
+#' @noRd
 .vpasmlist <- function(poll, em, ep, br, pop, ref, rare, hirate) {
   fin <- .vpfin
   list(
@@ -307,6 +322,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The note on the exposure mean.
+#' @noRd
 .vpexpnote <- function(em, ref) {
   if (!.vpfin(em) || em < 0) {
     sprintf(
@@ -327,6 +344,8 @@ print.vrfpol <- function(x, ...) {
   }
 }
 
+#' The row of assumptions for the baseline rate.
+#' @noRd
 .vprate <- function(br, rare, hirate) {
   top <- if (isTRUE(hirate)) 1e5 else 1e4
   fin <- .vpfin(br)
@@ -343,6 +362,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The note on the baseline rate.
+#' @noRd
 .vpratenote <- function(br, fin, rare, top) {
   if (fin && br < 1e-6 && br > 0) {
     sprintf(
@@ -382,8 +403,9 @@ print.vrfpol <- function(x, ...) {
   }
 }
 
-# The simulated demo data: lognormal exposures and five income groups,
-# drawn from R's generator with a fixed seed.
+#' The simulated demo data: lognormal exposures and five income groups,
+#' drawn from R's generator with a fixed seed.
+#' @noRd
 .vpdemo <- function(poll) {
   .clseed(20260417L, {
     n <- 1000L
@@ -397,7 +419,8 @@ print.vrfpol <- function(x, ...) {
   })
 }
 
-# The mean and share of the rows above the reference (the exposed).
+#' The mean and share of the rows above the reference (the exposed).
+#' @noRd
 .vpexposed <- function(x, ref) {
   x <- x[!is.na(x)]
   above <- if (is.finite(ref)) x[x > ref] else x
@@ -413,6 +436,9 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The exposure inputs of the pollution check: the demonstration data, a CSV
+#'   file, or the numbers given.
+#' @noRd
 .vpsource <- function(demo, expcsv, poll, ref, em, ep, noscalar) {
   if (isTRUE(demo)) {
     df <- .vpdemo(poll)
@@ -445,12 +471,16 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The reason the inputs of the pollution check cannot be used, NULL when they
+#'   can.
+#' @noRd
 .vpcheck <- function(demo, expcsv, sc, rare, hirate, y) {
   m <- .vpsrc(demo, expcsv, sc)
   if (is.null(m)) .vpnums(sc, rare, hirate, y) else m
 }
 
-# .vpcheck(): one source of exposure, and a population
+#' .vpcheck(): one source of exposure, and a population
+#' @noRd
 .vpsrc <- function(demo, expcsv, sc) {
   noscalar <- is.null(sc$expomean) && is.null(sc$expoprev)
   if (isTRUE(demo) && !is.null(expcsv)) {
@@ -477,7 +507,8 @@ print.vrfpol <- function(x, ...) {
   NULL
 }
 
-# .vpcheck(): the numbers and flags, each of the right kind and length
+#' .vpcheck(): the numbers and flags, each of the right kind and length
+#' @noRd
 .vpnums <- function(sc, rare, hirate, y) {
   for (nm in c("expomean", "expoprev", "brate", "basrateper", "pop", "ref")) {
     v <- sc[[nm]]
@@ -514,6 +545,8 @@ print.vrfpol <- function(x, ...) {
   NULL
 }
 
+#' The inputs of the pollution check gathered and checked.
+#' @noRd
 .vpinputs <- function(demo, expcsv, poll, ref, em, ep, rates, rare, hirate,
                       y) {
   if (is.null(ref)) {
@@ -537,6 +570,8 @@ print.vrfpol <- function(x, ...) {
   list(ex = ex, ref = ref)
 }
 
+#' Runs the pollution check and builds its report.
+#' @noRd
 .vprun <- function(poll, y, reg, years, ex, brate, pop, ref, rare, hirate) {
   asm <- .vpasmlist(poll, ex$expomean, ex$expoprev, brate, pop, ref, rare,
                     hirate)
@@ -572,6 +607,9 @@ print.vrfpol <- function(x, ...) {
   structure(report, exitstat = 0L, class = c("vrfpol", "list"))
 }
 
+#' The computations of the pollution check, in order; the message of the error
+#'   when one fails.
+#' @noRd
 .vppipeline <- function(poll, y, em, ep, brate, pop, ref, rare, hirate, eq) {
   crf <- .vpcrf(poll, em, y, ref)
   if (inherits(crf, "error")) {
@@ -608,7 +646,8 @@ print.vrfpol <- function(x, ...) {
   .vpout(crf, paf, st, del, bpu, y)
 }
 
-# .vppipeline(): the concentration-response function, or its error
+#' .vppipeline(): the concentration-response function, or its error
+#' @noRd
 .vpcrf <- function(poll, em, y, ref) {
   tryCatch(
     if (poll == "no2") {
@@ -620,7 +659,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
-# .vppipeline(): the stages' results as the report's pipeline
+#' .vppipeline(): the stages' results as the report's pipeline
+#' @noRd
 .vpout <- function(crf, paf, st, del, bpu, y) {
   list(
     crf = unclass(crf),
@@ -637,6 +677,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The equity part of the pollution check, NULL without an income column.
+#' @noRd
 .vpequity <- function(eq) {
   if (is.null(eq) || !"income" %in% names(eq)) {
     return(NULL)
@@ -652,6 +694,8 @@ print.vrfpol <- function(x, ...) {
 
 # ---- reading the exposure file, with base R --------------------------------
 
+#' The exposure CSV read and checked; a message when it cannot be used.
+#' @noRd
 .vpread <- function(expcsv, poll) {
   df <- .vpload(expcsv)
   if (is.character(df)) {
@@ -685,6 +729,8 @@ print.vrfpol <- function(x, ...) {
   .vprows(df)
 }
 
+#' The exposure CSV loaded; a message when the path is not a usable file.
+#' @noRd
 .vpload <- function(expcsv) {
   if (!is.character(expcsv) || length(expcsv) != 1L || is.na(expcsv)) {
     return("expcsv must be a single file path")
@@ -715,6 +761,9 @@ print.vrfpol <- function(x, ...) {
   df
 }
 
+#' The exposure column of a file in NAPS form (`value` with `unit`); a message
+#'   when it cannot be read.
+#' @noRd
 .vpnaps <- function(df, poll) {
   if (!"unit" %in% names(df)) {
     return(paste0(
@@ -746,6 +795,9 @@ print.vrfpol <- function(x, ...) {
   list(vals = vals, raw = raw)
 }
 
+#' A note on exposure cells that hold text, neither a number nor a mark of a
+#'   missing value.
+#' @noRd
 .vptext <- function(exposure, raw) {
   if (is.null(raw)) {
     return(NULL)
@@ -771,6 +823,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' Drops the rows with no exposure value, with a note.
+#' @noRd
 .vprows <- function(df) {
   dropped <- sum(is.na(df$exposure))
   if (dropped > 0L) {
@@ -798,6 +852,8 @@ print.vrfpol <- function(x, ...) {
   list(df = df, dropped = dropped, equity_df = if ("income" %in% names(df)) df)
 }
 
+#' Reads the CSV at `path` after checking what kind of file it is.
+#' @noRd
 .vpcsv <- function(path) {
   head <- readBin(path, "raw", 6L)
   comp <- length(head) >= 2L &&
@@ -840,7 +896,8 @@ print.vrfpol <- function(x, ...) {
   .vpparse(src)
 }
 
-# A compressed file decompressed, to a bounded size.
+#' A compressed file decompressed, to a bounded size.
+#' @noRd
 .vpunzip <- function(path, head) {
   lim <- min(2^30, max(64 * 2^20, 200 * file.size(path)), 2^31 - 2)
   bz <- length(head) >= 3L && identical(head[1:3], charToRaw("BZh"))
@@ -879,10 +936,11 @@ print.vrfpol <- function(x, ...) {
   out
 }
 
-# Whether the data inflated from a gzip file match the CRC-32 and length
-# that end its last member (RFC 1952). R's reader checks them only when the
-# member ends, not when the file stops inside the data. The last member's
-# data are the last ISIZE bytes inflated.
+#' Whether the data inflated from a gzip file match the CRC-32 and length
+#' that end its last member (RFC 1952). R's reader checks them only when the
+#' member ends, not when the file stops inside the data. The last member's
+#' data are the last ISIZE bytes inflated.
+#' @noRd
 .vpgzend <- function(path, out) {
   n <- file.size(path)
   con <- file(path, "rb")
@@ -898,7 +956,8 @@ print.vrfpol <- function(x, ...) {
   invisible(TRUE)
 }
 
-# Whether a bzip2 file ends with its end-of-stream marker.
+#' Whether a bzip2 file ends with its end-of-stream marker.
+#' @noRd
 .vpbz2end <- function(path) {
   n <- file.size(path)
   if (is.na(n) || n < 14) {
@@ -910,6 +969,9 @@ print.vrfpol <- function(x, ...) {
   .Call(C_clab_r_bz2end, readBin(con, "raw", 11L))
 }
 
+#' The text encoding of the bytes of a file; NUL bytes that are not UTF-16 are
+#'   refused.
+#' @noRd
 .vpenc <- function(raw, path) {
   r <- .Call(C_clab_r_txtenc, raw)
   if (r[1L] < 0L) {
@@ -936,6 +998,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The bytes of a file decoded to UTF-8 text.
+#' @noRd
 .vpdec <- function(raw, utf16, path) {
   if (!is.null(utf16)) {
     txt <- iconv(list(raw), from = utf16, to = "UTF-8")[[1L]]
@@ -963,6 +1027,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' Checks the header row of the CSV `src`.
+#' @noRd
 .vpshape <- function(src) {
   hdr <- names(.vpquiet(
     utils::read.csv(src, nrows = 1L, check.names = FALSE, encoding = "UTF-8")
@@ -997,13 +1063,16 @@ print.vrfpol <- function(x, ...) {
   invisible(NULL)
 }
 
+#' The CSV `src` read as a data frame.
+#' @noRd
 .vpparse <- function(src) {
   .vpquiet(utils::read.csv(src, stringsAsFactors = FALSE, encoding = "UTF-8"))
 }
 
-# A read of the CSV in which any warning refuses the file. The file read
-# ends with a newline (.vpcsv()), so "incomplete final line" means the
-# header read reached the end inside a quote.
+#' A read of the CSV in which any warning refuses the file. The file read
+#' ends with a newline (.vpcsv()), so "incomplete final line" means the
+#' header read reached the end inside a quote.
+#' @noRd
 .vpquiet <- function(expr) {
   withCallingHandlers(expr, warning = function(w) {
     m <- conditionMessage(w)
@@ -1025,6 +1094,8 @@ print.vrfpol <- function(x, ...) {
 
 # ---- the text report ---------------------------------------------------------
 
+#' The heading lines of the printed pollution report.
+#' @noRd
 .vphead <- function(report) {
   bar <- strrep("=", 66)
   lines <- c(
@@ -1061,6 +1132,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The assumptions as printed lines, PASS or FAIL.
+#' @noRd
 .vpasm <- function(assumptions) {
   vapply(
     assumptions,
@@ -1076,6 +1149,8 @@ print.vrfpol <- function(x, ...) {
   )
 }
 
+#' The results of the pollution check as printed lines.
+#' @noRd
 .vppipe <- function(p) {
   ci <- if (is.null(p$pafci)) {
     ""

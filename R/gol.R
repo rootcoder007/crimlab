@@ -177,8 +177,9 @@ gocoef <- function(object, v = NULL) {
   list(est = tab("est"), se = tab("se"), wald = w)
 }
 
-# The levels of the ordered outcome v, lowest first: lev, the levels of a
-# factor, or the sorted values of numbers; each present, at least three.
+#' The levels of the ordered outcome v, lowest first: lev, the levels of a
+#' factor, or the sorted values of numbers; each present, at least three.
+#' @noRd
 .golev <- function(v, lev, y, f) {
   if (!is.null(lev)) {
     if (!(is.character(lev) || is.numeric(lev)) || anyNA(lev) ||
@@ -210,7 +211,8 @@ gocoef <- function(object, v = NULL) {
   lv
 }
 
-# The parallel terms: NULL, or columns of x, each once.
+#' The parallel terms: NULL, or columns of x, each once.
+#' @noRd
 .gopar <- function(par, x, f) {
   if (!is.null(par) && (!is.character(par) || anyNA(par) ||
                           !all(par %in% x) || anyDuplicated(par))) {

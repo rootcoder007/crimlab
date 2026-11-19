@@ -860,9 +860,12 @@ srchfig <- function(fig = NULL, num = NULL) {
   tab
 }
 
+#' The lateral range model as its number from 0.
+#' @noRd
 .sarlm <- function(model) match(model, c("invcube", "definite", "mbeta")) - 1L
 
-# Grid edges or abscissae: at least two, strictly increasing.
+#' Grid edges or abscissae: at least two, strictly increasing.
+#' @noRd
 .sarincr <- function(x, what, fn) {
   if (!is.null(dim(x))) {
     .ckstop(fn, "`%s` must be a vector of edges, not a matrix", what)
@@ -874,7 +877,8 @@ srchfig <- function(fig = NULL, num = NULL) {
   v
 }
 
-# Containment probabilities: each in [0, 1], one positive, sum at most 1.
+#' Containment probabilities: each in \[0, 1\], one positive, sum at most 1.
+#' @noRd
 .sarpoc <- function(poc, fn) {
   poc <- .cknum(poc, "poc", fn, scalar = FALSE, min = 0, max = 1)
   if (sum(poc) > 1 + 1e-9) {
@@ -889,6 +893,8 @@ srchfig <- function(fig = NULL, num = NULL) {
   poc
 }
 
+#' The name in words of a search and rescue model or pattern.
+#' @noRd
 .sarname <- function(model) {
   c(
     invcube = "inverse cube",
@@ -903,7 +909,8 @@ srchfig <- function(fig = NULL, num = NULL) {
   )[[model]]
 }
 
-# datumpmap(): `end`, two numbers, for a line, area or corridor datum
+#' datumpmap(): `end`, two numbers, for a line, area or corridor datum
+#' @noRd
 .dmend <- function(datum, end, f) {
   if (datum %in% c("line", "area", "corridor") && is.null(end)) {
     .ckstop(f, "a %s datum needs `end`, two numbers", datum)
@@ -917,7 +924,8 @@ srchfig <- function(fig = NULL, num = NULL) {
   end
 }
 
-# datumpmap(): a corridor runs along an axis, an area spans both
+#' datumpmap(): a corridor runs along an axis, an area spans both
+#' @noRd
 .dmshape <- function(datum, center, end, f) {
   if (datum == "corridor") {
     if (center[2L] != end[2L] && center[1L] != end[1L]) {
@@ -935,7 +943,8 @@ srchfig <- function(fig = NULL, num = NULL) {
   }
 }
 
-# datumpmap(): the cell weights of a general datum, a y-by-x matrix
+#' datumpmap(): the cell weights of a general datum, a y-by-x matrix
+#' @noRd
 .dmwts <- function(wts, xedg, yedg, f) {
   nx <- length(xedg) - 1L
   ny <- length(yedg) - 1L
@@ -960,9 +969,10 @@ srchfig <- function(fig = NULL, num = NULL) {
   w
 }
 
-# opteffort(): the cells' areas, one positive number per cell of `poc`
-# The densities poc * W / area and the ratios area / W the search works
-# with: finite, and positive where poc is, or no root can be bracketed.
+#' opteffort(): the cells' areas, one positive number per cell of `poc`
+#' The densities poc * W / area and the ratios area / W the search works
+#' with: finite, and positive where poc is, or no root can be bracketed.
+#' @noRd
 .opdens <- function(poc, area, W, f) {
   r <- poc * W / area
   bad <- !all(is.finite(r)) || !all(is.finite(area / W))
@@ -978,6 +988,8 @@ srchfig <- function(fig = NULL, num = NULL) {
   }
 }
 
+#' `area` checked as one positive number per cell.
+#' @noRd
 .oparea <- function(area, poc, f) {
   if (is.null(area)) {
     .ckstop(f, "`area` must be given, one positive number per cell")

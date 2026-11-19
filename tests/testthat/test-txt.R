@@ -36,7 +36,7 @@ test_that("asciifb() keeps valid UTF-8 and repairs the rest", {
 })
 
 test_that("wrtxtfb() writes the UTF-8 bytes with one newline per line", {
-  p <- tempfile()
+  p <- tempfile(fileext = ".txt")
   on.exit(unlink(p))
   expect_identical(wrtxtfb(c("\u00c1ngela", NA, "z"), p), p)
   expect_identical(
@@ -67,4 +67,24 @@ test_that("a path in a folder that does not exist is refused in words", {
   expect_no_warning(expect_error(
     wrtxtfb("x", p), "^wrtxtfb: `path` is in a folder that does not exist"
   ))
+})
+
+#' @srrstats {G4.0} A file name with no suffix is given the suffix of what
+#'   is written, by every function that writes a file.
+#' @noRd
+test_that("a file name with no suffix is given one", {
+  p <- tempfile()
+  q <- wrtxtfb("a", p)
+  on.exit(unlink(q))
+  expect_identical(q, paste0(p, ".txt"))
+  expect_true(file.exists(q))
+  a <- data.frame(x = 1:2)
+  f <- c(yoycsv(a, tempfile()), yoytsv(a, tempfile()), yoyjs(a, tempfile()))
+  on.exit(unlink(f), add = TRUE)
+  expect_identical(tools::file_ext(f), c("csv", "tsv", "json"))
+  expect_true(all(file.exists(f)))
+  # a name that has a suffix keeps it
+  g <- tempfile(fileext = ".dat")
+  on.exit(unlink(g), add = TRUE)
+  expect_identical(yoycsv(a, g), g)
 })

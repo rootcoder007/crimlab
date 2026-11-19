@@ -400,7 +400,8 @@ print.xfrvrf <- function(x, ...) {
   invisible(x)
 }
 
-# xfrvrf(): the imported column and the code book refused before any work.
+#' xfrvrf(): the imported column and the code book refused before any work.
+#' @noRd
 .xfargs <- function(imported, codebook) {
   if (is.null(imported) || !is.atomic(imported)) {
     .ckstop("xfrvrf", "`imported` must be the imported column, a vector")
@@ -412,8 +413,12 @@ print.xfrvrf <- function(x, ...) {
   }
 }
 
+#' Values in single quotes.
+#' @noRd
 .cq <- function(v) paste0("'", v, "'")
 
+#' `x` checked as a vector of labels; a factor is read by its labels.
+#' @noRd
 .catx <- function(x, fn, nm = "x") {
   if (is.null(x) || !is.atomic(x)) {
     stop(fn, ": `", nm, "` must be a vector of labels.", call. = FALSE)
@@ -421,6 +426,8 @@ print.xfrvrf <- function(x, ...) {
   if (is.factor(x)) as.character(x) else x
 }
 
+#' `map` checked as a named character vector (old = new).
+#' @noRd
 .catmap <- function(map, fn, nm = "map") {
   if (!is.character(map) || is.null(names(map)) || anyNA(names(map)) ||
         !all(nzchar(names(map)))) {
@@ -429,6 +436,9 @@ print.xfrvrf <- function(x, ...) {
   }
 }
 
+#' The recoding of `x` by `map`: every observed value must be mapped by name
+#'   or listed in `keep`.
+#' @noRd
 .crec <- function(x, map, keep, fn) {
   seen <- unique(x[!is.na(x)])
   un <- setdiff(seen, c(names(map), keep))
@@ -443,6 +453,8 @@ print.xfrvrf <- function(x, ...) {
   out
 }
 
+#' The arguments `pub` and `tol` of vrfmrg() checked.
+#' @noRd
 .mrgargs <- function(pub, tol) {
   if (!is.numeric(tol) || length(tol) != 1L || !is.finite(tol) || tol < 0) {
     stop("vrfmrg: `tol` must be one number from 0.", call. = FALSE)
@@ -453,8 +465,9 @@ print.xfrvrf <- function(x, ...) {
   }
 }
 
-# vrfmrg(): counts that differ, with the permutation of the labels that
-# would make them agree (searched for up to seven labels) and the message
+#' vrfmrg(): counts that differ, with the permutation of the labels that
+#' would make them agree (searched for up to seven labels) and the message
+#' @noRd
 .mrgfail <- function(out, labs, tol) {
   obs <- out$counts
   pubv <- out$published
@@ -477,8 +490,9 @@ print.xfrvrf <- function(x, ...) {
   out
 }
 
-# the first permutation p of labs (in the order of the recursion) under
-# which the observed counts, relabelled by p, match the published ones
+#' the first permutation p of labs (in the order of the recursion) under
+#' which the observed counts, relabelled by p, match the published ones
+#' @noRd
 .mrgperm <- function(obs, pub, labs, tol) {
   perms <- function(v) {
     if (length(v) <= 1L) {
@@ -497,9 +511,10 @@ print.xfrvrf <- function(x, ...) {
   NULL
 }
 
-# relbl(): `x` a vector of labels, `map` named
-# Labels to keep or a reference label: NULL or a vector (not a function),
-# valid text.
+#' relbl(): `x` a vector of labels, `map` named
+#' Labels to keep or a reference label: NULL or a vector (not a function),
+#' valid text.
+#' @noRd
 .ctkeep <- function(v, what, fn) {
   if (!is.null(v) && !is.atomic(v) && !is.factor(v)) {
     .ckstop(fn, "`%s` must be labels: a vector of text or codes", what)
@@ -507,6 +522,8 @@ print.xfrvrf <- function(x, ...) {
   .cktxt(v, what, fn)
 }
 
+#' The arguments `x` and `map` of relbl() checked.
+#' @noRd
 .rlargs <- function(x, map) {
   if (is.null(x) || !is.atomic(x) || is.complex(x) || is.raw(x)) {
     stop("relbl: `x` must be a vector of labels (text, a factor or ",
@@ -519,7 +536,8 @@ print.xfrvrf <- function(x, ...) {
   }
 }
 
-# xfrvrf(): do the value labels that arrived agree with the code book?
+#' xfrvrf(): do the value labels that arrived agree with the code book?
+#' @noRd
 .xfcb <- function(lab, codebook, strict) {
   got <- stats::setNames(names(lab), as.character(unname(lab)))
   want <- stats::setNames(as.character(codebook), names(codebook))
@@ -536,7 +554,8 @@ print.xfrvrf <- function(x, ...) {
   cbok
 }
 
-# xfrvrf(): the column decoded by its labels, the code book, or as labels
+#' xfrvrf(): the column decoded by its labels, the code book, or as labels
+#' @noRd
 .xfdec <- function(imported, lab, codebook, soucnts) {
   if (!is.null(lab)) {
     declbld(imported)

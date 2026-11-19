@@ -19,7 +19,8 @@ yoymd(x, file = NULL, digits = 1L, align = TRUE, meta = NULL)
 \item{x}{A change table (\code{\link[=yoypx]{yoypx()}}); \code{yoycsv()}, \code{yoytsv()} and
 \code{yoyjs()} take any data frame.}
 
-\item{file}{A file path, or \code{NULL} to return the text.}
+\item{file}{A file path, or \code{NULL} to return the text. A name with no
+suffix is given the format's own (\code{.csv}, \code{.tsv}, \code{.json}, \code{.md}).}
 
 \item{digits}{\code{NULL}, or the decimals of the percentage columns (0 to
 15); in \code{yoymd()} the decimals of the change shown.}
@@ -36,7 +37,8 @@ settings), written as comments or as the table's caption.}
 \item{align}{\code{TRUE} pads the Markdown columns to a common width.}
 }
 \value{
-The text when \code{file} is \code{NULL}, otherwise \code{file}, invisibly.
+The text when \code{file} is \code{NULL}, otherwise the path written,
+invisibly.
 }
 \description{
 \code{yoycsv()} and \code{yoytsv()} write every column of the table, one row per

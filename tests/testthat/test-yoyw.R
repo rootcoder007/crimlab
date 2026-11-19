@@ -109,8 +109,7 @@ test_that("a table written and read back is the table", {
   a <- data.frame(code = c("046", "", "112"), n = c(1 / 3, 2, 1e-20),
                   ok = c(TRUE, FALSE, NA), stringsAsFactors = FALSE)
   for (w in list(yoycsv, yoytsv)) {
-    f <- tempfile()
-    w(a, f, na = "NA")
+    f <- w(a, tempfile(), na = "NA")
     b <- utils::read.table(f, header = TRUE, sep = if (identical(w, yoycsv))
       "," else "\t", colClasses = c("character", "numeric", "logical"),
       na.strings = "NA", quote = "\"")

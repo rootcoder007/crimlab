@@ -87,7 +87,8 @@ asciifb <- function(x, force = FALSE) {
 #'
 #' @param text The lines; [as.character()] converts any other type.
 #' @param path The file, one non-empty string; its directory must exist.
-#' @return `path`, invisibly.
+#'   A name with no suffix is given `.txt`.
+#' @return The path written, invisibly.
 #' @seealso [toascii()].
 #' @examples
 #' p <- wrtxtfb(c("line one", "line two"), tempfile(fileext = ".txt"))
@@ -102,14 +103,15 @@ wrtxtfb <- function(text, path) {
         !nzchar(path)) {
     stop("wrtxtfb: `path` must be one non-empty file path.", call. = FALSE)
   }
-  .ckout(path, "wrtxtfb", "path")
+  path <- .cksfx(.ckout(path, "wrtxtfb", "path"), "txt")
   b <- charToRaw(enc2utf8(paste0(paste(text, collapse = "\n"), "\n")))
   writeBin(b, path)
   invisible(path)
 }
 
-# as.character() of an atomic vector; a function, list or other object is
-# refused
+#' as.character() of an atomic vector; a function, list or other object is
+#' refused
+#' @noRd
 .txtin <- function(x, fn, nm = "x") {
   if (!is.null(x) && !is.atomic(x)) {
     stop(fn, ": `", nm, "` must be text (or numbers, TRUE and FALSE).",

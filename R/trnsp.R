@@ -136,8 +136,9 @@ print.trnsp <- function(x, ...) {
   invisible(x)
 }
 
-# A column name for a variable read in the trial only: the checks of
-# .axcols() but missing values.
+#' A column name for a variable read in the trial only: the checks of
+#' .axcols() but missing values.
+#' @noRd
 .trcol <- function(d, v, what, f) {
   if (is.null(v)) .ckstop(f, "`%s` must name columns of `data`, got NULL", what)
   if (!is.character(v) || anyNA(v) || !length(v)) {
@@ -150,7 +151,8 @@ print.trnsp <- function(x, ...) {
   v
 }
 
-# Its values: numbers, finite in the trial (rows keep), 0 elsewhere.
+#' Its values: numbers, finite in the trial (rows keep), 0 elsewhere.
+#' @noRd
 .trval <- function(d, v, keep, f) {
   z <- d[[v]]
   if (!is.numeric(z) && !is.logical(z)) {

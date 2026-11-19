@@ -48,6 +48,8 @@ format.tsfit <- function(x, ...) format.svfit(x, ...)
 #' @export
 summary.tsfit <- function(object, ...) summary.svfit(object, ...)
 
+#' One value of a result described in a few words for printing.
+#' @noRd
 .svpart <- function(v) {
   if (is.null(v)) {
     return("NULL")
@@ -68,8 +70,9 @@ summary.tsfit <- function(object, ...) summary.svfit(object, ...)
   sprintf("%d %s", length(v), if (is.character(v)) "strings" else "values")
 }
 
-# print a result: the lines its format method gives, then the result,
-# invisibly
+#' print a result: the lines its format method gives, then the result,
+#' invisibly
+#' @noRd
 .prfmt <- function(x, ...) {
   cat(format(x, ...), sep = "\n")
   invisible(x)

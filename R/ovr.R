@@ -362,8 +362,9 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   )
 }
 
-# Text: a character vector (a vector of NA only is text that is missing),
-# valid in its encoding, as UTF-8.
+#' Text: a character vector (a vector of NA only is text that is missing),
+#' valid in its encoding, as UTF-8.
+#' @noRd
 .ovrin <- function(x, what, f) {
   if (is.logical(x) && length(x) && all(is.na(x))) {
     x <- as.character(x)
@@ -375,7 +376,8 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   enc2utf8(.cktxt(x, what, f))
 }
 
-# NA, TRUE or FALSE.
+#' NA, TRUE or FALSE.
+#' @noRd
 .ovrhtml <- function(html, f) {
   if (!is.logical(html) || length(html) != 1L) {
     .ckstop(f, "`html` must be NA, TRUE or FALSE")
@@ -387,8 +389,9 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
 .ovrrules <- c("after", "num", "date", "tag", "sent", "prev", "lines",
                "name", "flag", "before", "word")
 
-# A schema: the columns name, rule, cue, alt and sect, text with no NA,
-# known rules and names given once.
+#' A schema: the columns name, rule, cue, alt and sect, text with no NA,
+#' known rules and names given once.
+#' @noRd
 .ovrschk <- function(schema, f) {
   cols <- c("name", "rule", "cue", "alt", "sect")
   if (!is.data.frame(schema) || !all(cols %in% names(schema))) {
@@ -414,8 +417,9 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   s
 }
 
-# Words to look for: text with no missing or empty value and no "|", one
-# of them when one; joined by "|" for the kernels.
+#' Words to look for: text with no missing or empty value and no "|", one
+#' of them when one; joined by "|" for the kernels.
+#' @noRd
 .ovrwords <- function(x, what, f, one = FALSE) {
   .cktxt(x, what, f)
   if (!is.character(x) || !length(x) || anyNA(x) || !all(nzchar(x)) ||
@@ -426,7 +430,8 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   paste(enc2utf8(x), collapse = "|")
 }
 
-# The keyword groups: a preset, a named list of words, or words.
+#' The keyword groups: a preset, a named list of words, or words.
+#' @noRd
 .ovrvoc <- function(vocab, f) {
   if (is.character(vocab) && length(vocab) == 1L && identical(vocab, "mhr")) {
     return(.Call(C_clab_r_ovrvoc, vocab))
@@ -451,7 +456,8 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   list(group = vocab, term = enc2utf8(vocab))
 }
 
-# Patterns named by columns of data: text, none missing or empty.
+#' Patterns named by columns of data: text, none missing or empty.
+#' @noRd
 .ovrshp <- function(shape, data, f) {
   if (!is.character(shape) || is.null(names(shape)) || anyNA(shape) ||
         !all(nzchar(shape)) || !all(names(shape) %in% names(data))) {
@@ -459,8 +465,9 @@ ovrchk <- function(data, schema = ovrsch(), shape = NULL) {
   }
 }
 
-# The cells of a column not of their form (kind, pat); a missing value
-# is not flagged.
+#' The cells of a column not of their form (kind, pat); a missing value
+#' is not flagged.
+#' @noRd
 .ovrbad <- function(v, kind, pat) {
   if (is.numeric(v)) {
     # whole numbers in full (as.character() writes 1e+05)

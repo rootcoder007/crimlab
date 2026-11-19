@@ -135,7 +135,8 @@ print.cntmix <- function(x, ...) {
   invisible(x)
 }
 
-# The design matrix with an intercept, its columns named.
+#' The design matrix with an intercept, its columns named.
+#' @noRd
 .cmx <- function(x, n, fn) {
   if (is.matrix(x) && is.numeric(x)) {
     x <- as.data.frame(x)
@@ -150,13 +151,14 @@ print.cntmix <- function(x, ...) {
   X[, colSums(abs(X)) > 0 | colnames(X) == "(Intercept)", drop = FALSE]
 }
 
-# The design matrix of the covariates x (a data frame) with an intercept,
-# for cntmix() and cxvol(): text and logical columns enter as factors, each
-# level but the first an indicator column; a factor of one level, or a
-# numeric column, enters as one column of its name, so that one value
-# throughout is a constant column (aliased with the intercept) rather than
-# base R's refusal of the contrasts. Columns must be named (an empty name
-# becomes x and its position), with distinct names, and numbers finite.
+#' The design matrix of the covariates x (a data frame) with an intercept,
+#' for cntmix() and cxvol(): text and logical columns enter as factors, each
+#' level but the first an indicator column; a factor of one level, or a
+#' numeric column, enters as one column of its name, so that one value
+#' throughout is a constant column (aliased with the intercept) rather than
+#' base R's refusal of the contrasts. Columns must be named (an empty name
+#' becomes x and its position), with distinct names, and numbers finite.
+#' @noRd
 .dsgn <- function(x, fn) {
   nm <- names(x)
   nm[!nzchar(nm)] <- paste0("x", which(!nzchar(nm)))
@@ -181,7 +183,8 @@ print.cntmix <- function(x, ...) {
   ))
 }
 
-# The clusters as integers 1..G, refusing what cannot identify sigma.
+#' The clusters as integers 1..G, refusing what cannot identify sigma.
+#' @noRd
 .cmgrp <- function(grp, n, fn) {
   if (!is.atomic(grp) || length(grp) != n || anyNA(grp)) {
     .ckstop(fn, "`grp` must give a cluster for every count")
@@ -194,8 +197,9 @@ print.cntmix <- function(x, ...) {
   g
 }
 
-# Log-density of each row and its first two derivatives in the linear
-# predictor eta.
+#' Log-density of each row and its first two derivatives in the linear
+#' predictor eta.
+#' @noRd
 .cmll <- function(y, eta, th) {
   mu <- exp(eta)
   if (is.na(th)) {
@@ -212,12 +216,13 @@ print.cntmix <- function(x, ...) {
   )
 }
 
-# Laplace approximation of the marginal log-likelihood at par = (beta,
-# log sigma[, log theta]). Each cluster's log-density in its intercept is
-# concave, so Newton's method from 0 with steps capped at 1 converges; the
-# fixed start keeps the value a function of par alone, as the finite
-# differences of the optimiser need. A point where it overflows is given
-# a very low value.
+#' Laplace approximation of the marginal log-likelihood at par = (beta,
+#' log sigma\[, log theta\]). Each cluster's log-density in its intercept is
+#' concave, so Newton's method from 0 with steps capped at 1 converges; the
+#' fixed start keeps the value a function of par alone, as the finite
+#' differences of the optimiser need. A point where it overflows is given
+#' a very low value.
+#' @noRd
 .cmlap <- function(par, y, X, g, w, fam) {
   p <- ncol(X)
   s2 <- exp(2 * par[p + 1L])
@@ -237,7 +242,8 @@ print.cntmix <- function(x, ...) {
   if (is.finite(ll)) ll else -1e300
 }
 
-# BFGS on the outer parameters, then the Hessian.
+#' BFGS on the outer parameters, then the Hessian.
+#' @noRd
 .cmfit <- function(y, X, g, w, fam, b0) {
   par <- c(b0, 0, if (fam == "nb") 0)
   f <- function(p) -.cmlap(p, y, X, g, w, fam)
@@ -258,10 +264,11 @@ print.cntmix <- function(x, ...) {
   )
 }
 
-# The columns of the design that can be estimated (e$keep, by the QR
-# decomposition with lm()'s tolerance) and the terms that have no finite
-# estimate (e$na: those aliased, and those a 0/1 column separates), with
-# a note on each (e$notes). Rows of weight 0 tell nothing.
+#' The columns of the design that can be estimated (e$keep, by the QR
+#' decomposition with lm()'s tolerance) and the terms that have no finite
+#' estimate (e$na: those aliased, and those a 0/1 column separates), with
+#' a note on each (e$notes). Rows of weight 0 tell nothing.
+#' @noRd
 .cmest <- function(X, y, w) {
   q <- qr(X)
   keep <- sort(q$pivot[seq_len(q$rank)])
@@ -289,8 +296,9 @@ print.cntmix <- function(x, ...) {
   list(keep = keep, na = unique(na), notes = notes)
 }
 
-# The result object: the coefficients of the columns e$keep from the fit,
-# NA for the terms e$na and for a variance that is not a positive number.
+#' The result object: the coefficients of the columns e$keep from the fit,
+#' NA for the terms e$na and for a variance that is not a positive number.
+#' @noRd
 .cmout <- function(fit, X, e, y, g, level) {
   p <- length(e$keep)
   v <- tryCatch(solve(fit$hess), error = function(err) {

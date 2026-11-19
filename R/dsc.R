@@ -1511,7 +1511,8 @@ print.dstntst <- function(x, ...) {
   invisible(x)
 }
 
-# .rmbl_df_names(): a data frame whose columns all have distinct names.
+#' .rmbl_df_names(): a data frame whose columns all have distinct names.
+#' @noRd
 .dfnm <- function(data, fn, what = "data") {
   if (!is.data.frame(data)) {
     .ckstop(
@@ -1534,8 +1535,9 @@ print.dstntst <- function(x, ...) {
   invisible(TRUE)
 }
 
-# .rmbl_num(): numbers, text that reads as numbers, or missing values; a
-# whole number when integer.
+#' .rmbl_num(): numbers, text that reads as numbers, or missing values; a
+#' whole number when integer.
+#' @noRd
 .ckn <- function(x, what, fn, integer = FALSE) {
   if (!is.null(x) && (!is.atomic(x) || is.factor(x) || is.complex(x) ||
                         is.raw(x))) {
@@ -1584,7 +1586,8 @@ print.dstntst <- function(x, ...) {
   as.integer(x)
 }
 
-# One positive whole number.
+#' One positive whole number.
+#' @noRd
 .ckpos <- function(x, what, fn) {
   v <- .ckn(x, what, fn, integer = TRUE)
   if (length(v) != 1L || is.na(v) || v < 1L) {
@@ -1593,7 +1596,8 @@ print.dstntst <- function(x, ...) {
   v
 }
 
-# Data, not a function or an environment.
+#' Data, not a function or an environment.
+#' @noRd
 .cknofn <- function(x, what, fn) {
   if (is.function(x)) .ckstop(fn, "`%s` must be data, not a function", what)
   if (is.environment(x)) {
@@ -1602,7 +1606,8 @@ print.dstntst <- function(x, ...) {
   invisible(TRUE)
 }
 
-# One or more of the choices, matched partially.
+#' One or more of the choices, matched partially.
+#' @noRd
 .ckargs <- function(arg, choices, what, fn) {
   if (is.null(arg)) {
     return(choices[[1L]])
@@ -1620,20 +1625,23 @@ print.dstntst <- function(x, ...) {
   unique(choices[i])
 }
 
-# Unicode on this console, unless CRIMLAB_ASCII_ONLY is set.
+#' Unicode on this console, unless CRIMLAB_ASCII_ONLY is set.
+#' @noRd
 .uniok <- function() {
   identical(Sys.getenv("CRIMLAB_ASCII_ONLY"), "") &&
     isTRUE(l10n_info()[["UTF-8"]])
 }
 
-# A short boxed note through message().
+#' A short boxed note through message().
+#' @noRd
 .dnote <- function(title, lines) {
   message(paste(c(paste0("-- ", title), paste0("   ", lines)), collapse = "\n"))
 }
 
-# The numeric columns of a data frame as a double matrix, NA as NaN.
-# dstntst(): the table's columns, checked in their order: the groups as
-# text, the estimates and limits as doubles, the quality flags (or NULL)
+#' The numeric columns of a data frame as a double matrix, NA as NaN.
+#' dstntst(): the table's columns, checked in their order: the groups as
+#' text, the estimates and limits as doubles, the quality flags (or NULL)
+#' @noRd
 .dtin <- function(data, grp, est, lower, upper, qual, f) {
   if (!is.data.frame(data)) .ckstop(f, "`data` must be a data frame")
   .cktxtdf(data, "data", f)
@@ -1651,6 +1659,8 @@ print.dstntst <- function(x, ...) {
   )
 }
 
+#' The columns `cols` of `data` as a numeric matrix.
+#' @noRd
 .nummat <- function(data, cols) {
   # cols: names, or positions (a column may have no name, or share one)
   m <- matrix(NA_real_, nrow(data), length(cols))
@@ -1658,6 +1668,8 @@ print.dstntst <- function(x, ...) {
   m
 }
 
+#' `sep` checked as a single string.
+#' @noRd
 .cnsep <- function(sep, f) {
   if (!is.character(sep) || length(sep) != 1L || is.na(sep)) {
     .ckstop(f, "`sep` must be a single string")
@@ -1665,6 +1677,8 @@ print.dstntst <- function(x, ...) {
   .cktxt(sep, "sep", f)
 }
 
+#' `data` checked as a data frame or column names without NA.
+#' @noRd
 .cndata <- function(data, f) {
   if (!is.data.frame(data) &&
         (!(is.character(data) || is.factor(data)) || anyNA(data))) {
@@ -1672,6 +1686,8 @@ print.dstntst <- function(x, ...) {
   }
 }
 
+#' `alpha` checked as one number strictly inside (0, 1).
+#' @noRd
 .mhalpha <- function(alpha, f) {
   alpha <- .ckn(alpha, "alpha", f)
   if (length(alpha) != 1L || is.na(alpha) || alpha <= 0 || alpha >= 1) {
@@ -1680,6 +1696,8 @@ print.dstntst <- function(x, ...) {
   alpha
 }
 
+#' `width` checked as one whole number from 1 to 10000.
+#' @noRd
 .mgwidth <- function(width, f) {
   width <- .ckn(width, "width", f, integer = TRUE)
   if (length(width) != 1L || is.na(width) || width < 1 || width > 10000) {
@@ -1688,6 +1706,8 @@ print.dstntst <- function(x, ...) {
   width
 }
 
+#' `maxit` and `tol` checked as the iteration limit and the tolerance.
+#' @noRd
 .mcctl <- function(maxit, tol, f) {
   maxit <- .ckn(maxit, "maxit", f, integer = TRUE)
   if (length(maxit) != 1L || is.na(maxit) || maxit < 1 || maxit > 1e6) {
@@ -1701,8 +1721,9 @@ print.dstntst <- function(x, ...) {
   list(maxit = maxit, tol = tol)
 }
 
-# mcartst(): the numeric columns as a named matrix (the compiled core drops
-# the columns and rows with no value)
+#' mcartst(): the numeric columns as a named matrix (the compiled core drops
+#' the columns and rows with no value)
+#' @noRd
 .mcmat <- function(data, f) {
   if (is.matrix(data)) data <- as.data.frame(data)
   if (!is.data.frame(data)) {
@@ -1722,8 +1743,9 @@ print.dstntst <- function(x, ...) {
   X
 }
 
-# mcartst(): the refusals of the compiled core (1 an infinite value, 2 too
-# few columns or rows with a value, 3 collinear columns)
+#' mcartst(): the refusals of the compiled core (1 an infinite value, 2 too
+#' few columns or rows with a value, 3 collinear columns)
+#' @noRd
 .mcstop <- function(why, f) {
   .ckstop(f, switch(
     why,
@@ -1741,7 +1763,8 @@ print.dstntst <- function(x, ...) {
   ))
 }
 
-# dstntst(): a column of `data`, named by one string
+#' dstntst(): a column of `data`, named by one string
+#' @noRd
 .dtcol <- function(x, what, data, f) {
   .cktxt(x, what, f)
   if (!is.character(x) || length(x) != 1L || is.na(x) ||
@@ -1752,7 +1775,8 @@ print.dstntst <- function(x, ...) {
   x
 }
 
-# dstntst(): `pooled`, NULL or labels of groups of `data`
+#' dstntst(): `pooled`, NULL or labels of groups of `data`
+#' @noRd
 .dtpool <- function(pooled, g, f) {
   if (is.null(pooled)) {
     return(invisible())
@@ -1772,8 +1796,9 @@ print.dstntst <- function(x, ...) {
   }
 }
 
-# dstntst(): the warnings of the groups whose interval does not contain
-# their estimate and of the quality flags not recognised
+#' dstntst(): the warnings of the groups whose interval does not contain
+#' their estimate and of the quality flags not recognised
+#' @noRd
 .dtwarn <- function(r, f) {
   if (length(r$bad)) {
     warning(sprintf(
@@ -1789,16 +1814,18 @@ print.dstntst <- function(x, ...) {
   }
 }
 
-# The missingness of every column of a data frame as an n x p logical
-# matrix.
+#' The missingness of every column of a data frame as an n x p logical
+#' matrix.
+#' @noRd
 .namat <- function(data) {
   n <- nrow(data)
   na <- vapply(data, function(v) as.vector(is.na(v)), logical(n))
   matrix(na, nrow = n, ncol = length(data))
 }
 
-# profcols(): the statistics of the compiled core, with the number of
-# distinct labels and the commonest one of each column that is not numeric
+#' profcols(): the statistics of the compiled core, with the number of
+#' distinct labels and the commonest one of each column that is not numeric
+#' @noRd
 .proftop <- function(data, st) {
   for (j in which(!vapply(data, is.numeric, logical(1)))) {
     ok <- as.character(data[[j]][!is.na(data[[j]])])

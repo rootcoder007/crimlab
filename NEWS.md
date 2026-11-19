@@ -1,5 +1,21 @@
 # crimlab 0.0.2
 
+* The fits of `ppmlfe()`, `ivfe()`, `ppmlcf()`, `expgmm()`, `fepnl()`,
+  `gmmpnl()`, `didfe()`, `rdloc()` and `sarml()` answer to the usual
+  accessors: `coef()`, `confint()`, `vcov()` and `nobs()` (help page
+  `racc`). The intervals are the fit's own, at its own level.
+
+* A file written under a name with no suffix is given one: `wrtxtfb()`
+  adds `.txt`, and `yoycsv()`, `yoytsv()`, `yoyjs()`, `yoymd()`,
+  `yoyhtml()` and `yoypdf()` the suffix of their format. Each returns
+  the path it wrote.
+
+* The rOpenSci standards notes describe the package as it is now: the
+  regression standards are documented (`src/srrre.h`), the general and
+  spatial notes written when the package was small are brought up to
+  date, every internal R function has a roxygen comment, and
+  `tests/README.md` says how the full test suite is switched on.
+
 * The argument that names a method is `mthd` (it was `meth`), and so is
   the part of a result that records it: in `lodimp()`, `stgdid()`,
   `wcbx()`, `sarml()`, `cortbl()`, `topcors()`, `evfilt()`, `scboot()`,

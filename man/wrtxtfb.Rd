@@ -9,10 +9,11 @@ wrtxtfb(text, path)
 \arguments{
 \item{text}{The lines; \code{\link[=as.character]{as.character()}} converts any other type.}
 
-\item{path}{The file, one non-empty string; its directory must exist.}
+\item{path}{The file, one non-empty string; its directory must exist.
+A name with no suffix is given \code{.txt}.}
 }
 \value{
-\code{path}, invisibly.
+The path written, invisibly.
 }
 \description{
 Writes \code{text} to \code{path} as UTF-8, one element per line, for generated

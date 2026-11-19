@@ -153,7 +153,8 @@ print.clpre <- function(x, ...) {
   invisible(x)
 }
 
-# The list of presets: one row each.
+#' The list of presets: one row each.
+#' @noRd
 .plist <- function(tab) {
   p <- unique(tab$preset)
   first <- match(p, tab$preset)
@@ -164,7 +165,8 @@ print.clpre <- function(x, ...) {
              source = tab$source[first])
 }
 
-# The rows of one preset, with the checks of its name and of data.
+#' The rows of one preset, with the checks of its name and of data.
+#' @noRd
 .prows <- function(tab, preset, data) {
   if (!is.character(preset) || length(preset) != 1L || is.na(preset)) {
     stop("clprep: `preset` must be one name.", call. = FALSE)
@@ -180,8 +182,9 @@ print.clpre <- function(x, ...) {
   r
 }
 
-# The generic's arguments: each one's values on the rows kept (constants as
-# they are), the adj columns as a data frame named by column.
+#' The generic's arguments: each one's values on the rows kept (constants as
+#' they are), the adj columns as a data frame named by column.
+#' @noRd
 .pargs <- function(r, vals, ok, n) {
   out <- list()
   for (a in unique(r$arg)) {
@@ -204,8 +207,9 @@ print.clpre <- function(x, ...) {
   out
 }
 
-# One data frame of the argument's columns v, named nm (a dum matrix gives
-# one column per value, named column and value).
+#' One data frame of the argument's columns v, named nm (a dum matrix gives
+#' one column per value, named column and value).
+#' @noRd
 .pframe <- function(v, nm) {
   parts <- lapply(seq_along(v), function(i) {
     x <- v[[i]]
@@ -216,7 +220,8 @@ print.clpre <- function(x, ...) {
   do.call(cbind, parts)
 }
 
-# A preset of one's own: the rows of one preset, laid out as presets.tsv.
+#' A preset of one's own: the rows of one preset, laid out as presets.tsv.
+#' @noRd
 .ptab <- function(p) {
   cols <- c("preset", "generic", "arg", "column", "recode", "filter",
             "units", "note", "source")
@@ -237,9 +242,10 @@ print.clpre <- function(x, ...) {
   out
 }
 
-# The preset table, read with base R from the installed presets.tsv, or
-# another table of the presets folder (codes.tsv), as many columns as its
-# header names.
+#' The preset table, read with base R from the installed presets.tsv, or
+#' another table of the presets folder (codes.tsv), as many columns as its
+#' header names.
+#' @noRd
 .presets <- function(f = "presets.tsv") {
   l <- readLines(
     system.file("presets", f, package = "crimlab"),
@@ -259,13 +265,15 @@ print.clpre <- function(x, ...) {
   d
 }
 
-# The columns a filter string reads
+#' The columns a filter string reads
+#' @noRd
 .fcols <- function(f) {
   f <- as.character(unlist(strsplit(f[nzchar(f)], ";", fixed = TRUE)))
   vapply(strsplit(f, "=", fixed = TRUE), `[`, "", 1L)
 }
 
-# One argument's values from column x under the recode rule s (n rows).
+#' One argument's values from column x under the recode rule s (n rows).
+#' @noRd
 .recode <- function(x, s, n) {
   if (startsWith(s, "const:")) {
     v <- substring(s, 7L)
@@ -307,7 +315,8 @@ print.clpre <- function(x, ...) {
   .remap(x, s)
 }
 
-# A mapping rule s ("a|b=1;has:c=2;*=0") applied to the labels x.
+#' A mapping rule s ("a|b=1;has:c=2;*=0") applied to the labels x.
+#' @noRd
 .remap <- function(x, s) {
   lab <- tolower(trimws(as.character(x)))
   out <- rep(NA_character_, length(lab))
@@ -340,7 +349,8 @@ print.clpre <- function(x, ...) {
   if (anyNA(num[!is.na(out)])) out else num
 }
 
-# Recipes: derived columns a preset needs.
+#' Recipes: derived columns a preset needs.
+#' @noRd
 .recipe <- function(name, arg, d) {
   if (!name %in% c("long", "acvm", "pyr", "keep", "acnv", "pairb", "pairc",
                     "gent", "pop")) {
@@ -368,14 +378,16 @@ print.clpre <- function(x, ...) {
   )
 }
 
-# pop: the population implied by a count and its published rate per `per`
+#' pop: the population implied by a count and its published rate per `per`
+#' @noRd
 .pop <- function(d, a) {
   .keep(d[0L, , drop = FALSE], a[1:2])
   d$pop <- as.numeric(d[[a[1L]]]) / as.numeric(d[[a[2L]]]) * as.numeric(a[3L])
   d
 }
 
-# the rows of d with none of the columns cols missing
+#' the rows of d with none of the columns cols missing
+#' @noRd
 .keep <- function(d, cols) {
   miss <- setdiff(cols, names(d))
   if (length(miss)) {
@@ -384,8 +396,9 @@ print.clpre <- function(x, ...) {
   d[rowSums(is.na(d[cols])) == 0, , drop = FALSE]
 }
 
-# acnv: the naive reduction per person-year, the most alert flags on one
-# row and whether any row changes region
+#' acnv: the naive reduction per person-year, the most alert flags on one
+#' row and whether any row changes region
+#' @noRd
 .acnv <- function(d) {
   p <- .pyrows(d, c(.otcols, "Gender", "Age_Category"))
   x <- p$d
@@ -405,7 +418,8 @@ print.clpre <- function(x, ...) {
   out
 }
 
-# pairb: two or more alert flags, and two or more placements
+#' pairb: two or more alert flags, and two or more placements
+#' @noRd
 .pairb <- function(d) {
   d <- .keep(d, c(.otcols[-(3:4)], "Number_Of_Placements"))
   d$tb <- as.integer(.flag(d$MentalHealth_Alert) +
@@ -416,8 +430,9 @@ print.clpre <- function(x, ...) {
   d
 }
 
-# pairc: a change of region, and the segregation days capped at their 99th
-# percentile
+#' pairc: a change of region, and the segregation days capped at their 99th
+#' percentile
+#' @noRd
 .pairc <- function(d) {
   d <- .keep(d, c("Region_AtTimeOfPlacement", "Region_MostRecentPlacement",
                   "NumberConsecutiveDays_Segregation"))
@@ -429,9 +444,10 @@ print.clpre <- function(x, ...) {
   d
 }
 
-# gent: the three-level gentrification factor of baseline-conditional
-# designs (eligible areas poor at baseline; gentrified when both growth
-# measures are high)
+#' gent: the three-level gentrification factor of baseline-conditional
+#' designs (eligible areas poor at baseline; gentrified when both growth
+#' measures are high)
+#' @noRd
 .gent <- function(d, a) {
   .keep(d[0L, , drop = FALSE], a[1:4])
   q <- if (length(a) > 4L) as.numeric(a[5:6]) else c(0.5, 0.667)
@@ -457,7 +473,8 @@ print.clpre <- function(x, ...) {
   "SuicideWatch_Alert"
 )
 
-# alert flags as 0/1: yes, y, true, t or 1 (any case), a positive number, TRUE
+#' alert flags as 0/1: yes, y, true, t or 1 (any case), a positive number, TRUE
+#' @noRd
 .flag <- function(s) {
   if (is.logical(s)) {
     return(as.integer(s))
@@ -470,10 +487,11 @@ print.clpre <- function(x, ...) {
   )
 }
 
-# the rows of a placement table grouped by person and fiscal year, in the
-# order of the first row of each, with each row's alert combination and
-# its region changes (within the row, and from the previous row of the
-# same person and year)
+#' the rows of a placement table grouped by person and fiscal year, in the
+#' order of the first row of each, with each row's alert combination and
+#' its region changes (within the row, and from the previous row of the
+#' same person and year)
+#' @noRd
 .pyrows <- function(d, need) {
   miss <- setdiff(need, names(d))
   if (length(miss)) {
@@ -499,7 +517,8 @@ print.clpre <- function(x, ...) {
   list(d = d, g = split(seq_len(nrow(d)), factor(key, unique(key))))
 }
 
-# acvm: alert complexity and regional volatility per person-year
+#' acvm: alert complexity and regional volatility per person-year
+#' @noRd
 .acvm <- function(d) {
   p <- .pyrows(d, c(.otcols, "Gender", "Age_Category"))
   first <- vapply(p$g, `[`, 1L, 1L)
@@ -514,8 +533,9 @@ print.clpre <- function(x, ...) {
   out
 }
 
-# pyr: placements, distinct regions and distinct alert combinations per
-# person-year
+#' pyr: placements, distinct regions and distinct alert combinations per
+#' person-year
+#' @noRd
 .pyr <- function(d) {
   p <- .pyrows(d, .otcols)
   first <- vapply(p$g, `[`, 1L, 1L)
@@ -536,9 +556,10 @@ print.clpre <- function(x, ...) {
   out
 }
 
-# The generic f called on a clpre list p from clprep(): p's elements fill
-# f's arguments by name, and the arguments of the original call cl (but the
-# first, p itself), evaluated in env, override them.
+#' The generic f called on a clpre list p from clprep(): p's elements fill
+#' f's arguments by name, and the arguments of the original call cl (but the
+#' first, p itself), evaluated in env, override them.
+#' @noRd
 .prep <- function(f, p, cl, env) {
   a <- lapply(as.list(cl)[-(1:2)], eval, envir = env)
   b <- unclass(p)

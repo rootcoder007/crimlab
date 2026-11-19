@@ -257,8 +257,9 @@ print.yoypx <- function(x, ...) {
   invisible(x)
 }
 
-# The band labels read into ends: a data frame of label, lower, upper,
-# openlo and openup (NA ends where a label cannot be read).
+#' The band labels read into ends: a data frame of label, lower, upper,
+#' openlo and openup (NA ends where a label cannot be read).
+#' @noRd
 .bands <- function(x, clsup, intsca) {
   if (!(is.character(x) || is.factor(x)) || !length(x)) {
     stop("bandx: `x` must be band labels: text or a factor.", call. = FALSE)
@@ -286,8 +287,9 @@ print.yoypx <- function(x, ...) {
   )
 }
 
-# One normalised label read: lower, upper, open below and open above (1
-# when open), NA ends where it cannot be read.
+#' One normalised label read: lower, upper, open below and open above (1
+#' when open), NA ends where it cannot be read.
+#' @noRd
 .blab <- function(z, clsup, intsca) {
   r <- c(NA_real_, NA_real_, 0, 0)
   if (is.na(z) || !nzchar(z)) {
@@ -325,8 +327,9 @@ print.yoypx <- function(x, ...) {
   r
 }
 
-# A range label (the regexec match `m`) read into `r`: its two ends, unless
-# a word or a plus opens it or the ends are reversed.
+#' A range label (the regexec match `m`) read into `r`: its two ends, unless
+#' a word or a plus opens it or the ends are reversed.
+#' @noRd
 .brange <- function(m, r) {
   cue <- paste0(
     "\\b(over|above|more|plus|under|less|below|fewer|greater|",
@@ -345,7 +348,8 @@ print.yoypx <- function(x, ...) {
   r
 }
 
-# The values expanded from the counts of the bands (`val` the band values).
+#' The values expanded from the counts of the bands (`val` the band values).
+#' @noRd
 .bvals <- function(b, val, cnts, drop) {
   if (
     !is.numeric(cnts) ||
@@ -374,8 +378,9 @@ print.yoypx <- function(x, ...) {
   rep(val[keep], round(cnts[keep]))
 }
 
-# `stat` over the caps of the open top band: a list of sens, span and
-# relspan; `run(cap)` gives the expanded values at one cap.
+#' `stat` over the caps of the open top band: a list of sens, span and
+#' relspan; `run(cap)` gives the expanded values at one cap.
+#' @noRd
 .bsens <- function(b, cnts, caps, stat, run) {
   if (!is.function(stat)) {
     stop("bandx: `stat` must be a function of the values.", call. = FALSE)
@@ -414,8 +419,9 @@ print.yoypx <- function(x, ...) {
   list(data.frame(cap = caps, value = s), span, rel)
 }
 
-# Published cells read: the number (NA for none), the status (0 a number,
-# 1 suppressed, 2 missing) and a suppressed cell's "<k" limit.
+#' Published cells read: the number (NA for none), the status (0 a number,
+#' 1 suppressed, 2 missing) and a suppressed cell's "<k" limit.
+#' @noRd
 .cells <- function(x, supmar, nm) {
   if (!is.character(supmar)) {
     stop("pbbnd: `supmar` must be text markers.", call. = FALSE)

@@ -217,9 +217,10 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   if (is.null(g)) v else data.frame(by = g, tw = v)
 }
 
-# The checks of dwnexp() in its order; the codes it passes on: rule
-# (0-2), the period codes from 0 and their labels, the places' labels and,
-# for the wedge, their vertices in order with the offsets.
+#' The checks of dwnexp() in its order; the codes it passes on: rule
+#' (0-2), the period codes from 0 and their labels, the places' labels and,
+#' for the wedge, their vertices in order with the offsets.
+#' @noRd
 .dwchk <- function(sx, sy, sper, sdir, rx, ry, rid, rule, half, rad, f) {
   rule <- match(.ckarg(rule, c("sector", "wedge", "angle"), "rule", f),
                 c("sector", "wedge", "angle")) - 1L
@@ -240,8 +241,9 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   .dwpl(rx, ry, rid, rule, f, list(rule = rule, per = per, sp = sp))
 }
 
-# Numeric vectors of one length (named in v), and labels lab of each of
-# their rows (NULL passes).
+#' Numeric vectors of one length (named in v), and labels lab of each of
+#' their rows (NULL passes).
+#' @noRd
 .dwlen <- function(v, lab, lnm, msg, what, f) {
   for (nm in names(v)) .cknum(v[[nm]], nm, f, scalar = FALSE)
   if (length(unique(lengths(v))) != 1L) .ckstop(f, msg)
@@ -252,8 +254,9 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   invisible(NULL)
 }
 
-# The places of dwnexp(): labels, and for the wedge the vertices grouped
-# by place in the order of first appearance, with offsets from 0.
+#' The places of dwnexp(): labels, and for the wedge the vertices grouped
+#' by place in the order of first appearance, with offsets from 0.
+#' @noRd
 .dwpl <- function(rx, ry, rid, rule, f, a) {
   if (rule != 1L) {
     a$ids <- if (is.null(rid)) seq_along(rx) else rid
@@ -277,7 +280,8 @@ tailwd <- function(dir, spd, course = 250, by = NULL, agg = "max") {
   a
 }
 
-# The groups of tailwd(): the sorted values of `by`, or NULL without one.
+#' The groups of tailwd(): the sorted values of `by`, or NULL without one.
+#' @noRd
 .twgrp <- function(by, n, f) {
   if (is.null(by)) return(NULL)
   if (!is.atomic(by) || length(by) != n || anyNA(by)) {

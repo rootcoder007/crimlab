@@ -253,9 +253,10 @@ print.cxyoy <- function(x, ...) {
   invisible(x)
 }
 
-# cxyoy()'s table checked: a person-year or more, every year given, the
-# counts of changes and of placements whole numbers from 0, and each
-# year with a placement (the denominator of its rate).
+#' cxyoy()'s table checked: a person-year or more, every year given, the
+#' counts of changes and of placements whole numbers from 0, and each
+#' year with a placement (the denominator of its rate).
+#' @noRd
 .cyck <- function(p, fn) {
   if (!nrow(p) || anyNA(p$year)) {
     .ckstop(fn, "`x` must have a person-year or more, each with its `year`")
@@ -270,7 +271,8 @@ print.cxyoy <- function(x, ...) {
   p
 }
 
-# The person-year table, built when x is not one; its columns checked.
+#' The person-year table, built when x is not one; its columns checked.
+#' @noRd
 .cxpy <- function(x, fn, ...) {
   p <- if (
     inherits(x, "otpyr") ||
@@ -301,7 +303,8 @@ print.cxyoy <- function(x, ...) {
   p
 }
 
-# The samples: all years, or one per year; whether each takes a year term.
+#' The samples: all years, or one per year; whether each takes a year term.
+#' @noRd
 .cxsplit <- function(p, by, yterm, fn) {
   yrs <- sort(unique(p$year))
   if (by == "pool") {
@@ -331,7 +334,8 @@ print.cxyoy <- function(x, ...) {
   )
 }
 
-# One sample: descriptives, crude ratio, matching, count model, bounds.
+#' One sample: descriptives, crude ratio, matching, count model, bounds.
+#' @noRd
 .cxone <- function(d, yt, fam, nm, fn) {
   # cx is 0 or 1 in every row (.cxpy()), never missing
   if (!any(d$cx == 1) || !any(d$cx == 0)) {
@@ -360,7 +364,8 @@ print.cxyoy <- function(x, ...) {
   list(fit = fit, row = .cxrow(d, md, fit, nm, fn))
 }
 
-# The row of one sample: descriptives, crude ratio, model and bounds.
+#' The row of one sample: descriptives, crude ratio, model and bounds.
+#' @noRd
 .cxrow <- function(d, md, fit, nm, fn) {
   z <- factor(md$cx, 0:1)
   b0 <- .clas(fn, mtrbnd(md$vm, z, 0, max(md$vm), "none"))$bnd
@@ -391,9 +396,10 @@ print.cxyoy <- function(x, ...) {
   )
 }
 
-# The covariates as factors (cv) and as indicator columns (X). A covariate
-# with one value in the sample (one gender in a year, say) tells nothing
-# apart and is left out of both; model.matrix() would stop on it.
+#' The covariates as factors (cv) and as indicator columns (X). A covariate
+#' with one value in the sample (one gender in a year, say) tells nothing
+#' apart and is left out of both; model.matrix() would stop on it.
+#' @noRd
 .cxdes <- function(cv, nm, fn) {
   cv[] <- lapply(cv, function(v) factor(as.character(v)))
   cv <- cv[vapply(cv, nlevels, 1L) > 1L]
@@ -408,7 +414,8 @@ print.cxyoy <- function(x, ...) {
   list(cv = cv, X = X[, apply(X, 2L, stats::var) > 0, drop = FALSE])
 }
 
-# One sample's ATE and ATTE, the nuisances learned once.
+#' One sample's ATE and ATTE, the nuisances learned once.
+#' @noRd
 .cxdone <- function(d, yt, nm, lrn, ntree, nfold, trim, seed, fn) {
   if (sum(d$cx == 1) < nfold || sum(d$cx == 0) < nfold) {
     .ckstop(

@@ -28,7 +28,8 @@
 #' other characters their transliteration ([toascii()]).
 #'
 #' @inheritParams yoylbl
-#' @param file The file path.
+#' @param file The file path. A name with no suffix is given the
+#'   format's own (`.html`, `.pdf`).
 #' @param title The heading (and the page title).
 #' @param sub The line under the heading.
 #' @param pal The palette: `"diverging"`, `"safe"` or `"mono"`.
@@ -42,7 +43,7 @@
 #' @param lag The periods per step of the table, for the summary and the
 #'   note on the first periods.
 #' @param width,height The PDF page in inches, each from 2 to 200.
-#' @return `file`, invisibly.
+#' @return The path written, invisibly.
 #' @seealso [yoywr()], [yoycsv()].
 #' @examples
 #' # simulated police-reported counts by offence and year, any agency
@@ -64,7 +65,7 @@ yoyhtml <- function(x, file, title = "Year-over-year change", sub = "",
                     pal = "diverging", better = "neutral", digits = 1L,
                     bars = TRUE, intv = TRUE, notes = NULL, lag = 1) {
   d <- .ytab(x, "yoyhtml")
-  .y1file(file, "yoyhtml")
+  file <- .cksfx(.y1file(file, "yoyhtml"), "html")
   .yargs(title, sub, notes, "yoyhtml")
   p <- .YOY_PALETTES[[.ypick(pal, names(.YOY_PALETTES), "pal", "yoyhtml")]]
   better <- .ypick(better, c("neutral", "higher", "lower"), "better",
@@ -104,7 +105,7 @@ yoypdf <- function(x, file, title = "Year-over-year change", sub = "",
                    intv = TRUE, notes = NULL, width = 11, height = 8.5,
                    lag = 1) {
   d <- .ytab(x, "yoypdf")
-  .y1file(file, "yoypdf")
+  file <- .cksfx(.y1file(file, "yoypdf"), "pdf")
   .yargs(title, sub, notes, "yoypdf")
   .ylag(lag, "yoypdf")
   p <- .YOY_PALETTES[[.ypick(pal, names(.YOY_PALETTES), "pal", "yoypdf")]]
@@ -137,7 +138,7 @@ yoypdf <- function(x, file, title = "Year-over-year change", sub = "",
 #' @param format `"auto"` (from the extension), or one of `"html"`, `"pdf"`,
 #'   `"csv"`, `"tsv"`, `"json"`, `"markdown"`.
 #' @param ... The arguments of the chosen writer.
-#' @return `file`, invisibly.
+#' @return The path written, invisibly.
 #' @seealso [yoycsv()], [yoyhtml()].
 #' @examples
 #' # simulated police-reported counts by offence and year
@@ -166,10 +167,11 @@ yoywr <- function(x, file, format = "auto", ...) {
   if (is.null(f)) {
     stop("yoywr: unknown format: ", format, ".", call. = FALSE)
   }
-  .clas("yoywr", f(x, file, ...))
-  invisible(file)
+  invisible(.clas("yoywr", f(x, file, ...)))
 }
 
+#' `x` checked as one of the options `opt`.
+#' @noRd
 .ypick <- function(x, opt, nm, fn) {
   if (!is.character(x) || length(x) != 1L || !x %in% opt) {
     stop(fn, ": `", nm, "` must be one of ", toString(dQuote(opt, FALSE)),
@@ -178,7 +180,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   x
 }
 
-# the class of each row: bad, good or flat
+#' the class of each row: bad, good or flat
+#' @noRd
 .ycls <- function(chg, better) {
   out <- rep("flat", length(chg))
   if (better == "neutral") {
@@ -191,6 +194,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   out
 }
 
+#' Text escaped for HTML.
+#' @noRd
 .yesc <- function(s) {
   s <- as.character(s)
   s[is.na(s)] <- ""
@@ -202,6 +207,9 @@ yoywr <- function(x, file, format = "auto", ...) {
   gsub("'", "&#39;", s, fixed = TRUE)
 }
 
+#' The note that the first period has nothing to compare with, NULL when no
+#'   row is flagged so.
+#' @noRd
 .yfirst <- function(d, lag) {
   if (!("flag" %in% names(d)) ||
         !any(!is.na(d$flag) & d$flag == "no earlier period")) {
@@ -216,9 +224,12 @@ yoywr <- function(x, file, format = "auto", ...) {
   )
 }
 
+#' The style sheet of the HTML table for the palette `p`.
+#' @noRd
 .ycss <- function(p) paste0(.ycssp(p), .ycsst())
 
-# the palette's colours and the page's, light and dark
+#' the palette's colours and the page's, light and dark
+#' @noRd
 .ycssp <- function(p) {
   paste0(
     ":root{--bad:", p$bad, ";--good:", p$good, ";--flat:", p$flat,
@@ -231,7 +242,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   )
 }
 
-# the page's layout and the table's
+#' the page's layout and the table's
+#' @noRd
 .ycsst <- function() {
   paste0(
     "*{box-sizing:border-box}",
@@ -283,6 +295,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   )
 }
 
+#' `title`, `sub` and `notes` checked.
+#' @noRd
 .yargs <- function(title, sub, notes, fn) {
   .ytxt1(title, "title", fn)
   .ytxt1(sub, "sub", fn)
@@ -293,7 +307,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   .cktxt(notes, "notes", fn)
 }
 
-# the PDF's text: dashes and arrows as ASCII, then toascii()
+#' the PDF's text: dashes and arrows as ASCII, then toascii()
+#' @noRd
 .yasc <- function(x) {
   out <- as.character(x)
   for (p in list(c("\u2014", "-"), c("\u2013", "-"), c("\u25b2", "+"),
@@ -304,6 +319,9 @@ yoywr <- function(x, file, format = "auto", ...) {
   toascii(out)
 }
 
+#' The width of each string at a font size, from the table of character
+#'   widths.
+#' @noRd
 .ywid <- function(s, size) {
   vapply(s, function(t) {
     k <- utf8ToInt(t) - 31L
@@ -311,18 +329,23 @@ yoywr <- function(x, file, format = "auto", ...) {
   }, 0, USE.NAMES = FALSE)
 }
 
+#' Text escaped for a PDF string.
+#' @noRd
 .ypdfs <- function(s) {
   s <- gsub("\\", "\\\\", s, fixed = TRUE)
   s <- gsub("(", "\\(", s, fixed = TRUE)
   gsub(")", "\\)", s, fixed = TRUE)
 }
 
+#' A hex colour as three numbers from 0 to 1, for PDF.
+#' @noRd
 .yrgb <- function(hex) {
   v <- strtoi(substring(hex, c(2L, 4L, 6L), c(3L, 5L, 7L)), 16L) / 255
   paste(formatC(v, format = "f", digits = 3), collapse = " ")
 }
 
-# yoypdf(): the page, each side a number from 2 to 200 inches
+#' yoypdf(): the page, each side a number from 2 to 200 inches
+#' @noRd
 .ypsize <- function(width, height) {
   for (a in list(list("width", width), list("height", height))) {
     v <- a[[2L]]
@@ -334,8 +357,9 @@ yoywr <- function(x, file, format = "auto", ...) {
   }
 }
 
-# yoypdf(): the layout: page size and margin in points, the columns'
-# edges, the row height and the rows of each page
+#' The layout of yoypdf(): page size and margin in points, the edges of
+#' the columns, the row height and the rows of each page
+#' @noRd
 .yplay <- function(d, s, width, height) {
   hdr <- .yasc(names(s$cols))
   W <- 72 * width
@@ -353,13 +377,15 @@ yoywr <- function(x, file, format = "auto", ...) {
        pages = pages)
 }
 
-# yoypdf(): a coordinate to the hundredth of a point, a half going up. A
-# right-aligned text ends on thousandths of a point, so a half is common,
-# and "%.2f" alone sends it up or down by the last bit of the sum, which
-# differs between machines: the file must be the same bytes on each.
+#' yoypdf(): a coordinate to the hundredth of a point, a half going up. A
+#' right-aligned text ends on thousandths of a point, so a half is common,
+#' and "%.2f" alone sends it up or down by the last bit of the sum, which
+#' differs between machines: the file must be the same bytes on each.
+#' @noRd
 .ypc <- function(x) floor(x * 100 + 0.5 + 1e-6) / 100
 
-# yoypdf(): a line of text at (x0, y0), its right end there when `right`
+#' yoypdf(): a line of text at (x0, y0), its right end there when `right`
+#' @noRd
 .yptxt <- function(x0, y0, s, size, font = "F1", rgb = "0 0 0",
                    right = FALSE) {
   if (right) x0 <- x0 - .ywid(s, size)
@@ -367,8 +393,9 @@ yoywr <- function(x, file, format = "auto", ...) {
           .ypc(x0), .ypc(y0), .ypdfs(s))
 }
 
-# yoypdf(): the content stream of page k: heading, column heads, rows,
-# page number, and the notes on the last page
+#' yoypdf(): the content stream of page k: heading, column heads, rows,
+#' page number, and the notes on the last page
+#' @noRd
 .ypstr <- function(k, lay) {
   m <- lay$m
   W <- lay$W
@@ -403,7 +430,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   paste(out, collapse = "\n")
 }
 
-# yoypdf(): the table rows `rows` of a page, from under the column heads
+#' yoypdf(): the table rows `rows` of a page, from under the column heads
+#' @noRd
 .yprows <- function(lay, rows, top) {
   out <- character(0)
   y <- top - lay$rowh * 1.1
@@ -420,8 +448,9 @@ yoywr <- function(x, file, format = "auto", ...) {
   out
 }
 
-# the PDF file: catalog, pages, two standard fonts, a page and a content
-# stream per page, the cross-reference table
+#' the PDF file: catalog, pages, two standard fonts, a page and a content
+#' stream per page, the cross-reference table
+#' @noRd
 .ypdfw <- function(streams, W, H, title, file) {
   np <- length(streams)
   kids <- 5L + 2L * (seq_len(np) - 1L)
@@ -459,7 +488,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   invisible(file)
 }
 
-# yoyhtml(), yoypdf(), yoywr(): `file` is one path
+#' yoyhtml(), yoypdf(), yoywr(): `file` is one path
+#' @noRd
 .y1file <- function(file, fn) {
   if (!is.character(file) || length(file) != 1L || is.na(file)) {
     stop(fn, ": `file` must be one file path.", call. = FALSE)
@@ -467,7 +497,8 @@ yoywr <- function(x, file, format = "auto", ...) {
   .ckout(file, fn)
 }
 
-# yoyhtml(): row r of the table, with its note row when it has a note
+#' yoyhtml(): row r of the table, with its note row when it has a note
+#' @noRd
 .yhrow <- function(r, s, chg, cls, sc, bars) {
   hc <- names(s$cols)
   pc <- which(hc %in% c("change %", "points"))
@@ -488,7 +519,8 @@ yoywr <- function(x, file, format = "auto", ...) {
          "</tr>", note)
 }
 
-# yoyhtml(): the cell of a change: its arrow, its value and its bar
+#' yoyhtml(): the cell of a change: its arrow, its value and its bar
+#' @noRd
 .yhpct <- function(v, ch, cl, sc, bars) {
   a <- if (is.na(ch)) "" else if (ch > 0) "\u25b2" else
     if (ch < 0) "\u25bc" else "\u2013"
@@ -503,7 +535,8 @@ yoywr <- function(x, file, format = "auto", ...) {
          "</td>")
 }
 
-# yoyhtml(): the card of row r of the summary
+#' yoyhtml(): the card of row r of the summary
+#' @noRd
 .yhcard <- function(r, sm) {
   paste0(
     "<div class=\"card\"><div class=\"lab\">",
@@ -520,7 +553,8 @@ yoywr <- function(x, file, format = "auto", ...) {
     "</div></div>")
 }
 
-# yoyhtml(): the page's lines
+#' yoyhtml(): the page's lines
+#' @noRd
 .yhpage <- function(title, sub, p, hc, rows, cards, nt) {
   c(
     "<!DOCTYPE html>",

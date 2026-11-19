@@ -123,7 +123,8 @@ plot.cwbscr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 
 # ---- helpers ----------------------------------------------------------------
 
-# a group's label, starred where the source flags the estimate (E)
+#' a group's label, starred where the source flags the estimate (E)
+#' @noRd
 .pstar <- function(lab, flag) {
   lab <- as.character(lab)
   f <- !is.na(flag) & as.logical(flag)
@@ -131,8 +132,9 @@ plot.cwbscr <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
   lab
 }
 
-# the four components of a Community Well-Being score and the score, one
-# row per community or group
+#' the four components of a Community Well-Being score and the score, one
+#' row per community or group
+#' @noRd
 .pcwb <- function(lab, x, main, col, pal, ...) {
   k <- c(income = "income", education = "education", housing = "housing",
          labour = "labour force", cwb = "score")
