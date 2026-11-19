@@ -203,6 +203,12 @@ bool plotcoh(Ctx &c, Val &out) {
           ++k;
         }
       }
+      // a period that equals no row (not a number): no mean, and no
+      // division by a count of 0
+      if (k == 0) {
+        v[q] = NA;
+        continue;
+      }
       const long double mu = s / static_cast<long double>(k);
       long double r = 0.0L;
       for (std::size_t i : ok) {
