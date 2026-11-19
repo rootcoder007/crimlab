@@ -127,7 +127,7 @@ jobs:
           for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
           for /f "tokens=2" %%v in ('findstr /b "Version:" DESCRIPTION') do set CV=%%v
           cl /nologo /c /MT /std:c++17 /EHsc /O2 /Fob\ @b\k.rsp || exit /b 1
-          cl /nologo /c /MT /std:c++17 /EHsc /O2 /D_CRT_SECURE_NO_WARNINGS /DCLAB_VER=\"%CV%\" /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
+          cl /nologo /c /MT /std:c++17 /EHsc /bigobj /O2 /D_CRT_SECURE_NO_WARNINGS /DCLAB_VER=\"%CV%\" /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
           cl /nologo /MT /Fecli\crimlab.exe b\*.obj || exit /b 1
       - name: tests
         shell: bash

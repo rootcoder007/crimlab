@@ -75,11 +75,39 @@ jobs:
         run: |
           for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvars64.bat"
           cl /nologo /c /std:c++17 /EHsc /O2 /W3 /WX /Fob\ @b\k.rsp || exit /b 1
-          cl /nologo /c /std:c++17 /EHsc /O2 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
+          cl /nologo /c /std:c++17 /EHsc /bigobj /O2 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /Isrc /Fob\ cli\jrun.cpp cli\main.cpp || exit /b 1
           cl /nologo /Fecli\crimlab.exe b\*.obj || exit /b 1
       - name: tests
         shell: bash
         run: sh cli/test.sh cli/crimlab.exe
+
+  jdll:
+    # the library the Java jar carries for Windows, built as publish.yml
+    # builds it at a release (x64 and, cross-compiled, arm64), so that a
+    # change that breaks it is seen here and not on the release tag
+    name: jdll windows-${{ matrix.a }}
+    runs-on: windows-2025
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        a: [x64, x64_arm64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: the kernels
+        shell: bash
+        run: |
+          mkdir b out
+          grep -L -E '#[[:space:]]*include[[:space:]]*[<"](R\.h|Rinternals\.h|Rmath\.h|R_ext/|rchk\.h)' src/*.cpp > b/k.rsp
+      - name: build (the C runtime linked in, /MT)
+        shell: cmd
+        env:
+          A: ${{ matrix.a }}
+        run: |
+          for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvarsall.bat" %A%
+          cl /nologo /LD /MT /std:c++17 /EHsc /bigobj /O2 /Isrc @b\k.rsp cli\jrun.cpp /Fob\ /Feout\crimlab.dll /link /EXPORT:clab_jrun /EXPORT:clab_jfns || exit /b 1
 
   rpm:
     runs-on: ubuntu-24.04

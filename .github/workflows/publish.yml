@@ -207,7 +207,7 @@ jobs:
         run: |
           for /f "usebackq delims=" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) do call "%%i\VC\Auxiliary\Build\vcvarsall.bat" %A%
           mkdir out\native\%PL%
-          cl /nologo /LD /MT /std:c++17 /EHsc /O2 /Isrc @b\k.rsp cli\jrun.cpp /Fob\ /Feout\native\%PL%\crimlab.dll /link /EXPORT:clab_jrun /EXPORT:clab_jfns || exit /b 1
+          cl /nologo /LD /MT /std:c++17 /EHsc /bigobj /O2 /Isrc @b\k.rsp cli\jrun.cpp /Fob\ /Feout\native\%PL%\crimlab.dll /link /EXPORT:clab_jrun /EXPORT:clab_jfns || exit /b 1
           del out\native\%PL%\crimlab.lib out\native\%PL%\crimlab.exp
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

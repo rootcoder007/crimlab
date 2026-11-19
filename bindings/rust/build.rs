@@ -43,7 +43,7 @@ fn main() {
     let mut b = cc::Build::new();
     b.cpp(true).include(&src).include(&cli).warnings(false).files(&files);
     if b.get_compiler().is_like_msvc() {
-        b.flag("/std:c++17").flag("/EHsc");
+        b.flag("/std:c++17").flag("/EHsc").flag("/bigobj");
     } else {
         b.flag("-std=c++17");
     }
