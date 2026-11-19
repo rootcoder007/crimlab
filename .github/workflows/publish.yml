@@ -318,6 +318,48 @@ jobs:
           done
           echo "::error::deployment $id still not validated after 30 minutes"
           exit 1
+  go:
+    # The Go module has no upload: its version is the tag
+    # bindings/go/vX.Y.Z, and the Go proxy and checksum database keep a
+    # version for good once it is asked for. So the tag is made here, in
+    # the release environment with the other registries, on the release
+    # tag's commit, and only then is the proxy asked for it.
+    needs: versions
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: tag the Go module, then ask the Go module proxy
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          g=bindings/go/$TAG
+          h=$(git rev-parse HEAD)
+          r="https://github.com/$GITHUB_REPOSITORY"
+          # an annotated tag's commit is on its peeled ^{} line
+          gs=$(git ls-remote "$r" "refs/tags/$g" "refs/tags/$g^{}" | awk '{c = $1} END {print c}')
+          if [ -n "$gs" ] && [ "$gs" != "$h" ]; then
+            echo "::error::$g is on $gs, not on $TAG ($h): a Go version cannot be moved"
+            exit 1
+          fi
+          if [ -z "$gs" ]; then
+            git tag "$g" "$h"
+            git push "https://x-access-token:$GH_TOKEN@github.com/$GITHUB_REPOSITORY" "refs/tags/$g"
+          fi
+          u="https://proxy.golang.org/github.com/rootcoder007/crimlab/bindings/go/@v/$TAG.info"
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsS "$u"; then echo; exit 0; fi
+            sleep 30
+          done
+          echo "::error::the proxy has no $TAG of the Go binding"
+          exit 1
+
   npm:
     # npmjs.com by trusted publishing, with provenance: no secret; crimlab's
     # trusted publisher names this repository, publish.yml and the

@@ -55,12 +55,15 @@ jobs:
           if [ "$REFTYPE" = tag ]; then
             [ "$REFNAME" = "v$v" ] || { echo "::error::tag $REFNAME is not DESCRIPTION's $v"; exit 1; }
             grep -qx "# crimlab $v" NEWS.md || { echo "::error::NEWS.md has no '# crimlab $v'"; exit 1; }
-            # the Go module's own tag, on the same commit: the Go proxy
-            # remembers a version asked for before its tag existed as missing
+            # the Go module's own tag, bindings/go/vX.Y.Z, is the Go module's
+            # publication: the Go proxy and checksum database keep a version
+            # for good once anyone asks for it. It is not pushed with the
+            # release tag; the job go of publish.yml makes it, in the
+            # release environment. Here it must not sit on another commit.
             g=$(git ls-remote origin "refs/tags/bindings/go/v$v" "refs/tags/bindings/go/v$v^{}" |
               awk '{c = $1} END {print c}')
-            [ "$g" = "$(git rev-parse HEAD)" ] ||
-              { echo "::error::push the tag bindings/go/v$v with $REFNAME, on the same commit"; exit 1; }
+            [ -z "$g" ] || [ "$g" = "$(git rev-parse HEAD)" ] ||
+              { echo "::error::bindings/go/v$v is on another commit ($g): a Go version cannot be moved, release a new version"; exit 1; }
           else
             # a dry run of the development version: name it X.Y.Z
             v=$(printf '%s\n' "$v" | sed 's/^\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')
