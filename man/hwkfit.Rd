@@ -68,7 +68,7 @@ t_j)} over the window \verb{[0, hor]}, with a normalised kernel \code{g}:
 exponential (\code{"exp"}, rate \code{beta}: a Markovian process), Weibull
 (\code{"weibull"}, \code{shape} and \code{scale}) or Lomax (\code{"lomax"}, the power-law
 kernel of seismology's modified Omori law, \code{shape} and \code{scale}, density
-\code{shape / scale (1 + t / scale)^-(shape + 1)}). The baseline is constant
+\verb{shape / scale (1 + t /} \verb{scale)^-(shape + 1)}). The baseline is constant
 (\code{"const"}, \eqn{\nu = e^{a_0}}) or a log-linear trend with one cycle of
 length \code{per} (\code{"cycle"}, \eqn{\nu(t) = \exp(a_0 + a_1 t / hor + a_2
 \sin(2 \pi t / per) + a_3 \cos(2 \pi t / per))}), whose integral is taken

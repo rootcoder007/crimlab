@@ -23,7 +23,7 @@ A named numeric vector: \code{g}, \code{e}, \code{v}, \code{z}, \code{p} and \co
 }
 \description{
 The global concentration statistic of Getis and Ord (1992) for
-non-negative values: \verb{G = sum_ij w_ij x_i x_j / sum_\{i != j\} x_i x_j},
+non-negative values: \verb{G = sum_ij w_ij x_i x_j /} \verb{sum_\{i != j\} x_i x_j},
 its expectation \code{S0 / (n (n - 1))} and variance under randomisation, the
 z statistic, its upper normal tail (high values near high values) and,
 with \code{nsim > 0}, a permutation p-value. Unlike Moran's I and Geary's C it

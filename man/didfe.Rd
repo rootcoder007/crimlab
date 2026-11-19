@@ -95,7 +95,7 @@ turn, its Goodman-Bacon decomposition, and the estimate after matching
 treated units to comparison units on their outcomes before treatment.
 }
 \details{
-The model is \verb{y_it = b trt_it + adj_it'g + a_i + m_t + e_it}, fitted by
+The model is \verb{y_it = b trt_it + adj_it'g +} \code{a_i + m_t + e_it}, fitted by
 least squares after the within transformation (alternating projections,
 so an unbalanced panel is fine; weights \code{w} give weighted least squares
 with weighted means). With \code{fe = "time"} the unit effects are left out.
@@ -107,7 +107,8 @@ use Student's t on \code{G - 1} degrees of freedom. These are the conventions
 of 'fixest' and Stata's 'reghdfe'. Fewer than ten clusters give a
 warning: \code{\link[=wcbx]{wcbx()}} is the tool for so few.
 
-With \code{fam = "pois"} or \code{"nb"} the model is \verb{E(y_it) = exp(b trt_it + adj_it'g + a_i + m_t)} times the exposure \code{expo}, fitted by maximum
+With \code{fam = "pois"} or \code{"nb"} the model is \verb{E(y_it) = exp(b trt_it +}
+\verb{adj_it'g + a_i + m_t)} times the exposure \code{expo}, fitted by maximum
 likelihood with dummies for the effects (the steps of \code{\link[=cntreg]{cntreg()}}). Units
 and periods whose counts are all zero carry nothing about \code{b} and are
 dropped first. The Poisson estimate is consistent whatever the

@@ -13,7 +13,7 @@
 #' ward, ward fixed effects and time effects, and ward population as the
 #' offset. It serves any count by place and period against any exposure.
 #'
-#' The model is `E(y | x) = exp(x'b + a_i + g_t + log(expo))`. Poisson
+#' The model is `E(y | x) = exp(x'b + a_i +` `g_t + log(expo))`. Poisson
 #' pseudo-maximum likelihood (Santos Silva and Tenreyro 2006) needs only
 #' that mean to be right: the counts need not be Poisson, their variance
 #' need not equal their mean, and zero counts are kept (a regression of
@@ -104,7 +104,7 @@
 #' coefficients, an intercept and the levels less one of each fixed effect
 #' not nested in a cluster (fixest's default for clustered errors); `"none"`
 #' no factor. `"cluster"` with `"G"` equals `fixest::fepois()` with
-#' `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
+#' `ssc(K.adj = FALSE, G.adj =` `TRUE, G.df = "min")`.
 #'
 #' Two-way clustering (`twc`, `psd`), as Cameron, Gelbach and Miller (2011,
 #' p. 241) give it: `twc = "min"` (the default, their second method and
@@ -396,7 +396,7 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' [ppmlfe()], on the second-stage design with the structural residuals
 #' (the outcome less the actual, not the fitted, endogenous columns times
 #' their coefficients). With `"cluster"` and `ssc = "G"` they equal
-#' `fixest::feols()` with `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
+#' `fixest::feols()` with `ssc(K.adj = FALSE, G.adj =` `TRUE, G.df = "min")`.
 #' Tests use the t distribution on `G - 1` degrees of freedom for
 #' clustered errors and the normal otherwise.
 #'
@@ -421,8 +421,8 @@ summary.ppmlfe <- function(object, ...) object[["coef"]]
 #' Kraay, robust to correlation across units and over time. With `h_t`
 #' the sum of the rows' scores over the rows of time `t` (the `time`
 #' column), the middle of the sandwich is `sum_t h_t h_t'` plus, for each
-#' pair of times `d` apart with `0 < d <= lag`, `(1 - d / (lag + 1)) (h_a
-#' h_b' + h_b h_a')`, the Newey-West estimator of the series of the
+#' pair of times `d` apart with `0 < d <= lag`, `(1 - d / (lag + 1)) (h_a`
+#' `h_b' + h_b h_a')`, the Newey-West estimator of the series of the
 #' summed scores. Batkeyev and DeRemer (2023) do not give their lag; the
 #' default is the bandwidth of Newey and West (1994) of `"nw"` computed on
 #' that one series. The small-sample factor `"G"` is `T / (T - 1)` with
@@ -1427,7 +1427,7 @@ invsn <- function(tlow, tup, sign = c("upper", "ground"), brk = NULL,
 #' coefficients, the same day first. This is the placebo of Bondy, Roth
 #' and Sager (2020, table A1 and footnote 27: 7, 31 and 365 days back and
 #' forward) and of Herrnstadt, Heyes, Muehlegger and Saberian (2019, table
-#' 9: 100 days); `shifts = c(-365, -100, -31, -7, 7, 31, 100, 365)` runs
+#' 9: 100 days); `shifts = c(-365, -100, -31,` `-7, 7, 31, 100, 365)` runs
 #' both.
 #'
 #' What it can show: if pollution on irrelevant days predicts crime as
@@ -1582,8 +1582,8 @@ summary.plcday <- function(object, ...) object[["tab"]]
 #'   over days, its appendix too) or `"boot"`, as in [ppmlfe()]. Stata's
 #'   robust errors use `n / (n - K)`; here that is `ssc = "nk"`.
 #'
-#' The estimate is the paper's equation (3), p. 12: `y_ist = a_is + g_it +
-#' b downwind_ist + e_ist`, with route-side fixed effects `a_is` and
+#' The estimate is the paper's equation (3), p. 12: `y_ist = a_is + g_it + b`
+#' `downwind_ist + e_ist`, with route-side fixed effects `a_is` and
 #' route-date fixed effects `g_it`; with `agg = TRUE` the counts of the
 #' areas on one side of one segment are summed by day first, as the paper
 #' counts crimes by interstate side and day. Without aggregation (and for

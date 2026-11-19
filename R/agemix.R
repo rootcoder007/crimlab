@@ -1,3 +1,7 @@
+# The page below is the first of the PDF manual. The \if{latex} line in
+# its description lets the lines of the whole manual stretch where a word
+# cannot be broken (a formula in code font, a DOI), so none runs off the
+# page; the lint job checks that the first page still carries it.
 #' The age-crime curve of a mixture of offender types
 #'
 #' The aggregate age-crime curve is the share-weighted mean of the curves
@@ -10,6 +14,7 @@
 #' types of their curves at the two ages, which `cov` gives for every pair
 #' of ages. With a panel of individuals observed at two ages, the observed
 #' covariance and its permutation test say whether one type is enough.
+#' \if{latex}{\out{\global\emergencystretch=8em}}
 #' See `proof("agemix")`.
 #'
 #' @param curves `NULL`, or the curves of the types: a numeric matrix or a

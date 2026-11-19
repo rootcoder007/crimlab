@@ -163,7 +163,8 @@ over days, its appendix too) or \code{"boot"}, as in \code{\link[=ppmlfe]{ppmlfe
 robust errors use \code{n / (n - K)}; here that is \code{ssc = "nk"}.
 }
 
-The estimate is the paper's equation (3), p. 12: \verb{y_ist = a_is + g_it + b downwind_ist + e_ist}, with route-side fixed effects \code{a_is} and
+The estimate is the paper's equation (3), p. 12: \code{y_ist = a_is + g_it + b}
+\code{downwind_ist + e_ist}, with route-side fixed effects \code{a_is} and
 route-date fixed effects \code{g_it}; with \code{agg = TRUE} the counts of the
 areas on one side of one segment are summed by day first, as the paper
 counts crimes by interstate side and day. Without aggregation (and for

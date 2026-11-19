@@ -56,7 +56,8 @@ limits on the errors (Manski 2003).
 \itemize{
 \item With a survey rate \code{v} and a recorded rate \code{r}, and survey false
 positives at most \code{amax} and false negatives at most \code{bmax}, the true
-rate lies in \verb{[max(r, (v - amax) / (1 - amax)), min(1, v / (1 - bmax))]} and the dark figure (true minus recorded) in that interval
+rate lies in \verb{[max(r, (v - amax) / (1 -} \verb{amax)), min(1, v / (1 -}
+\verb{bmax))]} and the dark figure (true minus recorded) in that interval
 shifted by \code{r}. Given \code{thr}, \code{brk} is the largest \code{bmax} under which
 the conclusion "the true rate is below \code{thr}" survives: \code{1 - v / thr}.
 \item When the survey covers only some offences (type A, \code{va} of them, \code{ra}

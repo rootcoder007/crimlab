@@ -13,7 +13,7 @@
 #' exponential (`"exp"`, rate `beta`: a Markovian process), Weibull
 #' (`"weibull"`, `shape` and `scale`) or Lomax (`"lomax"`, the power-law
 #' kernel of seismology's modified Omori law, `shape` and `scale`, density
-#' `shape / scale (1 + t / scale)^-(shape + 1)`). The baseline is constant
+#' `shape / scale (1 + t /` `scale)^-(shape + 1)`). The baseline is constant
 #' (`"const"`, \eqn{\nu = e^{a_0}}) or a log-linear trend with one cycle of
 #' length `per` (`"cycle"`, \eqn{\nu(t) = \exp(a_0 + a_1 t / hor + a_2
 #' \sin(2 \pi t / per) + a_3 \cos(2 \pi t / per))}), whose integral is taken

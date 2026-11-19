@@ -12,8 +12,8 @@
 #' of the differenced equations alone and the difference-in-Hansen test of
 #' the level instruments, with no more instruments than provinces.
 #'
-#' The model is `y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t +
-#' u_i + v_it` with `L = ylag`. Periods are the distinct values of `time` in
+#' The model is `y_it = a_1 y_i,t-1 + ... +` `a_L y_i,t-L + x_it b + d_t +`
+#' `u_i + v_it` with `L = ylag`. Periods are the distinct values of `time` in
 #' order: lags count positions in that order, and a unit without a row in
 #' a period has a gap there. A row enters the levels when the unit has the
 #' `ylag` periods before it; the transformed equation is the first
@@ -448,12 +448,13 @@ print.wsctst <- function(x, ...) {
 #' With `H = (D, ybar_w, Xbar_w)` and `M = I - H (H'H)^- H'` (eq 15, a
 #' generalized inverse), the unit estimates are `b_i = (X_i'M X_i)^-1
 #' X_i'M y_i`. The mean group estimator `CCEMG` is their mean (eq 53),
-#' with the nonparametric variance `sum (b_i - b_MG)(b_i - b_MG)' / (N (N -
-#' 1))` (eq 58). The pooled estimator `CCEP` is `(sum w_i X_i'M X_i)^-1 sum
-#' w_i X_i'M y_i`, the pooling weights equal to the averaging weights as
+#' with the nonparametric variance `sum (b_i - b_MG)(b_i -`
+#' `b_MG)' / (N (N - 1))` (eq 58). The pooled estimator `CCEP` is
+#' `(sum w_i X_i'M X_i)^-1 sum` `w_i X_i'M y_i`, the pooling weights equal to
+#' the averaging weights as
 #' Theorem 3 requires, with the variance of eqs 67-69, `sum w_i^2 Psi^-1 R
-#' Psi^-1`, `Psi = sum w_i X_i'M X_i / T` and `R = sum wt_i^2 (X_i'M X_i /
-#' T) (b_i - b_MG)(b_i - b_MG)' (X_i'M X_i / T) / (N - 1)`, `wt_i = w_i /
+#' Psi^-1`, `Psi = sum w_i X_i'M X_i / T` and `R = sum wt_i^2 (X_i'M X_i /`
+#' `T) (b_i - b_MG)(b_i - b_MG)'` `(X_i'M X_i / T) / (N - 1)`, `wt_i = w_i /
 #' sqrt(mean(w^2))`. Inference is normal.
 #'
 #' Pesaran (2006) derives the estimators for a balanced panel. An
@@ -465,7 +466,7 @@ print.wsctst <- function(x, ...) {
 #' taken over the units observed in that period, their weights scaled to
 #' sum to 1 over those units, and each unit's regression runs over its own
 #' periods, with its rows of `H`. CCEMG and its variance are then as above.
-#' CCEP is `(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i`, and in its
+#' CCEP is `(sum w_i X_i'M_i X_i)^-1 sum` `w_i X_i'M_i y_i`, and in its
 #' variance each `X_i'M_i X_i` is divided by the unit's own number of
 #' periods, which is this function's reading of `T` there. On a balanced
 #' panel all of this is Pesaran's estimator.
@@ -536,7 +537,7 @@ print.wsctst <- function(x, ...) {
 #' that the averages kept identify, by the two regularized procedures of
 #' their appendix A.1 on a balanced panel: `er`, the eigenvalue ratio of
 #' Ahn and Horenstein (2013) on the averages normalised by `Sigma^-1/2`,
-#' `Sigma = sum_i (Z_i - Zbar)'(Z_i - Zbar) / (N T)` (Juodis 2022; steps
+#' `Sigma = sum_i (Z_i -` `Zbar)'(Z_i - Zbar) / (N T)` (Juodis 2022; steps
 #' 1-3, `r_max` the averages less one); `thr`, the number of eigenvalues
 #' of `Zbar'Zbar / T` at least 0.01 times the largest (Vogt et al. 2025;
 #' steps 1-2); and `avg`, the averages kept; `NA` where undefined. More
@@ -544,8 +545,9 @@ print.wsctst <- function(x, ...) {
 #' bias; the regularized estimators themselves are not made. (2) A two-way
 #' fixed-effects estimator ([fepnl()]) may still be consistent and should
 #' be compared and tested. `hb` is their test of heterogeneity bias in
-#' CCEP (sec. 3.2, case study 2): `delta_i = (X_i'M_i X_i - N^-1 sum_j
-#' X_j'M_j X_j) (b_i - b_MG)`, `HB = delta' V^-1 delta` with `delta` their
+#' CCEP (sec. 3.2, case study 2): `delta_i = (X_i'M_i X_i -`
+#' `N^-1 sum_j X_j'M_j X_j) (b_i` `- b_MG)`, `HB = delta' V^-1 delta` with
+#' `delta` their
 #' mean and `V = N^-2 sum delta_i delta_i'`, chi-squared on `k` degrees of
 #' freedom (`stat`, `df`, `p`); a rejection says that CCEP is biased by
 #' slopes that vary with the regressors. (3) Dynamic models need the
@@ -566,8 +568,8 @@ print.wsctst <- function(x, ...) {
 #' the sampling error of the averages (sec. 5.4, eqs 36-40, with `Psi = H`
 #' and `q_i = vec(Z_i - Zbar)`, 0 in the columns of the observed factors),
 #' is `pvar = "bsw"`: `A^-1 B A^-1 / N`, `A = N^-1 sum X_i'M X_i`, `B =
-#' N^-1 sum s_i s_i'`, `s_i = X_i'M u_i - G'(I + K)[Psi (Psi'Psi)^-1 (x)
-#' M] q_i`, `u_i = y_i - X_i b`, `G = N^-1 sum u_i (x) (X_i - Xbar)` and
+#' N^-1 sum s_i s_i'`, `s_i = X_i'M u_i - G'(I +` `K)[Psi (Psi'Psi)^-1 (x) M]`
+#' `q_i`, `u_i = y_i - X_i b`, `G = N^-1 sum u_i (x) (X_i - Xbar)` and
 #' `K` the commutation matrix (eq 33); it is for the static pooled
 #' estimator with equal weights on a balanced panel, and refused
 #' otherwise.

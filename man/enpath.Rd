@@ -75,9 +75,9 @@ cross-validates it over folds the caller supplies. The objective, the
 standardisation of the columns and the scale of \code{lambda} are those of
 'glmnet', so that with the same \code{lambda} and the same folds the two give
 the same coefficients, up to their convergence thresholds: the gaussian
-family minimises \verb{(1 / 2n) |y - a0 - x b|^2 + lambda pen(b)}, the
+family minimises \verb{(1 / 2n) |y - a0 - x b|^2 +} \verb{lambda pen(b)}, the
 binomial family the mean negative log-likelihood plus \verb{lambda pen(b)},
-with \verb{pen(b) = sum((1 - alpha) / 2 (s b)^2 + alpha |s b|)}, \code{s} the
+with \verb{pen(b) = sum((1 - alpha) / 2} \verb{(s b)^2 + alpha |s b|)}, \code{s} the
 population standard deviations of the columns. For the gaussian family
 the outcome is scaled to unit variance while fitting, as 'glmnet' does.
 The intercept is never penalised; a constant column keeps a zero

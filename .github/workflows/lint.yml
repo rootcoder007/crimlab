@@ -36,6 +36,11 @@ jobs:
       - name: every source is in one group of the unity build
         run: python3 dev/unity.py check
 
+      - name: the first page of the PDF manual lets its lines stretch
+        run: |
+          f=$(grep -L "keyword{internal}" man/*.Rd | LC_ALL=C sort | head -n 1)
+          grep -q "emergencystretch" "$f" || { echo "::error::$f is the first page of the manual and lacks the line of R/agemix.R"; exit 1; }
+
       - name: Lint
         run: lintr::lint_package()
         shell: Rscript {0}

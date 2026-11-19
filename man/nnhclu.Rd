@@ -78,7 +78,7 @@ groups the groups, order by order (after Johnson 1967, as used for crime
 hot spots). At the first order two points are linked when their distance
 is below the threshold: \code{fixd}, or the mean nearest-neighbour distance
 expected under complete spatial randomness in an area \code{area} plus \code{z}
-standard errors, \verb{0.5 sqrt(A / m) + z sqrt((4 - pi) A / (4 pi)) / m} for
+standard errors, \verb{0.5 sqrt(A / m) + z sqrt((4} \verb{- pi) A / (4 pi)) / m} for
 \code{m} units, with \code{z = qnorm(p)} (\code{p = 0.5} gives the expectation itself,
 smaller \code{p} a stricter threshold). Points with a linked neighbour are
 taken in decreasing number of links; each one not yet clustered takes

@@ -39,9 +39,11 @@ log-likelihood), \code{shape}, \code{coef}, \code{frail}, \code{se}, \code{iter}
 }
 \description{
 \code{sfrail()} fits the Weibull proportional hazards model with log-frailties
-of the areas under an intrinsic conditional autoregression, \verb{h(t) = rho t^(rho - 1) exp(x beta + u_area)} (Banerjee, Wall and Carlin 2003);
+of the areas under an intrinsic conditional autoregression,
+\verb{h(t) = rho t^(rho - 1) exp(x} \verb{beta + u_area)} (Banerjee, Wall and Carlin
+2003);
 \code{sfcure()} the promotion-time cure model (Chen, Ibrahim and Sinha 1999),
-\code{S(t) = exp(-theta (1 - exp(-G(t))))}, \verb{theta = exp(x beta + u_area)} and
+\verb{S(t) = exp(-theta (1 -} \verb{exp(-G(t))))}, \verb{theta = exp(x beta + u_area)} and
 \verb{G(t) = exp(c + rho log t)}, whose cure fraction is \code{exp(-theta)}. Both
 maximise the penalised likelihood, the penalty \verb{tau u'Qu / 2} with \code{Q}
 the Laplacian of the neighbour weights, by Newton-Raphson from 0 on the

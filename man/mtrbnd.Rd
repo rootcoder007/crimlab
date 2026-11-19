@@ -49,8 +49,11 @@ harshly).
 
 With \code{P(u)} the share and \code{m(u)} the mean outcome of those who received
 sentence \code{u}, and outcomes between \code{ylo} and \code{yhi}, the bound on the
-mean under \code{t} is, under MTR, from \verb{sum_\{u <= t\} m(u) P(u) + ylo P(z > t)} to \verb{yhi P(z < t) + sum_\{u >= t\} m(u) P(u)}; under MTS, from \verb{ylo P(z < t) + m(t) P(z >= t)} to \verb{m(t) P(z <= t) + yhi P(z > t)}; and under
-both, from \verb{sum_\{u < t\} m(u) P(u) + m(t) P(z >= t)} to \verb{m(t) P(z <= t) + sum_\{u > t\} m(u) P(u)} (their Proposition 2). The effect of \code{t} against
+mean under \code{t} is, under MTR, from \verb{sum_\{u <= t\} m(u) P(u) + ylo} \code{P(z > t)}
+to \verb{yhi P(z < t) + sum_\{u >= t\}} \verb{m(u) P(u)}; under MTS, from \verb{ylo P(z < t) + m(t) P(z >= t)} to \verb{m(t) P(z <= t) + yhi P(z > t)}; and under
+both, from \verb{sum_\{u < t\} m(u) P(u) + m(t)} \code{P(z >= t)} to
+\verb{m(t) P(z <= t) + sum_\{u > t\}} \verb{m(u) P(u)} (their Proposition 2). The effect
+of \code{t} against
 the first (mildest) sentence is bounded by the difference of the
 bounds, its lower end at least 0 under MTR; these differences contain
 the effect but need not be its sharpest bounds.

@@ -25,15 +25,18 @@ A data frame with one row per covariate: \code{term}, \code{direct},
 without a fit).
 }
 \description{
-In a model with a spatial lag of the outcome, \verb{y = rho W y + X beta + W X theta + e}, a change in covariate \code{k} at every unit moves the outcomes
-by \verb{S_k = (I - rho W)^-1 (beta_k I + theta_k W)}: the mean of its
+In a model with a spatial lag of the outcome, \verb{y = rho W y + X beta + W X}
+\code{theta + e}, a change in covariate \code{k} at every unit moves the outcomes
+by \verb{S_k = (I - rho W)^-1 (beta_k} \verb{I + theta_k W)}: the mean of its
 diagonal is the direct effect, the mean row sum the total, and their
 difference the indirect effect, the spillover to other units (LeSage
 and Pace 2009). An analysis that reads \code{beta_k} alone can report "no
 effect" where the effect is all spillover. With row-standardised
 weights the total is \code{(beta_k + theta_k) / (1 - rho)}, proved in Lean:
 see \code{proof("spill")}. Standard errors are by the delta method in \code{rho},
-\code{beta_k} and \code{theta_k}, with the exact derivatives \verb{d (I - rho W)^-1 / d rho = (I - rho W)^-1 W (I - rho W)^-1}. The effects are those of
+\code{beta_k} and \code{theta_k}, with the exact derivatives
+\verb{d (I - rho W)^-1 / d rho =} \verb{(I - rho W)^-1 W (I - rho} \verb{W)^-1}. The effects
+are those of
 \code{spatialreg::impacts()}, which gives simulated rather than delta-method
 standard errors.
 }

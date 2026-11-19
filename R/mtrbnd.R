@@ -19,11 +19,12 @@
 #'
 #' With `P(u)` the share and `m(u)` the mean outcome of those who received
 #' sentence `u`, and outcomes between `ylo` and `yhi`, the bound on the
-#' mean under `t` is, under MTR, from `sum_{u <= t} m(u) P(u) + ylo P(z >
-#' t)` to `yhi P(z < t) + sum_{u >= t} m(u) P(u)`; under MTS, from `ylo
+#' mean under `t` is, under MTR, from `sum_{u <= t} m(u) P(u) + ylo` `P(z > t)`
+#' to `yhi P(z < t) + sum_{u >= t}` `m(u) P(u)`; under MTS, from `ylo
 #' P(z < t) + m(t) P(z >= t)` to `m(t) P(z <= t) + yhi P(z > t)`; and under
-#' both, from `sum_{u < t} m(u) P(u) + m(t) P(z >= t)` to `m(t) P(z <= t) +
-#' sum_{u > t} m(u) P(u)` (their Proposition 2). The effect of `t` against
+#' both, from `sum_{u < t} m(u) P(u) + m(t)` `P(z >= t)` to
+#' `m(t) P(z <= t) + sum_{u > t}` `m(u) P(u)` (their Proposition 2). The effect
+#' of `t` against
 #' the first (mildest) sentence is bounded by the difference of the
 #' bounds, its lower end at least 0 under MTR; these differences contain
 #' the effect but need not be its sharpest bounds.

@@ -89,17 +89,18 @@ print.sarml <- function(x, ...) {
 
 #' Direct, indirect and total effects of a spatial lag model
 #'
-#' In a model with a spatial lag of the outcome, `y = rho W y + X beta + W X
-#' theta + e`, a change in covariate `k` at every unit moves the outcomes
-#' by `S_k = (I - rho W)^-1 (beta_k I + theta_k W)`: the mean of its
+#' In a model with a spatial lag of the outcome, `y = rho W y + X beta + W X`
+#' `theta + e`, a change in covariate `k` at every unit moves the outcomes
+#' by `S_k = (I - rho W)^-1 (beta_k` `I + theta_k W)`: the mean of its
 #' diagonal is the direct effect, the mean row sum the total, and their
 #' difference the indirect effect, the spillover to other units (LeSage
 #' and Pace 2009). An analysis that reads `beta_k` alone can report "no
 #' effect" where the effect is all spillover. With row-standardised
 #' weights the total is `(beta_k + theta_k) / (1 - rho)`, proved in Lean:
 #' see `proof("spill")`. Standard errors are by the delta method in `rho`,
-#' `beta_k` and `theta_k`, with the exact derivatives `d (I - rho W)^-1 /
-#' d rho = (I - rho W)^-1 W (I - rho W)^-1`. The effects are those of
+#' `beta_k` and `theta_k`, with the exact derivatives
+#' `d (I - rho W)^-1 / d rho =` `(I - rho W)^-1 W (I - rho` `W)^-1`. The effects
+#' are those of
 #' `spatialreg::impacts()`, which gives simulated rather than delta-method
 #' standard errors.
 #'
@@ -145,7 +146,7 @@ spill <- function(fit = NULL, w = NULL, rho = NULL, b = NULL, th = NULL) {
 #' Global Moran's I with its inference
 #'
 #' Moran's (1950) I of values on units with spatial weights `w`: with `z =
-#' x - mean(x)`, `I = n / S0 sum_ij w_ij z_i z_j / sum z_i^2`, its
+#' x - mean(x)`, `I = n / S0 sum_ij w_ij z_i` `z_j / sum z_i^2`, its
 #' expectation `-1 / (n - 1)` and its variance under normality and under
 #' randomisation (Cliff and Ord 1981), the z statistics and their upper
 #' normal tails (positive autocorrelation: neighbours alike), and, with
@@ -198,8 +199,8 @@ gmoran <- function(x, w, nsim = 0, seed = NULL) {
 #'
 #' Whether high values of one variable sit next to high values of another
 #' (Wartenberg 1985): with `zx` and `zy`
-#' the centred values, `I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2
-#' sum zy^2)`, which is Moran's I ([gmoran()]) when `y` is `x` (proved in
+#' the centred values, `I = n / S0 sum_ij w_ij zx_i` `zy_j / sqrt(sum zx^2 sum`
+#' `zy^2)`, which is Moran's I ([gmoran()]) when `y` is `x` (proved in
 #' Lean: see `proof("bvmor")`) and, with row-standardised weights,
 #' `spdep::moran_bv()`'s statistic. Inference is by permutation: `y`'s
 #' values are shuffled over the units `nsim` times from `seed` while `x`
@@ -213,7 +214,7 @@ gmoran <- function(x, w, nsim = 0, seed = NULL) {
 #' @inheritParams gstr
 #' @return A named numeric vector: `i`, `mean` and `sd` (of the permuted
 #'   statistics), `z` (`(i - mean) / sd`), `p` (`(1 + #{I* >= I}) / (nsim +
-#'   1)`) and `ptwo` (`(1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1)`);
+#'   1)`) and `ptwo` (`(1 + min(#{I* >= I}, #{I* <=` `I})) / (nsim + 1)`);
 #'   `NaN` without permutations.
 #' @references Wartenberg, D. (1985). Multivariate spatial correlation: a
 #'   method for exploratory geographical analysis. *Geographical Analysis*,

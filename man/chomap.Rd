@@ -54,9 +54,10 @@ With \code{brk} a number of classes, \code{mthd = "quantile"} puts the
 breaks at R's type-7 quantiles of the finite values (so the classes
 hold about equal counts; breaks that repeat are merged, which leaves
 fewer classes) and \code{mthd = "equal"} cuts their range into classes of
-equal width, as \code{seq(min, max, length.out = brk + 1)}. A value falls
+equal width, as \verb{seq(min, max, length.out =} \verb{brk + 1)}. A value falls
 in the class whose interval holds it, intervals closed on the left
-and the last closed on both sides, as \code{findInterval(v, breaks, rightmost.closed = TRUE, all.inside = TRUE)} gives. When every finite
+and the last closed on both sides, as \verb{findInterval(v, breaks,}
+\verb{rightmost.closed = TRUE,} \verb{all.inside = TRUE)} gives. When every finite
 value is the same, the one class runs from 0.5 below it to 0.5 above.
 Values that are missing or not finite are left unshaded.
 

@@ -30,13 +30,14 @@ The cross-sectionally augmented autoregressive distributed lag
 sec. 3.2) sets them out, from the unit estimates of \code{\link[=ccepnl]{ccepnl()}}.
 }
 \details{
-A dynamic panel \verb{y_it = mu_i + sum_l lambda_l,i y_i,t-l + sum_l beta_l,i x_i,t-l + averages + e_it} fitted unit by unit (\code{ccepnl()}
+A dynamic panel \code{y_it = mu_i + sum_l} \verb{lambda_l,i y_i,t-l + sum_l}
+\verb{beta_l,i x_i,t-l + averages} \code{+ e_it} fitted unit by unit (\code{ccepnl()}
 with \code{ylag} lags of \code{y} and the lags of \code{x} as columns of its \code{x}) has
 the long-run effect of \code{x} on the steady state of \code{y}
-\verb{theta_i = sum_l beta_l,i / (1 - sum_l lambda_l,i)} (Ditzen 2021, eq. 3
+\verb{theta_i = sum_l beta_l,i /} \verb{(1 - sum_l lambda_l,i)} (Ditzen 2021, eq. 3
 and sec. 3.2). Each unit's \code{theta_i} is computed from its estimates;
 the mean group estimate is their mean and its variance the mean
-group variance \code{sum_i (theta_i - mean)^2 / (N (N - 1))} (Pesaran and
+group variance \verb{sum_i (theta_i - mean)^2 /} \code{(N (N - 1))} (Pesaran and
 Smith 1995, as Chudik et al. 2016 apply it). The adjustment speed
 \verb{phi_i = 1 - sum_l lambda_l,i} of the error-correction form (Ditzen
 2021, sec. 3.1) is reported the same way as \code{"phi"}.

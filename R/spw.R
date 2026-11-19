@@ -44,7 +44,7 @@ spwt <- function(x = NULL, y = NULL, type = "knn", k = 4, d = NULL,
 #' Geary's C
 #'
 #' Geary's (1954) contiguity ratio of values on units with spatial weights
-#' `w`: `C = (n - 1) sum w_ij (x_i - x_j)^2 / (2 S0 sum (x_i - xbar)^2)`, 1
+#' `w`: `C = (n - 1) sum w_ij (x_i -` `x_j)^2 / (2 S0 sum (x_i -` `xbar)^2)`, 1
 #' under no autocorrelation, below 1 when neighbours are alike. Its variance
 #' is given under normality and under randomisation (Cliff and Ord 1981),
 #' with z statistics `(1 - C) / sd` and their upper normal tails, and, with
@@ -79,7 +79,7 @@ gearc <- function(x, w, nsim = 0, seed = NULL) {
 #' The general G of Getis and Ord
 #'
 #' The global concentration statistic of Getis and Ord (1992) for
-#' non-negative values: `G = sum_ij w_ij x_i x_j / sum_{i != j} x_i x_j`,
+#' non-negative values: `G = sum_ij w_ij x_i x_j /` `sum_{i != j} x_i x_j`,
 #' its expectation `S0 / (n (n - 1))` and variance under randomisation, the
 #' z statistic, its upper normal tail (high values near high values) and,
 #' with `nsim > 0`, a permutation p-value. Unlike Moran's I and Geary's C it
@@ -119,7 +119,7 @@ gorg <- function(x, w, nsim = 0, seed = NULL) {
 #'
 #' @inheritParams gearc
 #' @return A data frame with one row per unit: `ii` (I_i), `e`, `v`, `z`,
-#'   `p`, `pperm` (`(1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1)`, `NaN`
+#'   `p`, `pperm` (`(1 + min(#{I* >= I}, #{I* <=` `I})) / (nsim + 1)`, `NaN`
 #'   without permutations) and `quad` (1 high-high, 2 low-low, 3 low-high,
 #'   4 high-low, 0 neither).
 #' @references Anselin, L. (1995). Local indicators of spatial association:

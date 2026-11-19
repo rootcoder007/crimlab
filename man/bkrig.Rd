@@ -38,7 +38,7 @@ A data frame with one row per block: \code{est} (the kriged mean) and
 \description{
 Predicts the mean value over each block (an area such as a district)
 by ordinary kriging with point-to-block covariances averaged over the
-block, \verb{C(s_i, B) = (1 / |B|) int_B C(s_i, u) du}, under the exponential
+block, \verb{C(s_i, B) = (1 / |B|) int_B} \verb{C(s_i, u) du}, under the exponential
 covariance \verb{(sill - nugget) exp(-h / range)}, plus \code{nugget} at distance
 0 (Schabenberger and Gotway 2005, ch. 4). A block is a box, given as a
 2 x 2 matrix of its lower and upper corners (rows) and integrated on a

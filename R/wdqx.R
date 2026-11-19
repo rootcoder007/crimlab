@@ -21,7 +21,7 @@
 #' * the gross effect `ge = a0 - a1`, the fall in the treated area, and the
 #'   net effect `ne = a0 / c0 - a1 / c1` (that is `-sm`), the fall relative
 #'   to the control;
-#' * the total net effect `tne = (a0 c1 / c0 - a1) + (b0 c1 / c0 - b1)`,
+#' * the total net effect `tne = (a0 c1 / c0 - a1) +` `(b0 c1 / c0 - b1)`,
 #'   the crimes prevented in the treated area and the buffer together
 #'   (positive when crime was prevented), with `ea = a0 c1 / c0` and `eb =
 #'   b0 c1 / c0` the counts expected after had both areas followed the

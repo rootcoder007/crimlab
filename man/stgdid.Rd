@@ -85,7 +85,7 @@ from adoption on and \code{b = t - 1} before (the \code{"varying"} base of the
 period. With \code{adj}, parallel trends need hold only given the covariates,
 taken at the base period, and each cell is the estimator of Sant'Anna
 and Zhao (2020) on the cohort and its comparison units: \code{"dr"}, the
-doubly robust \verb{mean_D(dy - m(x)) - sum w (dy - m(x)) / sum w} with \code{m}
+doubly robust \verb{mean_D(dy - m(x)) - sum w} \verb{(dy - m(x)) / sum w} with \code{m}
 the least-squares fit of the change among the comparison units and \code{w = p / (1 - p)} from the logistic propensity \code{p} of belonging to the
 cohort; \code{"ipw"} without \code{m}; \code{"reg"} without the weights. Comparison
 units with \code{p} of 0.995 or more are left out, as 'DRDID' does. Use
@@ -105,7 +105,9 @@ treated from the first period are left out.
 
 For \code{mthd = "dcdh"}, in each period the units that switch into
 treatment are compared with the units untreated in both periods, and
-the units that switch out with the units treated in both: \verb{DID_M = sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S} over the
+the units that switch out with the units treated in both:
+\verb{DID_M = sum_t (N_join,t} \verb{DID_join,t + N_leave,t} \verb{DID_leave,t) / N_S} over
+the
 \code{N_S} switchers that have a comparison. The placebo runs the same
 comparison one period earlier, for units whose treatment did not change
 over the two periods before; it should be near zero.

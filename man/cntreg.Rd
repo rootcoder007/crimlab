@@ -74,10 +74,11 @@ determines, say) is aliased and dropped, as R does: its coefficients are
 \code{NA}.
 
 With \code{clus}, each fit also gets cluster-robust (sandwich) standard
-errors, rows \code{"poiscl"} and \code{"nbcl"}: \verb{(X'WX)^-1 (sum_g U_g U_g') (X'WX)^-1} over the clusters' scores \code{U_g}, times \code{G / (G - 1)} for \code{G}
+errors, rows \code{"poiscl"} and \code{"nbcl"}: \verb{(X'WX)^-1 (sum_g U_g U_g')}
+\verb{(X'WX)^-1} over the clusters' scores \code{U_g}, times \code{G / (G - 1)} for \code{G}
 clusters when \code{cadj} (the default of \code{sandwich::vcovCL()}; \code{cadj = FALSE} gives the independence GEE variance of 'geepack'). With \code{gee = TRUE} the Poisson model is also fitted by generalised estimating
 equations with an exchangeable working correlation (row \code{"gee"}), as
-\code{geepack::geeglm(corstr = "exchangeable")} estimates it.
+\verb{geepack::geeglm(corstr =} \verb{"exchangeable")} estimates it.
 
 Intervals are Wald intervals on the log scale, \verb{exp(est +- z se)}, with
 \code{z} the normal quantile for \code{level}. \code{sep} flags a ratio whose group or

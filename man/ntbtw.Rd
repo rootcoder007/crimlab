@@ -17,7 +17,7 @@ results and the way to include isolated nodes.}
 
 \item{norm}{\code{TRUE} to divide by the number of pairs of other nodes,
 \code{(n - 1)(n - 2)} directed or \code{(n - 1)(n - 2) / 2} undirected, as
-\code{igraph::betweenness(normalized = TRUE)} does; \code{NaN} for fewer than 3
+\verb{igraph::betweenness(normalized} \verb{= TRUE)} does; \code{NaN} for fewer than 3
 nodes.}
 }
 \value{

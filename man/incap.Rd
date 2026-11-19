@@ -36,7 +36,7 @@ leads to a custodial sentence of \code{s} years with probability \code{q}. Over 
 career the crime rate is \verb{lam / (1 + lam q s)}: the share of offending
 prevented, \verb{lam q s / (1 + lam q s)}, never reaches 1, longer or surer
 sentences lower the rate, and one more year of sentence prevents
-\verb{lam^2 q / ((1 + lam q s) (1 + lam q (s + 1)))} crimes a year, less for
+\verb{lam^2 q / ((1 + lam q s) (1} \verb{+ lam q (s + 1)))} crimes a year, less for
 each year added. A sentence uniform across offenders prevents a larger
 share of the offending of those with the higher rate. The model holds
 the rate fixed over the career and replaces nobody; see \code{\link[=incapr]{incapr()}} for

@@ -98,7 +98,7 @@ around its adoption.
 }
 \details{
 With \code{G_i} the period unit \code{i} is first treated and \code{k = t - G_i}, the
-model is \verb{y_it = sum_k g_k 1(t - G_i = k) + adj_it'th + a_i + m_t + e_it}
+model is \verb{y_it = sum_k g_k 1(t - G_i =} \verb{k) + adj_it'th + a_i + m_t +} \code{e_it}
 for \code{k} from \code{-leads} to \code{lags} but \code{ref}, the period left out (the one
 before adoption by default). Times beyond the window are binned into its
 ends (\code{bin = TRUE}) or their rows dropped. Units never treated have every

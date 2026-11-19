@@ -6,9 +6,9 @@
 #' standardisation of the columns and the scale of `lambda` are those of
 #' 'glmnet', so that with the same `lambda` and the same folds the two give
 #' the same coefficients, up to their convergence thresholds: the gaussian
-#' family minimises `(1 / 2n) |y - a0 - x b|^2 + lambda pen(b)`, the
+#' family minimises `(1 / 2n) |y - a0 - x b|^2 +` `lambda pen(b)`, the
 #' binomial family the mean negative log-likelihood plus `lambda pen(b)`,
-#' with `pen(b) = sum((1 - alpha) / 2 (s b)^2 + alpha |s b|)`, `s` the
+#' with `pen(b) = sum((1 - alpha) / 2` `(s b)^2 + alpha |s b|)`, `s` the
 #' population standard deviations of the columns. For the gaussian family
 #' the outcome is scaled to unit variance while fitting, as 'glmnet' does.
 #' The intercept is never penalised; a constant column keeps a zero

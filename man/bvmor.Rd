@@ -19,13 +19,14 @@ constant.}
 }
 \value{
 A named numeric vector: \code{i}, \code{mean} and \code{sd} (of the permuted
-statistics), \code{z} (\code{(i - mean) / sd}), \code{p} (\verb{(1 + #\{I* >= I\}) / (nsim + 1)}) and \code{ptwo} (\verb{(1 + min(#\{I* >= I\}, #\{I* <= I\})) / (nsim + 1)});
+statistics), \code{z} (\code{(i - mean) / sd}), \code{p} (\verb{(1 + #\{I* >= I\}) / (nsim + 1)}) and \code{ptwo} (\verb{(1 + min(#\{I* >= I\}, #\{I* <=} \verb{I\})) / (nsim + 1)});
 \code{NaN} without permutations.
 }
 \description{
 Whether high values of one variable sit next to high values of another
 (Wartenberg 1985): with \code{zx} and \code{zy}
-the centred values, \verb{I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)}, which is Moran's I (\code{\link[=gmoran]{gmoran()}}) when \code{y} is \code{x} (proved in
+the centred values, \verb{I = n / S0 sum_ij w_ij zx_i} \verb{zy_j / sqrt(sum zx^2 sum}
+\verb{zy^2)}, which is Moran's I (\code{\link[=gmoran]{gmoran()}}) when \code{y} is \code{x} (proved in
 Lean: see \code{proof("bvmor")}) and, with row-standardised weights,
 \code{spdep::moran_bv()}'s statistic. Inference is by permutation: \code{y}'s
 values are shuffled over the units \code{nsim} times from \code{seed} while \code{x}

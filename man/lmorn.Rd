@@ -19,7 +19,7 @@ many units as \code{x}.}
 }
 \value{
 A data frame with one row per unit: \code{ii} (I_i), \code{e}, \code{v}, \code{z},
-\code{p}, \code{pperm} (\verb{(1 + min(#\{I* >= I\}, #\{I* <= I\})) / (nsim + 1)}, \code{NaN}
+\code{p}, \code{pperm} (\verb{(1 + min(#\{I* >= I\}, #\{I* <=} \verb{I\})) / (nsim + 1)}, \code{NaN}
 without permutations) and \code{quad} (1 high-high, 2 low-low, 3 low-high,
 4 high-low, 0 neither).
 }

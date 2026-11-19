@@ -84,7 +84,7 @@ periods before adoption.
 }
 \details{
 The untreated outcome of unit i at time t is
-\verb{y_it = x_it'b + mu + alpha_i + xi_t + lambda_i'f_t + e_it}, the
+\verb{y_it = x_it'b + mu + alpha_i} \verb{+ xi_t + lambda_i'f_t + e_it}, the
 interactive fixed effects model of Bai (2009): unit and time effects
 plus \code{r} common factors \code{f_t} with unit loadings \code{lambda_i}, which let
 units follow different trends (a difference in differences assumes

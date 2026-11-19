@@ -33,7 +33,7 @@ The Gaussian spatial linear model \verb{v = Z beta + delta + e}, \code{delta} a
 Gaussian process with covariance \verb{sigma2 exp(-h / phi)}, without a
 nugget (Schabenberger and Gotway 2005, ch. 5). The range \code{phi} is found
 by maximising the profile likelihood with Brent's method on \code{log(phi)}
-over \verb{[log(max(h / 100, 0.001)), log(max(3 h, 1))]}, \code{h} the largest
+over \verb{[log(max(h / 100, 0.001)),} \verb{log(max(3 h, 1))]}, \code{h} the largest
 distance, as R's \code{optimize()} runs it; \code{beta} follows by generalised
 least squares. The standard errors use \code{sigma2} estimated with \code{n - p}
 degrees of freedom.

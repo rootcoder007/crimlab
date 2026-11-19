@@ -59,7 +59,8 @@ with the differences between domains; and a description of the design.
 \details{
 Each estimate is a smooth function of weighted totals; its variance is
 that of the total of its influence values \code{u_i} (for a mean \verb{w_i (y_i - m) / sum w}, a ratio \verb{w_i (y_i - R x_i) / sum w x}, a total \verb{w_i y_i})
-over the first-stage units within strata: \verb{sum_h (1 - f_h) n_h / (n_h - 1) sum_j (U_hj - Ubar_h)^2}, with \code{f_h = n_h / N_h} from \code{fpc} or 0
+over the first-stage units within strata: \verb{sum_h (1 - f_h) n_h / (n_h -}
+\verb{1) sum_j (U_hj - Ubar_h)^2}, with \code{f_h = n_h / N_h} from \code{fpc} or 0
 (first-stage units drawn with replacement). These are the estimators of
 the 'survey' package (Lumley 2004) with its default treatment of
 domains: a domain's influence values are 0 outside it and every

@@ -203,7 +203,7 @@ drftchisq <- function(obs, expd) {
 #' \frac{(y_j - n_y\hat\pi_j)^2}{n_y\hat\pi_j}} on \eqn{k - 1} degrees of
 #' freedom. Three branches, named in the attribute `method`:
 #' `"chi-square approximation"` when every expected count is at least 5;
-#' `"Monte Carlo permutation (small expected counts)"` otherwise, the
+#' `"Monte Carlo permutation` `(small expected counts)"` otherwise, the
 #' p-value from [stats::chisq.test()] with `simulate.p.value = TRUE` and
 #' `B = 10000` tables with the same margins, drawn under `seed` with the
 #' caller's random stream restored (`p_value` is then at least 1/(B+1));

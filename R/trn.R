@@ -154,7 +154,7 @@ print.stpcp <- function(x, ...) {
 #' standardised excess \eqn{z_t} raises an alarm where \eqn{s_t \ge h}.
 #' The expected counts are given (`expd`), or are the mean of the counts
 #' before `start`, the first period watched. `z` is `(y - m) / sqrt(m)`
-#' (`"std"`), Rossi's transform `(y - 3 m + 2 sqrt(y m)) / (2 sqrt(m))`
+#' (`"std"`), Rossi's transform `(y - 3 m + 2 sqrt(y m)) / (2` `sqrt(m))`
 #' (`"rossi"`), Anscombe's `1.5 (y^(2/3) - m^(2/3)) / m^(1/6)`
 #' (`"anscombe"`) or the count itself (`"none"`, for `k` and `h` on the
 #' count scale). With `reset` the sum starts again from 0 after an alarm.

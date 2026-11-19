@@ -9,18 +9,18 @@
 #' provinces, 2016-2023.
 #'
 #' The identity is built as a chain from the quantities `q_1, ..., q_m`
-#' (the columns of `q`, in order): `y = (y / q_1) (q_1 / q_2) ... (q_{m-1}
-#' / q_m) q_m`, `m + 1` factors that multiply to `y` whatever the
+#' (the columns of `q`, in order): `y = (y / q_1) (q_1 / q_2)`
+#' `... (q_{m-1} / q_m) q_m`, `m + 1` factors that multiply to `y` whatever the
 #' quantities. Duan et al.'s eq 1 is the chain of population `P`, area
 #' `S`, emissions `W`, GDP, population again and the unemployed `UN`:
-#' `CPEs = CPER x PD x EIPA^-1 x PEI x EDL x UR^-1 x UN`, the case rate
+#' `CPEs = CPER x PD x EIPA^-1 x` `PEI x EDL x UR^-1 x UN`, the case rate
 #' per head, population density, area per unit of emission, emission per
 #' unit of GDP, GDP per head, people per unemployed person and the
 #' unemployed (see the example). The factor values themselves, the rates
 #' of the identity, are returned in `fac`.
 #'
 #' With `type = "time"` the change of each unit between consecutive
-#' periods of `at` is `y_T - y_O = sum_j L(y_T, y_O) ln(f_jT / f_jO)` (eqs
+#' periods of `at` is `y_T - y_O = sum_j L(y_T,` `y_O) ln(f_jT / f_jO)` (eqs
 #' 2-3), `L(a, b) = (a - b) / (ln a - ln b)` the logarithmic mean; a unit
 #' missing either period is left out. With `type = "space"` each unit of
 #' each period in `at` is set against a reference region of the same
@@ -172,7 +172,7 @@ plot.lmdix <- function(x, ..., main = NULL, col = NULL, pal = NULL,
 #' factors, the simple slopes of one driver at values of the other (p.
 #' 23), and the Jarque-Bera test of the residuals (p. 25).
 #'
-#' The model is `y_it = sum_j b_j x_itj + a_i + m_t + e_it`, fitted by least
+#' The model is `y_it = sum_j b_j x_itj + a_i` `+ m_t + e_it`, fitted by least
 #' squares after the within transformation (the kernel of [didfe()], so an
 #' unbalanced panel is fine); with `int = c("a", "b")` the column `a:b`,
 #' the product of `a` and `b`, is added to `x`. The variance is CR1 by
@@ -310,7 +310,7 @@ plot.fepnl <- function(x, ..., main = NULL, col = NULL, pal = NULL) {
 #' the residuals of their waste-crime models before deciding a spatial
 #' model is not needed. For each pair of units the correlation `rho_ab` of
 #' their values over the `T_ab` periods they share, about the means over
-#' those periods; `CD = sum sqrt(T_ab) rho_ab / sqrt(m)` over the `m`
+#' those periods; `CD = sum sqrt(T_ab) rho_ab /` `sqrt(m)` over the `m`
 #' pairs, which for a balanced panel of `N` units and `T` periods is
 #' `sqrt(2 T / (N (N - 1))) sum rho_ab`, standard normal under no
 #' dependence. Pairs that share fewer than two periods, or along which a

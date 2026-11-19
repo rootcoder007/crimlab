@@ -4,14 +4,14 @@
 #' (CS-ARDL) long-run effects of Chudik et al. (2016) as Ditzen (2021,
 #' sec. 3.2) sets them out, from the unit estimates of [ccepnl()].
 #'
-#' A dynamic panel `y_it = mu_i + sum_l lambda_l,i y_i,t-l + sum_l
-#' beta_l,i x_i,t-l + averages + e_it` fitted unit by unit (`ccepnl()`
+#' A dynamic panel `y_it = mu_i + sum_l` `lambda_l,i y_i,t-l + sum_l`
+#' `beta_l,i x_i,t-l + averages` `+ e_it` fitted unit by unit (`ccepnl()`
 #' with `ylag` lags of `y` and the lags of `x` as columns of its `x`) has
 #' the long-run effect of `x` on the steady state of `y`
-#' `theta_i = sum_l beta_l,i / (1 - sum_l lambda_l,i)` (Ditzen 2021, eq. 3
+#' `theta_i = sum_l beta_l,i /` `(1 - sum_l lambda_l,i)` (Ditzen 2021, eq. 3
 #' and sec. 3.2). Each unit's `theta_i` is computed from its estimates;
 #' the mean group estimate is their mean and its variance the mean
-#' group variance `sum_i (theta_i - mean)^2 / (N (N - 1))` (Pesaran and
+#' group variance `sum_i (theta_i - mean)^2 /` `(N (N - 1))` (Pesaran and
 #' Smith 1995, as Chudik et al. 2016 apply it). The adjustment speed
 #' `phi_i = 1 - sum_l lambda_l,i` of the error-correction form (Ditzen
 #' 2021, sec. 3.1) is reported the same way as `"phi"`.

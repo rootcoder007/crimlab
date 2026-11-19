@@ -39,7 +39,7 @@ treated area;
 \item the gross effect \code{ge = a0 - a1}, the fall in the treated area, and the
 net effect \code{ne = a0 / c0 - a1 / c1} (that is \code{-sm}), the fall relative
 to the control;
-\item the total net effect \verb{tne = (a0 c1 / c0 - a1) + (b0 c1 / c0 - b1)},
+\item the total net effect \verb{tne = (a0 c1 / c0 - a1) +} \verb{(b0 c1 / c0 - b1)},
 the crimes prevented in the treated area and the buffer together
 (positive when crime was prevented), with \verb{ea = a0 c1 / c0} and \verb{eb = b0 c1 / c0} the counts expected after had both areas followed the
 control. \code{ge} and \code{tne} count crimes, so they need counts, not rates.

@@ -142,7 +142,8 @@ of the differenced equations alone and the difference-in-Hansen test of
 the level instruments, with no more instruments than provinces.
 }
 \details{
-The model is \verb{y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i + v_it} with \code{L = ylag}. Periods are the distinct values of \code{time} in
+The model is \verb{y_it = a_1 y_i,t-1 + ... +} \verb{a_L y_i,t-L + x_it b + d_t +}
+\code{u_i + v_it} with \code{L = ylag}. Periods are the distinct values of \code{time} in
 order: lags count positions in that order, and a unit without a row in
 a period has a gap there. A row enters the levels when the unit has the
 \code{ylag} periods before it; the transformed equation is the first

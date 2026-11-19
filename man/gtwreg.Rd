@@ -65,10 +65,12 @@ regression. The cross-validation score is \code{sum (y_i - y_(-i))^2} (eq
 observation \code{i} (computed as \code{e_i / (1 - S_ii)}, \code{S} the hat matrix).
 Kuo and Putra choose \code{tau} and the bandwidth \code{h} by cross-validation or
 by "the corrected Akaike information criterion" without giving it; the
-\code{aicc} here is the one of the GWR literature, \verb{n log(RSS / n) + n log(2 pi) + n (n + tr S) / (n - 2 - tr S)}. Give several values of \code{h} and
+\code{aicc} here is the one of the GWR literature, \verb{n log(RSS / n) + n log(2 pi)}
+\verb{+ n (n + tr S) / (n - 2 - tr} \verb{S)}. Give several values of \code{h} and
 \code{tau} and the pair with the smallest \code{crit} is fitted; all are in
 \code{grid}. The local standard errors are \code{sigma^2} times the diagonal of
-\verb{(X'W_iX)^-1 X'W_i^2 X (X'W_iX)^-1}, \verb{sigma^2 = RSS / (n - 2 tr S + tr S'S)}.
+\verb{(X'W_iX)^-1 X'W_i^2 X (X'W_iX)^-1}, \verb{sigma^2 = RSS / (n - 2 tr S}
+\verb{+ tr S'S)}.
 }
 \examples{
 set.seed(4)

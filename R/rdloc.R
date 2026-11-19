@@ -32,8 +32,8 @@
 #' 941-943) for the outcome: a pilot `h1 = 1.84 S_X N^(-1/5)` for the
 #' density and the variances at the cutoff, a cubic with a jump for the
 #' third derivative, local quadratics within `h2` for the second
-#' derivatives, the regularisation terms `2160 sigma^2 / (N2 h2^4)`, and `h
-#' = C_K ((sigma-^2 + sigma+^2) / (f (dm^2 + r+ + r-)))^(1/5) N^(-1/5)`
+#' derivatives, the regularisation terms `2160 sigma^2 / (N2 h2^4)`, and
+#' `h = C_K ((sigma-^2 +` `sigma+^2) / (f (dm^2 + r+ +` `r-)))^(1/5) N^(-1/5)`
 #' with `C_K = (C2 / (4 C1))^(1/5)` from the kernel's moments (their Lemma
 #' 3.1; 3.4375 for the triangle, 2.70 for the uniform on `[-1, 1]`, which
 #' is their 5.40 for the uniform on `[-1/2, 1/2]`). For a fuzzy design it
@@ -193,19 +193,19 @@ summary.rdloc <- function(object, ...) object[["coef"]]
 #' local-linear smoothing of the bin heights on each side with the
 #' triangle kernel.
 #'
-#' The steps, as the paper states them. The bins: `g(R) = floor((R - c) /
-#' b) b + b / 2 + c` (equation 2, p. 702), so no bin straddles the cutoff,
+#' The steps, as the paper states them. The bins: `g(R) = floor((R - c) / b) b`
+#' `+ b / 2 + c` (equation 2, p. 702), so no bin straddles the cutoff,
 #' on a grid of width `b` over the support, each height the share of the
 #' rows in the bin over `b`; the binsize `b` by default `2 s n^(-1/2)`
 #' with `s` the standard deviation of the running variable (p. 705, step
 #' 1). The bandwidth `h` by default: a quartic in the bin midpoints on
-#' each side, `3.348 (s2 (b - a) / sum f''(X_j)^2)^(1/5)` with `s2` the
+#' each side, `3.348 (s2 (b - a) / sum` `f''(X_j)^2)^(1/5)` with `s2` the
 #' quartic's mean squared error and `b - a` the side's length, averaged
 #' over the two sides (p. 705, step 2; the paper calls it a guide for
 #' subjective choice and halves it to undersmooth in its simulations, p.
 #' 702-703). The estimate: `theta = ln f+ - ln f-` from the two local-linear
-#' intercepts, with the standard error `sqrt((1 / (n h)) (24 / 5) (1 / f+ +
-#' 1 / f-))` (equation 5); the test uses the normal.
+#' intercepts, with the standard error `sqrt((1 / (n h)) (24 / 5) (1`
+#' `/ f+ + 1 / f-))` (equation 5); the test uses the normal.
 #'
 #' @param r The running variable (numbers).
 #' @param cut The cutoff.

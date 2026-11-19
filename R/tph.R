@@ -172,7 +172,7 @@ tpbhm <- function(y, x, grp = NULL, pm = 0, psd = 10, level = 0.95) {
 #'
 #' The gammas are drawn part by part, `n` of each, from R's generator
 #' (Mersenne-Twister with inversion, as [set.seed()] seeds it), so that
-#' `set.seed(seed); g <- matrix(rgamma(n * k, rep(alpha, each = n)), n)`
+#' `set.seed(seed); g <-` `matrix(rgamma(n * k,` `rep(alpha, each = n)), n)`
 #' gives the same draws and `g / rowSums(g) * total` the same result.
 #' Without `seed` one is drawn from R's generator.
 #'

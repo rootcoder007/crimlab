@@ -19,7 +19,7 @@ The false positive rates, one per triple.
 }
 \description{
 Chouldechova's (2017) identity: in any confusion table, the false
-positive rate is \code{p / (1 - p) (1 - ppv) / ppv (1 - fnr)}, from the base
+positive rate is \code{p / (1 - p) (1 - ppv) / ppv} \code{(1 - fnr)}, from the base
 rate \code{p}, the positive predictive value \code{ppv} and the false negative
 rate \code{fnr}. So two groups whose scores are equally calibrated (the same
 \code{ppv}) and miss equally (the same \code{fnr}) but whose base rates differ

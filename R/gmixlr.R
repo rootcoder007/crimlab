@@ -17,7 +17,7 @@
 #' `s(a) / omega^2` and scale `mu omega^2`, so its mean is `mu s(a)` and a
 #' single heterozygous contributor's peaks have coefficient of variation
 #' `omega`, where `s(a) = sum_k m_k n_k(a) d(a)`. With `deg = TRUE`,
-#' `d(a) = beta^((size(a) - 125) / 100)`, degradation by fragment size in
+#' `d(a) = beta^((size(a) - 125)` `/ 100)`, degradation by fragment size in
 #' bases (`beta` fitted, above 0); otherwise `d(a) = 1`. With
 #' `stut = TRUE`, each allele seen passes the share `xi` of its signal to
 #' the position one repeat shorter (backward stutter): `s(a)` becomes

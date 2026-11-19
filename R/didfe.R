@@ -9,7 +9,7 @@
 #' turn, its Goodman-Bacon decomposition, and the estimate after matching
 #' treated units to comparison units on their outcomes before treatment.
 #'
-#' The model is `y_it = b trt_it + adj_it'g + a_i + m_t + e_it`, fitted by
+#' The model is `y_it = b trt_it + adj_it'g +` `a_i + m_t + e_it`, fitted by
 #' least squares after the within transformation (alternating projections,
 #' so an unbalanced panel is fine; weights `w` give weighted least squares
 #' with weighted means). With `fe = "time"` the unit effects are left out.
@@ -22,8 +22,8 @@
 #' of 'fixest' and Stata's 'reghdfe'. Fewer than ten clusters give a
 #' warning: [wcbx()] is the tool for so few.
 #'
-#' With `fam = "pois"` or `"nb"` the model is `E(y_it) = exp(b trt_it +
-#' adj_it'g + a_i + m_t)` times the exposure `expo`, fitted by maximum
+#' With `fam = "pois"` or `"nb"` the model is `E(y_it) = exp(b trt_it +`
+#' `adj_it'g + a_i + m_t)` times the exposure `expo`, fitted by maximum
 #' likelihood with dummies for the effects (the steps of [cntreg()]). Units
 #' and periods whose counts are all zero carry nothing about `b` and are
 #' dropped first. The Poisson estimate is consistent whatever the

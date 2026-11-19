@@ -35,7 +35,7 @@ substitute for them. The mean share of part \code{j} is \code{alpha[j] / sum(alp
 \details{
 The gammas are drawn part by part, \code{n} of each, from R's generator
 (Mersenne-Twister with inversion, as \code{\link[=set.seed]{set.seed()}} seeds it), so that
-\verb{set.seed(seed); g <- matrix(rgamma(n * k, rep(alpha, each = n)), n)}
+\verb{set.seed(seed); g <-} \verb{matrix(rgamma(n * k,} \verb{rep(alpha, each = n)), n)}
 gives the same draws and \code{g / rowSums(g) * total} the same result.
 Without \code{seed} one is drawn from R's generator.
 }

@@ -501,7 +501,7 @@ kmpart <- function(x, y = NULL, k, init = "pp", cell = NULL, upd = "mean",
 #' hot spots). At the first order two points are linked when their distance
 #' is below the threshold: `fixd`, or the mean nearest-neighbour distance
 #' expected under complete spatial randomness in an area `area` plus `z`
-#' standard errors, `0.5 sqrt(A / m) + z sqrt((4 - pi) A / (4 pi)) / m` for
+#' standard errors, `0.5 sqrt(A / m) + z sqrt((4` `- pi) A / (4 pi)) / m` for
 #' `m` units, with `z = qnorm(p)` (`p = 0.5` gives the expectation itself,
 #' smaller `p` a stricter threshold). Points with a linked neighbour are
 #' taken in decreasing number of links; each one not yet clustered takes
@@ -719,8 +719,8 @@ jtdecay <- function(d, type, par, tab = NULL) {
 #'   (`|dx| + |dy|`, a street grid aligned with the axes).
 #' @param mode `"sum"` or `"lik"`.
 #' @return A list. `raw` and `prob`, matrices of `nx` rows (across) and
-#'   `ny` columns (up), cell `[i, j]` centred at `(xmin + (i - 1/2) dx,
-#'   ymin + (j - 1/2) dy)`: the surface and its normalised version (summing
+#'   `ny` columns (up), cell `[i, j]` centred at `(xmin + (i - 1/2) dx, ymin +`
+#'   `(j - 1/2) dy)`: the surface and its normalised version (summing
 #'   to 1). `peak`, a named vector: `cell` (the first cell of maximum value,
 #'   numbered down the columns of the matrix), `x` and `y` (its centre).
 #' @references Canter, D., Coffey, T., Huntley, M. and Missen, C. (2000).

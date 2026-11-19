@@ -4,7 +4,7 @@
 #' before the policy, as its counterfactual after; with the placebo test
 #' that runs the same method on every comparison unit.
 #'
-#' The weights solve `min_w sum_{t < T0} (y_1t - sum_j w_j y_jt)^2` over
+#' The weights solve `min_w sum_{t < T0} (y_1t -` `sum_j w_j y_jt)^2` over
 #' `w_j >= 0`, `sum_j w_j = 1`, the periods before adoption `T0`. The
 #' problem is the nearest point of a convex hull to the origin, solved
 #' exactly by Wolfe's minimum-norm-point algorithm. The effect in each
@@ -12,8 +12,9 @@
 #' comparison unit in turn is treated as if it had adopted, with the
 #' others as its donors; the ratio of the root mean squared gap after
 #' adoption to that before ranks the treated unit among the placebos, and
-#' `p` is `(1 + the placebos with a ratio at least the treated unit's) /
-#' (1 + the placebos)` (Abadie, Diamond and Hainmueller 2010). The weights
+#' `p` is `(1 + the placebos with a` `ratio at least the treated`
+#' `unit's) / (1 + the placebos)` (Abadie, Diamond and Hainmueller 2010). The
+#' weights
 #' match the outcomes before adoption only, not separate predictors.
 #'
 #' @inheritParams evtst
@@ -77,14 +78,14 @@ print.synthc <- function(x, ...) {
 #' difference in differences taken with both weights.
 #'
 #' With `N0` comparison units, `N1` treated, `T0` periods before adoption
-#' and `T1` after, the unit weights solve `min (1/T0) sum_{t <= T0} (w0 +
-#' sum_j w_j y_jt - ybar_1t)^2 + zeta^2 ||w||^2` over the simplex, with
+#' and `T1` after, the unit weights solve `min (1/T0) sum_{t <= T0} (w0`
+#' `+ sum_j w_j y_jt -` `ybar_1t)^2 + zeta^2 ||w||^2` over the simplex, with
 #' `zeta = (N1 T1)^(1/4) sigma` and `sigma` the standard deviation of the
 #' comparison units' first differences before adoption; the time weights
 #' solve the same problem across comparison units, predicting each unit's
 #' mean after adoption from its periods before, with `zeta = 1e-6 sigma`.
-#' The estimate is `(ybar_1,post - sum_t l_t ybar_1t) - sum_j w_j
-#' (ybar_j,post - sum_t l_t y_jt)`. The weights are the exact solutions of
+#' The estimate is `(ybar_1,post - sum_t l_t` `ybar_1t) - sum_j w_j`
+#' `(ybar_j,post - sum_t l_t` `y_jt)`. The weights are the exact solutions of
 #' these convex problems (Wolfe's minimum-norm point); the 'synthdid'
 #' package runs Frank-Wolfe steps and then sparsifies, so its estimate
 #' differs slightly. The standard error is the placebo one when one unit

@@ -49,7 +49,7 @@ file still does not match, it is deleted and \code{odtab()} stops. A table
 the manifest lists without a SHA-256 cannot be checked and is not
 loaded.
 
-Tables are kept in \code{tools::R_user_dir("crimlab", "cache")}. A kept
+Tables are kept in \verb{tools::R_user_dir("crimlab",} \verb{"cache")}. A kept
 file is used again only while its SHA-256 is the one the manifest lists
 now; otherwise, or with \code{refresh = TRUE}, the table is downloaded again.
 

@@ -60,17 +60,19 @@ local-linear smoothing of the bin heights on each side with the
 triangle kernel.
 }
 \details{
-The steps, as the paper states them. The bins: \verb{g(R) = floor((R - c) / b) b + b / 2 + c} (equation 2, p. 702), so no bin straddles the cutoff,
+The steps, as the paper states them. The bins: \verb{g(R) = floor((R - c) / b) b}
+\code{+ b / 2 + c} (equation 2, p. 702), so no bin straddles the cutoff,
 on a grid of width \code{b} over the support, each height the share of the
 rows in the bin over \code{b}; the binsize \code{b} by default \verb{2 s n^(-1/2)}
 with \code{s} the standard deviation of the running variable (p. 705, step
 1). The bandwidth \code{h} by default: a quartic in the bin midpoints on
-each side, \verb{3.348 (s2 (b - a) / sum f''(X_j)^2)^(1/5)} with \code{s2} the
+each side, \verb{3.348 (s2 (b - a) / sum} \verb{f''(X_j)^2)^(1/5)} with \code{s2} the
 quartic's mean squared error and \code{b - a} the side's length, averaged
 over the two sides (p. 705, step 2; the paper calls it a guide for
 subjective choice and halves it to undersmooth in its simulations, p.
 702-703). The estimate: \verb{theta = ln f+ - ln f-} from the two local-linear
-intercepts, with the standard error \verb{sqrt((1 / (n h)) (24 / 5) (1 / f+ + 1 / f-))} (equation 5); the test uses the normal.
+intercepts, with the standard error \verb{sqrt((1 / (n h)) (24 / 5) (1}
+\verb{/ f+ + 1 / f-))} (equation 5); the test uses the normal.
 
 \code{plot()} draws the bin heights and the smooth of each side,
 the log jump and its p-value in the axis title, and returns a list of

@@ -38,7 +38,7 @@ without relabellings) and \code{nsim}; \code{i} and \code{j}, the types' labels.
 \description{
 Whether incidents of one type (\code{i}) have incidents of another (\code{j})
 near them more than independence gives: the cross-type K function
-\verb{K_ij(r) = A / (n_i n_j) sum e_ab 1(d_ab <= r)} over pairs of a point
+\verb{K_ij(r) = A / (n_i n_j) sum} \verb{e_ab 1(d_ab <= r)} over pairs of a point
 \code{a} of type \code{i} and a point \code{b} of type \code{j} in the rectangle \code{win} of
 area \code{A}, with Ripley's (1977) isotropic correction \code{e_ab} (the length of
 the circle about \code{a} through \code{b} over its length inside \code{win}), and \code{L = sqrt(K / pi)} (Lotwick and Silverman 1982). Under independence \verb{K = pi r^2}. With \code{i} equal to \code{j} it is Ripley's K of that type. These are
@@ -48,7 +48,8 @@ the values of \code{spatstat.explore::Kcross()} with \code{correction = "isotrop
 With \code{sigma}, the segregation test of Diggle, Zheng and Durr (2005)
 across all the types: at each point the share of each type among the
 other points, weighted by a normal kernel of standard deviation
-\code{sigma}, against the type's overall share, \verb{T = sum_points sum_types (p_m - pbar_m)^2}, with a p-value from \code{nsim} random relabellings of
+\code{sigma}, against the type's overall share, \verb{T = sum_points sum_types}
+\code{(p_m - pbar_m)^2}, with a p-value from \code{nsim} random relabellings of
 the types (\verb{(1 + #\{T* >= T\}) / (nsim + 1)}), the statistic of
 \code{spatstat.explore::segregation.test()}.
 }

@@ -9,11 +9,11 @@
 #' the corrections divide it by the design effects.
 #'
 #' The cell proportions `p` are weighted; Pearson's `X^2` is computed on
-#' them scaled to the number of respondents `n`, `X^2 = n sum (p_ij -
-#' p_i. p_.j)^2 / (p_i. p_.j)`. Their covariance `V` comes by linearisation
+#' them scaled to the number of respondents `n`, `X^2 = n sum (p_ij - p_i.`
+#' `p_.j)^2 / (p_i. p_.j)`. Their covariance `V` comes by linearisation
 #' over the first-stage units within strata, as [svymx()] reads the design
 #' (Lumley 2004). The generalised design effects `deff` are the
-#' eigenvalues of `Delta = (C' D^-1 C / n)^-1 (C' D^-1 V D^-1 C)`, `C` a
+#' eigenvalues of `Delta = (C' D^-1 C / n)^-1` `(C' D^-1 V D^-1 C)`, `C` a
 #' basis of the interaction contrasts and `D` the diagonal of `p` (Rao and
 #' Scott 1984). The tests: `pearson`, `X^2` on `K = (r - 1)(c - 1)`
 #' degrees of freedom, wrong under the design; `rs1`, the first-order

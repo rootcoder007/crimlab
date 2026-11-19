@@ -39,12 +39,14 @@ difference in differences taken with both weights.
 }
 \details{
 With \code{N0} comparison units, \code{N1} treated, \code{T0} periods before adoption
-and \code{T1} after, the unit weights solve \verb{min (1/T0) sum_\{t <= T0\} (w0 + sum_j w_j y_jt - ybar_1t)^2 + zeta^2 ||w||^2} over the simplex, with
+and \code{T1} after, the unit weights solve \verb{min (1/T0) sum_\{t <= T0\} (w0}
+\verb{+ sum_j w_j y_jt -} \verb{ybar_1t)^2 + zeta^2 ||w||^2} over the simplex, with
 \verb{zeta = (N1 T1)^(1/4) sigma} and \code{sigma} the standard deviation of the
 comparison units' first differences before adoption; the time weights
 solve the same problem across comparison units, predicting each unit's
 mean after adoption from its periods before, with \verb{zeta = 1e-6 sigma}.
-The estimate is \verb{(ybar_1,post - sum_t l_t ybar_1t) - sum_j w_j (ybar_j,post - sum_t l_t y_jt)}. The weights are the exact solutions of
+The estimate is \verb{(ybar_1,post - sum_t l_t} \verb{ybar_1t) - sum_j w_j}
+\verb{(ybar_j,post - sum_t l_t} \verb{y_jt)}. The weights are the exact solutions of
 these convex problems (Wolfe's minimum-norm point); the 'synthdid'
 package runs Frank-Wolfe steps and then sparsifies, so its estimate
 differs slightly. The standard error is the placebo one when one unit

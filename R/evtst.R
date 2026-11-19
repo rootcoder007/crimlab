@@ -7,7 +7,7 @@
 #' around its adoption.
 #'
 #' With `G_i` the period unit `i` is first treated and `k = t - G_i`, the
-#' model is `y_it = sum_k g_k 1(t - G_i = k) + adj_it'th + a_i + m_t + e_it`
+#' model is `y_it = sum_k g_k 1(t - G_i =` `k) + adj_it'th + a_i + m_t +` `e_it`
 #' for `k` from `-leads` to `lags` but `ref`, the period left out (the one
 #' before adoption by default). Times beyond the window are binned into its
 #' ends (`bin = TRUE`) or their rows dropped. Units never treated have every

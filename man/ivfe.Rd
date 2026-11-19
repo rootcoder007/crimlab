@@ -155,7 +155,7 @@ Standard errors (\code{se}, \code{ssc}, \code{time}, \code{lag}, \code{nboot}, \
 \code{\link[=ppmlfe]{ppmlfe()}}, on the second-stage design with the structural residuals
 (the outcome less the actual, not the fitted, endogenous columns times
 their coefficients). With \code{"cluster"} and \code{ssc = "G"} they equal
-\code{fixest::feols()} with \code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}.
+\code{fixest::feols()} with \verb{ssc(K.adj = FALSE, G.adj =} \verb{TRUE, G.df = "min")}.
 Tests use the t distribution on \code{G - 1} degrees of freedom for
 clustered errors and the normal otherwise.
 
@@ -180,7 +180,8 @@ Kleibergen-Paap first-stage statistic (\code{first$kp}).
 Kraay, robust to correlation across units and over time. With \code{h_t}
 the sum of the rows' scores over the rows of time \code{t} (the \code{time}
 column), the middle of the sandwich is \verb{sum_t h_t h_t'} plus, for each
-pair of times \code{d} apart with \verb{0 < d <= lag}, \verb{(1 - d / (lag + 1)) (h_a h_b' + h_b h_a')}, the Newey-West estimator of the series of the
+pair of times \code{d} apart with \verb{0 < d <= lag}, \verb{(1 - d / (lag + 1)) (h_a}
+\verb{h_b' + h_b h_a')}, the Newey-West estimator of the series of the
 summed scores. Batkeyev and DeRemer (2023) do not give their lag; the
 default is the bandwidth of Newey and West (1994) of \code{"nw"} computed on
 that one series. The small-sample factor \code{"G"} is \code{T / (T - 1)} with

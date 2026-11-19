@@ -30,7 +30,7 @@ With pooled shares \eqn{\hat\pi_j = (x_j + y_j)/(n_x + n_y)},
 \frac{(y_j - n_y\hat\pi_j)^2}{n_y\hat\pi_j}} on \eqn{k - 1} degrees of
 freedom. Three branches, named in the attribute \code{method}:
 \code{"chi-square approximation"} when every expected count is at least 5;
-\code{"Monte Carlo permutation (small expected counts)"} otherwise, the
+\verb{"Monte Carlo permutation} \verb{(small expected counts)"} otherwise, the
 p-value from \code{\link[stats:chisq.test]{stats::chisq.test()}} with \code{simulate.p.value = TRUE} and
 \code{B = 10000} tables with the same margins, drawn under \code{seed} with the
 caller's random stream restored (\code{p_value} is then at least 1/(B+1));

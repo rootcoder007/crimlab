@@ -69,7 +69,9 @@ population: cylinders are circles of radius \code{r} about each distinct
 incident location times windows \verb{[s, s + tw)} that start at each
 distinct incident time. A cylinder holding \code{c} incidents, of \code{n_C} in its
 circle (at any time) and \code{n_W} in its window (anywhere), expects \verb{e = n_C n_W / n} when place and time are independent, and scores the
-Poisson log-likelihood ratio \verb{c log(c / e) + (n - c) log((n - c) / (n - e))} when \code{c > e}, 0 otherwise (Kulldorff 1997). The most likely
+Poisson log-likelihood ratio \verb{c log(c / e) + (n - c)}
+\code{log((n - c) / (n - e))} when \code{c > e}, 0 otherwise (Kulldorff 1997). The most
+likely
 cluster has the largest ratio; secondary clusters follow in order of
 their ratio, each the best of its circle among those whose circles
 overlap none chosen before. Each p-value compares the cluster's ratio

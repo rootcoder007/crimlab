@@ -33,7 +33,7 @@ before the policy, as its counterfactual after; with the placebo test
 that runs the same method on every comparison unit.
 }
 \details{
-The weights solve \verb{min_w sum_\{t < T0\} (y_1t - sum_j w_j y_jt)^2} over
+The weights solve \verb{min_w sum_\{t < T0\} (y_1t -} \verb{sum_j w_j y_jt)^2} over
 \code{w_j >= 0}, \verb{sum_j w_j = 1}, the periods before adoption \code{T0}. The
 problem is the nearest point of a convex hull to the origin, solved
 exactly by Wolfe's minimum-norm-point algorithm. The effect in each
@@ -41,7 +41,9 @@ period is the gap \verb{y_1t - sum_j w_j y_jt}. For inference each
 comparison unit in turn is treated as if it had adopted, with the
 others as its donors; the ratio of the root mean squared gap after
 adoption to that before ranks the treated unit among the placebos, and
-\code{p} is \verb{(1 + the placebos with a ratio at least the treated unit's) / (1 + the placebos)} (Abadie, Diamond and Hainmueller 2010). The weights
+\code{p} is \verb{(1 + the placebos with a} \verb{ratio at least the treated}
+\verb{unit's) / (1 + the placebos)} (Abadie, Diamond and Hainmueller 2010). The
+weights
 match the outcomes before adoption only, not separate predictors.
 }
 \examples{

@@ -113,7 +113,7 @@ ward, ward fixed effects and time effects, and ward population as the
 offset. It serves any count by place and period against any exposure.
 }
 \details{
-The model is \verb{E(y | x) = exp(x'b + a_i + g_t + log(expo))}. Poisson
+The model is \verb{E(y | x) = exp(x'b + a_i +} \verb{g_t + log(expo))}. Poisson
 pseudo-maximum likelihood (Santos Silva and Tenreyro 2006) needs only
 that mean to be right: the counts need not be Poisson, their variance
 need not equal their mean, and zero counts are kept (a regression of
@@ -204,7 +204,7 @@ for \code{"hc1"} and \code{"nw"}; \code{"nk"} that times \code{(n - 1) / (n - K)
 coefficients, an intercept and the levels less one of each fixed effect
 not nested in a cluster (fixest's default for clustered errors); \code{"none"}
 no factor. \code{"cluster"} with \code{"G"} equals \code{fixest::fepois()} with
-\code{ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")}.
+\verb{ssc(K.adj = FALSE, G.adj =} \verb{TRUE, G.df = "min")}.
 
 Two-way clustering (\code{twc}, \code{psd}), as Cameron, Gelbach and Miller (2011,
 p. 241) give it: \code{twc = "min"} (the default, their second method and

@@ -81,7 +81,7 @@ ntdeg <- function(from, to, w = NULL, nodes = NULL, dir = FALSE) {
 #' @inheritParams ntdeg
 #' @param norm `TRUE` to divide by the number of pairs of other nodes,
 #'   `(n - 1)(n - 2)` directed or `(n - 1)(n - 2) / 2` undirected, as
-#'   `igraph::betweenness(normalized = TRUE)` does; `NaN` for fewer than 3
+#'   `igraph::betweenness(normalized` `= TRUE)` does; `NaN` for fewer than 3
 #'   nodes.
 #' @return A data frame: `node`, `btw`.
 #' @references Brandes, U. (2001). A faster algorithm for betweenness
@@ -246,7 +246,7 @@ ntlvn <- function(from, to, w = NULL, nodes = NULL, res = 1, seed = NULL) {
 
 #' Modularity of a partition
 #'
-#' `Q = sum over communities of in / 2m - res (tot / 2m)^2`, where `in` is
+#' `Q = sum over communities of` `in / 2m - res (tot / 2m)^2`, where `in` is
 #' the weight of edges inside the community (counted from both ends),
 #' `tot` the summed strength of its nodes and `2m` the total strength
 #' (Newman and Girvan 2004), on the undirected, weighted graph. At `res =
@@ -306,8 +306,8 @@ ntbrk <- function(from, to, grp, nodes = NULL, dir = FALSE) {
 #' strength); the graph's conductance h is the least over all sets, a
 #' measure of how cleanly the network splits in two. Finding h is hard,
 #' but the second-smallest eigenvalue `lambda2` of the normalised Laplacian
-#' `I - D^-1/2 A D^-1/2` brackets it: `lambda2 / 2 <= h <= sqrt(2
-#' lambda2)` (Cheeger's inequality; the lower half is `proof("ntchg")`).
+#' `I - D^-1/2 A D^-1/2` brackets it: `lambda2 / 2 <= h <= sqrt(2` `lambda2)`
+#' (Cheeger's inequality; the lower half is `proof("ntchg")`).
 #' The sweep over the eigenvector finds a set whose conductance (`sweep`)
 #' is at most `sqrt(2 lambda2)`; h is at most `sweep`.
 #'

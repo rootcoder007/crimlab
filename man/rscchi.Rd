@@ -44,10 +44,11 @@ the corrections divide it by the design effects.
 }
 \details{
 The cell proportions \code{p} are weighted; Pearson's \code{X^2} is computed on
-them scaled to the number of respondents \code{n}, \verb{X^2 = n sum (p_ij - p_i. p_.j)^2 / (p_i. p_.j)}. Their covariance \code{V} comes by linearisation
+them scaled to the number of respondents \code{n}, \verb{X^2 = n sum (p_ij - p_i.}
+\verb{p_.j)^2 / (p_i. p_.j)}. Their covariance \code{V} comes by linearisation
 over the first-stage units within strata, as \code{\link[=svymx]{svymx()}} reads the design
 (Lumley 2004). The generalised design effects \code{deff} are the
-eigenvalues of \verb{Delta = (C' D^-1 C / n)^-1 (C' D^-1 V D^-1 C)}, \code{C} a
+eigenvalues of \verb{Delta = (C' D^-1 C / n)^-1} \verb{(C' D^-1 V D^-1 C)}, \code{C} a
 basis of the interaction contrasts and \code{D} the diagonal of \code{p} (Rao and
 Scott 1984). The tests: \code{pearson}, \code{X^2} on \code{K = (r - 1)(c - 1)}
 degrees of freedom, wrong under the design; \code{rs1}, the first-order

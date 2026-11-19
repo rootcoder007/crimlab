@@ -7,8 +7,9 @@
 #' distinct incident time. A cylinder holding `c` incidents, of `n_C` in its
 #' circle (at any time) and `n_W` in its window (anywhere), expects `e =
 #' n_C n_W / n` when place and time are independent, and scores the
-#' Poisson log-likelihood ratio `c log(c / e) + (n - c) log((n - c) / (n -
-#' e))` when `c > e`, 0 otherwise (Kulldorff 1997). The most likely
+#' Poisson log-likelihood ratio `c log(c / e) + (n - c)`
+#' `log((n - c) / (n - e))` when `c > e`, 0 otherwise (Kulldorff 1997). The most
+#' likely
 #' cluster has the largest ratio; secondary clusters follow in order of
 #' their ratio, each the best of its circle among those whose circles
 #' overlap none chosen before. Each p-value compares the cluster's ratio

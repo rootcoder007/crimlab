@@ -57,7 +57,7 @@ nsbnd <- function(pobs, a, b) {
 #' The false positive rate the other rates imply
 #'
 #' Chouldechova's (2017) identity: in any confusion table, the false
-#' positive rate is `p / (1 - p) (1 - ppv) / ppv (1 - fnr)`, from the base
+#' positive rate is `p / (1 - p) (1 - ppv) / ppv` `(1 - fnr)`, from the base
 #' rate `p`, the positive predictive value `ppv` and the false negative
 #' rate `fnr`. So two groups whose scores are equally calibrated (the same
 #' `ppv`) and miss equally (the same `fnr`) but whose base rates differ

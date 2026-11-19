@@ -80,17 +80,18 @@ provinces, 2016-2023.
 }
 \details{
 The identity is built as a chain from the quantities \verb{q_1, ..., q_m}
-(the columns of \code{q}, in order): \verb{y = (y / q_1) (q_1 / q_2) ... (q_\{m-1\} / q_m) q_m}, \code{m + 1} factors that multiply to \code{y} whatever the
+(the columns of \code{q}, in order): \code{y = (y / q_1) (q_1 / q_2)}
+\verb{... (q_\{m-1\} / q_m) q_m}, \code{m + 1} factors that multiply to \code{y} whatever the
 quantities. Duan et al.'s eq 1 is the chain of population \code{P}, area
 \code{S}, emissions \code{W}, GDP, population again and the unemployed \code{UN}:
-\verb{CPEs = CPER x PD x EIPA^-1 x PEI x EDL x UR^-1 x UN}, the case rate
+\verb{CPEs = CPER x PD x EIPA^-1 x} \verb{PEI x EDL x UR^-1 x UN}, the case rate
 per head, population density, area per unit of emission, emission per
 unit of GDP, GDP per head, people per unemployed person and the
 unemployed (see the example). The factor values themselves, the rates
 of the identity, are returned in \code{fac}.
 
 With \code{type = "time"} the change of each unit between consecutive
-periods of \code{at} is \verb{y_T - y_O = sum_j L(y_T, y_O) ln(f_jT / f_jO)} (eqs
+periods of \code{at} is \verb{y_T - y_O = sum_j L(y_T,} \verb{y_O) ln(f_jT / f_jO)} (eqs
 2-3), \verb{L(a, b) = (a - b) / (ln a - ln b)} the logarithmic mean; a unit
 missing either period is left out. With \code{type = "space"} each unit of
 each period in \code{at} is set against a reference region of the same

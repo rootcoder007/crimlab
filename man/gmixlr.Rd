@@ -84,7 +84,7 @@ of allele \code{a}. The height of the peak at \code{a} is gamma with shape
 \code{s(a) / omega^2} and scale \verb{mu omega^2}, so its mean is \verb{mu s(a)} and a
 single heterozygous contributor's peaks have coefficient of variation
 \code{omega}, where \verb{s(a) = sum_k m_k n_k(a) d(a)}. With \code{deg = TRUE},
-\code{d(a) = beta^((size(a) - 125) / 100)}, degradation by fragment size in
+\verb{d(a) = beta^((size(a) - 125)} \verb{/ 100)}, degradation by fragment size in
 bases (\code{beta} fitted, above 0); otherwise \code{d(a) = 1}. With
 \code{stut = TRUE}, each allele seen passes the share \code{xi} of its signal to
 the position one repeat shorter (backward stutter): \code{s(a)} becomes

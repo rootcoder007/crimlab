@@ -29,7 +29,7 @@
 #'   errors come from resampling the target-present and target-absent
 #'   witnesses of each procedure, and each procedure is compared with the
 #'   first by `z = diff / dse`, their `D` statistic, as
-#'   `pROC::roc.test(method = "bootstrap")` compares partial areas.
+#'   `pROC::roc.test(method =` `"bootstrap")` compares partial areas.
 #'   Their partial areas (0.13 and 0.09 in Experiment 1a, p. 371) are on
 #'   the scale of all identifications in target-absent lineups, not
 #'   divided by the lineup's size as the false alarm rates of their Table

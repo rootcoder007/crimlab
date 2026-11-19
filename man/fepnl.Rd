@@ -70,7 +70,7 @@ factors, the simple slopes of one driver at values of the other (p.
 23), and the Jarque-Bera test of the residuals (p. 25).
 }
 \details{
-The model is \verb{y_it = sum_j b_j x_itj + a_i + m_t + e_it}, fitted by least
+The model is \verb{y_it = sum_j b_j x_itj + a_i} \code{+ m_t + e_it}, fitted by least
 squares after the within transformation (the kernel of \code{\link[=didfe]{didfe()}}, so an
 unbalanced panel is fine); with \code{int = c("a", "b")} the column \code{a:b},
 the product of \code{a} and \code{b}, is added to \code{x}. The variance is CR1 by

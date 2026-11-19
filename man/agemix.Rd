@@ -49,6 +49,7 @@ type, ages are independent), with several it is the covariance across
 types of their curves at the two ages, which \code{cov} gives for every pair
 of ages. With a panel of individuals observed at two ages, the observed
 covariance and its permutation test say whether one type is enough.
+\if{latex}{\out{\global\emergencystretch=8em}}
 See \code{proof("agemix")}.
 }
 \examples{

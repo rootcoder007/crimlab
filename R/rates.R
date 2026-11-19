@@ -135,7 +135,7 @@ dastd <- function(
 #'
 #' Expected counts found elsewhere (from another standard or an earlier
 #' period) are taken as they are with one stratum and a rate of 1:
-#' `sirex(obs, expd, rep(1, length(obs)), area, rates = 1)` gives each
+#' `sirex(obs, expd, rep(1,` `length(obs)), area, rates =` `1)` gives each
 #' area's ratio, its exact interval, the funnel limits at its expected count
 #' and the shrunk ratio.
 #'

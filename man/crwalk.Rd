@@ -50,7 +50,9 @@ Shigesada 1983): steps of independent lengths and changes of heading
 (turning angles) independent of each other and of the steps. The fit
 gives the mean and mean squared step and the mean cosine and sine of
 the turns; the expected squared displacement after \code{k} moves is
-Kareiva and Shigesada's for symmetric turning (mean sine 0), \verb{k E l^2 + 2 (E l)^2 c / (1 - c) (k - (1 - c^k) / (1 - c))}, next to the observed
+Kareiva and Shigesada's for symmetric turning (mean sine 0),
+\verb{k E l^2 + 2 (E l)^2 c / (1 -} \verb{c) (k - (1 - c^k) / (1 - c))}, next to the
+observed
 mean over every start. The walk is then continued \code{nsim} times for \code{h}
 steps from the last location and heading, each turn and step drawn
 independently and uniformly from the observed ones (an empirical

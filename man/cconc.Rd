@@ -68,7 +68,7 @@ many units at zero (Bernasco and Steenbeek 2017).
 \details{
 The Gini coefficient here is the population form, \verb{1 - sum p (L[i-1] + L[i])} over the units in ascending order (\code{p} a unit's share of the
 units, \code{L} the cumulative share of the total), which for unit weights is
-\verb{2 sum i x[(i)] / (n T) - (n + 1) / n}. It splits exactly as \verb{zero + (1 - zero) gpos}, the share of units at zero plus the rest times the
+\verb{2 sum i x[(i)] / (n T) - (n} \verb{+ 1) / n}. It splits exactly as \verb{zero + (1 - zero) gpos}, the share of units at zero plus the rest times the
 Gini of the units with events; \code{gnull} is the same split at the share of
 zeros a Poisson process at the observed mean leaves, \code{exp(-mean)}. The
 variance over the mean (\code{disp}) is 1 for Poisson counts, and its excess

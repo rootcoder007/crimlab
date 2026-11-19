@@ -30,7 +30,8 @@ leave-one-out residuals).
 \description{
 Predicts each value from all the others by ordinary kriging with the
 exponential covariance of \code{\link[=bkrig]{bkrig()}}, and summarises the residuals by
-the mean squared prediction error \verb{MSPE = (1 / n) sum (Z(s_i) - Z_-i(s_i))^2}, its root and the mean absolute error (Schabenberger and
+the mean squared prediction error \verb{MSPE = (1 / n) sum (Z(s_i) -}
+\verb{Z_-i(s_i))^2}, its root and the mean absolute error (Schabenberger and
 Gotway 2005, ch. 4). Comparing it across covariance parameters chooses
 among them.
 }

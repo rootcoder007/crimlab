@@ -23,7 +23,7 @@ matrix of Morrill's \code{D}; and \code{delta}.
 \description{
 The evenness of groups across areal units (Massey and Denton 1988),
 from a table of counts with one row per unit and one column per group:
-Duncan's dissimilarity \verb{D = sum |x_ik / X_k - x_il / X_l| / 2} between
+Duncan's dissimilarity \verb{D = sum |x_ik / X_k - x_il /} \verb{X_l| / 2} between
 each pair of groups (the share of either group that would have to move
 for the two to be spread alike), and for each group against the rest
 the segregation index \code{IS}, Theil's entropy index \code{H}, Atkinson's index

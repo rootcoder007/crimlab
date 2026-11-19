@@ -114,7 +114,8 @@ Kalyanaraman (2012, section 4.2, steps 1-3, equations 11-17, p.
 941-943) for the outcome: a pilot \verb{h1 = 1.84 S_X N^(-1/5)} for the
 density and the variances at the cutoff, a cubic with a jump for the
 third derivative, local quadratics within \code{h2} for the second
-derivatives, the regularisation terms \verb{2160 sigma^2 / (N2 h2^4)}, and \verb{h = C_K ((sigma-^2 + sigma+^2) / (f (dm^2 + r+ + r-)))^(1/5) N^(-1/5)}
+derivatives, the regularisation terms \verb{2160 sigma^2 / (N2 h2^4)}, and
+\verb{h = C_K ((sigma-^2 +} \verb{sigma+^2) / (f (dm^2 + r+ +} \verb{r-)))^(1/5) N^(-1/5)}
 with \verb{C_K = (C2 / (4 C1))^(1/5)} from the kernel's moments (their Lemma
 3.1; 3.4375 for the triangle, 2.70 for the uniform on \verb{[-1, 1]}, which
 is their 5.40 for the uniform on \verb{[-1/2, 1/2]}). For a fuzzy design it

@@ -58,8 +58,9 @@ hdbang <- function(x, y = NULL, v, w = NULL, nn = 8, ang = 135, ntrip = 0,
 #' (turning angles) independent of each other and of the steps. The fit
 #' gives the mean and mean squared step and the mean cosine and sine of
 #' the turns; the expected squared displacement after `k` moves is
-#' Kareiva and Shigesada's for symmetric turning (mean sine 0), `k E l^2 +
-#' 2 (E l)^2 c / (1 - c) (k - (1 - c^k) / (1 - c))`, next to the observed
+#' Kareiva and Shigesada's for symmetric turning (mean sine 0),
+#' `k E l^2 + 2 (E l)^2 c / (1 -` `c) (k - (1 - c^k) / (1 - c))`, next to the
+#' observed
 #' mean over every start. The walk is then continued `nsim` times for `h`
 #' steps from the last location and heading, each turn and step drawn
 #' independently and uniformly from the observed ones (an empirical
@@ -104,14 +105,14 @@ crwalk <- function(x, y = NULL, h = 1, nsim = 999, seed = NULL,
 #' incidents dense only because people are dense there are not called a
 #' cluster. In [nnhclu()] the threshold is the mean nearest-neighbour
 #' distance under complete spatial randomness plus `z` standard errors,
-#' `0.5 sqrt(A / n) + z sqrt((4 - pi) A / (4 pi)) / n`, which is
+#' `0.5 sqrt(A / n) + z sqrt((4` `- pi) A / (4 pi)) / n`, which is
 #' `f / sqrt(lambda)` with `lambda = n / A` and
-#' `f = 0.5 + z sqrt((4 - pi) / (4 pi n))`. Here the uniform intensity is
+#' `f = 0.5 + z sqrt((4 - pi) /` `(4 pi n))`. Here the uniform intensity is
 #' replaced by the intensity the `n` incidents would have if they followed
 #' the baseline: `lambda_i = n b(p_i) / B`, where `b` is the normal-kernel
 #' density (bandwidth `h`) of the baseline units with sizes `bw` and `B` is
 #' their total, and two incidents `i` and `j` are linked when
-#' `|p_i - p_j| < f / sqrt((lambda_i + lambda_j) / 2)`. Taking the mean of
+#' `|p_i - p_j| < f /` `sqrt((lambda_i + lambda_j) /` `2)`. Taking the mean of
 #' the two intensities is this function's reading of "the threshold at the
 #' pair's baseline density" (the published description does not say how
 #' the two ends combine); a uniform baseline gives back [nnhclu()]'s

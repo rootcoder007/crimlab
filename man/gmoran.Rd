@@ -24,7 +24,7 @@ without permutations) and \code{s0} (the sum of the weights); \code{NA} but \cod
 for a constant variable.
 }
 \description{
-Moran's (1950) I of values on units with spatial weights \code{w}: with \code{z = x - mean(x)}, \verb{I = n / S0 sum_ij w_ij z_i z_j / sum z_i^2}, its
+Moran's (1950) I of values on units with spatial weights \code{w}: with \code{z = x - mean(x)}, \verb{I = n / S0 sum_ij w_ij z_i} \verb{z_j / sum z_i^2}, its
 expectation \code{-1 / (n - 1)} and its variance under normality and under
 randomisation (Cliff and Ord 1981), the z statistics and their upper
 normal tails (positive autocorrelation: neighbours alike), and, with

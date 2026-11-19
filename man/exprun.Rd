@@ -71,7 +71,9 @@ Counts, for each place and day, how many days in a row the place has
 been exposed (smoke present, pollution above a threshold), and makes the
 indicators of the first, second, ... day of a run. \code{runfx()} fits a
 model with them: the effect by day in the run, as Lee and Lee (2026,
-equation 3, p. 12) estimate it, \verb{Crime = b1 Day1 + b2 Day2 + b3 Day3+ + ...}, which shows whether the effect fades as people adapt (it rises on
+equation 3, p. 12) estimate it, \verb{Crime = b1 Day1 + b2 Day2 +}
+\verb{b3 Day3+ + ...}, which shows whether the effect fades as people adapt (it
+rises on
 the first and second smoke days and falls from the third in their 21
 cities).
 }

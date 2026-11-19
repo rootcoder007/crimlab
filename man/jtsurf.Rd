@@ -42,7 +42,8 @@ with at most 1e9 cells.}
 }
 \value{
 A list. \code{raw} and \code{prob}, matrices of \code{nx} rows (across) and
-\code{ny} columns (up), cell \verb{[i, j]} centred at \verb{(xmin + (i - 1/2) dx, ymin + (j - 1/2) dy)}: the surface and its normalised version (summing
+\code{ny} columns (up), cell \verb{[i, j]} centred at \verb{(xmin + (i - 1/2) dx, ymin +}
+\verb{(j - 1/2) dy)}: the surface and its normalised version (summing
 to 1). \code{peak}, a named vector: \code{cell} (the first cell of maximum value,
 numbered down the columns of the matrix), \code{x} and \code{y} (its centre).
 }

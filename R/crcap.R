@@ -5,13 +5,13 @@
 #' survey). With two lists the Lincoln-Petersen estimate `n1 n2 / m`
 #' assumes the lists are independent; when being on one list changes the
 #' odds of being on the other by at most a factor `kappa`, the truth lies
-#' within `[n1 n2 / (kappa m), kappa n1 n2 / m]` (`lower`, `upper`), and no
+#' within `[n1 n2 / (kappa m), kappa n1` `n2 / m]` (`lower`, `upper`), and no
 #' data can narrow that box. Chapman's estimate `(n1 + 1)(n2 + 1) /
 #' (m + 1) - 1` is nearly unbiased, with Seber's standard error.
 #'
 #' With three lists the seven observed cells identify the never-listed cell
 #' only under an assumption on the three-way interaction of a log-linear
-#' model: with none, it is `m100 m010 m001 m111 / (m110 m101 m011)`, and a
+#' model: with none, it is `m100 m010 m001 m111 / (m110` `m101 m011)`, and a
 #' three-way log interaction `t` multiplies it by `exp(-t)`; `int` gives
 #' that sensitivity. The pairwise estimates are given beside it, each at
 #' least the number seen on either of its two lists (`floor`). See
@@ -60,8 +60,8 @@ crcap <- function(x, kappa = 1, int = NULL) {
 #'
 #' * With a survey rate `v` and a recorded rate `r`, and survey false
 #'   positives at most `amax` and false negatives at most `bmax`, the true
-#'   rate lies in `[max(r, (v - amax) / (1 - amax)), min(1, v / (1 -
-#'   bmax))]` and the dark figure (true minus recorded) in that interval
+#'   rate lies in `[max(r, (v - amax) / (1 -` `amax)), min(1, v / (1 -`
+#'   `bmax))]` and the dark figure (true minus recorded) in that interval
 #'   shifted by `r`. Given `thr`, `brk` is the largest `bmax` under which
 #'   the conclusion "the true rate is below `thr`" survives: `1 - v / thr`.
 #' * When the survey covers only some offences (type A, `va` of them, `ra`

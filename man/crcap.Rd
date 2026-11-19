@@ -32,13 +32,13 @@ overlap of two or three lists (police records, hospital records, a
 survey). With two lists the Lincoln-Petersen estimate \verb{n1 n2 / m}
 assumes the lists are independent; when being on one list changes the
 odds of being on the other by at most a factor \code{kappa}, the truth lies
-within \verb{[n1 n2 / (kappa m), kappa n1 n2 / m]} (\code{lower}, \code{upper}), and no
+within \verb{[n1 n2 / (kappa m), kappa n1} \verb{n2 / m]} (\code{lower}, \code{upper}), and no
 data can narrow that box. Chapman's estimate \code{(n1 + 1)(n2 + 1) / (m + 1) - 1} is nearly unbiased, with Seber's standard error.
 }
 \details{
 With three lists the seven observed cells identify the never-listed cell
 only under an assumption on the three-way interaction of a log-linear
-model: with none, it is \verb{m100 m010 m001 m111 / (m110 m101 m011)}, and a
+model: with none, it is \verb{m100 m010 m001 m111 / (m110} \verb{m101 m011)}, and a
 three-way log interaction \code{t} multiplies it by \code{exp(-t)}; \code{int} gives
 that sensitivity. The pairwise estimates are given beside it, each at
 least the number seen on either of its two lists (\code{floor}). See

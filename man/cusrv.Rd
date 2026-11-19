@@ -42,7 +42,7 @@ cumulative sum \eqn{s_t = \max(0, s_{t-1} + z_t - k)} of the
 standardised excess \eqn{z_t} raises an alarm where \eqn{s_t \ge h}.
 The expected counts are given (\code{expd}), or are the mean of the counts
 before \code{start}, the first period watched. \code{z} is \code{(y - m) / sqrt(m)}
-(\code{"std"}), Rossi's transform \verb{(y - 3 m + 2 sqrt(y m)) / (2 sqrt(m))}
+(\code{"std"}), Rossi's transform \verb{(y - 3 m + 2 sqrt(y m)) / (2} \verb{sqrt(m))}
 (\code{"rossi"}), Anscombe's \code{1.5 (y^(2/3) - m^(2/3)) / m^(1/6)}
 (\code{"anscombe"}) or the count itself (\code{"none"}, for \code{k} and \code{h} on the
 count scale). With \code{reset} the sum starts again from 0 after an alarm.

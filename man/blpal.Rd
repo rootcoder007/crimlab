@@ -56,7 +56,7 @@ are \code{palette = "grey"}, \code{grid = FALSE}, \code{cex = 1}, \code{las = 1}
 \code{bg = "white"} and \code{panel = NA} (the fill of the plot region; \code{NA} for
 none): black and grey on white, as a journal prints it. For colour,
 \code{plotopt(palette = "okabe")}; for a tinted panel behind white grid
-lines, \code{plotopt(grid = TRUE, panel = "#EEF1F6")}. Setting some options
+lines, \verb{plotopt(grid = TRUE, panel =} \verb{"#EEF1F6")}. Setting some options
 keeps the others; an unusable value set by hand with \code{options()} falls
 back to its default.
 

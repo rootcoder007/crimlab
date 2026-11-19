@@ -33,7 +33,8 @@ a verdict by a threshold; and the overlap of the propensity between the
 arms.
 }
 \details{
-The standardised mean difference is \code{(m1 - m0) / sqrt((s1^2 + s0^2) / 2)} (Imbens and Rubin 2015): means weighted by \code{w} when given, the
+The standardised mean difference is \verb{(m1 - m0) / sqrt((s1^2 +} \verb{s0^2) / 2)}
+(Imbens and Rubin 2015): means weighted by \code{w} when given, the
 standard deviations always those of the unweighted arms, as 'cobalt'
 computes it by default, so that weighting moves only the numerator. The
 variance ratio is \code{s1^2 / s0^2}, weighted when \code{w} is given (with the

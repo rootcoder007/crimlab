@@ -31,7 +31,8 @@ it over the smaller of its volume and that of the rest (volume: summed
 strength); the graph's conductance h is the least over all sets, a
 measure of how cleanly the network splits in two. Finding h is hard,
 but the second-smallest eigenvalue \code{lambda2} of the normalised Laplacian
-\verb{I - D^-1/2 A D^-1/2} brackets it: \verb{lambda2 / 2 <= h <= sqrt(2 lambda2)} (Cheeger's inequality; the lower half is \code{proof("ntchg")}).
+\verb{I - D^-1/2 A D^-1/2} brackets it: \verb{lambda2 / 2 <= h <= sqrt(2} \verb{lambda2)}
+(Cheeger's inequality; the lower half is \code{proof("ntchg")}).
 The sweep over the eigenvector finds a set whose conductance (\code{sweep})
 is at most \verb{sqrt(2 lambda2)}; h is at most \code{sweep}.
 }

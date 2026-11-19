@@ -45,7 +45,8 @@ estimate; and that of the confidence limit nearer the null.
 For a risk ratio \code{RR >= 1} the E-value is \code{RR + sqrt(RR (RR - 1))}; a
 ratio below 1 is inverted first. An odds or hazard ratio is a risk ratio
 when the outcome is rare (\code{rare = TRUE}); otherwise an odds ratio is
-taken to \code{sqrt(OR)} and a hazard ratio to \code{(1 - 0.5^sqrt(HR)) / (1 - 0.5^sqrt(1 / HR))}. A standardised mean difference \code{d} is taken to
+taken to \code{sqrt(OR)} and a hazard ratio to \verb{(1 - 0.5^sqrt(HR)) / (1 -}
+\verb{0.5^sqrt(1 / HR))}. A standardised mean difference \code{d} is taken to
 \verb{exp(0.91 d)}, its limits to \verb{exp(0.91 d -+ 1.78 sd)} from its standard
 error \code{sd}. The limit's E-value is 1 when the interval holds the null.
 These are the conversions of the 'EValue' package.

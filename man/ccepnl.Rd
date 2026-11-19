@@ -99,8 +99,12 @@ the regressors averaged across units in each period (with the weights
 factors \code{d_t} (a constant, with \code{cons = TRUE}, and the columns of \code{fac}).
 With \verb{H = (D, ybar_w, Xbar_w)} and \verb{M = I - H (H'H)^- H'} (eq 15, a
 generalized inverse), the unit estimates are \verb{b_i = (X_i'M X_i)^-1 X_i'M y_i}. The mean group estimator \code{CCEMG} is their mean (eq 53),
-with the nonparametric variance \verb{sum (b_i - b_MG)(b_i - b_MG)' / (N (N - 1))} (eq 58). The pooled estimator \code{CCEP} is \verb{(sum w_i X_i'M X_i)^-1 sum w_i X_i'M y_i}, the pooling weights equal to the averaging weights as
-Theorem 3 requires, with the variance of eqs 67-69, \verb{sum w_i^2 Psi^-1 R Psi^-1}, \verb{Psi = sum w_i X_i'M X_i / T} and \verb{R = sum wt_i^2 (X_i'M X_i / T) (b_i - b_MG)(b_i - b_MG)' (X_i'M X_i / T) / (N - 1)}, \code{wt_i = w_i / sqrt(mean(w^2))}. Inference is normal.
+with the nonparametric variance \verb{sum (b_i - b_MG)(b_i -}
+\verb{b_MG)' / (N (N - 1))} (eq 58). The pooled estimator \code{CCEP} is
+\verb{(sum w_i X_i'M X_i)^-1 sum} \verb{w_i X_i'M y_i}, the pooling weights equal to
+the averaging weights as
+Theorem 3 requires, with the variance of eqs 67-69, \verb{sum w_i^2 Psi^-1 R Psi^-1}, \verb{Psi = sum w_i X_i'M X_i / T} and \verb{R = sum wt_i^2 (X_i'M X_i /}
+\verb{T) (b_i - b_MG)(b_i - b_MG)'} \verb{(X_i'M X_i / T) / (N - 1)}, \code{wt_i = w_i / sqrt(mean(w^2))}. Inference is normal.
 }
 \details{
 Pesaran (2006) derives the estimators for a balanced panel. An
@@ -112,7 +116,7 @@ straightforward in unbalanced panels"): the averages of a period are
 taken over the units observed in that period, their weights scaled to
 sum to 1 over those units, and each unit's regression runs over its own
 periods, with its rows of \code{H}. CCEMG and its variance are then as above.
-CCEP is \verb{(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i}, and in its
+CCEP is \verb{(sum w_i X_i'M_i X_i)^-1 sum} \verb{w_i X_i'M_i y_i}, and in its
 variance each \verb{X_i'M_i X_i} is divided by the unit's own number of
 periods, which is this function's reading of \code{T} there. On a balanced
 panel all of this is Pesaran's estimator.
@@ -182,7 +186,7 @@ function does not make (sec. 3.1). \code{nfac} reports the number of factors
 that the averages kept identify, by the two regularized procedures of
 their appendix A.1 on a balanced panel: \code{er}, the eigenvalue ratio of
 Ahn and Horenstein (2013) on the averages normalised by \code{Sigma^-1/2},
-\verb{Sigma = sum_i (Z_i - Zbar)'(Z_i - Zbar) / (N T)} (Juodis 2022; steps
+\verb{Sigma = sum_i (Z_i -} \verb{Zbar)'(Z_i - Zbar) / (N T)} (Juodis 2022; steps
 1-3, \code{r_max} the averages less one); \code{thr}, the number of eigenvalues
 of \verb{Zbar'Zbar / T} at least 0.01 times the largest (Vogt et al. 2025;
 steps 1-2); and \code{avg}, the averages kept; \code{NA} where undefined. More
@@ -190,7 +194,9 @@ averages than factors is the case in which the paper warns of extra
 bias; the regularized estimators themselves are not made. (2) A two-way
 fixed-effects estimator (\code{\link[=fepnl]{fepnl()}}) may still be consistent and should
 be compared and tested. \code{hb} is their test of heterogeneity bias in
-CCEP (sec. 3.2, case study 2): \verb{delta_i = (X_i'M_i X_i - N^-1 sum_j X_j'M_j X_j) (b_i - b_MG)}, \verb{HB = delta' V^-1 delta} with \code{delta} their
+CCEP (sec. 3.2, case study 2): \verb{delta_i = (X_i'M_i X_i -}
+\verb{N^-1 sum_j X_j'M_j X_j) (b_i} \verb{- b_MG)}, \verb{HB = delta' V^-1 delta} with
+\code{delta} their
 mean and \verb{V = N^-2 sum delta_i delta_i'}, chi-squared on \code{k} degrees of
 freedom (\code{stat}, \code{df}, \code{p}); a rejection says that CCEP is biased by
 slopes that vary with the regressors. (3) Dynamic models need the
@@ -210,7 +216,8 @@ unit, and that time-varying regressors \code{d_t} added to it get
 coefficients of exactly 0. Their fixed-T variance of CCEP, which counts
 the sampling error of the averages (sec. 5.4, eqs 36-40, with \code{Psi = H}
 and \code{q_i = vec(Z_i - Zbar)}, 0 in the columns of the observed factors),
-is \code{pvar = "bsw"}: \verb{A^-1 B A^-1 / N}, \verb{A = N^-1 sum X_i'M X_i}, \verb{B = N^-1 sum s_i s_i'}, \verb{s_i = X_i'M u_i - G'(I + K)[Psi (Psi'Psi)^-1 (x) M] q_i}, \verb{u_i = y_i - X_i b}, \verb{G = N^-1 sum u_i (x) (X_i - Xbar)} and
+is \code{pvar = "bsw"}: \verb{A^-1 B A^-1 / N}, \verb{A = N^-1 sum X_i'M X_i}, \verb{B = N^-1 sum s_i s_i'}, \verb{s_i = X_i'M u_i - G'(I +} \verb{K)[Psi (Psi'Psi)^-1 (x) M]}
+\code{q_i}, \verb{u_i = y_i - X_i b}, \verb{G = N^-1 sum u_i (x) (X_i - Xbar)} and
 \code{K} the commutation matrix (eq 33); it is for the static pooled
 estimator with equal weights on a balanced panel, and refused
 otherwise.

@@ -26,7 +26,7 @@ results and the way to include isolated nodes.}
 The modularity, one number.
 }
 \description{
-\verb{Q = sum over communities of in / 2m - res (tot / 2m)^2}, where \verb{in} is
+\verb{Q = sum over communities of} \verb{in / 2m - res (tot / 2m)^2}, where \verb{in} is
 the weight of edges inside the community (counted from both ends),
 \code{tot} the summed strength of its nodes and \verb{2m} the total strength
 (Newman and Girvan 2004), on the undirected, weighted graph. At \code{res = 1} it lies between -1/2 and 1 (\code{proof("ntmod")}). \code{NaN} for a graph

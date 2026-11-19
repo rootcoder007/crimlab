@@ -110,8 +110,8 @@ print.cbatt <- function(x, ...) {
 #' a verdict by a threshold; and the overlap of the propensity between the
 #' arms.
 #'
-#' The standardised mean difference is `(m1 - m0) / sqrt((s1^2 + s0^2) /
-#' 2)` (Imbens and Rubin 2015): means weighted by `w` when given, the
+#' The standardised mean difference is `(m1 - m0) / sqrt((s1^2 +` `s0^2) / 2)`
+#' (Imbens and Rubin 2015): means weighted by `w` when given, the
 #' standard deviations always those of the unweighted arms, as 'cobalt'
 #' computes it by default, so that weighting moves only the numerator. The
 #' variance ratio is `s1^2 / s0^2`, weighted when `w` is given (with the
@@ -171,8 +171,8 @@ print.smdbal <- function(x, ...) {
 #' For a risk ratio `RR >= 1` the E-value is `RR + sqrt(RR (RR - 1))`; a
 #' ratio below 1 is inverted first. An odds or hazard ratio is a risk ratio
 #' when the outcome is rare (`rare = TRUE`); otherwise an odds ratio is
-#' taken to `sqrt(OR)` and a hazard ratio to `(1 - 0.5^sqrt(HR)) / (1 -
-#' 0.5^sqrt(1 / HR))`. A standardised mean difference `d` is taken to
+#' taken to `sqrt(OR)` and a hazard ratio to `(1 - 0.5^sqrt(HR)) / (1 -`
+#' `0.5^sqrt(1 / HR))`. A standardised mean difference `d` is taken to
 #' `exp(0.91 d)`, its limits to `exp(0.91 d -+ 1.78 sd)` from its standard
 #' error `sd`. The limit's E-value is 1 when the interval holds the null.
 #' These are the conversions of the 'EValue' package.

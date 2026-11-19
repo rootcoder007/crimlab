@@ -7,8 +7,9 @@
 #' [kdsurf()], which smooths the points themselves rather than values at
 #' them.
 #'
-#' @details The surface is `f(s) = sum_i a_i phi(|s - s_i|) + b_0 + b_1 x
-#'   + b_2 y` with the radial basis `phi(r) = r^2 log r` (Duchon 1977); the
+#' @details The surface is `f(s) = sum_i a_i phi(|s -`
+#'   `s_i|) + b_0 + b_1 x + b_2 y` with the radial basis `phi(r) = r^2 log r`
+#'   (Duchon 1977); the
 #'   coefficients solve the linear system `(K + lam I) a + T b = z`, `T'a =
 #'   0`, `K` the basis between the points and `T` the rows `(1, x_i, y_i)`
 #'   (Wahba 1990, ch. 2). The compiled kernel solves it by LU decomposition
