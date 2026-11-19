@@ -42,7 +42,7 @@ rvwtim(days, first, due, by = NULL, cuts = NULL, level = 0.95)
 
 - level:
 
-  The level of the intervals: one number between 0 and 1.
+  The level of the exact intervals: one number between 0 and 1.
 
 ## Value
 

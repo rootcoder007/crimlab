@@ -106,15 +106,24 @@
   [`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)
   and
   [`plotcoh()`](https://rootcoder007.github.io/crimlab/reference/plotcoh.md),
-  and the results of
-  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md),
+  and every result R draws with
+  [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
+  ([`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md),
   [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md),
-  [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)
-  and
+  [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md),
   [`sdidx()`](https://rootcoder007.github.io/crimlab/reference/sdidx.md),
-  with the look of the R plots (black and grey, a black frame, a bold
-  title; `palette = "okabe"` for colours, `grid = TRUE` for a grid). One
-  drawing code in the C++ core serves every language.
+  [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md),
+  [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md),
+  [`kmrec()`](https://rootcoder007.github.io/crimlab/reference/kmrec.md),
+  [`rdloc()`](https://rootcoder007.github.io/crimlab/reference/rdloc.md),
+  [`indgap()`](https://rootcoder007.github.io/crimlab/reference/indgap.md)
+  and the rest, 109 plots in all;
+  [`bandx()`](https://rootcoder007.github.io/crimlab/reference/bandx.md)
+  is left to R, since its plot needs a statistic given as an R
+  function), with the choices `type`, `what`, `units` and `terms` of
+  those plots and the look of the R plots (black and grey, a black
+  frame, a bold title; `palette = "okabe"` for colours, `grid = TRUE`
+  for a grid). One drawing code in the C++ core serves every language.
 
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
   [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)

@@ -39,7 +39,7 @@ dmvar(dec, dm, out, nmin = 5, level = 0.95)
 
 - level:
 
-  The level of the intervals: one number between 0 and 1.
+  The level of the exact intervals: one number between 0 and 1.
 
 ## Value
 
