@@ -90,6 +90,12 @@
   [`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)
   and
   [`plotcoh()`](https://rootcoder007.github.io/crimlab/reference/plotcoh.md),
+  and the results of
+  [`evtst()`](https://rootcoder007.github.io/crimlab/reference/evtst.md),
+  [`stgdid()`](https://rootcoder007.github.io/crimlab/reference/stgdid.md),
+  [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)
+  and
+  [`sdidx()`](https://rootcoder007.github.io/crimlab/reference/sdidx.md),
   with the look of the R plots (black and grey, a black frame, a bold
   title; `palette = "okabe"` for colours, `grid = TRUE` for a grid). One
   drawing code in the C++ core serves every language.
