@@ -275,18 +275,18 @@ fp2 <- co2fp(
 )
 fp2$enekwh
 #> $cpu
-#> [1] 4.522917e-08
+#> [1] 3.015278e-08
 #> 
 #> $memory
-#> [1] 8.294333e-09
+#> [1] 5.529556e-09
 #> 
 #> $total
-#> [1] 5.35235e-08
+#> [1] 3.568233e-08
 #> 
 fpeqv(fp2$co2eg)
 #> Footprint in everyday terms
-#>   Car travel: 9.175e-09 km
-#>   Tree uptake: 1.751e-09 tree-months
+#>   Car travel: 6.117e-09 km
+#>   Tree uptake: 1.167e-09 tree-months
 # a graphics card measured at 120 W on average (a simulated reading) and
 # a CPU row, which is not counted twice
 dev <- data.frame(
