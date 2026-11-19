@@ -53,6 +53,8 @@ make -C cli check WERROR=
 %changelog
 * Wed Nov 18 2026 rootcoder007 <278967282+rootcoder007@users.noreply.github.com> - 0.0.2-1
 - Every package is described by the title of the R package and says how to cite it
+- New: plotsvg (the plots as SVG), plotcoh, rvwtim, entcmp, dmvar; the argument that names a method is mthd
+- Fixed: a missing value stays missing on riscv64; 32-bit x86 is built with the arithmetic of SSE2
 
 * Thu Nov 12 2026 rootcoder007 <278967282+rootcoder007@users.noreply.github.com> - 0.0.1-1
 - First package

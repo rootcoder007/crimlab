@@ -11,6 +11,17 @@
 # Distribution builds pass WERROR= so a new compiler warning does not
 # stop them; CI keeps -Werror.
 CXXFLAGS ?= -O2 -g
+# 32-bit x86: the arithmetic of SSE2, as on every other platform. The x87
+# unit computes in 80 bits and rounds a second time when a value is stored,
+# so results differ in their last digits with the compiler's options (the
+# openSUSE i586 build failed three checks of the table that way). A build
+# that names -mfpmath itself keeps its choice: dev/port.sh tests x87 so.
+MACH := $(shell $(CXX) -dumpmachine 2>/dev/null)
+ifneq ($(filter i386-% i486-% i586-% i686-%,$(MACH))$(findstring -m32,$(CXX) $(CXXFLAGS)),)
+ifeq ($(findstring -mfpmath,$(CXX) $(CXXFLAGS)),)
+override CXXFLAGS += -msse2 -mfpmath=sse
+endif
+endif
 WERROR ?= -Werror
 WARN = -std=c++17 -Wall -Wextra -pedantic $(WERROR)
 PREFIX ?= /usr/local

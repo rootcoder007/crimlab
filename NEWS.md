@@ -41,6 +41,13 @@
   points in every language. `plot()` of
   `yoypx()` with `what = "value"` draws the values over the periods.
 
+* The command-line program and the library are built with the arithmetic
+  of SSE2 on 32-bit x86, as every other platform computes. With x87
+  arithmetic and a distribution's options (link-time optimisation, no
+  frame pointer) three results of the test table differed in their last
+  digits, and the openSUSE i586 package of 0.0.1 failed its checks. A
+  build that names `-mfpmath` itself keeps its choice.
+
 * The package installs faster: R compiles its C++ sources in 40 groups
   (a unity build, `src/u_*.cpp`) and no longer one file at a time, so the
   headers are read 40 times, not 337. Nothing a caller sees changes.
