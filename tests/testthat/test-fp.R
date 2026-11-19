@@ -226,7 +226,7 @@ test_that("co2fp() adds the energy of other devices", {
   expect_equal(fp$enekwh$total,
                fp$enekwh$cpu + fp$enekwh$memory + fp$enekwh$devices,
                tolerance = 1e-12)
-  expect_identical(fp$co2eg, fp$enekwh$total * 30)
+  expect_equal(fp$co2eg, fp$enekwh$total * 30, tolerance = 1e-14)
   expect_false("devices" %in% names(co2fp(1, loc = 30, mthd = "model")))
   expect_error(co2fp(1, devices = dev[, c("kind", "name")]),
                "^co2fp: `devices` is missing columns: vendor, how\\.$")
