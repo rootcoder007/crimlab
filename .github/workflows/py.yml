@@ -14,11 +14,11 @@ on:
     branches: [main]
     # a tag push ignores the paths below
     tags: ['v[0-9]*.[0-9]*.[0-9]*']
-    paths: ['src/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
+    paths: ['src/**', 'cli/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
             '.github/workflows/py.yml']
   pull_request:
     branches: [main]
-    paths: ['src/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
+    paths: ['src/**', 'cli/**', 'py/**', 'inst/lean/**', 'DESCRIPTION', 'LICENSE', 'NOTICE',
             '.github/workflows/py.yml']
 
 permissions:
