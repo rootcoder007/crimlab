@@ -125,7 +125,7 @@ number from 0.</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The gammas are drawn part by part, <code>n</code> of each, from R's generator
 (Mersenne-Twister with inversion, as <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> seeds it), so that
-<code>set.seed(seed); g &lt;- matrix(rgamma(n * k, rep(alpha, each = n)), n)</code>
+<code>set.seed(seed); g &lt;-</code> <code>matrix(rgamma(n * k,</code> <code>rep(alpha, each = n)), n)</code>
 gives the same draws and <code>g / rowSums(g) * total</code> the same result.
 Without <code>seed</code> one is drawn from R's generator.</p>
     </div>

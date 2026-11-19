@@ -4,7 +4,7 @@ The Gaussian spatial linear model `v = Z beta + delta + e`, `delta` a
 Gaussian process with covariance `sigma2 exp(-h / phi)`, without a
 nugget (Schabenberger and Gotway 2005, ch. 5). The range `phi` is found
 by maximising the profile likelihood with Brent's method on `log(phi)`
-over `[log(max(h / 100, 0.001)), log(max(3 h, 1))]`, `h` the largest
+over `[log(max(h / 100, 0.001)),` `log(max(3 h, 1))]`, `h` the largest
 distance, as R's [`optimize()`](https://rdrr.io/r/stats/optimize.html)
 runs it; `beta` follows by generalised least squares. The standard
 errors use `sigma2` estimated with `n - p` degrees of freedom.

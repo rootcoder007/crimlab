@@ -112,7 +112,7 @@ from adoption on and `b = t - 1` before (the `"varying"` base of the
 period. With `adj`, parallel trends need hold only given the covariates,
 taken at the base period, and each cell is the estimator of Sant'Anna
 and Zhao (2020) on the cohort and its comparison units: `"dr"`, the
-doubly robust `mean_D(dy - m(x)) - sum w (dy - m(x)) / sum w` with `m`
+doubly robust `mean_D(dy - m(x)) - sum w` `(dy - m(x)) / sum w` with `m`
 the least-squares fit of the change among the comparison units and
 `w = p / (1 - p)` from the logistic propensity `p` of belonging to the
 cohort; `"ipw"` without `m`; `"reg"` without the weights. Comparison
@@ -134,10 +134,10 @@ treated from the first period are left out.
 For `mthd = "dcdh"`, in each period the units that switch into treatment
 are compared with the units untreated in both periods, and the units
 that switch out with the units treated in both:
-`DID_M = sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S` over
-the `N_S` switchers that have a comparison. The placebo runs the same
-comparison one period earlier, for units whose treatment did not change
-over the two periods before; it should be near zero.
+`DID_M = sum_t (N_join,t` `DID_join,t + N_leave,t` `DID_leave,t) / N_S`
+over the `N_S` switchers that have a comparison. The placebo runs the
+same comparison one period earlier, for units whose treatment did not
+change over the two periods before; it should be near zero.
 
 Standard errors are the standard deviations over `reps` bootstrap
 samples of the clusters (units by default), drawn with replacement, with

@@ -98,7 +98,7 @@ the residuals in the order of the rows; `ssc`; and `level`.
 
 ## Details
 
-The model is `y_it = sum_j b_j x_itj + a_i + m_t + e_it`, fitted by
+The model is `y_it = sum_j b_j x_itj + a_i` `+ m_t + e_it`, fitted by
 least squares after the within transformation (the kernel of
 [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md),
 so an unbalanced panel is fine); with `int = c("a", "b")` the column

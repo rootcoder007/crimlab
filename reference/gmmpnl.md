@@ -193,15 +193,14 @@ time dummies dropped; `dummies`, those kept; `note`; `type`; `trans`;
 
 ## Details
 
-The model is
-`y_it = a_1 y_i,t-1 + ... + a_L y_i,t-L + x_it b + d_t + u_i + v_it`
-with `L = ylag`. Periods are the distinct values of `time` in order:
-lags count positions in that order, and a unit without a row in a period
-has a gap there. A row enters the levels when the unit has the `ylag`
-periods before it; the transformed equation is the first difference of
-two such rows in consecutive periods (`trans = "fd"`), or the forward
-orthogonal deviation of a row from the mean of the unit's later rows,
-scaled by `sqrt(T / (T + 1))` and dated one period later
+The model is `y_it = a_1 y_i,t-1 + ... +` `a_L y_i,t-L + x_it b + d_t +`
+`u_i + v_it` with `L = ylag`. Periods are the distinct values of `time`
+in order: lags count positions in that order, and a unit without a row
+in a period has a gap there. A row enters the levels when the unit has
+the `ylag` periods before it; the transformed equation is the first
+difference of two such rows in consecutive periods (`trans = "fd"`), or
+the forward orthogonal deviation of a row from the mean of the unit's
+later rows, scaled by `sqrt(T / (T + 1))` and dated one period later
 (`trans = "fod"`, Arellano and Bover 1995, sec. 3; Roodman 2009, eq 21),
 which loses no more than the last row of a unit with gaps.
 

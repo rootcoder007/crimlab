@@ -44,8 +44,8 @@ lmorn(x, w, nsim = 0, seed = NULL)
 ## Value
 
 A data frame with one row per unit: `ii` (I_i), `e`, `v`, `z`, `p`,
-`pperm` (`(1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1)`, `NaN` without
-permutations) and `quad` (1 high-high, 2 low-low, 3 low-high, 4
+`pperm` (`(1 + min(#{I* >= I}, #{I* <=` `I})) / (nsim + 1)`, `NaN`
+without permutations) and `quad` (1 high-high, 2 low-low, 3 low-high, 4
 high-low, 0 neither).
 
 ## References

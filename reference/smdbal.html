@@ -117,7 +117,8 @@ covariate (<code>var</code>, <code>m1</code>, <code>m0</code>, <code>smd</code>,
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The standardised mean difference is <code>(m1 - m0) / sqrt((s1^2 + s0^2) / 2)</code> (Imbens and Rubin 2015): means weighted by <code>w</code> when given, the
+    <p>The standardised mean difference is <code>(m1 - m0) / sqrt((s1^2 +</code> <code>s0^2) / 2)</code>
+(Imbens and Rubin 2015): means weighted by <code>w</code> when given, the
 standard deviations always those of the unweighted arms, as 'cobalt'
 computes it by default, so that weighting moves only the numerator. The
 variance ratio is <code>s1^2 / s0^2</code>, weighted when <code>w</code> is given (with the

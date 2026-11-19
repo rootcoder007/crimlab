@@ -118,7 +118,7 @@ the bootstrap's `att` then `eff` per draw, a row each (`NULL` for
 ## Details
 
 The untreated outcome of unit i at time t is
-`y_it = x_it'b + mu + alpha_i + xi_t + lambda_i'f_t + e_it`, the
+`y_it = x_it'b + mu + alpha_i` `+ xi_t + lambda_i'f_t + e_it`, the
 interactive fixed effects model of Bai (2009): unit and time effects
 plus `r` common factors `f_t` with unit loadings `lambda_i`, which let
 units follow different trends (a difference in differences assumes

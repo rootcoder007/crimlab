@@ -264,7 +264,7 @@ families (pressure-level and surface inversions, say) put together in
 <code><a href="ppmlfe.html">ppmlfe()</a></code>, on the second-stage design with the structural residuals
 (the outcome less the actual, not the fitted, endogenous columns times
 their coefficients). With <code>"cluster"</code> and <code>ssc = "G"</code> they equal
-<code>fixest::feols()</code> with <code>ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")</code>.
+<code>fixest::feols()</code> with <code>ssc(K.adj = FALSE, G.adj =</code> <code>TRUE, G.df = "min")</code>.
 Tests use the t distribution on <code>G - 1</code> degrees of freedom for
 clustered errors and the normal otherwise.</p>
 <p>Other designs this estimator fits. Hener (2022, sec. 3) instruments the
@@ -287,7 +287,8 @@ Kleibergen-Paap first-stage statistic (<code>first$kp</code>).</p>
 Kraay, robust to correlation across units and over time. With <code>h_t</code>
 the sum of the rows' scores over the rows of time <code>t</code> (the <code>time</code>
 column), the middle of the sandwich is <code>sum_t h_t h_t'</code> plus, for each
-pair of times <code>d</code> apart with <code>0 &lt; d &lt;= lag</code>, <code>(1 - d / (lag + 1)) (h_a h_b' + h_b h_a')</code>, the Newey-West estimator of the series of the
+pair of times <code>d</code> apart with <code>0 &lt; d &lt;= lag</code>, <code>(1 - d / (lag + 1)) (h_a</code>
+<code>h_b' + h_b h_a')</code>, the Newey-West estimator of the series of the
 summed scores. Batkeyev and DeRemer (2023) do not give their lag; the
 default is the bandwidth of Newey and West (1994) of <code>"nw"</code> computed on
 that one series. The small-sample factor <code>"G"</code> is <code>T / (T - 1)</code> with

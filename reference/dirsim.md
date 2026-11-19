@@ -49,9 +49,10 @@ A numeric matrix of `n` rows and one column per part.
 The gammas are drawn part by part, `n` of each, from R's generator
 (Mersenne-Twister with inversion, as
 [`set.seed()`](https://rdrr.io/r/base/Random.html) seeds it), so that
-`set.seed(seed); g <- matrix(rgamma(n * k, rep(alpha, each = n)), n)`
-gives the same draws and `g / rowSums(g) * total` the same result.
-Without `seed` one is drawn from R's generator.
+`set.seed(seed); g <-` `matrix(rgamma(n * k,`
+`rep(alpha, each = n)), n)` gives the same draws and
+`g / rowSums(g) * total` the same result. Without `seed` one is drawn
+from R's generator.
 
 ## References
 

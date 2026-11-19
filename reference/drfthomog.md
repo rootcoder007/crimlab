@@ -36,7 +36,7 @@ With pooled shares \\\hat\pi_j = (x_j + y_j)/(n_x + n_y)\\, \$\$X^2 =
 n_y\hat\pi_j)^2}{n_y\hat\pi_j}\$\$ on \\k - 1\\ degrees of freedom.
 Three branches, named in the attribute `method`:
 `"chi-square approximation"` when every expected count is at least 5;
-`"Monte Carlo permutation (small expected counts)"` otherwise, the
+`"Monte Carlo permutation` `(small expected counts)"` otherwise, the
 p-value from
 [`stats::chisq.test()`](https://rdrr.io/r/stats/chisq.test.html) with
 `simulate.p.value = TRUE` and `B = 10000` tables with the same margins,

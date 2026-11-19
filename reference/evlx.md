@@ -58,12 +58,11 @@ and `evlim` (the limit's E-value; `NA` without limits).
 For a risk ratio `RR >= 1` the E-value is `RR + sqrt(RR (RR - 1))`; a
 ratio below 1 is inverted first. An odds or hazard ratio is a risk ratio
 when the outcome is rare (`rare = TRUE`); otherwise an odds ratio is
-taken to `sqrt(OR)` and a hazard ratio to
-`(1 - 0.5^sqrt(HR)) / (1 - 0.5^sqrt(1 / HR))`. A standardised mean
-difference `d` is taken to `exp(0.91 d)`, its limits to
-`exp(0.91 d -+ 1.78 sd)` from its standard error `sd`. The limit's
-E-value is 1 when the interval holds the null. These are the conversions
-of the 'EValue' package.
+taken to `sqrt(OR)` and a hazard ratio to `(1 - 0.5^sqrt(HR)) / (1 -`
+`0.5^sqrt(1 / HR))`. A standardised mean difference `d` is taken to
+`exp(0.91 d)`, its limits to `exp(0.91 d -+ 1.78 sd)` from its standard
+error `sd`. The limit's E-value is 1 when the interval holds the null.
+These are the conversions of the 'EValue' package.
 
 Against a true value other than the null (`true`, on the scale of `est`
 and converted as it is), the estimate and its limits are divided by it

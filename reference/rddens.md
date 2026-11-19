@@ -90,19 +90,19 @@ are `fl` and `fr`.
 ## Details
 
 The steps, as the paper states them. The bins:
-`g(R) = floor((R - c) / b) b + b / 2 + c` (equation 2, p. 702), so no
+`g(R) = floor((R - c) / b) b` `+ b / 2 + c` (equation 2, p. 702), so no
 bin straddles the cutoff, on a grid of width `b` over the support, each
 height the share of the rows in the bin over `b`; the binsize `b` by
 default `2 s n^(-1/2)` with `s` the standard deviation of the running
 variable (p. 705, step 1). The bandwidth `h` by default: a quartic in
-the bin midpoints on each side,
-`3.348 (s2 (b - a) / sum f''(X_j)^2)^(1/5)` with `s2` the quartic's mean
-squared error and `b - a` the side's length, averaged over the two sides
-(p. 705, step 2; the paper calls it a guide for subjective choice and
-halves it to undersmooth in its simulations, p. 702-703). The estimate:
+the bin midpoints on each side, `3.348 (s2 (b - a) / sum`
+`f''(X_j)^2)^(1/5)` with `s2` the quartic's mean squared error and
+`b - a` the side's length, averaged over the two sides (p. 705, step 2;
+the paper calls it a guide for subjective choice and halves it to
+undersmooth in its simulations, p. 702-703). The estimate:
 `theta = ln f+ - ln f-` from the two local-linear intercepts, with the
-standard error `sqrt((1 / (n h)) (24 / 5) (1 / f+ + 1 / f-))` (equation
-5); the test uses the normal.
+standard error `sqrt((1 / (n h)) (24 / 5) (1` `/ f+ + 1 / f-))`
+(equation 5); the test uses the normal.
 
 [`plot()`](https://rdrr.io/r/graphics/plot.default.html) draws the bin
 heights and the smooth of each side, the log jump and its p-value in the

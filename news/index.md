@@ -79,6 +79,11 @@
   digits, and the openSUSE i586 package of 0.0.1 failed its checks. A
   build that names `-mfpmath` itself keeps its choice.
 
+- A check of CRAN runs one test file, the compiled self-test of every
+  kernel and one call of every exported function; the whole suite, which
+  takes minutes, runs in the project’s own checks on every push
+  (`NOT_CRAN=true`).
+
 - The package installs faster: R compiles its C++ sources in 40 groups
   (a unity build, `src/u_*.cpp`) and no longer one file at a time, so
   the headers are read 40 times, not 337. Nothing a caller sees changes.

@@ -191,7 +191,7 @@ from adoption on and <code>b = t - 1</code> before (the <code>"varying"</code> b
 period. With <code>adj</code>, parallel trends need hold only given the covariates,
 taken at the base period, and each cell is the estimator of Sant'Anna
 and Zhao (2020) on the cohort and its comparison units: <code>"dr"</code>, the
-doubly robust <code>mean_D(dy - m(x)) - sum w (dy - m(x)) / sum w</code> with <code>m</code>
+doubly robust <code>mean_D(dy - m(x)) - sum w</code> <code>(dy - m(x)) / sum w</code> with <code>m</code>
 the least-squares fit of the change among the comparison units and <code>w = p / (1 - p)</code> from the logistic propensity <code>p</code> of belonging to the
 cohort; <code>"ipw"</code> without <code>m</code>; <code>"reg"</code> without the weights. Comparison
 units with <code>p</code> of 0.995 or more are left out, as 'DRDID' does. Use
@@ -208,7 +208,9 @@ weighted by cohort size. Event time counts observed periods. Units
 treated from the first period are left out.</p>
 <p>For <code>mthd = "dcdh"</code>, in each period the units that switch into
 treatment are compared with the units untreated in both periods, and
-the units that switch out with the units treated in both: <code>DID_M = sum_t (N_join,t DID_join,t + N_leave,t DID_leave,t) / N_S</code> over the
+the units that switch out with the units treated in both:
+<code>DID_M = sum_t (N_join,t</code> <code>DID_join,t + N_leave,t</code> <code>DID_leave,t) / N_S</code> over
+the
 <code>N_S</code> switchers that have a comparison. The placebo runs the same
 comparison one period earlier, for units whose treatment did not change
 over the two periods before; it should be near zero.</p>

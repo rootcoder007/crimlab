@@ -46,14 +46,14 @@ An object of class `smdbal`, a list: `tab`, one row per covariate
 
 ## Details
 
-The standardised mean difference is
-`(m1 - m0) / sqrt((s1^2 + s0^2) / 2)` (Imbens and Rubin 2015): means
-weighted by `w` when given, the standard deviations always those of the
-unweighted arms, as 'cobalt' computes it by default, so that weighting
-moves only the numerator. The variance ratio is `s1^2 / s0^2`, weighted
-when `w` is given (with the unbiased correction for weights). `bal` is
-`TRUE` when every difference (weighted, with `w`) is below `thr` in
-absolute value; 0.1 is the usual rule.
+The standardised mean difference is `(m1 - m0) / sqrt((s1^2 +`
+`s0^2) / 2)` (Imbens and Rubin 2015): means weighted by `w` when given,
+the standard deviations always those of the unweighted arms, as 'cobalt'
+computes it by default, so that weighting moves only the numerator. The
+variance ratio is `s1^2 / s0^2`, weighted when `w` is given (with the
+unbiased correction for weights). `bal` is `TRUE` when every difference
+(weighted, with `w`) is below `thr` in absolute value; 0.1 is the usual
+rule.
 
 Overlap (Cole and Hernan 2008): the propensity's range in each arm, the
 share of units outside the range both arms share (`out`), and the

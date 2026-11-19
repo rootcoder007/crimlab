@@ -62,7 +62,7 @@ are `palette = "grey"`, `grid = FALSE`, `cex = 1`, `las = 1`,
 `bg = "white"` and `panel = NA` (the fill of the plot region; `NA` for
 none): black and grey on white, as a journal prints it. For colour,
 `plotopt(palette = "okabe")`; for a tinted panel behind white grid
-lines, `plotopt(grid = TRUE, panel = "#EEF1F6")`. Setting some options
+lines, `plotopt(grid = TRUE, panel =` `"#EEF1F6")`. Setting some options
 keeps the others; an unusable value set by hand with
 [`options()`](https://rdrr.io/r/base/options.html) falls back to its
 default.

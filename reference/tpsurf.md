@@ -71,16 +71,15 @@ surface with its contours and returns `x`, `y` and `z` invisibly.
 
 ## Details
 
-The surface is \`f(s) = sum_i a_i phi(\|s - s_i\|) + b_0 + b_1 x
-
-- b_2 y`with the radial basis`phi(r) = r^2 log
-  r`(Duchon 1977); the coefficients solve the linear system`(K + lam I)
-  a + T b = z`, `T'a =
-  0`, `K`the basis between the points and`T`the rows`(1, x_i,
-  y_i)` (Wahba 1990, ch. 2). The compiled kernel solves it by LU decomposition and evaluates the grid. It refuses points that all lie on one line (the plane is not determined) and, with`lam
-  =
-  0`, points that repeat (the system is singular). `fitted`is the surface at the points, so `resid`is 0 for`lam
-  = 0\` up to rounding.
+The surface is `f(s) = sum_i a_i phi(|s -` `s_i|) + b_0 + b_1 x + b_2 y`
+with the radial basis `phi(r) = r^2 log r` (Duchon 1977); the
+coefficients solve the linear system `(K + lam I) a + T b = z`,
+`T'a = 0`, `K` the basis between the points and `T` the rows
+`(1, x_i, y_i)` (Wahba 1990, ch. 2). The compiled kernel solves it by LU
+decomposition and evaluates the grid. It refuses points that all lie on
+one line (the plane is not determined) and, with `lam = 0`, points that
+repeat (the system is singular). `fitted` is the surface at the points,
+so `resid` is 0 for `lam = 0` up to rounding.
 
 ## References
 

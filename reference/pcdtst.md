@@ -5,7 +5,7 @@ together across units, the test Andreatta et al. (2023, p. 1376) run on
 the residuals of their waste-crime models before deciding a spatial
 model is not needed. For each pair of units the correlation `rho_ab` of
 their values over the `T_ab` periods they share, about the means over
-those periods; `CD = sum sqrt(T_ab) rho_ab / sqrt(m)` over the `m`
+those periods; `CD = sum sqrt(T_ab) rho_ab /` `sqrt(m)` over the `m`
 pairs, which for a balanced panel of `N` units and `T` periods is
 `sqrt(2 T / (N (N - 1))) sum rho_ab`, standard normal under no
 dependence. Pairs that share fewer than two periods, or along which a

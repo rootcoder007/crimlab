@@ -88,18 +88,18 @@ t_j)\$\$ over the window `[0, hor]`, with a normalised kernel `g`:
 exponential (`"exp"`, rate `beta`: a Markovian process), Weibull
 (`"weibull"`, `shape` and `scale`) or Lomax (`"lomax"`, the power-law
 kernel of seismology's modified Omori law, `shape` and `scale`, density
-`shape / scale (1 + t / scale)^-(shape + 1)`). The baseline is constant
-(`"const"`, \\\nu = e^{a_0}\\) or a log-linear trend with one cycle of
-length `per` (`"cycle"`, \\\nu(t) = \exp(a_0 + a_1 t / hor + a_2 \sin(2
-\pi t / per) + a_3 \cos(2 \pi t / per))\\), whose integral is taken by
-Simpson's rule on steps of at most `per / 16`. The log-likelihood is
-\\\sum_i \log \lambda(t_i) - \int_0^{hor} \lambda\\; it is maximised
-with its analytic gradient by BFGS over the baseline terms, the logit of
-`eta` (so `0 < eta < 1`) and the logarithms of the kernel parameters.
-The exponential kernel is fitted from two starts and the better optimum
-kept; the others from their own start and from the exponential fit (the
-shape-1 member). Standard errors come from the inverse of the numerical
-Hessian of the analytic gradient.
+`shape / scale (1 + t /` `scale)^-(shape + 1)`). The baseline is
+constant (`"const"`, \\\nu = e^{a_0}\\) or a log-linear trend with one
+cycle of length `per` (`"cycle"`, \\\nu(t) = \exp(a_0 + a_1 t / hor +
+a_2 \sin(2 \pi t / per) + a_3 \cos(2 \pi t / per))\\), whose integral is
+taken by Simpson's rule on steps of at most `per / 16`. The
+log-likelihood is \\\sum_i \log \lambda(t_i) - \int_0^{hor} \lambda\\;
+it is maximised with its analytic gradient by BFGS over the baseline
+terms, the logit of `eta` (so `0 < eta < 1`) and the logarithms of the
+kernel parameters. The exponential kernel is fitted from two starts and
+the better optimum kept; the others from their own start and from the
+exponential fit (the shape-1 member). Standard errors come from the
+inverse of the numerical Hessian of the analytic gradient.
 
 Several kernels or baselines fit every combination: `cmp` compares them
 (the exponential kernel against the others is the comparison of a

@@ -235,7 +235,7 @@ returns <code>coef</code>, ready to plot.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The model is <code>E(y | x) = exp(x'b + a_i + g_t + log(expo))</code>. Poisson
+    <p>The model is <code>E(y | x) = exp(x'b + a_i +</code> <code>g_t + log(expo))</code>. Poisson
 pseudo-maximum likelihood (Santos Silva and Tenreyro 2006) needs only
 that mean to be right: the counts need not be Poisson, their variance
 need not equal their mean, and zero counts are kept (a regression of
@@ -322,7 +322,7 @@ for <code>"hc1"</code> and <code>"nw"</code>; <code>"nk"</code> that times <code
 coefficients, an intercept and the levels less one of each fixed effect
 not nested in a cluster (fixest's default for clustered errors); <code>"none"</code>
 no factor. <code>"cluster"</code> with <code>"G"</code> equals <code>fixest::fepois()</code> with
-<code>ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")</code>.</p>
+<code>ssc(K.adj = FALSE, G.adj =</code> <code>TRUE, G.df = "min")</code>.</p>
 <p>Two-way clustering (<code>twc</code>, <code>psd</code>), as Cameron, Gelbach and Miller (2011,
 p. 241) give it: <code>twc = "min"</code> (the default, their second method and
 fixest's) puts the one factor of <code>G = min(G, H)</code> on all three

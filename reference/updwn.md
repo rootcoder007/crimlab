@@ -224,7 +224,7 @@ The choices, with the paper's own first:
   Stata's robust errors use `n / (n - K)`; here that is `ssc = "nk"`.
 
 The estimate is the paper's equation (3), p. 12:
-`y_ist = a_is + g_it + b downwind_ist + e_ist`, with route-side fixed
+`y_ist = a_is + g_it + b` `downwind_ist + e_ist`, with route-side fixed
 effects `a_is` and route-date fixed effects `g_it`; with `agg = TRUE`
 the counts of the areas on one side of one segment are summed by day
 first, as the paper counts crimes by interstate side and day. Without

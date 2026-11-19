@@ -82,7 +82,7 @@ degrees of freedom."><meta property="og:image" content="https://rootcoder007.git
 Gaussian process with covariance <code>sigma2 exp(-h / phi)</code>, without a
 nugget (Schabenberger and Gotway 2005, ch. 5). The range <code>phi</code> is found
 by maximising the profile likelihood with Brent's method on <code>log(phi)</code>
-over <code>[log(max(h / 100, 0.001)), log(max(3 h, 1))]</code>, <code>h</code> the largest
+over <code>[log(max(h / 100, 0.001)),</code> <code>log(max(3 h, 1))]</code>, <code>h</code> the largest
 distance, as R's <code><a href="https://rdrr.io/r/stats/optimize.html" class="external-link">optimize()</a></code> runs it; <code>beta</code> follows by generalised
 least squares. The standard errors use <code>sigma2</code> estimated with <code>n - p</code>
 degrees of freedom.</p>

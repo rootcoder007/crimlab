@@ -174,7 +174,7 @@ name for <code><a href="blpal.html">blpal()</a></code>.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The model is <code>y_it = sum_j b_j x_itj + a_i + m_t + e_it</code>, fitted by least
+    <p>The model is <code>y_it = sum_j b_j x_itj + a_i</code> <code>+ m_t + e_it</code>, fitted by least
 squares after the within transformation (the kernel of <code><a href="didfe.html">didfe()</a></code>, so an
 unbalanced panel is fine); with <code>int = c("a", "b")</code> the column <code>a:b</code>,
 the product of <code>a</code> and <code>b</code>, is added to <code>x</code>. The variance is CR1 by

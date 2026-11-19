@@ -10,12 +10,12 @@ are added to each unit's regression, with the observed common factors
 generalized inverse), the unit estimates are
 `b_i = (X_i'M X_i)^-1 X_i'M y_i`. The mean group estimator `CCEMG` is
 their mean (eq 53), with the nonparametric variance
-`sum (b_i - b_MG)(b_i - b_MG)' / (N (N - 1))` (eq 58). The pooled
-estimator `CCEP` is `(sum w_i X_i'M X_i)^-1 sum w_i X_i'M y_i`, the
+`sum (b_i - b_MG)(b_i -` `b_MG)' / (N (N - 1))` (eq 58). The pooled
+estimator `CCEP` is `(sum w_i X_i'M X_i)^-1 sum` `w_i X_i'M y_i`, the
 pooling weights equal to the averaging weights as Theorem 3 requires,
 with the variance of eqs 67-69, `sum w_i^2 Psi^-1 R Psi^-1`,
-`Psi = sum w_i X_i'M X_i / T` and
-`R = sum wt_i^2 (X_i'M X_i / T) (b_i - b_MG)(b_i - b_MG)' (X_i'M X_i / T) / (N - 1)`,
+`Psi = sum w_i X_i'M X_i / T` and `R = sum wt_i^2 (X_i'M X_i /`
+`T) (b_i - b_MG)(b_i - b_MG)'` `(X_i'M X_i / T) / (N - 1)`,
 `wt_i = w_i / sqrt(mean(w^2))`. Inference is normal.
 
 ## Usage
@@ -157,22 +157,22 @@ unbalanced panels"): the averages of a period are taken over the units
 observed in that period, their weights scaled to sum to 1 over those
 units, and each unit's regression runs over its own periods, with its
 rows of `H`. CCEMG and its variance are then as above. CCEP is
-`(sum w_i X_i'M_i X_i)^-1 sum w_i X_i'M_i y_i`, and in its variance each
-`X_i'M_i X_i` is divided by the unit's own number of periods, which is
-this function's reading of `T` there. On a balanced panel all of this is
-Pesaran's estimator. Su, Wang and Wang (2026, sec. 6.3, p. 20) compute
-CCE on unbalanced panels in the same way, after Zhou and Zhang (2016, eq
-12), and caution (p. 2 and n. 7, p. 4) that when whether a unit is
-observed is related to its loadings and varies over time, the averages
-no longer proxy the factors well; the estimators for unbalanced panels
-with interactive effects of Czarnowske and Stammann (2026, Assumption 1
-and Remark 1, p. 1309) likewise assume that the data are missing at
-random, which excludes selection related to the idiosyncratic errors.
-Neither paper gives a diagnostic or correction for CCE estimators, and
-this function makes none. A period observed for one unit only, or a unit
-with fewer periods than its regression needs (twice the regressors and
-lags of `y`, the averages kept with their lags and the observed
-factors), is refused by name.
+`(sum w_i X_i'M_i X_i)^-1 sum` `w_i X_i'M_i y_i`, and in its variance
+each `X_i'M_i X_i` is divided by the unit's own number of periods, which
+is this function's reading of `T` there. On a balanced panel all of this
+is Pesaran's estimator. Su, Wang and Wang (2026, sec. 6.3, p. 20)
+compute CCE on unbalanced panels in the same way, after Zhou and Zhang
+(2016, eq 12), and caution (p. 2 and n. 7, p. 4) that when whether a
+unit is observed is related to its loadings and varies over time, the
+averages no longer proxy the factors well; the estimators for unbalanced
+panels with interactive effects of Czarnowske and Stammann (2026,
+Assumption 1 and Remark 1, p. 1309) likewise assume that the data are
+missing at random, which excludes selection related to the idiosyncratic
+errors. Neither paper gives a diagnostic or correction for CCE
+estimators, and this function makes none. A period observed for one unit
+only, or a unit with fewer periods than its regression needs (twice the
+regressors and lags of `y`, the averages kept with their lags and the
+observed factors), is refused by name.
 
 **Dynamic panels.** With `ylag > 0` the lags `1..ylag` of `y` join the
 regressors (as `L1.y`, ...), and with `lags = p` the averages kept enter
@@ -226,7 +226,7 @@ function does not make (sec. 3.1). `nfac` reports the number of factors
 that the averages kept identify, by the two regularized procedures of
 their appendix A.1 on a balanced panel: `er`, the eigenvalue ratio of
 Ahn and Horenstein (2013) on the averages normalised by `Sigma^-1/2`,
-`Sigma = sum_i (Z_i - Zbar)'(Z_i - Zbar) / (N T)` (Juodis 2022; steps
+`Sigma = sum_i (Z_i -` `Zbar)'(Z_i - Zbar) / (N T)` (Juodis 2022; steps
 1-3, `r_max` the averages less one); `thr`, the number of eigenvalues of
 `Zbar'Zbar / T` at least 0.01 times the largest (Vogt et al. 2025; steps
 1-2); and `avg`, the averages kept; `NA` where undefined. More averages
@@ -236,7 +236,7 @@ fixed-effects estimator
 ([`fepnl()`](https://rootcoder007.github.io/crimlab/reference/fepnl.md))
 may still be consistent and should be compared and tested. `hb` is their
 test of heterogeneity bias in CCEP (sec. 3.2, case study 2):
-`delta_i = (X_i'M_i X_i - N^-1 sum_j X_j'M_j X_j) (b_i - b_MG)`,
+`delta_i = (X_i'M_i X_i -` `N^-1 sum_j X_j'M_j X_j) (b_i` `- b_MG)`,
 `HB = delta' V^-1 delta` with `delta` their mean and
 `V = N^-2 sum delta_i delta_i'`, chi-squared on `k` degrees of freedom
 (`stat`, `df`, `p`); a rejection says that CCEP is biased by slopes that
@@ -259,11 +259,11 @@ exactly 0. Their fixed-T variance of CCEP, which counts the sampling
 error of the averages (sec. 5.4, eqs 36-40, with `Psi = H` and
 `q_i = vec(Z_i - Zbar)`, 0 in the columns of the observed factors), is
 `pvar = "bsw"`: `A^-1 B A^-1 / N`, `A = N^-1 sum X_i'M X_i`,
-`B = N^-1 sum s_i s_i'`,
-`s_i = X_i'M u_i - G'(I + K)[Psi (Psi'Psi)^-1 (x) M] q_i`,
-`u_i = y_i - X_i b`, `G = N^-1 sum u_i (x) (X_i - Xbar)` and `K` the
-commutation matrix (eq 33); it is for the static pooled estimator with
-equal weights on a balanced panel, and refused otherwise.
+`B = N^-1 sum s_i s_i'`, `s_i = X_i'M u_i - G'(I +`
+`K)[Psi (Psi'Psi)^-1 (x) M]` `q_i`, `u_i = y_i - X_i b`,
+`G = N^-1 sum u_i (x) (X_i - Xbar)` and `K` the commutation matrix (eq
+33); it is for the static pooled estimator with equal weights on a
+balanced panel, and refused otherwise.
 
 The plot draws the CCEMG and, when made, CCEP estimates of each
 regressor with their intervals and returns what it drew.

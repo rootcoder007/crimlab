@@ -94,9 +94,9 @@ cross-validates it over folds the caller supplies. The objective, the
 standardisation of the columns and the scale of <code>lambda</code> are those of
 'glmnet', so that with the same <code>lambda</code> and the same folds the two give
 the same coefficients, up to their convergence thresholds: the gaussian
-family minimises <code>(1 / 2n) |y - a0 - x b|^2 + lambda pen(b)</code>, the
+family minimises <code>(1 / 2n) |y - a0 - x b|^2 +</code> <code>lambda pen(b)</code>, the
 binomial family the mean negative log-likelihood plus <code>lambda pen(b)</code>,
-with <code>pen(b) = sum((1 - alpha) / 2 (s b)^2 + alpha |s b|)</code>, <code>s</code> the
+with <code>pen(b) = sum((1 - alpha) / 2</code> <code>(s b)^2 + alpha |s b|)</code>, <code>s</code> the
 population standard deviations of the columns. For the gaussian family
 the outcome is scaled to unit variance while fitting, as 'glmnet' does.
 The intercept is never penalised; a constant column keeps a zero

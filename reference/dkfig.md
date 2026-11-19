@@ -70,11 +70,10 @@ are `NULL`.
 
 - With a survey rate `v` and a recorded rate `r`, and survey false
   positives at most `amax` and false negatives at most `bmax`, the true
-  rate lies in
-  `[max(r, (v - amax) / (1 - amax)), min(1, v / (1 - bmax))]` and the
-  dark figure (true minus recorded) in that interval shifted by `r`.
-  Given `thr`, `brk` is the largest `bmax` under which the conclusion
-  "the true rate is below `thr`" survives: `1 - v / thr`.
+  rate lies in `[max(r, (v - amax) / (1 -` `amax)), min(1, v / (1 -`
+  `bmax))]` and the dark figure (true minus recorded) in that interval
+  shifted by `r`. Given `thr`, `brk` is the largest `bmax` under which
+  the conclusion "the true rate is below `thr`" survives: `1 - v / thr`.
 
 - When the survey covers only some offences (type A, `va` of them, `ra`
   recorded) and the recorded count of the rest is `rb`, recorded at no

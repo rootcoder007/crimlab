@@ -1,11 +1,11 @@
 # Modularity of a partition
 
-`Q = sum over communities of in / 2m - res (tot / 2m)^2`, where `in` is
-the weight of edges inside the community (counted from both ends), `tot`
-the summed strength of its nodes and `2m` the total strength (Newman and
-Girvan 2004), on the undirected, weighted graph. At `res = 1` it lies
-between -1/2 and 1 (`proof("ntmod")`). `NaN` for a graph without edges.
-Graph rules as in
+`Q = sum over communities of` `in / 2m - res (tot / 2m)^2`, where `in`
+is the weight of edges inside the community (counted from both ends),
+`tot` the summed strength of its nodes and `2m` the total strength
+(Newman and Girvan 2004), on the undirected, weighted graph. At
+`res = 1` it lies between -1/2 and 1 (`proof("ntmod")`). `NaN` for a
+graph without edges. Graph rules as in
 [`ntdeg()`](https://rootcoder007.github.io/crimlab/reference/ntdeg.md).
 
 ## Usage

@@ -96,14 +96,13 @@ determines, say) is aliased and dropped, as R does: its coefficients are
 `NA`.
 
 With `clus`, each fit also gets cluster-robust (sandwich) standard
-errors, rows `"poiscl"` and `"nbcl"`:
-`(X'WX)^-1 (sum_g U_g U_g') (X'WX)^-1` over the clusters' scores `U_g`,
-times `G / (G - 1)` for `G` clusters when `cadj` (the default of
-`sandwich::vcovCL()`; `cadj = FALSE` gives the independence GEE variance
-of 'geepack'). With `gee = TRUE` the Poisson model is also fitted by
-generalised estimating equations with an exchangeable working
-correlation (row `"gee"`), as `geepack::geeglm(corstr = "exchangeable")`
-estimates it.
+errors, rows `"poiscl"` and `"nbcl"`: `(X'WX)^-1 (sum_g U_g U_g')`
+`(X'WX)^-1` over the clusters' scores `U_g`, times `G / (G - 1)` for `G`
+clusters when `cadj` (the default of `sandwich::vcovCL()`;
+`cadj = FALSE` gives the independence GEE variance of 'geepack'). With
+`gee = TRUE` the Poisson model is also fitted by generalised estimating
+equations with an exchangeable working correlation (row `"gee"`), as
+`geepack::geeglm(corstr =` `"exchangeable")` estimates it.
 
 Intervals are Wald intervals on the log scale, `exp(est +- z se)`, with
 `z` the normal quantile for `level`. `sep` flags a ratio whose group or

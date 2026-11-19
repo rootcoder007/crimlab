@@ -191,9 +191,9 @@ Standard errors (`se`, `ssc`, `time`, `lag`, `nboot`, `seed`) are as in
 on the second-stage design with the structural residuals (the outcome
 less the actual, not the fitted, endogenous columns times their
 coefficients). With `"cluster"` and `ssc = "G"` they equal
-`fixest::feols()` with `ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
-Tests use the t distribution on `G - 1` degrees of freedom for clustered
-errors and the normal otherwise.
+`fixest::feols()` with `ssc(K.adj = FALSE, G.adj =`
+`TRUE, G.df = "min")`. Tests use the t distribution on `G - 1` degrees
+of freedom for clustered errors and the normal otherwise.
 
 Other designs this estimator fits. Hener (2022, sec. 3) instruments the
 daily noise of the municipalities near Frankfurt Airport by the landing
@@ -220,9 +220,9 @@ the errors of Driscoll and Kraay, robust to correlation across units and
 over time. With `h_t` the sum of the rows' scores over the rows of time
 `t` (the `time` column), the middle of the sandwich is `sum_t h_t h_t'`
 plus, for each pair of times `d` apart with `0 < d <= lag`,
-`(1 - d / (lag + 1)) (h_a h_b' + h_b h_a')`, the Newey-West estimator of
-the series of the summed scores. Batkeyev and DeRemer (2023) do not give
-their lag; the default is the bandwidth of Newey and West (1994) of
+`(1 - d / (lag + 1)) (h_a` `h_b' + h_b h_a')`, the Newey-West estimator
+of the series of the summed scores. Batkeyev and DeRemer (2023) do not
+give their lag; the default is the bandwidth of Newey and West (1994) of
 `"nw"` computed on that one series. The small-sample factor `"G"` is
 `T / (T - 1)` with `T` the times; the first-stage statistics cluster by
 the first `clus` column, as for `"nw"`. Ayesh (2023, eqs 1-3) and Bao

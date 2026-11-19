@@ -7,13 +7,13 @@ Shigesada 1983): steps of independent lengths and changes of heading
 gives the mean and mean squared step and the mean cosine and sine of the
 turns; the expected squared displacement after `k` moves is Kareiva and
 Shigesada's for symmetric turning (mean sine 0),
-`k E l^2 + 2 (E l)^2 c / (1 - c) (k - (1 - c^k) / (1 - c))`, next to the
-observed mean over every start. The walk is then continued `nsim` times
-for `h` steps from the last location and heading, each turn and step
-drawn independently and uniformly from the observed ones (an empirical
-correlated random walk), and the simulated positions summarise where the
-next events may fall. It describes movement; it does not identify
-anyone, and a series with few events gives a rough walk.
+`k E l^2 + 2 (E l)^2 c / (1 -` `c) (k - (1 - c^k) / (1 - c))`, next to
+the observed mean over every start. The walk is then continued `nsim`
+times for `h` steps from the last location and heading, each turn and
+step drawn independently and uniformly from the observed ones (an
+empirical correlated random walk), and the simulated positions summarise
+where the next events may fall. It describes movement; it does not
+identify anyone, and a series with few events gives a rough walk.
 
 ## Usage
 

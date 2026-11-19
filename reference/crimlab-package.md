@@ -1,22 +1,26 @@
 # crimlab: Statistical Toolkit for Criminology and Sociolegal Research
 
 Statistical methods for courts, corrections, policing, forensics and
-sociolegal research. Where an identity or bound has a machine-checked
-proof ('Lean'), the package names it. This development version holds the
-disparity tests: the veil-of-darkness contrast of Grogger and Ridgeway
-(2006)
+sociolegal research, computed in a compiled 'C++' core. Disparity tests:
+the veil-of-darkness contrast of Grogger and Ridgeway (2006)
 [doi:10.1198/016214506000000168](https://doi.org/10.1198/016214506000000168)
 , the outcome test and its infra-marginality problem, benchmark
 decomposition of resident disparities, dyadic offending rates, and the
-bounds a relative risk obeys given an odds ratio; and the first forensic
-methods: genotype match probabilities with the correction of Balding and
-Nichols (1994)
+bounds a relative risk obeys given an odds ratio. Forensic methods:
+genotype match probabilities with the correction of Balding and Nichols
+(1994)
 [doi:10.1016/0379-0738(94)90222-4](https://doi.org/10.1016/0379-0738%2894%2990222-4)
 , the log-likelihood-ratio cost of Brummer and du Preez (2006)
 [doi:10.1016/j.csl.2005.08.001](https://doi.org/10.1016/j.csl.2005.08.001)
 with its calibrated minimum, mixture likelihood ratios, kinship and
 paternity indices, database-search corrections, and Tippett and
-empirical-cross-entropy plots.
+empirical-cross-entropy plots. Policy evaluation: difference in
+differences, event studies, staggered adoption, synthetic control and
+regression discontinuity, with their plots. Also measures of sentencing
+and custody, co-offending networks, spatial statistics of incidents,
+year-over-year change, survey estimates and audits of risk scores. Where
+an identity or bound has a machine-checked proof ('Lean'), the package
+names the theorem.
 
 ## See also
 

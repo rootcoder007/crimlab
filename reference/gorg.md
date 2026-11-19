@@ -1,7 +1,7 @@
 # The general G of Getis and Ord
 
 The global concentration statistic of Getis and Ord (1992) for
-non-negative values: `G = sum_ij w_ij x_i x_j / sum_{i != j} x_i x_j`,
+non-negative values: `G = sum_ij w_ij x_i x_j /` `sum_{i != j} x_i x_j`,
 its expectation `S0 / (n (n - 1))` and variance under randomisation, the
 z statistic, its upper normal tail (high values near high values) and,
 with `nsim > 0`, a permutation p-value. Unlike Moran's I and Geary's C

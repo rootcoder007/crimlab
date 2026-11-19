@@ -103,14 +103,14 @@ threshold distance adjusted for a baseline population at risk, so that
 incidents dense only because people are dense there are not called a
 cluster. In <code><a href="nnhclu.html">nnhclu()</a></code> the threshold is the mean nearest-neighbour
 distance under complete spatial randomness plus <code>z</code> standard errors,
-<code>0.5 sqrt(A / n) + z sqrt((4 - pi) A / (4 pi)) / n</code>, which is
+<code>0.5 sqrt(A / n) + z sqrt((4</code> <code>- pi) A / (4 pi)) / n</code>, which is
 <code>f / sqrt(lambda)</code> with <code>lambda = n / A</code> and
-<code>f = 0.5 + z sqrt((4 - pi) / (4 pi n))</code>. Here the uniform intensity is
+<code>f = 0.5 + z sqrt((4 - pi) /</code> <code>(4 pi n))</code>. Here the uniform intensity is
 replaced by the intensity the <code>n</code> incidents would have if they followed
 the baseline: <code>lambda_i = n b(p_i) / B</code>, where <code>b</code> is the normal-kernel
 density (bandwidth <code>h</code>) of the baseline units with sizes <code>bw</code> and <code>B</code> is
 their total, and two incidents <code>i</code> and <code>j</code> are linked when
-<code>|p_i - p_j| &lt; f / sqrt((lambda_i + lambda_j) / 2)</code>. Taking the mean of
+<code>|p_i - p_j| &lt; f /</code> <code>sqrt((lambda_i + lambda_j) /</code> <code>2)</code>. Taking the mean of
 the two intensities is this function's reading of "the threshold at the
 pair's baseline density" (the published description does not say how
 the two ends combine); a uniform baseline gives back <code><a href="nnhclu.html">nnhclu()</a></code>'s

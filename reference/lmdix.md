@@ -112,19 +112,18 @@ every row (`unit`, `time`, `y`, one column per factor); `ref`, for
 ## Details
 
 The identity is built as a chain from the quantities `q_1, ..., q_m`
-(the columns of `q`, in order):
-`y = (y / q_1) (q_1 / q_2) ... (q_{m-1} / q_m) q_m`, `m + 1` factors
-that multiply to `y` whatever the quantities. Duan et al.'s eq 1 is the
-chain of population `P`, area `S`, emissions `W`, GDP, population again
-and the unemployed `UN`:
-`CPEs = CPER x PD x EIPA^-1 x PEI x EDL x UR^-1 x UN`, the case rate per
-head, population density, area per unit of emission, emission per unit
-of GDP, GDP per head, people per unemployed person and the unemployed
-(see the example). The factor values themselves, the rates of the
-identity, are returned in `fac`.
+(the columns of `q`, in order): `y = (y / q_1) (q_1 / q_2)`
+`... (q_{m-1} / q_m) q_m`, `m + 1` factors that multiply to `y` whatever
+the quantities. Duan et al.'s eq 1 is the chain of population `P`, area
+`S`, emissions `W`, GDP, population again and the unemployed `UN`:
+`CPEs = CPER x PD x EIPA^-1 x` `PEI x EDL x UR^-1 x UN`, the case rate
+per head, population density, area per unit of emission, emission per
+unit of GDP, GDP per head, people per unemployed person and the
+unemployed (see the example). The factor values themselves, the rates of
+the identity, are returned in `fac`.
 
 With `type = "time"` the change of each unit between consecutive periods
-of `at` is `y_T - y_O = sum_j L(y_T, y_O) ln(f_jT / f_jO)` (eqs 2-3),
+of `at` is `y_T - y_O = sum_j L(y_T,` `y_O) ln(f_jT / f_jO)` (eqs 2-3),
 `L(a, b) = (a - b) / (ln a - ln b)` the logarithmic mean; a unit missing
 either period is left out. With `type = "space"` each unit of each
 period in `at` is set against a reference region of the same period (eqs

@@ -115,7 +115,7 @@ without the placebos); <code>plac</code> (<code>unit</code>, <code>ratio</code>;
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The weights solve <code>min_w sum_{t &lt; T0} (y_1t - sum_j w_j y_jt)^2</code> over
+    <p>The weights solve <code>min_w sum_{t &lt; T0} (y_1t -</code> <code>sum_j w_j y_jt)^2</code> over
 <code>w_j &gt;= 0</code>, <code>sum_j w_j = 1</code>, the periods before adoption <code>T0</code>. The
 problem is the nearest point of a convex hull to the origin, solved
 exactly by Wolfe's minimum-norm-point algorithm. The effect in each
@@ -123,7 +123,9 @@ period is the gap <code>y_1t - sum_j w_j y_jt</code>. For inference each
 comparison unit in turn is treated as if it had adopted, with the
 others as its donors; the ratio of the root mean squared gap after
 adoption to that before ranks the treated unit among the placebos, and
-<code>p</code> is <code>(1 + the placebos with a ratio at least the treated unit's) / (1 + the placebos)</code> (Abadie, Diamond and Hainmueller 2010). The weights
+<code>p</code> is <code>(1 + the placebos with a</code> <code>ratio at least the treated</code>
+<code>unit's) / (1 + the placebos)</code> (Abadie, Diamond and Hainmueller 2010). The
+weights
 match the outcomes before adoption only, not separate predictors.</p>
     </div>
     <div class="section level2">

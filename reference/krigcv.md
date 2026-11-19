@@ -4,7 +4,7 @@ Predicts each value from all the others by ordinary kriging with the
 exponential covariance of
 [`bkrig()`](https://rootcoder007.github.io/crimlab/reference/bkrig.md),
 and summarises the residuals by the mean squared prediction error
-`MSPE = (1 / n) sum (Z(s_i) - Z_-i(s_i))^2`, its root and the mean
+`MSPE = (1 / n) sum (Z(s_i) -` `Z_-i(s_i))^2`, its root and the mean
 absolute error (Schabenberger and Gotway 2005, ch. 4). Comparing it
 across covariance parameters chooses among them.
 

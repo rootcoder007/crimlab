@@ -125,11 +125,11 @@ is `Inf` for the never treated) and `match` (`treated`, `control`,
 
 ## Details
 
-The model is `y_it = b trt_it + adj_it'g + a_i + m_t + e_it`, fitted by
-least squares after the within transformation (alternating projections,
-so an unbalanced panel is fine; weights `w` give weighted least squares
-with weighted means). With `fe = "time"` the unit effects are left out.
-The variance is the cluster-robust CR1 estimator,
+The model is `y_it = b trt_it + adj_it'g +` `a_i + m_t + e_it`, fitted
+by least squares after the within transformation (alternating
+projections, so an unbalanced panel is fine; weights `w` give weighted
+least squares with weighted means). With `fe = "time"` the unit effects
+are left out. The variance is the cluster-robust CR1 estimator,
 `G / (G - 1) (n - 1) / (n - K)` times the sandwich, `K` counting the
 regressors, the constant, and the levels less one of each fixed effect
 not nested in a cluster; with two kinds of cluster it is `V1 + V2 - V12`
@@ -140,10 +140,9 @@ Fewer than ten clusters give a warning:
 [`wcbx()`](https://rootcoder007.github.io/crimlab/reference/wcbx.md) is
 the tool for so few.
 
-With `fam = "pois"` or `"nb"` the model is
-`E(y_it) = exp(b trt_it + adj_it'g + a_i + m_t)` times the exposure
-`expo`, fitted by maximum likelihood with dummies for the effects (the
-steps of
+With `fam = "pois"` or `"nb"` the model is `E(y_it) = exp(b trt_it +`
+`adj_it'g + a_i + m_t)` times the exposure `expo`, fitted by maximum
+likelihood with dummies for the effects (the steps of
 [`cntreg()`](https://rootcoder007.github.io/crimlab/reference/cntreg.md)).
 Units and periods whose counts are all zero carry nothing about `b` and
 are dropped first. The Poisson estimate is consistent whatever the

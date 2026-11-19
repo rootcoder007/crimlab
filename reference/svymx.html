@@ -153,7 +153,8 @@ reference (<code>dom</code>, <code>diff</code>, <code>se</code>, <code>stat</cod
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>Each estimate is a smooth function of weighted totals; its variance is
 that of the total of its influence values <code>u_i</code> (for a mean <code>w_i (y_i - m) / sum w</code>, a ratio <code>w_i (y_i - R x_i) / sum w x</code>, a total <code>w_i y_i</code>)
-over the first-stage units within strata: <code>sum_h (1 - f_h) n_h / (n_h - 1) sum_j (U_hj - Ubar_h)^2</code>, with <code>f_h = n_h / N_h</code> from <code>fpc</code> or 0
+over the first-stage units within strata: <code>sum_h (1 - f_h) n_h / (n_h -</code>
+<code>1) sum_j (U_hj - Ubar_h)^2</code>, with <code>f_h = n_h / N_h</code> from <code>fpc</code> or 0
 (first-stage units drawn with replacement). These are the estimators of
 the 'survey' package (Lumley 2004) with its default treatment of
 domains: a domain's influence values are 0 outside it and every

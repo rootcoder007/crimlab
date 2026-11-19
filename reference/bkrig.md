@@ -2,12 +2,12 @@
 
 Predicts the mean value over each block (an area such as a district) by
 ordinary kriging with point-to-block covariances averaged over the
-block, `C(s_i, B) = (1 / |B|) int_B C(s_i, u) du`, under the exponential
-covariance `(sill - nugget) exp(-h / range)`, plus `nugget` at distance
-0 (Schabenberger and Gotway 2005, ch. 4). A block is a box, given as a 2
-x 2 matrix of its lower and upper corners (rows) and integrated on a
-regular grid of `round(sqrt(nq))^2` points, or a matrix of the points
-that discretise it.
+block, `C(s_i, B) = (1 / |B|) int_B` `C(s_i, u) du`, under the
+exponential covariance `(sill - nugget) exp(-h / range)`, plus `nugget`
+at distance 0 (Schabenberger and Gotway 2005, ch. 4). A block is a box,
+given as a 2 x 2 matrix of its lower and upper corners (rows) and
+integrated on a regular grid of `round(sqrt(nq))^2` points, or a matrix
+of the points that discretise it.
 
 ## Usage
 

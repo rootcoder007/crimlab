@@ -283,7 +283,8 @@ effects absorb the weather itself).</p></li>
 appendix table A.2), <code>"twoway"</code>, <code>"nw"</code> (Newey-West within each side
 over days, its appendix too) or <code>"boot"</code>, as in <code><a href="ppmlfe.html">ppmlfe()</a></code>. Stata's
 robust errors use <code>n / (n - K)</code>; here that is <code>ssc = "nk"</code>.</p></li>
-</ul><p>The estimate is the paper's equation (3), p. 12: <code>y_ist = a_is + g_it + b downwind_ist + e_ist</code>, with route-side fixed effects <code>a_is</code> and
+</ul><p>The estimate is the paper's equation (3), p. 12: <code>y_ist = a_is + g_it + b</code>
+<code>downwind_ist + e_ist</code>, with route-side fixed effects <code>a_is</code> and
 route-date fixed effects <code>g_it</code>; with <code>agg = TRUE</code> the counts of the
 areas on one side of one segment are summed by day first, as the paper
 counts crimes by interstate side and day. Without aggregation (and for

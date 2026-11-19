@@ -33,8 +33,8 @@ ntbtw(from, to, nodes = NULL, dir = FALSE, norm = FALSE)
 
   `TRUE` to divide by the number of pairs of other nodes,
   `(n - 1)(n - 2)` directed or `(n - 1)(n - 2) / 2` undirected, as
-  `igraph::betweenness(normalized = TRUE)` does; `NaN` for fewer than 3
-  nodes.
+  `igraph::betweenness(normalized` `= TRUE)` does; `NaN` for fewer than
+  3 nodes.
 
 ## Value
 

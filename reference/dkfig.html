@@ -142,7 +142,8 @@ parts not asked for are <code>NULL</code>.</p>
 
 <ul><li><p>With a survey rate <code>v</code> and a recorded rate <code>r</code>, and survey false
 positives at most <code>amax</code> and false negatives at most <code>bmax</code>, the true
-rate lies in <code>[max(r, (v - amax) / (1 - amax)), min(1, v / (1 - bmax))]</code> and the dark figure (true minus recorded) in that interval
+rate lies in <code>[max(r, (v - amax) / (1 -</code> <code>amax)), min(1, v / (1 -</code>
+<code>bmax))]</code> and the dark figure (true minus recorded) in that interval
 shifted by <code>r</code>. Given <code>thr</code>, <code>brk</code> is the largest <code>bmax</code> under which
 the conclusion "the true rate is below <code>thr</code>" survives: <code>1 - v / thr</code>.</p></li>
 <li><p>When the survey covers only some offences (type A, <code>va</code> of them, <code>ra</code>

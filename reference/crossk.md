@@ -2,7 +2,7 @@
 
 Whether incidents of one type (`i`) have incidents of another (`j`) near
 them more than independence gives: the cross-type K function
-`K_ij(r) = A / (n_i n_j) sum e_ab 1(d_ab <= r)` over pairs of a point
+`K_ij(r) = A / (n_i n_j) sum` `e_ab 1(d_ab <= r)` over pairs of a point
 `a` of type `i` and a point `b` of type `j` in the rectangle `win` of
 area `A`, with Ripley's (1977) isotropic correction `e_ab` (the length
 of the circle about `a` through `b` over its length inside `win`), and
@@ -70,10 +70,10 @@ relabellings) and `nsim`; `i` and `j`, the types' labels.
 With `sigma`, the segregation test of Diggle, Zheng and Durr (2005)
 across all the types: at each point the share of each type among the
 other points, weighted by a normal kernel of standard deviation `sigma`,
-against the type's overall share,
-`T = sum_points sum_types (p_m - pbar_m)^2`, with a p-value from `nsim`
-random relabellings of the types (`(1 + #{T* >= T}) / (nsim + 1)`), the
-statistic of `spatstat.explore::segregation.test()`.
+against the type's overall share, `T = sum_points sum_types`
+`(p_m - pbar_m)^2`, with a p-value from `nsim` random relabellings of
+the types (`(1 + #{T* >= T}) / (nsim + 1)`), the statistic of
+`spatstat.explore::segregation.test()`.
 
 ## References
 

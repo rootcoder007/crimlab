@@ -157,17 +157,19 @@ values at the cutoff are <code>fl</code> and <code>fr</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The steps, as the paper states them. The bins: <code>g(R) = floor((R - c) / b) b + b / 2 + c</code> (equation 2, p. 702), so no bin straddles the cutoff,
+    <p>The steps, as the paper states them. The bins: <code>g(R) = floor((R - c) / b) b</code>
+<code>+ b / 2 + c</code> (equation 2, p. 702), so no bin straddles the cutoff,
 on a grid of width <code>b</code> over the support, each height the share of the
 rows in the bin over <code>b</code>; the binsize <code>b</code> by default <code>2 s n^(-1/2)</code>
 with <code>s</code> the standard deviation of the running variable (p. 705, step
 1). The bandwidth <code>h</code> by default: a quartic in the bin midpoints on
-each side, <code>3.348 (s2 (b - a) / sum f''(X_j)^2)^(1/5)</code> with <code>s2</code> the
+each side, <code>3.348 (s2 (b - a) / sum</code> <code>f''(X_j)^2)^(1/5)</code> with <code>s2</code> the
 quartic's mean squared error and <code>b - a</code> the side's length, averaged
 over the two sides (p. 705, step 2; the paper calls it a guide for
 subjective choice and halves it to undersmooth in its simulations, p.
 702-703). The estimate: <code>theta = ln f+ - ln f-</code> from the two local-linear
-intercepts, with the standard error <code>sqrt((1 / (n h)) (24 / 5) (1 / f+ + 1 / f-))</code> (equation 5); the test uses the normal.</p>
+intercepts, with the standard error <code>sqrt((1 / (n h)) (24 / 5) (1</code>
+<code>/ f+ + 1 / f-))</code> (equation 5); the test uses the normal.</p>
 <p><code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> draws the bin heights and the smooth of each side,
 the log jump and its p-value in the axis title, and returns a list of
 what it drew (<code>bins</code>, <code>fit</code>).</p>

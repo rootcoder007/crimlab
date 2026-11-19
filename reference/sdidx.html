@@ -129,12 +129,14 @@ and <code>synth</code>, the weighted comparison units); <code>level</code>.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>With <code>N0</code> comparison units, <code>N1</code> treated, <code>T0</code> periods before adoption
-and <code>T1</code> after, the unit weights solve <code>min (1/T0) sum_{t &lt;= T0} (w0 + sum_j w_j y_jt - ybar_1t)^2 + zeta^2 ||w||^2</code> over the simplex, with
+and <code>T1</code> after, the unit weights solve <code>min (1/T0) sum_{t &lt;= T0} (w0</code>
+<code>+ sum_j w_j y_jt -</code> <code>ybar_1t)^2 + zeta^2 ||w||^2</code> over the simplex, with
 <code>zeta = (N1 T1)^(1/4) sigma</code> and <code>sigma</code> the standard deviation of the
 comparison units' first differences before adoption; the time weights
 solve the same problem across comparison units, predicting each unit's
 mean after adoption from its periods before, with <code>zeta = 1e-6 sigma</code>.
-The estimate is <code>(ybar_1,post - sum_t l_t ybar_1t) - sum_j w_j (ybar_j,post - sum_t l_t y_jt)</code>. The weights are the exact solutions of
+The estimate is <code>(ybar_1,post - sum_t l_t</code> <code>ybar_1t) - sum_j w_j</code>
+<code>(ybar_j,post - sum_t l_t</code> <code>y_jt)</code>. The weights are the exact solutions of
 these convex problems (Wolfe's minimum-norm point); the 'synthdid'
 package runs Frank-Wolfe steps and then sparsifies, so its estimate
 differs slightly. The standard error is the placebo one when one unit

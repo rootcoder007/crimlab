@@ -83,7 +83,7 @@ Each estimate is a smooth function of weighted totals; its variance is
 that of the total of its influence values `u_i` (for a mean
 `w_i (y_i - m) / sum w`, a ratio `w_i (y_i - R x_i) / sum w x`, a total
 `w_i y_i`) over the first-stage units within strata:
-`sum_h (1 - f_h) n_h / (n_h - 1) sum_j (U_hj - Ubar_h)^2`, with
+`sum_h (1 - f_h) n_h / (n_h -` `1) sum_j (U_hj - Ubar_h)^2`, with
 `f_h = n_h / N_h` from `fpc` or 0 (first-stage units drawn with
 replacement). These are the estimators of the 'survey' package (Lumley
 2004) with its default treatment of domains: a domain's influence values

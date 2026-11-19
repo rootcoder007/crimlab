@@ -209,7 +209,7 @@ and <code>level</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The model is <code>y_it = b trt_it + adj_it'g + a_i + m_t + e_it</code>, fitted by
+    <p>The model is <code>y_it = b trt_it + adj_it'g +</code> <code>a_i + m_t + e_it</code>, fitted by
 least squares after the within transformation (alternating projections,
 so an unbalanced panel is fine; weights <code>w</code> give weighted least squares
 with weighted means). With <code>fe = "time"</code> the unit effects are left out.
@@ -220,7 +220,8 @@ Miller 2011) with <code>G</code> the smaller number of clusters. Tests and inter
 use Student's t on <code>G - 1</code> degrees of freedom. These are the conventions
 of 'fixest' and Stata's 'reghdfe'. Fewer than ten clusters give a
 warning: <code><a href="wcbx.html">wcbx()</a></code> is the tool for so few.</p>
-<p>With <code>fam = "pois"</code> or <code>"nb"</code> the model is <code>E(y_it) = exp(b trt_it + adj_it'g + a_i + m_t)</code> times the exposure <code>expo</code>, fitted by maximum
+<p>With <code>fam = "pois"</code> or <code>"nb"</code> the model is <code>E(y_it) = exp(b trt_it +</code>
+<code>adj_it'g + a_i + m_t)</code> times the exposure <code>expo</code>, fitted by maximum
 likelihood with dummies for the effects (the steps of <code><a href="cntreg.html">cntreg()</a></code>). Units
 and periods whose counts are all zero carry nothing about <code>b</code> and are
 dropped first. The Poisson estimate is consistent whatever the

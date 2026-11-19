@@ -141,9 +141,16 @@ contours and returns <code>x</code>, <code>y</code> and <code>z</code> invisibly
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The surface is `f(s) = sum_i a_i phi(|s - s_i|) + b_0 + b_1 x</p><ul><li><p>b_2 y<code>with the radial basis</code>phi(r) = r^2 log r<code>(Duchon 1977); the   coefficients solve the linear system</code>(K + lam I) a + T b = z<code>, </code>T'a =
-0<code>, </code>K<code>the basis between the points and</code>T<code>the rows</code>(1, x_i, y_i)<code>  (Wahba 1990, ch. 2). The compiled kernel solves it by LU decomposition   and evaluates the grid. It refuses points that all lie on one line   (the plane is not determined) and, with</code>lam = 0<code>, points that repeat   (the system is singular). </code>fitted<code>is the surface at the points, so  </code>resid<code>is 0 for</code>lam = 0` up to rounding.</p></li>
-</ul></div>
+    <p>The surface is <code>f(s) = sum_i a_i phi(|s -</code>
+<code>s_i|) + b_0 + b_1 x + b_2 y</code> with the radial basis <code>phi(r) = r^2 log r</code>
+(Duchon 1977); the
+coefficients solve the linear system <code>(K + lam I) a + T b = z</code>, <code>T'a = 0</code>, <code>K</code> the basis between the points and <code>T</code> the rows <code>(1, x_i, y_i)</code>
+(Wahba 1990, ch. 2). The compiled kernel solves it by LU decomposition
+and evaluates the grid. It refuses points that all lie on one line
+(the plane is not determined) and, with <code>lam = 0</code>, points that repeat
+(the system is singular). <code>fitted</code> is the surface at the points, so
+<code>resid</code> is 0 for <code>lam = 0</code> up to rounding.</p>
+    </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Duchon, J. (1977). Splines minimizing rotation-invariant

@@ -131,13 +131,12 @@ leads to test); `vcov`, the variance of the estimated event times;
 ## Details
 
 With `G_i` the period unit `i` is first treated and `k = t - G_i`, the
-model is
-`y_it = sum_k g_k 1(t - G_i = k) + adj_it'th + a_i + m_t + e_it` for `k`
-from `-leads` to `lags` but `ref`, the period left out (the one before
-adoption by default). Times beyond the window are binned into its ends
-(`bin = TRUE`) or their rows dropped. Units never treated have every
-indicator 0. The variance, the clusters and the degrees of freedom are
-those of
+model is `y_it = sum_k g_k 1(t - G_i =` `k) + adj_it'th + a_i + m_t +`
+`e_it` for `k` from `-leads` to `lags` but `ref`, the period left out
+(the one before adoption by default). Times beyond the window are binned
+into its ends (`bin = TRUE`) or their rows dropped. Units never treated
+have every indicator 0. The variance, the clusters and the degrees of
+freedom are those of
 [`didfe()`](https://rootcoder007.github.io/crimlab/reference/didfe.md).
 The pre-trend test is the Wald statistic `W = g_pre' V_pre^-1 g_pre`
 over the leads, reported as `F = W / q` on `q` and `G - 1` degrees of

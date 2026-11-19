@@ -1,14 +1,14 @@
 # The false positive rate the other rates imply
 
 Chouldechova's (2017) identity: in any confusion table, the false
-positive rate is `p / (1 - p) (1 - ppv) / ppv (1 - fnr)`, from the base
-rate `p`, the positive predictive value `ppv` and the false negative
-rate `fnr`. So two groups whose scores are equally calibrated (the same
-`ppv`) and miss equally (the same `fnr`) but whose base rates differ
-must have different false positive rates: no score, however it is built,
-can equalise all three. The identity is arithmetic, true of any tool on
-any data; it says which equalities cannot hold together, not which one
-should give way. See `proof("impfpr")`.
+positive rate is `p / (1 - p) (1 - ppv) / ppv` `(1 - fnr)`, from the
+base rate `p`, the positive predictive value `ppv` and the false
+negative rate `fnr`. So two groups whose scores are equally calibrated
+(the same `ppv`) and miss equally (the same `fnr`) but whose base rates
+differ must have different false positive rates: no score, however it is
+built, can equalise all three. The identity is arithmetic, true of any
+tool on any data; it says which equalities cannot hold together, not
+which one should give way. See `proof("impfpr")`.
 
 ## Usage
 

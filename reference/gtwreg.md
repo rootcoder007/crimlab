@@ -83,12 +83,12 @@ the leave-one-out prediction from the fit at `i` without observation `i`
 (computed as `e_i / (1 - S_ii)`, `S` the hat matrix). Kuo and Putra
 choose `tau` and the bandwidth `h` by cross-validation or by "the
 corrected Akaike information criterion" without giving it; the `aicc`
-here is the one of the GWR literature,
-`n log(RSS / n) + n log(2 pi) + n (n + tr S) / (n - 2 - tr S)`. Give
-several values of `h` and `tau` and the pair with the smallest `crit` is
-fitted; all are in `grid`. The local standard errors are `sigma^2` times
-the diagonal of `(X'W_iX)^-1 X'W_i^2 X (X'W_iX)^-1`,
-`sigma^2 = RSS / (n - 2 tr S + tr S'S)`.
+here is the one of the GWR literature, `n log(RSS / n) + n log(2 pi)`
+`+ n (n + tr S) / (n - 2 - tr` `S)`. Give several values of `h` and
+`tau` and the pair with the smallest `crit` is fitted; all are in
+`grid`. The local standard errors are `sigma^2` times the diagonal of
+`(X'W_iX)^-1 X'W_i^2 X (X'W_iX)^-1`, `sigma^2 = RSS / (n - 2 tr S`
+`+ tr S'S)`.
 
 ## References
 

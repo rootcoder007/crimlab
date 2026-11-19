@@ -5,8 +5,8 @@ overlap of two or three lists (police records, hospital records, a
 survey). With two lists the Lincoln-Petersen estimate `n1 n2 / m`
 assumes the lists are independent; when being on one list changes the
 odds of being on the other by at most a factor `kappa`, the truth lies
-within `[n1 n2 / (kappa m), kappa n1 n2 / m]` (`lower`, `upper`), and no
-data can narrow that box. Chapman's estimate
+within `[n1 n2 / (kappa m), kappa n1` `n2 / m]` (`lower`, `upper`), and
+no data can narrow that box. Chapman's estimate
 `(n1 + 1)(n2 + 1) / (m + 1) - 1` is nearly unbiased, with Seber's
 standard error.
 
@@ -48,8 +48,8 @@ An object of class `crcap`, a list: `type` (`"two"` or `"three"`);
 
 With three lists the seven observed cells identify the never-listed cell
 only under an assumption on the three-way interaction of a log-linear
-model: with none, it is `m100 m010 m001 m111 / (m110 m101 m011)`, and a
-three-way log interaction `t` multiplies it by `exp(-t)`; `int` gives
+model: with none, it is `m100 m010 m001 m111 / (m110` `m101 m011)`, and
+a three-way log interaction `t` multiplies it by `exp(-t)`; `int` gives
 that sensitivity. The pairwise estimates are given beside it, each at
 least the number seen on either of its two lists (`floor`). See
 `proof("crcap")`.

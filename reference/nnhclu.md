@@ -5,16 +5,16 @@ groups the groups, order by order (after Johnson 1967, as used for crime
 hot spots). At the first order two points are linked when their distance
 is below the threshold: `fixd`, or the mean nearest-neighbour distance
 expected under complete spatial randomness in an area `area` plus `z`
-standard errors, `0.5 sqrt(A / m) + z sqrt((4 - pi) A / (4 pi)) / m` for
-`m` units, with `z = qnorm(p)` (`p = 0.5` gives the expectation itself,
-smaller `p` a stricter threshold). Points with a linked neighbour are
-taken in decreasing number of links; each one not yet clustered takes
-every unclustered point linked to it; groups of at least `minpts` points
-are kept. Their centres of minimum distance become the units of the next
-order, with the threshold recomputed for their number, while at least
-four remain, up to `maxord` orders. The iterative reassignment some
-descriptions add after the first pass is not done: its rule is not
-stated unambiguously.
+standard errors, `0.5 sqrt(A / m) + z sqrt((4` `- pi) A / (4 pi)) / m`
+for `m` units, with `z = qnorm(p)` (`p = 0.5` gives the expectation
+itself, smaller `p` a stricter threshold). Points with a linked
+neighbour are taken in decreasing number of links; each one not yet
+clustered takes every unclustered point linked to it; groups of at least
+`minpts` points are kept. Their centres of minimum distance become the
+units of the next order, with the threshold recomputed for their number,
+while at least four remain, up to `maxord` orders. The iterative
+reassignment some descriptions add after the first pass is not done: its
+rule is not stated unambiguously.
 
 ## Usage
 

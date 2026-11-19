@@ -5,10 +5,10 @@ crime leads to a custodial sentence of `s` years with probability `q`.
 Over a career the crime rate is `lam / (1 + lam q s)`: the share of
 offending prevented, `lam q s / (1 + lam q s)`, never reaches 1, longer
 or surer sentences lower the rate, and one more year of sentence
-prevents `lam^2 q / ((1 + lam q s) (1 + lam q (s + 1)))` crimes a year,
-less for each year added. A sentence uniform across offenders prevents a
-larger share of the offending of those with the higher rate. The model
-holds the rate fixed over the career and replaces nobody; see
+prevents `lam^2 q / ((1 + lam q s) (1` `+ lam q (s + 1)))` crimes a
+year, less for each year added. A sentence uniform across offenders
+prevents a larger share of the offending of those with the higher rate.
+The model holds the rate fixed over the career and replaces nobody; see
 [`incapr()`](https://rootcoder007.github.io/crimlab/reference/incapr.md)
 for both. See `proof("incap")`.
 

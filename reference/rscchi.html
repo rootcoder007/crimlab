@@ -136,10 +136,11 @@ coefficient of variation; and <code>des</code> (<code>n</code>, <code>strata</co
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The cell proportions <code>p</code> are weighted; Pearson's <code>X^2</code> is computed on
-them scaled to the number of respondents <code>n</code>, <code>X^2 = n sum (p_ij - p_i. p_.j)^2 / (p_i. p_.j)</code>. Their covariance <code>V</code> comes by linearisation
+them scaled to the number of respondents <code>n</code>, <code>X^2 = n sum (p_ij - p_i.</code>
+<code>p_.j)^2 / (p_i. p_.j)</code>. Their covariance <code>V</code> comes by linearisation
 over the first-stage units within strata, as <code><a href="svymx.html">svymx()</a></code> reads the design
 (Lumley 2004). The generalised design effects <code>deff</code> are the
-eigenvalues of <code>Delta = (C' D^-1 C / n)^-1 (C' D^-1 V D^-1 C)</code>, <code>C</code> a
+eigenvalues of <code>Delta = (C' D^-1 C / n)^-1</code> <code>(C' D^-1 V D^-1 C)</code>, <code>C</code> a
 basis of the interaction contrasts and <code>D</code> the diagonal of <code>p</code> (Rao and
 Scott 1984). The tests: <code>pearson</code>, <code>X^2</code> on <code>K = (r - 1)(c - 1)</code>
 degrees of freedom, wrong under the design; <code>rs1</code>, the first-order

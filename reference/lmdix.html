@@ -190,16 +190,17 @@ and <code>refkind</code>.</p>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The identity is built as a chain from the quantities <code>q_1, ..., q_m</code>
-(the columns of <code>q</code>, in order): <code>y = (y / q_1) (q_1 / q_2) ... (q_{m-1} / q_m) q_m</code>, <code>m + 1</code> factors that multiply to <code>y</code> whatever the
+(the columns of <code>q</code>, in order): <code>y = (y / q_1) (q_1 / q_2)</code>
+<code>... (q_{m-1} / q_m) q_m</code>, <code>m + 1</code> factors that multiply to <code>y</code> whatever the
 quantities. Duan et al.'s eq 1 is the chain of population <code>P</code>, area
 <code>S</code>, emissions <code>W</code>, GDP, population again and the unemployed <code>UN</code>:
-<code>CPEs = CPER x PD x EIPA^-1 x PEI x EDL x UR^-1 x UN</code>, the case rate
+<code>CPEs = CPER x PD x EIPA^-1 x</code> <code>PEI x EDL x UR^-1 x UN</code>, the case rate
 per head, population density, area per unit of emission, emission per
 unit of GDP, GDP per head, people per unemployed person and the
 unemployed (see the example). The factor values themselves, the rates
 of the identity, are returned in <code>fac</code>.</p>
 <p>With <code>type = "time"</code> the change of each unit between consecutive
-periods of <code>at</code> is <code>y_T - y_O = sum_j L(y_T, y_O) ln(f_jT / f_jO)</code> (eqs
+periods of <code>at</code> is <code>y_T - y_O = sum_j L(y_T,</code> <code>y_O) ln(f_jT / f_jO)</code> (eqs
 2-3), <code>L(a, b) = (a - b) / (ln a - ln b)</code> the logarithmic mean; a unit
 missing either period is left out. With <code>type = "space"</code> each unit of
 each period in <code>at</code> is set against a reference region of the same

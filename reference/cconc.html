@@ -162,7 +162,7 @@ with fewer than three units with events); <code>grow</code>, <code>NULL</code> o
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>The Gini coefficient here is the population form, <code>1 - sum p (L[i-1] + L[i])</code> over the units in ascending order (<code>p</code> a unit's share of the
 units, <code>L</code> the cumulative share of the total), which for unit weights is
-<code>2 sum i x[(i)] / (n T) - (n + 1) / n</code>. It splits exactly as <code>zero + (1 - zero) gpos</code>, the share of units at zero plus the rest times the
+<code>2 sum i x[(i)] / (n T) - (n</code> <code>+ 1) / n</code>. It splits exactly as <code>zero + (1 - zero) gpos</code>, the share of units at zero plus the rest times the
 Gini of the units with events; <code>gnull</code> is the same split at the share of
 zeros a Poisson process at the observed mean leaves, <code>exp(-mean)</code>. The
 variance over the mean (<code>disp</code>) is 1 for Poisson counts, and its excess

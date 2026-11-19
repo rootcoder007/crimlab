@@ -55,19 +55,19 @@ the weighted comparison units); `level`.
 ## Details
 
 With `N0` comparison units, `N1` treated, `T0` periods before adoption
-and `T1` after, the unit weights solve
-`min (1/T0) sum_{t <= T0} (w0 + sum_j w_j y_jt - ybar_1t)^2 + zeta^2 ||w||^2`
-over the simplex, with `zeta = (N1 T1)^(1/4) sigma` and `sigma` the
-standard deviation of the comparison units' first differences before
-adoption; the time weights solve the same problem across comparison
-units, predicting each unit's mean after adoption from its periods
-before, with `zeta = 1e-6 sigma`. The estimate is
-`(ybar_1,post - sum_t l_t ybar_1t) - sum_j w_j (ybar_j,post - sum_t l_t y_jt)`.
-The weights are the exact solutions of these convex problems (Wolfe's
-minimum-norm point); the 'synthdid' package runs Frank-Wolfe steps and
-then sparsifies, so its estimate differs slightly. The standard error is
-the placebo one when one unit is treated (a comparison unit drawn at
-random treated as if adopting, the weights solved again, `reps` times;
+and `T1` after, the unit weights solve `min (1/T0) sum_{t <= T0} (w0`
+`+ sum_j w_j y_jt -` `ybar_1t)^2 + zeta^2 ||w||^2` over the simplex,
+with `zeta = (N1 T1)^(1/4) sigma` and `sigma` the standard deviation of
+the comparison units' first differences before adoption; the time
+weights solve the same problem across comparison units, predicting each
+unit's mean after adoption from its periods before, with
+`zeta = 1e-6 sigma`. The estimate is `(ybar_1,post - sum_t l_t`
+`ybar_1t) - sum_j w_j` `(ybar_j,post - sum_t l_t` `y_jt)`. The weights
+are the exact solutions of these convex problems (Wolfe's minimum-norm
+point); the 'synthdid' package runs Frank-Wolfe steps and then
+sparsifies, so its estimate differs slightly. The standard error is the
+placebo one when one unit is treated (a comparison unit drawn at random
+treated as if adopting, the weights solved again, `reps` times;
 `sqrt((reps - 1) / reps)` times the standard deviation), and otherwise
 the jackknife over units with the weights held (Arkhangelsky et al.
 2021, algorithms 3 and 4; `NA` when one comparison unit carries all the

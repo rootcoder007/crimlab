@@ -85,7 +85,7 @@ cumulative sum \(s_t = \max(0, s_{t-1} + z_t - k)\) of the
 standardised excess \(z_t\) raises an alarm where \(s_t \ge h\).
 The expected counts are given (<code>expd</code>), or are the mean of the counts
 before <code>start</code>, the first period watched. <code>z</code> is <code>(y - m) / sqrt(m)</code>
-(<code>"std"</code>), Rossi's transform <code>(y - 3 m + 2 sqrt(y m)) / (2 sqrt(m))</code>
+(<code>"std"</code>), Rossi's transform <code>(y - 3 m + 2 sqrt(y m)) / (2</code> <code>sqrt(m))</code>
 (<code>"rossi"</code>), Anscombe's <code>1.5 (y^(2/3) - m^(2/3)) / m^(1/6)</code>
 (<code>"anscombe"</code>) or the count itself (<code>"none"</code>, for <code>k</code> and <code>h</code> on the
 count scale). With <code>reset</code> the sum starts again from 0 after an alarm.</p>

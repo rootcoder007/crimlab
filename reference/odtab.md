@@ -57,9 +57,9 @@ have been replaced between the two requests) and, if the file still does
 not match, it is deleted and `odtab()` stops. A table the manifest lists
 without a SHA-256 cannot be checked and is not loaded.
 
-Tables are kept in `tools::R_user_dir("crimlab", "cache")`. A kept file
-is used again only while its SHA-256 is the one the manifest lists now;
-otherwise, or with `refresh = TRUE`, the table is downloaded again.
+Tables are kept in `tools::R_user_dir("crimlab",` `"cache")`. A kept
+file is used again only while its SHA-256 is the one the manifest lists
+now; otherwise, or with `refresh = TRUE`, the table is downloaded again.
 
 The file is read as CSV (RFC 4180): fields separated by commas, a field
 in double quotes may hold commas, line breaks and doubled quotes, lines

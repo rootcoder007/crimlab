@@ -1,7 +1,7 @@
 # Global Moran's I with its inference
 
 Moran's (1950) I of values on units with spatial weights `w`: with
-`z = x - mean(x)`, `I = n / S0 sum_ij w_ij z_i z_j / sum z_i^2`, its
+`z = x - mean(x)`, `I = n / S0 sum_ij w_ij z_i` `z_j / sum z_i^2`, its
 expectation `-1 / (n - 1)` and its variance under normality and under
 randomisation (Cliff and Ord 1981), the z statistics and their upper
 normal tails (positive autocorrelation: neighbours alike), and, with

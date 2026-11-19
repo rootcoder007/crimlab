@@ -81,7 +81,7 @@ overlap of two or three lists (police records, hospital records, a
 survey). With two lists the Lincoln-Petersen estimate <code>n1 n2 / m</code>
 assumes the lists are independent; when being on one list changes the
 odds of being on the other by at most a factor <code>kappa</code>, the truth lies
-within <code>[n1 n2 / (kappa m), kappa n1 n2 / m]</code> (<code>lower</code>, <code>upper</code>), and no
+within <code>[n1 n2 / (kappa m), kappa n1</code> <code>n2 / m]</code> (<code>lower</code>, <code>upper</code>), and no
 data can narrow that box. Chapman's estimate <code>(n1 + 1)(n2 + 1) / (m + 1) - 1</code> is nearly unbiased, with Seber's standard error.</p>
     </div>
 
@@ -124,7 +124,7 @@ missing cell (three lists).</p></dd>
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
     <p>With three lists the seven observed cells identify the never-listed cell
 only under an assumption on the three-way interaction of a log-linear
-model: with none, it is <code>m100 m010 m001 m111 / (m110 m101 m011)</code>, and a
+model: with none, it is <code>m100 m010 m001 m111 / (m110</code> <code>m101 m011)</code>, and a
 three-way log interaction <code>t</code> multiplies it by <code>exp(-t)</code>; <code>int</code> gives
 that sensitivity. The pairwise estimates are given beside it, each at
 least the number seen on either of its two lists (<code>floor</code>). See

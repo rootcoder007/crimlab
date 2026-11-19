@@ -71,11 +71,10 @@ jtsurf(
 ## Value
 
 A list. `raw` and `prob`, matrices of `nx` rows (across) and `ny`
-columns (up), cell `[i, j]` centred at
-`(xmin + (i - 1/2) dx, ymin + (j - 1/2) dy)`: the surface and its
-normalised version (summing to 1). `peak`, a named vector: `cell` (the
-first cell of maximum value, numbered down the columns of the matrix),
-`x` and `y` (its centre).
+columns (up), cell `[i, j]` centred at `(xmin + (i - 1/2) dx, ymin +`
+`(j - 1/2) dy)`: the surface and its normalised version (summing to 1).
+`peak`, a named vector: `cell` (the first cell of maximum value,
+numbered down the columns of the matrix), `x` and `y` (its centre).
 
 ## Details
 

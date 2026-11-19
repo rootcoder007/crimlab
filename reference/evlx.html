@@ -131,7 +131,8 @@ standardised difference.</p></dd>
     <p>For a risk ratio <code>RR &gt;= 1</code> the E-value is <code>RR + sqrt(RR (RR - 1))</code>; a
 ratio below 1 is inverted first. An odds or hazard ratio is a risk ratio
 when the outcome is rare (<code>rare = TRUE</code>); otherwise an odds ratio is
-taken to <code>sqrt(OR)</code> and a hazard ratio to <code>(1 - 0.5^sqrt(HR)) / (1 - 0.5^sqrt(1 / HR))</code>. A standardised mean difference <code>d</code> is taken to
+taken to <code>sqrt(OR)</code> and a hazard ratio to <code>(1 - 0.5^sqrt(HR)) / (1 -</code>
+<code>0.5^sqrt(1 / HR))</code>. A standardised mean difference <code>d</code> is taken to
 <code>exp(0.91 d)</code>, its limits to <code>exp(0.91 d -+ 1.78 sd)</code> from its standard
 error <code>sd</code>. The limit's E-value is 1 when the interval holds the null.
 These are the conversions of the 'EValue' package.</p>

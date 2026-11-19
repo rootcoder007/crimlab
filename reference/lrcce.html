@@ -110,13 +110,14 @@ units by rows of the table).</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>A dynamic panel <code>y_it = mu_i + sum_l lambda_l,i y_i,t-l + sum_l beta_l,i x_i,t-l + averages + e_it</code> fitted unit by unit (<code><a href="ccepnl.html">ccepnl()</a></code>
+    <p>A dynamic panel <code>y_it = mu_i + sum_l</code> <code>lambda_l,i y_i,t-l + sum_l</code>
+<code>beta_l,i x_i,t-l + averages</code> <code>+ e_it</code> fitted unit by unit (<code><a href="ccepnl.html">ccepnl()</a></code>
 with <code>ylag</code> lags of <code>y</code> and the lags of <code>x</code> as columns of its <code>x</code>) has
 the long-run effect of <code>x</code> on the steady state of <code>y</code>
-<code>theta_i = sum_l beta_l,i / (1 - sum_l lambda_l,i)</code> (Ditzen 2021, eq. 3
+<code>theta_i = sum_l beta_l,i /</code> <code>(1 - sum_l lambda_l,i)</code> (Ditzen 2021, eq. 3
 and sec. 3.2). Each unit's <code>theta_i</code> is computed from its estimates;
 the mean group estimate is their mean and its variance the mean
-group variance <code>sum_i (theta_i - mean)^2 / (N (N - 1))</code> (Pesaran and
+group variance <code>sum_i (theta_i - mean)^2 /</code> <code>(N (N - 1))</code> (Pesaran and
 Smith 1995, as Chudik et al. 2016 apply it). The adjustment speed
 <code>phi_i = 1 - sum_l lambda_l,i</code> of the error-correction form (Ditzen
 2021, sec. 3.1) is reported the same way as <code>"phi"</code>.</p>

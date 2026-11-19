@@ -7,20 +7,20 @@ incident location times windows `[s, s + tw)` that start at each
 distinct incident time. A cylinder holding `c` incidents, of `n_C` in
 its circle (at any time) and `n_W` in its window (anywhere), expects
 `e = n_C n_W / n` when place and time are independent, and scores the
-Poisson log-likelihood ratio
-`c log(c / e) + (n - c) log((n - c) / (n - e))` when `c > e`, 0
-otherwise (Kulldorff 1997). The most likely cluster has the largest
-ratio; secondary clusters follow in order of their ratio, each the best
-of its circle among those whose circles overlap none chosen before. Each
-p-value compares the cluster's ratio with the largest ratio of the whole
-scan with the times shuffled among the locations `nsim` times from
-`seed`, so a secondary cluster's p-value is conservative. The shuffles
-run over the incidents in the order of their coordinates and times, so
-the clusters and the p-values do not depend on the order of the rows; a
-tie in the ratio goes to the centre first in that order. That the ratio
-is never negative is proved in Lean: see `proof("kscan")`. The work
-grows as the number of locations times `length(r)` times the distinct
-times times `length(tw)`, for the scan and for each permutation.
+Poisson log-likelihood ratio `c log(c / e) + (n - c)`
+`log((n - c) / (n - e))` when `c > e`, 0 otherwise (Kulldorff 1997). The
+most likely cluster has the largest ratio; secondary clusters follow in
+order of their ratio, each the best of its circle among those whose
+circles overlap none chosen before. Each p-value compares the cluster's
+ratio with the largest ratio of the whole scan with the times shuffled
+among the locations `nsim` times from `seed`, so a secondary cluster's
+p-value is conservative. The shuffles run over the incidents in the
+order of their coordinates and times, so the clusters and the p-values
+do not depend on the order of the rows; a tie in the ratio goes to the
+centre first in that order. That the ratio is never negative is proved
+in Lean: see `proof("kscan")`. The work grows as the number of locations
+times `length(r)` times the distinct times times `length(tw)`, for the
+scan and for each permutation.
 
 ## Usage
 

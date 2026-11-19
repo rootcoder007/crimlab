@@ -84,7 +84,7 @@ places (`NULL` for counts).
 The Gini coefficient here is the population form,
 `1 - sum p (L[i-1] + L[i])` over the units in ascending order (`p` a
 unit's share of the units, `L` the cumulative share of the total), which
-for unit weights is `2 sum i x[(i)] / (n T) - (n + 1) / n`. It splits
+for unit weights is `2 sum i x[(i)] / (n T) - (n` `+ 1) / n`. It splits
 exactly as `zero + (1 - zero) gpos`, the share of units at zero plus the
 rest times the Gini of the units with events; `gnull` is the same split
 at the share of zeros a Poisson process at the observed mean leaves,

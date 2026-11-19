@@ -2,8 +2,8 @@
 
 Whether high values of one variable sit next to high values of another
 (Wartenberg 1985): with `zx` and `zy` the centred values,
-`I = n / S0 sum_ij w_ij zx_i zy_j / sqrt(sum zx^2 sum zy^2)`, which is
-Moran's I
+`I = n / S0 sum_ij w_ij zx_i` `zy_j / sqrt(sum zx^2 sum` `zy^2)`, which
+is Moran's I
 ([`gmoran()`](https://rootcoder007.github.io/crimlab/reference/gmoran.md))
 when `y` is `x` (proved in Lean: see `proof("bvmor")`) and, with
 row-standardised weights, `spdep::moran_bv()`'s statistic. Inference is
@@ -46,7 +46,7 @@ bvmor(x, y, w, nsim = 999, seed = NULL)
 A named numeric vector: `i`, `mean` and `sd` (of the permuted
 statistics), `z` (`(i - mean) / sd`), `p`
 (`(1 + #{I* >= I}) / (nsim + 1)`) and `ptwo`
-(`(1 + min(#{I* >= I}, #{I* <= I})) / (nsim + 1)`); `NaN` without
+(`(1 + min(#{I* >= I}, #{I* <=` `I})) / (nsim + 1)`); `NaN` without
 permutations.
 
 ## References

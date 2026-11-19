@@ -162,7 +162,7 @@ for `se = "quasi"` (else `NA`); `ncl`, the number of clusters (rows for
 
 ## Details
 
-The model is `E(y | x) = exp(x'b + a_i + g_t + log(expo))`. Poisson
+The model is `E(y | x) = exp(x'b + a_i +` `g_t + log(expo))`. Poisson
 pseudo-maximum likelihood (Santos Silva and Tenreyro 2006) needs only
 that mean to be right: the counts need not be Poisson, their variance
 need not equal their mean, and zero counts are kept (a regression of the
@@ -251,8 +251,8 @@ of clusters, or `n / (n - 1)` for `"hc1"` and `"nw"`; `"nk"` that times
 `(n - 1) / (n - K)`, `K` the coefficients, an intercept and the levels
 less one of each fixed effect not nested in a cluster (fixest's default
 for clustered errors); `"none"` no factor. `"cluster"` with `"G"` equals
-`fixest::fepois()` with
-`ssc(K.adj = FALSE, G.adj = TRUE, G.df = "min")`.
+`fixest::fepois()` with `ssc(K.adj = FALSE, G.adj =`
+`TRUE, G.df = "min")`.
 
 Two-way clustering (`twc`, `psd`), as Cameron, Gelbach and Miller (2011,
 p. 241) give it: `twc = "min"` (the default, their second method and

@@ -163,15 +163,16 @@ for the outcome: a pilot `h1 = 1.84 S_X N^(-1/5)` for the density and
 the variances at the cutoff, a cubic with a jump for the third
 derivative, local quadratics within `h2` for the second derivatives, the
 regularisation terms `2160 sigma^2 / (N2 h2^4)`, and
-`h = C_K ((sigma-^2 + sigma+^2) / (f (dm^2 + r+ + r-)))^(1/5) N^(-1/5)`
-with `C_K = (C2 / (4 C1))^(1/5)` from the kernel's moments (their Lemma
-3.1; 3.4375 for the triangle, 2.70 for the uniform on `[-1, 1]`, which
-is their 5.40 for the uniform on `[-1/2, 1/2]`). For a fuzzy design it
-is the outcome's bandwidth, the simplification the paper offers (p.
-946); its fuzzy formula (equation 24) is not built, as the paper does
-not say at which bandwidth its preliminary `tau` is estimated. `"user"`:
-the bandwidth `h`. The selector of Calonico, Cattaneo and Titiunik
-(2014, section 4) is not built.
+`h = C_K ((sigma-^2 +` `sigma+^2) / (f (dm^2 + r+ +`
+`r-)))^(1/5) N^(-1/5)` with `C_K = (C2 / (4 C1))^(1/5)` from the
+kernel's moments (their Lemma 3.1; 3.4375 for the triangle, 2.70 for the
+uniform on `[-1, 1]`, which is their 5.40 for the uniform on
+`[-1/2, 1/2]`). For a fuzzy design it is the outcome's bandwidth, the
+simplification the paper offers (p. 946); its fuzzy formula (equation
+24) is not built, as the paper does not say at which bandwidth its
+preliminary `tau` is estimated. `"user"`: the bandwidth `h`. The
+selector of Calonico, Cattaneo and Titiunik (2014, section 4) is not
+built.
 
 Intervals (`ci`): both are returned in `coef`, the one named first.
 `"robust"` (the default): Calonico, Cattaneo and Titiunik (2014) bias-

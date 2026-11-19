@@ -1,19 +1,19 @@
 # Direct, indirect and total effects of a spatial lag model
 
 In a model with a spatial lag of the outcome,
-`y = rho W y + X beta + W X theta + e`, a change in covariate `k` at
-every unit moves the outcomes by
-`S_k = (I - rho W)^-1 (beta_k I + theta_k W)`: the mean of its diagonal
-is the direct effect, the mean row sum the total, and their difference
-the indirect effect, the spillover to other units (LeSage and Pace
-2009). An analysis that reads `beta_k` alone can report "no effect"
-where the effect is all spillover. With row-standardised weights the
-total is `(beta_k + theta_k) / (1 - rho)`, proved in Lean: see
-`proof("spill")`. Standard errors are by the delta method in `rho`,
-`beta_k` and `theta_k`, with the exact derivatives
-`d (I - rho W)^-1 / d rho = (I - rho W)^-1 W (I - rho W)^-1`. The
-effects are those of `spatialreg::impacts()`, which gives simulated
-rather than delta-method standard errors.
+`y = rho W y + X beta + W X` `theta + e`, a change in covariate `k` at
+every unit moves the outcomes by `S_k = (I - rho W)^-1 (beta_k`
+`I + theta_k W)`: the mean of its diagonal is the direct effect, the
+mean row sum the total, and their difference the indirect effect, the
+spillover to other units (LeSage and Pace 2009). An analysis that reads
+`beta_k` alone can report "no effect" where the effect is all spillover.
+With row-standardised weights the total is
+`(beta_k + theta_k) / (1 - rho)`, proved in Lean: see `proof("spill")`.
+Standard errors are by the delta method in `rho`, `beta_k` and
+`theta_k`, with the exact derivatives `d (I - rho W)^-1 / d rho =`
+`(I - rho W)^-1 W (I - rho` `W)^-1`. The effects are those of
+`spatialreg::impacts()`, which gives simulated rather than delta-method
+standard errors.
 
 ## Usage
 

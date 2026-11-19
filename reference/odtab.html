@@ -133,7 +133,7 @@ table may have been replaced between the two requests) and, if the
 file still does not match, it is deleted and <code>odtab()</code> stops. A table
 the manifest lists without a SHA-256 cannot be checked and is not
 loaded.</p>
-<p>Tables are kept in <code>tools::R_user_dir("crimlab", "cache")</code>. A kept
+<p>Tables are kept in <code>tools::R_user_dir("crimlab",</code> <code>"cache")</code>. A kept
 file is used again only while its SHA-256 is the one the manifest lists
 now; otherwise, or with <code>refresh = TRUE</code>, the table is downloaded again.</p>
 <p>The file is read as CSV (RFC 4180): fields separated by commas, a field

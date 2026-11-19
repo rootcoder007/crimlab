@@ -1,13 +1,13 @@
 # Geary's C
 
 Geary's (1954) contiguity ratio of values on units with spatial weights
-`w`: `C = (n - 1) sum w_ij (x_i - x_j)^2 / (2 S0 sum (x_i - xbar)^2)`, 1
-under no autocorrelation, below 1 when neighbours are alike. Its
-variance is given under normality and under randomisation (Cliff and Ord
-1981), with z statistics `(1 - C) / sd` and their upper normal tails,
-and, with `nsim > 0`, a permutation p-value against positive
-autocorrelation. That C has expectation 1 under randomisation is proved
-in Lean: see `proof("gearc")`.
+`w`: `C = (n - 1) sum w_ij (x_i -` `x_j)^2 / (2 S0 sum (x_i -`
+`xbar)^2)`, 1 under no autocorrelation, below 1 when neighbours are
+alike. Its variance is given under normality and under randomisation
+(Cliff and Ord 1981), with z statistics `(1 - C) / sd` and their upper
+normal tails, and, with `nsim > 0`, a permutation p-value against
+positive autocorrelation. That C has expectation 1 under randomisation
+is proved in Lean: see `proof("gearc")`.
 
 ## Usage
 

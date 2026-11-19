@@ -161,10 +161,12 @@ regression. The cross-validation score is <code>sum (y_i - y_(-i))^2</code> (eq
 observation <code>i</code> (computed as <code>e_i / (1 - S_ii)</code>, <code>S</code> the hat matrix).
 Kuo and Putra choose <code>tau</code> and the bandwidth <code>h</code> by cross-validation or
 by "the corrected Akaike information criterion" without giving it; the
-<code>aicc</code> here is the one of the GWR literature, <code>n log(RSS / n) + n log(2 pi) + n (n + tr S) / (n - 2 - tr S)</code>. Give several values of <code>h</code> and
+<code>aicc</code> here is the one of the GWR literature, <code>n log(RSS / n) + n log(2 pi)</code>
+<code>+ n (n + tr S) / (n - 2 - tr</code> <code>S)</code>. Give several values of <code>h</code> and
 <code>tau</code> and the pair with the smallest <code>crit</code> is fitted; all are in
 <code>grid</code>. The local standard errors are <code>sigma^2</code> times the diagonal of
-<code>(X'W_iX)^-1 X'W_i^2 X (X'W_iX)^-1</code>, <code>sigma^2 = RSS / (n - 2 tr S + tr S'S)</code>.</p>
+<code>(X'W_iX)^-1 X'W_i^2 X (X'W_iX)^-1</code>, <code>sigma^2 = RSS / (n - 2 tr S</code>
+<code>+ tr S'S)</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
