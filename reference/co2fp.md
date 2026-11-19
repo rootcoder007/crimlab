@@ -235,9 +235,9 @@ Quantifying the carbon emissions of machine learning. arXiv:1910.09700.
 ``` r
 fp <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON")
 fp$enekwh$total
-#> [1] 2.684137e-08
+#> [1] 2.684117e-08
 fp$co2eg
-#> [1] 2.441759e-06
+#> [1] 2.441741e-06
 fp$co2int$year
 #> [1] 2024
 fp$assumptions
@@ -297,9 +297,9 @@ dev <- data.frame(
 fp3 <- co2fp(sum(sqrt(seq_len(2e5))), loc = "CA-ON", cpupwrw = 65,
              memgb = 16, mthd = "model", devices = dev)
 fp3$devices
-#>   kind  vendor      name               how          kwh counted
-#> 1  gpu example    card 0 simulated reading 6.666667e-08    TRUE
-#> 2  cpu example package 0 simulated reading          NaN   FALSE
+#>   kind  vendor      name               how   kwh counted
+#> 1  gpu example    card 0 simulated reading 1e-07    TRUE
+#> 2  cpu example package 0 simulated reading   NaN   FALSE
 #>                                      note
 #> 1              average power over the run
 #> 2 already counted as CPU or memory energy
