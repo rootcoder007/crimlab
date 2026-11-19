@@ -72,6 +72,28 @@
   [`yoypx()`](https://rootcoder007.github.io/crimlab/reference/yoypx.md)
   with `what = "value"` draws the values over the periods.
 
+- Outside R the plots are drawn too. `plotsvg()` (Python, Go, Rust,
+  Java, JavaScript and the command line) runs a plot function on its
+  arguments and returns the picture as a standalone SVG document with
+  the rows drawn:
+  [`plotlrnz()`](https://rootcoder007.github.io/crimlab/reference/plotlrnz.md),
+  [`plotgain()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotcdfs()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotrdg()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotvln()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plothex()`](https://rootcoder007.github.io/crimlab/reference/plotrdg.md),
+  [`plotfnl()`](https://rootcoder007.github.io/crimlab/reference/plotlrnz.md),
+  [`plotcal()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plotmult()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plotbump()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plothrz()`](https://rootcoder007.github.io/crimlab/reference/plotcal.md),
+  [`plotevgrid()`](https://rootcoder007.github.io/crimlab/reference/plotevgrid.md)
+  and
+  [`plotcoh()`](https://rootcoder007.github.io/crimlab/reference/plotcoh.md),
+  with the look of the R plots (black and grey, a black frame, a bold
+  title; `palette = "okabe"` for colours, `grid = TRUE` for a grid). One
+  drawing code in the C++ core serves every language.
+
 - [`plot()`](https://rdrr.io/r/graphics/plot.default.html) of
   [`synthc()`](https://rootcoder007.github.io/crimlab/reference/synthc.md)
   and
